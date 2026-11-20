@@ -128,8 +128,8 @@ theorem toLinearMap₂'_J_eq_zero_of_mem_genEigenspace {A : Matrix (l ⊕ l) (l 
     rw [Module.End.mul_eq_comp, ← toLin'_mul, nonsing_inv_mul A hdet,
       toLin'_one, Module.End.one_eq_id]
   rcases eq_or_ne ν 0 with rfl | hν
-  · have hinj : Function.Injective (toLin' A) := fun x y hxy ↦ by
-      simpa only [← mul_apply_eq_comp, hgf, one_apply_eq_self] using congr_arg (toLin' A⁻¹) hxy
+  · have hinj : Function.Injective (toLin' A) :=
+      Matrix.mulVec_injective_iff_isUnit.2 ((Matrix.isUnit_iff_isUnit_det A).2 hdet)
     rw [Module.End.genEigenspace_zero_eq_bot_of_injective hinj, Submodule.mem_bot] at hw
     rw [hw, map_zero]
   have hadj : LinearMap.IsAdjointPair (toLinearMap₂' K (J l K)) (toLinearMap₂' K (J l K))
@@ -139,7 +139,7 @@ theorem toLinearMap₂'_J_eq_zero_of_mem_genEigenspace {A : Matrix (l ⊕ l) (l 
     calc Aᵀ * J l K = Aᵀ * J l K * (A * A⁻¹) := by rw [mul_nonsing_inv A hdet, Matrix.mul_one]
       _ = J l K * A⁻¹ := by rw [← Matrix.mul_assoc, h]
   refine hadj.apply_eq_zero_of_mem_genEigenspace (ν := ν⁻¹) ?_ hv
-    (Module.End.mem_genEigenspace_inv hfg hgf hν hw)
+    (Module.End.mem_genEigenspace_inv hfg hgf hw)
   refine (sub_ne_zero.2 fun h ↦ hμν ?_).isUnit
   rw [h, inv_mul_cancel₀ hν]
 
