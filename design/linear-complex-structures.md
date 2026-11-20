@@ -95,7 +95,7 @@ These settle the questions that `DESIGN.md` leaves to this file.
    $J^2=-1$), so it is locally compact and Hausdorff, hence Baire. The general
    statement goes into a file of its own, as a sibling of Tau Ceti's compact
    version, so that it can move there.
-3. **The model of $\mathrm{GL}(2n,\mathbb{R})/\mathrm{GL}(n,\mathbb{C})$** is
+3. **The model of GL(2n,ℝ)/GL(n,ℂ)** is
    Mathlib's quotient `GL (ι ⊕ ι) ℝ ⧸ (Matrix.GeneralLinearGroup.realify ι ℂ).range`
    by the realified group, with its quotient topology.
 4. **The model of $\mathrm{SO}(2n)/\mathrm{U}(n)$** is Mathlib's quotient
