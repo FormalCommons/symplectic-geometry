@@ -53,7 +53,7 @@ Tau Ceti paths are relative to `.lake/packages/TauCeti/TauCeti/`, as in
   equivalence), and because the rigidity theorem starts from a linear map. No
   new predicate is defined for it. Either identity forces `Ψ` to be injective,
   hence an equivalence
-  (`TauCeti.SymplecticForm.bijective_of_pullback_eq_or_eq_neg` below). The anti-symplectic
+  (`TauCeti.SymplecticForm.bijective_of_forall_apply_eq_or_forall_apply_eq_neg` below). The anti-symplectic
   maps are the compositions of symplectic ones with the reflection `stdConj ι`
   ($y\mapsto -y$), which is how their properties are proved.
 
@@ -92,9 +92,11 @@ Further choices of this design:
 - **Dimension zero.** For `ι` empty, `StdSpace ι` is a point. Every nonempty
   set then has width `∞`, the spectrum is empty, there are no cylinders, and
   every linear map is both symplectic and anti-symplectic. The theorems below
-  hold there as stated, without a `Nonempty ι` hypothesis, except that the
-  width of an ellipsoid is stated for a radius in the spectrum, which exists
-  only if `ι` is nonempty.
+  hold there as stated, without a `Nonempty ι` hypothesis, with two
+  exceptions: the width of an ellipsoid is stated for a radius in the
+  spectrum, which exists only if `ι` is nonempty, and
+  `linearSymplecticWidth_image_closedBall` takes `[Nonempty ι]`, since in
+  dimension zero a ball is a point, of width `∞`.
 
 ## Files and their contents
 
@@ -132,12 +134,15 @@ has the name of a Tau Ceti file at the same place.
 In Tau Ceti's namespace `TauCeti.SymplecticForm`, for `V` a real module of
 finite dimension and `ω : TauCeti.SymplecticForm V`:
 
-- `bijective_of_pullback_eq_or_eq_neg`: a linear map `Ψ : V →ₗ[ℝ] V` with
+- `bijective_of_forall_apply_eq_or_forall_apply_eq_neg`: a linear map
+  `Ψ : V →ₗ[ℝ] V` with
   `(∀ v w, ω (Ψ v) (Ψ w) = ω v w) ∨ ∀ v w, ω (Ψ v) (Ψ w) = -ω v w` is
-  bijective: it is injective by nondegeneracy (`ω.nondegenerate`), hence
-  bijective in finite dimension; `LinearEquiv.ofBijective` makes it an
-  equivalence. The case of `stdForm ι` is an application, not a separate
-  lemma.
+  bijective. Either identity makes `Ψ` an isometry from `ω.toBilinForm` to
+  `ω.toBilinForm` or to `-ω.toBilinForm`, so Tau Ceti's
+  `LinearMap.BilinForm.Isometry.injective` (with `ω.separatingLeft`) shows
+  it injective, and Mathlib's `LinearMap.injective_iff_surjective` bijective
+  in finite dimension; `LinearEquiv.ofBijective` makes it an equivalence.
+  The case of `stdForm ι` is an application, not a separate lemma.
 
 ### `AffineSymplectic.lean`
 
@@ -182,10 +187,10 @@ For `StdSpace ι`:
 - The anti-symplectic maps, for an equivalence `Ψ` with `hΨ : ∀ z w,
   stdForm ι (Ψ z) (Ψ w) = -stdForm ι z w`, writing `stdConj ι` for its
   underlying linear equivalence:
-  `isSymplectomorphism_trans_stdConj_of_pullback_eq_neg`
+  `isSymplectomorphism_trans_stdConj_of_forall_apply_eq_neg`
   (`Ψ.trans (stdConj ι)` is a symplectomorphism),
-  `isSymplectomorphism_stdConj_trans_of_pullback_eq_neg`
-  (`(stdConj ι).trans Ψ` is one) and `det_eq_neg_one_pow_of_pullback_eq_neg`
+  `isSymplectomorphism_stdConj_trans_of_forall_apply_eq_neg`
+  (`(stdConj ι).trans Ψ` is one) and `det_eq_neg_one_pow_of_forall_apply_eq_neg`
   (`LinearMap.det Ψ = (-1) ^ n`, Exercise 2.4.3, first half, from Tau Ceti's
   `TauCeti.SymplecticForm.IsSymplectomorphism.det_eq_one` and `det_stdConj`).
 - `TauCeti.SymplecticForm.IsSymplectomorphism.adjoint`: for a
@@ -237,8 +242,8 @@ than $r$. Expected size: 150 lines.
   `inr j`) composed with the coordinate equivalence of `EuclideanSpace`, with
   `stdEllipsoidForm_def` and `@[simp] stdEllipsoidForm_apply` in terms of
   `z.x` and `z.y`; `stdEllipsoidForm_posDef` (if no `r j` is `0`), from Tau
-  Ceti's `QuadraticMap.posDef_weightedSumSquares_iff` and
-  `QuadraticMap.PosDef.comp`.
+  Ceti's `EuclideanSpace.posDef_iff_of_forall_eq_sum_mul_sq` with the weights
+  `(r j)⁻¹ ^ 2` on `inl j` and `inr j`.
 - `stdEllipsoid (r : ι → ℝ) : Set (StdSpace ι) := {z | stdEllipsoidForm r z ≤ 1}`,
   the book's $E(r)$, with `stdEllipsoid_def`, `@[simp] mem_stdEllipsoid_iff`,
   `closedBall_subset_stdEllipsoid` (`0 < r j` for all `j` and `r i ≤ r j` for
@@ -254,9 +259,12 @@ than $r$. Expected size: 150 lines.
 Next to Tau Ceti's `QuadraticMap.PosDef.comp`, for quadratic forms on any
 real module:
 
-- `QuadraticMap.PosDef.eq_of_setOf_le_one_eq`: if `Q` and `Q'` are positive
-  definite and `{v | Q v ≤ 1} = {v | Q' v ≤ 1}`, then `Q = Q'`, by
-  homogeneity.
+- `QuadraticMap.PosDef.eq_of_setOf_le_one_eq`: for `hQ : Q.PosDef` and any
+  `Q'`, `{v | Q v ≤ 1} = {v | Q' v ≤ 1}` implies `Q = Q'`. Only `Q` needs to
+  be positive definite: if `Q' v ≤ 0` for some `v ≠ 0`, the whole line
+  through `v` lies in `{v | Q' v ≤ 1}`, on which `Q` is bounded, while
+  `Q (t • v) = t ^ 2 * Q v` is not. So `Q'` is positive away from `0`, and
+  homogeneity concludes.
 - `QuadraticMap.image_setOf_le_one`: for a linear equivalence `e`,
   `e '' {v | Q v ≤ 1} = {v | Q.comp e.symm v ≤ 1}`; that `Q.comp e.symm` is
   positive definite with `Q` is Tau Ceti's `QuadraticMap.PosDef.comp`.
@@ -273,9 +281,12 @@ structure:
   which issue 8 uses.
 - `QuadraticMap.PosDef.exists_linearEquiv_image_closedBall_eq`, the
   converse: for `Q.PosDef`, `{v | Q v ≤ 1}` is the image of `closedBall 0 1`
-  under a linear equivalence. Mathlib's
-  `QuadraticForm.equivalent_signType_weighted_sum_squared` diagonalizes `Q`,
-  and `QuadraticMap.posDef_weightedSumSquares_iff` makes every weight `1`.
+  under a linear equivalence. Tau Ceti's
+  `TauCeti.nonempty_isometryEquiv_toQuadraticForm'_one_of_posDef` gives an
+  isometry from `Q` to the sum of squares on `Fin (finrank ℝ V) → ℝ`;
+  composed with the Euclidean coordinates of an orthonormal basis
+  (`stdOrthonormalBasis`), it carries `Q` to `‖·‖ ^ 2`, whose sublevel set
+  `≤ 1` is `closedBall 0 1`.
 
 ### `Ellipsoid/NormalForm.lean`
 
@@ -303,7 +314,10 @@ its four files together: 350 lines.
 In Tau Ceti's namespace `TauCeti.SymplecticForm`, so that it can join Tau
 Ceti's file of the same name:
 
-- `hamiltonianEnd_comp`: for a symplectomorphism `e` from `ω₁` to `ω₂`,
+- `IsSymplectomorphism.hamiltonianEnd_comp`, beside Tau Ceti's
+  `IsSymplectomorphism.hamiltonianVectorField_comp`: for
+  `he : IsSymplectomorphism ω₁ ω₂ e` (explicit, so that
+  `he.hamiltonianEnd_comp Q` works),
   `ω₁.hamiltonianEnd (Q.comp e) = e.symm ∘ₗ ω₂.hamiltonianEnd Q ∘ₗ e`, from
   Tau Ceti's `eq_hamiltonianEnd_iff` (the defining identity
   `ω (A_Q v) w = polar Q v w`) or from
@@ -332,9 +346,9 @@ Ceti's file of the same name:
   `‖v‖² / 2`): the polar form of `∑ ν_k • elliptic b k` vanishes on distinct
   basis vectors and equals `ν_k` on `q_k` and on `p_k` (Tau Ceti's
   `polar_elliptic`).
-- `IsDarbouxBasis.exists_equiv_eq_of_sum_smul_elliptic_eq`: if
+- `IsDarbouxBasis.exists_perm_eq_of_sum_smul_elliptic_eq`: if
   `∑ k, ν k • elliptic b k = ∑ k, μ k • elliptic c k` for Darboux bases `b`,
-  `c` and positive `ν`, `μ`, then `μ = ν ∘ σ` for an `Equiv.Perm (Fin m)`.
+  `c` and positive `ν`, `μ`, then `∃ σ : Equiv.Perm (Fin m), μ = ν ∘ σ`.
   Proof: by `IsDarbouxBasis.hamiltonianEnd_sum_smul_elliptic_apply_fst` and
   `_snd`, the square of the Hamiltonian endomorphism is $-\nu_k^2$ on the
   plane of `b (k, 0)`, `b (k, 1)`; so for `t > 0` the kernel of
@@ -348,7 +362,8 @@ Expected size of issue 4, both files: 300 lines.
 
 - `exists_perm_eq_of_image_stdEllipsoid_eq`: for positive `r`, `r'` and a symplectomorphism `e`,
   `e '' stdEllipsoid r = stdEllipsoid r'` implies `∃ σ : Equiv.Perm ι,
-  r' = r ∘ σ`, from `eq_of_setOf_le_one_eq`, `hamiltonianEnd_comp` and the
+  r' = r ∘ σ`, from `eq_of_setOf_le_one_eq`,
+  `IsSymplectomorphism.hamiltonianEnd_comp` and the
   uniqueness of issue 4 (the elliptic blocks of the standard Darboux basis of
   `StdSpace ι` are $(x_j^2+y_j^2)/2$, with $\nu_j=2/r_j^2$). Its corollary
   for `ι = Fin m` and monotone `r`, `r'` is `r = r'`.
@@ -418,7 +433,7 @@ API, with the book's properties of $w_L$ (p. 56) as theorems:
 - `linearSymplecticWidth_mono` (monotone in `A`).
 - `linearSymplecticWidth_image` (invariance: `w (f '' A) = w A` for
   `f ∈ affineSymplecticGroup (stdForm ι)`), and
-  `linearSymplecticWidth_image_of_pullback`: `w (Ψ '' A) = w A` for a linear
+  `linearSymplecticWidth_image_of_forall_apply_eq_or_forall_apply_eq_neg`: `w (Ψ '' A) = w A` for a linear
   map with $\Psi^*\omega_0=\pm\omega_0$ (Exercise 2.4.3, second half, through
   `stdConj`).
 - `linearSymplecticWidth_smul` (conformality): for `c ≠ 0`,
@@ -500,13 +515,13 @@ Search Mathlib for both first. Expected size: 100 lines.
   with `hasLinearNonsqueezing_iff` (the body) and the examples
   `TauCeti.SymplecticForm.IsSymplectomorphism.hasLinearNonsqueezing` (affine
   nonsqueezing) and
-  `hasLinearNonsqueezing_of_pullback` (for $\Psi^*\omega_0=\pm\omega_0$).
+  `hasLinearNonsqueezing_of_forall_apply_eq_or_forall_apply_eq_neg` (for $\Psi^*\omega_0=\pm\omega_0$).
   Translates of balls and cylinders would give the same property, since the
   sets are convex and centrally symmetric; the design follows the atlas.
 - Affine rigidity (Theorem 2.4.2):
 
   ```lean
-  theorem pullback_eq_or_eq_neg_of_hasLinearNonsqueezing
+  theorem forall_apply_eq_or_forall_apply_eq_neg_of_hasLinearNonsqueezing
       (Ψ : StdSpace ι ≃ₗ[ℝ] StdSpace ι) (h : HasLinearNonsqueezing (Ψ : StdSpace ι →ₗ[ℝ] _))
       (h' : HasLinearNonsqueezing (Ψ.symm : StdSpace ι →ₗ[ℝ] _)) :
       (∀ z w, stdForm ι (Ψ z) (Ψ w) = stdForm ι z w) ∨
@@ -516,7 +531,7 @@ Search Mathlib for both first. Expected size: 100 lines.
   and the equivalence `hasLinearNonsqueezing_and_hasLinearNonsqueezing_symm_iff`
   (`HasLinearNonsqueezing Ψ ∧ HasLinearNonsqueezing Ψ.symm` if and only if
   the same disjunction), whose right-to-left direction is
-  `hasLinearNonsqueezing_of_pullback` for `Ψ` and for `Ψ.symm`. Route, which
+  `hasLinearNonsqueezing_of_forall_apply_eq_or_forall_apply_eq_neg` for `Ψ` and for `Ψ.symm`. Route, which
   may be replaced by the book's: a symplectic cylinder `θ '' stdCylinder i R`
   is $\{z:\langle a,z\rangle^2+\langle b,z\rangle^2\le R^2\}$ for the images
   `a`, `b` of the coordinate vectors under the adjoint of `θ⁻¹`, which have
@@ -546,7 +561,7 @@ Search Mathlib for both first. Expected size: 100 lines.
         ∀ z w, stdForm ι (Ψ z) (Ψ w) = -stdForm ι z w
   ```
 
-  From right to left: `linearSymplecticWidth_image_of_pullback`. From left to
+  From right to left: `linearSymplecticWidth_image_of_forall_apply_eq_or_forall_apply_eq_neg`. From left to
   right: if `Ψ` is not injective and `ι` is nonempty, the image of the unit
   ball lies in a proper subspace, which contains no ball of positive radius
   and so has width `0`, while the ball has width `π`; so `Ψ` is an
@@ -570,7 +585,9 @@ Expected size: 450 lines, with `Sign.lean`.
 - Tau Ceti: `TauCeti.SymplecticForm`, `IsSymplectomorphism` with
   `isSymplectomorphism_iff`, `IsSymplectomorphism.det_eq_one`,
   `LinearMap.BilinForm.isometryGroup` with `mem_isometryGroup_iff`,
-  `QuadraticMap.PosDef.comp`, `QuadraticMap.posDef_weightedSumSquares_iff`,
+  `LinearMap.BilinForm.Isometry.injective`, `QuadraticMap.PosDef.comp`,
+  `EuclideanSpace.posDef_iff_of_forall_eq_sum_mul_sq`,
+  `TauCeti.nonempty_isometryEquiv_toQuadraticForm'_one_of_posDef`,
   `ContinuousLinearEquiv.adjointEquiv`, `IsDarbouxBasis`,
   `Module.Basis.darbouxBasisEquiv` with
   `IsDarbouxBasis.isSymplectomorphism_darbouxBasisEquiv`, `elliptic` with
@@ -583,8 +600,8 @@ Expected size: 450 lines, with `Sign.lean`.
   `exists_isSymplectomorphism_apply_eq`.
 - Mathlib: `AffineEquiv` with `linear`, `linearHom`, `constVAdd`;
   `Subgroup.comap`; `Metric.closedBall`; `QuadraticMap.PosDef`,
-  `QuadraticMap.weightedSumSquares`,
-  `QuadraticForm.equivalent_signType_weighted_sum_squared`;
+  `QuadraticMap.weightedSumSquares`, `LinearMap.injective_iff_surjective`,
+  `stdOrthonormalBasis`;
   `LinearIsometryEquiv.piLpCongrLeft`;
   `Matrix.toEuclideanLin_conjTranspose_eq_adjoint`;
   `Matrix.symplecticGroup`, `SymplecticGroup.transpose_mem`;
@@ -609,7 +626,6 @@ In this order; each is blocked by the ones listed, and all are sub-issues of
 | 2 | The affine nonsqueezing theorem | `Nonsqueezing.lean` | 1 | 150 |
 | 3 | Ellipsoids and their normal form | `LinearAlgebra/QuadraticForm/PosDef.lean`, `Analysis/InnerProductSpace/Ellipsoid.lean`, `Ellipsoid/Basic.lean`, `Ellipsoid/NormalForm.lean` | #7 | 350 |
 | 4 | Orthogonal Darboux bases and the uniqueness of the frequencies in Williamson's theorem | `Geometry/Symplectic/Hamiltonian/Quadratic.lean`, `Geometry/Symplectic/Hamiltonian/Williamson.lean` | — | 300 |
-
 | 5 | The symplectic spectrum of an ellipsoid and its volume | `Ellipsoid/Spectrum.lean` | 3, 4 | 300 |
 | 6 | The linear symplectic width | `LinearWidth/Basic.lean` | 1, 2 | 300 |
 | 7 | The width of an ellipsoid | `LinearWidth/Ellipsoid.lean` | 3, 5, 6 | 200 |
