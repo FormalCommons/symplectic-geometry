@@ -495,7 +495,7 @@ Expected size: 450 lines, with `Sign.lean`.
 
 - *Standard model* (#7, #8): `StdSpace`, `StdSpace.x`, `StdSpace.y`,
   `stdForm` with `stdForm_apply` and `stdForm_apply_eq_inner`, the product
-  comparison along `EuclideanSpace.sumEquivProd`, and
+  comparison `isSymplectomorphism_sumEquivProd` (as named in #41), and
   `mem_symplecticGroup_iff_isSymplectomorphism`.
 - Tau Ceti: `TauCeti.SymplecticForm`, `IsSymplectomorphism` with `refl`,
   `symm`, `trans`, `IsSymplectomorphism.det_eq_one`, `IsDarbouxBasis`,
