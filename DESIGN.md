@@ -394,15 +394,19 @@ it into issues; the overview fixes its folders and its dependencies.
   matrices, from Tau Ceti's `isLagrangian_graph_iff_of_pairing`),
   `LinearAlgebra/Symplectic/Lagrangian/Action.lean` (the action of
   $\mathrm{Sp}(2n)$, transitivity already for $\mathrm{U}(n)$ and the
-  stabilizer $\mathrm{O}(n)$),
+  stabilizer $\mathrm{O}(n)$, hence
+  $\mathcal{L}(n)\simeq\mathrm{U}(n)/\mathrm{O}(n)$ as sets by
+  orbit–stabilizer),
   `LinearAlgebra/Symplectic/Lagrangian/Transverse.lean` (transverse
   Lagrangians: two Lagrangians are complementary if and only if they meet in
   $0$, any two have a common transverse Lagrangian, and $\mathrm{Sp}(2n)$ acts
   transitively on transverse pairs),
   `Topology/Grassmannian/Lagrangian/Basic.lean` (the topology of
   $\mathcal{L}(V,\omega)$), `Topology/Grassmannian/Lagrangian/Quotient.lean`
-  (continuity of the action and $\mathcal{L}(n)\cong\mathrm{U}(n)/\mathrm{O}(n)$
-  as spaces), `Geometry/Manifold/Instances/LagrangianGrassmannian.lean` (the
+  (continuity of the action, and the equivalence
+  $\mathcal{L}(n)\simeq\mathrm{U}(n)/\mathrm{O}(n)$ of `Action.lean` as a
+  homeomorphism),
+  `Geometry/Manifold/Instances/LagrangianGrassmannian.lean` (the
   charts by symmetric matrices and the manifold structure of dimension
   $n(n+1)/2$). The `LinearAlgebra/` files import no `Topology/` file of this
   part.
