@@ -436,9 +436,9 @@ does not use; this is a generalization, not an error, so `ERRATA.md` gets no
 entry.
 
 **Route.** The book cuts the surface along curves, by induction on the genus
-and the number of boundary components, which needs the classification and
-decomposition of compact surfaces with boundary. Neither library has these,
-and the library does not prove them: the following route needs only results
+and the number of boundary components; that requires knowing how every
+compact bordered surface is built from pieces. Neither library has this,
+and the library does not prove it: the following route needs only results
 that Tau Ceti has or nearly has.
 
 1. *A nowhere-zero section.* Every smooth real bundle of rank at least $2$ over
