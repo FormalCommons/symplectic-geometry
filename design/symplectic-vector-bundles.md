@@ -170,10 +170,15 @@ name, so that the $TM$ statements are special cases:
   Its section is `Φₛ.clmComp (J.toEndomorphism.clmComp Φ⁻¹ₛ)`, by Tau
   Ceti's `ContMDiffSection.clmComp` with `@[simp] clmComp_apply`
   (`Geometry/Manifold/VectorBundle/Hom.lean`). Here `Φₛ` and `Φ⁻¹ₛ` are the
-  $C^n$ sections of the hom bundles from `V₁` to `V₂` and back that Tau
-  Ceti's `contMDiff_hom_bundle_iff` (same file) gives from `hΦ` and from
-  `contMDiff_bundle_symm` applied to `hΦ` (`[FiniteDimensional ℝ F₁]`,
-  `[FiniteDimensional ℝ F₂]`); nothing about sections is rebuilt;
+  $C^n$ sections of the hom bundles from `V₁` to `V₂` and back. Tau Ceti's
+  `contMDiff_hom_bundle_iff` (same file) gives `Φₛ` from `hΦ`, and needs
+  only `[FiniteDimensional ℝ F₁]`. Then `Φ⁻¹ₛ` is the fibrewise inverse of
+  `Φₛ`, which is $C^n$ by Tau Ceti's `ContMDiff.clm_bundle_inverse` (same
+  file, no hypothesis on the dimension), with Mathlib's
+  `ContinuousLinearMap.isInvertible_equiv` and
+  `ContinuousLinearMap.inverse_equiv`, following the proof of
+  `contMDiff_bundle_symm`. So `F₂` may have any dimension, as for the
+  two-form `pushforward`; nothing about sections is rebuilt;
 - `toContinuousComplexStructure : ContMDiffComplexStructure I n F V →
   TauCeti.Bundle.ContinuousComplexStructure F V`
   (`Topology/VectorBundle/Complex/Structure.lean`) with
@@ -507,8 +512,16 @@ that of the theorem of the previous section end with the line Milestone:
   sections, hence $C^n$, and $A\circ\Phi$ is the complex isomorphism. No
   ODE is needed in this direction.
 - **Complex to symplectic.** Transport $\omega_1$ to $\omega_1'$
-  (`ContMDiffTwoForm.pushforward`), which tames $J_2$ by `Tames.pushforward`. The forms $(1-t)\omega_1'+t\omega_2$ tame $J_2$, hence are
-  nondegenerate, and the linear Moser construction of part 10
+  (`ContMDiffTwoForm.pushforward`), which tames $J_2$ by `Tames.pushforward`.
+  Write $\beta$ for `smoothTransition` and set
+  $\omega_t=(1-\beta(t))\omega_1'+\beta(t)\omega_2$. Since $\beta$ takes
+  values in $[0,1]$, each $\omega_t$, for every real $t$, is a convex
+  combination of two forms taming $J_2$, so it tames $J_2$ and is
+  nondegenerate. Part 10's lemmas need exactly this: their hypothesis `hinv`
+  asks for invertibility at every real time, which the straight path
+  $(1-t)\omega_1'+t\omega_2$ does not give (for $\omega_2=2\omega_1'$ it is
+  zero at $t=-1$). The path is smooth, with $\omega_0=\omega_1'$ and
+  $\omega_1=\omega_2$, and the linear Moser construction of part 10
   (`SymplecticGeometry/Geometry/Symplectic/LinearMoser.lean`: the left Dyson
   series of `moserGenerator`), applied fibrewise, gives $\Psi_1$ with
   $\Psi_1^*\omega_2=\omega_1'$. The generator is a formula in the family of
@@ -675,6 +688,11 @@ at once.
     time and in a parameter ranging over a subset of a normed space (the
     chart coordinates of the base point, which may lie on the boundary), for
     $C^n$ data; and the construction is natural under linear isomorphisms.
+    It is applied to the path $(1-\beta(t))\omega_1'+\beta(t)\omega_2$, with
+    $\beta$ = `smoothTransition`, which is nondegenerate at every real time,
+    as part 10's hypothesis `hinv` requires. For naturality, a conjugation
+    lemma for `moserGenerator` and `dysonSeriesLeft` under a linear
+    isomorphism, added to `LinearMoser.lean`, makes the step direct.
     Part 10 (`Geometry/Symplectic/LinearMoser.lean`) proves
     smoothness in time only (`contDiff_dysonSeriesLeft_moserGenerator`), so
     this extends it, after checking Tau Ceti's
