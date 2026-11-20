@@ -519,17 +519,36 @@ an element of `ℒ ι`.
   $(u,v)\mapsto\omega(Zu,Z'v)$ is the symmetric bilinear form that
   `QuadraticMap.associated` gives the crossing form; its `QuadraticMap.polar`
   is twice that.
-- Frame independence, `lagrangianCrossingForm_mul_equivalent`: for `Z` with
-  isotropic image, `g : GL ι ℝ` and any `h : Matrix ι ι ℝ`,
+- Frame independence of the form itself, `lagrangianCrossingForm_mul_apply`:
+  for `Z` with isotropic image, `g : GL ι ℝ`, any `h : Matrix ι ι ℝ` and `w`
+  in the domain `V.comap (toEuclideanLin (Z * g))`,
+  `lagrangianCrossingForm (Z * g) (Z' * g + Z * h) V w = lagrangianCrossingForm Z Z' V ⟨toEuclideanLin (g : Matrix ι ι ℝ) w, _⟩`,
+  where the membership proof rewrites `toEuclideanLin (Z * g) w ∈ V` as
+  `toEuclideanLin Z (toEuclideanLin g w) ∈ V`. The vector `Z g w` of
+  $\Lambda\cap V$ has coordinates `w` in the frame `Z * g` and `g w` in the
+  frame `Z`, and both frames give it the same value: the form on
+  $\Lambda\cap V$ is one form, read in two coordinate systems. Proof: expand
+  by `lagrangianCrossingForm_apply`; the extra term
+  `stdForm ι (Z g w) (Z h w)` vanishes by isotropy. The statement is about
+  single matrices and needs no derivative: for a change of frame `t ↦ g t`
+  with `HasDerivWithinAt g g' (Icc 0 1) t`, the product rule gives the
+  derivative `Z' t * g t + Z t * g'` of `Z * g` within `Icc 0 1`, and this
+  lemma applies at every `t ∈ Icc 0 1`, ends included. A constant `g` is
+  `h = 0`. For the use sites, the corollary
+  `lagrangianCrossingForm_mul_equivalent`,
   `(lagrangianCrossingForm Z Z' V).Equivalent (lagrangianCrossingForm (Z * g) (Z' * g + Z * h) V)`,
-  by $u\mapsto g^{-1}u$; the term with `h` vanishes by isotropy. The statement
-  is about single matrices and needs no derivative: for a change of frame
-  `t ↦ g t` with `HasDerivWithinAt g g' (Icc 0 1) t`, the product rule gives the
-  derivative `Z' t * g t + Z t * g'` of `Z * g` within `Icc 0 1`, and this lemma
-  applies at every `t ∈ Icc 0 1`, ends included. A constant `g` is `h = 0`.
-- Naturality, `lagrangianCrossingForm_symplectic_mul_equivalent`: for `Ψ`
-  symplectic,
-  `(lagrangianCrossingForm Z Z' V).Equivalent (lagrangianCrossingForm (Ψ * Z) (Ψ * Z') (V.map (toEuclideanLin Ψ)))`.
+  follows: the linear equivalence `w ↦ g w` of the two domains, with inverse
+  `u ↦ g⁻¹ u`, is an isometry by `lagrangianCrossingForm_mul_apply`.
+- Naturality, `lagrangianCrossingForm_symplectic_mul_apply`: for `Ψ`
+  symplectic and `u` with `hu : toEuclideanLin Z u ∈ V`,
+  `lagrangianCrossingForm (Ψ * Z) (Ψ * Z') (V.map (toEuclideanLin Ψ)) ⟨u, _⟩ = lagrangianCrossingForm Z Z' V ⟨u, hu⟩`,
+  where the membership proof is `Submodule.mem_map_of_mem hu` after rewriting
+  `toEuclideanLin (Ψ * Z) u` as `toEuclideanLin Ψ (toEuclideanLin Z u)`. The
+  two domains are the same subspace (`toEuclideanLin Ψ` is injective), and
+  the forms agree on it because `Ψ` preserves `stdForm ι`. The corollary
+  `lagrangianCrossingForm_symplectic_mul_equivalent`,
+  `(lagrangianCrossingForm Z Z' V).Equivalent (lagrangianCrossingForm (Ψ * Z) (Ψ * Z') (V.map (toEuclideanLin Ψ)))`,
+  takes the identity on underlying vectors as its isometry.
 - The use sites take signatures from Mathlib's
   `QuadraticMap.Equivalent.sigPos_eq` and `sigNeg_eq`, and nondegeneracy from
   Tau Ceti's `QuadraticMap.IsometryEquiv.nondegenerate_iff`; the part adds no
@@ -658,8 +677,8 @@ forms relative to `V₀`.
   conjunction of `ℒ.eventually_not_crossing_of_regular`,
   `ℒ.pathMaslovIndex_eq_crossing_sum`, `ℒ.exists_homotopic_regular`, the frame
   independence of the crossing form itself
-  (`lagrangianCrossingForm_mul_equivalent`, an isometry and not only equal
-  signatures), and the properties of `Path/Basic.lean` and
+  as the pointwise identity `lagrangianCrossingForm_mul_apply` (the
+  `Equivalent` corollary alone would only say equal signatures), and the properties of `Path/Basic.lean` and
   `Path/Naturality.lean` (naturality, catenation, product, localization,
   homotopy, zero, values, dependence on `V`, and loops in the angle form
   `ℒ.pathMaslovIndex_eq_sub_div_pi`), each for every `V`.
