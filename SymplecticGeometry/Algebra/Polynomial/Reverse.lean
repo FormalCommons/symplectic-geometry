@@ -16,7 +16,12 @@ import TauCeti.Algebra.Polynomial.Reverse
 A polynomial `p` with `natDegree p ≤ N` is self-reciprocal at `N` when `p.reflect N = p`, that
 is, `X ^ N p (1 / X) = p (X)`. Its roots then come in pairs `a`, `a⁻¹` with equal multiplicity
 (Tau Ceti's `Polynomial.rootMultiplicity_reflect_eq_inv`). This file treats the two roots that
-are their own inverses: over a domain whose characteristic is not `2`,
+are their own inverses, `c` with `c * c = 1`:
+
+* `Polynomial.neg_one_pow_rootMultiplicity_mul_pow_eq_one`: over a domain, if `p ≠ 0` and `m` is
+  the multiplicity of such a `c`, then `(-1) ^ m c ^ N = 1`;
+
+and so, over a domain whose characteristic is not `2`,
 
 * `Polynomial.even_rootMultiplicity_one_of_reflect_eq`: the multiplicity of `1` is even;
 * `Polynomial.even_rootMultiplicity_neg_one_of_reflect_eq`: the multiplicity of `-1` is even
@@ -43,7 +48,7 @@ variable {R : Type*} [CommRing R] [IsDomain R]
 
 /-- For a nonzero polynomial `p` with `p.reflect N = p` and a square root `c` of `1`,
 `(-1) ^ m c ^ N = 1`, where `m` is the multiplicity of `c` as a root of `p`. -/
-private theorem neg_one_pow_rootMultiplicity_mul_pow_eq_one {p : R[X]} {N : ℕ} (hp : p ≠ 0)
+theorem neg_one_pow_rootMultiplicity_mul_pow_eq_one {p : R[X]} {N : ℕ} (hp : p ≠ 0)
     (hN : p.natDegree ≤ N) (h : p.reflect N = p) {c : R} (hc : c * c = 1) :
     (-1) ^ p.rootMultiplicity c * c ^ N = 1 := by
   let : Invertible c := ⟨c, hc, hc⟩
@@ -71,7 +76,7 @@ private theorem neg_one_pow_rootMultiplicity_mul_pow_eq_one {p : R[X]} {N : ℕ}
     exact mul_left_cancel₀ (pow_ne_zero _ (X_sub_C_ne_zero c)) this
   have hqc : q.eval c ≠ 0 := by simpa only [dvd_iff_isRoot, IsRoot.def] using hqroot
   have hrefl : (q.reflect (N - m)).eval c * c ^ (N - m) = q.eval c := by
-    simpa only [show (⅟c : R) = c from rfl, eval₂_id] using
+    simpa only [invOf_eq_right_inv hc, eval₂_id] using
       eval₂_reflect_mul_pow (RingHom.id R) c (N - m) q hqN
   have hcpow : c ^ (N - m) * c ^ (N - m) = 1 := by rw [← mul_pow, hc, one_pow]
   have hkey : q.eval c * ((-1) ^ m * c ^ N) = q.eval c * 1 := by
