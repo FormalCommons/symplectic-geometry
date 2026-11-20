@@ -40,13 +40,27 @@ and does not redefine any of it:
   `conjContinuousAlgEquiv_toContinuousLinearMap_polarComplexStructure`, and
   `exists_compatible_forall_isComplexLinearMap` (an invariant compatible
   structure for a compact group).
+- The polar complex structure as $A\,(\sqrt{-A^2})^{-1}$, for the operator $A$
+  of $\omega$ through the ambient inner product,
+  `toContinuousLinearMap_polarComplexStructure` (same file).
 - The metric-change transport `ContinuousLinearMap.metricChangeTransport` of a
-  continuous bilinear form, with `isStrictlyPositive_continuousLinearMapOfBilin_iff`
+  continuous bilinear form, with
+  `InnerProductSpace.isStrictlyPositive_continuousLinearMapOfBilin_iff`
   and its smoothness, `contDiffOn_metricChangeTransport`,
   `contDiffOn_sqrt_continuousLinearMapOfBilin`
   (`Analysis/InnerProductSpace/Positive/MetricChange/`), and the smoothness of the
-  square root, `contDiffOn_sqrt`
+  square root, `ContinuousLinearMap.contDiffOn_sqrt`
   (`Analysis/InnerProductSpace/Positive/FunctionalCalculus.lean`).
+- The symplectic form $\langle J\cdot,\cdot\rangle$ of an orthogonal complex
+  structure on an inner product space,
+  `TauCeti.AlmostComplexStructure.symplecticForm`
+  (`Geometry/Symplectic/CompatibleMetric.lean`).
+- The coordinate map of a Darboux basis, `Module.Basis.darbouxBasisEquiv`,
+  with `IsDarbouxBasis.isSymplectomorphism_darbouxBasisEquiv` and
+  `darbouxBasisEquiv_apply_zero`/`_one`
+  (`Geometry/Symplectic/Darboux/EuclideanBasis.lean`).
+- The uniqueness of the polar factor, `LinearMap.eq_polarFactor_iff`
+  (`Analysis/InnerProductSpace/Polar/Finite.lean`).
 - On continuous bilinear forms (`Topology/Algebra/Module/BilinearForm.lean`):
   `TauCeti.convex_setOfPred_symm_pos`,
   `TauCeti.isOpen_setOf_forall_bilinear_apply_self_pos`,
@@ -60,9 +74,15 @@ and does not redefine any of it:
   `Compatible.isUnit_one_sub_smul_cayleyFormula`,
   `ContinuousLinearEquiv.apply_cayleyPathFormula_apply`, and the instances
   `instContractibleSpaceTames`, `instContractibleSpaceCompatible`.
-- The unitary group inside the symplectic group:
-  `TauCeti.GLSymplectic.ofUnitary`,
-  `Matrix.symplecticGroup_inf_centralizer_J`.
+- The unitary group inside the symplectic group, and the maximal compact
+  subgroups: `TauCeti.GLSymplectic.inf_unitarySubgroup` and
+  `TauCeti.GLSymplectic.inf_range_realify`
+  (`LinearAlgebra/Matrix/GeneralLinearGroup/Symplectic/Unitary.lean`),
+  `TauCeti.GLSymplectic.maximal_isCompact_unitarySubgroup`
+  (`.../Symplectic/MaximalCompact.lean`), and the conjugation statements
+  `Matrix.GeneralLinearGroup.exists_conj_smul_le_unitarySubgroup` and
+  `Matrix.SpecialLinearGroup.exists_conj_smul_le_comap_unitarySubgroup`, whose
+  shape the compact-subgroup milestone follows.
 
 What is missing, and what this part adds:
 
@@ -96,22 +116,30 @@ These settle the questions that `DESIGN.md` leaves to this file.
   is how Mathlib's `Bundle.RiemannianMetric` and Tau Ceti's metric change
   present them, so the bundle part can use the same maps. A
   `LinearMap.BilinForm ℝ V` on a finite-dimensional space becomes one by
-  Mathlib's `LinearMap.BilinForm.toContinuousBilinearMap`.
+  Mathlib's `LinearMap.toContinuousBilinearMap`
+  (`Topology/Algebra/Module/FiniteDimensionBilinear.lean`).
 - **The inner products** $\mathrm{Met}(V)$ are the set
   `SymplecticGeometry.innerProducts V` of continuous bilinear forms that are
   symmetric and positive on nonzero vectors. This is exactly the set of
   `TauCeti.convex_setOfPred_symm_pos`. It is a type through its coercion to a
   subtype.
 - **The symplectic forms** $\Omega(V)$ are `TauCeti.SymplecticForm V`, with
-  the topology induced by `ω ↦ ω.toBilinForm.toContinuousBilinearMap`, an
-  instance in the namespace `TauCeti.SymplecticForm`. It is defined in the
-  same way as Tau Ceti's instance on `AlmostComplexStructure V`.
+  the topology induced by the map `ω ↦ ω.toBilinForm.toContinuousBilinearMap`,
+  written inline with no named wrapper. Tau Ceti already states its lemmas
+  in this form (`isInvertible_toContinuousBilinearMap`,
+  `toContinuousBilinearMap_associatedBilinForm`). The instance lives in the
+  namespace `TauCeti.SymplecticForm` and is built as Tau Ceti builds the one
+  on `AlmostComplexStructure V`.
 
 All topological statements assume `[NormedAddCommGroup V] [NormedSpace ℝ V]
-[FiniteDimensional ℝ V]`, as Tau Ceti's topology does. Only the smoothness
-proofs of $J_{g,\omega}$ use an inner product, and they use it only after
-transport to a Euclidean space, so no statement asks for an
-`InnerProductSpace` instance on `V`.
+[FiniteDimensional ℝ V]`, as Tau Ceti's topology does. The definition and the
+characterization of $J_{g,\omega}$ need no inner product on `V`. The explicit
+formula `metricPolarFormula` is Tau Ceti's coordinate expression. That
+expression uses the Riesz map `continuousLinearMapOfBilin` of an inner product
+space, so the formula and its smoothness are stated on a space `W` with
+`[InnerProductSpace ℝ W]`. The inner product of `W` is only an auxiliary
+choice: on the domain the formula equals $J_{g,\omega}$, which does not depend
+on it.
 
 ### Smoothness and diffeomorphisms
 
@@ -144,10 +172,23 @@ complex structure that is $g$-orthogonal and $\omega$-compatible.
 Here is the uniqueness argument, which is short. Let $A$ be the operator with
 $g(Au,v)=\omega(u,v)$. If $J$ is $g$-orthogonal and preserves $\omega$, then
 $J$ commutes with $A$. Then $Q=-JA$ is $g$-self-adjoint, and
-$g(Qv,v)=\omega(v,Jv)>0$, so $A=JQ$ is a polar decomposition of $A$. By the
-uniqueness of polar decompositions, $J$ is the polar factor of $A$. Existence
+$g(Qv,v)=\omega(v,Jv)>0$, so $A=JQ$ is a polar decomposition of $A$. Tau
+Ceti's `LinearMap.eq_polarFactor_iff`, applied on $(V,g)$, says the polar
+factor is unique, so $J$ is the polar factor of $A$. Existence
 is Tau Ceti's `polarComplexStructure` on $(V,g)$, transported along a
 $g$-isometry with a Euclidean space.
+
+The same argument shows that this structure is the formula of the milestone
+*Complex structures versus symplectic forms*. Take $A$ as above and let $Q$ be
+the $g$-self-adjoint, $g$-positive operator with $Q^2=-A^2$. Then the
+structure equals $Q^{-1}A$. The design states this as the lemma
+`metricPolarComplexStructure_eq_inverse_mul` and makes it a conjunct of the
+milestone. The milestone is then about the plan's $J_{g,\omega}$ itself, and
+not only about some structure with the same properties. The lemma gives the
+square root by its defining properties, since `V` has no inner product of its
+own for `CFC.sqrt` to use. When $g$ is the ambient inner product of an inner
+product space, Tau Ceti's `toContinuousLinearMap_polarComplexStructure` is
+the same statement with $Q$ = `CFC.sqrt (-(A * A))`.
 
 The characterization makes naturality under every linear isomorphism
 immediate, and it identifies the result with Tau Ceti's construction when $g$
@@ -162,14 +203,16 @@ open set and natural under continuous linear equivalences, so that the
 expressions in two trivializations agree:
 
 1. `metricPolarFormula`, the formula for $(g,\omega)\mapsto J_{g,\omega}$, on
-   the open set `polarDomain V` of pairs of continuous bilinear forms. The
-   formula symmetrizes its first argument and skew-symmetrizes its second
-   before applying the construction. So it is defined, and smooth, on a set
+   the open set `polarDomain W` of pairs of continuous bilinear forms. It is
+   Tau Ceti's coordinate expression for the polar structure, the right-hand
+   side of `conjContinuousAlgEquiv_toContinuousLinearMap_polarComplexStructure`,
+   applied to the symmetric part of its first argument and the skew part of
+   its second. So it is defined, and smooth, on a set
    that is open in the space of all pairs of bilinear forms, and not only
    relative to symmetric and alternating forms. On an inner product and a
    symplectic form it equals $J_{g,\omega}$.
 2. The Cayley path `TauCeti.cayleyPathFormula b A B`, on the open set
-   `SymplecticGeometry.cayleyDomain` of triples $(b,A,B)$ where its two
+   `TauCeti.cayleyDomain` of triples $(b,A,B)$ where its two
    denominators are invertible. The `B` with `(b, J₀, B)` in it for all
    $b\in[0,1]$ form the set $U_{J_0}$ of `DESIGN.md`. The domain contains
    $[0,1]\times\{(J_0,J)\}$ for $J_0$ $\omega$-compatible and $J$ $\omega$-tame. The reference structure is a
@@ -177,8 +220,9 @@ expressions in two trivializations agree:
    point. Tau Ceti's compatible and tame contractions are this formula at
    $b=1-t$ (`Compatible.toContinuousLinearMap_cayleyContraction`).
 3. The homotopies of Proposition 2.5.6 and Corollary 2.5.7. Each is given
-   with a lemma that writes it through `metricPolarFormula`,
-   `cayleyPathFormula` and continuous (bi)linear operations. Its smoothness
+   with a lemma that writes it, on an inner product space, through
+   `metricPolarFormula` (by `metricPolarFormula_eq`), `cayleyPathFormula` and
+   continuous (bi)linear operations. Its smoothness
    in the data, and in the time, therefore follows from items 1 and 2 by
    composition.
 
@@ -195,9 +239,10 @@ involved are empty, and the statements still hold.
 
 The part uses only two things from other parts:
 
-- *Standard model* (`StdSpace`, `stdForm`, `stdComplexStructure`, and the
-  matrix dictionary of #8). It is used in condition (3), in Lemma 2.5.5 and in
-  the compact-subgroup theorem.
+- *Standard model* (`StdSpace`, `stdForm`, `stdComplexStructure`, the
+  comparison with Tau Ceti's product model, and the matrix dictionary of #8).
+  It is used in condition (3), in Lemma 2.5.5 and in the compact-subgroup
+  theorem.
 - The Lagrangian extension lemma of *Symplectic vector spaces*
   (`LinearAlgebra/Symplectic/Subspace.lean`, #25), used only in the
   implication from (4) to (1). An isotropic plane containing $v$ and $w$ is
@@ -209,20 +254,64 @@ request updates `DESIGN.md` to match: part 9 builds on *Standard model* and
 
 ## Files, definitions and results
 
-Namespaces follow `AGENTS.md`. A result about Tau Ceti's notions goes in
-their namespace, so that it can move there unchanged: `Compatible` lemmas in
-`TauCeti.SymplecticForm`, and the instance on `SymplecticForm V`. New notions
-go in `SymplecticGeometry`. The statements below are written with
-`variable {V : Type*} [AddCommGroup V] [Module ℝ V] [FiniteDimensional ℝ V]
+Namespaces follow `AGENTS.md`. A declaration that mentions only Tau Ceti's
+notions goes in their namespace, so that it can move there unchanged. That
+covers the `Compatible` lemmas and the instance on `SymplecticForm V` (in
+`TauCeti.SymplecticForm`), the Cayley domain (in `TauCeti`), and the tame
+homotopy equivalence (in `TauCeti.SymplecticForm`). Declarations that involve
+the library's own notions (`innerProducts`, `StdSpace`,
+`metricPolarComplexStructure`) go in `SymplecticGeometry`. The statements
+below are written with `variable {V : Type*} [AddCommGroup V] [Module ℝ V]
 {ω : TauCeti.SymplecticForm V} {J : TauCeti.AlmostComplexStructure V}`, and
-with the normed variables of *Topologies* in the topological files.
+with the normed variables of *Topologies* in the topological files. Only the
+statements that need it get `[FiniteDimensional ℝ V]`.
+
+### Departures from the file list of `DESIGN.md`
+
+The file list of part 9 in the overview came before this design. This pull
+request updates it to the files below. Each change, with its reason:
+
+- **`Topology/ComplexStructure/Compatible.lean` becomes a folder**,
+  `Compatible/{Matrix,Metric,SymplecticForms,Tame}.lean`. The overview put
+  four topics in that one file: the matrix model of Lemma 2.5.5, the homotopy
+  equivalence with $\mathrm{Met}(V)$, the one between forms and complex
+  structures, and the tame inclusion. Each is a few hundred lines and has a
+  building issue of its own, and `AGENTS.md` asks for one file per topic.
+- **`PolarComplexStructure.lean` becomes a folder**, `Basic.lean` and
+  `Smooth.lean`. The explicit formula and its smoothness are a topic of their
+  own, with their own building issue. They also need an inner product space,
+  and the definition does not.
+- **New `Topology/Algebra/Module/SymplecticForms.lean`.** The homotopy
+  equivalence between forms and complex structures needs a topology on
+  `SymplecticForm V`. Neither Tau Ceti nor the overview gives one. It is a
+  topic parallel to `InnerProducts.lean`.
+- **New `Geometry/Symplectic/Cayley/Domain.lean`.** The open set where the
+  Cayley path is smooth is used by two files of this part and by *Symplectic
+  vector bundles*. It involves only Tau Ceti's `cayleyPathFormula`, so it goes
+  in the folder of Tau Ceti's `Cayley/Smooth.lean`, which it extends, and can
+  move there unchanged.
+- **Lemma 2.5.5 without `Compatible.cayleyEquiv`.** The overview suggested
+  that equivalence. It maps the *tame* structures onto Tau Ceti's Cayley ball.
+  It does not map the compatible structures onto the positive symplectic
+  matrices, so it does not give $J\mapsto-J_0J$. That map and its inverse
+  $P\mapsto J_0P$ are restrictions of linear maps, which gives the
+  homeomorphism directly.
+- **$\mathrm{Met}(V)$ without coordinates.** The overview got convexity from
+  `TauCeti.convex_setOfPred_posDef` in coordinates. Tau Ceti's
+  `convex_setOfPred_symm_pos` states it for continuous bilinear forms on `V`
+  itself, so coordinates are not needed.
 
 ### `LinearAlgebra/Symplectic/Compatible.lean`
 
 These are the characterizations (Proposition 2.5.4 and Exercise 2.5.3), in
-`TauCeti.SymplecticForm`.
+`TauCeti.SymplecticForm`. The results about $g_J$ and $H$ hold in every
+dimension, as their Tau Ceti counterparts such as
+`Invariant.associatedBilinForm_isSymm` do, and carry no finite-dimensionality
+hypothesis. Only the Darboux-basis, standard-model, Lagrangian and TFAE
+statements assume `[FiniteDimensional ℝ V]`.
 
-- `compatible_iff_exists_isDarbouxBasis : ω.Compatible J ↔ ∃ (n : ℕ)
+- `compatible_iff_exists_isDarbouxBasis [FiniteDimensional ℝ V] :
+  ω.Compatible J ↔ ∃ (n : ℕ)
   (b : Module.Basis (Fin n × Fin 2) ℝ V), ω.IsDarbouxBasis b ∧ ∀ k,
   b (k, 1) = J (b (k, 0))`. This is condition (2), with $v_k=$ `b (k, 0)` and
   $Jv_k=$ `b (k, 1)`, in Tau Ceti's normalization, which is the book's. The
@@ -246,18 +335,26 @@ These are the characterizations (Proposition 2.5.4 and Exercise 2.5.3), in
   of the exercise, and the converse of `Compatible.hermitianCore`. Conjugate
   symmetry gives invariance, and positivity of `re (H v v) = ω v (J v)`
   gives tameness.
-- `compatible_iff_exists_isSymplectomorphism_stdForm {ι : Type*} [Fintype ι]
+- `compatible_iff_exists_isSymplectomorphism_stdForm [FiniteDimensional ℝ V]
+  {ι : Type*} [Fintype ι]
   [DecidableEq ι] (hι : Module.finrank ℝ V = 2 * Fintype.card ι) :
   ω.Compatible J ↔ ∃ Ψ : StdSpace ι ≃ₗ[ℝ] V,
   IsSymplectomorphism (stdForm ι) ω Ψ ∧
   IsComplexLinearMap (stdComplexStructure ι) J Ψ.toLinearMap`. This is
-  condition (3). The direction from (2) sends `b (k, 0)` to the basis vector
-  of `StdSpace ι` at `inl`, and `b (k, 1)` to the one at `inr`, after a
-  bijection `Fin n ≃ ι`. Then $\omega_0(e_{\mathrm{inl}\,i},e_{\mathrm{inr}\,j})=\delta_{ij}$
-  and $J_0e_{\mathrm{inl}\,i}=e_{\mathrm{inr}\,i}$, by `stdForm_apply` and
-  `stdComplexStructure_x`/`_y`. The converse is `Compatible.transport` of
+  condition (3). The map is not built by hand. From (2), Tau Ceti's
+  `b.darbouxBasisEquiv` is a symplectomorphism onto `stdSymplecticForm` on
+  `EuclideanSpace ℝ (Fin n) × EuclideanSpace ℝ (Fin n)`
+  (`IsDarbouxBasis.isSymplectomorphism_darbouxBasisEquiv`). It sends
+  `b (k, 0)` to `(single k 1, 0)` and `b (k, 1)` to `(0, single k 1)`
+  (`darbouxBasisEquiv_apply_zero`/`_one`), so it carries $J$ to
+  `AlmostComplexStructure.product`, which maps `(x, 0)` to `(0, x)`. $\Psi$ is
+  its inverse, composed with the reindexing along a bijection `Fin n ≃ ι` and
+  with the comparison of *Standard model* between `stdForm ι` and that product
+  model, which carries `stdComplexStructure ι` to
+  `AlmostComplexStructure.product`. The converse is `Compatible.transport` of
   `stdForm_compatible`.
-- `compatible_iff_tames_and_isLagrangian_map : ω.Compatible J ↔ ω.Tames J ∧
+- `compatible_iff_tames_and_isLagrangian_map [FiniteDimensional ℝ V] :
+  ω.Compatible J ↔ ω.Tames J ∧
   ∀ L : Submodule ℝ V, ω.IsLagrangian L → ω.IsLagrangian (L.map J.toLinearMap)`.
   This is condition (4). Forward, an invariant $J$ is a symplectomorphism,
   so it maps Lagrangian subspaces to Lagrangian subspaces. Backward, if
@@ -267,7 +364,7 @@ These are the characterizations (Proposition 2.5.4 and Exercise 2.5.3), in
   $\lambda_v\,\omega(v,\cdot)$. Comparing $v$, $w$ and $v+w$ shows that
   $\lambda$ is constant. Evaluating at $(v,Jv)$ gives $\lambda=1$, by
   tameness. Dimension zero is trivial.
-- **Milestone** `compatible_tfae (hι : Module.finrank ℝ V = 2 * Fintype.card ι) :
+- **Milestone** `compatible_tfae [FiniteDimensional ℝ V] (hι : Module.finrank ℝ V = 2 * Fintype.card ι) :
   List.TFAE [ω.Compatible J, (2), (3), (4), (g_J condition), (H condition)]`,
   with the six conditions written as in the lemmas above. Its docstring ends
   with "Milestone: *Characterizations of compatible complex structures*."
@@ -287,10 +384,17 @@ This is $\mathrm{Met}(V)$, in `SymplecticGeometry`.
 - `innerProducts_nonempty` (pull back a Euclidean inner product along
   `ContinuousLinearEquiv.ofFinrankEq`), and the instances `Nonempty` and
   `ContractibleSpace (innerProducts V)` (Mathlib's `Convex.contractibleSpace`).
-- `innerProducts.pullback (e : V ≃L[ℝ] W) : innerProducts W ≃ₜ innerProducts V`,
-  `g ↦ g.bilinearComp e e`, with `@[simp]` `pullback_apply`, `pullback_symm`,
-  `pullback_trans`. This is the action of $\mathrm{GL}(V)$ that equivariance
-  uses.
+- `innerProducts.transport (e : V ≃L[ℝ] W) : innerProducts V ≃ₜ innerProducts W`,
+  `g ↦ g.bilinearComp e.symm e.symm`, with `@[simp]` `transport_apply`
+  (`transport e g w w' = g (e.symm w) (e.symm w')`), `transport_symm`,
+  `transport_trans` and `transport_refl`. It pushes forward along `e`, in the
+  same direction as Tau Ceti's `SymplecticForm.transport` and
+  `AlmostComplexStructure.transport`, so equivariance statements use one
+  direction throughout. (The name `pullback` is avoided: Tau Ceti's
+  `SymplecticForm.pullback` is a different operation.) This is the action of
+  $\mathrm{GL}(V)$ that equivariance uses.
+- `innerSL_mem_innerProducts` (for `V` an inner product space):
+  `innerSL ℝ ∈ innerProducts V`, the ambient inner product as an element.
 - `TauCeti.SymplecticForm.Compatible.associatedBilinForm_mem_innerProducts (h :
   ω.Compatible J) : (ω.associatedBilinForm J).toContinuousBilinearMap ∈
   innerProducts V`.
@@ -300,22 +404,25 @@ This is $\mathrm{Met}(V)$, in `SymplecticGeometry`.
 This is $\Omega(V)$, in `TauCeti.SymplecticForm`.
 
 - `instance : TopologicalSpace (SymplecticForm V)`, induced by
-  `toContinuousBilinearMap ω := ω.toBilinForm.toContinuousBilinearMap`, with
-  `isEmbedding_toContinuousBilinearMap` and `continuous_iff`.
-- `range_toContinuousBilinearMap`: the alternating forms that are
-  nondegenerate. With `ContinuousLinearMap.isOpen_setOf_nondegenerate_toBilinForm`,
-  this makes the range open in the alternating forms.
+  `fun ω ↦ ω.toBilinForm.toContinuousBilinearMap` (Mathlib's
+  `LinearMap.toContinuousBilinearMap`, with no new wrapper), with
+  `isEmbedding_toContinuousBilinearMap` and `continuous_iff`, named and
+  stated as Tau Ceti's `isEmbedding_toContinuousLinearMap` and
+  `continuous_iff` for `AlmostComplexStructure V`.
+- `range_toContinuousBilinearMap`: the range of that map is the set of
+  alternating forms that are nondegenerate. With
+  `ContinuousLinearMap.isOpen_setOf_nondegenerate_toBilinForm`, this makes the
+  range open in the alternating forms.
 - `ofContinuousBilinearMap` (an alternating nondegenerate continuous form as
-  a `SymplecticForm`), with `toContinuousBilinearMap_ofContinuousBilinearMap`.
+  a `SymplecticForm`), with `@[simp]` `ofContinuousBilinearMap_apply` and
+  `toBilinForm_toContinuousBilinearMap_ofContinuousBilinearMap`.
 - `continuous_transport (e : V ≃L[ℝ] W)`: `ω ↦ ω.transport e.toLinearEquiv`
   is continuous.
 
 ### `Analysis/InnerProductSpace/Symplectic/PolarComplexStructure/Basic.lean`
 
-This is $J_{g,\omega}$. `DESIGN.md` names a single file,
-`Analysis/InnerProductSpace/Symplectic/PolarComplexStructure.lean`. The part
-splits it into a folder from the start, because the smooth formula is a topic
-of its own.
+This is $J_{g,\omega}$, the first file of the folder (see *Departures from
+the file list of `DESIGN.md`*).
 
 - `TauCeti.SymplecticForm.polarComplexStructure_eq_iff` (when `V` is an
   `InnerProductSpace ℝ V` of finite dimension):
@@ -329,56 +436,105 @@ of its own.
   (∀ u v, (g : V →L[ℝ] V →L[ℝ] ℝ) (J u) (J v) = g u v) ∧ ω.Compatible J`, the
   characterizing lemma.
 - `compatible_metricPolarComplexStructure`, and
-  `metricPolarComplexStructure_apply_apply` (orthogonality for `g`). These
+  `apply_metricPolarComplexStructure_apply :
+  (g : V →L[ℝ] V →L[ℝ] ℝ) (metricPolarComplexStructure g ω u)
+  (metricPolarComplexStructure g ω v) = g u v` (orthogonality for `g`; the
+  name leads with the head symbol `g` of the left-hand side, as Tau Ceti's
+  `inner_polarComplexStructure_apply_apply` leads with `inner`). These
   are the first bullet of Proposition 2.5.6.
+- `metricPolarComplexStructure_eq_inverse_mul {A Q : V →L[ℝ] V}
+  (hA : ∀ u v, (g : V →L[ℝ] V →L[ℝ] ℝ) (A u) v = ω u v)
+  (hQs : ∀ u v, (g : V →L[ℝ] V →L[ℝ] ℝ) (Q u) v = g u (Q v))
+  (hQp : ∀ v, v ≠ 0 → 0 < (g : V →L[ℝ] V →L[ℝ] ℝ) (Q v) v)
+  (hQ : Q * Q = -(A * A)) :
+  LinearMap.toContinuousLinearMap (metricPolarComplexStructure g ω).toLinearMap =
+  Ring.inverse Q * A`. This is the plan's definition $J_{g,\omega}=Q^{-1}A$,
+  with $Q$ the $g$-positive square root of $-A^2$ given by its defining
+  properties. Proof: for $J=J_{g,\omega}$, the operator $-JA$ has the same
+  three properties, since $J$ is $g$-orthogonal and commutes with $A$. So it
+  is $Q$, by uniqueness of positive square roots (Mathlib's `CFC.sqrt_eq_iff`,
+  on $(V,g)$ carried to a Euclidean space). Then $A=JQ$, and $J$ commutes
+  with $Q$, so $Q^{-1}A=J$. The commutation step is a public lemma,
+  `commute_metricPolarComplexStructure` (with the hypothesis `hA` above:
+  `Commute (LinearMap.toContinuousLinearMap
+  (metricPolarComplexStructure g ω).toLinearMap) A`).
 - `metricPolarComplexStructure_associatedBilinForm (h : ω.Compatible J) :
   metricPolarComplexStructure ⟨_, h.associatedBilinForm_mem_innerProducts⟩ ω = J`.
   This is the second bullet.
 - `metricPolarComplexStructure_transport (e : V ≃L[ℝ] W) :
-  metricPolarComplexStructure (innerProducts.pullback e.symm g)
+  metricPolarComplexStructure (innerProducts.transport e g)
   (ω.transport e.toLinearEquiv) =
   (metricPolarComplexStructure g ω).transport e.toLinearEquiv`. This is
-  $\mathrm{GL}$-equivariance, and more generally naturality.
-- `metricPolarComplexStructure_inner` (for `V` an inner product space and
-  `g` its inner product): it is `ω.polarComplexStructure`.
+  $\mathrm{GL}$-equivariance, and more generally naturality. Both sides push
+  forward along `e`.
+- `metricPolarComplexStructure_innerSL` (for `V` an inner product space):
+  `metricPolarComplexStructure ⟨innerSL ℝ, innerSL_mem_innerProducts⟩ ω =
+  ω.polarComplexStructure`.
 
 ### `Analysis/InnerProductSpace/Symplectic/PolarComplexStructure/Smooth.lean`
 
-- `SymplecticGeometry.polarDomain (V) : Set ((V →L[ℝ] V →L[ℝ] ℝ) ×
-  (V →L[ℝ] V →L[ℝ] ℝ))`: the pairs whose first entry is positive on nonzero
+Here `W` is a finite-dimensional real inner product space, and `s♯` is Tau
+Ceti's Riesz map `continuousLinearMapOfBilin s`, as in Tau Ceti's file.
+
+- `SymplecticGeometry.polarDomain (W) : Set ((W →L[ℝ] W →L[ℝ] ℝ) ×
+  (W →L[ℝ] W →L[ℝ] ℝ))`: the pairs whose first entry is positive on nonzero
   vectors and whose second entry has a nondegenerate skew part
-  $\tfrac12(s-s^{\mathrm{flip}})$. It comes with `isOpen_polarDomain`.
-- `metricPolarFormula (g s : V →L[ℝ] V →L[ℝ] ℝ) : V →L[ℝ] V`. On
-  `polarDomain V` it is the endomorphism of `metricPolarComplexStructure`
-  for the symmetric part of `g` and the skew part of `s`, and outside the
-  domain it is `0`. It comes with `metricPolarFormula_def`.
-- `metricPolarFormula_eq (g : innerProducts V) (ω : SymplecticForm V) :
-  metricPolarFormula g ω.toContinuousBilinearMap =
+  $\tfrac12(s-s^{\mathrm{flip}})$. It comes with `isOpen_polarDomain` and
+  `mem_polarDomain_iff`.
+- `metricPolarFormula (g s : W →L[ℝ] W →L[ℝ] ℝ) : W →L[ℝ] W`, defined as
+  Tau Ceti's expression
+  `R * (R * s'♯ * R * Ring.inverse (CFC.sqrt (-(R * s'♯ * R * (R * s'♯ * R))))) * CFC.sqrt g'♯`,
+  with `R = g'.metricChangeTransport`, for the symmetric part
+  $g'=\tfrac12(g+g^{\mathrm{flip}})$ of `g` and the skew part
+  $s'=\tfrac12(s-s^{\mathrm{flip}})$ of `s`. No case split is needed:
+  `Ring.inverse`, `CFC.sqrt` and `metricChangeTransport` already have junk
+  values off the domain. It comes with `metricPolarFormula_def`.
+- `metricPolarFormula_eq (g : innerProducts W) (ω : SymplecticForm W) :
+  metricPolarFormula g ω.toBilinForm.toContinuousBilinearMap =
   LinearMap.toContinuousLinearMap (metricPolarComplexStructure g ω).toLinearMap`.
+  It is derived from Tau Ceti's
+  `conjContinuousAlgEquiv_toContinuousLinearMap_polarComplexStructure`, with
+  `K` a $g$-isometry from a Euclidean space onto `W`. That theorem identifies
+  the right-hand side with the polar structure of the transported form, and
+  the characterization of `Basic.lean` identifies that with
+  $J_{g,\omega}$. The formula is not derived a second time.
 - `contDiffOn_metricPolarFormula {n : WithTop ℕ∞} :
-  ContDiffOn ℝ n (fun p ↦ metricPolarFormula p.1 p.2) (polarDomain V)`. The
-  proof transports to `EuclideanSpace ℝ (Fin (finrank ℝ V))` and uses
-  `conjContinuousAlgEquiv_toContinuousLinearMap_polarComplexStructure`,
-  `contDiffOn_metricChangeTransport`, `contDiffOn_sqrt` and the smoothness of
-  `Ring.inverse` at units.
-- `metricPolarFormula_conj (e : V ≃L[ℝ] W)`: transporting both forms along `e`
-  conjugates the formula by `e`. This is naturality on the whole domain.
+  ContDiffOn ℝ n (fun p ↦ metricPolarFormula p.1 p.2) (polarDomain W)`. The
+  proof composes the symmetrization (a continuous linear map),
+  `contDiffOn_metricChangeTransport`, `contDiffOn_sqrt_continuousLinearMapOfBilin`,
+  `ContinuousLinearMap.contDiffOn_sqrt` and the smoothness of `Ring.inverse`
+  at units. It is the `ContDiffOn` form of the argument of Tau Ceti's private
+  `contMDiffAt_metricChangeTransport_mul_mul_sqrt`
+  (`Geometry/Symplectic/Manifold/AlmostComplex/Polar.lean`). That lemma is
+  private and stated for families on a manifold, so it cannot be used here.
+  The library states the pointwise version once, in Tau Ceti's style, so that
+  it can replace the private lemma upstream.
+- `metricPolarFormula_conj (e : W ≃L[ℝ] W')`: on `polarDomain W`,
+  transporting both forms along `e` conjugates the formula by `e`. The proof
+  is `metricPolarFormula_eq` and `metricPolarComplexStructure_transport`, since
+  the symmetric and skew parts commute with transport. This is naturality on
+  the whole domain, and it does not depend on the inner products of `W` and
+  `W'`.
 - `continuous_metricPolarComplexStructure`: jointly continuous on
   `innerProducts V × SymplecticForm V`.
 
-### `Analysis/Normed/Ring/Cayley.lean`
+### `Geometry/Symplectic/Cayley/Domain.lean`
 
-The domain of the Cayley path, in a complete normed `ℝ`-algebra `R`, in
-`SymplecticGeometry`.
+The domain of the Cayley path, in a complete normed `ℝ`-algebra `R`. Every
+declaration here is about Tau Ceti's `cayleyFormula` and `cayleyPathFormula`
+alone, so they go in `TauCeti`, next to `TauCeti.contDiffAt_cayleyPathFormula`,
+and `Compatible.mem_cayleyDomain` in `TauCeti.SymplecticForm`.
 
 - `cayleyDomain (R) : Set (ℝ × R × R) := {q | IsUnit (1 - q.2.1 * q.2.2) ∧
-  IsUnit (1 - q.1 • cayleyFormula q.2.1 q.2.2)}`, with `isOpen_cayleyDomain`
+  IsUnit (1 - q.1 • cayleyFormula q.2.1 q.2.2)}`, with `@[simp]`
+  `mem_cayleyDomain`, `isOpen_cayleyDomain`
   and `contDiffOn_cayleyPathFormula` (from `contDiffAt_cayleyPathFormula`).
 - `isOpen_setOf_forall_Icc_mem_cayleyDomain`: the pairs $(A,B)$ with
   $(b,A,B)$ in the domain for every $b\in[0,1]$ form an open set, by
   compactness of $[0,1]$. Its slice at $A=J_0$ is the set $U_{J_0}$ of
   `DESIGN.md`.
-- `TauCeti.SymplecticForm.Compatible.mem_cayleyDomain (h₀ : ω.Compatible J₀)
+- `TauCeti.SymplecticForm.Compatible.mem_cayleyDomain [FiniteDimensional ℝ V]
+  (h₀ : ω.Compatible J₀)
   (h : ω.Tames J) (hb : |b| ≤ 1)`: the triple of `b` and the endomorphisms of
   `J₀` and `J` lies in the domain. This combines
   `Tames.isUnit_one_sub_mul_of_toLinearMap` and
@@ -408,17 +564,21 @@ This is Lemma 2.5.5, on `StdSpace ι`, in `SymplecticGeometry`.
 This is Corollary 2.5.7, in `SymplecticGeometry`.
 
 - `compatibleMetric ω : C({J // ω.Compatible J}, innerProducts V)`, the map
-  $J\mapsto g_J$. It is continuous by Tau Ceti's
-  `toContinuousBilinearMap_associatedBilinForm`.
+  $J\mapsto g_J$, with `@[simp]` `coe_compatibleMetric_apply`
+  (its value is `(ω.associatedBilinForm J).toContinuousBilinearMap`). It is
+  continuous by Tau Ceti's `toContinuousBilinearMap_associatedBilinForm`.
 - `metricHomotopyEquiv ω : ContinuousMap.HomotopyEquiv {J // ω.Compatible J}
   (innerProducts V)`. Its forward map is `compatibleMetric ω`, and its
-  inverse is `g ↦ metricPolarComplexStructure g ω`. One composite is the
-  identity, by `metricPolarComplexStructure_associatedBilinForm`. The other
-  is homotopic to the identity by the straight-line homotopy
-  `metricStraightHomotopy`, $(t,g)\mapsto(1-t)\,g_{J_{g,\omega}}+t\,g$,
-  inside the convex set. Its value is a stated formula, so the bundle part
+  inverse is `g ↦ metricPolarComplexStructure g ω`. They come with `@[simp]`
+  `metricHomotopyEquiv_toFun` and `metricHomotopyEquiv_invFun`, which state
+  the two maps. One composite is the identity, by
+  `metricPolarComplexStructure_associatedBilinForm`. The other is homotopic to
+  the identity by the straight-line homotopy `metricStraightHomotopy ω`,
+  $(t,g)\mapsto(1-t)\,g_{J_{g,\omega}}+t\,g$, inside the convex set. Its value
+  is the `@[simp]` lemma `coe_metricStraightHomotopy_apply`, so the bundle part
   can read it off.
-- **Milestone** `compatible_contractible_and_homotopyEquiv`. It states three
+- **Milestone** `contractibleSpace_compatible_and_homotopyEquiv`, named like
+  its sibling `contractibleSpace_tames_and_homotopyEquiv`. It states three
   things. First, `Nonempty {J // ω.Compatible J} ∧ ContractibleSpace
   {J // ω.Compatible J}` (Tau Ceti's `exists_compatible` and instance).
   Second, there is a homotopy equivalence with `innerProducts V` whose maps
@@ -441,30 +601,49 @@ This is Proposition 2.5.6, for a fixed `g : innerProducts V`, in
   `metricSymplecticForm_apply` (`@[simp]`), `tames_metricSymplecticForm`,
   `metricSymplecticForm_eq_of_apply_apply` (it is $g(J\cdot,\cdot)$ for
   $g$-orthogonal $J$) and `continuous_metricSymplecticForm`.
+- `metricSymplecticForm_innerSL` (for `V` an inner product space and `J`
+  orthogonal for its inner product, `hJ : ∀ v w, ⟪J v, J w⟫ = ⟪v, w⟫`):
+  `metricSymplecticForm ⟨innerSL ℝ, innerSL_mem_innerProducts⟩ J =
+  J.symplecticForm hJ`. So for the ambient inner product and an orthogonal
+  $J$ the form is Tau Ceti's `AlmostComplexStructure.symplecticForm`, as
+  `metricPolarComplexStructure_innerSL` does for the complex structure.
 - `metricComplexStructures g : Set (AlmostComplexStructure V)`
   ($\mathcal{J}(V,g)$, the $g$-orthogonal structures) and
   `metricSymplecticForms g : Set (SymplecticForm V)` ($\Omega(V,g)$, the forms
-  $g(J\cdot,\cdot)$ for $J\in\mathcal{J}(V,g)$), with their membership
-  lemmas.
+  $g(J\cdot,\cdot)$ for $J\in\mathcal{J}(V,g)$), with their `@[simp]`
+  membership lemmas `mem_metricComplexStructures` and
+  `mem_metricSymplecticForms`.
 - `polarHomotopyEquiv g : ContinuousMap.HomotopyEquiv (SymplecticForm V)
   (AlmostComplexStructure V)`, with maps $\omega\mapsto J_{g,\omega}$ and
-  $J\mapsto\omega_{g,J}$. There are two homotopies:
+  $J\mapsto\omega_{g,J}$, stated by the `@[simp]` lemmas
+  `polarHomotopyEquiv_toFun` and `polarHomotopyEquiv_invFun`. There are two
+  homotopies:
   - On forms, the straight line from $\omega$ to $\omega_{g,J_{g,\omega}}$.
     Both forms are tamed by $J_{g,\omega}$, and taming is convex in the form,
     so the line stays nondegenerate.
   - On complex structures, the Cayley path relative to
     $J_{g,\omega_{g,J}}$ (compatible with $\omega_{g,J}$) towards $J$ (tame
-    for $\omega_{g,J}$). Its formula is
-    `cayleyPathFormula b (metricPolarFormula g (metricSymplecticForm g J)) J`,
-    which lies in `cayleyDomain` by `Compatible.mem_cayleyDomain`.
+    for $\omega_{g,J}$). Its endomorphism at time $b$ is
+    `cayleyPathFormula b A B`, with `A` and `B` the endomorphisms of
+    `metricPolarComplexStructure g (metricSymplecticForm g J)` and of `J`.
+    The triple lies in `cayleyDomain` by `Compatible.mem_cayleyDomain`. On an
+    inner product space, `A` is `metricPolarFormula` by `metricPolarFormula_eq`.
+
+  Each homotopy comes with a `@[simp]` lemma for its value.
 - `metricComplexStructuresHomotopyEquiv g` and
   `metricSymplecticFormsHomotopyEquiv g`, whose forward maps are the
   inclusions. Their inverses are $J\mapsto J_{g,\omega_{g,J}}$ and
   $\omega\mapsto\omega_{g,J_{g,\omega}}$, and the homotopies are the two
-  above. On the subsets, the inverses fix every point, by
+  above. Each comes with `@[simp]` `_toFun` and `_invFun` lemmas that state
+  these maps. On the subsets, the inverses fix every point, by
   `metricPolarComplexStructure_eq_iff`.
-- **Milestone** `metricPolarComplexStructure_properties`, the conjunction of
-  the following:
+- **Milestone** `metricPolarComplexStructure_eq_inverse_mul_and_homotopyEquiv`,
+  named after its first and last conjuncts. It is stated on a
+  finite-dimensional real inner product space `V`. Every finite-dimensional
+  space has one, and the ambient inner product only serves the formula: `g`
+  ranges over all of `innerProducts V`. It is the conjunction of the
+  following:
+  - the plan's definition: `metricPolarComplexStructure_eq_inverse_mul`;
   - smoothness: `contDiffOn_metricPolarFormula` and `metricPolarFormula_eq`;
   - naturality: `metricPolarComplexStructure_transport`;
   - compatibility with both $\omega$ and $g$;
@@ -477,11 +656,14 @@ This is Proposition 2.5.6, for a fixed `g : innerProducts V`, in
 
 ### `Topology/ComplexStructure/Compatible/Tame.lean`
 
-This is Proposition 2.5.13, beyond what Tau Ceti has, in `SymplecticGeometry`.
+This is Proposition 2.5.13, beyond what Tau Ceti has. Its declarations
+mention only Tau Ceti's notions, so they go in `TauCeti.SymplecticForm`.
 
-- `compatibleTamesHomotopyEquiv (h₀ : ω.Compatible J₀) :
+- `Compatible.tamesHomotopyEquiv (h₀ : ω.Compatible J₀) :
   ContinuousMap.HomotopyEquiv {J // ω.Compatible J} {J // ω.Tames J}`. Its
-  forward map is the inclusion and its inverse is the constant at $J_0$. The
+  forward map is the inclusion and its inverse is the constant at $J_0$,
+  stated by the `@[simp]` lemmas `Compatible.tamesHomotopyEquiv_toFun` and
+  `Compatible.tamesHomotopyEquiv_invFun`. The
   homotopies are Tau Ceti's `Compatible.compatibleCayleyContraction` and
   `Compatible.cayleyContraction`, whose formula is `cayleyPathFormula` by
   `toContinuousLinearMap_cayleyContraction`.
@@ -493,24 +675,31 @@ This is Proposition 2.5.13, beyond what Tau Ceti has, in `SymplecticGeometry`.
 ### `Topology/Algebra/Matrix/SymplecticGroup/CompactSubgroup.lean`
 
 This is Proposition 2.5.8, in `TauCeti.GLSymplectic`, since it is about Tau
-Ceti's group.
+Ceti's group. It takes the shape of Tau Ceti's maximal-compact family
+(`Matrix.GeneralLinearGroup.exists_conj_smul_le_unitarySubgroup`,
+`Matrix.SpecialLinearGroup.exists_conj_smul_le_comap_unitarySubgroup`), with
+the maximal compact subgroup of `GLSymplectic.maximal_isCompact_unitarySubgroup`,
+and starts no parallel API.
 
-- **Milestone** `exists_map_conj_le_range_ofUnitary {K : Subgroup
+- **Milestone** `exists_conj_smul_le_unitarySubgroup {K : Subgroup
   (GLSymplectic ι ℝ)} (hK : IsCompact (K : Set (GLSymplectic ι ℝ))) :
-  ∃ P : GLSymplectic ι ℝ, K.map (MulAut.conj P⁻¹).toMonoidHom ≤
-  (ofUnitary (n := ι)).range`. Its docstring ends with "Milestone: *Compact
-  subgroups of the symplectic group*."
+  ∃ g : GLSymplectic ι ℝ, MulAut.conj g • K ≤
+  (unitarySubgroup (GL (ι ⊕ ι) ℝ)).subgroupOf (GLSymplectic ι ℝ)`. The
+  subgroup on the right is the realified $\mathrm{U}(n)$, by Tau Ceti's
+  `GLSymplectic.inf_unitarySubgroup`. Its docstring says so, and ends with
+  "Milestone: *Compact subgroups of the symplectic group*."
 - The proof runs as follows:
   1. $K$ acts continuously on `StdSpace ι` by `Matrix.toEuclideanLin`,
      preserving `stdForm ι` (matrix dictionary, #8).
   2. `exists_compatible_forall_isComplexLinearMap` gives a compatible $J$
      that commutes with $K$.
   3. Condition (3) gives a symplectomorphism $\Psi$ with $\Psi J_0=J\Psi$,
-     whose matrix $P$ is symplectic.
+     whose matrix $P$ is symplectic. Take $g=P^{-1}$.
   4. Each $P^{-1}AP$ is then symplectic and commutes with `Matrix.J`, so it
-     lies in the realified $\mathrm{U}(n)$, by
-     `Matrix.symplecticGroup_inf_centralizer_J`. Its membership in the range
-     of `ofUnitary` follows from `coe_ofUnitary`.
+     lies in the range of `realify` (`mem_range_realify_iff`). By
+     `GLSymplectic.inf_range_realify` it lies in the realified
+     $\mathrm{U}(n)$, and by `GLSymplectic.inf_unitarySubgroup` in
+     `unitarySubgroup (GL (ι ⊕ ι) ℝ)`.
 
 ## Building issues
 
@@ -538,7 +727,7 @@ Each is a few hundred lines. External blockers are given by issue number.
 5. **Smoothness of $J_{g,\omega}$.** `PolarComplexStructure/Smooth.lean`.
    Blockers: 4.
 6. **The Cayley domain and the tame milestone.**
-   `Analysis/Normed/Ring/Cayley.lean` and
+   `Geometry/Symplectic/Cayley/Domain.lean` and
    `Topology/ComplexStructure/Compatible/Tame.lean`. Blockers: none.
 7. **Compatible structures on $\mathbb{R}^{2n}$ as positive symplectic
    matrices.** `Topology/ComplexStructure/Compatible/Matrix.lean`. Blockers:
@@ -546,15 +735,20 @@ Each is a few hundred lines. External blockers are given by issue number.
 8. **The homotopy equivalence with $\mathrm{Met}(V)$ and the contractibility
    milestone.** `Topology/ComplexStructure/Compatible/Metric.lean`. Blockers:
    5, 7.
-9. **Complex structures versus symplectic forms.**
-   `Topology/ComplexStructure/Compatible/SymplecticForms.lean`. Blockers: 5,
-   6.
-10. **Compact subgroups of the symplectic group.**
+9. **Forms versus complex structures for a fixed metric.** The first part of
+   `Topology/ComplexStructure/Compatible/SymplecticForms.lean`:
+   `metricSymplecticForm` and its API, `metricSymplecticForm_innerSL`, and
+   `polarHomotopyEquiv` with its two homotopies. Blockers: 5, 6.
+10. **The metric subsets and the milestone *Complex structures versus
+    symplectic forms*.** The rest of the file: `metricComplexStructures`,
+    `metricSymplecticForms`, their two homotopy equivalences, and the
+    milestone. Blockers: 9.
+11. **Compact subgroups of the symplectic group.**
     `Topology/Algebra/Matrix/SymplecticGroup/CompactSubgroup.lean`. Blockers:
     2, #8.
 
 Issues 1, 3 and 6 can start at once. *Symplectic vector bundles* needs 5, 6,
-8 and 9.
+8 and 10.
 
 ## References
 
