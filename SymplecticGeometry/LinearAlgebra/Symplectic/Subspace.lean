@@ -1,0 +1,154 @@
+/-
+Copyright (c) 2026 The FormalCommons contributors. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: The FormalCommons contributors
+-/
+module
+
+public import TauCeti.Geometry.Symplectic.Darboux.Basis
+public import TauCeti.Geometry.Symplectic.Lagrangian.Basic
+public import TauCeti.LinearAlgebra.BilinearForm.LagrangianBasis
+public import Mathlib.Order.Zorn
+
+/-!
+# Symplectic complements and Lagrangian extension
+
+For a symplectic form `ω` on a real vector space `V` (Tau Ceti's `TauCeti.SymplecticForm`) and a
+subspace `W`, this file adds to Tau Ceti's theory of the symplectic complement `W^ω`:
+
+* `TauCeti.SymplecticForm.isCoisotropic_orthogonal_iff`: `W^ω` is coisotropic exactly when `W`
+  is isotropic, in any dimension;
+* `TauCeti.SymplecticForm.IsIsotropic.exists_le_isLagrangian`: each isotropic `W` has a
+  Lagrangian `L ⊇ W`, in any dimension (by Zorn's lemma, since Lagrangian subspaces are the
+  maximal isotropic ones);
+* `TauCeti.SymplecticForm.IsLagrangian.exists_isDarbouxBasis_apply_zero_eq`: a basis
+  `u₁, …, uₙ` of a Lagrangian subspace is the first half of a Darboux basis
+  `u₁, …, uₙ, v₁, …, vₙ`, with `ω(uᵢ, vⱼ) = δᵢⱼ`;
+* `TauCeti.SymplecticForm.isLagrangian_iff_isIsotropic_and_two_mul_finrank_eq`: in finite
+  dimension, a subspace is Lagrangian exactly when it is isotropic of half the dimension.
+
+It then collects these with Tau Ceti's results into two theorems about a finite-dimensional
+symplectic vector space: `TauCeti.SymplecticForm.orthogonal_properties` (dimension of the
+complement, double complement, symplectic and isotropic subspaces versus their complements, and
+Lagrangian subspaces as the isotropic ones of half dimension) and
+`TauCeti.SymplecticForm.isLagrangian_properties` (Lagrangian extension, Lagrangian as maximal
+isotropic, extension of Lagrangian bases to Darboux bases).
+
+## References
+
+* [D. McDuff, D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017],
+  Lemma 2.1.1 and Lemma 2.1.5.
+-/
+
+public section
+
+namespace TauCeti.SymplecticForm
+
+open Module
+
+variable {V : Type*} [AddCommGroup V] [Module ℝ V]
+variable {ω : SymplecticForm V} {L : Submodule ℝ V}
+
+/-- The symplectic complement of a subspace is coisotropic if and only if the subspace is
+isotropic, in any dimension. -/
+@[simp]
+theorem isCoisotropic_orthogonal_iff :
+    ω.IsCoisotropic (ω.orthogonal L) ↔ ω.IsIsotropic L := by
+  rw [isIsotropic_iff_le, isCoisotropic_iff_le]
+  exact ⟨le_orthogonal_orthogonal.trans, orthogonal_le⟩
+
+/-- The symplectic complement of an isotropic subspace is coisotropic. -/
+theorem IsIsotropic.isCoisotropic_orthogonal (h : ω.IsIsotropic L) :
+    ω.IsCoisotropic (ω.orthogonal L) :=
+  isCoisotropic_orthogonal_iff.2 h
+
+/-- The supremum of a directed family of isotropic subspaces is isotropic. -/
+theorem isIsotropic_sSup_of_directedOn {c : Set (Submodule ℝ V)} (hdir : DirectedOn (· ≤ ·) c)
+    (hiso : ∀ L ∈ c, ω.IsIsotropic L) : ω.IsIsotropic (sSup c) := by
+  rcases c.eq_empty_or_nonempty with rfl | hne
+  · simp
+  rw [isIsotropic_iff]
+  intro v hv w hw
+  obtain ⟨L₁, hL₁, hv₁⟩ := (Submodule.mem_sSup_of_directed hne hdir).1 hv
+  obtain ⟨L₂, hL₂, hw₂⟩ := (Submodule.mem_sSup_of_directed hne hdir).1 hw
+  obtain ⟨L₃, hL₃, h₁₃, h₂₃⟩ := hdir L₁ hL₁ L₂ hL₂
+  exact isIsotropic_iff.1 (hiso L₃ hL₃) v (h₁₃ hv₁) w (h₂₃ hw₂)
+
+/-- Every isotropic subspace lies in a maximal isotropic subspace. -/
+theorem IsIsotropic.exists_le_maximal_isIsotropic (h : ω.IsIsotropic L) :
+    ∃ L', L ≤ L' ∧ Maximal ω.IsIsotropic L' := by
+  obtain ⟨L', hLL', hmax⟩ := zorn_le_nonempty₀ {L' | ω.IsIsotropic L'}
+    (fun c hcs hc _ _ => ⟨sSup c, isIsotropic_sSup_of_directedOn hc.directedOn hcs,
+      fun _ hz => le_sSup hz⟩) L h
+  exact ⟨L', hLL', hmax⟩
+
+/-- **Lagrangian extension.** Every isotropic subspace of a symplectic vector space lies in a
+Lagrangian subspace. No finiteness of the dimension is needed. -/
+theorem IsIsotropic.exists_le_isLagrangian (h : ω.IsIsotropic L) :
+    ∃ L', L ≤ L' ∧ ω.IsLagrangian L' := by
+  obtain ⟨L', hLL', hmax⟩ := h.exists_le_maximal_isIsotropic
+  exact ⟨L', hLL', isLagrangian_iff_maximal_isIsotropic.2 hmax⟩
+
+/-- A basis `u₁, …, uₙ` of a Lagrangian subspace of a finite-dimensional symplectic vector space
+extends to a Darboux basis `u₁, …, uₙ, v₁, …, vₙ`, that is, one with `ω(uᵢ, uⱼ) = 0`,
+`ω(vᵢ, vⱼ) = 0` and `ω(uᵢ, vⱼ) = δᵢⱼ`, where `uᵢ = b (i, 0)` and `vᵢ = b (i, 1)`. -/
+theorem IsLagrangian.exists_isDarbouxBasis_apply_zero_eq [FiniteDimensional ℝ V]
+    (h : ω.IsLagrangian L) {n : ℕ} (e : Basis (Fin n) ℝ L) :
+    ∃ b : Basis (Fin n × Fin 2) ℝ V, ω.IsDarbouxBasis b ∧ ∀ i, b (i, 0) = e i := by
+  obtain ⟨d, hd, hde⟩ :=
+    ω.isAlt.exists_basis_toMatrix_eq_J_inl_eq ω.nondegenerate e
+      (le_antisymm (isIsotropic_iff_le.1 h.isIsotropic) (isCoisotropic_iff_le.1 h.isCoisotropic))
+  have hJ (x y : Fin n ⊕ Fin n) : ω (d x) (d y) = Matrix.J (Fin n) ℝ x y := by
+    rw [← hd, LinearMap.BilinForm.toMatrix_apply]
+  let v : Fin n × Fin 2 → V := fun p => if p.2 = 0 then d (.inl p.1) else -d (.inr p.1)
+  have hdim : finrank ℝ V = n * 2 := by
+    rw [finrank_eq_card_basis d]
+    simp [mul_two]
+  obtain ⟨b, hb, hbv⟩ := exists_isDarbouxBasis_coe_eq (ω := ω) hdim (v := v)
+    (fun i j => by simp [v, hJ, Matrix.J])
+    (fun i j => by simp [v, hJ, Matrix.J])
+    (fun i j => by simp [v, hJ, Matrix.J, Matrix.one_apply])
+  exact ⟨b, hb, fun i => by simp [hbv, v, hde]⟩
+
+variable [FiniteDimensional ℝ V]
+
+/-- The Lagrangian subspaces of a finite-dimensional symplectic vector space `(V, ω)` are the
+isotropic subspaces `L` with `2 · dim L = dim V`. -/
+theorem isLagrangian_iff_isIsotropic_and_two_mul_finrank_eq :
+    ω.IsLagrangian L ↔ ω.IsIsotropic L ∧ 2 * finrank ℝ L = finrank ℝ V :=
+  ⟨fun h => ⟨h.isIsotropic, h.two_mul_finrank⟩, fun h => h.1.isLagrangian_of_finrank h.2⟩
+
+/-- **Symplectic complements.** For a subspace `W` of a finite-dimensional symplectic vector
+space `(V, ω)`: `dim W + dim W^ω = dim V`; `W^ωω = W`; `W` and `W^ω` are symplectic together;
+`W` is isotropic exactly when `W^ω` is coisotropic; and `W` is Lagrangian exactly when it is
+isotropic with `2 · dim W = dim V`.
+
+Milestone: *Symplectic complements*. -/
+theorem orthogonal_properties (ω : SymplecticForm V) (W : Submodule ℝ V) :
+    finrank ℝ W + finrank ℝ (ω.orthogonal W) = finrank ℝ V ∧
+      ω.orthogonal (ω.orthogonal W) = W ∧
+      (ω.IsSymplectic W ↔ ω.IsSymplectic (ω.orthogonal W)) ∧
+      (ω.IsIsotropic W ↔ ω.IsCoisotropic (ω.orthogonal W)) ∧
+      (ω.IsLagrangian W ↔ ω.IsIsotropic W ∧ 2 * finrank ℝ W = finrank ℝ V) :=
+  ⟨ω.finrank_add_finrank_orthogonal W, ω.orthogonal_orthogonal W,
+    isSymplectic_orthogonal_iff.symm, isCoisotropic_orthogonal_iff.symm,
+    isLagrangian_iff_isIsotropic_and_two_mul_finrank_eq⟩
+
+/-- **Lagrangian extension lemma.** In a finite-dimensional symplectic vector space `(V, ω)`,
+each isotropic subspace has a Lagrangian subspace containing it; a subspace is Lagrangian iff
+it is isotropic and no strictly larger subspace is; and for any basis `e` of a Lagrangian
+subspace there is a Darboux basis `b` of `V` (so `ω(b (i, 0), b (j, 1)) = δᵢⱼ`) whose `q`-half is
+`e`, that is, `b (i, 0) = e i`.
+
+Milestone: *Lagrangian extension lemma*. -/
+theorem isLagrangian_properties (ω : SymplecticForm V) :
+    (∀ W : Submodule ℝ V, ω.IsIsotropic W → ∃ L, W ≤ L ∧ ω.IsLagrangian L) ∧
+      (∀ L : Submodule ℝ V, ω.IsLagrangian L ↔ Maximal ω.IsIsotropic L) ∧
+      ∀ L : Submodule ℝ V, ω.IsLagrangian L → ∀ {n : ℕ} (e : Basis (Fin n) ℝ L),
+        ∃ b : Basis (Fin n × Fin 2) ℝ V, ω.IsDarbouxBasis b ∧ ∀ i, b (i, 0) = e i :=
+  ⟨fun _ h => h.exists_le_isLagrangian, fun _ => isLagrangian_iff_maximal_isIsotropic,
+    fun _ h _ e => h.exists_isDarbouxBasis_apply_zero_eq e⟩
+
+end TauCeti.SymplecticForm
+
+end
