@@ -220,8 +220,8 @@ than $r$. Expected size: 150 lines.
   `e '' {v | Q v ≤ 1} = {v | Q.comp e.symm v ≤ 1}`, and `Q.comp e.symm` is
   positive definite with `Q` (Mathlib may have the second; search
   `QuadraticMap.PosDef` first).
-- `exists_posDef_image_closedBall_eq`: on a finite-dimensional real inner
-  product space, the image of `closedBall 0 r` (`0 < r`) under a linear
+- `exists_posDef_image_closedBall_eq`: in a real inner product space of
+  finite dimension, the image of `closedBall 0 r` (`0 < r`) under a linear
   equivalence is `{v | Q v ≤ 1}` for a positive definite `Q`
   ($Q(v)=\lVert e^{-1}v\rVert^2/r^2$). This makes symplectic balls ellipsoids,
   which issue 8 uses.
