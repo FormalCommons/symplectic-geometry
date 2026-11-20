@@ -239,6 +239,13 @@ further when they grow, following `AGENTS.md`.
   $\lambda\lambda'\neq1$ with the bilinear extension; from Tau Ceti's
   `SymplecticGroup.charpoly_inv`, `SymplecticGroup.reflect_charpolyRev` and
   `LinearMap.IsAdjointPair.apply_eq_zero_of_mem_genEigenspace`),
+  `LinearAlgebra/Matrix/SymplecticGroup/Basic.lean` (algebraic facts beside
+  Mathlib's `SymplecticGroup.transpose_mem`, over a commutative star ring:
+  `SymplecticGroup.star_mem` and `SymplecticGroup.star_mem_iff`),
+  `Analysis/Matrix/Polar/Basic.lean` (the general right polar decomposition
+  of `GL n 𝕜` over `RCLike 𝕜`, beside Tau Ceti's left forms:
+  `Matrix.GeneralLinearGroup.posDef_sqrt_star_mul` and
+  `Matrix.GeneralLinearGroup.existsUnique_unitary_mul_posDef`),
   `Analysis/Matrix/Polar/Symplectic.lean` (the right decomposition
   $\Psi=UP$ with uniqueness: Tau Ceti's `Units.polarUnitary_mul_sqrt_star_mul`
   and `Units.mul_eq_iff_polarUnitary_eq_and_sqrt_star_mul_eq` give it with
