@@ -131,9 +131,10 @@ size `2n`:
 2. a symplectic matrix `Ψ` is `U P` with `U` orthogonal and symplectic, that is, in `U(n)`, and
   `P` positive definite and symplectic, for exactly one pair `(U, P)`, namely
   `U = Ψ (ΨᵀΨ) ^ (-1 / 2)` and `P = (ΨᵀΨ) ^ (1 / 2)`;
-3. `U(n)` is a maximal compact subgroup of `Sp(2n)`; the maps `Ψ ↦ Ψ (ΨᵀΨ) ^ (-t / 2)`,
-  `0 ≤ t ≤ 1`, form a homotopy relative to `U(n)` from the identity to a retraction onto `U(n)`;
-  the inclusion `U(n) → Sp(2n)` is a homotopy equivalence; and `Sp(2n)` is path-connected.
+3. `U(n)` is compact and no compact subgroup of `Sp(2n)` strictly contains it; the maps
+  `Ψ ↦ Ψ (ΨᵀΨ) ^ (-t / 2)`, `0 ≤ t ≤ 1`, form a homotopy relative to `U(n)` from the identity
+  to a retraction onto `U(n)`; the inclusion `U(n) → Sp(2n)` is a homotopy equivalence; and
+  `Sp(2n)` is path-connected.
 
 Milestone: *Symplectic polar decomposition and the maximal compact subgroup*. -/
 theorem polar_maximal_isCompact_deformationRetract :
