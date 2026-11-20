@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Symplectic.WittExtension
+public import TauCeti.LinearAlgebra.BilinearForm.Basic
 public import TauCeti.LinearAlgebra.BilinearForm.Isometry
 public import TauCeti.LinearAlgebra.BilinearForm.SymplecticBasis
 public import TauCeti.RepresentationTheory.ClassicalGroups.Symplectic
@@ -36,13 +37,18 @@ model `SymplecticGeometry.stdForm` on `SymplecticGeometry.StdSpace ι`; it follo
 
 ## Main results
 
+* `Matrix.J_inl_inl`, `Matrix.J_inl_inr`, `Matrix.J_inr_inl`, `Matrix.J_inr_inr`: the four blocks
+  of `Matrix.J`, as `simp` lemmas.
 * `TauCeti.toMatrix_reindex_sumComm_neg_stdSymplecticBilinForm`: the Gram matrix of `ω₀` in the
   reordered standard basis is `Matrix.J`.
-* `LinearMap.BilinForm.IsAlt.nonempty_isometryEquiv_neg_stdSymplecticBilinForm`: a space of
+* `TauCeti.isAlt_neg_stdSymplecticBilinForm`, `TauCeti.neg_stdSymplecticBilinForm_nondegenerate`
+  and `TauCeti.neg_stdSymplecticBilinForm_single_single`: `ω₀` is alternating and
+  nondegenerate, and its values on the standard basis.
+* `LinearMap.BilinForm.IsAlt.equivalent_neg_stdSymplecticBilinForm`: a space of
   dimension `2n` with a nondegenerate alternating form is isometric to `(k²ⁿ, ω₀)`.
-* `LinearMap.BilinForm.IsAlt.nonempty_isometryEquiv_of_finrank_eq`: two such spaces of the same
-  dimension are isometric.
-* `LinearMap.BilinForm.IsAlt.exists_basis_and_isometryEquiv`: the linear Darboux theorem, the
+* `LinearMap.BilinForm.IsAlt.equivalent_iff_finrank_eq`: two such spaces are isometric if and
+  only if they have the same dimension.
+* `LinearMap.BilinForm.IsAlt.exists_basis_and_equivalent`: the linear Darboux theorem, the
   three statements together.
 * `SymplecticGeometry.exists_isSymplectomorphism_stdForm`,
   `SymplecticGeometry.exists_isSymplectomorphism_stdForm_fin`: the real version, with `stdForm`.
@@ -57,6 +63,28 @@ public section
 
 open Module
 
+namespace Matrix
+
+variable {l R : Type*} [DecidableEq l] [CommRing R] (i j : l)
+
+/-- The upper left block of `Matrix.J` is zero. -/
+@[simp]
+theorem J_inl_inl : J l R (.inl i) (.inl j) = 0 := rfl
+
+/-- The upper right block of `Matrix.J` is `-1`. -/
+@[simp]
+theorem J_inl_inr : J l R (.inl i) (.inr j) = -(1 : Matrix l l R) i j := rfl
+
+/-- The lower left block of `Matrix.J` is `1`. -/
+@[simp]
+theorem J_inr_inl : J l R (.inr i) (.inl j) = (1 : Matrix l l R) i j := rfl
+
+/-- The lower right block of `Matrix.J` is zero. -/
+@[simp]
+theorem J_inr_inr : J l R (.inr i) (.inr j) = 0 := rfl
+
+end Matrix
+
 namespace TauCeti
 
 variable (k : Type*) [CommRing k] (n : ℕ)
@@ -69,6 +97,28 @@ theorem toMatrix_reindex_sumComm_neg_stdSymplecticBilinForm :
       (-stdSymplecticBilinForm k n) = Matrix.J (Fin n) k := by
   ext (i | i) (j | j) <;>
     simp [LinearMap.BilinForm.toMatrix_apply, Matrix.J, Matrix.one_apply]
+
+/-- `ω₀ = -stdSymplecticBilinForm k n` is alternating. -/
+theorem isAlt_neg_stdSymplecticBilinForm : (-stdSymplecticBilinForm k n).IsAlt :=
+  (isAlt_stdSymplecticBilinForm k n).neg
+
+/-- `ω₀ = -stdSymplecticBilinForm k n` is nondegenerate. -/
+theorem neg_stdSymplecticBilinForm_nondegenerate :
+    (-stdSymplecticBilinForm k n).Nondegenerate :=
+  TauCeti.BilinForm.nondegenerate_neg_iff.mpr (stdSymplecticBilinForm_nondegenerate k n)
+
+/-- The values of `ω₀ = -stdSymplecticBilinForm k n` on the standard basis vectors: with
+`xⱼ = Pi.single (Sum.inl j) 1` and `yⱼ = Pi.single (Sum.inr j) 1`, they are
+`ω₀(xᵢ, xⱼ) = ω₀(yᵢ, yⱼ) = 0`, `ω₀(xᵢ, yⱼ) = δᵢⱼ` and `ω₀(yᵢ, xⱼ) = -δᵢⱼ`. -/
+theorem neg_stdSymplecticBilinForm_single_single (x y : Fin n ⊕ Fin n) :
+    (-stdSymplecticBilinForm k n) (Pi.single x (1 : k)) (Pi.single y (1 : k)) =
+      match x, y with
+      | .inl i, .inr j => if i = j then 1 else 0
+      | .inr i, .inl j => -(if i = j then 1 else 0)
+      | .inl _, .inl _ => 0
+      | .inr _, .inr _ => 0 := by
+  rcases x with i | i <;> rcases y with j | j <;>
+    simp [Matrix.J, Matrix.one_apply]
 
 end TauCeti
 
@@ -98,9 +148,9 @@ variable {k V W : Type*} [Field k] [AddCommGroup V] [Module k V] [FiniteDimensio
 /-- A nondegenerate alternating form `B` on a space of dimension `2n` is isometric to the
 standard model: there is a linear isomorphism `Ψ : (Fin n ⊕ Fin n → k) ≃ V` with
 `B(Ψ z, Ψ w) = ω₀(z, w)`, where `ω₀ = -stdSymplecticBilinForm k n`. -/
-theorem nonempty_isometryEquiv_neg_stdSymplecticBilinForm (hB : B.IsAlt)
+theorem equivalent_neg_stdSymplecticBilinForm (hB : B.IsAlt)
     (hnd : B.Nondegenerate) {n : ℕ} (hn : finrank k V = 2 * n) :
-    Nonempty ((-stdSymplecticBilinForm k n).IsometryEquiv B) := by
+    (-stdSymplecticBilinForm k n).Equivalent B := by
   obtain ⟨m, b, hb⟩ := hB.exists_basis_toMatrix_eq_J hnd
   obtain rfl : m = n := by
     rw [finrank_eq_card_basis b, Fintype.card_sum, Fintype.card_fin] at hn
@@ -108,16 +158,16 @@ theorem nonempty_isometryEquiv_neg_stdSymplecticBilinForm (hB : B.IsAlt)
   exact ⟨((Pi.basisFun k _).reindex (Equiv.sumComm _ _)).isometryEquivOfToMatrixEq b
     ((toMatrix_reindex_sumComm_neg_stdSymplecticBilinForm k m).trans hb.symm)⟩
 
-/-- Two finite-dimensional spaces of the same dimension with nondegenerate alternating forms are
-isometric. -/
-theorem nonempty_isometryEquiv_of_finrank_eq (hB : B.IsAlt) (hnd : B.Nondegenerate)
-    (hC : C.IsAlt) (hndC : C.Nondegenerate) (hdim : finrank k V = finrank k W) :
-    Nonempty (B.IsometryEquiv C) := by
+/-- Two finite-dimensional spaces with nondegenerate alternating forms are isometric if and only
+if they have the same dimension. -/
+theorem equivalent_iff_finrank_eq (hB : B.IsAlt) (hnd : B.Nondegenerate)
+    (hC : C.IsAlt) (hndC : C.Nondegenerate) :
+    B.Equivalent C ↔ finrank k V = finrank k W := by
+  refine ⟨fun ⟨e⟩ ↦ e.toLinearEquiv.finrank_eq, fun hdim ↦ ?_⟩
   obtain ⟨n, hn⟩ := hB.even_finrank hnd
   rw [← two_mul] at hn
-  obtain ⟨e⟩ := hB.nonempty_isometryEquiv_neg_stdSymplecticBilinForm hnd hn
-  obtain ⟨f⟩ := hC.nonempty_isometryEquiv_neg_stdSymplecticBilinForm hndC (hdim ▸ hn)
-  exact ⟨e.symm.trans f⟩
+  exact (hB.equivalent_neg_stdSymplecticBilinForm hnd hn).symm.trans
+    (hC.equivalent_neg_stdSymplecticBilinForm hndC (hdim ▸ hn))
 
 universe w in
 /-- **Linear Darboux theorem**, over any field `k`. Let `V` be a finite-dimensional
@@ -128,22 +178,21 @@ is even; `V` has a symplectic basis `uⱼ = b (Sum.inr j)`, `vⱼ = b (Sum.inl j
 space of the same dimension with a nondegenerate alternating form is isometric to `(V, B)`.
 
 Milestone: *Linear Darboux theorem*. -/
-theorem exists_basis_and_isometryEquiv (hB : B.IsAlt) (hnd : B.Nondegenerate) :
+theorem exists_basis_and_equivalent (hB : B.IsAlt) (hnd : B.Nondegenerate) :
     ∃ n : ℕ, finrank k V = 2 * n ∧
       (∃ b : Basis (Fin n ⊕ Fin n) k V, ∀ i j,
         B (b (.inr i)) (b (.inr j)) = 0 ∧ B (b (.inl i)) (b (.inl j)) = 0 ∧
           B (b (.inr i)) (b (.inl j)) = if i = j then 1 else 0) ∧
-      Nonempty ((-stdSymplecticBilinForm k n).IsometryEquiv B) ∧
+      (-stdSymplecticBilinForm k n).Equivalent B ∧
       ∀ (V' : Type w) [AddCommGroup V'] [Module k V'] [FiniteDimensional k V']
         (C : LinearMap.BilinForm k V'),
-        C.IsAlt → C.Nondegenerate → finrank k V' = finrank k V →
-          Nonempty (B.IsometryEquiv C) := by
+        C.IsAlt → C.Nondegenerate → finrank k V' = finrank k V → B.Equivalent C := by
   obtain ⟨n, b, hb⟩ := hB.exists_basis_toMatrix_eq_J hnd
   have hn : finrank k V = 2 * n := by
     rw [finrank_eq_card_basis b, Fintype.card_sum, Fintype.card_fin, two_mul]
   exact ⟨n, hn, ⟨b, apply_basis_of_toMatrix_eq_J hb⟩,
-    hB.nonempty_isometryEquiv_neg_stdSymplecticBilinForm hnd hn,
-    fun _ _ _ _ C hC hndC hdim ↦ hB.nonempty_isometryEquiv_of_finrank_eq hnd hC hndC hdim.symm⟩
+    hB.equivalent_neg_stdSymplecticBilinForm hnd hn,
+    fun _ _ _ _ C hC hndC hdim ↦ (hB.equivalent_iff_finrank_eq hnd hC hndC).mpr hdim.symm⟩
 
 end LinearMap.BilinForm.IsAlt
 
