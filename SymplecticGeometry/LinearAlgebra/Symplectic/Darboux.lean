@@ -124,8 +124,8 @@ universe w in
 `k`-vector space and `B` an alternating, nondegenerate bilinear form on `V`. Then `dim V = 2n`
 is even; `V` has a symplectic basis `uⱼ = b (Sum.inr j)`, `vⱼ = b (Sum.inl j)`, with
 `B(uᵢ, uⱼ) = B(vᵢ, vⱼ) = 0` and `B(uᵢ, vⱼ) = δᵢⱼ`; there is a linear isomorphism
-`Ψ : (Fin n ⊕ Fin n → k) ≃ V` with `Ψ^* B = ω₀ = -stdSymplecticBilinForm k n`; and every space of the same dimension with a
-nondegenerate alternating form is isometric to `(V, B)`.
+`Ψ : (Fin n ⊕ Fin n → k) ≃ V` with `Ψ^* B = ω₀ = -stdSymplecticBilinForm k n`; and every
+space of the same dimension with a nondegenerate alternating form is isometric to `(V, B)`.
 
 Milestone: *Linear Darboux theorem*. -/
 theorem exists_basis_and_isometryEquiv (hB : B.IsAlt) (hnd : B.Nondegenerate) :
