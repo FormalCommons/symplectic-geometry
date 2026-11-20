@@ -73,6 +73,17 @@ theorem. The reasons for this choice:
   `atlas/symplectic-fibrations.md` uses its naturality. The class defined here
   serves them unchanged, while a number defined only over surfaces would not.
 
+**No decomposition of surfaces is needed.** `DESIGN.md` listed a
+decomposition of closed surfaces among the missing infrastructure, because a
+splitting definition needs splittings to exist and to be compared. With the
+cohomological definition nothing is cut except along coordinate discs, which
+exist around every point (prerequisite 5), and along the regular level set
+of a function that `Splitting.lean` takes as data. Normalization uses
+Poincaré–Hopf and Tau Ceti's genus lemmas instead of a classification of
+surfaces, and uniqueness pulls back from $S^2$ along a degree-one map rather
+than comparing surfaces of equal genus. So neither a decomposition nor the
+classification of closed surfaces is used anywhere in the part.
+
 What the Euler class does not give for free is additivity, the hard direction
 of naturality, and the existence of bundles with every Chern number. All three
 come from the disc clutching formula: the Chern number is the degree of the
@@ -89,8 +100,8 @@ With the cohomological definition, the class and the number go in
 symplectic number, the splitting description and the extension lemma move to
 `Splitting.lean`, `Clutching.lean` holds the disc clutching formula, the
 comparison with `clutchingNumber` moves to `ClutchingNumber.lean`, and
-`Gluing.lean` is new. This pull request updates the *Files* bullet of part 13
-in `DESIGN.md` to match.
+`Gluing.lean` is new. The *Files* bullet of part 13 in `DESIGN.md` is
+updated to match.
 
 ## Conventions
 
@@ -122,7 +133,8 @@ in `DESIGN.md` to match.
   map from `SymplecticGeometry.Bundle.ContMDiffComplexStructure` to Tau Ceti's
   `TauCeti.Bundle.ContinuousComplexStructure` and then `.Fiber`.
 - **Coordinate discs and the clutching circle.** A coordinate disc
-  (`SymplecticGeometry.CoordinateDisc o`, prerequisite 5) is an open
+  (`SymplecticGeometry.CoordinateDisc o.toHomologicalOrientation`,
+  prerequisite 5) is an open
   embedding `φ : Metric.ball (0 : ℂ) 2 → M` that carries the standard
   orientation of `ℂ` to `o`. Its disc is $D=\varphi(\bar B_1)$ and its
   circle is $t\mapsto\varphi(e^{2\pi it})$, counterclockwise in the chart. So
@@ -201,9 +213,11 @@ core of prerequisite 1:
 - `chernNumber_neg_orientation`: reversing `o` negates it.
 - `chernNumber_congr`, `chernNumber_trivial`, `chernNumber_conj`, from the
   lemmas above.
-- `chernNumber_pullback (f : C(M', M))`: `chernNumber o' G (f *ᵖ E) =
-  o'.degree o hn f * chernNumber o G E`, from `firstChernClass_pullback` and
-  `evalFundamentalClass_id_singularCohomologyMap_eq_degree_smul`.
+- `chernNumber_pullback (f : C(M', M))`, with `[PreconnectedSpace M]`:
+  `chernNumber o' G (f *ᵖ E) = o'.degree o hn f * chernNumber o G E`, from
+  `firstChernClass_pullback` and
+  `evalFundamentalClass_id_singularCohomologyMap_eq_degree_smul`, which needs
+  the target compact and preconnected.
 
 No Whitney sum formula is claimed over a general base; additivity is proved
 over surfaces only, from clutching.
@@ -313,11 +327,12 @@ Bundles from clutching data, and isomorphisms from homotopies.
   Prop` with four fields, as the plan states the axioms:
   - `nonempty_iso_iff`: `Nonempty (E.Iso E')` if and only if `E.n = E'.n`
     and `c S E = c S E'`;
-  - `pullback`: `c S' (E.pullback φ hφ) = TauCeti.degree S'.o S.o φ * c S E`
-    for every smooth `φ : S' → S`;
-  - `whitneySum`: `c S (E.whitneySum E') = c S E + c S E'`;
-  - `tangent`: `c S (tangent S σ) = 2 - 2 * TauCeti.surfaceGenus S` for every
-    area form `σ` that induces the orientation of `S`.
+  - `apply_pullback`: `c S' (E.pullback φ hφ) = TauCeti.degree S'.o S.o φ *
+    c S E` for every smooth `φ : S' → S`;
+  - `apply_whitneySum`: `c S (E.whitneySum E') = c S E + c S E'`;
+  - `apply_tangent`: `c S (SymplecticSurfaceBundle.tangent S σ) = 2 - 2 *
+    TauCeti.surfaceGenus S` for every area form `σ` that induces the
+    orientation of `S`.
 - `symplecticChernNumber_whitneySum` (from block frames and
   `TauCeti.GLSymplectic.maslovIndex_sum`, through the clutching formula with
   frames from *Symplectic vector bundles*).
@@ -343,14 +358,15 @@ Bundles from clutching data, and isomorphisms from homotopies.
 - `eq_symplecticChernNumber_of_chernNumberAxioms`: uniqueness. Fix `S` and
   let `c` satisfy the axioms. By `nonempty_iso_iff`, `c` is constant on
   isomorphism classes. A trivial bundle is the pull-back of itself along a
-  constant map, of degree $0$ (`TauCeti.degree_const`), so `pullback` gives
-  it `c = 0`. A bundle of rank `n ≥ 1` and number `k` is isomorphic to
+  constant map, of degree $0$ (`TauCeti.degree_const`), so `apply_pullback`
+  gives it `c = 0`. A bundle of rank `n ≥ 1` and number `k` is isomorphic to
   `clutchingLineBundle φ k` plus a trivial bundle, by
   `symplecticChernNumber_nonempty_iso_iff`. So `c` is `h k` for one function
   `h : ℤ → ℤ`. Since `L_a ⊕ L_b` and `L_(a+b) ⊕ trivial` are isomorphic,
-  `whitneySum` makes `h` additive, so `h k = k * h 1`. Last, pull back
+  `apply_whitneySum` makes `h` additive, so `h k = k * h 1`. Last, pull back
   $TS^2$ along a smooth map $\Sigma\to S^2$ of degree one (prerequisite 9):
-  `tangent` on $S^2$ and `pullback` give `h 2 = 2`. Normalization on `S`
+  `apply_tangent` on $S^2$, with the orientation and area form of
+  prerequisite 9, and `apply_pullback` give `h 2 = 2`. Normalization on `S`
   alone would not suffice, since it says nothing for the torus.
 - `existsUnique_chernNumberAxioms :
   ∃! c : ∀ S : ClosedConnectedOrientedSurface, SymplecticSurfaceBundle S → ℤ,
@@ -380,8 +396,12 @@ Bundles from clutching data, and isomorphisms from homotopies.
   finite and the Chern number is the sum over the zeros of the signs $\pm1$
   of the Jacobians in oriented charts
   (`sectionIndex_eq_sign_det_of_hasFDerivAt`), the book's intersection
-  indices. Finiteness: a transverse zero is isolated, by the inverse function
-  theorem in a chart, and the zero set is compact. Milestone: *First Chern
+  indices. Finiteness is Tau Ceti's `TauCeti.finite_sectionZero_of_contMDiff`
+  (`Geometry/Manifold/VectorBundle/Section/SmoothZero.lean`), its Fredholm
+  and index hypotheses supplied by
+  `ContinuousLinearMap.isFredholm_of_finiteDimensional` and
+  `TauCeti.index_sectionLinearization_of_finiteDimensional`, as in
+  `Section/Generic.lean`. Milestone: *First Chern
   number as an Euler number*. With this definition the milestone does not
   depend on the other two.
 
@@ -390,8 +410,8 @@ Bundles from clutching data, and isomorphisms from homotopies.
 - Uses the circle bundle `P` of a Hermitian line bundle and its connection
   forms from prerequisites 3 and 4.
 - `chernNumber_eq_integral_curvature`: for every connection form `α` on `P`
-  (`hα : IsConnectionForm α`), `(chernNumber o ℂ L : ℝ) = -(2 * π)⁻¹ *
-  TauCeti.integralTopForm o hα.curvature`. Proof: two connection forms
+  (`hα : IsCircleConnectionForm α`), `(chernNumber o.toHomologicalOrientation ℂ L :
+  ℝ) = -(2 * π)⁻¹ * TauCeti.integralTopForm o hα.curvature`. Proof: two connection forms
   differ by `π^* a`, so their curvatures differ by `d a`, whose integral is
   $0$ (`TauCeti.integralTopForm_mextDeriv_eq_zero`; no connectedness needed).
   So it suffices to compute one connection. Choose frames as in the clutching
@@ -405,8 +425,9 @@ Bundles from clutching data, and isomorphisms from homotopies.
   discs, where the integral is computed in polar coordinates: $-2\pi k_j$
   for each disc (`TauCeti.integralTopForm_eq_chartIntegral`), so the
   right-hand side is $\sum_j k_j$, the Chern number by the clutching formula.
-- `exists_isConnectionForm_curvature_eq`: if `M` is connected, every smooth
-  real 2-form `σ` with `∫ σ = -2π * chernNumber o ℂ L` is the curvature of a
+- `exists_isCircleConnectionForm_curvature_eq`: if `M` is connected, every smooth
+  real 2-form `σ` with `TauCeti.integralTopForm o σ = -2π * chernNumber
+  o.toHomologicalOrientation ℂ L` is the curvature of a
   connection form. Proof: `σ - hα₀.curvature` has integral $0$, so it is
   exact by `TauCeti.mem_exactCompactlySupportedForms_iff_integralTopForm_eq_zero`
   (with `TauCeti.compactlySupportedForms_eq_top`). Then add the pull-back of
@@ -437,29 +458,57 @@ only when `symplecticChernNumber_eq_boundaryMaslovIndex` and
 `exists_extension_iff_boundaryMaslovIndex_eq_zero` are proved too, and both
 docstrings end with the same milestone line.
 
-- A *splitting* of a closed oriented surface is given by a smooth
-  `f : M → ℝ` with regular value `0`: $\Sigma_1=\{f\le0\}$,
-  $\Sigma_2=\{f\ge0\}$, $C=f^{-1}(0)$. `C` is a compact 1-manifold by Tau
-  Ceti's regular fibres (`Geometry/Manifold/RegularValue/ManifoldLevel.lean`).
-  It is collared in $\Sigma_1$, which has a fundamental class relative to
-  `C` (`TauCeti.HomologicalOrientation.fundamentalClassRel`) whose boundary is
-  a fundamental class of `C`, the boundary orientation
-  (`TauCeti.HomologicalOrientation.isFundamentalClass_singularHomologyδ_fundamentalClassRel`).
-- `boundaryMaslovIndex`: for `Ψ : C → Sp(2n)` continuous, the image of that
-  class of `C` under the Maslov phase composed with `Ψ`, in
-  $H_1(S^1;\mathbb{Z})\cong\mathbb{Z}$. `boundaryMaslovIndex_eq_sum`: when
-  the components of `C` are parametrized by orientation-preserving loops,
-  it is the sum of `TauCeti.GLSymplectic.maslovIndex` of the loops.
+- **Surfaces with boundary.** The setting is that of Tau Ceti's
+  `RelativeFundamentalClass.lean`: a compact Hausdorff `X`, an open embedding
+  `ι : M → X` of a surface oriented by `o : HomologicalOrientation M E 2`,
+  and a collared `f : N → X` whose image is the complement of `ι(M)`. The
+  boundary degree of prerequisite 7, `o.boundaryDegree hn hι hιf hf u` for
+  `u : C(∂X, Circle)`, pairs `u` with the boundary class
+  `∂[X, ∂X]`.
+- `boundaryMaslovIndex`: for `Ψ : C(∂X, GLSymplectic n ℝ)`, the boundary
+  degree of `TauCeti.GLSymplectic.maslovPhase ∘ Ψ` (continuous by
+  `continuous_maslovPhase`), with `boundaryMaslovIndex_def`.
+  `boundaryMaslovIndex_eq_sum`: when the components of `∂X` are parametrized
+  by loops compatible with the boundary class, it is the sum of
+  `TauCeti.GLSymplectic.maslovIndex` of the loops (from
+  `boundaryDegree_eq_sum_degree`).
+- **Two settings meet this one.** A *splitting* of a closed oriented surface
+  is given by a smooth `g : M → ℝ` with regular value `0`:
+  $\Sigma_1=\{g\le0\}$, $\Sigma_2=\{g\ge0\}$, $C=g^{-1}(0)$. `C` is a compact
+  1-manifold by Tau Ceti's regular fibres
+  (`Geometry/Manifold/RegularValue/ManifoldLevel.lean`), collared in
+  $\Sigma_1$ by the flow of a gradient, so $X=\Sigma_1$ with interior
+  $\{g<0\}$ is an instance; the collar is
+  `SymplecticGeometry.isCollared_inclusion_levelSet` of prerequisite 7 (the
+  inclusion of $g^{-1}(0)$ into $\{g\le0\}$ is `TauCeti.IsCollared`). A
+  compact surface with boundary in the representation that
+  *Symplectic vector bundles* fixes for its last milestone, a manifold over
+  `𝓡∂ 2`, is an instance with `ι` the inclusion of the interior and `f` that
+  of the boundary, collared by
+  `TauCeti.isCollared_subtypeVal_boundary_of_compactSpace`; the issue proves
+  the identification of the interior with the complement of the boundary.
 - `symplecticChernNumber_eq_boundaryMaslovIndex`: for symplectic frames over
-  $\Sigma_1$ and $\Sigma_2$, the number is `boundaryMaslovIndex` of the
-  transition $\Phi_1^{-1}\Phi_2$ on `C`, by the argument principle along a
-  splitting (prerequisite 7) and the unitary reduction of `Clutching.lean`.
+  $\Sigma_1$ and $\Sigma_2$, the number is `boundaryMaslovIndex` on
+  $\Sigma_1$ of the transition $\Phi_1^{-1}\Phi_2$ on `C`. Proof: make both
+  frames unitary as in `Clutching.lean`. The changes of frame extend over
+  $\Sigma_1$ and over $\Sigma_2$, so by `boundaryDegree_mul` and
+  `boundaryDegree_eq_zero_of_extend` (on $\Sigma_2$, whose boundary class
+  on `C` is the opposite one) they do not change `boundaryMaslovIndex`, and
+  for the unitary transition the Maslov phase is the normalized complex
+  determinant (`TauCeti.GLSymplectic.maslovPhase_ofUnitary`).
+  Then the determinant of $\Phi_1$ is a
+  frame of the determinant line over $\Sigma_1$, and the determinant of
+  $\Phi_2$ is a nowhere-zero section over $\Sigma_2$; read in the first, the
+  second is the determinant of the transition on `C`, and
+  `evalFundamentalClass_eulerClass_eq_boundaryDegree` (prerequisite 7)
+  applies.
 - `exists_extension_iff_boundaryMaslovIndex_eq_zero`: the book's Lemma 2.7.3,
   for a connected compact oriented surface whose boundary is not empty, in the
-  representation that *Symplectic vector bundles* fixes for its last
-  milestone. A continuous `Ψ` on the boundary extends continuously over the
-  surface if and only if its boundary Maslov index is $0$. "Only if" is the
-  argument principle. "If": cap the boundary circles with discs
+  representation of *Symplectic vector bundles* above. A continuous `Ψ` on
+  the boundary extends continuously over the surface if and only if its
+  `boundaryMaslovIndex` is $0$. "Only if": the Maslov phase of an extension
+  extends `maslovPhase ∘ Ψ` over `X`, and `boundaryDegree_eq_zero_of_extend`
+  (prerequisite 7) applies. "If": cap the boundary circles with discs
   (prerequisite 8) and glue a bundle over the closed surface with clutching
   `Ψ`. Its number is $0$, so it is trivial by `nonempty_iso_iff`. A global
   frame then writes `Ψ` as a map defined on the surface times maps defined on
@@ -530,20 +579,40 @@ issues, in an order where each issue's blockers come before it.
    - in `Topology/VectorBundle/FiniteRank/OfBundle.lean`,
      `TauCeti.FiniteRankBundleCore.ofBundleOfFinrankEq 𝕜 G E (h :
      finrank 𝕜 G = n)`, the generalization of `ofBundle` to a bundle with any
-     finite-dimensional model `G` over any `𝕜`, through
-     `ContinuousLinearEquiv.ofFinrankEq`, with its rank, the fibrewise
-     identification with `E`, and the analogues of `ofBundleIso` and
-     `pullback_ofBundle`;
+     finite-dimensional model `G` over any `𝕜`. It is not built by hand: its
+     core is the point-indexed core of `E` transported along
+     `ContinuousLinearEquiv.ofFinrankEq` by Tau Ceti's
+     `VectorBundleCore.congrModel` (`Topology/VectorBundle/Core/Congr.lean`),
+     as `FiniteRank/Atlas/Biproduct.lean` does, so `indexAt_congrModel` gives
+     `indexAt_eq`. Its API: `rank_ofBundleOfFinrankEq`;
+     `TauCeti.FiniteRankBundleCore.ofBundleOfFinrankEqHomeomorph`, the
+     identification of total spaces with that of `E`, from
+     `congrModelHomeomorph` and `continuous_mk_congrModel_iff`;
+     `TauCeti.FiniteRankBundleCore.ofBundleOfFinrankEqIso`, the analogue of
+     `ofBundleIso` (an isomorphism of cores from a fibrewise isomorphism of
+     bundles, continuous on total spaces); and
+     `TauCeti.FiniteRankBundleCore.pullback_ofBundleOfFinrankEq`, the analogue
+     of `pullback_ofBundle`;
    - in `Topology/VectorBundle/Determinant.lean`,
      `SymplecticGeometry.Bundle.detCore 𝕜 G E :=
-     (ofBundleOfFinrankEq 𝕜 G E rfl).det`, over any `𝕜`, with its fibrewise
-     isomorphisms induced by those of `E`, compatibility with pull-back
-     (through `CoordinateFunctor.functor_comp_pullbackFunctor`), the trivial
-     bundle, and the identification with `E` in rank one;
-   - the one step specific to `ℂ`: a natural isomorphism
-     `det ∘ conjugate ≅ conjugate ∘ det` of `FiniteRankBundleCore ℂ B`, as a
+     (ofBundleOfFinrankEq 𝕜 G E rfl).det`, over any `𝕜`, with `detCore_def`,
+     `SymplecticGeometry.Bundle.detCoreMap` (the isomorphism of determinant
+     cores induced by a fibrewise isomorphism of bundles),
+     `SymplecticGeometry.Bundle.detCorePullbackIso` (compatibility with
+     pull-back, through `CoordinateFunctor.functor_comp_pullbackFunctor`),
+     `detCore_trivial` (the trivial bundle has a trivial determinant), and
+     `SymplecticGeometry.Bundle.detCoreIsoOfFinrankEqOne` (the identification
+     with `E` in rank one, from `exteriorPowerOneNatIso`);
+   - the one step specific to `ℂ`, in
+     `Topology/VectorBundle/FiniteRank/ConjugateDet.lean` beside Tau Ceti's
+     `FiniteRank/Conjugate.lean`: the natural isomorphism
+     `TauCeti.FiniteRankBundleCore.detConjugateIso : conjugate ⋙ det ≅
+     det ⋙ conjugate` of functors on `FiniteRankBundleCore ℂ B`, and its
+     consequence `SymplecticGeometry.Bundle.detCoreConjugateFiberwise`, a
      conjugate-linear fibrewise isomorphism between `detCore ℂ` of the
-     conjugate bundle and `detCore ℂ G E`.
+     conjugate bundle and `detCore ℂ G E`, in the form that
+     `complexEulerClass_eq_neg_of_finrank_eq_one_of_conjugateFiberwise`
+     takes.
 
    Done when these are proved and build.
 2. **Evenness of the first Betti number of a closed orientable surface.**
@@ -555,7 +624,10 @@ issues, in an order where each issue's blockers come before it.
    `eulerChar_eq_two_sub_two_mul_genus_iff_even_finrank` with
    `genus_eq_surfaceGenus` (`AlgebraicTopology/Cellular/EulerCharacteristic/Genus.lean`;
    `TauCeti.IsMorse.finiteCWType` or `FiniteCWType.of_isManifold` gives the
-   instance). Route: Tau Ceti's
+   instance). The same file has `TauCeti.surfaceGenus_sphere`: the unit
+   sphere of `EuclideanSpace ℝ (Fin 3)` has `surfaceGenus = 0`, from Tau
+   Ceti's homology of spheres; uniqueness in `Axioms.lean` uses it. Route
+   for the evenness: Tau Ceti's
    `TopCat.even_finrank_singularHomology_of_injective_singularCapLinearMap`,
    given injectivity of the cap product with the fundamental class in degree
    one. That injectivity is the degree-one case of Poincaré duality, which
@@ -566,38 +638,42 @@ issues, in an order where each issue's blockers come before it.
    criterion is likely several issues, and is split into them when the issues
    are created. Done when the evenness theorem is proved.
 3. **The unit circle bundle of a Hermitian line bundle.**
-   `Geometry/Manifold/VectorBundle/Hermitian/CircleBundle.lean`. The circle
-   bundle of a smooth Hermitian line bundle `L` is Tau Ceti's unit sphere
-   bundle `TauCeti.sphereBundle ℂ L` (`Topology/VectorBundle/SphereBundle/Basic.lean`),
-   with its charts `Bundle.Trivialization.sphereBundle`
-   (`SphereBundle/LocallyTrivial.lean`) and its smooth structure
-   (`isManifold_sphereBundle`, `isSmoothEmbedding_coe_sphereBundle` in
-   `Geometry/Manifold/VectorBundle/Riemannian/Sphere.lean`); equivalently the
-   rank-one unitary frame bundle, which Tau Ceti already makes a
-   `PrincipalBundle` (`Topology/VectorBundle/OrthonormalFrame/Principal.lean`).
-   The issue adds only: the right action of `Circle` by scalar
-   multiplication, the `TauCeti.PrincipalBundle Circle` instance (from the
-   unitary frame bundle, through Tau Ceti's `circleEquivUnitary : Circle ≃ₜ* unitary ℂ`
-   and the identification of `unitary (ℂ →L[ℂ] ℂ)` with `unitary ℂ`), and the
-   relation between the smooth structure of the sphere bundle as a
-   submanifold and that of `TauCeti.ManifoldTotalSpace Circle` given by
-   `TauCeti.PrincipalBundle.contMDiffFiberBundle_iff`, so that the projection
-   is a smooth submersion. Blocked by the issue from #57 that fixes Hermitian
-   line bundles. Done when these instances and the submersion property are
-   proved.
+   `Geometry/Manifold/VectorBundle/Hermitian/CircleBundle.lean`, the file
+   that #57 (its design in #63) gives *Symplectic vector bundles*. The type
+   that carries the principal-bundle structure is the family of Tau Ceti's
+   rank-one unitary frame bundle, `fun x ↦ OrthonormalFrameBundle.Fiber ℂ F L
+   ℂ x` (fibre `ℂ ≃ₗᵢ[ℂ] L x`), which
+   `OrthonormalFrameBundle.instPrincipalBundleFiber`
+   (`Topology/VectorBundle/OrthonormalFrame/Principal.lean`) makes a
+   principal bundle for `unitary (ℂ →L[ℂ] ℂ)`. The `Circle` action on it, its
+   homeomorphism onto the unit circle subtype `{p : TotalSpace F L // ‖p.snd‖
+   = 1}` (on which Tau Ceti's `isManifold_sphereBundle` puts the smooth
+   structure), and the `TauCeti.PrincipalBundle Circle` instance, through
+   `circleEquivUnitary`, are planned by #63 for *Symplectic vector bundles*,
+   and this design takes them from there rather than adding them again. This
+   issue adds only the smooth side: the hypothesis of
+   `TauCeti.PrincipalBundle.contMDiffFiberBundle_iff` for the `Circle`
+   instance (smooth coordinate changes, from those of the unitary frame
+   bundle and the smoothness of the isomorphism onto `Circle`), so that
+   `TauCeti.ManifoldTotalSpace Circle` of the family is a smooth principal
+   bundle; `SymplecticGeometry.Bundle.circleBundleDiffeomorph`, the
+   homeomorphism of #63 as a diffeomorphism onto the submanifold subtype; and
+   `SymplecticGeometry.Bundle.isSubmersion_circleBundle_proj`, the
+   projection is a smooth submersion. Blocked by the issue from #57 for the
+   circle bundle. Done when these are proved.
 4. **Connection forms on principal circle bundles.**
    `Geometry/Manifold/FiberBundle/Principal/CircleConnection.lean`: for a
    smooth principal `Circle`-bundle `P` over `M`, the predicate
-   `SymplecticGeometry.IsConnectionForm α` for a smooth real 1-form on the
+   `SymplecticGeometry.IsCircleConnectionForm α` for a smooth real 1-form on the
    total space, invariant under the action and equal to $1$ on the
    fundamental vector field of $1$ (`TauCeti.rightFundamentalVectorField`
-   composed with `Circle.exp`). Its curvature `IsConnectionForm.curvature
-   (hα : IsConnectionForm α)`, the 2-form on `M` whose pull-back is `d α`,
+   composed with `Circle.exp`). Its curvature `IsCircleConnectionForm.curvature
+   (hα : IsCircleConnectionForm α)`, the 2-form on `M` whose pull-back is `d α`,
    exists and is unique by descent of basic forms (`TauCeti.RoughForm.IsBasic`,
    `Manifold.IsSubmersion.exists_smoothForm_mpullback_eq_iff`).
-   API: `IsConnectionForm.curvature_def`;
-   `IsConnectionForm.mpullback_curvature` (the pull-back of the curvature is
-   `d α`) and `IsConnectionForm.curvature_eq_iff` (it characterizes the
+   API: `IsCircleConnectionForm.curvature_def`;
+   `IsCircleConnectionForm.mpullback_curvature` (the pull-back of the curvature is
+   `d α`) and `IsCircleConnectionForm.curvature_eq_iff` (it characterizes the
    curvature); `α + π^* a` is a connection form for every 1-form `a` on `M`,
    any two differ by such an `a`, and `curvature (α + π^* a) = curvature α +
    d a`; existence of a connection form, by a partition of unity from the
@@ -633,37 +709,90 @@ issues, in an order where each issue's blockers come before it.
    `TauCeti.HomologicalOrientation.localDegree_eq_degree_toBasedLoop`. The
    indices sum to the Euler number of the trivial bundle, which is $0$. This
    is the half of the book's Lemma 2.7.3 needed for discs. Blocked by 5.
-7. **Argument principle along a splitting.** In the same file: let `X` be
-   compact with collared boundary `∂X` and oriented interior, as in
-   `RelativeFundamentalClass.lean`. Let `L` be an oriented real plane bundle
-   over `X`, with a nowhere-zero section `s` on `∂X` and a section `t` with
-   finitely many zeros, all in the interior, and equal to `s` on `∂X`. Then
-   `SymplecticGeometry.sum_sectionIndex_eq_boundaryDegree`: the sum of the
-   local indices of `t` is the degree of `s` against the boundary class
-   `∂[X, ∂X]`. Route: excision and the connecting morphism of `(X, ∂X)`,
-   with the pairing of the relative Thom class pulled back by `t`. Done when
-   this and the corresponding Euler-number formula for a closed surface split
-   along `f⁻¹(0)`, `SymplecticGeometry.eulerNumber_eq_boundaryDegree`, are
-   proved. Blocked by 6.
-8. **Capping a surface with boundary.** In the file that *Symplectic vector
-   bundles* uses for surfaces with boundary: a compact oriented surface with
-   boundary circles parametrized by orientation-reversing loops, glued to
-   discs along them, is a closed oriented surface, by Tau Ceti's
-   `Geometry/Manifold/Gluing/`. The main result is
-   `SymplecticGeometry.capDiscs`, the closed surface, with
-   `isOpenEmbedding_capDiscs_inl` and `capDiscs_coordinateDisc`, the caps as
-   coordinate discs. Blocked by the issue of *Symplectic vector bundles*
+7. **Boundary degree and the argument principle on a surface with
+   boundary.** The setting is that of `RelativeFundamentalClass.lean`: `X`
+   compact Hausdorff, `ι : M → X` an open embedding of a surface with
+   `o : HomologicalOrientation M E 2`, and `f : N → X` collared with image
+   `∂X`, the complement of `ι(M)`. Two files:
+   - `AlgebraicTopology/Singular/LocalHomology/BoundaryDegree.lean`: the
+     definition `TauCeti.HomologicalOrientation.boundaryDegree o hn hι hιf hf
+     (u : C(∂X, Circle)) : ℤ`, the image of the boundary class
+     `singularHomologyδ (fundamentalClassRel …)` under `u`, read in ℤ through
+     `Circle.singularHomologyOneIso`, with the sign for which the
+     counterclockwise loop counts $+1$. API: `boundaryDegree_def`;
+     `boundaryDegree_mul` (pointwise products add degrees);
+     `boundaryDegree_neg_orientation`; `boundaryDegree_eq_zero_of_extend` (a
+     `u` that extends continuously to `X` has degree $0$, since the boundary
+     class dies in $H_1(X)$ by exactness); and `boundaryDegree_eq_sum_degree`
+     (when the components of `∂X` are parametrized by loops whose classes add
+     up to the boundary class, it is the sum of `Circle.degree` of `u` along
+     them).
+   - `Topology/VectorBundle/Orientation/ArgumentPrinciple.lean`, beside Tau
+     Ceti's `SectionIndex` files. The boundary term needs a trivialization
+     over the whole of `X`: with one only over `∂X` the statement is false
+     (on the disc, twisting the boundary trivialization by $e^{i\theta}$
+     changes the degree but not the zeros). So: let `L` be a real plane
+     bundle over `X` with a frame `τ` over all of `X` (a continuous family of
+     linear isomorphisms `ℂ ≃L[ℝ] L x`), oriented by `τ`, and `t` a
+     continuous section whose zeros are finitely many and lie in `ι(M)`.
+     Then `TauCeti.VectorBundleOrientation.sum_sectionIndex_eq_boundaryDegree`:
+     the sum over those zeros of the `sectionIndex` of `t` restricted along
+     `ι` equals `o.boundaryDegree … u`, with `u` the normalization of
+     `τ⁻¹ t` on `∂X`. Route: by excision both sides are local homology
+     computations near the zeros and near `∂X`, joined by the connecting
+     morphism of `(X, ∂X)`. Then
+     `TauCeti.VectorBundleOrientation.evalFundamentalClass_eulerClass_eq_boundaryDegree`:
+     for an oriented plane bundle `L` over a closed oriented surface split by
+     a regular value of `g : M → ℝ`, a frame `τ` of `L` over $\Sigma_1$
+     compatible with the orientation, and a nowhere-zero section `s` over
+     $\Sigma_2$, the Euler number of `L` is the boundary degree on
+     $\Sigma_1$ of the normalization of
+     `τ⁻¹ s` on `C`. Proof: extend `τ⁻¹ s` from `C` to a smooth map
+     $\Sigma_1\to\mathbb{C}$ transverse to $0$ (Tietze, smoothing and a
+     generic perturbation as in `Section/Generic.lean`), so that `s` extends
+     to a section with finitely many zeros, and combine the first result with
+     `evalFundamentalClass_eulerClass_eq_sum_sectionIndex`.
+
+   - `Geometry/Manifold/RegularValue/LevelCollar.lean`:
+     `SymplecticGeometry.isCollared_inclusion_levelSet`, for a smooth
+     `g : M → ℝ` on a manifold without boundary with regular value `0` and
+     compact level set, the inclusion of $g^{-1}(0)$ into $\{g\le0\}$ is
+     `TauCeti.IsCollared` (by the flow of a normalized gradient), and
+     $\{g<0\}$ is the complement of its image; the second result above
+     uses it, and so does `Splitting.lean`.
+
+   Done when these are proved. It can start at once.
+8. **Capping a surface with boundary.**
+   `Geometry/Manifold/Gluing/CapDiscs.lean`, a file of its own beside Tau
+   Ceti's `Geometry/Manifold/Gluing/`, whose gluing it uses: a compact
+   oriented surface with boundary, in the representation of *Symplectic
+   vector bundles*, with its boundary circles parametrized by
+   orientation-reversing loops, glued to discs along them, is a closed
+   oriented surface. The main definition is `SymplecticGeometry.capDiscs`,
+   the closed surface with its orientation, with
+   `SymplecticGeometry.isOpenEmbedding_capDiscs_inl` (the interior of the
+   surface sits in it as an open subset) and the data
+   `SymplecticGeometry.capDiscs.coordinateDisc`, the caps as coordinate
+   discs. Blocked by the issue of *Symplectic vector bundles*
    that fixes that representation, and by 5.
 9. **A map of degree one onto the sphere.**
    `Geometry/Manifold/Degree/Collapse.lean`:
    `SymplecticGeometry.exists_contMDiff_degree_eq_one`, every closed
    connected oriented surface has a smooth map to $S^2$ of degree one, by
    collapsing the complement of a coordinate disc through a cut-off, with
-   `TauCeti.degree` computed at the image of the centre. It also gives the
-   facts about $S^2$ that uniqueness uses: its orientation
-   `SymplecticGeometry.sphereOrientation` and `surfaceGenus_sphere`
-   (`surfaceGenus = 0`, from Tau Ceti's homology of spheres). Blocked by 5.
-   Done when both are proved.
+   `TauCeti.degree` computed at the image of the centre. The sphere is
+   `sphere (0 : EuclideanSpace ℝ (Fin 3)) 1` with Tau Ceti's outward-normal
+   orientation `o.sphereOrientation`
+   (`Geometry/Manifold/Orientation/Sphere.lean`) for an orientation `o` of
+   `EuclideanSpace ℝ (Fin 3)`, as in `orientable_sphere`; no new orientation
+   is defined. The area form that uniqueness needs is `o.sphereVolumeForm`:
+   it vanishes nowhere (`sphereVolumeForm_apply_ne_zero`), so it is
+   nondegenerate by `TauCeti.SmoothTwoForm.isNondegenerate_iff_forall_ne_zero_of_finrank_eq_two`,
+   and the orientation it induces is `o.sphereOrientation` by the definition
+   of the latter through `Manifold.Orientation.ofTopForm`, so no new lemma
+   is needed for it. The genus of
+   the sphere is `TauCeti.surfaceGenus_sphere` of prerequisite 2. Blocked by
+   5. Done when these are proved.
 
 ### The part's own issues
 

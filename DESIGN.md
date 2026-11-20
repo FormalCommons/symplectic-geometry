@@ -711,13 +711,13 @@ it into issues; the overview fixes its folders and its dependencies.
 - **Milestones:** *First Chern number of symplectic vector bundles over
   surfaces*, *Chern–Weil formula for circle bundles over surfaces*, *First
   Chern number as an Euler number*.
-- This part needs the most infrastructure that neither library has
-  (decomposition of closed surfaces, degree with regular values linked to the
-  splitting, principal connections on circle bundles). Its design file lists
-  those prerequisites as separate issues before any of its own, and decides
-  whether the Chern number is defined by the splitting, as in the book, or
-  from `clutchingNumber` or `complexEulerClass`, with the book's description
-  as a theorem.
+- The number is defined from `complexEulerClass` of the determinant line;
+  the splitting description of the book, the disc clutching formula and
+  `clutchingNumber` are theorems, and no decomposition of surfaces is
+  needed. The infrastructure that neither library has (determinant lines,
+  coordinate discs, boundary degrees on surfaces with boundary, connection
+  forms on circle bundles, among others) comes as prerequisite issues
+  before the part's own, as the design file lists them.
 
 ## Dependencies and build order
 
