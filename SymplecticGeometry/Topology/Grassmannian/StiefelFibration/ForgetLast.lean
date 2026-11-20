@@ -47,24 +47,19 @@ variable {𝕜 : Type*} [RCLike 𝕜] {N : ℕ}
 
 /-- **The unit sphere of `𝕜^N` is `(dim_ℝ 𝕜 * N - 2)`-connected.** For any `RCLike 𝕜`, the
 homotopy group of the space `finiteOrthonormalFrame 𝕜 1 N` of unit vectors of `𝕜^N`, indexed by a
-type of `k` cube directions, is trivial whenever `k + 1 < dim_ℝ 𝕜 * N`. (For an infinite index
-type it is trivial in any case.) -/
+type of `k` cube directions, is trivial whenever `k + 1 < dim_ℝ 𝕜 * N`, where `k` is
+`Nat.card M`; the index type need not be finite. -/
 theorem subsingleton_homotopyGroup_unitVector {M : Type*}
     (h : Nat.card M + 1 < Module.finrank ℝ 𝕜 * N) (x : finiteOrthonormalFrame 𝕜 1 N) :
     Subsingleton (HomotopyGroup M (finiteOrthonormalFrame 𝕜 1 N) x) := by
   -- the one-frames are the whole fibre of `forgetLast` over the unique `0`-frame
-  let f₀ : finiteOrthonormalFrame 𝕜 0 N := forgetLast x
-  have hf₀ (g : finiteOrthonormalFrame 𝕜 1 N) : forgetLast g = f₀ :=
-    Subtype.ext (funext fun i ↦ i.elim0)
   let φ : finiteOrthonormalFrame 𝕜 1 N ≃ₜ sphere (0 : EuclideanSpace 𝕜 (Fin (N - 0))) 1 :=
-    ((Homeomorph.Set.univ _).symm.trans
-      ((Homeomorph.refl _).subtype fun g ↦ by simp [hf₀ g])).trans (forgetLastFiberSphere f₀)
+    ((Homeomorph.Set.univ _).symm.trans ((Homeomorph.refl _).subtype fun g ↦ by
+      simp [Subsingleton.elim (forgetLast g) (forgetLast x)])).trans
+      (forgetLastFiberSphere (forgetLast x))
   have hE : Module.finrank ℝ (EuclideanSpace 𝕜 (Fin (N - 0))) =
       Module.finrank ℝ 𝕜 * N - 1 + 1 := by
-    rw [((EuclideanSpace.equiv (Fin (N - 0)) 𝕜).toLinearEquiv.restrictScalars ℝ).finrank_eq,
-      Module.finrank_pi_fintype]
-    simp only [Finset.sum_const, Finset.card_univ, Fintype.card_fin, smul_eq_mul, Nat.sub_zero,
-      Nat.mul_comm N]
+    rw [← Module.finrank_mul_finrank ℝ 𝕜, finrank_euclideanSpace_fin, Nat.sub_zero]
     omega
   have := subsingleton_homotopyGroup_sphere_of_lt hE (N := M) (by omega) (φ x)
   exact (HomotopyGroup.homeomorphEquiv φ x).subsingleton
