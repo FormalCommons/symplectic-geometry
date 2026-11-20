@@ -29,6 +29,25 @@ Each entry has this form:
 
 ## atlas/linear-symplectic-geometry.md
 
+### Complex structures on the zero space form one component
+
+- **Where:** `atlas/linear-symplectic-geometry.md`, *Linear complex
+  structures are standard*.
+- **Error:** the milestone says, with no bound on $n$, that the space of
+  linear complex structures on $\mathbb{R}^{2n}$ has two connected
+  components. For $n=0$ this is false: the zero space carries exactly one
+  complex structure, the zero map (its square is $0=-\mathbb{1}$), so the
+  space is a single point and has one component. The quotient
+  $\mathrm{GL}(0,\mathbb{R})/\mathrm{GL}(0,\mathbb{C})$ is a point too.
+- **Fix:** `nat_card_connectedComponents_almostComplexStructure_stdSpace`
+  counts two components for `Nonempty ι`, the generality in which the book's
+  argument works, and the milestone `complexStructures_classification` has
+  the hypothesis `n ≠ 0` in its third conjunct. The counterexample is
+  `nat_card_connectedComponents_almostComplexStructure_stdSpace_of_isEmpty`:
+  for empty `ι` the count is one. The other conclusions of the milestone are
+  stated for every $n$ (`design/linear-complex-structures.md`).
+- **Issue:** #16.
+
 ### The fundamental group of U(n) in dimension zero
 
 - **Where:** `atlas/linear-symplectic-geometry.md`, *Fundamental group of the
