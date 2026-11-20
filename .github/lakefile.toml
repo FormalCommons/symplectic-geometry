@@ -1,0 +1,28 @@
+name = "SymplecticGeometry"
+defaultTargets = ["SymplecticGeometry"]
+
+# Tau Ceti's options, so that code here can later move to Tau Ceti unchanged:
+# Mathlib's standard linters, a 1500-line limit per file, and every warning an
+# error. Both file-length options must be set, or the linter asks for a
+# `set_option` in every file.
+[leanOptions]
+autoImplicit = false
+weak.linter.mathlibStandardSet = true
+weak.linter.unusedVariables.analyzeTactics = true
+weak.linter.style.longFile = 1500
+weak.linter.style.longFileDefValue = 1500
+weak.linter.style.header = true
+warningAsError = true
+
+# Tau Ceti, which brings Mathlib, at a fixed commit. Its own lake-manifest.json
+# pins Mathlib and the rest, and this project's lake-manifest.json records them.
+[[require]]
+name = "TauCeti"
+git = "https://github.com/TauCetiProject/TauCeti"
+rev = "e0e414ce57522ba17560057ad0d7f2edab91bf0c" # tag v4.37.0-rc1
+
+[[lean_lib]]
+name = "SymplecticGeometry"
+# Build every module under `SymplecticGeometry/`. There is no root file that imports them
+# all, so pull requests that add files never conflict over one.
+globs = ["SymplecticGeometry.+"]
