@@ -494,11 +494,11 @@ it into issues; the overview fixes its folders and its dependencies.
   by Mathlib's `Matrix.submatrix_equiv_mem_unitary`. The sum is equivariant
   for `TauCeti.GLSymplectic.sum`
   (`LinearAlgebra/Matrix/GeneralLinearGroup/Symplectic/Sum.lean`). Continuity
-  comes from $\mathcal{L}(n)\cong\mathrm{U}(n)/\mathrm{O}(n)$ (`Quotient.lean`): the frame map is
-  an open quotient map, and so is a product of two such maps (Mathlib's
-  `IsOpenQuotientMap.prodMap`). How the
-  reindexing meets `GLSymplectic.reindex` is proved with that definition, in
-  the *Maslov index* part, so that this part does not depend on it.
+  comes from $\mathcal{L}(n)\cong\mathrm{U}(n)/\mathrm{O}(n)$ (`Quotient.lean`):
+  the frame map is an open quotient map, and so is a product of two such
+  maps (Mathlib's `IsOpenQuotientMap.prodMap`). How the reindexing meets
+  `GLSymplectic.reindex` is proved with that definition, in the *Maslov
+  index* part, so that this part does not depend on it.
 - **Transverse Lagrangians** (`Transverse.lean`). Any two Lagrangians
   $\Lambda_1,\Lambda_2$ have a common transverse Lagrangian: move $\Lambda_1$
   to $V_0$ by a unitary matrix; if $X+iY$ is a unitary frame of the moved
