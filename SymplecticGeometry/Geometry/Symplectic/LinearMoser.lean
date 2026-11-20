@@ -10,6 +10,7 @@ public import TauCeti.Analysis.ODE.DysonSeries
 public import TauCeti.Geometry.Symplectic.AlmostComplex.Topology
 public import TauCeti.Geometry.Symplectic.Transport
 public import TauCeti.Topology.Algebra.Module.BilinearForm
+public import SymplecticGeometry.Analysis.Calculus.Deriv.ContinuousLinearMap
 import Mathlib.Analysis.Calculus.Deriv.Mul
 import TauCeti.Analysis.ODE.Regularity
 
@@ -103,20 +104,6 @@ theorem eq_moserGenerator_iff {t : ℝ} (ht : (ω t).IsInvertible) {A : V →L[�
   ext x
   exact ht.injective (by rw [apply_moserGenerator ht]; exact congr($h x))
 
-/-- The derivative of a path of skew-symmetric forms is skew-symmetric. -/
-theorem deriv_apply_apply_eq_neg (hskew : ∀ t v w, ω t v w = -ω t w v) (t : ℝ) (v w : V) :
-    deriv ω t v w = -deriv ω t w v := by
-  by_cases hω : DifferentiableAt ℝ ω t
-  swap
-  · simp [deriv_zero_of_not_differentiableAt hω]
-  have hev (a b : V) : HasDerivAt (fun s => ω s a b) (deriv ω t a b) t := by
-    have h := HasDerivAt.clm_apply (c := ω) (u := fun _ => a) hω.hasDerivAt
-      (hasDerivAt_const t a)
-    simpa using HasDerivAt.clm_apply (c := fun s => ω s a) (u := fun _ => b) h
-      (hasDerivAt_const t b)
-  have h : (fun s => ω s v w) = fun s => -ω s w v := funext fun s => hskew s v w
-  exact (hev v w).unique (by rw [h]; exact (hev w v).neg)
-
 variable [CompleteSpace V]
 
 /-- The Moser generator of a `Cⁿ⁺¹` path of invertible forms is `Cⁿ`. -/
@@ -154,7 +141,7 @@ theorem apply_dysonSeriesLeft_moserGenerator (hω : ContDiff ℝ 1 ω)
     rw [add_apply, apply_moserGenerator (hinv s), hskew s (Ψ s u) (A s _),
       apply_moserGenerator (hinv s), smul_apply,
       smul_apply, smul_eq_mul, smul_eq_mul,
-      deriv_apply_apply_eq_neg hskew s (Ψ s v)]
+      deriv_apply_apply_eq_neg (.of_forall hskew) (Ψ s v)]
     ring
   have hconst := is_const_of_deriv_eq_zero (fun s => (hf s).differentiableAt)
     fun s => (hf s).deriv
@@ -213,22 +200,11 @@ theorem continuous_complexMoserGenerator (hJ : ContDiff ℝ 1 J) :
     Continuous (complexMoserGenerator J) :=
   (contDiff_complexMoserGenerator (n := 0) (by rwa [zero_add])).continuous
 
-/-- The derivative of a path of complex structures anticommutes with it. -/
-theorem deriv_mul_add_mul_deriv_eq_zero (hsq : ∀ t, J t * J t = -1) (t : ℝ) :
-    deriv J t * J t + J t * deriv J t = 0 := by
-  by_cases hJ : DifferentiableAt ℝ J t
-  swap
-  · simp [deriv_zero_of_not_differentiableAt hJ]
-  have h : J * J = fun _ => -1 := funext hsq
-  have h' := hJ.hasDerivAt.mul hJ.hasDerivAt
-  rw [h] at h'
-  exact h'.unique (hasDerivAt_const t (-1 : B))
-
 /-- The complex Moser generator `A` of a path of complex structures satisfies
 `J̇ t + J t * A t = A t * J t`. -/
 theorem deriv_add_mul_complexMoserGenerator (hsq : ∀ t, J t * J t = -1) (t : ℝ) :
     deriv J t + J t * complexMoserGenerator J t = complexMoserGenerator J t * J t := by
-  have h := deriv_mul_add_mul_deriv_eq_zero hsq t
+  have h := deriv_mul_add_mul_deriv_eq_zero (t := t) (.of_forall hsq)
   have h' : J t * deriv J t * J t = deriv J t := by
     rw [mul_assoc, eq_neg_of_add_eq_zero_left h, mul_neg, ← mul_assoc, hsq, neg_one_mul, neg_neg]
   rw [complexMoserGenerator_def, mul_smul_comm, smul_mul_assoc, h', ← mul_assoc, hsq,
