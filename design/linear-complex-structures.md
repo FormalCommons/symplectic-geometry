@@ -42,7 +42,9 @@ Already proved:
   `isOpenMap_smul_of_sigmaCompact` (`Mathlib/Topology/Algebra/Group/OpenMapping.lean`):
   for a σ-compact group acting continuously and transitively on a Hausdorff
   Baire space, every orbit map is open; Tau Ceti's `Units.instSigmaCompactSpace`
-  (`Topology/Algebra/Group/Units.lean`) makes `GL (ι ⊕ ι) ℝ` σ-compact;
+  (`Topology/Algebra/Group/Units.lean`), with its instance
+  `SigmaCompactSpace (Matrix m n α)` (`Topology/Instances/Matrix.lean`), makes
+  `GL n ℝ` σ-compact;
 - the orbit–stabilizer homeomorphism for a compact quotient,
   `TauCeti.quotientStabilizerHomeomorph`
   (`Topology/Algebra/GroupAction/Transitive.lean`), and the algebraic
@@ -66,8 +68,13 @@ Already proved:
   `TauCeti.SymplecticForm.Tames.orientation_reindex`
   (`Geometry/Symplectic/Orientation.lean`): every $J$-adapted basis of a
   structure tamed by $\omega$ induces the symplectic orientation of $\omega$;
-- `ContinuousMap.HomotopyEquiv.ofDeformationRetraction`
-  (`Topology/Homotopy/DeformationRetract.lean`).
+- `ContinuousMap.HomotopyEquiv.ofDeformationRetraction`, and its variants
+  `ofWeakDeformationRetraction` (the homotopy runs inside a larger subspace)
+  and `ofRetraction` (`Topology/Homotopy/DeformationRetract.lean`);
+- for $\mathbb{R}^4$: Mathlib's `Quaternion.linearIsometryEquivTuple :
+  ℍ[ℝ] ≃ₗᵢ[ℝ] EuclideanSpace ℝ (Fin 4)` (`Mathlib/Analysis/Quaternion.lean`)
+  and `LinearIsometryEquiv.piLpCongrLeft`
+  (`Mathlib/Analysis/Normed/Lp/PiLp.lean`).
 
 Missing, and built here: the isomorphism $\Phi$ packaged with the model
 `StdSpace ι`; the action of $\mathrm{GL}(2n,\mathbb{R})$ on complex structures;
@@ -93,14 +100,16 @@ These settle the questions that `DESIGN.md` leaves to this file.
    hold: `GL (ι ⊕ ι) ℝ` is σ-compact, and the space of complex structures is
    closed in the finite-dimensional space of operators (the condition
    $J^2=-1$), so it is locally compact and Hausdorff, hence Baire. The general
-   statement goes into a file of its own, as a sibling of Tau Ceti's compact
-   version, so that it can move there.
+   statement goes into a file of its own, at the path of Tau Ceti's compact
+   version so that it can move there, with its name in the namespace
+   `MulAction` rather than `TauCeti`.
 3. **The model of GL(2n,ℝ)/GL(n,ℂ)** is
    Mathlib's quotient `GL (ι ⊕ ι) ℝ ⧸ (Matrix.GeneralLinearGroup.realify ι ℂ).range`
    by the realified group, with its quotient topology.
 4. **The model of $\mathrm{SO}(2n)/\mathrm{U}(n)$** is Mathlib's quotient
    `specialOrthogonalGroup (ι ⊕ ι) ℝ ⧸ MulAction.stabilizer _ (stdComplexStructure ι)`,
-   and a lemma identifies the stabilizer with the realified unitary group. The
+   and a lemma identifies the stabilizer with the realified unitary group; the
+   milestone states that identification as a conjunct of its own. The
    space of complex structures compatible with the Euclidean metric (the
    orthogonal ones) is the bridge: it is a deformation retract of all complex
    structures, and its positive part is homeomorphic to that quotient. No
@@ -114,7 +123,9 @@ These settle the questions that `DESIGN.md` leaves to this file.
    writing $J=PU$ with $U$ orthogonal, $J^{-1}=-J$ gives
    $(JJ^T)^{-1}=J^TJ$, so $U^{-1}P^2U=P^{-2}$; by
    `CFC.rpow_unitary_mul_mul_star`, $UP^{s}U^{-1}=P^{-s}$ for all real $s$,
-   hence $(P^{1-t}U)^2=U^2=J^2=-1$. It fixes the orthogonal structures
+   hence $(P^{1-t}U)^2=U^2=J^2=-1$. The conjugation step uses nothing about
+   matrices: it holds for a unit $a$ with $a^2=-1$ in any C⋆-algebra, and is
+   stated in that generality. It fixes the orthogonal structures
    (`polarDeformation_toUnits`) and ends at the orthogonal factor $U$.
 6. **The orientation condition.** A complex structure on `StdSpace ι` is
    *positively oriented* if it lies in the orbit of $J_0$ under the matrices
@@ -128,7 +139,8 @@ These settle the questions that `DESIGN.md` leaves to this file.
 7. **The model of $S^2$** is `Metric.sphere (0 : EuclideanSpace ℝ (Fin 3)) 1`.
    The explicit map for $n=2$ uses quaternions: identify `StdSpace (Fin 2)`
    with Mathlib's `ℍ[ℝ]` by the linear isometry sending $z$ to
-   $x_1+y_1i+x_2j+y_2k$ (so $J_0$ is left multiplication by $i$). A unit
+   $x_1+y_1i+x_2j+y_2k$ (so $J_0$ is left multiplication by $i$), assembled
+   from Mathlib's isometries rather than proved from this formula. A unit
    vector $u\in S^2$ gives the complex structure "left multiplication by the
    pure quaternion $u_0i+u_1j+u_2k$"; conversely an orthogonal positively
    oriented $J$ gives the imaginary part of $J(1)$. These are inverse
@@ -144,46 +156,71 @@ These settle the questions that `DESIGN.md` leaves to this file.
 ## Files
 
 Files are under `SymplecticGeometry/`. `DESIGN.md` lists three files for this
-part; this design keeps them and adds three, each with the topic its path
-says: the general orbit–stabilizer homeomorphism, the polar deformation of
-matrices with square $-1$, and the orthogonal complex structures.
+part; this design keeps them and adds six, each with the topic its path says:
+the actions on complex structures, their general topology, the general
+orbit–stabilizer homeomorphism, the conjugation identity for units of square
+$-1$, the polar deformation of matrices of square $-1$, and the orthogonal
+complex structures. The first two are stated for any space, since
+*Compatible complex structures* uses them too.
 
 | File | Contents |
 |---|---|
-| `LinearAlgebra/ComplexStructure/Standard.lean` | the action of automorphisms and of matrices, the isomorphism $\Phi$, transitivity, the stabilizer, positively oriented structures |
+| `LinearAlgebra/ComplexStructure/Action.lean` | the action of `V ≃ₗ[ℝ] V`, and of `GL n ℝ` on the structures of `EuclideanSpace ℝ n` |
+| `Topology/ComplexStructure/Basic.lean` | the closed embedding into operators, `T2Space` and `LocallyCompactSpace`, for finite-dimensional normed `V` |
+| `LinearAlgebra/ComplexStructure/Standard.lean` | the isomorphism $\Phi$, transitivity, the stabilizer, positively oriented structures |
 | `Topology/Algebra/GroupAction/Transitive.lean` | the orbit–stabilizer homeomorphism for σ-compact groups |
-| `Topology/ComplexStructure/Orbit.lean` | topology of the space, the matrix homeomorphism, continuity of the action, the space as GL(2n,ℝ)/GL(n,ℂ), the positively oriented structures form a clopen set |
+| `Topology/ComplexStructure/Orbit.lean` | the matrix homeomorphism, continuity of the action, the space as GL(2n,ℝ)/GL(n,ℂ), the positively oriented structures form a clopen set |
+| `Analysis/SpecialFunctions/ContinuousFunctionalCalculus/Polar.lean` | the polar unitary factor of a unit of square $-1$ inverts the powers of its positive factor |
 | `Analysis/Matrix/Polar/Deformation.lean` | the polar deformation preserves square $-1$ |
 | `Topology/ComplexStructure/Orthogonal.lean` | the orthogonal complex structures, the deformation retraction onto them |
 | `Topology/ComplexStructure/Oriented.lean` | the action of $\mathrm{SO}(2n)$, the component of $J_0$, the two components, the homotopy type $\mathrm{SO}(2n)/\mathrm{U}(n)$, the case $\mathbb{R}^4$, the milestone |
 
 ## Definitions and their API
 
-Below, `V` is a real vector space, `ι` a finite type with decidable equality,
-and `J₀ = stdComplexStructure ι` (from *Standard model*).
+Below, `V` is a real vector space, `n` and `ι` finite types with decidable
+equality, and `J₀ = stdComplexStructure ι` (from *Standard model*). The
+actions are stated where no evenness is needed, for `GL n ℝ` and
+`EuclideanSpace ℝ n`; `ι ⊕ ι` appears only together with $J_0$.
 
-### `LinearAlgebra/ComplexStructure/Standard.lean`
+### `LinearAlgebra/ComplexStructure/Action.lean`
 
-- `instance TauCeti.AlmostComplexStructure.instMulActionLinearEquiv :
+Declarations about Tau Ceti's type go in its namespace
+`TauCeti.AlmostComplexStructure`, as `AGENTS.md` asks.
+
+- `instance instMulActionLinearEquiv :
   MulAction (V ≃ₗ[ℝ] V) (AlmostComplexStructure V)`, `e • J = J.transport e`,
   for any `[AddCommGroup V] [Module ℝ V]`; with `smul_def` (by `(rfl)`),
   `@[simp] smul_apply : (e • J) v = e (J (e.symm v))`, and
   `@[simp] toLinearMap_smul`. The axioms are `transport_refl` and
   `transport_trans`. *Compatible complex structures* states the equivariance
   of $J_{g,\omega}$ with it.
-- `instance : MulAction (GL (ι ⊕ ι) ℝ) (AlmostComplexStructure (StdSpace ι))`
-  in `SymplecticGeometry`, the action of matrices,
+- `instance instMulActionGeneralLinearGroup :
+  MulAction (GL n ℝ) (AlmostComplexStructure (EuclideanSpace ℝ n))`, the
+  action of matrices,
   `g • J = J.transport ((g : Matrix _ _ ℝ).toEuclideanCLE g.det_ne_zero).toLinearEquiv`;
   built as `MulAction.compHom` of the previous action along
   `Matrix.GeneralLinearGroup.ofEuclideanCLE.symm` followed by forgetting
-  continuity. API: `smul_eq_transport` (the definition, by `(rfl)`) and
-  `@[simp] smul_apply : (g • J) v = Matrix.toEuclideanLin g (J (Matrix.toEuclideanLin ↑g⁻¹ v))`.
+  continuity. API: `generalLinearGroup_smul_def` (the definition, by `(rfl)`)
+  and `@[simp] generalLinearGroup_smul_apply :
+  (g • J) v = Matrix.toEuclideanLin g (J (Matrix.toEuclideanLin ↑g⁻¹ v))`.
+  The action of $\mathrm{SO}(2n)$ below is stated through this one, so these
+  two lemmas serve both.
 
-  *Positively oriented structures.*
+### `Topology/ComplexStructure/Basic.lean`
+
+- `TauCeti.AlmostComplexStructure.isClosedEmbedding_toContinuousLinearMap`
+  (for finite-dimensional normed `V`: the condition $J^2=-1$ is closed), and
+  the instances `T2Space` and `LocallyCompactSpace` on
+  `AlmostComplexStructure V`; Mathlib then gives `BaireSpace`.
+
+### `LinearAlgebra/ComplexStructure/Standard.lean`
+
+*Positively oriented structures.*
 
 - `def IsPositivelyOriented (J : AlmostComplexStructure (StdSpace ι)) : Prop :=
   ∃ g ∈ Matrix.GLPos (ι ⊕ ι) ℝ, g • J₀ = J`, in `SymplecticGeometry`. API:
-  `isPositivelyOriented_stdComplexStructure`;
+  `isPositivelyOriented_def` (by `(rfl)`);
+  `@[simp] isPositivelyOriented_stdComplexStructure`;
   `IsPositivelyOriented.smul (hJ) (hg : 0 < (g : Matrix _ _ ℝ).det)`;
   `isPositivelyOriented_smul_stdComplexStructure_iff :
   IsPositivelyOriented (g • J₀) ↔ 0 < (g : Matrix _ _ ℝ).det` (the hard
@@ -196,61 +233,70 @@ and `J₀ = stdComplexStructure ι` (from *Standard model*).
 
 ### `Topology/Algebra/GroupAction/Transitive.lean`
 
-- `TauCeti.quotientStabilizerHomeomorphOfSigmaCompact (b : X) :
+- `MulAction.quotientStabilizerHomeomorphOfSigmaCompact (b : X) :
   G ⧸ MulAction.stabilizer G b ≃ₜ X`, under the hypotheses of
   `isOpenMap_smul_of_sigmaCompact` (`[IsTopologicalGroup G]
   [SigmaCompactSpace G] [BaireSpace X] [T2Space X] [ContinuousSMul G X]
   [IsPretransitive G X]`), with underlying equivalence
   `TauCeti.quotientStabilizerEquiv G b`; `@[simp]` lemmas `_toEquiv`, `_mk`
   (the coset of `g` goes to `g • b`) and `_smul` (equivariance), as for Tau
-  Ceti's compact version. Namespace `TauCeti`, beside
-  `TauCeti.quotientStabilizerHomeomorph`, so that the two merge upstream.
+  Ceti's compact version. The namespace is Mathlib's `MulAction`, where the
+  stabilizer lives; `TauCeti` belongs to another project.
 
 ### `Topology/ComplexStructure/Orbit.lean`
 
-- `TauCeti.AlmostComplexStructure.isClosedEmbedding_toContinuousLinearMap`
-  (for finite-dimensional normed `V`), and the instances `T2Space` and
-  `LocallyCompactSpace` on `AlmostComplexStructure V`; Mathlib then gives
-  `BaireSpace`.
-- `complexStructureHomeomorphMatrix ι :
-  AlmostComplexStructure (StdSpace ι) ≃ₜ {A : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ // A * A = -1}`,
+- `TauCeti.AlmostComplexStructure.homeomorphMatrix n :
+  AlmostComplexStructure (EuclideanSpace ℝ n) ≃ₜ {A : Matrix n n ℝ // A * A = -1}`,
   sending `J` to `Matrix.toEuclideanCLM.symm` of its operator, with `@[simp]`
-  lemmas for both directions. Later files compute with matrices through it,
-  as `DESIGN.md` requires.
-- `instance : ContinuousSMul (GL (ι ⊕ ι) ℝ) (AlmostComplexStructure (StdSpace ι))`
+  lemmas `homeomorphMatrix_apply_coe` and `homeomorphMatrix_symm_apply_apply`.
+  Later files compute with matrices through it, as `DESIGN.md` requires.
+- `instance : ContinuousSMul (GL n ℝ) (AlmostComplexStructure (EuclideanSpace ℝ n))`
   (the matrix of `g • J` is $gJg^{-1}$).
 - `quotientRealifyHomeomorph ι :
   GL (ι ⊕ ι) ℝ ⧸ (Matrix.GeneralLinearGroup.realify ι ℂ).range ≃ₜ
   AlmostComplexStructure (StdSpace ι)`, the composite of
-  `quotientStabilizerHomeomorphOfSigmaCompact` with the equality of subgroups
-  `stabilizer_stdComplexStructure`; `@[simp] quotientRealifyHomeomorph_mk :
-  quotientRealifyHomeomorph ι g = g • J₀`.
+  `MulAction.quotientStabilizerHomeomorphOfSigmaCompact` with the equality of
+  subgroups `stabilizer_stdComplexStructure`;
+  `@[simp] quotientRealifyHomeomorph_mk : quotientRealifyHomeomorph ι g = g • J₀`.
 - `isClopen_setOf_isPositivelyOriented : IsClopen {J | IsPositivelyOriented J}`:
   it and its complement are the images of the open sets `{det > 0}` and
   `{det < 0}` of `GL (ι ⊕ ι) ℝ` under the open orbit map.
+
+### `Analysis/SpecialFunctions/ContinuousFunctionalCalculus/Polar.lean`
+
+- `Units.polarUnitary_mul_rpow_mul_star_of_mul_self_eq_neg_one (a : Aˣ)
+  (ha : (a : A) * a = -1) (s : ℝ) :
+  (a.polarUnitary : A) * CFC.sqrt (a * star a) ^ s * star (a.polarUnitary : A) =
+    CFC.sqrt (a * star a) ^ (-s)`, for a C⋆-algebra `A`, as for Tau Ceti's
+  `Units.polarUnitary` and `CFC.rpow_unitary_mul_mul_star`, by the
+  computation of decision 5.
 
 ### `Analysis/Matrix/Polar/Deformation.lean`
 
 - `Matrix.GeneralLinearGroup.polarDeformation_mul_self_of_mul_self_eq_neg_one
   {A : GL n 𝕜} (hA : (A : Matrix n n 𝕜) * A = -1) (t : ℝ) :
   (polarDeformation A t : Matrix n n 𝕜) * polarDeformation A t = -1`, for
-  `RCLike 𝕜`, by the computation of decision 5, with the conjugation identity
-  `Units.polarUnitary A * P ^ s * star (Units.polarUnitary A) = P ^ (-s)` as a public
-  lemma of its own (`polarUnitary_mul_rpow_mul_star_of_mul_self_eq_neg_one`).
+  `RCLike 𝕜`, from the previous lemma with the matrix C⋆-algebra structure
+  that Tau Ceti's `polarDeformation` uses.
 
 ### `Topology/ComplexStructure/Orthogonal.lean`
 
 - `orthogonalComplexStructures ι : Set (AlmostComplexStructure (StdSpace ι)) :=
   {J | ∀ v, ‖J v‖ = ‖v‖}`, the structures compatible with the Euclidean
-  metric, in the form of Tau Ceti's hypotheses; `mem_orthogonalComplexStructures_iff_inner`
-  (`⟪J v, J w⟫ = ⟪v, w⟫`), `mem_orthogonalComplexStructures_iff_mem_orthogonalGroup`
-  (through `complexStructureHomeomorphMatrix`),
-  `stdComplexStructure_mem_orthogonalComplexStructures`, and
+  metric, in the form of Tau Ceti's hypotheses; `mem_orthogonalComplexStructures`
+  (`J ∈ orthogonalComplexStructures ι ↔ ∀ v, ‖J v‖ = ‖v‖`, by `(rfl)`),
+  `mem_orthogonalComplexStructures_iff_inner` (`⟪J v, J w⟫ = ⟪v, w⟫`),
+  `mem_orthogonalComplexStructures_iff_mem_orthogonalGroup`
+  (through `AlmostComplexStructure.homeomorphMatrix`),
+  `@[simp] stdComplexStructure_mem_orthogonalComplexStructures`, and
   `isCompact_orthogonalComplexStructures`.
 - `complexStructurePolarRetraction ι :
   C(AlmostComplexStructure (StdSpace ι), orthogonalComplexStructures ι)`,
-  the structure of the orthogonal polar factor of the matrix of `J`; and
-  `complexStructurePolarRetraction_of_mem` (it fixes orthogonal structures).
+  the structure of the orthogonal polar factor of the matrix of `J`; with
+  `complexStructurePolarRetraction_apply` (under `homeomorphMatrix`, the
+  matrix of the retraction of `J` is the matrix of `Units.polarUnitary` of the
+  matrix of `J`), and `complexStructurePolarRetraction_of_mem` (it fixes
+  orthogonal structures).
 - `complexStructurePolarHomotopy ι :
   (ContinuousMap.id _).HomotopyRel
     ((ContinuousMap.subtypeVal).comp (complexStructurePolarRetraction ι))
@@ -264,43 +310,63 @@ and `J₀ = stdComplexStructure ι` (from *Standard model*).
 ### `Topology/ComplexStructure/Oriented.lean`
 
 - `instance : MulAction (specialOrthogonalGroup (ι ⊕ ι) ℝ) (AlmostComplexStructure (StdSpace ι))`,
-  the restriction of the matrix action along the inclusion into
-  `GL (ι ⊕ ι) ℝ` (`Unitary.toUnits` after `specialUnitaryGroup_le_unitaryGroup`),
-  with `smul_apply`, a `ContinuousSMul` instance, and the facts that it
-  preserves the orthogonal and the positively oriented structures.
-- `coe_stabilizer_specialOrthogonalGroup_stdComplexStructure`: the image of the
-  stabilizer of `J₀` in matrices is `(Matrix.unitaryGroup ι ℂ).map (Matrix.realifyAlgHom ι ℂ)`,
+  `MulAction.compHom` of the matrix action along the inclusion
+  `Unitary.toUnits.comp (Submonoid.inclusion specialUnitaryGroup_le_unitaryGroup)`
+  into `GL (ι ⊕ ι) ℝ` (no new name for that homomorphism). It has no apply
+  lemma of its own: `@[simp] specialOrthogonalGroup_smul_def` rewrites `g • J`
+  as the action of that unit, so `generalLinearGroup_smul_apply` serves
+  both. With a `ContinuousSMul`
+  instance, and the facts that it preserves the orthogonal and the positively
+  oriented structures.
+- `coe_stabilizer_specialOrthogonalGroup_stdComplexStructure`:
+  ```lean
+  Subtype.val '' (MulAction.stabilizer (specialOrthogonalGroup (ι ⊕ ι) ℝ) J₀ : Set _) =
+    (Matrix.unitaryGroup ι ℂ).map (Matrix.realifyAlgHom ι ℂ)
+  ```
   from `Matrix.orthogonalGroup_inf_centralizer_J` and `Matrix.det_realify`.
-- `exists_smul_stdComplexStructure_eq (hJ : J ∈ orthogonalComplexStructures ι)
-  (hJ' : IsPositivelyOriented J) : ∃ g : specialOrthogonalGroup (ι ⊕ ι) ℝ, g • J₀ = J`,
+- `exists_specialOrthogonalGroup_smul_stdComplexStructure_eq
+  (hJ : J ∈ orthogonalComplexStructures ι) (hJ' : IsPositivelyOriented J) :
+  ∃ g : specialOrthogonalGroup (ι ⊕ ι) ℝ, g • J₀ = J`,
   from `exists_adapted_orthonormalBasis` and
   `isPositivelyOriented_transport_iff`.
 - `quotientUnitaryHomeomorph ι :
   specialOrthogonalGroup (ι ⊕ ι) ℝ ⧸ MulAction.stabilizer _ J₀ ≃ₜ
-  {J // J ∈ orthogonalComplexStructures ι ∧ IsPositivelyOriented J}`, a
-  continuous bijection from a compact space to a Hausdorff one
-  (`Continuous.homeoOfEquivCompactToT2`, or Tau Ceti's
-  `quotientStabilizerHomeomorph` for the action on the subtype); `_mk`.
+  {J // J ∈ orthogonalComplexStructures ι ∧ IsPositivelyOriented J}`, Tau
+  Ceti's `quotientStabilizerHomeomorph` for the action of
+  `specialOrthogonalGroup` on that subtype (transitive by the previous
+  lemma; the quotient of a compact group is compact, the subtype is
+  Hausdorff); `@[simp] quotientUnitaryHomeomorph_mk`.
 - `isPathConnected_setOf_isPositivelyOriented` (each structure is joined by
   the polar homotopy, inside the clopen set, to an orthogonal positively
   oriented one, and these form the image of the path-connected group
   $\mathrm{SO}(2n)$); `connectedComponent_stdComplexStructure :
   connectedComponent J₀ = {J | IsPositivelyOriented J}`.
-- `nat_card_connectedComponents [Nonempty ι] :
+- `nat_card_connectedComponents_almostComplexStructure_stdSpace [Nonempty ι] :
   Nat.card (ConnectedComponents (AlmostComplexStructure (StdSpace ι))) = 2`,
-  and for the erratum `nat_card_connectedComponents_of_isEmpty [IsEmpty ι] : … = 1`.
+  and for the erratum
+  `nat_card_connectedComponents_almostComplexStructure_stdSpace_of_isEmpty
+  [IsEmpty ι] : … = 1`.
 - `positivelyOrientedHomotopyEquiv ι :
   {J : AlmostComplexStructure (StdSpace ι) // IsPositivelyOriented J} ≃ₕ
-  specialOrthogonalGroup (ι ⊕ ι) ℝ ⧸ MulAction.stabilizer _ J₀`: the polar
-  homotopy restricted to the positively oriented structures, then
-  `quotientUnitaryHomeomorph`.
-- Dimension four: `stdSpaceQuaternionIsometry : StdSpace (Fin 2) ≃ₗᵢ[ℝ] ℍ[ℝ]`
-  ($z\mapsto x_1+y_1i+x_2j+y_2k$);
+  specialOrthogonalGroup (ι ⊕ ι) ℝ ⧸ MulAction.stabilizer _ J₀`: Tau Ceti's
+  `ContinuousMap.HomotopyEquiv.ofWeakDeformationRetraction` for the polar
+  homotopy, with `A` the orthogonal positively oriented structures and `B`
+  the positively oriented ones (the homotopy stays in `B` since the set is
+  clopen), reversed and composed with `quotientUnitaryHomeomorph`.
+- Dimension four: `stdSpaceQuaternionIsometry : StdSpace (Fin 2) ≃ₗᵢ[ℝ] ℍ[ℝ]`,
+  defined as `(LinearIsometryEquiv.piLpCongrLeft 2 ℝ ℝ e).trans
+  Quaternion.linearIsometryEquivTuple.symm`, where `e : Fin 2 ⊕ Fin 2 ≃ Fin 4`
+  sends `inl 0, inr 0, inl 1, inr 1` to `0, 1, 2, 3` (not `finSumFinEquiv`,
+  whose order differs), so that $z\mapsto x_1+y_1i+x_2j+y_2k$; with `@[simp]`
+  lemmas `stdSpaceQuaternionIsometry_apply` (its four components) and
+  `stdSpaceQuaternionIsometry_symm_apply` (the coordinates of the vector of a
+  quaternion);
   `quaternionComplexStructure (u : Metric.sphere (0 : EuclideanSpace ℝ (Fin 3)) 1) :
   AlmostComplexStructure (StdSpace (Fin 2))` (left multiplication by
   $u_0i+u_1j+u_2k$, read through the isometry; its square is $-|u|^2=-1$),
-  orthogonal and positively oriented (it is $J_0$ at $u=(1,0,0)$, and the
-  sphere is connected), with `quaternionComplexStructure_apply_single`: its
+  with `quaternionComplexStructure_apply` (that formula, as a `@[simp]`
+  lemma), orthogonal and positively oriented (it is $J_0$ at $u=(1,0,0)$, and
+  the sphere is connected), and `quaternionComplexStructure_apply_single`: its
   value on the basis vector $x_1$ is the vector $u_0y_1+u_1x_2+u_2y_2$;
   `sphereHomeomorphOrthogonal :
   Metric.sphere (0 : EuclideanSpace ℝ (Fin 3)) 1 ≃ₜ
@@ -309,7 +375,10 @@ and `J₀ = stdComplexStructure ι` (from *Standard model*).
   positively oriented structure is determined by its value on one unit vector:
   on the orthogonal complement of the plane that vector spans with its image
   it is one of the two rotations by a right angle, and the orientation picks
-  one, using `exists_unitary_orthonormalBasis_of_norm_eq_one`);
+  one, using `exists_unitary_orthonormalBasis_of_norm_eq_one`), with
+  `@[simp] sphereHomeomorphOrthogonal_apply` (`u` goes to
+  `quaternionComplexStructure u`) and `sphereHomeomorphOrthogonal_symm_apply`
+  (the imaginary part of the quaternion of $J(x_1)$);
   `positivelyOrientedHomotopyEquivSphere :
   {J : AlmostComplexStructure (StdSpace (Fin 2)) // IsPositivelyOriented J} ≃ₕ
   Metric.sphere (0 : EuclideanSpace ℝ (Fin 3)) 1`.
@@ -324,8 +393,10 @@ and `J₀ = stdComplexStructure ι` (from *Standard model*).
       ∃ Φ : StdSpace ι ≃ₗ[ℝ] V, (stdComplexStructure ι).transport Φ = J
   ```
   with `transport_stdComplexStructure_eq_transport_iff`: two such `Φ`, `Ψ`
-  give the same structure if and only if `Ψ.symm ≪≫ₗ Φ` is complex linear for
-  `J₀` (`TauCeti.IsComplexLinearMap`).
+  give the same structure if and only if `Φ ≪≫ₗ Ψ.symm`, the map
+  $\Psi^{-1}\circ\Phi$ of `StdSpace ι` to itself, is complex linear for `J₀`
+  (`TauCeti.IsComplexLinearMap`); since `transport e` is conjugation by `e`,
+  this is the condition that $\Psi^{-1}\Phi$ commutes with $J_0$.
 - `instance : MulAction.IsPretransitive (GL (ι ⊕ ι) ℝ) (AlmostComplexStructure (StdSpace ι))`
   (from the previous theorem with `V = StdSpace ι` and `ofEuclideanCLE`), and
   ```lean
@@ -336,20 +407,23 @@ and `J₀ = stdComplexStructure ι` (from *Standard model*).
   from the matrix dictionary of *Standard model* (a matrix commutes with
   `Matrix.J` if and only if its map commutes with `J₀`) and
   `mem_range_realify_iff`.
-- `isPositivelyOriented_iff_orientation`: for `hk : finrank ℝ (StdSpace ι) = k`,
+- `isPositivelyOriented_iff_orientation`:
   ```lean
-  IsPositivelyOriented J ↔
-    ∀ {m : ℕ} (b : Module.Basis (Fin m × Fin 2) ℝ (StdSpace ι))
-      (_ : ∀ i, b (i, 1) = J (b (i, 0))) (h : m * 2 = k),
-      (b.reindex (finProdFinEquiv.trans (finCongr h))).orientation =
-        (stdForm ι).orientation hk
+  theorem isPositivelyOriented_iff_orientation {k : ℕ}
+      (hk : finrank ℝ (StdSpace ι) = k) (J : AlmostComplexStructure (StdSpace ι)) :
+      IsPositivelyOriented J ↔
+        ∀ {m : ℕ} (b : Module.Basis (Fin m × Fin 2) ℝ (StdSpace ι))
+          (_ : ∀ i, b (i, 1) = J (b (i, 0))) (h : m * 2 = k),
+          (b.reindex (finProdFinEquiv.trans (finCongr h))).orientation =
+            (stdForm ι).orientation hk
   ```
   from `Tames.orientation_reindex` for `J₀` (tamed by $\omega_0$ by
   `stdForm_compatible`) and `isPositivelyOriented_transport_iff`; adapted
   bases exist by `exists_basis_apply_one_eq`, so the right side is not
   vacuous.
 - The topological results listed above: `quotientRealifyHomeomorph`,
-  `connectedComponent_stdComplexStructure`, `nat_card_connectedComponents`,
+  `connectedComponent_stdComplexStructure`,
+  `nat_card_connectedComponents_almostComplexStructure_stdSpace`,
   `positivelyOrientedHomotopyEquiv`, `positivelyOrientedHomotopyEquivSphere`.
 - The milestone, one theorem in `Topology/ComplexStructure/Oriented.lean`,
   for every `n : ℕ`, with the universe `u` of the spaces `V`:
@@ -361,21 +435,32 @@ and `J₀ = stdComplexStructure ι` (from *Standard model*).
       Nonempty (GL (Fin n ⊕ Fin n) ℝ ⧸ (Matrix.GeneralLinearGroup.realify (Fin n) ℂ).range ≃ₜ
           AlmostComplexStructure (StdSpace (Fin n))) ∧
       (n ≠ 0 → Nat.card (ConnectedComponents (AlmostComplexStructure (StdSpace (Fin n)))) = 2) ∧
-      (∀ J, J ∈ connectedComponent (stdComplexStructure (Fin n)) ↔
+      (∀ (hk : finrank ℝ (StdSpace (Fin n)) = n * 2) J,
+          J ∈ connectedComponent (stdComplexStructure (Fin n)) ↔
           ∀ (b : Module.Basis (Fin n × Fin 2) ℝ (StdSpace (Fin n)))
             (_ : ∀ i, b (i, 1) = J (b (i, 0))),
             (b.reindex finProdFinEquiv).orientation = (stdForm (Fin n)).orientation hk) ∧
-      Nonempty ({J : AlmostComplexStructure (StdSpace (Fin n)) // IsPositivelyOriented J} ≃ₕ
+      Subtype.val '' (MulAction.stabilizer (specialOrthogonalGroup (Fin n ⊕ Fin n) ℝ)
+          (stdComplexStructure (Fin n)) : Set _) =
+        (Matrix.unitaryGroup (Fin n) ℂ).map (Matrix.realifyAlgHom (Fin n) ℂ) ∧
+      Nonempty (connectedComponent (stdComplexStructure (Fin n)) ≃ₕ
           specialOrthogonalGroup (Fin n ⊕ Fin n) ℝ ⧸
             MulAction.stabilizer (specialOrthogonalGroup (Fin n ⊕ Fin n) ℝ)
               (stdComplexStructure (Fin n))) ∧
-      Nonempty ({J : AlmostComplexStructure (StdSpace (Fin 2)) // IsPositivelyOriented J} ≃ₕ
+      Nonempty (connectedComponent (stdComplexStructure (Fin 2)) ≃ₕ
           Metric.sphere (0 : EuclideanSpace ℝ (Fin 3)) 1)
   ```
-  where `hk : finrank ℝ (StdSpace (Fin n)) = n * 2` is a fixed proof (from
-  `finrank_euclideanSpace`), so that the fourth
-  conjunct says that the component of $J_0$ consists of the structures whose
-  adapted bases induce the standard orientation. The third conjunct has the
+  The fourth conjunct binds the dimension proof `hk` that the symplectic
+  orientation needs; such a proof exists (`finrank_euclideanSpace`), and the
+  orientation does not depend on it. It says that the component of $J_0$
+  consists of the structures whose adapted bases induce the standard
+  orientation. The fifth identifies the stabilizer of $J_0$ in
+  $\mathrm{SO}(2n)$ with the realified unitary group $\mathrm{U}(n)$, so that
+  the sixth is the homotopy type $\mathrm{SO}(2n)/\mathrm{U}(n)$. The sixth and
+  seventh are about the component of $J_0$ itself, obtained from
+  `positivelyOrientedHomotopyEquiv` and
+  `positivelyOrientedHomotopyEquivSphere` by rewriting with
+  `connectedComponent_stdComplexStructure`. The third conjunct has the
   hypothesis `n ≠ 0` of decision 8. Its docstring ends with
   "Milestone: *Linear complex structures are standard*."
 
@@ -388,8 +473,9 @@ and `J₀ = stdComplexStructure ι` (from *Standard model*).
   `Matrix.J`).
 - Tau Ceti and Mathlib, as listed in the first section.
 - No other part. *Compatible complex structures* builds on this part: it uses
-  the action of `V ≃ₗ[ℝ] V`, `exists_transport_stdComplexStructure_eq`, and
-  the topological facts of `Orbit.lean`.
+  the action of `V ≃ₗ[ℝ] V` (`Action.lean`),
+  `exists_transport_stdComplexStructure_eq`, and the topological facts of
+  `Topology/ComplexStructure/Basic.lean`.
 
 ## Building issues
 
@@ -397,7 +483,8 @@ Each is a few hundred lines; each is blocked by the ones before it that it
 names, and the first two by the *Standard model* issues (#7, #8).
 
 1. **Complex structures: the standard form and the action of matrices.** The
-   action of `V ≃ₗ[ℝ] V` and of `GL (ι ⊕ ι) ℝ`,
+   actions of `V ≃ₗ[ℝ] V` and of `GL n ℝ` in
+   `LinearAlgebra/ComplexStructure/Action.lean`;
    `exists_transport_stdComplexStructure_eq`,
    `transport_stdComplexStructure_eq_transport_iff`, transitivity and
    `stabilizer_stdComplexStructure`, in
@@ -405,17 +492,21 @@ names, and the first two by the *Standard model* issues (#7, #8).
    by #7 and #8.
 2. **Complex structures: positively oriented structures.**
    `IsPositivelyOriented` with its API and
-   `isPositivelyOriented_iff_orientation`, in the same file. About 250
-   lines. Blocked by 1.
+   `isPositivelyOriented_iff_orientation`, in
+   `LinearAlgebra/ComplexStructure/Standard.lean`. About 250 lines. Blocked
+   by 1.
 3. **Complex structures: the homogeneous space GL(2n,ℝ)/GL(n,ℂ).**
-   `quotientStabilizerHomeomorphOfSigmaCompact` in
+   `MulAction.quotientStabilizerHomeomorphOfSigmaCompact` in
    `Topology/Algebra/GroupAction/Transitive.lean`; the closed embedding,
-   `T2Space` and `LocallyCompactSpace`, `complexStructureHomeomorphMatrix`,
-   the continuity of the action, `quotientRealifyHomeomorph` and
+   `T2Space` and `LocallyCompactSpace` in
+   `Topology/ComplexStructure/Basic.lean`; `homeomorphMatrix`, the continuity
+   of the action, `quotientRealifyHomeomorph` and
    `isClopen_setOf_isPositivelyOriented` in
    `Topology/ComplexStructure/Orbit.lean`. About 300 lines. Blocked by 2.
 4. **Complex structures: retraction onto the orthogonal structures.** The
-   lemma of `Analysis/Matrix/Polar/Deformation.lean` and
+   conjugation lemma of
+   `Analysis/SpecialFunctions/ContinuousFunctionalCalculus/Polar.lean`, the
+   lemma of `Analysis/Matrix/Polar/Deformation.lean`, and
    `Topology/ComplexStructure/Orthogonal.lean`. About 300 lines. Blocked by 3.
 5. **Complex structures: components and the homotopy type SO(2n)/U(n).** The
    action of `specialOrthogonalGroup`, its stabilizer, transitivity on the
