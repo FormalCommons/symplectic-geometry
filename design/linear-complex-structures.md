@@ -152,7 +152,7 @@ matrices with square $-1$, and the orthogonal complex structures.
 |---|---|
 | `LinearAlgebra/ComplexStructure/Standard.lean` | the action of automorphisms and of matrices, the isomorphism $\Phi$, transitivity, the stabilizer, positively oriented structures |
 | `Topology/Algebra/GroupAction/Transitive.lean` | the orbit–stabilizer homeomorphism for σ-compact groups |
-| `Topology/ComplexStructure/Orbit.lean` | topology of the space, the matrix homeomorphism, continuity of the action, $\mathcal{J}\cong\mathrm{GL}(2n,\mathbb{R})/\mathrm{GL}(n,\mathbb{C})$, the positively oriented structures form a clopen set |
+| `Topology/ComplexStructure/Orbit.lean` | topology of the space, the matrix homeomorphism, continuity of the action, the space as GL(2n,ℝ)/GL(n,ℂ), the positively oriented structures form a clopen set |
 | `Analysis/Matrix/Polar/Deformation.lean` | the polar deformation preserves square $-1$ |
 | `Topology/ComplexStructure/Orthogonal.lean` | the orthogonal complex structures, the deformation retraction onto them |
 | `Topology/ComplexStructure/Oriented.lean` | the action of $\mathrm{SO}(2n)$, the component of $J_0$, the two components, the homotopy type $\mathrm{SO}(2n)/\mathrm{U}(n)$, the case $\mathbb{R}^4$, the milestone |
