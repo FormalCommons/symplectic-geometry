@@ -244,7 +244,7 @@ The part uses only two things from other parts:
   It is used in condition (3), in Lemma 2.5.5 and in the compact-subgroup
   theorem.
 - The Lagrangian extension lemma of *Symplectic vector spaces*
-  (`LinearAlgebra/Symplectic/Subspace.lean`, #25), used only in the
+  (`IsIsotropic.exists_le_isLagrangian` in `LinearAlgebra/Symplectic/Subspace.lean`), used only in the
   implication from (4) to (1). An isotropic plane containing $v$ and $w$ is
   extended to a Lagrangian subspace.
 
@@ -349,9 +349,10 @@ statements assume `[FiniteDimensional ℝ V]`.
   (`darbouxBasisEquiv_apply_zero`/`_one`), so it carries $J$ to
   `AlmostComplexStructure.product`, which maps `(x, 0)` to `(0, x)`. $\Psi$ is
   its inverse, composed with the reindexing along a bijection `Fin n ≃ ι` and
-  with the comparison of *Standard model* between `stdForm ι` and that product
-  model, which carries `stdComplexStructure ι` to
-  `AlmostComplexStructure.product`. The converse is `Compatible.transport` of
+  with `EuclideanSpace.sumEquivProd`, which is a symplectomorphism from
+  `stdForm ι` to that product model carrying `stdComplexStructure ι` to
+  `AlmostComplexStructure.product` (`isSymplectomorphism_sumEquivProd` and
+  `stdComplexStructure_transport_sumEquivProd`). The converse is `Compatible.transport` of
   `stdForm_compatible`.
 - `compatible_iff_tames_and_isLagrangian_map [FiniteDimensional ℝ V] :
   ω.Compatible J ↔ ω.Tames J ∧
@@ -359,7 +360,7 @@ statements assume `[FiniteDimensional ℝ V]`.
   This is condition (4). Forward, an invariant $J$ is a symplectomorphism,
   so it maps Lagrangian subspaces to Lagrangian subspaces. Backward, if
   $\omega(v,w)=0$, extend the isotropic span of $v,w$ to a Lagrangian $L$
-  (#25). Then $\omega(Jv,Jw)=0$. So for each $v$ the functional
+  (`IsIsotropic.exists_le_isLagrangian`). Then $\omega(Jv,Jw)=0$. So for each $v$ the functional
   $\omega(Jv,J\cdot)$ vanishes on the kernel of $\omega(v,\cdot)$, hence is
   $\lambda_v\,\omega(v,\cdot)$. Comparing $v$, $w$ and $v+w$ shows that
   $\lambda$ is constant. Evaluating at $(v,Jv)$ gives $\lambda=1$, by
@@ -718,7 +719,7 @@ Each is a few hundred lines. External blockers are given by issue number.
    characterization milestone.** The rest of the file:
    `compatible_iff_exists_isSymplectomorphism_stdForm`,
    `compatible_iff_tames_and_isLagrangian_map`, `compatible_tfae`.
-   Blockers: 1, #7, #25.
+   Blockers: 1 (#7 and #25 are merged).
 3. **Inner products and symplectic forms as topological spaces.**
    `Topology/Algebra/Module/InnerProducts.lean` and
    `Topology/Algebra/Module/SymplecticForms.lean`. Blockers: none.
@@ -731,7 +732,7 @@ Each is a few hundred lines. External blockers are given by issue number.
    `Topology/ComplexStructure/Compatible/Tame.lean`. Blockers: none.
 7. **Compatible structures on $\mathbb{R}^{2n}$ as positive symplectic
    matrices.** `Topology/ComplexStructure/Compatible/Matrix.lean`. Blockers:
-   1, #7, #8.
+   1, #8.
 8. **The homotopy equivalence with $\mathrm{Met}(V)$ and the contractibility
    milestone.** `Topology/ComplexStructure/Compatible/Metric.lean`. Blockers:
    5, 7.
