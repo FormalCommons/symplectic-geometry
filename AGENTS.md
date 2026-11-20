@@ -196,13 +196,13 @@ line of a comment with `axiom`.
   both.
 - **Leave the setup alone.** Do not change `lakefile.toml`,
   `lake-manifest.json`, `lean-toolchain`, `LICENSE` or anything under
-  `.github/`, unless the issue you work on asks for it and a person in the
-  project opened it. The one other exception is an issue "Move Tau Ceti to
-  `<tag>`", which `github-actions[bot]` opens when Tau Ceti tags a higher
-  version. Whoever works on it changes the first three files as the issue
-  says, and fixes in the same pull request whatever breaks in the library.
-  A move is never split, and may go over the 2000 lines of the next rule;
-  CI checks that it changes the setup only as Tau Ceti does.
+  `.github/`, nor add a `lakefile.lean`, unless the issue you work on asks
+  for it and a person in the project opened it. The one other exception is an
+  issue "Move Tau Ceti to `<tag>`", which `github-actions[bot]` opens when
+  Tau Ceti tags a higher version. Whoever works on it changes the first three
+  files as the issue says, and fixes in the same pull request whatever breaks
+  in the library. A move is never split, and may go over the 2000 lines of
+  the next rule; CI checks that it changes the setup only as Tau Ceti does.
 - **Keep pull requests focused.** One pull request does one issue, and adds
   at most 2000 lines. If an issue is too big for that, split it into smaller
   issues instead.

@@ -37,13 +37,14 @@ jobs:
           [[ $pinned =~ ^[0-9a-f]{40}$ ]] || { echo "::error::no Tau Ceti commit in lake-manifest.json"; exit 1; }
           # Tau Ceti's tags with version names, and their commits: ls-remote
           # lists an annotated tag's commit on a second line, ending in ^{}.
+          tags=$(git ls-remote --tags https://github.com/TauCetiProject/TauCeti)
           version='^v[0-9]+\.[0-9]+\.[0-9]+(-rc[0-9]+)?(\+patch[0-9]+)?$'
           declare -A commit=()
           while read -r sha ref; do
             name=${ref#refs/tags/}
             name=${name%"^{}"}
             if [[ $name =~ $version ]]; then commit[$name]=$sha; fi
-          done < <(git ls-remote --tags https://github.com/TauCetiProject/TauCeti)
+          done <<<"$tags"
           # The highest version, with v4.37.0-rc1 before v4.37.0.
           highest() { sed 's/-rc/~rc/' | sort -V | tail -n 1 | sed 's/~rc/-rc/'; }
           current=$(for t in "${!commit[@]}"; do [ "${commit[$t]}" != "$pinned" ] || echo "$t"; done | highest)
@@ -54,16 +55,19 @@ jobs:
             exit 0
           fi
           sha=${commit[$newest]}
-          issues=$(gh issue list --state all --limit 1000 --json state,title --jq '.[] | "\(.state) \(.title)"')
-          if grep -q '^OPEN Move Tau Ceti to ' <<<"$issues"; then
+          # Only this workflow's issues count: anyone can open and close an
+          # issue in a public repository, but only the project can close the
+          # workflow's.
+          ours='.[] | select(.author.login == "app/github-actions") | .title'
+          if gh issue list --state open --limit 1000 --json author,title --jq "$ours" | grep -q '^Move Tau Ceti to '; then
             echo "a move of Tau Ceti is open already"
             exit 0
           fi
-          if grep -qxF "CLOSED Move Tau Ceti to $newest" <<<"$issues"; then
+          if gh issue list --state closed --limit 1000 --json author,title --jq "$ours" | grep -qxF "Move Tau Ceti to $newest"; then
             echo "the move to $newest was closed, which skips it"
             exit 0
           fi
-          toolchain=$(curl -fsSL "https://raw.githubusercontent.com/TauCetiProject/TauCeti/$sha/lean-toolchain")
+          toolchain=$(gh api "repos/TauCetiProject/TauCeti/contents/lean-toolchain?ref=$sha" -H "Accept: application/vnd.github.raw")
           [[ $toolchain =~ ^leanprover/lean4:v[0-9]+\.[0-9]+\.[0-9]+(-rc[0-9]+)?$ ]] ||
             { echo "::error::unexpected lean-toolchain at Tau Ceti's $newest"; exit 1; }
           gh issue create --title "Move Tau Ceti to $newest" --body "$(cat <<EOF

@@ -6,4 +6,5 @@
 # and CI's setup check, here in .github/, allows such a move to change only
 # what follows Tau Ceti (see .github/lakefile.toml).
 /LICENSE            @adamtopaz
+/lakefile.lean      @adamtopaz
 /.github/           @adamtopaz
