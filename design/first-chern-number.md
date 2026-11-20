@@ -477,7 +477,7 @@ docstrings end with the same milestone line.
   $\Sigma_1=\{g\le0\}$, $\Sigma_2=\{g\ge0\}$, $C=g^{-1}(0)$. `C` is a compact
   1-manifold by Tau Ceti's regular fibres
   (`Geometry/Manifold/RegularValue/ManifoldLevel.lean`), collared in
-  $\Sigma_1$ by the flow of a gradient, so $X=\Sigma_1$ with interior
+  $\Sigma_1$ by Tau Ceti's band homeomorphism, so $X=\Sigma_1$ with interior
   $\{g<0\}$ is an instance; the collar is
   `SymplecticGeometry.isCollared_inclusion_levelSet` of prerequisite 7 (the
   inclusion of $g^{-1}(0)$ into $\{g\le0\}$ is `TauCeti.IsCollared`). A
@@ -486,15 +486,38 @@ docstrings end with the same milestone line.
   `𝓡∂ 2`, is an instance with `ι` the inclusion of the interior and `f` that
   of the boundary, collared by
   `TauCeti.isCollared_subtypeVal_boundary_of_compactSpace`; the issue proves
-  the identification of the interior with the complement of the boundary.
+  the identification of the interior with the complement of the boundary,
+  and turns the smooth orientation of the interior into a
+  `HomologicalOrientation` with `toHomologicalOrientation`.
+- `boundaryMaslovIndex_mul`: for `Ψ Ψ' : C(∂X, GLSymplectic n ℝ)`, the
+  pointwise product has the sum of the two indices. Since `maslovPhase` is
+  not multiplicative on the whole symplectic group, the proof follows that
+  of `TauCeti.GLSymplectic.maslovIndex_mul`:
+  `TauCeti.GLSymplectic.polarHomotopy` deforms `Ψ Ψ'`, through symplectic
+  maps, into the product of the orthogonal polar factors;
+  `boundaryDegree_eq_of_homotopy` (prerequisite 7) keeps the degree along
+  the deformation; at its end `maslovPhase_inclusion_mul` and
+  `maslovPhase_inclusion_polarUnitary` make the phase of the product the
+  product of the phases, and `boundaryDegree_mul` applies.
+  `boundaryMaslovIndex_eq_zero_of_extend`: a `Ψ` that extends continuously
+  over `X` has index $0$, by `boundaryDegree_eq_zero_of_extend`.
 - `symplecticChernNumber_eq_boundaryMaslovIndex`: for symplectic frames over
   $\Sigma_1$ and $\Sigma_2$, the number is `boundaryMaslovIndex` on
   $\Sigma_1$ of the transition $\Phi_1^{-1}\Phi_2$ on `C`. Proof: make both
-  frames unitary as in `Clutching.lean`. The changes of frame extend over
-  $\Sigma_1$ and over $\Sigma_2$, so by `boundaryDegree_mul` and
-  `boundaryDegree_eq_zero_of_extend` (on $\Sigma_2$, whose boundary class
-  on `C` is the opposite one) they do not change `boundaryMaslovIndex`, and
-  for the unitary transition the Maslov phase is the normalized complex
+  frames unitary as in `Clutching.lean`, with changes of frame `P` over
+  $\Sigma_1$ and `P'` over $\Sigma_2$, both with values in
+  $\mathrm{Sp}(2n)$; on `C` the transition becomes $P^{-1}\Psi P'$. By
+  `boundaryMaslovIndex_mul`, its index is that of `Ψ` plus those of
+  $P^{-1}$ and `P'` restricted to `C`. The first vanishes by
+  `boundaryMaslovIndex_eq_zero_of_extend`, as $P^{-1}$ is defined on all of
+  $\Sigma_1$. The second needs no comparison of the boundary classes of
+  $\Sigma_1$ and $\Sigma_2$: apply
+  `evalFundamentalClass_eulerClass_eq_boundaryDegree` (prerequisite 7) to
+  the trivial plane bundle, with the frame $1$ over $\Sigma_1$ and the
+  nowhere-zero section `maslovPhase ∘ P'` over $\Sigma_2$. The boundary
+  degree of `maslovPhase ∘ P'` on `C` is then the Euler number of the
+  trivial bundle, which is $0$ by `TauCeti.eulerClass_trivial_eq_zero`. For
+  the unitary transition the Maslov phase is the normalized complex
   determinant (`TauCeti.GLSymplectic.maslovPhase_ofUnitary`).
   Then the determinant of $\Phi_1$ is a
   frame of the determinant line over $\Sigma_1$, and the determinant of
@@ -604,15 +627,22 @@ issues, in an order where each issue's blockers come before it.
      `SymplecticGeometry.Bundle.detCoreIsoOfFinrankEqOne` (the identification
      with `E` in rank one, from `exteriorPowerOneNatIso`);
    - the one step specific to `ℂ`, in
-     `Topology/VectorBundle/FiniteRank/ConjugateDet.lean` beside Tau Ceti's
-     `FiniteRank/Conjugate.lean`: the natural isomorphism
-     `TauCeti.FiniteRankBundleCore.detConjugateIso : conjugate ⋙ det ≅
-     det ⋙ conjugate` of functors on `FiniteRankBundleCore ℂ B`, and its
-     consequence `SymplecticGeometry.Bundle.detCoreConjugateFiberwise`, a
-     conjugate-linear fibrewise isomorphism between `detCore ℂ` of the
-     conjugate bundle and `detCore ℂ G E`, in the form that
+     `Topology/VectorBundle/FiniteRank/ConjugateExteriorPower.lean` beside
+     Tau Ceti's `FiniteRank/Conjugate.lean`, in Tau Ceti's terms only.
+     `FiniteRankBundleCore.det` is a function on objects, not a functor, so
+     the natural statement is at a fixed degree: the natural isomorphism
+     `TauCeti.FiniteRankBundleCore.conjugateExteriorPowerIso k : conjugate B
+     ⋙ exteriorPower ℂ B k ≅ exteriorPower ℂ B k ⋙ conjugate B`, and from it,
+     objectwise, `TauCeti.FiniteRankBundleCore.detConjugateIso A :
+     ((conjugate B).obj A).det ≅ (conjugate B).obj A.det`, using that
+     conjugation keeps the rank (`conjugate_obj`);
+   - back in `Topology/VectorBundle/Determinant.lean`, since it is about this
+     library's `detCore`: `SymplecticGeometry.Bundle.detCoreConjugateFiberwise`,
+     a conjugate-linear fibrewise isomorphism between `detCore ℂ` of the
+     conjugate bundle and `detCore ℂ G E`, from `detConjugateIso`, in the
+     form that
      `complexEulerClass_eq_neg_of_finrank_eq_one_of_conjugateFiberwise`
-     takes.
+     takes. So the Tau Ceti-namespaced file imports nothing of this library.
 
    Done when these are proved and build.
 2. **Evenness of the first Betti number of a closed orientable surface.**
@@ -650,7 +680,10 @@ issues, in an order where each issue's blockers come before it.
    = 1}` (on which Tau Ceti's `isManifold_sphereBundle` puts the smooth
    structure), and the `TauCeti.PrincipalBundle Circle` instance, through
    `circleEquivUnitary`, are planned by #63 for *Symplectic vector bundles*,
-   and this design takes them from there rather than adding them again. This
+   and this design takes them from there rather than adding them again.
+   Since `circleEquivUnitary` lands in `unitary ℂ` while the frame bundle's
+   group is `unitary (ℂ →L[ℂ] ℂ)`, that plan includes the isomorphism
+   between the two unitary groups. This
    issue adds only the smooth side: the hypothesis of
    `TauCeti.PrincipalBundle.contMDiffFiberBundle_iff` for the `Circle`
    instance (smooth coordinate changes, from those of the unitary frame
@@ -701,26 +734,36 @@ issues, in an order where each issue's blockers come before it.
    finite, be coordinate discs of a compact homologically oriented surface
    with disjoint closed discs, and let `u` be continuous and nowhere zero on
    the complement of the open discs, with values in `ℂ`. Then the degrees
-   (`Circle.degree`) of `u/|u|` around the boundary loops sum to $0$. Proof:
-   extend `u` radially into each disc, with one zero at each centre. This is
-   a section of the trivial line bundle with finitely many zeros. Its local
-   index at a centre is the winding number of its boundary loop, by
-   `TauCeti.VectorBundleOrientation.localHomologyMap_eq_sectionIndex_smul` and
-   `TauCeti.HomologicalOrientation.localDegree_eq_degree_toBasedLoop`. The
-   indices sum to the Euler number of the trivial bundle, which is $0$. This
-   is the half of the book's Lemma 2.7.3 needed for discs. Blocked by 5.
+   (`Circle.degree`) of `u/|u|` around the boundary loops sum to $0$. It is
+   a corollary of prerequisite 7, with no argument of its own. The surface
+   minus the open discs is an instance of the setting of 7: it is compact,
+   its interior is the surface minus the closed discs, and the annuli of the
+   coordinate discs (which are defined on `ball 0 2`) collar its boundary
+   circles. `u/|u|` is defined on all of it, so
+   `boundaryDegree_eq_zero_of_extend` gives degree $0$, and
+   `boundaryDegree_eq_sum_degree` turns that degree into the sum over the
+   boundary loops (which run against the boundary orientation, a sign that
+   does not matter for a sum equal to $0$). The work of the issue is that
+   instance. This is the half of the book's Lemma 2.7.3 needed for discs.
+   Blocked by 5 and 7.
 7. **Boundary degree and the argument principle on a surface with
    boundary.** The setting is that of `RelativeFundamentalClass.lean`: `X`
    compact Hausdorff, `ι : M → X` an open embedding of a surface with
    `o : HomologicalOrientation M E 2`, and `f : N → X` collared with image
-   `∂X`, the complement of `ι(M)`. Two files:
+   `∂X`, the complement of `ι(M)`. Four files, two topological and two
+   smooth, so that no Topology file imports Geometry:
    - `AlgebraicTopology/Singular/LocalHomology/BoundaryDegree.lean`: the
      definition `TauCeti.HomologicalOrientation.boundaryDegree o hn hι hιf hf
      (u : C(∂X, Circle)) : ℤ`, the image of the boundary class
      `singularHomologyδ (fundamentalClassRel …)` under `u`, read in ℤ through
      `Circle.singularHomologyOneIso`, with the sign for which the
-     counterclockwise loop counts $+1$. API: `boundaryDegree_def`;
+     counterclockwise loop counts $+1$. Tau Ceti does not record the sign of
+     its connecting morphism, so the issue settles it first, on the closed
+     unit disc, and fixes the sign of the definition by it. API:
+     `boundaryDegree_def`;
      `boundaryDegree_mul` (pointwise products add degrees);
+     `boundaryDegree_eq_of_homotopy` (homotopic maps `∂X → Circle` have the
+     same degree, from the homotopy invariance of singular homology);
      `boundaryDegree_neg_orientation`; `boundaryDegree_eq_zero_of_extend` (a
      `u` that extends continuously to `X` has degree $0$, since the boundary
      class dies in $H_1(X)$ by exactness); and `boundaryDegree_eq_sum_degree`
@@ -740,7 +783,9 @@ issues, in an order where each issue's blockers come before it.
      `ι` equals `o.boundaryDegree … u`, with `u` the normalization of
      `τ⁻¹ t` on `∂X`. Route: by excision both sides are local homology
      computations near the zeros and near `∂X`, joined by the connecting
-     morphism of `(X, ∂X)`. Then
+     morphism of `(X, ∂X)`.
+   - `Geometry/Manifold/VectorBundle/Section/ArgumentPrinciple.lean`, beside
+     Tau Ceti's `Section/Generic.lean`, for the smooth form:
      `TauCeti.VectorBundleOrientation.evalFundamentalClass_eulerClass_eq_boundaryDegree`:
      for an oriented plane bundle `L` over a closed oriented surface split by
      a regular value of `g : M → ℝ`, a frame `τ` of `L` over $\Sigma_1$
@@ -750,16 +795,25 @@ issues, in an order where each issue's blockers come before it.
      `τ⁻¹ s` on `C`. Proof: extend `τ⁻¹ s` from `C` to a smooth map
      $\Sigma_1\to\mathbb{C}$ transverse to $0$ (Tietze, smoothing and a
      generic perturbation as in `Section/Generic.lean`), so that `s` extends
-     to a section with finitely many zeros, and combine the first result with
+     to a section with finitely many zeros, and combine
+     `sum_sectionIndex_eq_boundaryDegree` with
      `evalFundamentalClass_eulerClass_eq_sum_sectionIndex`.
-
    - `Geometry/Manifold/RegularValue/LevelCollar.lean`:
      `SymplecticGeometry.isCollared_inclusion_levelSet`, for a smooth
-     `g : M → ℝ` on a manifold without boundary with regular value `0` and
-     compact level set, the inclusion of $g^{-1}(0)$ into $\{g\le0\}$ is
-     `TauCeti.IsCollared` (by the flow of a normalized gradient), and
-     $\{g<0\}$ is the complement of its image; the second result above
-     uses it, and so does `Splitting.lean`.
+     `g : M → ℝ` on a compact manifold without boundary with regular value
+     `0`, the inclusion of $g^{-1}(0)$ into $\{g\le0\}$ is
+     `TauCeti.IsCollared`, and $\{g<0\}$ is the complement of its image.
+     Compactness is the case `Splitting.lean` uses, and it makes the band
+     below compact. No new flow is built: by compactness the critical values
+     of `g` stay away from $0$, so for some $\varepsilon>0$ Tau Ceti's
+     `TauCeti.exists_bandHomeomorph` (`Geometry/Manifold/Morse/Deformation.lean`),
+     applied to `-g` on $[0,\varepsilon]$, gives
+     `e : g⁻¹[-ε, 0] ≃ₜ g⁻¹{0} × Icc 0 ε` with second component `-g` and
+     first component the identity on the level, and the collar is
+     $(y,t)\mapsto e^{-1}(y,\varepsilon t)$. The smooth version
+     `exists_bandHomeomorph_diffeomorph` is there if a smooth collar is
+     needed. The smooth form of the argument principle above uses this
+     lemma, and so does `Splitting.lean`.
 
    Done when these are proved. It can start at once.
 8. **Capping a surface with boundary.**
@@ -788,9 +842,13 @@ issues, in an order where each issue's blockers come before it.
    is defined. The area form that uniqueness needs is `o.sphereVolumeForm`:
    it vanishes nowhere (`sphereVolumeForm_apply_ne_zero`), so it is
    nondegenerate by `TauCeti.SmoothTwoForm.isNondegenerate_iff_forall_ne_zero_of_finrank_eq_two`,
-   and the orientation it induces is `o.sphereOrientation` by the definition
-   of the latter through `Manifold.Orientation.ofTopForm`, so no new lemma
-   is needed for it. The genus of
+   and the orientation it induces is `o.sphereOrientation`. That last step
+   needs one small lemma: `IsNondegenerate.volumeOrientation` is `ofTopForm`
+   of `(1!)⁻¹ • wedgePow σ 1` (`Geometry/Symplectic/Manifold/Volume.lean`),
+   and Tau Ceti has no `wedgePow_one`, so this issue proves
+   `TauCeti.SmoothForm.wedgePow_one` (`wedgePow σ 1 = σ`) and from it
+   that the induced orientation is `ofTopForm` of `σ`, which is how
+   `sphereOrientation` is defined. The genus of
    the sphere is `TauCeti.surfaceGenus_sphere` of prerequisite 2. Blocked by
    5. Done when these are proved.
 
@@ -821,5 +879,5 @@ issues, in an order where each issue's blockers come before it.
 The first milestone needs issues 1, 2, 5–10, 12–14, 17 and 18, with the
 named issues of other parts; it is done only when 14, 17 and 18 are all
 merged. The Euler-number milestone needs 1, 10 and 11, and the Chern–Weil
-milestone 1, 3–6, 10, 12 and 15. Issue 16 completes the comparison with Tau
+milestone 1, 3–7, 10, 12 and 15. Issue 16 completes the comparison with Tau
 Ceti.
