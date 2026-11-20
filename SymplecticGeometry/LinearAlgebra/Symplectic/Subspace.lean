@@ -18,9 +18,9 @@ subspace `W`, this file adds to Tau Ceti's theory of the symplectic complement `
 
 * `TauCeti.SymplecticForm.isIsotropic_iff_isCoisotropic_orthogonal`: `W` is isotropic exactly
   when `W^ω` is coisotropic, in any dimension;
-* `TauCeti.SymplecticForm.IsIsotropic.exists_isLagrangian_le`: every isotropic subspace is
-  contained in a Lagrangian subspace, in any dimension (by Zorn's lemma, since Lagrangian
-  subspaces are the maximal isotropic ones);
+* `TauCeti.SymplecticForm.IsIsotropic.exists_isLagrangian_le`: each isotropic `W` has a
+  Lagrangian `L ⊇ W`, in any dimension (by Zorn's lemma, since Lagrangian subspaces are the
+  maximal isotropic ones);
 * `TauCeti.SymplecticForm.IsLagrangian.exists_isDarbouxBasis_apply_zero_eq`: a basis
   `u₁, …, uₙ` of a Lagrangian subspace is the first half of a Darboux basis
   `u₁, …, uₙ, v₁, …, vₙ`, with `ω(uᵢ, vⱼ) = δᵢⱼ`.
@@ -108,9 +108,9 @@ theorem IsLagrangian.exists_isDarbouxBasis_apply_zero_eq [FiniteDimensional ℝ 
 variable [FiniteDimensional ℝ V]
 
 /-- **Symplectic complements.** For a subspace `W` of a finite-dimensional symplectic vector
-space `(V, ω)`: `dim W + dim W^ω = dim V`; `W^ωω = W`; `W` is symplectic if and only if `W^ω`
-is; `W` is isotropic if and only if `W^ω` is coisotropic; and `W` is Lagrangian if and only if
-it is isotropic with `2 · dim W = dim V`.
+space `(V, ω)`: `dim W + dim W^ω = dim V`; `W^ωω = W`; `W` and `W^ω` are symplectic together;
+`W` is isotropic exactly when `W^ω` is coisotropic; and `W` is Lagrangian exactly when it is
+isotropic with `2 · dim W = dim V`.
 
 Milestone: *Symplectic complements*. -/
 theorem orthogonal_properties (ω : SymplecticForm V) (W : Submodule ℝ V) :
@@ -125,8 +125,8 @@ theorem orthogonal_properties (ω : SymplecticForm V) (W : Submodule ℝ V) :
     fun h => h.1.isLagrangian_of_finrank h.2⟩
 
 /-- **Lagrangian extension lemma.** In a finite-dimensional symplectic vector space `(V, ω)`,
-every isotropic subspace lies in a Lagrangian subspace; the Lagrangian subspaces are exactly the
-maximal isotropic subspaces; and every basis `u₁, …, uₙ` of a Lagrangian subspace extends to a
+each isotropic subspace has a Lagrangian subspace containing it; a subspace is Lagrangian iff
+it is isotropic and no strictly larger subspace is; and every basis `u₁, …, uₙ` of a Lagrangian subspace extends to a
 Darboux basis `u₁, …, uₙ, v₁, …, vₙ` (with `ω(uᵢ, vⱼ) = δᵢⱼ`), the `uᵢ` being `b (i, 0)`.
 
 Milestone: *Lagrangian extension lemma*. -/
