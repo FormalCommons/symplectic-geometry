@@ -56,7 +56,9 @@ imaginary part is positive definite. -/
 structure SiegelUpperHalfSpace (ι : Type*) where
   /-- The underlying complex matrix of a point of the Siegel upper half space. -/
   protected coe : Matrix ι ι ℂ
-  isSymm_coe : coe.IsSymm
+  /-- A point of the Siegel upper half space is a symmetric matrix. -/
+  isSymm : coe.IsSymm
+  /-- The imaginary part of a point of the Siegel upper half space is positive definite. -/
   posDef_map_im : (coe.map Complex.im).PosDef
 
 namespace SiegelUpperHalfSpace
@@ -73,7 +75,7 @@ theorem coe_mk (Z : Matrix ι ι ℂ) (hZ : Z.IsSymm) (hY : (Z.map Complex.im).P
   (rfl)
 
 @[simp]
-theorem mk_coe (Z : SiegelUpperHalfSpace ι) : mk Z Z.isSymm_coe Z.posDef_map_im = Z :=
+theorem mk_coe (Z : SiegelUpperHalfSpace ι) : mk Z Z.isSymm Z.posDef_map_im = Z :=
   (rfl)
 
 theorem coe_injective : Function.Injective (SiegelUpperHalfSpace.coe : _ → Matrix ι ι ℂ) :=
@@ -88,7 +90,7 @@ with positive definite imaginary part. -/
 theorem mem_range_coe_iff {Z : Matrix ι ι ℂ} :
     Z ∈ Set.range (SiegelUpperHalfSpace.coe : _ → Matrix ι ι ℂ) ↔
       Z.IsSymm ∧ (Z.map Complex.im).PosDef :=
-  ⟨fun ⟨W, hW⟩ ↦ hW ▸ ⟨W.isSymm_coe, W.posDef_map_im⟩, fun h ↦ ⟨mk Z h.1 h.2, rfl⟩⟩
+  ⟨fun ⟨W, hW⟩ ↦ hW ▸ ⟨W.isSymm, W.posDef_map_im⟩, fun h ↦ ⟨mk Z h.1 h.2, rfl⟩⟩
 
 instance canLift : CanLift (Matrix ι ι ℂ) (SiegelUpperHalfSpace ι) (↑)
     fun Z ↦ Z.IsSymm ∧ (Z.map Complex.im).PosDef where
@@ -115,9 +117,6 @@ theorem re_apply (Z : SiegelUpperHalfSpace ι) (i j : ι) : Z.re i j = ((Z : Mat
 @[simp]
 theorem im_apply (Z : SiegelUpperHalfSpace ι) (i j : ι) : Z.im i j = ((Z : Matrix ι ι ℂ) i j).im :=
   (rfl)
-
-theorem isSymm (Z : SiegelUpperHalfSpace ι) : (Z : Matrix ι ι ℂ).IsSymm :=
-  Z.isSymm_coe
 
 /-- The imaginary part of a point of the Siegel upper half space is positive definite. -/
 theorem posDef_im (Z : SiegelUpperHalfSpace ι) : Z.im.PosDef :=
@@ -149,7 +148,7 @@ variable [DecidableEq ι]
 /-- The base point `i𝟙` of the Siegel upper half space. -/
 protected def I : SiegelUpperHalfSpace ι where
   coe := Complex.I • (1 : Matrix ι ι ℂ)
-  isSymm_coe := isSymm_one.smul _
+  isSymm := isSymm_one.smul _
   posDef_map_im := by
     convert (PosDef.one : (1 : Matrix ι ι ℝ).PosDef) using 1
     ext i j
