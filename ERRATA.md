@@ -29,4 +29,20 @@ Each entry has this form:
 
 ## atlas/linear-symplectic-geometry.md
 
+### The fundamental group of U(n) in dimension zero
+
+- **Where:** `atlas/linear-symplectic-geometry.md`, *Fundamental group of the
+  unitary group*.
+- **Error:** the milestone asserts, with no bound on $n$, that the complex
+  determinant induces an isomorphism from $\pi_1(\mathrm{U}(n))$ onto
+  $\pi_1(S^1)\cong\mathbb{Z}$, and that $\pi_1(\mathrm{Sp}(2n))\cong\mathbb{Z}$.
+  For $n=0$ this is false: `Matrix.unitaryGroup (Fin 0) ℂ` and
+  `Matrix.symplecticGroup (Fin 0) ℝ` each have one element (the empty matrix),
+  so their fundamental groups are trivial, while $\pi_1(S^1)\cong\mathbb{Z}$.
+- **Fix:** the *Unitary group topology* part of `DESIGN.md` states both
+  isomorphisms for $n\ge1$, the generality in which the book's argument
+  works; for $n=0$, next to them, the library proves that the fundamental
+  groups are trivial, which is the counterexample.
+- **Issue:** #4.
+
 ## Other sources
