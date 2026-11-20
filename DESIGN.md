@@ -538,9 +538,8 @@ it into issues; the overview fixes its folders and its dependencies.
   `TauCeti.contDiff_dysonSeriesLeft` gives a $C^{n+1}$ solution for a $C^n$
   coefficient, and `TauCeti.eq_dysonSeriesLeft_apply` gives uniqueness. So
   this part needs no general ODE theory of its own beyond the parametric
-  lemma and the extension of `TauCeti.contDiff_dysonSeriesLeft` to every
-  order in $\mathbb{N}_\infty$, which are general material and sit in that
-  file. It uses no other part.
+  lemma, which is general material and sits in its own file. It uses no other
+  part.
 - **Milestones:** *Linear Moser lemma*.
 - The construction is canonical, a formula in the family and its derivative,
   so that *Symplectic vector bundles* can apply it at each point of the base.
