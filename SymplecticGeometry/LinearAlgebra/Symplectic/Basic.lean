@@ -17,10 +17,12 @@ unchanged.
 * `TauCeti.SymplecticForm.toBilinForm_apply`: evaluating the underlying bilinear form
   `ω.toBilinForm` at `v, w` is `ω v w`, the value of `ω` through its coercion to a function.
 
-The coercion of `ω` to a function is not a `@[coe]` function, so `ω v w` and
-`ω.toBilinForm v w` are only equal up to unfolding, and lemmas stated with one do not rewrite
-goals stated with the other. `toBilinForm_apply` closes that gap for `rw`. It is not a `simp`
-lemma: its right side reduces to its left side, so `simp` would loop on it.
+The coercion of `ω` to a function is the anonymous function `fun v w => ω.toBilinForm v w`, not
+a `@[coe]` function, so `ω v w` and `ω.toBilinForm v w` agree only up to beta-reduction. `simp`
+matches up to beta-reduction and sees through this by itself, but `rw` and other syntactic
+matching, such as `rw … at h`, do not: there a lemma stated with one form does not rewrite a term
+stated with the other. `toBilinForm_apply` is the bridge for those cases. It is not a `simp`
+lemma: its right side beta-reduces to its left side, so `simp` would loop on it.
 
 ## References
 

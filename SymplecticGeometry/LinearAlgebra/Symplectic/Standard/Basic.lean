@@ -8,7 +8,6 @@ module
 public import Mathlib.Analysis.InnerProductSpace.PiL2
 public import Mathlib.LinearAlgebra.Matrix.BilinearForm
 public import Mathlib.LinearAlgebra.SymplecticGroup
-public import SymplecticGeometry.LinearAlgebra.Symplectic.Basic
 public import TauCeti.Analysis.Complex.Euclidean.Space
 public import TauCeti.Geometry.Symplectic.Complex.CoordinateSpace
 public import TauCeti.Geometry.Symplectic.StandardCompatible
@@ -210,7 +209,6 @@ theorem stdForm_toBilinForm [DecidableEq ι] :
       -(Matrix.toBilin' (Matrix.J ι ℝ)).compl₁₂ (WithLp.linearEquiv 2 ℝ (ι ⊕ ι → ℝ)).toLinearMap
         (WithLp.linearEquiv 2 ℝ (ι ⊕ ι → ℝ)).toLinearMap := by
   ext z w
-  rw [SymplecticForm.toBilinForm_apply]
   simp [Matrix.toBilin'_apply', Matrix.J, Matrix.mulVec, dotProduct, Fintype.sum_sum_type,
     Matrix.one_apply, Finset.sum_sub_distrib]
   ring
