@@ -387,26 +387,36 @@ it into issues; the overview fixes its folders and its dependencies.
 
 ### 6. Lagrangian Grassmannian (needs `design/lagrangian-grassmannian.md`)
 
-- **Files:** `Topology/Grassmannian/Lagrangian/Basic.lean` (the space
-  $\mathcal{L}(V,\omega)$ of Lagrangian subspaces and its topology),
-  `LinearAlgebra/Symplectic/Lagrangian/Frame.lean` (the frame criterion
-  $\operatorname{rank}=n$, $X^TY=Y^TX$; graphs of symmetric matrices, from Tau
-  Ceti's `isLagrangian_graph_iff_of_pairing`),
-  `Topology/Grassmannian/Lagrangian/Action.lean` (the action of
-  $\mathrm{Sp}(2n)$, transitivity already for $\mathrm{U}(n)$, the stabilizer
-  $\mathrm{O}(n)$ and $\mathcal{L}(n)\cong\mathrm{U}(n)/\mathrm{O}(n)$),
-  `Topology/Grassmannian/Lagrangian/Graph.lean` (the graph charts by
-  symmetric matrices),
-  `Geometry/Manifold/Instances/LagrangianGrassmannian.lean` (the manifold
-  structure of dimension $n(n+1)/2$, from the charts of `Graph.lean`),
+- **Files:** `LinearAlgebra/Symplectic/Lagrangian/Basic.lean` (the type
+  $\mathcal{L}(V,\omega)$ of Lagrangian subspaces, with its `SetLike` and
+  `ext` API), `LinearAlgebra/Symplectic/Lagrangian/Frame.lean` (the frame
+  criterion $\operatorname{rank}=n$, $X^TY=Y^TX$; graphs of symmetric
+  matrices, from Tau Ceti's `isLagrangian_graph_iff_of_pairing`),
+  `LinearAlgebra/Symplectic/Lagrangian/Action.lean` (the action of
+  $\mathrm{Sp}(2n)$, transitivity already for $\mathrm{U}(n)$ and the
+  stabilizer $\mathrm{O}(n)$, hence
+  $\mathcal{L}(n)\simeq\mathrm{U}(n)/\mathrm{O}(n)$ as sets by
+  orbit–stabilizer),
+  `LinearAlgebra/Symplectic/Lagrangian/Transverse.lean` (transverse
+  Lagrangians: two Lagrangians are complementary if and only if they meet in
+  $0$, any two have a common transverse Lagrangian, and $\mathrm{Sp}(2n)$ acts
+  transitively on transverse pairs),
   `LinearAlgebra/TotallyReal/Euclidean.lean` (the range of Tau Ceti's
   `Matrix.lagrangianChart`, beside Tau Ceti's file of that name),
+  `Topology/Grassmannian/Lagrangian/Basic.lean` (the topology of
+  $\mathcal{L}(V,\omega)$), `Topology/Grassmannian/Lagrangian/Quotient.lean`
+  (continuity of the action, and the equivalence
+  $\mathcal{L}(n)\simeq\mathrm{U}(n)/\mathrm{O}(n)$ of `Action.lean` as a
+  homeomorphism), `Topology/Grassmannian/Lagrangian/Graph.lean` (the graph
+  charts by symmetric matrices),
+  `Geometry/Manifold/Instances/LagrangianGrassmannian.lean` (the manifold
+  structure of dimension $n(n+1)/2$, from the charts of `Graph.lean`),
   `Topology/Grassmannian/Lagrangian/Fibration.lean` (path lifting),
-  `Topology/Grassmannian/Lagrangian/Sum.lean` (direct sums and reindexing),
-  `Topology/Grassmannian/Lagrangian/Transverse.lean` (common transverse
-  Lagrangians and transverse pairs). Below, $V_0$ is $\mathbb{R}^n\times\{0\}$
-  ($y=0$), $V_1$ is $\{0\}\times\mathbb{R}^n$ ($x=0$), and the unitary frame
-  map $\mathrm{U}(n)\to\mathcal{L}(n)$ sends $U$ to the image of $V_0$ under
+  `Topology/Grassmannian/Lagrangian/Sum.lean` (direct sums and reindexing).
+  The `LinearAlgebra/` files import no `Topology/` file of this part. Below,
+  $V_0$ is $\mathbb{R}^n\times\{0\}$ ($y=0$), $V_1$ is
+  $\{0\}\times\mathbb{R}^n$ ($x=0$), and the unitary frame map
+  $\mathrm{U}(n)\to\mathcal{L}(n)$ sends $U$ to the image of $V_0$ under
   `Matrix.toEuclideanLin (Matrix.realify U)`. `design/maslov-index.md` lists
   what the *Maslov index* part needs of the items below.
 - **Builds on:** *Standard model*. From Tau Ceti, transferred along
@@ -484,11 +494,11 @@ it into issues; the overview fixes its folders and its dependencies.
   by Mathlib's `Matrix.submatrix_equiv_mem_unitary`. The sum is equivariant
   for `TauCeti.GLSymplectic.sum`
   (`LinearAlgebra/Matrix/GeneralLinearGroup/Symplectic/Sum.lean`). Continuity
-  comes from $\mathcal{L}(n)\cong\mathrm{U}(n)/\mathrm{O}(n)$: the frame map is
-  an open quotient map, and so is a product of two such maps (Mathlib's
-  `IsOpenQuotientMap.prodMap`). How the
-  reindexing meets `GLSymplectic.reindex` is proved with that definition, in
-  the *Maslov index* part, so that this part does not depend on it.
+  comes from $\mathcal{L}(n)\cong\mathrm{U}(n)/\mathrm{O}(n)$ (`Quotient.lean`):
+  the frame map is an open quotient map, and so is a product of two such
+  maps (Mathlib's `IsOpenQuotientMap.prodMap`). How the reindexing meets
+  `GLSymplectic.reindex` is proved with that definition, in the *Maslov
+  index* part, so that this part does not depend on it.
 - **Transverse Lagrangians** (`Transverse.lean`). Any two Lagrangians
   $\Lambda_1,\Lambda_2$ have a common transverse Lagrangian: move $\Lambda_1$
   to $V_0$ by a unitary matrix; if $X+iY$ is a unitary frame of the moved
