@@ -10,6 +10,7 @@ public import TauCeti.LinearAlgebra.BilinearForm.Basic
 public import TauCeti.LinearAlgebra.BilinearForm.Isometry
 public import TauCeti.LinearAlgebra.BilinearForm.SymplecticBasis
 public import TauCeti.RepresentationTheory.ClassicalGroups.Symplectic
+public import SymplecticGeometry.LinearAlgebra.Matrix.SymplecticGroup.Basic
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
 
 /-!
@@ -37,8 +38,6 @@ model `SymplecticGeometry.stdForm` on `SymplecticGeometry.StdSpace ι`; it follo
 
 ## Main results
 
-* `Matrix.J_inl_inl`, `Matrix.J_inl_inr`, `Matrix.J_inr_inl`, `Matrix.J_inr_inr`: the four blocks
-  of `Matrix.J`, as `simp` lemmas.
 * `TauCeti.toMatrix_reindex_sumComm_neg_stdSymplecticBilinForm`: the Gram matrix of `ω₀` in the
   reordered standard basis is `Matrix.J`.
 * `TauCeti.isAlt_neg_stdSymplecticBilinForm`, `TauCeti.neg_stdSymplecticBilinForm_nondegenerate`
@@ -63,28 +62,6 @@ public section
 
 open Module
 
-namespace Matrix
-
-variable {l R : Type*} [DecidableEq l] [CommRing R] (i j : l)
-
-/-- The upper left block of `Matrix.J` is zero. -/
-@[simp]
-theorem J_inl_inl : J l R (.inl i) (.inl j) = 0 := rfl
-
-/-- The upper right block of `Matrix.J` is `-1`. -/
-@[simp]
-theorem J_inl_inr : J l R (.inl i) (.inr j) = -(1 : Matrix l l R) i j := rfl
-
-/-- The lower left block of `Matrix.J` is `1`. -/
-@[simp]
-theorem J_inr_inl : J l R (.inr i) (.inl j) = (1 : Matrix l l R) i j := rfl
-
-/-- The lower right block of `Matrix.J` is zero. -/
-@[simp]
-theorem J_inr_inr : J l R (.inr i) (.inr j) = 0 := rfl
-
-end Matrix
-
 namespace TauCeti
 
 variable (k : Type*) [CommRing k] (n : ℕ)
@@ -96,7 +73,7 @@ theorem toMatrix_reindex_sumComm_neg_stdSymplecticBilinForm :
     LinearMap.BilinForm.toMatrix ((Pi.basisFun k (Fin n ⊕ Fin n)).reindex (Equiv.sumComm _ _))
       (-stdSymplecticBilinForm k n) = Matrix.J (Fin n) k := by
   ext (i | i) (j | j) <;>
-    simp [LinearMap.BilinForm.toMatrix_apply, Matrix.J, Matrix.one_apply]
+    simp [LinearMap.BilinForm.toMatrix_apply, Matrix.one_apply]
 
 /-- `ω₀ = -stdSymplecticBilinForm k n` is alternating. -/
 theorem isAlt_neg_stdSymplecticBilinForm : (-stdSymplecticBilinForm k n).IsAlt :=
@@ -107,18 +84,14 @@ theorem neg_stdSymplecticBilinForm_nondegenerate :
     (-stdSymplecticBilinForm k n).Nondegenerate :=
   TauCeti.BilinForm.nondegenerate_neg_iff.mpr (stdSymplecticBilinForm_nondegenerate k n)
 
-/-- The values of `ω₀ = -stdSymplecticBilinForm k n` on the standard basis vectors: with
-`xⱼ = Pi.single (Sum.inl j) 1` and `yⱼ = Pi.single (Sum.inr j) 1`, they are
-`ω₀(xᵢ, xⱼ) = ω₀(yᵢ, yⱼ) = 0`, `ω₀(xᵢ, yⱼ) = δᵢⱼ` and `ω₀(yᵢ, xⱼ) = -δᵢⱼ`. -/
+/-- The values of `ω₀ = -stdSymplecticBilinForm k n` on the standard basis vectors are the
+entries of `-Matrix.J`. With `xⱼ = Pi.single (Sum.inl j) 1` and `yⱼ = Pi.single (Sum.inr j) 1`,
+the `simp` lemmas `Matrix.J_inl_inr` and its siblings turn this into `ω₀(xᵢ, yⱼ) = δᵢⱼ`,
+`ω₀(yᵢ, xⱼ) = -δᵢⱼ` and `ω₀(xᵢ, xⱼ) = ω₀(yᵢ, yⱼ) = 0`. -/
 theorem neg_stdSymplecticBilinForm_single_single (x y : Fin n ⊕ Fin n) :
-    (-stdSymplecticBilinForm k n) (Pi.single x (1 : k)) (Pi.single y (1 : k)) =
-      match x, y with
-      | .inl i, .inr j => if i = j then 1 else 0
-      | .inr i, .inl j => -(if i = j then 1 else 0)
-      | .inl _, .inl _ => 0
-      | .inr _, .inr _ => 0 := by
-  rcases x with i | i <;> rcases y with j | j <;>
-    simp [Matrix.J, Matrix.one_apply]
+    (-stdSymplecticBilinForm k n) (Pi.single x (1 : k)) (Pi.single y 1) =
+      -Matrix.J (Fin n) k x y := by
+  simp only [LinearMap.neg_apply, stdSymplecticBilinForm_single_single]
 
 end TauCeti
 
@@ -133,7 +106,7 @@ theorem apply_basis_of_toMatrix_eq_J {m : ℕ} {b : Basis (Fin m ⊕ Fin m) R M}
     B (b (.inr i)) (b (.inr j)) = 0 ∧ B (b (.inl i)) (b (.inl j)) = 0 ∧
       B (b (.inr i)) (b (.inl j)) = if i = j then 1 else 0 := by
   simp only [← toMatrix_apply, hb]
-  simp [Matrix.J, Matrix.one_apply]
+  simp [Matrix.one_apply]
 
 end LinearMap.BilinForm
 
