@@ -286,11 +286,15 @@ further when they grow, following `AGENTS.md`.
   the stable range `Matrix.UnitaryGroup.isNConnected_fromBlocksOne`, in the
   namespace of Tau Ceti's `fromBlocksOne`, `detCircle` and
   `instPathConnectedSpace` for Mathlib's `Matrix.unitaryGroup`. It is stated
-  over any `RCLike 𝕜`: the block inclusion `fromBlocksOne` of
+  over any `RCLike 𝕜`, with the hypothesis
+  `2 ≤ Module.finrank ℝ 𝕜 * (m + 1)`: the block inclusion `fromBlocksOne` of
   $\mathrm{U}(m,\mathbb{k})$ in $\mathrm{U}(1+m,\mathbb{k})$ is
   `Module.finrank ℝ 𝕜 * (m + 1) - 2`-connected. For $\mathbb{k}=\mathbb{C}$
-  this is $2m$, the case the milestone uses, and for $\mathbb{k}=\mathbb{R}$
-  it gives $\mathrm{O}(m)\to\mathrm{O}(1+m)$. It is the analogue of
+  the hypothesis always holds and the bound is $2m$, the case the milestone
+  uses; for $\mathbb{k}=\mathbb{R}$ it gives $\mathrm{O}(m)\to\mathrm{O}(1+m)$
+  for $m\ge1$. The hypothesis is needed: for $\mathbb{k}=\mathbb{R}$ and
+  $m=0$ the bound truncates to $0$ in `ℕ`, and $\mathrm{O}(0)\to\mathrm{O}(1)=\{\pm1\}$
+  does not reach $-1$. It is the analogue of
   `TauCeti.Matrix.SpecialOrthogonalGroup.isNConnected_fromBlocksOne` and is
   proved in the same way. Then
   `Analysis/Matrix/UnitaryGroup/FundamentalGroup.lean`, which holds only the
@@ -322,7 +326,9 @@ further when they grow, following `AGENTS.md`.
   (`TauCeti.unitaryFrameFiberHomeomorph`); the base is a sphere of
   dimension `Module.finrank ℝ 𝕜 * (m + 1) - 1` (for $\mathbb{C}$,
   $S^{2m+1}$), so the fibre inclusion is connected one degree below that, by
-  `TauCeti.TopCat.isNConnected_fiberι_of_mem_serreFibrations`. Only $r=1$ is
+  `TauCeti.TopCat.isNConnected_fiberι_of_mem_serreFibrations`, which needs a
+  path-connected base: the sphere has positive dimension exactly under the
+  hypothesis `2 ≤ Module.finrank ℝ 𝕜 * (m + 1)`. Only $r=1$ is
   planned: a general $r$ would need the fibration of frames by `forgetLast`
   over $\mathbb{C}$, which Tau Ceti has only over $\mathbb{R}$, and nothing
   here needs it. Connectedness of $\mathrm{U}(n)$ is Tau Ceti's
@@ -490,11 +496,19 @@ it into issues; the overview fixes its folders and its dependencies.
   fibrewise. For that the file delivers the contraction of the compatible
   structures through the Cayley transform, the map $(g,\omega)\mapsto
   J_{g,\omega}$ and the contraction of the tame structures as explicit
-  formulas. The two Cayley-transform contractions are given on the open
-  neighbourhood of the complex structures in $\mathrm{End}(V)$ where the
-  Cayley denominator is invertible, and $(g,\omega)\mapsto J_{g,\omega}$ on
-  the open set of pairs of an inner product and a nondegenerate form. They
-  are $C^\infty$ there in the structure (and $J_{g,\omega}$ also in $g$), with all
+  formulas. The two Cayley-transform contractions, taken relative to a
+  reference structure $J_0$, are given on the set $U_{J_0}$ of
+  $A\in\mathrm{End}(V)$ such that $1-J_0A$ is invertible and
+  $1-b\cdot$`cayleyFormula J₀ A` is invertible for every $b\in[0,1]$: the two
+  units that `contDiffAt_cayleyPathFormula`
+  (`Geometry/Symplectic/Cayley/Smooth.lean`) asks for. This set is open,
+  since $[0,1]$ is compact. It does not contain every complex structure
+  ($A=-J_0$ gives $1-J_0A=0$), but for an $\omega$-tame $J_0$ it contains
+  the $\omega$-tame structures, as Tau Ceti proves
+  (`Geometry/Symplectic/Cayley/Contractible.lean`), hence the compatible
+  ones. The map $(g,\omega)\mapsto J_{g,\omega}$ is given on the open set
+  of pairs of an inner product and a nondegenerate form. All three are
+  $C^\infty$ there in the structure (and $J_{g,\omega}$ also in $g$), with all
   derivatives continuous in the time; Tau Ceti's `ContractibleSpace`
   instances give only continuous contractions, which do not suffice.
 
@@ -593,10 +607,10 @@ it into issues; the overview fixes its folders and its dependencies.
   $\infty$. The fibre maps may be defined only on an open subset of the
   total space of $V$ that the sections take values in; openness in each
   fibre would not do, since derivatives in trivializations need an open set
-  of the total space. Examples are the set, open in the endomorphism bundle,
-  where the Cayley denominator of *Compatible complex structures* is
-  invertible, which contains every complex structure, and the fibrewise
-  nondegenerate forms.
+  of the total space. Examples are the union over $x\in M$ of the sets
+  $U_{J_0(x)}$ of *Compatible complex structures*, for a continuous
+  reference section $J_0$ that is tame at every point, which contains the
+  tame structures, and the fibrewise nondegenerate forms.
   Continuity in the point alone is not enough for $n\ge1$: on the trivial
   line bundle over $\mathbb{R}$, $\Phi_t(x,v)=v+t\sin(x/t)$ is continuous in
   $(t,x,v)$ with $\Phi_0=\mathrm{id}$, but $\partial_x(\Phi_t\circ s-s)=\cos(x/t)$
@@ -639,10 +653,12 @@ it into issues; the overview fixes its folders and its dependencies.
   these subspaces. The proofs apply the explicit linear constructions of
   *Compatible complex structures* and *Linear Moser* at each point. These
   are $C^\infty$ in the structure (and, for $J_{g,\omega}$, in $g$) on open
-  neighbourhoods in the fibre spaces (for complex structures, where the
-  Cayley denominator is invertible), with all derivatives continuous in the
-  time of the contraction; these neighbourhoods form open subsets of the
-  total spaces, and read in trivializations the maps are $C^n$ there in the
+  neighbourhoods in the fibre spaces (for complex structures, the sets
+  $U_{J_0(x)}$ of the two Cayley units, relative to a tame reference
+  section $J_0$), with all derivatives continuous in the time of the
+  contraction; these neighbourhoods form open subsets of the total spaces
+  (for the Cayley sets because $J_0$ is a continuous section, the two units
+  are open conditions, and $[0,1]$ is compact), and read in trivializations the maps are $C^n$ there in the
   point and the structure,
   with derivatives continuous in the time, which is the hypothesis of the
   lemma of `Section/Topology.lean`. That lemma makes the induced maps on
