@@ -503,10 +503,13 @@ it into issues; the overview fixes its folders and its dependencies.
   units that `contDiffAt_cayleyPathFormula`
   (`Geometry/Symplectic/Cayley/Smooth.lean`) asks for. This set is open,
   since $[0,1]$ is compact. It does not contain every complex structure
-  ($A=-J_0$ gives $1-J_0A=0$), but for an $\omega$-tame $J_0$ it contains
-  the $\omega$-tame structures, as Tau Ceti proves
-  (`Geometry/Symplectic/Cayley/Contractible.lean`), hence the compatible
-  ones. The map $(g,\omega)\mapsto J_{g,\omega}$ is given on the open set
+  ($A=-J_0$ gives $1-J_0A=0$), but for an $\omega$-compatible $J_0$ it
+  contains the $\omega$-tame structures, hence the compatible ones. The
+  first unit is `Tames.isUnit_one_sub_mul_of_toLinearMap`, which needs
+  $J_0$ only tame; the second is
+  `Compatible.isUnit_one_sub_smul_cayleyFormula`, which needs $J_0$
+  compatible (both in `Geometry/Symplectic/Cayley/Smooth.lean`). The
+  contractions also take a compatible $J_0$, as Tau Ceti's do. The map $(g,\omega)\mapsto J_{g,\omega}$ is given on the open set
   of pairs of an inner product and a nondegenerate form. All three are
   $C^\infty$ there in the structure (and $J_{g,\omega}$ also in $g$), with all
   derivatives continuous in the time; Tau Ceti's `ContractibleSpace`
@@ -609,7 +612,8 @@ it into issues; the overview fixes its folders and its dependencies.
   fibre would not do, since derivatives in trivializations need an open set
   of the total space. Examples are the union over $x\in M$ of the sets
   $U_{J_0(x)}$ of *Compatible complex structures*, for a continuous
-  reference section $J_0$ that is tame at every point, which contains the
+  reference section $J_0$ that is compatible at every point (one always
+  exists), which contains the
   tame structures, and the fibrewise nondegenerate forms.
   Continuity in the point alone is not enough for $n\ge1$: on the trivial
   line bundle over $\mathbb{R}$, $\Phi_t(x,v)=v+t\sin(x/t)$ is continuous in
@@ -654,8 +658,8 @@ it into issues; the overview fixes its folders and its dependencies.
   *Compatible complex structures* and *Linear Moser* at each point. These
   are $C^\infty$ in the structure (and, for $J_{g,\omega}$, in $g$) on open
   neighbourhoods in the fibre spaces (for complex structures, the sets
-  $U_{J_0(x)}$ of the two Cayley units, relative to a tame reference
-  section $J_0$), with all derivatives continuous in the time of the
+  $U_{J_0(x)}$ of the two Cayley units, relative to a reference section
+  $J_0$ that is compatible at every point), with all derivatives continuous in the time of the
   contraction; these neighbourhoods form open subsets of the total spaces
   (for the Cayley sets because $J_0$ is a continuous section, the two units
   are open conditions, and $[0,1]$ is compact), and read in trivializations the maps are $C^n$ there in the
