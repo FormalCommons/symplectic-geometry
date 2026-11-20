@@ -5,15 +5,15 @@ covers the subject of the plan that [README.md](README.md) links to: the plan
 describes the subject, states its milestones, gives the sources, and may say
 how the library should be built. Read the plan's pages for the work you do.
 
-The plan is the atlas, which is private: do not look for it on GitHub.
-Every job's container has a read-only copy at `/atlas`, with its pages
-under `/atlas/atlas/` and `/atlas/auxiliary/`, and the atlas commit it was
-copied from in `/atlas/COMMIT`. This repository is public and the atlas is
-not, so never copy text from the atlas into the repository or into its
-issues, pull requests and comments. Write statements in Lean and
-explanations in your own words, and refer to the atlas by page and
-milestone name, such as `atlas/linear-symplectic-geometry.md`, *milestone name*.
-A milestone's name is the only text of the atlas that you may repeat.
+The plan is the atlas, which is private: do not look for it on GitHub. Every
+job's container has a read-only copy at `/atlas`, with its pages under
+`/atlas/atlas/` and `/atlas/auxiliary/`, and the atlas commit it was copied
+from in `/atlas/COMMIT`. This repository is public and the atlas is not, so
+never copy text from the atlas into the repository or into its issues, pull
+requests and comments. Write statements in Lean and explanations in your own
+words, and refer to the atlas by page and milestone name, such as
+`atlas/linear-symplectic-geometry.md`, *milestone name*. A milestone's name
+is the only text of the atlas that you may repeat.
 
 The milestones are results that the library must prove, and they measure how
 much of the subject it covers. But the library is more than its milestones: it
@@ -55,21 +55,23 @@ minutes.
 
 ## Layout and names
 
-- The library is under `SymplecticGeometry/`, in the namespace `SymplecticGeometry`. Its folders
-  are Mathlib's top-level areas, such as `SymplecticGeometry/Algebra/` or
-  `SymplecticGeometry/Geometry/`, and below them, topics. Use one file per topic. When
-  `Foo.lean` gets a sibling `FooBar.lean`, make a folder instead:
-  `Foo/Basic.lean` and `Foo/Bar.lean`.
+- The library is under `SymplecticGeometry/`, in the namespace
+  `SymplecticGeometry`. Its folders are Mathlib's top-level areas, such as
+  `SymplecticGeometry/Algebra/` or `SymplecticGeometry/Geometry/`, and below
+  them, topics. Use one file per topic. When `Foo.lean` gets a sibling
+  `FooBar.lean`, make a folder instead: `Foo/Basic.lean` and `Foo/Bar.lean`.
 - Name files and declarations after the mathematics, never after a milestone,
   an issue or a pull request. Follow Mathlib's naming conventions; a name
   never claims more than the statement (`_iff` only for an iff).
-- A declaration about an existing Lean, Mathlib or Tau Ceti notion, one
-  that dot notation on that type would find, goes in that type's namespace,
-  such as `Matrix.trace_foo`, so that it can move upstream without a rename.
-  Declarations about this library's own definitions go in `SymplecticGeometry`.
+- A declaration about an existing Lean, Mathlib or Tau Ceti notion, one that
+  dot notation on that type would find, goes in that type's namespace, such
+  as `Matrix.trace_foo`, so that it can move upstream without a rename.
+  Declarations about this library's own definitions go in
+  `SymplecticGeometry`.
 - No file imports the whole library. `lake build` builds every file under
-  `SymplecticGeometry/` by itself (the `globs` in `lakefile.toml`), so a new file needs
-  no import anywhere else. Do not add a file that imports the others.
+  `SymplecticGeometry/` by itself (the `globs` in `lakefile.toml`), so a new
+  file needs no import anywhere else. Do not add a file that imports the
+  others.
 - A new file has at most 1000 lines. No file may have more than 1500 (the
   build fails).
 
