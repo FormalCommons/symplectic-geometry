@@ -60,7 +60,7 @@ forms beyond graphs over $\mathbb{R}^n$.
   relative index of two paths (`relativeMaslovIndex_realImagePath`).
 - **Totally real loops and paths.** `TauCeti.TotallyRealLoop E`
   (`LinearAlgebra/TotallyReal/Loop.lean` and `LinearAlgebra/TotallyReal/Maslov/`)
-  is a loop of maximal totally real subspaces of a complex space `E` that some
+  is a loop, in a complex space `E`, of maximal totally real subspaces that some
   continuous frame of complex-linear automorphisms moves. Its index has the
   direct-sum axiom (`TotallyRealLoop.maslovIndex_prod`, `Maslov/Prod.lean`),
   the `k`-fold half-turns (`rotationZPow`, `maslovIndex_rotationZPow`),
