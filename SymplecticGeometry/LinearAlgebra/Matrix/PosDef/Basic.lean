@@ -11,7 +11,8 @@ public import Mathlib.LinearAlgebra.Matrix.PosDef
 # Positive definite matrices with one index
 
 For an index type with exactly one element, a matrix is positive definite exactly when its only
-entry is positive.
+entry is positive. This extends Tau Ceti's `Matrix.posDef_fin_one_iff`, which treats the index
+type `Fin 1`, to an arbitrary index type with a single element.
 
 ## Main results
 
@@ -26,11 +27,11 @@ variable {n R : Type*} [Unique n] [Ring R] [PartialOrder R] [StarRing R] [StarOr
   [NoZeroDivisors R] [Nontrivial R]
 
 /-- A matrix indexed by a type with one element is positive definite exactly when its only
-entry is positive. -/
+entry is positive. It generalizes Tau Ceti's `Matrix.posDef_fin_one_iff` from `Fin 1` to any
+index type with one element. -/
 theorem posDef_iff_of_unique {A : Matrix n n R} : A.PosDef ↔ 0 < A default default := by
   classical
   have hA : A = diagonal fun _ ↦ A default default := by
-    rw [diagonal_unique]
     ext i j
     simp [Subsingleton.elim i default, Subsingleton.elim j default]
   rw [hA, posDef_diagonal_iff]

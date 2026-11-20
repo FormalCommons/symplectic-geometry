@@ -11,7 +11,7 @@ public import Mathlib.Algebra.Order.Star.Real
 public import Mathlib.LinearAlgebra.Matrix.Symmetric
 public import Mathlib.Topology.Instances.Matrix
 import TauCeti.Analysis.Matrix.PosDef
-public import SymplecticGeometry.LinearAlgebra.Matrix.PosDef
+public import SymplecticGeometry.LinearAlgebra.Matrix.PosDef.Basic
 
 /-!
 # The Siegel upper half space
