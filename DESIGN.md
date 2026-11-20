@@ -93,7 +93,7 @@ that later pages add follow them.
   does.
 - **Bases from a Gram matrix.** The `(inr i, inl j)` entry of `Matrix.J` is
   $\delta_{ij}$ and the `(inl i, inr j)` entry is $-\delta_{ij}$. So for a
-  basis `b` whose Gram matrix is `Matrix.J`, the pairs of the book with
+  basis `b` with `Matrix.J` as Gram matrix, the pairs of the book with
   $\omega(u_j,v_k)=\delta_{jk}$ are $u_j=$ `b (inr j)` and $v_j=$ `b (inl j)`.
   Tau Ceti's `TauCeti.SymplecticForm.IsDarbouxBasis` is already in the book's
   normalization. A statement that produces a basis says in its docstring which
