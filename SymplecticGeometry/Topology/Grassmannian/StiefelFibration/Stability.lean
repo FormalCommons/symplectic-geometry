@@ -5,7 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import Mathlib.Topology.Order.IntermediateValue
+public import TauCeti.Topology.Algebra.OrthogonalGroup
 public import TauCeti.Topology.Algebra.UnitaryGroup
 public import TauCeti.Topology.Grassmannian.StiefelFibration.Unitary
 public import TauCeti.Topology.Homotopy.SerreFibration.Connected
@@ -86,28 +86,11 @@ entry of a `1 × 1` orthogonal matrix is `±1` and never `0`. -/
 theorem not_isNConnected_fromBlocksOne_real_zero :
     ¬ (⟨fromBlocksOne ℝ 1 0, continuous_fromBlocksOne 0⟩ :
       C(unitaryGroup (Fin 0) ℝ, unitaryGroup (Fin (1 + 0)) ℝ)).IsNConnected
-        (Module.finrank ℝ ℝ * (0 + 1) - 2) := by
-  intro h
-  let neg1 : unitaryGroup (Fin (1 + 0)) ℝ := -1
-  obtain ⟨B, ⟨γ⟩⟩ := h.exists_joined neg1
-  -- the only entry of a path of `1 × 1` orthogonal matrices, which never vanishes
-  let f : C(unitInterval, ℝ) := ⟨fun t ↦ (γ t : Matrix (Fin (1 + 0)) (Fin (1 + 0)) ℝ) 0 0,
-    (continuous_apply_apply 0 0).comp (continuous_induced_dom.comp γ.continuous)⟩
-  have hf : ∀ t, f t ≠ 0 := fun t h0 ↦ by
-    have hmem := (γ t).property
-    rw [mem_unitaryGroup_iff] at hmem
-    have := congrFun (congrFun hmem 0) 0
-    simp [Matrix.mul_apply, f, Fin.fin_one_eq_zero] at this h0
-    simp_all
-  have h0 : f 0 = 1 := by
-    simp only [f, ContinuousMap.coe_mk, Path.source, Subsingleton.elim B 1, map_one]
-    rfl
-  have h1 : f 1 = -1 := by
-    simp only [f, ContinuousMap.coe_mk, Path.target, neg1]
-    rfl
-  obtain ⟨t, ht⟩ := intermediate_value_univ (1 : unitInterval) 0 f.continuous
-    (show (0 : ℝ) ∈ Set.Icc (f 1) (f 0) by rw [h0, h1]; norm_num)
-  exact hf t ht
+        (Module.finrank ℝ ℝ * (0 + 1) - 2) := fun h ↦ by
+  obtain ⟨B, hB⟩ := h.exists_joined (-1)
+  have := Matrix.joined_orthogonalGroup_iff_det_eq.1 hB
+  simp [Subsingleton.elim B 1, Matrix.det_unique, Unitary.coe_neg] at this
+  norm_num at this
 
 end Matrix.UnitaryGroup
 
