@@ -95,6 +95,14 @@ theorem x_equivProd_symm (a b : ι → ℝ) : ((equivProd ι).symm (a, b)).x = a
 @[simp]
 theorem y_equivProd_symm (a b : ι → ℝ) : ((equivProd ι).symm (a, b)).y = b := (rfl)
 
+@[simp]
+theorem equivProd_symm_apply_inl (a b : ι → ℝ) (i : ι) :
+    (equivProd ι).symm (a, b) (Sum.inl i) = a i := (rfl)
+
+@[simp]
+theorem equivProd_symm_apply_inr (a b : ι → ℝ) (i : ι) :
+    (equivProd ι).symm (a, b) (Sum.inr i) = b i := (rfl)
+
 variable [Fintype ι]
 
 /-- The `x`-coordinates of `complexToRealEuclidean ι u` are the real parts of `u`. -/
@@ -164,6 +172,20 @@ theorem stdComplexStructure_y (z : StdSpace ι) : (stdComplexStructure ι z).y =
   ext i
   simp [stdComplexStructure_def, AlmostComplexStructure.ofComplexModule_apply]
 
+/-- The `xᵢ`-coordinate of `J₀ z` is `-yᵢ(z)`. -/
+@[simp]
+theorem stdComplexStructure_apply_inl (z : StdSpace ι) (i : ι) :
+    stdComplexStructure ι z (Sum.inl i) = -z (Sum.inr i) := by
+  rw [← x_apply, stdComplexStructure_x]
+  rfl
+
+/-- The `yᵢ`-coordinate of `J₀ z` is `xᵢ(z)`. -/
+@[simp]
+theorem stdComplexStructure_apply_inr (z : StdSpace ι) (i : ι) :
+    stdComplexStructure ι z (Sum.inr i) = z (Sum.inl i) := by
+  rw [← y_apply, stdComplexStructure_y]
+  rfl
+
 /-- `J₀` is the linear map of the matrix `Matrix.J ι ℝ = !![0, -1; 1, 0]`. -/
 theorem stdComplexStructure_eq_toEuclideanLin_J [DecidableEq ι] :
     (stdComplexStructure ι).toLinearMap = Matrix.toEuclideanLin (Matrix.J ι ℝ) := by
@@ -187,6 +209,8 @@ theorem stdForm_toBilinForm [DecidableEq ι] :
       -(Matrix.toBilin' (Matrix.J ι ℝ)).compl₁₂ (WithLp.linearEquiv 2 ℝ (ι ⊕ ι → ℝ)).toLinearMap
         (WithLp.linearEquiv 2 ℝ (ι ⊕ ι → ℝ)).toLinearMap := by
   ext z w
+  -- The coercion of a `SymplecticForm` to a function is `toBilinForm` by definition, and Tau
+  -- Ceti states no lemma for this, so `change` moves the goal to `stdForm_apply`.
   change stdForm ι z w = _
   simp [Matrix.toBilin'_apply', Matrix.J, Matrix.mulVec, dotProduct, Fintype.sum_sum_type,
     Matrix.one_apply, Finset.sum_sub_distrib]
@@ -214,13 +238,7 @@ theorem stdComplexStructure_transport_sumEquivProd :
         (EuclideanSpace.sumEquivProd (𝕜 := ℝ) (ι := ι) (κ := ι)).toLinearEquiv =
       AlmostComplexStructure.product (EuclideanSpace ℝ ι) := by
   apply AlmostComplexStructure.toLinearMap_injective
-  refine LinearMap.ext fun p ↦ Prod.ext ?_ ?_ <;> ext i
-  · change stdComplexStructure ι (EuclideanSpace.sumEquivProd.symm p) (Sum.inl i) = -p.2 i
-    rw [← x_apply, stdComplexStructure_x]
-    rfl
-  · change stdComplexStructure ι (EuclideanSpace.sumEquivProd.symm p) (Sum.inr i) = p.1 i
-    rw [← y_apply, stdComplexStructure_y]
-    rfl
+  refine LinearMap.ext fun p ↦ Prod.ext ?_ ?_ <;> ext i <;> simp
 
 end SymplecticGeometry
 
