@@ -197,7 +197,10 @@ line of a comment with `axiom`.
 - **Leave the setup alone.** Do not change `lakefile.toml`,
   `lake-manifest.json`, `lean-toolchain`, `LICENSE` or anything under
   `.github/`, unless the issue you work on asks for it and a person in the
-  project opened it.
+  project opened it. The one other exception: when Tau Ceti tags a newer
+  commit, the tauceti-release workflow opens an issue "Move Tau Ceti to
+  <tag>", which changes the first three files as it says, and fixes in the
+  same pull request whatever breaks in the library.
 - **Keep pull requests focused.** One pull request does one issue, and adds
   at most 2000 lines. If an issue is too big for that, split it into smaller
   issues instead.

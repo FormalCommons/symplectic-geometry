@@ -1,8 +1,8 @@
 # The setup is a maintainer's: a pull request that changes these files needs
 # a maintainer's review, which the ruleset requires. AGENTS.md asks agents to
-# leave them alone ("Leave the setup alone").
-/lakefile.toml      @adamtopaz
-/lake-manifest.json @adamtopaz
-/lean-toolchain     @adamtopaz
+# leave them alone ("Leave the setup alone"). lakefile.toml,
+# lake-manifest.json and lean-toolchain are not listed: they change when the
+# agents move Tau Ceti to a new tag, on the tauceti-release workflow's issue,
+# and merge on review like other code.
 /LICENSE            @adamtopaz
 /.github/           @adamtopaz

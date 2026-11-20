@@ -1,0 +1,64 @@
+name: tauceti-release
+
+# The library follows Tau Ceti's latest tag; Tau Ceti tags a commit for each
+# Lean release. Once a day, this opens an issue for the agents when Tau Ceti
+# has tagged a commit newer than the one lakefile.toml pins, unless a move is
+# already open. fc-worker counts this workflow's issues as the project's own:
+# its config lists github-actions[bot] under `apps`.
+on:
+  schedule:
+    - cron: "17 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - name: open an issue for a newer tag
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          pinned=$(sed -n 's/^rev = "\([0-9a-f]\{40\}\)".*/\1/p' lakefile.toml)
+          [ -n "$pinned" ] || { echo "::error::no Tau Ceti rev in lakefile.toml"; exit 1; }
+          # The newest tag by the date of its commit; an annotated tag points
+          # to its commit through the tag object.
+          read -r tag sha < <(gh api graphql -f query='
+            { repository(owner: "TauCetiProject", name: "TauCeti") {
+                refs(refPrefix: "refs/tags/", first: 1, orderBy: {field: TAG_COMMIT_DATE, direction: DESC}) {
+                  nodes { name target { oid ... on Tag { target { oid } } } } } } }' \
+            --jq '.data.repository.refs.nodes[0] | "\(.name) \(.target.target.oid // .target.oid)"')
+          if [ "$sha" = "$pinned" ]; then
+            echo "Tau Ceti's latest tag, $tag, is the pinned commit"
+            exit 0
+          fi
+          status=$(gh api "repos/TauCetiProject/TauCeti/compare/$pinned...$sha" --jq .status)
+          if [ "$status" != ahead ]; then
+            echo "$tag ($sha) is not ahead of the pinned commit $pinned: $status"
+            exit 0
+          fi
+          open=$(gh issue list --state open --search 'in:title "Move Tau Ceti to"' --json number --jq 'map(.number) | join(" ")')
+          if [ -n "$open" ]; then
+            echo "a move of Tau Ceti is open already: $open"
+            exit 0
+          fi
+          toolchain=$(gh api "repos/TauCetiProject/TauCeti/contents/lean-toolchain?ref=$sha" --jq .content | base64 -d)
+          gh issue create --title "Move Tau Ceti to $tag" --body "$(cat <<EOF
+          Tau Ceti has tagged \`$tag\` ([\`${sha:0:12}\`](https://github.com/TauCetiProject/TauCeti/commit/$sha)), newer than the commit that \`lakefile.toml\` pins (\`${pinned:0:12}\`). Move the library to it, as \`AGENTS.md\` says under *Leave the setup alone*:
+
+          1. In \`lakefile.toml\`, set Tau Ceti's \`rev\` to \`$sha\`, with the comment \`# tag $tag\`.
+          2. Set \`lean-toolchain\` to \`$toolchain\`, Tau Ceti's at that commit.
+          3. Run \`lake update TauCeti\`, and check that \`lake-manifest.json\` now has the Mathlib commit that Tau Ceti's own manifest has.
+          4. Build, and fix what breaks, in the same pull request: main must build at every commit. Tau Ceti keeps no deprecated names, so the library follows renamed and removed declarations.
+
+          If Tau Ceti has tagged a newer commit by the time you start, move to the newest tag instead, and say so.
+
+          Opened by the tauceti-release workflow.
+          EOF
+          )"
