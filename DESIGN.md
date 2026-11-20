@@ -135,7 +135,9 @@ that later pages add follow them.
 ## Shared definitions
 
 These notions are used by several parts. All are reused from Tau Ceti or
-Mathlib, except the three definitions of *Standard model*.
+Mathlib, except the three definitions of *Standard model* and the bundle
+complex structures of *Symplectic vector bundles*, which *First Chern number*
+also uses.
 
 | Notion | Representation | Where |
 |---|---|---|
@@ -152,7 +154,9 @@ Mathlib, except the three definitions of *Standard model*.
 | $\mathbb{C}^n\cong\mathbb{R}^{2n}$ | `TauCeti.complexToRealEuclidean` (`Analysis/Complex/Euclidean/Space.lean`) | Tau Ceti |
 | Degree of a circle loop | `Circle.degree` (`Topology/Circle/Degree.lean`) | Tau Ceti |
 | Maslov index of a symplectic loop | `TauCeti.GLSymplectic.maslovIndex` (`Analysis/Matrix/SymplecticGroup/Maslov.lean`) | Tau Ceti |
-| Complex structure on a real vector bundle | `TauCeti.Bundle.ContinuousComplexStructure` (`Topology/VectorBundle/Complex/Structure.lean`) | Tau Ceti |
+| Continuous complex structure on a real vector bundle | `TauCeti.Bundle.ContinuousComplexStructure` (`Topology/VectorBundle/Complex/Structure.lean`) | Tau Ceti |
+| $C^n$ complex structure on a smooth real vector bundle, with its topology | `SymplecticGeometry.Bundle.ContMDiffComplexStructure`, mapping to the continuous one; on $TM$ identified with `TauCeti.SmoothAlmostComplexStructure` | *Symplectic vector bundles* |
+| Bundle metrics $\mathrm{Met}(E)$, with their topology | `Bundle.ContMDiffRiemannianMetric` with Tau Ceti's `frameTopology` (`Geometry/Manifold/VectorBundle/Riemannian/SectionTopology.lean`) | Mathlib, Tau Ceti |
 | $\mathbb{R}^{2n}$, $\omega_0$, $J_0$ | `SymplecticGeometry.StdSpace ι`, `SymplecticGeometry.stdForm ι`, `SymplecticGeometry.stdComplexStructure ι` | *Standard model* |
 
 ### Standard model: the definitions and their API
@@ -259,31 +263,58 @@ further when they grow, following `AGENTS.md`.
 
 ### 4. Unitary group topology
 
-- **Files:** `Analysis/Matrix/UnitaryGroup/FundamentalGroup.lean`
-  ($\det:\mathrm{U}(n)\to S^1$, Tau Ceti's `Matrix.UnitaryGroup.detCircle`,
-  induces an isomorphism of fundamental groups for $n\ge1$; the proof shows
-  that the block inclusion $\mathrm{U}(n)\to\mathrm{U}(n+1)$ is bijective on
-  $\pi_1$ for $n\ge1$, commutes with $\det$, and starts from
-  $\mathrm{U}(1)\cong S^1$), `Analysis/Matrix/SymplecticGroup/FundamentalGroup.lean`
+- **Files:** first two general files, named like the Tau Ceti files they
+  extend so that the two merge upstream.
+  `Topology/Grassmannian/StiefelFibration/ForgetLast.lean`: over any
+  `RCLike 𝕜`, the homotopy groups of the space of unit vectors
+  `finiteOrthonormalFrame 𝕜 1 N` vanish below degree
+  $\dim_{\mathbb{R}}\mathbb{k}^N-1$, in the namespace
+  `TauCeti.finiteOrthonormalFrame`, beside the real
+  `TauCeti.finiteOrthonormalFrame.subsingleton_homotopyGroup`. It identifies
+  the space with the unit sphere of `EuclideanSpace 𝕜 (Fin N)` by
+  `TauCeti.finiteOrthonormalFrame.forgetLastFiberSphere` at the $0$-frame
+  (`Topology/Grassmannian/ForgetLast.lean`) and applies
+  `TauCeti.subsingleton_homotopyGroup_sphere_of_lt`
+  (`AlgebraicTopology/Sphere/HomotopyGroup.lean`), which holds in any real
+  normed space of finite dimension, so $\mathbb{C}^N$ is never compared with
+  $\mathbb{R}^{2N}$. `Topology/Grassmannian/StiefelFibration/Stability.lean`:
+  the unitary stable range `TauCeti.Matrix.UnitaryGroup.isNConnected_fromBlocksOne`,
+  that the block inclusion `fromBlocksOne` of $\mathrm{U}(m)$ in
+  $\mathrm{U}(1+m)$ is $2m$-connected, the complex analogue of
+  `TauCeti.Matrix.SpecialOrthogonalGroup.isNConnected_fromBlocksOne` and
+  proved in the same way. Then
+  `Analysis/Matrix/UnitaryGroup/FundamentalGroup.lean`, which holds only the
+  milestone: $\det:\mathrm{U}(n)\to S^1$, Tau Ceti's
+  `Matrix.UnitaryGroup.detCircle`, induces an isomorphism of fundamental
+  groups for $n\ge1$, by induction from $\mathrm{U}(1)\cong S^1$ along the
+  stable range, which commutes with $\det$; and its corollary that
+  $\mathrm{SU}(n)$ (Mathlib's `Matrix.specialUnitaryGroup`) is simply
+  connected, for $n\ge1$ through the homeomorphism
+  $\mathrm{U}(n)\cong\mathrm{SU}(n)\times S^1$,
+  $A\mapsto(A\operatorname{diag}(\det A^{-1},1,\dots,1),\det A)$, under which
+  $\det$ is the second projection, and for $n=0$ because the group is a point.
+  Tau Ceti's `Matrix.instSimplyConnectedSpaceSpecialUnitaryGroupFinTwoComplex`
+  is the case $n=2$. Last, `Analysis/Matrix/SymplecticGroup/FundamentalGroup.lean`
   ($\pi_1(\mathrm{Sp}(2n))\cong\mathbb{Z}$ for $n\ge1$, through *Symplectic
   group*'s homotopy equivalence).
 - **Builds on:** Mathlib, Tau Ceti; the last file also on *Symplectic group*.
-  The stabilization step is Tau Ceti's complex Stiefel fibration with $r=1$:
+  The stable range uses Tau Ceti's complex Stiefel fibration with $r=1$:
   `TauCeti.unitaryFrameMap` ($\mathrm{U}(1+m)\to$ unit vectors of
   $\mathbb{C}^{1+m}$) is a Serre fibration
   (`TauCeti.unitaryFrameMap_mem_serreFibrations`,
   `exists_trivialization_unitaryFrameMap`,
   `Topology/Grassmannian/StiefelFibration/Unitary.lean`) whose fibre is the
   block-embedded $\mathrm{U}(m)$ (`TauCeti.unitaryFrameFiberHomeomorph`); the
-  base is $S^{2m+1}$, so the fibre inclusion is highly connected by
-  `TauCeti.TopCat.isNConnected_fiberι_of_mem_serreFibrations`. The template
-  is `StiefelFibration/Stability.lean`, which does the same for
-  $\mathrm{SO}$. The one new input is the connectivity of the complex frame
-  space, from Tau Ceti's real `finiteOrthonormalFrame.subsingleton_homotopyGroup`
-  through the isometry of $\mathbb{C}^{N}$ with $\mathbb{R}^{2N}$.
-  $\pi_1(S^1)$ is `Circle.fundamentalGroupMulEquiv`.
-- **Milestones:** *Fundamental group of the unitary group*, for $n\ge1$: for
-  $n=0$ both $\mathrm{U}(0)$ and $\mathrm{Sp}(0)$ are trivial groups, while
+  base is $S^{2m+1}$, so the fibre inclusion is $2m$-connected by
+  `TauCeti.TopCat.isNConnected_fiberι_of_mem_serreFibrations`. Only $r=1$ is
+  planned: a general $r$ would need the fibration of frames by `forgetLast`
+  over $\mathbb{C}$, which Tau Ceti has only over $\mathbb{R}$, and nothing
+  here needs it. Connectedness of $\mathrm{U}(n)$ is Tau Ceti's
+  `Matrix.UnitaryGroup.instPathConnectedSpace`, and $\pi_1(S^1)$ is
+  `Circle.fundamentalGroupMulEquiv`.
+- **Milestones:** *Fundamental group of the unitary group*: the isomorphisms
+  for $n\ge1$, and the simple connectivity of $\mathrm{SU}(n)$ for every $n$.
+  For $n=0$ both $\mathrm{U}(0)$ and $\mathrm{Sp}(0)$ are trivial groups, while
   $\pi_1(S^1)\cong\mathbb{Z}$. `ERRATA.md` records this, and the part proves
   next to each isomorphism that the group is trivial for $n=0$.
 
@@ -415,8 +446,9 @@ it into issues; the overview fixes its folders and its dependencies.
   $J\mapsto-J_0J$ with the symmetric positive definite symplectic matrices,
   using Tau Ceti's `Compatible.cayleyEquiv`; the homotopy equivalences with
   $\mathrm{Met}(V)$ and between forms and complex structures for fixed $g$;
-  the inclusion of compatible into tame structures as a homotopy equivalence,
-  from Tau Ceti's contractibility instances),
+  the inclusion of compatible into tame structures as a homotopy equivalence;
+  the contractions are explicit maps, not only Tau Ceti's contractibility
+  instances, see below),
   `Topology/Algebra/Matrix/SymplecticGroup/CompactSubgroup.lean`
   (a compact subgroup of the symplectic group lies in some conjugate of
   $\mathrm{U}(n)$, from Tau Ceti's
@@ -434,8 +466,13 @@ it into issues; the overview fixes its folders and its dependencies.
   how the milestones' smoothness and diffeomorphism conjuncts are stated (as
   manifold structures on these open subsets of finite-dimensional spaces, or
   as `ContDiff` of the maps in coordinates); and how the GL-equivariant
-  construction is stated so that *Symplectic vector bundles* can apply it
-  fibrewise.
+  constructions are stated so that *Symplectic vector bundles* can apply them
+  fibrewise. For that the file delivers the contraction of the compatible
+  structures through the Cayley transform, the map $(g,\omega)\mapsto
+  J_{g,\omega}$ and the contraction of the tame structures as explicit maps,
+  $C^\infty$ in the structure (and $J_{g,\omega}$ also in $g$), with all
+  derivatives continuous in the time; Tau Ceti's `ContractibleSpace`
+  instances give only continuous contractions, which do not suffice.
 
 ### 10. Linear Moser
 
@@ -492,27 +529,55 @@ it into issues; the overview fixes its folders and its dependencies.
   `ContMDiffVectorBundle.continuousAlternatingMap`, that are fibrewise
   nondegenerate; isomorphisms; local symplectic trivializations and the
   reduction of the structure group to $\mathrm{Sp}(2n)$),
-  `.../Symplectic/ComplexStructure.lean` (complex structures on bundles as
-  Tau Ceti's `TauCeti.Bundle.ContinuousComplexStructure`, with a smooth
-  refinement if the smooth milestones need it; compatible and tame ones,
-  existence and contractibility, and the converse direction for forms taming
-  a fixed $J$; the homotopy equivalence $\omega\mapsto J_{g,\omega}$ on
-  sections), `.../Symplectic/Classification.lean` (two symplectic bundles
+  `Geometry/Manifold/VectorBundle/ComplexStructure.lean` (the one model of
+  $C^n$ complex structures on a bundle, `SymplecticGeometry.Bundle.ContMDiffComplexStructure`,
+  on the pattern of Tau Ceti's `TauCeti.SmoothAlmostComplexStructure`
+  (`Geometry/Symplectic/Manifold/AlmostComplex/Basic.lean` and `Topology.lean`):
+  a $C^n$ section `toEndomorphism` of the endomorphism bundle with square
+  $-1$, `@[ext]` through it, the topology `frameTopology` induced from
+  `ContMDiffSection.frameTopology`, and
+  `isClosedEmbedding_toEndomorphism_frameTopology`; the map to Tau Ceti's
+  `TauCeti.Bundle.ContinuousComplexStructure`, so that its complex bundle is
+  available; and for $E=TM$ and $n=\infty$ the homeomorphism with
+  `SmoothAlmostComplexStructure` for the two `frameTopology`s, so that
+  manifolds keep Tau Ceti's model), `.../Symplectic/ComplexStructure.lean`
+  (compatible and tame ones, as subtypes like Tau Ceti's for $TM$, existence
+  and contractibility, and the converse direction for forms taming a fixed
+  $J$; the homotopy equivalence $\omega\mapsto J_{g,\omega}$ on sections,
+  with $\mathrm{Met}(E)$ Mathlib's `Bundle.ContMDiffRiemannianMetric` and its
+  topology Tau Ceti's `Bundle.ContMDiffRiemannianMetric.frameTopology`, whose
+  `continuous_convexCombination_frameTopology` contracts it),
+  `.../Symplectic/Classification.lean` (two symplectic bundles
   with tame complex structures are isomorphic as symplectic bundles if and
   only if they are as complex bundles),
-  `Geometry/Manifold/VectorBundle/Section/Topology.lean` (the general lemma
-  that a fibrewise deformation, continuous in the point and the parameter,
-  gives a continuous path of sections for `ContMDiffSection.frameTopology`,
-  proved through `ContMDiffSection.continuous_frameTopology_iff`; the file has
-  the name of the Tau Ceti file that defines that topology, so that the two
-  merge upstream),
+  `Geometry/Manifold/VectorBundle/Section/Topology.lean` (the general lemma,
+  in the namespace `ContMDiffSection`: for fibre maps
+  $\Phi_{p,x}:V_x\to W_x$ depending on a parameter $p\in P$ whose expressions
+  in trivializations are $C^n$ in the point and the fibre value, with those
+  derivatives up to order $n$ continuous in $p$ as well, the induced map
+  $P\times$ `Cₛ^n⟮I; F, V⟯` $\to$ `Cₛ^n⟮I; F', W⟯`, $(p,s)\mapsto\Phi_p\circ s$,
+  is jointly continuous for `frameTopology`, for every $n$ including
+  $\infty$; the fibre maps may be defined only on an open subset of each
+  fibre that the sections take values in, such as the tame structures.
+  Continuity in the point alone is not enough for $n\ge1$: on the trivial
+  line bundle over $\mathbb{R}$, $\Phi_t(x,v)=v+t\sin(x/t)$ is continuous in
+  $(t,x,v)$ with $\Phi_0=\mathrm{id}$, but $\partial_x(\Phi_t\circ s-s)=\cos(x/t)$
+  does not tend to $0$. The proof goes through
+  `ContMDiffSection.continuous_frameTopology_iff`; the file has the name of
+  the Tau Ceti file that defines that topology, so that the two merge
+  upstream),
   `Geometry/Manifold/VectorBundle/Hermitian/Surface.lean` (unitary
   trivializations along curves and over compact connected oriented surfaces
   with nonempty boundary).
 - **Builds on:** *Compatible complex structures*, *Linear Moser*, Mathlib's
   smooth vector bundles and bundle metrics, Tau Ceti's bundle constructions
   (`Topology/VectorBundle/`, `Geometry/Manifold/VectorBundle/`), its section
-  spaces with their topology (`Geometry/Manifold/VectorBundle/Section/`), and its
+  spaces with their topology (`Geometry/Manifold/VectorBundle/Section/`), the
+  topology on bundle metrics
+  (`Geometry/Manifold/VectorBundle/Riemannian/SectionTopology.lean`), its
+  almost complex structures on $TM$ with their topology and their tame and
+  compatible subtypes
+  (`Geometry/Symplectic/Manifold/AlmostComplex/Topology.lean`), and its other
   results for $E=TM$ (`Geometry/Symplectic/Manifold/`), which it generalizes
   rather than duplicates.
 - **Milestones:** *Symplectic vector bundles are complex vector bundles*,
@@ -530,16 +595,22 @@ it into issues; the overview fixes its folders and its dependencies.
   `ContMDiffSection.frameTopology_eq_of_covers` (`Section/FrameCover.lean`)
   shows it does not depend on the choice, so the statements fix any such
   cover. They are `ContractibleSpace` and `ContinuousMap.HomotopyEquiv` for
-  these subspaces. The proofs apply the equivariant linear constructions of
-  *Compatible complex structures* and *Linear Moser* at each point: a map of
-  fibres that is smooth in the point and the structure jointly maps smooth
-  sections to smooth sections, continuously for `frameTopology` by the lemma
-  of `Section/Topology.lean` above; `ContMDiffSection.continuous_totalSpace_eval`
-  and `locallyConvexSpace_frameTopology` give the evaluation and the convex
-  combinations that the contractions use.
-- **The design file decides:** the bundle-level definitions, which
-  `atlas/almost-complex-structures.md` will reuse for $E=TM$; the precise form
-  of the section spaces above (which bundle, which cover); and which surface
+  these subspaces. The proofs apply the explicit linear constructions of
+  *Compatible complex structures* and *Linear Moser* at each point. These
+  are $C^\infty$ in the structure (and, for $J_{g,\omega}$, in $g$), with all
+  derivatives continuous in the time of the contraction; read in
+  trivializations they are therefore $C^n$ in the point and the structure,
+  with derivatives continuous in the time, which is the hypothesis of the
+  lemma of `Section/Topology.lean`. That lemma makes the induced maps on
+  sections, and the contractions $[0,1]\times S\to S$ as a whole, continuous
+  for `frameTopology`; `ContMDiffSection.continuous_totalSpace_eval` and
+  `locallyConvexSpace_frameTopology` give the evaluation and the convex
+  combinations.
+- **The design file decides:** the details of
+  `ContMDiffComplexStructure` and its subtypes; the precise form of the
+  section spaces above (which bundle; the cover, which `frameTopology` takes
+  as explicit frames rather than as an instance, so the file fixes once how
+  the statements quantify over it); and which surface
   topology the last milestone needs (decomposition of compact surfaces with
   boundary), with an issue for each missing prerequisite.
 
@@ -582,7 +653,7 @@ Each part depends only on the parts listed, besides Mathlib and Tau Ceti.
 | 0 | *Standard model* | — |
 | 0 | *Symplectic group* | — |
 | 0 | *Linear Moser* | — |
-| 1 | *Unitary group topology* | *Symplectic group* (only the file on $\mathrm{Sp}(2n)$; the file on $\mathrm{U}(n)$ can start at once) |
+| 1 | *Unitary group topology* | *Symplectic group* (only the file on $\mathrm{Sp}(2n)$; the other files can start at once) |
 | 1 | *Symplectic vector spaces* | *Standard model* |
 | 1 | *Lagrangian Grassmannian* | *Standard model* |
 | 1 | *Linear nonsqueezing* | *Standard model* |
@@ -614,7 +685,7 @@ proves it, using what is listed in the part.
 | *Unitary group as Sp ∩ O ∩ GL(n,C)* | Existing: `Matrix.symplecticGroup_inf_orthogonalGroup`, `Matrix.symplecticGroup_inf_centralizer_J`, `Matrix.orthogonalGroup_inf_centralizer_J` (`LinearAlgebra/Matrix/GeneralLinearGroup/Symplectic/Unitary.lean`) identify each pairwise intersection with the image of $\mathrm{U}(n)$ under realification, and the fact that any two of the three conditions imply the third holds for matrices over an arbitrary commutative ring by `SymplecticGroup.mem_iff_mem_orthogonalGroup_of_commute`, `SymplecticGroup.commute_J_of_mem_orthogonalGroup` (`LinearAlgebra/SymplecticGroup.lean`). |
 | *Spectrum of a symplectic matrix* | *Symplectic group*. |
 | *Symplectic polar decomposition and the maximal compact subgroup* | *Symplectic group*. Existing parts: `SymplecticGroup.rpow_mem` (`Analysis/Matrix/Polar/Symplectic.lean`), `TauCeti.GLSymplectic.maximal_isCompact_unitarySubgroup`, `Matrix.isPathConnected_symplecticGroup`, `TauCeti.GLSymplectic.polarHomotopy`; the right decomposition with uniqueness in a C*-algebra (`Units.polarUnitary_mul_sqrt_star_mul`, `Units.mul_eq_iff_polarUnitary_eq_and_sqrt_star_mul_eq`). The library adds that the positive factor is symplectic, that the polar homotopy is the book's $f_t$ and fixes $\mathrm{U}(n)$, so that it is a deformation retraction, and the homotopy equivalence. |
-| *Fundamental group of the unitary group* | *Unitary group topology*, for $n\ge1$ (see `ERRATA.md`). |
+| *Fundamental group of the unitary group* | *Unitary group topology*: the isomorphisms for $n\ge1$ (see `ERRATA.md`), and, as a corollary, $\mathrm{SU}(n)$ simply connected for every $n$. Existing in part: the case $\mathrm{SU}(2)$, `Matrix.instSimplyConnectedSpaceSpecialUnitaryGroupFinTwoComplex`. |
 | *Maslov index for loops of symplectic matrices* | *Maslov index*. Existing parts: `TauCeti.GLSymplectic.maslovIndex` with `maslovIndex_eq_of_homotopy`, `maslovIndex_mul`, `maslovIndex_sum`, `maslovIndex_scalarRotationLoop`. The library adds the converse of the homotopy axiom and uniqueness. |
 | *Lagrangian frames and the Lagrangian Grassmannian* | *Lagrangian Grassmannian*. |
 | *Maslov index for loops of Lagrangian subspaces* | *Maslov index*. |
@@ -671,10 +742,12 @@ milestone as one theorem with the plan's hypotheses and conclusion.
   topology and for smooth sections in the compact-open $C^\infty$ topology,
   both being Tau Ceti's `ContMDiffSection.frameTopology` (see *Symplectic
   vector bundles*): these are the topologies Tau Ceti already has, and the
-  fibrewise linear constructions are continuous for them. The library does
-  not use the Whitney topology: a continuous path in it changes a section
-  only on a compact set, so over a non-compact base two structures that
-  differ outside every compact set lie in different path components.
+  explicit fibrewise constructions, smooth in the structure, induce
+  continuous maps for them by the lemma planned in `Section/Topology.lean`.
+  The library does not use the Whitney topology: a continuous path in it
+  changes a section only on a compact set, so over a non-compact base two
+  structures that differ outside every compact set lie in different path
+  components.
 - **Proof routes.** The linear contractibility results go through the Cayley
   transform and the equivariant $J_{g,\omega}$, as Tau Ceti does; this keeps
   the constructions canonical for their use on bundles. For regular crossings
