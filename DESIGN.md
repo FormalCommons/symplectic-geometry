@@ -602,9 +602,15 @@ it into issues; the overview fixes its folders and its dependencies.
   and direct sums of forms, with their tame and compatible pairs,
   isomorphisms and frames; see *Constructions*),
   `Geometry/Manifold/VectorBundle/Pullback.lean` (the smoothness criterion
-  for sections of the bundle of alternating maps of a pull-back; the file has
-  the name of the Tau Ceti file with the criterion for Hom sections, so that
-  the two merge upstream),
+  for sections of the bundle of alternating maps of a pull-back, in the root
+  namespace `Bundle.Pullback`; the file has the name of the Tau Ceti file
+  with the criterion for Hom sections, so that the two merge upstream),
+  `Geometry/Symplectic/Manifold/Volume.lean` (the symplectic orientation of
+  a negated two-form, in Tau Ceti's namespace; the file has the name of the
+  Tau Ceti file that defines `volumeOrientation`),
+  `Analysis/CStarAlgebra/Unitary/ContinuousLinearMap.lean` (for `RCLike 𝕜`,
+  `𝕜 →L[𝕜] 𝕜` as a star algebra isomorphic to `𝕜`, and the isomorphism of
+  topological groups of their unitaries; see *Constructions*),
   `Geometry/Manifold/VectorBundle/ComplexStructure.lean` (the one model of
   $C^n$ complex structures on a bundle, `SymplecticGeometry.Bundle.ContMDiffComplexStructure`,
   generalizing from $TM$ to any bundle Tau Ceti's
@@ -731,7 +737,9 @@ it into issues; the overview fixes its folders and its dependencies.
     alternating maps of `f *ᵖ E`: the fibres of the two bundles at `y` are
     both the alternating maps on `E (f y)`, and the new lemma
     `Bundle.Pullback.contMDiff_continuousAlternatingMap_section_iff`
-    (`Geometry/Manifold/VectorBundle/Pullback.lean`), the analogue for
+    (`Geometry/Manifold/VectorBundle/Pullback.lean`, in the root namespace
+    `Bundle.Pullback` and not under `SymplecticGeometry`, so that it sits
+    beside Tau Ceti's lemma and moves upstream unrenamed), the analogue for
     alternating maps of Tau Ceti's
     `Bundle.Pullback.contMDiff_hom_section_iff`, says that the two
     smoothness conditions agree. API: `@[simp] pullback_apply` (the value at
@@ -788,9 +796,11 @@ it into issues; the overview fixes its folders and its dependencies.
     No definition is added. The orientation that `σ` induces is Tau Ceti's
     symplectic orientation `TauCeti.SmoothTwoForm.IsNondegenerate.volumeOrientation`
     with `n = 1`, and *First Chern number* states with it that an area form
-    induces a given orientation; no second name for it is introduced. The
-    file adds, in Tau Ceti's namespace so that it can move there,
-    `TauCeti.SmoothTwoForm.IsNondegenerate.volumeOrientation_neg`: for odd
+    induces a given orientation; no second name for it is introduced. As it
+    involves no bundle form, the lemma
+    `TauCeti.SmoothTwoForm.IsNondegenerate.volumeOrientation_neg` goes in
+    `Geometry/Symplectic/Manifold/Volume.lean`, in Tau Ceti's namespace so
+    that it can move there: for odd
     `n`, the symplectic orientation of `-σ` (with Tau Ceti's
     `IsNondegenerate.neg`) is the negation of that of `σ`, since the volume
     form of `-σ` is $(-1)^n$ times that of `σ` and
@@ -819,7 +829,9 @@ it into issues; the overview fixes its folders and its dependencies.
     nondegeneracy comes with Tau Ceti's definition. New are: compatibility
     with `ofComplexModule`, with $\omega(v,iw)=g(v,w)$; that $\omega$ is the
     imaginary part of the Hermitian product of
-    `g.complexInnerProductSpace hI` (conjugate-linear in its first argument,
+    `g.complexInnerProductSpace hI` (a short consequence of Tau Ceti's
+    `Bundle.ContMDiffRiemannianMetric.complexInnerProductSpace_inner` and
+    `symplecticForm_apply`; conjugate-linear in its first argument,
     as in Mathlib); and, on the trivial line bundle with fibre `Fin 1 → ℂ`
     and the standard metric, that `complexToRealEuclidean (Fin 1)` carries
     it to `stdForm (Fin 1)`, so the conventions agree with *Standard model*.
@@ -841,12 +853,22 @@ it into issues; the overview fixes its folders and its dependencies.
     bundle for `unitary (ℂ →L[ℂ] ℂ)`. The file gives: the homeomorphism from
     the total space of that bundle to the subtype, sending a frame `φ` to
     `φ 1`; the isomorphism of topological groups from `unitary (ℂ →L[ℂ] ℂ)`
-    to `unitary ℂ`, composed with Tau Ceti's `circleEquivUnitary`, which the
-    homeomorphism turns into the action of `Circle` on the subtype by
+    to `Circle`, the case `𝕜 = ℂ` of the isomorphism below composed with
+    Tau Ceti's `circleEquivUnitary`, which the homeomorphism turns into the action of `Circle` on the subtype by
     scalar multiplication in the fibres, smooth and free with the fibres as
     orbits; and the `TauCeti.PrincipalBundle Circle` instance on
     `Fiber ℂ F V ℂ` that *First Chern number* asks for, whose trivializations
     are those of `instPrincipalBundleFiber` followed by that isomorphism.
+    The isomorphism of `unitary (𝕜 →L[𝕜] 𝕜)` with `unitary 𝕜` involves no
+    bundle and holds for every `RCLike 𝕜`, so it has a file of its own,
+    `Analysis/CStarAlgebra/Unitary/ContinuousLinearMap.lean`, in Mathlib's
+    namespaces: a star algebra isomorphism
+    `(𝕜 →L[𝕜] 𝕜) ≃⋆ₐ[𝕜] 𝕜`, `f ↦ f 1`, whose linear isometric part is the
+    inverse of Mathlib's `ContinuousLinearMap.toSpanSingletonLIE 𝕜 𝕜` (the
+    star on the left being the adjoint, so that `star f` sends `1` to the
+    conjugate of `f 1`), and its image under Mathlib's `Unitary.mapEquiv`,
+    which is an isomorphism of topological groups since both directions are
+    isometries.
     The connection forms on the circle bundle and their curvature are
     prerequisites of *First Chern number*, which its design lists.
 - **The design file decides:** the details of
