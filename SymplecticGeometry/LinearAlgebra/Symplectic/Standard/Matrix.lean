@@ -23,7 +23,7 @@ conditions on that map.
   matrix `Matrix.toEuclideanLin.symm e`.
 * `SymplecticGeometry.commute_toEuclideanLin_stdComplexStructure_iff`: `A` commutes with
   `Matrix.J ι ℝ` if and only if its map commutes with `J₀`.
-* `SymplecticGeometry.conj_complexToRealEuclidean_toLin'`: conjugating the complex-linear map of
+* `TauCeti.conj_complexToRealEuclidean_toLin'`: conjugating the complex-linear map of
   a complex matrix `A` by `complexToRealEuclidean ι` gives the map of its realification
   `Matrix.realify A`. With `A = I • 1`, whose realification is `Matrix.J ι ℝ`
   (Tau Ceti's `Matrix.realify_I_smul_one`), this recovers
@@ -45,36 +45,27 @@ open TauCeti Matrix
 
 variable {ι : Type*} [Fintype ι] [DecidableEq ι]
 
-/-- `ω₀` in plain coordinates: `ω₀(v, w) = -vᵀ J w` with `J = Matrix.J ι ℝ`. -/
-private theorem stdForm_toLp (v w : ι ⊕ ι → ℝ) :
-    stdForm ι (WithLp.toLp 2 v) (WithLp.toLp 2 w) = -(v ⬝ᵥ J ι ℝ *ᵥ w) := by
-  have h := LinearMap.congr_fun₂ (stdForm_toBilinForm (ι := ι)) (WithLp.toLp 2 v)
-    (WithLp.toLp 2 w)
-  -- The coercion of a `SymplecticForm` to a function is `toBilinForm` by definition.
-  change stdForm ι (WithLp.toLp 2 v) (WithLp.toLp 2 w) = _ at h
-  simpa [Matrix.toBilin'_apply'] using h
-
 /-- A real matrix `A` indexed by `ι ⊕ ι` is symplectic, `Aᵀ J A = J`, if and only if its map
 `Matrix.toEuclideanLin A` preserves the standard symplectic form:
 `ω₀(A v, A w) = ω₀(v, w)` for all `v, w`. Such an `A` is automatically invertible. -/
 theorem mem_symplecticGroup_iff_forall_stdForm {A : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ} :
     A ∈ symplecticGroup ι ℝ ↔
       ∀ v w, stdForm ι (A.toEuclideanLin v) (A.toEuclideanLin w) = stdForm ι v w := by
-  have key : ∀ v w : ι ⊕ ι → ℝ,
-      stdForm ι (A.toEuclideanLin (WithLp.toLp 2 v)) (A.toEuclideanLin (WithLp.toLp 2 w)) =
-        -(v ⬝ᵥ (Aᵀ * J ι ℝ * A) *ᵥ w) := by
+  have base : ∀ v w : StdSpace ι, stdForm ι v w = -toBilin' (J ι ℝ) v.ofLp w.ofLp :=
+    fun v w ↦ LinearMap.congr_fun₂ stdForm_toBilinForm v w
+  have key : ∀ v w : StdSpace ι, stdForm ι (A.toEuclideanLin v) (A.toEuclideanLin w) =
+      -toBilin' (Aᵀ * J ι ℝ * A) v.ofLp w.ofLp := by
     intro v w
-    rw [toLpLin_toLp, toLpLin_toLp, stdForm_toLp, ← mulVec_mulVec, ← mulVec_mulVec,
-      dotProduct_mulVec v Aᵀ, vecMul_transpose, toLin'_apply, toLin'_apply]
+    rw [← Matrix.toBilin'_comp]
+    exact LinearMap.congr_fun₂ stdForm_toBilinForm _ _
   rw [SymplecticGroup.mem_iff']
   constructor
   · intro h v w
-    rw [← WithLp.toLp_ofLp (p := 2) v, ← WithLp.toLp_ofLp (p := 2) w, key, h, stdForm_toLp]
+    rw [key, h, base]
   · intro h
     refine (Matrix.toBilin' (R₁ := ℝ)).injective (LinearMap.ext₂ fun v w ↦ ?_)
     have := h (WithLp.toLp 2 v) (WithLp.toLp 2 w)
-    rw [key, stdForm_toLp, neg_inj] at this
-    simpa [Matrix.toBilin'_apply'] using this
+    rwa [key, base, neg_inj] at this
 
 /-- A linear automorphism `e` of `StdSpace ι` is a symplectomorphism of `ω₀` if and only if its
 matrix `Matrix.toEuclideanLin.symm e` lies in `Matrix.symplecticGroup ι ℝ`. -/
@@ -83,7 +74,7 @@ theorem mem_symplecticGroup_iff_isSymplectomorphism (e : StdSpace ι ≃ₗ[ℝ]
       (stdForm ι).IsSymplectomorphism (stdForm ι) e := by
   rw [mem_symplecticGroup_iff_forall_stdForm, LinearEquiv.apply_symm_apply,
     SymplecticForm.isSymplectomorphism_iff]
-  rfl
+  simp
 
 /-- A real matrix `A` indexed by `ι ⊕ ι` commutes with `Matrix.J ι ℝ` if and only if its map
 `Matrix.toEuclideanLin A` commutes with the standard complex structure `J₀`. -/
@@ -94,15 +85,21 @@ theorem commute_toEuclideanLin_stdComplexStructure_iff {A : Matrix (ι ⊕ ι) (
   exact commute_map_iff (f := toLpLinAlgEquiv (R := ℝ) (n := ι ⊕ ι) 2)
     (toLpLinAlgEquiv 2).injective
 
+end SymplecticGeometry
+
+namespace TauCeti
+
+variable {ι : Type*} [Fintype ι] [DecidableEq ι]
+
 /-- Conjugating the complex-linear map of a complex matrix `A` by `complexToRealEuclidean ι`,
 which splits a vector of `ι → ℂ` into its real and imaginary parts, gives the map of the
-realification `Matrix.realify A` on `StdSpace ι`. -/
+realification `Matrix.realify A` on `EuclideanSpace ℝ (ι ⊕ ι)`. -/
 theorem conj_complexToRealEuclidean_toLin' (A : Matrix ι ι ℂ) :
     (complexToRealEuclidean ι).toLinearEquiv.conj ((Matrix.toLin' A).restrictScalars ℝ) =
       Matrix.toEuclideanLin A.realify := by
   ext1 z
   simpa using complexToRealEuclidean_mulVec A ((complexToRealEuclidean ι).symm z)
 
-end SymplecticGeometry
+end TauCeti
 
 end
