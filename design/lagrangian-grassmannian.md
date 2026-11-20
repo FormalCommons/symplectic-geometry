@@ -27,8 +27,8 @@ global name.
    `ℒ (Fin n)`. A subtype `{L // ω.IsLagrangian L}` was rejected: it would
    pick up whatever instances `Submodule` gets later, and dot notation on it
    would not find this part's API.
-2. **The topology** (the question that `DESIGN.md` leaves to this file). When `V` is an
-   inner product space over ℝ of finite dimension, `LagrangianGrassmannian ω`
+2. **The topology** (the question that `DESIGN.md` leaves to this file).
+   When `V` is an inner product space over ℝ of finite dimension, `LagrangianGrassmannian ω`
    carries the topology induced by `Λ ↦ (Λ : Submodule ℝ V).starProjection`,
    with values in `V →L[ℝ] V`, so a subspace is identified with its orthogonal
    projection. The reasons:
@@ -87,7 +87,8 @@ global name.
    matrix `A` and Lagrangian exactly when `A` is symmetric. The chart points
    $\{(Sy,y)\}$ of decision 5 are a separate declaration. Both kinds of graph
    are needed: the first for the statement, the second for the charts. Each
-   kind is also the image of the other under `TauCeti.GLSymplectic.symJ`.
+   kind is the image of the other under `TauCeti.GLSymplectic.symJ`, which
+   sends the graph of `A` to the chart point of `-A`.
 7. **Transitivity without Witt.** `DESIGN.md` names Tau Ceti's Witt theorem
    `exists_isSymplectomorphism_extend` as the source of
    $\mathrm{Sp}$-transitivity. Transitivity of $\mathrm{U}(n)$ is proved here
@@ -199,6 +200,10 @@ needs the matrix dictionary of *Standard model*,
   (`coe_horizontal`, `coe_vertical`). API: `mem_horizontal_iff`, `mem_vertical_iff` (`@[simp]`),
   `isCompl_horizontal_vertical`, and
   `symJ_smul_horizontal : TauCeti.GLSymplectic.symJ ι ℝ • horizontal ι = vertical ι`.
+  Also `exists_ofUnitary_smul_vertical (Λ : ℒ ι) :
+  ∃ U : unitaryGroup ι ℂ, ofUnitary U • vertical ι = Λ`, from
+  `unitaryFrame_surjective` and `ofUnitary (I • 1) = symJ`; the charts are
+  centred there.
 - `ℒ.unitaryFrame (U : unitaryGroup ι ℂ) : ℒ ι := ofUnitary U • horizontal ι`
   (G2), with:
   - `unitaryFrame_def`;
@@ -269,8 +274,9 @@ The chart points and the basic chart.
   Ceti's `det_lagrangianChartFrame_ne_zero` and `realImage_realOrthonormalize`.
 - `ℒ.isCompl_horizontal_iff : IsCompl (Λ : Submodule ℝ _) (horizontal ι) ↔
   Λ ∈ Set.range lagrangianChart`. This is #58's first transverse-chart fact.
-  The direction from left to right is `exists_eq_graph_of_isCompl`. The
-  vertical version, with `StdSpace.graph`, is
+  The direction from left to right is `exists_forall_mem_iff_of_isCompl`.
+  The vertical version, with `StdSpace.graph` and `exists_eq_graph_of_isCompl`,
+  is
   `ℒ.isCompl_vertical_iff : IsCompl Λ (vertical ι) ↔ ∃ S, (Λ : Submodule) = StdSpace.graph S`.
 - `ℒ.isOpen_setOf_isCompl (Λ₀ : ℒ ι) : IsOpen {Λ : ℒ ι | IsCompl (Λ : Submodule ℝ _) Λ₀}`.
   For `Λ₀` horizontal, the preimage under `unitaryFrame` is
@@ -310,9 +316,10 @@ Path lifting along the unitary frame map (G3).
 
 - `ℒ.exists_trivialization_unitaryFrame (Λ : ℒ ι) :
   ∃ e : Bundle.Trivialization (realSubgroup ι) unitaryFrame, Λ ∈ e.baseSet`.
-  Write `Λ = unitaryFrame U`. Over the open set of Lagrangians transverse to
-  `ofUnitary U • vertical ι`, that is,
-  `ofUnitary U • {Λ' | IsCompl Λ' (horizontal ι)}`, the section is
+  Write `Λ = ofUnitary U • vertical ι` (`exists_ofUnitary_smul_vertical`).
+  Over the open set `ofUnitary U • {Λ' | IsCompl Λ' (horizontal ι)}`, which
+  contains `Λ` because the vertical subspace is the chart point of `0`, the
+  section is
   `Λ' ↦ U * realOrthonormalize (S + i·1)`, where `S` is the chart value of
   `ofUnitary U⁻¹ • Λ'`. Tau Ceti's
   `Subgroup.localSectionTrivializationOfCosetFibers` makes the
@@ -371,9 +378,11 @@ Direct sum and reindexing (G5).
 The manifold structure and the milestone.
 
 - `instance : ChartedSpace (selfAdjoint (Matrix ι ι ℝ)) (ℒ ι)`. The chart at
-  `Λ` is `(ofUnitary U)⁻¹ •` followed by `graphChart`, for the unitary
-  `U = Classical.choose (unitaryFrame_surjective Λ)`. The atlas is the set of
-  all such translates. API: `chartAt_symm_apply`, with
+  `Λ` is `(ofUnitary U)⁻¹ •` followed by `graphChart`, for the unitary `U`
+  chosen by `exists_ofUnitary_smul_vertical Λ`, so that
+  `ofUnitary U • vertical ι = Λ`. The basic chart is centred at the vertical
+  subspace, so its translate by `U` contains `Λ`. The atlas is the set of all
+  such translates. API: `chartAt_symm_apply`, with
   `(chartAt _ Λ).symm S = ofUnitary U • lagrangianChart S`, and
   `mem_chart_source`.
 - `instance : IsManifold 𝓘(ℝ, selfAdjoint (Matrix ι ι ℝ)) ∞ (ℒ ι)`. A
