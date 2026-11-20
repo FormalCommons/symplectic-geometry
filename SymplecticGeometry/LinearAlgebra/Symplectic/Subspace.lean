@@ -181,7 +181,7 @@ theorem orthogonal_properties (ω : SymplecticForm V) (W : Submodule ℝ V) :
     isLagrangian_iff_isIsotropic_and_two_mul_finrank_eq⟩
 
 omit [FiniteDimensional ℝ V] in
-/-- **Lagrangian extension lemma.** In a symplectic vector space `(V, ω)`, of any dimension,
+/-- **Lagrangian extension lemma.** For any symplectic form `ω` on `V`, of any dimension,
 each isotropic subspace has a Lagrangian subspace containing it; a subspace is Lagrangian iff
 it is isotropic and no strictly larger subspace is; and for any basis `e` of a Lagrangian
 subspace there is a Darboux basis `b` of `V` (so `ω(b (i, 0), b (j, 1)) = δᵢⱼ`) whose `q`-half is
