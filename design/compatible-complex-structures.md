@@ -139,11 +139,15 @@ expression uses the Riesz map `continuousLinearMapOfBilin` of an inner product
 space, so the formula and its smoothness are stated on a space `W` with
 `[InnerProductSpace ℝ W]`. The inner product of `W` is only an auxiliary
 choice: on the domain the formula equals $J_{g,\omega}$, which does not depend
-on it. No statement about `V` itself, the milestones included, asks for an
-`InnerProductSpace ℝ V` instance. Such an instance must induce the norm that
-`V` already carries, so it would exclude every space whose norm does not
-come from an inner product. The milestone reaches the formula through a
-linear isomorphism `V ≃L[ℝ] W` instead.
+on it. The general API and the milestones never ask for an
+`InnerProductSpace ℝ V` instance on the space `V` they are about. Such an
+instance must induce the norm that `V` already carries, so it would exclude
+every space whose norm does not come from an inner product. They reach the
+formula through a linear isomorphism `V ≃L[ℝ] W` instead. The only
+exceptions are the lemmas that compare the general construction with Tau
+Ceti's ambient one, and so are about an inner product space by their nature:
+`innerSL_mem_innerProducts`, `polarComplexStructure_eq_iff`,
+`metricPolarComplexStructure_innerSL` and `metricSymplecticForm_innerSL`.
 
 ### Smoothness and diffeomorphisms
 
@@ -193,9 +197,12 @@ square root by its defining properties, since `V` has no inner product of its
 own for `CFC.sqrt` to use. When $g$ is the ambient inner product of an inner
 product space, Tau Ceti's `toContinuousLinearMap_polarComplexStructure`
 writes the ambient structure as `A * Ring.inverse (CFC.sqrt (-(A * A)))`,
-with the factors in the opposite order. That is the same operator only
-because $Q$ commutes with $A$, which the design plans as the lemma
-`commute_of_mul_self_eq_neg_mul_self` below.
+with the factors in the opposite order. The comparison with Tau Ceti does
+not go through this formula: `metricPolarComplexStructure_innerSL` follows
+from the characterization, since Tau Ceti's polar structure is orthogonal
+for the inner product and compatible with the form. So no commutation of $Q$
+with $A$ is planned. Where a statement needs it for `CFC.sqrt`, Mathlib's
+`Commute.cfcₙ_nnreal` gives it directly.
 
 The characterization makes naturality under every linear isomorphism
 immediate, and it identifies the result with Tau Ceti's construction when $g$
@@ -214,10 +221,14 @@ expressions in two trivializations agree:
    Tau Ceti's coordinate expression for the polar structure, the right-hand
    side of `conjContinuousAlgEquiv_toContinuousLinearMap_polarComplexStructure`,
    applied to the symmetric part of its first argument and the skew part of
-   its second. So it is defined, and smooth, on a set
+   its second. Here `W` is an auxiliary inner product space. So it is
+   defined, and smooth, on a set
    that is open in the space of all pairs of bilinear forms, and not only
-   relative to symmetric and alternating forms. On an inner product and a
-   symplectic form it equals $J_{g,\omega}$.
+   relative to symmetric and alternating forms. Every inner product and
+   symplectic form lie in that set (`mem_polarDomain`), and there the
+   formula equals $J_{g,\omega}$. For a space `V` with no inner product, a
+   pair on `V` is carried to `W` along any `e : V ≃L[ℝ] W`, and the value
+   there is $J_{g,\omega}$ conjugated by `e`.
 2. The Cayley path `TauCeti.cayleyPathFormula b A B`, on the open set
    `TauCeti.cayleyDomain` of triples $(b,A,B)$ where its two
    denominators are invertible. The `B` with `(b, J₀, B)` in it for all
@@ -227,8 +238,10 @@ expressions in two trivializations agree:
    point. Tau Ceti's compatible and tame contractions are this formula at
    $b=1-t$ (`Compatible.toContinuousLinearMap_cayleyContraction`).
 3. The homotopies of Proposition 2.5.6 and Corollary 2.5.7. Each is given
-   with a lemma that writes it, on an inner product space, through
-   `metricPolarFormula` (by `metricPolarFormula_eq`), `cayleyPathFormula` and
+   with a lemma that writes it, after transport along any
+   `e : V ≃L[ℝ] W` to an inner product space `W`, through
+   `metricPolarFormula` on `W` (by `metricPolarFormula_eq` and
+   `metricPolarComplexStructure_transport`), `cayleyPathFormula` and
    continuous (bi)linear operations. Its smoothness
    in the data, and in the time, therefore follows from items 1 and 2 by
    composition.
@@ -463,16 +476,11 @@ the file list of `DESIGN.md`*).
   three properties, since $J$ is $g$-orthogonal and commutes with $A$. So it
   is $Q$, by uniqueness of positive square roots (Mathlib's `CFC.sqrt_eq_iff`,
   on $(V,g)$ carried to a Euclidean space). Then $A=JQ$, and $J$ commutes
-  with $Q$, so $Q^{-1}A=J$. Two commutation steps are public lemmas:
+  with $Q$ (as $Q=-JA$), so $Q^{-1}A=J$. The commutation of $J$ with $A$ is
+  a public lemma:
   - `commute_metricPolarComplexStructure` (with the hypothesis `hA` above):
     `Commute (LinearMap.toContinuousLinearMap
-    (metricPolarComplexStructure g ω).toLinearMap) A`;
-  - `commute_of_mul_self_eq_neg_mul_self` (with `hQs`, `hQp` and `hQ`, and
-    no symplectic form): `Commute Q A`. Since $A$ commutes with
-    $A^2=-Q^2$, it commutes with the positive square root $Q$ of $Q^2$. With
-    it, `Ring.inverse Q * A = A * Ring.inverse Q`, which is how the lemma
-    meets the order of factors of Tau Ceti's ambient formula in
-    `metricPolarComplexStructure_innerSL`.
+    (metricPolarComplexStructure g ω).toLinearMap) A`.
 - `metricPolarComplexStructure_associatedBilinForm (h : ω.Compatible J) :
   metricPolarComplexStructure ⟨_, h.associatedBilinForm_mem_innerProducts⟩ ω = J`.
   This is the second bullet.
@@ -484,7 +492,10 @@ the file list of `DESIGN.md`*).
   forward along `e`.
 - `metricPolarComplexStructure_innerSL` (for `V` an inner product space):
   `metricPolarComplexStructure ⟨innerSL ℝ, innerSL_mem_innerProducts⟩ ω =
-  ω.polarComplexStructure`.
+  ω.polarComplexStructure`. It follows from
+  `metricPolarComplexStructure_eq_iff` with Tau Ceti's
+  `inner_polarComplexStructure_apply_apply` and
+  `compatible_polarComplexStructure`; no order of factors is involved.
 
 ### `Analysis/InnerProductSpace/Symplectic/PolarComplexStructure/Smooth.lean`
 
@@ -495,7 +506,7 @@ The domain, the formula and their smoothness and naturality mention only
 continuous bilinear forms and Tau Ceti's operations on them
 (`metricChangeTransport`, `continuousLinearMapOfBilin`, `CFC.sqrt`,
 `Ring.inverse`), so by the namespace rule above they go in `TauCeti`, next
-to `cayleyPathFormula`. Only `metricPolarFormula_eq` and
+to `cayleyPathFormula`. Only `mem_polarDomain`, `metricPolarFormula_eq` and
 `continuous_metricPolarComplexStructure`, which involve `innerProducts` and
 `metricPolarComplexStructure`, are in `SymplecticGeometry`.
 
@@ -504,6 +515,12 @@ to `cayleyPathFormula`. Only `metricPolarFormula_eq` and
   vectors and whose second entry has a nondegenerate skew part
   $\tfrac12(s-s^{\mathrm{flip}})$. It comes with `isOpen_polarDomain` and
   `mem_polarDomain_iff`.
+- `SymplecticGeometry.mem_polarDomain (g : innerProducts W)
+  (ω : SymplecticForm W) :
+  ((g : W →L[ℝ] W →L[ℝ] ℝ), ω.toBilinForm.toContinuousBilinearMap) ∈
+  polarDomain W`. Every inner product and symplectic form lie in the domain,
+  so the smoothness statement covers all of them. It is in
+  `SymplecticGeometry` because it mentions `innerProducts`.
 - `TauCeti.metricPolarFormula (g s : W →L[ℝ] W →L[ℝ] ℝ) : W →L[ℝ] W`,
   defined as Tau Ceti's expression
   `R * (R * s'♯ * R * Ring.inverse (CFC.sqrt (-(R * s'♯ * R * (R * s'♯ * R))))) * CFC.sqrt g'♯`,
@@ -547,7 +564,8 @@ to `cayleyPathFormula`. Only `metricPolarFormula_eq` and
   is `metricPolarFormula_eq` and `metricPolarComplexStructure_transport`, since
   the symmetric and skew parts commute with transport. This is naturality on
   the whole domain, and it does not depend on the inner products of `W` and
-  `W'`.
+  `W'`. Because this proof uses `SymplecticGeometry` lemmas, moving the
+  lemma to Tau Ceti would need a direct proof from the formula.
 - `SymplecticGeometry.continuous_metricPolarComplexStructure`: jointly
   continuous on `innerProducts V × SymplecticForm V`.
 
@@ -659,8 +677,10 @@ This is Proposition 2.5.6, for a fixed `g : innerProducts V`, in
     for $\omega_{g,J}$). Its endomorphism at time $b$ is
     `cayleyPathFormula b A B`, with `A` and `B` the endomorphisms of
     `metricPolarComplexStructure g (metricSymplecticForm g J)` and of `J`.
-    The triple lies in `cayleyDomain` by `Compatible.mem_cayleyDomain`. On an
-    inner product space, `A` is `metricPolarFormula` by `metricPolarFormula_eq`.
+    The triple lies in `cayleyDomain` by `Compatible.mem_cayleyDomain`. After
+    transport along any `e : V ≃L[ℝ] W` to an inner product space `W`, `A` is
+    `e`-conjugate to `metricPolarFormula` on `W`, by `metricPolarFormula_eq`
+    and `metricPolarComplexStructure_transport`.
 
   Each homotopy comes with a `@[simp]` lemma for its value.
 - `metricComplexStructuresHomotopyEquiv g` and
@@ -678,8 +698,10 @@ This is Proposition 2.5.6, for a fixed `g : innerProducts V`, in
   It is the conjunction of the following:
   - the plan's definition: `metricPolarComplexStructure_eq_inverse_mul`;
   - smoothness, through an auxiliary space: for every real inner product
-    space `W` and every `e : V ≃L[ℝ] W`, `contDiffOn_metricPolarFormula` on
-    `polarDomain W`, and, for all `g` and `ω`, the value of
+    space `W` and every `e : V ≃L[ℝ] W`, `polarDomain W` is open
+    (`isOpen_polarDomain`), `contDiffOn_metricPolarFormula` holds on it, and,
+    for all `g` and `ω`, the transported pair lies in it (`mem_polarDomain`)
+    and the value of
     `metricPolarFormula` at `innerProducts.transport e g` and at the
     continuous bilinear form of `ω.transport e.toLinearEquiv` is
     `e.conjContinuousAlgEquiv` of the endomorphism of
