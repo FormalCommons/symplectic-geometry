@@ -5,6 +5,16 @@ covers the subject of the plan that [README.md](README.md) links to: the plan
 describes the subject, states its milestones, gives the sources, and may say
 how the library should be built. Read the plan's pages for the work you do.
 
+The plan is the atlas, which is private: do not look for it on GitHub.
+Every job's container has a read-only copy at `/atlas`, with its pages
+under `/atlas/atlas/` and `/atlas/auxiliary/`, and the atlas commit it was
+copied from in `/atlas/COMMIT`. This repository is public and the atlas is
+not, so never copy text from the atlas into the repository or into its
+issues, pull requests and comments. Write statements in Lean and
+explanations in your own words, and refer to the atlas by page and
+milestone name, such as `atlas/linear-symplectic-geometry.md`, *milestone name*.
+A milestone's name is the only text of the atlas that you may repeat.
+
 The milestones are results that the library must prove, and they measure how
 much of the subject it covers. But the library is more than its milestones: it
 is meant to be used, by later work here, by other projects, and eventually as
@@ -45,9 +55,9 @@ minutes.
 
 ## Layout and names
 
-- The library is under `Project/`, in the namespace `Project`. Its folders
-  are Mathlib's top-level areas, such as `Project/Algebra/` or
-  `Project/Geometry/`, and below them, topics. Use one file per topic. When
+- The library is under `SymplecticGeometry/`, in the namespace `SymplecticGeometry`. Its folders
+  are Mathlib's top-level areas, such as `SymplecticGeometry/Algebra/` or
+  `SymplecticGeometry/Geometry/`, and below them, topics. Use one file per topic. When
   `Foo.lean` gets a sibling `FooBar.lean`, make a folder instead:
   `Foo/Basic.lean` and `Foo/Bar.lean`.
 - Name files and declarations after the mathematics, never after a milestone,
@@ -56,9 +66,9 @@ minutes.
 - A declaration about an existing Lean, Mathlib or Tau Ceti notion, one
   that dot notation on that type would find, goes in that type's namespace,
   such as `Matrix.trace_foo`, so that it can move upstream without a rename.
-  Declarations about this library's own definitions go in `Project`.
+  Declarations about this library's own definitions go in `SymplecticGeometry`.
 - No file imports the whole library. `lake build` builds every file under
-  `Project/` by itself (the `globs` in `lakefile.toml`), so a new file needs
+  `SymplecticGeometry/` by itself (the `globs` in `lakefile.toml`), so a new file needs
   no import anywhere else. Do not add a file that imports the others.
 - A new file has at most 1000 lines. No file may have more than 1500 (the
   build fails).
@@ -76,7 +86,7 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.LinearAlgebra.Matrix.Trace
-public import Project.Algebra.Foo.Basic
+public import SymplecticGeometry.Algebra.Foo.Basic
 
 /-!
 # Title
@@ -90,11 +100,11 @@ What the file contains: its main definitions and results.
 
 public section
 
-namespace Project
+namespace SymplecticGeometry
 
 …
 
-end Project
+end SymplecticGeometry
 
 end
 ```
@@ -205,7 +215,8 @@ correction. An error outside your issue gets an issue of its own, labelled
    change you make to the conclusion, give a counterexample without it: in
    Lean, next to the corrected theorem, if you can.
 2. **Record it in `ERRATA.md`, in the same pull request**, in the form the
-   file shows, quoting what the plan or the source says. If the file lists
+   file shows, saying in your own words what the plan says (never quote
+   the atlas), or quoting a published source. If the file lists
    the error as unresolved, replace its **Unresolved** line with the fix.
 3. **If you cannot fix it**, because the statement is false and no
    correction gives the results that build on it what they need, or because
@@ -232,9 +243,9 @@ Besides building, check each main theorem of the pull request with
 `#print axioms`, in a scratch file that you do not commit:
 
 ```lean
-import Project.Foo
+import SymplecticGeometry.Foo
 
-#print axioms Project.foo_bar
+#print axioms SymplecticGeometry.foo_bar
 ```
 
 Run it with `lake env lean Scratch.lean`. Then check that it is good library

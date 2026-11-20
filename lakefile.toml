@@ -1,5 +1,5 @@
-name = "Project"
-defaultTargets = ["Project"]
+name = "SymplecticGeometry"
+defaultTargets = ["SymplecticGeometry"]
 
 # Tau Ceti's options, so that code here can later move to Tau Ceti unchanged:
 # Mathlib's standard linters, a 1500-line limit per file, and every warning an
@@ -22,7 +22,7 @@ git = "https://github.com/TauCetiProject/TauCeti"
 rev = "cd41bffcb343151b3e58c89392e206b11fe78c1c"
 
 [[lean_lib]]
-name = "Project"
-# Build every module under `Project/`. There is no root file that imports them
+name = "SymplecticGeometry"
+# Build every module under `SymplecticGeometry/`. There is no root file that imports them
 # all, so pull requests that add files never conflict over one.
-globs = ["Project.+"]
+globs = ["SymplecticGeometry.+"]
