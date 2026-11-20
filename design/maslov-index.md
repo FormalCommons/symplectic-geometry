@@ -221,7 +221,8 @@ topology, with a coercion to `Submodule ℝ (StdSpace ι)`. #58 asks `DESIGN.md`
   `ℒ ι ≃ₜ ℒ κ` along `ι ≃ κ`, both continuous, compatible with `unitaryFrame`
   (the sum of `unitaryFrame U` and `unitaryFrame U'` is the frame of
   `Matrix.UnitaryGroup.sum (U, U')`, and the reindexing of `unitaryFrame U`
-  is the frame of the reindexed matrix), and with the action of
+  is the frame of the matrix reindexed by Tau Ceti's
+  `Matrix.unitaryReindexContinuousMulEquiv`), and with the action of
   `TauCeti.GLSymplectic.sum`.
 - **G6.** The frame criterion: for `Z : Matrix (ι ⊕ ι) ι ℝ` of rank $n$, the
   image of `Matrix.toEuclideanLin Z` is Lagrangian if and only if
@@ -246,8 +247,8 @@ Files are under `SymplecticGeometry/`. Declarations about Tau Ceti's notions go
 in Tau Ceti's namespaces. Declarations about `ℒ ι`, and about paths and loops
 in it, go in the namespace of its type, written `ℒ.` below. Everything else
 goes in `SymplecticGeometry`: in particular the families `IsMaslovIndex` and
-`IsLagrangianMaslovIndex`, the loop `rotationLoop`, and the statements about
-them, which dot notation on a `GLSymplectic` or on an `ℒ ι` would not find.
+`IsLagrangianMaslovIndex`, the loop `symplecticRotationLoop`, and the
+statements about them, which dot notation on a `GLSymplectic` or on an `ℒ ι` would not find.
 
 Two files lie outside the folders that `DESIGN.md` §5 lists:
 `LinearAlgebra/Matrix/GeneralLinearGroup/Symplectic/Reindex.lean` and
@@ -298,14 +299,19 @@ three items are in the namespace `TauCeti.GLSymplectic`, the rest in
   statement and Tau Ceti's `Path.exists_trans_homotopic_trans_of_homotopicWith`
   and `Path.homotopicWith_trans_trans_symm` along a path from `A` to `B`. It
   holds for every `ι`, including `ι` empty.
-- `rotationLoop (k : ℤ) : Path (1 : GLSymplectic (Fin 1) ℝ) 1`,
-  `t ↦ ofUnitary (e^{2πikt})`, with `coe_rotationLoop_apply` (`@[simp]`, the
-  value at `t`, like Tau Ceti's `coe_scalarRotationLoop_apply`) and
-  `maslovIndex_rotationLoop : maslovIndex (rotationLoop k) = k` (`@[simp]`).
-- `homotopicWith_reindex_sum_rotationLoop (γ : Path A A)`, for `A` in
+- `symplecticRotationLoop (k : ℤ) : Path (1 : GLSymplectic (Fin 1) ℝ) 1`,
+  `t ↦ ofUnitary (e^{2πikt})`, with `coe_symplecticRotationLoop_apply`
+  (`@[simp]`, the value at `t`, like Tau Ceti's
+  `coe_scalarRotationLoop_apply`) and `maslovIndex_symplecticRotationLoop :
+  maslovIndex (symplecticRotationLoop k) = k` (`@[simp]`, by
+  `maslovIndex_map_ofUnitary` and the degree of $t\mapsto e^{2\pi ikt}$, as in
+  Tau Ceti's `maslovIndex_scalarRotationLoop`). The name is not
+  `rotationLoop`, which would clash with Tau Ceti's unrelated
+  `TauCeti.rotationLoop` of operators when both namespaces are open.
+- `homotopicWith_reindex_sum_symplecticRotationLoop (γ : Path A A)`, for `A` in
   `GLSymplectic (Fin (n + 1)) ℝ`: `γ` is freely homotopic to the direct sum of
-  `Path.refl 1` in dimension `n` and `rotationLoop (maslovIndex γ)`, reindexed
-  along `finSumFinEquiv`. From `homotopicWith_iff_maslovIndex_eq`,
+  `Path.refl 1` in dimension `n` and
+  `symplecticRotationLoop (maslovIndex γ)`, reindexed along `finSumFinEquiv`. From `homotopicWith_iff_maslovIndex_eq`,
   `maslovIndex_sum`, `maslovIndex_refl` and `maslovIndex_reindex`.
 - `structure IsMaslovIndex (μ : (n : ℕ) → (A : GLSymplectic (Fin n) ℝ) → Path A A → ℤ) : Prop`
   with the fields of the milestone, each for all `n` and all loops:
@@ -313,15 +319,16 @@ three items are in the namespace `TauCeti.GLSymplectic`, the rest in
   `mul : μ n (A * B) (γ.mul γ') = μ n A γ + μ n B γ'`;
   `sum`, the direct sum `((γ.prod γ').map continuous_sum)` reindexed by
   `finSumFinEquiv`, of index `μ n A γ + μ m B γ'`;
-  `normalization : μ 1 1 (rotationLoop 1) = 1`.
+  `normalization : μ 1 1 (symplecticRotationLoop 1) = 1`.
 - **Milestone theorem** `isMaslovIndex_iff (μ) :
   IsMaslovIndex μ ↔ μ = fun _ _ γ ↦ Circle.degree (γ.map continuous_maslovPhase)`.
   The right side is `maslovIndex` by `maslovIndex_def`, so the statement holds
   existence, the formula $\mu=\deg(\rho\circ\Psi)$ and uniqueness. Uniqueness:
   the product axiom gives `0` on constant loops (a constant loop at `1` is its
-  own square; others are freely homotopic to it) and `k` on `rotationLoop k`
-  (a pointwise power of the normalized loop, or the inverse of one); the sum
-  axiom and `homotopicWith_reindex_sum_rotationLoop` then give every value.
+  own square; others are freely homotopic to it) and `k` on
+  `symplecticRotationLoop k` (a pointwise power of the normalized loop, or the
+  inverse of one); the sum axiom and
+  `homotopicWith_reindex_sum_symplecticRotationLoop` then give every value.
   *Maslov index for loops of symplectic matrices*.
 
 ### `LinearAlgebra/Symplectic/Lagrangian/Maslov/Basic.lean`
@@ -414,8 +421,8 @@ The Maslov phase on $\mathcal{L}(n)$ and the index of Lagrangian loops.
   `ℒ.maslovIndex (ℒ.halfTurnLoop (ι := Fin 1) 1) = 1`, as one conjunction, so
   that one theorem carries the whole milestone; `maslovPhase_unitaryFrame`
   gives $\rho$ explicitly. Uniqueness: on `ℒ (Fin 1)`, `halfTurnLoop (2 * j)`
-  is `rotationLoop j` acting on the constant loop, of value `2 * j` by `smul`
-  and `refl`; the direct sum of `halfTurnLoop k` with itself is freely
+  is `symplecticRotationLoop j` acting on the constant loop, of value `2 * j`
+  by `smul` and `refl`; the direct sum of `halfTurnLoop k` with itself is freely
   homotopic to the direct sum of `halfTurnLoop (2 * k)` and a constant loop,
   both having index `2 * k`, so `homotopicWith_iff` and `sum` give `k` for
   `halfTurnLoop k`; `homotopicWith_reindex_sum_halfTurnLoop` does the rest.
@@ -456,7 +463,12 @@ The Robbin–Salamon index of paths, relative to a Lagrangian `V`.
   of the Souriau indices of `δ` and of a frame of the chart segment, and the
   latter vanishes by the zero axiom, the segment staying transverse to `V₀`.
 - Loops: `ℒ.pathMaslovIndex_eq_maslovIndex (γ : Path Λ Λ) (V) :
-  pathMaslovIndex γ V = maslovIndex γ`, for every `V`.
+  pathMaslovIndex γ V = maslovIndex γ`, for every `V`; and with
+  `ℒ.maslovIndex_eq_sub_div_pi` the form of the milestone's loops clause,
+  `ℒ.pathMaslovIndex_eq_sub_div_pi`: for a loop `γ`, any `V`, a path `δ` of
+  unitary frames of `γ` (`unitaryFrame (δ t) = γ t`) and a continuous `α`
+  with $\det\delta(t)=e^{i\alpha(t)}$,
+  `pathMaslovIndex γ V = (α 1 - α 0) / π`.
 
 ### `LinearAlgebra/Symplectic/Lagrangian/Maslov/Path/Naturality.lean`
 
@@ -495,32 +507,50 @@ an element of `ℒ ι`.
   `V = V₁` (the form of the loop formula); `lagrangianCrossingForm_graph`, the
   identification with Tau Ceti's `Matrix.crossingForm A A'` for `Z = (1; A)`
   and `V = V₀`.
-- `stdForm_toEuclideanLin_hasDerivAt_comm`: let `Z : ℝ → Matrix (ι ⊕ ι) ι ℝ`
-  have isotropic images, `stdForm ι (toEuclideanLin (Z s) u) (toEuclideanLin (Z s) v) = 0`
-  for all `s`, `u`, `v`, and `HasDerivAt Z Z' t`. Then
+- `stdForm_toEuclideanLin_comm_of_hasDerivWithinAt`: let
+  `Z : ℝ → Matrix (ι ⊕ ι) ι ℝ` have isotropic images on a set `s`,
+  `stdForm ι (toEuclideanLin (Z r) u) (toEuclideanLin (Z r) v) = 0` for all
+  `r ∈ s`, `u`, `v`, and let `HasDerivWithinAt Z Z' s t` with `t ∈ s` and
+  `UniqueDiffWithinAt ℝ s t`. Then
   `stdForm ι (toEuclideanLin (Z t) u) (toEuclideanLin Z' v) = stdForm ι (toEuclideanLin (Z t) v) (toEuclideanLin Z' u)`
-  for all `u`, `v`: differentiate the isotropy and use the antisymmetry of
-  `stdForm`. It says that $(u,v)\mapsto\omega(Zu,Z'v)$ is the polar form of
-  the crossing form, and is the step that makes the form independent of the
-  frame.
-- Frame independence: for a second frame `Z * g` with `g t` invertible and
-  differentiable, the two forms are isometric (the term with `g'` vanishes
-  because the frame spans a Lagrangian), so `sigPos` and `sigNeg` agree
-  (`sigPos_lagrangianCrossingForm_mul`, `sigNeg_lagrangianCrossingForm_mul`).
-  This includes a constant `g`.
-- Naturality: for `Ψ` symplectic, the form of `Ψ * Z`, `Ψ * Z'` relative to
-  `V.map Ψ` is isometric to that of `Z`, `Z'` relative to `V`
-  (`sigPos_lagrangianCrossingForm_symplectic_mul`,
-  `sigNeg_lagrangianCrossingForm_symplectic_mul`).
+  for all `u`, `v`: the derivative within `s` of the isotropy vanishes, and
+  `stdForm` is antisymmetric. It is used with `s = Icc 0 1`
+  (`uniqueDiffOn_Icc`), so it covers crossings at the ends. It says that
+  $(u,v)\mapsto\omega(Zu,Z'v)$ is the symmetric bilinear form that
+  `QuadraticMap.associated` gives the crossing form; its `QuadraticMap.polar`
+  is twice that.
+- Frame independence, `lagrangianCrossingForm_mul_equivalent`: for `Z` with
+  isotropic image, `g : GL ι ℝ` and any `h : Matrix ι ι ℝ`,
+  `(lagrangianCrossingForm Z Z' V).Equivalent (lagrangianCrossingForm (Z * g) (Z' * g + Z * h) V)`,
+  by $u\mapsto g^{-1}u$; the term with `h` vanishes by isotropy. The statement
+  is about single matrices and needs no derivative: for a change of frame
+  `t ↦ g t` with `HasDerivWithinAt g g' (Icc 0 1) t`, the product rule gives the
+  derivative `Z' t * g t + Z t * g'` of `Z * g` within `Icc 0 1`, and this lemma
+  applies at every `t ∈ Icc 0 1`, ends included. A constant `g` is `h = 0`.
+- Naturality, `lagrangianCrossingForm_symplectic_mul_equivalent`: for `Ψ`
+  symplectic,
+  `(lagrangianCrossingForm Z Z' V).Equivalent (lagrangianCrossingForm (Ψ * Z) (Ψ * Z') (V.map (toEuclideanLin Ψ)))`.
+- The use sites take signatures from Mathlib's
+  `QuadraticMap.Equivalent.sigPos_eq` and `sigNeg_eq`, and nondegeneracy from
+  Tau Ceti's `QuadraticMap.IsometryEquiv.nondegenerate_iff`; the part adds no
+  signature corollaries of the two isometries.
 - `ℒ.eventually_not_crossing_of_regular`: regular crossings are isolated. For
   a path `γ` in `ℒ ι` with a frame `Z` as in
-  `ℒ.pathMaslovIndex_eq_crossing_sum` below, differentiable at `t₀` with a
+  `ℒ.pathMaslovIndex_eq_crossing_sum` below, with
+  `HasDerivWithinAt Z (Z' t₀) (Icc 0 1) t₀` at some `t₀ ∈ Icc 0 1` and a
   nondegenerate form there, `γ t ⊓ V = ⊥` for `t ≠ t₀` near `t₀` in
   `Icc 0 1`. Proof: G8 and G9 give a symplectic `Ψ` taking `V` to `V₀` and a
-  Lagrangian transverse to `V` and `γ t₀` to `V₁`; near `t₀` the moved path is
-  transverse to `V₁`, hence a path of graphs (G7); naturality reduces to
-  `lagrangianCrossingForm_graph` and Tau Ceti's
-  `ContinuousLinearMap.eventually_nondegenerate_of_crossingForm_nondegenerate`.
+  Lagrangian transverse to `V` and `γ t₀` to `V₁`; near `t₀` in `Icc 0 1` the
+  moved path is transverse to `V₁`, hence a path of graphs of symmetric
+  matrices `A` (G7), with `A` differentiable within `Icc 0 1` at `t₀`.
+  Naturality and `lagrangianCrossingForm_graph` carry the nondegeneracy over to
+  `Matrix.crossingForm`. For `t₀ < 1`, a derivative within `Icc 0 1` is one
+  within `Ici t₀` (the two sets agree near `t₀` on the right), and Tau Ceti's
+  one-sided `ContinuousLinearMap.eventually_nhdsGT_nondegenerate_of_crossingForm_nondegenerate`
+  gives the times after `t₀`; for `0 < t₀`,
+  `eventually_nhdsLT_nondegenerate_of_crossingForm_nondegenerate`, with `Iic t₀`,
+  gives those before. Their symmetry hypotheses hold because `A t` is symmetric
+  for every `t ∈ Icc 0 1` near `t₀`.
 
 Signatures are `(sigPos Q : ℤ) - sigNeg Q`, as in Tau Ceti's crossing theorem;
 the part adds no signature function.
@@ -581,8 +611,9 @@ the part adds no signature function.
   $\tfrac12$ is the one the plan explains by Robbin–Salamon's normalization.
 - **Milestone theorem** `maslovIndex_eq_crossing_sum_and_half_crossing_sum`,
   in `SymplecticGeometry`: the conjunction of
-  `TauCeti.GLSymplectic.maslovIndex_eq_half_crossing_sum` and
-  `ℒ.maslovIndex_eq_crossing_sum`.
+  `ℒ.maslovIndex_eq_crossing_sum` and
+  `TauCeti.GLSymplectic.maslovIndex_eq_half_crossing_sum`, in the order of the
+  name.
   *Crossing-form formula for the Maslov index*.
 
 ### `LinearAlgebra/Symplectic/Lagrangian/Maslov/Path/RegularPieces.lean`
@@ -622,12 +653,16 @@ forms relative to `V₀`.
   junction both pieces span the same Lagrangian, so a constant change of
   frame on the later piece makes the frame continuous, and a
   reparametrization that is flat at the junctions makes it smooth.
-- **Milestone theorem** `ℒ.pathMaslovIndex_eq_crossing_sum_and_properties`:
-  one conjunction of `ℒ.eventually_not_crossing_of_regular`,
+- **Milestone theorem** `pathMaslovIndex_eq_crossing_sum_and_properties`, in
+  `SymplecticGeometry` like the other three milestone theorems: one
+  conjunction of `ℒ.eventually_not_crossing_of_regular`,
   `ℒ.pathMaslovIndex_eq_crossing_sum`, `ℒ.exists_homotopic_regular`, the frame
-  independence of the crossing form, and the properties of `Path/Basic.lean`
-  and `Path/Naturality.lean` (naturality, catenation, product, localization,
-  homotopy, zero, values, loops, dependence on `V`), each for every `V`.
+  independence of the crossing form itself
+  (`lagrangianCrossingForm_mul_equivalent`, an isometry and not only equal
+  signatures), and the properties of `Path/Basic.lean` and
+  `Path/Naturality.lean` (naturality, catenation, product, localization,
+  homotopy, zero, values, dependence on `V`, and loops in the angle form
+  `ℒ.pathMaslovIndex_eq_sub_div_pi`), each for every `V`.
   *Maslov index for paths of Lagrangian subspaces*.
 
 ## Milestones
@@ -637,7 +672,7 @@ forms relative to `V₀`.
 | *Maslov index for loops of symplectic matrices* | `SymplecticGeometry.isMaslovIndex_iff` | `Analysis/Matrix/SymplecticGroup/Maslov.lean` |
 | *Maslov index for loops of Lagrangian subspaces* | `SymplecticGeometry.isLagrangianMaslovIndex_iff_and_maslovIndex_halfTurnLoop` | `…/Lagrangian/Maslov/Loop.lean` |
 | *Crossing-form formula for the Maslov index* | `SymplecticGeometry.maslovIndex_eq_crossing_sum_and_half_crossing_sum` | `…/Lagrangian/Maslov/Crossing/Loop.lean` |
-| *Maslov index for paths of Lagrangian subspaces* | `ℒ.pathMaslovIndex_eq_crossing_sum_and_properties` | `…/Lagrangian/Maslov/Path/Regular.lean` |
+| *Maslov index for paths of Lagrangian subspaces* | `SymplecticGeometry.pathMaslovIndex_eq_crossing_sum_and_properties` | `…/Lagrangian/Maslov/Path/Regular.lean` |
 
 Each statement holds for every `n`, including `n = 0`, where all spaces are
 points and all indices vanish; no entry in `ERRATA.md` is needed. The
@@ -657,21 +692,23 @@ the interface items named.
 1. **Symplectic loops: classification.** `maslovIndex_eq_iff_homotopic`,
    `homotopicWith_iff_maslovIndex_eq`. Blocked by #11 and #22. (Part of #34.)
 2. **Symplectic loops: uniqueness.** `GLSymplectic.reindex` with its API and
-   continuity (in their own files), `rotationLoop`,
-   `homotopicWith_reindex_sum_rotationLoop`, `IsMaslovIndex`,
+   continuity (in their own files), `symplecticRotationLoop`,
+   `homotopicWith_reindex_sum_symplecticRotationLoop`, `maslovPhase_reindex`,
+   `maslovIndex_reindex`, `IsMaslovIndex`,
    `isMaslovIndex_iff`. Blocked by 1.
    (Part of #34; with 1 it completes the symplectic milestone.)
 3. **Lagrangian loops: phase and index.** `Maslov/Basic.lean`. Blocked by
-   G1, G2, G3 and G5.
+   G1, G2, G3, G4 (for `maslovPhase_ofUnitary_smul`) and G5.
 4. **Lagrangian loops: product axiom.** `Maslov/Product.lean`. Blocked by 3
    and G4.
 5. **Lagrangian loops: classification and uniqueness.** `Maslov/Loop.lean`.
-   Blocked by 2 (for `rotationLoop`), 4, G3 and #22.
+   Blocked by 2 (for `symplecticRotationLoop`), 4, G3 and #22.
 6. **Paths: definition and transferred properties.** `Maslov/Path/Basic.lean`.
-   Blocked by 3 and G3.
+   Blocked by 3, G3 and G4 (the definition moves the path by
+   `(ofUnitary U)⁻¹`).
 7. **Paths: naturality, values, homotopy, dependence on `V`.**
    `Maslov/Path/Naturality.lean`. Blocked by 5 and 6.
-8. **Crossing forms.** `Maslov/Crossing/Form.lean`. Blocked by G4 and G6–G9;
+8. **Crossing forms.** `Maslov/Crossing/Form.lean`. Blocked by G1, G4 and G6–G9;
    can go in parallel with 3–7.
 9. **Crossing-form formula for paths.** `Maslov/Crossing/Path.lean`. Blocked
    by 7 and 8.
