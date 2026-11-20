@@ -27,6 +27,9 @@ symplectic, that is, in the realified unitary group.
   is symplectic.
 * `SymplecticGroup.existsUnique_unitary_mul_posDef`: a symplectic matrix is uniquely a product
   `U Q` of a unitary symplectic matrix `U` and a positive definite symplectic matrix `Q`.
+* `SymplecticGroup.unitary_mul_posDef_eq_iff`: the two factors are `A (Aᴴ A) ^ (-1 / 2)` and
+  `(Aᴴ A) ^ (1 / 2)`, and they are the only unitary symplectic and positive definite symplectic
+  factors.
 
 ## References
 
@@ -67,6 +70,28 @@ theorem existsUnique_unitary_mul_posDef {A : Matrix (l ⊕ l) (l ⊕ l) 𝕜}
   rintro UQ ⟨-, hQ, -, h⟩
   exact hu.unique ⟨hQ, h⟩
     ⟨GeneralLinearGroup.posDef_sqrt_star_mul A, Units.polarUnitary_mul_sqrt_star_mul A⟩
+
+/-- **The factors of the right polar decomposition of a symplectic matrix.** Over `ℝ` or `ℂ`, for
+a symplectic matrix `A`, a unitary symplectic `U` and a positive definite symplectic `P` satisfy
+`U P = A` exactly when `U = A (Aᴴ A) ^ (-1 / 2)` and `P = (Aᴴ A) ^ (1 / 2)`. Over `ℝ`, `U` is
+orthogonal and `Aᴴ = Aᵀ`. -/
+theorem unitary_mul_posDef_eq_iff {A : Matrix (l ⊕ l) (l ⊕ l) 𝕜} (hA : A ∈ symplecticGroup l 𝕜)
+    {U P : Matrix (l ⊕ l) (l ⊕ l) 𝕜} :
+    (U ∈ symplecticGroup l 𝕜 ∧ U ∈ unitaryGroup (l ⊕ l) 𝕜 ∧ P.PosDef ∧
+        P ∈ symplecticGroup l 𝕜 ∧ U * P = A) ↔
+      U = A * (star A * A) ^ (-(1 / 2 : ℝ)) ∧ P = (star A * A) ^ (1 / 2 : ℝ) := by
+  obtain ⟨A, rfl⟩ := (isUnit_iff_isUnit_det A).2 (symplectic_det hA)
+  rw [← GeneralLinearGroup.coe_polarUnitary_eq_mul_rpow, ← CFC.sqrt_eq_rpow]
+  constructor
+  · rintro ⟨-, hU, hP, -, h⟩
+    obtain ⟨h₁, h₂⟩ :=
+      (Units.mul_eq_iff_polarUnitary_eq_and_sqrt_star_mul_eq A hP.posSemidef.nonneg
+        (v := ⟨U, hU⟩)).1 h
+    exact ⟨congrArg Subtype.val h₁.symm, h₂.symm⟩
+  · rintro ⟨rfl, rfl⟩
+    exact ⟨polarUnitary_mem hA, (Units.polarUnitary A).property,
+      GeneralLinearGroup.posDef_sqrt_star_mul A, sqrt_star_mul_mem hA,
+      Units.polarUnitary_mul_sqrt_star_mul A⟩
 
 end SymplecticGroup
 
