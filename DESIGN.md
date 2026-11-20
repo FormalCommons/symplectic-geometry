@@ -387,7 +387,15 @@ it into issues; the overview fixes its folders and its dependencies.
   $\mathrm{Sp}(2n)$, transitivity already for $\mathrm{U}(n)$, the stabilizer
   $\mathrm{O}(n)$ and $\mathcal{L}(n)\cong\mathrm{U}(n)/\mathrm{O}(n)$),
   `Geometry/Manifold/Instances/LagrangianGrassmannian.lean` (the charts by
-  symmetric matrices and the manifold structure of dimension $n(n+1)/2$).
+  symmetric matrices and the manifold structure of dimension $n(n+1)/2$),
+  `Topology/Grassmannian/Lagrangian/Fibration.lean` (path lifting),
+  `Topology/Grassmannian/Lagrangian/Sum.lean` (direct sums and reindexing),
+  `Topology/Grassmannian/Lagrangian/Transverse.lean` (common transverse
+  Lagrangians and transverse pairs). Below, $V_0$ is $\mathbb{R}^n\times\{0\}$
+  ($y=0$), $V_1$ is $\{0\}\times\mathbb{R}^n$ ($x=0$), and the unitary frame
+  map $\mathrm{U}(n)\to\mathcal{L}(n)$ sends $U$ to the image of $V_0$ under
+  `Matrix.toEuclideanLin (Matrix.realify U)`. `design/maslov-index.md` lists
+  what the *Maslov index* part needs of the items below.
 - **Builds on:** *Standard model*. From Tau Ceti, transferred along
   `complexToRealEuclidean`: the charts `Matrix.lagrangianChart` and
   `Matrix.lagrangianChartCLE` (`LinearAlgebra/TotallyReal/Euclidean.lean`);
@@ -395,6 +403,72 @@ it into issues; the overview fixes its folders and its dependencies.
   `Matrix.exists_mem_orthogonalGroup_eq_mul_map_ofReal` and
   `realOrthonormalize_mem_unitaryGroup`; $\mathrm{Sp}$-transitivity from the
   Witt theorem `TauCeti.SymplecticForm.exists_isSymplectomorphism_extend`.
+- **Graphs of transverse Lagrangians** (`Frame.lean`). A Lagrangian
+  transverse to $V_1$ is $\{y=Sx\}$, and one transverse to $V_0$ is
+  $\{x=Sy\}$, for a unique symmetric $S$. This is the converse of the graph
+  criterion: Mathlib's `Submodule.toLinearPMap` and
+  `LinearPMap.existsUnique_from_graph` give the linear map, and Tau Ceti's
+  `isLagrangian_graph_iff_of_pairing` its symmetry. Along
+  `complexToRealEuclidean`, which carries `Matrix.realSubspace n` to $V_0$
+  and `Matrix.lagrangianChart S` to $\{x=Sy\}$, the second statement gives
+  the surjectivity Tau Ceti lacks beside `Matrix.lagrangianChart_injective`:
+  a real subspace of `EuclideanSpace ℂ n` that is Lagrangian for
+  $\operatorname{Im}\langle\cdot,\cdot\rangle$ and meets `realSubspace n` only
+  in $0$ is `lagrangianChart S` for a symmetric `S` (stated in namespace
+  `Matrix`).
+- **Path lifting** (`Fibration.lean`). The unitary frame map is locally
+  trivial with fibre $\mathrm{O}(n)$, hence a Serre fibration, so every path
+  in $\mathcal{L}(n)$ lifts to a path in $\mathrm{U}(n)$ from any frame of its
+  start point. Its fibres are the left cosets of the real orthogonal matrices
+  (from `Action.lean`). Near $V_1$, a continuous section sends $\{x=Sy\}$ to
+  `Matrix.GeneralLinearGroup.realOrthonormalize` of
+  `Matrix.lagrangianChartFrame S`, transferred (unitary by
+  `realOrthonormalize_mem_unitaryGroup`, continuous by
+  `continuous_realOrthonormalize`, with the same real image by
+  `realImage_realOrthonormalize`), $S$ being the chart coordinate of the
+  manifold file; left translation by $\mathrm{U}(n)$ gives sections near
+  every point. Tau Ceti's `Subgroup.localSectionTrivializationOfCosetFibers`
+  (`Topology/Algebra/Group/Quotient/LocalSection.lean`) turns these sections
+  into trivializations,
+  `TauCeti.TopCat.mem_serreFibrations_of_exists_trivialization`
+  (`Topology/Homotopy/SerreFibration/FiberBundle.lean`) into a Serre
+  fibration, and `TauCeti.TopCat.exists_path_lift_of_mem_serreFibrations`
+  (`Topology/Homotopy/SerreFibration/Basic.lean`) into the lift. Tau Ceti's
+  unitary Stiefel fibration (`Topology/Grassmannian/StiefelFibration/Unitary.lean`)
+  is built the same way and is the model for the file.
+- **Direct sums and reindexing** (`Sum.lean`). The direct sum
+  $\mathcal{L}(\iota)\times\mathcal{L}(\kappa)\to\mathcal{L}(\iota\oplus\kappa)$,
+  read in the coordinates of `Equiv.sumSumSumComm` as Tau Ceti's
+  `Matrix.symplecticSum` is, continuous; and for `e : ι ≃ κ` the
+  homeomorphism $\mathcal{L}(\iota)\simeq_t\mathcal{L}(\kappa)$, the image
+  under the coordinate permutation along `Equiv.sumCongr e e`, with lemmas
+  for its inverse and for composition. Both commute with unitary frames: the
+  sum of the frames of $U$ and $U'$ is the frame of
+  `Matrix.UnitaryGroup.sum (U, U')` (`LinearAlgebra/Matrix/UnitaryGroup/Block.lean`,
+  through `Matrix.realify_fromBlocks_zero`), and reindexing the frame of $U$
+  gives the frame of the reindexed matrix `U.submatrix e.symm e.symm`, unitary
+  by Mathlib's `Matrix.submatrix_equiv_mem_unitary`. The sum is equivariant
+  for `TauCeti.GLSymplectic.sum`
+  (`LinearAlgebra/Matrix/GeneralLinearGroup/Symplectic/Sum.lean`). Continuity
+  comes from $\mathcal{L}(n)\cong\mathrm{U}(n)/\mathrm{O}(n)$: the frame map is
+  an open quotient map, and so is a product of two such maps. How the
+  reindexing meets `GLSymplectic.reindex` is proved with that definition, in
+  the *Maslov index* part, so that this part does not depend on it.
+- **Transverse Lagrangians** (`Transverse.lean`). Any two Lagrangians
+  $\Lambda_1,\Lambda_2$ have a common transverse Lagrangian: move $\Lambda_1$
+  to $V_0$ by a unitary matrix; if $X+iY$ is a unitary frame of the moved
+  $\Lambda_2$, then $\det(X+tY)$ is a polynomial in $t$ that is nonzero at
+  $t=i$, so it has finitely many real roots, and for any other real $t$ the
+  Lagrangian $\{x=-ty\}$, the transfer of `Matrix.lagrangianChart` of the
+  scalar matrix $-t$, is transverse to both. And $\mathrm{Sp}(2n)$ acts
+  transitively on pairs $(V,W)$ of transverse Lagrangians, each pair being
+  $g\cdot(V_0,V_1)$: a unitary matrix takes $V$ to $V_0$; the moved $W$ is $\{x=Sy\}$ with $S$
+  symmetric, by the graph statement above; and the shear
+  $\begin{pmatrix}1&S\\0&1\end{pmatrix}$, symplectic because $S$ is symmetric,
+  fixes $V_0$ and takes $V_1$ to $\{x=Sy\}$. Tau Ceti has the shear only on
+  `Fin m` (`TauCeti.GLSymplecticFin.upperUnipotent`); the file proves that it
+  is symplectic for `ι ⊕ ι` directly. For $n=0$ these statements hold
+  trivially, $\mathcal{L}(0)$ being a point.
 - **Milestones:** *Lagrangian frames and the Lagrangian Grassmannian*.
 - **The design file decides:** the topology of $\mathcal{L}(n)$. The
   candidates are the subspace topology of Tau Ceti's
