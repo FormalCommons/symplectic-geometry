@@ -247,12 +247,14 @@ further when they grow, following `AGENTS.md`.
   `Matrix.GeneralLinearGroup.posDef_sqrt_star_mul` and
   `Matrix.GeneralLinearGroup.existsUnique_unitary_mul_posDef`),
   `Analysis/Matrix/Polar/Symplectic.lean` (the right decomposition
-  $\Psi=UP$ with uniqueness: Tau Ceti's `Units.polarUnitary_mul_sqrt_star_mul`
-  and `Units.mul_eq_iff_polarUnitary_eq_and_sqrt_star_mul_eq` give it with
-  uniqueness, `SymplecticGroup.polarUnitary_mem` makes $U$ symplectic, and the
-  only new step is that $\sqrt{\Psi^*\Psi}$ is symplectic, $\Psi^*$ the
-  conjugate transpose, which is `SymplecticGroup.sqrt_mul_star_mem` applied
-  to `star Ψ`, symplectic by `SymplecticGroup.star_mem`),
+  $\Psi=UP$ with uniqueness, `SymplecticGroup.existsUnique_unitary_mul_posDef`:
+  Tau Ceti's `Units.polarUnitary_mul_sqrt_star_mul` gives the factorization,
+  `Matrix.GeneralLinearGroup.existsUnique_unitary_mul_posDef` its uniqueness,
+  and `SymplecticGroup.polarUnitary_mem` makes $U$ symplectic; what this file
+  adds for the symplectic group is `SymplecticGroup.sqrt_star_mul_mem`, that
+  $\sqrt{\Psi^*\Psi}$ is symplectic, $\Psi^*$ the conjugate transpose, which
+  is `SymplecticGroup.sqrt_mul_star_mem` applied to `star Ψ`, symplectic by
+  `SymplecticGroup.star_mem`),
   `Analysis/Matrix/Polar/GLSymplectic.lean` (the deformation retraction:
   `TauCeti.GLSymplectic.polarHomotopy` fixes $\mathrm{U}(n)$ at all times,
   since it is the restriction of `Matrix.GeneralLinearGroup.polarHomotopy`
@@ -528,7 +530,8 @@ it into issues; the overview fixes its folders and its dependencies.
   forms $\omega_t$ on $V$ that depend smoothly on $t\in\mathbb{R}$, it builds
   invertible $\Psi_t$, smooth in $t$, starting at the identity and pulling
   each $\omega_t$ back to $\omega_0$: $\Psi_t$ solves $\dot\Psi_t=A_t\Psi_t$,
-  with $A_t$ obtained from $\dot\omega_t$ through a fixed inner product. The
+  with $A_t=-\tfrac12\,\omega_t^{-1}\circ\dot\omega_t$, the inverse being that
+  of the contraction $V\to V^*$, so that no inner product is needed. The
   same file treats a smooth path of complex structures in the same way. If
   the bundle case needs smoothness in a parameter as well, the parametric
   version goes in `Analysis/ODE/DysonSeries.lean`, in the namespace
@@ -547,8 +550,8 @@ it into issues; the overview fixes its folders and its dependencies.
   lemma, which is general material and sits in its own file. It uses no other
   part.
 - **Milestones:** *Linear Moser lemma*.
-- The construction is canonical given the inner product, so that *Symplectic
-  vector bundles* can apply it at each point of the base.
+- The construction is canonical, a formula in the family and its derivative,
+  so that *Symplectic vector bundles* can apply it at each point of the base.
 
 ### 11. Siegel upper half space
 
