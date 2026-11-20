@@ -19,6 +19,7 @@ reflects positive definiteness (`Matrix.posDef_realify_iff`).
 ## Main results
 
 * `Matrix.posDef_map_algebraMap_iff`: `(A.map (algebraMap ℝ 𝕜)).PosDef ↔ A.PosDef`.
+* `Matrix.posDef_map_ofReal_iff`: the same for `𝕜 = ℂ`, with the coercion `ℝ → ℂ`.
 -/
 
 public section
@@ -60,6 +61,15 @@ theorem posDef_map_algebraMap_iff {A : Matrix n n ℝ} :
       (h.posSemidef.dotProduct_mulVec_nonneg _)
   · exact add_pos_of_nonneg_of_pos (h.posSemidef.dotProduct_mulVec_nonneg _)
       (h.dotProduct_mulVec_pos hx')
+
+/-- A real matrix is positive definite exactly when it is positive definite as a complex matrix.
+This is `posDef_map_algebraMap_iff` for `ℂ`, stated with the coercion `ℝ → ℂ`, the form that `simp`
+gives to `algebraMap ℝ ℂ`. -/
+@[simp]
+theorem posDef_map_ofReal_iff {A : Matrix n n ℝ} :
+    (A.map ((↑) : ℝ → ℂ)).PosDef ↔ A.PosDef := by
+  rw [← Complex.coe_algebraMap]
+  exact posDef_map_algebraMap_iff
 
 end Matrix
 

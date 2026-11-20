@@ -8,13 +8,16 @@ module
 public import Mathlib.Analysis.Calculus.FDeriv.Mul
 public import Mathlib.Analysis.Complex.UpperHalfPlane.MoebiusAction
 public import Mathlib.Analysis.Matrix.Normed
-public import Mathlib.GroupTheory.GroupAction.Quotient
+public import TauCeti.GroupTheory.GroupAction.Transitive
 public import Mathlib.GroupTheory.GroupAction.Transitive
 public import Mathlib.LinearAlgebra.SymplecticGroup
 public import TauCeti.LinearAlgebra.Matrix.Realify
 public import SymplecticGeometry.Analysis.Complex.SiegelUpperHalfSpace.Basic
 import TauCeti.Analysis.Matrix.Sqrt
+import TauCeti.Data.Matrix.Block
+import TauCeti.LinearAlgebra.Matrix.GeneralLinearGroup.Symplectic.Unitary
 import SymplecticGeometry.LinearAlgebra.Matrix.PosDef.OfReal
+import SymplecticGeometry.LinearAlgebra.Matrix.Symmetric
 
 /-!
 # The action of the symplectic group on the Siegel upper half space
@@ -34,8 +37,6 @@ plane by Möbius transformations.
 * `SiegelUpperHalfSpace.num`, `SiegelUpperHalfSpace.denom`: the matrices `AZ + B` and `CZ + D`.
 * The `MulAction` of `Matrix.symplecticGroup ι ℝ` on `SiegelUpperHalfSpace ι`, with
   `SiegelUpperHalfSpace.coe_smul` its formula.
-* `SiegelUpperHalfSpace.quotientStabilizerEquiv`: the bijection from the quotient of the symplectic
-  group by the stabilizer of `i𝟙` onto the Siegel upper half space.
 
 ## Main results
 
@@ -45,12 +46,16 @@ plane by Möbius transformations.
   `(CZ + D)ᴴ(AZ + B) - (AZ + B)ᴴ(CZ + D) = Z - Zᴴ` for symplectic `Ψ`, from which everything else
   follows.
 * `SiegelUpperHalfSpace.isUnit_denom`: `CZ + D` is invertible.
+* `SiegelUpperHalfSpace.map_ofReal_im_smul`: the imaginary part of `Ψ • Z` is
+  `(CZ + D)⁻ᴴ (Im Z) (CZ + D)⁻¹`.
 * `SiegelUpperHalfSpace.differentiableOn_num_mul_inv_denom`: the formula is holomorphic on the
   open set (`SiegelUpperHalfSpace.isOpen_setOf_isUnit_det_denom`) where `CZ + D` is invertible,
   which contains the Siegel upper half space.
 * `SiegelUpperHalfSpace.exists_smul_I_eq`: every point `X + iY` is the image of `i𝟙` under the
   symplectic matrix `!![G, X G⁻ᵀ; 0, G⁻ᵀ]`, where `G` is invertible with `G Gᵀ = Y`; hence the
   action is transitive.
+* `SiegelUpperHalfSpace.smul_I_eq_I_iff_commute`: a symplectic matrix fixes `i𝟙` exactly when it
+  commutes with `Matrix.J`.
 * `SiegelUpperHalfSpace.mem_stabilizer_I_iff`: a symplectic matrix fixes `i𝟙` exactly when it is
   the realification `Matrix.realify U` of a unitary matrix `U`.
 * `SiegelUpperHalfSpace.map_stabilizer_I`: the stabilizer of `i𝟙`, as a set of matrices, is the
@@ -67,6 +72,12 @@ All the algebra comes from the two identities above, which use the block relatio
 does not need the complex structures of `ComplexStructure.lean`. Holomorphy is stated with the
 operator norm on matrices (`Matrix.Norms.Operator`); all norms on matrices give the same
 differentiable maps.
+
+Since the action is transitive, Tau Ceti's
+`TauCeti.quotientStabilizerEquiv (symplecticGroup ι ℝ) SiegelUpperHalfSpace.I` is the bijection
+from the quotient of the symplectic group by the stabilizer of `i𝟙` onto the Siegel upper half
+space that the orbit map induces; by `map_stabilizer_I` that stabilizer is the realified unitary
+group.
 
 ## References
 
@@ -177,30 +188,18 @@ theorem conjTranspose_denom_mul_num_sub {Ψ : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ
   rw [this, h₁, h₂, h₃', h₄]
   simp [sub_eq_neg_add]
 
-omit [Fintype ι] [DecidableEq ι] in
-/-- For a symmetric complex matrix `Z`, `Z - Zᴴ = 2i Im Z`. -/
-private theorem sub_conjTranspose_eq {Z : Matrix ι ι ℂ} (hZ : Z.IsSymm) :
-    Z - Zᴴ = (2 * I) • (Z.map Complex.im).map ofReal := by
-  ext i j
-  simp only [Matrix.sub_apply, conjTranspose_apply, Matrix.smul_apply, map_apply, smul_eq_mul,
-    hZ.apply i j]
-  rw [show star (Z i j) = (starRingEnd ℂ) (Z i j) from rfl, Complex.sub_conj]
-  push_cast
-  ring
-
 /-- The denominator `CZ + D` of a symplectic matrix is invertible at every point `Z` of the Siegel
 upper half space. -/
 theorem isUnit_denom {Ψ : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ} (hΨ : Ψ ∈ symplecticGroup ι ℝ)
     (Z : SiegelUpperHalfSpace ι) : IsUnit (denom Ψ Z) := by
-  have hY := (posDef_map_algebraMap_iff (𝕜 := ℂ)).2 Z.posDef_map_im
-  rw [Complex.coe_algebraMap] at hY
+  have hY := posDef_map_ofReal_iff.2 Z.posDef_map_im
   rw [← mulVec_injective_iff_isUnit]
   intro v w hvw
   by_contra hne
   have hu : v - w ≠ 0 := sub_ne_zero.2 hne
   have hN : denom Ψ Z *ᵥ (v - w) = 0 := by rw [mulVec_sub, hvw, sub_self]
   have heq := conjTranspose_denom_mul_num_sub hΨ Z
-  rw [sub_conjTranspose_eq Z.isSymm] at heq
+  rw [Z.isSymm.sub_conjTranspose] at heq
   have key := congrArg (fun P ↦ star (v - w) ⬝ᵥ (P *ᵥ (v - w))) heq
   simp only [sub_mulVec, ← mulVec_mulVec, hN, mulVec_zero, sub_zero] at key
   rw [dotProduct_mulVec, ← star_mulVec, hN, star_zero, zero_dotProduct, smul_mulVec,
@@ -230,14 +229,12 @@ theorem isSymm_num_mul_inv_denom {Ψ : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ} (hΨ 
           Matrix.one_mul]
 
 /-- For symplectic `Ψ` and `Z` in the Siegel upper half space, the imaginary part of
-`(AZ + B)(CZ + D)⁻¹` is positive definite: it is `(CZ + D)⁻ᴴ (Im Z) (CZ + D)⁻¹`. -/
-theorem posDef_map_im_num_mul_inv_denom {Ψ : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ}
+`(AZ + B)(CZ + D)⁻¹` is `(CZ + D)⁻ᴴ (Im Z) (CZ + D)⁻¹`. -/
+theorem map_im_num_mul_inv_denom {Ψ : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ}
     (hΨ : Ψ ∈ symplecticGroup ι ℝ) (Z : SiegelUpperHalfSpace ι) :
-    ((num Ψ Z * (denom Ψ Z)⁻¹).map Complex.im).PosDef := by
+    ((num Ψ Z * (denom Ψ Z)⁻¹).map Complex.im).map ofReal =
+      ((denom Ψ Z)⁻¹)ᴴ * ((Z : Matrix ι ι ℂ).map Complex.im).map ofReal * (denom Ψ Z)⁻¹ := by
   have hd := isUnit_det_denom hΨ Z
-  have hY := (posDef_map_algebraMap_iff (𝕜 := ℂ)).2 Z.posDef_map_im
-  rw [Complex.coe_algebraMap] at hY
-  rw [← posDef_map_algebraMap_iff (𝕜 := ℂ), Complex.coe_algebraMap]
   set M := num Ψ Z
   set N := denom Ψ Z
   have h2 : M * N⁻¹ - (M * N⁻¹)ᴴ = (N⁻¹)ᴴ * (Nᴴ * M - Mᴴ * N) * N⁻¹ := by
@@ -246,10 +243,18 @@ theorem posDef_map_im_num_mul_inv_denom {Ψ : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ
     simp only [Matrix.mul_sub, Matrix.sub_mul, Matrix.mul_assoc, mul_nonsing_inv _ hd,
       Matrix.mul_one, conjTranspose_mul]
     rw [← Matrix.mul_assoc (N⁻¹)ᴴ, hNN, Matrix.one_mul]
-  rw [sub_conjTranspose_eq (isSymm_num_mul_inv_denom hΨ Z), conjTranspose_denom_mul_num_sub hΨ,
-    sub_conjTranspose_eq Z.isSymm, Matrix.mul_smul, Matrix.smul_mul] at h2
-  rw [smul_right_injective _ (by simp : (2 * I : ℂ) ≠ 0) h2]
-  exact hY.conjTranspose_mul_mul_same
+  rw [(isSymm_num_mul_inv_denom hΨ Z).sub_conjTranspose, conjTranspose_denom_mul_num_sub hΨ,
+    Z.isSymm.sub_conjTranspose, Matrix.mul_smul, Matrix.smul_mul] at h2
+  exact smul_right_injective _ (by simp : (2 * I : ℂ) ≠ 0) h2
+
+/-- For symplectic `Ψ` and `Z` in the Siegel upper half space, the imaginary part of
+`(AZ + B)(CZ + D)⁻¹` is positive definite. -/
+theorem posDef_map_im_num_mul_inv_denom {Ψ : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ}
+    (hΨ : Ψ ∈ symplecticGroup ι ℝ) (Z : SiegelUpperHalfSpace ι) :
+    ((num Ψ Z * (denom Ψ Z)⁻¹).map Complex.im).PosDef := by
+  have hd := isUnit_det_denom hΨ Z
+  rw [← posDef_map_ofReal_iff, map_im_num_mul_inv_denom hΨ Z]
+  exact (posDef_map_ofReal_iff.2 Z.posDef_map_im).conjTranspose_mul_mul_same
     (mulVec_injective_iff_isUnit.2 ((isUnit_iff_isUnit_det _).2 (isUnit_nonsing_inv_det _ hd)))
 
 /-! ### The action -/
@@ -264,6 +269,13 @@ theorem coe_smul (Ψ : symplecticGroup ι ℝ) (Z : SiegelUpperHalfSpace ι) :
     ((Ψ • Z : SiegelUpperHalfSpace ι) : Matrix ι ι ℂ) = num Ψ Z * (denom Ψ Z)⁻¹ :=
   (rfl)
 
+/-- The imaginary part of `Ψ • Z`, read as a complex matrix, is `(CZ + D)⁻ᴴ (Im Z) (CZ + D)⁻¹`.
+This is the analogue of `UpperHalfPlane.im_smul_eq_div_normSq`. -/
+theorem map_ofReal_im_smul (Ψ : symplecticGroup ι ℝ) (Z : SiegelUpperHalfSpace ι) :
+    (Ψ • Z).im.map ofReal = ((denom Ψ Z)⁻¹)ᴴ * Z.im.map ofReal * (denom Ψ Z)⁻¹ := by
+  rw [im_def, im_def, coe_smul]
+  exact map_im_num_mul_inv_denom Ψ.property Z
+
 @[simp]
 theorem num_one (Z : Matrix ι ι ℂ) : num 1 Z = Z := by
   simp [num_def, ← fromBlocks_one]
@@ -272,26 +284,13 @@ theorem num_one (Z : Matrix ι ι ℂ) : num 1 Z = Z := by
 theorem denom_one (Z : Matrix ι ι ℂ) : denom 1 Z = 1 := by
   simp [denom_def, ← fromBlocks_one]
 
-omit [DecidableEq ι] in
-private theorem toBlocks_mul (Φ Ψ : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ) :
-    (Φ * Ψ).toBlocks₁₁ = Φ.toBlocks₁₁ * Ψ.toBlocks₁₁ + Φ.toBlocks₁₂ * Ψ.toBlocks₂₁ ∧
-    (Φ * Ψ).toBlocks₁₂ = Φ.toBlocks₁₁ * Ψ.toBlocks₁₂ + Φ.toBlocks₁₂ * Ψ.toBlocks₂₂ ∧
-    (Φ * Ψ).toBlocks₂₁ = Φ.toBlocks₂₁ * Ψ.toBlocks₁₁ + Φ.toBlocks₂₂ * Ψ.toBlocks₂₁ ∧
-    (Φ * Ψ).toBlocks₂₂ = Φ.toBlocks₂₁ * Ψ.toBlocks₁₂ + Φ.toBlocks₂₂ * Ψ.toBlocks₂₂ := by
-  have h : Φ * Ψ = fromBlocks (Φ.toBlocks₁₁ * Ψ.toBlocks₁₁ + Φ.toBlocks₁₂ * Ψ.toBlocks₂₁)
-      (Φ.toBlocks₁₁ * Ψ.toBlocks₁₂ + Φ.toBlocks₁₂ * Ψ.toBlocks₂₂)
-      (Φ.toBlocks₂₁ * Ψ.toBlocks₁₁ + Φ.toBlocks₂₂ * Ψ.toBlocks₂₁)
-      (Φ.toBlocks₂₁ * Ψ.toBlocks₁₂ + Φ.toBlocks₂₂ * Ψ.toBlocks₂₂) := by
-    rw [← fromBlocks_multiply, fromBlocks_toBlocks, fromBlocks_toBlocks]
-  rw [h]
-  simp
-
 /-- The numerator satisfies `num (Φ * Ψ) Z = num Φ W * denom Ψ Z` for
 `W = num Ψ Z * (denom Ψ Z)⁻¹`, whenever `denom Ψ Z` is invertible. -/
 theorem num_mul (Φ Ψ : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ) {Z : Matrix ι ι ℂ}
     (hZ : IsUnit (denom Ψ Z).det) :
     num (Φ * Ψ) Z = num Φ (num Ψ Z * (denom Ψ Z)⁻¹) * denom Ψ Z := by
-  obtain ⟨h₁, h₂, -, -⟩ := toBlocks_mul Φ Ψ
+  have h₁ := toBlocks₁₁_mul Φ Ψ
+  have h₂ := toBlocks₁₂_mul Φ Ψ
   rw [num_def Φ, Matrix.add_mul, Matrix.mul_assoc, Matrix.mul_assoc, nonsing_inv_mul _ hZ,
     Matrix.mul_one, num_def, num_def, denom_def, h₁, h₂]
   simp only [Matrix.map_add _ ofReal_add, map_ofReal_mul]
@@ -302,7 +301,8 @@ theorem num_mul (Φ Ψ : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ) {Z : Matrix ι ι �
 theorem denom_mul (Φ Ψ : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ) {Z : Matrix ι ι ℂ}
     (hZ : IsUnit (denom Ψ Z).det) :
     denom (Φ * Ψ) Z = denom Φ (num Ψ Z * (denom Ψ Z)⁻¹) * denom Ψ Z := by
-  obtain ⟨-, -, h₃, h₄⟩ := toBlocks_mul Φ Ψ
+  have h₃ := toBlocks₂₁_mul Φ Ψ
+  have h₄ := toBlocks₂₂_mul Φ Ψ
   rw [denom_def Φ, Matrix.add_mul, Matrix.mul_assoc, Matrix.mul_assoc, nonsing_inv_mul _ hZ,
     Matrix.mul_one, denom_def, num_def, denom_def, h₃, h₄]
   simp only [Matrix.map_add _ ofReal_add, map_ofReal_mul]
@@ -439,26 +439,31 @@ theorem smul_I_eq_I_iff (Ψ : symplecticGroup ι ℝ) :
   · intro h
     rw [h, Matrix.smul_mul, mul_nonsing_inv _ hd]
 
+/-- A symplectic matrix fixes `i𝟙` exactly when it commutes with `J`, that is, when it is complex
+linear. -/
+theorem smul_I_eq_I_iff_commute (Ψ : symplecticGroup ι ℝ) :
+    Ψ • (SiegelUpperHalfSpace.I : SiegelUpperHalfSpace ι) = SiegelUpperHalfSpace.I ↔
+      Commute (J ι ℝ) (Ψ : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ) := by
+  rw [smul_I_eq_I_iff]
+  set M := (Ψ : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ)
+  conv_rhs => rw [← fromBlocks_toBlocks M]
+  simp only [Commute, SemiconjBy, J, fromBlocks_multiply, fromBlocks_inj]
+  simp only [Matrix.zero_mul, Matrix.neg_mul, Matrix.one_mul, Matrix.mul_zero, Matrix.mul_neg,
+    Matrix.mul_one, zero_add, add_zero]
+  constructor
+  · rintro ⟨hD, hC⟩
+    simp [hD, hC]
+  · rintro ⟨h₁, -, h₃, -⟩
+    exact ⟨h₃.symm, by rw [← h₁, neg_neg]⟩
+
 /-- A symplectic matrix fixes `i𝟙` exactly when it is the realification of a unitary matrix. -/
 theorem mem_stabilizer_I_iff {Ψ : symplecticGroup ι ℝ} :
     Ψ ∈ MulAction.stabilizer (symplecticGroup ι ℝ)
         (SiegelUpperHalfSpace.I : SiegelUpperHalfSpace ι) ↔
       ∃ U ∈ unitaryGroup ι ℂ, U.realify = Ψ := by
-  rw [MulAction.mem_stabilizer_iff, smul_I_eq_I_iff]
-  constructor
-  · rintro ⟨hD, hC⟩
-    set U : Matrix ι ι ℂ := (Ψ : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ).toBlocks₁₁.map ofReal -
-      I • (Ψ : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ).toBlocks₁₂.map ofReal
-    have hU : U.realify = Ψ := by
-      ext (i | i) (j | j)
-      · simp [U, toBlocks₁₁]
-      · simp [U, toBlocks₁₂]
-      · simpa [U, toBlocks₁₂, toBlocks₂₁, eq_comm] using congrFun (congrFun hC i) j
-      · simpa [U, toBlocks₁₁, toBlocks₂₂, eq_comm] using congrFun (congrFun hD i) j
-    exact ⟨U, realify_mem_symplecticGroup_iff.1 (hU ▸ Ψ.property), hU⟩
-  · rintro ⟨U, -, hU⟩
-    rw [← hU]
-    constructor <;> ext i j <;> simp [toBlocks₁₁, toBlocks₁₂, toBlocks₂₁, toBlocks₂₂]
+  rw [MulAction.mem_stabilizer_iff, smul_I_eq_I_iff_commute, commute_J_iff_exists_realify_eq]
+  exact ⟨fun ⟨U, hU⟩ ↦ ⟨U, realify_mem_symplecticGroup_iff.1 (hU ▸ Ψ.property), hU⟩,
+    fun ⟨U, _, hU⟩ ↦ ⟨U, hU⟩⟩
 
 /-- The stabilizer of `i𝟙` in the symplectic group, as a set of real matrices, is the image of the
 unitary group under realification. -/
@@ -467,31 +472,12 @@ theorem map_stabilizer_I :
         (SiegelUpperHalfSpace.I : SiegelUpperHalfSpace ι)).toSubmonoid.map
         (symplecticGroup ι ℝ).subtype =
       (unitaryGroup ι ℂ).map (realifyAlgHom ι ℂ) := by
-  ext Ψ
+  rw [← symplecticGroup_inf_centralizer_J]
+  ext M
   simp only [Submonoid.mem_map, Subgroup.mem_toSubmonoid, Submonoid.coe_subtype,
-    realifyAlgHom_apply]
-  constructor
-  · rintro ⟨Ψ, hΨ, rfl⟩
-    obtain ⟨U, hU, hUΨ⟩ := mem_stabilizer_I_iff.1 hΨ
-    exact ⟨U, hU, hUΨ⟩
-  · rintro ⟨U, hU, rfl⟩
-    refine ⟨⟨U.realify, realify_mem_symplecticGroup_iff.2 hU⟩, ?_, rfl⟩
-    exact mem_stabilizer_I_iff.2 ⟨U, hU, rfl⟩
-
-/-- The orbit map of `i𝟙` induces a bijection from the quotient of the symplectic group by the
-stabilizer of `i𝟙`, the realified unitary group (`mem_stabilizer_I_iff`), onto the Siegel upper
-half space. -/
-def quotientStabilizerEquiv :
-    symplecticGroup ι ℝ ⧸ MulAction.stabilizer (symplecticGroup ι ℝ)
-        (SiegelUpperHalfSpace.I : SiegelUpperHalfSpace ι) ≃ SiegelUpperHalfSpace ι :=
-  (MulAction.orbitEquivQuotientStabilizer _ _).symm.trans
-    (Equiv.subtypeUnivEquiv fun _ ↦ by simp [MulAction.orbit_eq_univ])
-
-@[simp]
-theorem quotientStabilizerEquiv_mk (Ψ : symplecticGroup ι ℝ) :
-    quotientStabilizerEquiv (QuotientGroup.mk Ψ : symplecticGroup ι ℝ ⧸ _) =
-      Ψ • (SiegelUpperHalfSpace.I : SiegelUpperHalfSpace ι) := by
-  simp [quotientStabilizerEquiv, MulAction.orbitEquivQuotientStabilizer_symm_apply]
+    MulAction.mem_stabilizer_iff, smul_I_eq_I_iff_commute, Submonoid.mem_inf,
+    Submonoid.mem_centralizer_iff, Set.mem_singleton_iff, forall_eq]
+  exact ⟨fun ⟨Ψ, hΨ, hM⟩ ↦ hM ▸ ⟨Ψ.property, hΨ.eq⟩, fun ⟨hM, hJ⟩ ↦ ⟨⟨M, hM⟩, hJ, rfl⟩⟩
 
 /-! ### Index one: the upper half plane -/
 
