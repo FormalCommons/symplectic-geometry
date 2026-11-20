@@ -1,0 +1,183 @@
+/-
+Copyright (c) 2026 The FormalCommons contributors. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: The FormalCommons contributors
+-/
+module
+
+public import SymplecticGeometry.Analysis.Matrix.Polar.Basic
+public import SymplecticGeometry.Analysis.Matrix.Polar.Symplectic
+public import TauCeti.Analysis.Matrix.Polar.GLSymplectic
+public import TauCeti.Analysis.Matrix.SymplecticGroup.Connected
+public import TauCeti.LinearAlgebra.Matrix.GeneralLinearGroup.Symplectic.MaximalCompact
+public import TauCeti.Topology.Homotopy.DeformationRetract
+
+/-!
+# The unitary group is a deformation retract of the real symplectic group
+
+Let `U(n)` be the group of orthogonal symplectic matrices of size `2n`, as the subgroup
+`GLSymplectic n ℝ ⊓ unitarySubgroup (GL (n ⊕ n) ℝ)` of the general linear group. Tau Ceti's
+symplectic polar homotopy `TauCeti.GLSymplectic.polarHomotopy` contracts the positive factor of
+`Ψ = P U` and ends at the orthogonal polar factor `U`. This file shows that it fixes `U(n)` at
+all times, so that it is a strong deformation retraction of `Sp(2n)` onto `U(n)`; that at time
+`t` it is the map `Ψ ↦ Ψ (ΨᵀΨ) ^ (-t / 2)`; and that the inclusion `U(n) → Sp(2n)` is a
+homotopy equivalence, with the orthogonal polar factor as homotopy inverse.
+
+With Tau Ceti's powers of positive symplectic matrices (`SymplecticGroup.rpow_mem`), the right
+polar decomposition of `SymplecticGeometry.Analysis.Matrix.Polar.Symplectic`, Tau Ceti's
+maximality of `U(n)` among compact subgroups and its path-connectedness of `Sp(2n)`, this gives
+the theorem `TauCeti.GLSymplectic.polar_maximal_isCompact_deformationRetract`.
+
+## Main definitions
+
+* `TauCeti.GLSymplectic.polarHomotopyRel`: the symplectic polar homotopy, as a homotopy relative
+  to `U(n)`.
+* `TauCeti.GLSymplectic.polarHomotopyEquiv`: the homotopy equivalence `U(n) ≃ₕ Sp(2n)` given by
+  the inclusion.
+
+## Main results
+
+* `TauCeti.GLSymplectic.polarHomotopy_apply_inclusion`: the polar homotopy fixes `U(n)`.
+* `TauCeti.GLSymplectic.coe_polarHomotopy_apply_eq_mul_rpow`: at time `t` the polar homotopy is
+  `Ψ ↦ Ψ (ΨᵀΨ) ^ (-t / 2)`.
+* `TauCeti.GLSymplectic.polar_maximal_isCompact_deformationRetract`: the polar decomposition of
+  a real symplectic matrix, maximal compactness of `U(n)`, the deformation retraction and the
+  homotopy equivalence, and connectedness of `Sp(2n)`.
+
+## References
+
+* [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017],
+  Section 2.2, Lemma 2.2.3, Proposition 2.2.4 and Remark 2.2.5.
+-/
+
+public section
+
+open Matrix Matrix.GeneralLinearGroup
+open scoped MatrixOrder unitInterval ContinuousMap
+
+namespace TauCeti.GLSymplectic
+
+variable {n : Type*} [Fintype n] [DecidableEq n]
+
+/-- The inclusion of the orthogonal symplectic matrices `U(n)` in the symplectic group is
+continuous. -/
+theorem continuous_inclusion_unitary :
+    Continuous (Subgroup.inclusion inf_le_left :
+      ↥(GLSymplectic n ℝ ⊓ unitarySubgroup (GL (n ⊕ n) ℝ)) → GLSymplectic n ℝ) :=
+  continuous_subtypeVal.subtype_mk _
+
+/-- The symplectic polar homotopy fixes every orthogonal symplectic matrix at every time. -/
+@[simp]
+theorem polarHomotopy_apply_inclusion (t : I)
+    (U : ↥(GLSymplectic n ℝ ⊓ unitarySubgroup (GL (n ⊕ n) ℝ))) :
+    polarHomotopy (t, Subgroup.inclusion inf_le_left U) = Subgroup.inclusion inf_le_left U := by
+  have hU : (U : GL (n ⊕ n) ℝ) = Unitary.toUnits ⟨_, by
+      simpa [mem_unitarySubgroup_iff, Units.unitary_eq] using (Subgroup.mem_inf.1 U.property).2⟩ :=
+    Units.ext rfl
+  refine Subtype.ext ?_
+  rw [coe_polarHomotopy_apply, Subgroup.coe_inclusion, hU, polarDeformation_toUnits]
+
+/-- The symplectic polar homotopy, from the identity of `Sp(2n)` to the orthogonal polar factor,
+as a homotopy relative to the orthogonal symplectic matrices `U(n)`: a strong deformation
+retraction of `Sp(2n)` onto `U(n)`. -/
+noncomputable def polarHomotopyRel :
+    ContinuousMap.HomotopyRel (ContinuousMap.id (GLSymplectic n ℝ))
+      ⟨fun A ↦ Subgroup.inclusion inf_le_left (polarUnitary A),
+        continuous_inclusion_polarUnitary⟩
+      (Set.range (Subgroup.inclusion (inf_le_left (b := unitarySubgroup (GL (n ⊕ n) ℝ))))) where
+  toHomotopy := polarHomotopy
+  prop' := by
+    rintro t _ ⟨U, rfl⟩
+    exact polarHomotopy_apply_inclusion t U
+
+/-- The relative symplectic polar homotopy evaluates to the symplectic polar homotopy. -/
+@[simp]
+theorem polarHomotopyRel_apply (p : I × GLSymplectic n ℝ) :
+    polarHomotopyRel p = polarHomotopy p :=
+  (rfl)
+
+/-- At time `t`, the symplectic polar homotopy is the map `Ψ ↦ Ψ (ΨᵀΨ) ^ (-t / 2)`. -/
+theorem coe_polarHomotopy_apply_eq_mul_rpow (t : I) (A : GLSymplectic n ℝ) :
+    (((polarHomotopy (t, A) : GLSymplectic n ℝ) : GL (n ⊕ n) ℝ) : Matrix (n ⊕ n) (n ⊕ n) ℝ) =
+      ((A : GL (n ⊕ n) ℝ) : Matrix (n ⊕ n) (n ⊕ n) ℝ) *
+        (((A : GL (n ⊕ n) ℝ) : Matrix (n ⊕ n) (n ⊕ n) ℝ)ᵀ *
+          ((A : GL (n ⊕ n) ℝ) : Matrix (n ⊕ n) (n ⊕ n) ℝ)) ^ (-((t : ℝ) / 2)) := by
+  rw [coe_polarHomotopy_apply, coe_polarDeformation_eq_mul_rpow, star_eq_conjTranspose,
+    conjTranspose_eq_transpose_of_trivial]
+
+/-- **`U(n)` is homotopy equivalent to `Sp(2n)`.** The inclusion of the orthogonal symplectic
+matrices in the real symplectic group is a homotopy equivalence, with the orthogonal polar factor
+as homotopy inverse. -/
+noncomputable def polarHomotopyEquiv :
+    ↥(GLSymplectic n ℝ ⊓ unitarySubgroup (GL (n ⊕ n) ℝ)) ≃ₕ GLSymplectic n ℝ :=
+  .ofDeformationRetraction ⟨_, continuous_inclusion_unitary⟩ ⟨_, continuous_polarUnitary⟩
+    polarUnitary_inclusion ⟨polarHomotopy.symm⟩
+
+/-- The homotopy equivalence `U(n) ≃ₕ Sp(2n)` is the inclusion. -/
+@[simp]
+theorem polarHomotopyEquiv_apply (U : ↥(GLSymplectic n ℝ ⊓ unitarySubgroup (GL (n ⊕ n) ℝ))) :
+    polarHomotopyEquiv U = Subgroup.inclusion inf_le_left U :=
+  ContinuousMap.HomotopyEquiv.ofDeformationRetraction_apply _ _ _ _ U
+
+/-- The homotopy inverse of the inclusion `U(n) → Sp(2n)` is the orthogonal polar factor. -/
+@[simp]
+theorem polarHomotopyEquiv_symm_apply (A : GLSymplectic n ℝ) :
+    polarHomotopyEquiv.symm A = polarUnitary A :=
+  ContinuousMap.HomotopyEquiv.ofDeformationRetraction_symm_apply _ _ _ _ A
+
+/-- **Polar decomposition and the maximal compact subgroup of `Sp(2n)`.** For real matrices of
+size `2n`:
+1. a positive definite symplectic matrix `P` has every real power `P ^ α` symplectic;
+2. a symplectic matrix `Ψ` is `U P` with `U` orthogonal and symplectic, that is, in `U(n)`, and
+  `P` positive definite and symplectic, for exactly one pair `(U, P)`, namely
+  `U = Ψ (ΨᵀΨ) ^ (-1 / 2)` and `P = (ΨᵀΨ) ^ (1 / 2)`;
+3. `U(n)` is a maximal compact subgroup of `Sp(2n)`; the maps `Ψ ↦ Ψ (ΨᵀΨ) ^ (-t / 2)`,
+  `0 ≤ t ≤ 1`, form a homotopy relative to `U(n)` from the identity to a retraction onto `U(n)`;
+  the inclusion `U(n) → Sp(2n)` is a homotopy equivalence; and `Sp(2n)` is path-connected.
+
+Milestone: *Symplectic polar decomposition and the maximal compact subgroup*. -/
+theorem polar_maximal_isCompact_deformationRetract :
+    (∀ P : Matrix (n ⊕ n) (n ⊕ n) ℝ, P.PosDef → P ∈ symplecticGroup n ℝ →
+      ∀ α : ℝ, P ^ α ∈ symplecticGroup n ℝ) ∧
+    (∀ Ψ ∈ symplecticGroup n ℝ, ∀ U P : Matrix (n ⊕ n) (n ⊕ n) ℝ,
+      (U ∈ symplecticGroup n ℝ ∧ U ∈ orthogonalGroup (n ⊕ n) ℝ ∧ P.PosDef ∧
+          P ∈ symplecticGroup n ℝ ∧ U * P = Ψ) ↔
+        (U = Ψ * (Ψᵀ * Ψ) ^ (-(1 / 2 : ℝ)) ∧ P = (Ψᵀ * Ψ) ^ (1 / 2 : ℝ))) ∧
+    Maximal (fun K : Subgroup (GLSymplectic n ℝ) ↦ IsCompact (K : Set (GLSymplectic n ℝ)))
+      ((unitarySubgroup (GL (n ⊕ n) ℝ)).subgroupOf (GLSymplectic n ℝ)) ∧
+    (∃ r : C(GLSymplectic n ℝ, ↥(GLSymplectic n ℝ ⊓ unitarySubgroup (GL (n ⊕ n) ℝ))),
+      (∀ U, r (Subgroup.inclusion inf_le_left U) = U) ∧
+      ∃ H : ContinuousMap.HomotopyRel (ContinuousMap.id (GLSymplectic n ℝ))
+          ((⟨_, continuous_inclusion_unitary⟩ :
+            C(↥(GLSymplectic n ℝ ⊓ unitarySubgroup (GL (n ⊕ n) ℝ)), GLSymplectic n ℝ)).comp r)
+          (Set.range (Subgroup.inclusion (inf_le_left (b := unitarySubgroup (GL (n ⊕ n) ℝ))))),
+        ∀ (t : I) (A : GLSymplectic n ℝ),
+          (((H (t, A) : GLSymplectic n ℝ) : GL (n ⊕ n) ℝ) : Matrix (n ⊕ n) (n ⊕ n) ℝ) =
+            ((A : GL (n ⊕ n) ℝ) : Matrix (n ⊕ n) (n ⊕ n) ℝ) *
+              (((A : GL (n ⊕ n) ℝ) : Matrix (n ⊕ n) (n ⊕ n) ℝ)ᵀ *
+                ((A : GL (n ⊕ n) ℝ) : Matrix (n ⊕ n) (n ⊕ n) ℝ)) ^ (-((t : ℝ) / 2))) ∧
+    (∃ e : ↥(GLSymplectic n ℝ ⊓ unitarySubgroup (GL (n ⊕ n) ℝ)) ≃ₕ GLSymplectic n ℝ,
+      ∀ U, e U = Subgroup.inclusion inf_le_left U) ∧
+    IsPathConnected (symplecticGroup n ℝ : Set (Matrix (n ⊕ n) (n ⊕ n) ℝ)) := by
+  refine ⟨fun P hP hPs α ↦ SymplecticGroup.rpow_mem hP.posSemidef hPs α, fun Ψ hΨ U P ↦ ?_,
+    maximal_isCompact_unitarySubgroup,
+    ⟨⟨_, continuous_polarUnitary⟩, polarUnitary_inclusion, polarHomotopyRel,
+      coe_polarHomotopy_apply_eq_mul_rpow⟩,
+    ⟨polarHomotopyEquiv, polarHomotopyEquiv_apply⟩, isPathConnected_symplecticGroup n⟩
+  obtain ⟨A, rfl⟩ := (isUnit_iff_isUnit_det Ψ).2 (SymplecticGroup.symplectic_det hΨ)
+  rw [← conjTranspose_eq_transpose_of_trivial, ← star_eq_conjTranspose,
+    ← coe_polarUnitary_eq_mul_rpow, ← CFC.sqrt_eq_rpow]
+  constructor
+  · rintro ⟨-, hUo, hP, -, h⟩
+    obtain ⟨h₁, h₂⟩ :=
+      (Units.mul_eq_iff_polarUnitary_eq_and_sqrt_star_mul_eq A hP.posSemidef.nonneg
+        (v := ⟨U, hUo⟩)).1 h
+    exact ⟨congrArg Subtype.val h₁.symm, h₂.symm⟩
+  · rintro ⟨rfl, rfl⟩
+    exact ⟨SymplecticGroup.polarUnitary_mem hΨ, (Units.polarUnitary A).property,
+      posDef_sqrt_star_mul A, SymplecticGroup.sqrt_star_mul_mem hΨ,
+      Units.polarUnitary_mul_sqrt_star_mul A⟩
+
+end TauCeti.GLSymplectic
+
+end
