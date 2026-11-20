@@ -13,7 +13,9 @@ never copy text from the atlas into the repository or into its issues, pull
 requests and comments. Write statements in Lean and explanations in your own
 words, and refer to the atlas by page and milestone name, such as
 `atlas/linear-symplectic-geometry.md`, *milestone name*. A milestone's name
-is the only text of the atlas that you may repeat.
+is the only prose of the atlas that you may repeat. The names of Mathlib and
+Tau Ceti declarations, formulas, and citations of published sources are not
+copies, even where the atlas has them too.
 
 The milestones are results that the library must prove, and they measure how
 much of the subject it covers. But the library is more than its milestones: it
