@@ -566,28 +566,34 @@ it into issues; the overview fixes its folders and its dependencies.
 - **Files:** `LinearAlgebra/Symplectic/Compatible.lean` (the four equivalent
   characterizations and the two of the exercise, including the converse of
   Tau Ceti's `Compatible.hermitianCore`),
-  `Analysis/InnerProductSpace/Symplectic/PolarComplexStructure.lean`
-  ($J_{g,\omega}$ for an arbitrary inner product $g$ given as a bilinear form,
+  `Analysis/InnerProductSpace/Symplectic/PolarComplexStructure/` (`Basic.lean`:
+  $J_{g,\omega}$ for an arbitrary inner product $g$ given as a bilinear form,
   its equivariance under $\mathrm{GL}(V)$, and the lemma identifying it, for
   the ambient inner product, with Tau Ceti's `polarComplexStructure`; Tau
   Ceti's `TauCeti.SymplecticForm.polarComplexStructure_transport` gives the
-  equivariance in that case),
+  equivariance in that case; `Smooth.lean`: its explicit formula and
+  smoothness),
   `Topology/Algebra/Module/InnerProducts.lean` (the space $\mathrm{Met}(V)$
   of all inner products on $V$, a convex open subset of the symmetric bilinear forms,
-  from Tau Ceti's `TauCeti.convex_setOfPred_posDef` in coordinates),
-  `Topology/ComplexStructure/Compatible.lean` (the identification
+  from Tau Ceti's `TauCeti.convex_setOfPred_symm_pos`),
+  `Topology/Algebra/Module/SymplecticForms.lean` (the topology on
+  `SymplecticForm V`),
+  `Geometry/Symplectic/Cayley/Domain.lean` (the open set where Tau Ceti's
+  Cayley path is smooth),
+  `Topology/ComplexStructure/Compatible/` (`Matrix.lean`: the identification
   $J\mapsto-J_0J$ with the symmetric positive definite symplectic matrices,
-  using Tau Ceti's `Compatible.cayleyEquiv`; the homotopy equivalences with
-  $\mathrm{Met}(V)$ and between forms and complex structures for fixed $g$;
-  the inclusion of compatible into tame structures as a homotopy equivalence;
-  the contractions are explicit maps, not only Tau Ceti's contractibility
-  instances, see below),
+  by linear formulas; `Metric.lean` and `SymplecticForms.lean`: the homotopy
+  equivalences with $\mathrm{Met}(V)$ and between forms and complex
+  structures for fixed $g$; `Tame.lean`: the inclusion of compatible into
+  tame structures as a homotopy equivalence; the contractions are explicit
+  maps, not only Tau Ceti's contractibility instances, see below),
   `Topology/Algebra/Matrix/SymplecticGroup/CompactSubgroup.lean`
   (a compact subgroup of the symplectic group lies in some conjugate of
   $\mathrm{U}(n)$, from Tau Ceti's
   `exists_compatible_forall_isComplexLinearMap` and the transport of a
   compatible pair to $(\omega_0,J_0)$).
-- **Builds on:** *Standard model*, *Linear complex structures*.
+- **Builds on:** *Standard model*; *Symplectic vector spaces* for the
+  Lagrangian extension lemma, used in one characterization.
 - **Milestones:** *Characterizations of compatible complex structures*,
   *Contractibility of the space of compatible complex structures*, *Complex
   structures versus symplectic forms*, *Compact subgroups of the symplectic
@@ -835,7 +841,7 @@ Each part depends only on the parts listed, besides Mathlib and Tau Ceti.
 | 1 | *Linear nonsqueezing* | *Standard model* |
 | 1 | *Linear complex structures* | *Standard model* |
 | 1 | *Siegel upper half space* | *Standard model* |
-| 2 | *Compatible complex structures* | *Standard model*, *Linear complex structures* |
+| 2 | *Compatible complex structures* | *Standard model*, *Symplectic vector spaces* |
 | 2 | *Maslov index* | *Standard model*, *Symplectic group*, *Unitary group topology*; its Lagrangian issues also *Lagrangian Grassmannian* |
 | 3 | *Symplectic vector bundles* | *Compatible complex structures*, *Linear Moser* |
 | 4 | *First Chern number* | *Symplectic vector bundles*, the symplectic-loop issues of *Maslov index* |
