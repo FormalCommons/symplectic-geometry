@@ -46,8 +46,8 @@ model `SymplecticGeometry.stdForm` on `SymplecticGeometry.StdSpace ι`; it follo
   nondegenerate, and its values on the standard basis.
 * `LinearMap.BilinForm.IsAlt.equivalent_neg_stdSymplecticBilinForm`: a space of
   dimension `2n` with a nondegenerate alternating form is isometric to `(k²ⁿ, ω₀)`.
-* `LinearMap.BilinForm.IsAlt.equivalent_iff_finrank_eq`: two such spaces are isometric if and
-  only if they have the same dimension.
+* `LinearMap.BilinForm.IsAlt.equivalent_iff_finrank_eq`: two such spaces are isometric exactly
+  when their dimensions agree.
 * `LinearMap.BilinForm.IsAlt.exists_basis_and_equivalent`: the linear Darboux theorem, the
   three statements together.
 * `SymplecticGeometry.exists_isSymplectomorphism_stdForm`,
@@ -158,8 +158,8 @@ theorem equivalent_neg_stdSymplecticBilinForm (hB : B.IsAlt)
   exact ⟨((Pi.basisFun k _).reindex (Equiv.sumComm _ _)).isometryEquivOfToMatrixEq b
     ((toMatrix_reindex_sumComm_neg_stdSymplecticBilinForm k m).trans hb.symm)⟩
 
-/-- Two finite-dimensional spaces with nondegenerate alternating forms are isometric if and only
-if they have the same dimension. -/
+/-- Two finite-dimensional spaces with nondegenerate alternating forms are isometric exactly when
+their dimensions agree. -/
 theorem equivalent_iff_finrank_eq (hB : B.IsAlt) (hnd : B.Nondegenerate)
     (hC : C.IsAlt) (hndC : C.Nondegenerate) :
     B.Equivalent C ↔ finrank k V = finrank k W := by
