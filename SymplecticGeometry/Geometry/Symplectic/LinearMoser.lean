@@ -304,8 +304,7 @@ theorem exists_contDiff_transport_eq {n : ℕ∞} {J : ℝ → AlmostComplexStru
   refine ⟨e, ?_, ?_, fun t => ?_⟩
   · simpa only [he] using hΨ
   · ext v
-    change (e 0 : V →L[ℝ] V) v = v
-    simp [he, h0]
+    simp [← ContinuousLinearEquiv.coe_coe, he, h0]
   · ext v
     have h := congr($(hc t) ((e t).symm v))
     rw [← he] at h
