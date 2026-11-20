@@ -155,7 +155,7 @@ also uses.
 | Degree of a circle loop | `Circle.degree` (`Topology/Circle/Degree.lean`) | Tau Ceti |
 | Maslov index of a symplectic loop | `TauCeti.GLSymplectic.maslovIndex` (`Analysis/Matrix/SymplecticGroup/Maslov.lean`) | Tau Ceti |
 | Continuous complex structure on a real vector bundle | `TauCeti.Bundle.ContinuousComplexStructure` (`Topology/VectorBundle/Complex/Structure.lean`) | Tau Ceti |
-| $C^n$ complex structure on a smooth real vector bundle, with its topology | `SymplecticGeometry.Bundle.ContMDiffComplexStructure`, mapping to the continuous one; on $TM$ identified with `TauCeti.SmoothAlmostComplexStructure` | *Symplectic vector bundles* |
+| $C^n$ complex structure on a smooth real vector bundle, with its topology | `SymplecticGeometry.Bundle.ContMDiffComplexStructure`, generalizing `TauCeti.ContMDiffAlmostComplexStructure I n M` with its field names and its `n`, mapping to the continuous one; on $TM$ identified with `ContMDiffAlmostComplexStructure` for every $n$, and with `TauCeti.SmoothAlmostComplexStructure` through `smoothEquiv` | *Symplectic vector bundles* |
 | Bundle metrics $\mathrm{Met}(E)$, with their topology | `Bundle.ContMDiffRiemannianMetric` with Tau Ceti's `frameTopology` (`Geometry/Manifold/VectorBundle/Riemannian/SectionTopology.lean`) | Mathlib, Tau Ceti |
 | $\mathbb{R}^{2n}$, $\omega_0$, $J_0$ | `SymplecticGeometry.StdSpace ι`, `SymplecticGeometry.stdForm ι`, `SymplecticGeometry.stdComplexStructure ι` | *Standard model* |
 
@@ -270,7 +270,12 @@ further when they grow, following `AGENTS.md`.
   `finiteOrthonormalFrame 𝕜 1 N` vanish below degree
   $\dim_{\mathbb{R}}\mathbb{k}^N-1$, in the namespace
   `TauCeti.finiteOrthonormalFrame`, beside the real
-  `TauCeti.finiteOrthonormalFrame.subsingleton_homotopyGroup`. It identifies
+  `TauCeti.finiteOrthonormalFrame.subsingleton_homotopyGroup`, under a name
+  of its own that its issue checks is unused there (for example
+  `subsingleton_homotopyGroup_unitVector`). Tau Ceti's
+  `TauCeti.ComplexProjectiveSpace.subsingleton_homotopyGroup_sphere`
+  (`Topology/ComplexProjectiveSpace/Hopf/Exact.lean`) is the sphere-level
+  statement over $\mathbb{C}$. It identifies
   the space with the unit sphere of `EuclideanSpace 𝕜 (Fin N)` by
   `TauCeti.finiteOrthonormalFrame.forgetLastFiberSphere` at the $0$-frame
   (`Topology/Grassmannian/ForgetLast.lean`) and applies
@@ -278,34 +283,45 @@ further when they grow, following `AGENTS.md`.
   (`AlgebraicTopology/Sphere/HomotopyGroup.lean`), which holds in any real
   normed space of finite dimension, so $\mathbb{C}^N$ is never compared with
   $\mathbb{R}^{2N}$. `Topology/Grassmannian/StiefelFibration/Stability.lean`:
-  the unitary stable range `TauCeti.Matrix.UnitaryGroup.isNConnected_fromBlocksOne`,
-  that the block inclusion `fromBlocksOne` of $\mathrm{U}(m)$ in
-  $\mathrm{U}(1+m)$ is $2m$-connected, the complex analogue of
-  `TauCeti.Matrix.SpecialOrthogonalGroup.isNConnected_fromBlocksOne` and
+  the stable range `Matrix.UnitaryGroup.isNConnected_fromBlocksOne`, in the
+  namespace of Tau Ceti's `fromBlocksOne`, `detCircle` and
+  `instPathConnectedSpace` for Mathlib's `Matrix.unitaryGroup`. It is stated
+  over any `RCLike 𝕜`: the block inclusion `fromBlocksOne` of
+  $\mathrm{U}(m,\mathbb{k})$ in $\mathrm{U}(1+m,\mathbb{k})$ is
+  `Module.finrank ℝ 𝕜 * (m + 1) - 2`-connected. For $\mathbb{k}=\mathbb{C}$
+  this is $2m$, the case the milestone uses, and for $\mathbb{k}=\mathbb{R}$
+  it gives $\mathrm{O}(m)\to\mathrm{O}(1+m)$. It is the analogue of
+  `TauCeti.Matrix.SpecialOrthogonalGroup.isNConnected_fromBlocksOne` and is
   proved in the same way. Then
   `Analysis/Matrix/UnitaryGroup/FundamentalGroup.lean`, which holds only the
   milestone: $\det:\mathrm{U}(n)\to S^1$, Tau Ceti's
   `Matrix.UnitaryGroup.detCircle`, induces an isomorphism of fundamental
-  groups for $n\ge1$, by induction from $\mathrm{U}(1)\cong S^1$ along the
+  groups for $n\ge1$, by induction from $\mathrm{U}(1)\cong S^1$, which is
+  Tau Ceti's `Matrix.UnitaryGroup.detCircleEquivOfUnique`
+  (`Analysis/Matrix/UnitaryGroup/Torus.lean`, with forward map `detCircle`),
+  along the
   stable range, which commutes with $\det$; and its corollary that
   $\mathrm{SU}(n)$ (Mathlib's `Matrix.specialUnitaryGroup`) is simply
   connected, for $n\ge1$ through the homeomorphism
   $\mathrm{U}(n)\cong\mathrm{SU}(n)\times S^1$,
-  $A\mapsto(A\operatorname{diag}(\det A^{-1},1,\dots,1),\det A)$, under which
+  $A\mapsto(A\operatorname{diag}(\det A^{-1},1,\dots,1),\det A)$, with the
+  diagonal factor built by `TauCeti.unitaryTorusHom`, under which
   $\det$ is the second projection, and for $n=0$ because the group is a point.
   Tau Ceti's `Matrix.instSimplyConnectedSpaceSpecialUnitaryGroupFinTwoComplex`
   is the case $n=2$. Last, `Analysis/Matrix/SymplecticGroup/FundamentalGroup.lean`
   ($\pi_1(\mathrm{Sp}(2n))\cong\mathbb{Z}$ for $n\ge1$, through *Symplectic
   group*'s homotopy equivalence).
 - **Builds on:** Mathlib, Tau Ceti; the last file also on *Symplectic group*.
-  The stable range uses Tau Ceti's complex Stiefel fibration with $r=1$:
-  `TauCeti.unitaryFrameMap` ($\mathrm{U}(1+m)\to$ unit vectors of
-  $\mathbb{C}^{1+m}$) is a Serre fibration
+  The stable range uses Tau Ceti's unitary Stiefel fibration over `RCLike 𝕜`
+  with $r=1$: `TauCeti.unitaryFrameMap` ($\mathrm{U}(1+m,\mathbb{k})\to$ unit
+  vectors of $\mathbb{k}^{1+m}$) is a Serre fibration
   (`TauCeti.unitaryFrameMap_mem_serreFibrations`,
   `exists_trivialization_unitaryFrameMap`,
   `Topology/Grassmannian/StiefelFibration/Unitary.lean`) whose fibre is the
-  block-embedded $\mathrm{U}(m)$ (`TauCeti.unitaryFrameFiberHomeomorph`); the
-  base is $S^{2m+1}$, so the fibre inclusion is $2m$-connected by
+  block-embedded $\mathrm{U}(m,\mathbb{k})$
+  (`TauCeti.unitaryFrameFiberHomeomorph`); the base is a sphere of
+  dimension `Module.finrank ℝ 𝕜 * (m + 1) - 1` (for $\mathbb{C}$,
+  $S^{2m+1}$), so the fibre inclusion is connected one degree below that, by
   `TauCeti.TopCat.isNConnected_fiberι_of_mem_serreFibrations`. Only $r=1$ is
   planned: a general $r$ would need the fibration of frames by `forgetLast`
   over $\mathbb{C}$, which Tau Ceti has only over $\mathbb{R}$, and nothing
@@ -464,13 +480,21 @@ it into issues; the overview fixes its folders and its dependencies.
   forms, as Tau Ceti's contractibility instances use the operator norm; it
   checks they agree with Tau Ceti's topology on `AlmostComplexStructure`);
   how the milestones' smoothness and diffeomorphism conjuncts are stated (as
-  manifold structures on these open subsets of finite-dimensional spaces, or
-  as `ContDiff` of the maps in coordinates); and how the GL-equivariant
+  manifold structures, or as `ContDiff` of the maps in coordinates; the
+  nondegenerate forms and the inner products are open in their
+  finite-dimensional spaces, but the complex structures lie in the closed set
+  $\{J^2=-1\}$ of $\mathrm{End}(V)$, of positive codimension, so for them the
+  file chooses between a submanifold structure and maps defined on an open
+  neighbourhood in $\mathrm{End}(V)$); and how the GL-equivariant
   constructions are stated so that *Symplectic vector bundles* can apply them
   fibrewise. For that the file delivers the contraction of the compatible
   structures through the Cayley transform, the map $(g,\omega)\mapsto
-  J_{g,\omega}$ and the contraction of the tame structures as explicit maps,
-  $C^\infty$ in the structure (and $J_{g,\omega}$ also in $g$), with all
+  J_{g,\omega}$ and the contraction of the tame structures as explicit
+  formulas. The two Cayley-transform contractions are given on the open
+  neighbourhood of the complex structures in $\mathrm{End}(V)$ where the
+  Cayley denominator is invertible, and $(g,\omega)\mapsto J_{g,\omega}$ on
+  the open set of pairs of an inner product and a nondegenerate form. They
+  are $C^\infty$ there in the structure (and $J_{g,\omega}$ also in $g$), with all
   derivatives continuous in the time; Tau Ceti's `ContractibleSpace`
   instances give only continuous contractions, which do not suffice.
 
@@ -531,16 +555,25 @@ it into issues; the overview fixes its folders and its dependencies.
   reduction of the structure group to $\mathrm{Sp}(2n)$),
   `Geometry/Manifold/VectorBundle/ComplexStructure.lean` (the one model of
   $C^n$ complex structures on a bundle, `SymplecticGeometry.Bundle.ContMDiffComplexStructure`,
-  on the pattern of Tau Ceti's `TauCeti.SmoothAlmostComplexStructure`
-  (`Geometry/Symplectic/Manifold/AlmostComplex/Basic.lean` and `Topology.lean`):
-  a $C^n$ section `toEndomorphism` of the endomorphism bundle with square
-  $-1$, `@[ext]` through it, the topology `frameTopology` induced from
-  `ContMDiffSection.frameTopology`, and
+  generalizing from $TM$ to any bundle Tau Ceti's
+  `TauCeti.ContMDiffAlmostComplexStructure I n M`
+  (`Geometry/Symplectic/Manifold/AlmostComplex/ContMDiff.lean`) with the same
+  field names, `toEndomorphism` and `square_neg`, and the same `n : ℕ∞`, and
+  following `TauCeti.SmoothAlmostComplexStructure`
+  (`Geometry/Symplectic/Manifold/AlmostComplex/Basic.lean` and `Topology.lean`)
+  for the topology: a $C^n$ section `toEndomorphism` of the endomorphism
+  bundle with square $-1$, `@[ext]` through it, the topology `frameTopology`
+  induced from `ContMDiffSection.frameTopology`, and
   `isClosedEmbedding_toEndomorphism_frameTopology`; the map to Tau Ceti's
   `TauCeti.Bundle.ContinuousComplexStructure`, so that its complex bundle is
-  available; and for $E=TM$ and $n=\infty$ the homeomorphism with
+  available; and for $E=TM$, for every $n$, the identification with
+  `ContMDiffAlmostComplexStructure I n M`, under which the map to
+  `ContinuousComplexStructure` is Tau Ceti's
+  `ContMDiffAlmostComplexStructure.toContinuousComplexStructure`
+  (`AlmostComplex/ComplexTangentBundle.lean`), and for $n=\infty$, composed
+  with `ContMDiffAlmostComplexStructure.smoothEquiv`, the homeomorphism with
   `SmoothAlmostComplexStructure` for the two `frameTopology`s, so that
-  manifolds keep Tau Ceti's model), `.../Symplectic/ComplexStructure.lean`
+  manifolds keep Tau Ceti's models), `.../Symplectic/ComplexStructure.lean`
   (compatible and tame ones, as subtypes like Tau Ceti's for $TM$, existence
   and contractibility, and the converse direction for forms taming a fixed
   $J$; the homotopy equivalence $\omega\mapsto J_{g,\omega}$ on sections,
@@ -557,8 +590,13 @@ it into issues; the overview fixes its folders and its dependencies.
   derivatives up to order $n$ continuous in $p$ as well, the induced map
   $P\times$ `Cₛ^n⟮I; F, V⟯` $\to$ `Cₛ^n⟮I; F', W⟯`, $(p,s)\mapsto\Phi_p\circ s$,
   is jointly continuous for `frameTopology`, for every $n$ including
-  $\infty$; the fibre maps may be defined only on an open subset of each
-  fibre that the sections take values in, such as the tame structures.
+  $\infty$. The fibre maps may be defined only on an open subset of the
+  total space of $V$ that the sections take values in; openness in each
+  fibre would not do, since derivatives in trivializations need an open set
+  of the total space. Examples are the set, open in the endomorphism bundle,
+  where the Cayley denominator of *Compatible complex structures* is
+  invertible, which contains every complex structure, and the fibrewise
+  nondegenerate forms.
   Continuity in the point alone is not enough for $n\ge1$: on the trivial
   line bundle over $\mathbb{R}$, $\Phi_t(x,v)=v+t\sin(x/t)$ is continuous in
   $(t,x,v)$ with $\Phi_0=\mathrm{id}$, but $\partial_x(\Phi_t\circ s-s)=\cos(x/t)$
@@ -577,7 +615,10 @@ it into issues; the overview fixes its folders and its dependencies.
   (`Geometry/Manifold/VectorBundle/Riemannian/SectionTopology.lean`), its
   almost complex structures on $TM$ with their topology and their tame and
   compatible subtypes
-  (`Geometry/Symplectic/Manifold/AlmostComplex/Topology.lean`), and its other
+  (`Geometry/Symplectic/Manifold/AlmostComplex/Topology.lean`), its $C^n$
+  almost complex structures on $TM$ and their map to continuous complex
+  structures (`Geometry/Symplectic/Manifold/AlmostComplex/ContMDiff.lean`,
+  `.../AlmostComplex/ComplexTangentBundle.lean`), and its other
   results for $E=TM$ (`Geometry/Symplectic/Manifold/`), which it generalizes
   rather than duplicates.
 - **Milestones:** *Symplectic vector bundles are complex vector bundles*,
@@ -597,9 +638,12 @@ it into issues; the overview fixes its folders and its dependencies.
   cover. They are `ContractibleSpace` and `ContinuousMap.HomotopyEquiv` for
   these subspaces. The proofs apply the explicit linear constructions of
   *Compatible complex structures* and *Linear Moser* at each point. These
-  are $C^\infty$ in the structure (and, for $J_{g,\omega}$, in $g$), with all
-  derivatives continuous in the time of the contraction; read in
-  trivializations they are therefore $C^n$ in the point and the structure,
+  are $C^\infty$ in the structure (and, for $J_{g,\omega}$, in $g$) on open
+  neighbourhoods in the fibre spaces (for complex structures, where the
+  Cayley denominator is invertible), with all derivatives continuous in the
+  time of the contraction; these neighbourhoods form open subsets of the
+  total spaces, and read in trivializations the maps are $C^n$ there in the
+  point and the structure,
   with derivatives continuous in the time, which is the hypothesis of the
   lemma of `Section/Topology.lean`. That lemma makes the induced maps on
   sections, and the contractions $[0,1]\times S\to S$ as a whole, continuous
