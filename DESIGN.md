@@ -395,8 +395,12 @@ it into issues; the overview fixes its folders and its dependencies.
   `Topology/Grassmannian/Lagrangian/Action.lean` (the action of
   $\mathrm{Sp}(2n)$, transitivity already for $\mathrm{U}(n)$, the stabilizer
   $\mathrm{O}(n)$ and $\mathcal{L}(n)\cong\mathrm{U}(n)/\mathrm{O}(n)$),
-  `Geometry/Manifold/Instances/LagrangianGrassmannian.lean` (the charts by
-  symmetric matrices and the manifold structure of dimension $n(n+1)/2$),
+  `Topology/Grassmannian/Lagrangian/Graph.lean` (the graph charts by
+  symmetric matrices),
+  `Geometry/Manifold/Instances/LagrangianGrassmannian.lean` (the manifold
+  structure of dimension $n(n+1)/2$, from the charts of `Graph.lean`),
+  `LinearAlgebra/TotallyReal/Euclidean.lean` (the range of Tau Ceti's
+  `Matrix.lagrangianChart`, beside Tau Ceti's file of that name),
   `Topology/Grassmannian/Lagrangian/Fibration.lean` (path lifting),
   `Topology/Grassmannian/Lagrangian/Sum.lean` (direct sums and reindexing),
   `Topology/Grassmannian/Lagrangian/Transverse.lean` (common transverse
@@ -415,16 +419,36 @@ it into issues; the overview fixes its folders and its dependencies.
 - **Graphs of transverse Lagrangians** (`Frame.lean`). A Lagrangian
   transverse to $V_1$ is $\{y=Sx\}$, and one transverse to $V_0$ is
   $\{x=Sy\}$, for a unique symmetric $S$. This is the converse of the graph
-  criterion: Mathlib's `Submodule.toLinearPMap` and
-  `LinearPMap.existsUnique_from_graph` give the linear map, and Tau Ceti's
-  `isLagrangian_graph_iff_of_pairing` its symmetry. Along
-  `complexToRealEuclidean`, which carries `Matrix.realSubspace n` to $V_0$
-  and `Matrix.lagrangianChart S` to $\{x=Sy\}$, the second statement gives
-  the surjectivity Tau Ceti lacks beside `Matrix.lagrangianChart_injective`:
-  a real subspace of `EuclideanSpace ℂ n` that is Lagrangian for
-  $\operatorname{Im}\langle\cdot,\cdot\rangle$ and meets `realSubspace n` only
-  in $0$ is `lagrangianChart S` for a symmetric `S` (stated in namespace
-  `Matrix`).
+  criterion: Mathlib's `Submodule.exists_eq_graph` gives a linear map whose
+  `LinearMap.graph` is the subspace, from the bijectivity of the projection
+  onto the complement, and Tau Ceti's `isLagrangian_graph_iff_of_pairing`
+  its symmetry; uniqueness is that of a graph.
+- **The range of `Matrix.lagrangianChart`**
+  (`LinearAlgebra/TotallyReal/Euclidean.lean`, namespace `Matrix`). The
+  surjectivity Tau Ceti lacks beside `Matrix.lagrangianChart_injective` and
+  `Matrix.lagrangianChart_inf_realSubspace`, in Tau Ceti's terms: a real
+  subspace `V` of `EuclideanSpace ℂ n` that is `IsMaximalTotallyReal` for
+  multiplication by $i$, is isotropic in the form of
+  `Matrix.im_inner_eq_zero_of_mem_lagrangianChart`
+  (`(inner ℂ v w).im = 0` for `v w ∈ V`), and has
+  `V ⊓ TauCeti.realSubspace n = ⊥` is `lagrangianChart S` for a symmetric
+  `S`. The isotropy cannot be dropped: for `n = Fin 2` and
+  $S=\begin{pmatrix}0&1\\0&0\end{pmatrix}$, $\det(S+i)=-1$, so
+  `lagrangianChart S` is maximal totally real and transverse to
+  `realSubspace (Fin 2)`, but by `Matrix.lagrangianChart_injective` it is
+  the chart of no symmetric matrix. The statement follows from the second
+  graph statement, transferred along `TauCeti.complexToRealEuclidean n`
+  composed with `EuclideanSpace.equiv` (`EuclideanSpace ℂ n ≃ (n → ℂ)`); the
+  composite carries `TauCeti.realSubspace n` to $V_0$ and
+  `lagrangianChart S` to $\{x=Sy\}$.
+- **Graph charts** (`Graph.lean`). For the topology the design file picks,
+  the Lagrangians transverse to $V_0$, and those transverse to $V_1$, form
+  open subsets of $\mathcal{L}(n)$, each homeomorphic to the symmetric
+  matrices by the graph statements above; the first chart sends $S$ to the
+  transfer of `Matrix.lagrangianChart S`. Tau Ceti's
+  `Topology/Grassmannian/Graph.lean` does the same for
+  `TauCeti.finiteGrassmannian`. The manifold file and `Fibration.lean` both
+  use these charts, so that no `Topology/` file depends on the manifold one.
 - **Path lifting** (`Fibration.lean`). The unitary frame map is locally
   trivial with fibre $\mathrm{O}(n)$, hence a Serre fibration, so every path
   in $\mathcal{L}(n)$ lifts to a path in $\mathrm{U}(n)$ from any frame of its
@@ -434,9 +458,10 @@ it into issues; the overview fixes its folders and its dependencies.
   `Matrix.lagrangianChartFrame S`, transferred (unitary by
   `realOrthonormalize_mem_unitaryGroup`, continuous by
   `continuous_realOrthonormalize`, with the same real image by
-  `realImage_realOrthonormalize`), $S$ being the chart coordinate of the
-  manifold file; left translation by $\mathrm{U}(n)$ gives sections near
-  every point. Tau Ceti's `Subgroup.localSectionTrivializationOfCosetFibers`
+  `realImage_realOrthonormalize`), $S$ being the coordinate of the graph
+  chart of `Graph.lean` on the Lagrangians transverse to $V_0$; left
+  translation by $\mathrm{U}(n)$ gives sections near every point. Tau Ceti's
+  `Subgroup.localSectionTrivializationOfCosetFibers`
   (`Topology/Algebra/Group/Quotient/LocalSection.lean`) turns these sections
   into trivializations,
   `TauCeti.TopCat.mem_serreFibrations_of_exists_trivialization`
@@ -460,7 +485,8 @@ it into issues; the overview fixes its folders and its dependencies.
   for `TauCeti.GLSymplectic.sum`
   (`LinearAlgebra/Matrix/GeneralLinearGroup/Symplectic/Sum.lean`). Continuity
   comes from $\mathcal{L}(n)\cong\mathrm{U}(n)/\mathrm{O}(n)$: the frame map is
-  an open quotient map, and so is a product of two such maps. How the
+  an open quotient map, and so is a product of two such maps (Mathlib's
+  `IsOpenQuotientMap.prodMap`). How the
   reindexing meets `GLSymplectic.reindex` is proved with that definition, in
   the *Maslov index* part, so that this part does not depend on it.
 - **Transverse Lagrangians** (`Transverse.lean`). Any two Lagrangians
@@ -469,15 +495,17 @@ it into issues; the overview fixes its folders and its dependencies.
   $\Lambda_2$, then $\det(X+tY)$ is a polynomial in $t$ that is nonzero at
   $t=i$, so it has finitely many real roots, and for any other real $t$ the
   Lagrangian $\{x=-ty\}$, the transfer of `Matrix.lagrangianChart` of the
-  scalar matrix $-t$, is transverse to both. And $\mathrm{Sp}(2n)$ acts
+  scalar matrix $-t$ (Tau Ceti's `Matrix.lagrangianChart_smul_one` describes
+  it), is transverse to both. And $\mathrm{Sp}(2n)$ acts
   transitively on pairs $(V,W)$ of transverse Lagrangians, each pair being
-  $g\cdot(V_0,V_1)$: a unitary matrix takes $V$ to $V_0$; the moved $W$ is $\{x=Sy\}$ with $S$
-  symmetric, by the graph statement above; and the shear
-  $\begin{pmatrix}1&S\\0&1\end{pmatrix}$, symplectic because $S$ is symmetric,
-  fixes $V_0$ and takes $V_1$ to $\{x=Sy\}$. Tau Ceti has the shear only on
-  `Fin m` (`TauCeti.GLSymplecticFin.upperUnipotent`); the file proves that it
-  is symplectic for `ι ⊕ ι` directly. For $n=0$ these statements hold
-  trivially, $\mathcal{L}(0)$ being a point.
+  $g\cdot(V_0,V_1)$: a unitary matrix takes $V$ to $V_0$; the moved $W$ is
+  $\{x=Sy\}$ with $S$ symmetric, by the graph statement above; and the shear
+  $\begin{pmatrix}1&S\\0&1\end{pmatrix}$ fixes $V_0$ and takes $V_1$ to
+  $\{x=Sy\}$. The shear is symplectic for symmetric $S$ by Tau Ceti's
+  `SymplecticGroup.fromBlocks_upper_mem`, for any index type, lifted to
+  `TauCeti.GLSymplectic ι ℝ` by
+  `(TauCeti.GLSymplectic.mulEquivSymplecticGroup ι ℝ).symm`. For $n=0$ these
+  statements hold trivially, $\mathcal{L}(0)$ being a point.
 - **Milestones:** *Lagrangian frames and the Lagrangian Grassmannian*.
 - **The design file decides:** the topology of $\mathcal{L}(n)$. The
   candidates are the subspace topology of Tau Ceti's
