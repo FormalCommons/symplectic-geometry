@@ -239,6 +239,13 @@ further when they grow, following `AGENTS.md`.
   $\lambda\lambda'\neq1$ with the bilinear extension; from Tau Ceti's
   `SymplecticGroup.charpoly_inv`, `SymplecticGroup.reflect_charpolyRev` and
   `LinearMap.IsAdjointPair.apply_eq_zero_of_mem_genEigenspace`),
+  `LinearAlgebra/Matrix/SymplecticGroup/Basic.lean` (algebraic facts beside
+  Mathlib's `SymplecticGroup.transpose_mem`, over a commutative star ring:
+  `SymplecticGroup.star_mem` and `SymplecticGroup.star_mem_iff`),
+  `Analysis/Matrix/Polar/Basic.lean` (the general right polar decomposition
+  of `GL n 𝕜` over `RCLike 𝕜`, beside Tau Ceti's left forms:
+  `Matrix.GeneralLinearGroup.posDef_sqrt_star_mul` and
+  `Matrix.GeneralLinearGroup.existsUnique_unitary_mul_posDef`),
   `Analysis/Matrix/Polar/Symplectic.lean` (the right decomposition
   $\Psi=UP$ with uniqueness: Tau Ceti's `Units.polarUnitary_mul_sqrt_star_mul`
   and `Units.mul_eq_iff_polarUnitary_eq_and_sqrt_star_mul_eq` give it with
@@ -527,7 +534,8 @@ it into issues; the overview fixes its folders and its dependencies.
   forms $\omega_t$ on $V$ that depend smoothly on $t\in\mathbb{R}$, it builds
   invertible $\Psi_t$, smooth in $t$, starting at the identity and pulling
   each $\omega_t$ back to $\omega_0$: $\Psi_t$ solves $\dot\Psi_t=A_t\Psi_t$,
-  with $A_t$ obtained from $\dot\omega_t$ through a fixed inner product. The
+  with $A_t=-\tfrac12\,\omega_t^{-1}\circ\dot\omega_t$, the inverse being that
+  of the contraction $V\to V^*$, so that no inner product is needed. The
   same file treats a smooth path of complex structures in the same way. If
   the bundle case needs smoothness in a parameter as well, the parametric
   version goes in `Analysis/ODE/DysonSeries.lean`, in the namespace
@@ -546,8 +554,8 @@ it into issues; the overview fixes its folders and its dependencies.
   lemma, which is general material and sits in its own file. It uses no other
   part.
 - **Milestones:** *Linear Moser lemma*.
-- The construction is canonical given the inner product, so that *Symplectic
-  vector bundles* can apply it at each point of the base.
+- The construction is canonical, a formula in the family and its derivative,
+  so that *Symplectic vector bundles* can apply it at each point of the base.
 
 ### 11. Siegel upper half space
 
