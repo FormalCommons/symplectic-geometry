@@ -1,0 +1,28 @@
+name = "Project"
+defaultTargets = ["Project"]
+
+# Tau Ceti's options, so that code here can later move to Tau Ceti unchanged:
+# Mathlib's standard linters, a 1500-line limit per file, and every warning an
+# error. Both file-length options must be set, or the linter asks for a
+# `set_option` in every file.
+[leanOptions]
+autoImplicit = false
+weak.linter.mathlibStandardSet = true
+weak.linter.unusedVariables.analyzeTactics = true
+weak.linter.style.longFile = 1500
+weak.linter.style.longFileDefValue = 1500
+weak.linter.style.header = true
+warningAsError = true
+
+# Tau Ceti, which brings Mathlib, at a fixed commit. Its own lake-manifest.json
+# pins Mathlib and the rest, and this project's lake-manifest.json records them.
+[[require]]
+name = "TauCeti"
+git = "https://github.com/TauCetiProject/TauCeti"
+rev = "cd41bffcb343151b3e58c89392e206b11fe78c1c"
+
+[[lean_lib]]
+name = "Project"
+# Build every module under `Project/`. There is no root file that imports them
+# all, so pull requests that add files never conflict over one.
+globs = ["Project.+"]

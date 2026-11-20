@@ -1,0 +1,73 @@
+name: cache
+
+# Builds the dependencies that the library imports, and saves them for CI to
+# restore: Mathlib's files from its cache, and the Tau Ceti modules that the
+# library's files import, which `lake exe cache get` does not fetch. It runs
+# on every push to main, but builds only those dependencies, never the
+# library's own code, and saves again only when the library has started to
+# import Tau Ceti modules it did not import before. Only this workflow saves;
+# GitHub lets runs on any branch restore main's caches.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# One run at a time, and GitHub keeps only the newest waiting run, so a save
+# that has begun always finishes.
+concurrency:
+  group: cache
+  cancel-in-progress: false
+
+jobs:
+  cache:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v7
+      # Read from the files' text; the key of the save names the list.
+      - name: list the imported Tau Ceti modules
+        id: deps
+        run: |
+          git ls-files '*.lean' \
+            | xargs -r sed -nE 's/^\s*(public\s+)?import\s+(TauCeti\.[A-Za-z0-9_.]+).*/\2/p' \
+            | sort -u > "$RUNNER_TEMP/tauceti-imports.txt"
+          sum=$(sha256sum "$RUNNER_TEMP/tauceti-imports.txt" | cut -c1-16)
+          echo "key=lake-packages-${{ hashFiles('lean-toolchain', 'lake-manifest.json') }}-$sum" >> "$GITHUB_OUTPUT"
+      - name: look for a save with these modules
+        id: look
+        uses: actions/cache/restore@v6
+        with:
+          path: .lake/packages
+          key: ${{ steps.deps.outputs.key }}
+          lookup-only: true
+      - name: install elan
+        if: steps.look.outputs.cache-hit != 'true'
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/leanprover/elan/v4.2.4/elan-init.sh \
+            | sh -s -- -y --no-modify-path --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+      - name: restore the latest save
+        id: restore
+        if: steps.look.outputs.cache-hit != 'true'
+        uses: actions/cache/restore@v6
+        with:
+          path: .lake/packages
+          key: lake-packages-${{ hashFiles('lean-toolchain', 'lake-manifest.json') }}
+          restore-keys: lake-packages-${{ hashFiles('lean-toolchain', 'lake-manifest.json') }}-
+      - name: fetch Mathlib's build cache
+        if: steps.look.outputs.cache-hit != 'true' && steps.restore.outputs.cache-matched-key == ''
+        run: lake exe cache get
+      - name: build the imported Tau Ceti modules
+        if: steps.look.outputs.cache-hit != 'true'
+        run: |
+          mapfile -t modules < <(sed 's/^/+/' "$RUNNER_TEMP/tauceti-imports.txt")
+          if [ ${#modules[@]} -gt 0 ]; then lake build "${modules[@]}"; fi
+      - name: save the built dependencies
+        if: steps.look.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6
+        with:
+          path: .lake/packages
+          key: ${{ steps.deps.outputs.key }}
