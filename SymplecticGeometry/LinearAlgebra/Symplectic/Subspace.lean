@@ -126,8 +126,9 @@ theorem orthogonal_properties (ω : SymplecticForm V) (W : Submodule ℝ V) :
 
 /-- **Lagrangian extension lemma.** In a finite-dimensional symplectic vector space `(V, ω)`,
 each isotropic subspace has a Lagrangian subspace containing it; a subspace is Lagrangian iff
-it is isotropic and no strictly larger subspace is; and every basis `u₁, …, uₙ` of a Lagrangian subspace extends to a
-Darboux basis `u₁, …, uₙ, v₁, …, vₙ` (with `ω(uᵢ, vⱼ) = δᵢⱼ`), the `uᵢ` being `b (i, 0)`.
+it is isotropic and no strictly larger subspace is; and every basis `u₁, …, uₙ` of a Lagrangian
+subspace extends to a Darboux basis `u₁, …, uₙ, v₁, …, vₙ` (with `ω(uᵢ, vⱼ) = δᵢⱼ`), the `uᵢ`
+being `b (i, 0)`.
 
 Milestone: *Lagrangian extension lemma*. -/
 theorem isLagrangian_properties (ω : SymplecticForm V) :
