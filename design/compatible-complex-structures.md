@@ -638,9 +638,9 @@ This is Proposition 2.5.6, for a fixed `g : innerProducts V`, in
   these maps. On the subsets, the inverses fix every point, by
   `metricPolarComplexStructure_eq_iff`.
 - **Milestone** `metricPolarComplexStructure_eq_inverse_mul_and_homotopyEquiv`,
-  named after its first and last conjuncts. It is stated on a
-  finite-dimensional real inner product space `V`. Every finite-dimensional
-  space has one, and the ambient inner product only serves the formula: `g`
+  named after its first and last conjuncts. Its `V` carries
+  `[InnerProductSpace ℝ V] [FiniteDimensional ℝ V]`. Every finite-dimensional
+  space admits such an instance, and it only serves the formula: `g`
   ranges over all of `innerProducts V`. It is the conjunction of the
   following:
   - the plan's definition: `metricPolarComplexStructure_eq_inverse_mul`;
