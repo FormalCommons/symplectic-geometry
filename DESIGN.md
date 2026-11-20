@@ -247,12 +247,14 @@ further when they grow, following `AGENTS.md`.
   `Matrix.GeneralLinearGroup.posDef_sqrt_star_mul` and
   `Matrix.GeneralLinearGroup.existsUnique_unitary_mul_posDef`),
   `Analysis/Matrix/Polar/Symplectic.lean` (the right decomposition
-  $\Psi=UP$ with uniqueness: Tau Ceti's `Units.polarUnitary_mul_sqrt_star_mul`
-  and `Units.mul_eq_iff_polarUnitary_eq_and_sqrt_star_mul_eq` give it with
-  uniqueness, `SymplecticGroup.polarUnitary_mem` makes $U$ symplectic, and the
-  only new step is that $\sqrt{\Psi^*\Psi}$ is symplectic, $\Psi^*$ the
-  conjugate transpose, which is `SymplecticGroup.sqrt_mul_star_mem` applied
-  to `star Ψ`, symplectic by `SymplecticGroup.star_mem`),
+  $\Psi=UP$ with uniqueness, `SymplecticGroup.existsUnique_unitary_mul_posDef`:
+  Tau Ceti's `Units.polarUnitary_mul_sqrt_star_mul` gives the factorization,
+  `Matrix.GeneralLinearGroup.existsUnique_unitary_mul_posDef` its uniqueness,
+  and `SymplecticGroup.polarUnitary_mem` makes $U$ symplectic; what this file
+  adds for the symplectic group is `SymplecticGroup.sqrt_star_mul_mem`, that
+  $\sqrt{\Psi^*\Psi}$ is symplectic, $\Psi^*$ the conjugate transpose, which
+  is `SymplecticGroup.sqrt_mul_star_mem` applied to `star Ψ`, symplectic by
+  `SymplecticGroup.star_mem`),
   `Analysis/Matrix/Polar/GLSymplectic.lean` (the deformation retraction:
   `TauCeti.GLSymplectic.polarHomotopy` fixes $\mathrm{U}(n)$ at all times,
   since it is the restriction of `Matrix.GeneralLinearGroup.polarHomotopy`
