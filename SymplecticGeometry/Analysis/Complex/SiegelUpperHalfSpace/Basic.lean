@@ -11,6 +11,7 @@ public import Mathlib.Algebra.Order.Star.Real
 public import Mathlib.LinearAlgebra.Matrix.Symmetric
 public import Mathlib.Topology.Instances.Matrix
 import TauCeti.Analysis.Matrix.PosDef
+public import SymplecticGeometry.LinearAlgebra.Matrix.PosDef
 
 /-!
 # The Siegel upper half space
@@ -36,6 +37,10 @@ positive definite. For `ι = Fin n` it is the space `𝒮ₙ` on which the real 
 * `SiegelUpperHalfSpace.isOpen_setOf_posDef_im`: the condition `Y > 0` cuts out an open subset
   of the complex symmetric matrices, and `SiegelUpperHalfSpace.isOpenEmbedding_toSymm`: the
   Siegel upper half space is homeomorphic to this open subset.
+
+The structure and its basic and topological API follow Mathlib's `UpperHalfPlane`, in
+`Mathlib/Analysis/Complex/UpperHalfPlane/Basic.lean` and
+`Mathlib/Analysis/Complex/UpperHalfPlane/Topology.lean`.
 
 ## References
 
@@ -118,6 +123,16 @@ theorem re_apply (Z : SiegelUpperHalfSpace ι) (i j : ι) : Z.re i j = ((Z : Mat
 theorem im_apply (Z : SiegelUpperHalfSpace ι) (i j : ι) : Z.im i j = ((Z : Matrix ι ι ℂ) i j).im :=
   (rfl)
 
+@[simp]
+theorem re_mk (Z : Matrix ι ι ℂ) (hZ : Z.IsSymm) (hY : (Z.map Complex.im).PosDef) :
+    (mk Z hZ hY).re = Z.map Complex.re :=
+  (rfl)
+
+@[simp]
+theorem im_mk (Z : Matrix ι ι ℂ) (hZ : Z.IsSymm) (hY : (Z.map Complex.im).PosDef) :
+    (mk Z hZ hY).im = Z.map Complex.im :=
+  (rfl)
+
 /-- The imaginary part of a point of the Siegel upper half space is positive definite. -/
 theorem posDef_im (Z : SiegelUpperHalfSpace ι) : Z.im.PosDef :=
   Z.posDef_map_im
@@ -145,16 +160,19 @@ section I
 
 variable [DecidableEq ι]
 
+private theorem map_re_I_smul_one : (Complex.I • (1 : Matrix ι ι ℂ)).map Complex.re = 0 := by
+  rw [smul_one_eq_diagonal, diagonal_map (by simp)]
+  simp
+
+private theorem map_im_I_smul_one : (Complex.I • (1 : Matrix ι ι ℂ)).map Complex.im = 1 := by
+  rw [smul_one_eq_diagonal, diagonal_map (by simp)]
+  simp
+
 /-- The base point `i𝟙` of the Siegel upper half space. -/
 protected def I : SiegelUpperHalfSpace ι where
   coe := Complex.I • (1 : Matrix ι ι ℂ)
   isSymm := isSymm_one.smul _
-  posDef_map_im := by
-    convert (PosDef.one : (1 : Matrix ι ι ℝ).PosDef) using 1
-    ext i j
-    rcases eq_or_ne i j with rfl | h
-    · simp
-    · simp [one_apply_ne h]
+  posDef_map_im := map_im_I_smul_one (ι := ι) ▸ PosDef.one
 
 @[simp]
 theorem coe_I : (SiegelUpperHalfSpace.I : SiegelUpperHalfSpace ι) =
@@ -162,18 +180,12 @@ theorem coe_I : (SiegelUpperHalfSpace.I : SiegelUpperHalfSpace ι) =
   (rfl)
 
 @[simp]
-theorem re_I : (SiegelUpperHalfSpace.I : SiegelUpperHalfSpace ι).re = 0 := by
-  ext i j
-  rcases eq_or_ne i j with rfl | h
-  · simp
-  · simp [one_apply_ne h]
+theorem re_I : (SiegelUpperHalfSpace.I : SiegelUpperHalfSpace ι).re = 0 :=
+  map_re_I_smul_one
 
 @[simp]
-theorem im_I : (SiegelUpperHalfSpace.I : SiegelUpperHalfSpace ι).im = 1 := by
-  ext i j
-  rcases eq_or_ne i j with rfl | h
-  · simp
-  · simp [one_apply_ne h]
+theorem im_I : (SiegelUpperHalfSpace.I : SiegelUpperHalfSpace ι).im = 1 :=
+  map_im_I_smul_one
 
 instance : Inhabited (SiegelUpperHalfSpace ι) := ⟨SiegelUpperHalfSpace.I⟩
 
@@ -208,7 +220,7 @@ theorem _root_.Continuous.siegelUpperHalfSpaceMk {X : Type*} [TopologicalSpace X
     Continuous fun x ↦ mk (f x) (hS x) (hY x) :=
   isEmbedding_coe.continuous_iff.mpr hf
 
-instance [Finite ι] : T3Space (SiegelUpperHalfSpace ι) := isEmbedding_coe.t3Space
+instance : T3Space (SiegelUpperHalfSpace ι) := isEmbedding_coe.t3Space
 
 /-! ### The Siegel upper half space in the symmetric matrices -/
 
@@ -256,14 +268,6 @@ theorem isOpenEmbedding_toSymm [Finite ι] :
 section Unique
 
 variable [Unique ι]
-
-private theorem posDef_iff_of_unique {Y : Matrix ι ι ℝ} : Y.PosDef ↔ 0 < Y default default := by
-  classical
-  have hY : Y = diagonal fun _ ↦ Y default default := by
-    ext i j
-    simp [Subsingleton.elim i default, Subsingleton.elim j default]
-  rw [hY, posDef_diagonal_iff]
-  simp
 
 /-- For a type `ι` with one element, the Siegel upper half space of index `ι` is homeomorphic to
 the upper half plane, by the only entry of its matrices. -/
