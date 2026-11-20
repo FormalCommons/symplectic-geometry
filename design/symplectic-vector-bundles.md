@@ -42,16 +42,29 @@ variable {EB HB M : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB]
   `ENat.LEInfty` gives the `ContMDiffVectorBundle n` instances from the smooth
   ones.
 - **Finite dimension only where used.** Like Tau Ceti's
-  `ContMDiffAlmostComplexStructure` and its `frameTopology`, the definitions
-  of this part assume nothing about the dimension of `EB` or `F`, so that the
-  comparison with Tau Ceti on $TM$ reaches all of Tau Ceti's type. A result
-  adds `[FiniteDimensional ℝ EB]`, `[FiniteDimensional ℝ F]` or
+  `ContMDiffAlmostComplexStructure` and its `frameTopology`, the types of
+  this part assume nothing about the dimension of `EB` or `F`, so that the
+  comparison with Tau Ceti on $TM$ reaches all of Tau Ceti's type. One
+  definition does need finite rank: `IsNondegenerate.polarComplexStructure`
+  takes `[FiniteDimensional ℝ F]`, since Tau Ceti's linear
+  `SymplecticForm.polarComplexStructure` does
+  (`Geometry/Symplectic/PolarCompatible.lean`). Apart from it, a result adds
+  `[FiniteDimensional ℝ EB]`, `[FiniteDimensional ℝ F]` or
   `[LocallyCompactSpace EB]` only when its proof needs it:
-  `frameTopology_eq_of_covers` and `continuous_fiberwiseMap` (local
-  compactness of `EB`), each use of `contMDiff_bundle_symm` (the
-  `pushforward`s and the classification), `isOpen_setOf_nondegenerate`
-  (finite rank), and the existence of bundle metrics with everything that
-  rests on it.
+  - local compactness of `EB`: `frameTopology_eq_of_covers` and
+    `continuous_fiberwiseMap`;
+  - finite rank of the source bundle: each use of `contMDiff_bundle_symm` or
+    `contMDiff_hom_bundle_iff` (the `pushforward`s and the classification);
+  - finite rank of `F`: `isOpen_setOf_nondegenerate`; every result that
+    uses `polarComplexStructure` (`compatible_polarComplexStructure`,
+    `polarComplexStructure_tangentEquiv`, `IsNondegenerate.exists_compatible`,
+    `exists_homotopyEquiv_polarComplexStructure`,
+    `polarComplexStructure_homotopic`, both milestones, and the local
+    Darboux frames of issue 9); and each use of Tau Ceti's
+    `Tames.isUnit_one_sub_mul` (`Geometry/Symplectic/Cayley/Basic.lean`), in
+    the symplectic-to-complex direction of the classification;
+  - finite dimension of `EB` and `F`: the existence of bundle metrics, with
+    everything that rests on it.
 - **No rank hypothesis.** The book takes rank $2n$. No statement here needs
   it: a nondegenerate form or a complex structure forces even rank, and the
   statements are about a given form or structure, or are equivalences between
@@ -154,12 +167,13 @@ name, so that the $TM$ statements are special cases:
   whose map of total spaces is $C^n$, `pushforward Φ hΦ J :
   ContMDiffComplexStructure I n F₂ V₂`, the structure $\Phi J\Phi^{-1}$, with
   `@[simp] pushforward_apply`, `pushforward_refl` and `pushforward_trans`.
-  Its section is the image of `J.toEndomorphism` under Tau Ceti's
-  `ContMDiffSection.mapEquiv` (`Geometry/Manifold/VectorBundle/Section/Map.lean`)
-  for the fibrewise conjugation `A ↦ Φ ∘ A ∘ Φ⁻¹` of the endomorphism
-  bundles, which is $C^n$ on total spaces with a $C^n$ inverse by
-  `contMDiff_bundle_symm` (`[FiniteDimensional ℝ F₁]`); nothing about
-  sections is rebuilt;
+  Its section is `Φₛ.clmComp (J.toEndomorphism.clmComp Φ⁻¹ₛ)`, by Tau
+  Ceti's `ContMDiffSection.clmComp` with `@[simp] clmComp_apply`
+  (`Geometry/Manifold/VectorBundle/Hom.lean`). Here `Φₛ` and `Φ⁻¹ₛ` are the
+  $C^n$ sections of the hom bundles from `V₁` to `V₂` and back that Tau
+  Ceti's `contMDiff_hom_bundle_iff` (same file) gives from `hΦ` and from
+  `contMDiff_bundle_symm` applied to `hΦ` (`[FiniteDimensional ℝ F₁]`,
+  `[FiniteDimensional ℝ F₂]`); nothing about sections is rebuilt;
 - `toContinuousComplexStructure : ContMDiffComplexStructure I n F V →
   TauCeti.Bundle.ContinuousComplexStructure F V`
   (`Topology/VectorBundle/Complex/Structure.lean`) with
@@ -255,8 +269,9 @@ but the predicate below, as in Tau Ceti for $TM$.
   alternating bundles; that map and its inverse are $C^n$ on total spaces
   because $\Phi$ is and, by Tau Ceti's `contMDiff_bundle_symm`
   (`Geometry/Manifold/VectorBundle/Hom.lean`), so is $\Phi^{-1}$. Nothing
-  about sections is rebuilt; the transport of complex structures,
-  `ContMDiffComplexStructure.pushforward`, is made the same way.
+  about sections is rebuilt. The transport of complex structures,
+  `ContMDiffComplexStructure.pushforward`, composes hom-bundle sections
+  instead, as its entry above says.
 - **The tangent bundle.** `tangentEquiv : ContMDiffTwoForm I ⊤ EB
   (TangentSpace I) ≃ₗ[ℝ] TauCeti.SmoothTwoForm I M`, built from
   `TauCeti.SmoothForm.ofContMDiffSection` and `SmoothForm.toContMDiffSection`
@@ -398,7 +413,7 @@ $[0,1]$ is never fed to the lemma with `P = ℝ` directly.
   (`convex_setOf_tames`), nonempty (`ContMDiffComplexStructure.exists_compatible`),
   and `frameTopology` is a topological vector space
   (`isTopologicalAddGroup_frameTopology`, `continuousSMul_frameTopology`), so
-  the straight-line contraction applies: `ContMDiffComplexStructure.contractibleSpace_tames`
+  Mathlib's `Convex.contractibleSpace` applies: `ContMDiffComplexStructure.contractibleSpace_tames`
   and `contractibleSpace_compatible` for `{ω // ω.Tames J}` and
   `{ω // ω.Compatible J}`. Their docstrings note that a contractible space is
   nonempty, which is the existence half of the milestone.
@@ -493,15 +508,13 @@ that of the theorem of the previous section end with the line Milestone:
   ODE is needed in this direction.
 - **Complex to symplectic.** Transport $\omega_1$ to $\omega_1'$
   (`ContMDiffTwoForm.pushforward`), which tames $J_2$ by `Tames.pushforward`. The forms $(1-t)\omega_1'+t\omega_2$ tame $J_2$, hence are
-  nondegenerate, and the linear Moser construction of part 10, applied
-  fibrewise with a bundle metric, gives $\Psi_1$ with
-  $\Psi_1^*\omega_2=\omega_1'$. That it is $C^n$ on the total space is issue
-  10's parametric smoothness, read in trivializations, together with the
-  naturality of the construction under linear isomorphisms (which part 10
-  provides, its construction being canonical given the metric). Naturality
-  holds when the metric is transported together with the forms, so the
-  trivializations carry the metric to the transported one, not to a fixed
-  inner product on `F`.
+  nondegenerate, and the linear Moser construction of part 10
+  (`SymplecticGeometry/Geometry/Symplectic/LinearMoser.lean`: the left Dyson
+  series of `moserGenerator`), applied fibrewise, gives $\Psi_1$ with
+  $\Psi_1^*\omega_2=\omega_1'$. The generator is a formula in the family of
+  forms and its time derivative, with no metric, so it commutes with the
+  coordinate changes of trivializations; that $\Psi_1$ is $C^n$ on the total
+  space is then issue 10's parametric smoothness, read in trivializations.
 
 ## Unitary frames over surfaces with boundary
 
@@ -527,7 +540,7 @@ theorem Bundle.ContMDiffRiemannianMetric.exists_orthonormal_contMDiffSection_of_
 
 the form of Tau Ceti's `exists_orthonormal_contMDiffSection_of_finrank_lt`.
 The plan states the milestone as a trivialization, so a corollary gives it in
-that form: `exists_unitary_trivialization_of_boundary_nonempty`, for a
+that form: `Bundle.ContMDiffRiemannianMetric.exists_unitary_trivialization_of_boundary_nonempty`, for a
 `ℂ`-basis `b : Basis (Fin k) ℂ F`, a trivialization in the smooth maximal
 atlas with base set `univ` whose fibre map at each `x` sends the frame to
 `b` and so is a `ℂ`-linear isometry from `(V x, g x)` to `F` with the
@@ -604,7 +617,7 @@ it, its design adds it.
   maps, `ContMDiffSection`, `IsLocalFrameOn`, `Bundle.ContMDiffRiemannianMetric`,
   manifolds with boundary (`ModelWithCorners.interior`, `boundary`),
   `ContractibleSpace`, `ContinuousMap.HomotopyEquiv`, and smooth approximation
-  (`exists_contMDiffMap_forall_mem_convex_of_local` and Tau Ceti's section
+  (`exists_contMDiffMap_forall_mem_convex_of_local` and its section
   version `exists_contMDiffSection_forall_mem_convex_of_local`).
 - **Other parts.** *Linear Moser* (part 10) for the complex-to-symplectic
   direction of the classification, with the parametric smoothness of issue 10.
@@ -618,7 +631,7 @@ it, its design adds it.
 ## Building issues
 
 Each is a few hundred lines; the blockers are issues of this list, and an
-issue may start once its blockers are merged. Issues 1, 3, 4, 12–15 can start
+issue may start once its blockers are merged. Issues 1, 3, 4, 10, 12–15 can start
 at once.
 
 1. **Complex structures on a bundle.** `ComplexStructure.lean`: the
@@ -631,7 +644,8 @@ at once.
 3. **Two-forms on a bundle.** `Symplectic/Basic.lean`: `ContMDiffTwoForm`,
    `bilinFormAt`, `IsNondegenerate` with its unfolding lemmas,
    `symplecticFormAt`, `isOpen_setOf_nondegenerate`, `const`, `pushforward`,
-   `tangentEquiv`. Blockers: none.
+   `tangentEquiv` (first checking that `SmoothForm.ofContMDiffSection` accepts
+   sections with values in `Bundle.Trivial M ℝ x`). Blockers: none.
 4. **Continuity of fibrewise maps.** `Section/Topology.lean`:
    `fiberwiseMap`, `fiberwiseMap_apply`, `continuous_fiberwiseMap`. Blockers:
    none. If the proof is long, split off the chart estimate as a first issue.
@@ -660,11 +674,12 @@ at once.
     linear Moser equation, read in a trivialization, is $C^n$ jointly in the
     time and in a parameter ranging over a subset of a normed space (the
     chart coordinates of the base point, which may lie on the boundary), for
-    $C^n$ data; and the construction is natural under linear isomorphisms
-    that transport the metric with the forms. It goes where part 10 puts it,
-    after checking Tau Ceti's `ODE.exists_contDiffOn_picard_solution` and
-    `contDiff_timeDependentFlow`. Skip it if the pull request for #12 (PR #44)
-    already proves it. Blockers: #12.
+    $C^n$ data; and the construction is natural under linear isomorphisms.
+    Part 10 (`Geometry/Symplectic/LinearMoser.lean`) proves
+    smoothness in time only (`contDiff_dysonSeriesLeft_moserGenerator`), so
+    this extends it, after checking Tau Ceti's
+    `ODE.exists_contDiffOn_picard_solution` and `contDiff_timeDependentFlow`.
+    Blockers: none.
 11. **Classification and the first milestone.** `Symplectic/Classification.lean`.
     Blockers: 5, 6, 9, 10.
 12. **The interior of a manifold with boundary.**
@@ -693,7 +708,8 @@ at once.
     `ContMDiffSection`: `exists_mem_span_isClosed_isDiscrete_zero`, over a
     second-countable boundaryless manifold modelled on a finite-dimensional
     space, for a bundle of rank equal to the dimension with a finite spanning
-    family of smooth sections, a smooth section in their span whose zero set
+    family of smooth sections (Tau Ceti's `exists_fin_spanning_contMDiffSection`,
+    `Section/FiniteSpan.lean`, gives one), a smooth section in their span whose zero set
     is closed and discrete. Tau Ceti has the rest: for larger rank,
     `mem_residual_setOf_affineFamily_ne_zero` gives no zeros at all, and for
     equal rank `mem_residual_setOf_isRegular_affineFamily` with
@@ -702,8 +718,8 @@ at once.
     $0$-dimensional submanifold. The new work is the closed-and-discrete step,
     which the proof of Tau Ceti's `finite_sectionZero_of_contMDiff` contains
     for a compact base, without compactness. Blockers: none.
-15. **Smoothing nowhere-zero sections.** `Section/Nonvanishing.lean`,
-    namespace `ContMDiffSection`: `exists_contMDiffSection_forall_ne_zero_of_continuous`,
+15. **Smoothing nowhere-zero sections.** `Section/Nonvanishing.lean`:
+    `SymplecticGeometry.exists_contMDiffSection_forall_ne_zero_of_continuous`,
     a continuous nowhere-zero section of a smooth bundle over a compact
     manifold (with boundary allowed) can be replaced by a smooth one, via
     `exists_contMDiffSection_forall_mem_convex_of_local` and a metric.
