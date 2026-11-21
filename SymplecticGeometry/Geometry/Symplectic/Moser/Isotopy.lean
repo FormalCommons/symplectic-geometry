@@ -170,12 +170,10 @@ theorem exists_diffeotopy_fix_eventually_mpullback_eq_of_mextDeriv_eq_sub
     -- The slice at time `s` is closed, since `σ₁ - σ₀ = dβ`.
     have hclosed : mextDeriv
         (SmoothForm.mpullback (Prod.mk s) (contMDiff_const.prodMk contMDiff_id) σ).val y = 0 := by
-      have h₁ : mextDeriv (σ₁ - σ₀).val y = 0 := by
-        rw [← hβ, SmoothForm.mextDeriv_mextDeriv, Pi.zero_apply]
-      rw [hσt, ← mextDerivₗ_apply, map_add, map_smul]
-      simp only [SmoothForm.add_toRoughForm, SetLike.val_smul, Pi.add_apply, Pi.smul_apply,
-        mextDerivₗ_apply, (SmoothForm.isClosed_def σ₀).1 h₀, h₁, smul_zero, add_zero,
-        Pi.zero_apply]
+      have h₁ : (σ₁ - σ₀).IsClosed := by
+        rw [SmoothForm.isClosed_def, ← hβ, SmoothForm.mextDeriv_mextDeriv]
+      rw [hσt]
+      exact congrFun ((SmoothForm.isClosed_def _).1 (h₀.add (h₁.smul s))) y
     refine moserField_rate_eq_zero hclosed
       (((Continuous.prodMk_right s).continuousAt.eventually hy).mono fun z hz ↦
         ⟨hz.1, by rw [hσt]; exact hz.2⟩) ?_
