@@ -89,7 +89,7 @@ variable {EB HB M : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB]
 | `Geometry/Manifold/VectorBundle/ComplexStructure.lean` | `Bundle.ContMDiffComplexStructure`, its API, transport and topology; the comparison with Tau Ceti on $TM$ | 1, 2 |
 | `Geometry/Manifold/VectorBundle/Symplectic/Basic.lean` | `Bundle.ContMDiffTwoForm`, nondegeneracy, transport along bundle isomorphisms, the comparison with `TauCeti.SmoothTwoForm` | 3 |
 | `Geometry/Manifold/VectorBundle/Section/Topology.lean` | continuity of fibrewise maps on section spaces | 4 |
-| `Geometry/Manifold/VectorBundle/Symplectic/ComplexStructure/Basic.lean` | tame and compatible pairs, $\omega_{g,J}$, the spaces of forms taming a fixed $J$; $J_{g,\omega}$ and existence | 5, 6 |
+| `Geometry/Manifold/VectorBundle/Symplectic/ComplexStructure/Basic.lean` | tame and compatible pairs, $\omega_{g,J}$, the spaces of forms taming a fixed $J$; $J_{g,\omega}$ and existence; $J_{g,\omega_{g,B}}$ on the endomorphism bundle | 5, 6, 8 |
 | `Geometry/Manifold/VectorBundle/Riemannian/SectionTopology.lean` | contractibility of the space of bundle metrics | 7 |
 | `Geometry/Manifold/VectorBundle/Symplectic/ComplexStructure/Contractible.lean` | contractibility for a fixed form or structure, the homotopy equivalence, the second milestone | 7, 8 |
 | `Geometry/Manifold/VectorBundle/Symplectic/Trivialization.lean` | local Darboux frames and the reduction of the structure group | 9 |
@@ -324,6 +324,65 @@ the form and of the structure are independent.
   proves it for $TM$ in `Geometry/Symplectic/Manifold/AlmostComplex/Polar.lean`,
   which this generalizes; on $TM$, `polarComplexStructure_tangentEquiv` says
   that it is Tau Ceti's `SmoothTwoForm.IsNondegenerate.polarComplexStructure`.
+- $J_{g,\omega_{g,B}}$ for an endomorphism `B` of a fibre. The homotopy
+  equivalence below needs $J_{g,\omega_{g,B}}$ as a function of a point
+  $(x,B)$ of the endomorphism bundle, where `B` need not be a complex
+  structure; the bullet above gives smoothness only along a section, so these
+  declarations give it on the total space. For a metric `g`, they are:
+  - `Bundle.compatibleBilinAt g x (B : V x →L[ℝ] V x) :
+    LinearMap.BilinForm ℝ (V x)`, the form
+    $\tfrac12(g_x(Bu,v)-g_x(u,Bv))$ of the formula above, linear in `B`
+    and defined for every `B`, with `@[simp] compatibleBilinAt_apply` and
+    `bilinFormAt_compatibleForm`:
+    `(compatibleForm g J).bilinFormAt x = compatibleBilinAt g x (J x)`.
+  - `Bundle.polarEndDomain g : Set (TotalSpace (F →L[ℝ] F) fun x ↦ V x →L[ℝ] V x)`,
+    the points $(x,B)$ where `compatibleBilinAt g x B` is nondegenerate, with
+    `mem_polarEndDomain_iff`. It is open (`isOpen_polarEndDomain`): over the
+    base set of a trivialization, read through the fibre equivalence and an
+    equivalence `F ≃L[ℝ] W` with an inner product space `W`, it is the
+    preimage of part 9's open `TauCeti.polarDomain W`
+    (`isOpen_polarDomain`) under a continuous map. Membership in that domain
+    (`mem_polarDomain_iff`) is positivity of the first form and
+    nondegeneracy of the skew part of the second, both unchanged by a linear
+    equivalence, and `compatibleBilinAt g x B` is already skew. It contains
+    the values of every complex structure (`mem_polarEndDomain`:
+    `⟨x, J x⟩ ∈ polarEndDomain g`), by `bilinFormAt_compatibleForm`,
+    `compatible_compatibleForm` and `Compatible.isNondegenerate`.
+  - `Bundle.polarEndAt g x B : V x →L[ℝ] V x`, part 9's
+    `TauCeti.metricPolarFormula` on
+    `W = EuclideanSpace ℝ (Fin (finrank ℝ F))` of the pair
+    (`g x`, `compatibleBilinAt g x B`) carried along
+    `e x : V x ≃L[ℝ] W` (the trivialization at `x` followed by Mathlib's
+    `ContinuousLinearEquiv.ofFinrankEq`), conjugated back by `e x`; with
+    `polarEndAt_def`. `polarEndAt_eq_conj`: on `polarEndDomain g`, the same
+    holds for any `e' : V x ≃L[ℝ] W'` to an inner product space, by
+    `metricPolarFormula_conj` (applied to `e'` after the inverse of `e x`),
+    so the choice of `e x` does not matter. `polarEndAt_eq_polarComplexStructure`:
+    if `hω : ω.IsNondegenerate` and
+    `ω.bilinFormAt x = compatibleBilinAt g x B`, then
+    `polarEndAt g x B = hω.polarComplexStructure g x`, by
+    `polarEndAt_eq_conj`, part 9's `metricPolarFormula_eq`,
+    `metricPolarComplexStructure_transport` and
+    `metricPolarComplexStructure_innerSL`, and `polarComplexStructure_apply`.
+    So at `B = J x` it is $J_{g,\omega_{g,J}}$ at `x`, with `ω` the form
+    `compatibleForm g J`, nondegenerate by `compatible_compatibleForm`.
+  - `contMDiffOn_polarEndAt`: the map
+    `q ↦ TotalSpace.mk' (F →L[ℝ] F) q.proj (polarEndAt g q.proj q.snd)` of
+    the endomorphism bundle to itself is
+    `ContMDiffOn (I.prod 𝓘(ℝ, F →L[ℝ] F)) (I.prod 𝓘(ℝ, F →L[ℝ] F)) n` on
+    `polarEndDomain g`, for `g` of order `n`. Proof: by
+    `contMDiffAt_hom_bundle`, at a point over `x₀` it suffices to read the
+    map in the trivialization at `x₀`. By `polarEndAt_eq_conj` with the
+    fibre equivalence of that trivialization followed by `F ≃L[ℝ] W`, the
+    reading is conjugation by a constant equivalence of `metricPolarFormula`
+    at the pair of `g` and `compatibleBilinAt` read in the trivialization.
+    That pair is $C^n$ in $(x,B)$: `g` is $C^n$ in coordinates, and
+    `compatibleBilinAt` is continuous bilinear in the metric and `B`. It
+    lies in `polarDomain W`, so `contDiffOn_metricPolarFormula` concludes.
+    This is the argument of Tau Ceti's private `contMDiff_polarEnd`
+    (`.../AlmostComplex/Polar.lean`), with the form depending on the fibre
+    variable and part 9's public lemma in place of Tau Ceti's private
+    `contMDiffAt_metricChangeTransport_mul_mul_sqrt`.
 - Existence, over a Hausdorff σ-compact base: `IsNondegenerate.exists_compatible`
   (`∃ J, ω.Compatible J`), and `ContMDiffComplexStructure.exists_compatible`
   (`∃ ω, ω.Compatible J`), from `nonempty_contMDiffRiemannianMetric`.
@@ -440,7 +499,27 @@ $[0,1]$ is never fed to the lemma with `P = ℝ` directly.
   Cayley path between them, with $J_{g,\omega_{g,J}}$ as reference and
   coefficient `smoothTransition t`, is a fibrewise formula in $(t, J_x)$
   that is jointly smooth for every real $t$ on an open set, defined as above
-  with $b\in[0,1]$, that contains the values of every complex structure. `polarComplexStructure_homotopic`: for two metrics
+  with $b\in[0,1]$, that contains the values of every complex structure.
+  Here the reference is not a fixed section: at a point `q` of the
+  endomorphism bundle it is `A q = polarEndAt g q.proj q.snd`, which at
+  `q = ⟨x, J x⟩` is $J_{g,\omega_{g,J}}$ at `x`
+  (`polarEndAt_eq_polarComplexStructure`). So the open set `O` is the set
+  of `q ∈ polarEndDomain g` such that `1 - A q * q.snd` is a unit and
+  `1 - b • cayleyFormula (A q) q.snd` is a unit for every $b\in[0,1]$.
+  The formula's smoothness in `A` is fed by `contMDiffOn_polarEndAt`,
+  which makes `A` a $C^n$ function of `q` on `polarEndDomain g`. `O` is
+  open: `polarEndDomain g` is open, `A` is continuous on it, and then the
+  argument for the contraction's set applies (units are open, $[0,1]$ is
+  compact; in a trivialization, conjugation by the fibre equivalence is an
+  algebra isomorphism, which preserves units and, by Tau Ceti's
+  `map_cayleyFormula`, the Cayley formula). It contains `⟨x, J x⟩` for
+  every complex structure `J`: the point is in `polarEndDomain g`
+  (`mem_polarEndDomain`); `A` there is $J_{g,\omega_{g,J}}$ at `x`, which is
+  compatible with $\omega_{g,J}$ (`compatible_polarComplexStructure`); and
+  `J` is compatible with $\omega_{g,J}$ (`compatible_compatibleForm`), hence
+  tame. So `Tames.isUnit_one_sub_mul_of_toLinearMap` and
+  `Compatible.isUnit_one_sub_smul_cayleyFormula` give the two units for
+  $|b|\le1$. `polarComplexStructure_homotopic`: for two metrics
   the two maps $\omega\mapsto J_{g,\omega}$ are homotopic, by contracting the
   metrics.
 - **Milestone.** `SymplecticGeometry.Bundle.contractibleSpace_compatible_tames`:
@@ -640,8 +719,17 @@ it, its design adds it.
   part uses nothing from *Compatible complex structures* (part 9) beyond what
   Tau Ceti already has: the fibrewise constructions it needs (the Cayley path,
   $J_{g,\omega}$, $\omega_{g,J}$, the complex-linear part) are Tau Ceti's
-  linear ones or explicit formulas. So none of its issues waits for part 9,
-  although `DESIGN.md` lists that part among its prerequisites.
+  linear ones or explicit formulas. The one exception is `polarEndAt` and
+  its smoothness, which use part 9's
+  `Analysis/InnerProductSpace/Symplectic/PolarComplexStructure/Smooth.lean`
+  (`TauCeti.polarDomain`, `isOpen_polarDomain`, `mem_polarDomain_iff`,
+  `TauCeti.metricPolarFormula`, `contDiffOn_metricPolarFormula`,
+  `metricPolarFormula_conj`, `metricPolarFormula_eq`) and
+  `metricPolarComplexStructure_transport` and
+  `metricPolarComplexStructure_innerSL` from its `Basic.lean`: there the
+  form varies with the fibre variable, not only with the point, and part 9
+  states the pointwise smoothness of the formula publicly, where Tau Ceti's
+  is private. So only issue 8 waits for part 9.
 
 ## Building issues
 
@@ -680,7 +768,13 @@ at once.
 8. **The homotopy equivalence and the second milestone.**
    `Symplectic/ComplexStructure/Contractible.lean`:
    `exists_homotopyEquiv_polarComplexStructure`, `polarComplexStructure_homotopic`,
-   `contractibleSpace_compatible_tames`. Blockers: 7.
+   `contractibleSpace_compatible_tames`; and, in
+   `Symplectic/ComplexStructure/Basic.lean`, `compatibleBilinAt`,
+   `polarEndDomain` and `polarEndAt` with their lemmas. Blockers: 7, and
+   part 9's building issues 4 and 5 (`PolarComplexStructure/Basic.lean` and
+   `Smooth.lean` of `design/compatible-complex-structures.md`). If this
+   issue gets too long, the `Basic.lean` declarations become an issue of
+   their own.
 9. **Local Darboux frames.** `Symplectic/Trivialization.lean`, as above. The
    smooth Gram–Schmidt of Mathlib and Tau Ceti needs a linearly ordered
    index, so the frame is built on `Fin (2 * k)` and reindexed to
