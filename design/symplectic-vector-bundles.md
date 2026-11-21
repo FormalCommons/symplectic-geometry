@@ -1456,14 +1456,20 @@ in *First Chern number*'s prerequisite 3, and not on the results below.
   `circleBundle_smul_eq_iff`, `exists_circleBundle_smul_eq_iff`), which the
   homeomorphism intertwines with the right action of
   `unitary (ℂ →L[ℂ] ℂ)` through the isomorphism below; and the instance
-  `TauCeti.PrincipalBundle Circle` on the frame bundle. That instance and the
-  `FiberBundle Circle` instance under it are one application each of
-  `Topology/FiberBundle/Principal/ChangeGroup.lean` to that isomorphism:
-  `FiberBundle.changeModelFiber` and `TauCeti.PrincipalBundle.changeGroup`,
-  with the right action of `Circle` on frames given by `MulAction.compHom`
-  along its inverse and the topology on `TotalSpace Circle` induced along
-  `Bundle.TotalSpace.modelFiberEquiv`, the two client-supplied pieces the
-  general construction asks for, which then hold by `rfl`. The trivializations
+  `TauCeti.PrincipalBundle Circle` on the frame bundle. Both instances are
+  built from that isomorphism by the general change of model fibre and of
+  structure group. The `FiberBundle Circle` instance is
+  `FiberBundle.changeModelFiber`
+  (`Topology/FiberBundle/ChangeModelFiber.lean`), and the principal instance
+  is `TauCeti.PrincipalBundle.changeGroup`
+  (`Topology/FiberBundle/Principal/ChangeGroup.lean`). The file supplies
+  what these constructions take as instance arguments: the topology on
+  `TotalSpace Circle`, induced along `Bundle.TotalSpace.modelFiberEquiv`, and
+  the right action of `Circle` on frames, by `MulAction.compHom` along the
+  inverse of the isomorphism. The hypotheses of the constructions (that
+  `Bundle.TotalSpace.modelFiberEquiv` is inducing, and that the action of
+  `Circle` is that of `unitary (ℂ →L[ℂ] ℂ)` through the isomorphism) then
+  hold by `rfl`. The trivializations
   are thus those of `instPrincipalBundleFiber` read through the isomorphism
   (`Bundle.Trivialization.changeModelFiber`); no trivialization or
   total-space equivalence specific to `Circle` is defined. The group
