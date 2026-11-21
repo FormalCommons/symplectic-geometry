@@ -83,7 +83,12 @@ and does not redefine any of it:
   exactly when $s-s^{\mathrm{flip}}$ is, by Tau Ceti's
   `TauCeti.BilinForm.nondegenerate_smul_iff`), and
   `isOpen_setOf_nondegenerate_toBilinForm_sub_flip` (in finite dimension,
-  the $s$ with $s-s^{\mathrm{flip}}$ nondegenerate are open).
+  the $s$ with $s-s^{\mathrm{flip}}$ nondegenerate are open). In the same file, carrying a form along a continuous linear
+  equivalence `e` in both arguments:
+  `ContinuousLinearEquiv.toBilinForm_arrowCongr_arrowCongr` (as a bilinear
+  form it is `LinearMap.BilinForm.congr` along `e`) and
+  `ContinuousLinearEquiv.nondegenerate_arrowCongr_sub_flip_iff` (it keeps
+  $s-s^{\mathrm{flip}}$ nondegenerate or degenerate).
 - For an alternating sesquilinear map $B$, $B-B^{\mathrm{flip}}=2\cdot B$,
   `LinearMap.IsAlt.sub_flip_eq_two_smul`, which Mathlib lacks; the library
   adds it in `LinearAlgebra/SesquilinearForm.lean`.
@@ -301,7 +306,9 @@ The part uses the following from other parts:
   `compatible_iff_exists_isSymplectomorphism_stdForm`.
   `Topology/ComplexStructure/Compatible/Matrix.lean` imports
   `Topology/ComplexStructure/Basic.lean`, which besides `Action.lean` imports
-  only Tau Ceti, for `AlmostComplexStructure.homeomorphMatrix` and
+  only Tau Ceti and the merged `LinearAlgebra/Matrix/NonsingularInverse.lean`
+  and `Analysis/CStarAlgebra/Matrix.lean` (which import only Mathlib and
+  merged files that do), for `AlmostComplexStructure.homeomorphMatrix` and
   `coe_homeomorphMatrix` in `compatibleEquivPosDefSymplectic`.
   `Topology/Algebra/Matrix/SymplecticGroup/CompactSubgroup.lean` imports
   `LinearAlgebra/ComplexStructure/Standard.lean`, for

@@ -901,8 +901,9 @@ it into issues; the overview fixes its folders and its dependencies.
   `SymplecticForm V`), with the general file
   `Topology/Algebra/Module/BilinearForm.lean` (a continuous bilinear form in
   finite dimensions is recovered from its bilinear form; the skew part of a
-  continuous bilinear map) and `LinearAlgebra/SesquilinearForm.lean`
-  (an alternating form minus its transpose is twice the form),
+  continuous bilinear map; carrying a form along an equivalence) and
+  `LinearAlgebra/SesquilinearForm.lean` (an alternating form minus its
+  transpose is twice the form),
   `Geometry/Symplectic/Darboux/EuclideanBasis.lean` (the coordinates of a
   basis adapted to $J$ are complex linear),
   `Geometry/Symplectic/Cayley/Domain.lean` (the open set where Tau Ceti's
@@ -940,8 +941,10 @@ it into issues; the overview fixes its folders and its dependencies.
   `Topology/ComplexStructure/Compatible/SymplecticForms.lean` imports
   `Topology/ComplexStructure/Orthogonal.lean`, for
   `metricComplexStructures_innerSL`. `Action.lean` imports only Mathlib and
-  Tau Ceti, `Topology/ComplexStructure/Basic.lean` only `Action.lean` and Tau
-  Ceti, `Standard.lean` and `Orthogonal.lean` only merged files, as the
+  Tau Ceti, `Topology/ComplexStructure/Basic.lean` only `Action.lean`, Tau
+  Ceti and the merged `LinearAlgebra/Matrix/NonsingularInverse.lean` and
+  `Analysis/CStarAlgebra/Matrix.lean`, which import only Mathlib and merged
+  files that do, `Standard.lean` and `Orthogonal.lean` only merged files, as the
   build-order table lists, so the part waits for nothing of *Linear complex structures*. `Compatible/Matrix.lean` also
   imports the merged `LinearAlgebra/Matrix/SymplecticGroup/Basic.lean` of
   *Symplectic group*, for `Matrix.IsSymm.mem_symplecticGroup_iff`.
@@ -1132,6 +1135,10 @@ it into issues; the overview fixes its folders and its dependencies.
   `Bundle.Pullback.neg_fiber`, a negative in a fibre of a pull-back bundle
   for Tau Ceti's group structure on it; the file has the path
   of the Tau Ceti file with `ContinuousLinearMap.inCoordinates_pullback_of_mem`,
+  so that the two merge upstream),
+  `Topology/VectorBundle/Coordinates.lean` (the coordinates of continuous
+  bilinear forms on a vector bundle; the file has the path of the Tau Ceti
+  file with `ContinuousLinearMap.inCoordinates_eq_conjContinuousAlgEquiv`,
   so that the two merge upstream),
   `Data/Bundle.lean` (`Bundle.Pullback.eq_iff`, an equation in a fibre of a
   pull-back bundle as one in the fibre it is defined as, in the root
@@ -1743,7 +1750,14 @@ has either.
   `TauCeti.Bundle.zeroSectionTangentEquiv`), `Lift.lean` (named like Tau
   Ceti's file: for a vector field $Y$, lifting its local flow to $T^*L$ gives
   the flow of $X_H$ for $H(q,p)=p(Y_q)$ where defined, and a complete flow
-  when $Y$ is complete).
+  when $Y$ is complete); and
+  `Geometry/Manifold/VectorBundle/Section/Extension.lean` (named like Tau
+  Ceti's file, whose `FiberBundle.contMDiffExtend` it uses: the differential
+  of a section in the chart at its value, `Bundle.mfderiv_section_apply`, and
+  smooth sections of any smooth vector bundle with a given value and a
+  derivative $u\mapsto\xi(u)\,b$ at a point,
+  `ContMDiffSection.exists_mfderiv_eq`, which `Liouville.lean` tests
+  against).
 - **Builds on:** Tau Ceti: `TauCeti.CotangentBundle.liouvilleForm` with
   `mpullback_liouvilleForm`, `symplecticForm` (which is
   $-d\lambda_{\mathrm{can}}$, the page's sign) with `inChartAt_symplecticForm_apply`,
@@ -1853,29 +1867,35 @@ has either.
   `TauCeti.IsInvolutiveDistribution.exists_flatChart`,
   `TauCeti.RoughForm.descendedForm` and
   `TauCeti.SmoothTwoForm.isSymplectic_descendedForm_iff`), and in
-  `Geometry/Symplectic/Neighborhood/`: `Tubular.lean` (the common step of
+  `Geometry/Symplectic/Neighborhood/`: `Extension.lean` (along the
+  submanifold, a smooth family of linear symplectomorphisms built from
+  compatible complex structures by the formula of
+  `LinearAlgebra/Symplectic/Extension.lean`), `Tubular.lean` (the common step of
   the four theorems: given a diffeomorphism between two properly embedded
   submanifolds and, over it, a bundle map $TM_0|_{Q_0}\to TM_1|_{Q_1}$ that
   is a linear symplectomorphism on each fibre, some diffeomorphism of
   neighbourhoods has that bundle map as its derivative along $Q_0$, which *Moser isotopy*'s relative theorem
   then corrects to a symplectomorphism with the same first jet),
-  `Symplectic.lean`, `Lagrangian.lean` (the model $T^*L$ with
-  $-d\lambda_{\mathrm{can}}$, through Tau Ceti's
-  `TauCeti.SmoothEmbedding.normalBundleDiffeomorphOfIsLagrangianMap` and the
-  zero-section splitting of *Cotangent bundles*), `Isotropic.lean` (with the
+  `Basic.lean` (the comparison theorem for submanifolds whose restricted
+  form has constant rank, from the two files before it, of which the four
+  theorems are corollaries), `Symplectic.lean`, `Lagrangian.lean` (the
+  model $T^*L$ with $-d\lambda_{\mathrm{can}}$, along the zero section of
+  `Geometry/Manifold/VectorBundle/ZeroSection.lean`, a smooth embedding),
+  `Isotropic.lean` (with the
   symplectic normal bundle $(TQ)^\omega/TQ$, read fibrewise by
   *Symplectic vector spaces*' linear reduction), `Coisotropic.lean` and
-  `AdaptedDarboux.lean` (Darboux charts adapted to the four types, from the
-  neighbourhood theorems applied to a coordinate piece of the submanifold).
+  `AdaptedDarboux.lean` (Darboux charts adapted to the four types, from a
+  chart of the submanifold suited to its type and Tau Ceti's pointwise
+  relative Darboux theorem).
   The symplectic normal bundle of a symplectic submanifold is Tau Ceti's
-  normal bundle with `TauCeti.SmoothEmbedding.symplecticNormalForm`, read as a
-  `SymplecticGeometry.ContMDiffTwoForm` of *Symplectic vector bundles*.
+  normal bundle with `TauCeti.SmoothEmbedding.symplecticNormalForm`; the
+  symplectic normal bundle $(TQ)^\omega/TQ$ of an isotropic one is given by
+  smooth lifts of its maps (see the design file).
 - **Builds on:** *Moser isotopy* (`Relative.lean`, only for `Tubular.lean` and
-  what follows it), *Cotangent bundles* (only `Lagrangian.lean`), *Symplectic
-  vector spaces* (`Reduction.lean`, merged), *Symplectic vector bundles*
-  (`Symplectic/Basic.lean`, merged; see below), Tau Ceti (tubular
+  what follows it), *Symplectic
+  vector spaces* (`Reduction.lean`, merged), Tau Ceti (tubular
   neighbourhoods, the normal bundles of Lagrangian and symplectic embeddings,
-  `LinearMap.BilinForm.IsAlt.exists_isSymplectomorphism_coisotropicModel`).
+  compatible almost complex structures, relative Darboux, `TauCeti.SmoothTwoForm.exists_partialDiffeomorph_fix_immersion_mpullback_eq`).
   `CharacteristicFoliation.lean` uses only Tau Ceti and can start at once.
 - **Unmerged work of #3 it may wait for.** The linear extensions in the
   proofs choose complements: Lagrangian complements of a Lagrangian or
@@ -1886,7 +1906,10 @@ has either.
   $\Phi$ of the symplectic neighbourhood theorem as an isomorphism with a
   pull-back bundle, for #269 (pull-backs); if the adapted charts use local
   Darboux frames of a bundle, for #266. Otherwise the part waits for no
-  open issue of #3. The design file chooses, and names the blockers.
+  open issue of #3. The design file chooses compatible complex structures,
+  and takes them from Tau Ceti's
+  `TauCeti.SmoothTwoForm.IsNondegenerate.exists_compatible`, so the part
+  waits for none of #254, #266 and #269.
 - **Milestones:** *Characteristic foliations and local symplectic
   quotients*, *Symplectic neighbourhood theorem*, *Lagrangian neighbourhood
   theorem*, *Isotropic neighbourhood theorem*, *Coisotropic neighbourhood
@@ -2014,10 +2037,10 @@ so two parts can each use merged files of the other without either waiting.
 | 1 | *Symplectic vector bundles* | *Standard model*, *Linear Moser*; its existence issue also the two `PolarComplexStructure/` issues of *Compatible complex structures*, its contractibility issue the Cayley domain issue of that part, and its homotopy-equivalence issue those three and the `Tames.lineMap` issue, none of which waits for another part |
 | 1 | *Hamiltonian flows* | *Smooth families* (only `OfIsotopy.lean`, for `SymplecticIsotopy.lean`, and `TimeExtension.lean`, for `Flux/CompactSupport.lean`; the other files can start at once) |
 | 1 | *Moser isotopy* | *Smooth families* (only `Stability.lean`; the other files can start at once) |
-| 2 | *Compatible complex structures* | *Standard model*, *Symplectic vector spaces*; *Linear complex structures* (only `LinearAlgebra/ComplexStructure/Action.lean`, which imports only Mathlib and Tau Ceti, `Topology/ComplexStructure/Basic.lean`, which besides it imports only Tau Ceti, and `LinearAlgebra/ComplexStructure/Standard.lean`, which besides `Action.lean` imports only `LinearAlgebra/Symplectic/Compatible.lean` of this part, `LinearAlgebra/Symplectic/Standard/Matrix.lean` of *Standard model*, the library's `Geometry/Symplectic/Orientation.lean`, which imports only Tau Ceti, and Tau Ceti; and `Topology/ComplexStructure/Orthogonal.lean`, which besides `Topology/ComplexStructure/Basic.lean` imports only `LinearAlgebra/Symplectic/Standard/Basic.lean` of *Standard model*, `Analysis/Matrix/Polar/Deformation.lean` of *Symplectic group* and Tau Ceti; all of them are merged); *Symplectic group* (only `LinearAlgebra/Matrix/SymplecticGroup/Basic.lean`, which imports only Mathlib and Tau Ceti and is merged, and `Analysis/Matrix/Polar/Deformation.lean`, through `Orthogonal.lean`, which is merged) |
+| 2 | *Compatible complex structures* | *Standard model*, *Symplectic vector spaces*; *Linear complex structures* (only `LinearAlgebra/ComplexStructure/Action.lean`, which imports only Mathlib and Tau Ceti, `Topology/ComplexStructure/Basic.lean`, which besides it imports only Tau Ceti and the merged `LinearAlgebra/Matrix/NonsingularInverse.lean` and `Analysis/CStarAlgebra/Matrix.lean`, which import only Mathlib and merged files that do, and `LinearAlgebra/ComplexStructure/Standard.lean`, which besides `Action.lean` imports only `LinearAlgebra/Symplectic/Compatible.lean` of this part, `LinearAlgebra/Symplectic/Standard/Matrix.lean` of *Standard model*, the library's `Geometry/Symplectic/Orientation.lean`, which imports only Tau Ceti, and Tau Ceti; and `Topology/ComplexStructure/Orthogonal.lean`, which besides `Topology/ComplexStructure/Basic.lean` imports only `LinearAlgebra/Symplectic/Standard/Basic.lean` of *Standard model*, `Analysis/Matrix/Polar/Deformation.lean` of *Symplectic group* and Tau Ceti; all of them are merged); *Symplectic group* (only `LinearAlgebra/Matrix/SymplecticGroup/Basic.lean`, which imports only Mathlib and Tau Ceti and is merged, and `Analysis/Matrix/Polar/Deformation.lean`, through `Orthogonal.lean`, which is merged) |
 | 2 | *Maslov index* | *Standard model*, *Symplectic group*, *Unitary group topology*; its Lagrangian issues also *Lagrangian Grassmannian* |
 | 2 | *Isotopy extension* | *Hamiltonian flows*, *Moser isotopy*, *Smooth families* |
-| 2 | *Symplectic neighbourhoods* | *Moser isotopy* (only `Relative.lean`), *Cotangent bundles*; *Symplectic vector spaces* and *Symplectic vector bundles* (only `LinearAlgebra/Symplectic/Reduction.lean` and `Geometry/Manifold/VectorBundle/Symplectic/Basic.lean`, which are merged, unless its design file also takes the open issues #254, #266 or #269 of *Symplectic vector bundles*, which are at level 1); `CharacteristicFoliation.lean` can start at once |
+| 2 | *Symplectic neighbourhoods* | *Moser isotopy* (only `Relative.lean`); *Symplectic vector spaces* (only `LinearAlgebra/Symplectic/Reduction.lean`, which is merged); `CharacteristicFoliation.lean` and `AdaptedDarboux.lean` can start at once |
 | 3 | *First Chern number* | *Symplectic vector bundles*, the symplectic-loop issues of *Maslov index* |
 | 3 | *Contact geometry* | *Smooth families* (only `Family.lean` and `Gray.lean`, through `TimeExtension.lean` and `OfIsotopy.lean`); *Symplectic neighbourhoods* (only `LegendrianNeighborhood.lean`, through `Lagrangian.lean`); the other files of the part can start at once |
 
@@ -2101,9 +2124,9 @@ Ceti assumes them compact).
 | *Neighbourhood extension of submanifold isotopies* | *Isotopy extension*. |
 | *Characteristic foliations and local symplectic quotients* | *Symplectic neighbourhoods*. Existing parts: `TauCeti.SmoothForm.isInvolutiveDistribution_ker_bilinFormAt`, `TauCeti.SmoothForm.characteristicFoliation`, `TauCeti.SmoothTwoForm.isSymplectic_descendedForm_iff`. |
 | *Symplectic neighbourhood theorem* | *Symplectic neighbourhoods*. |
-| *Lagrangian neighbourhood theorem* | *Symplectic neighbourhoods*. Existing linear input: `TauCeti.SmoothEmbedding.normalBundleDiffeomorphOfIsLagrangianMap`. |
+| *Lagrangian neighbourhood theorem* | *Symplectic neighbourhoods*. Existing input: `TauCeti.CotangentBundle.isLagrangianMap_zeroSection`. |
 | *Isotropic neighbourhood theorem* | *Symplectic neighbourhoods*. |
-| *Coisotropic neighbourhood theorem* | *Symplectic neighbourhoods*. Existing linear input: `LinearMap.BilinForm.IsAlt.exists_isSymplectomorphism_coisotropicModel`. |
+| *Coisotropic neighbourhood theorem* | *Symplectic neighbourhoods*. |
 | *Darboux charts adapted to submanifolds* | *Symplectic neighbourhoods*. |
 | *Contact vector fields and contact Hamiltonians* | *Contact geometry*. Existing parts: `TauCeti.SmoothForm.IsContactForm.isContactHamiltonianVectorField_iff_eq`, `TauCeti.SmoothForm.IsContactHamiltonianVectorField.mlieDerivForm_eq`, `TauCeti.SmoothForm.IsContactForm.isContactHamiltonianVectorField_iff_mlieDerivForm`, `TauCeti.SmoothForm.IsContactForm.contactHamiltonianVectorField_one`. |
 | *Contact Darboux theorem* | *Contact geometry*. Existing up to the change of coordinates $(q,p,z)\mapsto(q,-p,-z)$: `TauCeti.SmoothForm.IsContactForm.exists_strictDarbouxChart_of_finrank_eq`; for structures, `TauCeti.IsContactDistribution.exists_darbouxChart`. |

@@ -37,6 +37,8 @@ gives actions of the invertible matrices and of the special orthogonal matrices.
 * `TauCeti.AlmostComplexStructure.exists_linearIsometryEquiv_transport_eq`: two norm-preserving
   complex structures on inner product spaces of the same finite dimension are conjugate by a
   linear isometry.
+* `TauCeti.AlmostComplexStructure.toEuclideanLin_symm_mul_self`: the matrix of a complex
+  structure of `EuclideanSpace ℝ n` squares to `-1`.
 * `TauCeti.AlmostComplexStructure.smul_apply`, `generalLinearGroup_smul_apply`: the actions
   evaluated at a vector.
 * `LinearEquiv.trans_assoc_id`: associativity of composition of linear equivalences over one
@@ -186,6 +188,12 @@ end InnerProductSpace
 section Matrix
 
 variable {n : Type*} [Fintype n] [DecidableEq n]
+
+/-- The matrix of a complex structure on a Euclidean space squares to `-1`. -/
+theorem toEuclideanLin_symm_mul_self (J : AlmostComplexStructure (EuclideanSpace ℝ n)) :
+    Matrix.toEuclideanLin.symm J.toLinearMap * Matrix.toEuclideanLin.symm J.toLinearMap = -1 := by
+  rw [← Matrix.toLpLin_symm_comp, J.square_neg, map_neg]
+  simp
 
 /-- The invertible real matrices act on the complex structures of `EuclideanSpace ℝ n` by
 conjugation with their linear maps: `g • J = g ∘ J ∘ g⁻¹`. -/
