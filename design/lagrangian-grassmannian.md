@@ -125,7 +125,7 @@ global name.
    `isCompl_iff_disjoint` in `LinearAlgebra/Symplectic/Lagrangian/Basic.lean`,
    since it holds for a general `ω` and `Transverse.lean` is about
    `StdSpace ι`. One definition about `StdSpace ι` alone,
-   `StdSpace.complexEuclideanEquiv` with its three lemmas, is added to part 1's
+   `StdSpace.complexEuclideanEquiv` with its four lemmas, is added to part 1's
    `Standard/Basic.lean` (see that section). The other departures are #79's,
    the issue that changes §6 to match: `Topology/Grassmannian/Lagrangian/Finite.lean`;
    the general files under `LinearAlgebra/Matrix/` (the real points of the
@@ -227,8 +227,9 @@ lacks. It goes beside `x_complexToRealEuclidean`, in the namespace
   `complexEuclideanEquiv_def`, and the `@[simp]` lemmas
   `x_complexEuclideanEquiv : (complexEuclideanEquiv ι v).x = fun i ↦ (v i).re`
   and `y_complexEuclideanEquiv : (complexEuclideanEquiv ι v).y = fun i ↦ (v i).im`,
-  from `x_complexToRealEuclidean` and `y_complexToRealEuclidean`. Building
-  issue 3 adds it.
+  from `x_complexToRealEuclidean` and `y_complexToRealEuclidean`. The `@[simp]` lemma
+  `stdComplexStructure_complexEuclideanEquiv` says that it carries
+  multiplication by `I` to `J₀`. Building issue 3 adds it.
 
 This part also uses
 `SymplecticGeometry.isSymplectomorphism_piLpCongrLeft_sumCongr` (`σ : ι ≃ κ`),
@@ -266,11 +267,13 @@ Lagrangian frames on `StdSpace ι`, pure linear algebra. Namespace
 `SymplecticGeometry` (and `SymplecticGeometry.StdSpace` for the graphs).
 
 - `StdSpace.graph (A : Matrix ι ι ℝ) : Submodule ℝ (StdSpace ι)`, defined as
-  the image of `(Matrix.toLin' A).graph` under `(StdSpace.equivProd ι).symm`.
+  the image of `A.mulVecLin.graph` under `(StdSpace.equivProd ι).symm`
+  (`Matrix.mulVecLin` rather than `Matrix.toLin'`, which is the same map but
+  needs `DecidableEq ι`).
   API: `StdSpace.mem_graph_iff : z ∈ graph A ↔ z.y = A *ᵥ z.x` (`@[simp]`),
   and `StdSpace.graph_injective`.
 - `StdSpace.graphY (A : Matrix ι ι ℝ) : Submodule ℝ (StdSpace ι)`, the graph
-  over the `y` coordinate, the image of `(Matrix.toLin' A).graph` under the
+  over the `y` coordinate, the image of `A.mulVecLin.graph` under the
   linear equivalence
   `(LinearEquiv.prodComm ℝ (ι → ℝ) (ι → ℝ)).trans (StdSpace.equivProd ι).symm`.
   API: `StdSpace.mem_graphY_iff : z ∈ graphY A ↔ z.x = A *ᵥ z.y` (`@[simp]`),
@@ -296,9 +299,15 @@ Lagrangian frames on `StdSpace ι`, pure linear algebra. Namespace
   `PiLp.inner_apply`.
 - `isLagrangian_range_fromRows_iff (X Y : Matrix ι ι ℝ) :
   (stdForm ι).IsLagrangian (LinearMap.range (Matrix.toEuclideanLin (Matrix.fromRows X Y)))
-  ↔ (Matrix.fromRows X Y).rank = Fintype.card ι ∧ Xᵀ * Y = Yᵀ * X`. The
-  form on the frame is $u^T(X^TY-Y^TX)v$ by `stdForm_apply`. The rank is
-  the dimension of the range. Lagrangian is isotropic of half dimension, by
+  ↔ (Matrix.fromRows X Y).rank = Fintype.card ι ∧ Xᵀ * Y = Yᵀ * X`.
+  The `@[simp]` lemmas `StdSpace.x_toEuclideanLin_fromRows` and
+  `StdSpace.y_toEuclideanLin_fromRows` give the coordinates `X u` and `Y u`
+  of the column combination `Z u`; from them and `stdForm_apply`,
+  `stdForm_toEuclideanLin_fromRows` computes $\omega_0(Zu,Zv)=u^T(X^TY-Y^TX)v$,
+  and `isIsotropic_range_fromRows_iff` reads isotropy of the range as
+  `Xᵀ * Y = Yᵀ * X`. The rank is the dimension of the range by Tau Ceti's
+  `Matrix.rank_eq_finrank_range_toEuclideanLin`, and a Lagrangian is an
+  isotropic subspace of half dimension by
   `isLagrangian_iff_isIsotropic_and_two_mul_finrank_eq` of
   `LinearAlgebra/Symplectic/Subspace.lean` (#64).
 - `ℒ.ofFrame (X Y : Matrix ι ι ℝ) (hrank : (fromRows X Y).rank = Fintype.card ι)
@@ -306,32 +315,48 @@ Lagrangian frames on `StdSpace ι`, pure linear algebra. Namespace
   `coe_ofFrame` (`@[simp]`): its submodule is the range of
   `toEuclideanLin (fromRows X Y)`. This is the constructor of G6.
 - `isLagrangian_graph_iff (A : Matrix ι ι ℝ) :
-  (stdForm ι).IsLagrangian (StdSpace.graph A) ↔ A.IsSymm`, from Tau Ceti's
-  `isLagrangian_graph_iff_of_pairing` through `equivProd` and
-  `isLagrangian_map_transport_iff`. It is not derived from the frame
-  criterion. `isLagrangian_graphY_iff` follows by `map_symJ_graph`.
+  (stdForm ι).IsLagrangian (StdSpace.graph A) ↔ A.IsSymm` and
+  `isLagrangian_graphY_iff`, the same for `graphY A`. Both come from one
+  private lemma about the image of `A.mulVecLin.graph` under a linear
+  equivalence `e` that turns `ω₀` into a nonzero multiple of the pairing
+  of `(ι → ℝ) × (ι → ℝ)`: `equivProd` for `graph` and its composite with
+  `prodComm` for `graphY`. That lemma transports along `e`
+  (`isLagrangian_map_transport_iff`), applies Tau Ceti's
+  `isLagrangian_graph_iff_of_pairing`, and recognizes the resulting
+  condition as Mathlib's `Matrix.isSymm_toBilin'_iff_isSymm`. Neither is
+  derived from the frame criterion.
 - `det_ne_zero_of_isLagrangian_range_fromRows`: the complex frame of a
-  Lagrangian frame is invertible. A complex kernel vector $a+ib$ gives
-  $Za=-J_0Zb$, which lies in $\Lambda\cap J_0\Lambda=0$ by
-  `IsIsotropic.disjoint_map_of_tames` and `stdForm_compatible`. With
-  `Matrix.map_im_conjTranspose_mul_self_eq_zero_of_transpose_mul_eq`, this is
-  the hypothesis of Tau Ceti's `realOrthonormalize_mem_unitaryGroup`.
-- Transverse Lagrangians are graphs, stated for submodules and in the same
-  form. The horizontal and vertical subspaces are `LinearMap.ker StdSpace.y`
-  and `LinearMap.ker StdSpace.x`, so they need no new names here.
+  Lagrangian frame is invertible. The Lagrangian range is maximal totally
+  real for `J₀` (`IsLagrangian.isMaximalTotallyReal_of_compatible` with
+  `stdForm_compatible`). By `Matrix.range_toEuclideanLin_fromRows` it is the
+  image under `complexEuclideanEquiv`, which intertwines multiplication by
+  `I` with `J₀` (`stdComplexStructure_complexEuclideanEquiv`), of `(X + i Y).realImage`; so that real image is maximal
+  totally real (`LinearEquiv.isMaximalTotallyReal_map_iff`), and Tau Ceti's
+  `isMaximalTotallyReal_realImage_iff` gives `det (X + i Y) ≠ 0`. With
+  `Matrix.map_im_conjTranspose_mul_self_eq_zero_of_transpose_mul_eq`
+  (a corollary of `Matrix.map_im_conjTranspose_mul_self`,
+  `Im ((X + i Y)ᴴ (X + i Y)) = Xᵀ Y - Yᵀ X`), this is the hypothesis of Tau
+  Ceti's `realOrthonormalize_mem_unitaryGroup`.
+- Transverse subspaces are graphs, stated for submodules. The horizontal and
+  vertical subspaces are `LinearMap.ker StdSpace.y` and
+  `LinearMap.ker StdSpace.x`, so they need no new names here.
+  - `StdSpace.exists_eq_graph_of_isCompl_ker_x` and
+    `StdSpace.exists_eq_graphY_of_isCompl_ker_y`: any subspace `L`
+    complementary to `LinearMap.ker StdSpace.x` (resp. `StdSpace.y`) is
+    `graph A` (resp. `graphY A`) for some `A`. These are the converses of
+    `isCompl_graph_ker_x` and `isCompl_graphY_ker_y`. The projection to `x`
+    (resp. `y`) is bijective on `L`: its kernel on `L` is zero, and `L` plus
+    the kernel is everything. So Mathlib's `Submodule.exists_eq_graph`
+    applies to the image of `L` in `(ι → ℝ) × (ι → ℝ)`, and
+    `Submodule.map_symm_eq_iff` brings the graph back to `StdSpace ι`.
   - `exists_eq_graph_of_isCompl`: a Lagrangian `L` complementary to
     `LinearMap.ker StdSpace.x` satisfies `∃ S, S.IsSymm ∧ L = StdSpace.graph S`.
   - `exists_eq_graphY_of_isCompl`: a Lagrangian `L` complementary to
     `LinearMap.ker StdSpace.y` satisfies `∃ S, S.IsSymm ∧ L = StdSpace.graphY S`.
 
-  In each case `L` is the graph of the inverse of the projection to `x`
-  (resp. `y`). That projection is bijective on `L`, because its kernel is
-  zero and the dimensions agree. Mathlib's `Submodule.toLinearPMap` builds the
-  linear map from the image of `L` in the product
-  (`Submodule.toLinearPMap_graph_eq`, with `Submodule.existsUnique_from_graph`
-  for the uniqueness of values), and `isLagrangian_graph_iff` (resp.
-  `isLagrangian_graphY_iff`) makes it symmetric. The converses are
-  `isCompl_graph_ker_x` and `isCompl_graphY_ker_y` above.
+  In each case the previous item gives the matrix, and
+  `isLagrangian_graph_iff` (resp. `isLagrangian_graphY_iff`) makes it
+  symmetric.
 
 ### `LinearAlgebra/Symplectic/Lagrangian/Action.lean`
 
@@ -705,7 +730,10 @@ The manifold structure and the milestone.
     `lagrangianChart_inj`, `lagrangianChart_inf_realSubspace`,
     `realSubspace`, `IsMaximalTotallyReal`,
     `IsMaximalTotallyReal.two_mul_finrank_eq`,
-    `isMaximalTotallyReal_realImage`,
+    `isMaximalTotallyReal_realImage`, `isMaximalTotallyReal_realImage_iff`,
+    `IsLagrangian.isMaximalTotallyReal_of_compatible`,
+    `LinearEquiv.isMaximalTotallyReal_map_iff`,
+    `Matrix.rank_eq_finrank_range_toEuclideanLin`,
     `det_lagrangianChartFrame_ne_zero`, `realOrthonormalize`,
     `realImage_realOrthonormalize`, `realOrthonormalize_mem_unitaryGroup`,
     `continuous_realOrthonormalize`.
@@ -736,8 +764,8 @@ The manifold structure and the milestone.
 - Mathlib: `Submodule.starProjection`, `Submodule.starProjection_map_apply`,
   `Submodule.isCompl_iff_disjoint`, `Matrix.fromRows`, `Matrix.rank`,
   `Matrix.toEuclideanLin`, `LinearMap.graph`,
-  `LinearEquiv.prodComm`, `Submodule.toLinearPMap`,
-  `Submodule.toLinearPMap_graph_eq`, `Submodule.existsUnique_from_graph`,
+  `LinearEquiv.prodComm`, `Submodule.exists_eq_graph`,
+  `Submodule.map_symm_eq_iff`, `Matrix.isSymm_toBilin'_iff_isSymm`,
   `LinearMap.BilinForm.toMatrix'`,
   `LinearMap.BilinForm.isSymm_toMatrix'_iff_isSymm`,
   `Matrix.isHermitian_iff_isSymm`, `LinearEquiv.finrank_eq`,
