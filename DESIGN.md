@@ -984,7 +984,16 @@ it into issues; the overview fixes its folders and its dependencies.
   bundle, along a base map, at every order, generalizing by the same proof
   Tau Ceti's `ContMDiffAt.cayleyPathFormula_hom_bundle`, which is the case
   of $TM$ at order $\infty$; it supplies the joint regularity that the lemma of
-  `Section/Topology.lean` asks for in the contractibility proofs),
+  `Section/Topology.lean` asks for in the contractibility proofs; and
+  `Bundle.cayleyPathDomain`, the set of points of the total space at which
+  the path from a reference endomorphism lies in part 9's
+  `TauCeti.cayleyDomain`, read in trivializations, for every coefficient in
+  $[0,1]$: open by `TauCeti.isOpen_setOf_forall_Icc_mem_cayleyDomain`, and
+  holding every structure tame for a form when the reference is compatible
+  with it, by `TauCeti.SymplecticForm.Compatible.mem_cayleyDomain`; the
+  contractibility proofs take their open set from it. The file mentions no
+  symplectic form on the bundle, so it sits apart from the symplectic
+  files),
   `Geometry/Manifold/VectorBundle/Hermitian/Basic.lean` (the symplectic form
   of a Hermitian bundle; see *Constructions* below),
   `Geometry/Manifold/VectorBundle/Riemannian/Trivial.lean` (the constant
