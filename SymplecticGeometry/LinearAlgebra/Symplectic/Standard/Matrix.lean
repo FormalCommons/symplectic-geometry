@@ -10,6 +10,7 @@ public import TauCeti.Analysis.Complex.Euclidean.Matrix
 public import TauCeti.Analysis.Matrix.EuclideanLin
 public import TauCeti.LinearAlgebra.Matrix.GeneralLinearGroup.Symplectic.Basic
 import SymplecticGeometry.LinearAlgebra.Matrix.Block
+import SymplecticGeometry.LinearAlgebra.Matrix.Symmetric
 
 /-!
 # The matrix dictionary for the standard model
@@ -196,18 +197,12 @@ theorem isSymm_toBlocks₁₁_mul_inv_toBlocks₂₁_of_compatible
       (toEuclideanLin.symm J.toLinearMap).toBlocks₂₁⁻¹).IsSymm := by
   set M := toEuclideanLin.symm J.toLinearMap
   have hC := posDef_toBlocks₂₁_of_compatible hJ
-  have hdet : IsUnit M.toBlocks₂₁.det := isUnit_det_toBlocks₂₁_of_compatible hJ
   have h₂₁ :=
     toBlocks₂₁_mul_toBlocks₁₁_add_of_mul_self_eq_neg_one J.toEuclideanLin_symm_mul_self
   have hCt : M.toBlocks₂₁ᵀ = M.toBlocks₂₁ := isHermitian_iff_isSymm.1 hC.isHermitian
-  rw [IsSymm, transpose_mul, transpose_nonsing_inv, hCt,
-    ← neg_neg M.toBlocks₁₁ᵀ, ← toBlocks₂₂_eq_neg_transpose_of_invariant hJ.invariant]
-  calc M.toBlocks₂₁⁻¹ * -M.toBlocks₂₂
-      = M.toBlocks₂₁⁻¹ * (-M.toBlocks₂₂ * M.toBlocks₂₁) * M.toBlocks₂₁⁻¹ := by
-        rw [Matrix.mul_assoc, Matrix.mul_assoc, mul_nonsing_inv _ hdet, Matrix.mul_one]
-    _ = M.toBlocks₁₁ * M.toBlocks₂₁⁻¹ := by
-        rw [Matrix.neg_mul, ← eq_neg_of_add_eq_zero_left h₂₁, ← Matrix.mul_assoc,
-          nonsing_inv_mul _ hdet, Matrix.one_mul]
+  refine isSymm_mul_nonsing_inv_of_transpose_mul_eq ?_
+  rw [hCt, ← neg_neg M.toBlocks₁₁ᵀ, ← toBlocks₂₂_eq_neg_transpose_of_invariant hJ.invariant,
+    Matrix.neg_mul, ← eq_neg_of_add_eq_zero_left h₂₁]
 
 end SymplecticGeometry
 
