@@ -18,10 +18,16 @@ bundle of continuous linear maps `V₂ x →L V₁ x` (`contMDiff_hom_bundle_sym
 preserves smoothness by Tau Ceti's `ContMDiff.clm_bundle_inverse`. As in
 `TauCeti.contMDiff_bundle_symm`, only the source bundle `V₁` needs finite rank.
 
+A map `g` out of the total space of the trivial bundle with fibre `W` over `M` is `C^n` (at a
+point, within a set, on a set) exactly when `(x, v) ↦ g ⟨x, v⟩` is, as a map on `M × W`
+(`Bundle.Trivial.contMDiff_comp_mk_iff` and its `At`, `WithinAt` and `On` forms). These are
+Mathlib's `Diffeomorph.contMDiff_comp_diffeomorph_iff` and its variants, applied to the inverse of
+Tau Ceti's `Bundle.Trivial.diffeomorphProd`, with the composite written out.
+
 For a family `Φ x : W →L V x` out of a fixed space `W` of finite dimension, the file also reads
 the smoothness of `Φ` as a section of the hom bundle from the trivial bundle with fibre `W` on the
-product `M × W` (`contMDiffAt_hom_trivial_iff`), through Tau Ceti's
-`TauCeti.contMDiffAt_hom_bundle_iff` and `Bundle.Trivial.diffeomorphProd`.
+product `M × W` (`contMDiffAt_hom_trivial_iff`), through
+`TauCeti.contMDiffAt_hom_bundle_iff` and `Bundle.Trivial.contMDiffAt_comp_mk_iff` above.
 
 Last, a fixed continuous linear map `f : W →L W'`, applied in each fibre, is a `C^n` map from the
 total space of the trivial bundle with fibre `W` to that with fibre `W'`
@@ -68,6 +74,57 @@ omit [FiniteDimensional 𝕜 F₁]
 
 variable {W : Type*} [NormedAddCommGroup W] [NormedSpace 𝕜 W] [FiniteDimensional 𝕜 W]
 
+omit [CompleteSpace 𝕜] [FiniteDimensional 𝕜 W] in
+/-- A map `g` out of the total space of the trivial bundle with fibre `W` is `C^n` within
+`(fun p ↦ (p.proj, p.snd)) ⁻¹' s` at `⟨x, v⟩` exactly when `(y, w) ↦ g ⟨y, w⟩`, as a map on
+`M × W`, is `C^n` within `s` at `(x, v)`. -/
+theorem Bundle.Trivial.contMDiffWithinAt_comp_mk_iff {EN HN N : Type*} [NormedAddCommGroup EN]
+    [NormedSpace 𝕜 EN] [TopologicalSpace HN] {J : ModelWithCorners 𝕜 EN HN} [TopologicalSpace N]
+    [ChartedSpace HN N] {g : TotalSpace W (Trivial M W) → N} {s : Set (M × W)} {x : M} {v : W} :
+    ContMDiffWithinAt (I.prod 𝓘(𝕜, W)) J n (fun p : M × W ↦ g ⟨p.1, p.2⟩) s (x, v) ↔
+      ContMDiffWithinAt (I.prod 𝓘(𝕜, W)) J n g
+        ((fun p : TotalSpace W (Trivial M W) ↦ (p.proj, p.snd)) ⁻¹' s) ⟨x, v⟩ := by
+  -- The inverse of the inverse of `diffeomorphProd` has the forward formula, by structure eta.
+  have e : ⇑(diffeomorphProd I M W n).symm.symm = fun p ↦ (p.proj, p.snd) :=
+    funext (diffeomorphProd_apply I M W n)
+  simpa only [Function.comp_def, diffeomorphProd_symm_apply, e] using
+    (diffeomorphProd I M W n).symm.contMDiffWithinAt_comp_diffeomorph_iff le_rfl
+
+omit [CompleteSpace 𝕜] [FiniteDimensional 𝕜 W] in
+/-- A map `g` out of the total space of the trivial bundle with fibre `W` is `C^n` at `⟨x, v⟩`
+exactly when `(y, w) ↦ g ⟨y, w⟩`, as a map on `M × W`, is `C^n` at `(x, v)`. -/
+theorem Bundle.Trivial.contMDiffAt_comp_mk_iff {EN HN N : Type*} [NormedAddCommGroup EN]
+    [NormedSpace 𝕜 EN] [TopologicalSpace HN] {J : ModelWithCorners 𝕜 EN HN} [TopologicalSpace N]
+    [ChartedSpace HN N] {g : TotalSpace W (Trivial M W) → N} {x : M} {v : W} :
+    ContMDiffAt (I.prod 𝓘(𝕜, W)) J n (fun p : M × W ↦ g ⟨p.1, p.2⟩) (x, v) ↔
+      ContMDiffAt (I.prod 𝓘(𝕜, W)) J n g ⟨x, v⟩ := by
+  simpa only [Function.comp_def, diffeomorphProd_symm_apply] using
+    (diffeomorphProd I M W n).symm.contMDiffAt_comp_diffeomorph_iff le_rfl
+
+omit [CompleteSpace 𝕜] [FiniteDimensional 𝕜 W] in
+/-- A map `g` out of the total space of the trivial bundle with fibre `W` is `C^n` on
+`(fun p ↦ (p.proj, p.snd)) ⁻¹' s` exactly when `(y, w) ↦ g ⟨y, w⟩`, as a map on `M × W`, is
+`C^n` on `s`. -/
+theorem Bundle.Trivial.contMDiffOn_comp_mk_iff {EN HN N : Type*} [NormedAddCommGroup EN]
+    [NormedSpace 𝕜 EN] [TopologicalSpace HN] {J : ModelWithCorners 𝕜 EN HN} [TopologicalSpace N]
+    [ChartedSpace HN N] {g : TotalSpace W (Trivial M W) → N} {s : Set (M × W)} :
+    ContMDiffOn (I.prod 𝓘(𝕜, W)) J n (fun p : M × W ↦ g ⟨p.1, p.2⟩) s ↔
+      ContMDiffOn (I.prod 𝓘(𝕜, W)) J n g
+        ((fun p : TotalSpace W (Trivial M W) ↦ (p.proj, p.snd)) ⁻¹' s) :=
+  ⟨fun h p hp ↦ contMDiffWithinAt_comp_mk_iff.1 (h (p.proj, p.snd) hp),
+    fun h q hq ↦ contMDiffWithinAt_comp_mk_iff.2 (h ⟨q.1, q.2⟩ hq)⟩
+
+omit [CompleteSpace 𝕜] [FiniteDimensional 𝕜 W] in
+/-- A map `g` out of the total space of the trivial bundle with fibre `W` is `C^n` exactly when
+`(y, w) ↦ g ⟨y, w⟩`, as a map on `M × W`, is `C^n`. -/
+theorem Bundle.Trivial.contMDiff_comp_mk_iff {EN HN N : Type*} [NormedAddCommGroup EN]
+    [NormedSpace 𝕜 EN] [TopologicalSpace HN] {J : ModelWithCorners 𝕜 EN HN} [TopologicalSpace N]
+    [ChartedSpace HN N] {g : TotalSpace W (Trivial M W) → N} :
+    ContMDiff (I.prod 𝓘(𝕜, W)) J n (fun p : M × W ↦ g ⟨p.1, p.2⟩) ↔
+      ContMDiff (I.prod 𝓘(𝕜, W)) J n g := by
+  simpa only [Function.comp_def, diffeomorphProd_symm_apply] using
+    (diffeomorphProd I M W n).symm.contMDiff_comp_diffeomorph_iff le_rfl
+
 /-- A family of continuous linear maps `Φ x : W →L V₂ x` from a fixed space `W` of finite
 dimension is a `C^n` section at `x` of the bundle of continuous linear maps from the trivial bundle
 with fibre `W` to `V₂` exactly when `(y, v) ↦ Φ y v`, as a map from `M × W` to the total space of
@@ -79,17 +136,7 @@ theorem contMDiffAt_hom_trivial_iff (Φ : ∀ x, W →L[𝕜] V₂ x) (x : M) :
       ∀ v : W, ContMDiffAt (I.prod 𝓘(𝕜, W)) (I.prod 𝓘(𝕜, F₂)) n
         (fun p : M × W ↦ TotalSpace.mk' F₂ p.1 (Φ p.1 p.2)) (x, v) := by
   rw [TauCeti.contMDiffAt_hom_bundle_iff]
-  refine forall_congr' fun v ↦ ⟨fun h ↦ ?_, fun h ↦ ?_⟩
-  · have hd : ContMDiffAt (I.prod 𝓘(𝕜, W)) (I.prod 𝓘(𝕜, W)) n
-        (fun q : M × W ↦ (⟨q.1, q.2⟩ : TotalSpace W (Trivial M W))) (x, v) :=
-      (Trivial.diffeomorphProd I M W n).symm.contMDiff.contMDiffAt.congr_of_eventuallyEq
-        (Filter.Eventually.of_forall fun q ↦ by simp)
-    exact h.comp (x, v) hd
-  · have hd : ContMDiffAt (I.prod 𝓘(𝕜, W)) (I.prod 𝓘(𝕜, W)) n
-        (fun p : TotalSpace W (Trivial M W) ↦ (p.proj, p.snd)) ⟨x, v⟩ :=
-      (Trivial.diffeomorphProd I M W n).contMDiff.contMDiffAt.congr_of_eventuallyEq
-        (Filter.Eventually.of_forall fun p ↦ by simp)
-    exact h.comp (x := (⟨x, v⟩ : TotalSpace W (Trivial M W))) hd
+  exact forall_congr' fun v ↦ Trivial.contMDiffAt_comp_mk_iff.symm
 
 omit [CompleteSpace 𝕜] [FiniteDimensional 𝕜 W] in
 /-- A fixed continuous linear map `f : W →L W'`, applied in each fibre, is a `C^n` map from the
