@@ -18,6 +18,8 @@ projections, this file shows that the two operations of
 
 * `SymplecticGeometry.LagrangianGrassmannian.continuous_sum`: the direct sum
   `ℒ ι × ℒ κ → ℒ (ι ⊕ κ)` is continuous.
+* `SymplecticGeometry.LagrangianGrassmannian.continuous_reindex`: the relabelling `reindex e`
+  along `e : ι ≃ κ` is continuous.
 * `SymplecticGeometry.LagrangianGrassmannian.reindexHomeomorph e : ℒ ι ≃ₜ ℒ κ`, the relabelling
   `reindex e` along `e : ι ≃ κ` as a homeomorphism.
 
@@ -44,6 +46,7 @@ local notation "ℒ" ι => LagrangianGrassmannian (stdForm ι)
 namespace LagrangianGrassmannian
 
 /-- The direct sum `(Λ, Λ') ↦ Λ ⊕ Λ'` of Lagrangian subspaces is continuous. -/
+@[continuity, fun_prop]
 theorem continuous_sum : Continuous (sum : (ℒ ι) × (ℒ κ) → ℒ (ι ⊕ κ)) := by
   classical
   refine ((isOpenQuotientMap_unitaryFrame (ι := ι)).prodMap
@@ -55,7 +58,8 @@ theorem continuous_sum : Continuous (sum : (ℒ ι) × (ℒ κ) → ℒ (ι ⊕ 
   exact continuous_unitaryFrame.comp UnitaryGroup.continuous_sum
 
 /-- The relabelling `reindex e` is continuous. -/
-private theorem continuous_reindex (e : ι ≃ κ) : Continuous (reindex e) := by
+@[continuity, fun_prop]
+theorem continuous_reindex (e : ι ≃ κ) : Continuous (reindex e) := by
   classical
   refine (isOpenQuotientMap_unitaryFrame (ι := ι)).continuous_comp_iff.1 ?_
   have h : (reindex e ∘ unitaryFrame : unitaryGroup ι ℂ → ℒ κ) =
@@ -70,8 +74,8 @@ noncomputable def reindexHomeomorph (e : ι ≃ κ) : (ℒ ι) ≃ₜ ℒ κ whe
   toEquiv := reindex e
   continuous_toFun := continuous_reindex e
   continuous_invFun := by
-    change Continuous (reindex e).symm
-    exact reindex_symm e ▸ continuous_reindex e.symm
+    rw [Equiv.invFun_as_coe, reindex_symm]
+    exact continuous_reindex e.symm
 
 @[simp]
 theorem reindexHomeomorph_apply (e : ι ≃ κ) (Λ : ℒ ι) : reindexHomeomorph e Λ = reindex e Λ :=
