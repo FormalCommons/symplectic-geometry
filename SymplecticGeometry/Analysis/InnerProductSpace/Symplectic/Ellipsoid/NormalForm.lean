@@ -21,8 +21,6 @@ Darboux basis, `Q = ∑ₖ νₖ (xₖ² + yₖ²) / 2` with `νₖ > 0`, so the
 
 ## Main results
 
-* `SymplecticGeometry.isSymplectomorphism_piLpCongrLeft_sumCongr`: reindexing the coordinate
-  pairs of the standard model is symplectic.
 * `SymplecticGeometry.stdDarbouxBasisOf`: the standard Darboux basis of `StdSpace ι` after a
   labelling `Fin m ≃ ι` of the coordinate pairs, and
   `SymplecticGeometry.stdEllipsoidForm_eq_sum_smul_elliptic`, the form of a standard ellipsoid
@@ -42,20 +40,7 @@ namespace SymplecticGeometry
 
 open TauCeti TauCeti.SymplecticForm StdSpace Module
 
-variable {ι κ : Type*} [Fintype ι] [Fintype κ]
-
-/-- The reindexing `σ : ι ≃ κ` of the coordinate pairs `(xᵢ, yᵢ)`, which sends the coordinates
-of index `i` to those of index `σ i`, is a symplectomorphism from `ω₀` on `StdSpace ι` to `ω₀`
-on `StdSpace κ`. -/
-theorem isSymplectomorphism_piLpCongrLeft_sumCongr (σ : ι ≃ κ) :
-    IsSymplectomorphism (stdForm ι) (stdForm κ)
-      (LinearIsometryEquiv.piLpCongrLeft 2 ℝ ℝ (σ.sumCongr σ)).toLinearEquiv := by
-  rw [isSymplectomorphism_iff]
-  intro z w
-  simp only [stdForm_apply, x_apply, y_apply, LinearIsometryEquiv.coe_toLinearEquiv,
-    LinearIsometryEquiv.piLpCongrLeft_apply, Equiv.piCongrLeft'_apply, Equiv.sumCongr_symm,
-    Equiv.sumCongr_apply, Sum.map_inl, Sum.map_inr]
-  exact Equiv.sum_comp σ.symm fun i ↦ z (Sum.inl i) * w (Sum.inr i) - z (Sum.inr i) * w (Sum.inl i)
+variable {ι : Type*} [Fintype ι]
 
 /-- The standard Darboux basis of `StdSpace ι`, after a labelling `τ : Fin m ≃ ι` of the
 coordinate pairs: Tau Ceti's `stdDarbouxBasis m`, carried to `StdSpace ι` along

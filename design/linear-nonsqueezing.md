@@ -120,7 +120,7 @@ has the name of a Tau Ceti file at the same place.
 | `LinearAlgebra/QuadraticForm/PosDef.lean` | a positive definite form is determined by its sublevel set `≤ 1`; images of that set | 3 |
 | `Analysis/InnerProductSpace/Ellipsoid.lean` | sublevel sets of positive definite forms are the linear images of balls | 3 |
 | `Analysis/InnerProductSpace/Symplectic/Ellipsoid/Basic.lean` | `stdEllipsoidForm`, `stdEllipsoid` | 3 |
-| `Analysis/InnerProductSpace/Symplectic/Ellipsoid/NormalForm.lean` | normal form of ellipsoids, relabelling coordinate pairs | 3 |
+| `Analysis/InnerProductSpace/Symplectic/Ellipsoid/NormalForm.lean` | normal form of ellipsoids | 3 |
 | `Geometry/Symplectic/Hamiltonian/Quadratic.lean` | Hamiltonian endomorphisms under symplectomorphisms | 4 |
 | `Geometry/Symplectic/Hamiltonian/Williamson.lean` | orthogonal Darboux bases, uniqueness of Williamson's frequencies | 4 |
 | `Analysis/InnerProductSpace/Symplectic/Ellipsoid/Spectrum.lean` | `symplecticSpectrum`, its uniqueness, the volume, the milestone | 5 |
@@ -308,8 +308,8 @@ dimension). The reindexing uses the public lemma
 `isSymplectomorphism_piLpCongrLeft_sumCongr`: for `σ : ι ≃ κ`, relabelling
 the coordinate pairs, `(LinearIsometryEquiv.piLpCongrLeft 2 ℝ ℝ
 (σ.sumCongr σ)).toLinearEquiv`, is a symplectomorphism from `stdForm ι` to
-`stdForm κ` (search *Standard model* for it first). Expected size of issue 3,
-its four files together: 350 lines.
+`stdForm κ`, which is in *Standard model*'s `Standard/Basic.lean`. Expected
+size of issue 3, its four files together: 350 lines.
 
 ### `Geometry/Symplectic/Hamiltonian/Quadratic.lean`
 
@@ -582,8 +582,9 @@ Expected size: 450 lines, with `Sign.lean`.
 
 - *Standard model* (#7, #8): `StdSpace`, `StdSpace.x`, `StdSpace.y`,
   `stdForm` with `stdForm_apply` and `stdForm_apply_eq_inner`, the product
-  comparison `isSymplectomorphism_sumEquivProd` (as named in #41), and
-  `mem_symplecticGroup_iff_isSymplectomorphism`.
+  comparison `isSymplectomorphism_sumEquivProd` (as named in #41), the
+  relabelling of coordinate pairs `isSymplectomorphism_piLpCongrLeft_sumCongr`,
+  and `mem_symplecticGroup_iff_isSymplectomorphism`.
 - Tau Ceti: `TauCeti.SymplecticForm`, `IsSymplectomorphism` with
   `isSymplectomorphism_iff`, `IsSymplectomorphism.det_eq_one`,
   `LinearMap.BilinForm.isometryGroup` with `mem_isometryGroup_iff`,
