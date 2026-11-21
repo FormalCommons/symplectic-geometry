@@ -252,10 +252,9 @@ variable {n : ℕ} {M : Type*} [TopologicalSpace M] [ChartedSpace (EuclideanHalf
   [TopologicalSpace (TotalSpace F V)] [FiberBundle F V] [VectorBundle ℝ F V]
   [ContMDiffVectorBundle ∞ F V (𝓡∂ (n + 2))]
 
-/-- A smooth real vector bundle of rank at least `d` over a compact connected manifold of dimension
-`d = n + 2 ≥ 2` whose boundary is nonempty has a smooth nowhere-zero section. For `n = 0`: every
-smooth real bundle of rank at least two over a compact connected surface with nonempty boundary has
-a smooth nowhere-zero section. -/
+/-- Let `M` be a compact connected manifold of dimension `d = n + 2 ≥ 2` whose boundary is not
+empty. Then each smooth real vector bundle on `M` whose rank is at least `d` admits a smooth section
+vanishing nowhere. The case `n = 0` covers bundles of rank two or more on surfaces with boundary. -/
 theorem exists_contMDiffSection_forall_ne_zero_of_boundary_nonempty
     (hM : ((𝓡∂ (n + 2)).boundary M).Nonempty) (hF : n + 2 ≤ finrank ℝ F) :
     ∃ t : ContMDiffSection (𝓡∂ (n + 2)) F ∞ V, ∀ x, t x ≠ 0 := by
