@@ -35,7 +35,7 @@ global name.
    with values in `V →L[ℝ] V`, so a subspace is identified with its orthogonal
    projection. The reasons:
    - it is defined for any index type `ι`, and for any `V`, while Tau Ceti's
-     `finiteGrassmannian ℝ n (2 n)` lives on `Fin N → ℝ`. Reaching it needs a
+     `TauCeti.finiteGrassmannian ℝ n (2 n)` lives on `Fin N → ℝ`. Reaching it needs a
      reindexing `Fin n ⊕ Fin n ≃ Fin (n + n)` that every later statement
      would carry;
    - it is Hausdorff at once, because a subspace is the range of its
@@ -44,20 +44,20 @@ global name.
      unitary model, which a general $(V,\omega)$ lacks.
 
    The other two candidates are then theorems on `StdSpace ι`. The unitary
-   group acts on `ℒ ι` through the homomorphism `ofUnitary`, and the unitary
+   group acts on `ℒ ι` through the homomorphism `TauCeti.GLSymplectic.ofUnitary`, and the unitary
    frame map $\mathrm{U}(n)\to\mathcal{L}(n)$ is the orbit map of the
    horizontal subspace. It is continuous, since its projection is
    $R\,P_0\,R^T$ with $R$ the realification. Its source is compact, so it is a
    quotient map, and Tau Ceti's `TauCeti.quotientStabilizerHomeomorph` gives
    the homeomorphism $\mathrm{U}(n)/\mathrm{O}(n)\cong\mathcal{L}(n)$ once the
    stabilizer is identified with $\mathrm{O}(n)$. For `ι = Fin n`, the map into
-   `finiteGrassmannian ℝ n (n + n)` is an embedding, and this needs neither
+   `TauCeti.finiteGrassmannian ℝ n (n + n)` is an embedding, and this needs neither
    the unitary frames nor `Quotient.lean`. The coordinate isometry
    `StdSpace.finSumIsometry n` conjugates the projection onto `Λ` into the
    projection onto its image. On the compact Hausdorff space
-   `finiteGrassmannian`, the map `V ↦ V.toEuclidean.starProjection` into a
+   `TauCeti.finiteGrassmannian`, the map `V ↦ V.toEuclidean.starProjection` into a
    Hausdorff space of operators is continuous by Tau Ceti and injective by
-   `toEuclidean_injective` and `Submodule.starProjection_inj`, hence a closed
+   `TauCeti.finiteGrassmannian.toEuclidean_injective` and `Submodule.starProjection_inj`, hence a closed
    embedding (`Topology/Grassmannian/Tautological.lean`); and the map out of
    `ℒ (Fin n)`,
    composed with it, is the embedding `Λ ↦ Λ.starProjection` followed by a
@@ -76,7 +76,7 @@ global name.
    written `Matrix.fromRows X Y`, with `X Y : Matrix ι ι ℝ`, the book's
    $\binom{X}{Y}$. Its complex frame is
    `X.map ofReal + Complex.I • Y.map ofReal`, the book's $X+iY$.
-   `complexToRealEuclidean` turns Tau Ceti's `Matrix.realImage (X + i Y)` into
+   `TauCeti.complexToRealEuclidean` turns Tau Ceti's `Matrix.realImage (X + i Y)` into
    the range of `Matrix.toEuclideanLin (fromRows X Y)`. This dictionary is
    how Tau Ceti's frame results apply: `Matrix.realImage_mul_map_ofReal`,
    `Matrix.exists_mem_orthogonalGroup_eq_mul_map_ofReal`, and
@@ -88,7 +88,7 @@ global name.
    horizontal subspace $\{y=0\}$. It sends `Λ` to the symmetric `S` with
    `Λ = StdSpace.graphY S`, the subspace $\{(Sy,y)\}$. This is Tau Ceti's
    convention: `Matrix.lagrangianChart S` is the real image of `S + i·1`,
-   which `complexToRealEuclidean` turns into the same subspace. It is also the
+   which `TauCeti.complexToRealEuclidean` turns into the same subspace. It is also the
    chart that the crossing forms of *Maslov index* use, relative to the
    horizontal subspace. The chart at any other point is this one translated by
    a unitary matrix. As `DESIGN.md` §6 asks, there is a second graph chart,
@@ -109,7 +109,7 @@ global name.
    image of the other under `TauCeti.GLSymplectic.symJ`, which sends
    `graph A` to `graphY (-A)`.
 7. **Transitivity without Witt.** `DESIGN.md` names Tau Ceti's Witt theorem
-   `exists_isSymplectomorphism_extend` as the source of
+   `TauCeti.SymplecticForm.exists_isSymplectomorphism_extend` as the source of
    $\mathrm{Sp}$-transitivity. Transitivity of $\mathrm{U}(n)$ is proved here
    anyway, since the milestone asks for it, and $\mathrm{U}(n)\subset\mathrm{Sp}(2n)$
    through `TauCeti.GLSymplectic.ofUnitary`. That gives
@@ -171,7 +171,7 @@ which the stabilizer and the fibration need.
   Mathlib's `unitarySubgroupUnitsEquiv`.
 - API: `mem_realSubgroup_iff_exists` (`U` is in it iff `U = O.map ofReal` for
   some `O ∈ Matrix.orthogonalGroup ι ℝ`), derived from
-  `inf_unitarySubgroup_eq_map_real` (Tau Ceti's
+  `TauCeti.GLOrthogonal.inf_unitarySubgroup_eq_map_real` (Tau Ceti's
   `Matrix.exists_mem_orthogonalGroup_map_eq_of_mul_transpose_eq_one` may
   shorten it); `mem_realSubgroup_iff` (iff
   `(U : Matrix ι ι ℂ).map Complex.im = 0`); `map_ofReal_mem_realSubgroup`;
@@ -200,7 +200,7 @@ Three facts about complex frames:
 - `Matrix.range_toEuclideanLin_fromRows (X Y : Matrix ι ι ℝ)`: the range of
   `toEuclideanLin (fromRows X Y)` is the image of
   `Matrix.realImage (X.map ofReal + I • Y.map ofReal)` under
-  `complexToRealEuclidean ι`, read through `WithLp.equiv`.
+  `TauCeti.complexToRealEuclidean ι`, read through `WithLp.equiv`.
 - `Matrix.exists_det_sub_smul_ne_zero {X Y : Matrix ι ι ℝ}
   (h : (X.map ofReal + I • Y.map ofReal).det ≠ 0) : ∃ t : ℝ, (X - t • Y).det ≠ 0`:
   `t ↦ det (X - t Y)` is a real polynomial, nonzero at `t = -i`, so it is not
@@ -275,12 +275,12 @@ natural upstream home:
 
 ### `Topology/Algebra/Matrix/Realify.lean`
 
-A general fact about Tau Ceti's `GLSymplectic`, in the namespace
+A general fact about Tau Ceti's `TauCeti.GLSymplectic`, in the namespace
 `TauCeti.GLSymplectic`, beside Tau Ceti's file of that name, which defines
-`ofUnitary` and `coe_ofUnitary`; it imports only Tau Ceti. Tau Ceti's
+`TauCeti.GLSymplectic.ofUnitary` and `TauCeti.GLSymplectic.coe_ofUnitary`; it imports only Tau Ceti. Tau Ceti's
 `LinearAlgebra/Matrix/GeneralLinearGroup/Symplectic/Unitary.lean` is no home
 for it: Tau Ceti's `Topology/Algebra/Matrix/Realify.lean` imports that file,
-so the lemma there could not see `ofUnitary`.
+so the lemma there could not see `TauCeti.GLSymplectic.ofUnitary`.
 
 - `TauCeti.GLSymplectic.sum_ofUnitary (U : unitaryGroup ι ℂ)
   (U' : unitaryGroup κ ℂ)`: `sum (ofUnitary U, ofUnitary U') =
@@ -297,9 +297,9 @@ of that name, in the namespace `TauCeti.finiteGrassmannian`, for any
 
 - `TauCeti.finiteGrassmannian.isClosedEmbedding_starProjection_toEuclidean`:
   `V ↦ V.toEuclidean.starProjection` is a closed embedding of
-  `finiteGrassmannian 𝕜 r N` into the operators on `EuclideanSpace 𝕜 (Fin N)`.
-  Tau Ceti's `continuous_starProjection_toEuclidean` gives continuity,
-  `toEuclidean_injective` and `Submodule.starProjection_inj` injectivity,
+  `TauCeti.finiteGrassmannian 𝕜 r N` into the operators on `EuclideanSpace 𝕜 (Fin N)`.
+  Tau Ceti's `TauCeti.finiteGrassmannian.continuous_starProjection_toEuclidean` gives continuity,
+  `TauCeti.finiteGrassmannian.toEuclidean_injective` and `Submodule.starProjection_inj` injectivity,
   and `Continuous.isClosedEmbedding` concludes, since the source is compact
   and the target Hausdorff. `Finite.lean` uses it.
 
@@ -374,7 +374,7 @@ The type, for a general symplectic vector space, with no topology.
   (`@[simp]`), `mk_toSubmodule`.
 - `ℒ.isCompl_iff_disjoint`: for two Lagrangians, being complementary is the
   same as meeting only in zero, by Mathlib's `Submodule.isCompl_iff_disjoint`
-  and `IsLagrangian.two_mul_finrank`. It is stated for a general `ω` on a
+  and `TauCeti.SymplecticForm.IsLagrangian.two_mul_finrank`. It is stated for a general `ω` on a
   finite-dimensional `V`.
 
 ### `LinearAlgebra/Symplectic/Lagrangian/Frame.lean`
@@ -393,7 +393,7 @@ Lagrangian frames on `StdSpace ι`, pure linear algebra. Namespace
   of `graph A` under the coordinate swap of `Standard/Basic.lean`
   (`graphY_def`, by `(rfl)`). API: `StdSpace.mem_graphY_iff : z ∈ graphY A ↔ z.x = A *ᵥ z.y` (`@[simp]`),
   `StdSpace.graphY_injective`, and `StdSpace.map_symJ_graph`, saying that
-  `symJ` sends `graph A` to `graphY (-A)`.
+  `TauCeti.GLSymplectic.symJ` sends `graph A` to `graphY (-A)`.
 - Both graphs are complementary to the coordinate subspace they are graphs
   over, for every `A`, symmetric or not:
   `StdSpace.isCompl_graph_ker_x : IsCompl (graph A) (LinearMap.ker StdSpace.x)`
@@ -452,7 +452,7 @@ Lagrangian frames on `StdSpace ι`, pure linear algebra. Namespace
   symmetry conditions into `h`. Every Lagrangian spanned by a frame, in this
   part, is written `ofFrame X Y h`, never as an anonymous pair.
 - `ℒ.finrank_eq_card (Λ : ℒ ι) : finrank ℝ Λ = Fintype.card ι`, from
-  `IsLagrangian.two_mul_finrank` and `finrank_stdSpace`, for every use of the
+  `TauCeti.SymplecticForm.IsLagrangian.two_mul_finrank` and `finrank_stdSpace`, for every use of the
   dimension of a Lagrangian of `StdSpace ι`.
 - `isLagrangian_map_swap_iff` (`@[simp]`): `L.map (swap ι)` is Lagrangian for
   `ω₀` iff `L` is. Since `stdForm_swap` says that `swap` multiplies `ω₀` by
@@ -460,19 +460,19 @@ Lagrangian frames on `StdSpace ι`, pure linear algebra. Namespace
   `SymplecticForm.isLagrangian_map_iff_of_apply_eq_mul` in `Subspace.lean`:
   a linear equivalence that scales the forms by a constant `c ≠ 0` maps
   Lagrangians onto Lagrangians. That lemma is
-  `isLagrangian_map_transport_iff` after `isLagrangian_rescale_iff`.
+  `TauCeti.SymplecticForm.isLagrangian_map_transport_iff` after `TauCeti.SymplecticForm.isLagrangian_rescale_iff`.
 - `isLagrangian_graph_iff (A : Matrix ι ι ℝ) :
   (stdForm ι).IsLagrangian (StdSpace.graph A) ↔ A.IsSymm`. Under
   `(equivProd ι).symm`, `ω₀` is the standard pairing of `(ι → ℝ) × (ι → ℝ)`;
-  the proof transports along it (`isLagrangian_map_transport_iff`), applies
-  Tau Ceti's `isLagrangian_graph_iff_of_pairing`, and recognizes the
+  the proof transports along it (`TauCeti.SymplecticForm.isLagrangian_map_transport_iff`), applies
+  Tau Ceti's `TauCeti.SymplecticForm.isLagrangian_graph_iff_of_pairing`, and recognizes the
   resulting condition as Mathlib's `Matrix.isSymm_toBilin'_iff_isSymm`.
   `isLagrangian_graphY_iff`, the same for `graphY A`, follows from it
   through `graphY_def` and `isLagrangian_map_swap_iff`. Neither is derived
   from the frame criterion.
 - `det_ne_zero_of_isLagrangian_range_fromRows`: the complex frame of a
   Lagrangian frame is invertible. The Lagrangian range is maximal totally
-  real for `J₀` (`IsLagrangian.isMaximalTotallyReal_of_compatible` with
+  real for `J₀` (`TauCeti.SymplecticForm.IsLagrangian.isMaximalTotallyReal_of_compatible` with
   `stdForm_compatible`). By `StdSpace.range_toEuclideanLin_fromRows_eq_map_realImage`
   it is the image under `complexEuclideanEquiv`, which intertwines multiplication by
   `I` with `J₀` (`stdComplexStructure_complexEuclideanEquiv`), of `(X + i Y).realImage`;
@@ -516,15 +516,15 @@ as algebra. It uses the matrix dictionary of *Standard model*
 matrix in `Matrix.symplecticGroup` as invariance of `stdForm` under
 `toEuclideanLin`, and `TauCeti.conj_complexToRealEuclidean_toLin'`, which
 turns a complex matrix acting on `ι → ℂ` into its realification acting on
-`StdSpace ι`. With Tau Ceti's `GLSymplectic.coe_ofUnitary` (the matrix of
-`ofUnitary U` is `(U : Matrix ι ι ℂ).realify`), the second relates the
+`StdSpace ι`. With Tau Ceti's `TauCeti.GLSymplectic.coe_ofUnitary` (the matrix of
+`TauCeti.GLSymplectic.ofUnitary U` is `(U : Matrix ι ι ℂ).realify`), the second relates the
 unitary action to Tau Ceti's `Matrix.realImage`.
 
 - `instance : MulAction (GLSymplectic ι ℝ) (ℒ ι)`, with
   `coe_smul : ((g • Λ : ℒ ι) : Submodule ℝ (StdSpace ι)) = Λ.map (Matrix.toEuclideanLin g)`
-  (`@[simp]`). The result is Lagrangian by Tau Ceti's
-  `SymplecticForm.isLagrangian_map_iff_of_apply_eq_mul` with `c = 1`, the
-  map `toEuclideanLin g` preserving `ω₀` by
+  (`@[simp]`). The result is Lagrangian by
+  `SymplecticForm.isLagrangian_map_iff_of_apply_eq_mul` (`Subspace.lean`) with
+  `c = 1`, the map `toEuclideanLin g` preserving `ω₀` by
   `mem_symplecticGroup_iff_forall_stdForm`. On a frame,
   `coe_smul_of_coe_eq`: if `Λ` is spanned by the columns of `Z`, then
   `g • Λ` is spanned by those of `g * Z`; `coe_smul_graphY`
@@ -552,7 +552,7 @@ unitary action to Tau Ceti's `Matrix.realImage`.
   - `coe_unitaryFrame`: the range of
     `toEuclideanLin (fromRows (U.map re) (U.map im))`, which is the image
     of `Matrix.realImage U` under `StdSpace.complexEuclideanEquiv ι`. Both come from
-    `coe_ofUnitary` and `conj_complexToRealEuclidean_toLin'`: the columns
+    `TauCeti.GLSymplectic.coe_ofUnitary` and `TauCeti.conj_complexToRealEuclidean_toLin'`: the columns
     of `realify U` indexed by `inl` are `fromRows (U.map re) (U.map im)`;
   - `unitaryFrame_one` and `unitaryFrame_mul` (both `@[simp]`):
     `unitaryFrame (U * U') = U • unitaryFrame U'`.
@@ -581,7 +581,7 @@ unitary action to Tau Ceti's `Matrix.realImage`.
 - Supporting statements of the file: `isLagrangian_map_toEuclideanLin` (in
   `SymplecticGeometry`), the image of a Lagrangian under a matrix
   `A ∈ Matrix.symplecticGroup ι ℝ`, which the `smul` instance applies through
-  `GLSymplectic.mem_iff_mem_symplecticGroup`; and, in `ℒ.`, `coe_unitary_smul`,
+  `TauCeti.GLSymplectic.mem_iff_mem_symplecticGroup`; and, in `ℒ.`, `coe_unitary_smul`,
   `coe_unitaryFrame_eq_map` (the second description of `coe_unitaryFrame`) and
   `unitaryFrame_eq_horizontal_iff`, from which both
   `unitaryFrame_eq_unitaryFrame_iff` and `stabilizer_horizontal` follow.
@@ -645,11 +645,11 @@ Chart points and transverse pairs, as algebra: G7–G9.
   Move `Λ` to the horizontal subspace by a unitary matrix. Then `Λ'` is
   `graphY S`, and the shear `fromBlocks 1 S 0 1`, symplectic by
   Tau Ceti's `SymplecticGroup.fromBlocks_upper_mem` since `S` is symmetric
-  and lifted to `GLSymplectic ι ℝ` by
+  and lifted to `TauCeti.GLSymplectic ι ℝ` by
   `(TauCeti.GLSymplectic.mulEquivSymplecticGroup ι ℝ).symm`, fixes the
   horizontal subspace and carries the vertical one to `Λ'`.
 - Supporting statements: `ℒ.isCompl_smul_iff` (an element of
-  `GLSymplectic ι ℝ` preserves complementarity of Lagrangians, through
+  `TauCeti.GLSymplectic ι ℝ` preserves complementarity of Lagrangians, through
   `Submodule.orderIsoMapComap`), which both transverse-pair results use.
 
 ### `LinearAlgebra/TotallyReal/Euclidean.lean`
@@ -666,7 +666,7 @@ and `Matrix.lagrangianChart_inf_realSubspace`, in Tau Ceti's terms. Write
   ∃ S : Matrix n n ℝ, S.IsSymm ∧ V = S.lagrangianChart`.
   Its image `V.map (StdSpace.complexEuclideanEquiv n)` is isotropic for `stdForm` by
   `stdForm_apply_eq_im_inner`, and has dimension `n` by Tau Ceti's
-  `IsMaximalTotallyReal.two_mul_finrank_eq` (`J` is injective), so it is
+  `TauCeti.IsMaximalTotallyReal.two_mul_finrank_eq` (`J` is injective), so it is
   Lagrangian. It meets `LinearMap.ker StdSpace.y = (realSubspace n).map (complexEuclideanEquiv n)`
   (`StdSpace.map_realSubspace`) only in zero, so the two are complementary
   by dimension. Then `exists_eq_graphY_of_isCompl` gives `S`, and
@@ -675,7 +675,7 @@ and `Matrix.lagrangianChart_inf_realSubspace`, in Tau Ceti's terms. Write
 - The isotropy hypothesis is needed, and the file shows it by an `example`:
   for `n = Fin 2` and `S = !![0, 1; 0, 0]`, `det (S + i·1) = -1 ≠ 0`, so
   `S.lagrangianChart` is maximal totally real (`lagrangianChart_def` and
-  Tau Ceti's `isMaximalTotallyReal_realImage`) and meets `realSubspace (Fin 2)` only in
+  Tau Ceti's `isMaximalTotallyReal_realImage`) and meets `TauCeti.realSubspace (Fin 2)` only in
   zero (`lagrangianChart_inf_realSubspace`), but it is not
   `T.lagrangianChart` for any symmetric `T`, by `lagrangianChart_inj`,
   since `S` is not symmetric.
@@ -698,8 +698,8 @@ finite dimension.
 The topology of `ℒ ι` in terms of unitary frames.
 
 - `ℒ.continuous_unitaryFrame`: the projection is $R P_0 R^T$ with
-  `R = Matrix.realify U`, by `coe_ofUnitary` and
-  `conj_complexToRealEuclidean_toLin'` (`Action.lean`).
+  `R = Matrix.realify U`, by `TauCeti.GLSymplectic.coe_ofUnitary` and
+  `TauCeti.conj_complexToRealEuclidean_toLin'` (`Action.lean`).
 - `instance : CompactSpace (ℒ ι)`, as the image of a compact space.
 - `ℒ.isQuotientMap_unitaryFrame` and `ℒ.isOpenQuotientMap_unitaryFrame`. The
   map is open because it is the orbit map of a group action up to the
@@ -710,24 +710,24 @@ The topology of `ℒ ι` in terms of unitary frames.
   (horizontal ι) continuous_unitaryFrame`, composed with the homeomorphism of
   quotients that `stabilizer_horizontal` gives, Mathlib's
   `Homeomorph.Quotient.congrRight`. Tau Ceti builds
-  `quaternionUnitarySphereQuotientHomeomorph` the same way
+  `TauCeti.quaternionUnitarySphereQuotientHomeomorph` the same way
   (`Topology/Algebra/Quaternion/Symplectic/FirstColumn.lean`).
   `quotientHomeomorph_mk` (`@[simp]`, the value at `U` is `unitaryFrame U`)
   follows from Tau Ceti's `Homeomorph.Quotient.congrRight_mk` and
-  `quotientStabilizerHomeomorph_mk`.
+  `TauCeti.quotientStabilizerHomeomorph_mk`.
   This is the book's $\mathcal{L}(n)\cong\mathrm{U}(n)/\mathrm{O}(n)$.
 - `instance : ContinuousSMul (GLSymplectic ι ℝ) (ℒ ι)` and
   `instance : ContinuousSMul (unitaryGroup ι ℂ) (ℒ ι)` (G4). Use
-  `IsOpenQuotientMap.prodMap` with the identity on `GLSymplectic ι ℝ`. The
+  `IsOpenQuotientMap.prodMap` with the identity on `TauCeti.GLSymplectic ι ℝ`. The
   composite `(g, U) ↦ g • unitaryFrame U` is the Lagrangian spanned by the
-  horizontal columns of `g * realify U` (the matrix of `ofUnitary U` is
-  `realify U` by `coe_ofUnitary`), and it is continuous by
+  horizontal columns of `g * realify U` (the matrix of `TauCeti.GLSymplectic.ofUnitary U` is
+  `realify U` by `TauCeti.GLSymplectic.coe_ofUnitary`), and it is continuous by
   `continuous_ofFrame`: the Lagrangian `ofFrame (X t) (Y t) (h t)` spanned by a
   continuous family of Lagrangian frames is `unitaryFrame (unitaryOfFrame (h t))`
   (`unitaryFrame_unitaryOfFrame`), continuous by `continuous_unitaryOfFrame`
   (`coe_unitaryOfFrame` and `continuous_realOrthonormalize`) and
   `continuous_unitaryFrame`. The unitary instance follows by
-  `continuous_ofUnitary`.
+  `TauCeti.GLSymplectic.continuous_ofUnitary`.
 
 ### `Topology/Grassmannian/Lagrangian/Finite.lean`
 
@@ -750,11 +750,11 @@ The comparison with Tau Ceti's Grassmannian, for `ι = Fin n`.
   `ℒ.continuous_toFiniteGrassmannian` (`@[fun_prop]`), and
   `ℒ.range_toFiniteGrassmannian` (the subspaces whose pull-back along
   `finSumIsometry n` is Lagrangian). So `ℒ (Fin n)` has the subspace
-  topology of `finiteGrassmannian`. The proof is as in decision 2, through
+  topology of `TauCeti.finiteGrassmannian`. The proof is as in decision 2, through
   `TauCeti.finiteGrassmannian.isClosedEmbedding_starProjection_toEuclidean`.
 - `ℒ.isClosedEmbedding_toFiniteGrassmannian`: the embedding is closed, since
   it is continuous and injective, `ℒ (Fin n)` is compact and
-  `finiteGrassmannian` is Hausdorff. `Quotient.lean` is imported only for the
+  `TauCeti.finiteGrassmannian` is Hausdorff. `Quotient.lean` is imported only for the
   instance `CompactSpace (ℒ (Fin n))`, which the closedness of the image needs
   and the embedding itself does not.
 
@@ -768,7 +768,7 @@ is Tau Ceti's `Topology/Grassmannian/Graph.lean`, which does the same for
   for the frame `fromRows S 1`, which spans `graphY S`.
 - `ℒ.unitaryFrame_eq_graphY_iff`: `unitaryFrame U = graphY S` iff
   `U.map im` is invertible and `U.map re * (U.map im)⁻¹ = S`, the form of
-  Tau Ceti's `frameSpan_eq_graph_iff` for unitary frames. It is
+  `TauCeti.finiteGrassmannian.frameSpan_eq_graph_iff` for unitary frames. It is
   `eq_graphY_iff_of_coe_eq` (`Transverse.lean`, for any Lagrangian spanned
   by a frame `fromRows X Y`) applied to `coe_unitaryFrame U`.
 - `ℒ.isOpenEmbedding_graphY`: `graphY` is an open embedding. The preimage
@@ -840,7 +840,7 @@ no `Topology/` file of this part.
 
 - `ℒ.sum : ℒ ι × ℒ κ → ℒ (ι ⊕ κ)`, the image of `Λ.prod Λ'` under
   `(StdSpace.sumEquiv ι κ).symm`. It is Lagrangian by Tau Ceti's
-  `IsLagrangian.prod` and `isLagrangian_map_transport_iff`, with §1's lemma
+  `TauCeti.SymplecticForm.IsLagrangian.prod` and `TauCeti.SymplecticForm.isLagrangian_map_transport_iff`, with §1's lemma
   that `sumEquiv` carries `stdForm (ι ⊕ κ)` to the product form. API:
   `coe_sum`, `mem_sum_iff` (`@[simp]`); `sum_horizontal` and `sum_vertical`
   (`@[simp]`); `sum_graphY` (a block-diagonal chart value);
@@ -975,14 +975,14 @@ The manifold structure and the milestone.
   #232; it imports only Tau Ceti): `Matrix.realify_reindex`, for
   `reindex_unitaryFrame`.
 - Tau Ceti:
-  - Lagrangian subspaces and graphs: `SymplecticForm.IsLagrangian`,
-    `IsLagrangian.two_mul_finrank`,
-    `isLagrangian_graph_iff_of_pairing`, `isLagrangian_map_transport_iff`,
-    `SymplecticForm.rescale`, `isLagrangian_rescale_iff`,
-    `isSymplectomorphism_iff_transport_eq`,
-    `IsSymplectomorphism.map_orthogonal`, `isLagrangian_prod_iff`,
-    `IsLagrangian.prod`, `isLagrangian_prod_top_bot`,
-    `isLagrangian_prod_bot_top`, `IsIsotropic.disjoint_map_of_tames`.
+  - Lagrangian subspaces and graphs: `TauCeti.SymplecticForm.IsLagrangian`,
+    `TauCeti.SymplecticForm.IsLagrangian.two_mul_finrank`,
+    `TauCeti.SymplecticForm.isLagrangian_graph_iff_of_pairing`, `TauCeti.SymplecticForm.isLagrangian_map_transport_iff`,
+    `TauCeti.SymplecticForm.rescale`, `TauCeti.SymplecticForm.isLagrangian_rescale_iff`,
+    `TauCeti.SymplecticForm.isSymplectomorphism_iff_transport_eq`,
+    `TauCeti.SymplecticForm.IsSymplectomorphism.map_orthogonal`, `TauCeti.SymplecticForm.isLagrangian_prod_iff`,
+    `TauCeti.SymplecticForm.IsLagrangian.prod`, `TauCeti.SymplecticForm.isLagrangian_prod_top_bot`,
+    `TauCeti.SymplecticForm.isLagrangian_prod_bot_top`, `TauCeti.SymplecticForm.IsIsotropic.disjoint_map_of_tames`.
   - Frames and charts (`LinearAlgebra/TotallyReal/Euclidean.lean`,
     `Lagrangian.lean`, `LinearAlgebra/Matrix/OfReal.lean`):
     `Matrix.realImage`, `realImage_mul_map_ofReal`,
@@ -990,36 +990,36 @@ The manifold structure and the milestone.
     `map_im_conjTranspose_mul_self_mul_map_ofReal`, `lagrangianChart`,
     `lagrangianChartFrame`, `mem_lagrangianChart`, `lagrangianChart_injective`,
     `lagrangianChart_inj`, `lagrangianChart_inf_realSubspace`,
-    `realSubspace`, `IsMaximalTotallyReal`,
-    `IsMaximalTotallyReal.two_mul_finrank_eq`,
+    `TauCeti.realSubspace`, `TauCeti.IsMaximalTotallyReal`,
+    `TauCeti.IsMaximalTotallyReal.two_mul_finrank_eq`,
     `isMaximalTotallyReal_realImage`, `isMaximalTotallyReal_realImage_iff`,
-    `IsLagrangian.isMaximalTotallyReal_of_compatible`,
+    `TauCeti.SymplecticForm.IsLagrangian.isMaximalTotallyReal_of_compatible`,
     `LinearEquiv.isMaximalTotallyReal_map_iff`,
     `Matrix.rank_eq_finrank_range_toEuclideanLin`,
     `realOrthonormalize`,
     `realImage_realOrthonormalize`, `realOrthonormalize_mem_unitaryGroup`,
     `continuous_realOrthonormalize`.
-  - Groups: `GLSymplectic`, `GLSymplectic.ofUnitary`,
-    `GLSymplectic.coe_ofUnitary`, `continuous_ofUnitary`,
-    `GLSymplectic.mulEquivSymplecticGroup`,
+  - Groups: `TauCeti.GLSymplectic`, `TauCeti.GLSymplectic.ofUnitary`,
+    `TauCeti.GLSymplectic.coe_ofUnitary`, `TauCeti.GLSymplectic.continuous_ofUnitary`,
+    `TauCeti.GLSymplectic.mulEquivSymplecticGroup`,
     `SymplecticGroup.fromBlocks_upper_mem`,
-    `GLSymplectic.symJ`, `GLSymplectic.sum`, `continuous_sum`,
+    `TauCeti.GLSymplectic.symJ`, `TauCeti.GLSymplectic.sum`, `TauCeti.GLSymplectic.continuous_sum`,
     `Matrix.symplecticSum`, `Matrix.UnitaryGroup.sum`,
-    `Matrix.UnitaryGroup.continuous_sum`, `GLOrthogonal`,
-    `GLOrthogonal.inf_unitarySubgroup_eq_map_real`,
+    `Matrix.UnitaryGroup.continuous_sum`, `TauCeti.GLOrthogonal`,
+    `TauCeti.GLOrthogonal.inf_unitarySubgroup_eq_map_real`,
     `Matrix.realify_fromBlocks_zero`, the `CompactSpace` instance of
     `unitaryGroup`, `Matrix.unitaryReindexContinuousMulEquiv`,
     `Matrix.coe_unitaryReindexContinuousMulEquiv_apply`,
     `Matrix.symm_unitaryReindexContinuousMulEquiv`.
-  - Topology: `finiteGrassmannian`,
-    `finiteGrassmannian.continuous_starProjection_toEuclidean`,
-    `quotientStabilizerHomeomorph`, `quotientStabilizerHomeomorph_mk`,
+  - Topology: `TauCeti.finiteGrassmannian`,
+    `TauCeti.finiteGrassmannian.continuous_starProjection_toEuclidean`,
+    `TauCeti.quotientStabilizerHomeomorph`, `TauCeti.quotientStabilizerHomeomorph_mk`,
     `Homeomorph.Quotient.congrRight_mk`,
     `Subgroup.localSectionTrivializationOfCosetFibers`,
-    `hasHomotopyLiftingProperty_of_exists_trivialization`,
-    `HasHomotopyLiftingProperty.exists_path_lift`,
-    `TopCat.mem_serreFibrations_of_exists_trivialization`,
-    `TopCat.exists_path_lift_of_mem_serreFibrations`.
+    `TauCeti.hasHomotopyLiftingProperty_of_exists_trivialization`,
+    `TauCeti.HasHomotopyLiftingProperty.exists_path_lift`,
+    `TauCeti.TopCat.mem_serreFibrations_of_exists_trivialization`,
+    `TauCeti.TopCat.exists_path_lift_of_mem_serreFibrations`.
   - Models that the building issues credit: Tau Ceti's
     `Topology/Grassmannian/Graph.lean` and
     `Topology/Grassmannian/StiefelFibration/Unitary.lean`.
@@ -1057,7 +1057,7 @@ map comes with its comparison to Tau Ceti's object.
 |---|---|
 | G1, `V₀ ι`, `V₁ ι` | `ℒ.horizontal ι`, `ℒ.vertical ι` |
 | G2, unitary frames, $\mathrm{U}(n)/\mathrm{O}(n)$ | `ℒ.unitaryFrame`, `unitaryFrame_surjective`, `unitaryFrame_eq_unitaryFrame_iff`, `quotientHomeomorph`; continuity of maps out of `ℒ ι` by `isQuotientMap_unitaryFrame.continuous_iff` |
-| G3, path lifting | `hasHomotopyLiftingProperty_unitaryFrame` with Tau Ceti's `HasHomotopyLiftingProperty.exists_path_lift` |
+| G3, path lifting | `hasHomotopyLiftingProperty_unitaryFrame` with Tau Ceti's `TauCeti.HasHomotopyLiftingProperty.exists_path_lift` |
 | G4, the action | the `MulAction` and `ContinuousSMul` instances, `unitaryFrame_mul` |
 | G5, sum and reindexing | `ℒ.sum`, `ℒ.reindex` and their compatibilities; `continuous_sum`, `ℒ.reindexHomeomorph` |
 | G6, frame criterion and spanned Lagrangian | `isLagrangian_range_fromRows_iff` (stated with `fromRows X Y` for the book's frame `Z`) and `ℒ.ofFrame` with `coe_ofFrame` |
