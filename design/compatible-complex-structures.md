@@ -558,6 +558,13 @@ the file list of `DESIGN.md`*).
   - `commute_metricPolarComplexStructure` (with the hypothesis `hA` above):
     `Commute (LinearMap.toContinuousLinearMap
     (metricPolarComplexStructure g ω).toLinearMap) A`.
+  - `exists_operator_and_sqrt_neg_mul_self (g ω) : ∃ A Q : V →L[ℝ] V,` the
+    four hypotheses `hA`, `hQs`, `hQp` and `Q * Q = -(A * A)` above. So the
+    formula applies to every `g` and `ω`. Proof: carry `g` to a Euclidean
+    space with `innerProducts.exists_transport_eq_innerSL`, take Tau Ceti's
+    `innerOperator` of the transported form and its `operatorAbs` there
+    (`operatorAbs_mul_self_of_adjoint_eq_neg` gives the square; injectivity
+    of `innerOperator` gives positive definiteness), and pull both back.
 - `metricPolarComplexStructure_associatedBilinForm (h : ω.Compatible J) :
   metricPolarComplexStructure ⟨_, h.associatedBilinForm_mem_innerProducts⟩ ω = J`.
   This is the second bullet.

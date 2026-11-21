@@ -33,6 +33,8 @@ product, the structure is Tau Ceti's `TauCeti.SymplecticForm.polarComplexStructu
 * `SymplecticGeometry.metricPolarComplexStructure_eq_iff`: the characterization of
   `metricPolarComplexStructure g ω`.
 * `SymplecticGeometry.metricPolarComplexStructure_eq_inverse_mul`: the formula `J = Q⁻¹ A`.
+* `SymplecticGeometry.exists_operator_and_sqrt_neg_mul_self`: the operators `A` and `Q` of that
+  formula exist for every `g` and `ω`.
 * `SymplecticGeometry.metricPolarComplexStructure_associatedBilinForm`: for a compatible `J`, the
   construction applied to the metric `ω(·, J ·)` gives back `J`.
 * `SymplecticGeometry.metricPolarComplexStructure_transport`: naturality under linear
@@ -207,6 +209,17 @@ theorem commute_metricPolarComplexStructure {A : V →L[ℝ] V}
   beta_reduce at hω ⊢
   linarith
 
+omit [FiniteDimensional ℝ V] in
+/-- An isomorphism that carries `g` to the standard inner product is an isometry from `g`. -/
+private theorem inner_apply_eq_of_transport_eq_innerSL {E : Type*} [NormedAddCommGroup E]
+    [InnerProductSpace ℝ E] {e : V ≃L[ℝ] E}
+    (he : innerProducts.transport e g = ⟨innerSL ℝ, innerSL_mem_innerProducts⟩) (u v : V) :
+    ⟪e u, e v⟫ = (g : V →L[ℝ] V →L[ℝ] ℝ) u v := by
+  have := congrArg (fun h : innerProducts _ ↦ (h : _ →L[ℝ] _ →L[ℝ] ℝ) (e u) (e v)) he
+  simp only [innerProducts.transport_apply, ContinuousLinearEquiv.symm_apply_apply] at this
+  rw [innerSL_apply_apply] at this
+  exact this.symm
+
 /-- If `Q` is a square root of `-A²` that is self-adjoint and positive definite for `g`, where
 `g (A u) v = ω u v`, then `J_{g,ω} Q = A`: this is the polar decomposition of `A` for `g`. The
 proof carries `g` to the standard inner product of a Euclidean space, where `Q` becomes the
@@ -218,11 +231,7 @@ private theorem metricPolarComplexStructure_apply_of_mul_self_eq {A Q : V →L[�
     (hQ : Q * Q = -(A * A)) (x : V) :
     metricPolarComplexStructure g ω (Q x) = A x := by
   obtain ⟨e, he⟩ := innerProducts.exists_transport_eq_innerSL g
-  have he' : ∀ u v, ⟪e u, e v⟫ = (g : V →L[ℝ] V →L[ℝ] ℝ) u v := fun u v ↦ by
-    have := congrArg (fun h : innerProducts _ ↦ (h : _ →L[ℝ] _ →L[ℝ] ℝ) (e u) (e v)) he
-    simp only [innerProducts.transport_apply, ContinuousLinearEquiv.symm_apply_apply] at this
-    rw [innerSL_apply_apply] at this
-    exact this.symm
+  have he' := inner_apply_eq_of_transport_eq_innerSL he
   set ω' := ω.transport e.toLinearEquiv with hω'
   have hJ : ω'.polarComplexStructure =
       (metricPolarComplexStructure g ω).transport e.toLinearEquiv := by
@@ -275,6 +284,46 @@ theorem metricPolarComplexStructure_eq_inverse_mul {A Q : V →L[ℝ] V}
   have hAQ : A = Q * LinearMap.toContinuousLinearMap J.toLinearMap :=
     ContinuousLinearMap.ext fun x ↦ by simp [hQJ]
   rw [hAQ, Ring.inverse_mul_cancel_left _ _ hu]
+
+variable (g ω) in
+/-- For every inner product `g` and symplectic form `ω`, there are an operator `A` with
+`g (A u) v = ω u v` and a square root `Q` of `-A²` that is self-adjoint and positive definite
+for `g`: the data of `SymplecticGeometry.metricPolarComplexStructure_eq_inverse_mul`. -/
+theorem exists_operator_and_sqrt_neg_mul_self :
+    ∃ A Q : V →L[ℝ] V, (∀ u v, (g : V →L[ℝ] V →L[ℝ] ℝ) (A u) v = ω u v) ∧
+      (∀ u v, (g : V →L[ℝ] V →L[ℝ] ℝ) (Q u) v = (g : V →L[ℝ] V →L[ℝ] ℝ) u (Q v)) ∧
+      (∀ v, v ≠ 0 → 0 < (g : V →L[ℝ] V →L[ℝ] ℝ) (Q v) v) ∧ Q * Q = -(A * A) := by
+  -- Carry `g` to the standard inner product, and pull back the operator of the transported form
+  -- and its modulus.
+  obtain ⟨e, he⟩ := innerProducts.exists_transport_eq_innerSL g
+  have he' := inner_apply_eq_of_transport_eq_innerSL he
+  set ω' := ω.transport e.toLinearEquiv with hω'
+  set A' := ω'.innerOperator
+  have hQ'p := A'.isPositive_operatorAbs
+  refine ⟨e.symm.toContinuousLinearMap ∘L LinearMap.toContinuousLinearMap A' ∘L
+      e.toContinuousLinearMap,
+    e.symm.toContinuousLinearMap ∘L LinearMap.toContinuousLinearMap A'.operatorAbs ∘L
+      e.toContinuousLinearMap, fun u v ↦ ?_, fun u v ↦ ?_, fun v hv ↦ ?_, ?_⟩
+  · rw [← he']
+    simp [hω', A', SymplecticForm.inner_innerOperator_apply]
+  · rw [← he', ← he']
+    simpa using hQ'p.isSymmetric (e u) (e v)
+  · rw [← he']
+    simp only [ContinuousLinearMap.coe_comp, ContinuousLinearEquiv.coe_coe,
+      LinearMap.coe_toContinuousLinearMap', Function.comp_apply,
+      ContinuousLinearEquiv.apply_symm_apply]
+    refine (hQ'p.re_inner_nonneg_left (e v)).lt_of_ne fun h ↦ ?_
+    -- `⟪Q' x, x⟫ = ‖√Q' x‖²`, so `√Q' x = 0`, hence `Q' x = 0`, and `Q'` is injective.
+    have hs : hQ'p.sqrt (e v) = 0 := by
+      rw [← norm_eq_zero, ← pow_eq_zero_iff two_ne_zero, hQ'p.norm_sqrt_apply_sq]
+      simpa using h.symm
+    have hz : A'.operatorAbs (e v) = 0 := by
+      rw [← hQ'p.sqrt_sq, LinearMap.comp_apply, hs, map_zero]
+    exact hv (e.injective (((LinearMap.operatorAbs_injective_iff.2
+      ω'.innerOperator_injective) (hz.trans (map_zero _).symm)).trans e.map_zero.symm))
+  · have h := LinearMap.operatorAbs_mul_self_of_adjoint_eq_neg ω'.adjoint_innerOperator
+    ext x
+    simpa using congr(e.symm ($h (e x)))
 
 end SymplecticGeometry
 
