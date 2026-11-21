@@ -21,8 +21,6 @@ Darboux basis, `Q = ∑ₖ νₖ (xₖ² + yₖ²) / 2` with `νₖ > 0`, so the
 
 ## Main results
 
-* `SymplecticGeometry.isSymplectomorphism_piLpCongrLeft_sumCongr`: reindexing the coordinate
-  pairs of the standard model is symplectic.
 * `SymplecticGeometry.stdDarbouxBasisOf`: the standard Darboux basis of `StdSpace ι` after a
   labelling `Fin m ≃ ι` of the coordinate pairs, and
   `SymplecticGeometry.stdEllipsoidForm_eq_sum_smul_elliptic`, the form of a standard ellipsoid
@@ -42,20 +40,7 @@ namespace SymplecticGeometry
 
 open TauCeti TauCeti.SymplecticForm StdSpace Module
 
-variable {ι κ : Type*} [Fintype ι] [Fintype κ]
-
-/-- The reindexing `σ : ι ≃ κ` of the coordinate pairs `(xᵢ, yᵢ)`, which sends the coordinates
-of index `i` to those of index `σ i`, is a symplectomorphism from `ω₀` on `StdSpace ι` to `ω₀`
-on `StdSpace κ`. -/
-theorem isSymplectomorphism_piLpCongrLeft_sumCongr (σ : ι ≃ κ) :
-    IsSymplectomorphism (stdForm ι) (stdForm κ)
-      (LinearIsometryEquiv.piLpCongrLeft 2 ℝ ℝ (σ.sumCongr σ)).toLinearEquiv := by
-  rw [isSymplectomorphism_iff]
-  intro z w
-  simp only [stdForm_apply, x_apply, y_apply, LinearIsometryEquiv.coe_toLinearEquiv,
-    LinearIsometryEquiv.piLpCongrLeft_apply, Equiv.piCongrLeft'_apply, Equiv.sumCongr_symm,
-    Equiv.sumCongr_apply, Sum.map_inl, Sum.map_inr]
-  exact Equiv.sum_comp σ.symm fun i ↦ z (Sum.inl i) * w (Sum.inr i) - z (Sum.inr i) * w (Sum.inl i)
+variable {ι : Type*} [Fintype ι]
 
 /-- The standard Darboux basis of `StdSpace ι`, after a labelling `τ : Fin m ≃ ι` of the
 coordinate pairs: Tau Ceti's `stdDarbouxBasis m`, carried to `StdSpace ι` along
@@ -118,26 +103,25 @@ theorem exists_isSymplectomorphism_image_eq_stdEllipsoid
       at h
     simpa using (by omega : m = Fintype.card ι)
   let σ : Fin m ≃ ι := Fintype.equivOfCardEq hcard
-  let e : StdSpace ι ≃ₗ[ℝ] StdSpace ι := b.darbouxBasisEquiv.trans
-    ((EuclideanSpace.sumEquivProd (𝕜 := ℝ) (ι := Fin m) (κ := Fin m)).toLinearEquiv.symm.trans
-      (LinearIsometryEquiv.piLpCongrLeft 2 ℝ ℝ (σ.sumCongr σ)).toLinearEquiv)
+  -- `e` carries the Williamson basis `b` to the relabelled standard Darboux basis `d`.
+  let d := stdDarbouxBasisOf σ
+  let e : StdSpace ι ≃ₗ[ℝ] StdSpace ι := b.darbouxBasisEquiv.trans d.darbouxBasisEquiv.symm
   have he : IsSymplectomorphism (stdForm ι) (stdForm ι) e :=
-    (hb.isSymplectomorphism_darbouxBasisEquiv.trans isSymplectomorphism_sumEquivProd.symm).trans
-      (isSymplectomorphism_piLpCongrLeft_sumCongr σ)
-  have hex (v : StdSpace ι) (k : Fin m) : (e v).x (σ k) = b.repr v (k, 0) := by
-    simp [e]
-  have hey (v : StdSpace ι) (k : Fin m) : (e v).y (σ k) = b.repr v (k, 1) := by
-    simp [e]
+    hb.isSymplectomorphism_darbouxBasisEquiv.trans
+      (isDarbouxBasis_stdDarbouxBasisOf σ).isSymplectomorphism_darbouxBasisEquiv.symm
+  have hrepr (v : StdSpace ι) (p : Fin m × Fin 2) : d.repr (e v) p = b.repr v p := by
+    have hev : d.darbouxBasisEquiv (e v) = b.darbouxBasisEquiv v := by simp [e]
+    match p with
+    | (k, 0) => rw [← d.darbouxBasisEquiv_fst_apply, hev, b.darbouxBasisEquiv_fst_apply]
+    | (k, 1) => rw [← d.darbouxBasisEquiv_snd_apply, hev, b.darbouxBasisEquiv_snd_apply]
   let r : ι → ℝ := fun j ↦ √(2 / ν (σ.symm j))
   have hr (j : ι) : 0 < r j := Real.sqrt_pos.2 (div_pos two_pos (hν _))
   refine ⟨r, e, hr, he, ?_⟩
   have hform (v : StdSpace ι) : stdEllipsoidForm r (e v) = (∑ k, ν k • elliptic b k) v := by
-    rw [stdEllipsoidForm_apply, ← Equiv.sum_comp σ]
-    simp only [sum_apply, smul_apply, elliptic_apply, smul_eq_mul,
-      hex, hey, r, Equiv.symm_apply_apply]
+    simp only [stdEllipsoidForm_eq_sum_smul_elliptic σ, sum_apply, smul_apply, elliptic_apply,
+      smul_eq_mul, d, hrepr, r, Equiv.symm_apply_apply]
     refine Finset.sum_congr rfl fun k _ ↦ ?_
-    rw [Real.sq_sqrt (div_pos two_pos (hν k)).le]
-    field_simp
+    rw [Real.sq_sqrt (div_pos two_pos (hν k)).le, div_div_cancel₀ two_ne_zero]
   rw [QuadraticMap.image_setOf_le_one, stdEllipsoid_def]
   ext z
   simp only [Set.mem_ofPred_eq, QuadraticMap.comp_apply, LinearEquiv.coe_coe, ← hform,
