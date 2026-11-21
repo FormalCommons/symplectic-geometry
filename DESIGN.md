@@ -1745,7 +1745,14 @@ has either.
   `TauCeti.Bundle.zeroSectionTangentEquiv`), `Lift.lean` (named like Tau
   Ceti's file: for a vector field $Y$, lifting its local flow to $T^*L$ gives
   the flow of $X_H$ for $H(q,p)=p(Y_q)$ where defined, and a complete flow
-  when $Y$ is complete).
+  when $Y$ is complete); and
+  `Geometry/Manifold/VectorBundle/Section/Extension.lean` (named like Tau
+  Ceti's file, whose `FiberBundle.contMDiffExtend` it uses: the differential
+  of a section in the chart at its value, `Bundle.mfderiv_section_apply`, and
+  smooth sections of any smooth vector bundle with a given value and a
+  derivative $u\mapsto\xi(u)\,b$ at a point,
+  `ContMDiffSection.exists_mfderiv_eq`, which `Liouville.lean` tests
+  against).
 - **Builds on:** Tau Ceti: `TauCeti.CotangentBundle.liouvilleForm` with
   `mpullback_liouvilleForm`, `symplecticForm` (which is
   $-d\lambda_{\mathrm{can}}$, the page's sign) with `inChartAt_symplecticForm_apply`,
