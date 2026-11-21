@@ -9,7 +9,7 @@ public import Mathlib.Topology.VectorBundle.ContinuousAlternatingMap
 public import TauCeti.Topology.VectorBundle.Pullback
 
 /-!
-# Coordinates of alternating maps on a pull-back bundle
+# Alternating maps and negatives on a pull-back bundle
 
 Let `V` be a topological vector bundle over `B` and `f : X → B` a continuous map. An alternating
 map `A : V (f x) [⋀^ι]→L[𝕜] G` is a point of two bundles of alternating maps: the one from
@@ -22,6 +22,11 @@ the identity over both bases.
 
 This is the counterpart for alternating maps of Tau Ceti's
 `ContinuousLinearMap.inCoordinates_pullback_of_mem`, and its proof follows that one.
+
+The file also has `Bundle.Pullback.neg_fiber`: the negative, taken in `V (f y)`, of a vector of
+type `(f *ᵖ V) y` is its negative for Tau Ceti's group structure
+`Bundle.Pullback.instAddCommGroup` on that fibre. Since `Bundle.Pullback` is not reducible,
+`simp` does not see this equation by itself.
 
 ## References
 
@@ -61,5 +66,17 @@ theorem inCoordinates_pullback_trivial_of_mem (f : K) (x₀ x : X)
   rfl
 
 end ContinuousAlternatingMap
+
+namespace Bundle.Pullback
+
+variable {B' : Type*} {E : B → Type*} [∀ b, AddCommGroup (E b)] {f : B' → B} {y : B'}
+
+/-- The negative, taken in `E (f y)`, of a vector `v` of the fibre of `f *ᵖ E` at `y` is the
+negative of `v` in that fibre. -/
+@[simp]
+theorem neg_fiber (v : (f *ᵖ E) y) :
+    @Eq ((f *ᵖ E) y) (@Neg.neg (E (f y)) _ v) (-v) := (rfl)
+
+end Bundle.Pullback
 
 end

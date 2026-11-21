@@ -7,6 +7,7 @@ module
 
 public import SymplecticGeometry.Data.Bundle
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Hom
+public import SymplecticGeometry.Topology.VectorBundle.Pullback
 public import TauCeti.Geometry.Manifold.VectorBundle.Complexification
 public import TauCeti.Geometry.Manifold.VectorBundle.Prod
 public import TauCeti.Geometry.Manifold.VectorBundle.Pullback

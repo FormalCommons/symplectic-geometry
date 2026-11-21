@@ -135,8 +135,8 @@ variable {EB HB M : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB]
 | `Geometry/Manifold/VectorBundle/Hom.lean` | `contMDiff_hom_bundle_symm`: the fibrewise inverses of a $C^n$ isomorphism of bundles as a $C^n$ section of the hom bundle | 1, 3 |
 | `Geometry/Manifold/VectorBundle/ContinuousAlternatingMap.lean` | `contMDiff_compContinuousLinearMap_totalSpace`: precomposition by a $C^n$ hom-bundle section is $C^n$ on total spaces of alternating bundles | 3 |
 | `Geometry/Manifold/VectorBundle/Pullback.lean` | smoothness of sections of the alternating bundle of a pull-back | 18 |
-| `Topology/VectorBundle/Pullback.lean` | coordinates of alternating maps on a pull-back bundle | 18 |
-| `Data/Bundle.lean` | `Bundle.Pullback.eq_iff` and `Bundle.Pullback.neg_fiber`: equations and negatives in a fibre of a pull-back bundle, for `simp` | 20 |
+| `Topology/VectorBundle/Pullback.lean` | coordinates of alternating maps on a pull-back bundle; `Bundle.Pullback.neg_fiber`: negatives in a fibre of a pull-back bundle, for `simp` | 18, 20 |
+| `Data/Bundle.lean` | `Bundle.Pullback.eq_iff`: equations in a fibre of a pull-back bundle, for `simp` | 20 |
 | `Geometry/Manifold/VectorBundle/Symplectic/Pullback.lean` | pull-backs of forms, of tame and compatible pairs, of isomorphisms and of frames | 21 |
 | `Geometry/Manifold/VectorBundle/Symplectic/Prod.lean` | direct sums of forms, of tame and compatible pairs and of isomorphisms; block frames | 22 |
 | `Geometry/Symplectic/Manifold/Volume.lean` | the symplectic orientation of a negated two-form | 23 |
@@ -1255,7 +1255,7 @@ For a map `f : C^n⟮I', N; I, M⟯` (the argument of Mathlib's instance
   structure of the pull-back. The root-namespace `@[simp]
   Bundle.Pullback.eq_iff` (`Data/Bundle.lean`) moves an equation stated in
   `(f *ᵖ V) y` between vectors of `V (f y)` to `V (f y)`, and `@[simp]
-  Bundle.Pullback.neg_fiber` takes the negative in `V (f y)` of a vector of
+  Bundle.Pullback.neg_fiber` (`Topology/VectorBundle/Pullback.lean`) takes the negative in `V (f y)` of a vector of
   `(f *ᵖ V) y` in `(f *ᵖ V) y`. `coe_pullback` and `pullback_neg` are not
   `@[simp]`: `coe_pullback` would undo `apply_eq_pullback_apply`, and after
   `pullback_neg` a vector of `V (f y)` meets a function on `(f *ᵖ V) y`
@@ -1999,7 +1999,9 @@ of *Constructions* for *First Chern number*.
 20. **Pull-back, direct sum and multiplication by `Complex.I` for complex
     structures.** `ComplexStructure.lean`: `ContMDiffComplexStructure.pullback`,
     `prod` and `ofComplexModule` with their API, and `Bundle.Pullback.eq_iff`
-    in `Data/Bundle.lean`. Blockers: 1.
+    in `Data/Bundle.lean`, and `Bundle.Pullback.neg_fiber` in
+    `Topology/VectorBundle/Pullback.lean`, which `ComplexStructure.lean`
+    imports. Blockers: 1.
 21. **Pull-backs of symplectic bundles.** `Symplectic/Pullback.lean`:
     `ContMDiffTwoForm.pullback` with its API, `Tames.pullback`,
     `Compatible.pullback`, `pullback_pushforward`, `pushforward_pullback_id`,
