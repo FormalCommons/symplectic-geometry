@@ -156,8 +156,7 @@ private theorem coe_smul_unitaryFrame (g : GLSymplectic ι ℝ) (U : unitaryGrou
     ((g • unitaryFrame U : ℒ ι) : Submodule ℝ (StdSpace ι)) =
       LinearMap.range
         (toEuclideanLin (fromRows (smulFrame g U).toRows₁ (smulFrame g U).toRows₂)) := by
-  rw [fromRows_toRows, coe_smul, coe_unitaryFrame, ← LinearMap.range_comp, smulFrame,
-    toLpLin_mul_same]
+  rw [fromRows_toRows, coe_smul_of_coe_eq g (coe_unitaryFrame U), smulFrame]
 
 private theorem isLagrangian_smulFrame (g : GLSymplectic ι ℝ) (U : unitaryGroup ι ℂ) :
     (stdForm ι).IsLagrangian (LinearMap.range
