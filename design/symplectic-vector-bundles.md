@@ -667,9 +667,11 @@ on complex structures are in `ContMDiffComplexStructure` and in
   frames that *First Chern number* uses are over open sets, and openness
   makes the argument pointwise. At `x ∈ U`, the field `contMDiffOn` gives
   smoothness at every `(x, v)`, since `U ×ˢ univ` is open; read through
-  the total space of `Bundle.Trivial M W`, Tau Ceti's
-  `contMDiffAt_hom_bundle_iff` (`Geometry/Manifold/VectorBundle/Hom.lean`)
-  makes `Φ` and `Φ'` sections of the hom bundle from `Bundle.Trivial M W` to
+  the total space of `Bundle.Trivial M W` (with Tau Ceti's
+  `Bundle.Trivial.diffeomorphProd` and `Bundle.Trivial.contMDiffAt_mk_iff`,
+  `Geometry/Manifold/VectorBundle/Trivial.lean`), Tau Ceti's
+  `TauCeti.contMDiffAt_hom_bundle_iff`
+  (`Geometry/Manifold/VectorBundle/Hom.lean`) makes `Φ` and `Φ'` sections of the hom bundle from `Bundle.Trivial M W` to
   `V` that are $C^n$ at `x`. Then `ContMDiffAt.clm_bundle_inverse` and
   `ContMDiffAt.clm_bundle_comp` give the composite at `x`, a section of the
   endomorphisms of the trivial bundle, which is the map into `W →L[ℝ] W`.
@@ -854,6 +856,7 @@ variable {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] [NormedSpace ℂ
   [TopologicalSpace (TotalSpace F V)] [FiberBundle F V] [VectorBundle ℂ F V]
 
 local instance : VectorBundle ℝ F V := VectorBundle.restrictScalars ℝ ℂ F V
+local instance : FiniteDimensional ℝ F := Module.Finite.trans ℂ F
 
 variable [ContMDiffVectorBundle n F V I]
   (g : Bundle.ContMDiffRiemannianMetric I n F V)
@@ -926,12 +929,14 @@ proves is topological and holds over any base, with or without boundary: Tau
 Ceti's `OrthonormalFrameBundle.instPrincipalBundleFiber` asks for no smooth
 hypothesis. Only the smooth structure on the circle bundle needs more, the
 hypotheses of Tau Ceti's `sphereBundleChartedSpace` and
-`isManifold_sphereBundle`. Two of these come with the variables above:
-`[IsManifold I n M]`, which follows from `[IsManifold I ∞ M]`, and
-`[ContMDiffVectorBundle n F V I]`. The rest, `[I.Boundaryless]`,
-`[FiniteDimensional ℝ EB]`, `[FiniteDimensional ℝ F]`,
-`[IsContMDiffRiemannianBundle I n F V]` (a local instance from the
-smoothness of `g`) and `1 ≤ n`, are stated only where that atlas is used,
+`isManifold_sphereBundle`. Three of these come with the variables above:
+`[IsManifold I n M]`, which follows from `[IsManifold I ∞ M]`,
+`[ContMDiffVectorBundle n F V I]`, and `[FiniteDimensional ℝ F]`, the local
+instance `Module.Finite.trans ℂ F` above (instance search does not find it
+alone, since Mathlib's `FiniteDimensional.complexToReal` goes through
+`Module.complexToReal`). The rest, `[I.Boundaryless]`,
+`[FiniteDimensional ℝ EB]`, `[IsContMDiffRiemannianBundle I n F V]` (a
+local instance from the smoothness of `g`) and `1 ≤ n`, are stated only where that atlas is used,
 in *First Chern number*'s prerequisite 3, and not on the results below.
 
 - The circle bundle is the subtype
@@ -1086,7 +1091,7 @@ it, its design adds it.
   with its principal-bundle instance, `circleEquivUnitary`, the one-dimensional
   `StrongUnitary` isomorphisms, the symplectic orientation
   `IsNondegenerate.volumeOrientation` with `volumeForm_smul`, and
-  `contMDiffAt_hom_bundle_iff`, `ContMDiffAt.clm_bundle_inverse` and
+  `TauCeti.contMDiffAt_hom_bundle_iff`, `ContMDiffAt.clm_bundle_inverse` and
   `ContMDiffAt.clm_bundle_comp` for transition maps.
 - **Mathlib:** smooth vector bundles, the bundles of linear and alternating
   maps, `ContMDiffSection`, `IsLocalFrameOn`, `Bundle.ContMDiffRiemannianMetric`,
