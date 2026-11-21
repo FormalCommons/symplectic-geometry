@@ -11,6 +11,7 @@ public import SymplecticGeometry.LinearAlgebra.Matrix.Symmetric
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Lagrangian.Transverse
 public import SymplecticGeometry.Topology.Grassmannian.Lagrangian.Quotient
 public import SymplecticGeometry.Topology.Instances.Matrix
+public import TauCeti.LinearAlgebra.Matrix.Rank
 public import TauCeti.Topology.Instances.Matrix
 
 /-!
@@ -38,7 +39,10 @@ open quotient map, this formula gives the openness and continuity that the chart
 * `SymplecticGeometry.LagrangianGrassmannian.isOpen_setOf_isCompl`: the Lagrangians transverse to
   a given one form an open set.
 * `SymplecticGeometry.LagrangianGrassmannian.graphYChart`: the chart on the Lagrangians
-  transverse to `{y = 0}`, with inverse `graphY`; `unitaryFrame_mem_graphYChart_source_iff` says
+  transverse to `{y = 0}`, with inverse `graphY`. For a Lagrangian spanned by a frame
+  `fromRows X Y`, `mem_graphYChart_source_iff_isUnit` says it lies in the source iff `Y` is
+  invertible, and `coe_graphYChart_eq_mul_inv` gives its value `X Y⁻¹`;
+  `unitaryFrame_mem_graphYChart_source_iff` says
   when a unitary frame lies in its source, and `coe_graphYChart_unitaryFrame` gives its value
   there.
 * `SymplecticGeometry.LagrangianGrassmannian.graphChart`: the chart on the Lagrangians transverse
@@ -211,6 +215,30 @@ theorem graphYChart_graphY (S : selfAdjoint (Matrix ι ι ℝ)) :
     graphYChart (graphY S : ℒ ι) = S := by
   rw [graphYChart_def]
   exact (isOpenEmbedding_graphY (ι := ι)).toOpenPartialHomeomorph_left_inv graphY
+
+/-- A Lagrangian spanned by the frame `fromRows X Y` lies in the source of the basic chart, that
+is, is transverse to `{y = 0}`, exactly when `Y` is invertible. -/
+theorem mem_graphYChart_source_iff_isUnit [DecidableEq ι] {Λ : ℒ ι} {X Y : Matrix ι ι ℝ}
+    (hΛ : (Λ : Submodule ℝ (StdSpace ι)) = LinearMap.range (toEuclideanLin (fromRows X Y))) :
+    Λ ∈ (graphYChart : OpenPartialHomeomorph (ℒ ι) _).source ↔ IsUnit Y := by
+  have hL := Λ.isLagrangian
+  rw [hΛ] at hL
+  rw [graphYChart_source, mem_ofPred_eq, isCompl_iff_disjoint, hΛ, coe_horizontal]
+  exact StdSpace.disjoint_range_toEuclideanLin_fromRows_ker_y_iff
+    ((rank_eq_card_iff_mulVec_injective _).1 ((isLagrangian_range_fromRows_iff _ _).1 hL).1)
+
+/-- If a Lagrangian is spanned by the frame `fromRows X Y` with `Y` invertible, the basic chart
+sends it to `X Y⁻¹`. -/
+theorem coe_graphYChart_eq_mul_inv [DecidableEq ι] {Λ : ℒ ι} {X Y : Matrix ι ι ℝ}
+    (hΛ : (Λ : Submodule ℝ (StdSpace ι)) = LinearMap.range (toEuclideanLin (fromRows X Y)))
+    (hY : IsUnit Y) :
+    (graphYChart Λ : Matrix ι ι ℝ) = X * Y⁻¹ := by
+  obtain ⟨T, rfl⟩ : Λ ∈ range graphY := by
+    rw [range_graphY, ← graphYChart_source]
+    exact (mem_graphYChart_source_iff_isUnit hΛ).2 hY
+  rw [graphYChart_graphY]
+  apply StdSpace.graphY_injective
+  rw [← coe_graphY, hΛ, StdSpace.range_toEuclideanLin_fromRows_eq_graphY hY]
 
 /-- The Lagrangian framed by a unitary matrix `U = X + i Y` lies in the source of the basic chart,
 that is, is transverse to `{y = 0}`, exactly when `Y` is invertible. -/

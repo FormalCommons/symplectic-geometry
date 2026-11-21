@@ -10,7 +10,6 @@ public import Mathlib.Geometry.Manifold.IsManifold.Basic
 public import SymplecticGeometry.LinearAlgebra.Matrix.SelfAdjoint
 public import SymplecticGeometry.Topology.Grassmannian.Lagrangian.Graph
 public import TauCeti.Analysis.Calculus.ContDiff.Star
-public import TauCeti.LinearAlgebra.Matrix.Rank
 
 /-!
 # The Lagrangian Grassmannian as a smooth manifold
@@ -28,12 +27,14 @@ translated by unitary matrices: the chart `unitaryChart U` sends `Λ` to
 
 The model space carries the ℓ² operator norm of `Matrix.Norms.L2Operator`. The smooth structure
 does not depend on that choice, but the statements need one: to use them,
-`open scoped Matrix.Norms.L2Operator`.
+`open scoped Matrix.Norms.L2Operator`. This use of `selfAdjoint (Matrix ι ι ℝ)` with the ℓ²
+operator norm as a model space follows Tau Ceti's
+`TauCeti/Geometry/Manifold/Instances/PositiveDefiniteMatrix.lean`.
 
 ## Main definitions and results
 
-* `SymplecticGeometry.LagrangianGrassmannian.coe_graphYChart_smul_graphY`: the transition maps
-  `S ↦ (A S + B)(C S + D)⁻¹`, and `contDiffOn_graphYChart_smul_graphY`, their smoothness.
+* `SymplecticGeometry.LagrangianGrassmannian.contDiffOn_graphYChart_smul_graphY`: the transition
+  maps `S ↦ (A S + B)(C S + D)⁻¹` are smooth where they are defined.
 * `SymplecticGeometry.LagrangianGrassmannian.unitaryChart U`: the basic chart translated by a
   unitary matrix `U`.
 * The `ChartedSpace (selfAdjoint (Matrix ι ι ℝ)) (ℒ ι)` instance, whose chart at `Λ` is
@@ -63,53 +64,13 @@ local notation "ℒ" ι => LagrangianGrassmannian (stdForm ι)
 
 namespace LagrangianGrassmannian
 
-/-! ### Symplectic images of chart points -/
+/-! ### Smoothness of the transition maps -/
 
 section Blocks
 
-variable (g : GLSymplectic ι ℝ) (S : selfAdjoint (Matrix ι ι ℝ))
+variable (g : GLSymplectic ι ℝ)
 
 local notation "M" => ((g : GL (ι ⊕ ι) ℝ) : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ)
-
-/-- The image of the chart point `{(S y, y)}` under a symplectic matrix `g` with blocks
-`A, B, C, D` is spanned by the frame `fromRows (A S + B) (C S + D)`. -/
-theorem coe_smul_graphY :
-    ((g • graphY S : ℒ ι) : Submodule ℝ (StdSpace ι)) =
-      LinearMap.range (toEuclideanLin (fromRows
-        (toBlocks₁₁ M * (S : Matrix ι ι ℝ) + toBlocks₁₂ M)
-        (toBlocks₂₁ M * (S : Matrix ι ι ℝ) + toBlocks₂₂ M))) := by
-  rw [coe_smul, coe_graphY, ← StdSpace.range_toEuclideanLin_fromRows_one_eq_graphY,
-    ← LinearMap.range_comp, toEuclideanLin, ← toLpLin_mul_same]
-  conv_lhs => rw [← fromBlocks_toBlocks M]
-  rw [fromBlocks_mul_fromRows]
-  simp only [Matrix.mul_one]
-
-/-- The image of the chart point `{(S y, y)}` under a symplectic matrix with blocks `A, B, C, D`
-is transverse to `{y = 0}`, that is, lies in the source of the basic chart, iff `C S + D` is
-invertible. -/
-theorem smul_graphY_mem_graphYChart_source_iff :
-    g • graphY S ∈ (graphYChart : OpenPartialHomeomorph (ℒ ι) _).source ↔
-      IsUnit (toBlocks₂₁ M * (S : Matrix ι ι ℝ) + toBlocks₂₂ M) := by
-  have hL := (g • graphY S).isLagrangian
-  rw [coe_smul_graphY] at hL
-  rw [graphYChart_source, mem_ofPred_eq, isCompl_iff_disjoint, coe_smul_graphY, coe_horizontal]
-  exact StdSpace.disjoint_range_toEuclideanLin_fromRows_ker_y_iff
-    ((rank_eq_card_iff_mulVec_injective _).1 ((isLagrangian_range_fromRows_iff _ _).1 hL).1)
-
-/-- **The transition maps.** If a symplectic matrix with blocks `A, B, C, D` sends the chart
-point `{(S y, y)}` to a Lagrangian transverse to `{y = 0}`, the basic chart sends that
-Lagrangian to `(A S + B)(C S + D)⁻¹`. -/
-theorem coe_graphYChart_smul_graphY
-    (h : IsUnit (toBlocks₂₁ M * (S : Matrix ι ι ℝ) + toBlocks₂₂ M)) :
-    (graphYChart (g • graphY S) : Matrix ι ι ℝ) =
-      (toBlocks₁₁ M * (S : Matrix ι ι ℝ) + toBlocks₁₂ M) *
-        (toBlocks₂₁ M * (S : Matrix ι ι ℝ) + toBlocks₂₂ M)⁻¹ := by
-  obtain ⟨T, hT⟩ : g • graphY S ∈ range graphY := by
-    rw [range_graphY, ← graphYChart_source]
-    exact (smul_graphY_mem_graphYChart_source_iff g S).2 h
-  rw [← hT, graphYChart_graphY]
-  apply StdSpace.graphY_injective
-  rw [← coe_graphY, hT, coe_smul_graphY, StdSpace.range_toEuclideanLin_fromRows_eq_graphY h]
 
 /-- The transition maps are smooth: `S ↦ graphYChart (g • graphY S)` is smooth on the open set
 of symmetric matrices `S` where it is defined. -/
@@ -119,7 +80,7 @@ theorem contDiffOn_graphYChart_smul_graphY :
   have hs : {S | g • graphY S ∈ (graphYChart : OpenPartialHomeomorph (ℒ ι) _).source} =
       {S : selfAdjoint (Matrix ι ι ℝ) |
         IsUnit (toBlocks₂₁ M * (S : Matrix ι ι ℝ) + toBlocks₂₂ M)} :=
-    Set.ext fun S ↦ smul_graphY_mem_graphYChart_source_iff g S
+    Set.ext fun S ↦ mem_graphYChart_source_iff_isUnit (coe_smul_graphY g S)
   have hv := selfAdjoint.contDiff_subtype_val ℝ (A := Matrix ι ι ℝ) (k := ∞)
   have h₁ : ContDiff ℝ ∞ fun S : selfAdjoint (Matrix ι ι ℝ) ↦
       toBlocks₁₁ M * (S : Matrix ι ι ℝ) + toBlocks₁₂ M :=
@@ -136,8 +97,10 @@ theorem contDiffOn_graphYChart_smul_graphY :
       h₂.contDiffAt)).contDiffWithinAt
   rw [hs]
   refine hF.congr fun S hS ↦ ?_
+  -- Mathlib generates only `selfAdjointPartL_apply_coe` for `selfAdjointPartL`, so there is no
+  -- `selfAdjointPartL_apply` to rewrite with: unfold it to `selfAdjointPart` by `change`.
   change _ = selfAdjointPart ℝ _
-  rw [← nonsing_inv_eq_ringInverse, ← coe_graphYChart_smul_graphY g S hS]
+  rw [← nonsing_inv_eq_ringInverse, ← coe_graphYChart_eq_mul_inv (coe_smul_graphY g S) hS]
   exact ((graphYChart (g • graphY S : ℒ ι)).property.selfAdjointPart_apply ℝ).symm
 
 end Blocks
@@ -284,7 +247,9 @@ theorem lagrangianGrassmannian_properties :
       (chartAt (selfAdjoint (Matrix ι ι ℝ)) Λ).symm S =
         TauCeti.GLSymplectic.ofUnitary U • LagrangianGrassmannian.graphY S :=
   ⟨isLagrangian_range_fromRows_iff, isLagrangian_graph_iff,
-    fun _ hA _ hL ↦ isLagrangian_map_toEuclideanLin_of_mem_symplecticGroup hA hL,
+    fun A hA _ hL ↦ isLagrangian_map_toEuclideanLin
+      (g := GeneralLinearGroup.mkOfDetNeZero A (SymplecticGroup.symplectic_det hA).ne_zero)
+      (GLSymplectic.mem_iff_mem_symplecticGroup.2 hA) hL,
     fun Λ ↦ (LagrangianGrassmannian.unitaryFrame_surjective Λ).imp fun U h ↦ by
       rwa [LagrangianGrassmannian.unitaryFrame_def, LagrangianGrassmannian.unitary_smul_def] at h,
     ⟨LagrangianGrassmannian.quotientHomeomorph ι, fun U ↦

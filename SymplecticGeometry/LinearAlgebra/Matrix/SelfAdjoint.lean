@@ -13,7 +13,7 @@ public import TauCeti.LinearAlgebra.BilinearForm.Symmetric
 # The dimension of the space of symmetric matrices
 
 Over a commutative ring `R` with trivial star, the self-adjoint `n × n` matrices are the
-symmetric ones. They form a free module of rank `n (n + 1) / 2`.
+symmetric ones. They form a module of `finrank` `n (n + 1) / 2`.
 
 ## Main results
 
@@ -52,8 +52,8 @@ private noncomputable def symmSubmoduleEquivSelfAdjoint [DecidableEq ι] :
 variable [Nontrivial R]
 
 /-- **The dimension of the symmetric matrices.** Over a nontrivial commutative ring with trivial
-star, the self-adjoint (that is, symmetric) `n × n` matrices form a module of rank
-`n (n + 1) / 2`. -/
+star, the self-adjoint (that is, symmetric) `n × n` matrices form a module of
+`finrank` `n (n + 1) / 2`. -/
 theorem finrank_selfAdjoint :
     Module.finrank R (selfAdjoint (Matrix ι ι R)) =
       Fintype.card ι * (Fintype.card ι + 1) / 2 := by

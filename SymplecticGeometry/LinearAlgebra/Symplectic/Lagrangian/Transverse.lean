@@ -27,6 +27,8 @@ Write `ℒ ι` for the Lagrangian Grassmannian of the standard model `(StdSpace 
   exactly the graphs `{(S y, y)}` (resp. `{(x, S x)}`) of symmetric matrices.
 * `SymplecticGeometry.LagrangianGrassmannian.graphY_eq_ofFrame`: `graphY S` is spanned by the
   Lagrangian frame `fromRows S 1`.
+* `SymplecticGeometry.LagrangianGrassmannian.coe_smul_graphY`: a symplectic matrix with blocks
+  `A, B, C, D` maps `graphY S` to the span of the frame `fromRows (A S + B) (C S + D)`.
 * `SymplecticGeometry.LagrangianGrassmannian.graphY_eq_unitaryFrame`: a unitary frame of
   `graphY S`, the unitary frame `unitaryOfFrame` of the Lagrangian frame `fromRows S 1`
   (`SymplecticGeometry.isLagrangian_range_fromRows_one`), that is, the real
@@ -117,6 +119,27 @@ theorem graphY_eq_unitaryFrame [DecidableEq ι] (S : selfAdjoint (Matrix ι ι �
     graphY S = unitaryFrame (unitaryOfFrame
       (isLagrangian_range_fromRows_one (isHermitian_iff_isSymm.1 S.property))) := by
   rw [unitaryFrame_unitaryOfFrame, graphY_eq_ofFrame]
+
+section Blocks
+
+variable [DecidableEq ι] (g : GLSymplectic ι ℝ)
+
+local notation "M" => ((g : GL (ι ⊕ ι) ℝ) : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ)
+
+/-- The image of the chart point `{(S y, y)}` under a symplectic matrix `g` with blocks
+`A, B, C, D` is spanned by the frame `fromRows (A S + B) (C S + D)`. -/
+theorem coe_smul_graphY (S : selfAdjoint (Matrix ι ι ℝ)) :
+    ((g • graphY S : ℒ ι) : Submodule ℝ (StdSpace ι)) =
+      LinearMap.range (toEuclideanLin (fromRows
+        (toBlocks₁₁ M * (S : Matrix ι ι ℝ) + toBlocks₁₂ M)
+        (toBlocks₂₁ M * (S : Matrix ι ι ℝ) + toBlocks₂₂ M))) := by
+  rw [coe_smul, coe_graphY, ← StdSpace.range_toEuclideanLin_fromRows_one_eq_graphY,
+    ← LinearMap.range_comp, toEuclideanLin, ← toLpLin_mul_same]
+  conv_lhs => rw [← fromBlocks_toBlocks M]
+  rw [fromBlocks_mul_fromRows]
+  simp only [Matrix.mul_one]
+
+end Blocks
 
 /-! ### The points of the second chart -/
 

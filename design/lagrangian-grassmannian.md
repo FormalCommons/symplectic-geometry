@@ -888,15 +888,18 @@ The manifold structure and the milestone.
 - `instance : IsManifold 𝓘(ℝ, selfAdjoint (Matrix ι ι ℝ)) ∞ (ℒ ι)`. A
   transition map is `S ↦ (A S + B)(C S + D)⁻¹` for the blocks of a real
   symplectic matrix. It is smooth where it is defined, by Mathlib's
-  `contDiffAt_ringInverse`. For `g : GLSymplectic ι ℝ`: `ℒ.coe_smul_graphY`
-  (`g • graphY S` is spanned by `fromRows (A S + B) (C S + D)`),
-  `smul_graphY_mem_graphYChart_source_iff` (it is in the basic chart's source
-  iff `C S + D` is invertible), `coe_graphYChart_smul_graphY` (its chart
-  value) and `contDiffOn_graphYChart_smul_graphY`; and
+  `contDiffAt_ringInverse`. For `g : GLSymplectic ι ℝ`,
+  `contDiffOn_graphYChart_smul_graphY` is that smoothness; and
   `unitaryChart_symm_trans_apply`, `unitaryChart_symm_trans_source` for the
-  transition maps of the atlas. These use two facts about frames added to
-  `Frame.lean`, `StdSpace.disjoint_range_toEuclideanLin_fromRows_ker_y_iff`
-  and `StdSpace.range_toEuclideanLin_fromRows_eq_graphY`.
+  transition maps of the atlas. The proof uses three lemmas placed with
+  their topics. In `Transverse.lean`, `ℒ.coe_smul_graphY`: `g • graphY S`
+  is spanned by `fromRows (A S + B) (C S + D)`. In `Graph.lean`, for a
+  Lagrangian spanned by a frame `fromRows X Y`,
+  `mem_graphYChart_source_iff_isUnit` (it is in the basic chart's source
+  iff `Y` is invertible) and `coe_graphYChart_eq_mul_inv` (its chart value
+  is `X Y⁻¹`). These rest on two facts about frames added to `Frame.lean`,
+  `StdSpace.disjoint_range_toEuclideanLin_fromRows_ker_y_iff` and
+  `StdSpace.range_toEuclideanLin_fromRows_eq_graphY`.
 - The milestone, as one theorem, `lagrangianGrassmannian_properties`, stated
   for a finite type `ι` with decidable equality. In it, `ℒ ι` is the file's
   local notation and `ℒ.foo` stands for `LagrangianGrassmannian.foo`:
@@ -929,9 +932,8 @@ The manifold structure and the milestone.
   slightly more general, since `ι` is any finite type and not only `Fin n`.
   It needs no entry in `ERRATA.md`. The third item starts from a matrix
   `A ∈ Matrix.symplecticGroup ι ℝ`: it is
-  `isLagrangian_map_toEuclideanLin_of_mem_symplecticGroup`, added to
-  `Action.lean` beside `isLagrangian_map_toEuclideanLin`, which it applies
-  to `A` as an element of `GLSymplectic ι ℝ`. The dimension item is
+  `isLagrangian_map_toEuclideanLin`, applied to `A` as an element of
+  `GLSymplectic ι ℝ`. The dimension item is
   `Matrix.finrank_selfAdjoint`.
 
 ## What the part uses
