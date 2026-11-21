@@ -6,6 +6,8 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.ComplexStructure.Basic
+public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Hom
+public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Riemannian.Trivial
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
 public import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Hermitian
 public import TauCeti.Geometry.Manifold.VectorBundle.Trivial
@@ -27,9 +29,14 @@ nondegeneracy, and its smoothness are those of `compatibleForm`. This file compu
 * `ContMDiffComplexStructure.im_inner_eq_compatibleForm_ofComplexModule`: the form is the
   imaginary part of the Hermitian product `g.complexInnerProductSpace hI x`.
 * `ContMDiffComplexStructure.compatibleForm_ofComplexModule_trivial`: on the trivial bundle with
-  fibre `ι → ℂ` and the metric that `TauCeti.complexToRealEuclidean ι` carries from the Euclidean
+  fibre `ι → ℂ` and any metric that `TauCeti.complexToRealEuclidean ι` carries to the Euclidean
   one, that map carries the form to the constant standard form `stdForm ι`. So the sign agrees
   with the standard model, where `stdForm ι z w = ⟪J₀ z, w⟫`.
+* `ContMDiffComplexStructure.compatibleForm_ofComplexModule_constComplexEuclidean`: the same for
+  the constant metric `Bundle.ContMDiffRiemannianMetric.constComplexEuclidean ι`.
+
+The smoothness of the fibrewise map `TauCeti.complexToRealEuclidean ι` on total spaces is
+`Bundle.Trivial.contMDiff_totalSpaceMk_clm`.
 
 ## References
 
@@ -98,20 +105,18 @@ section Standard
 
 variable (ι : Type*) [Fintype ι]
 
-/-- The standard case. On the trivial bundle `M × (ι → ℂ)`, let `g` be the metric that
-`c = TauCeti.complexToRealEuclidean ι` carries to the Euclidean one, `g_x(u, v) = ⟪c u, c v⟫`;
-the constant metric `Bundle.ContMDiffRiemannianMetric.const` of `(innerSL ℝ).bilinearComp c c`
-is one. Then the fibrewise map `c` carries the form of `g` and of multiplication by `Complex.I`
-to the constant standard form `stdForm ι` on `M × StdSpace ι`: the transport of the one along
-`c` is the other. -/
+/-- The standard case. On the trivial bundle `M × (ι → ℂ)`, let `g` be a metric with
+`g_x(u, v) = ⟪c u, c v⟫` for `c = TauCeti.complexToRealEuclidean ι`, such as
+`Bundle.ContMDiffRiemannianMetric.constComplexEuclidean ι`. Then the fibrewise map `c` carries
+the form of `g` and of multiplication by `Complex.I` to the constant standard form `stdForm ι`
+on `M × StdSpace ι`: the transport of the one along `c` is the other. -/
 theorem compatibleForm_ofComplexModule_trivial
     (g : ContMDiffRiemannianMetric I n (ι → ℂ) (Trivial M (ι → ℂ)))
     (hg : ∀ x (u v : ι → ℂ), g.inner x u v =
       inner ℝ (TauCeti.complexToRealEuclidean ι u) (TauCeti.complexToRealEuclidean ι v)) :
     ContMDiffTwoForm.pushforward (fun _ ↦ TauCeti.complexToRealEuclidean ι)
-        (Trivial.contMDiff_mk_iff.2 ⟨contMDiff_proj _,
-          (TauCeti.complexToRealEuclidean ι : (ι → ℂ) →L[ℝ] StdSpace ι).contDiff.contMDiff.comp
-            (Trivial.contMDiff_mk_iff.1 contMDiff_id).2⟩)
+        (Trivial.contMDiff_totalSpaceMk_clm
+          (TauCeti.complexToRealEuclidean ι).toContinuousLinearMap)
         ((ofComplexModule I n (ι → ℂ) (Trivial M (ι → ℂ))).compatibleForm g) =
       ContMDiffTwoForm.const (stdForm ι) := by
   refine (ContMDiffTwoForm.pushforward_eq_iff _ _).2 fun x v w ↦ ?_
@@ -119,6 +124,21 @@ theorem compatibleForm_ofComplexModule_trivial
     ContMDiffTwoForm.bilinFormAt_apply, compatibleForm_apply]
   simp only [Matrix.cons_val_zero, Matrix.cons_val_one, ofComplexModule_apply, hg,
     stdForm_apply_eq_inner_sub_inner, stdComplexStructure_complexToRealEuclidean]
+
+/-- The standard case for the constant metric
+`g₀ = Bundle.ContMDiffRiemannianMetric.constComplexEuclidean ι` on `M × (ι → ℂ)`, with
+`g₀(u, v) = ⟪c u, c v⟫` for `c = TauCeti.complexToRealEuclidean ι`: the fibrewise map `c`
+carries the form of `g₀` and of multiplication by `Complex.I` to the constant standard form
+`stdForm ι` on `M × StdSpace ι`. -/
+theorem compatibleForm_ofComplexModule_constComplexEuclidean :
+    ContMDiffTwoForm.pushforward (fun _ ↦ TauCeti.complexToRealEuclidean ι)
+        (Trivial.contMDiff_totalSpaceMk_clm
+          (TauCeti.complexToRealEuclidean ι).toContinuousLinearMap)
+        ((ofComplexModule I n (ι → ℂ) (Trivial M (ι → ℂ))).compatibleForm
+          (ContMDiffRiemannianMetric.constComplexEuclidean ι)) =
+      ContMDiffTwoForm.const (stdForm ι) :=
+  compatibleForm_ofComplexModule_trivial ι _
+    (ContMDiffRiemannianMetric.constComplexEuclidean_inner ι)
 
 end Standard
 

@@ -132,7 +132,7 @@ variable {EB HB M : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB]
 | `Geometry/Manifold/VectorBundle/Symplectic/ComplexStructure/Contractible.lean` | contractibility for a fixed form or structure, the homotopy equivalence, the second milestone | 7, 8 |
 | `Geometry/Manifold/VectorBundle/Symplectic/Trivialization.lean` | local Darboux frames and the reduction of the structure group | 9 |
 | `Geometry/Manifold/VectorBundle/Symplectic/Classification.lean` | the first milestone | 11 |
-| `Geometry/Manifold/VectorBundle/Hom.lean` | `contMDiff_hom_bundle_symm`: the fibrewise inverses of a $C^n$ isomorphism of bundles as a $C^n$ section of the hom bundle | 1, 3 |
+| `Geometry/Manifold/VectorBundle/Hom.lean` | `contMDiff_hom_bundle_symm`: the fibrewise inverses of a $C^n$ isomorphism of bundles as a $C^n$ section of the hom bundle; `Bundle.Trivial.contMDiff_totalSpaceMk_clm`: a fixed continuous linear map, applied in each fibre, as a $C^n$ map of total spaces of trivial bundles | 1, 3, 25 |
 | `Geometry/Manifold/VectorBundle/ContinuousAlternatingMap.lean` | `contMDiff_compContinuousLinearMap_totalSpace`: precomposition by a $C^n$ hom-bundle section is $C^n$ on total spaces of alternating bundles | 3 |
 | `Geometry/Manifold/VectorBundle/Pullback.lean` | smoothness of sections of the alternating bundle of a pull-back | 18 |
 | `Topology/VectorBundle/Pullback.lean` | coordinates of alternating maps on a pull-back bundle | 18 |
@@ -141,7 +141,7 @@ variable {EB HB M : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB]
 | `Geometry/Symplectic/Manifold/Volume.lean` | the symplectic orientation of a negated two-form | 23 |
 | `Analysis/CStarAlgebra/Unitary/ContinuousLinearMap.lean` | `Unitary.continuousLinearMapSelfEquiv`; its case `𝕜 = ℂ` as `Unitary.continuousLinearMapCircleEquiv : unitary (ℂ →L[ℂ] ℂ) ≃ₜ* Circle` | 24, 26 |
 | `Analysis/Normed/Operator/SpanSingleton.lean` | `LinearIsometryEquiv.toSpanSingleton`: a unit vector of a line `E` as `𝕜 ≃ₗᵢ[𝕜] E` | 26 |
-| `Geometry/Manifold/VectorBundle/Riemannian/Trivial.lean` | constant metrics on trivial bundles | 25 |
+| `Geometry/Manifold/VectorBundle/Riemannian/Trivial.lean` | constant metrics on trivial bundles, among them `constComplexEuclidean` | 25 |
 | `Geometry/Manifold/VectorBundle/Hermitian/Basic.lean` | the symplectic form of a Hermitian bundle | 25 |
 | `Geometry/Manifold/VectorBundle/Hermitian/CircleBundle.lean` | the circle bundle of a Hermitian line bundle as a principal `Circle`-bundle, for fibres with their own complex inner products; the smooth side is *First Chern number*'s prerequisite 3 | 26 |
 | `Topology/FiberBundle/ChangeModelFiber.lean` | change of model fibre of a fibre bundle along a homeomorphism | 26 |
@@ -1421,7 +1421,10 @@ Hausdorff σ-compact base.
     `c = TauCeti.complexToRealEuclidean ι`, such as the constant metric
     `g₀` below, the fibrewise map `c`
     is a symplectic isomorphism from `(ofComplexModule I n _ _).compatibleForm g`
-    to `const (stdForm ι)` (`pushforward` of the one is the other). Its
+    to `const (stdForm ι)` (`pushforward` of the one is the other). The
+    smoothness of `c` on total spaces, which `pushforward` takes, is
+    `Bundle.Trivial.contMDiff_totalSpaceMk_clm`, which the issue adds to
+    `Geometry/Manifold/VectorBundle/Hom.lean` in the root namespace. The
     proof uses `stdComplexStructure_complexToRealEuclidean`
     (`J₀ (c v) = c (i • v)`), which the issue adds to
     `LinearAlgebra/Symplectic/Standard/Basic.lean`, next to
@@ -1444,7 +1447,12 @@ Hausdorff σ-compact base.
     (`Topology/Algebra/Module/BilinearForm.lean`) and
     `TauCeti.contMDiff_const_bundlePairing`
     (`Geometry/Manifold/VectorBundle/Hom.lean`). Then `g₀` is the case
-    `b = (innerSL ℝ).bilinearComp c c`. It is a candidate for Mathlib.
+    `b = (innerSL ℝ).bilinearComp c c`, in the same file:
+    `Bundle.ContMDiffRiemannianMetric.constComplexEuclidean ι`, with
+    `@[simp] constComplexEuclidean_inner` ($g_0(u,v)=\langle c\,u,c\,v\rangle$),
+    and the standard case for it is
+    `compatibleForm_ofComplexModule_constComplexEuclidean`, where `hg` is
+    `constComplexEuclidean_inner`. They are candidates for Mathlib.
 
 ### The circle bundle of a Hermitian line bundle
 
@@ -2002,7 +2010,9 @@ of *Constructions* for *First Chern number*.
     `Analysis/CStarAlgebra/Unitary/ContinuousLinearMap.lean`:
     `Unitary.continuousLinearMapSelfEquiv` with its API. Blockers: none.
 25. **The symplectic form of a Hermitian bundle.**
-    `Riemannian/Trivial.lean`: `Bundle.ContMDiffRiemannianMetric.const`;
+    `Riemannian/Trivial.lean`: `Bundle.ContMDiffRiemannianMetric.const` and
+    `constComplexEuclidean`; `Bundle.Trivial.contMDiff_totalSpaceMk_clm` in
+    `Hom.lean`;
     then `Hermitian/Basic.lean`: the lemmas on
     `(ofComplexModule I n F V).compatibleForm g` and the standard case.
     Blockers: 5, 20.
