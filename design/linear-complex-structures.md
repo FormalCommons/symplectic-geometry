@@ -156,19 +156,23 @@ These settle the questions that `DESIGN.md` leaves to this file.
 
 ## Files
 
-Files are under `SymplecticGeometry/`. The part has nine files, each with
+Files are under `SymplecticGeometry/`. The part has ten files, each with
 the topic its path says. Besides the standard model, the orbit space and the
 oriented components, they hold the actions on complex structures, their
 general topology, the general orbit–stabilizer homeomorphism, the
 conjugation identity for units of square $-1$, the polar deformation of
-matrices of square $-1$, and the orthogonal complex structures. The actions
+matrices of square $-1$, the orthogonal complex structures, and the
+orientation of bases adapted to a transported structure. The actions
 and their topology are stated for any space, so that later work can use
-them.
+them. The library's `Geometry/Symplectic/Orientation.lean` has the same
+path as the Tau Ceti file cited in the first section, on purpose: its one
+lemma extends that file and is a candidate to move there.
 
 | File | Contents |
 |---|---|
 | `LinearAlgebra/ComplexStructure/Action.lean` | the action of `V ≃ₗ[ℝ] V`, and of `GL n ℝ` and `specialOrthogonalGroup n ℝ` on the structures of `EuclideanSpace ℝ n` |
 | `Topology/ComplexStructure/Basic.lean` | the closed embedding into operators, `T2Space` and `LocallyCompactSpace`, for finite-dimensional normed `V`; the matrix homeomorphism and continuity of the actions, for `EuclideanSpace ℝ n` |
+| `Geometry/Symplectic/Orientation.lean` | bases adapted to the transport of a tamed structure induce the transported symplectic orientation |
 | `LinearAlgebra/ComplexStructure/Standard.lean` | the isomorphism $\Phi$, transitivity, the stabilizer, positively oriented structures, compatibility with $\omega_0$ under symplectic matrices and the action of `Matrix.symplecticGroup ι ℝ` on the compatible structures |
 | `Topology/Algebra/GroupAction/Transitive.lean` | the orbit–stabilizer homeomorphism for σ-compact groups |
 | `Topology/ComplexStructure/Orbit.lean` | the space as GL(2n,ℝ)/GL(n,ℂ), the positively oriented structures form a clopen set |
@@ -191,10 +195,39 @@ Declarations about Tau Ceti's type go in its namespace
 
 - `instance instMulActionLinearEquiv :
   MulAction (V ≃ₗ[ℝ] V) (AlmostComplexStructure V)`, `e • J = J.transport e`,
-  for any `[AddCommGroup V] [Module ℝ V]`; with `smul_def` (by `(rfl)`),
-  `@[simp] smul_apply : (e • J) v = e (J (e.symm v))`, and
-  `@[simp] toLinearMap_smul`. The axioms are `transport_refl` and
+  for any `[AddCommGroup V] [Module ℝ V]`; with `@[simp] smul_def` (by
+  `(rfl)`), and `smul_apply : (e • J) v = e (J (e.symm v))` and
+  `toLinearMap_smul`, not simp. The axioms are `transport_refl` and
   `transport_trans`.
+- **Simp normal form.** For a linear automorphism, `simp` writes the action
+  as Tau Ceti's `transport`: `smul_def` turns `e • J` into `J.transport e`,
+  and Tau Ceti's simp lemmas (`transport_apply`, `transport_toLinearMap`,
+  `transport_trans`, …) take over, so `smul_apply` and `toLinearMap_smul`
+  would be redundant as simp lemmas. So that the group laws of the action
+  survive this rewriting, the group operations of `V ≃ₗ[ℝ] V` inside
+  `transport` are rewritten to Tau Ceti's form by `@[simp]` lemmas, all by
+  `(rfl)` or `transport_refl`: `transport_one : J.transport 1 = J`,
+  `transport_mul : J.transport (e * f) = (J.transport f).transport e` and
+  `transport_inv : J.transport e⁻¹ = J.transport e.symm`. The right side of
+  `transport_mul` is nested, not `J.transport (f ≪≫ₗ e)`, so that a product
+  or an inverse in a factor is still the argument of `transport` when `simp`
+  reaches it. Tau Ceti's `transport_trans` then gathers the nested
+  transports into one composite bracketed to the left, while Mathlib's
+  cancellation lemmas for `e ≪≫ₗ e.symm` need it bracketed to the right.
+  Mathlib's `LinearEquiv.trans_assoc` cannot serve, since `simp` cannot
+  find its composite ring homomorphisms, so the file adds the same-ring form
+  `@[simp] LinearEquiv.trans_assoc_id : (a ≪≫ₗ b) ≪≫ₗ c = a ≪≫ₗ (b ≪≫ₗ c)`
+  (by `(rfl)`, over any semiring), in Mathlib's namespace so that it can move
+  upstream. It rebrackets every composite to the right, at any depth. With
+  these lemmas `simp` proves `e⁻¹ • e • J = J`,
+  `e⁻¹ • f⁻¹ • g⁻¹ • g • f • e • J = J`,
+  `(e * f * g)⁻¹ • (e * f * g) • J = J`, `f⁻¹ • e⁻¹ • e • f • g • J = g • J`,
+  `e • f • g • h • J = (e * f * g * h) • J`,
+  `(e * f * g) • J = e • f • g • J` and
+  `(e * f)⁻¹ • J = f⁻¹ • e⁻¹ • J`. Lemmas whose right side is an action of
+  `V ≃ₗ[ℝ] V` state it with `transport`, as `ofEuclideanCLE_smul :
+  ofEuclideanCLE Φ • J = J.transport Φ.toLinearEquiv` (`@[simp]`) does. The
+  matrix actions keep `•` as their normal form.
 - `instance instMulActionGeneralLinearGroup :
   MulAction (GL n ℝ) (AlmostComplexStructure (EuclideanSpace ℝ n))`, the
   action of matrices,
@@ -203,8 +236,9 @@ Declarations about Tau Ceti's type go in its namespace
   `Matrix.GeneralLinearGroup.ofEuclideanCLE.symm` followed by forgetting
   continuity. API: `generalLinearGroup_smul_def` (the formula above; not
   `(rfl)`, since Tau Ceti does not expose the body of `ofEuclideanCLE`),
-  `@[simp] generalLinearGroup_smul_apply :
-  (g • J) v = Matrix.toEuclideanLin g (J (Matrix.toEuclideanLin (↑g)⁻¹ v))` and
+  `generalLinearGroup_smul_apply :
+  (g • J) v = Matrix.toEuclideanLin g (J (Matrix.toEuclideanLin (↑g)⁻¹ v))`
+  (not simp: `simp` proves it from the next lemma) and
   `@[simp] toLinearMap_generalLinearGroup_smul :
   (g • J).toLinearMap = toEuclideanLin g ∘ₗ J.toLinearMap ∘ₗ toEuclideanLin (↑g)⁻¹`.
 - `isComplexLinearMap_self_iff_commute :
@@ -218,7 +252,8 @@ Declarations about Tau Ceti's type go in its namespace
   `Unitary.toUnits.comp (Submonoid.inclusion specialUnitaryGroup_le_unitaryGroup)`
   into `GL n ℝ` (no new name for that homomorphism). It has no apply lemma of
   its own: `@[simp] specialOrthogonalGroup_smul_def` rewrites `g • J` as the
-  action of that unit, so `generalLinearGroup_smul_apply` serves both actions.
+  action of that unit, so `toLinearMap_generalLinearGroup_smul` serves both
+  actions.
 - `TauCeti.SymplecticForm.IsSymplectomorphism.compatible_transport_iff
   (he : ω₁.IsSymplectomorphism ω₂ e) (J) :
   ω₂.Compatible (J.transport e) ↔ ω₁.Compatible J`, for `e : V ≃ₗ[ℝ] W`,
@@ -244,6 +279,19 @@ Declarations about Tau Ceti's type go in its namespace
 - `instance : ContinuousSMul (GL n ℝ) (AlmostComplexStructure (EuclideanSpace ℝ n))`
   (the matrix of `g • J` is $gJg^{-1}$), and from it the `ContinuousSMul`
   instance of `specialOrthogonalGroup n ℝ`.
+
+### `Geometry/Symplectic/Orientation.lean`
+
+- `TauCeti.SymplecticForm.Tames.orientation_reindex_transport (hJ : ω.Tames J)
+  (e : V ≃ₗ[ℝ] W) (hk : finrank ℝ V = k)
+  (hb : ∀ i, b (i, 1) = J.transport e (b (i, 0))) (h : n * 2 = k)`: the
+  reindexed basis `b` of `W` has orientation
+  `Orientation.map (Fin k) e (ω.orientation hk)`. It is Tau Ceti's
+  `Tames.orientation_reindex` for the tamed pair `(ω.transport e,
+  J.transport e)` (`Tames.transport`), followed by
+  `IsSymplectomorphism.map_orientation`. It lives in Tau Ceti's namespace
+  `TauCeti.SymplecticForm` and at Tau Ceti's path, so that it can move
+  upstream next to `Tames.orientation_reindex` unchanged.
 
 ### `LinearAlgebra/ComplexStructure/Standard.lean`
 
@@ -456,7 +504,7 @@ Declarations about Tau Ceti's type go in its namespace
           (b.reindex (finProdFinEquiv.trans (finCongr h))).orientation =
             (stdForm ι).orientation hk
   ```
-  from `Tames.orientation_reindex` for `J₀` (tamed by $\omega_0$ by
+  from `Tames.orientation_reindex_transport` for `J₀` (tamed by $\omega_0$ by
   `stdForm_compatible`) and `isPositivelyOriented_transport_iff`; adapted
   bases exist by `exists_basis_apply_one_eq`, so the right side is not
   vacuous.
@@ -511,7 +559,13 @@ Declarations about Tau Ceti's type go in its namespace
   `complexToRealEuclidean ι`) and `stdComplexStructure_eq_toEuclideanLin_J`,
   `stdForm`, `stdForm_compatible`, and the matrix dictionary (commuting with
   `Matrix.J`).
-- Tau Ceti and Mathlib, as listed in the first section.
+- Tau Ceti and Mathlib, as listed in the first section; besides them,
+  `Geometry/Symplectic/Orientation.lean` uses Tau Ceti's
+  `SymplecticForm.Tames.transport`, `isSymplectomorphism_iff_transport_eq`
+  and `IsSymplectomorphism.map_orientation`.
+- Within the part, `isPositivelyOriented_iff_orientation` in `Standard.lean`
+  uses `TauCeti.SymplecticForm.Tames.orientation_reindex_transport` from
+  `Geometry/Symplectic/Orientation.lean`.
 - No other part. No part builds on this one either: *Compatible complex
   structures* states its equivariance with Tau Ceti's `transport` directly
   and uses nothing from this part, as its design and `DESIGN.md` say.
