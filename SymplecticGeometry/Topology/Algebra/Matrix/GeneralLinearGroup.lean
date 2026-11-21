@@ -6,7 +6,6 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.RepresentationTheory.Continuous.Basic
-public import Mathlib.Topology.Algebra.Group.Units
 public import TauCeti.Analysis.Matrix.EuclideanLin
 
 /-!
