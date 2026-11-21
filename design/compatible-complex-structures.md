@@ -261,7 +261,7 @@ involved are empty, and the statements still hold.
 
 ### Dependencies
 
-The part uses only three things from other parts:
+The part uses the following from other parts:
 
 - *Standard model* (`StdSpace`, `stdForm`, `stdComplexStructure`, the
   comparison with Tau Ceti's product model, and the matrix dictionary of #8).
@@ -271,15 +271,22 @@ The part uses only three things from other parts:
   (`IsIsotropic.exists_le_isLagrangian` in `LinearAlgebra/Symplectic/Subspace.lean`), used only in the
   implication from (4) to (1). An isotropic plane containing $v$ and $w$ is
   extended to a Lagrangian subspace.
-
-- From *Linear complex structures*, only the merged file
-  `LinearAlgebra/ComplexStructure/Action.lean`, which imports only Mathlib
-  and Tau Ceti. `Compatible.lean` imports it for
+- From *Linear complex structures*, only two merged files.
+  `Compatible.lean` imports `LinearAlgebra/ComplexStructure/Action.lean`,
+  which imports only Mathlib and Tau Ceti, for
   `AlmostComplexStructure.transport_eq_iff_isComplexLinearMap`, used in
   `compatible_of_isSymplectomorphism_stdForm` and
-  `compatible_iff_exists_isSymplectomorphism_stdForm`. Since the file is
-  merged, the part waits for nothing of *Linear complex structures*;
-  `DESIGN.md` lists it with that note.
+  `compatible_iff_exists_isSymplectomorphism_stdForm`.
+  `Topology/ComplexStructure/Compatible/Matrix.lean` imports
+  `Topology/ComplexStructure/Basic.lean`, which besides `Action.lean` imports
+  only Tau Ceti, for `AlmostComplexStructure.homeomorphMatrix` and
+  `coe_homeomorphMatrix` in `compatibleEquivPosDefSymplectic`. Since both
+  files are merged, the part waits for nothing of *Linear complex
+  structures*; `DESIGN.md` lists them with that note.
+- From *Symplectic group*, only the merged file
+  `LinearAlgebra/Matrix/SymplecticGroup/Basic.lean`, which imports only
+  Mathlib and Tau Ceti. `Compatible/Matrix.lean` uses
+  `Matrix.IsSymm.mem_symplecticGroup_iff` from it.
 
 ## Files, definitions and results
 

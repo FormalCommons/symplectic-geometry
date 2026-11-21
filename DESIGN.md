@@ -788,13 +788,19 @@ it into issues; the overview fixes its folders and its dependencies.
   `exists_compatible_forall_isComplexLinearMap` and the transport of a
   compatible pair to $(\omega_0,J_0)$).
 - **Builds on:** *Standard model*; *Symplectic vector spaces* for the
-  Lagrangian extension lemma, used in one characterization. Besides,
+  Lagrangian extension lemma, used in one characterization. Besides, it uses
+  two merged files of *Linear complex structures*:
   `LinearAlgebra/Symplectic/Compatible.lean` imports
-  `LinearAlgebra/ComplexStructure/Action.lean` of *Linear complex
-  structures*, for `AlmostComplexStructure.transport_eq_iff_isComplexLinearMap`
-  in the standard-model characterization; that file imports only Mathlib and
-  Tau Ceti and is merged, so the part waits for nothing of *Linear complex
-  structures*.
+  `LinearAlgebra/ComplexStructure/Action.lean`, for
+  `AlmostComplexStructure.transport_eq_iff_isComplexLinearMap` in the
+  standard-model characterization, and
+  `Topology/ComplexStructure/Compatible/Matrix.lean` imports
+  `Topology/ComplexStructure/Basic.lean`, for
+  `AlmostComplexStructure.homeomorphMatrix`. The first imports only Mathlib
+  and Tau Ceti, the second only the first and Tau Ceti, so the part waits for
+  nothing of *Linear complex structures*. `Compatible/Matrix.lean` also
+  imports the merged `LinearAlgebra/Matrix/SymplecticGroup/Basic.lean` of
+  *Symplectic group*, for `Matrix.IsSymm.mem_symplecticGroup_iff`.
 - **Milestones:** *Characterizations of compatible complex structures*,
   *Contractibility of the space of compatible complex structures*, *Complex
   structures versus symplectic forms*, *Compact subgroups of the symplectic
@@ -1436,7 +1442,7 @@ so two parts can each use merged files of the other without either waiting.
 | 1 | *Linear complex structures* | *Standard model* |
 | 1 | *Siegel upper half space* | *Standard model*; *Lagrangian Grassmannian* (only `LinearAlgebra/Matrix/OfReal.lean`, which imports only Mathlib and Tau Ceti and is merged); *Linear complex structures* (only `LinearAlgebra/ComplexStructure/Action.lean`, which imports only Mathlib and Tau Ceti, `LinearAlgebra/ComplexStructure/Standard.lean`, which besides it imports only *Standard model* and the library's `Geometry/Symplectic/Orientation.lean`, and that file, which imports only Tau Ceti; all three are merged); *Symplectic group* (only `LinearAlgebra/Matrix/SymplecticGroup/Basic.lean`, which imports only Mathlib and Tau Ceti and is merged) |
 | 1 | *Symplectic vector bundles* | *Standard model*, *Linear Moser*; its existence issue also the two `PolarComplexStructure/` issues of *Compatible complex structures*, its contractibility issue the Cayley domain issue of that part, and its homotopy-equivalence issue those three and the `Tames.lineMap` issue, none of which waits for another part |
-| 2 | *Compatible complex structures* | *Standard model*, *Symplectic vector spaces*; *Linear complex structures* (only `LinearAlgebra/ComplexStructure/Action.lean`, which imports only Mathlib and Tau Ceti and is merged) |
+| 2 | *Compatible complex structures* | *Standard model*, *Symplectic vector spaces*; *Linear complex structures* (only `LinearAlgebra/ComplexStructure/Action.lean`, which imports only Mathlib and Tau Ceti, and `Topology/ComplexStructure/Basic.lean`, which besides it imports only Tau Ceti; both are merged); *Symplectic group* (only `LinearAlgebra/Matrix/SymplecticGroup/Basic.lean`, which imports only Mathlib and Tau Ceti and is merged) |
 | 2 | *Maslov index* | *Standard model*, *Symplectic group*, *Unitary group topology*; its Lagrangian issues also *Lagrangian Grassmannian* |
 | 3 | *First Chern number* | *Symplectic vector bundles*, the symplectic-loop issues of *Maslov index* |
 
