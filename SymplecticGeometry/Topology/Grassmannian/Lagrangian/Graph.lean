@@ -166,11 +166,10 @@ theorem isOpenEmbedding_graphY : IsOpenEmbedding (graphY : selfAdjoint (Matrix �
       exact ⟨hY, by rwa [show chartValue U = S from Subtype.ext hXY]⟩
     · rintro ⟨hY, hs⟩
       exact ⟨_, hs, (unitaryFrame_eq_graphY_iff.2 ⟨hY, rfl⟩).symm⟩
-  have hopen : IsOpen {U : unitaryGroup ι ℂ | IsUnit ((U : Matrix ι ι ℂ).map Complex.im)} := by
-    simp_rw [isUnit_iff_isUnit_det]
-    exact (continuous_subtypeVal.matrix_map Complex.continuous_im).isOpen_setOf_isUnit_det
   rw [he]
-  exact continuousOn_chartValue.isOpen_inter_preimage hopen hs
+  refine continuousOn_chartValue.isOpen_inter_preimage ?_ hs
+  simp_rw [isUnit_iff_isUnit_det]
+  exact Matrix.isOpen_setOf_isUnit_det_map_im.preimage continuous_subtypeVal
 
 /-- The Lagrangians transverse to a given Lagrangian `Λ₀` form an open subset of `ℒ ι`. -/
 theorem isOpen_setOf_isCompl (Λ₀ : ℒ ι) :
