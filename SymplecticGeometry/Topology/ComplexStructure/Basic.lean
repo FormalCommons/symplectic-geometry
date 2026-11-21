@@ -154,12 +154,25 @@ theorem coe_toGeneralLinearGroup (J : AlmostComplexStructure (EuclideanSpace ℝ
     (J.toGeneralLinearGroup : Matrix n n ℝ) = homeomorphMatrix n J :=
   IsUnit.unit_spec _
 
-/-- The inverse of the matrix of `J` is the matrix of `-J`. -/
-@[simp]
+/-- The inverse of the matrix of `J` is the matrix of `-J`.
+
+This is not a `simp` lemma: `simp` rewrites its left side with `Matrix.coe_units_inv`, and
+proves it with `inv_toEuclideanCLM_symm_toContinuousLinearMap`. -/
 theorem coe_toGeneralLinearGroup_inv (J : AlmostComplexStructure (EuclideanSpace ℝ n)) :
     (↑J.toGeneralLinearGroup⁻¹ : Matrix n n ℝ) = -homeomorphMatrix n J := by
   rw [Matrix.coe_units_inv, coe_toGeneralLinearGroup,
     Matrix.inv_eq_neg_of_mul_self_eq_neg_one (homeomorphMatrix n J).property]
+
+/-- The inverse of the matrix of a complex structure `J` of `EuclideanSpace ℝ n` is its
+negative, since its square is `-1`. -/
+@[simp]
+theorem inv_toEuclideanCLM_symm_toContinuousLinearMap
+    (J : AlmostComplexStructure (EuclideanSpace ℝ n)) :
+    ((Matrix.toEuclideanCLM (n := n) (𝕜 := ℝ)).symm
+        (LinearMap.toContinuousLinearMap J.toLinearMap))⁻¹ =
+      -(Matrix.toEuclideanCLM (n := n) (𝕜 := ℝ)).symm
+        (LinearMap.toContinuousLinearMap J.toLinearMap) :=
+  Matrix.inv_eq_left_inv (by rw [neg_mul, toEuclideanCLM_symm_mul_self, neg_neg])
 
 /-- The invertible matrix of a complex structure depends continuously on it. -/
 theorem continuous_toGeneralLinearGroup :

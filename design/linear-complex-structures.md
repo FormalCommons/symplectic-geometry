@@ -291,7 +291,9 @@ Declarations about Tau Ceti's type go in its namespace
   Later files compute with matrices through it, as `DESIGN.md` requires.
 - `TauCeti.AlmostComplexStructure.toGeneralLinearGroup J : GL n ℝ`, the matrix
   of `J` as a unit (its inverse is the matrix of `-J`), with
-  `coe_toGeneralLinearGroup`, `coe_toGeneralLinearGroup_inv` and
+  `coe_toGeneralLinearGroup`, `coe_toGeneralLinearGroup_inv` (not `@[simp]`;
+  `simp` reaches the `@[simp]` lemma
+  `inv_toEuclideanCLM_symm_toContinuousLinearMap` instead) and
   `continuous_toGeneralLinearGroup`; the polar deformation of
   `Orthogonal.lean` is applied to it.
 - `instance : ContinuousSMul (GL n ℝ) (AlmostComplexStructure (EuclideanSpace ℝ n))`
