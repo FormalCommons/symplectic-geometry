@@ -1125,7 +1125,9 @@ it into issues; the overview fixes its folders and its dependencies.
   corollaries, in the root namespace `Bundle.Prod`; the file has the path of the
   Tau Ceti file with the product criterion, so that the two merge upstream),
   `Topology/VectorBundle/Pullback.lean` (the coordinates of alternating maps
-  on a pull-back bundle, a step that uses no charts; the file has the path
+  on a pull-back bundle, a step that uses no charts, and
+  `Bundle.Pullback.neg_fiber`, a negative in a fibre of a pull-back bundle
+  for Tau Ceti's group structure on it; the file has the path
   of the Tau Ceti file with `ContinuousLinearMap.inCoordinates_pullback_of_mem`,
   so that the two merge upstream),
   `Data/Bundle.lean` (`Bundle.Pullback.eq_iff`, an equation in a fibre of a
@@ -1412,7 +1414,8 @@ it into issues; the overview fixes its folders and its dependencies.
     `J.pullback f`, in the same order) is
     `ContMDiffSection.pullback` of the endomorphism section, smooth by
     `Bundle.Pullback.contMDiff_hom_section_iff` itself, which `simp`
-    evaluates through `@[simp] coe_pullback`; `Pullback.lean` adds that
+    evaluates through `@[simp] pullback_apply` and
+    `@[simp] apply_eq_pullback_apply`; `Pullback.lean` adds that
     tame and compatible pairs pull back to tame and compatible pairs. Isomorphisms: a
     symplectic isomorphism of bundles pulls back to one (Tau Ceti's
     `Bundle.Pullback.contMDiff_fiberwise`), a symplectic frame over `U`
