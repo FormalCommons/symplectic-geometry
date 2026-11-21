@@ -38,17 +38,12 @@ variable {ι κ R : Type*} [Fintype ι] [DecidableEq ι] [Fintype κ] [Decidable
 
 /-- Reindexing a symplectic matrix along an equivalence of index types is continuous. -/
 @[continuity, fun_prop]
-theorem continuous_reindex (e : ι ≃ κ) : Continuous (reindex R e) := by
-  have hval : Continuous fun A : GLSymplectic ι R ↦
-      ((A : GL (ι ⊕ ι) R) : Matrix (ι ⊕ ι) (ι ⊕ ι) R) :=
-    Units.continuous_val.comp continuous_subtypeVal
-  have hinv : Continuous fun A : GLSymplectic ι R ↦
-      (((A : GL (ι ⊕ ι) R)⁻¹ : GL (ι ⊕ ι) R) : Matrix (ι ⊕ ι) (ι ⊕ ι) R) :=
-    Units.continuous_coe_inv.comp continuous_subtypeVal
-  refine continuous_induced_rng.2 (Units.continuous_iff.2 ⟨?_, ?_⟩)
-  · exact (hval.matrix_reindex _ _).congr fun A ↦ (coe_coe_reindex e A).symm
-  · refine (hinv.matrix_reindex (e.sumCongr e) (e.sumCongr e)).congr fun A ↦ ?_
-    simp only [Function.comp_apply, ← Subgroup.coe_inv, ← map_inv, coe_coe_reindex]
+theorem continuous_reindex (e : ι ≃ κ) : Continuous (reindex R e) :=
+  -- On `GL`, reindexing is `Units.map` of the reindexing ring isomorphism of matrices.
+  continuous_induced_rng.2 <| ((Continuous.units_map
+    (Matrix.reindexRingEquiv R (e.sumCongr e)).toMonoidHom
+    (continuous_id.matrix_reindex _ _)).comp continuous_subtypeVal).congr fun A ↦
+      Units.ext (coe_coe_reindex e A).symm
 
 end TauCeti.GLSymplectic
 

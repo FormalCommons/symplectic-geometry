@@ -5,7 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Analysis.Matrix.Polar.Basic
+public import SymplecticGeometry.Analysis.Matrix.Polar.GLSymplectic
 public import SymplecticGeometry.Analysis.Matrix.SymplecticGroup.FundamentalGroup
 public import SymplecticGeometry.LinearAlgebra.Matrix.Realify
 public import SymplecticGeometry.Topology.Algebra.SymplecticGroup
@@ -17,7 +17,7 @@ public import TauCeti.Topology.Homotopy.Path
 
 Tau Ceti defines the Maslov index `μ(Ψ) = deg(ρ ∘ Ψ)` of a loop `Ψ` in
 `Sp(2n) = TauCeti.GLSymplectic ι ℝ` (`TauCeti.GLSymplectic.maslovIndex`), where
-`ρ = TauCeti.GLSymplectic.maslovPhase` is the complex determinant of the orthogonal polar factor,
+`ρ = TauCeti.GLSymplectic.maslovPhase` is the complex determinant of the unitary polar factor,
 and proves that it is invariant under homotopy and additive under products and direct sums. This
 file proves the converse of homotopy invariance and the uniqueness of a function on loops with
 these properties, following McDuff and Salamon, Theorem 2.2.12.
@@ -55,6 +55,7 @@ move.
 * `TauCeti.GLSymplectic.maslovIndex_eq_iff_homotopic`,
   `TauCeti.GLSymplectic.homotopicWith_iff_maslovIndex_eq`: the Maslov index classifies loops up
   to homotopy with fixed ends and up to free homotopy.
+* `SymplecticGeometry.isMaslovIndex_maslovIndex`: Tau Ceti's `maslovIndex` satisfies the axioms.
 * `SymplecticGeometry.isMaslovIndex_iff`: existence, uniqueness and the formula `μ = deg(ρ ∘ Ψ)`.
 
 ## References
@@ -74,31 +75,26 @@ variable {ι κ : Type*} [Fintype ι] [DecidableEq ι] [Fintype κ] [DecidableEq
 
 /-! ### Reindexing -/
 
-/-- The orthogonal polar factor of a reindexed symplectic matrix is the realification of the
-reindexed unitary matrix whose realification is the orthogonal polar factor of the matrix. -/
-private theorem polarUnitary_reindex (e : ι ≃ κ) (A : GLSymplectic ι ℝ) :
-    polarUnitary (reindex ℝ e A) = unitaryGroupEquivSymplecticInfOrthogonal
-      (unitaryReindexContinuousMulEquiv ℂ e
-        (unitaryGroupEquivSymplecticInfOrthogonal.symm (polarUnitary A))) := by
-  have hV := congrArg Units.val
-    (realify_toUnits_unitaryGroupEquivSymplecticInfOrthogonal_symm_apply (polarUnitary A))
-  rw [GeneralLinearGroup.coe_realify, Unitary.val_toUnits_apply] at hV
-  refine Subtype.ext (Units.ext ?_)
-  rw [coe_polarUnitary, coe_reindex, GeneralLinearGroup.coe_polarUnitary_reindex,
-    ← coe_polarUnitary, ← hV, unitaryGroupEquivSymplecticInfOrthogonal_apply,
-    GeneralLinearGroup.coe_realify, Unitary.val_toUnits_apply,
-    coe_unitaryReindexContinuousMulEquiv_apply, reindex_apply, reindex_apply, realify_submatrix]
-  rfl
-
 /-- Reindexing a symplectic matrix along an equivalence of index types keeps `ρ`. -/
 @[simp]
 theorem maslovPhase_reindex (e : ι ≃ κ) (A : GLSymplectic ι ℝ) :
     maslovPhase (reindex ℝ e A) = maslovPhase A := by
-  rw [← maslovPhase_inclusion_polarUnitary, maslovPhase_inclusion, polarUnitary_reindex,
-    ContinuousMulEquiv.symm_apply_apply, ← maslovPhase_inclusion_polarUnitary A,
-    maslovPhase_inclusion]
-  ext
-  simp only [coe_detCircle, coe_unitaryReindexContinuousMulEquiv_apply, det_reindex_self]
+  -- The polar factor of `reindex ℝ e A` realifies the reindexed unitary matrix of `A`.
+  have hV := congrArg Units.val
+    (realify_toUnits_unitaryGroupEquivSymplecticInfOrthogonal_symm_apply (polarUnitary A))
+  rw [GeneralLinearGroup.coe_realify, Unitary.val_toUnits_apply] at hV
+  have h : polarUnitary (reindex ℝ e A) = unitaryGroupEquivSymplecticInfOrthogonal
+      (unitaryReindexContinuousMulEquiv ℂ e
+        (unitaryGroupEquivSymplecticInfOrthogonal.symm (polarUnitary A))) := by
+    refine Subtype.ext (Units.ext ?_)
+    rw [coe_polarUnitary_reindex, ← hV, unitaryGroupEquivSymplecticInfOrthogonal_apply,
+      GeneralLinearGroup.coe_realify, Unitary.val_toUnits_apply,
+      coe_unitaryReindexContinuousMulEquiv_apply, reindex_apply, reindex_apply, realify_submatrix,
+      Equiv.sumCongr_symm, show ⇑(e.symm.sumCongr e.symm) = Sum.map e.symm e.symm from
+        funext (Equiv.sumCongr_apply _ _)]
+  rw [← maslovPhase_inclusion_polarUnitary, maslovPhase_inclusion, h,
+    ContinuousMulEquiv.symm_apply_apply, detCircle_unitaryReindexContinuousMulEquiv,
+    ← maslovPhase_inclusion, maslovPhase_inclusion_polarUnitary]
 
 /-- Reindexing a loop of symplectic matrices along an equivalence of index types keeps its Maslov
 index. -/
@@ -158,36 +154,36 @@ open TauCeti TauCeti.GLSymplectic
 
 /-! ### The rotation loops of `U(1) ⊆ Sp(2)` -/
 
-/-- The scalar `e^{2πikt}`, as a unitary `1 × 1` matrix. -/
-private noncomputable def rotationUnitary (k : ℤ) (t : ℝ) : unitaryGroup (Fin 1) ℂ :=
-  ⟨(Circle.exp (2 * Real.pi * k * t) : ℂ) • (1 : Matrix (Fin 1) (Fin 1) ℂ),
-    Unitary.smul_mem_of_mem (Circle.exp _).coe_mem_unitary (one_mem _)⟩
-
-private theorem continuous_rotationUnitary (k : ℤ) : Continuous (rotationUnitary k) :=
-  Continuous.subtype_mk (by fun_prop) _
-
-private theorem rotationUnitary_of_int (k m : ℤ) : rotationUnitary k m = 1 := by
-  refine Subtype.ext ?_
-  have : Circle.exp (2 * Real.pi * k * m) = 1 := by
-    rw [show 2 * Real.pi * k * m = ((k * m : ℤ) : ℝ) * (2 * Real.pi) by push_cast; ring]
-    exact Circle.exp_int_mul_two_pi _
-  simp [rotationUnitary, this]
-
 /-- The loop `t ↦ e^{2πikt}` in `U(1) = Sp(2) ∩ O(2)`, as a loop of symplectic `2 × 2` matrices
-at the identity. -/
+at the identity: the realification of the `1 × 1` unitary matrix `e^{2πikt}`. -/
 noncomputable def symplecticRotationLoop (k : ℤ) : Path (1 : GLSymplectic (Fin 1) ℝ) 1 where
-  toFun t := ofUnitary (rotationUnitary k t)
-  continuous_toFun := continuous_ofUnitary.comp
-    ((continuous_rotationUnitary k).comp continuous_subtypeVal)
-  source' := by simpa using congrArg ofUnitary (rotationUnitary_of_int k 0)
-  target' := by simpa using congrArg ofUnitary (rotationUnitary_of_int k 1)
+  toFun t := ofUnitary (detSection (Fin 1) 0 (Circle.exp (2 * Real.pi * k * t)))
+  continuous_toFun := continuous_ofUnitary.comp ((continuous_detSection 0).comp (by fun_prop))
+  source' := by simp
+  target' := by
+    rw [Set.Icc.coe_one, mul_one, show 2 * Real.pi * k = (k : ℝ) * (2 * Real.pi) by ring,
+      Circle.exp_int_mul_two_pi, map_one, map_one]
+
+/-- At time `t`, the rotation loop is `ofUnitary` of the `1 × 1` unitary matrix `e^{2πikt}`. -/
+theorem symplecticRotationLoop_apply (k : ℤ) (t : I) :
+    symplecticRotationLoop k t =
+      ofUnitary (detSection (Fin 1) 0 (Circle.exp (2 * Real.pi * k * t))) :=
+  (rfl)
 
 /-- At time `t`, the rotation loop is the realification of the `1 × 1` matrix `e^{2πikt}`. -/
 @[simp]
 theorem coe_symplecticRotationLoop_apply (k : ℤ) (t : I) :
     ((symplecticRotationLoop k t : GL (Fin 1 ⊕ Fin 1) ℝ) : Matrix (Fin 1 ⊕ Fin 1) _ ℝ) =
-      ((Circle.exp (2 * Real.pi * k * t) : ℂ) • (1 : Matrix (Fin 1) (Fin 1) ℂ)).realify :=
-  coe_ofUnitary _
+      (diagonal fun _ : Fin 1 ↦ (Circle.exp (2 * Real.pi * k * t) : ℂ)).realify := by
+  rw [symplecticRotationLoop_apply, coe_ofUnitary, coe_detSection]
+  congr 2 with i
+  rw [Subsingleton.elim i 0, Pi.mulSingle_eq_same]
+
+/-- At time `t`, `ρ` takes the value `e^{2πikt}` on the rotation loop. -/
+@[simp]
+theorem maslovPhase_symplecticRotationLoop_apply (k : ℤ) (t : I) :
+    maslovPhase (symplecticRotationLoop k t) = Circle.exp (2 * Real.pi * k * t) := by
+  rw [symplecticRotationLoop_apply, maslovPhase_ofUnitary, detCircle_detSection]
 
 /-- The loop `t ↦ e^{2πikt}` in `U(1) ⊆ Sp(2)` has Maslov index `k`. -/
 @[simp]
@@ -195,10 +191,7 @@ theorem maslovIndex_symplecticRotationLoop (k : ℤ) :
     maslovIndex (symplecticRotationLoop k) = k := by
   rw [maslovIndex_def]
   refine Circle.degree_eq_of_sub_eq _ (θ := fun t ↦ 2 * Real.pi * k * t) (by fun_prop)
-    (fun t ↦ ?_) (by simp only [Set.Icc.coe_one, Set.Icc.coe_zero]; ring)
-  apply Circle.ext
-  change _ = (maslovPhase (ofUnitary (rotationUnitary k t)) : ℂ)
-  simp [rotationUnitary, coe_detCircle]
+    (fun t ↦ by simp) (by simp only [Set.Icc.coe_one, Set.Icc.coe_zero]; ring)
 
 /-! ### Uniqueness -/
 
@@ -295,6 +288,12 @@ theorem apply_eq_maslovIndex {n : ℕ} {A : GLSymplectic (Fin n) ℝ} (γ : Path
 
 end IsMaslovIndex
 
+/-- Tau Ceti's Maslov index `maslovIndex` satisfies the homotopy, product, direct-sum and
+normalization axioms. -/
+theorem isMaslovIndex_maslovIndex : IsMaslovIndex fun _ _ γ ↦ maslovIndex γ :=
+  ⟨homotopicWith_iff_maslovIndex_eq, maslovIndex_mul,
+    fun γ γ' ↦ by rw [maslovIndex_reindex, maslovIndex_sum], maslovIndex_symplecticRotationLoop 1⟩
+
 /-- **The Maslov index of loops of symplectic matrices.** A family `μ n` of integer-valued
 functions on loops in `Sp(2n)`, one for each `n`, satisfies the homotopy, product, direct-sum and
 normalization axioms (`IsMaslovIndex`) if and only if it is `Ψ ↦ deg(ρ ∘ Ψ)`, the degree of the
@@ -307,10 +306,7 @@ theorem isMaslovIndex_iff (μ : (n : ℕ) → (A : GLSymplectic (Fin n) ℝ) →
   refine ⟨fun hμ ↦ funext fun n ↦ funext fun A ↦ funext fun γ ↦
     (hμ.apply_eq_maslovIndex γ).trans (maslovIndex_def γ), ?_⟩
   rintro rfl
-  simp only [← maslovIndex_def]
-  exact ⟨homotopicWith_iff_maslovIndex_eq, maslovIndex_mul,
-    fun γ γ' ↦ by rw [maslovIndex_reindex, maslovIndex_sum],
-    maslovIndex_symplecticRotationLoop 1⟩
+  simpa only [maslovIndex_def] using isMaslovIndex_maslovIndex
 
 end SymplecticGeometry
 

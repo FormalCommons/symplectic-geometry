@@ -89,8 +89,8 @@ theorem coe_polarUnitary_reindex {m : Type*} [Fintype m] [DecidableEq m] (e : n 
   have h := Units.polarUnitary_eq_of_mul_eq (reindex 𝕜 e A) hP
     (v := unitaryReindexContinuousMulEquiv 𝕜 e A.polarUnitary) (by
       rw [coe_unitaryReindexContinuousMulEquiv_apply, Matrix.reindex_apply, Matrix.reindex_apply,
-        submatrix_mul_equiv, Units.sqrt_mul_star_mul_polarUnitary]
-      rfl)
+        submatrix_mul_equiv, Units.sqrt_mul_star_mul_polarUnitary, reindex_apply]
+      simp)
   rw [h, coe_unitaryReindexContinuousMulEquiv_apply]
 
 end Matrix.GeneralLinearGroup
