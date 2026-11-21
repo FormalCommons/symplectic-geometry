@@ -189,6 +189,10 @@ also uses.
   `EuclideanSpace ℝ ι × EuclideanSpace ℝ ι` along
   `EuclideanSpace.sumEquivProd`, carrying `stdComplexStructure ι` to
   `AlmostComplexStructure.product`.
+- Relabelling the coordinate pairs: `isSymplectomorphism_piLpCongrLeft_sumCongr`,
+  for `σ : ι ≃ κ`, says that
+  `(LinearIsometryEquiv.piLpCongrLeft 2 ℝ ℝ (σ.sumCongr σ)).toLinearEquiv` carries
+  `stdForm ι` to `stdForm κ`.
 - The direct sum of two models: `StdSpace.sumEquiv ι κ : StdSpace (ι ⊕ κ)
   ≃L[ℝ] StdSpace ι × StdSpace κ`, which regroups the coordinates by
   `Equiv.sumSumSumComm` as Tau Ceti's `Matrix.symplecticSum` does, with
@@ -231,7 +235,8 @@ further when they grow, following `AGENTS.md`.
 
 - **Files:** `LinearAlgebra/Symplectic/Standard/Basic.lean` (`StdSpace`, its
   coordinates, `stdForm`, `stdComplexStructure`, the product comparison,
-  `StdSpace.sumEquiv`, `StdSpace.complexEuclideanEquiv`),
+  `isSymplectomorphism_piLpCongrLeft_sumCongr`, `StdSpace.sumEquiv`,
+  `StdSpace.complexEuclideanEquiv`),
   `LinearAlgebra/Symplectic/Standard/Matrix.lean` (the matrix dictionary).
 - **Builds on:** Mathlib, Tau Ceti.
 - **Milestones:** none. It is the interface the other parts share.
@@ -500,10 +505,11 @@ it into issues; the overview fixes its folders and its dependencies.
   `LinearAlgebra/Matrix/SelfAdjoint.lean` (`Matrix.finrank_selfAdjoint`:
   the symmetric $n\times n$ matrices have dimension $n(n+1)/2$, from Tau
   Ceti's `LinearMap.BilinForm.finrank_symmSubmodule`). The part also adds
-  two declarations about `StdSpace ι` alone to *Standard model*'s
+  one declaration about `StdSpace ι` alone to *Standard model*'s
   `Standard/Basic.lean`: `StdSpace.complexEuclideanEquiv`, the map from
-  `EuclideanSpace ℂ ι`, and the symplecticity of the coordinate
-  permutation along `Equiv.sumCongr e e`.
+  `EuclideanSpace ℂ ι`. For the coordinate permutation along
+  `Equiv.sumCongr e e` it uses the existing
+  `isSymplectomorphism_piLpCongrLeft_sumCongr` of §1.
   The `LinearAlgebra/` files import no `Topology/` file of this part. Below,
   $V_0$ is $\mathbb{R}^n\times\{0\}$ ($y=0$), $V_1$ is
   $\{0\}\times\mathbb{R}^n$ ($x=0$), and the unitary frame map
@@ -826,7 +832,8 @@ it into issues; the overview fixes its folders and its dependencies.
   nondegenerate; isomorphisms; local symplectic trivializations and the
   reduction of the structure group to $\mathrm{Sp}(2n)$; for $E=TM$, the
   identification of these forms with Tau Ceti's `TauCeti.SmoothTwoForm I M`
-  and of nondegeneracy with `TauCeti.SmoothTwoForm.IsNondegenerate`, and
+  and of nondegeneracy with `TauCeti.SmoothTwoForm.IsNondegenerate`; the
+  nondegeneracy criterion for forms on bundles of rank two, and
   with it the tangent bundle of a surface with an area form; see
   *Constructions* below),
   `.../Symplectic/Pullback.lean` and `.../Symplectic/Prod.lean` (pull-backs
@@ -899,6 +906,11 @@ it into issues; the overview fixes its folders and its dependencies.
   upstream),
   `Geometry/Manifold/VectorBundle/Hermitian/Basic.lean` (the symplectic form
   of a Hermitian bundle; see *Constructions* below),
+  `Geometry/Manifold/VectorBundle/Riemannian/Trivial.lean` (the constant
+  metric `Bundle.ContMDiffRiemannianMetric.const` on a trivial bundle, in
+  the root namespace since it involves only Mathlib's types; neither Mathlib
+  nor Tau Ceti has one, and the standard case of the form of a Hermitian
+  bundle needs it),
   `.../Hermitian/CircleBundle.lean` (the unit circle bundle of a Hermitian
   line bundle as a principal `Circle`-bundle; see *Constructions*),
   `Geometry/Manifold/VectorBundle/Hermitian/Surface.lean` (unitary
@@ -964,8 +976,9 @@ it into issues; the overview fixes its folders and its dependencies.
   - *Pull-back* (`Symplectic/Pullback.lean`). For `f : C^n⟮I', N; I, M⟯`,
     the argument of Mathlib's instance `ContMDiffVectorBundle.pullback`, the
     pull-back of a form `ω` on `E` to `f *ᵖ E` (`Bundle.Pullback`) is
-    `ContMDiffTwoForm.pullback f ω`, which is Tau Ceti's
-    `ContMDiffSection.pullback ω f` read as a section of the bundle of
+    `ContMDiffTwoForm.pullback ω f`, written `ω.pullback f`, with the
+    section first as in Tau Ceti's `ContMDiffSection.pullback ω f`, of
+    which it is that section read as a section of the bundle of
     alternating maps of `f *ᵖ E`: the fibres of the two bundles at `y` are
     both the alternating maps on `E (f y)`, and the new lemma
     `Bundle.Pullback.contMDiff_continuousAlternatingMap_section_iff`
@@ -978,7 +991,8 @@ it into issues; the overview fixes its folders and its dependencies.
     `y` is `ω (f y)`, from Tau Ceti's `ContMDiffSection.pullback_apply`),
     `IsNondegenerate.pullback`, and `symplecticFormAt` of the pull-back at
     `y` is that of `ω` at `f y`. For complex structures,
-    `ContMDiffComplexStructure.pullback f J` (`ComplexStructure.lean`) is
+    `ContMDiffComplexStructure.pullback J f` (`ComplexStructure.lean`,
+    `J.pullback f`, in the same order) is
     `ContMDiffSection.pullback` of the endomorphism section, smooth by
     `Bundle.Pullback.contMDiff_hom_section_iff` itself, with `@[simp]
     pullback_toEndomorphism`; `Pullback.lean` adds that tame and compatible
@@ -1021,10 +1035,14 @@ it into issues; the overview fixes its folders and its dependencies.
     `TauCeti.SmoothTwoForm`). On a manifold `S` whose model space `E` has
     `finrank ℝ E = 2`, a smooth two-form `σ : TauCeti.SmoothTwoForm I S`
     that vanishes nowhere is, through that identification, a symplectic
-    form on `TangentSpace I`: the lemma
-    `isNondegenerate_iff_forall_ne_zero_of_finrank_eq_two` (of the
-    identified form) comes from Tau Ceti's
+    form on `TangentSpace I`. The criterion is stated for every bundle of
+    rank two, since the proof is the same pointwise fact:
+    `ContMDiffTwoForm.isNondegenerate_iff_forall_ne_zero_of_finrank_eq_two`,
+    for `finrank ℝ F = 2`, says that `ω` is nondegenerate if and only if
+    `ω x ≠ 0` for every `x`, by the pointwise step of Tau Ceti's
     `TauCeti.SmoothTwoForm.isNondegenerate_iff_forall_ne_zero_of_finrank_eq_two`.
+    The tangent case is then `tangentEquiv.symm σ`, nondegenerate by
+    `isNondegenerate_tangentEquiv_iff` and Tau Ceti's lemma.
     No definition is added. The orientation that `σ` induces is Tau Ceti's
     symplectic orientation `TauCeti.SmoothTwoForm.IsNondegenerate.volumeOrientation`
     with `n = 1`, and *First Chern number* states with it that an area form
@@ -1050,25 +1068,28 @@ it into issues; the overview fixes its folders and its dependencies.
     (`ComplexStructure.lean`, for any complex bundle, with no metric), whose
     section is smooth by Tau Ceti's `TauCeti.contMDiff_smulIEquiv_bundle`
     and whose map to `TauCeti.Bundle.ContinuousComplexStructure` gives back
-    the complex structure of `V`. The form
-    `Bundle.ContMDiffRiemannianMetric.hermitianTwoForm g hI` (in the root
-    namespace `Bundle.ContMDiffRiemannianMetric`, outside
-    `SymplecticGeometry`, so that `g.hermitianTwoForm hI` resolves) has at
-    `x` the value `(AlmostComplexStructure.ofComplexModule (V x)).symplecticForm _`,
-    Tau Ceti's form $g_x(J\cdot,\cdot)$ of an orthogonal complex structure
-    (`Geometry/Symplectic/CompatibleMetric.lean`), with the orthogonality
-    from `hI` as in Tau Ceti's `complexInnerProductSpace`
-    (`Riemannian/Hermitian.lean`); so $\omega_x(v,w)=g_x(iv,w)$
-    (`hermitianTwoForm_apply`, from `symplecticForm_apply`), and
-    nondegeneracy comes with Tau Ceti's definition. New are: compatibility
-    with `ofComplexModule`, with $\omega(v,iw)=g(v,w)$; that $\omega$ is the
+    the complex structure of `V`. The form of the Hermitian bundle is no new
+    definition: it is
+    `(ContMDiffComplexStructure.ofComplexModule I n F V).compatibleForm g`,
+    the form $\omega_{g,J}$ of tame and compatible pairs for $J$ the
+    multiplication by `Complex.I`. Under `hI`, $g_x(v,iw)=-g_x(iv,w)$, so
+    its value $\tfrac12(g_x(iv,w)-g_x(v,iw))$ is $g_x(iv,w)$
+    (`compatibleForm_ofComplexModule_apply`). Its compatibility with
+    `ofComplexModule`, nondegeneracy and smoothness are those of any
+    `compatibleForm` (`compatible_compatibleForm`,
+    `Compatible.isNondegenerate`). The lemmas stated for it, in
+    `SymplecticGeometry.Bundle.ContMDiffComplexStructure` and all under
+    `hI`: $\omega(v,iw)=g(v,w)$
+    (`compatibleForm_ofComplexModule_apply_smul_I`); $\omega$ is the
     imaginary part of the Hermitian product of
-    `g.complexInnerProductSpace hI` (a short consequence of Tau Ceti's
-    `Bundle.ContMDiffRiemannianMetric.complexInnerProductSpace_inner` and
-    `symplecticForm_apply`; conjugate-linear in its first argument,
-    as in Mathlib); and, on the trivial line bundle with fibre `Fin 1 → ℂ`
-    and the standard metric, that `complexToRealEuclidean (Fin 1)` carries
-    it to `stdForm (Fin 1)`, so the conventions agree with *Standard model*.
+    `g.complexInnerProductSpace hI`
+    (`im_inner_eq_compatibleForm_ofComplexModule`, from Tau Ceti's
+    `Bundle.ContMDiffRiemannianMetric.complexInnerProductSpace_inner`;
+    conjugate-linear in its first argument, as in Mathlib); and, on the
+    trivial line bundle with fibre `Fin 1 → ℂ` and the constant metric
+    pulled back along `complexToRealEuclidean (Fin 1)`, that map carries it
+    to `stdForm (Fin 1)` (`compatibleForm_ofComplexModule_trivial`), so the
+    conventions agree with *Standard model*.
   - *The circle bundle of a Hermitian line bundle*
     (`Hermitian/CircleBundle.lean`). With the fibre norm of `g` (the local
     `RiemannianBundle V` of `g.toRiemannianMetric`), the circle bundle is the
@@ -1089,10 +1110,13 @@ it into issues; the overview fixes its folders and its dependencies.
     `φ 1`; the isomorphism of topological groups from `unitary (ℂ →L[ℂ] ℂ)`
     to `Circle`, the case `𝕜 = ℂ` of the isomorphism below composed with
     Tau Ceti's `circleEquivUnitary`, which the homeomorphism turns into the action of `Circle` on the subtype by
-    scalar multiplication in the fibres, smooth and free with the fibres as
-    orbits; and the `TauCeti.PrincipalBundle Circle` instance on
+    scalar multiplication in the fibres, free with the fibres as orbits;
+    and the `TauCeti.PrincipalBundle Circle` instance on
     `Fiber ℂ F V ℂ` that *First Chern number* asks for, whose trivializations
     are those of `instPrincipalBundleFiber` followed by that isomorphism.
+    All of this is topological: the smooth side (smoothness of the action
+    and of the coordinate changes, the diffeomorphism onto the submanifold)
+    is *First Chern number*'s prerequisite 3.
     The isomorphism of `unitary (𝕜 →L[𝕜] 𝕜)` with `unitary 𝕜` involves no
     bundle and holds for every `RCLike 𝕜`, so it has a file of its own,
     `Analysis/CStarAlgebra/Unitary/ContinuousLinearMap.lean`. As a group
