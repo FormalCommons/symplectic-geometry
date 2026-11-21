@@ -1916,7 +1916,9 @@ has either; Tau Ceti's extension across a boundary,
   the four theorems: given a diffeomorphism between two properly embedded
   submanifolds and, over it, a bundle map $TM_0|_{Q_0}\to TM_1|_{Q_1}$ that
   is a linear symplectomorphism on each fibre, some diffeomorphism of
-  neighbourhoods has that bundle map as its derivative along $Q_0$, which *Moser isotopy*'s relative theorem
+  neighbourhoods has that bundle map as its derivative along $Q_0$, proved
+  without symplectic forms in `Geometry/Manifold/TubularNeighborhood/MFDeriv.lean`,
+  which *Moser isotopy*'s relative theorem
   then corrects to a symplectomorphism with the same first jet),
   `Basic.lean` (the comparison theorem for submanifolds whose restricted
   form has constant rank, from the two files before it, of which the four
