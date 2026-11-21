@@ -183,8 +183,9 @@ file to it.
 - The overview's `.../Symplectic/ComplexStructure.lean` becomes a folder of
   two files from the start, since its content is more than one file holds.
 - The local trivializations move from `Symplectic/Basic.lean` to
-  `Symplectic/Trivialization.lean`, since their proof uses $J_{g,\omega}$,
-  which is defined after `Basic.lean`.
+  `Symplectic/Trivialization.lean`, a file of their own: the local Darboux
+  frames and the reduction of the structure group are a topic apart from
+  the definitions in `Basic.lean`.
 - `ContMDiffMap/Chart/CodRestrict.lean` is new: it holds a general fact
   about Tau Ceti's weak Whitney topology that the proof of
   `continuous_fiberwiseMap` uses (see *Continuity of fibrewise maps*), and

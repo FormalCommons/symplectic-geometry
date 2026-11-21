@@ -55,8 +55,8 @@ public section
 
 noncomputable section
 
-open _root_.Bundle Set Module Filter
-open scoped Manifold Topology
+open _root_.Bundle Set Module
+open scoped Manifold
 
 namespace SymplecticGeometry.Bundle
 
