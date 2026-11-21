@@ -11,10 +11,9 @@ public import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
 import TauCeti.Geometry.Manifold.DifferentialForm.Interior
 import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
 import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
-import TauCeti.Geometry.Manifold.VectorBundle.Hom
-import TauCeti.Geometry.Symplectic.Manifold.Flat
 import TauCeti.Geometry.Contact.Flat
 import SymplecticGeometry.Geometry.Manifold.TubularNeighborhood.RelativePoincare
+import SymplecticGeometry.Geometry.Symplectic.Manifold.Flat
 
 /-!
 # Contact type through local Liouville fields
@@ -54,8 +53,9 @@ builds such a field from a prescribed contact form.
   `i` and transverse along `i`, has `-i^*(ι_Z σ) = α`. Following McDuff–Salamon, a primitive `β`
   of `-σ` near the image with `i^*β = α` comes from a tubular retraction and the relative Poincaré
   lemma (`TauCeti.SmoothEmbedding.exists_mextDeriv_eq_and_mpullback_eq`), and `Z` is the field
-  with `ι_Z σ = -β`, obtained pointwise from the inverse flat map of `σ` as in Tau Ceti's
-  `TauCeti.SmoothTwoForm.IsNondegenerate.interiorEquiv`. It is Liouville by Cartan's formula. It
+  with `ι_Z σ = -β`, obtained pointwise from the inverse flat map of `σ`
+  (`TauCeti.SmoothTwoForm.IsNondegenerate.interior_flat_inverse_ofSubsingleton`,
+  `TauCeti.SmoothTwoForm.contMDiffAt_flat_inverse_apply`). It is Liouville by Cartan's formula. It
   is transverse because a vector `v` with `di(v) = Z` would satisfy `α(v) = 0` and `ι_v dα = α`,
   so that `ι_v dα + α(v) α = α`, which forces `α(v) = 1`
   (`TauCeti.SmoothForm.IsContactForm.contactFlat_apply_eq_iff`). This pointwise step is
@@ -236,10 +236,7 @@ theorem SmoothEmbedding.exists_liouville_of_isContactForm [FiniteDimensional ℝ
   let c : (x : M) → TangentSpace I x →L[ℝ] ℝ := fun x ↦
     (ContinuousAlternatingMap.ofSubsingleton ℝ (TangentSpace I x) ℝ 0).symm (-β x)
   let Z : (x : M) → TangentSpace I x := fun x ↦ (σ.flat x).inverse (c x)
-  have hZσ : RoughForm.interior Z σ.val = -β := funext fun x ↦ by
-    rw [SmoothTwoForm.interior_apply_eq_ofSubsingleton_flat,
-      (hσn.isInvertible_flat x).self_apply_inverse]
-    exact (ContinuousAlternatingMap.ofSubsingleton ℝ (TangentSpace I x) ℝ 0).apply_symm_apply _
+  have hZσ : RoughForm.interior Z σ.val = -β := hσn.interior_flat_inverse_ofSubsingleton (-β)
   have hZ : ContMDiffOn I I.tangent (⊤ : ℕ∞) (T% Z) U := fun x hx ↦ by
     have hc : ContMDiffAt I (I.prod 𝓘(ℝ, E →L[ℝ] ℝ)) ∞
         (fun y ↦ TotalSpace.mk' (E →L[ℝ] ℝ) (E := fun y : M ↦ TangentSpace I y →L[ℝ] ℝ) y (c y))
@@ -247,8 +244,8 @@ theorem SmoothEmbedding.exists_liouville_of_isContactForm [FiniteDimensional ℝ
       refine contMDiffAt_ofSubsingleton_iff.1 ?_
       convert (hβ x hx).neg_section using 3 with y
       exact (ContinuousAlternatingMap.ofSubsingleton ℝ (TangentSpace I y) ℝ 0).apply_symm_apply _
-    exact (ContMDiffAt.clm_bundle_apply (ContMDiffAt.clm_bundle_inverse (σ.contMDiff_flat x)
-      (hσn.isInvertible_flat x)) hc).contMDiffWithinAt
+    exact (SmoothTwoForm.contMDiffAt_flat_inverse_apply le_rfl (hσn.isInvertible_flat x)
+      hc).contMDiffWithinAt
   have hdσ : mextDeriv σ.val = 0 := (SmoothForm.isClosed_def σ).1 hσ.isClosed
   refine ⟨U, hU, hiU, Z, hZ, fun x hx ↦ ?_, isTransverseAlong_iff.2 fun s ↦ ?_, ?_⟩
   · -- Liouville by Cartan's formula: `L_Z σ = d(ι_Z σ) = -dβ = σ`.

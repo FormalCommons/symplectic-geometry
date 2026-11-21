@@ -32,21 +32,19 @@ on the tube, as Tau Ceti's
 `TauCeti.SmoothTwoForm.exists_diffeomorph_fix_embedding_eventually_mpullback_eq` does inside its
 proof.
 
-**Prescribed pullback.** Let `f : M → N` be a smooth embedding of boundaryless
-finite-dimensional manifolds, with `N` Hausdorff and second countable, let `θ` be a closed smooth
-`(k + 1)`-form on `N`, and let `β` be a smooth `k`-form on `M` with `dβ = f^* θ`. Then on an open
-neighbourhood of the image of `f`, `θ` has a smooth primitive whose pullback along `f` is `β`.
+**Prescribed pullback.** Let `f : Q → M` be a smooth embedding of boundaryless
+finite-dimensional manifolds, with `M` Hausdorff and second countable, let `θ` be a closed smooth
+`(k + 1)`-form on `M`, and let `β` be a smooth `k`-form on `Q` with `dβ = f^* θ`. Then on an open
+neighbourhood of `f(Q)`, `θ` has a smooth primitive whose pullback along `f` is `β`.
 For `β = 0` its conclusion `f^* γ = 0` is weaker than that of the relative Poincaré lemma, whose
 primitive vanishes along the image as an ambient tensor and has a first-jet property there; the
 theorem generalizes the pullback condition to an arbitrary `β`. The proof follows the converse
 half of McDuff–Salamon's Proposition 3.5.31 ([McDuffSalamon2017]):
 
-* `TauCeti.SmoothForm.mpullback_sub_mextDerivₗ_eq_zero`: if `dβ = f^* θ` and `f^* ψ = β`, then
-  `θ - dψ` pulls back to zero along `f`.
 * `TauCeti.SmoothEmbedding.exists_mextDerivₗ_eq_and_mpullback_eq_of_leftInverse`: the theorem for
-  an embedding with a smooth left inverse `ρ`. The form `θ - d(ρ^* β)` is closed with zero
-  pullback along `f`, so the relative Poincaré lemma gives a primitive `μ` of it vanishing along
-  `f`, and `ρ^* β + μ` is the primitive sought.
+  an embedding with a smooth left inverse `ρ`. The closed forms `θ` and `d(ρ^* β)` both pull back
+  to `dβ` along `f`, so the primitive of their difference from the first theorem gives a form `μ`
+  vanishing along `f`, and `ρ^* β + μ` is the primitive sought.
 * `TauCeti.exists_mpullback_subtype_val_eq`, `TauCeti.contMDiffAt_mpullback_subtype_val_iff`,
   `TauCeti.mextDeriv_mpullback_subtype_val_apply`: every form on an open subset `U` is the
   restriction of one on the whole manifold, and at a point of `U` a form and its restriction
@@ -57,14 +55,14 @@ half of McDuff–Salamon's Proposition 3.5.31 ([McDuffSalamon2017]):
 
 The theorem itself applies the case of a left inverse on the open neighbourhood where the smooth
 retraction of `TauCeti.SmoothEmbedding.exists_contMDiffOn_retraction` is defined, and extends the
-primitive to `N`.
+primitive to `M`.
 
 ## Main results
 
-* `TauCeti.SmoothEmbedding.exists_mextDeriv_eq_and_mpullback_eq`: a primitive of `θ` near the
-  image of `f` whose pullback along `f` is `β`.
 * `TauCeti.SmoothEmbedding.exists_smoothForm_relative_primitive_sub`: the primitive of `η₁ - η₀`
   on a tube around `f(Q)`.
+* `TauCeti.SmoothEmbedding.exists_mextDeriv_eq_and_mpullback_eq`: a primitive of `θ` near
+  `f(Q)` whose pullback along `f` is `β`.
 
 ## References
 
@@ -81,177 +79,43 @@ namespace TauCeti
 
 section Restriction
 
-variable {V G N : Type*} [NormedAddCommGroup V] [NormedSpace ℝ V] [TopologicalSpace G]
-  {J : ModelWithCorners ℝ V G} [TopologicalSpace N] [ChartedSpace G N]
+variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
+  {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M]
   {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] {k : ℕ}
 
 /-- Every form on an open subset `U` is the restriction of a form on the whole manifold: extend
 it by zero. -/
-theorem exists_mpullback_subtype_val_eq {U : TopologicalSpace.Opens N} (ξ : RoughForm J U F k) :
-    ∃ γ : RoughForm J N F k, mpullback J J (Subtype.val : U → N) γ = ξ := by
+theorem exists_mpullback_subtype_val_eq {U : TopologicalSpace.Opens M} (ξ : RoughForm I U F k) :
+    ∃ γ : RoughForm I M F k, mpullback I I (Subtype.val : U → M) γ = ξ := by
   classical
   refine ⟨fun y ↦ if hy : y ∈ U then ξ ⟨y, hy⟩ else 0, funext fun x ↦ ?_⟩
   rw [mpullback_subtype_val_apply]
   exact dite_eq_left_of_eq_true (eq_true x.property)
 
 /-- At a point of an open subset `U`, a form is `C^n` exactly when its restriction to `U` is. -/
-theorem contMDiffAt_mpullback_subtype_val_iff [IsManifold J 1 N] {U : TopologicalSpace.Opens N}
-    {n : WithTop ℕ∞} (γ : RoughForm J N F k) (x : U) :
-    ContMDiffAt J (J.prod 𝓘(ℝ, V [⋀^Fin k]→L[ℝ] F)) n
-        (fun y ↦ TotalSpace.mk' (V [⋀^Fin k]→L[ℝ] F) y
-          (mpullback J J (Subtype.val : U → N) γ y)) x ↔
-      ContMDiffAt J (J.prod 𝓘(ℝ, V [⋀^Fin k]→L[ℝ] F)) n
-        (fun y ↦ TotalSpace.mk' (V [⋀^Fin k]→L[ℝ] F) y (γ y)) (x : N) :=
+theorem contMDiffAt_mpullback_subtype_val_iff [IsManifold I 1 M] {U : TopologicalSpace.Opens M}
+    {n : WithTop ℕ∞} (γ : RoughForm I M F k) (x : U) :
+    ContMDiffAt I (I.prod 𝓘(ℝ, E [⋀^Fin k]→L[ℝ] F)) n
+        (fun y ↦ TotalSpace.mk' (E [⋀^Fin k]→L[ℝ] F) y
+          (mpullback I I (Subtype.val : U → M) γ y)) x ↔
+      ContMDiffAt I (I.prod 𝓘(ℝ, E [⋀^Fin k]→L[ℝ] F)) n
+        (fun y ↦ TotalSpace.mk' (E [⋀^Fin k]→L[ℝ] F) y (γ y)) (x : M) :=
   (isLocalDiffeomorph_subtype_val (n := ω) x).contMDiffAt_mpullback_form_iff (by simp)
 
 /-- At a point of an open subset `U` where a form is `C¹`, its restriction to `U` has the same
 exterior derivative. -/
-theorem mextDeriv_mpullback_subtype_val_apply [IsManifold J 2 N] {U : TopologicalSpace.Opens N}
-    {γ : RoughForm J N F k} {x : U}
-    (hγ : ContMDiffAt J (J.prod 𝓘(ℝ, V [⋀^Fin k]→L[ℝ] F)) 1
-      (fun y ↦ TotalSpace.mk' (V [⋀^Fin k]→L[ℝ] F) y (γ y)) (x : N)) :
-    mextDeriv (mpullback J J (Subtype.val : U → N) γ) x = mextDeriv γ x :=
+theorem mextDeriv_mpullback_subtype_val_apply [IsManifold I 2 M] {U : TopologicalSpace.Opens M}
+    {γ : RoughForm I M F k} {x : U}
+    (hγ : ContMDiffAt I (I.prod 𝓘(ℝ, E [⋀^Fin k]→L[ℝ] F)) 1
+      (fun y ↦ TotalSpace.mk' (E [⋀^Fin k]→L[ℝ] F) y (γ y)) (x : M)) :
+    mextDeriv (mpullback I I (Subtype.val : U → M) γ) x = mextDeriv γ x :=
   (mpullback_mextDeriv_at (contMDiff_subtypeVal x) hγ).symm.trans
     (mpullback_subtype_val_apply _ x)
 
 end Restriction
 
-section Pullback
-
-variable {E H M V G N : Type*}
-  [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
-  [TopologicalSpace M] [ChartedSpace H M] [IsManifold I ∞ M]
-  [NormedAddCommGroup V] [NormedSpace ℝ V] [TopologicalSpace G] {J : ModelWithCorners ℝ V G}
-  [TopologicalSpace N] [ChartedSpace G N] [IsManifold J ∞ N]
-  {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] {k : ℕ}
-
-/-- Let `β` be a `k`-form on `M` with `dβ = f^* θ`, and let `ψ` be a `k`-form on `N` with
-`f^* ψ = β`. Then the form `θ - dψ` pulls back to zero along `f`. -/
-theorem SmoothForm.mpullback_sub_mextDerivₗ_eq_zero {f : M → N} (hf : ContMDiff I J ∞ f)
-    {θ : SmoothForm J N F (k + 1)} {β : SmoothForm I M F k}
-    (hβ : mextDerivₗ I k β = SmoothForm.mpullback f hf θ) {ψ : SmoothForm J N F k}
-    (hψ : SmoothForm.mpullback f hf ψ = β) :
-    SmoothForm.mpullback f hf (θ - mextDerivₗ J k ψ) = 0 := by
-  rw [map_sub, ← SmoothForm.mextDerivₗ_mpullback, hψ, hβ, sub_self]
-
-end Pullback
-
 namespace SmoothEmbedding
 
-variable {E V H G M N : Type*}
-  [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
-  [NormedAddCommGroup V] [NormedSpace ℝ V] [FiniteDimensional ℝ V]
-  [TopologicalSpace H] [TopologicalSpace G]
-  {I : ModelWithCorners ℝ E H} {J : ModelWithCorners ℝ V G}
-  [I.Boundaryless] [J.Boundaryless]
-  [TopologicalSpace M] [ChartedSpace H M] [IsManifold I ∞ M]
-  [TopologicalSpace N] [ChartedSpace G N] [IsManifold J ∞ N]
-  [T2Space N] [SecondCountableTopology N]
-  {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] [CompleteSpace F]
-
-/-- **Primitives with prescribed pullback, given a smooth retraction.** Let `f : M → N` be a
-smooth embedding with a smooth left inverse `ρ : N → M`, `θ` a closed smooth `(k + 1)`-form on `N`
-and `β` a smooth `k`-form on `M` with `dβ = f^* θ`. Then on some open neighbourhood `W` of the
-image of `f`, `θ` has a smooth primitive `ξ` whose pullback along `f` is `β`. -/
-theorem exists_mextDerivₗ_eq_and_mpullback_eq_of_leftInverse (f : SmoothEmbedding I J ∞ M N)
-    {ρ : N → M} (hρ : ContMDiff J I ∞ ρ) (hρf : ρ ∘ f = _root_.id) {k : ℕ}
-    {θ : SmoothForm J N F (k + 1)} (hθ : θ.IsClosed) {β : SmoothForm I M F k}
-    (hβ : mextDerivₗ I k β = SmoothForm.mpullback f f.contMDiff θ) :
-    ∃ W : TopologicalSpace.Opens N, ∃ hfW : ∀ x, f x ∈ W, ∃ ξ : SmoothForm J W F k,
-      mextDerivₗ J k ξ = SmoothForm.mpullback Subtype.val contMDiff_subtypeVal θ ∧
-      SmoothForm.mpullback (f.codRestrict W hfW) (f.codRestrict W hfW).contMDiff ξ = β := by
-  -- The closed form `η = θ - d(ρ^* β)` pulls back to zero along `f`.
-  let βN := SmoothForm.mpullback ρ hρ β
-  let η := θ - mextDerivₗ J k βN
-  have hdη : mextDeriv η.val = 0 :=
-    (SmoothForm.isClosed_def η).1 (hθ.sub (SmoothForm.isClosed_mextDerivₗ βN))
-  have hfβN : SmoothForm.mpullback f f.contMDiff βN = β := by
-    refine Subtype.ext ?_
-    rw [SmoothForm.mpullback_mpullback, SmoothForm.coe_mpullback, hρf, mpullback_id]
-  have hfη : mpullback (F := F) I J f η.val = 0 := by
-    rw [← SmoothForm.coe_mpullback _ f.contMDiff,
-      SmoothForm.mpullback_sub_mextDerivₗ_eq_zero f.contMDiff hβ hfβN, ZeroMemClass.coe_zero]
-  -- The relative Poincaré lemma gives a primitive `μ` of `η` on `W`, vanishing along `f`.
-  obtain ⟨W, -, hfW, hprim⟩ := f.exists_isSmoothForm_relative_primitive (F := F) isOpen_univ
-    (subset_univ _)
-  obtain ⟨μ, hμ, hdμ, hμ0, -⟩ := hprim (le_top : (1 : ℕ∞) ≤ ⊤) η.isSmoothForm hdη hfη
-  have hval : ContMDiff J J ∞ (Subtype.val : W → N) := contMDiff_subtypeVal
-  have hf' : ∀ x, f x ∈ W := fun x ↦ hfW (mem_range_self x)
-  let μS : SmoothForm J W F k := ⟨μ, hμ.mem_smoothBundleForms⟩
-  -- `μS` is `μ` bundled with its smoothness; its value is `μ` by the definition just above.
-  have hμS : μS.val = μ := rfl
-  -- The primitive is `ρ^* β + μ`.
-  refine ⟨W, hf', SmoothForm.mpullback Subtype.val hval βN + μS, Subtype.ext ?_, ?_⟩
-  · rw [map_add, SmoothForm.mextDerivₗ_mpullback, Submodule.coe_add, mextDerivₗ_apply,
-      SmoothForm.coe_mpullback, hμS, hdμ, ← mpullback_add, SmoothForm.coe_mpullback]
-    congr 1
-    exact congrArg Subtype.val (add_sub_cancel (mextDerivₗ J k βN) θ)
-  · rw [map_add, SmoothForm.mpullback_mpullback]
-    simp only [f.val_comp_codRestrict W hf']
-    rw [hfβN, add_eq_left]
-    refine Subtype.ext (funext fun x ↦ ?_)
-    ext v
-    rw [SmoothForm.coe_mpullback, hμS, mpullback_apply,
-      show f.codRestrict W hf' x = ⟨f x, hf' x⟩ from Subtype.ext (f.val_codRestrict_apply ..), hμ0]
-    simp
-
-/-- **Primitives with prescribed pullback near an embedded submanifold.** Let `f : M → N` be a
-smooth embedding, `θ` a closed smooth `(k + 1)`-form on `N` and `β` a smooth `k`-form on `M` with
-`dβ = f^* θ`. Then there are an open neighbourhood `U` of the image of `f` and a `k`-form `γ` on
-`N`, smooth at every point of `U`, with `dγ = θ` on `U` and `f^* γ = β`. -/
-theorem exists_mextDeriv_eq_and_mpullback_eq (f : SmoothEmbedding I J ∞ M N) {k : ℕ}
-    {θ : SmoothForm J N F (k + 1)} (hθ : θ.IsClosed) {β : SmoothForm I M F k}
-    (hβ : mextDerivₗ I k β = SmoothForm.mpullback f f.contMDiff θ) :
-    ∃ U : Set N, IsOpen U ∧ range f ⊆ U ∧ ∃ γ : RoughForm J N F k,
-      (∀ x ∈ U, ContMDiffAt J (J.prod 𝓘(ℝ, V [⋀^Fin k]→L[ℝ] F)) ∞
-        (fun y ↦ TotalSpace.mk' (V [⋀^Fin k]→L[ℝ] F) y (γ y)) x) ∧
-      (∀ x ∈ U, mextDeriv γ x = θ.val x) ∧ mpullback I J f γ = β.val := by
-  rcases isEmpty_or_nonempty M with hM | hM
-  · exact ⟨∅, isOpen_empty, by simp [range_eq_empty], 0, by simp, by simp,
-      funext fun x ↦ isEmptyElim x⟩
-  obtain ⟨W, hW, hfW, -, r, hr, hrf⟩ := f.exists_contMDiffOn_retraction isOpen_univ (subset_univ _)
-  -- On the open submanifold `T = W`, the map `r` is a smooth retraction.
-  let T : TopologicalSpace.Opens N := ⟨W, hW⟩
-  have hval : ContMDiff J J ∞ (Subtype.val : T → N) := contMDiff_subtypeVal
-  have hρ : ContMDiff J I ∞ (fun y : T ↦ r y) := fun y ↦
-    ((hr _ y.property).contMDiffAt (hW.mem_nhds y.property)).comp y hval.contMDiffAt
-  have hfT : ∀ x, f x ∈ T := fun x ↦ hfW (mem_range_self x)
-  let j := f.codRestrict T hfT
-  have hvj : Subtype.val ∘ j = f := f.val_comp_codRestrict T hfT
-  obtain ⟨W', hjW', ξ, hdξ, hjξ⟩ := j.exists_mextDerivₗ_eq_and_mpullback_eq_of_leftInverse hρ
-    (funext fun x ↦ (congrArg r (f.val_codRestrict_apply T hfT x)).trans (hrf x))
-    (hθ.mpullback _ hval) (by rw [hβ, SmoothForm.mpullback_mpullback]; simp only [hvj])
-  -- Extend `ξ` from `W'` to `T`, then to `N`; both extensions are smooth at the points of `W'`.
-  obtain ⟨γ', hγ'⟩ := exists_mpullback_subtype_val_eq ξ.val
-  obtain ⟨γ, hγ⟩ := exists_mpullback_subtype_val_eq γ'
-  have hγs (w : W') :
-      ContMDiffAt J (J.prod 𝓘(ℝ, V [⋀^Fin k]→L[ℝ] F)) ∞
-        (fun y ↦ TotalSpace.mk' (V [⋀^Fin k]→L[ℝ] F) y (γ' y)) (w : T) ∧
-      ContMDiffAt J (J.prod 𝓘(ℝ, V [⋀^Fin k]→L[ℝ] F)) ∞
-        (fun y ↦ TotalSpace.mk' (V [⋀^Fin k]→L[ℝ] F) y (γ y)) ((w : T) : N) := by
-    have h₁ := (contMDiffAt_mpullback_subtype_val_iff γ' w).1 (hγ' ▸ ξ.contMDiff w)
-    exact ⟨h₁, (contMDiffAt_mpullback_subtype_val_iff γ (w : T)).1 (hγ ▸ h₁)⟩
-  refine ⟨Subtype.val '' (W' : Set T), hW.isOpenMap_subtypeVal _ W'.isOpen,
-    fun _ ⟨x, hx⟩ ↦ ⟨j x, hjW' x, hx ▸ congrFun hvj x⟩, γ,
-    fun _ ⟨t, ht, h⟩ ↦ h ▸ (hγs ⟨t, ht⟩).2, ?_, ?_⟩
-  · rintro _ ⟨t, ht, rfl⟩
-    obtain ⟨hs₁, hs₂⟩ := hγs ⟨t, ht⟩
-    have e := mextDeriv_mpullback_subtype_val_apply (U := W') (x := ⟨t, ht⟩) (hs₁.of_le (by simp))
-    rw [hγ', ← mextDerivₗ_apply, hdξ, SmoothForm.coe_mpullback, mpullback_subtype_val_apply,
-      SmoothForm.coe_mpullback, mpullback_subtype_val_apply] at e
-    rw [← mextDeriv_mpullback_subtype_val_apply (hs₂.of_le (by simp)), hγ, ← e]
-  · let j' := j.codRestrict W' hjW'
-    have hval' : ContMDiff J J ∞ (Subtype.val : W' → T) := contMDiff_subtypeVal
-    have hf' : f = (Subtype.val ∘ Subtype.val) ∘ j' := by
-      rw [Function.comp_assoc, j.val_comp_codRestrict W' hjW', hvj]
-    rw [hf', mpullback_comp (j'.contMDiff.mdifferentiable (by simp))
-      ((hval.comp hval').mdifferentiable (by simp)), mpullback_comp
-      (hval'.mdifferentiable (by simp)) (hval.mdifferentiable (by simp)), hγ, hγ',
-      ← SmoothForm.coe_mpullback _ j'.contMDiff, hjξ]
-
-end SmoothEmbedding
-
-namespace SmoothEmbedding
 
 variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
   [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [I.Boundaryless]
@@ -292,6 +156,97 @@ theorem exists_smoothForm_relative_primitive_sub (f : SmoothEmbedding J I ∞ Q 
   · rw [hdβ, ← map_sub]
     exact (SmoothForm.coe_mpullback _ _ _).symm
   · rw [AddSubgroupClass.coe_sub, Pi.sub_apply, hq, sub_self]
+
+/-- **Primitives with prescribed pullback, given a smooth retraction.** Let `f : Q → M` be a
+smooth embedding with a smooth left inverse `ρ : M → Q`, `θ` a closed smooth `(k + 1)`-form on `M`
+and `β` a smooth `k`-form on `Q` with `dβ = f^* θ`. Then on some open neighbourhood `W` of the
+image of `f`, `θ` has a smooth primitive `ξ` whose pullback along `f` is `β`. -/
+theorem exists_mextDerivₗ_eq_and_mpullback_eq_of_leftInverse (f : SmoothEmbedding J I ∞ Q M)
+    {ρ : M → Q} (hρ : ContMDiff I J ∞ ρ) (hρf : ρ ∘ f = _root_.id) {k : ℕ}
+    {θ : SmoothForm I M F (k + 1)} (hθ : θ.IsClosed) {β : SmoothForm J Q F k}
+    (hβ : mextDerivₗ J k β = SmoothForm.mpullback f f.contMDiff θ) :
+    ∃ W : TopologicalSpace.Opens M, ∃ hfW : ∀ x, f x ∈ W, ∃ ξ : SmoothForm I W F k,
+      mextDerivₗ I k ξ = SmoothForm.mpullback Subtype.val contMDiff_subtypeVal θ ∧
+      SmoothForm.mpullback (f.codRestrict W hfW) (f.codRestrict W hfW).contMDiff ξ = β := by
+  let βM := SmoothForm.mpullback ρ hρ β
+  have hfβM : SmoothForm.mpullback f f.contMDiff βM = β := by
+    refine Subtype.ext ?_
+    rw [SmoothForm.mpullback_mpullback, SmoothForm.coe_mpullback, hρf, mpullback_id]
+  -- The closed forms `θ` and `d(ρ^* β)` have the same pullback `dβ` along `f`, so on a tube `W`
+  -- their difference has a primitive `μ` vanishing along `f`.
+  obtain ⟨W, -, hfW, μ, hdμ, hμ0, -⟩ := f.exists_smoothForm_relative_primitive_sub
+    (SmoothForm.isClosed_mextDerivₗ βM) hθ
+    (by rw [← SmoothForm.mextDerivₗ_mpullback, hfβM, hβ]) isOpen_univ (subset_univ _)
+  have hval : ContMDiff I I ∞ (Subtype.val : W → M) := contMDiff_subtypeVal
+  have hf' : ∀ x, f x ∈ W := fun x ↦ hfW (mem_range_self x)
+  -- The primitive is `ρ^* β + μ`.
+  refine ⟨W, hf', SmoothForm.mpullback Subtype.val hval βM + μ, ?_, ?_⟩
+  · rw [map_add, SmoothForm.mextDerivₗ_mpullback,
+      show mextDerivₗ I k μ = _ from Subtype.ext ((mextDerivₗ_apply ..).trans hdμ),
+      add_sub_cancel]
+  · rw [map_add, SmoothForm.mpullback_mpullback]
+    simp only [f.val_comp_codRestrict W hf']
+    rw [hfβM, add_eq_left]
+    refine Subtype.ext (funext fun x ↦ ?_)
+    ext v
+    rw [SmoothForm.coe_mpullback, mpullback_apply,
+      show f.codRestrict W hf' x = ⟨f x, hf' x⟩ from Subtype.ext (f.val_codRestrict_apply ..), hμ0]
+    simp
+
+/-- **Primitives with prescribed pullback near an embedded submanifold.** Let `f : Q → M` be a
+smooth embedding, `θ` a closed smooth `(k + 1)`-form on `M` and `β` a smooth `k`-form on `Q` with
+`dβ = f^* θ`. Then there are an open neighbourhood `U` of the image of `f` and a `k`-form `γ` on
+`M`, smooth at every point of `U`, with `dγ = θ` on `U` and `f^* γ = β`. -/
+theorem exists_mextDeriv_eq_and_mpullback_eq (f : SmoothEmbedding J I ∞ Q M) {k : ℕ}
+    {θ : SmoothForm I M F (k + 1)} (hθ : θ.IsClosed) {β : SmoothForm J Q F k}
+    (hβ : mextDerivₗ J k β = SmoothForm.mpullback f f.contMDiff θ) :
+    ∃ U : Set M, IsOpen U ∧ range f ⊆ U ∧ ∃ γ : RoughForm I M F k,
+      (∀ x ∈ U, ContMDiffAt I (I.prod 𝓘(ℝ, E [⋀^Fin k]→L[ℝ] F)) ∞
+        (fun y ↦ TotalSpace.mk' (E [⋀^Fin k]→L[ℝ] F) y (γ y)) x) ∧
+      (∀ x ∈ U, mextDeriv γ x = θ.val x) ∧ mpullback J I f γ = β.val := by
+  rcases isEmpty_or_nonempty Q with hM | hM
+  · exact ⟨∅, isOpen_empty, by simp [range_eq_empty], 0, by simp, by simp,
+      funext fun x ↦ isEmptyElim x⟩
+  obtain ⟨W, hW, hfW, -, r, hr, hrf⟩ := f.exists_contMDiffOn_retraction isOpen_univ (subset_univ _)
+  -- On the open submanifold `T = W`, the map `r` is a smooth retraction.
+  let T : TopologicalSpace.Opens M := ⟨W, hW⟩
+  have hval : ContMDiff I I ∞ (Subtype.val : T → M) := contMDiff_subtypeVal
+  have hρ : ContMDiff I J ∞ (fun y : T ↦ r y) := fun y ↦
+    ((hr _ y.property).contMDiffAt (hW.mem_nhds y.property)).comp y hval.contMDiffAt
+  have hfT : ∀ x, f x ∈ T := fun x ↦ hfW (mem_range_self x)
+  let j := f.codRestrict T hfT
+  have hvj : Subtype.val ∘ j = f := f.val_comp_codRestrict T hfT
+  obtain ⟨W', hjW', ξ, hdξ, hjξ⟩ := j.exists_mextDerivₗ_eq_and_mpullback_eq_of_leftInverse hρ
+    (funext fun x ↦ (congrArg r (f.val_codRestrict_apply T hfT x)).trans (hrf x))
+    (hθ.mpullback _ hval) (by rw [hβ, SmoothForm.mpullback_mpullback]; simp only [hvj])
+  -- Extend `ξ` from `W'` to `T`, then to `M`; both extensions are smooth at the points of `W'`.
+  obtain ⟨γ', hγ'⟩ := exists_mpullback_subtype_val_eq ξ.val
+  obtain ⟨γ, hγ⟩ := exists_mpullback_subtype_val_eq γ'
+  have hγs (w : W') :
+      ContMDiffAt I (I.prod 𝓘(ℝ, E [⋀^Fin k]→L[ℝ] F)) ∞
+        (fun y ↦ TotalSpace.mk' (E [⋀^Fin k]→L[ℝ] F) y (γ' y)) (w : T) ∧
+      ContMDiffAt I (I.prod 𝓘(ℝ, E [⋀^Fin k]→L[ℝ] F)) ∞
+        (fun y ↦ TotalSpace.mk' (E [⋀^Fin k]→L[ℝ] F) y (γ y)) ((w : T) : M) := by
+    have h₁ := (contMDiffAt_mpullback_subtype_val_iff γ' w).1 (hγ' ▸ ξ.contMDiff w)
+    exact ⟨h₁, (contMDiffAt_mpullback_subtype_val_iff γ (w : T)).1 (hγ ▸ h₁)⟩
+  refine ⟨Subtype.val '' (W' : Set T), hW.isOpenMap_subtypeVal _ W'.isOpen,
+    fun _ ⟨x, hx⟩ ↦ ⟨j x, hjW' x, hx ▸ congrFun hvj x⟩, γ,
+    fun _ ⟨t, ht, h⟩ ↦ h ▸ (hγs ⟨t, ht⟩).2, ?_, ?_⟩
+  · rintro _ ⟨t, ht, rfl⟩
+    obtain ⟨hs₁, hs₂⟩ := hγs ⟨t, ht⟩
+    have e := mextDeriv_mpullback_subtype_val_apply (U := W') (x := ⟨t, ht⟩) (hs₁.of_le (by simp))
+    rw [hγ', ← mextDerivₗ_apply, hdξ, SmoothForm.coe_mpullback, mpullback_subtype_val_apply,
+      SmoothForm.coe_mpullback, mpullback_subtype_val_apply] at e
+    rw [← mextDeriv_mpullback_subtype_val_apply (hs₂.of_le (by simp)), hγ, ← e]
+  · let j' := j.codRestrict W' hjW'
+    have hval' : ContMDiff I I ∞ (Subtype.val : W' → T) := contMDiff_subtypeVal
+    have hf' : f = (Subtype.val ∘ Subtype.val) ∘ j' := by
+      rw [Function.comp_assoc, j.val_comp_codRestrict W' hjW', hvj]
+    rw [hf', mpullback_comp (j'.contMDiff.mdifferentiable (by simp))
+      ((hval.comp hval').mdifferentiable (by simp)), mpullback_comp
+      (hval'.mdifferentiable (by simp)) (hval.mdifferentiable (by simp)), hγ, hγ',
+      ← SmoothForm.coe_mpullback _ j'.contMDiff, hjξ]
+
 
 end SmoothEmbedding
 
