@@ -88,7 +88,9 @@ and does not redefine any of it:
   `ContinuousLinearEquiv.toBilinForm_arrowCongr_arrowCongr` (as a bilinear
   form it is `LinearMap.BilinForm.congr` along `e`) and
   `ContinuousLinearEquiv.nondegenerate_arrowCongr_sub_flip_iff` (it keeps
-  $s-s^{\mathrm{flip}}$ nondegenerate or degenerate).
+  $s-s^{\mathrm{flip}}$ nondegenerate or degenerate). Also in that file, for
+  *Symplectic neighbourhoods*, the adjoint of a map for two forms,
+  `ContinuousLinearMap.bilinAdjoint`, with `coe_bilinAdjoint`.
 - For an alternating sesquilinear map $B$, $B-B^{\mathrm{flip}}=2\cdot B$,
   `LinearMap.IsAlt.sub_flip_eq_two_smul`, which Mathlib lacks; the library
   adds it in `LinearAlgebra/SesquilinearForm.lean`.

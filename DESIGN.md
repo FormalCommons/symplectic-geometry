@@ -908,7 +908,8 @@ it into issues; the overview fixes its folders and its dependencies.
   `SymplecticForm V`), with the general file
   `Topology/Algebra/Module/BilinearForm.lean` (a continuous bilinear form in
   finite dimensions is recovered from its bilinear form; the skew part of a
-  continuous bilinear map; carrying a form along an equivalence) and
+  continuous bilinear map; carrying a form along an equivalence; the adjoint
+  `ContinuousLinearMap.bilinAdjoint` of a map for two forms) and
   `LinearAlgebra/SesquilinearForm.lean` (an alternating form minus its
   transpose is twice the form),
   `Geometry/Symplectic/Darboux/EuclideanBasis.lean` (the coordinates of a
@@ -1937,7 +1938,8 @@ has either; Tau Ceti's extension across a boundary,
   `Geometry/Symplectic/Neighborhood/`: `Extension.lean` (along the
   submanifold, a smooth family of linear symplectomorphisms built from
   compatible complex structures by the formula of
-  `LinearAlgebra/Symplectic/Extension.lean`), `Tubular.lean` (the common step of
+  `LinearAlgebra/Symplectic/Extension.lean`, whose adjoint step is smooth by
+  `Geometry/Manifold/VectorBundle/Adjoint.lean`), `Tubular.lean` (the common step of
   the four theorems: given a diffeomorphism between two properly embedded
   submanifolds and, over it, a bundle map $TM_0|_{Q_0}\to TM_1|_{Q_1}$ that
   is a linear symplectomorphism on each fibre, some diffeomorphism of
@@ -1963,7 +1965,8 @@ has either; Tau Ceti's extension across a boundary,
 - **Builds on:** *Moser isotopy* (`Relative.lean`, only for `Tubular.lean` and
   what follows it), *Symplectic
   vector spaces* (`Reduction.lean` and `Subspace.lean`, merged), *Compatible
-  complex structures* (`LinearAlgebra/Symplectic/Compatible.lean`, merged), Tau Ceti (tubular
+  complex structures* (`LinearAlgebra/Symplectic/Compatible.lean` and
+  `Topology/Algebra/Module/BilinearForm.lean`, merged), Tau Ceti (tubular
   neighbourhoods, the normal bundles of Lagrangian and symplectic embeddings,
   compatible almost complex structures, relative Darboux, `TauCeti.SmoothTwoForm.exists_partialDiffeomorph_fix_immersion_mpullback_eq`).
   `CharacteristicFoliation.lean` uses only Tau Ceti and `LieDeriv.lean` and can
