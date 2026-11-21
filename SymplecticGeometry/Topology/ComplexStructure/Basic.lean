@@ -5,7 +5,9 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.Analysis.CStarAlgebra.Matrix
 public import SymplecticGeometry.LinearAlgebra.ComplexStructure.Action
+public import SymplecticGeometry.LinearAlgebra.Matrix.NonsingularInverse
 public import TauCeti.Geometry.Symplectic.AlmostComplex.Topology
 public import TauCeti.Topology.Algebra.Star.Unitary
 
@@ -34,8 +36,6 @@ matrices `A` such that `A * A = -1`, and the actions of `GL n ℝ` and of
   structures form a closed subspace of the continuous endomorphisms.
 * The instances `T2Space`, `LocallyCompactSpace`, and `ContinuousSMul` for `GL n ℝ` and
   `Matrix.specialOrthogonalGroup n ℝ`.
-* `Matrix.toEuclideanCLM_symm_toContinuousLinearMap`: the matrix of a linear endomorphism of
-  `EuclideanSpace 𝕜 n` is the same through `Matrix.toEuclideanCLM` and `Matrix.toEuclideanLin`.
 
 ## References
 
@@ -44,22 +44,6 @@ matrices `A` such that `A * A = -1`, and the actions of `GL n ℝ` and of
 -/
 
 public section
-
-namespace Matrix
-
-variable {n 𝕜 : Type*} [Fintype n] [DecidableEq n] [RCLike 𝕜]
-
-/-- The matrix of a linear endomorphism of `EuclideanSpace 𝕜 n`, read through
-`Matrix.toEuclideanCLM` after making it continuous, is its matrix through
-`Matrix.toEuclideanLin`. -/
-theorem toEuclideanCLM_symm_toContinuousLinearMap
-    (f : EuclideanSpace 𝕜 n →ₗ[𝕜] EuclideanSpace 𝕜 n) :
-    (toEuclideanCLM (n := n) (𝕜 := 𝕜)).symm (LinearMap.toContinuousLinearMap f) =
-      toEuclideanLin.symm f := by
-  rw [LinearEquiv.eq_symm_apply, ← coe_toEuclideanCLM_eq_toEuclideanLin,
-    StarAlgEquiv.apply_symm_apply, LinearMap.coe_toContinuousLinearMap]
-
-end Matrix
 
 namespace TauCeti.AlmostComplexStructure
 
@@ -156,25 +140,23 @@ theorem homeomorphMatrix_symm_apply_apply (A : {A : Matrix n n ℝ // A * A = -1
 /-- The matrix of a complex structure `J`, as an invertible matrix: its inverse is the matrix of
 `-J`, since `J * J = -1`. -/
 noncomputable def toGeneralLinearGroup (J : AlmostComplexStructure (EuclideanSpace ℝ n)) :
-    GL n ℝ where
-  val := homeomorphMatrix n J
-  inv := -homeomorphMatrix n J
-  val_inv := by rw [mul_neg, (homeomorphMatrix n J).property, neg_neg]
-  inv_val := by rw [neg_mul, (homeomorphMatrix n J).property, neg_neg]
+    GL n ℝ :=
+  (isUnit_of_mul_self_eq_neg_one (homeomorphMatrix n J).property).unit
 
 /-- The invertible matrix of `J` is its matrix. -/
 @[simp]
 theorem coe_toGeneralLinearGroup (J : AlmostComplexStructure (EuclideanSpace ℝ n)) :
     (J.toGeneralLinearGroup : Matrix n n ℝ) = homeomorphMatrix n J :=
-  (rfl)
+  IsUnit.unit_spec _
 
 /-- The inverse of the matrix of `J` is the matrix of `-J`.
 
 This is not a `simp` lemma: `simp` rewrites its left side with `Matrix.coe_units_inv`, and
 proves it with `inv_toEuclideanCLM_symm_toContinuousLinearMap`. -/
 theorem coe_toGeneralLinearGroup_inv (J : AlmostComplexStructure (EuclideanSpace ℝ n)) :
-    (↑J.toGeneralLinearGroup⁻¹ : Matrix n n ℝ) = -homeomorphMatrix n J :=
-  (rfl)
+    (↑J.toGeneralLinearGroup⁻¹ : Matrix n n ℝ) = -homeomorphMatrix n J := by
+  rw [Matrix.coe_units_inv, coe_toGeneralLinearGroup,
+    Matrix.inv_eq_neg_of_mul_self_eq_neg_one (homeomorphMatrix n J).property]
 
 /-- The inverse of the matrix of a complex structure `J` of `EuclideanSpace ℝ n` is its
 negative, since its square is `-1`. -/
@@ -185,16 +167,15 @@ theorem inv_toEuclideanCLM_symm_toContinuousLinearMap
         (LinearMap.toContinuousLinearMap J.toLinearMap))⁻¹ =
       -(Matrix.toEuclideanCLM (n := n) (𝕜 := ℝ)).symm
         (LinearMap.toContinuousLinearMap J.toLinearMap) :=
-  Matrix.inv_eq_left_inv (by
-    rw [neg_mul, Matrix.toEuclideanCLM_symm_toContinuousLinearMap, J.toEuclideanLin_symm_mul_self,
-      neg_neg])
+  Matrix.inv_eq_neg_of_mul_self_eq_neg_one (by
+    rw [Matrix.toEuclideanCLM_symm_toContinuousLinearMap, J.toEuclideanLin_symm_mul_self])
 
 /-- The invertible matrix of a complex structure depends continuously on it. -/
 theorem continuous_toGeneralLinearGroup :
-    Continuous (toGeneralLinearGroup (n := n)) :=
-  Units.continuous_iff.2
-    ⟨continuous_subtypeVal.comp (homeomorphMatrix n).continuous,
-      (continuous_subtypeVal.comp (homeomorphMatrix n).continuous).neg⟩
+    Continuous (toGeneralLinearGroup (n := n)) := by
+  refine Units.continuous_iff.2 ⟨?_, ?_⟩ <;>
+    simp only [Function.comp_def, coe_toGeneralLinearGroup, coe_toGeneralLinearGroup_inv] <;>
+    fun_prop
 
 /-- The endomorphism of `g • J` in the operator norm is `g J g⁻¹`, matrices acting by
 `Matrix.toEuclideanCLM`. -/

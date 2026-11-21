@@ -296,7 +296,9 @@ The part uses the following from other parts:
   `compatible_iff_exists_isSymplectomorphism_stdForm`.
   `Topology/ComplexStructure/Compatible/Matrix.lean` imports
   `Topology/ComplexStructure/Basic.lean`, which besides `Action.lean` imports
-  only Tau Ceti, for `AlmostComplexStructure.homeomorphMatrix` and
+  only Tau Ceti and the merged `LinearAlgebra/Matrix/NonsingularInverse.lean`
+  and `Analysis/CStarAlgebra/Matrix.lean` (which import only Mathlib and
+  merged files that do), for `AlmostComplexStructure.homeomorphMatrix` and
   `coe_homeomorphMatrix` in `compatibleEquivPosDefSymplectic`.
   `Topology/Algebra/Matrix/SymplecticGroup/CompactSubgroup.lean` imports
   `LinearAlgebra/ComplexStructure/Standard.lean`, for
@@ -969,7 +971,8 @@ This is Proposition 2.5.6, for a fixed `g : innerProducts V`, in
   `metricSymplecticFormsHomotopyEquiv g`, whose forward maps are the
   inclusions. Their inverses are $J\mapsto J_{g,\omega_{g,J}}$ and
   $\omega\mapsto\omega_{g,J_{g,\omega}}$. Each comes with `@[simp]` `_toFun`
-  and `_invFun` lemmas that state these maps. Neither has a homotopy of its
+  and `_symm_apply` lemmas that state these maps, as
+  `polarHomotopyEquiv_symm_apply` does. Neither has a homotopy of its
   own, nor a restriction of one. On the subsets, the inverses fix every
   point, by `metricPolarComplexStructure_eq_iff` (and, on
   `metricSymplecticForms g`, `metricSymplecticForm_eq_of_apply_apply`), so the composite on the

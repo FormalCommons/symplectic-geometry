@@ -22,6 +22,10 @@ For a family `Φ x : W →L V x` out of a fixed space `W` of finite dimension, t
 the smoothness of `Φ` as a section of the hom bundle from the trivial bundle with fibre `W` on the
 product `M × W` (`contMDiffAt_hom_trivial_iff`), through Tau Ceti's
 `TauCeti.contMDiffAt_hom_bundle_iff` and `Bundle.Trivial.diffeomorphProd`.
+
+Last, a fixed continuous linear map `f : W →L W'`, applied in each fibre, is a `C^n` map from the
+total space of the trivial bundle with fibre `W` to that with fibre `W'`
+(`Bundle.Trivial.contMDiff_totalSpaceMk_clm`).
 -/
 
 public section
@@ -86,6 +90,17 @@ theorem contMDiffAt_hom_trivial_iff (Φ : ∀ x, W →L[𝕜] V₂ x) (x : M) :
       (Trivial.diffeomorphProd I M W n).contMDiff.contMDiffAt.congr_of_eventuallyEq
         (Filter.Eventually.of_forall fun p ↦ by simp)
     exact h.comp (x := (⟨x, v⟩ : TotalSpace W (Trivial M W))) hd
+
+omit [CompleteSpace 𝕜] [FiniteDimensional 𝕜 W] in
+/-- A fixed continuous linear map `f : W →L W'`, applied in each fibre, is a `C^n` map from the
+total space of the trivial bundle with fibre `W` to that of the trivial bundle with fibre `W'`. -/
+theorem Bundle.Trivial.contMDiff_totalSpaceMk_clm {W' : Type*} [NormedAddCommGroup W']
+    [NormedSpace 𝕜 W'] (f : W →L[𝕜] W') :
+    ContMDiff (I.prod 𝓘(𝕜, W)) (I.prod 𝓘(𝕜, W')) n
+      (fun p : TotalSpace W (Trivial M W) ↦ TotalSpace.mk' W' (E := Trivial M W') p.proj
+        (f p.snd)) :=
+  Trivial.contMDiff_mk_iff.2
+    ⟨contMDiff_proj _, f.contDiff.contMDiff.comp (Trivial.contMDiff_mk_iff.1 contMDiff_id).2⟩
 
 end Trivial
 

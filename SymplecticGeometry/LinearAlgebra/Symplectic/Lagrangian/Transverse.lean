@@ -71,6 +71,17 @@ theorem isCompl_smul_iff [DecidableEq ι] (g : GLSymplectic ι ℝ) {Λ Λ' : �
   rw [coe_smul, coe_smul, he]
   exact (Submodule.orderIsoMapComap e).isCompl_iff.symm
 
+/-- A symplectic matrix does not change the dimension of the intersection of two Lagrangians. -/
+theorem finrank_smul_inf_smul [DecidableEq ι] (g : GLSymplectic ι ℝ) (Λ Λ' : ℒ ι) :
+    Module.finrank ℝ ↥(((g • Λ : ℒ ι) : Submodule ℝ (StdSpace ι)) ⊓
+        ((g • Λ' : ℒ ι) : Submodule ℝ (StdSpace ι))) =
+      Module.finrank ℝ ↥((Λ : Submodule ℝ (StdSpace ι)) ⊓ (Λ' : Submodule ℝ (StdSpace ι))) := by
+  set M := ((g : GL (ι ⊕ ι) ℝ) : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ)
+  set e := (M.toEuclideanCLE (g : GL (ι ⊕ ι) ℝ).det_ne_zero).toLinearEquiv
+  have he : toEuclideanLin M = e.toLinearMap :=
+    LinearMap.ext fun v ↦ (toEuclideanCLE_apply _ _ v).symm
+  rw [coe_smul, coe_smul, he, ← Submodule.map_inf _ e.injective, LinearEquiv.finrank_map_eq]
+
 /-! ### The points of the basic chart -/
 
 /-- The Lagrangian `{(S y, y)}` of a real symmetric matrix `S`: Tau Ceti's chart subspace
