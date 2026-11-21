@@ -51,6 +51,8 @@ structure, the form is the flat map of `ω_{g,J}`.
 * `Bundle.ContMDiffRiemannianMetric.polarFormulaAt_eq_conj`: on the domain, `J_{g,σ}` is the
   formula read through any linear equivalence of `V x` with a finite-dimensional inner product
   space.
+* `Bundle.ContMDiffRiemannianMetric.contMDiffAt_inCoordinates_inner`: along a `Cⁿ` map into the
+  base, the reading of a metric of class `Cⁿ` in a trivialization is `Cⁿ`.
 * `Bundle.ContMDiffRiemannianMetric.contMDiffOn_polarFormulaAt`: for a metric of class `Cⁿ`, the
   map `(x, σ) ↦ (x, J_{g,σ})` is `Cⁿ` on the domain.
 * `Bundle.ContMDiffRiemannianMetric.exists_continuousLinearEquiv_inner_eq`: each fibre of a
@@ -165,6 +167,21 @@ theorem ContMDiffRiemannianMetric.mem_polarDomain_arrowCongr {n : WithTop ℕ∞
   TauCeti.mem_polarDomain_iff.2 ⟨fun v hv ↦ by simpa using g.pos x (e.symm v) (by simpa using hv),
     e.nondegenerate_arrowCongr_sub_flip_iff.2 hσ⟩
 
+/-- Along a map `f` of class `Cⁿ` into the base, the reading of a bundle metric of class `Cⁿ` in
+the trivialization at `f y`, `y' ↦ inCoordinates … (f y) (f y') (f y) (f y') (g (f y'))`, is of
+class `Cⁿ` at `y`. -/
+theorem ContMDiffRiemannianMetric.contMDiffAt_inCoordinates_inner {n : WithTop ℕ∞}
+    [∀ x, IsTopologicalAddGroup (V x)] [∀ x, ContinuousSMul ℝ (V x)]
+    (g : ContMDiffRiemannianMetric I n F V) {EN HN N : Type*} [NormedAddCommGroup EN]
+    [NormedSpace ℝ EN] [TopologicalSpace HN] {IN : ModelWithCorners ℝ EN HN} [TopologicalSpace N]
+    [ChartedSpace HN N] {f : N → M} {y : N} (hf : ContMDiffAt IN I n f y) :
+    ContMDiffAt IN 𝓘(ℝ, F →L[ℝ] F →L[ℝ] ℝ) n
+      (fun y' ↦ ContinuousLinearMap.inCoordinates F V (F →L[ℝ] ℝ)
+        (fun x ↦ V x →L[ℝ] Trivial M ℝ x) (f y) (f y') (f y) (f y') (g.inner (f y'))) y :=
+  ((contMDiffAt_hom_bundle fun y' ↦ TotalSpace.mk' (F →L[ℝ] F →L[ℝ] ℝ)
+    (E := fun x ↦ V x →L[ℝ] V x →L[ℝ] ℝ) (f y') (g.inner (f y'))).1
+    ((g.contMDiff (f y)).comp y hf)).2
+
 namespace ContMDiffRiemannianMetric
 
 variable [FiniteDimensional ℝ F] {n : WithTop ℕ∞} (g : ContMDiffRiemannianMetric I n F V)
@@ -260,10 +277,7 @@ theorem contMDiffOn_polarFormulaAt :
     ContinuousLinearMap.inCoordinates F V (F →L[ℝ] ℝ) (fun y ↦ V y →L[ℝ] Trivial M ℝ y)
       x₀ q.proj x₀ q.proj q.snd
   have hgC : ContMDiffAt (I.prod 𝓘(ℝ, F →L[ℝ] F →L[ℝ] ℝ)) 𝓘(ℝ, F →L[ℝ] F →L[ℝ] ℝ) n gC q₀ :=
-    ((contMDiffAt_hom_bundle (fun q : TotalSpace (F →L[ℝ] F →L[ℝ] ℝ)
-      (fun x ↦ V x →L[ℝ] V x →L[ℝ] ℝ) ↦ TotalSpace.mk' (F →L[ℝ] F →L[ℝ] ℝ)
-        (E := fun x ↦ V x →L[ℝ] V x →L[ℝ] ℝ) q.proj (g.inner q.proj))).1
-      ((g.contMDiff q₀.proj).comp q₀ (contMDiffAt_proj _))).2
+    g.contMDiffAt_inCoordinates_inner (f := TotalSpace.proj) (contMDiffAt_proj _)
   have hsC : ContMDiffAt (I.prod 𝓘(ℝ, F →L[ℝ] F →L[ℝ] ℝ)) 𝓘(ℝ, F →L[ℝ] F →L[ℝ] ℝ) n sC q₀ :=
     ((contMDiffAt_hom_bundle (fun q ↦ q)).1 contMDiffAt_id).2
   let G q := pull.comp ((gC q).comp Ts)
@@ -362,10 +376,7 @@ theorem contMDiff_compatibleBilinAt [∀ x, IsTopologicalAddGroup (V x)]
   let bC (q : TotalSpace (F →L[ℝ] F) (fun x ↦ V x →L[ℝ] V x)) :=
     ContinuousLinearMap.inCoordinates F V F V x₀ q.proj x₀ q.proj q.snd
   have hgC : ContMDiffAt (I.prod 𝓘(ℝ, F →L[ℝ] F)) 𝓘(ℝ, F →L[ℝ] F →L[ℝ] ℝ) n gC q₀ :=
-    ((contMDiffAt_hom_bundle (fun q : TotalSpace (F →L[ℝ] F)
-      (fun x ↦ V x →L[ℝ] V x) ↦ TotalSpace.mk' (F →L[ℝ] F →L[ℝ] ℝ)
-        (E := fun x ↦ V x →L[ℝ] V x →L[ℝ] ℝ) q.proj (g.inner q.proj))).1
-      ((g.contMDiff q₀.proj).comp q₀ (contMDiffAt_proj _))).2
+    g.contMDiffAt_inCoordinates_inner (f := TotalSpace.proj) (contMDiffAt_proj _)
   have hbC : ContMDiffAt (I.prod 𝓘(ℝ, F →L[ℝ] F)) 𝓘(ℝ, F →L[ℝ] F) n bC q₀ :=
     ((contMDiffAt_hom_bundle (fun q ↦ q)).1 contMDiffAt_id).2
   have hd : ContDiff ℝ n fun p : (F →L[ℝ] F →L[ℝ] ℝ) × (F →L[ℝ] F →L[ℝ] ℝ) ↦
