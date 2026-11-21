@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.Data.Bundle
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Hom
 public import TauCeti.Geometry.Manifold.VectorBundle.Complexification
 public import TauCeti.Geometry.Manifold.VectorBundle.Prod
@@ -413,20 +414,31 @@ def pullback (J : ContMDiffComplexStructure I n F V) (f : C^n⟮I', N; I, M⟯) 
       (J.toEndomorphism.contMDiff.comp f.contMDiff)⟩
   square_neg y := J.square_neg (f y)
 
-@[simp]
 theorem pullback_toEndomorphism (J : ContMDiffComplexStructure I n F V) (f : C^n⟮I', N; I, M⟯)
     (y : N) : (J.pullback f).toEndomorphism y = J.toEndomorphism (f y) := (rfl)
 
 theorem pullback_apply (J : ContMDiffComplexStructure I n F V) (f : C^n⟮I', N; I, M⟯) (y : N)
     (v : V (f y)) : J.pullback f y v = J (f y) v := (rfl)
 
+/-- The pull-back at `y` acts as `J (f y)`. This is stated for the functions rather than on
+vectors, so that `simp` uses it both on vectors of `V (f y)` and on vectors of `(f *ᵖ V) y`. -/
 @[simp]
+theorem coe_pullback (J : ContMDiffComplexStructure I n F V) (f : C^n⟮I', N; I, M⟯) (y : N) :
+    ⇑(J.pullback f y) = ⇑(J (f y)) := (rfl)
+
 theorem almostComplexStructureAt_pullback (J : ContMDiffComplexStructure I n F V)
     (f : C^n⟮I', N; I, M⟯) (y : N) :
     (J.pullback f).almostComplexStructureAt y = J.almostComplexStructureAt (f y) :=
   TauCeti.AlmostComplexStructure.toLinearMap_injective <| by
     rw [almostComplexStructureAt_toLinearMap, almostComplexStructureAt_toLinearMap]
     rfl
+
+/-- The almost complex structure of the pull-back at `y` acts as `J (f y)`; see `coe_pullback`. -/
+@[simp]
+theorem coe_almostComplexStructureAt_pullback (J : ContMDiffComplexStructure I n F V)
+    (f : C^n⟮I', N; I, M⟯) (y : N) :
+    ⇑((J.pullback f).almostComplexStructureAt y) = ⇑(J (f y)) :=
+  funext fun v ↦ almostComplexStructureAt_apply (J.pullback f) y v
 
 @[simp]
 theorem pullback_neg (J : ContMDiffComplexStructure I n F V) (f : C^n⟮I', N; I, M⟯) :
@@ -467,11 +479,11 @@ def prod (J₁ : ContMDiffComplexStructure I n F₁ V₁) (J₂ : ContMDiffCompl
   square_neg x := by
     ext v <;> simp
 
-@[simp]
 theorem prod_toEndomorphism (J₁ : ContMDiffComplexStructure I n F₁ V₁)
     (J₂ : ContMDiffComplexStructure I n F₂ V₂) (x : M) :
     (J₁.prod J₂).toEndomorphism x = (J₁.toEndomorphism x).prodMap (J₂.toEndomorphism x) := (rfl)
 
+@[simp]
 theorem prod_apply (J₁ : ContMDiffComplexStructure I n F₁ V₁)
     (J₂ : ContMDiffComplexStructure I n F₂ V₂) (x : M) (v : V₁ x × V₂ x) :
     J₁.prod J₂ x v = (J₁ x v.1, J₂ x v.2) := (rfl)

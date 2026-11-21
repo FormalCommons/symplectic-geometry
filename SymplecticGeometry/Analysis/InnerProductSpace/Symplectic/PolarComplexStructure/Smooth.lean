@@ -35,8 +35,8 @@ products and symplectic forms the formula is `J_{g,ω}`, which does not depend o
 
 * `TauCeti.isOpen_polarDomain`: the domain is open.
 * `TauCeti.contDiffOn_metricPolarFormula`: the formula is smooth on the domain, of every order.
-* `TauCeti.metricPolarFormula_symmetrizeBilinear_skewPart`: the formula only depends on the
-  symmetric part of `g` and the skew part of `s`.
+* `TauCeti.metricPolarFormula_symmetrizeBilinear_skewSymmetrizeBilinear`: the formula only
+  depends on the symmetric part of `g` and the skew part of `s`.
 * `TauCeti.metricPolarFormula_conj`: naturality of the formula on the domain under linear
   isomorphisms.
 * `SymplecticGeometry.mem_polarDomain`: every inner product and symplectic form lie in the
@@ -91,11 +91,10 @@ theorem mem_polarDomain_iff {p : (V →L[ℝ] V →L[ℝ] ℝ) × (V →L[ℝ] V
       (∀ v, v ≠ 0 → 0 < p.1 v v) ∧ (p.2 - p.2.flip).toBilinForm.Nondegenerate :=
   Iff.rfl
 
-/-- On the domain, the skew part `½(s - sᵀ)` of the second form is nondegenerate. -/
+/-- On the domain, the skew part of the second form is nondegenerate. -/
 theorem nondegenerate_toBilinForm_of_mem_polarDomain {g s : V →L[ℝ] V →L[ℝ] ℝ}
-    (h : (g, s) ∈ polarDomain V) : ((2 : ℝ)⁻¹ • (s - s.flip)).toBilinForm.Nondegenerate :=
-  (BilinForm.nondegenerate_smul_iff (IsRegular.of_ne_zero (by norm_num))).2
-    (mem_polarDomain_iff.1 h).2
+    (h : (g, s) ∈ polarDomain V) : (skewSymmetrizeBilinear s).toBilinForm.Nondegenerate :=
+  (nondegenerate_toBilinForm_skewSymmetrizeBilinear_iff s).2 (mem_polarDomain_iff.1 h).2
 
 variable (V) in
 /-- In finite dimension, the domain of `TauCeti.metricPolarFormula` is open. -/
@@ -113,13 +112,13 @@ variable {W W' : Type*} [NormedAddCommGroup W] [InnerProductSpace ℝ W] [Finite
 of `s`, `R = (g'♯)^(-1/2)` and `A = R s'♯ R`, it is `R A (√(-A²))⁻¹ √(g'♯)`. -/
 noncomputable def metricPolarFormula (g s : W →L[ℝ] W →L[ℝ] ℝ) : W →L[ℝ] W :=
   let g' := (symmetrizeBilinear g).val
-  let A := g'.metricChangeTransport * ((2 : ℝ)⁻¹ • (s - s.flip))♯ * g'.metricChangeTransport
+  let A := g'.metricChangeTransport * (skewSymmetrizeBilinear s)♯ * g'.metricChangeTransport
   g'.metricChangeTransport * (A * Ring.inverse (CFC.sqrt (-(A * A)))) * CFC.sqrt g'♯
 
 theorem metricPolarFormula_def (g s : W →L[ℝ] W →L[ℝ] ℝ) :
     metricPolarFormula g s =
       let g' := (symmetrizeBilinear g).val
-      let A := g'.metricChangeTransport * ((2 : ℝ)⁻¹ • (s - s.flip))♯ * g'.metricChangeTransport
+      let A := g'.metricChangeTransport * (skewSymmetrizeBilinear s)♯ * g'.metricChangeTransport
       g'.metricChangeTransport * (A * Ring.inverse (CFC.sqrt (-(A * A)))) * CFC.sqrt g'♯ :=
   (rfl)
 
@@ -128,18 +127,15 @@ theorem metricPolarFormula_def (g s : W →L[ℝ] W →L[ℝ] ℝ) :
 theorem contDiffOn_metricPolarFormula {n : WithTop ℕ∞} :
     ContDiffOn ℝ n (fun p ↦ metricPolarFormula p.1 p.2) (polarDomain W) := by
   let g' (p : (W →L[ℝ] W →L[ℝ] ℝ) × (W →L[ℝ] W →L[ℝ] ℝ)) := (symmetrizeBilinear p.1).val
-  let s' (p : (W →L[ℝ] W →L[ℝ] ℝ) × (W →L[ℝ] W →L[ℝ] ℝ)) := (2 : ℝ)⁻¹ • (p.2 - p.2.flip)
+  let s' (p : (W →L[ℝ] W →L[ℝ] ℝ) × (W →L[ℝ] W →L[ℝ] ℝ)) := skewSymmetrizeBilinear p.2
   let R (p : (W →L[ℝ] W →L[ℝ] ℝ) × (W →L[ℝ] W →L[ℝ] ℝ)) := (g' p).metricChangeTransport
   let A (p : (W →L[ℝ] W →L[ℝ] ℝ) × (W →L[ℝ] W →L[ℝ] ℝ)) := R p * (s' p)♯ * R p
-  have hflip : ContDiff ℝ n
-      (ContinuousLinearMap.flip : (W →L[ℝ] W →L[ℝ] ℝ) → W →L[ℝ] W →L[ℝ] ℝ) :=
-    (flipₗᵢ ℝ W W ℝ).toContinuousLinearEquiv.contDiff (𝕜 := ℝ) (n := n)
-      (E := W →L[ℝ] W →L[ℝ] ℝ) (F := W →L[ℝ] W →L[ℝ] ℝ)
   -- On the domain, `g'♯` and `-A²` are strictly positive.
   have hgpos : ∀ p ∈ polarDomain W, IsStrictlyPositive (g' p)♯ := fun p hp ↦
     isStrictlyPositive_continuousLinearMapOfBilin_symmetrizeBilinear hp.1
   have hApos : ∀ p ∈ polarDomain W, IsStrictlyPositive (-(A p * A p)) := fun p hp ↦ by
-    let ω := SymplecticForm.ofContinuousBilinearMap (s' p) (fun v ↦ by simp [s'])
+    let ω := SymplecticForm.ofContinuousBilinearMap (s' p)
+      (isAlt_toBilinForm_skewSymmetrizeBilinear p.2)
       (nondegenerate_toBilinForm_of_mem_polarDomain hp)
     exact ω.isStrictlyPositive_neg_mul_self_metricChangeTransport (hgpos p hp) fun c d ↦
       (SymplecticForm.ofContinuousBilinearMap_apply _ _ _ c d).symm
@@ -151,9 +147,9 @@ theorem contDiffOn_metricPolarFormula {n : WithTop ℕ∞} :
   have hR : ContDiffOn ℝ n R (polarDomain W) := hg'.metricChangeTransport hgpos
   have hQ : ContDiffOn ℝ n (fun p ↦ CFC.sqrt (g' p)♯) (polarDomain W) :=
     hg'.sqrt_continuousLinearMapOfBilin hgpos
+  have hs' : ContDiff ℝ n s' := by fun_prop
   have hA : ContDiffOn ℝ n A (polarDomain W) :=
-    (hR.mul ((contDiff_continuousLinearMapOfBilin.comp
-      ((contDiff_snd.sub (hflip.comp contDiff_snd)).const_smul (2 : ℝ)⁻¹)).contDiffOn)).mul hR
+    (hR.mul ((contDiff_continuousLinearMapOfBilin.comp hs').contDiffOn)).mul hR
   have hsqrt : ContDiffOn ℝ n (fun p ↦ CFC.sqrt (-(A p * A p))) (polarDomain W) :=
     ContinuousLinearMap.contDiffOn_sqrt.comp (hA.mul hA).neg hApos
   have hinv : ContDiffOn ℝ n (fun p ↦ Ring.inverse (CFC.sqrt (-(A p * A p))))
@@ -167,15 +163,12 @@ theorem contDiffOn_metricPolarFormula {n : WithTop ℕ∞} :
 
 /-- The formula only sees the symmetric part of its first argument and the skew part of its
 second. -/
-theorem metricPolarFormula_symmetrizeBilinear_skewPart (g s : W →L[ℝ] W →L[ℝ] ℝ) :
-    metricPolarFormula (symmetrizeBilinear g).val ((2 : ℝ)⁻¹ • (s - s.flip)) =
+theorem metricPolarFormula_symmetrizeBilinear_skewSymmetrizeBilinear
+    (g s : W →L[ℝ] W →L[ℝ] ℝ) :
+    metricPolarFormula (symmetrizeBilinear g).val (skewSymmetrizeBilinear s) =
       metricPolarFormula g s := by
-  have h₂ : (2 : ℝ)⁻¹ • ((2 : ℝ)⁻¹ • (s - s.flip) - ((2 : ℝ)⁻¹ • (s - s.flip)).flip) =
-      (2 : ℝ)⁻¹ • (s - s.flip) := by
-    ext u v
-    simp only [smul_apply, sub_apply, ContinuousLinearMap.flip_apply, smul_eq_mul]
-    ring
-  simp only [metricPolarFormula_def, symmetrizeBilinear_coe, h₂]
+  simp only [metricPolarFormula_def, symmetrizeBilinear_coe,
+    skewSymmetrizeBilinear_skewSymmetrizeBilinear]
 
 end TauCeti
 
@@ -190,11 +183,11 @@ variable {V : Type*} [NormedAddCommGroup V] [NormedSpace ℝ V] [FiniteDimension
 /-- Every pair of an inner product and a symplectic form lies in the domain of the formula. -/
 theorem mem_polarDomain (g : innerProducts V) (ω : SymplecticForm V) :
     ((g : V →L[ℝ] V →L[ℝ] ℝ), ω.toBilinForm.toContinuousBilinearMap) ∈ polarDomain V := by
-  -- `ω - ωᵀ = 2 ω` is nondegenerate because `ω` is.
-  refine ⟨(mem_innerProducts.1 g.property).2, ?_⟩
-  rw [SymplecticForm.toContinuousBilinearMap_sub_flip]
-  exact (BilinForm.nondegenerate_smul_iff (IsRegular.of_ne_zero (by norm_num))).2
-    (by simpa using ω.nondegenerate)
+  -- The skew part of `ω` is `ω`, which is nondegenerate.
+  refine ⟨(mem_innerProducts.1 g.property).2,
+    (nondegenerate_toBilinForm_skewSymmetrizeBilinear_iff _).1 ?_⟩
+  rw [SymplecticForm.skewSymmetrizeBilinear_toContinuousBilinearMap]
+  simpa using ω.nondegenerate
 
 end Domain
 
@@ -228,7 +221,7 @@ theorem metricPolarFormula_eq (g : innerProducts W) (ω : SymplecticForm W) :
     congrArg Subtype.val (symmetrizeBilinear_coe
       ⟨g, (mem_symmetricBilinearMaps ℝ W ℝ _).2 (mem_innerProducts.1 g.property).1⟩)
   simp only [metricPolarFormula_def, hg',
-    SymplecticForm.inv_two_smul_toContinuousBilinearMap_sub_flip]
+    SymplecticForm.skewSymmetrizeBilinear_toContinuousBilinearMap]
   rw [← ω₀.conjContinuousAlgEquiv_toContinuousLinearMap_polarComplexStructure K hg hs, hJ]
   ext v
   simp
@@ -238,10 +231,11 @@ skew part of `s`, then the formula at `(g, s)` is `J_{g',ω}` for the symmetric 
 On the domain, such an `ω` always exists. -/
 theorem metricPolarFormula_eq_of_toContinuousBilinearMap_eq {g s : W →L[ℝ] W →L[ℝ] ℝ}
     (hg : ∀ v, v ≠ 0 → 0 < g v v) {ω : SymplecticForm W}
-    (hω : ω.toBilinForm.toContinuousBilinearMap = (2 : ℝ)⁻¹ • (s - s.flip)) :
+    (hω : ω.toBilinForm.toContinuousBilinearMap = skewSymmetrizeBilinear s) :
     metricPolarFormula g s = LinearMap.toContinuousLinearMap
       (metricPolarComplexStructure ⟨_, symmetrizeBilinear_mem_innerProducts hg⟩ ω).toLinearMap := by
-  rw [← metricPolarFormula_eq, hω, Subtype.coe_mk, metricPolarFormula_symmetrizeBilinear_skewPart]
+  rw [← metricPolarFormula_eq, hω, Subtype.coe_mk,
+    metricPolarFormula_symmetrizeBilinear_skewSymmetrizeBilinear]
 
 /-- On the domain, the formula at `(g, s)` is `J_{g',ω'}` for the symmetric part `g'` of `g` and
 the symplectic form `ω'` given by the skew part of `s`. -/
@@ -269,15 +263,16 @@ theorem metricPolarFormula_conj (e : W ≃L[ℝ] W') {g s : W →L[ℝ] W →L[�
     metricPolarFormula (g.bilinearComp (e.symm : W' →L[ℝ] W) (e.symm : W' →L[ℝ] W))
         (s.bilinearComp (e.symm : W' →L[ℝ] W) (e.symm : W' →L[ℝ] W)) =
       e.conjContinuousAlgEquiv (metricPolarFormula g s) := by
-  let ω := SymplecticForm.ofContinuousBilinearMap ((2 : ℝ)⁻¹ • (s - s.flip)) (fun v ↦ by simp)
-    (nondegenerate_toBilinForm_of_mem_polarDomain h)
-  have hω : ω.toBilinForm.toContinuousBilinearMap = (2 : ℝ)⁻¹ • (s - s.flip) :=
+  let ω := SymplecticForm.ofContinuousBilinearMap (skewSymmetrizeBilinear s)
+    (isAlt_toBilinForm_skewSymmetrizeBilinear s) (nondegenerate_toBilinForm_of_mem_polarDomain h)
+  have hω : ω.toBilinForm.toContinuousBilinearMap = skewSymmetrizeBilinear s :=
     SymplecticForm.toBilinForm_toContinuousBilinearMap_ofContinuousBilinearMap _ _ _
   rw [metricPolarFormula_eq_of_mem h,
-    ← metricPolarFormula_symmetrizeBilinear_skewPart, symmetrizeBilinear_bilinearComp]
-  have hs : (2 : ℝ)⁻¹ • (s.bilinearComp (e.symm : W' →L[ℝ] W) (e.symm : W' →L[ℝ] W) -
-      (s.bilinearComp (e.symm : W' →L[ℝ] W) (e.symm : W' →L[ℝ] W)).flip) =
+    ← metricPolarFormula_symmetrizeBilinear_skewSymmetrizeBilinear,
+    symmetrizeBilinear_bilinearComp]
+  have hs : skewSymmetrizeBilinear (s.bilinearComp (e.symm : W' →L[ℝ] W) (e.symm : W' →L[ℝ] W)) =
       (ω.transport e.toLinearEquiv).toBilinForm.toContinuousBilinearMap := by
+    rw [skewSymmetrizeBilinear_bilinearComp]
     ext u v
     simpa using (DFunLike.congr_fun (DFunLike.congr_fun hω (e.symm u)) (e.symm v)).symm
   have hg : (symmetrizeBilinear g).val.bilinearComp (e.symm : W' →L[ℝ] W) (e.symm : W' →L[ℝ] W) =
