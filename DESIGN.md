@@ -1555,9 +1555,10 @@ isotopy extension need, and which neither Mathlib nor Tau Ceti has.
   `exists_embedding_euclidean_of_compact`), and
   `Geometry/Manifold/DeRham/SmoothFamily.lean` (the statement (★) of the
   auxiliary page, by its induction over the cover, and its consequences: a
-  linear primitive map on exact $k$-forms that takes smooth families to
-  smooth families, and smooth coordinates of the de Rham class of a smooth
-  family of closed forms in a basis of Tau Ceti's `TauCeti.deRhamCohomology`).
+  primitive map $P$, linear on exact $k$-forms, with $P\eta_t$ smooth in
+  $(t,x)$ whenever $\eta_t$ is, and, for closed $z_t$ smooth in $(t,x)$,
+  coordinates of $[z_t]$ that are smooth in $t$ in a basis of Tau Ceti's
+  `TauCeti.deRhamCohomology`).
   Families are forms on `ℝ × M` as in *Manifolds, families and signs*. The
   parametric Poincaré lemma on a member of the cover is Tau Ceti's homotopy
   operator `TauCeti.homotopyOperator` on the cylinder, applied as the page's
@@ -1619,13 +1620,13 @@ isotopy extension need, and which neither Mathlib nor Tau Ceti has.
 - **Files:** in `Geometry/Symplectic/Cotangent/Bundle/`, beside Tau Ceti's
   files there: `Liouville.lean` (named like Tau Ceti's file: uniqueness of
   $\lambda_{\mathrm{can}}$ among one-forms with $\sigma^*\lambda=\sigma$ for
-  every one-form $\sigma$, by sections with prescribed value and first
-  derivative at a point), `ZeroSection.lean` (along the zero section,
+  every one-form $\sigma$, testing against one-forms whose value and
+  derivative at a point are chosen freely), `ZeroSection.lean` (along the zero section,
   $\omega_{\mathrm{can}}((v,a),(w,b))=b(v)-a(w)$ in the splitting
   `TauCeti.Bundle.zeroSectionTangentEquiv`), `Lift.lean` (named like Tau
-  Ceti's file: the cotangent lift of the local flow of a vector field $Y$ is
-  the Hamiltonian flow of $H(q,p)=p(Y_q)$ where defined, and complete when
-  $Y$ is).
+  Ceti's file: for a vector field $Y$, lifting its local flow to $T^*L$ gives
+  the flow of $X_H$ for $H(q,p)=p(Y_q)$ where defined, and a complete flow
+  when $Y$ is complete).
 - **Builds on:** Tau Ceti: `TauCeti.CotangentBundle.liouvilleForm` with
   `mpullback_liouvilleForm`, `symplecticForm` (which is
   $-d\lambda_{\mathrm{can}}$, the page's sign) with `inChartAt_symplecticForm_apply`,
@@ -1720,10 +1721,10 @@ isotopy extension need, and which neither Mathlib nor Tau Ceti has.
   `TauCeti.RoughForm.descendedForm` and
   `TauCeti.SmoothTwoForm.isSymplectic_descendedForm_iff`), and in
   `Geometry/Symplectic/Neighborhood/`: `Tubular.lean` (the common step of
-  the four theorems: a fibrewise symplectic isomorphism of the ambient
-  tangent bundles along two properly embedded submanifolds, over a
-  diffeomorphism between them, is the derivative along the submanifold of a
-  diffeomorphism of neighbourhoods, which *Moser isotopy*'s relative theorem
+  the four theorems: given a diffeomorphism between two properly embedded
+  submanifolds and, over it, a bundle map $TM_0|_{Q_0}\to TM_1|_{Q_1}$ that
+  is a linear symplectomorphism on each fibre, some diffeomorphism of
+  neighbourhoods has that bundle map as its derivative along $Q_0$, which *Moser isotopy*'s relative theorem
   then corrects to a symplectomorphism with the same first jet),
   `Symplectic.lean`, `Lagrangian.lean` (the model $T^*L$ with
   $-d\lambda_{\mathrm{can}}$, through Tau Ceti's
@@ -1783,8 +1784,8 @@ isotopy extension need, and which neither Mathlib nor Tau Ceti has.
   rescaling for global forms; from Tau Ceti's `TauCeti.SmoothForm.grayDiffeomorph`
   and `TauCeti.SmoothForm.eq_grayVectorField_iff`, whose families are over
   `ℝ`), and `LegendrianNeighborhood.lean` (the Legendrian neighbourhood
-  theorem for a properly embedded Legendrian $L$, onto a neighbourhood of
-  the zero section of $T^*L\times\mathbb{R}$ with $\lambda_{\mathrm{can}}-dz$:
+  theorem for a properly embedded Legendrian $L$, with model the form
+  $\lambda_{\mathrm{can}}-dz$ near $L\times\{0\}$ in $T^*L\times\mathbb{R}$:
   a hypersurface through $L$ transverse to the Reeb field, the Lagrangian
   neighbourhood theorem there, a relative primitive from Tau Ceti's
   `TauCeti.SmoothEmbedding.exists_isSmoothForm_relative_primitive`, and the
@@ -2009,10 +2010,11 @@ Ceti assumes them compact).
   part applies Tau Ceti's canonical linear constructions at each point. For regular crossings
   the library uses Tau Ceti's signature results instead of Kato's selection
   theorem.
-- **Signs on `atlas/symplectic-manifolds.md`.** `auxiliary/02-signs.md` asks
-  every page to use $\iota(X_H)\omega=-dH$, $\omega_{\mathrm{can}}=d\lambda_{\mathrm{can}}$,
-  the symplectization $d(e^t\alpha)$ and the contact form $\iota(Z)\omega|_M$
-  of a hypersurface. `atlas/symplectic-manifolds.md` instead states its
+- **Signs on `atlas/symplectic-manifolds.md`.** By `auxiliary/02-signs.md`,
+  Hamiltonian fields satisfy $\iota(X_H)\omega=-dH$, cotangent bundles carry
+  $d\lambda_{\mathrm{can}}$, symplectizations $d(e^t\alpha)$, and a
+  hypersurface of contact type gets $\iota(Z)\omega|_M$, on every page.
+  `atlas/symplectic-manifolds.md` instead states its
   milestones in McDuff–Salamon's signs: $\iota(X_H)\omega=dH$,
   $\omega_{\mathrm{can}}=-d\lambda_{\mathrm{can}}$, $-d(e^s\alpha)$ and
   $-\iota(Y)\omega|_Q$. The library follows the milestones, which fix their
@@ -2021,8 +2023,8 @@ Ceti assumes them compact).
   Hamiltonian vector fields, Poisson brackets and cotangent bundles, and with
   `auxiliary/02-signs.md` on symplectizations and contact type, so no new
   definition is needed in either case. A later page in the signs of
-  `auxiliary/02-signs.md` reads $X_H$ there as Tau Ceti's Hamiltonian vector
-  field of $-H$.
+  `auxiliary/02-signs.md` writes its $X_H$ as
+  `TauCeti.SmoothTwoForm.hamiltonianVectorField` applied to $-H$.
 - **Families over $[0,1]$.** The plan's smooth families and isotopies are
   over $[0,1]$. The library's are over `ℝ`, as Tau Ceti's Moser and Gray
   theorems are, with hypotheses and conclusions stated for $t\in[0,1]$. A
