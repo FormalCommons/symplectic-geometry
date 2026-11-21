@@ -5,7 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import TauCeti.Geometry.Manifold.VectorBundle.Hom
+public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Hom
 public import TauCeti.Geometry.Manifold.VectorBundle.Section.FrameCover
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.ContMDiff
 public import TauCeti.Topology.VectorBundle.Complex.Structure
@@ -17,7 +17,9 @@ Let `V` be a real vector bundle with model fibre `F` over a manifold `M`. A `C�
 structure on `V` (`SymplecticGeometry.Bundle.ContMDiffComplexStructure I n F V`) is a `Cⁿ`
 section `J` of the endomorphism bundle of `V` with `J x ∘ J x = -1` in every fibre. For the
 tangent bundle these are Tau Ceti's `TauCeti.ContMDiffAlmostComplexStructure`, and the API
-here follows Tau Ceti's for that case, name for name.
+here follows Tau Ceti's for that case, name for name. The proofs adapt Tau Ceti's for the tangent
+bundle, in `TauCeti/Geometry/Symplectic/Manifold/AlmostComplex/ContMDiff.lean` and
+`TauCeti/Geometry/Symplectic/Manifold/AlmostComplex/Topology.lean`.
 
 ## Main definitions
 
@@ -100,35 +102,61 @@ theorem ext (h : ∀ (x : M) (v : V x), J x v = K x v) : J = K := by
   ext x v
   exact h x v
 
+/-! ### The underlying continuous complex structure -/
+
+/-- The underlying continuous complex structure. Its bundle
+`J.toContinuousComplexStructure.Fiber` is `V` as a complex vector bundle, with `J` as
+multiplication by `i`. -/
+def toContinuousComplexStructure (J : ContMDiffComplexStructure I n F V) :
+    TauCeti.Bundle.ContinuousComplexStructure F V where
+  toFun := J
+  comp_self := J.square_neg
+  continuous := J.toEndomorphism.contMDiff.continuous
+
+@[simp]
+theorem toContinuousComplexStructure_apply (J : ContMDiffComplexStructure I n F V) (x : M) :
+    J.toContinuousComplexStructure x = J x := (rfl)
+
+theorem toContinuousComplexStructure_injective :
+    Function.Injective (toContinuousComplexStructure : ContMDiffComplexStructure I n F V → _) :=
+  fun J K h ↦ ext fun x v ↦ by
+    simpa using congrArg (fun L : TauCeti.Bundle.ContinuousComplexStructure F V ↦ L x v) h
+
 /-- Applying a complex structure twice negates a vector. -/
 @[simp]
 theorem apply_apply (J : ContMDiffComplexStructure I n F V) (x : M) (v : V x) :
-    J x (J x v) = -v := by
-  simpa using congrArg (fun A : V x →L[ℝ] V x ↦ A v) (J.square_neg x)
+    J x (J x v) = -v :=
+  J.toContinuousComplexStructure.apply_apply x v
 
 /-- The value of a complex structure at a point, as an almost complex structure on the
 fibre. -/
 def almostComplexStructureAt (J : ContMDiffComplexStructure I n F V) (x : M) :
-    TauCeti.AlmostComplexStructure (V x) where
-  toLinearMap := (J x).toLinearMap
-  square_neg := LinearMap.ext fun v ↦ by simp
+    TauCeti.AlmostComplexStructure (V x) :=
+  J.toContinuousComplexStructure.almostComplexStructureAt x
+
+@[simp]
+theorem toContinuousComplexStructure_almostComplexStructureAt
+    (J : ContMDiffComplexStructure I n F V) (x : M) :
+    J.toContinuousComplexStructure.almostComplexStructureAt x =
+      J.almostComplexStructureAt x := (rfl)
 
 @[simp]
 theorem almostComplexStructureAt_toLinearMap (J : ContMDiffComplexStructure I n F V) (x : M) :
-    (J.almostComplexStructureAt x).toLinearMap = (J x).toLinearMap := (rfl)
+    (J.almostComplexStructureAt x).toLinearMap = (J x).toLinearMap :=
+  LinearMap.ext fun v ↦ J.toContinuousComplexStructure.almostComplexStructureAt_apply x v
 
 theorem almostComplexStructureAt_apply (J : ContMDiffComplexStructure I n F V) (x : M)
-    (v : V x) : J.almostComplexStructureAt x v = J x v := (rfl)
+    (v : V x) : J.almostComplexStructureAt x v = J x v :=
+  J.toContinuousComplexStructure.almostComplexStructureAt_apply x v
 
 /-- Each fibrewise endomorphism of a complex structure is injective. -/
 theorem injective (J : ContMDiffComplexStructure I n F V) (x : M) :
-    Function.Injective (J x) :=
-  (J.almostComplexStructureAt x).injective
+    Function.Injective (J x) := fun v w h ↦ by
+  simpa using congrArg (J x) h
 
 /-- Each fibrewise endomorphism of a complex structure is surjective. -/
 theorem surjective (J : ContMDiffComplexStructure I n F V) (x : M) :
-    Function.Surjective (J x) :=
-  (J.almostComplexStructureAt x).surjective
+    Function.Surjective (J x) := fun v ↦ ⟨-J x v, by simp⟩
 
 /-- On a bundle with nontrivial model fibre, no fibre of a complex structure is the identity:
 the identity squares to itself, and `id ≠ -id` on a nonzero real vector space. -/
@@ -214,32 +242,7 @@ theorem ofLE_neg (J : ContMDiffComplexStructure I n F V) (h : m ≤ n) :
   ext x v
   rfl
 
-/-! ### The underlying continuous complex structure -/
-
-/-- The underlying continuous complex structure. Its bundle
-`J.toContinuousComplexStructure.Fiber` is `V` as a complex vector bundle, with `J` as
-multiplication by `i`. -/
-def toContinuousComplexStructure (J : ContMDiffComplexStructure I n F V) :
-    TauCeti.Bundle.ContinuousComplexStructure F V where
-  toFun := J
-  comp_self := J.square_neg
-  continuous := J.toEndomorphism.contMDiff.continuous
-
-@[simp]
-theorem toContinuousComplexStructure_apply (J : ContMDiffComplexStructure I n F V) (x : M) :
-    J.toContinuousComplexStructure x = J x := (rfl)
-
-@[simp]
-theorem toContinuousComplexStructure_almostComplexStructureAt
-    (J : ContMDiffComplexStructure I n F V) (x : M) :
-    J.toContinuousComplexStructure.almostComplexStructureAt x = J.almostComplexStructureAt x := by
-  ext v
-  exact TauCeti.Bundle.ContinuousComplexStructure.almostComplexStructureAt_apply _ x v
-
-theorem toContinuousComplexStructure_injective :
-    Function.Injective (toContinuousComplexStructure : ContMDiffComplexStructure I n F V → _) :=
-  fun J K h ↦ ext fun x v ↦ by
-    simpa using congrArg (fun L : TauCeti.Bundle.ContinuousComplexStructure F V ↦ L x v) h
+/-! ### Continuous complex structures as structures of regularity `0` -/
 
 /-- A continuous complex structure, as a complex structure of regularity `0`. -/
 def ofContinuous (J : TauCeti.Bundle.ContinuousComplexStructure F V) :
@@ -250,6 +253,19 @@ def ofContinuous (J : TauCeti.Bundle.ContinuousComplexStructure F V) :
 @[simp]
 theorem ofContinuous_apply (J : TauCeti.Bundle.ContinuousComplexStructure F V) (x : M) :
     ofContinuous (I := I) J x = J x := (rfl)
+
+@[simp]
+theorem ofContinuous_toEndomorphism_apply (J : TauCeti.Bundle.ContinuousComplexStructure F V)
+    (x : M) : (ofContinuous (I := I) J).toEndomorphism x = J x := (rfl)
+
+@[simp]
+theorem ofContinuous_toContinuousComplexStructure (J : ContMDiffComplexStructure I 0 F V) :
+    ofContinuous J.toContinuousComplexStructure = J := (rfl)
+
+@[simp]
+theorem toContinuousComplexStructure_ofContinuous
+    (J : TauCeti.Bundle.ContinuousComplexStructure F V) :
+    (ofContinuous (I := I) J).toContinuousComplexStructure = J := (rfl)
 
 /-- Complex structures of regularity `0` are the continuous complex structures. -/
 def continuousEquiv :
@@ -316,20 +332,6 @@ variable {F₁ F₂ F₃ : Type*}
   [TopologicalSpace (TotalSpace F₃ V₃)] [FiberBundle F₃ V₃] [VectorBundle ℝ F₃ V₃]
   {n : ℕ∞}
 
-/-- The fibrewise inverse of a `Cⁿ` isomorphism of vector bundles is `Cⁿ`, as a section of the
-hom bundle from `V₂` to `V₁`. -/
-private theorem contMDiff_symm_hom (Φ : ∀ x, V₁ x ≃L[ℝ] V₂ x)
-    (hΦ : ContMDiff (I.prod 𝓘(ℝ, F₁)) (I.prod 𝓘(ℝ, F₂)) n
-      (fun p : TotalSpace F₁ V₁ ↦ TotalSpace.mk' F₂ p.proj (Φ p.proj p.snd))) :
-    ContMDiff I (I.prod 𝓘(ℝ, F₂ →L[ℝ] F₁)) n
-      (fun x ↦ TotalSpace.mk' (F₂ →L[ℝ] F₁) (E := fun x ↦ V₂ x →L[ℝ] V₁ x) x
-        ((Φ x).symm : V₂ x →L[ℝ] V₁ x)) := by
-  have : CompleteSpace F₁ := FiniteDimensional.completeSpace ℝ F₁
-  have h := (TauCeti.contMDiff_hom_bundle_iff (IB := I) (n := n)
-    (fun x ↦ ((Φ x : V₁ x →L[ℝ] V₂ x)))).2 hΦ
-  have hi := h.clm_bundle_inverse fun x ↦ ContinuousLinearMap.isInvertible_equiv
-  simpa only [ContinuousLinearMap.inverse_equiv] using hi
-
 /-- The transport `Φ ∘ J ∘ Φ⁻¹` of a complex structure `J` on `V₁` along an isomorphism of
 vector bundles `Φ : V₁ ≃ V₂` whose map of total spaces is `Cⁿ`. -/
 def pushforward (Φ : ∀ x, V₁ x ≃L[ℝ] V₂ x)
@@ -340,7 +342,7 @@ def pushforward (Φ : ∀ x, V₁ x ≃L[ℝ] V₂ x)
     ContMDiffSection.clmComp
       ⟨fun x ↦ (Φ x : V₁ x →L[ℝ] V₂ x), (TauCeti.contMDiff_hom_bundle_iff _).2 hΦ⟩
       (J.toEndomorphism.clmComp ⟨fun x ↦ ((Φ x).symm : V₂ x →L[ℝ] V₁ x),
-        contMDiff_symm_hom Φ hΦ⟩)
+        contMDiff_hom_bundle_symm Φ hΦ⟩)
   square_neg x := by
     ext v
     simp
@@ -440,25 +442,6 @@ theorem continuous_toEndomorphism_apply_frameTopology (hcover : ∀ x, ∃ i, x 
   exact (ContMDiffSection.continuous_eval_const (I := I) (n := n) e U hU hcover x).comp
     (isEmbedding_toEndomorphism_frameTopology e U hU).continuous
 
-omit [∀ x, ContinuousSMul ℝ (V x)] [IsManifold I n M] [ContMDiffVectorBundle n F V I] in
-/-- An endomorphism of a fibre squares to `-1` exactly when its expression in the
-trivialization at that point does. -/
-private theorem comp_self_eq_neg_id_iff_inCoordinates (x : M) (A : V x →L[ℝ] V x) :
-    A.comp A = -ContinuousLinearMap.id ℝ (V x) ↔
-      (ContinuousLinearMap.inCoordinates F V F V x x x x A).comp
-        (ContinuousLinearMap.inCoordinates F V F V x x x x A) =
-        -ContinuousLinearMap.id ℝ F := by
-  have hx := mem_baseSet_trivializationAt F V x
-  rw [ContinuousLinearMap.inCoordinates_eq hx hx]
-  generalize (trivializationAt F V x).continuousLinearEquivAt ℝ x hx = φ
-  constructor
-  · intro h
-    ext v
-    simpa using congrArg φ (congrArg (fun B : V x →L[ℝ] V x ↦ B (φ.symm v)) h)
-  · intro h
-    ext v
-    simpa using congrArg φ.symm (congrArg (fun B : F →L[ℝ] F ↦ B (φ v)) h)
-
 /-- For a covering frame system, the sections of the endomorphism bundle that square to `-1`
 form a closed set, so the endomorphism section is a closed embedding. -/
 theorem isClosedEmbedding_toEndomorphism_frameTopology (hcover : ∀ x, ∃ i, x ∈ U i) :
@@ -469,14 +452,20 @@ theorem isClosedEmbedding_toEndomorphism_frameTopology (hcover : ∀ x, ∃ i, x
   let _ := frameTopology (I := I) (n := n) e U hU
   refine ⟨isEmbedding_toEndomorphism_frameTopology e U hU, ?_⟩
   -- The fibre `V x →L[ℝ] V x` is not normed, so the condition `J x ∘ J x = -1` is read in the
-  -- trivialization of the endomorphism bundle at `x`, with values in `F →L[ℝ] F`.
+  -- trivialization of the endomorphism bundle at `x`, with values in `F →L[ℝ] F`. There, reading
+  -- an endomorphism in coordinates is an algebra isomorphism, so the condition is unchanged.
   let c (x : M) : Cₛ^n⟮I; F →L[ℝ] F, fun x ↦ V x →L[ℝ] V x⟯ → (F →L[ℝ] F) := fun s ↦
     ContinuousLinearMap.inCoordinates F V F V x x x x (s x)
   have hrange : range (toEndomorphism : ContMDiffComplexStructure I n F V → _) =
-      ⋂ x : M, {s | (c x s).comp (c x s) = -ContinuousLinearMap.id ℝ F} := by
+      ⋂ x : M, {s | c x s * c x s = -1} := by
     ext s
-    simp only [mem_range, mem_iInter, mem_ofPred_eq, c,
-      ← comp_self_eq_neg_id_iff_inCoordinates]
+    have h (x : M) : c x s * c x s = -1 ↔ s x * s x = -1 := by
+      simp only [c, ContinuousLinearMap.inCoordinates_eq_conjContinuousAlgEquiv
+        (mem_baseSet_trivializationAt F V x)]
+      rw [← map_mul, ← map_one ((trivializationAt F V x).continuousLinearEquivAt ℝ x
+        (mem_baseSet_trivializationAt F V x)).conjContinuousAlgEquiv, ← map_neg]
+      exact EquivLike.apply_eq_iff_eq _
+    simp only [mem_range, mem_iInter, mem_ofPred_eq, h]
     exact ⟨fun ⟨J, hJ⟩ ↦ hJ ▸ J.square_neg, fun h ↦ ⟨⟨s, h⟩, rfl⟩⟩
   rw [hrange]
   refine isClosed_iInter fun x ↦ ?_
@@ -488,7 +477,7 @@ theorem isClosedEmbedding_toEndomorphism_frameTopology (hcover : ∀ x, ∃ i, x
     rw [Function.comp_apply, Trivialization.continuousLinearMapAt_apply_of_mem (R := ℝ)
       (e := trivializationAt (F →L[ℝ] F) (fun x ↦ V x →L[ℝ] V x) x)
       (mem_baseSet_trivializationAt _ _ x), hom_trivializationAt_apply]
-  exact isClosed_eq (f := fun s ↦ (c x s).comp (c x s))
+  exact isClosed_eq (f := fun s ↦ c x s * c x s)
     (isBoundedBilinearMap_comp.continuous.comp (hx.prodMk hx)) continuous_const
 
 /-- A covering frame system gives a Hausdorff topology on complex structures. -/

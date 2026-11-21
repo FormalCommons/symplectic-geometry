@@ -113,6 +113,7 @@ variable {EB HB M : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB]
 
 | File | Content | Issues |
 |---|---|---|
+| `Geometry/Manifold/VectorBundle/Hom.lean` | the fibrewise inverse of a $C^n$ bundle isomorphism as a $C^n$ hom-bundle section (`contMDiff_hom_bundle_symm`) | 1 |
 | `Geometry/Manifold/VectorBundle/ComplexStructure.lean` | `Bundle.ContMDiffComplexStructure`, its API, transport and topology; the comparison with Tau Ceti on $TM$; pull-back, direct sum and multiplication by `Complex.I` | 1, 2, 20 |
 | `Geometry/Manifold/VectorBundle/Symplectic/Basic.lean` | `Bundle.ContMDiffTwoForm`, nondegeneracy, transport along bundle isomorphisms, the comparison with `TauCeti.SmoothTwoForm`, the flat form `flat` in the bundle of bilinear forms; symplectic isomorphisms and frames; forms of rank two | 3, 19 |
 | `Geometry/Manifold/VectorBundle/Section/Topology.lean` | continuity of fibrewise maps on section spaces | 4 |
@@ -212,9 +213,10 @@ name, so that the $TM$ statements are special cases:
   `ofLE_apply`, `ofLE_refl`, `ofLE_ofLE`, `ofLE_injective`; `Neg` with
   `neg_apply`, `neg_toEndomorphism`, `neg_neg`, `ofLE_neg`;
 - **Example.** `const`: for a complex structure `J₀ : TauCeti.AlmostComplexStructure W`
-  on a normed space `W`, the constant structure on the trivial bundle
-  `Bundle.Trivial M W`, with `@[simp] const_toEndomorphism_apply`; in
-  particular the standard one on `Bundle.Trivial M (StdSpace ι)`;
+  on a finite-dimensional normed space `W` (so that `J₀` is continuous), the
+  constant structure on the trivial bundle `Bundle.Trivial M W`, with
+  `@[simp] const_toEndomorphism_apply`; in particular the standard one on
+  `Bundle.Trivial M (StdSpace ι)`;
 - **Transport.** For a fibrewise equivalence `Φ : ∀ x, V₁ x ≃L[ℝ] V₂ x`
   whose map of total spaces is $C^n$, `pushforward Φ hΦ J :
   ContMDiffComplexStructure I n F₂ V₂`, the structure $\Phi J\Phi^{-1}$, with
@@ -229,8 +231,11 @@ name, so that the $TM$ statements are special cases:
   file, no hypothesis on the dimension), with Mathlib's
   `ContinuousLinearMap.isInvertible_equiv` and
   `ContinuousLinearMap.inverse_equiv`, following the proof of
-  `contMDiff_bundle_symm`. So `F₂` may have any dimension, as for the
-  two-form `pushforward`; nothing about sections is rebuilt;
+  `contMDiff_bundle_symm`. This step is the public lemma
+  `contMDiff_hom_bundle_symm` of this library's
+  `Geometry/Manifold/VectorBundle/Hom.lean`, for later transports to use.
+  So `F₂` may have any dimension, as for the two-form `pushforward`; nothing
+  about sections is rebuilt;
 - `toContinuousComplexStructure : ContMDiffComplexStructure I n F V →
   TauCeti.Bundle.ContinuousComplexStructure F V`
   (`Topology/VectorBundle/Complex/Structure.lean`) with
