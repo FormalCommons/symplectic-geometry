@@ -42,7 +42,9 @@ rank to be even (for finite rank, a nondegenerate form forces it), and rank zero
 
 * `ContMDiffTwoForm.bilinFormAt`: the bilinear form `(v, w) ↦ ω x ![v, w]` on the fibre `V x`.
 * `ContMDiffTwoForm.flat` and `ContMDiffTwoForm.contMDiff_flat`: the flat map `v ↦ ω(v, ·)` at
-  each point, a `C^n` section of the bundle of continuous bilinear forms on `V`.
+  each point, a `C^n` section of the bundle of continuous bilinear forms on `V`; and
+  `ContMDiffTwoForm.contMDiffOn_bilinFormAt`: pairing `C^n` sections with `ω` gives a `C^n`
+  function.
 * `ContMDiffTwoForm.IsNondegenerate`, with `isNondegenerate_iff_separatingLeft` and
   `IsNondegenerate.symplecticFormAt`, the Tau Ceti symplectic form on each fibre.
 * `isOpen_setOf_nondegenerate`: for finite rank, the fibrewise nondegenerate alternating maps are
@@ -246,6 +248,12 @@ theorem contMDiff_flat :
   congr 1
   ext i
   fin_cases i <;> exact (Trivialization.symmL_apply _ hx _).symm
+
+/-- Pairing two sections that are `C^n` on a set `s` with a `C^n` two-form gives a function that
+is `C^n` on `s`: `y ↦ ω_y(u y, v y)`. -/
+theorem contMDiffOn_bilinFormAt {s : Set M} {u v : ∀ x, V x} (hu : CMDiff[s] n (T% u))
+    (hv : CMDiff[s] n (T% v)) : CMDiff[s] n (fun x ↦ ω.bilinFormAt x (u x) (v x)) := by
+  simpa using ω.contMDiff_flat.contMDiffOn.clm_bundle_apply₂_trivial hu hv
 
 /-! ### Nondegeneracy -/
 
