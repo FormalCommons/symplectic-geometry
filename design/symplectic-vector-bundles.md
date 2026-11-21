@@ -109,8 +109,8 @@ says), except its lemma `moserGenerator_conj`, which goes in
 folder `Boundary/Collar/` have the names of a Tau Ceti or Mathlib file or
 folder at the same place, so that the two merge upstream.
 
-**Departures from `DESIGN.md`.** Each has its reason; #59 brings the overview
-in line once this design is merged.
+**Departures from the first `DESIGN.md`.** Each has its reason; #59 brought
+the overview in line with them.
 
 - The overview's `.../Symplectic/ComplexStructure.lean` becomes a folder of
   two files from the start, since its content is more than one file holds.
@@ -641,7 +641,7 @@ it, its design adds it.
   Tau Ceti already has: the fibrewise constructions it needs (the Cayley path,
   $J_{g,\omega}$, $\omega_{g,J}$, the complex-linear part) are Tau Ceti's
   linear ones or explicit formulas. So none of its issues waits for part 9,
-  although `DESIGN.md` lists that part among its prerequisites.
+  and `DESIGN.md` does not list that part among its prerequisites.
 
 ## Building issues
 

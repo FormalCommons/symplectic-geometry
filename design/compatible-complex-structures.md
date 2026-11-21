@@ -210,11 +210,14 @@ is the ambient inner product. The ambient case of the characterization,
 `TauCeti.SymplecticForm.polarComplexStructure_eq_iff`, is proved first, in
 Tau Ceti's namespace. It is the input for the general case.
 
-### Statements that the bundle part applies fibrewise
+### Explicit formulas on open sets
 
-*Symplectic vector bundles* gets three explicit formulas, each smooth on an
-open set and natural under continuous linear equivalences, so that the
-expressions in two trivializations agree:
+The part states smoothness through three explicit formulas, each smooth on
+an open set and natural under continuous linear equivalences, so that they
+could also be read in trivializations of a bundle. *Symplectic vector
+bundles* does not use them: its design applies Tau Ceti's linear
+`cayleyPathFormula` and `SymplecticForm.polarComplexStructure` fibrewise,
+and none of its issues waits for this part. The three formulas:
 
 1. `TauCeti.metricPolarFormula`, the formula for $(g,\omega)\mapsto J_{g,\omega}$, on
    the open set `TauCeti.polarDomain W` of pairs of continuous bilinear forms. It is
@@ -813,8 +816,10 @@ Each is a few hundred lines. External blockers are given by issue number.
     `Topology/Algebra/Matrix/SymplecticGroup/CompactSubgroup.lean`. Blockers:
     2, #8.
 
-Issues 1, 3 and 6 can start at once. *Symplectic vector bundles* needs 5, 6,
-8 and 10.
+Issues 1, 3 and 6 can start at once. No issue of *Symplectic vector bundles*
+waits for this part. Its contractibility issue uses the same open set of
+Cayley units over $[0,1]$ as issue 6 here; whichever is built second uses the
+other's openness lemma.
 
 ## References
 

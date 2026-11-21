@@ -667,29 +667,32 @@ it into issues; the overview fixes its folders and its dependencies.
   finite-dimensional spaces, but the complex structures lie in the closed set
   $\{J^2=-1\}$ of $\mathrm{End}(V)$, of positive codimension, so for them the
   file chooses between a submanifold structure and maps defined on an open
-  neighbourhood in $\mathrm{End}(V)$); and how the GL-equivariant
-  constructions are stated so that *Symplectic vector bundles* can apply them
-  fibrewise. For that the file delivers the contraction of the compatible
-  structures through the Cayley transform, the map $(g,\omega)\mapsto
-  J_{g,\omega}$ and the contraction of the tame structures as explicit
-  formulas. The two Cayley-transform contractions, taken relative to a
-  reference structure $J_0$, are given on the set $U_{J_0}$ of
-  $A\in\mathrm{End}(V)$ such that $1-J_0A$ is invertible and
-  $1-b\cdot$`cayleyFormula J₀ A` is invertible for every $b\in[0,1]$: the two
-  units that `contDiffAt_cayleyPathFormula`
+  neighbourhood in $\mathrm{End}(V)$). The design file chooses explicit
+  formulas that are smooth on open sets: the Cayley path, Tau Ceti's
+  `cayleyPathFormula`, on `TauCeti.cayleyDomain`
+  (`Geometry/Symplectic/Cayley/Domain.lean`), and $(g,\omega)\mapsto
+  J_{g,\omega}$ as `TauCeti.metricPolarFormula` on `TauCeti.polarDomain`
+  (`PolarComplexStructure/Smooth.lean`), an open set that contains every
+  pair of an inner product and a symplectic form. The two Cayley-transform
+  contractions, taken relative to a reference structure $J_0$, are given on
+  the set $U_{J_0}$ of $A\in\mathrm{End}(V)$ such that $1-J_0A$ is invertible
+  and $1-b\cdot$`cayleyFormula J₀ A` is invertible for every $b\in[0,1]$: the
+  two units that `contDiffAt_cayleyPathFormula`
   (`Geometry/Symplectic/Cayley/Smooth.lean`) asks for. This set is open,
-  since $[0,1]$ is compact. It does not contain every complex structure
-  ($A=-J_0$ gives $1-J_0A=0$), but for an $\omega$-compatible $J_0$ it
-  contains the $\omega$-tame structures, hence the compatible ones. The
-  first unit is `Tames.isUnit_one_sub_mul_of_toLinearMap`, which needs
-  $J_0$ only tame; the second is
-  `Compatible.isUnit_one_sub_smul_cayleyFormula`, which needs $J_0$
+  since $[0,1]$ is compact (`isOpen_setOf_forall_Icc_mem_cayleyDomain`). It
+  does not contain every complex structure ($A=-J_0$ gives $1-J_0A=0$), but
+  for an $\omega$-compatible $J_0$ it contains the $\omega$-tame structures,
+  hence the compatible ones. The first unit is
+  `Tames.isUnit_one_sub_mul_of_toLinearMap`, which needs $J_0$ only tame; the
+  second is `Compatible.isUnit_one_sub_smul_cayleyFormula`, which needs $J_0$
   compatible (both in `Geometry/Symplectic/Cayley/Smooth.lean`). The
-  contractions also take a compatible $J_0$, as Tau Ceti's do. The map $(g,\omega)\mapsto J_{g,\omega}$ is given on the open set
-  of pairs of an inner product and a nondegenerate form. All three are
-  $C^\infty$ there in the structure (and $J_{g,\omega}$ also in $g$), with all
-  derivatives continuous in the time; Tau Ceti's `ContractibleSpace`
-  instances give only continuous contractions, which do not suffice.
+  contractions also take a compatible $J_0$, as Tau Ceti's do. The formulas
+  are $C^\infty$ on their domains in the structure (and $J_{g,\omega}$ also
+  in $g$). *Symplectic vector bundles* does not wait for them: it applies Tau
+  Ceti's linear `cayleyPathFormula` and `SymplecticForm.polarComplexStructure`
+  fibrewise (see that part). It uses the same set $U_{J_0}$ at each point,
+  so whichever of the two parts builds that set second takes the other's
+  openness lemma instead of proving it again.
 
 ### 10. Linear Moser
 
@@ -745,8 +748,7 @@ it into issues; the overview fixes its folders and its dependencies.
   (symplectic forms on a smooth real vector bundle, as smooth sections of the
   bundle of alternating maps, Mathlib's
   `ContMDiffVectorBundle.continuousAlternatingMap`, that are fibrewise
-  nondegenerate; isomorphisms; local symplectic trivializations and the
-  reduction of the structure group to $\mathrm{Sp}(2n)$; for $E=TM$, the
+  nondegenerate; transport along isomorphisms; for $E=TM$, the
   identification of these forms with Tau Ceti's `TauCeti.SmoothTwoForm I M`
   and of nondegeneracy with `TauCeti.SmoothTwoForm.IsNondegenerate`, and
   with it the tangent bundle of a surface with an area form; see
@@ -787,46 +789,81 @@ it into issues; the overview fixes its folders and its dependencies.
   (`AlmostComplex/ComplexTangentBundle.lean`), and for $n=\infty$, composed
   with `ContMDiffAlmostComplexStructure.smoothEquiv`, the homeomorphism with
   `SmoothAlmostComplexStructure` for the two `frameTopology`s, so that
-  manifolds keep Tau Ceti's models), `.../Symplectic/ComplexStructure.lean`
-  (compatible and tame ones, as subtypes like Tau Ceti's for $TM$, existence
-  and contractibility, and the converse direction for forms taming a fixed
-  $J$; the homotopy equivalence $\omega\mapsto J_{g,\omega}$ on sections,
-  with $\mathrm{Met}(E)$ Mathlib's `Bundle.ContMDiffRiemannianMetric` and its
-  topology Tau Ceti's `Bundle.ContMDiffRiemannianMetric.frameTopology`, whose
-  `continuous_convexCombination_frameTopology` contracts it),
+  manifolds keep Tau Ceti's models),
+  `.../Symplectic/ComplexStructure/` (`Basic.lean`: tame and compatible
+  pairs, as predicates like Tau Ceti's for $TM$, the form $\omega_{g,J}$ of a
+  metric and a structure, the polar structure $J_{g,\omega}$, built fibrewise
+  from Tau Ceti's linear `SymplecticForm.polarComplexStructure`, and the
+  existence of compatible structures and forms; `Contractible.lean`:
+  contractibility of the tame and compatible structures for a fixed form and
+  of the taming and compatible forms for a fixed structure, the homotopy
+  equivalence $\omega\mapsto J_{g,\omega}$ on sections, and the second
+  milestone),
+  `Geometry/Manifold/VectorBundle/Riemannian/SectionTopology.lean`
+  (contractibility of $\mathrm{Met}(E)$, Mathlib's
+  `Bundle.ContMDiffRiemannianMetric` with Tau Ceti's
+  `Bundle.ContMDiffRiemannianMetric.frameTopology`, from
+  `continuous_convexCombination_frameTopology`; the file has the name of the
+  Tau Ceti file with that lemma, since it mentions only Mathlib and Tau Ceti
+  types),
+  `.../Symplectic/Trivialization.lean` (local Darboux frames, by Tau Ceti's
+  smooth Gram–Schmidt applied with $J_{g,\omega}$, local symplectic
+  trivializations and the reduction of the structure group to
+  $\mathrm{Sp}(F,\sigma)$; after `ComplexStructure/Basic.lean`, whose
+  $J_{g,\omega}$ it uses),
   `.../Symplectic/Classification.lean` (two symplectic bundles
   with tame complex structures are isomorphic as symplectic bundles if and
   only if they are as complex bundles),
   `Geometry/Manifold/VectorBundle/Section/Topology.lean` (the general lemma,
   in the namespace `ContMDiffSection`: for fibre maps
-  $\Phi_{p,x}:V_x\to W_x$ depending on a parameter $p\in P$ whose expressions
-  in trivializations are $C^n$ in the point and the fibre value, with those
-  derivatives up to order $n$ continuous in $p$ as well, the induced map
-  $P\times$ `Cₛ^n⟮I; F, V⟯` $\to$ `Cₛ^n⟮I; F', W⟯`, $(p,s)\mapsto\Phi_p\circ s$,
-  is jointly continuous for `frameTopology`, for every $n$ including
-  $\infty$. The fibre maps may be defined only on an open subset of the
-  total space of $V$ that the sections take values in; openness in each
-  fibre would not do, since derivatives in trivializations need an open set
-  of the total space. Examples are the union over $x\in M$ of the sets
-  $U_{J_0(x)}$ of *Compatible complex structures*, for a continuous
-  reference section $J_0$ that is compatible at every point (one always
-  exists), which contains the
-  tame structures, and the fibrewise nondegenerate forms.
-  Continuity in the point alone is not enough for $n\ge1$: on the trivial
-  line bundle over $\mathbb{R}$, $\Phi_t(x,v)=v+t\sin(x/t)$ is continuous in
-  $(t,x,v)$ with $\Phi_0=\mathrm{id}$, but $\partial_x(\Phi_t\circ s-s)=\cos(x/t)$
-  does not tend to $0$. The proof goes through
-  `ContMDiffSection.continuous_frameTopology_iff`; the file has the name of
-  the Tau Ceti file that defines that topology, so that the two merge
-  upstream),
+  $\Phi_{p,x}:V_x\to W_x$ depending on a parameter $p$ in a manifold $P$,
+  defined on an open subset $O$ of the total space of $V$ and jointly $C^n$
+  there in the parameter, the point and the fibre value, the map
+  $(p,s)\mapsto\Phi_p\circ s$ from $P$ times the sections with values in $O$
+  to `Cₛ^n⟮I; F', W⟯` is jointly continuous for `frameTopology`, for every
+  $n$ including $\infty$. Joint regularity implies that the derivatives in
+  the fibre directions are continuous in $p$, and it is what the uses give,
+  since their fibre maps are explicit formulas. Openness in each fibre would
+  not do, since derivatives in trivializations need an open set of the total
+  space. Examples are the union over $x\in M$ of the sets $U_{J_0(x)}$ of
+  the two Cayley units, for a reference structure $J_0$ compatible with the
+  form, which contains the tame structures, and the fibrewise nondegenerate
+  forms. Continuity in the point alone is not enough for $n\ge1$: on the
+  trivial line bundle over $\mathbb{R}$, $\Phi_t(x,v)=v+t\sin(x/t)$ is
+  continuous in $(t,x,v)$ with $\Phi_0=\mathrm{id}$, but
+  $\partial_x(\Phi_t\circ s-s)=\cos(x/t)$ does not tend to $0$. The proof
+  goes through `ContMDiffSection.continuous_frameTopology_iff`; the file has
+  the name of the Tau Ceti file that defines that topology, so that the two
+  merge upstream),
   `Geometry/Manifold/VectorBundle/Hermitian/Basic.lean` (the symplectic form
   of a Hermitian bundle; see *Constructions* below),
   `.../Hermitian/CircleBundle.lean` (the unit circle bundle of a Hermitian
   line bundle as a principal `Circle`-bundle; see *Constructions*),
-  `Geometry/Manifold/VectorBundle/Hermitian/Surface.lean` (unitary
-  trivializations along curves and over compact connected oriented surfaces
-  with nonempty boundary).
-- **Builds on:** *Compatible complex structures*, *Linear Moser*, Mathlib's
+  and, for the last milestone, `Geometry/Manifold/IsManifold/InteriorBoundary.lean`
+  (the interior of a manifold with boundary as a boundaryless manifold,
+  connected when the manifold is connected and of positive dimension),
+  `Geometry/Manifold/Boundary/Collar/Push.lean`
+  (a homotopy pushing a compact manifold with boundary into a compact subset
+  of its interior along a collar), `.../VectorBundle/Section/Generic.lean`
+  (over a boundaryless manifold, a smooth section of a bundle of rank equal
+  to the dimension whose zero set is closed and discrete),
+  `.../VectorBundle/Section/Nonvanishing.lean` (smoothing a continuous
+  nowhere-zero section over a compact base; a smooth nowhere-zero section of
+  every real bundle of rank at least $2$ over a compact connected surface
+  with nonempty boundary) and
+  `Geometry/Manifold/VectorBundle/Hermitian/Surface.lean` (unitary frames
+  and trivializations over compact connected surfaces with nonempty
+  boundary, not assumed oriented, by induction on the rank through Hermitian
+  orthogonal complements). The book's route cuts the surface into pieces,
+  which would need the classification of compact surfaces with boundary;
+  this route needs only the nowhere-zero sections. Lemma 2.6.6 of
+  [McDuffSalamon2017], unitary frames along curves, is not used and not
+  planned; *First Chern number* does not use it either. The parametric
+  smoothness of the linear Moser flow, which the classification uses, goes
+  in the files of *Linear Moser*.
+- **Builds on:** *Linear Moser*, *Standard model* (`stdForm`,
+  `StdSpace.sumEquiv` and the matrix dictionary, for frames and transition
+  maps), Mathlib's
   smooth vector bundles and bundle metrics, Tau Ceti's bundle constructions
   (`Topology/VectorBundle/`, `Geometry/Manifold/VectorBundle/`), its section
   spaces with their topology (`Geometry/Manifold/VectorBundle/Section/`), the
@@ -839,8 +876,13 @@ it into issues; the overview fixes its folders and its dependencies.
   structures (`Geometry/Symplectic/Manifold/AlmostComplex/ContMDiff.lean`,
   `.../AlmostComplex/ComplexTangentBundle.lean`), and its other
   results for $E=TM$ (`Geometry/Symplectic/Manifold/`), which it generalizes
-  rather than duplicates; for the constructions, the pieces listed under
-  *Constructions*.
+  rather than duplicates; its linear Cayley path (`cayleyPathFormula` with
+  its unit lemmas, `Geometry/Symplectic/Cayley/`) and polar complex
+  structure (`SymplecticForm.polarComplexStructure`), applied fibrewise;
+  its generic sections, diffeotopies of configurations and collars, for the
+  last milestone; for the constructions, the pieces listed under
+  *Constructions*. It uses nothing from *Compatible complex structures*
+  beyond what Tau Ceti has, so none of its issues waits for that part.
 - **Milestones:** *Symplectic vector bundles are complex vector bundles*,
   *Compatible and tame complex structures on symplectic vector bundles*,
   *Unitary trivializations over surfaces with boundary*.
@@ -856,20 +898,23 @@ it into issues; the overview fixes its folders and its dependencies.
   `ContMDiffSection.frameTopology_eq_of_covers` (`Section/FrameCover.lean`)
   shows it does not depend on the choice, so the statements fix any such
   cover. They are `ContractibleSpace` and `ContinuousMap.HomotopyEquiv` for
-  these subspaces. The proofs apply the explicit linear constructions of
-  *Compatible complex structures* and *Linear Moser* at each point. These
-  are $C^\infty$ in the structure (and, for $J_{g,\omega}$, in $g$) on open
-  neighbourhoods in the fibre spaces (for complex structures, the sets
-  $U_{J_0(x)}$ of the two Cayley units, relative to a reference section
-  $J_0$ that is compatible at every point), with all derivatives continuous in the time of the
-  contraction; these neighbourhoods form open subsets of the total spaces
-  (for the Cayley sets because $J_0$ is a continuous section, the two units
-  are open conditions, and $[0,1]$ is compact), and read in trivializations the maps are $C^n$ there in the
-  point and the structure,
-  with derivatives continuous in the time, which is the hypothesis of the
-  lemma of `Section/Topology.lean`. That lemma makes the induced maps on
-  sections, and the contractions $[0,1]\times S\to S$ as a whole, continuous
-  for `frameTopology`; `ContMDiffSection.continuous_totalSpace_eval` and
+  these subspaces. The proofs apply explicit linear formulas at each point:
+  Tau Ceti's `cayleyPathFormula` and `SymplecticForm.polarComplexStructure`,
+  convex combinations, and the linear Moser construction of *Linear Moser*.
+  For complex structures, the Cayley path relative to a reference structure
+  $J_0$ compatible with the form is jointly smooth in its coefficient and the
+  structure on the sets $U_{J_0(x)}$ of the two Cayley units, which form an
+  open subset of the total space of the endomorphism bundle (the two units
+  are open conditions and $[0,1]$ is compact) containing the values of
+  every tame structure. Tau Ceti's second unit holds only for coefficients
+  in $[-1,1]$, so the time enters through `smoothTransition`, which keeps
+  the coefficient in $[0,1]$ for every real time, and the homotopies are the
+  restrictions to $[0,1]$. Read in trivializations these maps are then
+  jointly $C^n$ in the time, the point and the fibre value, which is the
+  hypothesis of the lemma of `Section/Topology.lean`. That lemma makes the
+  induced maps on sections, and the contractions $[0,1]\times S\to S$ as a
+  whole, continuous for `frameTopology`;
+  `ContMDiffSection.continuous_totalSpace_eval` and
   `locallyConvexSpace_frameTopology` give the evaluation and the convex
   combinations.
 - **Constructions.** *First Chern number* needs four ways to make symplectic
@@ -1047,8 +1092,9 @@ it into issues; the overview fixes its folders and its dependencies.
   section spaces above (which bundle; the cover, which `frameTopology` takes
   as explicit frames rather than as an instance, so the file fixes once how
   the statements quantify over it); and which surface
-  topology the last milestone needs (decomposition of compact surfaces with
-  boundary), with an issue for each missing prerequisite.
+  topology the last milestone needs (none of the decomposition of compact
+  surfaces with boundary: the route through nowhere-zero sections under
+  *Files* replaces it), with an issue for each missing prerequisite.
 
 ### 13. First Chern number (needs `design/first-chern-number.md`)
 
@@ -1098,10 +1144,10 @@ Each part depends only on the parts listed, besides Mathlib and Tau Ceti.
 | 1 | *Linear nonsqueezing* | *Standard model* |
 | 1 | *Linear complex structures* | *Standard model* |
 | 1 | *Siegel upper half space* | *Standard model* |
+| 1 | *Symplectic vector bundles* | *Standard model*, *Linear Moser* |
 | 2 | *Compatible complex structures* | *Standard model*, *Symplectic vector spaces* |
 | 2 | *Maslov index* | *Standard model*, *Symplectic group*, *Unitary group topology*; its Lagrangian issues also *Lagrangian Grassmannian* |
-| 3 | *Symplectic vector bundles* | *Compatible complex structures*, *Linear Moser* |
-| 4 | *First Chern number* | *Symplectic vector bundles*, the symplectic-loop issues of *Maslov index* |
+| 3 | *First Chern number* | *Symplectic vector bundles*, the symplectic-loop issues of *Maslov index* |
 
 The design issues of the parts marked as needing one can start at once, in
 parallel with the level-0 parts.
@@ -1188,7 +1234,7 @@ milestone as one theorem with the plan's hypotheses and conclusion.
   structures that differ outside every compact set lie in different path
   components.
 - **Proof routes.** The linear contractibility results go through the Cayley
-  transform and the equivariant $J_{g,\omega}$, as Tau Ceti does; this keeps
-  the constructions canonical for their use on bundles. For regular crossings
+  transform and the equivariant $J_{g,\omega}$, as Tau Ceti does; the bundle
+  part applies Tau Ceti's canonical linear constructions at each point. For regular crossings
   the library uses Tau Ceti's signature results instead of Kato's selection
   theorem.
