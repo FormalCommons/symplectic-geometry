@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.Geometry.Symplectic.Moser.Field
 public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Basic
 public import TauCeti.Geometry.Manifold.SmoothIsotopy.Basic
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Basic
 import SymplecticGeometry.Geometry.Symplectic.Manifold.Family
 import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Extend
 import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Flow
@@ -97,53 +98,93 @@ theorem exists_diffeotopy_fix_eventually_mpullback_eq_of_mextDeriv_eq_sub
   have hIK : IsCompact (Icc (0 : ℝ) 1 ×ˢ K) := isCompact_Icc.prod hK
   obtain ⟨ρ, hρ, hρ1, hρc, hρO, -⟩ :=
     hIK.exists_contMDiff_one_nhds_tsupport_subset (𝓘(ℝ, ℝ).prod I) hO hKO
-  have hinv : ∀ p ∈ tsupport ρ, ((σ₀ + p.1 • (σ₁ - σ₀)).flat p.2).IsInvertible :=
-    fun p hp ↦ hρO hp
-  have hX := contMDiff_moserField β hρ hinv
+  set σ := SmoothForm.lineMapFamily σ₀ σ₁ (contDiff_id (n := ∞))
+  set β' : SmoothForm (𝓘(ℝ, ℝ).prod I) (ℝ × M) ℝ 1 :=
+    SmoothForm.mpullback Prod.snd contMDiff_snd β
+  have hσt (u : ℝ) :
+      SmoothForm.mpullback (Prod.mk u) (contMDiff_const.prodMk contMDiff_id) σ =
+        σ₀ + u • (σ₁ - σ₀) :=
+    SmoothForm.mpullback_prodMk_lineMapFamily σ₀ σ₁ _ u
+  have hβt (u : ℝ) :
+      SmoothForm.mpullback (Prod.mk u) (contMDiff_const.prodMk contMDiff_id) β' = β :=
+    SmoothForm.mpullback_prodMk_mpullback_snd u β
+  have hinv : ∀ p ∈ tsupport ρ, (SmoothTwoForm.flat
+      (SmoothForm.mpullback (Prod.mk p.1) (contMDiff_const.prodMk contMDiff_id) σ)
+        p.2).IsInvertible :=
+    fun p hp ↦ by rw [hσt]; exact hρO hp
+  have hX := contMDiff_moserField σ β' hρ hinv
   have hX₁ := hX.of_le (m := 1) (by simp)
   set C := Prod.snd '' tsupport ρ
   have hC : IsCompact C := hρc.isCompact.image continuous_snd
-  have hXC (u : ℝ) (y : M) (hy : y ∉ C) : moserField σ₀ σ₁ β ρ u y = 0 :=
+  have hXC (u : ℝ) (y : M) (hy : y ∉ C) : moserField σ β' ρ u y = 0 :=
     moserField_eq_zero_of_notMem_tsupport fun h ↦ hy ⟨_, h, rfl⟩
+  have hXK (u : ℝ) (x : M) (hx : x ∈ K) : moserField σ β' ρ u x = 0 :=
+    moserField_eq_zero_of_apply_eq_zero (by rw [hβt]; exact hβK x hx)
   have hc := isCompleteVectorField_timeDependentSuspensionField hX₁ hC hXC
   let Ψ := timeDependentFlowDiffeotopy (by simp) hX hc
   have hΨ (t : unitInterval) :
-      ⇑(Ψ.timeSlice t) = timeDependentFlowOf (moserField σ₀ σ₁ β ρ) 0 t := by
+      ⇑(Ψ.timeSlice t) = timeDependentFlowOf (moserField σ β' ρ) 0 t := by
     funext x
     rw [Diffeotopy.timeSlice_apply, timeDependentFlowDiffeotopy_apply]
-  have hzero (x : M) (hx : ∀ u, moserField σ₀ σ₁ β ρ u x = 0) (s t : ℝ) :
-      timeDependentFlowOf (moserField σ₀ σ₁ β ρ) s t x = x :=
+  have hzero (x : M) (hx : ∀ u, moserField σ β' ρ u x = 0) (s t : ℝ) :
+      timeDependentFlowOf (moserField σ β' ρ) s t x = x :=
     timeDependentFlowOf_eq_self_of_forall_eq_zero hX₁ hx s t
   refine ⟨Ψ, ⟨C, hC, fun t x hx ↦ timeDependentFlowDiffeotopy_apply_of_forall_eq_zero _ _ _
     (fun u ↦ hXC u x hx) t⟩, fun t x hx ↦ timeDependentFlowDiffeotopy_apply_of_forall_eq_zero _ _ _
-    (fun u ↦ moserField_eq_zero_of_apply_eq_zero (hβK x hx) u) t, ?_⟩
+    (fun u ↦ hXK u x hx) t, ?_⟩
   -- `S`: the points near which `ρ = 1` and `σ_s` is nondegenerate, where Moser's equation holds.
   set S := {p : ℝ × M | ∀ᶠ q in 𝓝 p, ρ q = 1 ∧ ((σ₀ + q.1 • (σ₁ - σ₀)).flat q.2).IsInvertible}
   have hKS : Icc (0 : ℝ) 1 ×ˢ K ⊆ S := fun p hp ↦
     ((eventually_nhdsSet_iff_forall.1 hρ1) p hp).and (hO.mem_nhds (hKO hp))
   -- The trajectories starting near `K` stay in `S` up to time `1`.
   have hφ : Continuous fun p : ℝ × M ↦
-      (p.1, timeDependentFlowOf (moserField σ₀ σ₁ β ρ) 0 p.1 p.2) :=
+      (p.1, timeDependentFlowOf (moserField σ β' ρ) 0 p.1 p.2) :=
     continuous_fst.prodMk ((contMDiff_timeDependentFlowOf hc le_top hX).comp
       ((contMDiff_const.prodMk contMDiff_fst).prodMk contMDiff_snd)).continuous
   have hT : IsOpen {p : ℝ × M |
-      (p.1, timeDependentFlowOf (moserField σ₀ σ₁ β ρ) 0 p.1 p.2) ∈ S} :=
+      (p.1, timeDependentFlowOf (moserField σ β' ρ) 0 p.1 p.2) ∈ S} :=
     isOpen_setOfPred_eventually_nhds.preimage hφ
   obtain ⟨u, W, -, hW, hu, hKW, huW⟩ := generalized_tube_lemma isCompact_Icc hK hT
     fun p hp ↦ by
-      rw [mem_ofPred_eq, hzero p.2
-        (fun u ↦ moserField_eq_zero_of_apply_eq_zero (hβK p.2 hp.2) u)]
+      rw [mem_ofPred_eq, hzero p.2 (fun u ↦ hXK u p.2 hp.2)]
       exact hKS ⟨hp.1, hp.2⟩
+  -- Moser's equation holds at every point `(s, y)` of `S`.
+  have hrate (s : ℝ) (y : M) (hy : (s, y) ∈ S) :
+      (mpullback I (𝓘(ℝ, ℝ).prod I) (Prod.mk s)
+          (mlieDerivForm (fun _ ↦ ((1 : ℝ), (0 : E))) σ.val) +
+        mlieDerivForm (moserField σ β' ρ s) (mpullback I (𝓘(ℝ, ℝ).prod I) (Prod.mk s) σ.val))
+          y = 0 := by
+    -- The slices `σ₀ + u (σ₁ - σ₀)` have velocity `σ₁ - σ₀`.
+    have hvel : (SmoothForm.mpullback (Prod.mk s) (contMDiff_const.prodMk contMDiff_id)
+        σ.timeDeriv).val y = (σ₁ - σ₀).val y := by
+      have h := SmoothForm.hasDerivAt_mpullback_prodMk_timeDeriv σ s y
+      simp only [hσt] at h
+      refine h.unique ?_
+      -- The values of the slices are read in the model fibre `E [⋀^Fin 2]→L[ℝ] ℝ`.
+      have h2 := ((hasDerivAt_id s).smul_const
+        (@id (E [⋀^Fin 2]→L[ℝ] ℝ) ((σ₁ - σ₀).val y))).const_add
+          (@id (E [⋀^Fin 2]→L[ℝ] ℝ) (σ₀.val y))
+      rw [one_smul] at h2
+      -- `h2` is the goal up to the identity maps, which only fix the type of the values.
+      exact h2
+    -- The slice at time `s` is closed, since `σ₁ - σ₀ = dβ`.
+    have hclosed : mextDeriv
+        (SmoothForm.mpullback (Prod.mk s) (contMDiff_const.prodMk contMDiff_id) σ).val y = 0 := by
+      have h₁ : (σ₁ - σ₀).IsClosed := by
+        rw [SmoothForm.isClosed_def, ← hβ, SmoothForm.mextDeriv_mextDeriv]
+      rw [hσt]
+      exact congrFun ((SmoothForm.isClosed_def _).1 (h₀.add (h₁.smul s))) y
+    refine moserField_rate_eq_zero hclosed
+      (((Continuous.prodMk_right s).continuousAt.eventually hy).mono fun z hz ↦
+        ⟨hz.1, by rw [hσt]; exact hz.2⟩) ?_
+    rw [hvel, hβt, hβ]
   filter_upwards [hW.mem_nhdsSet.2 hKW] with x hx t
   have h := mpullback_timeDependentFlowOf_mpullback_prodMk_apply_eq_of_forall_mem_uIcc
-    (hX.of_le (by simp)) hc
-    (fun _ _ ↦ ((SmoothForm.lineMapFamily σ₀ σ₁ (contDiff_id (n := ∞))).contMDiff.of_le
-      (by simp)).contMDiffAt)
-    (s := 0) (t := t) (x := x) fun s hs ↦ moserField_rate_eq_zero h₀
+    (hX.of_le (by simp)) hc (fun _ _ ↦ (σ.contMDiff.of_le (by simp)).contMDiffAt)
+    (s := 0) (t := t) (x := x) fun s hs ↦ hrate s _
       (huW (mk_mem_prod (hu (Icc_subset_Icc_right t.property.2
         ((uIcc_of_le t.property.1).subset hs))) hx))
-      (Eventually.of_forall fun z ↦ congrFun hβ z)
-  simp only [SmoothForm.coe_mpullback_prodMk_lineMapFamily, id_eq, zero_smul, add_zero] at h
+  simp only [σ, SmoothForm.coe_mpullback_prodMk_lineMapFamily, id_eq, zero_smul, add_zero] at h
   rw [SmoothForm.coe_mpullback, hΨ]
   exact h
 
