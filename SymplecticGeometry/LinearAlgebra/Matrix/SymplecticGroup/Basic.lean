@@ -23,6 +23,7 @@ when `A` is.
 
 * `Matrix.J_inl_inl`, `Matrix.J_inl_inr`, `Matrix.J_inr_inl`, `Matrix.J_inr_inr`: the four
   blocks of `Matrix.J`.
+* `Matrix.neg_J_mul_eq_fromBlocks`: the blocks of `-J * M` in terms of those of `M`.
 * `SymplecticGroup.star_mem`: the conjugate transpose of a symplectic matrix is symplectic.
 * `SymplecticGroup.star_mem_iff`: a matrix is symplectic exactly when its conjugate transpose is.
 * `Matrix.IsSymm.mem_symplecticGroup_iff`: a symmetric matrix `P` is symplectic exactly when
@@ -55,6 +56,20 @@ theorem J_inr_inl : J l R (.inr i) (.inl j) = (1 : Matrix l l R) i j := rfl
 /-- The lower right block of `Matrix.J` is zero. -/
 @[simp]
 theorem J_inr_inr : J l R (.inr i) (.inr j) = 0 := rfl
+
+section Mul
+
+variable [Fintype l]
+
+/-- Left multiplication by `-J`, the block matrix `fromBlocks 0 1 (-1) 0`, moves the lower blocks
+of a matrix up and the negated upper blocks down:
+`-J * fromBlocks A B C D = fromBlocks C D (-A) (-B)`. -/
+theorem neg_J_mul_eq_fromBlocks (M : Matrix (l ⊕ l) (l ⊕ l) R) :
+    -J l R * M = fromBlocks M.toBlocks₂₁ M.toBlocks₂₂ (-M.toBlocks₁₁) (-M.toBlocks₁₂) := by
+  conv_lhs => rw [← fromBlocks_toBlocks M]
+  simp [Matrix.J, fromBlocks_neg, fromBlocks_multiply]
+
+end Mul
 
 section IsSymm
 
