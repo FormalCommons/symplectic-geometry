@@ -230,10 +230,12 @@ and two rows of its milestone table.
 The local quotients of a closed two-form of constant rank. Namespace
 `TauCeti.SmoothForm`, beside Tau Ceti's `characteristicFoliation`, since
 dot notation on `σ` finds it. For `σ : SmoothForm I M ℝ 2` with
-`[I.Boundaryless]`, and a manifold `B` over a model `IB`:
+`[I.Boundaryless]`, and a manifold `B` over a model `IB`, which is an
+explicit argument, `IsCharacteristicSubmersion IB σ p`, since `p` does not
+determine it:
 
 ```lean
-structure IsCharacteristicSubmersion (σ : SmoothForm I M ℝ 2) (p : M → B) : Prop where
+structure IsCharacteristicSubmersion (IB) (σ : SmoothForm I M ℝ 2) (p : M → B) : Prop where
   isSubmersion : Manifold.IsSubmersion I IB ∞ p
   surjective : Function.Surjective p
   isPreconnected_preimage_singleton : ∀ b, IsPreconnected (p ⁻¹' {b})
@@ -248,18 +250,19 @@ On an open `U`, it is applied to `U` and the restriction
   RoughForm.IsBasic IB p σ.val`. Route: for `x` in the fibre over `b`,
   write $\tau_x$ for the form on $T_bB$ with $\tau_x(dp\,u,dp\,v)=\sigma_x(u,v)$.
   It is well defined because `ker_mfderiv` holds and `σ` vanishes on its
-  kernel. $x\mapsto\tau_x$ is locally constant on the fibre. Near `x`, a flat
-  chart of Tau Ceti (`exists_flatChart_extend`, applied to the kernel
-  distribution) shrunk to a product of convex sets carries `σ` to a closed
-  form that vanishes on the constant subspace `W`. By Cartan's formula
-  (`TauCeti.mlieDerivForm_eq_interior_mextDeriv_add`,
-  `Geometry/Manifold/DifferentialForm/LieDeriv.lean`), or directly in
-  coordinates, its coefficients do not change along `W`. On the plaque
-  through `x`, which is the part of the fibre near `x`, $\tau$ is
-  therefore constant. A locally constant map on a preconnected fibre is
+  kernel (`IsCharacteristicSubmersion.apply_eq_of_mfderiv_eq`).
+  $x\mapsto\tau_x$ is locally constant on the fibre. Near `x`, the chart
+  of the submersion `p` at `x` (Mathlib's `IsSubmersionAt.domChart`), in
+  which `p` is a linear projection, carries `σ` to a closed form whose
+  kernel contains the constant subspace `W` of vertical vectors. By
+  Cartan's formula for a constant vector field
+  (`fderiv_apply_eq_zero_of_extDeriv_eq_zero`, in the root namespace),
+  its coefficients do not change along `W`. On a ball in the chart, the
+  part of the fibre through `x` is a slice parallel to `W`, so $\tau$ is
+  constant there. A locally constant map on a preconnected fibre is
   constant.
 - `IsCharacteristicSubmersion.existsUnique_isSymplectic_mpullback_eq (hp)
-  (hσ : σ.IsClosed) : ∃! τ : SmoothForm IB B ℝ 2, τ.IsSymplectic ∧
+  (hσ : σ.IsClosed) : ∃! τ : SmoothTwoForm IB B, τ.IsSymplectic ∧
   SmoothForm.mpullback p hp.isSubmersion.contMDiff τ = σ`, from Tau Ceti's
   `existsUnique_isSymplectic_mpullback_eq` with `isBasic`. Uniqueness among
   all forms, symplectic or not, is Tau Ceti's
