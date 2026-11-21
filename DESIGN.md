@@ -202,6 +202,15 @@ also uses.
   of two loops, the form `TauCeti.GLSymplectic.maslovIndex_sum` takes. It is
   built by that part's first issue on direct sums, not by *Standard model*'s
   issues.
+- The complex coordinates: `StdSpace.complexEuclideanEquiv ι :
+  EuclideanSpace ℂ ι ≃L[ℝ] StdSpace ι`, the composite of
+  `PiLp.continuousLinearEquiv 2 ℝ (fun _ : ι ↦ ℂ)` with
+  `TauCeti.complexToRealEuclidean ι`, with `complexEuclideanEquiv_def` and the
+  `@[simp]` lemmas `x_complexEuclideanEquiv` and `y_complexEuclideanEquiv`
+  (the real and imaginary parts of each coordinate). *Lagrangian
+  Grassmannian* uses it to compare its subspaces of `StdSpace ι` with Tau
+  Ceti's subspaces of `EuclideanSpace ℂ ι`. It is built by that part's issue
+  on Lagrangian frames (#118), not by *Standard model*'s issues.
 - The matrix dictionary: `mem_symplecticGroup_iff_isSymplectomorphism`
   (`A ∈ Matrix.symplecticGroup ι ℝ` if and only if `Matrix.toEuclideanLin A`
   preserves `stdForm ι`); a real matrix commutes with `Matrix.J` if and only if
@@ -220,7 +229,7 @@ further when they grow, following `AGENTS.md`.
 
 - **Files:** `LinearAlgebra/Symplectic/Standard/Basic.lean` (`StdSpace`, its
   coordinates, `stdForm`, `stdComplexStructure`, the product comparison,
-  `StdSpace.sumEquiv`),
+  `StdSpace.sumEquiv`, `StdSpace.complexEuclideanEquiv`),
   `LinearAlgebra/Symplectic/Standard/Matrix.lean` (the matrix dictionary).
 - **Builds on:** Mathlib, Tau Ceti.
 - **Milestones:** none. It is the interface the other parts share.
