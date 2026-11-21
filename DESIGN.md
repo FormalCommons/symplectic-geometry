@@ -951,6 +951,9 @@ it into issues; the overview fixes its folders and its dependencies.
   on a pull-back bundle, a step that uses no charts; the file has the path
   of the Tau Ceti file with `ContinuousLinearMap.inCoordinates_pullback_of_mem`,
   so that the two merge upstream),
+  `Topology/FiberBundle/ChangeModelFiber.lean` (a fibre bundle read with
+  another model fibre along a homeomorphism, in Mathlib's namespaces and at
+  Mathlib's fibre-bundle level, since it involves no group),
   `Topology/FiberBundle/Principal/ChangeGroup.lean` (the change of structure group
   of a Tau Ceti principal bundle along an isomorphism of topological groups,
   in the namespaces of the Tau Ceti and Mathlib types it is about; it sits
