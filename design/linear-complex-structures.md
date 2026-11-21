@@ -156,11 +156,11 @@ These settle the questions that `DESIGN.md` leaves to this file.
 
 ## Files
 
-Files are under `SymplecticGeometry/`. The part has ten files, each with
+Files are under `SymplecticGeometry/`. The part has eleven files, each with
 the topic its path says. Besides the standard model, the orbit space and the
 oriented components, they hold the actions on complex structures, their
-general topology, the general orbit–stabilizer homeomorphism, the
-conjugation identity for units of square $-1$, the polar deformation of
+general topology, the general orbit–stabilizer homeomorphism, a star-ring
+lemma on elements of square $-1$, the conjugation identity for units of square $-1$, the polar deformation of
 matrices of square $-1$, the orthogonal complex structures, and the
 orientation of bases adapted to a transported structure. The actions
 and their topology are stated for any space, so that later work can use
@@ -176,6 +176,7 @@ lemma extends that file and is a candidate to move there.
 | `LinearAlgebra/ComplexStructure/Standard.lean` | the isomorphism $\Phi$, transitivity, the stabilizer, positively oriented structures, compatibility with $\omega_0$ under symplectic matrices and the action of `Matrix.symplecticGroup ι ℝ` on the compatible structures |
 | `Topology/Algebra/GroupAction/Transitive.lean` | the orbit–stabilizer homeomorphism for σ-compact groups |
 | `Topology/ComplexStructure/Orbit.lean` | the space as GL(2n,ℝ)/GL(n,ℂ), the positively oriented structures form a clopen set |
+| `Algebra/Star/Basic.lean` | in a star ring, an element of square $-1$ has $a^\ast a = (a a^\ast)^{-1}$ |
 | `Analysis/SpecialFunctions/ContinuousFunctionalCalculus/Polar.lean` | the polar unitary factor of a unit of square $-1$ inverts the powers of its positive factor |
 | `Analysis/Matrix/Polar/Deformation.lean` | the polar deformation preserves square $-1$ |
 | `Topology/ComplexStructure/Orthogonal.lean` | the orthogonal complex structures, the deformation retraction onto them |
@@ -271,6 +272,11 @@ Declarations about Tau Ceti's type go in its namespace
   sending `J` to `Matrix.toEuclideanCLM.symm` of its operator, with `@[simp]`
   lemmas `homeomorphMatrix_apply_coe` and `homeomorphMatrix_symm_apply_apply`.
   Later files compute with matrices through it, as `DESIGN.md` requires.
+- `TauCeti.AlmostComplexStructure.toGeneralLinearGroup J : GL n ℝ`, the matrix
+  of `J` as a unit (its inverse is the matrix of `-J`), with
+  `coe_toGeneralLinearGroup`, `coe_toGeneralLinearGroup_inv` and
+  `continuous_toGeneralLinearGroup`; the polar deformation of
+  `Orthogonal.lean` is applied to it.
 - `instance : ContinuousSMul (GL n ℝ) (AlmostComplexStructure (EuclideanSpace ℝ n))`
   (the matrix of `g • J` is $gJg^{-1}$), and from it the `ContinuousSMul`
   instance of `specialOrthogonalGroup n ℝ`.
@@ -341,6 +347,15 @@ Declarations about Tau Ceti's type go in its namespace
 - `isClopen_setOf_isPositivelyOriented : IsClopen {J | IsPositivelyOriented J}`:
   it and its complement are the images of the open sets `{det > 0}` and
   `{det < 0}` of `GL (ι ⊕ ι) ℝ` under the open orbit map.
+
+### `Algebra/Star/Basic.lean`
+
+- `star_mul_self_eq_inverse_of_mul_self_eq_neg_one {a : A} (ha : a * a = -1) :
+  star a * a = (a * star a)⁻¹ʳ`, in the root namespace, for any
+  `[Ring A] [StarRing A]`. Such an `a` is a unit with inverse `-a`, so this
+  follows from Mathlib's `Ring.inverse_mul` and `Ring.inverse_star`. It is
+  pure star-ring algebra, so it sits apart from the functional calculus and
+  imports only `Mathlib.Algebra.Star.Basic`; the next file uses it.
 
 ### `Analysis/SpecialFunctions/ContinuousFunctionalCalculus/Polar.lean`
 
@@ -592,7 +607,7 @@ names, and the first two by the *Standard model* issues (#7, #8).
    `isClopen_setOf_isPositivelyOriented` in
    `Topology/ComplexStructure/Orbit.lean`. About 300 lines. Blocked by 2.
 4. **Complex structures: retraction onto the orthogonal structures.** The
-   conjugation lemma of
+   star-ring lemma of `Algebra/Star/Basic.lean`, the conjugation lemma of
    `Analysis/SpecialFunctions/ContinuousFunctionalCalculus/Polar.lean`, the
    lemma of `Analysis/Matrix/Polar/Deformation.lean`, and
    `Topology/ComplexStructure/Orthogonal.lean`. About 300 lines. Blocked by 3.
