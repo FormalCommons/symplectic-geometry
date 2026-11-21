@@ -5,11 +5,11 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.Analysis.Complex.Circle
 public import SymplecticGeometry.Analysis.Matrix.EuclideanLin
 public import SymplecticGeometry.LinearAlgebra.Matrix.UnitaryGroup.Real
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Lagrangian.Frame
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Matrix
-public import TauCeti.Analysis.Complex.Circle
 public import TauCeti.LinearAlgebra.TotallyReal.Lagrangian
 public import TauCeti.Topology.Algebra.Matrix.Realify
 
@@ -254,7 +254,7 @@ theorem rotate_def (θ : ℝ) (Λ : ℒ ι) :
 @[simp]
 theorem rotate_zero (Λ : ℒ ι) : rotate 0 Λ = Λ := by
   have h : circleEquivUnitary (Circle.exp 0) • (1 : unitaryGroup ι ℂ) = 1 :=
-    Subtype.ext (by simp [Unitary.coe_smul])
+    Subtype.ext (by simp)
   rw [rotate_def, h, one_smul]
 
 /-- Rotating by `φ` and then by `θ` is rotating by `θ + φ`. -/
@@ -262,8 +262,8 @@ theorem rotate_rotate (θ φ : ℝ) (Λ : ℒ ι) : rotate θ (rotate φ Λ) = r
   rw [rotate_def, rotate_def, rotate_def, smul_smul]
   congr 1
   refine Subtype.ext ?_
-  simp only [Submonoid.coe_mul, Unitary.coe_smul, OneMemClass.coe_one, Submonoid.smul_def,
-    coe_circleEquivUnitary, Circle.exp_add, Circle.coe_mul, smul_mul_smul_comm, mul_one]
+  simp only [Submonoid.coe_mul, Unitary.coe_smul, OneMemClass.coe_one, circleEquivUnitary_smul,
+    Circle.exp_add, Circle.coe_mul, smul_mul_smul_comm, mul_one]
 
 /-- The scalar unitary matrix `-1` fixes every Lagrangian subspace. -/
 @[simp]
@@ -274,8 +274,7 @@ theorem unitary_neg_one_smul (Λ : ℒ ι) : (-1 : unitaryGroup ι ℂ) • Λ =
 @[simp]
 theorem rotate_pi (Λ : ℒ ι) : rotate Real.pi Λ = Λ := by
   have h : circleEquivUnitary (Circle.exp Real.pi) • (1 : unitaryGroup ι ℂ) = -1 :=
-    Subtype.ext (by simp [Unitary.coe_smul, Unitary.coe_neg, Submonoid.smul_def, Circle.coe_exp,
-      Complex.exp_pi_mul_I])
+    Subtype.ext (by simp [Unitary.coe_neg, Circle.coe_exp, Complex.exp_pi_mul_I])
   rw [rotate_def, h, unitary_neg_one_smul]
 
 /-- Rotating by `θ + π` is rotating by `θ`: rotations have period `π`. -/
@@ -298,7 +297,7 @@ theorem rotate_pi_div_two_horizontal : rotate (Real.pi / 2) (horizontal ι) = ve
   congr 1
   refine Subtype.ext (Units.ext ?_)
   rw [GLSymplectic.coe_ofUnitary, GLSymplectic.coe_symJ, ← realify_I_smul_one, Unitary.coe_smul,
-    OneMemClass.coe_one, Submonoid.smul_def, coe_circleEquivUnitary]
+    OneMemClass.coe_one, circleEquivUnitary_smul]
   simp [Circle.coe_exp, Complex.exp_mul_I]
 
 /-- The unitary matrix of a Lagrangian frame `fromRows X Y`: the real orthonormalization of its

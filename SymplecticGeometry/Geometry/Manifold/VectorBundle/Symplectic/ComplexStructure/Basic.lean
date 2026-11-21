@@ -78,7 +78,8 @@ tangent bundle, and for a nondegenerate form they are, on each fibre, Tau Ceti's
 ## Implementation notes
 
 The form `ω_{g,J}` is `ContMDiffTwoForm.ofBilinearSection` of the bilinear section
-`(g ∘ J - (g ∘ J)ᵀ) / 2`, whose transpose is Tau Ceti's `TauCeti.Manifold.transposeBilinearSection`.
+`x ↦ Bundle.ContMDiffRiemannianMetric.compatibleBilinAt g x (J x)`, which is `Cⁿ` by
+`Bundle.ContMDiffRiemannianMetric.contMDiff_compatibleBilinAt`.
 That constructor needs a model fibre of finite dimension, so `compatibleForm` assumes that `F` is
 finite-dimensional.
 
@@ -328,21 +329,11 @@ end ContMDiffTwoForm
 
 namespace ContMDiffComplexStructure
 
-/-- The bilinear section `g ∘ J` of a metric and a complex structure, `(u, v) ↦ g(J u, v)`. -/
-private def metricComp (g : ContMDiffRiemannianMetric I n F V)
-    (J : ContMDiffComplexStructure I n F V) : TauCeti.Manifold.BilinearSection I F V ℝ n :=
-  ⟨fun x ↦ (g.inner x).comp (J x), g.contMDiff.clm_bundle_comp J.toEndomorphism.contMDiff⟩
-
-/-- The bilinear section `(g(J u, v) - g(J v, u)) / 2`, which by the symmetry of `g` is
-`ω_{g,J}`. -/
+/-- The bilinear section `x ↦ compatibleBilinAt g x (J x)` of a metric and a complex structure. -/
 private def compatibleBilin (g : ContMDiffRiemannianMetric I n F V)
     (J : ContMDiffComplexStructure I n F V) : TauCeti.Manifold.BilinearSection I F V ℝ n :=
-  (2 : ℝ)⁻¹ • (metricComp g J - TauCeti.Manifold.transposeBilinearSection (metricComp g J))
-
-private theorem compatibleBilin_apply (g : ContMDiffRiemannianMetric I n F V)
-    (J : ContMDiffComplexStructure I n F V) (x : M) (u v : V x) :
-    compatibleBilin g J x u v = (2 : ℝ)⁻¹ * (g.inner x (J x u) v - g.inner x u (J x v)) := by
-  simp [compatibleBilin, metricComp, g.symm x u (J x v)]
+  ⟨fun x ↦ g.compatibleBilinAt x (J x),
+    g.contMDiff_compatibleBilinAt.comp J.toEndomorphism.contMDiff⟩
 
 variable [FiniteDimensional ℝ F]
 
@@ -352,8 +343,8 @@ inner product and the standard complex structure of `StdSpace ι` the formula gi
 (`SymplecticGeometry.stdForm_apply_eq_inner_sub_inner`). -/
 def compatibleForm (g : ContMDiffRiemannianMetric I n F V)
     (J : ContMDiffComplexStructure I n F V) : ContMDiffTwoForm I n F V :=
-  ContMDiffTwoForm.ofBilinearSection (compatibleBilin g J) fun x v ↦ by
-    simp [compatibleBilin_apply, g.symm x v (J x v)]
+  ContMDiffTwoForm.ofBilinearSection (compatibleBilin g J) fun x v ↦
+    g.isAlt_compatibleBilinAt x (J x) v
 
 /-- The value of `ω_{g,J}` on two vectors `v 0`, `v 1` is
 `(g(J (v 0), v 1) - g(v 0, J (v 1))) / 2`. -/
@@ -362,7 +353,8 @@ theorem compatibleForm_apply (g : ContMDiffRiemannianMetric I n F V)
     (J : ContMDiffComplexStructure I n F V) (x : M) (v : Fin 2 → V x) :
     compatibleForm g J x v =
       (2 : ℝ)⁻¹ * (g.inner x (J x (v 0)) (v 1) - g.inner x (v 0) (J x (v 1))) :=
-  (ContMDiffTwoForm.ofBilinearSection_apply _ _ x v).trans (compatibleBilin_apply g J x (v 0) (v 1))
+  (ContMDiffTwoForm.ofBilinearSection_apply _ _ x v).trans <| by
+    rw [compatibleBilin, ContMDiffSection.coeFn_mk, g.compatibleBilinAt_apply]
 
 /-- The form `ω_{g,J}` is compatible with `J`. -/
 theorem compatible_compatibleForm (g : ContMDiffRiemannianMetric I n F V)

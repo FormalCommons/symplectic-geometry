@@ -210,6 +210,25 @@ namespace `TauCeti.SmoothTwoForm.IsNondegenerate`.
   map of the coordinate form applied to `β`. The inverse flat map is bounded
   near `x`, and `β` is `o(‖z - x‖)`.
 
+Four lemmas cover the inverse flat map of a covector field that is smooth
+only near a set. Each asks only that the flat map be invertible at a point,
+not that the form be nondegenerate, so they are in `TauCeti.SmoothTwoForm`,
+except the second:
+
+- `interior_flat_inverse_apply`: if `(σ.flat x).IsInvertible`, then for a
+  covector field `c`, `RoughForm.interior (fun y ↦ (σ.flat y).inverse (c y))
+  σ.val x` is `c x` read as a one-form.
+- `IsNondegenerate.interior_flat_inverse_ofSubsingleton`: for a nondegenerate
+  `σ` and a rough one-form `β`, the field sending `x` to `(σ.flat x).inverse`
+  of `β x` read as a covector contracts with `σ` to `β`.
+- `contMDiffAt_sectionAlong_flat_inverse_apply`: for two-forms `σ m` and
+  covectors `c m` at `b m`, along `b : N → M`, both `C^n` at `m₀`, with the
+  flat map of `σ m₀` invertible at `b m₀`, the map
+  `m ↦ ⟨b m, ((σ m).flat (b m)).inverse (c m)⟩` into the tangent bundle is
+  `C^n` at `m₀`. `contMDiffAt_moserField` uses it along `Prod.snd`.
+- `contMDiffAt_flat_inverse_apply`: the case `b = id` with one form, for
+  `n ≤ ∞`.
+
 ### `Geometry/Symplectic/Moser/Relative.lean`
 
 In the namespace `TauCeti.SmoothEmbedding`, except for the public step
@@ -318,7 +337,9 @@ API, in the order the proofs need it. `hinv` stands for
   smooth at `p₀`. `contMDiff_moserField`: given
   `ContMDiff (J.prod I) 𝓘(ℝ) ∞ ρ` and `hinv`, that map is smooth on `N × M`.
   Near `tsupport ρ` the proof is that of Tau Ceti's
-  `TauCeti.SmoothTwoForm.contMDiff_interiorEquiv_symm_mpullback_prodMk`.
+  `TauCeti.SmoothTwoForm.contMDiff_interiorEquiv_symm_mpullback_prodMk`,
+  through `contMDiffAt_sectionAlong_flat_inverse_apply`, for which the file
+  imports `Geometry/Symplectic/Manifold/Flat.lean`.
   Away from it, the field is the zero section.
 - `moserField_rate_eq_zero`: Moser's equation at `(t, y)`, for `N = ℝ`.
   Assume `mextDeriv σ_t.val y = 0`,

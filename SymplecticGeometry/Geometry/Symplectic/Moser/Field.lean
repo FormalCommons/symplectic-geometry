@@ -9,7 +9,7 @@ public import TauCeti.Geometry.Symplectic.Manifold.Flat
 public import TauCeti.Geometry.Manifold.DifferentialForm.LieDeriv
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Family
 public import TauCeti.Geometry.Manifold.DifferentialForm.Flow.Family
-import TauCeti.Geometry.Manifold.VectorBundle.Hom
+import SymplecticGeometry.Geometry.Symplectic.Manifold.Flat
 import TauCeti.Geometry.Manifold.VectorBundle.Scalar
 
 /-!
@@ -160,23 +160,15 @@ theorem contMDiffAt_moserField (σ : SmoothForm (J.prod I) (N × M) ℝ 2)
     ContMDiffAt (J.prod I) I.tangent ∞
       (fun p : N × M ↦ (⟨p.2, moserField σ β ρ p.1 p.2⟩ : TangentBundle I M)) p₀ := by
   by_cases hp₀ : p₀ ∈ tsupport ρ
-  · -- The flat maps of the slices of `σ` and the slices of `-β` are smooth sections along
-    -- `Prod.snd`.
-    have hflat := SmoothTwoForm.contMDiffAt_sectionAlong_flat (b := Prod.snd)
-      (σ := fun q : N × M ↦
-        SmoothForm.mpullback (Prod.mk q.1) (contMDiff_const.prodMk contMDiff_id) σ)
-      (SmoothForm.contMDiff_mpullback_prodMk σ p₀)
+  · -- The slices of `σ` and of `-β` are smooth sections along `Prod.snd`.
+    have hσ := SmoothForm.contMDiff_mpullback_prodMk σ p₀
     have hβ := (SmoothForm.contMDiffAt_sectionAlong_degreeOneEquiv_iff (b := Prod.snd)
       (α := fun q : N × M ↦
         SmoothForm.mpullback (Prod.mk q.1) (contMDiff_const.prodMk contMDiff_id) (-β))).2
       (SmoothForm.contMDiff_mpullback_prodMk (-β) p₀)
     simp only [map_neg, ContMDiffSection.coe_neg, Pi.neg_apply] at hβ
-    have h := (ContMDiffAt.clm_bundle_inverse (x := p₀) (b := Prod.snd)
-      (E₁ := TangentSpace I) (E₂ := fun x : M ↦ TangentSpace I x →L[ℝ] ℝ)
-      (ϕ := fun q : N × M ↦ SmoothTwoForm.flat
-        (SmoothForm.mpullback (Prod.mk q.1) (contMDiff_const.prodMk contMDiff_id) σ) q.2)
-      hflat (hinv hp₀)).clm_bundle_apply hβ
-    exact hρ.smul_totalSpace h
+    exact hρ.smul_totalSpace
+      (SmoothTwoForm.contMDiffAt_sectionAlong_flat_inverse_apply hσ (hinv hp₀) hβ)
   · -- Away from the support of `ρ` the field vanishes identically.
     refine ((contMDiff_zeroSection ℝ (TangentSpace I)).comp contMDiff_snd).contMDiffAt
       |>.congr_of_eventuallyEq ?_

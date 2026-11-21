@@ -482,9 +482,9 @@ the form and of the structure are independent.
   `ContMDiffComplexStructure.compatibleForm g J : ContMDiffTwoForm I n F V`
   (`[FiniteDimensional ℝ F]`) with `compatibleForm_apply` (the formula above)
   and `compatible_compatibleForm`. It is `ContMDiffTwoForm.ofBilinearSection`
-  of the bilinear section `(g ∘ J - (g ∘ J)ᵀ) / 2`, built with
-  `ContMDiff.clm_bundle_comp` and `TauCeti.Manifold.transposeBilinearSection`
-  (`Geometry/Manifold/VectorBundle/Bilinear/Section.lean`). The constructor
+  of the bilinear section `x ↦ compatibleBilinAt g x (J x)`, which is $C^n$ by
+  `Bundle.ContMDiffRiemannianMetric.contMDiff_compatibleBilinAt`
+  (`Riemannian/PolarEnd.lean`). The constructor
   `ContMDiffTwoForm.ofBilinearSection β hβ` (`[FiniteDimensional ℝ F]`), in
   `Symplectic/Basic.lean` with `ofBilinearSection_apply` and
   `bilinFormAt_ofBilinearSection`, turns a $C^n$ bilinear section `β` with
