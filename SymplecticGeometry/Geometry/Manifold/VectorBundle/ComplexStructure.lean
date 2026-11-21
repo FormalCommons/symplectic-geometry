@@ -7,7 +7,8 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Hom
 public import TauCeti.Geometry.Manifold.VectorBundle.Section.FrameCover
-public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.ContMDiff
+public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.ComplexTangentBundle
+public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Topology
 public import TauCeti.Topology.VectorBundle.Complex.Structure
 
 /-!
@@ -33,6 +34,12 @@ bundle, in `TauCeti/Geometry/Symplectic/Manifold/AlmostComplex/ContMDiff.lean` a
   an equivalence (`continuousEquiv`).
 * `SymplecticGeometry.Bundle.ContMDiffComplexStructure.frameTopology`: the topology induced by
   the compact-open `Cⁿ` topology on sections of the endomorphism bundle, in given frames.
+* `SymplecticGeometry.Bundle.ContMDiffComplexStructure.tangentEquiv`: on the tangent bundle,
+  these are exactly Tau Ceti's almost complex structures
+  `TauCeti.ContMDiffAlmostComplexStructure`.
+* `SymplecticGeometry.Bundle.ContMDiffComplexStructure.tangentHomeomorph`: for `n = ⊤`, the same
+  identification with `TauCeti.SmoothAlmostComplexStructure`, as a homeomorphism of frame
+  topologies.
 
 ## Main results
 
@@ -40,6 +47,8 @@ bundle, in `TauCeti/Geometry/Symplectic/Manifold/AlmostComplex/ContMDiff.lean` a
   form a closed subspace of the sections.
 * `frameTopology_eq_of_covers`: for a locally compact model of the base, the topology does not
   depend on the covering frames.
+* `toContinuousComplexStructure_tangentEquiv`: on the tangent bundle, the underlying continuous
+  complex structure is the one Tau Ceti attaches to an almost complex structure.
 
 ## References
 
@@ -512,6 +521,117 @@ theorem continuous_neg_frameTopology :
   exact continuous_neg.comp (isEmbedding_toEndomorphism_frameTopology e U hU).continuous
 
 end Topology
+
+/-! ### The tangent bundle -/
+
+section Tangent
+
+variable [IsManifold I ∞ M] {n : ℕ∞}
+
+/-- On the tangent bundle, complex structures of regularity `n` are Tau Ceti's almost complex
+structures of regularity `n`: both consist of a `Cⁿ` section of the endomorphism bundle of `TM`
+squaring to `-1`. -/
+def tangentEquiv :
+    ContMDiffComplexStructure I n EB (TangentSpace I : M → Type _) ≃
+      TauCeti.ContMDiffAlmostComplexStructure I n M where
+  toFun J := ⟨J.toEndomorphism, J.square_neg⟩
+  invFun J := ⟨J.toEndomorphism, J.square_neg⟩
+  left_inv _ := rfl
+  right_inv _ := rfl
+
+@[simp]
+theorem tangentEquiv_toEndomorphism
+    (J : ContMDiffComplexStructure I n EB (TangentSpace I : M → Type _)) :
+    (tangentEquiv J).toEndomorphism = J.toEndomorphism := (rfl)
+
+@[simp]
+theorem tangentEquiv_symm_toEndomorphism (J : TauCeti.ContMDiffAlmostComplexStructure I n M) :
+    (tangentEquiv.symm J).toEndomorphism = J.toEndomorphism := (rfl)
+
+@[simp]
+theorem tangentEquiv_apply (J : ContMDiffComplexStructure I n EB (TangentSpace I : M → Type _))
+    (x : M) (v : TangentSpace I x) : tangentEquiv J x v = J x v := (rfl)
+
+@[simp]
+theorem tangentEquiv_symm_apply (J : TauCeti.ContMDiffAlmostComplexStructure I n M) (x : M)
+    (v : TangentSpace I x) : tangentEquiv.symm J x v = J x v := (rfl)
+
+/-- On the tangent bundle, the continuous complex structure of `J` is the one that Tau Ceti
+attaches to the corresponding almost complex structure. -/
+@[simp]
+theorem toContinuousComplexStructure_tangentEquiv
+    (J : ContMDiffComplexStructure I n EB (TangentSpace I : M → Type _)) :
+    (tangentEquiv J).toContinuousComplexStructure = J.toContinuousComplexStructure := by
+  ext x v
+  simp
+
+/-- On the tangent bundle, the continuous complex structure that Tau Ceti attaches to `J` is
+that of the corresponding bundle complex structure. -/
+@[simp]
+theorem toContinuousComplexStructure_tangentEquiv_symm
+    (J : TauCeti.ContMDiffAlmostComplexStructure I n M) :
+    (tangentEquiv.symm J).toContinuousComplexStructure = J.toContinuousComplexStructure := by
+  ext x v
+  simp
+
+@[simp]
+theorem tangentEquiv_neg (J : ContMDiffComplexStructure I n EB (TangentSpace I : M → Type _)) :
+    tangentEquiv (-J) = -tangentEquiv J := by
+  ext x v
+  simp
+
+@[simp]
+theorem tangentEquiv_ofLE {m : ℕ∞}
+    (J : ContMDiffComplexStructure I n EB (TangentSpace I : M → Type _)) (h : m ≤ n) :
+    tangentEquiv (J.ofLE h) = (tangentEquiv J).ofLE h := by
+  ext x v
+  simp
+
+@[simp]
+theorem almostComplexStructureAt_tangentEquiv
+    (J : ContMDiffComplexStructure I n EB (TangentSpace I : M → Type _)) (x : M) :
+    (tangentEquiv J).almostComplexStructureAt x = J.almostComplexStructureAt x := by
+  ext v
+  simp
+
+variable {ι : Type*}
+  (e : ι → Trivialization (EB →L[ℝ] EB)
+    (π (EB →L[ℝ] EB) (fun x : M ↦ TangentSpace I x →L[ℝ] TangentSpace I x)))
+  [∀ i, MemTrivializationAtlas (e i)]
+  (U : ι → Opens M) (hU : ∀ i, (U i : Set M) ⊆ (e i).baseSet)
+
+/-- On the tangent bundle, smooth complex structures and Tau Ceti's smooth almost complex
+structures are homeomorphic, for the frame topologies in the same frames: the map is
+`tangentEquiv` followed by `TauCeti.ContMDiffAlmostComplexStructure.smoothEquiv`. -/
+def tangentHomeomorph :
+    let _ := frameTopology (I := I) (n := ⊤) e U hU
+    let _ := TauCeti.SmoothAlmostComplexStructure.frameTopology e U hU
+    ContMDiffComplexStructure I ⊤ EB (TangentSpace I : M → Type _) ≃ₜ
+      TauCeti.SmoothAlmostComplexStructure I M := by
+  let _ := ContMDiffSection.frameTopology (I := I) (n := ∞) e U hU
+  let _ := frameTopology (I := I) (n := ⊤) e U hU
+  let _ := TauCeti.SmoothAlmostComplexStructure.frameTopology e U hU
+  exact (tangentEquiv.trans
+    TauCeti.ContMDiffAlmostComplexStructure.smoothEquiv).toHomeomorphOfIsInducing
+    ((TauCeti.SmoothAlmostComplexStructure.isEmbedding_toEndomorphism_frameTopology
+      e U hU).isInducing.of_comp_iff.mp
+      (by simpa [Function.comp_def] using
+        (isEmbedding_toEndomorphism_frameTopology (n := ⊤) e U hU).isInducing))
+
+@[simp]
+theorem tangentHomeomorph_apply
+    (J : ContMDiffComplexStructure I ⊤ EB (TangentSpace I : M → Type _)) :
+    tangentHomeomorph e U hU J = TauCeti.ContMDiffAlmostComplexStructure.smoothEquiv
+      (tangentEquiv J) := (rfl)
+
+@[simp]
+theorem tangentHomeomorph_symm_apply (J : TauCeti.SmoothAlmostComplexStructure I M) :
+    let _ := frameTopology (I := I) (n := ⊤) e U hU
+    let _ := TauCeti.SmoothAlmostComplexStructure.frameTopology e U hU
+    (tangentHomeomorph e U hU).symm J =
+      tangentEquiv.symm (TauCeti.ContMDiffAlmostComplexStructure.smoothEquiv.symm J) := (rfl)
+
+end Tangent
 
 end ContMDiffComplexStructure
 
