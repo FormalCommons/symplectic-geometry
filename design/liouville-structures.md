@@ -344,9 +344,12 @@ Issue 4, in `TauCeti.SmoothForm`:
   condition, and has dimension one because a nondegenerate form restricts
   to a form of corank at most one on a hyperplane.
 - `stableHamiltonianModel_neg_mextDerivₗ`: for a one-form `α`,
-  `stableHamiltonianModel α (-mextDerivₗ I 1 α)` is, on `r > -1`, the
-  pullback of `mextDerivₗ _ 1 (SmoothForm.symplectization (-α))` along
-  $(r,x)\mapsto(\log(1+r),x)$; and it is `-mextDerivₗ` of $(1+r)\alpha$.
+  `stableHamiltonianModel α (-mextDerivₗ I 1 α)` is `-mextDerivₗ` of
+  $(1+r)\alpha$; and
+  `mpullback_subtypeVal_stableHamiltonianModel_neg_mextDerivₗ`: on an open
+  `U` where `r > -1`, it is the pullback of
+  `mextDerivₗ _ 1 (SmoothForm.symplectization (-α))` along
+  $(r,x)\mapsto(\log(1+r),x)$.
 - `exists_mpullback_eq_stableHamiltonianModel` (the converse; compact
   boundaryless Hausdorff second countable `M`): let `σ` be a symplectic form
   on `symmStrip M ε` whose slices $\sigma_r$ (pullbacks along `x ↦ (r, x)`) have
