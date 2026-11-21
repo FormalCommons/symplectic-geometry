@@ -734,26 +734,36 @@ The two graph charts of `DESIGN.md` §6, as partial homeomorphisms. The model
 is Tau Ceti's `Topology/Grassmannian/Graph.lean`, which does the same for
 `TauCeti.finiteGrassmannian`; the building issue credits it.
 
-- `ℒ.continuous_graphY`, from `graphY_eq_unitaryFrame`,
-  `continuous_realOrthonormalize` and `continuous_unitaryFrame`.
+- `ℒ.continuous_graphY`, from `continuous_ofFrame` (`Quotient.lean`)
+  for the frame `fromRows S 1`, which spans `graphY S`.
+- `ℒ.unitaryFrame_eq_graphY_iff`: `unitaryFrame U = graphY S` iff
+  `U.map im` is invertible and `U.map re * (U.map im)⁻¹ = S`, the form of
+  Tau Ceti's `frameSpan_eq_graph_iff` for unitary frames.
+- `ℒ.isOpenEmbedding_graphY`: `graphY` is an open embedding. The preimage
+  under the open quotient map `unitaryFrame` of the image of an open set is
+  open, by the previous item.
 - `ℒ.isOpen_setOf_isCompl (Λ₀ : ℒ ι) : IsOpen {Λ : ℒ ι | IsCompl (Λ : Submodule ℝ _) Λ₀}`.
-  For `Λ₀` horizontal, the preimage under `unitaryFrame` is
-  `{U | det (U.map im) ≠ 0}`. Translate for general `Λ₀`.
+  For `Λ₀` horizontal, it is the range of `graphY`. Translate for general
+  `Λ₀` by the symplectic action (`isCompl_smul_iff`).
 - `ℒ.graphYChart : OpenPartialHomeomorph (ℒ ι) (selfAdjoint (Matrix ι ι ℝ))`,
-  the basic chart, with source `{Λ | IsCompl Λ (horizontal ι)}`
-  (`range_graphY`), target `univ`, and inverse `graphY`.
-  API: `graphYChart_source`, `graphYChart_target`, `graphYChart_symm_apply`
-  and `graphYChart_graphY` (both `@[simp]`). Also
-  `coe_graphYChart_unitaryFrame`: on the source, the value at
-  `unitaryFrame U` is $XY^{-1}$ for `X = U.map re` and `Y = U.map im`. This
-  gives continuity on the source through the open quotient map.
+  the basic chart, the inverse of the open embedding `graphY`, with source
+  `{Λ | IsCompl Λ (horizontal ι)}` (`range_graphY`) and target `univ`.
+  API: `graphYChart_def`, and `graphYChart_source`, `graphYChart_target`,
+  `graphYChart_symm_apply` and `graphYChart_graphY` (all `@[simp]`). Also
+  `unitaryFrame_mem_graphYChart_source_iff`: `unitaryFrame U` is in the
+  source iff `Y = U.map im` is invertible; and
+  `coe_graphYChart_unitaryFrame`: for such `U`, the value at
+  `unitaryFrame U` is $XY^{-1}$ for `X = U.map re`. This gives continuity
+  on the source through the open quotient map.
 - `ℒ.graphChart : OpenPartialHomeomorph (ℒ ι) (selfAdjoint (Matrix ι ι ℝ))`,
   the chart on the Lagrangians transverse to the vertical subspace, with
   source `{Λ | IsCompl Λ (vertical ι)}` (`range_graph`), target
   `univ`, and inverse `graph`. It is the homeomorphism `symJ ι ℝ • ·`
   of `ℒ ι`, then `graphYChart`, then the homeomorphism `S ↦ -S`; this is
-  `symJ_smul_graph`. API: `graphChart_source`, `graphChart_target`,
-  `graphChart_symm_apply` and `graphChart_graph` (both `@[simp]`).
+  `symJ_smul_graph`. API: `graphChart_def`, `graphChart_apply`
+  (`graphChart Λ = -graphYChart (symJ ι ℝ • Λ)`), and `graphChart_source`,
+  `graphChart_target`, `graphChart_symm_apply` and `graphChart_graph` (all
+  `@[simp]`).
 
 ### `Topology/Grassmannian/Lagrangian/Fibration.lean`
 
