@@ -301,10 +301,23 @@ theorem exists_isSymplectomorphism_image_eq_stdEllipsoid
       e '' {z | Q z ≤ 1} = stdEllipsoid r
 ```
 
-It applies Williamson's theorem to `Q`, takes $r_k=\sqrt{2/\nu_k}$, and
-builds `e` from Tau Ceti's `Module.Basis.darbouxBasisEquiv`, the product
-comparison of *Standard model*, and a reindexing `Fin m ≃ ι` (`m = n` by
-dimension). The reindexing uses the public lemma
+The file first builds `stdDarbouxBasisOf (τ : Fin m ≃ ι) : Module.Basis
+(Fin m × Fin 2) ℝ (StdSpace ι)`, Tau Ceti's `stdDarbouxBasis m` carried to
+`StdSpace ι` by the product comparison of *Standard model* and the relabelling
+`τ`, with `stdDarbouxBasisOf_def`, the `@[simp]` coordinate lemmas
+`stdDarbouxBasisOf_repr_zero` and `_one` (`x_{τ k}` and `y_{τ k}`),
+`isDarbouxBasis_stdDarbouxBasisOf`, and
+`stdEllipsoidForm_eq_sum_smul_elliptic`: `stdEllipsoidForm r = ∑ k, (2 /
+r (τ k) ^ 2) • elliptic (stdDarbouxBasisOf τ) k`. Both this file and
+`Ellipsoid/Spectrum.lean` use the basis, so the relabelling is built only
+here.
+
+The normal form applies Williamson's theorem to `Q`, which gives a Darboux
+basis `b` and frequencies `ν`, takes $r_k=\sqrt{2/\nu_k}$ and a relabelling
+`σ : Fin m ≃ ι` (`m = n` by dimension), and takes for `e` the map sending `b`
+to `stdDarbouxBasisOf σ`, through the two coordinate equivalences
+`Module.Basis.darbouxBasisEquiv` of Tau Ceti; the formula above gives
+`stdEllipsoidForm r ∘ e = Q`. The basis uses the public lemma
 `isSymplectomorphism_piLpCongrLeft_sumCongr`: for `σ : ι ≃ κ`, relabelling
 the coordinate pairs, `(LinearIsometryEquiv.piLpCongrLeft 2 ℝ ℝ
 (σ.sumCongr σ)).toLinearEquiv`, is a symplectomorphism from `stdForm ι` to
@@ -324,6 +337,10 @@ Ceti's file of the same name:
   Tau Ceti's `eq_hamiltonianEnd_iff` (the defining identity
   `ω (A_Q v) w = polar Q v w`) or from
   `IsSymplectomorphism.hamiltonianVectorField_comp` (`Transport.lean`).
+  Nothing in the library uses it since `exists_perm_eq_of_image_stdEllipsoid_eq`
+  took another route (see `Ellipsoid/Spectrum.lean`); it stays as API, the
+  counterpart for Hamiltonian endomorphisms of Tau Ceti's lemma for vector
+  fields.
 
 ### `Geometry/Symplectic/Hamiltonian/Williamson.lean`
 
@@ -364,10 +381,13 @@ Expected size of issue 4, both files: 300 lines.
 
 - `exists_perm_eq_of_image_stdEllipsoid_eq`: for positive `r`, `r'` and a symplectomorphism `e`,
   `e '' stdEllipsoid r = stdEllipsoid r'` implies `∃ σ : Equiv.Perm ι,
-  r' = r ∘ σ`, from `eq_of_setOf_le_one_eq`,
-  `IsSymplectomorphism.hamiltonianEnd_comp` and the
-  uniqueness of issue 4 (the elliptic blocks of the standard Darboux basis of
-  `StdSpace ι` are $(x_j^2+y_j^2)/2$, with $\nu_j=2/r_j^2$). Its corollary
+  r' = r ∘ σ`. By `eq_of_setOf_le_one_eq`, `stdEllipsoidForm r ∘ e⁻¹ =
+  stdEllipsoidForm r'`. With `d = stdDarbouxBasisOf τ` for `τ : Fin n ≃ ι`,
+  `stdEllipsoidForm_eq_sum_smul_elliptic` writes the left side as
+  `∑ k, (2 / r (τ k) ^ 2) • elliptic (d.map e) k` and the right side as
+  `∑ k, (2 / r' (τ k) ^ 2) • elliptic d k`; `d.map e` is a Darboux basis
+  (Tau Ceti's `IsDarbouxBasis.map`), so the uniqueness of issue 4 gives the
+  permutation of the frequencies $2/r_j^2$, hence of the radii. Its corollary
   for `ι = Fin m` and monotone `r`, `r'` is `r = r'`.
 - `symplecticSpectrum (Q : QuadraticForm ℝ (StdSpace ι)) : Multiset ℝ`: the
   multiset `Finset.univ.val.map r` for the `r` that
@@ -394,7 +414,7 @@ Expected size of issue 4, both files: 300 lines.
   /-- Milestone: *Simultaneous normal form of a symplectic form and an inner product*. -/
   theorem exists_isDarbouxBasis_orthogonal_and_stdEllipsoid_normalForm
       (V : Type*) [NormedAddCommGroup V] [InnerProductSpace ℝ V] [FiniteDimensional ℝ V]
-      (ω : TauCeti.SymplecticForm V) (ι : Type*) [Fintype ι] [DecidableEq ι] :
+      (ω : TauCeti.SymplecticForm V) (ι : Type*) [Fintype ι] :
       (∃ (m : ℕ) (b : Module.Basis (Fin m × Fin 2) ℝ V), ω.IsDarbouxBasis b ∧
         (Pairwise fun k l ↦ ⟪b k, b l⟫_ℝ = 0) ∧ ∀ k, ‖b (k, 0)‖ = ‖b (k, 1)‖) ∧
       ∀ Q : QuadraticForm ℝ (StdSpace ι), Q.PosDef →
