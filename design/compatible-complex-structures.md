@@ -286,9 +286,11 @@ The part uses the following from other parts:
   `stabilizer_stdComplexStructure`; besides `Action.lean`, that file imports
   this part's `Compatible.lean`, `Symplectic/Standard/Matrix.lean` of
   *Standard model*, the library's `Geometry/Symplectic/Orientation.lean`
-  (which imports only Tau Ceti) and Tau Ceti. Since all of these files are
-  merged, the part waits for nothing of *Linear complex
-  structures*; `DESIGN.md` lists them with that note.
+  (which imports only Tau Ceti) and Tau Ceti. So `Compatible.lean` is
+  imported by `Standard.lean` of *Linear complex structures* while it
+  imports that part's `Action.lean`: each part uses a merged file of the
+  other. Since all of these files are merged, the part waits for nothing of
+  *Linear complex structures*; `DESIGN.md` lists them with that note.
 - From *Symplectic group*, only the merged file
   `LinearAlgebra/Matrix/SymplecticGroup/Basic.lean`, which imports only
   Mathlib and Tau Ceti. `Compatible/Matrix.lean` uses

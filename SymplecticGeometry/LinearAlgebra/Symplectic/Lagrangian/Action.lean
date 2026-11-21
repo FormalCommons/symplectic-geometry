@@ -32,6 +32,10 @@ Write `ℒ ι` for the Lagrangian Grassmannian of the standard model `(StdSpace 
 
 ## Main results
 
+* `SymplecticGeometry.isLagrangian_map_toEuclideanLin`: a matrix of
+  `Matrix.symplecticGroup ι ℝ` maps Lagrangian subspaces to Lagrangian subspaces.
+* `SymplecticGeometry.LagrangianGrassmannian.coe_smul_of_coe_eq`: if `Λ` is spanned by the
+  columns of a frame `Z`, then `g • Λ` is spanned by those of `g * Z`.
 * `SymplecticGeometry.LagrangianGrassmannian.unitaryFrame_surjective`: every Lagrangian subspace
   has a unitary frame, so `U(n)` and `Sp(2n)` act transitively on `ℒ ι` (the two
   `MulAction.IsPretransitive` instances).
@@ -57,15 +61,16 @@ local notation "ℒ" ι => LagrangianGrassmannian (stdForm ι)
 open StdSpace
 
 /-- A symplectic matrix maps Lagrangian subspaces of `StdSpace ι` to Lagrangian subspaces. -/
-theorem isLagrangian_map_toEuclideanLin {g : GL (ι ⊕ ι) ℝ} (hg : g ∈ GLSymplectic ι ℝ)
-    {L : Submodule ℝ (StdSpace ι)} (hL : (stdForm ι).IsLagrangian L) :
-    (stdForm ι).IsLagrangian (L.map (toEuclideanLin (g : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ))) := by
-  have he := (mem_GLSymplectic_iff_isSymplectomorphism g).1 hg
-  have hg' : toEuclideanLin (g : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ) =
-      ((g : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ).toEuclideanCLE g.det_ne_zero).toLinearEquiv.toLinearMap :=
+theorem isLagrangian_map_toEuclideanLin {A : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ}
+    (hA : A ∈ symplecticGroup ι ℝ) {L : Submodule ℝ (StdSpace ι)}
+    (hL : (stdForm ι).IsLagrangian L) :
+    (stdForm ι).IsLagrangian (L.map (toEuclideanLin A)) := by
+  let e := (A.toEuclideanCLE (SymplecticGroup.symplectic_det hA).ne_zero).toLinearEquiv
+  have he : toEuclideanLin A = e.toLinearMap :=
     LinearMap.ext fun v ↦ (toEuclideanCLE_apply _ _ v).symm
-  rw [SymplecticForm.isLagrangian_iff_orthogonal_eq] at hL ⊢
-  rw [hg', ← he.map_orthogonal, hL]
+  rw [he]
+  exact (SymplecticForm.isLagrangian_map_iff_of_apply_eq_mul e one_ne_zero fun v w ↦ by
+    simpa [e] using mem_symplecticGroup_iff_forall_stdForm.1 hA v w).2 hL
 
 namespace LagrangianGrassmannian
 
@@ -76,7 +81,8 @@ namespace LagrangianGrassmannian
 noncomputable instance : MulAction (GLSymplectic ι ℝ) (ℒ ι) where
   smul g Λ := ⟨(Λ : Submodule ℝ (StdSpace ι)).map
       (toEuclideanLin ((g : GL (ι ⊕ ι) ℝ) : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ)),
-    isLagrangian_map_toEuclideanLin g.property Λ.isLagrangian⟩
+    isLagrangian_map_toEuclideanLin (GLSymplectic.mem_iff_mem_symplecticGroup.1 g.property)
+      Λ.isLagrangian⟩
   -- In both proofs, the subspace of `g • Λ` is by definition the `Submodule.map` given in
   -- `smul` above; `change` unfolds to it, as `coe_smul` can only be stated after the instance.
   one_smul Λ := toSubmodule_injective <| by
@@ -93,6 +99,14 @@ theorem coe_smul (g : GLSymplectic ι ℝ) (Λ : ℒ ι) :
       (Λ : Submodule ℝ (StdSpace ι)).map
         (toEuclideanLin ((g : GL (ι ⊕ ι) ℝ) : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ)) :=
   (rfl)
+
+/-- If a Lagrangian `Λ` is spanned by the columns of a frame `Z`, its image under a symplectic
+matrix `g` is spanned by the columns of `g * Z`. -/
+theorem coe_smul_of_coe_eq (g : GLSymplectic ι ℝ) {Λ : ℒ ι} {Z : Matrix (ι ⊕ ι) ι ℝ}
+    (hΛ : (Λ : Submodule ℝ (StdSpace ι)) = LinearMap.range (toEuclideanLin Z)) :
+    ((g • Λ : ℒ ι) : Submodule ℝ (StdSpace ι)) =
+      LinearMap.range (toEuclideanLin (((g : GL (ι ⊕ ι) ℝ) : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ) * Z)) := by
+  rw [coe_smul, hΛ, ← LinearMap.range_comp, toEuclideanLin, toLpLin_mul_same]
 
 /-- The unitary group `U(n)` acts on the Lagrangian subspaces of `StdSpace ι` through its
 realification `TauCeti.GLSymplectic.ofUnitary : U(n) → Sp(2n)`. -/
