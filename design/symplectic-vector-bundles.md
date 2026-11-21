@@ -102,7 +102,8 @@ variable {EB HB M : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB]
 
 Issue 10 (parametric smoothness of the linear Moser flow) goes where part 10,
 *Linear Moser*, puts it (`Analysis/ODE/DysonSeries.lean`, as `DESIGN.md`
-says). The files `Section/Topology.lean`, `Section/Generic.lean`,
+says), except its lemma `moserGenerator_conj`, which goes in
+`Geometry/Symplectic/LinearMoser.lean`. The files `Section/Topology.lean`, `Section/Generic.lean`,
 `Riemannian/SectionTopology.lean`, `IsManifold/InteriorBoundary.lean` and the
 folder `Boundary/Collar/` have the names of a Tau Ceti or Mathlib file or
 folder at the same place, so that the two merge upstream.
@@ -690,9 +691,17 @@ at once.
     $C^n$ data; and the construction is natural under linear isomorphisms.
     It is applied to the path $(1-\beta(t))\omega_1'+\beta(t)\omega_2$, with
     $\beta$ = `smoothTransition`, which is nondegenerate at every real time,
-    as part 10's hypothesis `hinv` requires. For naturality, a conjugation
-    lemma for `moserGenerator` and `dysonSeriesLeft` under a linear
-    isomorphism, added to `LinearMoser.lean`, makes the step direct.
+    as part 10's hypothesis `hinv` requires. Naturality comes from two
+    lemmas. The general one, `TauCeti.map_dysonSeriesLeft`, says that a
+    continuous algebra homomorphism `f : B →A[ℝ] C` sends
+    `dysonSeriesLeft p t` to `dysonSeriesLeft (f ∘ p) t`, under the
+    hypotheses on `p` that make the series converge. It concerns only Tau
+    Ceti's Dyson series, so it goes in `Analysis/ODE/DysonSeries.lean`, in
+    namespace `TauCeti`, beside the same statement `map_dysonSeries` (both
+    are candidates for Tau Ceti). Conjugation by `e : V ≃L[ℝ] W` is the case
+    `f = e.conjContinuousAlgEquiv` (Mathlib). The Moser half,
+    `moserGenerator_conj`, stays in `LinearMoser.lean`: the generator of the
+    forms moved along `e` is `e.conjContinuousAlgEquiv (moserGenerator ω t)`.
     Part 10 (`Geometry/Symplectic/LinearMoser.lean`) proves
     smoothness in time only (`contDiff_dysonSeriesLeft_moserGenerator`), so
     this extends it, after checking Tau Ceti's
