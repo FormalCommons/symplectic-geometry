@@ -263,7 +263,12 @@ further when they grow, following `AGENTS.md`.
   `Analysis/Matrix/Polar/Basic.lean` (the general right polar decomposition
   of `GL n 𝕜` over `RCLike 𝕜`, beside Tau Ceti's left forms:
   `Matrix.GeneralLinearGroup.posDef_sqrt_star_mul` and
-  `Matrix.GeneralLinearGroup.existsUnique_unitary_mul_posDef`),
+  `Matrix.GeneralLinearGroup.existsUnique_unitary_mul_posDef`, and the
+  unitary factor as $A(A^*A)^{-1/2}$,
+  `Matrix.GeneralLinearGroup.coe_polarUnitary_eq_mul_rpow`),
+  `Analysis/Matrix/Polar/Deformation.lean` (beside Tau Ceti's file of that
+  name: its polar deformation at time $t$ is $A(A^*A)^{-t/2}$,
+  `Matrix.GeneralLinearGroup.coe_polarDeformation_eq_mul_rpow`),
   `Analysis/Matrix/Polar/Symplectic.lean` (the right decomposition
   $\Psi=UP$ with uniqueness, `SymplecticGroup.existsUnique_unitary_mul_posDef`:
   Tau Ceti's `Units.polarUnitary_mul_sqrt_star_mul` gives the factorization,
@@ -272,7 +277,9 @@ further when they grow, following `AGENTS.md`.
   adds for the symplectic group is `SymplecticGroup.sqrt_star_mul_mem`, that
   $\sqrt{\Psi^*\Psi}$ is symplectic, $\Psi^*$ the conjugate transpose, which
   is `SymplecticGroup.sqrt_mul_star_mem` applied to `star Ψ`, symplectic by
-  `SymplecticGroup.star_mem`),
+  `SymplecticGroup.star_mem`; and the characterization of both factors,
+  `SymplecticGroup.unitary_mul_posDef_eq_iff`, that they are
+  $\Psi(\Psi^*\Psi)^{-1/2}$ and $(\Psi^*\Psi)^{1/2}$),
   `Analysis/Matrix/Polar/GLSymplectic.lean` (the deformation retraction:
   `TauCeti.GLSymplectic.polarHomotopy` fixes $\mathrm{U}(n)$ at all times,
   since it is the restriction of `Matrix.GeneralLinearGroup.polarHomotopy`
