@@ -207,14 +207,14 @@ theorem coe_unitaryOfFrame {X Y : Matrix ι ι ℝ}
       (GeneralLinearGroup.mkOfDetNeZero _ (det_ne_zero_of_isLagrangian_range_fromRows h)) :=
   (rfl)
 
-/-- The Lagrangian framed by the unitary matrix of a Lagrangian frame is the range of the
-frame. -/
+/-- The Lagrangian framed by the unitary matrix of a Lagrangian frame is the Lagrangian that
+the frame spans. -/
 @[simp]
 theorem unitaryFrame_unitaryOfFrame {X Y : Matrix ι ι ℝ}
     (h : (stdForm ι).IsLagrangian (LinearMap.range (toEuclideanLin (fromRows X Y)))) :
-    unitaryFrame (unitaryOfFrame h) = ⟨_, h⟩ :=
+    unitaryFrame (unitaryOfFrame h) = ofFrame X Y h :=
   toSubmodule_injective <| by
-    rw [coe_unitaryFrame_eq_map, coe_unitaryOfFrame,
+    rw [coe_ofFrame, coe_unitaryFrame_eq_map, coe_unitaryOfFrame,
       GeneralLinearGroup.realImage_realOrthonormalize, GeneralLinearGroup.val_mkOfDetNeZero,
       ← range_toEuclideanLin_fromRows_eq_map_realImage]
 
@@ -237,7 +237,9 @@ theorem unitaryFrame_surjective :
   have hL : (stdForm ι).IsLagrangian
       (LinearMap.range (toEuclideanLin (fromRows Z.toRows₁ Z.toRows₂))) :=
     hZ ▸ Λ.isLagrangian
-  exact ⟨unitaryOfFrame hL, by rw [unitaryFrame_unitaryOfFrame]; exact toSubmodule_injective hZ⟩
+  exact ⟨unitaryOfFrame hL, by
+    rw [unitaryFrame_unitaryOfFrame]
+    exact toSubmodule_injective ((coe_ofFrame _ _ _).trans hZ)⟩
 
 instance : MulAction.IsPretransitive (unitaryGroup ι ℂ) (ℒ ι) :=
   MulAction.IsPretransitive.of_orbit (x₀ := horizontal ι) unitaryFrame_surjective

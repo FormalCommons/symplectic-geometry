@@ -523,12 +523,26 @@ it into issues; the overview fixes its folders and its dependencies.
   `Matrix.toEuclideanLin (Matrix.fromRows X Y)`), and
   `LinearAlgebra/Matrix/SelfAdjoint.lean` (`Matrix.finrank_selfAdjoint`:
   the symmetric $n\times n$ matrices have dimension $n(n+1)/2$, from Tau
-  Ceti's `LinearMap.BilinForm.finrank_symmSubmodule`). One file of general
-  operator theory serves it too:
+  Ceti's `LinearMap.BilinForm.finrank_symmSubmodule`). Four more general
+  files serve it too:
   `Analysis/InnerProductSpace/Projection/Basic.lean`
   (`Submodule.starProjection_map_unitary`: the projection onto `u K`, for a
   unitary `u`, is `u P_K u⋆`; with the instance
-  `Submodule.HasOrthogonalProjection.map_unitary`). The part also adds
+  `Submodule.HasOrthogonalProjection.map_unitary`),
+  `Analysis/InnerProductSpace/PiL2.lean`
+  (`Matrix.piLpCongrLeft_toEuclideanLin_apply`: relabelling coordinates
+  along `e` turns the action of `M` into that of `reindex e e M`),
+  `Analysis/Normed/Lp/PiLp.lean`
+  (`LinearIsometryEquiv.piLpCongrLeft_trans`: relabelling along `e`, then
+  along `f`, is relabelling along `e.trans f`), and
+  `LinearAlgebra/Matrix/GeneralLinearGroup/Symplectic/Unitary.lean`
+  (`TauCeti.GLSymplectic.sum_ofUnitary`: `ofUnitary` turns the block sum
+  `Matrix.UnitaryGroup.sum` into `GLSymplectic.sum`). One file of general
+  topology serves it as well: `Topology/Grassmannian/Tautological.lean`
+  (`TauCeti.finiteGrassmannian.isClosedEmbedding_starProjection_toEuclidean`,
+  for any `RCLike 𝕜`: on the compact space `finiteGrassmannian 𝕜 r N`, the
+  map to orthogonal projections is a closed embedding; `Finite.lean` uses
+  it). The part also adds
   one declaration about `StdSpace ι` alone to *Standard model*'s
   `Standard/Basic.lean`: `StdSpace.complexEuclideanEquiv`, the map from
   `EuclideanSpace ℂ ι`. For the coordinate permutation along
@@ -921,6 +935,10 @@ it into issues; the overview fixes its folders and its dependencies.
   for sections of the bundle of alternating maps of a pull-back, in the root
   namespace `Bundle.Pullback`; the file has the name of the Tau Ceti file
   with the criterion for Hom sections, so that the two merge upstream),
+  `Topology/VectorBundle/Pullback.lean` (the coordinates of alternating maps
+  on a pull-back bundle, a step that uses no charts; the file has the path
+  of the Tau Ceti file with `ContinuousLinearMap.inCoordinates_pullback_of_mem`,
+  so that the two merge upstream),
   `Geometry/Symplectic/Manifold/Volume.lean` (the symplectic orientation of
   a negated two-form, in Tau Ceti's namespace; the file has the name of the
   Tau Ceti file that defines `volumeOrientation`),
@@ -1003,9 +1021,13 @@ it into issues; the overview fixes its folders and its dependencies.
   trivial line bundle over $\mathbb{R}$, $\Phi_t(x,v)=v+t\sin(x/t)$ is
   continuous in $(t,x,v)$ with $\Phi_0=\mathrm{id}$, but
   $\partial_x(\Phi_t\circ s-s)=\cos(x/t)$ does not tend to $0$. The proof
-  goes through `ContMDiffSection.continuous_frameTopology_iff`; the file has
-  the name of the Tau Ceti file that defines that topology, so that the two
-  merge upstream),
+  goes through `ContMDiffSection.continuous_frameTopology_iff_frameCoordinates`;
+  the file has the name of the Tau Ceti file that defines that topology, so
+  that the two merge upstream),
+  `Geometry/Manifold/ContMDiffMap/Chart/CodRestrict.lean` (corestriction of
+  a $C^n$ map to an open subset of its target, continuous for Tau Ceti's
+  weak Whitney topology; a step of the proof of the previous lemma, placed
+  beside Tau Ceti's weak Whitney files so that it can merge there),
   `Geometry/Manifold/VectorBundle/Cayley.lean` (smoothness of Tau Ceti's
   `cayleyPathFormula` as a map into the endomorphism bundle of any vector
   bundle, along a base map, at every order, generalizing by the same proof

@@ -33,7 +33,7 @@ of `unitaryFrame`, and that the symplectic and unitary groups act continuously.
 * `SymplecticGeometry.LagrangianGrassmannian.isOpenQuotientMap_unitaryFrame` and
   `isQuotientMap_unitaryFrame`: `unitaryFrame` is an open quotient map.
 * `SymplecticGeometry.LagrangianGrassmannian.continuous_unitaryOfFrame` and
-  `continuous_mk_range_fromRows`: the unitary matrix of a Lagrangian frame, and the Lagrangian
+  `continuous_ofFrame`: the unitary matrix of a Lagrangian frame, and the Lagrangian
   that the frame spans, depend continuously on the frame.
 * `ContinuousSMul` instances for `GLSymplectic ι ℝ` and `unitaryGroup ι ℂ` acting on `ℒ ι`.
 
@@ -136,11 +136,11 @@ theorem continuous_unitaryOfFrame {T : Type*} [TopologicalSpace T] {X Y : T → 
 
 /-- The Lagrangian spanned by a continuous family of Lagrangian frames `fromRows X Y` depends
 continuously on the parameter. -/
-theorem continuous_mk_range_fromRows {T : Type*} [TopologicalSpace T] {X Y : T → Matrix ι ι ℝ}
+theorem continuous_ofFrame {T : Type*} [TopologicalSpace T] {X Y : T → Matrix ι ι ℝ}
     (hX : Continuous X) (hY : Continuous Y)
     (h : ∀ t, (stdForm ι).IsLagrangian
       (LinearMap.range (toEuclideanLin (fromRows (X t) (Y t))))) :
-    Continuous fun t ↦ (⟨_, h t⟩ : ℒ ι) := by
+    Continuous fun t ↦ ofFrame (X t) (Y t) (h t) := by
   simp_rw [← unitaryFrame_unitaryOfFrame]
   exact continuous_unitaryFrame.comp (continuous_unitaryOfFrame hX hY h)
 
@@ -181,10 +181,10 @@ instance : ContinuousSMul (GLSymplectic ι ℝ) (ℒ ι) := by
   refine ⟨(((IsOpenQuotientMap.id (X := GLSymplectic ι ℝ)).prodMap
     (isOpenQuotientMap_unitaryFrame (ι := ι))).continuous_comp_iff).1 ?_⟩
   have h : ∀ p : GLSymplectic ι ℝ × unitaryGroup ι ℂ,
-      p.1 • unitaryFrame p.2 = ⟨_, isLagrangian_smulFrame p.1 p.2⟩ :=
-    fun p ↦ toSubmodule_injective (coe_smul_unitaryFrame p.1 p.2)
+      p.1 • unitaryFrame p.2 = ofFrame _ _ (isLagrangian_smulFrame p.1 p.2) :=
+    fun p ↦ toSubmodule_injective <| by rw [coe_ofFrame, coe_smul_unitaryFrame]
   simp only [Function.comp_def, Prod.map_fst, Prod.map_snd, id_eq, h]
-  exact continuous_mk_range_fromRows
+  exact continuous_ofFrame
     (continuous_matrix fun i j ↦ continuous_smulFrame.matrix_elem (Sum.inl i) j)
     (continuous_matrix fun i j ↦ continuous_smulFrame.matrix_elem (Sum.inr i) j) _
 

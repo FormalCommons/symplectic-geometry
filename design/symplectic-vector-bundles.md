@@ -67,8 +67,11 @@ variable {EB HB M : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB]
   (`Geometry/Symplectic/PolarCompatible.lean`). Apart from it, a result adds
   `[FiniteDimensional ℝ EB]`, `[FiniteDimensional ℝ F]` or
   `[LocallyCompactSpace EB]` only when its proof needs it:
-  - local compactness of `EB`: `frameTopology_eq_of_covers` and
-    `continuous_fiberwiseMap`;
+  - local compactness of `EB`: `frameTopology_eq_of_covers`,
+    `continuous_toContMDiffMap` and `continuous_fiberwiseMap`;
+  - local compactness of `F`: `continuous_fiberwiseMap`, for Tau Ceti's
+    continuity of composition through the total space (see *Continuity of
+    fibrewise maps*);
   - finite rank of the source bundle: each use of `contMDiff_bundle_symm` or
     `contMDiff_hom_bundle_iff` (the `pushforward`s, the classification, the
     transition maps of symplectic frames and the direct sum of complex
@@ -113,10 +116,10 @@ variable {EB HB M : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB]
 
 | File | Content | Issues |
 |---|---|---|
-| `Geometry/Manifold/VectorBundle/Hom.lean` | the fibrewise inverse of a $C^n$ bundle isomorphism as a $C^n$ hom-bundle section (`contMDiff_hom_bundle_symm`) | 1 |
 | `Geometry/Manifold/VectorBundle/ComplexStructure.lean` | `Bundle.ContMDiffComplexStructure`, its API, transport and topology; the comparison with Tau Ceti on $TM$; pull-back, direct sum and multiplication by `Complex.I` | 1, 2, 20 |
 | `Geometry/Manifold/VectorBundle/Symplectic/Basic.lean` | `Bundle.ContMDiffTwoForm`, nondegeneracy, transport along bundle isomorphisms, the comparison with `TauCeti.SmoothTwoForm`, the flat form `flat` in the bundle of bilinear forms; symplectic isomorphisms and frames; forms of rank two | 3, 19 |
-| `Geometry/Manifold/VectorBundle/Section/Topology.lean` | continuity of fibrewise maps on section spaces | 4 |
+| `Geometry/Manifold/VectorBundle/Section/Topology.lean` | a section as a $C^n$ map into the total space; continuity of fibrewise maps on section spaces | 4 |
+| `Geometry/Manifold/ContMDiffMap/Chart/CodRestrict.lean` | corestriction of $C^n$ maps to an open subset of the target, continuous for the weak Whitney topology | 4 |
 | `Geometry/Manifold/VectorBundle/Symplectic/ComplexStructure/Basic.lean` | tame and compatible pairs, $\omega_{g,J}$, the spaces of forms taming a fixed $J$; $J_{g,\omega}$ and existence; the five lemmas that tie `polarFormulaAt` and `polarEndAt` to these | 5, 6, 8 |
 | `Geometry/Manifold/VectorBundle/Cayley.lean` | the Cayley path formula in the endomorphism bundle of a vector bundle: smoothness along a base map, and the set `cayleyPathDomain` of the points where the path from a reference endomorphism is defined for every coefficient in $[0,1]$ | 7 |
 | `Geometry/Manifold/VectorBundle/Riemannian/PolarEnd.lean` | for a bundle metric `g`, $J_{g,\sigma}$ on the bundle of bilinear forms (`polarFormulaDomain`, `polarFormulaAt` and its smoothness) and $J_{g,\omega_{g,B}}$ on the endomorphism bundle (`compatibleBilinAt`, `polarEndDomain`, `polarEndAt` and its smoothness) | 6, 8 |
@@ -125,6 +128,7 @@ variable {EB HB M : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB]
 | `Geometry/Manifold/VectorBundle/Symplectic/Trivialization.lean` | local Darboux frames and the reduction of the structure group | 9 |
 | `Geometry/Manifold/VectorBundle/Symplectic/Classification.lean` | the first milestone | 11 |
 | `Geometry/Manifold/VectorBundle/Pullback.lean` | smoothness of sections of the alternating bundle of a pull-back | 18 |
+| `Topology/VectorBundle/Pullback.lean` | coordinates of alternating maps on a pull-back bundle | 18 |
 | `Geometry/Manifold/VectorBundle/Symplectic/Pullback.lean` | pull-backs of forms, of tame and compatible pairs, of isomorphisms and of frames | 21 |
 | `Geometry/Manifold/VectorBundle/Symplectic/Prod.lean` | direct sums of forms, of tame and compatible pairs and of isomorphisms; block frames | 22 |
 | `Geometry/Symplectic/Manifold/Volume.lean` | the symplectic orientation of a negated two-form | 23 |
@@ -135,6 +139,7 @@ variable {EB HB M : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB]
 | `Geometry/Manifold/IsManifold/InteriorBoundary.lean` | the interior of a manifold with boundary as a boundaryless manifold | 12 |
 | `Topology/Connected/Clopen.lean` | preconnectedness of a dense subset from local preconnectedness | 12 |
 | `Geometry/Manifold/Boundary/Collar/Push.lean` | pushing a compact manifold with boundary into its interior | 13 |
+| `Topology/VectorBundle/ZeroSet.lean` | closedness of the zero set of a continuous section along a map | 14 |
 | `Geometry/Manifold/VectorBundle/Section/Generic.lean` | sections with closed discrete zero sets over boundaryless manifolds | 14 |
 | `Geometry/Manifold/VectorBundle/Section/Nonvanishing.lean` | smoothing nowhere-zero sections; nowhere-zero sections over surfaces with boundary | 15, 16 |
 | `Geometry/Manifold/VectorBundle/Hermitian/Surface.lean` | the third milestone | 17 |
@@ -146,22 +151,33 @@ says), except its lemma `moserGenerator_conj`, which goes in
 `Analysis/ODE/DysonSeries.lean`, `Section/Topology.lean`, `Section/Generic.lean`,
 `Riemannian/SectionTopology.lean`, `IsManifold/InteriorBoundary.lean`,
 `Topology/Connected/Clopen.lean`, `Geometry/Manifold/VectorBundle/Pullback.lean`,
+`Topology/VectorBundle/Pullback.lean`,
 `Geometry/Symplectic/Manifold/Volume.lean` and the folder `Boundary/Collar/`
 have the names of a Tau Ceti or Mathlib file or
 folder at the same place, so that the two merge upstream.
 
-**Departures from `DESIGN.md`.** Each has its reason; #59, #113, #212 and
-#218 brought the overview in line with them.
+**Departures from `DESIGN.md`.** Each has its reason, and the overview
+lists each one: #59, #113, #212 and #218 brought it in line with the
+earlier ones, and the change that planned `CodRestrict.lean` added that
+file to it.
 
 - The overview's `.../Symplectic/ComplexStructure.lean` becomes a folder of
   two files from the start, since its content is more than one file holds.
 - The local trivializations move from `Symplectic/Basic.lean` to
   `Symplectic/Trivialization.lean`, since their proof uses $J_{g,\omega}$,
   which is defined after `Basic.lean`.
+- `ContMDiffMap/Chart/CodRestrict.lean` is new: it holds a general fact
+  about Tau Ceti's weak Whitney topology that the proof of
+  `continuous_fiberwiseMap` uses (see *Continuity of fibrewise maps*), and
+  sits in the Tau Ceti folder of that topology so that it can merge there.
 - Five files are new (`IsManifold/InteriorBoundary.lean`,
   `Topology/Connected/Clopen.lean`, `Boundary/Collar/Push.lean`, `Section/Generic.lean`,
   `Section/Nonvanishing.lean`): they hold the prerequisites of the route to
   the third milestone below, which replaces the book's cutting of the surface.
+- `Topology/VectorBundle/ZeroSet.lean` is new too: the closedness of the
+  zero set that `Section/Generic.lean` uses holds for any continuous section
+  of a topological vector bundle and needs no smooth structure, so it sits
+  with the topological bundles.
 - `VectorBundle/Cayley.lean` stands apart from the symplectic files: the
   bundle Cayley lemma and the set `cayleyPathDomain` that the contractibility
   proofs use mention no symplectic notion of this part, only Mathlib's
@@ -179,6 +195,10 @@ folder at the same place, so that the two merge upstream.
   not use it. If *First Chern number* needs it, that part's design plans it.
 - The surface of the third milestone is not assumed oriented: the route does
   not use an orientation, so the statement is more general.
+- `Topology/VectorBundle/Pullback.lean` is new: the coordinate lemma for
+  alternating maps on a pull-back bundle uses no charts, so it sits in a
+  topological file, beside Tau Ceti's linear-map lemma in its file of the same
+  path. #323 asks the overview to record it.
 - The lemma of `Section/Topology.lean` asks for joint $C^n$ regularity in a
   manifold parameter instead of derivatives continuous in the parameter (see
   below), and issues 6, 7 and 8 wait for part 9: issue 6 for its building
@@ -231,9 +251,10 @@ name, so that the $TM$ statements are special cases:
   file, no hypothesis on the dimension), with Mathlib's
   `ContinuousLinearMap.isInvertible_equiv` and
   `ContinuousLinearMap.inverse_equiv`, following the proof of
-  `contMDiff_bundle_symm`. This step is the public lemma
+  `contMDiff_bundle_symm`. This step is the root-namespace lemma
   `contMDiff_hom_bundle_symm` of this library's
-  `Geometry/Manifold/VectorBundle/Hom.lean`, for later transports to use.
+  `Geometry/Manifold/VectorBundle/Hom.lean`, shared with the two-form
+  `pushforward`.
   So `F₂` may have any dimension, as for the two-form `pushforward`; nothing
   about sections is rebuilt;
 - `toContinuousComplexStructure : ContMDiffComplexStructure I n F V →
@@ -561,13 +582,99 @@ variable {P : Type*} [TopologicalSpace P] [ChartedSpace HP P] {IP : ModelWithCor
 
 def fiberwiseMap (p : P) (s : {s : Cₛ^n⟮I; F, V⟯ // ∀ x, ⟨x, s x⟩ ∈ O}) : Cₛ^n⟮I; F', W⟯
 
-theorem continuous_fiberwiseMap [LocallyCompactSpace EB] (hcover) (hcover') :
+theorem continuous_fiberwiseMap [IsManifold IP n P] [LocallyCompactSpace EB]
+    [LocallyCompactSpace F] (hcover) :
     letI := frameTopology e U hU; letI := frameTopology e' U' hU'
     Continuous fun q : P × {s // ∀ x, ⟨x, s x⟩ ∈ O} ↦ fiberwiseMap Φ hO hΦ q.1 q.2
 ```
 
-with `fiberwiseMap_apply`. The proof goes through
-`ContMDiffSection.continuous_frameTopology_iff`. The docstring records the
+with `fiberwiseMap_apply`. Here `e U hU` is a covering frame system of `V`
+(`hcover`) and `e' U' hU'` is any frame system of `W`. The target needs no
+cover, since `continuous_frameTopology_iff_frameCoordinates` tests one frame
+of `W` at a time; the uses supply covers of both bundles anyway.
+
+**The route.** By `continuous_frameTopology_iff_frameCoordinates`, it is
+enough to show, for each `j`, that the frame coordinates of
+`fiberwiseMap Φ hO hΦ p s` in `e' j` on `U' j` are continuous in `(p, s)` in
+`C^n⟮I, U' j; 𝓘(𝕜, F'), F'⟯`. Let `N j : Opens (TotalSpace F V)` be the
+points of `O` over `(e' j).baseSet` (open, since `O` is and the projection is
+continuous); it is a manifold with model `I.prod 𝓘(𝕜, F)`. The coordinates
+are the composite `G p ∘ σ s` of
+
+- `σ s : C^n⟮I, U' j; I.prod 𝓘(𝕜, F), N j⟯`, the map `x ↦ ⟨x, s x⟩`
+  restricted to `U' j` and corestricted to `N j`, that is
+  `((toContMDiffMap s).restrict (U' j)).codRestrict (N j) _`, with the two
+  helpers below and Tau Ceti's `ContMDiffMap.restrict`; and
+- `G p : C^n⟮I.prod 𝓘(𝕜, F), N j; 𝓘(𝕜, F'), F'⟯`, the map
+  `v ↦ (e' j ⟨v.proj, Φ p v.proj v.snd⟩).2`, which is jointly $C^n$ on
+  `P × N j` by `hΦ` and the smoothness of `e' j` over its base set.
+
+Then `p ↦ G p` is continuous by Tau Ceti's
+`ContMDiff.continuous_manifoldWeakWhitney`
+(`Geometry/Manifold/ContMDiffMap/Chart/ManifoldFamily.lean`); `s ↦ σ s` by
+`continuous_toContMDiffMap`, Tau Ceti's `ContMDiffMap.continuous_restrict`
+(`.../ContMDiffMap/Chart/Restriction.lean`) and
+`ContMDiffMap.continuous_codRestrict_manifoldWeakWhitney`; and the
+composite by Tau Ceti's `ContMDiffMap.continuous_comp_manifoldWeakWhitney`
+(`.../ContMDiffMap/Chart/Comp.lean`). That last lemma assumes local
+compactness of the models of the source (`EB`) and of the middle manifold
+(`EB × F`), which is where `[LocallyCompactSpace F]` comes from. Every use
+(issues 7 and 8) has a finite-dimensional `F`, the fibre of the endomorphism
+or alternating bundle of a finite-rank bundle, so the hypothesis costs them
+nothing. The statement should hold without it, but a proof would need
+continuity of composition through a middle manifold whose model is not
+locally compact, which neither Tau Ceti nor Mathlib provides; the docstring
+says so.
+
+**The two helpers.** They are general facts about sections and about
+$C^n$ maps, so they are public and named.
+
+- In `Section/Topology.lean`, namespace `ContMDiffSection`: a section as a
+  $C^n$ map into the total space, and its continuity in the section.
+
+  ```lean
+  def toContMDiffMap (s : Cₛ^n⟮I; F, V⟯) : C^n⟮I, M; I.prod 𝓘(𝕜, F), TotalSpace F V⟯ :=
+    ⟨fun x ↦ TotalSpace.mk' F x (s x), s.contMDiff⟩
+
+  @[simp] theorem toContMDiffMap_apply (s : Cₛ^n⟮I; F, V⟯) (x : M) :
+      toContMDiffMap s x = TotalSpace.mk' F x (s x)
+
+  theorem continuous_toContMDiffMap [LocallyCompactSpace EB] (hcover : ∀ x, ∃ i, x ∈ U i) :
+      letI := frameTopology e U hU
+      Continuous (toContMDiffMap : Cₛ^n⟮I; F, V⟯ → C^n⟮I, M; I.prod 𝓘(𝕜, F), TotalSpace F V⟯)
+  ```
+
+  The proof checks the chart tests of `continuous_manifoldWeakWhitney_iff`.
+  The chart of the total space at a point over `b` is built from
+  `trivializationAt F V b`, so whether `toContMDiffMap s` sends a point into
+  its source does not depend on `s`, and the coordinate representative is
+  the pair of a function that does not depend on `s` and the frame
+  coordinates of `s` in `trivializationAt F V b`. These coordinates are
+  continuous in `s` by Tau Ceti's `continuous_frameCoordinates_of_cover`
+  (`Section/FrameCover.lean`), which is where `hcover` and the local
+  compactness of `EB` are used.
+- In `Geometry/Manifold/ContMDiffMap/Chart/CodRestrict.lean`, namespace
+  `ContMDiffMap`, beside Tau Ceti's weak Whitney files: corestriction of a
+  $C^n$ map to an open subset of the target that contains its range.
+
+  ```lean
+  def codRestrict (f : C^n⟮I, M; J, N⟯) (W : Opens N) (h : ∀ x, f x ∈ W) : C^n⟮I, M; J, W⟯
+
+  @[simp] theorem coe_codRestrict_apply (f : C^n⟮I, M; J, N⟯) (W : Opens N)
+      (h : ∀ x, f x ∈ W) (x : M) : (f.codRestrict W h x : N) = f x
+
+  theorem continuous_codRestrict_manifoldWeakWhitney (W : Opens N) :
+      Continuous fun f : {f : C^n⟮I, M; J, N⟯ // ∀ x, f x ∈ W} ↦ f.1.codRestrict W f.2
+  ```
+
+  Smoothness of the corestriction is Tau Ceti's
+  `TauCeti.ContMDiff.subtypeVal_comp_iff`. Continuity needs no local
+  compactness: a chart of `W` is the restriction of a chart of `N`
+  (Mathlib's `OpenPartialHomeomorph.subtypeRestr`, with `subtypeRestr_coe`
+  and `subtypeRestr_source`), so the preimage of a chart test of `W` is the
+  trace on the subtype of a chart test of `N`.
+
+**Remarks.** The docstring records the
 example of `DESIGN.md` showing that continuity in the parameter alone does
 not suffice for $n\ge1$. The uses take `P = Unit`, or `P = ℝ` with the time
 entering the formula only through `smoothTransition`, which keeps every
@@ -992,9 +1099,17 @@ For a map `f : C^n⟮I', N; I, M⟯` (the argument of Mathlib's instance
   only if `y ↦ ⟨f y, A y⟩` is $C^n$ into the alternating bundle of `V` and
   `Bundle.Trivial M G`. Its proof follows Tau Ceti's: near `y`, both are read
   in the trivializations at `f y` and at `y`, and the coordinate expressions
-  agree on a neighbourhood. No rank hypothesis, and any finite index type
-  `ι`; the field is any nontrivially normed field with `[CharZero 𝕜]`, which
-  Mathlib's smooth-bundle instance for alternating maps asks for.
+  agree on a neighbourhood. That they agree is
+  `ContinuousAlternatingMap.inCoordinates_pullback_trivial_of_mem`, which
+  involves no charts and so lives in `Topology/VectorBundle/Pullback.lean`,
+  beside Tau Ceti's `ContinuousLinearMap.inCoordinates_pullback_of_mem` in
+  the file of the same name. No rank hypothesis, and any finite index type
+  `ι`. The field is any nontrivially normed field: Mathlib's
+  `contMDiffAt_continuousAlternatingMap_bundle`, on which the proof rests,
+  needs no `[CharZero 𝕜]`. Only the smoothness instances of that bundle,
+  such as `ContMDiffVectorBundle.continuousAlternatingMap`, do, so a caller
+  adds `[CharZero 𝕜]` only where it needs the alternating bundle to be a
+  $C^n$ vector bundle.
 - `Symplectic/Pullback.lean`: `ContMDiffTwoForm.pullback ω f :
   ContMDiffTwoForm I' n F (f *ᵖ V)`, with value `ω (f y)` at `y`. The
   argument order is that of Tau Ceti's `ContMDiffSection.pullback ω f`
@@ -1456,8 +1571,13 @@ of *Constructions* for *First Chern number*.
    that `SmoothForm.ofContMDiffSection` accepts sections with values in
    `Bundle.Trivial M ℝ x`). Blockers: none.
 4. **Continuity of fibrewise maps.** `Section/Topology.lean`:
-   `fiberwiseMap`, `fiberwiseMap_apply`, `continuous_fiberwiseMap`. Blockers:
-   none. If the proof is long, split off the chart estimate as a first issue.
+   `toContMDiffMap` with `toContMDiffMap_apply` and
+   `continuous_toContMDiffMap`, `fiberwiseMap`, `fiberwiseMap_apply`,
+   `continuous_fiberwiseMap`; and, in `ContMDiffMap/Chart/CodRestrict.lean`,
+   `ContMDiffMap.codRestrict` with `coe_codRestrict_apply` and
+   `continuous_codRestrict_manifoldWeakWhitney`. Blockers: none. If the
+   issue is long, the two helpers (`toContMDiffMap` with its lemmas, and
+   `CodRestrict.lean`) become a first issue of their own.
 5. **Tame and compatible pairs.** `Symplectic/ComplexStructure/Basic.lean`:
    `Tames`, `Invariant`, `Compatible` with their unfolding lemmas and
    pointwise characterizations, `Tames.pushforward` and
@@ -1594,7 +1714,9 @@ of *Constructions* for *First Chern number*.
     (`Section/SmoothZero.lean`) gives a regular section whose zero set is a
     $0$-dimensional submanifold. The new work is the closed-and-discrete step,
     which the proof of Tau Ceti's `finite_sectionZero_of_contMDiff` contains
-    for a compact base, without compactness. Blockers: none.
+    for a compact base, without compactness. Its closedness half,
+    `VectorBundle.isClosed_setOf_eq_zero` for a continuous section along a
+    map, goes in `Topology/VectorBundle/ZeroSet.lean`. Blockers: none.
 15. **Smoothing nowhere-zero sections.** `Section/Nonvanishing.lean`:
     `SymplecticGeometry.exists_contMDiffSection_forall_ne_zero_of_continuous`,
     a continuous nowhere-zero section of a smooth bundle over a compact
@@ -1610,7 +1732,9 @@ of *Constructions* for *First Chern number*.
 
 18. **Sections of the alternating bundle of a pull-back.**
     `Geometry/Manifold/VectorBundle/Pullback.lean`:
-    `Bundle.Pullback.contMDiff_continuousAlternatingMap_section_iff`.
+    `Bundle.Pullback.contMDiff_continuousAlternatingMap_section_iff`; and
+    `Topology/VectorBundle/Pullback.lean`:
+    `ContinuousAlternatingMap.inCoordinates_pullback_trivial_of_mem`.
     Blockers: none.
 19. **Symplectic isomorphisms, frames and forms of rank two.**
     `Symplectic/Basic.lean`: `pushforward_eq_iff`, `IsSymplecticFrameOn` with
