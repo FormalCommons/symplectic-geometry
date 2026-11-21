@@ -15,7 +15,6 @@ import SymplecticGeometry.LinearAlgebra.Matrix.Block
 import SymplecticGeometry.LinearAlgebra.Matrix.PosDef.Block
 import SymplecticGeometry.LinearAlgebra.Matrix.SymplecticGroup.Basic
 import SymplecticGeometry.LinearAlgebra.Matrix.Symmetric
-import TauCeti.LinearAlgebra.Matrix.Block
 
 /-!
 # The matrix dictionary for the standard model
