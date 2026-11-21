@@ -90,6 +90,7 @@ variable {EB HB M : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB]
 | `Geometry/Manifold/VectorBundle/Symplectic/Basic.lean` | `Bundle.ContMDiffTwoForm`, nondegeneracy, transport along bundle isomorphisms, the comparison with `TauCeti.SmoothTwoForm` | 3 |
 | `Geometry/Manifold/VectorBundle/Section/Topology.lean` | continuity of fibrewise maps on section spaces | 4 |
 | `Geometry/Manifold/VectorBundle/Symplectic/ComplexStructure/Basic.lean` | tame and compatible pairs, $\omega_{g,J}$, the spaces of forms taming a fixed $J$; $J_{g,\omega}$ and existence | 5, 6 |
+| `Geometry/Manifold/VectorBundle/Cayley.lean` | the Cayley path formula in the endomorphism bundle of a vector bundle: smoothness along a base map | 7 |
 | `Geometry/Manifold/VectorBundle/Riemannian/SectionTopology.lean` | contractibility of the space of bundle metrics | 7 |
 | `Geometry/Manifold/VectorBundle/Symplectic/ComplexStructure/Contractible.lean` | contractibility for a fixed form or structure, the homotopy equivalence, the second milestone | 7, 8 |
 | `Geometry/Manifold/VectorBundle/Symplectic/Trivialization.lean` | local Darboux frames and the reduction of the structure group | 9 |
@@ -121,6 +122,9 @@ in line once this design is merged.
   `Boundary/Collar/Push.lean`, `Section/Generic.lean`,
   `Section/Nonvanishing.lean`): they hold the prerequisites of the route to
   the third milestone below, which replaces the book's cutting of the surface.
+- `VectorBundle/Cayley.lean` is new: the bundle Cayley lemma that the
+  contractibility proofs use mentions no symplectic notion, so it is kept out
+  of the symplectic files.
 - The contractibility of bundle metrics sits with Tau Ceti's topology on
   metrics, not in a symplectic file, since it mentions only Mathlib and Tau
   Ceti types.
@@ -421,17 +425,32 @@ $[0,1]$ is never fed to the lemma with `P = ℝ` directly.
   (`ContinuousLinearMap.inCoordinates_eq_conjContinuousAlgEquiv`,
   `Topology/VectorBundle/Coordinates.lean`, stated for any vector bundle),
   moves the formula through it with `map_cayleyPathFormula`, and ends with
-  `contDiffAt_cayleyPathFormula`. This file states the same lemma for the
-  endomorphism bundle of any $C^n$ vector bundle `V` with complete fibre
-  `F`, as `ContMDiffAt.cayleyPathFormula_hom_bundle_of_vectorBundle` (in
-  the root namespace, next to Tau Ceti's), by the same proof with
-  `TangentSpace I` replaced by `V`; it does not redo the chart computation
-  in another way. Then `hΦ` holds at each point of `univ ×ˢ O`: apply the
-  lemma with parameter space `ℝ × TotalSpace (F →L[ℝ] F) (fun x ↦ V x →L[ℝ] V x)`, base
-  map the bundle projection, `b` the time through `smoothTransition (1 - ·)`,
-  `A` the value of `J₀` and `B` the fibre value. On $TM$ the two lemmas
-  coincide, so no comparison with Tau Ceti is needed; if Tau Ceti
-  generalizes its lemma, this one is removed in favour of it. That the path
+  `contDiffAt_cayleyPathFormula`. None of these steps uses the smooth
+  structure of the bundle or the order `∞`: Mathlib's `contMDiffAt_hom_bundle`
+  needs only a topological vector bundle, and `contDiffAt_cayleyPathFormula`
+  holds at every order. So the library states the lemma once, at every order
+  `n : ℕ∞` (`f`, `b`, `A`, `B` of order `n`, conclusion of order `n`), for
+  the endomorphism bundle of any topological vector bundle `V` with complete
+  fibre `F` (`[FiberBundle F V] [VectorBundle ℝ F V]`, the fibres topological
+  modules, `[CompleteSpace F]`; no `ContMDiffVectorBundle` and no
+  `IsManifold`), as `ContMDiffAt.cayleyPathFormula_hom_bundle_of_vectorBundle`
+  in the root namespace, by Tau Ceti's proof with `TangentSpace I` replaced by
+  `V`; the chart computation is not redone in another way. Tau Ceti's lemma
+  is its case `V = TangentSpace I`, `n = ∞`, so no comparison is needed. It
+  mentions only Mathlib's endomorphism bundle and Tau Ceti's
+  `cayleyPathFormula`, so it has a file of its own,
+  `Geometry/Manifold/VectorBundle/Cayley.lean`, which imports only Mathlib's
+  `Geometry/Manifold/VectorBundle/Hom.lean` and Tau Ceti's
+  `Geometry/Symplectic/Cayley/Smooth.lean` and
+  `Topology/VectorBundle/Coordinates.lean`, and which `Contractible.lean`
+  imports. The suffix `_of_vectorBundle` is provisional, since the plain name
+  is Tau Ceti's: if Tau Ceti generalizes its own lemma in this way, the
+  library's lemma and file are removed in favour of it. Then `hΦ` holds at
+  each point of `univ ×ˢ O`: apply the lemma with parameter space
+  `ℝ × TotalSpace (F →L[ℝ] F) (fun x ↦ V x →L[ℝ] V x)`, base map the bundle
+  projection, `b` the time through `smoothTransition (1 - ·)`, `A` the value
+  of `J₀` and `B` the fibre value. This uses that the order `n` is in `ℕ∞`,
+  since `smoothTransition` is smooth but not analytic. That the path
   stays tame, and compatible when `J` is, are Tau
   Ceti's linear lemmas behind `SmoothTwoForm.Compatible.tames_cayleyPath` and
   `compatible_cayleyPath` (`.../AlmostComplex/CayleyPath.lean`), which this
@@ -462,7 +481,12 @@ $[0,1]$ is never fed to the lemma with `P = ℝ` directly.
   Cayley path between them, with $J_{g,\omega_{g,J}}$ as reference and
   coefficient `smoothTransition t`, is a fibrewise formula in $(t, J_x)$
   that is jointly smooth for every real $t$ on an open set, defined as above
-  with $b\in[0,1]$, that contains the values of every complex structure. `polarComplexStructure_homotopic`: for two metrics
+  with $b\in[0,1]$, that contains the values of every complex structure. Its
+  `hΦ` comes from `ContMDiffAt.cayleyPathFormula_hom_bundle_of_vectorBundle`
+  as above, with `b` the time through `smoothTransition` and `A` the value of
+  $J_{g,\omega_{g,J}}$ at the fibre value: this `A` depends on the point of
+  the endomorphism bundle and not only on its base point, which the lemma
+  allows, since `A` may be any function of the parameter `q`. `polarComplexStructure_homotopic`: for two metrics
   the two maps $\omega\mapsto J_{g,\omega}$ are homotopic, by contracting the
   metrics.
 - **Milestone.** `SymplecticGeometry.Bundle.contractibleSpace_compatible_tames`:
@@ -697,7 +721,9 @@ at once.
    `exists_compatible`. Blockers: 5.
 7. **Contractibility of tame and compatible structures and forms.**
    `Symplectic/ComplexStructure/Contractible.lean`: the four
-   `contractibleSpace_…` theorems; and the contractibility of metrics in
+   `contractibleSpace_…` theorems; the bundle Cayley lemma
+   `ContMDiffAt.cayleyPathFormula_hom_bundle_of_vectorBundle` in
+   `VectorBundle/Cayley.lean`; and the contractibility of metrics in
    `Riemannian/SectionTopology.lean`. Blockers: 4, 6.
 8. **The homotopy equivalence and the second milestone.**
    `Symplectic/ComplexStructure/Contractible.lean`:
