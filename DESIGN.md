@@ -1658,7 +1658,9 @@ has either; Tau Ceti's extension across a boundary,
   in $(t,x)$ whenever $\eta_t$ is, and, for closed $z_t$ smooth in
   $(t,x)$, coordinates of $[z_t]$ that are smooth in $t$ in a basis
   of Tau Ceti's `TauCeti.deRhamCohomology`; with smooth families of
-  forms in `Geometry/Manifold/DifferentialForm/SmoothFamily/`
+  forms in `Geometry/Manifold/DifferentialForm/SmoothFamily/`,
+  restricted between open subsets with
+  `Geometry/Manifold/LocalDiffeomorph/OpenSubset.lean`,
   and the homotopy operator on smooth forms in
   `Geometry/Manifold/DifferentialForm/HomotopyOperator.lean`),
   `Geometry/Manifold/ContMDiff/TimeExtension.lean` and
@@ -1913,7 +1915,8 @@ has either; Tau Ceti's extension across a boundary,
   `TauCeti.SmoothForm.characteristicFoliation`,
   `TauCeti.IsInvolutiveDistribution.exists_flatChart`,
   `TauCeti.RoughForm.descendedForm` and
-  `TauCeti.SmoothTwoForm.isSymplectic_descendedForm_iff`), and in
+  `TauCeti.SmoothTwoForm.isSymplectic_descendedForm_iff`, and the flat lemmas of
+  `Analysis/Calculus/DifferentialForm/LieDeriv.lean`), and in
   `Geometry/Symplectic/Neighborhood/`: `Extension.lean` (along the
   submanifold, a smooth family of linear symplectomorphisms built from
   compatible complex structures by the formula of
@@ -1921,7 +1924,9 @@ has either; Tau Ceti's extension across a boundary,
   the four theorems: given a diffeomorphism between two properly embedded
   submanifolds and, over it, a bundle map $TM_0|_{Q_0}\to TM_1|_{Q_1}$ that
   is a linear symplectomorphism on each fibre, some diffeomorphism of
-  neighbourhoods has that bundle map as its derivative along $Q_0$, which *Moser isotopy*'s relative theorem
+  neighbourhoods has that bundle map as its derivative along $Q_0$, proved
+  without symplectic forms in `Geometry/Manifold/TubularNeighborhood/MFDeriv.lean`,
+  which *Moser isotopy*'s relative theorem
   then corrects to a symplectomorphism with the same first jet),
   `Basic.lean` (the comparison theorem for submanifolds whose restricted
   form has constant rank, from the two files before it, of which the four
@@ -1943,7 +1948,8 @@ has either; Tau Ceti's extension across a boundary,
   vector spaces* (`Reduction.lean`, merged), Tau Ceti (tubular
   neighbourhoods, the normal bundles of Lagrangian and symplectic embeddings,
   compatible almost complex structures, relative Darboux, `TauCeti.SmoothTwoForm.exists_partialDiffeomorph_fix_immersion_mpullback_eq`).
-  `CharacteristicFoliation.lean` uses only Tau Ceti and can start at once.
+  `CharacteristicFoliation.lean` uses only Tau Ceti and `LieDeriv.lean` and can
+  start at once.
 - **Unmerged work of #3 it may wait for.** The linear extensions in the
   proofs choose complements: Lagrangian complements of a Lagrangian or
   isotropic tangent bundle, and a symplectic trivialization of the normal
@@ -1983,7 +1989,9 @@ has either; Tau Ceti's extension across a boundary,
   by the change of coordinates of *Manifolds, families and signs*),
   `Levi.lean` and `Moser.lean` (named like Tau Ceti's files: kernels of
   local one-forms as smooth hyperplane fields, and the change-of-form law
-  of the contact-Moser vector at one point, both used by `Family.lean`),
+  of the contact-Moser vector at one point, both used by `Family.lean`, and
+  the contact-Moser vector under pullback and restriction to open subsets,
+  which `Gray.lean` uses for the Gray vector),
   `Family.lean` (named like Tau Ceti's file: `IsContactFamily`, smooth
   families over $[0,1]$ of contact structures that need not be
   coorientable, and their local defining forms over `ℝ`, through the time
@@ -2001,9 +2009,10 @@ has either; Tau Ceti's extension across a boundary,
   `TauCeti.SmoothEmbedding.exists_isSmoothForm_relative_primitive`, and the
   Reeb flow); and `Geometry/Manifold/DifferentialForm/Flow/Family.lean`
   (named like Tau Ceti's file: Moser's principle along one trajectory, in
-  the rescaling case, which `Gray.lean` uses, and the preservation of a
+  the rescaling case, which `Gray.lean` uses, the preservation of a
   closed form with closed contractions by a local time-dependent flow, which
-  `PoissonAlgebra.lean` of *Hamiltonian flows* uses).
+  `PoissonAlgebra.lean` of *Hamiltonian flows* uses, and the slices of
+  pullbacks along `Prod.map id f`).
 - **Builds on:** Tau Ceti (contact forms, Reeb fields, contact Hamiltonians,
   strict and distribution Darboux charts, Gray's theorem for families over
   `ℝ`); `Family.lean` and `Gray.lean` also on *Smooth families*
