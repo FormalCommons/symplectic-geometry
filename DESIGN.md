@@ -804,6 +804,24 @@ it into issues; the overview fixes its folders and its dependencies.
   the compatible complex structures on `StdSpace ι` and its explicit formula).
   For $n=1$ it is compared with Mathlib's `UpperHalfPlane` action and with Tau
   Ceti's `stdComplexSymplecticForm_tames_iff_im_pos`.
+  Six general files about matrices, outside the part's folder, serve it:
+  `LinearAlgebra/Matrix/PosDef/Basic.lean` (`Matrix.posDef_iff_of_unique`:
+  over an index type with one element, a matrix is positive definite exactly
+  when its entry is positive), `LinearAlgebra/Matrix/PosDef/Block.lean`
+  (`Matrix.posDef_fromBlocks_zero_zero_iff` and its semidefinite analogue:
+  `fromBlocks A 0 0 D` is positive (semi)definite exactly when $A$ and $D$
+  are), `LinearAlgebra/Matrix/PosDef/OfReal.lean`
+  (`Matrix.posDef_map_algebraMap_iff` and `Matrix.posDef_map_ofReal_iff`: a
+  real matrix is positive definite exactly when its image over an `RCLike`
+  field is, through Tau Ceti's realification),
+  `LinearAlgebra/Matrix/Symmetric.lean` (`Matrix.IsSymm.sub_conjTranspose`:
+  $Z-Z^{*}=2i\,\mathrm{Im}\,Z$ for a symmetric complex $Z$),
+  `LinearAlgebra/Matrix/Block.lean` (the two identities between the blocks
+  of $M$ that the first block column of $M^2=-1$ gives), and
+  `Topology/Instances/Matrix.lean` (`Continuous.isOpen_setOf_isUnit_det`:
+  for a continuous family $f$ of square matrices over a topological field
+  with closed points, the parameters $x$ where $f(x)$ is invertible form an
+  open set). They import only Mathlib, Tau Ceti and each other.
 - **Builds on:** *Standard model*; compatibility is Tau Ceti's `Compatible`.
   It also imports one file from each of three other parts. `Action.lean`
   imports `LinearAlgebra/Matrix/OfReal.lean`, the general matrix file of
