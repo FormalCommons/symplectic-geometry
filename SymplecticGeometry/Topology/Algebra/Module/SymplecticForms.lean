@@ -68,6 +68,15 @@ theorem toBilinForm_toContinuousBilinearMap_ofContinuousBilinearMap (B : V →L[
     (ofContinuousBilinearMap B hB hnd).toBilinForm.toContinuousBilinearMap = B :=
   B.toContinuousBilinearMap_toBilinForm
 
+/-- A symplectic form is skew-symmetric: as a continuous bilinear form `B`, `B - Bᵀ = 2 • B`. -/
+theorem toContinuousBilinearMap_sub_flip (ω : SymplecticForm V) :
+    ω.toBilinForm.toContinuousBilinearMap - ω.toBilinForm.toContinuousBilinearMap.flip =
+      (2 : ℝ) • ω.toBilinForm.toContinuousBilinearMap := by
+  ext u v
+  simp only [sub_apply, ContinuousLinearMap.flip_apply,
+    smul_apply, LinearMap.toContinuousBilinearMap_apply, smul_eq_mul]
+  linarith [ω.isAlt.neg_eq u v]
+
 /-- The topology on the symplectic forms of a finite-dimensional real normed space induced by the
 operator norm of their continuous bilinear forms. As all norms on a finite-dimensional space are
 equivalent, it does not depend on the norm of `V`. -/

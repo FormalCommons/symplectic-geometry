@@ -11,6 +11,7 @@ public import TauCeti.Analysis.InnerProductSpace.Positive.MetricChange.Basic
 public import TauCeti.Geometry.Symplectic.AlmostComplex
 public import TauCeti.Geometry.Symplectic.Transport
 public import TauCeti.Topology.Algebra.Module.BilinearForm
+public import TauCeti.Topology.Algebra.Module.SymmetricBilinear.Basic
 
 /-!
 # The space of inner products
@@ -31,6 +32,8 @@ forward, `g ↦ g (e.symm ·) (e.symm ·)`, which is a homeomorphism.
 
 ## Main results
 
+* `SymplecticGeometry.symmetrizeBilinear_mem_innerProducts`: the symmetric part of a form that
+  is positive on nonzero vectors is an inner product.
 * `SymplecticGeometry.convex_innerProducts`: the inner products form a convex set.
 * `SymplecticGeometry.innerProducts_eq_inter`: they are the symmetric forms that are positive
   on nonzero vectors; in finite dimensions the second condition is open
@@ -68,6 +71,14 @@ variable {V}
 theorem mem_innerProducts {g : V →L[ℝ] V →L[ℝ] ℝ} :
     g ∈ innerProducts V ↔ (∀ v w, g v w = g w v) ∧ ∀ v, v ≠ 0 → 0 < g v v :=
   Iff.rfl
+
+/-- The symmetric part `½ (g + gᵀ)` of a continuous bilinear form `g` that is positive on nonzero
+vectors is an inner product. -/
+theorem symmetrizeBilinear_mem_innerProducts {g : V →L[ℝ] V →L[ℝ] ℝ}
+    (hg : ∀ v, v ≠ 0 → 0 < g v v) :
+    (ContinuousLinearMap.symmetrizeBilinear g).val ∈ innerProducts V :=
+  ⟨fun u v ↦ by simp [ContinuousLinearMap.symmetrizeBilinear_apply, add_comm], fun v hv ↦ by
+    simpa [ContinuousLinearMap.symmetrizeBilinear_apply] using hg v hv⟩
 
 variable (V) in
 /-- The inner products form a convex set. -/
