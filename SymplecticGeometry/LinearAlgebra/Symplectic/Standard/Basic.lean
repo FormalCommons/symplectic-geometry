@@ -46,7 +46,8 @@ Finally, `isSymplectomorphism_sumEquivProd` and `stdComplexStructure_transport_s
 compare the model with Tau Ceti's product model `TauCeti.stdSymplecticForm` and
 `TauCeti.AlmostComplexStructure.product` on `EuclideanSpace ℝ ι × EuclideanSpace ℝ ι`, and
 `isSymplectomorphism_piLpCongrLeft_sumCongr` says that relabelling the coordinate pairs along
-`σ : ι ≃ κ` is symplectic. The splitting `SymplecticGeometry.StdSpace.sumEquiv ι κ` of
+`σ : ι ≃ κ` is symplectic, with its coordinates given by `x_piLpCongrLeft_sumCongr` and
+`y_piLpCongrLeft_sumCongr`. The splitting `SymplecticGeometry.StdSpace.sumEquiv ι κ` of
 `StdSpace (ι ⊕ κ)` into `StdSpace ι × StdSpace κ` carries `ω₀` to the direct sum of the two
 standard forms (`isSymplectomorphism_sumEquiv`).
 
@@ -345,6 +346,24 @@ theorem isSymplectomorphism_piLpCongrLeft_sumCongr (σ : ι ≃ κ) :
     LinearIsometryEquiv.piLpCongrLeft_apply, Equiv.piCongrLeft'_apply, Equiv.sumCongr_symm,
     Equiv.sumCongr_apply, Sum.map_inl, Sum.map_inr]
   exact Equiv.sum_comp σ.symm fun i ↦ z (Sum.inl i) * w (Sum.inr i) - z (Sum.inr i) * w (Sum.inl i)
+
+namespace StdSpace
+
+/-- The `x`-coordinates of `z` relabelled along `σ` are those of `z`, read through `σ.symm`. -/
+@[simp]
+theorem x_piLpCongrLeft_sumCongr (σ : ι ≃ κ) (z : StdSpace ι) :
+    x (LinearIsometryEquiv.piLpCongrLeft 2 ℝ ℝ (σ.sumCongr σ) z) = z.x ∘ σ.symm := by
+  ext i
+  simp [LinearIsometryEquiv.piLpCongrLeft_apply]
+
+/-- The `y`-coordinates of `z` relabelled along `σ` are those of `z`, read through `σ.symm`. -/
+@[simp]
+theorem y_piLpCongrLeft_sumCongr (σ : ι ≃ κ) (z : StdSpace ι) :
+    y (LinearIsometryEquiv.piLpCongrLeft 2 ℝ ℝ (σ.sumCongr σ) z) = z.y ∘ σ.symm := by
+  ext i
+  simp [LinearIsometryEquiv.piLpCongrLeft_apply]
+
+end StdSpace
 
 end Reindex
 

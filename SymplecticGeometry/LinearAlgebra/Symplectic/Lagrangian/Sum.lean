@@ -5,17 +5,18 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.Analysis.InnerProductSpace.PiL2
+public import SymplecticGeometry.Analysis.Normed.Lp.PiLp
+public import SymplecticGeometry.LinearAlgebra.Matrix.GeneralLinearGroup.Symplectic.Unitary
 public import SymplecticGeometry.LinearAlgebra.Matrix.Realify
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Lagrangian.Transverse
-public import TauCeti.LinearAlgebra.Matrix.GeneralLinearGroup.Symplectic.Sum
-public import TauCeti.LinearAlgebra.Matrix.UnitaryGroup.Block
 public import TauCeti.Topology.Algebra.Matrix.UnitaryGroup
 
 /-!
 # Direct sums and reindexing of Lagrangian subspaces
 
-Two operations on the Lagrangian Grassmannians `𝓛(n) = ℒ ι` of the standard models, as algebra
-(their continuity is proved elsewhere).
+Two operations on the Lagrangian Grassmannians `𝓛(n) = ℒ ι` of the standard models, as algebra;
+their continuity is left to a later file.
 
 * `SymplecticGeometry.LagrangianGrassmannian.sum : ℒ ι × ℒ κ → ℒ (ι ⊕ κ)`, the direct sum
   `Λ ⊕ Λ'`: the product `Λ × Λ'` read in `StdSpace (ι ⊕ κ)` through the splitting
@@ -129,48 +130,17 @@ theorem sum_smul (g : GLSymplectic ι ℝ) (h : GLSymplectic κ ℝ) (Λ : ℒ �
       ← LinearMap.prodMap_map_prod, ← Submodule.map_comp, ← Submodule.map_comp,
       sumEquiv_symm_comp_prodMap]
 
-/-- The realification of a block-diagonal unitary matrix is the direct sum of the realifications
-of its blocks. -/
-private theorem sum_ofUnitary (U : unitaryGroup ι ℂ) (U' : unitaryGroup κ ℂ) :
-    GLSymplectic.sum (GLSymplectic.ofUnitary U, GLSymplectic.ofUnitary U') =
-      GLSymplectic.ofUnitary (UnitaryGroup.sum (U, U')) :=
-  Subtype.ext <| Units.ext <| by
-    rw [GLSymplectic.coe_sum, GLSymplectic.coe_ofUnitary, GLSymplectic.coe_ofUnitary,
-      GLSymplectic.coe_ofUnitary, UnitaryGroup.coe_sum, realify_fromBlocks_zero]
-
 /-- The direct sum of the Lagrangians framed by unitary matrices `U` and `U'` is the Lagrangian
 framed by their block-diagonal sum `diag(U, U')`. -/
 @[simp]
 theorem sum_unitaryFrame (U : unitaryGroup ι ℂ) (U' : unitaryGroup κ ℂ) :
     sum (unitaryFrame U, unitaryFrame U') = unitaryFrame (UnitaryGroup.sum (U, U')) := by
   rw [unitaryFrame_def, unitaryFrame_def, unitaryFrame_def, unitary_smul_def, unitary_smul_def,
-    unitary_smul_def, sum_smul, sum_horizontal, sum_ofUnitary]
+    unitary_smul_def, sum_smul, sum_horizontal, GLSymplectic.sum_ofUnitary]
 
 end DecidableEq
 
 /-! ### Reindexing -/
-
-/-- Relabelling the coordinate pairs along `e` and then along `f` is relabelling them along
-`e.trans f`. -/
-private theorem piLpCongrLeft_sumCongr_apply_apply {μ : Type*} [Fintype μ] (e : ι ≃ κ)
-    (f : κ ≃ μ) (z : StdSpace ι) :
-    LinearIsometryEquiv.piLpCongrLeft 2 ℝ ℝ (f.sumCongr f)
-        (LinearIsometryEquiv.piLpCongrLeft 2 ℝ ℝ (e.sumCongr e) z) =
-      LinearIsometryEquiv.piLpCongrLeft 2 ℝ ℝ ((e.trans f).sumCongr (e.trans f)) z := by
-  refine PiLp.ext fun k ↦ ?_
-  rcases k with i | i <;> simp [LinearIsometryEquiv.piLpCongrLeft_apply, Equiv.piCongrLeft'_apply]
-
-/-- The `x`-coordinates of the relabelled vector are `z.x ∘ e`. -/
-private theorem x_piLpCongrLeft_sumCongr_symm (e : ι ≃ κ) (z : StdSpace κ) :
-    x (LinearIsometryEquiv.piLpCongrLeft 2 ℝ ℝ (e.symm.sumCongr e.symm) z) = z.x ∘ e := by
-  ext i
-  simp [LinearIsometryEquiv.piLpCongrLeft_apply]
-
-/-- The `y`-coordinates of the relabelled vector are `z.y ∘ e`. -/
-private theorem y_piLpCongrLeft_sumCongr_symm (e : ι ≃ κ) (z : StdSpace κ) :
-    y (LinearIsometryEquiv.piLpCongrLeft 2 ℝ ℝ (e.symm.sumCongr e.symm) z) = z.y ∘ e := by
-  ext i
-  simp [LinearIsometryEquiv.piLpCongrLeft_apply]
 
 /-- The relabelling `ℒ ι ≃ ℒ κ` of the Lagrangian subspaces along `e : ι ≃ κ`: the image under
 the relabelling `LinearIsometryEquiv.piLpCongrLeft 2 ℝ ℝ (e.sumCongr e)` of the coordinate pairs
@@ -180,12 +150,16 @@ noncomputable def reindex (e : ι ≃ κ) : (ℒ ι) ≃ ℒ κ where
   invFun Λ := ⟨_, isLagrangian_map_piLpCongrLeft_sumCongr e.symm Λ.isLagrangian⟩
   left_inv Λ := by
     ext z
-    simp [Submodule.mem_map_equiv, LinearIsometryEquiv.piLpCongrLeft_symm,
-      piLpCongrLeft_sumCongr_apply_apply]
+    simp only [mem_mk, Submodule.mem_map_equiv, LinearIsometryEquiv.coe_symm_toLinearEquiv,
+      LinearIsometryEquiv.piLpCongrLeft_symm, Equiv.sumCongr_symm, Equiv.symm_symm, mem_toSubmodule]
+    rw [← LinearIsometryEquiv.trans_apply, LinearIsometryEquiv.piLpCongrLeft_trans]
+    simp [Equiv.sumCongr_trans]
   right_inv Λ := by
     ext z
-    simp [Submodule.mem_map_equiv, LinearIsometryEquiv.piLpCongrLeft_symm,
-      piLpCongrLeft_sumCongr_apply_apply]
+    simp only [mem_mk, Submodule.mem_map_equiv, LinearIsometryEquiv.coe_symm_toLinearEquiv,
+      LinearIsometryEquiv.piLpCongrLeft_symm, Equiv.sumCongr_symm, Equiv.symm_symm, mem_toSubmodule]
+    rw [← LinearIsometryEquiv.trans_apply, LinearIsometryEquiv.piLpCongrLeft_trans]
+    simp [Equiv.sumCongr_trans]
 
 @[simp]
 theorem coe_reindex (e : ι ≃ κ) (Λ : ℒ ι) :
@@ -214,14 +188,17 @@ theorem reindex_refl : reindex (Equiv.refl ι) = Equiv.refl (ℒ ι) := by
 theorem reindex_trans {μ : Type*} [Fintype μ] (e : ι ≃ κ) (f : κ ≃ μ) :
     (reindex e).trans (reindex f) = reindex (e.trans f) := by
   ext Λ z
-  simp [mem_reindex_iff, piLpCongrLeft_sumCongr_apply_apply]
+  rw [Equiv.trans_apply, mem_reindex_iff, mem_reindex_iff, mem_reindex_iff,
+    ← LinearIsometryEquiv.trans_apply, LinearIsometryEquiv.piLpCongrLeft_trans]
+  simp [Equiv.sumCongr_trans]
 
 /-- Relabelling fixes the horizontal Lagrangian. -/
 @[simp]
 theorem reindex_horizontal (e : ι ≃ κ) :
     reindex e (horizontal ι) = horizontal κ := by
   ext z
-  rw [mem_reindex_iff, mem_horizontal_iff, mem_horizontal_iff, y_piLpCongrLeft_sumCongr_symm]
+  rw [mem_reindex_iff, mem_horizontal_iff, mem_horizontal_iff, y_piLpCongrLeft_sumCongr,
+    Equiv.symm_symm]
   exact e.surjective.injective_comp_right.eq_iff' rfl
 
 /-- Relabelling fixes the vertical Lagrangian. -/
@@ -229,39 +206,22 @@ theorem reindex_horizontal (e : ι ≃ κ) :
 theorem reindex_vertical (e : ι ≃ κ) :
     reindex e (vertical ι) = vertical κ := by
   ext z
-  rw [mem_reindex_iff, mem_vertical_iff, mem_vertical_iff, x_piLpCongrLeft_sumCongr_symm]
+  rw [mem_reindex_iff, mem_vertical_iff, mem_vertical_iff, x_piLpCongrLeft_sumCongr,
+    Equiv.symm_symm]
   exact e.surjective.injective_comp_right.eq_iff' rfl
 
 variable [DecidableEq ι] [DecidableEq κ]
-
-/-- Relabelling along `e` conjugates the map of a matrix `M` to the map of `M` reindexed along
-`e.sumCongr e`. -/
-private theorem piLpCongrLeft_sumCongr_toEuclideanLin (e : ι ≃ κ)
-    (M : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ) (z : StdSpace ι) :
-    LinearIsometryEquiv.piLpCongrLeft 2 ℝ ℝ (e.sumCongr e) (toEuclideanLin M z) =
-      toEuclideanLin (Matrix.reindex (e.sumCongr e) (e.sumCongr e) M)
-        (LinearIsometryEquiv.piLpCongrLeft 2 ℝ ℝ (e.sumCongr e) z) := by
-  refine PiLp.ext fun k ↦ ?_
-  change (M *ᵥ z.ofLp) ((e.sumCongr e).symm k) =
-    (M.submatrix (e.sumCongr e).symm (e.sumCongr e).symm *ᵥ (z.ofLp ∘ (e.sumCongr e).symm)) k
-  rw [submatrix_mulVec_equiv, Equiv.symm_symm, Function.comp_assoc, Equiv.symm_comp_self,
-    Function.comp_id, Function.comp_apply]
 
 /-- Relabelling along `e` sends the Lagrangian framed by `U` to the Lagrangian framed by the
 reindexed unitary matrix `U.submatrix e.symm e.symm`. -/
 theorem reindex_unitaryFrame (e : ι ≃ κ) (U : unitaryGroup ι ℂ) :
     reindex e (unitaryFrame U) = unitaryFrame (unitaryReindexContinuousMulEquiv ℂ e U) :=
   toSubmodule_injective <| by
-    have hR : (unitaryReindexContinuousMulEquiv ℂ e U : Matrix κ κ ℂ).realify =
-        Matrix.reindex (e.sumCongr e) (e.sumCongr e) (U : Matrix ι ι ℂ).realify := by
-      rw [coe_unitaryReindexContinuousMulEquiv_apply, reindex_apply, reindex_apply,
-        realify_submatrix, Equiv.sumCongr_symm,
-        show ⇑(e.symm.sumCongr e.symm) = Sum.map e.symm e.symm from
-          funext (Equiv.sumCongr_apply _ _)]
     rw [coe_reindex, unitaryFrame_def, unitaryFrame_def, coe_unitary_smul, coe_unitary_smul,
-      ← reindex_horizontal e, coe_reindex, ← Submodule.map_comp, ← Submodule.map_comp, hR]
+      ← reindex_horizontal e, coe_reindex, ← Submodule.map_comp, ← Submodule.map_comp,
+      coe_unitaryReindexContinuousMulEquiv_apply, realify_reindex]
     congr 1
-    exact LinearMap.ext fun z ↦ piLpCongrLeft_sumCongr_toEuclideanLin e _ z
+    exact LinearMap.ext fun z ↦ piLpCongrLeft_toEuclideanLin_apply (e.sumCongr e) _ z
 
 end LagrangianGrassmannian
 
