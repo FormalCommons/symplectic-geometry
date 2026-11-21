@@ -76,10 +76,12 @@ variable {EB HB M : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB]
     `contMDiff_hom_bundle_iff` or this library's `contMDiff_hom_bundle_symm`
     (the `pushforward`s, the classification, the
     transition maps of symplectic frames and the direct sum of complex
-    structures), and each use of Tau Ceti's
-    `contMDiffAt_continuousAlternatingMap_bundle_of_bilinear` (the direct sum
-    of forms);
-  - finite rank of `F`: `isOpen_setOf_nondegenerate`; every result that
+    structures);
+  - finite rank of `F`: `isOpen_setOf_nondegenerate`;
+    `ContMDiffTwoForm.ofBilinearSection`, whose smoothness comes from Tau
+    Ceti's `contMDiffAt_continuousAlternatingMap_bundle_of_bilinear`, and
+    `compatibleForm` and the direct sum of forms, both built with it; every
+    result that
     uses `polarComplexStructure` (`compatible_polarComplexStructure`,
     `polarComplexStructure_tangentEquiv`, `IsNondegenerate.exists_compatible`,
     `exists_homotopyEquiv_polarComplexStructure`,
@@ -111,7 +113,8 @@ variable {EB HB M : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB]
   $v\ne0$, and $J$-invariance. The form attached to a metric and a complex
   structure is $\omega_{g,J}(u,v)=\tfrac12(g(Ju,v)-g(u,Jv))$, which for the
   Euclidean metric and $J_0$ on `StdSpace ι` is `stdForm ι`; its docstring
-  says so, and the first issue that defines it proves that case.
+  says so, and the first issue that defines it proves that case
+  (`stdForm_apply_eq_inner_sub_inner`, next to `stdForm_apply_eq_inner`).
 
 ## Files
 
@@ -420,7 +423,8 @@ the form and of the structure are independent.
 
 - `ContMDiffTwoForm.Tames ω J := ∀ x v, v ≠ 0 → 0 < ω.bilinFormAt x v (J x v)`,
   `Invariant ω J`, `structure Compatible ω J : Prop` (`invariant`, `tames`),
-  with the unfolding lemmas `tames_iff`, `invariant_iff` and
+  with the unfolding lemmas `tames_def`, `invariant_def`, `tames_iff`,
+  `invariant_iff` and
   `Invariant.apply` ($\omega(Jv,Jw)=\omega(v,w)$), as in Tau Ceti's
   `TwoForm.lean`; `Tames.isNondegenerate`, `Compatible.isNondegenerate`,
   `IsNondegenerate.tames_iff`, `IsNondegenerate.invariant_iff`,
@@ -428,17 +432,31 @@ the form and of the structure are independent.
   `TauCeti.SymplecticForm.Tames` and `Compatible` on `symplecticFormAt x`
   and `almostComplexStructureAt x`), `Compatible.compatibleAt`; and
   transport along bundle isomorphisms, which moves the form and the structure
-  together: `Tames.pushforward` and `Compatible.pushforward`, from
-  `ω.Tames J` to `(pushforward Φ hΦ ω).Tames (J.pushforward Φ hΦ)`.
-- On $TM$, `tames_tangentEquiv_iff` and `compatible_tangentEquiv_iff`: the
-  predicates agree with Tau Ceti's under the two `tangentEquiv`s.
-- `convex_setOf_tames J`, `convex_setOf_compatible J`: in the vector space
-  `ContMDiffTwoForm I n F V`, the forms taming (compatible with) a fixed `J`
-  form a convex set.
+  together: `Tames.pushforward`, `Invariant.pushforward` and
+  `Compatible.pushforward`, from `ω.Tames J` to
+  `(pushforward Φ hΦ ω).Tames (J.pushforward Φ hΦ')`, where `hΦ` and `hΦ'`
+  are the smoothness of `Φ` at the regularities of `ω` and of `J`.
+- On $TM$, `tames_tangentEquiv_iff`, `invariant_tangentEquiv_iff` and
+  `compatible_tangentEquiv_iff`: the predicates agree with Tau Ceti's under
+  the two `tangentEquiv`s (followed by `toSmooth` for the structure).
+- `convex_setOf_tames J`, `convex_setOf_invariant J` and
+  `convex_setOf_compatible J`: in the vector space `ContMDiffTwoForm I n F V`,
+  the forms taming (invariant under, compatible with) a fixed `J` form a
+  convex set.
 - $\omega_{g,J}$: for `g : Bundle.ContMDiffRiemannianMetric I n F V`,
   `ContMDiffComplexStructure.compatibleForm g J : ContMDiffTwoForm I n F V`
-  with `compatibleForm_apply` (the formula above) and
-  `compatible_compatibleForm`.
+  (`[FiniteDimensional ℝ F]`) with `compatibleForm_apply` (the formula above)
+  and `compatible_compatibleForm`. It is `ContMDiffTwoForm.ofBilinearSection`
+  of the bilinear section `(g ∘ J - (g ∘ J)ᵀ) / 2`, built with
+  `ContMDiff.clm_bundle_comp` and `TauCeti.Manifold.transposeBilinearSection`
+  (`Geometry/Manifold/VectorBundle/Bilinear/Section.lean`). The constructor
+  `ContMDiffTwoForm.ofBilinearSection β hβ` (`[FiniteDimensional ℝ F]`), in
+  `Symplectic/Basic.lean` with `ofBilinearSection_apply` and
+  `bilinFormAt_ofBilinearSection`, turns a $C^n$ bilinear section `β` with
+  `β x v v = 0` into a two-form, by Tau Ceti's
+  `contMDiffAt_continuousAlternatingMap_bundle_of_bilinear`. The same issue
+  adds `bilinFormAt_pushforward_apply` there, next to
+  `bilinFormAt_pushforward`.
 - $J_{g,\sigma}$ on the bundle of bilinear forms. Two maps need the
   smoothness of the polar formula: $J_{g,\omega}$ along a nondegenerate
   two-form, and, for the homotopy equivalence below, $J_{g,\omega_{g,B}}$ as
@@ -1257,10 +1275,8 @@ over the same base, on Mathlib's direct sum `V₁ ×ᵇ V₂` (`Bundle.Prod`, wi
   $x\mapsto\omega_{1,x}\circ(\mathrm{fst}\times\mathrm{fst})+\omega_{2,x}\circ(\mathrm{snd}\times\mathrm{snd})$
   is $C^n$ by Tau Ceti's product criterion
   (`Geometry/Manifold/VectorBundle/Prod.lean`, with `contMDiff_fst` and
-  `contMDiff_snd`), and Tau Ceti's
-  `contMDiffAt_continuousAlternatingMap_bundle_of_bilinear`
-  (`Geometry/Manifold/VectorBundle/ContinuousAlternatingMap.lean`) turns it
-  into the alternating section. `IsNondegenerate.prod`, and
+  `contMDiff_snd`), and `ContMDiffTwoForm.ofBilinearSection` turns it into
+  the two-form. `IsNondegenerate.prod`, and
   `IsNondegenerate.symplecticFormAt_prod`: the symplectic form of the sum at
   `x` is Tau Ceti's `TauCeti.SymplecticForm.prod` of the two
   (`Geometry/Symplectic/Prod/Basic.lean`).
