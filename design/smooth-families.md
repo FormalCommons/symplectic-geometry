@@ -404,6 +404,14 @@ Named like Tau Ceti's file; in `TauCeti`.
 - `IsSmoothlyContractible.hasFiniteGoodCover` (one set is a good cover), as
   the example of the predicate.
 
+### `Geometry/Manifold/MFDeriv/Chart.lean`
+
+Differentials of maps into normed spaces read in an extended chart not
+centred at the point, used by `Immersion/TangentProjection.lean`: the
+`mvfderiv` and off-centre forms of Tau Ceti's
+`TauCeti.mfderiv_eq_fderiv_comp_mfderiv_extChartAt` and
+`TauCeti.range_mvfderiv_eq_range_fderiv_comp_extChartAt_symm`.
+
 ### `Geometry/Manifold/Immersion/TangentProjection.lean`
 
 The local graph charts of a compact manifold in a Euclidean space [Weil1952,
@@ -416,12 +424,12 @@ range of `mvfderiv I e x`.
   $z\mapsto P_x(e(z)-e(x))$, as a partial diffeomorphism from a neighbourhood
   of `x` onto an open subset of that range, by the inverse function theorem.
 - `exists_uniform_tangentProjectionChart` for compact `M` and an injective
-  `e`: one radius $r>0$ and one bound such that, for every `x`, some partial
-  diffeomorphism given by $z\mapsto P_x(e(z)-e(x))$ on its source is defined
-  on $\{z:\|e(z)-e(x)\|<r\}$, reaches the ball of radius $r$ about $0$, and
-  has an inverse whose composite with `e` has derivatives of order at most 2
-  bounded on its target. It is not `tangentProjectionChart`, whose source is
-  a choice.
+  `e`: one radius $r>0$ and one bound for each order such that, for every `x`,
+  some partial diffeomorphism given by $z\mapsto P_x(e(z)-e(x))$ on its source
+  is defined on $\{z:\|e(z)-e(x)\|<r\}$, reaches the ball of radius $r$ about
+  $0$, and has an inverse whose composite with `e` has derivatives of every
+  order bounded on its target. It is not `tangentProjectionChart`, whose
+  source is a choice.
 
 ### `Geometry/Manifold/DeRham/GoodCover/Compact.lean`
 
@@ -429,7 +437,8 @@ range of `mvfderiv I e x`.
   the chart at `x`, each function $u\mapsto\|e(\varphi_x^{-1}u)-e(y)\|^2$, for
   $\|e(y)-e(x)\|<r$, is strictly convex on a convex neighbourhood of the
   image of the ball (its second derivative is $2\,\mathrm{id}$ up to a term
-  bounded by $\|e(\varphi_x^{-1}u)-e(y)\|$ times the bound above).
+  bounded by $\|e(\varphi_x^{-1}u)-e(y)\|$ times the bound above on second
+  derivatives).
 - `hasFiniteGoodCover_of_compactSpace [CompactSpace M] [T2Space M]
   [BoundarylessManifold I M] [FiniteDimensional ℝ E] [IsManifold I ∞ M] :
   HasFiniteGoodCover I M`: cover $M$ by finitely many sets
@@ -618,7 +627,8 @@ can start at once; each issue's blockers come before it.
    `Geometry/Manifold/DifferentialForm/TimeExtension.lean`. Blocked by 3 and 4.
 7. **Good covers.** `Geometry/Manifold/DeRham/GoodCover/Basic.lean`.
 8. **Tangent projection charts.**
-   `Geometry/Manifold/Immersion/TangentProjection.lean`.
+   `Geometry/Manifold/Immersion/TangentProjection.lean` and
+   `Geometry/Manifold/MFDeriv/Chart.lean`.
 9. **Good covers of compact manifolds.**
    `Geometry/Manifold/DeRham/GoodCover/Compact.lean`. Blocked by 7 and 8.
 10. **Splittings and their consequences.**

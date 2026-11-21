@@ -15,6 +15,8 @@ import TauCeti.Analysis.InnerProductSpace.RangeProjection
 import TauCeti.Analysis.Normed.Module.ContinuousInverse
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Injective
 import TauCeti.Geometry.Manifold.MFDeriv.Chart.Basic
+import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
+import SymplecticGeometry.Geometry.Manifold.MFDeriv.Chart
 
 /-!
 # Tangent projection charts
@@ -34,10 +36,13 @@ covers [Weil1952, §1, pp. 120–122].
 
 ## Main results
 
+* `SymplecticGeometry.isLocalDiffeomorphAt_orthogonalProjectionOnto_sub`: for a subspace `V` of
+  the dimension of `E`, `z ↦ P_V (e z - a)` is a local diffeomorphism where its differential is
+  injective.
 * `SymplecticGeometry.exists_uniform_tangentProjectionChart`: for a compact `M` and a smooth
   injective `e`, one radius `r > 0` such that for every `x` such a chart is defined on all `z`
   with `‖e z - e x‖ < r` and reaches the ball of radius `r` in `T`, and one bound for the
-  derivatives of order at most `2` of the composite of `e` with the inverses of these charts.
+  derivatives of each order of the composite of `e` with the inverses of these charts.
 
 ## Implementation notes
 
@@ -78,29 +83,39 @@ section Pointwise
 
 variable [IsManifold I n M] [BoundarylessManifold I M]
 
+/-- Let `V` be a finite-dimensional subspace of `F` of the dimension of `E`, and `a : F`. At a
+point `z` where the differential of `e` followed by the orthogonal projection onto `V` is
+injective, the map `y ↦ P_V (e y - a)` is a local diffeomorphism. -/
+theorem isLocalDiffeomorphAt_orthogonalProjectionOnto_sub (V : Submodule ℝ F)
+    [FiniteDimensional ℝ V] (a : F) {z : M} (hn : 1 ≤ n) (he : ContMDiff I 𝓘(ℝ, F) n e)
+    (hz : Injective (V.orthogonalProjectionOnto ∘L mvfderiv I e z))
+    (hdim : Module.finrank ℝ E = Module.finrank ℝ V) :
+    IsLocalDiffeomorphAt I 𝓘(ℝ, V) n (fun y ↦ V.orthogonalProjectionOnto (e y - a)) z := by
+  have hn0 : n ≠ 0 := by rintro rfl; exact absurd hn (by simp)
+  have hf : ContMDiff I 𝓘(ℝ, V) n (fun y ↦ V.orthogonalProjectionOnto (e y - a)) :=
+    (V.orthogonalProjectionOnto.contDiff.comp (contDiff_id.sub contDiff_const)).contMDiff.comp he
+  refine TauCeti.isLocalDiffeomorphAt_of_injective_mfderiv hf.contMDiffOn isOpen_univ
+    (mem_univ z) BoundarylessManifold.isInteriorPoint hn ?_ hdim
+  -- The differential at `z` is the projection onto `V` after that of `e`.
+  have hP := (V.orthogonalProjectionOnto.hasFDerivAt (x := e z)).sub_const
+    (V.orthogonalProjectionOnto a)
+  simp_rw [← map_sub] at hP
+  have hmf : HasMFDerivAt I 𝓘(ℝ, V) (fun y ↦ V.orthogonalProjectionOnto (e y - a)) z
+      (V.orthogonalProjectionOnto ∘L mvfderiv I e z) :=
+    hP.hasMFDerivAt.comp z (he.mdifferentiableAt hn0).hasMFDerivAt
+  rwa [hmf.mfderiv]
+
 /-- The orthogonal projection of `e z - e x` onto the range of the differential of `e` at `x` is a
 local diffeomorphism at `x`. -/
-private theorem isLocalDiffeomorphAt_orthogonalProjectionOnto_sub (hn : 1 ≤ n)
+private theorem isLocalDiffeomorphAt_orthogonalProjectionOnto_range_sub (hn : 1 ≤ n)
     (he : ContMDiff I 𝓘(ℝ, F) n e) (hx : Injective (mfderiv I 𝓘(ℝ, F) e x)) :
     IsLocalDiffeomorphAt I 𝓘(ℝ, (mvfderiv I e x).range) n
       (fun z ↦ (mvfderiv I e x).range.orthogonalProjectionOnto (e z - e x)) x := by
-  have hn0 : n ≠ 0 := by rintro rfl; exact absurd hn (by simp)
-  have hx' : Injective (mvfderiv I e x) := fun _ _ h ↦ hx h
+  have hx' : Injective (mvfderiv I e x) := TauCeti.injective_mvfderiv_iff.2 hx
   set V := (mvfderiv I e x).range
-  have hf : ContMDiff I 𝓘(ℝ, V) n (fun z ↦ V.orthogonalProjectionOnto (e z - e x)) :=
-    (V.orthogonalProjectionOnto.contDiff.comp (contDiff_id.sub contDiff_const)).contMDiff.comp he
-  refine TauCeti.isLocalDiffeomorphAt_of_injective_mfderiv hf.contMDiffOn isOpen_univ
-    (mem_univ x) BoundarylessManifold.isInteriorPoint hn ?_
+  refine isLocalDiffeomorphAt_orthogonalProjectionOnto_sub V (e x) hn he ?_
     (LinearMap.finrank_range_of_inj hx').symm
-  -- The differential at `x` is the projection onto `V` after that of `e`, injective since the
-  -- projection fixes `V`.
-  have hP := ((V.orthogonalProjectionOnto.hasFDerivAt (x := e x)).sub_const
-    (V.orthogonalProjectionOnto (e x)))
-  simp_rw [← map_sub] at hP
-  have hmf : HasMFDerivAt I 𝓘(ℝ, V) (fun z ↦ V.orthogonalProjectionOnto (e z - e x)) x
-      (V.orthogonalProjectionOnto ∘L mvfderiv I e x) :=
-    hP.hasMFDerivAt.comp x (he.mdifferentiableAt hn0).hasMFDerivAt
-  rw [hmf.mfderiv]
+  -- The projection fixes `V`, so it does not change the differential of `e` at `x`.
   have key : ∀ u, ((V.orthogonalProjectionOnto ∘L mvfderiv I e x) u : F) = mvfderiv I e x u :=
     fun u ↦ congrArg Subtype.val
       (V.orthogonalProjectionOnto_mem_subspace_eq_self ⟨_, LinearMap.mem_range_self _ u⟩)
@@ -115,7 +130,7 @@ private theorem exists_partialDiffeomorph_orthogonalProjectionOnto_sub (hn : 1 �
       x ∈ Φ.source ∧
         EqOn (fun z ↦ (mvfderiv I e x).range.orthogonalProjectionOnto (e z - e x)) Φ Φ.source := by
   -- `IsLocalDiffeomorphAt` is not exposed; the inverse of its chosen local inverse is the chart.
-  set h := isLocalDiffeomorphAt_orthogonalProjectionOnto_sub hn he hx
+  set h := isLocalDiffeomorphAt_orthogonalProjectionOnto_range_sub hn he hx
   refine ⟨h.localInverse.symm, h.localInverse_mem_target, fun z hz ↦ ?_⟩
   have hz' : z ∈ h.localInverse.toPartialEquiv.target := hz
   have hs := h.localInverse.toPartialEquiv.map_target hz'
@@ -184,8 +199,6 @@ private theorem exists_openPartialHomeomorph_tangentProjection (hU : IsOpen U)
     ((hg.contDiffAt (hU.mem_nhds hw)).differentiableAt (by simp)).hasFDerivAt
   obtain ⟨S, hSD⟩ :=
     ContinuousLinearMap.HasLeftInverse.of_injective_of_finiteDimensional_domain (hinj w₀ hw₀)
-  have hQD : ∀ w a, Q w (fderiv ℝ g w a) = fderiv ℝ g w a := fun w a ↦
-    Submodule.starProjection_eq_self_iff.2 (LinearMap.mem_range_self _ a)
   -- The map `G (w', w) = (w', Ψ (w', w))` and its derivatives.
   set Ψ : E × E → E := fun p ↦ S (Q p.1 (g p.2 - g p.1))
   set G : E × E → E × E := fun p ↦ (p.1, Ψ p)
@@ -221,13 +234,15 @@ private theorem exists_openPartialHomeomorph_tangentProjection (hU : IsOpen U)
     subst ha
     have hb := congrArg (fun L ↦ L b) (hslice (w₀, w₀) ⟨hw₀, hw₀⟩)
     simp only [ContinuousLinearMap.comp_apply, ContinuousLinearMap.inr_apply] at hb
-    rw [hab, hQD, hSD] at hb
+    rw [hab, ContinuousLinearMap.starProjection_range_apply, hSD] at hb
     simpa using (congrArg Prod.snd hb).symm
   let L : (E × E) ≃L[ℝ] (E × E) :=
     (LinearEquiv.ofInjectiveEndo (fderiv ℝ G (w₀, w₀) : E × E →ₗ[ℝ] E × E)
       hinj₀).toContinuousLinearEquiv
   obtain ⟨Θ, hΘ, hp₀Θ, hΘU, hΘsymm⟩ := TauCeti.ContDiffOn.exists_openPartialHomeomorph hG
-    (hU.prod hU) ⟨hw₀, hw₀⟩ (by simp) (e := L) (ContinuousLinearMap.ext fun _ ↦ rfl)
+    (hU.prod hU) (a := (w₀, w₀)) ⟨hw₀, hw₀⟩ (by simp) (e := L) (ContinuousLinearMap.ext fun p ↦ by
+      rw [ContinuousLinearEquiv.coe_coe, LinearEquiv.coe_toContinuousLinearEquiv',
+        LinearEquiv.coe_ofInjectiveEndo, ContinuousLinearMap.coe_coe])
   refine ⟨S, Θ, fun p ↦ congrFun hΘ p, hp₀Θ, hΘU, hΘsymm, fun q hq a b hab ↦ ?_⟩
   -- On the source of `Θ` the derivative of `G` is invertible, and so is its slice.
   have hq' := hΘU hq
@@ -247,17 +262,17 @@ private theorem exists_openPartialHomeomorph_tangentProjection (hU : IsOpen U)
 /-- **Tangent projections in coordinates, uniformly.** In the setting of
 `exists_openPartialHomeomorph_tangentProjection`, for `w'` near `w₀` the maps
 `Ψ w' : w ↦ S (Q w' (g w - g w'))` are inverted on one ball around `w₀` by maps `h w'`, the image
-of that ball under each contains one ball around `0`, and the derivatives of order at most `2` of
+of that ball under each contains one ball around `0`, and the derivatives of each order of
 `g ∘ h w'` are bounded there uniformly in `w'`. -/
 private theorem exists_uniform_inverse (hU : IsOpen U) (hg : ContDiffOn ℝ ∞ g U)
     (hinj : ∀ w ∈ U, Injective (fderiv ℝ g w)) {w₀ : E} (hw₀ : w₀ ∈ U) :
-    ∃ S : F →L[ℝ] E, ∃ ε > 0, ∃ η > 0, ∃ C : ℝ, ∃ h : E → E → E, η ≤ ε ∧ ball w₀ ε ⊆ U ∧
+    ∃ S : F →L[ℝ] E, ∃ ε > 0, ∃ η > 0, ∃ C : ℕ → ℝ, ∃ h : E → E → E, η ≤ ε ∧ ball w₀ ε ⊆ U ∧
       ∀ w' ∈ ball w₀ η,
         (∀ w ∈ ball w₀ ε,
           Injective (S ∘L (fderiv ℝ g w').range.starProjection ∘L fderiv ℝ g w) ∧
           h w' (S ((fderiv ℝ g w').range.starProjection (g w - g w'))) = w ∧
-          ∀ j ≤ 2, ‖iteratedFDeriv ℝ j (g ∘ h w')
-            (S ((fderiv ℝ g w').range.starProjection (g w - g w')))‖ ≤ C) ∧
+          ∀ j, ‖iteratedFDeriv ℝ j (g ∘ h w')
+            (S ((fderiv ℝ g w').range.starProjection (g w - g w')))‖ ≤ C j) ∧
         ∀ v ∈ ball (0 : E) η, ∃ w ∈ ball w₀ ε,
           S ((fderiv ℝ g w').range.starProjection (g w - g w')) = v := by
   obtain ⟨S, Θ, hΘG, hp₀Θ, hΘU, hΘsymm, hinjS⟩ :=
@@ -289,20 +304,19 @@ private theorem exists_uniform_inverse (hU : IsOpen U) (hg : ContDiffOn ℝ ∞ 
     Θ.isOpen_image_of_subset_source isOpen_ball (ball_subset_closedBall.trans hεΘ)
   have hΘp₀ : Θ p₀ = (w₀, 0) := by simp [hΘG, p₀]
   obtain ⟨η, hη, hηsub⟩ := Metric.isOpen_iff.1 hopen _ ⟨p₀, mem_ball_self hε, hΘp₀⟩
-  refine ⟨S, ε, hε, min η ε, lt_min hη hε, max (Cf 0) (max (Cf 1) (Cf 2)),
+  refine ⟨S, ε, hε, min η ε, lt_min hη hε, Cf,
     fun w' v ↦ (Θ.symm (w', v)).2, min_le_right _ _, hεU, fun w' hw' ↦ ⟨fun w hw ↦ ?_, ?_⟩⟩
   · have hw'ε : w' ∈ ball w₀ ε := ball_subset_ball (min_le_right _ _) hw'
     have hq := hsrc w' hw'ε w hw
     have hΘq : Θ (w', w) = (w', S (Q w' (g w - g w'))) := hΘG _
-    refine ⟨hinjS (w', w) hq, ?_, fun j hj ↦ ?_⟩
+    refine ⟨hinjS (w', w) hq, ?_, fun j ↦ ?_⟩
     · simpa [hΘq] using congrArg Prod.snd (Θ.left_inv hq)
     · have hmem : (w', S (Q w' (g w - g w'))) ∈ Θ '' closedBall p₀ ε :=
         ⟨(w', w), ball_subset_closedBall (hball w' hw'ε w hw), hΘq⟩
       have hkat : ContDiffAt ℝ ∞ k (w', S (Q w' (g w - g w'))) :=
         hk.contDiffAt (Θ.open_target.mem_nhds (hKt hmem))
-      refine (hkat.norm_iteratedFDeriv_prod_right_le j (by exact_mod_cast le_top)).trans
-        ((hCf j _ hmem).trans ?_)
-      interval_cases j <;> simp
+      exact (hkat.norm_iteratedFDeriv_prod_right_le j (by exact_mod_cast le_top)).trans
+        (hCf j _ hmem)
   · intro v hv
     have hmem : (w', v) ∈ ball (w₀, (0 : E)) η := by
       rw [← ball_prod_same]
@@ -326,17 +340,17 @@ contains a ball of radius `η / (‖S‖ + 1)`, and whose inverse has derivative
 `S` and `C`. -/
 private theorem exists_partialDiffeomorph_of_uniformInverse (he : ContMDiff I 𝓘(ℝ, F) ∞ e)
     (hinj : ∀ x, Injective (mfderiv I 𝓘(ℝ, F) e x)) {x₀ x : M} {g : E → F}
-    (hgdef : g = e ∘ (extChartAt I x₀).symm) {S : F →L[ℝ] E} {ε η C : ℝ} {h : E → E → E}
-    (hη : 0 < η) (hεU : ball (extChartAt I x₀ x₀) ε ⊆ interior (extChartAt I x₀).target)
+    (hgdef : g = e ∘ (extChartAt I x₀).symm) {S : F →L[ℝ] E} {ε η : ℝ} {C : ℕ → ℝ}
+    {h : E → E → E} (hεU : ball (extChartAt I x₀ x₀) ε ⊆ interior (extChartAt I x₀).target)
     (hx : x ∈ (extChartAt I x₀).source)
     (hxε : extChartAt I x₀ x ∈ ball (extChartAt I x₀ x₀) ε)
     (hmain : ∀ w ∈ ball (extChartAt I x₀ x₀) ε,
       Injective (S ∘L (fderiv ℝ g (extChartAt I x₀ x)).range.starProjection ∘L fderiv ℝ g w) ∧
       h (extChartAt I x₀ x) (S ((fderiv ℝ g (extChartAt I x₀ x)).range.starProjection
         (g w - g (extChartAt I x₀ x)))) = w ∧
-      ∀ j ≤ 2, ‖iteratedFDeriv ℝ j (g ∘ h (extChartAt I x₀ x))
+      ∀ j, ‖iteratedFDeriv ℝ j (g ∘ h (extChartAt I x₀ x))
         (S ((fderiv ℝ g (extChartAt I x₀ x)).range.starProjection
-          (g w - g (extChartAt I x₀ x))))‖ ≤ C)
+          (g w - g (extChartAt I x₀ x))))‖ ≤ C j)
     (hsurj : ∀ v ∈ ball (0 : E) η, ∃ w ∈ ball (extChartAt I x₀ x₀) ε,
       S ((fderiv ℝ g (extChartAt I x₀ x)).range.starProjection
         (g w - g (extChartAt I x₀ x))) = v) :
@@ -344,99 +358,79 @@ private theorem exists_partialDiffeomorph_of_uniformInverse (he : ContMDiff I �
       (∀ z ∈ Φ.source, Φ z = (mvfderiv I e x).range.orthogonalProjectionOnto (e z - e x)) ∧
       Φ.source = (extChartAt I x₀).source ∩ extChartAt I x₀ ⁻¹' ball (extChartAt I x₀ x₀) ε ∧
       ball 0 (η / (‖S‖ + 1)) ⊆ Φ.target ∧
-      ∀ u ∈ Φ.target, ∀ j ≤ 2, ‖iteratedFDeriv ℝ j (e ∘ Φ.symm) u‖ ≤ (‖S‖ + 1) ^ 2 * max C 0 := by
+      ∀ u ∈ Φ.target, ∀ j,
+        ‖iteratedFDeriv ℝ j (e ∘ Φ.symm) u‖ ≤ (‖S‖ + 1) ^ j * max (C j) 0 := by
+  subst hgdef
   set c := extChartAt I x₀
-  set w₀ := c x₀
   set w' := c x
-  set s := c.source ∩ c ⁻¹' ball w₀ ε
+  set s := c.source ∩ c ⁻¹' ball (c x₀) ε
   have hs : IsOpen s :=
     (continuousOn_extChartAt x₀).isOpen_inter_preimage (isOpen_extChartAt_source x₀) isOpen_ball
-  have hg : ContDiffOn ℝ ∞ g (interior c.target) := hgdef ▸
-    (contMDiffOn_iff_contDiffOn.mp (he.comp_contMDiffOn (contMDiffOn_extChartAt_symm x₀))).mono
-      interior_subset
-  have hgd : ∀ z ∈ s, DifferentiableAt ℝ g (c z) := fun z hz ↦
-    (hg.contDiffAt (isOpen_interior.mem_nhds (hεU hz.2))).differentiableAt (by simp)
-  have hgx : ∀ z ∈ c.source, g (c z) = e z := fun z hz ↦ by
-    rw [hgdef, comp_apply, c.left_inv hz]
-  -- In the chart, the differential of `e` at `z ∈ s` is `fderiv ℝ g (c z)` after that of `c`.
-  have hD : ∀ z ∈ s, ∀ v, mvfderiv I e z v = fderiv ℝ g (c z) (mfderiv I 𝓘(ℝ, E) c z v) := by
-    intro z hz v
-    -- `mvfderiv I e z v` is `mfderiv I 𝓘(ℝ, F) e z v`, read in `F`.
-    change mfderiv I 𝓘(ℝ, F) e z v = _
-    rw [TauCeti.mfderiv_eq_fderiv_comp_mfderiv_extChartAt hz.1 (hgdef ▸ hgd z hz), hgdef]
-    rfl
-  -- The range `V` of the differential of `e` at `x`, and the orthogonal projection onto it.
+  have hgd : ∀ z ∈ s, DifferentiableAt ℝ (e ∘ c.symm) (c z) := fun z hz ↦
+    (((he.contDiffOn_comp_extChartAt_symm x₀).mono interior_subset).contDiffAt
+      (isOpen_interior.mem_nhds (hεU hz.2))).differentiableAt (by simp)
+  have hgx : ∀ z ∈ c.source, (e ∘ c.symm) (c z) = e z := fun z hz ↦ by
+    rw [comp_apply, c.left_inv hz]
+  -- The range `V` of the differential of `e` at `x` is that of `e ∘ c.symm` at `w'`, so the
+  -- orthogonal projection onto it is `Q'`.
   set V := (mvfderiv I e x).range
-  set Q' := (fderiv ℝ g w').range.starProjection
+  set Q' := (fderiv ℝ (e ∘ c.symm) w').range.starProjection
   have hxs : x ∈ s := ⟨hx, hxε⟩
-  have hV : V = (fderiv ℝ g w').range := by
-    obtain ⟨Lc, hLc⟩ := isInvertible_mfderiv_extChartAt hx
-    ext u
-    simp only [V, LinearMap.mem_range, ContinuousLinearMap.coe_coe, hD x hxs]
-    refine ⟨fun ⟨v, hv⟩ ↦ ⟨_, hv⟩, fun ⟨a, ha⟩ ↦ ⟨Lc.symm a, ?_⟩⟩
-    rw [← ha, ← hLc]
-    exact congrArg _ (Lc.apply_symm_apply a)
+  have hV : V = (fderiv ℝ (e ∘ c.symm) w').range :=
+    range_mvfderiv_eq_range_fderiv_comp_extChartAt_symm_of_mem_source hx (hgd x hxs)
   -- The subspaces agree by `hV`; the projection instances are propositions.
   have hVQ : V.starProjection = Q' := by
     congr 1
   have hPV : ∀ y, (V.orthogonalProjectionOnto y : F) = Q' y := fun y ↦ by
     rw [← V.starProjection_apply, hVQ]
-  have hQD : ∀ a, Q' (fderiv ℝ g w' a) = fderiv ℝ g w' a := fun a ↦
-    Submodule.starProjection_eq_self_iff.2 (LinearMap.mem_range_self _ a)
   -- `S` restricts to an isomorphism `T` from `V` onto `E`.
   have hSinj : Injective (S ∘L V.subtypeL) := by
     rintro ⟨u₁, hu₁⟩ ⟨u₂, hu₂⟩ h12
     rw [hV] at hu₁ hu₂
     obtain ⟨a₁, rfl⟩ := hu₁
     obtain ⟨a₂, rfl⟩ := hu₂
-    have h := (hmain w' hxε).1 (a₁ := a₁) (a₂ := a₂) (by simpa [hQD] using h12)
+    have h := (hmain w' hxε).1 (a₁ := a₁) (a₂ := a₂) (by simpa [Q'] using h12)
     subst h
     rfl
   have hdim : Module.finrank ℝ V = Module.finrank ℝ E :=
-    LinearMap.finrank_range_of_inj fun _ _ h ↦ hinj x h
+    LinearMap.finrank_range_of_inj (TauCeti.injective_mvfderiv_iff.2 (hinj x))
   let T : V ≃L[ℝ] E :=
     (LinearMap.linearEquivOfInjective (S ∘L V.subtypeL : V →ₗ[ℝ] E) hSinj hdim)
       |>.toContinuousLinearEquiv
-  have hT : ∀ u : V, T u = S u := fun u ↦ rfl
+  have hT : ∀ u : V, T u = S u := fun u ↦ by
+    rw [LinearEquiv.coe_toContinuousLinearEquiv', LinearMap.linearEquivOfInjective_apply,
+      ContinuousLinearMap.coe_coe, ContinuousLinearMap.comp_apply, Submodule.subtypeL_apply]
   have hTn : ∀ u : V, ‖T u‖ ≤ (‖S‖ + 1) * ‖u‖ := fun u ↦ by
     rw [hT]
     calc ‖S u‖ ≤ ‖S‖ * ‖u‖ := S.le_opNorm _
       _ ≤ (‖S‖ + 1) * ‖u‖ := by gcongr; linarith
   -- The chart `φ`, read through `T`, is the map `Ψ w'` of the coordinate data.
   set φ : M → V := fun z ↦ V.orthogonalProjectionOnto (e z - e x)
-  have hkey : ∀ z ∈ c.source, T (φ z) = S (Q' (g (c z) - g w')) := fun z hz ↦ by
-    rw [hT, hgx z hz, hgx x hx]
-    exact congrArg S (hPV _)
+  have hkey : ∀ z ∈ c.source, T (φ z) = S (Q' ((e ∘ c.symm) (c z) - (e ∘ c.symm) w')) :=
+    fun z hz ↦ by
+      rw [hT, hgx z hz, hgx x hx]
+      exact congrArg S (hPV _)
   have hinjOn : InjOn φ s := fun z₁ hz₁ z₂ hz₂ h12 ↦ by
     have h' := congrArg T h12
     rw [hkey z₁ hz₁.1, hkey z₂ hz₂.1] at h'
     have h'' := congrArg (h w') h'
     rw [(hmain _ hz₁.2).2.1, (hmain _ hz₂.2).2.1] at h''
     exact c.injOn hz₁.1 hz₂.1 h''
-  have hφ : ContMDiff I 𝓘(ℝ, V) ∞ φ :=
-    (V.orthogonalProjectionOnto.contDiff.comp (contDiff_id.sub contDiff_const)).contMDiff.comp he
   have hloc : IsLocalDiffeomorphOn I 𝓘(ℝ, V) ∞ φ s := by
     rw [isLocalDiffeomorphOn_iff]
     rintro ⟨z, hz⟩
-    refine TauCeti.isLocalDiffeomorphAt_of_injective_mfderiv hφ.contMDiffOn isOpen_univ
-      (mem_univ z) BoundarylessManifold.isInteriorPoint (by simp) ?_ hdim.symm
-    -- The differential of `φ` at `z` is the projection onto `V` after that of `e`.
-    have hP := ((V.orthogonalProjectionOnto.hasFDerivAt (x := e z)).sub_const
-      (V.orthogonalProjectionOnto (e x)))
-    simp_rw [← map_sub] at hP
-    have hmf : HasMFDerivAt I 𝓘(ℝ, V) φ z (V.orthogonalProjectionOnto ∘L mvfderiv I e z) :=
-      hP.hasMFDerivAt.comp z (he.mdifferentiableAt (by simp)).hasMFDerivAt
-    rw [hmf.mfderiv]
+    refine isLocalDiffeomorphAt_orthogonalProjectionOnto_sub V (e x) (by simp) he ?_ hdim.symm
+    -- Read in the chart, the differential is injective by `hmain`.
     obtain ⟨Lc, hLc⟩ := isInvertible_mfderiv_extChartAt hz.1
+    have hD := mvfderiv_eq_fderiv_comp_mfderiv_extChartAt hz.1 (hgd z hz)
     intro a b hab
-    have hPa : ∀ a', ((V.orthogonalProjectionOnto ∘L mvfderiv I e z) a' : F) =
-        Q' (fderiv ℝ g (c z) (mfderiv I 𝓘(ℝ, E) c z a')) := fun a' ↦ by
-      rw [← hPV, ← hD z hz]
-      rfl
-    have h' : S (Q' (fderiv ℝ g (c z) (mfderiv I 𝓘(ℝ, E) c z a))) =
-        S (Q' (fderiv ℝ g (c z) (mfderiv I 𝓘(ℝ, E) c z b))) := by
-      rw [← hPa, ← hPa]
-      exact congrArg (fun y : V ↦ S y) hab
+    have hPa : ∀ a', S ((V.orthogonalProjectionOnto ∘L mvfderiv I e z) a' : F) =
+        S (Q' (fderiv ℝ (e ∘ c.symm) (c z) (mfderiv I 𝓘(ℝ, E) c z a'))) := fun a' ↦ by
+      rw [ContinuousLinearMap.comp_apply, hPV, DFunLike.congr_fun hD a']
+      exact congrArg (fun y ↦ S (Q' y)) (ContinuousLinearMap.comp_apply _ _ _)
+    have h' : S (Q' (fderiv ℝ (e ∘ c.symm) (c z) (mfderiv I 𝓘(ℝ, E) c z a))) =
+        S (Q' (fderiv ℝ (e ∘ c.symm) (c z) (mfderiv I 𝓘(ℝ, E) c z b))) := by
+      rw [← hPa, ← hPa, hab]
     have h'' := (hmain (c z) hz.2).1 (a₁ := mfderiv I 𝓘(ℝ, E) c z a)
       (a₂ := mfderiv I 𝓘(ℝ, E) c z b) h'
     rw [← hLc] at h''
@@ -464,12 +458,13 @@ private theorem exists_partialDiffeomorph_of_uniformInverse (he : ContMDiff I �
     · rw [mem_preimage, c.right_inv hwt]
       exact hw
     · rw [hkey _ (c.map_target hwt), c.right_inv hwt, hwu]
-  · -- On the target, `e ∘ Φ⁻¹ = (g ∘ h w') ∘ T`, whose derivatives `hmain` bounds.
-    rintro _ ⟨z₀, hz₀, rfl⟩ j hj
-    have heq : EqOn (e ∘ Φ.symm) ((g ∘ h w') ∘ T) (φ '' s) := by
+  · -- On the target, `e ∘ Φ⁻¹ = ((e ∘ c.symm) ∘ h w') ∘ T`, whose derivatives `hmain` bounds.
+    rintro _ ⟨z₀, hz₀, rfl⟩ j
+    have heq : EqOn (e ∘ Φ.symm) (((e ∘ c.symm) ∘ h w') ∘ T) (φ '' s) := by
       rintro _ ⟨z, hz, rfl⟩
       simp only [comp_apply]
-      rw [hkey z hz.1, (hmain _ hz.2).2.1, hgx z hz.1, hΦsymm]
+      rw [← comp_apply (f := e) (g := c.symm), hkey z hz.1, (hmain _ hz.2).2.1, hgx z hz.1,
+        hΦsymm]
       exact congrArg e (hinjOn.leftInvOn_invFunOn hz)
     have hmem : φ z₀ ∈ φ '' s := ⟨z₀, hz₀, rfl⟩
     rw [((heq.eventuallyEq_of_mem ((hΦt ▸ Φ.open_target).mem_nhds hmem)).iteratedFDeriv ℝ
@@ -478,28 +473,26 @@ private theorem exists_partialDiffeomorph_of_uniformInverse (he : ContMDiff I �
     rw [hkey z₀ hz₀.1]
     have hTn' : ‖(T : V →L[ℝ] E)‖ ≤ ‖S‖ + 1 :=
       ContinuousLinearMap.opNorm_le_bound _ (by positivity) hTn
-    exact mul_le_mul ((pow_le_pow_left₀ (norm_nonneg _) hTn' j).trans
-      (pow_le_pow_right₀ (by linarith [norm_nonneg S]) hj))
-      (((hmain _ hz₀.2).2.2 j hj).trans (le_max_left _ _)) (norm_nonneg _) (by positivity)
+    exact mul_le_mul (pow_le_pow_left₀ (norm_nonneg _) hTn' j)
+      (((hmain _ hz₀.2).2.2 j).trans (le_max_left _ _)) (norm_nonneg _) (by positivity)
 
 /-- **Tangent projection charts near a point.** Near each point `x₀`, the charts of
 `exists_uniform_tangentProjectionChart` exist with constants uniform in `x`. -/
 private theorem exists_uniform_tangentProjectionChart_nhds [CompactSpace M]
     (he : ContMDiff I 𝓘(ℝ, F) ∞ e) (hinj : ∀ x, Injective (mfderiv I 𝓘(ℝ, F) e x))
     (he' : Injective e) (x₀ : M) :
-    ∃ W ∈ 𝓝 x₀, ∃ r > 0, ∃ C : ℝ, ∀ x ∈ W,
+    ∃ W ∈ 𝓝 x₀, ∃ r > 0, ∃ C : ℕ → ℝ, ∀ x ∈ W,
       ∃ Φ : PartialDiffeomorph I 𝓘(ℝ, (mvfderiv I e x).range) M (mvfderiv I e x).range ∞,
         (∀ z ∈ Φ.source, Φ z = (mvfderiv I e x).range.orthogonalProjectionOnto (e z - e x)) ∧
         {z | dist (e z) (e x) < r} ⊆ Φ.source ∧ ball 0 r ⊆ Φ.target ∧
-        ∀ u ∈ Φ.target, ∀ j ≤ 2, ‖iteratedFDeriv ℝ j (e ∘ Φ.symm) u‖ ≤ C := by
+        ∀ u ∈ Φ.target, ∀ j, ‖iteratedFDeriv ℝ j (e ∘ Φ.symm) u‖ ≤ C j := by
   -- Work in the extended chart `c` at `x₀`, where `e` reads as `g`.
   set c := extChartAt I x₀
   set g : E → F := e ∘ c.symm with hgdef
   have hw₀ : c x₀ ∈ interior c.target :=
     ModelWithCorners.isInteriorPoint_iff.mp (BoundarylessManifold.isInteriorPoint (x := x₀))
   have hg : ContDiffOn ℝ ∞ g (interior c.target) :=
-    (contMDiffOn_iff_contDiffOn.mp (he.comp_contMDiffOn (contMDiffOn_extChartAt_symm x₀))).mono
-      interior_subset
+    (he.contDiffOn_comp_extChartAt_symm x₀).mono interior_subset
   have hinjg : ∀ w ∈ interior c.target, Injective (fderiv ℝ g w) := fun w hw ↦ by
     have hw' := interior_subset hw
     have h := TauCeti.fderiv_comp_extChartAt_symm_injective (c.map_target hw')
@@ -531,32 +524,33 @@ private theorem exists_uniform_tangentProjectionChart_nhds [CompactSpace M]
   refine ⟨W ∩ (c.source ∩ c ⁻¹' ball (c x₀) η),
     inter_mem hW ((hcont.isOpen_inter_preimage hsrc isOpen_ball).mem_nhds
       ⟨mem_extChartAt_source x₀, mem_ball_self hη⟩),
-    min r (η / (‖S‖ + 1)), lt_min hr hρ, (‖S‖ + 1) ^ 2 * max C 0, fun x ⟨hxW, hxc, hxη⟩ ↦ ?_⟩
+    min r (η / (‖S‖ + 1)), lt_min hr hρ, fun j ↦ (‖S‖ + 1) ^ j * max (C j) 0,
+    fun x ⟨hxW, hxc, hxη⟩ ↦ ?_⟩
   obtain ⟨hmain', hsurj⟩ := hmain (c x) hxη
-  obtain ⟨Φ, h₁, h₂, h₃, h₄⟩ := exists_partialDiffeomorph_of_uniformInverse he hinj hgdef hη
+  obtain ⟨Φ, h₁, h₂, h₃, h₄⟩ := exists_partialDiffeomorph_of_uniformInverse he hinj hgdef
     hεU hxc (ball_subset_ball hηε hxη) hmain' hsurj
   exact ⟨Φ, h₁, fun z hz ↦ h₂ ▸ hWr x hxW z (lt_of_lt_of_le hz (min_le_left _ _)),
     (ball_subset_ball (min_le_right _ _)).trans h₃, h₄⟩
 
 /-- **Uniform tangent projection charts.** Let `e : M → F` be a smooth injective map with injective
 differentials from a compact boundaryless manifold into a real inner product space. There are
-`r > 0` and `C` such that, for every `x : M`, some partial diffeomorphism `Φ` from `M` onto an open
-subset of the range `T` of the differential of `e` at `x`
+`r > 0` and `C : ℕ → ℝ` such that, for every `x : M`, some partial diffeomorphism `Φ` from `M`
+onto an open subset of the range `T` of the differential of `e` at `x`
 
 * is given on its source by `z ↦ P (e z - e x)`, for `P` the orthogonal projection onto `T`, as
   `tangentProjectionChart` is;
 * has a source containing every `z` with `‖e z - e x‖ < r`, and a target containing the ball of
   radius `r` around `0`;
-* has an inverse whose composite with `e` has iterated derivatives of order at most `2` bounded
-  by `C` on the target. -/
+* has an inverse whose composite with `e` has iterated derivatives of order `j` bounded by `C j`
+  on the target, for every `j`. -/
 theorem exists_uniform_tangentProjectionChart [CompactSpace M]
     (he : ContMDiff I 𝓘(ℝ, F) ∞ e) (hinj : ∀ x, Injective (mfderiv I 𝓘(ℝ, F) e x))
     (he' : Injective e) :
-    ∃ r > 0, ∃ C : ℝ, ∀ x : M,
+    ∃ r > 0, ∃ C : ℕ → ℝ, ∀ x : M,
       ∃ Φ : PartialDiffeomorph I 𝓘(ℝ, (mvfderiv I e x).range) M (mvfderiv I e x).range ∞,
         (∀ z ∈ Φ.source, Φ z = (mvfderiv I e x).range.orthogonalProjectionOnto (e z - e x)) ∧
         {z | dist (e z) (e x) < r} ⊆ Φ.source ∧ ball 0 r ⊆ Φ.target ∧
-        ∀ u ∈ Φ.target, ∀ j ≤ 2, ‖iteratedFDeriv ℝ j (e ∘ Φ.symm) u‖ ≤ C := by
+        ∀ u ∈ Φ.target, ∀ j, ‖iteratedFDeriv ℝ j (e ∘ Φ.symm) u‖ ≤ C j := by
   rcases isEmpty_or_nonempty M with hM | ⟨⟨x₀⟩⟩
   · exact ⟨1, one_pos, 0, fun x ↦ isEmptyElim x⟩
   choose W hW r hr C hC using exists_uniform_tangentProjectionChart_nhds he hinj he'
@@ -564,12 +558,13 @@ theorem exists_uniform_tangentProjectionChart [CompactSpace M]
   have htne : t.Nonempty := by
     obtain ⟨i, hi, -⟩ := mem_iUnion₂.1 (ht (mem_univ x₀))
     exact ⟨i, hi⟩
-  refine ⟨t.inf' htne r, (Finset.lt_inf'_iff htne).2 fun i _ ↦ hr i, t.sup' htne C, fun x ↦ ?_⟩
+  refine ⟨t.inf' htne r, (Finset.lt_inf'_iff htne).2 fun i _ ↦ hr i,
+    fun j ↦ t.sup' htne (C · j), fun x ↦ ?_⟩
   obtain ⟨i, hi, hxi⟩ := mem_iUnion₂.1 (ht (mem_univ x))
   obtain ⟨Φ, h₁, h₂, h₃, h₄⟩ := hC i x hxi
   have hri : t.inf' htne r ≤ r i := Finset.inf'_le _ hi
   exact ⟨Φ, h₁, fun z hz ↦ h₂ (lt_of_lt_of_le hz hri), (ball_subset_ball hri).trans h₃,
-    fun u hu j hj ↦ (h₄ u hu j hj).trans (Finset.le_sup' C hi)⟩
+    fun u hu j ↦ (h₄ u hu j).trans (Finset.le_sup' (f := (C · j)) hi)⟩
 
 end Uniform
 
