@@ -51,10 +51,15 @@ global name.
    quotient map, and Tau Ceti's `TauCeti.quotientStabilizerHomeomorph` gives
    the homeomorphism $\mathrm{U}(n)/\mathrm{O}(n)\cong\mathcal{L}(n)$ once the
    stabilizer is identified with $\mathrm{O}(n)$. For `ι = Fin n`, the map into
-   `finiteGrassmannian ℝ n (n + n)` is an embedding: it is continuous, by the
-   quotient property, and Tau Ceti's
-   `finiteGrassmannian.continuous_starProjection_toEuclidean` recovers the
-   projection from its image (`Topology.IsInducing.of_comp`). A map out of
+   `finiteGrassmannian ℝ n (n + n)` is an embedding, and this needs neither
+   the unitary frames nor `Quotient.lean`. The coordinate isometry
+   `StdSpace.finSumIsometry n` conjugates the projection onto `Λ` into the
+   projection onto its image. On the compact Hausdorff space
+   `finiteGrassmannian`, Tau Ceti's continuous and injective
+   `V ↦ V.toEuclidean.starProjection` is therefore a closed embedding
+   (`Topology/Grassmannian/Tautological.lean`), and the map out of `ℒ (Fin n)`,
+   composed with it, is the embedding `Λ ↦ Λ.starProjection` followed by a
+   homeomorphism (`Topology.IsEmbedding.of_comp_iff`). A map out of
    `ℒ ι` is continuous as soon as its composite with the unitary frame map
    is, by `isQuotientMap_unitaryFrame.continuous_iff`; the Maslov part uses
    exactly this.
@@ -233,10 +238,24 @@ name, in the namespace `Submodule`, for a complete inner product space over
   `Submodule.starProjection_map_apply` as an identity of operators.
   `Quotient.lean` uses it for `continuous_unitaryFrame`.
 
+### `Topology/Grassmannian/Tautological.lean`
+
+A general fact about Tau Ceti's finite Grassmannian, beside Tau Ceti's file
+of that name, in the namespace `TauCeti.finiteGrassmannian`, for any
+`RCLike 𝕜`:
+
+- `TauCeti.finiteGrassmannian.isClosedEmbedding_starProjection_toEuclidean`:
+  `V ↦ V.toEuclidean.starProjection` is a closed embedding of
+  `finiteGrassmannian 𝕜 r N` into the operators on `EuclideanSpace 𝕜 (Fin N)`.
+  Tau Ceti's `continuous_starProjection_toEuclidean` gives continuity,
+  `toEuclidean_injective` and `Submodule.starProjection_inj` injectivity,
+  and `Continuous.isClosedEmbedding` concludes, since the source is compact
+  and the target Hausdorff. `Finite.lean` uses it.
+
 ### Additions to *Standard model*'s `LinearAlgebra/Symplectic/Standard/Basic.lean`
 
-Two declarations about `StdSpace ι` alone, which this part needs and part 1
-lacks, in the namespace `SymplecticGeometry.StdSpace`, so that other parts
+Three declarations about the standard model alone, which this part needs and
+part 1 lacks, in the namespace `SymplecticGeometry.StdSpace`, so that other parts
 find them there.
 
 - `StdSpace.complexEuclideanEquiv ι : EuclideanSpace ℂ ι ≃L[ℝ] StdSpace ι`,
@@ -262,6 +281,14 @@ find them there.
   exchanges `LinearMap.ker StdSpace.x` and `LinearMap.ker StdSpace.y`. After
   `stdForm_apply`, the lemma `stdForm_swap` says that it reverses the
   sign of `ω₀`: `stdForm ι (swap ι z) (swap ι w) = -stdForm ι z w`.
+- `StdSpace.finSumIsometry n : StdSpace (Fin n) ≃ₗᵢ[ℝ] EuclideanSpace ℝ (Fin (n + n))`,
+  the relabelling of coordinates
+  `LinearIsometryEquiv.piLpCongrLeft 2 ℝ ℝ finSumFinEquiv`. It goes before
+  the file's `variable [Fintype ι]`. `Finite.lean` uses it to reach Tau
+  Ceti's Grassmannian. API: `finSumIsometry_def`, and the `@[simp]` lemmas
+  `finSumIsometry_apply : finSumIsometry n z k = z (finSumFinEquiv.symm k)`
+  and `finSumIsometry_symm_apply :
+  (finSumIsometry n).symm v i = v (finSumFinEquiv i)`.
 
 This part also uses
 `SymplecticGeometry.isSymplectomorphism_piLpCongrLeft_sumCongr` (`σ : ι ≃ κ`),
@@ -633,13 +660,24 @@ The topology of `ℒ ι` in terms of unitary frames.
 The comparison with Tau Ceti's Grassmannian, for `ι = Fin n`.
 
 - `ℒ.toFiniteGrassmannian : ℒ (Fin n) → TauCeti.finiteGrassmannian ℝ n (n + n)`,
-  the image under the coordinate isometry built from
-  `LinearIsometryEquiv.piLpCongrLeft` along `finSumFinEquiv` and
-  `WithLp.equiv`. API: `coe_toFiniteGrassmannian`.
-- `ℒ.isEmbedding_toFiniteGrassmannian`, and `ℒ.range_toFiniteGrassmannian`
-  (the subspaces whose pull-back is Lagrangian). So `ℒ (Fin n)` has the
-  subspace topology of `finiteGrassmannian`. The proof is as in decision 2,
-  using `Submodule.starProjection_map_apply`.
+  the image under `StdSpace.finSumIsometry n : StdSpace (Fin n) ≃ₗᵢ[ℝ]
+  EuclideanSpace ℝ (Fin (n + n))` (of `Standard/Basic.lean`), followed by
+  `WithLp.linearEquiv 2 ℝ (Fin (n + n) → ℝ)`. API:
+  `coe_toFiniteGrassmannian` (`@[simp]`, by `(rfl)`);
+  `toEuclidean_toFiniteGrassmannian` (`@[simp]`: read in
+  `EuclideanSpace ℝ (Fin (n + n))`, the image is the map of `Λ` along
+  `finSumIsometry n`);
+  `starProjection_toEuclidean_toFiniteGrassmannian` (the projection onto the
+  image is the projection onto `Λ` conjugated by `finSumIsometry n`, through
+  `ContinuousLinearEquiv.arrowCongr`, from
+  `Submodule.starProjection_map_apply`); `toFiniteGrassmannian_injective`
+  and `toFiniteGrassmannian_inj` (`@[simp]`).
+- `ℒ.isEmbedding_toFiniteGrassmannian`, with
+  `ℒ.continuous_toFiniteGrassmannian` (`@[fun_prop]`), and
+  `ℒ.range_toFiniteGrassmannian` (the subspaces whose pull-back along
+  `finSumIsometry n` is Lagrangian). So `ℒ (Fin n)` has the subspace
+  topology of `finiteGrassmannian`. The proof is as in decision 2, through
+  `TauCeti.finiteGrassmannian.isClosedEmbedding_starProjection_toEuclidean`.
 
 ### `Topology/Grassmannian/Lagrangian/Graph.lean`
 
