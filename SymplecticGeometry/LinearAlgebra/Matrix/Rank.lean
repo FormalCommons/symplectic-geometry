@@ -5,8 +5,9 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import Mathlib.Analysis.InnerProductSpace.PiL2
+public import Mathlib.Analysis.Normed.Lp.Matrix
 public import Mathlib.LinearAlgebra.Matrix.Rank
+public import Mathlib.LinearAlgebra.Matrix.ToLinearEquiv
 public import TauCeti.LinearAlgebra.Matrix.Diagonal
 
 /-!
@@ -15,13 +16,15 @@ public import TauCeti.LinearAlgebra.Matrix.Diagonal
 * `LinearMap.finrank_range_eq_card_of_apply_basis_eq_smul`: if an endomorphism `T` of a vector
   space scales each vector `b i` of a finite basis by `d i`, its range has dimension the number
   of `i` with `d i ≠ 0`. This is Mathlib's `Matrix.rank_diagonal` for the matrix of `T` in `b`.
-* `Matrix.range_toEuclideanLin_mul_of_isUnit`: multiplying a matrix on the right by an invertible
-  matrix does not change its column space.
+* `Matrix.range_toLpLin_mul_of_isUnit`: multiplying a matrix on the right by an invertible
+  matrix does not change its column space, over any commutative ring and for any `L^p` norm.
 -/
 
 public section
 
 open Module
+
+open scoped ENNReal
 
 namespace LinearMap
 
@@ -40,16 +43,13 @@ end LinearMap
 namespace Matrix
 
 /-- Multiplying a matrix `A` on the right by an invertible matrix `B` does not change its column
-space: `A * B` and `A` have the same range as maps of Euclidean spaces. -/
-theorem range_toEuclideanLin_mul_of_isUnit {𝕜 m n : Type*} [RCLike 𝕜]
-    [Fintype n] [DecidableEq n] (A : Matrix m n 𝕜) {B : Matrix n n 𝕜} (hB : IsUnit B) :
-    LinearMap.range (toEuclideanLin (A * B)) = LinearMap.range (toEuclideanLin A) := by
-  have hdet := (isUnit_iff_isUnit_det B).1 hB
-  have hsurj : LinearMap.range (toEuclideanLin B) = ⊤ :=
-    LinearMap.range_eq_top.2 fun v ↦ ⟨toEuclideanLin B⁻¹ v, by
-      rw [← LinearMap.comp_apply, ← toLpLin_mul_same, mul_nonsing_inv _ hdet, toLpLin_one,
-        LinearMap.id_apply]⟩
-  rw [toLpLin_mul_same, LinearMap.range_comp_of_range_eq_top _ hsurj]
+space: `A * B` and `A` have the same range as linear maps between `L^p` spaces. -/
+theorem range_toLpLin_mul_of_isUnit {R m n : Type*} [CommRing R] [Fintype n] [DecidableEq n]
+    (p : ℝ≥0∞) (A : Matrix m n R) {B : Matrix n n R} (hB : IsUnit B) :
+    LinearMap.range (toLpLin p p (A * B)) = LinearMap.range (toLpLin p p A) := by
+  rw [toLpLin_mul_same]
+  exact LinearMap.range_comp_of_range_eq_top _
+    (range_toLin_eq_top (PiLp.basisFun p R n) B ((isUnit_iff_isUnit_det B).1 hB))
 
 end Matrix
 

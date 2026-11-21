@@ -134,7 +134,7 @@ theorem unitaryFrame_eq_graphY_iff {U : unitaryGroup ι ℂ} {S : selfAdjoint (M
       rw [← hS, nonsing_inv_mul_cancel_right (A := Y) _ ((isUnit_iff_isUnit_det Y).1 hY)]
     refine toSubmodule_injective ?_
     rw [coe_unitaryFrame, coe_graphY, ← StdSpace.range_toEuclideanLin_fromRows_one_eq_graphY,
-      ← range_toEuclideanLin_mul_of_isUnit (fromRows (S : Matrix ι ι ℝ) 1) hY, fromRows_mul,
+      ← range_toLpLin_mul_of_isUnit 2 (fromRows (S : Matrix ι ι ℝ) 1) hY, fromRows_mul,
       Matrix.one_mul, ← hXS]
 
 private theorem continuousOn_chartValue :
