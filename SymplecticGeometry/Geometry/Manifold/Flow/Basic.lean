@@ -57,8 +57,7 @@ at `x`. -/
 theorem mfderiv_flowOf_apply_mfderiv_flowOf_neg
     (hv : ContMDiff I I.tangent 1 (fun y ↦ (⟨y, v y⟩ : TangentBundle I M)))
     (ht : (t, x) ∈ flowDomain v) (w : TangentSpace I (flowOf v t x)) :
-    -- The tangent spaces at `flowOf v t (flowOf v (-t) y)` and `y` are both the model space `E`.
-    @Eq E (mfderiv I I (flowOf v t) x (mfderiv I I (flowOf v (-t)) (flowOf v t x) w)) w := by
+    mfderiv I I (flowOf v t) x (mfderiv I I (flowOf v (-t)) (flowOf v t x) w) = w := by
   rw [mfderiv_flowOf_add_apply hv (neg_mem_flowDomain_flowOf hv ht) (flowOf_neg_flowOf hv ht) ht,
     neg_add_cancel]
   exact mfderiv_flowOf_zero_apply_eq_self v _ w

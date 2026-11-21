@@ -235,30 +235,28 @@ theorem liftFlow_zero (z : CotangentBundle I L) : liftFlow Y 0 z = z :=
     ((congrArg (fun A : E →L[ℝ] E ↦ A w) (mfderiv_congr (congrArg (flowOf Y) neg_zero))).trans
       (mfderiv_flowOf_zero_apply_eq_self Y _ w))
 
-variable [FiniteDimensional ℝ E] [I.Boundaryless] [T2Space L] [IsManifold I ∞ L]
-  (hY : ContMDiff I I.tangent ∞ (fun x ↦ (⟨x, Y x⟩ : TangentBundle I L)))
+variable [CompleteSpace E] [BoundarylessManifold I L] [T2Space L] [IsManifold I 1 L]
+  (hY : ContMDiff I I.tangent 1 (fun x ↦ (⟨x, Y x⟩ : TangentBundle I L)))
 include hY
 
 /-- The lifted covector evaluated on `(dφ_t)_q v` is the original covector evaluated on `v`. -/
 theorem liftFlow_snd_apply_mfderiv {t : ℝ} {z : CotangentBundle I L}
     (ht : (t, z.proj) ∈ flowDomain Y) (v : TangentSpace I z.proj) :
     (liftFlow Y t z).snd (mfderiv I I (flowOf Y t) z.proj v) = z.snd v :=
-  congrArg z.snd (mfderiv_flowOf_neg_apply_mfderiv_flowOf (hY.of_le (by simp)) ht v)
+  congrArg z.snd (mfderiv_flowOf_neg_apply_mfderiv_flowOf hY ht v)
 
 /-- **The flow law for the lifted flow**: lifting for time `t` and then for time `s` is lifting
 for time `t + s`, wherever the flow of `Y` is defined. -/
 theorem liftFlow_liftFlow {s t : ℝ} {z : CotangentBundle I L} (ht : (t, z.proj) ∈ flowDomain Y)
     (hs : (s, flowOf Y t z.proj) ∈ flowDomain Y) :
     liftFlow Y s (liftFlow Y t z) = liftFlow Y (t + s) z := by
-  have hY1 : ContMDiff I I.tangent 1 (fun x ↦ (⟨x, Y x⟩ : TangentBundle I L)) :=
-    hY.of_le (by simp)
-  have hadd := flowOf_add hY1 ht hs
+  have hadd := flowOf_add hY ht hs
   have h (w : TangentSpace I (flowOf Y s (flowOf Y t z.proj))) :
       @Eq E (mfderiv I I (flowOf Y (-t)) (flowOf Y t z.proj)
         (mfderiv I I (flowOf Y (-s)) (flowOf Y s (flowOf Y t z.proj)) w))
         (mfderiv I I (flowOf Y (-(t + s))) (flowOf Y (t + s) z.proj) w) := by
-    rw [mfderiv_flowOf_add_apply hY1 (neg_mem_flowDomain_flowOf hY1 hs)
-      (flowOf_neg_flowOf hY1 hs) (neg_mem_flowDomain_flowOf hY1 ht), neg_add_rev]
+    rw [mfderiv_flowOf_add_apply hY (neg_mem_flowDomain_flowOf hY hs)
+      (flowOf_neg_flowOf hY hs) (neg_mem_flowDomain_flowOf hY ht), neg_add_rev]
     exact congrArg (fun A : E →L[ℝ] E ↦ A w) (mfderiv_congr_point hadd.2)
   exact CotangentBundle.ext hadd.2 fun w ↦ congrArg z.snd (h w)
 
@@ -274,7 +272,7 @@ include hY hX
 
 omit [I.Boundaryless] [T2Space L] in
 /-- A Hamiltonian vector field of the momentum function of a smooth vector field is smooth. -/
-theorem contMDiff_of_isHamiltonianVectorField :
+theorem contMDiff_of_isHamiltonianVectorField_momentumFunction :
     ContMDiff (I.prod 𝓘(ℝ, E →L[ℝ] ℝ)) (I.prod 𝓘(ℝ, E →L[ℝ] ℝ)).tangent ∞
       fun z ↦ (⟨z, X z⟩ : TangentBundle (I.prod 𝓘(ℝ, E →L[ℝ] ℝ)) (CotangentBundle I L)) := by
   have hnd := (isSymplectic_symplecticForm (I := I) (M := L)).isNondegenerate
@@ -288,7 +286,7 @@ theorem flowOf_eq_liftFlow_of_isHamiltonianVectorField {t : ℝ} {z : CotangentB
     (ht : (t, z) ∈ flowDomain X) : flowOf X t z = liftFlow Y t z := by
   have hY1 : ContMDiff I I.tangent 1 (fun x ↦ (⟨x, Y x⟩ : TangentBundle I L)) :=
     hY.of_le (by simp)
-  have hXs := contMDiff_of_isHamiltonianVectorField hY hX
+  have hXs := contMDiff_of_isHamiltonianVectorField_momentumFunction hY hX
   have hX1 : ContMDiff (I.prod 𝓘(ℝ, E →L[ℝ] ℝ)) (I.prod 𝓘(ℝ, E →L[ℝ] ℝ)).tangent 1
       fun z ↦ (⟨z, X z⟩ : TangentBundle (I.prod 𝓘(ℝ, E →L[ℝ] ℝ)) (CotangentBundle I L)) :=
     hXs.of_le (by simp)
@@ -344,7 +342,7 @@ theorem isMIntegralCurveOn_liftFlow (z : CotangentBundle I L) :
     hY.of_le (by simp)
   have hX1 : ContMDiff (I.prod 𝓘(ℝ, E →L[ℝ] ℝ)) (I.prod 𝓘(ℝ, E →L[ℝ] ℝ)).tangent 1
       fun z ↦ (⟨z, X z⟩ : TangentBundle (I.prod 𝓘(ℝ, E →L[ℝ] ℝ)) (CotangentBundle I L)) :=
-    (contMDiff_of_isHamiltonianVectorField hY hX).of_le (by simp)
+    (contMDiff_of_isHamiltonianVectorField_momentumFunction hY hX).of_le (by simp)
   intro t ht
   have hD : (t, z.proj) ∈ flowDomain Y := mem_flowDomain.2 ht
   set w := liftFlow Y t z
@@ -361,7 +359,7 @@ theorem isMIntegralCurveOn_liftFlow (z : CotangentBundle I L) :
     filter_upwards [hsub.eventually (h₁.and h₂)] with r hr
     rw [Function.comp_apply, ← sub_eq_add_neg,
       flowOf_eq_liftFlow_of_isHamiltonianVectorField hY hX hr.2,
-      liftFlow_liftFlow hY hD hr.1, add_sub_cancel]
+      liftFlow_liftFlow hY1 hD hr.1, add_sub_cancel]
   have hd := (((isMIntegralCurveOn_flowOf hX1 w).isMIntegralCurveAt h₂).comp_add (-t)).hasMFDerivAt
   have hval : ((fun s ↦ flowOf X s w) ∘ (· + -t)) (0 - -t) = w := by
     simp
@@ -376,26 +374,10 @@ theorem maximalIntegralCurveInterval_eq_of_isHamiltonianVectorField (z : Cotange
     ((contMDiff_proj _).mdifferentiable one_ne_zero)
     (mfderiv_proj_of_isHamiltonianVectorField (hY.of_le (by simp)) hX) z) ?_
   intro t ht
-  have hY1 : ContMDiff I I.tangent 1 (fun x ↦ (⟨x, Y x⟩ : TangentBundle I L)) :=
-    hY.of_le (by simp)
-  set J := maximalIntegralCurveInterval Y z.proj
-  have h0 : (0 : ℝ) ∈ J := zero_mem_maximalIntegralCurveInterval (hY1 z.proj)
-  -- An open interval inside `J` containing `0` and `t`: `J` is open and order-connected.
-  obtain ⟨a, b₀, ⟨ha, hb₀⟩, hab₀⟩ := mem_nhds_iff_exists_Ioo_subset.1
-    (isOpen_maximalIntegralCurveInterval.mem_nhds (min_rec' (· ∈ J) h0 ht))
-  obtain ⟨a₁, b, ⟨ha₁, hb⟩, hab₁⟩ := mem_nhds_iff_exists_Ioo_subset.1
-    (isOpen_maximalIntegralCurveInterval.mem_nhds (max_rec' (· ∈ J) h0 ht))
-  have hab : Ioo a b ⊆ J := fun r hr ↦ by
-    rcases lt_or_ge r (min 0 t) with h | h
-    · exact hab₀ ⟨hr.1, h.trans hb₀⟩
-    rcases le_or_gt r (max 0 t) with h' | h'
-    · exact ordConnected_maximalIntegralCurveInterval.uIcc_subset h0 ht ⟨h, h'⟩
-    · exact hab₁ ⟨ha₁.trans h', hr.2⟩
-  have hmem {s : ℝ} (hs₁ : min 0 t ≤ s) (hs₂ : s ≤ max 0 t) : s ∈ Ioo a b :=
-    ⟨ha.trans_le hs₁, hs₂.trans_lt hb⟩
-  exact ((isMIntegralCurveOn_liftFlow hY hX z).mono hab).subset_maximalIntegralCurveInterval
-    (hmem (min_le_left _ _) (le_max_left _ _)) (liftFlow_zero z)
-    (hmem (min_le_right _ _) (le_max_right _ _))
+  obtain ⟨γ, a, b, hγ, hx, h0, ht, -⟩ := exists_isMIntegralCurveOn_maximalIntegralCurve_eq ht
+  exact ((isMIntegralCurveOn_liftFlow hY hX z).mono
+    (hγ.subset_maximalIntegralCurveInterval h0 hx)).subset_maximalIntegralCurveInterval h0
+    (liftFlow_zero z) ht
 
 /-- The flow of `X` is defined at `(t, z)` exactly when the flow of `Y` is defined at
 `(t, z.proj)`. -/
@@ -519,7 +501,7 @@ theorem liouvilleForm_symplecticForm_and_cotangent_lifts :
     maximalIntegralCurveInterval_eq_of_isHamiltonianVectorField hY hX z, fun t ht ↦
     flowOf_eq_liftFlow_of_isHamiltonianVectorField hY hX ?_⟩,
     (isCompleteVectorField_iff_of_isHamiltonianVectorField hY hX).2⟩
-  rwa [mem_flowDomain, maximalIntegralCurveInterval_eq_of_isHamiltonianVectorField hY hX]
+  exact (mem_flowDomain_iff_of_isHamiltonianVectorField hY hX).2 (mem_flowDomain.2 ht)
 
 end Milestone
 
