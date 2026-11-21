@@ -11,6 +11,7 @@ public import Mathlib.Algebra.Order.Star.Real
 public import Mathlib.LinearAlgebra.Matrix.Symmetric
 public import Mathlib.Topology.Instances.Matrix
 import TauCeti.Analysis.Matrix.PosDef
+public import SymplecticGeometry.LinearAlgebra.Matrix.OfReal
 public import SymplecticGeometry.LinearAlgebra.Matrix.PosDef.Basic
 
 /-!
@@ -152,8 +153,7 @@ theorem isSymm_im (Z : SiegelUpperHalfSpace ι) : Z.im.IsSymm :=
 imaginary part `Y`. -/
 theorem coe_eq_re_add_I_smul_im (Z : SiegelUpperHalfSpace ι) :
     (Z : Matrix ι ι ℂ) = Z.re.map ofReal + Complex.I • Z.im.map ofReal := by
-  ext i j
-  simp [mul_comm Complex.I, Complex.re_add_im]
+  rw [re_def, im_def, map_re_add_I_smul_map_im]
 
 /-- Two points of the Siegel upper half space with the same real and imaginary parts are
 equal. -/
