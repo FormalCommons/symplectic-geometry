@@ -267,7 +267,7 @@ Tau Ceti unchanged.
 | File | Contents |
 |---|---|
 | `Geometry/Manifold/Instances/Icc.lean` | `contMDiff_totalSpaceMk_one_Icc`: the unit vector field `z ↦ 1` of a closed interval is smooth |
-| `Geometry/Manifold/MFDeriv/Prod.lean` | `MDifferentiableAt.mfderiv_prod_apply_zero_left`, `MDifferentiableAt.mfderiv_prod_apply_zero_right`: the derivative of a map on a product on `(0, w)` and `(v, 0)` is a partial derivative |
+| `Geometry/Manifold/MFDeriv/Prod.lean` | `MDifferentiableAt.mfderiv_curry_right_apply`, `MDifferentiableAt.mfderiv_curry_left_apply`: the derivative of a map on a product on `(0, w)` and `(v, 0)` is a partial derivative |
 | `Geometry/Diffeomorphism/Diffeotopy/Velocity.lean` | `Diffeotopy.velocity`, its joint smoothness, its value along the motion, its values for `refl` and the flow diffeotopies, and the pullback of $\iota_{X_t}\sigma$ by $\phi_t$ |
 | `Geometry/Symplectic/Hamiltonian/PoissonAlgebra.lean` | the Leibniz rule, the local time-dependent flow, the kernel and the quotient, the milestone *Hamiltonian flows and the Poisson algebra* |
 | `Geometry/Symplectic/Hamiltonian/SymplecticIsotopy.lean` | symplectic fields and their local flows, the book's bracket, the isotopy criterion, the milestone *Symplectic vector fields and isotopy generators* |

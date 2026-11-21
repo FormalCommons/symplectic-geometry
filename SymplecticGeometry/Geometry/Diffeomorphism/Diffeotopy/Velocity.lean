@@ -55,8 +55,8 @@ tangent map of a smooth map.
 
 `mfderiv_cylinderMap_time` and `mfderiv_cylinderMap_space` read the derivative of the motion on
 `(0, ∂ₜ)` and on `(v, 0)` as a partial derivative, by
-`MDifferentiableAt.mfderiv_prod_apply_zero_left` and
-`MDifferentiableAt.mfderiv_prod_apply_zero_right`, as Tau Ceti's
+`MDifferentiableAt.mfderiv_curry_right_apply` and
+`MDifferentiableAt.mfderiv_curry_left_apply`, as Tau Ceti's
 `TauCeti.Diffeotopy.mfderiv_cylinderMap_globalFlowDiffeotopy_time` and
 `TauCeti.Diffeotopy.mfderiv_cylinderMap_globalFlowDiffeotopy_space` do for a flow. The proof of
 `velocity_timeDependentFlowDiffeotopy` follows that of
@@ -89,7 +89,7 @@ theorem mfderiv_cylinderMap_time (hn : 1 ≤ n) (p : M × unitInterval) :
   have h : (fun s ↦ Φ.cylinderMap (p.1, s)) = fun s ↦ Φ (s, p.1) :=
     funext fun s ↦ Φ.cylinderMap_apply (p.1, s)
   have hd := Φ.contMDiff_cylinderMap.mdifferentiableAt (x := p) (zero_lt_one.trans_le hn).ne'
-  exact (hd.mfderiv_prod_apply_zero_left _).trans
+  exact (hd.mfderiv_curry_right_apply _).trans
     (congrArg (fun f ↦ mfderiv (𝓡∂ 1) J f p.2 (1 : TangentSpace (𝓡∂ 1) p.2)) h)
 
 /-- The motion of a `C^n` diffeotopy, `1 ≤ n`, acts on spatial tangent vectors at `(x, t)` by the
@@ -100,7 +100,7 @@ theorem mfderiv_cylinderMap_space (hn : 1 ≤ n) (p : M × unitInterval) (v : E)
   have h : (fun z ↦ Φ.cylinderMap (z, p.2)) = Φ.timeSlice p.2 :=
     funext fun z ↦ (Φ.cylinderMap_apply (z, p.2)).trans (Φ.timeSlice_apply p.2 z).symm
   have hd := Φ.contMDiff_cylinderMap.mdifferentiableAt (x := p) (zero_lt_one.trans_le hn).ne'
-  exact (hd.mfderiv_prod_apply_zero_right v).trans (congrArg (fun f ↦ mfderiv J J f p.1 v) h)
+  exact (hd.mfderiv_curry_left_apply v).trans (congrArg (fun f ↦ mfderiv J J f p.1 v) h)
 
 end Derivative
 
