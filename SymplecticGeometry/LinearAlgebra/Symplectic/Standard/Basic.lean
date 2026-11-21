@@ -139,6 +139,14 @@ theorem x_swap (z : StdSpace ι) : (swap ι z).x = z.y := (rfl)
 @[simp]
 theorem y_swap (z : StdSpace ι) : (swap ι z).y = z.x := (rfl)
 
+/-- The `xᵢ`-coordinate of `swap ι z` is the `yᵢ`-coordinate of `z`. -/
+@[simp]
+theorem swap_apply_inl (z : StdSpace ι) (i : ι) : swap ι z (Sum.inl i) = z (Sum.inr i) := (rfl)
+
+/-- The `yᵢ`-coordinate of `swap ι z` is the `xᵢ`-coordinate of `z`. -/
+@[simp]
+theorem swap_apply_inr (z : StdSpace ι) (i : ι) : swap ι z (Sum.inr i) = z (Sum.inl i) := (rfl)
+
 @[simp]
 theorem swap_swap (z : StdSpace ι) : swap ι (swap ι z) = z :=
   StdSpace.ext (by simp) (by simp)
