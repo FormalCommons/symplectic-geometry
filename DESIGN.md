@@ -1940,7 +1940,7 @@ has either; Tau Ceti's extension across a boundary,
   `TauCeti.SmoothForm.characteristicFoliation`,
   `TauCeti.IsInvolutiveDistribution.exists_flatChart`,
   `TauCeti.RoughForm.descendedForm` and
-  `TauCeti.SmoothTwoForm.isSymplectic_descendedForm_iff`, and the flat lemmas of
+  `TauCeti.SmoothTwoForm.isSymplectic_descendedForm_iff`, and the closed-form lemmas of
   `Analysis/Calculus/DifferentialForm/LieDeriv.lean`), and in
   `Geometry/Symplectic/Neighborhood/`: `Extension.lean` (along the
   submanifold, a smooth family of linear symplectomorphisms built from
@@ -2048,7 +2048,8 @@ has either; Tau Ceti's extension across a boundary,
   `PoissonAlgebra.lean` of *Hamiltonian flows* uses, and the slices of
   pullbacks along `Prod.map id f`), and, named like Tau Ceti's files,
   `Geometry/Manifold/DifferentialForm/LieDeriv.lean` (the Lie derivative of
-  forms is linear in the field) and
+  forms on a manifold is linear in the field, from flat lemmas that this part adds to
+  `Analysis/Calculus/DifferentialForm/LieDeriv.lean`) and
   `Geometry/Manifold/DifferentialForm/DegreeOne.lean` (a smooth one-form on a
   smooth field is smooth), which `Hamiltonian.lean` uses, and `Standard.lean`
   and `Pullback.lean` (both named like Tau Ceti's files: the Reeb field of the
