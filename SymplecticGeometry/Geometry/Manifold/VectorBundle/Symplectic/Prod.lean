@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Prod
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.ComplexStructure.Basic
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Matrix
 
@@ -41,6 +42,9 @@ smoothness combines the smoothness of `fst` and `snd` on total spaces (Tau Ceti'
 `contMDiff_compContinuousLinearMap_totalSpace`; this needs the model fibres to be
 finite-dimensional. The tameness and compatibility of sums are Tau Ceti's
 `TauCeti.SymplecticForm.prod_tames` and `TauCeti.SymplecticForm.prod_compatible` on each fibre.
+The maps of total spaces in `pushforward_prodCongr` and `pushforward_prodComm` are smooth by
+`Bundle.Prod.contMDiff_prodCongr` and `Bundle.Prod.contMDiff_prodComm`
+(`SymplecticGeometry.Geometry.Manifold.VectorBundle.Prod`).
 
 ## References
 
@@ -209,26 +213,22 @@ theorem pushforward_prodCongr (Φ₁ : ∀ x, V₁ x ≃L[ℝ] V₃ x) (Φ₂ : 
       (fun p : TotalSpace F₁ V₁ ↦ TotalSpace.mk' F₃ p.proj (Φ₁ p.proj p.snd)))
     (hΦ₂ : ContMDiff (I.prod 𝓘(ℝ, F₂)) (I.prod 𝓘(ℝ, F₄)) n
       (fun p : TotalSpace F₂ V₂ ↦ TotalSpace.mk' F₄ p.proj (Φ₂ p.proj p.snd)))
-    (hΦ : ContMDiff (I.prod 𝓘(ℝ, F₁ × F₂)) (I.prod 𝓘(ℝ, F₃ × F₄)) n
-      (fun p : TotalSpace (F₁ × F₂) (V₁ ×ᵇ V₂) ↦ TotalSpace.mk' (F₃ × F₄) (E := V₃ ×ᵇ V₄)
-        p.proj (((Φ₁ p.proj).prodCongr (Φ₂ p.proj)) p.snd)))
     (ω₁ : ContMDiffTwoForm I n F₁ V₁) (ω₂ : ContMDiffTwoForm I n F₂ V₂) :
-    pushforward (fun x ↦ (Φ₁ x).prodCongr (Φ₂ x)) hΦ (ω₁.prod ω₂) =
+    pushforward (fun x ↦ (Φ₁ x).prodCongr (Φ₂ x)) (Bundle.Prod.contMDiff_prodCongr hΦ₁ hΦ₂)
+        (ω₁.prod ω₂) =
       (pushforward Φ₁ hΦ₁ ω₁).prod (pushforward Φ₂ hΦ₂ ω₂) :=
-  (pushforward_eq_iff _ hΦ).2 fun x v w ↦ by
+  (pushforward_eq_iff _ _).2 fun x v w ↦ by
     simp only [bilinFormAt_prod_apply, ContinuousLinearEquiv.prodCongr_apply,
       bilinFormAt_pushforward_apply, ContinuousLinearEquiv.symm_apply_apply]
 
 /-- The fibrewise swap `V₁ ×ᵇ V₂ → V₂ ×ᵇ V₁` carries `ω₁.prod ω₂` to `ω₂.prod ω₁`, so it is a
 symplectic isomorphism between them. -/
-theorem pushforward_prodComm
-    (h : ContMDiff (I.prod 𝓘(ℝ, F₁ × F₂)) (I.prod 𝓘(ℝ, F₂ × F₁)) n
-      (fun p : TotalSpace (F₁ × F₂) (V₁ ×ᵇ V₂) ↦ TotalSpace.mk' (F₂ × F₁) (E := V₂ ×ᵇ V₁)
-        p.proj (ContinuousLinearEquiv.prodComm ℝ (V₁ p.proj) (V₂ p.proj) p.snd)))
-    (ω₁ : ContMDiffTwoForm I n F₁ V₁) (ω₂ : ContMDiffTwoForm I n F₂ V₂) :
-    pushforward (fun x ↦ ContinuousLinearEquiv.prodComm ℝ (V₁ x) (V₂ x)) h (ω₁.prod ω₂) =
+theorem pushforward_prodComm (ω₁ : ContMDiffTwoForm I n F₁ V₁)
+    (ω₂ : ContMDiffTwoForm I n F₂ V₂) :
+    pushforward (fun x ↦ ContinuousLinearEquiv.prodComm ℝ (V₁ x) (V₂ x))
+        Bundle.Prod.contMDiff_prodComm (ω₁.prod ω₂) =
       ω₂.prod ω₁ :=
-  (pushforward_eq_iff _ h).2 fun x v w ↦ by
+  (pushforward_eq_iff _ _).2 fun x v w ↦ by
     simp only [bilinFormAt_prod_apply, ContinuousLinearEquiv.prodComm_apply, Prod.fst_swap,
       Prod.snd_swap, add_comm]
 

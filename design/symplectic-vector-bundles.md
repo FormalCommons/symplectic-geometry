@@ -135,6 +135,7 @@ variable {EB HB M : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB]
 | `Geometry/Manifold/VectorBundle/Hom.lean` | `contMDiff_hom_bundle_symm`: the fibrewise inverses of a $C^n$ isomorphism of bundles as a $C^n$ section of the hom bundle | 1, 3 |
 | `Geometry/Manifold/VectorBundle/ContinuousAlternatingMap.lean` | `contMDiff_compContinuousLinearMap_totalSpace`: precomposition by a $C^n$ hom-bundle section is $C^n$ on total spaces of alternating bundles | 3 |
 | `Geometry/Manifold/VectorBundle/Pullback.lean` | smoothness of sections of the alternating bundle of a pull-back | 18 |
+| `Geometry/Manifold/VectorBundle/Prod.lean` | `Bundle.Prod.contMDiff_prodCongr` and `Bundle.Prod.contMDiff_prodComm`: smoothness of the direct sum of two bundle isomorphisms and of the swap on total spaces | 22 |
 | `Topology/VectorBundle/Pullback.lean` | coordinates of alternating maps on a pull-back bundle | 18 |
 | `Data/Bundle.lean` | `Bundle.Pullback.eq_iff`: equations in a fibre of a pull-back bundle, for `simp` | 20 |
 | `Geometry/Manifold/VectorBundle/Symplectic/Pullback.lean` | pull-backs of forms, of tame and compatible pairs, of isomorphisms and of frames | 21 |
@@ -164,6 +165,7 @@ says), except its lemma `moserGenerator_conj`, which goes in
 `Analysis/ODE/DysonSeries.lean`, `Section/Topology.lean`, `Section/Generic.lean`,
 `Riemannian/SectionTopology.lean`, `IsManifold/InteriorBoundary.lean`,
 `Topology/Connected/Clopen.lean`, `Geometry/Manifold/VectorBundle/Pullback.lean`,
+`Geometry/Manifold/VectorBundle/Prod.lean`,
 `Topology/VectorBundle/Pullback.lean`,
 `Geometry/Symplectic/Manifold/Volume.lean` and the folders `Boundary/Collar/`
 and `Geometry/Diffeomorphism/Diffeotopy/` have the names of a Tau Ceti or Mathlib file or
@@ -1311,7 +1313,12 @@ over the same base, on Mathlib's direct sum `V₁ ×ᵇ V₂` (`Bundle.Prod`, wi
   `ContinuousLinearEquiv.prodCongr`), carries `ω₁.prod ω₂` to the sum of the
   images; `pushforward_prodComm`, the fibrewise swap
   `ContinuousLinearEquiv.prodComm` carries `ω₁.prod ω₂` to `ω₂.prod ω₁`.
-  Smoothness of these maps of total spaces is the product criterion.
+  Smoothness of these maps of total spaces is the product criterion:
+  `Bundle.Prod.contMDiff_prodCongr` and `Bundle.Prod.contMDiff_prodComm`, in
+  the library's `Geometry/Manifold/VectorBundle/Prod.lean` (root namespace,
+  with the path of Tau Ceti's file of the criterion). So
+  `pushforward_prodCongr` takes only the smoothness of `Φ₁` and `Φ₂`, and
+  `pushforward_prodComm` no smoothness hypothesis.
 - Block frames: `IsSymplecticFrameOn.prod`, frames `Φ₁` of `ω₁` for `σ₁`
   and `Φ₂` of `ω₂` for `σ₂` over `U` give the frame
   `fun x ↦ (Φ₁ x).prodCongr (Φ₂ x)` of `ω₁.prod ω₂` for `σ₁.prod σ₂` over
@@ -2000,7 +2007,9 @@ of *Constructions* for *First Chern number*.
     `pushforward_pullback_comp`, `IsSymplecticFrameOn.pullback`,
     `frameTransition_pullback`. Blockers:
     5, 18, 19, 20.
-22. **Direct sums of symplectic bundles.** `Symplectic/Prod.lean`, using
+22. **Direct sums of symplectic bundles.** `Symplectic/Prod.lean`, with
+    `Bundle.Prod.contMDiff_prodCongr` and `Bundle.Prod.contMDiff_prodComm`
+    in `Geometry/Manifold/VectorBundle/Prod.lean`, using
     the existing `StdSpace.sumEquiv`: `ContMDiffTwoForm.prod` with its API,
     `Tames.prod`, `Compatible.prod`,
     `pushforward_prodCongr`, `pushforward_prodComm`,

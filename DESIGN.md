@@ -1007,6 +1007,10 @@ it into issues; the overview fixes its folders and its dependencies.
   for sections of the bundle of alternating maps of a pull-back, in the root
   namespace `Bundle.Pullback`; the file has the name of the Tau Ceti file
   with the criterion for Hom sections, so that the two merge upstream),
+  `Geometry/Manifold/VectorBundle/Prod.lean` (smoothness on total spaces of
+  the direct sum of two bundle isomorphisms and of the swap of a direct-sum
+  bundle, in the root namespace `Bundle.Prod`; the file has the path of the
+  Tau Ceti file with the product criterion, so that the two merge upstream),
   `Topology/VectorBundle/Pullback.lean` (the coordinates of alternating maps
   on a pull-back bundle, a step that uses no charts; the file has the path
   of the Tau Ceti file with `ContinuousLinearMap.inCoordinates_pullback_of_mem`,
