@@ -633,13 +633,14 @@ The domain, the formula and their smoothness and naturality mention only
 continuous bilinear forms and Tau Ceti's operations on them
 (`metricChangeTransport`, `continuousLinearMapOfBilin`, `CFC.sqrt`,
 `Ring.inverse`), so by the namespace rule above they go in `TauCeti`, next
-to `cayleyPathFormula`. So do the two lemmas that identify the formula with
-`metricPolarComplexStructure` at pairs of forms
-(`metricPolarFormula_eq_of_toContinuousBilinearMap_eq` and
-`metricPolarFormula_eq_of_mem`). Only `mem_polarDomain`,
-`metricPolarFormula_eq` and `continuous_metricPolarComplexStructure`, whose
-arguments are an element of `innerProducts` and a `SymplecticForm`, are in
-`SymplecticGeometry`.
+to `cayleyPathFormula`. The declarations that involve `innerProducts` or
+`metricPolarComplexStructure` (`mem_polarDomain`, `metricPolarFormula_eq`
+and `continuous_metricPolarComplexStructure`) are in `SymplecticGeometry`.
+The two lemmas that identify the formula with `metricPolarComplexStructure`
+at pairs of forms (`metricPolarFormula_eq_of_toContinuousBilinearMap_eq` and
+`metricPolarFormula_eq_of_mem`) depart from that rule: their conclusions
+involve `metricPolarComplexStructure`, but the merged code puts them in
+`TauCeti`. #418 moves them to `SymplecticGeometry`.
 
 The file uses helpers stated in their own files:
 `SymplecticGeometry.symmetrizeBilinear_mem_innerProducts`
