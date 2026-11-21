@@ -59,7 +59,8 @@ A *frame* is a real `2n × n` matrix `Z = fromRows X Y`, whose columns span the 
   iff its matrix is symmetric; `isLagrangian_range_fromRows_one`: so `fromRows A 1` is a
   Lagrangian frame for symmetric `A`.
 * `SymplecticGeometry.LagrangianGrassmannian.finrank_eq_card`: a Lagrangian subspace of
-  `StdSpace ι` has dimension `Fintype.card ι`.
+  `StdSpace ι` has dimension `Fintype.card ι`; `injective_toEuclideanLin_of_range_eq`: so a
+  real matrix whose columns span a Lagrangian subspace is injective.
 * `SymplecticGeometry.det_ne_zero_of_isLagrangian_range_fromRows`: the complex frame `X + i Y` of
   a Lagrangian frame is invertible.
 * `SymplecticGeometry.exists_eq_graph_of_isCompl`, `exists_eq_graphY_of_isCompl`: a Lagrangian
@@ -321,6 +322,14 @@ theorem LagrangianGrassmannian.finrank_eq_card (Λ : LagrangianGrassmannian (std
 section Frame
 
 variable [DecidableEq ι]
+
+/-- A real `2n × n` matrix whose columns span a Lagrangian subspace is injective. -/
+theorem LagrangianGrassmannian.injective_toEuclideanLin_of_range_eq
+    {Λ : LagrangianGrassmannian (stdForm ι)} {Z : Matrix (ι ⊕ ι) ι ℝ}
+    (hZ : LinearMap.range (toEuclideanLin Z) = Λ) : Function.Injective (toEuclideanLin Z) := by
+  have h := LinearMap.finrank_range_add_finrank_ker (toEuclideanLin Z)
+  rw [hZ, finrank_eq_card, finrank_euclideanSpace] at h
+  exact LinearMap.ker_eq_bot.1 (Submodule.finrank_eq_zero.1 (by omega))
 
 /-- The `x`-coordinates of `fromRows X Y` applied to `u` are `X u`. -/
 @[simp]
