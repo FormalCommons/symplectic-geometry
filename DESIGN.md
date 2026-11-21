@@ -894,6 +894,8 @@ it into issues; the overview fixes its folders and its dependencies.
   Ceti's `TauCeti.SymplecticForm.polarComplexStructure_transport` gives the
   equivariance in that case; `Smooth.lean`: its explicit formula and
   smoothness),
+  `Analysis/InnerProductSpace/LinearMap.lean` (`simp` for `innerSL ℝ` at
+  the real bilinear type),
   `Topology/Algebra/Module/InnerProducts.lean` (the space $\mathrm{Met}(V)$
   of all inner products on $V$, a convex open subset of the symmetric bilinear forms,
   from Tau Ceti's `TauCeti.convex_setOfPred_symm_pos`),
@@ -901,8 +903,9 @@ it into issues; the overview fixes its folders and its dependencies.
   `SymplecticForm V`), with the general file
   `Topology/Algebra/Module/BilinearForm.lean` (a continuous bilinear form in
   finite dimensions is recovered from its bilinear form; the skew part of a
-  continuous bilinear map) and `LinearAlgebra/SesquilinearForm.lean`
-  (an alternating form minus its transpose is twice the form),
+  continuous bilinear map; carrying a form along an equivalence) and
+  `LinearAlgebra/SesquilinearForm.lean` (an alternating form minus its
+  transpose is twice the form),
   `Geometry/Symplectic/Darboux/EuclideanBasis.lean` (the coordinates of a
   basis adapted to $J$ are complex linear),
   `Geometry/Symplectic/Cayley/Domain.lean` (the open set where Tau Ceti's
@@ -1134,6 +1137,10 @@ it into issues; the overview fixes its folders and its dependencies.
   `Bundle.Pullback.neg_fiber`, a negative in a fibre of a pull-back bundle
   for Tau Ceti's group structure on it; the file has the path
   of the Tau Ceti file with `ContinuousLinearMap.inCoordinates_pullback_of_mem`,
+  so that the two merge upstream),
+  `Topology/VectorBundle/Coordinates.lean` (the coordinates of continuous
+  bilinear forms on a vector bundle; the file has the path of the Tau Ceti
+  file with `ContinuousLinearMap.inCoordinates_eq_conjContinuousAlgEquiv`,
   so that the two merge upstream),
   `Data/Bundle.lean` (`Bundle.Pullback.eq_iff`, an equation in a fibre of a
   pull-back bundle as one in the fibre it is defined as, in the root
@@ -1747,7 +1754,14 @@ has either.
   `TauCeti.Bundle.zeroSectionTangentEquiv`), `Lift.lean` (named like Tau
   Ceti's file: for a vector field $Y$, lifting its local flow to $T^*L$ gives
   the flow of $X_H$ for $H(q,p)=p(Y_q)$ where defined, and a complete flow
-  when $Y$ is complete).
+  when $Y$ is complete); and
+  `Geometry/Manifold/VectorBundle/Section/Extension.lean` (named like Tau
+  Ceti's file, whose `FiberBundle.contMDiffExtend` it uses: the differential
+  of a section in the chart at its value, `Bundle.mfderiv_section_apply`, and
+  smooth sections of any smooth vector bundle with a given value and a
+  derivative $u\mapsto\xi(u)\,b$ at a point,
+  `ContMDiffSection.exists_mfderiv_eq`, which `Liouville.lean` tests
+  against).
 - **Builds on:** Tau Ceti: `TauCeti.CotangentBundle.liouvilleForm` with
   `mpullback_liouvilleForm`, `symplecticForm` (which is
   $-d\lambda_{\mathrm{can}}$, the page's sign) with `inChartAt_symplecticForm_apply`,
