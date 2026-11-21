@@ -207,12 +207,14 @@ following choices.
 `DESIGN.md` is updated with this file, in its part 19, its dependency row
 and two rows of its milestone table.
 
-- Five files are added: `LinearAlgebra/Symplectic/Extension.lean`,
+- Six files are added: `LinearAlgebra/Symplectic/Extension.lean`,
   `Neighborhood/Extension.lean`, `Neighborhood/Basic.lean`,
-  `Geometry/Manifold/VectorBundle/ZeroSection.lean` and
+  `Geometry/Manifold/VectorBundle/ZeroSection.lean`,
+  `Geometry/Manifold/VectorBundle/Adjoint.lean` and
   `Geometry/Manifold/TubularNeighborhood/MFDeriv.lean`. Each neighbourhood
   theorem would otherwise repeat the linear extension and its smoothness;
-  the last holds the step of `Tubular.lean` that uses nothing symplectic.
+  `Adjoint.lean` holds the step of `Neighborhood/Extension.lean`, and the
+  last the step of `Tubular.lean`, that use nothing symplectic.
 - `Lagrangian.lean` no longer uses *Cotangent bundles* or
   `normalBundleDiffeomorphOfIsLagrangianMap`, since the comparison theorem
   needs only that the zero section is Lagrangian. The part therefore no
@@ -382,6 +384,12 @@ hom bundle of the pull-backs satisfying `hL` and `hLω` at every `q`:
   J_jK_j$. In these frames
   every step of `extendAlong` is a matrix formula with inverses of smooth
   invertible Gram matrices.
+- The adjoint step $(\omega_1^\flat)^{-1}\circ T^*\circ\omega_0^\flat$ of
+  `extendAlong_def` is smooth by `ContMDiff.clm_bundle_bilinAdjoint`
+  (`Geometry/Manifold/VectorBundle/Adjoint.lean`), for
+  `ContinuousLinearMap.bilinAdjoint`, whose linear map is that formula
+  (`ContinuousLinearMap.coe_bilinAdjoint`); both are in part 9's
+  `Topology/Algebra/Module/BilinearForm.lean`.
 - `mfderiv_comp_smoothExtendAlong` ($A\circ df_0=df_1$),
   `isSymplectomorphism_smoothExtendAlong` (at each `q`, for
   `hω₀.symplecticFormAt (f₀ q)` and `hω₁.symplecticFormAt (f₁ q)`), and
@@ -569,7 +577,9 @@ being an embedding, the image of `Q` in the source is exactly the part of
   (merged), in `Extension.lean` and `Isotropic.lean`, and
   `LinearAlgebra/Symplectic/Subspace.lean` (merged), in `Extension.lean`.
 - From *Compatible complex structures*:
-  `LinearAlgebra/Symplectic/Compatible.lean` (merged), in `Extension.lean`.
+  `LinearAlgebra/Symplectic/Compatible.lean` (merged), in `Extension.lean`, and
+  `Topology/Algebra/Module/BilinearForm.lean` (merged), in
+  `Geometry/Manifold/VectorBundle/Adjoint.lean`.
 - From *Standard model*: `StdSpace`, `stdForm`, `stdForm_apply`, in
   `AdaptedDarboux.lean`.
 - *Cotangent bundles* is not used: `Lagrangian.lean` needs only Tau Ceti's
