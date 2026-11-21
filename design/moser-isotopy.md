@@ -124,7 +124,7 @@ can join them.
 
 | File | Contents | Issue |
 |---|---|---|
-| `Geometry/Symplectic/Manifold/Family.lean` | openness of nondegeneracy for families and segments of two-forms | 1 |
+| `Geometry/Symplectic/Manifold/Family.lean` | openness of nondegeneracy for families and segments of two-forms; the velocity of a reparametrized segment of forms | 1 |
 | `Geometry/Symplectic/Manifold/Flat.lean` | the inverse flat map of a covector field with zero first jet | 1 |
 | `Geometry/Symplectic/Moser/Relative.lean` | the relative Moser theorem with prescribed first derivative, the milestone | 2 |
 | `Geometry/Symplectic/Moser/Field.lean` | `moserField`, the cut-off Moser field of a segment of two-forms | 3 |
@@ -137,7 +137,8 @@ can join them.
 ### `Geometry/Symplectic/Manifold/Family.lean`
 
 The file has the name of Tau Ceti's file on smooth families of nondegenerate
-two-forms. It is in the namespace `TauCeti.SmoothTwoForm`.
+two-forms. It is in the namespace `TauCeti.SmoothTwoForm`, except for the
+velocity of segments, in `TauCeti.SmoothForm`.
 
 - `isOpen_setOf_isInvertible_flat_mpullback_prodMk`: for a smooth two-form
   `σ` on `N × M`, the set of `p : N × M` at which the slice `σ_{p.1}` has an
@@ -153,6 +154,10 @@ two-forms. It is in the namespace `TauCeti.SmoothTwoForm`.
   `SmoothForm.lineMapFamily σ₀ σ₁ contDiff_id` and then Mathlib's
   `generalized_tube_lemma` over `isCompact_Icc`, using
   `isInvertible_flat_iff` to pass between the flat map and nondegeneracy.
+- `SmoothForm.mpullback_prodMk_timeDeriv_lineMapFamily`: the slice at time
+  `t` of the time derivative of `SmoothForm.lineMapFamily α₀ α₁ hc` is
+  `deriv c t • (α₁ - α₀)`, with the `@[simp]` companion
+  `SmoothForm.coe_mpullback_prodMk_lineMapFamily` for the underlying rough forms.
 
 ### `Geometry/Manifold/DifferentialForm/Smooth.lean`
 
@@ -186,7 +191,10 @@ namespace `TauCeti.SmoothTwoForm.IsNondegenerate`.
 
 ### `Geometry/Symplectic/Moser/Relative.lean`
 
-In the namespace `TauCeti.SmoothEmbedding`. The name is that of Tau Ceti's
+In the namespace `TauCeti.SmoothEmbedding`, except for the public step
+`exists_partialDiffeomorph_mpullback_eq_of_mextDeriv_eq_sub` (Moser's
+argument along the local flow), which mentions no embedding and is in
+`TauCeti.SmoothTwoForm`. The milestone's name is that of Tau Ceti's
 compact theorem `TauCeti.SmoothTwoForm.exists_diffeomorph_opens_of_eq_along`,
 in another namespace. It generalizes that theorem and would replace it
 upstream. It is reached by dot notation on `f`, as the relative primitive
@@ -244,8 +252,7 @@ Proof, in four steps.
    Tau Ceti's `PartialDiffeomorph.toDiffeomorphSourceTarget` makes `Φ` a
    diffeomorphism between opens of `N`. Reading these opens as opens of `M`
    gives `U₀`, `U₁` and `φ`. The differential is compared through
-   `Manifold.tangentSpaceOpenEquiv_mfderiv_apply`, as at the end of Tau
-   Ceti's theorem.
+   Tau Ceti's `Manifold.mfderiv_eq_id_iff_of_comp_subtype_val`.
 
 The module docstring credits Tau Ceti's
 `TauCeti.SmoothTwoForm.exists_diffeomorph_fix_embedding_eventually_mpullback_eq`
