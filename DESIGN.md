@@ -1695,8 +1695,8 @@ has either; Tau Ceti's extension across a boundary,
   constructor of a `TauCeti.Diffeotopy I ∞ M` from a jointly smooth map on
   `unitInterval × M` that is the identity at time $0$ and whose slices
   are diffeomorphisms, Tau Ceti having none, its inverse being smooth
-  by the inverse function theorem at interior times and, at the ends, in
-  charts after extending the map in time by Seeley's extension).  (★)
+  by the implicit function theorem in charts, at every time, after
+  extending the map in time by Seeley's extension).  (★)
   is for families over $[0,1]$, forms on `unitInterval × M`, so that the
   primitives it gives extend past both ends by
   `DifferentialForm/TimeExtension.lean`. The

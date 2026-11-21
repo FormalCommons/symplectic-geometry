@@ -6,7 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Real
-import SymplecticGeometry.Analysis.Calculus.ImplicitContDiff
+import TauCeti.Analysis.Calculus.JointImplicitFunction
 import Mathlib.Geometry.Manifold.LocalDiffeomorph
 import SymplecticGeometry.Analysis.Calculus.ContDiff.Seeley.Extension
 
@@ -37,12 +37,12 @@ the family is a map `G (s, u)` smooth on `Icc a b ×ˢ U`, for an interval `[a, 
 neighbourhood of `t₀` in `[0, 1]` and an open `U`. Seeley's extension
 (`SymplecticGeometry.exists_contDiffOn_eqOn_Icc_prod`) gives a map `H` smooth on `univ ×ˢ U` that
 agrees with `G` there. Its partial derivative in `u` at `(t₀, u₀)` is the derivative of `ψ_{t₀}` in
-charts, which is invertible, so the implicit function theorem in normed spaces
-(`ContDiffAt.exists_contDiffAt_eventually_apply_eq`) solves `H (s, u) = v` near
-`((t₀, H (t₀, u₀)), u₀)` by a smooth `u = φ (s, v)`. For `s ∈ [a, b]` the equation is
-`G (s, u) = v`, so `φ` computes `ψ_s⁻¹` in charts. At an interior time this is the argument of
-`Diffeomorph.contMDiff_symm_eval`, done in charts; at the ends, the extension `H` replaces the
-missing values of `G` for times outside `[0, 1]`.
+charts, which is invertible, so Tau Ceti's implicit function theorem with a moving level
+(`HasStrictFDerivAt.jointImplicitFunctionOfProdDomain`) solves `H (s, u) = v` near
+`(t₀, H (t₀, u₀))` by a smooth `u = φ (s, v)`. For `s ∈ [a, b]` the equation is
+`G (s, u) = v`, so `φ` computes `ψ_s⁻¹` in charts. The argument is the same at interior times and
+at the ends: at an end, the extension `H` supplies the values of `G` that are missing for times
+outside `[0, 1]`.
 
 ## References
 
@@ -169,7 +169,14 @@ private theorem Diffeomorph.contMDiffAt_symm_eval_unitInterval {ψ : unitInterva
   have hinv : (fderiv ℝ Hf ((t₀ : ℝ), u₀) ∘L ContinuousLinearMap.inr ℝ ℝ E).IsInvertible := by
     rw [hpartial]
     exact (ψ t₀).isInvertible_mfderiv (by simp)
-  obtain ⟨φ, hφ₀, hφd, hφeq⟩ := hHat.exists_contDiffAt_eventually_apply_eq (by simp) hinv
+  have hd := hHat.hasStrictFDerivAt_fderiv (by simp)
+  set φ := hd.jointImplicitFunctionOfProdDomain hinv
+  have hφ₀ : φ ((t₀ : ℝ), Hf ((t₀ : ℝ), u₀)) = u₀ :=
+    hd.jointImplicitFunctionOfProdDomain_apply_self hinv
+  have hφd : ContDiffAt ℝ ∞ φ ((t₀ : ℝ), Hf ((t₀ : ℝ), u₀)) :=
+    hd.contDiffAt_jointImplicitFunctionOfProdDomain hinv hHat
+  have hφeq : ∀ᶠ q in 𝓝 ((t₀ : ℝ), Hf ((t₀ : ℝ), u₀)), Hf (q.1, φ q) = q.2 :=
+    hd.eventually_apply_jointImplicitFunctionOfProdDomain hinv
   rw [hHz] at hφ₀ hφd hφeq
   -- The inverses in charts.
   have hin : ContMDiffAt ((𝓡∂ 1).prod I) 𝓘(ℝ, ℝ × E) ∞
