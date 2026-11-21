@@ -17,8 +17,8 @@ Write `ℒ ι` for the space of Lagrangian subspaces of the standard model `(Std
 `unitaryFrame U = U • {y = 0}` for the Lagrangian framed by a unitary matrix `U`, and
 `μ(γ) = deg(ρ ∘ γ)` for the Maslov index of a loop `γ` in `ℒ ι`
 (`SymplecticGeometry.LagrangianGrassmannian.maslovIndex`). This file proves that `μ` classifies
-loops up to homotopy, and that it is the only function on loops, in every dimension, with the
-homotopy, product, direct-sum and zero axioms.
+loops up to homotopy, and that it is the only function on loops, in every dimension, that
+satisfies the four axioms of `IsLagrangianMaslovIndex` (homotopy, product, direct sum, zero).
 
 Two loops `γ : Path Λ Λ` and `γ' : Path Λ' Λ'` are *freely homotopic* when
 `(γ : C(I, ℒ ι)).HomotopicWith γ' fun p ↦ p 0 = p 1`, that is, homotopic through loops whose base
@@ -326,16 +326,16 @@ theorem apply_eq_maslovIndex {n : ℕ} {Λ : ℒ (Fin n)} (γ : Path Λ Λ) :
 
 end IsLagrangianMaslovIndex
 
-/-- The Maslov index `maslovIndex` of loops of Lagrangian subspaces satisfies the homotopy,
-product, direct-sum and zero axioms. -/
+/-- The Maslov index `maslovIndex` of loops of Lagrangian subspaces satisfies the four axioms of
+`IsLagrangianMaslovIndex`. -/
 theorem isLagrangianMaslovIndex_maslovIndex :
     IsLagrangianMaslovIndex fun _ _ γ ↦ maslovIndex γ :=
   ⟨homotopicWith_iff_maslovIndex_eq, maslovIndex_smul,
     fun γ γ' ↦ by rw [maslovIndex_reindex, maslovIndex_sum], maslovIndex_refl⟩
 
 /-- **The Maslov index of loops of Lagrangian subspaces.** A family `μ n` of integer-valued
-functions on loops in `ℒ(n) = ℒ (Fin n)`, one for each `n`, satisfies the homotopy, product,
-direct-sum and zero axioms (`IsLagrangianMaslovIndex`) if and only if it is `γ ↦ deg(ρ ∘ γ)`, the
+functions on loops in `ℒ(n) = ℒ (Fin n)`, one for each `n`, satisfies the four axioms of
+`IsLagrangianMaslovIndex` if and only if it is `γ ↦ deg(ρ ∘ γ)`, the
 degree of the circle loop `t ↦ ρ(γ t)`, where `ρ = maslovPhase` is `det (U²)` for any unitary
 frame `U` of the Lagrangian (`maslovPhase_unitaryFrame`). So such a family exists, is unique, and
 is `maslovIndex`; and it has the normalization that the half-turn `t ↦ e^{iπt} ℝ` in `ℒ(1)` has
