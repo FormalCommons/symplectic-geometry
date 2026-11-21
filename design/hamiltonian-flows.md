@@ -60,14 +60,19 @@ group. Below, `σ : TauCeti.SmoothTwoForm J M` is a two-form on a manifold
 - **Flows of Hamiltonian fields** (`Geometry/Symplectic/Hamiltonian/CommutingFlow.lean`):
   `IsHamiltonianVectorField.mpullback_flowOf_apply` (local autonomous flows
   are symplectic) and `mpullback_timeDependentFlowOf_of_isHamiltonianVectorField`
-  (time-dependent flows with complete suspension are symplectic). The
-  energy identity $\frac{d}{dt}H_t(\phi_t(q))=(\partial_tH_t)(\phi_t(q))$ is
-  there only on a symplectic vector space,
-  `TauCeti.SymplecticForm.hasDerivAt_apply_of_hasDerivAt_hamiltonianVectorField_self`
-  (`Geometry/Symplectic/Hamiltonian/TimeDependent.lean`). The local Moser
+  (time-dependent flows with complete suspension are symplectic). The local Moser
   principle `TauCeti.mpullback_timeDependentFlowOf_mpullback_prodMk_apply_eq_of_mem`
   (`Geometry/Manifold/DifferentialForm/Flow/Family.lean`) holds along the
   domain of a time-dependent flow without completeness.
+- **The energy identity on manifolds**
+  (`Geometry/Symplectic/Hamiltonian/ExtendedPhaseSpace/Manifold.lean`):
+  `TauCeti.SmoothTwoForm.IsHamiltonianVectorField.hasDerivAt_apply_self_of_hasMFDerivAt`,
+  that $u\mapsto H_u(\gamma(u))$ has derivative $(\partial_tH_s)(\gamma(s))$
+  at $s$ for any curve with $\gamma'(s)=X_s(\gamma(s))$, hence along
+  `timeDependentFlowOf` by `hasMFDerivAt_timeDependentFlowOf`, with no
+  completeness; and, in the same file,
+  `IsNondegenerate.hasDerivAt_apply_of_hasMFDerivAt` (the rate
+  $\partial_tF+\{F,H\}$) and `forall_apply_timeDependentFlowOf_eq_iff`.
 - **The Poisson Lie algebra** (`Geometry/Symplectic/Hamiltonian/LieAlgebra.lean`):
   for symplectic `σ`, `σ.PoissonLieAlgebra hσ` (a type synonym of
   `C^∞⟮J, M; ℝ⟯` with the Poisson bracket as Lie bracket), the Lie
@@ -107,7 +112,7 @@ group. Below, `σ : TauCeti.SmoothTwoForm J M` is a two-form on a manifold
 
 Missing, and built here: the velocity $X_t$ of a diffeotopy; the criterion
 for local flows and for diffeotopies to be symplectic, with the book's
-bracket; the Leibniz rule and the energy identity on manifolds; the kernel of
+bracket; the Leibniz rule on manifolds; the kernel of
 $H\mapsto X_H$ as locally constant functions and the quotient for connected
 $M$; the passage between `HasHamiltonian` and the page's $H_t$; Hamiltonians
 from exactness, and their uniqueness; and $\mathrm{Ham}_c$.
@@ -119,7 +124,7 @@ These settle the questions that `DESIGN.md` leaves to this file.
 1. **The velocity $X_t$ is read along the motion.** It is a new definition,
    `TauCeti.Diffeotopy.velocity Φ t`, the smooth vector field
    $y\mapsto\partial_t\phi_t(\phi_t^{-1}y)$, where the time derivative is the
-   derivative of `Φ.cylinderMap` along the unit time vector `(0, 1)`, as
+   derivative of `Φ.cylinderMap` along the unit time vector `∂ₜ` below, as
    `HasHamiltonian` and `TauCeti.Diffeotopy.fluxForm` take it. It is defined
    for every $t\in[0,1]$, the ends included (there the derivative is
    one-sided, as for every smooth map on `M × unitInterval`), and it is
@@ -257,7 +262,7 @@ Tau Ceti unchanged.
 | File | Contents |
 |---|---|
 | `Geometry/Diffeomorphism/Diffeotopy/Velocity.lean` | `Diffeotopy.velocity`, its joint smoothness, its value along the motion, its values for `refl` and the flow diffeotopies, and the pullback of $\iota_{X_t}\sigma$ by $\phi_t$ |
-| `Geometry/Symplectic/Hamiltonian/PoissonAlgebra.lean` | the Leibniz rule, the local time-dependent flow and the energy identity, the kernel and the quotient, the milestone *Hamiltonian flows and the Poisson algebra* |
+| `Geometry/Symplectic/Hamiltonian/PoissonAlgebra.lean` | the Leibniz rule, the local time-dependent flow, the kernel and the quotient, the milestone *Hamiltonian flows and the Poisson algebra* |
 | `Geometry/Symplectic/Hamiltonian/SymplecticIsotopy.lean` | symplectic fields and their local flows, the book's bracket, the isotopy criterion, the milestone *Symplectic vector fields and isotopy generators* |
 | `Geometry/Symplectic/Flux/Hamiltonian.lean` | the page's $H_t$ beside `HasHamiltonian`, the three rules in the page's form, uniqueness, Hamiltonians from exactness |
 | `Geometry/Symplectic/Flux/CompactSupport.lean` | `IsCompactlySupportedHamiltonian`, `compactlySupportedHamiltonianGroup`, the flow of a compactly supported Hamiltonian, the milestone *Hamiltonian isotopies and their composition* |
@@ -265,16 +270,21 @@ Tau Ceti unchanged.
 Imports between the files: `SymplecticIsotopy.lean` and
 `Flux/Hamiltonian.lean` import `Velocity.lean`; `Flux/CompactSupport.lean`
 imports `Flux/Hamiltonian.lean`. `PoissonAlgebra.lean` imports only Tau
-Ceti.
+Ceti, among it `Hamiltonian/ExtendedPhaseSpace/Manifold.lean` for the energy
+identity.
 
 ## Definitions and their API
 
 Throughout, `E`, `H`, `J : ModelWithCorners ℝ E H` and `M` with
 `[IsManifold J ∞ M]` are as in Tau Ceti's `Flux/Hamiltonian.lean`;
 `Φ Ψ : TauCeti.Diffeotopy J ∞ M`, `σ : TauCeti.SmoothTwoForm J M` (which is
-`SmoothForm J M ℝ 2`), `I` is `unitInterval`, and `∂ₜ` is the tangent
-vector `((0 : E), (1 : EuclideanSpace ℝ (Fin 1)))` of `M × I`. Further
-hypotheses are named where they are needed.
+`SmoothForm J M ℝ 2`), `I` is `unitInterval`, and `∂ₜ` at `(x, t)` is the tangent
+vector `((0 : E), (1 : TangentSpace (𝓡∂ 1) t))` of `M × I`, as in Tau Ceti's
+`HasHamiltonian`. Its second component is the interval's unit tangent vector
+(Mathlib's `oneTangentSpaceIcc`), which `mfderiv_subtypeVal_Icc_one` sends
+to `1` at every `t`. It is not the coordinate vector of the model space:
+the chart of the interval at `t = 1` reverses orientation, so that vector
+would give `-X₁` there. Further hypotheses are named where they are needed.
 
 ### `Geometry/Diffeomorphism/Diffeotopy/Velocity.lean`
 
@@ -334,14 +344,6 @@ Ceti's time-dependent flows (`[FiniteDimensional ℝ E] [J.Boundaryless]
   for the constant family. Tau Ceti's
   `mpullback_timeDependentFlowOf_of_isHamiltonianVectorField` is the
   complete case.
-- `hasDerivAt_apply_timeDependentFlowOf_of_isHamiltonianVectorField` (the
-  energy identity): at every `t` with `((s, t), x)` in the flow domain,
-  `fun u ↦ H u (timeDependentFlowOf X s u x)` has derivative
-  `deriv (fun u ↦ H u y) t` at `t`, for `y = timeDependentFlowOf X s t x`.
-  From `hasMFDerivAt_timeDependentFlowOf`, the chain rule, and
-  $dH_t(X_t)=\sigma(X_t,X_t)=0$. It is the manifold version of Tau Ceti's
-  `TauCeti.SymplecticForm.hasDerivAt_apply_of_hasDerivAt_hamiltonianVectorField_self`,
-  and its docstring credits it.
 
 For symplectic `σ` (`hσ : σ.IsSymplectic`):
 
@@ -480,7 +482,9 @@ compositions is as in Decision 1.
   (`isHamiltonianVectorField_iff_eq`); the local autonomous flow preserves
   `σ` and `H` on its domain (Tau Ceti's `mpullback_flowOf_apply` and
   `apply_eq_of_isMIntegralCurveOn`); the local time-dependent flow preserves
-  `σ` and satisfies the energy identity; the bracket is bilinear,
+  `σ` and satisfies the energy identity (Tau Ceti's
+  `(hX t).hasDerivAt_apply_self_of_hasMFDerivAt hH
+  (hasMFDerivAt_timeDependentFlowOf …)`); the bracket is bilinear,
   skew-symmetric, and satisfies Jacobi and Leibniz, on smooth functions;
   `σ.hamiltonianVectorField (σ.poissonBracket F G) = -mlieBracket J X_F X_G`;
   naturality for `χ ∈ diffeomorphStabilizer σ`, as
