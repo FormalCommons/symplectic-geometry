@@ -405,6 +405,13 @@ theorem LagrangianGrassmannian.coe_ofFrame (X Y : Matrix ι ι ℝ)
       LinearMap.range (toEuclideanLin (fromRows X Y)) :=
   (rfl)
 
+@[simp]
+theorem LagrangianGrassmannian.mem_ofFrame_iff {X Y : Matrix ι ι ℝ}
+    {h : (stdForm ι).IsLagrangian (LinearMap.range (toEuclideanLin (fromRows X Y)))}
+    {z : StdSpace ι} :
+    z ∈ ofFrame X Y h ↔ z ∈ LinearMap.range (toEuclideanLin (fromRows X Y)) :=
+  Iff.rfl
+
 /-- The complex frame `X + i Y` of a Lagrangian frame `fromRows X Y` is invertible. -/
 theorem det_ne_zero_of_isLagrangian_range_fromRows {X Y : Matrix ι ι ℝ}
     (h : (stdForm ι).IsLagrangian (LinearMap.range (toEuclideanLin (fromRows X Y)))) :

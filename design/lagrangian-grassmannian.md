@@ -357,7 +357,8 @@ Lagrangian frames on `StdSpace ι`, pure linear algebra. Namespace
 - `ℒ.ofFrame (X Y : Matrix ι ι ℝ)
   (h : (stdForm ι).IsLagrangian (range (toEuclideanLin (fromRows X Y)))) : ℒ ι`,
   the Lagrangian that the frame spans, with `coe_ofFrame` (`@[simp]`): its
-  submodule is the range of `toEuclideanLin (fromRows X Y)`. This is the
+  submodule is the range of `toEuclideanLin (fromRows X Y)`, and
+  `mem_ofFrame_iff` (`@[simp]`), membership in that range. This is the
   constructor of G6; `isLagrangian_range_fromRows_iff` turns the rank and
   symmetry conditions into `h`. Every Lagrangian spanned by a frame, in this
   part, is written `ofFrame X Y h`, never as an anonymous pair.
