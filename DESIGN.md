@@ -891,7 +891,8 @@ it into issues; the overview fixes its folders and its dependencies.
   `SymplecticForm V`), with the general file
   `Topology/Algebra/Module/BilinearForm.lean` (a continuous bilinear form in
   finite dimensions is recovered from its bilinear form; the skew part of a
-  continuous bilinear map),
+  continuous bilinear map) and `LinearAlgebra/SesquilinearForm.lean`
+  (an alternating form minus its transpose is twice the form),
   `Geometry/Symplectic/Darboux/EuclideanBasis.lean` (the coordinates of a
   basis adapted to $J$ are complex linear),
   `Geometry/Symplectic/Cayley/Domain.lean` (the open set where Tau Ceti's
@@ -1135,6 +1136,8 @@ it into issues; the overview fixes its folders and its dependencies.
   file has the name of the Mathlib file that defines
   `ContMDiffVectorBundle.continuousAlternatingMap`, so that the two merge
   upstream),
+  `Topology/FiberBundle/Basic.lean` (a fibrewise open condition on a fibre
+  bundle gives an open set of the total space, in Mathlib's namespace),
   `Topology/FiberBundle/ChangeModelFiber.lean` (a fibre bundle read with
   another model fibre along a homeomorphism, in Mathlib's namespaces and at
   Mathlib's fibre-bundle level, since it involves no group),
