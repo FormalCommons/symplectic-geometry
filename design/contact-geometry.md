@@ -380,11 +380,13 @@ The file also has, in `TauCeti.SmoothForm`, the slices of a pullback along
 
 Named like Tau Ceti's file, in the namespace `TauCeti`: the Lie derivative
 of forms is linear in the vector field, beside Tau Ceti's
-`mlieDerivForm_add_left`. Along the zero field, `@[simp]`
-`lieDerivFormWithin_zero_left`, `lieDerivForm_zero_left`,
-`mlieDerivFormWithin_zero_left` and `mlieDerivForm_zero_left`. For constant
-multiples, `@[simp]` `lieDerivFormWithin_const_smul_left` (with
-`UniqueDiffWithinAt`), `lieDerivForm_const_smul_left`,
+`mlieDerivForm_add_left`. The flat statements go in
+`Analysis/Calculus/DifferentialForm/LieDeriv.lean` (which this file imports),
+beside Tau Ceti's `lieDerivForm_add_left`: along the zero field,
+`@[simp]` `lieDerivFormWithin_zero_left` and `lieDerivForm_zero_left`; for
+constant multiples, `@[simp]` `lieDerivFormWithin_const_smul_left` (with
+`UniqueDiffWithinAt`) and `lieDerivForm_const_smul_left`. This file keeps
+`@[simp]` `mlieDerivFormWithin_zero_left`, `mlieDerivForm_zero_left`,
 `mlieDerivFormWithin_const_smul_left` (with `UniqueMDiffWithinAt`) and
 `mlieDerivForm_const_smul_left (c : ℝ) (V) (φ : RoughForm I M F k) :
 mlieDerivForm (c • V) φ = c • mlieDerivForm V φ`, with no differentiability
@@ -734,7 +736,7 @@ In this order; each is blocked by the ones listed, and all are sub-issues of
 
 | # | Issue | Files | Blocked by | Size |
 |---|---|---|---|---|
-| H1 | Contact vector fields and their equivalence with functions | `Geometry/Manifold/DifferentialForm/LieDeriv.lean`, `Geometry/Manifold/DifferentialForm/DegreeOne.lean`, `Geometry/Contact/Hamiltonian.lean` (`contactVectorFields`, the two characterizations, `contactHamiltonianEquiv`, the Reeb field of `α/H` and its coorientation) | — | 300 |
+| H1 | Contact vector fields and their equivalence with functions | `Geometry/Manifold/DifferentialForm/LieDeriv.lean` (with its flat lemmas in `Analysis/Calculus/DifferentialForm/LieDeriv.lean`), `Geometry/Manifold/DifferentialForm/DegreeOne.lean`, `Geometry/Contact/Hamiltonian.lean` (`contactVectorFields`, the two characterizations, `contactHamiltonianEquiv`, the Reeb field of `α/H` and its coorientation) | — | 300 |
 | H2 | Time-dependent contact Hamiltonians and the milestone | `Geometry/Contact/Hamiltonian.lean` (joint smoothness, rescaling formula, `contactVectorFields_correspondence`) | H1 | 200 |
 | D | The contact Darboux theorem in the page's signs | `Geometry/Contact/Darboux/Strict.lean`, `Geometry/Contact/Standard.lean`, `Geometry/Contact/Pullback.lean` | — | 200 |
 | G0 | Moser's principle along one trajectory, rescaling case | `Geometry/Manifold/DifferentialForm/Flow/Family.lean` | — | 100 |
