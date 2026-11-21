@@ -257,8 +257,8 @@ On an open `U`, it is applied to `U` and the restriction
   $x\mapsto\tau_x$ is locally constant on the fibre. Near `x`, the chart
   of the submersion `p` at `x` (Mathlib's `IsSubmersionAt.domChart`), in
   which `p` is a linear projection, carries `σ` to a closed form
-  (`differentiableAt_mpullback_extend_symm`,
-  `IsClosed.extDeriv_mpullback_extend_symm_eq_zero`) whose
+  (Tau Ceti's `SmoothForm.contDiffOn_mpullback`,
+  `SmoothForm.IsClosed.extDeriv_mpullback_eq_zero`) whose
   kernel contains the constant subspace `W` of vertical vectors. By
   Cartan's formula for a constant vector field
   (`fderiv_apply_eq_zero_of_extDeriv_eq_zero` and

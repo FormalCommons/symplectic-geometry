@@ -7,6 +7,7 @@ module
 
 public import TauCeti.Geometry.Symplectic.Manifold.Descent
 import SymplecticGeometry.Analysis.Calculus.DifferentialForm.LieDeriv
+import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.ModelSpace
 import TauCeti.LinearAlgebra.Alternating.Conormal
 import TauCeti.LinearAlgebra.Alternating.Curry
 
@@ -45,10 +46,6 @@ through `x`, and so constant on the preconnected fibre.
 
 ## Main results
 
-* `TauCeti.SmoothForm.differentiableAt_mpullback_extend_symm` and
-  `TauCeti.SmoothForm.IsClosed.extDeriv_mpullback_extend_symm_eq_zero`: a smooth form read in a
-  chart of the maximal atlas is differentiable on the chart's image, and closed there if the form
-  is closed.
 * `TauCeti.SmoothForm.IsCharacteristicSubmersion.isBasic`: a closed form is basic for each of its
   characteristic submersions.
 * `TauCeti.SmoothForm.IsCharacteristicSubmersion.existsUnique_isSymplectic_mpullback_eq`: it is
@@ -96,42 +93,6 @@ structure IsCharacteristicSubmersion (σ : SmoothForm I M ℝ 2) (p : M → B) :
   ker_mfderiv : ∀ x, (mfderiv I IB p x).ker = LinearMap.ker (σ.bilinFormAt x)
 
 variable {IB} {σ : SmoothForm I M ℝ 2} {p : M → B}
-
-section Chart
-
-variable [I.Boundaryless] {k : ℕ} {e : OpenPartialHomeomorph M H}
-
-/-- On a boundaryless manifold, a smooth form read in a chart `e` of the maximal atlas, that is,
-pulled back along `(e.extend I).symm`, is differentiable on the image of the chart. -/
-theorem differentiableAt_mpullback_extend_symm (form : SmoothForm I M ℝ k)
-    (he : e ∈ IsManifold.maximalAtlas I ∞ M) {z : E} (hz : z ∈ (e.extend I).target) :
-    DifferentiableAt (E := E) (F := E [⋀^Fin k]→L[ℝ] ℝ) ℝ
-      (TauCeti.mpullback 𝓘(ℝ, E) I (e.extend I).symm form.val) z := by
-  have hs : ContMDiffAt 𝓘(ℝ, E) I ∞ (e.extend I).symm z :=
-    ((contMDiffOn_extend_symm he).mono (by rw [← e.extend_target'])).contMDiffAt
-      (e.isOpen_extend_target.mem_nhds hz)
-  have := ((form.contMDiff ((e.extend I).symm z)).of_le (m := 1) (by simp)).mpullback_form hs
-    (by simp)
-  exact (contDiffWithinAt_univ.1
-    (TauCeti.RoughForm.contDiffWithinAt_of_contMDiffWithinAt_modelSpace
-      this.contMDiffWithinAt)).differentiableAt (by simp)
-
-/-- On a boundaryless manifold, a closed form read in a chart `e` of the maximal atlas, that is,
-pulled back along `(e.extend I).symm`, is closed on the image of the chart. -/
-theorem IsClosed.extDeriv_mpullback_extend_symm_eq_zero {form : SmoothForm I M ℝ k}
-    (hform : form.IsClosed) (he : e ∈ IsManifold.maximalAtlas I ∞ M) {z : E}
-    (hz : z ∈ (e.extend I).target) :
-    extDeriv (E := E) (F := ℝ)
-      (TauCeti.mpullback 𝓘(ℝ, E) I (e.extend I).symm form.val) z = 0 := by
-  have hs : ContMDiffAt 𝓘(ℝ, E) I ∞ (e.extend I).symm z :=
-    ((contMDiffOn_extend_symm he).mono (by rw [← e.extend_target'])).contMDiffAt
-      (e.isOpen_extend_target.mem_nhds hz)
-  rw [← TauCeti.mextDeriv_eq_extDeriv, ← TauCeti.mpullback_mextDeriv_at (hs.of_le (by simp))
-    ((form.contMDiff _).of_le (by simp)), (isClosed_def form).1 hform, TauCeti.mpullback_zero]
-  -- The zero form on the model space, read on tangent spaces of the model space.
-  rfl
-
-end Chart
 
 namespace IsCharacteristicSubmersion
 
@@ -246,9 +207,14 @@ private theorem eventually_fibreForm_eq (hp : IsCharacteristicSubmersion IB σ p
       sub_self]
   -- The form in the chart takes the same value at `κ x` and `κ y`.
   have hαeq : α (κ y) = α (κ x) := by
+    have hκ : ContMDiffOn 𝓘(ℝ, E) I ∞ κ.symm κ.target := by
+      simpa only [κ, h.domChart.extend_target'] using
+        contMDiffOn_extend_symm h.domChart_mem_maximalAtlas
     have := apply_add_eq_of_extDeriv_eq_zero hU
-      (fun _ ↦ differentiableAt_mpullback_extend_symm σ h.domChart_mem_maximalAtlas)
-      (fun _ ↦ hσ.extDeriv_mpullback_extend_symm_eq_zero h.domChart_mem_maximalAtlas)
+      (fun z hz ↦ ((σ.contDiffOn_mpullback hU hκ).contDiffAt (hU.mem_nhds hz)).differentiableAt
+        (by simp))
+      (fun z hz ↦ hσ.extDeriv_mpullback_eq_zero ((hκ.contMDiffAt (hU.mem_nhds hz)).of_le
+        (by simp)))
       (fun z' hz' ↦ hker z' hz' _ hfst) fun t ht ↦
         hball ((convex_ball _ _).add_smul_sub_mem (Metric.mem_ball_self hr) hyb ht)
     rwa [add_sub_cancel] at this
