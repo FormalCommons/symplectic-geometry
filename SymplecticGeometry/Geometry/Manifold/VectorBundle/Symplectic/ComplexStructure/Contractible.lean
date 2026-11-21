@@ -149,8 +149,9 @@ theorem Compatible.cayleyPath_apply (t : ℝ) (x : M) :
     h₀.cayleyPath h t x = cayleyPathFormula (Real.smoothTransition t) (J₀ x) (J x) :=
   ContMDiffSection.fiberwiseMap_apply _ _ t _ x
 
-/-- At each point, the Cayley path is a linear Cayley path in the fibre: it represents a complex
-structure tamed by the linear form, and compatible with it when `J` is compatible with `ω`. -/
+/-- At each point `x`, the value of the Cayley path is an almost complex structure `K` on the fibre
+that the linear symplectic form of `ω` at `x` tames, and with which it is compatible when `ω` is
+compatible with `J`. -/
 theorem Compatible.exists_almostComplexStructureAt_cayleyPath (t : ℝ) (x : M) :
     ∃ K : AlmostComplexStructure (V x),
       (h₀.cayleyPath h t).almostComplexStructureAt x = K ∧
