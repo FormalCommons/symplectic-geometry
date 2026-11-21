@@ -159,7 +159,10 @@ objects as they are.
     a family of embeddings is Tau Ceti's `TauCeti.SmoothIsotopy`
     (`Geometry/Manifold/SmoothIsotopy/Basic.lean`). Symplectic and
     Hamiltonian isotopies, isotopy extension, and every milestone about a
-    family are stated in this model. A milestone about isotopies also
+    family are stated in this model, except the rescaling formula for the
+    flow of a time-dependent contact Hamiltonian (*Contact geometry*),
+    which is about the maximal flow wherever it is defined and is stated
+    over `ℝ`, on Tau Ceti's `TauCeti.timeDependentFlowDomain`. A milestone about isotopies also
     applies to a jointly smooth map on `unitInterval × M` that is the
     identity at time $0$ and whose slices are diffeomorphisms, through the
     constructor of `OfIsotopy.lean` that makes it a `Diffeotopy`.
@@ -1865,7 +1868,7 @@ has either.
   `Hamiltonian.lean` (named like Tau Ceti's file: the bijection between
   contact vector fields and functions as one equivalence; the rescaling
   formula $\phi_t^*\alpha=\exp(\int_0^tR(H_s)\circ\phi_s\,ds)\,\alpha$ of the
-  flow, from Tau Ceti's
+  flow, over `ℝ` on the flow's domain, from Tau Ceti's
   `TauCeti.mpullback_timeDependentFlowOf_mpullback_prodMk_apply_eq_exp_integral_smul_of_mem`;
   contact fields as the fields whose local flows preserve $\xi$; $X_H$ is
   transverse to $\xi$ exactly where $H\neq0$, and then the Reeb field of
@@ -1874,24 +1877,29 @@ has either.
   $\sum_ip_i\,dq_i-dz$ at a point, with Reeb field $-\partial_z$, from Tau
   Ceti's `TauCeti.SmoothForm.IsContactForm.exists_strictDarbouxChart_of_finrank_eq`
   by the change of coordinates of *Manifolds, families and signs*),
-  `Gray.lean` (named like Tau Ceti's file: Gray stability for a family over
+  `Family.lean` (named like Tau Ceti's file: `IsContactFamily`, smooth
+  families over $[0,1]$ of contact structures that need not be
+  coorientable, and their local defining forms over `ℝ`, through the time
+  extension), `Gray.lean` (named like Tau Ceti's file: Gray stability for a family over
   $[0,1]$, with the normalization $X_t\in\xi_t$ and its uniqueness, for
   families of contact structures that need not be coorientable, and the
   rescaling for global forms; from Tau Ceti's `TauCeti.SmoothForm.grayDiffeomorph`
   and `TauCeti.SmoothForm.eq_grayVectorField_iff`, whose families are over
   `ℝ`, through the time extension, the reparametrization that is the
   identity on $[0,1]$, and `OfIsotopy.lean` of *Smooth families*), and `LegendrianNeighborhood.lean` (the Legendrian neighbourhood
-  theorem for a properly embedded Legendrian $L$, with model the form
+  theorem for an embedded Legendrian $L$, properness not being needed, with model the form
   $\lambda_{\mathrm{can}}-dz$ near $L\times\{0\}$ in $T^*L\times\mathbb{R}$:
   a hypersurface through $L$ transverse to the Reeb field, the Lagrangian
   neighbourhood theorem there, a relative primitive from Tau Ceti's
   `TauCeti.SmoothEmbedding.exists_isSmoothForm_relative_primitive`, and the
-  Reeb flow).
+  Reeb flow); and `Geometry/Manifold/DifferentialForm/Flow/Family.lean`
+  (named like Tau Ceti's file: Moser's principle along one trajectory, in
+  the rescaling case, which `Gray.lean` uses).
 - **Builds on:** Tau Ceti (contact forms, Reeb fields, contact Hamiltonians,
   strict and distribution Darboux charts, Gray's theorem for families over
-  `ℝ`); `Gray.lean` also on *Smooth families* (`TimeExtension.lean`,
+  `ℝ`); `Family.lean` and `Gray.lean` also on *Smooth families* (`TimeExtension.lean`,
   `OfIsotopy.lean`); `LegendrianNeighborhood.lean` also on *Symplectic
-  neighbourhoods* (`Lagrangian.lean`). The other two files can start at
+  neighbourhoods* (`Lagrangian.lean`). The other files can start at
   once.
 - **Milestones:** *Contact vector fields and contact Hamiltonians*, *Contact
   Darboux theorem*, *Gray stability*, *Legendrian neighbourhood theorem*.
@@ -1977,7 +1985,7 @@ so two parts can each use merged files of the other without either waiting.
 | 2 | *Isotopy extension* | *Hamiltonian flows*, *Moser isotopy*, *Smooth families* |
 | 2 | *Symplectic neighbourhoods* | *Moser isotopy* (only `Relative.lean`), *Cotangent bundles*; *Symplectic vector spaces* and *Symplectic vector bundles* (only `LinearAlgebra/Symplectic/Reduction.lean` and `Geometry/Manifold/VectorBundle/Symplectic/Basic.lean`, which are merged, unless its design file also takes the open issues #254, #266 or #269 of *Symplectic vector bundles*, which are at level 1); `CharacteristicFoliation.lean` can start at once |
 | 3 | *First Chern number* | *Symplectic vector bundles*, the symplectic-loop issues of *Maslov index* |
-| 3 | *Contact geometry* | *Smooth families* (only `Gray.lean`, through `TimeExtension.lean` and `OfIsotopy.lean`); *Symplectic neighbourhoods* (only `LegendrianNeighborhood.lean`, through `Lagrangian.lean`); the other files of the part can start at once |
+| 3 | *Contact geometry* | *Smooth families* (only `Family.lean` and `Gray.lean`, through `TimeExtension.lean` and `OfIsotopy.lean`); *Symplectic neighbourhoods* (only `LegendrianNeighborhood.lean`, through `Lagrangian.lean`); the other files of the part can start at once |
 
 The design issues of the parts marked as needing one can start at once, in
 parallel with the level-0 parts.
