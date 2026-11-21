@@ -45,10 +45,13 @@ The main facts fixing the conventions are `stdForm_apply`
 Cauchy–Schwarz inequality `abs_stdForm_apply_le` (`|ω₀(z, w)| ≤ ‖z‖ ‖w‖`).
 Finally, `isSymplectomorphism_sumEquivProd` and `stdComplexStructure_transport_sumEquivProd`
 compare the model with Tau Ceti's product model `TauCeti.stdSymplecticForm` and
-`TauCeti.AlmostComplexStructure.product` on `EuclideanSpace ℝ ι × EuclideanSpace ℝ ι`, and
+`TauCeti.AlmostComplexStructure.product` on `EuclideanSpace ℝ ι × EuclideanSpace ℝ ι`
+(complex linearity: `isComplexLinearMap_sumEquivProd`), and
 `isSymplectomorphism_piLpCongrLeft_sumCongr` says that relabelling the coordinate pairs along
 `σ : ι ≃ κ` is symplectic, with its coordinates given by `x_piLpCongrLeft_sumCongr` and
-`y_piLpCongrLeft_sumCongr`. The splitting `SymplecticGeometry.StdSpace.sumEquiv ι κ` of
+`y_piLpCongrLeft_sumCongr`, and that it commutes with `J₀`
+(`stdComplexStructure_piLpCongrLeft_sumCongr`, `isComplexLinearMap_piLpCongrLeft_sumCongr`).
+The splitting `SymplecticGeometry.StdSpace.sumEquiv ι κ` of
 `StdSpace (ι ⊕ κ)` into `StdSpace ι × StdSpace κ` carries `ω₀` to the direct sum of the two
 standard forms (`isSymplectomorphism_sumEquiv`).
 
@@ -410,6 +413,21 @@ theorem y_piLpCongrLeft_sumCongr (σ : ι ≃ κ) (z : StdSpace ι) :
 
 end StdSpace
 
+/-- Relabelling the coordinate pairs along `σ : ι ≃ κ` commutes with the standard complex
+structures `J₀` on `StdSpace ι` and on `StdSpace κ`. -/
+theorem stdComplexStructure_piLpCongrLeft_sumCongr (σ : ι ≃ κ) (z : StdSpace ι) :
+    stdComplexStructure κ (LinearIsometryEquiv.piLpCongrLeft 2 ℝ ℝ (σ.sumCongr σ) z) =
+      LinearIsometryEquiv.piLpCongrLeft 2 ℝ ℝ (σ.sumCongr σ) (stdComplexStructure ι z) :=
+  StdSpace.ext (by ext; simp) (by simp)
+
+/-- Relabelling the coordinate pairs along `σ : ι ≃ κ` is complex linear from `J₀` on
+`StdSpace ι` to `J₀` on `StdSpace κ`. -/
+theorem isComplexLinearMap_piLpCongrLeft_sumCongr (σ : ι ≃ κ) :
+    IsComplexLinearMap (stdComplexStructure ι) (stdComplexStructure κ)
+      (LinearIsometryEquiv.piLpCongrLeft 2 ℝ ℝ (σ.sumCongr σ)).toLinearEquiv.toLinearMap :=
+  (isComplexLinearMap_iff_apply _ _ _).2 fun z ↦
+    (stdComplexStructure_piLpCongrLeft_sumCongr σ z).symm
+
 end Reindex
 
 /-! ### The direct sum of two models -/
@@ -498,6 +516,14 @@ theorem stdComplexStructure_transport_sumEquivProd :
       AlmostComplexStructure.product (EuclideanSpace ℝ ι) := by
   apply AlmostComplexStructure.toLinearMap_injective
   refine LinearMap.ext fun p ↦ Prod.ext ?_ ?_ <;> ext i <;> simp
+
+/-- `EuclideanSpace.sumEquivProd` is complex linear from `J₀` to Tau Ceti's product complex
+structure `(x, y) ↦ (-y, x)`. -/
+theorem isComplexLinearMap_sumEquivProd :
+    IsComplexLinearMap (stdComplexStructure ι) (AlmostComplexStructure.product (EuclideanSpace ℝ ι))
+      (EuclideanSpace.sumEquivProd (𝕜 := ℝ) (ι := ι) (κ := ι)).toLinearEquiv.toLinearMap := by
+  rw [← stdComplexStructure_transport_sumEquivProd]
+  exact AlmostComplexStructure.isComplexLinearMap_transport _ _
 
 end SymplecticGeometry
 

@@ -225,10 +225,7 @@ theorem unitaryFrame_surjective :
   intro Λ
   have hdim : Module.finrank ℝ (EuclideanSpace ℝ ι) =
       Module.finrank ℝ (Λ : Submodule ℝ (StdSpace ι)) := by
-    have := Λ.isLagrangian.two_mul_finrank
-    rw [finrank_stdSpace] at this
-    rw [finrank_euclideanSpace]
-    omega
+    rw [finrank_euclideanSpace, Λ.finrank_eq_card]
   set Z := toEuclideanLin.symm
     ((Λ : Submodule ℝ (StdSpace ι)).subtype ∘ₗ (LinearEquiv.ofFinrankEq _ _ hdim).toLinearMap)
   have hZ : LinearMap.range (toEuclideanLin (fromRows Z.toRows₁ Z.toRows₂)) = Λ := by
