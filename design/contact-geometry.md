@@ -345,7 +345,8 @@ Named like Tau Ceti's file, in `TauCeti.SmoothForm`.
 - `contactVectorFields (α : SmoothForm I M ℝ 1) : Submodule ℝ Cₛ^∞⟮I; E, TangentSpace I (M := M)⟯`,
   the smooth fields `X` with `∃ g : M → ℝ, mlieDerivForm X α.val = fun x ↦ g x • α.val x`,
   beside Tau Ceti's `TauCeti.SmoothTwoForm.symplecticVectorFields` (closure
-  under sums by `TauCeti.mlieDerivForm_add`); `@[simp] mem_contactVectorFields_iff`.
+  under sums by `TauCeti.mlieDerivForm_add_left`, under scalars by
+  `TauCeti.SmoothForm.mlieDerivForm_const_smul_left`, added here); `@[simp] mem_contactVectorFields_iff`.
   The multiplier `g` may vanish; no smoothness of `g` is asked, since for a
   contact form it is forced:
 - `IsContactForm.mem_contactVectorFields_iff_mlieDerivForm_eq (hα) :
@@ -373,7 +374,7 @@ Named like Tau Ceti's file, in `TauCeti.SmoothForm`.
   `@[simp] coe_contactHamiltonianEquiv_symm_apply`
   (`⇑(e.symm H) = α.contactHamiltonianVectorField H`).
 - `IsContactForm.reebVectorField_eq_contactHamiltonianVectorField_of_eq_smul`:
-  for `H` smooth and nowhere zero and `β` with
+  for `H` nowhere zero and `C¹` (`ContMDiff I 𝓘(ℝ) 1 H`) and `β` with
   `∀ x, β.val x = (H x)⁻¹ • α.val x`, `β.IsContactForm` and
   `β.reebVectorField = α.contactHamiltonianVectorField H`; from
   `isContactForm_iff_of_eq_smul`, `contactHamiltonianVectorField_of_eq_smul`
