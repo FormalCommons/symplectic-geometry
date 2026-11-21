@@ -7,6 +7,7 @@ module
 
 public import SymplecticGeometry.LinearAlgebra.ComplexStructure.Action
 public import TauCeti.Geometry.Symplectic.AlmostComplex.Topology
+public import TauCeti.Topology.Algebra.Star.Unitary
 
 /-!
 # The space of linear complex structures
@@ -141,6 +142,15 @@ theorem toContinuousLinearMap_generalLinearGroup_smul (g : GL n ℝ)
   ext1 v
   simp [Matrix.coe_units_inv]
 
+/-- The matrix of `g • J` is `g * A * g⁻¹`, where `A` is the matrix of `J`. -/
+theorem homeomorphMatrix_generalLinearGroup_smul (g : GL n ℝ)
+    (J : AlmostComplexStructure (EuclideanSpace ℝ n)) :
+    (homeomorphMatrix n (g • J) : Matrix n n ℝ) =
+      (g : Matrix n n ℝ) * homeomorphMatrix n J * (↑g⁻¹ : Matrix n n ℝ) := by
+  rw [homeomorphMatrix_apply_coe, homeomorphMatrix_apply_coe,
+    toContinuousLinearMap_generalLinearGroup_smul, map_mul, map_mul,
+    StarAlgEquiv.symm_apply_apply, StarAlgEquiv.symm_apply_apply]
+
 /-- The invertible matrices act continuously on the complex structures of `EuclideanSpace ℝ n`. -/
 instance : ContinuousSMul (GL n ℝ) (AlmostComplexStructure (EuclideanSpace ℝ n)) where
   continuous_smul := by
@@ -159,7 +169,8 @@ instance : ContinuousSMul (Matrix.specialOrthogonalGroup n ℝ)
     have hφ : Continuous fun g : Matrix.specialOrthogonalGroup n ℝ ↦
         (Unitary.toUnits (Submonoid.inclusion
           (Matrix.specialUnitaryGroup_le_unitaryGroup (n := n) (α := ℝ)) g) : GL n ℝ) :=
-      Units.continuous_iff.2 ⟨continuous_subtypeVal, continuous_subtypeVal.star⟩
+      Unitary.continuous_toUnits.comp
+        (continuous_inclusion Matrix.specialUnitaryGroup_le_unitaryGroup)
     simp_rw [specialOrthogonalGroup_smul_def]
     exact (hφ.comp continuous_fst).smul continuous_snd
 

@@ -56,51 +56,33 @@ matrices goes to `g • J₀`. -/
 noncomputable def quotientRealifyHomeomorph :
     GL (ι ⊕ ι) ℝ ⧸ (Matrix.GeneralLinearGroup.realify ι ℂ).range ≃ₜ
       AlmostComplexStructure (StdSpace ι) :=
-  Homeomorph.trans
-    { toEquiv := Subgroup.quotientEquivOfEq (stabilizer_stdComplexStructure (ι := ι)).symm
-      continuous_toFun := by
-        rw [QuotientGroup.isOpenQuotientMap_mk.isQuotientMap.continuous_iff]
-        exact QuotientGroup.continuous_mk.congr fun g ↦ rfl
-      continuous_invFun := by
-        rw [QuotientGroup.isOpenQuotientMap_mk.isQuotientMap.continuous_iff]
-        exact QuotientGroup.continuous_mk.congr fun g ↦ rfl }
+  (Homeomorph.Quotient.congrRight fun _ _ ↦ by rw [stabilizer_stdComplexStructure]).trans
     (MulAction.quotientStabilizerHomeomorphOfSigmaCompact _ (stdComplexStructure ι))
 
 variable {ι}
 
+/-- The coset of `g` goes to `g • J₀`. -/
 @[simp]
 theorem quotientRealifyHomeomorph_mk (g : GL (ι ⊕ ι) ℝ) :
     quotientRealifyHomeomorph ι (QuotientGroup.mk g) = g • stdComplexStructure ι := by
   rw [quotientRealifyHomeomorph, Homeomorph.trans_apply]
   exact MulAction.quotientStabilizerHomeomorphOfSigmaCompact_mk _ _ g
 
-/-- The positively oriented complex structures on `StdSpace ι` form a clopen set: they and the
-others are the images of the open sets `{det > 0}` and `{det < 0}` of `GL (ι ⊕ ι) ℝ` under the
-open orbit map `g ↦ g • J₀`. -/
+/-- The positively oriented complex structures on `StdSpace ι` form a clopen set: the orbit
+map `g ↦ g • J₀` is a quotient map, and the preimage of this set is the clopen set `{det > 0}`
+of `GL (ι ⊕ ι) ℝ`. -/
 theorem isClopen_setOf_isPositivelyOriented :
     IsClopen {J : AlmostComplexStructure (StdSpace ι) | IsPositivelyOriented J} := by
-  have hopen := isOpenMap_smul_of_sigmaCompact (G := GL (ι ⊕ ι) ℝ) (stdComplexStructure ι)
+  have hq : Topology.IsQuotientMap fun g : GL (ι ⊕ ι) ℝ ↦ g • stdComplexStructure ι :=
+    (isOpenMap_smul_of_sigmaCompact _).isQuotientMap (continuous_id.smul continuous_const)
+      (MulAction.surjective_smul _ _)
   have hdet : Continuous fun g : GL (ι ⊕ ι) ℝ ↦ (g : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ).det :=
     (continuous_id.matrix_det).comp Units.continuous_val
-  -- If `q (g • J₀)` means `g ∈ s`, then `q` holds exactly on the image of `s`, since every
-  -- structure is some `g • J₀`.
-  have himage (q : AlmostComplexStructure (StdSpace ι) → Prop) (s : Set (GL (ι ⊕ ι) ℝ))
-      (hs : ∀ g, q (g • stdComplexStructure ι) ↔ g ∈ s) :
-      {J | q J} = (· • stdComplexStructure ι) '' s := by
-    ext J
-    obtain ⟨g, rfl⟩ := exists_generalLinearGroup_smul_stdComplexStructure_eq J
-    refine ⟨fun h ↦ ⟨g, (hs g).1 h, rfl⟩, ?_⟩
-    rintro ⟨h, hh, hgh⟩
-    rw [← hgh]
-    exact (hs h).2 hh
-  refine ⟨⟨?_⟩, ?_⟩
-  · rw [Set.compl_ofPred, himage _ {g | (g : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ).det < 0} fun g ↦ by
-      rw [isPositivelyOriented_smul_stdComplexStructure_iff, not_lt]
-      exact (g.det_ne_zero).le_iff_lt]
-    exact hopen _ (isOpen_lt hdet continuous_const)
-  · rw [himage _ {g | 0 < (g : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ).det}
-      isPositivelyOriented_smul_stdComplexStructure_iff]
-    exact hopen _ (isOpen_lt continuous_const hdet)
+  rw [← hq.isClopen_preimage, Set.preimage_ofPred_eq]
+  simp_rw [isPositivelyOriented_smul_stdComplexStructure_iff]
+  refine ⟨?_, isOpen_lt continuous_const hdet⟩
+  convert isClosed_le continuous_const hdet using 1
+  exact Set.ext fun g ↦ (g.det_ne_zero.symm.le_iff_lt).symm
 
 end SymplecticGeometry
 
