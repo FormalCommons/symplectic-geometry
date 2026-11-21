@@ -269,10 +269,9 @@ The direct sum of two models is §1's `StdSpace.sumEquiv ι κ : StdSpace (ι �
 carries `stdForm (ι ⊕ κ)` to `(stdForm ι).prod (stdForm κ)`, and its lemma
 in `Standard/Matrix.lean` that it conjugates
 `Matrix.toEuclideanLin (Matrix.symplecticSum A B)` to the product of the
-maps of `A` and `B`. `DESIGN.md` gives its construction to the first
-direct-sum issue of *Symplectic vector bundles*. If building issue 11 of
-this part starts first, issue 11 builds it, exactly as §1 states it, in
-those two files, and the bundle issue then uses it.
+maps of `A` and `B`. Building issue 11 added all three to
+`Standard/Basic.lean` and `Standard/Matrix.lean` (merged, #232), and
+*Symplectic vector bundles* uses them as they are.
 
 ### `LinearAlgebra/Symplectic/Lagrangian/Basic.lean`
 
