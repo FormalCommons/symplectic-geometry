@@ -577,12 +577,15 @@ Chart points and transverse pairs, as algebra: G7–G9.
   `mem_graphY_iff` (`@[simp]`); `coe_graphY_eq_map`, the image of Tau
   Ceti's `Matrix.lagrangianChart S` under `complexEuclideanEquiv ι`, which
   is `StdSpace.map_lagrangianChart`; `graphY_injective`; `graphY_zero`,
-  which is the vertical subspace; and `graphY_eq_unitaryFrame`, saying
+  which is the vertical subspace; `graphY_eq_ofFrame`, saying
+  `graphY S = ofFrame S 1 (isLagrangian_range_fromRows_one hS)`, `hS` the
+  symmetry of `S`, for the Lagrangian frame `fromRows S 1`, whose span is
+  `StdSpace.graphY S` (`StdSpace.range_toEuclideanLin_fromRows_one_eq_graphY`);
+  and `graphY_eq_unitaryFrame`, saying
   `graphY S = unitaryFrame (unitaryOfFrame (isLagrangian_range_fromRows_one hS))`,
-  `hS` the symmetry of `S`,
-  for the Lagrangian frame `fromRows S 1`, whose span is `StdSpace.graphY S`
-  (`StdSpace.range_toEuclideanLin_fromRows_one_eq_graphY`) and whose complex
-  frame is `S + i·1`. It is `unitaryFrame_unitaryOfFrame` (`Action.lean`).
+  the unitary frame of the complex frame `S + i·1`. It follows from
+  `graphY_eq_ofFrame` by `unitaryFrame_unitaryOfFrame` (`Action.lean`).
+  `continuous_graphY` (`Graph.lean`) also goes through `graphY_eq_ofFrame`.
 - `ℒ.graph (S : selfAdjoint (Matrix ι ι ℝ)) : ℒ ι`, whose submodule is
   `StdSpace.graph S` (`coe_graph`): the points of the second chart.
   API: `mem_graph_iff` (`@[simp]`), `graph_injective`,
