@@ -1678,7 +1678,8 @@ has either; Tau Ceti's extension across a boundary,
   `Geometry/Manifold/Flow/TimeDependent.lean`; and the
   reading of a `Diffeotopy` $\Phi$ over `ℝ` as $t\mapsto\Phi_{s(t)}$,
   $s=$ `Real.smoothTransition`, with its `TauCeti.eulerianField`
-  $s'(t)X_{s(t)}$, with `Analysis/SpecialFunctions/SmoothTransition.lean`)
+  $s'(t)X_{s(t)}$, with `Analysis/SpecialFunctions/SmoothTransition.lean`
+  and `Geometry/Manifold/SmoothTransition.lean`)
   and `Geometry/Diffeomorphism/Diffeotopy/OfContMDiff.lean` (the
   constructor of a `TauCeti.Diffeotopy I ∞ M` from a jointly smooth map on
   `unitInterval × M` that is the identity at time $0$ and whose slices

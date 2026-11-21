@@ -580,7 +580,9 @@ Below, `∂ₜ` at `(x, t)` is the tangent vector
 - The reading over `ℝ`: writing `s u` for `Real.smoothTransitionUnit u :=
   ⟨Real.smoothTransition u, _, _⟩ : unitInterval`, with
   `Real.coe_smoothTransitionUnit`, `Real.smoothTransitionUnit_of_nonpos`,
-  `Real.smoothTransitionUnit_of_one_le` and `Real.contMDiff_smoothTransitionUnit`,
+  `Real.smoothTransitionUnit_of_one_le` and `Real.contMDiff_smoothTransitionUnit`
+  (all in `Geometry/Manifold/SmoothTransition.lean`, which imports nothing
+  of the library),
   `smoothTransitionFamily (Φ : Diffeotopy I ∞ M)
   (t : ℝ) : M ≃ₘ⟮I, I⟯ M := Φ.timeSlice (s t)`,
   with `smoothTransitionFamily_def`, `smoothTransitionFamily_apply`,
@@ -671,6 +673,7 @@ can start at once; each issue's blockers come before it.
     and 12.
 14. **Isotopies over `ℝ` and diffeotopies.**
     `Analysis/SpecialFunctions/SmoothTransition.lean`,
+    `Geometry/Manifold/SmoothTransition.lean`,
     `Geometry/Manifold/Diffeomorph/Family.lean`,
     `Geometry/Manifold/Flow/TimeDependent.lean` and
     `Geometry/Diffeomorphism/Diffeotopy/Real.lean`.

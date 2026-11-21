@@ -8,6 +8,7 @@ module
 public import Mathlib.Analysis.SpecialFunctions.SmoothTransition
 public import Mathlib.Geometry.Manifold.Instances.Icc
 public import SymplecticGeometry.Geometry.Manifold.Flow.TimeDependent
+public import SymplecticGeometry.Geometry.Manifold.SmoothTransition
 public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Flow
 public import TauCeti.Geometry.Manifold.Flow.Eulerian
 import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Velocity
@@ -24,8 +25,6 @@ and its time-dependent flows use, and a `TauCeti.Diffeotopy`, a level-preserving
 
 ## Main definitions
 
-* `Real.smoothTransitionUnit`: the smooth transition function `s = Real.smoothTransition`, as a
-  smooth map `ℝ → unitInterval`.
 * `TauCeti.Diffeotopy.ofReal ψ hψ h₀`: the restriction to `[0, 1]` of a jointly smooth family
   `ψ` over `ℝ` with `ψ 0 = id`, as a diffeotopy.
 * `TauCeti.Diffeotopy.smoothTransitionFamily Φ`: the family `u ↦ φ_{s(u)}` over `ℝ` of a
@@ -166,42 +165,6 @@ theorem timeDependentFlowDiffeotopy_eq_ofReal :
     rw [timeDependentFlowDiffeotopy_apply, ofReal_apply, timeDependentFlowDiffeomorph_apply]
 
 end Flow
-
-end TauCeti.Diffeotopy
-
-/-! ### The smooth transition as a map to the unit interval -/
-
-namespace Real
-
-/-- The smooth transition function `Real.smoothTransition`, as a map `s : ℝ → unitInterval`. -/
-def smoothTransitionUnit (u : ℝ) : unitInterval :=
-  ⟨smoothTransition u, smoothTransition.nonneg u, smoothTransition.le_one u⟩
-
-/-- The point `s u` of the unit interval is `Real.smoothTransition u`. -/
-@[simp]
-theorem coe_smoothTransitionUnit (u : ℝ) :
-    (smoothTransitionUnit u : ℝ) = smoothTransition u :=
-  (rfl)
-
-/-- For `u ≤ 0`, `s u = 0`. -/
-theorem smoothTransitionUnit_of_nonpos {u : ℝ} (hu : u ≤ 0) : smoothTransitionUnit u = 0 :=
-  Subtype.ext (smoothTransition.zero_of_nonpos hu)
-
-/-- For `u ≥ 1`, `s u = 1`. -/
-theorem smoothTransitionUnit_of_one_le {u : ℝ} (hu : 1 ≤ u) : smoothTransitionUnit u = 1 :=
-  Subtype.ext (smoothTransition.one_of_one_le hu)
-
-/-- The map `s : ℝ → unitInterval` is `C^n` for every `n ≤ ∞`. -/
-theorem contMDiff_smoothTransitionUnit {n : ℕ∞ω} (hn : n ≤ ∞) :
-    ContMDiff 𝓘(ℝ) (𝓡∂ 1) n smoothTransitionUnit :=
-  contMDiff_id.smoothTransition hn
-
-end Real
-
-namespace TauCeti.Diffeotopy
-
-variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
-  {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M]
 
 /-! ### The reading of a diffeotopy over `ℝ` -/
 
