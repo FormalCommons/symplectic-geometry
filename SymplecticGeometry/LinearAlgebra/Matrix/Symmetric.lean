@@ -34,8 +34,7 @@ theorem IsSymm.sub_conjTranspose {Z : Matrix n n ℂ} (hZ : Z.IsSymm) :
     Z - Zᴴ = (2 * I) • (Z.map Complex.im).map ofReal := by
   ext i j
   simp only [Matrix.sub_apply, conjTranspose_apply, Matrix.smul_apply, map_apply, smul_eq_mul,
-    hZ.apply i j]
-  rw [show star (Z i j) = (starRingEnd ℂ) (Z i j) from rfl, Complex.sub_conj]
+    hZ.apply i j, Complex.star_def, Complex.sub_conj]
   push_cast
   ring
 

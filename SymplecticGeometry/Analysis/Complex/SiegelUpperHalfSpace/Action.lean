@@ -9,7 +9,6 @@ public import Mathlib.Analysis.Calculus.FDeriv.Mul
 public import Mathlib.Analysis.Complex.UpperHalfPlane.MoebiusAction
 public import Mathlib.Analysis.Matrix.Normed
 public import TauCeti.GroupTheory.GroupAction.Transitive
-public import Mathlib.GroupTheory.GroupAction.Transitive
 public import Mathlib.LinearAlgebra.SymplecticGroup
 public import TauCeti.LinearAlgebra.Matrix.Realify
 public import SymplecticGeometry.Analysis.Complex.SiegelUpperHalfSpace.Basic
