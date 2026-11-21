@@ -31,8 +31,9 @@ frames in `ℂⁿ` (§2.3).
   the real product `Pᵀ * Q`.
 * `Matrix.conjTranspose_map_ofReal`: the conjugate transpose of a real matrix, read over `ℂ`, is
   its transpose.
-* `Matrix.map_im_conjTranspose_mul_self_eq_zero_of_transpose_mul_eq`: if `Xᵀ Y = Yᵀ X`, the
-  Gram matrix `Mᴴ M` of `M = X + i Y` is real.
+* `Matrix.map_im_conjTranspose_mul_self`: the Gram matrix `Mᴴ M` of `M = X + i Y` has imaginary
+  part `Xᵀ Y - Yᵀ X`; so it is real if `Xᵀ Y = Yᵀ X`
+  (`Matrix.map_im_conjTranspose_mul_self_eq_zero_of_transpose_mul_eq`).
 * `Matrix.range_toEuclideanLin_fromRows`: the column space of `fromRows X Y` in `ℝ²ⁿ` is the
   real image `(X + i Y) ℝⁿ` (Tau Ceti's `Matrix.realImage`), read in real coordinates through
   `TauCeti.complexToRealEuclidean`.
@@ -66,16 +67,21 @@ theorem conjTranspose_map_ofReal (P : Matrix m n ℝ) : (P.map ofReal)ᴴ = (P.m
   ext i j
   simp
 
+/-- The imaginary part of the Gram matrix `Mᴴ M` of the complex matrix `M = X + i Y`, for real
+matrices `X` and `Y`, is `Xᵀ Y - Yᵀ X`. -/
+theorem map_im_conjTranspose_mul_self [Fintype m] (X Y : Matrix m n ℝ) :
+    ((X.map ofReal + I • Y.map ofReal)ᴴ * (X.map ofReal + I • Y.map ofReal)).map im =
+      Xᵀ * Y - Yᵀ * X := by
+  ext i j
+  simp [Matrix.mul_apply, Complex.im_sum, Finset.sum_add_distrib, sub_eq_add_neg]
+
 /-- If the real matrices `X` and `Y` satisfy `Xᵀ Y = Yᵀ X`, then the complex matrix `M = X + i Y`
-has a real Gram matrix: `Im (Mᴴ M) = Xᵀ Y - Yᵀ X = 0`. For a Lagrangian frame `fromRows X Y`
-this says that the columns of `M` are orthogonal for the symplectic form `Im ⟪·, ·⟫`. -/
+has a real Gram matrix: `Im (Mᴴ M) = 0`. For a Lagrangian frame `fromRows X Y` this says that
+the columns of `M` are orthogonal for the symplectic form `Im ⟪·, ·⟫`. -/
 theorem map_im_conjTranspose_mul_self_eq_zero_of_transpose_mul_eq [Fintype m]
     {X Y : Matrix m n ℝ} (h : Xᵀ * Y = Yᵀ * X) :
     ((X.map ofReal + I • Y.map ofReal)ᴴ * (X.map ofReal + I • Y.map ofReal)).map im = 0 := by
-  ext i j
-  have hij : (Xᵀ * Y) i j = (Yᵀ * X) i j := by rw [h]
-  simp only [Matrix.mul_apply, transpose_apply] at hij
-  simp [Matrix.mul_apply, Complex.im_sum, Finset.sum_add_distrib, hij]
+  rw [map_im_conjTranspose_mul_self, h, sub_self]
 
 /-- The column space of the real `2n × n` matrix `fromRows X Y`, as a subspace of
 `EuclideanSpace ℝ (n ⊕ n)`, is the real image `(X + i Y) ℝⁿ ⊆ ℂⁿ` written in the real

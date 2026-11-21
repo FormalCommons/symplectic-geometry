@@ -132,14 +132,15 @@ theorem isCompl_graphY_ker_y (A : Matrix ι ι ℝ) : IsCompl (graphY A) (Linear
   rw [mem_graphY_iff, hy, mulVec_zero] at hz
   exact StdSpace.ext (by simpa using hz) (by simpa using hy)
 
-/-- A subspace complementary to the kernel of the first coordinate `p` of `e⁻¹` is the image
-under `e` of a graph `{(v, A v)}`. -/
+/-- A subspace complementary to the kernel of the first coordinate of `e⁻¹` is the image under
+`e` of a graph `{(v, A v)}`. -/
 private theorem exists_eq_map_graph_of_isCompl (e : ((ι → ℝ) × (ι → ℝ)) ≃ₗ[ℝ] StdSpace ι)
-    (p : StdSpace ι →ₗ[ℝ] ι → ℝ) (hp : ∀ z, p z = (e.symm z).1) {L : Submodule ℝ (StdSpace ι)}
-    (hL : IsCompl L (LinearMap.ker p)) :
+    {L : Submodule ℝ (StdSpace ι)}
+    (hL : IsCompl L (LinearMap.ker (LinearMap.fst ℝ (ι → ℝ) (ι → ℝ) ∘ₗ e.symm.toLinearMap))) :
     ∃ A : Matrix ι ι ℝ, L = A.mulVecLin.graph.map e.toLinearMap := by
   classical
-  -- the first coordinate is a linear isomorphism `f` from `L` onto `ι → ℝ`
+  set p := LinearMap.fst ℝ (ι → ℝ) (ι → ℝ) ∘ₗ e.symm.toLinearMap
+  -- the first coordinate is bijective from `L` onto `ι → ℝ`
   have hinj : Function.Injective (p ∘ₗ L.subtype) := by
     refine (injective_iff_map_eq_zero _).2 fun z hz ↦ Subtype.ext ?_
     exact Submodule.disjoint_def.1 hL.disjoint z z.property hz
@@ -148,35 +149,26 @@ private theorem exists_eq_map_graph_of_isCompl (e : ((ι → ℝ) × (ι → ℝ
     refine ⟨⟨l, hl⟩, ?_⟩
     have := congrArg p hlk
     rw [map_add, LinearMap.mem_ker.1 hk, add_zero] at this
-    simpa [hp] using this
-  set f := LinearEquiv.ofBijective _ ⟨hinj, hsurj⟩
-  -- `L` is the graph of the second coordinate composed with `f⁻¹`
-  set B := LinearMap.snd ℝ (ι → ℝ) (ι → ℝ) ∘ₗ e.symm.toLinearMap ∘ₗ L.subtype ∘ₗ
-    f.symm.toLinearMap
-  have hf (z : StdSpace ι) (hz : z ∈ L) : f.symm (e.symm z).1 = ⟨z, hz⟩ :=
-    f.symm_apply_eq.2 (hp z).symm
-  refine ⟨LinearMap.toMatrix' B, le_antisymm (fun z hz ↦ ?_) (fun z hz ↦ ?_)⟩
-  · rw [Submodule.mem_map_equiv, LinearMap.mem_graph_iff, ← Matrix.toLin'_apply',
-      Matrix.toLin'_toMatrix']
-    simp [B, hf z hz]
-  · rw [Submodule.mem_map_equiv, LinearMap.mem_graph_iff, ← Matrix.toLin'_apply',
-      Matrix.toLin'_toMatrix'] at hz
-    have hfz : (e.symm (f.symm (e.symm z).1)).1 = (e.symm z).1 := by
-      rw [← hp]
-      exact f.apply_symm_apply (e.symm z).1
-    convert (f.symm (e.symm z).1).property
-    exact e.symm.injective (Prod.ext hfz.symm (by simp [hz, B]))
+    simpa [p] using this
+  have hbij : Function.Bijective (Prod.fst ∘ (L.map e.symm.toLinearMap).subtype) := by
+    rw [← Function.Bijective.of_comp_iff _ (e.symm.submoduleMap L).bijective]
+    exact ⟨hinj, hsurj⟩
+  obtain ⟨f, hf⟩ := Submodule.exists_eq_graph hbij
+  refine ⟨LinearMap.toMatrix' f, ?_⟩
+  rw [← Matrix.toLin'_apply', Matrix.toLin'_toMatrix']
+  exact ((Submodule.map_symm_eq_iff e).1 hf).symm
 
 /-- A subspace complementary to the vertical subspace `{x = 0}` is a graph `{(x, A x)}`. -/
 theorem exists_eq_graph_of_isCompl_ker_x {L : Submodule ℝ (StdSpace ι)}
     (hL : IsCompl L (LinearMap.ker x)) : ∃ A : Matrix ι ι ℝ, L = graph A :=
-  exists_eq_map_graph_of_isCompl (equivProd ι).symm x (fun _ ↦ by simp) hL
+  exists_eq_map_graph_of_isCompl (equivProd ι).symm (by convert hL using 2; ext; simp)
 
 /-- A subspace complementary to the horizontal subspace `{y = 0}` is a graph `{(A y, y)}`. -/
 theorem exists_eq_graphY_of_isCompl_ker_y {L : Submodule ℝ (StdSpace ι)}
     (hL : IsCompl L (LinearMap.ker y)) : ∃ A : Matrix ι ι ℝ, L = graphY A :=
   exists_eq_map_graph_of_isCompl
-    ((LinearEquiv.prodComm ℝ (ι → ℝ) (ι → ℝ)).trans (equivProd ι).symm) y (fun _ ↦ by simp) hL
+    ((LinearEquiv.prodComm ℝ (ι → ℝ) (ι → ℝ)).trans (equivProd ι).symm)
+    (by convert hL using 2; ext; simp)
 
 /-- The matrix `J = !![0, -1; 1, 0]` of `TauCeti.GLSymplectic.symJ`, which maps `(x, y)` to
 `(-y, x)`, sends the graph `{(x, A x)}` to the graph `{(-A y, y)}`. -/
@@ -195,28 +187,24 @@ theorem map_symJ_graph [DecidableEq ι] (A : Matrix ι ι ℝ) :
 
 /-! ### Comparison with the complex picture -/
 
-/-- To identify the image of a subspace `P ⊆ ℂⁿ` in `StdSpace ι`, it suffices to know which
-images of vectors lie in it. -/
-theorem map_complexEuclideanEquiv_eq {P : Submodule ℝ (EuclideanSpace ℂ ι)}
-    {Q : Submodule ℝ (StdSpace ι)} (h : ∀ v, complexEuclideanEquiv ι v ∈ Q ↔ v ∈ P) :
-    P.map (complexEuclideanEquiv ι : EuclideanSpace ℂ ι →ₗ[ℝ] StdSpace ι) = Q := by
-  ext z
-  refine ⟨fun ⟨v, hv, hvz⟩ ↦ hvz ▸ (h v).2 hv, fun hz ↦ ⟨(complexEuclideanEquiv ι).symm z,
-    (h _).1 (by simpa using hz), by simp⟩⟩
-
 /-- The real subspace `ℝⁿ ⊆ ℂⁿ` is the horizontal subspace `{y = 0}` of `StdSpace ι`. -/
 theorem map_realSubspace :
     (realSubspace ι).map (complexEuclideanEquiv ι : EuclideanSpace ℂ ι →ₗ[ℝ] StdSpace ι) =
       LinearMap.ker y :=
-  map_complexEuclideanEquiv_eq fun v ↦ by simp [funext_iff]
+  (Submodule.map_symm_eq_iff (complexEuclideanEquiv ι).toLinearEquiv).1 (by
+    rw [← Submodule.comap_equiv_eq_map_symm]
+    ext v
+    simp [funext_iff])
 
 /-- Tau Ceti's chart subspace `{S y + i y}` of `ℂⁿ` is the graph `{(S y, y)}` in
 `StdSpace ι`. -/
 theorem map_lagrangianChart [DecidableEq ι] (S : Matrix ι ι ℝ) :
     S.lagrangianChart.map (complexEuclideanEquiv ι : EuclideanSpace ℂ ι →ₗ[ℝ] StdSpace ι) =
       graphY S :=
-  map_complexEuclideanEquiv_eq fun v ↦ by
-    simp [funext_iff, mem_lagrangianChart, mulVec, dotProduct]
+  (Submodule.map_symm_eq_iff (complexEuclideanEquiv ι).toLinearEquiv).1 (by
+    rw [← Submodule.comap_equiv_eq_map_symm]
+    ext v
+    simp [funext_iff, mem_lagrangianChart, mulVec, dotProduct])
 
 end StdSpace
 
@@ -231,26 +219,20 @@ theorem stdForm_apply_eq_im_inner (v w : EuclideanSpace ℂ ι) :
 
 /-! ### Graphs are Lagrangian exactly for symmetric matrices -/
 
-private theorem forall_mulVec_dotProduct_comm_iff (A : Matrix ι ι ℝ) :
-    (∀ v w, (A *ᵥ v) ⬝ᵥ w = (A *ᵥ w) ⬝ᵥ v) ↔ A.IsSymm := by
-  classical
-  refine ⟨fun h ↦ ?_, fun h v w ↦ ?_⟩
-  · ext i j
-    simpa using (h (Pi.single j 1) (Pi.single i 1)).symm
-  · rw [dotProduct_comm, dotProduct_mulVec, ← mulVec_transpose, h.eq]
-
 /-- A graph `{e (v, A v)}`, for a linear identification `e` under which `ω₀` is a nonzero
 multiple of the standard pairing of `(ι → ℝ) × (ι → ℝ)`, is Lagrangian iff `A` is symmetric. -/
 private theorem isLagrangian_map_graph_iff (e : ((ι → ℝ) × (ι → ℝ)) ≃ₗ[ℝ] StdSpace ι) {c : ℝ}
     (hc : c ≠ 0) (he : ∀ p q, stdForm ι (e p) (e q) = c * (q.2 ⬝ᵥ p.1 - p.2 ⬝ᵥ q.1))
     (A : Matrix ι ι ℝ) :
     (stdForm ι).IsLagrangian (A.mulVecLin.graph.map e.toLinearMap) ↔ A.IsSymm := by
+  classical
   rw [← SymplecticForm.transport_transport_symm (stdForm ι) e,
     SymplecticForm.isLagrangian_map_transport_iff,
     SymplecticForm.isLagrangian_graph_iff_of_pairing _ (fun d v ↦ c * (d ⬝ᵥ v))
       (fun p q ↦ by simp [he, mul_sub]),
-    ← forall_mulVec_dotProduct_comm_iff]
-  simp [mul_right_inj' hc]
+    ← isSymm_toBilin'_iff_isSymm, LinearMap.BilinForm.isSymm_def]
+  simp only [mul_right_inj' hc, toBilin'_apply', mulVecLin_apply, dotProduct_comm (A *ᵥ _)]
+  exact forall_comm
 
 /-- The graph `{(x, A x)}` is Lagrangian iff `A` is symmetric. -/
 theorem isLagrangian_graph_iff (A : Matrix ι ι ℝ) :
@@ -301,18 +283,14 @@ theorem StdSpace.y_toEuclideanLin_fromRows (X Y : Matrix ι ι ℝ) (u : Euclide
   ext i
   simp [fromRows_mulVec]
 
-omit [DecidableEq ι] in
-private theorem dotProduct_mulVec_mulVec (X Y : Matrix ι ι ℝ) (u v : ι → ℝ) :
-    (X *ᵥ u) ⬝ᵥ (Y *ᵥ v) = u ⬝ᵥ ((Xᵀ * Y) *ᵥ v) := by
-  rw [← mulVec_mulVec, dotProduct_mulVec u Xᵀ, vecMul_transpose]
-
 /-- The standard form on the columns of a frame: `ω₀(Z u, Z v) = uᵀ (Xᵀ Y - Yᵀ X) v` for
 `Z = fromRows X Y`. -/
 theorem stdForm_toEuclideanLin_fromRows (X Y : Matrix ι ι ℝ) (u v : EuclideanSpace ℝ ι) :
     stdForm ι (toEuclideanLin (fromRows X Y) u) (toEuclideanLin (fromRows X Y) v) =
       u ⬝ᵥ ((Xᵀ * Y - Yᵀ * X) *ᵥ v) := by
   rw [stdForm_apply, Finset.sum_sub_distrib, sub_mulVec, dotProduct_sub,
-    ← dotProduct_mulVec_mulVec, ← dotProduct_mulVec_mulVec]
+    ← mulVec_mulVec, ← mulVec_mulVec, dotProduct_mulVec _ Xᵀ, dotProduct_mulVec _ Yᵀ,
+    vecMul_transpose, vecMul_transpose]
   simp [dotProduct]
 
 /-- The span of a frame `fromRows X Y` is isotropic iff `Xᵀ Y = Yᵀ X`. -/
@@ -327,18 +305,13 @@ theorem isIsotropic_range_fromRows_iff (X Y : Matrix ι ι ℝ) :
   ext i j
   simpa using h (EuclideanSpace.single i 1) (EuclideanSpace.single j 1)
 
-private theorem rank_fromRows_eq_finrank_range (X Y : Matrix ι ι ℝ) :
-    (fromRows X Y).rank = finrank ℝ (LinearMap.range (toEuclideanLin (fromRows X Y))) := by
-  rw [toEuclideanLin_eq_toLin_orthonormal]
-  exact rank_eq_finrank_range_toLin _ _ _
-
 /-- **Lagrangian frames.** The columns of `Z = fromRows X Y` span a Lagrangian subspace of
 `(StdSpace ι, ω₀)` iff `Z` has rank `n` and `Xᵀ Y = Yᵀ X`. -/
 theorem isLagrangian_range_fromRows_iff (X Y : Matrix ι ι ℝ) :
     (stdForm ι).IsLagrangian (LinearMap.range (toEuclideanLin (fromRows X Y))) ↔
       (fromRows X Y).rank = Fintype.card ι ∧ Xᵀ * Y = Yᵀ * X := by
   rw [SymplecticForm.isLagrangian_iff_isIsotropic_and_two_mul_finrank_eq,
-    isIsotropic_range_fromRows_iff, finrank_stdSpace, rank_fromRows_eq_finrank_range]
+    isIsotropic_range_fromRows_iff, finrank_stdSpace, rank_eq_finrank_range_toEuclideanLin]
   exact ⟨fun ⟨h₁, h₂⟩ ↦ ⟨Nat.eq_of_mul_eq_mul_left two_pos h₂, h₁⟩,
     fun ⟨h₁, h₂⟩ ↦ ⟨h₂, congrArg (2 * ·) h₁⟩⟩
 
@@ -357,44 +330,22 @@ theorem LagrangianGrassmannian.coe_ofFrame (X Y : Matrix ι ι ℝ)
       LinearMap.range (toEuclideanLin (fromRows X Y)) :=
   (rfl)
 
-/-- The complex frame `X + i Y` of a Lagrangian frame `fromRows X Y` is invertible: a complex
-kernel vector `a + i b` would give a vector `Z a = J₀ Z (-b)` of `Λ ∩ J₀ Λ = 0`. -/
+/-- The complex frame `X + i Y` of a Lagrangian frame `fromRows X Y` is invertible. -/
 theorem det_ne_zero_of_isLagrangian_range_fromRows {X Y : Matrix ι ι ℝ}
     (h : (stdForm ι).IsLagrangian (LinearMap.range (toEuclideanLin (fromRows X Y)))) :
     (X.map Complex.ofReal + Complex.I • Y.map Complex.ofReal).det ≠ 0 := by
-  set F := toEuclideanLin (fromRows X Y)
-  have hinj : Function.Injective F := by
-    have hr := ((isLagrangian_range_fromRows_iff X Y).1 h).1
-    rw [rank_fromRows_eq_finrank_range] at hr
-    have hdim := LinearMap.finrank_range_add_finrank_ker F
-    rw [hr, finrank_euclideanSpace] at hdim
-    rw [← LinearMap.ker_eq_bot, ← Submodule.finrank_eq_zero]
-    omega
-  intro hdet
-  obtain ⟨w, hw0, hw⟩ := Matrix.exists_mulVec_eq_zero_iff.2 hdet
-  set a : EuclideanSpace ℝ ι := WithLp.toLp 2 fun i ↦ (w i).re
-  set b : EuclideanSpace ℝ ι := WithLp.toLp 2 fun i ↦ (w i).im
-  have hre : X *ᵥ a = Y *ᵥ b := funext fun i ↦ by
-    have := congrArg Complex.re (congrFun hw i)
-    simpa [mulVec, dotProduct, Complex.re_sum, sub_eq_zero, a, b] using this
-  have him : Y *ᵥ a = -(X *ᵥ b) := funext fun i ↦ by
-    have := congrArg Complex.im (congrFun hw i)
-    simp only [mulVec, dotProduct, a, b, Pi.neg_apply]
-    simp [mulVec, dotProduct, Complex.im_sum, Finset.sum_add_distrib] at this
-    linarith
-  have hJ : stdComplexStructure ι (F (-b)) = F a :=
-    StdSpace.ext (by simp [F, hre]) (by simp [F, him])
-  have hFa : F a = 0 := Submodule.disjoint_def.1
-    (h.isIsotropic.disjoint_map_of_tames stdForm_compatible.tames) _ ⟨a, rfl⟩
-    ⟨F (-b), ⟨-b, rfl⟩, hJ⟩
-  have ha : a = 0 := hinj (by rw [hFa, map_zero])
-  have hb : b = 0 := by
-    have h0 : stdComplexStructure ι (F (-b)) = 0 := hJ.trans hFa
-    have hFb : F (-b) = 0 := StdSpace.ext (by simpa using congrArg y h0)
-      (by simpa using congrArg x h0)
-    exact neg_eq_zero.1 (hinj (by rw [hFb, map_zero]))
-  exact hw0 (funext fun i ↦ Complex.ext (by simpa [a] using congrArg (· i) ha)
-    (by simpa [b] using congrArg (· i) hb))
+  set e := (complexEuclideanEquiv ι).toLinearEquiv
+  have he : (stdComplexStructure ι).toLinearMap ∘ₗ e.toLinearMap =
+      e.toLinearMap ∘ₗ (LinearMap.lsmul ℂ (EuclideanSpace ℂ ι) Complex.I).restrictScalars ℝ :=
+    LinearMap.ext fun v ↦ StdSpace.ext (by simp [e, Pi.neg_def]) (by simp [e])
+  have hrange : LinearMap.range (toEuclideanLin (fromRows X Y)) =
+      (X.map Complex.ofReal + Complex.I • Y.map Complex.ofReal).realImage.map e.toLinearMap := by
+    rw [range_toEuclideanLin_fromRows]
+    simp only [e, complexEuclideanEquiv_def]
+    rfl
+  have hJ := h.isMaximalTotallyReal_of_compatible stdForm_compatible
+  rw [hrange, e.isMaximalTotallyReal_map_iff he] at hJ
+  exact isMaximalTotallyReal_realImage_iff.1 hJ
 
 end Frame
 
