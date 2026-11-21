@@ -320,27 +320,6 @@ theorem complexStructureMatrix_ofComplexStructureMatrix {M : Matrix (ι ⊕ ι) 
   · rw [← Matrix.mul_assoc, eq_neg_of_add_eq_zero_left h₂₁, Matrix.neg_mul, neg_neg,
       Matrix.mul_assoc, hCB, Matrix.mul_one]
 
-/-- For the matrix `M` of an `ω₀`-compatible complex structure, the real part `M₁₁ M₂₁⁻¹` of
-`ofComplexStructureMatrix M` is symmetric. -/
-private theorem isSymm_toBlocks₁₁_mul_inv_of_compatible {J : AlmostComplexStructure (StdSpace ι)}
-    (hJ : (stdForm ι).Compatible J) :
-    ((toEuclideanLin.symm J.toLinearMap).toBlocks₁₁ *
-      (toEuclideanLin.symm J.toLinearMap).toBlocks₂₁⁻¹).IsSymm := by
-  set M := toEuclideanLin.symm J.toLinearMap
-  have hC := posDef_toBlocks₂₁_of_compatible hJ
-  have hdet : IsUnit M.toBlocks₂₁.det := isUnit_det_toBlocks₂₁_of_compatible hJ
-  have h₂₁ :=
-    toBlocks₂₁_mul_toBlocks₁₁_add_of_mul_self_eq_neg_one J.toEuclideanLin_symm_mul_self
-  have hCt : M.toBlocks₂₁ᵀ = M.toBlocks₂₁ := isHermitian_iff_isSymm.1 hC.isHermitian
-  rw [IsSymm, transpose_mul, transpose_nonsing_inv, hCt,
-    ← neg_neg M.toBlocks₁₁ᵀ, ← toBlocks₂₂_eq_neg_transpose_of_invariant hJ.invariant]
-  calc M.toBlocks₂₁⁻¹ * -M.toBlocks₂₂
-      = M.toBlocks₂₁⁻¹ * (-M.toBlocks₂₂ * M.toBlocks₂₁) * M.toBlocks₂₁⁻¹ := by
-        rw [Matrix.mul_assoc, Matrix.mul_assoc, mul_nonsing_inv _ hdet, Matrix.mul_one]
-    _ = M.toBlocks₁₁ * M.toBlocks₂₁⁻¹ := by
-        rw [Matrix.neg_mul, ← eq_neg_of_add_eq_zero_left h₂₁, ← Matrix.mul_assoc,
-          nonsing_inv_mul _ hdet, Matrix.one_mul]
-
 /-- The point `M₁₁ M₂₁⁻¹ + i M₂₁⁻¹` of the Siegel upper half space attached to an
 `ω₀`-compatible complex structure with matrix `M`. -/
 private def ofCompatible {J : AlmostComplexStructure (StdSpace ι)}
@@ -348,7 +327,7 @@ private def ofCompatible {J : AlmostComplexStructure (StdSpace ι)}
   coe := ofComplexStructureMatrix (toEuclideanLin.symm J.toLinearMap)
   isSymm := by
     rw [ofComplexStructureMatrix_def]
-    exact ((isSymm_toBlocks₁₁_mul_inv_of_compatible hJ).map _).add
+    exact ((isSymm_toBlocks₁₁_mul_inv_toBlocks₂₁_of_compatible hJ).map _).add
       (((isHermitian_iff_isSymm.1 (posDef_toBlocks₂₁_of_compatible hJ).inv.isHermitian).map
         _).smul _)
   posDef_map_im := by
