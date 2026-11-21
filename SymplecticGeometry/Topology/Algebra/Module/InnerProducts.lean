@@ -37,6 +37,8 @@ forward, `g ↦ g (e.symm ·) (e.symm ·)`, which is a homeomorphism.
   (`TauCeti.isOpen_setOf_forall_bilinear_apply_self_pos`).
 * The instances `Nonempty` and `ContractibleSpace` for `innerProducts V`, when `V` is
   finite-dimensional.
+* `SymplecticGeometry.innerProducts.transport_eq_innerSL_iff`: the transport of `g` along `e` is
+  the standard inner product exactly when `e` carries `g` to it.
 * `SymplecticGeometry.innerProducts.exists_transport_eq_innerSL`: every inner product on a
   finite-dimensional space is carried to the standard one of a Euclidean space by some linear
   isomorphism.
@@ -152,6 +154,21 @@ theorem forall_transport_apply_transport_iff (e : V ≃L[ℝ] W) (g : innerProdu
         (transport e g : W →L[ℝ] W →L[ℝ] ℝ) u v) ↔
       ∀ u v, (g : V →L[ℝ] V →L[ℝ] ℝ) (J u) (J v) = (g : V →L[ℝ] V →L[ℝ] ℝ) u v :=
   ⟨fun h u v ↦ by simpa using h (e u) (e v), fun h u v ↦ by simpa using h (e.symm u) (e.symm v)⟩
+
+/-- The transport of `g` along `e : V ≃L[ℝ] E` is the inner product of the inner product space
+`E` exactly when `e` carries `g` to that inner product: `⟪e u, e v⟫ = g u v`. -/
+theorem transport_eq_innerSL_iff {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    (e : V ≃L[ℝ] E) (g : innerProducts V) :
+    transport e g = ⟨innerSL ℝ, innerSL_mem_innerProducts⟩ ↔
+      ∀ u v, inner ℝ (e u) (e v) = (g : V →L[ℝ] V →L[ℝ] ℝ) u v := by
+  refine ⟨fun he u v ↦ ?_, fun h ↦ Subtype.ext ?_⟩
+  · have := congrArg (fun h : innerProducts _ ↦ (h : _ →L[ℝ] _ →L[ℝ] ℝ) (e u) (e v)) he
+    simp only [transport_apply, ContinuousLinearEquiv.symm_apply_apply] at this
+    rw [innerSL_apply_apply] at this
+    exact this.symm
+  · ext w w'
+    simp only [transport_apply, ← h, ContinuousLinearEquiv.apply_symm_apply]
+    rfl
 
 end innerProducts
 

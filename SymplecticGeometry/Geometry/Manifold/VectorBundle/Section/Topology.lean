@@ -9,6 +9,7 @@ public import TauCeti.Geometry.Manifold.VectorBundle.Section.FrameCover
 public import SymplecticGeometry.Geometry.Manifold.ContMDiffMap.Chart.CodRestrict
 public import SymplecticGeometry.Geometry.Manifold.ContMDiffMap.Chart.Restriction
 import TauCeti.Geometry.Manifold.ContMDiffMap.Chart.ManifoldFamily
+import TauCeti.Geometry.Manifold.VectorBundle.Submersion
 
 /-!
 # Sections as maps into the total space, and fibrewise maps of sections
@@ -73,25 +74,6 @@ theorem toContMDiffMap_injective :
   fun s t h ↦ ext fun x ↦ by
     simpa using (TotalSpace.mk_inj (b := x)).mp (congrArg (· x) h)
 
-/-- A section meets the source of the chart of the total space at `y` exactly over the base
-set of `trivializationAt F V y.proj` and the source of the chart of `M` at `y.proj`. -/
-theorem toContMDiffMap_mem_extChartAt_source_iff (s : Cₛ^n⟮I; F, V⟯)
-    (y : TotalSpace F V) (p : M) :
-    toContMDiffMap s p ∈ (extChartAt (I.prod 𝓘(𝕜, F)) y).source ↔
-      p ∈ (trivializationAt F V y.proj).baseSet ∧ p ∈ (chartAt H y.proj).source := by
-  rw [FiberBundle.extChartAt]
-  simp +contextual [PartialEquiv.trans_source, Trivialization.mem_source]
-
-/-- Over the base set of `trivializationAt F V y.proj`, a section read in the chart of the total
-space at `y` is the pair of the chart of `M` at `y.proj` and the coordinates of the section in
-that trivialization. -/
-theorem extChartAt_toContMDiffMap (s : Cₛ^n⟮I; F, V⟯) (y : TotalSpace F V) {p : M}
-    (hp : p ∈ (trivializationAt F V y.proj).baseSet) :
-    extChartAt (I.prod 𝓘(𝕜, F)) y (toContMDiffMap s p) =
-      (extChartAt I y.proj p, (trivializationAt F V y.proj ⟨p, s p⟩).2) := by
-  rw [FiberBundle.extChartAt]
-  simp [hp]
-
 section Frames
 
 variable [∀ x, AddCommGroup (V x)] [∀ x, Module 𝕜 (V x)] [VectorBundle 𝕜 F V]
@@ -116,9 +98,9 @@ private theorem iteratedFDerivWithin_extChartAt_toContMDiffMap (s : Cₛ^n⟮I; 
       fun v ↦ ((extChartAt I y.proj ∘ φ.symm) v, ((fun p ↦ (t ⟨p, s p⟩).2) ∘ φ.symm) v) := by
     filter_upwards [(continuousOn_extChartAt_symm (I := I) x w hw).eventually
       (t.open_baseSet.mem_nhds hS.1)] with v hv
-    exact extChartAt_toContMDiffMap s y hv
+    exact Bundle.extChartAt_apply_of_mem_baseSet y (x := toContMDiffMap s (φ.symm v)) hv
   have hsrc : toContMDiffMap s (φ.symm w) ∈ (extChartAt (I.prod 𝓘(𝕜, F)) y).source :=
-    (toContMDiffMap_mem_extChartAt_source_iff s y _).mpr hS
+    (Bundle.mem_extChartAt_source_iff y _).mpr (by rwa [extChartAt_source])
   have hpair := ((toContMDiffMap s).contDiffWithinAt_extChartAt hw hsrc).congr_of_eventuallyEq
     hev.symm (hev.eq_of_nhdsWithin hw).symm
   rw [hev.iteratedFDerivWithin_eq (hev.eq_of_nhdsWithin hw)]
@@ -146,7 +128,7 @@ private theorem eventually_toContMDiffMap_mem (hcover : ∀ x, ∃ i, x ∈ U i)
   let _ := frameTopology (I := I) (n := n) e U hU
   set φ := extChartAt I x
   set t := trivializationAt F V y.proj
-  rw [toContMDiffMap_mem_extChartAt_source_iff] at h₀
+  rw [Bundle.mem_extChartAt_source_iff, extChartAt_source] at h₀
   have hφ := continuousOn_extChartAt_symm (I := I) x w hw
   have hS : ∀ᶠ q : Cₛ^n⟮I; F, V⟯ × E in 𝓝 s₀ ×ˢ 𝓝[φ.target] w,
       φ.symm q.2 ∈ t.baseSet ∧ φ.symm q.2 ∈ (chartAt H y.proj).source :=
@@ -173,7 +155,7 @@ private theorem eventually_toContMDiffMap_mem (hcover : ∀ x, ∃ i, x ∈ U i)
     _).comp (hA.prodMk_nhds hB)
   rw [iteratedFDerivWithin_extChartAt_toContMDiffMap s₀ x y hw h₀ m hm] at hW
   filter_upwards [hS, hT, hlim.eventually_mem hW] with q hq hqT hqW
-  refine ⟨(toContMDiffMap_mem_extChartAt_source_iff _ y _).mpr hq, ?_⟩
+  refine ⟨(Bundle.mem_extChartAt_source_iff y _).mpr (by rwa [extChartAt_source]), ?_⟩
   rw [iteratedFDerivWithin_extChartAt_toContMDiffMap q.1 x y hqT hq m hm]
   exact hqW
 
