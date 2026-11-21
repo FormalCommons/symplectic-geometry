@@ -581,9 +581,8 @@ In `TauCeti.Diffeotopy`, for `[FiniteDimensional ℝ E] [IsManifold I ∞ M]
   `timeExtend_eq_zero` (for `Flux/CompactSupport.lean`); *Moser isotopy* uses
   `exists_isSmoothFamily_mextDerivₗ_eq`, `hasFiniteGoodCover_of_compactSpace`,
   `DifferentialForm/TimeExtension.lean` (to pass its primitives to `ℝ × M`)
-  and `ofReal`; *Isotopy extension* uses the splittings, the smooth
-  cohomology coordinates, `DifferentialForm/TimeExtension.lean` and the
-  bridge; *Contact geometry* uses both
+  and `ofReal`; *Isotopy extension* uses both `TimeExtension.lean` files and
+  the `FiniteDimensional` instance of `SmoothFamily/GoodCover.lean`; *Contact geometry* uses both
   `TimeExtension.lean` files and the bridge, in `Family.lean` and
   `Gray.lean`.
 
