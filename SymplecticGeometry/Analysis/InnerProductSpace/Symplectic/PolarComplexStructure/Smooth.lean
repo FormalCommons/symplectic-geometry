@@ -101,8 +101,7 @@ variable (V) in
 /-- In finite dimension, the domain of `TauCeti.metricPolarFormula` is open. -/
 theorem isOpen_polarDomain [FiniteDimensional ℝ V] : IsOpen (polarDomain V) :=
   (isOpen_setOf_forall_bilinear_apply_self_pos.preimage continuous_fst).inter
-    (isOpen_setOf_nondegenerate_toBilinForm.preimage
-      (continuous_snd.sub ((flipₗᵢ ℝ V V ℝ).continuous.comp continuous_snd)))
+    (isOpen_setOf_nondegenerate_toBilinForm_sub_flip.preimage continuous_snd)
 
 end Domain
 
