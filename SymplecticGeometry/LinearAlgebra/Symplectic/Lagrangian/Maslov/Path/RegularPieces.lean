@@ -23,10 +23,9 @@ paths are built.
 
 ## Main definitions
 
-* `SymplecticGeometry.LagrangianGrassmannian.rotate θ Λ`: the image of `Λ` under the scalar
-  unitary matrix `e^{iθ}`, that is, under `e^{θ J₀}`, with `rotate_rotate` for composition;
-  `rotationPath Λ ε` is the path `s ↦ rotate (ε s) Λ`, with frame
-  `s ↦ rotationFrame Z (ε s) = e^{ε s J₀} Z` for a frame `Z` of `Λ`.
+* `SymplecticGeometry.LagrangianGrassmannian.rotationPath Λ ε`: the path `s ↦ rotate (ε s) Λ`
+  of rotations of `Λ` (`rotate` is defined with the unitary action, in `Lagrangian/Action.lean`),
+  with frame `s ↦ rotationFrame Z (ε s) = e^{ε s J₀} Z` for a frame `Z` of `Λ`.
 * `SymplecticGeometry.LagrangianGrassmannian.coordinateRotate i θ Λ`: the image of `Λ` under the
   unitary matrix `Matrix.UnitaryGroup.detSection ι i (Circle.exp θ) = diag(1, …, e^{iθ}, …, 1)`,
   which turns the `i`-th coordinate plane; `coordinateHalfTurn i` is the loop
@@ -109,40 +108,6 @@ theorem posDef_lagrangianCrossingForm_smul_J_mul {Z : Matrix (ι ⊕ ι) ι ℝ}
     (lagrangianCrossingForm Z (ε • (J ι ℝ * Z)) V).PosDef := fun u hu ↦
   lt_of_le_of_ne (by rw [lagrangianCrossingForm_smul_J_mul_apply]; positivity)
     fun h ↦ hu (anisotropic_lagrangianCrossingForm_smul_J_mul hZ hε.ne' V u h.symm)
-
-namespace LagrangianGrassmannian
-
-/-! ### Rotations -/
-
-/-- The rotation of a Lagrangian `Λ` by the scalar unitary matrix `e^{iθ} 1`, that is, by
-`e^{θ J₀}`. -/
-noncomputable def rotate (θ : ℝ) (Λ : ℒ ι) : ℒ ι :=
-  (circleEquivUnitary (Circle.exp θ) • (1 : unitaryGroup ι ℂ)) • Λ
-
-theorem rotate_def (θ : ℝ) (Λ : ℒ ι) :
-    rotate θ Λ = (circleEquivUnitary (Circle.exp θ) • (1 : unitaryGroup ι ℂ)) • Λ :=
-  (rfl)
-
-@[simp]
-theorem rotate_zero (Λ : ℒ ι) : rotate 0 Λ = Λ := by
-  have h : circleEquivUnitary (Circle.exp 0) • (1 : unitaryGroup ι ℂ) = 1 :=
-    Subtype.ext (by simp [Unitary.coe_smul])
-  rw [rotate_def, h, one_smul]
-
-/-- Rotating by `φ` and then by `θ` is rotating by `θ + φ`. -/
-theorem rotate_rotate (θ φ : ℝ) (Λ : ℒ ι) : rotate θ (rotate φ Λ) = rotate (θ + φ) Λ := by
-  rw [rotate_def, rotate_def, rotate_def, smul_smul]
-  congr 1
-  refine Subtype.ext ?_
-  simp only [Submonoid.coe_mul, Unitary.coe_smul, OneMemClass.coe_one, Submonoid.smul_def,
-    coe_circleEquivUnitary, Circle.exp_add, Circle.coe_mul, smul_mul_smul_comm, mul_one]
-
-theorem continuous_rotate (Λ : ℒ ι) : Continuous fun θ : ℝ ↦ rotate θ Λ := by
-  have h : Continuous fun θ : ℝ ↦ circleEquivUnitary (Circle.exp θ) • (1 : unitaryGroup ι ℂ) :=
-    Continuous.subtype_mk (by fun_prop) _
-  exact h.smul continuous_const
-
-end LagrangianGrassmannian
 
 /-! ### Frames of rotations -/
 

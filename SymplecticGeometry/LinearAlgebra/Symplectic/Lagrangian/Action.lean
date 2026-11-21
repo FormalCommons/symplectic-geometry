@@ -9,6 +9,7 @@ public import SymplecticGeometry.Analysis.Matrix.EuclideanLin
 public import SymplecticGeometry.LinearAlgebra.Matrix.UnitaryGroup.Real
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Lagrangian.Frame
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Matrix
+public import TauCeti.Analysis.Complex.Circle
 public import TauCeti.LinearAlgebra.TotallyReal.Lagrangian
 public import TauCeti.Topology.Algebra.Matrix.Realify
 
@@ -30,6 +31,8 @@ Write `ℒ ι` for the Lagrangian Grassmannian of the standard model `(StdSpace 
 * `SymplecticGeometry.LagrangianGrassmannian.unitaryOfFrame h`: the unitary matrix of a frame
   `fromRows X Y` with Lagrangian range, the real orthonormalization of `X + i Y`; it frames that
   range (`unitaryFrame_unitaryOfFrame`).
+* `SymplecticGeometry.LagrangianGrassmannian.rotate θ Λ`: the image of `Λ` under the scalar
+  unitary matrix `e^{iθ} 1`, that is, under `e^{θ J₀}`, with `rotate_rotate` for composition.
 
 ## Main results
 
@@ -45,6 +48,11 @@ Write `ℒ ι` for the Lagrangian Grassmannian of the standard model `(StdSpace 
 * `SymplecticGeometry.LagrangianGrassmannian.unitaryFrame_eq_unitaryFrame_iff`: two unitary
   frames span the same Lagrangian iff they differ by a real orthogonal matrix, so the stabilizer
   of `{y = 0}` in `U(n)` is `O(n)` (`stabilizer_horizontal`).
+
+## Implementation notes
+
+The scalar unitary matrix `e^{iθ} 1` of `rotate` is built as in Tau Ceti's
+`TauCeti.GLSymplectic.scalarRotationLoop`, with the angle `θ` in place of `2 π t`.
 
 ## References
 
@@ -228,6 +236,31 @@ theorem unitaryFrame_one : unitaryFrame (1 : unitaryGroup ι ℂ) = horizontal �
 theorem unitaryFrame_mul (U U' : unitaryGroup ι ℂ) :
     unitaryFrame (U * U') = U • unitaryFrame U' :=
   mul_smul _ _ _
+
+/-! ### Rotations -/
+
+/-- The rotation of a Lagrangian `Λ` by the scalar unitary matrix `e^{iθ} 1`, that is, by
+`e^{θ J₀}`. -/
+noncomputable def rotate (θ : ℝ) (Λ : ℒ ι) : ℒ ι :=
+  (circleEquivUnitary (Circle.exp θ) • (1 : unitaryGroup ι ℂ)) • Λ
+
+theorem rotate_def (θ : ℝ) (Λ : ℒ ι) :
+    rotate θ Λ = (circleEquivUnitary (Circle.exp θ) • (1 : unitaryGroup ι ℂ)) • Λ :=
+  (rfl)
+
+@[simp]
+theorem rotate_zero (Λ : ℒ ι) : rotate 0 Λ = Λ := by
+  have h : circleEquivUnitary (Circle.exp 0) • (1 : unitaryGroup ι ℂ) = 1 :=
+    Subtype.ext (by simp [Unitary.coe_smul])
+  rw [rotate_def, h, one_smul]
+
+/-- Rotating by `φ` and then by `θ` is rotating by `θ + φ`. -/
+theorem rotate_rotate (θ φ : ℝ) (Λ : ℒ ι) : rotate θ (rotate φ Λ) = rotate (θ + φ) Λ := by
+  rw [rotate_def, rotate_def, rotate_def, smul_smul]
+  congr 1
+  refine Subtype.ext ?_
+  simp only [Submonoid.coe_mul, Unitary.coe_smul, OneMemClass.coe_one, Submonoid.smul_def,
+    coe_circleEquivUnitary, Circle.exp_add, Circle.coe_mul, smul_mul_smul_comm, mul_one]
 
 /-- The unitary matrix of a Lagrangian frame `fromRows X Y`: the real orthonormalization of its
 complex frame `X + i Y`, which is invertible since the range of the frame is Lagrangian. Its
