@@ -8,7 +8,7 @@ module
 public import SymplecticGeometry.LinearAlgebra.ComplexStructure.Action
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Matrix
 public import TauCeti.Geometry.Symplectic.Finrank
-public import TauCeti.Geometry.Symplectic.Orientation
+public import SymplecticGeometry.Geometry.Symplectic.Orientation
 public import TauCeti.LinearAlgebra.Matrix.GeneralLinearGroup.Symplectic.Unitary
 
 /-!
@@ -141,11 +141,13 @@ theorem IsPositivelyOriented.smul {J : AlmostComplexStructure (StdSpace ι)}
   obtain ⟨h, hh, rfl⟩ := hJ
   exact ⟨g * h, mul_mem (by simpa [Matrix.mem_glpos] using hg) hh, mul_smul _ _ _⟩
 
-/-- `g • J₀` is positively oriented exactly when `det g > 0`: two matrices carrying `J₀` to the
-same structure differ by a realified complex matrix, whose determinant is `|det|² > 0`. -/
+/-- `g • J₀` is positively oriented exactly when `det g > 0`. -/
+@[simp]
 theorem isPositivelyOriented_smul_stdComplexStructure_iff (g : GL (ι ⊕ ι) ℝ) :
     IsPositivelyOriented (g • stdComplexStructure ι) ↔
       0 < (g : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ).det := by
+  -- If also `h • J₀ = g • J₀` with `det h > 0`, then `g⁻¹ * h` fixes `J₀`, so it is a
+  -- realified complex matrix, and its determinant `|det|²` is positive.
   refine ⟨fun ⟨h, hh, hgh⟩ ↦ ?_, fun hg ↦ isPositivelyOriented_stdComplexStructure.smul hg⟩
   have hs : g⁻¹ * h ∈ MulAction.stabilizer _ (stdComplexStructure ι) := by
     rw [MulAction.mem_stabilizer_iff, mul_smul, hgh, inv_smul_smul]
@@ -163,6 +165,7 @@ theorem isPositivelyOriented_smul_stdComplexStructure_iff (g : GL (ι ⊕ ι) �
 
 /-- The transport of `J₀` along an automorphism `Φ` of `StdSpace ι` is positively oriented
 exactly when `det Φ > 0`. -/
+@[simp]
 theorem isPositivelyOriented_transport_iff (Φ : StdSpace ι ≃ₗ[ℝ] StdSpace ι) :
     IsPositivelyOriented ((stdComplexStructure ι).transport Φ) ↔
       0 < LinearMap.det (Φ : StdSpace ι →ₗ[ℝ] StdSpace ι) := by
@@ -173,7 +176,7 @@ theorem isPositivelyOriented_transport_iff (Φ : StdSpace ι ≃ₗ[ℝ] StdSpac
   have hdet := Matrix.det_toEuclideanCLE _ g.det_ne_zero
   rw [Matrix.GeneralLinearGroup.toEuclideanCLE_ofEuclideanCLE] at hdet
   rw [← hg, isPositivelyOriented_smul_stdComplexStructure_iff, ← hdet]
-  rfl
+  simp
 
 /-- In positive dimension, some complex structure on `StdSpace ι` is not positively oriented:
 for instance, the transport of `J₀` by the reflection `x₁ ↦ -x₁`. -/
@@ -184,23 +187,7 @@ theorem exists_not_isPositivelyOriented [Nonempty ι] :
   have hD : D.det = -1 := by
     simp [D, Matrix.det_diagonal, Finset.prod_update_of_mem]
   refine ⟨Matrix.GeneralLinearGroup.mkOfDetNeZero D (by simp [hD]) • stdComplexStructure ι, ?_⟩
-  rw [isPositivelyOriented_smul_stdComplexStructure_iff]
-  simp [Matrix.GeneralLinearGroup.mkOfDetNeZero, hD]
-
-omit [DecidableEq ι] in
-/-- The adapted bases `(v₁, J v₁, …, vₙ, J vₙ)` of the transport `J = Φ ∘ J₀ ∘ Φ⁻¹` of `J₀`
-along an automorphism `Φ` induce the image under `Φ` of the symplectic orientation of `ω₀`. -/
-theorem orientation_reindex_of_transport_stdComplexStructure {k m : ℕ}
-    (hk : finrank ℝ (StdSpace ι) = k) (Φ : StdSpace ι ≃ₗ[ℝ] StdSpace ι)
-    (b : Basis (Fin m × Fin 2) ℝ (StdSpace ι))
-    (hb : ∀ i, b (i, 1) = (stdComplexStructure ι).transport Φ (b (i, 0))) (h : m * 2 = k) :
-    (b.reindex (finProdFinEquiv.trans (finCongr h))).orientation =
-      Orientation.map (Fin k) Φ ((stdForm ι).orientation hk) := by
-  have hb' : ∀ i, b.map Φ.symm (i, 1) = stdComplexStructure ι (b.map Φ.symm (i, 0)) := by
-    intro i
-    simp [hb]
-  rw [← stdForm_compatible.tames.orientation_reindex hb' hk h, ← Basis.orientation_map]
-  exact congrArg Basis.orientation (Basis.eq_of_apply_eq fun x ↦ by simp)
+  simp [hD]
 
 /-- A complex structure `J` on `StdSpace ι` is positively oriented exactly when every adapted
 basis `(v₁, J v₁, …, vₙ, J vₙ)` induces the symplectic orientation of `ω₀`. Adapted bases exist
@@ -217,11 +204,11 @@ theorem isPositivelyOriented_iff_orientation {k : ℕ}
     ← Orientation.map_eq_iff_det_pos ((stdForm ι).orientation hk) _
       (by rw [Fintype.card_fin, hk])]
   refine ⟨fun hΦ m b hb h ↦ ?_, fun H ↦ ?_⟩
-  · rw [orientation_reindex_of_transport_stdComplexStructure hk Φ b hb h, hΦ]
+  · rw [stdForm_compatible.tames.orientation_reindex_transport Φ hk hb h, hΦ]
   · obtain ⟨m, b, hb⟩ := ((stdComplexStructure ι).transport Φ).exists_basis_apply_one_eq
     have h : m * 2 = k := by
       rw [← hk, finrank_eq_card_basis b, Fintype.card_prod, Fintype.card_fin, Fintype.card_fin]
-    rw [← orientation_reindex_of_transport_stdComplexStructure hk Φ b hb h, H b hb h]
+    rw [← stdForm_compatible.tames.orientation_reindex_transport Φ hk hb h, H b hb h]
 
 end SymplecticGeometry
 
