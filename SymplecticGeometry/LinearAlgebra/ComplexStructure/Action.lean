@@ -7,7 +7,7 @@ module
 
 public import Mathlib.LinearAlgebra.UnitaryGroup
 public import TauCeti.Analysis.Matrix.EuclideanLin
-public import TauCeti.Geometry.Symplectic.Transport
+public import TauCeti.Geometry.Symplectic.SymplecticTransport
 
 /-!
 # Linear groups acting on complex structures
@@ -32,6 +32,9 @@ gives actions of the invertible matrices and of the special orthogonal matrices.
   exactly when `e` is complex linear from `J` to `J'`.
 * `TauCeti.AlmostComplexStructure.smul_apply`, `generalLinearGroup_smul_apply`: the actions
   evaluated at a vector.
+* `TauCeti.SymplecticForm.IsSymplectomorphism.compatible_transport_iff`: a linear
+  symplectomorphism `e : (V, ω₁) → (W, ω₂)` preserves and reflects compatibility, that is,
+  `ω₂` is compatible with `J.transport e` exactly when `ω₁` is compatible with `J`.
 
 ## References
 
@@ -154,5 +157,20 @@ theorem specialOrthogonalGroup_smul_def (g : Matrix.specialOrthogonalGroup n ℝ
 end Matrix
 
 end TauCeti.AlmostComplexStructure
+
+namespace TauCeti.SymplecticForm
+
+variable {V W : Type*} [AddCommGroup V] [Module ℝ V] [AddCommGroup W] [Module ℝ W]
+  {ω₁ : SymplecticForm V} {ω₂ : SymplecticForm W} {e : V ≃ₗ[ℝ] W}
+
+/-- A linear symplectomorphism `e : (V, ω₁) → (W, ω₂)` carries compatible complex structures to
+compatible ones and back: `ω₂` is compatible with `e ∘ J ∘ e⁻¹` exactly when `ω₁` is compatible
+with `J`. For `V = W` and `ω₁ = ω₂` this says that the symplectic automorphisms of `(V, ω)` act on
+the complex structures compatible with `ω`, through `e • J = J.transport e`. -/
+theorem IsSymplectomorphism.compatible_transport_iff (he : ω₁.IsSymplectomorphism ω₂ e)
+    (J : AlmostComplexStructure V) : ω₂.Compatible (J.transport e) ↔ ω₁.Compatible J := by
+  rw [← isSymplectomorphism_iff_transport_eq.1 he, SymplecticForm.compatible_transport_iff]
+
+end TauCeti.SymplecticForm
 
 end
