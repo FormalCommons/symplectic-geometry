@@ -125,8 +125,8 @@ global name.
    `isCompl_iff_disjoint` in `LinearAlgebra/Symplectic/Lagrangian/Basic.lean`,
    since it holds for a general `ω` and `Transverse.lean` is about
    `StdSpace ι`. One definition about `StdSpace ι` alone,
-   `StdSpace.complexEuclideanEquiv`, is added to part 1's `Standard/Basic.lean`
-   (see that section). The other departures are #79's,
+   `StdSpace.complexEuclideanEquiv` with its three lemmas, is added to part 1's
+   `Standard/Basic.lean` (see that section). The other departures are #79's,
    the issue that changes §6 to match: `Topology/Grassmannian/Lagrangian/Finite.lean`;
    the general files under `LinearAlgebra/Matrix/` (the real points of the
    unitary group, the complex frame facts and the dimension of the space of
@@ -801,8 +801,9 @@ merged.
     `LinearAlgebra/Symplectic/Lagrangian/Sum.lean`: `ℒ.sum`, `ℒ.reindex` and
     their compatibilities, using the existing
     `isSymplectomorphism_piLpCongrLeft_sumCongr` from `Standard/Basic.lean`;
-    and §1's `StdSpace.sumEquiv` with its two lemmas, if the *Symplectic vector bundles* issue that builds it has not
-    merged first. About 300 lines. Blocked by 6.
+    and §1's `StdSpace.sumEquiv` with its two lemmas, if the *Symplectic
+    vector bundles* issue that builds it has not merged first. About 300
+    lines. Blocked by 6.
 12. **Direct sums and reindexing, topology.**
     `Topology/Grassmannian/Lagrangian/Sum.lean`: `continuous_sum` and
     `reindexHomeomorph`. About 100 lines. Blocked by 7 and 11.
