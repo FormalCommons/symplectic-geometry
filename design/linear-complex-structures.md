@@ -156,12 +156,13 @@ These settle the questions that `DESIGN.md` leaves to this file.
 
 ## Files
 
-Files are under `SymplecticGeometry/`. The part has eleven files, each with
+Files are under `SymplecticGeometry/`. The part has twelve files, each with
 the topic its path says. Besides the standard model, the orbit space and the
 oriented components, they hold the actions on complex structures, their
 general topology, the general orbit–stabilizer homeomorphism, a star-ring
 lemma on elements of square $-1$, the conjugation identity for units of square $-1$, the polar deformation of
-matrices of square $-1$, the orthogonal complex structures, and the
+matrices of square $-1$, the orthogonal complex structures, the map from
+$\mathbb{R}^3$ to the pure quaternions, and the
 orientation of bases adapted to a transported structure. The actions
 and their topology are stated for any space, so that later work can use
 them. The library's `Geometry/Symplectic/Orientation.lean` has the same
@@ -180,6 +181,7 @@ lemma extends that file and is a candidate to move there.
 | `Analysis/SpecialFunctions/ContinuousFunctionalCalculus/Polar.lean` | the polar unitary factor of a unit of square $-1$ inverts the powers of its positive factor |
 | `Analysis/Matrix/Polar/Deformation.lean` | the polar deformation preserves square $-1$ |
 | `Topology/ComplexStructure/Orthogonal.lean` | the orthogonal complex structures, the deformation retraction onto them |
+| `Analysis/Quaternion.lean` | the linear isometry from `EuclideanSpace ℝ (Fin 3)` to the pure quaternions, and the square of its values |
 | `Topology/ComplexStructure/Oriented.lean` | the stabilizer of $J_0$ in $\mathrm{SO}(2n)$, the component of $J_0$, the two components, the homotopy type $\mathrm{SO}(2n)/\mathrm{U}(n)$, the case $\mathbb{R}^4$, the milestone |
 
 ## Definitions and their API
@@ -421,6 +423,21 @@ only the lemma about $J_0$ takes `n = ι ⊕ ι`. Since `StdSpace ι` is an
   orthogonalComplexStructures n ≃ₕ AlmostComplexStructure (EuclideanSpace ℝ n)`, from
   `ofDeformationRetraction`.
 
+### `Analysis/Quaternion.lean`
+
+General quaternion material, in Mathlib's namespace `Quaternion`; nothing in
+it mentions complex structures.
+
+- `Quaternion.pureOfEuclideanSpace : EuclideanSpace ℝ (Fin 3) →ₗᵢ[ℝ] ℍ[ℝ]`,
+  $u\mapsto u_0i+u_1j+u_2k$, with `pureOfEuclideanSpace_apply` (that formula,
+  by `(rfl)`, not a simp lemma) and the `@[simp]` lemmas
+  `re_pureOfEuclideanSpace`, `imI_pureOfEuclideanSpace`,
+  `imJ_pureOfEuclideanSpace` and `imK_pureOfEuclideanSpace` for its four
+  components; its norm is `LinearIsometry.norm_map`.
+- `pureOfEuclideanSpace_mul_self`: the square of the value at `u` is
+  $-\|u\|^2$, and `pureOfEuclideanSpace_mul_self_of_norm_eq_one`: at a unit
+  vector it is $-1$.
+
 ### `Topology/ComplexStructure/Oriented.lean`
 
 - The action of `specialOrthogonalGroup n ℝ` from `Action.lean` preserves and
@@ -652,7 +669,9 @@ names, and the first two by the *Standard model* issues (#7, #8).
 6. **Complex structures: the case of ℝ⁴ and the milestone.** The quaternion
    structures, `sphereHomeomorphOrthogonal`,
    `positivelyOrientedHomotopyEquivSphere` and
-   `complexStructures_classification`, in the same file. About 300 lines.
+   `complexStructures_classification`, in the same file, with the map from
+   $\mathbb{R}^3$ to the pure quaternions in `Analysis/Quaternion.lean`.
+   About 300 lines.
    Blocked by 5.
 
 ## References
