@@ -401,6 +401,9 @@ it into issues; the overview fixes its folders and its dependencies.
   Lagrangians: two Lagrangians are complementary if and only if they meet in
   $0$, any two have a common transverse Lagrangian, and $\mathrm{Sp}(2n)$ acts
   transitively on transverse pairs),
+  `LinearAlgebra/Symplectic/Lagrangian/Sum.lean` (the direct sum of
+  Lagrangians and the reindexing equivalence, their compatibility with
+  unitary frames, and the equivariance of the sum),
   `LinearAlgebra/TotallyReal/Euclidean.lean` (the range of Tau Ceti's
   `Matrix.lagrangianChart`, beside Tau Ceti's file of that name),
   `Topology/Grassmannian/Lagrangian/Basic.lean` (the topology of
@@ -412,7 +415,8 @@ it into issues; the overview fixes its folders and its dependencies.
   `Geometry/Manifold/Instances/LagrangianGrassmannian.lean` (the manifold
   structure of dimension $n(n+1)/2$, from the charts of `Graph.lean`),
   `Topology/Grassmannian/Lagrangian/Fibration.lean` (path lifting),
-  `Topology/Grassmannian/Lagrangian/Sum.lean` (direct sums and reindexing).
+  `Topology/Grassmannian/Lagrangian/Sum.lean` (continuity of the direct sum,
+  and the reindexing equivalence as a homeomorphism).
   The `LinearAlgebra/` files import no `Topology/` file of this part. Below,
   $V_0$ is $\mathbb{R}^n\times\{0\}$ ($y=0$), $V_1$ is
   $\{0\}\times\mathbb{R}^n$ ($x=0$), and the unitary frame map
@@ -480,20 +484,24 @@ it into issues; the overview fixes its folders and its dependencies.
   (`Topology/Homotopy/SerreFibration/Basic.lean`) into the lift. Tau Ceti's
   unitary Stiefel fibration (`Topology/Grassmannian/StiefelFibration/Unitary.lean`)
   is built the same way and is the model for the file.
-- **Direct sums and reindexing** (`Sum.lean`). The direct sum
+- **Direct sums and reindexing** (`LinearAlgebra/Symplectic/Lagrangian/Sum.lean`
+  and `Topology/Grassmannian/Lagrangian/Sum.lean`). In the `LinearAlgebra/`
+  file: the direct sum
   $\mathcal{L}(\iota)\times\mathcal{L}(\kappa)\to\mathcal{L}(\iota\oplus\kappa)$,
   read in the coordinates of `Equiv.sumSumSumComm` as Tau Ceti's
-  `Matrix.symplecticSum` is, continuous; and for `e : ι ≃ κ` the
-  homeomorphism $\mathcal{L}(\iota)\simeq_t\mathcal{L}(\kappa)$, the image
-  under the coordinate permutation along `Equiv.sumCongr e e`, with lemmas
-  for its inverse and for composition. Both commute with unitary frames: the
+  `Matrix.symplecticSum` is; and for `e : ι ≃ κ` the equivalence
+  $\mathcal{L}(\iota)\simeq\mathcal{L}(\kappa)$, the image under the
+  coordinate permutation along `Equiv.sumCongr e e`, with lemmas for its
+  inverse and for composition. Both commute with unitary frames: the
   sum of the frames of $U$ and $U'$ is the frame of
   `Matrix.UnitaryGroup.sum (U, U')` (`LinearAlgebra/Matrix/UnitaryGroup/Block.lean`,
   through `Matrix.realify_fromBlocks_zero`), and reindexing the frame of $U$
   gives the frame of the reindexed matrix `U.submatrix e.symm e.symm`, unitary
   by Mathlib's `Matrix.submatrix_equiv_mem_unitary`. The sum is equivariant
   for `TauCeti.GLSymplectic.sum`
-  (`LinearAlgebra/Matrix/GeneralLinearGroup/Symplectic/Sum.lean`). Continuity
+  (`LinearAlgebra/Matrix/GeneralLinearGroup/Symplectic/Sum.lean`). In the
+  `Topology/` file: the sum is continuous, and the reindexing equivalence is
+  a homeomorphism $\mathcal{L}(\iota)\simeq_t\mathcal{L}(\kappa)$. Continuity
   comes from $\mathcal{L}(n)\cong\mathrm{U}(n)/\mathrm{O}(n)$ (`Quotient.lean`):
   the frame map is an open quotient map, and so is a product of two such
   maps (Mathlib's `IsOpenQuotientMap.prodMap`). How the reindexing meets
