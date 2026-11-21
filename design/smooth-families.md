@@ -516,25 +516,30 @@ Below, `∂ₜ` at `(x, t)` is the tangent vector
 `((0 : E), (1 : TangentSpace (𝓡∂ 1) t))` of `M × unitInterval`, as in
 *Decisions*.
 
-- Joint smoothness of inverses over `ℝ`: `TauCeti.contMDiff_diffeomorph_symm_apply
-  {ψ : ℝ → M ≃ₘ⟮I, I⟯ M} (hψ : ContMDiff (𝓘(ℝ, ℝ).prod I) I ∞
-  (fun p : ℝ × M ↦ ψ p.1 p.2)) : ContMDiff (𝓘(ℝ, ℝ).prod I) I ∞
-  (fun p : ℝ × M ↦ (ψ p.1).symm p.2)`, by
-  `isLocalDiffeomorph_of_mfderiv_eq` and `diffeomorphOfBijective` applied to
-  `(t, x) ↦ (t, ψ t x)`; this is the hypothesis `hφ'` of Tau Ceti's
+- Joint smoothness of inverses, over any finite-dimensional boundaryless
+  parameter manifold `P` (model `J`) and for any `1 ≤ n`, in Mathlib's
+  namespace `Diffeomorph`, as it is about Mathlib's notion:
+  `Diffeomorph.contMDiff_symm_eval {ψ : P → M ≃ₘ^n⟮I, I⟯ M} (hn : 1 ≤ n)
+  (hψ : ContMDiff (J.prod I) I n (fun p : P × M ↦ ψ p.1 p.2)) :
+  ContMDiff (J.prod I) I n (fun p : P × M ↦ (ψ p.1).symm p.2)`, named like
+  Tau Ceti's `TauCeti.continuous_equiv_symm_eval`, by
+  `isLocalDiffeomorphAt_of_injective_mfderiv` and `diffeomorphOfBijective`
+  applied to `(p, x) ↦ (p, ψ p x)`; this is the hypothesis `hφ'` of Tau Ceti's
   `forall_mpullback_eq_iff_forall_mextDeriv_interior_eulerianField_eq_zero`.
 - Restriction: `ofReal (ψ : ℝ → M ≃ₘ⟮I, I⟯ M) (hψ : …) (h₀ : ∀ x, ψ 0 x = x) :
-  Diffeotopy I ∞ M`, with `ofReal_apply`, `timeSlice_ofReal` and
+  Diffeotopy I ∞ M`, with `ofReal_apply`, `timeSlice_ofReal`, `final_ofReal` and
   `mfderiv_cylinderMap_ofReal (x : M) (t : unitInterval) : mfderiv
   (I.prod (𝓡∂ 1)) I (ofReal ψ hψ h₀).cylinderMap (x, t) ∂ₜ =
   TauCeti.eulerianField I (fun u ↦ (ψ u).toEquiv) t (ψ t x)`.
 - Flows: `timeDependentFlowDiffeotopy_eq_ofReal` (for `n = ∞`, the restriction
-  of `fun t ↦ timeDependentFlowDiffeomorph hc le_top hX 0 t`). The velocity
+  of `fun t ↦ timeDependentFlowDiffeomorph hc le_top hX 0 t`, jointly smooth
+  by `TauCeti.contMDiff_timeDependentFlowDiffeomorph`). The velocity
   of the flow diffeotopy is `velocity_timeDependentFlowDiffeotopy` of
   *Hamiltonian flows*, and is not stated here.
 - The reading over `ℝ`: `smoothTransitionFamily (Φ : Diffeotopy I ∞ M)
   (t : ℝ) : M ≃ₘ⟮I, I⟯ M := Φ.timeSlice ⟨Real.smoothTransition t, _, _⟩`,
-  with `smoothTransitionFamily_apply`, `smoothTransitionFamily_of_nonpos`
+  with `smoothTransitionFamily_def`, `smoothTransitionFamily_apply`,
+  `smoothTransitionFamily_of_nonpos`
   (the identity), `smoothTransitionFamily_of_one_le` (`Φ.final`),
   `contMDiff_smoothTransitionFamily` and
   `contMDiff_smoothTransitionFamily_symm` (both jointly smooth, by
@@ -623,7 +628,7 @@ can start at once; each issue's blockers come before it.
 15. **Diffeotopies from families of diffeomorphisms.**
     `Geometry/Diffeomorphism/Diffeotopy/OfContMDiff.lean`. Blocked by 2 and 14
     (for the inverse function theorem step it shares with
-    `contMDiff_diffeomorph_symm_apply`).
+    `Diffeomorph.contMDiff_symm_eval`).
 
 ## References
 
