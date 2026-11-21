@@ -110,8 +110,7 @@ theorem existsUnique_metricPolarComplexStructure (g : innerProducts V) (ω : Sym
     rw [← and_congr (innerProducts.forall_transport_apply_transport_iff e g J)
       (ω.compatible_transport_iff J e.toLinearEquiv), he,
       SymplecticForm.polarComplexStructure_eq_iff]
-    refine and_congr (forall₂_congr fun u v ↦ ?_) Iff.rfl
-    rw [innerSL_apply_apply, innerSL_apply_apply]
+    simp only [innerSL_real_apply_apply]
   refine ⟨(ω.transport e.toLinearEquiv).polarComplexStructure.transport e.toLinearEquiv.symm,
     (key _).2 ?_, fun J hJ ↦ ?_⟩
   · rw [AlmostComplexStructure.transport_trans, LinearEquiv.symm_trans_self,
@@ -179,8 +178,7 @@ theorem metricPolarComplexStructure_innerSL {E : Type*} [NormedAddCommGroup E]
       ω.polarComplexStructure :=
   metricPolarComplexStructure_eq_iff.2
     ⟨fun u v ↦ by
-      rw [innerSL_apply_apply, innerSL_apply_apply]
-      exact ω.inner_polarComplexStructure_apply_apply u v,
+      simpa only [innerSL_real_apply_apply] using ω.inner_polarComplexStructure_apply_apply u v,
     ω.compatible_polarComplexStructure⟩
 
 variable {g ω}

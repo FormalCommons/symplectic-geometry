@@ -134,8 +134,8 @@ review of #420 raise four more.
   maps into a normed space. The design never extends `ξ`. It extends the
   *Gray field* instead, through local defining forms:
   1. Near each point of `[0, 1] × M` take a defining form from
-     `IsContactFamily`, extend it to `ℝ × M` by `TimeExtension.lean` of
-     *Smooth families*, and restrict it to a product
+     `IsContactFamily`, extend it to `ℝ × M` by
+     `DifferentialForm/TimeExtension.lean` of *Smooth families*, and restrict it to a product
      `J × U`, with `J` an open interval and `U` an open set with compact
      closure, on which every slice is contact (the contact condition is
      open, and `[0, 1]` and the closure of `U` are compact). Composing in
@@ -185,7 +185,7 @@ review of #420 raise four more.
 - **Uniqueness, checked against `eq_grayVectorField_iff` after
   reparametrization.** Let `Φ` be a diffeotopy that transports `ξ` and whose
   velocity lies in `ξ`. Read it over `ℝ` as $\psi_t=\Phi_{s(t)}$ with
-  $s=$ `Real.smoothTransition`, by `OfIsotopy.lean` of *Smooth families*;
+  $s=$ `Real.smoothTransition`, by `Diffeotopy/Real.lean` of *Smooth families*;
   its `TauCeti.eulerianField` is $Z_t=s'(t)X_{s(t)}$, where $X$ is the
   velocity of `Φ`, and $\psi$ is the time-dependent flow of $Z$
   (`TauCeti.timeDependentFlowOf_eulerianField`). Near a point, with a local
@@ -291,7 +291,7 @@ review of #420 raise four more.
   `Diffeotopy` over `[0, 1]` cannot express "wherever defined". So this one
   family statement is made over `ℝ`, for `H : ℝ × M → ℝ` smooth; a
   Hamiltonian over `[0, 1]` enters through its extension by
-  `TimeExtension.lean`. `DESIGN.md`'s convention on families records the
+  `ContMDiff/TimeExtension.lean`. `DESIGN.md`'s convention on families records the
   exception.
 - **Namespaces.** Definitions and theorems about Tau Ceti's objects go in
   their namespaces (`TauCeti.SmoothForm`, `TauCeti.SmoothForm.IsContactForm`,
@@ -469,8 +469,8 @@ Named like Tau Ceti's file, in `SymplecticGeometry`.
   are an open interval `J ∋ p.1`, an open `U ∋ p.2` with compact closure, and
   `α : SmoothForm (𝓘(ℝ, ℝ).prod I) (ℝ × U) ℝ 1` (on the open submanifold `U`)
   all of whose slices are contact, with `ξ t x = (α_t).kerDistribution x`
-  for `t ∈ J ∩ [0, 1]`, `x ∈ U`. Uses `TimeExtension.lean` of *Smooth
-  families* and a smooth reparametrization `ℝ → J` that is the identity on
+  for `t ∈ J ∩ [0, 1]`, `x ∈ U`. Uses `DifferentialForm/TimeExtension.lean` of
+  *Smooth families* and a smooth reparametrization `ℝ → J` that is the identity on
   a neighbourhood of the relevant times.
 - `IsContactFamily.grayVector_eq_of_eq_smul`: the pointwise independence of
   step 2, for two local defining families related by a smooth nowhere zero
@@ -507,7 +507,7 @@ Named like Tau Ceti's file. With `[I.Boundaryless] [T2Space M] [CompactSpace M]`
 - `IsContactFamily.eq_grayDiffeotopy_of_transports (hξ) (hΦ : Φ.Transports ξ)
   (hv : ∀ t x, velocity ∈ ξ t (Φ (t, x))) : Φ = hξ.grayDiffeotopy`, the
   uniqueness argument of *Decisions*, through the reading of `Φ` over `ℝ` by
-  `Real.smoothTransition` in `OfIsotopy.lean` of *Smooth families*.
+  `Real.smoothTransition` in `Diffeotopy/Real.lean` of *Smooth families*.
 - `TauCeti.Diffeotopy.Transports.exists_mpullback_eq_smul
   (α : SmoothForm ((𝓡∂ 1).prod I) (unitInterval × M) ℝ 1) (hc : ∀ t, (α_t).IsContactForm)
   (hΦ : Φ.Transports fun t ↦ (α_t).kerDistribution)`:
@@ -568,15 +568,16 @@ Expected size: 650 lines, in two issues (L1 and L2).
 
 ## What the part uses from other parts
 
-- *Smooth families* (#466, #467): `Geometry/Manifold/ContMDiff/TimeExtension.lean`,
-  the extension of a smooth form on `unitInterval × M` to `ℝ × M` (for
+- *Smooth families* (#466, #467):
+  `Geometry/Manifold/DifferentialForm/TimeExtension.lean`, the extension of
+  a smooth form on `unitInterval × M` to `ℝ × M` (for
   `IsContactFamily.exists_local_extension`); and
-  `Geometry/Diffeomorphism/Diffeotopy/OfIsotopy.lean`, the reading of a
+  `Geometry/Diffeomorphism/Diffeotopy/Real.lean`, the reading of a
   `Diffeotopy` $\Phi$ over `ℝ` as $\Phi_{s(t)}$, $s=$ `Real.smoothTransition`,
   with `TauCeti.eulerianField` $s'(t)X_{s(t)}$, where $X$ is the velocity
   along the motion as read above (for the uniqueness). If that file reads
   velocities differently, the uniqueness issue converts with the lemma
-  relating the two readings, which `OfIsotopy.lean` provides.
+  relating the two readings, which `Diffeotopy/Real.lean` provides.
 - *Symplectic neighbourhoods* (#475, #476): the Lagrangian neighbourhood
   theorem of `Geometry/Symplectic/Neighborhood/Lagrangian.lean`, for a
   Lagrangian embedding into a symplectic manifold, with model
@@ -608,9 +609,9 @@ In this order; each is blocked by the ones listed, and all are sub-issues of
 | D | The contact Darboux theorem in the page's signs | `Geometry/Contact/Darboux/Strict.lean` | — | 200 |
 | G0 | Moser's principle along one trajectory, rescaling case | `Geometry/Manifold/DifferentialForm/Flow/Family.lean` | — | 100 |
 | G1 | Smooth families of contact structures | `Geometry/Contact/Family.lean` (`IsContactFamily` and its API, `grayVector_eq_of_eq_smul`) | — | 250 |
-| G2 | Local defining families over `ℝ` | `Geometry/Contact/Family.lean` (`exists_local_extension`) | G1, the issue of *Smooth families* that adds `TimeExtension.lean` | 150 |
+| G2 | Local defining families over `ℝ` | `Geometry/Contact/Family.lean` (`exists_local_extension`) | G1, the issue of *Smooth families* that adds `DifferentialForm/TimeExtension.lean` | 150 |
 | G3 | The Gray field and the Gray isotopy of a family | `Geometry/Contact/Gray.lean` (`Transports`, `exists_grayField`, `grayDiffeotopy`, transport and velocity) | G0, G2 | 350 |
-| G4 | Uniqueness, rescaling of forms, and Gray stability | `Geometry/Contact/Gray.lean` (`eq_grayDiffeotopy_of_transports`, `Transports.exists_mpullback_eq_smul`, the milestone) | G3, the issue of *Smooth families* that adds `OfIsotopy.lean` | 250 |
+| G4 | Uniqueness, rescaling of forms, and Gray stability | `Geometry/Contact/Gray.lean` (`eq_grayDiffeotopy_of_transports`, `Transports.exists_mpullback_eq_smul`, the milestone) | G3, the issue of *Smooth families* that adds `Diffeotopy/Real.lean` | 250 |
 | L1 | A slice through a Legendrian submanifold | `Geometry/Contact/LegendrianNeighborhood.lean` (`exists_contactSlice`) | — | 300 |
 | L2 | The Legendrian neighbourhood theorem | `Geometry/Contact/LegendrianNeighborhood.lean` (the milestone) | L1, the issue of *Symplectic neighbourhoods* that adds `Lagrangian.lean` | 350 |
 

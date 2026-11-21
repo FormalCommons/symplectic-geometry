@@ -75,6 +75,21 @@ theorem finrank_smul_inf_smul [DecidableEq ι] (g : GLSymplectic ι ℝ) (Λ Λ'
   rw [coe_smul_eq_map_toEuclideanCLE, coe_smul_eq_map_toEuclideanCLE,
     ← Submodule.map_inf _ (LinearEquiv.injective _), LinearEquiv.finrank_map_eq]
 
+/-- A unitary matrix does not change the dimension of the intersection of two Lagrangians. -/
+theorem finrank_unitary_smul_inf_smul [DecidableEq ι] (U : unitaryGroup ι ℂ) (Λ Λ' : ℒ ι) :
+    Module.finrank ℝ ↥(((U • Λ : ℒ ι) : Submodule ℝ (StdSpace ι)) ⊓
+        ((U • Λ' : ℒ ι) : Submodule ℝ (StdSpace ι))) =
+      Module.finrank ℝ ↥((Λ : Submodule ℝ (StdSpace ι)) ⊓ (Λ' : Submodule ℝ (StdSpace ι))) := by
+  rw [unitary_smul_def, unitary_smul_def, finrank_smul_inf_smul]
+
+/-- The intersection of a Lagrangian `Λ` with the Lagrangian framed by a unitary matrix `U` has
+the dimension of the intersection of `U⁻¹ • Λ` with `{y = 0}`. -/
+theorem finrank_inf_unitaryFrame [DecidableEq ι] (Λ : ℒ ι) (U : unitaryGroup ι ℂ) :
+    Module.finrank ℝ
+        ↥((Λ : Submodule ℝ (StdSpace ι)) ⊓ (unitaryFrame U : Submodule ℝ (StdSpace ι))) =
+      Module.finrank ℝ ↥(((U⁻¹ • Λ : ℒ ι) : Submodule ℝ (StdSpace ι)) ⊓ horizontal ι) := by
+  rw [← finrank_unitary_smul_inf_smul U⁻¹, unitaryFrame_def, inv_smul_smul]
+
 /-! ### The points of the basic chart -/
 
 /-- The Lagrangian `{(S y, y)}` of a real symmetric matrix `S`: Tau Ceti's chart subspace

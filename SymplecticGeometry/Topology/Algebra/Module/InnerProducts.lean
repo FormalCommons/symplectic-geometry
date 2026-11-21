@@ -7,6 +7,7 @@ module
 
 public import Mathlib.Analysis.Convex.Contractible
 public import Mathlib.Analysis.InnerProductSpace.PiL2
+public import SymplecticGeometry.Analysis.InnerProductSpace.LinearMap
 public import TauCeti.Analysis.InnerProductSpace.Positive.MetricChange.Basic
 public import TauCeti.Geometry.Symplectic.AlmostComplex
 public import TauCeti.Geometry.Symplectic.Transport
@@ -188,12 +189,12 @@ theorem transport_eq_innerSL_iff {E : Type*} [NormedAddCommGroup E] [InnerProduc
       ∀ u v, inner ℝ (e u) (e v) = (g : V →L[ℝ] V →L[ℝ] ℝ) u v := by
   refine ⟨fun he u v ↦ ?_, fun h ↦ Subtype.ext ?_⟩
   · have := congrArg (fun h : innerProducts _ ↦ (h : _ →L[ℝ] _ →L[ℝ] ℝ) (e u) (e v)) he
-    simp only [transport_apply, ContinuousLinearEquiv.symm_apply_apply] at this
-    rw [innerSL_apply_apply] at this
+    simp only [transport_apply, ContinuousLinearEquiv.symm_apply_apply,
+      innerSL_real_apply_apply] at this
     exact this.symm
   · ext w w'
-    simp only [transport_apply, ← h, ContinuousLinearEquiv.apply_symm_apply]
-    rfl
+    simp only [transport_apply, ← h, ContinuousLinearEquiv.apply_symm_apply,
+      innerSL_real_apply_apply]
 
 end innerProducts
 
@@ -212,8 +213,7 @@ theorem innerProducts.exists_transport_eq_innerSL (g : innerProducts V) :
     (transport e₀ g).property
   refine ⟨e₀.trans (h.metricChangeEquiv hH).symm, Subtype.ext ?_⟩
   ext w w'
-  rw [Subtype.coe_mk, innerSL_apply_apply,
-    ← h.apply_metricChangeTransport_metricChangeTransport hH w w']
+  rw [innerSL_real_apply_apply, ← h.apply_metricChangeTransport_metricChangeTransport hH w w']
   simp [h]
 
 variable (V) in

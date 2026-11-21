@@ -454,10 +454,9 @@ theorem coe_almostComplexStructureAt_pullback (J : ContMDiffComplexStructure I n
     ⇑((J.pullback f).almostComplexStructureAt y) = ⇑(J (f y)) :=
   funext fun v ↦ almostComplexStructureAt_apply (J.pullback f) y v
 
-/-- The pull-back of `-J` is `-(J.pullback f)`. This is not a `simp` lemma: applied to a vector
-of type `V (f y)`, the right-hand side is a function on `(f *ᵖ V) y` negated pointwise, which
-`simp` cannot evaluate, while `pullback_apply` evaluates the left-hand side; see
-`pullback_neg_apply` for vectors of type `(f *ᵖ V) y`. -/
+/-- The pull-back of `-J` is `-(J.pullback f)`. This is not a `simp` lemma: it would rewrite the
+left-hand side of `pullback_neg_apply`, which evaluates the pull-back of `-J` on vectors of type
+`(f *ᵖ V) y`, while `pullback_apply` evaluates it on vectors of type `V (f y)`. -/
 theorem pullback_neg (J : ContMDiffComplexStructure I n F V) (f : C^n⟮I', N; I, M⟯) :
     (-J).pullback f = -(J.pullback f) := by
   ext y v

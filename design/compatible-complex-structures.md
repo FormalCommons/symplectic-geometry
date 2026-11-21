@@ -401,6 +401,12 @@ request updates it to the files below. Each change, with its reason:
   matrices, so it does not give $J\mapsto-J_0J$. That map and its inverse
   $P\mapsto J_0P$ are restrictions of linear maps, which gives the
   homeomorphism directly.
+- **New `Analysis/InnerProductSpace/LinearMap.lean`.** It holds the
+  `@[simp]` lemma `innerSL_real_apply_apply`, which `InnerProducts.lean`
+  and the files that use the ambient inner product as an element of
+  `innerProducts V` need. It mentions only Mathlib's `innerSL`, so it sits in
+  the root namespace, in the file named after Mathlib's
+  `Analysis/InnerProductSpace/LinearMap.lean`, and can move there unchanged.
 - **$\mathrm{Met}(V)$ without coordinates.** The overview got convexity from
   `TauCeti.convex_setOfPred_posDef` in coordinates. Tau Ceti's
   `convex_setOfPred_symm_pos` states it for continuous bilinear forms on `V`
@@ -524,6 +530,15 @@ complex structure, in a section with only `[AddCommGroup V] [Module ℝ V]`.
   `design/symplectic-vector-bundles.md` both take their values from it, so
   neither builds a value with `ofTames` itself.
 
+### `Analysis/InnerProductSpace/LinearMap.lean`
+
+This complements Mathlib's file of `innerSL`, and imports only it.
+
+- `innerSL_real_apply_apply` (`@[simp]`, in the root namespace): `innerSL ℝ`,
+  coerced at the real bilinear type `V →L[ℝ] V →L[ℝ] ℝ` (the ambient type of
+  `innerProducts V`), evaluates to `⟪u, v⟫`. Mathlib's `innerSL_apply_apply`
+  is stated at the conjugate-linear type, so `simp` does not use it there.
+
 ### `Topology/Algebra/Module/InnerProducts.lean`
 
 This is $\mathrm{Met}(V)$, in `SymplecticGeometry`.
@@ -550,6 +565,9 @@ This is $\mathrm{Met}(V)$, in `SymplecticGeometry`.
   $\mathrm{GL}(V)$ that equivariance uses.
 - `innerSL_mem_innerProducts` (for `V` an inner product space):
   `innerSL ℝ ∈ innerProducts V`, the ambient inner product as an element.
+- `simp` evaluates `⟨innerSL ℝ, innerSL_mem_innerProducts⟩` applied to `u`
+  and `v` to `⟪u, v⟫` by `innerSL_real_apply_apply`, from
+  `Analysis/InnerProductSpace/LinearMap.lean` above.
 - `innerProducts.exists_transport_eq_innerSL (g : innerProducts V)`, for
   finite-dimensional `V`: some `e : V ≃L[ℝ] EuclideanSpace ℝ (Fin (finrank ℝ V))`
   has `transport e g = ⟨innerSL ℝ, innerSL_mem_innerProducts⟩`. It is
@@ -936,7 +954,9 @@ This is Proposition 2.5.6, for a fixed `g : innerProducts V`, in
   `metricSymplecticForms g : Set (SymplecticForm V)` ($\Omega(V,g)$, the forms
   $g(J\cdot,\cdot)$ for $J\in\mathcal{J}(V,g)$), with their `@[simp]`
   membership lemmas `mem_metricComplexStructures` and
-  `mem_metricSymplecticForms`, `metricSymplecticForms_eq_image`, and
+  `mem_metricSymplecticForms`, `mem_metricComplexStructures_innerSL` (for `V`
+  an inner product space, `J ∈ metricComplexStructures ⟨innerSL ℝ, _⟩ ↔
+  ∀ u v, ⟪J u, J v⟫ = ⟪u, v⟫`), `metricSymplecticForms_eq_image`, and
   `compatible_metricSymplecticForm`,
   `metricPolarComplexStructure_metricSymplecticForm` and
   `metricSymplecticForm_metricPolarComplexStructure`, by which the inverses
