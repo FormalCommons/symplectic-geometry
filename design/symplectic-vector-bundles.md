@@ -140,7 +140,8 @@ have the names of a Tau Ceti or Mathlib file or
 folder at the same place, so that the two merge upstream.
 
 **Departures from `DESIGN.md`.** Each has its reason; #59 brings the overview
-in line once this design is merged.
+in line once this design is merged, and #138 and #157 do so for the
+departures that *Constructions* adds.
 
 - The overview's `.../Symplectic/ComplexStructure.lean` becomes a folder of
   two files from the start, since its content is more than one file holds.
@@ -664,7 +665,7 @@ on complex structures are in `ContMDiffComplexStructure` and in
   `IsSymplecticFrameOn.contMDiffOn_frameTransition`
   (`fun x ↦ (frameTransition Φ Φ' x : W →L[ℝ] W)` is $C^n$ on `U`). The
   frames that *First Chern number* uses are over open sets, and openness
-  makes the argument pointwise. At `x ∈ U`, the field `contMDiff` gives
+  makes the argument pointwise. At `x ∈ U`, the field `contMDiffOn` gives
   smoothness at every `(x, v)`, since `U ×ˢ univ` is open; read through
   the total space of `Bundle.Trivial M W`, Tau Ceti's
   `contMDiffAt_hom_bundle_iff` (`Geometry/Manifold/VectorBundle/Hom.lean`)
@@ -925,12 +926,13 @@ proves is topological and holds over any base, with or without boundary: Tau
 Ceti's `OrthonormalFrameBundle.instPrincipalBundleFiber` asks for no smooth
 hypothesis. Only the smooth structure on the circle bundle needs more, the
 hypotheses of Tau Ceti's `sphereBundleChartedSpace` and
-`isManifold_sphereBundle`: `[I.Boundaryless]`, `[FiniteDimensional ℝ EB]`,
-`[FiniteDimensional ℝ F]`, `[IsManifold I n B]`,
-`[ContMDiffVectorBundle n F V I]`, `[IsContMDiffRiemannianBundle I n F V]`
-(a local instance from the smoothness of `g`) and `1 ≤ n`. They are stated
-only where that atlas is used, in *First Chern number*'s prerequisite 3, and
-not on the results below.
+`isManifold_sphereBundle`. Two of these come with the variables above:
+`[IsManifold I n M]`, which follows from `[IsManifold I ∞ M]`, and
+`[ContMDiffVectorBundle n F V I]`. The rest, `[I.Boundaryless]`,
+`[FiniteDimensional ℝ EB]`, `[FiniteDimensional ℝ F]`,
+`[IsContMDiffRiemannianBundle I n F V]` (a local instance from the
+smoothness of `g`) and `1 ≤ n`, are stated only where that atlas is used,
+in *First Chern number*'s prerequisite 3, and not on the results below.
 
 - The circle bundle is the subtype
   `{p : TotalSpace F V // ‖p.snd‖ = 1}`, on which Tau Ceti's
@@ -1084,7 +1086,8 @@ it, its design adds it.
   with its principal-bundle instance, `circleEquivUnitary`, the one-dimensional
   `StrongUnitary` isomorphisms, the symplectic orientation
   `IsNondegenerate.volumeOrientation` with `volumeForm_smul`, and
-  `ContMDiffOn.clm_bundle_inverse` for transition maps.
+  `contMDiffAt_hom_bundle_iff`, `ContMDiffAt.clm_bundle_inverse` and
+  `ContMDiffAt.clm_bundle_comp` for transition maps.
 - **Mathlib:** smooth vector bundles, the bundles of linear and alternating
   maps, `ContMDiffSection`, `IsLocalFrameOn`, `Bundle.ContMDiffRiemannianMetric`,
   manifolds with boundary (`ModelWithCorners.interior`, `boundary`),
