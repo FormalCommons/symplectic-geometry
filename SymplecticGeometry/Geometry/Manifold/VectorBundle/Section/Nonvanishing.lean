@@ -5,18 +5,15 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import Mathlib.Geometry.Manifold.Instances.Real
 public import Mathlib.Geometry.Manifold.PartitionOfUnity
 public import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Existence
 public import TauCeti.Geometry.Manifold.VectorBundle.Section.Extension
-public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Basic
 public import SymplecticGeometry.Geometry.Manifold.IsManifold.InteriorBoundary
-import Mathlib.Topology.Algebra.Module.PerfectSpace
+import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Discrete
 import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Push
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Section.Generic
-import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Configuration
 import TauCeti.Geometry.Manifold.Boundary.Collar.Topological
-import TauCeti.Geometry.Manifold.ChartedSpace
-import TauCeti.Geometry.Manifold.Connected
 import TauCeti.Geometry.Manifold.ModelTransport.Interior
 import TauCeti.Geometry.Manifold.VectorBundle.Section.Generic
 import TauCeti.Geometry.Manifold.VectorBundle.Section.Module
@@ -51,10 +48,11 @@ every bundle of rank at least two. The argument replaces the book's cutting of t
 2. A collar of the boundary gives a map `g : M → M` homotopic to the identity with image in a
    compact subset `K` of `M°` that misses a nonempty open subset of `M°`
    (`TauCeti.IsCollar.exists_homotopy_push`).
-3. `M°` is connected, and stays connected after removing a closed discrete set, so a diffeotopy of
-   `M°` moves the finitely many zeros in `K` out of `K`, keeping the other zeros fixed (Tau Ceti's
-   `exists_diffeotopy_final_comp_eq_of_isPreconnected`). Following `g` by its final map gives a
-   map `h` homotopic to the identity along which the section `σ` has no zero.
+3. `M°` is connected, and stays connected after removing a closed discrete set, so some
+   diffeotopy of `M°` has a final map that sends no point of `K` to a zero of `σ`
+   (`TauCeti.exists_diffeotopy_apply_one_notMem`); its inverse carries the finitely many zeros in
+   `K` out of `K` and fixes the other zeros. Following `g` by this final map gives a map `h`
+   homotopic to the identity along which the section `σ` has no zero.
 4. Homotopy invariance of bundles (Tau Ceti's
    `ContinuousMap.Homotopic.exists_continuousLinearEquiv_pullback`) identifies `h^* V` with `V`,
    so `σ ∘ h` gives a continuous nowhere-zero section of `V`, which is then smoothed.
@@ -108,66 +106,6 @@ namespace SymplecticGeometry
 
 open Set Module TauCeti
 
-section Diffeotopy
-
-variable {E N : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
-  [TopologicalSpace N] [ChartedSpace E N] [T2Space N] [IsManifold 𝓘(ℝ, E) ∞ N]
-
-/-- A closed discrete subset `Z` of a preconnected boundaryless manifold of dimension at least two
-can be moved off a compact set `K` with nonempty complement: the final map of some diffeotopy sends
-no point of `K` into `Z`. -/
-private theorem exists_diffeotopy_apply_one_notMem [PreconnectedSpace N]
-    (hdim : 1 < Module.rank ℝ E) {Z K : Set N} (hZ : IsClosed Z) (hZd : IsDiscrete Z)
-    (hK : IsCompact K) (hKc : Kᶜ.Nonempty) :
-    ∃ Ψ : Diffeotopy 𝓘(ℝ, E) 1 N, ∀ y ∈ K, Ψ (1, y) ∉ Z := by
-  classical
-  have : Nontrivial E := rank_pos_iff_nontrivial.mp (zero_lt_one.trans hdim)
-  have : PerfectSpace E := perfectSpace_of_module ℝ E
-  have : PerfectSpace N := ChartedSpace.perfectSpace (H := E)
-  -- The points of `Z` in `K`, enumerated.
-  have hA : (Z ∩ K).Finite := (hK.inter_left hZ).finite (hZd.mono inter_subset_left)
-  have := hA.to_subtype
-  let e := Finite.equivFin (Z ∩ K : Set N)
-  -- `Z` has empty interior, so infinitely many points lie outside `Z ∪ K`: the targets.
-  have hZi : Dense Zᶜ := by
-    rw [← interior_eq_empty_iff_dense_compl, eq_empty_iff_forall_notMem]
-    intro y hy
-    obtain ⟨W, hW, hWZ⟩ := isDiscrete_iff_forall_mem_exists_isOpen.1 hZd y (interior_subset hy)
-    have hyW : y ∈ W := (hWZ.symm ▸ mem_singleton y : y ∈ W ∩ Z).1
-    apply not_isOpen_singleton y
-    rw [show ({y} : Set N) = interior Z ∩ W from Subset.antisymm
-      (singleton_subset_iff.2 ⟨hy, hyW⟩) fun z hz ↦ hWZ ▸ ⟨hz.2, interior_subset hz.1⟩]
-    exact isOpen_interior.inter hW
-  have hT : IsOpen (Kᶜ ∩ Zᶜ) := hK.isClosed.isOpen_compl.inter hZ.isOpen_compl
-  obtain ⟨y₀, hy₀⟩ := hZi.inter_open_nonempty Kᶜ hK.isClosed.isOpen_compl hKc
-  let w := (infinite_of_mem_nhds y₀ (hT.mem_nhds hy₀)).natEmbedding
-  -- The points of `Z` outside `K` stay where they are; the rest of `N` is preconnected.
-  have hZK : IsClosed (Z \ K) ∧ IsDiscrete (Z \ K) := isClosed_and_discrete_iff.2 fun x ↦
-    (isClosed_and_discrete_iff.1 ⟨hZ, hZd⟩ x).mono_right (Filter.principal_mono.2 sdiff_subset)
-  obtain ⟨Ψ, L, -, hLU, hΨL, hΨ⟩ := exists_diffeotopy_final_comp_eq_of_isPreconnected
-    (n := ∞) (m := 1) hdim le_rfl (by norm_num) (isOpen_univ.sdiff hZK.1)
-    (isPreconnected_sdiff_of_isOpen_of_isDiscrete_of_one_lt_rank hdim isOpen_univ
-      isPreconnected_univ hZK.1 hZK.2)
-    (f := fun i : Fin (Nat.card (Z ∩ K : Set N)) ↦ (w i : N)) (g := fun i ↦ (e.symm i : N))
-    (Subtype.val_injective.comp (w.injective.comp Fin.val_injective))
-    (Subtype.val_injective.comp e.symm.injective)
-    (fun i ↦ ⟨trivial, fun h ↦ (w i).prop.2 h.1⟩)
-    (fun i ↦ ⟨trivial, fun h ↦ h.2 (e.symm i).prop.2⟩)
-  refine ⟨Ψ, fun y hy hyZ ↦ ?_⟩
-  by_cases hyK : Ψ (1, y) ∈ K
-  · -- A point of `Z ∩ K` is the image of a target, which lies outside `K`.
-    have h := congrFun hΨ (e ⟨_, hyZ, hyK⟩)
-    simp only [Function.comp_apply, Equiv.symm_apply_apply] at h
-    have := Ψ.final.injective (h.trans (Diffeotopy.final_apply Ψ y).symm)
-    exact (w _).prop.1 (this ▸ hy)
-  · -- A point of `Z` outside `K` is fixed, so it is its own preimage.
-    have hfix : Ψ (1, Ψ (1, y)) = Ψ (1, y) := hΨL 1 fun h ↦ (hLU h).2 ⟨hyZ, hyK⟩
-    have := Ψ.final.injective ((Ψ.final_apply _).trans (hfix.trans (Ψ.final_apply y).symm))
-    rw [this] at hyK
-    exact hyK hy
-
-end Diffeotopy
-
 section Generic
 
 open ContMDiffSection
@@ -219,9 +157,10 @@ private theorem exists_contMDiffSection_isDiscrete_interior [SecondCountableTopo
 
 omit [CompactSpace M] [FiniteDimensional ℝ F] [ContMDiffVectorBundle ∞ F V I] in
 attribute [local instance] BoundarylessModel.interiorChartedSpace in
-/-- In the interior of a connected manifold of dimension at least two, the zeros of a section that
-are isolated in the interior can be moved off a compact subset `K` of the interior whose complement
-in the interior is nonempty, by a homotopy of the interior starting at the identity. -/
+/-- In the interior of a connected manifold of dimension at least two, let `σ` be a section whose
+zeros in the interior are isolated, and `K` a compact subset of the interior whose complement in the
+interior is nonempty. Some homotopy of the interior, starting at the identity, ends at a map that
+sends no point of `K` to a zero of `σ`. -/
 private theorem exists_homotopy_interior_ne_zero [ConnectedSpace M] (hdim : 1 < finrank ℝ E)
     (σ : ContMDiffSection I F ∞ V) (hσ : IsDiscrete {x : I.interiorOpens M | σ x = 0})
     {K : Set (I.interiorOpens M)} (hK : IsCompact K) (hKc : Kᶜ.Nonempty) :
@@ -236,8 +175,8 @@ private theorem exists_homotopy_interior_ne_zero [ConnectedSpace M] (hdim : 1 < 
     σ.isClosed_setOf_eq_zero.preimage continuous_subtypeVal
   have hZd : IsDiscrete (X := N) {x : U | σ x = 0} := hσ
   have hK' : IsCompact (X := N) K := hK
-  obtain ⟨Ψ, hΨ⟩ := exists_diffeotopy_apply_one_notMem (E := E) (N := N)
-    (by rw [← Module.finrank_eq_rank]; exact_mod_cast hdim) hZ hZd hK' hKc
+  obtain ⟨Ψ, hΨ⟩ := exists_diffeotopy_apply_one_notMem (E := E) (N := N) (n := ∞) (m := 1)
+    (by rw [← Module.finrank_eq_rank]; exact_mod_cast hdim) le_rfl (by norm_num) hZ hZd hK' hKc
   exact ⟨fun p ↦ Ψ p, Ψ.contMDiff.continuous, Ψ.apply_zero, hΨ⟩
 
 end Generic
@@ -259,8 +198,7 @@ theorem exists_contMDiffSection_forall_ne_zero_of_boundary_nonempty
     (hM : ((𝓡∂ (n + 2)).boundary M).Nonempty) (hF : n + 2 ≤ finrank ℝ F) :
     ∃ t : ContMDiffSection (𝓡∂ (n + 2)) F ∞ V, ∀ x, t x ≠ 0 := by
   have : SecondCountableTopology M :=
-    have : SecondCountableTopology (EuclideanHalfSpace (n + 2)) :=
-      inferInstanceAs (SecondCountableTopology {x : EuclideanSpace ℝ (Fin (n + 2)) // 0 ≤ x 0})
+    have := (𝓡∂ (n + 2)).secondCountableTopology
     ChartedSpace.secondCountable_of_sigmaCompact (EuclideanHalfSpace (n + 2)) M
   -- A section whose zeros in the interior form a discrete set.
   obtain ⟨σ, hσ⟩ := exists_contMDiffSection_isDiscrete_interior (I := 𝓡∂ (n + 2)) (V := V)
