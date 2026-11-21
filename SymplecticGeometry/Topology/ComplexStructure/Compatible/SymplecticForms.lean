@@ -54,6 +54,8 @@ equivalent. The same inverses fix the complex structures that preserve `g` and t
 * `SymplecticGeometry.continuous_metricSymplecticForm`: `J ↦ ω_{g,J}` is continuous.
 * `SymplecticGeometry.metricSymplecticForm_innerSL`: for the inner product of an inner product
   space, `ω_{g,J}` is Tau Ceti's `AlmostComplexStructure.symplecticForm`.
+* `SymplecticGeometry.mem_metricComplexStructures_innerSL`: for the inner product of an inner
+  product space, `J` preserves it exactly when `⟪J u, J v⟫ = ⟪u, v⟫`.
 * `SymplecticGeometry.metricComplexStructures_innerSL`: for the standard inner product of
   `EuclideanSpace ℝ n`, the `g`-orthogonal structures are `orthogonalComplexStructures n`.
 * `SymplecticGeometry.metricPolarComplexStructure_eq_inverse_mul_and_homotopyEquiv`: the formula,
@@ -136,7 +138,7 @@ theorem metricSymplecticForm_innerSL {E : Type*} [NormedAddCommGroup E] [InnerPr
     metricSymplecticForm ⟨innerSL ℝ, innerSL_mem_innerProducts⟩ J = J.symplecticForm hJ :=
   toBilinForm_injective <| LinearMap.ext₂ fun v w ↦
     (metricSymplecticForm_eq_of_apply_apply (g := ⟨innerSL ℝ, innerSL_mem_innerProducts⟩)
-      (fun u v ↦ by rw [innerSL_apply_apply, innerSL_apply_apply]; exact hJ u v) v w).trans
+      (fun u v ↦ by simpa only [innerSL_real_apply_apply] using hJ u v) v w).trans
       (J.symplecticForm_apply hJ v w).symm
 
 variable [FiniteDimensional ℝ V]
@@ -303,6 +305,14 @@ theorem mem_metricComplexStructures {J : AlmostComplexStructure V} :
       ∀ u v, (g : V →L[ℝ] V →L[ℝ] ℝ) (J u) (J v) = (g : V →L[ℝ] V →L[ℝ] ℝ) u v :=
   Iff.rfl
 
+/-- For the inner product of a real inner product space, a complex structure preserves it
+exactly when `⟪J u, J v⟫ = ⟪u, v⟫` for all `u` and `v`. -/
+theorem mem_metricComplexStructures_innerSL {E : Type*} [NormedAddCommGroup E]
+    [InnerProductSpace ℝ E] {J : AlmostComplexStructure E} :
+    J ∈ metricComplexStructures ⟨innerSL ℝ, innerSL_mem_innerProducts⟩ ↔
+      ∀ u v, inner ℝ (J u) (J v) = inner ℝ u v :=
+  Iff.rfl
+
 @[simp]
 theorem mem_metricSymplecticForms {ω : SymplecticForm V} :
     ω ∈ metricSymplecticForms g ↔
@@ -315,8 +325,7 @@ theorem metricComplexStructures_innerSL (n : Type*) [Fintype n] :
     metricComplexStructures ⟨innerSL ℝ, innerSL_mem_innerProducts⟩ =
       orthogonalComplexStructures n := by
   ext J
-  rw [mem_metricComplexStructures, mem_orthogonalComplexStructures_iff_inner]
-  exact forall₂_congr fun u v ↦ by rw [innerSL_apply_apply, innerSL_apply_apply]
+  rw [mem_metricComplexStructures_innerSL, mem_orthogonalComplexStructures_iff_inner]
 
 /-- The forms compatible with `g` are the forms `ω_{g,J}` of the `g`-orthogonal complex
 structures `J`. -/
