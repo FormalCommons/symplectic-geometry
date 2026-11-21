@@ -1676,7 +1676,8 @@ has either; Tau Ceti's extension across a boundary,
   restriction compares with `TauCeti.timeDependentFlowDiffeotopy`; and the
   reading of a `Diffeotopy` $\Phi$ over `ℝ` as $t\mapsto\Phi_{s(t)}$,
   $s=$ `Real.smoothTransition`, with its `TauCeti.eulerianField`
-  $s'(t)X_{s(t)}$, with `Analysis/SpecialFunctions/SmoothTransition.lean`)
+  $s'(t)X_{s(t)}$, with `Analysis/SpecialFunctions/SmoothTransition.lean`
+  and `Geometry/Manifold/SmoothTransition.lean`)
   and `Geometry/Diffeomorphism/Diffeotopy/OfContMDiff.lean` (the
   constructor of a `TauCeti.Diffeotopy I ∞ M` from a jointly smooth map on
   `unitInterval × M` that is the identity at time $0$ and whose slices
@@ -1708,7 +1709,9 @@ has either; Tau Ceti's extension across a boundary,
   velocity $X_t$ of a `TauCeti.Diffeotopy`, read along the motion, as
   `TauCeti.Diffeotopy.velocity`), with
   `Geometry/Manifold/Instances/Icc.lean` (the unit vector field of an
-  interval is smooth),
+  interval is smooth) and `Geometry/Manifold/MFDeriv/Prod.lean` (the
+  derivative of a map on a product on `(0, w)` and `(v, 0)` is a partial
+  derivative),
   `Geometry/Symplectic/Hamiltonian/SymplecticIsotopy.lean`
   (symplectic vector fields and their local flows; a `TauCeti.Diffeotopy`
   has all its slices in `TauCeti.SmoothForm.diffeomorphStabilizer ω`
@@ -1783,7 +1786,10 @@ has either; Tau Ceti's extension across a boundary,
   the flow of $X_H$ for $H(q,p)=p(Y_q)$ where defined, and a complete flow
   when $Y$ is complete); `Geometry/Manifold/Flow/Basic.lean` (named like Tau
   Ceti's file: the differentials of the time-$t$ and time-$(-t)$ maps of a
-  maximal flow are inverse, which `Lift.lean` uses); and
+  maximal flow are inverse, which `Lift.lean` uses);
+  `Geometry/Symplectic/Hamiltonian/Manifold.lean` (named like Tau Ceti's
+  file: Hamiltonian vector fields of $C^{n+1}$ functions are $C^n$, which
+  `Lift.lean` uses); and
   `Geometry/Manifold/VectorBundle/Section/Extension.lean` (named like Tau
   Ceti's file, whose `FiberBundle.contMDiffExtend` it uses: the differential
   of a section in the chart at its value, `Bundle.mfderiv_section_apply`, and
