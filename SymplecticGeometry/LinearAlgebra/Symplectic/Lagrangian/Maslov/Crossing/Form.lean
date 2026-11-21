@@ -5,9 +5,8 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import Mathlib.Analysis.Calculus.Deriv.Mul
-public import Mathlib.Analysis.Calculus.Deriv.Prod
 public import Mathlib.Topology.UnitInterval
+public import SymplecticGeometry.Analysis.Calculus.Deriv.Matrix
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Lagrangian.Transverse
 public import TauCeti.Analysis.Matrix.ContinuousBilinearForm
 public import TauCeti.Analysis.Matrix.HermitianSignature.Matrix
@@ -138,72 +137,6 @@ theorem lagrangianCrossingForm_graph (A X' A' : Matrix ι ι ℝ) :
 
 /-! ### Symmetry -/
 
-/-- Entrywise form of a derivative of a path of matrices. -/
-private theorem hasDerivWithinAt_apply_apply {κ μ : Type*} [Finite κ] [Finite μ]
-    {A : ℝ → Matrix κ μ ℝ} {A' : Matrix κ μ ℝ} {s : Set ℝ} {t : ℝ}
-    (hA : HasDerivWithinAt A A' s t) (i : κ) (j : μ) :
-    HasDerivWithinAt (fun r ↦ A r i j) (A' i j) s t := by
-  have := Fintype.ofFinite κ
-  have := Fintype.ofFinite μ
-  have hA' : HasDerivWithinAt (F := κ → μ → ℝ) A A' s t := hA
-  exact hasDerivWithinAt_pi.1 (hasDerivWithinAt_pi.1 hA' i) j
-
-/-- The product rule for paths of matrices. -/
-private theorem hasDerivWithinAt_mul {κ μ ν : Type*} [Finite κ] [Fintype μ] [Finite ν]
-    {A : ℝ → Matrix κ μ ℝ} {B : ℝ → Matrix μ ν ℝ} {A' : Matrix κ μ ℝ} {B' : Matrix μ ν ℝ}
-    {s : Set ℝ} {t : ℝ} (hA : HasDerivWithinAt A A' s t) (hB : HasDerivWithinAt B B' s t) :
-    HasDerivWithinAt (fun r ↦ A r * B r) (A' * B t + A t * B') s t := by
-  have := Fintype.ofFinite κ
-  have := Fintype.ofFinite ν
-  have h : HasDerivWithinAt (F := κ → ν → ℝ) (fun r ↦ A r * B r) (A' * B t + A t * B') s t :=
-      by
-    refine hasDerivWithinAt_pi.2 fun i ↦ hasDerivWithinAt_pi.2 fun j ↦ ?_
-    simpa only [Matrix.mul_apply, Matrix.add_apply, ← Finset.sum_add_distrib] using
-      HasDerivWithinAt.fun_sum (u := Finset.univ) fun k _ ↦
-        (hasDerivWithinAt_apply_apply hA i k).fun_mul (hasDerivWithinAt_apply_apply hB k j)
-  exact h
-
-/-- The derivative of a path of transposed matrices. -/
-private theorem hasDerivWithinAt_transpose {κ μ : Type*} [Finite κ] [Finite μ]
-    {A : ℝ → Matrix κ μ ℝ} {A' : Matrix κ μ ℝ} {s : Set ℝ} {t : ℝ}
-    (hA : HasDerivWithinAt A A' s t) :
-    HasDerivWithinAt (fun r ↦ (A r)ᵀ) A'ᵀ s t := by
-  have := Fintype.ofFinite κ
-  have := Fintype.ofFinite μ
-  have h : HasDerivWithinAt (F := μ → κ → ℝ) (fun r ↦ (A r)ᵀ) A'ᵀ s t :=
-    hasDerivWithinAt_pi.2 fun i ↦ hasDerivWithinAt_pi.2 fun j ↦
-      hasDerivWithinAt_apply_apply hA j i
-  exact h
-
-/-- A constant path of matrices has derivative zero. -/
-private theorem hasDerivWithinAt_matrix_const {κ μ : Type*} [Finite κ] [Finite μ]
-    (C : Matrix κ μ ℝ) (s : Set ℝ) (t : ℝ) : HasDerivWithinAt (fun _ : ℝ ↦ C) 0 s t := by
-  have := Fintype.ofFinite κ
-  have := Fintype.ofFinite μ
-  have h : HasDerivWithinAt (F := κ → μ → ℝ) (fun _ ↦ C) 0 s t :=
-    hasDerivWithinAt_const t s (show κ → μ → ℝ from C)
-  exact h
-
-/-- The derivative of `r ↦ (C * A r)ᵀ * D * B r`. -/
-private theorem hasDerivWithinAt_transpose_mul_mul {κ ν : Type*} [Fintype κ]
-    [Finite ν] (C : Matrix κ κ ℝ) (D : Matrix κ κ ℝ) {A B : ℝ → Matrix κ ν ℝ}
-    {A' B' : Matrix κ ν ℝ} {s : Set ℝ} {t : ℝ} (hA : HasDerivWithinAt A A' s t)
-    (hB : HasDerivWithinAt B B' s t) :
-    HasDerivWithinAt (fun r ↦ (C * A r)ᵀ * D * B r)
-      ((C * A')ᵀ * D * B t + (C * A t)ᵀ * D * B') s t := by
-  have h := hasDerivWithinAt_mul (hasDerivWithinAt_mul (hasDerivWithinAt_transpose
-    (hasDerivWithinAt_mul (hasDerivWithinAt_matrix_const C s t) hA))
-      (hasDerivWithinAt_matrix_const D s t)) hB
-  convert h using 1
-  simp
-
-/-- A matrix `M` with `u ⬝ᵥ M *ᵥ v = 0` for all `u` and `v` is zero. -/
-private theorem eq_zero_of_dotProduct_mulVec {κ : Type*} [Fintype κ]
-    {M : Matrix κ κ ℝ} (h : ∀ u v : κ → ℝ, u ⬝ᵥ (M *ᵥ v) = 0) : M = 0 := by
-  classical
-  ext i j
-  simpa using h (Pi.single i 1) (Pi.single j 1)
-
 /-- **Symmetry of the crossing form.** Let `Z` be a path of matrices whose images are isotropic
 on a set `s`, with derivative `Z'` within `s` at a point `t ∈ s` of unique differentiability.
 Then `(u, v) ↦ ω₀(Z t u, Z' v)` is symmetric: it is the symmetric bilinear form whose quadratic
@@ -216,27 +149,24 @@ theorem stdForm_toEuclideanLin_comm_of_hasDerivWithinAt {Z : ℝ → Matrix (ι 
     stdForm ι (toEuclideanLin (Z t) u) (toEuclideanLin Z' v) =
       stdForm ι (toEuclideanLin (Z t) v) (toEuclideanLin Z' u) := by
   -- The Gram matrices of `ω₀` on the columns of `Z r` vanish on `s`, so their derivative does.
-  have h0 : ∀ r ∈ s, ((1 : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ) * Z r)ᵀ * -J ι ℝ * Z r = 0 := by
+  have h0 : ∀ r ∈ s, (Z r)ᵀ * -J ι ℝ * Z r = 0 := by
     intro r hr
-    refine eq_zero_of_dotProduct_mulVec fun a b ↦ ?_
-    have h := stdForm_toEuclideanLin_toEuclideanLin (Z r) (Z r) (WithLp.toLp 2 a)
-      (WithLp.toLp 2 b)
-    rw [Matrix.one_mul, ← h]
+    refine (Matrix.toLinearMap₂' ℝ (N₂ := ℝ) (S₁ := ℝ) (S₂ := ℝ)).injective
+      (LinearMap.ext₂ fun a b ↦ ?_)
+    rw [Matrix.toLinearMap₂'_apply', map_zero, LinearMap.zero_apply, LinearMap.zero_apply,
+      ← WithLp.ofLp_toLp 2 a, ← WithLp.ofLp_toLp 2 b, ← stdForm_toEuclideanLin_toEuclideanLin]
     exact SymplecticForm.isIsotropic_iff.1 (hZ r hr) _ ⟨_, rfl⟩ _ ⟨_, rfl⟩
-  have hM : HasDerivWithinAt (F := ι → ι → ℝ)
-      (fun r ↦ ((1 : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ) * Z r)ᵀ * -J ι ℝ * Z r)
-      (((1 : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ) * Z')ᵀ * -J ι ℝ * Z t +
-        ((1 : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ) * Z t)ᵀ * -J ι ℝ * Z') s t :=
-    hasDerivWithinAt_transpose_mul_mul (1 : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ) (-J ι ℝ) hd hd
-  have hM0 : HasDerivWithinAt (F := ι → ι → ℝ)
-      (fun r ↦ ((1 : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ) * Z r)ᵀ * -J ι ℝ * Z r) 0 s t :=
-    (hasDerivWithinAt_const t s (0 : ι → ι → ℝ)).congr h0 (h0 t ht)
-  have hzero : ((1 : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ) * Z')ᵀ * -J ι ℝ * Z t +
-      ((1 : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ) * Z t)ᵀ * -J ι ℝ * Z' = 0 := by
-    have h := hs.eq_deriv _ hM hM0
-    exact h
+  have hM : HasDerivWithinAt (fun r ↦ (Z r)ᵀ * -J ι ℝ * Z r)
+      (Z'ᵀ * -J ι ℝ * Z t + (Z t)ᵀ * -J ι ℝ * Z') s t := by
+    convert (hd.matrix_transpose.matrix_mul (hasDerivWithinAt_matrix_const _ s t)).matrix_mul hd
+      using 1
+    simp
+  -- `UniqueDiffWithinAt.eq_deriv` reads matrices as functions `ι → ι → ℝ`.
+  have hzero : Z'ᵀ * -J ι ℝ * Z t + (Z t)ᵀ * -J ι ℝ * Z' = 0 :=
+    hs.eq_deriv (F := ι → ι → ℝ) _ hM
+      ((hasDerivWithinAt_const t s (0 : ι → ι → ℝ)).congr h0 (h0 t ht))
   have key := congrArg (fun M : Matrix ι ι ℝ ↦ u.ofLp ⬝ᵥ (M *ᵥ v.ofLp)) hzero
-  simp only [Matrix.one_mul, add_mulVec, dotProduct_add, zero_mulVec, dotProduct_zero] at key
+  simp only [add_mulVec, dotProduct_add, zero_mulVec, dotProduct_zero] at key
   rw [← stdForm_toEuclideanLin_toEuclideanLin, ← stdForm_toEuclideanLin_toEuclideanLin] at key
   have h := (stdForm ι).neg_eq (toEuclideanLin Z' u) (toEuclideanLin (Z t) v)
   simp only at key h ⊢
@@ -270,33 +200,19 @@ theorem lagrangianCrossingForm_mul_equivalent {Z : Matrix (ι ⊕ ι) ι ℝ}
     (lagrangianCrossingForm Z Z' V).Equivalent
       (lagrangianCrossingForm (Z * (g : Matrix ι ι ℝ)) (Z' * (g : Matrix ι ι ℝ) + Z * h)
         V) := by
-  have hinv (a b : GL ι ℝ) (hab : a * b = 1) (u : EuclideanSpace ℝ ι) :
-      toEuclideanLin (a : Matrix ι ι ℝ) (toEuclideanLin (b : Matrix ι ι ℝ) u) = u := by
-    rw [← LinearMap.comp_apply, ← toLpLin_mul_same, ← Units.val_mul, hab, Units.val_one,
-      toLpLin_one, LinearMap.id_apply]
-  let e : EuclideanSpace ℝ ι ≃ₗ[ℝ] EuclideanSpace ℝ ι :=
-    LinearEquiv.ofLinearMap (toEuclideanLin (↑g⁻¹ : Matrix ι ι ℝ))
-      (toEuclideanLin (g : Matrix ι ι ℝ))
-      (LinearMap.ext (hinv _ _ (inv_mul_cancel g))) (LinearMap.ext (hinv _ _ (mul_inv_cancel g)))
+  let e := ((g : Matrix ι ι ℝ).toEuclideanCLE g.det_ne_zero).symm.toLinearEquiv
   have hmap : (V.comap (toEuclideanLin Z)).map (e : EuclideanSpace ℝ ι →ₗ[ℝ] _) =
       V.comap (toEuclideanLin (Z * (g : Matrix ι ι ℝ))) := by
+    rw [Submodule.map_equiv_eq_comap_symm]
     ext w
-    rw [Submodule.mem_map_equiv, Submodule.mem_comap, Submodule.mem_comap, toLpLin_mul_same]
-    rfl
+    simp [e, toLpLin_mul_same]
   refine ⟨⟨LinearEquiv.ofSubmodules e _ _ hmap, fun u ↦ ?_⟩⟩
+  have hu := ContinuousLinearEquiv.apply_symm_apply
+    ((g : Matrix ι ι ℝ).toEuclideanCLE g.det_ne_zero) (u : EuclideanSpace ℝ ι)
+  rw [toEuclideanCLE_apply] at hu
   rw [lagrangianCrossingForm_mul_apply hZ]
   congr 1
-  exact Subtype.ext (hinv _ _ (mul_inv_cancel g) u)
-
-/-- A symplectic matrix is injective on `StdSpace ι`. -/
-private theorem injective_toEuclideanLin_of_mem_symplecticGroup
-    {Ψ : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ} (hΨ : Ψ ∈ symplecticGroup ι ℝ) :
-    Function.Injective (toEuclideanLin Ψ) := by
-  intro a b hab
-  have h := congrArg (toEuclideanLin Ψ⁻¹) hab
-  rwa [← LinearMap.comp_apply, ← LinearMap.comp_apply, ← toLpLin_mul_same,
-    nonsing_inv_mul _ (SymplecticGroup.symplectic_det hΨ), toLpLin_one] at h
-
+  exact Subtype.ext hu
 /-- **Naturality of the crossing form.** A symplectic matrix `Ψ` carries the crossing form of `Z`
 and `Z'` relative to `V` to that of `Ψ * Z` and `Ψ * Z'` relative to `Ψ V`, on the same vectors
 `u`. -/
@@ -317,10 +233,12 @@ theorem lagrangianCrossingForm_symplectic_mul_equivalent {Ψ : Matrix (ι ⊕ ι
     (hΨ : Ψ ∈ symplecticGroup ι ℝ) (Z Z' : Matrix (ι ⊕ ι) ι ℝ) (V : Submodule ℝ (StdSpace ι)) :
     (lagrangianCrossingForm Z Z' V).Equivalent
       (lagrangianCrossingForm (Ψ * Z) (Ψ * Z') (V.map (toEuclideanLin Ψ))) := by
+  have hinj : Function.Injective (toEuclideanLin Ψ) := fun a b hab ↦
+    (Ψ.toEuclideanCLE (SymplecticGroup.symplectic_det hΨ).ne_zero).injective (by simpa using hab)
   have hdom : V.comap (toEuclideanLin Z) =
       (V.map (toEuclideanLin Ψ)).comap (toEuclideanLin (Ψ * Z)) := by
     rw [toLpLin_mul_same, Submodule.comap_comp,
-      Submodule.comap_map_eq_of_injective (injective_toEuclideanLin_of_mem_symplecticGroup hΨ)]
+      Submodule.comap_map_eq_of_injective hinj]
   refine ⟨⟨LinearEquiv.ofEq _ _ hdom, fun u ↦ ?_⟩⟩
   exact lagrangianCrossingForm_symplectic_mul_apply hΨ Z Z' V u.property
 
@@ -354,6 +272,17 @@ private theorem projForm_apply (P : StdSpace ι →ₗ[ℝ] StdSpace ι) (Z₁ Z
       stdForm ι (P (toEuclideanLin Z₁ (WithLp.toLp 2 u)))
         (toEuclideanLin Z₂ (WithLp.toLp 2 v)) := by
   rw [toContinuousLinearMap₂'_apply, dotProduct_projForm_mulVec]
+
+/-- The derivative of `r ↦ (u, v) ↦ ω₀(P (Z r u), Z r v)`, as matrices. -/
+private theorem hasDerivWithinAt_projForm (P : StdSpace ι →ₗ[ℝ] StdSpace ι)
+    {Z : ℝ → Matrix (ι ⊕ ι) ι ℝ} {Z' : Matrix (ι ⊕ ι) ι ℝ} {s : Set ℝ} {t : ℝ}
+    (hd : HasDerivWithinAt Z Z' s t) :
+    HasDerivWithinAt (fun r ↦ projForm P (Z r) (Z r))
+      (projForm P Z' (Z t) + projForm P (Z t) Z') s t := by
+  have hc (C : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ) := hasDerivWithinAt_matrix_const C s t
+  convert (((hc (toEuclideanLin.symm P)).matrix_mul hd).matrix_transpose.matrix_mul
+    (hc (-J ι ℝ))).matrix_mul hd using 1 <;>
+  simp [projForm]
 
 /-- The form `(u, v) ↦ ω₀(P (Z u), Z v)`, for the projection `P` onto an isotropic `V` along an
 isotropic `W`, is symmetric when `Z` has isotropic image. -/
@@ -409,7 +338,7 @@ private noncomputable def lagrangianCrossingFormIsometryEquivProjForm
       (projForm P Z Z).toContinuousLinearMap₂'.ker := by
     ext a
     rw [Submodule.mem_map_equiv, Submodule.mem_comap, LinearMap.mem_ker]
-    change toEuclideanLin Z (WithLp.toLp 2 a) ∈ V ↔ _
+    rw [WithLp.coe_symm_linearEquiv]
     set x := toEuclideanLin Z (WithLp.toLp 2 a)
     constructor
     · intro ha
@@ -437,35 +366,16 @@ private noncomputable def lagrangianCrossingFormIsometryEquivProjForm
       exact Submodule.projection_apply_mem _ _
   refine ⟨LinearEquiv.ofSubmodules _ _ _ hker, fun u ↦ ?_⟩
   have hu : toEuclideanLin Z (u : EuclideanSpace ℝ ι) ∈ V := u.property
-  have he (x : EuclideanSpace ℝ ι) : WithLp.toLp 2 ((WithLp.addEquiv 2 (ι → ℝ)).toFun x) = x :=
-    rfl
   simp only [LinearMap.toFun_eq_coe, LinearEquiv.coe_coe, LinearEquiv.ofSubmodules_apply,
     ContinuousLinearMap.crossingForm_apply,
     toContinuousLinearMap₂'_apply, add_mulVec, dotProduct_add, dotProduct_projForm_mulVec,
-    WithLp.linearEquiv_apply, he, lagrangianCrossingForm_apply]
+    WithLp.coe_linearEquiv, WithLp.toLp_ofLp, lagrangianCrossingForm_apply]
   have h1 : P (toEuclideanLin Z (u : EuclideanSpace ℝ ι)) = toEuclideanLin Z u :=
     Submodule.projection_apply_of_mem_left hVW hu
   have h0 := SymplecticForm.isIsotropic_iff.1 hV _
     (Submodule.projection_apply_mem hVW (toEuclideanLin Z' (u : EuclideanSpace ℝ ι))) _ hu
   simp only at h0
   rw [h1, h0, zero_add]
-
-/-- Away from a regular crossing, in one direction: if a statement holds eventually on the side
-where the parameter stays in `[0, 1]`, it holds eventually on both sides of `t₀` for parameters in
-`[0, 1]`. -/
-private theorem eventually_nhdsNE_of_lt_of_lt {p : ℝ → Prop} {t₀ : ℝ} (ht₀ : t₀ ∈ Icc (0 : ℝ) 1)
-    (hl : 0 < t₀ → ∀ᶠ t in 𝓝[<] t₀, p t) (hr : t₀ < 1 → ∀ᶠ t in 𝓝[>] t₀, p t) :
-    ∀ᶠ t in 𝓝[≠] t₀, t ∈ Icc (0 : ℝ) 1 → p t := by
-  rw [← nhdsLT_sup_nhdsGT, eventually_sup]
-  constructor
-  · rcases ht₀.1.lt_or_eq with h | h
-    · exact (hl h).mono fun _ ht _ ↦ ht
-    · filter_upwards [self_mem_nhdsWithin] with t ht htI
-      exact absurd (htI.1.trans_lt (h ▸ ht)) (lt_irrefl _)
-  · rcases ht₀.2.lt_or_eq with h | h
-    · exact (hr h).mono fun _ ht _ ↦ ht
-    · filter_upwards [self_mem_nhdsWithin] with t ht htI
-      exact absurd ((h ▸ ht : 1 < t).trans_le htI.2) (lt_irrefl _)
 
 end Isolated
 
@@ -496,12 +406,9 @@ theorem eventually_not_crossing_of_regular (γ : I → ℒ ι) (V : ℒ ι)
   have hsymm (r : ℝ) (hr : r ∈ Icc (0 : ℝ) 1) : (β r).toBilinForm.IsSymm :=
     isSymm_projForm V.isLagrangian.isIsotropic W.isLagrangian.isIsotropic hVW (hiso r hr)
   -- The derivative of `β` within any set that agrees with `[0, 1]` near `t₀`.
-  have hβ {s : Set ℝ} (hs : Icc 0 1 ∈ 𝓝[s] (t₀ : ℝ)) : HasDerivWithinAt β β' s t₀ := by
-    have hb : HasDerivWithinAt (fun r ↦ projForm P (Z r) (Z r))
-        (projForm P Z' (Z t₀) + projForm P (Z t₀) Z') (Icc 0 1) t₀ :=
-      hasDerivWithinAt_transpose_mul_mul _ (-J ι ℝ) hd hd
-    exact hasDerivWithinAt_toContinuousLinearMap₂' fun i j ↦
-      (hasDerivWithinAt_apply_apply hb i j).mono_of_mem_nhdsWithin hs
+  have hβ {s : Set ℝ} (hs : Icc 0 1 ∈ 𝓝[s] (t₀ : ℝ)) : HasDerivWithinAt β β' s t₀ :=
+    hasDerivWithinAt_toContinuousLinearMap₂' fun i j ↦
+      ((hasDerivWithinAt_projForm P hd).matrix_elem i j).mono_of_mem_nhdsWithin hs
   have hreg' : (ContinuousLinearMap.crossingForm (β t₀) β').Nondegenerate := by
     have hZ₀ := hZ t₀
     exact (lagrangianCrossingFormIsometryEquivProjForm V.isLagrangian.isIsotropic hVW
@@ -510,21 +417,30 @@ theorem eventually_not_crossing_of_regular (γ : I → ℒ ι) (V : ℒ ι)
   -- Tau Ceti's one-sided isolation theorems for symmetric bilinear forms, on each side of `t₀`
   -- that lies in `[0, 1]`.
   have hR : ∀ᶠ r in 𝓝[≠] (t₀ : ℝ), r ∈ Icc (0 : ℝ) 1 → (β r).toBilinForm.Nondegenerate := by
-    refine eventually_nhdsNE_of_lt_of_lt t₀.property (fun h ↦ ?_) fun h ↦ ?_
-    · have hs : ∀ᶠ r in 𝓝[<] (t₀ : ℝ), (β r).toBilinForm.IsSymm := by
+    rw [← nhdsLT_sup_nhdsGT, eventually_sup]
+    constructor
+    · -- Left of `t₀`: empty in `[0, 1]` if `t₀ = 0`.
+      rcases t₀.property.1.eq_or_lt with h | h
+      · filter_upwards [self_mem_nhdsWithin] with r hr hrI
+        exact (by linarith [hrI.1, mem_Iio.1 hr] : False).elim
+      have hs : ∀ᶠ r in 𝓝[<] (t₀ : ℝ), (β r).toBilinForm.IsSymm := by
         filter_upwards [Ioo_mem_nhdsLT h] with r hr
           using hsymm r ⟨hr.1.le, hr.2.le.trans t₀.property.2⟩
       have hI : Icc (0 : ℝ) 1 ∈ 𝓝[≤] (t₀ : ℝ) :=
         mem_of_superset (Icc_mem_nhdsLE h) (Icc_subset_Icc_right t₀.property.2)
-      exact ContinuousLinearMap.eventually_nhdsLT_nondegenerate_of_crossingForm_nondegenerate
-        hs (hsymm _ t₀.property) (hβ hI) hreg'
-    · have hs : ∀ᶠ r in 𝓝[>] (t₀ : ℝ), (β r).toBilinForm.IsSymm := by
+      exact (ContinuousLinearMap.eventually_nhdsLT_nondegenerate_of_crossingForm_nondegenerate
+        hs (hsymm _ t₀.property) (hβ hI) hreg').mono fun _ hr _ ↦ hr
+    · -- Right of `t₀`: empty in `[0, 1]` if `t₀ = 1`.
+      rcases t₀.property.2.eq_or_lt with h | h
+      · filter_upwards [self_mem_nhdsWithin] with r hr hrI
+        exact (by linarith [hrI.2, mem_Ioi.1 hr] : False).elim
+      have hs : ∀ᶠ r in 𝓝[>] (t₀ : ℝ), (β r).toBilinForm.IsSymm := by
         filter_upwards [Ioo_mem_nhdsGT h] with r hr
           using hsymm r ⟨t₀.property.1.trans hr.1.le, hr.2.le⟩
       have hI : Icc (0 : ℝ) 1 ∈ 𝓝[≥] (t₀ : ℝ) :=
         mem_of_superset (Icc_mem_nhdsGE h) (Icc_subset_Icc_left t₀.property.1)
-      exact ContinuousLinearMap.eventually_nhdsGT_nondegenerate_of_crossingForm_nondegenerate
-        hs (hsymm _ t₀.property) (hβ hI) hreg'
+      exact (ContinuousLinearMap.eventually_nhdsGT_nondegenerate_of_crossingForm_nondegenerate
+        hs (hsymm _ t₀.property) (hβ hI) hreg').mono fun _ hr _ ↦ hr
   -- Transfer from `ℝ` to `I`.
   have htend : Tendsto (fun t : I ↦ (t : ℝ)) (𝓝[≠] t₀) (𝓝[≠] (t₀ : ℝ)) :=
     continuous_subtypeVal.continuousWithinAt.tendsto_nhdsWithin fun _ ht h ↦ ht (Subtype.ext h)
