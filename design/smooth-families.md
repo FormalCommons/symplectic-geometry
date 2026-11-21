@@ -392,17 +392,21 @@ Named like Tau Ceti's file; in `TauCeti`.
 ### `Geometry/Manifold/Immersion/TangentProjection.lean`
 
 The local graph charts of a compact manifold in a Euclidean space [Weil1952,
-§1, pp. 120–122]. For a boundaryless `M`, a smooth `e : M → EuclideanSpace ℝ
-(Fin N)` with injective derivatives, and $x\in M$, let $P_x$ be the orthogonal
-projection onto the range of `mfderiv I _ e x`.
+§1, pp. 120–122]. For a boundaryless `M`, a smooth `e : M → F` into a real
+inner product space (such as `EuclideanSpace ℝ (Fin N)`) with injective
+derivatives, and $x\in M$, let $P_x$ be the orthogonal projection onto the
+range of `mvfderiv I e x`.
 
 - `SymplecticGeometry.tangentProjectionChart`: near each `x`, the map
   $z\mapsto P_x(e(z)-e(x))$, as a partial diffeomorphism from a neighbourhood
   of `x` onto an open subset of that range, by the inverse function theorem.
-- `exists_uniform_tangentProjectionChart` for compact `M` and a closed
-  embedding `e`: one radius $r>0$ such that, for every `x`, the chart is
-  defined on $\{z:\|e(z)-e(x)\|<r\}$, and its inverse has second derivative
-  bounded uniformly in `x` there.
+- `exists_uniform_tangentProjectionChart` for compact `M` and an injective
+  `e`: one radius $r>0$ and one bound such that, for every `x`, some partial
+  diffeomorphism given by $z\mapsto P_x(e(z)-e(x))$ on its source is defined
+  on $\{z:\|e(z)-e(x)\|<r\}$, reaches the ball of radius $r$ about $0$, and
+  has an inverse whose composite with `e` has derivatives of order at most 2
+  bounded on its target. It is not `tangentProjectionChart`, whose source is
+  a choice.
 
 ### `Geometry/Manifold/DeRham/GoodCover/Compact.lean`
 
