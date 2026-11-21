@@ -200,9 +200,17 @@ Declarations about Tau Ceti's type go in its namespace
   `g • J = J.transport ((g : Matrix _ _ ℝ).toEuclideanCLE g.det_ne_zero).toLinearEquiv`;
   built as `MulAction.compHom` of the previous action along
   `Matrix.GeneralLinearGroup.ofEuclideanCLE.symm` followed by forgetting
-  continuity. API: `generalLinearGroup_smul_def` (the definition, by `(rfl)`)
-  and `@[simp] generalLinearGroup_smul_apply :
-  (g • J) v = Matrix.toEuclideanLin g (J (Matrix.toEuclideanLin ↑g⁻¹ v))`.
+  continuity. API: `generalLinearGroup_smul_def` (the formula above; not
+  `(rfl)`, since Tau Ceti does not expose the body of `ofEuclideanCLE`),
+  `@[simp] generalLinearGroup_smul_apply :
+  (g • J) v = Matrix.toEuclideanLin g (J (Matrix.toEuclideanLin ↑g⁻¹ v))` and
+  `@[simp] toLinearMap_generalLinearGroup_smul :
+  (g • J).toLinearMap = toEuclideanLin g ∘ₗ J.toLinearMap ∘ₗ toEuclideanLin ↑g⁻¹`.
+- `isComplexLinearMap_self_iff_commute :
+  IsComplexLinearMap J J f ↔ Commute f J.toLinearMap`, for
+  `f : Module.End ℝ V`, and `transport_eq_transport_iff`: for any `J` and
+  `Φ Ψ : V ≃ₗ[ℝ] W`, `J.transport Φ = J.transport Ψ` if and only if
+  `Φ ≪≫ₗ Ψ.symm` is complex linear for `J`.
 - `instance instMulActionSpecialOrthogonalGroup :
   MulAction (specialOrthogonalGroup n ℝ) (AlmostComplexStructure (EuclideanSpace ℝ n))`,
   `MulAction.compHom` of the matrix action along the inclusion
@@ -400,7 +408,7 @@ Declarations about Tau Ceti's type go in its namespace
       (J : AlmostComplexStructure V) (h : finrank ℝ V = 2 * Fintype.card ι) :
       ∃ Φ : StdSpace ι ≃ₗ[ℝ] V, (stdComplexStructure ι).transport Φ = J
   ```
-  with `transport_stdComplexStructure_eq_transport_iff`: two such `Φ`, `Ψ`
+  with `transport_eq_transport_iff` (in `Action.lean`, for `J = J₀`): two such `Φ`, `Ψ`
   give the same structure if and only if `Φ ≪≫ₗ Ψ.symm`, the map
   $\Psi^{-1}\circ\Phi$ of `StdSpace ι` to itself, is complex linear for `J₀`
   (`TauCeti.IsComplexLinearMap`); since `transport e` is conjugation by `e`,
@@ -495,7 +503,7 @@ names, and the first two by the *Standard model* issues (#7, #8).
    actions of `V ≃ₗ[ℝ] V`, of `GL n ℝ` and of `specialOrthogonalGroup n ℝ` in
    `LinearAlgebra/ComplexStructure/Action.lean`;
    `exists_transport_stdComplexStructure_eq`,
-   `transport_stdComplexStructure_eq_transport_iff`, transitivity and
+   `transport_eq_transport_iff`, transitivity and
    `stabilizer_stdComplexStructure`, in
    `LinearAlgebra/ComplexStructure/Standard.lean`. About 200 lines. Blocked
    by #7 and #8.

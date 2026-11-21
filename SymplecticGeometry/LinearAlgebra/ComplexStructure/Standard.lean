@@ -35,7 +35,7 @@ are the points of `GL(2n, ℝ) / GL(n, ℂ)`.
 ## References
 
 * [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017],
-  Proposition 2.5.2.
+  Propositions 2.5.1 and 2.5.2.
 -/
 
 public section
@@ -86,12 +86,11 @@ theorem generalLinearGroup_smul_stdComplexStructure_eq_iff (g : GL (ι ⊕ ι) �
       Commute (Matrix.J ι ℝ) (g : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ) := by
   rw [AlmostComplexStructure.generalLinearGroup_smul_def,
     AlmostComplexStructure.transport_eq_iff_isComplexLinearMap, Commute.symm_iff,
-    ← commute_toEuclideanLin_stdComplexStructure_iff]
-  have : ((g : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ).toEuclideanCLE g.det_ne_zero).toLinearEquiv.toLinearMap =
-      Matrix.toEuclideanLin (g : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ) :=
-    LinearMap.ext fun v ↦ Matrix.toEuclideanCLE_apply _ _ v
-  rw [this, IsComplexLinearMap, Commute, SemiconjBy, Module.End.mul_eq_comp,
-    Module.End.mul_eq_comp, eq_comm]
+    ← commute_toEuclideanLin_stdComplexStructure_iff,
+    AlmostComplexStructure.isComplexLinearMap_self_iff_commute]
+  congr!
+  ext v : 1
+  simp
 
 /-- The stabilizer of `J₀` in `GL (ι ⊕ ι) ℝ` is the realified complex general linear group
 `GL ι ℂ`. -/

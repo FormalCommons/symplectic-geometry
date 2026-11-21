@@ -56,6 +56,12 @@ theorem transport_eq_iff_isComplexLinearMap {J : AlmostComplexStructure V}
   · simpa using h (e v)
   · simpa using h (e.symm w)
 
+/-- An endomorphism of `V` is complex linear for `J` exactly when it commutes with `J`. -/
+theorem isComplexLinearMap_self_iff_commute (J : AlmostComplexStructure V) (f : Module.End ℝ V) :
+    IsComplexLinearMap J J f ↔ Commute f J.toLinearMap := by
+  rw [IsComplexLinearMap, Commute, SemiconjBy, Module.End.mul_eq_comp, Module.End.mul_eq_comp,
+    eq_comm]
+
 /-- Two linear isomorphisms `Φ Ψ : V ≃ W` transport `J` to the same structure exactly when
 `Ψ⁻¹ ∘ Φ` is an automorphism of `(V, J)`, that is, commutes with `J`. -/
 theorem transport_eq_transport_iff (J : AlmostComplexStructure V) (Φ Ψ : V ≃ₗ[ℝ] W) :
@@ -101,8 +107,8 @@ noncomputable instance instMulActionGeneralLinearGroup :
 theorem generalLinearGroup_smul_def (g : GL n ℝ)
     (J : AlmostComplexStructure (EuclideanSpace ℝ n)) :
     g • J = J.transport ((g : Matrix n n ℝ).toEuclideanCLE g.det_ne_zero).toLinearEquiv := by
-  change J.transport (Matrix.GeneralLinearGroup.ofEuclideanCLE.symm g).toLinearEquiv = _
-  rw [Matrix.GeneralLinearGroup.ofEuclideanCLE_symm_apply]
+  rw [MulAction.compHom_smul_def, smul_def]
+  simp
 
 @[simp]
 theorem generalLinearGroup_smul_apply (g : GL n ℝ)
@@ -111,6 +117,15 @@ theorem generalLinearGroup_smul_apply (g : GL n ℝ)
       (J (Matrix.toEuclideanLin (↑g⁻¹ : Matrix n n ℝ) v)) := by
   rw [generalLinearGroup_smul_def, transport_apply]
   simp [Matrix.coe_units_inv]
+
+/-- The linear map of `g • J` is `g ∘ J ∘ g⁻¹`, matrices acting by `Matrix.toEuclideanLin`. -/
+@[simp]
+theorem toLinearMap_generalLinearGroup_smul (g : GL n ℝ)
+    (J : AlmostComplexStructure (EuclideanSpace ℝ n)) :
+    (g • J).toLinearMap = Matrix.toEuclideanLin (g : Matrix n n ℝ) ∘ₗ J.toLinearMap ∘ₗ
+      Matrix.toEuclideanLin (↑g⁻¹ : Matrix n n ℝ) := by
+  ext v
+  simp
 
 /-- The matrix of a continuous linear automorphism `Φ` acts on complex structures as `Φ` does. -/
 @[simp]
