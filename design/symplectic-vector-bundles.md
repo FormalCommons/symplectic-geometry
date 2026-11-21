@@ -182,8 +182,8 @@ and the contents of `Riemannian/PolarEnd.lean`, which #212 brings in line.
 - The lemma of `Section/Topology.lean` asks for joint $C^n$ regularity in a
   manifold parameter instead of derivatives continuous in the parameter (see
   below), and issues 6, 7 and 8 wait for part 9: issue 6 for its building
-  issues 4 and 5, issue 7 for its building issue 6, and issue 8 for all
-  three (see *What the part uses*).
+  issues 4 and 5, issue 7 for its building issue 6, and issue 8 for its
+  building issues 1, 4, 5 and 6 (see *What the part uses*).
 
 ## Complex structures on a bundle
 
@@ -736,7 +736,15 @@ $[0,1]$ is never fed to the lemma with `P = ℝ` directly.
   ∀ ω, e.toFun ω = ω.2.polarComplexStructure g`, a theorem for each pair of
   covering frame systems. The inverse is $J\mapsto\omega_{g,J}$. On the
   forms, $\omega$ and $\omega_{g,J_{g,\omega}}$ both tame $J_{g,\omega}$, and
-  the straight line between them stays nondegenerate. On the structures, $J$
+  the straight line between them stays nondegenerate. This is the fibrewise
+  form of the linear straight line `TauCeti.SymplecticForm.Tames.lineMap` of
+  part 9 (`LinearAlgebra/Symplectic/Compatible.lean` of
+  `design/compatible-complex-structures.md`), the same definition that part
+  9's homotopy on forms uses: at each `x`, the `symplecticFormAt x` of the
+  two forms both tame the value of $J_{g,\omega}$ at `x`, so the
+  combination at time `t` is, at `x`, the `toBilinForm` of their
+  `Tames.lineMap` (by `Tames.toBilinForm_lineMap`), and its nondegeneracy
+  there is that of this symplectic form. On the structures, $J$
   and $J_{g,\omega_{g,J}}$ are both compatible with $\omega_{g,J}$, and the
   Cayley path between them, with $J_{g,\omega_{g,J}}$ as reference and
   coefficient `smoothTransition t`, is a fibrewise formula in $(t, J_x)$
@@ -1382,7 +1390,7 @@ it, its design adds it.
   part uses nothing from *Compatible complex structures* (part 9) beyond what
   Tau Ceti already has: the fibrewise constructions it needs (the Cayley path,
   $J_{g,\omega}$, $\omega_{g,J}$, the complex-linear part) are Tau Ceti's
-  linear ones or explicit formulas. There are two exceptions. The first is
+  linear ones or explicit formulas. There are three exceptions. The first is
   the polar formula on the bundle of bilinear forms (`polarFormulaDomain`,
   `polarFormulaAt` and `contMDiffOn_polarFormulaAt`), from which both the
   smoothness of `polarComplexStructure` and `polarEndAt` with its
@@ -1407,7 +1415,12 @@ it, its design adds it.
   `isOpen_setOf_forall_Icc_mem_cayleyDomain`,
   `Compatible.mem_cayleyDomain`), so that the units, the compactness of
   $[0,1]$ and the two Tau Ceti unit lemmas are handled there once. It makes
-  issue 7 wait for part 9's building issue 6, which has no blocker. So
+  issue 7 wait for part 9's building issue 6, which has no blocker. The
+  third is the straight line on forms of the homotopy equivalence (issue 8):
+  it is part 9's `TauCeti.SymplecticForm.Tames.lineMap`, with
+  `Tames.toBilinForm_lineMap`, from its linear
+  `LinearAlgebra/Symplectic/Compatible.lean`, which is part 9's building
+  issue 1, with no blocker; it makes issue 8 wait for that issue too. So
   issues 6, 7 and 8 wait for part 9.
 
 ## Building issues
@@ -1470,9 +1483,10 @@ of *Constructions* for *First Chern number*.
    Blockers: 7, which brings 6 and part 9's building issues 4, 5 and 6
    (`PolarComplexStructure/Basic.lean`, `Smooth.lean` and
    `Geometry/Symplectic/Cayley/Domain.lean` of
-   `design/compatible-complex-structures.md`). If this issue gets too long,
-   the `PolarEnd.lean` declarations of this issue and the three
-   `Basic.lean` lemmas become an issue of their own.
+   `design/compatible-complex-structures.md`), and part 9's building issue 1
+   (`LinearAlgebra/Symplectic/Compatible.lean`, for `Tames.lineMap`). If this
+   issue gets too long, the `PolarEnd.lean` declarations of this issue and
+   the three `Basic.lean` lemmas become an issue of their own.
 9. **Local Darboux frames.** `Symplectic/Trivialization.lean`, as above. The
    smooth Gram–Schmidt of Mathlib and Tau Ceti needs a linearly ordered
    index, so the frame is built on `Fin (2 * k)` and reindexed to

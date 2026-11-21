@@ -25,6 +25,8 @@ matrices `A` such that `A * A = -1`, and the actions of `GL n ℝ` and of
 
 * `TauCeti.AlmostComplexStructure.homeomorphMatrix`: the homeomorphism between the complex
   structures of `EuclideanSpace ℝ n` and the matrices of square `-1`.
+* `TauCeti.AlmostComplexStructure.toGeneralLinearGroup`: the matrix of a complex structure, as
+  an invertible matrix.
 
 ## Main results
 
@@ -130,6 +132,34 @@ theorem homeomorphMatrix_symm_apply_apply (A : {A : Matrix n n ℝ // A * A = -1
     (v : EuclideanSpace ℝ n) :
     (homeomorphMatrix n).symm A v = Matrix.toEuclideanLin (A : Matrix n n ℝ) v :=
   Matrix.toEuclideanCLM_apply _ _
+
+/-- The matrix of a complex structure `J`, as an invertible matrix: its inverse is the matrix of
+`-J`, since `J * J = -1`. -/
+noncomputable def toGeneralLinearGroup (J : AlmostComplexStructure (EuclideanSpace ℝ n)) :
+    GL n ℝ where
+  val := homeomorphMatrix n J
+  inv := -homeomorphMatrix n J
+  val_inv := by rw [mul_neg, (homeomorphMatrix n J).property, neg_neg]
+  inv_val := by rw [neg_mul, (homeomorphMatrix n J).property, neg_neg]
+
+/-- The invertible matrix of `J` is its matrix. -/
+@[simp]
+theorem coe_toGeneralLinearGroup (J : AlmostComplexStructure (EuclideanSpace ℝ n)) :
+    (J.toGeneralLinearGroup : Matrix n n ℝ) = homeomorphMatrix n J :=
+  (rfl)
+
+/-- The inverse of the matrix of `J` is the matrix of `-J`. -/
+@[simp]
+theorem coe_toGeneralLinearGroup_inv (J : AlmostComplexStructure (EuclideanSpace ℝ n)) :
+    (↑J.toGeneralLinearGroup⁻¹ : Matrix n n ℝ) = -homeomorphMatrix n J :=
+  (rfl)
+
+/-- The invertible matrix of a complex structure depends continuously on it. -/
+theorem continuous_toGeneralLinearGroup :
+    Continuous (toGeneralLinearGroup (n := n)) :=
+  Units.continuous_iff.2
+    ⟨continuous_subtypeVal.comp (homeomorphMatrix n).continuous,
+      (continuous_subtypeVal.comp (homeomorphMatrix n).continuous).neg⟩
 
 /-- The endomorphism of `g • J` in the operator norm is `g J g⁻¹`, matrices acting by
 `Matrix.toEuclideanCLM`. -/

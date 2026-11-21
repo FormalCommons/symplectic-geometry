@@ -34,6 +34,7 @@ structures.
   `StdSpace ι` by real and imaginary parts, so that subspaces of `ℂⁿ` can be compared with
   subspaces of the model; it carries multiplication by `I` to `J₀`
   (`stdComplexStructure_complexEuclideanEquiv`).
+* `SymplecticGeometry.StdSpace.swap ι` is the coordinate swap `(x, y) ↦ (y, x)`.
 
 The main facts fixing the conventions are `stdForm_apply`
 (`ω₀(z, w) = ∑ᵢ (xᵢ(z) yᵢ(w) - yᵢ(z) xᵢ(w))`), `stdComplexStructure_eq_toEuclideanLin_J`,
@@ -110,6 +111,38 @@ theorem equivProd_symm_apply_inl (a b : ι → ℝ) (i : ι) :
 @[simp]
 theorem equivProd_symm_apply_inr (a b : ι → ℝ) (i : ι) :
     (equivProd ι).symm (a, b) (Sum.inr i) = b i := (rfl)
+
+variable (ι) in
+/-- The coordinate swap `(x, y) ↦ (y, x)` of `StdSpace ι`. -/
+noncomputable def swap : StdSpace ι ≃ₗ[ℝ] StdSpace ι :=
+  (equivProd ι).trans ((LinearEquiv.prodComm ℝ (ι → ℝ) (ι → ℝ)).trans (equivProd ι).symm)
+
+variable (ι) in
+theorem swap_def :
+    swap ι =
+      (equivProd ι).trans ((LinearEquiv.prodComm ℝ (ι → ℝ) (ι → ℝ)).trans (equivProd ι).symm) :=
+  (rfl)
+
+@[simp]
+theorem x_swap (z : StdSpace ι) : (swap ι z).x = z.y := (rfl)
+
+@[simp]
+theorem y_swap (z : StdSpace ι) : (swap ι z).y = z.x := (rfl)
+
+@[simp]
+theorem swap_swap (z : StdSpace ι) : swap ι (swap ι z) = z :=
+  StdSpace.ext (by simp) (by simp)
+
+@[simp]
+theorem symm_swap : (swap ι).symm = swap ι :=
+  LinearEquiv.ext fun z ↦ (swap ι).symm_apply_eq.2 (swap_swap z).symm
+
+/-- The coordinate swap sends the vertical subspace `{x = 0}` to the horizontal one `{y = 0}`. -/
+@[simp]
+theorem map_swap_ker_x :
+    (LinearMap.ker x).map (swap ι : StdSpace ι →ₗ[ℝ] StdSpace ι) = LinearMap.ker (y (ι := ι)) := by
+  ext z
+  simp [Submodule.mem_map_equiv]
 
 variable [Fintype ι]
 
