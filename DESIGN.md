@@ -846,8 +846,9 @@ it into issues; the overview fixes its folders and its dependencies.
   `LinearAlgebra/ComplexStructure/Standard.lean` (from which it uses that an
   invertible symplectic matrix preserves and reflects compatibility with
   $\omega_0$, `compatible_generalLinearGroup_smul_iff`). The first three
-  import only Mathlib and Tau Ceti. `Standard.lean` imports `ComplexStructure/Action.lean`,
-  the *Standard model* file `LinearAlgebra/Symplectic/Standard/Matrix.lean`
+  import only Mathlib and Tau Ceti. `Standard.lean` imports
+  `ComplexStructure/Action.lean`, the *Standard model* file
+  `LinearAlgebra/Symplectic/Standard/Matrix.lean`
   and a third file of *Linear complex structures*, the library's
   `Geometry/Symplectic/Orientation.lean` (not Tau Ceti's file of the same
   path), which imports only Tau Ceti. All five files are merged. So the part
