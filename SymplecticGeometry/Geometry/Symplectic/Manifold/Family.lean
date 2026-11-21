@@ -16,9 +16,10 @@ For a smooth family of two-forms on `M`, given as a smooth two-form `σ` on `N �
 `σ_t = ι_t^* σ`, the points `(t, x)` at which `σ_t` has an invertible flat map
 `T_x M → T_x^* M` form an open subset of `N × M`. When the model space is finite-dimensional,
 having an invertible flat map at `x` is the same as being nondegenerate at `x`
-(`TauCeti.SmoothTwoForm.isInvertible_flat_iff`). In that case, for two two-forms `σ₀`, `σ₁` on
+(`TauCeti.SmoothTwoForm.isInvertible_flat_iff`). In that case the points at which a single
+two-form is nondegenerate form an open set, and, for two two-forms `σ₀`, `σ₁` on
 `M`, the points at which every form `σ₀ + s (σ₁ - σ₀)`, `s ∈ [0, 1]`, is nondegenerate form an
-open subset of `M`. These are the
+open subset of `M`. The latter are the
 open sets on which the Moser fields of Moser's argument are defined
 ([McDuffSalamon2017], §3.2).
 
@@ -26,13 +27,15 @@ open sets on which the Moser fields of Moser's argument are defined
 
 * `TauCeti.SmoothTwoForm.isOpen_setOf_isInvertible_flat_mpullback_prodMk`: the set of points of
   `N × M` at which the slice has an invertible flat map is open.
+* `TauCeti.SmoothTwoForm.isOpen_setOf_nondegenerate_bilinFormAt`: in finite dimensions, the set of
+  points at which a two-form is nondegenerate is open.
 * `TauCeti.SmoothTwoForm.isOpen_setOf_forall_mem_Icc_nondegenerate`: in finite dimensions, the
   set of points at which the whole segment from `σ₀` to `σ₁` is nondegenerate is open.
 
-Both proofs follow Tau Ceti's private `exists_isOpen_isInvertible_flat`
+The proofs follow Tau Ceti's private `exists_isOpen_isInvertible_flat`
 (`TauCeti/Geometry/Symplectic/Manifold/RelativeMoser.lean`): the flat maps form a continuous
-section along a projection, the invertible ones form an open set, and the tube lemma passes to
-the compact parameter interval.
+section along a projection, the invertible ones form an open set, and, for segments, the tube
+lemma passes to the compact parameter interval.
 
 ## References
 
@@ -71,6 +74,17 @@ theorem isOpen_setOf_isInvertible_flat_mpullback_prodMk [CompleteSpace E] {EN HN
       (σ := fun q : N × M ↦
         SmoothForm.mpullback (Prod.mk q.1) (contMDiff_const.prodMk contMDiff_id) σ)
       (SmoothForm.contMDiff_mpullback_prodMk σ p))
+
+/-- **Nondegeneracy is an open condition.** For a two-form `σ` on a finite-dimensional manifold,
+the set of points at which `σ` is nondegenerate is open. -/
+theorem isOpen_setOf_nondegenerate_bilinFormAt [FiniteDimensional ℝ E] (σ : SmoothTwoForm I M) :
+    IsOpen {x : M | (σ.bilinFormAt x).Nondegenerate} := by
+  simp only [← isInvertible_flat_iff]
+  -- The bundles and the base map are given explicitly, as in
+  -- `isOpen_setOf_isInvertible_flat_mpullback_prodMk`.
+  exact Continuous.isOpen_setOf_clm_bundle_isInvertible (𝕜 := ℝ) (F₁ := E) (F₂ := E →L[ℝ] ℝ)
+    (E₁ := TangentSpace I) (E₂ := fun x : M ↦ TangentSpace I x →L[ℝ] ℝ) (b := id)
+    (ϕ := σ.flat) σ.contMDiff_flat.continuous
 
 /-- **Nondegeneracy of a segment of two-forms is an open condition.** For two-forms `σ₀`, `σ₁`
 on a finite-dimensional manifold, the set of points `x` at which every form
