@@ -734,9 +734,10 @@ it into issues; the overview fixes its folders and its dependencies.
   (`Geometry/Symplectic/Cayley/Domain.lean`), and $(g,\omega)\mapsto
   J_{g,\omega}$ as `TauCeti.metricPolarFormula` on `TauCeti.polarDomain`
   (`PolarComplexStructure/Smooth.lean`), an open set that contains every
-  pair of an inner product and a symplectic form. These three, and the
-  openness lemma below, are planned declarations of this part, not existing
-  Tau Ceti API; they go in Tau Ceti's namespace so that they can move there.
+  pair of an inner product and a symplectic form. These three, the openness
+  lemma and `TauCeti.SymplecticForm.Compatible.mem_cayleyDomain` below, are
+  planned declarations of this part, not existing Tau Ceti API; they go in
+  Tau Ceti's namespace so that they can move there.
   The two Cayley-transform contractions, taken relative to a reference
   structure $J_0$, are given on the set $U_{J_0}$ of $A\in\mathrm{End}(V)$ such that $1-J_0A$ is invertible
   and $1-b\cdot$`cayleyFormula J₀ A` is invertible for every $b\in[0,1]$: the
@@ -907,6 +908,12 @@ it into issues; the overview fixes its folders and its dependencies.
   goes through `ContMDiffSection.continuous_frameTopology_iff`; the file has
   the name of the Tau Ceti file that defines that topology, so that the two
   merge upstream),
+  `Geometry/Manifold/VectorBundle/Cayley.lean` (smoothness of Tau Ceti's
+  `cayleyPathFormula` as a map into the endomorphism bundle of any vector
+  bundle, along a base map, at every order, generalizing by the same proof
+  Tau Ceti's `ContMDiffAt.cayleyPathFormula_hom_bundle`, which is the case
+  of $TM$ at order $\infty$; it supplies the joint regularity that the lemma of
+  `Section/Topology.lean` asks for in the contractibility proofs),
   `Geometry/Manifold/VectorBundle/Hermitian/Basic.lean` (the symplectic form
   of a Hermitian bundle; see *Constructions* below),
   `.../Hermitian/CircleBundle.lean` (the unit circle bundle of a Hermitian
