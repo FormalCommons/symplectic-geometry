@@ -16,6 +16,7 @@ import TauCeti.Analysis.Matrix.Sqrt
 import TauCeti.Geometry.Symplectic.Complex.Line
 import SymplecticGeometry.LinearAlgebra.Matrix.Block
 import SymplecticGeometry.LinearAlgebra.Matrix.SymplecticGroup.Basic
+import SymplecticGeometry.Topology.Instances.Matrix
 
 /-!
 # The Siegel upper half space and the compatible complex structures
@@ -422,17 +423,14 @@ theorem eq_compatibleEquiv_iff
 
 /-- The complex matrices with invertible imaginary part form an open set. -/
 theorem _root_.Matrix.isOpen_setOf_isUnit_det_map_im :
-    IsOpen {Z : Matrix ι ι ℂ | IsUnit (Z.map Complex.im).det} := by
-  simp only [isUnit_iff_ne_zero]
-  exact isOpen_ne_fun (continuous_id.matrix_map Complex.continuous_im).matrix_det continuous_const
+    IsOpen {Z : Matrix ι ι ℂ | IsUnit (Z.map Complex.im).det} :=
+  (continuous_id.matrix_map Complex.continuous_im).isOpen_setOf_isUnit_det
 
 /-- The real matrices indexed by `ι ⊕ ι` with invertible lower left block form an open set. -/
 theorem _root_.Matrix.isOpen_setOf_isUnit_det_toBlocks₂₁ :
-    IsOpen {M : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ | IsUnit M.toBlocks₂₁.det} := by
-  simp only [isUnit_iff_ne_zero]
-  have h : Continuous fun M : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ ↦ M.toBlocks₂₁ :=
-    continuous_matrix fun i j ↦ continuous_apply_apply (Sum.inr i) (Sum.inl j)
-  exact isOpen_ne_fun h.matrix_det continuous_const
+    IsOpen {M : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ | IsUnit M.toBlocks₂₁.det} :=
+  Continuous.isOpen_setOf_isUnit_det (f := fun M : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ ↦ M.toBlocks₂₁)
+    (continuous_matrix fun i j ↦ continuous_apply_apply (Sum.inr i) (Sum.inl j))
 
 section Smooth
 
