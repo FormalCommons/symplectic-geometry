@@ -1949,7 +1949,7 @@ has either; Tau Ceti's extension across a boundary,
   compatible complex structures by the formula of
   `LinearAlgebra/Symplectic/Extension.lean`, whose adjoint step is smooth by
   `Geometry/Manifold/VectorBundle/Adjoint.lean`), `Tubular.lean` (the common step of
-  the four theorems: given a diffeomorphism between two properly embedded
+  the four theorems: given a diffeomorphism between two embedded
   submanifolds and, over it, a bundle map $TM_0|_{Q_0}\to TM_1|_{Q_1}$ that
   is a linear symplectomorphism on each fibre, some diffeomorphism of
   neighbourhoods has that bundle map as its derivative along $Q_0$, proved
