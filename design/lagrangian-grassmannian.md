@@ -385,10 +385,14 @@ Lagrangian frames on `StdSpace ι`, pure linear algebra. Namespace
   `StdSpace.map_swap_range_toEuclideanLin_fromRows` say that `swap` carries
   the columns of `fromRows X Y` to those of `fromRows Y X`. With `coe_ofFrame`,
   they read the graph of a symmetric matrix as an `ofFrame`, for the charts.
-- `ℒ.ofFrame (X Y : Matrix ι ι ℝ) (hrank : (fromRows X Y).rank = Fintype.card ι)
-  (hXY : Xᵀ * Y = Yᵀ * X) : ℒ ι`, the Lagrangian that the frame spans, with
-  `coe_ofFrame` (`@[simp]`): its submodule is the range of
-  `toEuclideanLin (fromRows X Y)`. This is the constructor of G6.
+- `ℒ.ofFrame (X Y : Matrix ι ι ℝ)
+  (h : (stdForm ι).IsLagrangian (range (toEuclideanLin (fromRows X Y)))) : ℒ ι`,
+  the Lagrangian that the frame spans, with `coe_ofFrame` (`@[simp]`): its
+  submodule is the range of `toEuclideanLin (fromRows X Y)`, and
+  `mem_ofFrame_iff` (`@[simp]`), membership in that range. This is the
+  constructor of G6; `isLagrangian_range_fromRows_iff` turns the rank and
+  symmetry conditions into `h`. Every Lagrangian spanned by a frame, in this
+  part, is written `ofFrame X Y h`, never as an anonymous pair.
 - `isLagrangian_map_swap_iff` (`@[simp]`): `L.map (swap ι)` is Lagrangian for
   `ω₀` iff `L` is. Since `stdForm_swap` says that `swap` multiplies `ω₀` by
   `-1`, this is the case `e = swap`, `c = -1` of
@@ -491,7 +495,7 @@ unitary action to Tau Ceti's `Matrix.realImage`.
   `GeneralLinearGroup.mkOfDetNeZero` and
   `det_ne_zero_of_isLagrangian_range_fromRows` (`Frame.lean`), unitary by
   `realOrthonormalize_mem_unitaryGroup` (`coe_unitaryOfFrame`). Then
-  `unitaryFrame_unitaryOfFrame : unitaryFrame (unitaryOfFrame h) = ⟨_, h⟩`
+  `unitaryFrame_unitaryOfFrame : unitaryFrame (unitaryOfFrame h) = ofFrame X Y h`
   (`@[simp]`), by `realImage_realOrthonormalize`. Every passage from a
   Lagrangian frame to a unitary frame goes through this construction; its
   continuity in the frame is `continuous_unitaryOfFrame` (`Quotient.lean`).
@@ -647,8 +651,8 @@ The topology of `ℒ ι` in terms of unitary frames.
   composite `(g, U) ↦ g • unitaryFrame U` is the Lagrangian spanned by the
   horizontal columns of `g * realify U` (the matrix of `ofUnitary U` is
   `realify U` by `coe_ofUnitary`), and it is continuous by
-  `continuous_mk_range_fromRows`: the Lagrangian spanned by a continuous
-  family of Lagrangian frames is `unitaryFrame (unitaryOfFrame h)`
+  `continuous_ofFrame`: the Lagrangian `ofFrame (X t) (Y t) (h t)` spanned by a
+  continuous family of Lagrangian frames is `unitaryFrame (unitaryOfFrame (h t))`
   (`unitaryFrame_unitaryOfFrame`), continuous by `continuous_unitaryOfFrame`
   (`coe_unitaryOfFrame` and `continuous_realOrthonormalize`) and
   `continuous_unitaryFrame`. The unitary instance follows by
