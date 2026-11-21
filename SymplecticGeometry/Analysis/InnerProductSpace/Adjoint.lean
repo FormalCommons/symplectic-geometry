@@ -5,8 +5,8 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import Mathlib.Analysis.InnerProductSpace.Adjoint
 public import Mathlib.Analysis.InnerProductSpace.PiL2
-public import TauCeti.Analysis.InnerProductSpace.Adjoint
 
 /-!
 # Coordinates of adjoints on Euclidean spaces

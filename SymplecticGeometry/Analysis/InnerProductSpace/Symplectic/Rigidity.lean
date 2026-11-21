@@ -19,10 +19,11 @@ linear symplectomorphism into the image of a cylinder `Z²ⁿ(R)` under a linear
 only when `r ≤ R`. Linear symplectomorphisms have it, by the affine nonsqueezing theorem, and so
 do the anti-symplectic linear maps.
 
-Conversely, a linear equivalence such that both it and its inverse have the property is
-symplectic or anti-symplectic (McDuff–Salamon, Theorem 2.4.2). The proof here works with the
-transpose `Ψᵀ` (the adjoint for the standard inner product). If `ω₀(a, b) = 1`, Witt's theorem
-gives a linear symplectomorphism that carries the cylinder over the first coordinate plane to
+Conversely, for a linear equivalence `Ψ`, `HasLinearNonsqueezing Ψ` together with
+`HasLinearNonsqueezing Ψ⁻¹` forces `Ψ^* ω₀ = ±ω₀` (McDuff–Salamon, Theorem 2.4.2). The proof
+here works with the transpose `Ψᵀ` (the adjoint for the standard inner product). If
+`ω₀(a, b) = 1`, Witt's theorem gives a linear symplectomorphism that carries the cylinder over
+the first coordinate plane to
 `{z | ⟪a, z⟫² + ⟪b, z⟫² ≤ 1}`, and, when `λ = ω₀(Ψᵀ a, Ψᵀ b)` is not zero, one that moves the
 pair `(Ψᵀ a, Ψᵀ b)` to `(√|λ| e, ±√|λ| f)` for the first pair of coordinate vectors `e`, `f`.
 Then `Ψ` sends a linear symplectic ball of radius `1 / √|λ|` into a linear symplectic cylinder of
