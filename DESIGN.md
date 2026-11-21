@@ -1188,6 +1188,15 @@ it into issues; the overview fixes its folders and its dependencies.
   groups from the unitaries of `𝕜 →L[𝕜] 𝕜` to those of `𝕜`, and its case
   `Unitary.continuousLinearMapCircleEquiv` onto `Circle`, in Mathlib's
   namespace `Unitary`; see *Constructions*),
+  `Analysis/InnerProductSpace/GramSchmidtOrtho.lean` (for a skew-adjoint
+  orthogonal `J`, Mathlib's Gram–Schmidt turns `u₀, J u₀, u₁, J u₁, …` into
+  `e₀, J e₀, e₁, J e₁, …`,
+  in Mathlib's namespace `InnerProductSpace`; the file has the name of the
+  Mathlib file that defines `gramSchmidt`, and the local Darboux frames use
+  it),
+  `Topology/VectorBundle/LinearIndependent.lean` (sections continuous and
+  linearly independent at a point stay independent near it, in Mathlib's
+  namespace `Bundle.Trivialization`; the local Darboux frames use it),
   `Analysis/Normed/Operator/SpanSingleton.lean`
   (`LinearIsometryEquiv.toSpanSingleton`, a unit vector of a line as a
   linear isometry from the scalars),

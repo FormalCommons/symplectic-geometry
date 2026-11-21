@@ -137,7 +137,7 @@ Further choices:
   `U ⊇ range i` and a field `Y`, smooth on `U`, with
   `∀ x ∈ U, mlieDerivForm Y ω.val x = ω.val x`; transversality is Tau Ceti's
   `TauCeti.IsTransverseAlong J Y i`. For a closed `ω` this is Tau Ceti's
-  `IsContactType` with the primitive `ω.interiorₗ ⟨Y, hY⟩` (the local form of
+  `IsContactType` with the primitive `RoughForm.interior Y ω.val` (the local form of
   `TauCeti.exists_isRestrictedContactType_iff`).
 - **Collars as diffeomorphisms of open sets.** A collar of a hypersurface is
   a diffeomorphism `D ≃ₘ⟮𝓘(ℝ).prod J, I⟯ V` between `D : Opens (ℝ × Q)`
@@ -183,24 +183,29 @@ Tau Ceti's `Geometry/Manifold/Boundary/Collar/` is a folder with no
 
 ### `Geometry/Symplectic/Liouville/ContactType.lean`
 
-In `TauCeti`, beside Tau Ceti's file, for `W` boundaryless and `ω` a closed
-smooth two-form:
+In `TauCeti`, beside Tau Ceti's file, for `ω` a closed `C¹` two-form
+(`IsSmoothForm I 1`, a rough form):
 
+- `isContactType_interior`: for `U`, `Y` as in the next item, `ι` is of
+  contact type with the primitive `RoughForm.interior Y ω.val`; the reverse
+  direction of the next item.
 - `exists_isContactType_iff`: `(∃ β, IsContactType J ω.val β ι)` if and only
   if there are an open `U ⊇ range ι` and a field `Y`, smooth on `U`, with
   `∀ x ∈ U, mlieDerivForm Y ω.val x = ω.val x` and
   `IsTransverseAlong J Y ι`; then `β` may be taken `RoughForm.interior Y ω.val`.
-  The local version of `exists_isRestrictedContactType_iff`, by
-  `isLiouvilleVectorField_iff_mextDeriv_interior_eq` on the open
-  submanifold `U` (Lie derivatives and exterior derivatives commute with
-  restriction to an open set, `Geometry/Manifold/DifferentialForm/Opens.lean`).
-- `SmoothEmbedding.isContactForm_neg_mpullback_interior` (the book's
-  direction 2 ⇒ 1): for `ω` symplectic, `hdim`, and `U`, `Y` as above, the
-  form `α := -SmoothForm.mpullback i _ (ω.interiorₗ ⟨Y, hY⟩)` is a contact form
-  with `mextDerivₗ J 1 α = -SmoothForm.mpullback i _ ω`. From
-  `IsContactType.isContactForm_mpullback` and
-  `SmoothForm.isContactForm_neg_iff`; the derivative by naturality of `d`
-  and Cartan's formula `mlieDerivForm_eq_interior_mextDeriv_add`. (If the
+  The local version of `exists_isRestrictedContactType_iff`, by the
+  pointwise Cartan formula `mlieDerivForm_eq_mextDeriv_interior_apply` at
+  each point of `U` and `mextDeriv_congr_of_eventuallyEq`, with no passage
+  to the open submanifold `U`.
+- `SmoothEmbedding.exists_isContactForm_eq_neg_mpullback_interior` (the book's
+  direction 2 ⇒ 1): for `ω` symplectic, `hdim`, and `U`, `Y` as above, there
+  is `α : SmoothForm J Q ℝ 1` with value
+  `-mpullback J I i (RoughForm.interior Y ω.val)`, a contact form with
+  `mextDerivₗ J 1 α = -SmoothForm.mpullback i _ ω`. From the pointwise
+  `isContactFormAt_mpullback` (`IsContactType.isContactForm_mpullback` needs
+  a primitive smooth on all of `W`) and `SmoothForm.isContactForm_neg_iff`;
+  the derivative by naturality of `d` (`mpullback_mextDeriv_at`) and
+  `isContactType_interior`. (If the
   global form `ω.interiorₗ ⟨Y, hY⟩` is needed, `Y` is first cut off to a global
   field equal to it near `range i`, as in `IsStrongFilling.of_contMDiffOn`.)
 - `SmoothEmbedding.exists_liouville_of_isContactForm` (the converse, for a
