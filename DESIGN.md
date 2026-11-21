@@ -547,7 +547,7 @@ it into issues; the overview fixes its folders and its dependencies.
   `Matrix.toEuclideanLin (Matrix.fromRows X Y)`), and
   `LinearAlgebra/Matrix/SelfAdjoint.lean` (`Matrix.finrank_selfAdjoint`:
   the symmetric $n\times n$ matrices have dimension $n(n+1)/2$, from Tau
-  Ceti's `LinearMap.BilinForm.finrank_symmSubmodule`). Three more general
+  Ceti's `LinearMap.BilinForm.finrank_symmSubmodule`). Four more general
   files serve it too:
   `Analysis/InnerProductSpace/Projection/Basic.lean`
   (`Submodule.starProjection_map_unitary`: the projection onto `u K`, for a
@@ -556,6 +556,9 @@ it into issues; the overview fixes its folders and its dependencies.
   `Analysis/InnerProductSpace/PiL2.lean`
   (`Matrix.piLpCongrLeft_toEuclideanLin_apply`: relabelling coordinates
   along `e` turns the action of `M` into that of `reindex e e M`),
+  `Analysis/Matrix/EuclideanLin.lean`
+  (`Matrix.coe_toLinearEquiv_toEuclideanCLE`: the linear equivalence of an
+  invertible matrix `A` is `Matrix.toEuclideanLin A` as a linear map),
   `Analysis/Normed/Lp/PiLp.lean`
   (`LinearIsometryEquiv.piLpCongrLeft_trans`: relabelling along `e`, then
   along `f`, is relabelling along `e.trans f`). Two files under

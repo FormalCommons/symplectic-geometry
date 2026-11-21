@@ -64,12 +64,8 @@ theorem isCompl_smul_iff [DecidableEq ι] (g : GLSymplectic ι ℝ) {Λ Λ' : �
     IsCompl ((g • Λ : ℒ ι) : Submodule ℝ (StdSpace ι))
         ((g • Λ' : ℒ ι) : Submodule ℝ (StdSpace ι)) ↔
       IsCompl (Λ : Submodule ℝ (StdSpace ι)) Λ' := by
-  set M := ((g : GL (ι ⊕ ι) ℝ) : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ)
-  set e := (M.toEuclideanCLE (g : GL (ι ⊕ ι) ℝ).det_ne_zero).toLinearEquiv
-  have he : toEuclideanLin M = e.toLinearMap :=
-    LinearMap.ext fun v ↦ (toEuclideanCLE_apply _ _ v).symm
-  rw [coe_smul, coe_smul, he]
-  exact (Submodule.orderIsoMapComap e).isCompl_iff.symm
+  rw [coe_smul_eq_map_toEuclideanCLE, coe_smul_eq_map_toEuclideanCLE]
+  exact (Submodule.orderIsoMapComap _).isCompl_iff.symm
 
 /-! ### The points of the basic chart -/
 
