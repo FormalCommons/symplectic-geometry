@@ -252,6 +252,9 @@ further when they grow, following `AGENTS.md`.
   square $-1$) and `LinearAlgebra/Matrix/Symmetric.lean` (for
   `Matrix.isSymm_mul_nonsing_inv_of_transpose_mul_eq`). Both import only
   Mathlib and Tau Ceti and are merged, so the part still sits at level 0.
+  It imports, too, `LinearAlgebra/Matrix/SymplecticGroup/Basic.lean` of
+  *Symplectic group*, for `Matrix.neg_J_mul_eq_fromBlocks`; that file also
+  imports only Mathlib and Tau Ceti and is merged, so the level stays 0.
   `Matrix.lean` also imports `LinearAlgebra/Symplectic/Compatible.lean` of
   *Compatible complex structures*, for the matrix form of compatibility on
   `StdSpace ι` (`compatible_stdForm_iff_posDef` and its companions). That
@@ -295,7 +298,9 @@ further when they grow, following `AGENTS.md`.
   Mathlib's `SymplecticGroup.transpose_mem`: the `simp` lemmas
   `Matrix.J_inl_inl`, `Matrix.J_inl_inr`, `Matrix.J_inr_inl` and
   `Matrix.J_inr_inr` for the four blocks of `Matrix.J`, over a commutative
-  ring `Matrix.IsSymm.mem_symplecticGroup_iff` (a symmetric $P$ is
+  ring `Matrix.neg_J_mul_eq_fromBlocks` (the blocks of $-JM$ are those of
+  $M$, the lower ones moved up and the upper ones negated and moved down) and
+  `Matrix.IsSymm.mem_symplecticGroup_iff` (a symmetric $P$ is
   symplectic iff $(JP)^2=-1$), and, over a commutative star ring,
   `SymplecticGroup.star_mem` and `SymplecticGroup.star_mem_iff`),
   `Analysis/Matrix/Polar/Basic.lean` (the general right polar decomposition
@@ -989,8 +994,12 @@ it into issues; the overview fixes its folders and its dependencies.
   Tau Ceti file that defines `volumeOrientation`),
   `Analysis/CStarAlgebra/Unitary/ContinuousLinearMap.lean` (for `RCLike 𝕜`,
   `Unitary.continuousLinearMapSelfEquiv`, the isomorphism of topological
-  groups from the unitaries of `𝕜 →L[𝕜] 𝕜` to those of `𝕜`, in Mathlib's
+  groups from the unitaries of `𝕜 →L[𝕜] 𝕜` to those of `𝕜`, and its case
+  `Unitary.continuousLinearMapCircleEquiv` onto `Circle`, in Mathlib's
   namespace `Unitary`; see *Constructions*),
+  `Analysis/Normed/Operator/SpanSingleton.lean`
+  (`LinearIsometryEquiv.toSpanSingleton`, a unit vector of a line as a
+  linear isometry from the scalars),
   `Geometry/Manifold/VectorBundle/ComplexStructure.lean` (the one model of
   $C^n$ complex structures on a bundle, `SymplecticGeometry.Bundle.ContMDiffComplexStructure`,
   generalizing from $TM$ to any bundle Tau Ceti's
@@ -1346,11 +1355,15 @@ it into issues; the overview fixes its folders and its dependencies.
     whose fibre at `x` is `ℂ ≃ₗᵢ[ℂ] V x` for the inner product
     `g.complexInnerProductSpace hI`, and which
     `OrthonormalFrameBundle.instPrincipalBundleFiber` makes a principal
-    bundle for `unitary (ℂ →L[ℂ] ℂ)`. The file gives: the homeomorphism from
-    the total space of that bundle to the subtype, sending a frame `φ` to
-    `φ 1`; the isomorphism of topological groups from `unitary (ℂ →L[ℂ] ℂ)`
-    to `Circle`, the case `𝕜 = ℂ` of the isomorphism below composed with
-    Tau Ceti's `circleEquivUnitary`, which the homeomorphism turns into the action of `Circle` on the subtype by
+    bundle for `unitary (ℂ →L[ℂ] ℂ)`. The file states its results for fibres
+    with their own complex inner products, which the setting of `g` and
+    `hI` supplies by local instances (the part's design says how). It
+    gives: the homeomorphism from the total space of that bundle to the
+    subtype, sending a frame `φ` to `φ 1`, which turns the right action of
+    `unitary (ℂ →L[ℂ] ℂ)` on each fibre, read through
+    `Unitary.continuousLinearMapCircleEquiv` (the case `𝕜 = ℂ` of the
+    isomorphism below composed with Tau Ceti's `circleEquivUnitary`, in that
+    isomorphism's file), into the action of `Circle` on the subtype by
     scalar multiplication in the fibres, free with the fibres as orbits;
     and the `TauCeti.PrincipalBundle Circle` instance on
     `Fiber ℂ F V ℂ` that *First Chern number* asks for, whose trivializations
@@ -1434,7 +1447,7 @@ Each part depends only on the parts listed, besides Mathlib and Tau Ceti.
 
 | Level | Part | Builds on |
 |---|---|---|
-| 0 | *Standard model* | — (it imports `LinearAlgebra/Matrix/Block.lean` and `LinearAlgebra/Matrix/Symmetric.lean` of *Siegel upper half space*, which import only Mathlib and Tau Ceti and are merged, and the merged `LinearAlgebra/Symplectic/Compatible.lean` of *Compatible complex structures*, which besides `Standard/Basic.lean` imports only merged files that do not import `Standard/Matrix.lean`) |
+| 0 | *Standard model* | — (it imports `LinearAlgebra/Matrix/Block.lean` and `LinearAlgebra/Matrix/Symmetric.lean` of *Siegel upper half space*, which import only Mathlib and Tau Ceti and are merged, `LinearAlgebra/Matrix/SymplecticGroup/Basic.lean` of *Symplectic group*, which imports only Mathlib and Tau Ceti and is merged, and the merged `LinearAlgebra/Symplectic/Compatible.lean` of *Compatible complex structures*, which besides `Standard/Basic.lean` imports only merged files that do not import `Standard/Matrix.lean`) |
 | 0 | *Symplectic group* | — |
 | 0 | *Linear Moser* | — |
 | 1 | *Unitary group topology* | *Symplectic group* (only the file on $\mathrm{Sp}(2n)$; the other files can start at once) |

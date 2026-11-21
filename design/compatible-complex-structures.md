@@ -497,6 +497,9 @@ This is $\mathrm{Met}(V)$, in `SymplecticGeometry`.
   through its first argument.
 - `innerProducts.forall_transport_apply_transport_iff`: `J` preserves `g`
   exactly when `J.transport e` preserves `transport e g`.
+- `innerProducts.transport_eq_innerSL_iff (e : V ≃L[ℝ] E) (g)`, for `E` an
+  inner product space: `transport e g = ⟨innerSL ℝ, _⟩ ↔
+  ∀ u v, ⟪e u, e v⟫ = g u v`.
 - `TauCeti.SymplecticForm.Compatible.associatedBilinForm_mem_innerProducts (h :
   ω.Compatible J) : (ω.associatedBilinForm J).toContinuousBilinearMap ∈
   innerProducts V`.
@@ -565,6 +568,16 @@ the file list of `DESIGN.md`*).
   - `commute_metricPolarComplexStructure` (with the hypothesis `hA` above):
     `Commute (LinearMap.toContinuousLinearMap
     (metricPolarComplexStructure g ω).toLinearMap) A`.
+  - `exists_operator_and_sqrt_neg_mul_self (g ω) : ∃ A Q : V →L[ℝ] V,` the
+    four hypotheses `hA`, `hQs`, `hQp` and `Q * Q = -(A * A)` above. So the
+    formula applies to every `g` and `ω`. Proof: carry `g` to a Euclidean
+    space with `innerProducts.exists_transport_eq_innerSL` (and
+    `innerProducts.transport_eq_innerSL_iff` for the isometry), take Tau
+    Ceti's `innerOperator` of the transported form and its `operatorAbs`
+    there (`operatorAbs_mul_self_of_adjoint_eq_neg` gives the square;
+    `apply_polarComplexStructure` and `compatible_polarComplexStructure`
+    give positive definiteness, as `ω'` tames its polar complex structure),
+    and pull both back.
 - `metricPolarComplexStructure_associatedBilinForm (h : ω.Compatible J) :
   metricPolarComplexStructure ⟨_, h.associatedBilinForm_mem_innerProducts⟩ ω = J`.
   This is the second bullet.
@@ -707,8 +720,10 @@ This is Lemma 2.5.5, on `StdSpace ι`, in `SymplecticGeometry`.
   `invariant_iff_isSymm_associatedBilinForm`), `tames_stdForm_iff`, and
   `compatible_stdForm_iff_posDef` ($J$ is compatible if and only if $P$ is
   positive definite, by `compatible_iff_isSymm_and_posDef_associatedBilinForm`).
-  The same file proves `posDef_toBlocks₂₁_of_compatible` from the last one,
-  as a principal submatrix. This file adds that a symmetric $P$ is
+  The same file proves `posDef_toBlocks₂₁_of_compatible` from the last one
+  and `Matrix.neg_J_mul_eq_fromBlocks`, as a principal submatrix, and
+  `toBlocks₂₂_eq_neg_transpose_of_invariant` from the symmetry of $P$ and the
+  same block lemma. This file adds that a symmetric $P$ is
   symplectic if and only if $(J_0P)^2=-1$, and the topology.
 
 ### `Topology/ComplexStructure/Compatible/Metric.lean`

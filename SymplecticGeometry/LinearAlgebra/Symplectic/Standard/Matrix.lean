@@ -12,7 +12,9 @@ public import TauCeti.Analysis.Matrix.EuclideanLin
 public import TauCeti.LinearAlgebra.Matrix.GeneralLinearGroup.Symplectic.Basic
 public import TauCeti.LinearAlgebra.Matrix.GeneralLinearGroup.Symplectic.Sum
 import SymplecticGeometry.LinearAlgebra.Matrix.Block
+import SymplecticGeometry.LinearAlgebra.Matrix.SymplecticGroup.Basic
 import SymplecticGeometry.LinearAlgebra.Matrix.Symmetric
+import TauCeti.LinearAlgebra.Matrix.Block
 
 /-!
 # The matrix dictionary for the standard model
@@ -188,25 +190,13 @@ theorem compatible_stdForm_iff_posDef {J : AlmostComplexStructure (StdSpace ι)}
     rwa [LinearMap.BilinForm.posDef_toQuadraticMap_iff_matrix (PiLp.basisFun 2 ℝ (ι ⊕ ι)) _ hs,
       toMatrix_associatedBilinForm_stdForm]
 
-/-- `ω₀(v, M w)` for `v = (a, b)` and `w = (c, d)`, in terms of the blocks of `M`. -/
-theorem stdForm_toLp_sumElim_toEuclideanLin (M : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ) (a b c d : ι → ℝ) :
-    stdForm ι (WithLp.toLp 2 (Sum.elim a b)) (toEuclideanLin M (WithLp.toLp 2 (Sum.elim c d))) =
-      a ⬝ᵥ (M.toBlocks₂₁ *ᵥ c + M.toBlocks₂₂ *ᵥ d) -
-        b ⬝ᵥ (M.toBlocks₁₁ *ᵥ c + M.toBlocks₁₂ *ᵥ d) := by
-  simp [StdSpace.x_apply, StdSpace.y_apply, toLpLin_apply, mulVec, dotProduct,
-    Fintype.sum_sum_type, toBlocks₁₁, toBlocks₁₂, toBlocks₂₁, toBlocks₂₂, Finset.sum_sub_distrib]
-
 /-- The lower left block `M₂₁` of the matrix `M` of an `ω₀`-compatible complex structure is
 positive definite: it is the upper left block of the positive definite matrix `-J₀ M`, the Gram
 matrix of `ω₀(·, J ·)`. -/
 theorem posDef_toBlocks₂₁_of_compatible {J : AlmostComplexStructure (StdSpace ι)}
     (hJ : (stdForm ι).Compatible J) : (toEuclideanLin.symm J.toLinearMap).toBlocks₂₁.PosDef := by
-  have h : (toEuclideanLin.symm J.toLinearMap).toBlocks₂₁ =
-      (-Matrix.J ι ℝ * toEuclideanLin.symm J.toLinearMap).submatrix Sum.inl Sum.inl := by
-    ext i j
-    simp [Matrix.J, Matrix.mul_apply, Matrix.one_apply, Fintype.sum_sum_type, toBlocks₂₁]
-  rw [h]
-  exact (compatible_stdForm_iff_posDef.1 hJ).submatrix Sum.inl_injective
+  have h := (compatible_stdForm_iff_posDef.1 hJ).submatrix Sum.inl_injective
+  rwa [← toBlocks₁₁_eq_submatrix, neg_J_mul_eq_fromBlocks, toBlocks_fromBlocks₁₁] at h
 
 /-- The matrix of an `ω₀`-compatible complex structure has invertible lower left block. -/
 theorem isUnit_det_toBlocks₂₁_of_compatible {J : AlmostComplexStructure (StdSpace ι)}
@@ -215,18 +205,16 @@ theorem isUnit_det_toBlocks₂₁_of_compatible {J : AlmostComplexStructure (Std
   (isUnit_iff_isUnit_det _).1 (posDef_toBlocks₂₁_of_compatible hJ).isUnit
 
 /-- For the matrix `M` of a complex structure `J` on `StdSpace ι` that preserves `ω₀`,
-`ω₀(J v, J w) = ω₀(v, w)`, the lower right block is `M₂₂ = -M₁₁ᵀ`. -/
+`ω₀(J v, J w) = ω₀(v, w)`, the lower right block is `M₂₂ = -M₁₁ᵀ`: it is the upper right block
+of the symmetric matrix `-J₀ M`, whose lower left block is `-M₁₁`. -/
 theorem toBlocks₂₂_eq_neg_transpose_of_invariant {J : AlmostComplexStructure (StdSpace ι)}
     (hJ : (stdForm ι).Invariant J) :
     (toEuclideanLin.symm J.toLinearMap).toBlocks₂₂ =
       -(toEuclideanLin.symm J.toLinearMap).toBlocks₁₁ᵀ := by
-  set M := toEuclideanLin.symm J.toLinearMap
-  have hJM : ∀ v, J v = toEuclideanLin M v := fun v ↦ by simp [M]
-  ext i j
-  have := hJ.associatedBilinForm_apply_swap
-    (WithLp.toLp 2 (Sum.elim (Pi.single i 1) 0)) (WithLp.toLp 2 (Sum.elim 0 (Pi.single j 1)))
-  rw [hJM, hJM, stdForm_toLp_sumElim_toEuclideanLin, stdForm_toLp_sumElim_toEuclideanLin] at this
-  simpa [mulVec_single_one] using this
+  have h := congrArg toBlocks₁₂ (invariant_stdForm_iff_isSymm.1 hJ).eq
+  rw [neg_J_mul_eq_fromBlocks, fromBlocks_transpose, toBlocks_fromBlocks₁₂, toBlocks_fromBlocks₁₂,
+    transpose_neg] at h
+  exact h.symm
 
 end SymplecticGeometry
 
