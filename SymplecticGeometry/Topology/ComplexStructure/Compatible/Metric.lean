@@ -74,8 +74,7 @@ complex structures. -/
 noncomputable def compatiblePolar :
     C(innerProducts V, {J : AlmostComplexStructure V // ω.Compatible J}) :=
   ⟨fun g ↦ ⟨metricPolarComplexStructure g ω, compatible_metricPolarComplexStructure g ω⟩,
-    (continuous_metricPolarComplexStructure.comp
-      (continuous_id.prodMk continuous_const)).subtype_mk _⟩
+    (continuous_id.metricPolarComplexStructure continuous_const).subtype_mk _⟩
 
 /-- The value of `compatiblePolar ω` at `g` is `J_{g,ω}`. -/
 @[simp]
