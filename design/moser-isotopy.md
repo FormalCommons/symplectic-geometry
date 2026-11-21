@@ -180,7 +180,10 @@ namespace `TauCeti.SmoothTwoForm.IsNondegenerate`.
 
 ### `Geometry/Symplectic/Moser/Relative.lean`
 
-In the namespace `TauCeti.SmoothEmbedding`. The name is that of Tau Ceti's
+In the namespace `TauCeti.SmoothEmbedding`, except for the public step
+`exists_partialDiffeomorph_mpullback_eq_of_mextDeriv_eq_sub` (Moser's
+argument along the local flow), which mentions no embedding and is in
+`TauCeti.SmoothTwoForm`. The milestone's name is that of Tau Ceti's
 compact theorem `TauCeti.SmoothTwoForm.exists_diffeomorph_opens_of_eq_along`,
 in another namespace. It generalizes that theorem and would replace it
 upstream. It is reached by dot notation on `f`, as the relative primitive
@@ -238,8 +241,7 @@ Proof, in four steps.
    Tau Ceti's `PartialDiffeomorph.toDiffeomorphSourceTarget` makes `Φ` a
    diffeomorphism between opens of `N`. Reading these opens as opens of `M`
    gives `U₀`, `U₁` and `φ`. The differential is compared through
-   `Manifold.tangentSpaceOpenEquiv_mfderiv_apply`, as at the end of Tau
-   Ceti's theorem.
+   Tau Ceti's `Manifold.mfderiv_eq_id_iff_of_comp_subtype_val`.
 
 The module docstring credits Tau Ceti's
 `TauCeti.SmoothTwoForm.exists_diffeomorph_fix_embedding_eventually_mpullback_eq`
