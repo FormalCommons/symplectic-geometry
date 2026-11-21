@@ -340,11 +340,15 @@ further when they grow, following `AGENTS.md`.
   along the
   stable range, which commutes with $\det$; and its corollary that
   $\mathrm{SU}(n)$ (Mathlib's `Matrix.specialUnitaryGroup`) is simply
-  connected, for $n\ge1$ through the homeomorphism
-  $\mathrm{U}(n)\cong\mathrm{SU}(n)\times S^1$,
-  $A\mapsto(A\operatorname{diag}(\det A^{-1},1,\dots,1),\det A)$, with the
-  diagonal factor built by `TauCeti.unitaryTorusHom`, under which
-  $\det$ is the second projection, and for $n=0$ because the group is a point.
+  connected, for $n\ge1$ through the continuous retraction
+  `Matrix.UnitaryGroup.toSpecialUnitary` of $\mathrm{U}(n)$ onto $\mathrm{SU}(n)$,
+  $A\mapsto A\operatorname{diag}(1,\dots,\det A^{-1},\dots,1)$ with the
+  correcting entry at a chosen index $i_0$ and the diagonal factor
+  `Matrix.UnitaryGroup.detSection` built by `TauCeti.unitaryTorusHom`: a loop
+  in $\mathrm{SU}(n)$ is trivial in $\pi_1(\mathrm{U}(n))$, since its
+  determinant is constant, and the retraction carries the null-homotopy back.
+  For $n=0$ the group is a point. The retraction and the facts about `detCircle`
+  it uses are in `Analysis/Matrix/UnitaryGroup/Basic.lean`.
   Tau Ceti's `Matrix.instSimplyConnectedSpaceSpecialUnitaryGroupFinTwoComplex`
   is the case $n=2$. Last, `Analysis/Matrix/SymplecticGroup/FundamentalGroup.lean`
   ($\pi_1(\mathrm{Sp}(2n))\cong\mathbb{Z}$ for $n\ge1$, through *Symplectic
@@ -384,19 +388,41 @@ it into issues; the overview fixes its folders and its dependencies.
   loops: the converse of the homotopy axiom from part 4, uniqueness of the
   axiomatic characterization; named like Tau Ceti's file of the same subject,
   so that the two merge upstream), `LinearAlgebra/Symplectic/Lagrangian/Maslov/`
-  (loops and paths of Lagrangian subspaces of `StdSpace ι`).
+  (loops and paths of Lagrangian subspaces of `StdSpace ι`). Outside these
+  folders, two files about Tau Ceti's `GLSymplectic` itself, which the
+  uniqueness statement needs, placed where Tau Ceti keeps the algebra and the
+  topology of that group so that they can move there unchanged:
+  `LinearAlgebra/Matrix/GeneralLinearGroup/Symplectic/Reindex.lean`
+  (`TauCeti.GLSymplectic.reindex` along `ι ≃ κ`, with its API) and
+  `Topology/Algebra/SymplecticGroup.lean` (its continuity,
+  `continuous_reindex`).
 - **Builds on:** *Standard model*, *Symplectic group*, *Unitary group
-  topology*, *Lagrangian Grassmannian*. From Tau Ceti, transferred to
-  `StdSpace ι` along `complexToRealEuclidean` rather than re-derived: the
-  Lagrangian loop index through `realImageLoop`, `maslovIndex_realImageLoop`,
-  `maslovPhase_realImage` and `Matrix.UnitaryGroup.maslovIndex_eq_degree`
-  (the book's $\det(U^2)$ description); the direct-sum axiom from
-  `TotallyRealLoop.maslovIndex_prod`
-  (`LinearAlgebra/TotallyReal/Maslov/Prod.lean`); paths relative to a
-  Lagrangian from `TotallyRealPath.transverseMaslovIndex`
-  (`LinearAlgebra/TotallyReal/Maslov/Transverse.lean`); the crossing-form
-  theorems of `Analysis/Matrix/UnitaryGroup/Maslov/` and
-  `Analysis/Matrix/HermitianSignature/`.
+  topology*, *Lagrangian Grassmannian*. From Mathlib and Tau Ceti, in two
+  ways, none of it re-derived:
+  - *Used as they are*, on matrices: the symplectic loop index
+    `TauCeti.GLSymplectic.maslovIndex` on loops in `GLSymplectic n ℝ`, with
+    the axioms Tau Ceti proves for it, which the part extends; for the
+    reindexing of `GL (ι ⊕ ι) R`, Mathlib's
+    `Matrix.GeneralLinearGroup.reindex` and Tau Ceti's
+    `Matrix.reindex_sumCongr_J`.
+  - *Transferred to `StdSpace ι` by choosing unitary frames* (read along
+    `complexToRealEuclidean`), for the Lagrangian theory only: the
+    Lagrangian loop index through `realImageLoop`,
+    `maslovIndex_realImageLoop`, `maslovPhase_realImage` and
+    `Matrix.UnitaryGroup.maslovIndex_eq_degree` (the book's $\det(U^2)$
+    description), and, by comparing it with Tau Ceti's loop index, the
+    direct-sum axiom, the half-turns and the angle description from
+    `TotallyRealLoop.maslovIndex_prod`, `maslovIndex_rotationZPow` and
+    `sub_eq_maslovIndex_mul_pi` (`LinearAlgebra/TotallyReal/Maslov/`); the
+    path index from Souriau's formula `Matrix.UnitaryGroup.maslovIndex` and
+    the Souriau map `Matrix.UnitaryGroup.souriau`
+    (`Analysis/Matrix/UnitaryGroup/Maslov.lean`), which is defined for
+    every path, while `TotallyRealPath.transverseMaslovIndex`
+    (`LinearAlgebra/TotallyReal/Maslov/Transverse.lean`), defined only for
+    paths with ends transverse to $\mathbb{R}^n$, enters as the special
+    case that a theorem identifies; and the crossing-form theorems of
+    `Analysis/Matrix/UnitaryGroup/Maslov/` and
+    `Analysis/Matrix/HermitianSignature/`, applied to frames.
 - **Milestones:** *Maslov index for loops of symplectic matrices*, *Maslov
   index for loops of Lagrangian subspaces*, *Crossing-form formula for the
   Maslov index*, *Maslov index for paths of Lagrangian subspaces*.
@@ -693,8 +719,12 @@ it into issues; the overview fixes its folders and its dependencies.
 
 ### 10. Linear Moser
 
-- **Files:** `Geometry/Symplectic/LinearMoser.lean`. Given nondegenerate
-  forms $\omega_t$ on $V$ that depend smoothly on $t\in\mathbb{R}$, it builds
+- **Files:** `Geometry/Symplectic/LinearMoser.lean`, and
+  two general facts it uses: the derivative of a path of skew forms is skew
+  (`Analysis/Calculus/Deriv/ContinuousLinearMap.lean`), and the derivative of
+  a path with locally constant square anticommutes with it
+  (`Analysis/Calculus/Deriv/Mul.lean`). Given nondegenerate
+  forms $\omega_t$ on $V$ that depend smoothly on $t\in\mathbb{R}$, the first file builds
   invertible $\Psi_t$, smooth in $t$, starting at the identity and pulling
   each $\omega_t$ back to $\omega_0$: $\Psi_t$ solves $\dot\Psi_t=A_t\Psi_t$,
   with $A_t=-\tfrac12\,\omega_t^{-1}\circ\dot\omega_t$, the inverse being that

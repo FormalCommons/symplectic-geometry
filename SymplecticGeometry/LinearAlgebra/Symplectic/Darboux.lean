@@ -182,7 +182,7 @@ theorem exists_isSymplectomorphism_stdForm {ι : Type*} [Fintype ι] (ω : Sympl
     (h : finrank ℝ V = 2 * Fintype.card ι) :
     ∃ e : StdSpace ι ≃ₗ[ℝ] V, (stdForm ι).IsSymplectomorphism ω e :=
   SymplecticForm.exists_isSymplectomorphism _ _ <| by
-    rw [h, finrank_euclideanSpace, Fintype.card_sum, two_mul]
+    rw [h, finrank_stdSpace]
 
 /-- **Linear Darboux theorem** over `ℝ`: a finite-dimensional symplectic vector space has even
 dimension `2n`, and a linear symplectomorphism `Ψ : ℝ²ⁿ ≃ V` from the standard model,
