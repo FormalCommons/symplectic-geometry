@@ -208,14 +208,19 @@ following choices.
 `DESIGN.md` is updated with this file, in its part 19, its dependency row
 and two rows of its milestone table.
 
-- Six files are added: `LinearAlgebra/Symplectic/Extension.lean`,
+- Eight files are added: `LinearAlgebra/Symplectic/Extension.lean`,
   `Neighborhood/Extension.lean`, `Neighborhood/Basic.lean`,
   `Geometry/Manifold/VectorBundle/ZeroSection.lean`,
-  `Geometry/Manifold/VectorBundle/Adjoint.lean` and
-  `Geometry/Manifold/TubularNeighborhood/MFDeriv.lean`. Each neighbourhood
+  `Geometry/Manifold/VectorBundle/Adjoint.lean`,
+  `Geometry/Manifold/TubularNeighborhood/MFDeriv.lean`,
+  `Geometry/Manifold/VectorBundle/Orthogonal.lean` and
+  `LinearAlgebra/BilinearForm/Orthogonal.lean`. Each neighbourhood
   theorem would otherwise repeat the linear extension and its smoothness;
-  `Adjoint.lean` holds the step of `Neighborhood/Extension.lean`, and the
-  last the step of `Tubular.lean`, that use nothing symplectic.
+  `Adjoint.lean` and `VectorBundle/Orthogonal.lean` hold steps of
+  `Neighborhood/Extension.lean`, and `MFDeriv.lean` the step of
+  `Tubular.lean`, that use nothing symplectic; the linear-algebra lemma
+  of `VectorBundle/Orthogonal.lean` is in
+  `LinearAlgebra/BilinearForm/Orthogonal.lean`.
 - `Lagrangian.lean` no longer uses *Cotangent bundles* or
   `normalBundleDiffeomorphOfIsLagrangianMap`, since the comparison theorem
   needs only that the zero section is Lagrangian. The part therefore no
@@ -384,7 +389,10 @@ hom bundle of the pull-backs satisfying `hL` and `hLω` at every `q`:
   $g_j$. That gives smooth frames of $H_j$, $K_j$, $J_jK_j$ and of $E_j$, the
   last as the $g_j$-orthogonal complement of $J_j(H_j\oplus K_j\oplus
   J_jK_j)$, that is, the $\omega_j$-orthogonal of $H_j\oplus K_j\oplus
-  J_jK_j$. In these frames
+  J_jK_j$. Frames of such orthogonal complements come from
+  `TauCeti.HasLocalContMDiffSubbundleFrames.orthogonal`
+  (`Geometry/Manifold/VectorBundle/Orthogonal.lean`), which uses nothing
+  symplectic. In these frames
   every step of `extendAlong` is a matrix formula with inverses of smooth
   invertible Gram matrices.
 - The adjoint step $(\omega_1^\flat)^{-1}\circ T^*\circ\omega_0^\flat$ of
