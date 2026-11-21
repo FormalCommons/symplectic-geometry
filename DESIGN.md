@@ -519,7 +519,12 @@ it into issues; the overview fixes its folders and its dependencies.
   `Matrix.toEuclideanLin (Matrix.fromRows X Y)`), and
   `LinearAlgebra/Matrix/SelfAdjoint.lean` (`Matrix.finrank_selfAdjoint`:
   the symmetric $n\times n$ matrices have dimension $n(n+1)/2$, from Tau
-  Ceti's `LinearMap.BilinForm.finrank_symmSubmodule`). The part also adds
+  Ceti's `LinearMap.BilinForm.finrank_symmSubmodule`). One file of general
+  operator theory serves it too:
+  `Analysis/InnerProductSpace/Projection/Basic.lean`
+  (`Submodule.starProjection_map_unitary`: the projection onto `u K`, for a
+  unitary `u`, is `u P_K u⋆`; with the instance
+  `Submodule.HasOrthogonalProjection.map_unitary`). The part also adds
   one declaration about `StdSpace ι` alone to *Standard model*'s
   `Standard/Basic.lean`: `StdSpace.complexEuclideanEquiv`, the map from
   `EuclideanSpace ℂ ι`. For the coordinate permutation along

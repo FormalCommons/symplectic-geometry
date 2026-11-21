@@ -218,6 +218,21 @@ Three facts about complex frames:
   while the formula gives `3` for `ι = Fin 2`. The file adds no definition.
   The milestone uses the case `R = ℝ`.
 
+### `Analysis/InnerProductSpace/Projection/Basic.lean`
+
+A general fact about orthogonal projections, beside Mathlib's file of that
+name, in the namespace `Submodule`, for a complete inner product space over
+`RCLike 𝕜`:
+
+- `Submodule.HasOrthogonalProjection.map_unitary`: an instance, the image of
+  `K` under `u : unitary (E →L[𝕜] E)` has an orthogonal projection when `K`
+  does (Mathlib's `HasOrthogonalProjection.map_linearIsometryEquiv` along
+  `Unitary.linearIsometryEquiv u`).
+- `Submodule.starProjection_map_unitary`: the projection onto `u K` is
+  `u * K.starProjection * star u`, Mathlib's pointwise
+  `Submodule.starProjection_map_apply` as an identity of operators.
+  `Quotient.lean` uses it for `continuous_unitaryFrame`.
+
 ### Additions to *Standard model*'s `LinearAlgebra/Symplectic/Standard/Basic.lean`
 
 Two declarations about `StdSpace ι` alone, which this part needs and part 1
