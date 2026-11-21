@@ -13,9 +13,14 @@ public import TauCeti.Topology.Algebra.OrthogonalGroup
 public import Mathlib.Topology.Algebra.Group.Quotient
 public import Mathlib.Topology.Homotopy.Equiv
 public import Mathlib.Topology.Homotopy.Path
+public import Mathlib.Analysis.Quaternion
+public import Mathlib.Analysis.Normed.Module.Connected
+public import Mathlib.Topology.Homeomorph.Lemmas
+import TauCeti.Geometry.Symplectic.Complex.InnerProductSpace
+import TauCeti.Geometry.Symplectic.Complex.OrthonormalBasis
 
 /-!
-# The components of the space of complex structures and the homotopy type SO(2n)/U(n)
+# The components of the space of complex structures, SO(2n)/U(n), and the case of ℝ⁴
 
 The special orthogonal group `SO(2n)` acts on the complex structures of `StdSpace ι = ℝ²ⁿ` by
 conjugation, and preserves the orthogonal and the positively oriented ones. On the structures that
@@ -30,6 +35,15 @@ exhibits it as homotopy equivalent to `SO(2n)/U(n)`. A matrix of negative determ
 component onto the remaining structures, so that in positive dimension there are exactly two
 components. For `ι` empty there is a single complex structure, hence a single component.
 
+In dimension four, identify `ℝ⁴` with the quaternions by `z ↦ x₁ + y₁ i + x₂ j + y₂ k`. Left
+multiplication by a unit pure quaternion `u₀ i + u₁ j + u₂ k` is an orthogonal positively
+oriented complex structure, and each such structure arises from exactly one unit vector
+`u ∈ S²`: it is determined by its value on `x₁`, since on the plane orthogonal to `x₁` and
+`J x₁` it is one of the two rotations by a right angle and the orientation selects one. So the
+positively oriented structures on `ℝ⁴` have the homotopy type of `S²`.
+
+The file ends with the classification theorem, which collects these results.
+
 ## Main definitions
 
 * `SymplecticGeometry.positiveOrthogonalComplexStructures`: the orthogonal positively oriented
@@ -38,6 +52,12 @@ components. For `ι` empty there is a single complex structure, hence a single c
   `SO(2n) ⧸ stabilizer J₀` onto the orthogonal positively oriented complex structures.
 * `SymplecticGeometry.positivelyOrientedHomotopyEquiv`: the positively oriented complex structures
   are homotopy equivalent to `SO(2n) ⧸ stabilizer J₀`.
+* `SymplecticGeometry.stdSpaceQuaternionIsometry`: `StdSpace (Fin 2) = ℝ⁴` as the quaternions.
+* `SymplecticGeometry.quaternionComplexStructure`: left multiplication by a unit pure quaternion.
+* `SymplecticGeometry.sphereHomeomorphOrthogonal`: the orthogonal positively oriented complex
+  structures on `ℝ⁴` form the sphere `S²`.
+* `SymplecticGeometry.positivelyOrientedHomotopyEquivSphere`: the positively oriented complex
+  structures on `ℝ⁴` are homotopy equivalent to `S²`.
 
 ## Main results
 
@@ -53,19 +73,23 @@ components. For `ι` empty there is a single complex structure, hence a single c
   dimension the complex structures of `StdSpace ι` have two components;
   `SymplecticGeometry.nat_card_connectedComponents_almostComplexStructure_stdSpace_of_isEmpty`:
   in dimension zero they have one.
+* `SymplecticGeometry.eq_of_apply_eq_of_mem_positiveOrthogonalComplexStructures`: on `ℝ⁴`, an
+  orthogonal positively oriented structure is determined by its value on one nonzero vector.
+* `SymplecticGeometry.complexStructures_classification`: every linear complex structure is
+  standard, together with the topology of the space of complex structures on `ℝ²ⁿ`.
 
 ## References
 
 * [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017],
-  Section 2.5, Proposition 2.5.2.
+  Section 2.5, Propositions 2.5.1 and 2.5.2.
 -/
 
 public section
 
 namespace SymplecticGeometry
 
-open TauCeti AlmostComplexStructure Matrix
-open scoped unitInterval ContinuousMap
+open TauCeti AlmostComplexStructure Matrix Module
+open scoped unitInterval ContinuousMap Quaternion
 
 variable {ι : Type*} [Fintype ι] [DecidableEq ι]
 
@@ -377,6 +401,332 @@ theorem coe_quotientUnitaryHomeomorph_positivelyOrientedHomotopyEquiv
   exact (congrArg Subtype.val ((quotientUnitaryHomeomorph ι).apply_symm_apply _)).trans
     ((ContinuousMap.HomotopyEquiv.coe_ofWeakDeformationRetraction_symm_apply ..).trans
       ((complexStructurePolarHomotopy (ι ⊕ ι)).apply_one J))
+
+/-! ### Dimension four: quaternions -/
+
+/-- The identification of `StdSpace (Fin 2) = ℝ⁴` with the quaternions,
+`z ↦ x₁ + y₁ i + x₂ j + y₂ k`; under it `J₀` is left multiplication by `i`. -/
+noncomputable def stdSpaceQuaternionIsometry : StdSpace (Fin 2) ≃ₗᵢ[ℝ] ℍ[ℝ] :=
+  (LinearIsometryEquiv.piLpCongrLeft 2 ℝ ℝ
+      (⟨Sum.elim (fun i ↦ ⟨2 * i.val, by omega⟩) (fun i ↦ ⟨2 * i.val + 1, by omega⟩),
+        ![.inl 0, .inr 0, .inl 1, .inr 1], by decide, by decide⟩ : Fin 2 ⊕ Fin 2 ≃ Fin 4)).trans
+    Quaternion.linearIsometryEquivTuple.symm
+
+/-- The quaternion of `z ∈ StdSpace (Fin 2)` is `x₁ + y₁ i + x₂ j + y₂ k`. -/
+@[simp]
+theorem stdSpaceQuaternionIsometry_apply (z : StdSpace (Fin 2)) :
+    stdSpaceQuaternionIsometry z = ⟨z (.inl 0), z (.inr 0), z (.inl 1), z (.inr 1)⟩ :=
+  (rfl)
+
+/-- The coordinates of the vector of a quaternion `q`: `x₁ = re q`, `y₁ = imI q`, `x₂ = imJ q`
+and `y₂ = imK q`. -/
+@[simp]
+theorem stdSpaceQuaternionIsometry_symm_apply (q : ℍ[ℝ]) (i : Fin 2 ⊕ Fin 2) :
+    stdSpaceQuaternionIsometry.symm q i = Sum.elim ![q.re, q.imJ] ![q.imI, q.imK] i := by
+  rcases i with i | i <;> fin_cases i <;> rfl
+
+/-- The pure quaternion `u₀ i + u₁ j + u₂ k` of a vector `u` of `ℝ³`. -/
+private noncomputable def pureQuaternion : EuclideanSpace ℝ (Fin 3) →ₗ[ℝ] ℍ[ℝ] where
+  toFun u := ⟨0, u 0, u 1, u 2⟩
+  map_add' u v := by ext <;> simp
+  map_smul' c u := by ext <;> simp
+
+private theorem norm_pureQuaternion (u : EuclideanSpace ℝ (Fin 3)) : ‖pureQuaternion u‖ = ‖u‖ := by
+  refine (sq_eq_sq₀ (norm_nonneg _) (norm_nonneg _)).1 ?_
+  rw [sq, ← Quaternion.normSq_eq_norm_mul_self, Quaternion.normSq_def',
+    EuclideanSpace.real_norm_sq_eq, Fin.sum_univ_three]
+  simp [pureQuaternion]
+
+private theorem pureQuaternion_mul_self {u : EuclideanSpace ℝ (Fin 3)} (hu : ‖u‖ = 1) :
+    pureQuaternion u * pureQuaternion u = -1 := by
+  rw [← sq, Quaternion.sq_eq_neg_normSq.2 rfl, Quaternion.normSq_eq_norm_mul_self,
+    norm_pureQuaternion, hu]
+  simp
+
+/-- The complex structure on `ℝ⁴` given by a unit vector `u` of `ℝ³`: left multiplication by the
+pure quaternion `u₀ i + u₁ j + u₂ k`, read through `stdSpaceQuaternionIsometry`. -/
+noncomputable def quaternionComplexStructure (u : Metric.sphere (0 : EuclideanSpace ℝ (Fin 3)) 1) :
+    AlmostComplexStructure (StdSpace (Fin 2)) where
+  toLinearMap := stdSpaceQuaternionIsometry.symm.toLinearMap ∘ₗ
+    LinearMap.mulLeft ℝ (pureQuaternion u) ∘ₗ stdSpaceQuaternionIsometry.toLinearMap
+  square_neg := by
+    ext z : 1
+    change stdSpaceQuaternionIsometry.symm (pureQuaternion u * stdSpaceQuaternionIsometry
+      (stdSpaceQuaternionIsometry.symm (pureQuaternion u * stdSpaceQuaternionIsometry z))) = -z
+    rw [LinearIsometryEquiv.apply_symm_apply, ← mul_assoc,
+      pureQuaternion_mul_self (mem_sphere_zero_iff_norm.1 u.property), neg_one_mul, map_neg,
+      LinearIsometryEquiv.symm_apply_apply]
+
+private theorem quaternionComplexStructure_apply'
+    (u : Metric.sphere (0 : EuclideanSpace ℝ (Fin 3)) 1) (z : StdSpace (Fin 2)) :
+    quaternionComplexStructure u z =
+      stdSpaceQuaternionIsometry.symm (pureQuaternion u * stdSpaceQuaternionIsometry z) :=
+  (rfl)
+
+/-- `quaternionComplexStructure u` is left multiplication by `u₀ i + u₁ j + u₂ k`. -/
+@[simp]
+theorem quaternionComplexStructure_apply (u : Metric.sphere (0 : EuclideanSpace ℝ (Fin 3)) 1)
+    (z : StdSpace (Fin 2)) :
+    quaternionComplexStructure u z = stdSpaceQuaternionIsometry.symm
+      (⟨0, (u : EuclideanSpace ℝ (Fin 3)) 0, (u : EuclideanSpace ℝ (Fin 3)) 1,
+        (u : EuclideanSpace ℝ (Fin 3)) 2⟩ * stdSpaceQuaternionIsometry z) :=
+  (rfl)
+
+/-- `quaternionComplexStructure u` sends the basis vector `x₁` to `u₀ y₁ + u₁ x₂ + u₂ y₂`. -/
+theorem quaternionComplexStructure_apply_single
+    (u : Metric.sphere (0 : EuclideanSpace ℝ (Fin 3)) 1) :
+    quaternionComplexStructure u (EuclideanSpace.single (.inl 0) 1) =
+      (u : EuclideanSpace ℝ (Fin 3)) 0 • EuclideanSpace.single (.inr 0) 1 +
+        (u : EuclideanSpace ℝ (Fin 3)) 1 • EuclideanSpace.single (.inl 1) 1 +
+        (u : EuclideanSpace ℝ (Fin 3)) 2 • EuclideanSpace.single (.inr 1) 1 := by
+  ext i <;> fin_cases i <;> simp [StdSpace.x_apply, StdSpace.y_apply]
+
+/-- The quaternion structures are orthogonal: left multiplication by a unit quaternion is an
+isometry. -/
+theorem quaternionComplexStructure_mem_orthogonalComplexStructures
+    (u : Metric.sphere (0 : EuclideanSpace ℝ (Fin 3)) 1) :
+    quaternionComplexStructure u ∈ orthogonalComplexStructures (Fin 2 ⊕ Fin 2) :=
+  mem_orthogonalComplexStructures.2 fun z ↦ by
+    rw [quaternionComplexStructure_apply', LinearIsometryEquiv.norm_map, norm_mul,
+      norm_pureQuaternion, mem_sphere_zero_iff_norm.1 u.property, one_mul,
+      LinearIsometryEquiv.norm_map]
+
+/-- The quaternion structure depends continuously on the unit vector. -/
+theorem continuous_quaternionComplexStructure : Continuous quaternionComplexStructure := by
+  rw [AlmostComplexStructure.continuous_iff]
+  have h : (fun u ↦ LinearMap.toContinuousLinearMap (quaternionComplexStructure u).toLinearMap) =
+      fun u : Metric.sphere (0 : EuclideanSpace ℝ (Fin 3)) 1 ↦
+        (stdSpaceQuaternionIsometry.symm.toContinuousLinearEquiv :
+          ℍ[ℝ] →L[ℝ] StdSpace (Fin 2)).comp
+        ((ContinuousLinearMap.mul ℝ ℍ[ℝ] (pureQuaternion u)).comp
+          (stdSpaceQuaternionIsometry.toContinuousLinearEquiv :
+            StdSpace (Fin 2) →L[ℝ] ℍ[ℝ])) := by
+    ext u z : 2
+    rfl
+  rw [h]
+  exact continuous_const.clm_comp (((ContinuousLinearMap.mul ℝ ℍ[ℝ]).continuous.comp
+    (pureQuaternion.continuous_of_finiteDimensional.comp continuous_subtypeVal)).clm_comp
+      continuous_const)
+
+/-- At `u = (1, 0, 0)` the quaternion structure is `J₀`. -/
+theorem quaternionComplexStructure_eq_stdComplexStructure :
+    quaternionComplexStructure ⟨!₂[1, 0, 0], by simp [EuclideanSpace.norm_eq, Fin.sum_univ_three]⟩ =
+      stdComplexStructure (Fin 2) := by
+  ext z i <;> fin_cases i <;> simp [StdSpace.x_apply, StdSpace.y_apply]
+
+/-- The quaternion structures are positively oriented: `(1, 0, 0)` gives `J₀`, and the sphere is
+connected. -/
+theorem isPositivelyOriented_quaternionComplexStructure
+    (u : Metric.sphere (0 : EuclideanSpace ℝ (Fin 3)) 1) :
+    IsPositivelyOriented (quaternionComplexStructure u) := by
+  have : ConnectedSpace (Metric.sphere (0 : EuclideanSpace ℝ (Fin 3)) 1) :=
+    isConnected_iff_connectedSpace.1 (isConnected_sphere
+      (by rw [← Module.finrank_eq_rank, finrank_euclideanSpace_fin]; norm_num) 0 zero_le_one)
+  have hc := (isClopen_setOf_isPositivelyOriented (ι := Fin 2)).preimage
+    continuous_quaternionComplexStructure
+  have hu := hc.eq_univ ⟨_, by
+    rw [Set.mem_preimage, quaternionComplexStructure_eq_stdComplexStructure]
+    exact isPositivelyOriented_stdComplexStructure⟩
+  exact (Set.ext_iff.1 hu u).2 trivial
+
+/-- Two orthogonal positively oriented complex structures on `ℝ⁴` that agree on one nonzero
+vector are equal. -/
+theorem eq_of_apply_eq_of_mem_positiveOrthogonalComplexStructures
+    {J J' : AlmostComplexStructure (StdSpace (Fin 2))}
+    (hJ : J ∈ positiveOrthogonalComplexStructures (Fin 2))
+    (hJ' : J' ∈ positiveOrthogonalComplexStructures (Fin 2)) {ξ : StdSpace (Fin 2)} (hξ : ξ ≠ 0)
+    (h : J ξ = J' ξ) : J = J' := by
+  have : Fact (finrank ℝ (StdSpace (Fin 2)) = 4) := ⟨by simp⟩
+  have hk : finrank ℝ (StdSpace (Fin 2)) = 4 := Fact.out
+  have hi := mem_orthogonalComplexStructures_iff_inner.1 hJ.1
+  have hi' := mem_orthogonalComplexStructures_iff_inner.1 hJ'.1
+  obtain ⟨e, he0, h0, h2⟩ := exists_unitary_orthonormalBasis_of_norm_eq_one hi
+    (ξ := ‖ξ‖⁻¹ • ξ) (by simp [norm_smul, hξ])
+  have h0' : J' (e 0) = e 1 := by rw [← h0, he0, J.apply_smul, J'.apply_smul, h]
+  have ho {i j : Fin 4} (hij : i ≠ j) : inner ℝ (e i) (e j) = 0 := e.orthonormal.2 hij
+  -- `J' (e 2)` is a unit vector orthogonal to `e 0`, `e 1` and `e 2`, so it is `± e 3`.
+  have a0 : inner ℝ (e 0) (J' (e 2)) = 0 := by
+    have := J'.bilinForm_apply_left_eq_neg_apply_right (g := innerₗ _) hi' (e 0) (e 2)
+    simp only [innerₗ_apply_apply, h0', ho (show (1 : Fin 4) ≠ 2 by decide)] at this
+    linarith
+  have a1 : inner ℝ (e 1) (J' (e 2)) = 0 := by
+    rw [← h0', hi']
+    exact ho (by decide)
+  have a2 : inner ℝ (e 2) (J' (e 2)) = 0 := by
+    rw [real_inner_comm]
+    exact J'.inner_apply_self hi' _
+  have hv : J' (e 2) = inner ℝ (e 3) (J' (e 2)) • e 3 := by
+    have := e.sum_repr' (J' (e 2))
+    rw [Fin.sum_univ_four, a0, a1, a2] at this
+    simpa using this.symm
+  have hc : |inner ℝ (e 3) (J' (e 2))| = 1 := by
+    have := congrArg norm hv
+    rwa [J'.norm_apply hi', e.orthonormal.1, norm_smul, e.orthonormal.1, mul_one,
+      Real.norm_eq_abs, eq_comm] at this
+  rcases (abs_eq zero_le_one).1 hc with hc | hc
+  · refine AlmostComplexStructure.toLinearMap_injective (e.toBasis.ext fun i ↦ ?_)
+    rw [hc, one_smul] at hv
+    have h3 : J (e 3) = J' (e 3) := by rw [← h2, J.apply_apply, h2, ← hv, J'.apply_apply]
+    have h1 : J (e 1) = J' (e 1) := by rw [← h0, J.apply_apply, h0, ← h0', J'.apply_apply]
+    fin_cases i
+    · exact h0.trans h0'.symm
+    · exact h1
+    · exact h2.trans hv.symm
+    · exact h3
+  · -- With `J' (e 2) = -e 3`, the adapted bases of `J` and `J'` built from `e` would have
+    -- opposite orientations, but both induce the symplectic orientation.
+    exfalso
+    rw [hc, neg_one_smul] at hv
+    have hre (c : Module.Basis (Fin 4) ℝ (StdSpace (Fin 2))) :
+        (c.reindex (finProdFinEquiv (m := 2) (n := 2)).symm).reindex
+          (finProdFinEquiv.trans (finCongr rfl)) = c :=
+      Module.Basis.eq_of_apply_eq fun i ↦ by simp
+    have o := (isPositivelyOriented_iff_orientation hk J).1 hJ.2
+      (e.toBasis.reindex (finProdFinEquiv (m := 2) (n := 2)).symm)
+      (fun i ↦ by fin_cases i <;> simp [finProdFinEquiv, h0, h2]) rfl
+    have o' := (isPositivelyOriented_iff_orientation hk J').1 hJ'.2
+      ((e.toBasis.unitsSMul ![1, 1, 1, -1]).reindex (finProdFinEquiv (m := 2) (n := 2)).symm)
+      (fun i ↦ by
+        fin_cases i <;> simp [finProdFinEquiv, Module.Basis.unitsSMul_apply, h0', hv]) rfl
+    rw [hre] at o o'
+    rw [Module.Basis.orientation_unitsSMul, o] at o'
+    norm_num [Fin.prod_univ_four] at o'
+
+/-- The value `J x₁` of an orthogonal structure is a unit vector orthogonal to `x₁`. -/
+private theorem apply_single_of_mem_orthogonalComplexStructures
+    {J : AlmostComplexStructure (StdSpace (Fin 2))}
+    (hJ : J ∈ orthogonalComplexStructures (Fin 2 ⊕ Fin 2)) :
+    J (EuclideanSpace.single (.inl 0) 1) (.inl 0) = 0 ∧
+      J (EuclideanSpace.single (.inl 0) 1) (.inr 0) ^ 2 +
+        J (EuclideanSpace.single (.inl 0) 1) (.inl 1) ^ 2 +
+        J (EuclideanSpace.single (.inl 0) 1) (.inr 1) ^ 2 = 1 := by
+  have hi := mem_orthogonalComplexStructures_iff_inner.1 hJ
+  have h0 : J (EuclideanSpace.single (.inl 0) 1) (.inl 0) = 0 := by
+    simpa [EuclideanSpace.inner_single_right] using J.inner_apply_self hi
+      (EuclideanSpace.single (.inl 0) 1)
+  refine ⟨h0, ?_⟩
+  have := congrArg (· ^ 2) (J.norm_apply hi (EuclideanSpace.single (.inl 0) 1))
+  simp [EuclideanSpace.real_norm_sq_eq, Fintype.sum_sum_type, Fin.sum_univ_two, h0] at this
+  linarith
+
+/-- **The orthogonal positively oriented complex structures on `ℝ⁴` form a 2-sphere**: a unit
+vector `u` of `ℝ³` gives left multiplication by the pure quaternion `u₀ i + u₁ j + u₂ k`, and a
+structure `J` gives back the imaginary part of the quaternion of `J x₁`. -/
+noncomputable def sphereHomeomorphOrthogonal :
+    Metric.sphere (0 : EuclideanSpace ℝ (Fin 3)) 1 ≃ₜ positiveOrthogonalComplexStructures (Fin 2)
+    where
+  toFun u := ⟨quaternionComplexStructure u,
+    quaternionComplexStructure_mem_orthogonalComplexStructures u,
+    isPositivelyOriented_quaternionComplexStructure u⟩
+  invFun J := ⟨!₂[(stdSpaceQuaternionIsometry (J.val (EuclideanSpace.single (.inl 0) 1))).imI,
+      (stdSpaceQuaternionIsometry (J.val (EuclideanSpace.single (.inl 0) 1))).imJ,
+      (stdSpaceQuaternionIsometry (J.val (EuclideanSpace.single (.inl 0) 1))).imK], by
+    rw [mem_sphere_zero_iff_norm, ← sq_eq_sq₀ (norm_nonneg _) zero_le_one,
+      EuclideanSpace.real_norm_sq_eq, Fin.sum_univ_three]
+    simpa using (apply_single_of_mem_orthogonalComplexStructures J.property.1).2⟩
+  left_inv u := by
+    ext i
+    fin_cases i <;> simp
+  right_inv J := by
+    refine Subtype.ext (eq_of_apply_eq_of_mem_positiveOrthogonalComplexStructures
+      ⟨quaternionComplexStructure_mem_orthogonalComplexStructures _,
+        isPositivelyOriented_quaternionComplexStructure _⟩ J.property
+      (ξ := EuclideanSpace.single (.inl 0) 1) (by simp) ?_)
+    have h0 := (apply_single_of_mem_orthogonalComplexStructures J.property.1).1
+    ext i <;> fin_cases i <;>
+      simp [StdSpace.x_apply, StdSpace.y_apply, h0]
+  continuous_toFun := continuous_quaternionComplexStructure.subtype_mk _
+  continuous_invFun := by
+    have h : Continuous fun J : positiveOrthogonalComplexStructures (Fin 2) ↦
+        stdSpaceQuaternionIsometry (J.val (EuclideanSpace.single (.inl 0) 1)) :=
+      stdSpaceQuaternionIsometry.continuous.comp
+        ((AlmostComplexStructure.isEmbedding_toContinuousLinearMap.continuous.comp
+          continuous_subtypeVal).clm_apply continuous_const)
+    refine Continuous.subtype_mk ((PiLp.continuous_toLp _ _).comp (continuous_pi fun i ↦ ?_)) _
+    fin_cases i
+    · exact Quaternion.continuous_imI.comp h
+    · exact Quaternion.continuous_imJ.comp h
+    · exact Quaternion.continuous_imK.comp h
+
+/-- `sphereHomeomorphOrthogonal` sends `u` to `quaternionComplexStructure u`. -/
+@[simp]
+theorem sphereHomeomorphOrthogonal_apply (u : Metric.sphere (0 : EuclideanSpace ℝ (Fin 3)) 1) :
+    (sphereHomeomorphOrthogonal u : AlmostComplexStructure (StdSpace (Fin 2))) =
+      quaternionComplexStructure u :=
+  (rfl)
+
+/-- The inverse of `sphereHomeomorphOrthogonal` sends `J` to the imaginary part of the quaternion
+of `J x₁`. -/
+theorem sphereHomeomorphOrthogonal_symm_apply
+    (J : positiveOrthogonalComplexStructures (Fin 2)) :
+    (sphereHomeomorphOrthogonal.symm J : EuclideanSpace ℝ (Fin 3)) =
+      !₂[(stdSpaceQuaternionIsometry (J.val (EuclideanSpace.single (.inl 0) 1))).imI,
+        (stdSpaceQuaternionIsometry (J.val (EuclideanSpace.single (.inl 0) 1))).imJ,
+        (stdSpaceQuaternionIsometry (J.val (EuclideanSpace.single (.inl 0) 1))).imK] :=
+  (rfl)
+
+/-- **The positively oriented complex structures on `ℝ⁴` have the homotopy type of the
+2-sphere**: the polar deformation retracts them onto the orthogonal ones, which form a 2-sphere
+by `sphereHomeomorphOrthogonal`. -/
+noncomputable def positivelyOrientedHomotopyEquivSphere :
+    {J : AlmostComplexStructure (StdSpace (Fin 2)) // IsPositivelyOriented J} ≃ₕ
+      Metric.sphere (0 : EuclideanSpace ℝ (Fin 3)) 1 :=
+  (positivelyOrientedHomotopyEquiv (Fin 2)).trans
+    ((quotientUnitaryHomeomorph (Fin 2)).trans sphereHomeomorphOrthogonal.symm).toHomotopyEquiv
+
+/-! ### The classification of linear complex structures -/
+
+universe u in
+/-- **Linear complex structures are standard.** For every `n`:
+* every complex structure on a real vector space `V` of dimension `2n` is the transport of `J₀`
+  along a linear isomorphism `ℝ²ⁿ ≃ V`;
+* the complex structures of `ℝ²ⁿ` form the homogeneous space `GL(2n, ℝ)/GL(n, ℂ)`;
+* for `n ≠ 0` they have two connected components (for `n = 0` there is one);
+* the component of `J₀` consists of the structures whose adapted bases
+  `(v₁, J v₁, …, vₙ, J vₙ)` induce the symplectic orientation of `ω₀`;
+* the stabilizer of `J₀` in `SO(2n)` is the realified unitary group `U(n)`;
+* the component of `J₀` is homotopy equivalent to `SO(2n)/U(n)`;
+* for `n = 2` it is homotopy equivalent to the 2-sphere.
+
+Milestone: *Linear complex structures are standard*. -/
+theorem complexStructures_classification (n : ℕ) :
+    (∀ (V : Type u) [AddCommGroup V] [Module ℝ V] [FiniteDimensional ℝ V]
+        (J : AlmostComplexStructure V), finrank ℝ V = 2 * n →
+        ∃ Φ : StdSpace (Fin n) ≃ₗ[ℝ] V, (stdComplexStructure (Fin n)).transport Φ = J) ∧
+    Nonempty (GL (Fin n ⊕ Fin n) ℝ ⧸ (Matrix.GeneralLinearGroup.realify (Fin n) ℂ).range ≃ₜ
+        AlmostComplexStructure (StdSpace (Fin n))) ∧
+    (n ≠ 0 → Nat.card (ConnectedComponents (AlmostComplexStructure (StdSpace (Fin n)))) = 2) ∧
+    (∀ (hk : finrank ℝ (StdSpace (Fin n)) = n * 2) J,
+        J ∈ connectedComponent (stdComplexStructure (Fin n)) ↔
+        ∀ (b : Module.Basis (Fin n × Fin 2) ℝ (StdSpace (Fin n)))
+          (_ : ∀ i, b (i, 1) = J (b (i, 0))),
+          (b.reindex finProdFinEquiv).orientation = (stdForm (Fin n)).orientation hk) ∧
+    (MulAction.stabilizer (specialOrthogonalGroup (Fin n ⊕ Fin n) ℝ)
+        (stdComplexStructure (Fin n))).toSubmonoid.map
+        (specialOrthogonalGroup (Fin n ⊕ Fin n) ℝ).subtype =
+      (Matrix.unitaryGroup (Fin n) ℂ).map (Matrix.realifyAlgHom (Fin n) ℂ) ∧
+    Nonempty (connectedComponent (stdComplexStructure (Fin n)) ≃ₕ
+        specialOrthogonalGroup (Fin n ⊕ Fin n) ℝ ⧸
+          MulAction.stabilizer (specialOrthogonalGroup (Fin n ⊕ Fin n) ℝ)
+            (stdComplexStructure (Fin n))) ∧
+    Nonempty (connectedComponent (stdComplexStructure (Fin 2)) ≃ₕ
+        Metric.sphere (0 : EuclideanSpace ℝ (Fin 3)) 1) := by
+  refine ⟨fun V _ _ _ J hV ↦ exists_transport_stdComplexStructure_eq J (by simpa using hV),
+    ⟨quotientRealifyHomeomorph (Fin n)⟩, fun hn ↦ ?_, fun hk J ↦ ?_,
+    map_stabilizer_specialOrthogonalGroup_stdComplexStructure (Fin n),
+    ⟨(Homeomorph.setCongr (connectedComponent_stdComplexStructure (ι := Fin n)))
+        |>.toHomotopyEquiv.trans
+      (positivelyOrientedHomotopyEquiv (Fin n))⟩,
+    ⟨(Homeomorph.setCongr (connectedComponent_stdComplexStructure (ι := Fin 2)))
+        |>.toHomotopyEquiv.trans
+      positivelyOrientedHomotopyEquivSphere⟩⟩
+  · have : Nonempty (Fin n) := ⟨⟨0, Nat.pos_of_ne_zero hn⟩⟩
+    exact nat_card_connectedComponents_almostComplexStructure_stdSpace
+  · rw [connectedComponent_stdComplexStructure, Set.mem_ofPred_eq,
+      isPositivelyOriented_iff_orientation hk]
+    refine ⟨fun H b hb ↦ by simpa using H b hb rfl, fun H m b hb h ↦ ?_⟩
+    obtain rfl : m = n := by omega
+    simpa using H b hb
 
 end SymplecticGeometry
 
