@@ -202,6 +202,15 @@ theorem coe_unitaryFrame_eq_map (U : unitaryGroup ι ℂ) :
         (complexEuclideanEquiv ι : EuclideanSpace ℂ ι →ₗ[ℝ] StdSpace ι) := by
   rw [unitaryFrame_def, coe_unitary_smul, coe_horizontal, map_realImage]
 
+/-- The intersection of the Lagrangian framed by `U` with `{y = 0}` has the dimension of the
+intersection of Tau Ceti's real image `U ℝⁿ` with `ℝⁿ`. -/
+theorem finrank_unitaryFrame_inf_horizontal (U : unitaryGroup ι ℂ) :
+    Module.finrank ℝ ↥((unitaryFrame U : Submodule ℝ (StdSpace ι)) ⊓ horizontal ι) =
+      Module.finrank ℝ ↥((U : Matrix ι ι ℂ).realImage ⊓ TauCeti.realSubspace ι) := by
+  rw [coe_unitaryFrame_eq_map, coe_horizontal, ← StdSpace.map_realSubspace,
+    ← Submodule.map_inf _ (StdSpace.complexEuclideanEquiv ι).injective,
+    LinearEquiv.finrank_map_eq]
+
 /-- The Lagrangian framed by `U` is spanned by the columns of the real `2n × n` matrix
 `fromRows (Re U) (Im U)`. -/
 theorem coe_unitaryFrame (U : unitaryGroup ι ℂ) :

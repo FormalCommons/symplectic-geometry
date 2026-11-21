@@ -147,12 +147,13 @@ These answer the questions that `DESIGN.md` leaves to this file.
    ones, under which Souriau's formula is invariant (Tau Ceti's
    `Matrix.spectralAngleSum_conj`), so the definition does not depend on the
    choice. Naturality under all of $\mathrm{Sp}(2n)$ is then a theorem. Its
-   proof joins a symplectic matrix fixing $V_0$,
-   $\begin{pmatrix}A&B\\0&A^{-T}\end{pmatrix}$, to a real orthogonal one inside
-   the stabilizer of $V_0$ (shrink $B$ to $0$, then deform $A$ to its
-   orthogonal polar factor), and compares the two ends with catenation,
-   homotopy invariance and the zero axiom: along the two side edges of the
-   square the dimension of the intersection with $V_0$ does not change.
+   proof joins $1$ to $\Psi$ by a path $P$ in $\mathrm{Sp}(2n)$, lifts
+   $s\mapsto P(s)V$ to a path $U(s)$ of unitary frames, and compares the two
+   ends of the square $(s,t)\mapsto U(s)^{-1}P(s)\Lambda(t)$ relative to $V_0$
+   with catenation, homotopy invariance and the zero axiom: along the two side
+   edges of the square the dimension of the intersection with $V_0$ does not
+   change. The argument adapts Tau Ceti's proof of
+   `TauCeti.GLSymplectic.conleyZehnderIndex_map_conj`.
 5. **The dictionary with Tau Ceti.** All of Tau Ceti's Lagrangian Maslov
    theory lives on `EuclideanSpace ℂ ι` (or on a general complex space),
    framed by unitary or complex-linear maps. A unitary
@@ -399,6 +400,10 @@ The Maslov phase on $\mathcal{L}(n)$ and the index of Lagrangian loops.
   The reindexing lemmas here and below are stated with `ℒ.reindex e` and its
   continuity `ℒ.continuous_reindex e`, the simp normal form of
   `ℒ.reindexHomeomorph e` (`reindexHomeomorph_apply`).
+- `ℒ.rootMultiplicity_one_charpoly_souriau`: the multiplicity of the eigenvalue
+  `1` of `souriau Λ` is `finrank (Λ ⊓ V₀)`, from Tau Ceti's lemma of the same
+  name through `ℒ.finrank_unitaryFrame_inf_horizontal` of
+  `Lagrangian/Action.lean`.
 - `ℒ.maslovIndex {Λ} (γ : Path Λ Λ) : ℤ := Circle.degree (γ.map continuous_maslovPhase)`,
   with `maslovIndex_def`; from the API of `Circle.degree` (Decision 5):
   `maslovIndex_eq_of_homotopy` (free homotopy, from
@@ -564,7 +569,13 @@ The Robbin–Salamon index of paths, relative to a Lagrangian `V`.
 
 - `ℒ.pathMaslovIndex_smul (Ψ : GLSymplectic ι ℝ) (γ) (V) :
   pathMaslovIndex (γ.map (continuous_const_smul Ψ)) (Ψ • V) = pathMaslovIndex γ V`,
-  by the stabilizer argument of Decision 4.
+  by the square of Decision 4, through
+  `ℒ.pathMaslovIndex_eq_of_homotopy`: a homotopy `F : C(I × I, ℒ ι)` from
+  `γ₀` to `γ₁` whose ends `F (s, 0)`, `F (s, 1)` keep the dimension of their
+  intersections with `V` does not change the index relative to `V` (Mathlib's
+  `Path.Homotopic.map_trans_evalAt` and the zero axiom); both adapt
+  the proof of Tau Ceti's `TauCeti.GLSymplectic.conleyZehnderIndex_map_conj`,
+  and move dimensions to `V₀` by `ℒ.finrank_inf_unitaryFrame`.
 - `ℒ.pathMaslovIndex_add_half_sub_mem (γ : Path Λ Λ') (V) :
   pathMaslovIndex γ V + (finrank (Λ ⊓ V) - finrank (Λ' ⊓ V)) / 2 ∈ Set.range (Int.cast : ℤ → ℝ)`
   (the values property), from Tau Ceti's
@@ -654,18 +665,11 @@ an element of `ℒ ι`.
   `ℒ.pathMaslovIndex_eq_crossing_sum` below, with
   `HasDerivWithinAt Z (Z' t₀) (Icc 0 1) t₀` at some `t₀ ∈ Icc 0 1` and a
   nondegenerate form there, `γ t ⊓ V = ⊥` for `t ≠ t₀` near `t₀` in
-  `Icc 0 1`. Proof: G8 and G9 give a symplectic `Ψ` taking `V` to `V₀` and a
-  Lagrangian transverse to `V` and `γ t₀` to `V₁`; near `t₀` in `Icc 0 1` the
-  moved path is transverse to `V₁`, hence a path of graphs of symmetric
-  matrices `A` (G7), with `A` differentiable within `Icc 0 1` at `t₀`.
-  Naturality and `lagrangianCrossingForm_graph` carry the nondegeneracy over to
-  `Matrix.crossingForm`. For `t₀ < 1`, a derivative within `Icc 0 1` is one
-  within `Ici t₀` (the two sets agree near `t₀` on the right), and Tau Ceti's
-  one-sided `ContinuousLinearMap.eventually_nhdsGT_nondegenerate_of_crossingForm_nondegenerate`
-  gives the times after `t₀`; for `0 < t₀`,
-  `eventually_nhdsLT_nondegenerate_of_crossingForm_nondegenerate`, with `Iic t₀`,
-  gives those before. Their symmetry hypotheses hold because `A t` is symmetric
-  for every `t ∈ Icc 0 1` near `t₀`.
+  `Icc 0 1`. Proof: `γ` is extended to `ℝ` by `Set.IccExtend`. On each side
+  of `t₀` that `Icc 0 1` reaches, `Z` is a frame of the extension near `t₀`,
+  and its derivative within `Icc 0 1` is a one-sided one (the two sets agree
+  near `t₀` on that side), so the one-sided forms below give the times before
+  and after `t₀`.
 - `ℒ.eventually_nhdsLT_not_crossing_of_regular`,
   `ℒ.eventually_nhdsGT_not_crossing_of_regular` and
   `ℒ.eventually_nhdsNE_not_crossing_of_regular`: the same for a family
@@ -673,8 +677,24 @@ an element of `ℒ ι`.
   `Ici r₀`) near `r₀`, eventually in `𝓝[≤] r₀` (or `𝓝[≥] r₀`), and a derivative
   within `Iic r₀` (or `Ici r₀`), and conclude in `𝓝[<] r₀` (or `𝓝[>] r₀`);
   the two-sided one takes a frame of `Λ` eventually in `𝓝 r₀`, `HasDerivAt Z Z' r₀`, and
-  concludes in `𝓝[≠] r₀`. `ℒ.eventually_not_crossing_of_regular` is proved
-  from the one-sided forms, applied to `Set.IccExtend` of `γ`.
+  concludes in `𝓝[≠] r₀`, from the two one-sided forms. Proof of the
+  one-sided forms, without graphs or symplectic changes of coordinates: G8
+  gives a Lagrangian `W` transverse to `V` and to `Λ r₀`; let `P` be the
+  projection onto `V` along `W` (Mathlib's `Submodule.projection`). For each
+  `r`, take the bilinear form `β r (u, v) = ω₀(P (Z r u), Z r v)` on `ℝ^ι`, as
+  a matrix. It is symmetric wherever the image of `Z r` is isotropic, since
+  `V` and `W` are; where it is nondegenerate, the image of `Z r` meets `V`
+  only in `0`, since `P` fixes `V`; and its one-sided derivative at `r₀`
+  comes from that of `Z` by the product rule. At `r₀` its kernel is the
+  preimage of `V` under `Z r₀` (the image of `Z r₀` is Lagrangian and meets
+  `W` only in `0`), and `LinearEquiv.ofSubmodules` on that kernel is an
+  isometry from the crossing form of `Z r₀` and `Z'` to Tau Ceti's
+  `ContinuousLinearMap.crossingForm` of `β` at `r₀`, which is therefore
+  nondegenerate. Tau Ceti's one-sided
+  `ContinuousLinearMap.eventually_nhdsLT_nondegenerate_of_crossingForm_nondegenerate`
+  and `eventually_nhdsGT_nondegenerate_of_crossingForm_nondegenerate`
+  conclude. Their symmetry hypotheses hold because `β r` is symmetric at
+  every `r` where `Z r` is a frame of `Λ r`, so eventually on that side.
 
 Signatures are `(sigPos Q : ℤ) - sigNeg Q`, as in Tau Ceti's crossing theorem;
 the part adds no signature function.

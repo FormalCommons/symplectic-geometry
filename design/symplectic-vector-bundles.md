@@ -136,9 +136,9 @@ variable {EB HB M : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB]
 | `Geometry/Manifold/VectorBundle/ContinuousAlternatingMap.lean` | `contMDiff_compContinuousLinearMap_totalSpace`: precomposition by a $C^n$ hom-bundle section is $C^n$ on total spaces of alternating bundles | 3 |
 | `Geometry/Manifold/VectorBundle/Pullback.lean` | smoothness of sections of the alternating bundle of a pull-back | 18 |
 | `Geometry/Manifold/VectorBundle/Prod.lean` | `Bundle.Prod.contMDiff_prodMap` and `Bundle.Prod.contMDiff_swap`: smoothness on total spaces of the fibrewise product of two maps and of the swap, for fibres with only a zero; `Bundle.Prod.contMDiff_prodCongr` and `Bundle.Prod.contMDiff_prodComm`: the same for bundle isomorphisms | 22 |
-| `Topology/VectorBundle/Pullback.lean` | coordinates of alternating maps on a pull-back bundle; `Bundle.Pullback.neg_fiber`: negatives in a fibre of a pull-back bundle, for `simp` | 18, 20 |
+| `Topology/VectorBundle/Pullback.lean` | coordinates of alternating maps on a pull-back bundle; `Bundle.Pullback.neg_fiber`, `add_fiber`, `sub_fiber`, `smul_fiber`, `neg_pullback`, `add_pullback`, `sub_pullback`, `smul_pullback`, `zero_fiber`, `eq_zero_fiber_iff`, `zero_fiber_eq_iff`, `eq_zero_pullback_iff` and `zero_pullback_eq_iff`: operations and zeros in a fibre of a pull-back bundle, for `simp` | 18, 20 |
 | `Topology/VectorBundle/Coordinates.lean` | coordinates of continuous bilinear forms on a vector bundle | 6 |
-| `Data/Bundle.lean` | `Bundle.Pullback.eq_iff`: equations in a fibre of a pull-back bundle, for `simp` | 20 |
+| `Data/Bundle.lean` | `Bundle.Pullback.eq_iff`, `eq_fiber_iff`, `neg_apply_fiber` and `neg_apply_pullback`: equations and negated functions in a fibre of a pull-back bundle, for `simp` | 20 |
 | `Geometry/Manifold/VectorBundle/Symplectic/Pullback.lean` | pull-backs of forms, of tame and compatible pairs, of isomorphisms and of frames | 21 |
 | `Geometry/Manifold/VectorBundle/Symplectic/Prod.lean` | direct sums of forms, of tame and compatible pairs and of isomorphisms; block frames | 22 |
 | `Geometry/Symplectic/Manifold/Volume.lean` | the symplectic orientation of a negated two-form | 23 |
@@ -1320,12 +1320,23 @@ For a map `f : C^n⟮I', N; I, M⟯` (the argument of Mathlib's instance
   structure of the pull-back. The root-namespace `@[simp]
   Bundle.Pullback.eq_iff` (`Data/Bundle.lean`) moves an equation stated in
   `(f *ᵖ V) y` between vectors of `V (f y)` to `V (f y)`, and `@[simp]
-  Bundle.Pullback.neg_fiber` (`Topology/VectorBundle/Pullback.lean`) takes
-  the negative in `V (f y)` of a vector of `(f *ᵖ V) y` in `(f *ᵖ V) y`.
+  Bundle.Pullback.eq_fiber_iff` moves one stated in `V (f y)` between
+  vectors of `(f *ᵖ V) y` to `(f *ᵖ V) y`, and `@[simp] neg_apply_fiber`
+  and `neg_apply_pullback` evaluate a negated function on a vector of the
+  other type. In `Topology/VectorBundle/Pullback.lean`, which imports
+  `Data/Bundle.lean`, `@[simp]
+  Bundle.Pullback.neg_fiber`, `add_fiber`, `sub_fiber` and `smul_fiber`
+  take an operation in `V (f y)` on vectors of `(f *ᵖ V) y` in
+  `(f *ᵖ V) y`, and `@[simp] neg_pullback`, `add_pullback`, `sub_pullback`
+  and `smul_pullback` take one in `(f *ᵖ V) y` on vectors of `V (f y)` in
+  `V (f y)`. Each fires only where the two types differ. `zero_fiber` is
+  not `@[simp]`: a zero alone has no argument whose type could decide
+  between them. In an equation, `@[simp] eq_zero_fiber_iff`,
+  `zero_fiber_eq_iff`, `eq_zero_pullback_iff` and `zero_pullback_eq_iff`
+  replace a zero of the other type by the zero of the equation's type.
   `coe_pullback` and `pullback_neg` are not `@[simp]`: `coe_pullback` would
-  undo `apply_eq_pullback_apply`, and after `pullback_neg` a vector of
-  `V (f y)` meets a function on `(f *ᵖ V) y` negated pointwise, which
-  `simp` cannot evaluate. Neither is `ContMDiffComplexStructure.neg_apply`,
+  undo `apply_eq_pullback_apply`, and `pullback_neg` would rewrite the
+  left-hand side of `pullback_neg_apply`. Neither is `ContMDiffComplexStructure.neg_apply`,
   whose left-hand side `simp` rewrites with `neg_toEndomorphism`.
   `pullback_toEndomorphism` and `almostComplexStructureAt_pullback` are
   not `@[simp]`: they rewrite under the coercion of the pulled-back bundle,
