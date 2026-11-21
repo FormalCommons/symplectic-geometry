@@ -15,7 +15,10 @@ of `E (f y)` can therefore be read as a vector of `(f *ᵖ E) y`, and an equatio
 terms can be stated at either type. Since `Bundle.Pullback` is not reducible, `simp` does not see
 through it, and an equation stated at the type `(f *ᵖ E) y` between terms of type `E (f y)` is
 not closed by `simp` even when both sides agree. `Bundle.Pullback.eq_iff` moves such an equation
-to the type `E (f y)`.
+to the type `E (f y)`, and `Bundle.Pullback.eq_fiber_iff` moves an equation stated at the type
+`E (f y)` between terms of type `(f *ᵖ E) y` to the type `(f *ᵖ E) y`. Each applies only where
+the type of the equation differs from the type of its two sides, so between them `simp` states
+such an equation at the type of its sides.
 
 ## References
 
@@ -33,6 +36,11 @@ variable {B B' : Type*} {E : B → Type*} {f : B' → B} {y : B'}
 equation in `E (f y)`. -/
 @[simp]
 theorem eq_iff {v w : E (f y)} : @Eq ((f *ᵖ E) y) v w ↔ v = w := Iff.rfl
+
+/-- An equation in `E (f y)` between two vectors of the fibre of `f *ᵖ E` at `y` is the same
+equation in that fibre. -/
+@[simp]
+theorem eq_fiber_iff {v w : (f *ᵖ E) y} : @Eq (E (f y)) v w ↔ v = w := Iff.rfl
 
 end Bundle.Pullback
 

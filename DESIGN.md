@@ -1131,12 +1131,15 @@ it into issues; the overview fixes its folders and its dependencies.
   Tau Ceti file with the product criterion, so that the two merge upstream),
   `Topology/VectorBundle/Pullback.lean` (the coordinates of alternating maps
   on a pull-back bundle, a step that uses no charts, and
-  `Bundle.Pullback.neg_fiber`, a negative in a fibre of a pull-back bundle
-  for Tau Ceti's group structure on it; the file has the path
+  `Bundle.Pullback.neg_fiber` and its companions for sums, differences,
+  multiples, zero and negated functions, which take each operation in a
+  fibre of a pull-back bundle at the type of its arguments; the file has the path
   of the Tau Ceti file with `ContinuousLinearMap.inCoordinates_pullback_of_mem`,
   so that the two merge upstream),
   `Data/Bundle.lean` (`Bundle.Pullback.eq_iff`, an equation in a fibre of a
-  pull-back bundle as one in the fibre it is defined as, in the root
+  pull-back bundle as one in the fibre it is defined as, and
+  `Bundle.Pullback.eq_fiber_iff`, which states an equation between vectors
+  of a fibre of a pull-back bundle in that fibre, in the root
   namespace and at the path of the Mathlib file that defines
   `Bundle.Pullback`),
   `Geometry/Manifold/VectorBundle/Hom.lean` (for fibrewise equivalences
