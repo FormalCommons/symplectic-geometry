@@ -56,7 +56,7 @@ bundle, in `TauCeti/Geometry/Symplectic/Manifold/AlmostComplex/ContMDiff.lean` a
 
 * [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017], §2.6
 * J. W. Milnor and J. D. Stasheff, *Characteristic Classes*, Annals of Mathematics Studies 76,
-  Princeton (1974), §14
+  Princeton (1974), §§3 and 14
 -/
 
 public section
@@ -409,7 +409,6 @@ def pullback (J : ContMDiffComplexStructure I n F V) (f : C^n⟮I', N; I, M⟯) 
 theorem pullback_toEndomorphism (J : ContMDiffComplexStructure I n F V) (f : C^n⟮I', N; I, M⟯)
     (y : N) : (J.pullback f).toEndomorphism y = J.toEndomorphism (f y) := (rfl)
 
-@[simp]
 theorem pullback_apply (J : ContMDiffComplexStructure I n F V) (f : C^n⟮I', N; I, M⟯) (y : N)
     (v : V (f y)) : J.pullback f y v = J (f y) v := (rfl)
 
@@ -465,7 +464,6 @@ theorem prod_toEndomorphism (J₁ : ContMDiffComplexStructure I n F₁ V₁)
     (J₂ : ContMDiffComplexStructure I n F₂ V₂) (x : M) :
     (J₁.prod J₂).toEndomorphism x = (J₁.toEndomorphism x).prodMap (J₂.toEndomorphism x) := (rfl)
 
-@[simp]
 theorem prod_apply (J₁ : ContMDiffComplexStructure I n F₁ V₁)
     (J₂ : ContMDiffComplexStructure I n F₂ V₂) (x : M) (v : V₁ x × V₂ x) :
     J₁.prod J₂ x v = (J₁ x v.1, J₂ x v.2) := (rfl)
@@ -479,12 +477,12 @@ theorem almostComplexStructureAt_prod (J₁ : ContMDiffComplexStructure I n F₁
     simp
 
 @[simp]
-theorem prod_neg (J₁ : ContMDiffComplexStructure I n F₁ V₁)
+theorem neg_prod_neg (J₁ : ContMDiffComplexStructure I n F₁ V₁)
     (J₂ : ContMDiffComplexStructure I n F₂ V₂) : (-J₁).prod (-J₂) = -(J₁.prod J₂) := by
   ext x v <;> rfl
 
 @[simp]
-theorem prod_ofLE (J₁ : ContMDiffComplexStructure I n F₁ V₁)
+theorem ofLE_prod (J₁ : ContMDiffComplexStructure I n F₁ V₁)
     (J₂ : ContMDiffComplexStructure I n F₂ V₂) {m : ℕ∞} (h : m ≤ n) :
     (J₁.prod J₂).ofLE h = (J₁.ofLE h).prod (J₂.ofLE h) := by
   ext x v <;> rfl
@@ -520,7 +518,6 @@ theorem ofComplexModule_toEndomorphism (x : M) :
     (ofComplexModule I n F V).toEndomorphism x = (Complex.smulIEquiv (V x) : V x →L[ℝ] V x) :=
   (rfl)
 
-@[simp]
 theorem ofComplexModule_apply (x : M) (v : V x) :
     ofComplexModule I n F V x v = Complex.I • v :=
   Complex.smulIEquiv_apply v
@@ -535,7 +532,7 @@ theorem almostComplexStructureAt_ofComplexModule (x : M) :
     simp
 
 @[simp]
-theorem ofComplexModule_ofLE {m : ℕ∞} (h : m ≤ n) :
+theorem ofLE_ofComplexModule {m : ℕ∞} (h : m ≤ n) :
     (ofComplexModule I n F V).ofLE h = ofComplexModule I m F V := by
   ext x v
   rfl
