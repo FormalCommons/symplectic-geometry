@@ -160,11 +160,11 @@ theorem toContinuousComplexStructure_almostComplexStructureAt
     J.toContinuousComplexStructure.almostComplexStructureAt x =
       J.almostComplexStructureAt x := (rfl)
 
-@[simp]
 theorem almostComplexStructureAt_toLinearMap (J : ContMDiffComplexStructure I n F V) (x : M) :
     (J.almostComplexStructureAt x).toLinearMap = (J x).toLinearMap :=
   LinearMap.ext fun v ↦ J.toContinuousComplexStructure.almostComplexStructureAt_apply x v
 
+@[simp]
 theorem almostComplexStructureAt_apply (J : ContMDiffComplexStructure I n F V) (x : M)
     (v : V x) : J.almostComplexStructureAt x v = J x v :=
   J.toContinuousComplexStructure.almostComplexStructureAt_apply x v
@@ -248,7 +248,6 @@ instance : Neg (ContMDiffComplexStructure I n F V) := ⟨ContMDiffComplexStructu
 theorem neg_toEndomorphism (J : ContMDiffComplexStructure I n F V) :
     (-J).toEndomorphism = -J.toEndomorphism := (rfl)
 
-@[simp]
 theorem neg_apply (J : ContMDiffComplexStructure I n F V) (x : M) : (-J) x = -J x := (rfl)
 
 @[simp]
@@ -483,7 +482,7 @@ theorem almostComplexStructureAt_prod (J₁ : ContMDiffComplexStructure I n F₁
     (J₁.prod J₂).almostComplexStructureAt x =
       (J₁.almostComplexStructureAt x).prod (J₂.almostComplexStructureAt x) :=
   TauCeti.AlmostComplexStructure.toLinearMap_injective <| LinearMap.ext fun v ↦ by
-    simp
+    simp [almostComplexStructureAt_toLinearMap]
 
 @[simp]
 theorem neg_prod_neg (J₁ : ContMDiffComplexStructure I n F₁ V₁)
@@ -709,11 +708,9 @@ theorem tangentEquiv_toEndomorphism
 theorem tangentEquiv_symm_toEndomorphism (J : TauCeti.ContMDiffAlmostComplexStructure I n M) :
     (tangentEquiv.symm J).toEndomorphism = J.toEndomorphism := (rfl)
 
-@[simp]
 theorem tangentEquiv_apply (J : ContMDiffComplexStructure I n EB (TangentSpace I : M → Type _))
     (x : M) (v : TangentSpace I x) : tangentEquiv J x v = J x v := (rfl)
 
-@[simp]
 theorem tangentEquiv_symm_apply (J : TauCeti.ContMDiffAlmostComplexStructure I n M) (x : M)
     (v : TangentSpace I x) : tangentEquiv.symm J x v = J x v := (rfl)
 
