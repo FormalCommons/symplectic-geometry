@@ -7,11 +7,11 @@ module
 
 public import Mathlib.Analysis.Calculus.ContDiff.Operations
 public import TauCeti.Analysis.ODE.DysonSeries
-import Mathlib.Analysis.Analytic.ChangeOrigin
-import Mathlib.Analysis.Normed.Module.Multilinear.Curry
+public import Mathlib.Analysis.Analytic.ChangeOrigin
+public import Mathlib.Analysis.Normed.Module.Multilinear.Curry
 import Mathlib.Analysis.SpecialFunctions.Integrals.Basic
 import Mathlib.Analysis.SpecificLimits.Normed
-import TauCeti.Analysis.Calculus.ContinuousMap.Local
+public import TauCeti.Analysis.Calculus.ContinuousMap.Local
 
 /-!
 # Naturality and smooth parameter dependence of the Dyson series
@@ -35,20 +35,32 @@ Dyson series of the path `s ↦ t • p (t * s)` on `[0, 1]`. On the Banach spac
 radius, hence analytic. The rescaled path depends smoothly on the parameter and the time, by Tau
 Ceti's smoothness of superposition operators (`ContinuousMap.contDiffAt_mkD_comp`).
 
+## Main definitions
+
+* `SymplecticGeometry.pathDysonMultilinear`: the `n`-linear map `(q₁, …, qₙ) ↦ ∫∫ q₁ ⋯ qₙ` on
+  continuous paths on `[0, 1]`, whose diagonal is the `n`-th Dyson term.
+* `SymplecticGeometry.pathDysonSeries`: these maps, as a formal power series on paths.
+
 ## Main results
 
 * `SymplecticGeometry.map_dysonTerm`, `SymplecticGeometry.map_dysonSeries`,
   `SymplecticGeometry.map_dysonSeriesLeft`: naturality under continuous algebra homomorphisms.
 * `SymplecticGeometry.dysonTerm_smul_comp_mul`: rescaling time in the iterated integrals.
+* `SymplecticGeometry.radius_pathDysonSeries`,
+  `SymplecticGeometry.analyticOnNhd_dysonSeries_projIcc`,
+  `SymplecticGeometry.contDiff_dysonSeries_projIcc`: the Dyson series at time `1` is an entire
+  function of the path on `[0, 1]`.
 * `SymplecticGeometry.contDiffOn_parametric_dysonSeries`,
   `SymplecticGeometry.contDiffOn_parametric_dysonSeriesLeft`,
+  `SymplecticGeometry.contDiff_parametric_dysonSeries`,
   `SymplecticGeometry.contDiff_parametric_dysonSeriesLeft`: `Cⁿ` dependence on a parameter and
   the time.
 
 ## References
 
 * [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017],
-  Theorem 2.6.3, which applies the linear Moser flow fibrewise.
+  Theorem 2.6.3, the fibrewise linear Moser flow, for which these facts are needed. The analysis
+  itself is the standard power series argument for linear differential equations.
 -/
 
 public section
@@ -63,17 +75,8 @@ open scoped Nat
 section Naturality
 
 variable {B C F : Type*} [NormedRing B] [NormedAlgebra ℝ B]
-  [NormedRing C] [NormedAlgebra ℝ C]
+  [NormedRing C] [NormedAlgebra ℝ C] [CompleteSpace B] [CompleteSpace C]
   [FunLike F B C] [AlgHomClass F ℝ B C] {f : F} {p : ℝ → B}
-
-/-- A continuous algebra homomorphism, as a continuous linear map. -/
-private def toContinuousLinearMap (f : F) (hf : Continuous f) : B →L[ℝ] C :=
-  ⟨(AlgHom.ofClass f).toLinearMap, hf⟩
-
-private theorem toContinuousLinearMap_apply (hf : Continuous f) (b : B) :
-    toContinuousLinearMap f hf b = f b := rfl
-
-variable [CompleteSpace B] [CompleteSpace C]
 
 /-- A continuous algebra homomorphism commutes with the iterated integrals of the Dyson
 series. -/
@@ -84,19 +87,20 @@ theorem map_dysonTerm (hf : Continuous f) (hp : Continuous p) (n : ℕ) (t : ℝ
   | succ n ih =>
     have hi : IntervalIntegrable (fun s => dysonTerm p n s * p s) volume 0 t :=
       ((continuous_dysonTerm hp n).mul hp).intervalIntegrable 0 t
-    rw [dysonTerm_succ, dysonTerm_succ, ← toContinuousLinearMap_apply hf,
-      ← (toContinuousLinearMap f hf).intervalIntegral_comp_comm hi]
+    have h := ((f : B →+ C).toRealLinearMap hf).intervalIntegral_comp_comm hi
+    simp only [AddMonoidHom.coe_toRealLinearMap, AddMonoidHom.coe_ofClass] at h
+    rw [dysonTerm_succ, dysonTerm_succ, ← h]
     congr 1
     ext s
-    rw [toContinuousLinearMap_apply, map_mul, ih]
+    rw [map_mul, ih]
     rfl
 
 /-- A continuous algebra homomorphism commutes with the Dyson series:
 `f (dysonSeries p t) = dysonSeries (f ∘ p) t`. -/
 theorem map_dysonSeries (hf : Continuous f) (hp : Continuous p) (t : ℝ) :
     f (dysonSeries p t) = dysonSeries (f ∘ p) t := by
-  have h := (hasSum_dysonSeries hp t).mapL (toContinuousLinearMap f hf)
-  simp only [toContinuousLinearMap_apply, map_dysonTerm hf hp] at h
+  have h := (hasSum_dysonSeries hp t).map f hf
+  simp only [Function.comp_def, map_dysonTerm hf hp] at h
   exact h.unique (hasSum_dysonSeries (hf.comp hp) t)
 
 /-- A continuous algebra homomorphism commutes with the left Dyson series:
@@ -104,18 +108,22 @@ theorem map_dysonSeries (hf : Continuous f) (hp : Continuous p) (t : ℝ) :
 theorem map_dysonSeriesLeft (hf : Continuous f) (hp : Continuous p) (t : ℝ) :
     f (dysonSeriesLeft p t) = dysonSeriesLeft (f ∘ p) t := by
   set g : Bᵐᵒᵖ →ₐ[ℝ] Cᵐᵒᵖ := AlgHom.op (AlgHom.ofClass f)
-  have hg : Continuous g :=
-    MulOpposite.continuous_op.comp (hf.comp MulOpposite.continuous_unop)
+  have hg_apply (b : Bᵐᵒᵖ) : g b = MulOpposite.op (f b.unop) := by
+    simp [g, AlgHom.op_apply_apply]
+  have hg : Continuous g := by
+    rw [show ⇑g = fun b => MulOpposite.op (f b.unop) from funext hg_apply]
+    exact MulOpposite.continuous_op.comp (hf.comp MulOpposite.continuous_unop)
   apply MulOpposite.op_injective
   calc MulOpposite.op (f (dysonSeriesLeft p t))
-      = g (MulOpposite.op (dysonSeriesLeft p t)) := rfl
+      = g (MulOpposite.op (dysonSeriesLeft p t)) := by rw [hg_apply, MulOpposite.unop_op]
     _ = g (dysonSeries (fun s => MulOpposite.op (p s)) t) := by rw [op_dysonSeriesLeft]
     _ = dysonSeries (g ∘ fun s => MulOpposite.op (p s)) t :=
         map_dysonSeries hg (MulOpposite.continuous_op.comp hp) t
-    _ = MulOpposite.op (dysonSeriesLeft (f ∘ p) t) := by rw [op_dysonSeriesLeft]; rfl
+    _ = MulOpposite.op (dysonSeriesLeft (f ∘ p) t) := by
+        rw [op_dysonSeriesLeft]
+        simp only [Function.comp_def, hg_apply, MulOpposite.unop_op]
 
 end Naturality
-
 section Rescaling
 
 variable {B : Type*} [NormedRing B] [NormedAlgebra ℝ B]
@@ -145,44 +153,42 @@ private def dysonStep :
   ContinuousLinearMap.compL ℝ _ _ _ ContinuousMap.unitIntervalIntegral ∘L
     ContinuousLinearMap.mul ℝ _
 
-/-- The `n`-linear map `(q₁, …, qₙ) ↦ ∫∫ q₁ ⋯ qₙ` whose diagonal gives the `n`-th Dyson term of a
-path on `[0, 1]`. -/
-private def dysonMultilinear :
+/-- The continuous `n`-linear map `(q₁, …, qₙ) ↦ ∫∫ q₁ ⋯ qₙ` on continuous paths on `[0, 1]`,
+defined by `1` for `n = 0` and by `(q₁, …, qₙ₊₁) ↦ (s ↦ ∫₀ˢ (∫∫ q₁ ⋯ qₙ) qₙ₊₁)`. Its value at
+`(q, …, q)` is the `n`-th Dyson term of `q` (`pathDysonMultilinear_diag_apply`). -/
+def pathDysonMultilinear :
     (n : ℕ) → ContinuousMultilinearMap ℝ (fun _ : Fin n => C(Icc (0 : ℝ) 1, B))
       C(Icc (0 : ℝ) 1, B)
   | 0 => ContinuousMultilinearMap.constOfIsEmpty ℝ _ 1
   | n + 1 => ContinuousMultilinearMap.uncurryRight
       (Ei := fun _ : Fin (n + 1) => C(Icc (0 : ℝ) 1, B))
-      (dysonStep.compContinuousMultilinearMap (dysonMultilinear n))
+      (dysonStep.compContinuousMultilinearMap (pathDysonMultilinear n))
 
-private theorem dysonMultilinear_zero_apply (m : Fin 0 → C(Icc (0 : ℝ) 1, B)) :
-    dysonMultilinear 0 m = 1 := rfl
+@[simp]
+theorem pathDysonMultilinear_zero_apply (m : Fin 0 → C(Icc (0 : ℝ) 1, B)) :
+    pathDysonMultilinear 0 m = 1 := (rfl)
 
-private theorem dysonMultilinear_succ_apply (n : ℕ) (m : Fin (n + 1) → C(Icc (0 : ℝ) 1, B)) :
-    dysonMultilinear (n + 1) m = ContinuousMap.unitIntervalIntegral
-      (dysonMultilinear n (Fin.init m) * m (Fin.last n)) := rfl
+theorem pathDysonMultilinear_succ_apply (n : ℕ) (m : Fin (n + 1) → C(Icc (0 : ℝ) 1, B)) :
+    pathDysonMultilinear (n + 1) m = ContinuousMap.unitIntervalIntegral
+      (pathDysonMultilinear n (Fin.init m) * m (Fin.last n)) := (rfl)
 
-private theorem mem_Icc_of_mem_uIcc {s : Icc (0 : ℝ) 1} {u : ℝ} (hu : u ∈ uIcc 0 (s : ℝ)) :
-    u ∈ Icc (0 : ℝ) 1 := by
-  rw [uIcc_of_le s.property.1] at hu
-  exact ⟨hu.1, hu.2.trans s.property.2⟩
-
-/-- The pointwise factorial bound on the multilinear Dyson terms. -/
-private theorem norm_dysonMultilinear_apply_le (n : ℕ) (m : Fin n → C(Icc (0 : ℝ) 1, B))
+/-- The pointwise factorial bound on the multilinear Dyson terms:
+`‖∫∫ q₁ ⋯ qₙ (s)‖ ≤ ‖1‖ / n! * ∏ ‖qᵢ‖ * s ^ n`. -/
+theorem norm_pathDysonMultilinear_apply_le (n : ℕ) (m : Fin n → C(Icc (0 : ℝ) 1, B))
     (s : Icc (0 : ℝ) 1) :
-    ‖dysonMultilinear n m s‖ ≤ ‖(1 : B)‖ / n ! * (∏ i, ‖m i‖) * (s : ℝ) ^ n := by
+    ‖pathDysonMultilinear n m s‖ ≤ ‖(1 : B)‖ / n ! * (∏ i, ‖m i‖) * (s : ℝ) ^ n := by
   induction n generalizing s with
-  | zero => simp [dysonMultilinear_zero_apply]
+  | zero => simp
   | succ n ih =>
     have hs := s.property.1
-    rw [dysonMultilinear_succ_apply, ContinuousMap.unitIntervalIntegral_apply]
+    rw [pathDysonMultilinear_succ_apply, ContinuousMap.unitIntervalIntegral_apply]
     set c := ‖(1 : B)‖ / n ! * (∏ i, ‖Fin.init m i‖) * ‖m (Fin.last n)‖
     calc _ ≤ ∫ u in (0 : ℝ)..s, c * u ^ n := by
           refine intervalIntegral.norm_integral_le_of_norm_le hs
             (Filter.Eventually.of_forall fun u hu => ?_)
             ((continuous_const.mul (continuous_pow n)).intervalIntegrable _ _)
-          have hu' : u ∈ Icc (0 : ℝ) 1 := mem_Icc_of_mem_uIcc (Ioc_subset_Icc_self.trans
-            (by rw [uIcc_of_le hs]) hu)
+          have hu' : u ∈ Icc (0 : ℝ) 1 := uIcc_subset_Icc (left_mem_Icc.2 zero_le_one)
+            s.property (Ioc_subset_Icc_self.trans (by rw [uIcc_of_le hs]) hu)
           rw [projIcc_of_mem _ hu', ContinuousMap.mul_apply]
           refine (norm_mul_le _ _).trans ?_
           calc _ ≤ ‖(1 : B)‖ / n ! * (∏ i, ‖Fin.init m i‖) * u ^ n * ‖m (Fin.last n)‖ :=
@@ -198,68 +204,91 @@ private theorem norm_dysonMultilinear_apply_le (n : ℕ) (m : Fin n → C(Icc (0
           field_simp
 
 /-- The multilinear Dyson terms have operator norm at most `‖1‖ / n!`. -/
-private theorem norm_dysonMultilinear_le (n : ℕ) :
-    ‖dysonMultilinear (B := B) n‖ ≤ ‖(1 : B)‖ / n ! := by
+theorem norm_pathDysonMultilinear_le (n : ℕ) :
+    ‖pathDysonMultilinear (B := B) n‖ ≤ ‖(1 : B)‖ / n ! := by
   refine ContinuousMultilinearMap.opNorm_le_bound (by positivity) fun m =>
     (ContinuousMap.norm_le _ (by positivity)).2 fun s => ?_
-  refine (norm_dysonMultilinear_apply_le n m s).trans ?_
+  refine (norm_pathDysonMultilinear_apply_le n m s).trans ?_
   have h1 : (s : ℝ) ^ n ≤ 1 := pow_le_one₀ s.property.1 s.property.2
   have h0 : 0 ≤ ‖(1 : B)‖ / n ! * ∏ i, ‖m i‖ := by positivity
   simpa using mul_le_mul_of_nonneg_left h1 h0
 
-/-- The Dyson series on continuous paths on `[0, 1]`, as a formal power series. -/
-private def dysonFormalSeries : FormalMultilinearSeries ℝ C(Icc (0 : ℝ) 1, B)
-    C(Icc (0 : ℝ) 1, B) :=
-  fun n => dysonMultilinear n
-
-private theorem radius_dysonFormalSeries : (dysonFormalSeries (B := B)).radius = ⊤ := by
-  refine FormalMultilinearSeries.radius_eq_top_of_summable_norm _ fun r => ?_
-  refine .of_nonneg_of_le (fun n => by positivity) (fun n => ?_)
-    ((Real.summable_pow_div_factorial r).mul_left ‖(1 : B)‖)
-  calc ‖dysonFormalSeries (B := B) n‖ * (r : ℝ) ^ n ≤ ‖(1 : B)‖ / n ! * (r : ℝ) ^ n :=
-        mul_le_mul_of_nonneg_right (norm_dysonMultilinear_le n) (by positivity)
-    _ = ‖(1 : B)‖ * ((r : ℝ) ^ n / n !) := by ring
-
 /-- On the diagonal, the multilinear Dyson terms of a path `Q` on `[0, 1]` are the Dyson terms of
 any path `q` on `ℝ` that agrees with `Q` on `[0, 1]`. -/
-private theorem dysonMultilinear_apply_eq {q : ℝ → B} {Q : C(Icc (0 : ℝ) 1, B)}
+theorem pathDysonMultilinear_diag_apply {q : ℝ → B} {Q : C(Icc (0 : ℝ) 1, B)}
     (hQ : ∀ s, Q s = q s) (n : ℕ) (s : Icc (0 : ℝ) 1) :
-    dysonMultilinear n (fun _ => Q) s = dysonTerm q n s := by
+    pathDysonMultilinear n (fun _ => Q) s = dysonTerm q n s := by
   induction n generalizing s with
-  | zero => simp [dysonMultilinear_zero_apply]
+  | zero => simp
   | succ n ih =>
-    rw [dysonMultilinear_succ_apply, ContinuousMap.unitIntervalIntegral_apply, dysonTerm_succ]
+    rw [pathDysonMultilinear_succ_apply, ContinuousMap.unitIntervalIntegral_apply, dysonTerm_succ]
     refine intervalIntegral.integral_congr fun u hu => ?_
-    have hu' := mem_Icc_of_mem_uIcc hu
+    have hu' := uIcc_subset_Icc (left_mem_Icc.2 zero_le_one) s.property hu
     simp only [projIcc_of_mem _ hu', ContinuousMap.mul_apply]
     rw [← hQ ⟨u, hu'⟩, ← ih ⟨u, hu'⟩]
     rfl
 
+/-- The Dyson series on continuous paths on `[0, 1]`, as a formal power series whose `n`-th term
+is `pathDysonMultilinear n`. -/
+def pathDysonSeries : FormalMultilinearSeries ℝ C(Icc (0 : ℝ) 1, B) C(Icc (0 : ℝ) 1, B) :=
+  fun n => pathDysonMultilinear n
+
+@[simp]
+theorem pathDysonSeries_apply (n : ℕ) :
+    pathDysonSeries (B := B) n = pathDysonMultilinear n := (rfl)
+
+/-- The Dyson power series on paths has infinite radius of convergence. -/
+@[simp]
+theorem radius_pathDysonSeries : (pathDysonSeries (B := B)).radius = ⊤ := by
+  refine FormalMultilinearSeries.radius_eq_top_of_summable_norm _ fun r => ?_
+  refine .of_nonneg_of_le (fun n => by positivity) (fun n => ?_)
+    ((Real.summable_pow_div_factorial r).mul_left ‖(1 : B)‖)
+  calc ‖pathDysonSeries (B := B) n‖ * (r : ℝ) ^ n ≤ ‖(1 : B)‖ / n ! * (r : ℝ) ^ n :=
+        mul_le_mul_of_nonneg_right (norm_pathDysonMultilinear_le n) (by positivity)
+    _ = ‖(1 : B)‖ * ((r : ℝ) ^ n / n !) := by ring
+
 variable [CompleteSpace B]
 
-private theorem hasFPowerSeriesOnBall_dysonFormalSeries :
-    HasFPowerSeriesOnBall (dysonFormalSeries (B := B)).sum dysonFormalSeries 0 ⊤ := by
-  simpa [radius_dysonFormalSeries] using
-    (dysonFormalSeries (B := B)).hasFPowerSeriesOnBall (by simp [radius_dysonFormalSeries])
-
-/-- The Dyson series is an entire function on the space of continuous paths on `[0, 1]`. -/
-private theorem contDiff_sum_dysonFormalSeries {n : WithTop ℕ∞} :
-    ContDiff ℝ n (dysonFormalSeries (B := B)).sum :=
-  AnalyticOnNhd.contDiff fun _ _ =>
-    hasFPowerSeriesOnBall_dysonFormalSeries.analyticAt_of_mem (by simp)
+/-- The Dyson power series on paths represents its sum on the whole space. -/
+theorem hasFPowerSeriesOnBall_pathDysonSeries :
+    HasFPowerSeriesOnBall (pathDysonSeries (B := B)).sum pathDysonSeries 0 ⊤ := by
+  simpa using (pathDysonSeries (B := B)).hasFPowerSeriesOnBall (by simp)
 
 /-- The Dyson terms at time `1` of a path `q` on `ℝ` sum to the value at `1` of the sum of the
 Dyson power series at any continuous path `Q` on `[0, 1]` that agrees with `q` there. -/
-private theorem hasSum_dysonTerm_one {q : ℝ → B} {Q : C(Icc (0 : ℝ) 1, B)}
-    (hQ : ∀ s, Q s = q s) :
+theorem hasSum_dysonTerm_one {q : ℝ → B} {Q : C(Icc (0 : ℝ) 1, B)} (hQ : ∀ s, Q s = q s) :
     HasSum (fun n => dysonTerm q n 1)
-      ((dysonFormalSeries (B := B)).sum Q ⟨1, right_mem_Icc.2 zero_le_one⟩) := by
-  have h := (hasFPowerSeriesOnBall_dysonFormalSeries (B := B).hasSum
+      ((pathDysonSeries (B := B)).sum Q ⟨1, right_mem_Icc.2 zero_le_one⟩) := by
+  have h := (hasFPowerSeriesOnBall_pathDysonSeries (B := B).hasSum
     (y := Q) (by simp)).mapL (ContinuousMap.evalCLM ℝ ⟨(1 : ℝ), right_mem_Icc.2 zero_le_one⟩)
   rw [zero_add] at h
   convert h using 2 with n
-  · exact (dysonMultilinear_apply_eq hQ n ⟨1, right_mem_Icc.2 zero_le_one⟩).symm
+  · exact (pathDysonMultilinear_diag_apply hQ n ⟨1, right_mem_Icc.2 zero_le_one⟩).symm
   · rfl
+
+/-- The Dyson series at time `1` of a continuous path `Q` on `[0, 1]`, extended to `ℝ` by
+`projIcc`, is the value at `1` of the sum of the Dyson power series at `Q`. -/
+theorem dysonSeries_projIcc_one (Q : C(Icc (0 : ℝ) 1, B)) :
+    dysonSeries (fun u => Q (projIcc 0 1 zero_le_one u)) 1 =
+      (pathDysonSeries (B := B)).sum Q ⟨1, right_mem_Icc.2 zero_le_one⟩ :=
+  (hasSum_dysonSeries (Q.continuous.comp continuous_projIcc) 1).unique
+    (hasSum_dysonTerm_one fun s => by simp)
+
+/-- **The Dyson series is entire in its path.** The Dyson series at time `1` of a continuous
+path `Q` on `[0, 1]` is an analytic function of `Q` on the whole Banach space `C([0, 1], B)`. -/
+theorem analyticOnNhd_dysonSeries_projIcc :
+    AnalyticOnNhd ℝ (fun Q : C(Icc (0 : ℝ) 1, B) =>
+      dysonSeries (fun u => Q (projIcc 0 1 zero_le_one u)) 1) univ := by
+  simp_rw [dysonSeries_projIcc_one]
+  exact fun _ _ => (ContinuousMap.evalCLM ℝ _).analyticAt _ |>.comp
+    (hasFPowerSeriesOnBall_pathDysonSeries.analyticAt_of_mem (by simp))
+
+/-- The Dyson series at time `1` of a continuous path `Q` on `[0, 1]` is a `C^∞` function
+of `Q`. -/
+theorem contDiff_dysonSeries_projIcc {n : WithTop ℕ∞} :
+    ContDiff ℝ n fun Q : C(Icc (0 : ℝ) 1, B) =>
+      dysonSeries (fun u => Q (projIcc 0 1 zero_le_one u)) 1 :=
+  analyticOnNhd_dysonSeries_projIcc.contDiff
 
 end PathSpace
 
@@ -292,6 +321,21 @@ private def rescaledPath (p : E → ℝ → B) (y : E × ℝ) : C(Icc (0 : ℝ) 
     ℝ (Icc (0 : ℝ) 1) (ContinuousMap.mkD (fun s => ULift.up.{u}
       ((timePath y s).1.2 • p (timePath y s).1.1 ((timePath y s).1.2 * (timePath y s).2))) 0)
 
+omit [CompleteSpace B] [NormedSpace ℝ E] in
+/-- Where `p y.1` is continuous, the rescaled path is `s ↦ y.2 • p y.1 (y.2 * s)`. -/
+private theorem rescaledPath_apply {p : E → ℝ → B} {y : E × ℝ} (hp : Continuous (p y.1))
+    (s : Icc (0 : ℝ) 1) : rescaledPath p y s = y.2 • p y.1 (y.2 * s) := by
+  have hc : Continuous fun s : Icc (0 : ℝ) 1 => ULift.up.{u} ((timePath y s).1.2 •
+      p (timePath y s).1.1 ((timePath y s).1.2 * (timePath y s).2)) := by
+    simp only [timePath, ContinuousMap.coe_mk]; fun_prop
+  -- Composing with `ULift.down` (the map `LinearIsometryEquiv.ulift`) is evaluation followed by
+  -- `ULift.down`, by definition.
+  have h : rescaledPath p y s = ULift.down (ContinuousMap.mkD (fun s => ULift.up.{u}
+      ((timePath y s).1.2 • p (timePath y s).1.1 ((timePath y s).1.2 * (timePath y s).2))) 0 s) :=
+    rfl
+  rw [h, ContinuousMap.mkD_apply_of_continuous hc]
+  rfl
+
 /-- **Smooth dependence on parameters.** If a family of paths `p x t` in a real Banach algebra is
 `Cⁿ` jointly in a parameter `x` from an open set `U` of a normed space and the time `t`, then so
 is its Dyson series `dysonSeries (p x) t`. -/
@@ -313,22 +357,16 @@ theorem contDiffOn_parametric_dysonSeries {n : ℕ∞} {U : Set E} (hU : IsOpen 
     ContinuousLinearMap.contDiff _ |>.contDiffAt.comp y <|
       (ContinuousMap.contDiffAt_mkD_comp n hS hg (hmem hy) 0).comp y contDiff_timePath.contDiffAt
   have key {y : E × ℝ} (hy : y ∈ U ×ˢ univ) :
-      dysonSeries (p y.1) y.2 = (dysonFormalSeries (B := B)).sum (rescaledPath p y) one := by
-    have hRy (s : Icc (0 : ℝ) 1) : rescaledPath p y s = y.2 • p y.1 (y.2 * s) := by
-      change ULift.down (ContinuousMap.mkD _ 0 s) = _
-      have hc : Continuous fun s : Icc (0 : ℝ) 1 => ULift.up.{u} ((timePath y s).1.2 •
-          p (timePath y s).1.1 ((timePath y s).1.2 * (timePath y s).2)) :=
-        hg.continuousOn.comp_continuous (timePath y).continuous (hmem hy)
-      rw [ContinuousMap.mkD_apply_of_continuous hc]
-      rfl
+      dysonSeries (p y.1) y.2 = (pathDysonSeries (B := B)).sum (rescaledPath p y) one := by
     have hpx : Continuous (p y.1) := hp.continuousOn.comp_continuous
       (continuous_const.prodMk continuous_id) fun _ => ⟨hy.1, trivial⟩
-    have h := hasSum_dysonTerm_one (q := fun u => y.2 • p y.1 (y.2 * u)) hRy
+    have h := hasSum_dysonTerm_one (q := fun u => y.2 • p y.1 (y.2 * u))
+      (rescaledPath_apply hpx)
     simp_rw [dysonTerm_smul_comp_mul, mul_one] at h
     exact (hasSum_dysonSeries hpx y.2).unique h
   intro y hy
-  have hG : ContDiff ℝ n fun Q => (dysonFormalSeries (B := B)).sum Q one :=
-    (ContinuousMap.evalCLM ℝ one).contDiff.comp contDiff_sum_dysonFormalSeries
+  have hG : ContDiff ℝ n fun Q => (pathDysonSeries (B := B)).sum Q one := by
+    simpa only [dysonSeries_projIcc_one] using contDiff_dysonSeries_projIcc (B := B) (n := n)
   refine ((hG.contDiffAt.comp y (hR hy)).congr_of_eventuallyEq ?_).contDiffWithinAt
   filter_upwards [(hU.prod isOpen_univ).mem_nhds hy] with z hz using key hz
 
@@ -344,6 +382,15 @@ theorem contDiffOn_parametric_dysonSeriesLeft {n : ℕ∞} {U : Set E} (hU : IsO
     fun q _ => ?_
   rw [← MulOpposite.op_inj, op_dysonSeriesLeft]
   rfl
+
+/-- **Smooth dependence on parameters.** If a family of paths `p x t` in a real Banach algebra is
+`Cⁿ` jointly in a parameter `x` from a normed space and the time `t`, then so is its Dyson series
+`dysonSeries (p x) t`. -/
+theorem contDiff_parametric_dysonSeries {n : ℕ∞} {p : E → ℝ → B}
+    (hp : ContDiff ℝ n (Function.uncurry p)) :
+    ContDiff ℝ n fun q : E × ℝ => dysonSeries (p q.1) q.2 := by
+  rw [← contDiffOn_univ, ← univ_prod_univ] at hp ⊢
+  exact contDiffOn_parametric_dysonSeries isOpen_univ hp
 
 /-- **Smooth dependence on parameters.** If a family of paths `p x t` in a real Banach algebra is
 `Cⁿ` jointly in a parameter `x` from a normed space and the time `t`, then so is its left Dyson
