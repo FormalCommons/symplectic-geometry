@@ -51,10 +51,15 @@ global name.
    quotient map, and Tau Ceti's `TauCeti.quotientStabilizerHomeomorph` gives
    the homeomorphism $\mathrm{U}(n)/\mathrm{O}(n)\cong\mathcal{L}(n)$ once the
    stabilizer is identified with $\mathrm{O}(n)$. For `ι = Fin n`, the map into
-   `finiteGrassmannian ℝ n (n + n)` is an embedding: it is continuous, by the
-   quotient property, and Tau Ceti's
-   `finiteGrassmannian.continuous_starProjection_toEuclidean` recovers the
-   projection from its image (`Topology.IsInducing.of_comp`). A map out of
+   `finiteGrassmannian ℝ n (n + n)` is an embedding, and this needs neither
+   the unitary frames nor `Quotient.lean`. The coordinate isometry
+   `StdSpace.finSumIsometry n` conjugates the projection onto `Λ` into the
+   projection onto its image. On the compact Hausdorff space
+   `finiteGrassmannian`, Tau Ceti's continuous and injective
+   `V ↦ V.toEuclidean.starProjection` is therefore a closed embedding
+   (`Topology/Grassmannian/Tautological.lean`), and the map out of `ℒ (Fin n)`,
+   composed with it, is the embedding `Λ ↦ Λ.starProjection` followed by a
+   homeomorphism (`Topology.IsEmbedding.of_comp_iff`). A map out of
    `ℒ ι` is continuous as soon as its composite with the unitary frame map
    is, by `isQuotientMap_unitaryFrame.continuous_iff`; the Maslov part uses
    exactly this.
@@ -233,10 +238,24 @@ name, in the namespace `Submodule`, for a complete inner product space over
   `Submodule.starProjection_map_apply` as an identity of operators.
   `Quotient.lean` uses it for `continuous_unitaryFrame`.
 
+### `Topology/Grassmannian/Tautological.lean`
+
+A general fact about Tau Ceti's finite Grassmannian, beside Tau Ceti's file
+of that name, in the namespace `TauCeti.finiteGrassmannian`, for any
+`RCLike 𝕜`:
+
+- `TauCeti.finiteGrassmannian.isClosedEmbedding_starProjection_toEuclidean`:
+  `V ↦ V.toEuclidean.starProjection` is a closed embedding of
+  `finiteGrassmannian 𝕜 r N` into the operators on `EuclideanSpace 𝕜 (Fin N)`.
+  Tau Ceti's `continuous_starProjection_toEuclidean` gives continuity,
+  `toEuclidean_injective` and `Submodule.starProjection_inj` injectivity,
+  and `Continuous.isClosedEmbedding` concludes, since the source is compact
+  and the target Hausdorff. `Finite.lean` uses it.
+
 ### Additions to *Standard model*'s `LinearAlgebra/Symplectic/Standard/Basic.lean`
 
-Two declarations about `StdSpace ι` alone, which this part needs and part 1
-lacks, in the namespace `SymplecticGeometry.StdSpace`, so that other parts
+Three declarations about the standard model alone, which this part needs and
+part 1 lacks, in the namespace `SymplecticGeometry.StdSpace`, so that other parts
 find them there.
 
 - `StdSpace.complexEuclideanEquiv ι : EuclideanSpace ℂ ι ≃L[ℝ] StdSpace ι`,
@@ -254,9 +273,22 @@ find them there.
   `(x, y) ↦ (y, x)`, the composite of `equivProd`, `LinearEquiv.prodComm` and
   `equivProd.symm`. It goes beside `equivProd`, before the file's
   `variable [Fintype ι]`, since it needs no finiteness. API: `swap_def`, and the
-  `@[simp]` lemmas `x_swap` and `y_swap` (both by `(rfl)`), `swap_swap`,
+  `@[simp]` lemmas `x_swap`, `y_swap`, and their coordinate forms
+  `swap_apply_inl : swap ι z (Sum.inl i) = z (Sum.inr i)` and `swap_apply_inr`
+  (all four by `(rfl)`, so that `simp` pushes `swap` through `x_apply` and
+  `y_apply`), `swap_swap`,
   `symm_swap`, and `map_swap_ker_x` and `map_swap_ker_y`, which say that it
-  exchanges `LinearMap.ker StdSpace.x` and `LinearMap.ker StdSpace.y`.
+  exchanges `LinearMap.ker StdSpace.x` and `LinearMap.ker StdSpace.y`. After
+  `stdForm_apply`, the lemma `stdForm_swap` says that it reverses the
+  sign of `ω₀`: `stdForm ι (swap ι z) (swap ι w) = -stdForm ι z w`.
+- `StdSpace.finSumIsometry n : StdSpace (Fin n) ≃ₗᵢ[ℝ] EuclideanSpace ℝ (Fin (n + n))`,
+  the relabelling of coordinates
+  `LinearIsometryEquiv.piLpCongrLeft 2 ℝ ℝ finSumFinEquiv`. It goes before
+  the file's `variable [Fintype ι]`. `Finite.lean` uses it to reach Tau
+  Ceti's Grassmannian. API: `finSumIsometry_def`, and the `@[simp]` lemmas
+  `finSumIsometry_apply : finSumIsometry n z k = z (finSumFinEquiv.symm k)`
+  and `finSumIsometry_symm_apply :
+  (finSumIsometry n).symm v i = v (finSumFinEquiv i)`.
 
 This part also uses
 `SymplecticGeometry.isSymplectomorphism_piLpCongrLeft_sumCongr` (`σ : ι ≃ κ`),
@@ -269,10 +301,9 @@ The direct sum of two models is §1's `StdSpace.sumEquiv ι κ : StdSpace (ι �
 carries `stdForm (ι ⊕ κ)` to `(stdForm ι).prod (stdForm κ)`, and its lemma
 in `Standard/Matrix.lean` that it conjugates
 `Matrix.toEuclideanLin (Matrix.symplecticSum A B)` to the product of the
-maps of `A` and `B`. `DESIGN.md` gives its construction to the first
-direct-sum issue of *Symplectic vector bundles*. If building issue 11 of
-this part starts first, issue 11 builds it, exactly as §1 states it, in
-those two files, and the bundle issue then uses it.
+maps of `A` and `B`. Building issue 11 added all three to
+`Standard/Basic.lean` and `Standard/Matrix.lean` (merged, #232), and
+*Symplectic vector bundles* uses them as they are.
 
 ### `LinearAlgebra/Symplectic/Lagrangian/Basic.lean`
 
@@ -358,18 +389,22 @@ Lagrangian frames on `StdSpace ι`, pure linear algebra. Namespace
   (hXY : Xᵀ * Y = Yᵀ * X) : ℒ ι`, the Lagrangian that the frame spans, with
   `coe_ofFrame` (`@[simp]`): its submodule is the range of
   `toEuclideanLin (fromRows X Y)`. This is the constructor of G6.
+- `isLagrangian_map_swap_iff` (`@[simp]`): `L.map (swap ι)` is Lagrangian for
+  `ω₀` iff `L` is. Since `stdForm_swap` says that `swap` multiplies `ω₀` by
+  `-1`, this is the case `e = swap`, `c = -1` of
+  `SymplecticForm.isLagrangian_map_iff_of_apply_eq_mul` in `Subspace.lean`:
+  a linear equivalence that scales the forms by a constant `c ≠ 0` maps
+  Lagrangians onto Lagrangians. That lemma is
+  `isLagrangian_map_transport_iff` after `isLagrangian_rescale_iff`.
 - `isLagrangian_graph_iff (A : Matrix ι ι ℝ) :
-  (stdForm ι).IsLagrangian (StdSpace.graph A) ↔ A.IsSymm` and
-  `isLagrangian_graphY_iff`, the same for `graphY A`. Both come from one
-  private lemma about the image of `A.mulVecLin.graph` under a linear
-  equivalence `e` that turns `ω₀` into a nonzero multiple of the pairing
-  of `(ι → ℝ) × (ι → ℝ)`: `(equivProd ι).symm` for `graph`, and its
-  composite `(equivProd ι).symm.trans (swap ι)` with the swap for `graphY`,
-  which turns `ω₀` into minus the pairing. That lemma transports along `e`
-  (`isLagrangian_map_transport_iff`), applies Tau Ceti's
-  `isLagrangian_graph_iff_of_pairing`, and recognizes the resulting
-  condition as Mathlib's `Matrix.isSymm_toBilin'_iff_isSymm`. Neither is
-  derived from the frame criterion.
+  (stdForm ι).IsLagrangian (StdSpace.graph A) ↔ A.IsSymm`. Under
+  `(equivProd ι).symm`, `ω₀` is the standard pairing of `(ι → ℝ) × (ι → ℝ)`;
+  the proof transports along it (`isLagrangian_map_transport_iff`), applies
+  Tau Ceti's `isLagrangian_graph_iff_of_pairing`, and recognizes the
+  resulting condition as Mathlib's `Matrix.isSymm_toBilin'_iff_isSymm`.
+  `isLagrangian_graphY_iff`, the same for `graphY A`, follows from it
+  through `graphY_def` and `isLagrangian_map_swap_iff`. Neither is derived
+  from the frame criterion.
 - `det_ne_zero_of_isLagrangian_range_fromRows`: the complex frame of a
   Lagrangian frame is invertible. The Lagrangian range is maximal totally
   real for `J₀` (`IsLagrangian.isMaximalTotallyReal_of_compatible` with
@@ -624,13 +659,24 @@ The topology of `ℒ ι` in terms of unitary frames.
 The comparison with Tau Ceti's Grassmannian, for `ι = Fin n`.
 
 - `ℒ.toFiniteGrassmannian : ℒ (Fin n) → TauCeti.finiteGrassmannian ℝ n (n + n)`,
-  the image under the coordinate isometry built from
-  `LinearIsometryEquiv.piLpCongrLeft` along `finSumFinEquiv` and
-  `WithLp.equiv`. API: `coe_toFiniteGrassmannian`.
-- `ℒ.isEmbedding_toFiniteGrassmannian`, and `ℒ.range_toFiniteGrassmannian`
-  (the subspaces whose pull-back is Lagrangian). So `ℒ (Fin n)` has the
-  subspace topology of `finiteGrassmannian`. The proof is as in decision 2,
-  using `Submodule.starProjection_map_apply`.
+  the image under `StdSpace.finSumIsometry n : StdSpace (Fin n) ≃ₗᵢ[ℝ]
+  EuclideanSpace ℝ (Fin (n + n))` (of `Standard/Basic.lean`), followed by
+  `WithLp.linearEquiv 2 ℝ (Fin (n + n) → ℝ)`. API:
+  `coe_toFiniteGrassmannian` (`@[simp]`, by `(rfl)`);
+  `toEuclidean_toFiniteGrassmannian` (`@[simp]`: read in
+  `EuclideanSpace ℝ (Fin (n + n))`, the image is the map of `Λ` along
+  `finSumIsometry n`);
+  `starProjection_toEuclidean_toFiniteGrassmannian` (the projection onto the
+  image is the projection onto `Λ` conjugated by `finSumIsometry n`, through
+  `ContinuousLinearEquiv.arrowCongr`, from
+  `Submodule.starProjection_map_apply`); `toFiniteGrassmannian_injective`
+  and `toFiniteGrassmannian_inj` (`@[simp]`).
+- `ℒ.isEmbedding_toFiniteGrassmannian`, with
+  `ℒ.continuous_toFiniteGrassmannian` (`@[fun_prop]`), and
+  `ℒ.range_toFiniteGrassmannian` (the subspaces whose pull-back along
+  `finSumIsometry n` is Lagrangian). So `ℒ (Fin n)` has the subspace
+  topology of `finiteGrassmannian`. The proof is as in decision 2, through
+  `TauCeti.finiteGrassmannian.isClosedEmbedding_starProjection_toEuclidean`.
 
 ### `Topology/Grassmannian/Lagrangian/Graph.lean`
 
@@ -670,8 +716,14 @@ built the same way; the building issue credits it.
   Write `Λ = U • vertical ι` (`MulAction.exists_smul_eq`). Over the open
   set `U • {Λ' | IsCompl Λ' (horizontal ι)}`, which contains `Λ` because the
   vertical subspace is the chart point of `0`, the section is
-  `Λ' ↦ U * realOrthonormalize (S + i·1)`, where `S` is the chart value of
-  `U⁻¹ • Λ'` in `graphYChart`. Tau Ceti's
+  `Λ' ↦ U * unitaryOfFrame (isLagrangian_range_fromRows_one hS)`, where
+  `S` is the chart value of `U⁻¹ • Λ'` in `graphYChart` and `hS` its
+  symmetry (`isHermitian_iff_isSymm.1 S.property`). It is a section by
+  `unitaryFrame_mul`, `graphY_eq_unitaryFrame` (`Transverse.lean`) and
+  `graphYChart_symm_apply`; it is continuous on the open set by
+  `continuous_unitaryOfFrame` (`Quotient.lean`) for the frames
+  `fromRows S 1`, composed with the continuity of `graphYChart` on its
+  source and of the action. No frame is orthonormalized by hand here. Tau Ceti's
   `Subgroup.localSectionTrivializationOfCosetFibers` makes the
   trivialization, with fibres given by `unitaryFrame_eq_unitaryFrame_iff`.
 - `ℒ.hasHomotopyLiftingProperty_unitaryFrame (A)`, from Tau Ceti's
@@ -790,13 +842,16 @@ The manifold structure and the milestone.
   `mem_symplecticGroup_iff_forall_stdForm` and
   `TauCeti.conj_complexToRealEuclidean_toLin'` (merged, #62);
   `isSymplectomorphism_piLpCongrLeft_sumCongr`; `StdSpace.sumEquiv` with its two
-  lemmas (planned by §1, built as in building issue 11).
+  lemmas (merged, #232).
 - *Symplectic subspaces* (merged, #64):
-  `isLagrangian_iff_isIsotropic_and_two_mul_finrank_eq`.
+  `isLagrangian_iff_isIsotropic_and_two_mul_finrank_eq`; this part adds
+  `SymplecticForm.isLagrangian_map_iff_of_apply_eq_mul` there.
 - Tau Ceti:
   - Lagrangian subspaces and graphs: `SymplecticForm.IsLagrangian`,
     `IsLagrangian.two_mul_finrank`,
     `isLagrangian_graph_iff_of_pairing`, `isLagrangian_map_transport_iff`,
+    `SymplecticForm.rescale`, `isLagrangian_rescale_iff`,
+    `isSymplectomorphism_iff_transport_eq`,
     `IsSymplectomorphism.map_orthogonal`, `isLagrangian_prod_iff`,
     `IsLagrangian.prod`, `isLagrangian_prod_top_bot`,
     `isLagrangian_prod_bot_top`, `IsIsotropic.disjoint_map_of_tames`.
@@ -813,7 +868,7 @@ The manifold structure and the milestone.
     `IsLagrangian.isMaximalTotallyReal_of_compatible`,
     `LinearEquiv.isMaximalTotallyReal_map_iff`,
     `Matrix.rank_eq_finrank_range_toEuclideanLin`,
-    `det_lagrangianChartFrame_ne_zero`, `realOrthonormalize`,
+    `realOrthonormalize`,
     `realImage_realOrthonormalize`, `realOrthonormalize_mem_unitaryGroup`,
     `continuous_realOrthonormalize`.
   - Groups: `GLSymplectic`, `GLSymplectic.ofUnitary`,
@@ -919,8 +974,7 @@ merged.
     `LinearAlgebra/Symplectic/Lagrangian/Sum.lean`: `ℒ.sum`, `ℒ.reindex` and
     their compatibilities, using the existing
     `isSymplectomorphism_piLpCongrLeft_sumCongr` from `Standard/Basic.lean`;
-    and §1's `StdSpace.sumEquiv` with its two lemmas, if the *Symplectic
-    vector bundles* issue that builds it has not merged first. About 300
+    and §1's `StdSpace.sumEquiv` with its two lemmas. About 300
     lines. Blocked by 6.
 12. **Direct sums and reindexing, topology.**
     `Topology/Grassmannian/Lagrangian/Sum.lean`: `continuous_sum` and
