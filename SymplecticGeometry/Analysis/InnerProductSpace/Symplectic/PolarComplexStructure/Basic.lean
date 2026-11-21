@@ -80,8 +80,7 @@ theorem polarComplexStructure_eq_iff :
     (J.toLinearMap.isometryOfInner hJ) (by ext u; simp)
   refine AlmostComplexStructure.toLinearMap_injective ?_
   rw [polarComplexStructure_toLinearMap, ← LinearMap.polarIsometry_toLinearMap _
-    ω.innerOperator_injective, ← h]
-  rfl
+    ω.innerOperator_injective, ← h, LinearMap.isometryOfInner_toLinearMap]
 
 end TauCeti.SymplecticForm
 
