@@ -433,7 +433,7 @@ The Maslov phase on $\mathcal{L}(n)$ and the index of Lagrangian loops.
   corollary `ℒ.detCircle_inv_mul_eq_exp`, $\det(U^{-1}V)=e^{i\pi\mu(\gamma)}$
   for `δ` from `U` to `V`.
 - The half-turn `ℒ.halfTurnLoop {ι} (k : ℤ) : Path (V₀ ι) (V₀ ι)`,
-  `t ↦ unitaryFrame (e^{iπkt} • 1)`, with `halfTurnLoop_apply`
+  `t ↦ rotate (π * k * t) (V₀ ι)`, with `halfTurnLoop_apply`
   (not `@[simp]`, so that the phase lemma below can fire),
   `maslovPhase_halfTurnLoop :
   maslovPhase (halfTurnLoop k t) = Circle.exp (2 * Fintype.card ι * (π * k * t))`

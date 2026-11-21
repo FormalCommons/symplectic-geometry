@@ -35,7 +35,9 @@ of `unitaryFrame`, and that the symplectic and unitary groups act continuously.
 * `SymplecticGeometry.LagrangianGrassmannian.continuous_unitaryOfFrame` and
   `continuous_ofFrame`: the unitary matrix of a Lagrangian frame, and the Lagrangian
   that the frame spans, depend continuously on the frame.
-* `ContinuousSMul` instances for `GLSymplectic ι ℝ` and `unitaryGroup ι ℂ` acting on `ℒ ι`.
+* `ContinuousSMul` instances for `GLSymplectic ι ℝ` and `unitaryGroup ι ℂ` acting on `ℒ ι`, and
+  `SymplecticGeometry.LagrangianGrassmannian.continuous_rotate`: rotations are continuous in the
+  angle.
 
 The construction of the homeomorphism follows Tau Ceti's
 `TauCeti.quaternionUnitarySphereQuotientHomeomorph`.
@@ -192,6 +194,13 @@ instance : ContinuousSMul (unitaryGroup ι ℂ) (ℒ ι) :=
   ⟨by
     simp only [unitary_smul_def]
     exact (GLSymplectic.continuous_ofUnitary.comp continuous_fst).smul continuous_snd⟩
+
+/-- The rotation `θ ↦ rotate θ Λ` of a Lagrangian depends continuously on the angle. -/
+theorem continuous_rotate (Λ : ℒ ι) : Continuous fun θ : ℝ ↦ rotate θ Λ := by
+  have h : Continuous fun θ : ℝ ↦ circleEquivUnitary (Circle.exp θ) • (1 : unitaryGroup ι ℂ) :=
+    Continuous.subtype_mk (by fun_prop) _
+  simp_rw [rotate_def]
+  exact h.smul continuous_const
 
 end LagrangianGrassmannian
 
