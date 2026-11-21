@@ -578,6 +578,9 @@ Expected size: 300 lines.
 - The library: `Geometry/Manifold/IsManifold/InteriorBoundary.lean` of
   *Symplectic vector bundles* (`ModelWithCorners.interiorOpens`,
   `ModelWithCorners.BoundarylessManifold.interior`), merged.
+- *Moser isotopy*: `Geometry/Manifold/DifferentialForm/Smooth.lean`
+  (`SmoothForm.bilinFormAt_smul`, `SmoothForm.bilinFormAt_neg`), only in
+  `StableHamiltonian.lean`.
 - Tau Ceti, Liouville and contact type: `IsLiouvilleVectorField`,
   `isLiouvilleVectorField_iff_mextDeriv_interior_eq`, `IsContactType`,
   `isContactType_iff`, `exists_isRestrictedContactType_iff`,
