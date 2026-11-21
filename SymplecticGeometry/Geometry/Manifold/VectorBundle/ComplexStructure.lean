@@ -7,9 +7,9 @@ module
 
 public import SymplecticGeometry.Data.Bundle
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Hom
+public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Prod
 public import SymplecticGeometry.Topology.VectorBundle.Pullback
 public import TauCeti.Geometry.Manifold.VectorBundle.Complexification
-public import TauCeti.Geometry.Manifold.VectorBundle.Prod
 public import TauCeti.Geometry.Manifold.VectorBundle.Pullback
 public import TauCeti.Geometry.Manifold.VectorBundle.Section.FrameCover
 public import TauCeti.Geometry.Symplectic.Complex.Module.Basic
@@ -492,13 +492,12 @@ the direct-sum bundle `V₁ ×ᵇ V₂` acting by `(v₁, v₂) ↦ (J₁ x v₁
 def prod (J₁ : ContMDiffComplexStructure I n F₁ V₁) (J₂ : ContMDiffComplexStructure I n F₂ V₂) :
     ContMDiffComplexStructure I n (F₁ × F₂) (V₁ ×ᵇ V₂) where
   toEndomorphism :=
-    ⟨fun x ↦ (J₁.toEndomorphism x).prodMap (J₂.toEndomorphism x), by
-      have h₁ := (TauCeti.contMDiff_hom_bundle_iff _).1 J₁.toEndomorphism.contMDiff
-      have h₂ := (TauCeti.contMDiff_hom_bundle_iff _).1 J₂.toEndomorphism.contMDiff
-      refine (TauCeti.contMDiff_hom_bundle_iff _).2 fun p ↦
-        contMDiffAt_totalSpace_prod_iff.2 ⟨?_, ?_⟩
-      · exact (h₁.comp Prod.contMDiff_fst) p
-      · exact (h₂.comp Prod.contMDiff_snd) p⟩
+    ⟨fun x ↦ (J₁.toEndomorphism x).prodMap (J₂.toEndomorphism x),
+      (TauCeti.contMDiff_hom_bundle_iff _).2 <| by
+        simpa only [ContinuousLinearMap.coe_prodMap'] using _root_.Bundle.Prod.contMDiff_prodMap
+          (f₁ := fun x ↦ J₁.toEndomorphism x) (f₂ := fun x ↦ J₂.toEndomorphism x)
+          ((TauCeti.contMDiff_hom_bundle_iff _).1 J₁.toEndomorphism.contMDiff)
+          ((TauCeti.contMDiff_hom_bundle_iff _).1 J₂.toEndomorphism.contMDiff)⟩
   square_neg x := by
     ext v <;> simp
 

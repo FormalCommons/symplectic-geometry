@@ -146,6 +146,7 @@ variable {EB HB M : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB]
 | `Geometry/Manifold/VectorBundle/Riemannian/Trivial.lean` | constant metrics on trivial bundles, among them `constComplexEuclidean` | 25 |
 | `Geometry/Manifold/VectorBundle/Hermitian/Basic.lean` | the symplectic form of a Hermitian bundle | 25 |
 | `Geometry/Manifold/VectorBundle/Hermitian/CircleBundle.lean` | the circle bundle of a Hermitian line bundle as a principal `Circle`-bundle, for fibres with their own complex inner products; the smooth side is *First Chern number*'s prerequisite 3 | 26 |
+| `Topology/FiberBundle/Basic.lean` | `FiberBundle.isOpen_of_forall_mem_iff_snd_mem`: a set of the total space that each trivialization reads as an open condition on the model fibre is open | 3 |
 | `Topology/FiberBundle/ChangeModelFiber.lean` | change of model fibre of a fibre bundle along a homeomorphism | 26 |
 | `Topology/FiberBundle/Principal/ChangeGroup.lean` | change of structure group of a principal bundle along `G ≃ₜ* H` | 26 |
 | `Geometry/Manifold/IsManifold/InteriorBoundary.lean` | the interior of a manifold with boundary as a boundaryless manifold | 12 |
@@ -236,6 +237,10 @@ file to it.
   principal bundles, so that it can merge there. The step it rests on, reading
   a fibre bundle with another model fibre along a homeomorphism, involves no
   group, so it has its own file, `Topology/FiberBundle/ChangeModelFiber.lean`.
+- `Topology/FiberBundle/Basic.lean` is new: the openness argument behind
+  `isOpen_setOf_nondegenerate` holds for any fibrewise condition on any fibre
+  bundle, so it is stated there, in Mathlib's `FiberBundle` namespace, as
+  `FiberBundle.isOpen_of_forall_mem_iff_snd_mem` (#456).
 - The lemma of `Section/Topology.lean` asks for joint $C^n$ regularity in a
   manifold parameter instead of derivatives continuous in the parameter (see
   below), and issues 6, 7 and 8 wait for part 9: issue 6 for its building
@@ -386,7 +391,10 @@ but the predicate below, as in Tau Ceti for $TM$.
 - `isOpen_setOf_nondegenerate`: the fibrewise nondegenerate forms are an open
   subset of the total space of the alternating bundle (used by issue 4's
   lemma; nondegeneracy is not an open condition on sections over a
-  noncompact base).
+  noncompact base). It follows from
+  `FiberBundle.isOpen_of_forall_mem_iff_snd_mem`
+  (`Topology/FiberBundle/Basic.lean`): a trivialization turns a form into
+  its pull-back by a linear equivalence, which keeps nondegeneracy.
 - **Example.** `const`: on the trivial bundle `Bundle.Trivial M W`, the
   constant section of a symplectic form on `W`, with `@[simp] const_apply`
   and `isNondegenerate_const`; in particular `stdForm ι` on
@@ -1320,9 +1328,9 @@ over the same base, on Mathlib's direct sum `V₁ ×ᵇ V₂` (`Bundle.Prod`, wi
   (`Geometry/Symplectic/Prod/Basic.lean`).
 - `ComplexStructure.lean`: `ContMDiffComplexStructure.prod J₁ J₂ :
   ContMDiffComplexStructure I n (F₁ × F₂) (V₁ ×ᵇ V₂)`, with value
-  `(J₁ x).prodMap (J₂ x)`, $C^n$ by the product criterion and
-  `contMDiff_hom_bundle_iff`. API: `@[simp] prod_apply`,
-  `@[simp] almostComplexStructureAt_prod` (Tau Ceti's
+  `(J₁ x).prodMap (J₂ x)`, $C^n$ by `Bundle.Prod.contMDiff_prodMap`
+  (`Geometry/Manifold/VectorBundle/Prod.lean`) and `contMDiff_hom_bundle_iff`.
+  API: `@[simp] prod_apply`, `@[simp] almostComplexStructureAt_prod` (Tau Ceti's
   `TauCeti.AlmostComplexStructure.prod` of the two), and
   `prod_toEndomorphism`, which is not `@[simp]`, since it would rewrite the
   left side of `prod_apply` to a `Prod.map`.

@@ -260,6 +260,17 @@ file of that name, in the namespace `Matrix`, over `RCLike 𝕜`:
   `LinearAlgebra/Symplectic/Lagrangian/Sum.lean` uses it for
   `reindex_unitaryFrame`.
 
+### `Analysis/Matrix/EuclideanLin.lean`
+
+A general fact about Tau Ceti's `Matrix.toEuclideanCLE`, beside Tau Ceti's
+file of that name, in the namespace `Matrix`, over `RCLike 𝕜`:
+
+- `Matrix.coe_toLinearEquiv_toEuclideanCLE (A : Matrix ι ι 𝕜) (hA : A.det ≠ 0)`
+  (`@[simp]`): `((A.toEuclideanCLE hA).toLinearEquiv : _ →ₗ[𝕜] _) =
+  A.toEuclideanLin`, the linear-map form of Tau Ceti's
+  `Matrix.coe_toEuclideanCLE`. `Action.lean` uses it for
+  `isLagrangian_map_toEuclideanLin` and `ℒ.coe_smul_eq_map_toEuclideanCLE`.
+
 ### `Analysis/Normed/Lp/PiLp.lean`
 
 A general fact about Mathlib's `LinearIsometryEquiv.piLpCongrLeft`, in the
@@ -522,7 +533,10 @@ unitary action to Tau Ceti's `Matrix.realImage`.
 
 - `instance : MulAction (GLSymplectic ι ℝ) (ℒ ι)`, with
   `coe_smul : ((g • Λ : ℒ ι) : Submodule ℝ (StdSpace ι)) = Λ.map (Matrix.toEuclideanLin g)`
-  (`@[simp]`). The result is Lagrangian by
+  (`@[simp]`), and `coe_smul_eq_map_toEuclideanCLE`, the same subspace as the
+  image of `Λ` under the linear equivalence
+  `(Matrix.toEuclideanCLE g _).toLinearEquiv`, from
+  `Matrix.coe_toLinearEquiv_toEuclideanCLE`. The result is Lagrangian by
   `TauCeti.SymplecticForm.isLagrangian_map_iff_of_apply_eq_mul`
   (`Subspace.lean`) with `c = 1`, the map `toEuclideanLin g` preserving `ω₀` by
   `mem_symplecticGroup_iff_forall_stdForm`. On a frame,
@@ -650,7 +664,8 @@ Chart points and transverse pairs, as algebra: G7–G9.
   horizontal subspace and carries the vertical one to `Λ'`.
 - Supporting statements: `ℒ.isCompl_smul_iff` (an element of
   `TauCeti.GLSymplectic ι ℝ` preserves complementarity of Lagrangians, through
-  `Submodule.orderIsoMapComap`), which both transverse-pair results use; and
+  `Submodule.orderIsoMapComap` after `coe_smul_eq_map_toEuclideanCLE`), which
+  both transverse-pair results use; and
   `ℒ.finrank_smul_inf_smul` (it keeps `finrank (Λ ⊓ Λ')`), which the zero axiom
   of *Maslov index* (`Maslov/Path/Basic.lean`) uses.
 
