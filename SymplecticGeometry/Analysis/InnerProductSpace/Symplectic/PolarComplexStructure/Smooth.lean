@@ -34,9 +34,6 @@ products and symplectic forms the formula is `J_{g,ω}`, which does not depend o
 ## Main results
 
 * `TauCeti.isOpen_polarDomain`: the domain is open.
-* `InnerProductSpace.isStrictlyPositive_continuousLinearMapOfBilin_symmetrizeBilinear`: the
-  Riesz map of the symmetric part of a form that is positive on nonzero vectors is strictly
-  positive.
 * `TauCeti.contDiffOn_metricPolarFormula`: the formula is smooth on the domain, of every order.
 * `TauCeti.metricPolarFormula_symmetrizeBilinear_skewPart`: the formula only depends on the
   symmetric part of `g` and the skew part of `s`.
@@ -125,15 +122,6 @@ theorem metricPolarFormula_def (g s : W →L[ℝ] W →L[ℝ] ℝ) :
       let A := g'.metricChangeTransport * ((2 : ℝ)⁻¹ • (s - s.flip))♯ * g'.metricChangeTransport
       g'.metricChangeTransport * (A * Ring.inverse (CFC.sqrt (-(A * A)))) * CFC.sqrt g'♯ :=
   (rfl)
-
-/-- The Riesz map of the symmetric part of a continuous bilinear form that is positive on nonzero
-vectors is strictly positive. -/
-theorem _root_.InnerProductSpace.isStrictlyPositive_continuousLinearMapOfBilin_symmetrizeBilinear
-    {g : W →L[ℝ] W →L[ℝ] ℝ} (hg : ∀ v, v ≠ 0 → 0 < g v v) :
-    IsStrictlyPositive (symmetrizeBilinear g).val♯ :=
-  isStrictlyPositive_continuousLinearMapOfBilin_iff.2
-    ⟨(mem_symmetricBilinearMaps ℝ W ℝ _).1 (symmetrizeBilinear g).property,
-      fun v hv ↦ by simpa using hg v hv⟩
 
 /-- The formula is smooth, of every order including analyticity, on the domain
 `TauCeti.polarDomain W`. -/

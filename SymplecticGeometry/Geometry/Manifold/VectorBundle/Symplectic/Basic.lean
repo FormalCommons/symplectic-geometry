@@ -11,6 +11,7 @@ public import Mathlib.Topology.VectorBundle.FiniteDimensional
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.ContinuousAlternatingMap
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Hom
 public import TauCeti.Analysis.Normed.Module.Alternating.Curry
+public import TauCeti.Geometry.Manifold.VectorBundle.Bilinear.Section
 public import TauCeti.Geometry.Manifold.VectorBundle.ContinuousAlternatingMap
 public import TauCeti.Geometry.Manifold.VectorBundle.Section.Map
 public import TauCeti.Geometry.Manifold.VectorBundle.Trivial
@@ -45,6 +46,8 @@ rank to be even (for finite rank, a nondegenerate form forces it), and rank zero
   `IsNondegenerate.symplecticFormAt`, the Tau Ceti symplectic form on each fibre.
 * `isOpen_setOf_nondegenerate`: for finite rank, the fibrewise nondegenerate alternating maps are
   open in the total space of the bundle of alternating maps.
+* `ContMDiffTwoForm.ofBilinearSection`: for finite rank, the two-form of a `C^n` bilinear section
+  that vanishes on the diagonal.
 * `ContMDiffTwoForm.const`: the constant form of a symplectic form on the fibre of a trivial
   bundle, which is nondegenerate.
 * `ContMDiffTwoForm.pushforward`: the transport `ω ↦ ω(Φ⁻¹ ·, Φ⁻¹ ·)` along an isomorphism `Φ`
@@ -340,6 +343,53 @@ theorem isOpen_setOf_nondegenerate [FiniteDimensional ℝ F] :
 
 namespace ContMDiffTwoForm
 
+/-! ### Two-forms from alternating bilinear sections -/
+
+section OfBilinearSection
+
+variable [FiniteDimensional ℝ F]
+
+/-- The alternating map on the fibre over `x` of a bilinear section that vanishes on the
+diagonal. -/
+private def ofBilinearSectionAt (β : TauCeti.Manifold.BilinearSection I F V ℝ n)
+    (hβ : ∀ x (v : V x), β x v v = 0) (x : M) : V x [⋀^Fin 2]→L[ℝ] ℝ :=
+  haveI := VectorBundle.finiteDimensional (R := ℝ) (F := F) (E := V) x
+  haveI := FiberBundle.t2Space (E := V) F x
+  AlternatingMap.toContinuousAlternatingMap
+    (LinearMap.IsAlt.toAlternatingMap (ω := (β x).toBilinForm) (hβ x))
+
+private theorem ofBilinearSectionAt_apply (β : TauCeti.Manifold.BilinearSection I F V ℝ n)
+    (hβ : ∀ x (v : V x), β x v v = 0) (x : M) (v : Fin 2 → V x) :
+    ofBilinearSectionAt β hβ x v = β x (v 0) (v 1) := by
+  simp only [ofBilinearSectionAt, AlternatingMap.coe_toContinuousAlternatingMap]
+  exact LinearMap.IsAlt.toAlternatingMap_apply _ v
+
+/-- On a bundle of finite rank, the two-form `(v, w) ↦ β(v, w)` of a `C^n` bilinear section `β`
+that vanishes on the diagonal, `β(v, v) = 0`. -/
+def ofBilinearSection (β : TauCeti.Manifold.BilinearSection I F V ℝ n)
+    (hβ : ∀ x (v : V x), β x v v = 0) : ContMDiffTwoForm I n F V where
+  toFun := ofBilinearSectionAt β hβ
+  contMDiff_toFun x :=
+    TauCeti.contMDiffAt_continuousAlternatingMap_bundle_of_bilinear (β.contMDiff x)
+      fun _ v ↦ ofBilinearSectionAt_apply β hβ _ v
+
+/-- The two-form of a bilinear section `β` takes the value `β(v 0, v 1)` on `v`. -/
+@[simp]
+theorem ofBilinearSection_apply (β : TauCeti.Manifold.BilinearSection I F V ℝ n)
+    (hβ : ∀ x (v : V x), β x v v = 0) (x : M) (v : Fin 2 → V x) :
+    ofBilinearSection β hβ x v = β x (v 0) (v 1) :=
+  ofBilinearSectionAt_apply β hβ x v
+
+/-- The bilinear form on the fibre over `x` of the two-form of a bilinear section `β` is `β x`. -/
+@[simp]
+theorem bilinFormAt_ofBilinearSection (β : TauCeti.Manifold.BilinearSection I F V ℝ n)
+    (hβ : ∀ x (v : V x), β x v v = 0) (x : M) :
+    (ofBilinearSection β hβ).bilinFormAt x = (β x).toBilinForm := by
+  ext v w
+  simp
+
+end OfBilinearSection
+
 /-! ### Constant forms on trivial bundles -/
 
 section Const
@@ -448,6 +498,11 @@ theorem bilinFormAt_pushforward (ω : ContMDiffTwoForm I n F₁ V₁) (x : M) :
   congr 1
   ext i
   fin_cases i <;> rfl
+
+/-- The transported form takes on `u`, `v` the value of `ω` on `Φ_x⁻¹ u`, `Φ_x⁻¹ v`. -/
+theorem bilinFormAt_pushforward_apply (ω : ContMDiffTwoForm I n F₁ V₁) (x : M) (u v : V₂ x) :
+    (pushforward Φ hΦ ω).bilinFormAt x u v = ω.bilinFormAt x ((Φ x).symm u) ((Φ x).symm v) := by
+  simp [bilinFormAt_pushforward]
 
 /-- The transport of `ω₁` along `Φ` is `ω₂` exactly when `Φ` carries `ω₁` to `ω₂` on every fibre,
 `ω₂(Φ v, Φ w) = ω₁(v, w)`: that is, when `Φ` is a symplectic isomorphism from `ω₁` to `ω₂`. -/

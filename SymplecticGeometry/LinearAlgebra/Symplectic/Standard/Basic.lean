@@ -359,6 +359,16 @@ theorem stdForm_apply_eq_inner (z w : StdSpace ι) :
   (SymplecticForm.inner_apply_left_eq_of_apply_apply_eq_inner
     stdForm_apply_stdComplexStructure z w).symm
 
+/-- `ω₀(z, w) = (⟪J₀ z, w⟫ - ⟪z, J₀ w⟫) / 2`: the form of the Euclidean inner product and `J₀`
+is `ω₀`. -/
+theorem stdForm_apply_eq_inner_sub_inner (z w : StdSpace ι) :
+    stdForm ι z w =
+      2⁻¹ * (inner ℝ (stdComplexStructure ι z) w - inner ℝ z (stdComplexStructure ι w)) := by
+  rw [← stdForm_apply_eq_inner, ← stdForm_apply_stdComplexStructure,
+    AlmostComplexStructure.apply_apply]
+  simp only [map_neg]
+  ring
+
 /-- In coordinates, `ω₀(z, w) = -zᵀ J w` with `J = Matrix.J ι ℝ`. For `ι = Fin n` this says
 that Tau Ceti's `TauCeti.stdSymplecticBilinForm ℝ n` is `-ω₀`. -/
 theorem stdForm_toBilinForm [DecidableEq ι] :
