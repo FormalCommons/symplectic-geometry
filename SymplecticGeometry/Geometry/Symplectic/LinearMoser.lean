@@ -11,7 +11,7 @@ public import TauCeti.Geometry.Symplectic.AlmostComplex.Topology
 public import TauCeti.Geometry.Symplectic.Transport
 public import TauCeti.Topology.Algebra.Module.BilinearForm
 public import SymplecticGeometry.Analysis.Calculus.Deriv.ContinuousLinearMap
-import Mathlib.Analysis.Calculus.Deriv.Mul
+import SymplecticGeometry.Analysis.Calculus.Deriv.Mul
 import TauCeti.Analysis.ODE.Regularity
 
 /-!
