@@ -76,8 +76,9 @@ No statement of this part is one that the authors' errata
   $\sum_jc_j(-\lambda_j)^n=1$ for every $n$, that is
   $\sum_jc_j/(1+\lambda_jz)=1/(1-z)$ as rational functions, which the poles
   forbid. So the $C^\infty$ extension is Seeley's series, new here. It reuses `timeScale`, `map_timeScale_eq_sum_pow_card_smul` for the
-  derivatives of the dilated terms, and `HasFTaylorSeriesUpToOn.contDiff_piecewise`
-  for the gluing at $t=0$, but not the reflection itself. Mathlib has neither.
+  derivatives of the dilated terms, and glues at $t=0$ as
+  `HasFTaylorSeriesUpToOn.union_of_isClosed` does, by `HasFTaylorSeriesUpToOn.union`
+  for sets closed only in their union, but not the reflection itself. Mathlib has neither.
 - **Isotopies.** `TauCeti.Diffeotopy J n M`
   (`Geometry/Diffeomorphism/Diffeotopy/Basic.lean`), a level-preserving
   diffeomorphism of `unitInterval × M`, with `timeSlice`, `final`,
@@ -258,8 +259,8 @@ reflection $t\mapsto1-t$.
   (`map_timeScale_eq_sum_pow_card_smul` for the dilated terms), so the series
   of derivatives converges locally uniformly on $t<0$; its Taylor series at
   $t=0$ is that of $f$ by `tsum_seeleyCoeff_mul_neg_two_pow`; and
-  `HasFTaylorSeriesUpToOn.contDiff_piecewise` glues the two sides, for every
-  finite order and hence for `∞`.
+  `HasFTaylorSeriesUpToOn.union` glues the two sides on `univ ×ˢ U`, where
+  they are closed only relative to their union.
 
 The module docstring cites R. T. Seeley, *Extension of $C^\infty$ functions
 defined in a half space*, Proc. Amer. Math. Soc. 15 (1964), 625–626, which
