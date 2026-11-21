@@ -171,8 +171,9 @@ objects as they are.
     generator is `TauCeti.eulerianField`. It is used only inside proofs that
     call that API.
 
-  The files `TimeExtension.lean` and `Diffeotopy/Real.lean` of *Smooth
-  families* pass between them. A family over $[0,1]$
+  The files `ContMDiff/TimeExtension.lean`,
+  `DifferentialForm/TimeExtension.lean` and `Diffeotopy/Real.lean` of
+  *Smooth families* pass between them. A family over $[0,1]$
   extends to one over `ℝ` (Seeley's extension in the time variable), an
   isotopy over `ℝ` restricts to a `Diffeotopy`, and a `Diffeotopy` is read
   over `ℝ` by reparametrization; for flows Tau Ceti already
@@ -1610,8 +1611,7 @@ has either; Tau Ceti's extension across a boundary,
 `TauCeti.HalfSpaceExtension`, is of finite order only.
 
 - **Files:** `Geometry/Manifold/DeRham/GoodCover/Basic.lean` (finite good
-covers in
-  the auxiliary page's sense: finitely many open sets each of
+  covers in the auxiliary page's sense: finitely many open sets each of
   whose nonempty finite intersections carries a smooth contraction,
   the form in which the page's formalization notes and [Weil1952]
   use them) and `Geometry/Manifold/DeRham/GoodCover/Compact.lean`
@@ -1648,7 +1648,8 @@ covers in
   by the inverse function theorem at interior times and, at the ends, in
   charts after extending the map in time by Seeley's extension).  (★)
   is for families over $[0,1]$, forms on `unitInterval × M`, so that the
-  primitives it gives extend past both ends by `TimeExtension.lean`. The
+  primitives it gives extend past both ends by
+  `DifferentialForm/TimeExtension.lean`. The
   parametric Poincaré lemma on a member of the cover is Tau Ceti's
   homotopy operator `TauCeti.homotopyOperator` on the cylinder, applied
   as the page's formalization notes say.
@@ -1660,7 +1661,7 @@ covers in
   stability uses it.
 - **The design file decides:** the exact form of (★) for forms on
   `unitInterval × M`, the form of the time extension (for maps into a
-  normed space, then for forms through their components),
+  normed space, then for forms through their slices),
   how the contractions of a good cover are stated, and whether the induction
   is over Tau Ceti's `TauCeti.mayerVietoris_induction` or a direct strong
   induction.
