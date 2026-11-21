@@ -212,7 +212,7 @@ Tau Ceti's namespace. It is the input for the general case.
 
 ### Statements that the bundle part applies fibrewise
 
-*Symplectic vector bundles* gets three explicit formulas, each smooth on an
+*Symplectic vector bundles* gets two explicit formulas, each smooth on an
 open set and natural under continuous linear equivalences, so that the
 expressions in two trivializations agree:
 
@@ -237,14 +237,10 @@ expressions in two trivializations agree:
    variable of the formula, so the bundle part can let it vary with the
    point. Tau Ceti's compatible and tame contractions are this formula at
    $b=1-t$ (`Compatible.toContinuousLinearMap_cayleyContraction`).
-3. The homotopies of Proposition 2.5.6 and Corollary 2.5.7. Each is given
-   with a lemma that writes it, after transport along any
-   `e : V ≃L[ℝ] W` to an inner product space `W`, through
-   `metricPolarFormula` on `W` (by `metricPolarFormula_eq` and
-   `metricPolarComplexStructure_transport`), `cayleyPathFormula` and
-   continuous (bi)linear operations. Its smoothness
-   in the data, and in the time, therefore follows from items 1 and 2 by
-   composition.
+
+The homotopies of Proposition 2.5.6 and Corollary 2.5.7 get no such
+formula lemma: no other part uses them, and their own API is the `@[simp]`
+lemma that gives each one's value.
 
 ### Statement of the milestones
 
@@ -626,8 +622,8 @@ This is Corollary 2.5.7, in `SymplecticGeometry`.
   `metricPolarComplexStructure_associatedBilinForm`. The other is homotopic to
   the identity by the straight-line homotopy `metricStraightHomotopy ω`,
   $(t,g)\mapsto(1-t)\,g_{J_{g,\omega}}+t\,g$, inside the convex set. Its value
-  is the `@[simp]` lemma `coe_metricStraightHomotopy_apply`, so the bundle part
-  can read it off.
+  is the `@[simp]` lemma `coe_metricStraightHomotopy_apply`, which states it
+  as an explicit formula.
 - **Milestone** `contractibleSpace_compatible_and_homotopyEquiv`, named like
   its sibling `contractibleSpace_tames_and_homotopyEquiv`. It states three
   things. First, `Nonempty {J // ω.Compatible J} ∧ ContractibleSpace
@@ -677,10 +673,7 @@ This is Proposition 2.5.6, for a fixed `g : innerProducts V`, in
     for $\omega_{g,J}$). Its endomorphism at time $b$ is
     `cayleyPathFormula b A B`, with `A` and `B` the endomorphisms of
     `metricPolarComplexStructure g (metricSymplecticForm g J)` and of `J`.
-    The triple lies in `cayleyDomain` by `Compatible.mem_cayleyDomain`. After
-    transport along any `e : V ≃L[ℝ] W` to an inner product space `W`, `A` is
-    `e`-conjugate to `metricPolarFormula` on `W`, by `metricPolarFormula_eq`
-    and `metricPolarComplexStructure_transport`.
+    The triple lies in `cayleyDomain` by `Compatible.mem_cayleyDomain`.
 
   Each homotopy comes with a `@[simp]` lemma for its value.
 - `metricComplexStructuresHomotopyEquiv g` and
@@ -813,8 +806,11 @@ Each is a few hundred lines. External blockers are given by issue number.
     `Topology/Algebra/Matrix/SymplecticGroup/CompactSubgroup.lean`. Blockers:
     2, #8.
 
-Issues 1, 3 and 6 can start at once. *Symplectic vector bundles* needs 5, 6,
-8 and 10.
+Issues 1, 3 and 6 can start at once. *Symplectic vector bundles* needs 4, 5
+and 6: `metricPolarFormula` on `polarDomain` with its smoothness and
+naturality, the lemmas of `PolarComplexStructure/Basic.lean` that identify it
+with $J_{g,\omega}$, and `cayleyDomain` with its openness and
+`Compatible.mem_cayleyDomain`. It uses nothing from issues 7 to 11.
 
 ## References
 
