@@ -8,7 +8,6 @@ module
 public import SymplecticGeometry.Geometry.Manifold.TubularNeighborhood.MFDeriv
 public import SymplecticGeometry.Geometry.Symplectic.Moser.Relative
 public import TauCeti.Geometry.Symplectic.SymplecticTransport
-import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 import TauCeti.Geometry.Manifold.DifferentialForm.Opens
 import TauCeti.Geometry.Manifold.SmoothEmbedding.LocalDiffeomorph
 import TauCeti.Geometry.Symplectic.Manifold.Opens
@@ -89,16 +88,12 @@ private theorem mpullback_val_eq_of_mfderiv_eq {U₀ : Opens M₀} {U₁ : Opens
       SmoothBundleForm.eval₂ ω₁ x₁ (A v) (A w) = SmoothBundleForm.eval₂ ω₀ x₀ v w := by
     simpa only [SmoothTwoForm.IsNondegenerate.symplecticFormAt_apply,
       ContinuousLinearEquiv.coe_toLinearEquiv] using hA.apply v w
-  rw [← sub_eq_zero, ← Pi.sub_apply, ← AddSubgroupClass.coe_sub,
-    ← SmoothForm.bilinFormAt_eq_zero_iff]
-  ext v w
-  rw [SmoothForm.bilinFormAt_sub, LinearMap.sub_apply, LinearMap.sub_apply,
-    SmoothForm.bilinFormAt_apply, SmoothForm.bilinFormAt_apply, SmoothForm.eval₂_mpullback,
-    SmoothForm.eval₂_mpullback, SmoothForm.eval₂_mpullback, hψA]
+  refine SmoothBundleForm.apply_eq_of_eval₂_eq fun v w ↦ ?_
+  rw [SmoothForm.eval₂_mpullback, SmoothForm.eval₂_mpullback, SmoothForm.eval₂_mpullback, hψA]
   simp only [Manifold.mfderiv_subtype_val, ContinuousLinearEquiv.coe_coe,
     Manifold.tangentSpaceOpenEquiv_apply]
   rw [hψx, Manifold.tangentSpaceOpenEquiv_apply, Manifold.tangentSpaceOpenEquiv_apply]
-  exact sub_eq_zero.2 (h v w)
+  exact h v w
 
 /-- **Symplectomorphisms of neighbourhoods with a prescribed derivative.** Let `f₀ : Q → M₀` and
 `f₁ : Q → M₁` be smooth embeddings into second countable Hausdorff manifolds without boundary,

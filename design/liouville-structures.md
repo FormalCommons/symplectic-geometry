@@ -147,9 +147,10 @@ Further choices:
   (`DESIGN.md`, *Neighbourhood germs*). For compact `Q`, `D` is
   `Ioo (-ε) ε ×ˢ univ`.
 - **Strips.** For stable Hamiltonian structures, the strip
-  $(-\varepsilon,\varepsilon)\times M$ is `strip ε : Opens (ℝ × M)`, the open
-  set `Ioo (-ε) ε ×ˢ univ`, a manifold as an open subset; a form on the
-  strip is a form on `↥(strip ε)`. The model form is defined on all of
+  $(-\varepsilon,\varepsilon)\times M$ is `symmStrip M ε : Opens (ℝ × M)`
+  (`Topology/Sets/Strip.lean`, for any topological space `X` in place of
+  `M`), the open set `Ioo (-ε) ε ×ˢ univ`, a manifold as an open subset; a
+  form on the strip is a form on `↥(symmStrip M ε)`. The model form is defined on all of
   `ℝ × M` and restricted.
 - **Dimension and degenerate cases.** Nothing assumes a dimension beyond the
   ones the statements need: `hdim` for hypersurfaces,
@@ -165,6 +166,7 @@ Further choices:
 | `Geometry/Symplectic/Liouville/ContactType.lean` | contact type through local Liouville fields; both directions in the book's signs | 1 |
 | `Geometry/Symplectic/Liouville/Collar.lean` | the Liouville collar of a hypersurface; first milestone | 2 |
 | `Geometry/Contact/StableHamiltonian.lean` | wedge criterion, smooth Reeb field, invariance, contact case; the model and its converse; second milestone | 3, 4 |
+| `Topology/Sets/Strip.lean` | the open strip `(-ε, ε) × X` of `ℝ × X` and the tube lemma for it | 4 |
 | `Geometry/Manifold/Boundary/Collar/Flow/Local.lean` | near one boundary point: the extended field and its flow from the boundary | 5 |
 | `Geometry/Manifold/Boundary/Collar/Flow/Basic.lean` | the collar of a compact boundary along an outward field | 6 |
 | `Geometry/Symplectic/Liouville/Filling.lean` | `IsStrongFilling`, its contact form, its Liouville collar | 7 |
@@ -312,23 +314,24 @@ with `α = λ`, `ω = Ω`). It imports
   `IsContactForm.isStableHamiltonian` and the invariance of the pointwise
   contact condition and of kernels under negating the two-form.
 
-Issue 4, in `SymplecticGeometry`:
+Issue 4, in `TauCeti.SmoothForm`:
 
-- `stableHamiltonianModel α ω : SmoothTwoForm (𝓘(ℝ).prod I) (ℝ × M)`,
+- `stableHamiltonianModel α σ : SmoothTwoForm (𝓘(ℝ).prod I) (ℝ × M)`,
   $\Omega-d(r\lambda)$, defined as
-  `SmoothForm.mpullback Prod.snd _ ω - mextDerivₗ _ 1 (r • SmoothForm.mpullback Prod.snd _ α)`
+  `SmoothForm.mpullback Prod.snd _ σ - mextDerivₗ _ 1 (r • SmoothForm.mpullback Prod.snd _ α)`
   with `r` the first coordinate. API: `stableHamiltonianModel_def`,
   `stableHamiltonianModel_apply` (the value
   $\Omega-r\,d\lambda-dr\wedge\lambda$ on tangent vectors of `ℝ × M`),
   `mpullback_prodMk_stableHamiltonianModel` (the slice at `r` is
-  $\Omega-r\,d\lambda$), `isClosed_stableHamiltonianModel` (for closed `ω`),
-  and `strip ε : Opens (ℝ × M)` with `mem_strip_iff`.
-- `IsStableHamiltonian.isNondegenerate_stableHamiltonianModel_zero`: at
+  $\Omega-r\,d\lambda$), `isClosed_stableHamiltonianModel` (for closed `σ`),
+  and `SymplecticGeometry.symmStrip M ε : Opens (ℝ × M)` with
+  `SymplecticGeometry.mem_symmStrip_iff`.
+- `IsStableHamiltonian.nondegenerate_bilinFormAt_stableHamiltonianModel_zero`: at
   `(0, x)` the model is nondegenerate, by the pointwise contact condition
   (`Module.Dual.isContact_iff_nondegenerate_symplectizationForm`, or the
   splitting `isCompl_kerDistribution_span_characteristicVectorField`).
 - `IsStableHamiltonian.exists_isSymplectic_stableHamiltonianModel` (compact
-  `M`): some `ε > 0` makes the model symplectic on `strip ε`; nondegeneracy
+  `M`): some `ε > 0` makes the model symplectic on `symmStrip M ε`; nondegeneracy
   is open and the tube lemma gives a uniform `ε`.
 - `IsStableHamiltonian.ker_mpullback_prodMk_stableHamiltonianModel`: where
   the model is nondegenerate along the slice `{r} × M`, the kernel of the
@@ -341,13 +344,13 @@ Issue 4, in `SymplecticGeometry`:
   $(r,x)\mapsto(\log(1+r),x)$; and it is `-mextDerivₗ` of $(1+r)\alpha$.
 - `exists_mpullback_eq_stableHamiltonianModel` (the converse; compact
   boundaryless Hausdorff second countable `M`): let `σ` be a symplectic form
-  on `strip ε` whose slices $\sigma_r$ (pullbacks along `x ↦ (r, x)`) have
+  on `symmStrip M ε` whose slices $\sigma_r$ (pullbacks along `x ↦ (r, x)`) have
   kernels independent of `r`. Put $\Omega_0=\sigma_0$ and
   $\lambda_0=-$ the slice at `0` of $\iota_{\partial_r}\sigma$. Then
   `IsStableHamiltonian λ₀ Ω₀`, and for some `δ ∈ (0, ε]` there is a map
-  `Φ : strip δ → strip ε`, injective and a local diffeomorphism, with
+  `Φ : symmStrip M δ → symmStrip M ε`, injective and a local diffeomorphism, with
   `Φ (0, x) = (0, x)` and `Φ^*σ` the model of $(\Omega_0,\lambda_0)$
-  restricted to `strip δ`. Route: as `σ` is closed, each slice $\Omega_r$
+  restricted to `symmStrip M δ`. Route: as `σ` is closed, each slice $\Omega_r$
   is closed and its derivative in `r` is $-d_M\lambda_r$; since `σ` is
   nondegenerate, $\lambda_r$ does not vanish on the kernel line shared by
   all slices; taking the `r`-derivative of $\iota_Z\Omega_r=0$, for `Z` a
@@ -588,7 +591,13 @@ Expected size: 300 lines.
 
 - *Smooth families*: Seeley's extension in the time variable,
   `Geometry/Manifold/ContMDiff/TimeExtension.lean`, only in
-  `Collar/Flow/Local.lean`.
+  `Collar/Flow/Local.lean`; and
+  `Geometry/Manifold/DifferentialForm/SmoothFamily/Basic.lean`
+  (`TauCeti.SmoothForm.mpullback_prodMk_mpullback_snd`), merged, in
+  `StableHamiltonian.lean`.
+- *Moser isotopy*: `Geometry/Symplectic/Manifold/Family.lean`
+  (`SmoothTwoForm.isOpen_setOf_nondegenerate_bilinFormAt`), merged, in
+  `StableHamiltonian.lean`.
 - The library: `Geometry/Manifold/IsManifold/InteriorBoundary.lean` of
   *Symplectic vector bundles* (`ModelWithCorners.interiorOpens`,
   `ModelWithCorners.BoundarylessManifold.interior`), merged.
