@@ -8,6 +8,7 @@ module
 public import Mathlib.LinearAlgebra.Matrix.Rank
 public import Mathlib.LinearAlgebra.Matrix.ToLinearEquiv
 public import SymplecticGeometry.LinearAlgebra.Matrix.OfReal
+public import SymplecticGeometry.LinearAlgebra.Matrix.Rank
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Lagrangian.Basic
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Matrix
@@ -67,6 +68,9 @@ A *frame* is a real `2n × n` matrix `Z = fromRows X Y`, whose columns span the 
   `range_toEuclideanLin_fromRows_one_eq_graphY`: `fromRows 1 A` spans `graph A`, and
   `fromRows A 1` spans `graphY A`; `map_swap_range_toEuclideanLin_fromRows`: the swap carries
   the span of `fromRows X Y` to that of `fromRows Y X`.
+* `SymplecticGeometry.StdSpace.disjoint_range_toEuclideanLin_fromRows_ker_y_iff`,
+  `range_toEuclideanLin_fromRows_eq_graphY`: a frame `fromRows X Y` of full rank spans a subspace
+  transverse to `{y = 0}` iff `Y` is invertible, and then it spans `graphY (X Y⁻¹)`.
 
 ## References
 
@@ -362,6 +366,31 @@ theorem StdSpace.range_toEuclideanLin_fromRows_one_eq_graphY (A : Matrix ι ι �
     LinearMap.range (toEuclideanLin (fromRows A 1)) = graphY A := by
   rw [graphY_def, ← range_toEuclideanLin_fromRows_one_eq_graph,
     map_swap_range_toEuclideanLin_fromRows]
+
+/-- A frame `fromRows X Y` of full column rank spans a subspace meeting `{y = 0}` only in `0`
+exactly when `Y` is invertible. -/
+theorem StdSpace.disjoint_range_toEuclideanLin_fromRows_ker_y_iff {X Y : Matrix ι ι ℝ}
+    (h : Function.Injective (fromRows X Y).mulVec) :
+    Disjoint (LinearMap.range (toEuclideanLin (fromRows X Y))) (LinearMap.ker y) ↔
+      IsUnit Y := by
+  rw [← mulVec_injective_iff_isUnit, Submodule.disjoint_def]
+  refine ⟨fun hd ↦ (injective_iff_map_eq_zero Y.mulVecLin).2 fun u hu ↦ h ?_,
+    fun hY z hz hz' ↦ ?_⟩
+  · have := hd _ (LinearMap.mem_range_self _ (WithLp.toLp 2 u))
+      (by rw [LinearMap.mem_ker, y_toEuclideanLin_fromRows]; simpa using hu)
+    simpa [toEuclideanLin] using congrArg WithLp.ofLp this
+  · obtain ⟨u, rfl⟩ := hz
+    rw [LinearMap.mem_ker, y_toEuclideanLin_fromRows] at hz'
+    have hu : u = 0 := by
+      simpa using congrArg (WithLp.toLp 2) (hY (hz'.trans (mulVec_zero _).symm))
+    simp [hu]
+
+/-- If `Y` is invertible, the frame `fromRows X Y` spans the graph `{(X Y⁻¹ y, y)}`. -/
+theorem StdSpace.range_toEuclideanLin_fromRows_eq_graphY {X Y : Matrix ι ι ℝ} (hY : IsUnit Y) :
+    LinearMap.range (toEuclideanLin (fromRows X Y)) = graphY (X * Y⁻¹) := by
+  rw [← range_toEuclideanLin_fromRows_one_eq_graphY,
+    ← range_toLpLin_mul_of_isUnit 2 (fromRows (X * Y⁻¹) 1) hY, fromRows_mul, Matrix.one_mul,
+    nonsing_inv_mul_cancel_right _ _ ((isUnit_iff_isUnit_det Y).1 hY)]
 
 /-- The standard form on the columns of a frame: `ω₀(Z u, Z v) = uᵀ (Xᵀ Y - Yᵀ X) v` for
 `Z = fromRows X Y`. -/
