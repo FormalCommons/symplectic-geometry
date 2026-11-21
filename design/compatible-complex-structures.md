@@ -694,10 +694,16 @@ This is Proposition 2.5.6, for a fixed `g : innerProducts V`, in
     `compatible_metricPolarComplexStructure` and `tames_metricSymplecticForm`),
     and taming is convex in the form, so the line stays nondegenerate; each
     value is built with `SymplecticForm.ofTames` for $J_{g,\omega}$. Its value
-    is the `@[simp]` lemma `coe_polarStraightHomotopy_apply`, an equation of
-    functions `V → V → ℝ` through Tau Ceti's `CoeFun`:
-    `⇑(polarStraightHomotopy g (t, ω)) = (1 - (t : ℝ)) •
-    ⇑(metricSymplecticForm g (metricPolarComplexStructure g ω)) + (t : ℝ) • ⇑ω`.
+    is the `@[simp]` lemma `toBilinForm_polarStraightHomotopy_apply`, an
+    equation of bilinear forms:
+    `(polarStraightHomotopy g (t, ω)).toBilinForm = (1 - (t : ℝ)) •
+    (metricSymplecticForm g (metricPolarComplexStructure g ω)).toBilinForm +
+    (t : ℝ) • ω.toBilinForm`.
+    It is stated on `toBilinForm` and not on `⇑`: Tau Ceti's `CoeFun` on
+    `SymplecticForm V` unfolds to a lambda, so a simp lemma on `⇑` would get
+    no useful key and would not fire on `polarStraightHomotopy g (t, ω) v w`.
+    Tau Ceti makes the same choice with `ofTames_toBilinForm`. A pointwise
+    `polarStraightHomotopy_apply_apply`, not `@[simp]`, follows from it.
   - `polarCayleyHomotopy g`, a `ContinuousMap.Homotopy` from
     $J\mapsto J_{g,\omega_{g,J}}$ to `ContinuousMap.id
     (AlmostComplexStructure V)`. Its value at `(t, J)` is Tau Ceti's
@@ -705,10 +711,7 @@ This is Proposition 2.5.6, for a fixed `g : innerProducts V`, in
     `compatible_metricPolarComplexStructure g (metricSymplecticForm g J)`,
     `tames_metricSymplecticForm g J` and the weight `t.2`; the endpoints are
     `Compatible.cayleyInterp_zero` and `_one`. This is the `@[simp]` value
-    lemma `polarCayleyHomotopy_apply`. Unlike
-    `coe_polarStraightHomotopy_apply`, it has no `coe_`: its value is an
-    `AlmostComplexStructure V`, not an element of a subtype, and its
-    left-hand side has no coercion, as in Mathlib's
+    lemma `polarCayleyHomotopy_apply`, named like Mathlib's
     `ContinuousMap.Homotopy.trans_apply`. It is the Cayley path relative to
     $J_{g,\omega_{g,J}}$ (compatible with $\omega_{g,J}$) towards $J$ (tame
     for $\omega_{g,J}$). Its endomorphism at time $b$ is
@@ -729,14 +732,15 @@ This is Proposition 2.5.6, for a fixed `g : innerProducts V`, in
   $\omega\mapsto\omega_{g,J_{g,\omega}}$. Each comes with `@[simp]` `_toFun`
   and `_invFun` lemmas that state these maps. Neither has a homotopy of its
   own, nor a restriction of one. On the subsets, the inverses fix every
-  point, by `metricPolarComplexStructure_eq_iff`, so the composite on the
+  point, by `metricPolarComplexStructure_eq_iff` (and, on
+  `metricSymplecticForms g`, `metricSymplecticForm_eq_of_apply_apply`), so the composite on the
   subset is equal to the identity and `left_inv` is
   `ContinuousMap.Homotopic.refl` after `ContinuousMap.ext`. The composite on
   the whole space is $J\mapsto J_{g,\omega_{g,J}}$, respectively
   $\omega\mapsto\omega_{g,J_{g,\omega}}$, so `right_inv` is
   `polarCayleyHomotopy g`, respectively `polarStraightHomotopy g`, unchanged
   up to `ContinuousMap.Homotopy.cast`. Their values are thus
-  `polarCayleyHomotopy_apply` and `coe_polarStraightHomotopy_apply`.
+  `polarCayleyHomotopy_apply` and `toBilinForm_polarStraightHomotopy_apply`.
 - **Milestone** `metricPolarComplexStructure_eq_inverse_mul_and_homotopyEquiv`,
   named after its first and last conjuncts. Its `V` carries only
   `[NormedAddCommGroup V] [NormedSpace ℝ V] [FiniteDimensional ℝ V]`, and no
@@ -851,7 +855,7 @@ Each is a few hundred lines. External blockers are given by issue number.
 9. **Forms versus complex structures for a fixed metric.** The first part of
    `Topology/ComplexStructure/Compatible/SymplecticForms.lean`:
    `metricSymplecticForm` and its API, `metricSymplecticForm_innerSL`, and
-   `polarStraightHomotopy` with `coe_polarStraightHomotopy_apply`,
+   `polarStraightHomotopy` with `toBilinForm_polarStraightHomotopy_apply`,
    `polarCayleyHomotopy` with `polarCayleyHomotopy_apply`, and
    `polarHomotopyEquiv`. Blockers: 5, 6.
 10. **The metric subsets and the milestone *Complex structures versus
