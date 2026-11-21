@@ -1377,9 +1377,10 @@ it into issues; the overview fixes its folders and its dependencies.
     (`im_inner_eq_compatibleForm_ofComplexModule`, from Tau Ceti's
     `Bundle.ContMDiffRiemannianMetric.complexInnerProductSpace_inner`;
     conjugate-linear in its first argument, as in Mathlib); and, on the
-    trivial line bundle with fibre `Fin 1 → ℂ` and the constant metric
-    pulled back along `complexToRealEuclidean (Fin 1)`, that map carries it
-    to `stdForm (Fin 1)` (`compatibleForm_ofComplexModule_trivial`), so the
+    trivial bundle with fibre `ι → ℂ` (the line bundle for `ι = Fin 1`) and
+    a metric pulled back along `complexToRealEuclidean ι`, such as the
+    constant one, that map carries it
+    to `stdForm ι` (`compatibleForm_ofComplexModule_trivial`), so the
     conventions agree with *Standard model*.
   - *The circle bundle of a Hermitian line bundle*
     (`Hermitian/CircleBundle.lean`). With the fibre norm of `g` (the local

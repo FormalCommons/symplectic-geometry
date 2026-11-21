@@ -1414,11 +1414,17 @@ Hausdorff σ-compact base.
     Hermitian product of `v` and `w` is $\omega_x(v,w)$, from Tau Ceti's
     `Bundle.ContMDiffRiemannianMetric.complexInnerProductSpace_inner`;
   - the standard case, `compatibleForm_ofComplexModule_trivial`: on
-    `Bundle.Trivial M (Fin 1 → ℂ)` with the constant metric
-    $g_0(u,v)=\langle c\,u,c\,v\rangle$ for
-    `c = TauCeti.complexToRealEuclidean (Fin 1)`, the fibrewise map `c`
-    is a symplectic isomorphism from `(ofComplexModule I n _ _).compatibleForm g₀`
-    to `const (stdForm (Fin 1))` (`pushforward` of the one is the other). So
+    `Bundle.Trivial M (ι → ℂ)`, for any `[Fintype ι]` (the line bundle is
+    `ι = Fin 1`; the proof is the same for every `ι`), and for any metric
+    `g` with $g_x(u,v)=\langle c\,u,c\,v\rangle$ (hypothesis `hg`), for
+    `c = TauCeti.complexToRealEuclidean ι`, such as the constant metric
+    `g₀` below, the fibrewise map `c`
+    is a symplectic isomorphism from `(ofComplexModule I n _ _).compatibleForm g`
+    to `const (stdForm ι)` (`pushforward` of the one is the other). Its
+    proof uses `stdComplexStructure_complexToRealEuclidean`
+    (`J₀ (c v) = c (i • v)`), which the issue adds to
+    `LinearAlgebra/Symplectic/Standard/Basic.lean`, next to
+    `stdComplexStructure_complexEuclideanEquiv`. So
     the sign agrees with *Standard model*, where `stdForm ι z w =
     ⟪J₀ z, w⟫` and `J₀` is multiplication by `Complex.I` moved along
     `complexToRealEuclidean`. Neither Mathlib nor Tau Ceti has a constant
