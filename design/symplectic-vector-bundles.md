@@ -1308,9 +1308,9 @@ over the same base, on Mathlib's direct sum `V₁ ×ᵇ V₂` (`Bundle.Prod`, wi
   (`Geometry/Symplectic/Prod/Basic.lean`).
 - `ComplexStructure.lean`: `ContMDiffComplexStructure.prod J₁ J₂ :
   ContMDiffComplexStructure I n (F₁ × F₂) (V₁ ×ᵇ V₂)`, with value
-  `(J₁ x).prodMap (J₂ x)`, $C^n$ by the product criterion and
-  `contMDiff_hom_bundle_iff`. API: `@[simp] prod_apply`,
-  `@[simp] almostComplexStructureAt_prod` (Tau Ceti's
+  `(J₁ x).prodMap (J₂ x)`, $C^n$ by `Bundle.Prod.contMDiff_prodMap`
+  (`Geometry/Manifold/VectorBundle/Prod.lean`) and `contMDiff_hom_bundle_iff`.
+  API: `@[simp] prod_apply`, `@[simp] almostComplexStructureAt_prod` (Tau Ceti's
   `TauCeti.AlmostComplexStructure.prod` of the two), and
   `prod_toEndomorphism`, which is not `@[simp]`, since it would rewrite the
   left side of `prod_apply` to a `Prod.map`.
