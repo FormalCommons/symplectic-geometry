@@ -23,7 +23,8 @@ of dimension `2 * n`. Then `-σ` is nondegenerate too, and its volume form `(-σ
 ## References
 
 * [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017]
-* [A. Cannas da Silva, *Lectures on Symplectic Geometry*][CannasdaSilva2001]
+* [A. Cannas da Silva, *Lectures on Symplectic Geometry*, Lecture Notes in Mathematics 1764,
+  Springer, Berlin, 2001][CannasdaSilva2001Lectures]
 -/
 
 public section
