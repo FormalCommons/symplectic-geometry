@@ -8,6 +8,20 @@ module
 public import Mathlib.Geometry.Manifold.PartitionOfUnity
 public import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Existence
 public import TauCeti.Geometry.Manifold.VectorBundle.Section.Extension
+public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Basic
+public import SymplecticGeometry.Geometry.Manifold.IsManifold.InteriorBoundary
+import Mathlib.Topology.Algebra.Module.PerfectSpace
+import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Push
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.Section.Generic
+import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Configuration
+import TauCeti.Geometry.Manifold.Boundary.Collar.Topological
+import TauCeti.Geometry.Manifold.ChartedSpace
+import TauCeti.Geometry.Manifold.Connected
+import TauCeti.Geometry.Manifold.ModelTransport.Interior
+import TauCeti.Geometry.Manifold.VectorBundle.Section.Generic
+import TauCeti.Geometry.Manifold.VectorBundle.Section.Module
+import TauCeti.Topology.FiberBundle.Pullback
+import TauCeti.Topology.VectorBundle.HomotopyInvariance
 
 /-!
 # Smooth nowhere-zero sections
@@ -24,6 +38,26 @@ contain `0`. Near each point `x₀`, a smooth section through `s x₀` lies in t
 continuity of `g`. Mathlib's `exists_contMDiffSection_forall_mem_convex_of_local` glues such local
 sections with a smooth partition of unity into a global smooth section lying in every half-space,
 hence nowhere zero.
+
+Over a compact connected manifold `M` of dimension `d ≥ 2` with nonempty boundary, every smooth
+real bundle of rank at least `d` has a smooth nowhere-zero section
+(`SymplecticGeometry.exists_contMDiffSection_forall_ne_zero_of_boundary_nonempty`); for surfaces,
+every bundle of rank at least two. The argument replaces the book's cutting of the surface:
+
+1. Pulled back to the interior `M°`, a generic section in the span of finitely many spanning
+   sections has no zeros if the rank exceeds `d` (Tau Ceti's
+   `ContMDiffSection.mem_residual_setOf_affineFamily_ne_zero`), and a discrete set of zeros if
+   the rank is `d` (`ContMDiffSection.mem_residual_setOf_isDiscrete_zero_affineFamily`).
+2. A collar of the boundary gives a map `g : M → M` homotopic to the identity with image in a
+   compact subset `K` of `M°` that misses a nonempty open subset of `M°`
+   (`TauCeti.IsCollar.exists_homotopy_push`).
+3. `M°` is connected, and stays connected after removing a closed discrete set, so a diffeotopy of
+   `M°` moves the finitely many zeros in `K` out of `K`, keeping the other zeros fixed (Tau Ceti's
+   `exists_diffeotopy_final_comp_eq_of_isPreconnected`). Following `g` by its final map gives a
+   map `h` homotopic to the identity along which the section `σ` has no zero.
+4. Homotopy invariance of bundles (Tau Ceti's
+   `ContinuousMap.Homotopic.exists_continuousLinearEquiv_pullback`) identifies `h^* V` with `V`,
+   so `σ ∘ h` gives a continuous nowhere-zero section of `V`, which is then smoothed.
 
 ## References
 
@@ -67,6 +101,207 @@ theorem exists_contMDiffSection_forall_ne_zero_of_continuous {s : ∀ x, V x}
       refine ⟨_, hcont.2.eventually (lt_mem_nhds ?_), σ, hσ.contMDiffOn, fun y hy ↦ hy⟩
       simpa [σ] using g.pos x₀ _ (hs₀ x₀)
   exact ⟨t, fun x h ↦ by simpa [h] using ht x⟩
+
+end SymplecticGeometry
+
+namespace SymplecticGeometry
+
+open Set Module TauCeti
+
+section Diffeotopy
+
+variable {E N : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
+  [TopologicalSpace N] [ChartedSpace E N] [T2Space N] [IsManifold 𝓘(ℝ, E) ∞ N]
+
+/-- A closed discrete subset `Z` of a preconnected boundaryless manifold of dimension at least two
+can be moved off a compact set `K` with nonempty complement: the final map of some diffeotopy sends
+no point of `K` into `Z`. -/
+private theorem exists_diffeotopy_apply_one_notMem [PreconnectedSpace N]
+    (hdim : 1 < Module.rank ℝ E) {Z K : Set N} (hZ : IsClosed Z) (hZd : IsDiscrete Z)
+    (hK : IsCompact K) (hKc : Kᶜ.Nonempty) :
+    ∃ Ψ : Diffeotopy 𝓘(ℝ, E) 1 N, ∀ y ∈ K, Ψ (1, y) ∉ Z := by
+  classical
+  have : Nontrivial E := rank_pos_iff_nontrivial.mp (zero_lt_one.trans hdim)
+  have : PerfectSpace E := perfectSpace_of_module ℝ E
+  have : PerfectSpace N := ChartedSpace.perfectSpace (H := E)
+  -- The points of `Z` in `K`, enumerated.
+  have hA : (Z ∩ K).Finite := (hK.inter_left hZ).finite (hZd.mono inter_subset_left)
+  have := hA.to_subtype
+  let e := Finite.equivFin (Z ∩ K : Set N)
+  -- `Z` has empty interior, so infinitely many points lie outside `Z ∪ K`: the targets.
+  have hZi : Dense Zᶜ := by
+    rw [← interior_eq_empty_iff_dense_compl, eq_empty_iff_forall_notMem]
+    intro y hy
+    obtain ⟨W, hW, hWZ⟩ := isDiscrete_iff_forall_mem_exists_isOpen.1 hZd y (interior_subset hy)
+    have hyW : y ∈ W := (hWZ.symm ▸ mem_singleton y : y ∈ W ∩ Z).1
+    apply not_isOpen_singleton y
+    rw [show ({y} : Set N) = interior Z ∩ W from Subset.antisymm
+      (singleton_subset_iff.2 ⟨hy, hyW⟩) fun z hz ↦ hWZ ▸ ⟨hz.2, interior_subset hz.1⟩]
+    exact isOpen_interior.inter hW
+  have hT : IsOpen (Kᶜ ∩ Zᶜ) := hK.isClosed.isOpen_compl.inter hZ.isOpen_compl
+  obtain ⟨y₀, hy₀⟩ := hZi.inter_open_nonempty Kᶜ hK.isClosed.isOpen_compl hKc
+  let w := (infinite_of_mem_nhds y₀ (hT.mem_nhds hy₀)).natEmbedding
+  -- The points of `Z` outside `K` stay where they are; the rest of `N` is preconnected.
+  have hZK : IsClosed (Z \ K) ∧ IsDiscrete (Z \ K) := isClosed_and_discrete_iff.2 fun x ↦
+    (isClosed_and_discrete_iff.1 ⟨hZ, hZd⟩ x).mono_right (Filter.principal_mono.2 sdiff_subset)
+  obtain ⟨Ψ, L, -, hLU, hΨL, hΨ⟩ := exists_diffeotopy_final_comp_eq_of_isPreconnected
+    (n := ∞) (m := 1) hdim le_rfl (by norm_num) (isOpen_univ.sdiff hZK.1)
+    (isPreconnected_sdiff_of_isOpen_of_isDiscrete_of_one_lt_rank hdim isOpen_univ
+      isPreconnected_univ hZK.1 hZK.2)
+    (f := fun i : Fin (Nat.card (Z ∩ K : Set N)) ↦ (w i : N)) (g := fun i ↦ (e.symm i : N))
+    (Subtype.val_injective.comp (w.injective.comp Fin.val_injective))
+    (Subtype.val_injective.comp e.symm.injective)
+    (fun i ↦ ⟨trivial, fun h ↦ (w i).prop.2 h.1⟩)
+    (fun i ↦ ⟨trivial, fun h ↦ h.2 (e.symm i).prop.2⟩)
+  refine ⟨Ψ, fun y hy hyZ ↦ ?_⟩
+  by_cases hyK : Ψ (1, y) ∈ K
+  · -- A point of `Z ∩ K` is the image of a target, which lies outside `K`.
+    have h := congrFun hΨ (e ⟨_, hyZ, hyK⟩)
+    simp only [Function.comp_apply, Equiv.symm_apply_apply] at h
+    have := Ψ.final.injective (h.trans (Diffeotopy.final_apply Ψ y).symm)
+    exact (w _).prop.1 (this ▸ hy)
+  · -- A point of `Z` outside `K` is fixed, so it is its own preimage.
+    have hfix : Ψ (1, Ψ (1, y)) = Ψ (1, y) := hΨL 1 fun h ↦ (hLU h).2 ⟨hyZ, hyK⟩
+    have := Ψ.final.injective ((Ψ.final_apply _).trans (hfix.trans (Ψ.final_apply y).symm))
+    rw [this] at hyK
+    exact hyK hy
+
+end Diffeotopy
+
+section Generic
+
+open ContMDiffSection
+
+variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
+  [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
+  [TopologicalSpace M] [ChartedSpace H M] [IsManifold I ∞ M] [T2Space M] [CompactSpace M]
+  {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] [FiniteDimensional ℝ F]
+  {V : M → Type*} [∀ x, AddCommGroup (V x)] [∀ x, Module ℝ (V x)] [∀ x, TopologicalSpace (V x)]
+  [TopologicalSpace (TotalSpace F V)] [FiberBundle F V] [VectorBundle ℝ F V]
+  [ContMDiffVectorBundle ∞ F V I]
+
+attribute [local instance] BoundarylessModel.interiorChartedSpace in
+/-- Over a compact second-countable manifold modelled on `E`, a bundle of rank at least `dim E` has
+a smooth section whose zeros in the interior form a discrete set: the generic section of the
+bundle pulled back to the interior, which has no zeros if the rank is larger than `dim E`. -/
+private theorem exists_contMDiffSection_isDiscrete_interior [SecondCountableTopology M]
+    (hF : finrank ℝ E ≤ finrank ℝ F) :
+    ∃ σ : ContMDiffSection I F ∞ V, IsDiscrete {x : I.interiorOpens M | σ x = 0} := by
+  let U := I.interiorOpens M
+  let N := BoundarylessModel I U
+  have hj : ContMDiff 𝓘(ℝ, E) I ∞ (fun y : N ↦ ((show U from y) : M)) := by
+    have := contMDiff_subtypeVal.comp
+      (BoundarylessModel.interiorDiffeomorph I (M := U) ∞).symm.contMDiff
+    rw [BoundarylessModel.coe_interiorDiffeomorph_symm,
+      BoundarylessModel.coe_homeomorph_symm] at this
+    exact this
+  let j : C^∞⟮𝓘(ℝ, E), N; I, M⟯ := ⟨fun y : N ↦ ((show U from y) : M), hj⟩
+  have : ContMDiffVectorBundle ∞ F ((j : C(N, M)) *ᵖ V) 𝓘(ℝ, E) :=
+    ContMDiffVectorBundle.pullback F V 𝓘(ℝ, E) j
+  have : SecondCountableTopology N := inferInstanceAs (SecondCountableTopology U)
+  obtain ⟨k, s, hspan⟩ := exists_fin_spanning_contMDiffSection (I := I) (F := F) (V := V)
+  let t i := (s i).pullback j
+  have ht (i) (y : N) : t i y = s i (j y) := pullback_apply (s i) j y
+  have hspan' (y : N) : Submodule.span ℝ (range fun i ↦ t i y) = ⊤ := by
+    rw [funext (ht · y)]
+    exact hspan (j y)
+  have key (a : Fin k → ℝ) (y : N) : affineFamily 0 t a y = affineFamily 0 s a (j y) := by
+    simp only [affineFamily_apply, ht, coe_zero, Pi.zero_apply]
+    rfl
+  have hres : {a : Fin k → ℝ | IsDiscrete {y : N | affineFamily 0 t a y = 0}} ∈ residual _ := by
+    rcases hF.lt_or_eq with h | h
+    · filter_upwards [mem_residual_setOf_affineFamily_ne_zero 0 t hspan' h] with a ha
+      exact Set.Subsingleton.isDiscrete fun x hx ↦ (ha x hx).elim
+    · exact mem_residual_setOf_isDiscrete_zero_affineFamily h 0 t hspan'
+  obtain ⟨a, ha⟩ := (dense_of_mem_residual hres).nonempty
+  simp only [mem_ofPred_eq, key] at ha
+  exact ⟨affineFamily 0 s a, ha⟩
+
+omit [CompactSpace M] [FiniteDimensional ℝ F] [ContMDiffVectorBundle ∞ F V I] in
+attribute [local instance] BoundarylessModel.interiorChartedSpace in
+/-- In the interior of a connected manifold of dimension at least two, the zeros of a section that
+are isolated in the interior can be moved off a compact subset `K` of the interior whose complement
+in the interior is nonempty, by a homotopy of the interior starting at the identity. -/
+private theorem exists_homotopy_interior_ne_zero [ConnectedSpace M] (hdim : 1 < finrank ℝ E)
+    (σ : ContMDiffSection I F ∞ V) (hσ : IsDiscrete {x : I.interiorOpens M | σ x = 0})
+    {K : Set (I.interiorOpens M)} (hK : IsCompact K) (hKc : Kᶜ.Nonempty) :
+    ∃ G : unitInterval × I.interiorOpens M → I.interiorOpens M, Continuous G ∧
+      (∀ y, G (0, y) = y) ∧ ∀ y ∈ K, σ (G (1, y)) ≠ 0 := by
+  let U := I.interiorOpens M
+  let N := BoundarylessModel I U
+  have : T2Space N := inferInstanceAs (T2Space U)
+  have : PreconnectedSpace N := inferInstanceAs (PreconnectedSpace U)
+  -- Restate the hypotheses for the topology of `N`, which is that of `U`.
+  have hZ : IsClosed (X := N) {x : U | σ x = 0} :=
+    σ.isClosed_setOf_eq_zero.preimage continuous_subtypeVal
+  have hZd : IsDiscrete (X := N) {x : U | σ x = 0} := hσ
+  have hK' : IsCompact (X := N) K := hK
+  obtain ⟨Ψ, hΨ⟩ := exists_diffeotopy_apply_one_notMem (E := E) (N := N)
+    (by rw [← Module.finrank_eq_rank]; exact_mod_cast hdim) hZ hZd hK' hKc
+  exact ⟨fun p ↦ Ψ p, Ψ.contMDiff.continuous, Ψ.apply_zero, hΨ⟩
+
+end Generic
+
+section Surface
+
+variable {n : ℕ} {M : Type*} [TopologicalSpace M] [ChartedSpace (EuclideanHalfSpace (n + 2)) M]
+  [IsManifold (𝓡∂ (n + 2)) ∞ M] [CompactSpace M] [ConnectedSpace M] [T2Space M]
+  {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] [FiniteDimensional ℝ F]
+  {V : M → Type*} [∀ x, AddCommGroup (V x)] [∀ x, Module ℝ (V x)] [∀ x, TopologicalSpace (V x)]
+  [∀ x, IsTopologicalAddGroup (V x)] [∀ x, ContinuousSMul ℝ (V x)]
+  [TopologicalSpace (TotalSpace F V)] [FiberBundle F V] [VectorBundle ℝ F V]
+  [ContMDiffVectorBundle ∞ F V (𝓡∂ (n + 2))]
+
+/-- A smooth real vector bundle of rank at least `d` over a compact connected manifold of dimension
+`d = n + 2 ≥ 2` whose boundary is nonempty has a smooth nowhere-zero section. For `n = 0`: every
+smooth real bundle of rank at least two over a compact connected surface with nonempty boundary has
+a smooth nowhere-zero section. -/
+theorem exists_contMDiffSection_forall_ne_zero_of_boundary_nonempty
+    (hM : ((𝓡∂ (n + 2)).boundary M).Nonempty) (hF : n + 2 ≤ finrank ℝ F) :
+    ∃ t : ContMDiffSection (𝓡∂ (n + 2)) F ∞ V, ∀ x, t x ≠ 0 := by
+  have : SecondCountableTopology M :=
+    have : SecondCountableTopology (EuclideanHalfSpace (n + 2)) :=
+      inferInstanceAs (SecondCountableTopology {x : EuclideanSpace ℝ (Fin (n + 2)) // 0 ≤ x 0})
+    ChartedSpace.secondCountable_of_sigmaCompact (EuclideanHalfSpace (n + 2)) M
+  -- A section whose zeros in the interior form a discrete set.
+  obtain ⟨σ, hσ⟩ := exists_contMDiffSection_isDiscrete_interior (I := 𝓡∂ (n + 2)) (V := V)
+    (by simpa using hF)
+  -- Push `M` into a compact subset `K` of its interior, missing a nonempty open set `O`.
+  obtain ⟨c, hc⟩ := isCollared_iff.1
+    (isCollared_subtypeVal_boundary_of_compactSpace (n := n + 1) (M := M))
+  obtain ⟨K, O, g, hK, hKi, -, hOi, hOK, hO, -, -, hgK, hg, -, -⟩ := hc.exists_homotopy_push
+  -- Move the zeros of `σ` off `K`, inside the interior.
+  let U := (𝓡∂ (n + 2)).interiorOpens M
+  have hU {x : M} (hx : x ∈ (𝓡∂ (n + 2)).interior M) : x ∈ U := by
+    rwa [← SetLike.mem_coe, ModelWithCorners.coe_interiorOpens]
+  have hKU : IsCompact ((↑) ⁻¹' K : Set U) :=
+    ((U.isOpen.isOpenEmbedding_subtypeVal).isInducing.isCompact_preimage_iff
+      (by simpa [U] using hKi)).2 hK
+  obtain ⟨x₀, hx₀⟩ := hO hM
+  obtain ⟨G, hGc, hG0, hG1⟩ := exists_homotopy_interior_ne_zero (I := 𝓡∂ (n + 2)) (by simp) σ hσ
+    hKU ⟨⟨x₀, hU (hOi hx₀)⟩, fun h ↦ disjoint_left.1 hOK hx₀ h⟩
+  -- The map `h = G₁ ∘ g` is homotopic to the identity and avoids the zeros of `σ`.
+  let g' : M → U := fun x ↦ ⟨g x, hU (hKi (hgK ⟨x, rfl⟩))⟩
+  have hg' : Continuous g' := g.continuous.subtype_mk _
+  let h : C(M, M) := ⟨fun x ↦ G (1, g' x), continuous_subtypeVal.comp (hGc.comp
+    (continuous_const.prodMk hg'))⟩
+  let G' : ContinuousMap.Homotopy g h :=
+    { toFun := fun p ↦ G (p.1, g' p.2)
+      continuous_toFun := continuous_subtypeVal.comp (hGc.comp
+        (continuous_fst.prodMk (hg'.comp continuous_snd)))
+      map_zero_left := fun x ↦ by simp [hG0, g']
+      map_one_left := fun x ↦ rfl }
+  have hh0 (x : M) : σ (h x) ≠ 0 := hG1 (g' x) (hgK ⟨x, rfl⟩)
+  -- Transport `σ ∘ h` along an isomorphism `h^* V ≅ V`, and smooth the result.
+  obtain ⟨Φ, hΦ, -⟩ := (hg.trans ⟨G'⟩).symm.exists_continuousLinearEquiv_pullback
+    (𝕜 := ℝ) (F := F) (E := V)
+  have h1 : Continuous fun x ↦ TotalSpace.mk' F (E := (h : M → M) *ᵖ V) x (σ (h x)) :=
+    Pullback.continuous_iff.2 ⟨continuous_id, σ.contMDiff.continuous.comp h.continuous⟩
+  exact exists_contMDiffSection_forall_ne_zero_of_continuous (n := ⊤)
+    (s := fun x ↦ Φ x (σ (h x))) ((Pullback.continuous_lift F V _).comp (hΦ.comp h1))
+    fun x hx ↦ hh0 x ((Φ x).map_eq_zero_iff.1 hx)
+
+end Surface
 
 end SymplecticGeometry
 
