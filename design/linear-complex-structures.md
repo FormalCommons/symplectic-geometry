@@ -211,8 +211,16 @@ Declarations about Tau Ceti's type go in its namespace
   `transport_inv : J.transport e⁻¹ = J.transport e.symm`. The right side of
   `transport_mul` is nested, not `J.transport (f ≪≫ₗ e)`, so that a product
   or an inverse in a factor is still the argument of `transport` when `simp`
-  reaches it. With them `simp` proves `e⁻¹ • e • J = J`,
-  `e • f • J = (e * f) • J` and `(e * f)⁻¹ • J = f⁻¹ • e⁻¹ • J`. Lemmas whose right side is an action of
+  reaches it. Tau Ceti's `transport_trans` then gathers the nested
+  transports into one composite bracketed to the left, while Mathlib's
+  cancellation lemmas for `e ≪≫ₗ e.symm` need it bracketed to the right; the
+  fourth simp lemma, `transport_trans_trans : J.transport ((a ≪≫ₗ b) ≪≫ₗ c) =
+  J.transport (a ≪≫ₗ (b ≪≫ₗ c))` (by `(rfl)`, for equivalences between any
+  four spaces), brackets it to the right. With them `simp` proves
+  `e⁻¹ • e • J = J`, `e⁻¹ • f⁻¹ • f • e • J = J`,
+  `(e * f)⁻¹ • (e * f) • J = J`, `e • f • J = (e * f) • J`,
+  `(e * f * g) • J = e • f • g • J` and
+  `(e * f)⁻¹ • J = f⁻¹ • e⁻¹ • J`. Lemmas whose right side is an action of
   `V ≃ₗ[ℝ] V` state it with `transport`, as `ofEuclideanCLE_smul :
   ofEuclideanCLE Φ • J = J.transport Φ.toLinearEquiv` (`@[simp]`) does. The
   matrix actions keep `•` as their normal form.

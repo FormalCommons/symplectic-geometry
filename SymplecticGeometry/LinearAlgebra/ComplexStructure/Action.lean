@@ -106,6 +106,17 @@ theorem transport_inv (J : AlmostComplexStructure V) (e : V ≃ₗ[ℝ] V) :
     J.transport e⁻¹ = J.transport e.symm :=
   (rfl)
 
+/-- Transport along a composite of three equivalences does not depend on how the composite is
+bracketed. As a simp lemma it brackets the composite to the right, the form in which Mathlib's
+cancellation lemmas for `e ≪≫ₗ e.symm` apply, after Tau Ceti's `transport_trans` has gathered
+nested transports into one composite bracketed to the left. -/
+@[simp]
+theorem transport_trans_trans {X Y : Type*} [AddCommGroup X] [Module ℝ X] [AddCommGroup Y]
+    [Module ℝ Y] (J : AlmostComplexStructure V) (a : V ≃ₗ[ℝ] W) (b : W ≃ₗ[ℝ] X)
+    (c : X ≃ₗ[ℝ] Y) :
+    J.transport ((a ≪≫ₗ b) ≪≫ₗ c) = J.transport (a ≪≫ₗ (b ≪≫ₗ c)) :=
+  (rfl)
+
 theorem smul_apply (e : V ≃ₗ[ℝ] V) (J : AlmostComplexStructure V) (v : V) :
     (e • J) v = e (J (e.symm v)) :=
   (rfl)
