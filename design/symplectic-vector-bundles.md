@@ -147,8 +147,8 @@ says), except its lemma `moserGenerator_conj`, which goes in
 have the names of a Tau Ceti or Mathlib file or
 folder at the same place, so that the two merge upstream.
 
-**Departures from `DESIGN.md`.** Each has its reason; #59 brings the overview
-in line once this design is merged.
+**Departures from `DESIGN.md`.** Each has its reason; #59 brought the
+overview in line with them.
 
 - The overview's `.../Symplectic/ComplexStructure.lean` becomes a folder of
   two files from the start, since its content is more than one file holds.
@@ -175,8 +175,9 @@ in line once this design is merged.
   not use an orientation, so the statement is more general.
 - The lemma of `Section/Topology.lean` asks for joint $C^n$ regularity in a
   manifold parameter instead of derivatives continuous in the parameter (see
-  below), and only issue 8 waits for part 9, for its building issues 4, 5
-  and 6 (see *What the part uses*).
+  below), and only issues 7 and 8 wait for part 9: issue 7 for its Cayley
+  domain issue 6, and issue 8 for its building issues 4, 5 and 6 (see *What
+  the part uses*).
 
 ## Complex structures on a bundle
 
@@ -523,25 +524,27 @@ $[0,1]$ is never fed to the lemma with `P = ℝ` directly.
   `1 - b • cayleyFormula (J₀ x) B` is a unit for every $b\in[0,1]$, units
   taken in the ring `V x →L[ℝ] V x` (this ring structure is why the fibres
   are topological modules in the variable block). The fibres carry no norm
-  and need not be finite-dimensional, so Tau Ceti's normed lemmas are never
-  applied to `V x` itself: both facts about `O` below are read in a
-  trivialization, under `[FiniteDimensional ℝ F]`. For a trivialization `e`
+  and need not be finite-dimensional, so neither Tau Ceti's normed lemmas nor
+  part 9's `Geometry/Symplectic/Cayley/Domain.lean` (planned in *Compatible
+  complex structures*, whose issue 6 adds it) is applied to `V x` itself:
+  both facts about `O` below are read in a trivialization, under
+  `[FiniteDimensional ℝ F]`. For a trivialization `e`
   with `hx : x ∈ e.baseSet`, write
   `φ := (e.continuousLinearEquivAt ℝ x hx).conjContinuousAlgEquiv`, an
   algebra isomorphism `(V x →L[ℝ] V x) ≃A[ℝ] (F →L[ℝ] F)`. It sends
   `1 - A * B` to `1 - φ A * φ B` and, by Tau Ceti's `map_cayleyFormula`,
   `1 - b • cayleyFormula A B` to `1 - b • cayleyFormula (φ A) (φ B)`; as an
   isomorphism it preserves and reflects units. So `(x, B) ∈ O` if and only
-  if `(φ (J₀ x), φ B)` lies in the same set formed in `F →L[ℝ] F`, whatever
-  `e` is chosen.
+  if `(b, φ (J₀ x), φ B) ∈ TauCeti.cayleyDomain (F →L[ℝ] F)` for every
+  $b\in[0,1]$, whatever `e` is chosen.
   - *Openness.* Over `e.baseSet`, the trivialization of the endomorphism
     bundle reads `(x, B)` as `(x, φ B)`
     (`ContinuousLinearMap.inCoordinates_eq_conjContinuousAlgEquiv`), and
     `x ↦ φ (J₀ x)` is continuous there, so `O` is locally the preimage of
-    the set of pairs `(A, B)` of `F →L[ℝ] F` for which both elements are
-    units for all $b\in[0,1]$. That set is open: `F →L[ℝ] F` is a complete
-    normed algebra, since `F` is finite-dimensional, so its units are open,
-    and $[0,1]$ is compact.
+    the set of pairs `(A, B)` of `F →L[ℝ] F` with $(b,A,B)$ in
+    `TauCeti.cayleyDomain` for all $b\in[0,1]$. That set is open by part 9's
+    `TauCeti.isOpen_setOf_forall_Icc_mem_cayleyDomain`, since `F →L[ℝ] F` is
+    a complete normed algebra (`F` is finite-dimensional).
   - *Membership.* Let `J` be tame for `ω`. Transport `hω.symplecticFormAt x`,
     `almostComplexStructureAt J₀ x` and `almostComplexStructureAt J x` to
     `F` along `(e.continuousLinearEquivAt ℝ x hx).toLinearEquiv` (Tau Ceti's
@@ -553,10 +556,10 @@ $[0,1]$ is never fed to the lemma with `P = ℝ` directly.
     (`conjContinuousAlgEquiv_apply_apply`,
     `AlmostComplexStructure.transport_apply` and
     `almostComplexStructureAt_apply`). On the normed finite-dimensional
-    space `F`, Tau Ceti's `Tames.isUnit_one_sub_mul_of_toLinearMap` and
-    `Compatible.isUnit_one_sub_smul_cayleyFormula` (for $|b|\le1$) give the
-    two units in `F →L[ℝ] F`, and `φ.symm` carries them back to
-    `V x →L[ℝ] V x`.
+    space `F`, part 9's `TauCeti.SymplecticForm.Compatible.mem_cayleyDomain`
+    (for $|b|\le1$), from the same file, puts the triple
+    `(b, φ (J₀ x), φ (J x))` in `TauCeti.cayleyDomain (F →L[ℝ] F)`, so
+    `(x, J x) ∈ O` by the equivalence above.
 
   The hypothesis `hΦ` of `continuous_fiberwiseMap`
   is checked in trivializations, and for $V = TM$ with $n = \infty$ Tau Ceti
@@ -1285,11 +1288,15 @@ it, its design adds it.
   *Standard model* for the corollary on `Matrix.symplecticGroup`, for
   `stdForm` and `complexToRealEuclidean` in the standard Hermitian case, and as
   the home of `StdSpace.sumEquiv`, which issue 22 adds to its files. The
-  part uses nothing from *Compatible complex structures* (part 9) beyond what
-  Tau Ceti already has: the fibrewise constructions it needs (the Cayley path,
-  $J_{g,\omega}$, $\omega_{g,J}$, the complex-linear part) are Tau Ceti's
-  linear ones or explicit formulas. There are two exceptions. The first is `polarEndAt` and
-  its smoothness, which use part 9's
+  part uses three files of *Compatible complex structures* (part 9). Its
+  linear file `Geometry/Symplectic/Cayley/Domain.lean` gives
+  `TauCeti.cayleyDomain`, the openness lemma
+  `TauCeti.isOpen_setOf_forall_Icc_mem_cayleyDomain` and the membership lemma
+  `TauCeti.SymplecticForm.Compatible.mem_cayleyDomain`, for the open set `O`
+  of the contractibility proofs (issue 7) and for the open set of the
+  homotopy equivalence's Cayley path (issue 8). That file is part 9's issue 6,
+  which has no blockers. Further, `polarEndAt` and its smoothness (issue 8)
+  use part 9's
   `Analysis/InnerProductSpace/Symplectic/PolarComplexStructure/Smooth.lean`
   (`TauCeti.polarDomain`, `isOpen_polarDomain`, `mem_polarDomain_iff`,
   `TauCeti.metricPolarFormula`, `contDiffOn_metricPolarFormula`,
@@ -1298,19 +1305,19 @@ it, its design adds it.
   `metricPolarComplexStructure_innerSL` from its `Basic.lean`: there the
   form varies with the fibre variable, not only with the point, and part 9
   states the pointwise smoothness of the formula publicly, where Tau Ceti's
-  is private. The second is the open set of the homotopy equivalence's Cayley path, which
-  uses part 9's `Geometry/Symplectic/Cayley/Domain.lean` (`cayleyDomain`,
-  `isOpen_setOf_forall_Icc_mem_cayleyDomain`,
-  `Compatible.mem_cayleyDomain`). So only issue 8 waits for part 9.
+  is private. These are part 9's issues 4 and 5. The other fibrewise
+  constructions the part needs (the Cayley path, $J_{g,\omega}$,
+  $\omega_{g,J}$, the complex-linear part) are Tau Ceti's linear ones or
+  explicit formulas. So only issues 7 and 8 wait for part 9.
 
 ## Building issues
 
 Each is a few hundred lines; a blocker given by number alone is an issue of
 this list, and a blocker from another part is named with its part and its
-design file. An issue may start once its blockers are merged. Issues 1, 3, 4,
-10, 12–15, 18, 23 and 24 can start at once. Issues 1–17 build the milestones,
-and issues 18–26 the constructions of *Constructions* for *First Chern
-number*.
+design file (only issues 7 and 8 have one). An issue may start once its
+blockers are merged. Issues 1, 3, 4, 10, 12–15, 18, 23 and 24 can start at
+once. Issues 1–17 build the milestones, and issues 18–26 the constructions
+of *Constructions* for *First Chern number*.
 
 1. **Complex structures on a bundle.** `ComplexStructure.lean`: the
    structure and its API up to `toContinuousComplexStructure` and
@@ -1341,7 +1348,9 @@ number*.
    `contractibleSpace_…` theorems; the bundle Cayley lemma
    `ContMDiffAt.cayleyPathFormula_hom_bundle_of_vectorBundle` in
    `VectorBundle/Cayley.lean`; and the contractibility of metrics in
-   `Riemannian/SectionTopology.lean`. Blockers: 4, 6.
+   `Riemannian/SectionTopology.lean`. Blockers: 4, 6, and issue 6 of
+   *Compatible complex structures* (`Geometry/Symplectic/Cayley/Domain.lean`
+   of `design/compatible-complex-structures.md`).
 8. **The homotopy equivalence and the second milestone.**
    `Symplectic/ComplexStructure/Contractible.lean`:
    `exists_homotopyEquiv_polarComplexStructure`, `polarComplexStructure_homotopic`,
