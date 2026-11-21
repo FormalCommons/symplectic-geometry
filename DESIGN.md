@@ -921,6 +921,10 @@ it into issues; the overview fixes its folders and its dependencies.
   for sections of the bundle of alternating maps of a pull-back, in the root
   namespace `Bundle.Pullback`; the file has the name of the Tau Ceti file
   with the criterion for Hom sections, so that the two merge upstream),
+  `Topology/VectorBundle/Pullback.lean` (the coordinates of alternating maps
+  on a pull-back bundle, a step that uses no charts; the file has the path
+  of the Tau Ceti file with `ContinuousLinearMap.inCoordinates_pullback_of_mem`,
+  so that the two merge upstream),
   `Geometry/Symplectic/Manifold/Volume.lean` (the symplectic orientation of
   a negated two-form, in Tau Ceti's namespace; the file has the name of the
   Tau Ceti file that defines `volumeOrientation`),
