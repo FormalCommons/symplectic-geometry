@@ -239,6 +239,11 @@ Declarations about Tau Ceti's type go in its namespace
   its own: `@[simp] specialOrthogonalGroup_smul_def` rewrites `g • J` as the
   action of that unit, so `toLinearMap_generalLinearGroup_smul` serves both
   actions.
+- `TauCeti.SymplecticForm.IsSymplectomorphism.compatible_transport_iff
+  (he : ω₁.IsSymplectomorphism ω₂ e) (J) :
+  ω₂.Compatible (J.transport e) ↔ ω₁.Compatible J`, for `e : V ≃ₗ[ℝ] W`,
+  from Tau Ceti's `compatible_transport_iff` and
+  `isSymplectomorphism_iff_transport_eq`.
 
 ### `Topology/ComplexStructure/Basic.lean`
 
@@ -285,6 +290,15 @@ Declarations about Tau Ceti's type go in its namespace
   IsPositivelyOriented (J₀.transport Φ) ↔ 0 < LinearMap.det (Φ : _ →ₗ[ℝ] _)`;
   `exists_not_isPositivelyOriented [Nonempty ι]` (the transport of $J_0$ by the
   reflection $x_1\mapsto-x_1$); and the orientation characterization below.
+
+*Symplectic matrices and compatible structures.*
+
+- `compatible_generalLinearGroup_smul_iff (hg : g ∈ GLSymplectic ι ℝ) (J) :
+  (stdForm ι).Compatible (g • J) ↔ (stdForm ι).Compatible J`, and the
+  instance `instMulActionSymplecticGroupCompatible` of
+  `Matrix.symplecticGroup ι ℝ` on `{J // (stdForm ι).Compatible J}`, through
+  `GLSymplectic.ofSymplecticGroup`, with `@[simp] coe_symplecticGroup_smul`
+  (by `(rfl)`).
 
 ### `Topology/Algebra/GroupAction/Transitive.lean`
 

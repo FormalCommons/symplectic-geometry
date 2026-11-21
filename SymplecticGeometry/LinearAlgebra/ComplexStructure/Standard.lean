@@ -42,6 +42,9 @@ induce the symplectic orientation of `ω₀` (Tau Ceti's `TauCeti.SymplecticForm
   on the complex structures of `StdSpace ι`.
 * `SymplecticGeometry.stabilizer_stdComplexStructure`: the stabilizer of `J₀` in `GL (ι ⊕ ι) ℝ`
   is the range of `Matrix.GeneralLinearGroup.realify ι ℂ`.
+* `SymplecticGeometry.compatible_generalLinearGroup_smul_iff`: an invertible symplectic matrix
+  preserves and reflects compatibility with `ω₀`; so the symplectic group acts on the compatible
+  structures (`SymplecticGeometry.instMulActionSymplecticGroupCompatible`).
 * `SymplecticGeometry.isPositivelyOriented_smul_stdComplexStructure_iff`: `g • J₀` is positively
   oriented exactly when `det g > 0`.
 * `SymplecticGeometry.isPositivelyOriented_iff_orientation`: `J` is positively oriented exactly
@@ -50,7 +53,7 @@ induce the symplectic orientation of `ω₀` (Tau Ceti's `TauCeti.SymplecticForm
 ## References
 
 * [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017],
-  Propositions 2.5.1 and 2.5.2.
+  Propositions 2.5.1 and 2.5.2, and Section 2.5 for compatible structures.
 -/
 
 public section
@@ -209,6 +212,41 @@ theorem isPositivelyOriented_iff_orientation {k : ℕ}
     have h : m * 2 = k := by
       rw [← hk, finrank_eq_card_basis b, Fintype.card_prod, Fintype.card_fin, Fintype.card_fin]
     rw [← stdForm_compatible.tames.orientation_reindex_transport Φ hk hb h, H b hb h]
+
+/-! ### The symplectic group and compatible structures -/
+
+/-- An invertible symplectic matrix `g` preserves and reflects compatibility with the standard
+form: `ω₀` is compatible with `g • J = g J g⁻¹` exactly when it is compatible with `J`. -/
+theorem compatible_generalLinearGroup_smul_iff {g : GL (ι ⊕ ι) ℝ} (hg : g ∈ GLSymplectic ι ℝ)
+    (J : AlmostComplexStructure (StdSpace ι)) :
+    (stdForm ι).Compatible (g • J) ↔ (stdForm ι).Compatible J := by
+  rw [AlmostComplexStructure.generalLinearGroup_smul_def]
+  refine SymplecticForm.IsSymplectomorphism.compatible_transport_iff ?_ J
+  rw [← mem_symplecticGroup_iff_isSymplectomorphism]
+  convert GLSymplectic.mem_iff_mem_symplecticGroup.1 hg
+  rw [LinearEquiv.symm_apply_eq]
+  ext v : 1
+  simp
+
+/-- The symplectic group `Sp(2n)` acts on the complex structures of `StdSpace ι` compatible with
+`ω₀`, by conjugation: `Ψ • J = Ψ J Ψ⁻¹`. -/
+noncomputable instance instMulActionSymplecticGroupCompatible :
+    MulAction (Matrix.symplecticGroup ι ℝ)
+      {J : AlmostComplexStructure (StdSpace ι) // (stdForm ι).Compatible J} where
+  smul Ψ J := ⟨GLSymplectic.ofSymplecticGroup ι ℝ Ψ • (J : AlmostComplexStructure (StdSpace ι)),
+    (compatible_generalLinearGroup_smul_iff (GLSymplectic.ofSymplecticGroup_mem ι ℝ Ψ) _).2
+      J.property⟩
+  one_smul J := Subtype.ext <| (congrArg (· • J.val) (map_one _)).trans (one_smul _ _)
+  mul_smul Ψ Φ J := Subtype.ext <| (congrArg (· • J.val) (map_mul _ Ψ Φ)).trans (mul_smul _ _ _)
+
+/-- A symplectic matrix acts on a compatible structure as the invertible matrix it is. -/
+@[simp]
+theorem coe_symplecticGroup_smul (Ψ : Matrix.symplecticGroup ι ℝ)
+    (J : {J : AlmostComplexStructure (StdSpace ι) // (stdForm ι).Compatible J}) :
+    ((Ψ • J : {J : AlmostComplexStructure (StdSpace ι) // (stdForm ι).Compatible J}) :
+      AlmostComplexStructure (StdSpace ι)) =
+      GLSymplectic.ofSymplecticGroup ι ℝ Ψ • (J : AlmostComplexStructure (StdSpace ι)) :=
+  (rfl)
 
 end SymplecticGeometry
 
