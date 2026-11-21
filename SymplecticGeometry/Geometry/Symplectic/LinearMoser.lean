@@ -6,7 +6,6 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Analysis.Calculus.ContDiff.Operations
-public import TauCeti.Analysis.ODE.DysonSeries
 public import TauCeti.Geometry.Symplectic.AlmostComplex.Topology
 public import TauCeti.Geometry.Symplectic.Transport
 public import TauCeti.Topology.Algebra.Module.BilinearForm
