@@ -48,6 +48,9 @@ The velocity is read along the motion, through the derivative of `Φ.cylinderMap
 through Tau Ceti's `TauCeti.eulerianField` of a family over `ℝ`, which would need an extension of
 the diffeotopy past both ends. The joint smoothness comes from the smoothness of the tangent map
 of the motion and of the unit vector field of the interval (`contMDiff_totalSpaceMk_one_Icc`).
+Its proof follows that of Tau Ceti's `TauCeti.contMDiff_vectorBundleEulerField`: a unit vector,
+built from the zero section and a smooth vector of the other factor, is pushed forward by the
+tangent map of a smooth map.
 
 The proofs of `mfderiv_cylinderMap_time` and `mfderiv_cylinderMap_space` follow those of Tau
 Ceti's `TauCeti.Diffeotopy.mfderiv_cylinderMap_globalFlowDiffeotopy_time` and
