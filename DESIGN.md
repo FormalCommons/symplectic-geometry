@@ -977,6 +977,18 @@ it into issues; the overview fixes its folders and its dependencies.
   on a pull-back bundle, a step that uses no charts; the file has the path
   of the Tau Ceti file with `ContinuousLinearMap.inCoordinates_pullback_of_mem`,
   so that the two merge upstream),
+  `Geometry/Manifold/VectorBundle/Hom.lean` (for fibrewise equivalences
+  whose map of total spaces is $C^n$, the $C^n$ section of the hom bundle
+  formed by their inverses, `contMDiff_hom_bundle_symm`, in the root
+  namespace; the file has the name of the Tau Ceti file with
+  `TauCeti.contMDiff_hom_bundle_iff`, so that the two merge upstream),
+  `Geometry/Manifold/VectorBundle/ContinuousAlternatingMap.lean`
+  (precomposition with a $C^n$ section of a hom bundle as a $C^n$ map of the
+  total spaces of bundles of alternating maps,
+  `contMDiff_compContinuousLinearMap_totalSpace`, in the root namespace; the
+  file has the name of the Mathlib file that defines
+  `ContMDiffVectorBundle.continuousAlternatingMap`, so that the two merge
+  upstream),
   `Topology/FiberBundle/ChangeModelFiber.lean` (a fibre bundle read with
   another model fibre along a homeomorphism, in Mathlib's namespaces and at
   Mathlib's fibre-bundle level, since it involves no group),
@@ -989,8 +1001,12 @@ it into issues; the overview fixes its folders and its dependencies.
   Tau Ceti file that defines `volumeOrientation`),
   `Analysis/CStarAlgebra/Unitary/ContinuousLinearMap.lean` (for `RCLike 𝕜`,
   `Unitary.continuousLinearMapSelfEquiv`, the isomorphism of topological
-  groups from the unitaries of `𝕜 →L[𝕜] 𝕜` to those of `𝕜`, in Mathlib's
+  groups from the unitaries of `𝕜 →L[𝕜] 𝕜` to those of `𝕜`, and its case
+  `Unitary.continuousLinearMapCircleEquiv` onto `Circle`, in Mathlib's
   namespace `Unitary`; see *Constructions*),
+  `Analysis/Normed/Operator/SpanSingleton.lean`
+  (`LinearIsometryEquiv.toSpanSingleton`, a unit vector of a line as a
+  linear isometry from the scalars),
   `Geometry/Manifold/VectorBundle/ComplexStructure.lean` (the one model of
   $C^n$ complex structures on a bundle, `SymplecticGeometry.Bundle.ContMDiffComplexStructure`,
   generalizing from $TM$ to any bundle Tau Ceti's
@@ -1113,7 +1129,10 @@ it into issues; the overview fixes its folders and its dependencies.
   `Topology/Connected/Clopen.lean`),
   `Geometry/Manifold/Boundary/Collar/Push.lean`
   (a homotopy pushing a compact manifold with boundary into a compact subset
-  of its interior along a collar), `.../VectorBundle/Section/Generic.lean`
+  of its interior along a collar),
+  `Geometry/Diffeomorphism/Diffeotopy/Discrete.lean` (a diffeotopy of a
+  connected boundaryless manifold whose final map sends a compact set off a
+  closed discrete set), `.../VectorBundle/Section/Generic.lean`
   (over a boundaryless manifold, a smooth section of a bundle of rank equal
   to the dimension whose zero set is closed and discrete),
   `.../VectorBundle/Section/Nonvanishing.lean` (smoothing a continuous
@@ -1343,11 +1362,15 @@ it into issues; the overview fixes its folders and its dependencies.
     whose fibre at `x` is `ℂ ≃ₗᵢ[ℂ] V x` for the inner product
     `g.complexInnerProductSpace hI`, and which
     `OrthonormalFrameBundle.instPrincipalBundleFiber` makes a principal
-    bundle for `unitary (ℂ →L[ℂ] ℂ)`. The file gives: the homeomorphism from
-    the total space of that bundle to the subtype, sending a frame `φ` to
-    `φ 1`; the isomorphism of topological groups from `unitary (ℂ →L[ℂ] ℂ)`
-    to `Circle`, the case `𝕜 = ℂ` of the isomorphism below composed with
-    Tau Ceti's `circleEquivUnitary`, which the homeomorphism turns into the action of `Circle` on the subtype by
+    bundle for `unitary (ℂ →L[ℂ] ℂ)`. The file states its results for fibres
+    with their own complex inner products, which the setting of `g` and
+    `hI` supplies by local instances (the part's design says how). It
+    gives: the homeomorphism from the total space of that bundle to the
+    subtype, sending a frame `φ` to `φ 1`, which turns the right action of
+    `unitary (ℂ →L[ℂ] ℂ)` on each fibre, read through
+    `Unitary.continuousLinearMapCircleEquiv` (the case `𝕜 = ℂ` of the
+    isomorphism below composed with Tau Ceti's `circleEquivUnitary`, in that
+    isomorphism's file), into the action of `Circle` on the subtype by
     scalar multiplication in the fibres, free with the fibres as orbits;
     and the `TauCeti.PrincipalBundle Circle` instance on
     `Fiber ℂ F V ℂ` that *First Chern number* asks for, whose trivializations
