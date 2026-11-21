@@ -33,7 +33,9 @@ Dominated convergence (`tendsto_tsum_of_dominated_convergence`) then gives the i
 
 * `SymplecticGeometry.hasProd_seeleyCoeff`: the product defining `aₖ` converges to `aₖ`.
 * `SymplecticGeometry.summable_seeleyCoeff_mul_pow`: `∑ₖ |aₖ| 2 ^ (k n)` converges.
-* `SymplecticGeometry.tsum_seeleyCoeff_mul_neg_two_pow`: `∑ₖ aₖ (-2 ^ k) ^ n = 1`.
+* `SymplecticGeometry.tsum_seeleyCoeff_mul_neg_two_pow`: `∑ₖ aₖ (-2 ^ k) ^ n = 1`, with
+  `SymplecticGeometry.hasSum_seeleyCoeff_mul_neg_two_pow` its form as a sum.
+* `SymplecticGeometry.hasSum_seeleyCoeff_smul`: `∑ₖ aₖ • x = x` in a module.
 
 ## References
 
@@ -218,6 +220,22 @@ theorem tsum_seeleyCoeff_mul_neg_two_pow (n : ℕ) :
   refine tendsto_nhds_unique hlim (tendsto_const_nhds.congr' ?_)
   filter_upwards [eventually_gt_atTop n] with N hN
   rw [hF, sum_prod_seeleyFactor_mul_pow hN]
+
+/-- The series `∑ₖ aₖ (-2 ^ k) ^ n` of the moment identities converges absolutely. -/
+theorem summable_seeleyCoeff_mul_neg_two_pow (n : ℕ) :
+    Summable fun k ↦ seeleyCoeff k * (-2 ^ k) ^ n :=
+  (summable_seeleyCoeff_mul_pow n).of_norm_bounded fun k ↦ by
+    rw [Real.norm_eq_abs, abs_mul, abs_pow, abs_neg, abs_pow, abs_two, pow_mul]
+
+/-- The moment identities of Seeley's coefficients, as sums: `∑ₖ aₖ (-2 ^ k) ^ n = 1`. -/
+theorem hasSum_seeleyCoeff_mul_neg_two_pow (n : ℕ) :
+    HasSum (fun k ↦ seeleyCoeff k * (-2 ^ k) ^ n) 1 :=
+  (summable_seeleyCoeff_mul_neg_two_pow n).hasSum_iff.mpr (tsum_seeleyCoeff_mul_neg_two_pow n)
+
+/-- The moment identity of order `0`, in a module: `∑ₖ aₖ • x = x`. -/
+theorem hasSum_seeleyCoeff_smul {M : Type*} [AddCommMonoid M] [TopologicalSpace M] [Module ℝ M]
+    [ContinuousSMul ℝ M] (x : M) : HasSum (fun k ↦ seeleyCoeff k • x) x := by
+  simpa using (hasSum_seeleyCoeff_mul_neg_two_pow 0).smul_const x
 
 end SymplecticGeometry
 

@@ -8,7 +8,12 @@ module
 public import Mathlib.Analysis.Calculus.Deriv.Add
 public import Mathlib.Analysis.Calculus.Deriv.Mul
 public import Mathlib.Analysis.Calculus.Deriv.Prod
+public import Mathlib.LinearAlgebra.Matrix.NonsingularInverse
 public import Mathlib.Topology.Instances.Matrix
+import Mathlib.Analysis.Calculus.Deriv.Comp
+import Mathlib.Analysis.Calculus.FDeriv.Mul
+import Mathlib.Analysis.Matrix.Normed
+import Mathlib.Topology.Algebra.Module.FiniteDimension
 
 /-!
 # Derivatives of matrix-valued functions
@@ -19,9 +24,13 @@ Through the entries, the two notions agree as they do for normed spaces
 (`hasDerivWithinAt_matrix_univ`, `HasDerivAt.matrix_hasDerivWithinAt`). From this we get the
 derivatives of a constant (`hasDerivWithinAt_matrix_const`) and of a transpose
 (`HasDerivWithinAt.matrix_transpose`), and the product rule for products of possibly
-rectangular matrices with entries in a normed `𝕜`-algebra (`HasDerivWithinAt.matrix_mul`).
+rectangular matrices with entries in a normed `𝕜`-algebra (`HasDerivWithinAt.matrix_mul`). For
+square matrices over a complete field, the derivative of the inverse at an invertible value is
+`-X⁻¹ X' X⁻¹` (`HasDerivWithinAt.matrix_inv`), from Mathlib's `hasFDerivAt_ringInverse`.
 
-Matrices carry their default topology, that of functions `m → n → F`; no matrix norm is needed.
+Matrices carry their default topology, that of functions `m → n → F`; no matrix norm is needed,
+except inside the proof of `HasDerivWithinAt.matrix_inv`, which reads the matrices in the `L^∞`
+operator norm `Matrix.linftyOpNormedRing` to apply `hasFDerivAt_ringInverse`.
 The names follow `Continuous.matrix_elem`, `Continuous.matrix_transpose` and
 `Continuous.matrix_mul`.
 -/
@@ -92,5 +101,23 @@ theorem HasDerivWithinAt.matrix_mul {𝔸 : Type*} [NormedRing 𝔸] [NormedAlge
   simpa only [Matrix.mul_apply, Matrix.add_apply, ← Finset.sum_add_distrib] using
     HasDerivWithinAt.fun_sum (u := Finset.univ) fun k _ ↦
       (hA.matrix_elem i k).fun_mul (hB.matrix_elem k j)
+
+/-- **Derivative of the inverse** of a matrix-valued function, at a point where the value is
+invertible: `(X⁻¹)' = -X⁻¹ X' X⁻¹`. -/
+theorem HasDerivWithinAt.matrix_inv [CompleteSpace 𝕜] [Fintype n] [DecidableEq n]
+    {X : 𝕜 → Matrix n n 𝕜} {X' : Matrix n n 𝕜}
+    (hX : HasDerivWithinAt X X' s t) (ht : IsUnit (X t)) :
+    HasDerivWithinAt (fun r ↦ (X r)⁻¹) (-((X t)⁻¹ * X' * (X t)⁻¹)) s t := by
+  -- Mathlib's derivative of `Ring.inverse` needs a normed ring structure; we choose the
+  -- `L^∞` operator norm. It induces the default topology of matrices, so `hX` and the goal,
+  -- stated for that topology, are read in this norm as they are.
+  let _ : NormedRing (Matrix n n 𝕜) := Matrix.linftyOpNormedRing
+  let _ : NormedAlgebra 𝕜 (Matrix n n 𝕜) := Matrix.linftyOpNormedAlgebra
+  have : @CompleteSpace (Matrix n n 𝕜) PseudoMetricSpace.toUniformSpace :=
+    FiniteDimensional.completeSpace 𝕜 _
+  obtain ⟨u, hu⟩ := ht
+  have hi := (hasFDerivAt_ringInverse (𝕜 := 𝕜) u).comp_hasDerivWithinAt_of_eq t hX hu
+  simp only [Matrix.nonsing_inv_eq_ringInverse, ← hu, Ring.inverse_unit]
+  rwa [neg_apply, ContinuousLinearMap.mulLeftRight_apply] at hi
 
 end
