@@ -666,6 +666,15 @@ an element of `ℒ ι`.
   `eventually_nhdsLT_nondegenerate_of_crossingForm_nondegenerate`, with `Iic t₀`,
   gives those before. Their symmetry hypotheses hold because `A t` is symmetric
   for every `t ∈ Icc 0 1` near `t₀`.
+- `ℒ.eventually_nhdsLT_not_crossing_of_regular`,
+  `ℒ.eventually_nhdsGT_not_crossing_of_regular` and
+  `ℒ.eventually_nhdsNE_not_crossing_of_regular`: the same for a family
+  `Λ : ℝ → ℒ ι`. The one-sided forms take a frame of `Λ` on `Iic r₀` (or
+  `Ici r₀`) near `r₀`, eventually in `𝓝[≤] r₀` (or `𝓝[≥] r₀`), and a derivative
+  within `Iic r₀` (or `Ici r₀`), and conclude in `𝓝[<] r₀` (or `𝓝[>] r₀`);
+  the two-sided one takes a frame for every `r`, `HasDerivAt Z Z' r₀`, and
+  concludes in `𝓝[≠] r₀`. `ℒ.eventually_not_crossing_of_regular` is proved
+  from the one-sided forms, applied to `Set.IccExtend` of `γ`.
 
 Signatures are `(sigPos Q : ℤ) - sigNeg Q`, as in Tau Ceti's crossing theorem;
 the part adds no signature function.
