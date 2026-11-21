@@ -1147,8 +1147,9 @@ in *First Chern number*'s prerequisite 3, and not on the results below.
   with Tau Ceti's `TauCeti.circleEquivUnitary : Circle ≃ₜ* unitary ℂ`
   (`Analysis/Complex/Circle.lean`). The smooth side (smoothness of the
   action and of the coordinate changes, the diffeomorphism onto the
-  submanifold, the submersion) belongs to *First Chern number*'s
-  prerequisite 3.
+  submanifold, and the submersion, which comes from Tau Ceti's
+  `TauCeti.ManifoldTotalSpace.isSubmersion_proj`) belongs to *First Chern
+  number*'s prerequisite 3.
 - `Analysis/CStarAlgebra/Unitary/ContinuousLinearMap.lean`, in Mathlib's
   namespace `Unitary`, for `RCLike 𝕜`:
   `Unitary.continuousLinearMapSelfEquiv 𝕜 : unitary (𝕜 →L[𝕜] 𝕜) ≃ₜ* unitary 𝕜`,
