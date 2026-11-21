@@ -219,7 +219,7 @@ objects as they are.
   | $\{F,G\}=\omega(X_F,X_G)$ | `TauCeti.SmoothTwoForm.poissonBracket` | as it is |
   | $\lambda_{\mathrm{can}}$, $\omega_{\mathrm{can}}=-d\lambda_{\mathrm{can}}$ on $T^*L$ | `TauCeti.CotangentBundle.liouvilleForm`, `symplecticForm` | as they are |
   | contact Hamiltonian $X_H$ | `TauCeti.SmoothForm.contactHamiltonianVectorField` | as it is |
-  | $\sum_ip_i\,dq_i-dz$ | `TauCeti.innerProductContactForm`, which is $dz-\sum_ip_i\,dq_i$ | its pullback by $(q,p,z)\mapsto(q,-p,-z)$ |
+  | $\sum_ip_i\,dq_i-dz$ | `TauCeti.innerProductContactForm`, which is $dz-\sum_ip_i\,dq_i$ | `-innerProductContactForm V`, equal to its pullback by $(q,p,z)\mapsto(q,-p,-z)$ (`mpullback_innerProductContactForm_neg`) |
   | the symplectization form $-d(e^s\alpha)$ on $\mathbb{R}\times M$ | `TauCeti.SmoothForm.symplectization α`, which is $e^t\alpha$ | $-d$ of it |
   | the contact form $-i^*(\iota_Y\omega)$ of a hypersurface of contact type | `TauCeti.IsContactType`, whose primitive $\lambda$ has $d\lambda=\omega$ and $\iota_Z\omega=\lambda$ | $-i^*\lambda$, with $Y=Z$ |
 

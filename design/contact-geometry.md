@@ -289,12 +289,15 @@ review of #420 raise four more.
   neighbourhoods* asks for a closed image, the zero section of `T*L` has
   one, so step 2 still applies.
 - **Statements in the page's signs.** As `DESIGN.md`'s table says, the
-  standard form $\sum_ip_i\,dq_i-dz$ is `TauCeti.innerProductContactForm`
-  pulled back by $\sigma(q,p,z)=(q,-p,-z)$, which is
+  standard form $\sum_ip_i\,dq_i-dz$ is written in the statements as
+  `-TauCeti.innerProductContactForm V`, $V=$ `EuclideanSpace ℝ (Fin n)`,
+  with no new definition. It is the pullback of `innerProductContactForm V`
+  by $\sigma(q,p,z)=(q,-p,-z)$, which is
   `(ContinuousLinearEquiv.refl ℝ V).prodCongr (ContinuousLinearEquiv.neg ℝ)`
-  on `V × (V × ℝ)`, $V=$ `EuclideanSpace ℝ (Fin n)`; it is written in the
-  statements evaluated at $\sigma$, with no new definition. Its Reeb field
-  is $-\partial_z$, the vector `(0, 0, -1)`. The model of the Legendrian
+  on `V × (V × ℝ)` (Tau Ceti's `mpullback_innerProductContactForm_neg`),
+  so Tau Ceti's API for negated forms (`kerDistribution_neg`,
+  `IsContactForm.reebVectorField_neg`) applies to it directly. Its Reeb
+  field is $-\partial_z$, the vector `(0, 0, -1)`. The model of the Legendrian
   neighbourhood theorem, $\lambda_{\mathrm{can}}-dz$ on
   $T^*L\times\mathbb R$, is
   `-(TauCeti.CotangentBundle.liouvilleForm J L).contactization`.
@@ -474,8 +477,7 @@ Expected size: 450 lines, in two issues (H1 and H2 below).
 
 Named like Tau Ceti's file, in `TauCeti.SmoothForm.IsContactForm` and
 `TauCeti.IsContactDistribution`, with `[I.Boundaryless] [T2Space M]` as in
-Tau Ceti's file (the second theorem does not need `T2Space M`),
-`V = EuclideanSpace ℝ (Fin n)` and `σ` as above.
+Tau Ceti's file, `V = EuclideanSpace ℝ (Fin n)` and `σ` as above.
 
 - `IsContactForm.exists_strictDarbouxChart_reebVectorField_of_finrank_eq
   (hα) (hn : finrank ℝ E = 2 * n + 1) (x₀ : M)`:
@@ -484,35 +486,36 @@ Tau Ceti's file (the second theorem does not need `T2Space M`),
   ∃ chart : PartialDiffeomorph I 𝓘(ℝ, V × V × ℝ) M (V × V × ℝ) ∞,
     x₀ ∈ chart.source ∧ chart x₀ = 0 ∧
     (∀ x ∈ chart.source, ∀ v : TangentSpace I x,
-      (innerProductContactForm V).val (σ (chart x)) ![σ (mvfderiv I chart x v)] =
+      (-innerProductContactForm V).val (chart x) ![mvfderiv I chart x v] =
         α.val x ![v]) ∧
     (∀ x ∈ chart.source, mvfderiv I chart x (α.reebVectorField x) = (0, 0, -1)) ∧
     ∀ x ∈ chart.source, α.kerDistribution x =
-      ((innerProductContactForm V).kerDistribution (σ (chart x))).comap
-        (σ.toLinearMap ∘ₗ (mfderiv I _ chart x).toLinearMap)
+      ((-innerProductContactForm V).kerDistribution (chart x)).comap
+        (mfderiv I _ chart x).toLinearMap
   ```
 
   The chart is Tau Ceti's strict chart followed by
   `σ.toDiffeomorph.toPartialDiffeomorph` (`PartialDiffeomorph.trans`), whose
   differential is `PartialDiffeomorph.mvfderiv_trans_toDiffeomorph` in
   `Geometry/Manifold/LocalDiffeomorph/MFDeriv.lean`; the form identity holds
-  because $\sigma$ is an involution.
-  The Reeb clause: Tau Ceti's chart carries $R_\alpha$ to the Reeb field
-  $\partial_z$ of its form (`reebVectorField_innerProductContactForm`, in
-  `Geometry/Contact/Standard.lean`), by
+  because $\sigma$ pulls `innerProductContactForm V` back to its negative.
+  The Reeb clause: the chart carries $R_\alpha$ to the Reeb field of
+  `-innerProductContactForm V`, by
   `IsContactForm.mfderiv_reebVectorField_of_eventuallyEq_mpullback` (in
   `Geometry/Contact/Pullback.lean`), the pointwise form of
   `IsContactForm.mfderiv_reebVectorField_mpullback` for a map that pulls one
-  form back to the other only near the point; $\sigma$ then sends
-  $\partial_z$ to $-\partial_z$. Both new files are named like Tau Ceti's.
+  form back to the other only near the point; that field is $-\partial_z$
+  by `IsContactForm.reebVectorField_neg` and
+  `reebVectorField_innerProductContactForm` (in
+  `Geometry/Contact/Standard.lean`). Both new files are named like Tau Ceti's.
   The last clause, the kernels, follows from the first. Milestone: *Contact
   Darboux theorem*.
-- `IsContactDistribution.exists_darbouxChart_comap_of_finrank_eq
-  (hD : IsContactDistribution I ∞ D) (hn) (x₀)`: the same chart property for a
-  contact structure that need not be the kernel of a form,
-  `D x = (ker of the standard form at σ (chart x)).comap (σ ∘ dchart)`, from
-  Tau Ceti's `IsContactDistribution.exists_darbouxChart` by `σ`. This is the
-  page's "consequently" for structures without a defining form.
+- For a contact structure that need not be the kernel of a form, the page's
+  "consequently" is Tau Ceti's
+  `IsContactDistribution.exists_darbouxChart_of_finrank_eq` with
+  `kerDistribution_neg`, which identifies the kernel of
+  `innerProductContactForm V` with that of `-innerProductContactForm V`; the
+  file adds no theorem for it.
 
 Expected size: 200 lines.
 
