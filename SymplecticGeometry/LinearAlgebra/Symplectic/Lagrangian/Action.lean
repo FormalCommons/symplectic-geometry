@@ -127,6 +127,13 @@ theorem unitary_smul_def (U : unitaryGroup ι ℂ) (Λ : ℒ ι) :
     U • Λ = GLSymplectic.ofUnitary U • Λ :=
   (rfl)
 
+/-- Acting by the realification `ofUnitary U` of a unitary matrix is acting by `U`. As a simp
+lemma it makes `U • Λ` the normal form of the unitary action. -/
+@[simp]
+theorem ofUnitary_smul (U : unitaryGroup ι ℂ) (Λ : ℒ ι) :
+    GLSymplectic.ofUnitary U • Λ = U • Λ :=
+  (unitary_smul_def U Λ).symm
+
 /-- The subspace of `U • Λ` is the image of `Λ` under the realification of `U`. -/
 @[simp]
 theorem coe_unitary_smul (U : unitaryGroup ι ℂ) (Λ : ℒ ι) :
