@@ -77,15 +77,17 @@ instance instMulActionLinearEquiv : MulAction (V ≃ₗ[ℝ] V) (AlmostComplexSt
   one_smul J := J.transport_refl
   mul_smul e₁ e₂ J := (J.transport_trans e₂ e₁).symm
 
+/-- The action of a linear automorphism is transport along it. This is the simp normal form of
+the action: `simp` rewrites `e • J` to `J.transport e`, which Tau Ceti's simp lemmas then
+evaluate. -/
+@[simp]
 theorem smul_def (e : V ≃ₗ[ℝ] V) (J : AlmostComplexStructure V) : e • J = J.transport e :=
   (rfl)
 
-@[simp]
 theorem smul_apply (e : V ≃ₗ[ℝ] V) (J : AlmostComplexStructure V) (v : V) :
     (e • J) v = e (J (e.symm v)) :=
   (rfl)
 
-@[simp]
 theorem toLinearMap_smul (e : V ≃ₗ[ℝ] V) (J : AlmostComplexStructure V) :
     (e • J).toLinearMap = e.conj J.toLinearMap :=
   (rfl)
@@ -110,7 +112,6 @@ theorem generalLinearGroup_smul_def (g : GL n ℝ)
   rw [MulAction.compHom_smul_def, smul_def]
   simp
 
-@[simp]
 theorem generalLinearGroup_smul_apply (g : GL n ℝ)
     (J : AlmostComplexStructure (EuclideanSpace ℝ n)) (v : EuclideanSpace ℝ n) :
     (g • J) v = Matrix.toEuclideanLin (g : Matrix n n ℝ)
@@ -123,17 +124,15 @@ theorem generalLinearGroup_smul_apply (g : GL n ℝ)
 theorem toLinearMap_generalLinearGroup_smul (g : GL n ℝ)
     (J : AlmostComplexStructure (EuclideanSpace ℝ n)) :
     (g • J).toLinearMap = Matrix.toEuclideanLin (g : Matrix n n ℝ) ∘ₗ J.toLinearMap ∘ₗ
-      Matrix.toEuclideanLin (g : Matrix n n ℝ)⁻¹ := by
-  ext v
-  simp
+      Matrix.toEuclideanLin (g : Matrix n n ℝ)⁻¹ :=
+  LinearMap.ext (generalLinearGroup_smul_apply g J)
 
 /-- The matrix of a continuous linear automorphism `Φ` acts on complex structures as `Φ` does. -/
 @[simp]
 theorem ofEuclideanCLE_smul (Φ : EuclideanSpace ℝ n ≃L[ℝ] EuclideanSpace ℝ n)
     (J : AlmostComplexStructure (EuclideanSpace ℝ n)) :
-    Matrix.GeneralLinearGroup.ofEuclideanCLE Φ • J = Φ.toLinearEquiv • J := by
-  rw [generalLinearGroup_smul_def, Matrix.GeneralLinearGroup.toEuclideanCLE_ofEuclideanCLE,
-    smul_def]
+    Matrix.GeneralLinearGroup.ofEuclideanCLE Φ • J = J.transport Φ.toLinearEquiv := by
+  rw [generalLinearGroup_smul_def, Matrix.GeneralLinearGroup.toEuclideanCLE_ofEuclideanCLE]
 
 /-- The special orthogonal matrices act on the complex structures of `EuclideanSpace ℝ n` as
 invertible matrices. -/
