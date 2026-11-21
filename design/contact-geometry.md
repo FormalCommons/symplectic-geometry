@@ -241,7 +241,9 @@ review of #420 raise four more.
      precomposed with a radial compression
      `TauCeti.vectorBundleRadialPartialDiffeomorphOfRadius` into its domain,
      a smooth injective $\Psi:\nu\to M$ with $\Psi\circ0=f$ whose derivative
-     on the vertical vector $v$ at $0_q$ has class $c(q)\,v$, $c(q)>0$. The
+     on the vertical vector $v$ at $0_q$ has class $c(q)\,v$, $c(q)>0$
+     (`TauCeti.SmoothEmbedding.exists_contMDiff_injective_normalBundle`, in
+     `Geometry/Manifold/TubularNeighborhood/Riemannian/Injective.lean`). The
      map $\iota=\Psi\circ j:T^*L\to M$ is injective, sends $0_q$ to $f(q)$,
      and its differential at $0_q$ is an isomorphism onto $\xi_{f(q)}$
      (horizontal part $df$, vertical part in $\xi$, dimension $2n$; read
@@ -559,7 +561,11 @@ boundaryless and Hausdorff, and both are second countable.
   transverse to a vector field,
   `ContMDiffAt.eventually_injective_mfderiv_and_notMem_range`, which it adds
   in `Geometry/Manifold/Immersion/Transverse.lean` (beside Tau Ceti's
-  `ContMDiffAt.eventually_injective_mfderiv`).
+  `ContMDiffAt.eventually_injective_mfderiv`), and the smooth injective map
+  of the normal bundle
+  `TauCeti.SmoothEmbedding.exists_contMDiff_injective_normalBundle`, which it
+  adds in `Geometry/Manifold/TubularNeighborhood/Riemannian/Injective.lean`
+  (mirroring Tau Ceti's `TubularNeighborhood/Riemannian/`).
 - **Milestone theorem**
   `IsLegendrianEmbedding.exists_diffeomorph_opens_mpullback_eq_neg_contactization (hα) (hf)`:
 

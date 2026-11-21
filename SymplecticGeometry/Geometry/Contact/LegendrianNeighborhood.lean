@@ -6,17 +6,14 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.Immersion.Transverse
+public import SymplecticGeometry.Geometry.Manifold.TubularNeighborhood.Riemannian.Injective
 public import TauCeti.Geometry.Contact.Flat
 public import TauCeti.Geometry.Contact.Isotropic
 public import TauCeti.Geometry.Contact.Levi
 public import TauCeti.Geometry.Contact.Pullback
 public import TauCeti.Geometry.Contact.Reeb
-public import TauCeti.Geometry.Manifold.TubularNeighborhood.Riemannian.Coordinates
 public import TauCeti.Geometry.Manifold.VectorBundle.Cotangent.Basic
 public import TauCeti.Geometry.Manifold.VectorBundle.Prod
-public import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Existence
-public import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Neighborhood
-public import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Radial
 public import TauCeti.Geometry.Manifold.VectorBundle.Trivial
 public import TauCeti.Geometry.Manifold.VectorBundle.ZeroSection
 public import TauCeti.Geometry.Symplectic.Lagrangian.Embedding.Normal
@@ -42,11 +39,9 @@ The construction:
   sides have dimension `n + 1`. These identifications form a smooth bundle isomorphism, and
   `p ↦ (p, 0)` gives a smooth fibrewise injection `j : T^* L → ν` whose image lies in
   `ker α ⧸ df(T L)`.
-* The normal exponential of an auxiliary Riemannian metric is a diffeomorphism near the zero
-  section of `ν`; precomposed with a fibrewise radial compression of `ν` into that neighbourhood
-  it becomes a smooth injective map `T : ν → M`, equal to `f` on the zero section, whose
-  differential sends the vertical vector `v` at `0_q` to a vector of normal class `c q • v`
-  with `c q > 0`.
+* A smooth injective map `T : ν → M`, equal to `f` on the zero section, whose differential
+  sends the vertical vector `v` at `0_q` to a vector of normal class `c q • v` with `c q > 0`,
+  comes from `TauCeti.SmoothEmbedding.exists_contMDiff_injective_normalBundle`.
 * The slice is `ι = T ∘ j`. At `0_q` its differential is `df_q` horizontally and lands in
   `ker α` vertically, and it is injective; as `T_(0_q)(T^* L)` and `ker α_(f q)` both have
   dimension `2 n`, its range is `ker α_(f q)`. So the Reeb field is not in it, and the set where
@@ -57,10 +52,9 @@ The fibrewise identification of the normal bundle with a bundle built from `T^* 
 through `TauCeti.SmoothEmbedding.contMDiff_normalBundle_iff` and the smoothness of its inverse
 adapt Tau Ceti's `TauCeti.SmoothEmbedding.normalBundleDiffeomorphOfIsLagrangianMap`, with the
 covector `dα(df ·, w)` of `TauCeti.SmoothEmbedding.pairingCovector` completed by the value `α w`.
-The differential of the tubular map along the zero section is computed as in Tau Ceti's
-`TauCeti.SmoothEmbedding.mfderiv_normalExp_zeroSection_apply`, and the radial compression into the
-domain of the normal exponential follows the proof of Tau Ceti's
-`TauCeti.SmoothEmbedding.exists_diffeomorph_normalBundle_riemannian_subset`.
+The splitting of the differential of `T ∘ j` along the zero section into a horizontal and a
+vertical part follows the proof of Tau Ceti's
+`TauCeti.SmoothEmbedding.mfderiv_normalExp_zeroSection_apply`.
 
 ## Main results
 
@@ -321,122 +315,92 @@ private theorem mfderiv_comp_cotangentToNormal (hα : α.IsContactForm)
       exact congrArg T (congrArg (TotalSpace.mk' P q) (map_smul _ t p))
     rw [← h1, hfun, h2]
 
-section Tube
-
-variable [I.Boundaryless] [J.Boundaryless] [T2Space M] [SecondCountableTopology M]
-
-/-- A tubular map of the normal bundle: a smooth injective map `T : ν → M` along the zero section
-equal to `g`, whose differential on the vertical vector `v` at `0_q` has normal class
-`c q • v` with `c q > 0`. It is the normal exponential of an auxiliary Riemannian metric,
-precomposed with a fibrewise radial compression into its injectivity domain. -/
-private theorem exists_tube [Nonempty L] (hdim : finrank ℝ P = finrank ℝ E - finrank ℝ E') :
+/-- The differential at `0_q` of `T ∘ j`, for a map `T` of the normal bundle and `j` the bundle
+map of `cotangentToNormal`, with its values read in the tangent space of `M` at `g q`. When `T` is
+`g` on the zero section, as below, this is the tangent space at the base point of the image. -/
+private def sliceDeriv (hα : α.IsContactForm) (hf : IsLegendrianEmbedding J α.kerDistribution g)
+    (hdim : finrank ℝ P = finrank ℝ E - finrank ℝ E') :
     letI := g.normalSpaceFiberBundle infty_ne_zero hdim
     letI := g.normalSpaceVectorBundle infty_ne_zero hdim
-    ∃ T : TotalSpace P (fun q ↦ g.NormalSpace q infty_ne_zero) → M,
-      ContMDiff (J.prod 𝓘(ℝ, P)) I ∞ T ∧ Injective T ∧
-      (∀ q, T (zeroSection P _ q) = g q) ∧
-      ∃ c : L → ℝ, (∀ q, 0 < c q) ∧ ∀ q (v : g.NormalSpace q infty_ne_zero),
-        g.normalClass q infty_ne_zero (mfderiv (J.prod 𝓘(ℝ, P)) I T (zeroSection P _ q)
-          ((Bundle.zeroSectionTangentEquiv (I := J) q).symm (0, v))) = c q • v := by
-  let := g.normalSpaceFiberBundle infty_ne_zero hdim
-  have : IsManifold J (∞ + 1) L := by simpa using (inferInstance : IsManifold J ∞ L)
-  have : IsManifold I (∞ + 1) M := by simpa using (inferInstance : IsManifold I ∞ M)
-  let := g.normalSpaceVectorBundle infty_ne_zero hdim
-  have := g.normalSpaceContMDiffVectorBundle (m := ∞) infty_ne_zero (by simp) hdim
-  have : T2Space L := g.isEmbedding.t2Space
-  have : SecondCountableTopology L := g.isEmbedding.isInducing.secondCountableTopology
-  have : LocallyCompactSpace H := I.locallyCompactSpace
-  have : LocallyCompactSpace M := ChartedSpace.locallyCompactSpace H M
-  have : LocallyCompactSpace H' := J.locallyCompactSpace
-  have : LocallyCompactSpace L := ChartedSpace.locallyCompactSpace H' L
-  -- An auxiliary metric on `M`, and the normal exponential on a neighbourhood of the zero
-  -- section on which it is a diffeomorphism.
-  obtain ⟨gM⟩ := nonempty_contMDiffRiemannianMetric (IB := I) (n := ⊤) (F := E)
-    (E := fun y : M ↦ TangentSpace I y)
-  let : RiemannianBundle (fun y : M ↦ TangentSpace I y) := ⟨gM.toRiemannianMetric⟩
-  let : IsContMDiffRiemannianBundle I ∞ E (fun y : M ↦ TangentSpace I y) :=
-    Bundle.instIsContMDiffRiemannianBundle gM
-  obtain ⟨Ψ, hzero, -, -, -, hΨ⟩ := g.exists_partialDiffeomorph_normalExp_subset (P := P)
-    (m := ∞) infty_ne_zero (by simp) (by simp) hdim isOpen_univ (subset_univ _)
-  -- An auxiliary metric on the normal bundle, and a radial compression into the source of `Ψ`.
-  obtain ⟨gν⟩ := nonempty_contMDiffRiemannianMetric (IB := J) (n := ⊤) (F := P)
-    (E := fun q ↦ g.NormalSpace q infty_ne_zero)
-  let ν : L → Type _ := fun q ↦ g.NormalSpace q infty_ne_zero
-  let : RiemannianBundle ν := ⟨gν.toRiemannianMetric⟩
-  let : ∀ x, NormedAddCommGroup (ν x) := fun x => inferInstance
-  let : ∀ x, InnerProductSpace ℝ (ν x) := fun x => inferInstance
-  let : IsContMDiffRiemannianBundle J ∞ P ν := Bundle.instIsContMDiffRiemannianBundle gν
-  let : IsContinuousRiemannianBundle P ν := by
-    obtain ⟨b, hb, heq⟩ :=
-      IsContMDiffRiemannianBundle.exists_contMDiff (IB := J) (n := ∞) (F := P) (E := ν)
-    exact ⟨b, hb.continuous, heq⟩
-  obtain ⟨r, hr, -, hdisc⟩ := Ψ.open_source.exists_contMDiffMap_norm_le_subset_bundle
-    (I := J) (n := ⊤) hzero (continuous_const (y := (1 : ℝ))) (fun _ => zero_lt_one)
-  let R := vectorBundleRadialPartialDiffeomorphOfRadius (F := P) (V := ν) r.contMDiff hr
-  have hRapply (p : TotalSpace P ν) :
-      R p = ⟨p.proj, r p.proj • (Real.sqrt (1 + ‖p.snd‖ ^ 2))⁻¹ • p.snd⟩ := by
-    rw [vectorBundleRadialPartialDiffeomorphOfRadius_apply, TotalSpace.radialMap_apply,
-      vectorBundleScalarDiffeomorph_apply]
-  have hRsrc (p : TotalSpace P ν) : p ∈ R.source := by
-    rw [vectorBundleRadialPartialDiffeomorphOfRadius_source]
-    exact mem_univ p
-  have hRS (p : TotalSpace P ν) : R p ∈ Ψ.source := by
-    have h := R.map_source (hRsrc p)
-    rw [vectorBundleRadialPartialDiffeomorphOfRadius_target] at h
-    exact hdisc _ _ (le_of_lt h)
-  have hR : ContMDiff (J.prod 𝓘(ℝ, P)) (J.prod 𝓘(ℝ, P)) ∞ R := fun p ↦
-    (R.contMDiffOn p (hRsrc p)).contMDiffAt (R.open_source.mem_nhds (hRsrc p))
-  have hT : ContMDiff (J.prod 𝓘(ℝ, P)) I ∞ (fun p ↦ Ψ (R p)) :=
-    Ψ.contMDiffOn.comp_contMDiff hR hRS
-  have hzeroR (q : L) : R (zeroSection P (fun q ↦ g.NormalSpace q infty_ne_zero) q) =
-      zeroSection P (fun q ↦ g.NormalSpace q infty_ne_zero) q := by
-    rw [hRapply]
-    exact congrArg (TotalSpace.mk' P q) (smul_eq_zero_of_right _ (smul_zero _))
-  refine ⟨fun p ↦ Ψ (R p), hT, fun p p' h ↦ R.injOn (hRsrc p) (hRsrc p')
-    (Ψ.injOn (hRS p) (hRS p') h), fun q ↦ ?_, r, hr, fun q v ↦ ?_⟩
-  · dsimp only
-    rw [hzeroR, hΨ, SmoothEmbedding.normalExp_zeroSection]
-  -- The vertical vector of `v` is the velocity of the line `t ↦ t • v`, and `T` maps this line
-  -- to the geodesic ray of `s t • w`, with `w` the orthogonal representative of `v`.
-  rw [Bundle.zeroSectionTangentEquiv_symm_inr]
-  let line : ℝ → TotalSpace P (fun q ↦ g.NormalSpace q infty_ne_zero) := fun t ↦ ⟨q, t • v⟩
-  have hl : ContMDiff 𝓘(ℝ) (J.prod 𝓘(ℝ, P)) 1 line :=
-    contMDiff_id.smul_totalSpace (contMDiff_const (c := (⟨q, v⟩ :
-      TotalSpace P (fun q ↦ g.NormalSpace q infty_ne_zero))))
-  have h := mfderiv_comp_apply_of_eq (0 : ℝ)
-    ((hT (zeroSection P (fun q ↦ g.NormalSpace q infty_ne_zero) q)).mdifferentiableAt
-      (by simp))
-    (hl.mdifferentiableAt one_ne_zero) (by simp [line, zeroSection]) (1 : ℝ)
-  set w := g.normalRepresentative q infty_ne_zero v
-  let φ : ℝ → ℝ := fun t ↦ r q * (Real.sqrt (1 + t ^ 2 * ‖(v : ν q)‖ ^ 2))⁻¹
-  have hfun : (fun p ↦ Ψ (R p)) ∘ line =
-      Manifold.riemannianExp I M (g q) ∘ fun t ↦ (φ t * t) • w := by
-    funext t
-    simp only [Function.comp_apply, line, hRapply, hΨ, SmoothEmbedding.normalExp_apply, map_smul,
-      smul_smul, φ, w, norm_smul, mul_pow, Real.norm_eq_abs, sq_abs]
-  have hφ : DifferentiableAt ℝ φ 0 :=
-    (differentiableAt_const _).mul ((DifferentiableAt.sqrt (by fun_prop) (by positivity)).inv
-      (by positivity))
-  have hs : HasDerivAt (fun t ↦ φ t * t) (r q) 0 := by
-    convert hφ.hasDerivAt.mul (hasDerivAt_id' (0 : ℝ)) using 1
-    simp [φ]
-  have hσ := HasMFDerivAt.comp (f := fun t ↦ φ t * t) (0 : ℝ)
-    (ContinuousLinearMap.toSpanSingleton ℝ w).hasMFDerivAt hs.hasFDerivAt.hasMFDerivAt
-  have hfun' : (fun t ↦ (φ t * t) • w) =
-      ContinuousLinearMap.toSpanSingleton ℝ w ∘ fun t ↦ φ t * t :=
-    funext fun t ↦ (ContinuousLinearMap.toSpanSingleton_apply ℝ w (φ t * t)).symm
-  have hc := mfderiv_comp_apply_of_eq (0 : ℝ)
-    (Manifold.hasMFDerivAt_riemannianExp_zero (I := I) (g q)).mdifferentiableAt
-    hσ.mdifferentiableAt (by simp) (1 : ℝ)
-  rw [← h, hfun, hfun', hc, hσ.mfderiv]
-  have hv : (ContinuousLinearMap.toSpanSingleton ℝ w ∘L ContinuousLinearMap.toSpanSingleton ℝ (r q))
-      1 = r q • w := by simp
-  -- The tangent spaces of the model `T_(g q) M` at `0` and at the value of the line are the
-  -- same space, which `erw` sees through.
-  erw [hv, Manifold.mfderiv_riemannianExp_apply_zero, map_smul,
-    SmoothEmbedding.normalClass_normalRepresentative]
+    (TotalSpace P (fun q ↦ g.NormalSpace q infty_ne_zero) → M) → ∀ q : L,
+      TangentSpace (J.prod 𝓘(ℝ, E' →L[ℝ] ℝ))
+          (zeroSection (E' →L[ℝ] ℝ) (fun q : L ↦ TangentSpace J q →L[ℝ] ℝ) q) →L[ℝ]
+        TangentSpace I (g q) :=
+  letI := g.normalSpaceFiberBundle infty_ne_zero hdim
+  letI := g.normalSpaceVectorBundle infty_ne_zero hdim
+  fun T q ↦ mfderiv (J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)) I
+    (fun p : CotangentBundle J L ↦ T ⟨p.proj, cotangentToNormal hα hf p.proj p.snd⟩)
+    (zeroSection (E' →L[ℝ] ℝ) (fun q : L ↦ TangentSpace J q →L[ℝ] ℝ) q)
 
-end Tube
+omit [FiniteDimensional ℝ P] in
+private theorem sliceDeriv_apply (hα : α.IsContactForm)
+    (hf : IsLegendrianEmbedding J α.kerDistribution g)
+    (hdim : finrank ℝ P = finrank ℝ E - finrank ℝ E') :
+    letI := g.normalSpaceFiberBundle infty_ne_zero hdim
+    letI := g.normalSpaceVectorBundle infty_ne_zero hdim
+    ∀ (T : TotalSpace P (fun q ↦ g.NormalSpace q infty_ne_zero) → M) (q : L) (X),
+      sliceDeriv hα hf hdim T q X = mfderiv (J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)) I
+        (fun p : CotangentBundle J L ↦ T ⟨p.proj, cotangentToNormal hα hf p.proj p.snd⟩)
+        (zeroSection (E' →L[ℝ] ℝ) (fun q : L ↦ TangentSpace J q →L[ℝ] ℝ) q) X :=
+  fun _ _ _ ↦ rfl
+
+/-- For a map `T` as in `TauCeti.SmoothEmbedding.exists_contMDiff_injective_normalBundle`, the
+differential of `T ∘ j` at `0_q` takes values in `ker α` and is injective. -/
+private theorem sliceDeriv_mem_kerDistribution_and_injective (hα : α.IsContactForm)
+    (hf : IsLegendrianEmbedding J α.kerDistribution g)
+    (hdim : finrank ℝ P = finrank ℝ E - finrank ℝ E') :
+    letI := g.normalSpaceFiberBundle infty_ne_zero hdim
+    letI := g.normalSpaceVectorBundle infty_ne_zero hdim
+    ∀ T : TotalSpace P (fun q ↦ g.NormalSpace q infty_ne_zero) → M,
+      ContMDiff (J.prod 𝓘(ℝ, P)) I ∞ T → (∀ q, T (zeroSection P _ q) = g q) →
+      ∀ c : L → ℝ, (∀ q, 0 < c q) → (∀ q (v : g.NormalSpace q infty_ne_zero),
+        g.normalClass q infty_ne_zero (mfderiv (J.prod 𝓘(ℝ, P)) I T (zeroSection P _ q)
+          ((Bundle.zeroSectionTangentEquiv (I := J) q).symm (0, v))) = c q • v) →
+      ∀ q, (∀ X, sliceDeriv hα hf hdim T q X ∈ α.kerDistribution (g q)) ∧
+        Injective (sliceDeriv hα hf hdim T q) := by
+  let := g.normalSpaceFiberBundle infty_ne_zero hdim
+  let := g.normalSpaceVectorBundle infty_ne_zero hdim
+  intro T hT hT0 c hc hTd q
+  set D := sliceDeriv hα hf hdim T q
+  set e := (Bundle.zeroSectionTangentEquiv (I := J)
+    (F := E' →L[ℝ] ℝ) (V := fun q : L ↦ TangentSpace J q →L[ℝ] ℝ) q).symm
+  set e' := (Bundle.zeroSectionTangentEquiv (I := J) (F := P)
+    (V := fun q ↦ g.NormalSpace q infty_ne_zero) q).symm
+  have hd := mfderiv_comp_cotangentToNormal hα hf hdim T hT hT0 q
+  have hhor (u : TangentSpace J q) : D (e (u, 0)) = mfderiv J I g q u :=
+    (sliceDeriv_apply hα hf hdim T q _).trans (hd u 0).1
+  have hver (p : TangentSpace J q →L[ℝ] ℝ) : D (e (0, p)) = mfderiv (J.prod 𝓘(ℝ, P)) I T
+      (zeroSection P _ q) (e' (0, cotangentToNormal hα hf q p)) :=
+    (sliceDeriv_apply hα hf hdim T q _).trans (hd 0 p).2
+  -- `D` splits into `dg` horizontally and a vertical part of normal class `c q • j p`.
+  have hsplit (u : TangentSpace J q) (p : TangentSpace J q →L[ℝ] ℝ) :
+      D (e (u, p)) = mfderiv J I g q u + D (e (0, p)) := by
+    rw [← hhor, ← map_add, ← map_add, Prod.mk_add_mk,
+      add_zero, zero_add]
+  have hvert (p : TangentSpace J q →L[ℝ] ℝ) :
+      g.normalClass q infty_ne_zero (D (e (0, p))) = c q • cotangentToNormal hα hf q p := by
+    rw [hver, hTd]
+  have hαvert (p : TangentSpace J q →L[ℝ] ℝ) : α.val (g q) ![D (e (0, p))] = 0 := by
+    have h := normalEquiv_normalClass hα hf q (D (e (0, p)))
+    rw [hvert, map_smul, normalEquiv_cotangentToNormal, normalMap_apply] at h
+    simpa using (congrArg Prod.snd h).symm
+  refine ⟨fun X ↦ ?_, (injective_iff_map_eq_zero D).2 fun X hX ↦ ?_⟩
+  · obtain ⟨⟨u, p⟩, rfl⟩ := e.surjective X
+    rw [SmoothForm.mem_kerDistribution, hsplit, ← SmoothForm.degreeOneEquiv_apply_apply_vec,
+      map_add, SmoothForm.degreeOneEquiv_apply_apply_vec,
+      SmoothForm.degreeOneEquiv_apply_apply_vec, hαvert,
+      SmoothForm.mem_kerDistribution.1 (hf.isHorizontalMap.mfderiv_mem q u), add_zero]
+  · obtain ⟨⟨u, p⟩, rfl⟩ := e.surjective X
+    rw [hsplit] at hX
+    have hcl := congrArg (g.normalClass q infty_ne_zero) hX
+    rw [map_add, hvert, SmoothEmbedding.normalClass_mfderiv, zero_add, map_zero,
+      smul_eq_zero] at hcl
+    obtain rfl : p = 0 := cotangentToNormal_injective hα hf q
+      ((hcl.resolve_left (hc q).ne').trans (map_zero _).symm)
+    rw [Prod.mk_zero_zero, map_zero, map_zero, add_zero] at hX
+    obtain rfl : u = 0 := g.isImmersion.mfderiv_injective infty_ne_zero q
+      (hX.trans (map_zero _).symm)
+    rw [Prod.mk_zero_zero, map_zero]
 
 /-- **A slice through a Legendrian submanifold.** Let `f : L → M` be a Legendrian embedding for a
 contact form `α`, between boundaryless manifolds, `M` Hausdorff and second countable. There are a
@@ -456,10 +420,6 @@ theorem exists_contactSlice [I.Boundaryless] [J.Boundaryless] [T2Space M]
       ∀ q, (mfderiv (J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)) I ι
         (zeroSection (E' →L[ℝ] ℝ) (fun q : L ↦ TangentSpace J q →L[ℝ] ℝ) q)).range =
           α.kerDistribution (f q) := by
-  rcases isEmpty_or_nonempty L with hL | hL
-  · have : IsEmpty (CotangentBundle J L) := ⟨fun p ↦ hL.false p.proj⟩
-    exact ⟨isEmptyElim, univ, fun p ↦ isEmptyElim p, fun p ↦ isEmptyElim p, isOpen_univ,
-      fun q ↦ isEmptyElim q, fun q ↦ isEmptyElim q, fun p ↦ isEmptyElim p, fun q ↦ isEmptyElim q⟩
   let g : SmoothEmbedding J I ∞ L M := .ofIsSmoothEmbedding f hf.isSmoothEmbedding
   have hg : ⇑g = f := SmoothEmbedding.coe_ofIsSmoothEmbedding f _
   have hf' : IsLegendrianEmbedding J α.kerDistribution g := hg ▸ hf
@@ -467,11 +427,10 @@ theorem exists_contactSlice [I.Boundaryless] [J.Boundaryless] [T2Space M]
   have hdim : finrank ℝ P = finrank ℝ E - finrank ℝ E' := finrank_euclideanSpace_fin
   let := g.normalSpaceFiberBundle infty_ne_zero hdim
   let := g.normalSpaceVectorBundle infty_ne_zero hdim
-  obtain ⟨T, hT, hTinj, hT0, c, hc, hTd⟩ := exists_tube (g := g) hdim
+  obtain ⟨T, hT, hTinj, hT0, c, hc, hTd⟩ := g.exists_contMDiff_injective_normalBundle hdim
   let ι : CotangentBundle J L → M := fun p ↦ T ⟨p.proj, cotangentToNormal hα hf' p.proj p.snd⟩
   have hι : ContMDiff (J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)) I ∞ ι :=
     hT.comp (contMDiff_cotangentToNormal hα hf' hdim)
-  have hd := mfderiv_comp_cotangentToNormal hα hf' hdim T hT hT0
   set Z0 := zeroSection (E' →L[ℝ] ℝ) (fun q : L ↦ TangentSpace J q →L[ℝ] ℝ)
   have hιinj : Injective ι := by
     rintro ⟨q, a⟩ ⟨q', a'⟩ h
@@ -481,69 +440,13 @@ theorem exists_contactSlice [I.Boundaryless] [J.Boundaryless] [T2Space M]
   have hι0 (q : L) : ι (Z0 q) = g q := by
     rw [← hT0 q]
     exact congrArg T (congrArg (TotalSpace.mk' P q) (map_zero _))
-  -- The differential of `ι` at `0_q` splits into `dg` and a vertical part.
-  have hsplit (q : L) (u : TangentSpace J q) (p : TangentSpace J q →L[ℝ] ℝ) :
-      mfderiv (J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)) I ι (Z0 q)
-          ((Bundle.zeroSectionTangentEquiv (I := J) q).symm (u, p)) =
-        mfderiv (J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)) I ι (Z0 q)
-          ((Bundle.zeroSectionTangentEquiv (I := J) q).symm (u, 0)) +
-        mfderiv (J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)) I ι (Z0 q)
-          ((Bundle.zeroSectionTangentEquiv (I := J) q).symm (0, p)) := by
-    rw [← map_add, ← map_add, Prod.mk_add_mk, add_zero, zero_add]
-  -- Below, the differential of `ι` at `0_q` takes values in the tangent space at `ι 0_q`, which is
-  -- the tangent space at `g q` only through `ι 0_q = g q`; both are the model space `E`, and
-  -- `erw` sees through this.
-  -- The vertical part has normal class `c q • j p`, so `α` vanishes on it.
-  have hvert (q : L) (p : TangentSpace J q →L[ℝ] ℝ) :
-      g.normalClass q infty_ne_zero (mfderiv (J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)) I ι (Z0 q)
-        ((Bundle.zeroSectionTangentEquiv (I := J) q).symm (0, p))) =
-        c q • cotangentToNormal hα hf' q p := by
-    rw [(hd q 0 p).2, hTd]
-  have hαvert (q : L) (p : TangentSpace J q →L[ℝ] ℝ) :
-      α.val (g q) ![mfderiv (J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)) I ι (Z0 q)
-        ((Bundle.zeroSectionTangentEquiv (I := J) q).symm (0, p))] = 0 := by
-    have h := normalEquiv_normalClass hα hf' q (mfderiv (J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)) I ι (Z0 q)
-      ((Bundle.zeroSectionTangentEquiv (I := J) q).symm (0, p)))
-    rw [hvert, map_smul, normalEquiv_cotangentToNormal] at h
-    erw [normalMap_apply] at h
-    simpa using (congrArg Prod.snd h).symm
-  have hle (q : L) :
-      (mfderiv (J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)) I ι (Z0 q)).range ≤ α.kerDistribution (g q) := by
-    rintro _ ⟨X, rfl⟩
-    obtain ⟨⟨u, p⟩, rfl⟩ := (Bundle.zeroSectionTangentEquiv (I := J) q).symm.surjective X
-    erw [SmoothForm.mem_kerDistribution]
-    erw [hsplit]
-    erw [← SmoothForm.degreeOneEquiv_apply_apply_vec,
-      map_add, SmoothForm.degreeOneEquiv_apply_apply_vec,
-      SmoothForm.degreeOneEquiv_apply_apply_vec, hαvert, (hd q u p).1,
-      SmoothForm.mem_kerDistribution.1 (hf'.isHorizontalMap.mfderiv_mem q u), add_zero]
-  have hinj0 (q : L) : Injective (mfderiv (J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)) I ι (Z0 q)) := by
-    refine (injective_iff_map_eq_zero _).2 fun X hX ↦ ?_
-    obtain ⟨⟨u, p⟩, rfl⟩ := (Bundle.zeroSectionTangentEquiv (I := J) q).symm.surjective X
-    rw [hsplit] at hX
-    have hcl := congrArg (g.normalClass q infty_ne_zero) hX
-    erw [map_add] at hcl
-    erw [hvert, (hd q u p).1, SmoothEmbedding.normalClass_mfderiv, zero_add] at hcl
-    erw [map_zero] at hcl
-    rw [smul_eq_zero] at hcl
-    obtain rfl : p = 0 := cotangentToNormal_injective hα hf' q
-      ((hcl.resolve_left (hc q).ne').trans (map_zero _).symm)
-    rw [Prod.mk_zero_zero, map_zero, map_zero, add_zero, (hd q u 0).1] at hX
-    obtain rfl : u = 0 := g.isImmersion.mfderiv_injective infty_ne_zero q
-      (hX.trans (map_zero _).symm)
-    rw [Prod.mk_zero_zero, map_zero]
-  have hrange (q : L) :
-      (mfderiv (J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)) I ι (Z0 q)).range = α.kerDistribution (g q) := by
+  have hD := sliceDeriv_mem_kerDistribution_and_injective hα hf' hdim T hT hT0 c hc hTd
+  -- The differential of `ι` at `0_q`, with values in the tangent space at `g q = ι 0_q`, so that
+  -- its range and `ker α` are subspaces of the same type.
+  have hrange (q : L) : (sliceDeriv hα hf' hdim T q).range = α.kerDistribution (g q) := by
     have : FiniteDimensional ℝ (TangentSpace I (g q)) := inferInstanceAs (FiniteDimensional ℝ E)
-    -- The same differential, with its values read in the tangent space at `g q = ι 0_q`, so
-    -- that its range and `ker α` are subspaces of the same type.
-    let D : TangentSpace (J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)) (Z0 q) →L[ℝ] TangentSpace I (g q) :=
-      mfderiv (J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)) I ι (Z0 q)
-    change D.range = _
-    refine Submodule.eq_of_le_of_finrank_eq (hle q) ?_
-    have hD : finrank ℝ D.range = finrank ℝ (TangentSpace (J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)) (Z0 q)) :=
-      LinearMap.finrank_range_of_inj (hinj0 q)
-    rw [hD, finrank_tangentSpace, Module.finrank_prod,
+    refine Submodule.eq_of_le_of_finrank_eq (by rintro _ ⟨X, rfl⟩; exact (hD q).1 X) ?_
+    rw [LinearMap.finrank_range_of_inj (hD q).2, finrank_tangentSpace, Module.finrank_prod,
       ← LinearMap.toContinuousLinearMap.finrank_eq, Subspace.dual_finrank_eq]
     have h1 := hα.finrank_kerDistribution_add_one (g q)
     have h2 := hf.two_mul_finrank_add_one
@@ -553,9 +456,12 @@ theorem exists_contactSlice [I.Boundaryless] [J.Boundaryless] [T2Space M]
   have hN : IsOpen N := isOpen_iff_mem_nhds.2 fun p hp ↦
     (hι p).eventually_injective_mfderiv_and_notMem_range (by simp)
       hα.contMDiff_reebVectorField.continuous.continuousAt hp.1 hp.2
-  refine ⟨ι, N, hι, hιinj, hN, fun q ↦ ⟨hinj0 q, fun h ↦ ?_⟩,
+  refine ⟨ι, N, hι, hιinj, hN, fun q ↦ ⟨(hD q).2, fun h ↦ ?_⟩,
     fun q ↦ (hι0 q).trans (congrFun hg q), fun p hp ↦ hp, fun q ↦ (hrange q).trans (hg ▸ rfl)⟩
-  rw [hrange q, hι0 q] at h
+  obtain ⟨X, hX⟩ := h
+  have h := (hD q).1 X
+  rw [show sliceDeriv hα hf' hdim T q X = α.reebVectorField (ι (Z0 q)) from
+    (sliceDeriv_apply hα hf' hdim T q X).trans hX, hι0 q] at h
   exact hα.reebVectorField_notMem_kerDistribution (g q) h
 
 end TauCeti.IsLegendrianEmbedding
