@@ -312,16 +312,8 @@ theorem pathMaslovIndex_eq_zero_of_finrank_eq {Λ Λ' : ℒ ι} (γ : Path Λ Λ
   obtain ⟨_, δ, hδ⟩ := exists_path_lift_unitaryFrame γ (unitaryFrame_surjective _).choose_spec
   rw [pathMaslovIndex_unitaryFrame_eq_maslovIndex γ δ hδ]
   refine UnitaryGroup.maslovIndex_eq_zero_of_finrank_eq _ (k := k) fun t ↦ ?_
-  set e := (StdSpace.complexEuclideanEquiv ι).toLinearEquiv
-  rw [← LinearEquiv.finrank_map_eq e, Submodule.map_inf _ e.injective]
-  have h₁ : ((δ.map (continuous_const_mul W⁻¹) t : Matrix ι ι ℂ).realImage).map e.toLinearMap =
-      ((W⁻¹ • γ t : ℒ ι) : Submodule ℝ (StdSpace ι)) := by
-    rw [← hδ, ← unitaryFrame_mul, coe_unitaryFrame_eq_map, Path.map_coe, Function.comp_apply]
-  have h₂ : (realSubspace ι).map e.toLinearMap =
-      ((W⁻¹ • unitaryFrame W : ℒ ι) : Submodule ℝ (StdSpace ι)) := by
-    rw [← unitaryFrame_mul, inv_mul_cancel, unitaryFrame_one, coe_horizontal,
-      ← StdSpace.map_realSubspace]
-  rw [h₁, h₂, unitary_smul_def, unitary_smul_def, finrank_smul_inf_smul, h]
+  rw [← finrank_unitaryFrame_inf_horizontal, Path.map_coe, Function.comp_apply,
+    unitaryFrame_mul, hδ, ← finrank_inf_unitaryFrame, h]
 
 /-- **Localization.** Let `t ↦ A t` be a continuous path of real matrices and `γ` a path of
 Lagrangians that are their graphs `{(x, A t x)}`, so that each `A t` is symmetric. Then the index
