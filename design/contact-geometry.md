@@ -475,9 +475,8 @@ Expected size: 450 lines, in two issues (H1 and H2 below).
 
 ### `Geometry/Contact/Darboux/Strict.lean`
 
-Named like Tau Ceti's file, in `TauCeti.SmoothForm.IsContactForm` and
-`TauCeti.IsContactDistribution`, with `[I.Boundaryless] [T2Space M]` as in
-Tau Ceti's file, `V = EuclideanSpace ℝ (Fin n)` and `σ` as above.
+Named like Tau Ceti's file, in `TauCeti.SmoothForm.IsContactForm`, with
+`[I.Boundaryless] [T2Space M]` as in Tau Ceti's file, `V = EuclideanSpace ℝ (Fin n)` and `σ` as above.
 
 - `IsContactForm.exists_strictDarbouxChart_reebVectorField_of_finrank_eq
   (hα) (hn : finrank ℝ E = 2 * n + 1) (x₀ : M)`:
