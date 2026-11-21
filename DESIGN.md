@@ -340,11 +340,15 @@ further when they grow, following `AGENTS.md`.
   along the
   stable range, which commutes with $\det$; and its corollary that
   $\mathrm{SU}(n)$ (Mathlib's `Matrix.specialUnitaryGroup`) is simply
-  connected, for $n\ge1$ through the homeomorphism
-  $\mathrm{U}(n)\cong\mathrm{SU}(n)\times S^1$,
-  $A\mapsto(A\operatorname{diag}(\det A^{-1},1,\dots,1),\det A)$, with the
-  diagonal factor built by `TauCeti.unitaryTorusHom`, under which
-  $\det$ is the second projection, and for $n=0$ because the group is a point.
+  connected, for $n\ge1$ through the continuous retraction
+  `Matrix.UnitaryGroup.toSpecialUnitary` of $\mathrm{U}(n)$ onto $\mathrm{SU}(n)$,
+  $A\mapsto A\operatorname{diag}(1,\dots,\det A^{-1},\dots,1)$ with the
+  correcting entry at a chosen index $i_0$ and the diagonal factor
+  `Matrix.UnitaryGroup.detSection` built by `TauCeti.unitaryTorusHom`: a loop
+  in $\mathrm{SU}(n)$ is trivial in $\pi_1(\mathrm{U}(n))$, since its
+  determinant is constant, and the retraction carries the null-homotopy back.
+  For $n=0$ the group is a point. The retraction and the facts about `detCircle`
+  it uses are in `Analysis/Matrix/UnitaryGroup/Basic.lean`.
   Tau Ceti's `Matrix.instSimplyConnectedSpaceSpecialUnitaryGroupFinTwoComplex`
   is the case $n=2$. Last, `Analysis/Matrix/SymplecticGroup/FundamentalGroup.lean`
   ($\pi_1(\mathrm{Sp}(2n))\cong\mathbb{Z}$ for $n\ge1$, through *Symplectic
@@ -715,8 +719,12 @@ it into issues; the overview fixes its folders and its dependencies.
 
 ### 10. Linear Moser
 
-- **Files:** `Geometry/Symplectic/LinearMoser.lean`. Given nondegenerate
-  forms $\omega_t$ on $V$ that depend smoothly on $t\in\mathbb{R}$, it builds
+- **Files:** `Geometry/Symplectic/LinearMoser.lean`, and
+  two general facts it uses: the derivative of a path of skew forms is skew
+  (`Analysis/Calculus/Deriv/ContinuousLinearMap.lean`), and the derivative of
+  a path with locally constant square anticommutes with it
+  (`Analysis/Calculus/Deriv/Mul.lean`). Given nondegenerate
+  forms $\omega_t$ on $V$ that depend smoothly on $t\in\mathbb{R}$, the first file builds
   invertible $\Psi_t$, smooth in $t$, starting at the identity and pulling
   each $\omega_t$ back to $\omega_0$: $\Psi_t$ solves $\dot\Psi_t=A_t\Psi_t$,
   with $A_t=-\tfrac12\,\omega_t^{-1}\circ\dot\omega_t$, the inverse being that
