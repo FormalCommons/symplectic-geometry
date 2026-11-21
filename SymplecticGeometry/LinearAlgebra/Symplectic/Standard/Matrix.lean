@@ -246,13 +246,6 @@ theorem conj_complexToRealEuclidean_toLin' (A : Matrix ι ι ℂ) :
   ext1 z
   simpa using complexToRealEuclidean_mulVec A ((complexToRealEuclidean ι).symm z)
 
-/-- The matrix of a complex structure on a Euclidean space squares to `-1`. -/
-theorem AlmostComplexStructure.toEuclideanLin_symm_mul_self {n : Type*} [Fintype n]
-    [DecidableEq n] (J : AlmostComplexStructure (EuclideanSpace ℝ n)) :
-    Matrix.toEuclideanLin.symm J.toLinearMap * Matrix.toEuclideanLin.symm J.toLinearMap = -1 := by
-  rw [← Matrix.toLpLin_symm_comp, J.square_neg, map_neg]
-  simp
-
 end TauCeti
 
 namespace SymplecticGeometry
