@@ -134,7 +134,7 @@ theorem mem_stabilizer_specialOrthogonalGroup_stdComplexStructure_iff
       Commute (J ι ℝ) (g : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ) := by
   rw [MulAction.mem_stabilizer_iff, specialOrthogonalGroup_smul_def,
     generalLinearGroup_smul_stdComplexStructure_eq_iff]
-  rfl
+  simp
 
 variable (ι) in
 /-- **The stabilizer of `J₀` in `SO(2n)` is `U(n)`**: a special orthogonal matrix fixes `J₀`
