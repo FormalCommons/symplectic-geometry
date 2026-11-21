@@ -24,11 +24,12 @@ Write `ℒ ι` for the space of Lagrangian subspaces of the standard model `(Std
   (`unitaryFrame_eq_unitaryFrame_iff_souriau_eq`); so `souriau` is well defined, continuous and
   injective, hence a closed embedding (`isClosedEmbedding_souriau`).
 * `SymplecticGeometry.LagrangianGrassmannian.maslovPhase Λ = det (souriau Λ)`, the map
-  `ρ : ℒ(n) → S¹` of McDuff–Salamon; on a unitary frame it is `(det U)²`.
+  `ρ : ℒ(n) → S¹` of McDuff–Salamon; on a unitary frame it is `(det U)²`, and `rotate θ`
+  multiplies it by `e^{2inθ}` (`maslovPhase_rotate`).
 * `SymplecticGeometry.LagrangianGrassmannian.maslovIndex γ`, for a loop `γ : Path Λ Λ`, the degree
   of the circle loop `t ↦ ρ (γ t)`.
 * `SymplecticGeometry.LagrangianGrassmannian.halfTurnLoop k`, the loop
-  `t ↦ e^{iπkt} • {y = 0}`, `0 ≤ t ≤ 1`.
+  `t ↦ rotate (π k t) {y = 0} = e^{iπkt} • {y = 0}`, `0 ≤ t ≤ 1`.
 
 ## Main results
 
@@ -64,9 +65,7 @@ subspaces (`TauCeti/LinearAlgebra/TotallyReal/Loop.lean`,
   `TauCeti.GLSymplectic.maslovIndex_sum`;
 * `halfTurnLoop` is the loop `TauCeti.TotallyRealLoop.rotationZPow` of `k` half-turns, and
   `maslovIndex_halfTurnLoop` is the analogue of `TauCeti.TotallyRealLoop.maslovIndex_rotationZPow`.
-  The scalar unitary frame of `halfTurnLoop` is built as in
-  `TauCeti.GLSymplectic.scalarRotationLoop`, with the angle `π k t` in place of `2 π t`, and
-  `maslovPhase_halfTurnLoop` and `maslovIndex_halfTurnLoop` split the proof of
+  `maslovPhase_rotate`, `maslovPhase_halfTurnLoop` and `maslovIndex_halfTurnLoop` split the proof of
   `TauCeti.GLSymplectic.maslovIndex_scalarRotationLoop` into the phase and its degree.
 
 ## References
@@ -238,6 +237,17 @@ theorem maslovPhase_unitary_smul (U : unitaryGroup ι ℂ) (Λ : ℒ ι) :
   rw [← unitaryFrame_mul, maslovPhase_unitaryFrame, maslovPhase_unitaryFrame,
     map_mul, mul_pow]
 
+/-- The rotation `rotate θ` multiplies the Maslov phase by `e^{2inθ}`, where `n` is the
+cardinality of `ι`. -/
+@[simp]
+theorem maslovPhase_rotate (θ : ℝ) (Λ : ℒ ι) :
+    maslovPhase (rotate θ Λ) = Circle.exp (2 * Fintype.card ι * θ) * maslovPhase Λ := by
+  rw [rotate_def, maslovPhase_unitary_smul]
+  congr 1
+  refine Circle.ext ?_
+  simp [Unitary.coe_smul, Submonoid.smul_def, Circle.coe_exp, ← Complex.exp_natCast_mul]
+  ring_nf
+
 /-! ### The Maslov index of a loop -/
 
 /-- The **Maslov index** of a loop `γ` of Lagrangian subspaces: the degree of the circle loop
@@ -376,28 +386,17 @@ theorem detCircle_inv_mul_eq_exp {Λ : ℒ ι} (γ : Path Λ Λ) {U V : unitaryG
 
 /-! ### Half-turns -/
 
-/-- The loop `t ↦ e^{iπkt} • {y = 0}`, `0 ≤ t ≤ 1`, of Lagrangian subspaces, turning the
+/-- The loop `t ↦ rotate (π k t) {y = 0}`, `0 ≤ t ≤ 1`, of Lagrangian subspaces, turning the
 horizontal Lagrangian through `k` half-turns; it closes up since `e^{iπk} = ±1`. -/
 noncomputable def halfTurnLoop (k : ℤ) : Path (horizontal ι) (horizontal ι) where
-  toFun t :=
-    unitaryFrame (circleEquivUnitary (Circle.exp (Real.pi * k * t)) • (1 : unitaryGroup ι ℂ))
-  continuous_toFun := continuous_unitaryFrame.comp (Continuous.subtype_mk (by fun_prop) _)
-  source' := by
-    rw [← unitaryFrame_one]
-    congr 1
-    exact Subtype.ext (by simp)
-  target' := by
-    rw [← unitaryFrame_one, unitaryFrame_eq_unitaryFrame_iff_souriau_eq]
-    refine Subtype.ext ?_
-    have h : Circle.exp (Real.pi * k) * Circle.exp (Real.pi * k) = 1 := by
-      rw [← Circle.exp_add, show Real.pi * k + Real.pi * k = k * (2 * Real.pi) by ring,
-        Circle.exp_int_mul_two_pi]
-    simp [smul_smul, ← map_mul, h]
+  toFun t := rotate (Real.pi * k * t) (horizontal ι)
+  continuous_toFun := (continuous_rotate _).comp (by fun_prop)
+  source' := by simp
+  target' := by rw [Set.Icc.coe_one, mul_one, mul_comm, rotate_int_mul_pi]
 
-/-- The loop `halfTurnLoop k` at time `t` is the Lagrangian framed by `e^{iπkt} I`. -/
+/-- The loop `halfTurnLoop k` at time `t` is the rotation of `{y = 0}` by the angle `π k t`. -/
 theorem halfTurnLoop_apply (k : ℤ) (t : I) :
-    halfTurnLoop k t =
-      unitaryFrame (circleEquivUnitary (Circle.exp (Real.pi * k * t)) • (1 : unitaryGroup ι ℂ)) :=
+    halfTurnLoop k t = rotate (Real.pi * k * t) (horizontal ι) :=
   (rfl)
 
 /-- The Maslov phase of `halfTurnLoop k` at time `t` is `e^{2iπnkt}`, where `n` is the
@@ -406,12 +405,7 @@ cardinality of `ι`. -/
 theorem maslovPhase_halfTurnLoop (k : ℤ) (t : I) :
     maslovPhase (halfTurnLoop (ι := ι) k t) =
       Circle.exp (2 * Fintype.card ι * (Real.pi * k * t)) := by
-  refine Circle.ext ?_
-  rw [halfTurnLoop_apply, maslovPhase_unitaryFrame, Circle.coe_pow, coe_detCircle,
-    Unitary.coe_smul, OneMemClass.coe_one, Submonoid.smul_def, coe_circleEquivUnitary, det_smul,
-    det_one, mul_one, ← pow_mul, Circle.coe_exp, Circle.coe_exp, ← Complex.exp_natCast_mul]
-  push_cast
-  ring_nf
+  rw [halfTurnLoop_apply, maslovPhase_rotate, maslovPhase_horizontal, mul_one]
 
 /-- **Normalization.** The loop of `k` half-turns of the horizontal Lagrangian of `StdSpace ι` has
 Maslov index `k n`, where `n` is the cardinality of `ι`. In particular the half-turn
