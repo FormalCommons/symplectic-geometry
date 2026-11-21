@@ -245,10 +245,7 @@ theorem maslovPhase_rotate (θ : ℝ) (Λ : ℒ ι) :
   rw [rotate_def, maslovPhase_unitary_smul]
   congr 1
   refine Circle.ext ?_
-  rw [Circle.coe_pow, coe_detCircle, Unitary.coe_smul, OneMemClass.coe_one, Submonoid.smul_def,
-    coe_circleEquivUnitary, det_smul, det_one, mul_one, ← pow_mul, Circle.coe_exp, Circle.coe_exp,
-    ← Complex.exp_natCast_mul]
-  push_cast
+  simp [Unitary.coe_smul, Submonoid.smul_def, Circle.coe_exp, ← Complex.exp_natCast_mul]
   ring_nf
 
 /-! ### The Maslov index of a loop -/
@@ -395,14 +392,7 @@ noncomputable def halfTurnLoop (k : ℤ) : Path (horizontal ι) (horizontal ι) 
   toFun t := rotate (Real.pi * k * t) (horizontal ι)
   continuous_toFun := (continuous_rotate _).comp (by fun_prop)
   source' := by simp
-  target' := by
-    apply souriau_injective
-    rw [rotate_def, souriau_unitary_smul, souriau_horizontal]
-    refine Subtype.ext ?_
-    have h : Circle.exp (Real.pi * k) * Circle.exp (Real.pi * k) = 1 := by
-      rw [← Circle.exp_add, show Real.pi * k + Real.pi * k = k * (2 * Real.pi) by ring,
-        Circle.exp_int_mul_two_pi]
-    simp [smul_smul, ← map_mul, h]
+  target' := by rw [Set.Icc.coe_one, mul_one, mul_comm, rotate_int_mul_pi]
 
 /-- The loop `halfTurnLoop k` at time `t` is the rotation of `{y = 0}` by the angle `π k t`. -/
 theorem halfTurnLoop_apply (k : ℤ) (t : I) :

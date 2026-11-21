@@ -303,15 +303,6 @@ theorem exists_chartPath {Λ Λ' : ℒ ι}
 
 /-! ### The coordinate half-turn -/
 
-/-- A quarter turn takes the horizontal Lagrangian `{y = 0}` to the vertical one `{x = 0}`. -/
-theorem rotate_pi_div_two_horizontal : rotate (Real.pi / 2) (horizontal ι) = vertical ι := by
-  rw [← symJ_smul_horizontal, rotate_def, unitary_smul_def]
-  congr 1
-  refine Subtype.ext (Units.ext ?_)
-  rw [GLSymplectic.coe_ofUnitary, GLSymplectic.coe_symJ, ← realify_I_smul_one, Unitary.coe_smul,
-    OneMemClass.coe_one, Submonoid.smul_def, coe_circleEquivUnitary]
-  simp [Circle.coe_exp, Complex.exp_mul_I]
-
 /-- The rotation of a Lagrangian `Λ` by the diagonal unitary matrix
 `detSection ι i (Circle.exp θ) = diag(1, …, e^{iθ}, …, 1)`, which turns the `i`-th coordinate
 plane `(xᵢ, yᵢ)` by the angle `θ` and fixes the others. -/
