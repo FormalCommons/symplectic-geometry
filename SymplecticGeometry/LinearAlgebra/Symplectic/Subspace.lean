@@ -17,6 +17,9 @@ public import SymplecticGeometry.LinearAlgebra.Matrix.SymplecticGroup.Basic
 For a symplectic form `ω` on a real vector space `V` (Tau Ceti's `TauCeti.SymplecticForm`) and a
 subspace `W`, this file adds to Tau Ceti's theory of the symplectic complement `W^ω`:
 
+* `TauCeti.SymplecticForm.isLagrangian_iff_orthogonal_eq` and
+  `TauCeti.SymplecticForm.IsLagrangian.orthogonal_eq`: `W` is Lagrangian exactly when
+  `W^ω = W`, the equation that defines it but that Tau Ceti states in no lemma;
 * `TauCeti.SymplecticForm.isCoisotropic_orthogonal_iff`: `W^ω` is coisotropic exactly when `W`
   is isotropic, in any dimension;
 * `TauCeti.SymplecticForm.IsCoisotropic.isIsotropic_orthogonal`: the complement of a coisotropic
@@ -57,6 +60,16 @@ open Module
 
 variable {V : Type*} [AddCommGroup V] [Module ℝ V]
 variable {ω : SymplecticForm V} {L : Submodule ℝ V}
+
+/-- A subspace is Lagrangian exactly when it equals its own symplectic complement,
+`L^ω = L`. -/
+theorem isLagrangian_iff_orthogonal_eq : ω.IsLagrangian L ↔ ω.orthogonal L = L := by
+  rw [isLagrangian_iff, isIsotropic_iff_le, isCoisotropic_iff_le]
+  exact ⟨fun h => le_antisymm h.2 h.1, fun h => ⟨h.ge, h.le⟩⟩
+
+/-- A Lagrangian subspace is its own symplectic complement, `L^ω = L`. -/
+theorem IsLagrangian.orthogonal_eq (h : ω.IsLagrangian L) : ω.orthogonal L = L :=
+  isLagrangian_iff_orthogonal_eq.1 h
 
 /-- The symplectic complement of a subspace is coisotropic if and only if the subspace is
 isotropic, in any dimension. -/
@@ -131,8 +144,7 @@ theorem IsLagrangian.exists_isDarbouxBasis_apply_zero_eq (h : ω.IsLagrangian L)
   have : FiniteDimensional ℝ L := Module.Finite.of_basis e
   have : FiniteDimensional ℝ V := h.isCoisotropic.finiteDimensional
   obtain ⟨d, hd, hde⟩ :=
-    ω.isAlt.exists_basis_toMatrix_eq_J_inl_eq ω.nondegenerate e
-      (le_antisymm (isIsotropic_iff_le.1 h.isIsotropic) (isCoisotropic_iff_le.1 h.isCoisotropic))
+    ω.isAlt.exists_basis_toMatrix_eq_J_inl_eq ω.nondegenerate e h.orthogonal_eq.symm
   have hJ (x y : Fin n ⊕ Fin n) : ω (d x) (d y) = Matrix.J (Fin n) ℝ x y := by
     rw [← hd, LinearMap.BilinForm.toMatrix_apply]
   let v : Fin n × Fin 2 → V := fun p => if p.2 = 0 then d (.inl p.1) else -d (.inr p.1)
