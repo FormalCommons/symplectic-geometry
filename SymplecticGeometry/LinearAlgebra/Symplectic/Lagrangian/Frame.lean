@@ -56,7 +56,8 @@ A *frame* is a real `2n × n` matrix `Z = fromRows X Y`, whose columns span the 
 * `SymplecticGeometry.isLagrangian_range_fromRows_iff`: `fromRows X Y` spans a Lagrangian
   subspace iff it has rank `n` and `Xᵀ Y = Yᵀ X`.
 * `SymplecticGeometry.isLagrangian_graph_iff`, `isLagrangian_graphY_iff`: a graph is Lagrangian
-  iff its matrix is symmetric.
+  iff its matrix is symmetric; `isLagrangian_range_fromRows_one`: so `fromRows A 1` is a
+  Lagrangian frame for symmetric `A`.
 * `SymplecticGeometry.det_ne_zero_of_isLagrangian_range_fromRows`: the complex frame `X + i Y` of
   a Lagrangian frame is invertible.
 * `SymplecticGeometry.exists_eq_graph_of_isCompl`, `exists_eq_graphY_of_isCompl`: a Lagrangian
@@ -399,6 +400,12 @@ theorem isLagrangian_range_fromRows_iff (X Y : Matrix ι ι ℝ) :
     isIsotropic_range_fromRows_iff, finrank_stdSpace, rank_eq_finrank_range_toEuclideanLin]
   exact ⟨fun ⟨h₁, h₂⟩ ↦ ⟨Nat.eq_of_mul_eq_mul_left two_pos h₂, h₁⟩,
     fun ⟨h₁, h₂⟩ ↦ ⟨h₂, congrArg (2 * ·) h₁⟩⟩
+
+/-- For a symmetric matrix `A`, `fromRows A 1` is a Lagrangian frame: it spans `graphY A`. -/
+theorem isLagrangian_range_fromRows_one {A : Matrix ι ι ℝ} (hA : A.IsSymm) :
+    (stdForm ι).IsLagrangian (LinearMap.range (toEuclideanLin (fromRows A 1))) := by
+  rw [StdSpace.range_toEuclideanLin_fromRows_one_eq_graphY]
+  exact (isLagrangian_graphY_iff A).2 hA
 
 /-- The Lagrangian subspace spanned by the columns of a Lagrangian frame `fromRows X Y`, one of
 rank `n` with `Xᵀ Y = Yᵀ X`. -/

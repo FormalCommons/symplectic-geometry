@@ -27,7 +27,9 @@ Write `ℒ ι` for the Lagrangian Grassmannian of the standard model `(StdSpace 
   `range_graphY`, `range_graph`: the Lagrangians transverse to `{y = 0}` (resp. `{x = 0}`) are
   exactly the graphs `{(S y, y)}` (resp. `{(x, S x)}`) of symmetric matrices.
 * `SymplecticGeometry.LagrangianGrassmannian.graphY_eq_unitaryFrame`: a unitary frame of
-  `graphY S`, the real orthonormalization of `S + i`.
+  `graphY S`, the unitary frame `unitaryOfFrame` of the Lagrangian frame `fromRows S 1`
+  (`SymplecticGeometry.isLagrangian_range_fromRows_one`), that is, the real
+  orthonormalization of `S + i`.
 * `SymplecticGeometry.LagrangianGrassmannian.exists_isCompl_isCompl`: any two Lagrangians have a
   common transverse Lagrangian.
 * `SymplecticGeometry.LagrangianGrassmannian.exists_smul_eq_horizontal_vertical`: the symplectic
@@ -100,19 +102,13 @@ theorem graphY_injective :
 theorem graphY_zero : graphY (0 : selfAdjoint (Matrix ι ι ℝ)) = vertical ι :=
   toSubmodule_injective <| by simp
 
-/-- A unitary frame of `graphY S`: the real orthonormalization of the invertible complex matrix
-`S + i`, which is unitary because `S + i` has real Gram matrix `S² + 1`. -/
+/-- A unitary frame of `graphY S`: the real orthonormalization of the complex frame `S + i` of
+the Lagrangian frame `fromRows S 1`. -/
 theorem graphY_eq_unitaryFrame [DecidableEq ι] (S : selfAdjoint (Matrix ι ι ℝ)) :
-    graphY S = unitaryFrame ⟨GeneralLinearGroup.realOrthonormalize
-      ((isUnit_iff_isUnit_det _).2 (isUnit_iff_ne_zero.2
-        (det_lagrangianChartFrame_ne_zero (isHermitian_iff_isSymm.1 S.property)))).unit,
-      GeneralLinearGroup.realOrthonormalize_mem_unitaryGroup
-        (by rw [IsUnit.unit_spec]
-            exact map_im_conjTranspose_mul_self_lagrangianChartFrame
-              (isHermitian_iff_isSymm.1 S.property))⟩ := by
-  refine toSubmodule_injective ?_
-  rw [coe_unitaryFrame_eq_map, GeneralLinearGroup.realImage_realOrthonormalize, coe_graphY_eq_map,
-    IsUnit.unit_spec, lagrangianChart_def]
+    graphY S = unitaryFrame (unitaryOfFrame
+      (isLagrangian_range_fromRows_one (isHermitian_iff_isSymm.1 S.property))) := by
+  rw [unitaryFrame_unitaryOfFrame]
+  exact toSubmodule_injective (StdSpace.range_toEuclideanLin_fromRows_one_eq_graphY _).symm
 
 /-! ### The points of the second chart -/
 

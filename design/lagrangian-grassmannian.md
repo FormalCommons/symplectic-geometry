@@ -363,6 +363,9 @@ Lagrangian frames on `StdSpace ι`, pure linear algebra. Namespace
   (a corollary of `Matrix.map_im_conjTranspose_mul_self`,
   `Im ((X + i Y)ᴴ (X + i Y)) = Xᵀ Y - Yᵀ X`), this is the hypothesis of Tau
   Ceti's `realOrthonormalize_mem_unitaryGroup`.
+- `isLagrangian_range_fromRows_one (hA : A.IsSymm)`: `fromRows A 1` is a
+  Lagrangian frame, since it spans `graphY A`
+  (`StdSpace.range_toEuclideanLin_fromRows_one_eq_graphY`, `isLagrangian_graphY_iff`).
 - `frameGL h : GL ι ℂ`, for
   `h : (stdForm ι).IsLagrangian (range (toEuclideanLin (fromRows X Y)))`:
   the complex frame `X + i Y` as a unit, by `GeneralLinearGroup.mkOfDetNeZero`
@@ -480,8 +483,10 @@ Chart points and transverse pairs, as algebra: G7–G9.
   Ceti's `Matrix.lagrangianChart S` under `complexEuclideanEquiv ι`, which
   is `StdSpace.map_lagrangianChart`; `graphY_injective`; `graphY_zero`,
   which is the vertical subspace; and `graphY_eq_unitaryFrame`, saying
-  `graphY S = unitaryFrame (unitaryOfFrame h)` for the Lagrangian frame
-  `fromRows S 1`, whose span is `StdSpace.graphY S` and whose complex
+  `graphY S = unitaryFrame (unitaryOfFrame (isLagrangian_range_fromRows_one hS))`,
+  `hS` the symmetry of `S`,
+  for the Lagrangian frame `fromRows S 1`, whose span is `StdSpace.graphY S`
+  (`StdSpace.range_toEuclideanLin_fromRows_one_eq_graphY`) and whose complex
   frame is `S + i·1`. It is `unitaryFrame_unitaryOfFrame` (`Action.lean`).
 - `ℒ.graph (S : selfAdjoint (Matrix ι ι ℝ)) : ℒ ι`, whose submodule is
   `StdSpace.graph S` (`coe_graph`): the points of the second chart.
@@ -523,8 +528,8 @@ Chart points and transverse pairs, as algebra: G7–G9.
   `Submodule.orderIsoMapComap`), which both transverse-pair results use; and,
   in `LinearAlgebra/TotallyReal/Euclidean.lean`,
   `Matrix.map_im_conjTranspose_mul_self_lagrangianChartFrame` (for symmetric
-  `S`, the imaginary part of `(S + i)ᴴ (S + i)` vanishes), the hypothesis of
-  `realOrthonormalize_mem_unitaryGroup` in `graphY_eq_unitaryFrame`.
+  `S`, the imaginary part of `(S + i)ᴴ (S + i)` vanishes, the case
+  `X = S`, `Y = 1` of `map_im_conjTranspose_mul_self_eq_zero_of_transpose_mul_eq`).
 
 ### `LinearAlgebra/TotallyReal/Euclidean.lean`
 
