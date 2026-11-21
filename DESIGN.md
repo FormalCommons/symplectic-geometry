@@ -255,11 +255,16 @@ further when they grow, following `AGENTS.md`.
   It imports, too, `LinearAlgebra/Matrix/SymplecticGroup/Basic.lean` of
   *Symplectic group*, for `Matrix.neg_J_mul_eq_fromBlocks`; that file also
   imports only Mathlib and Tau Ceti and is merged, so the level stays 0.
+  Likewise it imports `LinearAlgebra/Matrix/PosDef/Block.lean` of *Siegel
+  upper half space*, for `Matrix.PosDef.toBlocks₁₁`; that file imports only
+  Mathlib and Tau Ceti and is merged, so the level stays 0.
   `Matrix.lean` also imports `LinearAlgebra/Symplectic/Compatible.lean` of
   *Compatible complex structures*, for the matrix form of compatibility on
   `StdSpace ι` (`compatible_stdForm_iff_posDef` and its companions). That
   file imports only Tau Ceti, Mathlib, `Standard/Basic.lean`,
-  `LinearAlgebra/ComplexStructure/Action.lean` and
+  `LinearAlgebra/ComplexStructure/Action.lean`,
+  `Geometry/Symplectic/Darboux/EuclideanBasis.lean` of *Compatible complex
+  structures* (which imports only Tau Ceti) and
   `LinearAlgebra/Symplectic/Subspace.lean`, none of which imports
   `Matrix.lean`, and it is merged; so there is no cycle, and the files that
   build on the dictionary see no change in order.
@@ -464,10 +469,10 @@ it into issues; the overview fixes its folders and its dependencies.
     Lagrangian loop index through `realImageLoop`,
     `maslovIndex_realImageLoop`, `maslovPhase_realImage` and
     `Matrix.UnitaryGroup.maslovIndex_eq_degree` (the book's $\det(U^2)$
-    description), and, by comparing it with Tau Ceti's loop index, the
-    direct-sum axiom, the half-turns and the angle description from
-    `TotallyRealLoop.maslovIndex_prod`, `maslovIndex_rotationZPow` and
-    `sub_eq_maslovIndex_mul_pi` (`LinearAlgebra/TotallyReal/Maslov/`); the
+    description), compared with Tau Ceti's loop index
+    `TotallyRealLoop.maslovIndex` (`LinearAlgebra/TotallyReal/Maslov/`) by a
+    theorem, while its direct-sum axiom, half-turns and angle description
+    come from Tau Ceti's Souriau map and degree lemmas; the
     path index from Souriau's formula `Matrix.UnitaryGroup.maslovIndex` and
     the Souriau map `Matrix.UnitaryGroup.souriau`
     (`Analysis/Matrix/UnitaryGroup/Maslov.lean`), which is defined for
@@ -748,9 +753,9 @@ it into issues; the overview fixes its folders and its dependencies.
 - **Builds on:** *Standard model*; `Standard.lean` also imports the merged
   file `LinearAlgebra/Symplectic/Compatible.lean` of *Compatible complex
   structures*. Besides Mathlib and Tau Ceti, that file imports only
-  `ComplexStructure/Action.lean` of this part, its own part's
-  `Geometry/Symplectic/Darboux/EuclideanBasis.lean` (which imports only Tau
-  Ceti), `Symplectic/Standard/Basic.lean` of *Standard model* and
+  `ComplexStructure/Action.lean` of this part, the
+  `Geometry/Symplectic/Darboux/EuclideanBasis.lean` of *Compatible complex
+  structures* (which imports only Tau Ceti), `Symplectic/Standard/Basic.lean` of *Standard model* and
   `Symplectic/Subspace.lean` of *Symplectic vector spaces*, all merged. In
   turn, *Compatible complex structures* uses the merged `Action.lean`,
   `Topology/ComplexStructure/Basic.lean` and `Standard.lean` of this part, so
@@ -784,7 +789,8 @@ it into issues; the overview fixes its folders and its dependencies.
   `Topology/Algebra/Module/SymplecticForms.lean` (the topology on
   `SymplecticForm V`), with the general file
   `Topology/Algebra/Module/BilinearForm.lean` (a continuous bilinear form in
-  finite dimensions is recovered from its bilinear form),
+  finite dimensions is recovered from its bilinear form; the skew part of a
+  continuous bilinear map),
   `Geometry/Symplectic/Darboux/EuclideanBasis.lean` (the coordinates of a
   basis adapted to $J$ are complex linear),
   `Geometry/Symplectic/Cayley/Domain.lean` (the open set where Tau Ceti's
@@ -968,7 +974,8 @@ it into issues; the overview fixes its folders and its dependencies.
   `LinearAlgebra/Symplectic/Compatible.lean` of *Compatible complex
   structures*, which besides Mathlib and Tau Ceti imports only
   `ComplexStructure/Action.lean`, the Tau-Ceti-only
-  `Geometry/Symplectic/Darboux/EuclideanBasis.lean` of its own part,
+  `Geometry/Symplectic/Darboux/EuclideanBasis.lean` of *Compatible complex
+  structures* (not Tau Ceti's file of the same path),
   `Symplectic/Standard/Basic.lean` of *Standard model* and
   `Symplectic/Subspace.lean` of *Symplectic vector spaces*. All these files
   are merged. So the part needs only level-0 parts
@@ -1485,14 +1492,14 @@ so two parts can each use merged files of the other without either waiting.
 
 | Level | Part | Builds on |
 |---|---|---|
-| 0 | *Standard model* | — (it imports `LinearAlgebra/Matrix/Block.lean` and `LinearAlgebra/Matrix/Symmetric.lean` of *Siegel upper half space*, which import only Mathlib and Tau Ceti and are merged, `LinearAlgebra/Matrix/SymplecticGroup/Basic.lean` of *Symplectic group*, which imports only Mathlib and Tau Ceti and is merged, and the merged `LinearAlgebra/Symplectic/Compatible.lean` of *Compatible complex structures*, which besides `Standard/Basic.lean` imports only merged files that do not import `Standard/Matrix.lean`) |
+| 0 | *Standard model* | — (it imports `LinearAlgebra/Matrix/Block.lean` and `LinearAlgebra/Matrix/Symmetric.lean` of *Siegel upper half space*, which import only Mathlib and Tau Ceti and are merged, `LinearAlgebra/Matrix/SymplecticGroup/Basic.lean` of *Symplectic group*, which imports only Mathlib and Tau Ceti and is merged, `LinearAlgebra/Matrix/PosDef/Block.lean` of *Siegel upper half space*, which imports only Mathlib and Tau Ceti and is merged, and the merged `LinearAlgebra/Symplectic/Compatible.lean` of *Compatible complex structures*, which besides `Standard/Basic.lean` imports only merged files that do not import `Standard/Matrix.lean`) |
 | 0 | *Symplectic group* | — |
 | 0 | *Linear Moser* | — |
 | 1 | *Unitary group topology* | *Symplectic group* (only the file on $\mathrm{Sp}(2n)$; the other files can start at once) |
 | 1 | *Symplectic vector spaces* | *Standard model*, *Symplectic group* |
 | 1 | *Lagrangian Grassmannian* | *Standard model*, *Symplectic vector spaces* (only `Subspace.lean`, which is merged) |
 | 1 | *Linear nonsqueezing* | *Standard model* |
-| 1 | *Linear complex structures* | *Standard model*; *Compatible complex structures* (only `LinearAlgebra/Symplectic/Compatible.lean`, which besides Mathlib and Tau Ceti imports only `LinearAlgebra/ComplexStructure/Action.lean` of this part, `Geometry/Symplectic/Darboux/EuclideanBasis.lean` of *Compatible complex structures* itself, which imports only Tau Ceti, `LinearAlgebra/Symplectic/Standard/Basic.lean` of *Standard model* and `LinearAlgebra/Symplectic/Subspace.lean` of *Symplectic vector spaces*; all of them are merged. In turn, *Compatible complex structures* uses the merged `LinearAlgebra/ComplexStructure/Action.lean`, `Topology/ComplexStructure/Basic.lean` and `LinearAlgebra/ComplexStructure/Standard.lean` of this part, as its row lists) |
+| 1 | *Linear complex structures* | *Standard model*; *Compatible complex structures* (only `LinearAlgebra/Symplectic/Compatible.lean`, which besides Mathlib and Tau Ceti imports only `LinearAlgebra/ComplexStructure/Action.lean` of this part, `Geometry/Symplectic/Darboux/EuclideanBasis.lean` of *Compatible complex structures* itself, which imports only Tau Ceti, `LinearAlgebra/Symplectic/Standard/Basic.lean` of *Standard model* and `LinearAlgebra/Symplectic/Subspace.lean` of *Symplectic vector spaces* (which in turn imports `LinearAlgebra/Matrix/SymplecticGroup/Basic.lean` of *Symplectic group*, which imports only Mathlib and Tau Ceti); all of them are merged. In turn, *Compatible complex structures* uses the merged `LinearAlgebra/ComplexStructure/Action.lean`, `Topology/ComplexStructure/Basic.lean` and `LinearAlgebra/ComplexStructure/Standard.lean` of this part, as its row lists) |
 | 1 | *Siegel upper half space* | *Standard model*; *Lagrangian Grassmannian* (only `LinearAlgebra/Matrix/OfReal.lean`, which imports only Mathlib and Tau Ceti and is merged); *Linear complex structures* (only `LinearAlgebra/ComplexStructure/Action.lean`, which imports only Mathlib and Tau Ceti, `LinearAlgebra/ComplexStructure/Standard.lean`, which besides it imports only *Standard model*, `LinearAlgebra/Symplectic/Compatible.lean` of *Compatible complex structures* (which in turn imports, besides Mathlib and Tau Ceti, only `Action.lean`, `Geometry/Symplectic/Darboux/EuclideanBasis.lean` of *Compatible complex structures*, which imports only Tau Ceti, `LinearAlgebra/Symplectic/Standard/Basic.lean` of *Standard model* and `LinearAlgebra/Symplectic/Subspace.lean` of *Symplectic vector spaces*) and the library's `Geometry/Symplectic/Orientation.lean`, and that file, which imports only Tau Ceti; all of them are merged); *Symplectic group* (only `LinearAlgebra/Matrix/SymplecticGroup/Basic.lean`, which imports only Mathlib and Tau Ceti and is merged) |
 | 1 | *Symplectic vector bundles* | *Standard model*, *Linear Moser*; its existence issue also the two `PolarComplexStructure/` issues of *Compatible complex structures*, its contractibility issue the Cayley domain issue of that part, and its homotopy-equivalence issue those three and the `Tames.lineMap` issue, none of which waits for another part |
 | 2 | *Compatible complex structures* | *Standard model*, *Symplectic vector spaces*; *Linear complex structures* (only `LinearAlgebra/ComplexStructure/Action.lean`, which imports only Mathlib and Tau Ceti, `Topology/ComplexStructure/Basic.lean`, which besides it imports only Tau Ceti, and `LinearAlgebra/ComplexStructure/Standard.lean`, which besides `Action.lean` imports only `LinearAlgebra/Symplectic/Compatible.lean` of this part, `LinearAlgebra/Symplectic/Standard/Matrix.lean` of *Standard model*, the library's `Geometry/Symplectic/Orientation.lean`, which imports only Tau Ceti, and Tau Ceti; all of them are merged); *Symplectic group* (only `LinearAlgebra/Matrix/SymplecticGroup/Basic.lean`, which imports only Mathlib and Tau Ceti and is merged) |

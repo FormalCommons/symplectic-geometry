@@ -12,9 +12,9 @@ public import TauCeti.Analysis.Matrix.EuclideanLin
 public import TauCeti.LinearAlgebra.Matrix.GeneralLinearGroup.Symplectic.Basic
 public import TauCeti.LinearAlgebra.Matrix.GeneralLinearGroup.Symplectic.Sum
 import SymplecticGeometry.LinearAlgebra.Matrix.Block
+import SymplecticGeometry.LinearAlgebra.Matrix.PosDef.Block
 import SymplecticGeometry.LinearAlgebra.Matrix.SymplecticGroup.Basic
 import SymplecticGeometry.LinearAlgebra.Matrix.Symmetric
-import TauCeti.LinearAlgebra.Matrix.Block
 
 /-!
 # The matrix dictionary for the standard model
@@ -210,8 +210,8 @@ positive definite: it is the upper left block of the positive definite matrix `-
 matrix of `ω₀(·, J ·)`. -/
 theorem posDef_toBlocks₂₁_of_compatible {J : AlmostComplexStructure (StdSpace ι)}
     (hJ : (stdForm ι).Compatible J) : (toEuclideanLin.symm J.toLinearMap).toBlocks₂₁.PosDef := by
-  have h := (compatible_stdForm_iff_posDef.1 hJ).submatrix Sum.inl_injective
-  rwa [← toBlocks₁₁_eq_submatrix, neg_J_mul_eq_fromBlocks, toBlocks_fromBlocks₁₁] at h
+  simpa only [neg_J_mul_eq_fromBlocks, toBlocks_fromBlocks₁₁] using
+    (compatible_stdForm_iff_posDef.1 hJ).toBlocks₁₁
 
 /-- The matrix of an `ω₀`-compatible complex structure has invertible lower left block. -/
 theorem isUnit_det_toBlocks₂₁_of_compatible {J : AlmostComplexStructure (StdSpace ι)}
