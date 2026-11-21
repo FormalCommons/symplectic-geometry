@@ -39,44 +39,24 @@ namespace Unitary
 
 variable (𝕜 : Type*) [RCLike 𝕜]
 
-/-- Tau Ceti's group isomorphism between `unitary (𝕜 →L[𝕜] 𝕜)` and `unitary 𝕜`, through the
-strong unitary group; the topological group isomorphism below upgrades it. -/
-private def mulEquivAux : unitary (𝕜 →L[𝕜] 𝕜) ≃* unitary 𝕜 :=
-  ((StrongUnitary.unitaryEquivStrongUnitary 𝕜).toMulEquiv.trans
-    StrongUnitary.mulEquivUnitary).symm
-
-private theorem coe_mulEquivAux_apply (u : unitary (𝕜 →L[𝕜] 𝕜)) :
-    (mulEquivAux 𝕜 u : 𝕜) = (u : 𝕜 →L[𝕜] 𝕜) 1 := by
-  rw [mulEquivAux, MulEquiv.symm_trans_apply, StrongUnitary.mulEquivUnitary_symm_apply]
-  exact (StrongUnitary.coe_unitaryEquivStrongUnitary_symm _).trans
-    (StrongUnitary.ofUnitary_apply u 1)
-
-private theorem mulEquivAux_symm_apply (α : unitary 𝕜) (x : 𝕜) :
-    ((mulEquivAux 𝕜).symm α : 𝕜 →L[𝕜] 𝕜) x = (α : 𝕜) * x := by
-  rw [mulEquivAux, MulEquiv.symm_symm, MulEquiv.trans_apply, StrongUnitary.mulEquivUnitary_apply,
-    StrongUnitary.coe_toUnitary, StrongUnitary.coe_toCLM]
-  exact StrongUnitary.unitaryEquivStrongUnitary_apply α x
-
 /-- The unitary group of the algebra `𝕜 →L[𝕜] 𝕜`, with the operator-norm topology, is isomorphic
 as a topological group to `unitary 𝕜`: a unitary `u` goes to `u 1`, and `α` goes to
 multiplication by `α`. -/
 def continuousLinearMapSelfEquiv : unitary (𝕜 →L[𝕜] 𝕜) ≃ₜ* unitary 𝕜 where
-  toMulEquiv := mulEquivAux 𝕜
-  continuous_toFun := by
-    have h : ⇑(mulEquivAux 𝕜) = fun u ↦ ⟨(u : 𝕜 →L[𝕜] 𝕜) 1, by
-        simpa only [coe_mulEquivAux_apply] using (mulEquivAux 𝕜 u).property⟩ :=
-      funext fun u ↦ Subtype.ext (coe_mulEquivAux_apply 𝕜 u)
-    rw [show (mulEquivAux 𝕜).toFun = _ from h]
-    exact ((continuous_eval_const (1 : 𝕜)).comp continuous_subtypeVal).subtype_mk _
-  continuous_invFun := by
-    have h : ⇑(mulEquivAux 𝕜).symm = fun α ↦ ⟨(α : 𝕜) • (1 : 𝕜 →L[𝕜] 𝕜), by
-        convert ((mulEquivAux 𝕜).symm α).property
-        ext
-        simp [mulEquivAux_symm_apply]⟩ :=
-      funext fun α ↦ Subtype.ext <| ContinuousLinearMap.ext fun x ↦ by
-        simp [mulEquivAux_symm_apply, mul_comm]
-    rw [show (mulEquivAux 𝕜).invFun = _ from h]
-    exact (continuous_subtypeVal.smul continuous_const).subtype_mk _
+  toMulEquiv := ((StrongUnitary.unitaryEquivStrongUnitary 𝕜).toMulEquiv.trans
+    StrongUnitary.mulEquivUnitary).symm
+  continuous_toFun := continuous_induced_rng.2 <|
+    ((continuous_eval_const (1 : 𝕜)).comp continuous_subtypeVal).congr fun u ↦ Eq.symm <|
+      (StrongUnitary.coe_unitaryEquivStrongUnitary_symm _).trans <|
+        (congrArg (fun v : StrongUnitary 𝕜 𝕜 ↦ v 1)
+          (StrongUnitary.mulEquivUnitary_symm_apply u)).trans (StrongUnitary.ofUnitary_apply u 1)
+  continuous_invFun := continuous_induced_rng.2 <|
+    (continuous_subtypeVal.smul (continuous_const (y := (1 : 𝕜 →L[𝕜] 𝕜)))).congr fun α ↦
+      ContinuousLinearMap.ext fun x ↦ Eq.symm <|
+        (congrArg (fun v : unitary (𝕜 →L[𝕜] 𝕜) ↦ (v : 𝕜 →L[𝕜] 𝕜) x)
+          (StrongUnitary.mulEquivUnitary_apply _)).trans <| by
+            rw [StrongUnitary.coe_toUnitary, StrongUnitary.toCLM_apply]
+            exact StrongUnitary.unitaryEquivStrongUnitary_apply α x
 
 variable {𝕜}
 
@@ -91,12 +71,17 @@ theorem toMulEquiv_continuousLinearMapSelfEquiv :
 @[simp]
 theorem coe_continuousLinearMapSelfEquiv_apply (u : unitary (𝕜 →L[𝕜] 𝕜)) :
     (continuousLinearMapSelfEquiv 𝕜 u : 𝕜) = (u : 𝕜 →L[𝕜] 𝕜) 1 :=
-  coe_mulEquivAux_apply 𝕜 u
+  (StrongUnitary.coe_unitaryEquivStrongUnitary_symm _).trans <|
+    (congrArg (fun v : StrongUnitary 𝕜 𝕜 ↦ v 1) (StrongUnitary.mulEquivUnitary_symm_apply u)).trans
+      (StrongUnitary.ofUnitary_apply u 1)
 
 @[simp]
 theorem continuousLinearMapSelfEquiv_symm_apply (α : unitary 𝕜) (x : 𝕜) :
     ((continuousLinearMapSelfEquiv 𝕜).symm α : 𝕜 →L[𝕜] 𝕜) x = (α : 𝕜) * x :=
-  mulEquivAux_symm_apply 𝕜 α x
+  (congrArg (fun v : unitary (𝕜 →L[𝕜] 𝕜) ↦ (v : 𝕜 →L[𝕜] 𝕜) x)
+    (StrongUnitary.mulEquivUnitary_apply _)).trans <| by
+      rw [StrongUnitary.coe_toUnitary, StrongUnitary.toCLM_apply]
+      exact StrongUnitary.unitaryEquivStrongUnitary_apply α x
 
 end Unitary
 
