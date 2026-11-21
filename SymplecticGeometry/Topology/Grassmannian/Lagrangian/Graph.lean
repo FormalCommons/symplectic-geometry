@@ -71,10 +71,8 @@ namespace LagrangianGrassmannian
 @[fun_prop]
 theorem continuous_graphY : Continuous (graphY : selfAdjoint (Matrix ι ι ℝ) → ℒ ι) := by
   classical
-  have h (S : selfAdjoint (Matrix ι ι ℝ)) : (stdForm ι).IsLagrangian
-      (LinearMap.range (toEuclideanLin (fromRows (S : Matrix ι ι ℝ) 1))) := by
-    rw [StdSpace.range_toEuclideanLin_fromRows_one_eq_graphY]
-    exact (isLagrangian_graphY_iff _).2 (isHermitian_iff_isSymm.1 S.property)
+  have h (S : selfAdjoint (Matrix ι ι ℝ)) :=
+    isLagrangian_range_fromRows_one (isHermitian_iff_isSymm.1 S.property)
   have he : (graphY : selfAdjoint (Matrix ι ι ℝ) → ℒ ι) = fun S ↦ ⟨_, h S⟩ :=
     funext fun S ↦ toSubmodule_injective (by
       rw [coe_graphY]
