@@ -121,6 +121,7 @@ variable {EB HB M : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB]
 | `Geometry/Manifold/VectorBundle/Symplectic/Basic.lean` | `Bundle.ContMDiffTwoForm`, nondegeneracy, transport along bundle isomorphisms, the comparison with `TauCeti.SmoothTwoForm`, the flat form `flat` in the bundle of bilinear forms; symplectic isomorphisms and frames; forms of rank two | 3, 19 |
 | `Geometry/Manifold/VectorBundle/Section/Topology.lean` | a section as a $C^n$ map into the total space; continuity of fibrewise maps on section spaces | 4 |
 | `Geometry/Manifold/ContMDiffMap/Chart/CodRestrict.lean` | corestriction of $C^n$ maps to an open subset of the target, continuous for the weak Whitney topology | 4 |
+| `Geometry/Manifold/ContMDiffMap/Chart/Restriction.lean` | ambient chart derivatives of a function that agrees on an open set `U` with a $C^n$ map on `U`, and their convergence as that map converges in the weak Whitney topology on `U` | 4 |
 | `Geometry/Manifold/VectorBundle/Symplectic/ComplexStructure/Basic.lean` | tame and compatible pairs, $\omega_{g,J}$, the spaces of forms taming a fixed $J$; $J_{g,\omega}$ and existence; the five lemmas that tie `polarFormulaAt` and `polarEndAt` to these | 5, 6, 8 |
 | `Geometry/Manifold/VectorBundle/Cayley.lean` | the Cayley path formula in the endomorphism bundle of a vector bundle: smoothness along a base map, and the set `cayleyPathDomain` of the points where the path from a reference endomorphism is defined for every coefficient in $[0,1]$ | 7 |
 | `Geometry/Manifold/VectorBundle/Riemannian/PolarEnd.lean` | for a bundle metric `g`, $J_{g,\sigma}$ on the bundle of bilinear forms (`polarFormulaDomain`, `polarFormulaAt` and its smoothness) and $J_{g,\omega_{g,B}}$ on the endomorphism bundle (`compatibleBilinAt`, `polarEndDomain`, `polarEndAt` and its smoothness) | 6, 8 |
@@ -140,6 +141,8 @@ variable {EB HB M : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB]
 | `Geometry/Manifold/VectorBundle/Riemannian/Trivial.lean` | constant metrics on trivial bundles | 25 |
 | `Geometry/Manifold/VectorBundle/Hermitian/Basic.lean` | the symplectic form of a Hermitian bundle | 25 |
 | `Geometry/Manifold/VectorBundle/Hermitian/CircleBundle.lean` | the circle bundle of a Hermitian line bundle as a principal `Circle`-bundle, for fibres with their own complex inner products; the smooth side is *First Chern number*'s prerequisite 3 | 26 |
+| `Topology/FiberBundle/ChangeModelFiber.lean` | change of model fibre of a fibre bundle along a homeomorphism | 26 |
+| `Topology/FiberBundle/Principal/ChangeGroup.lean` | change of structure group of a principal bundle along `G ≃ₜ* H` | 26 |
 | `Geometry/Manifold/IsManifold/InteriorBoundary.lean` | the interior of a manifold with boundary as a boundaryless manifold | 12 |
 | `Topology/Connected/Clopen.lean` | preconnectedness of a dense subset from local preconnectedness | 12 |
 | `Geometry/Manifold/Boundary/Collar/Push.lean` | pushing a compact manifold with boundary into its interior | 13 |
@@ -162,7 +165,7 @@ folder at the same place, so that the two merge upstream.
 
 **Departures from `DESIGN.md`.** Each has its reason, and the overview
 lists each one: #59, #113, #212 and #218 brought it in line with the
-earlier ones, and the change that planned `CodRestrict.lean` added that
+earlier ones, and #276, which planned `CodRestrict.lean`, added that
 file to it.
 
 - The overview's `.../Symplectic/ComplexStructure.lean` becomes a folder of
@@ -174,6 +177,11 @@ file to it.
   about Tau Ceti's weak Whitney topology that the proof of
   `continuous_fiberwiseMap` uses (see *Continuity of fibrewise maps*), and
   sits in the Tau Ceti folder of that topology so that it can merge there.
+  `ContMDiffMap/Chart/Restriction.lean` is new for the same reason: it
+  holds the chart lemmas that the proof of `continuous_toContMDiffMap`
+  uses, and has the path of Tau Ceti's file of the same name, whose lemmas
+  it generalizes, so that the two can merge. It came with the code of
+  issue 4 (#334).
 - Five files are new (`IsManifold/InteriorBoundary.lean`,
   `Topology/Connected/Clopen.lean`, `Boundary/Collar/Push.lean`, `Section/Generic.lean`,
   `Section/Nonvanishing.lean`): they hold the prerequisites of the route to
@@ -203,6 +211,18 @@ file to it.
   alternating maps on a pull-back bundle uses no charts, so it sits in a
   topological file, beside Tau Ceti's linear-map lemma in its file of the same
   path. #323 asks the overview to record it.
+- `Analysis/Normed/Operator/SpanSingleton.lean` is new, and
+  `Analysis/CStarAlgebra/Unitary/ContinuousLinearMap.lean` also holds
+  `Unitary.continuousLinearMapCircleEquiv`: the circle bundle uses both, but
+  neither mentions a bundle, so each sits with its topic, in Mathlib's
+  namespace of its type. They came with the code of issue 26 (#328).
+- `Topology/FiberBundle/Principal/ChangeGroup.lean` is new: the change of
+  structure group behind the principal `Circle`-bundle of
+  `Hermitian/CircleBundle.lean` uses nothing about circles or frames, so it is stated
+  for any principal bundle and any `G ≃ₜ* H`, in the Tau Ceti folder of
+  principal bundles, so that it can merge there. The step it rests on, reading
+  a fibre bundle with another model fibre along a homeomorphism, involves no
+  group, so it has its own file, `Topology/FiberBundle/ChangeModelFiber.lean`.
 - The lemma of `Section/Topology.lean` asks for joint $C^n$ regularity in a
   manifold parameter instead of derivatives continuous in the parameter (see
   below), and issues 6, 7 and 8 wait for part 9: issue 6 for its building
@@ -580,7 +600,7 @@ is what the uses provide, since the fibre maps are explicit formulas.
 
 ```lean
 variable {P : Type*} [TopologicalSpace P] [ChartedSpace HP P] {IP : ModelWithCorners 𝕜 EP HP}
-  (Φ : P → ∀ x, V x → W x) {O : Set (TotalSpace F V)} (hO : IsOpen O)
+  (Φ : P → ∀ x, V x → W x) {O : Set (TotalSpace F V)}
   (hΦ : ContMDiffOn (IP.prod (I.prod 𝓘(𝕜, F))) (I.prod 𝓘(𝕜, F')) n
     (fun q : P × TotalSpace F V ↦ TotalSpace.mk' F' q.2.proj (Φ q.1 q.2.proj q.2.snd))
     (univ ×ˢ O))
@@ -588,19 +608,21 @@ variable {P : Type*} [TopologicalSpace P] [ChartedSpace HP P] {IP : ModelWithCor
 def fiberwiseMap (p : P) (s : {s : Cₛ^n⟮I; F, V⟯ // ∀ x, ⟨x, s x⟩ ∈ O}) : Cₛ^n⟮I; F', W⟯
 
 theorem continuous_fiberwiseMap [IsManifold IP n P] [LocallyCompactSpace EB]
-    [LocallyCompactSpace F] (hcover) :
+    [LocallyCompactSpace F] (hO : IsOpen O) (hcover) :
     letI := frameTopology e U hU; letI := frameTopology e' U' hU'
-    Continuous fun q : P × {s // ∀ x, ⟨x, s x⟩ ∈ O} ↦ fiberwiseMap Φ hO hΦ q.1 q.2
+    Continuous fun q : P × {s // ∀ x, ⟨x, s x⟩ ∈ O} ↦ fiberwiseMap Φ hΦ q.1 q.2
 ```
 
-with `fiberwiseMap_apply`. Here `e U hU` is a covering frame system of `V`
-(`hcover`) and `e' U' hU'` is any frame system of `W`. The target needs no
-cover, since `continuous_frameTopology_iff_frameCoordinates` tests one frame
-of `W` at a time; the uses supply covers of both bundles anyway.
+with `fiberwiseMap_apply`. The definition does not use that `O` is open, so
+`fiberwiseMap` does not take `hO`; only `continuous_fiberwiseMap` does.
+Here `e U hU` is a covering frame system of `V` (`hcover`) and `e' U' hU'`
+is any frame system of `W`. The target needs no cover, since
+`continuous_frameTopology_iff_frameCoordinates` tests one frame of `W` at a
+time; the uses supply covers of both bundles anyway.
 
 **The route.** By `continuous_frameTopology_iff_frameCoordinates`, it is
 enough to show, for each `j`, that the frame coordinates of
-`fiberwiseMap Φ hO hΦ p s` in `e' j` on `U' j` are continuous in `(p, s)` in
+`fiberwiseMap Φ hΦ p s` in `e' j` on `U' j` are continuous in `(p, s)` in
 `C^n⟮I, U' j; 𝓘(𝕜, F'), F'⟯`. Let `N j : Opens (TotalSpace F V)` be the
 points of `O` over `(e' j).baseSet` (open, since `O` is and the projection is
 continuous); it is a manifold with model `I.prod 𝓘(𝕜, F)`. The coordinates
@@ -618,8 +640,8 @@ Then `p ↦ G p` is continuous by Tau Ceti's
 `ContMDiff.continuous_manifoldWeakWhitney`
 (`Geometry/Manifold/ContMDiffMap/Chart/ManifoldFamily.lean`); `s ↦ σ s` by
 `continuous_toContMDiffMap`, Tau Ceti's `ContMDiffMap.continuous_restrict`
-(`.../ContMDiffMap/Chart/Restriction.lean`) and
-`ContMDiffMap.continuous_codRestrict_manifoldWeakWhitney`; and the
+(`.../ContMDiffMap/Chart/Restriction.lean`) and the family form
+`Continuous.codRestrict_manifoldWeakWhitney`; and the
 composite by Tau Ceti's `ContMDiffMap.continuous_comp_manifoldWeakWhitney`
 (`.../ContMDiffMap/Chart/Comp.lean`). That last lemma assumes local
 compactness of the models of the source (`EB`) and of the middle manifold
@@ -644,6 +666,9 @@ $C^n$ maps, so they are public and named.
   @[simp] theorem toContMDiffMap_apply (s : Cₛ^n⟮I; F, V⟯) (x : M) :
       toContMDiffMap s x = TotalSpace.mk' F x (s x)
 
+  theorem toContMDiffMap_injective :
+      Function.Injective (toContMDiffMap : Cₛ^n⟮I; F, V⟯ → C^n⟮I, M; I.prod 𝓘(𝕜, F), _⟯)
+
   theorem continuous_toContMDiffMap [LocallyCompactSpace EB] (hcover : ∀ x, ∃ i, x ∈ U i) :
       letI := frameTopology e U hU
       Continuous (toContMDiffMap : Cₛ^n⟮I; F, V⟯ → C^n⟮I, M; I.prod 𝓘(𝕜, F), TotalSpace F V⟯)
@@ -657,7 +682,58 @@ $C^n$ maps, so they are public and named.
   coordinates of `s` in `trivializationAt F V b`. These coordinates are
   continuous in `s` by Tau Ceti's `continuous_frameCoordinates_of_cover`
   (`Section/FrameCover.lean`), which is where `hcover` and the local
-  compactness of `EB` are used.
+  compactness of `EB` are used. Two public lemmas of the same file state
+  these facts about the chart of the total space:
+
+  ```lean
+  theorem toContMDiffMap_mem_extChartAt_source_iff (s : Cₛ^n⟮I; F, V⟯)
+      (y : TotalSpace F V) (p : M) :
+      toContMDiffMap s p ∈ (extChartAt (I.prod 𝓘(𝕜, F)) y).source ↔
+        p ∈ (trivializationAt F V y.proj).baseSet ∧ p ∈ (chartAt H y.proj).source
+
+  theorem extChartAt_toContMDiffMap (s : Cₛ^n⟮I; F, V⟯) (y : TotalSpace F V) {p : M}
+      (hp : p ∈ (trivializationAt F V y.proj).baseSet) :
+      extChartAt (I.prod 𝓘(𝕜, F)) y (toContMDiffMap s p) =
+        (extChartAt I y.proj p, (trivializationAt F V y.proj ⟨p, s p⟩).2)
+  ```
+
+  The frame coordinates are $C^n$ maps on the open base set only, while the
+  chart test reads `p ↦ (trivializationAt F V b ⟨p, s p⟩).2` in an ambient
+  chart of `M`; the two lemmas of `ContMDiffMap/Chart/Restriction.lean`
+  below bridge the gap.
+- In `Geometry/Manifold/ContMDiffMap/Chart/Restriction.lean`, namespace
+  `ContMDiffMap`, at the path of Tau Ceti's file of the same name: the
+  ambient chart derivatives of a function `f : M → F` that agrees on an open
+  set `U` with a map `g : C^n⟮I, U; 𝓘(𝕜, F), F⟯`, with nothing assumed
+  about `f` off `U`.
+
+  ```lean
+  theorem iteratedFDerivWithin_eq_taylorComp_of_eqOn_opens (U : Opens M)
+      (g : C^n⟮I, U; 𝓘(𝕜, F), F⟯) (f : M → F) (hfg : ∀ y : U, f y = g y) (x : M) (y : U)
+      {z : E} (hz : z ∈ (extChartAt I x).target) (hy : (extChartAt I x).symm z ∈ U)
+      (hys : (extChartAt I x).symm z ∈ (extChartAt I (y : M)).source) (m : ℕ) (hm : m ≤ n) :
+      iteratedFDerivWithin 𝕜 m (f ∘ (extChartAt I x).symm) (extChartAt I x).target z =
+        (ftaylorSeriesWithin 𝕜 (g ∘ (extChartAt I y).symm)
+          (extChartAt I y).target (extChartAt I (y : M) ((extChartAt I x).symm z))).taylorComp
+          (ftaylorSeriesWithin 𝕜 (extChartAt I (y : M) ∘ (extChartAt I x).symm)
+            (extChartAt I x).target z) m
+
+  theorem tendsto_iteratedFDerivWithin_of_eqOn_opens [LocallyCompactSpace E] (U : Opens M)
+      {P : Type*} {l : Filter P} {g : P → C^n⟮I, U; 𝓘(𝕜, F), F⟯}
+      {g₀ : C^n⟮I, U; 𝓘(𝕜, F), F⟯} (hg : Tendsto g l (𝓝 g₀)) {f : P → M → F} {f₀ : M → F}
+      (hfg : ∀ p (y : U), f p y = g p y) (hfg₀ : ∀ y : U, f₀ y = g₀ y) (x : M) {z : E}
+      (hz : z ∈ (extChartAt I x).target) (hy : (extChartAt I x).symm z ∈ U)
+      (m : ℕ) (hm : m ≤ n) :
+      Tendsto (fun q : P × E ↦ iteratedFDerivWithin 𝕜 m (f q.1 ∘ (extChartAt I x).symm)
+          (extChartAt I x).target q.2)
+        (l ×ˢ 𝓝[(extChartAt I x).target] z)
+        (𝓝 (iteratedFDerivWithin 𝕜 m (f₀ ∘ (extChartAt I x).symm) (extChartAt I x).target z))
+  ```
+
+  They generalize Tau Ceti's
+  `ContMDiffMap.iteratedFDerivWithin_eq_restrict_taylorComp` and
+  `ContMDiffMap.tendsto_iteratedFDerivWithin_of_restrict`, which are the case
+  `g = f.restrict U` of a $C^n$ map `f` on all of `M`, by the same proofs.
 - In `Geometry/Manifold/ContMDiffMap/Chart/CodRestrict.lean`, namespace
   `ContMDiffMap`, beside Tau Ceti's weak Whitney files: corestriction of a
   $C^n$ map to an open subset of the target that contains its range.
@@ -668,9 +744,27 @@ $C^n$ maps, so they are public and named.
   @[simp] theorem coe_codRestrict_apply (f : C^n⟮I, M; J, N⟯) (W : Opens N)
       (h : ∀ x, f x ∈ W) (x : M) : (f.codRestrict W h x : N) = f x
 
-  theorem continuous_codRestrict_manifoldWeakWhitney (W : Opens N) :
+  @[simp] theorem val_comp_codRestrict (f : C^n⟮I, M; J, N⟯) (W : Opens N)
+      (h : ∀ x, f x ∈ W) : Subtype.val ∘ f.codRestrict W h = f
+
+  theorem codRestrict_mem_chartJetSet_iff [IsManifold I n M] [IsManifold J n N]
+      (f : C^n⟮I, M; J, N⟯) (W : Opens N) (h : ∀ x, f x ∈ W) (x : M) (y : W) (m : ℕ)
+      (K : Set (extChartAt I x).target) (V : Set (E [×m]→L[𝕜] F)) :
+      f.codRestrict W h ∈ chartJetSet x y m K V ↔ f ∈ chartJetSet x (y : N) m K V
+
+  theorem continuous_codRestrict_manifoldWeakWhitney [IsManifold I n M] [IsManifold J n N]
+      (W : Opens N) :
       Continuous fun f : {f : C^n⟮I, M; J, N⟯ // ∀ x, f x ∈ W} ↦ f.1.codRestrict W f.2
+
+  theorem _root_.Continuous.codRestrict_manifoldWeakWhitney [IsManifold I n M]
+      [IsManifold J n N] {P : Type*} [TopologicalSpace P] {g : P → C^n⟮I, M; J, N⟯}
+      (hg : Continuous g) (W : Opens N) (h : ∀ p x, g p x ∈ W) :
+      Continuous fun p ↦ (g p).codRestrict W (h p)
   ```
+
+  Here `E` and `F` are the model spaces of `M` and `N`. The last lemma is the
+  form for a continuous family of maps, which the proof of
+  `continuous_fiberwiseMap` uses.
 
   Smoothness of the corestriction is Tau Ceti's
   `TauCeti.ContMDiff.subtypeVal_comp_iff`. Continuity needs no local
@@ -1444,7 +1538,11 @@ smoothness of `g`) and `1 ≤ n`, are stated only where that atlas is used, in
   (`trivializationAt_circleFiber`), and
   `instPrincipalBundleCircleFiber : TauCeti.PrincipalBundle Circle
   (Fiber ℂ F E ℂ)` follows from `instPrincipalBundleFiber`. *First Chern
-  number* uses both instances.
+  number* uses both instances. These are the hand-made form of the change of structure group
+  of `Topology/FiberBundle/Principal/ChangeGroup.lean`; #333 restates the
+  two instances through it and deletes `totalSpaceCircleEquiv`,
+  `totalSpaceCircleHomeomorph` and `circleTrivialization` with their lemmas,
+  updating this section.
 - The smooth side (smoothness of the action and of the coordinate changes,
   the diffeomorphism onto the submanifold, and the submersion, which comes
   from Tau Ceti's `TauCeti.ManifoldTotalSpace.isSubmersion_proj`) belongs to

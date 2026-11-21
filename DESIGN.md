@@ -252,6 +252,14 @@ further when they grow, following `AGENTS.md`.
   square $-1$) and `LinearAlgebra/Matrix/Symmetric.lean` (for
   `Matrix.isSymm_mul_nonsing_inv_of_transpose_mul_eq`). Both import only
   Mathlib and Tau Ceti and are merged, so the part still sits at level 0.
+  `Matrix.lean` also imports `LinearAlgebra/Symplectic/Compatible.lean` of
+  *Compatible complex structures*, for the matrix form of compatibility on
+  `StdSpace ι` (`compatible_stdForm_iff_posDef` and its companions). That
+  file imports only Tau Ceti, Mathlib, `Standard/Basic.lean`,
+  `LinearAlgebra/ComplexStructure/Action.lean` and
+  `LinearAlgebra/Symplectic/Subspace.lean`, none of which imports
+  `Matrix.lean`, and it is merged; so there is no cycle, and the files that
+  build on the dictionary see no change in order.
 - **Milestones:** none. It is the interface the other parts share.
 
 ### 2. Symplectic vector spaces
@@ -763,6 +771,8 @@ it into issues; the overview fixes its folders and its dependencies.
   `SymplecticForm V`), with the general file
   `Topology/Algebra/Module/BilinearForm.lean` (a continuous bilinear form in
   finite dimensions is recovered from its bilinear form),
+  `Geometry/Symplectic/Darboux/EuclideanBasis.lean` (the coordinates of a
+  basis adapted to $J$ are complex linear),
   `Geometry/Symplectic/Cayley/Domain.lean` (the open set where Tau Ceti's
   Cayley path is smooth),
   `Topology/ComplexStructure/Compatible/` (`Matrix.lean`: the identification
@@ -952,6 +962,13 @@ it into issues; the overview fixes its folders and its dependencies.
   on a pull-back bundle, a step that uses no charts; the file has the path
   of the Tau Ceti file with `ContinuousLinearMap.inCoordinates_pullback_of_mem`,
   so that the two merge upstream),
+  `Topology/FiberBundle/ChangeModelFiber.lean` (a fibre bundle read with
+  another model fibre along a homeomorphism, in Mathlib's namespaces and at
+  Mathlib's fibre-bundle level, since it involves no group),
+  `Topology/FiberBundle/Principal/ChangeGroup.lean` (the change of structure group
+  of a Tau Ceti principal bundle along an isomorphism of topological groups,
+  in the namespaces of the Tau Ceti and Mathlib types it is about; it sits
+  in the Tau Ceti folder of principal bundles, so that it can merge there),
   `Geometry/Symplectic/Manifold/Volume.lean` (the symplectic orientation of
   a negated two-form, in Tau Ceti's namespace; the file has the name of the
   Tau Ceti file that defines `volumeOrientation`),
@@ -1045,6 +1062,11 @@ it into issues; the overview fixes its folders and its dependencies.
   a $C^n$ map to an open subset of its target, continuous for Tau Ceti's
   weak Whitney topology; a step of the proof of the previous lemma, placed
   beside Tau Ceti's weak Whitney files so that it can merge there),
+  `Geometry/Manifold/ContMDiffMap/Chart/Restriction.lean` (ambient chart
+  derivatives of a function that agrees on an open set with a $C^n$ map on
+  it, and their convergence in the weak Whitney topology; another step of
+  the proof of that lemma, generalizing the lemmas of Tau Ceti's file of the
+  same name and sitting beside it so that the two can merge),
   `Geometry/Manifold/VectorBundle/Cayley.lean` (smoothness of Tau Ceti's
   `cayleyPathFormula` as a map into the endomorphism bundle of any vector
   bundle, along a base map, at every order, generalizing by the same proof
@@ -1402,7 +1424,7 @@ Each part depends only on the parts listed, besides Mathlib and Tau Ceti.
 
 | Level | Part | Builds on |
 |---|---|---|
-| 0 | *Standard model* | — (it imports `LinearAlgebra/Matrix/Block.lean` and `LinearAlgebra/Matrix/Symmetric.lean` of *Siegel upper half space*, which import only Mathlib and Tau Ceti and are merged) |
+| 0 | *Standard model* | — (it imports `LinearAlgebra/Matrix/Block.lean` and `LinearAlgebra/Matrix/Symmetric.lean` of *Siegel upper half space*, which import only Mathlib and Tau Ceti and are merged, and the merged `LinearAlgebra/Symplectic/Compatible.lean` of *Compatible complex structures*, which besides `Standard/Basic.lean` imports only merged files that do not import `Standard/Matrix.lean`) |
 | 0 | *Symplectic group* | — |
 | 0 | *Linear Moser* | — |
 | 1 | *Unitary group topology* | *Symplectic group* (only the file on $\mathrm{Sp}(2n)$; the other files can start at once) |
