@@ -537,7 +537,12 @@ it into issues; the overview fixes its folders and its dependencies.
   along `f`, is relabelling along `e.trans f`), and
   `LinearAlgebra/Matrix/GeneralLinearGroup/Symplectic/Unitary.lean`
   (`TauCeti.GLSymplectic.sum_ofUnitary`: `ofUnitary` turns the block sum
-  `Matrix.UnitaryGroup.sum` into `GLSymplectic.sum`). The part also adds
+  `Matrix.UnitaryGroup.sum` into `GLSymplectic.sum`). One file of general
+  topology serves it as well: `Topology/Grassmannian/Tautological.lean`
+  (`TauCeti.finiteGrassmannian.isClosedEmbedding_starProjection_toEuclidean`,
+  for any `RCLike 𝕜`: on the compact space `finiteGrassmannian 𝕜 r N`, the
+  map to orthogonal projections is a closed embedding; `Finite.lean` uses
+  it). The part also adds
   one declaration about `StdSpace ι` alone to *Standard model*'s
   `Standard/Basic.lean`: `StdSpace.complexEuclideanEquiv`, the map from
   `EuclideanSpace ℂ ι`. For the coordinate permutation along
