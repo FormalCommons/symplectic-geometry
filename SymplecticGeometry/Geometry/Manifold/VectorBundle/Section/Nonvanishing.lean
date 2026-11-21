@@ -175,7 +175,7 @@ private theorem exists_homotopy_interior_ne_zero [ConnectedSpace M] (hdim : 1 < 
     σ.isClosed_setOf_eq_zero.preimage continuous_subtypeVal
   have hZd : IsDiscrete (X := N) {x : U | σ x = 0} := hσ
   have hK' : IsCompact (X := N) K := hK
-  obtain ⟨Ψ, hΨ⟩ := exists_diffeotopy_apply_one_notMem (E := E) (N := N) (n := ∞) (m := 1)
+  obtain ⟨Ψ, hΨ, -⟩ := exists_diffeotopy_apply_one_notMem (E := E) (N := N) (n := ∞) (m := 1)
     (by rw [← Module.finrank_eq_rank]; exact_mod_cast hdim) le_rfl (by norm_num) hZ hZd hK' hKc
   exact ⟨fun p ↦ Ψ p, Ψ.contMDiff.continuous, Ψ.apply_zero, hΨ⟩
 

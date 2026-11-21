@@ -17,9 +17,9 @@ import TauCeti.Topology.Perfect
 
 In a preconnected boundaryless manifold `N` of real dimension at least two, let `Z` be a closed
 discrete subset and `K` a compact subset whose complement is nonempty. Then some diffeotopy of `N`
-has a final map that sends no point of `K` into `Z`
-(`TauCeti.exists_diffeotopy_apply_one_notMem`). Equivalently, the inverse of the final map carries
-the finitely many points of `Z ∩ K` out of `K`, and fixes every point of `Z \ K`.
+has a final map that sends no point of `K` into `Z`, while every point of `Z \ K` stays fixed at
+all times (`TauCeti.exists_diffeotopy_apply_one_notMem`). So the inverse of the final map carries
+the finitely many points of `Z ∩ K` out of `K`, and leaves the other points of `Z` in place.
 
 The proof picks as many distinct targets in the complement of `Z ∪ K` as `Z ∩ K` has points; they
 exist since `Z` has empty interior in the perfect space `N`. The complement of `Z \ K` is open and
@@ -45,12 +45,14 @@ variable {E N : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensi
 
 /-- A closed discrete subset `Z` of a preconnected boundaryless manifold of dimension at least two
 can be moved off a compact set `K` with nonempty complement: the final map of some `C^m`
-diffeotopy sends no point of `K` into `Z`. The regularity is `C^m` provided `1 ≤ m` and
+diffeotopy sends no point of `K` into `Z`, and the diffeotopy fixes each point of `Z \ K` at
+every time. The regularity is `C^m` provided `1 ≤ m` and
 `m + 1 ≤ n`. -/
 theorem exists_diffeotopy_apply_one_notMem [PreconnectedSpace N]
     (hdim : 1 < Module.rank ℝ E) (hm : 1 ≤ m) (hmn : (m : ℕ∞ω) + 1 ≤ n) {Z K : Set N}
     (hZ : IsClosed Z) (hZd : IsDiscrete Z) (hK : IsCompact K) (hKc : Kᶜ.Nonempty) :
-    ∃ Ψ : Diffeotopy 𝓘(ℝ, E) m N, ∀ y ∈ K, Ψ (1, y) ∉ Z := by
+    ∃ Ψ : Diffeotopy 𝓘(ℝ, E) m N,
+      (∀ y ∈ K, Ψ (1, y) ∉ Z) ∧ ∀ t, ∀ z ∈ Z \ K, Ψ (t, z) = z := by
   classical
   have : Nontrivial E := rank_pos_iff_nontrivial.mp (zero_lt_one.trans hdim)
   have : PerfectSpace E := perfectSpace_of_module ℝ E
@@ -67,8 +69,8 @@ theorem exists_diffeotopy_apply_one_notMem [PreconnectedSpace N]
   obtain ⟨y₀, hy₀⟩ := hZi.inter_open_nonempty Kᶜ hK.isClosed.isOpen_compl hKc
   let w := (infinite_of_mem_nhds y₀ (hT.mem_nhds hy₀)).natEmbedding
   -- The points of `Z` outside `K` stay where they are; the rest of `N` is preconnected.
-  have hZK : IsClosed (Z \ K) ∧ IsDiscrete (Z \ K) := isClosed_and_discrete_iff.2 fun x ↦
-    (isClosed_and_discrete_iff.1 ⟨hZ, hZd⟩ x).mono_right (Filter.principal_mono.2 sdiff_subset)
+  have hZK : IsClosed (Z \ K) ∧ IsDiscrete (Z \ K) :=
+    ⟨isClosed_of_subset_discrete_closed sdiff_subset hZd hZ, hZd.mono sdiff_subset⟩
   obtain ⟨Ψ, L, -, hLU, hΨL, hΨ⟩ := exists_diffeotopy_final_comp_eq_of_isPreconnected
     hdim hm hmn (isOpen_univ.sdiff hZK.1)
     (isPreconnected_sdiff_of_isOpen_of_isDiscrete_of_one_lt_rank hdim isOpen_univ
@@ -78,7 +80,7 @@ theorem exists_diffeotopy_apply_one_notMem [PreconnectedSpace N]
     (Subtype.val_injective.comp e.symm.injective)
     (fun i ↦ ⟨trivial, fun h ↦ (w i).prop.2 h.1⟩)
     (fun i ↦ ⟨trivial, fun h ↦ h.2 (e.symm i).prop.2⟩)
-  refine ⟨Ψ, fun y hy hyZ ↦ ?_⟩
+  refine ⟨Ψ, fun y hy hyZ ↦ ?_, fun t z hz ↦ hΨL t fun h ↦ (hLU h).2 hz⟩
   by_cases hyK : Ψ (1, y) ∈ K
   · -- A point of `Z ∩ K` is the image of a target, which lies outside `K`.
     have h := congrFun hΨ (e ⟨_, hyZ, hyK⟩)
