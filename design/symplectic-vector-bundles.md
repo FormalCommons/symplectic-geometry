@@ -872,9 +872,20 @@ that of the theorem of the previous section end with the line Milestone:
   (`SymplecticGeometry/Geometry/Symplectic/LinearMoser.lean`: the left Dyson
   series of `moserGenerator`), applied fibrewise, gives $\Psi_1$ with
   $\Psi_1^*\omega_2=\omega_1'$. The generator is a formula in the family of
-  forms and its time derivative, with no metric, so it commutes with the
-  coordinate changes of trivializations; that $\Psi_1$ is $C^n$ on the total
-  space is then issue 10's parametric smoothness, read in trivializations.
+  forms and its time derivative, with no metric. To see that $\Psi_1$ is $C^n$
+  on the total space, read everything in a trivialization at a base point
+  $x$ and take as parameter the pair $(a,b)=(\omega_1'(x),\omega_2(x))$ of
+  trivialized forms there, not the chart coordinates of $x$. The pair ranges
+  over the set of pairs all of whose convex combinations $(1-s)a+sb$,
+  $s\in[0,1]$, are invertible; this set is open, since $[0,1]$ is compact,
+  and it suffices for `hinv`, which only meets the values $\beta(t)\in[0,1]$.
+  The path $t\mapsto(1-\beta(t))a+\beta(t)b$ is affine in $(a,b)$, so issue
+  10's lemmas on an open parameter set give a propagator that is $C^n$ in
+  $(a,b,t)$. Composing with the trivialized sections, which are $C^n$ within
+  the chart range, a set that may meet the boundary, is then
+  `ContDiffOn.comp`. Two trivializations differ by a linear isomorphism, and
+  `moserGenerator_conj` carries the generator, hence $\Psi_1$, from one to
+  the other.
 
 ## Constructions
 
@@ -1494,9 +1505,13 @@ of *Constructions* for *First Chern number*.
    comes last. Blockers: 6, 19.
 10. **Parametric smoothness of the linear Moser flow.** The solution of the
     linear Moser equation, read in a trivialization, is $C^n$ jointly in the
-    time and in a parameter ranging over a subset of a normed space (the
-    chart coordinates of the base point, which may lie on the boundary), for
-    $C^n$ data; and the construction is natural under linear isomorphisms.
+    time and in a parameter ranging over an open subset $U$ of a normed
+    space, for $C^n$ data; and the construction is natural under linear
+    isomorphisms. The set must be open: on an arbitrary set, derivatives
+    within it need not be unique, and the superposition lemma the proof
+    uses (Tau Ceti's `ContinuousMap.contDiffAt_mkD_comp`) needs a
+    neighbourhood. Boundary points of the base are handled in the
+    *Classification* section, by taking the pair of forms as parameter.
     It is applied to the path $(1-\beta(t))\omega_1'+\beta(t)\omega_2$, with
     $\beta$ = `smoothTransition`, which is nondegenerate at every real time,
     as part 10's hypothesis `hinv` requires. Naturality comes from four
