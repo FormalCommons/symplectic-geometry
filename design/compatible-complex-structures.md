@@ -65,6 +65,22 @@ and does not redefine any of it:
   `TauCeti.convex_setOfPred_symm_pos`,
   `TauCeti.isOpen_setOf_forall_bilinear_apply_self_pos`,
   `ContinuousLinearMap.isOpen_setOf_nondegenerate_toBilinForm`.
+  The symmetric part of a continuous bilinear map,
+  `ContinuousLinearMap.symmetrizeBilinear`
+  (`Topology/Algebra/Module/SymmetricBilinear/Basic.lean`). Its complement,
+  the skew part $\tfrac12(s-s^{\mathrm{flip}})$, is not in Tau Ceti; the
+  library adds it next to `toContinuousBilinearMap_toBilinForm`, in its own
+  `Topology/Algebra/Module/BilinearForm.lean`, as
+  `ContinuousLinearMap.skewSymmetrizeBilinear`, with `_def`, `_apply`,
+  `flip_skewSymmetrizeBilinear`, `skewSymmetrizeBilinear_of_flip_eq_neg`,
+  `skewSymmetrizeBilinear_of_isAlt`, idempotence
+  (`skewSymmetrizeBilinear_skewSymmetrizeBilinear`),
+  `skewSymmetrizeBilinear_bilinearComp`,
+  `symmetrizeBilinear_add_skewSymmetrizeBilinear`,
+  `isAlt_toBilinForm_skewSymmetrizeBilinear` and
+  `nondegenerate_toBilinForm_skewSymmetrizeBilinear_iff` (nondegenerate
+  exactly when $s-s^{\mathrm{flip}}$ is, by Tau Ceti's
+  `TauCeti.BilinForm.nondegenerate_smul_iff`).
 - The Cayley transform (`Geometry/Symplectic/Cayley/`): `cayleyFormula`,
   `cayleyPathFormula`, `contDiffAt_cayleyPathFormula`,
   `Compatible.cayleyEquiv`, `Compatible.cayleyInterp`,

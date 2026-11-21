@@ -772,7 +772,8 @@ it into issues; the overview fixes its folders and its dependencies.
   `Topology/Algebra/Module/SymplecticForms.lean` (the topology on
   `SymplecticForm V`), with the general file
   `Topology/Algebra/Module/BilinearForm.lean` (a continuous bilinear form in
-  finite dimensions is recovered from its bilinear form),
+  finite dimensions is recovered from its bilinear form; the skew part of a
+  continuous bilinear map),
   `Geometry/Symplectic/Darboux/EuclideanBasis.lean` (the coordinates of a
   basis adapted to $J$ are complex linear),
   `Geometry/Symplectic/Cayley/Domain.lean` (the open set where Tau Ceti's
