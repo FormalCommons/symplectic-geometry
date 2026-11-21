@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Velocity
 public import TauCeti.Geometry.Symplectic.Flux.Hamiltonian
 public import TauCeti.Geometry.Symplectic.Hamiltonian.Manifold
+import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Basic
 import TauCeti.Geometry.Diffeomorphism.Group
 import TauCeti.Geometry.Manifold.Diffeomorph.Basic
 import TauCeti.Geometry.Manifold.MFDeriv.Constancy
@@ -42,8 +43,6 @@ transports Tau Ceti's rules for composites, inverses and conjugates to the readi
 * `TauCeti.Diffeotopy.HasHamiltonian.exists_sub_eq`,
   `TauCeti.Diffeotopy.IsGeneratedBy.exists_sub_eq`: two Hamiltonians of the same diffeotopy, in
   either reading, differ on every connected component of `M` by a smooth function of `t` alone.
-* `TauCeti.Diffeotopy.connectedComponent_apply`: each `φ_t` maps every point into its own
-  connected component.
 
 ## Implementation notes
 
@@ -67,26 +66,6 @@ namespace TauCeti.Diffeotopy
 
 variable {E H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
   {J : ModelWithCorners ℝ E H} {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
-
-/-- A diffeotopy moves every point inside its connected component: `φ_t x` lies in the connected
-component of `x`. -/
-theorem connectedComponent_apply {n : ℕ∞ω} (Φ : Diffeotopy J n M) (p : unitInterval × M) :
-    connectedComponent (Φ p) = connectedComponent p.2 := by
-  have hc : Continuous fun s : unitInterval ↦ Φ (s, p.2) :=
-    Φ.contMDiff.continuous.comp (continuous_id.prodMk continuous_const)
-  have hsub := (isPreconnected_univ.image _ hc.continuousOn).subset_connectedComponent
-    ⟨0, mem_univ _, Φ.apply_zero p.2⟩
-  exact (connectedComponent_eq (hsub ⟨p.1, mem_univ _, rfl⟩)).symm
-
-/-- At each time `t`, the map `φ_t` undoes its inverse: `φ_t (φ_t⁻¹ y) = y`. -/
-theorem apply_mk_symm_apply {n : ℕ∞ω} (Φ : Diffeotopy J n M) (t : unitInterval) (y : M) :
-    Φ (t, Φ.symm (t, y)) = y := by
-  rw [← symm_timeSlice_apply, ← timeSlice_apply, Diffeomorph.apply_symm_apply]
-
-/-- At each time `t`, the inverse map `φ_t⁻¹` undoes `φ_t`: `φ_t⁻¹ (φ_t x) = x`. -/
-theorem symm_apply_mk_apply {n : ℕ∞ω} (Φ : Diffeotopy J n M) (t : unitInterval) (x : M) :
-    Φ.symm (t, Φ (t, x)) = x := by
-  rw [← symm_timeSlice_apply, ← timeSlice_apply, Diffeomorph.symm_apply_apply]
 
 variable [IsManifold J ∞ M] {σ : SmoothTwoForm J M} {Φ Ψ : Diffeotopy J ∞ M}
   {F G : M × unitInterval → ℝ}

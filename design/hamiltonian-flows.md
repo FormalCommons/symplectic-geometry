@@ -242,9 +242,11 @@ These settle the questions that `DESIGN.md` leaves to this file.
    `DESIGN.md`'s table of signs says. The bracket conjunct of the first
    milestone and $[X_F,X_G]_{\mathrm b}=X_{\{F,G\}}$ are stated with it; no
    definition is made for it.
-9. **Layout.** `DESIGN.md`'s files are kept, with two more:
+9. **Layout.** `DESIGN.md`'s files are kept, with three more:
    `Geometry/Diffeomorphism/Diffeotopy/Velocity.lean`, for the velocity, which
-   concerns diffeotopies and not forms, and
+   concerns diffeotopies and not forms,
+   `Geometry/Diffeomorphism/Diffeotopy/Basic.lean`, for facts about
+   diffeotopies of any smoothness, at the path of Tau Ceti's file, and
    `Geometry/Manifold/Instances/Icc.lean`, for the smoothness of the unit
    vector field of an interval, which concerns intervals only. Tau Ceti has a
    folder `Geometry/Diffeomorphism/Diffeotopy/` with no `Velocity.lean`. The two
@@ -266,6 +268,7 @@ Tau Ceti unchanged.
 |---|---|
 | `Algebra/Lie/Quotient.lean` | `LieHom.coe_quotKerEquivRange_mk`: the value of `LieHom.quotKerEquivRange` on a class, for `PoissonAlgebra.lean` |
 | `Geometry/Manifold/Instances/Icc.lean` | `contMDiff_totalSpaceMk_one_Icc`: the unit vector field `z ↦ 1` of a closed interval is smooth |
+| `Geometry/Diffeomorphism/Diffeotopy/Basic.lean` | `connectedComponent_apply`, `apply_mk_symm_apply`, `symm_apply_mk_apply`: each slice keeps points in their components, and the slices and their inverses cancel in the coerced form `Φ (t, ·)` |
 | `Geometry/Diffeomorphism/Diffeotopy/Velocity.lean` | `Diffeotopy.velocity`, its joint smoothness, its value along the motion, its values for `refl` and the flow diffeotopies, and the pullback of $\iota_{X_t}\sigma$ by $\phi_t$ |
 | `Geometry/Symplectic/Hamiltonian/PoissonAlgebra.lean` | the Leibniz rule, the local time-dependent flow, the kernel and the quotient, the milestone *Hamiltonian flows and the Poisson algebra* |
 | `Geometry/Symplectic/Hamiltonian/SymplecticIsotopy.lean` | symplectic fields and their local flows, the book's bracket, the isotopy criterion, the milestone *Symplectic vector fields and isotopy generators* |
@@ -274,7 +277,8 @@ Tau Ceti unchanged.
 
 Imports between the files: `Velocity.lean` imports `Instances/Icc.lean`;
 `SymplecticIsotopy.lean` and
-`Flux/Hamiltonian.lean` import `Velocity.lean`; `Flux/CompactSupport.lean`
+`Flux/Hamiltonian.lean` import `Velocity.lean`; `Flux/Hamiltonian.lean`
+imports `Diffeotopy/Basic.lean`; `Flux/CompactSupport.lean`
 imports `Flux/Hamiltonian.lean`. `PoissonAlgebra.lean` imports Tau Ceti,
 among it `Hamiltonian/ExtendedPhaseSpace/Manifold.lean` for the energy
 identity, `Algebra/Lie/Quotient.lean` for the value of

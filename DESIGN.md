@@ -1709,6 +1709,8 @@ has either; Tau Ceti's extension across a boundary,
   `TauCeti.Diffeotopy.velocity`), with
   `Geometry/Manifold/Instances/Icc.lean` (the unit vector field of an
   interval is smooth),
+  `Geometry/Diffeomorphism/Diffeotopy/Basic.lean` (facts about diffeotopies
+  of any smoothness, used by `Flux/Hamiltonian.lean`),
   `Geometry/Symplectic/Hamiltonian/SymplecticIsotopy.lean`
   (symplectic vector fields and their local flows; a `TauCeti.Diffeotopy`
   has all its slices in `TauCeti.SmoothForm.diffeomorphStabilizer ω`
