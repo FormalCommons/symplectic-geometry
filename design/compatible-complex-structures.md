@@ -1067,8 +1067,11 @@ and starts no parallel API.
   `GLSymplectic.inf_unitarySubgroup`. Its docstring says so, and ends with
   "Milestone: *Compact subgroups of the symplectic group*."
 - The proof runs as follows:
-  1. $K$ acts continuously on `StdSpace ι` by `Matrix.toEuclideanLin`,
-     preserving `stdForm ι` (matrix dictionary, #8).
+  1. $K$ acts continuously on `StdSpace ι` through
+     `(contRep ℝ (ι ⊕ ι)).restrict ((GLSymplectic ι ℝ).subtype.comp K.subtype)`,
+     a matrix acting by `toEuclideanCLM`, with continuity from
+     `continuous_contRep`; the action preserves `stdForm ι` (matrix
+     dictionary, #8).
   2. `exists_compatible_forall_isComplexLinearMap` gives a compatible $J$
      that commutes with $K$.
   3. Condition (3) gives a symplectomorphism $\Psi$ with $\Psi J_0=J\Psi$,
