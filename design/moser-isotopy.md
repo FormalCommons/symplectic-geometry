@@ -45,7 +45,7 @@ written out in the Lean statements, as Tau Ceti writes it.
   because they are restrictions of diffeomorphisms
   (`isSmoothEmbedding_diffeomorph_comp`, with Mathlib's
   `Manifold.IsSmoothEmbedding.of_opens`). This file therefore does not use
-  `OfIsotopy.lean` of *Smooth families*, and the row of `DESIGN.md` that has
+  `Diffeotopy/Real.lean` of *Smooth families*, and the row of `DESIGN.md` that has
   the part build on *Smooth families* only through `Stability.lean` stays
   as it is. The library states the ambient version as a theorem of its own,
   since *Isotopy extension* needs that version.
@@ -63,7 +63,7 @@ written out in the Lean statements, as Tau Ceti writes it.
   and uses the local versions of Moser's principle
   (`TauCeti.mpullback_timeDependentFlowOf_mpullback_prodMk_apply_eq_of_mem`)
   and of the first-jet statement
-  (`TauCeti.mfderiv_timeDependentFlowOf_eq_id_of_jet_eq_zero`), which need
+  (`TauCeti.mfderiv_timeDependentFlowOf_eq_id_of_forall_eq_zero`), which need
   no completeness. *Symplectic neighbourhoods* uses the theorem of
   `Relative.lean` and Tau Ceti's tubular neighbourhoods
   (`Geometry/Manifold/TubularNeighborhood/`) directly.
@@ -155,13 +155,15 @@ The file has the name of Tau Ceti's file that defines
 `TauCeti.SmoothTwoForm.IsNondegenerate.interiorEquiv`. It is in the
 namespace `TauCeti.SmoothTwoForm.IsNondegenerate`.
 
-- `jet_interiorEquiv_symm_eq_zero`: let `σ` be a nondegenerate smooth
+- `hasFDerivAt_mpullbackWithin_interiorEquiv_symm`: let `σ` be a nondegenerate smooth
   two-form, let `β : SmoothForm I M ℝ 1`, and let `x` be a point with
   `β.val x = 0` at which the chart expression of `β` has zero derivative
   (`HasFDerivAt (RoughForm.inChartAt β.val x) 0 (extChartAt I x x)`, the
   form in which Tau Ceti's relative primitive states it). Then
-  `TauCeti.FirstJetBundle.jet I E (h.interiorEquiv.symm β) x = 0`. This is
-  the hypothesis of Tau Ceti's `mfderiv_timeDependentFlowOf_eq_id_of_jet_eq_zero`.
+  `HasFDerivAt (VectorField.mpullbackWithin 𝓘(ℝ, E) I (extChartAt I x).symm
+  (h.interiorEquiv.symm β) (range I)) 0 (extChartAt I x x)`. This gives the
+  hypothesis of Tau Ceti's `mfderiv_timeDependentFlowOf_eq_id_of_forall_eq_zero`
+  with no bridge through `FirstJetBundle.jet`.
   The proof adapts Tau Ceti's private `hasFDerivAt_mpullbackWithin_moserField`
   (`RelativeMoser.lean`). In the chart at `x`, the field is the inverse flat
   map of the coordinate form applied to `β`. The inverse flat map is bounded
@@ -215,14 +217,15 @@ Proof, in four steps.
    $\partial_t\sigma_t+L_{X_t}\sigma_t=c'(t)\,d\beta-c'(t)\,d\beta$
    vanishes everywhere on `N`, by Tau Ceti's
    `IsSymplectic.mlieDerivForm_interiorEquiv_symm`. `X t` vanishes at
-   `f q` with zero first jet, by `jet_interiorEquiv_symm_eq_zero`.
+   `f q`, and its chart expression has zero derivative there, by
+   `hasFDerivAt_mpullbackWithin_interiorEquiv_symm`.
 4. *Domain up to time one.* Let `Φ := timeDependentFlowPartialDiffeomorph
    (hn := le_top) hX 0 1` on `N`. Its source contains `f(Q)`, by
    `mem_timeDependentFlowDomain_of_forall_eq_zero`. Along its source,
    `mpullback_timeDependentFlowOf_mpullback_prodMk_apply_eq_of_mem` gives
    `Φ^* σ₁ = σ₀`, since `c 0 = 0` and `c 1 = 1`. `Φ` fixes `f(Q)`
    (`timeDependentFlowOf_eq_self_of_forall_eq_zero`), and its differential
-   there is the identity (`mfderiv_timeDependentFlowOf_eq_id_of_jet_eq_zero`).
+   there is the identity (`mfderiv_timeDependentFlowOf_eq_id_of_forall_eq_zero`).
    Tau Ceti's `PartialDiffeomorph.toDiffeomorphSourceTarget` makes `Φ` a
    diffeomorphism between opens of `N`. Reading these opens as opens of `M`
    gives `U₀`, `U₁` and `φ`. The differential is compared through
@@ -426,15 +429,16 @@ definition (`Diffeotopy.apply_zero`), which is $\psi_0=\mathrm{id}$.
 The proof follows the route of `DESIGN.md`. *Smooth families* supplies the
 following; its design file, from #466, gives their names.
 
-1. (★) of `SmoothFamily.lean`: a one-form `β` on `unitInterval × M` whose
-   slices satisfy `d β_t = ω_t - ω_0`.
-2. `TimeExtension.lean`: an extension `B` of `β` to `ℝ × M`.
+1. (★) of `DeRham/SmoothFamily/GoodCover.lean`, through
+   `exists_isSmoothFamily_mextDerivₗ_eq`: a one-form `β` on
+   `unitInterval × M` whose slices satisfy `d β_t = ω_t - ω_0`.
+2. `DifferentialForm/TimeExtension.lean`: an extension `B` of `β` to `ℝ × M`.
 3. A smooth reparametrization `c : ℝ → ℝ` that is the identity on
    $[0,1]$ and takes values in $(-\varepsilon,1+\varepsilon)$, for a given
    `ε > 0`. *Manifolds, families and signs* names this step. If
    `design/smooth-families.md` does not provide it, the building issue
    proposes it there.
-4. `OfIsotopy.lean`: the restriction of an isotopy over `ℝ` to a
+4. `Diffeotopy/Real.lean`: the restriction of an isotopy over `ℝ` to a
    `Diffeotopy`.
 
 Let `B' := (c × id)^* B`. Over `ℝ`, the forms are
@@ -447,7 +451,7 @@ lemma). Hence every slice of `σ` is symplectic. The velocity of `σ` is
 `L_{∂_t} d B' = d α`, so the hypothesis of
 `TauCeti.SmoothTwoForm.exists_isotopy_mpullback_eq` holds: Lie derivatives
 and pullbacks commute with `d`. That theorem gives
-`ψ : ℝ → M ≃ₘ⟮I, I⟯ M`, which `OfIsotopy.lean` restricts to `Ψ`.
+`ψ : ℝ → M ≃ₘ⟮I, I⟯ M`, which `Diffeotopy/Real.lean` restricts to `Ψ`.
 
 ## What the part uses
 
@@ -465,9 +469,9 @@ and pullbacks commute with `d`. That theorem gives
   `isCompleteVectorField_timeDependentSuspensionField`,
   `mem_timeDependentFlowDomain_of_forall_eq_zero`,
   `timeDependentFlowOf_eq_self_of_forall_eq_zero`,
-  `mfderiv_timeDependentFlowOf_eq_id_of_jet_eq_zero`,
+  `mfderiv_timeDependentFlowOf_eq_id_of_forall_eq_zero`,
   `mpullback_timeDependentFlowOf_mpullback_prodMk_apply_eq_of_mem` and
-  `_of_forall_mem_uIcc`, `FirstJetBundle.jet`.
+  `_of_forall_mem_uIcc`.
 - Tau Ceti, submanifolds and forms: `SmoothEmbedding`,
   `SmoothEmbedding.exists_isSmoothForm_relative_primitive`, `SmoothIsotopy`,
   `Diffeotopy` with `timeSlice`, `final` and `Diffeotopy.smoothIsotopy`,
@@ -508,7 +512,7 @@ sub-issues of #472, *Build the part Moser isotopy*. Sizes are estimates.
 | 3 | The cut-off Moser field of a segment of two-forms | `Moser/Field.lean` | — | 350 |
 | 4 | The Moser isotopy fixing a compact submanifold | `Moser/Isotopy.lean` | 1, 3 | 300 |
 | 5 | Darboux charts with prescribed derivative | `Geometry/Symplectic/Manifold/Darboux.lean` | — | 200 |
-| 6 | Moser stability | `Moser/Stability.lean` | 1; the issues of #467 that build `SmoothFamily.lean`, `TimeExtension.lean` and `OfIsotopy.lean` (#467 itself until it is split) | 250 |
+| 6 | Moser stability | `Moser/Stability.lean` | 1; the issues of #467 that build `DeRham/SmoothFamily/GoodCover.lean`, `DifferentialForm/TimeExtension.lean` and `Diffeotopy/Real.lean` (#467 itself until it is split) | 250 |
 
 Issues 1, 3 and 5 can start at once, and issues 2 and 4 need nothing outside the
 part. The milestones are proved in issues 2 (*Relative Moser theorem with
