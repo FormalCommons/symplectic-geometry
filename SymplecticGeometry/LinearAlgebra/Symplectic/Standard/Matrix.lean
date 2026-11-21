@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.LinearAlgebra.Symplectic.Compatible
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
 public import TauCeti.Analysis.Complex.Euclidean.Matrix
 public import TauCeti.Analysis.Matrix.EuclideanLin
@@ -20,6 +21,8 @@ A real matrix `A` indexed by `ι ⊕ ι` acts on `StdSpace ι` through `Matrix.t
 no reindexing. This file translates the matrix conditions of linear symplectic geometry into
 conditions on that map.
 
+* `SymplecticGeometry.stdForm_apply_toEuclideanLin`: `ω₀(v, A w) = vᵀ (-J₀ A) w`, where
+  `J₀ = Matrix.J ι ℝ`.
 * `SymplecticGeometry.mem_symplecticGroup_iff_forall_stdForm`: `A` lies in
   `Matrix.symplecticGroup ι ℝ` (that is, `Aᵀ J A = J`) if and only if its map preserves `ω₀`,
   `ω₀(A v, A w) = ω₀(v, w)` for all `v, w`.
@@ -31,6 +34,13 @@ conditions on that map.
   `Matrix.toEuclideanCLE`, is a symplectomorphism of `ω₀`.
 * `SymplecticGeometry.commute_toEuclideanLin_stdComplexStructure_iff`: `A` commutes with
   `Matrix.J ι ℝ` if and only if its map commutes with `J₀`.
+* `SymplecticGeometry.associatedBilinForm_stdForm_apply` and
+  `SymplecticGeometry.toMatrix_associatedBilinForm_stdForm`: for a complex structure `J` with
+  matrix `M`, the matrix `-J₀ M` is the Gram matrix of the metric `g_J(v, w) = ω₀(v, J w)`.
+* `SymplecticGeometry.invariant_stdForm_iff_isSymm`, `SymplecticGeometry.tames_stdForm_iff` and
+  `SymplecticGeometry.compatible_stdForm_iff_posDef`: `J` preserves `ω₀`, is tamed by `ω₀`, or
+  is `ω₀`-compatible exactly when `-J₀ M` is symmetric, has a positive definite quadratic form,
+  or is a positive definite matrix (McDuff–Salamon, Lemma 2.5.5).
 * `TauCeti.conj_complexToRealEuclidean_toLin'`: conjugating the complex-linear map of
   a complex matrix `A` by `complexToRealEuclidean ι` gives the map of its realification
   `Matrix.realify A`. With `A = I • 1`, whose realification is `Matrix.J ι ℝ`
@@ -64,27 +74,37 @@ open TauCeti Matrix
 
 variable {ι : Type*} [Fintype ι] [DecidableEq ι]
 
+/-- `ω₀(v, A w) = vᵀ (-J₀ A) w` for a real matrix `A` indexed by `ι ⊕ ι`, where
+`J₀ = Matrix.J ι ℝ`. -/
+theorem stdForm_apply_toEuclideanLin (A : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ) (v w : StdSpace ι) :
+    stdForm ι v (toEuclideanLin A w) = v.ofLp ⬝ᵥ ((-J ι ℝ * A) *ᵥ w.ofLp) := by
+  refine (LinearMap.congr_fun₂ stdForm_toBilinForm v (toEuclideanLin A w)).trans ?_
+  simp [Matrix.toBilin'_apply', Matrix.neg_mulVec, Matrix.mulVec_mulVec]
+
 /-- A real matrix `A` indexed by `ι ⊕ ι` is symplectic, `Aᵀ J A = J`, if and only if its map
 `Matrix.toEuclideanLin A` preserves the standard symplectic form:
 `ω₀(A v, A w) = ω₀(v, w)` for all `v, w`. Such an `A` is automatically invertible. -/
 theorem mem_symplecticGroup_iff_forall_stdForm {A : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ} :
     A ∈ symplecticGroup ι ℝ ↔
       ∀ v w, stdForm ι (A.toEuclideanLin v) (A.toEuclideanLin w) = stdForm ι v w := by
-  have base : ∀ v w : StdSpace ι, stdForm ι v w = -toBilin' (J ι ℝ) v.ofLp w.ofLp :=
-    fun v w ↦ LinearMap.congr_fun₂ stdForm_toBilinForm v w
-  have key : ∀ v w : StdSpace ι, stdForm ι (A.toEuclideanLin v) (A.toEuclideanLin w) =
-      -toBilin' (Aᵀ * J ι ℝ * A) v.ofLp w.ofLp := by
-    intro v w
-    rw [← Matrix.toBilin'_comp]
-    exact LinearMap.congr_fun₂ stdForm_toBilinForm _ _
-  rw [SymplecticGroup.mem_iff']
+  have key : ∀ (B : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ) (v w : StdSpace ι),
+      stdForm ι (B.toEuclideanLin v) (B.toEuclideanLin w) =
+        toBilin' (Bᵀ * (-J ι ℝ * B)) v.ofLp w.ofLp := fun B v w ↦ by
+    rw [stdForm_apply_toEuclideanLin, Matrix.toBilin'_apply', ← Matrix.mulVec_mulVec _ Bᵀ,
+      Matrix.dotProduct_mulVec v.ofLp Bᵀ, Matrix.vecMul_transpose]
+    simp
+  have base : ∀ v w : StdSpace ι, stdForm ι v w = toBilin' (-J ι ℝ) v.ofLp w.ofLp :=
+    fun v w ↦ by simpa using key 1 v w
+  have hA : Aᵀ * (-J ι ℝ * A) = -J ι ℝ ↔ Aᵀ * J ι ℝ * A = J ι ℝ := by
+    rw [Matrix.neg_mul, Matrix.mul_neg, neg_inj, Matrix.mul_assoc]
+  rw [SymplecticGroup.mem_iff', ← hA]
   constructor
   · intro h v w
-    rw [key, h, base]
+    rw [key, base, h]
   · intro h
     refine (Matrix.toBilin' (R₁ := ℝ)).injective (LinearMap.ext₂ fun v w ↦ ?_)
     have := h (WithLp.toLp 2 v) (WithLp.toLp 2 w)
-    rwa [key, base, neg_inj] at this
+    rwa [key, base] at this
 
 /-- A linear automorphism `e` of `StdSpace ι` is a symplectomorphism of `ω₀` if and only if its
 matrix `Matrix.toEuclideanLin.symm e` lies in `Matrix.symplecticGroup ι ℝ`. -/
@@ -114,6 +134,60 @@ theorem commute_toEuclideanLin_stdComplexStructure_iff {A : Matrix (ι ⊕ ι) (
   exact commute_map_iff (f := toLpLinAlgEquiv (R := ℝ) (n := ι ⊕ ι) 2)
     (toLpLinAlgEquiv 2).injective
 
+/-- The metric `g_J(v, w) = ω₀(v, J w)` is `vᵀ (-J₀ M) w`, where `M` is the matrix of `J` and
+`J₀ = Matrix.J ι ℝ`. -/
+theorem associatedBilinForm_stdForm_apply (J : AlmostComplexStructure (StdSpace ι))
+    (v w : StdSpace ι) :
+    (stdForm ι).associatedBilinForm J v w =
+      v.ofLp ⬝ᵥ ((-Matrix.J ι ℝ * toEuclideanLin.symm J.toLinearMap) *ᵥ w.ofLp) := by
+  rw [SymplecticForm.associatedBilinForm_apply, ← stdForm_apply_toEuclideanLin,
+    LinearEquiv.apply_symm_apply]
+
+/-- The matrix `-J₀ M` is the Gram matrix of the metric `g_J(v, w) = ω₀(v, J w)` in the standard
+basis, where `M` is the matrix of `J` and `J₀ = Matrix.J ι ℝ`. -/
+theorem toMatrix_associatedBilinForm_stdForm (J : AlmostComplexStructure (StdSpace ι)) :
+    ((stdForm ι).associatedBilinForm J).toMatrix (PiLp.basisFun 2 ℝ (ι ⊕ ι)) =
+      -Matrix.J ι ℝ * toEuclideanLin.symm J.toLinearMap := by
+  ext i j
+  rw [LinearMap.BilinForm.toMatrix_apply, associatedBilinForm_stdForm_apply]
+  simp [PiLp.basisFun_apply]
+
+/-- A complex structure `J` of `StdSpace ι` preserves `ω₀` exactly when the matrix `-J₀ M` is
+symmetric, where `M` is the matrix of `J`. -/
+theorem invariant_stdForm_iff_isSymm {J : AlmostComplexStructure (StdSpace ι)} :
+    (stdForm ι).Invariant J ↔
+      (-Matrix.J ι ℝ * toEuclideanLin.symm J.toLinearMap).IsSymm := by
+  rw [SymplecticForm.invariant_iff_isSymm_associatedBilinForm,
+    ← toMatrix_associatedBilinForm_stdForm, LinearMap.BilinForm.isSymm_toMatrix_iff_isSymm]
+
+/-- `ω₀` tames a complex structure `J` of `StdSpace ι` exactly when `xᵀ (-J₀ M) x > 0` for every
+nonzero `x`, where `M` is the matrix of `J`. -/
+theorem tames_stdForm_iff {J : AlmostComplexStructure (StdSpace ι)} :
+    (stdForm ι).Tames J ↔ ∀ x : ι ⊕ ι → ℝ, x ≠ 0 →
+      0 < x ⬝ᵥ ((-Matrix.J ι ℝ * toEuclideanLin.symm J.toLinearMap) *ᵥ x) := by
+  constructor
+  · intro h x hx
+    have := h (WithLp.toLp 2 x) (by simpa using hx)
+    rwa [← SymplecticForm.associatedBilinForm_apply, associatedBilinForm_stdForm_apply] at this
+  · intro h v hv
+    have := h v.ofLp (by simpa using hv)
+    rwa [← associatedBilinForm_stdForm_apply] at this
+
+/-- A complex structure `J` of `StdSpace ι` is `ω₀`-compatible exactly when the matrix `-J₀ M`
+is positive definite, where `M` is the matrix of `J`. -/
+theorem compatible_stdForm_iff_posDef {J : AlmostComplexStructure (StdSpace ι)} :
+    (stdForm ι).Compatible J ↔
+      (-Matrix.J ι ℝ * toEuclideanLin.symm J.toLinearMap).PosDef := by
+  rw [SymplecticForm.compatible_iff_isSymm_and_posDef_associatedBilinForm]
+  refine ⟨fun ⟨hs, hp⟩ ↦ ?_, fun h ↦ ?_⟩
+  · rwa [LinearMap.BilinForm.posDef_toQuadraticMap_iff_matrix (PiLp.basisFun 2 ℝ (ι ⊕ ι)) _ hs,
+      toMatrix_associatedBilinForm_stdForm] at hp
+  · have hs := invariant_stdForm_iff_isSymm.2 (isHermitian_iff_isSymm.1 h.isHermitian)
+    rw [SymplecticForm.invariant_iff_isSymm_associatedBilinForm] at hs
+    refine ⟨hs, ?_⟩
+    rwa [LinearMap.BilinForm.posDef_toQuadraticMap_iff_matrix (PiLp.basisFun 2 ℝ (ι ⊕ ι)) _ hs,
+      toMatrix_associatedBilinForm_stdForm]
+
 /-- `ω₀(v, M w)` for `v = (a, b)` and `w = (c, d)`, in terms of the blocks of `M`. -/
 theorem stdForm_toLp_sumElim_toEuclideanLin (M : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ) (a b c d : ι → ℝ) :
     stdForm ι (WithLp.toLp 2 (Sum.elim a b)) (toEuclideanLin M (WithLp.toLp 2 (Sum.elim c d))) =
@@ -123,27 +197,16 @@ theorem stdForm_toLp_sumElim_toEuclideanLin (M : Matrix (ι ⊕ ι) (ι ⊕ ι) 
     Fintype.sum_sum_type, toBlocks₁₁, toBlocks₁₂, toBlocks₂₁, toBlocks₂₂, Finset.sum_sub_distrib]
 
 /-- The lower left block `M₂₁` of the matrix `M` of an `ω₀`-compatible complex structure is
-positive definite: it is the Gram matrix of `ω₀(·, J ·)` on the `x`-coordinates. -/
+positive definite: it is the upper left block of the positive definite matrix `-J₀ M`, the Gram
+matrix of `ω₀(·, J ·)`. -/
 theorem posDef_toBlocks₂₁_of_compatible {J : AlmostComplexStructure (StdSpace ι)}
     (hJ : (stdForm ι).Compatible J) : (toEuclideanLin.symm J.toLinearMap).toBlocks₂₁.PosDef := by
-  set M := toEuclideanLin.symm J.toLinearMap
-  have hJM : ∀ v, J v = toEuclideanLin M v := fun v ↦ by simp [M]
-  have hswap := hJ.invariant.associatedBilinForm_apply_swap
-  have key : ∀ a b, stdForm ι (WithLp.toLp 2 (Sum.elim a 0)) (J (WithLp.toLp 2 (Sum.elim b 0))) =
-      a ⬝ᵥ (M.toBlocks₂₁ *ᵥ b) := fun a b ↦ by
-    rw [hJM, stdForm_toLp_sumElim_toEuclideanLin]
-    simp
-  refine posDef_iff_dotProduct_mulVec.2 ⟨IsHermitian.ext fun i j ↦ ?_, fun a ha ↦ ?_⟩
-  · have := hswap (WithLp.toLp 2 (Sum.elim (Pi.single j 1) 0))
-      (WithLp.toLp 2 (Sum.elim (Pi.single i 1) 0))
-    rw [key, key] at this
-    simpa [mulVec_single_one] using this
-  · have hv : WithLp.toLp 2 (Sum.elim a 0) ≠ (0 : StdSpace ι) := by
-      intro h
-      apply ha
-      funext i
-      simpa using congrFun (congrArg WithLp.ofLp h) (Sum.inl i)
-    simpa [key] using hJ.tames _ hv
+  have h : (toEuclideanLin.symm J.toLinearMap).toBlocks₂₁ =
+      (-Matrix.J ι ℝ * toEuclideanLin.symm J.toLinearMap).submatrix Sum.inl Sum.inl := by
+    ext i j
+    simp [Matrix.J, Matrix.mul_apply, Matrix.one_apply, Fintype.sum_sum_type, toBlocks₂₁]
+  rw [h]
+  exact (compatible_stdForm_iff_posDef.1 hJ).submatrix Sum.inl_injective
 
 /-- The matrix of an `ω₀`-compatible complex structure has invertible lower left block. -/
 theorem isUnit_det_toBlocks₂₁_of_compatible {J : AlmostComplexStructure (StdSpace ι)}
