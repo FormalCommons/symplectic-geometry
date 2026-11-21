@@ -164,8 +164,9 @@ No statement of this part is one that the authors' errata
   contraction parameter and never the time of a family, and
   `Diffeotopy.cylinderMap` with `Diffeotopy.HasHamiltonian`. One lemma passes
   between the two orders for forms (`mpullback_prodMk_mpullback_prodComm`,
-  through Mathlib's `Diffeomorph.prodComm`), and one for the velocity of a
-  diffeotopy (`Diffeotopy.mfderiv_cylinderMap_apply_one`).
+  through Mathlib's `Diffeomorph.prodComm`). The time derivative of a
+  diffeotopy is taken through `Diffeotopy.cylinderMap`, as
+  `HasHamiltonian` takes it, so it needs no such lemma.
 - **The constructor.** `TauCeti.Diffeotopy.ofContMDiff` takes a family
   `ψ : unitInterval → M ≃ₘ⟮I, I⟯ M`, jointly smooth, with `ψ 0` the identity:
   the input that the milestones of *Hamiltonian flows* describe. Its inverse
@@ -188,18 +189,20 @@ No statement of this part is one that the authors' errata
   statements about the time-one map.
 - **The files of the bridge.** The bridge is two files, named after their
   content: `Geometry/Diffeomorphism/Diffeotopy/Real.lean` (isotopies over
-  `ℝ` and diffeotopies: restriction, velocity fields, flows, the reading over
+  `ℝ` and diffeotopies: restriction, Eulerian fields, flows, the reading over
   `ℝ`) and `Geometry/Diffeomorphism/Diffeotopy/OfContMDiff.lean` (the
   constructor). Their declarations are in `TauCeti.Diffeotopy`, as they are
   about Tau Ceti's notion.
-- **The velocity of a diffeotopy.** `TauCeti.Diffeotopy.eulerianField Φ t y`
-  is the derivative in time, along the unit vector `1 : TangentSpace (𝓡∂ 1) t`
-  of the interval, of the motion through `Φ.symm (t, y)`. With Mathlib's
-  `oneTangentSpaceIcc` that vector is the direction of increasing time also at
-  $t=1$, where the chart of the interval reverses orientation, so the field
-  is continuous up to both ends. *Hamiltonian flows* decides which of its
-  statements use this field and which use the reading along the motion of
-  `Diffeotopy.HasHamiltonian`; `mfderiv_cylinderMap_apply_one` relates them.
+- **The velocity of a diffeotopy** is not defined here. *Hamiltonian flows*
+  defines it, as `TauCeti.Diffeotopy.velocity` in
+  `Diffeotopy/Velocity.lean`, and that part builds on this one. So the
+  bridge states its Eulerian fields pointwise along the motion, with the
+  time derivative of `Φ` written as the derivative of `Φ.cylinderMap` at
+  `(x, t)` on `∂ₜ = ((0 : E), (1 : TangentSpace (𝓡∂ 1) t))`, the vector
+  that `HasHamiltonian` and `velocity_apply_apply` use. With Mathlib's
+  `oneTangentSpaceIcc`, the interval's unit vector points towards
+  increasing time also at $t=1$, where the chart of the interval reverses
+  orientation.
 
 ## Files
 
@@ -272,6 +275,10 @@ Maps `unitInterval × M → F` into a normed space, for a boundaryless `M`.
 - `timeExtend_apply_coe (t : unitInterval) (x : M) : timeExtend f (t, x) =
   f (t, x)`; `timeExtend_add`, `timeExtend_smul`;
   `LinearMap.map_timeExtend`.
+- `timeExtend_eq_zero (h : ∀ s, f (s, x) = 0) (t : ℝ) : timeExtend f (t, x) =
+  0`: Seeley's sum at `(t, x)` combines values of `f` at the same point `x`.
+  *Hamiltonian flows* uses it to keep a Hamiltonian zero off a compact set
+  after the extension.
 - `ContMDiffOn.timeExtend {U : Set M} (hU : IsOpen U)
   (hf : ContMDiffOn ((𝓡∂ 1).prod I) 𝓘(ℝ, F) ∞ f (univ ×ˢ U)) :
   ContMDiffOn (𝓘(ℝ, ℝ).prod I) 𝓘(ℝ, F) ∞ (timeExtend f) (univ ×ˢ U)`, and
@@ -505,13 +512,10 @@ For `[FiniteDimensional ℝ E] [IsManifold I ∞ M] [T2Space M]
 In `TauCeti.Diffeotopy`, for `[FiniteDimensional ℝ E] [IsManifold I ∞ M]`
 and, where the inverse function theorem is used, `[BoundarylessManifold I M]`.
 
-- The velocity: `eulerianField (Φ : Diffeotopy I ∞ M) (t : unitInterval)
-  (y : M) : TangentSpace I y`, the derivative of `Φ` at `(t, Φ.symm (t, y))`
-  on the vector `((1 : TangentSpace (𝓡∂ 1) t), 0)`, with `eulerianField_def`,
-  `eulerianField_apply_apply` (its value at `Φ (t, x)`), and
-  `mfderiv_cylinderMap_apply_one`, the same vector read through
-  `cylinderMap` on `M × unitInterval`, the reading of
-  `Diffeotopy.HasHamiltonian`.
+Below, `∂ₜ` at `(x, t)` is the tangent vector
+`((0 : E), (1 : TangentSpace (𝓡∂ 1) t))` of `M × unitInterval`, as in
+*Decisions*.
+
 - Joint smoothness of inverses over `ℝ`: `TauCeti.contMDiff_diffeomorph_symm_apply
   {ψ : ℝ → M ≃ₘ⟮I, I⟯ M} (hψ : ContMDiff (𝓘(ℝ, ℝ).prod I) I ∞
   (fun p : ℝ × M ↦ ψ p.1 p.2)) : ContMDiff (𝓘(ℝ, ℝ).prod I) I ∞
@@ -521,11 +525,13 @@ and, where the inverse function theorem is used, `[BoundarylessManifold I M]`.
   `forall_mpullback_eq_iff_forall_mextDeriv_interior_eulerianField_eq_zero`.
 - Restriction: `ofReal (ψ : ℝ → M ≃ₘ⟮I, I⟯ M) (hψ : …) (h₀ : ∀ x, ψ 0 x = x) :
   Diffeotopy I ∞ M`, with `ofReal_apply`, `timeSlice_ofReal` and
-  `eulerianField_ofReal (t : unitInterval) : (ofReal ψ hψ h₀).eulerianField
-  t = TauCeti.eulerianField I (fun u ↦ (ψ u).toEquiv) t`.
+  `mfderiv_cylinderMap_ofReal (x : M) (t : unitInterval) : mfderiv
+  (I.prod (𝓡∂ 1)) I (ofReal ψ hψ h₀).cylinderMap (x, t) ∂ₜ =
+  TauCeti.eulerianField I (fun u ↦ (ψ u).toEquiv) t (ψ t x)`.
 - Flows: `timeDependentFlowDiffeotopy_eq_ofReal` (for `n = ∞`, the restriction
-  of `fun t ↦ timeDependentFlowDiffeomorph hc le_top hX 0 t`) and
-  `eulerianField_timeDependentFlowDiffeotopy : … .eulerianField t = X t`.
+  of `fun t ↦ timeDependentFlowDiffeomorph hc le_top hX 0 t`). The velocity
+  of the flow diffeotopy is `velocity_timeDependentFlowDiffeotopy` of
+  *Hamiltonian flows*, and is not stated here.
 - The reading over `ℝ`: `smoothTransitionFamily (Φ : Diffeotopy I ∞ M)
   (t : ℝ) : M ≃ₘ⟮I, I⟯ M := Φ.timeSlice ⟨Real.smoothTransition t, _, _⟩`,
   with `smoothTransitionFamily_apply`, `smoothTransitionFamily_of_nonpos`
@@ -533,11 +539,13 @@ and, where the inverse function theorem is used, `[BoundarylessManifold I M]`.
   `contMDiff_smoothTransitionFamily` and
   `contMDiff_smoothTransitionFamily_symm` (both jointly smooth, by
   `ContMDiff.smoothTransition` and `Φ.symm`, with no inverse function
-  theorem), and `eulerianField_smoothTransitionFamily : TauCeti.eulerianField
-  I (fun u ↦ (Φ.smoothTransitionFamily u).toEquiv) t =
-  deriv Real.smoothTransition t • Φ.eulerianField ⟨Real.smoothTransition t,
-  _, _⟩`, by `hasMFDerivAt_eulerianField`, `eulerianField_apply_apply` and the
-  chain rule through `mfderiv_subtypeVal_Icc_one`, as Tau Ceti's
+  theorem), and, writing `s u` for `⟨Real.smoothTransition u, _, _⟩`,
+  `eulerianField_smoothTransitionFamily_apply (u : ℝ) (x : M) :
+  TauCeti.eulerianField I (fun u ↦ (Φ.smoothTransitionFamily u).toEquiv) u
+  (Φ.smoothTransitionFamily u x) = deriv Real.smoothTransition u •
+  mfderiv (I.prod (𝓡∂ 1)) I Φ.cylinderMap (x, s u) ∂ₜ`, by
+  `eulerianField_apply_apply` and the chain rule through
+  `mfderiv_subtypeVal_Icc_one`, as Tau Ceti's
   `SmoothIsotopy/Velocity/Isotopy.lean` differentiates through
   `smoothTransition`. With `Real.smoothTransition.deriv_pos` and
   `deriv_of_neg`, `deriv_of_one_lt`, the consumers (*Hamiltonian flows*)
@@ -563,8 +571,9 @@ In `TauCeti.Diffeotopy`, for `[FiniteDimensional ℝ E] [IsManifold I ∞ M]
 - From Tau Ceti and Mathlib: everything listed under *What exists*.
 - From other parts: nothing. The part is at level 0 of `DESIGN.md`'s build
   order and stays there.
-- What later parts take: *Hamiltonian flows* uses `Diffeotopy/Real.lean` and
-  `Diffeotopy/OfContMDiff.lean`; *Moser isotopy* uses
+- What later parts take: *Hamiltonian flows* uses `Diffeotopy/Real.lean` (for
+  `SymplecticIsotopy.lean`) and `ContMDiff/TimeExtension.lean` with
+  `timeExtend_eq_zero` (for `Flux/CompactSupport.lean`); *Moser isotopy* uses
   `exists_isSmoothFamily_mextDerivₗ_eq`, `hasFiniteGoodCover_of_compactSpace`,
   `DifferentialForm/TimeExtension.lean` (to pass its primitives to `ℝ × M`)
   and `ofReal`; *Isotopy extension* uses the splittings, the smooth
