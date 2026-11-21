@@ -119,9 +119,9 @@ theorem complexStructureMatrix_coe (Z : SiegelUpperHalfSpace ι) :
 
 /-- `J(i𝟙) = J₀`. -/
 @[simp]
-theorem complexStructureMatrix_I :
-    complexStructureMatrix (SiegelUpperHalfSpace.I : SiegelUpperHalfSpace ι) = J ι ℝ := by
-  rw [complexStructureMatrix_coe]
+theorem complexStructureMatrix_I_smul_one :
+    complexStructureMatrix (Complex.I • 1 : Matrix ι ι ℂ) = J ι ℝ := by
+  rw [← coe_I, complexStructureMatrix_coe]
   simp [J]
 
 /-- For `G` invertible with `G Gᵀ = Y`, and `Φ = !![G, X G⁻ᵀ; 0, G⁻ᵀ]`, `J(Z) = Φ Φᵀ J₀`. -/
@@ -227,7 +227,7 @@ theorem complexStructure_toLinearMap (Z : SiegelUpperHalfSpace ι) :
 theorem complexStructure_I :
     complexStructure (SiegelUpperHalfSpace.I : SiegelUpperHalfSpace ι) = stdComplexStructure ι :=
   AlmostComplexStructure.toLinearMap_injective <| by
-    rw [complexStructure_toLinearMap, complexStructureMatrix_I,
+    rw [complexStructure_toLinearMap, coe_I, complexStructureMatrix_I_smul_one,
       stdComplexStructure_eq_toEuclideanLin_J]
 
 /-- The complex structure of `Ψ • Z` is `Ψ`, read in `GL`, acting on that of `Z`, that is, its
