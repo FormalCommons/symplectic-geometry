@@ -140,11 +140,11 @@ theorem toContinuousComplexStructure_almostComplexStructureAt
     J.toContinuousComplexStructure.almostComplexStructureAt x =
       J.almostComplexStructureAt x := (rfl)
 
-@[simp]
 theorem almostComplexStructureAt_toLinearMap (J : ContMDiffComplexStructure I n F V) (x : M) :
     (J.almostComplexStructureAt x).toLinearMap = (J x).toLinearMap :=
   LinearMap.ext fun v ↦ J.toContinuousComplexStructure.almostComplexStructureAt_apply x v
 
+@[simp]
 theorem almostComplexStructureAt_apply (J : ContMDiffComplexStructure I n F V) (x : M)
     (v : V x) : J.almostComplexStructureAt x v = J x v :=
   J.toContinuousComplexStructure.almostComplexStructureAt_apply x v
@@ -228,7 +228,6 @@ instance : Neg (ContMDiffComplexStructure I n F V) := ⟨ContMDiffComplexStructu
 theorem neg_toEndomorphism (J : ContMDiffComplexStructure I n F V) :
     (-J).toEndomorphism = -J.toEndomorphism := (rfl)
 
-@[simp]
 theorem neg_apply (J : ContMDiffComplexStructure I n F V) (x : M) : (-J) x = -J x := (rfl)
 
 @[simp]
