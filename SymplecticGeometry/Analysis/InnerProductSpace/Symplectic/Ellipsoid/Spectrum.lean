@@ -62,31 +62,6 @@ variable {ι : Type*} [Fintype ι]
 
 section Uniqueness
 
-/-- The standard Darboux basis of `StdSpace ι`, after a labelling `τ : Fin m ≃ ι` of the
-coordinate pairs: it sends `(k, 0)` to the unit vector of `x_{τ k}` and `(k, 1)` to that of
-`y_{τ k}`. -/
-private noncomputable def stdDarbouxBasisOf {m : ℕ} (τ : Fin m ≃ ι) :
-    Basis (Fin m × Fin 2) ℝ (StdSpace ι) :=
-  (stdDarbouxBasis m).map
-    ((EuclideanSpace.sumEquivProd (𝕜 := ℝ) (ι := Fin m) (κ := Fin m)).toLinearEquiv.symm.trans
-      (LinearIsometryEquiv.piLpCongrLeft 2 ℝ ℝ (τ.sumCongr τ)).toLinearEquiv)
-
-private theorem isDarbouxBasis_stdDarbouxBasisOf {m : ℕ} (τ : Fin m ≃ ι) :
-    (stdForm ι).IsDarbouxBasis (stdDarbouxBasisOf τ) :=
-  (isDarbouxBasis_stdDarbouxBasis m).map
-    (isSymplectomorphism_sumEquivProd.symm.trans (isSymplectomorphism_piLpCongrLeft_sumCongr τ))
-
-/-- In the standard Darboux basis, `∑ⱼ (xⱼ² + yⱼ²) / rⱼ² = ∑ₖ (2 / r_{τ k}²) Iₖ`. -/
-private theorem stdEllipsoidForm_eq_sum_smul_elliptic {m : ℕ} (τ : Fin m ≃ ι) (r : ι → ℝ) :
-    stdEllipsoidForm r = ∑ k, (2 / r (τ k) ^ 2) • elliptic (stdDarbouxBasisOf τ) k := by
-  ext z
-  rw [stdEllipsoidForm_apply, ← Equiv.sum_comp τ]
-  simp only [sum_apply, smul_apply, elliptic_apply, smul_eq_mul, stdDarbouxBasisOf,
-    Basis.map_repr]
-  refine Finset.sum_congr rfl fun k _ ↦ ?_
-  simp [div_eq_mul_inv]
-  ring
-
 /-- **The radii of a standard ellipsoid are a symplectic invariant.** If a linear symplectic
 map of `(ℝ²ⁿ, ω₀)` carries the standard ellipsoid `E(r)` onto `E(r')`, for positive radii `r`
 and `r'`, then `r'` is a permutation of `r`. -/
@@ -169,13 +144,12 @@ theorem symplecticSpectrum_eq {Q : QuadraticForm ℝ (StdSpace ι)} (hQ : Q.PosD
     (h : e '' {z | Q z ≤ 1} = stdEllipsoid r) :
     symplecticSpectrum Q = Finset.univ.val.map r := by
   obtain ⟨e₀, hr₀, he₀, h₀⟩ := (exists_isSymplectomorphism_image_eq_stdEllipsoid hQ).choose_spec
-  set r₀ := (exists_isSymplectomorphism_image_eq_stdEllipsoid hQ).choose
   simp only [symplecticSpectrum_def, hQ, ↓reduceDIte]
+  set r₀ := (exists_isSymplectomorphism_image_eq_stdEllipsoid hQ).choose
   have himage : (e.symm.trans e₀) '' stdEllipsoid r = stdEllipsoid r₀ := by
     rw [← h, Set.image_image]
     simpa using h₀
   obtain ⟨σ, hσ⟩ := exists_perm_eq_of_image_stdEllipsoid_eq hr hr₀ (he.symm.trans he₀) himage
-  change Multiset.map r₀ _ = _
   rw [hσ, ← Multiset.map_map, Multiset.map_univ_val_equiv]
 
 /-- The symplectic spectrum of a positive definite form has `n` elements. -/
@@ -240,20 +214,9 @@ theorem volume_stdEllipsoid {r : ι → ℝ} (hr : ∀ j, 0 < r j) :
     simp only [Sum.elim_inl, Sum.elim_inr, ← pow_two, Finset.prod_pow, abs_pow, sq_abs]
   rw [hdet]
   rcases isEmpty_or_nonempty ι with hι | hι
-  · simp only [Finset.univ_eq_empty, Finset.prod_empty, ENNReal.ofReal_one, one_mul,
-      Fintype.card_eq_zero, pow_zero, Nat.factorial_zero, Nat.cast_one, div_self one_ne_zero,
-      mul_one]
-    -- In dimension zero the closed unit ball and the unit cube are the whole space, a point.
-    have hsub : Subsingleton (StdSpace ι) := ⟨fun a b ↦ PiLp.ext fun k ↦ isEmptyElim k⟩
-    have huniv (s : Set (StdSpace ι)) (h0 : (0 : StdSpace ι) ∈ s) : s = Set.univ :=
-      Set.eq_univ_of_forall fun z ↦ Subsingleton.elim (0 : StdSpace ι) z ▸ h0
-    have hb := (EuclideanSpace.basisFun (ι ⊕ ι) ℝ).volume_parallelepiped
-    rwa [huniv _ ((mem_parallelepiped_iff _ _).2 ⟨0, by simp, by simp⟩),
-      ← huniv _ (Metric.mem_closedBall_self zero_le_one)] at hb
-  have hrank : Module.finrank ℝ (StdSpace ι) = 2 * Fintype.card ι := by
-    simp [two_mul]
-  rw [InnerProductSpace.volume_closedBall_of_dim_even hrank, ENNReal.ofReal_one, one_pow, one_mul,
-    ENNReal.ofReal_mul (by positivity), mul_comm]
+  · simp [volume_euclideanSpace_eq_dirac]
+  rw [InnerProductSpace.volume_closedBall_of_dim_even (finrank_stdSpace (ι := ι)),
+    ENNReal.ofReal_one, one_pow, one_mul, ENNReal.ofReal_mul (by positivity), mul_comm]
 
 /-- **The volume of an ellipsoid.** For a positive definite form `Q` on `(ℝ²ⁿ, ω₀)` with
 symplectic spectrum `r₁, …, rₙ`, the ellipsoid `{z | Q z ≤ 1}` has volume
