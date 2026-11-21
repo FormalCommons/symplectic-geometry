@@ -133,8 +133,7 @@ theorem coe_smul_graphY (S : selfAdjoint (Matrix ι ι ℝ)) :
       LinearMap.range (toEuclideanLin (fromRows
         (toBlocks₁₁ M * (S : Matrix ι ι ℝ) + toBlocks₁₂ M)
         (toBlocks₂₁ M * (S : Matrix ι ι ℝ) + toBlocks₂₂ M))) := by
-  rw [coe_smul, coe_graphY, ← StdSpace.range_toEuclideanLin_fromRows_one_eq_graphY,
-    ← LinearMap.range_comp, toEuclideanLin, ← toLpLin_mul_same]
+  rw [graphY_eq_ofFrame, coe_smul_ofFrame]
   conv_lhs => rw [← fromBlocks_toBlocks M]
   rw [fromBlocks_mul_fromRows]
   simp only [Matrix.mul_one]

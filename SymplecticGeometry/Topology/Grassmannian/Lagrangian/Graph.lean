@@ -6,7 +6,6 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Topology.OpenPartialHomeomorph.Composition
-public import SymplecticGeometry.LinearAlgebra.Matrix.Rank
 public import SymplecticGeometry.LinearAlgebra.Matrix.Symmetric
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Lagrangian.Transverse
 public import SymplecticGeometry.Topology.Grassmannian.Lagrangian.Quotient
@@ -102,36 +101,17 @@ private noncomputable def chartValue (U : unitaryGroup ι ℂ) : selfAdjoint (Ma
 theorem unitaryFrame_eq_graphY_iff {U : unitaryGroup ι ℂ} {S : selfAdjoint (Matrix ι ι ℝ)} :
     unitaryFrame U = graphY S ↔ IsUnit ((U : Matrix ι ι ℂ).map Complex.im) ∧
       (U : Matrix ι ι ℂ).map Complex.re * ((U : Matrix ι ι ℂ).map Complex.im)⁻¹ = S := by
-  set X := (U : Matrix ι ι ℂ).map Complex.re
-  set Y := (U : Matrix ι ι ℂ).map Complex.im
+  have hinj := (rank_eq_card_iff_mulVec_injective _).1
+    ((isLagrangian_range_fromRows_iff _ _).1 (isLagrangian_range_fromRows_re_im U)).1
+  rw [← toSubmodule_injective.eq_iff, coe_unitaryFrame, coe_graphY]
   constructor
   · intro h
-    have hXS : X = (S : Matrix ι ι ℝ) * Y := by
-      refine mulVec_injective (funext fun u ↦ ?_)
-      have hu : toEuclideanLin (fromRows X Y) (WithLp.toLp 2 u) ∈ graphY S := by
-        rw [← h, ← mem_toSubmodule, coe_unitaryFrame]
-        exact LinearMap.mem_range_self _ _
-      rw [mem_graphY_iff, StdSpace.x_toEuclideanLin_fromRows,
-        StdSpace.y_toEuclideanLin_fromRows] at hu
-      simpa [mulVec_mulVec] using hu
-    have hrank := ((isLagrangian_range_fromRows_iff _ _).1
-      (isLagrangian_range_fromRows_re_im U)).1
-    have hY : IsUnit Y := by
-      refine mulVec_surjective_iff_isUnit.1 (mulVec_surjective_iff_rank_eq_card.2 ?_)
-      refine le_antisymm (rank_le_card_width Y) ?_
-      calc Fintype.card ι = (fromRows X Y).rank := hrank.symm
-        _ = (fromRows (S : Matrix ι ι ℝ) 1 * Y).rank := by
-          rw [fromRows_mul, Matrix.one_mul, ← hXS]
-        _ ≤ Y.rank := rank_mul_le_right _ _
-    refine ⟨hY, ?_⟩
-    rw [hXS, mul_nonsing_inv_cancel_right (A := Y) _ ((isUnit_iff_isUnit_det Y).1 hY)]
+    have hY := (StdSpace.disjoint_range_toEuclideanLin_fromRows_ker_y_iff hinj).1
+      (h ▸ (StdSpace.isCompl_graphY_ker_y _).disjoint)
+    exact ⟨hY, StdSpace.graphY_injective
+      ((StdSpace.range_toEuclideanLin_fromRows_eq_graphY hY).symm.trans h)⟩
   · rintro ⟨hY, hS⟩
-    have hXS : X = (S : Matrix ι ι ℝ) * Y := by
-      rw [← hS, nonsing_inv_mul_cancel_right (A := Y) _ ((isUnit_iff_isUnit_det Y).1 hY)]
-    refine toSubmodule_injective ?_
-    rw [coe_unitaryFrame, coe_graphY, ← StdSpace.range_toEuclideanLin_fromRows_one_eq_graphY,
-      ← range_toLpLin_mul_of_isUnit 2 (fromRows (S : Matrix ι ι ℝ) 1) hY, fromRows_mul,
-      Matrix.one_mul, ← hXS]
+    rw [StdSpace.range_toEuclideanLin_fromRows_eq_graphY hY, hS]
 
 private theorem continuousOn_chartValue :
     ContinuousOn chartValue
@@ -244,24 +224,16 @@ theorem coe_graphYChart_eq_mul_inv [DecidableEq ι] {Λ : ℒ ι} {X Y : Matrix 
 that is, is transverse to `{y = 0}`, exactly when `Y` is invertible. -/
 theorem unitaryFrame_mem_graphYChart_source_iff [DecidableEq ι] {U : unitaryGroup ι ℂ} :
     unitaryFrame U ∈ (graphYChart : OpenPartialHomeomorph (ℒ ι) _).source ↔
-      IsUnit ((U : Matrix ι ι ℂ).map Complex.im) := by
-  rw [graphYChart_source, ← range_graphY]
-  constructor
-  · rintro ⟨S, hS⟩
-    exact (unitaryFrame_eq_graphY_iff.1 hS.symm).1
-  · intro hU
-    exact ⟨chartValue U, (unitaryFrame_eq_graphY_iff.2 ⟨hU, rfl⟩).symm⟩
+      IsUnit ((U : Matrix ι ι ℂ).map Complex.im) :=
+  mem_graphYChart_source_iff_isUnit (coe_unitaryFrame U)
 
 /-- For a unitary matrix `U = X + i Y` with `Y` invertible, the basic chart sends the Lagrangian
 framed by `U` to `X Y⁻¹`. -/
 theorem coe_graphYChart_unitaryFrame [DecidableEq ι] {U : unitaryGroup ι ℂ}
     (hU : IsUnit ((U : Matrix ι ι ℂ).map Complex.im)) :
     (graphYChart (unitaryFrame U) : Matrix ι ι ℝ) =
-      (U : Matrix ι ι ℂ).map Complex.re * ((U : Matrix ι ι ℂ).map Complex.im)⁻¹ := by
-  rw [← unitaryFrame_mem_graphYChart_source_iff, graphYChart_source, ← range_graphY] at hU
-  obtain ⟨S, hS⟩ := hU
-  rw [← hS, graphYChart_graphY]
-  exact (unitaryFrame_eq_graphY_iff.1 hS.symm).2.symm
+      (U : Matrix ι ι ℂ).map Complex.re * ((U : Matrix ι ι ℂ).map Complex.im)⁻¹ :=
+  coe_graphYChart_eq_mul_inv (coe_unitaryFrame U) hU
 
 /-! ### The chart transverse to the vertical subspace -/
 
