@@ -25,6 +25,8 @@ converses.
   compatible with `ω` exactly when `ω` has a Darboux basis `(v₁, J v₁, …, vₙ, J vₙ)`.
 * `TauCeti.SymplecticForm.invariant_iff_isSymm_associatedBilinForm`: `ω` is `J`-invariant
   exactly when `g_J` is symmetric.
+* `TauCeti.SymplecticForm.compatible_iff_isSymm_and_posDef_associatedBilinForm`: `J` is
+  compatible with `ω` exactly when `g_J` is symmetric and positive definite.
 * `TauCeti.SymplecticForm.compatible_iff_associatedBilinForm`: `J` is compatible with `ω`
   exactly when `g_J` is a `J`-invariant inner product.
 * `TauCeti.SymplecticForm.invariant_iff_complexAssociatedForm_conj_symm`: `ω` is `J`-invariant
@@ -69,16 +71,21 @@ theorem invariant_iff_isSymm_associatedBilinForm :
     ω.Invariant J ↔ (ω.associatedBilinForm J).IsSymm :=
   ⟨Invariant.associatedBilinForm_isSymm, invariant_of_isSymm_associatedBilinForm⟩
 
+/-- `J` is compatible with `ω` exactly when `g_J(v, w) = ω(v, J w)` is symmetric and positive
+definite. -/
+theorem compatible_iff_isSymm_and_posDef_associatedBilinForm :
+    ω.Compatible J ↔ (ω.associatedBilinForm J).IsSymm ∧
+      (ω.associatedBilinForm J).toQuadraticMap.PosDef := by
+  rw [compatible_iff, invariant_iff_isSymm_associatedBilinForm, tames_iff_associated_pos]
+
 /-- `J` is compatible with `ω` exactly when `g_J(v, w) = ω(v, J w)` is a `J`-invariant inner
 product: symmetric, positive definite, and unchanged when `J` is applied to both arguments. -/
 theorem compatible_iff_associatedBilinForm :
     ω.Compatible J ↔ (ω.associatedBilinForm J).IsSymm ∧
       (ω.associatedBilinForm J).toQuadraticMap.PosDef ∧
-      ∀ v w, ω.associatedBilinForm J (J v) (J w) = ω.associatedBilinForm J v w := by
-  refine ⟨fun h ↦ ⟨h.associatedBilinForm_isSymm, h.positive, fun v w ↦ ?_⟩,
-    fun h ↦ ⟨invariant_of_isSymm_associatedBilinForm h.1, h.2.1⟩⟩
-  simp only [associatedBilinForm_apply]
-  exact h.invariant_apply v (J w)
+      ∀ v w, ω.associatedBilinForm J (J v) (J w) = ω.associatedBilinForm J v w :=
+  ⟨fun h ↦ ⟨h.associatedBilinForm_isSymm, h.positive, h.associatedBilinForm_invariant⟩,
+    fun h ↦ compatible_iff_isSymm_and_posDef_associatedBilinForm.2 ⟨h.1, h.2.1⟩⟩
 
 /-- A symplectic form is `J`-invariant exactly when its Hermitian form
 `H(v, w) = ω(v, J w) + i ω(v, w)` is conjugate symmetric. -/
@@ -132,25 +139,14 @@ theorem IsDarbouxBasis.apply_apply_eq_ite {n : ℕ} {b : Basis (Fin n × Fin 2) 
 theorem IsDarbouxBasis.compatible {n : ℕ} {b : Basis (Fin n × Fin 2) ℝ V}
     (hb : ω.IsDarbouxBasis b) (hbJ : ∀ k, b (k, 1) = J (b (k, 0))) : ω.Compatible J := by
   have hδ := hb.apply_apply_eq_ite hbJ
-  have hg : ∀ x, ω.associatedBilinForm J (b x) = b.coord x := fun x ↦ b.ext fun y ↦ by
-    simp [hδ, Finsupp.single_apply, eq_comm]
-  have hsymm : (ω.associatedBilinForm J).IsSymm := by
-    refine ⟨fun v w ↦ ?_⟩
-    have : ω.associatedBilinForm J = (ω.associatedBilinForm J).flip :=
-      b.ext fun x ↦ b.ext fun y ↦ by simp [hδ, eq_comm]
-    exact LinearMap.congr_fun₂ this v w
-  refine ⟨invariant_of_isSymm_associatedBilinForm hsymm, fun v hv ↦ ?_⟩
-  have hv' : ω.associatedBilinForm J v = ∑ x, b.repr v x • b.coord x := by
-    conv_lhs => rw [← b.sum_repr v]
-    simp only [map_sum, map_smul, hg]
-  have hsum : ω.associatedBilinForm J v v = ∑ x, b.repr v x * b.repr v x := by
-    rw [hv']
-    simp [LinearMap.sum_apply]
-  rw [LinearMap.BilinMap.toQuadraticMap_apply, hsum]
-  obtain ⟨x, hx⟩ : ∃ x, b.repr v x ≠ 0 := by
-    by_contra! h
-    exact hv (b.ext_elem fun x ↦ by simp [h])
-  exact Finset.sum_pos' (fun y _ ↦ mul_self_nonneg _) ⟨x, Finset.mem_univ _, mul_self_pos.2 hx⟩
+  have hsymm : (ω.associatedBilinForm J).IsSymm :=
+    (LinearMap.BilinForm.isSymm_iff_basis b).2 fun x y ↦ by simp [hδ, eq_comm]
+  refine compatible_iff_isSymm_and_posDef_associatedBilinForm.2 ⟨hsymm, ?_⟩
+  have h1 : LinearMap.BilinForm.toMatrix b (ω.associatedBilinForm J) = 1 := by
+    ext x y
+    simp [LinearMap.BilinForm.toMatrix_apply, hδ, Matrix.one_apply]
+  rw [LinearMap.BilinForm.posDef_toQuadraticMap_iff_matrix b _ hsymm, h1]
+  exact Matrix.PosDef.one
 
 /-- In finite dimension, `J` is compatible with `ω` exactly when `ω` has a Darboux basis
 `(v₁, J v₁, …, vₙ, J vₙ)`, with `vₖ = b (k, 0)` and `J vₖ = b (k, 1)`. -/
@@ -173,7 +169,7 @@ private theorem Tames.lineMap_pos (h₀ : ω₀.Tames J) (h₁ : ω₁.Tames J)
     0 < ((1 - t) • ω₀.toBilinForm + t • ω₁.toBilinForm) v (J v) := by
   have a := h₀ v hv
   have b := h₁ v hv
-  change 0 < (1 - t) * ω₀ v (J v) + t * ω₁ v (J v)
+  simp only [LinearMap.add_apply, LinearMap.smul_apply, smul_eq_mul]
   rcases ht.2.lt_or_eq with ht' | rfl
   · nlinarith [mul_pos (sub_pos.2 ht') a, mul_nonneg ht.1 b.le]
   · simpa using b
