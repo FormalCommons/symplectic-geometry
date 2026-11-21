@@ -124,8 +124,9 @@ global name.
    complementary iff disjoint, which §6 puts in `Transverse.lean`, is
    `isCompl_iff_disjoint` in `LinearAlgebra/Symplectic/Lagrangian/Basic.lean`,
    since it holds for a general `ω` and `Transverse.lean` is about
-   `StdSpace ι`. A definition and a lemma about `StdSpace ι` alone are added to part 1's
-   `Standard/Basic.lean` (see that section). The other departures are #79's,
+   `StdSpace ι`. One definition about `StdSpace ι` alone,
+   `StdSpace.complexEuclideanEquiv`, is added to part 1's `Standard/Basic.lean`
+   (see that section). The other departures are #79's,
    the issue that changes §6 to match: `Topology/Grassmannian/Lagrangian/Finite.lean`;
    the general files under `LinearAlgebra/Matrix/` (the real points of the
    unitary group, the complex frame facts and the dimension of the space of
@@ -219,9 +220,9 @@ lacks. It goes beside `x_complexToRealEuclidean`, in the namespace
   issue 3 adds it.
 
 This part also uses
-`SymplecticGeometry.isSymplectomorphism_piLpCongrLeft_sumCongr` (`e : ι ≃ κ`),
+`SymplecticGeometry.isSymplectomorphism_piLpCongrLeft_sumCongr` (`σ : ι ≃ κ`),
 which is already in `Standard/Basic.lean`: the coordinate
-permutation `LinearIsometryEquiv.piLpCongrLeft 2 ℝ ℝ (e.sumCongr e)` carries
+permutation `LinearIsometryEquiv.piLpCongrLeft 2 ℝ ℝ (σ.sumCongr σ)` carries
 `stdForm ι` to `stdForm κ`.
 
 The direct sum of two models is §1's `StdSpace.sumEquiv ι κ : StdSpace (ι ⊕ κ)
