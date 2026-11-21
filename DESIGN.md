@@ -1036,18 +1036,21 @@ it into issues; the overview fixes its folders and its dependencies.
 
 ### 13. First Chern number (needs `design/first-chern-number.md`)
 
-- **Files:** `Geometry/Manifold/VectorBundle/ChernNumber/Basic.lean` (the
-  first Chern number of a symplectic bundle over a closed connected oriented
-  surface, through a splitting of the surface and the Maslov index of the
-  overlap loop; the extension lemma for maps from the boundary into
-  $\mathrm{Sp}(2n)$), `.../Axioms.lean` (naturality, functoriality,
-  additivity, normalization, uniqueness), `.../ChernWeil.lean`,
-  `.../EulerNumber.lean` (comparison with Tau Ceti's Euler class and
+- **Files:** `Topology/VectorBundle/Complex/FirstChernClass.lean` (the
+  first Chern class of a complex bundle, as `TauCeti.complexEulerClass` of
+  its determinant line, and the first Chern number over a compact oriented
+  surface), and in `Geometry/Manifold/VectorBundle/ChernNumber/`:
+  `Basic.lean` (the number of a symplectic bundle, through a compatible
+  complex structure), `Clutching.lean` (the disc clutching formula, by
+  determinants and Maslov indices), `Gluing.lean`, `Axioms.lean`
+  (naturality, functoriality, additivity, normalization, uniqueness),
+  `ChernWeil.lean`, `EulerNumber.lean` (with
   `TauCeti.VectorBundleOrientation.evalFundamentalClass_eulerClass_eq_sum_sectionIndex`),
-  `.../Clutching.lean` (comparison with Tau Ceti's `TauCeti.clutchingNumber`
-  (`Topology/VectorBundle/Complex/Clutching.lean`) for the complex bundle
-  given by a compatible structure, and with `TauCeti.complexEulerClass`
-  (`Topology/VectorBundle/Orientation/Complex/EulerClass.lean`)).
+  `ClutchingNumber.lean` (comparison with Tau Ceti's
+  `TauCeti.clutchingNumber`, `Topology/VectorBundle/Complex/Clutching.lean`)
+  and `Splitting.lean` (the splitting description through the Maslov index
+  of the overlap loop, and the extension lemma for maps from the boundary
+  into $\mathrm{Sp}(2n)$). `design/first-chern-number.md` gives the details.
 - **Builds on:** *Maslov index* (symplectic loops), *Symplectic vector
   bundles*, Tau Ceti's degree of maps (`TauCeti.HomologicalOrientation.degree`),
   surface genus (`TauCeti.surfaceGenus`), integration of top forms
@@ -1056,13 +1059,13 @@ it into issues; the overview fixes its folders and its dependencies.
 - **Milestones:** *First Chern number of symplectic vector bundles over
   surfaces*, *Chern–Weil formula for circle bundles over surfaces*, *First
   Chern number as an Euler number*.
-- This part needs the most infrastructure that neither library has
-  (decomposition of closed surfaces, degree with regular values linked to the
-  splitting, principal connections on circle bundles). Its design file lists
-  those prerequisites as separate issues before any of its own, and decides
-  whether the Chern number is defined by the splitting, as in the book, or
-  from `clutchingNumber` or `complexEulerClass`, with the book's description
-  as a theorem.
+- The number is defined from `complexEulerClass` of the determinant line;
+  the splitting description of the book, the disc clutching formula and
+  `clutchingNumber` are theorems, and no decomposition of surfaces is
+  needed. The infrastructure that neither library has (determinant lines,
+  coordinate discs, boundary degrees on surfaces with boundary, connection
+  forms on circle bundles, among others) comes as prerequisite issues
+  before the part's own, as the design file lists them.
 
 ## Dependencies and build order
 
