@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.Data.Bundle
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Hom
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Prod
+public import SymplecticGeometry.Topology.VectorBundle.Pullback
 public import TauCeti.Geometry.Manifold.VectorBundle.Complexification
 public import TauCeti.Geometry.Manifold.VectorBundle.Pullback
 public import TauCeti.Geometry.Manifold.VectorBundle.Section.FrameCover
@@ -249,6 +250,8 @@ instance : Neg (ContMDiffComplexStructure I n F V) := ⟨ContMDiffComplexStructu
 theorem neg_toEndomorphism (J : ContMDiffComplexStructure I n F V) :
     (-J).toEndomorphism = -J.toEndomorphism := (rfl)
 
+/-- The value of `-J` at `x` is `-J x`. This is not a `simp` lemma: its left-hand side is
+`(-J).toEndomorphism x`, which `simp` rewrites with `neg_toEndomorphism` first. -/
 theorem neg_apply (J : ContMDiffComplexStructure I n F V) (x : M) : (-J) x = -J x := (rfl)
 
 @[simp]
@@ -417,12 +420,23 @@ def pullback (J : ContMDiffComplexStructure I n F V) (f : C^n⟮I', N; I, M⟯) 
 theorem pullback_toEndomorphism (J : ContMDiffComplexStructure I n F V) (f : C^n⟮I', N; I, M⟯)
     (y : N) : (J.pullback f).toEndomorphism y = J.toEndomorphism (f y) := (rfl)
 
+/-- The pull-back at `y` sends a vector `v` of `V (f y)` to `J (f y) v`. As a `simp` lemma it
+applies only to vectors of type `V (f y)`; a vector of type `(f *ᵖ V) y` stays in the pull-back
+bundle, where the lemmas about the complex structure `J.pullback f` apply to it. -/
+@[simp]
 theorem pullback_apply (J : ContMDiffComplexStructure I n F V) (f : C^n⟮I', N; I, M⟯) (y : N)
     (v : V (f y)) : J.pullback f y v = J (f y) v := (rfl)
 
-/-- The pull-back at `y` acts as `J (f y)`. This is stated for the functions rather than on
-vectors, so that `simp` uses it both on vectors of `V (f y)` and on vectors of `(f *ᵖ V) y`. -/
+/-- `J (f y)` applied to a vector `v` of the pull-back bundle `f *ᵖ V` at `y` is the pull-back
+`J.pullback f` at `y` applied to `v`. As a `simp` lemma it applies only to vectors of type
+`(f *ᵖ V) y`, and is the counterpart of `pullback_apply` for them. -/
 @[simp]
+theorem apply_eq_pullback_apply (J : ContMDiffComplexStructure I n F V) (f : C^n⟮I', N; I, M⟯)
+    (y : N) (v : ((f : N → M) *ᵖ V) y) : J (f y) v = J.pullback f y v := (rfl)
+
+/-- The pull-back at `y` acts as `J (f y)`. This is not a `simp` lemma: on vectors of type
+`(f *ᵖ V) y` it would undo `apply_eq_pullback_apply`, and `pullback_apply` covers vectors of type
+`V (f y)`. -/
 theorem coe_pullback (J : ContMDiffComplexStructure I n F V) (f : C^n⟮I', N; I, M⟯) (y : N) :
     ⇑(J.pullback f y) = ⇑(J (f y)) := (rfl)
 
@@ -440,11 +454,20 @@ theorem coe_almostComplexStructureAt_pullback (J : ContMDiffComplexStructure I n
     ⇑((J.pullback f).almostComplexStructureAt y) = ⇑(J (f y)) :=
   funext fun v ↦ almostComplexStructureAt_apply (J.pullback f) y v
 
-@[simp]
+/-- The pull-back of `-J` is `-(J.pullback f)`. This is not a `simp` lemma: applied to a vector
+of type `V (f y)`, the right-hand side is a function on `(f *ᵖ V) y` negated pointwise, which
+`simp` cannot evaluate, while `pullback_apply` evaluates the left-hand side; see
+`pullback_neg_apply` for vectors of type `(f *ᵖ V) y`. -/
 theorem pullback_neg (J : ContMDiffComplexStructure I n F V) (f : C^n⟮I', N; I, M⟯) :
     (-J).pullback f = -(J.pullback f) := by
   ext y v
   rfl
+
+/-- The pull-back of `-J` at `y` sends a vector `v` of `(f *ᵖ V) y` to `-(J.pullback f y v)`,
+the negation taken in the pull-back bundle. -/
+@[simp]
+theorem pullback_neg_apply (J : ContMDiffComplexStructure I n F V) (f : C^n⟮I', N; I, M⟯) (y : N)
+    (v : ((f : N → M) *ᵖ V) y) : (-J).pullback f y v = -J.pullback f y v := (rfl)
 
 end Pullback
 
