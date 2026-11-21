@@ -300,7 +300,7 @@ On an open `U`, it is applied to `U` and the restriction
   symplectic quotients*.
 - The coisotropic case, in namespace
   `TauCeti.SmoothTwoForm.IsNondegenerate.IsCoisotropicMap`:
-  `IsCoisotropicMap.exists_isCharacteristicSubmersion` applies the above to `σ = f^*ω` for a coisotropic smooth embedding `f` of a closed
+  `IsCoisotropicMap.exists_isCharacteristicSubmersion` applies the above to `σ = f^*ω` for a coisotropic immersion `f` of a closed
   `ω`, with `k` the codimension, from Tau Ceti's
   `IsCoisotropicMap.finrank_ker_bilinFormAt_mpullback`. Then
   `IsCoisotropicMap.isIsotropic_map_ker_bilinFormAt_mpullback` says that
@@ -548,9 +548,10 @@ being an embedding, the image of `Q` in the source is exactly the part of
   structures of `Neighborhood/Basic.lean` come from Tau Ceti's
   `TauCeti.SmoothTwoForm.IsNondegenerate.exists_compatible`.
 - From *Symplectic vector spaces*: `LinearAlgebra/Symplectic/Reduction.lean`
-  (merged), in `Extension.lean` and `Isotropic.lean`.
+  (merged), in `Extension.lean` and `Isotropic.lean`, and
+  `LinearAlgebra/Symplectic/Subspace.lean` (merged), in `CharacteristicFoliation.lean`.
 - From *Standard model*: `StdSpace`, `stdForm`, `stdForm_apply`, in
-  `AdaptedDarboux.lean`.
+  `AdaptedDarboux.lean`; `StdSpace` also in `CharacteristicFoliation.lean`.
 - *Cotangent bundles* is not used: `Lagrangian.lean` needs only Tau Ceti's
   `symplecticForm` and `isLagrangianMap_zeroSection`, because the comparison
   theorem replaces the zero-section splitting.
