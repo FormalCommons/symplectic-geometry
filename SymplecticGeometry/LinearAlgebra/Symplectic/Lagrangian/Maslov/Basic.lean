@@ -279,18 +279,15 @@ theorem exists_realImageLoop_maslovIndex_eq {Λ : ℒ ι} (γ : Path Λ Λ) :
       (∀ t, unitaryFrame (δ t) = γ t) ∧
         (UnitaryGroup.realImageLoop δ h).maslovIndex = maslovIndex γ := by
   obtain ⟨U, hU⟩ := unitaryFrame_surjective Λ
-  obtain ⟨Γ, hΓ₀, hΓ⟩ := (hasHomotopyLiftingProperty_unitaryFrame ι Unit).exists_path_lift
-    (γ.cast hU hU)
-  let δ : Path U (Γ 1) := ⟨Γ, hΓ₀, rfl⟩
-  have hδ (t : I) : unitaryFrame (δ t) = γ t := congrFun hΓ t
-  have h : UnitaryGroup.souriau U = UnitaryGroup.souriau (Γ 1) :=
+  obtain ⟨V, δ, hδ⟩ := exists_path_lift_unitaryFrame γ hU
+  have h : UnitaryGroup.souriau U = UnitaryGroup.souriau V :=
     unitaryFrame_eq_unitaryFrame_iff_souriau_eq.1 <| by
       have h₀ := hδ 0
       have h₁ := hδ 1
       rw [Path.source, Path.source] at h₀
       rw [Path.target, Path.target] at h₁
       rw [h₀, h₁]
-  exact ⟨U, Γ 1, δ, h, hδ, (maslovIndex_eq_totallyRealLoop_maslovIndex γ δ hδ h).symm⟩
+  exact ⟨U, V, δ, h, hδ, (maslovIndex_eq_totallyRealLoop_maslovIndex γ δ hδ h).symm⟩
 
 /-! ### Direct sums and the angle of a frame -/
 
