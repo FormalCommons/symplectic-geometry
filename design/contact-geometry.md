@@ -455,7 +455,8 @@ Expected size: 200 lines.
 
 Named like Tau Ceti's file, in `SymplecticGeometry`.
 
-- `IsContactFamily ξ` as in *Decisions*, with `isContactFamily_iff`.
+- `IsContactFamily ξ` as in *Decisions*, with `isContactFamily_def` and
+  `isContactFamily_iff` (the kernels read on vertical vectors `(0, v)`).
 - `IsContactFamily.of_isContactForm`: if every slice of
   `α : SmoothForm ((𝓡∂ 1).prod I) (unitInterval × M) ℝ 1` is a contact
   form, then `IsContactFamily fun t ↦ (α_t).kerDistribution`. This is the
@@ -472,9 +473,14 @@ Named like Tau Ceti's file, in `SymplecticGeometry`.
   for `t ∈ J ∩ [0, 1]`, `x ∈ U`. Uses `TimeExtension.lean` of *Smooth
   families* and a smooth reparametrization `ℝ → J` that is the identity on
   a neighbourhood of the relevant times.
-- `IsContactFamily.grayVector_eq_of_eq_smul`: the pointwise independence of
-  step 2, for two local defining families related by a smooth nowhere zero
-  multiplier near a point, from `eq_grayVectorField_iff` on both sides.
+- `TauCeti.SmoothForm.grayVectorField_eq_of_eventuallyEq_smul` (`[I.Boundaryless]`):
+  the pointwise independence of step 2, for two families on `ℝ × M` with
+  contact slices at `t`, related near `(t, x)` by a multiplier differentiable
+  and nonzero at `(t, x)`. It is about Tau Ceti's `grayVectorField`, hence
+  in its namespace, and follows from the pointwise form of
+  `IsContactForm.contactMoserVectorField_of_eq_smul`,
+  `TauCeti.SmoothForm.IsContactForm.contactMoserVectorField_apply_of_eventuallyEq_smul`,
+  in the same file.
 
 Expected size: 400 lines, in two issues (G1 and G2).
 
@@ -607,7 +613,7 @@ In this order; each is blocked by the ones listed, and all are sub-issues of
 | H2 | Time-dependent contact Hamiltonians and the milestone | `Geometry/Contact/Hamiltonian.lean` (joint smoothness, rescaling formula, `contactVectorFields_correspondence`) | H1 | 200 |
 | D | The contact Darboux theorem in the page's signs | `Geometry/Contact/Darboux/Strict.lean` | — | 200 |
 | G0 | Moser's principle along one trajectory, rescaling case | `Geometry/Manifold/DifferentialForm/Flow/Family.lean` | — | 100 |
-| G1 | Smooth families of contact structures | `Geometry/Contact/Family.lean` (`IsContactFamily` and its API, `grayVector_eq_of_eq_smul`) | — | 250 |
+| G1 | Smooth families of contact structures | `Geometry/Contact/Family.lean` (`IsContactFamily` and its API, `grayVectorField_eq_of_eventuallyEq_smul`) | — | 250 |
 | G2 | Local defining families over `ℝ` | `Geometry/Contact/Family.lean` (`exists_local_extension`) | G1, the issue of *Smooth families* that adds `TimeExtension.lean` | 150 |
 | G3 | The Gray field and the Gray isotopy of a family | `Geometry/Contact/Gray.lean` (`Transports`, `exists_grayField`, `grayDiffeotopy`, transport and velocity) | G0, G2 | 350 |
 | G4 | Uniqueness, rescaling of forms, and Gray stability | `Geometry/Contact/Gray.lean` (`eq_grayDiffeotopy_of_transports`, `Transports.exists_mpullback_eq_smul`, the milestone) | G3, the issue of *Smooth families* that adds `OfIsotopy.lean` | 250 |
