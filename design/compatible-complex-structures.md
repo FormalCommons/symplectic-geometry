@@ -301,7 +301,9 @@ The part uses the following from other parts:
   `compatible_iff_exists_isSymplectomorphism_stdForm`.
   `Topology/ComplexStructure/Compatible/Matrix.lean` imports
   `Topology/ComplexStructure/Basic.lean`, which besides `Action.lean` imports
-  only Tau Ceti, for `AlmostComplexStructure.homeomorphMatrix` and
+  only Tau Ceti and the merged `LinearAlgebra/Matrix/NonsingularInverse.lean`
+  and `Analysis/CStarAlgebra/Matrix.lean` (which import only Mathlib and
+  merged files that do), for `AlmostComplexStructure.homeomorphMatrix` and
   `coe_homeomorphMatrix` in `compatibleEquivPosDefSymplectic`.
   `Topology/Algebra/Matrix/SymplecticGroup/CompactSubgroup.lean` imports
   `LinearAlgebra/ComplexStructure/Standard.lean`, for
