@@ -254,7 +254,10 @@ find them there.
   `(x, y) ↦ (y, x)`, the composite of `equivProd`, `LinearEquiv.prodComm` and
   `equivProd.symm`. It goes beside `equivProd`, before the file's
   `variable [Fintype ι]`, since it needs no finiteness. API: `swap_def`, and the
-  `@[simp]` lemmas `x_swap` and `y_swap` (both by `(rfl)`), `swap_swap`,
+  `@[simp]` lemmas `x_swap`, `y_swap`, and their coordinate forms
+  `swap_apply_inl : swap ι z (Sum.inl i) = z (Sum.inr i)` and `swap_apply_inr`
+  (all four by `(rfl)`, so that `simp` pushes `swap` through `x_apply` and
+  `y_apply`), `swap_swap`,
   `symm_swap`, and `map_swap_ker_x` and `map_swap_ker_y`, which say that it
   exchanges `LinearMap.ker StdSpace.x` and `LinearMap.ker StdSpace.y`.
 
