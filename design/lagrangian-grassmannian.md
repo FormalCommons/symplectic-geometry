@@ -55,9 +55,11 @@ global name.
    the unitary frames nor `Quotient.lean`. The coordinate isometry
    `StdSpace.finSumIsometry n` conjugates the projection onto `Λ` into the
    projection onto its image. On the compact Hausdorff space
-   `finiteGrassmannian`, Tau Ceti's continuous and injective
-   `V ↦ V.toEuclidean.starProjection` is therefore a closed embedding
-   (`Topology/Grassmannian/Tautological.lean`), and the map out of `ℒ (Fin n)`,
+   `finiteGrassmannian`, the map `V ↦ V.toEuclidean.starProjection` into a
+   Hausdorff space of operators is continuous by Tau Ceti and injective by
+   `toEuclidean_injective` and `Submodule.starProjection_inj`, hence a closed
+   embedding (`Topology/Grassmannian/Tautological.lean`); and the map out of
+   `ℒ (Fin n)`,
    composed with it, is the embedding `Λ ↦ Λ.starProjection` followed by a
    homeomorphism (`Topology.IsEmbedding.of_comp_iff`). A map out of
    `ℒ ι` is continuous as soon as its composite with the unitary frame map
@@ -129,9 +131,13 @@ global name.
    complementary iff disjoint, which §6 puts in `Transverse.lean`, is
    `isCompl_iff_disjoint` in `LinearAlgebra/Symplectic/Lagrangian/Basic.lean`,
    since it holds for a general `ω` and `Transverse.lean` is about
-   `StdSpace ι`. One definition about `StdSpace ι` alone,
-   `StdSpace.complexEuclideanEquiv` with its four lemmas, is added to part 1's
-   `Standard/Basic.lean` (see that section). The other departures are #79's,
+   `StdSpace ι`. Declarations about `StdSpace ι` alone
+   (`StdSpace.complexEuclideanEquiv`, `StdSpace.swap`,
+   `StdSpace.finSumIsometry`, the coordinate lemmas
+   `StdSpace.x_piLpCongrLeft_sumCongr` and `StdSpace.y_piLpCongrLeft_sumCongr`,
+   with their API) are added to part 1's `Standard/Basic.lean`; the section
+   *Additions to Standard model's `Standard/Basic.lean`* lists them. The
+   other departures are #79's,
    the issue that changes §6 to match: `Topology/Grassmannian/Lagrangian/Finite.lean`;
    the general files under `LinearAlgebra/Matrix/` (the real points of the
    unitary group, the complex frame facts and the dimension of the space of
@@ -246,29 +252,36 @@ file of that name, in the namespace `Matrix`, over `RCLike 𝕜`:
 - `Matrix.piLpCongrLeft_toEuclideanLin_apply (e : m ≃ n) (M : Matrix m m 𝕜) z`:
   `piLpCongrLeft 2 𝕜 𝕜 e (toEuclideanLin M z) =
   toEuclideanLin (reindex e e M) (piLpCongrLeft 2 𝕜 𝕜 e z)`.
-  `Lagrangian/Sum.lean` uses it for `reindex_unitaryFrame`.
+  `LinearAlgebra/Symplectic/Lagrangian/Sum.lean` uses it for
+  `reindex_unitaryFrame`.
 
 ### `Analysis/Normed/Lp/PiLp.lean`
 
-A general fact about Mathlib's `LinearIsometryEquiv.piLpCongrLeft`, beside
-Mathlib's file of that name, in the namespace `LinearIsometryEquiv`:
+A general fact about Mathlib's `LinearIsometryEquiv.piLpCongrLeft`, in the
+namespace `LinearIsometryEquiv`, beside Tau Ceti's file of that name
+(`TauCeti/Analysis/Normed/Lp/PiLp.lean`, which has `piLpCongrLeft_refl`), its
+natural upstream home:
 
 - `LinearIsometryEquiv.piLpCongrLeft_trans (e : ι ≃ ι') (f : ι' ≃ ι'')`
   (`@[simp]`): `(piLpCongrLeft p 𝕜 E e).trans (piLpCongrLeft p 𝕜 E f) =
   piLpCongrLeft p 𝕜 E (e.trans f)`, the composition counterpart of Tau
-  Ceti's `piLpCongrLeft_refl`. `Lagrangian/Sum.lean` uses it for
-  `reindex_trans`.
+  Ceti's `piLpCongrLeft_refl`. `LinearAlgebra/Symplectic/Lagrangian/Sum.lean`
+  uses it for `reindex_trans`.
 
-### `LinearAlgebra/Matrix/GeneralLinearGroup/Symplectic/Unitary.lean`
+### `Topology/Algebra/Matrix/Realify.lean`
 
 A general fact about Tau Ceti's `GLSymplectic`, in the namespace
-`TauCeti.GLSymplectic`, beside Tau Ceti's file of that name, so that it can
-move there unchanged; it imports only Tau Ceti:
+`TauCeti.GLSymplectic`, beside Tau Ceti's file of that name, which defines
+`ofUnitary` and `coe_ofUnitary`; it imports only Tau Ceti. Tau Ceti's
+`LinearAlgebra/Matrix/GeneralLinearGroup/Symplectic/Unitary.lean` is no home
+for it: Tau Ceti's `Topology/Algebra/Matrix/Realify.lean` imports that file,
+so the lemma there could not see `ofUnitary`.
 
 - `TauCeti.GLSymplectic.sum_ofUnitary (U : unitaryGroup ι ℂ)
   (U' : unitaryGroup κ ℂ)`: `sum (ofUnitary U, ofUnitary U') =
   ofUnitary (Matrix.UnitaryGroup.sum (U, U'))`, from
-  `Matrix.realify_fromBlocks_zero`. `Lagrangian/Sum.lean` uses it for
+  `Matrix.realify_fromBlocks_zero`.
+  `LinearAlgebra/Symplectic/Lagrangian/Sum.lean` uses it for
   `sum_unitaryFrame`.
 
 ### `Topology/Grassmannian/Tautological.lean`
@@ -316,8 +329,9 @@ find them there.
   sign of `ω₀`: `stdForm ι (swap ι z) (swap ι w) = -stdForm ι z w`.
 - `StdSpace.finSumIsometry n : StdSpace (Fin n) ≃ₗᵢ[ℝ] EuclideanSpace ℝ (Fin (n + n))`,
   the relabelling of coordinates
-  `LinearIsometryEquiv.piLpCongrLeft 2 ℝ ℝ finSumFinEquiv`. It goes before
-  the file's `variable [Fintype ι]`. `Finite.lean` uses it to reach Tau
+  `LinearIsometryEquiv.piLpCongrLeft 2 ℝ ℝ finSumFinEquiv`. It comes right
+  after `sq_x_add_sq_y_le_norm_sq`, between the file's two
+  `variable [Fintype ι]` lines. `Finite.lean` uses it to reach Tau
   Ceti's Grassmannian. API: `finSumIsometry_def`, and the `@[simp]` lemmas
   `finSumIsometry_apply : finSumIsometry n z k = z (finSumFinEquiv.symm k)`
   and `finSumIsometry_symm_apply :
@@ -327,12 +341,13 @@ This part also uses
 `SymplecticGeometry.isSymplectomorphism_piLpCongrLeft_sumCongr` (`σ : ι ≃ κ`),
 which is already in `Standard/Basic.lean`: the coordinate
 permutation `LinearIsometryEquiv.piLpCongrLeft 2 ℝ ℝ (σ.sumCongr σ)` carries
-`stdForm ι` to `stdForm κ`. Beside it, building issue 11 adds the
+`stdForm ι` to `stdForm κ`. Beside it, building issue 11 added the
 coordinates of that permutation, as two `@[simp]` lemmas in the namespace
 `SymplecticGeometry.StdSpace`:
 `x_piLpCongrLeft_sumCongr : x (piLpCongrLeft 2 ℝ ℝ (σ.sumCongr σ) z) = z.x ∘ σ.symm`
-and `y_piLpCongrLeft_sumCongr`, the same for `y`. `Lagrangian/Sum.lean`
-uses them for `reindex_horizontal` and `reindex_vertical`.
+and `y_piLpCongrLeft_sumCongr`, the same for `y`.
+`LinearAlgebra/Symplectic/Lagrangian/Sum.lean` uses them for
+`reindex_horizontal` and `reindex_vertical`.
 
 The direct sum of two models is §1's `StdSpace.sumEquiv ι κ : StdSpace (ι ⊕ κ)
 ≃L[ℝ] StdSpace ι × StdSpace κ`, in this same file, with its lemma that it
@@ -817,13 +832,16 @@ no `Topology/` file of this part.
   §1's matrix lemma for `sumEquiv` in `Standard/Matrix.lean`.
 - `ℒ.reindex (e : ι ≃ κ) : ℒ ι ≃ ℒ κ`, the image under
   `LinearIsometryEquiv.piLpCongrLeft 2 ℝ ℝ (e.sumCongr e)`, which is
-  Lagrangian by `isSymplectomorphism_piLpCongrLeft_sumCongr`. API:
+  Lagrangian by the lemma `isLagrangian_map_piLpCongrLeft_sumCongr` of this
+  file, from `isSymplectomorphism_piLpCongrLeft_sumCongr`. API:
   `coe_reindex`, `reindex_symm`, `reindex_trans`, `reindex_refl`;
   `reindex_unitaryFrame : reindex e (unitaryFrame U) =
   unitaryFrame (Matrix.unitaryReindexContinuousMulEquiv ℂ e U)`, with Tau
   Ceti's map (`Topology/Algebra/Matrix/UnitaryGroup.lean`), whose coercion is
-  `Matrix.reindex e e U` (§6's `U.submatrix e.symm e.symm`). The proof goes
-  through `coe_unitaryReindexContinuousMulEquiv_apply`, then `Matrix.realify_reindex`
+  `Matrix.reindex e e U` (§6's `U.submatrix e.symm e.symm`). The proof
+  rewrites the horizontal Lagrangian as its image under `reindex e`
+  (`reindex_horizontal`), then goes through
+  `coe_unitaryReindexContinuousMulEquiv_apply`, then `Matrix.realify_reindex`
   (`(reindex e e A).realify = reindex (e.sumCongr e) (e.sumCongr e) A.realify`,
   in the general file `LinearAlgebra/Matrix/Realify.lean`, beside
   `Matrix.realify_submatrix`), and then
@@ -1035,7 +1053,7 @@ merged.
 7. **The quotient topology.** `Topology/Grassmannian/Lagrangian/Quotient.lean`.
    About 300 lines. Blocked by 4 and 5.
 8. **Comparison with `finiteGrassmannian`.** `Topology/Grassmannian/Lagrangian/Finite.lean`.
-   About 200 lines. Blocked by 7.
+   About 200 lines. Blocked by 4.
 9. **The graph charts.** `Topology/Grassmannian/Lagrangian/Graph.lean`:
    `graphYChart` and `graphChart`. About 300 lines. Blocked by 6 and 7.
 10. **Path lifting.** `Topology/Grassmannian/Lagrangian/Fibration.lean`.
