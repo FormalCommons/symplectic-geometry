@@ -219,7 +219,8 @@ bundles* applies Tau Ceti's linear `cayleyPathFormula` and
 `SymplecticForm.polarComplexStructure` fibrewise, but reads
 `metricPolarFormula` in trivializations for $J_{g,\omega}$ on its
 endomorphism bundle. Its contractibility issue waits for issue 6 below, and
-its homotopy-equivalence issue for issues 4, 5 and 6.
+its homotopy-equivalence issue for issues 4, 5 and 6, and for issue 1, for
+`Tames.lineMap`.
 The three formulas:
 
 1. `TauCeti.metricPolarFormula`, the formula for $(g,\omega)\mapsto J_{g,\omega}$, on
@@ -323,7 +324,8 @@ request updates it to the files below. Each change, with its reason:
   vector bundles* uses this file, for `TauCeti.cayleyDomain`, the openness
   lemma `TauCeti.isOpen_setOf_forall_Icc_mem_cayleyDomain` and
   `TauCeti.SymplecticForm.Compatible.mem_cayleyDomain`; of the other files
-  of this part it uses only the two of `PolarComplexStructure/`.
+  of this part it uses only the two of `PolarComplexStructure/` and the
+  linear `LinearAlgebra/Symplectic/Compatible.lean`, for `Tames.lineMap`.
   It involves only Tau Ceti's `cayleyPathFormula`, so it goes in the folder
   of Tau Ceti's `Cayley/Smooth.lean`, which it extends, and can
   move there unchanged.
@@ -488,6 +490,7 @@ This is $\Omega(V)$, in `TauCeti.SymplecticForm`.
   `toBilinForm_toContinuousBilinearMap_ofContinuousBilinearMap`.
 - `continuous_transport (e : V ≃L[ℝ] W)`: `ω ↦ ω.transport e.toLinearEquiv`
   is continuous.
+
 ### `Analysis/InnerProductSpace/Symplectic/PolarComplexStructure/Basic.lean`
 
 This is $J_{g,\omega}$, the first file of the folder (see *Departures from

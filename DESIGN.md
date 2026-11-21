@@ -240,7 +240,12 @@ further when they grow, following `AGENTS.md`.
   `isSymplectomorphism_piLpCongrLeft_sumCongr`, `StdSpace.sumEquiv`,
   `StdSpace.complexEuclideanEquiv`),
   `LinearAlgebra/Symplectic/Standard/Matrix.lean` (the matrix dictionary).
-- **Builds on:** Mathlib, Tau Ceti.
+- **Builds on:** Mathlib, Tau Ceti. `Matrix.lean` also imports two general
+  matrix files that *Siegel upper half space* lists:
+  `LinearAlgebra/Matrix/Block.lean` (the block identities of a matrix with
+  square $-1$) and `LinearAlgebra/Matrix/Symmetric.lean` (for
+  `Matrix.isSymm_mul_nonsing_inv_of_transpose_mul_eq`). Both import only
+  Mathlib and Tau Ceti and are merged, so the part still sits at level 0.
 - **Milestones:** none. It is the interface the other parts share.
 
 ### 2. Symplectic vector spaces
@@ -788,8 +793,10 @@ it into issues; the overview fixes its folders and its dependencies.
   contractibility issue waits for the issue of this part that writes
   `Cayley/Domain.lean`. Its homotopy-equivalence issue also uses that file,
   and `metricPolarFormula` on `polarDomain` for $J_{g,\omega}$ on its
-  endomorphism bundle, where the form varies in the fibre; so it waits for the
-  issues that write `Cayley/Domain.lean` and `PolarComplexStructure/`.
+  endomorphism bundle, where the form varies in the fibre, and
+  `Tames.lineMap` of `LinearAlgebra/Symplectic/Compatible.lean` for its
+  straight line on forms; so it waits for the issues that write
+  `Cayley/Domain.lean`, `PolarComplexStructure/` and that line.
 
 ### 10. Linear Moser
 
@@ -1044,10 +1051,13 @@ it into issues; the overview fixes its folders and its dependencies.
   `TauCeti.SymplecticForm.Compatible.mem_cayleyDomain`), and the two files of
   `Analysis/InnerProductSpace/Symplectic/PolarComplexStructure/`
   (`TauCeti.metricPolarFormula` on `TauCeti.polarDomain`, with its smoothness
-  and naturality) for `polarEndAt`. Its contractibility issue waits for the
+  and naturality) for `polarEndAt`, and `TauCeti.SymplecticForm.Tames.lineMap`
+  of `LinearAlgebra/Symplectic/Compatible.lean` for the straight line on
+  forms. Its contractibility issue waits for the
   issue of that part that writes `Cayley/Domain.lean`, which has no
-  blockers; its homotopy-equivalence issue waits for that one and for the two
-  that write `PolarComplexStructure/`.
+  blockers; its homotopy-equivalence issue waits for that one, for the two
+  that write `PolarComplexStructure/`, and for the one that writes
+  `Tames.lineMap`, which has no blockers either.
 - **Milestones:** *Symplectic vector bundles are complex vector bundles*,
   *Compatible and tame complex structures on symplectic vector bundles*,
   *Unitary trivializations over surfaces with boundary*.
@@ -1313,7 +1323,7 @@ Each part depends only on the parts listed, besides Mathlib and Tau Ceti.
 
 | Level | Part | Builds on |
 |---|---|---|
-| 0 | *Standard model* | — |
+| 0 | *Standard model* | — (it imports `LinearAlgebra/Matrix/Block.lean` and `LinearAlgebra/Matrix/Symmetric.lean` of *Siegel upper half space*, which import only Mathlib and Tau Ceti and are merged) |
 | 0 | *Symplectic group* | — |
 | 0 | *Linear Moser* | — |
 | 1 | *Unitary group topology* | *Symplectic group* (only the file on $\mathrm{Sp}(2n)$; the other files can start at once) |
@@ -1322,7 +1332,7 @@ Each part depends only on the parts listed, besides Mathlib and Tau Ceti.
 | 1 | *Linear nonsqueezing* | *Standard model* |
 | 1 | *Linear complex structures* | *Standard model* |
 | 1 | *Siegel upper half space* | *Standard model*; *Lagrangian Grassmannian* (only `LinearAlgebra/Matrix/OfReal.lean`, which imports only Mathlib and Tau Ceti and is merged); *Linear complex structures* (only `LinearAlgebra/ComplexStructure/Action.lean`, which imports only Mathlib and Tau Ceti, `LinearAlgebra/ComplexStructure/Standard.lean`, which besides it imports only *Standard model* and the library's `Geometry/Symplectic/Orientation.lean`, and that file, which imports only Tau Ceti; all three are merged); *Symplectic group* (only `LinearAlgebra/Matrix/SymplecticGroup/Basic.lean`, which imports only Mathlib and is merged) |
-| 1 | *Symplectic vector bundles* | *Standard model*, *Linear Moser*; its contractibility issue also the Cayley domain issue of *Compatible complex structures*, and its homotopy-equivalence issue that one and the two `PolarComplexStructure/` issues, none of which waits for another part |
+| 1 | *Symplectic vector bundles* | *Standard model*, *Linear Moser*; its contractibility issue also the Cayley domain issue of *Compatible complex structures*, and its homotopy-equivalence issue that one, the two `PolarComplexStructure/` issues and the `Tames.lineMap` issue, none of which waits for another part |
 | 2 | *Compatible complex structures* | *Standard model*, *Symplectic vector spaces* |
 | 2 | *Maslov index* | *Standard model*, *Symplectic group*, *Unitary group topology*; its Lagrangian issues also *Lagrangian Grassmannian* |
 | 3 | *First Chern number* | *Symplectic vector bundles*, the symplectic-loop issues of *Maslov index* |
