@@ -240,7 +240,12 @@ further when they grow, following `AGENTS.md`.
   `isSymplectomorphism_piLpCongrLeft_sumCongr`, `StdSpace.sumEquiv`,
   `StdSpace.complexEuclideanEquiv`),
   `LinearAlgebra/Symplectic/Standard/Matrix.lean` (the matrix dictionary).
-- **Builds on:** Mathlib, Tau Ceti.
+- **Builds on:** Mathlib, Tau Ceti. `Matrix.lean` also imports two general
+  matrix files that *Siegel upper half space* lists:
+  `LinearAlgebra/Matrix/Block.lean` (the block identities of a matrix with
+  square $-1$) and `LinearAlgebra/Matrix/Symmetric.lean` (for
+  `Matrix.isSymm_mul_nonsing_inv_of_transpose_mul_eq`). Both import only
+  Mathlib and Tau Ceti and are merged, so the part still sits at level 0.
 - **Milestones:** none. It is the interface the other parts share.
 
 ### 2. Symplectic vector spaces
@@ -1320,7 +1325,7 @@ Each part depends only on the parts listed, besides Mathlib and Tau Ceti.
 
 | Level | Part | Builds on |
 |---|---|---|
-| 0 | *Standard model* | — |
+| 0 | *Standard model* | — (it imports `LinearAlgebra/Matrix/Block.lean` and `LinearAlgebra/Matrix/Symmetric.lean` of *Siegel upper half space*, which import only Mathlib and Tau Ceti and are merged) |
 | 0 | *Symplectic group* | — |
 | 0 | *Linear Moser* | — |
 | 1 | *Unitary group topology* | *Symplectic group* (only the file on $\mathrm{Sp}(2n)$; the other files can start at once) |

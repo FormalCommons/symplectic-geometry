@@ -33,6 +33,7 @@ through Mathlib's `unitarySubgroupUnitsEquiv`.
 * `Matrix.UnitaryGroup.mem_realSubgroup_iff`: `U` lies in it iff its entries are real.
 * `Matrix.UnitaryGroup.map_ofReal_mem_realSubgroup`: a real orthogonal matrix lies in it.
 * `Matrix.UnitaryGroup.isClosed_realSubgroup`: it is closed.
+* `Matrix.UnitaryGroup.map_re_conjTranspose_mul_self`: `Re (Uᴴ U) = 1` for a unitary `U`.
 
 ## References
 
@@ -114,6 +115,12 @@ theorem isClosed_realSubgroup : IsClosed (realSubgroup ι : Set (unitaryGroup ι
     exact mem_realSubgroup_iff
   rw [this]
   exact isClosed_eq (continuous_subtypeVal.matrix_map Complex.continuous_im) continuous_const
+
+/-- The real part `Re (Uᴴ U)` of the Gram matrix of a unitary matrix is the identity. -/
+theorem map_re_conjTranspose_mul_self (U : unitaryGroup ι ℂ) :
+    ((U : Matrix ι ι ℂ)ᴴ * U).map Complex.re = 1 := by
+  rw [← star_eq_conjTranspose, Unitary.star_mul_self_of_mem U.property,
+    Matrix.map_one _ Complex.zero_re Complex.one_re]
 
 end Matrix.UnitaryGroup
 

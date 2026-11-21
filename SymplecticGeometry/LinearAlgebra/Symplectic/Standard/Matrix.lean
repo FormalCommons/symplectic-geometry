@@ -35,6 +35,8 @@ conditions on that map.
   `Matrix.realify A`. With `A = I • 1`, whose realification is `Matrix.J ι ℝ`
   (Tau Ceti's `Matrix.realify_I_smul_one`), this recovers
   `stdComplexStructure_eq_toEuclideanLin_J`.
+* `SymplecticGeometry.StdSpace.complexEuclideanEquiv_toEuclideanCLM`: the same through
+  `StdSpace.complexEuclideanEquiv`, vector by vector.
 * `SymplecticGeometry.posDef_toBlocks₂₁_of_compatible` and
   `SymplecticGeometry.toBlocks₂₂_eq_neg_transpose_of_invariant`: the matrix `M` of an
   `ω₀`-compatible complex structure has positive definite lower left block `M₂₁`, and
@@ -184,6 +186,22 @@ theorem AlmostComplexStructure.toEuclideanLin_symm_mul_self {n : Type*} [Fintype
 end TauCeti
 
 namespace SymplecticGeometry
+
+namespace StdSpace
+
+open Matrix TauCeti
+
+variable {ι : Type*} [Fintype ι] [DecidableEq ι]
+
+/-- Through `StdSpace.complexEuclideanEquiv`, a complex matrix acts on `StdSpace ι` as its
+realification. -/
+theorem complexEuclideanEquiv_toEuclideanCLM (A : Matrix ι ι ℂ) (v : EuclideanSpace ℂ ι) :
+    complexEuclideanEquiv ι (toEuclideanCLM (𝕜 := ℂ) A v) =
+      toEuclideanLin A.realify (complexEuclideanEquiv ι v) := by
+  rw [complexEuclideanEquiv_def]
+  exact complexToRealEuclidean_mulVec A v.ofLp
+
+end StdSpace
 
 open TauCeti Matrix
 
