@@ -186,7 +186,8 @@ theorem isLagrangian_map_iff_of_apply_eq_mul {W : Type*} [AddCommGroup W] [Modul
     (he : ∀ v w, ω' (e v) (e w) = c * ω v w) :
     ω'.IsLagrangian (L.map (e : V →ₗ[ℝ] W)) ↔ ω.IsLagrangian L := by
   have h : (ω.rescale c hc).transport e = ω' :=
-    isSymplectomorphism_iff_transport_eq.1 fun v w ↦ by rw [rescale_apply, he]
+    isSymplectomorphism_iff_transport_eq.1 <| isSymplectomorphism_iff.2 fun v w ↦ by
+      rw [rescale_apply, he]
   rw [← h, isLagrangian_map_transport_iff, isLagrangian_rescale_iff]
 
 variable [FiniteDimensional ℝ V]
