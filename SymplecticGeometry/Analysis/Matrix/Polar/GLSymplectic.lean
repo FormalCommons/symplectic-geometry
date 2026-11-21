@@ -7,6 +7,7 @@ module
 
 public import SymplecticGeometry.Analysis.Matrix.Polar.Deformation
 public import SymplecticGeometry.Analysis.Matrix.Polar.Symplectic
+public import SymplecticGeometry.LinearAlgebra.Matrix.GeneralLinearGroup.Symplectic.Reindex
 public import TauCeti.Analysis.Matrix.Polar.GLSymplectic
 public import TauCeti.Analysis.Matrix.SymplecticGroup.Connected
 public import TauCeti.Topology.Algebra.Matrix.Realify
@@ -46,6 +47,8 @@ the theorem `TauCeti.GLSymplectic.polar_maximal_isCompact_deformationRetract`.
 * `TauCeti.GLSymplectic.polar_maximal_isCompact_deformationRetract`: the polar decomposition of
   a real symplectic matrix, maximal compactness of `U(n)`, the deformation retraction and the
   homotopy equivalence, and connectedness of `Sp(2n)`.
+* `TauCeti.GLSymplectic.coe_polarUnitary_reindex`: the orthogonal polar factor commutes with
+  reindexing along an equivalence of index types.
 
 ## References
 
@@ -175,6 +178,16 @@ theorem polar_maximal_isCompact_deformationRetract :
     ⟨polarHomotopyEquiv, polarHomotopyEquiv_apply⟩, isPathConnected_symplecticGroup n⟩
   rw [← conjTranspose_eq_transpose_of_trivial, ← star_eq_conjTranspose]
   exact SymplecticGroup.unitary_mul_posDef_eq_iff hΨ
+
+/-- The orthogonal polar factor commutes with reindexing: the polar factor of a symplectic matrix
+reindexed along `e : n ≃ κ` is the polar factor of the matrix, reindexed along `e ⊕ e`. -/
+theorem coe_polarUnitary_reindex {κ : Type*} [Fintype κ] [DecidableEq κ] (e : n ≃ κ)
+    (A : GLSymplectic n ℝ) :
+    ((polarUnitary (GLSymplectic.reindex ℝ e A) : GL (κ ⊕ κ) ℝ) : Matrix (κ ⊕ κ) (κ ⊕ κ) ℝ) =
+      Matrix.reindex (e.sumCongr e) (e.sumCongr e)
+        ((polarUnitary A : GL (n ⊕ n) ℝ) : Matrix (n ⊕ n) (n ⊕ n) ℝ) := by
+  rw [coe_polarUnitary, coe_reindex, GeneralLinearGroup.coe_polarUnitary_reindex,
+    ← coe_polarUnitary]
 
 end TauCeti.GLSymplectic
 
