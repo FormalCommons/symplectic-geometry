@@ -29,6 +29,9 @@ converses.
 
 * `TauCeti.SymplecticForm.compatible_iff_exists_isDarbouxBasis`: in finite dimension, `J` is
   compatible with `ω` exactly when `ω` has a Darboux basis `(v₁, J v₁, …, vₙ, J vₙ)`.
+* `TauCeti.SymplecticForm.isDarbouxBasis_iff_apply_apply_eq_ite`: a basis
+  `(v₁, J v₁, …, vₙ, J vₙ)` is a Darboux basis of `ω` exactly when it is orthonormal for
+  `ω(·, J ·)`.
 * `TauCeti.SymplecticForm.invariant_iff_isSymm_associatedBilinForm`: `ω` is `J`-invariant
   exactly when `g_J` is symmetric.
 * `TauCeti.SymplecticForm.compatible_iff_isSymm_and_posDef_associatedBilinForm`: `J` is
@@ -49,8 +52,18 @@ converses.
 * `TauCeti.SymplecticForm.Tames.lineMap`: the form `(1 - t) ω₀ + t ω₁`, for `t ∈ [0, 1]` and
   two forms that tame one `J`; it tames `J` too (`TauCeti.SymplecticForm.Tames.tames_lineMap`).
 
-Only the Darboux-basis and standard-model statements, and the list that collects them, assume
-finite dimension.
+It also relates images under `J` to orthogonals for the metric `g_J`:
+
+* `TauCeti.SymplecticForm.Invariant.orthogonal_map`: for `J`-invariant `ω`, the symplectic
+  complement of `J U` is the `g_J`-orthogonal of `U`;
+* `TauCeti.SymplecticForm.Invariant.isIsotropic_map`: for `J`-invariant `ω`, `J` maps isotropic
+  subspaces to isotropic subspaces;
+* `TauCeti.SymplecticForm.Compatible.isCompl_orthogonal_associatedBilinForm`: in finite
+  dimension, for compatible `J`, each subspace is a complement of its `g_J`-orthogonal.
+
+Only the Darboux-basis and standard-model statements, the list that collects them, and
+`TauCeti.SymplecticForm.Compatible.isCompl_orthogonal_associatedBilinForm` assume finite
+dimension.
 
 ## References
 
@@ -148,6 +161,17 @@ theorem IsDarbouxBasis.apply_apply_eq_ite {n : ℕ} {b : Basis (Fin n × Fin 2) 
   · simp [hJ₁, hb.apply_fst_fst]
   · simp [← hbJ, hb.apply_snd_snd]
   · simp [hJ₁, hb.apply_snd_fst, apply_ite]
+
+/-- For a basis `b` indexed like a Darboux basis, with `b (k, 1) = J (b (k, 0))`, `b` is a
+Darboux basis of `ω` exactly when the metric `ω(·, J ·)` is the Kronecker delta on `b`. -/
+theorem isDarbouxBasis_iff_apply_apply_eq_ite {n : ℕ} {b : Basis (Fin n × Fin 2) ℝ V}
+    (hbJ : ∀ k, b (k, 1) = J (b (k, 0))) :
+    ω.IsDarbouxBasis b ↔ ∀ x y, ω (b x) (J (b y)) = if x = y then 1 else 0 := by
+  refine ⟨fun hb ↦ hb.apply_apply_eq_ite hbJ, fun h ↦ ⟨fun i j ↦ ?_, fun i j ↦ ?_, fun i j ↦ ?_⟩⟩
+  · have hJ₁ : J (b (j, 1)) = -b (j, 0) := by rw [hbJ, J.apply_apply]
+    simpa [hJ₁] using h (i, 0) (j, 1)
+  · simpa [← hbJ] using h (i, 1) (j, 0)
+  · simpa [← hbJ] using h (i, 0) (j, 0)
 
 /-- A Darboux basis of the form `(v₁, J v₁, …, vₙ, J vₙ)` makes `J` compatible with `ω`. -/
 theorem IsDarbouxBasis.compatible {n : ℕ} {b : Basis (Fin n × Fin 2) ℝ V}
@@ -288,6 +312,42 @@ theorem Tames.lineMap_one (h₀ : ω₀.Tames J) (h₁ : ω₁.Tames J)
   toBilinForm_injective (by simp)
 
 end LineMap
+
+section Orthogonal
+
+variable {ω : SymplecticForm V} {J : AlmostComplexStructure V}
+
+/-- For a `J`-invariant form, the symplectic complement of `J U` is the orthogonal of `U` for the
+associated form `g = ω(·, J ·)`. -/
+theorem Invariant.orthogonal_map (hJ : ω.Invariant J) (U : Submodule ℝ V) :
+    ω.orthogonal (U.map J.toLinearMap) = (ω.associatedBilinForm J).orthogonal U := by
+  ext x
+  simp only [mem_orthogonal_iff, LinearMap.BilinForm.mem_orthogonal_iff,
+    associatedBilinForm_apply, Submodule.mem_map]
+  refine ⟨fun h u hu => ?_, ?_⟩
+  · linarith [hJ.apply_add_apply_eq_zero u x, h _ ⟨u, hu, rfl⟩]
+  · rintro h _ ⟨u, hu, rfl⟩
+    linarith [hJ.apply_add_apply_eq_zero u x, h u hu]
+
+/-- For a `J`-invariant form, the image under `J` of an isotropic subspace is isotropic. -/
+theorem Invariant.isIsotropic_map (hJ : ω.Invariant J) {U : Submodule ℝ V}
+    (hU : ω.IsIsotropic U) : ω.IsIsotropic (U.map J.toLinearMap) := by
+  rw [isIsotropic_iff] at hU ⊢
+  rintro _ ⟨u, hu, rfl⟩ _ ⟨v, hv, rfl⟩
+  exact ((ω.invariant_iff J).1 hJ u v).trans (hU u hu v hv)
+
+/-- For a compatible pair on a finite-dimensional space, every subspace is complementary to its
+orthogonal for the associated inner product `g = ω(·, J ·)`. -/
+theorem Compatible.isCompl_orthogonal_associatedBilinForm [FiniteDimensional ℝ V]
+    (hJ : ω.Compatible J) (U : Submodule ℝ V) :
+    IsCompl U ((ω.associatedBilinForm J).orthogonal U) := by
+  refine (LinearMap.BilinForm.isCompl_orthogonal_iff_disjoint
+    (fun x y h => by rw [hJ.associatedBilinForm_isSymm.eq, h])).2 ?_
+  rw [Submodule.disjoint_def]
+  exact fun x hx hx' => hJ.associatedBilinForm_self_eq_zero.1
+    (LinearMap.BilinForm.mem_orthogonal_iff.1 hx' x hx)
+
+end Orthogonal
 
 end TauCeti.SymplecticForm
 

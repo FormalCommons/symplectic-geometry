@@ -35,6 +35,15 @@ statement for a coisotropic subspace `W` needs on top of it:
   subspace `Λ`, as `((Λ ∩ W) + W^ω) ⧸ W^ω`, is Lagrangian.
 * `TauCeti.SymplecticForm.IsCoisotropic.existsUnique_reduction_and_isLagrangian`: the three
   statements together.
+* `TauCeti.SymplecticForm.ker_restrict_orthogonal`: in finite dimension, the radical of `W^ω`
+  is `W ∩ W^ω`.
+* `TauCeti.SymplecticForm.ker_restrict_le_comap_of_forall_apply_eq`,
+  `TauCeti.SymplecticForm.exists_isSymplectomorphism_reducedSpace_of_forall_apply_eq`: a linear
+  map that sends `U₀` into `U₁` and preserves `ω` on `U₀`, when the reduced space of `U₁` has
+  at most the dimension of that of `U₀`, sends the radical of `U₀` into that of `U₁` and
+  induces a symplectomorphism of the reduced spaces.
+* `TauCeti.SymplecticForm.finrank_inf_orthogonal_eq_of_forall_apply_eq`: an isomorphism
+  `W₀ ≃ W₁` that preserves the restricted forms preserves the dimension of `W ∩ W^ω`.
 
 ## References
 
@@ -126,6 +135,138 @@ theorem IsCoisotropic.existsUnique_reduction_and_isLagrangian [FiniteDimensional
           (LinearMap.ker (ω.toBilinForm.restrict W)).mkQ) :=
   ⟨hW.map_subtype_ker_restrict, existsUnique_reduction ω W,
     fun _ hL => hL.reduction_map_sup hW⟩
+
+section Orthogonal
+
+variable [FiniteDimensional ℝ V]
+
+variable (ω W) in
+/-- In finite dimension, the kernel of the restriction of `ω` to `W^ω` is the radical
+`W ∩ W^ω`, seen in `W^ω`. -/
+theorem ker_restrict_orthogonal :
+    LinearMap.ker (ω.toBilinForm.restrict (ω.orthogonal W)) =
+      (W ⊓ ω.orthogonal W).comap (ω.orthogonal W).subtype := by
+  ext u
+  rw [mem_ker_restrict_iff, orthogonal_orthogonal, Submodule.mem_comap, Submodule.subtype_apply,
+    Submodule.mem_inf, and_iff_left u.property]
+
+end Orthogonal
+
+section ReducedMap
+
+open Module
+
+variable {V₀ V₁ : Type*} [AddCommGroup V₀] [Module ℝ V₀] [AddCommGroup V₁] [Module ℝ V₁]
+  [FiniteDimensional ℝ V₀] [FiniteDimensional ℝ V₁]
+  {ω₀ : SymplecticForm V₀} {ω₁ : SymplecticForm V₁} {U₀ : Submodule ℝ V₀}
+  {U₁ : Submodule ℝ V₁} {L : V₀ →ₗ[ℝ] V₁}
+
+omit [FiniteDimensional ℝ V₀] [FiniteDimensional ℝ V₁] in
+/-- A vector of `U₀` that `L`, followed by the quotient map, sends to zero in the reduced space
+of `U₁` lies in the radical of `U₀`, when `L` preserves `ω` on `U₀`. -/
+private theorem ker_mkQ_comp_restrict_le (hL : ∀ u ∈ U₀, L u ∈ U₁)
+    (hLω : ∀ u ∈ U₀, ∀ v ∈ U₀, ω₁ (L u) (L v) = ω₀ u v) :
+    LinearMap.ker ((LinearMap.ker (ω₁.toBilinForm.restrict U₁)).mkQ ∘ₗ L.restrict hL) ≤
+      LinearMap.ker (ω₀.toBilinForm.restrict U₀) := by
+  intro u hu
+  rw [LinearMap.mem_ker, LinearMap.comp_apply, Submodule.mkQ_apply] at hu
+  rw [mem_ker_restrict_iff, mem_orthogonal_iff']
+  intro y hy
+  have h := congrArg (fun z => ω₁.reduction U₁ z (Submodule.Quotient.mk ⟨L y, hL y hy⟩)) hu
+  simp only [LinearMap.restrict_apply, reduction_mk, map_zero, LinearMap.zero_apply] at h
+  rw [← hLω u u.property y hy]
+  exact h
+
+/-- **Radicals are preserved.** If `L` maps `U₀` into `U₁` and preserves `ω` on `U₀`, and the
+reduced space of `U₁` has at most the dimension of that of `U₀`, then `L` maps the radical
+`U₀ ∩ U₀^ω` into the radical `U₁ ∩ U₁^ω`, both seen as the kernels of the restricted forms. -/
+theorem ker_restrict_le_comap_of_forall_apply_eq (hL : ∀ u ∈ U₀, L u ∈ U₁)
+    (hLω : ∀ u ∈ U₀, ∀ v ∈ U₀, ω₁ (L u) (L v) = ω₀ u v)
+    (hdim : finrank ℝ (ω₁.ReducedSpace U₁) ≤ finrank ℝ (ω₀.ReducedSpace U₀)) :
+    LinearMap.ker (ω₀.toBilinForm.restrict U₀) ≤
+      (LinearMap.ker (ω₁.toBilinForm.restrict U₁)).comap (L.restrict hL) := by
+  have hle := ker_mkQ_comp_restrict_le hL hLω
+  have h₁ := LinearMap.finrank_range_add_finrank_ker
+    ((LinearMap.ker (ω₁.toBilinForm.restrict U₁)).mkQ ∘ₗ L.restrict hL)
+  have h₂ : finrank ℝ (ω₀.ReducedSpace U₀) +
+      finrank ℝ (LinearMap.ker (ω₀.toBilinForm.restrict U₀)) = finrank ℝ U₀ :=
+    Submodule.finrank_quotient_add_finrank _
+  have h₃ : finrank ℝ (LinearMap.range
+      ((LinearMap.ker (ω₁.toBilinForm.restrict U₁)).mkQ ∘ₗ L.restrict hL)) ≤
+      finrank ℝ (ω₁.ReducedSpace U₁) :=
+    Submodule.finrank_le _
+  have heq := Submodule.eq_of_le_of_finrank_le hle (by omega)
+  intro u hu
+  rw [← heq, LinearMap.mem_ker, LinearMap.comp_apply, Submodule.mkQ_apply,
+    Submodule.Quotient.mk_eq_zero] at hu
+  exact hu
+
+/-- **Reduction of a map preserving `ω`.** If `L` maps `U₀` into `U₁` and preserves `ω` on `U₀`,
+and the reduced space of `U₁` has at most the dimension of that of `U₀`, then `[u] ↦ [L u]` is
+a well-defined symplectomorphism of the reduced spaces. -/
+theorem exists_isSymplectomorphism_reducedSpace_of_forall_apply_eq (hL : ∀ u ∈ U₀, L u ∈ U₁)
+    (hLω : ∀ u ∈ U₀, ∀ v ∈ U₀, ω₁ (L u) (L v) = ω₀ u v)
+    (hdim : finrank ℝ (ω₁.ReducedSpace U₁) ≤ finrank ℝ (ω₀.ReducedSpace U₀)) :
+    ∃ e : ω₀.ReducedSpace U₀ ≃ₗ[ℝ] ω₁.ReducedSpace U₁,
+      IsSymplectomorphism (ω₀.reduction U₀) (ω₁.reduction U₁) e ∧
+        ∀ u : U₀, e (Submodule.Quotient.mk u) = Submodule.Quotient.mk ⟨L u, hL u u.property⟩ := by
+  set g := Submodule.mapQ _ _ (L.restrict hL) (ker_restrict_le_comap_of_forall_apply_eq hL hLω hdim)
+  have hg : ∀ x y, ω₁.reduction U₁ (g x) (g y) = ω₀.reduction U₀ x y := by
+    intro x y
+    induction x using Submodule.Quotient.induction_on with
+    | H u =>
+    induction y using Submodule.Quotient.induction_on with
+    | H v =>
+    simp only [g, Submodule.mapQ_apply, LinearMap.restrict_apply, reduction_mk]
+    exact hLω u u.property v v.property
+  have hinj : Function.Injective g := by
+    rw [← LinearMap.ker_eq_bot, Submodule.eq_bot_iff]
+    intro x hx
+    refine (ω₀.reduction U₀).separatingLeft x fun y => ?_
+    have := hg x y
+    rw [LinearMap.mem_ker.1 hx] at this
+    simpa using this.symm
+  exact ⟨LinearMap.linearEquivOfInjective g hinj
+      (le_antisymm (LinearMap.finrank_le_finrank_of_injective hinj) hdim),
+    isSymplectomorphism_iff.2 hg, fun u => rfl⟩
+
+end ReducedMap
+
+section Radical
+
+open Module
+
+variable {V₀ V₁ : Type*} [AddCommGroup V₀] [Module ℝ V₀] [AddCommGroup V₁] [Module ℝ V₁]
+  [FiniteDimensional ℝ V₀] [FiniteDimensional ℝ V₁]
+  {ω₀ : SymplecticForm V₀} {ω₁ : SymplecticForm V₁} {W₀ : Submodule ℝ V₀}
+  {W₁ : Submodule ℝ V₁}
+
+omit [FiniteDimensional ℝ V₀] in
+private theorem finrank_inf_orthogonal_le {b : W₀ ≃ₗ[ℝ] W₁}
+    (hb : ∀ x y : W₀, ω₁ (b x) (b y) = ω₀ x y) :
+    finrank ℝ ↥(W₀ ⊓ ω₀.orthogonal W₀) ≤ finrank ℝ ↥(W₁ ⊓ ω₁.orthogonal W₁) := by
+  refine LinearMap.finrank_le_finrank_of_injective
+    (f := LinearMap.codRestrict (W₁ ⊓ ω₁.orthogonal W₁)
+      (W₁.subtype ∘ₗ b.toLinearMap ∘ₗ Submodule.inclusion inf_le_left)
+      fun c => ⟨(b _).property, fun y hy => ?_⟩) fun c c' h => ?_
+  · have h := hb (b.symm ⟨y, hy⟩) (Submodule.inclusion inf_le_left c)
+    rw [LinearEquiv.apply_symm_apply] at h
+    exact h.trans (mem_orthogonal_iff.1 c.property.2 _ (b.symm ⟨y, hy⟩).property)
+  · have h₀ := congrArg (fun z : ↥(W₁ ⊓ ω₁.orthogonal W₁) => (z : V₁)) h
+    have h₂ := b.injective (Subtype.ext h₀ :
+      b (Submodule.inclusion inf_le_left c) = b (Submodule.inclusion inf_le_left c'))
+    rw [Subtype.ext_iff, Submodule.coe_inclusion, Submodule.coe_inclusion] at h₂
+    exact Subtype.ext h₂
+
+/-- A linear isomorphism `b : W₀ ≃ W₁` preserving the restrictions of `ω₀` and `ω₁` preserves
+the dimension of the radical `W ∩ W^ω`. -/
+theorem finrank_inf_orthogonal_eq_of_forall_apply_eq {b : W₀ ≃ₗ[ℝ] W₁}
+    (hb : ∀ x y : W₀, ω₁ (b x) (b y) = ω₀ x y) :
+    finrank ℝ ↥(W₀ ⊓ ω₀.orthogonal W₀) = finrank ℝ ↥(W₁ ⊓ ω₁.orthogonal W₁) :=
+  le_antisymm (finrank_inf_orthogonal_le hb) (finrank_inf_orthogonal_le (b := b.symm)
+    fun x y => by simpa using (hb (b.symm x) (b.symm y)).symm)
+
+end Radical
 
 end TauCeti.SymplecticForm
 
