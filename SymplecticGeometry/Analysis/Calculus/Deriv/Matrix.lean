@@ -15,11 +15,11 @@ public import Mathlib.Topology.Instances.Matrix
 
 A function `A : 𝕜 → Matrix m n F` has derivative `A'` exactly when each entry `A · i j` has
 derivative `A' i j` (`hasDerivWithinAt_matrix`, and `hasDerivAt_matrix` for `HasDerivAt`).
-Through the entries, a derivative at `t` is one within every set
-(`HasDerivAt.matrix_hasDerivWithinAt`), as for normed spaces. From this we get the derivatives of
-a constant (`hasDerivWithinAt_matrix_const`) and of a transpose
-(`HasDerivWithinAt.matrix_transpose`), and the product rule for products of possibly rectangular
-matrices with entries in a normed `𝕜`-algebra (`HasDerivWithinAt.matrix_mul`).
+Through the entries, the two notions agree as they do for normed spaces
+(`hasDerivWithinAt_matrix_univ`, `HasDerivAt.matrix_hasDerivWithinAt`). From this we get the
+derivatives of a constant (`hasDerivWithinAt_matrix_const`) and of a transpose
+(`HasDerivWithinAt.matrix_transpose`), and the product rule for products of possibly
+rectangular matrices with entries in a normed `𝕜`-algebra (`HasDerivWithinAt.matrix_mul`).
 
 Matrices carry their default topology, that of functions `m → n → F`; no matrix norm is needed.
 The names follow `Continuous.matrix_elem`, `Continuous.matrix_transpose` and
@@ -52,6 +52,13 @@ theorem hasDerivAt_matrix {A : 𝕜 → Matrix m n F} {A' : Matrix m n F} :
   -- applies.
   change HasDerivAt (F := m → n → F) A A' t ↔ _
   exact hasDerivAt_pi.trans (forall_congr' fun _ ↦ hasDerivAt_pi)
+
+/-- A matrix-valued function has derivative `A'` within `univ` at `t` exactly when it has
+derivative `A'` at `t`: the matrix form of `hasDerivWithinAt_univ`. -/
+theorem hasDerivWithinAt_matrix_univ {A : 𝕜 → Matrix m n F} {A' : Matrix m n F} :
+    HasDerivWithinAt A A' Set.univ t ↔ HasDerivAt A A' t :=
+  hasDerivWithinAt_matrix.trans <| (forall₂_congr fun _ _ ↦ hasDerivWithinAt_univ).trans
+    hasDerivAt_matrix.symm
 
 /-- A matrix-valued function with derivative `A'` at `t` has derivative `A'` within every set at
 `t`: the matrix form of `HasDerivAt.hasDerivWithinAt`. -/

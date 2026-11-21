@@ -384,7 +384,7 @@ The common step of `DESIGN.md`. Namespace `TauCeti.SmoothEmbedding`.
   `A q` a linear equivalence with `A q (mfderiv J I₀ f₀ q v) = mfderiv J
   I₁ f₁ q v`, there are `U₀ : Opens M₀`, `U₁ : Opens M₁` and
   `ψ : U₀ ≃ₘ⟮I₀, I₁⟯ U₁` with, for every `q`, `f₀ q ∈ U₀`,
-  `ψ ⟨f₀ q, _⟩ = ⟨f₁ q, _⟩` and `mfderiv I₀ I₁ ψ ⟨f₀ q, _⟩ = A q`. Route:
+  `(ψ ⟨f₀ q, _⟩ : M₁) = f₁ q` and `mfderiv I₀ I₁ ψ ⟨f₀ q, _⟩ = A q`. Route:
   choose metrics on `M₀` and `M₁`. Let `rep₀` be the orthogonal normal
   representative of `f₀`. The map $\Theta(q,v)=\exp_{f_1q}(A_q\,
   \mathrm{rep}_0(v))$ on the normal bundle of `f₀` is smooth near the zero
