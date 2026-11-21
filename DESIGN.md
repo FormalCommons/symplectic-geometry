@@ -393,27 +393,32 @@ it into issues; the overview fixes its folders and its dependencies.
   `Topology/Algebra/SymplecticGroup.lean` (its continuity,
   `continuous_reindex`).
 - **Builds on:** *Standard model*, *Symplectic group*, *Unitary group
-  topology*, *Lagrangian Grassmannian*. From Tau Ceti, transferred to
-  `StdSpace ι` by choosing unitary frames (read along
-  `complexToRealEuclidean`) rather than re-derived: the symplectic loop index
-  `TauCeti.GLSymplectic.maslovIndex` and its axioms; the Lagrangian loop
-  index through `realImageLoop`, `maslovIndex_realImageLoop`,
-  `maslovPhase_realImage` and `Matrix.UnitaryGroup.maslovIndex_eq_degree`
-  (the book's $\det(U^2)$ description), and, by comparing it with Tau Ceti's
-  loop index, the direct-sum axiom, the half-turns and the angle description
-  from `TotallyRealLoop.maslovIndex_prod`, `maslovIndex_rotationZPow` and
-  `sub_eq_maslovIndex_mul_pi` (`LinearAlgebra/TotallyReal/Maslov/`); the path
-  index from Souriau's formula `Matrix.UnitaryGroup.maslovIndex` and the
-  Souriau map `Matrix.UnitaryGroup.souriau`
-  (`Analysis/Matrix/UnitaryGroup/Maslov.lean`), which is defined for every
-  path, while `TotallyRealPath.transverseMaslovIndex`
-  (`LinearAlgebra/TotallyReal/Maslov/Transverse.lean`), defined only for
-  paths with ends transverse to $\mathbb{R}^n$, enters as the special case
-  that a theorem identifies; the crossing-form theorems of
-  `Analysis/Matrix/UnitaryGroup/Maslov/` and
-  `Analysis/Matrix/HermitianSignature/`; for the reindexing, Mathlib's
-  `Matrix.GeneralLinearGroup.reindex` and Tau Ceti's
-  `Matrix.reindex_sumCongr_J`.
+  topology*, *Lagrangian Grassmannian*. From Mathlib and Tau Ceti, in two
+  ways, none of it re-derived:
+  - *Used as they are*, on matrices: the symplectic loop index
+    `TauCeti.GLSymplectic.maslovIndex` on loops in `GLSymplectic n ℝ`, with
+    the axioms Tau Ceti proves for it, which the part extends; for the
+    reindexing of `GL (ι ⊕ ι) R`, Mathlib's
+    `Matrix.GeneralLinearGroup.reindex` and Tau Ceti's
+    `Matrix.reindex_sumCongr_J`.
+  - *Transferred to `StdSpace ι` by choosing unitary frames* (read along
+    `complexToRealEuclidean`), for the Lagrangian theory only: the
+    Lagrangian loop index through `realImageLoop`,
+    `maslovIndex_realImageLoop`, `maslovPhase_realImage` and
+    `Matrix.UnitaryGroup.maslovIndex_eq_degree` (the book's $\det(U^2)$
+    description), and, by comparing it with Tau Ceti's loop index, the
+    direct-sum axiom, the half-turns and the angle description from
+    `TotallyRealLoop.maslovIndex_prod`, `maslovIndex_rotationZPow` and
+    `sub_eq_maslovIndex_mul_pi` (`LinearAlgebra/TotallyReal/Maslov/`); the
+    path index from Souriau's formula `Matrix.UnitaryGroup.maslovIndex` and
+    the Souriau map `Matrix.UnitaryGroup.souriau`
+    (`Analysis/Matrix/UnitaryGroup/Maslov.lean`), which is defined for
+    every path, while `TotallyRealPath.transverseMaslovIndex`
+    (`LinearAlgebra/TotallyReal/Maslov/Transverse.lean`), defined only for
+    paths with ends transverse to $\mathbb{R}^n$, enters as the special
+    case that a theorem identifies; and the crossing-form theorems of
+    `Analysis/Matrix/UnitaryGroup/Maslov/` and
+    `Analysis/Matrix/HermitianSignature/`, applied to frames.
 - **Milestones:** *Maslov index for loops of symplectic matrices*, *Maslov
   index for loops of Lagrangian subspaces*, *Crossing-form formula for the
   Maslov index*, *Maslov index for paths of Lagrangian subspaces*.
