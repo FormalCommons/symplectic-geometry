@@ -1819,8 +1819,8 @@ has either; Tau Ceti's extension across a boundary,
   Poincaré primitive with zero first jet of
   `Geometry/Manifold/DifferentialForm/Relative/FirstJet.lean`, and the domain
   of the Moser flow up to time one), `Geometry/Symplectic/Moser/Field.lean`
-  (the Moser field of the segment $\omega_0+t(\omega_1-\omega_0)$, cut off
-  on `ℝ × M`), `Geometry/Symplectic/Moser/Isotopy.lean`
+  (the cut-off Moser field of a family of two-forms, the segment
+  $\omega_0+t(\omega_1-\omega_0)$ among them), `Geometry/Symplectic/Moser/Isotopy.lean`
   (the isotopy of embeddings fixing a compact submanifold, with Tau Ceti's
   relative Poincaré primitive, which vanishes as a full covector, in place
   of the correction by $dF$; the trajectory argument of Tau Ceti's
