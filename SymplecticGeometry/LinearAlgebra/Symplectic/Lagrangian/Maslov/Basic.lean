@@ -245,8 +245,12 @@ theorem maslovPhase_rotate (θ : ℝ) (Λ : ℒ ι) :
   rw [rotate_def, maslovPhase_unitary_smul]
   congr 1
   refine Circle.ext ?_
-  simp [Unitary.coe_smul, Submonoid.smul_def, Circle.coe_exp, ← Complex.exp_natCast_mul]
-  ring_nf
+  rw [Circle.coe_pow, coe_detCircle, UnitaryGroup.coe_circleEquivUnitary_smul_one, det_smul,
+    det_one, mul_one, Circle.coe_exp, Circle.coe_exp, ← Complex.exp_natCast_mul,
+    ← Complex.exp_natCast_mul]
+  congr 1
+  push_cast
+  ring
 
 /-! ### The Maslov index of a loop -/
 
@@ -387,17 +391,16 @@ theorem detCircle_inv_mul_eq_exp {Λ : ℒ ι} (γ : Path Λ Λ) {U V : unitaryG
 /-! ### Half-turns -/
 
 /-- The loop `t ↦ rotate (π k t) {y = 0}`, `0 ≤ t ≤ 1`, of Lagrangian subspaces, turning the
-horizontal Lagrangian through `k` half-turns; it closes up since `e^{iπk} = ±1`. -/
-noncomputable def halfTurnLoop (k : ℤ) : Path (horizontal ι) (horizontal ι) where
-  toFun t := rotate (Real.pi * k * t) (horizontal ι)
-  continuous_toFun := (continuous_rotate _).comp (by fun_prop)
-  source' := by simp
-  target' := by rw [Set.Icc.coe_one, mul_one, mul_comm, rotate_int_mul_pi]
+horizontal Lagrangian through `k` half-turns: the rotation `rotationPath` through the angle `π k`,
+which closes up since `e^{iπk} = ±1`. -/
+noncomputable def halfTurnLoop (k : ℤ) : Path (horizontal ι) (horizontal ι) :=
+  (rotationPath (horizontal ι) (Real.pi * k)).cast rfl
+    (by rw [mul_comm, rotate_int_mul_pi])
 
 /-- The loop `halfTurnLoop k` at time `t` is the rotation of `{y = 0}` by the angle `π k t`. -/
 theorem halfTurnLoop_apply (k : ℤ) (t : I) :
-    halfTurnLoop k t = rotate (Real.pi * k * t) (horizontal ι) :=
-  (rfl)
+    halfTurnLoop k t = rotate (Real.pi * k * t) (horizontal ι) := by
+  rw [halfTurnLoop, Path.cast_coe, rotationPath_apply]
 
 /-- The Maslov phase of `halfTurnLoop k` at time `t` is `e^{2iπnkt}`, where `n` is the
 cardinality of `ι`. -/

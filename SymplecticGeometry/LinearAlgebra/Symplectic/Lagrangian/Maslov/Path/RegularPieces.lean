@@ -23,9 +23,10 @@ paths are built.
 
 ## Main definitions
 
-* `SymplecticGeometry.LagrangianGrassmannian.rotationPath Λ ε`: the path `s ↦ rotate (ε s) Λ`
-  of rotations of `Λ` (`rotate` is defined with the unitary action, in `Lagrangian/Action.lean`),
-  with frame `s ↦ rotationFrame Z (ε s) = e^{ε s J₀} Z` for a frame `Z` of `Λ`.
+* The rotation `SymplecticGeometry.LagrangianGrassmannian.rotationPath Λ ε`, the path
+  `s ↦ rotate (ε s) Λ` of rotations of `Λ` (defined in
+  `Topology/Grassmannian/Lagrangian/Quotient.lean`), gets the frame
+  `s ↦ rotationFrame Z (ε s) = e^{ε s J₀} Z` for a frame `Z` of `Λ` (`range_rotationFrame`).
 * `SymplecticGeometry.LagrangianGrassmannian.coordinateRotate i θ Λ`: the image of `Λ` under the
   unitary matrix `Matrix.UnitaryGroup.detSection ι i (Circle.exp θ) = diag(1, …, e^{iθ}, …, 1)`,
   which turns the `i`-th coordinate plane; `coordinateHalfTurn i` is the loop
@@ -202,27 +203,15 @@ namespace LagrangianGrassmannian
 
 /-! ### Rotation paths -/
 
-/-- If the columns of `Z` span `Λ`, those of `rotationFrame Z θ` span `rotate θ Λ`. -/
+/-- If the columns of `Z` span `Λ`, those of `rotationFrame Z θ` span `rotate θ Λ`. So the
+rotation `rotationPath Λ ε` has the frame `s ↦ rotationFrame Z (ε * s)`, whose crossing forms are
+`u ↦ ε |Z u|²` (`lagrangianCrossingForm_smul_J_mul_apply`). -/
 theorem range_rotationFrame {Λ : ℒ ι} {Z : Matrix (ι ⊕ ι) ι ℝ}
     (hZ : LinearMap.range (toEuclideanLin Z) = Λ) (θ : ℝ) :
     LinearMap.range (toEuclideanLin (rotationFrame Z θ)) = rotate θ Λ := by
   rw [rotate_def, unitary_smul_def, coe_smul_of_coe_eq _ hZ.symm, GLSymplectic.coe_ofUnitary,
-    Unitary.coe_smul, OneMemClass.coe_one, Submonoid.smul_def, coe_circleEquivUnitary,
-    realify_smul_one, Circle.coe_exp, Complex.exp_ofReal_mul_I_re, Complex.exp_ofReal_mul_I_im,
-    rotationFrame_def]
-
-/-- The **rotation** `s ↦ e^{ε s J₀} Λ`, `s ∈ [0, 1]`, of a Lagrangian `Λ` through the angle `ε`.
-For a frame `Z` of `Λ` it has the frame `s ↦ rotationFrame Z (ε * s)` (`range_rotationFrame`),
-whose crossing forms are `u ↦ ε |Z u|²` (`lagrangianCrossingForm_smul_J_mul_apply`). -/
-noncomputable def rotationPath (Λ : ℒ ι) (ε : ℝ) : Path Λ (rotate ε Λ) where
-  toFun t := rotate (ε * t) Λ
-  continuous_toFun := (continuous_rotate Λ).comp (continuous_const.mul continuous_subtypeVal)
-  source' := by simp
-  target' := by simp
-
-@[simp]
-theorem rotationPath_apply (Λ : ℒ ι) (ε : ℝ) (t : I) : rotationPath Λ ε t = rotate (ε * t) Λ :=
-  (rfl)
+    UnitaryGroup.coe_circleEquivUnitary_smul_one, realify_smul_one, Circle.coe_exp,
+    Complex.exp_ofReal_mul_I_re, Complex.exp_ofReal_mul_I_im, rotationFrame_def]
 
 /-- Rotating a Lagrangian `Λ` by a small nonzero angle makes it transverse to any given
 Lagrangian `V`: the crossing form of the rotation is definite, so its crossing at `0` is
@@ -454,8 +443,8 @@ theorem pathMaslovIndex_coordinateHalfTurn (i : ι) (V : ℒ ι) :
   have hdet (t : I) : ((g t : unitaryGroup ι ℂ) : Matrix ι ι ℂ).det =
       Complex.exp ((Real.pi * t + Fintype.card ι * (Real.pi / 2) : ℝ) * Complex.I) := by
     rw [Submonoid.coe_mul, det_mul, ← coe_detCircle, detCircle_detSection]
-    simp only [E, Unitary.coe_smul, OneMemClass.coe_one, Submonoid.smul_def,
-      coe_circleEquivUnitary, det_smul, det_one, mul_one, Circle.coe_exp]
+    simp only [E, UnitaryGroup.coe_circleEquivUnitary_smul_one, det_smul, det_one, mul_one,
+      Circle.coe_exp]
     rw [← Complex.exp_natCast_mul, ← Complex.exp_add]
     congr 1
     push_cast

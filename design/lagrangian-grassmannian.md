@@ -759,6 +759,9 @@ The topology of `ℒ ι` in terms of unitary frames.
   (`coe_unitaryOfFrame` and `continuous_realOrthonormalize`) and
   `continuous_unitaryFrame`. The unitary instance follows by
   `TauCeti.GLSymplectic.continuous_ofUnitary`.
+- `ℒ.rotationPath Λ ε : Path Λ (rotate ε Λ)`, `s ↦ rotate (ε * s) Λ`, with
+  `rotationPath_apply` (`@[simp]`), next to `continuous_rotate`, so that
+  `Maslov/Basic.lean` builds `halfTurnLoop` from it.
 
 ### `Topology/Grassmannian/Lagrangian/Finite.lean`
 

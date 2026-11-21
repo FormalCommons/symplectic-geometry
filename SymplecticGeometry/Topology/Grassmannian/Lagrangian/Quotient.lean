@@ -37,7 +37,7 @@ of `unitaryFrame`, and that the symplectic and unitary groups act continuously.
   that the frame spans, depend continuously on the frame.
 * `ContinuousSMul` instances for `GLSymplectic ι ℝ` and `unitaryGroup ι ℂ` acting on `ℒ ι`, and
   `SymplecticGeometry.LagrangianGrassmannian.continuous_rotate`: rotations are continuous in the
-  angle.
+  angle, so `rotationPath Λ ε`, `s ↦ rotate (ε s) Λ`, is a path from `Λ` to `rotate ε Λ`.
 
 The construction of the homeomorphism follows Tau Ceti's
 `TauCeti.quaternionUnitarySphereQuotientHomeomorph`.
@@ -198,9 +198,24 @@ instance : ContinuousSMul (unitaryGroup ι ℂ) (ℒ ι) :=
 /-- The rotation `θ ↦ rotate θ Λ` of a Lagrangian depends continuously on the angle. -/
 theorem continuous_rotate (Λ : ℒ ι) : Continuous fun θ : ℝ ↦ rotate θ Λ := by
   have h : Continuous fun θ : ℝ ↦ circleEquivUnitary (Circle.exp θ) • (1 : unitaryGroup ι ℂ) :=
-    Continuous.subtype_mk (by fun_prop) _
+    continuous_induced_rng.2 <| by
+      simp only [Function.comp_def, UnitaryGroup.coe_circleEquivUnitary_smul_one]
+      fun_prop
   simp_rw [rotate_def]
   exact h.smul continuous_const
+
+/-- The **rotation** `s ↦ e^{ε s J₀} Λ`, `s ∈ [0, 1]`, of a Lagrangian `Λ` through the angle `ε`,
+from `Λ` to `rotate ε Λ`. -/
+noncomputable def rotationPath (Λ : ℒ ι) (ε : ℝ) : Path Λ (rotate ε Λ) where
+  toFun t := rotate (ε * t) Λ
+  continuous_toFun := (continuous_rotate Λ).comp (continuous_const.mul continuous_subtypeVal)
+  source' := by simp
+  target' := by simp
+
+@[simp]
+theorem rotationPath_apply (Λ : ℒ ι) (ε : ℝ) (t : unitInterval) :
+    rotationPath Λ ε t = rotate (ε * t) Λ :=
+  (rfl)
 
 end LagrangianGrassmannian
 
