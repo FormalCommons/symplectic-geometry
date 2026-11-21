@@ -965,6 +965,18 @@ it into issues; the overview fixes its folders and its dependencies.
   on a pull-back bundle, a step that uses no charts; the file has the path
   of the Tau Ceti file with `ContinuousLinearMap.inCoordinates_pullback_of_mem`,
   so that the two merge upstream),
+  `Geometry/Manifold/VectorBundle/Hom.lean` (for fibrewise equivalences
+  whose map of total spaces is $C^n$, the $C^n$ section of the hom bundle
+  formed by their inverses, `contMDiff_hom_bundle_symm`, in the root
+  namespace; the file has the name of the Tau Ceti file with
+  `TauCeti.contMDiff_hom_bundle_iff`, so that the two merge upstream),
+  `Geometry/Manifold/VectorBundle/ContinuousAlternatingMap.lean`
+  (precomposition with a $C^n$ section of a hom bundle as a $C^n$ map of the
+  total spaces of bundles of alternating maps,
+  `contMDiff_compContinuousLinearMap_totalSpace`, in the root namespace; the
+  file has the name of the Mathlib file that defines
+  `ContMDiffVectorBundle.continuousAlternatingMap`, so that the two merge
+  upstream),
   `Topology/FiberBundle/ChangeModelFiber.lean` (a fibre bundle read with
   another model fibre along a homeomorphism, in Mathlib's namespaces and at
   Mathlib's fibre-bundle level, since it involves no group),
