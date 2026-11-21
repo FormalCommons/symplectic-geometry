@@ -139,6 +139,8 @@ variable {EB HB M : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB]
 | `Geometry/Manifold/VectorBundle/Riemannian/Trivial.lean` | constant metrics on trivial bundles | 25 |
 | `Geometry/Manifold/VectorBundle/Hermitian/Basic.lean` | the symplectic form of a Hermitian bundle | 25 |
 | `Geometry/Manifold/VectorBundle/Hermitian/CircleBundle.lean` | the circle bundle of a Hermitian line bundle as a principal `Circle`-bundle | 26 |
+| `Topology/FiberBundle/ChangeModelFiber.lean` | change of model fibre of a fibre bundle along a homeomorphism | 26 |
+| `Topology/FiberBundle/Principal/ChangeGroup.lean` | change of structure group of a principal bundle along `G ≃ₜ* H` | 26 |
 | `Geometry/Manifold/IsManifold/InteriorBoundary.lean` | the interior of a manifold with boundary as a boundaryless manifold | 12 |
 | `Topology/Connected/Clopen.lean` | preconnectedness of a dense subset from local preconnectedness | 12 |
 | `Geometry/Manifold/Boundary/Collar/Push.lean` | pushing a compact manifold with boundary into its interior | 13 |
@@ -202,6 +204,13 @@ file to it.
   alternating maps on a pull-back bundle uses no charts, so it sits in a
   topological file, beside Tau Ceti's linear-map lemma in its file of the same
   path. #323 asks the overview to record it.
+- `Topology/FiberBundle/Principal/ChangeGroup.lean` is new: the change of
+  structure group behind the principal `Circle`-bundle of
+  `Hermitian/CircleBundle.lean` uses nothing about circles or frames, so it is stated
+  for any principal bundle and any `G ≃ₜ* H`, in the Tau Ceti folder of
+  principal bundles, so that it can merge there. The step it rests on, reading
+  a fibre bundle with another model fibre along a homeomorphism, involves no
+  group, so it has its own file, `Topology/FiberBundle/ChangeModelFiber.lean`.
 - The lemma of `Section/Topology.lean` asks for joint $C^n$ regularity in a
   manifold parameter instead of derivatives continuous in the parameter (see
   below), and issues 6, 7 and 8 wait for part 9: issue 6 for its building
