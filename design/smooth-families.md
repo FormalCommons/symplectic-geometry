@@ -466,6 +466,22 @@ Named like Tau Ceti's file; in `TauCeti`.
 - `IsSmoothlyContractible.hasFiniteGoodCover` (one set is a good cover), as
   the example of the predicate.
 
+### `Geometry/Manifold/LocalDiffeomorph/Basic.lean`
+
+- `IsLocalDiffeomorphAt.exists_partialDiffeomorph`: a local diffeomorphism
+  at `x` agrees with a partial diffeomorphism on a source containing `x`,
+  since Mathlib does not expose the body of `IsLocalDiffeomorphAt`; used by
+  `Immersion/TangentProjection.lean`.
+
+### `Analysis/Calculus/TangentGraphChart.lean`
+
+Named like Tau Ceti's file.
+
+- `ContDiffOn.exists_uniform_inverse_starProjection`: the graph coordinates
+  of a smooth map over its tangent spaces, chosen uniformly in the base point
+  near a point `w₀` where its derivative is injective, with derivative bounds of every order; used by
+  `Immersion/TangentProjection.lean`.
+
 ### `Geometry/Manifold/MFDeriv/Chart.lean`
 
 Differentials of maps into normed spaces read in an extended chart not

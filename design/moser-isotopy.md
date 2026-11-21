@@ -124,7 +124,7 @@ can join them.
 
 | File | Contents | Issue |
 |---|---|---|
-| `Geometry/Symplectic/Manifold/Family.lean` | openness of nondegeneracy for families and segments of two-forms; the velocity of a reparametrized segment of forms | 1 |
+| `Geometry/Symplectic/Manifold/Family.lean` | openness of nondegeneracy for families and segments of two-forms; the slices and the velocity of a reparametrized segment of forms (`SmoothForm.lineMapFamily`) | 1 |
 | `Geometry/Symplectic/Manifold/Flat.lean` | the inverse flat map of a covector field with zero first jet | 1 |
 | `Geometry/Symplectic/Moser/Relative.lean` | the relative Moser theorem with prescribed first derivative, the milestone | 2 |
 | `Geometry/Symplectic/Moser/Field.lean` | `moserField`, the cut-off Moser field of a family of two-forms | 3 |
@@ -386,8 +386,8 @@ theorem exists_diffeotopy_fix_eventually_mpullback_eq_of_mextDeriv_eq_sub
 It is the diffeotopy form of Tau Ceti's
 `exists_diffeomorph_fix_eventually_mpullback_eq_of_mextDeriv_eq_sub`. The
 points `(t, x)` at which `σ₀ + t • (σ₁ - σ₀)` is nondegenerate form an open
-set, by `isOpen_setOf_isInvertible_flat_mpullback_prodMk` applied to
-`SmoothForm.lineMapFamily σ₀ σ₁ contDiff_id`. By `hnd` it contains the
+set, by `isOpen_setOf_isInvertible_flat_add_smul_sub σ₀ σ₁` of
+`Manifold/Family.lean`. By `hnd` it contains the
 compact set `Icc 0 1 ×ˢ K`. Take a cutoff `ρ : ℝ × M → ℝ`
 (`IsCompact.exists_contMDiff_one_nhds_tsupport_subset` on `ℝ × M`) that is
 `1` near `Icc 0 1 ×ˢ K`, with compact support in this open set. The field
