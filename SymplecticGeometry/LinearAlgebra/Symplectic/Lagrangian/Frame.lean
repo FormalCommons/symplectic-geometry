@@ -334,15 +334,14 @@ theorem LagrangianGrassmannian.coe_ofFrame (X Y : Matrix ι ι ℝ)
 theorem det_ne_zero_of_isLagrangian_range_fromRows {X Y : Matrix ι ι ℝ}
     (h : (stdForm ι).IsLagrangian (LinearMap.range (toEuclideanLin (fromRows X Y)))) :
     (X.map Complex.ofReal + Complex.I • Y.map Complex.ofReal).det ≠ 0 := by
-  set e := (complexEuclideanEquiv ι).toLinearEquiv
+  set e := (complexEuclideanEquiv ι).toLinearEquiv with e_def
   have he : (stdComplexStructure ι).toLinearMap ∘ₗ e.toLinearMap =
       e.toLinearMap ∘ₗ (LinearMap.lsmul ℂ (EuclideanSpace ℂ ι) Complex.I).restrictScalars ℝ :=
-    LinearMap.ext fun v ↦ StdSpace.ext (by simp [e, Pi.neg_def]) (by simp [e])
+    LinearMap.ext fun v ↦ stdComplexStructure_complexEuclideanEquiv v
   have hrange : LinearMap.range (toEuclideanLin (fromRows X Y)) =
       (X.map Complex.ofReal + Complex.I • Y.map Complex.ofReal).realImage.map e.toLinearMap := by
-    rw [range_toEuclideanLin_fromRows]
-    simp only [e, complexEuclideanEquiv_def]
-    rfl
+    rw [range_toEuclideanLin_fromRows, e_def, complexEuclideanEquiv_def,
+      ContinuousLinearEquiv.trans_toLinearEquiv, LinearEquiv.coe_trans]
   have hJ := h.isMaximalTotallyReal_of_compatible stdForm_compatible
   rw [hrange, e.isMaximalTotallyReal_map_iff he] at hJ
   exact isMaximalTotallyReal_realImage_iff.1 hJ

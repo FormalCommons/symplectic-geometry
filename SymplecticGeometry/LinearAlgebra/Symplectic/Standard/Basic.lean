@@ -32,7 +32,8 @@ structures.
   so that `x (J₀ z) = -y z` and `y (J₀ z) = x z`; it is the map of `Matrix.J ι ℝ`.
 * `SymplecticGeometry.StdSpace.complexEuclideanEquiv ι` identifies `EuclideanSpace ℂ ι` with
   `StdSpace ι` by real and imaginary parts, so that subspaces of `ℂⁿ` can be compared with
-  subspaces of the model.
+  subspaces of the model; it carries multiplication by `I` to `J₀`
+  (`stdComplexStructure_complexEuclideanEquiv`).
 
 The main facts fixing the conventions are `stdForm_apply`
 (`ω₀(z, w) = ∑ᵢ (xᵢ(z) yᵢ(w) - yᵢ(z) xᵢ(w))`), `stdComplexStructure_eq_toEuclideanLin_J`,
@@ -236,6 +237,12 @@ theorem stdComplexStructure_apply_inr (z : StdSpace ι) (i : ι) :
     stdComplexStructure ι z (Sum.inr i) = z (Sum.inl i) := by
   rw [← y_apply, stdComplexStructure_y]
   rfl
+
+/-- `complexEuclideanEquiv ι` carries multiplication by `I` on `ℂⁿ` to `J₀`. -/
+@[simp]
+theorem stdComplexStructure_complexEuclideanEquiv (v : EuclideanSpace ℂ ι) :
+    stdComplexStructure ι (complexEuclideanEquiv ι v) = complexEuclideanEquiv ι (Complex.I • v) :=
+  StdSpace.ext (by simp [Pi.neg_def]) (by simp)
 
 /-- `J₀` is the linear map of the matrix `Matrix.J ι ℝ = !![0, -1; 1, 0]`. -/
 theorem stdComplexStructure_eq_toEuclideanLin_J [DecidableEq ι] :

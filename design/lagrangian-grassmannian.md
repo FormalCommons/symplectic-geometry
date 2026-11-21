@@ -125,7 +125,7 @@ global name.
    `isCompl_iff_disjoint` in `LinearAlgebra/Symplectic/Lagrangian/Basic.lean`,
    since it holds for a general `ω` and `Transverse.lean` is about
    `StdSpace ι`. One definition about `StdSpace ι` alone,
-   `StdSpace.complexEuclideanEquiv` with its three lemmas, is added to part 1's
+   `StdSpace.complexEuclideanEquiv` with its four lemmas, is added to part 1's
    `Standard/Basic.lean` (see that section). The other departures are #79's,
    the issue that changes §6 to match: `Topology/Grassmannian/Lagrangian/Finite.lean`;
    the general files under `LinearAlgebra/Matrix/` (the real points of the
@@ -227,8 +227,9 @@ lacks. It goes beside `x_complexToRealEuclidean`, in the namespace
   `complexEuclideanEquiv_def`, and the `@[simp]` lemmas
   `x_complexEuclideanEquiv : (complexEuclideanEquiv ι v).x = fun i ↦ (v i).re`
   and `y_complexEuclideanEquiv : (complexEuclideanEquiv ι v).y = fun i ↦ (v i).im`,
-  from `x_complexToRealEuclidean` and `y_complexToRealEuclidean`. Building
-  issue 3 adds it.
+  from `x_complexToRealEuclidean` and `y_complexToRealEuclidean`. The `@[simp]` lemma
+  `stdComplexStructure_complexEuclideanEquiv` says that it carries
+  multiplication by `I` to `J₀`. Building issue 3 adds it.
 
 This part also uses
 `SymplecticGeometry.isSymplectomorphism_piLpCongrLeft_sumCongr` (`σ : ι ≃ κ`),
@@ -329,7 +330,7 @@ Lagrangian frames on `StdSpace ι`, pure linear algebra. Namespace
   real for `J₀` (`IsLagrangian.isMaximalTotallyReal_of_compatible` with
   `stdForm_compatible`). By `Matrix.range_toEuclideanLin_fromRows` it is the
   image under `complexEuclideanEquiv`, which intertwines multiplication by
-  `I` with `J₀`, of `(X + i Y).realImage`; so that real image is maximal
+  `I` with `J₀` (`stdComplexStructure_complexEuclideanEquiv`), of `(X + i Y).realImage`; so that real image is maximal
   totally real (`LinearEquiv.isMaximalTotallyReal_map_iff`), and Tau Ceti's
   `isMaximalTotallyReal_realImage_iff` gives `det (X + i Y) ≠ 0`. With
   `Matrix.map_im_conjTranspose_mul_self_eq_zero_of_transpose_mul_eq`
