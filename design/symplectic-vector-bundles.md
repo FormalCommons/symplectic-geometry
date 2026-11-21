@@ -87,7 +87,7 @@ variable {EB HB M : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB]
     through an equivalence of `F` with a Euclidean space; each use of Tau
     Ceti's `Tames.isUnit_one_sub_mul` (`Geometry/Symplectic/Cayley/Basic.lean`),
     in the symplectic-to-complex direction of the classification; and
-    `mem_cayleyPathDomain_of_compatible`, which applies part 9's
+    `Compatible.mem_cayleyPathDomain`, which applies part 9's
     `Compatible.mem_cayleyDomain` in `F` (see *Contractibility and the
     homotopy equivalence*);
   - finite dimension of `EB` and `F`: the existence of bundle metrics, with
@@ -581,10 +581,14 @@ $[0,1]$ is never fed to the lemma with `P = ℝ` directly.
   open set of the endomorphism bundle on which the path from a reference
   endomorphism to the fibre value is defined for every coefficient in
   $[0,1]$. Only the reference differs between them, so the set and its
-  three arguments (independence from the trivialization, openness and
+  arguments (independence from the trivialization, the units, openness and
   membership) are planned once, for an arbitrary reference, in
   `Geometry/Manifold/VectorBundle/Cayley.lean`, the file of the bundle
-  Cayley lemma below, in the namespace `SymplecticGeometry.Bundle`. Part 9's
+  Cayley lemma below. The set and its first four lemmas mention only
+  Mathlib's bundles and the linear Cayley formula, so they go in Mathlib's
+  namespace `Bundle`, as `Bundle.polarFormulaDomain` does; the membership
+  lemma is about Tau Ceti's `SymplecticForm.Compatible`, so it goes in that
+  namespace. Part 9's
   Cayley domain (`Geometry/Symplectic/Cayley/Domain.lean` of
   `design/compatible-complex-structures.md`) and its lemmas live in a
   complete normed algebra, and `Compatible.mem_cayleyDomain` moreover on a
@@ -596,7 +600,7 @@ $[0,1]$ is never fed to the lemma with `P = ℝ` directly.
   `trivializationAt F V q.proj` (Mathlib's
   `ContinuousLinearEquiv.conjContinuousAlgEquiv`, an algebra isomorphism
   `(V q.proj →L[ℝ] V q.proj) ≃A[ℝ] (F →L[ℝ] F)`).
-  - `cayleyPathDomain F V (A : ∀ q : E, V q.proj →L[ℝ] V q.proj) : Set E`,
+  - `Bundle.cayleyPathDomain F V (A : ∀ q : E, V q.proj →L[ℝ] V q.proj) : Set E`,
     the points `q` with `(b, φ q (A q), φ q q.snd) ∈ cayleyDomain (F →L[ℝ] F)`
     for every $b\in[0,1]$, with `mem_cayleyPathDomain_iff`, which says so.
   - `mem_cayleyPathDomain_iff_of_mem_baseSet`: the same condition, with
@@ -605,12 +609,16 @@ $[0,1]$ is never fed to the lemma with `P = ℝ` directly.
     conjugations differ by an algebra automorphism of `F →L[ℝ] F`, which
     preserves units and, by Tau Ceti's `map_cayleyFormula`, the Cayley
     formula, so the set does not depend on the choice.
-  - `isUnit_inCoordinates_of_mem_cayleyPathDomain`: for `q` in the set and
-    $b\in[0,1]$, the two unit hypotheses that
+  - `isUnit_of_mem_cayleyPathDomain`: for `q` in the set and $b\in[0,1]$,
+    `IsUnit (1 - A q * q.snd)` and
+    `IsUnit (1 - b • cayleyFormula (A q) q.snd)` in the fibre ring
+    `V q.proj →L[ℝ] V q.proj`. These are the two unit hypotheses that
     `ContMDiffAt.cayleyPathFormula_hom_bundle_of_vectorBundle` asks for at
-    `q` with coefficient `b`, which are about the readings of `A q` and
-    `q.snd` in coordinates; by the previous lemma and
-    `ContinuousLinearMap.inCoordinates_eq_conjContinuousAlgEquiv`.
+    `q` with coefficient `b`, since Tau Ceti's proof states them in the
+    fibre ring (`hu₁`, `hu₂` of `ContMDiffAt.cayleyPathFormula_hom_bundle`).
+    Proof: from `mem_cayleyPathDomain_iff`, apply the algebra isomorphism
+    `(φ q).symm`, which preserves units and, by `map_cayleyFormula`, the
+    Cayley formula.
   - `isOpen_cayleyPathDomain`: if `U` is an open subset of `E` and
     `q ↦ TotalSpace.mk' (F →L[ℝ] F) q.proj (A q)` is continuous on `U`, then
     `U ∩ cayleyPathDomain F V A` is open. Over the base set of the
@@ -620,7 +628,8 @@ $[0,1]$ is never fed to the lemma with `P = ℝ` directly.
     (`inCoordinates_eq_conjContinuousAlgEquiv`), so the set is, inside `U`,
     the preimage under the continuous reading of `q ↦ (A q, q.snd)` of the
     open set of part 9's `isOpen_setOf_forall_Icc_mem_cayleyDomain`.
-  - `mem_cayleyPathDomain_of_compatible`, under `[FiniteDimensional ℝ F]`:
+  - `TauCeti.SymplecticForm.Compatible.mem_cayleyPathDomain`, under
+    `[FiniteDimensional ℝ F]`, used as `h₀.mem_cayleyPathDomain h`:
     let `ω` be a Tau Ceti symplectic form on `V q.proj`, and `J₀`, `J`
     almost complex structures on it whose linear maps are those of `A q`
     and `q.snd`, with `ω.Compatible J₀` and `ω.Tames J`; then
@@ -633,7 +642,10 @@ $[0,1]$ is never fed to the lemma with `P = ℝ` directly.
     (`conjContinuousAlgEquiv_apply_apply`,
     `AlmostComplexStructure.transport_apply`). So part 9's
     `TauCeti.SymplecticForm.Compatible.mem_cayleyDomain`, on the normed
-    finite-dimensional space `F`, gives the triple for $|b|\le1$.
+    finite-dimensional space `F`, gives the triple for $|b|\le1$. The
+    statements that mention `cayleyPathDomain` keep `[CompleteSpace F]`
+    beside `[FiniteDimensional ℝ F]`, since `FiniteDimensional.completeSpace`
+    is not an instance.
 - **Fixed form, tame and compatible structures.** Fix a compatible `J₀`
   (`IsNondegenerate.exists_compatible`). The contraction is
   $(t,J)\mapsto$ `TauCeti.cayleyPathFormula (smoothTransition (1 - t)) (J₀ x) (J x)`
@@ -651,7 +663,7 @@ $[0,1]$ is never fed to the lemma with `P = ℝ` directly.
   reference. It is open by `isOpen_cayleyPathDomain` with `U = univ`, since
   `J₀` is a continuous section of the endomorphism bundle. It contains
   `⟨x, J x⟩` for every `J` tame for `ω`, by
-  `mem_cayleyPathDomain_of_compatible` with `hω.symplecticFormAt x`,
+  `Compatible.mem_cayleyPathDomain` with `hω.symplecticFormAt x`,
   `almostComplexStructureAt J₀ x` and `almostComplexStructureAt J x`
   (`almostComplexStructureAt_apply`).
 
@@ -695,7 +707,7 @@ $[0,1]$ is never fed to the lemma with `P = ℝ` directly.
   `ℝ × TotalSpace (F →L[ℝ] F) (fun x ↦ V x →L[ℝ] V x)`, base map the bundle
   projection, `b` the time through `smoothTransition (1 - ·)`, `A` the value
   of `J₀` and `B` the fibre value; its two unit hypotheses come from
-  `isUnit_inCoordinates_of_mem_cayleyPathDomain`, since `smoothTransition`
+  `isUnit_of_mem_cayleyPathDomain`, since `smoothTransition`
   takes values in $[0,1]$. The lemma is applied at the cast to
   `WithTop ℕ∞` of the design's regularity `n : ℕ∞`, never at the analytic
   order, since `smoothTransition` is smooth but not analytic. That the path
@@ -742,7 +754,7 @@ $[0,1]$ is never fed to the lemma with `P = ℝ` directly.
   hypothesis `hA`, smoothness of `A` at the point, is
   `contMDiffOn_polarEndAt` on the open set `polarEndDomain g`, which
   contains `O`; its two unit hypotheses at the point follow from the
-  membership in `O` by `isUnit_inCoordinates_of_mem_cayleyPathDomain`, at
+  membership in `O` by `isUnit_of_mem_cayleyPathDomain`, at
   the time `b` of the point.
 
   The set `O` is `polarEndDomain g ∩ cayleyPathDomain F V A`, for this `A`.
@@ -750,12 +762,13 @@ $[0,1]$ is never fed to the lemma with `P = ℝ` directly.
   is open (`isOpen_polarEndDomain`) and on which `A` is continuous
   (`contMDiffOn_polarEndAt`). It contains `⟨x, J x⟩` for every complex
   structure `J`: the point is in `polarEndDomain g`
-  (`mk_mem_polarEndDomain`), and `mem_cayleyPathDomain_of_compatible`
+  (`mk_mem_polarEndDomain`), and `Compatible.mem_cayleyPathDomain`
   applies with the linear symplectic form of $\omega_{g,J}$ at `x`, the
   linear structure $J_{g,\omega_{g,J}}$ at `x`, whose map is `A ⟨x, J x⟩` by
   `polarEndAt_eq_polarComplexStructure`, and the one of `J x`; both are
   compatible with that form (`compatible_polarComplexStructure`,
-  `compatible_compatibleForm`). `polarComplexStructure_homotopic`: for two metrics
+  `compatible_compatibleForm`), and the second is therefore tame for it, by
+  Tau Ceti's `Compatible.tames`. `polarComplexStructure_homotopic`: for two metrics
   the two maps $\omega\mapsto J_{g,\omega}$ are homotopic, by contracting the
   metrics.
 - **Milestone.** `SymplecticGeometry.Bundle.contractibleSpace_compatible_tames`:
@@ -1440,7 +1453,7 @@ number*.
    `Symplectic/ComplexStructure/Contractible.lean`: the four
    `contractibleSpace_…` theorems; the bundle Cayley lemma
    `ContMDiffAt.cayleyPathFormula_hom_bundle_of_vectorBundle` and
-   `cayleyPathDomain` with its four lemmas in `VectorBundle/Cayley.lean`;
+   `cayleyPathDomain` with its five lemmas in `VectorBundle/Cayley.lean`;
    and the contractibility of metrics in
    `Riemannian/SectionTopology.lean`. Blockers: 4, 6, and part 9's building
    issue 6 (`Geometry/Symplectic/Cayley/Domain.lean` of
