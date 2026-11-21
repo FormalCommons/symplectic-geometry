@@ -324,7 +324,7 @@ review of #420 raise four more.
 
 ### `Geometry/Manifold/DifferentialForm/Flow/Family.lean`
 
-Named like Tau Ceti's file, in the namespace `TauCeti`. Two theorems. The
+Named like Tau Ceti's file, in the namespace `TauCeti`. Three theorems. The
 first is the rescaling form of Moser's principle along a single trajectory:
 
 ```lean
@@ -364,6 +364,20 @@ theorem mpullback_timeDependentFlowOf_apply_of_mextDeriv_interior_eq_zero
     (hXβ : ∀ t, mextDeriv (RoughForm.interior (X t) β.val) = 0)
     {s t : ℝ} {x : M} (h : ((s, t), x) ∈ timeDependentFlowDomain X) :
     mpullback I I (timeDependentFlowOf X s t) β.val x = β.val x
+```
+
+The third, added by *Contact geometry* for `Contact/Hamiltonian.lean`, is
+the same constant-family argument with the eigenform equation in place of
+the closedness conditions:
+
+```lean
+theorem mpullback_timeDependentFlowOf_apply_eq_exp_integral_smul_of_mlieDerivForm_eq
+    (hX : ContMDiff (𝓘(ℝ, ℝ).prod I) I.tangent 2 (fun p : ℝ × M ↦ (⟨p.2, X p.1 p.2⟩ : TangentBundle I M)))
+    {β : SmoothForm I M F k} {g : ℝ × M → ℝ} (hg : Continuous g)
+    (hβ : ∀ u, mlieDerivForm (X u) β.val = fun y ↦ g (u, y) • β.val y)
+    {s t : ℝ} {x : M} (h : ((s, t), x) ∈ timeDependentFlowDomain X) :
+    mpullback I I (timeDependentFlowOf X s t) β.val x =
+      Real.exp (∫ u in s..t, g (u, timeDependentFlowOf X s u x)) • β.val x
 ```
 
 The file also has, in `TauCeti.SmoothForm`, the slices of a pullback along
@@ -445,8 +459,9 @@ Named like Tau Ceti's file, in `TauCeti.SmoothForm`.
   `f : N → M → ℝ`: the field `(p, y) ↦ X_{f p}(y)` is jointly `C^n` as a map
   `N × M → TM`; for `N = ℝ` it is the time-dependent field. Tau
   Ceti proves smoothness only for one function; the proof follows
-  `TauCeti.SmoothForm.contMDiffAt_sectionAlong_strictContactMoserVectorField`
-  (inverse contact flat map along a parameter), which the docstring credits.
+  `TauCeti.SmoothTwoForm.IsNondegenerate.contMDiff_hamiltonianVectorField_uncurry`
+  (global inverse contact flat map composed with `Prod.snd`), which the
+  docstring credits.
 - `IsContactForm.mpullback_timeDependentFlowOf_apply_eq_exp_integral_smul`
   (`[I.Boundaryless] [T2Space M]`): for `f : ℝ → M → ℝ` jointly `C³` and any
   `X` with `∀ t, α.IsContactHamiltonianVectorField (f t) (X t)`, for every
@@ -454,10 +469,8 @@ Named like Tau Ceti's file, in `TauCeti.SmoothForm`.
   `TauCeti.mpullback I I (timeDependentFlowOf X s t) α.val x =
    Real.exp (∫ u in s..t, mvfderiv I (f u) (timeDependentFlowOf X s u x)
      (α.reebVectorField (timeDependentFlowOf X s u x))) • α.val x`.
-  From Tau Ceti's
-  `mpullback_timeDependentFlowOf_mpullback_prodMk_apply_eq_exp_integral_smul_of_mem`
-  for the constant family `mpullback Prod.snd α` (time derivative `0`), with
-  $g(t,y)=R(f_t)(y)$ and Gray's equation given by
+  From `mpullback_timeDependentFlowOf_apply_eq_exp_integral_smul_of_mlieDerivForm_eq`
+  of `Flow/Family.lean`, with $g(t,y)=R(f_t)(y)$ and Gray's equation given by
   `IsContactHamiltonianVectorField.mlieDerivForm_eq`.
 - **Milestone theorem** `IsContactForm.contactVectorFields_correspondence (hα)`,
   the conjunction of: the two characterizations of `contactVectorFields`

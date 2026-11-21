@@ -8,12 +8,12 @@ module
 public import Mathlib.Geometry.Manifold.Algebra.SmoothFunctions
 public import TauCeti.Geometry.Contact.Flow
 public import TauCeti.Geometry.Contact.Rescale
-public import TauCeti.Geometry.Manifold.DifferentialForm.Flow.Family
 public import TauCeti.Geometry.Manifold.VectorBundle.Bilinear.SmulRight
 public import TauCeti.Geometry.Manifold.VectorBundle.Hom
 public import TauCeti.Geometry.Manifold.VectorBundle.Scalar
 public import TauCeti.Geometry.Manifold.VectorBundle.Translate
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.DegreeOne
+public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Flow.Family
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.LieDeriv
 
 /-!
@@ -63,16 +63,13 @@ differentiate the pulled back form at time `0` with `TauCeti.hasDerivAt_mpullbac
 on the open set of times where the flow from `x` is defined.
 
 The joint regularity of `X_{f_p}` adapts Tau Ceti's
-`TauCeti.SmoothForm.IsContactForm.contMDiff_contactHamiltonianVectorField` to sections along the
-projection `N × M → M`, as Tau Ceti's
-`TauCeti.SmoothForm.contMDiffAt_sectionAlong_strictContactMoserVectorField` does for strict
-contact-Moser fields: the inverse contact flat map applied to `(f + R f) α - df`. The rescaling
-formula is the time-dependent analogue of Tau Ceti's
-`TauCeti.SmoothForm.IsContactHamiltonianVectorField.mpullback_flowOf_apply`. It applies Tau Ceti's
-`TauCeti.mpullback_timeDependentFlowOf_mpullback_prodMk_apply_eq_exp_integral_smul_of_mem` to the
-constant family `(u, y) ↦ α_y`, as
-`TauCeti.mpullback_timeDependentFlowOf_apply_of_mextDeriv_interior_eq_zero`
-(`Geometry/Manifold/DifferentialForm/Flow/Family.lean`) does for a closed form.
+`TauCeti.SmoothForm.IsContactForm.contMDiff_contactHamiltonianVectorField` to a parameter, as
+Tau Ceti's `TauCeti.SmoothTwoForm.IsNondegenerate.contMDiff_hamiltonianVectorField_uncurry` does
+for symplectic Hamiltonian fields: the inverse contact flat map, composed with the projection
+`N × M → M`, applied to `(f + R f) α - df`. The rescaling formula is the time-dependent analogue
+of Tau Ceti's `TauCeti.SmoothForm.IsContactHamiltonianVectorField.mpullback_flowOf_apply`. It
+applies `TauCeti.mpullback_timeDependentFlowOf_apply_eq_exp_integral_smul_of_mlieDerivForm_eq`
+(`Geometry/Manifold/DifferentialForm/Flow/Family.lean`) to `L_{X_{f_u}} α = (R f_u) α`.
 
 ## References
 
@@ -295,23 +292,14 @@ theorem contMDiff_contactHamiltonianVectorField_uncurry (hn : n ≤ ∞)
     ContMDiff (J.prod I) I.tangent n fun q : N × M ↦
       (⟨q.2, α.contactHamiltonianVectorField (f q.1) q.2⟩ : TangentBundle I M) := by
   intro q
-  have hα₀ : ContMDiffAt (J.prod I) (I.prod 𝓘(ℝ, E [⋀^Fin 1]→L[ℝ] ℝ)) n
-      (fun p : N × M ↦ TotalSpace.mk' (E [⋀^Fin 1]→L[ℝ] ℝ)
-        (E := fun x : M ↦ TangentSpace I x [⋀^Fin 1]→L[ℝ] Trivial M ℝ x) p.2 (α.val p.2)) q :=
-    ((α.contMDiff q.2).of_le hn).comp q contMDiffAt_snd
-  have hdα₀ : ContMDiffAt (J.prod I) (I.prod 𝓘(ℝ, E [⋀^Fin 2]→L[ℝ] ℝ)) n
-      (fun p : N × M ↦ TotalSpace.mk' (E [⋀^Fin 2]→L[ℝ] ℝ)
-        (E := fun x : M ↦ TangentSpace I x [⋀^Fin 2]→L[ℝ] Trivial M ℝ x) p.2
-        (mextDeriv α.val p.2)) q :=
-    ((contMDiff_mextDeriv α q.2).of_le hn).comp q contMDiffAt_snd
   have hcov := ((((hf q).of_le le_self_add).add
     (hα.contMDiff_mvfderiv_reebVectorField_uncurry hn hf q)).smul_totalSpace
-      (contMDiffAt_sectionAlong_degreeOneEquiv_iff.2 hα₀)).sub_sectionAlong
+      (((degreeOneEquiv α).contMDiff.of_le hn).comp contMDiff_snd q)).sub_sectionAlong
     (hf.contMDiff_totalSpaceMk_mvfderiv_uncurry q)
-  have hX := (ContMDiffAt.clm_bundle_inverse (x := q) (ϕ := fun p : N × M ↦ α.contactFlat p.2)
-    (contMDiffAt_sectionAlong_contactFlat (α := fun _ ↦ α) hα₀ hdα₀)
-    (hα.isInvertible_contactFlat q.2)).clm_bundle_apply hcov
-  simpa only [contactHamiltonianVectorField_def, Pi.add_apply, Function.uncurry_def] using hX
+  have hX := ((((contMDiff_contactFlat α).clm_bundle_inverse hα.isInvertible_contactFlat).of_le
+    hn).comp contMDiff_snd q).clm_bundle_apply hcov
+  simpa only [contactHamiltonianVectorField_def, Pi.add_apply, Function.uncurry_def,
+    Function.comp_apply] using hX
 
 end Family
 
@@ -334,34 +322,12 @@ theorem mpullback_timeDependentFlowOf_apply_eq_exp_integral_smul [I.Boundaryless
       (fun p : ℝ × M ↦ (⟨p.2, X p.1 p.2⟩ : TangentBundle I M)) := by
     rw [hXe]
     exact hα.contMDiff_contactHamiltonianVectorField_uncurry (by simp) (by norm_num [hf])
-  -- The constant family `p ↦ α (p.2)` on `ℝ × M`, whose slices are all `α`.
-  set β := SmoothForm.mpullback (Prod.snd : ℝ × M → M)
-    (contMDiff_snd : ContMDiff (𝓘(ℝ, ℝ).prod I) I ∞ (Prod.snd : ℝ × M → M)) α
-  have hslice (u : ℝ) :
-      TauCeti.mpullback I (𝓘(ℝ, ℝ).prod I) (Prod.mk u : M → ℝ × M) β.val = α.val := by
-    have hc : (Prod.snd : ℝ × M → M) ∘ Prod.mk u = id := rfl
-    rw [← SmoothForm.coe_mpullback (Prod.mk u) (contMDiff_const.prodMk contMDiff_id),
-      ← LinearMap.comp_apply, ← SmoothForm.mpullback_comp]
-    simp only [hc, SmoothForm.mpullback_id, LinearMap.id_apply]
-  have hL (u : ℝ) : TauCeti.mpullback I (𝓘(ℝ, ℝ).prod I) (Prod.mk u)
-        (mlieDerivForm (fun _ ↦ ((1 : ℝ), (0 : E))) β.val) +
-      mlieDerivForm (X u) (TauCeti.mpullback I (𝓘(ℝ, ℝ).prod I) (Prod.mk u : M → ℝ × M) β.val) =
-      fun y ↦ mvfderiv I (f u) y (α.reebVectorField y) •
-        TauCeti.mpullback I (𝓘(ℝ, ℝ).prod I) (Prod.mk u : M → ℝ × M) β.val y := by
-    funext y
-    -- The slices of the constant family do not move, so their time derivative vanishes.
-    have hd := hasDerivAt_mpullback_prodMk u y (β.mdifferentiable (u, y))
-    simp only [hslice] at hd
-    have hXu : MDifferentiable I I.tangent (fun y ↦ (⟨y, X u y⟩ : TangentBundle I M)) :=
-      (hX2.comp ((contMDiff_const (c := u)).prodMk contMDiff_id)).mdifferentiable two_ne_zero
-    rw [Pi.add_apply, hd.unique (hasDerivAt_const u _), hslice, (hX u).mlieDerivForm_eq hXu]
-    -- The zero derivative is taken in the model space of forms, the sum in the fibre at `y`.
-    exact zero_add _
-  simpa only [hslice] using
-    mpullback_timeDependentFlowOf_mpullback_prodMk_apply_eq_exp_integral_smul_of_mem hX2
-      (g := fun p ↦ mvfderiv I (f p.1) p.2 (α.reebVectorField p.2))
-      (hα.contMDiff_mvfderiv_reebVectorField_uncurry (J := 𝓘(ℝ, ℝ)) (n := 0) (by simp)
-        (hf.of_le (by norm_num))).continuous (β.contMDiff.of_le (by simp)) hL hx
+  have hXu (u : ℝ) : MDifferentiable I I.tangent (fun y ↦ (⟨y, X u y⟩ : TangentBundle I M)) :=
+    (hX2.comp ((contMDiff_const (c := u)).prodMk contMDiff_id)).mdifferentiable two_ne_zero
+  exact mpullback_timeDependentFlowOf_apply_eq_exp_integral_smul_of_mlieDerivForm_eq hX2
+    (g := fun p ↦ mvfderiv I (f p.1) p.2 (α.reebVectorField p.2))
+    (hα.contMDiff_mvfderiv_reebVectorField_uncurry (J := 𝓘(ℝ, ℝ)) (n := 0) (by simp)
+      (hf.of_le (by norm_num))).continuous (fun u ↦ (hX u).mlieDerivForm_eq (hXu u)) hx
 
 end IsContactForm
 
