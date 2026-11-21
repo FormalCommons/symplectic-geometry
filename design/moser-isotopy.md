@@ -132,6 +132,7 @@ can join them.
 | `Geometry/Symplectic/Manifold/Darboux.lean` | Darboux charts with prescribed derivative, symplectic transitions, the milestone | 5 |
 | `Geometry/Manifold/LocalDiffeomorph/MFDeriv.lean` | the derivative of a transition between partial diffeomorphisms, composed with a differential; the differential of a partial diffeomorphism followed by a continuous linear equivalence (`PartialDiffeomorph.mvfderiv_trans_toDiffeomorph`) | 5 |
 | `Geometry/Symplectic/Moser/Stability.lean` | Moser stability, the milestone | 6 |
+| `Geometry/Manifold/DifferentialForm/BilinFormAt.lean` | `TauCeti.SmoothForm.bilinFormAt` of sums, real multiples, zero, negatives and differences of two-forms | #627 |
 
 ### `Geometry/Symplectic/Manifold/Family.lean`
 
@@ -152,6 +153,14 @@ two-forms. It is in the namespace `TauCeti.SmoothTwoForm`.
   `SmoothForm.lineMapFamily σ₀ σ₁ contDiff_id` and then Mathlib's
   `generalized_tube_lemma` over `isCompact_Icc`, using
   `isInvertible_flat_iff` to pass between the flat map and nondegeneracy.
+
+### `Geometry/Manifold/DifferentialForm/BilinFormAt.lean`
+
+The `@[simp]` lemmas `TauCeti.SmoothForm.bilinFormAt_add`, `_smul`, `_zero`,
+`_neg` and `_sub`, in the namespace `TauCeti.SmoothForm`, for real smooth
+two-forms. They rewrite the bilinear form at a point of a segment
+`σ₀ + s • (σ₁ - σ₀)` of two-forms. The file is about two-forms in general,
+so any part may import it.
 
 ### `Geometry/Symplectic/Manifold/Flat.lean`
 
