@@ -60,8 +60,8 @@ private theorem mul_norm_adjoint_le [DecidableEq ι] {f : StdSpace ι ≃ᵃ[ℝ
     have hw : f.linear z c = inner ℝ z w := by
       simp only [w, ContinuousLinearEquiv.adjointEquiv_apply]
       rw [real_inner_comm, ← ContinuousLinearMap.adjoint_apply_apply,
-        ContinuousLinearMap.adjoint_adjoint]
-      rfl
+        ContinuousLinearMap.adjoint_adjoint, ContinuousLinearEquiv.coe_coe,
+        LinearEquiv.coe_toContinuousLinearEquiv']
     rw [hz, PiLp.add_apply, hw]
   exact mul_norm_le_of_abs_inner_add_le hr fun z hz ↦ hf z ▸ h z hz
 
