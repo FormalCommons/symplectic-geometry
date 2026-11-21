@@ -22,10 +22,12 @@ and its time-dependent flows use, and a `TauCeti.Diffeotopy`, a level-preserving
 
 ## Main definitions
 
+* `Real.smoothTransitionUnit`: the smooth transition function `s = Real.smoothTransition`, as a
+  smooth map `ℝ → unitInterval`.
 * `TauCeti.Diffeotopy.ofReal ψ hψ h₀`: the restriction to `[0, 1]` of a jointly smooth family
   `ψ` over `ℝ` with `ψ 0 = id`, as a diffeotopy.
 * `TauCeti.Diffeotopy.smoothTransitionFamily Φ`: the family `u ↦ φ_{s(u)}` over `ℝ` of a
-  diffeotopy `Φ`, with `s = Real.smoothTransition`; it is the identity for `u ≤ 0` and the final
+  diffeotopy `Φ`, with `s = Real.smoothTransitionUnit`; it is the identity for `u ≤ 0` and the final
   map `Φ.final` for `u ≥ 1`.
 
 ## Main results
@@ -161,7 +163,20 @@ theorem ofReal_apply (p : unitInterval × M) : ofReal ψ hψ h₀ p = ψ p.1 p.2
 theorem timeSlice_ofReal (t : unitInterval) : (ofReal ψ hψ h₀).timeSlice t = ψ t :=
   Diffeomorph.ext fun x ↦ by rw [timeSlice_apply, ofReal_apply]
 
+/-- The inverse of the level-preserving diffeomorphism of `ofReal ψ hψ h₀` sends `(t, y)` to
+`(t, ψ_t⁻¹ y)`. -/
+@[simp]
+theorem toDiffeomorph_symm_ofReal_apply (p : unitInterval × M) :
+    (ofReal ψ hψ h₀).toDiffeomorph.symm p = (p.1, (ψ p.1).symm p.2) :=
+  (rfl)
+
+/-- The inverse of the restriction `ofReal ψ hψ h₀` sends `(t, y)` to `ψ_t⁻¹ y`. `simp` proves
+it through `symm_apply` and `toDiffeomorph_symm_ofReal_apply`. -/
+theorem symm_ofReal_apply (p : unitInterval × M) : (ofReal ψ hψ h₀).symm p = (ψ p.1).symm p.2 := by
+  rw [symm_apply, toDiffeomorph_symm_ofReal_apply]
+
 /-- The final map of the restriction `ofReal ψ hψ h₀` is `ψ_1`. -/
+@[simp]
 theorem final_ofReal : (ofReal ψ hψ h₀).final = ψ 1 := by
   rw [final_def, timeSlice_ofReal, Set.Icc.coe_one]
 
@@ -223,6 +238,42 @@ theorem timeDependentFlowDiffeotopy_eq_ofReal :
 
 end Flow
 
+end TauCeti.Diffeotopy
+
+/-! ### The smooth transition as a map to the unit interval -/
+
+namespace Real
+
+/-- The smooth transition function `Real.smoothTransition`, as a map `s : ℝ → unitInterval`. -/
+def smoothTransitionUnit (u : ℝ) : unitInterval :=
+  ⟨smoothTransition u, smoothTransition.nonneg u, smoothTransition.le_one u⟩
+
+/-- The point `s u` of the unit interval is `Real.smoothTransition u`. -/
+@[simp]
+theorem coe_smoothTransitionUnit (u : ℝ) :
+    (smoothTransitionUnit u : ℝ) = smoothTransition u :=
+  (rfl)
+
+/-- For `u ≤ 0`, `s u = 0`. -/
+theorem smoothTransitionUnit_of_nonpos {u : ℝ} (hu : u ≤ 0) : smoothTransitionUnit u = 0 :=
+  Subtype.ext (smoothTransition.zero_of_nonpos hu)
+
+/-- For `u ≥ 1`, `s u = 1`. -/
+theorem smoothTransitionUnit_of_one_le {u : ℝ} (hu : 1 ≤ u) : smoothTransitionUnit u = 1 :=
+  Subtype.ext (smoothTransition.one_of_one_le hu)
+
+/-- The map `s : ℝ → unitInterval` is `C^n` for every `n ≤ ∞`. -/
+theorem contMDiff_smoothTransitionUnit {n : ℕ∞ω} (hn : n ≤ ∞) :
+    ContMDiff 𝓘(ℝ) (𝓡∂ 1) n smoothTransitionUnit :=
+  contMDiff_id.smoothTransition hn
+
+end Real
+
+namespace TauCeti.Diffeotopy
+
+variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
+  {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M]
+
 /-! ### The reading of a diffeotopy over `ℝ` -/
 
 section SmoothTransition
@@ -232,48 +283,41 @@ variable (Φ : Diffeotopy I ∞ M)
 /-- The family `u ↦ φ_{s(u)}` over `ℝ` of a diffeotopy `Φ`, where `s = Real.smoothTransition`:
 the identity for `u ≤ 0`, the final map for `u ≥ 1`, and a reparametrization of `Φ` in between. -/
 def smoothTransitionFamily (u : ℝ) : M ≃ₘ⟮I, I⟯ M :=
-  Φ.timeSlice ⟨Real.smoothTransition u, Real.smoothTransition.nonneg u,
-    Real.smoothTransition.le_one u⟩
+  Φ.timeSlice (Real.smoothTransitionUnit u)
 
 /-- The family `u ↦ φ_{s(u)}` at `u` is the time slice of `Φ` at `s(u)`. -/
 theorem smoothTransitionFamily_def (u : ℝ) :
-    Φ.smoothTransitionFamily u = Φ.timeSlice ⟨Real.smoothTransition u,
-      Real.smoothTransition.nonneg u, Real.smoothTransition.le_one u⟩ :=
+    Φ.smoothTransitionFamily u = Φ.timeSlice (Real.smoothTransitionUnit u) :=
   (rfl)
 
 /-- The family `u ↦ φ_{s(u)}` sends `x` to `Φ (s(u), x)`. -/
 @[simp]
 theorem smoothTransitionFamily_apply (u : ℝ) (x : M) :
-    Φ.smoothTransitionFamily u x = Φ (⟨Real.smoothTransition u, Real.smoothTransition.nonneg u,
-      Real.smoothTransition.le_one u⟩, x) :=
+    Φ.smoothTransitionFamily u x = Φ (Real.smoothTransitionUnit u, x) :=
   Φ.timeSlice_apply _ x
 
 /-- For `u ≤ 0`, the map `φ_{s(u)}` is the identity. -/
 theorem smoothTransitionFamily_of_nonpos {u : ℝ} (hu : u ≤ 0) :
     Φ.smoothTransitionFamily u = Diffeomorph.refl I M ∞ := by
-  have h : (⟨Real.smoothTransition u, Real.smoothTransition.nonneg u,
-      Real.smoothTransition.le_one u⟩ : unitInterval) = 0 :=
-    Subtype.ext (Real.smoothTransition.zero_of_nonpos hu)
-  rw [smoothTransitionFamily_def, h, timeSlice_zero]
+  rw [smoothTransitionFamily_def, Real.smoothTransitionUnit_of_nonpos hu, timeSlice_zero]
 
 /-- For `u ≥ 1`, the map `φ_{s(u)}` is the final map of `Φ`. -/
 theorem smoothTransitionFamily_of_one_le {u : ℝ} (hu : 1 ≤ u) :
     Φ.smoothTransitionFamily u = Φ.final := by
-  have h : (⟨Real.smoothTransition u, Real.smoothTransition.nonneg u,
-      Real.smoothTransition.le_one u⟩ : unitInterval) = 1 :=
-    Subtype.ext (Real.smoothTransition.one_of_one_le hu)
-  rw [smoothTransitionFamily_def, h, final_def]
+  rw [smoothTransitionFamily_def, Real.smoothTransitionUnit_of_one_le hu, final_def]
 
 /-- The family `u ↦ φ_{s(u)}` is jointly smooth in `(u, x)`. -/
 theorem contMDiff_smoothTransitionFamily :
     ContMDiff (𝓘(ℝ, ℝ).prod I) I ∞ (fun p : ℝ × M ↦ Φ.smoothTransitionFamily p.1 p.2) :=
-  Φ.contMDiff.comp ((contMDiff_fst.smoothTransition le_rfl).prodMk contMDiff_snd) |>.congr
+  Φ.contMDiff.comp (((Real.contMDiff_smoothTransitionUnit le_rfl).comp contMDiff_fst).prodMk
+    contMDiff_snd) |>.congr
     fun p ↦ Φ.smoothTransitionFamily_apply p.1 p.2
 
 /-- The inverses of the family `u ↦ φ_{s(u)}` are jointly smooth in `(u, y)`. -/
 theorem contMDiff_smoothTransitionFamily_symm :
     ContMDiff (𝓘(ℝ, ℝ).prod I) I ∞ (fun p : ℝ × M ↦ (Φ.smoothTransitionFamily p.1).symm p.2) :=
-  Φ.symm.contMDiff.comp ((contMDiff_fst.smoothTransition le_rfl).prodMk contMDiff_snd) |>.congr
+  Φ.symm.contMDiff.comp (((Real.contMDiff_smoothTransitionUnit le_rfl).comp contMDiff_fst).prodMk
+    contMDiff_snd) |>.congr
     fun _ ↦ symm_timeSlice_apply _ _ _
 
 /-- The Eulerian field of the family `u ↦ φ_{s(u)}`, `s = Real.smoothTransition`, at the point
@@ -282,13 +326,10 @@ theorem eulerianField_smoothTransitionFamily_apply (u : ℝ) (x : M) :
     eulerianField I (fun v ↦ (Φ.smoothTransitionFamily v).toEquiv) u
       (Φ.smoothTransitionFamily u x) =
       deriv Real.smoothTransition u •
-        mfderiv (I.prod (𝓡∂ 1)) I Φ.cylinderMap (x, ⟨Real.smoothTransition u,
-          Real.smoothTransition.nonneg u, Real.smoothTransition.le_one u⟩)
-          ((0 : E), (1 : TangentSpace (𝓡∂ 1) (⟨Real.smoothTransition u,
-            Real.smoothTransition.nonneg u, Real.smoothTransition.le_one u⟩ : unitInterval))) := by
-  set σ : ℝ → unitInterval := fun v ↦ ⟨Real.smoothTransition v, Real.smoothTransition.nonneg v,
-    Real.smoothTransition.le_one v⟩
-  have hσ : ContMDiff 𝓘(ℝ) (𝓡∂ 1) ∞ σ := contMDiff_id.smoothTransition le_rfl
+        mfderiv (I.prod (𝓡∂ 1)) I Φ.cylinderMap (x, Real.smoothTransitionUnit u)
+          ((0 : E), (1 : TangentSpace (𝓡∂ 1) (Real.smoothTransitionUnit u))) := by
+  set σ : ℝ → unitInterval := Real.smoothTransitionUnit
+  have hσ : ContMDiff 𝓘(ℝ) (𝓡∂ 1) ∞ σ := Real.contMDiff_smoothTransitionUnit le_rfl
   have hσu : MDifferentiableAt 𝓘(ℝ) (𝓡∂ 1) σ u := hσ.mdifferentiableAt (by simp)
   have hval : MDifferentiableAt (𝓡∂ 1) 𝓘(ℝ) (Subtype.val : unitInterval → ℝ) (σ u) :=
     (contMDiff_subtypeVal_Icc (n := 1)).mdifferentiableAt one_ne_zero
@@ -300,7 +341,8 @@ theorem eulerianField_smoothTransitionFamily_apply (u : ℝ) (x : M) :
   have hσ' : mfderiv 𝓘(ℝ) (𝓡∂ 1) σ u 1 = deriv Real.smoothTransition u • 1 := by
     refine (isInvertible_mfderiv_subtypeVal_Icc (σ u)).injective ?_
     rw [map_smul, mfderiv_subtypeVal_Icc_one, ← mfderiv_comp_apply u hval hσu]
-    have hc : Subtype.val ∘ σ = Real.smoothTransition := rfl
+    have hc : Subtype.val ∘ σ = Real.smoothTransition :=
+      funext Real.coe_smoothTransitionUnit
     rw [hc, mfderiv_eq_fderiv]
     -- `NormedSpace.fromTangentSpace` is the identity by definition and has no apply lemma.
     change fderiv ℝ Real.smoothTransition u 1 = deriv Real.smoothTransition u • (1 : ℝ)
