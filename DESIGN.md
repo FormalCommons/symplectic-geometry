@@ -10,9 +10,12 @@ where `<part>` is the part's name below; the parts that need one are marked.
 The first page of the plan that this design covers is
 `atlas/linear-symplectic-geometry.md` (McDuff–Salamon [McDuffSalamon2017],
 Chapter 2; for the Maslov index of paths also Robbin–Salamon
-[RobbinSalamon1993]). The parts are named after their mathematics, not after
-that page, so that the next pages (`atlas/symplectic-manifolds.md`,
-`atlas/almost-complex-structures.md`, …) extend them or add parts beside them.
+[RobbinSalamon1993]), with parts 1–13. The second is
+`atlas/symplectic-manifolds.md` (McDuff–Salamon, Chapter 3, with the
+auxiliary page `auxiliary/smooth-primitives.md` that it relies on), with
+parts 14–21. The parts are named after their mathematics, not after a page,
+so that the next pages (`atlas/almost-complex-structures.md`, …) extend them
+or add parts beside them.
 
 All statements about Tau Ceti and Mathlib below were checked against the
 pinned versions: Tau Ceti `v4.37.0-rc1` (commit `e0e414c`, see
@@ -59,8 +62,8 @@ The library uses McDuff–Salamon's conventions for the linear theory. Each
 convention is fixed by a lemma, mostly of *Standard model*, and later parts
 rewrite with that lemma rather than recompute a sign. The plan's sign
 conventions for manifolds (`auxiliary/02-signs.md`) concern Hamiltonian
-vector fields and moment maps, which the linear theory does not use; the parts
-that later pages add follow them.
+vector fields and moment maps, which the linear theory does not use; for the
+parts of later pages see *Manifolds, families and signs* below.
 
 - **The model space.** `StdSpace ι` is `EuclideanSpace ℝ (ι ⊕ ι)` for a finite
   type `ι` (usually `Fin n`), with `StdSpace.x z i = z (Sum.inl i)` and
@@ -132,12 +135,69 @@ that later pages add follow them.
 - **Exterior powers.** $\omega^n$ is Tau Ceti's
   `ContinuousAlternatingMap.wedgePow`, which is $n!$ on a Darboux basis.
 
+### Manifolds, families and signs
+
+These conventions serve parts 14–21. The parts use Tau Ceti's manifold
+objects as they are.
+
+- **Manifolds.** A manifold is modelled by `I : ModelWithCorners ℝ E H` with
+  `[FiniteDimensional ℝ E]` and `[IsManifold I ∞ M]`. Hausdorffness, second
+  countability and `[I.Boundaryless]` (or `[BoundarylessManifold I M]`) are
+  added where a statement needs them, as Tau Ceti does. Manifolds with
+  boundary occur only in the strong fillings of *Liouville structures*.
+- **Forms.** A symplectic form is `ω : TauCeti.SmoothTwoForm I M` with
+  `ω.IsSymplectic` (closed, `ω.IsNondegenerate`). One-forms and functions are
+  `TauCeti.SmoothForm I M ℝ 1` and `C^∞⟮I, M; ℝ⟯`. There is no bundled type of
+  symplectic manifolds, as there is none in Tau Ceti.
+- **Families and isotopies.** As in Tau Ceti's Moser theorem
+  (`Geometry/Symplectic/Manifold/Moser.lean`), a smooth family of $k$-forms
+  is a smooth form on `ℝ × M` read through its slices
+  `SmoothForm.mpullback (Prod.mk t) _`, a time-dependent vector field is a
+  smooth map `ℝ × M → TM` lifting the projection, with flow
+  `TauCeti.timeDependentFlowOf`, and an isotopy is
+  `ψ : ℝ → M ≃ₘ⟮I, I⟯ M` with `fun p : ℝ × M ↦ ψ p.1 p.2` smooth and
+  `ψ 0 = id`. Its generator $X_t=\partial_t\psi_t\circ\psi_t^{-1}$ is Tau
+  Ceti's `TauCeti.eulerianField`. A family over $[0,1]$ in the plan is a
+  family over `ℝ` whose hypotheses and conclusions are stated for
+  `t ∈ Set.Icc 0 1` (see *Departures*); a statement that needs a family over
+  all of `ℝ` reparametrizes by `Real.smoothTransition`, as Tau Ceti's relative
+  Moser theorem does. A smooth family of embeddings of an open set `U` is
+  `ψ : ℝ → U → M`, jointly smooth, each slice an open embedding; the design
+  file of each part that uses one fixes the form once.
+- **Submanifolds.** An embedded submanifold is the image of Tau Ceti's
+  `SmoothEmbedding J I ∞ Q M`. *Compact* is `[CompactSpace Q]`, *properly
+  embedded* is `IsClosed (Set.range f)`. Its type is one of Tau Ceti's
+  predicates `TauCeti.SmoothTwoForm.IsNondegenerate.IsSymplecticSubmanifoldEmbedding`,
+  `IsIsotropicEmbedding`, `IsLagrangianEmbedding` and `IsCoisotropicEmbedding`.
+- **Neighbourhood germs.** A map between neighbourhoods of submanifolds is a
+  diffeomorphism `U₀ ≃ₘ⟮I, I⟯ U₁` between `U₀ U₁ : Opens M`, with the forms
+  restricted along `Subtype.val`, the form of Tau Ceti's
+  `TauCeti.SmoothTwoForm.exists_diffeomorph_opens_of_eq_along`. A chart is a
+  `PartialDiffeomorph`, as in Tau Ceti's Darboux theorems.
+- **Signs.** `atlas/symplectic-manifolds.md` states its milestones in
+  McDuff–Salamon's signs, not in those of `auxiliary/02-signs.md` (see
+  *Departures*). The library uses Tau Ceti's and Mathlib's objects as they
+  are, and states each milestone with the page's object, written through
+  them as the table says. No new definition is made for a sign change.
+
+  | The page's object | Tau Ceti or Mathlib | In the statements |
+  |---|---|---|
+  | $X_H$ with $\iota_{X_H}\omega=dH$ | `TauCeti.SmoothTwoForm.IsHamiltonianVectorField`, `hamiltonianVectorField` | as it is |
+  | the book's bracket $[X,Y]_{\mathrm b}$ of vector fields | Mathlib's `VectorField.mlieBracket`, the usual bracket | `-mlieBracket` |
+  | $\{F,G\}=\omega(X_F,X_G)$ | `TauCeti.SmoothTwoForm.poissonBracket` | as it is |
+  | $\lambda_{\mathrm{can}}$, $\omega_{\mathrm{can}}=-d\lambda_{\mathrm{can}}$ on $T^*L$ | `TauCeti.CotangentBundle.liouvilleForm`, `symplecticForm` | as they are |
+  | contact Hamiltonian $X_H$ | `TauCeti.SmoothForm.contactHamiltonianVectorField` | as it is |
+  | $\sum_ip_i\,dq_i-dz$ | `TauCeti.innerProductContactForm`, which is $dz-\sum_ip_i\,dq_i$ | its pullback by $(q,p,z)\mapsto(q,-p,-z)$ |
+  | the symplectization form $-d(e^s\alpha)$ on $\mathbb{R}\times M$ | `TauCeti.SmoothForm.symplectization α`, which is $e^t\alpha$ | $-d$ of it |
+  | the contact form $-i^*(\iota_Y\omega)$ of a hypersurface of contact type | `TauCeti.IsContactType`, whose primitive $\lambda$ has $d\lambda=\omega$ and $\iota_Z\omega=\lambda$ | $-i^*\lambda$, with $Y=Z$ |
+
 ## Shared definitions
 
 These notions are used by several parts. All are reused from Tau Ceti or
 Mathlib, except the three definitions of *Standard model* and the bundle
 complex structures of *Symplectic vector bundles*, which *First Chern number*
-also uses.
+also uses, and the Hamiltonian isotopies of *Hamiltonian flows*, which
+*Isotopy extension* also uses.
 
 | Notion | Representation | Where |
 |---|---|---|
@@ -158,6 +218,13 @@ also uses.
 | $C^n$ complex structure on a smooth real vector bundle, with its topology | `SymplecticGeometry.Bundle.ContMDiffComplexStructure`, generalizing `TauCeti.ContMDiffAlmostComplexStructure I n M` with its field names and its `n`, mapping to the continuous one; on $TM$ identified with `ContMDiffAlmostComplexStructure` for every $n$, and with `TauCeti.SmoothAlmostComplexStructure` through `smoothEquiv` | *Symplectic vector bundles* |
 | Bundle metrics $\mathrm{Met}(E)$, with their topology | `Bundle.ContMDiffRiemannianMetric` with Tau Ceti's `frameTopology` (`Geometry/Manifold/VectorBundle/Riemannian/SectionTopology.lean`) | Mathlib, Tau Ceti |
 | $\mathbb{R}^{2n}$, $\omega_0$, $J_0$ | `SymplecticGeometry.StdSpace ι`, `SymplecticGeometry.stdForm ι`, `SymplecticGeometry.stdComplexStructure ι` | *Standard model* |
+| Symplectic form on a manifold, $X_H$, $\{F,G\}$ | `ω : TauCeti.SmoothTwoForm I M` with `ω.IsSymplectic`; `TauCeti.SmoothTwoForm.hamiltonianVectorField`, `poissonBracket` | Tau Ceti |
+| Smooth families of forms, time-dependent flows, isotopies and their generators | forms on `ℝ × M` read through their slices; `TauCeti.timeDependentFlowOf`; `ψ : ℝ → M ≃ₘ⟮I, I⟯ M` with `TauCeti.eulerianField` (see *Manifolds, families and signs*) | Tau Ceti |
+| Symplectic, isotropic, Lagrangian, coisotropic submanifolds | `TauCeti.SmoothEmbedding` with `TauCeti.SmoothTwoForm.IsNondegenerate.IsSymplecticSubmanifoldEmbedding`, `IsIsotropicEmbedding`, `IsLagrangianEmbedding`, `IsCoisotropicEmbedding` | Tau Ceti |
+| $\lambda_{\mathrm{can}}$, $\omega_{\mathrm{can}}$ on $T^*L$ | `TauCeti.CotangentBundle.liouvilleForm`, `TauCeti.CotangentBundle.symplecticForm` | Tau Ceti |
+| Contact form, Reeb field, contact Hamiltonian | `TauCeti.SmoothForm.IsContactForm`, `reebVectorField`, `contactHamiltonianVectorField` | Tau Ceti |
+| Liouville vector field, hypersurface of contact type | `TauCeti.IsLiouvilleVectorField`, `TauCeti.IsContactType` | Tau Ceti |
+| Hamiltonian isotopy | `SymplecticGeometry.IsHamiltonianIsotopy` | *Hamiltonian flows* |
 
 ### Standard model: the definitions and their API
 
@@ -1463,6 +1530,312 @@ it into issues; the overview fixes its folders and its dependencies.
   forms on circle bundles, among others) comes as prerequisite issues
   before the part's own, as the design file lists them.
 
+### 14. Smooth families of primitives (needs `design/smooth-families-of-primitives.md`)
+
+The lemma of `auxiliary/smooth-primitives.md`, which Moser stability and
+isotopy extension need, and which neither Mathlib nor Tau Ceti has.
+
+- **Files:** `Geometry/Manifold/DeRham/GoodCover.lean` (finite good covers in
+  the auxiliary page's sense: finitely many open sets each of whose nonempty
+  finite intersections carries a smooth contraction, the form in which the
+  page's formalization notes and [Weil1952] use them; and their existence on
+  a compact boundaryless manifold, by Weil's construction from Mathlib's
+  `exists_embedding_euclidean_of_compact`), and
+  `Geometry/Manifold/DeRham/SmoothFamily.lean` (the statement (★) of the
+  auxiliary page, by its induction over the cover, and its consequences: a
+  linear primitive map on exact $k$-forms that takes smooth families to
+  smooth families, and smooth coordinates of the de Rham class of a smooth
+  family of closed forms in a basis of Tau Ceti's `TauCeti.deRhamCohomology`).
+  Families are forms on `ℝ × M` as in *Manifolds, families and signs*. The
+  parametric Poincaré lemma on a member of the cover is Tau Ceti's homotopy
+  operator `TauCeti.homotopyOperator` on the cylinder, applied as the page's
+  formalization notes say.
+- **Builds on:** Mathlib, Tau Ceti (homotopy operators, partitions of unity,
+  extension by zero, de Rham cohomology).
+- **Milestones:** *Smooth families of primitives*, the milestone of the
+  auxiliary page. It is not one of the milestones that #94 lists, but Moser
+  stability uses it.
+- **The design file decides:** the exact form of (★) for forms on `ℝ × M`,
+  how the contractions of a good cover are stated, and whether the induction
+  is over Tau Ceti's `TauCeti.mayerVietoris_induction` or a direct strong
+  induction.
+
+### 15. Hamiltonian flows (needs `design/hamiltonian-flows.md`)
+
+- **Files:** `Geometry/Symplectic/Hamiltonian/SymplecticIsotopy.lean`
+  (symplectic vector fields and their local flows; an isotopy preserves
+  $\omega$ on $[0,1]$ exactly when $\iota_{X_t}\omega$ is closed for $t$ in
+  $[0,1]$; the bracket of two symplectic fields is Hamiltonian, with the
+  book's bracket written as `-mlieBracket`), from Tau Ceti's
+  `TauCeti.forall_mpullback_eq_iff_forall_mextDeriv_interior_eulerianField_eq_zero`,
+  `TauCeti.SmoothTwoForm.mem_symplecticVectorFields_iff_mlieDerivForm_eq_zero`
+  and `TauCeti.SmoothTwoForm.isHamiltonianVectorField_mlieBracket`;
+  `Geometry/Symplectic/Hamiltonian/PoissonAlgebra.lean` (the Leibniz rule,
+  which with Tau Ceti's Lie structure `TauCeti.SmoothTwoForm.PoissonLieAlgebra`
+  makes $C^\infty(M)$ a Poisson algebra; the energy identity of a
+  time-dependent Hamiltonian along `TauCeti.timeDependentFlowOf`; naturality
+  $X_{H\circ\chi}=\chi^*X_H$ for a symplectomorphism; the kernel of
+  $H\mapsto X_H$ and, for connected $M$, $C^\infty(M)/\mathbb{R}$ as the Lie
+  algebra of Hamiltonian fields, from
+  `TauCeti.SmoothTwoForm.mem_ker_negHamiltonianLieHom_iff` and
+  `range_negHamiltonianLieHom`);
+  `Geometry/Symplectic/HamiltonianIsotopy/Basic.lean` (the predicate
+  `SymplecticGeometry.IsHamiltonianIsotopy ω ψ` on isotopies; the
+  characterization by exactness of each $\iota_{X_t}\omega$, with a smooth
+  family of Hamiltonians built by path integration from base points in each
+  component; uniqueness of the Hamiltonian up to a function of time on each
+  component; the Hamiltonians of $\phi_t\circ\psi_t$, $\phi_t^{-1}$ and
+  $\chi^{-1}\circ\phi_t\circ\chi$; the compactly supported variant), and
+  `Geometry/Symplectic/HamiltonianIsotopy/Group.lean` (the subgroups
+  $\mathrm{Ham}$ and $\mathrm{Ham}_c$ of `M ≃ₘ⟮I, I⟯ M` of time-one maps,
+  normal in the group of symplectomorphisms, and equal on a compact $M$).
+- **Builds on:** Mathlib, Tau Ceti (Hamiltonian vector fields, Poisson
+  brackets, Eulerian fields, time-dependent flows and their completeness
+  criteria `TauCeti.isCompleteVectorField_of_isCompact_of_eq_zero_off`, path
+  integrals of closed one-forms).
+- **Milestones:** *Symplectic vector fields and isotopy generators*,
+  *Hamiltonian flows and the Poisson algebra*, *Hamiltonian isotopies and
+  their composition*.
+- **The design file decides:** the API of `IsHamiltonianIsotopy` (whether it
+  carries the Hamiltonian as data in a structure or asserts it), and how the
+  symplectomorphism group is represented, as Tau Ceti's stabilizer
+  `TauCeti.SmoothForm.closedDiffeomorphStabilizer` or as a `MulAction`
+  stabilizer, so that normality is a statement about subgroups of one group.
+
+### 16. Cotangent bundles
+
+- **Files:** in `Geometry/Symplectic/Cotangent/Bundle/`, beside Tau Ceti's
+  files there: `Liouville.lean` (named like Tau Ceti's file: uniqueness of
+  $\lambda_{\mathrm{can}}$ among one-forms with $\sigma^*\lambda=\sigma$ for
+  every one-form $\sigma$, by sections with prescribed value and first
+  derivative at a point), `ZeroSection.lean` (along the zero section,
+  $\omega_{\mathrm{can}}((v,a),(w,b))=b(v)-a(w)$ in the splitting
+  `TauCeti.Bundle.zeroSectionTangentEquiv`), `Lift.lean` (named like Tau
+  Ceti's file: the cotangent lift of the local flow of a vector field $Y$ is
+  the Hamiltonian flow of $H(q,p)=p(Y_q)$ where defined, and complete when
+  $Y$ is).
+- **Builds on:** Tau Ceti: `TauCeti.CotangentBundle.liouvilleForm` with
+  `mpullback_liouvilleForm`, `symplecticForm` (which is
+  $-d\lambda_{\mathrm{can}}$, the page's sign) with `inChartAt_symplecticForm_apply`,
+  `Diffeomorph.mpullback_cotangent_liouvilleForm` and
+  `Diffeomorph.mpullback_cotangent_symplecticForm` (lifts preserve both
+  forms), and `Diffeomorph.existsUnique_cotangent_eq_of_mpullback_liouvilleForm`
+  (the converse). The lifted-flow statement is proved for the local flow
+  directly; Tau Ceti's `TauCeti.CotangentBundle.momentMap_apply` covers only
+  group actions.
+- **Milestones:** *Canonical cotangent structure and cotangent lifts*. The
+  part states it as one theorem, citing the existing parts.
+
+### 17. Moser isotopy (needs `design/moser-isotopy.md`)
+
+- **Files:** `Geometry/Symplectic/Moser/Stability.lean` (Moser stability: a
+  smooth family of cohomologous symplectic forms on a closed manifold, the
+  primitives of its velocity chosen by *Smooth families of primitives*, then
+  Tau Ceti's `TauCeti.SmoothTwoForm.exists_isotopy_mpullback_eq` after
+  reparametrizing by `Real.smoothTransition`),
+  `Geometry/Symplectic/Moser/Relative.lean` (the relative theorem with
+  prescribed first derivative along a properly embedded, not necessarily
+  compact, submanifold: Tau Ceti's
+  `TauCeti.SmoothTwoForm.exists_diffeomorph_opens_of_eq_along` is the compact
+  case; the non-compact case uses Tau Ceti's tubular neighbourhoods of
+  variable radius, `Geometry/Manifold/TubularNeighborhood/`, the relative
+  Poincaré primitive with zero first jet of
+  `Geometry/Manifold/DifferentialForm/Relative/FirstJet.lean`, and the domain
+  of the Moser flow up to time one), `Geometry/Symplectic/Moser/Isotopy.lean`
+  (the isotopy of embeddings fixing a compact submanifold, from a primitive
+  that vanishes on its tangent vectors, after the correction by $dF$ that
+  makes it vanish as a full covector; from Tau Ceti's
+  `TauCeti.SmoothTwoForm.exists_diffeomorph_fix_eventually_mpullback_eq_of_mextDeriv_eq_sub`
+  and its Moser flow), and `Geometry/Symplectic/Manifold/Darboux.lean` (named
+  like Tau Ceti's file: Darboux charts with a prescribed derivative at the
+  centre, for any linear symplectic form on the model space, from the
+  relative theorem for a point; and that transition maps of such charts have
+  symplectic derivatives). The folder is `Geometry/Symplectic/Moser/`, because
+  Tau Ceti has the files `Geometry/Symplectic/Manifold/Moser.lean` and
+  `RelativeMoser.lean`, beside which this library may not have folders of
+  those names.
+- **Builds on:** *Smooth families of primitives* (only `Stability.lean`);
+  Tau Ceti (Moser's theorem with given primitives, the compact relative
+  theorem, tubular neighbourhoods and relative primitives, Darboux charts
+  `TauCeti.SmoothTwoForm.IsSymplectic.exists_darbouxChart_of_symplecticForm`).
+- **Milestones:** *Moser stability*, *Relative Moser theorem with prescribed
+  first derivative*, *Darboux theorem with prescribed derivative*, *Relative
+  Moser theorem fixing a submanifold*.
+- **The design file decides:** the statement of "cohomologous" (exactness of
+  $\omega_t-\omega_0$ for each $t$, with Tau Ceti's exact forms), the form of
+  the isotopy of embeddings of `Isotopy.lean`, and the variable-radius
+  construction for non-compact submanifolds, which *Symplectic
+  neighbourhoods* reuses.
+
+### 18. Isotopy extension (needs `design/isotopy-extension.md`)
+
+- **Files:** `Geometry/Symplectic/IsotopyExtension/Ball.lean` (symplectic
+  ball extension, on closed balls of `StdSpace (Fin n)` with `stdForm`, as
+  *Conventions* asks of metric statements; the case of radius $0$ through
+  symplectic frames along a path, by Tau Ceti's
+  `Matrix.isPathConnected_symplecticGroup`),
+  `Geometry/Symplectic/IsotopyExtension/Cohomological.lean` (extension of a
+  family of symplectic embeddings of a neighbourhood of a compact
+  neighbourhood deformation retract $Q$ when $H^1(M)\to H^1(Q)$ is onto,
+  Hamiltonian when $H^1(Q)=0$), and
+  `Geometry/Symplectic/IsotopyExtension/Submanifold.lean` (neighbourhood
+  extension of isotopies of a compact submanifold on which $\omega$ has
+  constant rank, by the homotopy operator of a fixed tubular contraction
+  applied for every $t$ and a parametric relative Moser argument).
+- **Builds on:** *Hamiltonian flows* (`IsHamiltonianIsotopy`), *Moser
+  isotopy* (`Relative.lean`, `Isotopy.lean`), *Smooth families of primitives*
+  (smooth primitives and smooth cohomology coordinates); Tau Ceti's smooth
+  isotopy extension `TauCeti.SmoothIsotopy.exists_diffeotopy_apply_eq` and
+  relative primitives.
+- **Milestones:** *Symplectic ball extension*, *Symplectic isotopy
+  extension*, *Neighbourhood extension of submanifold isotopies*.
+- **The design file decides:** how a symplectic embedding of a closed ball is
+  stated (on an open neighbourhood of the ball, or on the ball as a manifold
+  with boundary), and how $H^1(Q;\mathbb{R})$ of a compact subset is read
+  (de Rham cohomology does not apply to a subset; for instance through
+  neighbourhoods that retract onto $Q$, or a cohomology theory that Tau Ceti
+  or Mathlib has), with a proposed issue for any missing prerequisite.
+
+### 19. Symplectic neighbourhoods (needs `design/symplectic-neighbourhoods.md`)
+
+- **Files:** `Geometry/Symplectic/Manifold/CharacteristicFoliation.lean`
+  (for a closed two-form of constant rank, foliation-compatible submersions
+  onto a ball with connected fibres near every point, and the unique
+  symplectic form they descend to; the coisotropic case, with kernel
+  $(TQ)^\omega$ and isotropic leaves; from Tau Ceti's
+  `TauCeti.SmoothForm.characteristicFoliation`,
+  `TauCeti.IsInvolutiveDistribution.exists_flatChart`,
+  `TauCeti.RoughForm.descendedForm` and
+  `TauCeti.SmoothTwoForm.isSymplectic_descendedForm_iff`), and in
+  `Geometry/Symplectic/Neighborhood/`: `Tubular.lean` (the common step of
+  the four theorems: a fibrewise symplectic isomorphism of the ambient
+  tangent bundles along two properly embedded submanifolds, over a
+  diffeomorphism between them, is the derivative along the submanifold of a
+  diffeomorphism of neighbourhoods, which *Moser isotopy*'s relative theorem
+  then corrects to a symplectomorphism with the same first jet),
+  `Symplectic.lean`, `Lagrangian.lean` (the model $T^*L$ with
+  $-d\lambda_{\mathrm{can}}$, through Tau Ceti's
+  `TauCeti.SmoothEmbedding.normalBundleDiffeomorphOfIsLagrangianMap` and the
+  zero-section splitting of *Cotangent bundles*), `Isotropic.lean` (with the
+  symplectic normal bundle $(TQ)^\omega/TQ$, read fibrewise by
+  *Symplectic vector spaces*' linear reduction), `Coisotropic.lean` and
+  `AdaptedDarboux.lean` (Darboux charts adapted to the four types, from the
+  neighbourhood theorems applied to a coordinate piece of the submanifold).
+  The symplectic normal bundle of a symplectic submanifold is Tau Ceti's
+  normal bundle with `TauCeti.SmoothEmbedding.symplecticNormalForm`, read as a
+  `SymplecticGeometry.ContMDiffTwoForm` of *Symplectic vector bundles*.
+- **Builds on:** *Moser isotopy* (`Relative.lean`, only for `Tubular.lean` and
+  what follows it), *Cotangent bundles* (only `Lagrangian.lean`), *Symplectic
+  vector spaces* (`Reduction.lean`, merged), *Symplectic vector bundles*
+  (`Symplectic/Basic.lean`, merged; see below), Tau Ceti (tubular
+  neighbourhoods, the normal bundles of Lagrangian and symplectic embeddings,
+  `LinearMap.BilinForm.IsAlt.exists_isSymplectomorphism_coisotropicModel`).
+  `CharacteristicFoliation.lean` uses only Tau Ceti and can start at once.
+- **Unmerged work of #3 it may wait for.** The linear extensions in the
+  proofs choose complements: Lagrangian complements of a Lagrangian or
+  isotropic tangent bundle, and a symplectic trivialization of the normal
+  bundle for adapted charts. If the design file takes them from compatible
+  complex structures on a symplectic bundle, the issues that do wait for
+  #254 (existence of compatible pairs); if it states the isomorphism
+  $\Phi$ of the symplectic neighbourhood theorem as an isomorphism with a
+  pull-back bundle, for #269 (pull-backs); if the adapted charts use local
+  Darboux frames of a bundle, for #266. Otherwise the part waits for no
+  open issue of #3. The design file chooses, and names the blockers.
+- **Milestones:** *Characteristic foliations and local symplectic
+  quotients*, *Symplectic neighbourhood theorem*, *Lagrangian neighbourhood
+  theorem*, *Isotropic neighbourhood theorem*, *Coisotropic neighbourhood
+  theorem*, *Darboux charts adapted to submanifolds*.
+- The general model $K^*\oplus E$ of the page's section on explicit
+  neighbourhood models, with a connection on $E$, is not built: no milestone
+  needs it, since the neighbourhood theorems go through `Tubular.lean` and
+  the adapted charts through local pieces, where the models are flat.
+
+### 20. Contact geometry (needs `design/contact-geometry.md`)
+
+- **Files:** in `Geometry/Contact/`, beside Tau Ceti's files there:
+  `Hamiltonian.lean` (named like Tau Ceti's file: the bijection between
+  contact vector fields and functions as one equivalence; the rescaling
+  formula $\phi_t^*\alpha=\exp(\int_0^tR(H_s)\circ\phi_s\,ds)\,\alpha$ of the
+  flow, from Tau Ceti's
+  `TauCeti.mpullback_timeDependentFlowOf_mpullback_prodMk_apply_eq_exp_integral_smul_of_mem`;
+  contact fields as the fields whose local flows preserve $\xi$; $X_H$ is
+  transverse to $\xi$ exactly where $H\neq0$, and then the Reeb field of
+  $\alpha/H$, with the same coorientation exactly when $H>0$),
+  `Darboux/Strict.lean` (named like Tau Ceti's file: the page's normal form
+  $\sum_ip_i\,dq_i-dz$ at a point, with Reeb field $-\partial_z$, from Tau
+  Ceti's `TauCeti.SmoothForm.IsContactForm.exists_strictDarbouxChart_of_finrank_eq`
+  by the change of coordinates of *Manifolds, families and signs*),
+  `Gray.lean` (named like Tau Ceti's file: Gray stability for a family over
+  $[0,1]$, with the normalization $X_t\in\xi_t$ and its uniqueness, for
+  families of contact structures that need not be coorientable, and the
+  rescaling for global forms; from Tau Ceti's `TauCeti.SmoothForm.grayDiffeomorph`
+  and `TauCeti.SmoothForm.eq_grayVectorField_iff`, whose families are over
+  `ℝ`), and `LegendrianNeighborhood.lean` (the Legendrian neighbourhood
+  theorem for a properly embedded Legendrian $L$, onto a neighbourhood of
+  the zero section of $T^*L\times\mathbb{R}$ with $\lambda_{\mathrm{can}}-dz$:
+  a hypersurface through $L$ transverse to the Reeb field, the Lagrangian
+  neighbourhood theorem there, a relative primitive from Tau Ceti's
+  `TauCeti.SmoothEmbedding.exists_isSmoothForm_relative_primitive`, and the
+  Reeb flow).
+- **Builds on:** Tau Ceti (contact forms, Reeb fields, contact Hamiltonians,
+  strict and distribution Darboux charts, Gray's theorem for families over
+  `ℝ`); `LegendrianNeighborhood.lean` also on *Symplectic neighbourhoods*
+  (`Lagrangian.lean`). The other three files can start at once.
+- **Milestones:** *Contact vector fields and contact Hamiltonians*, *Contact
+  Darboux theorem*, *Gray stability*, *Legendrian neighbourhood theorem*.
+- **The design file decides:** how a smooth family of contact structures
+  that are not coorientable is represented (for instance as a family of
+  hyperplane distributions locally the kernels of smooth families of contact
+  forms, beside Tau Ceti's `TauCeti.IsContactDistribution`), and the adapter
+  from families over $[0,1]$ to Tau Ceti's families over `ℝ`.
+
+### 21. Liouville structures (needs `design/liouville-structures.md`)
+
+- **Files:** `Geometry/Symplectic/Liouville/ContactType.lean` (named like Tau
+  Ceti's file: for a properly embedded hypersurface, a contact form $\alpha$
+  with $d\alpha=-i^*\omega$ exists exactly when a transverse Liouville field
+  exists near it; for a prescribed $\alpha$ a Liouville field inducing it,
+  and its collar, with $\Phi^*\omega=-d(e^s\alpha)$ on a neighbourhood of
+  $\{0\}\times Q$, of uniform width when $Q$ is compact. Tau Ceti has the
+  direction from a Liouville field, `TauCeti.IsContactType.isContactForm_mpullback`,
+  and the collars for a given field, `TauCeti.mpullback_flowOf_comp_apply_eq_symplectization`,
+  `TauCeti.exists_continuous_pos_injOn_flowOf_comp` and
+  `TauCeti.exists_pos_injOn_flowOf_comp`; the converse comes from a relative
+  primitive), `Geometry/Contact/StableHamiltonian.lean` (named like Tau
+  Ceti's file: Tau Ceti's `TauCeti.SmoothForm.IsStableHamiltonian α ω`, with
+  $(\Omega,\lambda)=(\omega,\alpha)$, and its Reeb field
+  `TauCeti.SmoothForm.characteristicVectorField`; the library adds the
+  equivalence of its pointwise condition with $\lambda\wedge\Omega^{n-1}\neq0$
+  in dimension $2n-1$, the invariance of both forms under the Reeb flow, the
+  model $\Omega-d(r\lambda)$ on $(-\varepsilon,\varepsilon)\times M$ for a
+  compact $M$, the contact case, and the converse normal form, by Tau Ceti's
+  compact relative Moser theorem along $\{0\}\times M$),
+  `Geometry/Symplectic/Liouville/Filling.lean` (strong fillings: compact
+  symplectic manifolds with boundary with an outward Liouville field near
+  the boundary), and `Geometry/Symplectic/Liouville/Completion.lean` (named
+  like Tau Ceti's file: the completion $\widehat W$, glued from the interior
+  of $W$ and $(-\varepsilon,\infty)\times\partial W$ along the Liouville
+  collar with Tau Ceti's `Geometry/Manifold/Gluing/` (`TauCeti.chartedSpaceOfIsOpenEmbedding`),
+  with its form, its Liouville field $\partial_s$ on the end, and the
+  extension of the primitive of a Liouville domain).
+- **Builds on:** Tau Ceti (Liouville fields and collars, contact type,
+  stable Hamiltonian structures, the compact relative Moser theorem, gluing,
+  boundary collars in `Geometry/Manifold/Boundary/Collar/`), and the
+  library's `Geometry/Manifold/IsManifold/InteriorBoundary.lean` of
+  *Symplectic vector bundles* (the interior of a manifold with boundary as a
+  boundaryless manifold), which is merged. `Completion.lean` uses
+  `Filling.lean` and the collar of `ContactType.lean`.
+- **Milestones:** *Contact-type hypersurfaces and Liouville collars*, *Stable
+  Hamiltonian structures and their neighbourhood model*, *Completion of a
+  strong filling*.
+- **The design file decides:** the representation of a strong filling (a
+  manifold with boundary modelled on a half-space, as the page has it,
+  rather than Tau Ceti's domains `TauCeti.IsLiouvilleDomain` inside a given
+  boundaryless manifold, which presuppose the ambient manifold that the
+  completion constructs), the Liouville collar at a boundary, and how the
+  completion of a Liouville domain is compared with Tau Ceti's
+  `TauCeti.IsLiouvilleCompletion`.
+
 ## Dependencies and build order
 
 Each part depends only on the parts listed, besides Mathlib and Tau Ceti.
@@ -1476,6 +1849,10 @@ so two parts can each use merged files of the other without either waiting.
 | 0 | *Standard model* | — (it imports `LinearAlgebra/Matrix/Block.lean` and `LinearAlgebra/Matrix/Symmetric.lean` of *Siegel upper half space*, which import only Mathlib and Tau Ceti and are merged, `LinearAlgebra/Matrix/SymplecticGroup/Basic.lean` of *Symplectic group*, which imports only Mathlib and Tau Ceti and is merged, and the merged `LinearAlgebra/Symplectic/Compatible.lean` of *Compatible complex structures*, which besides `Standard/Basic.lean` imports only merged files that do not import `Standard/Matrix.lean`) |
 | 0 | *Symplectic group* | — |
 | 0 | *Linear Moser* | — |
+| 0 | *Smooth families of primitives* | — |
+| 0 | *Hamiltonian flows* | — |
+| 0 | *Cotangent bundles* | — |
+| 0 | *Liouville structures* | — (it imports `Geometry/Manifold/IsManifold/InteriorBoundary.lean` of *Symplectic vector bundles*, which is merged) |
 | 1 | *Unitary group topology* | *Symplectic group* (only the file on $\mathrm{Sp}(2n)$; the other files can start at once) |
 | 1 | *Symplectic vector spaces* | *Standard model*, *Symplectic group* |
 | 1 | *Lagrangian Grassmannian* | *Standard model*, *Symplectic vector spaces* (only `Subspace.lean`, which is merged) |
@@ -1483,14 +1860,20 @@ so two parts can each use merged files of the other without either waiting.
 | 1 | *Linear complex structures* | *Standard model*; *Compatible complex structures* (only `LinearAlgebra/Symplectic/Compatible.lean`, which is merged) |
 | 1 | *Siegel upper half space* | *Standard model*; *Lagrangian Grassmannian* (only `LinearAlgebra/Matrix/OfReal.lean`, which imports only Mathlib and Tau Ceti and is merged); *Linear complex structures* (only `LinearAlgebra/ComplexStructure/Action.lean`, which imports only Mathlib and Tau Ceti, `LinearAlgebra/ComplexStructure/Standard.lean`, which besides it imports only *Standard model*, `LinearAlgebra/Symplectic/Compatible.lean` of *Compatible complex structures* and the library's `Geometry/Symplectic/Orientation.lean`, and that file, which imports only Tau Ceti; all of them are merged); *Symplectic group* (only `LinearAlgebra/Matrix/SymplecticGroup/Basic.lean`, which imports only Mathlib and Tau Ceti and is merged) |
 | 1 | *Symplectic vector bundles* | *Standard model*, *Linear Moser*; its existence issue also the two `PolarComplexStructure/` issues of *Compatible complex structures*, its contractibility issue the Cayley domain issue of that part, and its homotopy-equivalence issue those three and the `Tames.lineMap` issue, none of which waits for another part |
+| 1 | *Moser isotopy* | *Smooth families of primitives* (only `Stability.lean`; the other files can start at once) |
 | 2 | *Compatible complex structures* | *Standard model*, *Symplectic vector spaces*; *Linear complex structures* (only `LinearAlgebra/ComplexStructure/Action.lean`, which imports only Mathlib and Tau Ceti, `Topology/ComplexStructure/Basic.lean`, which besides it imports only Tau Ceti, and `LinearAlgebra/ComplexStructure/Standard.lean`, which besides `Action.lean` imports only `LinearAlgebra/Symplectic/Compatible.lean` of this part, `LinearAlgebra/Symplectic/Standard/Matrix.lean` of *Standard model*, the library's `Geometry/Symplectic/Orientation.lean`, which imports only Tau Ceti, and Tau Ceti; all of them are merged); *Symplectic group* (only `LinearAlgebra/Matrix/SymplecticGroup/Basic.lean`, which imports only Mathlib and Tau Ceti and is merged) |
 | 2 | *Maslov index* | *Standard model*, *Symplectic group*, *Unitary group topology*; its Lagrangian issues also *Lagrangian Grassmannian* |
+| 2 | *Isotopy extension* | *Hamiltonian flows*, *Moser isotopy*, *Smooth families of primitives* |
+| 2 | *Symplectic neighbourhoods* | *Moser isotopy* (only `Relative.lean`), *Cotangent bundles*; *Symplectic vector spaces* and *Symplectic vector bundles* (only `LinearAlgebra/Symplectic/Reduction.lean` and `Geometry/Manifold/VectorBundle/Symplectic/Basic.lean`, which are merged, unless its design file also takes the open issues #254, #266 or #269 of *Symplectic vector bundles*, which are at level 1); `CharacteristicFoliation.lean` can start at once |
 | 3 | *First Chern number* | *Symplectic vector bundles*, the symplectic-loop issues of *Maslov index* |
+| 3 | *Contact geometry* | *Symplectic neighbourhoods* (only `LegendrianNeighborhood.lean`, through `Lagrangian.lean`; the other files of the part can start at once) |
 
 The design issues of the parts marked as needing one can start at once, in
 parallel with the level-0 parts.
 
 ## Milestones
+
+### `atlas/linear-symplectic-geometry.md`
 
 Every milestone of `atlas/linear-symplectic-geometry.md` except the deferred
 *Gelfand–Robbin quotient (deferred)*. "Existing" means that a declaration at
@@ -1539,6 +1922,44 @@ declarations in the close-out of #3, and need no issue; a milestone that Tau
 Ceti proves only in part gets the rest from its part, which states the
 milestone as one theorem with the plan's hypotheses and conclusion.
 
+### `atlas/symplectic-manifolds.md`
+
+Every milestone of `atlas/symplectic-manifolds.md`, and the milestone of
+`auxiliary/smooth-primitives.md` that it needs. None is existing in full at
+the pinned Tau Ceti: where Tau Ceti has a part, the row names it and the
+part adds the rest and states the milestone as one theorem, in the page's
+signs (*Manifolds, families and signs*) and with the page's hypotheses (for
+instance properly embedded, not necessarily compact, submanifolds where Tau
+Ceti assumes them compact).
+
+| Milestone | Where |
+|---|---|
+| *Smooth families of primitives* (`auxiliary/smooth-primitives.md`) | *Smooth families of primitives*. Existing ingredients only: `TauCeti.homotopyOperator`, de Rham cohomology and its Mayer–Vietoris sequence. |
+| *Symplectic vector fields and isotopy generators* | *Hamiltonian flows*. Existing parts: `TauCeti.SmoothTwoForm.mem_symplecticVectorFields_iff_mlieDerivForm_eq_zero`, `TauCeti.forall_mpullback_eq_iff_forall_mextDeriv_interior_eulerianField_eq_zero` (for all real times), `TauCeti.SmoothTwoForm.isHamiltonianVectorField_mlieBracket` (with Mathlib's bracket). |
+| *Hamiltonian flows and the Poisson algebra* | *Hamiltonian flows*. Existing parts: `TauCeti.SmoothTwoForm.IsNondegenerate.isHamiltonianVectorField_iff_eq`, `TauCeti.SmoothTwoForm.IsHamiltonianVectorField.mpullback_flowOf_apply`, `TauCeti.SmoothTwoForm.IsHamiltonianVectorField.apply_eq_of_isMIntegralCurveOn`, `TauCeti.SmoothTwoForm.mpullback_timeDependentFlowOf_of_isHamiltonianVectorField`, `TauCeti.SmoothTwoForm.IsNondegenerate.poissonBracket_jacobi`, `TauCeti.SmoothTwoForm.IsNondegenerate.hamiltonianVectorField_poissonBracket`, `TauCeti.SmoothTwoForm.IsNondegenerate.mfderiv_hamiltonianVectorField_comp`, `TauCeti.SmoothTwoForm.mem_ker_negHamiltonianLieHom_iff`, `TauCeti.SmoothTwoForm.range_negHamiltonianLieHom`. |
+| *Hamiltonian isotopies and their composition* | *Hamiltonian flows*. |
+| *Canonical cotangent structure and cotangent lifts* | *Cotangent bundles*. Existing parts: `TauCeti.CotangentBundle.liouvilleForm`, `mpullback_liouvilleForm`, `symplecticForm`, `inChartAt_liouvilleForm`, `inChartAt_symplecticForm_apply`, `Diffeomorph.mpullback_cotangent_liouvilleForm`, `Diffeomorph.mpullback_cotangent_symplecticForm`, `Diffeomorph.existsUnique_cotangent_eq_of_mpullback_liouvilleForm`. |
+| *Moser stability* | *Moser isotopy*. Existing part: `TauCeti.SmoothTwoForm.exists_isotopy_mpullback_eq`, given primitives of the velocity. |
+| *Relative Moser theorem with prescribed first derivative* | *Moser isotopy*. Existing part: the compact case, `TauCeti.SmoothTwoForm.exists_diffeomorph_opens_of_eq_along`. |
+| *Darboux theorem with prescribed derivative* | *Moser isotopy*. Existing part: Darboux charts without the prescribed derivative, `TauCeti.SmoothTwoForm.IsSymplectic.exists_darbouxChart_of_symplecticForm`. |
+| *Relative Moser theorem fixing a submanifold* | *Moser isotopy*. Existing part: the time-one map, `TauCeti.SmoothTwoForm.exists_diffeomorph_fix_eventually_mpullback_eq_of_mextDeriv_eq_sub`, for a primitive vanishing as a full covector. |
+| *Symplectic ball extension* | *Isotopy extension*. |
+| *Symplectic isotopy extension* | *Isotopy extension*. |
+| *Neighbourhood extension of submanifold isotopies* | *Isotopy extension*. |
+| *Characteristic foliations and local symplectic quotients* | *Symplectic neighbourhoods*. Existing parts: `TauCeti.SmoothForm.isInvolutiveDistribution_ker_bilinFormAt`, `TauCeti.SmoothForm.characteristicFoliation`, `TauCeti.SmoothTwoForm.isSymplectic_descendedForm_iff`. |
+| *Symplectic neighbourhood theorem* | *Symplectic neighbourhoods*. |
+| *Lagrangian neighbourhood theorem* | *Symplectic neighbourhoods*. Existing linear input: `TauCeti.SmoothEmbedding.normalBundleDiffeomorphOfIsLagrangianMap`. |
+| *Isotropic neighbourhood theorem* | *Symplectic neighbourhoods*. |
+| *Coisotropic neighbourhood theorem* | *Symplectic neighbourhoods*. Existing linear input: `LinearMap.BilinForm.IsAlt.exists_isSymplectomorphism_coisotropicModel`. |
+| *Darboux charts adapted to submanifolds* | *Symplectic neighbourhoods*. |
+| *Contact vector fields and contact Hamiltonians* | *Contact geometry*. Existing parts: `TauCeti.SmoothForm.IsContactForm.isContactHamiltonianVectorField_iff_eq`, `TauCeti.SmoothForm.IsContactHamiltonianVectorField.mlieDerivForm_eq`, `TauCeti.SmoothForm.IsContactForm.isContactHamiltonianVectorField_iff_mlieDerivForm`, `TauCeti.SmoothForm.IsContactForm.contactHamiltonianVectorField_one`. |
+| *Contact Darboux theorem* | *Contact geometry*. Existing up to the change of coordinates $(q,p,z)\mapsto(q,-p,-z)$: `TauCeti.SmoothForm.IsContactForm.exists_strictDarbouxChart_of_finrank_eq`; for structures, `TauCeti.IsContactDistribution.exists_darbouxChart`. |
+| *Gray stability* | *Contact geometry*. Existing part: `TauCeti.SmoothForm.grayDiffeomorph` with `mpullback_grayDiffeomorph_apply`, for coorientable families of forms over `ℝ`. |
+| *Legendrian neighbourhood theorem* | *Contact geometry*. |
+| *Contact-type hypersurfaces and Liouville collars* | *Liouville structures*. Existing parts: `TauCeti.IsContactType.isContactForm_mpullback`, `TauCeti.mpullback_flowOf_comp_apply_eq_symplectization`, `TauCeti.exists_continuous_pos_injOn_flowOf_comp`, `TauCeti.exists_pos_injOn_flowOf_comp`. |
+| *Stable Hamiltonian structures and their neighbourhood model* | *Liouville structures*. Existing parts: `TauCeti.SmoothForm.IsStableHamiltonian`, `TauCeti.SmoothForm.characteristicVectorField` with `eq_characteristicVectorField_iff`. |
+| *Completion of a strong filling* | *Liouville structures*. |
+
 ## Departures from the plan's advice
 
 - **Field of scalars.** The linear Darboux theorem is proved over any field,
@@ -1576,3 +1997,34 @@ milestone as one theorem with the plan's hypotheses and conclusion.
   part applies Tau Ceti's canonical linear constructions at each point. For regular crossings
   the library uses Tau Ceti's signature results instead of Kato's selection
   theorem.
+- **Signs on `atlas/symplectic-manifolds.md`.** `auxiliary/02-signs.md` asks
+  every page to use $\iota(X_H)\omega=-dH$, $\omega_{\mathrm{can}}=d\lambda_{\mathrm{can}}$,
+  the symplectization $d(e^t\alpha)$ and the contact form $\iota(Z)\omega|_M$
+  of a hypersurface. `atlas/symplectic-manifolds.md` instead states its
+  milestones in McDuff–Salamon's signs: $\iota(X_H)\omega=dH$,
+  $\omega_{\mathrm{can}}=-d\lambda_{\mathrm{can}}$, $-d(e^s\alpha)$ and
+  $-\iota(Y)\omega|_Q$. The library follows the milestones, which fix their
+  own signs, and writes each of them with Tau Ceti's objects as the table of
+  *Manifolds, families and signs* says. Tau Ceti agrees with the page on
+  Hamiltonian vector fields, Poisson brackets and cotangent bundles, and with
+  `auxiliary/02-signs.md` on symplectizations and contact type, so no new
+  definition is needed in either case. A later page in the signs of
+  `auxiliary/02-signs.md` reads $X_H$ there as Tau Ceti's Hamiltonian vector
+  field of $-H$.
+- **Families over $[0,1]$.** The plan's smooth families and isotopies are
+  over $[0,1]$. The library's are over `ℝ`, as Tau Ceti's Moser and Gray
+  theorems are, with hypotheses and conclusions stated for $t\in[0,1]$. A
+  family over $[0,1]$ extends to one over `ℝ` (by Seeley's extension
+  theorem, which the library does not prove), so the statements say the same
+  for every family that comes from one over `ℝ`; using `ℝ` avoids the
+  manifold with boundary $[0,1]\times M$ in every statement.
+- **Neighbourhood models.** The page builds explicit models $K^*\oplus E$ for
+  neighbourhoods of submanifolds of constant rank. The library proves the
+  four neighbourhood theorems by the proof routes the page gives for them,
+  through tubular maps and the relative Moser theorem, and builds no general
+  model, since no milestone needs one (see *Symplectic neighbourhoods*).
+- **Holomorphic Darboux theorem.** The page suggests proving the real and
+  holomorphic Darboux theorems together, over $\mathbb{R}$ or $\mathbb{C}$.
+  The holomorphic theorem is not a milestone, and the library proves only the
+  real one, from Tau Ceti's real Moser machinery; a later issue may
+  generalize it.
