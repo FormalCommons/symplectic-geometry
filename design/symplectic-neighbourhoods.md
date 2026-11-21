@@ -323,20 +323,23 @@ the table of *Conventions*), and `W : Submodule ℝ V`.
 
 - The pieces, as submodules defined from `ω`, `J` and `W`, each with its
   `_def` lemma: `W ⊓ ω.orthogonal W` (the radical $K$, a Tau Ceti
-  expression, not a new definition); `hJ.radicalComplement W` ($H=W\cap
-  K^{\perp_g}$); `hJ.normalComplement W` ($E=(H\oplus K\oplus JK)^\omega$,
+  expression, not a new definition); `ω.radicalComplement J W` ($H=W\cap
+  K^{\perp_g}$); `ω.normalComplement J W` ($E=(H\oplus K\oplus JK)^\omega$,
   the $g$-orthogonal of $J(H\oplus K\oplus JK)$; it lies in $W^\omega$,
   but need not be $g$-orthogonal to $H$).
-  Lemmas: `isCompl` statements for $W=H\oplus K$ and $W^\omega=K\oplus E$;
+  Lemmas: `Disjoint` and `⊔` statements for $W=H\oplus K$ and
+  $W^\omega=K\oplus E$ (`radicalComplement_sup_inf`,
+  `inf_sup_normalComplement`);
   `IsSymplectic` for $H$ and $E$; $J K$ is isotropic and
   $V=H\oplus K\oplus JK\oplus E$, with $H$, $K\oplus JK$ and $E$ pairwise
   $\omega$-orthogonal; and `normalComplement` maps isomorphically and
   symplectically onto `ω.ReducedSpace (ω.orthogonal W)`.
-- `hJ₀.extendAlong hJ₁ b L : V₀ ≃ₗ[ℝ] V₁`, for `b : W₀ ≃ₗ[ℝ] W₁`
-  preserving the restricted forms and a linear `L : V₀ →ₗ[ℝ] V₁` with
+- `hJ₀.extendAlong hJ₁ b hb L hL hLω hdim : V₀ ≃ₗ[ℝ] V₁`, for
+  `b : W₀ ≃ₗ[ℝ] W₁` preserving the restricted forms (`hb`) and a linear
+  `L : V₀ →ₗ[ℝ] V₁` with
   `hL : ∀ v ∈ ω₀.orthogonal W₀, L v ∈ ω₁.orthogonal W₁` and
   `hLω : ∀ v ∈ ω₀.orthogonal W₀, ∀ w ∈ ω₀.orthogonal W₀, ω₁ (L v) (L w) =
-  ω₀ v w`, and with `finrank ℝ V₀ = finrank ℝ V₁`. It is `b` on $W_0$. On
+  ω₀ v w`, and with `hdim : finrank ℝ V₀ = finrank ℝ V₁`. It is `b` on $W_0$. On
   $E_0$ it is $L$ followed by the projection onto $E_1$ along $K_1$. On
   $J_0K_0$, $J_0k$ goes to the unique $u\in H_1\oplus J_1K_1$ with
   $\omega_1(b\,w,u)=\omega_0(w,J_0k)$ for all $w\in W_0$, corrected by the
@@ -347,8 +350,12 @@ the table of *Conventions*), and `W : Submodule ℝ V`.
   `v ∈ ω₀.orthogonal W₀`), and `extendAlong_def`. The lemma that `L`
   induces a form-preserving bijection of the reduced spaces, with the
   dimension count that makes $L(K_0)\subseteq K_1$ automatic, is
-  `reduction_map_bijective_of_forall_apply_eq` (named after its statement
-  when it is written). Tau Ceti's Witt extension is the existence
+  `exists_isSymplectomorphism_reducedSpace_of_forall_apply_eq`, with
+  `ker_restrict_le_comap_of_forall_apply_eq` for $L(K_0)\subseteq K_1$; they
+  are in `LinearAlgebra/Symplectic/Reduction.lean`, as is
+  `finrank_inf_orthogonal_eq_of_forall_apply_eq` (an isometry `b` preserves
+  the dimension of the radical).
+  Tau Ceti's Witt extension is the existence
   statement; this file gives a formula, so that the next file can prove it
   smooth.
 
@@ -574,7 +581,10 @@ four theorems share.
   structures of `Neighborhood/Basic.lean` come from Tau Ceti's
   `TauCeti.SmoothTwoForm.IsNondegenerate.exists_compatible`.
 - From *Symplectic vector spaces*: `LinearAlgebra/Symplectic/Reduction.lean`
-  (merged), in `Extension.lean` and `Isotropic.lean`.
+  (merged), in `Extension.lean` and `Isotropic.lean`, and
+  `LinearAlgebra/Symplectic/Subspace.lean` (merged), in `Extension.lean`.
+- From *Compatible complex structures*:
+  `LinearAlgebra/Symplectic/Compatible.lean` (merged), in `Extension.lean`.
 - From *Standard model*: `StdSpace`, `stdForm`, `stdForm_apply`, and the
   inclusions `StdSpace.stdInl` and `StdSpace.ofX` that this part adds to
   `LinearAlgebra/Symplectic/Standard/Basic.lean`, in `AdaptedDarboux.lean`.
