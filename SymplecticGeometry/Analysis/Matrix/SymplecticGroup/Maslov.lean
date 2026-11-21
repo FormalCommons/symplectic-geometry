@@ -89,9 +89,7 @@ theorem maslovPhase_reindex (e : ι ≃ κ) (A : GLSymplectic ι ℝ) :
     refine Subtype.ext (Units.ext ?_)
     rw [coe_polarUnitary_reindex, ← hV, unitaryGroupEquivSymplecticInfOrthogonal_apply,
       GeneralLinearGroup.coe_realify, Unitary.val_toUnits_apply,
-      coe_unitaryReindexContinuousMulEquiv_apply, reindex_apply, reindex_apply, realify_submatrix,
-      Equiv.sumCongr_symm, show ⇑(e.symm.sumCongr e.symm) = Sum.map e.symm e.symm from
-        funext (Equiv.sumCongr_apply _ _)]
+      coe_unitaryReindexContinuousMulEquiv_apply, realify_reindex]
   rw [← maslovPhase_inclusion_polarUnitary, maslovPhase_inclusion, h,
     ContinuousMulEquiv.symm_apply_apply, detCircle_unitaryReindexContinuousMulEquiv,
     ← maslovPhase_inclusion, maslovPhase_inclusion_polarUnitary]
