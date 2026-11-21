@@ -747,6 +747,19 @@ theorem contMDiffOn_frameTransition [FiniteDimensional ℝ W] (h : ω.IsSymplect
     ContMDiffOn I 𝓘(ℝ, W →L[ℝ] W) n (fun x ↦ (frameTransition Φ Φ' x : W →L[ℝ] W)) U :=
   Bundle.contMDiffOn_frameTransition h.contMDiffOn h'.contMDiffOn hU
 
+/-- Precomposing a symplectic frame for `σ` with a linear symplectomorphism `e` from `(W', σ')`
+to `(W, σ)` gives a symplectic frame for `σ'`. -/
+theorem precomp {W' : Type*} [NormedAddCommGroup W'] [NormedSpace ℝ W']
+    {σ' : TauCeti.SymplecticForm W'} (h : ω.IsSymplecticFrameOn σ U Φ) (e : W' ≃L[ℝ] W)
+    (he : σ'.IsSymplectomorphism σ e.toLinearEquiv) :
+    ω.IsSymplecticFrameOn σ' U fun x ↦ e.trans (Φ x) := by
+  refine ⟨h.contMDiffOn.comp (contMDiff_fst.prodMk
+    ((e : W' →L[ℝ] W).contDiff.contMDiff.comp contMDiff_snd)).contMDiffOn
+    fun p hp ↦ ⟨hp.1, Set.mem_univ _⟩, fun x hx v w ↦ ?_⟩
+  rw [ContinuousLinearEquiv.trans_apply, ContinuousLinearEquiv.trans_apply,
+    h.map_bilinFormAt x hx]
+  exact he.apply v w
+
 end IsSymplecticFrameOn
 
 /-- On the trivial bundle with fibre `W'` and the constant form of `ω'`, a linear symplectomorphism

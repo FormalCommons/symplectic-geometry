@@ -1157,7 +1157,10 @@ on complex structures are in `ContMDiffComplexStructure` and in
   `IsSymplecticFrameOn.nondegenerate_bilinFormAt` (`(ω.bilinFormAt x).Nondegenerate`
   for `x ∈ U`, since `Φ x` carries it to `σ`);
   `IsSymplecticFrameOn.trans` (composing with a symplectic isomorphism `Ψ`
-  from `ω` to `ω'` gives a frame `fun x ↦ (Φ x).trans (Ψ x)` of `ω'`).
+  from `ω` to `ω'` gives a frame `fun x ↦ (Φ x).trans (Ψ x)` of `ω'`);
+  `IsSymplecticFrameOn.precomp` (for a linear symplectomorphism
+  `e : W' ≃L[ℝ] W` from `σ'` to `σ`, `fun x ↦ e.trans (Φ x)` is a frame for
+  `σ'`).
   **Example.** `isSymplecticFrameOn_const`: on `Bundle.Trivial M W'`
   with `const ω'`, a linear symplectomorphism `e : W ≃L[ℝ] W'` from `σ` to
   `ω'` is a frame `fun _ ↦ e` over `univ`. Existence over small open sets is
@@ -1271,12 +1274,12 @@ over the same base, on Mathlib's direct sum `V₁ ×ᵇ V₂` (`Bundle.Prod`, wi
   ContMDiffTwoForm I n (F₁ × F₂) (V₁ ×ᵇ V₂)`, with
   `@[simp] prod_apply`,
   $(\omega_1\oplus\omega_2)_x((v_1,v_2),(w_1,w_2))=\omega_{1,x}(v_1,w_1)+\omega_{2,x}(v_2,w_2)$.
-  Its smoothness: the bilinear section
-  $x\mapsto\omega_{1,x}\circ(\mathrm{fst}\times\mathrm{fst})+\omega_{2,x}\circ(\mathrm{snd}\times\mathrm{snd})$
-  is $C^n$ by Tau Ceti's product criterion
+  Its value at `x` is
+  `(ω₁ x).compContinuousLinearMap fst + (ω₂ x).compContinuousLinearMap snd`
+  (`prod_def`), $C^n$ by Tau Ceti's product criterion
   (`Geometry/Manifold/VectorBundle/Prod.lean`, with `contMDiff_fst` and
-  `contMDiff_snd`), and `ContMDiffTwoForm.ofBilinearSection` turns it into
-  the two-form. `IsNondegenerate.prod`, and
+  `contMDiff_snd`) and `contMDiff_compContinuousLinearMap_totalSpace`.
+  `IsNondegenerate.prod`, and
   `IsNondegenerate.symplecticFormAt_prod`: the symplectic form of the sum at
   `x` is Tau Ceti's `TauCeti.SymplecticForm.prod` of the two
   (`Geometry/Symplectic/Prod/Basic.lean`).
@@ -1288,7 +1291,7 @@ over the same base, on Mathlib's direct sum `V₁ ×ᵇ V₂` (`Bundle.Prod`, wi
   `TauCeti.AlmostComplexStructure.prod` of the two).
 - `Symplectic/Prod.lean`, the pairs: `Tames.prod` and `Compatible.prod`, from
   Tau Ceti's `SymplecticForm.prod_tames` and `SymplecticForm.prod_compatible`
-  at each point.
+  at each point, and `Invariant.prod`.
 - Isomorphisms: `pushforward_prodCongr`, the sum of two symplectic
   isomorphisms, `fun x ↦ (Φ₁ x).prodCongr (Φ₂ x)` (Mathlib's
   `ContinuousLinearEquiv.prodCongr`), carries `ω₁.prod ω₂` to the sum of the
