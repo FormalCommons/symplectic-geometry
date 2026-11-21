@@ -215,9 +215,9 @@ Declarations about Tau Ceti's type go in its namespace
   `Matrix.GeneralLinearGroup.ofEuclideanCLE.symm` followed by forgetting
   continuity. API: `generalLinearGroup_smul_def` (the formula above; not
   `(rfl)`, since Tau Ceti does not expose the body of `ofEuclideanCLE`),
-  `generalLinearGroup_smul_apply` (not simp: `simp` proves it from the next
-  lemma) :
-  (g • J) v = Matrix.toEuclideanLin g (J (Matrix.toEuclideanLin (↑g)⁻¹ v))` and
+  `generalLinearGroup_smul_apply :
+  (g • J) v = Matrix.toEuclideanLin g (J (Matrix.toEuclideanLin (↑g)⁻¹ v))`
+  (not simp: `simp` proves it from the next lemma) and
   `@[simp] toLinearMap_generalLinearGroup_smul :
   (g • J).toLinearMap = toEuclideanLin g ∘ₗ J.toLinearMap ∘ₗ toEuclideanLin (↑g)⁻¹`.
 - `isComplexLinearMap_self_iff_commute :
@@ -231,7 +231,8 @@ Declarations about Tau Ceti's type go in its namespace
   `Unitary.toUnits.comp (Submonoid.inclusion specialUnitaryGroup_le_unitaryGroup)`
   into `GL n ℝ` (no new name for that homomorphism). It has no apply lemma of
   its own: `@[simp] specialOrthogonalGroup_smul_def` rewrites `g • J` as the
-  action of that unit, so `toLinearMap_generalLinearGroup_smul` serves both actions.
+  action of that unit, so `toLinearMap_generalLinearGroup_smul` serves both
+  actions.
 
 ### `Topology/ComplexStructure/Basic.lean`
 
