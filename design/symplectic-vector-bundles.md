@@ -255,8 +255,8 @@ name, so that the $TM$ statements are special cases:
   (from `J x v = K x v`); `@[simp] apply_apply` ($J(Jv)=-v$); `injective`,
   `surjective`;
 - `almostComplexStructureAt J x : TauCeti.AlmostComplexStructure (V x)` with
-  `@[simp] almostComplexStructureAt_toLinearMap` and
-  `almostComplexStructureAt_apply`;
+  `almostComplexStructureAt_toLinearMap` and
+  `@[simp] almostComplexStructureAt_apply`;
 - `toEndomorphism_ne_id` and `not_exists_toEndomorphism_eq_id` (for
   `[Nontrivial F]`, and `[Nonempty M]` for the second);
 - `ofLE` (forget regularity) with `@[simp] ofLE_toEndomorphism_apply`,
