@@ -10,7 +10,6 @@ public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily
 public import TauCeti.Geometry.Manifold.DeRham.Basic
 import TauCeti.Geometry.Manifold.DeRham.Map
 import TauCeti.Geometry.Manifold.DifferentialForm.HomotopyOperator
-import TauCeti.Geometry.Manifold.MFDeriv.Constancy
 
 /-!
 # Smooth primitives of smooth families of one-forms
@@ -47,6 +46,11 @@ In the namespace `SymplecticGeometry`:
 * `exists_contMDiff_mextDeriv_eq_of_forall_mem_exactForms`: on any manifold, a smooth family of
   exact one-forms has a jointly smooth family of primitives.
 
+In the namespace `TauCeti`:
+
+* `isLocallyConstant_sub_of_mextDeriv_ofFunction_eq`: two differentiable functions whose
+  `0`-forms have the same exterior derivative differ by a locally constant function.
+
 ## References
 
 * [R. Bott and L. W. Tu, *Differential Forms in Algebraic Topology*][BottTu1982], §4 (the
@@ -72,11 +76,8 @@ theorem isLocallyConstant_sub_of_mextDeriv_ofFunction_eq [IsManifold I 1 M] {f g
     (hf : MDifferentiable I 𝓘(ℝ, F) f) (hg : MDifferentiable I 𝓘(ℝ, F) g)
     (h : mextDeriv (RoughForm.ofFunction I f) = mextDeriv (RoughForm.ofFunction I g)) :
     IsLocallyConstant (f - g) :=
-  (hf.sub hg).isLocallyConstant_of_mfderiv_eq_zero fun x ↦ mvfderiv_eq_zero_iff.1 <| by
-    have := congrFun h x
-    rw [mextDeriv_ofFunction, mextDeriv_ofFunction] at this
-    rw [mvfderiv_sub (hf x) (hg x),
-      (ContinuousAlternatingMap.ofSubsingleton ℝ _ F (0 : Fin 1)).injective this, sub_self]
+  (mextDeriv_ofFunction_eq_zero_iff (hf.sub hg)).1 <| add_eq_right.1 <| by
+    rw [← mextDeriv_ofFunction_add (hf.sub hg) hg, sub_add_cancel, h]
 
 end TauCeti
 
