@@ -837,6 +837,12 @@ and `Compatible.mem_cayleyDomain` in `TauCeti.SymplecticForm`.
   `J₀` and `J` lies in the domain. This combines
   `Tames.isUnit_one_sub_mul_of_toLinearMap` and
   `Compatible.isUnit_one_sub_smul_cayleyFormula`.
+- `map_mem_cayleyDomain_iff`: an algebra isomorphism `f` gives
+  `(b, f A, f B) ∈ cayleyDomain S ↔ (b, A, B) ∈ cayleyDomain R`; and the ends
+  of the path, `cayleyPathFormula_zero` (`= A`) and `cayleyPathFormula_one`
+  (`= B` when `A * A = -1` and `1 - A * B` is a unit), in any `ℝ`-algebra.
+  *Symplectic vector bundles* added them with its issue 7, which reads the
+  domain through trivializations and needs the ends of its contraction.
 
 ### `Geometry/Symplectic/Darboux/EuclideanBasis.lean`
 

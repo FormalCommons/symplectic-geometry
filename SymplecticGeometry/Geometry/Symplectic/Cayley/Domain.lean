@@ -8,6 +8,7 @@ module
 public import TauCeti.Geometry.Symplectic.Cayley.Smooth
 import TauCeti.Analysis.Calculus.ContinuousLinearMapInverse
 import Mathlib.Analysis.Normed.Ring.Units
+import Mathlib.Tactic.NoncommRing
 
 /-!
 # The domain of the Cayley path
@@ -23,6 +24,8 @@ for which the whole segment `b ∈ [0, 1]` lies in it form an open set too, by c
 ## Main definitions and results
 
 * `TauCeti.cayleyDomain R`: the triples where both denominators are units.
+* `TauCeti.map_mem_cayleyDomain_iff`: algebra isomorphisms preserve the domain.
+* `TauCeti.cayleyPathFormula_zero`, `TauCeti.cayleyPathFormula_one`: the two ends of the path.
 * `TauCeti.contDiffAt_cayleyFormula`: the Cayley coordinate is smooth, jointly in both
   arguments, wherever `1 - A B` is a unit.
 * `TauCeti.isOpen_cayleyDomain`, `TauCeti.contDiffOn_cayleyPathFormula`.
@@ -60,6 +63,50 @@ lemma mem_cayleyDomain {q : ℝ × R × R} :
     q ∈ cayleyDomain R ↔
       IsUnit (1 - q.2.1 * q.2.2) ∧ IsUnit (1 - q.1 • cayleyFormula q.2.1 q.2.2) :=
   Iff.rfl
+
+/-- An algebra isomorphism `f` maps the domain of the Cayley path onto the domain of the Cayley
+path: `(b, f A, f B)` lies in it exactly when `(b, A, B)` does. -/
+theorem map_mem_cayleyDomain_iff {S E : Type*} [Ring S] [Algebra ℝ S] [EquivLike E R S]
+    [AlgEquivClass E ℝ R S] (f : E) {b : ℝ} {A B : R} :
+    (b, f A, f B) ∈ cayleyDomain S ↔ (b, A, B) ∈ cayleyDomain R := by
+  simp only [mem_cayleyDomain, ← map_mul, ← map_one f, ← map_sub, ← map_cayleyFormula,
+    ← map_smul, isUnit_map_iff]
+
+/-- At the coefficient `0` the Cayley path is at its starting point `A`. -/
+@[simp]
+theorem cayleyPathFormula_zero (A B : R) : cayleyPathFormula 0 A B = A := by
+  simp [cayleyPathFormula_def]
+
+/-- At the coefficient `1` the Cayley path from a square root `A` of `-1` reaches `B`, whenever
+`1 - A B` is a unit. -/
+theorem cayleyPathFormula_one {A B : R} (hA : A * A = -1) (h : IsUnit (1 - A * B)) :
+    cayleyPathFormula 1 A B = B := by
+  set D := 1 - A * B with hD
+  have h₁ : (1 : R) + cayleyFormula A B = -(2 : ℝ) • (A * B) * Ring.inverse D := by
+    rw [cayleyFormula_def, ← hD]
+    nth_rewrite 1 [← Ring.mul_inverse_cancel D h]
+    rw [hD]
+    simp only [two_smul, neg_smul]
+    noncomm_ring
+  have h₂ : (1 : R) - cayleyFormula A B = (2 : ℝ) • Ring.inverse D := by
+    rw [cayleyFormula_def, ← hD]
+    nth_rewrite 1 [← Ring.mul_inverse_cancel D h]
+    rw [hD]
+    simp only [two_smul]
+    noncomm_ring
+  -- `1 - C = 2 D⁻¹` is a unit, with inverse `D / 2`.
+  let u : Rˣ := ⟨(2 : ℝ) • Ring.inverse D, (2⁻¹ : ℝ) • D,
+    by rw [smul_mul_smul_comm, Ring.inverse_mul_cancel D h]; norm_num,
+    by rw [smul_mul_smul_comm, Ring.mul_inverse_cancel D h]; norm_num⟩
+  rw [cayleyPathFormula_def, one_smul, h₁, h₂, show Ring.inverse ((2 : ℝ) • Ring.inverse D) =
+    (2⁻¹ : ℝ) • D from Ring.inverse_unit u]
+  calc A * (-(2 : ℝ) • (A * B) * Ring.inverse D) * ((2⁻¹ : ℝ) • D)
+      = -((2⁻¹ : ℝ) * 2) • (A * A * B * (Ring.inverse D * D)) := by
+        simp only [smul_mul_assoc, mul_smul_comm, smul_smul, mul_assoc, neg_smul, neg_mul,
+          mul_neg, smul_neg]
+    _ = B := by
+        rw [Ring.inverse_mul_cancel D h, hA]
+        norm_num
 
 end Ring
 
