@@ -63,7 +63,7 @@ written out in the Lean statements, as Tau Ceti writes it.
   and uses the local versions of Moser's principle
   (`TauCeti.mpullback_timeDependentFlowOf_mpullback_prodMk_apply_eq_of_mem`)
   and of the first-jet statement
-  (`TauCeti.mfderiv_timeDependentFlowOf_eq_id_of_jet_eq_zero`), which need
+  (`TauCeti.mfderiv_timeDependentFlowOf_eq_id_of_forall_eq_zero`), which need
   no completeness. *Symplectic neighbourhoods* uses the theorem of
   `Relative.lean` and Tau Ceti's tubular neighbourhoods
   (`Geometry/Manifold/TubularNeighborhood/`) directly.
@@ -155,13 +155,15 @@ The file has the name of Tau Ceti's file that defines
 `TauCeti.SmoothTwoForm.IsNondegenerate.interiorEquiv`. It is in the
 namespace `TauCeti.SmoothTwoForm.IsNondegenerate`.
 
-- `jet_interiorEquiv_symm_eq_zero`: let `σ` be a nondegenerate smooth
+- `hasFDerivAt_mpullbackWithin_interiorEquiv_symm`: let `σ` be a nondegenerate smooth
   two-form, let `β : SmoothForm I M ℝ 1`, and let `x` be a point with
   `β.val x = 0` at which the chart expression of `β` has zero derivative
   (`HasFDerivAt (RoughForm.inChartAt β.val x) 0 (extChartAt I x x)`, the
   form in which Tau Ceti's relative primitive states it). Then
-  `TauCeti.FirstJetBundle.jet I E (h.interiorEquiv.symm β) x = 0`. This is
-  the hypothesis of Tau Ceti's `mfderiv_timeDependentFlowOf_eq_id_of_jet_eq_zero`.
+  `HasFDerivAt (VectorField.mpullbackWithin 𝓘(ℝ, E) I (extChartAt I x).symm
+  (h.interiorEquiv.symm β) (range I)) 0 (extChartAt I x x)`. This gives the
+  hypothesis of Tau Ceti's `mfderiv_timeDependentFlowOf_eq_id_of_forall_eq_zero`
+  with no bridge through `FirstJetBundle.jet`.
   The proof adapts Tau Ceti's private `hasFDerivAt_mpullbackWithin_moserField`
   (`RelativeMoser.lean`). In the chart at `x`, the field is the inverse flat
   map of the coordinate form applied to `β`. The inverse flat map is bounded
@@ -215,14 +217,15 @@ Proof, in four steps.
    $\partial_t\sigma_t+L_{X_t}\sigma_t=c'(t)\,d\beta-c'(t)\,d\beta$
    vanishes everywhere on `N`, by Tau Ceti's
    `IsSymplectic.mlieDerivForm_interiorEquiv_symm`. `X t` vanishes at
-   `f q` with zero first jet, by `jet_interiorEquiv_symm_eq_zero`.
+   `f q`, and its chart expression has zero derivative there, by
+   `hasFDerivAt_mpullbackWithin_interiorEquiv_symm`.
 4. *Domain up to time one.* Let `Φ := timeDependentFlowPartialDiffeomorph
    (hn := le_top) hX 0 1` on `N`. Its source contains `f(Q)`, by
    `mem_timeDependentFlowDomain_of_forall_eq_zero`. Along its source,
    `mpullback_timeDependentFlowOf_mpullback_prodMk_apply_eq_of_mem` gives
    `Φ^* σ₁ = σ₀`, since `c 0 = 0` and `c 1 = 1`. `Φ` fixes `f(Q)`
    (`timeDependentFlowOf_eq_self_of_forall_eq_zero`), and its differential
-   there is the identity (`mfderiv_timeDependentFlowOf_eq_id_of_jet_eq_zero`).
+   there is the identity (`mfderiv_timeDependentFlowOf_eq_id_of_forall_eq_zero`).
    Tau Ceti's `PartialDiffeomorph.toDiffeomorphSourceTarget` makes `Φ` a
    diffeomorphism between opens of `N`. Reading these opens as opens of `M`
    gives `U₀`, `U₁` and `φ`. The differential is compared through
@@ -466,9 +469,9 @@ and pullbacks commute with `d`. That theorem gives
   `isCompleteVectorField_timeDependentSuspensionField`,
   `mem_timeDependentFlowDomain_of_forall_eq_zero`,
   `timeDependentFlowOf_eq_self_of_forall_eq_zero`,
-  `mfderiv_timeDependentFlowOf_eq_id_of_jet_eq_zero`,
+  `mfderiv_timeDependentFlowOf_eq_id_of_forall_eq_zero`,
   `mpullback_timeDependentFlowOf_mpullback_prodMk_apply_eq_of_mem` and
-  `_of_forall_mem_uIcc`, `FirstJetBundle.jet`.
+  `_of_forall_mem_uIcc`.
 - Tau Ceti, submanifolds and forms: `SmoothEmbedding`,
   `SmoothEmbedding.exists_isSmoothForm_relative_primitive`, `SmoothIsotopy`,
   `Diffeotopy` with `timeSlice`, `final` and `Diffeotopy.smoothIsotopy`,
