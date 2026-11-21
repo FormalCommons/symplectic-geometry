@@ -855,6 +855,22 @@ and `Compatible.mem_cayleyDomain` in `TauCeti.SymplecticForm`.
   `J₀` and `J` lies in the domain. This combines
   `Tames.isUnit_one_sub_mul_of_toLinearMap` and
   `Compatible.isUnit_one_sub_smul_cayleyFormula`.
+- `map_mem_cayleyDomain_iff`: an algebra isomorphism `f` gives
+  `(b, f A, f B) ∈ cayleyDomain S ↔ (b, A, B) ∈ cayleyDomain R`; and the ends
+  of the path, `cayleyPathFormula_zero` (`= A`) and `cayleyPathFormula_one`
+  (`= B` when `A * A = -1` and `1 - A * B` is a unit), in any `ℝ`-algebra.
+  *Symplectic vector bundles* added them with its issue 7, which reads the
+  domain through trivializations and needs the ends of its contraction.
+- `TauCeti.SymplecticForm.Compatible.mem_cayleyDomain_of_continuousLinearEquiv`
+  and `Compatible.exists_toLinearMap_eq_cayleyPathFormula`, for a topological
+  vector space `W` with `L : W ≃L[ℝ] F`, `F` a finite-dimensional normed
+  space: the first is `Compatible.mem_cayleyDomain` read through `L`, the
+  second says that `cayleyPathFormula (smoothTransition t) A B` represents an
+  `ω`-tame structure, `ω`-compatible when the endpoint is. Both transport
+  along `L` (Tau Ceti's `Geometry/Symplectic/SymplecticTransport.lean`, which
+  the file imports), and the second uses Tau Ceti's linear
+  `Compatible.cayleyPath`. The same issue 7 added them, for the fibres of a
+  vector bundle.
 
 ### `Geometry/Symplectic/Darboux/EuclideanBasis.lean`
 
