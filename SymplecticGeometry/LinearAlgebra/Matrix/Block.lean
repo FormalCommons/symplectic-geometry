@@ -11,7 +11,8 @@ import TauCeti.Data.Matrix.Block
 /-!
 # Blocks of a square root of `-1`
 
-For a block matrix `M = !![M₁₁, M₁₂; M₂₁, M₂₂]` over a ring with `M * M = -1`, the first block
+For a block matrix `M = !![M₁₁, M₁₂; M₂₁, M₂₂]` over a non-associative ring with
+`M * M = -1`, the first block
 column of `M * M` gives two identities between the blocks of `M`.
 
 ## Main results
@@ -24,7 +25,8 @@ public section
 
 namespace Matrix
 
-variable {m n R : Type*} [Fintype m] [Fintype n] [DecidableEq m] [DecidableEq n] [Ring R]
+variable {m n R : Type*} [Fintype m] [Fintype n] [DecidableEq m] [DecidableEq n]
+  [NonAssocRing R]
 
 /-- If `M * M = -1` for a block matrix `M`, then `M₁₁² + M₁₂ M₂₁ = -1`. -/
 theorem toBlocks₁₁_mul_toBlocks₁₁_add_of_mul_self_eq_neg_one {M : Matrix (m ⊕ n) (m ⊕ n) R}

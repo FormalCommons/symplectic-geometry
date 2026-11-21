@@ -491,7 +491,7 @@ theorem contDiffOn_ofComplexStructureMatrix :
 Siegel upper half space. The stabilizer of `i𝟙` is the realified unitary group, and the orbit map
 of `i𝟙` is a bijection from the quotient by it. There is exactly one bijection onto the
 `ω₀`-compatible complex structures on `StdSpace ι` that sends `i𝟙` to `J₀` and intertwines the
-action with transport along `Ψ`, that is, with conjugation `J ↦ Ψ J Ψ⁻¹`; its matrix is
+action with the action of `Ψ` in `GL`, that is, with conjugation `J ↦ Ψ J Ψ⁻¹`; its matrix is
 `J(Z) = !![X Y⁻¹, -Y - X Y⁻¹ X; Y⁻¹, -Y⁻¹ X]`, and it is a diffeomorphism in coordinates: `J(Z)`
 and the formula of the inverse are smooth on open sets of matrices containing the Siegel upper
 half space and the compatible complex structures.
