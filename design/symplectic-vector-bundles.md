@@ -138,6 +138,7 @@ variable {EB HB M : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB]
 | `Geometry/Manifold/IsManifold/InteriorBoundary.lean` | the interior of a manifold with boundary as a boundaryless manifold | 12 |
 | `Topology/Connected/Clopen.lean` | preconnectedness of a dense subset from local preconnectedness | 12 |
 | `Geometry/Manifold/Boundary/Collar/Push.lean` | pushing a compact manifold with boundary into its interior | 13 |
+| `Topology/VectorBundle/ZeroSet.lean` | closedness of the zero set of a continuous section along a map | 14 |
 | `Geometry/Manifold/VectorBundle/Section/Generic.lean` | sections with closed discrete zero sets over boundaryless manifolds | 14 |
 | `Geometry/Manifold/VectorBundle/Section/Nonvanishing.lean` | smoothing nowhere-zero sections; nowhere-zero sections over surfaces with boundary | 15, 16 |
 | `Geometry/Manifold/VectorBundle/Hermitian/Surface.lean` | the third milestone | 17 |
@@ -171,6 +172,10 @@ file to it.
   `Topology/Connected/Clopen.lean`, `Boundary/Collar/Push.lean`, `Section/Generic.lean`,
   `Section/Nonvanishing.lean`): they hold the prerequisites of the route to
   the third milestone below, which replaces the book's cutting of the surface.
+- `Topology/VectorBundle/ZeroSet.lean` is new too: the closedness of the
+  zero set that `Section/Generic.lean` uses holds for any continuous section
+  of a topological vector bundle and needs no smooth structure, so it sits
+  with the topological bundles.
 - `VectorBundle/Cayley.lean` stands apart from the symplectic files: the
   bundle Cayley lemma and the set `cayleyPathDomain` that the contractibility
   proofs use mention no symplectic notion of this part, only Mathlib's
@@ -1690,7 +1695,9 @@ of *Constructions* for *First Chern number*.
     (`Section/SmoothZero.lean`) gives a regular section whose zero set is a
     $0$-dimensional submanifold. The new work is the closed-and-discrete step,
     which the proof of Tau Ceti's `finite_sectionZero_of_contMDiff` contains
-    for a compact base, without compactness. Blockers: none.
+    for a compact base, without compactness. Its closedness half,
+    `VectorBundle.isClosed_setOf_eq_zero` for a continuous section along a
+    map, goes in `Topology/VectorBundle/ZeroSet.lean`. Blockers: none.
 15. **Smoothing nowhere-zero sections.** `Section/Nonvanishing.lean`:
     `SymplecticGeometry.exists_contMDiffSection_forall_ne_zero_of_continuous`,
     a continuous nowhere-zero section of a smooth bundle over a compact
