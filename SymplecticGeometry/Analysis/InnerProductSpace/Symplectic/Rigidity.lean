@@ -246,9 +246,9 @@ theorem HasLinearNonsqueezing.abs_stdForm_le_abs_stdForm_adjointEquiv
   simp only [map_smul, LinearMap.smul_apply, smul_eq_mul, abs_mul, abs_inv] at h1
   rwa [inv_mul_eq_div, one_le_div (abs_pos.2 hc)] at h1
 
-/-- **Affine rigidity.** A linear equivalence `Ψ` of the standard model such that both `Ψ` and
-`Ψ⁻¹` have the linear nonsqueezing property is symplectic or anti-symplectic:
-`Ψ^* ω₀ = ω₀` or `Ψ^* ω₀ = -ω₀`. -/
+/-- **Affine rigidity.** For a linear equivalence `Ψ` of the standard model, if
+`HasLinearNonsqueezing Ψ` and `HasLinearNonsqueezing Ψ⁻¹`, then `Ψ^* ω₀ = ω₀` or
+`Ψ^* ω₀ = -ω₀`. -/
 theorem forall_apply_eq_or_forall_apply_eq_neg_of_hasLinearNonsqueezing
     (Ψ : StdSpace ι ≃ₗ[ℝ] StdSpace ι) (h : HasLinearNonsqueezing (Ψ : StdSpace ι →ₗ[ℝ] _))
     (h' : HasLinearNonsqueezing (Ψ.symm : StdSpace ι →ₗ[ℝ] _)) :
@@ -286,8 +286,8 @@ theorem forall_apply_eq_or_forall_apply_eq_neg_of_hasLinearNonsqueezing
       fun z w ↦ LinearMap.congr_fun₂ hB z w
     simpa only [hA] using he
 
-/-- A linear equivalence `Ψ` of the standard model is symplectic or anti-symplectic if and only
-if both `Ψ` and `Ψ⁻¹` have the linear nonsqueezing property. -/
+/-- For a linear equivalence `Ψ` of the standard model, `Ψ^* ω₀ = ±ω₀` holds exactly when
+`HasLinearNonsqueezing Ψ` and `HasLinearNonsqueezing Ψ⁻¹` both hold. -/
 theorem hasLinearNonsqueezing_and_hasLinearNonsqueezing_symm_iff
     (Ψ : StdSpace ι ≃ₗ[ℝ] StdSpace ι) :
     HasLinearNonsqueezing (Ψ : StdSpace ι →ₗ[ℝ] StdSpace ι) ∧
