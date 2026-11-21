@@ -14,10 +14,10 @@ public import Mathlib.Topology.Instances.Matrix
 # Derivatives of matrix-valued functions
 
 A function `A : 𝕜 → Matrix m n F` has derivative `A'` exactly when each entry `A · i j` has
-derivative `A' i j` (`hasDerivWithinAt_matrix`). From this we get the derivatives of a constant
-(`hasDerivWithinAt_matrix_const`) and of a transpose (`HasDerivWithinAt.matrix_transpose`), and
-the product rule for products of possibly rectangular matrices with entries in a normed
-`𝕜`-algebra (`HasDerivWithinAt.matrix_mul`).
+derivative `A' i j` (`hasDerivWithinAt_matrix`, and `hasDerivAt_matrix` for `HasDerivAt`). From
+this we get the derivatives of a constant (`hasDerivWithinAt_matrix_const`) and of a transpose
+(`HasDerivWithinAt.matrix_transpose`), and the product rule for products of possibly
+rectangular matrices with entries in a normed `𝕜`-algebra (`HasDerivWithinAt.matrix_mul`).
 
 Matrices carry their default topology, that of functions `m → n → F`; no matrix norm is needed.
 The names follow `Continuous.matrix_elem`, `Continuous.matrix_transpose` and
@@ -40,6 +40,14 @@ theorem hasDerivWithinAt_matrix {A : 𝕜 → Matrix m n F} {A' : Matrix m n F} 
   -- function type `m → n → F` that it unfolds to, where `hasDerivWithinAt_pi` applies.
   change HasDerivWithinAt (F := m → n → F) A A' s t ↔ _
   exact hasDerivWithinAt_pi.trans (forall_congr' fun _ ↦ hasDerivWithinAt_pi)
+
+/-- A matrix-valued function has derivative `A'` at `t` if and only if each of its entries has the
+corresponding entry of `A'` as derivative. -/
+theorem hasDerivAt_matrix {A : 𝕜 → Matrix m n F} {A' : Matrix m n F} :
+    HasDerivAt A A' t ↔ ∀ i j, HasDerivAt (fun r ↦ A r i j) (A' i j) t := by
+  have := Fintype.ofFinite n
+  change HasDerivAt (F := m → n → F) A A' t ↔ _
+  exact hasDerivAt_pi.trans (forall_congr' fun _ ↦ hasDerivAt_pi)
 
 /-- The entries of a differentiable matrix-valued function are differentiable. -/
 theorem HasDerivWithinAt.matrix_elem {A : 𝕜 → Matrix m n F} {A' : Matrix m n F}

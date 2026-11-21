@@ -722,14 +722,17 @@ The pieces of regular paths, each with an explicit frame and its crossing
 forms relative to `V₀`.
 
 - `ℒ.rotationPath`, a rotation $s\mapsto e^{\varepsilon sJ_0}\Lambda$ off a
-  Lagrangian `Λ`, with the frame $e^{\varepsilon sJ_0}Z_0$: its crossing form
-  is $\pm\varepsilon\lvert Zu\rvert^2$ by `stdForm_apply_eq_inner`, definite,
+  Lagrangian `Λ`, with the frame $e^{\varepsilon sJ_0}Z_0$ (`rotationFrame`): its
+  crossing form is $\pm\varepsilon\lvert Zu\rvert^2$ by
+  `stdForm_apply_stdComplexStructure`, definite,
   so the crossing at `s = 0` is regular, and for small $\varepsilon$ there is
-  no other (`ℒ.crossing_rotationPath_iff`, `ℒ.lagrangianCrossingForm_rotationPath`).
+  no other (`ℒ.eventually_rotationPath_inf_eq_bot`;
+  `lagrangianCrossingForm_smul_J_mul_apply`, in `SymplecticGeometry` since it is
+  about matrices).
 - Segments inside Tau Ceti's chart `Matrix.lagrangianChart` of the
   Lagrangians transverse to `V₀` (G7, `lagrangianChart_inf_realSubspace`):
-  between any two such Lagrangians there is a path with a smooth frame and no
-  crossing at all (`ℒ.exists_chartPath`).
+  between any two such Lagrangians there is a path with a frame that has a
+  derivative at every time, and no crossing at all (`ℒ.exists_chartPath`).
 - The single-coordinate half-turn
   $s\mapsto\operatorname{diag}(e^{i\pi s},1,\dots,1)V_1$
   (`ℒ.coordinateHalfTurn`): its only crossing, at $s=\tfrac12$, has the
