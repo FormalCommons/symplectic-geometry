@@ -5,8 +5,6 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import Mathlib.Analysis.SpecialFunctions.SmoothTransition
-public import Mathlib.Geometry.Manifold.Instances.Icc
 public import SymplecticGeometry.Geometry.Manifold.Flow.TimeDependent
 public import SymplecticGeometry.Geometry.Manifold.SmoothTransition
 public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Flow
@@ -223,28 +221,16 @@ theorem eulerianField_smoothTransitionFamily_apply (u : ℝ) (x : M) :
   set σ : ℝ → unitInterval := Real.smoothTransitionUnit
   have hσ : ContMDiff 𝓘(ℝ) (𝓡∂ 1) ∞ σ := Real.contMDiff_smoothTransitionUnit le_rfl
   have hσu : MDifferentiableAt 𝓘(ℝ) (𝓡∂ 1) σ u := hσ.mdifferentiableAt (by simp)
-  have hval : MDifferentiableAt (𝓡∂ 1) 𝓘(ℝ) (Subtype.val : unitInterval → ℝ) (σ u) :=
-    (contMDiff_subtypeVal_Icc (n := 1)).mdifferentiableAt one_ne_zero
   have hg : MDifferentiableAt (𝓡∂ 1) I (fun r ↦ Φ (r, x)) (σ u) :=
     (Φ.contMDiff.comp (contMDiff_id.prodMk contMDiff_const)).mdifferentiableAt (by simp)
-  -- The derivative of `σ` on `1` is `s'(u)` times the unit vector of the interval, since the
-  -- inclusion of the interval has injective derivative and sends both to `s'(u)`.
-  have hσ' : mfderiv 𝓘(ℝ) (𝓡∂ 1) σ u 1 = deriv Real.smoothTransition u • 1 := by
-    refine (isInvertible_mfderiv_subtypeVal_Icc (σ u)).injective ?_
-    rw [map_smul, mfderiv_subtypeVal_Icc_one, ← mfderiv_comp_apply u hval hσu]
-    have hc : Subtype.val ∘ σ = Real.smoothTransition :=
-      funext Real.coe_smoothTransitionUnit
-    rw [hc, mfderiv_eq_fderiv]
-    -- `NormedSpace.fromTangentSpace` is the identity by definition and has no apply lemma.
-    change fderiv ℝ Real.smoothTransition u 1 = deriv Real.smoothTransition u • (1 : ℝ)
-    rw [fderiv_apply_one_eq_deriv, smul_eq_mul, mul_one]
   have hfun : (fun v ↦ (Φ.smoothTransitionFamily v).toEquiv x) =
       (fun r ↦ Φ (r, x)) ∘ σ :=
     funext fun v ↦ by
       rw [Diffeomorph.coe_toEquiv, smoothTransitionFamily_apply, Function.comp_apply]
   rw [← Diffeomorph.coe_toEquiv, eulerianField_apply_apply, Manifold.curveVelocity_apply, hfun]
   refine (mfderiv_comp_apply u hg hσu _).trans
-    ((congrArg (mfderiv (𝓡∂ 1) I (fun r ↦ Φ (r, x)) (σ u)) hσ').trans
+    ((congrArg (mfderiv (𝓡∂ 1) I (fun r ↦ Φ (r, x)) (σ u))
+      (Real.mfderiv_smoothTransitionUnit_one u)).trans
     ((map_smul _ _ _).trans ?_))
   exact congrArg (deriv Real.smoothTransition u • ·)
     (Φ.mfderiv_cylinderMap_time (by simp) (x, σ u)).symm
