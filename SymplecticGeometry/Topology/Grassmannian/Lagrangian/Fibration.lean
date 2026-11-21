@@ -20,8 +20,8 @@ matrix, so the fibres of `unitaryFrame` are the left cosets of `O(n)`, the subgr
 `Matrix.UnitaryGroup.realSubgroup ι`. This file shows that `unitaryFrame` is locally trivial with
 fibre `O(n)`, hence has the homotopy lifting property and is a Serre fibration. In particular,
 every path of Lagrangians lifts to a path of unitary matrices through any given starting frame
-(Tau Ceti's `TauCeti.HasHomotopyLiftingProperty.exists_path_lift`, or
-`TauCeti.TopCat.exists_path_lift_of_mem_serreFibrations`).
+(`exists_path_lift_unitaryFrame`, from Tau Ceti's
+`TauCeti.HasHomotopyLiftingProperty.exists_path_lift`).
 
 The local sections come from the basic chart `graphYChart`. A symmetric matrix `S` gives the
 Lagrangian frame `fromRows S 1`, whose unitary matrix `unitaryOfFrame` frames the chart point
@@ -37,6 +37,8 @@ section into a trivialization.
   Lagrangian lies in the base set of a trivialization of `unitaryFrame` with fibre `O(n)`.
 * `SymplecticGeometry.LagrangianGrassmannian.hasHomotopyLiftingProperty_unitaryFrame`:
   `unitaryFrame` has the homotopy lifting property with respect to every space.
+* `SymplecticGeometry.LagrangianGrassmannian.exists_path_lift_unitaryFrame`: a path of
+  Lagrangians lifts to a path of unitary matrices from any frame of its starting point.
 * `SymplecticGeometry.LagrangianGrassmannian.unitaryFrame_mem_serreFibrations`: `unitaryFrame`
   is a Serre fibration, as a morphism of `TopCat`.
 
@@ -97,6 +99,16 @@ homotopy lifting property with respect to every topological space `A`. -/
 theorem hasHomotopyLiftingProperty_unitaryFrame (A : Type*) [TopologicalSpace A] :
     HasHomotopyLiftingProperty (unitaryFrame : unitaryGroup ι ℂ → ℒ ι) A :=
   hasHomotopyLiftingProperty_of_exists_trivialization exists_trivialization_unitaryFrame A
+
+/-- **Path lifting along the unitary frame map.** A path `γ` of Lagrangian subspaces from `Λ` lifts
+to a path `δ` of unitary matrices from any `U` that frames `Λ`: `unitaryFrame (δ t) = γ t` for
+all `t`. -/
+theorem exists_path_lift_unitaryFrame {Λ Λ' : ℒ ι} (γ : Path Λ Λ') {U : unitaryGroup ι ℂ}
+    (hU : unitaryFrame U = Λ) :
+    ∃ (V : unitaryGroup ι ℂ) (δ : Path U V), ∀ t, unitaryFrame (δ t) = γ t := by
+  obtain ⟨Γ, hΓ₀, hΓ⟩ := (hasHomotopyLiftingProperty_unitaryFrame ι Unit).exists_path_lift
+    (γ.cast hU rfl)
+  exact ⟨Γ 1, ⟨Γ, hΓ₀, rfl⟩, fun t ↦ by simpa using congrFun hΓ t⟩
 
 variable (ι) in
 /-- The unitary frame map `U(n) → ℒ ι` is a Serre fibration, as a morphism of `TopCat`. -/

@@ -297,6 +297,11 @@ theorem IsNondegenerate.symplecticFormAt_apply (h : ω.IsNondegenerate) (x : M) 
     h.symplecticFormAt x v w = ω x ![v, w] :=
   ω.bilinFormAt_apply x v w
 
+/-- The bilinear form of the symplectic form on a fibre is that of the two-form. -/
+theorem IsNondegenerate.toBilinForm_symplecticFormAt (h : ω.IsNondegenerate) (x : M) :
+    (h.symplecticFormAt x).toBilinForm = ω.bilinFormAt x :=
+  (rfl)
+
 end ContMDiffTwoForm
 
 omit [∀ x, IsTopologicalAddGroup (V x)] [∀ x, ContinuousSMul ℝ (V x)] in
