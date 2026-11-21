@@ -101,7 +101,8 @@ theorem linearSymplecticWidth_setOf_le_one {Q : QuadraticForm ℝ (StdSpace ι)}
         linearSymplecticWidth (f '' stdCylinder i R) := by
   have hE := linearSymplecticWidth_setOf_le_one_eq hs hmin
   have : Nonempty ι := Fintype.card_pos_iff.1
-    (card_symplecticSpectrum (posDef_of_mem_symplecticSpectrum hs) ▸ Multiset.card_pos_iff_exists_mem.2 ⟨s, hs⟩)
+    (card_symplecticSpectrum (posDef_of_mem_symplecticSpectrum hs) ▸
+      Multiset.card_pos_iff_exists_mem.2 ⟨s, hs⟩)
   refine ⟨hE, ?_, ?_⟩
   · refine le_antisymm ?_ (iSup₂_le fun _ _ ↦ iSup₂_le fun r hr ↦
       linearSymplecticWidth_mono hr)
