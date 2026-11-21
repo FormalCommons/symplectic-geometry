@@ -994,12 +994,17 @@ it into issues; the overview fixes its folders and its dependencies.
   Tau Ceti's `ContMDiffAt.cayleyPathFormula_hom_bundle`, which is the case
   of $TM$ at order $\infty$; it supplies the joint regularity that the lemma of
   `Section/Topology.lean` asks for in the contractibility proofs; and
-  `Bundle.cayleyPathDomain`, the set of points of the total space at which
-  the path from a reference endomorphism lies in part 9's
-  `TauCeti.cayleyDomain`, read in trivializations, for every coefficient in
-  $[0,1]$: open by `TauCeti.isOpen_setOf_forall_Icc_mem_cayleyDomain`, and
-  holding every structure tame for a form when the reference is compatible
-  with it, by `TauCeti.SymplecticForm.Compatible.mem_cayleyDomain`; the
+  `Bundle.cayleyPathDomain`, the set of points $q$ of the total space at
+  which, read in a trivialization, the triple of a coefficient $b$, the
+  reference endomorphism at $q$ and the fibre value of $q$ lies in part 9's
+  `TauCeti.cayleyDomain` for every $b\in[0,1]$. Its intersection with an
+  open set on which the reference is continuous is open
+  (`Bundle.isOpen_cayleyPathDomain`, from part 9's
+  `TauCeti.isOpen_setOf_forall_Icc_mem_cayleyDomain`), and it contains
+  every structure on a fibre that is tame for a form there when the
+  reference is compatible with that form
+  (`TauCeti.SymplecticForm.Compatible.mem_cayleyPathDomain`, from
+  `TauCeti.SymplecticForm.Compatible.mem_cayleyDomain`); the
   contractibility proofs take their open set from it. The file mentions no
   symplectic form on the bundle, so it sits apart from the symplectic
   files),
