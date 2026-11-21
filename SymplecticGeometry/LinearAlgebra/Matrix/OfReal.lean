@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import Mathlib.Algebra.Polynomial.Roots
 public import Mathlib.Analysis.Complex.Basic
 public import Mathlib.Data.Matrix.ColumnRowPartitioned
 public import Mathlib.LinearAlgebra.Matrix.ConjTranspose
@@ -37,6 +38,8 @@ frames in `ℂⁿ` (§2.3).
 * `Matrix.range_toEuclideanLin_fromRows`: the column space of `fromRows X Y` in `ℝ²ⁿ` is the
   real image `(X + i Y) ℝⁿ` (Tau Ceti's `Matrix.realImage`), read in real coordinates through
   `TauCeti.complexToRealEuclidean`.
+* `Matrix.exists_det_sub_smul_ne_zero`: if `det (X + i Y) ≠ 0`, then `det (X - t Y) ≠ 0` for
+  some real `t`.
 
 ## References
 
@@ -100,6 +103,32 @@ theorem range_toEuclideanLin_fromRows [Fintype n] [DecidableEq n] (X Y : Matrix 
   · rintro ⟨_, ⟨u, rfl⟩, rfl⟩
     refine ⟨WithLp.toLp 2 u, ?_⟩
     ext (i | i) <;> simp [mulVec, dotProduct, Complex.re_sum, Complex.im_sum]
+
+open Polynomial in
+/-- For real square matrices `X`, `Y` with `det (X + i Y) ≠ 0`, some real `t` has
+`det (X - t Y) ≠ 0`: the determinant `det (X - t Y)` is a real polynomial in `t` whose value at
+`t = -i` is `det (X + i Y)`, so it is not the zero polynomial. -/
+theorem exists_det_sub_smul_ne_zero [Fintype n] [DecidableEq n] {X Y : Matrix n n ℝ}
+    (h : (X.map ofReal + I • Y.map ofReal).det ≠ 0) :
+    ∃ t : ℝ, (X - t • Y).det ≠ 0 := by
+  set p : ℝ[X] := (X.map C - (Polynomial.X : ℝ[X]) • Y.map C).det
+  have heval (t : ℝ) : p.eval t = (X - t • Y).det := by
+    rw [← coe_evalRingHom, RingHom.map_det]
+    congr 1
+    ext i j
+    simp only [RingHom.mapMatrix_apply, map_apply, Matrix.sub_apply, Matrix.smul_apply,
+      smul_eq_mul, map_sub, coe_evalRingHom, eval_C, eval_mul, eval_X]
+  have haeval : aeval (-I) p = (X.map ofReal + I • Y.map ofReal).det := by
+    rw [AlgHom.map_det]
+    congr 1
+    ext i j
+    simp only [AlgHom.mapMatrix_apply, map_apply, Matrix.sub_apply, Matrix.add_apply,
+      Matrix.smul_apply, smul_eq_mul, map_sub, map_mul, aeval_C, aeval_X,
+      Complex.coe_algebraMap]
+    ring
+  have hp : p ≠ 0 := fun hp ↦ h (by rw [← haeval, hp, map_zero])
+  by_contra! H
+  exact hp (Polynomial.funext fun t ↦ by simp [heval, H])
 
 end Matrix
 
