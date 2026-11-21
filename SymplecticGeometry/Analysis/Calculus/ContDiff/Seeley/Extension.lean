@@ -19,7 +19,8 @@ Seeley's operator extends a function on `[0, ∞)` to `ℝ`: for `t < 0` it take
 cutoff equal to `1` on `(-∞, 1/2]` and to `0` on `[3/4, ∞)`. For each `t < 0` only finitely many
 terms are nonzero, and only values of `f` on `(0, 3/4)` enter, so the operator is linear and
 commutes with every linear map. Applying it at both ends of `[0, 1]`, the second time after the
-reflection `t ↦ 1 - t`, extends functions on `[0, 1]`.
+reflection `t ↦ 1 - t`, extends functions on `[0, 1]`. Both operators are bundled as `ℝ`-linear
+maps on `ℝ → F`, `seeleyExtendLinearMap` and `seeleyIccExtendLinearMap`.
 
 The main results say that the extension of a family `f (·, x)` that is smooth on
 `Ici 0 ×ˢ U` (respectively `Icc 0 1 ×ˢ U`), for `U` open in a normed space, is smooth on
@@ -163,6 +164,20 @@ theorem seeleyExtend_smul (c : ℝ) (f : ℝ → F) :
   · obtain ⟨N, hN⟩ := exists_seeleyCutoff_eq_zero ht
     simp only [Pi.smul_apply, seeleyExtend_eq_sum _ ht hN, Finset.smul_sum, smul_comm c]
 
+variable (F) in
+/-- Seeley's extension `seeleyExtend`, as an `ℝ`-linear map on functions `ℝ → F`. -/
+noncomputable def seeleyExtendLinearMap : (ℝ → F) →ₗ[ℝ] (ℝ → F) where
+  toFun := seeleyExtend
+  map_add' := seeleyExtend_add
+  map_smul' := seeleyExtend_smul
+
+@[simp]
+theorem coe_seeleyExtendLinearMap : ⇑(seeleyExtendLinearMap F) = seeleyExtend := (rfl)
+
+@[simp]
+theorem seeleyExtend_zero : seeleyExtend (0 : ℝ → F) = 0 := by
+  rw [← coe_seeleyExtendLinearMap, map_zero]
+
 /-- Seeley's extension commutes with linear maps. -/
 theorem _root_.LinearMap.map_seeleyExtend (L : F →ₗ[ℝ] G) (f : ℝ → F) (t : ℝ) :
     L (seeleyExtend f t) = seeleyExtend (L ∘ f) t := by
@@ -235,6 +250,21 @@ theorem seeleyIccExtend_smul (c : ℝ) (f : ℝ → F) :
   split_ifs
   · exact congrFun (seeleyExtend_smul c f) t
   · exact congrFun (seeleyExtend_smul c (fun s ↦ f (1 - s))) (1 - t)
+
+variable (F) in
+/-- Seeley's extension from `[0, 1]`, `seeleyIccExtend`, as an `ℝ`-linear map on functions
+`ℝ → F`. -/
+noncomputable def seeleyIccExtendLinearMap : (ℝ → F) →ₗ[ℝ] (ℝ → F) where
+  toFun := seeleyIccExtend
+  map_add' := seeleyIccExtend_add
+  map_smul' := seeleyIccExtend_smul
+
+@[simp]
+theorem coe_seeleyIccExtendLinearMap : ⇑(seeleyIccExtendLinearMap F) = seeleyIccExtend := (rfl)
+
+@[simp]
+theorem seeleyIccExtend_zero : seeleyIccExtend (0 : ℝ → F) = 0 := by
+  rw [← coe_seeleyIccExtendLinearMap, map_zero]
 
 /-- Seeley's extension from `[0, 1]` commutes with linear maps. -/
 theorem _root_.LinearMap.map_seeleyIccExtend (L : F →ₗ[ℝ] G) (f : ℝ → F) (t : ℝ) :
