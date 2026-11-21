@@ -869,8 +869,8 @@ The topology of the direct sum and of reindexing.
   `reindex_unitaryFrame` and the continuity of
   `Matrix.unitaryReindexContinuousMulEquiv ℂ e` and of its inverse
   (`symm_unitaryReindexContinuousMulEquiv`). API:
-  `reindexHomeomorph_apply` and `reindexHomeomorph_symm` (`@[simp]`), and
-  `toEquiv_reindexHomeomorph`.
+  `coe_reindexHomeomorph`, `reindexHomeomorph_symm` and
+  `toEquiv_reindexHomeomorph` (`@[simp]`), and `reindexHomeomorph_apply`.
 
 ### `Geometry/Manifold/Instances/LagrangianGrassmannian.lean`
 
