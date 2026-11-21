@@ -18,8 +18,8 @@ Let `ω` be a two-form and `J` a complex structure on a real vector bundle `V �
 different regularities. This file defines when `ω` tames `J` (`ω(v, J v) > 0` for every nonzero
 `v`), when `ω` is `J`-invariant (`ω(J v, J w) = ω(v, w)`), and when the pair is compatible (both).
 These follow Tau Ceti's `TauCeti.SmoothTwoForm.Tames`, `Invariant` and `Compatible` for the
-tangent bundle, and on each fibre they are Tau Ceti's linear `TauCeti.SymplecticForm.Tames` and
-`TauCeti.SymplecticForm.Compatible`.
+tangent bundle, and for a nondegenerate form they are, on each fibre, Tau Ceti's linear
+`TauCeti.SymplecticForm.Tames`, `Invariant` and `Compatible`.
 
 ## Main definitions
 
@@ -27,8 +27,8 @@ tangent bundle, and on each fibre they are Tau Ceti's linear `TauCeti.Symplectic
 * `SymplecticGeometry.Bundle.ContMDiffComplexStructure.compatibleForm g J`: for a bundle metric
   `g` and a complex structure `J`, the two-form `ω_{g,J}(u, v) = (g(J u, v) - g(u, J v)) / 2`.
   With this sign, the formula for the Euclidean inner product and the standard complex structure
-  `J₀` of `StdSpace ι` gives the standard form `stdForm ι`, since `J₀` is skew-adjoint and
-  `stdForm ι z w = ⟪J₀ z, w⟫` (`SymplecticGeometry.stdForm_apply_eq_inner`).
+  `J₀` of `StdSpace ι` gives the standard form `stdForm ι`
+  (`SymplecticGeometry.stdForm_apply_eq_inner_sub_inner`).
 
 ## Main results
 
@@ -40,17 +40,16 @@ tangent bundle, and on each fibre they are Tau Ceti's linear `TauCeti.Symplectic
   isomorphism of bundles, moving the form and the complex structure together.
 * `tames_tangentEquiv_iff`, `invariant_tangentEquiv_iff`, `compatible_tangentEquiv_iff`: on the
   tangent bundle, the predicates are Tau Ceti's.
-* `convex_setOf_tames`, `convex_setOf_compatible`: the two-forms taming, or compatible with, a
-  fixed complex structure form a convex set.
+* `convex_setOf_tames`, `convex_setOf_invariant`, `convex_setOf_compatible`: the two-forms
+  taming, invariant under, or compatible with a fixed complex structure form a convex set.
 * `ContMDiffComplexStructure.compatible_compatibleForm`: `ω_{g,J}` is compatible with `J`.
 
 ## Implementation notes
 
-The smoothness of `ω_{g,J}` comes from Tau Ceti's
-`TauCeti.contMDiffAt_continuousAlternatingMap_bundle_of_bilinear`, applied to the bilinear section
+The form `ω_{g,J}` is `ContMDiffTwoForm.ofBilinearSection` of the bilinear section
 `(g ∘ J - (g ∘ J)ᵀ) / 2`, whose transpose is Tau Ceti's `TauCeti.Manifold.transposeBilinearSection`.
-That lemma reads a two-form through its values on a basis of the model fibre, so `compatibleForm`
-assumes that `F` is finite-dimensional.
+That constructor needs a model fibre of finite dimension, so `compatibleForm` assumes that `F` is
+finite-dimensional.
 
 ## References
 
@@ -101,6 +100,15 @@ structure Compatible (ω : ContMDiffTwoForm I n F V) (J : ContMDiffComplexStruct
 section Predicates
 
 variable {ω : ContMDiffTwoForm I n F V} {J : ContMDiffComplexStructure I m F V}
+
+/-- Tameness is positivity of the bilinear form `ω_x(v, J v)` on every nonzero vector. -/
+theorem tames_def : ω.Tames J ↔ ∀ (x : M) (v : V x), v ≠ 0 → 0 < ω.bilinFormAt x v (J x v) :=
+  Iff.rfl
+
+/-- Invariance is the identity `ω_x(J v, J w) = ω_x(v, w)` of bilinear forms on every fibre. -/
+theorem invariant_def :
+    ω.Invariant J ↔ ∀ (x : M) (v w : V x), ω.bilinFormAt x (J x v) (J x w) = ω.bilinFormAt x v w :=
+  Iff.rfl
 
 /-- Tameness is positivity of `ω_x(v, J v)` on every nonzero vector. -/
 theorem tames_iff : ω.Tames J ↔ ∀ (x : M) (v : V x), v ≠ 0 → 0 < ω x ![v, J x v] := by
@@ -216,12 +224,6 @@ variable {F₁ F₂ : Type*} [NormedAddCommGroup F₁] [NormedSpace ℝ F₁] [F
     (fun p : TotalSpace F₁ V₁ ↦ TotalSpace.mk' F₂ p.proj (Φ p.proj p.snd)))
   {ω : ContMDiffTwoForm I n F₁ V₁} {J : ContMDiffComplexStructure I m F₁ V₁}
 
-/-- The bilinear form of a transported form, evaluated on a pair and the transported structure,
-is that of the original form on the pair moved back. -/
-private theorem bilinFormAt_pushforward_apply (x : M) (u v : V₂ x) :
-    (pushforward Φ hΦ ω).bilinFormAt x u v = ω.bilinFormAt x ((Φ x).symm u) ((Φ x).symm v) := by
-  simp [bilinFormAt_pushforward]
-
 /-- Transport along an isomorphism of bundles preserves tameness, when the form and the complex
 structure move together. -/
 theorem Tames.pushforward (h : ω.Tames J) :
@@ -305,30 +307,14 @@ private theorem compatibleBilin_apply (g : ContMDiffRiemannianMetric I n F V)
 
 variable [FiniteDimensional ℝ F]
 
-/-- The alternating map of `ω_{g,J}` on the fibre over `x`. -/
-private def compatibleFormAt (g : ContMDiffRiemannianMetric I n F V)
-    (J : ContMDiffComplexStructure I n F V) (x : M) : V x [⋀^Fin 2]→L[ℝ] ℝ :=
-  haveI := VectorBundle.finiteDimensional (R := ℝ) (F := F) (E := V) x
-  haveI := FiberBundle.t2Space (E := V) F x
-  AlternatingMap.toContinuousAlternatingMap
-    (LinearMap.IsAlt.toAlternatingMap (ω := (compatibleBilin g J x).toBilinForm) fun v ↦ by
-      simp [compatibleBilin_apply, g.symm x v (J x v)])
-
-private theorem compatibleFormAt_apply (g : ContMDiffRiemannianMetric I n F V)
-    (J : ContMDiffComplexStructure I n F V) (x : M) (v : Fin 2 → V x) :
-    compatibleFormAt g J x v = compatibleBilin g J x (v 0) (v 1) := by
-  simp only [compatibleFormAt, AlternatingMap.coe_toContinuousAlternatingMap]
-  exact LinearMap.IsAlt.toAlternatingMap_apply _ v
-
 /-- The two-form `ω_{g,J}(u, v) = (g(J u, v) - g(u, J v)) / 2` of a bundle metric `g` and a
 complex structure `J`. It is compatible with `J` (`compatible_compatibleForm`). For the Euclidean
-inner product and the standard complex structure of `StdSpace ι` the formula gives `stdForm ι`. -/
+inner product and the standard complex structure of `StdSpace ι` the formula gives `stdForm ι`
+(`SymplecticGeometry.stdForm_apply_eq_inner_sub_inner`). -/
 def compatibleForm (g : ContMDiffRiemannianMetric I n F V)
-    (J : ContMDiffComplexStructure I n F V) : ContMDiffTwoForm I n F V where
-  toFun := compatibleFormAt g J
-  contMDiff_toFun x :=
-    TauCeti.contMDiffAt_continuousAlternatingMap_bundle_of_bilinear
-      ((compatibleBilin g J).contMDiff x) fun _ v ↦ compatibleFormAt_apply g J _ v
+    (J : ContMDiffComplexStructure I n F V) : ContMDiffTwoForm I n F V :=
+  ContMDiffTwoForm.ofBilinearSection (compatibleBilin g J) fun x v ↦ by
+    simp [compatibleBilin_apply, g.symm x v (J x v)]
 
 /-- The value of `ω_{g,J}` on two vectors `v 0`, `v 1` is
 `(g(J (v 0), v 1) - g(v 0, J (v 1))) / 2`. -/
@@ -337,14 +323,16 @@ theorem compatibleForm_apply (g : ContMDiffRiemannianMetric I n F V)
     (J : ContMDiffComplexStructure I n F V) (x : M) (v : Fin 2 → V x) :
     compatibleForm g J x v =
       (2 : ℝ)⁻¹ * (g.inner x (J x (v 0)) (v 1) - g.inner x (v 0) (J x (v 1))) :=
-  (compatibleFormAt_apply g J x v).trans (compatibleBilin_apply g J x (v 0) (v 1))
+  (ContMDiffTwoForm.ofBilinearSection_apply _ _ x v).trans (compatibleBilin_apply g J x (v 0) (v 1))
 
 /-- The form `ω_{g,J}` is compatible with `J`. -/
 theorem compatible_compatibleForm (g : ContMDiffRiemannianMetric I n F V)
     (J : ContMDiffComplexStructure I n F V) : (compatibleForm g J).Compatible J where
   invariant x v w := by
-    simp only [ContMDiffTwoForm.bilinFormAt_apply, compatibleForm_apply]
-    simp [g.symm x (J x v) w, g.symm x v (J x w)]
+    simp only [ContMDiffTwoForm.bilinFormAt_apply, compatibleForm_apply, Matrix.cons_val_zero,
+      Matrix.cons_val_one, apply_apply]
+    rw [g.symm x (-v) (J x w), g.symm x v (J x w)]
+    simp only [map_neg]
     ring
   tames x v hv := by
     have h₁ := g.pos x v hv
