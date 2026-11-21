@@ -745,7 +745,9 @@ it into issues; the overview fixes its folders and its dependencies.
   of all inner products on $V$, a convex open subset of the symmetric bilinear forms,
   from Tau Ceti's `TauCeti.convex_setOfPred_symm_pos`),
   `Topology/Algebra/Module/SymplecticForms.lean` (the topology on
-  `SymplecticForm V`),
+  `SymplecticForm V`), with the general file
+  `Topology/Algebra/Module/BilinearForm.lean` (a continuous bilinear form in
+  finite dimensions is recovered from its bilinear form),
   `Geometry/Symplectic/Cayley/Domain.lean` (the open set where Tau Ceti's
   Cayley path is smooth),
   `Topology/ComplexStructure/Compatible/` (`Matrix.lean`: the identification
@@ -1044,7 +1046,8 @@ it into issues; the overview fixes its folders and its dependencies.
   line bundle as a principal `Circle`-bundle; see *Constructions*),
   and, for the last milestone, `Geometry/Manifold/IsManifold/InteriorBoundary.lean`
   (the interior of a manifold with boundary as a boundaryless manifold,
-  connected when the manifold is connected and of positive dimension),
+  connected when the manifold is connected; its topological step goes in
+  `Topology/Connected/Clopen.lean`),
   `Geometry/Manifold/Boundary/Collar/Push.lean`
   (a homotopy pushing a compact manifold with boundary into a compact subset
   of its interior along a collar), `.../VectorBundle/Section/Generic.lean`
@@ -1065,7 +1068,7 @@ it into issues; the overview fixes its folders and its dependencies.
   smoothness of the linear Moser flow, which the classification uses, goes
   in the files of *Linear Moser*.
 - **Builds on:** *Linear Moser*, *Standard model* (`stdForm`,
-  the planned `StdSpace.sumEquiv` and the matrix dictionary, for frames and
+  `StdSpace.sumEquiv` and the matrix dictionary, for frames and
   transition maps), Mathlib's
   smooth vector bundles and bundle metrics, Tau Ceti's bundle constructions
   (`Topology/VectorBundle/`, `Geometry/Manifold/VectorBundle/`), its section

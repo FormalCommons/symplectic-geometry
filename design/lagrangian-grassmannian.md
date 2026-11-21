@@ -312,10 +312,9 @@ The direct sum of two models is §1's `StdSpace.sumEquiv ι κ : StdSpace (ι �
 carries `stdForm (ι ⊕ κ)` to `(stdForm ι).prod (stdForm κ)`, and its lemma
 in `Standard/Matrix.lean` that it conjugates
 `Matrix.toEuclideanLin (Matrix.symplecticSum A B)` to the product of the
-maps of `A` and `B`. `DESIGN.md` gives its construction to the first
-direct-sum issue of *Symplectic vector bundles*. If building issue 11 of
-this part starts first, issue 11 builds it, exactly as §1 states it, in
-those two files, and the bundle issue then uses it.
+maps of `A` and `B`. Building issue 11 added all three to
+`Standard/Basic.lean` and `Standard/Matrix.lean` (merged, #232), and
+*Symplectic vector bundles* uses them as they are.
 
 ### `LinearAlgebra/Symplectic/Lagrangian/Basic.lean`
 
@@ -850,7 +849,7 @@ The manifold structure and the milestone.
   `mem_symplecticGroup_iff_forall_stdForm` and
   `TauCeti.conj_complexToRealEuclidean_toLin'` (merged, #62);
   `isSymplectomorphism_piLpCongrLeft_sumCongr`; `StdSpace.sumEquiv` with its two
-  lemmas (planned by §1, built as in building issue 11).
+  lemmas (merged, #232).
 - *Symplectic subspaces* (merged, #64):
   `isLagrangian_iff_isIsotropic_and_two_mul_finrank_eq`; this part adds
   `SymplecticForm.isLagrangian_map_iff_of_apply_eq_mul` there.
@@ -985,8 +984,7 @@ merged.
     `LinearAlgebra/Symplectic/Lagrangian/Sum.lean`: `ℒ.sum`, `ℒ.reindex` and
     their compatibilities, using the existing
     `isSymplectomorphism_piLpCongrLeft_sumCongr` from `Standard/Basic.lean`;
-    and §1's `StdSpace.sumEquiv` with its two lemmas, if the *Symplectic
-    vector bundles* issue that builds it has not merged first. About 300
+    and §1's `StdSpace.sumEquiv` with its two lemmas. About 300
     lines. Blocked by 6.
 12. **Direct sums and reindexing, topology.**
     `Topology/Grassmannian/Lagrangian/Sum.lean`: `continuous_sum` and
