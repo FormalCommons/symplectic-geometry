@@ -247,6 +247,12 @@ Declarations about Tau Ceti's type go in its namespace
   `f : Module.End ℝ V`, and `transport_eq_transport_iff`: for any `J` and
   `Φ Ψ : V ≃ₗ[ℝ] W`, `J.transport Φ = J.transport Ψ` if and only if
   `Φ ≪≫ₗ Ψ.symm` is complex linear for `J`.
+- `exists_linearIsometryEquiv_transport_eq`: two norm-preserving complex
+  structures on finite-dimensional real inner product spaces of equal
+  dimension are conjugate by a linear isometry (it matches adapted orthonormal
+  bases from `exists_adapted_orthonormalBasis`, and concludes with
+  `transport_eq_iff_isComplexLinearMap`); the transitivity of `SO(2n)` in
+  `Oriented.lean` uses it.
 - `instance instMulActionSpecialOrthogonalGroup :
   MulAction (specialOrthogonalGroup n ℝ) (AlmostComplexStructure (EuclideanSpace ℝ n))`,
   `MulAction.compHom` of the matrix action along the inclusion
@@ -417,9 +423,20 @@ only the lemma about $J_0$ takes `n = ι ⊕ ι`. Since `StdSpace ι` is an
 
 ### `Topology/ComplexStructure/Oriented.lean`
 
-- The action of `specialOrthogonalGroup (ι ⊕ ι) ℝ` from `Action.lean` (with
-  `n = ι ⊕ ι`) preserves the orthogonal and the positively oriented
-  structures.
+- The action of `specialOrthogonalGroup n ℝ` from `Action.lean` preserves and
+  reflects orthogonality
+  (`specialOrthogonalGroup_smul_mem_orthogonalComplexStructures_iff`, for any
+  `n`), and for `n = ι ⊕ ι` positive orientation
+  (`isPositivelyOriented_specialOrthogonalGroup_smul_iff`). So the orthogonal
+  positively oriented structures form
+  `positiveOrthogonalComplexStructures ι :
+  SubMulAction (specialOrthogonalGroup (ι ⊕ ι) ℝ) (AlmostComplexStructure (StdSpace ι))`,
+  with `@[simp] mem_positiveOrthogonalComplexStructures`; Mathlib's
+  `SubMulAction` API gives the action on it, `SubMulAction.val_smul` and
+  `SubMulAction.stabilizer_of_subMul`, which `quotientUnitaryHomeomorph` is
+  built on.
+- `mem_stabilizer_specialOrthogonalGroup_stdComplexStructure_iff`: `g` fixes
+  $J_0$ exactly when it commutes with the matrix `J ι ℝ`.
 - `map_stabilizer_specialOrthogonalGroup_stdComplexStructure`, an equality of
   submonoids of `Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ`:
   ```lean
@@ -435,16 +452,19 @@ only the lemma about $J_0$ takes `n = ι ⊕ ι`. Since `StdSpace ι` is an
   `isPositivelyOriented_transport_iff`.
 - `quotientUnitaryHomeomorph ι :
   specialOrthogonalGroup (ι ⊕ ι) ℝ ⧸ MulAction.stabilizer _ J₀ ≃ₜ
-  {J // J ∈ orthogonalComplexStructures (ι ⊕ ι) ∧ IsPositivelyOriented J}`, Tau
+  positiveOrthogonalComplexStructures ι`, Tau
   Ceti's `quotientStabilizerHomeomorph` for the action of
-  `specialOrthogonalGroup` on that subtype (transitive by the previous
+  `specialOrthogonalGroup` on it (transitive by the previous
   lemma; the quotient of a compact group is compact, the subtype is
-  Hausdorff); `@[simp] quotientUnitaryHomeomorph_mk`.
+  Hausdorff); `@[simp] coe_quotientUnitaryHomeomorph_mk` (the image of the coset
+  of `g`, as a structure, is `g • J₀`).
 - `isPathConnected_setOf_isPositivelyOriented` (each structure is joined by
   the polar homotopy, inside the clopen set, to an orthogonal positively
   oriented one, and these form the image of the path-connected group
   $\mathrm{SO}(2n)$); `connectedComponent_stdComplexStructure :
-  connectedComponent J₀ = {J | IsPositivelyOriented J}`.
+  connectedComponent J₀ = {J | IsPositivelyOriented J}`, and its path-component
+  form `pathComponent_stdComplexStructure`, both from the public
+  `IsPositivelyOriented.joined_stdComplexStructure`.
 - `nat_card_connectedComponents_almostComplexStructure_stdSpace [Nonempty ι] :
   Nat.card (ConnectedComponents (AlmostComplexStructure (StdSpace ι))) = 2`,
   and for the erratum
@@ -457,6 +477,11 @@ only the lemma about $J_0$ takes `n = ι ⊕ ι`. Since `StdSpace ι` is an
   homotopy, with `A` the orthogonal positively oriented structures and `B`
   the positively oriented ones (the homotopy stays in `B` since the set is
   clopen), reversed and composed with `quotientUnitaryHomeomorph`.
+  `@[simp] coe_positivelyOrientedHomotopyEquiv_symm_mk` (the coset of `g`
+  goes to `g • J₀`) and
+  `@[simp] coe_quotientUnitaryHomeomorph_positivelyOrientedHomotopyEquiv`
+  (followed by `quotientUnitaryHomeomorph`, a structure goes to its polar
+  retraction).
 - Dimension four: `stdSpaceQuaternionIsometry : StdSpace (Fin 2) ≃ₗᵢ[ℝ] ℍ[ℝ]`,
   defined as `(LinearIsometryEquiv.piLpCongrLeft 2 ℝ ℝ e).trans
   Quaternion.linearIsometryEquivTuple.symm`, where `e : Fin 2 ⊕ Fin 2 ≃ Fin 4`
@@ -474,7 +499,7 @@ only the lemma about $J_0$ takes `n = ι ⊕ ι`. Since `StdSpace ι` is an
   value on the basis vector $x_1$ is the vector $u_0y_1+u_1x_2+u_2y_2$;
   `sphereHomeomorphOrthogonal :
   Metric.sphere (0 : EuclideanSpace ℝ (Fin 3)) 1 ≃ₜ
-  {J // J ∈ orthogonalComplexStructures (Fin 2 ⊕ Fin 2) ∧ IsPositivelyOriented J}`
+  positiveOrthogonalComplexStructures (Fin 2)`
   (injectivity from the value on $x_1$; surjectivity because an orthogonal
   positively oriented structure is determined by its value on one unit vector:
   on the orthogonal complement of the plane that vector spans with its image
