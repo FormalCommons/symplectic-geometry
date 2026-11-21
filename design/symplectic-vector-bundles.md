@@ -1108,21 +1108,24 @@ $[0,1]$ is never fed to the lemma with `P = ℝ` directly.
 `Symplectic/Trivialization.lean`.
 
 - `ContMDiffTwoForm.IsNondegenerate.exists_isLocalFrameOn_isDarbouxBasis`:
-  every `x` has an open neighbourhood `W` and sections
-  `s : Fin k × Fin 2 → ∀ y, V y` forming a $C^n$ local frame on `W`
+  with no hypothesis on the base, every `x` has an open neighbourhood `W` and
+  sections `s : Fin k × Fin 2 → ∀ y, V y` forming a $C^n$ local frame on `W`
   (Mathlib's `IsLocalFrameOn`) that is a Darboux basis of
   `hω.symplecticFormAt y` (Tau Ceti's `TauCeti.SymplecticForm.IsDarbouxBasis`,
-  in the book's normalization) at every `y ∈ W`. Route: $J=J_{g,\omega}$ and
-  the metric $\omega(\cdot,J\cdot)$; extend a $J_x$-complex basis
-  $u_1,\dots,u_k$ of $V_x$ to local sections, and apply Tau Ceti's smooth
-  Gram–Schmidt (`Geometry/Manifold/VectorBundle/GramSchmidt.lean`) to
-  $u_1,Ju_1,u_2,Ju_2,\dots$; since the metric is $J$-invariant, the output is
-  $e_1,Je_1,e_2,Je_2,\dots$, a Darboux frame. No ODE is needed.
+  in the book's normalization) at every `y ∈ W`. Route: extend a Darboux
+  basis of $V_x$ to local sections $a_i,b_i$, constant in a trivialization,
+  and run a symplectic Gram–Schmidt on them: where $c=\omega(a_1,b_1)\ne0$,
+  keep $a_1$ and $c^{-1}b_1$, and project the other sections by
+  $v\mapsto v-\omega(v,c^{-1}b_1)a_1+\omega(v,a_1)c^{-1}b_1$, which fixes them
+  at $x$. No metric, complex structure or ODE is needed.
 - `ContMDiffTwoForm.Compatible.exists_isLocalFrameOn_isDarbouxBasis`: the
   same frames for a form compatible with a given $C^n$ complex structure
-  `J`, with no hypothesis on the base; the route above runs with that `J`,
-  and the previous result applies it to $J_{g,\omega}$ (which needs a bundle
-  metric) over a Hausdorff σ-compact base.
+  `J`, with no hypothesis on the base. Route: the metric
+  $\omega(\cdot,J\cdot)$; extend a $J_x$-complex basis $u_1,\dots,u_k$ of
+  $V_x$ to local sections, and apply Tau Ceti's smooth Gram–Schmidt
+  (`Geometry/Manifold/VectorBundle/GramSchmidt.lean`) to
+  $u_1,Ju_1,u_2,Ju_2,\dots$; since the metric is $J$-invariant, the output is
+  $e_1,Je_1,e_2,Je_2,\dots$, a Darboux frame.
   The metric is `Compatible.metric`; the sections stay independent near the
   point by `Bundle.Trivialization.eventually_linearIndependent`
   (`Topology/VectorBundle/LinearIndependent.lean`), and the orthonormal output
