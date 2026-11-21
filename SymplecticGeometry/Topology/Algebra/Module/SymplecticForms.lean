@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.LinearAlgebra.SesquilinearForm
 public import SymplecticGeometry.Topology.Algebra.Module.BilinearForm
 public import TauCeti.Geometry.Symplectic.SymplecticTransport
 public import TauCeti.Topology.Algebra.Module.BilinearForm
@@ -73,9 +74,7 @@ theorem toContinuousBilinearMap_sub_flip (ω : SymplecticForm V) :
     ω.toBilinForm.toContinuousBilinearMap - ω.toBilinForm.toContinuousBilinearMap.flip =
       (2 : ℝ) • ω.toBilinForm.toContinuousBilinearMap := by
   ext u v
-  simp only [sub_apply, ContinuousLinearMap.flip_apply,
-    smul_apply, LinearMap.toContinuousBilinearMap_apply, smul_eq_mul]
-  linarith [ω.isAlt.neg_eq u v]
+  simpa [two_smul, two_nsmul] using congr($(ω.isAlt.sub_flip_eq_two_smul) u v)
 
 /-- The skew part of the continuous bilinear form of a symplectic form is that form itself. -/
 @[simp]

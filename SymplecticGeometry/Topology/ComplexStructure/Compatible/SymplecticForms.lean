@@ -10,6 +10,7 @@ public import SymplecticGeometry.Geometry.Symplectic.Cayley.Domain
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Compatible
 public import Mathlib.Topology.Homotopy.Affine
 public import Mathlib.Topology.Homotopy.Equiv
+public import TauCeti.Topology.Homotopy.DeformationRetract
 
 /-!
 # Symplectic forms and complex structures for a fixed inner product
@@ -26,7 +27,8 @@ continuous maps are mutually inverse up to homotopy:
   `ω_{g,J}`-compatible structure `J_{g,ω_{g,J}}` towards the `ω_{g,J}`-tame structure `J`.
 
 So the space of symplectic forms on `V` and the space of complex structures on `V` are homotopy
-equivalent.
+equivalent. The same inverses fix the complex structures that preserve `g` and the forms
+`g (J ·, ·)` they give, so the inclusions of these two subsets are homotopy equivalences too.
 
 ## Main definitions
 
@@ -37,6 +39,11 @@ equivalent.
   the identity of the complex structures.
 * `SymplecticGeometry.polarHomotopyEquiv g`: the homotopy equivalence between the symplectic
   forms and the complex structures, with maps `ω ↦ J_{g,ω}` and `J ↦ ω_{g,J}`.
+* `SymplecticGeometry.metricComplexStructures g`, `SymplecticGeometry.metricSymplecticForms g`:
+  the complex structures that preserve `g`, and the forms `g (J ·, ·)` of these structures.
+* `SymplecticGeometry.metricComplexStructuresHomotopyEquiv g`,
+  `SymplecticGeometry.metricSymplecticFormsHomotopyEquiv g`: their inclusions, as homotopy
+  equivalences.
 
 ## Main results
 
@@ -46,6 +53,9 @@ equivalent.
 * `SymplecticGeometry.continuous_metricSymplecticForm`: `J ↦ ω_{g,J}` is continuous.
 * `SymplecticGeometry.metricSymplecticForm_innerSL`: for the inner product of an inner product
   space, `ω_{g,J}` is Tau Ceti's `AlmostComplexStructure.symplecticForm`.
+* `SymplecticGeometry.metricPolarComplexStructure_eq_inverse_mul_and_homotopyEquiv`: the formula,
+  smoothness, naturality and compatibility of `J_{g,ω}`, its value for `g = ω(·, J ·)`, and the
+  three homotopy equivalences.
 
 ## References
 
@@ -267,6 +277,228 @@ theorem polarHomotopyEquiv_symm_apply (J : AlmostComplexStructure V) :
   (rfl)
 
 end HomotopyEquiv
+
+section MetricSubsets
+
+variable {V : Type*} [NormedAddCommGroup V] [NormedSpace ℝ V] (g : innerProducts V)
+
+/-- The complex structures that preserve the inner product `g`, the space `𝒥(V, g)` of
+`g`-orthogonal complex structures. -/
+def metricComplexStructures : Set (AlmostComplexStructure V) :=
+  {J | ∀ u v, (g : V →L[ℝ] V →L[ℝ] ℝ) (J u) (J v) = (g : V →L[ℝ] V →L[ℝ] ℝ) u v}
+
+/-- The symplectic forms `g (J ·, ·)` for the `g`-orthogonal complex structures `J`, the space
+`Ω(V, g)` of symplectic forms compatible with `g`. -/
+def metricSymplecticForms : Set (SymplecticForm V) :=
+  {ω | ∃ J ∈ metricComplexStructures g, ∀ v w, ω v w = (g : V →L[ℝ] V →L[ℝ] ℝ) (J v) w}
+
+variable {g}
+
+@[simp]
+theorem mem_metricComplexStructures {J : AlmostComplexStructure V} :
+    J ∈ metricComplexStructures g ↔
+      ∀ u v, (g : V →L[ℝ] V →L[ℝ] ℝ) (J u) (J v) = (g : V →L[ℝ] V →L[ℝ] ℝ) u v :=
+  Iff.rfl
+
+@[simp]
+theorem mem_metricSymplecticForms {ω : SymplecticForm V} :
+    ω ∈ metricSymplecticForms g ↔
+      ∃ J ∈ metricComplexStructures g, ∀ v w, ω v w = (g : V →L[ℝ] V →L[ℝ] ℝ) (J v) w :=
+  Iff.rfl
+
+/-- The forms compatible with `g` are the forms `ω_{g,J}` of the `g`-orthogonal complex
+structures `J`. -/
+theorem metricSymplecticForms_eq_image :
+    metricSymplecticForms g = metricSymplecticForm g '' metricComplexStructures g := by
+  ext ω
+  refine exists_congr fun J ↦ and_congr_right fun hJ ↦ ⟨fun h ↦ ?_, ?_⟩
+  · exact toBilinForm_injective <| LinearMap.ext₂ fun v w ↦
+      (metricSymplecticForm_eq_of_apply_apply hJ v w).trans (h v w).symm
+  · rintro rfl
+    exact metricSymplecticForm_eq_of_apply_apply hJ
+
+/-- For a `g`-orthogonal complex structure `J`, the form `ω_{g,J}` is compatible with `g`. -/
+theorem metricSymplecticForm_mem_metricSymplecticForms {J : AlmostComplexStructure V}
+    (hJ : J ∈ metricComplexStructures g) : metricSymplecticForm g J ∈ metricSymplecticForms g :=
+  ⟨J, hJ, metricSymplecticForm_eq_of_apply_apply hJ⟩
+
+/-- A `g`-orthogonal complex structure `J` is compatible with `ω_{g,J}`. -/
+theorem compatible_metricSymplecticForm {J : AlmostComplexStructure V}
+    (hJ : J ∈ metricComplexStructures g) : (metricSymplecticForm g J).Compatible J :=
+  .of_tames ((invariant_iff _ _).2 fun v w ↦ by
+    rw [metricSymplecticForm_eq_of_apply_apply hJ, metricSymplecticForm_eq_of_apply_apply hJ,
+      hJ]) (tames_metricSymplecticForm g J)
+
+variable [FiniteDimensional ℝ V]
+
+variable (g) in
+/-- `J_{g,ω}` is `g`-orthogonal. -/
+theorem metricPolarComplexStructure_mem_metricComplexStructures (ω : SymplecticForm V) :
+    metricPolarComplexStructure g ω ∈ metricComplexStructures g :=
+  apply_metricPolarComplexStructure_apply g ω
+
+/-- A `g`-orthogonal complex structure `J` is `J_{g,ω}` for `ω = ω_{g,J}`. -/
+theorem metricPolarComplexStructure_metricSymplecticForm {J : AlmostComplexStructure V}
+    (hJ : J ∈ metricComplexStructures g) :
+    metricPolarComplexStructure g (metricSymplecticForm g J) = J :=
+  metricPolarComplexStructure_eq_iff.2 ⟨hJ, compatible_metricSymplecticForm hJ⟩
+
+/-- A form `ω` compatible with `g` is `ω_{g,J}` for `J = J_{g,ω}`. -/
+theorem metricSymplecticForm_metricPolarComplexStructure {ω : SymplecticForm V}
+    (hω : ω ∈ metricSymplecticForms g) :
+    metricSymplecticForm g (metricPolarComplexStructure g ω) = ω := by
+  rw [metricSymplecticForms_eq_image] at hω
+  obtain ⟨J, hJ, rfl⟩ := hω
+  rw [metricPolarComplexStructure_metricSymplecticForm hJ]
+
+variable (g)
+
+/-- The inclusion of the `g`-orthogonal complex structures into all complex structures is a
+homotopy equivalence, with homotopy inverse `J ↦ J_{g,ω_{g,J}}`. This inverse fixes the
+`g`-orthogonal structures, and its composite with the inclusion is joined to the identity by
+`polarCayleyHomotopy g`. -/
+noncomputable def metricComplexStructuresHomotopyEquiv :
+    ContinuousMap.HomotopyEquiv (metricComplexStructures g) (AlmostComplexStructure V) :=
+  .ofDeformationRetraction (ContinuousMap.subtypeVal _)
+    ⟨fun J ↦ ⟨metricPolarComplexStructure g (metricSymplecticForm g J),
+        metricPolarComplexStructure_mem_metricComplexStructures g _⟩,
+      ((continuous_const.metricPolarComplexStructure continuous_id).comp
+        (continuous_metricSymplecticForm g)).subtype_mk _⟩
+    (fun J ↦ Subtype.ext (metricPolarComplexStructure_metricSymplecticForm J.property))
+    ⟨polarCayleyHomotopy g⟩
+
+/-- The forward map of `metricComplexStructuresHomotopyEquiv g` is the inclusion. -/
+@[simp]
+theorem metricComplexStructuresHomotopyEquiv_toFun :
+    (metricComplexStructuresHomotopyEquiv g).toFun = ContinuousMap.subtypeVal _ :=
+  ContinuousMap.HomotopyEquiv.ofDeformationRetraction_toFun _ _ _ _
+
+/-- `metricComplexStructuresHomotopyEquiv g` sends a `g`-orthogonal structure to itself. -/
+theorem metricComplexStructuresHomotopyEquiv_apply (J : metricComplexStructures g) :
+    metricComplexStructuresHomotopyEquiv g J = J :=
+  ContinuousMap.HomotopyEquiv.ofDeformationRetraction_apply _ _ _ _ J
+
+/-- The homotopy inverse of `metricComplexStructuresHomotopyEquiv g` is `J ↦ J_{g,ω_{g,J}}`. -/
+@[simp]
+theorem coe_metricComplexStructuresHomotopyEquiv_symm_apply (J : AlmostComplexStructure V) :
+    ((metricComplexStructuresHomotopyEquiv g).symm J : AlmostComplexStructure V) =
+      metricPolarComplexStructure g (metricSymplecticForm g J) :=
+  congrArg Subtype.val (ContinuousMap.HomotopyEquiv.ofDeformationRetraction_symm_apply _ _ _ _ J)
+
+/-- The inclusion of the symplectic forms compatible with `g` into all symplectic forms is a
+homotopy equivalence, with homotopy inverse `ω ↦ ω_{g,J_{g,ω}}`. This inverse fixes the forms
+compatible with `g`, and its composite with the inclusion is joined to the identity by
+`polarStraightHomotopy g`. -/
+noncomputable def metricSymplecticFormsHomotopyEquiv :
+    ContinuousMap.HomotopyEquiv (metricSymplecticForms g) (SymplecticForm V) :=
+  .ofDeformationRetraction (ContinuousMap.subtypeVal _)
+    ⟨fun ω ↦ ⟨metricSymplecticForm g (metricPolarComplexStructure g ω),
+        metricSymplecticForm_mem_metricSymplecticForms
+          (metricPolarComplexStructure_mem_metricComplexStructures g ω)⟩,
+      ((continuous_metricSymplecticForm g).comp
+        (continuous_const.metricPolarComplexStructure continuous_id)).subtype_mk _⟩
+    (fun ω ↦ Subtype.ext (metricSymplecticForm_metricPolarComplexStructure ω.property))
+    ⟨polarStraightHomotopy g⟩
+
+/-- The forward map of `metricSymplecticFormsHomotopyEquiv g` is the inclusion. -/
+@[simp]
+theorem metricSymplecticFormsHomotopyEquiv_toFun :
+    (metricSymplecticFormsHomotopyEquiv g).toFun = ContinuousMap.subtypeVal _ :=
+  ContinuousMap.HomotopyEquiv.ofDeformationRetraction_toFun _ _ _ _
+
+/-- `metricSymplecticFormsHomotopyEquiv g` sends a form compatible with `g` to itself. -/
+theorem metricSymplecticFormsHomotopyEquiv_apply (ω : metricSymplecticForms g) :
+    metricSymplecticFormsHomotopyEquiv g ω = ω :=
+  ContinuousMap.HomotopyEquiv.ofDeformationRetraction_apply _ _ _ _ ω
+
+/-- The homotopy inverse of `metricSymplecticFormsHomotopyEquiv g` is `ω ↦ ω_{g,J_{g,ω}}`. -/
+@[simp]
+theorem coe_metricSymplecticFormsHomotopyEquiv_symm_apply (ω : SymplecticForm V) :
+    ((metricSymplecticFormsHomotopyEquiv g).symm ω : SymplecticForm V) =
+      metricSymplecticForm g (metricPolarComplexStructure g ω) :=
+  congrArg Subtype.val (ContinuousMap.HomotopyEquiv.ofDeformationRetraction_symm_apply _ _ _ _ ω)
+
+end MetricSubsets
+
+section Milestone
+
+variable {V : Type*} [NormedAddCommGroup V] [NormedSpace ℝ V] [FiniteDimensional ℝ V]
+
+/-- Let `V` be a finite-dimensional real normed space, `g` an inner product on `V` and `ω` a
+symplectic form on `V`.
+
+* If `g (A u) v = ω u v` and `Q` is the square root of `-A²` that is self-adjoint and positive
+  definite for `g` (such `A` and `Q` exist), then `J_{g,ω} = Q⁻¹ A`.
+* `J_{g,ω}` is smooth, indeed analytic, in `(g, ω)`: for every finite-dimensional real inner
+  product space `W` and isomorphism `e : V ≃L[ℝ] W`, the formula `TauCeti.metricPolarFormula` is
+  analytic on the open set `TauCeti.polarDomain W`, which contains the pair of `g` and `ω`
+  carried to `W`, and its value there is `J_{g,ω}` conjugated by `e`.
+* `J_{g,ω}` is natural under linear isomorphisms, so equivariant under `GL(V)`.
+* `J_{g,ω}` is compatible with `ω` and preserves `g`.
+* If `J` is compatible with `ω`, then `J_{g,ω} = J` for `g = ω(·, J ·)`.
+* For fixed `g`, the map `ω ↦ J_{g,ω}` is a homotopy equivalence from the symplectic forms to
+  the complex structures, with homotopy inverse `J ↦ ω_{g,J} = ½ (g (J ·, ·) - g (·, J ·))`; and
+  the inclusions of the `g`-orthogonal complex structures and of the symplectic forms compatible
+  with `g` are homotopy equivalences.
+
+No parity hypothesis on the dimension is needed: in odd dimension there are no symplectic forms
+and no complex structures, and every statement holds trivially.
+
+Milestone: *Complex structures versus symplectic forms*. -/
+theorem metricPolarComplexStructure_eq_inverse_mul_and_homotopyEquiv :
+    (∀ (g : innerProducts V) (ω : SymplecticForm V),
+      (∃ A Q : V →L[ℝ] V, (∀ u v, (g : V →L[ℝ] V →L[ℝ] ℝ) (A u) v = ω u v) ∧
+        (∀ u v, (g : V →L[ℝ] V →L[ℝ] ℝ) (Q u) v = (g : V →L[ℝ] V →L[ℝ] ℝ) u (Q v)) ∧
+        (∀ v, v ≠ 0 → 0 < (g : V →L[ℝ] V →L[ℝ] ℝ) (Q v) v) ∧ Q * Q = -(A * A)) ∧
+      ∀ A Q : V →L[ℝ] V, (∀ u v, (g : V →L[ℝ] V →L[ℝ] ℝ) (A u) v = ω u v) →
+        (∀ u v, (g : V →L[ℝ] V →L[ℝ] ℝ) (Q u) v = (g : V →L[ℝ] V →L[ℝ] ℝ) u (Q v)) →
+        (∀ v, v ≠ 0 → 0 < (g : V →L[ℝ] V →L[ℝ] ℝ) (Q v) v) → Q * Q = -(A * A) →
+        LinearMap.toContinuousLinearMap (metricPolarComplexStructure g ω).toLinearMap =
+          Ring.inverse Q * A) ∧
+    (∀ (W : Type*) [NormedAddCommGroup W] [InnerProductSpace ℝ W] [FiniteDimensional ℝ W]
+        (e : V ≃L[ℝ] W),
+      IsOpen (polarDomain W) ∧
+        ContDiffOn ℝ ⊤ (fun p ↦ metricPolarFormula p.1 p.2) (polarDomain W) ∧
+        ∀ (g : innerProducts V) (ω : SymplecticForm V),
+          ((innerProducts.transport e g : W →L[ℝ] W →L[ℝ] ℝ),
+              (ω.transport e.toLinearEquiv).toBilinForm.toContinuousBilinearMap) ∈
+            polarDomain W ∧
+          metricPolarFormula (innerProducts.transport e g)
+              (ω.transport e.toLinearEquiv).toBilinForm.toContinuousBilinearMap =
+            e.conjContinuousAlgEquiv
+              (LinearMap.toContinuousLinearMap (metricPolarComplexStructure g ω).toLinearMap)) ∧
+    (∀ (W : Type*) [NormedAddCommGroup W] [NormedSpace ℝ W] [FiniteDimensional ℝ W]
+        (e : V ≃L[ℝ] W) (g : innerProducts V) (ω : SymplecticForm V),
+      metricPolarComplexStructure (innerProducts.transport e g) (ω.transport e.toLinearEquiv) =
+        (metricPolarComplexStructure g ω).transport e.toLinearEquiv) ∧
+    (∀ (g : innerProducts V) (ω : SymplecticForm V),
+      ω.Compatible (metricPolarComplexStructure g ω) ∧
+        metricPolarComplexStructure g ω ∈ metricComplexStructures g) ∧
+    (∀ (ω : SymplecticForm V) (J : AlmostComplexStructure V) (h : ω.Compatible J),
+      metricPolarComplexStructure ⟨_, h.associatedBilinForm_mem_innerProducts⟩ ω = J) ∧
+    ∀ g : innerProducts V,
+      (∃ e : ContinuousMap.HomotopyEquiv (SymplecticForm V) (AlmostComplexStructure V),
+        (∀ ω, e ω = metricPolarComplexStructure g ω) ∧ ∀ J, e.symm J = metricSymplecticForm g J) ∧
+      (∃ e : ContinuousMap.HomotopyEquiv (metricComplexStructures g) (AlmostComplexStructure V),
+        ∀ J, e J = J) ∧
+      ∃ e : ContinuousMap.HomotopyEquiv (metricSymplecticForms g) (SymplecticForm V),
+        ∀ ω, e ω = ω := by
+  refine ⟨fun g ω ↦ ⟨exists_operator_and_sqrt_neg_mul_self g ω,
+      fun _ _ hA hQs hQp hQ ↦ metricPolarComplexStructure_eq_inverse_mul hA hQs hQp hQ⟩,
+    fun W _ _ _ e ↦ ⟨isOpen_polarDomain W, contDiffOn_metricPolarFormula, fun g ω ↦
+      ⟨mem_polarDomain _ _, ?_⟩⟩,
+    fun W _ _ _ e g ω ↦ metricPolarComplexStructure_transport g ω e,
+    fun g ω ↦ ⟨compatible_metricPolarComplexStructure g ω,
+      metricPolarComplexStructure_mem_metricComplexStructures g ω⟩,
+    fun ω J h ↦ metricPolarComplexStructure_associatedBilinForm h,
+    fun g ↦ ⟨⟨polarHomotopyEquiv g, polarHomotopyEquiv_toFun g, polarHomotopyEquiv_symm_apply g⟩,
+      ⟨metricComplexStructuresHomotopyEquiv g, metricComplexStructuresHomotopyEquiv_apply g⟩,
+      ⟨metricSymplecticFormsHomotopyEquiv g, metricSymplecticFormsHomotopyEquiv_apply g⟩⟩⟩
+  rw [metricPolarFormula_eq, metricPolarComplexStructure_transport]
+  ext v
+  simp
+
+end Milestone
 
 end SymplecticGeometry
 
