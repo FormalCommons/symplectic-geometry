@@ -1002,9 +1002,13 @@ it into issues; the overview fixes its folders and its dependencies.
   trivial line bundle over $\mathbb{R}$, $\Phi_t(x,v)=v+t\sin(x/t)$ is
   continuous in $(t,x,v)$ with $\Phi_0=\mathrm{id}$, but
   $\partial_x(\Phi_t\circ s-s)=\cos(x/t)$ does not tend to $0$. The proof
-  goes through `ContMDiffSection.continuous_frameTopology_iff`; the file has
-  the name of the Tau Ceti file that defines that topology, so that the two
-  merge upstream),
+  goes through `ContMDiffSection.continuous_frameTopology_iff_frameCoordinates`;
+  the file has the name of the Tau Ceti file that defines that topology, so
+  that the two merge upstream),
+  `Geometry/Manifold/ContMDiffMap/Chart/CodRestrict.lean` (corestriction of
+  a $C^n$ map to an open subset of its target, continuous for Tau Ceti's
+  weak Whitney topology; a step of the proof of the previous lemma, placed
+  beside Tau Ceti's weak Whitney files so that it can merge there),
   `Geometry/Manifold/VectorBundle/Cayley.lean` (smoothness of Tau Ceti's
   `cayleyPathFormula` as a map into the endomorphism bundle of any vector
   bundle, along a base map, at every order, generalizing by the same proof

@@ -153,8 +153,10 @@ says), except its lemma `moserGenerator_conj`, which goes in
 have the names of a Tau Ceti or Mathlib file or
 folder at the same place, so that the two merge upstream.
 
-**Departures from `DESIGN.md`.** Each has its reason; #59, #113, #212 and
-#218 brought the overview in line with them.
+**Departures from `DESIGN.md`.** Each has its reason, and the overview
+lists each one: #59, #113, #212 and #218 brought it in line with the
+earlier ones, and the change that planned `CodRestrict.lean` added that
+file to it.
 
 - The overview's `.../Symplectic/ComplexStructure.lean` becomes a folder of
   two files from the start, since its content is more than one file holds.
