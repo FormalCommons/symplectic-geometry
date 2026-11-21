@@ -207,7 +207,8 @@ also uses.
   maps of `A` and `B`. *Symplectic vector bundles* writes frames of a direct
   sum with it, so that their transition loops are `TauCeti.GLSymplectic.sum`
   of two loops, the form `TauCeti.GLSymplectic.maslovIndex_sum` takes. It is
-  built by that part's first issue on direct sums, not by *Standard model*'s
+  built by *Lagrangian Grassmannian*'s issue on direct sums (#126), which came
+  before that part's first issue on direct sums, not by *Standard model*'s
   issues.
 - The complex coordinates: `StdSpace.complexEuclideanEquiv ι :
   EuclideanSpace ℂ ι ≃L[ℝ] StdSpace ι`, the composite of
