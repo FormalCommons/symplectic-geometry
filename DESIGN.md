@@ -241,8 +241,10 @@ further when they grow, following `AGENTS.md`.
 
 - **Files:** `LinearAlgebra/Symplectic/Standard/Basic.lean` (`StdSpace`, its
   coordinates, `stdForm`, `stdComplexStructure`, the product comparison,
-  `isSymplectomorphism_piLpCongrLeft_sumCongr`, `StdSpace.sumEquiv`,
-  `StdSpace.complexEuclideanEquiv`),
+  `isSymplectomorphism_piLpCongrLeft_sumCongr` with its coordinates
+  `StdSpace.x_piLpCongrLeft_sumCongr` and `StdSpace.y_piLpCongrLeft_sumCongr`,
+  `StdSpace.sumEquiv`, and the additions of *Lagrangian Grassmannian*:
+  `StdSpace.complexEuclideanEquiv`, `StdSpace.swap`, `StdSpace.finSumIsometry`),
   `LinearAlgebra/Symplectic/Standard/Matrix.lean` (the matrix dictionary).
 - **Builds on:** Mathlib, Tau Ceti. `Matrix.lean` also imports two general
   matrix files that *Siegel upper half space* lists:
@@ -284,9 +286,10 @@ further when they grow, following `AGENTS.md`.
   `LinearAlgebra/Matrix/SymplecticGroup/Basic.lean` (algebraic facts beside
   Mathlib's `SymplecticGroup.transpose_mem`: the `simp` lemmas
   `Matrix.J_inl_inl`, `Matrix.J_inl_inr`, `Matrix.J_inr_inl` and
-  `Matrix.J_inr_inr` for the four blocks of `Matrix.J`, and, over a
-  commutative star ring, `SymplecticGroup.star_mem` and
-  `SymplecticGroup.star_mem_iff`),
+  `Matrix.J_inr_inr` for the four blocks of `Matrix.J`, over a commutative
+  ring `Matrix.IsSymm.mem_symplecticGroup_iff` (a symmetric $P$ is
+  symplectic iff $(JP)^2=-1$), and, over a commutative star ring,
+  `SymplecticGroup.star_mem` and `SymplecticGroup.star_mem_iff`),
   `Analysis/Matrix/Polar/Basic.lean` (the general right polar decomposition
   of `GL n 𝕜` over `RCLike 𝕜`, beside Tau Ceti's left forms:
   `Matrix.GeneralLinearGroup.posDef_sqrt_star_mul` and
@@ -523,7 +526,7 @@ it into issues; the overview fixes its folders and its dependencies.
   `Matrix.toEuclideanLin (Matrix.fromRows X Y)`), and
   `LinearAlgebra/Matrix/SelfAdjoint.lean` (`Matrix.finrank_selfAdjoint`:
   the symmetric $n\times n$ matrices have dimension $n(n+1)/2$, from Tau
-  Ceti's `LinearMap.BilinForm.finrank_symmSubmodule`). Four more general
+  Ceti's `LinearMap.BilinForm.finrank_symmSubmodule`). Three more general
   files serve it too:
   `Analysis/InnerProductSpace/Projection/Basic.lean`
   (`Submodule.starProjection_map_unitary`: the projection onto `u K`, for a
@@ -534,21 +537,28 @@ it into issues; the overview fixes its folders and its dependencies.
   along `e` turns the action of `M` into that of `reindex e e M`),
   `Analysis/Normed/Lp/PiLp.lean`
   (`LinearIsometryEquiv.piLpCongrLeft_trans`: relabelling along `e`, then
-  along `f`, is relabelling along `e.trans f`), and
-  `LinearAlgebra/Matrix/GeneralLinearGroup/Symplectic/Unitary.lean`
+  along `f`, is relabelling along `e.trans f`). Two files under
+  `Topology/` serve it as well: `Topology/Algebra/Matrix/Realify.lean`
   (`TauCeti.GLSymplectic.sum_ofUnitary`: `ofUnitary` turns the block sum
-  `Matrix.UnitaryGroup.sum` into `GLSymplectic.sum`). One file of general
-  topology serves it as well: `Topology/Grassmannian/Tautological.lean`
+  `Matrix.UnitaryGroup.sum` into `GLSymplectic.sum`; it sits beside the
+  Tau Ceti file of that name, which defines `ofUnitary`), and
+  `Topology/Grassmannian/Tautological.lean`
   (`TauCeti.finiteGrassmannian.isClosedEmbedding_starProjection_toEuclidean`,
   for any `RCLike 𝕜`: on the compact space `finiteGrassmannian 𝕜 r N`, the
   map to orthogonal projections is a closed embedding; `Finite.lean` uses
-  it). The part also adds
-  one declaration about `StdSpace ι` alone to *Standard model*'s
-  `Standard/Basic.lean`: `StdSpace.complexEuclideanEquiv`, the map from
-  `EuclideanSpace ℂ ι`. For the coordinate permutation along
-  `Equiv.sumCongr e e` it uses the existing
+  it). The part also adds declarations about `StdSpace ι` alone to
+  *Standard model*'s `Standard/Basic.lean`: `StdSpace.complexEuclideanEquiv`,
+  the map from `EuclideanSpace ℂ ι`; the coordinate swap `StdSpace.swap`;
+  the isometry `StdSpace.finSumIsometry` onto `EuclideanSpace ℝ (Fin (n + n))`;
+  and the coordinates `StdSpace.x_piLpCongrLeft_sumCongr` and
+  `StdSpace.y_piLpCongrLeft_sumCongr` of the coordinate permutation; the
+  part's design lists them with their API. For the coordinate permutation
+  along `Equiv.sumCongr e e` it uses the existing
   `isSymplectomorphism_piLpCongrLeft_sumCongr` of §1.
-  The `LinearAlgebra/` files import no `Topology/` file of this part. Below,
+  The `LinearAlgebra/` files import no `Topology/` file of this part; the
+  general `Topology/Algebra/Matrix/Realify.lean`, which
+  `LinearAlgebra/Symplectic/Lagrangian/Sum.lean` imports, is not one of
+  them. Below,
   $V_0$ is $\mathbb{R}^n\times\{0\}$ ($y=0$), $V_1$ is
   $\{0\}\times\mathbb{R}^n$ ($x=0$), and the unitary frame map
   $\mathrm{U}(n)\to\mathcal{L}(n)$ sends $U$ to the image of $V_0$ under
@@ -1392,7 +1402,7 @@ Each part depends only on the parts listed, besides Mathlib and Tau Ceti.
 | 1 | *Lagrangian Grassmannian* | *Standard model*, *Symplectic vector spaces* (only `Subspace.lean`, which is merged) |
 | 1 | *Linear nonsqueezing* | *Standard model* |
 | 1 | *Linear complex structures* | *Standard model* |
-| 1 | *Siegel upper half space* | *Standard model*; *Lagrangian Grassmannian* (only `LinearAlgebra/Matrix/OfReal.lean`, which imports only Mathlib and Tau Ceti and is merged); *Linear complex structures* (only `LinearAlgebra/ComplexStructure/Action.lean`, which imports only Mathlib and Tau Ceti, `LinearAlgebra/ComplexStructure/Standard.lean`, which besides it imports only *Standard model* and the library's `Geometry/Symplectic/Orientation.lean`, and that file, which imports only Tau Ceti; all three are merged); *Symplectic group* (only `LinearAlgebra/Matrix/SymplecticGroup/Basic.lean`, which imports only Mathlib and is merged) |
+| 1 | *Siegel upper half space* | *Standard model*; *Lagrangian Grassmannian* (only `LinearAlgebra/Matrix/OfReal.lean`, which imports only Mathlib and Tau Ceti and is merged); *Linear complex structures* (only `LinearAlgebra/ComplexStructure/Action.lean`, which imports only Mathlib and Tau Ceti, `LinearAlgebra/ComplexStructure/Standard.lean`, which besides it imports only *Standard model* and the library's `Geometry/Symplectic/Orientation.lean`, and that file, which imports only Tau Ceti; all three are merged); *Symplectic group* (only `LinearAlgebra/Matrix/SymplecticGroup/Basic.lean`, which imports only Mathlib and Tau Ceti and is merged) |
 | 1 | *Symplectic vector bundles* | *Standard model*, *Linear Moser*; its existence issue also the two `PolarComplexStructure/` issues of *Compatible complex structures*, its contractibility issue the Cayley domain issue of that part, and its homotopy-equivalence issue those three and the `Tames.lineMap` issue, none of which waits for another part |
 | 2 | *Compatible complex structures* | *Standard model*, *Symplectic vector spaces* |
 | 2 | *Maslov index* | *Standard model*, *Symplectic group*, *Unitary group topology*; its Lagrangian issues also *Lagrangian Grassmannian* |

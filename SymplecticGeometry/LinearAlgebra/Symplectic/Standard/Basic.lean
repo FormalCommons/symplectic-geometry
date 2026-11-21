@@ -37,6 +37,8 @@ structures.
   (`stdComplexStructure_complexEuclideanEquiv`).
 * `SymplecticGeometry.StdSpace.swap ι` is the coordinate swap `(x, y) ↦ (y, x)`, which reverses
   the sign of `ω₀` (`stdForm_swap`).
+* `SymplecticGeometry.StdSpace.finSumIsometry n` relabels the coordinates of `StdSpace (Fin n)`
+  along `finSumFinEquiv`, a linear isometry onto `EuclideanSpace ℝ (Fin (n + n))`.
 
 The main facts fixing the conventions are `stdForm_apply`
 (`ω₀(z, w) = ∑ᵢ (xᵢ(z) yᵢ(w) - yᵢ(z) xᵢ(w))`), `stdComplexStructure_eq_toEuclideanLin_J`,

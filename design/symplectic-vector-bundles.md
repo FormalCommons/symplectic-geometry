@@ -233,9 +233,10 @@ name, so that the $TM$ statements are special cases:
   `ofLE_apply`, `ofLE_refl`, `ofLE_ofLE`, `ofLE_injective`; `Neg` with
   `neg_apply`, `neg_toEndomorphism`, `neg_neg`, `ofLE_neg`;
 - **Example.** `const`: for a complex structure `J₀ : TauCeti.AlmostComplexStructure W`
-  on a normed space `W`, the constant structure on the trivial bundle
-  `Bundle.Trivial M W`, with `@[simp] const_toEndomorphism_apply`; in
-  particular the standard one on `Bundle.Trivial M (StdSpace ι)`;
+  on a finite-dimensional normed space `W` (so that `J₀` is continuous), the
+  constant structure on the trivial bundle `Bundle.Trivial M W`, with
+  `@[simp] const_toEndomorphism_apply`; in particular the standard one on
+  `Bundle.Trivial M (StdSpace ι)`;
 - **Transport.** For a fibrewise equivalence `Φ : ∀ x, V₁ x ≃L[ℝ] V₂ x`
   whose map of total spaces is $C^n$, `pushforward Φ hΦ J :
   ContMDiffComplexStructure I n F₂ V₂`, the structure $\Phi J\Phi^{-1}$, with
@@ -250,8 +251,12 @@ name, so that the $TM$ statements are special cases:
   file, no hypothesis on the dimension), with Mathlib's
   `ContinuousLinearMap.isInvertible_equiv` and
   `ContinuousLinearMap.inverse_equiv`, following the proof of
-  `contMDiff_bundle_symm`. So `F₂` may have any dimension, as for the
-  two-form `pushforward`; nothing about sections is rebuilt;
+  `contMDiff_bundle_symm`. This step is the root-namespace lemma
+  `contMDiff_hom_bundle_symm` of this library's
+  `Geometry/Manifold/VectorBundle/Hom.lean`, shared with the two-form
+  `pushforward`.
+  So `F₂` may have any dimension, as for the two-form `pushforward`; nothing
+  about sections is rebuilt;
 - `toContinuousComplexStructure : ContMDiffComplexStructure I n F V →
   TauCeti.Bundle.ContinuousComplexStructure F V`
   (`Topology/VectorBundle/Complex/Structure.lean`) with
