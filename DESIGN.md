@@ -241,7 +241,8 @@ further when they grow, following `AGENTS.md`.
   one), `LinearAlgebra/Symplectic/Reduction.lean` (for coisotropic $W$, the
   form on $W/W^\omega$ and its uniqueness, from Tau Ceti's `reduction`, whose
   quotient is by $W\cap W^\omega=W^\omega$).
-- **Builds on:** *Standard model*.
+- **Builds on:** *Standard model*, *Symplectic group* (its entry lemmas for
+  `Matrix.J`).
 - **Milestones:** *Linear Darboux theorem*, *Symplectic complements*,
   *Lagrangian extension lemma*, *Linear symplectic reduction*.
 
@@ -254,12 +255,20 @@ further when they grow, following `AGENTS.md`.
   `SymplecticGroup.charpoly_inv`, `SymplecticGroup.reflect_charpolyRev` and
   `LinearMap.IsAdjointPair.apply_eq_zero_of_mem_genEigenspace`),
   `LinearAlgebra/Matrix/SymplecticGroup/Basic.lean` (algebraic facts beside
-  Mathlib's `SymplecticGroup.transpose_mem`, over a commutative star ring:
-  `SymplecticGroup.star_mem` and `SymplecticGroup.star_mem_iff`),
+  Mathlib's `SymplecticGroup.transpose_mem`: the `simp` lemmas
+  `Matrix.J_inl_inl`, `Matrix.J_inl_inr`, `Matrix.J_inr_inl` and
+  `Matrix.J_inr_inr` for the four blocks of `Matrix.J`, and, over a
+  commutative star ring, `SymplecticGroup.star_mem` and
+  `SymplecticGroup.star_mem_iff`),
   `Analysis/Matrix/Polar/Basic.lean` (the general right polar decomposition
   of `GL n 𝕜` over `RCLike 𝕜`, beside Tau Ceti's left forms:
   `Matrix.GeneralLinearGroup.posDef_sqrt_star_mul` and
-  `Matrix.GeneralLinearGroup.existsUnique_unitary_mul_posDef`),
+  `Matrix.GeneralLinearGroup.existsUnique_unitary_mul_posDef`, and the
+  unitary factor as $A(A^*A)^{-1/2}$,
+  `Matrix.GeneralLinearGroup.coe_polarUnitary_eq_mul_rpow`),
+  `Analysis/Matrix/Polar/Deformation.lean` (beside Tau Ceti's file of that
+  name: its polar deformation at time $t$ is $A(A^*A)^{-t/2}$,
+  `Matrix.GeneralLinearGroup.coe_polarDeformation_eq_mul_rpow`),
   `Analysis/Matrix/Polar/Symplectic.lean` (the right decomposition
   $\Psi=UP$ with uniqueness, `SymplecticGroup.existsUnique_unitary_mul_posDef`:
   Tau Ceti's `Units.polarUnitary_mul_sqrt_star_mul` gives the factorization,
@@ -268,7 +277,9 @@ further when they grow, following `AGENTS.md`.
   adds for the symplectic group is `SymplecticGroup.sqrt_star_mul_mem`, that
   $\sqrt{\Psi^*\Psi}$ is symplectic, $\Psi^*$ the conjugate transpose, which
   is `SymplecticGroup.sqrt_mul_star_mem` applied to `star Ψ`, symplectic by
-  `SymplecticGroup.star_mem`),
+  `SymplecticGroup.star_mem`; and the characterization of both factors,
+  `SymplecticGroup.unitary_mul_posDef_eq_iff`, that they are
+  $\Psi(\Psi^*\Psi)^{-1/2}$ and $(\Psi^*\Psi)^{1/2}$),
   `Analysis/Matrix/Polar/GLSymplectic.lean` (the deformation retraction:
   `TauCeti.GLSymplectic.polarHomotopy` fixes $\mathrm{U}(n)$ at all times,
   since it is the restriction of `Matrix.GeneralLinearGroup.polarHomotopy`
@@ -569,20 +580,36 @@ it into issues; the overview fixes its folders and its dependencies.
 
 ### 8. Linear complex structures (needs `design/linear-complex-structures.md`)
 
-- **Files:** `LinearAlgebra/ComplexStructure/Standard.lean` (every complex
-  structure $J$ on a $2n$-dimensional space is conjugate to
-  `stdComplexStructure (Fin n)` by a linear isomorphism $\Phi$: Tau Ceti's
-  `ContinuousLinearMap.exists_continuousLinearEquiv_euclideanSpace_comp_eq_comp_I_smul`
-  (`Geometry/Symplectic/Complex/Module/Conjugacy.lean`) gives $\Phi$ from
-  `EuclideanSpace ℂ (Fin n)` with multiplication by `I`, composed with
-  `complexToRealEuclidean`), `Topology/ComplexStructure/Orbit.lean` (the space
-  `AlmostComplexStructure (StdSpace ι)` with Tau Ceti's topology, as the orbit
-  of $J_0$ under $\mathrm{GL}(2n,\mathbb{R})$, with stabilizer the realified
-  $\mathrm{GL}(n,\mathbb{C})$ by Tau Ceti's
-  `Matrix.GeneralLinearGroup.mem_range_realify_iff`; the homeomorphism with
-  the quotient; the two components), `Topology/ComplexStructure/Oriented.lean`
-  (the component of $J_0$, its homotopy type $\mathrm{SO}(2n)/\mathrm{U}(n)$,
-  and the case $\mathbb{R}^4$, homotopy equivalent to $S^2$).
+- **Files:** as `design/linear-complex-structures.md` lists them.
+  `LinearAlgebra/ComplexStructure/Action.lean` (the action of `V ≃ₗ[ℝ] V` on
+  `AlmostComplexStructure V` by transport, and of `GL n ℝ` and
+  `specialOrthogonalGroup n ℝ` on the structures of `EuclideanSpace ℝ n`),
+  `Topology/ComplexStructure/Basic.lean` (closed embedding into operators,
+  `T2Space`, `LocallyCompactSpace`, the homeomorphism with matrices of square
+  $-1$, continuity of the actions),
+  `LinearAlgebra/ComplexStructure/Standard.lean` (every complex structure $J$
+  on a space of dimension $2\,|\iota|$ is the transport of
+  `stdComplexStructure ι` by a linear isomorphism $\Phi$, which Tau Ceti's
+  `TauCeti.AlmostComplexStructure.exists_linearEquiv_I_smul`
+  (`Geometry/Symplectic/Finrank.lean`) gives from `ι → ℂ`, composed with
+  `complexToRealEuclidean ι`; transitivity, the stabilizer of $J_0$ as the
+  realified $\mathrm{GL}(n,\mathbb{C})$ by Tau Ceti's
+  `Matrix.GeneralLinearGroup.mem_range_realify_iff`, positively oriented
+  structures), `Topology/Algebra/GroupAction/Transitive.lean` (the
+  orbit–stabilizer homeomorphism for σ-compact groups),
+  `Topology/ComplexStructure/Orbit.lean` (the space as the quotient
+  $\mathrm{GL}(2n,\mathbb{R})/\mathrm{GL}(n,\mathbb{C})$; the positively
+  oriented structures are clopen),
+  `Analysis/SpecialFunctions/ContinuousFunctionalCalculus/Polar.lean` (for a
+  unit of square $-1$, the polar unitary factor conjugates the powers of the
+  positive factor to their inverses), `Analysis/Matrix/Polar/Deformation.lean`
+  (the polar deformation keeps square $-1$),
+  `Topology/ComplexStructure/Orthogonal.lean` (the orthogonal complex
+  structures and the deformation retraction onto them),
+  `Topology/ComplexStructure/Oriented.lean` (the stabilizer of $J_0$ in
+  $\mathrm{SO}(2n)$, the component of $J_0$, the two components for $n\ge1$,
+  the homotopy type $\mathrm{SO}(2n)/\mathrm{U}(n)$, the case $\mathbb{R}^4$,
+  homotopy equivalent to $S^2$, and the milestone).
 - **Builds on:** *Standard model*.
 - **Milestones:** *Linear complex structures are standard*.
 - **The design file decides:** how the quotient homeomorphism is obtained (an
@@ -1025,18 +1052,21 @@ it into issues; the overview fixes its folders and its dependencies.
 
 ### 13. First Chern number (needs `design/first-chern-number.md`)
 
-- **Files:** `Geometry/Manifold/VectorBundle/ChernNumber/Basic.lean` (the
-  first Chern number of a symplectic bundle over a closed connected oriented
-  surface, through a splitting of the surface and the Maslov index of the
-  overlap loop; the extension lemma for maps from the boundary into
-  $\mathrm{Sp}(2n)$), `.../Axioms.lean` (naturality, functoriality,
-  additivity, normalization, uniqueness), `.../ChernWeil.lean`,
-  `.../EulerNumber.lean` (comparison with Tau Ceti's Euler class and
+- **Files:** `Topology/VectorBundle/Complex/FirstChernClass.lean` (the
+  first Chern class of a complex bundle, as `TauCeti.complexEulerClass` of
+  its determinant line, and the first Chern number over a compact oriented
+  surface), and in `Geometry/Manifold/VectorBundle/ChernNumber/`:
+  `Basic.lean` (the number of a symplectic bundle, through a compatible
+  complex structure), `Clutching.lean` (the disc clutching formula, by
+  determinants and Maslov indices), `Gluing.lean`, `Axioms.lean`
+  (naturality, functoriality, additivity, normalization, uniqueness),
+  `ChernWeil.lean`, `EulerNumber.lean` (with
   `TauCeti.VectorBundleOrientation.evalFundamentalClass_eulerClass_eq_sum_sectionIndex`),
-  `.../Clutching.lean` (comparison with Tau Ceti's `TauCeti.clutchingNumber`
-  (`Topology/VectorBundle/Complex/Clutching.lean`) for the complex bundle
-  given by a compatible structure, and with `TauCeti.complexEulerClass`
-  (`Topology/VectorBundle/Orientation/Complex/EulerClass.lean`)).
+  `ClutchingNumber.lean` (comparison with Tau Ceti's
+  `TauCeti.clutchingNumber`, `Topology/VectorBundle/Complex/Clutching.lean`)
+  and `Splitting.lean` (the splitting description through the Maslov index
+  of the overlap loop, and the extension lemma for maps from the boundary
+  into $\mathrm{Sp}(2n)$). `design/first-chern-number.md` gives the details.
 - **Builds on:** *Maslov index* (symplectic loops), *Symplectic vector
   bundles*, Tau Ceti's degree of maps (`TauCeti.HomologicalOrientation.degree`),
   surface genus (`TauCeti.surfaceGenus`), integration of top forms
@@ -1045,13 +1075,13 @@ it into issues; the overview fixes its folders and its dependencies.
 - **Milestones:** *First Chern number of symplectic vector bundles over
   surfaces*, *Chern–Weil formula for circle bundles over surfaces*, *First
   Chern number as an Euler number*.
-- This part needs the most infrastructure that neither library has
-  (decomposition of closed surfaces, degree with regular values linked to the
-  splitting, principal connections on circle bundles). Its design file lists
-  those prerequisites as separate issues before any of its own, and decides
-  whether the Chern number is defined by the splitting, as in the book, or
-  from `clutchingNumber` or `complexEulerClass`, with the book's description
-  as a theorem.
+- The number is defined from `complexEulerClass` of the determinant line;
+  the splitting description of the book, the disc clutching formula and
+  `clutchingNumber` are theorems, and no decomposition of surfaces is
+  needed. The infrastructure that neither library has (determinant lines,
+  coordinate discs, boundary degrees on surfaces with boundary, connection
+  forms on circle bundles, among others) comes as prerequisite issues
+  before the part's own, as the design file lists them.
 
 ## Dependencies and build order
 
@@ -1063,7 +1093,7 @@ Each part depends only on the parts listed, besides Mathlib and Tau Ceti.
 | 0 | *Symplectic group* | — |
 | 0 | *Linear Moser* | — |
 | 1 | *Unitary group topology* | *Symplectic group* (only the file on $\mathrm{Sp}(2n)$; the other files can start at once) |
-| 1 | *Symplectic vector spaces* | *Standard model* |
+| 1 | *Symplectic vector spaces* | *Standard model*, *Symplectic group* |
 | 1 | *Lagrangian Grassmannian* | *Standard model* |
 | 1 | *Linear nonsqueezing* | *Standard model* |
 | 1 | *Linear complex structures* | *Standard model* |

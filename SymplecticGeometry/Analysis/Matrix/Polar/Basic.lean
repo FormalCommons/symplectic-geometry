@@ -17,7 +17,7 @@ the left decomposition `A = √(A Aᴴ) U` of Tau Ceti's `existsUnique_posDef_mu
 gives the matrix form of Tau Ceti's right polar decomposition of invertible elements
 (`Units.polarUnitary_mul_sqrt_star_mul` and
 `Units.mul_eq_iff_polarUnitary_eq_and_sqrt_star_mul_eq`), where the positive factor is positive
-definite.
+definite, and writes the unitary factor as `U = A (Aᴴ A) ^ (-1 / 2)`.
 
 ## Main results
 
@@ -25,6 +25,8 @@ definite.
   definite.
 * `Matrix.GeneralLinearGroup.existsUnique_unitary_mul_posDef`: existence and uniqueness of the
   right polar decomposition `A = U Q` with `U` unitary and `Q` positive definite.
+* `Matrix.GeneralLinearGroup.coe_polarUnitary_eq_mul_rpow`: the unitary factor is
+  `A (Aᴴ A) ^ (-1 / 2)`.
 
 ## References
 
@@ -56,6 +58,22 @@ theorem existsUnique_unitary_mul_posDef :
   obtain ⟨hU, hQ'⟩ :=
     (Units.mul_eq_iff_polarUnitary_eq_and_sqrt_star_mul_eq A hQ.posSemidef.nonneg).1 h
   exact Prod.ext hU.symm hQ'.symm
+
+/-- The unitary polar factor of `A` is `A (Aᴴ A) ^ (-1 / 2)`; over `ℝ` this is the orthogonal
+factor `A (AᵀA) ^ (-1 / 2)`. -/
+theorem coe_polarUnitary_eq_mul_rpow :
+    (A.polarUnitary : Matrix n n 𝕜) = A * (star (A : Matrix n n 𝕜) * A) ^ (-(1 / 2 : ℝ)) := by
+  have hu : IsUnit (star (A : Matrix n n 𝕜) * A) := (star A * A).isUnit
+  have hQ := Units.isStrictlyPositive_sqrt_star_mul A
+  -- `(Aᴴ A) ^ (-1 / 2) = √(Aᴴ A) ^ (-1)`, and `A = U √(Aᴴ A)`.
+  rw [show (-(1 / 2 : ℝ)) = -1 / 2 by ring, ← CFC.rpow_sqrt _ _ hu]
+  have h1 : CFC.sqrt (star (A : Matrix n n 𝕜) * A) * CFC.sqrt (star (A : Matrix n n 𝕜) * A) ^
+      (-1 : ℝ) = 1 := by
+    simpa [CFC.rpow_one _ hQ.nonneg] using CFC.rpow_mul_rpow_neg 1 hQ
+  calc (A.polarUnitary : Matrix n n 𝕜)
+      = A.polarUnitary * CFC.sqrt (star (A : Matrix n n 𝕜) * A) *
+          CFC.sqrt (star (A : Matrix n n 𝕜) * A) ^ (-1 : ℝ) := by rw [mul_assoc, h1, mul_one]
+    _ = _ := by rw [Units.polarUnitary_mul_sqrt_star_mul]
 
 end Matrix.GeneralLinearGroup
 
