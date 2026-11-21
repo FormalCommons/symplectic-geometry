@@ -201,16 +201,15 @@ theorem apply_apply_eq_zero_of_forall_isLagrangian_map
     (Submodule.mem_map_of_mem (hle (Submodule.subset_span (by simp))))
 
 /-- A complex structure that is tamed by `ω` and maps Lagrangian subspaces to Lagrangian
-subspaces leaves `ω` invariant.
-
-For `v ≠ 0`, the functional `ω(J v, J ·)` vanishes on the kernel of `ω(v, ·)`, so it is
-`c • ω(v, ·)`; evaluating at `J v` and using `ω(v, J v) > 0` gives `c = 1`. -/
+subspaces leaves `ω` invariant. -/
 theorem Tames.invariant_of_forall_isLagrangian_map (hJ : ω.Tames J)
     (h : ∀ L : Submodule ℝ V, ω.IsLagrangian L → ω.IsLagrangian (L.map J.toLinearMap)) :
     ω.Invariant J := by
   refine (ω.invariant_iff J).2 fun v w ↦ ?_
   rcases eq_or_ne v 0 with rfl | hv
   · simp
+  -- `ω(J v, J ·)` vanishes on the kernel of `ω(v, ·)`, so it is `c • ω(v, ·)`; its value at
+  -- `J v`, with `ω(v, J v) > 0`, gives `c = 1`.
   have hker : ⨅ _ : Unit, LinearMap.ker (ω.toBilinForm v) ≤
       LinearMap.ker ((ω.toBilinForm (J v)).comp J.toLinearMap) := fun u hu ↦ by
     simpa using apply_apply_eq_zero_of_forall_isLagrangian_map h (by simpa using hu)
