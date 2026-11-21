@@ -153,10 +153,8 @@ empty index type `Sp(0)` is a point, so its trivial fundamental group cannot map
 `π₁(S¹) ≅ ℤ`. -/
 theorem not_bijective_fundamentalGroupMap_maslovPhase_of_isEmpty (A : GLSymplectic ι ℝ) :
     ¬ Function.Bijective (FundamentalGroup.map
-      (⟨maslovPhase, continuous_maslovPhase⟩ : C(GLSymplectic ι ℝ, Circle)) A) := fun h ↦ by
-  have := h.2.subsingleton
-  have := (Circle.fundamentalGroupMulEquiv (maslovPhase A)).symm.subsingleton
-  exact not_subsingleton (Multiplicative ℤ) this
+      (⟨maslovPhase, continuous_maslovPhase⟩ : C(GLSymplectic ι ℝ, Circle)) A) :=
+  fun h ↦ FundamentalGroup.not_surjective_map_circle_of_subsingleton A _ h.2
 
 end IsEmpty
 
