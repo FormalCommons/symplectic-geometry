@@ -47,6 +47,8 @@ open quotient map, this formula gives the openness and continuity that the chart
   to `{x = 0}`, with inverse `graph`. For a Lagrangian spanned by `fromRows X Y`,
   `mem_graphChart_source_iff_isUnit` says it lies in the source iff `X` is invertible, and
   `coe_graphChart_eq_mul_inv` gives its value `Y X⁻¹`.
+* `SymplecticGeometry.LagrangianGrassmannian.continuous_of_coe_eq_graph`: a continuous family of
+  Lagrangians that are graphs `{(x, A t x)}` has continuous `A`.
 
 The construction follows Tau Ceti's graph charts on finite Grassmannians,
 `TauCeti.finiteGrassmannian.graphChart` (`TauCeti/Topology/Grassmannian/Graph.lean`), there
@@ -283,14 +285,9 @@ to `{x = 0}`, that is, meets `{x = 0}` only in `0`, iff `X` is invertible. -/
 theorem mem_graphChart_source_iff_isUnit {Λ : ℒ ι} {X Y : Matrix ι ι ℝ}
     (hΛ : (Λ : Submodule ℝ (StdSpace ι)) = LinearMap.range (toEuclideanLin (fromRows X Y))) :
     Λ ∈ (graphChart : OpenPartialHomeomorph (ℒ ι) _).source ↔ IsUnit X := by
-  have hL : (stdForm ι).IsLagrangian (LinearMap.range (toEuclideanLin (fromRows Y X))) := by
-    rw [← StdSpace.map_swap_range_toEuclideanLin_fromRows, isLagrangian_map_swap_iff, ← hΛ]
-    exact Λ.isLagrangian
-  rw [graphChart_source, mem_ofPred_eq, isCompl_iff_disjoint, hΛ, coe_vertical,
-    ← disjoint_map_orderIso_iff (Submodule.orderIsoMapComap (StdSpace.swap ι))]
-  rw [Submodule.orderIsoMapComap_apply, Submodule.orderIsoMapComap_apply,
-    StdSpace.map_swap_range_toEuclideanLin_fromRows, StdSpace.map_swap_ker_x]
-  exact StdSpace.disjoint_range_toEuclideanLin_fromRows_ker_y_iff_of_isLagrangian hL
+  rw [graphChart_source, mem_ofPred_eq, isCompl_iff_disjoint, hΛ, coe_vertical]
+  exact StdSpace.disjoint_range_toEuclideanLin_fromRows_ker_x_iff_of_isLagrangian
+    (hΛ ▸ Λ.isLagrangian)
 
 /-- If a Lagrangian is spanned by the frame `fromRows X Y` with `X` invertible, the chart
 transverse to `{x = 0}` sends it to `Y X⁻¹`. -/
@@ -306,6 +303,24 @@ theorem coe_graphChart_eq_mul_inv {Λ : ℒ ι} {X Y : Matrix ι ι ℝ}
   rw [← coe_graph, hΛ, StdSpace.range_toEuclideanLin_fromRows_eq_graph hX]
 
 end DecidableEq
+
+/-- A continuous family of Lagrangians that are graphs `{(x, A t x)}` has continuous `A`: the
+matrix `A t` is the value of `γ t` in the chart `graphChart`. -/
+theorem continuous_of_coe_eq_graph {X : Type*} [TopologicalSpace X] {γ : X → ℒ ι}
+    (hγc : Continuous γ) {A : X → Matrix ι ι ℝ}
+    (hγ : ∀ t, (γ t : Submodule ℝ (StdSpace ι)) = StdSpace.graph (A t)) : Continuous A := by
+  classical
+  have hg (t : X) : γ t = graph ⟨A t, isHermitian_iff_isSymm.2
+      ((isLagrangian_graph_iff _).1 (hγ t ▸ (γ t).isLagrangian))⟩ :=
+    toSubmodule_injective (by rw [coe_graph]; exact hγ t)
+  have hs (t : X) :
+      γ t ∈ (graphChart : OpenPartialHomeomorph (ℒ ι) (selfAdjoint (Matrix ι ι ℝ))).source := by
+    rw [hg t, ← graphChart_symm_apply]
+    exact graphChart.map_target (by rw [graphChart_target]; exact mem_univ _)
+  have hA (t : X) : A t = (graphChart (γ t) : Matrix ι ι ℝ) := by
+    rw [hg t, graphChart_graph]
+  rw [show A = _ from funext hA]
+  exact continuous_subtypeVal.comp ((graphChart (ι := ι)).continuousOn.comp_continuous hγc hs)
 
 end LagrangianGrassmannian
 

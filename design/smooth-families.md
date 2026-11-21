@@ -76,8 +76,9 @@ No statement of this part is one that the authors' errata
   $\sum_jc_j(-\lambda_j)^n=1$ for every $n$, that is
   $\sum_jc_j/(1+\lambda_jz)=1/(1-z)$ as rational functions, which the poles
   forbid. So the $C^\infty$ extension is Seeley's series, new here. It reuses `timeScale`, `map_timeScale_eq_sum_pow_card_smul` for the
-  derivatives of the dilated terms, and `HasFTaylorSeriesUpToOn.contDiff_piecewise`
-  for the gluing at $t=0$, but not the reflection itself. Mathlib has neither.
+  derivatives of the dilated terms, and glues at $t=0$ as
+  `HasFTaylorSeriesUpToOn.union_of_isClosed` does, by `HasFTaylorSeriesUpToOn.union`
+  for sets closed only in their union, but not the reflection itself. Mathlib has neither.
 - **Isotopies.** `TauCeti.Diffeotopy J n M`
   (`Geometry/Diffeomorphism/Diffeotopy/Basic.lean`), a level-preserving
   diffeomorphism of `unitInterval × M`, with `timeSlice`, `final`,
@@ -233,6 +234,22 @@ except for the reparametrization, which is in `SymplecticGeometry`.
   does not mention `Real.smoothTransition`. It sits in this file because Tau
   Ceti keeps its truncations in its file of the same name.
 
+### `Analysis/Calculus/ContDiff/FTaylorSeries.lean`
+
+Named like Tau Ceti's file. `HasFTaylorSeriesUpToOn.union`, for sets each
+closed relative to their union.
+
+### `Analysis/Normed/Group/FunctionSeries.lean`
+
+Named like Mathlib's file. `tendstoUniformlyOn_finsetSum_of_hasSum`, the
+form of `tendstoUniformlyOn_tsum` that assumes the pointwise sums exist
+instead of completeness.
+
+### `Analysis/Sobolev/Trace/Reflection/HalfSpace.lean`
+
+Named like Tau Ceti's file; in its namespace `TauCeti.HalfSpaceExtension`.
+`norm_timeScale_le` and `timeScale_of_fst_eq_zero`.
+
 ### `LinearAlgebra/Lagrange.lean`
 
 Evaluation of Mathlib's Lagrange basis, in Mathlib's namespace `Lagrange`,
@@ -288,8 +305,8 @@ reflection $t\mapsto1-t$.
   (`map_timeScale_eq_sum_pow_card_smul` for the dilated terms), so the series
   of derivatives converges locally uniformly on $t<0$; its Taylor series at
   $t=0$ is that of $f$ by `tsum_seeleyCoeff_mul_neg_two_pow`; and
-  `HasFTaylorSeriesUpToOn.contDiff_piecewise` glues the two sides, for every
-  finite order and hence for `∞`.
+  `HasFTaylorSeriesUpToOn.union` glues the two sides on `univ ×ˢ U`, where
+  they are closed only relative to their union.
 
 The module docstring cites R. T. Seeley, *Extension of $C^\infty$ functions
 defined in a half space*, Proc. Amer. Math. Soc. 15 (1964), 625–626, which
@@ -587,7 +604,8 @@ Below, `∂ₜ` at `(x, t)` is the tangent vector
 
 - Joint smoothness of inverses, over any finite-dimensional boundaryless
   parameter manifold `P` (model `J`) and for any `1 ≤ n`, in Mathlib's
-  namespace `Diffeomorph`, as it is about Mathlib's notion:
+  namespace `Diffeomorph`, as it is about Mathlib's notion, and in
+  `Geometry/Manifold/Diffeomorph/Family.lean`, as it uses no diffeotopy:
   `Diffeomorph.contMDiff_symm_eval {ψ : P → M ≃ₘ^n⟮I, I⟯ M} (hn : 1 ≤ n)
   (hψ : ContMDiff (J.prod I) I n (fun p : P × M ↦ ψ p.1 p.2)) :
   ContMDiff (J.prod I) I n (fun p : P × M ↦ (ψ p.1).symm p.2)`, named like
@@ -603,7 +621,8 @@ Below, `∂ₜ` at `(x, t)` is the tangent vector
   TauCeti.eulerianField I (fun u ↦ (ψ u).toEquiv) t (ψ t x)`.
 - Flows: `timeDependentFlowDiffeotopy_eq_ofReal` (for `n = ∞`, the restriction
   of `fun t ↦ timeDependentFlowDiffeomorph hc le_top hX 0 t`, jointly smooth
-  by `TauCeti.contMDiff_timeDependentFlowDiffeomorph`). The velocity
+  by `TauCeti.contMDiff_timeDependentFlowDiffeomorph`, in
+  `Geometry/Manifold/Flow/TimeDependent.lean`). The velocity
   of the flow diffeotopy is `velocity_timeDependentFlowDiffeotopy` of
   *Hamiltonian flows*, and is not stated here.
 - The reading over `ℝ`: writing `s u` for `Real.smoothTransitionUnit u :=
@@ -650,7 +669,10 @@ In `TauCeti.Diffeotopy`, for `[FiniteDimensional ℝ E] [IsManifold I ∞ M]
 ## What the part uses
 
 - From Tau Ceti and Mathlib: everything listed under *What exists*.
-- From other parts: nothing. The part is at level 0 of `DESIGN.md`'s build
+- From other parts: only `TauCeti.Diffeotopy.mfderiv_cylinderMap_time` of
+  `Diffeotopy/Velocity.lean` of *Hamiltonian flows*, which `Diffeotopy/Real.lean`
+  imports for the time derivative of a diffeotopy; that file is merged and
+  imports no file of this part. The part is at level 0 of `DESIGN.md`'s build
   order and stays there.
 - What later parts take: *Hamiltonian flows* uses `Diffeotopy/Real.lean` (for
   `SymplecticIsotopy.lean`) and `ContMDiff/TimeExtension.lean` with
@@ -668,8 +690,10 @@ Each is a few hundred lines. The issues on the analysis and on families
 can start at once; each issue's blockers come before it.
 
 1. **Seeley coefficients.** `Analysis/Calculus/ContDiff/Seeley/Coefficients.lean`.
-2. **Seeley's extension.** `Analysis/Calculus/ContDiff/Seeley/Extension.lean`.
-   Blocked by 1.
+2. **Seeley's extension.** `Analysis/Calculus/ContDiff/Seeley/Extension.lean`,
+   with `Analysis/Calculus/ContDiff/FTaylorSeries.lean`,
+   `Analysis/Normed/Group/FunctionSeries.lean` and
+   `Analysis/Sobolev/Trace/Reflection/HalfSpace.lean`. Blocked by 1.
 3. **Time extension of maps.** `Geometry/Manifold/ContMDiff/TimeExtension.lean`.
    Blocked by 2.
 4. **Smooth families of forms.**
@@ -700,12 +724,14 @@ can start at once; each issue's blockers come before it.
     and 12.
 14. **Isotopies over `ℝ` and diffeotopies.**
     `Analysis/SpecialFunctions/SmoothTransition.lean`,
-    `Geometry/Manifold/SmoothTransition.lean` and
+    `Geometry/Manifold/SmoothTransition.lean`,
+    `Geometry/Manifold/Diffeomorph/Family.lean`,
+    `Geometry/Manifold/Flow/TimeDependent.lean` and
     `Geometry/Diffeomorphism/Diffeotopy/Real.lean`.
 15. **Diffeotopies from families of diffeomorphisms.**
     `Geometry/Diffeomorphism/Diffeotopy/OfContMDiff.lean`. Blocked by 2 and 14
     (for the inverse function theorem step it shares with
-    `Diffeomorph.contMDiff_symm_eval`).
+    `Diffeomorph.contMDiff_symm_eval` of `Diffeomorph/Family.lean`).
 16. **A reparametrization equal to the identity on an interval.**
     `exists_contDiff_eqOn_id_Icc_mem_Ioo` in
     `Analysis/SpecialFunctions/SmoothTransition.lean`. Blocked by 14, which
