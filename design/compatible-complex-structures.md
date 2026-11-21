@@ -558,6 +558,11 @@ This is $\Omega(V)$, in `TauCeti.SymplecticForm`.
 - `ofContinuousBilinearMap` (an alternating nondegenerate continuous form as
   a `SymplecticForm`), with `@[simp]` `ofContinuousBilinearMap_apply` and
   `toBilinForm_toContinuousBilinearMap_ofContinuousBilinearMap`.
+- `@[simp] skewSymmetrizeBilinear_toContinuousBilinearMap (ω : SymplecticForm V)`:
+  the `ContinuousLinearMap.skewSymmetrizeBilinear` of
+  `ω.toBilinForm.toContinuousBilinearMap` is that form itself, by
+  `skewSymmetrizeBilinear_of_isAlt`. `PolarComplexStructure/Smooth.lean`
+  uses it.
 - `continuous_transport (e : V ≃L[ℝ] W)`: `ω ↦ ω.transport e.toLinearEquiv`
   is continuous.
 
@@ -647,8 +652,10 @@ to `cayleyPathFormula`. Only `mem_polarDomain`, `metricPolarFormula_eq` and
 - `TauCeti.polarDomain (W) : Set ((W →L[ℝ] W →L[ℝ] ℝ) ×
   (W →L[ℝ] W →L[ℝ] ℝ))`: the pairs whose first entry is positive on nonzero
   vectors and whose second entry has a nondegenerate skew part
-  $\tfrac12(s-s^{\mathrm{flip}})$. It comes with `isOpen_polarDomain` and
-  `mem_polarDomain_iff`.
+  $\tfrac12(s-s^{\mathrm{flip}})$. It comes with `isOpen_polarDomain`,
+  `mem_polarDomain_iff` and `nondegenerate_toBilinForm_of_mem_polarDomain`,
+  which gives nondegeneracy of `(skewSymmetrizeBilinear s).toBilinForm` by
+  `nondegenerate_toBilinForm_skewSymmetrizeBilinear_iff`.
 - `SymplecticGeometry.mem_polarDomain (g : innerProducts W)
   (ω : SymplecticForm W) :
   ((g : W →L[ℝ] W →L[ℝ] ℝ), ω.toBilinForm.toContinuousBilinearMap) ∈
@@ -660,9 +667,14 @@ to `cayleyPathFormula`. Only `mem_polarDomain`, `metricPolarFormula_eq` and
   `R * (R * s'♯ * R * Ring.inverse (CFC.sqrt (-(R * s'♯ * R * (R * s'♯ * R))))) * CFC.sqrt g'♯`,
   with `R = g'.metricChangeTransport`, for the symmetric part
   $g'=\tfrac12(g+g^{\mathrm{flip}})$ of `g` and the skew part
-  $s'=\tfrac12(s-s^{\mathrm{flip}})$ of `s`. No case split is needed:
+  $s'=\tfrac12(s-s^{\mathrm{flip}})$ of `s`, written
+  `skewSymmetrizeBilinear s` (no hand-written `(2 : ℝ)⁻¹ • (s - s.flip)`).
+  No case split is needed:
   `Ring.inverse`, `CFC.sqrt` and `metricChangeTransport` already have junk
-  values off the domain. It comes with `metricPolarFormula_def`.
+  values off the domain. It comes with `metricPolarFormula_def`, and with
+  `metricPolarFormula_symmetrizeBilinear_skewSymmetrizeBilinear`: the formula
+  at `((symmetrizeBilinear g).val, skewSymmetrizeBilinear s)` is the formula
+  at `(g, s)`, by idempotence of both parts.
 - `SymplecticGeometry.metricPolarFormula_eq (g : innerProducts W)
   (ω : SymplecticForm W) :
   metricPolarFormula g ω.toBilinForm.toContinuousBilinearMap =
