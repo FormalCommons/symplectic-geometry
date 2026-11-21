@@ -207,10 +207,12 @@ following choices.
 `DESIGN.md` is updated with this file, in its part 19, its dependency row
 and two rows of its milestone table.
 
-- Four files are added: `LinearAlgebra/Symplectic/Extension.lean`,
-  `Neighborhood/Extension.lean`, `Neighborhood/Basic.lean` and
-  `Geometry/Manifold/VectorBundle/ZeroSection.lean`. Each neighbourhood
-  theorem would otherwise repeat the linear extension and its smoothness.
+- Five files are added: `LinearAlgebra/Symplectic/Extension.lean`,
+  `Neighborhood/Extension.lean`, `Neighborhood/Basic.lean`,
+  `Geometry/Manifold/VectorBundle/ZeroSection.lean` and
+  `Geometry/Manifold/TubularNeighborhood/MFDeriv.lean`. Each neighbourhood
+  theorem would otherwise repeat the linear extension and its smoothness;
+  the last holds the step of `Tubular.lean` that uses nothing symplectic.
 - `Lagrangian.lean` no longer uses *Cotangent bundles* or
   `normalBundleDiffeomorphOfIsLagrangianMap`, since the comparison theorem
   needs only that the zero section is Lagrangian. The part therefore no
@@ -378,9 +380,12 @@ hom bundle of the pull-backs satisfying `hL` and `hLω` at every `q`:
   `hω₀.symplecticFormAt (f₀ q)` and `hω₁.symplecticFormAt (f₁ q)`), and
   `smoothExtendAlong_sub_mem`.
 
-### `Geometry/Symplectic/Neighborhood/Tubular.lean`
+### `Geometry/Manifold/TubularNeighborhood/MFDeriv.lean`
 
-The common step of `DESIGN.md`. Namespace `TauCeti.SmoothEmbedding`.
+The first half of the common step of `DESIGN.md`. It uses nothing
+symplectic, so it sits with the manifold topic, beside Tau Ceti's
+`Geometry/Manifold/TubularNeighborhood/`. Namespace
+`TauCeti.SmoothEmbedding`.
 
 - `exists_diffeomorph_opens_mfderiv_eq (f₀ f₁) (A) (hA) (hAf)`: for a
   smooth section `A` over `Q` of the hom bundle of the pull-backs, each
@@ -399,6 +404,12 @@ The common step of `DESIGN.md`. Namespace `TauCeti.SmoothEmbedding`.
   $\Theta$ a partial diffeomorphism near the zero section, and
   $\psi=\Theta\circ\mathrm{normalExp}_0^{-1}$ on the intersection of the
   sources. It needs no compactness and no closed image.
+
+### `Geometry/Symplectic/Neighborhood/Tubular.lean`
+
+The second half of the common step of `DESIGN.md`. Namespace
+`TauCeti.SmoothEmbedding`. It imports `MFDeriv.lean`.
+
 - `exists_symplectomorphism_opens_mfderiv_eq`: the same for symplectic
   `ω₀`, `ω₁`, with `IsClosed (Set.range f₀)` and each `A q` a linear
   symplectomorphism, now with `ψ` also pulling the restriction of `ω₁` back
@@ -575,7 +586,8 @@ list. Issues 1, 3, 5 and 10 can start at once.
 4. **The extension along a submanifold.** `Neighborhood/Extension.lean`.
    About 400 lines. Blockers: 3.
 5. **Diffeomorphisms of neighbourhoods with a prescribed derivative.**
-   `Tubular.lean`: `exists_diffeomorph_opens_mfderiv_eq`. About 450 lines.
+   `Geometry/Manifold/TubularNeighborhood/MFDeriv.lean`:
+   `exists_diffeomorph_opens_mfderiv_eq`. About 450 lines.
    Blockers: none.
 6. **Symplectic correction.** `Tubular.lean`:
    `exists_symplectomorphism_opens_mfderiv_eq`. About 200 lines. Blockers:
