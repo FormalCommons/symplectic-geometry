@@ -5,18 +5,11 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.ComplexStructure.Basic
+public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.Basic
 public import TauCeti.Geometry.Manifold.VectorBundle.FrameTrivialization
 public import TauCeti.Geometry.Symplectic.Darboux.Basis
 import TauCeti.Geometry.Symplectic.Darboux.EuclideanBasis
-import SymplecticGeometry.Analysis.InnerProductSpace.GramSchmidtOrtho
-import SymplecticGeometry.LinearAlgebra.Symplectic.Compatible
-import SymplecticGeometry.Topology.VectorBundle.LinearIndependent
-import TauCeti.Geometry.Symplectic.CompatibleMetric
-import TauCeti.Geometry.Manifold.VectorBundle.GramSchmidt
 import TauCeti.Geometry.Manifold.VectorBundle.MaximalAtlas
-import TauCeti.Geometry.Symplectic.Complex.OrthonormalBasis
-import TauCeti.LinearAlgebra.Complex.Orientation
 
 /-!
 # Local Darboux frames of a symplectic vector bundle
@@ -27,11 +20,9 @@ structure group of `(V, ω)` reduces to the linear symplectic group.
 
 ## Main results
 
-* `ContMDiffTwoForm.Compatible.exists_isLocalFrameOn_isDarbouxBasis`: if `ω` is compatible with a
-  `Cⁿ` complex structure `J`, every point has an open neighbourhood with a `Cⁿ` local frame
+* `ContMDiffTwoForm.IsNondegenerate.exists_isLocalFrameOn_isDarbouxBasis`: with no hypothesis on
+  the base, every point has an open neighbourhood with a `Cⁿ` local frame
   `(q₁, p₁, …, q_k, p_k)` that is a Darboux basis of `ω` at each of its points.
-* `ContMDiffTwoForm.IsNondegenerate.exists_isLocalFrameOn_isDarbouxBasis`: the same for any
-  nondegenerate form, with no hypothesis on the base.
 * `ContMDiffTwoForm.IsNondegenerate.exists_trivialization_isSymplectomorphism`: for a symplectic
   form `σ` on the model fibre, every point lies in the base set of a trivialization of the `Cⁿ`
   maximal atlas whose fibre maps carry `ω` to `σ`.
@@ -43,44 +34,29 @@ structure group of `(V, ω)` reduces to the linear symplectic group.
 
 ## Implementation notes
 
-For a compatible pair, the frame is built as in McDuff–Salamon, §2.6. For `ω` compatible with
-`J`, the bundle metric `g(u, v) = ω(u, J v)` (`ContMDiffTwoForm.Compatible.metric`) makes `J`
-skew-adjoint and orthogonal on each fibre, by Tau Ceti's lemmas on `TauCeti.SymplecticForm` for an
-inner product of the form `ω(·, J ·)`. A `J`-adapted orthonormal basis `u₁, J u₁, …` of the fibre
-at the given
-point (Tau Ceti's `TauCeti.AlmostComplexStructure.exists_adapted_orthonormalBasis`) is extended to
-constant sections in a trivialization, and the sections `u₁, J u₁, u₂, J u₂, …` are
-orthonormalized by Tau Ceti's smooth Gram–Schmidt (`ContMDiffWithinAt.gramSchmidtNormed_bundle`)
-where they stay independent (`Bundle.Trivialization.eventually_linearIndependent`). Since `J` is
-skew-adjoint and orthogonal for `g`, the output has the form `e₁, J e₁, e₂, J e₂, …`
-(`InnerProductSpace.gramSchmidtNormed_eq_apply_gramSchmidtNormed`), and such an orthonormal
-family is a Darboux basis of `ω` (`TauCeti.SymplecticForm.isDarbouxBasis_iff_apply_apply_eq_ite`).
-The smooth Gram–Schmidt needs a linearly ordered index, so the frame is built on `Fin (2 * k)`
-and reindexed to `Fin k × Fin 2`. The trivializations are Tau Ceti's frame trivializations
-`IsLocalFrameOn.trivialization`.
-
-The frames of a nondegenerate form, with no compatible complex structure at hand, come from a
-symplectic Gram–Schmidt process run on sections, as in the inductive proof of McDuff–Salamon,
-Theorem 2.1.3. A Darboux basis of the fibre at the given point is extended to sections `aᵢ`, `bᵢ`
-that are constant in a trivialization. Where `c = ω(a₁, b₁)` does not vanish, `a₁` and `c⁻¹ b₁`
-satisfy the Darboux relations, and the other sections are projected to their `ω`-orthogonal
-complement by `v ↦ v - ω(v, c⁻¹ b₁) a₁ + ω(v, a₁) c⁻¹ b₁`; this changes nothing at the given
-point, and the process goes on with the projected sections. Each step uses only sums, products
-with smooth functions and the inverse of a nonvanishing smooth function, so it needs neither a
-bundle metric nor a partition of unity, and works over any base.
+The local Darboux frames come from a symplectic Gram–Schmidt process run on sections, as in the
+inductive proof of McDuff–Salamon, Theorem 2.1.3. A Darboux basis of the fibre at the given point
+is extended to sections `aᵢ`, `bᵢ` that are constant in a trivialization. Where
+`c = ω(a₁, b₁)` does not vanish, `a₁` and `c⁻¹ b₁` satisfy the Darboux relations, and the other
+sections are projected to their `ω`-orthogonal complement by
+`v ↦ v - ω(v, c⁻¹ b₁) a₁ + ω(v, a₁) c⁻¹ b₁`; this changes nothing at the given point, and the
+process goes on with the projected sections. Each step uses only sums, products with smooth
+functions and the inverse of a nonvanishing smooth function, so it needs neither a bundle metric
+nor a partition of unity, and works over any base. The trivializations are Tau Ceti's frame
+trivializations `IsLocalFrameOn.trivialization`.
 
 ## References
 
 * [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017],
-  Theorem 2.1.3, §2.6, Exercise 2.6.2 and Theorem 2.6.3
+  Theorem 2.1.3, Exercise 2.6.2 and Theorem 2.6.3
 -/
 
 public section
 
 noncomputable section
 
-open _root_.Bundle Set Module InnerProductSpace Filter
-open scoped Manifold RealInnerProductSpace Topology
+open _root_.Bundle Set Module
+open scoped Manifold
 
 namespace SymplecticGeometry.Bundle
 
@@ -95,7 +71,7 @@ variable {EB HB M : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB]
 
 namespace ContMDiffTwoForm
 
-variable {ω : ContMDiffTwoForm I n F V} {J : ContMDiffComplexStructure I n F V}
+variable {ω : ContMDiffTwoForm I n F V}
 
 /-! ### Coordinate changes of symplectic trivializations -/
 
@@ -220,98 +196,6 @@ private theorem exists_darboux_sections (ω : ContMDiffTwoForm I n F V) {k : ℕ
 /-! ### Local Darboux frames -/
 
 variable [FiniteDimensional ℝ F] [ContMDiffVectorBundle n F V I]
-
-/-- **Local Darboux frames of a compatible pair.** If `ω` is compatible with a `Cⁿ` complex
-structure `J`, every point `x₀` has an open neighbourhood `U` with a `Cⁿ` local frame
-`s : Fin k × Fin 2 → ∀ y, V y` on `U` that is a Darboux basis of `ω_y` at every `y ∈ U`:
-`ω(qᵢ, qⱼ) = ω(pᵢ, pⱼ) = 0` and `ω(qᵢ, pⱼ) = δᵢⱼ` for `qᵢ = s (i, 0)`, `pᵢ = s (i, 1)`. -/
-theorem Compatible.exists_isLocalFrameOn_isDarbouxBasis (hc : ω.Compatible J) (x₀ : M) :
-    ∃ U : Set M, IsOpen U ∧ x₀ ∈ U ∧ ∃ (k : ℕ) (s : Fin k × Fin 2 → ∀ y, V y)
-      (hs : IsLocalFrameOn I F n s U), ∀ y (hy : y ∈ U),
-        (hc.isNondegenerate.symplecticFormAt y).IsDarbouxBasis (hs.toBasisAt hy) := by
-  classical
-  let : RiemannianBundle V := ⟨hc.metric.toRiemannianMetric⟩
-  let : IsContMDiffRiemannianBundle I n F V :=
-    _root_.Bundle.instIsContMDiffRiemannianBundle hc.metric
-  have := VectorBundle.finiteDimensional ℝ F V
-  -- On each fibre, the inner product is the metric `ω_x(·, J_x ·)` of a linear compatible pair, so
-  -- `J` is skew-adjoint and orthogonal.
-  have hg (x : M) (u v : V x) :
-      hc.isNondegenerate.symplecticFormAt x u (J.almostComplexStructureAt x v) = ⟪u, v⟫ := by
-    rw [hc.symplecticFormAt_apply_apply_eq_metric_inner, hc.metric.inner_riemannianBundle]
-  have hskew (x : M) (u v : V x) : ⟪J x u, v⟫ = -⟪u, J x v⟫ := by
-    simpa using TauCeti.SymplecticForm.inner_apply_left_eq_neg_of_apply_apply_eq_inner (hg x) u v
-  have hnorm (x : M) (v : V x) : ‖J x v‖ = ‖v‖ := by
-    simpa using TauCeti.SymplecticForm.norm_apply_eq_norm_of_apply_apply_self_eq_inner
-      (fun v ↦ hg x v v) v
-  -- A `J`-adapted orthonormal basis `b` of the fibre at `x₀`.
-  obtain ⟨k, b₀, -⟩ := (hc.isNondegenerate.symplecticFormAt x₀).exists_isDarbouxBasis
-  have hk : finrank ℝ F = 2 * k := by
-    rw [← VectorBundle.finrank_eq ℝ F V x₀, finrank_eq_card_basis b₀]
-    simp [Nat.mul_comm]
-  obtain ⟨b, hb⟩ := TauCeti.AlmostComplexStructure.exists_adapted_orthonormalBasis
-    (J.almostComplexStructureAt x₀) (by simpa using hnorm x₀) k
-    (by rw [VectorBundle.finrank_eq ℝ F V x₀, hk])
-  simp only [ContMDiffComplexStructure.almostComplexStructureAt_apply] at hb
-  -- Extend `b` to a local frame `L` that is constant in a trivialization `e` at `x₀`.
-  set e := trivializationAt F V x₀
-  have hx₀ : x₀ ∈ e.baseSet := FiberBundle.mem_baseSet_trivializationAt' x₀
-  set L := e.localFrame (b.toBasis.map (e.linearEquivAt ℝ x₀ hx₀))
-  have hL := e.isLocalFrameOn_localFrame_baseSet I n (b.toBasis.map (e.linearEquivAt ℝ x₀ hx₀))
-  have hLx₀ (j : Fin (2 * k)) : L j x₀ = b j := by
-    simp [L, e.localFrame_apply_of_mem_baseSet _ hx₀, Trivialization.basisAt,
-      e.symm_apply_apply_mk hx₀]
-  -- The sections `u₀, J u₀, u₁, J u₁, …`, with `uᵢ` the even members of `L`.
-  let u (i : Fin k) (y : M) : V y := L ⟨2 * i, by omega⟩ y
-  let w (j : Fin (2 * k)) (y : M) : V y :=
-    if (j : ℕ) % 2 = 0 then u ⟨j / 2, by omega⟩ y else J y (u ⟨j / 2, by omega⟩ y)
-  have hw (j : Fin (2 * k)) : CMDiff[e.baseSet] n (T% (w j)) := by
-    by_cases h : (j : ℕ) % 2 = 0
-    · simpa only [w, h, ↓reduceIte] using hL.contMDiffOn _
-    · simpa only [w, h, ↓reduceIte] using
-        J.toEndomorphism.contMDiff.contMDiffOn.clm_bundle_apply (hL.contMDiffOn _)
-  have hwx₀ (j : Fin (2 * k)) : w j x₀ = b j := by
-    by_cases h : (j : ℕ) % 2 = 0
-    · have hj : (⟨2 * (j / 2 : ℕ), by omega⟩ : Fin (2 * k)) = j := Fin.ext (by simp only; omega)
-      simp only [w, u, h, ↓reduceIte, hj, hLx₀]
-    · have hj : j = ⟨2 * (j / 2 : ℕ) + 1, by omega⟩ := Fin.ext (by simp only; omega)
-      simp only [w, u, h, ↓reduceIte, hLx₀]
-      rw [← hb ⟨(j : ℕ) / 2, by omega⟩, ← hj]
-  -- The sections `w` stay linearly independent on an open neighbourhood `U` of `x₀`.
-  have hli₀ : LinearIndependent ℝ (fun j ↦ w j x₀) := by
-    simpa only [hwx₀] using b.orthonormal.linearIndependent
-  obtain ⟨U, hUS, hU, hx₀U⟩ := mem_nhds_iff.1 (inter_mem (e.open_baseSet.mem_nhds hx₀)
-    (e.eventually_linearIndependent hx₀
-      (fun j ↦ (hw j).continuousOn.continuousAt (e.open_baseSet.mem_nhds hx₀)) hli₀))
-  have hUe : U ⊆ e.baseSet := fun y hy ↦ (hUS hy).1
-  have hli (y : M) (hy : y ∈ U) : LinearIndependent ℝ (fun j ↦ w j y) := (hUS hy).2
-  -- Their Gram–Schmidt orthonormalization `f` has the form `e₀, J e₀, e₁, J e₁, …`.
-  set f : ∀ y, Fin (2 * k) → V y := fun y ↦ gramSchmidtNormed ℝ (fun j ↦ w j y)
-  have horth (y : M) (hy : y ∈ U) : Orthonormal ℝ (f y) :=
-    gramSchmidtNormed_orthonormal (hli y hy)
-  have hrel (y : M) (i : Fin k) :
-      f y ⟨2 * i + 1, by omega⟩ = J y (f y ⟨2 * i, by omega⟩) :=
-    gramSchmidtNormed_two_mul_add_one (J := (J y : V y →L[ℝ] V y).toLinearMap) (hskew y)
-      (hnorm y) (fun i ↦ u i y) i
-  -- Reindexed by `Fin k × Fin 2`, the family `f` is the required frame.
-  let E := TauCeti.complexRealIndexEquiv k
-  have hs : IsLocalFrameOn I F n (fun p y ↦ f y (E p)) U :=
-    { linearIndependent := fun {y} hy ↦ (horth y hy).linearIndependent.comp E E.injective
-      generating := fun {y} hy ↦ ((horth y hy).linearIndependent.comp E
-        E.injective).span_eq_top_of_card_eq_finrank' (by
-          simp [VectorBundle.finrank_eq ℝ F V y, hk, Nat.mul_comm]) |>.ge
-      contMDiffOn := fun p y hy ↦ ContMDiffWithinAt.gramSchmidtNormed_bundle (E p)
-        (fun j _ ↦ (hw j).mono hUe y hy) ((hli y hy).linearIndepOn _) }
-  refine ⟨U, hU, hx₀U, k, _, hs, fun y hy ↦ ?_⟩
-  have hval (p : Fin k × Fin 2) : hs.toBasisAt hy p = f y (E p) := hs.toBasisAt_coe hy p
-  -- An orthonormal basis of the form `(e₀, J e₀, e₁, J e₁, …)` is a Darboux basis.
-  refine (TauCeti.SymplecticForm.isDarbouxBasis_iff_apply_apply_eq_ite
-    (J := J.almostComplexStructureAt y) fun i ↦ ?_).2 fun p q ↦ ?_
-  · have h₀ : E (i, 0) = ⟨2 * i, by omega⟩ := Fin.ext (by simp [E])
-    have h₁ : E (i, 1) = ⟨2 * i + 1, by omega⟩ := Fin.ext (by simp [E])
-    rw [ContMDiffComplexStructure.almostComplexStructureAt_apply, hval, hval, h₀, h₁, hrel]
-  · rw [hg, hval, hval, orthonormal_iff_ite.1 (horth y hy)]
-    exact if_congr E.injective.eq_iff rfl rfl
 
 /-- **Local Darboux frames.** For a nondegenerate `Cⁿ` two-form `ω` on a bundle of finite rank,
 every point `x₀` has an open neighbourhood `U` with a `Cⁿ` local frame
