@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Geometry.Manifold.Algebra.SmoothFunctions
+public import TauCeti.Geometry.Manifold.ContMDiffMap.Basic
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 
 /-!
@@ -90,27 +91,21 @@ variable {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] {k : ℕ}
 @[simp]
 theorem funSMulₗ_add (f g : C^∞⟮I, M; ℝ⟯) (φ : SmoothForm I M F k) :
     funSMulₗ (f + g) φ = funSMulₗ f φ + funSMulₗ g φ := by
-  apply Subtype.ext
-  rw [Submodule.coe_add, coe_funSMulₗ, coe_funSMulₗ, coe_funSMulₗ]
-  funext x
-  rw [Pi.add_apply, ContMDiffMap.coe_add, Pi.add_apply, add_smul]
+  ext1
+  simp [add_smul]
 
 /-- Multiplying a smooth form by the constant function `c` is multiplying it by the scalar `c`. -/
 @[simp]
 theorem funSMulₗ_const (c : ℝ) (φ : SmoothForm I M F k) :
     funSMulₗ (ContMDiffMap.const c) φ = c • φ := by
-  apply Subtype.ext
-  rw [coe_funSMulₗ, Submodule.coe_smul]
-  funext x
-  rw [Pi.smul_apply, ContMDiffMap.const, ContMDiffMap.coeFn_mk]
+  ext1
+  simp
 
 /-- Multiplying a smooth form by the constant function `1` leaves it unchanged. -/
 @[simp]
 theorem funSMulₗ_one (φ : SmoothForm I M F k) : funSMulₗ 1 φ = φ := by
-  apply Subtype.ext
-  rw [coe_funSMulₗ]
-  funext x
-  rw [ContMDiffMap.coe_one, Pi.one_apply, one_smul]
+  ext1
+  simp
 
 variable {E' H' M' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [TopologicalSpace H']
   [TopologicalSpace M'] [ChartedSpace H' M'] {I' : ModelWithCorners ℝ E' H'} [IsManifold I' 1 M']
