@@ -79,7 +79,9 @@ variable {EB HB M : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB]
     structures), and each use of Tau Ceti's
     `contMDiffAt_continuousAlternatingMap_bundle_of_bilinear` (the direct sum
     of forms);
-  - finite rank of `F`: `isOpen_setOf_nondegenerate`; every result that
+  - finite rank of `F`: `isOpen_setOf_nondegenerate`; `compatibleForm`, whose
+    smoothness comes from Tau Ceti's
+    `contMDiffAt_continuousAlternatingMap_bundle_of_bilinear`; every result that
     uses `polarComplexStructure` (`compatible_polarComplexStructure`,
     `polarComplexStructure_tangentEquiv`, `IsNondegenerate.exists_compatible`,
     `exists_homotopyEquiv_polarComplexStructure`,
@@ -416,17 +418,25 @@ the form and of the structure are independent.
   `TauCeti.SymplecticForm.Tames` and `Compatible` on `symplecticFormAt x`
   and `almostComplexStructureAt x`), `Compatible.compatibleAt`; and
   transport along bundle isomorphisms, which moves the form and the structure
-  together: `Tames.pushforward` and `Compatible.pushforward`, from
-  `ω.Tames J` to `(pushforward Φ hΦ ω).Tames (J.pushforward Φ hΦ)`.
-- On $TM$, `tames_tangentEquiv_iff` and `compatible_tangentEquiv_iff`: the
-  predicates agree with Tau Ceti's under the two `tangentEquiv`s.
-- `convex_setOf_tames J`, `convex_setOf_compatible J`: in the vector space
-  `ContMDiffTwoForm I n F V`, the forms taming (compatible with) a fixed `J`
-  form a convex set.
+  together: `Tames.pushforward`, `Invariant.pushforward` and
+  `Compatible.pushforward`, from `ω.Tames J` to
+  `(pushforward Φ hΦ ω).Tames (J.pushforward Φ hΦ')`, where `hΦ` and `hΦ'`
+  are the smoothness of `Φ` at the regularities of `ω` and of `J`.
+- On $TM$, `tames_tangentEquiv_iff`, `invariant_tangentEquiv_iff` and
+  `compatible_tangentEquiv_iff`: the predicates agree with Tau Ceti's under
+  the two `tangentEquiv`s (followed by `toSmooth` for the structure).
+- `convex_setOf_tames J`, `convex_setOf_invariant J` and
+  `convex_setOf_compatible J`: in the vector space `ContMDiffTwoForm I n F V`,
+  the forms taming (invariant under, compatible with) a fixed `J` form a
+  convex set.
 - $\omega_{g,J}$: for `g : Bundle.ContMDiffRiemannianMetric I n F V`,
   `ContMDiffComplexStructure.compatibleForm g J : ContMDiffTwoForm I n F V`
-  with `compatibleForm_apply` (the formula above) and
-  `compatible_compatibleForm`.
+  (`[FiniteDimensional ℝ F]`) with `compatibleForm_apply` (the formula above)
+  and `compatible_compatibleForm`. Its section is Tau Ceti's
+  `contMDiffAt_continuousAlternatingMap_bundle_of_bilinear` applied to the
+  bilinear section `(g ∘ J - (g ∘ J)ᵀ) / 2`, built with
+  `ContMDiff.clm_bundle_comp` and `TauCeti.Manifold.transposeBilinearSection`
+  (`Geometry/Manifold/VectorBundle/Bilinear/Section.lean`).
 - $J_{g,\sigma}$ on the bundle of bilinear forms. Two maps need the
   smoothness of the polar formula: $J_{g,\omega}$ along a nondegenerate
   two-form, and, for the homotopy equivalence below, $J_{g,\omega_{g,B}}$ as
