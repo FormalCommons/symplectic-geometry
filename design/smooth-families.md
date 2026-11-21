@@ -475,7 +475,7 @@ range of `mvfderiv I e x`.
 ### `Analysis/Convex/Deriv.lean`
 
 Strict convexity from second derivatives, used by `GoodCover/Compact.lean`:
-`strictConvexOn_of_deriv2_add_smul_pos` (along lines, in a real topological
+`strictConvexOn_of_deriv2_add_smul_pos` (along segments, in a real topological
 vector space) and `ContDiffOn.strictConvexOn_norm_sub_sq` (the squared distance
 `u ↦ ‖ψ u - c‖ ^ 2` for a `C²` map `ψ`).
 

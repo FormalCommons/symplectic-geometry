@@ -56,6 +56,55 @@ variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimension
   [BoundarylessManifold I M]
   {F : Type*} [NormedAddCommGroup F] [InnerProductSpace ℝ F] {e : M → F}
 
+omit [IsManifold I ∞ M] [BoundarylessManifold I M] in
+/-- The convexity estimate in one chart. Let `Φ` be a partial diffeomorphism given on its source
+by `z ↦ P (e z - e x)`, whose target contains the ball of radius `r`, and on whose target the first
+and second derivatives of `e ∘ Φ⁻¹` are bounded by `L` and `K`, with `(L + 1) * r * K < 1`. Then
+`u ↦ ‖e (Φ⁻¹ u) - e y‖ ^ 2` is strictly convex on that ball for every `y` with
+`‖e y - e x‖ < r`. -/
+private theorem strictConvexOn_dist_sq_of_norm_iteratedFDeriv_le (he : ContMDiff I 𝓘(ℝ, F) ∞ e)
+    {x : M} {Φ : PartialDiffeomorph I 𝓘(ℝ, (mvfderiv I e x).range) M (mvfderiv I e x).range ∞}
+    (hΦ : ∀ z ∈ Φ.source, Φ z = (mvfderiv I e x).range.orthogonalProjectionOnto (e z - e x))
+    (hx : x ∈ Φ.source) {r L K : ℝ} (hr : 0 < r) (htgt : ball 0 r ⊆ Φ.target) (hL : 0 ≤ L)
+    (hL₁ : ∀ u ∈ Φ.target, ‖iteratedFDeriv ℝ 1 (e ∘ Φ.symm) u‖ ≤ L)
+    (hK₂ : ∀ u ∈ Φ.target, ‖iteratedFDeriv ℝ 2 (e ∘ Φ.symm) u‖ ≤ K) (hrK : (L + 1) * r * K < 1)
+    {y : M} (hy : dist (e y) (e x) < r) :
+    StrictConvexOn ℝ (ball 0 r) fun u ↦ dist (e (Φ.symm u)) (e y) ^ 2 := by
+  set ψ := e ∘ Φ.symm
+  have hψ : ContDiffOn ℝ ∞ ψ Φ.target :=
+    contMDiffOn_iff_contDiffOn.1 (he.comp_contMDiffOn Φ.symm.contMDiffOn)
+  have hψ0 : ψ 0 = e x := by
+    have h : Φ x = 0 := by rw [hΦ x hx, sub_self, map_zero]
+    have h' : Φ.symm (Φ x) = x := Φ.left_inv hx
+    rw [h] at h'
+    simp only [ψ, comp_apply, h']
+  -- On the ball, `e ∘ Φ⁻¹` stays within `(L + 1) * r` of `e y`.
+  have hnear : ∀ u ∈ ball (0 : (mvfderiv I e x).range) r, ‖ψ u - e y‖ < (L + 1) * r := by
+    intro u hu
+    have hlip : ‖ψ u - ψ 0‖ ≤ L * ‖u - 0‖ :=
+      (convex_ball 0 r).norm_image_sub_le_of_norm_fderiv_le
+        (fun w hw ↦ (hψ.contDiffAt (Φ.open_target.mem_nhds (htgt hw))).differentiableAt
+          (by simp))
+        (fun w hw ↦ by rw [← norm_iteratedFDeriv_one]; exact hL₁ w (htgt hw))
+        (mem_ball_self hr) hu
+    rw [hψ0, sub_zero] at hlip
+    calc ‖ψ u - e y‖ ≤ ‖ψ u - e x‖ + ‖e x - e y‖ := norm_sub_le_norm_sub_add_norm_sub _ _ _
+      _ < L * r + r := by
+          rw [← dist_eq_norm (e x), dist_comm]
+          exact add_lt_add_of_le_of_lt
+            (hlip.trans (mul_le_mul_of_nonneg_left (mem_ball_zero_iff.1 hu).le hL)) hy
+      _ = (L + 1) * r := by ring
+  have h₂ : ∀ u ∈ ball (0 : (mvfderiv I e x).range) r,
+      ‖ψ u - e y‖ * ‖iteratedFDeriv ℝ 2 ψ u‖ < 1 := fun u hu ↦
+    calc ‖ψ u - e y‖ * ‖iteratedFDeriv ℝ 2 ψ u‖ ≤ (L + 1) * r * K := by
+          gcongr
+          exacts [(hnear u hu).le, hK₂ u (htgt hu)]
+      _ < 1 := hrK
+  have h := (hψ.of_le (by simp)).mono htgt |>.strictConvexOn_norm_sub_sq (convex_ball 0 r)
+    isOpen_ball (e y) (fun u hu ↦ norm_le_norm_fderiv_comp_symm_apply _ (by simp) he hΦ (htgt hu))
+    h₂
+  simpa only [ψ, comp_apply, dist_eq_norm] using h
+
 /-- **Convexity of squared distances in tangent projection charts.** Let `e : M → F` be a smooth
 injective map with injective differentials from a compact boundaryless manifold into a real inner
 product space. There is `r > 0` such that, for every `x : M`, some partial diffeomorphism `Φ`
@@ -80,10 +129,9 @@ theorem strictConvexOn_dist_sq_tangentProjectionChart [CompactSpace M]
   -- Bounds for the first and second derivatives of `e ∘ Φ⁻¹`, and the radius.
   set L := max (C 1) 0
   set K := max (C 2) 1
-  have hL : 0 ≤ L := le_max_right _ _
   set r := min r₁ (1 / (2 * (L + 1) * K))
   have hr : 0 < r := lt_min hr₁ (by positivity)
-  have hrK : (L + 1) * r * K ≤ 1 / 2 := by
+  have hrK : (L + 1) * r * K < 1 := by
     have h := (le_div_iff₀ (by positivity)).1 (min_le_right r₁ (1 / (2 * (L + 1) * K)))
     linarith
   refine ⟨r, hr, fun x ↦ ?_⟩
@@ -91,59 +139,39 @@ theorem strictConvexOn_dist_sq_tangentProjectionChart [CompactSpace M]
   have hsrc' : {z | dist (e z) (e x) < r} ⊆ Φ.source := fun z hz ↦
     hsrc (mem_ofPred_eq ▸ lt_of_lt_of_le hz (min_le_left _ _))
   have htgt' : ball 0 r ⊆ Φ.target := (ball_subset_ball (min_le_left _ _)).trans htgt
-  refine ⟨Φ, hΦ, hsrc', htgt', fun y hy ↦ ?_⟩
-  set P := (mvfderiv I e x).range.orthogonalProjectionOnto
-  set ψ := e ∘ Φ.symm
-  have hψ : ContDiffOn ℝ ∞ ψ Φ.target :=
-    contMDiffOn_iff_contDiffOn.1 (he.comp_contMDiffOn Φ.symm.contMDiffOn)
-  have hψd : ∀ u ∈ Φ.target, ContDiffAt ℝ ∞ ψ u := fun u hu ↦
-    hψ.contDiffAt (Φ.open_target.mem_nhds hu)
-  have hx : x ∈ Φ.source := hsrc' (by simpa using hr)
-  have hψ0 : ψ 0 = e x := by
-    have h : Φ x = 0 := by rw [hΦ x hx, sub_self, map_zero]
-    have h' : Φ.symm (Φ x) = x := Φ.left_inv hx
-    rw [h] at h'
-    simp only [ψ, comp_apply, h']
-  -- The chart projects `e` onto `T`, so `D(e ∘ Φ⁻¹)` does not shrink vectors.
-  have h₁ : ∀ u ∈ ball (0 : (mvfderiv I e x).range) r, ∀ v, ‖v‖ ≤ ‖fderiv ℝ ψ u v‖ := by
-    intro u hu v
-    have hu' := htgt' hu
-    have hproj : (fun w ↦ P (ψ w - e x)) =ᶠ[𝓝 u] id :=
-      eventually_of_mem (Φ.open_target.mem_nhds hu') fun w hw ↦ by
-        simpa [ψ, Φ.right_inv hw] using (hΦ _ (Φ.map_target hw)).symm
-    have hD := (P.hasFDerivAt.comp u
-      (((hψd u hu').differentiableAt (by simp)).hasFDerivAt.sub_const (e x))).unique
-        ((hasFDerivAt_id u).congr_of_eventuallyEq hproj)
-    have hv : P (fderiv ℝ ψ u v) = v := by simpa using DFunLike.congr_fun hD v
-    calc ‖v‖ = ‖P (fderiv ℝ ψ u v)‖ := by rw [hv]
-      _ ≤ ‖fderiv ℝ ψ u v‖ := Submodule.norm_orthogonalProjectionOnto_apply_le _ _
-  -- On the ball, `e ∘ Φ⁻¹` stays within `(L + 1) * r` of `e y`.
-  have hnear : ∀ u ∈ ball (0 : (mvfderiv I e x).range) r, ‖ψ u - e y‖ < (L + 1) * r := by
-    intro u hu
-    have hlip : ‖ψ u - ψ 0‖ ≤ L * ‖u - 0‖ :=
-      (convex_ball 0 r).norm_image_sub_le_of_norm_fderiv_le
-        (fun w hw ↦ (hψd w (htgt' hw)).differentiableAt (by simp))
-        (fun w hw ↦ by
-          rw [← norm_iteratedFDeriv_one]
-          exact (hbd w (htgt' hw) 1).trans (le_max_left _ _))
-        (mem_ball_self hr) hu
-    rw [hψ0, sub_zero] at hlip
-    have hu' : ‖u‖ < r := mem_ball_zero_iff.1 hu
-    calc ‖ψ u - e y‖ ≤ ‖ψ u - e x‖ + ‖e x - e y‖ := norm_sub_le_norm_sub_add_norm_sub _ _ _
-      _ < L * r + r := by
-          rw [← dist_eq_norm (e x), dist_comm]
-          exact add_lt_add_of_le_of_lt (hlip.trans (mul_le_mul_of_nonneg_left hu'.le hL)) hy
-      _ = (L + 1) * r := by ring
-  have h₂ : ∀ u ∈ ball (0 : (mvfderiv I e x).range) r,
-      ‖ψ u - e y‖ * ‖iteratedFDeriv ℝ 2 ψ u‖ < 1 := by
-    intro u hu
-    have hD2 : ‖iteratedFDeriv ℝ 2 ψ u‖ ≤ K := (hbd u (htgt' hu) 2).trans (le_max_left _ _)
-    calc ‖ψ u - e y‖ * ‖iteratedFDeriv ℝ 2 ψ u‖ ≤ ‖ψ u - e y‖ * K := by gcongr
-      _ ≤ (L + 1) * r * K := by gcongr; exact (hnear u hu).le
-      _ < 1 := by linarith
-  have h := (hψ.of_le (by simp)).mono htgt' |>.strictConvexOn_norm_sub_sq (convex_ball 0 r)
-    isOpen_ball (e y) h₁ h₂
-  simpa only [ψ, comp_apply, dist_eq_norm] using h
+  exact ⟨Φ, hΦ, hsrc', htgt', fun y hy ↦
+    strictConvexOn_dist_sq_of_norm_iteratedFDeriv_le he hΦ (hsrc' (by simpa using hr)) hr htgt'
+      (le_max_right _ _) (fun u hu ↦ (hbd u hu 1).trans (le_max_left _ _))
+      (fun u hu ↦ (hbd u hu 2).trans (le_max_left _ _)) hrK hy⟩
+
+omit [IsManifold I ∞ M] [BoundarylessManifold I M] in
+/-- The image of an intersection of balls in one chart. Let `Φ` be a partial diffeomorphism given
+on its source by `z ↦ P (e z - e x)`, defined on every `z` with `‖e z - e x‖ < r` and reaching the
+ball of radius `r`. If `0 ≤ ρ < r` and `x` is one of the centres `p i`, `i ∈ s`, then `Φ` carries
+the set of points `z` with `‖e z - e (p i)‖ < ρ` for all `i ∈ s` onto the set of points `u` of the
+ball of radius `r` with `‖e (Φ⁻¹ u) - e (p i)‖ ^ 2 < ρ ^ 2` for all `i ∈ s`. -/
+private theorem image_setOf_forall_dist_lt {ι : Type*} {x : M}
+    {Φ : PartialDiffeomorph I 𝓘(ℝ, (mvfderiv I e x).range) M (mvfderiv I e x).range ∞}
+    (hΦ : ∀ z ∈ Φ.source, Φ z = (mvfderiv I e x).range.orthogonalProjectionOnto (e z - e x))
+    {r ρ : ℝ} (hsrc : {z | dist (e z) (e x) < r} ⊆ Φ.source) (htgt : ball 0 r ⊆ Φ.target)
+    (hρ : 0 ≤ ρ) (hρr : ρ < r) {p : ι → M} {s : Finset ι} {j : ι} (hj : j ∈ s) (hpj : p j = x) :
+    Φ '' {z | ∀ i ∈ s, dist (e z) (e (p i)) < ρ} =
+      ⋂ i ∈ s, {u ∈ ball 0 r | dist (e (Φ.symm u)) (e (p i)) ^ 2 < ρ ^ 2} := by
+  subst hpj
+  ext u
+  simp only [mem_iInter₂, mem_ofPred_eq, mem_image]
+  constructor
+  · rintro ⟨z, hz, rfl⟩ i hi
+    have hzs : z ∈ Φ.source := hsrc ((hz j hj).trans hρr)
+    refine ⟨?_, ?_⟩
+    · rw [mem_ball_zero_iff, hΦ z hzs]
+      exact (Submodule.norm_orthogonalProjectionOnto_apply_le _ _).trans_lt
+        (by rw [← dist_eq_norm]; exact (hz j hj).trans hρr)
+    · rw [PartialDiffeomorph.symm_toPartialEquiv, Φ.left_inv hzs]
+      exact pow_lt_pow_left₀ (hz i hi) dist_nonneg two_ne_zero
+  · intro h
+    refine ⟨Φ.symm u, fun i hi ↦ ?_, Φ.right_inv (htgt (h j hj).1)⟩
+    exact (pow_lt_pow_iff_left₀ dist_nonneg hρ two_ne_zero).1 (h i hi).2
 
 /-- **Finite good covers of compact manifolds.** A compact Hausdorff boundaryless smooth manifold,
 modelled on a finite-dimensional real normed space, has a finite good cover. -/
@@ -183,23 +211,9 @@ theorem hasFiniteGoodCover_of_compactSpace [CompactSpace M] [T2Space M] :
   have hWsrc : (W : Set M) ⊆ (Φ x).source := fun z hz ↦
     hsrc x ((hW z).1 hz j hj |>.trans (half_lt_self hr))
   -- The chart carries `W` onto an intersection of sublevel sets of convex functions.
-  have himage : Φ x '' W = ⋂ i ∈ s, {u ∈ ball 0 r | dist (e ((Φ x).symm u)) (e i) ^ 2 < ρ ^ 2} := by
-    ext u
-    simp only [mem_iInter₂, mem_ofPred_eq, mem_image]
-    constructor
-    · rintro ⟨z, hz, rfl⟩ i hi
-      refine ⟨?_, ?_⟩
-      · rw [mem_ball_zero_iff, hΦ x z (hWsrc hz)]
-        exact (Submodule.norm_orthogonalProjectionOnto_apply_le _ _).trans_lt
-          (by rw [← dist_eq_norm]; exact ((hW z).1 hz j hj).trans (half_lt_self hr))
-      · rw [PartialDiffeomorph.symm_toPartialEquiv, (Φ x).left_inv (hWsrc hz)]
-        exact pow_lt_pow_left₀ ((hW z).1 hz i hi) dist_nonneg two_ne_zero
-    · intro h
-      have hu := htgt x (h j hj).1
-      refine ⟨(Φ x).symm u, (hW _).2 fun i hi ↦ ?_, (Φ x).right_inv hu⟩
-      exact (pow_lt_pow_iff_left₀ dist_nonneg hρ.le two_ne_zero).1 (h i hi).2
   have hconvex : Convex ℝ (Φ x '' W) := by
-    rw [himage]
+    rw [show (W : Set M) = {z | ∀ i ∈ s, dist (e z) (e (i : M)) < ρ} from Set.ext hW,
+      image_setOf_forall_dist_lt (hΦ x) (hsrc x) (htgt x) hρ.le (half_lt_self hr) hj rfl]
     exact convex_iInter₂ fun i hi ↦ (hconv x i (hcentre i hi)).convexOn.convex_lt _
   have hWne : (Φ x '' W).Nonempty := ⟨_, mem_image_of_mem _ hz₀⟩
   exact IsSmoothlyContractible.of_starConvex_image ((Φ x).contMDiffOn.mono hWsrc)
