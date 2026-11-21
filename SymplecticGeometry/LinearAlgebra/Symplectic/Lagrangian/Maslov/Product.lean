@@ -66,6 +66,7 @@ private theorem maslovPhase_inclusion_smul
 /-- **The product axiom.** A loop `Ψ` of symplectic matrices moves a loop `γ` of Lagrangian
 subspaces to the loop `t ↦ Ψ t • γ t`, whose Maslov index is that of `γ` plus twice the Maslov
 index of `Ψ`. -/
+@[simp]
 theorem maslovIndex_smul {A : GLSymplectic ι ℝ} {Λ : ℒ ι} (Ψ : Path A A) (γ : Path Λ Λ) :
     maslovIndex ((Ψ.prod γ).map continuous_smul) =
       maslovIndex γ + 2 * GLSymplectic.maslovIndex Ψ := by
@@ -94,6 +95,7 @@ theorem maslovIndex_smul {A : GLSymplectic ι ℝ} {Λ : ℒ ι} (Ψ : Path A A)
 
 /-- A loop `Ψ` of symplectic matrices moves a fixed Lagrangian subspace `Λ` along the loop
 `t ↦ Ψ t • Λ`, whose Maslov index is twice the Maslov index of `Ψ`. -/
+@[simp]
 theorem maslovIndex_smul_const {A : GLSymplectic ι ℝ} (Ψ : Path A A) (Λ : ℒ ι) :
     maslovIndex (Ψ.map (continuous_id.smul continuous_const : Continuous fun B ↦ B • Λ)) =
       2 * GLSymplectic.maslovIndex Ψ := by
