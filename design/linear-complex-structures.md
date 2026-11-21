@@ -265,7 +265,10 @@ Declarations about Tau Ceti's type go in its namespace
   instance `instMulActionSymplecticGroupCompatible` of
   `Matrix.symplecticGroup ι ℝ` on `{J // (stdForm ι).Compatible J}`, through
   `GLSymplectic.ofSymplecticGroup`, with `@[simp] coe_symplecticGroup_smul`
-  (by `(rfl)`).
+  (by `(rfl)`). The first is
+  `SymplecticForm.IsSymplectomorphism.compatible_transport_iff` (`Action.lean`)
+  applied to *Standard model*'s
+  `mem_GLSymplectic_iff_isSymplectomorphism`.
 
 ### `Topology/Algebra/GroupAction/Transitive.lean`
 
