@@ -133,7 +133,7 @@ variable {EB HB M : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB]
 | `Geometry/Manifold/VectorBundle/Hermitian/Basic.lean` | the symplectic form of a Hermitian bundle | 25 |
 | `Geometry/Manifold/VectorBundle/Hermitian/CircleBundle.lean` | the circle bundle of a Hermitian line bundle as a principal `Circle`-bundle | 26 |
 | `Geometry/Manifold/IsManifold/InteriorBoundary.lean` | the interior of a manifold with boundary as a boundaryless manifold | 12 |
-| `Topology/Connected/Basic.lean` | preconnectedness of a dense subset from local preconnectedness | 12 |
+| `Topology/Connected/Clopen.lean` | preconnectedness of a dense subset from local preconnectedness | 12 |
 | `Geometry/Manifold/Boundary/Collar/Push.lean` | pushing a compact manifold with boundary into its interior | 13 |
 | `Geometry/Manifold/VectorBundle/Section/Generic.lean` | sections with closed discrete zero sets over boundaryless manifolds | 14 |
 | `Geometry/Manifold/VectorBundle/Section/Nonvanishing.lean` | smoothing nowhere-zero sections; nowhere-zero sections over surfaces with boundary | 15, 16 |
@@ -145,7 +145,7 @@ says), except its lemma `moserGenerator_conj`, which goes in
 `Geometry/Symplectic/LinearMoser.lean`. The files
 `Analysis/ODE/DysonSeries.lean`, `Section/Topology.lean`, `Section/Generic.lean`,
 `Riemannian/SectionTopology.lean`, `IsManifold/InteriorBoundary.lean`,
-`Topology/Connected/Basic.lean`, `Geometry/Manifold/VectorBundle/Pullback.lean`,
+`Topology/Connected/Clopen.lean`, `Geometry/Manifold/VectorBundle/Pullback.lean`,
 `Geometry/Symplectic/Manifold/Volume.lean` and the folder `Boundary/Collar/`
 have the names of a Tau Ceti or Mathlib file or
 folder at the same place, so that the two merge upstream.
@@ -159,7 +159,7 @@ folder at the same place, so that the two merge upstream.
   `Symplectic/Trivialization.lean`, since their proof uses $J_{g,\omega}$,
   which is defined after `Basic.lean`.
 - Five files are new (`IsManifold/InteriorBoundary.lean`,
-  `Topology/Connected/Basic.lean`, `Boundary/Collar/Push.lean`, `Section/Generic.lean`,
+  `Topology/Connected/Clopen.lean`, `Boundary/Collar/Push.lean`, `Section/Generic.lean`,
   `Section/Nonvanishing.lean`): they hold the prerequisites of the route to
   the third milestone below, which replaces the book's cutting of the surface.
 - `VectorBundle/Cayley.lean` stands apart from the symplectic files: the
@@ -1555,7 +1555,7 @@ of *Constructions* for *First Chern number*.
     the dimension, since every point has a neighbourhood whose interior part
     is the image of a convex set in a chart; the topological step,
     `Dense.isPreconnected_of_forall_exists_mem_nhds`, goes in
-    `Topology/Connected/Basic.lean`. Blockers: none.
+    `Topology/Connected/Clopen.lean`. Blockers: none.
 13. **Pushing into the interior.** `Boundary/Collar/Push.lean`, namespace
     `TauCeti.IsCollar`: for a compact Hausdorff manifold modelled on
     `𝓡∂ (k + 1)` with a collar `hc : IsCollar c` (from Tau Ceti's

@@ -1036,7 +1036,7 @@ it into issues; the overview fixes its folders and its dependencies.
   and, for the last milestone, `Geometry/Manifold/IsManifold/InteriorBoundary.lean`
   (the interior of a manifold with boundary as a boundaryless manifold,
   connected when the manifold is connected; its topological step goes in
-  `Topology/Connected/Basic.lean`),
+  `Topology/Connected/Clopen.lean`),
   `Geometry/Manifold/Boundary/Collar/Push.lean`
   (a homotopy pushing a compact manifold with boundary into a compact subset
   of its interior along a collar), `.../VectorBundle/Section/Generic.lean`

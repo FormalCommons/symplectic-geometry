@@ -7,7 +7,7 @@ module
 
 public import Mathlib.Geometry.Manifold.IsManifold.InteriorBoundary
 public import Mathlib.Analysis.Convex.Topology
-public import SymplecticGeometry.Topology.Connected.Basic
+public import SymplecticGeometry.Topology.Connected.Clopen
 
 /-!
 # The interior of a manifold with boundary
@@ -105,13 +105,20 @@ theorem exists_mem_nhds_isPreconnected_inter_interior [NormedSpace ℝ E] [IsMan
     ((continuousOn_extChartAt_symm x).mono hCT)
 
 /-- The interior of a preconnected `C¹` manifold is preconnected. -/
-theorem isPreconnected_interior [NormedSpace ℝ E] [IsManifold I n M] [PreconnectedSpace M]
-    (hn : n ≠ 0) : IsPreconnected (I.interior M) :=
-  (I.dense_interior hn).isPreconnected_of_forall_exists_mem_nhds
-    (I.exists_mem_nhds_isPreconnected_inter_interior hn)
+theorem isPreconnected_interior [IsManifold I n M] [PreconnectedSpace M] (hn : n ≠ 0) :
+    IsPreconnected (I.interior M) := by
+  by_cases h : IsRCLikeNormedField 𝕜
+  · let := h.rclike 𝕜
+    let := NormedSpace.restrictScalars ℝ 𝕜 E
+    exact (I.dense_interior hn).isPreconnected_of_forall_exists_mem_nhds
+      (I.exists_mem_nhds_isPreconnected_inter_interior hn)
+  · -- Over a field that is not `RCLike`, the model has full range, so every point is interior.
+    have : I.Boundaryless := ⟨I.range_eq_univ_of_not_isRCLikeNormedField h⟩
+    rw [I.interior_eq_univ]
+    exact isPreconnected_univ
 
 /-- The interior of a connected `C¹` manifold is connected. -/
-theorem isConnected_interior [NormedSpace ℝ E] [IsManifold I n M] [ConnectedSpace M]
+theorem isConnected_interior [IsManifold I n M] [ConnectedSpace M]
     (hn : n ≠ 0) : IsConnected (I.interior M) :=
   ⟨(I.dense_interior hn).nonempty, I.isPreconnected_interior hn⟩
 
@@ -136,7 +143,7 @@ instance BoundarylessManifold.interior [IsManifold I 1 M] :
   ⟨fun x ↦ I.isInteriorPoint_iff_isInteriorPoint_val.2 x.property⟩
 
 /-- The interior of a connected `C¹` manifold, as an open submanifold, is connected. -/
-instance connectedSpace_interiorOpens [NormedSpace ℝ E] [IsManifold I 1 M] [ConnectedSpace M] :
+instance connectedSpace_interiorOpens [IsManifold I 1 M] [ConnectedSpace M] :
     ConnectedSpace (I.interiorOpens M) :=
   isConnected_iff_connectedSpace.1 (I.isConnected_interior one_ne_zero)
 
