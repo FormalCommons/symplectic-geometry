@@ -123,7 +123,8 @@ theorem IsContactForm.tangentSpaceOpenEquiv_contactMoserVectorField_mpullback_su
       α.contactMoserVectorField β x := by
   simpa only [Manifold.mfderiv_subtype_val, ContinuousLinearEquiv.coe_coe] using
     hα.mfderiv_contactMoserVectorField_mpullback Subtype.val contMDiff_subtypeVal
-      (fun y ↦ Manifold.mfderiv_subtype_val y ▸ (Manifold.tangentSpaceOpenEquiv y).bijective) β x
+      (fun y ↦ Manifold.mfderiv_subtype_val (I := J) y ▸
+        (Manifold.tangentSpaceOpenEquiv (I := J) y).bijective) β x
 
 end TauCeti.SmoothForm
 

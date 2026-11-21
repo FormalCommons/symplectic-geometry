@@ -81,7 +81,8 @@ theorem tangentSpaceOpenEquiv_grayVectorField_mpullback_prodMap_subtype_val
       α.grayVectorField t x := by
   simpa only [Manifold.mfderiv_subtype_val, ContinuousLinearEquiv.coe_coe] using
     mfderiv_grayVectorField_mpullback_prodMap hc Subtype.val contMDiff_subtypeVal
-      (fun y ↦ Manifold.mfderiv_subtype_val y ▸ (Manifold.tangentSpaceOpenEquiv y).bijective) x
+      (fun y ↦ Manifold.mfderiv_subtype_val (I := J) y ▸
+        (Manifold.tangentSpaceOpenEquiv (I := J) y).bijective) x
 
 end TauCeti.SmoothForm
 
