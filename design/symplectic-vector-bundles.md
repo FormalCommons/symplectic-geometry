@@ -671,20 +671,11 @@ $C^n$ maps, so they are public and named.
   coordinates of `s` in `trivializationAt F V b`. These coordinates are
   continuous in `s` by Tau Ceti's `continuous_frameCoordinates_of_cover`
   (`Section/FrameCover.lean`), which is where `hcover` and the local
-  compactness of `EB` are used. Two public lemmas of the same file state
-  these facts about the chart of the total space:
-
-  ```lean
-  theorem toContMDiffMap_mem_extChartAt_source_iff (s : Cₛ^n⟮I; F, V⟯)
-      (y : TotalSpace F V) (p : M) :
-      toContMDiffMap s p ∈ (extChartAt (I.prod 𝓘(𝕜, F)) y).source ↔
-        p ∈ (trivializationAt F V y.proj).baseSet ∧ p ∈ (chartAt H y.proj).source
-
-  theorem extChartAt_toContMDiffMap (s : Cₛ^n⟮I; F, V⟯) (y : TotalSpace F V) {p : M}
-      (hp : p ∈ (trivializationAt F V y.proj).baseSet) :
-      extChartAt (I.prod 𝓘(𝕜, F)) y (toContMDiffMap s p) =
-        (extChartAt I y.proj p, (trivializationAt F V y.proj ⟨p, s p⟩).2)
-  ```
+  compactness of `EB` are used. The two facts about the chart of the total
+  space are Tau Ceti's `Bundle.mem_extChartAt_source_iff` and
+  `Bundle.extChartAt_apply_of_mem_baseSet`
+  (`Geometry/Manifold/VectorBundle/Submersion.lean`), applied at the point
+  `toContMDiffMap s p`; the library does not restate them.
 
   The frame coordinates are $C^n$ maps on the open base set only, while the
   chart test reads `p ↦ (trivializationAt F V b ⟨p, s p⟩).2` in an ambient
