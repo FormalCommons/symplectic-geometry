@@ -101,8 +101,7 @@ theorem pathMaslovIndex_graph_eq_crossing_sum {Λ Λ' : ℒ ι} (γ : Path Λ Λ
     rw [continuousOn_iff_continuous_domRestrict]
     exact continuous_of_coe_eq_graph γ.continuous hγ
   have hA (t : ℝ) (ht : t ∈ Icc (0 : ℝ) 1) : (A t).IsHermitian :=
-    isHermitian_iff_isSymm.2 ((isLagrangian_graph_iff _).1
-      (hγ ⟨t, ht⟩ ▸ (γ ⟨t, ht⟩).isLagrangian))
+    isHermitian_of_coe_eq_graph (hγ ⟨t, ht⟩)
   obtain ⟨_, _, δ, hδ, h⟩ := exists_souriau_eq_cayley_and_pathMaslovIndex_eq_maslovIndex γ
     (A := fun t : I ↦ A t) hγ
   rw [h]

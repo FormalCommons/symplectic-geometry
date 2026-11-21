@@ -48,7 +48,8 @@ open quotient map, this formula gives the openness and continuity that the chart
   `mem_graphChart_source_iff_isUnit` says it lies in the source iff `X` is invertible, and
   `coe_graphChart_eq_mul_inv` gives its value `Y X⁻¹`.
 * `SymplecticGeometry.LagrangianGrassmannian.continuous_of_coe_eq_graph`: a continuous family of
-  Lagrangians that are graphs `{(x, A t x)}` has continuous `A`.
+  Lagrangians that are graphs `{(x, A t x)}` has continuous `A`. Each such `A t` is symmetric,
+  by `isHermitian_of_coe_eq_graph`.
 
 The construction follows Tau Ceti's graph charts on finite Grassmannians,
 `TauCeti.finiteGrassmannian.graphChart` (`TauCeti/Topology/Grassmannian/Graph.lean`), there
@@ -304,14 +305,18 @@ theorem coe_graphChart_eq_mul_inv {Λ : ℒ ι} {X Y : Matrix ι ι ℝ}
 
 end DecidableEq
 
+/-- If a Lagrangian is the graph `{(x, A x)}` of a real matrix `A`, then `A` is symmetric. -/
+theorem isHermitian_of_coe_eq_graph {Λ : ℒ ι} {A : Matrix ι ι ℝ}
+    (hΛ : (Λ : Submodule ℝ (StdSpace ι)) = StdSpace.graph A) : A.IsHermitian :=
+  isHermitian_iff_isSymm.2 ((isLagrangian_graph_iff _).1 (hΛ ▸ Λ.isLagrangian))
+
 /-- A continuous family of Lagrangians that are graphs `{(x, A t x)}` has continuous `A`: the
 matrix `A t` is the value of `γ t` in the chart `graphChart`. -/
 theorem continuous_of_coe_eq_graph {X : Type*} [TopologicalSpace X] {γ : X → ℒ ι}
     (hγc : Continuous γ) {A : X → Matrix ι ι ℝ}
     (hγ : ∀ t, (γ t : Submodule ℝ (StdSpace ι)) = StdSpace.graph (A t)) : Continuous A := by
   classical
-  have hg (t : X) : γ t = graph ⟨A t, isHermitian_iff_isSymm.2
-      ((isLagrangian_graph_iff _).1 (hγ t ▸ (γ t).isLagrangian))⟩ :=
+  have hg (t : X) : γ t = graph ⟨A t, isHermitian_of_coe_eq_graph (hγ t)⟩ :=
     toSubmodule_injective (by rw [coe_graph]; exact hγ t)
   have hs (t : X) :
       γ t ∈ (graphChart : OpenPartialHomeomorph (ℒ ι) (selfAdjoint (Matrix ι ι ℝ))).source := by

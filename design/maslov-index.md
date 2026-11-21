@@ -552,8 +552,9 @@ The Robbin–Salamon index of paths, relative to a Lagrangian `V`.
   constant, moved to `V₀` by `ℒ.finrank_inf_unitaryFrame` of
   `Lagrangian/Transverse.lean` and `ℒ.finrank_unitaryFrame_inf_horizontal` of
   `Lagrangian/Action.lean`), `ℒ.pathMaslovIndex_graph` (localization: for `V = V₀`
-  and a path of Lagrangians that are the graphs $\{(x,A(t)x)\}$ of a continuous path of real
-  matrices, with no symmetry hypothesis since each graph is Lagrangian, half the change of
+  and a path of Lagrangians that are the graphs $\{(x,A(t)x)\}$ of real matrices, with no
+  continuity hypothesis, since `ℒ.continuous_of_coe_eq_graph` derives it, and no symmetry
+  hypothesis, since each graph is Lagrangian, half the change of
   `Matrix.signature`, from `maslovIndex_eq_signature_sub_of_souriau_eq_cayley`,
   whose frames $\mathbb{1}+iA$ span exactly these graphs).
 - `ℒ.pathMaslovIndex_eq_transverseMaslovIndex`: for a path of frames `δ` whose
