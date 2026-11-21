@@ -1718,9 +1718,11 @@ has either; Tau Ceti's extension across a boundary,
   velocity $X_t$ of a `TauCeti.Diffeotopy`, read along the motion, as
   `TauCeti.Diffeotopy.velocity`), with
   `Geometry/Manifold/Instances/Icc.lean` (the unit vector field of an
-  interval is smooth) and `Geometry/Manifold/MFDeriv/Prod.lean` (the
+  interval is smooth), `Geometry/Manifold/MFDeriv/Prod.lean` (the
   derivative of a map on a product on `(0, w)` and `(v, 0)` is a partial
   derivative),
+  `Geometry/Diffeomorphism/Diffeotopy/Basic.lean` (facts about diffeotopies
+  of any smoothness, used by `Flux/Hamiltonian.lean`),
   `Geometry/Symplectic/Hamiltonian/SymplecticIsotopy.lean`
   (symplectic vector fields and their local flows; a `TauCeti.Diffeotopy`
   has all its slices in `TauCeti.SmoothForm.diffeomorphStabilizer ω`
@@ -1760,7 +1762,8 @@ has either; Tau Ceti's extension across a boundary,
   subgroup $\mathrm{Ham}_c$ of their time-one maps, normal in `diffeomorphStabilizer`, and
   $\mathrm{Ham}_c=$ `hamiltonianGroup` on a compact $M$). The folder of
   these two is Tau Ceti's `Geometry/Symplectic/Flux/`, since a folder
-  `Flux/Hamiltonian/` would clash with Tau Ceti's file.
+  `Flux/Hamiltonian/` beside Tau Ceti's file would keep the two trees from
+  moving upstream unchanged.
 - **Builds on:** *Smooth families* (only `Diffeotopy/Real.lean`, for
   `SymplecticIsotopy.lean`, and `ContMDiff/TimeExtension.lean`, for
   `Flux/CompactSupport.lean`); *Contact geometry* (only
