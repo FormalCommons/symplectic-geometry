@@ -419,9 +419,9 @@ section Milestone
 
 variable [FiniteDimensional ℝ E] [I.Boundaryless] [T2Space L] [IsManifold I ∞ L]
 
-/-- **The canonical structure of a cotangent bundle and cotangent lifts.** Let `L` be a smooth
-Hausdorff manifold without boundary, modelled on a finite-dimensional space, with cotangent bundle
-`π : T*L → L`, Liouville form `λ` and canonical symplectic form `ω`.
+/-- **The canonical structure of a cotangent bundle and cotangent lifts.** Here `L` is a Hausdorff
+smooth manifold without boundary, modelled on a finite-dimensional space; its cotangent bundle
+`π : T*L → L` carries the Liouville form `λ` and the canonical symplectic form `ω`.
 
 1. `λ_(q, p)(v) = p(dπ v)` and `ω = -dλ`.
 2. In every bundle chart, with coordinates `(q, p)`, `λ` is the linear form `Σ pᵢ dqᵢ`
@@ -433,8 +433,8 @@ Hausdorff manifold without boundary, modelled on a finite-dimensional space, wit
 5. At the zero covector over `q`, in the splitting `T_q L × T*_q L` of the tangent space given by
    `TauCeti.Bundle.zeroSectionTangentEquiv`, `ω((v, a), (w, b)) = b(v) - a(w)`.
 6. The cotangent lift `(q, p) ↦ (χ q, p ∘ (dχ_q)⁻¹)` of a diffeomorphism `χ` of `L` preserves `λ`
-   and `ω`, and every diffeomorphism `F` of `T*L` with `F^* λ = λ` is the cotangent lift of a
-   unique diffeomorphism of `L`.
+   and `ω`. Conversely, for every diffeomorphism `F` of `T*L` with `F^* λ = λ` there is exactly
+   one diffeomorphism `χ` of `L` whose lift is `F`.
 7. For a smooth vector field `Y` on `L`, the function `H(q, p) = p(Y_q)` is smooth, and its
    Hamiltonian vector field `X_H`, with `ι_{X_H} ω = dH`, generates the cotangent lift of the local
    flow `φ` of `Y`: for every covector `z = (q, p)`, the curve
