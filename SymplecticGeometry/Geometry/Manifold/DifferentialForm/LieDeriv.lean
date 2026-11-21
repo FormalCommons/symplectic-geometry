@@ -18,7 +18,7 @@ constant multiples of the field, `L_{c V} φ = c L_V φ`, with no differentiabil
 field or of the form. Both are read in charts from the flat statements
 `TauCeti.lieDerivFormWithin_zero_left` and `TauCeti.lieDerivFormWithin_const_smul_left` of
 `SymplecticGeometry.Analysis.Calculus.DifferentialForm.LieDeriv`. The proofs follow Tau Ceti's
-`TauCeti.mlieBracket_const_smul_left_field`.
+`VectorField.mlieBracket_const_smul_left_field`.
 
 ## Main declarations
 

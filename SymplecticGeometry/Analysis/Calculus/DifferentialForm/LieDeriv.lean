@@ -23,7 +23,7 @@ derivative along the zero field vanishes, and a constant multiple of the field g
 multiple of the Lie derivative, `L_{c V} ω = c L_V ω`. Neither statement asks for any
 differentiability, since the derivative of a constant multiple of a field is that multiple of its
 derivative (`fderivWithin_const_smul_field`). These proofs follow Tau Ceti's
-`TauCeti.mlieBracket_const_smul_left_field`.
+`VectorField.mlieBracket_const_smul_left_field`.
 
 The second section shows that a closed form `α` into which a fixed vector `w` inserts to zero
 (`ι_w α = 0`) does not change in the direction `w`. For the constant vector field `w`, the Lie
