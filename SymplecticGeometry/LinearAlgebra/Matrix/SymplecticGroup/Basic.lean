@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.LinearAlgebra.SymplecticGroup
+public import TauCeti.LinearAlgebra.SymplecticGroup
 
 /-!
 # The matrix `J` and the symplectic group
@@ -24,6 +25,8 @@ when `A` is.
   blocks of `Matrix.J`.
 * `SymplecticGroup.star_mem`: the conjugate transpose of a symplectic matrix is symplectic.
 * `SymplecticGroup.star_mem_iff`: a matrix is symplectic exactly when its conjugate transpose is.
+* `Matrix.IsSymm.mem_symplecticGroup_iff`: a symmetric matrix `P` is symplectic exactly when
+  `(J P)² = -1`.
 
 ## References
 
@@ -52,6 +55,25 @@ theorem J_inr_inl : J l R (.inr i) (.inl j) = (1 : Matrix l l R) i j := rfl
 /-- The lower right block of `Matrix.J` is zero. -/
 @[simp]
 theorem J_inr_inr : J l R (.inr i) (.inr j) = 0 := rfl
+
+section IsSymm
+
+variable [Fintype l]
+
+/-- A symmetric matrix `P` is symplectic, `Pᵀ J P = J`, exactly when `J P` squares to `-1`. -/
+theorem IsSymm.mem_symplecticGroup_iff {P : Matrix (l ⊕ l) (l ⊕ l) R} (hP : P.IsSymm) :
+    P ∈ symplecticGroup l R ↔ J l R * P * (J l R * P) = -1 := by
+  rw [SymplecticGroup.mem_iff', hP.eq]
+  constructor
+  · intro h
+    rw [Matrix.mul_assoc, ← Matrix.mul_assoc P, h, J_squared]
+  · intro h
+    calc P * J l R * P = -J l R * J l R * (P * J l R * P) := by
+          rw [neg_J_mul_J, Matrix.one_mul]
+      _ = -J l R * (J l R * P * (J l R * P)) := by simp only [Matrix.mul_assoc]
+      _ = J l R := by rw [h, Matrix.mul_neg, Matrix.mul_one, neg_neg]
+
+end IsSymm
 
 end Matrix
 

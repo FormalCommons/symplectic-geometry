@@ -126,6 +126,14 @@ theorem homeomorphMatrix_apply_coe (J : AlmostComplexStructure (EuclideanSpace �
         (LinearMap.toContinuousLinearMap J.toLinearMap) :=
   (rfl)
 
+/-- The matrix that `homeomorphMatrix` assigns to a complex structure `J` of
+`EuclideanSpace ℝ n` is the matrix of `J`, `toEuclideanLin.symm J`. -/
+theorem coe_homeomorphMatrix (J : AlmostComplexStructure (EuclideanSpace ℝ n)) :
+    (homeomorphMatrix n J : Matrix n n ℝ) = Matrix.toEuclideanLin.symm J.toLinearMap := by
+  rw [homeomorphMatrix_apply_coe, LinearEquiv.eq_symm_apply,
+    ← Matrix.coe_toEuclideanCLM_eq_toEuclideanLin, StarAlgEquiv.apply_symm_apply,
+    LinearMap.coe_toContinuousLinearMap]
+
 /-- The structure of a matrix `A` of square `-1` acts on vectors as `A`. -/
 @[simp]
 theorem homeomorphMatrix_symm_apply_apply (A : {A : Matrix n n ℝ // A * A = -1})

@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.LinearAlgebra.Matrix.SymplecticGroup.Basic
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Compatible
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Matrix
 public import SymplecticGeometry.Topology.ComplexStructure.Basic
@@ -29,7 +30,7 @@ when `P` is positive definite.
 ## Main results
 
 * `SymplecticGeometry.stdForm_apply_toEuclideanLin`: `ω₀(v, A w) = vᵀ (-J₀ A) w`.
-* `SymplecticGeometry.associatedBilinForm_stdForm_apply`: the matrix `-J₀ M` is the Gram matrix
+* `SymplecticGeometry.toMatrix_associatedBilinForm_stdForm`: the matrix `-J₀ M` is the Gram matrix
   of `g_J`.
 * `SymplecticGeometry.invariant_stdForm_iff_isSymm`: `J` preserves `ω₀` exactly when `-J₀ M` is
   symmetric.
@@ -37,8 +38,6 @@ when `P` is positive definite.
   `-J₀ M` is positive definite.
 * `SymplecticGeometry.compatible_stdForm_iff_posDef`: `J` is `ω₀`-compatible exactly when
   `-J₀ M` is a positive definite matrix.
-* `Matrix.IsSymm.mem_symplecticGroup_iff`: a symmetric matrix `P` is symplectic exactly when
-  `(J₀ P)² = -1`.
 
 ## References
 
@@ -46,25 +45,6 @@ when `P` is positive definite.
 -/
 
 public section
-
-namespace Matrix
-
-variable {l R : Type*} [Fintype l] [DecidableEq l] [CommRing R]
-
-/-- A symmetric matrix `P` is symplectic, `Pᵀ J P = J`, exactly when `J P` squares to `-1`. -/
-theorem IsSymm.mem_symplecticGroup_iff {P : Matrix (l ⊕ l) (l ⊕ l) R} (hP : P.IsSymm) :
-    P ∈ symplecticGroup l R ↔ J l R * P * (J l R * P) = -1 := by
-  rw [SymplecticGroup.mem_iff', hP.eq]
-  constructor
-  · intro h
-    rw [Matrix.mul_assoc, ← Matrix.mul_assoc P, h, J_squared]
-  · intro h
-    have := congrArg (-J l R * ·) h
-    simp only [Matrix.neg_mul, ← Matrix.mul_assoc, J_squared, Matrix.one_mul, neg_neg,
-      Matrix.mul_neg, Matrix.mul_one] at this
-    exact this
-
-end Matrix
 
 namespace SymplecticGeometry
 
@@ -79,8 +59,8 @@ theorem stdForm_apply_toEuclideanLin (A : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ) (v
   refine (LinearMap.congr_fun₂ stdForm_toBilinForm v (toEuclideanLin A w)).trans ?_
   simp [Matrix.toBilin'_apply', Matrix.neg_mulVec, Matrix.mulVec_mulVec]
 
-/-- The matrix `-J₀ M` is the Gram matrix of the metric `g_J(v, w) = ω₀(v, J w)`, where `M` is
-the matrix of `J` and `J₀ = Matrix.J ι ℝ`. -/
+/-- The metric `g_J(v, w) = ω₀(v, J w)` is `vᵀ (-J₀ M) w`, where `M` is the matrix of `J` and
+`J₀ = Matrix.J ι ℝ`. -/
 theorem associatedBilinForm_stdForm_apply (J : AlmostComplexStructure (StdSpace ι))
     (v w : StdSpace ι) :
     (stdForm ι).associatedBilinForm J v w =
@@ -88,21 +68,22 @@ theorem associatedBilinForm_stdForm_apply (J : AlmostComplexStructure (StdSpace 
   rw [SymplecticForm.associatedBilinForm_apply, ← stdForm_apply_toEuclideanLin,
     LinearEquiv.apply_symm_apply]
 
+/-- The matrix `-J₀ M` is the Gram matrix of the metric `g_J(v, w) = ω₀(v, J w)` in the standard
+basis, where `M` is the matrix of `J` and `J₀ = Matrix.J ι ℝ`. -/
+theorem toMatrix_associatedBilinForm_stdForm (J : AlmostComplexStructure (StdSpace ι)) :
+    ((stdForm ι).associatedBilinForm J).toMatrix (PiLp.basisFun 2 ℝ (ι ⊕ ι)) =
+      -Matrix.J ι ℝ * toEuclideanLin.symm J.toLinearMap := by
+  ext i j
+  rw [LinearMap.BilinForm.toMatrix_apply, associatedBilinForm_stdForm_apply]
+  simp [PiLp.basisFun_apply]
+
 /-- A complex structure `J` of `StdSpace ι` preserves `ω₀` exactly when the matrix `-J₀ M` is
 symmetric, where `M` is the matrix of `J`. -/
 theorem invariant_stdForm_iff_isSymm {J : AlmostComplexStructure (StdSpace ι)} :
     (stdForm ι).Invariant J ↔
       (-Matrix.J ι ℝ * toEuclideanLin.symm J.toLinearMap).IsSymm := by
-  have key : ∀ v w : StdSpace ι, (stdForm ι).associatedBilinForm J v w =
-      toBilin' (-Matrix.J ι ℝ * toEuclideanLin.symm J.toLinearMap) v.ofLp w.ofLp := fun v w ↦ by
-    rw [associatedBilinForm_stdForm_apply, toBilin'_apply']
-  rw [SymplecticForm.invariant_iff_isSymm_associatedBilinForm, ← isSymm_toBilin'_iff_isSymm,
-    LinearMap.BilinForm.isSymm_def, LinearMap.BilinForm.isSymm_def]
-  constructor
-  · intro h x y
-    simpa only [key] using h (WithLp.toLp 2 x) (WithLp.toLp 2 y)
-  · intro h v w
-    simpa only [key] using h v.ofLp w.ofLp
+  rw [SymplecticForm.invariant_iff_isSymm_associatedBilinForm,
+    ← toMatrix_associatedBilinForm_stdForm, LinearMap.BilinForm.isSymm_toMatrix_iff_isSymm]
 
 /-- `ω₀` tames a complex structure `J` of `StdSpace ι` exactly when `xᵀ (-J₀ M) x > 0` for every
 nonzero `x`, where `M` is the matrix of `J`. -/
@@ -122,26 +103,15 @@ is positive definite, where `M` is the matrix of `J`. -/
 theorem compatible_stdForm_iff_posDef {J : AlmostComplexStructure (StdSpace ι)} :
     (stdForm ι).Compatible J ↔
       (-Matrix.J ι ℝ * toEuclideanLin.symm J.toLinearMap).PosDef := by
-  rw [SymplecticForm.compatible_iff, invariant_stdForm_iff_isSymm, tames_stdForm_iff,
-    posDef_iff_dotProduct_mulVec, isHermitian_iff_isSymm]
-  simp
-
-/-- The matrix that `homeomorphMatrix` assigns to a complex structure `J` of `StdSpace ι` is
-`toEuclideanLin.symm J`. -/
-private theorem coe_homeomorphMatrix (J : AlmostComplexStructure (StdSpace ι)) :
-    (AlmostComplexStructure.homeomorphMatrix (ι ⊕ ι) J : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ) =
-      toEuclideanLin.symm J.toLinearMap := by
-  rw [AlmostComplexStructure.homeomorphMatrix_apply_coe, LinearEquiv.eq_symm_apply,
-    ← coe_toEuclideanCLM_eq_toEuclideanLin, StarAlgEquiv.apply_symm_apply]
-  rfl
-
-private theorem neg_J_mul_J_mul (A : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ) :
-    -Matrix.J ι ℝ * (Matrix.J ι ℝ * A) = A := by
-  rw [Matrix.neg_mul, ← Matrix.mul_assoc, J_squared, neg_one_mul, neg_neg]
-
-private theorem J_mul_neg_J_mul (A : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ) :
-    Matrix.J ι ℝ * (-Matrix.J ι ℝ * A) = A := by
-  rw [Matrix.neg_mul, Matrix.mul_neg, ← Matrix.mul_assoc, J_squared, neg_one_mul, neg_neg]
+  rw [SymplecticForm.compatible_iff_isSymm_and_posDef_associatedBilinForm]
+  refine ⟨fun ⟨hs, hp⟩ ↦ ?_, fun h ↦ ?_⟩
+  · rwa [LinearMap.BilinForm.posDef_toQuadraticMap_iff_matrix (PiLp.basisFun 2 ℝ (ι ⊕ ι)) _ hs,
+      toMatrix_associatedBilinForm_stdForm] at hp
+  · have hs := invariant_stdForm_iff_isSymm.2 (isHermitian_iff_isSymm.1 h.isHermitian)
+    rw [SymplecticForm.invariant_iff_isSymm_associatedBilinForm] at hs
+    refine ⟨hs, ?_⟩
+    rwa [LinearMap.BilinForm.posDef_toQuadraticMap_iff_matrix (PiLp.basisFun 2 ℝ (ι ⊕ ι)) _ hs,
+      toMatrix_associatedBilinForm_stdForm]
 
 /-- The matrix `-J₀ M` of an `ω₀`-compatible complex structure, `M` its matrix, is a positive
 definite symplectic matrix. -/
@@ -150,8 +120,9 @@ private theorem mem_symplecticGroup_and_posDef {J : AlmostComplexStructure (StdS
     -Matrix.J ι ℝ * toEuclideanLin.symm J.toLinearMap ∈ symplecticGroup ι ℝ ∧
       (-Matrix.J ι ℝ * toEuclideanLin.symm J.toLinearMap).PosDef := by
   have hP := compatible_stdForm_iff_posDef.1 hJ
-  refine ⟨(isHermitian_iff_isSymm.1 hP.isHermitian).mem_symplecticGroup_iff.2 ?_, hP⟩
-  rw [J_mul_neg_J_mul]
+  refine ⟨(IsSymm.mem_symplecticGroup_iff
+    (isHermitian_iff_isSymm.1 hP.isHermitian)).2 ?_, hP⟩
+  rw [← Matrix.mul_assoc (Matrix.J ι ℝ) (-Matrix.J ι ℝ), J_mul_neg_J, Matrix.one_mul]
   exact J.toEuclideanLin_symm_mul_self
 
 /-- The `ω₀`-compatible complex structure of a positive definite symplectic matrix `P`: the
@@ -160,16 +131,18 @@ private noncomputable def ofPosDefSymplectic
     (P : {P : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ // P ∈ symplecticGroup ι ℝ ∧ P.PosDef}) :
     {J : AlmostComplexStructure (StdSpace ι) // (stdForm ι).Compatible J} :=
   ⟨(AlmostComplexStructure.homeomorphMatrix (ι ⊕ ι)).symm ⟨Matrix.J ι ℝ * P.val,
-    (isHermitian_iff_isSymm.1 P.property.2.isHermitian).mem_symplecticGroup_iff.1
+    (IsSymm.mem_symplecticGroup_iff
+      (isHermitian_iff_isSymm.1 P.property.2.isHermitian)).1
       P.property.1⟩, by
-    rw [compatible_stdForm_iff_posDef, ← coe_homeomorphMatrix, Homeomorph.apply_symm_apply,
-      neg_J_mul_J_mul]
+    rw [compatible_stdForm_iff_posDef, ← AlmostComplexStructure.coe_homeomorphMatrix,
+      Homeomorph.apply_symm_apply, ← Matrix.mul_assoc, neg_J_mul_J, Matrix.one_mul]
     exact P.property.2⟩
 
 private theorem coe_homeomorphMatrix_ofPosDefSymplectic
     (P : {P : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ // P ∈ symplecticGroup ι ℝ ∧ P.PosDef}) :
     toEuclideanLin.symm (ofPosDefSymplectic P).val.toLinearMap = Matrix.J ι ℝ * P.val := by
-  rw [← coe_homeomorphMatrix, ofPosDefSymplectic, Homeomorph.apply_symm_apply]
+  rw [← AlmostComplexStructure.coe_homeomorphMatrix, ofPosDefSymplectic,
+    Homeomorph.apply_symm_apply]
 
 variable (ι) in
 /-- The `ω₀`-compatible complex structures of `StdSpace ι` are homeomorphic to the positive
@@ -185,14 +158,17 @@ noncomputable def compatibleEquivPosDefSymplectic :
   left_inv J := by
     refine Subtype.ext (AlmostComplexStructure.toLinearMap_injective
       (toEuclideanLin.symm.injective ?_))
-    rw [coe_homeomorphMatrix_ofPosDefSymplectic, J_mul_neg_J_mul]
+    rw [coe_homeomorphMatrix_ofPosDefSymplectic, ← Matrix.mul_assoc, J_mul_neg_J,
+      Matrix.one_mul]
   right_inv P := Subtype.ext <| by
     simp only
-    rw [coe_homeomorphMatrix_ofPosDefSymplectic, neg_J_mul_J_mul]
+    rw [coe_homeomorphMatrix_ofPosDefSymplectic, ← Matrix.mul_assoc, neg_J_mul_J,
+      Matrix.one_mul]
   continuous_toFun :=
     (continuous_const.mul ((continuous_subtypeVal.comp
       ((AlmostComplexStructure.homeomorphMatrix (ι ⊕ ι)).continuous.comp
-        continuous_subtypeVal)).congr fun J ↦ coe_homeomorphMatrix J.val)).subtype_mk _
+        continuous_subtypeVal)).congr fun J ↦
+          AlmostComplexStructure.coe_homeomorphMatrix J.val)).subtype_mk _
   continuous_invFun :=
     ((AlmostComplexStructure.homeomorphMatrix (ι ⊕ ι)).symm.continuous.comp
       ((continuous_const.mul continuous_subtypeVal).subtype_mk _)).subtype_mk _
