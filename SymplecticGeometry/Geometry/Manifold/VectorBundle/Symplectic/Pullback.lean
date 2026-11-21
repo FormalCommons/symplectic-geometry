@@ -20,9 +20,10 @@ that it is compatible with the rest of the structure that `Symplectic/Basic.lean
 ## Main definitions and results
 
 * `SymplecticGeometry.Bundle.ContMDiffTwoForm.pullback ω f`, with `pullback_apply`,
-  `bilinFormAt_pullback` and the linear map `pullbackLinearMap f`.
+  `bilinFormAt_pullback`, `bilinFormAt_pullback_apply` and the linear map `pullbackLinearMap f`.
 * `IsNondegenerate.pullback` and `IsNondegenerate.symplecticFormAt_pullback`: the pull-back of a
-  symplectic structure is one, with the symplectic form of `ω` at `f y` on the fibre over `y`.
+  symplectic structure is one, with the symplectic form of `ω` at `f y` on the fibre over `y`;
+  `IsNondegenerate.symplecticFormAt_pullback_apply` evaluates it on vectors.
 * `Tames.pullback`, `Invariant.pullback`, `Compatible.pullback`: pulling back the form and the
   complex structure (`ContMDiffComplexStructure.pullback`) together keeps the pair tame,
   invariant or compatible.
@@ -48,6 +49,12 @@ isomorphism of bundles is smooth by `Bundle.Pullback.contMDiff_fiberwise`. The A
 `pullback_add`, `pullback_smul` and `pullbackLinearMap` adapts Tau Ceti's
 `ContMDiffSection.pullback_zero`, `pullback_add`, `pullback_smul` and `pullbackLinearMap`
 (`TauCeti/Geometry/Manifold/VectorBundle/Section/Module.lean`).
+
+`bilinFormAt_pullback` and `IsNondegenerate.symplecticFormAt_pullback` are not `@[simp]`: the
+form they give lives on `V (f y)`, but the instances around it still name the fibre
+`(f *ᵖ V) y`, so the lemmas that evaluate it no longer apply. `simp` evaluates the pulled-back
+form on vectors with `bilinFormAt_pullback_apply` and
+`IsNondegenerate.symplecticFormAt_pullback_apply` instead.
 
 ## References
 
@@ -114,13 +121,22 @@ theorem pullback_apply (ω : ContMDiffTwoForm I n F V) (f : C^n⟮I', N; I, M⟯
     ω.pullback f y = ω (f y) :=
   (rfl)
 
-/-- The bilinear form of the pull-back at `y` is that of `ω` at `f y`. -/
-@[simp]
+/-- The bilinear form of the pull-back at `y` is that of `ω` at `f y`.
+
+This is not `@[simp]`: after it rewrites, the instances around the form still name the fibre
+`(f *ᵖ V) y`, and `bilinFormAt_apply` no longer applies. `simp` uses `bilinFormAt_pullback_apply`
+instead. -/
 theorem bilinFormAt_pullback (ω : ContMDiffTwoForm I n F V) (f : C^n⟮I', N; I, M⟯) (y : N) :
     (ω.pullback f).bilinFormAt y = ω.bilinFormAt (f y) := by
   rw [bilinFormAt_def, bilinFormAt_def, pullback_apply]
   -- The two sides differ only in the fibre type, `(f *ᵖ V) y` against `V (f y)`.
   rfl
+
+/-- The bilinear form of the pull-back at `y` evaluates as `ω (f y)`. -/
+@[simp]
+theorem bilinFormAt_pullback_apply (ω : ContMDiffTwoForm I n F V) (f : C^n⟮I', N; I, M⟯) (y : N)
+    (v w : V (f y)) : (ω.pullback f).bilinFormAt y v w = ω (f y) ![v, w] :=
+  ((ω.pullback f).bilinFormAt_apply y v w).trans (congrArg (· ![v, w]) (pullback_apply ω f y))
 
 /-- The pull-back of the zero form is zero. -/
 @[simp]
@@ -156,6 +172,18 @@ theorem pullbackLinearMap_apply (f : C^n⟮I', N; I, M⟯) (ω : ContMDiffTwoFor
     pullbackLinearMap I F V n f ω = ω.pullback f :=
   (rfl)
 
+/-- The pull-back of the negative of a two-form is the negative of its pull-back. -/
+@[simp]
+theorem pullback_neg (ω : ContMDiffTwoForm I n F V) (f : C^n⟮I', N; I, M⟯) :
+    (-ω).pullback f = -ω.pullback f :=
+  map_neg (pullbackLinearMap I F V n f) ω
+
+/-- The pull-back of a difference is the difference of the pull-backs. -/
+@[simp]
+theorem pullback_sub (ω ω' : ContMDiffTwoForm I n F V) (f : C^n⟮I', N; I, M⟯) :
+    (ω - ω').pullback f = ω.pullback f - ω'.pullback f :=
+  map_sub (pullbackLinearMap I F V n f) ω ω'
+
 /-! ### Nondegeneracy -/
 
 variable {ω : ContMDiffTwoForm I n F V}
@@ -167,13 +195,25 @@ theorem IsNondegenerate.pullback (h : ω.IsNondegenerate) (f : C^n⟮I', N; I, M
     rw [bilinFormAt_pullback]
     exact h.nondegenerate_bilinFormAt (f y)
 
-/-- The symplectic form of the pull-back on the fibre over `y` is that of `ω` over `f y`. -/
-@[simp]
+/-- The symplectic form of the pull-back on the fibre over `y` is that of `ω` over `f y`.
+
+This is not `@[simp]`, for the reason given at `bilinFormAt_pullback`. `simp` uses
+`IsNondegenerate.symplecticFormAt_pullback_apply` instead. -/
 theorem IsNondegenerate.symplecticFormAt_pullback (h : ω.IsNondegenerate) (f : C^n⟮I', N; I, M⟯)
     (y : N) : (h.pullback f).symplecticFormAt y = h.symplecticFormAt (f y) :=
   TauCeti.SymplecticForm.toBilinForm_injective <| by
     rw [IsNondegenerate.toBilinForm_symplecticFormAt, IsNondegenerate.toBilinForm_symplecticFormAt,
       bilinFormAt_pullback]
+
+/-- The symplectic form of the pull-back on the fibre over `y` evaluates as `ω (f y)`. The
+hypothesis is the nondegeneracy of the pull-back, rather than of `ω`, so that `simp` can match
+it against any proof of it, such as `h.pullback f`. -/
+@[simp]
+theorem IsNondegenerate.symplecticFormAt_pullback_apply {f : C^n⟮I', N; I, M⟯}
+    (h : (ω.pullback f).IsNondegenerate) (y : N) (v w : V (f y)) :
+    h.symplecticFormAt y v w = ω (f y) ![v, w] :=
+  (h.symplecticFormAt_apply y v w).trans
+    (congrArg (· ![v, w]) (pullback_apply ω f y))
 
 /-! ### Tame and compatible pairs -/
 
