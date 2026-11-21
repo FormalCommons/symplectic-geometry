@@ -9,6 +9,7 @@ public import SymplecticGeometry.Analysis.Matrix.Polar.Deformation
 public import SymplecticGeometry.Analysis.Matrix.Polar.Symplectic
 public import TauCeti.Analysis.Matrix.Polar.GLSymplectic
 public import TauCeti.Analysis.Matrix.SymplecticGroup.Connected
+public import TauCeti.Topology.Algebra.Matrix.Realify
 public import TauCeti.LinearAlgebra.Matrix.GeneralLinearGroup.Symplectic.MaximalCompact
 public import TauCeti.Topology.Homotopy.DeformationRetract
 
@@ -34,6 +35,8 @@ the theorem `TauCeti.GLSymplectic.polar_maximal_isCompact_deformationRetract`.
   to `U(n)`.
 * `TauCeti.GLSymplectic.polarHomotopyEquiv`: the homotopy equivalence `U(n) ≃ₕ Sp(2n)` given by
   the inclusion.
+* `TauCeti.GLSymplectic.ofUnitaryHomotopyEquiv`: the homotopy equivalence `U(n) ≃ₕ Sp(2n)` from
+  the complex unitary group, given by the realification `TauCeti.GLSymplectic.ofUnitary`.
 
 ## Main results
 
@@ -117,6 +120,18 @@ theorem polarHomotopyEquiv_apply (U : ↥(GLSymplectic n ℝ ⊓ unitarySubgroup
 theorem polarHomotopyEquiv_symm_apply (A : GLSymplectic n ℝ) :
     polarHomotopyEquiv.symm A = polarUnitary A :=
   ContinuousMap.HomotopyEquiv.ofDeformationRetraction_symm_apply _ _ _ _ A
+
+/-- The realification `ofUnitary` of complex unitary matrices of size `n` into `Sp(2n)` is a
+homotopy equivalence: it is the homeomorphism of the complex unitary group with the orthogonal
+symplectic matrices, followed by their inclusion in `Sp(2n)`. -/
+noncomputable def ofUnitaryHomotopyEquiv : unitaryGroup n ℂ ≃ₕ GLSymplectic n ℝ :=
+  unitaryGroupEquivSymplecticInfOrthogonal.toHomeomorph.toHomotopyEquiv.trans polarHomotopyEquiv
+
+/-- The homotopy equivalence `ofUnitaryHomotopyEquiv` is the realification `ofUnitary`. -/
+@[simp]
+theorem ofUnitaryHomotopyEquiv_apply (U : unitaryGroup n ℂ) :
+    ofUnitaryHomotopyEquiv U = ofUnitary U := by
+  simp [ofUnitaryHomotopyEquiv, ofUnitary_apply]
 
 /-- **Polar decomposition and the maximal compact subgroup of `Sp(2n)`.** For real matrices of
 size `2n`:

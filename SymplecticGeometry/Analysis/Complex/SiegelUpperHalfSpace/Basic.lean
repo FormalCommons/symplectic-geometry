@@ -137,6 +137,11 @@ theorem im_mk (Z : Matrix ι ι ℂ) (hZ : Z.IsSymm) (hY : (Z.map Complex.im).Po
 theorem posDef_im (Z : SiegelUpperHalfSpace ι) : Z.im.PosDef :=
   Z.posDef_map_im
 
+/-- The imaginary part of a point of the Siegel upper half space is invertible. -/
+theorem isUnit_det_map_im [Fintype ι] [DecidableEq ι] (Z : SiegelUpperHalfSpace ι) :
+    IsUnit ((Z : Matrix ι ι ℂ).map Complex.im).det :=
+  (isUnit_iff_isUnit_det _).1 Z.posDef_map_im.isUnit
+
 theorem isSymm_re (Z : SiegelUpperHalfSpace ι) : Z.re.IsSymm :=
   Z.isSymm.map _
 
