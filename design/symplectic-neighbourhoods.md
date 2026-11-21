@@ -224,7 +224,7 @@ and two rows of its milestone table.
   they use nothing of symplectic geometry.
 - `AdaptedDarboux.lean` uses Tau Ceti's pointwise relative Darboux theorem
   instead of the neighbourhood theorems, so it can start at once. Its general
-  steps are in four files of their own, listed in building issue 10.
+  steps are in five files of their own, listed in building issue 10.
 - The part no longer builds on *Symplectic vector bundles*, neither on
   `Symplectic/Basic.lean` nor on any of its open issues: the compatible
   complex structures come from Tau Ceti, and the symplectic normal bundle
@@ -567,7 +567,8 @@ with `σ₁ = g^*ω`, `σ₀ = stdForm` and the inclusion of `S`. Its
 being an embedding, the image of `Q` in the source is exactly the part of
 `S` that `e` hits. The pull-back along the local inverse is
 `IsLocalDiffeomorphAt.mpullback_localInverse_apply_eq`, in the general
-`Geometry/Manifold/DifferentialForm/Pullback/LocalDiffeomorph.lean`; the
+`Geometry/Manifold/DifferentialForm/Pullback/LocalDiffeomorph.lean`, with
+`Geometry/Manifold/LocalDiffeomorph/LocalInverse.lean`; the
 shrinking is `Topology.IsInducing.exists_isOpen_inter_range_eq`, in the
 general `Topology/Maps/Embedding.lean`. These steps, for any chart `c` and injective linear
 `ι : E' → StdSpace (Fin n)` with `range ι = S`, are the public
@@ -630,7 +631,8 @@ list. Issues 1, 3, 5 and 10 can start at once.
     step and the symplectic, isotropic and Lagrangian theorems, with the
     general files `Geometry/Manifold/LocalDiffeomorph/Extend.lean`,
     `LinearAlgebra/FiniteDimensional/Extension.lean`,
-    `Geometry/Manifold/DifferentialForm/Pullback/LocalDiffeomorph.lean` and
+    `Geometry/Manifold/DifferentialForm/Pullback/LocalDiffeomorph.lean`,
+    `Geometry/Manifold/LocalDiffeomorph/LocalInverse.lean` and
     `Topology/Maps/Embedding.lean`. About 400
     lines. Blockers: none.
 11. **Adapted Darboux charts of coisotropic submanifolds.**

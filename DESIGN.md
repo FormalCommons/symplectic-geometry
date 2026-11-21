@@ -1961,8 +1961,10 @@ has either; Tau Ceti's extension across a boundary,
   `LinearAlgebra/FiniteDimensional/Extension.lean` (an injective linear map
   extended to a linear equivalence),
   `Geometry/Manifold/DifferentialForm/Pullback/LocalDiffeomorph.lean` (pull-back
-  along the local inverse of a local diffeomorphism) and
-  `Topology/Maps/Embedding.lean` (an embedding cut out by a chart).
+  along the local inverse of a local diffeomorphism),
+  `Geometry/Manifold/LocalDiffeomorph/LocalInverse.lean` (a local
+  diffeomorphism on the target of its local inverse) and
+  `Topology/Maps/Embedding.lean` (an inducing map cut out by a chart).
   The symplectic normal bundle of a symplectic submanifold is Tau Ceti's
   normal bundle with `TauCeti.SmoothEmbedding.symplecticNormalForm`; the
   symplectic normal bundle $(TQ)^\omega/TQ$ of an isotropic one is given by
