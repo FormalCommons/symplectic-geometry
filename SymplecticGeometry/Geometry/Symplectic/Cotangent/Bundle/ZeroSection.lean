@@ -23,16 +23,10 @@ This file computes `ω` in this splitting: for `v, w ∈ T_q L` and `a, b ∈ T*
 
 (`TauCeti.CotangentBundle.eval₂_symplecticForm_zeroSectionTangentEquiv_symm`). So at the zero
 section `ω` is the linear form `TauCeti.strongDualCotangentSymplecticForm` of `T_q L × T*_q L`,
-with its sign. The proof rests on the fact that in the preferred chart at `0_q`, the inverse
-splitting is the identity of `E × (E →L[ℝ] ℝ)`
-(`TauCeti.CotangentBundle.zeroSectionTangentEquiv_symm_apply`), since the preferred trivialization
-of `T*L` at `q` is the identity on the fibre over `q`. The base may have boundary or corners, and
-nothing here assumes finite dimension.
+with its sign. The base may have boundary or corners, and nothing here assumes finite dimension.
 
 ## Main results
 
-* `TauCeti.CotangentBundle.zeroSectionTangentEquiv_symm_apply`: the inverse splitting at `0_q`
-  in the coordinates of the preferred chart.
 * `TauCeti.CotangentBundle.eval₂_symplecticForm_zeroSectionTangentEquiv_symm`: the canonical
   symplectic form at `0_q`, read in the splitting `T_q L × T*_q L`.
 
@@ -52,18 +46,6 @@ namespace TauCeti.CotangentBundle
 variable {E H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
   {I : ModelWithCorners ℝ E H} {L : Type*} [TopologicalSpace L] [ChartedSpace H L]
 
-/-- At the point `0_q` of the zero section of `T*L`, the inverse of the splitting
-`TauCeti.Bundle.zeroSectionTangentEquiv q` sends `(u, c) ∈ T_q L × T*_q L` to the tangent vector
-whose coordinates in the preferred chart at `0_q` are `(u, c)` itself. -/
-theorem zeroSectionTangentEquiv_symm_apply [IsManifold I 1 L] (q : L) (u : TangentSpace I q)
-    (c : TangentSpace I q →L[ℝ] ℝ) :
-    (Bundle.zeroSectionTangentEquiv (I := I) (F := E →L[ℝ] ℝ)
-        (V := fun x : L ↦ TangentSpace I x →L[ℝ] ℝ) q).symm (u, c) =
-      ((u, c) : E × (E →L[ℝ] ℝ)) := by
-  rw [Bundle.zeroSectionTangentEquiv_symm_apply, continuousLinearMapAt_trivializationAt_self]
-  -- Both sides are the pair `(u, c)`, written once through its projections.
-  rfl
-
 /-- **The canonical symplectic form along the zero section.** At the point `0_q` of the zero
 section of `T*L`, read the tangent space of `T*L` as `T_q L × T*_q L` through
 `TauCeti.Bundle.zeroSectionTangentEquiv q`. Then the canonical symplectic form
@@ -75,8 +57,9 @@ theorem eval₂_symplecticForm_zeroSectionTangentEquiv_symm [IsManifold I ∞ L]
         ((Bundle.zeroSectionTangentEquiv (I := I) q).symm (v, a))
         ((Bundle.zeroSectionTangentEquiv (I := I) q).symm (w, b)) =
       b v - a w := by
-  rw [eval₂_symplecticForm, zeroSectionTangentEquiv_symm_apply,
-    zeroSectionTangentEquiv_symm_apply]
+  rw [eval₂_symplecticForm, Bundle.zeroSectionTangentEquiv_symm_apply,
+    Bundle.zeroSectionTangentEquiv_symm_apply, continuousLinearMapAt_trivializationAt_self,
+    continuousLinearMapAt_trivializationAt_self]
   exact strongDualCotangentSymplecticForm_apply (V := E) (v, a) (w, b)
 
 end TauCeti.CotangentBundle
