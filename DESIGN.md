@@ -558,7 +558,10 @@ it into issues; the overview fixes its folders and its dependencies.
   ends is a free one. The crossing forms add a third file outside these
   folders, `Analysis/Calculus/Deriv/Matrix.lean` (derivatives of
   matrix-valued functions), beside Tau Ceti's file of the same name so that
-  the two merge upstream.
+  the two merge upstream. The regular pieces add a fourth,
+  `LinearAlgebra/Matrix/Basis.lean` (the matrix `1 + Eᵢᵢ a`, after Mathlib's
+  `Data/Matrix/Basis.lean`), and the lemma `Matrix.realify_smul_one`
+  (`LinearAlgebra/Matrix/Realify.lean`).
 - **Builds on:** *Standard model*, *Symplectic group*, *Unitary group
   topology*, *Lagrangian Grassmannian*. From Mathlib and Tau Ceti, in two
   ways, none of it re-derived:

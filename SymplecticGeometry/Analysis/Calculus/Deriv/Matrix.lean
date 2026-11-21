@@ -14,8 +14,10 @@ public import Mathlib.Topology.Instances.Matrix
 # Derivatives of matrix-valued functions
 
 A function `A : 𝕜 → Matrix m n F` has derivative `A'` exactly when each entry `A · i j` has
-derivative `A' i j` (`hasDerivWithinAt_matrix`, and `hasDerivAt_matrix` for `HasDerivAt`). From
-this we get the derivatives of a constant (`hasDerivWithinAt_matrix_const`) and of a transpose
+derivative `A' i j` (`hasDerivWithinAt_matrix`, and `hasDerivAt_matrix` for `HasDerivAt`).
+Through the entries, the two notions agree as they do for normed spaces
+(`hasDerivWithinAt_matrix_univ`, `HasDerivAt.matrix_hasDerivWithinAt`). From this we get the
+derivatives of a constant (`hasDerivWithinAt_matrix_const`) and of a transpose
 (`HasDerivWithinAt.matrix_transpose`), and the product rule for products of possibly
 rectangular matrices with entries in a normed `𝕜`-algebra (`HasDerivWithinAt.matrix_mul`).
 
@@ -48,6 +50,19 @@ theorem hasDerivAt_matrix {A : 𝕜 → Matrix m n F} {A' : Matrix m n F} :
   have := Fintype.ofFinite n
   change HasDerivAt (F := m → n → F) A A' t ↔ _
   exact hasDerivAt_pi.trans (forall_congr' fun _ ↦ hasDerivAt_pi)
+
+/-- A matrix-valued function has derivative `A'` within `univ` at `t` exactly when it has
+derivative `A'` at `t`: the matrix form of `hasDerivWithinAt_univ`. -/
+theorem hasDerivWithinAt_matrix_univ {A : 𝕜 → Matrix m n F} {A' : Matrix m n F} :
+    HasDerivWithinAt A A' Set.univ t ↔ HasDerivAt A A' t :=
+  hasDerivWithinAt_matrix.trans <| (forall₂_congr fun _ _ ↦ hasDerivWithinAt_univ).trans
+    hasDerivAt_matrix.symm
+
+/-- A matrix-valued function with derivative `A'` at `t` has derivative `A'` within every set at
+`t`: the matrix form of `HasDerivAt.hasDerivWithinAt`. -/
+theorem HasDerivAt.matrix_hasDerivWithinAt {A : 𝕜 → Matrix m n F} {A' : Matrix m n F}
+    (hA : HasDerivAt A A' t) : HasDerivWithinAt A A' s t :=
+  hasDerivWithinAt_matrix.2 fun i j ↦ (hasDerivAt_matrix.1 hA i j).hasDerivWithinAt
 
 /-- The entries of a differentiable matrix-valued function are differentiable. -/
 theorem HasDerivWithinAt.matrix_elem {A : 𝕜 → Matrix m n F} {A' : Matrix m n F}

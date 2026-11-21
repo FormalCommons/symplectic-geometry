@@ -7,6 +7,10 @@ module
 
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Lagrangian.Maslov.Crossing.Form
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Lagrangian.Maslov.Path.Basic
+public import Mathlib.Analysis.Calculus.ContDiff.Operations
+public import Mathlib.Analysis.Matrix.Normed
+public import SymplecticGeometry.LinearAlgebra.Matrix.Basis
+public import SymplecticGeometry.LinearAlgebra.Matrix.Realify
 public import TauCeti.LinearAlgebra.Matrix.UnitaryGroup.Basic
 
 /-!
@@ -20,13 +24,13 @@ paths are built.
 ## Main definitions
 
 * `SymplecticGeometry.LagrangianGrassmannian.rotate θ Λ`: the image of `Λ` under the scalar
-  unitary matrix `e^{iθ}`, that is, under `e^{θ J₀}`; `rotationPath Λ ε` is the path
-  `s ↦ rotate (ε s) Λ`, with frame `s ↦ rotationFrame Z (ε s) = e^{ε s J₀} Z` for a frame `Z`
-  of `Λ`.
-* `SymplecticGeometry.LagrangianGrassmannian.coordinateRotate i θ Λ`: the image of `Λ` under
-  `diag(1, …, e^{iθ}, …, 1)`, which turns the `i`-th coordinate plane; `coordinateHalfTurn i` is
-  the loop `s ↦ coordinateRotate i (π s) {x = 0}`, with frame
-  `s ↦ coordinateRotationFrame i (π s)`.
+  unitary matrix `e^{iθ}`, that is, under `e^{θ J₀}`, with `rotate_rotate` for composition;
+  `rotationPath Λ ε` is the path `s ↦ rotate (ε s) Λ`, with frame
+  `s ↦ rotationFrame Z (ε s) = e^{ε s J₀} Z` for a frame `Z` of `Λ`.
+* `SymplecticGeometry.coordinateUnitary i θ`: the unitary matrix `diag(1, …, e^{iθ}, …, 1)`;
+  `SymplecticGeometry.LagrangianGrassmannian.coordinateRotate i θ Λ`: the image of `Λ` under it,
+  which turns the `i`-th coordinate plane; `coordinateHalfTurn i` is the loop
+  `s ↦ coordinateRotate i (π s) {x = 0}`, with frame `s ↦ coordinateRotationFrame i (π s)`.
 
 ## Main results
 
@@ -34,12 +38,11 @@ paths are built.
   definite when `ε ≠ 0`; `eventually_rotationPath_inf_eq_bot`: for every small nonzero `ε`, the
   rotation `rotationPath Λ ε` meets a given Lagrangian `V` at most at `s = 0`.
 * `exists_chartPath`: two Lagrangians transverse to `{y = 0}` are joined by a path in the chart
-  `{x = S y}` of symmetric matrices `S`, with a differentiable frame, that never meets
-  `{y = 0}`.
+  `{x = S y}` of symmetric matrices `S`, with a smooth frame, that never meets `{y = 0}`.
 * `coordinateHalfTurn_inf_horizontal_ne_bot_iff`: the coordinate half-turn meets `{y = 0}` only at
   `s = 1 / 2`, in a line (`finrank_comap_horizontal_coordinateRotationFrame_pi_div_two`), where its
   crossing form `u ↦ π uᵢ²` is positive definite
-  (`posDef_lagrangianCrossingForm_coordinateHalfTurn`); and
+  (`posDef_lagrangianCrossingForm_coordinateRotationFrame_pi_div_two`); and
   `pathMaslovIndex_coordinateHalfTurn`: its index is `1`, relative to every Lagrangian.
 
 ## Implementation notes
@@ -63,38 +66,6 @@ open Matrix TauCeti Set Filter Topology
 open scoped unitInterval
 
 variable {ι : Type*} [Fintype ι] [DecidableEq ι]
-
-omit [Fintype ι] in
-/-- The realification of the scalar unitary matrix `e^{iθ} 1` is `cos θ • 1 + sin θ • J`. -/
-theorem Matrix.realify_circleExp_smul_one (θ : ℝ) :
-    ((Circle.exp θ : ℂ) • (1 : Matrix ι ι ℂ)).realify =
-      Real.cos θ • (1 : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ) + Real.sin θ • J ι ℝ := by
-  have h : (Circle.exp θ : ℂ) • (1 : Matrix ι ι ℂ) =
-      Real.cos θ • (1 : Matrix ι ι ℂ) + Real.sin θ • (Complex.I • (1 : Matrix ι ι ℂ)) := by
-    ext i j
-    by_cases hij : i = j <;> simp [hij, Circle.coe_exp, Complex.exp_mul_I]
-  rw [h, realify_add, realify_smul, realify_smul, realify_I_smul_one, realify_one]
-
-omit [Fintype ι] in
-/-- `1 + Eᵢᵢ a` is the diagonal matrix `diag(1, …, 1 + a, …, 1)`. -/
-theorem Matrix.one_add_single_eq_diagonal {R : Type*} [Semiring R] (i : ι) (a : R) :
-    1 + single i i a = diagonal (Function.update 1 i (1 + a)) := by
-  ext p q
-  rcases eq_or_ne p q with rfl | hpq
-  · rcases eq_or_ne p i with rfl | hp
-    · simp
-    · simp [hp, hp.symm]
-  · rw [diagonal_apply_ne _ hpq, Matrix.add_apply, one_apply_ne hpq, zero_add]
-    simp only [single_apply, ite_eq_right_iff, and_imp]
-    rintro rfl rfl
-    exact absurd rfl hpq
-
-/-- `1 + Eᵢᵢ a` is invertible exactly when `1 + a` is. -/
-theorem Matrix.isUnit_one_add_single_iff {R : Type*} [CommRing R] (i : ι) (a : R) :
-    IsUnit (1 + single i i a) ↔ IsUnit (1 + a) := by
-  rw [one_add_single_eq_diagonal, isUnit_diagonal, Pi.isUnit_iff]
-  refine ⟨fun h ↦ by simpa using h i, fun h j ↦ ?_⟩
-  by_cases hj : j = i <;> simp [hj, h]
 
 namespace SymplecticGeometry
 
@@ -141,37 +112,33 @@ theorem posDef_lagrangianCrossingForm_smul_J_mul {Z : Matrix (ι ⊕ ι) ι ℝ}
 
 namespace LagrangianGrassmannian
 
-/-- A real `2n × n` matrix whose columns span a Lagrangian subspace is injective. -/
-theorem injective_toEuclideanLin_of_range_eq {Λ : ℒ ι} {Z : Matrix (ι ⊕ ι) ι ℝ}
-    (hZ : LinearMap.range (toEuclideanLin Z) = Λ) : Function.Injective (toEuclideanLin Z) := by
-  have h := LinearMap.finrank_range_add_finrank_ker (toEuclideanLin Z)
-  rw [hZ, finrank_eq_card, finrank_euclideanSpace] at h
-  exact LinearMap.ker_eq_bot.1 (Submodule.finrank_eq_zero.1 (by omega))
-
 /-! ### Rotations -/
 
 /-- The rotation of a Lagrangian `Λ` by the scalar unitary matrix `e^{iθ} 1`, that is, by
 `e^{θ J₀}`. -/
 noncomputable def rotate (θ : ℝ) (Λ : ℒ ι) : ℒ ι :=
-  (⟨(Circle.exp θ : ℂ) • (1 : Matrix ι ι ℂ),
-    Unitary.smul_mem_of_mem (Circle.exp θ).coe_mem_unitary (one_mem _)⟩ : unitaryGroup ι ℂ) • Λ
+  (circleEquivUnitary (Circle.exp θ) • (1 : unitaryGroup ι ℂ)) • Λ
 
 theorem rotate_def (θ : ℝ) (Λ : ℒ ι) :
-    rotate θ Λ = (⟨(Circle.exp θ : ℂ) • (1 : Matrix ι ι ℂ),
-      Unitary.smul_mem_of_mem (Circle.exp θ).coe_mem_unitary (one_mem _)⟩ :
-        unitaryGroup ι ℂ) • Λ :=
+    rotate θ Λ = (circleEquivUnitary (Circle.exp θ) • (1 : unitaryGroup ι ℂ)) • Λ :=
   (rfl)
 
 @[simp]
 theorem rotate_zero (Λ : ℒ ι) : rotate 0 Λ = Λ := by
-  rw [rotate_def, ← one_smul (unitaryGroup ι ℂ) Λ]
+  have h : circleEquivUnitary (Circle.exp 0) • (1 : unitaryGroup ι ℂ) = 1 :=
+    Subtype.ext (by simp [Unitary.coe_smul])
+  rw [rotate_def, h, one_smul]
+
+/-- Rotating by `φ` and then by `θ` is rotating by `θ + φ`. -/
+theorem rotate_rotate (θ φ : ℝ) (Λ : ℒ ι) : rotate θ (rotate φ Λ) = rotate (θ + φ) Λ := by
+  rw [rotate_def, rotate_def, rotate_def, smul_smul]
   congr 1
-  · exact Subtype.ext (by simp)
-  · simp
+  refine Subtype.ext ?_
+  simp only [Submonoid.coe_mul, Unitary.coe_smul, OneMemClass.coe_one, Submonoid.smul_def,
+    coe_circleEquivUnitary, Circle.exp_add, Circle.coe_mul, smul_mul_smul_comm, mul_one]
 
 theorem continuous_rotate (Λ : ℒ ι) : Continuous fun θ : ℝ ↦ rotate θ Λ := by
-  have h : Continuous fun θ : ℝ ↦ (⟨(Circle.exp θ : ℂ) • (1 : Matrix ι ι ℂ),
-      Unitary.smul_mem_of_mem (Circle.exp θ).coe_mem_unitary (one_mem _)⟩ : unitaryGroup ι ℂ) :=
+  have h : Continuous fun θ : ℝ ↦ circleEquivUnitary (Circle.exp θ) • (1 : unitaryGroup ι ℂ) :=
     Continuous.subtype_mk (by fun_prop) _
   exact h.smul continuous_const
 
@@ -202,7 +169,7 @@ theorem hasDerivAt_rotationFrame (Z : Matrix (ι ⊕ ι) ι ℝ) (θ : ℝ) :
         ((Real.hasDerivAt_sin θ).mul_const (J ι ℝ p q))
   have h := hR.matrix_mul (hasDerivWithinAt_matrix_const Z univ θ)
   replace h : HasDerivAt _ _ θ :=
-    hasDerivAt_matrix.2 fun p q ↦ hasDerivWithinAt_univ.1 (h.matrix_elem p q)
+    hasDerivWithinAt_matrix_univ.1 h
   rw [show rotationFrame Z = _ from funext (rotationFrame_def Z)]
   convert h using 1
   rw [Matrix.mul_zero, add_zero, ← Matrix.mul_assoc, Matrix.mul_add, Matrix.mul_smul,
@@ -219,6 +186,34 @@ theorem hasDerivAt_rotationFrame_comp (Z : Matrix (ι ⊕ ι) ι ℝ) {f : ℝ �
     exact h
 
 /-! ### Frames of coordinate rotations -/
+
+/-- The diagonal unitary matrix `diag(1, …, e^{iθ}, …, 1)`, with `e^{iθ}` at the place `i`. It
+turns the `i`-th coordinate plane `(xᵢ, yᵢ)` of `StdSpace ι` by the angle `θ`. -/
+noncomputable def coordinateUnitary (i : ι) (θ : ℝ) : unitaryGroup ι ℂ :=
+  ⟨diagonal (Function.update 1 i (Circle.exp θ : ℂ)),
+    diagonal_update_one_mem_unitary_iff.2 (Circle.exp θ).coe_mem_unitary⟩
+
+theorem coe_coordinateUnitary (i : ι) (θ : ℝ) :
+    (coordinateUnitary i θ : Matrix ι ι ℂ) = diagonal (Function.update 1 i (Circle.exp θ : ℂ)) :=
+  (rfl)
+
+@[simp]
+theorem coordinateUnitary_zero (i : ι) : coordinateUnitary i 0 = 1 :=
+  Subtype.ext <| by simp [coe_coordinateUnitary]
+
+theorem coordinateUnitary_add (i : ι) (θ φ : ℝ) :
+    coordinateUnitary i (θ + φ) = coordinateUnitary i θ * coordinateUnitary i φ := by
+  refine Subtype.ext ?_
+  rw [Submonoid.coe_mul, coe_coordinateUnitary, coe_coordinateUnitary, coe_coordinateUnitary,
+    diagonal_mul_diagonal]
+  congr 1
+  ext j
+  by_cases hj : j = i <;> simp [hj, Circle.exp_add]
+
+theorem continuous_coordinateUnitary (i : ι) : Continuous (coordinateUnitary i) :=
+  continuous_induced_rng.2 <| by
+    simpa only [Function.comp_def, coe_coordinateUnitary] using
+      Continuous.matrix_diagonal (continuous_const.update i (by fun_prop))
 
 /-- The frame `fromRows (-sin θ Eᵢᵢ) (1 + (cos θ - 1) Eᵢᵢ)` of `coordinateRotate i θ {x = 0}`
 (`range_coordinateRotationFrame`), where `Eᵢᵢ = Matrix.single i i 1`. -/
@@ -275,7 +270,9 @@ theorem range_rotationFrame {Λ : ℒ ι} {Z : Matrix (ι ⊕ ι) ι ℝ}
     (hZ : LinearMap.range (toEuclideanLin Z) = Λ) (θ : ℝ) :
     LinearMap.range (toEuclideanLin (rotationFrame Z θ)) = rotate θ Λ := by
   rw [rotate_def, unitary_smul_def, coe_smul_of_coe_eq _ hZ.symm, GLSymplectic.coe_ofUnitary,
-    realify_circleExp_smul_one, rotationFrame_def]
+    Unitary.coe_smul, OneMemClass.coe_one, Submonoid.smul_def, coe_circleEquivUnitary,
+    realify_smul_one, Circle.coe_exp, Complex.exp_ofReal_mul_I_re, Complex.exp_ofReal_mul_I_im,
+    rotationFrame_def]
 
 /-- The **rotation** `s ↦ e^{ε s J₀} Λ`, `s ∈ [0, 1]`, of a Lagrangian `Λ` through the angle `ε`.
 For a frame `Z` of `Λ` it has the frame `s ↦ rotationFrame Z (ε * s)` (`range_rotationFrame`),
@@ -314,7 +311,7 @@ theorem eventually_rotate_inf_eq_bot (Λ V : ℒ ι) :
     (fun t : I ↦ rotate (2 * ((t : ℝ) - 1 / 2)) Λ) V
     (Z := fun r ↦ rotationFrame Z (2 * (r - 1 / 2))) (t₀ := h)
     (fun t ↦ range_rotationFrame hZ (2 * ((t : ℝ) - 1 / 2)))
-    (hasDerivWithinAt_matrix.2 fun p q ↦ (hasDerivAt_matrix.1 hd p q).hasDerivWithinAt) hreg
+    hd.matrix_hasDerivWithinAt hreg
   -- Read near `t = 1 / 2` through `θ ↦ θ / 2 + 1 / 2`.
   obtain ⟨f, hfc, hf⟩ : ∃ f : ℝ → I, Continuous f ∧
       ∀ {θ : ℝ}, θ ∈ Ioo (-1 : ℝ) 1 → (f θ : ℝ) = θ / 2 + 1 / 2 :=
@@ -353,14 +350,16 @@ theorem eventually_rotationPath_inf_eq_bot (Λ V : ℒ ι) :
 
 /-! ### Chart segments -/
 
+open scoped ContDiff Matrix.Norms.Elementwise in
 /-- **Chart segments.** Between two Lagrangians transverse to `{y = 0}` there is a path that never
-meets `{y = 0}` and has a frame `Z` with a derivative `Z' s` at every `s`: the segment
+meets `{y = 0}` and has a smooth frame `Z`, with derivative `Z' s` at every `s`: the segment
 `s ↦ {x = S s y}` between the symmetric matrices of the two ends, with frame
-`fromRows (S s) 1`. -/
+`fromRows (S s) 1`. Smoothness is stated for the entrywise norm on matrices. -/
 theorem exists_chartPath {Λ Λ' : ℒ ι}
     (hΛ : IsCompl (Λ : Submodule ℝ (StdSpace ι)) (horizontal ι))
     (hΛ' : IsCompl (Λ' : Submodule ℝ (StdSpace ι)) (horizontal ι)) :
-    ∃ (γ : Path Λ Λ') (Z Z' : ℝ → Matrix (ι ⊕ ι) ι ℝ), (∀ s, HasDerivAt Z (Z' s) s) ∧
+    ∃ (γ : Path Λ Λ') (Z Z' : ℝ → Matrix (ι ⊕ ι) ι ℝ), ContDiff ℝ ∞ Z ∧
+      (∀ s, HasDerivAt Z (Z' s) s) ∧
       (∀ t : I, LinearMap.range (toEuclideanLin (Z t)) = γ t) ∧
       ∀ t, (γ t : Submodule ℝ (StdSpace ι)) ⊓ horizontal ι = ⊥ := by
   obtain ⟨S₀, hS₀, h₀⟩ := isCompl_horizontal_iff.1 hΛ
@@ -369,11 +368,19 @@ theorem exists_chartPath {Λ Λ' : ℒ ι}
     ⟨S₀ + s • (S₁ - S₀), isHermitian_iff_isSymm.2 (hS₀.add ((hS₁.sub hS₀).smul s))⟩
   have hS (s : ℝ) : (S s : Matrix ι ι ℝ) = S₀ + s • (S₁ - S₀) := rfl
   have hcS : Continuous S := Continuous.subtype_mk (by fun_prop) _
+  -- The frame is affine in `s`.
+  have hZ : (fun s ↦ fromRows (S s : Matrix ι ι ℝ) 1) =
+      fun s : ℝ ↦ fromRows S₀ 1 + s • fromRows (S₁ - S₀) (0 : Matrix ι ι ℝ) := by
+    funext s
+    rw [hS]
+    ext (p | p) q <;> simp
   refine ⟨⟨⟨fun t ↦ graphY (S t), continuous_graphY.comp (hcS.comp continuous_subtypeVal)⟩,
     toSubmodule_injective ?_, toSubmodule_injective ?_⟩, fun s ↦ fromRows (S s) 1,
-    fun _ ↦ fromRows (S₁ - S₀) (0 : Matrix ι ι ℝ), fun s ↦ ?_, fun t ↦ ?_, fun t ↦ ?_⟩
+    fun _ ↦ fromRows (S₁ - S₀) (0 : Matrix ι ι ℝ), ?_, fun s ↦ ?_, fun t ↦ ?_, fun t ↦ ?_⟩
   · simp [hS, h₀]
   · simp [hS, h₁]
+  · rw [hZ]
+    fun_prop
   · refine hasDerivAt_matrix.2 fun p q ↦ ?_
     rcases p with p | p
     · simpa [hS] using (((hasDerivAt_id s).mul_const ((S₁ - S₀) p q)).const_add (S₀ p q))
@@ -387,43 +394,36 @@ theorem exists_chartPath {Λ Λ' : ℒ ι}
 
 /-- A quarter turn takes the horizontal Lagrangian `{y = 0}` to the vertical one `{x = 0}`. -/
 theorem rotate_pi_div_two_horizontal : rotate (Real.pi / 2) (horizontal ι) = vertical ι := by
-  have h0 : LinearMap.range (toEuclideanLin (fromRows (1 : Matrix ι ι ℝ) 0)) =
-      (horizontal ι : Submodule ℝ (StdSpace ι)) := by
-    rw [StdSpace.range_toEuclideanLin_fromRows_one_eq_graph, StdSpace.graph_zero, coe_horizontal]
-  have hJ : rotationFrame (fromRows (1 : Matrix ι ι ℝ) 0) (Real.pi / 2) = fromRows 0 1 := by
-    ext (p | p) q <;> simp [rotationFrame_def, J, Matrix.mul_apply, Fintype.sum_sum_type]
-    simp [← Matrix.mul_apply]
-  rw [← toSubmodule_inj, ← range_rotationFrame h0, coe_vertical, hJ,
-    StdSpace.range_toEuclideanLin_fromRows_one_eq_graphY, StdSpace.graphY_zero]
+  rw [← symJ_smul_horizontal, rotate_def, unitary_smul_def]
+  congr 1
+  refine Subtype.ext (Units.ext ?_)
+  rw [GLSymplectic.coe_ofUnitary, GLSymplectic.coe_symJ, ← realify_I_smul_one, Unitary.coe_smul,
+    OneMemClass.coe_one, Submonoid.smul_def, coe_circleEquivUnitary]
+  simp [Circle.coe_exp, Complex.exp_mul_I]
 
 /-- The rotation of a Lagrangian `Λ` by the diagonal unitary matrix
-`diag(1, …, e^{iθ}, …, 1)`, which turns the `i`-th coordinate plane `(xᵢ, yᵢ)` by the angle `θ` and
-fixes the others. -/
+`coordinateUnitary i θ = diag(1, …, e^{iθ}, …, 1)`, which turns the `i`-th coordinate plane
+`(xᵢ, yᵢ)` by the angle `θ` and fixes the others. -/
 noncomputable def coordinateRotate (i : ι) (θ : ℝ) (Λ : ℒ ι) : ℒ ι :=
-  (⟨diagonal (Function.update 1 i (Circle.exp θ : ℂ)),
-    diagonal_update_one_mem_unitary_iff.2 (Circle.exp θ).coe_mem_unitary⟩ : unitaryGroup ι ℂ) • Λ
+  coordinateUnitary i θ • Λ
 
 theorem coordinateRotate_def (i : ι) (θ : ℝ) (Λ : ℒ ι) :
-    coordinateRotate i θ Λ =
-      (⟨diagonal (Function.update 1 i (Circle.exp θ : ℂ)),
-        diagonal_update_one_mem_unitary_iff.2 (Circle.exp θ).coe_mem_unitary⟩ :
-          unitaryGroup ι ℂ) • Λ :=
+    coordinateRotate i θ Λ = coordinateUnitary i θ • Λ :=
   (rfl)
 
 @[simp]
 theorem coordinateRotate_zero (i : ι) (Λ : ℒ ι) : coordinateRotate i 0 Λ = Λ := by
-  rw [coordinateRotate_def, ← one_smul (unitaryGroup ι ℂ) Λ]
-  congr 1
-  · exact Subtype.ext (by simp)
-  · simp
+  rw [coordinateRotate_def, coordinateUnitary_zero, one_smul]
+
+/-- Turning the `i`-th coordinate plane by `φ` and then by `θ` is turning it by `θ + φ`. -/
+theorem coordinateRotate_coordinateRotate (i : ι) (θ φ : ℝ) (Λ : ℒ ι) :
+    coordinateRotate i θ (coordinateRotate i φ Λ) = coordinateRotate i (θ + φ) Λ := by
+  rw [coordinateRotate_def, coordinateRotate_def, coordinateRotate_def, smul_smul,
+    coordinateUnitary_add]
 
 theorem continuous_coordinateRotate (i : ι) (Λ : ℒ ι) :
-    Continuous fun θ : ℝ ↦ coordinateRotate i θ Λ := by
-  have h : Continuous fun θ : ℝ ↦ (⟨diagonal (Function.update 1 i (Circle.exp θ : ℂ)),
-      diagonal_update_one_mem_unitary_iff.2 (Circle.exp θ).coe_mem_unitary⟩ :
-        unitaryGroup ι ℂ) :=
-    Continuous.subtype_mk (Continuous.matrix_diagonal (continuous_const.update i (by fun_prop))) _
-  exact h.smul continuous_const
+    Continuous fun θ : ℝ ↦ coordinateRotate i θ Λ :=
+  (continuous_coordinateUnitary i).smul continuous_const
 
 /-- The columns of `coordinateRotationFrame i θ` span `coordinateRotate i θ {x = 0}`. -/
 theorem range_coordinateRotationFrame (i : ι) (θ : ℝ) :
@@ -432,7 +432,8 @@ theorem range_coordinateRotationFrame (i : ι) (θ : ℝ) :
   have hV : (vertical ι : Submodule ℝ (StdSpace ι)) =
       LinearMap.range (toEuclideanLin (fromRows (0 : Matrix ι ι ℝ) 1)) := by
     rw [StdSpace.range_toEuclideanLin_fromRows_one_eq_graphY, StdSpace.graphY_zero, coe_vertical]
-  rw [coordinateRotate_def, unitary_smul_def, coe_smul_of_coe_eq _ hV, GLSymplectic.coe_ofUnitary]
+  rw [coordinateRotate_def, unitary_smul_def, coe_smul_of_coe_eq _ hV, GLSymplectic.coe_ofUnitary,
+    coe_coordinateUnitary]
   congr 2
   set D := diagonal (Function.update (1 : ι → ℂ) i (Circle.exp θ : ℂ)) with hD
   have hR : D.realify = fromBlocks (D.map RCLike.re) (-D.map RCLike.im) (D.map RCLike.im)
@@ -521,7 +522,7 @@ theorem finrank_comap_horizontal_coordinateRotationFrame_pi_div_two (i : ι) :
 whose frame `s ↦ coordinateRotationFrame i (π s)` has derivative
 `π • fromRows (-cos (π s) Eᵢᵢ) (-sin (π s) Eᵢᵢ)`, is positive definite: it is `u ↦ π uᵢ²` on the
 line of `eᵢ`. -/
-theorem posDef_lagrangianCrossingForm_coordinateHalfTurn (i : ι) :
+theorem posDef_lagrangianCrossingForm_coordinateRotationFrame_pi_div_two (i : ι) :
     (lagrangianCrossingForm (coordinateRotationFrame i (Real.pi / 2))
       (Real.pi • fromRows (-single i i (Real.cos (Real.pi / 2)))
         (-single i i (Real.sin (Real.pi / 2)))) (horizontal ι)).PosDef := by
@@ -538,22 +539,21 @@ theorem posDef_lagrangianCrossingForm_coordinateHalfTurn (i : ι) :
 /-- **The coordinate half-turn has index `1`**, relative to any Lagrangian. -/
 theorem pathMaslovIndex_coordinateHalfTurn (i : ι) (V : ℒ ι) :
     pathMaslovIndex (coordinateHalfTurn i) V = 1 := by
-  let E : unitaryGroup ι ℂ := ⟨(Circle.exp (Real.pi / 2) : ℂ) • (1 : Matrix ι ι ℂ),
-    Unitary.smul_mem_of_mem (Circle.exp _).coe_mem_unitary (one_mem _)⟩
-  let D (θ : ℝ) : unitaryGroup ι ℂ := ⟨diagonal (Function.update 1 i (Circle.exp θ : ℂ)),
-    diagonal_update_one_mem_unitary_iff.2 (Circle.exp θ).coe_mem_unitary⟩
-  let g (t : I) : unitaryGroup ι ℂ := D (Real.pi * t) * E
-  have hg : Continuous g := (Continuous.subtype_mk (Continuous.matrix_diagonal
-    (continuous_const.update i (by fun_prop))) _).mul continuous_const
+  let E : unitaryGroup ι ℂ := circleEquivUnitary (Circle.exp (Real.pi / 2)) • 1
+  let g (t : I) : unitaryGroup ι ℂ := coordinateUnitary i (Real.pi * t) * E
+  have hg : Continuous g :=
+    ((continuous_coordinateUnitary i).comp (continuous_const.mul continuous_subtypeVal)).mul
+      continuous_const
   have hE : unitaryFrame E = vertical ι := by
     rw [unitaryFrame_def, ← rotate_pi_div_two_horizontal, rotate_def]
   have hδ (t : I) : unitaryFrame (g t) = coordinateHalfTurn i t := by
     rw [unitaryFrame_mul, hE, coordinateHalfTurn_apply, coordinateRotate_def]
   have hdet (t : I) : ((g t : unitaryGroup ι ℂ) : Matrix ι ι ℂ).det =
       Complex.exp ((Real.pi * t + Fintype.card ι * (Real.pi / 2) : ℝ) * Complex.I) := by
-    simp only [g, D, E, Submonoid.coe_mul, det_mul, det_diagonal, det_smul, det_one, mul_one,
-      Finset.prod_update_of_mem (Finset.mem_univ i), Pi.one_apply, Finset.prod_const_one,
-      Circle.coe_exp]
+    simp only [g, E, Submonoid.coe_mul, coe_coordinateUnitary, Unitary.coe_smul,
+      OneMemClass.coe_one, Submonoid.smul_def, coe_circleEquivUnitary, det_mul, det_diagonal,
+      det_smul, det_one, mul_one, Finset.prod_update_of_mem (Finset.mem_univ i), Pi.one_apply,
+      Finset.prod_const_one, Circle.coe_exp]
     rw [← Complex.exp_natCast_mul, ← Complex.exp_add]
     congr 1
     push_cast
