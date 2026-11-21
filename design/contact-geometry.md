@@ -225,27 +225,37 @@ review of #420 raise four more.
   hypothesis; and the first-order agreement itself needs a diffeomorphism
   with prescribed derivative along $L$. The page's route needs neither and
   gives equality at once, so the design follows it:
-  1. *A hypersurface through `L` tangent to `ξ`, parametrized by `T*L`.* Tau
-     Ceti's tubular neighbourhood
-     `TauCeti.SmoothEmbedding.exists_diffeomorph_normalBundle_subset` gives a
-     diffeomorphism $\Psi$ from the normal bundle $\nu$ of $L$ onto an open
-     neighbourhood, with $\Psi\circ0=f$. At $0_q$ its derivative on
-     vertical vectors, followed by the quotient by $df(T_qL)$, is an
-     isomorphism $\nu_q\to\nu_q$. The map
-     $v\mapsto\bigl(d\alpha(df\,\cdot,d\Psi(v)),\ \alpha(d\Psi(v))\bigr)$,
-     $\nu_q\to T_q^*L\times\mathbb R$, is then injective (its kernel
-     consists of $v$ with $d\Psi(v)\in\xi\cap(df\,T_qL)^{d\alpha}=df\,T_qL$,
-     because $L$ is Legendrian), hence bijective by dimension; its inverse
-     restricted to $T_q^*L\times\{0\}$ is a smooth, fibrewise linear,
-     injective bundle map $j:T^*L\to\nu$, smooth by
-     `ContMDiffAt.clm_bundle_inverse`, as in Tau Ceti's
-     `TauCeti.SmoothEmbedding.normalBundleDiffeomorphOfIsLagrangianMap`. The
+  1. *A hypersurface through `L` tangent to `ξ`, parametrized by `T*L`.* The
+     map $[w]\mapsto\bigl(d\alpha(df\,\cdot,w),\ \alpha(w)\bigr)$,
+     $\nu_q\to T_q^*L\times\mathbb R$, on the normal space
+     $\nu_q=T_{f(q)}M/df(T_qL)$, is well defined and injective (its kernel
+     consists of the classes of $w\in\xi\cap(df\,T_qL)^{d\alpha}=df\,T_qL$,
+     because $L$ is Legendrian), hence bijective by dimension; these maps
+     form a smooth bundle isomorphism, by Tau Ceti's
+     `TauCeti.SmoothEmbedding.contMDiff_normalBundle_iff` and
+     `TauCeti.contMDiff_bundle_symm`, as in Tau Ceti's
+     `TauCeti.SmoothEmbedding.normalBundleDiffeomorphOfIsLagrangianMap`, and
+     its inverse restricted to $T_q^*L\times\{0\}$ is a smooth, fibrewise
+     linear, injective bundle map $j:T^*L\to\nu$. The tubular map is not the
+     diffeomorphism of `TauCeti.SmoothEmbedding.exists_diffeomorph_normalBundle_subset`,
+     whose derivative along the zero section Tau Ceti does not state: it is
+     the normal exponential of an auxiliary metric
+     (`TauCeti.SmoothEmbedding.exists_partialDiffeomorph_normalExp_subset`,
+     with derivative from `TauCeti.SmoothEmbedding.mfderiv_normalExp_zeroSection_apply`),
+     precomposed with a radial compression
+     `TauCeti.vectorBundleRadialPartialDiffeomorphOfRadius` into its domain,
+     a smooth injective $\Psi:\nu\to M$ with $\Psi\circ0=f$ whose derivative
+     on the vertical vector $v$ at $0_q$ has class $c(q)\,v$, $c(q)>0$
+     (`TauCeti.SmoothEmbedding.exists_contMDiff_injective_normalBundle`, in
+     `Geometry/Manifold/TubularNeighborhood/Riemannian/Injective.lean`). The
      map $\iota=\Psi\circ j:T^*L\to M$ is injective, sends $0_q$ to $f(q)$,
      and its differential at $0_q$ is an isomorphism onto $\xi_{f(q)}$
      (horizontal part $df$, vertical part in $\xi$, dimension $2n$; read
      through `TauCeti.Bundle.zeroSectionTangentEquiv`). So on an open
      neighbourhood $N$ of the zero section it is an immersion transverse to
-     the Reeb field, and
+     the Reeb field (openness by
+     `ContMDiffAt.eventually_injective_mfderiv_and_notMem_range`, in
+     `Geometry/Manifold/Immersion/Transverse.lean`), and
      `IsContactForm.nondegenerate_bilinFormAt_mextDerivₗ_mpullback` makes
      $-d(\iota^*\alpha)$ nondegenerate there. The zero section is
      Lagrangian for it, since $\iota^*\alpha$ vanishes on its tangent
@@ -616,8 +626,16 @@ boundaryless and Hausdorff, and both are second countable.
   differential of `ι` at each point of `N` injective with range transverse to
   `α.reebVectorField`, and at `0_q` with range `α.kerDistribution (f q)`.
   Public, since the isotropic neighbourhood theorem of a later page builds
-  its slice the same way. It uses Tau Ceti's tubular neighbourhood, normal
-  bundle and zero-section splitting.
+  its slice the same way. It uses Tau Ceti's normal exponential, normal
+  bundle and zero-section splitting, and the openness of immersions
+  transverse to a vector field,
+  `ContMDiffAt.eventually_injective_mfderiv_and_notMem_range`, which it adds
+  in `Geometry/Manifold/Immersion/Transverse.lean` (beside Tau Ceti's
+  `ContMDiffAt.eventually_injective_mfderiv`), and the smooth injective map
+  of the normal bundle
+  `TauCeti.SmoothEmbedding.exists_contMDiff_injective_normalBundle`, which it
+  adds in `Geometry/Manifold/TubularNeighborhood/Riemannian/Injective.lean`
+  (mirroring Tau Ceti's `TubularNeighborhood/Riemannian/`).
 - **Milestone theorem**
   `IsLegendrianEmbedding.exists_diffeomorph_opens_mpullback_eq_neg_contactization (hα) (hf)`:
 

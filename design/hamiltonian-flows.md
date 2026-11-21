@@ -242,13 +242,15 @@ These settle the questions that `DESIGN.md` leaves to this file.
    `DESIGN.md`'s table of signs says. The bracket conjunct of the first
    milestone and $[X_F,X_G]_{\mathrm b}=X_{\{F,G\}}$ are stated with it; no
    definition is made for it.
-9. **Layout.** `DESIGN.md`'s files are kept, with three more:
+9. **Layout.** `DESIGN.md`'s files are kept, with four more:
    `Geometry/Diffeomorphism/Diffeotopy/Velocity.lean`, for the velocity, which
    concerns diffeotopies and not forms,
    `Geometry/Diffeomorphism/Diffeotopy/Basic.lean`, for facts about
-   diffeotopies of any smoothness, at the path of Tau Ceti's file, and
+   diffeotopies of any smoothness, at the path of Tau Ceti's file,
    `Geometry/Manifold/Instances/Icc.lean`, for the smoothness of the unit
-   vector field of an interval, which concerns intervals only. Tau Ceti has a
+   vector field of an interval, which concerns intervals only, and
+   `Geometry/Manifold/MFDeriv/Prod.lean`, for the derivative of a map on a
+   product on `(0, w)` and `(v, 0)`, which concerns products only. Tau Ceti has a
    folder `Geometry/Diffeomorphism/Diffeotopy/` with no `Velocity.lean`. The two
    flux files stay flat in `Geometry/Symplectic/Flux/`: a folder
    `Flux/Hamiltonian/` here would stand beside Tau Ceti's
@@ -268,6 +270,7 @@ Tau Ceti unchanged.
 |---|---|
 | `Algebra/Lie/Quotient.lean` | `LieHom.coe_quotKerEquivRange_mk`: the value of `LieHom.quotKerEquivRange` on a class, for `PoissonAlgebra.lean` |
 | `Geometry/Manifold/Instances/Icc.lean` | `contMDiff_totalSpaceMk_one_Icc`: the unit vector field `z ↦ 1` of a closed interval is smooth |
+| `Geometry/Manifold/MFDeriv/Prod.lean` | `MDifferentiableAt.mfderiv_curry_right_apply`, `MDifferentiableAt.mfderiv_curry_left_apply`: the derivative of a map on a product on `(0, w)` and `(v, 0)` is a partial derivative |
 | `Geometry/Diffeomorphism/Diffeotopy/Basic.lean` | `connectedComponent_apply`, `apply_mk_symm_apply`, `symm_apply_mk_apply`: each slice keeps points in their components, and the slices and their inverses cancel in the coerced form `Φ (t, ·)` |
 | `Geometry/Diffeomorphism/Diffeotopy/Velocity.lean` | `Diffeotopy.velocity`, its joint smoothness, its value along the motion, its values for `refl` and the flow diffeotopies, and the pullback of $\iota_{X_t}\sigma$ by $\phi_t$ |
 | `Geometry/Symplectic/Hamiltonian/PoissonAlgebra.lean` | the Leibniz rule, the local time-dependent flow, the kernel and the quotient, the milestone *Hamiltonian flows and the Poisson algebra* |
@@ -275,7 +278,8 @@ Tau Ceti unchanged.
 | `Geometry/Symplectic/Flux/Hamiltonian.lean` | the page's $H_t$ beside `HasHamiltonian`, the three rules in the page's form, uniqueness, Hamiltonians from exactness |
 | `Geometry/Symplectic/Flux/CompactSupport.lean` | `IsCompactlySupportedHamiltonian`, `compactlySupportedHamiltonianGroup`, the flow of a compactly supported Hamiltonian, the milestone *Hamiltonian isotopies and their composition* |
 
-Imports between the files: `Velocity.lean` imports `Instances/Icc.lean`;
+Imports between the files: `Velocity.lean` imports `Instances/Icc.lean` and
+`MFDeriv/Prod.lean`;
 `SymplecticIsotopy.lean` and
 `Flux/Hamiltonian.lean` import `Velocity.lean`; `Flux/Hamiltonian.lean`
 imports `Diffeotopy/Basic.lean`; `Flux/CompactSupport.lean`
