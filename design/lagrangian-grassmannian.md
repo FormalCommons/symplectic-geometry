@@ -501,6 +501,13 @@ Lagrangian frames on `StdSpace ι`, pure linear algebra. Namespace
 - `isLagrangian_range_fromRows_one (hA : A.IsSymm)`: `fromRows A 1` is a
   Lagrangian frame, since it spans `graphY A`
   (`StdSpace.range_toEuclideanLin_fromRows_one_eq_graphY`, `isLagrangian_graphY_iff`).
+- `StdSpace.disjoint_range_toEuclideanLin_fromRows_ker_x_iff_of_isLagrangian`:
+  a Lagrangian frame `fromRows X Y` spans a subspace meeting
+  `LinearMap.ker StdSpace.x` only in `0` iff `X` is invertible. It is
+  `disjoint_range_toEuclideanLin_fromRows_ker_y_iff_of_isLagrangian`
+  transported along `swap` (`map_swap_range_toEuclideanLin_fromRows`,
+  `map_swap_ker_x`), and is used by the crossing-form formula of
+  *Maslov index*.
 - Transverse subspaces are graphs, stated for submodules. The horizontal and
   vertical subspaces are `LinearMap.ker StdSpace.y` and
   `LinearMap.ker StdSpace.x`, so they need no new names here.
