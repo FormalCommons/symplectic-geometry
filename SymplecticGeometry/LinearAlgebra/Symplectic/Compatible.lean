@@ -7,6 +7,7 @@ module
 
 public import Mathlib.LinearAlgebra.Dual.Lemmas
 public import Mathlib.Tactic.TFAE
+public import SymplecticGeometry.LinearAlgebra.ComplexStructure.Action
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Subspace
 public import TauCeti.Geometry.Symplectic.Darboux.EuclideanBasis
@@ -185,12 +186,14 @@ theorem Invariant.isLagrangian_map (h : ω.Invariant J) {L : Submodule ℝ V}
     rw [one_mul]
     exact (ω.invariant_iff J).1 h v w).2 hL
 
-/-- If `J` maps Lagrangian subspaces to Lagrangian subspaces, then it preserves orthogonality
-for `ω`: `ω(v, w) = 0` implies `ω(J v, J w) = 0`. -/
-theorem apply_apply_eq_zero_of_forall_isLagrangian_map
-    (h : ∀ L : Submodule ℝ V, ω.IsLagrangian L → ω.IsLagrangian (L.map J.toLinearMap))
-    {v w : V} (hvw : ω v w = 0) : ω (J v) (J w) = 0 := by
-  have hwv : ω w v = 0 := by rw [← ω.neg_eq, hvw, neg_zero]
+/-- If a linear map `f` sends the Lagrangian subspaces of `ω` to Lagrangian subspaces of `ω'`,
+then it sends `ω`-orthogonal pairs to `ω'`-orthogonal pairs: `ω(v, w) = 0` implies
+`ω'(f v, f w) = 0`. -/
+theorem apply_apply_eq_zero_of_forall_isLagrangian_map {W : Type*} [AddCommGroup W]
+    [Module ℝ W] {ω' : SymplecticForm W} {f : V →ₗ[ℝ] W}
+    (h : ∀ L : Submodule ℝ V, ω.IsLagrangian L → ω'.IsLagrangian (L.map f))
+    {v w : V} (hvw : ω v w = 0) : ω' (f v) (f w) = 0 := by
+  have hwv : ω w v = 0 := ω.isRefl v w hvw
   have hiso : ω.IsIsotropic (Submodule.span ℝ {v, w}) := by
     refine isIsotropic_span_iff.2 ?_
     simp only [Set.mem_insert_iff, Set.mem_singleton_iff]
@@ -212,7 +215,8 @@ theorem Tames.invariant_of_forall_isLagrangian_map (hJ : ω.Tames J)
   -- `J v`, with `ω(v, J v) > 0`, gives `c = 1`.
   have hker : ⨅ _ : Unit, LinearMap.ker (ω.toBilinForm v) ≤
       LinearMap.ker ((ω.toBilinForm (J v)).comp J.toLinearMap) := fun u hu ↦ by
-    simpa using apply_apply_eq_zero_of_forall_isLagrangian_map h (by simpa using hu)
+    simpa using apply_apply_eq_zero_of_forall_isLagrangian_map (f := J.toLinearMap) h
+      (by simpa using hu)
   obtain ⟨c, hc⟩ := Submodule.mem_span_singleton.1
     (by simpa using mem_span_of_iInf_ker_le_ker hker)
   have hc' (u : V) : c * ω v u = ω (J v) (J u) := by
@@ -319,10 +323,8 @@ with `ω`. -/
 theorem compatible_of_isSymplectomorphism_stdForm {Ψ : StdSpace ι ≃ₗ[ℝ] V}
     (hΨ : IsSymplectomorphism (stdForm ι) ω Ψ)
     (hJ : IsComplexLinearMap (stdComplexStructure ι) J Ψ.toLinearMap) : ω.Compatible J := by
-  have hJ' : (stdComplexStructure ι).transport Ψ = J := by
-    refine AlmostComplexStructure.toLinearMap_injective (LinearMap.ext fun w ↦ ?_)
-    simpa using (isComplexLinearMap_iff_apply _ _ _).1 hJ (Ψ.symm w)
-  rw [← isSymplectomorphism_iff_transport_eq.1 hΨ, ← hJ']
+  rw [← isSymplectomorphism_iff_transport_eq.1 hΨ,
+    ← (AlmostComplexStructure.transport_eq_iff_isComplexLinearMap Ψ).2 hJ]
   exact stdForm_compatible.transport Ψ
 
 /-- In dimension `2 n`, with `n` the cardinality of `ι`, `J` is compatible with `ω` exactly
@@ -339,21 +341,17 @@ theorem compatible_iff_exists_isSymplectomorphism_stdForm [FiniteDimensional ℝ
     simp only [Fintype.card_prod, Fintype.card_fin] at this
     omega
   let σ : ι ≃ Fin n := Fintype.equivFinOfCardEq hn
-  have hD (v : V) : b.darbouxBasisEquiv (J v) =
-      AlmostComplexStructure.product _ (b.darbouxBasisEquiv v) :=
-    (isComplexLinearMap_iff_apply _ _ _).1 (b.isComplexLinearMap_darbouxBasisEquiv hbJ) v
-  have hS (u : StdSpace (Fin n)) : EuclideanSpace.sumEquivProd (stdComplexStructure (Fin n) u) =
-      AlmostComplexStructure.product _ (EuclideanSpace.sumEquivProd u) := by
-    rw [← stdComplexStructure_transport_sumEquivProd, AlmostComplexStructure.transport_apply]
-    simp
+  have hDs : IsComplexLinearMap (AlmostComplexStructure.product _) J
+      b.darbouxBasisEquiv.symm.toLinearMap := by
+    rw [← (AlmostComplexStructure.transport_eq_iff_isComplexLinearMap _).2
+      (b.isComplexLinearMap_darbouxBasisEquiv hbJ)]
+    exact AlmostComplexStructure.isComplexLinearMap_symm_transport J _
   refine ⟨(LinearIsometryEquiv.piLpCongrLeft 2 ℝ ℝ (σ.sumCongr σ)).toLinearEquiv.trans
       ((EuclideanSpace.sumEquivProd (𝕜 := ℝ)).toLinearEquiv.trans b.darbouxBasisEquiv.symm),
     (isSymplectomorphism_piLpCongrLeft_sumCongr σ).trans
       (isSymplectomorphism_sumEquivProd.trans hb.isSymplectomorphism_darbouxBasisEquiv.symm), ?_⟩
-  refine (isComplexLinearMap_iff_apply _ _ _).2 fun z ↦ b.darbouxBasisEquiv.injective ?_
-  simp only [LinearEquiv.coe_coe, LinearEquiv.trans_apply, hD, LinearEquiv.apply_symm_apply,
-    LinearIsometryEquiv.coe_toLinearEquiv, ContinuousLinearEquiv.coe_toLinearEquiv]
-  exact (congrArg _ (stdComplexStructure_piLpCongrLeft_sumCongr σ z).symm).trans (hS _)
+  exact (hDs.comp isComplexLinearMap_sumEquivProd).comp
+    (isComplexLinearMap_piLpCongrLeft_sumCongr σ)
 
 /-- **Characterizations of compatible complex structures.** Let `ω` be a symplectic form and `J`
 a complex structure on a real vector space `V` of dimension `2 n`, with `n` the cardinality of

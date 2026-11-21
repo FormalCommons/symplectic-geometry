@@ -388,12 +388,15 @@ statements assume `[FiniteDimensional ℝ V]`.
   (`Module.Basis.isComplexLinearMap_darbouxBasisEquiv`, in the namespace of
   `darbouxBasisEquiv`). $\Psi$ is
   its inverse, composed with the reindexing along a bijection `Fin n ≃ ι`,
-  which commutes with $J_0$ (`stdComplexStructure_piLpCongrLeft_sumCongr`, in
+  which commutes with $J_0$ (`stdComplexStructure_piLpCongrLeft_sumCongr` and
+  `isComplexLinearMap_piLpCongrLeft_sumCongr`, in
   `LinearAlgebra/Symplectic/Standard/Basic.lean`), and
   with `EuclideanSpace.sumEquivProd`, which is a symplectomorphism from
   `stdForm ι` to that product model carrying `stdComplexStructure ι` to
   `AlmostComplexStructure.product` (`isSymplectomorphism_sumEquivProd` and
-  `stdComplexStructure_transport_sumEquivProd`). The converse,
+  `stdComplexStructure_transport_sumEquivProd`, with complex linearity
+  `isComplexLinearMap_sumEquivProd`); the three complex linear maps compose
+  by `IsComplexLinearMap.comp`. The converse,
   `compatible_of_isSymplectomorphism_stdForm`, needs no dimension hypothesis
   and is `Compatible.transport` of `stdForm_compatible`.
 - `compatible_iff_tames_and_isLagrangian_map :
@@ -405,7 +408,8 @@ statements assume `[FiniteDimensional ℝ V]`.
   (`Invariant.isLagrangian_map`). Backward, if
   $\omega(v,w)=0$, extend the isotropic span of $v,w$ to a Lagrangian $L$
   (`IsIsotropic.exists_le_isLagrangian`). Then $\omega(Jv,Jw)=0$
-  (`apply_apply_eq_zero_of_forall_isLagrangian_map`). So for each $v\ne0$ the
+  (`apply_apply_eq_zero_of_forall_isLagrangian_map`, stated for any linear
+  map between two symplectic spaces that sends Lagrangians to Lagrangians). So for each $v\ne0$ the
   functional $\omega(Jv,J\cdot)$ vanishes on the kernel of $\omega(v,\cdot)$,
   hence is $c_v\,\omega(v,\cdot)$ (Mathlib's `mem_span_of_iInf_ker_le_ker`).
   Evaluating at $Jv$ gives $c_v\,\omega(v,Jv)=\omega(v,Jv)$, so $c_v=1$ by
