@@ -11,6 +11,7 @@ public import Mathlib.LinearAlgebra.SymplecticGroup
 public import TauCeti.Analysis.Complex.Euclidean.Space
 public import TauCeti.Geometry.Symplectic.Complex.CoordinateSpace
 public import TauCeti.Geometry.Symplectic.CompatibleMetric
+public import TauCeti.Geometry.Symplectic.Prod.Basic
 public import TauCeti.Geometry.Symplectic.StandardCompatible
 public import TauCeti.Geometry.Symplectic.SymplecticTransport
 public import TauCeti.Geometry.Symplectic.Transport
@@ -45,7 +46,10 @@ Finally, `isSymplectomorphism_sumEquivProd` and `stdComplexStructure_transport_s
 compare the model with Tau Ceti's product model `TauCeti.stdSymplecticForm` and
 `TauCeti.AlmostComplexStructure.product` on `EuclideanSpace ℝ ι × EuclideanSpace ℝ ι`, and
 `isSymplectomorphism_piLpCongrLeft_sumCongr` says that relabelling the coordinate pairs along
-`σ : ι ≃ κ` is symplectic.
+`σ : ι ≃ κ` is symplectic, with its coordinates given by `x_piLpCongrLeft_sumCongr` and
+`y_piLpCongrLeft_sumCongr`. The splitting `SymplecticGeometry.StdSpace.sumEquiv ι κ` of
+`StdSpace (ι ⊕ κ)` into `StdSpace ι × StdSpace κ` carries `ω₀` to the direct sum of the two
+standard forms (`isSymplectomorphism_sumEquiv`).
 
 The sign conventions are those of McDuff–Salamon, Section 2.1.
 
@@ -353,7 +357,92 @@ theorem isSymplectomorphism_piLpCongrLeft_sumCongr (σ : ι ≃ κ) :
     Equiv.sumCongr_apply, Sum.map_inl, Sum.map_inr]
   exact Equiv.sum_comp σ.symm fun i ↦ z (Sum.inl i) * w (Sum.inr i) - z (Sum.inr i) * w (Sum.inl i)
 
+namespace StdSpace
+
+/-- The `x`-coordinates of `z` relabelled along `σ` are those of `z`, read through `σ.symm`. -/
+@[simp]
+theorem x_piLpCongrLeft_sumCongr (σ : ι ≃ κ) (z : StdSpace ι) :
+    x (LinearIsometryEquiv.piLpCongrLeft 2 ℝ ℝ (σ.sumCongr σ) z) = z.x ∘ σ.symm := by
+  ext i
+  simp [LinearIsometryEquiv.piLpCongrLeft_apply]
+
+/-- The `y`-coordinates of `z` relabelled along `σ` are those of `z`, read through `σ.symm`. -/
+@[simp]
+theorem y_piLpCongrLeft_sumCongr (σ : ι ≃ κ) (z : StdSpace ι) :
+    y (LinearIsometryEquiv.piLpCongrLeft 2 ℝ ℝ (σ.sumCongr σ) z) = z.y ∘ σ.symm := by
+  ext i
+  simp [LinearIsometryEquiv.piLpCongrLeft_apply]
+
+end StdSpace
+
 end Reindex
+
+/-! ### The direct sum of two models -/
+
+section Sum
+
+variable {κ : Type*} [Fintype κ]
+
+namespace StdSpace
+
+variable (ι κ) in
+/-- The splitting `ℝ²⁽ⁿ⁺ᵐ⁾ ≅ ℝ²ⁿ × ℝ²ᵐ` of the standard model on `ι ⊕ κ`: the coordinate pairs
+indexed by `ι` go to the first factor and those indexed by `κ` to the second. The coordinates are
+regrouped by `Equiv.sumSumSumComm`, as in Tau Ceti's `Matrix.symplecticSum`. -/
+noncomputable def sumEquiv : StdSpace (ι ⊕ κ) ≃L[ℝ] StdSpace ι × StdSpace κ :=
+  (LinearIsometryEquiv.piLpCongrLeft 2 ℝ ℝ
+    (Equiv.sumSumSumComm ι κ ι κ)).toContinuousLinearEquiv.trans EuclideanSpace.sumEquivProd
+
+variable (ι κ) in
+theorem sumEquiv_def :
+    sumEquiv ι κ =
+      (LinearIsometryEquiv.piLpCongrLeft 2 ℝ ℝ
+        (Equiv.sumSumSumComm ι κ ι κ)).toContinuousLinearEquiv.trans EuclideanSpace.sumEquivProd :=
+  (rfl)
+
+@[simp]
+theorem x_sumEquiv_fst (z : StdSpace (ι ⊕ κ)) : (sumEquiv ι κ z).1.x = fun i ↦ z.x (Sum.inl i) :=
+  (rfl)
+
+@[simp]
+theorem y_sumEquiv_fst (z : StdSpace (ι ⊕ κ)) : (sumEquiv ι κ z).1.y = fun i ↦ z.y (Sum.inl i) :=
+  (rfl)
+
+@[simp]
+theorem x_sumEquiv_snd (z : StdSpace (ι ⊕ κ)) : (sumEquiv ι κ z).2.x = fun k ↦ z.x (Sum.inr k) :=
+  (rfl)
+
+@[simp]
+theorem y_sumEquiv_snd (z : StdSpace (ι ⊕ κ)) : (sumEquiv ι κ z).2.y = fun k ↦ z.y (Sum.inr k) :=
+  (rfl)
+
+@[simp]
+theorem x_sumEquiv_symm (p : StdSpace ι × StdSpace κ) :
+    ((sumEquiv ι κ).symm p).x = Sum.elim p.1.x p.2.x := by
+  obtain ⟨z, rfl⟩ := (sumEquiv ι κ).surjective p
+  ext (i | k) <;> simp
+
+@[simp]
+theorem y_sumEquiv_symm (p : StdSpace ι × StdSpace κ) :
+    ((sumEquiv ι κ).symm p).y = Sum.elim p.1.y p.2.y := by
+  obtain ⟨z, rfl⟩ := (sumEquiv ι κ).surjective p
+  ext (i | k) <;> simp
+
+end StdSpace
+
+open StdSpace in
+/-- The splitting `StdSpace.sumEquiv ι κ` is a symplectomorphism from `ω₀` on `StdSpace (ι ⊕ κ)`
+to the direct sum `ω₀ ⊕ ω₀` on `StdSpace ι × StdSpace κ` (Tau Ceti's `SymplecticForm.prod`). -/
+theorem isSymplectomorphism_sumEquiv :
+    (stdForm (ι ⊕ κ)).IsSymplectomorphism ((stdForm ι).prod (stdForm κ))
+      (sumEquiv ι κ).toLinearEquiv := by
+  rw [SymplecticForm.isSymplectomorphism_iff]
+  intro z w
+  simp only [ContinuousLinearEquiv.coe_toLinearEquiv, SymplecticForm.prod_apply, stdForm_apply,
+    x_sumEquiv_fst, y_sumEquiv_fst, x_sumEquiv_snd, y_sumEquiv_snd]
+  rw [Fintype.sum_sum_type]
+
+end Sum
 
 /-! ### Comparison with the product model -/
 
