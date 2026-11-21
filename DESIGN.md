@@ -466,10 +466,10 @@ it into issues; the overview fixes its folders and its dependencies.
     Lagrangian loop index through `realImageLoop`,
     `maslovIndex_realImageLoop`, `maslovPhase_realImage` and
     `Matrix.UnitaryGroup.maslovIndex_eq_degree` (the book's $\det(U^2)$
-    description), and, by comparing it with Tau Ceti's loop index, the
-    direct-sum axiom, the half-turns and the angle description from
-    `TotallyRealLoop.maslovIndex_prod`, `maslovIndex_rotationZPow` and
-    `sub_eq_maslovIndex_mul_pi` (`LinearAlgebra/TotallyReal/Maslov/`); the
+    description), compared with Tau Ceti's loop index
+    `TotallyRealLoop.maslovIndex` (`LinearAlgebra/TotallyReal/Maslov/`) by a
+    theorem, while its direct-sum axiom, half-turns and angle description
+    come from Tau Ceti's Souriau map and degree lemmas; the
     path index from Souriau's formula `Matrix.UnitaryGroup.maslovIndex` and
     the Souriau map `Matrix.UnitaryGroup.souriau`
     (`Analysis/Matrix/UnitaryGroup/Maslov.lean`), which is defined for
