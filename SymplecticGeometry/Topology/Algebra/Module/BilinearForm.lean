@@ -7,6 +7,7 @@ module
 
 public import Mathlib.Topology.Algebra.Module.FiniteDimensionBilinear
 public import TauCeti.LinearAlgebra.BilinearForm.Basic
+public import TauCeti.Topology.Algebra.Module.BilinearForm
 public import TauCeti.Topology.Algebra.Module.SymmetricBilinear.Basic
 
 /-!
@@ -25,7 +26,8 @@ On normed spaces, Tau Ceti's `ContinuousLinearMap.symmetrizeBilinear` is the sym
 `b ↦ ½ (b - bᵀ)`, as a continuous linear endomorphism of the space of continuous bilinear
 maps. When `2` is invertible, it is a projection, it fixes the maps that are antisymmetric, and
 together with the symmetric part it decomposes every continuous bilinear map. For forms, its
-value is alternating, and it is nondegenerate exactly when `b - bᵀ` is.
+value is alternating, and it is nondegenerate exactly when `b - bᵀ` is, an open condition in
+finite dimension.
 
 ## Main definitions
 
@@ -48,6 +50,8 @@ value is alternating, and it is nondegenerate exactly when `b - bᵀ` is.
   alternating.
 * `ContinuousLinearMap.nondegenerate_toBilinForm_skewSymmetrizeBilinear_iff`: it is
   nondegenerate if and only if `b - b.flip` is.
+* `ContinuousLinearMap.isOpen_setOf_nondegenerate_toBilinForm_sub_flip`: in finite dimension,
+  the forms `b` with `b - b.flip` nondegenerate form an open set.
 -/
 
 public section
@@ -180,6 +184,13 @@ theorem nondegenerate_toBilinForm_skewSymmetrizeBilinear_iff [NeZero (2 : 𝕜)]
     simp
   rw [h]
   exact BilinForm.nondegenerate_smul_iff (IsRegular.of_ne_zero (inv_ne_zero (NeZero.ne _)))
+
+/-- In finite dimension, the continuous bilinear forms `b` such that `b - bᵀ` is nondegenerate
+form an open set. -/
+theorem isOpen_setOf_nondegenerate_toBilinForm_sub_flip [FiniteDimensional 𝕜 V] :
+    IsOpen {b : V →L[𝕜] V →L[𝕜] 𝕜 | (b - b.flip).toBilinForm.Nondegenerate} :=
+  isOpen_setOf_nondegenerate_toBilinForm.preimage
+    (continuous_id.sub (flipₗᵢ 𝕜 V V 𝕜).continuous)
 
 end SkewPart
 
