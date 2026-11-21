@@ -714,7 +714,9 @@ it into issues; the overview fixes its folders and its dependencies.
 
 - **Files:** `LinearAlgebra/Symplectic/Compatible.lean` (the four equivalent
   characterizations and the two of the exercise, including the converse of
-  Tau Ceti's `Compatible.hermitianCore`),
+  Tau Ceti's `Compatible.hermitianCore`, and the straight line between two
+  forms that tame one complex structure, which *Symplectic vector bundles*
+  uses too),
   `Analysis/InnerProductSpace/Symplectic/PolarComplexStructure/` (`Basic.lean`:
   $J_{g,\omega}$ for an arbitrary inner product $g$ given as a bilinear form,
   its equivariance under $\mathrm{GL}(V)$, and the lemma identifying it, for
@@ -794,8 +796,10 @@ it into issues; the overview fixes its folders and its dependencies.
   and the membership of the tame structures from
   `TauCeti.SymplecticForm.Compatible.mem_cayleyDomain`, so its
   contractibility issue waits for the issue of this part that writes
-  `Cayley/Domain.lean`. Its homotopy-equivalence issue uses both, so it waits
-  for the issues that write `Cayley/Domain.lean` and `PolarComplexStructure/`.
+  `Cayley/Domain.lean`. Its homotopy-equivalence issue uses both, and
+  `Tames.lineMap` of `LinearAlgebra/Symplectic/Compatible.lean` for its
+  straight line on forms; so it waits for the issues that write
+  `Cayley/Domain.lean`, `PolarComplexStructure/` and that line.
 
 ### 10. Linear Moser
 
@@ -1055,11 +1059,15 @@ it into issues; the overview fixes its folders and its dependencies.
   `Analysis/InnerProductSpace/Symplectic/PolarComplexStructure/`
   (`TauCeti.metricPolarFormula` on `TauCeti.polarDomain`, with its smoothness
   and naturality) for `polarFormulaAt`, and so for the smoothness of
-  `polarComplexStructure` and for `polarEndAt`. Its existence issue waits for
-  the two issues of that part that write `PolarComplexStructure/`; its
-  contractibility issue waits for the issue of that part that writes
-  `Cayley/Domain.lean`, which has no blockers; its homotopy-equivalence issue
-  waits for that one and for the two that write `PolarComplexStructure/`.
+  `polarComplexStructure` and for `polarEndAt`, and
+  `TauCeti.SymplecticForm.Tames.lineMap` of
+  `LinearAlgebra/Symplectic/Compatible.lean` for the straight line on forms.
+  Its existence issue waits for the two issues of that part that write
+  `PolarComplexStructure/`; its contractibility issue waits for the issue of
+  that part that writes `Cayley/Domain.lean`, which has no blockers; its
+  homotopy-equivalence issue waits for that one, for the two that write
+  `PolarComplexStructure/`, and for the one that writes `Tames.lineMap`,
+  which has no blockers either.
 - **Milestones:** *Symplectic vector bundles are complex vector bundles*,
   *Compatible and tame complex structures on symplectic vector bundles*,
   *Unitary trivializations over surfaces with boundary*.
@@ -1334,7 +1342,7 @@ Each part depends only on the parts listed, besides Mathlib and Tau Ceti.
 | 1 | *Linear nonsqueezing* | *Standard model* |
 | 1 | *Linear complex structures* | *Standard model* |
 | 1 | *Siegel upper half space* | *Standard model*; *Lagrangian Grassmannian* (only `LinearAlgebra/Matrix/OfReal.lean`, which imports only Mathlib and Tau Ceti and is merged); *Linear complex structures* (only `LinearAlgebra/ComplexStructure/Action.lean`, which imports only Mathlib and Tau Ceti, `LinearAlgebra/ComplexStructure/Standard.lean`, which besides it imports only *Standard model* and the library's `Geometry/Symplectic/Orientation.lean`, and that file, which imports only Tau Ceti; all three are merged); *Symplectic group* (only `LinearAlgebra/Matrix/SymplecticGroup/Basic.lean`, which imports only Mathlib and is merged) |
-| 1 | *Symplectic vector bundles* | *Standard model*, *Linear Moser*; its existence issue also the two `PolarComplexStructure/` issues of *Compatible complex structures*, its contractibility issue the Cayley domain issue of that part, and its homotopy-equivalence issue all three, none of which waits for another part |
+| 1 | *Symplectic vector bundles* | *Standard model*, *Linear Moser*; its existence issue also the two `PolarComplexStructure/` issues of *Compatible complex structures*, its contractibility issue the Cayley domain issue of that part, and its homotopy-equivalence issue those three and the `Tames.lineMap` issue, none of which waits for another part |
 | 2 | *Compatible complex structures* | *Standard model*, *Symplectic vector spaces* |
 | 2 | *Maslov index* | *Standard model*, *Symplectic group*, *Unitary group topology*; its Lagrangian issues also *Lagrangian Grassmannian* |
 | 3 | *First Chern number* | *Symplectic vector bundles*, the symplectic-loop issues of *Maslov index* |
