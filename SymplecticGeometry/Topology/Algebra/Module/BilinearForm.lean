@@ -45,7 +45,6 @@ value is alternating, and it is nondegenerate exactly when `b - bᵀ` is.
   alternating.
 * `ContinuousLinearMap.nondegenerate_toBilinForm_skewSymmetrizeBilinear_iff`: it is
   nondegenerate if and only if `b - b.flip` is.
-
 -/
 
 public section
