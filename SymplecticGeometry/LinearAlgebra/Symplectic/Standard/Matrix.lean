@@ -7,6 +7,8 @@ module
 
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
 public import TauCeti.Analysis.Complex.Euclidean.Matrix
+import SymplecticGeometry.LinearAlgebra.Matrix.Block
+import SymplecticGeometry.LinearAlgebra.Matrix.Symmetric
 
 /-!
 # The matrix dictionary for the standard model
@@ -32,6 +34,8 @@ conditions on that map.
   `SymplecticGeometry.toBlocks₂₂_eq_neg_transpose_of_invariant`: the matrix `M` of an
   `ω₀`-compatible complex structure has positive definite lower left block `M₂₁`, and
   `M₂₂ = -M₁₁ᵀ` as soon as the structure preserves `ω₀`.
+* `SymplecticGeometry.isSymm_toBlocks₁₁_mul_inv_toBlocks₂₁_of_compatible`: for such `M`, the
+  product `M₁₁ M₂₁⁻¹` is symmetric.
 
 The conventions are those of `SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic`, which
 follow McDuff–Salamon, Section 2.1.
@@ -163,5 +167,29 @@ theorem AlmostComplexStructure.toEuclideanLin_symm_mul_self {n : Type*} [Fintype
   simp
 
 end TauCeti
+
+namespace SymplecticGeometry
+
+open TauCeti Matrix
+
+variable {ι : Type*} [Fintype ι] [DecidableEq ι]
+
+/-- For the matrix `M` of an `ω₀`-compatible complex structure, the product `M₁₁ M₂₁⁻¹` of the
+upper left block and the inverse of the lower left block is symmetric. -/
+theorem isSymm_toBlocks₁₁_mul_inv_toBlocks₂₁_of_compatible
+    {J : AlmostComplexStructure (StdSpace ι)} (hJ : (stdForm ι).Compatible J) :
+    ((toEuclideanLin.symm J.toLinearMap).toBlocks₁₁ *
+      (toEuclideanLin.symm J.toLinearMap).toBlocks₂₁⁻¹).IsSymm := by
+  set M := toEuclideanLin.symm J.toLinearMap
+  have hC := posDef_toBlocks₂₁_of_compatible hJ
+  have hdet : IsUnit M.toBlocks₂₁.det := isUnit_det_toBlocks₂₁_of_compatible hJ
+  have h₂₁ :=
+    toBlocks₂₁_mul_toBlocks₁₁_add_of_mul_self_eq_neg_one J.toEuclideanLin_symm_mul_self
+  have hCt : M.toBlocks₂₁ᵀ = M.toBlocks₂₁ := isHermitian_iff_isSymm.1 hC.isHermitian
+  refine isSymm_mul_nonsing_inv_of_transpose_mul_eq ?_ hdet
+  rw [hCt, ← neg_neg M.toBlocks₁₁ᵀ, ← toBlocks₂₂_eq_neg_transpose_of_invariant hJ.invariant,
+    Matrix.neg_mul, ← eq_neg_of_add_eq_zero_left h₂₁]
+
+end SymplecticGeometry
 
 end

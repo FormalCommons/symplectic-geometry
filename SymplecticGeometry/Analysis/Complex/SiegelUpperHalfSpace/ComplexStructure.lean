@@ -16,7 +16,6 @@ import TauCeti.Analysis.Matrix.Sqrt
 import TauCeti.Geometry.Symplectic.Complex.Line
 import SymplecticGeometry.LinearAlgebra.ComplexStructure.Standard
 import SymplecticGeometry.LinearAlgebra.Matrix.Block
-import SymplecticGeometry.LinearAlgebra.Matrix.Symmetric
 import SymplecticGeometry.LinearAlgebra.Matrix.SymplecticGroup.Basic
 import SymplecticGeometry.Topology.Instances.Matrix
 
@@ -321,22 +320,6 @@ theorem complexStructureMatrix_ofComplexStructureMatrix {M : Matrix (ι ⊕ ι) 
   · rw [← Matrix.mul_assoc, eq_neg_of_add_eq_zero_left h₂₁, Matrix.neg_mul, neg_neg,
       Matrix.mul_assoc, hCB, Matrix.mul_one]
 
-/-- For the matrix `M` of an `ω₀`-compatible complex structure, the real part `M₁₁ M₂₁⁻¹` of
-`ofComplexStructureMatrix M` is symmetric. -/
-private theorem isSymm_toBlocks₁₁_mul_inv_of_compatible {J : AlmostComplexStructure (StdSpace ι)}
-    (hJ : (stdForm ι).Compatible J) :
-    ((toEuclideanLin.symm J.toLinearMap).toBlocks₁₁ *
-      (toEuclideanLin.symm J.toLinearMap).toBlocks₂₁⁻¹).IsSymm := by
-  set M := toEuclideanLin.symm J.toLinearMap
-  have hC := posDef_toBlocks₂₁_of_compatible hJ
-  have hdet : IsUnit M.toBlocks₂₁.det := isUnit_det_toBlocks₂₁_of_compatible hJ
-  have h₂₁ :=
-    toBlocks₂₁_mul_toBlocks₁₁_add_of_mul_self_eq_neg_one J.toEuclideanLin_symm_mul_self
-  have hCt : M.toBlocks₂₁ᵀ = M.toBlocks₂₁ := isHermitian_iff_isSymm.1 hC.isHermitian
-  refine isSymm_mul_nonsing_inv_of_transpose_mul_eq ?_ hdet
-  rw [hCt, ← neg_neg M.toBlocks₁₁ᵀ, ← toBlocks₂₂_eq_neg_transpose_of_invariant hJ.invariant,
-    Matrix.neg_mul, ← eq_neg_of_add_eq_zero_left h₂₁]
-
 /-- The point `M₁₁ M₂₁⁻¹ + i M₂₁⁻¹` of the Siegel upper half space attached to an
 `ω₀`-compatible complex structure with matrix `M`. -/
 private def ofCompatible {J : AlmostComplexStructure (StdSpace ι)}
@@ -344,7 +327,7 @@ private def ofCompatible {J : AlmostComplexStructure (StdSpace ι)}
   coe := ofComplexStructureMatrix (toEuclideanLin.symm J.toLinearMap)
   isSymm := by
     rw [ofComplexStructureMatrix_def]
-    exact ((isSymm_toBlocks₁₁_mul_inv_of_compatible hJ).map _).add
+    exact ((isSymm_toBlocks₁₁_mul_inv_toBlocks₂₁_of_compatible hJ).map _).add
       (((isHermitian_iff_isSymm.1 (posDef_toBlocks₂₁_of_compatible hJ).inv.isHermitian).map
         _).smul _)
   posDef_map_im := by
