@@ -11,9 +11,9 @@ import TauCeti.Data.Matrix.Block
 /-!
 # Blocks of a square root of `-1`
 
-For a block matrix `M = !![M₁₁, M₁₂; M₂₁, M₂₂]` over a non-associative ring with
-`M * M = -1`, the first block
-column of `M * M` gives two identities between the blocks of `M`.
+For a block matrix `M = !![M₁₁, M₁₂; M₂₁, M₂₂]` over a non-associative ring
+with `M * M = -1`, the first block column of `M * M` gives two identities between the blocks of
+`M`.
 
 ## Main results
 
