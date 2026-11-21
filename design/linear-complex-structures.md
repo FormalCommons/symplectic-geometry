@@ -156,12 +156,13 @@ These settle the questions that `DESIGN.md` leaves to this file.
 
 ## Files
 
-Files are under `SymplecticGeometry/`. The part has fifteen files, each with
+Files are under `SymplecticGeometry/`. The part has sixteen files, each with
 the topic its path says. Besides the standard model, the orbit space and the
 oriented components, they hold the actions on complex structures, their
 general topology, the general orbit–stabilizer homeomorphism, the units of
 square $-1$, the inverse of
-an element and of a matrix of square $-1$, a star-ring
+an element and of a matrix of square $-1$, the agreement of the
+matrices given by `Matrix.toEuclideanCLM` and `Matrix.toEuclideanLin`, a star-ring
 lemma on elements of square $-1$, the conjugation identity for units of square $-1$, the polar deformation of
 matrices of square $-1$, the orthogonal complex structures, the map from
 $\mathbb{R}^3$ to the pure quaternions, and the
@@ -182,6 +183,7 @@ lemma extends that file and is a candidate to move there.
 | `Algebra/Ring/Units.lean` | an element of square $-1$ is a unit |
 | `Algebra/GroupWithZero/Units/Basic.lean` | an element of square $-1$ has `Ring.inverse` its negative |
 | `LinearAlgebra/Matrix/NonsingularInverse.lean` | a matrix of square $-1$ has inverse its negative |
+| `Analysis/CStarAlgebra/Matrix.lean` | the matrix of a linear endomorphism of `EuclideanSpace 𝕜 n` is the same through `Matrix.toEuclideanCLM` and `Matrix.toEuclideanLin` |
 | `Algebra/Star/Basic.lean` | in a star ring, an element of square $-1$ has $a^\ast a = (a a^\ast)^{-1}$ |
 | `Analysis/SpecialFunctions/ContinuousFunctionalCalculus/Polar.lean` | the polar unitary factor of a unit of square $-1$ inverts the powers of its positive factor |
 | `Analysis/Matrix/Polar/Deformation.lean` | the polar deformation preserves square $-1$ |
@@ -279,6 +281,12 @@ Declarations about Tau Ceti's type go in its namespace
   ω₂.Compatible (J.transport e) ↔ ω₁.Compatible J`, for `e : V ≃ₗ[ℝ] W`,
   from Tau Ceti's `compatible_transport_iff` and
   `isSymplectomorphism_iff_transport_eq`.
+- `toEuclideanLin_symm_mul_self (J : AlmostComplexStructure (EuclideanSpace ℝ n)) :
+  toEuclideanLin.symm J.toLinearMap * toEuclideanLin.symm J.toLinearMap = -1`,
+  the matrix of a complex structure squares to $-1$. It sits here, not in
+  *Standard model*'s `Symplectic/Standard/Matrix.lean`, so that
+  `Topology/ComplexStructure/Basic.lean` can use it; its users in other
+  parts reach it through their imports.
 
 ### `Topology/ComplexStructure/Basic.lean`
 
@@ -291,6 +299,10 @@ Declarations about Tau Ceti's type go in its namespace
   sending `J` to `Matrix.toEuclideanCLM.symm` of its operator, with `@[simp]`
   lemmas `homeomorphMatrix_apply_coe` and `homeomorphMatrix_symm_apply_apply`.
   Later files compute with matrices through it, as `DESIGN.md` requires.
+  The square of the matrix is $-1$ by `toEuclideanLin_symm_mul_self`
+  (`Action.lean`), through `Matrix.toEuclideanCLM_symm_toContinuousLinearMap`
+  (`Analysis/CStarAlgebra/Matrix.lean`), which also gives
+  `coe_homeomorphMatrix`.
 - `TauCeti.AlmostComplexStructure.toGeneralLinearGroup J : GL n ℝ`, the matrix
   of `J` as a unit (its inverse is the matrix of `-J`), with
   `coe_toGeneralLinearGroup`, `coe_toGeneralLinearGroup_inv` (not `@[simp]`;
@@ -394,6 +406,13 @@ Declarations about Tau Ceti's type go in its namespace
   over a commutative ring, from the previous lemma by Mathlib's
   `Matrix.nonsing_inv_eq_ringInverse`. `toGeneralLinearGroup` and the star-ring
   lemma below are built on these.
+
+### `Analysis/CStarAlgebra/Matrix.lean`
+
+- `Matrix.toEuclideanCLM_symm_toContinuousLinearMap :
+  toEuclideanCLM.symm (LinearMap.toContinuousLinearMap f) = toEuclideanLin.symm f`,
+  for any `RCLike 𝕜`; it imports only Mathlib. `Topology/ComplexStructure/Basic.lean`
+  uses it.
 
 ### `Algebra/Star/Basic.lean`
 
