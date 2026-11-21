@@ -34,7 +34,8 @@ structures.
 * `SymplecticGeometry.StdSpace.complexEuclideanEquiv ι` identifies `EuclideanSpace ℂ ι` with
   `StdSpace ι` by real and imaginary parts, so that subspaces of `ℂⁿ` can be compared with
   subspaces of the model; it carries multiplication by `I` to `J₀`
-  (`stdComplexStructure_complexEuclideanEquiv`).
+  (`stdComplexStructure_complexEuclideanEquiv`), as `complexToRealEuclidean ι` does
+  (`stdComplexStructure_complexToRealEuclidean`).
 * `SymplecticGeometry.StdSpace.swap ι` is the coordinate swap `(x, y) ↦ (y, x)`, which reverses
   the sign of `ω₀` (`stdForm_swap`).
 * `SymplecticGeometry.StdSpace.finSumIsometry n` relabels the coordinates of `StdSpace (Fin n)`
@@ -336,6 +337,14 @@ theorem stdComplexStructure_apply_inr (z : StdSpace ι) (i : ι) :
 theorem stdComplexStructure_complexEuclideanEquiv (v : EuclideanSpace ℂ ι) :
     stdComplexStructure ι (complexEuclideanEquiv ι v) = complexEuclideanEquiv ι (Complex.I • v) :=
   StdSpace.ext (by simp [Pi.neg_def]) (by simp)
+
+/-- `complexToRealEuclidean ι` carries multiplication by `I` on `ι → ℂ` to `J₀`. -/
+@[simp]
+theorem stdComplexStructure_complexToRealEuclidean (v : ι → ℂ) :
+    stdComplexStructure ι (complexToRealEuclidean ι v) =
+      complexToRealEuclidean ι (Complex.I • v) := by
+  rw [stdComplexStructure_def, AlmostComplexStructure.transport_apply]
+  simp [AlmostComplexStructure.ofComplexModule_apply]
 
 /-- `J₀` is the linear map of the matrix `Matrix.J ι ℝ = !![0, -1; 1, 0]`. -/
 theorem stdComplexStructure_eq_toEuclideanLin_J [DecidableEq ι] :
