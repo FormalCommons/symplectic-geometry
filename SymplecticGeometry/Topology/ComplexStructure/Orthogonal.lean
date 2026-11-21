@@ -65,6 +65,7 @@ def orthogonalComplexStructures : Set (AlmostComplexStructure (StdSpace ι)) :=
 
 variable {ι}
 
+/-- A complex structure is orthogonal exactly when it preserves the norm. -/
 theorem mem_orthogonalComplexStructures {J : AlmostComplexStructure (StdSpace ι)} :
     J ∈ orthogonalComplexStructures ι ↔ ∀ v, ‖J v‖ = ‖v‖ :=
   (Iff.rfl)
