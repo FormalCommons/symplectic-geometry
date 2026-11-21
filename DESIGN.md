@@ -1866,7 +1866,9 @@ has either; Tau Ceti's extension across a boundary,
   rule for transitions that `Darboux.lean` uses, in
   `Geometry/Manifold/LocalDiffeomorph/MFDeriv.lean`, and the bilinear forms
   of sums, multiples and differences of smooth two-forms in
-  `Geometry/Manifold/DifferentialForm/Smooth.lean`, named like
+  `Geometry/Manifold/DifferentialForm/Smooth.lean`, and the primitive on a
+  tube of a difference of closed forms in
+  `Geometry/Manifold/TubularNeighborhood/RelativePoincare.lean`, named like
   Tau Ceti's files. The folder is `Geometry/Symplectic/Moser/`, because
   Tau Ceti has the files `Geometry/Symplectic/Manifold/Moser.lean` and
   `RelativeMoser.lean`, beside which this library may not have folders of
