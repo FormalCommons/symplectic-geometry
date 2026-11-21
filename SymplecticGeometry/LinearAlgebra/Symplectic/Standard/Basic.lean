@@ -56,7 +56,10 @@ compare the model with Tau Ceti's product model `TauCeti.stdSymplecticForm` and
 (`stdComplexStructure_piLpCongrLeft_sumCongr`, `isComplexLinearMap_piLpCongrLeft_sumCongr`).
 The splitting `SymplecticGeometry.StdSpace.sumEquiv ι κ` of
 `StdSpace (ι ⊕ κ)` into `StdSpace ι × StdSpace κ` carries `ω₀` to the direct sum of the two
-standard forms (`isSymplectomorphism_sumEquiv`).
+standard forms (`isSymplectomorphism_sumEquiv`). Through it, `StdSpace.stdInl k m` includes
+`StdSpace (Fin k)` in `StdSpace (Fin (k + m))` as the first `k` coordinate pairs, preserving
+`ω₀` (`stdForm_stdInl`), with range `range_stdInl`; and `StdSpace.ofX ι` includes `ι → ℝ` as
+the `x`-coordinates, onto the isotropic subspace `{y = 0}` (`range_ofX`, `stdForm_ofX`).
 
 The sign conventions are those of McDuff–Salamon, Section 2.1.
 
@@ -517,6 +520,146 @@ theorem isSymplectomorphism_sumEquiv :
   rw [Fintype.sum_sum_type]
 
 end Sum
+
+/-! ### A smaller model inside a larger one -/
+
+section Inclusion
+
+namespace StdSpace
+
+variable (k m : ℕ) in
+/-- `StdSpace (Fin k)` inside `StdSpace (Fin (k + m))`: a point goes to the point whose first `k`
+coordinate pairs are its own and whose last `m` pairs are `0`. It is the inclusion of the first
+factor of `StdSpace (Fin k) × StdSpace (Fin m)`, read through `sumEquiv` and the relabelling
+along `finSumFinEquiv`. -/
+noncomputable def stdInl : StdSpace (Fin k) →L[ℝ] StdSpace (Fin (k + m)) :=
+  (LinearIsometryEquiv.piLpCongrLeft 2 ℝ ℝ
+      (finSumFinEquiv.sumCongr finSumFinEquiv)).toContinuousLinearEquiv.toContinuousLinearMap.comp
+    ((sumEquiv (Fin k) (Fin m)).symm.toContinuousLinearMap.comp (ContinuousLinearMap.inl ℝ _ _))
+
+variable (k m : ℕ) in
+theorem stdInl_def :
+    stdInl k m =
+      (LinearIsometryEquiv.piLpCongrLeft 2 ℝ ℝ (finSumFinEquiv.sumCongr finSumFinEquiv)
+          ).toContinuousLinearEquiv.toContinuousLinearMap.comp
+        ((sumEquiv (Fin k) (Fin m)).symm.toContinuousLinearMap.comp
+          (ContinuousLinearMap.inl ℝ _ _)) :=
+  (rfl)
+
+theorem x_stdInl {k m : ℕ} (z : StdSpace (Fin k)) :
+    (stdInl k m z).x = Sum.elim z.x 0 ∘ finSumFinEquiv.symm := by
+  simp [stdInl_def]
+
+theorem y_stdInl {k m : ℕ} (z : StdSpace (Fin k)) :
+    (stdInl k m z).y = Sum.elim z.y 0 ∘ finSumFinEquiv.symm := by
+  simp [stdInl_def]
+
+@[simp]
+theorem stdInl_apply_inl_castAdd {k m : ℕ} (z : StdSpace (Fin k)) (i : Fin k) :
+    stdInl k m z (Sum.inl (Fin.castAdd m i)) = z (Sum.inl i) := by
+  simpa using congr_fun (x_stdInl (m := m) z) (Fin.castAdd m i)
+
+@[simp]
+theorem stdInl_apply_inr_castAdd {k m : ℕ} (z : StdSpace (Fin k)) (i : Fin k) :
+    stdInl k m z (Sum.inr (Fin.castAdd m i)) = z (Sum.inr i) := by
+  simpa using congr_fun (y_stdInl (m := m) z) (Fin.castAdd m i)
+
+@[simp]
+theorem stdInl_apply_inl_natAdd {k m : ℕ} (z : StdSpace (Fin k)) (i : Fin m) :
+    stdInl k m z (Sum.inl (Fin.natAdd k i)) = 0 := by
+  simpa using congr_fun (x_stdInl (m := m) z) (Fin.natAdd k i)
+
+@[simp]
+theorem stdInl_apply_inr_natAdd {k m : ℕ} (z : StdSpace (Fin k)) (i : Fin m) :
+    stdInl k m z (Sum.inr (Fin.natAdd k i)) = 0 := by
+  simpa using congr_fun (y_stdInl (m := m) z) (Fin.natAdd k i)
+
+theorem injective_stdInl {k m : ℕ} : Function.Injective (stdInl k m) := by
+  rw [stdInl_def, ContinuousLinearMap.coe_comp, ContinuousLinearMap.coe_comp]
+  exact (LinearIsometryEquiv.injective _).comp
+    ((ContinuousLinearEquiv.injective _).comp (Prod.mk_left_injective 0))
+
+/-- The range of `stdInl k m` is the set of points whose coordinate pairs of index at least `k`
+vanish. -/
+theorem range_stdInl {k m : ℕ} :
+    Set.range (stdInl k m) = {z | ∀ j : Fin (k + m), k ≤ (j : ℕ) → z.x j = 0 ∧ z.y j = 0} := by
+  ext z
+  constructor
+  · rintro ⟨w, rfl⟩ j hj
+    obtain ⟨i, rfl⟩ : ∃ i : Fin m, Fin.natAdd k i = j :=
+      ⟨⟨j - k, by omega⟩, Fin.ext (by simp; omega)⟩
+    simp [x_apply, y_apply]
+  · intro hz
+    refine ⟨(equivProd (Fin k)).symm
+      (fun i ↦ z.x (Fin.castAdd m i), fun i ↦ z.y (Fin.castAdd m i)), ?_⟩
+    refine ext (funext fun j ↦ ?_) (funext fun j ↦ ?_) <;>
+      refine Fin.addCases (fun i ↦ ?_) (fun i ↦ ?_) j
+    · simp [x_apply]
+    · simpa [x_apply] using (hz (Fin.natAdd k i) (by simp)).1.symm
+    · simp [y_apply]
+    · simpa [y_apply] using (hz (Fin.natAdd k i) (by simp)).2.symm
+
+omit [Fintype ι] in
+variable (ι) in
+/-- The inclusion of `ι → ℝ` into `StdSpace ι` as the `x`-coordinates, the `y`-coordinates being
+`0`. -/
+noncomputable def ofX : (ι → ℝ) →ₗ[ℝ] StdSpace ι :=
+  (equivProd ι).symm.toLinearMap ∘ₗ LinearMap.inl ℝ _ _
+
+omit [Fintype ι] in
+variable (ι) in
+theorem ofX_def : ofX ι = (equivProd ι).symm.toLinearMap ∘ₗ LinearMap.inl ℝ _ _ := (rfl)
+
+omit [Fintype ι] in
+@[simp]
+theorem x_ofX (a : ι → ℝ) : (ofX ι a).x = a := (rfl)
+
+omit [Fintype ι] in
+@[simp]
+theorem y_ofX (a : ι → ℝ) : (ofX ι a).y = 0 := (rfl)
+
+omit [Fintype ι] in
+@[simp]
+theorem ofX_apply_inl (a : ι → ℝ) (i : ι) : ofX ι a (Sum.inl i) = a i := (rfl)
+
+omit [Fintype ι] in
+@[simp]
+theorem ofX_apply_inr (a : ι → ℝ) (i : ι) : ofX ι a (Sum.inr i) = 0 := (rfl)
+
+omit [Fintype ι] in
+theorem injective_ofX : Function.Injective (ofX ι) := fun a b h ↦ by
+  simpa using congrArg x h
+
+omit [Fintype ι] in
+/-- The range of `ofX ι` is the subspace `{y = 0}`. -/
+theorem range_ofX : Set.range (ofX ι) = {z | z.y = 0} := by
+  ext z
+  refine ⟨fun ⟨a, ha⟩ ↦ ha ▸ y_ofX a, fun hz ↦ ⟨z.x, ext (x_ofX _) ((y_ofX _).trans ?_)⟩⟩
+  exact (Set.mem_ofPred_eq.mp hz).symm
+
+end StdSpace
+
+open StdSpace
+
+/-- `stdInl k m` pulls the standard form of `StdSpace (Fin (k + m))` back to that of
+`StdSpace (Fin k)`. -/
+theorem stdForm_stdInl {k m : ℕ} (z w : StdSpace (Fin k)) :
+    stdForm (Fin (k + m)) (stdInl k m z) (stdInl k m w) = stdForm (Fin k) z w := by
+  have h (v : StdSpace (Fin k)) : stdInl k m v =
+      (LinearIsometryEquiv.piLpCongrLeft 2 ℝ ℝ
+          (finSumFinEquiv.sumCongr finSumFinEquiv)).toLinearEquiv
+        ((sumEquiv (Fin k) (Fin m)).toLinearEquiv.symm (v, 0)) := by
+    simp [stdInl_def]
+  rw [h, h, (isSymplectomorphism_piLpCongrLeft_sumCongr _).apply,
+    isSymplectomorphism_sumEquiv.symm.apply]
+  simp
+
+/-- The subspace `{y = 0}`, the range of `StdSpace.ofX`, is isotropic for `stdForm`. -/
+theorem stdForm_ofX (a b : ι → ℝ) : stdForm ι (ofX ι a) (ofX ι b) = 0 := by
+  rw [stdForm_apply]
+  simp [-x_apply, -y_apply]
+
+end Inclusion
 
 /-! ### Comparison with the product model -/
 

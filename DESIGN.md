@@ -219,7 +219,7 @@ objects as they are.
   | $\{F,G\}=\omega(X_F,X_G)$ | `TauCeti.SmoothTwoForm.poissonBracket` | as it is |
   | $\lambda_{\mathrm{can}}$, $\omega_{\mathrm{can}}=-d\lambda_{\mathrm{can}}$ on $T^*L$ | `TauCeti.CotangentBundle.liouvilleForm`, `symplecticForm` | as they are |
   | contact Hamiltonian $X_H$ | `TauCeti.SmoothForm.contactHamiltonianVectorField` | as it is |
-  | $\sum_ip_i\,dq_i-dz$ | `TauCeti.innerProductContactForm`, which is $dz-\sum_ip_i\,dq_i$ | its pullback by $(q,p,z)\mapsto(q,-p,-z)$ |
+  | $\sum_ip_i\,dq_i-dz$ | `TauCeti.innerProductContactForm`, which is $dz-\sum_ip_i\,dq_i$ | `-innerProductContactForm V`, equal to its pullback by $(q,p,z)\mapsto(q,-p,-z)$ (`mpullback_innerProductContactForm_neg`) |
   | the symplectization form $-d(e^s\alpha)$ on $\mathbb{R}\times M$ | `TauCeti.SmoothForm.symplectization α`, which is $e^t\alpha$ | $-d$ of it |
   | the contact form $-i^*(\iota_Y\omega)$ of a hypersurface of contact type | `TauCeti.IsContactType`, whose primitive $\lambda$ has $d\lambda=\omega$ and $\iota_Z\omega=\lambda$ | $-i^*\lambda$, with $Y=Z$ |
 
@@ -1949,7 +1949,7 @@ has either; Tau Ceti's extension across a boundary,
   compatible complex structures by the formula of
   `LinearAlgebra/Symplectic/Extension.lean`, whose adjoint step is smooth by
   `Geometry/Manifold/VectorBundle/Adjoint.lean`), `Tubular.lean` (the common step of
-  the four theorems: given a diffeomorphism between two properly embedded
+  the four theorems: given a diffeomorphism between two embedded
   submanifolds and, over it, a bundle map $TM_0|_{Q_0}\to TM_1|_{Q_1}$ that
   is a linear symplectomorphism on each fibre, some diffeomorphism of
   neighbourhoods has that bundle map as its derivative along $Q_0$, proved
@@ -1966,7 +1966,16 @@ has either; Tau Ceti's extension across a boundary,
   *Symplectic vector spaces*' linear reduction), `Coisotropic.lean` and
   `AdaptedDarboux.lean` (Darboux charts adapted to the four types, from a
   chart of the submanifold suited to its type and Tau Ceti's pointwise
-  relative Darboux theorem).
+  relative Darboux theorem), with the general
+  `Geometry/Manifold/LocalDiffeomorph/Extend.lean` (an immersion extended to a local
+  diffeomorphism, and centred charts) and
+  `LinearAlgebra/FiniteDimensional/Extension.lean` (an injective linear map
+  extended to a linear equivalence),
+  `Geometry/Manifold/DifferentialForm/Pullback/LocalDiffeomorph.lean` (pull-back
+  along the local inverse of a local diffeomorphism),
+  `Geometry/Manifold/LocalDiffeomorph/LocalInverse.lean` (a local
+  diffeomorphism on the target of its local inverse) and
+  `Topology/Maps/Embedding.lean` (an inducing map cut out by a chart).
   The symplectic normal bundle of a symplectic submanifold is Tau Ceti's
   normal bundle with `TauCeti.SmoothEmbedding.symplecticNormalForm`; the
   symplectic normal bundle $(TQ)^\omega/TQ$ of an isotropic one is given by
@@ -1977,7 +1986,7 @@ has either; Tau Ceti's extension across a boundary,
   complex structures* (`LinearAlgebra/Symplectic/Compatible.lean` and
   `Topology/Algebra/Module/BilinearForm.lean`, merged), Tau Ceti (tubular
   neighbourhoods, the normal bundles of Lagrangian and symplectic embeddings,
-  compatible almost complex structures, relative Darboux, `TauCeti.SmoothTwoForm.exists_partialDiffeomorph_fix_immersion_mpullback_eq`).
+  compatible almost complex structures, relative Darboux, `TauCeti.exists_partialDiffeomorph_fix_immersion_compContinuousLinearMap_fderiv_eq`).
   `CharacteristicFoliation.lean` uses only Tau Ceti and `LieDeriv.lean` and can
   start at once.
 - **Unmerged work of #3 it may wait for.** The linear extensions in the

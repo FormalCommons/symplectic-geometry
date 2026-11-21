@@ -271,6 +271,16 @@ file of that name, in the namespace `Matrix`, over `RCLike 𝕜`:
   `Matrix.coe_toEuclideanCLE`. `Action.lean` uses it for
   `isLagrangian_map_toEuclideanLin` and `ℒ.coe_smul_eq_map_toEuclideanCLE`.
 
+### `Analysis/Complex/Circle.lean`
+
+A general fact about Tau Ceti's `TauCeti.circleEquivUnitary`, beside Tau
+Ceti's file of that name, in the namespace `TauCeti`; it imports only Tau
+Ceti:
+
+- `TauCeti.circleEquivUnitary_smul` (`@[simp]`): for `[MulAction ℂ M]`,
+  `circleEquivUnitary z • x = (z : ℂ) • x`. `Action.lean` uses it to compute
+  the scalar unitary of `rotate`.
+
 ### `Analysis/Normed/Lp/PiLp.lean`
 
 A general fact about Mathlib's `LinearIsometryEquiv.piLpCongrLeft`, in the
@@ -766,6 +776,9 @@ The topology of `ℒ ι` in terms of unitary frames.
   (`coe_unitaryOfFrame` and `continuous_realOrthonormalize`) and
   `continuous_unitaryFrame`. The unitary instance follows by
   `TauCeti.GLSymplectic.continuous_ofUnitary`.
+- `ℒ.rotationPath Λ ε : Path Λ (rotate ε Λ)`, `s ↦ rotate (ε * s) Λ`, with
+  `rotationPath_apply` (`@[simp]`), next to `continuous_rotate`, so that
+  `Maslov/Basic.lean` builds `halfTurnLoop` from it.
 
 ### `Topology/Grassmannian/Lagrangian/Finite.lean`
 

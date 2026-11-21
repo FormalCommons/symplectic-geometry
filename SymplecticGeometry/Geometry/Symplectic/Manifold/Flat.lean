@@ -7,9 +7,17 @@ module
 
 public import TauCeti.Geometry.Symplectic.Manifold.Flat
 import TauCeti.Analysis.Normed.Module.Alternating.Curry
+import TauCeti.Geometry.Manifold.VectorBundle.Hom
 
 /-!
-# The inverse flat map of a one-form with zero first jet
+# Inverse flat maps of covector fields
+
+For a two-form `σ` and a covector field `c` on `M`, the vector field `x ↦ (σ♭_x)⁻¹ (c x)`
+contracts with `σ` to `c` at each point where the flat map `σ♭_x` is invertible, and it is
+smooth at each point where `c` is smooth and `σ♭` is invertible. Tau Ceti's
+`TauCeti.SmoothTwoForm.IsNondegenerate.interiorEquiv` gives this field for a one-form smooth on
+all of `M` and a nondegenerate form; the lemmas here are pointwise, so they apply to covector
+fields smooth only near a set, and to families of two-forms along a map.
 
 Let `σ` be a nondegenerate two-form on a boundaryless finite-dimensional manifold and `β` a
 one-form. If `β` vanishes at a point `x` and its coordinate expression in the chart at `x` has
@@ -21,10 +29,24 @@ what makes the Moser flow fix `x` to first order ([McDuffSalamon2017], §3.2;
 
 ## Main results
 
+* `TauCeti.SmoothTwoForm.interior_flat_inverse_apply`: `ι_{(σ♭)⁻¹ c} σ = c` at a point where
+  `σ♭` is invertible, and
+  `TauCeti.SmoothTwoForm.IsNondegenerate.interior_flat_inverse_ofSubsingleton`, the identity of
+  rough one-forms for a nondegenerate `σ`.
+* `TauCeti.SmoothTwoForm.contMDiffAt_sectionAlong_flat_inverse_apply` and
+  `TauCeti.SmoothTwoForm.contMDiffAt_flat_inverse_apply`: the field `(σ♭)⁻¹ c`, for a family of
+  two-forms along a map or for one two-form, is smooth where `c` and the forms are and the flat
+  map is invertible.
 * `TauCeti.SmoothTwoForm.IsNondegenerate.hasFDerivAt_mpullbackWithin_interiorEquiv_symm`: the
   coordinate expression of `(σ♭)⁻¹ β` has zero derivative where `β` vanishes to first order.
 
-The proof adapts Tau Ceti's private `hasFDerivAt_mpullbackWithin_moserField`
+The smoothness lemmas take the argument by which Tau Ceti's
+`TauCeti.SmoothTwoForm.IsNondegenerate.interiorEquiv` shows that its inverse is smooth
+(`ContMDiffAt.clm_bundle_inverse`, then `ContMDiffAt.clm_bundle_apply`) and make it
+pointwise.
+
+The proof of `hasFDerivAt_mpullbackWithin_interiorEquiv_symm` adapts Tau Ceti's private
+`hasFDerivAt_mpullbackWithin_moserField`
 (`TauCeti/Geometry/Symplectic/Manifold/RelativeMoser.lean`) from the cut-off Moser field to a
 general inverse flat map: in the chart, the field is the inverse of the flat map of the
 coordinate form applied to the coordinate expression of `β`; these inverses stay bounded near
@@ -38,12 +60,76 @@ the chart point, and `β` vanishes there to first order.
 
 public section
 
-open Set Filter
+open Bundle Set Filter
 open scoped ContDiff Manifold Topology
 
 namespace TauCeti
 
 namespace SmoothTwoForm
+
+section FlatInverse
+
+variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
+  {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M] [IsManifold I ∞ M]
+  {σ : SmoothTwoForm I M}
+
+/-- At a point `x` where the flat map of `σ` is invertible, the vector field
+`y ↦ (σ♭_y)⁻¹ (c y)` contracts with `σ` to the covector `c x`, read as a one-form:
+`ι_{(σ♭)⁻¹ c} σ = c` at `x`. -/
+theorem interior_flat_inverse_apply (σ : SmoothTwoForm I M)
+    (c : (x : M) → TangentSpace I x →L[ℝ] ℝ) {x : M} (hx : (σ.flat x).IsInvertible) :
+    RoughForm.interior (fun y ↦ (σ.flat y).inverse (c y)) σ.val x =
+      ContinuousAlternatingMap.ofSubsingleton ℝ (TangentSpace I x) ℝ 0 (c x) := by
+  rw [interior_apply_eq_ofSubsingleton_flat, hx.self_apply_inverse]
+
+/-- For a nondegenerate two-form `σ` on a finite-dimensional manifold and a rough one-form `β`,
+the vector field `x ↦ (σ♭_x)⁻¹ β_x`, with `β_x` read as a covector, contracts with `σ` to `β`. -/
+theorem IsNondegenerate.interior_flat_inverse_ofSubsingleton [FiniteDimensional ℝ E]
+    (h : σ.IsNondegenerate) (β : RoughForm I M ℝ 1) :
+    RoughForm.interior (fun x ↦ (σ.flat x).inverse
+      ((ContinuousAlternatingMap.ofSubsingleton ℝ (TangentSpace I x) ℝ 0).symm (β x)))
+        σ.val = β :=
+  funext fun x ↦ (interior_flat_inverse_apply σ _ (h.isInvertible_flat x)).trans
+    ((ContinuousAlternatingMap.ofSubsingleton ℝ (TangentSpace I x) ℝ 0).apply_symm_apply _)
+
+variable [CompleteSpace E]
+
+/-- **Inverse flat maps along a smooth family of two-forms.** Let `σ m` be smooth two-forms on
+`M` and `c m` covectors at `b m`, depending on `m ∈ N`, along a map `b : N → M`. If the values
+`(σ m)_(b m)` and the covectors `c m` depend `C^n` on `m` at `m₀`, and the flat map of `σ m₀` at
+`b m₀` is invertible, then the vectors `((σ m)♭_(b m))⁻¹ (c m)` depend `C^n` on `m` at `m₀`, as a
+map into the tangent bundle. -/
+theorem contMDiffAt_sectionAlong_flat_inverse_apply {EN HN N : Type*} [NormedAddCommGroup EN]
+    [NormedSpace ℝ EN] [TopologicalSpace HN] {J : ModelWithCorners ℝ EN HN} [TopologicalSpace N]
+    [ChartedSpace HN N] {n : WithTop ℕ∞} {b : N → M} {σ : N → SmoothTwoForm I M}
+    {c : (m : N) → TangentSpace I (b m) →L[ℝ] ℝ} {m₀ : N}
+    (hσ : ContMDiffAt J (I.prod 𝓘(ℝ, E [⋀^Fin 2]→L[ℝ] ℝ)) n
+      (fun m ↦ TotalSpace.mk' (E [⋀^Fin 2]→L[ℝ] ℝ)
+        (E := fun x : M ↦ TangentSpace I x [⋀^Fin 2]→L[ℝ] Trivial M ℝ x) (b m) ((σ m).val (b m)))
+      m₀)
+    (hinv : ((σ m₀).flat (b m₀)).IsInvertible)
+    (hc : ContMDiffAt J (I.prod 𝓘(ℝ, E →L[ℝ] ℝ)) n
+      (fun m ↦ TotalSpace.mk' (E →L[ℝ] ℝ) (E := fun x : M ↦ TangentSpace I x →L[ℝ] ℝ) (b m)
+        (c m)) m₀) :
+    ContMDiffAt J I.tangent n
+      (fun m ↦ (⟨b m, ((σ m).flat (b m)).inverse (c m)⟩ : TangentBundle I M)) m₀ :=
+  (ContMDiffAt.clm_bundle_inverse (x := m₀) (b := b) (E₁ := TangentSpace I)
+    (E₂ := fun x : M ↦ TangentSpace I x →L[ℝ] ℝ) (ϕ := fun m ↦ (σ m).flat (b m))
+    (contMDiffAt_sectionAlong_flat hσ) hinv).clm_bundle_apply hc
+
+/-- **Inverse flat maps of a covector field.** If the covector field `c` is `C^n` at `x`, with
+`n ≤ ∞`, and the flat map of `σ` at `x` is invertible, then the vector field
+`y ↦ (σ♭_y)⁻¹ (c y)` is `C^n` at `x`. -/
+theorem contMDiffAt_flat_inverse_apply {n : WithTop ℕ∞} (hn : n ≤ ∞)
+    {c : (x : M) → TangentSpace I x →L[ℝ] ℝ} {x : M} (hinv : (σ.flat x).IsInvertible)
+    (hc : ContMDiffAt I (I.prod 𝓘(ℝ, E →L[ℝ] ℝ)) n
+      (fun y ↦ TotalSpace.mk' (E →L[ℝ] ℝ) (E := fun y : M ↦ TangentSpace I y →L[ℝ] ℝ) y (c y))
+      x) :
+    ContMDiffAt I I.tangent n (fun y ↦ (⟨y, (σ.flat y).inverse (c y)⟩ : TangentBundle I M)) x :=
+  contMDiffAt_sectionAlong_flat_inverse_apply (b := id) (σ := fun _ ↦ σ)
+    ((σ.contMDiff x).of_le hn) hinv hc
+
+end FlatInverse
 
 namespace IsNondegenerate
 
