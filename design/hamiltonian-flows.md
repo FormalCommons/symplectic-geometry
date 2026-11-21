@@ -265,6 +265,7 @@ Tau Ceti unchanged.
 
 | File | Contents |
 |---|---|
+| `Algebra/Lie/Quotient.lean` | `LieHom.coe_quotKerEquivRange_mk`: the value of `LieHom.quotKerEquivRange` on a class, for `PoissonAlgebra.lean` |
 | `Geometry/Manifold/Instances/Icc.lean` | `contMDiff_totalSpaceMk_one_Icc`: the unit vector field `z ↦ 1` of a closed interval is smooth |
 | `Geometry/Diffeomorphism/Diffeotopy/Velocity.lean` | `Diffeotopy.velocity`, its joint smoothness, its value along the motion, its values for `refl` and the flow diffeotopies, and the pullback of $\iota_{X_t}\sigma$ by $\phi_t$ |
 | `Geometry/Symplectic/Hamiltonian/PoissonAlgebra.lean` | the Leibniz rule, the local time-dependent flow, the kernel and the quotient, the milestone *Hamiltonian flows and the Poisson algebra* |
@@ -277,7 +278,9 @@ Imports between the files: `Velocity.lean` imports `Instances/Icc.lean`;
 `Flux/Hamiltonian.lean` import `Velocity.lean`; `Flux/CompactSupport.lean`
 imports `Flux/Hamiltonian.lean`. `PoissonAlgebra.lean` imports Tau Ceti,
 among it `Hamiltonian/ExtendedPhaseSpace/Manifold.lean` for the energy
-identity, and `Geometry/Manifold/DifferentialForm/Flow/Family.lean` of
+identity, `Algebra/Lie/Quotient.lean` for the value of
+`LieHom.quotKerEquivRange` on a class, and
+`Geometry/Manifold/DifferentialForm/Flow/Family.lean` of
 *Contact geometry* for the general flow lemma. `Diffeotopy/Real.lean` of
 *Smooth families* imports `Velocity.lean`, for `mfderiv_cylinderMap_time`.
 
