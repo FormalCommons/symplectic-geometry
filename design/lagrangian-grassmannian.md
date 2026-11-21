@@ -55,9 +55,11 @@ global name.
    the unitary frames nor `Quotient.lean`. The coordinate isometry
    `StdSpace.finSumIsometry n` conjugates the projection onto `Λ` into the
    projection onto its image. On the compact Hausdorff space
-   `finiteGrassmannian`, Tau Ceti's continuous and injective
-   `V ↦ V.toEuclidean.starProjection` is therefore a closed embedding
-   (`Topology/Grassmannian/Tautological.lean`), and the map out of `ℒ (Fin n)`,
+   `finiteGrassmannian`, the map `V ↦ V.toEuclidean.starProjection` into a
+   Hausdorff space of operators is continuous by Tau Ceti and injective by
+   `toEuclidean_injective` and `Submodule.starProjection_inj`, hence a closed
+   embedding (`Topology/Grassmannian/Tautological.lean`); and the map out of
+   `ℒ (Fin n)`,
    composed with it, is the embedding `Λ ↦ Λ.starProjection` followed by a
    homeomorphism (`Topology.IsEmbedding.of_comp_iff`). A map out of
    `ℒ ι` is continuous as soon as its composite with the unitary frame map
@@ -129,9 +131,13 @@ global name.
    complementary iff disjoint, which §6 puts in `Transverse.lean`, is
    `isCompl_iff_disjoint` in `LinearAlgebra/Symplectic/Lagrangian/Basic.lean`,
    since it holds for a general `ω` and `Transverse.lean` is about
-   `StdSpace ι`. One definition about `StdSpace ι` alone,
-   `StdSpace.complexEuclideanEquiv` with its four lemmas, is added to part 1's
-   `Standard/Basic.lean` (see that section). The other departures are #79's,
+   `StdSpace ι`. Declarations about `StdSpace ι` alone
+   (`StdSpace.complexEuclideanEquiv`, `StdSpace.swap`,
+   `StdSpace.finSumIsometry`, the coordinate lemmas
+   `StdSpace.x_piLpCongrLeft_sumCongr` and `StdSpace.y_piLpCongrLeft_sumCongr`,
+   with their API) are added to part 1's `Standard/Basic.lean`; the section
+   *Additions to Standard model's `Standard/Basic.lean`* lists them. The
+   other departures are #79's,
    the issue that changes §6 to match: `Topology/Grassmannian/Lagrangian/Finite.lean`;
    the general files under `LinearAlgebra/Matrix/` (the real points of the
    unitary group, the complex frame facts and the dimension of the space of
@@ -246,29 +252,36 @@ file of that name, in the namespace `Matrix`, over `RCLike 𝕜`:
 - `Matrix.piLpCongrLeft_toEuclideanLin_apply (e : m ≃ n) (M : Matrix m m 𝕜) z`:
   `piLpCongrLeft 2 𝕜 𝕜 e (toEuclideanLin M z) =
   toEuclideanLin (reindex e e M) (piLpCongrLeft 2 𝕜 𝕜 e z)`.
-  `Lagrangian/Sum.lean` uses it for `reindex_unitaryFrame`.
+  `LinearAlgebra/Symplectic/Lagrangian/Sum.lean` uses it for
+  `reindex_unitaryFrame`.
 
 ### `Analysis/Normed/Lp/PiLp.lean`
 
-A general fact about Mathlib's `LinearIsometryEquiv.piLpCongrLeft`, beside
-Mathlib's file of that name, in the namespace `LinearIsometryEquiv`:
+A general fact about Mathlib's `LinearIsometryEquiv.piLpCongrLeft`, in the
+namespace `LinearIsometryEquiv`, beside Tau Ceti's file of that name
+(`TauCeti/Analysis/Normed/Lp/PiLp.lean`, which has `piLpCongrLeft_refl`), its
+natural upstream home:
 
 - `LinearIsometryEquiv.piLpCongrLeft_trans (e : ι ≃ ι') (f : ι' ≃ ι'')`
   (`@[simp]`): `(piLpCongrLeft p 𝕜 E e).trans (piLpCongrLeft p 𝕜 E f) =
   piLpCongrLeft p 𝕜 E (e.trans f)`, the composition counterpart of Tau
-  Ceti's `piLpCongrLeft_refl`. `Lagrangian/Sum.lean` uses it for
-  `reindex_trans`.
+  Ceti's `piLpCongrLeft_refl`. `LinearAlgebra/Symplectic/Lagrangian/Sum.lean`
+  uses it for `reindex_trans`.
 
-### `LinearAlgebra/Matrix/GeneralLinearGroup/Symplectic/Unitary.lean`
+### `Topology/Algebra/Matrix/Realify.lean`
 
 A general fact about Tau Ceti's `GLSymplectic`, in the namespace
-`TauCeti.GLSymplectic`, beside Tau Ceti's file of that name, so that it can
-move there unchanged; it imports only Tau Ceti:
+`TauCeti.GLSymplectic`, beside Tau Ceti's file of that name, which defines
+`ofUnitary` and `coe_ofUnitary`; it imports only Tau Ceti. Tau Ceti's
+`LinearAlgebra/Matrix/GeneralLinearGroup/Symplectic/Unitary.lean` is no home
+for it: Tau Ceti's `Topology/Algebra/Matrix/Realify.lean` imports that file,
+so the lemma there could not see `ofUnitary`.
 
 - `TauCeti.GLSymplectic.sum_ofUnitary (U : unitaryGroup ι ℂ)
   (U' : unitaryGroup κ ℂ)`: `sum (ofUnitary U, ofUnitary U') =
   ofUnitary (Matrix.UnitaryGroup.sum (U, U'))`, from
-  `Matrix.realify_fromBlocks_zero`. `Lagrangian/Sum.lean` uses it for
+  `Matrix.realify_fromBlocks_zero`.
+  `LinearAlgebra/Symplectic/Lagrangian/Sum.lean` uses it for
   `sum_unitaryFrame`.
 
 ### `Topology/Grassmannian/Tautological.lean`
@@ -316,8 +329,9 @@ find them there.
   sign of `ω₀`: `stdForm ι (swap ι z) (swap ι w) = -stdForm ι z w`.
 - `StdSpace.finSumIsometry n : StdSpace (Fin n) ≃ₗᵢ[ℝ] EuclideanSpace ℝ (Fin (n + n))`,
   the relabelling of coordinates
-  `LinearIsometryEquiv.piLpCongrLeft 2 ℝ ℝ finSumFinEquiv`. It goes before
-  the file's `variable [Fintype ι]`. `Finite.lean` uses it to reach Tau
+  `LinearIsometryEquiv.piLpCongrLeft 2 ℝ ℝ finSumFinEquiv`. It comes right
+  after `sq_x_add_sq_y_le_norm_sq`, between the file's two
+  `variable [Fintype ι]` lines. `Finite.lean` uses it to reach Tau
   Ceti's Grassmannian. API: `finSumIsometry_def`, and the `@[simp]` lemmas
   `finSumIsometry_apply : finSumIsometry n z k = z (finSumFinEquiv.symm k)`
   and `finSumIsometry_symm_apply :
@@ -327,12 +341,13 @@ This part also uses
 `SymplecticGeometry.isSymplectomorphism_piLpCongrLeft_sumCongr` (`σ : ι ≃ κ`),
 which is already in `Standard/Basic.lean`: the coordinate
 permutation `LinearIsometryEquiv.piLpCongrLeft 2 ℝ ℝ (σ.sumCongr σ)` carries
-`stdForm ι` to `stdForm κ`. Beside it, building issue 11 adds the
+`stdForm ι` to `stdForm κ`. Beside it, building issue 11 added the
 coordinates of that permutation, as two `@[simp]` lemmas in the namespace
 `SymplecticGeometry.StdSpace`:
 `x_piLpCongrLeft_sumCongr : x (piLpCongrLeft 2 ℝ ℝ (σ.sumCongr σ) z) = z.x ∘ σ.symm`
-and `y_piLpCongrLeft_sumCongr`, the same for `y`. `Lagrangian/Sum.lean`
-uses them for `reindex_horizontal` and `reindex_vertical`.
+and `y_piLpCongrLeft_sumCongr`, the same for `y`.
+`LinearAlgebra/Symplectic/Lagrangian/Sum.lean` uses them for
+`reindex_horizontal` and `reindex_vertical`.
 
 The direct sum of two models is §1's `StdSpace.sumEquiv ι κ : StdSpace (ι ⊕ κ)
 ≃L[ℝ] StdSpace ι × StdSpace κ`, in this same file, with its lemma that it
@@ -431,6 +446,9 @@ Lagrangian frames on `StdSpace ι`, pure linear algebra. Namespace
   constructor of G6; `isLagrangian_range_fromRows_iff` turns the rank and
   symmetry conditions into `h`. Every Lagrangian spanned by a frame, in this
   part, is written `ofFrame X Y h`, never as an anonymous pair.
+- `ℒ.finrank_eq_card (Λ : ℒ ι) : finrank ℝ Λ = Fintype.card ι`, from
+  `IsLagrangian.two_mul_finrank` and `finrank_stdSpace`, for every use of the
+  dimension of a Lagrangian of `StdSpace ι`.
 - `isLagrangian_map_swap_iff` (`@[simp]`): `L.map (swap ι)` is Lagrangian for
   `ω₀` iff `L` is. Since `stdForm_swap` says that `swap` multiplies `ω₀` by
   `-1`, this is the case `e = swap`, `c = -1` of
@@ -719,6 +737,11 @@ The comparison with Tau Ceti's Grassmannian, for `ι = Fin n`.
   `finSumIsometry n` is Lagrangian). So `ℒ (Fin n)` has the subspace
   topology of `finiteGrassmannian`. The proof is as in decision 2, through
   `TauCeti.finiteGrassmannian.isClosedEmbedding_starProjection_toEuclidean`.
+- `ℒ.isClosedEmbedding_toFiniteGrassmannian`: the embedding is closed, since
+  it is continuous and injective, `ℒ (Fin n)` is compact and
+  `finiteGrassmannian` is Hausdorff. `Quotient.lean` is imported only for the
+  instance `CompactSpace (ℒ (Fin n))`, which the closedness of the image needs
+  and the embedding itself does not.
 
 ### `Topology/Grassmannian/Lagrangian/Graph.lean`
 
@@ -726,26 +749,36 @@ The two graph charts of `DESIGN.md` §6, as partial homeomorphisms. The model
 is Tau Ceti's `Topology/Grassmannian/Graph.lean`, which does the same for
 `TauCeti.finiteGrassmannian`; the building issue credits it.
 
-- `ℒ.continuous_graphY`, from `graphY_eq_unitaryFrame`,
-  `continuous_realOrthonormalize` and `continuous_unitaryFrame`.
+- `ℒ.continuous_graphY`, from `continuous_ofFrame` (`Quotient.lean`)
+  for the frame `fromRows S 1`, which spans `graphY S`.
+- `ℒ.unitaryFrame_eq_graphY_iff`: `unitaryFrame U = graphY S` iff
+  `U.map im` is invertible and `U.map re * (U.map im)⁻¹ = S`, the form of
+  Tau Ceti's `frameSpan_eq_graph_iff` for unitary frames.
+- `ℒ.isOpenEmbedding_graphY`: `graphY` is an open embedding. The preimage
+  under the open quotient map `unitaryFrame` of the image of an open set is
+  open, by the previous item.
 - `ℒ.isOpen_setOf_isCompl (Λ₀ : ℒ ι) : IsOpen {Λ : ℒ ι | IsCompl (Λ : Submodule ℝ _) Λ₀}`.
-  For `Λ₀` horizontal, the preimage under `unitaryFrame` is
-  `{U | det (U.map im) ≠ 0}`. Translate for general `Λ₀`.
+  For `Λ₀` horizontal, it is the range of `graphY`. Translate for general
+  `Λ₀` by the symplectic action (`isCompl_smul_iff`).
 - `ℒ.graphYChart : OpenPartialHomeomorph (ℒ ι) (selfAdjoint (Matrix ι ι ℝ))`,
-  the basic chart, with source `{Λ | IsCompl Λ (horizontal ι)}`
-  (`range_graphY`), target `univ`, and inverse `graphY`.
-  API: `graphYChart_source`, `graphYChart_target`, `graphYChart_symm_apply`
-  and `graphYChart_graphY` (both `@[simp]`). Also
-  `coe_graphYChart_unitaryFrame`: on the source, the value at
-  `unitaryFrame U` is $XY^{-1}$ for `X = U.map re` and `Y = U.map im`. This
-  gives continuity on the source through the open quotient map.
+  the basic chart, the inverse of the open embedding `graphY`, with source
+  `{Λ | IsCompl Λ (horizontal ι)}` (`range_graphY`) and target `univ`.
+  API: `graphYChart_def`, and `graphYChart_source`, `graphYChart_target`,
+  `graphYChart_symm_apply` and `graphYChart_graphY` (all `@[simp]`). Also
+  `unitaryFrame_mem_graphYChart_source_iff`: `unitaryFrame U` is in the
+  source iff `Y = U.map im` is invertible; and
+  `coe_graphYChart_unitaryFrame`: for such `U`, the value at
+  `unitaryFrame U` is $XY^{-1}$ for `X = U.map re`. This gives continuity
+  on the source through the open quotient map.
 - `ℒ.graphChart : OpenPartialHomeomorph (ℒ ι) (selfAdjoint (Matrix ι ι ℝ))`,
   the chart on the Lagrangians transverse to the vertical subspace, with
   source `{Λ | IsCompl Λ (vertical ι)}` (`range_graph`), target
   `univ`, and inverse `graph`. It is the homeomorphism `symJ ι ℝ • ·`
   of `ℒ ι`, then `graphYChart`, then the homeomorphism `S ↦ -S`; this is
-  `symJ_smul_graph`. API: `graphChart_source`, `graphChart_target`,
-  `graphChart_symm_apply` and `graphChart_graph` (both `@[simp]`).
+  `symJ_smul_graph`. API: `graphChart_def`, `graphChart_apply`
+  (`graphChart Λ = -graphYChart (symJ ι ℝ • Λ)`), and `graphChart_source`,
+  `graphChart_target`, `graphChart_symm_apply` and `graphChart_graph` (all
+  `@[simp]`).
 
 ### `Topology/Grassmannian/Lagrangian/Fibration.lean`
 
@@ -799,13 +832,16 @@ no `Topology/` file of this part.
   §1's matrix lemma for `sumEquiv` in `Standard/Matrix.lean`.
 - `ℒ.reindex (e : ι ≃ κ) : ℒ ι ≃ ℒ κ`, the image under
   `LinearIsometryEquiv.piLpCongrLeft 2 ℝ ℝ (e.sumCongr e)`, which is
-  Lagrangian by `isSymplectomorphism_piLpCongrLeft_sumCongr`. API:
+  Lagrangian by the lemma `isLagrangian_map_piLpCongrLeft_sumCongr` of this
+  file, from `isSymplectomorphism_piLpCongrLeft_sumCongr`. API:
   `coe_reindex`, `reindex_symm`, `reindex_trans`, `reindex_refl`;
   `reindex_unitaryFrame : reindex e (unitaryFrame U) =
   unitaryFrame (Matrix.unitaryReindexContinuousMulEquiv ℂ e U)`, with Tau
   Ceti's map (`Topology/Algebra/Matrix/UnitaryGroup.lean`), whose coercion is
-  `Matrix.reindex e e U` (§6's `U.submatrix e.symm e.symm`). The proof goes
-  through `coe_unitaryReindexContinuousMulEquiv_apply`, then `Matrix.realify_reindex`
+  `Matrix.reindex e e U` (§6's `U.submatrix e.symm e.symm`). The proof
+  rewrites the horizontal Lagrangian as its image under `reindex e`
+  (`reindex_horizontal`), then goes through
+  `coe_unitaryReindexContinuousMulEquiv_apply`, then `Matrix.realify_reindex`
   (`(reindex e e A).realify = reindex (e.sumCongr e) (e.sumCongr e) A.realify`,
   in the general file `LinearAlgebra/Matrix/Realify.lean`, beside
   `Matrix.realify_submatrix`), and then
@@ -1017,7 +1053,7 @@ merged.
 7. **The quotient topology.** `Topology/Grassmannian/Lagrangian/Quotient.lean`.
    About 300 lines. Blocked by 4 and 5.
 8. **Comparison with `finiteGrassmannian`.** `Topology/Grassmannian/Lagrangian/Finite.lean`.
-   About 200 lines. Blocked by 7.
+   About 200 lines. Blocked by 4.
 9. **The graph charts.** `Topology/Grassmannian/Lagrangian/Graph.lean`:
    `graphYChart` and `graphChart`. About 300 lines. Blocked by 6 and 7.
 10. **Path lifting.** `Topology/Grassmannian/Lagrangian/Fibration.lean`.
