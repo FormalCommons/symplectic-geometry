@@ -217,11 +217,13 @@ also uses.
   on Lagrangian frames (#118), not by *Standard model*'s issues.
 - The matrix dictionary: `mem_symplecticGroup_iff_isSymplectomorphism`
   (`A ∈ Matrix.symplecticGroup ι ℝ` if and only if `Matrix.toEuclideanLin A`
-  preserves `stdForm ι`); a real matrix commutes with `Matrix.J` if and only if
-  its map commutes with `stdComplexStructure ι`; and the complex side, from Tau
-  Ceti's `Matrix.realify_I_smul_one` and `complexToRealEuclidean_mulVec`
-  (`Analysis/Complex/Euclidean/Matrix.lean`): `complexToRealEuclidean`
-  intertwines a complex matrix with its `Matrix.realify`.
+  preserves `stdForm ι`), and `mem_GLSymplectic_iff_isSymplectomorphism`, its
+  form for `g : GL (ι ⊕ ι) ℝ` in Tau Ceti's `GLSymplectic ι ℝ` and the
+  automorphism `Matrix.toEuclideanCLE g`; a real matrix commutes with
+  `Matrix.J` if and only if its map commutes with `stdComplexStructure ι`; and
+  the complex side, from Tau Ceti's `Matrix.realify_I_smul_one` and
+  `complexToRealEuclidean_mulVec` (`Analysis/Complex/Euclidean/Matrix.lean`):
+  `complexToRealEuclidean` intertwines a complex matrix with its `Matrix.realify`.
 
 ## Parts
 
