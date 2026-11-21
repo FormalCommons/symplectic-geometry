@@ -796,6 +796,9 @@ it into issues; the overview fixes its folders and its dependencies.
   For $n=1$ it is compared with Mathlib's `UpperHalfPlane` action and with Tau
   Ceti's `stdComplexSymplecticForm_tames_iff_im_pos`.
 - **Builds on:** *Standard model*; compatibility is Tau Ceti's `Compatible`.
+  `Action.lean` also imports `LinearAlgebra/Matrix/OfReal.lean`, the general
+  matrix file of *Lagrangian Grassmannian* on reading real matrices as complex
+  ones. That file imports only Mathlib, so the part still sits at level 1.
 - **Milestones:** *Siegel upper half space*. The proof of transitivity checks
   the formula for $J(Z)$ directly, which breaks the circularity between the
   book's exercise and lemma that the plan points out. The milestone's
@@ -1162,7 +1165,7 @@ Each part depends only on the parts listed, besides Mathlib and Tau Ceti.
 | 1 | *Lagrangian Grassmannian* | *Standard model*, *Symplectic vector spaces* (only `Subspace.lean`, which is merged) |
 | 1 | *Linear nonsqueezing* | *Standard model* |
 | 1 | *Linear complex structures* | *Standard model* |
-| 1 | *Siegel upper half space* | *Standard model* |
+| 1 | *Siegel upper half space* | *Standard model*; *Lagrangian Grassmannian* (only `LinearAlgebra/Matrix/OfReal.lean`, which imports only Mathlib and is merged) |
 | 2 | *Compatible complex structures* | *Standard model*, *Symplectic vector spaces* |
 | 2 | *Maslov index* | *Standard model*, *Symplectic group*, *Unitary group topology*; its Lagrangian issues also *Lagrangian Grassmannian* |
 | 3 | *Symplectic vector bundles* | *Compatible complex structures*, *Linear Moser* |
