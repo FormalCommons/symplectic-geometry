@@ -274,6 +274,12 @@ Declarations about Tau Ceti's type go in its namespace
   ω₂.Compatible (J.transport e) ↔ ω₁.Compatible J`, for `e : V ≃ₗ[ℝ] W`,
   from Tau Ceti's `compatible_transport_iff` and
   `isSymplectomorphism_iff_transport_eq`.
+- `toEuclideanLin_symm_mul_self (J : AlmostComplexStructure (EuclideanSpace ℝ n)) :
+  toEuclideanLin.symm J.toLinearMap * toEuclideanLin.symm J.toLinearMap = -1`,
+  the matrix of a complex structure squares to $-1$. It sits here, not in
+  *Standard model*'s `Symplectic/Standard/Matrix.lean`, so that
+  `Topology/ComplexStructure/Basic.lean` can use it; its users in other
+  parts reach it through their imports.
 
 ### `Topology/ComplexStructure/Basic.lean`
 
@@ -286,6 +292,12 @@ Declarations about Tau Ceti's type go in its namespace
   sending `J` to `Matrix.toEuclideanCLM.symm` of its operator, with `@[simp]`
   lemmas `homeomorphMatrix_apply_coe` and `homeomorphMatrix_symm_apply_apply`.
   Later files compute with matrices through it, as `DESIGN.md` requires.
+  The square of the matrix is $-1$ by `toEuclideanLin_symm_mul_self`
+  (`Action.lean`), through
+  `Matrix.toEuclideanCLM_symm_toContinuousLinearMap :
+  toEuclideanCLM.symm (LinearMap.toContinuousLinearMap f) = toEuclideanLin.symm f`
+  (in Mathlib's namespace, for any `RCLike 𝕜`), which also gives
+  `coe_homeomorphMatrix`.
 - `TauCeti.AlmostComplexStructure.toGeneralLinearGroup J : GL n ℝ`, the matrix
   of `J` as a unit (its inverse is the matrix of `-J`), with
   `coe_toGeneralLinearGroup`, `coe_toGeneralLinearGroup_inv` (not `@[simp]`;

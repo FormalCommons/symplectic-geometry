@@ -34,6 +34,8 @@ matrices `A` such that `A * A = -1`, and the actions of `GL n ℝ` and of
   structures form a closed subspace of the continuous endomorphisms.
 * The instances `T2Space`, `LocallyCompactSpace`, and `ContinuousSMul` for `GL n ℝ` and
   `Matrix.specialOrthogonalGroup n ℝ`.
+* `Matrix.toEuclideanCLM_symm_toContinuousLinearMap`: the matrix of a linear endomorphism of
+  `EuclideanSpace 𝕜 n` is the same through `Matrix.toEuclideanCLM` and `Matrix.toEuclideanLin`.
 
 ## References
 
@@ -42,6 +44,22 @@ matrices `A` such that `A * A = -1`, and the actions of `GL n ℝ` and of
 -/
 
 public section
+
+namespace Matrix
+
+variable {n 𝕜 : Type*} [Fintype n] [DecidableEq n] [RCLike 𝕜]
+
+/-- The matrix of a linear endomorphism of `EuclideanSpace 𝕜 n`, read through
+`Matrix.toEuclideanCLM` after making it continuous, is its matrix through
+`Matrix.toEuclideanLin`. -/
+theorem toEuclideanCLM_symm_toContinuousLinearMap
+    (f : EuclideanSpace 𝕜 n →ₗ[𝕜] EuclideanSpace 𝕜 n) :
+    (toEuclideanCLM (n := n) (𝕜 := 𝕜)).symm (LinearMap.toContinuousLinearMap f) =
+      toEuclideanLin.symm f := by
+  rw [LinearEquiv.eq_symm_apply, ← coe_toEuclideanCLM_eq_toEuclideanLin,
+    StarAlgEquiv.apply_symm_apply, LinearMap.coe_toContinuousLinearMap]
+
+end Matrix
 
 namespace TauCeti.AlmostComplexStructure
 
@@ -89,19 +107,15 @@ private theorem toLinearMap_toEuclideanCLM_comp_self {A : Matrix n n ℝ} (hA : 
   refine LinearMap.ext fun v ↦ ?_
   simpa using congr($h v).symm
 
-private theorem toEuclideanCLM_symm_mul_self (J : AlmostComplexStructure (EuclideanSpace ℝ n)) :
-    (Matrix.toEuclideanCLM (n := n) (𝕜 := ℝ)).symm
-        (LinearMap.toContinuousLinearMap J.toLinearMap) *
-      (Matrix.toEuclideanCLM (n := n) (𝕜 := ℝ)).symm
-        (LinearMap.toContinuousLinearMap J.toLinearMap) = -1 := by
-  rw [← map_mul, toContinuousLinearMap_mul_self, map_neg, map_one]
-
 /-- The complex structures of `EuclideanSpace ℝ n` are homeomorphic to the real matrices of
 square `-1`, a structure going to its matrix in the standard basis. -/
 noncomputable def homeomorphMatrix :
     AlmostComplexStructure (EuclideanSpace ℝ n) ≃ₜ {A : Matrix n n ℝ // A * A = -1} where
   toFun J := ⟨(Matrix.toEuclideanCLM (n := n) (𝕜 := ℝ)).symm
-      (LinearMap.toContinuousLinearMap J.toLinearMap), toEuclideanCLM_symm_mul_self n J⟩
+      (LinearMap.toContinuousLinearMap J.toLinearMap),
+    (congrArg (fun A ↦ A * A)
+      (Matrix.toEuclideanCLM_symm_toContinuousLinearMap J.toLinearMap)).trans
+      J.toEuclideanLin_symm_mul_self⟩
   invFun A := ⟨(Matrix.toEuclideanCLM (n := n) (𝕜 := ℝ) A.val).toLinearMap,
     toLinearMap_toEuclideanCLM_comp_self n A.property⟩
   left_inv J := by
@@ -130,9 +144,7 @@ theorem homeomorphMatrix_apply_coe (J : AlmostComplexStructure (EuclideanSpace �
 `EuclideanSpace ℝ n` is the matrix of `J`, `toEuclideanLin.symm J`. -/
 theorem coe_homeomorphMatrix (J : AlmostComplexStructure (EuclideanSpace ℝ n)) :
     (homeomorphMatrix n J : Matrix n n ℝ) = Matrix.toEuclideanLin.symm J.toLinearMap := by
-  rw [homeomorphMatrix_apply_coe, LinearEquiv.eq_symm_apply,
-    ← Matrix.coe_toEuclideanCLM_eq_toEuclideanLin, StarAlgEquiv.apply_symm_apply,
-    LinearMap.coe_toContinuousLinearMap]
+  rw [homeomorphMatrix_apply_coe, Matrix.toEuclideanCLM_symm_toContinuousLinearMap]
 
 /-- The structure of a matrix `A` of square `-1` acts on vectors as `A`. -/
 @[simp]
@@ -173,7 +185,9 @@ theorem inv_toEuclideanCLM_symm_toContinuousLinearMap
         (LinearMap.toContinuousLinearMap J.toLinearMap))⁻¹ =
       -(Matrix.toEuclideanCLM (n := n) (𝕜 := ℝ)).symm
         (LinearMap.toContinuousLinearMap J.toLinearMap) :=
-  Matrix.inv_eq_left_inv (by rw [neg_mul, toEuclideanCLM_symm_mul_self, neg_neg])
+  Matrix.inv_eq_left_inv (by
+    rw [neg_mul, Matrix.toEuclideanCLM_symm_toContinuousLinearMap, J.toEuclideanLin_symm_mul_self,
+      neg_neg])
 
 /-- The invertible matrix of a complex structure depends continuously on it. -/
 theorem continuous_toGeneralLinearGroup :
