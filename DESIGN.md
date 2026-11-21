@@ -217,11 +217,13 @@ also uses.
   on Lagrangian frames (#118), not by *Standard model*'s issues.
 - The matrix dictionary: `mem_symplecticGroup_iff_isSymplectomorphism`
   (`A ∈ Matrix.symplecticGroup ι ℝ` if and only if `Matrix.toEuclideanLin A`
-  preserves `stdForm ι`); a real matrix commutes with `Matrix.J` if and only if
-  its map commutes with `stdComplexStructure ι`; and the complex side, from Tau
-  Ceti's `Matrix.realify_I_smul_one` and `complexToRealEuclidean_mulVec`
-  (`Analysis/Complex/Euclidean/Matrix.lean`): `complexToRealEuclidean`
-  intertwines a complex matrix with its `Matrix.realify`.
+  preserves `stdForm ι`), and `mem_GLSymplectic_iff_isSymplectomorphism`, its
+  form for `g : GL (ι ⊕ ι) ℝ` in Tau Ceti's `GLSymplectic ι ℝ` and the
+  automorphism `Matrix.toEuclideanCLE g`; a real matrix commutes with
+  `Matrix.J` if and only if its map commutes with `stdComplexStructure ι`; and
+  the complex side, from Tau Ceti's `Matrix.realify_I_smul_one` and
+  `complexToRealEuclidean_mulVec` (`Analysis/Complex/Euclidean/Matrix.lean`):
+  `complexToRealEuclidean` intertwines a complex matrix with its `Matrix.realify`.
 
 ## Parts
 
@@ -673,7 +675,10 @@ it into issues; the overview fixes its folders and its dependencies.
   `complexToRealEuclidean ι`; transitivity, the stabilizer of $J_0$ as the
   realified $\mathrm{GL}(n,\mathbb{C})$ by Tau Ceti's
   `Matrix.GeneralLinearGroup.mem_range_realify_iff`, positively oriented
-  structures), `Topology/Algebra/GroupAction/Transitive.lean` (the
+  structures; an invertible symplectic matrix preserves and reflects
+  compatibility with $\omega_0$, and `Matrix.symplecticGroup ι ℝ` acts on the
+  structures compatible with $\omega_0$ by conjugation),
+  `Topology/Algebra/GroupAction/Transitive.lean` (the
   orbit–stabilizer homeomorphism for σ-compact groups),
   `Topology/ComplexStructure/Orbit.lean` (the space as the quotient
   $\mathrm{GL}(2n,\mathbb{R})/\mathrm{GL}(n,\mathbb{C})$; the positively
@@ -1139,8 +1144,9 @@ it into issues; the overview fixes its folders and its dependencies.
     `Fiber ℂ F V ℂ` that *First Chern number* asks for, whose trivializations
     are those of `instPrincipalBundleFiber` followed by that isomorphism.
     All of this is topological: the smooth side (smoothness of the action
-    and of the coordinate changes, the diffeomorphism onto the submanifold)
-    is *First Chern number*'s prerequisite 3.
+    and of the coordinate changes, the diffeomorphism onto the submanifold,
+    the submersion of the projection) is *First Chern number*'s
+    prerequisite 3.
     The isomorphism of `unitary (𝕜 →L[𝕜] 𝕜)` with `unitary 𝕜` involves no
     bundle and holds for every `RCLike 𝕜`, so it has a file of its own,
     `Analysis/CStarAlgebra/Unitary/ContinuousLinearMap.lean`. As a group
