@@ -9,6 +9,7 @@ public import Mathlib.Geometry.Manifold.VectorBundle.ContMDiffSection
 public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Flow
 public import TauCeti.Geometry.Manifold.DifferentialForm.Interior
 import Mathlib.Geometry.Manifold.ContMDiffMFDeriv
+import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Basic
 import SymplecticGeometry.Geometry.Manifold.Instances.Icc
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
 import TauCeti.Geometry.Manifold.MFDeriv.Prod
@@ -149,7 +150,7 @@ theorem velocity_apply (t : unitInterval) (y : M) :
 theorem velocity_apply_apply (t : unitInterval) (x : M) :
     Φ.velocity t (Φ (t, x)) = mfderiv (J.prod (𝓡∂ 1)) J Φ.cylinderMap (x, t)
       ((0 : E), (1 : TangentSpace (𝓡∂ 1) t)) := by
-  rw [velocity_apply, ← symm_timeSlice_apply, ← timeSlice_apply, Diffeomorph.symm_apply_apply]
+  rw [velocity_apply, symm_apply_mk_apply]
 
 /-- The velocity of a diffeotopy is jointly smooth in time and space, up to both ends of the
 time interval. -/
@@ -178,8 +179,7 @@ theorem mpullback_timeSlice_interior_velocity_apply {F : Type*} [AddCommGroup F]
   have h : ⇑(Φ.timeSlice t) = fun z ↦ Φ.cylinderMap (z, t) :=
     funext fun z ↦ (Φ.timeSlice_apply t z).trans (Φ.cylinderMap_apply (z, t)).symm
   have hx : Φ.symm (t, Φ.cylinderMap (x, t)) = x := by
-    rw [(Φ.cylinderMap_apply (x, t)).trans (Φ.timeSlice_apply t x).symm, ← symm_timeSlice_apply,
-      Diffeomorph.symm_apply_apply]
+    rw [Φ.cylinderMap_apply, symm_apply_mk_apply]
   rw [h, mpullback_apply, mpullback_apply, RoughForm.interior_apply]
   congr 1
   funext i
@@ -200,8 +200,9 @@ theorem velocity_globalFlowDiffeotopy {v : (x : M) → TangentSpace J x}
     (hc : IsCompleteVectorField v) (a : ℝ) (t : unitInterval) :
     ⇑((globalFlowDiffeotopy le_top hv hc a).velocity t) = a • v := by
   funext y
-  rw [velocity_apply, mfderiv_cylinderMap_globalFlowDiffeotopy_time, ← symm_timeSlice_apply,
-    ← timeSlice_globalFlowDiffeotopy le_top hv hc a t, Diffeomorph.apply_symm_apply, Pi.smul_apply]
+  rw [velocity_apply, mfderiv_cylinderMap_globalFlowDiffeotopy_time,
+    ← timeSlice_globalFlowDiffeotopy le_top hv hc a t, timeSlice_apply, apply_mk_symm_apply,
+    Pi.smul_apply]
 
 /-- The diffeotopy of a time-dependent vector field `X` with complete suspension has velocity
 `X t` at time `t`, the ends included. -/
@@ -213,7 +214,7 @@ theorem velocity_timeDependentFlowDiffeotopy {X : ℝ → (x : M) → TangentSpa
   set Φ := timeDependentFlowDiffeotopy le_top hX hc
   funext y
   obtain ⟨x, rfl⟩ : ∃ x, Φ (t, x) = y :=
-    ⟨Φ.symm (t, y), by rw [← symm_timeSlice_apply, ← timeSlice_apply, Diffeomorph.apply_symm_apply]⟩
+    ⟨Φ.symm (t, y), Φ.apply_mk_symm_apply t y⟩
   refine (Φ.velocity_apply_apply t x).trans ((Φ.mfderiv_cylinderMap_time (by simp) (x, t)).trans ?_)
   have hγ := hasMFDerivAt_timeDependentFlowOf (hX.of_le (by simp))
     ((timeDependentFlowDomain_eq_univ hc).symm ▸ mem_univ ((0, (t : ℝ)), x))

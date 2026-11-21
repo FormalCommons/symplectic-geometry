@@ -278,8 +278,8 @@ Tau Ceti unchanged.
 | `Geometry/Symplectic/Flux/Hamiltonian.lean` | the page's $H_t$ beside `HasHamiltonian`, the three rules in the page's form, uniqueness, Hamiltonians from exactness |
 | `Geometry/Symplectic/Flux/CompactSupport.lean` | `IsCompactlySupportedHamiltonian`, `compactlySupportedHamiltonianGroup`, the flow of a compactly supported Hamiltonian, the milestone *Hamiltonian isotopies and their composition* |
 
-Imports between the files: `Velocity.lean` imports `Instances/Icc.lean` and
-`MFDeriv/Prod.lean`;
+Imports between the files: `Velocity.lean` imports `Instances/Icc.lean`,
+`MFDeriv/Prod.lean` and `Diffeotopy/Basic.lean`;
 `SymplecticIsotopy.lean` and
 `Flux/Hamiltonian.lean` import `Velocity.lean`; `Flux/Hamiltonian.lean`
 imports `Diffeotopy/Basic.lean`; `Flux/CompactSupport.lean`
