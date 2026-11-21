@@ -246,11 +246,13 @@ than $r$. Expected size: 150 lines.
   `(r j)⁻¹ ^ 2` on `inl j` and `inr j`.
 - `stdEllipsoid (r : ι → ℝ) : Set (StdSpace ι) := {z | stdEllipsoidForm r z ≤ 1}`,
   the book's $E(r)$, with `stdEllipsoid_def`, `@[simp] mem_stdEllipsoid_iff`,
-  `closedBall_subset_stdEllipsoid` (`0 < r j` for all `j` and `r i ≤ r j` for
-  all `j` give `closedBall 0 (r i) ⊆ stdEllipsoid r`). The matching
+  `closedBall_subset_stdEllipsoid` (`hmin : ∀ j, r i ≤ r j` gives
+  `closedBall 0 (r i) ⊆ stdEllipsoid r`; no sign is needed, since for
+  `r i < 0` the ball is empty and for `r i = 0` it is `{0}`). The matching
   inclusion in a cylinder is in issue 7, so that this issue does not wait for
   issue 1.
-- `stdEllipsoid_eq_image_closedBall`: for `r` with positive entries,
+- `stdEllipsoid_eq_image_closedBall`: for `r` with nonzero entries
+  (`hr : ∀ j, r j ≠ 0`),
   `stdEllipsoid r` is the image of `closedBall 0 1` under the diagonal map
   $(x_j,y_j)\mapsto(r_jx_j,r_jy_j)$, whose determinant is $\prod_j r_j^2$.
 
