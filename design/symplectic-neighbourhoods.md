@@ -568,7 +568,7 @@ being an embedding, the image of `Q` in the source is exactly the part of
 `S` that `e` hits. The pull-back along the local inverse is
 `IsLocalDiffeomorphAt.mpullback_localInverse_apply_eq`, in the general
 `Geometry/Manifold/DifferentialForm/Pullback/LocalDiffeomorph.lean`; the
-shrinking is `Topology.IsEmbedding.exists_isOpen_inter_range_eq`, in the
+shrinking is `Topology.IsInducing.exists_isOpen_inter_range_eq`, in the
 general `Topology/Maps/Embedding.lean`. These steps, for any chart `c` and injective linear
 `ι : E' → StdSpace (Fin n)` with `range ι = S`, are the public
 `exists_darbouxChart_inter_range_eq_of_chart` (same namespace), which the

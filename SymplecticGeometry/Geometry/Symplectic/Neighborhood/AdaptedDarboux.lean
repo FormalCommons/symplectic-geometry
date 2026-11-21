@@ -48,7 +48,7 @@ pulls `σ` back to `stdForm`, and inverts the result. The inverse is a restricti
 inverse, which still pulls `stdForm` back to `σ`
 (`IsLocalDiffeomorphAt.mpullback_localInverse_apply_eq`), and is shrunk, `f` being an embedding,
 until its source meets the image of `f` only along the range of `ι`
-(`Topology.IsEmbedding.exists_isOpen_inter_range_eq`). For a symplectic `Q`, the chart `c` is a
+(`Topology.IsInducing.exists_isOpen_inter_range_eq`). For a symplectic `Q`, the chart `c` is a
 Darboux chart of `f^* σ`
 (`TauCeti.SmoothTwoForm.IsSymplectic.exists_darbouxChart_of_symplecticForm`);
 for an isotropic one both forms vanish along `Q`, and any chart with `c q₀ = 0` will do. The
@@ -88,14 +88,13 @@ private theorem eventually_compContinuousLinearMap_mpullback_eq {G : StdSpace (F
     {W : Set (StdSpace (Fin n))} (hWo : IsOpen W) (hW0 : 0 ∈ W)
     (hGW : ∀ v ∈ W, ContMDiffAt 𝓘(ℝ, StdSpace (Fin n)) I ∞ G v)
     {u : E' → M} {ι : E' →L[ℝ] StdSpace (Fin n)} (hGu : ∀ᶠ s in 𝓝 0, G (ι s) = u s)
-    {σ₁ σ₀ : StdSpace (Fin n) → StdSpace (Fin n) [⋀^Fin 2]→L[ℝ] ℝ}
-    (hσ₁ : σ₁ = TauCeti.mpullback 𝓘(ℝ, StdSpace (Fin n)) I G σ.val)
-    (hσ₀ : σ₀ = (stdForm (Fin n)).constSmooth.val)
     (hc : ∀ᶠ s in 𝓝 (0 : E'), ∀ a b : TangentSpace 𝓘(ℝ, E') s,
       σ.eval₂ (u s) (mfderiv 𝓘(ℝ, E') I u s a) (mfderiv 𝓘(ℝ, E') I u s b) =
         stdForm (Fin n) (ι a) (ι b)) :
-    ∀ᶠ s in 𝓝 (0 : E'), (σ₁ (ι s)).compContinuousLinearMap (fderiv ℝ ι s) =
-      (σ₀ (ι s)).compContinuousLinearMap (fderiv ℝ ι s) := by
+    ∀ᶠ s in 𝓝 (0 : E'),
+      (TauCeti.mpullback 𝓘(ℝ, StdSpace (Fin n)) I G σ.val (ι s)).compContinuousLinearMap
+        (fderiv ℝ ι s) =
+      ((stdForm (Fin n)).constSmooth.val (ι s)).compContinuousLinearMap (fderiv ℝ ι s) := by
   have hpull_flat (γ : StdSpace (Fin n) → StdSpace (Fin n) [⋀^Fin 2]→L[ℝ] ℝ) (s : E') :
       (γ (ι s)).compContinuousLinearMap (fderiv ℝ ι s) =
         TauCeti.mpullback 𝓘(ℝ, E') 𝓘(ℝ, StdSpace (Fin n)) ι γ s :=
@@ -103,14 +102,16 @@ private theorem eventually_compContinuousLinearMap_mpullback_eq {G : StdSpace (F
   have hWι : ∀ᶠ s in 𝓝 (0 : E'), ι s ∈ W :=
     ι.continuous.continuousAt.preimage_mem_nhds (by rw [map_zero]; exact hWo.mem_nhds hW0)
   filter_upwards [hc, hGu.eventually_nhds, hWι] with s hcs hGus hsW
+  refine (hpull_flat (TauCeti.mpullback _ I G σ.val) s).trans
+    (Eq.trans ?_ (hpull_flat (stdForm (Fin n)).constSmooth.val s).symm)
   -- `hGus` says that `G ∘ ι` and `u` agree near `s`, which is `G ∘ ι =ᶠ[𝓝 s] u` by definition.
-  rw [hpull_flat, hpull_flat, hσ₁, ← mpullback_comp_at ι.mdifferentiableAt
+  rw [← mpullback_comp_at ι.mdifferentiableAt
     ((hGW _ hsW).mdifferentiableAt (by simp)), (show G ∘ ι =ᶠ[𝓝 s] u from hGus).mpullback_eq]
   ext v
   have hv : v = ![v 0, v 1] := by
     ext i
     fin_cases i <;> rfl
-  rw [hv, mpullback_apply_pair, hσ₀, mpullback_apply_pair, ContinuousLinearMap.mfderiv_eq,
+  rw [hv, mpullback_apply_pair, mpullback_apply_pair, ContinuousLinearMap.mfderiv_eq,
     ← SmoothBundleForm.eval₂_apply, ← SmoothBundleForm.eval₂_apply]
   exact (hcs (v 0) (v 1)).trans (SymplecticForm.constSmooth_apply _ _ _ _).symm
 
@@ -166,7 +167,7 @@ private theorem exists_localDiffeomorph_mpullback_eq (hσ : σ.IsNondegenerate) 
       (SmoothForm.contDiffOn_mpullback σ hWo fun v hv ↦ (hGW v hv).contMDiffWithinAt) hdσ₀
       (fun v hv ↦ SmoothForm.IsClosed.extDeriv_mpullback_eq_zero hcl ((hGW v hv).of_le (by simp)))
       (Eventually.of_forall fun _ ↦ ι.contDiff.contDiffAt) (by rwa [ι.fderiv])
-      (eventually_compContinuousLinearMap_mpullback_eq hWo hW0 hGW hGu hσ₁_def rfl hc) hnd₀ hnd₁
+      (eventually_compContinuousLinearMap_mpullback_eq hWo hW0 hGW hGu hc) hnd₀ hnd₁
   have hΦ0 : Φ 0 = 0 := by simpa using hfix.self_of_nhds
   have h0Φ : (0 : StdSpace (Fin n)) ∈ Φ.source := by simpa using h0Φι
   -- `H = G ∘ Φ` is a local diffeomorphism at `0` which pulls `σ` back to `σ₀`.
@@ -198,15 +199,14 @@ private theorem exists_partialDiffeomorph_apply_eq_of_mpullback_eq {H : StdSpace
         σ.eval₂ x v w = stdForm (Fin n) (mvfderiv I e₀ x v) (mvfderiv I e₀ x w)) ∧
       ∀ᶠ s in 𝓝 0, u s ∈ e₀.source ∧ e₀ (u s) = ι s := by
   set Λ := hH.localInverse
-  obtain ⟨O, hOsub, hOo, h0O⟩ := mem_nhds_iff.1
-    (hHpb.and (hH.eventually.mono fun v hv ↦ hv.mdifferentiableAt (by simp)))
+  obtain ⟨O, hOsub, hOo, h0O⟩ := mem_nhds_iff.1 hHpb
   refine ⟨Λ.restrOpen _ (Λ.contMDiffOn.continuousOn.isOpen_inter_preimage Λ.open_source hOo),
     fun x hx v w ↦ ?_, ?_⟩
   · -- `Λ` pulls `stdForm` back to `σ` at `x`, since `H^* σ = stdForm` at `Λ x`.
     rw [PartialDiffeomorph.restrOpen_source] at hx
     obtain ⟨hxΛ, -, hxO⟩ := hx
     rw [PartialDiffeomorph.coe_restrOpen, SmoothBundleForm.eval₂_apply,
-      ← hH.mpullback_localInverse_apply_eq (by simp) hxΛ (hOsub hxO).2 (hOsub hxO).1,
+      ← hH.mpullback_localInverse_apply_eq (by simp) hxΛ (hOsub hxO),
       mpullback_apply_pair, ← SmoothBundleForm.eval₂_apply]
     exact SymplecticForm.eval₂_constSmooth_mfderiv_eq _ _ x v w
   · -- For `s` near `0`, `u s = H (ι s)` lies in the source of `Λ`, which sends it to `ι s ∈ O`.
@@ -263,7 +263,7 @@ theorem exists_darbouxChart_inter_range_eq_of_chart (hσ : σ.IsNondegenerate)
   -- Since `f` is an embedding, a smaller source meets the image of `f` only along `range ι`.
   obtain ⟨π, hπ⟩ := (ι : E' →ₗ[ℝ] StdSpace (Fin n)).exists_leftInverse_of_injective
     (LinearMap.ker_eq_bot.2 hι)
-  obtain ⟨U, hUo, hU0, hUsub, hU⟩ := f.isEmbedding.exists_isOpen_inter_range_eq
+  obtain ⟨U, hUo, hU0, hUsub, hU⟩ := f.isEmbedding.isInducing.exists_isOpen_inter_range_eq
     (c.symm.toOpenPartialHomeomorph.map_nhds_eq (by simpa using h0t)).ge
     e₀.toOpenPartialHomeomorph (LinearMap.toContinuousLinearMap π).continuous
     (fun s ↦ LinearMap.congr_fun hπ s) (by simpa using hfe₀)
