@@ -218,7 +218,8 @@ and two rows of its milestone table.
   longer builds on *Cotangent bundles*. No open issue has a blocker that
   this changes: #476 is blocked only by its design issue.
 - `AdaptedDarboux.lean` uses Tau Ceti's pointwise relative Darboux theorem
-  instead of the neighbourhood theorems, so it can start at once.
+  instead of the neighbourhood theorems, so it can start at once. Its general
+  steps are in four files of their own, listed in building issue 10.
 - The part no longer builds on *Symplectic vector bundles*, neither on
   `Symplectic/Basic.lean` nor on any of its open issues: the compatible
   complex structures come from Tau Ceti, and the symplectic normal bundle
@@ -536,7 +537,11 @@ with `σ₁ = g^*ω`, `σ₀ = stdForm` and the inclusion of `S`. Its
 `htan` is the property of `c`. It gives `Φ` fixing `S` near `0` with
 `Φ^*σ₁ = σ₀`. Then `e` is the inverse of `g ∘ Φ`, shrunk so that, `f`
 being an embedding, the image of `Q` in the source is exactly the part of
-`S` that `e` hits. These steps, for any chart `c` and injective linear
+`S` that `e` hits. The pull-back along the local inverse is
+`IsLocalDiffeomorphAt.mpullback_localInverse_apply_eq`, in the general
+`Geometry/Manifold/DifferentialForm/Pullback/LocalDiffeomorph.lean`; the
+shrinking is `Topology.IsEmbedding.exists_isOpen_inter_range_eq`, in the
+general `Topology/Maps/Embedding.lean`. These steps, for any chart `c` and injective linear
 `ι : E' → StdSpace (Fin n)` with `range ι = S`, are the public
 `exists_darbouxChart_inter_range_eq_of_chart` (same namespace), which the
 four theorems share.
@@ -549,8 +554,9 @@ four theorems share.
   `TauCeti.SmoothTwoForm.IsNondegenerate.exists_compatible`.
 - From *Symplectic vector spaces*: `LinearAlgebra/Symplectic/Reduction.lean`
   (merged), in `Extension.lean` and `Isotropic.lean`.
-- From *Standard model*: `StdSpace`, `stdForm`, `stdForm_apply`, in
-  `AdaptedDarboux.lean`.
+- From *Standard model*: `StdSpace`, `stdForm`, `stdForm_apply`, and the
+  inclusions `StdSpace.stdInl` and `StdSpace.ofX` that this part adds to
+  `LinearAlgebra/Symplectic/Standard/Basic.lean`, in `AdaptedDarboux.lean`.
 - *Cotangent bundles* is not used: `Lagrangian.lean` needs only Tau Ceti's
   `symplecticForm` and `isLagrangianMap_zeroSection`, because the comparison
   theorem replaces the zero-section splitting.
@@ -589,7 +595,11 @@ list. Issues 1, 3, 5 and 10 can start at once.
 9. **Isotropic and coisotropic neighbourhoods.** `Isotropic.lean` and
    `Coisotropic.lean`. About 300 lines. Blockers: 7.
 10. **Adapted Darboux charts.** `AdaptedDarboux.lean`: the local extension
-    step and the symplectic, isotropic and Lagrangian theorems. About 400
+    step and the symplectic, isotropic and Lagrangian theorems, with the
+    general files `Geometry/Manifold/LocalDiffeomorph/Extend.lean`,
+    `LinearAlgebra/FiniteDimensional/Extension.lean`,
+    `Geometry/Manifold/DifferentialForm/Pullback/LocalDiffeomorph.lean` and
+    `Topology/Maps/Embedding.lean`. About 400
     lines. Blockers: none.
 11. **Adapted Darboux charts of coisotropic submanifolds.**
     `AdaptedDarboux.lean`: the coisotropic theorem. About 200 lines.

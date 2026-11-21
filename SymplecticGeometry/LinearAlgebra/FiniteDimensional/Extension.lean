@@ -26,9 +26,8 @@ namespace LinearMap
 variable {K V W F : Type*} [DivisionRing K] [AddCommGroup V] [Module K V] [AddCommGroup W]
   [Module K W] [AddCommGroup F] [Module K F] [FiniteDimensional K V] [FiniteDimensional K W]
 
-/-- An injective linear map `i : F → V` extends, along another injective linear map `j : F → W`
-into a space of the same finite dimension, to a linear equivalence `A : V ≃ W` with
-`A ∘ i = j`. -/
+/-- An injective linear map `j : F → W` extends along an injective linear map `i : F → V`, into a
+space of the same finite dimension, to a linear equivalence `A : V ≃ W` with `A ∘ i = j`. -/
 theorem exists_linearEquiv_comp_eq_of_injective {i : F →ₗ[K] V} {j : F →ₗ[K] W}
     (hi : Function.Injective i) (hj : Function.Injective j)
     (h : finrank K V = finrank K W) : ∃ A : V ≃ₗ[K] W, A.toLinearMap ∘ₗ i = j := by

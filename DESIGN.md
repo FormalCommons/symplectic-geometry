@@ -1932,7 +1932,10 @@ has either; Tau Ceti's extension across a boundary,
   `Geometry/Manifold/LocalDiffeomorph/Extend.lean` (an immersion extended to a local
   diffeomorphism, and centred charts) and
   `LinearAlgebra/FiniteDimensional/Extension.lean` (an injective linear map
-  extended to a linear equivalence).
+  extended to a linear equivalence),
+  `Geometry/Manifold/DifferentialForm/Pullback/LocalDiffeomorph.lean` (pull-back
+  along the local inverse of a local diffeomorphism) and
+  `Topology/Maps/Embedding.lean` (an embedding cut out by a chart).
   The symplectic normal bundle of a symplectic submanifold is Tau Ceti's
   normal bundle with `TauCeti.SmoothEmbedding.symplecticNormalForm`; the
   symplectic normal bundle $(TQ)^\omega/TQ$ of an isotropic one is given by
