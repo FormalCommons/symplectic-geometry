@@ -207,16 +207,18 @@ following choices.
 `DESIGN.md` is updated with this file, in its part 19, its dependency row
 and two rows of its milestone table.
 
-- Seven files are added: `LinearAlgebra/Symplectic/Extension.lean`,
+- Eight files are added: `LinearAlgebra/Symplectic/Extension.lean`,
   `Neighborhood/Extension.lean`, `Neighborhood/Basic.lean`,
   `Geometry/Manifold/VectorBundle/ZeroSection.lean`,
+  `Geometry/Manifold/VectorBundle/Adjoint.lean`,
   `Geometry/Manifold/TubularNeighborhood/MFDeriv.lean`,
   `Geometry/Manifold/VectorBundle/Orthogonal.lean` and
   `LinearAlgebra/BilinearForm/Orthogonal.lean`. Each neighbourhood
   theorem would otherwise repeat the linear extension and its smoothness;
-  `MFDeriv.lean` holds the step of `Tubular.lean` that uses nothing
-  symplectic, and `Orthogonal.lean` the step of `Neighborhood/Extension.lean`
-  that uses nothing symplectic, with its linear-algebra lemma in
+  `Adjoint.lean` and `VectorBundle/Orthogonal.lean` hold steps of
+  `Neighborhood/Extension.lean`, and `MFDeriv.lean` the step of
+  `Tubular.lean`, that use nothing symplectic; the linear-algebra lemma
+  of `VectorBundle/Orthogonal.lean` is in
   `LinearAlgebra/BilinearForm/Orthogonal.lean`.
 - `Lagrangian.lean` no longer uses *Cotangent bundles* or
   `normalBundleDiffeomorphOfIsLagrangianMap`, since the comparison theorem
@@ -390,6 +392,12 @@ hom bundle of the pull-backs satisfying `hL` and `hLω` at every `q`:
   symplectic. In these frames
   every step of `extendAlong` is a matrix formula with inverses of smooth
   invertible Gram matrices.
+- The adjoint step $(\omega_1^\flat)^{-1}\circ T^*\circ\omega_0^\flat$ of
+  `extendAlong_def` is smooth by `ContMDiff.clm_bundle_bilinAdjoint`
+  (`Geometry/Manifold/VectorBundle/Adjoint.lean`), for
+  `ContinuousLinearMap.bilinAdjoint`, whose linear map is that formula
+  (`ContinuousLinearMap.coe_bilinAdjoint`); both are in part 9's
+  `Topology/Algebra/Module/BilinearForm.lean`.
 - `mfderiv_comp_smoothExtendAlong` ($A\circ df_0=df_1$),
   `isSymplectomorphism_smoothExtendAlong` (at each `q`, for
   `hω₀.symplecticFormAt (f₀ q)` and `hω₁.symplecticFormAt (f₁ q)`), and
@@ -577,7 +585,9 @@ being an embedding, the image of `Q` in the source is exactly the part of
   (merged), in `Extension.lean` and `Isotropic.lean`, and
   `LinearAlgebra/Symplectic/Subspace.lean` (merged), in `Extension.lean`.
 - From *Compatible complex structures*:
-  `LinearAlgebra/Symplectic/Compatible.lean` (merged), in `Extension.lean`.
+  `LinearAlgebra/Symplectic/Compatible.lean` (merged), in `Extension.lean`, and
+  `Topology/Algebra/Module/BilinearForm.lean` (merged), in
+  `Geometry/Manifold/VectorBundle/Adjoint.lean`.
 - From *Standard model*: `StdSpace`, `stdForm`, `stdForm_apply`, in
   `AdaptedDarboux.lean`.
 - *Cotangent bundles* is not used: `Lagrangian.lean` needs only Tau Ceti's
