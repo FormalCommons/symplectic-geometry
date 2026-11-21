@@ -288,12 +288,17 @@ goes in `SymplecticGeometry`: in particular the families `IsMaslovIndex` and
 `IsLagrangianMaslovIndex`, the loop `symplecticRotationLoop`, and the
 statements about them, which dot notation on a `GLSymplectic` or on an `ℒ ι` would not find.
 
-Two files lie outside the folders that `DESIGN.md` §5 lists:
-`LinearAlgebra/Matrix/GeneralLinearGroup/Symplectic/Reindex.lean` and
-`Topology/Algebra/SymplecticGroup.lean`. Reindexing a symplectic group is
+Three files lie outside the folders that `DESIGN.md` §5 lists:
+`LinearAlgebra/Matrix/GeneralLinearGroup/Symplectic/Reindex.lean`,
+`Topology/Algebra/SymplecticGroup.lean` and
+`Analysis/Calculus/Deriv/Matrix.lean`. Reindexing a symplectic group is
 algebra about Tau Ceti's `GLSymplectic`, not about the Maslov index, and its
 continuity is topology of that group. They go where Tau Ceti keeps the algebra
 and the topology of `GLSymplectic`, so that they can move there unchanged.
+The third file holds derivatives of matrix-valued functions (entrywise
+derivatives, transpose, product rule), which `Crossing/Form.lean` uses and
+which changes of frame `Z * g` need later; it sits beside Tau Ceti's file of
+the same name, so that the two merge upstream.
 #58 brings `DESIGN.md` §5 in line.
 
 ### `LinearAlgebra/Matrix/GeneralLinearGroup/Symplectic/Reindex.lean`
@@ -784,7 +789,8 @@ the interface items named.
    `(ofUnitary U)⁻¹`).
 7. **Paths: naturality, values, homotopy, dependence on `V`.**
    `Maslov/Path/Naturality.lean`. Blocked by 5 and 6.
-8. **Crossing forms.** `Maslov/Crossing/Form.lean`. Blocked by G1, G4 and G6–G9;
+8. **Crossing forms.** `Maslov/Crossing/Form.lean`, with
+   `Analysis/Calculus/Deriv/Matrix.lean`. Blocked by G1, G4 and G6–G9;
    can go in parallel with 3–7.
 9. **Crossing-form formula for paths.** `Maslov/Crossing/Path.lean`. Blocked
    by 7 and 8.
