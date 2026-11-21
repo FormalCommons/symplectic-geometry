@@ -188,15 +188,16 @@ These settle the questions that `DESIGN.md` leaves to this file.
    `hasHamiltonian_comp_iff`. Choose a base point in each connected component of $M$ (through
    `ConnectedComponents M`) and let $F_t$ be the primitive of $\alpha_t$
    that vanishes at the base points.
-   - *Local step.* On a smoothly contractible chart neighbourhood $U$, the
-     homotopy operator of the cylinder over `unitInterval × U`, applied to
-     the pullback of $\alpha$ along the contraction of $U$ (fixing the time), is a jointly
-     smooth function $P$ on `unitInterval × U` with $d(P_t)=\alpha_t$ on
-     $U$. This is the parametric Poincaré lemma of
-     `auxiliary/smooth-primitives.md`, used in degree $1$ on one chart. Only
-     the spatial part of the homotopy formula is used, and slicewise
-     closedness of $\alpha$ suffices for it, since the contraction preserves
-     time. The step is the public lemma
+   - *Local step.* Let $U$ be a smoothly contractible chart neighbourhood,
+     with contraction $G$. Pull $\alpha$, viewed as a form on
+     `unitInterval × U`, back along $((t,x),s)\mapsto(t,G(x,s))$, and apply
+     Tau Ceti's `homotopyOperator` on the cylinder over `unitInterval × U`.
+     The result is a jointly smooth $P$ with $d(P_t)=\alpha_t$ on $U$: by
+     `homotopyOperator_mpullback_prodMap_id_of_isSmoothForm`, $P_t$ is the
+     homotopy operator of $G^*\alpha_t$, and `mextDeriv_homotopyOperator`
+     needs only that $G^*\alpha_t$ is closed, which holds slice by slice.
+     It is the parametric Poincaré lemma of `auxiliary/smooth-primitives.md`
+     in degree $1$. The step is the public lemma
      `SymplecticGeometry.IsSmoothlyContractible.exists_contMDiff_mextDeriv_eq_of_forall_mem_closedForms`
      (`DeRham/FamilyPrimitive.lean`), for any parameter manifold.
    - *Gluing.* On $U$, $F_t-P_t$ has zero differential, so
