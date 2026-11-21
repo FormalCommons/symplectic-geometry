@@ -337,6 +337,13 @@ Declarations about Tau Ceti's type go in its namespace
   `SymplecticForm.IsSymplectomorphism.compatible_transport_iff` (`Action.lean`)
   applied to *Standard model*'s
   `mem_GLSymplectic_iff_isSymplectomorphism`.
+- `exists_symplecticGroup_smul_stdComplexStructure_eq (hJ : (stdForm ι).Compatible J) :
+  ∃ Ψ : Matrix.symplecticGroup ι ℝ, GLSymplectic.ofSymplecticGroup ι ℝ Ψ • J₀ = J`,
+  and the instance `instIsPretransitiveSymplecticGroupCompatible`: the action
+  above is transitive. The first reads the isomorphism of
+  `compatible_iff_exists_isSymplectomorphism_stdForm`
+  (`LinearAlgebra/Symplectic/Compatible.lean`, *Compatible complex structures*)
+  as a matrix with `Matrix.GeneralLinearGroup.ofEuclideanCLE`.
 
 ### `Topology/Algebra/GroupAction/Transitive.lean`
 
@@ -631,6 +638,10 @@ it mentions complex structures.
 - Within the part, `isPositivelyOriented_iff_orientation` in `Standard.lean`
   uses `TauCeti.SymplecticForm.Tames.orientation_reindex_transport` from
   `Geometry/Symplectic/Orientation.lean`.
+- From *Compatible complex structures*, only the merged file
+  `LinearAlgebra/Symplectic/Compatible.lean`, which `Standard.lean` imports for
+  `compatible_iff_exists_isSymplectomorphism_stdForm` (transitivity of the
+  symplectic group on the compatible structures).
 - No other part.
 
 Two parts use merged files of this one. *Compatible complex structures*

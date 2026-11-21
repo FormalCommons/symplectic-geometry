@@ -7,12 +7,16 @@ module
 
 public import Mathlib.Geometry.Manifold.VectorBundle.ContinuousAlternatingMap
 public import Mathlib.Geometry.Manifold.VectorBundle.ContMDiffSection
+public import Mathlib.Topology.VectorBundle.FiniteDimensional
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.ContinuousAlternatingMap
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Hom
 public import TauCeti.Analysis.Normed.Module.Alternating.Curry
 public import TauCeti.Geometry.Manifold.VectorBundle.ContinuousAlternatingMap
 public import TauCeti.Geometry.Manifold.VectorBundle.Section.Map
+public import TauCeti.Geometry.Manifold.VectorBundle.Trivial
+public import TauCeti.Geometry.Symplectic.SymplecticTransport
 public import TauCeti.Geometry.Symplectic.Manifold.TwoForm
+public import TauCeti.LinearAlgebra.BilinearForm.SymplecticBasis
 public import TauCeti.LinearAlgebra.BilinearMap.Multilinear
 public import TauCeti.Topology.Algebra.Module.BilinearForm
 public import TauCeti.Topology.Algebra.Module.FiniteDimension
@@ -49,6 +53,19 @@ rank to be even (for finite rank, a nondegenerate form forces it), and rank zero
   `contMDiff_compContinuousLinearMap_totalSpace` and `contMDiff_hom_bundle_symm`.
 * `ContMDiffTwoForm.tangentEquiv`: on the tangent bundle, smooth two-forms are Tau Ceti's
   `TauCeti.SmoothTwoForm`, with the same nondegenerate ones.
+* `ContMDiffTwoForm.pushforward_eq_iff`: an isomorphism `Φ` of bundles transports `ω₁` to `ω₂`
+  exactly when `ω₂(Φ v, Φ w) = ω₁(v, w)` on every fibre. Symplectic isomorphisms are stated in
+  this unbundled form.
+* `ContMDiffTwoForm.IsSymplecticFrameOn`: a `C^n` family of linear equivalences from a model
+  symplectic vector space `(W, σ)` to the fibres over a set `U`, carrying `σ` to `ω`; with
+  `isSymplecticFrameOn_const` on trivial bundles.
+* `Bundle.frameTransition`: the transition map `Φ'ₓ⁻¹ ∘ Φₓ` between two frames. Over an open set
+  it depends `C^n` on the point when both frames do (`Bundle.contMDiffOn_frameTransition`), and for
+  symplectic frames it is a linear symplectomorphism of `(W, σ)`
+  (`IsSymplecticFrameOn.isSymplectomorphism_frameTransition`,
+  `IsSymplecticFrameOn.contMDiffOn_frameTransition`).
+* `ContMDiffTwoForm.isNondegenerate_iff_forall_ne_zero_of_finrank_eq_two`: on a bundle of rank
+  two, a two-form is nondegenerate exactly when it vanishes nowhere.
 
 ## Implementation notes
 
@@ -56,6 +73,9 @@ This file carries Tau Ceti's two-forms on the tangent bundle over to an arbitrar
 The proof of `contMDiff_flat` adapts that of `TauCeti.SmoothTwoForm.contMDiffAt_sectionAlong_flatL`
 (`TauCeti/Geometry/Symplectic/Manifold/Flat.lean`), and the nondegeneracy API adapts Tau Ceti's
 for `TauCeti.SmoothTwoForm.IsNondegenerate` (`TauCeti/Geometry/Symplectic/Manifold/TwoForm.lean`).
+The rank-two criterion `isNondegenerate_iff_forall_ne_zero_of_finrank_eq_two` takes over the
+fibrewise step of `TauCeti.SmoothTwoForm.isNondegenerate_iff_forall_ne_zero_of_finrank_eq_two`
+(`TauCeti/Geometry/Symplectic/Manifold/Surface.lean`).
 
 ## References
 
@@ -147,6 +167,26 @@ theorem bilinFormAt_sub (ω' : ContMDiffTwoForm I n F V) (x : M) :
     (ω - ω').bilinFormAt x = ω.bilinFormAt x - ω'.bilinFormAt x := by
   ext v w
   simp
+
+/-- On a fibre, two two-forms have the same bilinear form exactly when they agree there. -/
+@[simp]
+theorem bilinFormAt_inj (ω' : ContMDiffTwoForm I n F V) (x : M) :
+    ω.bilinFormAt x = ω'.bilinFormAt x ↔ ω x = ω' x :=
+  ⟨fun h ↦ ContinuousAlternatingMap.toAlternatingMap_injective <|
+    AlternatingMap.coe_multilinearMap_injective <| MultilinearMap.toBilinMap_injective h,
+    fun h ↦ by rw [bilinFormAt_def, bilinFormAt_def, h]⟩
+
+variable {ω} in
+/-- Two-forms with the same bilinear form on every fibre are equal. -/
+theorem ext_bilinFormAt {ω' : ContMDiffTwoForm I n F V}
+    (h : ∀ x, ω.bilinFormAt x = ω'.bilinFormAt x) : ω = ω' :=
+  ContMDiffSection.ext fun x ↦ (bilinFormAt_inj ω ω' x).1 (h x)
+
+/-- The bilinear form of a two-form vanishes on a fibre exactly when the form vanishes there. -/
+@[simp]
+theorem bilinFormAt_eq_zero_iff (x : M) : ω.bilinFormAt x = 0 ↔ ω x = 0 := by
+  rw [← bilinFormAt_zero (I := I) (n := n) (F := F) x, bilinFormAt_inj, ContMDiffSection.coe_zero,
+    Pi.zero_apply]
 
 /-! ### The flat map -/
 
@@ -409,6 +449,18 @@ theorem bilinFormAt_pushforward (ω : ContMDiffTwoForm I n F₁ V₁) (x : M) :
   ext i
   fin_cases i <;> rfl
 
+/-- The transport of `ω₁` along `Φ` is `ω₂` exactly when `Φ` carries `ω₁` to `ω₂` on every fibre,
+`ω₂(Φ v, Φ w) = ω₁(v, w)`: that is, when `Φ` is a symplectic isomorphism from `ω₁` to `ω₂`. -/
+theorem pushforward_eq_iff {ω₁ : ContMDiffTwoForm I n F₁ V₁} {ω₂ : ContMDiffTwoForm I n F₂ V₂} :
+    pushforward Φ hΦ ω₁ = ω₂ ↔
+      ∀ x v w, ω₂.bilinFormAt x (Φ x v) (Φ x w) = ω₁.bilinFormAt x v w := by
+  refine ⟨?_, fun h ↦ ext_bilinFormAt fun x ↦ ?_⟩
+  · rintro rfl x v w
+    simp [bilinFormAt_pushforward]
+  · ext v w
+    rw [bilinFormAt_pushforward, LinearMap.BilinForm.congr_apply, ← h]
+    simp
+
 /-- A two-form is nondegenerate exactly when its transport along an isomorphism of bundles is. -/
 theorem isNondegenerate_pushforward_iff {ω : ContMDiffTwoForm I n F₁ V₁} :
     (pushforward Φ hΦ ω).IsNondegenerate ↔ ω.IsNondegenerate :=
@@ -484,6 +536,197 @@ theorem isNondegenerate_tangentEquiv_iff {ω : ContMDiffTwoForm I ⊤ EB (Tangen
     isNondegenerate_iff_separatingLeft, TauCeti.SmoothBundleForm.eval₂_apply]
 
 end Tangent
+
+/-! ### Forms of rank two -/
+
+variable {ω : ContMDiffTwoForm I n F V} in
+/-- On a bundle of rank two, a two-form is nondegenerate exactly when it vanishes nowhere. -/
+theorem isNondegenerate_iff_forall_ne_zero_of_finrank_eq_two (hF : Module.finrank ℝ F = 2) :
+    ω.IsNondegenerate ↔ ∀ x, ω x ≠ 0 := by
+  refine forall_congr' fun x ↦ ?_
+  have hx : Module.finrank ℝ (V x) = 2 := (VectorBundle.finrank_eq ℝ F V x).trans hF
+  rw [(ω.isAlt_bilinFormAt x).nondegenerate_iff_ne_zero_of_finrank_eq_two hx, ne_eq, ne_eq,
+    bilinFormAt_eq_zero_iff]
+
+end ContMDiffTwoForm
+
+/-! ### Transition maps between frames -/
+
+section FrameTransition
+
+omit [TopologicalSpace M]
+
+variable {W : Type*} [AddCommGroup W] [Module ℝ W] [TopologicalSpace W]
+  {V : M → Type*} [∀ x, AddCommGroup (V x)] [∀ x, Module ℝ (V x)] [∀ x, TopologicalSpace (V x)]
+  (Φ Φ' Φ'' : ∀ x, W ≃L[ℝ] V x) (x : M)
+
+/-- The transition map `Φ'ₓ⁻¹ ∘ Φₓ` at the point `x` from a frame `Φ` of a bundle with model fibre
+`W` to a frame `Φ'`. As a map it is in the order of Mathlib's `Trivialization.coordChangeL`. -/
+def frameTransition : W ≃L[ℝ] W :=
+  (Φ x).trans (Φ' x).symm
+
+/-- The transition map is the composite of `Φ x` with the inverse of `Φ' x`. -/
+theorem frameTransition_def : frameTransition Φ Φ' x = (Φ x).trans (Φ' x).symm :=
+  (rfl)
+
+/-- The transition map sends `v` to `Φ'ₓ⁻¹ (Φₓ v)`. -/
+@[simp]
+theorem frameTransition_apply (v : W) : frameTransition Φ Φ' x v = (Φ' x).symm (Φ x v) :=
+  (rfl)
+
+/-- The transition map from a frame to itself is the identity. -/
+@[simp]
+theorem frameTransition_self : frameTransition Φ Φ x = ContinuousLinearEquiv.refl ℝ W := by
+  ext v
+  simp
+
+/-- Transition maps compose: going from `Φ` to `Φ'` and then to `Φ''` is going from `Φ` to
+`Φ''`. -/
+theorem frameTransition_trans :
+    (frameTransition Φ Φ' x).trans (frameTransition Φ' Φ'' x) = frameTransition Φ Φ'' x := by
+  ext v
+  simp
+
+/-- The inverse of the transition map from `Φ` to `Φ'` is the transition map from `Φ'` to `Φ`. -/
+@[simp]
+theorem frameTransition_symm : (frameTransition Φ Φ' x).symm = frameTransition Φ' Φ x := by
+  ext v
+  rfl
+
+end FrameTransition
+
+section ContMDiffFrameTransition
+
+variable {W : Type*} [NormedAddCommGroup W] [NormedSpace ℝ W] [FiniteDimensional ℝ W]
+  {Φ Φ' : ∀ x, W ≃L[ℝ] V x} {U : Set M} {n : WithTop ℕ∞}
+
+/-- Over an open set `U`, if two frames `Φ` and `Φ'` with model fibre `W` of finite dimension
+depend `C^n` on `(x, v) ∈ U × W`, then so does their transition map, as a map from `U` to
+`W →L[ℝ] W`. -/
+theorem contMDiffOn_frameTransition
+    (hΦ : ContMDiffOn (I.prod 𝓘(ℝ, W)) (I.prod 𝓘(ℝ, F)) n
+      (fun p : M × W ↦ TotalSpace.mk' F p.1 (Φ p.1 p.2)) (U ×ˢ Set.univ))
+    (hΦ' : ContMDiffOn (I.prod 𝓘(ℝ, W)) (I.prod 𝓘(ℝ, F)) n
+      (fun p : M × W ↦ TotalSpace.mk' F p.1 (Φ' p.1 p.2)) (U ×ˢ Set.univ))
+    (hU : IsOpen U) :
+    ContMDiffOn I 𝓘(ℝ, W →L[ℝ] W) n (fun x ↦ (frameTransition Φ Φ' x : W →L[ℝ] W)) U := by
+  intro x hx
+  have hom {Ψ : ∀ x, W ≃L[ℝ] V x} (hΨ : ContMDiffOn (I.prod 𝓘(ℝ, W)) (I.prod 𝓘(ℝ, F)) n
+      (fun p : M × W ↦ TotalSpace.mk' F p.1 (Ψ p.1 p.2)) (U ×ˢ Set.univ)) :=
+    (contMDiffAt_hom_trivial_iff (fun y ↦ (Ψ y : W →L[ℝ] V y)) x).2 fun v ↦
+      hΨ.contMDiffAt ((hU.prod isOpen_univ).mem_nhds ⟨hx, Set.mem_univ v⟩)
+  have hcomp := ((hom hΦ').clm_bundle_inverse
+    ContinuousLinearMap.isInvertible_equiv).clm_bundle_comp (hom hΦ)
+  rw [contMDiffAt_hom_bundle] at hcomp
+  refine (hcomp.2.congr_of_eventuallyEq (Filter.Eventually.of_forall fun y ↦ ?_)).contMDiffWithinAt
+  ext v
+  simp [ContinuousLinearMap.inCoordinates, ContinuousLinearMap.inverse_equiv]
+
+end ContMDiffFrameTransition
+
+namespace ContMDiffTwoForm
+
+/-! ### Symplectic frames -/
+
+section Frame
+
+variable {W : Type*} [NormedAddCommGroup W] [NormedSpace ℝ W]
+
+/-- A symplectic frame of the two-form `ω` over the set `U`, modelled on the symplectic vector
+space `(W, σ)`: a family of linear equivalences `Φ x : W ≃L[ℝ] V x` that depends `C^n` on
+`(x, v) ∈ U × W` and carries `σ` to `ω` on each fibre over `U`. The values of `Φ` off `U` play no
+role. -/
+structure IsSymplecticFrameOn (ω : ContMDiffTwoForm I n F V) (σ : TauCeti.SymplecticForm W)
+    (U : Set M) (Φ : ∀ x, W ≃L[ℝ] V x) : Prop where
+  /-- The frame depends `C^n` on the point of `U` and the vector of `W`. -/
+  contMDiffOn : ContMDiffOn (I.prod 𝓘(ℝ, W)) (I.prod 𝓘(ℝ, F)) n
+    (fun p : M × W ↦ TotalSpace.mk' F p.1 (Φ p.1 p.2)) (U ×ˢ Set.univ)
+  /-- The frame carries `σ` to `ω` on each fibre over `U`. -/
+  map_bilinFormAt : ∀ x ∈ U, ∀ v w, ω.bilinFormAt x (Φ x v) (Φ x w) = σ v w
+
+variable {ω : ContMDiffTwoForm I n F V} {σ : TauCeti.SymplecticForm W} {U U' : Set M}
+  {Φ Φ' : ∀ x, W ≃L[ℝ] V x} {x : M}
+
+namespace IsSymplecticFrameOn
+
+/-- A symplectic frame over `U` is one over every smaller set. -/
+theorem mono (h : ω.IsSymplecticFrameOn σ U Φ) (hU : U' ⊆ U) : ω.IsSymplecticFrameOn σ U' Φ :=
+  ⟨h.contMDiffOn.mono (Set.prod_mono hU subset_rfl), fun x hx ↦ h.map_bilinFormAt x (hU hx)⟩
+
+/-- Over a point of `U`, the bilinear form of `ω` is `σ` moved along the frame. -/
+theorem bilinFormAt_eq (h : ω.IsSymplecticFrameOn σ U Φ) (hx : x ∈ U) :
+    ω.bilinFormAt x = LinearMap.BilinForm.congr (Φ x).toLinearEquiv σ.toBilinForm := by
+  ext v w
+  rw [LinearMap.BilinForm.congr_apply]
+  conv_lhs => rw [← (Φ x).apply_symm_apply v, ← (Φ x).apply_symm_apply w]
+  exact h.map_bilinFormAt x hx _ _
+
+/-- A two-form with a symplectic frame over `U` is nondegenerate on the fibres over `U`. -/
+theorem nondegenerate_bilinFormAt (h : ω.IsSymplecticFrameOn σ U Φ) (hx : x ∈ U) :
+    (ω.bilinFormAt x).Nondegenerate := by
+  rw [h.bilinFormAt_eq hx, LinearMap.BilinForm.nondegenerate_congr_iff]
+  exact σ.nondegenerate
+
+/-- At a point of `U`, a symplectic frame of a nondegenerate form is a linear symplectomorphism
+from `σ` to the symplectic form of the fibre. -/
+theorem isSymplectomorphism (h : ω.IsSymplecticFrameOn σ U Φ) (hω : ω.IsNondegenerate)
+    (hx : x ∈ U) : σ.IsSymplectomorphism (hω.symplecticFormAt x) (Φ x).toLinearEquiv :=
+  TauCeti.SymplecticForm.isSymplectomorphism_iff.2 fun v w ↦ by
+    simpa using h.map_bilinFormAt x hx v w
+
+/-- At a point of `U`, the transition map between two symplectic frames of the same form for `σ`
+preserves `σ`. -/
+theorem isSymplectomorphism_frameTransition (h : ω.IsSymplecticFrameOn σ U Φ)
+    (h' : ω.IsSymplecticFrameOn σ U Φ') (hx : x ∈ U) :
+    σ.IsSymplectomorphism σ (frameTransition Φ Φ' x).toLinearEquiv :=
+  TauCeti.SymplecticForm.isSymplectomorphism_iff.2 fun v w ↦ by
+    rw [← h'.map_bilinFormAt x hx]
+    simp only [ContinuousLinearEquiv.coe_toLinearEquiv, frameTransition_apply,
+      ContinuousLinearEquiv.apply_symm_apply]
+    exact h.map_bilinFormAt x hx v w
+
+/-- Over an open set, the transition map between two symplectic frames depends `C^n` on the
+point. -/
+theorem contMDiffOn_frameTransition [FiniteDimensional ℝ W] (h : ω.IsSymplecticFrameOn σ U Φ)
+    (h' : ω.IsSymplecticFrameOn σ U Φ') (hU : IsOpen U) :
+    ContMDiffOn I 𝓘(ℝ, W →L[ℝ] W) n (fun x ↦ (frameTransition Φ Φ' x : W →L[ℝ] W)) U :=
+  Bundle.contMDiffOn_frameTransition h.contMDiffOn h'.contMDiffOn hU
+
+end IsSymplecticFrameOn
+
+/-- On the trivial bundle with fibre `W'` and the constant form of `ω'`, a linear symplectomorphism
+`e` from `(W, σ)` to `(W', ω')` is a symplectic frame over all of `M`. -/
+theorem isSymplecticFrameOn_const {W' : Type*} [NormedAddCommGroup W'] [NormedSpace ℝ W']
+    [FiniteDimensional ℝ W'] {ω' : TauCeti.SymplecticForm W'} {e : W ≃L[ℝ] W'}
+    (he : σ.IsSymplectomorphism ω' e.toLinearEquiv) :
+    (const (I := I) (n := n) (M := M) ω').IsSymplecticFrameOn σ Set.univ fun _ ↦ e := by
+  refine ⟨(Trivial.contMDiff_mk_iff.2 ⟨contMDiff_fst,
+    (e : W →L[ℝ] W').contDiff.contMDiff.comp contMDiff_snd⟩).contMDiffOn, fun x _ v w ↦ ?_⟩
+  rw [bilinFormAt_const]
+  exact he.apply v w
+
+section Trans
+
+variable {F₂ : Type*} [NormedAddCommGroup F₂] [NormedSpace ℝ F₂] {V₂ : M → Type*}
+  [∀ x, AddCommGroup (V₂ x)] [∀ x, Module ℝ (V₂ x)]
+  [∀ x, TopologicalSpace (V₂ x)] [∀ x, IsTopologicalAddGroup (V₂ x)]
+  [∀ x, ContinuousSMul ℝ (V₂ x)] [TopologicalSpace (TotalSpace F₂ V₂)]
+  [FiberBundle F₂ V₂] [VectorBundle ℝ F₂ V₂] [FiniteDimensional ℝ F]
+
+/-- Composing a symplectic frame of `ω` with a symplectic isomorphism `Ψ` from `ω` to `ω₂` gives a
+symplectic frame of `ω₂`. -/
+theorem IsSymplecticFrameOn.trans (h : ω.IsSymplecticFrameOn σ U Φ) (Ψ : ∀ x, V x ≃L[ℝ] V₂ x)
+    (hΨ : ContMDiff (I.prod 𝓘(ℝ, F)) (I.prod 𝓘(ℝ, F₂)) n
+      (fun p : TotalSpace F V ↦ TotalSpace.mk' F₂ p.proj (Ψ p.proj p.snd)))
+    {ω₂ : ContMDiffTwoForm I n F₂ V₂} (hω₂ : pushforward Ψ hΨ ω = ω₂) :
+    ω₂.IsSymplecticFrameOn σ U fun x ↦ (Φ x).trans (Ψ x) := by
+  refine ⟨hΨ.comp_contMDiffOn h.contMDiffOn, fun x hx v w ↦ ?_⟩
+  rw [ContinuousLinearEquiv.trans_apply, ContinuousLinearEquiv.trans_apply,
+    (pushforward_eq_iff Ψ hΨ).1 hω₂, h.map_bilinFormAt x hx]
+
+end Trans
+
+end Frame
 
 end ContMDiffTwoForm
 
