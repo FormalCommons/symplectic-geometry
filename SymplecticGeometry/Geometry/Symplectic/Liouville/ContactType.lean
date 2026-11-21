@@ -11,6 +11,10 @@ public import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
 import TauCeti.Geometry.Manifold.DifferentialForm.Interior
 import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
 import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
+import TauCeti.Geometry.Manifold.VectorBundle.Hom
+import TauCeti.Geometry.Symplectic.Manifold.Flat
+import TauCeti.Geometry.Contact.Flat
+import SymplecticGeometry.Geometry.Manifold.TubularNeighborhood.RelativePoincare
 
 /-!
 # Contact type through local Liouville fields
@@ -19,7 +23,8 @@ Tau Ceti's `TauCeti.IsContactType J σ α ι` asks for a primitive `α` of `σ` 
 `ι : S → M` together with a field `Z`, smooth near the image, with `ι_Z σ = α` there and
 transverse along `ι`. This file relates it to McDuff–Salamon's definition, which asks only for
 a vector field defined near the hypersurface that is Liouville there, `L_Z σ = σ`, and transverse
-to it, and derives the contact form of the hypersurface in the signs of the book.
+to it. It derives the contact form of the hypersurface in the signs of the book and, conversely,
+builds such a field from a prescribed contact form.
 
 * `TauCeti.isContactType_interior`: for a closed `C¹` two-form `σ`, a field `Z`, smooth and
   Liouville on an open neighbourhood `U` of the image of `ι` and transverse along `ι`, makes `ι`
@@ -43,6 +48,17 @@ to it, and derives the contact form of the hypersurface in the signs of the book
   its pullback is nevertheless a smooth form on `S`, and the conclusion is stated for the bundled
   form with that value. The contact condition follows from
   `TauCeti.IsContactType.isContactFormAt_mpullback`.
+* `TauCeti.SmoothEmbedding.exists_liouville_of_isContactForm`: the converse for a prescribed
+  form. For `σ` symplectic, a smooth embedding `i : S → M` and a contact form `α` on `S` with
+  `dα = -i^*σ`, some field `Z`, smooth and Liouville on an open neighbourhood `U` of the image of
+  `i` and transverse along `i`, has `-i^*(ι_Z σ) = α`. Following McDuff–Salamon, a primitive `β`
+  of `-σ` near the image with `i^*β = α` comes from a tubular retraction and the relative Poincaré
+  lemma (`TauCeti.SmoothEmbedding.exists_mextDeriv_eq_and_mpullback_eq`), and `Z` is the field
+  with `ι_Z σ = -β`, obtained pointwise from the inverse flat map of `σ` as in Tau Ceti's
+  `TauCeti.SmoothTwoForm.IsNondegenerate.interiorEquiv`. It is Liouville by Cartan's formula. It
+  is transverse because a vector `v` with `di(v) = Z` would satisfy `α(v) = 0` and `ι_v dα = α`,
+  so that `ι_v dα + α(v) α = α`, which forces `α(v) = 1`
+  (`TauCeti.SmoothForm.IsContactForm.contactFlat_apply_eq_iff`).
 
 ## References
 
@@ -156,6 +172,82 @@ theorem SmoothEmbedding.exists_isContactForm_eq_neg_mpullback_interior [IsManifo
   exact SmoothForm.isContactForm_iff_forall_isContactFormAt.2
     fun s ↦ hct.isContactFormAt_mpullback hσ.isNondegenerate ((i.contMDiff s).of_le (by simp))
       (i.isImmersion.mfderiv_injective (by simp) s) hdim
+
+
+/-- **The Liouville field of a prescribed contact form**, in McDuff–Salamon's signs. Let `σ` be a
+symplectic form on `M`, `i : S → M` a smooth embedding and `α` a contact form on `S` with
+`dα = -i^*σ`. Then there are an open neighbourhood `U` of the image of `i` and a vector field `Z`,
+smooth on `U`, with `L_Z σ = σ` on `U`, transverse along `i`, and with `-i^*(ι_Z σ) = α`. No
+codimension is assumed: transversality follows from the contact condition alone. -/
+theorem SmoothEmbedding.exists_liouville_of_isContactForm [FiniteDimensional ℝ E]
+    [FiniteDimensional ℝ E'] [I.Boundaryless] [J.Boundaryless] [IsManifold I ∞ M]
+    [IsManifold J ∞ S] [T2Space M] [SecondCountableTopology M] {σ : SmoothTwoForm I M}
+    (hσ : σ.IsSymplectic) (i : SmoothEmbedding J I ∞ S M) {α : SmoothForm J S ℝ 1}
+    (hα : α.IsContactForm) (hdα : mextDerivₗ J 1 α = -SmoothForm.mpullback i i.contMDiff σ) :
+    ∃ U : Set M, IsOpen U ∧ range i ⊆ U ∧ ∃ Z : (x : M) → TangentSpace I x,
+      ContMDiffOn I I.tangent (⊤ : ℕ∞) (T% Z) U ∧ (∀ x ∈ U, mlieDerivForm Z σ.val x = σ.val x) ∧
+        IsTransverseAlong J Z i ∧ -mpullback J I i (RoughForm.interior Z σ.val) = α.val := by
+  have hσn := hσ.isNondegenerate
+  -- A primitive `β` of `-σ` near the image of `i`, with `i^* λ = α`.
+  obtain ⟨U, hU, hiU, β, hβ, hdβ, hiβ⟩ := i.exists_mextDeriv_eq_and_mpullback_eq hσ.isClosed.neg
+    (by rw [hdα, map_neg])
+  -- The field `Z` with `ι_Z σ = -β`.
+  let c : (x : M) → TangentSpace I x →L[ℝ] ℝ := fun x ↦
+    (ContinuousAlternatingMap.ofSubsingleton ℝ (TangentSpace I x) ℝ 0).symm (-β x)
+  let Z : (x : M) → TangentSpace I x := fun x ↦ (σ.flat x).inverse (c x)
+  have hZσ : RoughForm.interior Z σ.val = -β := funext fun x ↦ by
+    rw [SmoothTwoForm.interior_apply_eq_ofSubsingleton_flat,
+      (hσn.isInvertible_flat x).self_apply_inverse]
+    exact (ContinuousAlternatingMap.ofSubsingleton ℝ (TangentSpace I x) ℝ 0).apply_symm_apply _
+  have hZ : ContMDiffOn I I.tangent (⊤ : ℕ∞) (T% Z) U := fun x hx ↦ by
+    have hc : ContMDiffAt I (I.prod 𝓘(ℝ, E →L[ℝ] ℝ)) ∞
+        (fun y ↦ TotalSpace.mk' (E →L[ℝ] ℝ) (E := fun y : M ↦ TangentSpace I y →L[ℝ] ℝ) y (c y))
+        x := by
+      refine contMDiffAt_ofSubsingleton_iff.1 ?_
+      convert (hβ x hx).neg_section using 3 with y
+      exact (ContinuousAlternatingMap.ofSubsingleton ℝ (TangentSpace I y) ℝ 0).apply_symm_apply _
+    exact (ContMDiffAt.clm_bundle_apply (ContMDiffAt.clm_bundle_inverse (σ.contMDiff_flat x)
+      (hσn.isInvertible_flat x)) hc).contMDiffWithinAt
+  have hdσ : mextDeriv σ.val = 0 := (SmoothForm.isClosed_def σ).1 hσ.isClosed
+  refine ⟨U, hU, hiU, Z, hZ, fun x hx ↦ ?_, isTransverseAlong_iff.2 fun s hs ↦ ?_, ?_⟩
+  · -- Liouville by Cartan's formula: `L_Z σ = d(ι_Z σ) = -dβ = σ`.
+    rw [mlieDerivForm_eq_mextDeriv_interior_apply
+      (σ.isSmoothForm.contMDiff.mdifferentiable (by simp) x)
+      ((hZ.contMDiffAt (hU.mem_nhds hx)).mdifferentiableAt (by simp)) (congrFun hdσ x), hZσ,
+      mextDeriv_neg, Pi.neg_apply, hdβ x hx, SmoothForm.neg_toRoughForm, Pi.neg_apply, neg_neg]
+  · -- If `Z (i s) = di(v)`, then `α(v) = 0` and `ι_v dα = α`, against the contact condition.
+    obtain ⟨v, hv⟩ := LinearMap.mem_range.1 hs
+    replace hv : mfderiv J I i s v = Z (i s) := hv
+    have hβZ (u : TangentSpace I (i s)) : β (i s) ![u] = -σ.val (i s) ![Z (i s), u] := by
+      rw [← RoughForm.interior_apply, hZσ, Pi.neg_apply, ContinuousAlternatingMap.neg_apply,
+        neg_neg]
+    have hαβ (w : TangentSpace J s) : α.val s ![w] = β (i s) ![mfderiv J I i s w] := by
+      rw [← hiβ, mpullback_apply]
+      congr 1
+      ext k
+      fin_cases k
+      simp
+    have hdαv (w : TangentSpace J s) :
+        mextDeriv α.val s ![v, w] = -σ.val (i s) ![mfderiv J I i s v, mfderiv J I i s w] := by
+      rw [← mextDerivₗ_apply, hdα, SmoothForm.neg_toRoughForm, Pi.neg_apply,
+        ContinuousAlternatingMap.neg_apply, SmoothForm.coe_mpullback, mpullback_apply]
+      congr 2
+      ext k
+      fin_cases k <;> simp
+    have hαv : α.val s ![v] = 0 := by
+      rw [hαβ, hv, hβZ, (σ.val (i s)).map_eq_zero_of_eq _ (i := 0) (j := 1) rfl (by simp),
+        neg_zero]
+    have hflat : α.contactFlat s v = SmoothForm.degreeOneEquiv α s := by
+      ext w
+      rw [SmoothForm.contactFlat_apply, hαv, zero_mul, add_zero, hdαv, hv, ← hβZ, ← hαβ,
+        SmoothForm.degreeOneEquiv_apply_apply_vec]
+    have h1 := ((hα.contactFlat_apply_eq_iff).1 hflat).1
+    rw [hαv] at h1
+    exact zero_ne_one h1
+  · rw [hZσ, ← hiβ, neg_eq_iff_eq_neg]
+    funext s
+    ext v
+    simp [mpullback_apply]
 
 end TauCeti
 

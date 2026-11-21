@@ -163,6 +163,7 @@ Further choices:
 | File | Contents | Issue |
 |---|---|---|
 | `Geometry/Symplectic/Liouville/ContactType.lean` | contact type through local Liouville fields; both directions in the book's signs | 1 |
+| `Geometry/Manifold/TubularNeighborhood/RelativePoincare.lean` | primitives with prescribed pullback near an embedding, for the converse in `ContactType.lean` | 1 |
 | `Geometry/Symplectic/Liouville/Collar.lean` | the Liouville collar of a hypersurface; first milestone | 2 |
 | `Geometry/Contact/StableHamiltonian.lean` | wedge criterion, smooth Reeb field, invariance, contact case; the model and its converse; second milestone | 3, 4 |
 | `Geometry/Manifold/Boundary/Collar/Flow/Local.lean` | near one boundary point: the extended field and its flow from the boundary | 5 |
@@ -172,7 +173,7 @@ Further choices:
 | `Geometry/Symplectic/Liouville/Completion.lean` | $\widehat\omega$, $\widehat Y$, $\widehat\lambda$; third milestone | 9, 10 |
 | `Geometry/Symplectic/Liouville/Domain.lean` | the completion of a Liouville domain is a Tau Ceti completion | 11 |
 
-`ContactType.lean`, `Collar.lean`, `StableHamiltonian.lean`,
+`ContactType.lean`, `RelativePoincare.lean`, `Collar.lean`, `StableHamiltonian.lean`,
 `Completion.lean` and `Domain.lean` have the paths of Tau Ceti files and
 extend them. No folder below has the name of a Tau Ceti file at its place:
 Tau Ceti's `Geometry/Manifold/Boundary/Collar/` is a folder with no
@@ -209,20 +210,24 @@ In `TauCeti`, beside Tau Ceti's file, for `ω` a closed `C¹` two-form
   global form `ω.interiorₗ ⟨Y, hY⟩` is needed, `Y` is first cut off to a global
   field equal to it near `range i`, as in `IsStrongFilling.of_contMDiffOn`.)
 - `SmoothEmbedding.exists_liouville_of_isContactForm` (the converse, for a
-  prescribed form): for `ω` symplectic, `hdim`, and a contact form
-  `α : SmoothForm J Q ℝ 1` with `mextDerivₗ J 1 α = -i^*ω`, there are an
+  prescribed form): for `ω` symplectic and a contact form
+  `α : SmoothForm J Q ℝ 1` with `mextDerivₗ J 1 α = -i^*ω` (no `hdim`: the
+  proof does not use it), there are an
   open `U ⊇ range i` and a field `Y`, smooth on `U` and Liouville there,
-  transverse along `i`, with `-i^*(ω.interiorₗ ⟨Y, hY⟩) = α` on `Q`. Route: the
-  tubular neighbourhood `T` of `i` (`SmoothEmbedding.exists_diffeomorph_normalBundle_subset`)
-  with its projection `π : T → Q`; $\bar\alpha=\pi^*\alpha$; the relative
+  transverse along `i`, with `-mpullback J I i (RoughForm.interior Y ω.val) = α.val`.
+  Route: the smooth retraction `π : T → Q` of an open `T ⊇ range i`
+  (`SmoothEmbedding.exists_contMDiffOn_retraction`); $\bar\alpha=\pi^*\alpha$; the relative
   Poincaré lemma `SmoothEmbedding.exists_isSmoothForm_relative_primitive`
   for the closed form $\omega+d\bar\alpha$ on `T`, whose pullback by `i`
   vanishes, gives $\eta$ with $d\eta=\omega+d\bar\alpha$, vanishing along
-  `i`; $\lambda=\bar\alpha-\eta$ has $d\lambda=-\omega$ and $i^*\lambda=\alpha$;
-  `Y` is the field with $\iota_Y\omega=-\lambda$, which Tau Ceti's
-  nondegenerate `ω` gives through its flat isomorphism
-  `TauCeti.SmoothTwoForm.IsNondegenerate.interiorEquiv` (reuse it, do not
-  rebuild it); it is Liouville by
+  `i`; $\lambda=\bar\alpha-\eta$ has $d\lambda=-\omega$ and $i^*\lambda=\alpha$
+  (these steps, for forms of any degree, are
+  `SmoothEmbedding.exists_mextDeriv_eq_and_mpullback_eq` in
+  `Geometry/Manifold/TubularNeighborhood/RelativePoincare.lean`);
+  `Y` is the field with $\iota_Y\omega=-\lambda$, given at each point by the
+  inverse flat map `(ω.flat x).inverse` of
+  `TauCeti.SmoothTwoForm.IsNondegenerate.interiorEquiv`, which itself needs a
+  one-form smooth on all of `W`; it is Liouville by
   Cartan's formula. Transversality: at a point where `Y` is tangent,
   $Y=di(v)$ with $\alpha(v)=0$ and $\iota_v d\alpha=\alpha$, so `v` lies in
   the kernel of $d\alpha$ on $\ker\alpha$, hence `v = 0`, while

@@ -2046,7 +2046,9 @@ has either; Tau Ceti's extension across a boundary,
   Tau Ceti has the
   direction from a Liouville field, `TauCeti.IsContactType.isContactForm_mpullback`;
   the converse comes from a relative
-  primitive), `Geometry/Symplectic/Liouville/Collar.lean` (named like Tau
+  primitive), `Geometry/Manifold/TubularNeighborhood/RelativePoincare.lean`
+  (named like Tau Ceti's file: primitives with prescribed pullback near an
+  embedding, for that converse), `Geometry/Symplectic/Liouville/Collar.lean` (named like Tau
   Ceti's file: the collar of such a hypersurface, with
   $\Phi^*\omega=-d(e^s\alpha)$ on a neighbourhood of $\{0\}\times Q$, of
   uniform width when $Q$ is compact, from Tau Ceti's collars for a given
