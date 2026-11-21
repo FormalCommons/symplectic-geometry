@@ -440,7 +440,9 @@ it into issues; the overview fixes its folders and its dependencies.
 
 - **Files:** `LinearAlgebra/Symplectic/Lagrangian/Basic.lean` (the type
   $\mathcal{L}(V,\omega)$ of Lagrangian subspaces, with its `SetLike` and
-  `ext` API), `LinearAlgebra/Symplectic/Lagrangian/Frame.lean` (the frame
+  `ext` API, and, for any $(V,\omega)$ of finite dimension, that two
+  Lagrangians are complementary if and only if they meet in $0$),
+  `LinearAlgebra/Symplectic/Lagrangian/Frame.lean` (the frame
   criterion $\operatorname{rank}=n$, $X^TY=Y^TX$; graphs of symmetric
   matrices, from Tau Ceti's `isLagrangian_graph_iff_of_pairing`),
   `LinearAlgebra/Symplectic/Lagrangian/Action.lean` (the action of
@@ -448,10 +450,9 @@ it into issues; the overview fixes its folders and its dependencies.
   stabilizer $\mathrm{O}(n)$, hence
   $\mathcal{L}(n)\simeq\mathrm{U}(n)/\mathrm{O}(n)$ as sets by
   orbit–stabilizer),
-  `LinearAlgebra/Symplectic/Lagrangian/Transverse.lean` (transverse
-  Lagrangians: two Lagrangians are complementary if and only if they meet in
-  $0$, any two have a common transverse Lagrangian, and $\mathrm{Sp}(2n)$ acts
-  transitively on transverse pairs),
+  `LinearAlgebra/Symplectic/Lagrangian/Transverse.lean` (the chart points
+  and transverse Lagrangians: any two have a common transverse Lagrangian,
+  and $\mathrm{Sp}(2n)$ acts transitively on transverse pairs),
   `LinearAlgebra/Symplectic/Lagrangian/Sum.lean` (the direct sum of
   Lagrangians and the reindexing equivalence, their compatibility with
   unitary frames, and the equivariance of the sum),
@@ -461,26 +462,51 @@ it into issues; the overview fixes its folders and its dependencies.
   $\mathcal{L}(V,\omega)$), `Topology/Grassmannian/Lagrangian/Quotient.lean`
   (continuity of the action, and the equivalence
   $\mathcal{L}(n)\simeq\mathrm{U}(n)/\mathrm{O}(n)$ of `Action.lean` as a
-  homeomorphism), `Topology/Grassmannian/Lagrangian/Graph.lean` (the graph
+  homeomorphism), `Topology/Grassmannian/Lagrangian/Finite.lean` (for
+  `ι = Fin n`, the embedding of $\mathcal{L}(n)$ into Tau Ceti's
+  `TauCeti.finiteGrassmannian ℝ n (n + n)`, with its range),
+  `Topology/Grassmannian/Lagrangian/Graph.lean` (the graph
   charts by symmetric matrices),
   `Geometry/Manifold/Instances/LagrangianGrassmannian.lean` (the manifold
   structure of dimension $n(n+1)/2$, from the charts of `Graph.lean`),
   `Topology/Grassmannian/Lagrangian/Fibration.lean` (path lifting),
   `Topology/Grassmannian/Lagrangian/Sum.lean` (continuity of the direct sum,
   and the reindexing equivalence as a homeomorphism).
+  Three files of general matrix theory, outside the part's folders, serve
+  it: `LinearAlgebra/Matrix/UnitaryGroup/Real.lean`
+  (`Matrix.UnitaryGroup.realSubgroup`, the real points
+  $\mathrm{O}(n)\subset\mathrm{U}(n)$ as a subgroup of
+  `Matrix.unitaryGroup ι ℂ`: Tau Ceti's subgroup of `GL ι ℂ` from
+  `TauCeti.GLOrthogonal.inf_unitarySubgroup_eq_map_real`, carried along
+  Mathlib's `unitarySubgroupUnitsEquiv`; it is the stabilizer of $V_0$ and
+  the fibre of `Fibration.lean`), `LinearAlgebra/Matrix/OfReal.lean` (for
+  real $X,Y$, the complex frame $X+iY$: its Gram matrix is real when
+  $X^TY=Y^TX$, and its real image is the range of
+  `Matrix.toEuclideanLin (Matrix.fromRows X Y)`), and
+  `LinearAlgebra/Matrix/SelfAdjoint.lean` (`Matrix.finrank_selfAdjoint`:
+  the symmetric $n\times n$ matrices have dimension $n(n+1)/2$, from Tau
+  Ceti's `LinearMap.BilinForm.finrank_symmSubmodule`). The part also adds
+  two declarations about `StdSpace ι` alone to *Standard model*'s
+  `Standard/Basic.lean`: `StdSpace.complexEuclideanEquiv`, the map from
+  `EuclideanSpace ℂ ι`, and the symplecticity of the coordinate
+  permutation along `Equiv.sumCongr e e`.
   The `LinearAlgebra/` files import no `Topology/` file of this part. Below,
   $V_0$ is $\mathbb{R}^n\times\{0\}$ ($y=0$), $V_1$ is
   $\{0\}\times\mathbb{R}^n$ ($x=0$), and the unitary frame map
   $\mathrm{U}(n)\to\mathcal{L}(n)$ sends $U$ to the image of $V_0$ under
   `Matrix.toEuclideanLin (Matrix.realify U)`. `design/maslov-index.md` lists
   what the *Maslov index* part needs of the items below.
-- **Builds on:** *Standard model*. From Tau Ceti, transferred along
-  `complexToRealEuclidean`: the charts `Matrix.lagrangianChart` and
-  `Matrix.lagrangianChartCLE` (`LinearAlgebra/TotallyReal/Euclidean.lean`);
+- **Builds on:** *Standard model*, including `StdSpace.sumEquiv` for the
+  direct sum; *Symplectic vector spaces*, only `Subspace.lean`, for
+  `TauCeti.SymplecticForm.isLagrangian_iff_isIsotropic_and_two_mul_finrank_eq`
+  in the frame criterion. From Tau Ceti, transferred along `complexToRealEuclidean`: the
+  chart `Matrix.lagrangianChart` (`LinearAlgebra/TotallyReal/Euclidean.lean`);
   frames and the stabilizer through `Matrix.realImage`,
   `Matrix.exists_mem_orthogonalGroup_eq_mul_map_ofReal` and
-  `realOrthonormalize_mem_unitaryGroup`; $\mathrm{Sp}$-transitivity from the
-  Witt theorem `TauCeti.SymplecticForm.exists_isSymplectomorphism_extend`.
+  `realOrthonormalize_mem_unitaryGroup`. $\mathrm{Sp}$-transitivity does not
+  come from Witt's theorem: $\mathrm{U}(n)$ already acts transitively
+  (`Action.lean`), through `TauCeti.GLSymplectic.ofUnitary`, so the
+  $\mathrm{Sp}(2n)$-orbit of $V_0$ is all of $\mathcal{L}(n)$.
 - **Graphs of transverse Lagrangians** (`Frame.lean`). A Lagrangian
   transverse to $V_1$ is $\{y=Sx\}$, and one transverse to $V_0$ is
   $\{x=Sy\}$, for a unique symmetric $S$. This is the converse of the graph
@@ -502,11 +528,11 @@ it into issues; the overview fixes its folders and its dependencies.
   `lagrangianChart S` is maximal totally real and transverse to
   `realSubspace (Fin 2)`, but by `Matrix.lagrangianChart_injective` it is
   the chart of no symmetric matrix. The statement follows from the second
-  graph statement, transferred along `TauCeti.complexToRealEuclidean n`
-  composed with `EuclideanSpace.equiv` (`EuclideanSpace ℂ n ≃ (n → ℂ)`); the
-  composite carries `TauCeti.realSubspace n` to $V_0$ and
+  graph statement, transferred along `StdSpace.complexEuclideanEquiv n`,
+  which carries `TauCeti.realSubspace n` to $V_0$ and
   `lagrangianChart S` to $\{x=Sy\}$.
-- **Graph charts** (`Graph.lean`). For the topology the design file picks,
+- **Graph charts** (`Graph.lean`). For the projection topology (**The
+  topology** below),
   the Lagrangians transverse to $V_0$, and those transverse to $V_1$, form
   open subsets of $\mathcal{L}(n)$, each homeomorphic to the symmetric
   matrices by the graph statements above; the first chart sends $S$ to the
@@ -576,13 +602,13 @@ it into issues; the overview fixes its folders and its dependencies.
   `(TauCeti.GLSymplectic.mulEquivSymplecticGroup ι ℝ).symm`. For $n=0$ these
   statements hold trivially, $\mathcal{L}(0)$ being a point.
 - **Milestones:** *Lagrangian frames and the Lagrangian Grassmannian*.
-- **The design file decides:** the topology of $\mathcal{L}(n)$. The
-  candidates are the subspace topology of Tau Ceti's
-  `TauCeti.finiteGrassmannian ℝ n (2 n)` (`Topology/Grassmannian/`, a
-  quotient of frames, but indexed by `Fin N` rather than `ι ⊕ ι`), the
-  topology induced by orthogonal projections, or the quotient
-  $\mathrm{U}(n)/\mathrm{O}(n)$. Whichever it picks, it proves the others
-  homeomorphic, so that the Maslov part can use the quotient description.
+- **The topology**, as the design file decides it: for $V$ a real inner
+  product space of finite dimension, $\mathcal{L}(V,\omega)$ has the
+  topology induced by orthogonal projections. The two other
+  descriptions are theorems about it: the quotient
+  $\mathrm{U}(n)/\mathrm{O}(n)$ in `Quotient.lean`, which the Maslov part
+  uses, and the subspace topology of `TauCeti.finiteGrassmannian` in
+  `Finite.lean`.
 
 ### 7. Linear nonsqueezing (needs `design/linear-nonsqueezing.md`)
 
@@ -1124,7 +1150,7 @@ Each part depends only on the parts listed, besides Mathlib and Tau Ceti.
 | 0 | *Linear Moser* | — |
 | 1 | *Unitary group topology* | *Symplectic group* (only the file on $\mathrm{Sp}(2n)$; the other files can start at once) |
 | 1 | *Symplectic vector spaces* | *Standard model*, *Symplectic group* |
-| 1 | *Lagrangian Grassmannian* | *Standard model* |
+| 1 | *Lagrangian Grassmannian* | *Standard model*, *Symplectic vector spaces* (only `Subspace.lean`, which is merged) |
 | 1 | *Linear nonsqueezing* | *Standard model* |
 | 1 | *Linear complex structures* | *Standard model* |
 | 1 | *Siegel upper half space* | *Standard model* |
