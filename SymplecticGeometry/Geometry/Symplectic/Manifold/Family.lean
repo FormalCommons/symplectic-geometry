@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import TauCeti.Geometry.Manifold.DifferentialForm.Flow.Family
 public import TauCeti.Geometry.Symplectic.Manifold.Family
 import Mathlib.Topology.Compactness.Compact
 import TauCeti.Topology.VectorBundle.Hom
@@ -20,7 +21,8 @@ having an invertible flat map at `x` is the same as being nondegenerate at `x`
 `M`, the points at which every form `σ₀ + s (σ₁ - σ₀)`, `s ∈ [0, 1]`, is nondegenerate form an
 open subset of `M`. These are the
 open sets on which the Moser fields of Moser's argument are defined
-([McDuffSalamon2017], §3.2).
+([McDuffSalamon2017], §3.2). The file also computes the velocity of a reparametrized segment
+`α₀ + c(t) (α₁ - α₀)` of forms: its slice at time `t` is `c'(t) (α₁ - α₀)`.
 
 ## Main results
 
@@ -32,13 +34,16 @@ open sets on which the Moser fields of Moser's argument are defined
   segment `σ₀ + s (σ₁ - σ₀)`, as a set of points `(s, x)` of `ℝ × M`.
 * `TauCeti.SmoothTwoForm.isOpen_setOf_forall_mem_Icc_nondegenerate`: in finite dimensions, the
   set of points at which the whole segment from `σ₀` to `σ₁` is nondegenerate is open.
+* `TauCeti.SmoothForm.mpullback_prodMk_timeDeriv_lineMapFamily`: the velocity of the segment
+  `α₀ + c(t) (α₁ - α₀)` at time `t` is `c'(t) (α₁ - α₀)`.
 
 The proofs of `isOpen_setOf_isInvertible_flat_mpullback_prodMk` and
 `isOpen_setOf_forall_mem_Icc_nondegenerate` follow Tau Ceti's private
 `exists_isOpen_isInvertible_flat`
 (`TauCeti/Geometry/Symplectic/Manifold/RelativeMoser.lean`): the flat maps form a continuous
 section along a projection, the invertible ones form an open set, and the tube lemma passes to
-the compact parameter interval.
+the compact parameter interval. The velocity of the segment is computed as in the private
+`moserRate_eq_zero` of the same Tau Ceti file.
 
 ## References
 
@@ -65,6 +70,28 @@ theorem SmoothForm.coe_mpullback_prodMk_lineMapFamily {F : Type*} [NormedAddComm
       (α₀ + c t • (α₁ - α₀)).val :=
   (coe_mpullback _ _ _).symm.trans
     (congrArg Subtype.val (mpullback_prodMk_lineMapFamily α₀ α₁ hc t))
+
+/-- **The velocity of a reparametrized segment of forms.** The slice at time `t` of the time
+derivative of `TauCeti.SmoothForm.lineMapFamily α₀ α₁ hc`, the family `α₀ + c(t) (α₁ - α₀)`, is
+`c'(t) (α₁ - α₀)`. -/
+theorem SmoothForm.mpullback_prodMk_timeDeriv_lineMapFamily [I.Boundaryless] {F : Type*}
+    [NormedAddCommGroup F] [NormedSpace ℝ F] {k : ℕ} (α₀ α₁ : SmoothForm I M F k) {c : ℝ → ℝ}
+    (hc : ContDiff ℝ ∞ c) (t : ℝ) :
+    mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id)
+      (lineMapFamily α₀ α₁ hc).timeDeriv = deriv c t • (α₁ - α₀) := by
+  apply Subtype.ext
+  funext x
+  have h := (lineMapFamily α₀ α₁ hc).hasDerivAt_mpullback_prodMk_timeDeriv t x
+  simp only [mpullback_prodMk_lineMapFamily] at h
+  refine h.unique ?_
+  have hct : HasDerivAt c (deriv c t) t :=
+    ((hc.of_le (by simp) : ContDiff ℝ 1 c).differentiable one_ne_zero t).hasDerivAt
+  -- The values of the slices are read in the model fibre `E [⋀^Fin k]→L[ℝ] F`.
+  have h2 : HasDerivAt (F := E [⋀^Fin k]→L[ℝ] F)
+      (fun u ↦ (α₀.val x : E [⋀^Fin k]→L[ℝ] F) + c u • ((α₁ - α₀).val x : E [⋀^Fin k]→L[ℝ] F))
+      (deriv c t • ((α₁ - α₀).val x : E [⋀^Fin k]→L[ℝ] F)) t :=
+    (hct.smul_const _).const_add _
+  exact h2
 
 namespace SmoothTwoForm
 
