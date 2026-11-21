@@ -192,57 +192,83 @@ These answer the questions that `DESIGN.md` leaves to this file.
 
 ## Interface with Lagrangian Grassmannian
 
-`design/lagrangian-grassmannian.md` is not written yet. This part needs the
-following from it, under the names that design chooses; below, `ℒ ι` stands
-for its space of Lagrangian subspaces of `(StdSpace ι, stdForm ι)` with its
-topology, with a coercion to `Submodule ℝ (StdSpace ι)`. `DESIGN.md` §6
-promises G3, G5 and G7–G9 (path lifting, direct sums and reindexing, and the
-transverse charts and pairs).
+This part uses the following from *Lagrangian Grassmannian*. Its design,
+`design/lagrangian-grassmannian.md`, provides every item below and lists its
+declarations for each in its table *Interface with Maslov index*; the names
+here are the ones it gives. `ℒ ι` stands for
+`LagrangianGrassmannian (stdForm ι)`, the space of Lagrangian subspaces of
+`(StdSpace ι, stdForm ι)` with its topology and its coercion to
+`Submodule ℝ (StdSpace ι)`, and `ℒ.` for the namespace
+`SymplecticGeometry.LagrangianGrassmannian`. `DESIGN.md` §6 promises G3, G5
+and G7–G9 (path lifting, direct sums and reindexing, and the transverse charts
+and pairs).
 
-- **G1.** The horizontal and vertical Lagrangians `V₀ ι`, `V₁ ι : ℒ ι`
-  ($y=0$ and $x=0$).
-- **G2.** The unitary frame map `unitaryFrame : unitaryGroup ι ℂ → ℒ ι`,
-  `U ↦ (Matrix.toEuclideanLin (Matrix.realify U)) '' V₀`; continuous and
-  surjective (transitivity of $\mathrm{U}(n)$); `unitaryFrame U = unitaryFrame U'`
-  if and only if `U⁻¹ * U'` is real (`Matrix.map` of a real orthogonal matrix);
-  and the homeomorphism $\mathrm{U}(n)/\mathrm{O}(n)\cong\mathcal{L}(n)$ that
-  `DESIGN.md` promises, so that a map out of `ℒ ι` is continuous when its
-  composite with `unitaryFrame` is.
-- **G3.** Path lifting: for every path `γ : Path Λ Λ'` in `ℒ ι` and every `U`
-  with `unitaryFrame U = Λ`, a path `δ` in `unitaryGroup ι ℂ` starting at `U`
-  with `unitaryFrame (δ t) = γ t` for all `t`. The natural proof is that
-  `unitaryFrame` is a Serre fibration with fibre $\mathrm{O}(n)$: local sections
-  come from the graph chart `graphYChart`: near `U • V₁`, the subspace `Λ'`
-  goes to `U * unitaryOfFrame (isLagrangian_range_fromRows_one hS)`, where
-  the symmetric `S` is the `graphYChart` value of `U⁻¹ • Λ'`, so that the
-  Lagrangian frame `fromRows S 1` (complex frame $S+i$) spans $\{x=Sy\}$;
-  and Tau Ceti's `Subgroup.localSectionTrivializationOfCosetFibers` and
+- **G1.** The horizontal and vertical Lagrangians `ℒ.horizontal ι` and
+  `ℒ.vertical ι` ($y=0$ and $x=0$), written `V₀ ι` and `V₁ ι` in this file.
+- **G2.** The unitary frame map `ℒ.unitaryFrame : unitaryGroup ι ℂ → ℒ ι`,
+  `U ↦ U • V₀ ι`, whose subspace is the image of `V₀` under
+  `Matrix.toEuclideanLin (Matrix.realify U)`; continuous
+  (`ℒ.continuous_unitaryFrame`) and surjective (`ℒ.unitaryFrame_surjective`,
+  transitivity of $\mathrm{U}(n)$); `unitaryFrame U = unitaryFrame U'` if and
+  only if `U⁻¹ * U'` is real (`ℒ.unitaryFrame_eq_unitaryFrame_iff`); and the
+  homeomorphism $\mathrm{U}(n)/\mathrm{O}(n)\cong\mathcal{L}(n)$ that
+  `DESIGN.md` promises (`ℒ.quotientHomeomorph`), so that a map out of `ℒ ι`
+  is continuous when its composite with `unitaryFrame` is
+  (`ℒ.isQuotientMap_unitaryFrame.continuous_iff`).
+- **G3.** Path lifting: for every path `γ : Path Λ₀ Λ₁` in `ℒ ι` and every
+  `U₀` with `unitaryFrame U₀ = Λ₀`, a path `δ` in `unitaryGroup ι ℂ` starting
+  at `U₀` with `unitaryFrame (δ t) = γ t` for all `t`. The proof is that
+  `unitaryFrame` is a fibration with fibre $\mathrm{O}(n)$
+  (`ℒ.hasHomotopyLiftingProperty_unitaryFrame`), and the lift is Tau Ceti's
+  `HasHomotopyLiftingProperty.exists_path_lift`. Local sections, and with
+  them the trivializations of `ℒ.exists_trivialization_unitaryFrame`, come
+  from the graph chart `ℒ.graphYChart`: every point of `ℒ ι` is `W • V₁ ι`
+  for some unitary `W` (`MulAction.exists_smul_eq`), and on the open set
+  `W • graphYChart.source` the section sends `Λ` to
+  `W * unitaryOfFrame (isLagrangian_range_fromRows_one hS)`. Here
+  `S : selfAdjoint (Matrix ι ι ℝ)` is the `graphYChart` value of `W⁻¹ • Λ`,
+  and `hS := isHermitian_iff_isSymm.1 S.property` is its symmetry, since the
+  chart takes values in `selfAdjoint`; the Lagrangian frame `fromRows S 1`
+  (complex frame $S+i$) spans $\{x=Sy\}$. Tau Ceti's
+  `Subgroup.localSectionTrivializationOfCosetFibers` and
   `TauCeti.TopCat.mem_serreFibrations_of_exists_trivialization` do the rest.
-- **G4.** The action of `GLSymplectic ι ℝ` on `ℒ ι`, with
-  `ContinuousSMul`, and `ofUnitary U • unitaryFrame U' = unitaryFrame (U * U')`.
-- **G5.** The direct sum `ℒ ι × ℒ κ → ℒ (ι ⊕ κ)` and the reindexing
-  `ℒ ι ≃ₜ ℒ κ` along `ι ≃ κ`, both continuous, compatible with `unitaryFrame`
+- **G4.** The actions of `GLSymplectic ι ℝ` and of `unitaryGroup ι ℂ` on
+  `ℒ ι` (the `MulAction` instances of `Lagrangian/Action.lean`), the second
+  through `TauCeti.GLSymplectic.ofUnitary`
+  (`ℒ.unitary_smul_def : U • Λ = ofUnitary U • Λ`), both with
+  `ContinuousSMul`, and
+  `ℒ.unitaryFrame_mul : unitaryFrame (U * U') = U • unitaryFrame U'`, so that
+  `ofUnitary U • unitaryFrame U' = unitaryFrame (U * U')`.
+- **G5.** The direct sum `ℒ.sum : ℒ ι × ℒ κ → ℒ (ι ⊕ κ)` and the reindexing
+  `ℒ.reindexHomeomorph : ℒ ι ≃ₜ ℒ κ` along `ι ≃ κ`, both continuous
+  (`ℒ.continuous_sum`), compatible with `unitaryFrame`
   (the sum of `unitaryFrame U` and `unitaryFrame U'` is the frame of
   `Matrix.UnitaryGroup.sum (U, U')`, and the reindexing of `unitaryFrame U`
   is the frame of the matrix reindexed by Tau Ceti's
   `Matrix.unitaryReindexContinuousMulEquiv`), and with the action of
   `TauCeti.GLSymplectic.sum`.
-- **G6.** The frame criterion: for `Z : Matrix (ι ⊕ ι) ι ℝ` of rank $n$, the
-  image of `Matrix.toEuclideanLin Z` is Lagrangian if and only if
-  $X^TY=Y^TX$; with it, the element of `ℒ ι` that such a frame spans.
+- **G6.** The frame criterion: for `Z = fromRows X Y : Matrix (ι ⊕ ι) ι ℝ` of
+  rank $n$, the image of `Matrix.toEuclideanLin Z` is Lagrangian if and only
+  if $X^TY=Y^TX$ (`isLagrangian_range_fromRows_iff`); with it, the element
+  `ℒ.ofFrame X Y` of `ℒ ι` that such a frame spans (`ℒ.coe_ofFrame`).
 - **G7.** Transverse charts: every Lagrangian transverse to `V₁ ι` is the graph
   $\{(x,Sx)\}$ of a symmetric matrix `S`, and every Lagrangian transverse to
-  `V₀ ι` is, read through G2, the image of a symmetric matrix under Tau Ceti's
-  `Matrix.lagrangianChart`. Tau Ceti has only `lagrangianChart_injective` and
-  `lagrangianChart_inf_realSubspace` (`LinearAlgebra/TotallyReal/Euclidean.lean`).
-- **G8.** For any two Lagrangians, some Lagrangian is transverse to both.
+  `V₀ ι` is $\{x=Sy\}$ for a symmetric `S` (`ℒ.isCompl_vertical_iff`,
+  `ℒ.isCompl_horizontal_iff`; as charts, `ℒ.graphChart` and
+  `ℒ.graphYChart`). Read through G2, the latter is the image of a symmetric
+  matrix under Tau Ceti's `Matrix.lagrangianChart`, of which Tau Ceti has
+  only `lagrangianChart_injective` and `lagrangianChart_inf_realSubspace`
+  (`LinearAlgebra/TotallyReal/Euclidean.lean`).
+- **G8.** For any two Lagrangians, some Lagrangian is transverse to both
+  (`ℒ.exists_isCompl_isCompl`).
 - **G9.** `GLSymplectic ι ℝ` acts transitively on transverse pairs: for
   `V W : ℒ ι` with `V ⊓ W = ⊥` there is `Ψ` with `Ψ • V = V₀ ι` and
-  `Ψ • W = V₁ ι`.
+  `Ψ • W = V₁ ι` (`ℒ.exists_smul_eq_horizontal_vertical`).
 
-If the design of *Lagrangian Grassmannian* leaves out one of these, it is
-added there by its own issue, which then blocks the Lagrangian issues here
-that use it (G7–G9 are used only by issues 8, 9, 11 and 12).
+If one of these names changes in *Lagrangian Grassmannian*, the change updates
+this list too. If an item is ever dropped there, it is added back by its own
+issue, which then blocks the Lagrangian issues here that use it (G7–G9 are
+used only by issues 8, 9, 11 and 12).
 
 ## Files and declarations
 
