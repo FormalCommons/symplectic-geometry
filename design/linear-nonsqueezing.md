@@ -306,7 +306,10 @@ theorem exists_isSymplectomorphism_image_eq_stdEllipsoid
 The file first builds `stdDarbouxBasisOf (τ : Fin m ≃ ι) : Module.Basis
 (Fin m × Fin 2) ℝ (StdSpace ι)`, Tau Ceti's `stdDarbouxBasis m` carried to
 `StdSpace ι` by the product comparison of *Standard model* and the relabelling
-`τ`, with `stdDarbouxBasisOf_def`, the `@[simp]` coordinate lemmas
+`τ`, with `stdDarbouxBasisOf_def`, the `@[simp]` basis-vector lemmas
+`stdDarbouxBasisOf_zero` and `_one` (`EuclideanSpace.single (Sum.inl (τ k)) 1`
+and `EuclideanSpace.single (Sum.inr (τ k)) 1`, under `[DecidableEq ι]`), the
+`@[simp]` coordinate lemmas
 `stdDarbouxBasisOf_repr_zero` and `_one` (`x_{τ k}` and `y_{τ k}`),
 `isDarbouxBasis_stdDarbouxBasisOf`, and
 `stdEllipsoidForm_eq_sum_smul_elliptic`: `stdEllipsoidForm r = ∑ k, (2 /
@@ -398,7 +401,8 @@ Expected size of issue 4, both files: 300 lines.
   `symplecticSpectrum_eq` (the characterization: for `Q.PosDef`, positive `r`
   and a symplectomorphism `e` with `e '' {z | Q z ≤ 1} = stdEllipsoid r`, the
   spectrum is `Finset.univ.val.map r`; it makes the choice irrelevant),
-  `card_symplecticSpectrum` (`= n` for `Q.PosDef`), `pos_of_mem_symplecticSpectrum`,
+  `card_symplecticSpectrum` (`= n` for `Q.PosDef`), `posDef_of_mem_symplecticSpectrum`,
+  `pos_of_mem_symplecticSpectrum`,
   `symplecticSpectrum_comp` (invariance under `Q ↦ Q.comp e` for a
   symplectomorphism `e`) and `@[simp] symplecticSpectrum_stdEllipsoidForm`
   (`= Finset.univ.val.map r` for positive `r`).
@@ -486,7 +490,7 @@ Expected size: 300 lines.
   ```lean
   /-- Milestone: *Linear symplectic width of an ellipsoid*. -/
   theorem linearSymplecticWidth_setOf_le_one {Q : QuadraticForm ℝ (StdSpace ι)}
-      (hQ : Q.PosDef) {s : ℝ} (hs : s ∈ symplecticSpectrum Q)
+      {s : ℝ} (hs : s ∈ symplecticSpectrum Q)
       (hmin : ∀ t ∈ symplecticSpectrum Q, s ≤ t) :
       let E := {z | Q z ≤ 1}
       linearSymplecticWidth E = ENNReal.ofReal (π * s ^ 2) ∧
