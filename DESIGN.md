@@ -412,7 +412,15 @@ it into issues; the overview fixes its folders and its dependencies.
   `LinearAlgebra/Matrix/GeneralLinearGroup/Symplectic/Reindex.lean`
   (`TauCeti.GLSymplectic.reindex` along `ι ≃ κ`, with its API) and
   `Topology/Algebra/SymplecticGroup.lean` (its continuity,
-  `continuous_reindex`).
+  `continuous_reindex`). The proof that reindexing keeps $\rho$ adds three
+  lemmas where their subjects live: `Matrix.realify_submatrix`
+  (`LinearAlgebra/Matrix/Realify.lean`) and
+  `Matrix.GeneralLinearGroup.coe_polarUnitary_reindex`
+  (`Analysis/Matrix/Polar/Basic.lean`) with its symplectic form
+  `TauCeti.GLSymplectic.coe_polarUnitary_reindex`
+  (`Analysis/Matrix/Polar/GLSymplectic.lean`); and `Path.Homotopic.homotopicWith`
+  (`Topology/Homotopy/Path.lean`) says that a homotopy of loops with fixed
+  ends is a free one.
 - **Builds on:** *Standard model*, *Symplectic group*, *Unitary group
   topology*, *Lagrangian Grassmannian*. From Mathlib and Tau Ceti, in two
   ways, none of it re-derived:
@@ -804,6 +812,24 @@ it into issues; the overview fixes its folders and its dependencies.
   the compatible complex structures on `StdSpace ι` and its explicit formula).
   For $n=1$ it is compared with Mathlib's `UpperHalfPlane` action and with Tau
   Ceti's `stdComplexSymplecticForm_tames_iff_im_pos`.
+  Six general files about matrices, outside the part's folder, serve it:
+  `LinearAlgebra/Matrix/PosDef/Basic.lean` (`Matrix.posDef_iff_of_unique`:
+  over an index type with one element, a matrix is positive definite exactly
+  when its entry is positive), `LinearAlgebra/Matrix/PosDef/Block.lean`
+  (`Matrix.posDef_fromBlocks_zero_zero_iff` and its semidefinite analogue:
+  `fromBlocks A 0 0 D` is positive (semi)definite exactly when $A$ and $D$
+  are), `LinearAlgebra/Matrix/PosDef/OfReal.lean`
+  (`Matrix.posDef_map_algebraMap_iff` and `Matrix.posDef_map_ofReal_iff`: a
+  real matrix is positive definite exactly when its image over an `RCLike`
+  field is, through Tau Ceti's realification),
+  `LinearAlgebra/Matrix/Symmetric.lean` (`Matrix.IsSymm.sub_conjTranspose`:
+  $Z-Z^{*}=2i\,\mathrm{Im}\,Z$ for a symmetric complex $Z$),
+  `LinearAlgebra/Matrix/Block.lean` (the two identities between the blocks
+  of $M$ that the first block column of $M^2=-1$ gives), and
+  `Topology/Instances/Matrix.lean` (`Continuous.isOpen_setOf_isUnit_det`:
+  for a continuous family $f$ of square matrices over a topological field
+  with closed points, the parameters $x$ where $f(x)$ is invertible form an
+  open set). They import only Mathlib, Tau Ceti and each other.
 - **Builds on:** *Standard model*; compatibility is Tau Ceti's `Compatible`.
   It also imports four files of three other parts. `Action.lean` imports
   `LinearAlgebra/Matrix/OfReal.lean`, the general matrix file of
