@@ -834,10 +834,8 @@ $C^n$ maps, so they are public and named.
 
 **Remarks.** The docstring records the
 example of `DESIGN.md` showing that continuity in the parameter alone does
-not suffice for $n\ge1$. The uses take `P = ℝ`: a formula without time
-(issue 27) does not depend on it, and its map is the composite with
-`t ↦ 0`, since Mathlib puts no charted space on `Unit`; otherwise the time
-enters the formula only through `smoothTransition`, which keeps every
+not suffice for $n\ge1$. The uses take `P = Unit`, or `P = ℝ` with the time
+entering the formula only through `smoothTransition`, which keeps every
 coefficient in $[0,1]$ for every real time; the homotopies are then the
 restrictions to `unitInterval`. A formula that is smooth only for times in
 $[0,1]$ is never fed to the lemma with `P = ℝ` directly.
@@ -1028,8 +1026,8 @@ $[0,1]$ is never fed to the lemma with `P = ℝ` directly.
   the path of the Tau Ceti file that holds that lemma.
 - **Continuity of $\omega\mapsto J_{g,\omega}$ and $J\mapsto\omega_{g,J}$.**
   The homotopy equivalence below needs both maps to be continuous for the
-  frame topologies. Each is a `fiberwiseMap` with `P = ℝ` and a formula
-  that ignores the time (see *Remarks* above), so the hypothesis `hΦ` of
+  frame topologies. Each is a `fiberwiseMap` with `P = Unit`, on the model
+  `𝓘(ℝ, Unit)` (see *Remarks* above), so the hypothesis `hΦ` of
   `continuous_fiberwiseMap` asks for smoothness on a total space: for the
   first, of the flat map out of the bundle of alternating maps of two
   vectors; for the second, of the passage from an alternating bilinear form
@@ -1162,14 +1160,14 @@ $[0,1]$ is never fed to the lemma with `P = ℝ` directly.
   `contMDiffOn_polarFormulaAt` composed with `contMDiffAt_sectionAlong_flatAt` (`b` the
   projection, `α` the fibre value), which maps `O` into
   `polarFormulaDomain F V` by `mk_flatAt_mem_polarFormulaDomain`. Its
-  `fiberwiseMap` at `0` is $J_{g,\omega}$, by `ext`,
+  `fiberwiseMap` at `()` is $J_{g,\omega}$, by `ext`,
   `polarComplexStructure_eq_polarFormulaAt` and `flat_def`, and
   `continuous_frameTopology_iff` concludes. For the second, `O` is all of the
   endomorphism bundle, the formula is
   `alternatingMapOfBilin F (g.compatibleBilinAt q.proj q.snd) _`, and `hΦ` is
   `contMDiffAt_sectionAlong_continuousAlternatingMap_of_bilinear` with `β` from
   `contMDiff_compatibleBilinAt` and `hα` from `alternatingMapOfBilin_apply`.
-  Its `fiberwiseMap` at `0` is `compatibleForm g J`
+  Its `fiberwiseMap` at `()` is `compatibleForm g J`
   (`compatibleForm_eq_alternatingMapOfBilin`), and the source map is
   `isEmbedding_toEndomorphism_frameTopology`. The two `hΦ` are steps of these
   proofs only.
