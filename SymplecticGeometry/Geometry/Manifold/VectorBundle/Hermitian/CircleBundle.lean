@@ -5,10 +5,11 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import TauCeti.Analysis.Complex.Circle
+public import Mathlib.Topology.VectorBundle.FiniteDimensional
 public import TauCeti.Topology.VectorBundle.OrthonormalFrame.Principal
 public import TauCeti.Topology.VectorBundle.Smul
 public import SymplecticGeometry.Analysis.CStarAlgebra.Unitary.ContinuousLinearMap
+public import SymplecticGeometry.Analysis.Normed.Operator.SpanSingleton
 
 /-!
 # The circle bundle of a Hermitian line bundle
@@ -29,18 +30,19 @@ base:
   `TauCeti.OrthonormalFrameBundle.Fiber ℂ F E ℂ` with the unit vectors
   (`SymplecticGeometry.Bundle.circleBundleHomeomorph`); the right action of
   `unitary (ℂ →L[ℂ] ℂ)` on frames becomes the action of `Circle` along the isomorphism
-  `SymplecticGeometry.Bundle.unitaryCircleEquiv`, which sends `u` to `u 1`;
+  `Unitary.continuousLinearMapCircleEquiv`, which sends `u` to `u 1`, and the right action of
+  `Circle` on frames becomes its action on unit vectors
+  (`SymplecticGeometry.Bundle.circleBundleHomeomorph_op_circle_smul`);
 * the unitary frame bundle is a principal `Circle`-bundle
   (`SymplecticGeometry.Bundle.instPrincipalBundleCircleFiber`): its trivializations are those of
   Tau Ceti's principal `unitary (ℂ →L[ℂ] ℂ)`-bundle structure
   (`TauCeti.OrthonormalFrameBundle.instPrincipalBundleFiber`) followed by that isomorphism
-  (`SymplecticGeometry.Bundle.circleTrivialization`).
+  (`Bundle.Trivialization.circleTrivialization`).
 
 The rank-one condition is the instance `Fact (Module.finrank ℂ F = 1)`.
 
 ## Main definitions
 
-* `SymplecticGeometry.Bundle.unitaryCircleEquiv : unitary (ℂ →L[ℂ] ℂ) ≃ₜ* Circle`.
 * `SymplecticGeometry.Bundle.circleBundleHomeomorph`: the total space of the unitary frame bundle
   is homeomorphic to the unit vectors, by `φ ↦ φ 1`.
 * `SymplecticGeometry.Bundle.instFiberBundleCircleFiber`,
@@ -97,11 +99,6 @@ theorem circleBundle_smul_eq_iff {z w : Circle} {p : {p : TotalSpace F E // ‖p
 variable [NormedAddCommGroup F] [NormedSpace ℂ F] [TopologicalSpace B]
   [TopologicalSpace (TotalSpace F E)] [FiberBundle F E] [VectorBundle ℂ F E]
 
-/-- A fibre of a complex vector bundle has the dimension of the model fibre. -/
-private theorem finrank_fiber (x : B) : finrank ℂ (E x) = finrank ℂ F :=
-  ((trivializationAt F E x).continuousLinearEquivAt ℂ x
-    (mem_baseSet_trivializationAt F E x)).toLinearEquiv.finrank_eq
-
 /-- The action of `Circle` on unit vectors is continuous. -/
 instance instContinuousSMulCircleBundle :
     ContinuousSMul Circle {p : TotalSpace F E // ‖p.snd‖ = 1} where
@@ -120,35 +117,11 @@ theorem exists_circleBundle_smul_eq_iff {p q : {p : TotalSpace F E // ‖p.snd�
   rintro (rfl : x = y)
   have hu0 : u ≠ 0 := norm_ne_zero_iff.1 (hu.symm ▸ one_ne_zero)
   obtain ⟨c, rfl⟩ := (finrank_eq_one_iff_of_ne_zero' u hu0).1
-    ((finrank_fiber (F := F) (E := E) x).trans Fact.out) w
+    ((VectorBundle.finrank_eq ℂ F E x).trans Fact.out) w
   have hc : ‖c‖ = 1 := by simpa [norm_smul, show ‖u‖ = 1 from hu] using hw
   exact ⟨⟨c, mem_sphere_zero_iff_norm.2 hc⟩, rfl⟩
 
 end Action
-
-/-! ### The structure groups -/
-
-/-- The unitary group of `ℂ →L[ℂ] ℂ`, with the operator-norm topology, is isomorphic as a
-topological group to `Circle`: a unitary `u` goes to `u 1`. -/
-def unitaryCircleEquiv : unitary (ℂ →L[ℂ] ℂ) ≃ₜ* Circle :=
-  (Unitary.continuousLinearMapSelfEquiv ℂ).trans circleEquivUnitary.symm
-
-theorem unitaryCircleEquiv_def :
-    unitaryCircleEquiv = (Unitary.continuousLinearMapSelfEquiv ℂ).trans circleEquivUnitary.symm :=
-  (rfl)
-
-@[simp]
-theorem coe_unitaryCircleEquiv_apply (u : unitary (ℂ →L[ℂ] ℂ)) :
-    (unitaryCircleEquiv u : ℂ) = (u : ℂ →L[ℂ] ℂ) 1 := by
-  rw [unitaryCircleEquiv_def, ContinuousMulEquiv.trans_apply, coe_circleEquivUnitary_symm,
-    Unitary.coe_continuousLinearMapSelfEquiv_apply]
-
-@[simp]
-theorem unitaryCircleEquiv_symm_apply (z : Circle) (v : ℂ) :
-    ((unitaryCircleEquiv.symm z : unitary (ℂ →L[ℂ] ℂ)) : ℂ →L[ℂ] ℂ) v = (z : ℂ) * v := by
-  rw [unitaryCircleEquiv_def, ContinuousMulEquiv.symm_trans_apply,
-    Unitary.continuousLinearMapSelfEquiv_symm_apply, ContinuousMulEquiv.symm_symm,
-    coe_circleEquivUnitary]
 
 /-! ### Unitary frames of a line bundle as unit vectors -/
 
@@ -158,17 +131,6 @@ variable {B F : Type*} [NormedAddCommGroup F] [NormedSpace ℂ F] [TopologicalSp
   {E : B → Type*} [∀ x, NormedAddCommGroup (E x)] [∀ x, InnerProductSpace ℂ (E x)]
   [TopologicalSpace (TotalSpace F E)] [FiberBundle F E] [VectorBundle ℂ F E]
   [Fact (finrank ℂ F = 1)]
-
-/-- The unitary frame `z ↦ z • v` of a complex inner product space `W` of dimension one, for a
-unit vector `v`. -/
-private def frameOfUnit {W : Type*} [NormedAddCommGroup W] [InnerProductSpace ℂ W]
-    (h : finrank ℂ W = 1) {v : W} (hv : ‖v‖ = 1) : ℂ ≃ₗᵢ[ℂ] W :=
-  haveI : FiniteDimensional ℂ W := Module.finite_of_finrank_eq_succ h
-  (LinearIsometry.toSpanSingleton ℂ W hv).toLinearIsometryEquiv (by rw [finrank_self, h])
-
-private theorem frameOfUnit_apply {W : Type*} [NormedAddCommGroup W] [InnerProductSpace ℂ W]
-    (h : finrank ℂ W = 1) {v : W} (hv : ‖v‖ = 1) (z : ℂ) : frameOfUnit h hv z = z • v :=
-  LinearIsometry.toSpanSingleton_apply hv z
 
 omit [TopologicalSpace B] [TopologicalSpace (TotalSpace F E)] [FiberBundle F E]
   [VectorBundle ℂ F E] [Fact (finrank ℂ F = 1)] in
@@ -181,13 +143,13 @@ unit vectors: a frame `φ : ℂ ≃ₗᵢ[ℂ] E x` goes to the unit vector `φ 
 def circleBundleHomeomorph :
     TotalSpace (unitary (ℂ →L[ℂ] ℂ)) (Fiber ℂ F E ℂ) ≃ₜ {p : TotalSpace F E // ‖p.snd‖ = 1} where
   toFun φ := ⟨⟨φ.proj, φ.snd.frame 1⟩, by simp⟩
-  invFun p := ⟨p.val.proj, .ofFrame
-    (frameOfUnit ((finrank_fiber (F := F) _).trans Fact.out) p.property)⟩
+  invFun p := ⟨p.val.proj, .ofFrame (LinearIsometryEquiv.toSpanSingleton ℂ _
+    ((VectorBundle.finrank_eq ℂ F E _).trans Fact.out) p.property)⟩
   left_inv φ := by
     refine TotalSpace.ext rfl (heq_of_eq (Fiber.ext (LinearIsometryEquiv.ext fun z ↦ ?_)))
-    rw [Fiber.frame_ofFrame, frameOfUnit_apply, ← frame_apply_eq_smul]
+    rw [Fiber.frame_ofFrame, LinearIsometryEquiv.toSpanSingleton_apply, ← frame_apply_eq_smul]
   right_inv p := Subtype.ext <| congrArg (TotalSpace.mk p.val.proj) <| by
-    rw [Fiber.frame_ofFrame, frameOfUnit_apply, one_smul]
+    rw [Fiber.frame_ofFrame, LinearIsometryEquiv.toSpanSingleton_one]
   continuous_toFun := by
     refine Continuous.subtype_mk ?_ _
     have h := (continuous_totalSpaceMk_frame (𝕜 := ℂ) (F := F) (E := E) (1 : ℂ)).comp
@@ -198,10 +160,11 @@ def circleBundleHomeomorph :
       (⟨q.proj, q.frame 1⟩ : TotalSpace F E)) (totalSpaceEquiv_apply φ)
   continuous_invFun := by
     have h : Continuous fun p : {p : TotalSpace F E // ‖p.snd‖ = 1} ↦
-        (⟨p.val.proj, frameOfUnit ((finrank_fiber (F := F) _).trans Fact.out) p.property⟩ :
+        (⟨p.val.proj, LinearIsometryEquiv.toSpanSingleton ℂ _
+          ((VectorBundle.finrank_eq ℂ F E _).trans Fact.out) p.property⟩ :
           OrthonormalFrameBundle ℂ F E ℂ) :=
       continuous_iff.2 fun z ↦ by
-        simpa only [frameOfUnit_apply] using
+        simpa only [LinearIsometryEquiv.toSpanSingleton_apply] using
           Continuous.smul_totalSpace (continuous_const (y := z)) continuous_subtypeVal
     have h' := (totalSpaceHomeomorph (𝕜 := ℂ) (F := F) (E := E) (V := ℂ)).symm.continuous.comp h
     refine h'.congr fun p ↦ ?_
@@ -224,40 +187,72 @@ theorem circleBundleHomeomorph_symm_apply_frame (p : {p : TotalSpace F E // ‖p
     (z : ℂ) :
     (⟨_, ((circleBundleHomeomorph (F := F)).symm p).snd.frame z⟩ : TotalSpace F E) =
       ⟨p.val.proj, z • p.val.snd⟩ :=
-  TotalSpace.mk_inj.2 (frameOfUnit_apply ((finrank_fiber (F := F) _).trans Fact.out) p.property z)
+  TotalSpace.mk_inj.2 (LinearIsometryEquiv.toSpanSingleton_apply _ p.property z)
 
 /-- `circleBundleHomeomorph` turns the right action of `unitary (ℂ →L[ℂ] ℂ)` on frames into the
-action of `Circle` on unit vectors, along `unitaryCircleEquiv`. -/
+action of `Circle` on unit vectors, along `Unitary.continuousLinearMapCircleEquiv`. -/
 theorem circleBundleHomeomorph_smul (u : unitary (ℂ →L[ℂ] ℂ)) {x : B} (φ : Fiber ℂ F E ℂ x) :
     circleBundleHomeomorph (⟨x, op u • φ⟩ : TotalSpace (unitary (ℂ →L[ℂ] ℂ)) (Fiber ℂ F E ℂ)) =
-      unitaryCircleEquiv u • circleBundleHomeomorph ⟨x, φ⟩ := by
-  refine Subtype.ext (congrArg (TotalSpace.mk x) ?_)
-  change φ.frame ((u : ℂ →L[ℂ] ℂ) 1) = (unitaryCircleEquiv u : ℂ) • φ.frame 1
-  rw [coe_unitaryCircleEquiv_apply, frame_apply_eq_smul]
+      Unitary.continuousLinearMapCircleEquiv u • circleBundleHomeomorph ⟨x, φ⟩ := by
+  rw [Subtype.ext_iff, circleBundle_smul_apply, circleBundleHomeomorph_apply,
+    circleBundleHomeomorph_apply, Fiber.frame_smul_apply, unop_op,
+    Unitary.coe_continuousLinearMapCircleEquiv_apply, frame_apply_eq_smul]
 
 end Homeomorph
 
-/-! ### The unitary frame bundle as a principal `Circle`-bundle -/
+/-! ### The right action of `Circle` on unitary frames -/
 
-section Principal
+/-- `Circle` acts on the right on the unitary frames of a fibre, through
+`Unitary.continuousLinearMapCircleEquiv`: `z` precomposes a frame with multiplication by `z`. -/
+instance instMulActionCircleFiber {B F : Type*} {E : B → Type*} [∀ x, NormedAddCommGroup (E x)]
+    [∀ x, InnerProductSpace ℂ (E x)] (x : B) : MulAction Circleᵐᵒᵖ (Fiber ℂ F E ℂ x) :=
+  MulAction.compHom _
+    (MulEquiv.op Unitary.continuousLinearMapCircleEquiv.symm.toMulEquiv).toMonoidHom
+
+end SymplecticGeometry.Bundle
+
+namespace TauCeti.OrthonormalFrameBundle.Fiber
 
 variable {B F : Type*} {E : B → Type*} [∀ x, NormedAddCommGroup (E x)]
   [∀ x, InnerProductSpace ℂ (E x)]
 
-/-- `Circle` acts on the right on the unitary frames of a fibre, through `unitaryCircleEquiv`:
-`z` precomposes a frame with multiplication by `z`. -/
-instance instMulActionCircleFiber (x : B) : MulAction Circleᵐᵒᵖ (Fiber ℂ F E ℂ x) :=
-  MulAction.compHom _ (MulEquiv.op unitaryCircleEquiv.symm.toMulEquiv).toMonoidHom
-
 theorem op_circle_smul_eq {x : B} (z : Circle) (φ : Fiber ℂ F E ℂ x) :
-    op z • φ = op (unitaryCircleEquiv.symm z) • φ :=
+    op z • φ = op (Unitary.continuousLinearMapCircleEquiv.symm z) • φ :=
   (rfl)
 
 /-- The action of `z : Circle` precomposes a frame with multiplication by `z`. -/
 @[simp]
 theorem frame_op_circle_smul_apply {x : B} (z : Circle) (φ : Fiber ℂ F E ℂ x) (v : ℂ) :
     (op z • φ).frame v = φ.frame ((z : ℂ) * v) := by
-  rw [op_circle_smul_eq, Fiber.frame_smul_apply, unop_op, unitaryCircleEquiv_symm_apply]
+  rw [op_circle_smul_eq, Fiber.frame_smul_apply, unop_op,
+    Unitary.continuousLinearMapCircleEquiv_symm_apply]
+
+end TauCeti.OrthonormalFrameBundle.Fiber
+
+namespace SymplecticGeometry.Bundle
+
+section Equivariance
+
+variable {B F : Type*} [NormedAddCommGroup F] [NormedSpace ℂ F] [TopologicalSpace B]
+  {E : B → Type*} [∀ x, NormedAddCommGroup (E x)] [∀ x, InnerProductSpace ℂ (E x)]
+  [TopologicalSpace (TotalSpace F E)] [FiberBundle F E] [VectorBundle ℂ F E]
+  [Fact (finrank ℂ F = 1)]
+
+/-- **`circleBundleHomeomorph` is `Circle`-equivariant**: it turns the right action of `Circle`
+on frames into its action on unit vectors. -/
+theorem circleBundleHomeomorph_op_circle_smul (z : Circle) {x : B} (φ : Fiber ℂ F E ℂ x) :
+    circleBundleHomeomorph (⟨x, op z • φ⟩ : TotalSpace (unitary (ℂ →L[ℂ] ℂ)) (Fiber ℂ F E ℂ)) =
+      z • circleBundleHomeomorph ⟨x, φ⟩ := by
+  simp [Fiber.op_circle_smul_eq, circleBundleHomeomorph_smul]
+
+end Equivariance
+
+/-! ### The unitary frame bundle as a principal `Circle`-bundle -/
+
+section TotalSpace
+
+variable {B F : Type*} {E : B → Type*} [∀ x, NormedAddCommGroup (E x)]
+  [∀ x, InnerProductSpace ℂ (E x)]
 
 /-- The total space of the unitary frame bundle, as a bundle with fibre `Circle`, is the total
 space with fibre `unitary (ℂ →L[ℂ] ℂ)`: both are the pairs of a point and a frame. -/
@@ -302,56 +297,72 @@ theorem coe_totalSpaceCircleHomeomorph_symm :
     ⇑(totalSpaceCircleHomeomorph (F := F) (E := E)).symm = totalSpaceCircleEquiv.symm :=
   (rfl)
 
-variable [TopologicalSpace B]
+end TotalSpace
+
+end SymplecticGeometry.Bundle
+
+namespace Bundle.Trivialization
+
+open SymplecticGeometry.Bundle
+
+variable {B F : Type*} {E : B → Type*} [∀ x, NormedAddCommGroup (E x)]
+  [∀ x, InnerProductSpace ℂ (E x)] [TopologicalSpace (TotalSpace F E)] [TopologicalSpace B]
 
 /-- A trivialization of the unitary frame bundle of a line bundle, read with fibre `Circle`
-through `unitaryCircleEquiv`. -/
+through `Unitary.continuousLinearMapCircleEquiv`. -/
 def circleTrivialization
     (t : Trivialization (unitary (ℂ →L[ℂ] ℂ)) (π (unitary (ℂ →L[ℂ] ℂ)) (Fiber ℂ F E ℂ))) :
     Trivialization Circle (π Circle (Fiber ℂ F E ℂ)) :=
   (t.compHomeomorph totalSpaceCircleHomeomorph).transFiberHomeomorph
-    unitaryCircleEquiv.toHomeomorph
+    Unitary.continuousLinearMapCircleEquiv.toHomeomorph
 
 variable
   (t : Trivialization (unitary (ℂ →L[ℂ] ℂ)) (π (unitary (ℂ →L[ℂ] ℂ)) (Fiber ℂ F E ℂ)))
 
 @[simp]
 theorem circleTrivialization_apply (p : TotalSpace Circle (Fiber ℂ F E ℂ)) :
-    circleTrivialization t p =
-      ((t ⟨p.proj, p.snd⟩).1, unitaryCircleEquiv (t ⟨p.proj, p.snd⟩).2) :=
+    t.circleTrivialization p =
+      ((t ⟨p.proj, p.snd⟩).1, Unitary.continuousLinearMapCircleEquiv (t ⟨p.proj, p.snd⟩).2) :=
   (rfl)
 
 @[simp]
 theorem circleTrivialization_symm_apply (q : B × Circle) :
-    (circleTrivialization t).toOpenPartialHomeomorph.symm q =
-      totalSpaceCircleEquiv.symm
-        (t.toOpenPartialHomeomorph.symm (q.1, unitaryCircleEquiv.symm q.2)) :=
+    t.circleTrivialization.toOpenPartialHomeomorph.symm q =
+      totalSpaceCircleEquiv.symm (t.toOpenPartialHomeomorph.symm
+        (q.1, Unitary.continuousLinearMapCircleEquiv.symm q.2)) :=
   (rfl)
 
 @[simp]
-theorem baseSet_circleTrivialization : (circleTrivialization t).baseSet = t.baseSet :=
+theorem baseSet_circleTrivialization : t.circleTrivialization.baseSet = t.baseSet :=
   (rfl)
 
 /-- An equivariant trivialization of the unitary frame bundle stays equivariant when read with
 fibre `Circle`. -/
 instance isEquivariant_circleTrivialization [t.IsEquivariant] :
-    (circleTrivialization t).IsEquivariant :=
+    t.circleTrivialization.IsEquivariant :=
   ⟨fun b hb φ z ↦ by
-    simp only [circleTrivialization_apply, op_circle_smul_eq, t.snd_apply_smul hb, map_mul,
-      ContinuousMulEquiv.apply_symm_apply]⟩
+    simp only [circleTrivialization_apply, OrthonormalFrameBundle.Fiber.op_circle_smul_eq,
+      t.snd_apply_smul hb, map_mul, ContinuousMulEquiv.apply_symm_apply]⟩
 
-variable [NormedAddCommGroup F] [NormedSpace ℂ F] [FiberBundle F E] [VectorBundle ℂ F E]
+end Bundle.Trivialization
+
+namespace SymplecticGeometry.Bundle
+
+section Principal
+
+variable {B F : Type*} {E : B → Type*} [∀ x, NormedAddCommGroup (E x)]
+  [∀ x, InnerProductSpace ℂ (E x)] [TopologicalSpace (TotalSpace F E)] [TopologicalSpace B]
+  [NormedAddCommGroup F] [NormedSpace ℂ F] [FiberBundle F E] [VectorBundle ℂ F E]
   [ContinuousFiberNorm F E] [Fact (finrank ℂ F = 1)]
 
-local instance : FiniteDimensional ℂ F :=
-  Module.finite_of_finrank_eq_succ (Fact.out (p := finrank ℂ F = 1))
+local instance : FiniteDimensional ℂ F := .of_fact_finrank_eq_succ 0
 
 local instance : Fact (finrank ℂ ℂ = finrank ℂ F) :=
   ⟨by rw [finrank_self, Fact.out (p := finrank ℂ F = 1)]⟩
 
 /-- The unitary frames of a complex line bundle form a fibre bundle with fibre `Circle`, whose
 atlas consists of the trivializations of the atlas of Tau Ceti's frame bundle, read through
-`unitaryCircleEquiv`. -/
+`Unitary.continuousLinearMapCircleEquiv`. -/
 instance instFiberBundleCircleFiber : FiberBundle Circle (Fiber ℂ F E ℂ) where
   totalSpaceMk_isInducing' b := by
     have h := totalSpaceCircleHomeomorph.symm.isInducing.comp
@@ -359,20 +370,23 @@ instance instFiberBundleCircleFiber : FiberBundle Circle (Fiber ℂ F E ℂ) whe
     rwa [coe_totalSpaceCircleHomeomorph_symm] at h
   trivializationAtlas' :=
     {t | ∃ (e : Trivialization (unitary (ℂ →L[ℂ] ℂ)) (π (unitary (ℂ →L[ℂ] ℂ)) (Fiber ℂ F E ℂ)))
-      (_ : MemTrivializationAtlas e), t = circleTrivialization e}
-  trivializationAt' x := circleTrivialization (trivializationAt _ (Fiber ℂ F E ℂ) x)
+      (_ : MemTrivializationAtlas e), t = e.circleTrivialization}
+  trivializationAt' x := (trivializationAt _ (Fiber ℂ F E ℂ) x).circleTrivialization
   mem_baseSet_trivializationAt' x := by
-    rw [baseSet_circleTrivialization]
+    rw [Trivialization.baseSet_circleTrivialization]
     exact mem_baseSet_trivializationAt (unitary (ℂ →L[ℂ] ℂ)) (Fiber ℂ F E ℂ) x
   trivialization_mem_atlas' x := ⟨_, inferInstance, rfl⟩
 
 theorem trivializationAt_circleFiber (x : B) :
     trivializationAt Circle (Fiber ℂ F E ℂ) x =
-      circleTrivialization (trivializationAt (unitary (ℂ →L[ℂ] ℂ)) (Fiber ℂ F E ℂ) x) :=
+      (trivializationAt (unitary (ℂ →L[ℂ] ℂ)) (Fiber ℂ F E ℂ) x).circleTrivialization :=
   rfl
 
-instance memTrivializationAtlas_circleTrivialization [MemTrivializationAtlas t] :
-    MemTrivializationAtlas (circleTrivialization t) :=
+/-- The trivializations of the atlas of Tau Ceti's frame bundle, read with fibre `Circle`, are
+in the atlas of `instFiberBundleCircleFiber`. -/
+instance _root_.Bundle.Trivialization.memTrivializationAtlas_circleTrivialization
+    (t : Trivialization (unitary (ℂ →L[ℂ] ℂ)) (π (unitary (ℂ →L[ℂ] ℂ)) (Fiber ℂ F E ℂ)))
+    [MemTrivializationAtlas t] : MemTrivializationAtlas t.circleTrivialization :=
   ⟨⟨t, inferInstance, rfl⟩⟩
 
 /-- **The unitary frames of a complex line bundle form a principal `Circle`-bundle**, `Circle`
