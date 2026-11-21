@@ -7,6 +7,7 @@ module
 
 public import SymplecticGeometry.Analysis.InnerProductSpace.Symplectic.PolarComplexStructure.Smooth
 public import SymplecticGeometry.Geometry.Symplectic.Cayley.Domain
+public import SymplecticGeometry.Topology.ComplexStructure.Orthogonal
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Compatible
 public import Mathlib.Topology.Homotopy.Affine
 public import Mathlib.Topology.Homotopy.Equiv
@@ -53,6 +54,8 @@ equivalent. The same inverses fix the complex structures that preserve `g` and t
 * `SymplecticGeometry.continuous_metricSymplecticForm`: `J ↦ ω_{g,J}` is continuous.
 * `SymplecticGeometry.metricSymplecticForm_innerSL`: for the inner product of an inner product
   space, `ω_{g,J}` is Tau Ceti's `AlmostComplexStructure.symplecticForm`.
+* `SymplecticGeometry.metricComplexStructures_innerSL`: for the standard inner product of
+  `EuclideanSpace ℝ n`, the `g`-orthogonal structures are `orthogonalComplexStructures n`.
 * `SymplecticGeometry.metricPolarComplexStructure_eq_inverse_mul_and_homotopyEquiv`: the formula,
   smoothness, naturality and compatibility of `J_{g,ω}`, its value for `g = ω(·, J ·)`, and the
   three homotopy equivalences.
@@ -305,6 +308,15 @@ theorem mem_metricSymplecticForms {ω : SymplecticForm V} :
     ω ∈ metricSymplecticForms g ↔
       ∃ J ∈ metricComplexStructures g, ∀ v w, ω v w = (g : V →L[ℝ] V →L[ℝ] ℝ) (J v) w :=
   Iff.rfl
+
+/-- For the standard inner product of `EuclideanSpace ℝ n`, the `g`-orthogonal complex structures
+are the orthogonal complex structures `orthogonalComplexStructures n`. -/
+theorem metricComplexStructures_innerSL (n : Type*) [Fintype n] :
+    metricComplexStructures ⟨innerSL ℝ, innerSL_mem_innerProducts⟩ =
+      orthogonalComplexStructures n := by
+  ext J
+  rw [mem_metricComplexStructures, mem_orthogonalComplexStructures_iff_inner]
+  exact forall₂_congr fun u v ↦ by rw [innerSL_apply_apply, innerSL_apply_apply]
 
 /-- The forms compatible with `g` are the forms `ω_{g,J}` of the `g`-orthogonal complex
 structures `J`. -/

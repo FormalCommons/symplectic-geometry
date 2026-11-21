@@ -102,10 +102,7 @@ private theorem souriauIndex_map_unitaryFrame {U U' : unitaryGroup ι ℂ} (δ :
 private theorem souriauIndex_map_smul_of_mem_realSubgroup {O : unitaryGroup ι ℂ}
     (hO : O ∈ UnitaryGroup.realSubgroup ι) {Λ Λ' : ℒ ι} (η : Path Λ Λ') :
     souriauIndex (η.map (continuous_const_smul O)) = souriauIndex η := by
-  obtain ⟨Γ, hΓ₀, hΓ⟩ := (hasHomotopyLiftingProperty_unitaryFrame ι Unit).exists_path_lift
-    (η.cast (unitaryFrame_surjective Λ).choose_spec (Eq.refl Λ'))
-  let δ : Path (unitaryFrame_surjective Λ).choose (Γ 1) := ⟨Γ, hΓ₀, rfl⟩
-  have hδ (t : I) : unitaryFrame (δ t) = η t := congrFun hΓ t
+  obtain ⟨_, δ, hδ⟩ := exists_path_lift_unitaryFrame η (unitaryFrame_surjective Λ).choose_spec
   rw [souriauIndex_congr η (δ.map continuous_unitaryFrame) fun t ↦ (hδ t).symm,
     souriauIndex_map_unitaryFrame, ← UnitaryGroup.maslovIndex_map_mul_left O
       (mul_eq_one_comm.1 (UnitaryGroup.mem_realSubgroup_iff_transpose_mul_self_eq_one.1 hO)) δ,
@@ -217,11 +214,8 @@ theorem exists_maslovIndex_eq_pathMaslovIndex {Λ Λ' : ℒ ι} (γ : Path Λ Λ
     ∃ (U U' : unitaryGroup ι ℂ) (δ : Path U U'), (∀ t, unitaryFrame (δ t) = γ t) ∧
       UnitaryGroup.maslovIndex δ = pathMaslovIndex γ (horizontal ι) := by
   obtain ⟨U, hU⟩ := unitaryFrame_surjective Λ
-  obtain ⟨Γ, hΓ₀, hΓ⟩ := (hasHomotopyLiftingProperty_unitaryFrame ι Unit).exists_path_lift
-    (γ.cast hU (Eq.refl Λ'))
-  have hδ (t : I) : unitaryFrame (Γ t) = γ t := congrFun hΓ t
-  let δ : Path U (Γ 1) := ⟨Γ, hΓ₀, rfl⟩
-  exact ⟨U, Γ 1, δ, hδ, (pathMaslovIndex_horizontal_eq_maslovIndex γ δ hδ).symm⟩
+  obtain ⟨U', δ, hδ⟩ := exists_path_lift_unitaryFrame γ hU
+  exact ⟨U, U', δ, hδ, (pathMaslovIndex_horizontal_eq_maslovIndex γ δ hδ).symm⟩
 
 /-! ### Properties read off the formula -/
 
@@ -297,8 +291,8 @@ theorem pathMaslovIndex_sum {Λ₀ Λ₁ : ℒ ι} {Λ₀' Λ₁' : ℒ κ} (γ 
       pathMaslovIndex γ V + pathMaslovIndex γ' V' := by
   obtain ⟨W, rfl⟩ := unitaryFrame_surjective V
   obtain ⟨W', rfl⟩ := unitaryFrame_surjective V'
-  obtain ⟨_, _, δ, hδ, -⟩ := exists_maslovIndex_eq_pathMaslovIndex γ
-  obtain ⟨_, _, δ', hδ', -⟩ := exists_maslovIndex_eq_pathMaslovIndex γ'
+  obtain ⟨_, δ, hδ⟩ := exists_path_lift_unitaryFrame γ (unitaryFrame_surjective _).choose_spec
+  obtain ⟨_, δ', hδ'⟩ := exists_path_lift_unitaryFrame γ' (unitaryFrame_surjective _).choose_spec
   rw [pathMaslovIndex_unitaryFrame_eq_maslovIndex γ δ hδ,
     pathMaslovIndex_unitaryFrame_eq_maslovIndex γ' δ' hδ', sum_unitaryFrame,
     pathMaslovIndex_unitaryFrame_eq_maslovIndex _ ((δ.prod δ').map UnitaryGroup.continuous_sum)
@@ -315,7 +309,7 @@ theorem pathMaslovIndex_eq_zero_of_finrank_eq {Λ Λ' : ℒ ι} (γ : Path Λ Λ
       ↥((γ t : Submodule ℝ (StdSpace ι)) ⊓ (V : Submodule ℝ (StdSpace ι))) = k) :
     pathMaslovIndex γ V = 0 := by
   obtain ⟨W, rfl⟩ := unitaryFrame_surjective V
-  obtain ⟨_, _, δ, hδ, -⟩ := exists_maslovIndex_eq_pathMaslovIndex γ
+  obtain ⟨_, δ, hδ⟩ := exists_path_lift_unitaryFrame γ (unitaryFrame_surjective _).choose_spec
   rw [pathMaslovIndex_unitaryFrame_eq_maslovIndex γ δ hδ]
   refine UnitaryGroup.maslovIndex_eq_zero_of_finrank_eq _ (k := k) fun t ↦ ?_
   set e := (StdSpace.complexEuclideanEquiv ι).toLinearEquiv
@@ -365,7 +359,7 @@ theorem pathMaslovIndex_eq_transverseMaslovIndex {U U' : unitaryGroup ι ℂ} (�
   let P : Path (graphY (S 0)) (graphY (S 1)) :=
     ⟨⟨fun t ↦ graphY (S t), continuous_graphY.comp
       ((Path.segment S₀ S₁).continuous.subtype_mk _)⟩, rfl, rfl⟩
-  obtain ⟨_, _, δ', hδ', -⟩ := exists_maslovIndex_eq_pathMaslovIndex P
+  obtain ⟨_, δ', hδ'⟩ := exists_path_lift_unitaryFrame P (unitaryFrame_surjective _).choose_spec
   have hδ'S (t : I) : (δ' t : Matrix ι ι ℂ).realImage = (Path.segment S₀ S₁ t).lagrangianChart := by
     have h := congrArg toSubmodule (hδ' t)
     simp only [P, Path.coe_mk_mk] at h
