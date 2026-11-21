@@ -67,6 +67,16 @@ theorem isLagrangian_map_toEuclideanLin {g : GL (ι ⊕ ι) ℝ} (hg : g ∈ GLS
   rw [SymplecticForm.isLagrangian_iff_orthogonal_eq] at hL ⊢
   rw [hg', ← he.map_orthogonal, hL]
 
+/-- A matrix of the symplectic group `Matrix.symplecticGroup ι ℝ` maps Lagrangian subspaces of
+`StdSpace ι` to Lagrangian subspaces. -/
+theorem isLagrangian_map_toEuclideanLin_of_mem_symplecticGroup
+    {A : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ} (hA : A ∈ symplecticGroup ι ℝ)
+    {L : Submodule ℝ (StdSpace ι)} (hL : (stdForm ι).IsLagrangian L) :
+    (stdForm ι).IsLagrangian (L.map (toEuclideanLin A)) :=
+  isLagrangian_map_toEuclideanLin (g := GeneralLinearGroup.mkOfDetNeZero A
+    (SymplecticGroup.symplectic_det hA).ne_zero)
+    (GLSymplectic.mem_iff_mem_symplecticGroup.2 hA) hL
+
 namespace LagrangianGrassmannian
 
 /-! ### The actions -/

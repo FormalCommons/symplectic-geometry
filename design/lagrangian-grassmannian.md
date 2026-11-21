@@ -857,13 +857,25 @@ The manifold structure and the milestone.
   `MulAction.exists_smul_eq (unitaryGroup ι ℂ) (vertical ι) Λ`, so that
   `U • vertical ι = Λ`. The basic
   chart is centred at the vertical subspace, so its translate by `U` contains
-  `Λ`. The atlas is the set of all such translates. API:
-  `chartAt_symm_apply`, with `(chartAt _ Λ).symm S = U • graphY S`,
-  and `mem_chart_source`.
+  `Λ`. The atlas is the set of all such translates. The translate is
+  `ℒ.unitaryChart U` (with `unitaryChart_apply`, `unitaryChart_symm_apply`,
+  `mem_unitaryChart_source_iff` and `unitaryChart_target`), and the chosen
+  unitary is `ℒ.chartUnitary Λ` (with `chartUnitary_smul_vertical`). API:
+  `atlas_eq`, `chartAt_eq`, `chartAt_symm_apply`, with
+  `(chartAt _ Λ).symm S = chartUnitary Λ • graphY S`, `chartAt_self`, and
+  `mem_chart_source`.
 - `instance : IsManifold 𝓘(ℝ, selfAdjoint (Matrix ι ι ℝ)) ∞ (ℒ ι)`. A
   transition map is `S ↦ (A S + B)(C S + D)⁻¹` for the blocks of a real
   symplectic matrix. It is smooth where it is defined, by Mathlib's
-  `contDiffAt_ringInverse`.
+  `contDiffAt_ringInverse`. For `g : GLSymplectic ι ℝ`: `ℒ.coe_smul_graphY`
+  (`g • graphY S` is spanned by `fromRows (A S + B) (C S + D)`),
+  `smul_graphY_mem_graphYChart_source_iff` (it is in the basic chart's source
+  iff `C S + D` is invertible), `coe_graphYChart_smul_graphY` (its chart
+  value) and `contDiffOn_graphYChart_smul_graphY`; and
+  `unitaryChart_symm_trans_apply`, `unitaryChart_symm_trans_source` for the
+  transition maps of the atlas. These use two facts about frames added to
+  `Frame.lean`, `StdSpace.disjoint_range_toEuclideanLin_fromRows_ker_y_iff`
+  and `StdSpace.range_toEuclideanLin_fromRows_eq_graphY`.
 - The milestone, as one theorem, `lagrangianGrassmannian_properties`, stated
   for a finite type `ι` with decidable equality. In it, `ℒ ι` is the file's
   local notation and `ℒ.foo` stands for `LagrangianGrassmannian.foo`:
@@ -895,9 +907,10 @@ The manifold structure and the milestone.
   $n\times n$ blocks, the standard form, the full symplectic group. It is
   slightly more general, since `ι` is any finite type and not only `Fin n`.
   It needs no entry in `ERRATA.md`. The third item starts from a matrix
-  `A ∈ Matrix.symplecticGroup ι ℝ`: `mem_symplecticGroup_iff_forall_stdForm`
-  makes `toEuclideanLin A` a symplectomorphism, and
-  `IsSymplectomorphism.map_orthogonal` concludes. The dimension item is
+  `A ∈ Matrix.symplecticGroup ι ℝ`: it is
+  `isLagrangian_map_toEuclideanLin_of_mem_symplecticGroup`, added to
+  `Action.lean` beside `isLagrangian_map_toEuclideanLin`, which it applies
+  to `A` as an element of `GLSymplectic ι ℝ`. The dimension item is
   `Matrix.finrank_selfAdjoint`.
 
 ## What the part uses
