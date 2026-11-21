@@ -207,13 +207,7 @@ theorem isSymm_num_mul_inv_denom {Ψ : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ} (hΨ 
   have hd := isUnit_det_denom hΨ Z
   have hMN : (num Ψ Z)ᵀ * denom Ψ Z = (denom Ψ Z)ᵀ * num Ψ Z :=
     sub_eq_zero.1 (by rw [transpose_num_mul_denom_sub hΨ, Z.isSymm.eq, sub_self])
-  rw [IsSymm, transpose_mul, transpose_nonsing_inv]
-  calc ((denom Ψ Z)ᵀ)⁻¹ * (num Ψ Z)ᵀ
-      = ((denom Ψ Z)ᵀ)⁻¹ * ((num Ψ Z)ᵀ * denom Ψ Z) * (denom Ψ Z)⁻¹ := by
-        rw [Matrix.mul_assoc, Matrix.mul_assoc, mul_nonsing_inv _ hd, Matrix.mul_one]
-    _ = num Ψ Z * (denom Ψ Z)⁻¹ := by
-        rw [hMN, ← Matrix.mul_assoc, nonsing_inv_mul _ (by rwa [det_transpose]),
-          Matrix.one_mul]
+  exact isSymm_mul_nonsing_inv_of_transpose_mul_eq hMN hd
 
 /-- For symplectic `Ψ` and `Z` in the Siegel upper half space, the imaginary part of
 `(AZ + B)(CZ + D)⁻¹` is `(CZ + D)⁻ᴴ (Im Z) (CZ + D)⁻¹`. -/

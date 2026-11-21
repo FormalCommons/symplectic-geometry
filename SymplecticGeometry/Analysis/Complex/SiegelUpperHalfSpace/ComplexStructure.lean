@@ -16,6 +16,7 @@ import TauCeti.Analysis.Matrix.Sqrt
 import TauCeti.Geometry.Symplectic.Complex.Line
 import SymplecticGeometry.LinearAlgebra.ComplexStructure.Standard
 import SymplecticGeometry.LinearAlgebra.Matrix.Block
+import SymplecticGeometry.LinearAlgebra.Matrix.Symmetric
 import SymplecticGeometry.LinearAlgebra.Matrix.SymplecticGroup.Basic
 import SymplecticGeometry.Topology.Instances.Matrix
 
@@ -332,14 +333,9 @@ private theorem isSymm_toBlocks₁₁_mul_inv_of_compatible {J : AlmostComplexSt
   have h₂₁ :=
     toBlocks₂₁_mul_toBlocks₁₁_add_of_mul_self_eq_neg_one J.toEuclideanLin_symm_mul_self
   have hCt : M.toBlocks₂₁ᵀ = M.toBlocks₂₁ := isHermitian_iff_isSymm.1 hC.isHermitian
-  rw [IsSymm, transpose_mul, transpose_nonsing_inv, hCt,
-    ← neg_neg M.toBlocks₁₁ᵀ, ← toBlocks₂₂_eq_neg_transpose_of_invariant hJ.invariant]
-  calc M.toBlocks₂₁⁻¹ * -M.toBlocks₂₂
-      = M.toBlocks₂₁⁻¹ * (-M.toBlocks₂₂ * M.toBlocks₂₁) * M.toBlocks₂₁⁻¹ := by
-        rw [Matrix.mul_assoc, Matrix.mul_assoc, mul_nonsing_inv _ hdet, Matrix.mul_one]
-    _ = M.toBlocks₁₁ * M.toBlocks₂₁⁻¹ := by
-        rw [Matrix.neg_mul, ← eq_neg_of_add_eq_zero_left h₂₁, ← Matrix.mul_assoc,
-          nonsing_inv_mul _ hdet, Matrix.one_mul]
+  refine isSymm_mul_nonsing_inv_of_transpose_mul_eq ?_ hdet
+  rw [hCt, ← neg_neg M.toBlocks₁₁ᵀ, ← toBlocks₂₂_eq_neg_transpose_of_invariant hJ.invariant,
+    Matrix.neg_mul, ← eq_neg_of_add_eq_zero_left h₂₁]
 
 /-- The point `M₁₁ M₂₁⁻¹ + i M₂₁⁻¹` of the Siegel upper half space attached to an
 `ω₀`-compatible complex structure with matrix `M`. -/
