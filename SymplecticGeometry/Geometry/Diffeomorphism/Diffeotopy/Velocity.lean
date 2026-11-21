@@ -1,0 +1,238 @@
+/-
+Copyright (c) 2026 The FormalCommons contributors. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: The FormalCommons contributors
+-/
+module
+
+public import Mathlib.Geometry.Manifold.VectorBundle.ContMDiffSection
+public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Flow
+public import TauCeti.Geometry.Manifold.DifferentialForm.Interior
+import Mathlib.Geometry.Manifold.ContMDiffMFDeriv
+import SymplecticGeometry.Geometry.Manifold.Instances.Icc
+import TauCeti.Geometry.Manifold.MFDeriv.Prod
+
+/-!
+# The velocity of a diffeotopy
+
+Let `φ_t`, `t ∈ [0, 1]`, be a smooth diffeotopy of a manifold `M`, with motion
+`Φ.cylinderMap : (x, t) ↦ φ_t x` on the cylinder `M × [0, 1]`. Its velocity at time `t` is the
+smooth vector field `X_t = (∂ₜ φ_t) ∘ φ_t⁻¹` (`TauCeti.Diffeotopy.velocity`), where `∂ₜ` is the
+unit tangent vector of the interval, so that `X_t (φ_t x)` is the time derivative of the motion at
+`(x, t)` (`TauCeti.Diffeotopy.velocity_apply_apply`). It is defined for every `t ∈ [0, 1]`; at the
+two ends the time derivative is one-sided. This is the field that generates the diffeotopy, in the
+sense of McDuff–Salamon, §3.1, and the time derivative that Tau Ceti's
+`TauCeti.Diffeotopy.HasHamiltonian` and `TauCeti.Diffeotopy.fluxForm` use.
+
+## Main definitions
+
+* `TauCeti.Diffeotopy.velocity Φ t`: the velocity `X_t` of `Φ`, a smooth vector field on `M`.
+
+## Main results
+
+* `TauCeti.Diffeotopy.mfderiv_cylinderMap_time`, `TauCeti.Diffeotopy.mfderiv_cylinderMap_space`:
+  the motion sends `∂ₜ` at `(x, t)` to the velocity of the trajectory `s ↦ φ_s x`, and a spatial
+  vector `(v, 0)` to `dφ_t v`.
+* `TauCeti.Diffeotopy.contMDiff_velocity`: `X_t` is jointly smooth in `(t, y)`, up to both ends.
+* `TauCeti.Diffeotopy.velocity_refl`: the constant diffeotopy has velocity zero.
+* `TauCeti.Diffeotopy.velocity_globalFlowDiffeotopy`: the flow of a complete field `v`, run for
+  duration `a`, has velocity `a • v`.
+* `TauCeti.Diffeotopy.velocity_timeDependentFlowDiffeotopy`: the diffeotopy of a time-dependent
+  field `X` has velocity `X t` at time `t`.
+* `TauCeti.Diffeotopy.mpullback_timeSlice_interior_velocity_apply`: `φ_t^* (ι_{X_t} σ)` on a
+  vector `v` is `(Φ^* σ)(∂ₜ, (v, 0))`, the integrand of the flux form and of `HasHamiltonian`.
+
+## Implementation notes
+
+The velocity is read along the motion, through the derivative of `Φ.cylinderMap` on `∂ₜ`, and not
+through Tau Ceti's `TauCeti.eulerianField` of a family over `ℝ`, which would need an extension of
+the diffeotopy past both ends. The joint smoothness comes from the smoothness of the tangent map
+of the motion and of the unit vector field of the interval (`contMDiff_totalSpaceMk_one_Icc`).
+Its proof follows that of Tau Ceti's `TauCeti.contMDiff_vectorBundleEulerField`: a unit vector,
+built from the zero section and a smooth vector of the other factor, is pushed forward by the
+tangent map of a smooth map.
+
+The proofs of `mfderiv_cylinderMap_time` and `mfderiv_cylinderMap_space` follow those of Tau
+Ceti's `TauCeti.Diffeotopy.mfderiv_cylinderMap_globalFlowDiffeotopy_time` and
+`TauCeti.Diffeotopy.mfderiv_cylinderMap_globalFlowDiffeotopy_space`, which split the derivative of
+the motion into its partial derivatives, and the proof of `velocity_timeDependentFlowDiffeotopy`
+follows that of `TauCeti.eulerianField_eq_of_coe_eq_timeDependentFlowOf`.
+
+## References
+
+* [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017], §3.1.
+-/
+
+public noncomputable section
+
+open Set
+open scoped Manifold ContDiff
+
+namespace TauCeti.Diffeotopy
+
+variable {E H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
+  {J : ModelWithCorners ℝ E H} {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
+
+section Derivative
+
+variable {n : ℕ∞ω} (Φ : Diffeotopy J n M)
+
+/-- The motion of a `C^n` diffeotopy, `1 ≤ n`, sends the unit time vector `∂ₜ` at `(x, t)` to
+the velocity of the trajectory `s ↦ Φ (s, x)` at time `t`. -/
+theorem mfderiv_cylinderMap_time (hn : 1 ≤ n) (p : M × unitInterval) :
+    mfderiv (J.prod (𝓡∂ 1)) J Φ.cylinderMap p ((0 : E), (1 : TangentSpace (𝓡∂ 1) p.2)) =
+      mfderiv (𝓡∂ 1) J (fun s ↦ Φ (s, p.1)) p.2 1 := by
+  have h : (fun s ↦ Φ.cylinderMap (p.1, s)) = fun s ↦ Φ (s, p.1) :=
+    funext fun s ↦ Φ.cylinderMap_apply (p.1, s)
+  refine (mfderiv_prod_eq_add_apply (Φ.contMDiff_cylinderMap.mdifferentiableAt
+    (zero_lt_one.trans_le hn).ne')).trans ?_
+  exact (congrArg₂ (fun a b : E ↦ a + b) (map_zero _)
+    (congrArg (fun f ↦ mfderiv (𝓡∂ 1) J f p.2 (1 : TangentSpace (𝓡∂ 1) p.2)) h)).trans
+    (zero_add _)
+
+/-- The motion of a `C^n` diffeotopy, `1 ≤ n`, acts on spatial tangent vectors at `(x, t)` by the
+differential of the time-`t` map. -/
+theorem mfderiv_cylinderMap_space (hn : 1 ≤ n) (p : M × unitInterval) (v : E) :
+    mfderiv (J.prod (𝓡∂ 1)) J Φ.cylinderMap p (v, (0 : EuclideanSpace ℝ (Fin 1))) =
+      mfderiv J J (Φ.timeSlice p.2) p.1 v := by
+  have h : (fun z ↦ Φ.cylinderMap (z, p.2)) = Φ.timeSlice p.2 :=
+    funext fun z ↦ (Φ.cylinderMap_apply (z, p.2)).trans (Φ.timeSlice_apply p.2 z).symm
+  refine (mfderiv_prod_eq_add_apply (Φ.contMDiff_cylinderMap.mdifferentiableAt
+    (zero_lt_one.trans_le hn).ne')).trans ?_
+  exact (congrArg₂ (fun a b : E ↦ a + b) (congrArg (fun f ↦ mfderiv J J f p.1 v) h)
+    (map_zero _)).trans (add_zero _)
+
+end Derivative
+
+variable [IsManifold J ∞ M] (Φ : Diffeotopy J ∞ M)
+
+/-- The time derivative of the motion, read at the point that has reached `y` at time `t`, as a
+smooth map on `unitInterval × M` into the tangent bundle. -/
+private theorem contMDiff_velocityAux :
+    ContMDiff ((𝓡∂ 1).prod J) J.tangent ∞ (fun p : unitInterval × M ↦
+      (⟨p.2, mfderiv (J.prod (𝓡∂ 1)) J Φ.cylinderMap (Φ.symm p, p.1)
+        ((0 : E), (1 : TangentSpace (𝓡∂ 1) p.1))⟩ : TangentBundle J M)) := by
+  -- The unit time vector at `(φ_t⁻¹ y, t)`, as a smooth map into the tangent bundle of `M × I`.
+  have hs : ContMDiff ((𝓡∂ 1).prod J) (J.prod (𝓡∂ 1)).tangent ∞ (fun p : unitInterval × M ↦
+      (equivTangentBundleProd J M (𝓡∂ 1) unitInterval).symm
+        (Bundle.zeroSection E (TangentSpace J) (Φ.symm p),
+          (⟨p.1, 1⟩ : TangentBundle (𝓡∂ 1) unitInterval))) :=
+    contMDiff_equivTangentBundleProd_symm.comp
+      (((Bundle.contMDiff_zeroSection ℝ (TangentSpace J)).comp Φ.symm.contMDiff).prodMk
+        (contMDiff_totalSpaceMk_one_Icc.comp contMDiff_fst))
+  refine ((Φ.contMDiff_cylinderMap.contMDiff_tangentMap (m := ∞) le_rfl).comp hs).congr
+    fun p ↦ ?_
+  have hb : Φ.cylinderMap (Φ.symm p, p.1) = p.2 := by
+    rw [cylinderMap_apply, coe_apply, symm_apply, apply_symm_apply]
+  have key : ∀ (a b : M) (v : E), a = b → (⟨a, v⟩ : TangentBundle J M) = ⟨b, v⟩ := by
+    rintro a _ v rfl
+    rfl
+  -- The tangent map applied to `(0, ∂ₜ)` at `(φ_t⁻¹ y, t)` is, by definition, that vector's image
+  -- based at `φ_t (φ_t⁻¹ y)`; only the base point has to be moved to `y`.
+  exact key _ _ _ hb.symm
+
+/-- The **velocity** `X_t` of a diffeotopy `φ` at time `t ∈ [0, 1]`: the smooth vector field
+`y ↦ ∂ₜ φ_t (φ_t⁻¹ y)`, the time derivative of the motion at the point that has reached `y` at
+time `t`. At `t = 0` and `t = 1` the time derivative is one-sided. -/
+def velocity (t : unitInterval) : Cₛ^∞⟮J; E, TangentSpace J (M := M)⟯ where
+  toFun y := mfderiv (J.prod (𝓡∂ 1)) J Φ.cylinderMap (Φ.symm (t, y), t)
+    ((0 : E), (1 : TangentSpace (𝓡∂ 1) t))
+  contMDiff_toFun := (Φ.contMDiff_velocityAux).comp (contMDiff_const.prodMk contMDiff_id)
+
+/-- The velocity at `y` is the time derivative of the motion at `(φ_t⁻¹ y, t)`. -/
+theorem velocity_apply (t : unitInterval) (y : M) :
+    Φ.velocity t y = mfderiv (J.prod (𝓡∂ 1)) J Φ.cylinderMap (Φ.symm (t, y), t)
+      ((0 : E), (1 : TangentSpace (𝓡∂ 1) t)) :=
+  (rfl)
+
+/-- Along the motion, the velocity is the time derivative: `X_t (φ_t x) = ∂ₜ φ_t x`. -/
+theorem velocity_apply_apply (t : unitInterval) (x : M) :
+    Φ.velocity t (Φ (t, x)) = mfderiv (J.prod (𝓡∂ 1)) J Φ.cylinderMap (x, t)
+      ((0 : E), (1 : TangentSpace (𝓡∂ 1) t)) := by
+  rw [velocity_apply, ← symm_timeSlice_apply, ← timeSlice_apply, Diffeomorph.symm_apply_apply]
+
+/-- The velocity of a diffeotopy is jointly smooth in time and space, up to both ends of the
+time interval. -/
+theorem contMDiff_velocity :
+    ContMDiff ((𝓡∂ 1).prod J) J.tangent ∞
+      (fun p : unitInterval × M ↦ (⟨p.2, Φ.velocity p.1 p.2⟩ : TangentBundle J M)) :=
+  Φ.contMDiff_velocityAux
+
+/-- The constant diffeotopy has velocity zero. -/
+@[simp]
+theorem velocity_refl (t : unitInterval) : (refl J ∞ M).velocity t = 0 := by
+  have h : (refl J ∞ M).cylinderMap = Prod.fst :=
+    funext fun p ↦ ((refl J ∞ M).cylinderMap_apply p).trans (refl_apply _)
+  ext y
+  rw [velocity_apply, h, ContMDiffSection.coe_zero, Pi.zero_apply]
+  exact mfderiv_fst_apply _ _
+
+/-- On a spatial vector `v` at `x`, the pullback by `φ_t` of the contraction `ι_{X_t} σ` of a
+two-form `σ` with the velocity is the pullback of `σ` along the motion, evaluated on `∂ₜ` and
+`(v, 0)` at `(x, t)`: both are `σ_{φ_t x}(∂ₜ φ_t x, dφ_t v)`. -/
+theorem mpullback_timeSlice_interior_velocity_apply {F : Type*} [AddCommGroup F] [Module ℝ F]
+    [TopologicalSpace F] (σ : RoughForm J M F 2) (t : unitInterval) (x : M) (v : E) :
+    mpullback J J (Φ.timeSlice t) (σ.interior (Φ.velocity t)) x ![v] =
+      mpullback (J.prod (𝓡∂ 1)) J Φ.cylinderMap σ (x, t)
+        ![((0 : E), (1 : TangentSpace (𝓡∂ 1) t)), (v, (0 : EuclideanSpace ℝ (Fin 1)))] := by
+  have h : ⇑(Φ.timeSlice t) = fun z ↦ Φ.cylinderMap (z, t) :=
+    funext fun z ↦ (Φ.timeSlice_apply t z).trans (Φ.cylinderMap_apply (z, t)).symm
+  have hx : Φ.symm (t, Φ.cylinderMap (x, t)) = x := by
+    rw [(Φ.cylinderMap_apply (x, t)).trans (Φ.timeSlice_apply t x).symm, ← symm_timeSlice_apply,
+      Diffeomorph.symm_apply_apply]
+  rw [h, mpullback_apply, mpullback_apply, RoughForm.interior_apply]
+  congr 1
+  funext i
+  fin_cases i
+  -- After moving the base point, `rfl` evaluates the vector `![∂ₜ, (v, 0)]` at `0`.
+  · exact (Φ.velocity_apply t _).trans (by rw [hx]; rfl)
+  · exact ((Φ.mfderiv_cylinderMap_space (by simp) (x, t) v).trans
+      (congrArg (fun f ↦ mfderiv J J f x v) h)).symm
+
+section Flow
+
+variable [FiniteDimensional ℝ E] [T2Space M] [BoundarylessManifold J M]
+
+/-- The diffeotopy that runs a complete vector field `v` for duration `a` has velocity `a • v` at
+every time. -/
+theorem velocity_globalFlowDiffeotopy {v : (x : M) → TangentSpace J x}
+    (hv : ContMDiff J J.tangent ∞ (fun y ↦ (⟨y, v y⟩ : TangentBundle J M)))
+    (hc : IsCompleteVectorField v) (a : ℝ) (t : unitInterval) :
+    ⇑((globalFlowDiffeotopy le_top hv hc a).velocity t) = a • v := by
+  funext y
+  rw [velocity_apply, mfderiv_cylinderMap_globalFlowDiffeotopy_time, ← symm_timeSlice_apply,
+    ← timeSlice_globalFlowDiffeotopy le_top hv hc a t, Diffeomorph.apply_symm_apply, Pi.smul_apply]
+
+/-- The diffeotopy of a time-dependent vector field `X` with complete suspension has velocity
+`X t` at time `t`, the ends included. -/
+theorem velocity_timeDependentFlowDiffeotopy {X : ℝ → (x : M) → TangentSpace J x}
+    (hX : ContMDiff (𝓘(ℝ, ℝ).prod J) J.tangent ∞
+      (fun p : ℝ × M ↦ (⟨p.2, X p.1 p.2⟩ : TangentBundle J M)))
+    (hc : IsCompleteVectorField (timeDependentSuspensionField X)) (t : unitInterval) :
+    ⇑((timeDependentFlowDiffeotopy le_top hX hc).velocity t) = X t := by
+  set Φ := timeDependentFlowDiffeotopy le_top hX hc
+  funext y
+  obtain ⟨x, rfl⟩ : ∃ x, Φ (t, x) = y :=
+    ⟨Φ.symm (t, y), by rw [← symm_timeSlice_apply, ← timeSlice_apply, Diffeomorph.apply_symm_apply]⟩
+  refine (Φ.velocity_apply_apply t x).trans ((Φ.mfderiv_cylinderMap_time (by simp) (x, t)).trans ?_)
+  have hγ := hasMFDerivAt_timeDependentFlowOf (hX.of_le (by simp))
+    ((timeDependentFlowDomain_eq_univ hc).symm ▸ mem_univ ((0, (t : ℝ)), x))
+  have hfun : (fun s : unitInterval ↦ Φ (s, x)) =
+      (fun u ↦ timeDependentFlowOf X 0 u x) ∘ Subtype.val :=
+    funext fun s ↦ timeDependentFlowDiffeotopy_apply le_top hX hc (s, x)
+  have hval : MDifferentiableAt (𝓡∂ 1) 𝓘(ℝ) (Subtype.val : unitInterval → ℝ) t :=
+    (contMDiff_subtypeVal_Icc (n := 1)).mdifferentiableAt one_ne_zero
+  refine (congrArg (fun f ↦ mfderiv (𝓡∂ 1) J f t (1 : TangentSpace (𝓡∂ 1) t)) hfun).trans ?_
+  rw [mfderiv_comp t hγ.mdifferentiableAt hval, ContinuousLinearMap.comp_apply,
+    mfderiv_subtypeVal_Icc_one, hγ.mfderiv]
+  have hx : Φ (t, x) = timeDependentFlowOf X 0 t x :=
+    timeDependentFlowDiffeotopy_apply le_top hX hc (t, x)
+  rw [hx]
+  -- The derivative `1 ↦ 1 • X t (φ_t x)` of the flow curve, evaluated at `1`.
+  exact one_smul ℝ _
+
+end Flow
+
+end TauCeti.Diffeotopy
+
+end
