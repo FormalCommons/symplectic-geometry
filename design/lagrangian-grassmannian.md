@@ -523,8 +523,8 @@ unitary action to Tau Ceti's `Matrix.realImage`.
 - `instance : MulAction (GLSymplectic ι ℝ) (ℒ ι)`, with
   `coe_smul : ((g • Λ : ℒ ι) : Submodule ℝ (StdSpace ι)) = Λ.map (Matrix.toEuclideanLin g)`
   (`@[simp]`). The result is Lagrangian by
-  `SymplecticForm.isLagrangian_map_iff_of_apply_eq_mul` (`Subspace.lean`) with
-  `c = 1`, the map `toEuclideanLin g` preserving `ω₀` by
+  `TauCeti.SymplecticForm.isLagrangian_map_iff_of_apply_eq_mul`
+  (`Subspace.lean`) with `c = 1`, the map `toEuclideanLin g` preserving `ω₀` by
   `mem_symplecticGroup_iff_forall_stdForm`. On a frame,
   `coe_smul_of_coe_eq`: if `Λ` is spanned by the columns of `Z`, then
   `g • Λ` is spanned by those of `g * Z`; `coe_smul_graphY`
