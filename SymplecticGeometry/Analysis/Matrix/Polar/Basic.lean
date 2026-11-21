@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Analysis.Matrix.Polar
+public import TauCeti.Topology.Algebra.Matrix.UnitaryGroup
 
 /-!
 # The right polar decomposition of an invertible matrix
@@ -27,6 +28,8 @@ definite, and writes the unitary factor as `U = A (Aᴴ A) ^ (-1 / 2)`.
   right polar decomposition `A = U Q` with `U` unitary and `Q` positive definite.
 * `Matrix.GeneralLinearGroup.coe_polarUnitary_eq_mul_rpow`: the unitary factor is
   `A (Aᴴ A) ^ (-1 / 2)`.
+* `Matrix.GeneralLinearGroup.coe_polarUnitary_reindex`: the unitary factor commutes with
+  reindexing rows and columns.
 
 ## References
 
@@ -74,6 +77,21 @@ theorem coe_polarUnitary_eq_mul_rpow :
       = A.polarUnitary * CFC.sqrt (star (A : Matrix n n 𝕜) * A) *
           CFC.sqrt (star (A : Matrix n n 𝕜) * A) ^ (-1 : ℝ) := by rw [mul_assoc, h1, mul_one]
     _ = _ := by rw [Units.polarUnitary_mul_sqrt_star_mul]
+
+/-- The unitary polar factor commutes with reindexing: the unitary factor of `A` reindexed along
+`e : n ≃ m` is the unitary factor of `A`, reindexed along `e`. -/
+theorem coe_polarUnitary_reindex {m : Type*} [Fintype m] [DecidableEq m] (e : n ≃ m) :
+    ((reindex 𝕜 e A).polarUnitary : Matrix m m 𝕜) =
+      Matrix.reindex e e (A.polarUnitary : Matrix n n 𝕜) := by
+  have hP : 0 ≤ Matrix.reindex e e (CFC.sqrt ((A : Matrix n n 𝕜) * star (A : Matrix n n 𝕜))) :=
+    nonneg_iff_posSemidef.2 ((posSemidef_submatrix_equiv e.symm).2
+      (nonneg_iff_posSemidef.1 (CFC.sqrt_nonneg _)))
+  have h := Units.polarUnitary_eq_of_mul_eq (reindex 𝕜 e A) hP
+    (v := unitaryReindexContinuousMulEquiv 𝕜 e A.polarUnitary) (by
+      rw [coe_unitaryReindexContinuousMulEquiv_apply, Matrix.reindex_apply, Matrix.reindex_apply,
+        submatrix_mul_equiv, Units.sqrt_mul_star_mul_polarUnitary]
+      rfl)
+  rw [h, coe_unitaryReindexContinuousMulEquiv_apply]
 
 end Matrix.GeneralLinearGroup
 

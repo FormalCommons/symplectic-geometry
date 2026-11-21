@@ -404,7 +404,13 @@ it into issues; the overview fixes its folders and its dependencies.
   `LinearAlgebra/Matrix/GeneralLinearGroup/Symplectic/Reindex.lean`
   (`TauCeti.GLSymplectic.reindex` along `ι ≃ κ`, with its API) and
   `Topology/Algebra/SymplecticGroup.lean` (its continuity,
-  `continuous_reindex`).
+  `continuous_reindex`). The proof that reindexing keeps $\rho$ adds two
+  general lemmas where their subjects live: `Matrix.realify_submatrix`
+  (`LinearAlgebra/Matrix/Realify.lean`) and
+  `Matrix.GeneralLinearGroup.coe_polarUnitary_reindex`
+  (`Analysis/Matrix/Polar/Basic.lean`); and `Path.Homotopic.homotopicWith`
+  (`Topology/Homotopy/Path.lean`) says that a homotopy of loops with fixed
+  ends is a free one.
 - **Builds on:** *Standard model*, *Symplectic group*, *Unitary group
   topology*, *Lagrangian Grassmannian*. From Mathlib and Tau Ceti, in two
   ways, none of it re-derived:
