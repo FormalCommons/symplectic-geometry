@@ -474,8 +474,11 @@ further when they grow, following `AGENTS.md`.
   does not reach $-1$. It is the analogue of
   `TauCeti.Matrix.SpecialOrthogonalGroup.isNConnected_fromBlocksOne` and is
   proved in the same way. Then
-  `Analysis/Matrix/UnitaryGroup/FundamentalGroup.lean`, which holds only the
-  milestone: $\det:\mathrm{U}(n)\to S^1$, Tau Ceti's
+  `Analysis/Matrix/UnitaryGroup/FundamentalGroup.lean`, which holds the
+  milestone and `Matrix.UnitaryGroup.homotopic_iff_angleChange_eq` (paths in
+  $\mathrm{U}(n)$ with the same ends are homotopic iff $\det$ has the same
+  `Circle.angleChange` along them, for every $n$): $\det:\mathrm{U}(n)\to S^1$,
+  Tau Ceti's
   `Matrix.UnitaryGroup.detCircle`, induces an isomorphism of fundamental
   groups for $n\ge1$, by induction from $\mathrm{U}(1)\cong S^1$, which is
   Tau Ceti's `Matrix.UnitaryGroup.detCircleEquivOfUnique`
@@ -493,7 +496,10 @@ further when they grow, following `AGENTS.md`.
   For $n=0$ the group is a point. The two counterexamples for $n=0$, for
   $\mathrm{U}(0)$ and $\mathrm{Sp}(0)$, both apply the general
   `FundamentalGroup.not_surjective_map_circle_of_subsingleton`
-  (`AlgebraicTopology/FundamentalGroup.lean`). The retraction and the facts about `detCircle`
+  (`AlgebraicTopology/FundamentalGroup.lean`), which also holds
+  `Circle.homotopic_iff_angleChange_map_eq`: for `d : X → S¹` injective on
+  $\pi_1$, two paths with the same ends are homotopic iff their images have
+  the same angle change. The retraction and the facts about `detCircle`
   it uses are in `Analysis/Matrix/UnitaryGroup/Basic.lean`.
   Tau Ceti's `Matrix.instSimplyConnectedSpaceSpecialUnitaryGroupFinTwoComplex`
   is the case $n=2$. Last, `Analysis/Matrix/SymplecticGroup/FundamentalGroup.lean`

@@ -25,14 +25,14 @@ Two loops `γ : Path Λ Λ` and `γ' : Path Λ' Λ'` are *freely homotopic* when
 point may move.
 
 * **Classification.** Lift a loop `γ` at `unitaryFrame U` to a path `δ` of unitary frames starting
-  at `U` (`unitaryFrame` is a fibration). The angle change of `det ∘ δ` is `π μ(γ)`
-  (`angleChange_map_detCircle`), so the end `δ 1 = U W`, with `W` real orthogonal, has
-  `det W = (-1)^μ(γ)`. If `γ'` has the same index and lifts to `δ'`, ending at `U W'`, then
-  `det W = det W'`; since two orthogonal matrices with the same determinant are joined in `O(n)`,
-  multiplying `δ` on the right by a path of orthogonal matrices from `1` to `W⁻¹ W'` gives a lift
-  of `γ` that ends at the end of `δ'`, and still has angle change `π μ(γ)`. Paths in `U(n)` with
-  the same ends are homotopic exactly when `det` has the same angle change along them
-  (`Matrix.UnitaryGroup.homotopic_iff_angleChange_eq`, from the isomorphism
+  at `U` (`exists_path_lift_unitaryFrame`). The angle change of `det ∘ δ` is `π μ(γ)`
+  (`angleChange_map_detCircle`, in `Maslov/Basic.lean`), so the end `δ 1 = U W`, with `W` real
+  orthogonal, has `det W = (-1)^μ(γ)`. If `γ'` has the same index and lifts to `δ'`, ending at
+  `U W'`, then `det W = det W'`; since two orthogonal matrices with the same determinant are
+  joined in `O(n)`, multiplying `δ` on the right by a path of orthogonal matrices from `1` to
+  `W⁻¹ W'` gives a lift of `γ` that ends at the end of `δ'`, and still has angle change `π μ(γ)`.
+  Paths in `U(n)` with the same ends are homotopic exactly when `det` has the same angle change
+  along them (`Matrix.UnitaryGroup.homotopic_iff_angleChange_eq`, from the isomorphism
   `π₁(U(n)) ≅ π₁(S¹)`), and the homotopy of lifts maps to one of `γ` and `γ'`.
 * **Uniqueness.** A family `μ n` of functions on loops in `ℒ (Fin n)` with the four axioms
   (`SymplecticGeometry.IsLagrangianMaslovIndex`) agrees with the index: on `ℒ (Fin 1)` the loop
@@ -44,10 +44,6 @@ point may move.
 
 ## Main results
 
-* `Matrix.UnitaryGroup.homotopic_iff_angleChange_eq`: two paths with the same ends in `U(n)` are
-  homotopic iff the angle change of the determinant along them agrees.
-* `SymplecticGeometry.LagrangianGrassmannian.angleChange_map_detCircle`: along a path of unitary
-  frames of a loop `γ`, the determinant turns through the angle `π μ(γ)`.
 * `SymplecticGeometry.LagrangianGrassmannian.maslovIndex_eq_iff_homotopic`,
   `SymplecticGeometry.LagrangianGrassmannian.homotopicWith_iff_maslovIndex_eq`: the index
   classifies loops up to homotopy with fixed ends and up to free homotopy.
@@ -76,46 +72,6 @@ open Matrix TauCeti
 open Matrix.UnitaryGroup (detCircle continuous_detCircle coe_detCircle)
 open scoped unitInterval
 
-namespace Matrix.UnitaryGroup
-
-variable {ι : Type*} [Fintype ι] [DecidableEq ι]
-
-/-- **Paths in the unitary group are classified by the angle of the determinant.** Two paths
-with the same ends in `U(n)` are homotopic relative to their ends exactly when the determinant
-turns through the same angle along them. -/
-theorem homotopic_iff_angleChange_eq {U V : unitaryGroup ι ℂ} {δ δ' : Path U V} :
-    δ.Homotopic δ' ↔ Circle.angleChange (δ.map continuous_detCircle) =
-      Circle.angleChange (δ'.map continuous_detCircle) := by
-  refine ⟨fun h ↦ Circle.angleChange_eq_of_homotopic (h.map ⟨detCircle, continuous_detCircle⟩),
-    fun h ↦ ?_⟩
-  cases isEmpty_or_nonempty ι
-  · -- `U(0)` is a point, so there is only one path.
-    have hδ : δ = δ' := Path.ext (funext fun _ ↦ Subsingleton.elim _ _)
-    exact hδ ▸ Path.Homotopic.refl δ
-  · -- The loop `δ δ'⁻¹` has determinant of degree zero, so it is null-homotopic.
-    have hdeg : Circle.degree ((δ.trans δ'.symm).map continuous_detCircle) =
-        Circle.degree ((Path.refl U).map continuous_detCircle) := by
-      have h₁ := Circle.angleChange_eq_degree_mul
-        ((δ.map continuous_detCircle).trans (δ'.map continuous_detCircle).symm)
-      rw [Circle.angleChange_trans, Circle.angleChange_symm, h, add_neg_cancel,
-        zero_eq_mul] at h₁
-      rw [Path.map_trans, ← Path.map_symm,
-        Circle.degree_congr ((Path.refl U).map _) (Path.refl (detCircle U)) fun _ ↦ rfl,
-        Circle.degree_refl]
-      exact_mod_cast h₁.resolve_right (by positivity)
-    have hloop := Circle.homotopic_trans_of_degree_map_eq (d := ⟨detCircle, continuous_detCircle⟩)
-      (bijective_fundamentalGroupMap_detCircle U).injective hdeg (Path.refl U)
-    rw [← Path.Homotopic.Quotient.eq] at hloop ⊢
-    simp only [Path.Homotopic.Quotient.mk_trans, Path.Homotopic.Quotient.mk_symm,
-      Path.Homotopic.Quotient.mk_refl, Path.Homotopic.Quotient.trans_symm,
-      Path.Homotopic.Quotient.refl_trans] at hloop
-    calc Path.Homotopic.Quotient.mk δ
-        = ((Path.Homotopic.Quotient.mk δ).trans (Path.Homotopic.Quotient.mk δ').symm).trans
-            (Path.Homotopic.Quotient.mk δ') := by simp
-      _ = Path.Homotopic.Quotient.mk δ' := by rw [hloop, Path.Homotopic.Quotient.refl_trans]
-
-end Matrix.UnitaryGroup
-
 namespace SymplecticGeometry
 
 variable {ι : Type*} [Fintype ι] [DecidableEq ι]
@@ -123,26 +79,6 @@ variable {ι : Type*} [Fintype ι] [DecidableEq ι]
 local notation "ℒ " ι => LagrangianGrassmannian (stdForm ι)
 
 namespace LagrangianGrassmannian
-
-/-! ### Lifts of loops to the unitary group -/
-
-/-- Along a path `δ` of unitary frames of a loop `γ` (`unitaryFrame (δ t) = γ t`), the determinant
-turns through the angle `π μ(γ)`. -/
-theorem angleChange_map_detCircle {Λ : ℒ ι} (γ : Path Λ Λ) {U V : unitaryGroup ι ℂ}
-    (δ : Path U V) (hδ : ∀ t, unitaryFrame (δ t) = γ t) :
-    Circle.angleChange (δ.map continuous_detCircle) = maslovIndex γ * Real.pi := by
-  have h := Circle.angleChange_eq_degree_mul (γ.map continuous_maslovPhase)
-  rw [← Circle.angleChange_congr ((δ.map continuous_detCircle).mul (δ.map continuous_detCircle))
-    _ fun t ↦ by simp [← hδ t, sq], Circle.angleChange_mul, ← maslovIndex_def] at h
-  linarith
-
-/-- If a path `δ` of unitary frames of a loop `γ` runs from `U` to `V`, then `det (U⁻¹ V)` is
-`(-1)^μ(γ)`, written `e^{iπμ(γ)}`. -/
-theorem detCircle_inv_mul_eq_exp {Λ : ℒ ι} (γ : Path Λ Λ) {U V : unitaryGroup ι ℂ}
-    (δ : Path U V) (hδ : ∀ t, unitaryFrame (δ t) = γ t) :
-    detCircle (U⁻¹ * V) = Circle.exp (maslovIndex γ * Real.pi) := by
-  rw [← angleChange_map_detCircle γ δ hδ, Circle.exp_angleChange, map_mul, map_inv,
-    div_eq_inv_mul]
 
 /-- A path `γ` of Lagrangians that is the image of a path `δ` of unitary frames is homotopic to
 the image `γ'` of any path homotopic to `δ`. -/
@@ -155,14 +91,6 @@ private theorem homotopic_of_homotopic_lift {Λ₀ Λ₁ : ℒ ι} {γ γ' : Pat
   obtain rfl : δ'.map continuous_unitaryFrame = γ' := Path.ext (funext hδ')
   exact h.map ⟨unitaryFrame, continuous_unitaryFrame⟩
 
-/-- Every loop at `unitaryFrame U` lifts to a path of unitary frames starting at `U`. -/
-private theorem exists_lift {Λ : ℒ ι} (γ : Path Λ Λ) {U : unitaryGroup ι ℂ}
-    (hU : unitaryFrame U = Λ) :
-    ∃ (V : unitaryGroup ι ℂ) (δ : Path U V), ∀ t, unitaryFrame (δ t) = γ t := by
-  obtain ⟨Γ, hΓ₀, hΓ⟩ := (hasHomotopyLiftingProperty_unitaryFrame ι Unit).exists_path_lift
-    (γ.cast hU hU)
-  exact ⟨Γ 1, ⟨Γ, hΓ₀, rfl⟩, fun t ↦ congrFun hΓ t⟩
-
 /-! ### Classification of loops -/
 
 /-- **The Maslov index classifies loops up to homotopy with fixed ends.** Two loops of Lagrangian
@@ -172,8 +100,8 @@ theorem maslovIndex_eq_iff_homotopic {Λ : ℒ ι} {γ γ' : Path Λ Λ} :
     maslovIndex γ = maslovIndex γ' ↔ γ.Homotopic γ' := by
   refine ⟨fun h ↦ ?_, maslovIndex_eq_of_homotopic⟩
   obtain ⟨U, hU⟩ := unitaryFrame_surjective Λ
-  obtain ⟨V, δ, hδ⟩ := exists_lift γ hU
-  obtain ⟨V', δ', hδ'⟩ := exists_lift γ' hU
+  obtain ⟨V, δ, hδ⟩ := exists_path_lift_unitaryFrame γ hU
+  obtain ⟨V', δ', hδ'⟩ := exists_path_lift_unitaryFrame γ' hU
   -- The two lifts end at `U W` and `U W'`, with `W`, `W'` orthogonal of the same determinant.
   have hreal {V : unitaryGroup ι ℂ} {γ : Path Λ Λ} (δ : Path U V)
       (hδ : ∀ t, unitaryFrame (δ t) = γ t) : U⁻¹ * V ∈ UnitaryGroup.realSubgroup ι :=
