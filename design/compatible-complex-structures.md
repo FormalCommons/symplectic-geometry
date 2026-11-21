@@ -490,6 +490,9 @@ This is $\mathrm{Met}(V)$, in `SymplecticGeometry`.
   through its first argument.
 - `innerProducts.forall_transport_apply_transport_iff`: `J` preserves `g`
   exactly when `J.transport e` preserves `transport e g`.
+- `innerProducts.transport_eq_innerSL_iff (e : V ≃L[ℝ] E) (g)`, for `E` an
+  inner product space: `transport e g = ⟨innerSL ℝ, _⟩ ↔
+  ∀ u v, ⟪e u, e v⟫ = g u v`.
 - `TauCeti.SymplecticForm.Compatible.associatedBilinForm_mem_innerProducts (h :
   ω.Compatible J) : (ω.associatedBilinForm J).toContinuousBilinearMap ∈
   innerProducts V`.
@@ -561,10 +564,13 @@ the file list of `DESIGN.md`*).
   - `exists_operator_and_sqrt_neg_mul_self (g ω) : ∃ A Q : V →L[ℝ] V,` the
     four hypotheses `hA`, `hQs`, `hQp` and `Q * Q = -(A * A)` above. So the
     formula applies to every `g` and `ω`. Proof: carry `g` to a Euclidean
-    space with `innerProducts.exists_transport_eq_innerSL`, take Tau Ceti's
-    `innerOperator` of the transported form and its `operatorAbs` there
-    (`operatorAbs_mul_self_of_adjoint_eq_neg` gives the square; injectivity
-    of `innerOperator` gives positive definiteness), and pull both back.
+    space with `innerProducts.exists_transport_eq_innerSL` (and
+    `innerProducts.transport_eq_innerSL_iff` for the isometry), take Tau
+    Ceti's `innerOperator` of the transported form and its `operatorAbs`
+    there (`operatorAbs_mul_self_of_adjoint_eq_neg` gives the square;
+    `apply_polarComplexStructure` and `compatible_polarComplexStructure`
+    give positive definiteness, as `ω'` tames its polar complex structure),
+    and pull both back.
 - `metricPolarComplexStructure_associatedBilinForm (h : ω.Compatible J) :
   metricPolarComplexStructure ⟨_, h.associatedBilinForm_mem_innerProducts⟩ ω = J`.
   This is the second bullet.
