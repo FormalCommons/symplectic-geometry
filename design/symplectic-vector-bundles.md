@@ -136,9 +136,9 @@ variable {EB HB M : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB]
 | `Geometry/Manifold/VectorBundle/ContinuousAlternatingMap.lean` | `contMDiff_compContinuousLinearMap_totalSpace`: precomposition by a $C^n$ hom-bundle section is $C^n$ on total spaces of alternating bundles | 3 |
 | `Geometry/Manifold/VectorBundle/Pullback.lean` | smoothness of sections of the alternating bundle of a pull-back | 18 |
 | `Geometry/Manifold/VectorBundle/Prod.lean` | `Bundle.Prod.contMDiff_prodMap` and `Bundle.Prod.contMDiff_swap`: smoothness on total spaces of the fibrewise product of two maps and of the swap, for fibres with only a zero; `Bundle.Prod.contMDiff_prodCongr` and `Bundle.Prod.contMDiff_prodComm`: the same for bundle isomorphisms | 22 |
-| `Topology/VectorBundle/Pullback.lean` | coordinates of alternating maps on a pull-back bundle; `Bundle.Pullback.neg_fiber`: negatives in a fibre of a pull-back bundle, for `simp` | 18, 20 |
+| `Topology/VectorBundle/Pullback.lean` | coordinates of alternating maps on a pull-back bundle; `Bundle.Pullback.neg_fiber`, `add_fiber`, `sub_fiber`, `smul_fiber`, `neg_pullback`, `add_pullback`, `sub_pullback`, `smul_pullback`, `zero_fiber`, `eq_zero_fiber_iff`, `zero_fiber_eq_iff`, `eq_zero_pullback_iff` and `zero_pullback_eq_iff`: operations and zeros in a fibre of a pull-back bundle, for `simp` | 18, 20 |
 | `Topology/VectorBundle/Coordinates.lean` | coordinates of continuous bilinear forms on a vector bundle | 6 |
-| `Data/Bundle.lean` | `Bundle.Pullback.eq_iff`: equations in a fibre of a pull-back bundle, for `simp` | 20 |
+| `Data/Bundle.lean` | `Bundle.Pullback.eq_iff`, `eq_fiber_iff`, `neg_apply_fiber` and `neg_apply_pullback`: equations and negated functions in a fibre of a pull-back bundle, for `simp` | 20 |
 | `Geometry/Manifold/VectorBundle/Symplectic/Pullback.lean` | pull-backs of forms, of tame and compatible pairs, of isomorphisms and of frames | 21 |
 | `Geometry/Manifold/VectorBundle/Symplectic/Prod.lean` | direct sums of forms, of tame and compatible pairs and of isomorphisms; block frames | 22 |
 | `Geometry/Symplectic/Manifold/Volume.lean` | the symplectic orientation of a negated two-form | 23 |
@@ -239,8 +239,8 @@ file to it.
   a fibre bundle with another model fibre along a homeomorphism, involves no
   group, so it has its own file, `Topology/FiberBundle/ChangeModelFiber.lean`.
 - `Topology/FiberBundle/Basic.lean` is new: the openness argument behind
-  `isOpen_setOf_nondegenerate` holds for any fibrewise condition on any fibre
-  bundle, so it is stated there, in Mathlib's `FiberBundle` namespace, as
+  `isOpen_setOf_nondegenerate` and `isOpen_polarFormulaDomain` holds for any
+  fibrewise condition on any fibre bundle, so it is stated there, in Mathlib's `FiberBundle` namespace, as
   `FiberBundle.isOpen_of_forall_mem_iff_snd_mem` (#456).
 - The lemma of `Section/Topology.lean` asks for joint $C^n$ regularity in a
   manifold parameter instead of derivatives continuous in the parameter (see
@@ -482,8 +482,8 @@ the form and of the structure are independent.
   bundles, `Bundle.ContMDiffRiemannianMetric` and part 9's `TauCeti`
   operations, so they go in a file of their own,
   `Geometry/Manifold/VectorBundle/Riemannian/PolarEnd.lean`, which imports
-  no file of this part but `Topology/VectorBundle/Coordinates.lean`, in the
-  namespace `Bundle.ContMDiffRiemannianMetric` (where `g.polarFormulaAt x σ`
+  no file of this part but `Topology/VectorBundle/Coordinates.lean` and
+  `Topology/FiberBundle/Basic.lean`, in the namespace `Bundle.ContMDiffRiemannianMetric` (where `g.polarFormulaAt x σ`
   finds them), except `Bundle.polarFormulaDomain` and
   `Bundle.euclideanEquivAt`, which involve no metric. Only the lemmas named
   below as being in `SymplecticGeometry.Bundle` stay in this file. For a metric `g`:
@@ -492,17 +492,18 @@ the form and of the structure are independent.
     part of `σ` is nondegenerate, with `@[simp] mem_polarFormulaDomain_iff :
     q ∈ polarFormulaDomain F V ↔
     (q.snd.toBilinForm - q.snd.toBilinForm.flip).Nondegenerate`. It is open
-    (`isOpen_polarFormulaDomain`, `[FiniteDimensional ℝ F]`): over the base set
-    of a trivialization, the reading of `q.snd` in it is `q.snd` carried
-    along the fibre equivalence
+    (`isOpen_polarFormulaDomain`, `[FiniteDimensional ℝ F]`), by
+    `FiberBundle.isOpen_of_forall_mem_iff_snd_mem` with the open set
+    `ContinuousLinearMap.isOpen_setOf_nondegenerate_toBilinForm_sub_flip`
+    of forms on `F`: over the base set of a trivialization, the reading of
+    `q.snd` in it is `q.snd` carried along the fibre equivalence
     (`ContinuousLinearMap.inCoordinates_eq_arrowCongr_arrowCongr`, over any
     `NontriviallyNormedField` and topological base, in
     `Topology/VectorBundle/Coordinates.lean`), and carrying a form along a
     linear equivalence does not change whether its skew part is
     nondegenerate (`ContinuousLinearEquiv.nondegenerate_arrowCongr_sub_flip_iff`,
-    in part 9's `Topology/Algebra/Module/BilinearForm.lean`), so the domain
-    is there the preimage of an open set of forms on `F` under the chart of
-    the total space.
+    in part 9's `Topology/Algebra/Module/BilinearForm.lean`), so the chart
+    of the total space reads the domain as that open set.
   - `polarFormulaAt g x (σ : V x →L[ℝ] V x →L[ℝ] ℝ) : V x →L[ℝ] V x`, part 9's
     `TauCeti.metricPolarFormula` on `W` of the pair (`g x`, `σ`) carried
     along `e x : V x ≃L[ℝ] W` (the trivialization at `x` followed by
@@ -543,8 +544,10 @@ the form and of the structure are independent.
     inner product `g x` read the fibre through such an `e`.
   - In `SymplecticGeometry.Bundle`, two lemmas for
     `hω : ω.IsNondegenerate`. `IsNondegenerate.mk_flat_mem_polarFormulaDomain`:
-    `⟨x, ω.flat x⟩ ∈ polarFormulaDomain F V`, by `mem_polarFormulaDomain_iff`,
-    since the form is already skew. `IsNondegenerate.polarFormulaAt_flat g e he`:
+    `⟨x, ω.flat x⟩ ∈ polarFormulaDomain F V`, by `mem_polarFormulaDomain_iff`
+    and `LinearMap.IsAlt.sub_flip_eq_two_smul`: the skew part of the
+    alternating form is twice the form.
+    `IsNondegenerate.polarFormulaAt_flat g e he`:
     for `e : V x ≃L[ℝ] W` to a finite-dimensional inner product space with
     `he : ∀ u v, ⟪e u, e v⟫ = g.inner x u v`, `g.polarFormulaAt x (ω.flat x)`
     is the conjugate by `e` of the continuous endomorphism of Tau Ceti's
@@ -1295,12 +1298,23 @@ For a map `f : C^n⟮I', N; I, M⟯` (the argument of Mathlib's instance
   structure of the pull-back. The root-namespace `@[simp]
   Bundle.Pullback.eq_iff` (`Data/Bundle.lean`) moves an equation stated in
   `(f *ᵖ V) y` between vectors of `V (f y)` to `V (f y)`, and `@[simp]
-  Bundle.Pullback.neg_fiber` (`Topology/VectorBundle/Pullback.lean`) takes
-  the negative in `V (f y)` of a vector of `(f *ᵖ V) y` in `(f *ᵖ V) y`.
+  Bundle.Pullback.eq_fiber_iff` moves one stated in `V (f y)` between
+  vectors of `(f *ᵖ V) y` to `(f *ᵖ V) y`, and `@[simp] neg_apply_fiber`
+  and `neg_apply_pullback` evaluate a negated function on a vector of the
+  other type. In `Topology/VectorBundle/Pullback.lean`, which imports
+  `Data/Bundle.lean`, `@[simp]
+  Bundle.Pullback.neg_fiber`, `add_fiber`, `sub_fiber` and `smul_fiber`
+  take an operation in `V (f y)` on vectors of `(f *ᵖ V) y` in
+  `(f *ᵖ V) y`, and `@[simp] neg_pullback`, `add_pullback`, `sub_pullback`
+  and `smul_pullback` take one in `(f *ᵖ V) y` on vectors of `V (f y)` in
+  `V (f y)`. Each fires only where the two types differ. `zero_fiber` is
+  not `@[simp]`: a zero alone has no argument whose type could decide
+  between them. In an equation, `@[simp] eq_zero_fiber_iff`,
+  `zero_fiber_eq_iff`, `eq_zero_pullback_iff` and `zero_pullback_eq_iff`
+  replace a zero of the other type by the zero of the equation's type.
   `coe_pullback` and `pullback_neg` are not `@[simp]`: `coe_pullback` would
-  undo `apply_eq_pullback_apply`, and after `pullback_neg` a vector of
-  `V (f y)` meets a function on `(f *ᵖ V) y` negated pointwise, which
-  `simp` cannot evaluate. Neither is `ContMDiffComplexStructure.neg_apply`,
+  undo `apply_eq_pullback_apply`, and `pullback_neg` would rewrite the
+  left-hand side of `pullback_neg_apply`. Neither is `ContMDiffComplexStructure.neg_apply`,
   whose left-hand side `simp` rewrites with `neg_toEndomorphism`.
   `pullback_toEndomorphism` and `almostComplexStructureAt_pullback` are
   not `@[simp]`: they rewrite under the coercion of the pulled-back bundle,

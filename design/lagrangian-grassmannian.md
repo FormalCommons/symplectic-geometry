@@ -464,7 +464,9 @@ Lagrangian frames on `StdSpace ι`, pure linear algebra. Namespace
   part, is written `ofFrame X Y h`, never as an anonymous pair.
 - `ℒ.finrank_eq_card (Λ : ℒ ι) : finrank ℝ Λ = Fintype.card ι`, from
   `TauCeti.SymplecticForm.IsLagrangian.two_mul_finrank` and `finrank_stdSpace`, for every use of the
-  dimension of a Lagrangian of `StdSpace ι`.
+  dimension of a Lagrangian of `StdSpace ι`. With it,
+  `ℒ.injective_toEuclideanLin_of_range_eq`: a matrix `Z` whose columns span a
+  Lagrangian is injective, as `Maslov/Path/RegularPieces.lean` uses.
 - `isLagrangian_map_swap_iff` (`@[simp]`): `L.map (swap ι)` is Lagrangian for
   `ω₀` iff `L` is. Since `stdForm_swap` says that `swap` multiplies `ω₀` by
   `-1`, this is the case `e = swap`, `c = -1` of
@@ -598,7 +600,9 @@ unitary action to Tau Ceti's `Matrix.realImage`.
   `SymplecticGeometry`), the image of a Lagrangian under a matrix
   `A ∈ Matrix.symplecticGroup ι ℝ`, which the `smul` instance applies through
   `TauCeti.GLSymplectic.mem_iff_mem_symplecticGroup`; and, in `ℒ.`, `coe_unitary_smul`,
-  `coe_unitaryFrame_eq_map` (the second description of `coe_unitaryFrame`) and
+  `coe_unitaryFrame_eq_map` (the second description of `coe_unitaryFrame`),
+  `finrank_unitaryFrame_inf_horizontal` (`finrank (unitaryFrame U ⊓ V₀)` is the
+  dimension of `U.realImage ⊓ realSubspace ι`) and
   `unitaryFrame_eq_horizontal_iff`, from which both
   `unitaryFrame_eq_unitaryFrame_iff` and `stabilizer_horizontal` follow.
 - Supporting statements placed elsewhere. In `Standard/Matrix.lean`:
@@ -669,7 +673,10 @@ Chart points and transverse pairs, as algebra: G7–G9.
   `Submodule.orderIsoMapComap` after `coe_smul_eq_map_toEuclideanCLE`), which
   both transverse-pair results use; and
   `ℒ.finrank_smul_inf_smul` (it keeps `finrank (Λ ⊓ Λ')`), which the zero axiom
-  of *Maslov index* (`Maslov/Path/Basic.lean`) uses.
+  of *Maslov index* (`Maslov/Path/Basic.lean`) uses; its unitary form
+  `ℒ.finrank_unitary_smul_inf_smul`, and `ℒ.finrank_inf_unitaryFrame`
+  (`finrank (Λ ⊓ unitaryFrame U) = finrank ((U⁻¹ • Λ) ⊓ V₀)`), which
+  `Maslov/Path/Naturality.lean` uses.
 
 ### `LinearAlgebra/TotallyReal/Euclidean.lean`
 
@@ -995,7 +1002,8 @@ The manifold structure and the milestone.
   `TauCeti.SymplecticForm.isLagrangian_map_iff_of_apply_eq_mul` there.
 - The library's general `LinearAlgebra/Matrix/Realify.lean` (merged, #173 and
   #232; it imports only Tau Ceti): `Matrix.realify_reindex`, for
-  `reindex_unitaryFrame`.
+  `reindex_unitaryFrame`; and `Matrix.realify_smul_one`, the realification of
+  a complex scalar matrix, for `Maslov/Path/RegularPieces.lean`.
 - Tau Ceti:
   - Lagrangian subspaces and graphs: `TauCeti.SymplecticForm.IsLagrangian`,
     `TauCeti.SymplecticForm.IsLagrangian.two_mul_finrank`,
