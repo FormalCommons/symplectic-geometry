@@ -21,8 +21,6 @@ symmetric (McDuff–Salamon, §2.3).
 
 * `Matrix.exists_isSymm_eq_lagrangianChart`: a maximal totally real subspace `V` of `ℂⁿ` on which
   `Im ⟪·, ·⟫` vanishes and with `V ∩ ℝⁿ = 0` is `S.lagrangianChart` for a symmetric real `S`.
-* `Matrix.map_im_conjTranspose_mul_self_lagrangianChartFrame`: for symmetric `S`, the Gram
-  matrix `(S + i)ᴴ (S + i)` of the frame `S + i` of `S.lagrangianChart` has zero imaginary part.
 
 An `example` at the end shows that the isotropy hypothesis cannot be dropped: for the
 nilpotent `S = !![0, 1; 0, 0]`, `S.lagrangianChart` is maximal totally real and meets `ℝ²` only
@@ -40,17 +38,6 @@ namespace Matrix
 open TauCeti SymplecticGeometry SymplecticGeometry.StdSpace Module
 
 variable {n : Type*} [Fintype n] [DecidableEq n]
-
-/-- For a real symmetric matrix `S`, the Gram matrix `(S + i)ᴴ (S + i)` of the complex matrix
-`S + i` has zero imaginary part. -/
-theorem map_im_conjTranspose_mul_self_lagrangianChartFrame {S : Matrix n n ℝ} (hS : S.IsSymm) :
-    (S.lagrangianChartFrameᴴ * S.lagrangianChartFrame).map Complex.im = 0 := by
-  have h1 : (1 : Matrix n n ℝ).map ((↑) : ℝ → ℂ) = 1 :=
-    Matrix.map_one _ Complex.ofReal_zero Complex.ofReal_one
-  have h := map_im_conjTranspose_mul_self_eq_zero_of_transpose_mul_eq
-    (X := S) (Y := 1) (by rw [hS.eq, transpose_one, Matrix.mul_one, Matrix.one_mul])
-  rw [h1, ← lagrangianChartFrame_def] at h
-  exact h
 
 /-- A maximal totally real subspace `V` of `ℂⁿ` that is isotropic for the symplectic form
 `Im ⟪·, ·⟫` and meets `ℝⁿ` only in `0` is the subspace `{S y + i y | y ∈ ℝⁿ}` of a symmetric
