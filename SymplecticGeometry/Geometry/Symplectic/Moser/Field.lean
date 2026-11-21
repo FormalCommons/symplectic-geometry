@@ -192,18 +192,9 @@ theorem moserField_rate_eq_zero [I.Boundaryless] (h₀ : σ₀.IsClosed) {t : �
   have hvel : mpullback I (𝓘(ℝ, ℝ).prod I) (Prod.mk t)
       (mlieDerivForm (fun _ ↦ ((1 : ℝ), (0 : E)))
         (SmoothForm.lineMapFamily σ₀ σ₁ (contDiff_id (n := ∞))).val) y = (σ₁ - σ₀).val y := by
-    have h := SmoothForm.hasDerivAt_mpullback_prodMk_timeDeriv
-      (SmoothForm.lineMapFamily σ₀ σ₁ (contDiff_id (n := ∞))) t y
-    simp only [SmoothForm.mpullback_prodMk_lineMapFamily, SmoothForm.coe_mpullback,
-      SmoothForm.coe_timeDeriv, id_eq] at h
-    refine h.unique ?_
-    -- The values of the slices are read in the model fibre `E [⋀^Fin 2]→L[ℝ] ℝ`.
-    have h2 := ((hasDerivAt_id t).smul_const
-      (@id (E [⋀^Fin 2]→L[ℝ] ℝ) ((σ₁ - σ₀).val y))).const_add
-        (@id (E [⋀^Fin 2]→L[ℝ] ℝ) (σ₀.val y))
-    rw [one_smul] at h2
-    -- `h2` is the goal up to the identity maps, which only fix the type of the values.
-    exact h2
+    have h := congrArg (fun α : SmoothTwoForm I M ↦ α.val y)
+      (SmoothForm.mpullback_prodMk_timeDeriv_lineMapFamily σ₀ σ₁ (contDiff_id (n := ∞)) t)
+    simpa only [SmoothForm.coe_mpullback, SmoothForm.coe_timeDeriv, deriv_id, one_smul] using h
   -- The slice at time `t` is closed at `y`, since `σ₁ - σ₀ = dβ` near `y`.
   have hclosed : mextDeriv (σ₀ + t • (σ₁ - σ₀)).val y = 0 := by
     have h₁ : mextDeriv (σ₁ - σ₀).val y = 0 := by
