@@ -565,6 +565,35 @@ theorem toContinuousComplexStructure_tangentEquiv
   ext x v
   simp
 
+/-- On the tangent bundle, the continuous complex structure that Tau Ceti attaches to `J` is
+that of the corresponding bundle complex structure. -/
+@[simp]
+theorem toContinuousComplexStructure_tangentEquiv_symm
+    (J : TauCeti.ContMDiffAlmostComplexStructure I n M) :
+    (tangentEquiv.symm J).toContinuousComplexStructure = J.toContinuousComplexStructure := by
+  ext x v
+  simp
+
+@[simp]
+theorem tangentEquiv_neg (J : ContMDiffComplexStructure I n EB (TangentSpace I : M → Type _)) :
+    tangentEquiv (-J) = -tangentEquiv J := by
+  ext x v
+  simp
+
+@[simp]
+theorem tangentEquiv_ofLE {m : ℕ∞}
+    (J : ContMDiffComplexStructure I n EB (TangentSpace I : M → Type _)) (h : m ≤ n) :
+    tangentEquiv (J.ofLE h) = (tangentEquiv J).ofLE h := by
+  ext x v
+  simp
+
+@[simp]
+theorem almostComplexStructureAt_tangentEquiv
+    (J : ContMDiffComplexStructure I n EB (TangentSpace I : M → Type _)) (x : M) :
+    (tangentEquiv J).almostComplexStructureAt x = J.almostComplexStructureAt x := by
+  ext v
+  simp
+
 variable {ι : Type*}
   (e : ι → Trivialization (EB →L[ℝ] EB)
     (π (EB →L[ℝ] EB) (fun x : M ↦ TangentSpace I x →L[ℝ] TangentSpace I x)))
@@ -582,21 +611,12 @@ def tangentHomeomorph :
   let _ := ContMDiffSection.frameTopology (I := I) (n := ∞) e U hU
   let _ := frameTopology (I := I) (n := ⊤) e U hU
   let _ := TauCeti.SmoothAlmostComplexStructure.frameTopology e U hU
-  have hemb := TauCeti.SmoothAlmostComplexStructure.isEmbedding_toEndomorphism_frameTopology e U hU
-  exact
-    { toEquiv := tangentEquiv.trans TauCeti.ContMDiffAlmostComplexStructure.smoothEquiv
-      continuous_toFun := by
-        refine hemb.isInducing.continuous_iff.mpr ?_
-        simpa [Function.comp_def] using
-          (isEmbedding_toEndomorphism_frameTopology (n := ⊤) e U hU).continuous
-      continuous_invFun := by
-        refine (continuous_frameTopology_iff (I := I) (n := ⊤)
-          (V := (TangentSpace I : M → Type _)) e U hU).mpr ?_
-        have h : (fun J : TauCeti.SmoothAlmostComplexStructure I M ↦
-            (J.toContMDiff ⊤).toEndomorphism) =
-              TauCeti.SmoothAlmostComplexStructure.toEndomorphism :=
-          funext fun J ↦ ContMDiffSection.ext fun x ↦ by simp
-        simpa [Equiv.trans, h] using hemb.continuous }
+  exact (tangentEquiv.trans
+    TauCeti.ContMDiffAlmostComplexStructure.smoothEquiv).toHomeomorphOfIsInducing
+    ((TauCeti.SmoothAlmostComplexStructure.isEmbedding_toEndomorphism_frameTopology
+      e U hU).isInducing.of_comp_iff.mp
+      (by simpa [Function.comp_def] using
+        (isEmbedding_toEndomorphism_frameTopology (n := ⊤) e U hU).isInducing))
 
 @[simp]
 theorem tangentHomeomorph_apply
