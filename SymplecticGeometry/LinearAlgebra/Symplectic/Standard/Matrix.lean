@@ -22,7 +22,8 @@ no reindexing. This file translates the matrix conditions of linear symplectic g
 conditions on that map.
 
 * `SymplecticGeometry.stdForm_apply_toEuclideanLin`: `ω₀(v, A w) = vᵀ (-J₀ A) w`, where
-  `J₀ = Matrix.J ι ℝ`.
+  `J₀ = Matrix.J ι ℝ`; `SymplecticGeometry.stdForm_toEuclideanLin_toEuclideanLin`:
+  `ω₀(A u, B v) = uᵀ (Aᵀ (-J₀) B) v` for matrices `A`, `B` with `2n` rows.
 * `SymplecticGeometry.mem_symplecticGroup_iff_forall_stdForm`: `A` lies in
   `Matrix.symplecticGroup ι ℝ` (that is, `Aᵀ J A = J`) if and only if its map preserves `ω₀`,
   `ω₀(A v, A w) = ω₀(v, w)` for all `v, w`.
@@ -80,6 +81,20 @@ theorem stdForm_apply_toEuclideanLin (A : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ) (v
     stdForm ι v (toEuclideanLin A w) = v.ofLp ⬝ᵥ ((-J ι ℝ * A) *ᵥ w.ofLp) := by
   refine (LinearMap.congr_fun₂ stdForm_toBilinForm v (toEuclideanLin A w)).trans ?_
   simp [Matrix.toBilin'_apply', Matrix.neg_mulVec, Matrix.mulVec_mulVec]
+
+/-- `ω₀(A u, B v) = uᵀ (Aᵀ (-J₀) B) v` for real matrices `A` and `B` with `2n` rows, where
+`J₀ = Matrix.J ι ℝ`: the Gram matrix of `ω₀` on the columns of `A` and `B`. -/
+theorem stdForm_toEuclideanLin_toEuclideanLin {κ μ : Type*} [Fintype κ] [DecidableEq κ]
+    [Fintype μ] [DecidableEq μ] (A : Matrix (ι ⊕ ι) κ ℝ) (B : Matrix (ι ⊕ ι) μ ℝ)
+    (u : EuclideanSpace ℝ κ) (v : EuclideanSpace ℝ μ) :
+    stdForm ι (toEuclideanLin A u) (toEuclideanLin B v) =
+      u.ofLp ⬝ᵥ ((Aᵀ * -J ι ℝ * B) *ᵥ v.ofLp) := by
+  have h := stdForm_apply_toEuclideanLin 1 (toEuclideanLin A u) (toEuclideanLin B v)
+  rw [toLpLin_one, LinearMap.id_apply, Matrix.mul_one] at h
+  rw [h]
+  simp only [toLpLin_apply]
+  rw [Matrix.mul_assoc, ← mulVec_mulVec, ← mulVec_mulVec, dotProduct_mulVec u.ofLp,
+    vecMul_transpose]
 
 /-- A real matrix `A` indexed by `ι ⊕ ι` is symplectic, `Aᵀ J A = J`, if and only if its map
 `Matrix.toEuclideanLin A` preserves the standard symplectic form:
