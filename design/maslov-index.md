@@ -299,7 +299,7 @@ The third file holds derivatives of matrix-valued functions (entrywise
 derivatives, transpose, product rule), which `Crossing/Form.lean` uses and
 which changes of frame `Z * g` need later; it sits beside Tau Ceti's file of
 the same name, so that the two merge upstream.
-#58 brings `DESIGN.md` §5 in line.
+`DESIGN.md` §5 names all three, among the files outside its folders.
 
 ### `LinearAlgebra/Matrix/GeneralLinearGroup/Symplectic/Reindex.lean`
 
