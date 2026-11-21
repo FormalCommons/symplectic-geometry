@@ -153,6 +153,7 @@ variable {EB HB M : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB]
 | `Geometry/Manifold/VectorBundle/Section/Generic.lean` | sections with closed discrete zero sets over boundaryless manifolds | 14 |
 | `Geometry/Diffeomorphism/Diffeotopy/Discrete.lean` | a diffeotopy whose final map sends a compact set off a closed discrete set | 16 |
 | `Geometry/Manifold/VectorBundle/Section/Nonvanishing.lean` | smoothing nowhere-zero sections; nowhere-zero sections over surfaces with boundary | 15, 16 |
+| `Geometry/Manifold/VectorBundle/Hermitian/Frame.lean` | appending a normalized orthogonal section to a unitary frame; unitary frame trivializations over any model | 17 |
 | `Geometry/Manifold/VectorBundle/Hermitian/Surface.lean` | the third milestone | 17 |
 
 Issue 10 (parametric smoothness of the linear Moser flow) goes where part 10,
@@ -1647,6 +1648,17 @@ the plan adds to the book, and drops orientability, which the proof below
 does not use; this is a generalization, not an error, so `ERRATA.md` gets no
 entry.
 
+The frame theorem is the case `n = 0`, `r = 0` of the public
+`exists_orthonormal_contMDiffSection_of_boundary_nonempty_of_le`: `k`
+orthonormal sections of a bundle of complex rank `k + r` over a compact
+connected `M` modelled on `𝓡∂ (n + 2)`, with nonempty boundary and
+`n + 2 ≤ 2 * (r + 1)`, the analogue of Tau Ceti's theorem. Two steps that
+need no boundary are public in `Hermitian/Frame.lean`, for any model:
+`contMDiff_and_orthonormal_vecCons_of_mem_orthogonalSpanFamily` (normalize a
+nowhere-zero section of `g.orthogonalSpanFamily hI s` and put it in front of
+`s`) and `exists_unitary_trivialization_of_orthonormal` (the frame
+trivialization of `TauCeti.complexDoubledFrame s` over an open `U`).
+
 **Route.** The book cuts the surface along curves, by induction on the genus
 and the number of boundary components; that requires knowing how every
 compact bordered surface is built from pieces. Neither library has this,
@@ -1950,7 +1962,8 @@ of *Constructions* for *First Chern number*.
     `TauCeti.exists_diffeotopy_apply_one_notMem` in
     `Geometry/Diffeomorphism/Diffeotopy/Discrete.lean`. Blockers: 12, 13, 14, 15.
 17. **Unitary frames and the third milestone.** `Hermitian/Surface.lean`:
-    the frame theorem and its trivialization corollary. Blockers: 16.
+    the frame theorem and its trivialization corollary, with the two
+    general steps they use in `Hermitian/Frame.lean`. Blockers: 16.
 
 18. **Sections of the alternating bundle of a pull-back.**
     `Geometry/Manifold/VectorBundle/Pullback.lean`:

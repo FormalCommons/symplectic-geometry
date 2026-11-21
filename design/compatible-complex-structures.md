@@ -537,6 +537,11 @@ This is $\mathrm{Met}(V)$, in `SymplecticGeometry`.
 - `innerProducts.transport_eq_innerSL_iff (e : V ≃L[ℝ] E) (g)`, for `E` an
   inner product space: `transport e g = ⟨innerSL ℝ, _⟩ ↔
   ∀ u v, ⟪e u, e v⟫ = g u v`.
+- `symmetrizeBilinear_mem_innerProducts {g : V →L[ℝ] V →L[ℝ] ℝ}
+  (hg : ∀ v, v ≠ 0 → 0 < g v v) :
+  (ContinuousLinearMap.symmetrizeBilinear g).val ∈ innerProducts V`: the
+  symmetric part of a form that is positive on nonzero vectors is an inner
+  product. `PolarComplexStructure/Smooth.lean` uses it on `polarDomain`.
 - `TauCeti.SymplecticForm.Compatible.associatedBilinForm_mem_innerProducts (h :
   ω.Compatible J) : (ω.associatedBilinForm J).toContinuousBilinearMap ∈
   innerProducts V`.
@@ -558,6 +563,11 @@ This is $\Omega(V)$, in `TauCeti.SymplecticForm`.
 - `ofContinuousBilinearMap` (an alternating nondegenerate continuous form as
   a `SymplecticForm`), with `@[simp]` `ofContinuousBilinearMap_apply` and
   `toBilinForm_toContinuousBilinearMap_ofContinuousBilinearMap`.
+- `toContinuousBilinearMap_sub_flip (ω : SymplecticForm V)`: writing `B` for
+  `ω.toBilinForm.toContinuousBilinearMap`, `B - B.flip = (2 : ℝ) • B`; and
+  `inv_two_smul_toContinuousBilinearMap_sub_flip (ω : SymplecticForm V)`:
+  `(2 : ℝ)⁻¹ • (B - B.flip) = B`, so the skew part of a symplectic form is
+  the form itself. `PolarComplexStructure/Smooth.lean` uses them.
 - `continuous_transport (e : V ≃L[ℝ] W)`: `ω ↦ ω.transport e.toLinearEquiv`
   is continuous.
 
@@ -633,36 +643,59 @@ the file list of `DESIGN.md`*).
 
 ### `Analysis/InnerProductSpace/Symplectic/PolarComplexStructure/Smooth.lean`
 
-Here `W` is a finite-dimensional real inner product space, and `s♯` is Tau
-Ceti's Riesz map `continuousLinearMapOfBilin s`, as in Tau Ceti's file.
+Here `V` is a real normed space, `W` and `W'` are finite-dimensional real
+inner product spaces, and `s♯` is Tau Ceti's Riesz map
+`continuousLinearMapOfBilin s`, as in Tau Ceti's file. The skew part of `s`
+is written out as `(2 : ℝ)⁻¹ • (s - s.flip)`.
 
 The domain, the formula and their smoothness and naturality mention only
 continuous bilinear forms and Tau Ceti's operations on them
 (`metricChangeTransport`, `continuousLinearMapOfBilin`, `CFC.sqrt`,
 `Ring.inverse`), so by the namespace rule above they go in `TauCeti`, next
-to `cayleyPathFormula`. Only `mem_polarDomain`, `metricPolarFormula_eq` and
-`continuous_metricPolarComplexStructure`, which involve `innerProducts` and
-`metricPolarComplexStructure`, are in `SymplecticGeometry`.
+to `cayleyPathFormula`. The declarations that involve `innerProducts` or
+`metricPolarComplexStructure` (`mem_polarDomain`, `metricPolarFormula_eq`
+and `continuous_metricPolarComplexStructure`) are in `SymplecticGeometry`.
+The two lemmas that identify the formula with `metricPolarComplexStructure`
+at pairs of forms (`metricPolarFormula_eq_of_toContinuousBilinearMap_eq` and
+`metricPolarFormula_eq_of_mem`) depart from that rule: their conclusions
+involve `metricPolarComplexStructure`, but the merged code puts them in
+`TauCeti`. #418 moves them to `SymplecticGeometry`.
 
-- `TauCeti.polarDomain (W) : Set ((W →L[ℝ] W →L[ℝ] ℝ) ×
-  (W →L[ℝ] W →L[ℝ] ℝ))`: the pairs whose first entry is positive on nonzero
-  vectors and whose second entry has a nondegenerate skew part
-  $\tfrac12(s-s^{\mathrm{flip}})$. It comes with `isOpen_polarDomain` and
-  `mem_polarDomain_iff`.
-- `SymplecticGeometry.mem_polarDomain (g : innerProducts W)
-  (ω : SymplecticForm W) :
-  ((g : W →L[ℝ] W →L[ℝ] ℝ), ω.toBilinForm.toContinuousBilinearMap) ∈
-  polarDomain W`. Every inner product and symplectic form lie in the domain,
-  so the smoothness statement covers all of them. It is in
-  `SymplecticGeometry` because it mentions `innerProducts`.
-- `TauCeti.metricPolarFormula (g s : W →L[ℝ] W →L[ℝ] ℝ) : W →L[ℝ] W`,
-  defined as Tau Ceti's expression
-  `R * (R * s'♯ * R * Ring.inverse (CFC.sqrt (-(R * s'♯ * R * (R * s'♯ * R))))) * CFC.sqrt g'♯`,
-  with `R = g'.metricChangeTransport`, for the symmetric part
-  $g'=\tfrac12(g+g^{\mathrm{flip}})$ of `g` and the skew part
-  $s'=\tfrac12(s-s^{\mathrm{flip}})$ of `s`. No case split is needed:
-  `Ring.inverse`, `CFC.sqrt` and `metricChangeTransport` already have junk
-  values off the domain. It comes with `metricPolarFormula_def`.
+The file uses helpers stated in their own files:
+`SymplecticGeometry.symmetrizeBilinear_mem_innerProducts`
+(`Topology/Algebra/Module/InnerProducts.lean`), and
+`TauCeti.SymplecticForm.toContinuousBilinearMap_sub_flip` and
+`TauCeti.SymplecticForm.inv_two_smul_toContinuousBilinearMap_sub_flip`
+(`Topology/Algebra/Module/SymplecticForms.lean`).
+
+- `TauCeti.polarDomain (V) : Set ((V →L[ℝ] V →L[ℝ] ℝ) ×
+  (V →L[ℝ] V →L[ℝ] ℝ))`, for any real normed space `V`, since it uses no
+  inner product: `{p | (∀ v, v ≠ 0 → 0 < p.1 v v) ∧
+  (p.2 - p.2.flip).toBilinForm.Nondegenerate}`. The condition is on
+  `s - s.flip`, twice the skew part, as in the `polarFormulaDomain` of
+  `design/symplectic-vector-bundles.md`. It comes with
+  - `@[simp] mem_polarDomain_iff`, which unfolds it;
+  - `nondegenerate_toBilinForm_of_mem_polarDomain (h : (g, s) ∈ polarDomain V) :
+    ((2 : ℝ)⁻¹ • (s - s.flip)).toBilinForm.Nondegenerate`, by Tau Ceti's
+    `BilinForm.nondegenerate_smul_iff`;
+  - `isOpen_polarDomain (V) [FiniteDimensional ℝ V] : IsOpen (polarDomain V)`,
+    from Tau Ceti's `isOpen_setOf_forall_bilinear_apply_self_pos` and
+    `isOpen_setOf_nondegenerate_toBilinForm`.
+- `SymplecticGeometry.mem_polarDomain [FiniteDimensional ℝ V]
+  (g : innerProducts V) (ω : SymplecticForm V) :
+  ((g : V →L[ℝ] V →L[ℝ] ℝ), ω.toBilinForm.toContinuousBilinearMap) ∈
+  polarDomain V`. Every inner product and symplectic form lie in the domain,
+  so the smoothness statement covers all of them. Its proof uses
+  `toContinuousBilinearMap_sub_flip`. It is in `SymplecticGeometry` because
+  it mentions `innerProducts`.
+- `TauCeti.metricPolarFormula (g s : W →L[ℝ] W →L[ℝ] ℝ) : W →L[ℝ] W`. With
+  `g' := (symmetrizeBilinear g).val` (Tau Ceti's
+  `ContinuousLinearMap.symmetrizeBilinear`), `R := g'.metricChangeTransport`
+  and `A := R * ((2 : ℝ)⁻¹ • (s - s.flip))♯ * R`, it is Tau Ceti's expression
+  `R * (A * Ring.inverse (CFC.sqrt (-(A * A)))) * CFC.sqrt g'♯`. No case
+  split is needed: `Ring.inverse`, `CFC.sqrt` and `metricChangeTransport`
+  already have junk values off the domain. It comes with
+  `metricPolarFormula_def`, which states the body with the same `let`s.
 - `SymplecticGeometry.metricPolarFormula_eq (g : innerProducts W)
   (ω : SymplecticForm W) :
   metricPolarFormula g ω.toBilinForm.toContinuousBilinearMap =
@@ -672,36 +705,74 @@ to `cayleyPathFormula`. Only `mem_polarDomain`, `metricPolarFormula_eq` and
   with `V := W` and `K := g.metricChangeEquiv hg : W ≃L[ℝ] W`, where `hg`,
   positivity of `g♯`, comes from
   `InnerProductSpace.isStrictlyPositive_continuousLinearMapOfBilin_iff`. No
-  Euclidean space and no orthonormal basis is built. Tau Ceti gives
-  `K.symm = CFC.sqrt g♯` (`coe_metricChangeEquiv_symm`) and
-  `⟪√g♯ u, √g♯ v⟫ = g u v` (`inner_sqrt_apply_sqrt_apply`), which is that
-  theorem's hypothesis on `g`; its hypothesis on `s` holds for the form
-  `ω.transport K.symm.toLinearEquiv`. So the right-hand side of the theorem is
-  the polar structure of that form, conjugated by `K`. By
+  Euclidean space and no orthonormal basis is built. The hypothesis of that
+  theorem on `g` follows from Tau Ceti's `metricChangeEquiv_symm_apply` and
+  `inner_sqrt_apply_sqrt_apply`; its hypothesis on `s` holds for the form
+  `ω.transport K.toLinearEquiv.symm`. So the right-hand side of the theorem
+  is the polar structure of that form, conjugated by `K`. By
   `metricPolarComplexStructure_innerSL` and
   `metricPolarComplexStructure_transport` along `K`, which carries the ambient
-  inner product to `g`, this is $J_{g,\omega}$. The formula is not derived a
-  second time.
+  inner product to `g`, this is $J_{g,\omega}$. On the left, the symmetric
+  part of `g` is `g` (Tau Ceti's `symmetrizeBilinear_coe`) and the skew part
+  of `ω` is `ω` (`inv_two_smul_toContinuousBilinearMap_sub_flip`). The
+  formula is not derived a second time.
 - `TauCeti.contDiffOn_metricPolarFormula {n : WithTop ℕ∞} :
   ContDiffOn ℝ n (fun p ↦ metricPolarFormula p.1 p.2) (polarDomain W)`. The
   proof composes the symmetrization (a continuous linear map),
-  `contDiffOn_metricChangeTransport`, `contDiffOn_sqrt_continuousLinearMapOfBilin`,
-  `ContinuousLinearMap.contDiffOn_sqrt` and the smoothness of `Ring.inverse`
-  at units. It is the `ContDiffOn` form of the argument of Tau Ceti's private
+  `ContDiffOn.metricChangeTransport`,
+  `ContDiffOn.sqrt_continuousLinearMapOfBilin`,
+  `ContinuousLinearMap.contDiffOn_sqrt`, and `contDiffAt_ringInverse` at the
+  unit that `CFC.isUnit_sqrt_iff` gives. On the domain `g'♯` is strictly
+  positive by `symmetrizeBilinear_mem_innerProducts`, and `-A²` by Tau
+  Ceti's `isStrictlyPositive_neg_mul_self_metricChangeTransport`, applied to
+  the skew part as a symplectic form (`ofContinuousBilinearMap` with
+  `nondegenerate_toBilinForm_of_mem_polarDomain`). It is the `ContDiffOn`
+  form of the argument of Tau Ceti's private
   `contMDiffAt_metricChangeTransport_mul_mul_sqrt`
   (`Geometry/Symplectic/Manifold/AlmostComplex/Polar.lean`). That lemma is
   private and stated for families on a manifold, so it cannot be used here.
   The library states the pointwise version once, in Tau Ceti's style and
   namespace, so that it can replace the private lemma upstream.
-- `TauCeti.metricPolarFormula_conj (e : W ≃L[ℝ] W')`: on `polarDomain W`,
-  transporting both forms along `e` conjugates the formula by `e`. The proof
-  is `metricPolarFormula_eq` and `metricPolarComplexStructure_transport`, since
-  the symmetric and skew parts commute with transport. This is naturality on
-  the whole domain, and it does not depend on the inner products of `W` and
-  `W'`. Because this proof uses `SymplecticGeometry` lemmas, moving the
-  lemma to Tau Ceti would need a direct proof from the formula.
-- `SymplecticGeometry.continuous_metricPolarComplexStructure`: jointly
-  continuous on `innerProducts V × SymplecticForm V`.
+- `TauCeti.metricPolarFormula_symmetrizeBilinear_skewPart
+  (g s : W →L[ℝ] W →L[ℝ] ℝ) :
+  metricPolarFormula (symmetrizeBilinear g).val ((2 : ℝ)⁻¹ • (s - s.flip)) =
+  metricPolarFormula g s`: the formula depends only on the symmetric part of
+  `g` and the skew part of `s`.
+- `TauCeti.metricPolarFormula_eq_of_toContinuousBilinearMap_eq
+  {g s : W →L[ℝ] W →L[ℝ] ℝ} (hg : ∀ v, v ≠ 0 → 0 < g v v)
+  {ω : SymplecticForm W}
+  (hω : ω.toBilinForm.toContinuousBilinearMap = (2 : ℝ)⁻¹ • (s - s.flip)) :
+  metricPolarFormula g s = LinearMap.toContinuousLinearMap
+  (metricPolarComplexStructure ⟨_, symmetrizeBilinear_mem_innerProducts hg⟩ ω).toLinearMap`,
+  by `metricPolarFormula_eq` and the previous lemma.
+- `TauCeti.metricPolarFormula_eq_of_mem {g s : W →L[ℝ] W →L[ℝ] ℝ}
+  (h : (g, s) ∈ polarDomain W) : metricPolarFormula g s =
+  LinearMap.toContinuousLinearMap (metricPolarComplexStructure
+  ⟨_, symmetrizeBilinear_mem_innerProducts (mem_polarDomain_iff.1 h).1⟩
+  (SymplecticForm.ofContinuousBilinearMap _ _
+  (nondegenerate_toBilinForm_of_mem_polarDomain h))).toLinearMap`: on the
+  domain, the formula is $J_{g',\omega'}$, for the symmetric part `g'` of `g`
+  and the symplectic form `ω'` whose bilinear form is the skew part of `s`.
+- `TauCeti.metricPolarFormula_conj (e : W ≃L[ℝ] W') {g s : W →L[ℝ] W →L[ℝ] ℝ}
+  (h : (g, s) ∈ polarDomain W) :
+  metricPolarFormula (g.bilinearComp (e.symm : W' →L[ℝ] W) (e.symm : W' →L[ℝ] W))
+  (s.bilinearComp (e.symm : W' →L[ℝ] W) (e.symm : W' →L[ℝ] W)) =
+  e.conjContinuousAlgEquiv (metricPolarFormula g s)`: on `polarDomain W`,
+  pushing both forms forward along `e` conjugates the formula by `e`. The
+  proof is `metricPolarFormula_eq_of_mem`,
+  `metricPolarFormula_symmetrizeBilinear_skewPart` with Tau Ceti's
+  `symmetrizeBilinear_bilinearComp`, then `metricPolarFormula_eq` and
+  `metricPolarComplexStructure_transport`, since the symmetric and skew parts
+  commute with transport. This is naturality on the whole domain, and it
+  does not depend on the inner products of `W` and `W'`. Because this proof
+  uses `SymplecticGeometry` lemmas, moving the lemma to Tau Ceti would need
+  a direct proof from the formula.
+- `SymplecticGeometry.continuous_metricPolarComplexStructure
+  [FiniteDimensional ℝ V] :
+  Continuous fun p : innerProducts V × SymplecticForm V ↦
+  metricPolarComplexStructure p.1 p.2`, for a normed space `V` with no inner
+  product. It carries `V` to `EuclideanSpace ℝ (Fin (finrank ℝ V))` along
+  `ContinuousLinearEquiv.ofFinrankEq` and uses the formula there.
 
 ### `Geometry/Symplectic/Cayley/Domain.lean`
 
