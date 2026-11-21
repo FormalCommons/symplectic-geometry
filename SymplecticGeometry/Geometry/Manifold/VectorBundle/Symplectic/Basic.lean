@@ -7,10 +7,10 @@ module
 
 public import Mathlib.Geometry.Manifold.VectorBundle.ContinuousAlternatingMap
 public import Mathlib.Geometry.Manifold.VectorBundle.ContMDiffSection
-public import TauCeti.Analysis.Calculus.ContDiff.ContinuousAlternatingMap
+public import SymplecticGeometry.Geometry.Manifold.VectorBundle.ContinuousAlternatingMap
+public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Hom
 public import TauCeti.Analysis.Normed.Module.Alternating.Curry
 public import TauCeti.Geometry.Manifold.VectorBundle.ContinuousAlternatingMap
-public import TauCeti.Geometry.Manifold.VectorBundle.Hom
 public import TauCeti.Geometry.Manifold.VectorBundle.Section.Map
 public import TauCeti.Geometry.Symplectic.Manifold.TwoForm
 public import TauCeti.LinearAlgebra.BilinearMap.Multilinear
@@ -29,8 +29,8 @@ a new type, as for Tau Ceti's `TauCeti.SmoothTwoForm.IsNondegenerate` on the tan
 
 Nothing is assumed about the rank of `V` or the dimension of `M`, except where a proof needs it:
 openness of nondegeneracy needs finite rank, and transport along an isomorphism of bundles needs
-finite rank of its source, for Tau Ceti's `TauCeti.contMDiff_hom_bundle_iff`. A nondegenerate form
-forces even rank, so no hypothesis on the rank is needed, and rank zero is allowed.
+finite rank of its source, for Tau Ceti's `TauCeti.contMDiff_hom_bundle_iff`. No statement needs the
+rank to be even (for finite rank, a nondegenerate form forces it), and rank zero is allowed.
 
 ## Main definitions and results
 
@@ -45,10 +45,17 @@ forces even rank, so no hypothesis on the rank is needed, and rank zero is allow
   bundle, which is nondegenerate.
 * `ContMDiffTwoForm.pushforward`: the transport `ω ↦ ω(Φ⁻¹ ·, Φ⁻¹ ·)` along an isomorphism `Φ`
   of vector bundles, as a linear equivalence that preserves nondegeneracy. It is Tau Ceti's
-  `ContMDiffSection.mapEquiv`, using `contMDiff_compContinuousLinearMap_totalSpace`: composing
-  alternating maps with a `C^n` family of linear maps is `C^n` on total spaces.
+  `ContMDiffSection.mapEquiv`, with smoothness on total spaces from
+  `contMDiff_compContinuousLinearMap_totalSpace` and `contMDiff_hom_bundle_symm`.
 * `ContMDiffTwoForm.tangentEquiv`: on the tangent bundle, smooth two-forms are Tau Ceti's
   `TauCeti.SmoothTwoForm`, with the same nondegenerate ones.
+
+## Implementation notes
+
+This file carries Tau Ceti's two-forms on the tangent bundle over to an arbitrary vector bundle.
+The proof of `contMDiff_flat` adapts that of `TauCeti.SmoothTwoForm.contMDiffAt_sectionAlong_flatL`
+(`TauCeti/Geometry/Symplectic/Manifold/Flat.lean`), and the nondegeneracy API adapts Tau Ceti's
+for `TauCeti.SmoothTwoForm.IsNondegenerate` (`TauCeti/Geometry/Symplectic/Manifold/TwoForm.lean`).
 
 ## References
 
@@ -70,59 +77,6 @@ namespace Bundle
 variable {EB HB M : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB]
   [TopologicalSpace HB] {I : ModelWithCorners ℝ EB HB}
   [TopologicalSpace M] [ChartedSpace HB M]
-
-section CompContinuousLinearMap
-
-variable {F₁ F₂ : Type*} [NormedAddCommGroup F₁] [NormedSpace ℝ F₁]
-  [NormedAddCommGroup F₂] [NormedSpace ℝ F₂]
-  {V₁ V₂ : M → Type*} [∀ x, AddCommGroup (V₁ x)] [∀ x, Module ℝ (V₁ x)]
-  [∀ x, TopologicalSpace (V₁ x)] [∀ x, IsTopologicalAddGroup (V₁ x)]
-  [∀ x, ContinuousSMul ℝ (V₁ x)] [TopologicalSpace (TotalSpace F₁ V₁)]
-  [FiberBundle F₁ V₁] [VectorBundle ℝ F₁ V₁]
-  [∀ x, AddCommGroup (V₂ x)] [∀ x, Module ℝ (V₂ x)]
-  [∀ x, TopologicalSpace (V₂ x)] [TopologicalSpace (TotalSpace F₂ V₂)]
-  [FiberBundle F₂ V₂] [VectorBundle ℝ F₂ V₂]
-  {ι G : Type*} [Fintype ι] [NormedAddCommGroup G] [NormedSpace ℝ G]
-  {W : M → Type*} [∀ x, AddCommGroup (W x)] [∀ x, Module ℝ (W x)]
-  [∀ x, TopologicalSpace (W x)] [∀ x, IsTopologicalAddGroup (W x)]
-  [∀ x, ContinuousSMul ℝ (W x)] [TopologicalSpace (TotalSpace G W)]
-  [FiberBundle G W] [VectorBundle ℝ G W] {n : ℕ∞}
-
-/-- Composing alternating maps on the fibres of `V₁` with a `C^n` family of linear maps
-`L x : V₂ x → V₁ x` is a `C^n` map between the total spaces of the bundles of alternating maps
-on `V₁` and on `V₂`. -/
-theorem contMDiff_compContinuousLinearMap_totalSpace (L : ∀ x, V₂ x →L[ℝ] V₁ x)
-    (hL : ContMDiff I (I.prod 𝓘(ℝ, F₂ →L[ℝ] F₁)) n
-      (fun x ↦ TotalSpace.mk' (F₂ →L[ℝ] F₁) (E := fun x ↦ V₂ x →L[ℝ] V₁ x) x (L x))) :
-    ContMDiff (I.prod 𝓘(ℝ, F₁ [⋀^ι]→L[ℝ] G)) (I.prod 𝓘(ℝ, F₂ [⋀^ι]→L[ℝ] G)) n
-      (fun p : TotalSpace (F₁ [⋀^ι]→L[ℝ] G) (fun x ↦ V₁ x [⋀^ι]→L[ℝ] W x) ↦
-        TotalSpace.mk' (F₂ [⋀^ι]→L[ℝ] G) (E := fun x ↦ V₂ x [⋀^ι]→L[ℝ] W x) p.proj
-          (p.snd.compContinuousLinearMap (L p.proj))) := by
-  intro p₀
-  rw [contMDiffAt_continuousAlternatingMap_bundle]
-  refine ⟨(contMDiff_proj _).contMDiffAt, ?_⟩
-  have hp := (contMDiffAt_continuousAlternatingMap_bundle (IB := I) (ι := ι)
-    (F₁ := F₁) (F₂ := G) (E₁ := V₁) (E₂ := W) (n := n) id (x₀ := p₀)).1 contMDiffAt_id
-  have hl := ((contMDiffAt_hom_bundle _).1 (hL p₀.proj)).2.comp p₀
-    (contMDiff_proj _).contMDiffAt
-  have hc := ((ContinuousAlternatingMap.contDiff_compContinuousLinearMapCLM (𝕜 := ℝ)
-    (E := F₂) (F := F₁) (G := G) (ι := ι) n).contMDiff.contMDiffAt.comp p₀ hl).clm_apply hp.2
-  refine hc.congr_of_eventuallyEq ?_
-  have hmem : (trivializationAt F₁ V₁ p₀.proj).baseSet ∈ nhds p₀.proj :=
-    (trivializationAt F₁ V₁ p₀.proj).open_baseSet.mem_nhds
-      (FiberBundle.mem_baseSet_trivializationAt F₁ V₁ p₀.proj)
-  filter_upwards [hp.1.continuousAt.preimage_mem_nhds hmem] with p hp
-  ext v
-  simp only [ContinuousAlternatingMap.inCoordinates, ContinuousLinearMap.inCoordinates,
-    Function.comp_apply, ContinuousAlternatingMap.compContinuousLinearMapCLM_apply,
-    ContinuousLinearMap.compContinuousAlternatingMap_coe,
-    ContinuousAlternatingMap.compContinuousLinearMap_apply]
-  congr 2
-  ext i
-  simp only [Function.comp_apply, ContinuousLinearMap.coe_comp]
-  exact (Trivialization.symmL_continuousLinearMapAt _ hp _).symm
-
-end CompContinuousLinearMap
 
 variable {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F]
   {V : M → Type*} [∀ x, AddCommGroup (V x)] [∀ x, Module ℝ (V x)]
@@ -175,9 +129,22 @@ theorem bilinFormAt_smul (c : ℝ) (x : M) : (c • ω).bilinFormAt x = c • ω
   ext v w
   simp
 
+/-- The bilinear form of the zero two-form is zero. -/
+@[simp]
+theorem bilinFormAt_zero (x : M) : (0 : ContMDiffTwoForm I n F V).bilinFormAt x = 0 := by
+  ext v w
+  simp
+
 /-- The bilinear form of the negative of a two-form is the negative of its bilinear form. -/
 @[simp]
 theorem bilinFormAt_neg (x : M) : (-ω).bilinFormAt x = -ω.bilinFormAt x := by
+  ext v w
+  simp
+
+/-- The bilinear form of a difference of two-forms is the difference of their bilinear forms. -/
+@[simp]
+theorem bilinFormAt_sub (ω' : ContMDiffTwoForm I n F V) (x : M) :
+    (ω - ω').bilinFormAt x = ω.bilinFormAt x - ω'.bilinFormAt x := by
   ext v w
   simp
 
@@ -318,9 +285,9 @@ theorem isOpen_setOf_nondegenerate [FiniteDimensional ℝ F] :
         ContinuousAlternatingMap.inCoordinates, MultilinearMap.toBilinMap_apply,
         LinearMap.BilinForm.congr_apply, Trivial.fiberBundle_trivializationAt',
         Trivial.continuousLinearMapAt_trivialization,
-        ContinuousLinearMap.id_compContinuousAlternatingMap]
-      change (q.snd.compContinuousLinearMap _) ![v, w] = q.snd ![L.symm v, L.symm w]
-      rw [ContinuousAlternatingMap.compContinuousLinearMap_apply]
+        ContinuousLinearMap.id_compContinuousAlternatingMap, ContinuousMultilinearMap.coe_coe,
+        ContinuousAlternatingMap.coe_toContinuousMultilinearMap,
+        ContinuousAlternatingMap.compContinuousLinearMap_apply]
       congr 1
       ext i
       fin_cases i <;> simp [L, Trivialization.symmL_apply _ hy]
@@ -352,12 +319,17 @@ def const (σ : TauCeti.SymplecticForm W) : ContMDiffTwoForm I n W (Trivial M W)
     ext v
     simp [ContinuousAlternatingMap.inCoordinates]
 
+/-- At every point, the constant form is `σ` as a continuous alternating map. -/
+theorem const_def (σ : TauCeti.SymplecticForm W) (x : M) :
+    (const (I := I) (n := n) σ) x =
+      AlternatingMap.toContinuousAlternatingMap σ.isAlt.toAlternatingMap :=
+  (rfl)
+
 /-- The constant form takes the value `σ(v 0, v 1)` at every point. -/
 @[simp]
 theorem const_apply (σ : TauCeti.SymplecticForm W) (x : M) (v : Fin 2 → W) :
     (const (I := I) (n := n) σ) x v = σ (v 0) (v 1) := by
-  change AlternatingMap.toContinuousAlternatingMap _ v = _
-  rw [AlternatingMap.coe_toContinuousAlternatingMap]
+  rw [const_def, AlternatingMap.coe_toContinuousAlternatingMap]
   exact LinearMap.IsAlt.toAlternatingMap_apply σ.isAlt v
 
 /-- The bilinear form of the constant form at every point is `σ`. -/
@@ -399,43 +371,15 @@ variable {F₁ F₂ F₃ : Type*} [NormedAddCommGroup F₁] [NormedSpace ℝ F�
   (hΦ : ContMDiff (I.prod 𝓘(ℝ, F₁)) (I.prod 𝓘(ℝ, F₂)) n
     (fun p : TotalSpace F₁ V₁ ↦ TotalSpace.mk' F₂ p.proj (Φ p.proj p.snd)))
 
-omit [∀ x, IsTopologicalAddGroup (V₁ x)] [∀ x, ContinuousSMul ℝ (V₁ x)] in
-include hΦ in
-/-- A `C^n` fibrewise equivalence is a `C^n` section of the bundle of linear maps. -/
-private theorem contMDiff_hom_of_equiv :
-    ContMDiff I (I.prod 𝓘(ℝ, F₁ →L[ℝ] F₂)) n
-      (fun x ↦ TotalSpace.mk' (F₁ →L[ℝ] F₂) (E := fun x ↦ V₁ x →L[ℝ] V₂ x) x
-        (Φ x : V₁ x →L[ℝ] V₂ x)) :=
-  (TauCeti.contMDiff_hom_bundle_iff (fun x ↦ (Φ x : V₁ x →L[ℝ] V₂ x))).2 hΦ
-
-include hΦ in
-/-- The fibrewise inverse of a `C^n` fibrewise equivalence is a `C^n` section of the bundle of
-linear maps. -/
-private theorem contMDiff_hom_of_equiv_symm :
-    ContMDiff I (I.prod 𝓘(ℝ, F₂ →L[ℝ] F₁)) n
-      (fun x ↦ TotalSpace.mk' (F₂ →L[ℝ] F₁) (E := fun x ↦ V₂ x →L[ℝ] V₁ x) x
-        ((Φ x).symm : V₂ x →L[ℝ] V₁ x)) := by
-  have := FiniteDimensional.completeSpace ℝ F₁
-  simpa only [ContinuousLinearMap.inverse_equiv] using
-    (contMDiff_hom_of_equiv Φ hΦ).clm_bundle_inverse
-      fun _ ↦ ContinuousLinearMap.isInvertible_equiv
-
-/-- The fibrewise map `ω ↦ ω ∘ (Φ⁻¹ × Φ⁻¹)` of alternating maps, as a linear equivalence. -/
-private def pushforwardFiber (x : M) :
-    (V₁ x [⋀^Fin 2]→L[ℝ] Trivial M ℝ x) ≃ₗ[ℝ] (V₂ x [⋀^Fin 2]→L[ℝ] Trivial M ℝ x) where
-  toFun ω := ω.compContinuousLinearMap ((Φ x).symm : V₂ x →L[ℝ] V₁ x)
-  invFun ω := ω.compContinuousLinearMap (Φ x : V₁ x →L[ℝ] V₂ x)
-  map_add' _ _ := by ext; simp
-  map_smul' _ _ := by ext; simp
-  left_inv _ := by ext; simp
-  right_inv _ := by ext; simp
-
 /-- The transport `ω ↦ ω(Φ⁻¹ ·, Φ⁻¹ ·)` of two-forms along a `C^n` isomorphism of vector
 bundles `Φ`, given by fibrewise equivalences whose map of total spaces is `C^n`. -/
 def pushforward : ContMDiffTwoForm I n F₁ V₁ ≃ₗ[ℝ] ContMDiffTwoForm I n F₂ V₂ :=
-  ContMDiffSection.mapEquiv (pushforwardFiber Φ)
-    (contMDiff_compContinuousLinearMap_totalSpace _ (contMDiff_hom_of_equiv_symm Φ hΦ))
-    (contMDiff_compContinuousLinearMap_totalSpace _ (contMDiff_hom_of_equiv Φ hΦ))
+  ContMDiffSection.mapEquiv
+    (fun x ↦ { (Φ x).continuousAlternatingMapCongrLeftEquiv,
+      ContinuousAlternatingMap.compContinuousLinearMapₗ ((Φ x).symm : V₂ x →L[ℝ] V₁ x) with })
+    (contMDiff_compContinuousLinearMap_totalSpace _ (contMDiff_hom_bundle_symm Φ hΦ))
+    (contMDiff_compContinuousLinearMap_totalSpace _
+      ((TauCeti.contMDiff_hom_bundle_iff fun x ↦ (Φ x : V₁ x →L[ℝ] V₂ x)).2 hΦ))
 
 /-- The transported form at `x` is `ω_x(Φ_x⁻¹ ·, Φ_x⁻¹ ·)`. -/
 @[simp]
