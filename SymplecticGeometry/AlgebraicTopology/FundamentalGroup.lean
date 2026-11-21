@@ -70,15 +70,8 @@ theorem homotopic_iff_angleChange_map_eq {X : Type*} [TopologicalSpace X] {d : C
     rw [angleChange_trans, angleChange_symm, h, add_neg_cancel, zero_eq_mul] at h₁
     rw [Path.map_trans, ← Path.map_symm, Path.map_refl, degree_refl]
     exact_mod_cast h₁.resolve_right (by positivity)
-  have hloop := homotopic_trans_of_degree_map_eq hd hdeg (Path.refl x)
-  rw [← Path.Homotopic.Quotient.eq] at hloop ⊢
-  simp only [Path.Homotopic.Quotient.mk_trans, Path.Homotopic.Quotient.mk_symm,
-    Path.Homotopic.Quotient.mk_refl, Path.Homotopic.Quotient.trans_symm,
-    Path.Homotopic.Quotient.refl_trans] at hloop
-  calc Path.Homotopic.Quotient.mk δ
-      = ((Path.Homotopic.Quotient.mk δ).trans (Path.Homotopic.Quotient.mk δ').symm).trans
-          (Path.Homotopic.Quotient.mk δ') := by simp
-    _ = Path.Homotopic.Quotient.mk δ' := by rw [hloop, Path.Homotopic.Quotient.refl_trans]
+  refine .of_trans_symm ((homotopic_trans_of_degree_map_eq hd hdeg (.refl x)).trans ?_)
+  exact (Path.Homotopic.refl_trans _).trans (Path.Homotopic.trans_symm _)
 
 end Circle
 
