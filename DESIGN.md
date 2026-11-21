@@ -159,7 +159,10 @@ objects as they are.
     a family of embeddings is Tau Ceti's `TauCeti.SmoothIsotopy`
     (`Geometry/Manifold/SmoothIsotopy/Basic.lean`). Symplectic and
     Hamiltonian isotopies, isotopy extension, and every milestone about a
-    family are stated in this model. A milestone about isotopies also
+    family are stated in this model, except the rescaling formula for the
+    flow of a time-dependent contact Hamiltonian (*Contact geometry*),
+    which is about the maximal flow wherever it is defined and is stated
+    over `ℝ`, on Tau Ceti's `TauCeti.timeDependentFlowDomain`. A milestone about isotopies also
     applies to a jointly smooth map on `unitInterval × M` that is the
     identity at time $0$ and whose slices are diffeomorphisms, through the
     constructor of `Diffeotopy/OfContMDiff.lean` that makes it a `Diffeotopy`.
@@ -476,8 +479,11 @@ further when they grow, following `AGENTS.md`.
   does not reach $-1$. It is the analogue of
   `TauCeti.Matrix.SpecialOrthogonalGroup.isNConnected_fromBlocksOne` and is
   proved in the same way. Then
-  `Analysis/Matrix/UnitaryGroup/FundamentalGroup.lean`, which holds only the
-  milestone: $\det:\mathrm{U}(n)\to S^1$, Tau Ceti's
+  `Analysis/Matrix/UnitaryGroup/FundamentalGroup.lean`, which holds the
+  milestone and `Matrix.UnitaryGroup.homotopic_iff_angleChange_eq` (paths in
+  $\mathrm{U}(n)$ with the same ends are homotopic iff $\det$ has the same
+  `Circle.angleChange` along them, for every $n$): $\det:\mathrm{U}(n)\to S^1$,
+  Tau Ceti's
   `Matrix.UnitaryGroup.detCircle`, induces an isomorphism of fundamental
   groups for $n\ge1$, by induction from $\mathrm{U}(1)\cong S^1$, which is
   Tau Ceti's `Matrix.UnitaryGroup.detCircleEquivOfUnique`
@@ -495,7 +501,10 @@ further when they grow, following `AGENTS.md`.
   For $n=0$ the group is a point. The two counterexamples for $n=0$, for
   $\mathrm{U}(0)$ and $\mathrm{Sp}(0)$, both apply the general
   `FundamentalGroup.not_surjective_map_circle_of_subsingleton`
-  (`AlgebraicTopology/FundamentalGroup.lean`). The retraction and the facts about `detCircle`
+  (`AlgebraicTopology/FundamentalGroup.lean`), which also holds
+  `Circle.homotopic_iff_angleChange_map_eq`: for `d : X → S¹` injective on
+  $\pi_1$, two paths with the same ends are homotopic iff their images have
+  the same angle change. The retraction and the facts about `detCircle`
   it uses are in `Analysis/Matrix/UnitaryGroup/Basic.lean`.
   Tau Ceti's `Matrix.instSimplyConnectedSpaceSpecialUnitaryGroupFinTwoComplex`
   is the case $n=2$. Last, `Analysis/Matrix/SymplecticGroup/FundamentalGroup.lean`
@@ -1121,7 +1130,9 @@ it into issues; the overview fixes its folders and its dependencies.
   corollaries, in the root namespace `Bundle.Prod`; the file has the path of the
   Tau Ceti file with the product criterion, so that the two merge upstream),
   `Topology/VectorBundle/Pullback.lean` (the coordinates of alternating maps
-  on a pull-back bundle, a step that uses no charts; the file has the path
+  on a pull-back bundle, a step that uses no charts, and
+  `Bundle.Pullback.neg_fiber`, a negative in a fibre of a pull-back bundle
+  for Tau Ceti's group structure on it; the file has the path
   of the Tau Ceti file with `ContinuousLinearMap.inCoordinates_pullback_of_mem`,
   so that the two merge upstream),
   `Data/Bundle.lean` (`Bundle.Pullback.eq_iff`, an equation in a fibre of a
@@ -1408,7 +1419,8 @@ it into issues; the overview fixes its folders and its dependencies.
     `J.pullback f`, in the same order) is
     `ContMDiffSection.pullback` of the endomorphism section, smooth by
     `Bundle.Pullback.contMDiff_hom_section_iff` itself, which `simp`
-    evaluates through `@[simp] coe_pullback`; `Pullback.lean` adds that
+    evaluates through `@[simp] pullback_apply` and
+    `@[simp] apply_eq_pullback_apply`; `Pullback.lean` adds that
     tame and compatible pairs pull back to tame and compatible pairs. Isomorphisms: a
     symplectic isomorphism of bundles pulls back to one (Tau Ceti's
     `Bundle.Pullback.contMDiff_fiberwise`), a symplectic frame over `U`
@@ -1766,23 +1778,29 @@ has either; Tau Ceti's extension across a boundary,
   `TauCeti.SmoothTwoForm.exists_isotopy_mpullback_eq` applies, and
   `Diffeotopy/Real.lean` restricts its isotopy to a `Diffeotopy`),
   `Geometry/Symplectic/Moser/Relative.lean` (the relative theorem with
-  prescribed first derivative along a properly embedded, not necessarily
-  compact, submanifold: Tau Ceti's
+  prescribed first derivative along an embedded, not necessarily compact
+  or properly embedded, submanifold: Tau Ceti's
   `TauCeti.SmoothTwoForm.exists_diffeomorph_opens_of_eq_along` is the compact
   case; the non-compact case uses Tau Ceti's tubular neighbourhoods of
   variable radius, `Geometry/Manifold/TubularNeighborhood/`, the relative
   Poincaré primitive with zero first jet of
   `Geometry/Manifold/DifferentialForm/Relative/FirstJet.lean`, and the domain
-  of the Moser flow up to time one), `Geometry/Symplectic/Moser/Isotopy.lean`
-  (the isotopy of embeddings fixing a compact submanifold, from a primitive
-  that vanishes on its tangent vectors, after the correction by $dF$ that
-  makes it vanish as a full covector; from Tau Ceti's
+  of the Moser flow up to time one), `Geometry/Symplectic/Moser/Field.lean`
+  (the Moser field of the segment $\omega_0+t(\omega_1-\omega_0)$, cut off
+  on `ℝ × M`), `Geometry/Symplectic/Moser/Isotopy.lean`
+  (the isotopy of embeddings fixing a compact submanifold, with Tau Ceti's
+  relative Poincaré primitive, which vanishes as a full covector, in place
+  of the correction by $dF$; the trajectory argument of Tau Ceti's
   `TauCeti.SmoothTwoForm.exists_diffeomorph_fix_eventually_mpullback_eq_of_mextDeriv_eq_sub`
-  and its Moser flow), and `Geometry/Symplectic/Manifold/Darboux.lean` (named
+  at every time, with the field of `Field.lean`), and
+  `Geometry/Symplectic/Manifold/Darboux.lean` (named
   like Tau Ceti's file: Darboux charts with a prescribed derivative at the
-  centre, for any linear symplectic form on the model space, from the
-  relative theorem for a point; and that transition maps of such charts have
-  symplectic derivatives). The folder is `Geometry/Symplectic/Moser/`, because
+  centre, for any linear symplectic form on the target, from Tau Ceti's
+  Darboux charts followed by a linear symplectomorphism; and that transition
+  maps of such charts have symplectic derivatives), with lemmas on
+  nondegenerate two-forms in
+  `Geometry/Symplectic/Manifold/Family.lean` and `Flat.lean`, named like
+  Tau Ceti's files. The folder is `Geometry/Symplectic/Moser/`, because
   Tau Ceti has the files `Geometry/Symplectic/Manifold/Moser.lean` and
   `RelativeMoser.lean`, beside which this library may not have folders of
   those names.
@@ -1818,7 +1836,7 @@ has either; Tau Ceti's extension across a boundary,
 - **Builds on:** *Hamiltonian flows* (`Flux/Hamiltonian.lean`, to get a
   `TauCeti.Diffeotopy.IsHamiltonian` from exactness), *Moser isotopy*
   (`Relative.lean`, `Isotopy.lean`), *Smooth families* (smooth primitives,
-  smooth cohomology coordinates, and `TimeExtension.lean` with
+  smooth cohomology coordinates, and `DifferentialForm/TimeExtension.lean` with
   `Diffeotopy/Real.lean` and `Diffeotopy/OfContMDiff.lean`, since the families are over $[0,1]$ and the isotopies
   `TauCeti.Diffeotopy` and `TauCeti.SmoothIsotopy`); Tau Ceti's smooth
   isotopy extension `TauCeti.SmoothIsotopy.exists_diffeotopy_apply_eq` and
@@ -1892,7 +1910,7 @@ has either; Tau Ceti's extension across a boundary,
   `Hamiltonian.lean` (named like Tau Ceti's file: the bijection between
   contact vector fields and functions as one equivalence; the rescaling
   formula $\phi_t^*\alpha=\exp(\int_0^tR(H_s)\circ\phi_s\,ds)\,\alpha$ of the
-  flow, from Tau Ceti's
+  flow, over `ℝ` on the flow's domain, from Tau Ceti's
   `TauCeti.mpullback_timeDependentFlowOf_mpullback_prodMk_apply_eq_exp_integral_smul_of_mem`;
   contact fields as the fields whose local flows preserve $\xi$; $X_H$ is
   transverse to $\xi$ exactly where $H\neq0$, and then the Reeb field of
@@ -1901,24 +1919,30 @@ has either; Tau Ceti's extension across a boundary,
   $\sum_ip_i\,dq_i-dz$ at a point, with Reeb field $-\partial_z$, from Tau
   Ceti's `TauCeti.SmoothForm.IsContactForm.exists_strictDarbouxChart_of_finrank_eq`
   by the change of coordinates of *Manifolds, families and signs*),
-  `Gray.lean` (named like Tau Ceti's file: Gray stability for a family over
+  `Family.lean` (named like Tau Ceti's file: `IsContactFamily`, smooth
+  families over $[0,1]$ of contact structures that need not be
+  coorientable, and their local defining forms over `ℝ`, through the time
+  extension), `Gray.lean` (named like Tau Ceti's file: Gray stability for a family over
   $[0,1]$, with the normalization $X_t\in\xi_t$ and its uniqueness, for
   families of contact structures that need not be coorientable, and the
   rescaling for global forms; from Tau Ceti's `TauCeti.SmoothForm.grayDiffeomorph`
   and `TauCeti.SmoothForm.eq_grayVectorField_iff`, whose families are over
   `ℝ`, through the time extension, the reparametrization that is the
   identity on $[0,1]$, and `Diffeotopy/Real.lean` of *Smooth families*), and `LegendrianNeighborhood.lean` (the Legendrian neighbourhood
-  theorem for a properly embedded Legendrian $L$, with model the form
+  theorem for an embedded Legendrian $L$, properness not being needed, with model the form
   $\lambda_{\mathrm{can}}-dz$ near $L\times\{0\}$ in $T^*L\times\mathbb{R}$:
   a hypersurface through $L$ transverse to the Reeb field, the Lagrangian
   neighbourhood theorem there, a relative primitive from Tau Ceti's
   `TauCeti.SmoothEmbedding.exists_isSmoothForm_relative_primitive`, and the
-  Reeb flow).
+  Reeb flow); and `Geometry/Manifold/DifferentialForm/Flow/Family.lean`
+  (named like Tau Ceti's file: Moser's principle along one trajectory, in
+  the rescaling case, which `Gray.lean` uses).
 - **Builds on:** Tau Ceti (contact forms, Reeb fields, contact Hamiltonians,
   strict and distribution Darboux charts, Gray's theorem for families over
-  `ℝ`); `Gray.lean` also on *Smooth families* (`TimeExtension.lean`,
+  `ℝ`); `Family.lean` and `Gray.lean` also on *Smooth families*
+  (`ContMDiff/TimeExtension.lean`, `DifferentialForm/TimeExtension.lean`,
   `Diffeotopy/Real.lean`); `LegendrianNeighborhood.lean` also on *Symplectic
-  neighbourhoods* (`Lagrangian.lean`). The other two files can start at
+  neighbourhoods* (`Lagrangian.lean`). The other files can start at
   once.
 - **Milestones:** *Contact vector fields and contact Hamiltonians*, *Contact
   Darboux theorem*, *Gray stability*, *Legendrian neighbourhood theorem*.
@@ -2004,7 +2028,7 @@ so two parts can each use merged files of the other without either waiting.
 | 2 | *Isotopy extension* | *Hamiltonian flows*, *Moser isotopy*, *Smooth families* |
 | 2 | *Symplectic neighbourhoods* | *Moser isotopy* (only `Relative.lean`), *Cotangent bundles*; *Symplectic vector spaces* and *Symplectic vector bundles* (only `LinearAlgebra/Symplectic/Reduction.lean` and `Geometry/Manifold/VectorBundle/Symplectic/Basic.lean`, which are merged, unless its design file also takes the open issues #254, #266 or #269 of *Symplectic vector bundles*, which are at level 1); `CharacteristicFoliation.lean` can start at once |
 | 3 | *First Chern number* | *Symplectic vector bundles*, the symplectic-loop issues of *Maslov index* |
-| 3 | *Contact geometry* | *Smooth families* (only `Gray.lean`, through `TimeExtension.lean` and `Diffeotopy/Real.lean`); *Symplectic neighbourhoods* (only `LegendrianNeighborhood.lean`, through `Lagrangian.lean`); the other files of the part can start at once |
+| 3 | *Contact geometry* | *Smooth families* (only `Family.lean` and `Gray.lean`, through `ContMDiff/TimeExtension.lean`, `DifferentialForm/TimeExtension.lean` and `Diffeotopy/Real.lean`); *Symplectic neighbourhoods* (only `LegendrianNeighborhood.lean`, through `Lagrangian.lean`); the other files of the part can start at once |
 
 The design issues of the parts marked as needing one can start at once, in
 parallel with the level-0 parts.

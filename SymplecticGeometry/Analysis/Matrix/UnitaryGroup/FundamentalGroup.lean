@@ -47,6 +47,10 @@ the determinant is not surjective on `π₁`: the hypothesis `Nonempty ι` canno
   the resulting isomorphisms `π₁(U(ι), U) ≃* π₁(S¹, det U)` and `π₁(U(ι), U) ≃* ℤ`.
 * `Matrix.UnitaryGroup.not_bijective_fundamentalGroupMap_detCircle_of_isEmpty`: the statement fails
   for empty `ι`.
+* `Matrix.UnitaryGroup.homotopic_iff_angleChange_eq`: for every finite `ι`, two paths in `U(ι)`
+  with the same ends are homotopic iff the determinant has the same angle change
+  (`Circle.angleChange`) along them, from injectivity on `π₁` and
+  `Circle.homotopic_iff_angleChange_map_eq`.
 * `Matrix.instSimplyConnectedSpaceSpecialUnitaryGroup`: `SU(ι)` is simply connected.
 * `Matrix.UnitaryGroup.bijective_fundamentalGroupMap_detCircle_and_simplyConnectedSpace`: for
   nonempty `ι`, three statements together: the determinant is bijective on `π₁` at every base
@@ -178,6 +182,18 @@ theorem not_bijective_fundamentalGroupMap_detCircle_of_isEmpty (U : unitaryGroup
   fun h ↦ FundamentalGroup.not_surjective_map_circle_of_subsingleton U _ h.2
 
 end IsEmpty
+
+/-- **Paths in the unitary group are classified by the angle of the determinant.** Two paths
+with the same ends in `U(ι)` are homotopic relative to their ends exactly when the determinant
+turns through the same angle along them. This holds for every finite `ι`: for empty `ι` the group
+is a point. -/
+theorem homotopic_iff_angleChange_eq {U V : unitaryGroup ι ℂ} {δ δ' : Path U V} :
+    δ.Homotopic δ' ↔ Circle.angleChange (δ.map continuous_detCircle) =
+      Circle.angleChange (δ'.map continuous_detCircle) := by
+  refine Circle.homotopic_iff_angleChange_map_eq (d := ⟨detCircle, continuous_detCircle⟩) ?_
+  cases isEmpty_or_nonempty ι
+  · exact Function.injective_of_subsingleton _
+  · exact (bijective_fundamentalGroupMap_detCircle U).injective
 
 end Matrix.UnitaryGroup
 

@@ -267,7 +267,7 @@ theorem pathMaslovIndex_eq_maslovIndex {Λ : ℒ ι} (γ : Path Λ Λ) (V : ℒ 
     Circle.degree_congr _ ((Path.refl (UnitaryGroup.detCircle W⁻¹ ^ 2)).mul
       (γ.map continuous_maslovPhase)) fun t ↦ by
       rw [Path.map_coe, Function.comp_apply, Path.map_coe, Function.comp_apply,
-        unitary_smul_def, maslovPhase_ofUnitary_smul, Path.mul_apply, Path.refl_apply,
+        maslovPhase_unitary_smul, Path.mul_apply, Path.refl_apply,
         Path.map_coe, Function.comp_apply],
     Circle.degree_mul, Circle.degree_refl, zero_add]
   field_simp
