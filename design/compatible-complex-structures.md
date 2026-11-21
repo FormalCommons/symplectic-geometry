@@ -682,7 +682,10 @@ to `cayleyPathFormula`. Only `mem_polarDomain`, `metricPolarFormula_eq` and
   `W'`. Because this proof uses `SymplecticGeometry` lemmas, moving the
   lemma to Tau Ceti would need a direct proof from the formula.
 - `SymplecticGeometry.continuous_metricPolarComplexStructure`: jointly
-  continuous on `innerProducts V × SymplecticForm V`.
+  continuous on `innerProducts V × SymplecticForm V`, with the composition form
+  `Continuous.metricPolarComplexStructure` (continuous families `g x`, `ω x`
+  give a continuous `J_{g x, ω x}`), which gives continuity in `ω` for fixed
+  `g`.
 
 ### `Geometry/Symplectic/Cayley/Domain.lean`
 
@@ -809,7 +812,9 @@ This is Proposition 2.5.6, for a fixed `g : innerProducts V`, in
   each runs from the composite at time $0$ to the identity at time $1$, the
   direction of `left_inv` and `right_inv`. The composites are written as
   `ContinuousMap`s, continuous by `continuous_metricSymplecticForm` and
-  `continuous_metricPolarComplexStructure`.
+  `Continuous.metricPolarComplexStructure`. Each homotopy is from the
+  `ContinuousMap.comp` of the two maps of `polarHomotopyEquiv g`, so `left_inv`
+  and `right_inv` take the homotopies as they are, with no cast.
   - `polarStraightHomotopy g`, a `ContinuousMap.Homotopy` from
     $\omega\mapsto\omega_{g,J_{g,\omega}}$ to `ContinuousMap.id
     (SymplecticForm V)`: the straight line

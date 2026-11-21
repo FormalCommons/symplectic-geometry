@@ -45,7 +45,8 @@ products and symplectic forms the formula is `J_{g,ω}`, which does not depend o
   domain.
 * `SymplecticGeometry.metricPolarFormula_eq`: on them, the formula is `J_{g,ω}`.
 * `SymplecticGeometry.continuous_metricPolarComplexStructure`: `J_{g,ω}` depends continuously
-  on `(g, ω)`.
+  on `(g, ω)`, and `Continuous.metricPolarComplexStructure` is its form for continuous
+  families.
 
 ## References
 
@@ -325,5 +326,12 @@ theorem continuous_metricPolarComplexStructure :
   rw [metricPolarFormula_eq, hJ p]
   ext v
   simp
+
+
+/-- `J_{g,ω}` is continuous along continuous families of inner products and symplectic forms. -/
+theorem _root_.Continuous.metricPolarComplexStructure {X : Type*} [TopologicalSpace X]
+    {g : X → innerProducts V} {ω : X → SymplecticForm V} (hg : Continuous g)
+    (hω : Continuous ω) : Continuous fun x ↦ metricPolarComplexStructure (g x) (ω x) :=
+  continuous_metricPolarComplexStructure.comp (hg.prodMk hω)
 
 end SymplecticGeometry
