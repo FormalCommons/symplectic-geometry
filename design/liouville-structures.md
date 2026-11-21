@@ -324,7 +324,7 @@ Issue 4, in `TauCeti.SmoothForm`:
   $\Omega-r\,d\lambda$), `isClosed_stableHamiltonianModel` (for closed `σ`),
   and `SymplecticGeometry.symmStrip M ε : Opens (ℝ × M)` with
   `SymplecticGeometry.mem_symmStrip_iff`.
-- `IsStableHamiltonian.isNondegenerate_stableHamiltonianModel_zero`: at
+- `IsStableHamiltonian.nondegenerate_bilinFormAt_stableHamiltonianModel_zero`: at
   `(0, x)` the model is nondegenerate, by the pointwise contact condition
   (`Module.Dual.isContact_iff_nondegenerate_symplectizationForm`, or the
   splitting `isCompl_kerDistribution_span_characteristicVectorField`).
@@ -580,7 +580,10 @@ Expected size: 300 lines.
 
 - *Smooth families*: Seeley's extension in the time variable,
   `Geometry/Manifold/ContMDiff/TimeExtension.lean`, only in
-  `Collar/Flow/Local.lean`.
+  `Collar/Flow/Local.lean`; and
+  `Geometry/Manifold/DifferentialForm/SmoothFamily/Basic.lean`
+  (`TauCeti.SmoothForm.mpullback_prodMk_mpullback_snd`), merged, in
+  `StableHamiltonian.lean`.
 - *Moser isotopy*: `Geometry/Symplectic/Manifold/Family.lean`
   (`SmoothTwoForm.isOpen_setOf_nondegenerate_bilinFormAt`), merged, in
   `StableHamiltonian.lean`.

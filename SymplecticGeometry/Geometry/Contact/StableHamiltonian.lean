@@ -17,6 +17,7 @@ import TauCeti.Geometry.Manifold.VectorBundle.Hom
 import TauCeti.Geometry.Manifold.VectorBundle.Translate
 import TauCeti.Geometry.Symplectic.Manifold.Opens
 import TauCeti.Topology.Algebra.Module.BilinearForm
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Basic
 import SymplecticGeometry.Geometry.Symplectic.Manifold.Family
 
 /-!
@@ -75,7 +76,7 @@ of `eᵗ`.
 * `TauCeti.SmoothForm.stableHamiltonianModel_apply`,
   `TauCeti.SmoothForm.mpullback_prodMk_stableHamiltonianModel`,
   `TauCeti.SmoothForm.nondegenerate_bilinFormAt_stableHamiltonianModel_iff`
-* `TauCeti.SmoothForm.IsStableHamiltonian.isNondegenerate_stableHamiltonianModel_zero`,
+* `TauCeti.SmoothForm.IsStableHamiltonian.nondegenerate_bilinFormAt_stableHamiltonianModel_zero`,
   `TauCeti.SmoothForm.IsStableHamiltonian.exists_isSymplectic_stableHamiltonianModel`,
   `TauCeti.SmoothForm.IsStableHamiltonian.ker_mpullback_prodMk_stableHamiltonianModel`
 
@@ -367,24 +368,21 @@ theorem stableHamiltonianModel_apply (α : SmoothForm I M ℝ 1) (σ : SmoothFor
 
 /-- **The slices of the stable Hamiltonian model.** The pullback of the model along
 `x ↦ (r, x)` is `σ - r dα`. -/
+@[simp]
 theorem mpullback_prodMk_stableHamiltonianModel (α : SmoothForm I M ℝ 1)
     (σ : SmoothForm I M ℝ 2) (r : ℝ) :
     mpullback (Prod.mk r) (contMDiff_const.prodMk contMDiff_id) (stableHamiltonianModel α σ) =
       σ - r • mextDerivₗ I 1 α := by
-  have hsnd {k : ℕ} (φ : SmoothForm I M ℝ k) :
-      mpullback (Prod.mk r) (contMDiff_const.prodMk contMDiff_id)
-        (mpullback (Prod.snd : ℝ × M → M) (contMDiff_snd (I := 𝓘(ℝ))) φ) = φ := by
-    rw [mpullback_mpullback]
-    -- `Prod.snd ∘ Prod.mk r` is the identity of `M` by definition.
-    exact LinearMap.congr_fun mpullback_id φ
   set g : C^∞⟮𝓘(ℝ).prod I, ℝ × M; ℝ⟯ := ⟨Prod.fst, contMDiff_fst⟩
   have hsmul : mpullback (Prod.mk r) (contMDiff_const.prodMk contMDiff_id)
       (funSMulₗ g (mpullback Prod.snd contMDiff_snd α)) = r • α := by
     apply Subtype.ext
     rw [coe_mpullback, coe_funSMulₗ g, TauCeti.mpullback_fun_smul,
-      ← coe_mpullback (Prod.mk r) (contMDiff_const.prodMk contMDiff_id), hsnd, smul_toRoughForm]
+      ← coe_mpullback (Prod.mk r) (contMDiff_const.prodMk contMDiff_id),
+      mpullback_prodMk_mpullback_snd, smul_toRoughForm]
     simp only [g, ContMDiffMap.coeFn_mk, Pi.smul_def]
-  rw [stableHamiltonianModel_def, map_sub, hsnd, ← mextDerivₗ_mpullback, hsmul, map_smul]
+  rw [stableHamiltonianModel_def, map_sub, mpullback_prodMk_mpullback_snd, ← mextDerivₗ_mpullback,
+    hsmul, map_smul]
 
 /-- The stable Hamiltonian model of a closed two-form is closed. -/
 theorem isClosed_stableHamiltonianModel {α : SmoothForm I M ℝ 1} {σ : SmoothForm I M ℝ 2}
@@ -435,7 +433,7 @@ include h
 
 /-- The stable Hamiltonian model of a stable Hamiltonian structure is nondegenerate at every
 point `(0, x)` of the zero slice. -/
-theorem isNondegenerate_stableHamiltonianModel_zero (x : M) :
+theorem nondegenerate_bilinFormAt_stableHamiltonianModel_zero (x : M) :
     ((stableHamiltonianModel α σ).bilinFormAt ((0 : ℝ), x)).Nondegenerate := by
   rw [nondegenerate_bilinFormAt_stableHamiltonianModel_iff, zero_smul, sub_zero]
   exact h.isContact x
@@ -449,7 +447,7 @@ theorem exists_isSymplectic_stableHamiltonianModel [FiniteDimensional ℝ E] [Co
         (stableHamiltonianModel α σ)) := by
   obtain ⟨ε, hε, hle⟩ := SymplecticGeometry.exists_symmStrip_le
     (U := ⟨_, SmoothTwoForm.isOpen_setOf_nondegenerate_bilinFormAt (stableHamiltonianModel α σ)⟩)
-    h.isNondegenerate_stableHamiltonianModel_zero
+    h.nondegenerate_bilinFormAt_stableHamiltonianModel_zero
   refine ⟨ε, hε, (isClosed_stableHamiltonianModel h.isClosed).mpullback _ _,
     SmoothTwoForm.isNondegenerate_iff_forall_ker_bilinFormAt_eq_bot.2 fun p ↦ ?_⟩
   exact ((SmoothTwoForm.nondegenerate_bilinFormAt_mpullback_subtype_val_iff p).2
