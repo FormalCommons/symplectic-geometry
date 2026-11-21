@@ -263,8 +263,9 @@ API, in the order the proofs need it. `hinv` stands for
   `ContMDiffAt.clm_bundle_inverse` on the flat maps of
   `SmoothForm.lineMapFamily σ₀ σ₁ contDiff_id`. Away from it, the field is
   the zero section.
-- `mpullback_prodMk_mlieDerivForm_lineMapFamily_add_mlieDerivForm_moserField_apply_eq_zero`:
-  Moser's equation at `(t, y)`. Assume `σ₀` is closed, `ρ = 1` on a
+- `moserField_rate_eq_zero`:
+  Moser's equation at `(t, y)`. Assume `σ₀` is closed, `ρ` and `hinv` are as in
+  `contMDiff_moserField`, `ρ = 1` on a
   neighbourhood of `(t, y)`, and `mextDeriv β.val = (σ₁ - σ₀).val` on a
   neighbourhood of `y`. Then the rate of `SmoothForm.lineMapFamily σ₀ σ₁
   contDiff_id` along `moserField σ₀ σ₁ β ρ` vanishes at `(t, y)`. This is
@@ -272,10 +273,10 @@ API, in the order the proofs need it. `hinv` stands for
   `mpullback_timeDependentFlowOf_mpullback_prodMk_apply_eq_of_forall_mem_uIcc`.
   The primitive is asked to be one only near `y`, because `Isotopy.lean`
   extends a primitive defined on a tube by zero.
-- `isCompleteVectorField_timeDependentSuspensionField_moserField`: if
-  `tsupport ρ` is compact and `hinv` holds, the suspension is complete,
-  from Tau Ceti's `isCompleteVectorField_timeDependentSuspensionField`
-  applied to the compact projection of `tsupport ρ` to `M`.
+- No completeness lemma: when `tsupport ρ` is compact, `Isotopy.lean`
+  applies Tau Ceti's `isCompleteVectorField_timeDependentSuspensionField`
+  directly, to the compact projection of `tsupport ρ` to `M` and
+  `moserField_eq_zero_of_notMem_tsupport`.
 
 The module docstring credits Tau Ceti's private `moserField`,
 `contMDiff_moserField` and `moserRate_eq_zero` (`RelativeMoser.lean`). This
@@ -476,10 +477,9 @@ and pullbacks commute with `d`. That theorem gives
   `RoughForm.extendByZero` with `IsSmoothForm.extendByZero`,
   `IsCompact.exists_contMDiff_one_nhds_tsupport_subset`,
   `Continuous.isOpen_setOf_clm_bundle_isInvertible`, `exactForms`,
-  `Manifold.tangentSpaceOpenEquiv_mfderiv_apply`.
+  `Manifold.tangentSpaceOpenEquiv_mfderiv_apply`, `ContMDiffAt.clm_bundle_inverse`.
 - Mathlib: `generalized_tube_lemma`, `Real.smoothTransition`,
-  `Manifold.IsSmoothEmbedding.of_opens`, `ContMDiffAt.clm_bundle_inverse`,
-  `PartialDiffeomorph`, `Diffeomorph`.
+  `Manifold.IsSmoothEmbedding.of_opens`, `PartialDiffeomorph`, `Diffeomorph`.
 - *Smooth families* (#466, #467), for `Stability.lean` only: (★), the time
   extension, the reparametrization, and the restriction to a `Diffeotopy`.
 - *Standard model*, merged, only for the plan's case `F = StdSpace (Fin n)`
