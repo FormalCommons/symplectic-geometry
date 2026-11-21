@@ -311,7 +311,9 @@ request updates it to the files below. Each change, with its reason:
 - **New `Topology/Algebra/Module/SymplecticForms.lean`.** The homotopy
   equivalence between forms and complex structures needs a topology on
   `SymplecticForm V`. Neither Tau Ceti nor the overview gives one. It is a
-  topic parallel to `InnerProducts.lean`.
+  topic parallel to `InnerProducts.lean`. The file also holds
+  `Tames.lineMap`, the straight line between two forms that tame one
+  complex structure, which this part and *Symplectic vector bundles* share.
 - **New `Geometry/Symplectic/Cayley/Domain.lean`.** The open set where the
   Cayley path is smooth is used by two files of this part. *Symplectic
   vector bundles* uses this file, for `TauCeti.cayleyDomain`, the openness
@@ -450,6 +452,39 @@ This is $\Omega(V)$, in `TauCeti.SymplecticForm`.
   `toBilinForm_toContinuousBilinearMap_ofContinuousBilinearMap`.
 - `continuous_transport (e : V ≃L[ℝ] W)`: `ω ↦ ω.transport e.toLinearEquiv`
   is continuous.
+- `TauCeti.SymplecticForm.Tames.lineMap (h₀ : ω₀.Tames J) (h₁ : ω₁.Tames J)
+  (ht : t ∈ Set.Icc (0 : ℝ) 1) : SymplecticForm V`, in a section with only
+  `[AddCommGroup V] [Module ℝ V]` and with `t` implicit: the form
+  $(1-t)\,\omega_0+t\,\omega_1$. A combination of alternating forms is
+  alternating, and $J$ tames it, since
+  $(1-t)\,\omega_0(v,Jv)+t\,\omega_1(v,Jv)>0$ for $v\ne0$ when the two weights
+  are nonnegative and add up to one; so it is built with Tau Ceti's
+  `SymplecticForm.ofTames`. The name follows Mathlib's `AffineMap.lineMap`,
+  whose value at `t` is the same combination. Its API:
+  - `@[simp] Tames.toBilinForm_lineMap : (h₀.lineMap h₁ ht).toBilinForm =
+    (1 - t) • ω₀.toBilinForm + t • ω₁.toBilinForm`. As for `ofTames`, the
+    `toBilinForm` equation is the simp lemma; a pointwise
+    `Tames.lineMap_apply` (the value at `v w`), if added, is not, since the
+    coercion of a form to a function unfolds to `toBilinForm`.
+  - `Tames.tames_lineMap : (h₀.lineMap h₁ ht).Tames J`, from Tau Ceti's
+    `tames_ofTames`.
+  - `@[simp] Tames.lineMap_zero : h₀.lineMap h₁ ht = ω₀` for
+    `ht : (0 : ℝ) ∈ Set.Icc 0 1`, and `@[simp] Tames.lineMap_one`, whose
+    value is `ω₁`, both by `toBilinForm_injective`. They give the endpoints
+    of a homotopy built from the line.
+
+  The statement mentions only Tau Ceti's types and uses neither a metric nor
+  a topology. Tau Ceti has neither this definition nor a convexity lemma for
+  the forms that tame one structure; its convexity results are about the
+  Cayley ball (`Geometry/Symplectic/Cayley/`). It is the library's only
+  straight line between symplectic forms: the homotopy on forms of
+  `Topology/ComplexStructure/Compatible/SymplecticForms.lean` and the
+  fibrewise line of `exists_homotopyEquiv_polarComplexStructure` in
+  `design/symplectic-vector-bundles.md` both take their values from it, and
+  neither repeats the taming argument. It stays in this file, the part's file
+  on `SymplecticForm V` as a space, rather than in one of its own: it is
+  a few short declarations, and the homotopy on forms, which builds on it,
+  needs this file's topology as well.
 
 ### `Analysis/InnerProductSpace/Symplectic/PolarComplexStructure/Basic.lean`
 
@@ -679,9 +714,20 @@ This is Proposition 2.5.6, for a fixed `g : innerProducts V`, in
   $J\mapsto\omega_{g,J}$, stated by the `@[simp]` lemmas
   `polarHomotopyEquiv_toFun` and `polarHomotopyEquiv_invFun`. There are two
   homotopies:
-  - On forms, the straight line from $\omega$ to $\omega_{g,J_{g,\omega}}$.
-    Both forms are tamed by $J_{g,\omega}$, and taming is convex in the form,
-    so the line stays nondegenerate.
+  - On forms, the straight line between $\omega_{g,J_{g,\omega}}$ and
+    $\omega$. Both forms are tamed by $J_{g,\omega}$, by
+    `tames_metricSymplecticForm` and
+    `(compatible_metricPolarComplexStructure g ω).tames`, so its value at
+    `(t, ω)` is `Tames.lineMap` of
+    `Topology/Algebra/Module/SymplecticForms.lean`, taken with these two
+    proofs and the weight `t.2`, as the homotopy on complex structures takes
+    its value from Tau Ceti's `Compatible.cayleyInterp`. No value is built
+    inline with `SymplecticForm.ofTames`. Its value lemma is a `toBilinForm`
+    equation, from `Tames.toBilinForm_lineMap`; its endpoints come from
+    `Tames.lineMap_zero` and `_one`; and its joint continuity in
+    $(t,\omega)$ from `continuous_iff` of `SymplecticForm V`, that value
+    lemma, `continuous_metricSymplecticForm` and
+    `continuous_metricPolarComplexStructure`.
   - On complex structures, the Cayley path relative to
     $J_{g,\omega_{g,J}}$ (compatible with $\omega_{g,J}$) towards $J$ (tame
     for $\omega_{g,J}$). Its endomorphism at time $b$ is
@@ -797,7 +843,9 @@ Each is a few hundred lines. External blockers are given by issue number.
    Blockers: 1 (#7 and #25 are merged).
 3. **Inner products and symplectic forms as topological spaces.**
    `Topology/Algebra/Module/InnerProducts.lean` and
-   `Topology/Algebra/Module/SymplecticForms.lean`. Blockers: none.
+   `Topology/Algebra/Module/SymplecticForms.lean`, including
+   `Tames.lineMap` with `Tames.toBilinForm_lineMap`, `Tames.tames_lineMap`,
+   `Tames.lineMap_zero` and `Tames.lineMap_one`. Blockers: none.
 4. **$J_{g,\omega}$ for an arbitrary inner product.**
    `PolarComplexStructure/Basic.lean`. Blockers: 3.
 5. **Smoothness of $J_{g,\omega}$.** `PolarComplexStructure/Smooth.lean`.
@@ -830,7 +878,8 @@ $[0,1]$ as issue 6 here, through
 lie in it by `TauCeti.SymplecticForm.Compatible.mem_cayleyDomain`, so it
 waits for issue 6. Its homotopy-equivalence issue uses `cayleyDomain` too,
 and `metricPolarFormula` on `polarDomain` with its smoothness, so it waits
-for issues 4, 5 and 6. No other issue of that part waits for this one.
+for issues 4, 5 and 6; it also uses `Tames.lineMap` from issue 3, which
+issue 4 waits for already. No other issue of that part waits for this one.
 
 ## References
 

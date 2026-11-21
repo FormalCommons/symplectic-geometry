@@ -625,7 +625,16 @@ $[0,1]$ is never fed to the lemma with `P = ℝ` directly.
   ∀ ω, e.toFun ω = ω.2.polarComplexStructure g`, a theorem for each pair of
   covering frame systems. The inverse is $J\mapsto\omega_{g,J}$. On the
   forms, $\omega$ and $\omega_{g,J_{g,\omega}}$ both tame $J_{g,\omega}$, and
-  the straight line between them stays nondegenerate. On the structures, $J$
+  the straight line between them stays nondegenerate. This is the fibrewise
+  form of the linear straight line `TauCeti.SymplecticForm.Tames.lineMap` of
+  part 9 (`Topology/Algebra/Module/SymplecticForms.lean` of
+  `design/compatible-complex-structures.md`), the same definition that part
+  9's homotopy on forms uses: at each `x`, the `symplecticFormAt x` of the
+  two forms both tame the value of $J_{g,\omega}$ at `x`, so the
+  combination at time `t` is, at `x`, the `toBilinForm` of their
+  `Tames.lineMap` (by `Tames.toBilinForm_lineMap`), and its nondegeneracy
+  there is that of this symplectic form; the taming argument is not
+  repeated. On the structures, $J$
   and $J_{g,\omega_{g,J}}$ are both compatible with $\omega_{g,J}$, and the
   Cayley path between them, with $J_{g,\omega_{g,J}}$ as reference and
   coefficient `smoothTransition t`, is a fibrewise formula in $(t, J_x)$
@@ -1289,7 +1298,7 @@ it, its design adds it.
   *Standard model* for the corollary on `Matrix.symplecticGroup`, for
   `stdForm` and `complexToRealEuclidean` in the standard Hermitian case, and as
   the home of `StdSpace.sumEquiv`, which issue 22 adds to its files. The
-  part uses three files of *Compatible complex structures* (part 9). Its
+  part uses four files of *Compatible complex structures* (part 9). Its
   linear file `Geometry/Symplectic/Cayley/Domain.lean` gives
   `TauCeti.cayleyDomain`, the openness lemma
   `TauCeti.isOpen_setOf_forall_Icc_mem_cayleyDomain` and the membership lemma
@@ -1306,7 +1315,12 @@ it, its design adds it.
   `metricPolarComplexStructure_innerSL` from its `Basic.lean`: there the
   form varies with the fibre variable, not only with the point, and part 9
   states the pointwise smoothness of the formula publicly, where Tau Ceti's
-  is private. These are part 9's issues 4 and 5. The other fibrewise
+  is private. These are part 9's issues 4 and 5. The straight line on
+  forms of the homotopy equivalence (issue 8) is part 9's
+  `TauCeti.SymplecticForm.Tames.lineMap`, with `Tames.toBilinForm_lineMap`,
+  from its `Topology/Algebra/Module/SymplecticForms.lean`; that file is part
+  9's issue 3, which its issue 4 waits for already, so issue 8 has no new
+  blocker. The other fibrewise
   constructions the part needs (the Cayley path, $J_{g,\omega}$,
   $\omega_{g,J}$, the complex-linear part) are Tau Ceti's linear ones or
   explicit formulas. So only issues 7 and 8 wait for part 9.
