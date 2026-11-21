@@ -104,8 +104,9 @@ Further choices of this design:
   the ends (see *Manifolds, families and signs*). It runs along the path
   with `c = id`, which is nondegenerate only near $[0,1]\times f(Q)$. The
   field is cut off there by a function on `ℝ × M`. That field is
-  `moserField` of `Moser/Field.lean`. *Isotopy extension*'s parametric
-  relative Moser argument can reuse it.
+  `moserField` of `Moser/Field.lean`. *Isotopy extension*'s
+  `Moser/Family.lean` uses it too, for a general family of two-forms,
+  once #551 generalizes it to one.
 - **Moser stability goes through Tau Ceti's theorem over `ℝ`.** It uses
   `TauCeti.SmoothTwoForm.exists_isotopy_mpullback_eq`, as `DESIGN.md` says.
   The data for that theorem, a family over `ℝ` with symplectic slices and
@@ -113,7 +114,9 @@ Further choices of this design:
 
 ## Files and their contents
 
-The part owns the folder `Geometry/Symplectic/Moser/`. Tau Ceti has the
+The part owns the folder `Geometry/Symplectic/Moser/`, except
+`Moser/Family.lean`, a file of *Isotopy extension*
+(`design/isotopy-extension.md`). Tau Ceti has the
 files `Geometry/Symplectic/Manifold/Moser.lean` and `RelativeMoser.lean`, so
 this library may not have folders with those names. The four files outside
 that folder have the names of the Tau Ceti files they extend, so that they
