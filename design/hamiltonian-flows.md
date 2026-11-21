@@ -176,26 +176,28 @@ These settle the questions that `DESIGN.md` leaves to this file.
    a point where the function vanishes at every time, which holds for
    Seeley's formula, a combination of values at the same point; the issue
    of `ContMDiff/TimeExtension.lean` states it as `timeExtend_eq_zero`.
-   `Flux/Hamiltonian.lean` and
-   `PoissonAlgebra.lean` take nothing from *Smooth families*.
+   `PoissonAlgebra.lean` takes nothing from *Smooth families*, and
+   `Flux/Hamiltonian.lean` only the merged `DeRham/GoodCover/Basic.lean` and
+   `DifferentialForm/SmoothFamily/Basic.lean`, through
+   `DeRham/FamilyPrimitive.lean`.
 4. **Hamiltonians from exactness** are built directly, not from the
    smooth-primitive map of `DeRham/SmoothFamily/GoodCover.lean`, which needs a compact
-   manifold. Let $\alpha_t=\phi_t^*(\iota_{X_t}\omega)$, the one-form read
-   along the motion that `HasHamiltonian` uses; it is jointly smooth, and it
-   is exact for every $t$ when every $\iota_{X_t}\omega$ is. Choose a base
-   point in each connected component of $M$ (through
+   manifold. Let $\alpha_t=\iota_{X_t}\omega$, a smooth family; the
+   Hamiltonian read along the motion is then $F_t\circ\phi_t$, by
+   `hasHamiltonian_comp_iff`. Choose a base point in each connected component of $M$ (through
    `ConnectedComponents M`) and let $F_t$ be the primitive of $\alpha_t$
    that vanishes at the base points.
-   - *Local step.* On a chart ball $U$, the homotopy operator of the
-     cylinder over `U × unitInterval`, applied to the pullback of $\alpha$
-     along the radial contraction of $U$ (fixing the time), is a jointly
-     smooth function $P$ on `U × unitInterval` with $d(P_t)=\alpha_t$ on
+   - *Local step.* On a smoothly contractible chart neighbourhood $U$, the
+     homotopy operator of the cylinder over `unitInterval × U`, applied to
+     the pullback of $\alpha$ along the contraction of $U$ (fixing the time), is a jointly
+     smooth function $P$ on `unitInterval × U` with $d(P_t)=\alpha_t$ on
      $U$. This is the parametric Poincaré lemma of
      `auxiliary/smooth-primitives.md`, used in degree $1$ on one chart. Only
      the spatial part of the homotopy formula is used, and slicewise
      closedness of $\alpha$ suffices for it, since the contraction preserves
-     time. If *Smooth families* states this step as a public lemma, the issue
-     uses it instead of proving it again.
+     time. The step is the public lemma
+     `SymplecticGeometry.IsSmoothlyContractible.exists_contMDiff_mextDeriv_eq_of_forall_mem_closedForms`
+     (`DeRham/FamilyPrimitive.lean`), for any parameter manifold.
    - *Gluing.* On $U$, $F_t-P_t$ has zero differential, so
      $F(y,t)=P(y,t)+F(x_0,t)-P(x_0,t)$ for $x_0,y\in U$. The set of points
      $x_0$ for which $t\mapsto F(x_0,t)$ is smooth is therefore open and
@@ -275,6 +277,7 @@ Tau Ceti unchanged.
 | `Geometry/Diffeomorphism/Diffeotopy/Velocity.lean` | `Diffeotopy.velocity`, its joint smoothness, its value along the motion, its values for `refl` and the flow diffeotopies, and the pullback of $\iota_{X_t}\sigma$ by $\phi_t$ |
 | `Geometry/Symplectic/Hamiltonian/PoissonAlgebra.lean` | the Leibniz rule, the local time-dependent flow, the kernel and the quotient, the milestone *Hamiltonian flows and the Poisson algebra* |
 | `Geometry/Symplectic/Hamiltonian/SymplecticIsotopy.lean` | symplectic fields and their local flows, the book's bracket, the isotopy criterion, the milestone *Symplectic vector fields and isotopy generators* |
+| `Geometry/Manifold/DeRham/FamilyPrimitive.lean` | smooth primitives of a smooth family of one-forms: the local step on a smoothly contractible manifold and the gluing for exact forms on any manifold |
 | `Geometry/Symplectic/Flux/Hamiltonian.lean` | the page's $H_t$ beside `HasHamiltonian`, the three rules in the page's form, uniqueness, Hamiltonians from exactness |
 | `Geometry/Symplectic/Flux/CompactSupport.lean` | `IsCompactlySupportedHamiltonian`, `compactlySupportedHamiltonianGroup`, the flow of a compactly supported Hamiltonian, the milestone *Hamiltonian isotopies and their composition* |
 
@@ -282,8 +285,10 @@ Imports between the files: `Velocity.lean` imports `Instances/Icc.lean` and
 `MFDeriv/Prod.lean`;
 `SymplecticIsotopy.lean` and
 `Flux/Hamiltonian.lean` import `Velocity.lean`; `Flux/Hamiltonian.lean`
-imports `Diffeotopy/Basic.lean`; `Flux/CompactSupport.lean`
-imports `Flux/Hamiltonian.lean`. `PoissonAlgebra.lean` imports Tau Ceti,
+imports `Diffeotopy/Basic.lean` and `DeRham/FamilyPrimitive.lean`, which
+imports `DeRham/GoodCover/Basic.lean` and
+`DifferentialForm/SmoothFamily/Basic.lean` of *Smooth families*;
+`Flux/CompactSupport.lean` imports `Flux/Hamiltonian.lean`. `PoissonAlgebra.lean` imports Tau Ceti,
 among it `Hamiltonian/ExtendedPhaseSpace/Manifold.lean` for the energy
 identity, `Algebra/Lie/Quotient.lean` for the value of
 `LieHom.quotKerEquivRange` on a class, and
@@ -447,28 +452,33 @@ In `TauCeti.Diffeotopy`, for any two-form `σ` unless said:
   ∀ t, σ.interiorₗ (Φ.velocity t) ∈ exactForms J M 1`. The backward
   direction builds the Hamiltonian as in Decision 4, with
   `exists_hasHamiltonian_of_forall_mem_exactForms` as the public
-  statement; the local step is a private lemma, or a public one in
-  `TauCeti` on the homotopy operator if it is stated for any smooth family
-  of slicewise closed one-forms on a chart ball, which is its natural
-  generality. This is what *Isotopy extension* uses.
-- The gluing of Decision 4 is a public lemma, in the namespace `TauCeti`,
-  for any manifold `M` (no compactness, no form `σ`), because *Isotopy
-  extension* applies it on open subsets (its `Cohomological/Primitive.lean`):
+  statement; the local step is the public lemma
+  `SymplecticGeometry.IsSmoothlyContractible.exists_contMDiff_mextDeriv_eq_of_forall_mem_closedForms`
+  of `DeRham/FamilyPrimitive.lean`, for a smooth family of closed
+  one-forms on a smoothly contractible manifold, over any parameter
+  manifold.
+- The gluing of Decision 4 is a public lemma, in the namespace
+  `SymplecticGeometry` since its hypothesis is the library's
+  `IsSmoothFamily`, in `Geometry/Manifold/DeRham/FamilyPrimitive.lean`,
+  for any manifold `M` (no compactness, no form `σ`) and any parameter
+  manifold `N`, because *Isotopy extension* applies it on open subsets
+  (its `Cohomological/Primitive.lean`). This is what *Isotopy extension*
+  uses:
 
   ```lean
-  theorem TauCeti.exists_contMDiff_mextDeriv_eq_of_forall_mem_exactForms
-      {α : SmoothForm (J.prod (𝓡∂ 1)) (M × unitInterval) ℝ 1}
-      (hα : ∀ t, SmoothForm.mpullback (fun x ↦ (x, t)) _ α ∈ exactForms J M 1) :
-      ∃ F : M × unitInterval → ℝ, ContMDiff (J.prod (𝓡∂ 1)) 𝓘(ℝ) ∞ F ∧
-        ∀ t, mextDeriv (RoughForm.ofFunction J (fun x ↦ F (x, t))) =
-          (SmoothForm.mpullback (fun x ↦ (x, t)) _ α : RoughForm J M ℝ 1)
+  theorem SymplecticGeometry.exists_contMDiff_mextDeriv_eq_of_forall_mem_exactForms
+      {α : N → SmoothForm I M ℝ 1} (hα : IsSmoothFamily K α)
+      (hex : ∀ t, α t ∈ exactForms I M 1) :
+      ∃ f : N × M → ℝ, ContMDiff (K.prod I) 𝓘(ℝ) ∞ f ∧
+        ∀ t, mextDeriv (RoughForm.ofFunction I fun x ↦ f (t, x)) =
+          (α t : RoughForm I M ℝ 1)
   ```
 
   It is the family version of Tau Ceti's
   `exists_contMDiff_mextDeriv_eq_of_mem_exactForms`, and
   `exists_hasHamiltonian_of_forall_mem_exactForms` applies it to
-  $\alpha_t=\phi_t^*(\iota_{X_t}\sigma)$. The slices are written as *Smooth
-  families* fixes, and the smoothness proof of each slice as Lean needs it.
+  $\alpha_t=\iota_{X_t}\sigma$ over `unitInterval`. The parameter comes
+  first, as in *Smooth families*.
 
 ### `Geometry/Symplectic/Flux/CompactSupport.lean`
 
@@ -568,8 +578,10 @@ identity, which Tau Ceti proves (`IsNondegenerate.poissonBracket_jacobi`).
 - From *Smooth families*: `Diffeotopy/Real.lean` (the reading of a `Diffeotopy`
   over `ℝ`, Decision 3) for `SymplecticIsotopy.lean`, and
   `ContMDiff/TimeExtension.lean` (the extension in time, Decision 3) for
-  `Flux/CompactSupport.lean`. `Velocity.lean` (with `Instances/Icc.lean`) and
-  `Flux/Hamiltonian.lean` use only Mathlib and Tau Ceti.
+  `Flux/CompactSupport.lean`, and the merged `DeRham/GoodCover/Basic.lean`
+  (smoothly contractible manifolds) and `DifferentialForm/SmoothFamily/Basic.lean`
+  (smooth families of forms) for `DeRham/FamilyPrimitive.lean`.
+  `Velocity.lean` (with `Instances/Icc.lean`) uses only Mathlib and Tau Ceti.
 - From *Contact geometry*: `Geometry/Manifold/DifferentialForm/Flow/Family.lean`
   (the general flow lemma) for `PoissonAlgebra.lean`.
 - From Tau Ceti: the declarations of *What there is*.
@@ -593,7 +605,8 @@ Each is a few hundred lines; each is blocked by the issues it names.
    `Flux/Hamiltonian.lean`: `hasHamiltonian_iff_isHamiltonianVectorField_velocity`,
    `hasHamiltonian_comp_iff`, the three rules and the uniqueness lemmas.
    About 250 lines. Blocked by 1.
-5. **Hamiltonians from exactness.** In `Flux/Hamiltonian.lean`: the local
+5. **Hamiltonians from exactness.** In `DeRham/FamilyPrimitive.lean` and
+   `Flux/Hamiltonian.lean`: the local
    step, the gluing (`exists_contMDiff_mextDeriv_eq_of_forall_mem_exactForms`),
    `exists_hasHamiltonian_of_forall_mem_exactForms` and
    `isHamiltonian_iff_forall_interiorₗ_velocity_mem_exactForms`. About 350
