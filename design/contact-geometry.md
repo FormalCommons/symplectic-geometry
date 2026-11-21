@@ -471,7 +471,8 @@ Named like Tau Ceti's file, in `SymplecticGeometry`.
   all of whose slices are contact, with `ξ t x = (α_t).kerDistribution x`
   for `t ∈ J ∩ [0, 1]`, `x ∈ U`. Uses `DifferentialForm/TimeExtension.lean` of
   *Smooth families* and a smooth reparametrization `ℝ → J` that is the identity on
-  a neighbourhood of the relevant times.
+  a neighbourhood of the relevant times (`exists_contDiff_eqOn_id_Icc_mem_Ioo` of
+  *Smooth families*).
 - `IsContactFamily.grayVector_eq_of_eq_smul`: the pointwise independence of
   step 2, for two local defining families related by a smooth nowhere zero
   multiplier near a point, from `eq_grayVectorField_iff` on both sides.
@@ -571,7 +572,9 @@ Expected size: 650 lines, in two issues (L1 and L2).
 - *Smooth families* (#466, #467):
   `Geometry/Manifold/DifferentialForm/TimeExtension.lean`, the extension of
   a smooth form on `unitInterval × M` to `ℝ × M` (for
-  `IsContactFamily.exists_local_extension`); and
+  `IsContactFamily.exists_local_extension`, with
+  `exists_contDiff_eqOn_id_Icc_mem_Ioo` of
+  `Analysis/SpecialFunctions/SmoothTransition.lean`); and
   `Geometry/Diffeomorphism/Diffeotopy/Real.lean`, the reading of a
   `Diffeotopy` $\Phi$ over `ℝ` as $\Phi_{s(t)}$, $s=$ `Real.smoothTransition`,
   with `TauCeti.eulerianField` $s'(t)X_{s(t)}$, where $X$ is the velocity

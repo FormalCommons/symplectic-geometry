@@ -101,6 +101,12 @@ No statement of this part is one that the authors' errata
   `Analysis/SpecialFunctions/SmoothTransition.lean` has the derivative of
   `Real.smoothTransition` outside $[0,1]$ (`deriv_of_neg`, `deriv_of_one_lt`)
   and its integral, but not that it is positive on $(0,1)$; the part adds it.
+  Neither library has a smooth map from `ℝ` into a slightly larger open
+  interval that is the identity on a closed interval. *Moser isotopy* and
+  *Contact geometry* compose with such a map in time, and the part adds it.
+  Tau Ceti's `TauCeti.exists_contDiff_odd_truncation` is the identity on
+  `[-r, r]` but does not bound its values between `r` and `R`, so the part
+  builds the map from Mathlib's `ContDiffBump` instead.
 - **Embeddings.** Mathlib's `exists_embedding_euclidean_of_compact`
   (`Geometry/Manifold/WhitneyEmbedding.lean`): a compact Hausdorff manifold
   has a smooth closed embedding into some `EuclideanSpace ℝ (Fin N)` with
@@ -208,12 +214,24 @@ No statement of this part is one that the authors' errata
 
 ### `Analysis/SpecialFunctions/SmoothTransition.lean`
 
-Named like Tau Ceti's file; in Mathlib's namespace `Real.smoothTransition`.
+Named like Tau Ceti's file; in Mathlib's namespace `Real.smoothTransition`,
+except for the reparametrization, which is in `SymplecticGeometry`.
 
 - `Real.smoothTransition.deriv_pos {x : ℝ} (h₀ : 0 < x) (h₁ : x < 1) :
   0 < deriv Real.smoothTransition x`, from the quotient
   $f(x)/(f(x)+f(1-x))$ and the positive derivative of
   `expNegInvGlue` on $(0,\infty)$ (Tau Ceti's `expNegInvGlue.hasDerivAt`).
+- `SymplecticGeometry.exists_contDiff_eqOn_id_Icc_mem_Ioo {a b ε : ℝ}
+  (hab : a ≤ b) (hε : 0 < ε) : ∃ c : ℝ → ℝ, ContDiff ℝ ∞ c ∧
+  Set.EqOn c id (Set.Icc a b) ∧ ∀ t, c t ∈ Set.Ioo (a - ε) (b + ε)`. Proof:
+  let $m=(a+b)/2$, let $f$ be a `ContDiffBump m` with radii
+  $(b-a)/2+\varepsilon/2$ and $(b-a)/2+\varepsilon$, and set
+  $c(t)=m+f(t)(t-m)$. Then $f=1$ on $[a,b]$
+  (`ContDiffBump.one_of_mem_closedBall`). Since $0\le f\le1$ and $f$
+  vanishes off the open ball (`ContDiffBump.support_eq`),
+  $|c(t)-m|<(b-a)/2+\varepsilon$. The case $a=b$ is included. The statement
+  does not mention `Real.smoothTransition`. It sits in this file because Tau
+  Ceti keeps its truncations in its file of the same name.
 
 ### `Analysis/Calculus/ContDiff/Seeley/Coefficients.lean`
 
@@ -575,12 +593,12 @@ In `TauCeti.Diffeotopy`, for `[FiniteDimensional ℝ E] [IsManifold I ∞ M]
   `SymplecticIsotopy.lean`) and `ContMDiff/TimeExtension.lean` with
   `timeExtend_eq_zero` (for `Flux/CompactSupport.lean`); *Moser isotopy* uses
   `exists_isSmoothFamily_mextDerivₗ_eq`, `hasFiniteGoodCover_of_compactSpace`,
-  `DifferentialForm/TimeExtension.lean` (to pass its primitives to `ℝ × M`)
-  and `ofReal`; *Isotopy extension* uses the splittings, the smooth
+  `DifferentialForm/TimeExtension.lean` (to pass its primitives to `ℝ × M`),
+  `exists_contDiff_eqOn_id_Icc_mem_Ioo` and `ofReal`; *Isotopy extension* uses the splittings, the smooth
   cohomology coordinates, `DifferentialForm/TimeExtension.lean` and the
   bridge; *Contact geometry* uses both
   `TimeExtension.lean` files and the bridge, in `Family.lean` and
-  `Gray.lean`.
+  `Gray.lean`, and `exists_contDiff_eqOn_id_Icc_mem_Ioo` in `Family.lean`.
 
 ## Issues
 
@@ -624,6 +642,10 @@ can start at once; each issue's blockers come before it.
     `Geometry/Diffeomorphism/Diffeotopy/OfContMDiff.lean`. Blocked by 2 and 14
     (for the inverse function theorem step it shares with
     `contMDiff_diffeomorph_symm_apply`).
+16. **A reparametrization equal to the identity on an interval.**
+    `exists_contDiff_eqOn_id_Icc_mem_Ioo` in
+    `Analysis/SpecialFunctions/SmoothTransition.lean`. Blocked by 14, which
+    creates the file. It is much smaller than the others.
 
 ## References
 
