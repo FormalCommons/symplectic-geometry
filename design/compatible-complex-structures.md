@@ -83,7 +83,12 @@ and does not redefine any of it:
   exactly when $s-s^{\mathrm{flip}}$ is, by Tau Ceti's
   `TauCeti.BilinForm.nondegenerate_smul_iff`), and
   `isOpen_setOf_nondegenerate_toBilinForm_sub_flip` (in finite dimension,
-  the $s$ with $s-s^{\mathrm{flip}}$ nondegenerate are open).
+  the $s$ with $s-s^{\mathrm{flip}}$ nondegenerate are open). In the same file, carrying a form along a continuous linear
+  equivalence `e` in both arguments:
+  `ContinuousLinearEquiv.toBilinForm_arrowCongr_arrowCongr` (as a bilinear
+  form it is `LinearMap.BilinForm.congr` along `e`) and
+  `ContinuousLinearEquiv.nondegenerate_arrowCongr_sub_flip_iff` (it keeps
+  $s-s^{\mathrm{flip}}$ nondegenerate or degenerate).
 - For an alternating sesquilinear map $B$, $B-B^{\mathrm{flip}}=2\cdot B$,
   `LinearMap.IsAlt.sub_flip_eq_two_smul`, which Mathlib lacks; the library
   adds it in `LinearAlgebra/SesquilinearForm.lean`.
@@ -301,7 +306,9 @@ The part uses the following from other parts:
   `compatible_iff_exists_isSymplectomorphism_stdForm`.
   `Topology/ComplexStructure/Compatible/Matrix.lean` imports
   `Topology/ComplexStructure/Basic.lean`, which besides `Action.lean` imports
-  only Tau Ceti, for `AlmostComplexStructure.homeomorphMatrix` and
+  only Tau Ceti and the merged `LinearAlgebra/Matrix/NonsingularInverse.lean`
+  and `Analysis/CStarAlgebra/Matrix.lean` (which import only Mathlib and
+  merged files that do), for `AlmostComplexStructure.homeomorphMatrix` and
   `coe_homeomorphMatrix` in `compatibleEquivPosDefSymplectic`.
   `Topology/Algebra/Matrix/SymplecticGroup/CompactSubgroup.lean` imports
   `LinearAlgebra/ComplexStructure/Standard.lean`, for
@@ -394,6 +401,12 @@ request updates it to the files below. Each change, with its reason:
   matrices, so it does not give $J\mapsto-J_0J$. That map and its inverse
   $P\mapsto J_0P$ are restrictions of linear maps, which gives the
   homeomorphism directly.
+- **New `Analysis/InnerProductSpace/LinearMap.lean`.** It holds the
+  `@[simp]` lemma `innerSL_real_apply_apply`, which `InnerProducts.lean`
+  and the files that use the ambient inner product as an element of
+  `innerProducts V` need. It mentions only Mathlib's `innerSL`, so it sits in
+  the root namespace, in the file named after Mathlib's
+  `Analysis/InnerProductSpace/LinearMap.lean`, and can move there unchanged.
 - **$\mathrm{Met}(V)$ without coordinates.** The overview got convexity from
   `TauCeti.convex_setOfPred_posDef` in coordinates. Tau Ceti's
   `convex_setOfPred_symm_pos` states it for continuous bilinear forms on `V`
@@ -517,6 +530,15 @@ complex structure, in a section with only `[AddCommGroup V] [Module ℝ V]`.
   `design/symplectic-vector-bundles.md` both take their values from it, so
   neither builds a value with `ofTames` itself.
 
+### `Analysis/InnerProductSpace/LinearMap.lean`
+
+This complements Mathlib's file of `innerSL`, and imports only it.
+
+- `innerSL_real_apply_apply` (`@[simp]`, in the root namespace): `innerSL ℝ`,
+  coerced at the real bilinear type `V →L[ℝ] V →L[ℝ] ℝ` (the ambient type of
+  `innerProducts V`), evaluates to `⟪u, v⟫`. Mathlib's `innerSL_apply_apply`
+  is stated at the conjugate-linear type, so `simp` does not use it there.
+
 ### `Topology/Algebra/Module/InnerProducts.lean`
 
 This is $\mathrm{Met}(V)$, in `SymplecticGeometry`.
@@ -543,6 +565,9 @@ This is $\mathrm{Met}(V)$, in `SymplecticGeometry`.
   $\mathrm{GL}(V)$ that equivariance uses.
 - `innerSL_mem_innerProducts` (for `V` an inner product space):
   `innerSL ℝ ∈ innerProducts V`, the ambient inner product as an element.
+- `simp` evaluates `⟨innerSL ℝ, innerSL_mem_innerProducts⟩` applied to `u`
+  and `v` to `⟪u, v⟫` by `innerSL_real_apply_apply`, from
+  `Analysis/InnerProductSpace/LinearMap.lean` above.
 - `innerProducts.exists_transport_eq_innerSL (g : innerProducts V)`, for
   finite-dimensional `V`: some `e : V ≃L[ℝ] EuclideanSpace ℝ (Fin (finrank ℝ V))`
   has `transport e g = ⟨innerSL ℝ, innerSL_mem_innerProducts⟩`. It is
@@ -929,7 +954,9 @@ This is Proposition 2.5.6, for a fixed `g : innerProducts V`, in
   `metricSymplecticForms g : Set (SymplecticForm V)` ($\Omega(V,g)$, the forms
   $g(J\cdot,\cdot)$ for $J\in\mathcal{J}(V,g)$), with their `@[simp]`
   membership lemmas `mem_metricComplexStructures` and
-  `mem_metricSymplecticForms`, `metricSymplecticForms_eq_image`, and
+  `mem_metricSymplecticForms`, `mem_metricComplexStructures_innerSL` (for `V`
+  an inner product space, `J ∈ metricComplexStructures ⟨innerSL ℝ, _⟩ ↔
+  ∀ u v, ⟪J u, J v⟫ = ⟪u, v⟫`), `metricSymplecticForms_eq_image`, and
   `compatible_metricSymplecticForm`,
   `metricPolarComplexStructure_metricSymplecticForm` and
   `metricSymplecticForm_metricPolarComplexStructure`, by which the inverses
