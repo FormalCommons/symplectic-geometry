@@ -132,7 +132,7 @@ variable {EB HB M : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB]
 | `Geometry/Manifold/VectorBundle/Symplectic/ComplexStructure/Contractible.lean` | contractibility for a fixed form or structure, the homotopy equivalence, the second milestone | 7, 8 |
 | `Geometry/Manifold/VectorBundle/Symplectic/Trivialization.lean` | local Darboux frames and the reduction of the structure group | 9 |
 | `Geometry/Manifold/VectorBundle/Symplectic/Classification.lean` | the first milestone | 11 |
-| `Geometry/Manifold/VectorBundle/Hom.lean` | `contMDiff_hom_bundle_symm`: the fibrewise inverses of a $C^n$ isomorphism of bundles as a $C^n$ section of the hom bundle | 1, 3 |
+| `Geometry/Manifold/VectorBundle/Hom.lean` | `contMDiff_hom_bundle_symm`: the fibrewise inverses of a $C^n$ isomorphism of bundles as a $C^n$ section of the hom bundle; `Bundle.Trivial.contMDiff_totalSpaceMk_clm`: a fixed continuous linear map, applied in each fibre, as a $C^n$ map of total spaces of trivial bundles | 1, 3, 25 |
 | `Geometry/Manifold/VectorBundle/ContinuousAlternatingMap.lean` | `contMDiff_compContinuousLinearMap_totalSpace`: precomposition by a $C^n$ hom-bundle section is $C^n$ on total spaces of alternating bundles | 3 |
 | `Geometry/Manifold/VectorBundle/Pullback.lean` | smoothness of sections of the alternating bundle of a pull-back | 18 |
 | `Topology/VectorBundle/Pullback.lean` | coordinates of alternating maps on a pull-back bundle; `Bundle.Pullback.neg_fiber`: negatives in a fibre of a pull-back bundle, for `simp` | 18, 20 |
@@ -142,7 +142,7 @@ variable {EB HB M : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB]
 | `Geometry/Symplectic/Manifold/Volume.lean` | the symplectic orientation of a negated two-form | 23 |
 | `Analysis/CStarAlgebra/Unitary/ContinuousLinearMap.lean` | `Unitary.continuousLinearMapSelfEquiv`; its case `𝕜 = ℂ` as `Unitary.continuousLinearMapCircleEquiv : unitary (ℂ →L[ℂ] ℂ) ≃ₜ* Circle` | 24, 26 |
 | `Analysis/Normed/Operator/SpanSingleton.lean` | `LinearIsometryEquiv.toSpanSingleton`: a unit vector of a line `E` as `𝕜 ≃ₗᵢ[𝕜] E` | 26 |
-| `Geometry/Manifold/VectorBundle/Riemannian/Trivial.lean` | constant metrics on trivial bundles | 25 |
+| `Geometry/Manifold/VectorBundle/Riemannian/Trivial.lean` | constant metrics on trivial bundles, among them `constComplexEuclidean` | 25 |
 | `Geometry/Manifold/VectorBundle/Hermitian/Basic.lean` | the symplectic form of a Hermitian bundle | 25 |
 | `Geometry/Manifold/VectorBundle/Hermitian/CircleBundle.lean` | the circle bundle of a Hermitian line bundle as a principal `Circle`-bundle, for fibres with their own complex inner products; the smooth side is *First Chern number*'s prerequisite 3 | 26 |
 | `Topology/FiberBundle/ChangeModelFiber.lean` | change of model fibre of a fibre bundle along a homeomorphism | 26 |
@@ -1233,11 +1233,18 @@ For a map `f : C^n⟮I', N; I, M⟯` (the argument of Mathlib's instance
   is a section of the pull-back of the alternating bundle, and the lemma
   above makes it a section of the alternating bundle of `f *ᵖ V`, since the
   two fibres at `y` are the same type. API: `@[simp] pullback_apply`;
-  `pullback_add`, `pullback_smul` and the linear map
-  `pullbackLinearMap f`, as Tau Ceti has them for
-  sections; `IsNondegenerate.pullback`;
+  `bilinFormAt_pullback`, and `@[simp] bilinFormAt_pullback_apply` for its
+  value `ω (f y) ![v, w]` on `v w : V (f y)`; `pullback_zero`,
+  `pullback_add`, `pullback_smul`, `@[simp] pullback_neg`,
+  `@[simp] pullback_sub` and the linear map `pullbackLinearMap I F V n f`,
+  as Tau Ceti has them for sections; `IsNondegenerate.pullback`;
   `IsNondegenerate.symplecticFormAt_pullback` (the symplectic form of the
-  pull-back at `y` is that of `ω` at `f y`).
+  pull-back at `y` is that of `ω` at `f y`), through
+  `IsNondegenerate.toBilinForm_symplecticFormAt` in `Symplectic/Basic.lean`,
+  and `@[simp] IsNondegenerate.symplecticFormAt_pullback_apply`, its value
+  on `v w : V (f y)`, for any proof that the pull-back is nondegenerate.
+  `bilinFormAt_pullback` and `symplecticFormAt_pullback` are not `@[simp]`,
+  for the reason given below for `pullback_toEndomorphism`.
 - `ComplexStructure.lean`: `ContMDiffComplexStructure.pullback J f :
   ContMDiffComplexStructure I' n F (f *ᵖ V)`, the endomorphism section
   `y ↦ J (f y)`, which is $C^n$ by `Bundle.Pullback.contMDiff_hom_section_iff`
@@ -1255,15 +1262,19 @@ For a map `f : C^n⟮I', N; I, M⟯` (the argument of Mathlib's instance
   structure of the pull-back. The root-namespace `@[simp]
   Bundle.Pullback.eq_iff` (`Data/Bundle.lean`) moves an equation stated in
   `(f *ᵖ V) y` between vectors of `V (f y)` to `V (f y)`, and `@[simp]
-  Bundle.Pullback.neg_fiber` (`Topology/VectorBundle/Pullback.lean`) takes the negative in `V (f y)` of a vector of
-  `(f *ᵖ V) y` in `(f *ᵖ V) y`. `coe_pullback` and `pullback_neg` are not
-  `@[simp]`: `coe_pullback` would undo `apply_eq_pullback_apply`, and after
-  `pullback_neg` a vector of `V (f y)` meets a function on `(f *ᵖ V) y`
-  negated pointwise, which `simp` cannot evaluate. Neither is
-  `ContMDiffComplexStructure.neg_apply`, whose left-hand side `simp`
-  rewrites with `neg_toEndomorphism`.
-- `Symplectic/Pullback.lean`, the pairs: `Tames.pullback` and
-  `Compatible.pullback`, from `ω.Tames J` to
+  Bundle.Pullback.neg_fiber` (`Topology/VectorBundle/Pullback.lean`) takes
+  the negative in `V (f y)` of a vector of `(f *ᵖ V) y` in `(f *ᵖ V) y`.
+  `coe_pullback` and `pullback_neg` are not `@[simp]`: `coe_pullback` would
+  undo `apply_eq_pullback_apply`, and after `pullback_neg` a vector of
+  `V (f y)` meets a function on `(f *ᵖ V) y` negated pointwise, which
+  `simp` cannot evaluate. Neither is `ContMDiffComplexStructure.neg_apply`,
+  whose left-hand side `simp` rewrites with `neg_toEndomorphism`.
+  `pullback_toEndomorphism` and `almostComplexStructureAt_pullback` are
+  not `@[simp]`: they rewrite under the coercion of the pulled-back bundle,
+  and the rewritten term no longer matches the lemmas about `V (f y)`.
+- `Symplectic/Pullback.lean`, the pairs: `Tames.pullback`,
+  `Invariant.pullback` and `Compatible.pullback`, for a form and a complex
+  structure of the same regularity `n`, from `ω.Tames J` to
   `(ω.pullback f).Tames (J.pullback f)`, pointwise.
 - Isomorphisms: `pullback_pushforward`, `(pushforward Φ hΦ ω).pullback f` is
   `pushforward (fun y ↦ Φ (f y)) _ (ω.pullback f)`,
@@ -1279,7 +1290,8 @@ For a map `f : C^n⟮I', N; I, M⟯` (the argument of Mathlib's instance
   the frame `fun y ↦ Φ (f y)` of `ω.pullback f` over `f ⁻¹' U`; the
   transition maps of pulled-back frames are
   `@[simp] frameTransition_pullback`: `frameTransition (fun y ↦ Φ (f y))
-  (fun y ↦ Φ' (f y)) y = frameTransition Φ Φ' (f y)`, by `(rfl)`.
+  (fun y ↦ Φ' (f y)) y = frameTransition Φ Φ' (f y)`, for any map
+  `f : N → M`, by `frameTransition_apply`.
 
 ### Direct sums
 
@@ -1438,11 +1450,20 @@ Hausdorff σ-compact base.
     Hermitian product of `v` and `w` is $\omega_x(v,w)$, from Tau Ceti's
     `Bundle.ContMDiffRiemannianMetric.complexInnerProductSpace_inner`;
   - the standard case, `compatibleForm_ofComplexModule_trivial`: on
-    `Bundle.Trivial M (Fin 1 → ℂ)` with the constant metric
-    $g_0(u,v)=\langle c\,u,c\,v\rangle$ for
-    `c = TauCeti.complexToRealEuclidean (Fin 1)`, the fibrewise map `c`
-    is a symplectic isomorphism from `(ofComplexModule I n _ _).compatibleForm g₀`
-    to `const (stdForm (Fin 1))` (`pushforward` of the one is the other). So
+    `Bundle.Trivial M (ι → ℂ)`, for any `[Fintype ι]` (the line bundle is
+    `ι = Fin 1`; the proof is the same for every `ι`), and for any metric
+    `g` with $g_x(u,v)=\langle c\,u,c\,v\rangle$ (hypothesis `hg`), for
+    `c = TauCeti.complexToRealEuclidean ι`, such as the constant metric
+    `g₀` below, the fibrewise map `c`
+    is a symplectic isomorphism from `(ofComplexModule I n _ _).compatibleForm g`
+    to `const (stdForm ι)` (`pushforward` of the one is the other). The
+    smoothness of `c` on total spaces, which `pushforward` takes, is
+    `Bundle.Trivial.contMDiff_totalSpaceMk_clm`, which the issue adds to
+    `Geometry/Manifold/VectorBundle/Hom.lean` in the root namespace. The
+    proof uses `stdComplexStructure_complexToRealEuclidean`
+    (`J₀ (c v) = c (i • v)`), which the issue adds to
+    `LinearAlgebra/Symplectic/Standard/Basic.lean`, next to
+    `stdComplexStructure_complexEuclideanEquiv`. So
     the sign agrees with *Standard model*, where `stdForm ι z w =
     ⟪J₀ z, w⟫` and `J₀` is multiplication by `Complex.I` moved along
     `complexToRealEuclidean`. Neither Mathlib nor Tau Ceti has a constant
@@ -1461,7 +1482,12 @@ Hausdorff σ-compact base.
     (`Topology/Algebra/Module/BilinearForm.lean`) and
     `TauCeti.contMDiff_const_bundlePairing`
     (`Geometry/Manifold/VectorBundle/Hom.lean`). Then `g₀` is the case
-    `b = (innerSL ℝ).bilinearComp c c`. It is a candidate for Mathlib.
+    `b = (innerSL ℝ).bilinearComp c c`, in the same file:
+    `Bundle.ContMDiffRiemannianMetric.constComplexEuclidean ι`, with
+    `@[simp] constComplexEuclidean_inner` ($g_0(u,v)=\langle c\,u,c\,v\rangle$),
+    and the standard case for it is
+    `compatibleForm_ofComplexModule_constComplexEuclidean`, where `hg` is
+    `constComplexEuclidean_inner`. They are candidates for Mathlib.
 
 ### The circle bundle of a Hermitian line bundle
 
@@ -2022,7 +2048,9 @@ of *Constructions* for *First Chern number*.
     `Analysis/CStarAlgebra/Unitary/ContinuousLinearMap.lean`:
     `Unitary.continuousLinearMapSelfEquiv` with its API. Blockers: none.
 25. **The symplectic form of a Hermitian bundle.**
-    `Riemannian/Trivial.lean`: `Bundle.ContMDiffRiemannianMetric.const`;
+    `Riemannian/Trivial.lean`: `Bundle.ContMDiffRiemannianMetric.const` and
+    `constComplexEuclidean`; `Bundle.Trivial.contMDiff_totalSpaceMk_clm` in
+    `Hom.lean`;
     then `Hermitian/Basic.lean`: the lemmas on
     `(ofComplexModule I n F V).compatibleForm g` and the standard case.
     Blockers: 5, 20.
