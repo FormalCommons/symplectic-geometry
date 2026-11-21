@@ -720,8 +720,10 @@ This is Lemma 2.5.5, on `StdSpace ι`, in `SymplecticGeometry`.
   `invariant_iff_isSymm_associatedBilinForm`), `tames_stdForm_iff`, and
   `compatible_stdForm_iff_posDef` ($J$ is compatible if and only if $P$ is
   positive definite, by `compatible_iff_isSymm_and_posDef_associatedBilinForm`).
-  The same file proves `posDef_toBlocks₂₁_of_compatible` from the last one,
-  as a principal submatrix. This file adds that a symmetric $P$ is
+  The same file proves `posDef_toBlocks₂₁_of_compatible` from the last one
+  and `Matrix.neg_J_mul_eq_fromBlocks`, as a principal submatrix, and
+  `toBlocks₂₂_eq_neg_transpose_of_invariant` from the symmetry of $P$ and the
+  same block lemma. This file adds that a symmetric $P$ is
   symplectic if and only if $(J_0P)^2=-1$, and the topology.
 
 ### `Topology/ComplexStructure/Compatible/Metric.lean`

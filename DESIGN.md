@@ -252,6 +252,9 @@ further when they grow, following `AGENTS.md`.
   square $-1$) and `LinearAlgebra/Matrix/Symmetric.lean` (for
   `Matrix.isSymm_mul_nonsing_inv_of_transpose_mul_eq`). Both import only
   Mathlib and Tau Ceti and are merged, so the part still sits at level 0.
+  It imports, too, `LinearAlgebra/Matrix/SymplecticGroup/Basic.lean` of
+  *Symplectic group*, for `Matrix.neg_J_mul_eq_fromBlocks`; that file also
+  imports only Mathlib and Tau Ceti and is merged, so the level stays 0.
   `Matrix.lean` also imports `LinearAlgebra/Symplectic/Compatible.lean` of
   *Compatible complex structures*, for the matrix form of compatibility on
   `StdSpace ι` (`compatible_stdForm_iff_posDef` and its companions). That
@@ -295,7 +298,9 @@ further when they grow, following `AGENTS.md`.
   Mathlib's `SymplecticGroup.transpose_mem`: the `simp` lemmas
   `Matrix.J_inl_inl`, `Matrix.J_inl_inr`, `Matrix.J_inr_inl` and
   `Matrix.J_inr_inr` for the four blocks of `Matrix.J`, over a commutative
-  ring `Matrix.IsSymm.mem_symplecticGroup_iff` (a symmetric $P$ is
+  ring `Matrix.neg_J_mul_eq_fromBlocks` (the blocks of $-JM$ are those of
+  $M$, the lower ones moved up and the upper ones negated and moved down) and
+  `Matrix.IsSymm.mem_symplecticGroup_iff` (a symmetric $P$ is
   symplectic iff $(JP)^2=-1$), and, over a commutative star ring,
   `SymplecticGroup.star_mem` and `SymplecticGroup.star_mem_iff`),
   `Analysis/Matrix/Polar/Basic.lean` (the general right polar decomposition
@@ -1442,7 +1447,7 @@ Each part depends only on the parts listed, besides Mathlib and Tau Ceti.
 
 | Level | Part | Builds on |
 |---|---|---|
-| 0 | *Standard model* | — (it imports `LinearAlgebra/Matrix/Block.lean` and `LinearAlgebra/Matrix/Symmetric.lean` of *Siegel upper half space*, which import only Mathlib and Tau Ceti and are merged, and the merged `LinearAlgebra/Symplectic/Compatible.lean` of *Compatible complex structures*, which besides `Standard/Basic.lean` imports only merged files that do not import `Standard/Matrix.lean`) |
+| 0 | *Standard model* | — (it imports `LinearAlgebra/Matrix/Block.lean` and `LinearAlgebra/Matrix/Symmetric.lean` of *Siegel upper half space*, which import only Mathlib and Tau Ceti and are merged, `LinearAlgebra/Matrix/SymplecticGroup/Basic.lean` of *Symplectic group*, which imports only Mathlib and Tau Ceti and is merged, and the merged `LinearAlgebra/Symplectic/Compatible.lean` of *Compatible complex structures*, which besides `Standard/Basic.lean` imports only merged files that do not import `Standard/Matrix.lean`) |
 | 0 | *Symplectic group* | — |
 | 0 | *Linear Moser* | — |
 | 1 | *Unitary group topology* | *Symplectic group* (only the file on $\mathrm{Sp}(2n)$; the other files can start at once) |
