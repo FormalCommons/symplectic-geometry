@@ -203,9 +203,9 @@ Tau Ceti's `Matrix.map_im_conjTranspose_mul_self_mul_map_ofReal`
 
 ### Additions to *Standard model*'s `LinearAlgebra/Symplectic/Standard/Basic.lean`
 
-Two declarations about `StdSpace ι` alone, which this part needs and part 1
-lacks. They go beside `x_complexToRealEuclidean`, in the namespace
-`SymplecticGeometry.StdSpace`, so that other parts find them there.
+One declaration about `StdSpace ι` alone, which this part needs and part 1
+lacks. It goes beside `x_complexToRealEuclidean`, in the namespace
+`SymplecticGeometry.StdSpace`, so that other parts find it there.
 
 - `StdSpace.complexEuclideanEquiv ι : EuclideanSpace ℂ ι ≃L[ℝ] StdSpace ι`,
   defined as `(PiLp.continuousLinearEquiv 2 ℝ (fun _ : ι ↦ ℂ)).trans
@@ -217,10 +217,15 @@ lacks. They go beside `x_complexToRealEuclidean`, in the namespace
   and `y_complexEuclideanEquiv : (complexEuclideanEquiv ι v).y = fun i ↦ (v i).im`,
   from `x_complexToRealEuclidean` and `y_complexToRealEuclidean`. Building
   issue 3 adds it.
-- `isSymplectomorphism_piLpCongrLeft_sumCongr (e : ι ≃ κ)`: the coordinate
-  permutation `LinearIsometryEquiv.piLpCongrLeft 2 ℝ ℝ (e.sumCongr e)`
-  carries `stdForm ι` to `stdForm κ`, by `stdForm_apply`. Building issue 11
-  adds it.
+
+This part also needs that the coordinate permutation
+`LinearIsometryEquiv.piLpCongrLeft 2 ℝ ℝ (e.sumCongr e)`, for `e : ι ≃ κ`,
+carries `stdForm ι` to `stdForm κ`. That lemma exists already:
+`SymplecticGeometry.isSymplectomorphism_piLpCongrLeft_sumCongr`, in
+`Analysis/InnerProductSpace/Symplectic/Ellipsoid/NormalForm.lean` (from
+*Linear nonsqueezing*). Building issue 11 imports and uses it, and does not
+add it again; moving it to `Standard/Basic.lean` is a refactor of its own,
+#141.
 
 The direct sum of two models is §1's `StdSpace.sumEquiv ι κ : StdSpace (ι ⊕ κ)
 ≃L[ℝ] StdSpace ι × StdSpace κ`, in this same file, with its lemma that it
@@ -672,6 +677,10 @@ The manifold structure and the milestone.
   `mem_symplecticGroup_iff_forall_stdForm` and
   `TauCeti.conj_complexToRealEuclidean_toLin'` (merged, #62); `StdSpace.sumEquiv`
   with its two lemmas (planned by §1, built as in building issue 11).
+- *Linear nonsqueezing* (merged, #99): only
+  `isSymplectomorphism_piLpCongrLeft_sumCongr`, which building issue 11
+  imports from `Ellipsoid/NormalForm.lean` until #141 moves it to
+  `Standard/Basic.lean`.
 - *Symplectic subspaces* (merged, #64):
   `isLagrangian_iff_isIsotropic_and_two_mul_finrank_eq`.
 - Tau Ceti:
@@ -795,8 +804,9 @@ merged.
     About 200 lines. Blocked by 9.
 11. **Direct sums and reindexing, as algebra.**
     `LinearAlgebra/Symplectic/Lagrangian/Sum.lean`: `ℒ.sum`, `ℒ.reindex` and
-    their compatibilities, with `isSymplectomorphism_piLpCongrLeft_sumCongr`
-    in `Standard/Basic.lean`; and §1's `StdSpace.sumEquiv` with its two
+    their compatibilities, using the existing
+    `isSymplectomorphism_piLpCongrLeft_sumCongr` from
+    `Ellipsoid/NormalForm.lean`; and §1's `StdSpace.sumEquiv` with its two
     lemmas, if the *Symplectic vector bundles* issue that builds it has not
     merged first. About 300 lines. Blocked by 6.
 12. **Direct sums and reindexing, topology.**
