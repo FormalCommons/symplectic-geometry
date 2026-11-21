@@ -168,10 +168,9 @@ theorem ContMDiffRiemannianMetric.mem_polarDomain_arrowCongr {n : WithTop ℕ∞
     e.nondegenerate_arrowCongr_sub_flip_iff.2 hσ⟩
 
 /-- Along a map `f` of class `Cⁿ` into the base, the reading of a bundle metric of class `Cⁿ` in
-the trivialization at `f y`, `y' ↦ inCoordinates … (f y) (f y') (f y) (f y') (g (f y'))`, is of
-class `Cⁿ` at `y`. -/
+the trivialization at `f y`, `y' ↦ inCoordinates … (f y) (f y') (f y) (f y') (g.inner (f y'))`,
+is of class `Cⁿ` at `y`. -/
 theorem ContMDiffRiemannianMetric.contMDiffAt_inCoordinates_inner {n : WithTop ℕ∞}
-    [∀ x, IsTopologicalAddGroup (V x)] [∀ x, ContinuousSMul ℝ (V x)]
     (g : ContMDiffRiemannianMetric I n F V) {EN HN N : Type*} [NormedAddCommGroup EN]
     [NormedSpace ℝ EN] [TopologicalSpace HN] {IN : ModelWithCorners ℝ EN HN} [TopologicalSpace N]
     [ChartedSpace HN N] {f : N → M} {y : N} (hf : ContMDiffAt IN I n f y) :
