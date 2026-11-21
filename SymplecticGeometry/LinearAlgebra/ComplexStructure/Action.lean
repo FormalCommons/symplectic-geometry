@@ -88,9 +88,9 @@ theorem transport_eq_iff_isComplexLinearMap {J : AlmostComplexStructure V}
 linear from `J'` to `J`. -/
 theorem _root_.TauCeti.IsComplexLinearMap.symm_linearEquiv {J : AlmostComplexStructure V}
     {J' : AlmostComplexStructure W} {e : V ≃ₗ[ℝ] W} (h : IsComplexLinearMap J J' e.toLinearMap) :
-    IsComplexLinearMap J' J e.symm.toLinearMap := by
-  rw [← (transport_eq_iff_isComplexLinearMap e).2 h]
-  exact isComplexLinearMap_symm_transport J e
+    IsComplexLinearMap J' J e.symm.toLinearMap :=
+  (isComplexLinearMap_iff_isComplexLinear _ _ _).2
+    ((isComplexLinearMap_iff_isComplexLinear _ _ _).1 h).symm
 
 /-- An endomorphism of `V` is complex linear for `J` exactly when it commutes with `J`. -/
 theorem isComplexLinearMap_self_iff_commute (J : AlmostComplexStructure V) (f : Module.End ℝ V) :

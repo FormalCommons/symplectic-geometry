@@ -321,11 +321,7 @@ theorem compatible_iff_exists_isSymplectomorphism_stdForm [FiniteDimensional ℝ
     simp only [Fintype.card_prod, Fintype.card_fin] at this
     omega
   let σ : ι ≃ Fin n := Fintype.equivFinOfCardEq hn
-  have hDs : IsComplexLinearMap (AlmostComplexStructure.product _) J
-      b.darbouxBasisEquiv.symm.toLinearMap := by
-    rw [← (AlmostComplexStructure.transport_eq_iff_isComplexLinearMap _).2
-      (b.isComplexLinearMap_darbouxBasisEquiv hbJ)]
-    exact AlmostComplexStructure.isComplexLinearMap_symm_transport J _
+  have hDs := (b.isComplexLinearMap_darbouxBasisEquiv hbJ).symm_linearEquiv
   refine ⟨(LinearIsometryEquiv.piLpCongrLeft 2 ℝ ℝ (σ.sumCongr σ)).toLinearEquiv.trans
       ((EuclideanSpace.sumEquivProd (𝕜 := ℝ)).toLinearEquiv.trans b.darbouxBasisEquiv.symm),
     (isSymplectomorphism_piLpCongrLeft_sumCongr σ).trans

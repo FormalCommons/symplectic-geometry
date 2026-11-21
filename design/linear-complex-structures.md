@@ -246,9 +246,10 @@ Declarations about Tau Ceti's type go in its namespace
   (g • J).toLinearMap = toEuclideanLin g ∘ₗ J.toLinearMap ∘ₗ toEuclideanLin (↑g)⁻¹`.
 - `TauCeti.IsComplexLinearMap.symm_linearEquiv
   (h : IsComplexLinearMap J J' e.toLinearMap) :
-  IsComplexLinearMap J' J e.symm.toLinearMap`, for `e : V ≃ₗ[ℝ] W`, from
-  `transport_eq_iff_isComplexLinearMap` and Tau Ceti's
-  `isComplexLinearMap_symm_transport`.
+  IsComplexLinearMap J' J e.symm.toLinearMap`, for `e : V ≃ₗ[ℝ] W`: the
+  bundled form of Tau Ceti's `IsComplexLinear.symm`, obtained through the
+  bridge `isComplexLinearMap_iff_isComplexLinear`, as Tau Ceti does for
+  `IsComplexLinearMap.comp`.
 - `isComplexLinearMap_self_iff_commute :
   IsComplexLinearMap J J f ↔ Commute f J.toLinearMap`, for
   `f : Module.End ℝ V`, and `transport_eq_transport_iff`: for any `J` and
