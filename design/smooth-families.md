@@ -102,6 +102,12 @@ No statement of this part is one that the authors' errata
   `Analysis/SpecialFunctions/SmoothTransition.lean` has the derivative of
   `Real.smoothTransition` outside $[0,1]$ (`deriv_of_neg`, `deriv_of_one_lt`)
   and its integral, but not that it is positive on $(0,1)$; the part adds it.
+  Neither library has a smooth map from `ℝ` into a slightly larger open
+  interval that is the identity on a closed interval. *Moser isotopy* and
+  *Contact geometry* compose with such a map in time, and the part adds it.
+  Tau Ceti's `TauCeti.exists_contDiff_odd_truncation` is the identity on
+  `[-r, r]` but does not bound its values between `r` and `R`, so the part
+  builds the map from Mathlib's `ContDiffBump` instead.
 - **Embeddings.** Mathlib's `exists_embedding_euclidean_of_compact`
   (`Geometry/Manifold/WhitneyEmbedding.lean`): a compact Hausdorff manifold
   has a smooth closed embedding into some `EuclideanSpace ℝ (Fin N)` with
@@ -209,12 +215,24 @@ No statement of this part is one that the authors' errata
 
 ### `Analysis/SpecialFunctions/SmoothTransition.lean`
 
-Named like Tau Ceti's file; in Mathlib's namespace `Real.smoothTransition`.
+Named like Tau Ceti's file; in Mathlib's namespace `Real.smoothTransition`,
+except for the reparametrization, which is in `SymplecticGeometry`.
 
 - `Real.smoothTransition.deriv_pos {x : ℝ} (h₀ : 0 < x) (h₁ : x < 1) :
   0 < deriv Real.smoothTransition x`, from the quotient
   $f(x)/(f(x)+f(1-x))$ and the positive derivative of
   `expNegInvGlue` on $(0,\infty)$ (Tau Ceti's `expNegInvGlue.hasDerivAt`).
+- `SymplecticGeometry.exists_contDiff_eqOn_id_Icc_mem_Ioo {a b ε : ℝ}
+  (hab : a ≤ b) (hε : 0 < ε) : ∃ c : ℝ → ℝ, ContDiff ℝ ∞ c ∧
+  Set.EqOn c id (Set.Icc a b) ∧ ∀ t, c t ∈ Set.Ioo (a - ε) (b + ε)`. Proof:
+  let $m=(a+b)/2$, let $f$ be a `ContDiffBump m` with radii
+  $(b-a)/2+\varepsilon/2$ and $(b-a)/2+\varepsilon$, and set
+  $c(t)=m+f(t)(t-m)$. Then $f=1$ on $[a,b]$
+  (`ContDiffBump.one_of_mem_closedBall`). Since $0\le f\le1$ and $f$
+  vanishes off the open ball (`ContDiffBump.support_eq`),
+  $|c(t)-m|<(b-a)/2+\varepsilon$. The case $a=b$ is included. The statement
+  does not mention `Real.smoothTransition`. It sits in this file because Tau
+  Ceti keeps its truncations in its file of the same name.
 
 ### `Analysis/Calculus/ContDiff/FTaylorSeries.lean`
 
@@ -444,20 +462,32 @@ Named like Tau Ceti's file; in `TauCeti`.
 - `IsSmoothlyContractible.hasFiniteGoodCover` (one set is a good cover), as
   the example of the predicate.
 
+### `Geometry/Manifold/MFDeriv/Chart.lean`
+
+Differentials of maps into normed spaces read in an extended chart not
+centred at the point, used by `Immersion/TangentProjection.lean`: the
+`mvfderiv` and off-centre forms of Tau Ceti's
+`TauCeti.mfderiv_eq_fderiv_comp_mfderiv_extChartAt` and
+`TauCeti.range_mvfderiv_eq_range_fderiv_comp_extChartAt_symm`.
+
 ### `Geometry/Manifold/Immersion/TangentProjection.lean`
 
 The local graph charts of a compact manifold in a Euclidean space [Weil1952,
-§1, pp. 120–122]. For a boundaryless `M`, a smooth `e : M → EuclideanSpace ℝ
-(Fin N)` with injective derivatives, and $x\in M$, let $P_x$ be the orthogonal
-projection onto the range of `mfderiv I _ e x`.
+§1, pp. 120–122]. For a boundaryless `M`, a smooth `e : M → F` into a real
+inner product space (such as `EuclideanSpace ℝ (Fin N)`) with injective
+derivatives, and $x\in M$, let $P_x$ be the orthogonal projection onto the
+range of `mvfderiv I e x`.
 
 - `SymplecticGeometry.tangentProjectionChart`: near each `x`, the map
   $z\mapsto P_x(e(z)-e(x))$, as a partial diffeomorphism from a neighbourhood
   of `x` onto an open subset of that range, by the inverse function theorem.
-- `exists_uniform_tangentProjectionChart` for compact `M` and a closed
-  embedding `e`: one radius $r>0$ such that, for every `x`, the chart is
-  defined on $\{z:\|e(z)-e(x)\|<r\}$, and its inverse has second derivative
-  bounded uniformly in `x` there.
+- `exists_uniform_tangentProjectionChart` for compact `M` and an injective
+  `e`: one radius $r>0$ and one bound for each order such that, for every `x`,
+  some partial diffeomorphism given by $z\mapsto P_x(e(z)-e(x))$ on its source
+  is defined on $\{z:\|e(z)-e(x)\|<r\}$, reaches the ball of radius $r$ about
+  $0$, and has an inverse whose composite with `e` has derivatives of every
+  order bounded on its target. It is not `tangentProjectionChart`, whose
+  source is a choice.
 
 ### `Geometry/Manifold/DeRham/GoodCover/Compact.lean`
 
@@ -465,7 +495,8 @@ projection onto the range of `mfderiv I _ e x`.
   the chart at `x`, each function $u\mapsto\|e(\varphi_x^{-1}u)-e(y)\|^2$, for
   $\|e(y)-e(x)\|<r$, is strictly convex on a convex neighbourhood of the
   image of the ball (its second derivative is $2\,\mathrm{id}$ up to a term
-  bounded by $\|e(\varphi_x^{-1}u)-e(y)\|$ times the bound above).
+  bounded by $\|e(\varphi_x^{-1}u)-e(y)\|$ times the bound above on second
+  derivatives).
 - `hasFiniteGoodCover_of_compactSpace [CompactSpace M] [T2Space M]
   [BoundarylessManifold I M] [FiniteDimensional ℝ E] [IsManifold I ∞ M] :
   HasFiniteGoodCover I M`: cover $M$ by finitely many sets
@@ -642,11 +673,11 @@ In `TauCeti.Diffeotopy`, for `[FiniteDimensional ℝ E] [IsManifold I ∞ M]
   `SymplecticIsotopy.lean`) and `ContMDiff/TimeExtension.lean` with
   `timeExtend_eq_zero` (for `Flux/CompactSupport.lean`); *Moser isotopy* uses
   `exists_isSmoothFamily_mextDerivₗ_eq`, `hasFiniteGoodCover_of_compactSpace`,
-  `DifferentialForm/TimeExtension.lean` (to pass its primitives to `ℝ × M`)
-  and `ofReal`; *Isotopy extension* uses both `TimeExtension.lean` files and
+  `DifferentialForm/TimeExtension.lean` (to pass its primitives to `ℝ × M`),
+  `exists_contDiff_eqOn_id_Icc_mem_Ioo` and `ofReal`; *Isotopy extension* uses both `TimeExtension.lean` files and
   the `FiniteDimensional` instance of `SmoothFamily/GoodCover.lean`; *Contact geometry* uses both
   `TimeExtension.lean` files and the bridge, in `Family.lean` and
-  `Gray.lean`.
+  `Gray.lean`, and `exists_contDiff_eqOn_id_Icc_mem_Ioo` in `Family.lean`.
 
 ## Issues
 
@@ -668,7 +699,8 @@ can start at once; each issue's blockers come before it.
    `Geometry/Manifold/DifferentialForm/TimeExtension.lean`. Blocked by 3 and 4.
 7. **Good covers.** `Geometry/Manifold/DeRham/GoodCover/Basic.lean`.
 8. **Tangent projection charts.**
-   `Geometry/Manifold/Immersion/TangentProjection.lean`.
+   `Geometry/Manifold/Immersion/TangentProjection.lean` and
+   `Geometry/Manifold/MFDeriv/Chart.lean`.
 9. **Good covers of compact manifolds.**
    `Geometry/Manifold/DeRham/GoodCover/Compact.lean`. Blocked by 7 and 8.
 10. **Splittings and their consequences.**
@@ -693,6 +725,10 @@ can start at once; each issue's blockers come before it.
     `Geometry/Diffeomorphism/Diffeotopy/OfContMDiff.lean`. Blocked by 2 and 14
     (for the inverse function theorem step it shares with
     `Diffeomorph.contMDiff_symm_eval`).
+16. **A reparametrization equal to the identity on an interval.**
+    `exists_contDiff_eqOn_id_Icc_mem_Ioo` in
+    `Analysis/SpecialFunctions/SmoothTransition.lean`. Blocked by 14, which
+    creates the file. It is much smaller than the others.
 
 ## References
 

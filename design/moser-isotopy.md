@@ -488,9 +488,10 @@ following; its design file, from #466, gives their names.
 2. `DifferentialForm/TimeExtension.lean`: an extension `B` of `β` to `ℝ × M`.
 3. A smooth reparametrization `c : ℝ → ℝ` that is the identity on
    $[0,1]$ and takes values in $(-\varepsilon,1+\varepsilon)$, for a given
-   `ε > 0`. *Manifolds, families and signs* names this step. If
-   `design/smooth-families.md` does not provide it, the building issue
-   proposes it there.
+   `ε > 0`. *Manifolds, families and signs* names this step. It is
+   `exists_contDiff_eqOn_id_Icc_mem_Ioo` of
+   `Analysis/SpecialFunctions/SmoothTransition.lean`, with `a = 0` and
+   `b = 1`.
 4. `Diffeotopy/Real.lean`: the restriction of an isotopy over `ℝ` to a
    `Diffeotopy`.
 
@@ -564,7 +565,7 @@ sub-issues of #472, *Build the part Moser isotopy*. Sizes are estimates.
 | 3 | The cut-off Moser field of a segment of two-forms | `Moser/Field.lean` | — | 350 |
 | 4 | The Moser isotopy fixing a compact submanifold | `Moser/Isotopy.lean` | 1, 3 | 300 |
 | 5 | Darboux charts with prescribed derivative | `Geometry/Symplectic/Manifold/Darboux.lean`, `Geometry/Manifold/LocalDiffeomorph/MFDeriv.lean` | — | 200 |
-| 6 | Moser stability | `Moser/Stability.lean` | 1; the issues of #467 that build `DeRham/SmoothFamily/GoodCover.lean`, `DifferentialForm/TimeExtension.lean` and `Diffeotopy/Real.lean` (#467 itself until it is split) | 250 |
+| 6 | Moser stability | `Moser/Stability.lean` | 1; the issues of #467 that build `DeRham/SmoothFamily/GoodCover.lean`, `DifferentialForm/TimeExtension.lean` and `Diffeotopy/Real.lean`, and the one that adds `exists_contDiff_eqOn_id_Icc_mem_Ioo` (building issue 16) (#467 itself until it is split) | 250 |
 
 Issues 1, 3 and 5 can start at once, and issues 2 and 4 need nothing outside the
 part. The milestones are proved in issues 2 (*Relative Moser theorem with
