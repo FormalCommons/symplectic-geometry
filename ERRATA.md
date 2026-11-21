@@ -67,7 +67,15 @@ Each entry has this form:
   `Matrix.UnitaryGroup.not_bijective_fundamentalGroupMap_detCircle_of_isEmpty`
   (`Analysis/Matrix/UnitaryGroup/FundamentalGroup.lean`); that the fundamental
   group is trivial for an empty index type needs no new lemma, as instance
-  search derives it from the group being a point. The simple connectivity of
+  search derives it from the group being a point. For the symplectic group it
+  is `TauCeti.GLSymplectic.nonempty_fundamentalGroup_mulEquiv_int`, with the
+  isomorphism induced by `TauCeti.GLSymplectic.maslovPhase`
+  (`bijective_fundamentalGroupMap_maslovPhase`), stated for a nonempty index
+  type, with the counterexample
+  `TauCeti.GLSymplectic.not_bijective_fundamentalGroupMap_maslovPhase_of_isEmpty`
+  (`Analysis/Matrix/SymplecticGroup/FundamentalGroup.lean`); again instance
+  search shows that the fundamental group is trivial for an empty index type.
+  The simple connectivity of
   $\mathrm{SU}(n)$ holds for every $n$.
 - **Issue:** #4.
 
