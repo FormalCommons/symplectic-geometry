@@ -655,11 +655,14 @@ Below, `∂ₜ` at `(x, t)` is the tangent vector
 In `TauCeti.Diffeotopy`, for `[FiniteDimensional ℝ E] [IsManifold I ∞ M]
 [BoundarylessManifold I M]`:
 
-- `TauCeti.contMDiff_diffeomorph_symm_apply_unitInterval {ψ : unitInterval →
+- `Diffeomorph.contMDiff_symm_eval_unitInterval {ψ : unitInterval →
   M ≃ₘ⟮I, I⟯ M} (hψ : ContMDiff ((𝓡∂ 1).prod I) I ∞ (fun p ↦ ψ p.1 p.2)) :
-  ContMDiff ((𝓡∂ 1).prod I) I ∞ (fun p ↦ (ψ p.1).symm p.2)`, by the local
-  argument of *Decisions*, with Mathlib's inverse function theorem in
-  normed spaces for the extended chart map and `contDiffOn_seeleyIccExtend`.
+  ContMDiff ((𝓡∂ 1).prod I) I ∞ (fun p ↦ (ψ p.1).symm p.2)`, in Mathlib's
+  namespace `Diffeomorph` as `Diffeomorph.contMDiff_symm_eval` is, by the
+  local argument of *Decisions*, with Mathlib's implicit function theorem
+  in normed spaces, through `ContDiffAt.exists_contDiffAt_eventually_apply_eq`
+  (`Analysis/Calculus/ImplicitContDiff.lean`, in the root namespace), for
+  the extended chart map and `contDiffOn_seeleyIccExtend`.
 - `ofContMDiff (ψ : unitInterval → M ≃ₘ⟮I, I⟯ M) (hψ : …) (h₀ : ∀ x, ψ 0 x =
   x) : Diffeotopy I ∞ M`, with `ofContMDiff_apply` and `timeSlice_ofContMDiff
   : (ofContMDiff ψ hψ h₀).timeSlice t = ψ t`.
@@ -722,7 +725,8 @@ can start at once; each issue's blockers come before it.
     `Geometry/Manifold/SmoothTransition.lean` and
     `Geometry/Diffeomorphism/Diffeotopy/Real.lean`.
 15. **Diffeotopies from families of diffeomorphisms.**
-    `Geometry/Diffeomorphism/Diffeotopy/OfContMDiff.lean`. Blocked by 2 and 14
+    `Geometry/Diffeomorphism/Diffeotopy/OfContMDiff.lean` and
+    `Analysis/Calculus/ImplicitContDiff.lean`. Blocked by 2 and 14
     (for the inverse function theorem step it shares with
     `Diffeomorph.contMDiff_symm_eval`).
 16. **A reparametrization equal to the identity on an interval.**
