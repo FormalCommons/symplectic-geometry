@@ -5,7 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import TauCeti.Geometry.Manifold.TubularNeighborhood.RelativePoincare
+public import SymplecticGeometry.Geometry.Manifold.TubularNeighborhood.RelativePoincare
 public import TauCeti.Geometry.Symplectic.Manifold.Flat
 import TauCeti.Geometry.Manifold.DifferentialForm.Flow.Family
 import TauCeti.Geometry.Manifold.DifferentialForm.Opens
@@ -32,7 +32,8 @@ compact, and the image `f(Q)` need not be closed.
 The proof is Moser's argument along a flow that is only partially defined.
 
 1. Tau Ceti's relative Poincaré lemma
-   (`TauCeti.SmoothEmbedding.exists_isSmoothForm_relative_primitive`) gives, on a tube `W`
+   (`TauCeti.SmoothEmbedding.exists_isSmoothForm_relative_primitive`, in the form of
+   `TauCeti.SmoothEmbedding.exists_smoothForm_relative_primitive_sub`) gives, on a tube `W`
    around `f(Q)`, a primitive `β` of `σ₁ - σ₀` that vanishes along `f(Q)`. Since `σ₁ - σ₀`
    vanishes at the points of `f(Q)` as a form on the ambient tangent spaces, the coordinate
    expressions of `β` also have zero derivative there.
@@ -230,24 +231,22 @@ private theorem exists_partialDiffeomorph_opens_of_eq_along (f : SmoothEmbedding
     exact hs ▸ hnd q
   -- A primitive of `σ₁ - σ₀` on a tube `W` around `f(Q)` on which the segment is nondegenerate,
   -- vanishing with its first jet along `f(Q)`.
-  obtain ⟨W, hWO, hfW, hprim⟩ := f.exists_isSmoothForm_relative_primitive (F := ℝ)
-    (isOpen_setOf_forall_mem_Icc_nondegenerate σ₀ σ₁) hfO
-  obtain ⟨βW, hβW, hdβW, hβW0, hβW1⟩ := hprim (k := 1) (r := ⊤) le_top (σ₁ - σ₀).isSmoothForm
-    ((SmoothForm.isClosed_def _).1 (h₁.sub h₀)) (funext fun q ↦ by
+  have hf : SmoothForm.mpullback f f.contMDiff σ₁ = SmoothForm.mpullback f f.contMDiff σ₀ :=
+    Subtype.ext (funext fun q ↦ by
       ext v
-      simp only [mpullback_apply, hη q, ContinuousAlternatingMap.coe_zero, Pi.zero_apply])
+      rw [SmoothForm.coe_mpullback, SmoothForm.coe_mpullback, mpullback_apply, mpullback_apply,
+        heq q])
+  obtain ⟨W, hWO, hfW, βW, hdβW, hβW0, hβW1⟩ := f.exists_smoothForm_relative_primitive_sub h₀ h₁
+    hf (isOpen_setOf_forall_mem_Icc_nondegenerate σ₀ σ₁) hfO
   -- Moser's argument on `W`, with the restricted forms.
-  let res := SmoothForm.mpullback (I := I) (I' := I) (F := ℝ) (k := 2) (Subtype.val : W → M)
-    contMDiff_subtypeVal
   obtain ⟨Φ, hΦf, hΦ⟩ := exists_partialDiffeomorph_mpullback_eq_of_mextDeriv_eq_sub
-    (σ₀ := res σ₀) (σ₁ := res σ₁) (h₀.mpullback _ _) (β := ⟨βW, hβW.mem_smoothBundleForms⟩)
-    (by rw [hdβW, ← map_sub]; exact (SmoothForm.coe_mpullback _ _ _).symm)
+    (h₀.mpullback _ _) hdβW
     (fun x s hs ↦ by
       rw [← map_sub, ← map_smul, ← map_add]
       exact (nondegenerate_bilinFormAt_mpullback_subtype_val_iff x).2 (hWO x.property s hs))
   refine ⟨W, Φ, fun q ↦ ?_, fun x hx ↦ ?_⟩
   · obtain ⟨hq, hfix, hjet⟩ := hΦf ⟨f q, hfW (mem_range_self q)⟩ (hβW0 q)
-    exact ⟨hfW (mem_range_self q), hq, hfix, hjet (hβW1 q (hη q))⟩
+    exact ⟨hfW (mem_range_self q), hq, hfix, hjet (hβW1 q (heq q))⟩
   · rw [← SmoothForm.coe_mpullback _ contMDiff_subtypeVal, hΦ x hx,
       SmoothForm.coe_mpullback_subtype_val_apply]
 

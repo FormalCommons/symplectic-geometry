@@ -118,7 +118,7 @@ The part owns the folder `Geometry/Symplectic/Moser/`, except
 `Moser/Family.lean`, a file of *Isotopy extension*
 (`design/isotopy-extension.md`). Tau Ceti has the
 files `Geometry/Symplectic/Manifold/Moser.lean` and `RelativeMoser.lean`, so
-this library may not have folders with those names. The seven files outside
+this library may not have folders with those names. The eight files outside
 that folder have the names of the Tau Ceti files they extend, so that they
 can join them.
 
@@ -135,6 +135,7 @@ can join them.
 | `Geometry/Manifold/DifferentialForm/Smooth.lean` | `TauCeti.SmoothForm.bilinFormAt` of sums, real multiples, zero, negatives and differences of two-forms | — |
 | `Geometry/Manifold/DifferentialForm/Opens.lean` | the pull-back of restricted forms along a partial diffeomorphism of open subsets, read in the ambient manifolds as a diffeomorphism between its source and its target (`PartialDiffeomorph.mpullback_toDiffeomorphSourceTarget_liftOpens`) | — |
 | `Geometry/Symplectic/Manifold/TwoForm.lean` | a smooth map whose differential at a point is a linear symplectomorphism for two nondegenerate two-forms pulls the second back to the first at that point (`TauCeti.SmoothTwoForm.coe_mpullback_apply_eq_of_mfderiv_eq`) | — |
+| `Geometry/Manifold/TubularNeighborhood/RelativePoincare.lean` | a primitive of the difference of two closed forms with the same pullback to `f(Q)`, as a smooth form on a tube around `f(Q)` | — |
 
 ### `Geometry/Symplectic/Manifold/Family.lean`
 
@@ -195,6 +196,20 @@ The file has the name of Tau Ceti's file that defines
 `f` with `f x₀ = x₁` and `mfderiv I₀ I₁ f x₀ = A`, `A` a linear
 symplectomorphism for `hω₀.symplecticFormAt x₀` and `hω₁.symplecticFormAt x₁`,
 `(SmoothForm.mpullback f hf ω₁).val x₀ = ω₀.val x₀`.
+
+### `Geometry/Manifold/TubularNeighborhood/RelativePoincare.lean`
+
+The file has the name of Tau Ceti's file that proves
+`TauCeti.SmoothEmbedding.exists_isSmoothForm_relative_primitive`. It is in
+the namespace `TauCeti.SmoothEmbedding`.
+
+- `exists_smoothForm_relative_primitive_sub`: for a smooth embedding `f`,
+  closed `η₀ η₁ : SmoothForm I M F (k + 1)` with `f^* η₁ = f^* η₀`, and an
+  open `O ⊇ range f`, a tube `W` with `range f ⊆ W ⊆ O` and
+  `β : SmoothForm I W F k` with `dβ` the difference of the restrictions of
+  `η₁` and `η₀` to `W`. It vanishes at every `f q`, and its chart expression
+  has zero derivative at each `f q` where `η₁` and `η₀` agree. Step 1 of
+  `Relative.lean` and of `Isotopy.lean` both use it.
 
 ### `Geometry/Symplectic/Manifold/Flat.lean`
 
