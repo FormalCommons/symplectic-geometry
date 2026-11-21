@@ -170,16 +170,6 @@ noncomputable def complexStructurePolarRetraction :
 
 variable {ι}
 
-/-- The matrix of the polar retraction of `J` is the orthogonal polar factor of the matrix
-of `J`. -/
-theorem complexStructurePolarRetraction_apply (J : AlmostComplexStructure (StdSpace ι)) :
-    (homeomorphMatrix (ι ⊕ ι) (complexStructurePolarRetraction ι J) :
-        Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ) =
-      J.toGeneralLinearGroup.polarUnitary := by
-  change (homeomorphMatrix (ι ⊕ ι) (polarDeformationAux 1 J) : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ) = _
-  rw [homeomorphMatrix_polarDeformationAux, polarDeformation_one]
-  rfl
-
 /-- The polar retraction fixes the orthogonal complex structures. -/
 theorem complexStructurePolarRetraction_of_mem {J : AlmostComplexStructure (StdSpace ι)}
     (hJ : J ∈ orthogonalComplexStructures ι) :
@@ -211,6 +201,17 @@ theorem complexStructurePolarHomotopy_apply (t : I) (J : AlmostComplexStructure 
         Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ) =
       polarDeformation J.toGeneralLinearGroup t :=
   homeomorphMatrix_polarDeformationAux _ J
+
+/-- The matrix of the polar retraction of `J` is the orthogonal polar factor of the matrix
+of `J`. -/
+theorem complexStructurePolarRetraction_apply (J : AlmostComplexStructure (StdSpace ι)) :
+    (homeomorphMatrix (ι ⊕ ι) (complexStructurePolarRetraction ι J) :
+        Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ) =
+      J.toGeneralLinearGroup.polarUnitary := by
+  have h := (complexStructurePolarHomotopy ι).apply_one J
+  rw [ContinuousMap.comp_apply, ContinuousMap.subtypeVal_apply] at h
+  rw [← h, complexStructurePolarHomotopy_apply, Set.Icc.coe_one, polarDeformation_one,
+    Unitary.val_toUnits_apply]
 
 variable (ι)
 

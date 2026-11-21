@@ -20,6 +20,8 @@ complex structures.
 
 ## Main results
 
+* `Units.star_mul_self_eq_inverse_of_mul_self_eq_neg_one`: in a star ring, a unit `a` with
+  `a * a = -1` has `a⋆ a = (a a⋆)⁻¹`.
 * `Units.polarUnitary_mul_rpow_mul_star_of_mul_self_eq_neg_one`: for a unit `a` with `a * a = -1`,
   conjugation by its unitary polar factor sends `√(a a⋆) ^ s` to `√(a a⋆) ^ (-s)`.
 
@@ -33,12 +35,12 @@ public section
 
 open Ring
 
-variable {A : Type*} [PartialOrder A] [Ring A] [StarRing A] [StarOrderedRing A]
-
 namespace Units
 
+variable {A : Type*} [Ring A] [StarRing A]
+
 /-- If `a * a = -1`, then `a⋆ a` is the inverse of `a a⋆`. -/
-private theorem star_mul_self_eq_inverse_of_mul_self_eq_neg_one (a : Aˣ) (ha : (a : A) * a = -1) :
+theorem star_mul_self_eq_inverse_of_mul_self_eq_neg_one (a : Aˣ) (ha : (a : A) * a = -1) :
     star (a : A) * a = ((a : A) * star (a : A))⁻¹ʳ := by
   have hmul : (a : A) * star (a : A) * (star (a : A) * a) = 1 := by
     have hs : star (a : A) * star (a : A) = -1 := by rw [← star_mul, ha, star_neg, star_one]
@@ -46,11 +48,12 @@ private theorem star_mul_self_eq_inverse_of_mul_self_eq_neg_one (a : Aˣ) (ha : 
         = a * (star (a : A) * star (a : A)) * a := by noncomm_ring
       _ = 1 := by rw [hs, mul_neg_one, neg_mul, ha, neg_neg]
   simpa using ((inverse_mul_eq_iff_eq_mul _ 1 _
-    (isStrictlyPositive_mul_star a).isUnit).2 hmul.symm).symm
+    (a.isUnit.mul a.isUnit.star)).2 hmul.symm).symm
 
 end Units
 
-variable [TopologicalSpace A] [Algebra ℝ A] [ContinuousFunctionalCalculus ℝ A IsSelfAdjoint]
+variable {A : Type*} [PartialOrder A] [Ring A] [StarRing A] [StarOrderedRing A]
+  [TopologicalSpace A] [Algebra ℝ A] [ContinuousFunctionalCalculus ℝ A IsSelfAdjoint]
   [NonnegSpectrumClass ℝ A] [IsSemitopologicalRing A] [T2Space A]
 
 namespace Units
@@ -66,18 +69,10 @@ theorem polarUnitary_mul_rpow_mul_star_of_mul_self_eq_neg_one (a : Aˣ) (ha : (a
   set u := a.polarUnitary
   have hP : IsStrictlyPositive P := isStrictlyPositive_sqrt_mul_star a
   have hu : (u : A) * star (u : A) = 1 := Unitary.mul_star_self_of_mem u.property
-  -- `u⋆ (a a⋆) u = a⋆ a = (a a⋆)⁻¹`, and taking square roots, `u⋆ P u = P⁻¹`.
-  have hstar : star (u : A) * ((a : A) * star (a : A)) * u = ((a : A) * star (a : A))⁻¹ʳ := by
-    have haP : (a : A) = P * u := (sqrt_mul_star_mul_polarUnitary a).symm
-    have hPP : (a : A) * star (a : A) = P * P :=
-      (CFC.sqrt_mul_sqrt_self _ (mul_star_self_nonneg (a : A))).symm
-    rw [← star_mul_self_eq_inverse_of_mul_self_eq_neg_one a ha, hPP, haP, star_mul,
-      hP.nonneg.isSelfAdjoint.star_eq]
-    noncomm_ring
+  -- `u⋆ P u = √(a⋆ a) = √((a a⋆)⁻¹) = P⁻¹`.
   have hsqrt : star (u : A) * P * u = P⁻¹ʳ := by
-    have h := CFC.sqrt_unitary_mul_mul_star (star u) ((a : A) * star (a : A))
-    simp only [Unitary.coe_star, star_star] at h
-    rw [← h, hstar, CFC.sqrt_ringInverse]
+    rw [← sqrt_star_mul_eq, star_mul_self_eq_inverse_of_mul_self_eq_neg_one a ha,
+      CFC.sqrt_ringInverse]
   have hconj : P = u * P⁻¹ʳ * star (u : A) := by
     rw [← hsqrt]
     calc P = (u * star (u : A)) * P * (u * star (u : A)) := by rw [hu, one_mul, mul_one]
