@@ -1976,6 +1976,9 @@ has either; Tau Ceti's extension across a boundary,
   $\sum_ip_i\,dq_i-dz$ at a point, with Reeb field $-\partial_z$, from Tau
   Ceti's `TauCeti.SmoothForm.IsContactForm.exists_strictDarbouxChart_of_finrank_eq`
   by the change of coordinates of *Manifolds, families and signs*),
+  `Levi.lean` and `Moser.lean` (named like Tau Ceti's files: kernels of
+  local one-forms as smooth hyperplane fields, and the change-of-form law
+  of the contact-Moser vector at one point, both used by `Family.lean`),
   `Family.lean` (named like Tau Ceti's file: `IsContactFamily`, smooth
   families over $[0,1]$ of contact structures that need not be
   coorientable, and their local defining forms over `ℝ`, through the time
