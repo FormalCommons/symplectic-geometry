@@ -642,7 +642,7 @@ it into issues; the overview fixes its folders and its dependencies.
   `Matrix.toEuclideanLin (Matrix.fromRows X Y)`), and
   `LinearAlgebra/Matrix/SelfAdjoint.lean` (`Matrix.finrank_selfAdjoint`:
   the symmetric $n\times n$ matrices have dimension $n(n+1)/2$, from Tau
-  Ceti's `LinearMap.BilinForm.finrank_symmSubmodule`). Three more general
+  Ceti's `LinearMap.BilinForm.finrank_symmSubmodule`). Four more general
   files serve it too:
   `Analysis/InnerProductSpace/Projection/Basic.lean`
   (`Submodule.starProjection_map_unitary`: the projection onto `u K`, for a
@@ -651,6 +651,9 @@ it into issues; the overview fixes its folders and its dependencies.
   `Analysis/InnerProductSpace/PiL2.lean`
   (`Matrix.piLpCongrLeft_toEuclideanLin_apply`: relabelling coordinates
   along `e` turns the action of `M` into that of `reindex e e M`),
+  `Analysis/Matrix/EuclideanLin.lean`
+  (`Matrix.coe_toLinearEquiv_toEuclideanCLE`: the linear equivalence of an
+  invertible matrix `A` is `Matrix.toEuclideanLin A` as a linear map),
   `Analysis/Normed/Lp/PiLp.lean`
   (`LinearIsometryEquiv.piLpCongrLeft_trans`: relabelling along `e`, then
   along `f`, is relabelling along `e.trans f`). Two files under
@@ -888,7 +891,8 @@ it into issues; the overview fixes its folders and its dependencies.
   `SymplecticForm V`), with the general file
   `Topology/Algebra/Module/BilinearForm.lean` (a continuous bilinear form in
   finite dimensions is recovered from its bilinear form; the skew part of a
-  continuous bilinear map),
+  continuous bilinear map) and `LinearAlgebra/SesquilinearForm.lean`
+  (an alternating form minus its transpose is twice the form),
   `Geometry/Symplectic/Darboux/EuclideanBasis.lean` (the coordinates of a
   basis adapted to $J$ are complex linear),
   `Geometry/Symplectic/Cayley/Domain.lean` (the open set where Tau Ceti's
@@ -1132,6 +1136,8 @@ it into issues; the overview fixes its folders and its dependencies.
   file has the name of the Mathlib file that defines
   `ContMDiffVectorBundle.continuousAlternatingMap`, so that the two merge
   upstream),
+  `Topology/FiberBundle/Basic.lean` (a fibrewise open condition on a fibre
+  bundle gives an open set of the total space, in Mathlib's namespace),
   `Topology/FiberBundle/ChangeModelFiber.lean` (a fibre bundle read with
   another model fibre along a homeomorphism, in Mathlib's namespaces and at
   Mathlib's fibre-bundle level, since it involves no group),
