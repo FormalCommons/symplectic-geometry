@@ -10,7 +10,9 @@ public import TauCeti.Analysis.ODE.DysonSeries
 public import TauCeti.Geometry.Symplectic.AlmostComplex.Topology
 public import TauCeti.Geometry.Symplectic.Transport
 public import TauCeti.Topology.Algebra.Module.BilinearForm
+public import SymplecticGeometry.Analysis.ODE.DysonSeries
 public import SymplecticGeometry.Analysis.Calculus.Deriv.ContinuousLinearMap
+import Mathlib.Analysis.Calculus.FDeriv.Prod
 import SymplecticGeometry.Analysis.Calculus.Deriv.Mul
 import TauCeti.Analysis.ODE.Regularity
 
@@ -50,6 +52,14 @@ an inner product.
   generator pulls `ω t` back to `ω 0`.
 * `SymplecticGeometry.exists_contDiff_isUnit_apply_eq`: the linear Moser lemma on a
   finite-dimensional real vector space.
+* `SymplecticGeometry.moserGenerator_conj`,
+  `SymplecticGeometry.dysonSeriesLeft_moserGenerator_conj`:
+  moving the forms along a linear isomorphism `e` conjugates the generator and its propagator
+  by `e`.
+* `SymplecticGeometry.contDiffOn_parametric_moserGenerator`,
+  `SymplecticGeometry.contDiffOn_parametric_dysonSeriesLeft_moserGenerator`: for a family of
+  paths of forms that is `Cⁿ⁺¹` jointly in a parameter from an open set and the time, the
+  generator and its propagator are `Cⁿ` jointly in both.
 * `SymplecticGeometry.dysonSeriesLeft_complexMoserGenerator_mul`: the propagator of the complex
   Moser generator conjugates `J 0` to `J t`.
 * `SymplecticGeometry.exists_contDiff_isUnit_mul_eq_mul`: the analogue for complex structures in
@@ -104,6 +114,31 @@ theorem eq_moserGenerator_iff {t : ℝ} (ht : (ω t).IsInvertible) {A : V →L[�
   ext x
   exact ht.injective (by rw [apply_moserGenerator ht]; exact congr($h x))
 
+section Conj
+
+variable {W : Type*} [NormedAddCommGroup W] [NormedSpace ℝ W]
+
+/-- **Naturality of the Moser generator.** Moving a path of forms along a linear isomorphism
+`e : V ≃L[ℝ] W`, to `(v, w) ↦ ω t (e⁻¹ v) (e⁻¹ w)`, conjugates its Moser generator by `e`. -/
+theorem moserGenerator_conj (e : V ≃L[ℝ] W) (ω : ℝ → V →L[ℝ] V →L[ℝ] ℝ) (t : ℝ) :
+    moserGenerator (fun s => (ω s).bilinearComp (e.symm : W →L[ℝ] V) (e.symm : W →L[ℝ] V)) t =
+      e.conjContinuousAlgEquiv (moserGenerator ω t) := by
+  set A : (V →L[ℝ] ℝ) ≃L[ℝ] (W →L[ℝ] ℝ) := e.arrowCongr (ContinuousLinearEquiv.refl ℝ ℝ)
+  set Φ : (V →L[ℝ] V →L[ℝ] ℝ) ≃L[ℝ] (W →L[ℝ] W →L[ℝ] ℝ) := e.arrowCongr A
+  have hΦ : (fun s => (ω s).bilinearComp (e.symm : W →L[ℝ] V) (e.symm : W →L[ℝ] V)) = Φ ∘ ω := by
+    ext s w w'; rfl
+  have hd : deriv (Φ ∘ ω) t = Φ (deriv ω t) := by
+    have h := ContinuousLinearEquiv.comp_fderiv (𝕜 := ℝ) (E := V →L[ℝ] V →L[ℝ] ℝ)
+      (F := W →L[ℝ] W →L[ℝ] ℝ) Φ (f := ω) (x := t)
+    exact congr($h 1)
+  have hc (σ : V →L[ℝ] V →L[ℝ] ℝ) : Φ σ = (A : _ →L[ℝ] _) ∘L σ ∘L (e.symm : W →L[ℝ] V) := rfl
+  rw [hΦ, moserGenerator_def, moserGenerator_def, hd, Function.comp_apply, hc, hc,
+    ContinuousLinearMap.inverse_equiv_comp, ContinuousLinearMap.inverse_comp_equiv]
+  ext w
+  simp
+
+end Conj
+
 variable [CompleteSpace V]
 
 /-- The Moser generator of a `Cⁿ⁺¹` path of invertible forms is `Cⁿ`. -/
@@ -154,6 +189,64 @@ theorem contDiff_dysonSeriesLeft_moserGenerator {n : ℕ∞} (hω : ContDiff ℝ
   have hA := contDiff_moserGenerator hω hinv
   exact contDiff_succ_of_hasDerivAt_clm_apply ((ContinuousLinearMap.mul ℝ _).contDiff.comp hA)
     fun t => by simpa using hasDerivAt_dysonSeriesLeft hA.continuous t
+
+/-- **Naturality of the linear Moser flow.** Moving a `C¹` path of invertible forms along a linear
+isomorphism `e : V ≃L[ℝ] W` conjugates the propagator of its Moser generator by `e`. -/
+theorem dysonSeriesLeft_moserGenerator_conj {W : Type*} [NormedAddCommGroup W] [NormedSpace ℝ W]
+    [CompleteSpace W] (e : V ≃L[ℝ] W) (hω : ContDiff ℝ 1 ω) (hinv : ∀ t, (ω t).IsInvertible)
+    (t : ℝ) :
+    dysonSeriesLeft
+        (moserGenerator fun s => (ω s).bilinearComp (e.symm : W →L[ℝ] V) (e.symm : W →L[ℝ] V)) t =
+      e.conjContinuousAlgEquiv (dysonSeriesLeft (moserGenerator ω) t) := by
+  have h : moserGenerator (fun s => (ω s).bilinearComp (e.symm : W →L[ℝ] V) (e.symm : W →L[ℝ] V))
+      = fun s => e.conjContinuousAlgEquiv (moserGenerator ω s) :=
+    funext fun s => moserGenerator_conj e ω s
+  rw [h]
+  exact (map_dysonSeriesLeft e.conjContinuousAlgEquiv.continuous
+    (continuous_moserGenerator hω hinv) t).symm
+
+section Parametric
+
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] {U : Set E}
+  {ω : E → ℝ → V →L[ℝ] V →L[ℝ] ℝ}
+
+/-- The Moser generator of a family of paths of invertible forms that is `Cⁿ⁺¹` jointly in a
+parameter from an open set `U` of a normed space and the time is `Cⁿ` jointly in both. -/
+theorem contDiffOn_parametric_moserGenerator {n : ℕ∞} (hU : IsOpen U)
+    (hω : ContDiffOn ℝ (n + 1) (Function.uncurry ω) (U ×ˢ Set.univ))
+    (hinv : ∀ x ∈ U, ∀ t, (ω x t).IsInvertible) :
+    ContDiffOn ℝ n (fun q : E × ℝ => moserGenerator (ω q.1) q.2) (U ×ˢ Set.univ) := by
+  have hO : IsOpen (U ×ˢ (Set.univ : Set ℝ)) := hU.prod isOpen_univ
+  -- The time derivative is the derivative of `Function.uncurry ω` in the direction `(0, 1)`.
+  have hderiv (q : E × ℝ) (hq : q ∈ U ×ˢ Set.univ) :
+      deriv (ω q.1) q.2 = fderiv ℝ (Function.uncurry ω) q (0, 1) := by
+    obtain ⟨x, t⟩ := q
+    have hd : HasFDerivAt (Function.uncurry ω) (fderiv ℝ (Function.uncurry ω) (x, t)) (x, t) :=
+      ((hω.contDiffAt (hO.mem_nhds hq)).differentiableAt (by simp)).hasFDerivAt
+    have h : HasDerivAt (ω x) (fderiv ℝ (Function.uncurry ω) (x, t) (0, 1)) t :=
+      (hd.comp t (hasFDerivAt_prodMk_right x t)).hasDerivAt
+    exact HasDerivAt.deriv (𝕜 := ℝ) (F := V →L[ℝ] V →L[ℝ] ℝ) h
+  have hD : ContDiffOn ℝ n (fun q => fderiv ℝ (Function.uncurry ω) q (0, 1)) (U ×ˢ Set.univ) :=
+    (hω.fderiv_of_isOpen hO le_rfl).clm_apply contDiffOn_const
+  have hI : ContDiffOn ℝ n (fun q : E × ℝ => (ω q.1 q.2).inverse) (U ×ˢ Set.univ) :=
+    fun q hq => ((hinv q.1 hq.1 q.2).contDiffAt_map_inverse.comp (f := Function.uncurry ω) q
+      ((hω.of_le le_self_add).contDiffAt (hO.mem_nhds hq))).contDiffWithinAt
+  refine ((hI.clm_comp hD).const_smul (-(2⁻¹ : ℝ))).congr fun q hq => ?_
+  rw [moserGenerator_def, hderiv q hq]
+
+/-- **Smooth dependence of the linear Moser flow on parameters.** For a family of paths `ω x` of
+invertible forms that is `Cⁿ⁺¹` jointly in a parameter `x` from an open set `U` of a normed space
+and the time, the propagator `dysonSeriesLeft (moserGenerator (ω x)) t` is `Cⁿ` jointly in `x`
+and `t`. -/
+theorem contDiffOn_parametric_dysonSeriesLeft_moserGenerator {n : ℕ∞} (hU : IsOpen U)
+    (hω : ContDiffOn ℝ (n + 1) (Function.uncurry ω) (U ×ˢ Set.univ))
+    (hinv : ∀ x ∈ U, ∀ t, (ω x t).IsInvertible) :
+    ContDiffOn ℝ n (fun q : E × ℝ => dysonSeriesLeft (moserGenerator (ω q.1)) q.2)
+      (U ×ˢ Set.univ) :=
+  contDiffOn_parametric_dysonSeriesLeft hU (p := fun x => moserGenerator (ω x))
+    (contDiffOn_parametric_moserGenerator hU hω hinv)
+
+end Parametric
 
 /-- **The linear Moser lemma.** On a finite-dimensional real space `V`, a `Cⁿ⁺¹` path `t ↦ ω t`
 of skew forms, each nondegenerate, is trivialized by a `Cⁿ⁺¹` path `Ψ` of invertible operators:
