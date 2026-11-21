@@ -2025,7 +2025,9 @@ has either; Tau Ceti's extension across a boundary,
   neighbourhood theorem there, a relative primitive from Tau Ceti's
   `TauCeti.SmoothEmbedding.exists_isSmoothForm_relative_primitive`, and the
   Reeb flow, with the openness of immersions transverse to a vector field
-  from `Geometry/Manifold/Immersion/Transverse.lean` and a smooth injective
+  from `Geometry/Manifold/Immersion/Transverse.lean`, which imports
+  `Topology/Algebra/Module/ContinuousLinearMap/PiProd.lean` (itself importing
+  `LinearAlgebra/Prod.lean`), and a smooth injective
   map of the normal bundle from
   `Geometry/Manifold/TubularNeighborhood/Riemannian/Injective.lean`); and
   `Geometry/Manifold/DifferentialForm/Flow/Family.lean`
