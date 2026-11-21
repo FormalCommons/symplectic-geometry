@@ -59,6 +59,7 @@ namespace TauCeti.GLSymplectic
 
 variable {n : Type*} [Fintype n] [DecidableEq n]
 
+/-- The symplectic polar homotopy fixes every orthogonal symplectic matrix at every time. -/
 @[simp]
 theorem polarHomotopy_apply_inclusion (t : I)
     (U : ↥(GLSymplectic n ℝ ⊓ unitarySubgroup (GL (n ⊕ n) ℝ))) :
