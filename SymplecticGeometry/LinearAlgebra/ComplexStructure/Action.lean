@@ -7,7 +7,7 @@ module
 
 public import Mathlib.LinearAlgebra.UnitaryGroup
 public import TauCeti.Analysis.Matrix.EuclideanLin
-public import TauCeti.Geometry.Symplectic.Transport
+public import TauCeti.Geometry.Symplectic.SymplecticTransport
 
 /-!
 # Linear groups acting on complex structures
@@ -32,6 +32,9 @@ gives actions of the invertible matrices and of the special orthogonal matrices.
   exactly when `e` is complex linear from `J` to `J'`.
 * `TauCeti.AlmostComplexStructure.smul_apply`, `generalLinearGroup_smul_apply`: the actions
   evaluated at a vector.
+* `TauCeti.SymplecticForm.IsSymplectomorphism.compatible_smul_iff`: a linear symplectomorphism
+  `e` of `(V, ω)` preserves and reflects compatibility with `ω`, that is, `ω` is compatible
+  with `e • J` exactly when it is compatible with `J`.
 
 ## References
 
@@ -154,5 +157,18 @@ theorem specialOrthogonalGroup_smul_def (g : Matrix.specialOrthogonalGroup n ℝ
 end Matrix
 
 end TauCeti.AlmostComplexStructure
+
+namespace TauCeti.SymplecticForm
+
+variable {V : Type*} [AddCommGroup V] [Module ℝ V] {ω : SymplecticForm V} {e : V ≃ₗ[ℝ] V}
+
+/-- A linear symplectomorphism `e` of `(V, ω)` preserves and reflects compatibility: `ω` is
+compatible with `e • J = e ∘ J ∘ e⁻¹` exactly when it is compatible with `J`. -/
+theorem IsSymplectomorphism.compatible_smul_iff (he : ω.IsSymplectomorphism ω e)
+    (J : AlmostComplexStructure V) : ω.Compatible (e • J) ↔ ω.Compatible J := by
+  conv_lhs => rw [← isSymplectomorphism_iff_transport_eq.1 he]
+  exact compatible_transport_iff ω J e
+
+end TauCeti.SymplecticForm
 
 end
