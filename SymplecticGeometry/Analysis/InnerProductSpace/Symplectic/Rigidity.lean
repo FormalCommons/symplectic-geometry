@@ -53,8 +53,8 @@ linear nonsqueezing property.
 * `SymplecticGeometry.forall_apply_eq_or_forall_apply_eq_neg_of_hasLinearNonsqueezing`: affine
   rigidity, and `SymplecticGeometry.hasLinearNonsqueezing_and_hasLinearNonsqueezing_symm_iff`,
   its converse included.
-* `SymplecticGeometry.forall_linearSymplecticWidth_image_eq_iff`: a linear map preserves the
-  linear symplectic width of all ellipsoids centred at `0` if and only if `Ψ^* ω₀ = ±ω₀`.
+* `SymplecticGeometry.forall_linearSymplecticWidth_image_eq_iff`: `Ψ^* ω₀ = ±ω₀` holds exactly
+  when `Ψ` leaves unchanged the width of each ellipsoid `{z | Q z ≤ 1}`.
 
 ## References
 
