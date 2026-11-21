@@ -48,8 +48,7 @@ open quotient map, this formula gives the openness and continuity that the chart
   `mem_graphChart_source_iff_isUnit` says it lies in the source iff `X` is invertible, and
   `coe_graphChart_eq_mul_inv` gives its value `Y X⁻¹`.
 * `SymplecticGeometry.LagrangianGrassmannian.continuous_of_coe_eq_graph`: a continuous family of
-  Lagrangians that are graphs `{(x, A t x)}` has continuous `A`. Each such `A t` is symmetric,
-  by `isHermitian_of_coe_eq_graph`.
+  Lagrangians that are graphs `{(x, A t x)}` has continuous `A`.
 
 The construction follows Tau Ceti's graph charts on finite Grassmannians,
 `TauCeti.finiteGrassmannian.graphChart` (`TauCeti/Topology/Grassmannian/Graph.lean`), there
@@ -304,11 +303,6 @@ theorem coe_graphChart_eq_mul_inv {Λ : ℒ ι} {X Y : Matrix ι ι ℝ}
   rw [← coe_graph, hΛ, StdSpace.range_toEuclideanLin_fromRows_eq_graph hX]
 
 end DecidableEq
-
-/-- If a Lagrangian is the graph `{(x, A x)}` of a real matrix `A`, then `A` is symmetric. -/
-theorem isHermitian_of_coe_eq_graph {Λ : ℒ ι} {A : Matrix ι ι ℝ}
-    (hΛ : (Λ : Submodule ℝ (StdSpace ι)) = StdSpace.graph A) : A.IsHermitian :=
-  isHermitian_iff_isSymm.2 ((isLagrangian_graph_iff _).1 (hΛ ▸ Λ.isLagrangian))
 
 /-- A continuous family of Lagrangians that are graphs `{(x, A t x)}` has continuous `A`: the
 matrix `A t` is the value of `γ t` in the chart `graphChart`. -/
