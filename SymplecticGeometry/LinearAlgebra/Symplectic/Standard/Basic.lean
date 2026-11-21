@@ -124,6 +124,17 @@ theorem inner_eq_sum (z w : StdSpace ι) :
     inner ℝ z w = ∑ i, (z.x i * w.x i + z.y i * w.y i) := by
   simp [PiLp.inner_apply, Fintype.sum_sum_type, Finset.sum_add_distrib, mul_comm]
 
+/-- The squares of the `i`-th coordinates `xᵢ` and `yᵢ` of `z` add up to at most `‖z‖²`. -/
+theorem sq_x_add_sq_y_le_norm_sq (z : StdSpace ι) (i : ι) :
+    z.x i ^ 2 + z.y i ^ 2 ≤ ‖z‖ ^ 2 := by
+  classical
+  rw [EuclideanSpace.real_norm_sq_eq, Fintype.sum_sum_type, x_apply, y_apply]
+  gcongr
+  · exact Finset.single_le_sum (f := fun j ↦ z (Sum.inl j) ^ 2) (fun _ _ ↦ sq_nonneg _)
+      (Finset.mem_univ i)
+  · exact Finset.single_le_sum (f := fun j ↦ z (Sum.inr j) ^ 2) (fun _ _ ↦ sq_nonneg _)
+      (Finset.mem_univ i)
+
 end StdSpace
 
 open StdSpace
