@@ -118,13 +118,13 @@ The part owns the folder `Geometry/Symplectic/Moser/`, except
 `Moser/Family.lean`, a file of *Isotopy extension*
 (`design/isotopy-extension.md`). Tau Ceti has the
 files `Geometry/Symplectic/Manifold/Moser.lean` and `RelativeMoser.lean`, so
-this library may not have folders with those names. The four files outside
+this library may not have folders with those names. The five files outside
 that folder have the names of the Tau Ceti files they extend, so that they
 can join them.
 
 | File | Contents | Issue |
 |---|---|---|
-| `Geometry/Symplectic/Manifold/Family.lean` | openness of nondegeneracy for families and segments of two-forms | 1 |
+| `Geometry/Symplectic/Manifold/Family.lean` | openness of nondegeneracy for families and segments of two-forms; the velocity of a reparametrized segment of forms | 1 |
 | `Geometry/Symplectic/Manifold/Flat.lean` | the inverse flat map of a covector field with zero first jet | 1 |
 | `Geometry/Symplectic/Moser/Relative.lean` | the relative Moser theorem with prescribed first derivative, the milestone | 2 |
 | `Geometry/Symplectic/Moser/Field.lean` | `moserField`, the cut-off Moser field of a segment of two-forms | 3 |
@@ -132,11 +132,13 @@ can join them.
 | `Geometry/Symplectic/Manifold/Darboux.lean` | Darboux charts with prescribed derivative, symplectic transitions, the milestone | 5 |
 | `Geometry/Manifold/LocalDiffeomorph/MFDeriv.lean` | the derivative of a transition between partial diffeomorphisms, composed with a differential; the differential of a partial diffeomorphism followed by a continuous linear equivalence (`PartialDiffeomorph.mvfderiv_trans_toDiffeomorph`) | 5 |
 | `Geometry/Symplectic/Moser/Stability.lean` | Moser stability, the milestone | 6 |
+| `Geometry/Manifold/DifferentialForm/Smooth.lean` | `TauCeti.SmoothForm.bilinFormAt` of sums, real multiples, zero, negatives and differences of two-forms | — |
 
 ### `Geometry/Symplectic/Manifold/Family.lean`
 
 The file has the name of Tau Ceti's file on smooth families of nondegenerate
-two-forms. It is in the namespace `TauCeti.SmoothTwoForm`.
+two-forms. It is in the namespace `TauCeti.SmoothTwoForm`, except for the
+velocity of segments, in `TauCeti.SmoothForm`.
 
 - `isOpen_setOf_isInvertible_flat_mpullback_prodMk`: for a smooth two-form
   `σ` on `N × M`, the set of `p : N × M` at which the slice `σ_{p.1}` has an
@@ -152,6 +154,20 @@ two-forms. It is in the namespace `TauCeti.SmoothTwoForm`.
   `SmoothForm.lineMapFamily σ₀ σ₁ contDiff_id` and then Mathlib's
   `generalized_tube_lemma` over `isCompact_Icc`, using
   `isInvertible_flat_iff` to pass between the flat map and nondegeneracy.
+- `SmoothForm.mpullback_prodMk_timeDeriv_lineMapFamily`: the slice at time
+  `t` of the time derivative of `SmoothForm.lineMapFamily α₀ α₁ hc` is
+  `deriv c t • (α₁ - α₀)`, with the `@[simp]` companion
+  `SmoothForm.coe_mpullback_prodMk_lineMapFamily` for the underlying rough forms.
+
+### `Geometry/Manifold/DifferentialForm/Smooth.lean`
+
+The file has the name of Tau Ceti's file that defines
+`TauCeti.SmoothForm.bilinFormAt`. It has the `@[simp]` lemmas
+`TauCeti.SmoothForm.bilinFormAt_add`, `_smul`, `_zero`, `_neg` and `_sub`,
+in the namespace `TauCeti.SmoothForm`, for real smooth two-forms. They
+rewrite the bilinear form at a point of a segment `σ₀ + s • (σ₁ - σ₀)` of
+two-forms. The file is about two-forms in general,
+so any part may import it.
 
 ### `Geometry/Symplectic/Manifold/Flat.lean`
 
@@ -175,7 +191,10 @@ namespace `TauCeti.SmoothTwoForm.IsNondegenerate`.
 
 ### `Geometry/Symplectic/Moser/Relative.lean`
 
-In the namespace `TauCeti.SmoothEmbedding`. The name is that of Tau Ceti's
+In the namespace `TauCeti.SmoothEmbedding`, except for the public step
+`exists_partialDiffeomorph_mpullback_eq_of_mextDeriv_eq_sub` (Moser's
+argument along the local flow), which mentions no embedding and is in
+`TauCeti.SmoothTwoForm`. The milestone's name is that of Tau Ceti's
 compact theorem `TauCeti.SmoothTwoForm.exists_diffeomorph_opens_of_eq_along`,
 in another namespace. It generalizes that theorem and would replace it
 upstream. It is reached by dot notation on `f`, as the relative primitive
@@ -233,8 +252,7 @@ Proof, in four steps.
    Tau Ceti's `PartialDiffeomorph.toDiffeomorphSourceTarget` makes `Φ` a
    diffeomorphism between opens of `N`. Reading these opens as opens of `M`
    gives `U₀`, `U₁` and `φ`. The differential is compared through
-   `Manifold.tangentSpaceOpenEquiv_mfderiv_apply`, as at the end of Tau
-   Ceti's theorem.
+   Tau Ceti's `Manifold.mfderiv_eq_id_iff_of_comp_subtype_val`.
 
 The module docstring credits Tau Ceti's
 `TauCeti.SmoothTwoForm.exists_diffeomorph_fix_embedding_eventually_mpullback_eq`
@@ -488,9 +506,10 @@ following; its design file, from #466, gives their names.
 2. `DifferentialForm/TimeExtension.lean`: an extension `B` of `β` to `ℝ × M`.
 3. A smooth reparametrization `c : ℝ → ℝ` that is the identity on
    $[0,1]$ and takes values in $(-\varepsilon,1+\varepsilon)$, for a given
-   `ε > 0`. *Manifolds, families and signs* names this step. If
-   `design/smooth-families.md` does not provide it, the building issue
-   proposes it there.
+   `ε > 0`. *Manifolds, families and signs* names this step. It is
+   `exists_contDiff_eqOn_id_Icc_mem_Ioo` of
+   `Analysis/SpecialFunctions/SmoothTransition.lean`, with `a = 0` and
+   `b = 1`.
 4. `Diffeotopy/Real.lean`: the restriction of an isotopy over `ℝ` to a
    `Diffeotopy`.
 
@@ -564,7 +583,7 @@ sub-issues of #472, *Build the part Moser isotopy*. Sizes are estimates.
 | 3 | The cut-off Moser field of a segment of two-forms | `Moser/Field.lean` | — | 350 |
 | 4 | The Moser isotopy fixing a compact submanifold | `Moser/Isotopy.lean` | 1, 3 | 300 |
 | 5 | Darboux charts with prescribed derivative | `Geometry/Symplectic/Manifold/Darboux.lean`, `Geometry/Manifold/LocalDiffeomorph/MFDeriv.lean` | — | 200 |
-| 6 | Moser stability | `Moser/Stability.lean` | 1; the issues of #467 that build `DeRham/SmoothFamily/GoodCover.lean`, `DifferentialForm/TimeExtension.lean` and `Diffeotopy/Real.lean` (#467 itself until it is split) | 250 |
+| 6 | Moser stability | `Moser/Stability.lean` | 1; the issues of #467 that build `DeRham/SmoothFamily/GoodCover.lean`, `DifferentialForm/TimeExtension.lean` and `Diffeotopy/Real.lean`, and the one that adds `exists_contDiff_eqOn_id_Icc_mem_Ioo` (building issue 16) (#467 itself until it is split) | 250 |
 
 Issues 1, 3 and 5 can start at once, and issues 2 and 4 need nothing outside the
 part. The milestones are proved in issues 2 (*Relative Moser theorem with
