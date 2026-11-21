@@ -520,25 +520,30 @@ an element of `ℒ ι`.
   `QuadraticMap.associated` gives the crossing form; its `QuadraticMap.polar`
   is twice that.
 - Frame independence of the form itself, `lagrangianCrossingForm_mul_apply`:
-  for `Z` with isotropic image, `g : GL ι ℝ`, any `h : Matrix ι ι ℝ` and `w`
+  for `Z` with isotropic image, any `g h : Matrix ι ι ℝ` and `w`
   in the domain `V.comap (toEuclideanLin (Z * g))`,
-  `lagrangianCrossingForm (Z * g) (Z' * g + Z * h) V w = lagrangianCrossingForm Z Z' V ⟨toEuclideanLin (g : Matrix ι ι ℝ) w, _⟩`,
+  `lagrangianCrossingForm (Z * g) (Z' * g + Z * h) V w = lagrangianCrossingForm Z Z' V ⟨toEuclideanLin g w, _⟩`,
   where the membership proof rewrites `toEuclideanLin (Z * g) w ∈ V` as
   `toEuclideanLin Z (toEuclideanLin g w) ∈ V`. The vector `Z g w` of
   $\Lambda\cap V$ has coordinates `w` in the frame `Z * g` and `g w` in the
   frame `Z`, and both frames give it the same value: the form on
   $\Lambda\cap V$ is one form, read in two coordinate systems. Proof: expand
   by `lagrangianCrossingForm_apply`; the extra term
-  `stdForm ι (Z g w) (Z h w)` vanishes by isotropy. The statement is about
+  `stdForm ι (Z g w) (Z h w)` vanishes by isotropy. Neither step inverts
+  `g`, so the lemma holds for every square `g`; only the corollary below
+  needs `g` invertible. The membership step needs a small helper
+  `Matrix.toEuclideanLin_mul`, which Mathlib lacks (`Matrix.mulVec_mulVec`
+  proves it). The statement is about
   single matrices and needs no derivative: for a change of frame `t ↦ g t`
   with `HasDerivWithinAt g g' (Icc 0 1) t`, the product rule gives the
   derivative `Z' t * g t + Z t * g'` of `Z * g` within `Icc 0 1`, and this
   lemma applies at every `t ∈ Icc 0 1`, ends included. A constant `g` is
   `h = 0`. For the use sites, the corollary
-  `lagrangianCrossingForm_mul_equivalent`,
-  `(lagrangianCrossingForm Z Z' V).Equivalent (lagrangianCrossingForm (Z * g) (Z' * g + Z * h) V)`,
+  `lagrangianCrossingForm_mul_equivalent`, for `g : GL ι ℝ`,
+  `(lagrangianCrossingForm Z Z' V).Equivalent (lagrangianCrossingForm (Z * ↑g) (Z' * ↑g + Z * h) V)`,
   follows: the linear equivalence `w ↦ g w` of the two domains, with inverse
-  `u ↦ g⁻¹ u`, is an isometry by `lagrangianCrossingForm_mul_apply`.
+  `u ↦ g⁻¹ u` (Mathlib's `LinearEquiv.ofSubmodules`), is an isometry by
+  `lagrangianCrossingForm_mul_apply` at `↑g`.
 - Naturality, `lagrangianCrossingForm_symplectic_mul_apply`: for `Ψ`
   symplectic and `u` with `hu : toEuclideanLin Z u ∈ V`,
   `lagrangianCrossingForm (Ψ * Z) (Ψ * Z') (V.map (toEuclideanLin Ψ)) ⟨u, _⟩ = lagrangianCrossingForm Z Z' V ⟨u, hu⟩`,
