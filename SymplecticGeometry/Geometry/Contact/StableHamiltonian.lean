@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 public import TauCeti.Geometry.Contact.Flat
 public import TauCeti.Geometry.Contact.StableHamiltonian
+public import TauCeti.Geometry.Contact.Symplectization.Basic
 public import TauCeti.Geometry.Contact.Volume
 public import TauCeti.Geometry.Manifold.DifferentialForm.Flow
 public import SymplecticGeometry.Topology.Sets.Strip
@@ -49,7 +50,8 @@ Tau Ceti's `TauCeti.Geometry.Contact.StableHamiltonian` with the following.
   `σ_x - r dα_x`. For a stable Hamiltonian structure it is therefore nondegenerate along
   `{0} × M`; on a compact `M` it is symplectic on a strip `(-ε, ε) × M`
   (`SymplecticGeometry.symmStrip`), and wherever it is nondegenerate the kernel of its slice is
-  that of `σ`.
+  that of `σ`. For the contact pair `(α, -dα)` the model is `-d((1 + r) α)`, and where `r > -1`
+  it is the pullback of the symplectization form `d(eˢ (-α))` along `(r, x) ↦ (log (1 + r), x)`.
 
 The proof of `contMDiff_characteristicVectorField` adapts Tau Ceti's proof of
 `TauCeti.SmoothForm.IsContactForm.contMDiff_reebVectorField`, through the inverse of the contact
@@ -80,6 +82,8 @@ of `eᵗ`.
 * `TauCeti.SmoothForm.IsStableHamiltonian.nondegenerate_bilinFormAt_stableHamiltonianModel_zero`,
   `TauCeti.SmoothForm.IsStableHamiltonian.exists_isSymplectic_stableHamiltonianModel`,
   `TauCeti.SmoothForm.IsStableHamiltonian.ker_mpullback_prodMk_stableHamiltonianModel`
+* `TauCeti.SmoothForm.stableHamiltonianModel_neg_mextDerivₗ`,
+  `TauCeti.SmoothForm.mpullback_subtypeVal_stableHamiltonianModel_neg_mextDerivₗ`
 
 ## References
 
@@ -464,6 +468,63 @@ theorem ker_mpullback_prodMk_stableHamiltonianModel [FiniteDimensional ℝ E] {r
   exact LinearMap.mem_ker.1 (hle (hc.reebVector_mem_ker (isAlt_bilinFormAt _ x)))
 
 end IsStableHamiltonian
+
+/-- **The model of the contact pair.** For a one-form `α`, the stable Hamiltonian model of
+`(α, -dα)` is `-d((1 + r) α)` on `ℝ × M`, with `α` pulled back along the projection to `M` and
+`r` the real coordinate. -/
+theorem stableHamiltonianModel_neg_mextDerivₗ (α : SmoothForm I M ℝ 1) :
+    stableHamiltonianModel α (-mextDerivₗ I 1 α) =
+      -mextDerivₗ (𝓘(ℝ).prod I) 1
+        (funSMulₗ (⟨fun p ↦ 1 + p.1, contMDiff_const.add contMDiff_fst⟩ :
+            C^∞⟮𝓘(ℝ).prod I, ℝ × M; ℝ⟯)
+          (mpullback Prod.snd contMDiff_snd α)) := by
+  set g : C^∞⟮𝓘(ℝ).prod I, ℝ × M; ℝ⟯ := ⟨fun p ↦ 1 + p.1, contMDiff_const.add contMDiff_fst⟩
+  set r : C^∞⟮𝓘(ℝ).prod I, ℝ × M; ℝ⟯ := ⟨Prod.fst, contMDiff_fst⟩
+  set β : SmoothForm (𝓘(ℝ).prod I) (ℝ × M) ℝ 1 := mpullback Prod.snd contMDiff_snd α
+  have hsmul : funSMulₗ g β = β + funSMulₗ r β := by
+    apply Subtype.ext
+    rw [add_toRoughForm, coe_funSMulₗ g, coe_funSMulₗ r]
+    funext p
+    simp only [g, r, ContMDiffMap.coeFn_mk, Pi.add_apply, add_smul, one_smul]
+  rw [stableHamiltonianModel_def, map_neg, ← mextDerivₗ_mpullback, hsmul, map_add, neg_add,
+    sub_eq_add_neg]
+
+/-- **The model of the contact pair is a symplectization form.** On an open set `U` of `ℝ × M`
+where `r > -1`, the stable Hamiltonian model of `(α, -dα)` is the pullback of the exterior
+derivative `d(eˢ (-α))` of the symplectization form of `-α` (McDuff–Salamon's `-d(eˢ α)`) along
+`(r, x) ↦ (log (1 + r), x)`. -/
+theorem mpullback_subtypeVal_stableHamiltonianModel_neg_mextDerivₗ (α : SmoothForm I M ℝ 1)
+    {U : TopologicalSpace.Opens (ℝ × M)} (hU : ∀ p ∈ U, -1 < p.1) :
+    mpullback (Subtype.val : U → ℝ × M) contMDiff_subtypeVal
+        (stableHamiltonianModel α (-mextDerivₗ I 1 α)) =
+      mpullback (fun p : U ↦ (Real.log (1 + p.val.1), p.val.2))
+        ((((contMDiff_const.add contMDiff_fst).comp contMDiff_subtypeVal).log
+          fun p ↦ (by linarith [hU p.val p.property] : (0 : ℝ) < 1 + p.val.1).ne').prodMk
+          (contMDiff_snd.comp contMDiff_subtypeVal))
+        (mextDerivₗ (𝓘(ℝ).prod I) 1 (-α).symplectization) := by
+  set g : C^∞⟮𝓘(ℝ).prod I, ℝ × M; ℝ⟯ := ⟨fun p ↦ 1 + p.1, contMDiff_const.add contMDiff_fst⟩
+  rw [stableHamiltonianModel_neg_mextDerivₗ, map_neg, ← mextDerivₗ_mpullback,
+    ← mextDerivₗ_mpullback, ← map_neg]
+  congr 1
+  have hΨ : ContMDiff (𝓘(ℝ).prod I) (𝓘(ℝ).prod I) ∞
+      (fun p : U ↦ (Real.log (1 + p.val.1), p.val.2)) :=
+    (((contMDiff_const.add contMDiff_fst).comp contMDiff_subtypeVal).log
+      fun p ↦ (by linarith [hU p.val p.property] : (0 : ℝ) < 1 + p.val.1).ne').prodMk
+      (contMDiff_snd.comp contMDiff_subtypeVal)
+  -- The map covers `Subtype.val` on the factor `M`, so it pulls `-α` back as `Subtype.val` does.
+  have hβ : mpullback _ hΨ (mpullback Prod.snd contMDiff_snd (-α)) =
+      -mpullback Subtype.val contMDiff_subtypeVal (mpullback Prod.snd contMDiff_snd α) := by
+    rw [mpullback_mpullback_of_comp_eq hΨ contMDiff_snd contMDiff_subtypeVal contMDiff_snd rfl,
+      map_neg, map_neg]
+  -- The pullback of `eˢ (-α)` is `-(1 + r) α`, since `exp (log (1 + r)) = 1 + r`.
+  apply Subtype.ext
+  rw [coe_mpullback, coe_symplectization, TauCeti.mpullback_fun_smul, ← coe_mpullback _ hΨ, hβ,
+    neg_toRoughForm, neg_toRoughForm, coe_mpullback, coe_mpullback, coe_funSMulₗ g,
+    TauCeti.mpullback_fun_smul]
+  funext p
+  rw [Real.exp_log (by linarith [hU p.val p.property])]
+  simp only [g, ContMDiffMap.coeFn_mk, Pi.neg_apply]
+  exact (smul_neg _ _).symm
 
 end Model
 

@@ -136,13 +136,9 @@ private theorem crossing_sum_of_isCompl_vertical {Λ Λ' : ℒ ι} (γ : Path Λ
   set X : ℝ → Matrix ι ι ℝ := fun r ↦ (Z r).toRows₁
   set Y : ℝ → Matrix ι ι ℝ := fun r ↦ (Z r).toRows₂
   have hZXY (r : ℝ) : Z r = fromRows (X r) (Y r) := (fromRows_toRows _).symm
-  have hX (t : I) : IsUnit (X t) := by
-    have hL : (stdForm ι).IsLagrangian
-        (LinearMap.range (toEuclideanLin (fromRows (X t) (Y t)))) := by
-      rw [← hZXY, hZ t]; exact (γ t).isLagrangian
-    have h := (hW t).disjoint
-    rw [← hZ t, hZXY, coe_vertical] at h
-    exact (StdSpace.disjoint_range_toEuclideanLin_fromRows_ker_x_iff_of_isLagrangian hL).1 h
+  have hX (t : I) : IsUnit (X t) :=
+    (mem_graphChart_source_iff_isUnit (by rw [← hZXY, hZ t])).1
+      (by rw [graphChart_source, mem_ofPred_eq]; exact hW t)
   set A : ℝ → Matrix ι ι ℝ := fun r ↦ Y r * (X r)⁻¹
   have hZA (t : I) : Z t * (X t)⁻¹ = fromRows 1 (A t) := by
     rw [hZXY, fromRows_mul, mul_nonsing_inv _ ((isUnit_iff_isUnit_det _).1 (hX t))]
