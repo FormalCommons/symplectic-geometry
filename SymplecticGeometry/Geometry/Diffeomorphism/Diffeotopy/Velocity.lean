@@ -124,7 +124,8 @@ private theorem contMDiff_velocityAux :
   refine ((Φ.contMDiff_cylinderMap.contMDiff_tangentMap (m := ∞) le_rfl).comp hs).congr
     fun p ↦ ?_
   have hb : Φ.cylinderMap (Φ.symm p, p.1) = p.2 := by
-    rw [cylinderMap_apply, coe_apply, symm_apply, apply_symm_apply]
+    rw [cylinderMap_apply]
+    exact Φ.apply_mk_symm_apply p.1 p.2
   have key : ∀ (a b : M) (v : E), a = b → (⟨a, v⟩ : TangentBundle J M) = ⟨b, v⟩ := by
     rintro a _ v rfl
     rfl
