@@ -7,6 +7,7 @@ module
 
 public import TauCeti.Geometry.Manifold.DifferentialForm.Flow.Family
 import TauCeti.Analysis.ODE.ScalarLinear
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Basic
 
 /-!
 # Moser's principle along trajectories of local time-dependent flows
@@ -34,18 +35,18 @@ the derivative read only along the trajectory through
 and `t` in place of the whole domain of the flow, as in Tau Ceti's
 `TauCeti.mpullback_timeDependentFlowOf_mpullback_prodMk_apply_eq_of_forall_mem_uIcc_of_mem`.
 
-The file also applies Tau Ceti's
-`TauCeti.mpullback_timeDependentFlowOf_mpullback_prodMk_apply_eq_of_mem` to the constant family
-`(u, y) ↦ β_y` of a closed form `β` whose contractions `ι_{X_u} β` are all closed: the local
-time-dependent flow preserves `β` wherever it is defined, with no completeness. This is the
-local form of Tau Ceti's `TauCeti.mpullback_timeDependentFlowOf_of_mextDeriv_interior_eq_zero`,
-and gives the preservation of a symplectic form by local time-dependent Hamiltonian flows.
+The file then treats the constant family `(u, y) ↦ β_y` of a form `β` on `M`, whose slices
+are all `β` (`TauCeti.SmoothForm.mpullback_prodMk_mpullback_snd`). If `L_{X_u} β = g_u • β`
+for every time `u`, with `g` continuous, then
+`(φ_{s,t}^* β)ₓ = exp (∫ₛᵗ g (u, φ_{s,u} x) du) • βₓ` wherever the flow is defined: this is Tau
+Ceti's `TauCeti.mpullback_timeDependentFlowOf_mpullback_prodMk_apply_eq_exp_integral_smul_of_mem`
+for the constant family. Contact Hamiltonian flows use it.
 
-The same argument with a rescaling rate gives the eigenform case: if `L_{X_u} β = g_u • β` for
-every time `u`, with `g` continuous, then `(φ_{s,t}^* β)ₓ = exp (∫ₛᵗ g (u, φ_{s,u} x) du) • βₓ`
-wherever the flow is defined. Its proof applies Tau Ceti's
-`TauCeti.mpullback_timeDependentFlowOf_mpullback_prodMk_apply_eq_exp_integral_smul_of_mem` to the
-constant family. Contact Hamiltonian flows use it.
+When `β` is closed and its contractions `ι_{X_u} β` are all closed, Cartan's formula gives
+`L_{X_u} β = 0`, so the case `g = 0` shows that the local time-dependent flow preserves `β`
+wherever it is defined, with no completeness. This is the local form of Tau Ceti's
+`TauCeti.mpullback_timeDependentFlowOf_of_mextDeriv_interior_eq_zero`, and gives the
+preservation of a symplectic form by local time-dependent Hamiltonian flows.
 
 The file also records how slices behave under pullback along `id × f : ℝ × M → ℝ × N`, for a
 smooth `f : M → N`. The slice of `(id × f)^* α` at time `t` is `f^* α_t`, and the slice at time
@@ -59,12 +60,12 @@ slice of `∂_t α`: both are the velocity of `u ↦ f^* α_u`, by Tau Ceti's
   (in full, `…_prodMk_apply_eq_exp_integral_smul_of_forall_mem_uIcc_of_mem`): if the rate is
   `c u • α_u` along the trajectory of `x` between `s` and `t`, then
   `(φ_{s,t}^* α_t)ₓ = exp (∫ₛᵗ c u du) • (α_s)ₓ`.
-* `TauCeti.mpullback_timeDependentFlowOf_apply_of_mextDeriv_interior_eq_zero`: a closed smooth
-  form whose contractions with every `X u` are closed satisfies `(φ_{s,t}^* β)ₓ = βₓ` wherever
-  the flow is defined.
 * `TauCeti.mpullback_timeDependentFlowOf_apply_eq_exp_integral_smul_of_mlieDerivForm_eq`: a smooth
   form with `L_{X_u} β = g_u • β` satisfies `(φ_{s,t}^* β)ₓ = exp (∫ₛᵗ g (u, φ_{s,u} x) du) • βₓ`
   wherever the flow is defined.
+* `TauCeti.mpullback_timeDependentFlowOf_apply_of_mextDeriv_interior_eq_zero`: a closed smooth
+  form whose contractions with every `X u` are closed satisfies `(φ_{s,t}^* β)ₓ = βₓ` wherever
+  the flow is defined.
 * `TauCeti.SmoothForm.mpullback_prodMk_mpullback_prodMap`: `ι_t^* (id × f)^* α = f^* ι_t^* α`.
 * `TauCeti.SmoothForm.mpullback_prodMk_timeDeriv_mpullback_prodMap`: the same for the time
   derivative, `ι_t^* ∂_t ((id × f)^* α) = f^* ι_t^* ∂_t α`.
@@ -142,44 +143,6 @@ mpullback_timeDependentFlowOf_mpullback_prodMk_apply_eq_exp_integral_smul_of_for
   exact eq_exp_integral_smul_of_hasDerivWithinAt_smul (V := E [⋀^Fin k]→L[ℝ] F) ordConnected_uIcc
     hc hP left_mem_uIcc right_mem_uIcc
 
-/-- **Local time-dependent flows preserve closed forms with closed contractions.** Let `X` be a
-jointly `C²` time-dependent vector field and `β` a closed smooth form whose contraction
-`ι_{X_t} β` is closed for every time `t`. Wherever the time-dependent flow `φ` of `X` from
-`(s, x)` is defined up to time `t`, it satisfies `(φ_{s,t}^* β)ₓ = βₓ`. The suspension of `X`
-need not be complete. -/
-theorem mpullback_timeDependentFlowOf_apply_of_mextDeriv_interior_eq_zero
-    (hX : ContMDiff (𝓘(ℝ, ℝ).prod I) I.tangent 2
-      (fun p : ℝ × M ↦ (⟨p.2, X p.1 p.2⟩ : TangentBundle I M)))
-    {β : SmoothForm I M F (k + 1)} (hβ : β.IsClosed)
-    (hXβ : ∀ t, mextDeriv (RoughForm.interior (X t) β.val) = 0)
-    {s t : ℝ} {x : M} (h : ((s, t), x) ∈ timeDependentFlowDomain X) :
-    mpullback I I (timeDependentFlowOf X s t) β.val x = β.val x := by
-  -- The constant family `p ↦ β (p.2)` on `ℝ × M`, whose slices are all `β`.
-  set α := SmoothForm.mpullback (Prod.snd : ℝ × M → M)
-    (contMDiff_snd : ContMDiff (𝓘(ℝ, ℝ).prod I) I ∞ (Prod.snd : ℝ × M → M)) β
-  have hslice (u : ℝ) : mpullback (F := F) (k := k + 1) I (𝓘(ℝ, ℝ).prod I)
-      (Prod.mk u : M → ℝ × M) α.val = β.val := by
-    have hc : (Prod.snd : ℝ × M → M) ∘ Prod.mk u = id := rfl
-    rw [← SmoothForm.coe_mpullback (Prod.mk u) (contMDiff_const.prodMk contMDiff_id),
-      ← LinearMap.comp_apply, ← SmoothForm.mpullback_comp]
-    simp only [hc, SmoothForm.mpullback_id, LinearMap.id_apply]
-  have hL (u : ℝ) : mpullback I (𝓘(ℝ, ℝ).prod I) (Prod.mk u)
-        (mlieDerivForm (fun _ ↦ ((1 : ℝ), (0 : E))) α.val) +
-      mlieDerivForm (X u) (mpullback I (𝓘(ℝ, ℝ).prod I) (Prod.mk u : M → ℝ × M) α.val) = 0 := by
-    funext y
-    -- The slices of the constant family do not move, so their time derivative vanishes.
-    have hd := hasDerivAt_mpullback_prodMk u y (α.mdifferentiable (u, y))
-    simp only [hslice] at hd
-    have hXu : MDifferentiable I I.tangent (fun y ↦ (⟨y, X u y⟩ : TangentBundle I M)) :=
-      (hX.comp ((contMDiff_const (c := u)).prodMk contMDiff_id)).mdifferentiable two_ne_zero
-    rw [Pi.add_apply, hd.unique (hasDerivAt_const u _), hslice,
-      mlieDerivForm_eq_mextDeriv_interior β.mdifferentiable hXu
-        ((SmoothForm.isClosed_def β).1 hβ), hXβ u, Pi.zero_apply]
-    exact add_zero _
-  simpa only [hslice] using
-    mpullback_timeDependentFlowOf_mpullback_prodMk_apply_eq_of_mem hX
-      (α.contMDiff.of_le (by simp)) hL h
-
 /-- **Local time-dependent flows rescale eigenforms of the Lie derivatives.** Let `X` be a
 jointly `C²` time-dependent vector field and `β` a smooth form with `L_{X_u} β = g_u • β` for
 every time `u`, where `g : ℝ × M → ℝ` is continuous. Wherever the time-dependent flow `φ` of `X`
@@ -199,10 +162,8 @@ theorem mpullback_timeDependentFlowOf_apply_eq_exp_integral_smul_of_mlieDerivFor
     (contMDiff_snd : ContMDiff (𝓘(ℝ, ℝ).prod I) I ∞ (Prod.snd : ℝ × M → M)) β
   have hslice (u : ℝ) : mpullback (F := F) (k := k) I (𝓘(ℝ, ℝ).prod I)
       (Prod.mk u : M → ℝ × M) α.val = β.val := by
-    have hc : (Prod.snd : ℝ × M → M) ∘ Prod.mk u = id := rfl
     rw [← SmoothForm.coe_mpullback (Prod.mk u) (contMDiff_const.prodMk contMDiff_id),
-      ← LinearMap.comp_apply, ← SmoothForm.mpullback_comp]
-    simp only [hc, SmoothForm.mpullback_id, LinearMap.id_apply]
+      SmoothForm.mpullback_prodMk_mpullback_snd]
   have hL (u : ℝ) : mpullback I (𝓘(ℝ, ℝ).prod I) (Prod.mk u)
         (mlieDerivForm (fun _ ↦ ((1 : ℝ), (0 : E))) α.val) +
       mlieDerivForm (X u) (mpullback I (𝓘(ℝ, ℝ).prod I) (Prod.mk u : M → ℝ × M) α.val) =
@@ -217,6 +178,29 @@ theorem mpullback_timeDependentFlowOf_apply_eq_exp_integral_smul_of_mlieDerivFor
   simpa only [hslice] using
     mpullback_timeDependentFlowOf_mpullback_prodMk_apply_eq_exp_integral_smul_of_mem hX hg
       (α.contMDiff.of_le (by simp)) hL h
+
+/-- **Local time-dependent flows preserve closed forms with closed contractions.** Let `X` be a
+jointly `C²` time-dependent vector field and `β` a closed smooth form whose contraction
+`ι_{X_t} β` is closed for every time `t`. Wherever the time-dependent flow `φ` of `X` from
+`(s, x)` is defined up to time `t`, it satisfies `(φ_{s,t}^* β)ₓ = βₓ`. The suspension of `X`
+need not be complete. -/
+theorem mpullback_timeDependentFlowOf_apply_of_mextDeriv_interior_eq_zero
+    (hX : ContMDiff (𝓘(ℝ, ℝ).prod I) I.tangent 2
+      (fun p : ℝ × M ↦ (⟨p.2, X p.1 p.2⟩ : TangentBundle I M)))
+    {β : SmoothForm I M F (k + 1)} (hβ : β.IsClosed)
+    (hXβ : ∀ t, mextDeriv (RoughForm.interior (X t) β.val) = 0)
+    {s t : ℝ} {x : M} (h : ((s, t), x) ∈ timeDependentFlowDomain X) :
+    mpullback I I (timeDependentFlowOf X s t) β.val x = β.val x := by
+  -- By Cartan's formula, `β` is an eigenform of every `L_{X_u}`, with eigenvalue `0`.
+  have hL (u : ℝ) : mlieDerivForm (X u) β.val = fun y ↦ (0 : ℝ) • β.val y := by
+    have hXu : MDifferentiable I I.tangent (fun y ↦ (⟨y, X u y⟩ : TangentBundle I M)) :=
+      (hX.comp ((contMDiff_const (c := u)).prodMk contMDiff_id)).mdifferentiable two_ne_zero
+    rw [mlieDerivForm_eq_mextDeriv_interior β.mdifferentiable hXu
+      ((SmoothForm.isClosed_def β).1 hβ), hXβ u]
+    funext y
+    exact (zero_smul ℝ _).symm
+  simpa using mpullback_timeDependentFlowOf_apply_eq_exp_integral_smul_of_mlieDerivForm_eq hX
+    (g := fun _ ↦ 0) continuous_const hL h
 
 end TauCeti
 
