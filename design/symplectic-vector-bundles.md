@@ -135,6 +135,7 @@ variable {EB HB M : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB]
 | `Geometry/Manifold/VectorBundle/Hom.lean` | `contMDiff_hom_bundle_symm`: the fibrewise inverses of a $C^n$ isomorphism of bundles as a $C^n$ section of the hom bundle; `Bundle.Trivial.contMDiff_totalSpaceMk_clm`: a fixed continuous linear map, applied in each fibre, as a $C^n$ map of total spaces of trivial bundles | 1, 3, 25 |
 | `Geometry/Manifold/VectorBundle/ContinuousAlternatingMap.lean` | `contMDiff_compContinuousLinearMap_totalSpace`: precomposition by a $C^n$ hom-bundle section is $C^n$ on total spaces of alternating bundles | 3 |
 | `Geometry/Manifold/VectorBundle/Pullback.lean` | smoothness of sections of the alternating bundle of a pull-back | 18 |
+| `Geometry/Manifold/VectorBundle/Prod.lean` | `Bundle.Prod.contMDiff_prodMap` and `Bundle.Prod.contMDiff_swap`: smoothness on total spaces of the fibrewise product of two maps and of the swap, for fibres with only a zero; `Bundle.Prod.contMDiff_prodCongr` and `Bundle.Prod.contMDiff_prodComm`: the same for bundle isomorphisms | 22 |
 | `Topology/VectorBundle/Pullback.lean` | coordinates of alternating maps on a pull-back bundle; `Bundle.Pullback.neg_fiber`: negatives in a fibre of a pull-back bundle, for `simp` | 18, 20 |
 | `Data/Bundle.lean` | `Bundle.Pullback.eq_iff`: equations in a fibre of a pull-back bundle, for `simp` | 20 |
 | `Geometry/Manifold/VectorBundle/Symplectic/Pullback.lean` | pull-backs of forms, of tame and compatible pairs, of isomorphisms and of frames | 21 |
@@ -164,6 +165,7 @@ says), except its lemma `moserGenerator_conj`, which goes in
 `Analysis/ODE/DysonSeries.lean`, `Section/Topology.lean`, `Section/Generic.lean`,
 `Riemannian/SectionTopology.lean`, `IsManifold/InteriorBoundary.lean`,
 `Topology/Connected/Clopen.lean`, `Geometry/Manifold/VectorBundle/Pullback.lean`,
+`Geometry/Manifold/VectorBundle/Prod.lean`,
 `Topology/VectorBundle/Pullback.lean`,
 `Geometry/Symplectic/Manifold/Volume.lean` and the folders `Boundary/Collar/`
 and `Geometry/Diffeomorphism/Diffeotopy/` have the names of a Tau Ceti or Mathlib file or
@@ -1159,7 +1161,10 @@ on complex structures are in `ContMDiffComplexStructure` and in
   `IsSymplecticFrameOn.nondegenerate_bilinFormAt` (`(ω.bilinFormAt x).Nondegenerate`
   for `x ∈ U`, since `Φ x` carries it to `σ`);
   `IsSymplecticFrameOn.trans` (composing with a symplectic isomorphism `Ψ`
-  from `ω` to `ω'` gives a frame `fun x ↦ (Φ x).trans (Ψ x)` of `ω'`).
+  from `ω` to `ω'` gives a frame `fun x ↦ (Φ x).trans (Ψ x)` of `ω'`);
+  `IsSymplecticFrameOn.precomp` (for a linear symplectomorphism
+  `e : W' ≃L[ℝ] W` from `σ'` to `σ`, `fun x ↦ e.trans (Φ x)` is a frame for
+  `σ'`).
   **Example.** `isSymplecticFrameOn_const`: on `Bundle.Trivial M W'`
   with `const ω'`, a linear symplectomorphism `e : W ≃L[ℝ] W'` from `σ` to
   `ω'` is a frame `fun _ ↦ e` over `univ`. Existence over small open sets is
@@ -1304,12 +1309,12 @@ over the same base, on Mathlib's direct sum `V₁ ×ᵇ V₂` (`Bundle.Prod`, wi
   ContMDiffTwoForm I n (F₁ × F₂) (V₁ ×ᵇ V₂)`, with
   `@[simp] prod_apply`,
   $(\omega_1\oplus\omega_2)_x((v_1,v_2),(w_1,w_2))=\omega_{1,x}(v_1,w_1)+\omega_{2,x}(v_2,w_2)$.
-  Its smoothness: the bilinear section
-  $x\mapsto\omega_{1,x}\circ(\mathrm{fst}\times\mathrm{fst})+\omega_{2,x}\circ(\mathrm{snd}\times\mathrm{snd})$
-  is $C^n$ by Tau Ceti's product criterion
+  Its value at `x` is
+  `(ω₁ x).compContinuousLinearMap fst + (ω₂ x).compContinuousLinearMap snd`
+  (`prod_def`), $C^n$ by Tau Ceti's product criterion
   (`Geometry/Manifold/VectorBundle/Prod.lean`, with `contMDiff_fst` and
-  `contMDiff_snd`), and `ContMDiffTwoForm.ofBilinearSection` turns it into
-  the two-form. `IsNondegenerate.prod`, and
+  `contMDiff_snd`) and `contMDiff_compContinuousLinearMap_totalSpace`.
+  `IsNondegenerate.prod`, and
   `IsNondegenerate.symplecticFormAt_prod`: the symplectic form of the sum at
   `x` is Tau Ceti's `TauCeti.SymplecticForm.prod` of the two
   (`Geometry/Symplectic/Prod/Basic.lean`).
@@ -1323,13 +1328,20 @@ over the same base, on Mathlib's direct sum `V₁ ×ᵇ V₂` (`Bundle.Prod`, wi
   left side of `prod_apply` to a `Prod.map`.
 - `Symplectic/Prod.lean`, the pairs: `Tames.prod` and `Compatible.prod`, from
   Tau Ceti's `SymplecticForm.prod_tames` and `SymplecticForm.prod_compatible`
-  at each point.
+  at each point, and `Invariant.prod`.
 - Isomorphisms: `pushforward_prodCongr`, the sum of two symplectic
   isomorphisms, `fun x ↦ (Φ₁ x).prodCongr (Φ₂ x)` (Mathlib's
   `ContinuousLinearEquiv.prodCongr`), carries `ω₁.prod ω₂` to the sum of the
   images; `pushforward_prodComm`, the fibrewise swap
   `ContinuousLinearEquiv.prodComm` carries `ω₁.prod ω₂` to `ω₂.prod ω₁`.
-  Smoothness of these maps of total spaces is the product criterion.
+  Smoothness of these maps of total spaces is the product criterion:
+  `Bundle.Prod.contMDiff_prodCongr` and `Bundle.Prod.contMDiff_prodComm`,
+  corollaries of `Bundle.Prod.contMDiff_prodMap` and `Bundle.Prod.contMDiff_swap`
+  (fibrewise `Prod.map` and swap, for fibres with only a zero), in
+  the library's `Geometry/Manifold/VectorBundle/Prod.lean` (root namespace,
+  with the path of Tau Ceti's file of the criterion). So
+  `pushforward_prodCongr` takes only the smoothness of `Φ₁` and `Φ₂`, and
+  `pushforward_prodComm` no smoothness hypothesis.
 - Block frames: `IsSymplecticFrameOn.prod`, frames `Φ₁` of `ω₁` for `σ₁`
   and `Φ₂` of `ω₂` for `σ₂` over `U` give the frame
   `fun x ↦ (Φ₁ x).prodCongr (Φ₂ x)` of `ω₁.prod ω₂` for `σ₁.prod σ₂` over
@@ -2034,7 +2046,10 @@ of *Constructions* for *First Chern number*.
     `pushforward_pullback_comp`, `IsSymplecticFrameOn.pullback`,
     `frameTransition_pullback`. Blockers:
     5, 18, 19, 20.
-22. **Direct sums of symplectic bundles.** `Symplectic/Prod.lean`, using
+22. **Direct sums of symplectic bundles.** `Symplectic/Prod.lean`, with
+    `Bundle.Prod.contMDiff_prodMap`, `Bundle.Prod.contMDiff_swap` and their
+    corollaries `Bundle.Prod.contMDiff_prodCongr` and `Bundle.Prod.contMDiff_prodComm`
+    in `Geometry/Manifold/VectorBundle/Prod.lean`, using
     the existing `StdSpace.sumEquiv`: `ContMDiffTwoForm.prod` with its API,
     `Tames.prod`, `Compatible.prod`,
     `pushforward_prodCongr`, `pushforward_prodComm`,

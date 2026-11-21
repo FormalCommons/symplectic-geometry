@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Algebra.Star.Basic
+public import SymplecticGeometry.Algebra.GroupWithZero.Units.Basic
 
 /-!
 # Star rings: elements of square `-1`
@@ -33,8 +34,7 @@ variable {A : Type*} [Ring A] [StarRing A]
 /-- In a star ring, if `a * a = -1`, then `a⋆ a` is the inverse of `a a⋆`. -/
 theorem star_mul_self_eq_inverse_of_mul_self_eq_neg_one {a : A} (ha : a * a = -1) :
     star a * a = (a * star a)⁻¹ʳ := by
-  let u : Aˣ := ⟨a, -a, by rw [mul_neg, ha, neg_neg], by rw [neg_mul, ha, neg_neg]⟩
-  have hinv : a⁻¹ʳ = -a := inverse_unit u
-  rw [inverse_mul (.inl u.isUnit), inverse_star, hinv, star_neg, neg_mul_neg]
+  rw [inverse_mul (.inl (isUnit_of_mul_self_eq_neg_one ha)), inverse_star,
+    inverse_eq_neg_of_mul_self_eq_neg_one ha, star_neg, neg_mul_neg]
 
 end
