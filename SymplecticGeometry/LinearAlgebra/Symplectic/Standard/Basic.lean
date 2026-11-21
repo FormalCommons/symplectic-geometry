@@ -10,6 +10,7 @@ public import Mathlib.LinearAlgebra.Matrix.BilinearForm
 public import Mathlib.LinearAlgebra.SymplecticGroup
 public import TauCeti.Analysis.Complex.Euclidean.Space
 public import TauCeti.Geometry.Symplectic.Complex.CoordinateSpace
+public import TauCeti.Geometry.Symplectic.CompatibleMetric
 public import TauCeti.Geometry.Symplectic.StandardCompatible
 public import TauCeti.Geometry.Symplectic.SymplecticTransport
 public import TauCeti.Geometry.Symplectic.Transport
@@ -33,7 +34,8 @@ structures.
 The main facts fixing the conventions are `stdForm_apply`
 (`ω₀(z, w) = ∑ᵢ (xᵢ(z) yᵢ(w) - yᵢ(z) xᵢ(w))`), `stdComplexStructure_eq_toEuclideanLin_J`,
 `stdForm_apply_eq_inner` (`ω₀(z, w) = ⟪J₀ z, w⟫`), `stdForm_toBilinForm`
-(`ω₀ = -Matrix.toBilin' (Matrix.J ι ℝ)` in coordinates), and `stdForm_compatible`.
+(`ω₀ = -Matrix.toBilin' (Matrix.J ι ℝ)` in coordinates), and `stdForm_compatible`, with the
+Cauchy–Schwarz inequality `abs_stdForm_apply_le` (`|ω₀(z, w)| ≤ ‖z‖ ‖w‖`).
 Finally, `isSymplectomorphism_sumEquivProd` and `stdComplexStructure_transport_sumEquivProd`
 compare the model with Tau Ceti's product model `TauCeti.stdSymplecticForm` and
 `TauCeti.AlmostComplexStructure.product` on `EuclideanSpace ℝ ι × EuclideanSpace ℝ ι`.
@@ -209,13 +211,19 @@ theorem stdComplexStructure_eq_toEuclideanLin_J [DecidableEq ι] :
     ext i <;>
     simp [Matrix.J, Matrix.mulVec, dotProduct, Fintype.sum_sum_type, Matrix.one_apply]
 
-/-- `ω₀(z, w) = ⟪J₀ z, w⟫`. -/
-theorem stdForm_apply_eq_inner (z w : StdSpace ι) :
-    stdForm ι z w = inner ℝ (stdComplexStructure ι z) w := by
+/-- The metric `ω₀(·, J₀ ·)` of the standard model is its inner product. -/
+theorem stdForm_apply_stdComplexStructure (z w : StdSpace ι) :
+    stdForm ι z (stdComplexStructure ι w) = inner ℝ z w := by
   rw [StdSpace.inner_eq_sum, stdForm_apply]
   refine Finset.sum_congr rfl fun i _ ↦ ?_
   simp only [stdComplexStructure_x, stdComplexStructure_y, Pi.neg_apply]
   ring
+
+/-- `ω₀(z, w) = ⟪J₀ z, w⟫`. -/
+theorem stdForm_apply_eq_inner (z w : StdSpace ι) :
+    stdForm ι z w = inner ℝ (stdComplexStructure ι z) w :=
+  (SymplecticForm.inner_apply_left_eq_of_apply_apply_eq_inner
+    stdForm_apply_stdComplexStructure z w).symm
 
 /-- In coordinates, `ω₀(z, w) = -zᵀ J w` with `J = Matrix.J ι ℝ`. For `ι = Fin n` this says
 that Tau Ceti's `TauCeti.stdSymplecticBilinForm ℝ n` is `-ω₀`. -/
@@ -231,6 +239,10 @@ theorem stdForm_toBilinForm [DecidableEq ι] :
 /-- `J₀` is compatible with `ω₀`. -/
 theorem stdForm_compatible : (stdForm ι).Compatible (stdComplexStructure ι) :=
   stdComplexPiSymplecticForm_compatible.transport _
+
+/-- Cauchy–Schwarz for `ω₀`: `|ω₀(z, w)| ≤ ‖z‖ ‖w‖`. -/
+theorem abs_stdForm_apply_le (z w : StdSpace ι) : |stdForm ι z w| ≤ ‖z‖ * ‖w‖ :=
+  SymplecticForm.abs_apply_le_norm_mul_norm stdForm_apply_stdComplexStructure z w
 
 /-! ### Comparison with the product model -/
 
