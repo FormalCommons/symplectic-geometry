@@ -175,8 +175,9 @@ following choices.
   directions, gives a local diffeomorphism $g$ from a ball of
   `StdSpace (Fin n)` into $M$. It carries the linear subspace $S$ of the
   milestone's equations into $Q$, and $g^*\omega$ restricts on $S$ to the
-  restriction of `stdForm`. Tau Ceti's
-  `exists_partialDiffeomorph_fix_immersion_mpullback_eq` then corrects $g$
+  restriction of `stdForm`. Tau Ceti's flat theorem
+  `exists_partialDiffeomorph_fix_immersion_compContinuousLinearMap_fderiv_eq`
+  then corrects $g$
   to a symplectic one fixing $S$ near $0$. So `AdaptedDarboux.lean` waits
   only for `CharacteristicFoliation.lean`, which gives the coisotropic chart
   of $Q$. This follows the note of the review of #420.
@@ -501,8 +502,8 @@ set:
 
 | Theorem (namespace `TauCeti.SmoothTwoForm.IsNondegenerate`) | Hypothesis | `S` |
 |---|---|---|
-| `HasSymplecticTangentImages.exists_darbouxChart_inter_range_eq` | `finrank ℝ E' = 2 * k` | `{z | ∀ j : Fin n, k ≤ j → z.x j = 0 ∧ z.y j = 0}` |
-| `IsIsotropicMap.exists_darbouxChart_inter_range_eq` | `finrank ℝ E' = k` | `{z | z.y = 0 ∧ ∀ j : Fin n, k ≤ j → z.x j = 0}` |
+| `HasSymplecticTangentImages.exists_darbouxChart_inter_range_eq` | `finrank ℝ E' = 2 * k` | `{z | ∀ j : Fin n, k ≤ (j : ℕ) → z.x j = 0 ∧ z.y j = 0}` |
+| `IsIsotropicMap.exists_darbouxChart_inter_range_eq` | `finrank ℝ E' = k` | `{z | z.y = 0 ∧ ∀ j : Fin n, k ≤ (j : ℕ) → z.x j = 0}` |
 | `IsLagrangianMap.exists_darbouxChart_inter_range_eq` | — | `{z | z.y = 0}` |
 | `IsCoisotropicMap.exists_darbouxChart_inter_range_eq` | `finrank ℝ E' = 2 * n - k` | `{z | ∀ j : Fin n, j < k → z.y j = 0}` |
 
@@ -518,18 +519,27 @@ linear space `S` is chosen so that `c` carries `f^*ω` to the restriction of
 (Tau Ceti's). For an isotropic or Lagrangian `Q`, any chart will do, since
 both restricted forms are `0`. For a coisotropic `Q`, `c` combines the leaf
 coordinates of `exists_isCharacteristicSubmersion` with a Darboux chart of
-the descended form on the ball. A shared lemma, `exists_localDiffeomorph_extend`
-(private if only this file uses it), extends `f ∘ c⁻¹` in the directions
+the descended form on the ball. The lemma `exists_localDiffeomorph_extend`,
+public in `Geometry/Manifold/LocalDiffeomorph.lean` (with the centred charts
+`exists_partialDiffeomorph_apply_eq_zero` that the isotropic case uses),
+extends `f ∘ c⁻¹` in the directions
 of a complement of `S`. It does so in a chart of `M`, by adding a fixed
 linear map transverse to the image, as Tau Ceti's flat model in
-`Geometry/Symplectic/Darboux/Immersion.lean` does. That gives a local
-diffeomorphism `g` near `0` with `g = f ∘ c⁻¹` on `S`. Tau Ceti's
-`exists_partialDiffeomorph_fix_immersion_mpullback_eq` is applied on a
-ball, with `σ₁ = g^*ω`, `σ₀ = stdForm` and the inclusion of `S`. Its
+`Geometry/Symplectic/Darboux/Immersion.lean` does; the linear map comes from
+`LinearMap.exists_linearEquiv_comp_eq_of_injective`
+(`LinearAlgebra/FiniteDimensional/Extension.lean`). That gives a local
+diffeomorphism `g` near `0` with `g = f ∘ c⁻¹` on `S`. Since `g^*ω` is
+defined only near `0`, Tau Ceti's flat theorem
+`exists_partialDiffeomorph_fix_immersion_compContinuousLinearMap_fderiv_eq`
+is applied on an open set of `StdSpace (Fin n)` around `0`,
+with `σ₁ = g^*ω`, `σ₀ = stdForm` and the inclusion of `S`. Its
 `htan` is the property of `c`. It gives `Φ` fixing `S` near `0` with
 `Φ^*σ₁ = σ₀`. Then `e` is the inverse of `g ∘ Φ`, shrunk so that, `f`
 being an embedding, the image of `Q` in the source is exactly the part of
-`S` that `e` hits.
+`S` that `e` hits. These steps, for any chart `c` and injective linear
+`ι : E' → StdSpace (Fin n)` with `range ι = S`, are the public
+`exists_darbouxChart_inter_range_eq_of_chart` (same namespace), which the
+four theorems share.
 
 ## What the part uses
 

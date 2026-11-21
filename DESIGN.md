@@ -1886,7 +1886,11 @@ has either.
   *Symplectic vector spaces*' linear reduction), `Coisotropic.lean` and
   `AdaptedDarboux.lean` (Darboux charts adapted to the four types, from a
   chart of the submanifold suited to its type and Tau Ceti's pointwise
-  relative Darboux theorem).
+  relative Darboux theorem), with the general
+  `Geometry/Manifold/LocalDiffeomorph.lean` (an immersion extended to a local
+  diffeomorphism, and centred charts) and
+  `LinearAlgebra/FiniteDimensional/Extension.lean` (an injective linear map
+  extended to a linear equivalence).
   The symplectic normal bundle of a symplectic submanifold is Tau Ceti's
   normal bundle with `TauCeti.SmoothEmbedding.symplecticNormalForm`; the
   symplectic normal bundle $(TQ)^\omega/TQ$ of an isotropic one is given by
@@ -1895,7 +1899,7 @@ has either.
   what follows it), *Symplectic
   vector spaces* (`Reduction.lean`, merged), Tau Ceti (tubular
   neighbourhoods, the normal bundles of Lagrangian and symplectic embeddings,
-  compatible almost complex structures, relative Darboux, `TauCeti.SmoothTwoForm.exists_partialDiffeomorph_fix_immersion_mpullback_eq`).
+  compatible almost complex structures, relative Darboux, `TauCeti.exists_partialDiffeomorph_fix_immersion_compContinuousLinearMap_fderiv_eq`).
   `CharacteristicFoliation.lean` uses only Tau Ceti and can start at once.
 - **Unmerged work of #3 it may wait for.** The linear extensions in the
   proofs choose complements: Lagrangian complements of a Lagrangian or
