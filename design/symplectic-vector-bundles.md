@@ -133,6 +133,7 @@ variable {EB HB M : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB]
 | `Geometry/Manifold/VectorBundle/Hermitian/Basic.lean` | the symplectic form of a Hermitian bundle | 25 |
 | `Geometry/Manifold/VectorBundle/Hermitian/CircleBundle.lean` | the circle bundle of a Hermitian line bundle as a principal `Circle`-bundle | 26 |
 | `Geometry/Manifold/IsManifold/InteriorBoundary.lean` | the interior of a manifold with boundary as a boundaryless manifold | 12 |
+| `Topology/Connected/Clopen.lean` | preconnectedness of a dense subset from local preconnectedness | 12 |
 | `Geometry/Manifold/Boundary/Collar/Push.lean` | pushing a compact manifold with boundary into its interior | 13 |
 | `Geometry/Manifold/VectorBundle/Section/Generic.lean` | sections with closed discrete zero sets over boundaryless manifolds | 14 |
 | `Geometry/Manifold/VectorBundle/Section/Nonvanishing.lean` | smoothing nowhere-zero sections; nowhere-zero sections over surfaces with boundary | 15, 16 |
@@ -144,7 +145,7 @@ says), except its lemma `moserGenerator_conj`, which goes in
 `Geometry/Symplectic/LinearMoser.lean`. The files
 `Analysis/ODE/DysonSeries.lean`, `Section/Topology.lean`, `Section/Generic.lean`,
 `Riemannian/SectionTopology.lean`, `IsManifold/InteriorBoundary.lean`,
-`Geometry/Manifold/VectorBundle/Pullback.lean`,
+`Topology/Connected/Clopen.lean`, `Geometry/Manifold/VectorBundle/Pullback.lean`,
 `Geometry/Symplectic/Manifold/Volume.lean` and the folder `Boundary/Collar/`
 have the names of a Tau Ceti or Mathlib file or
 folder at the same place, so that the two merge upstream.
@@ -157,8 +158,8 @@ folder at the same place, so that the two merge upstream.
 - The local trivializations move from `Symplectic/Basic.lean` to
   `Symplectic/Trivialization.lean`, since their proof uses $J_{g,\omega}$,
   which is defined after `Basic.lean`.
-- Four files are new (`IsManifold/InteriorBoundary.lean`,
-  `Boundary/Collar/Push.lean`, `Section/Generic.lean`,
+- Five files are new (`IsManifold/InteriorBoundary.lean`,
+  `Topology/Connected/Clopen.lean`, `Boundary/Collar/Push.lean`, `Section/Generic.lean`,
   `Section/Nonvanishing.lean`): they hold the prerequisites of the route to
   the third milestone below, which replaces the book's cutting of the surface.
 - `VectorBundle/Cayley.lean` stands apart from the symplectic files: the
@@ -871,9 +872,20 @@ that of the theorem of the previous section end with the line Milestone:
   (`SymplecticGeometry/Geometry/Symplectic/LinearMoser.lean`: the left Dyson
   series of `moserGenerator`), applied fibrewise, gives $\Psi_1$ with
   $\Psi_1^*\omega_2=\omega_1'$. The generator is a formula in the family of
-  forms and its time derivative, with no metric, so it commutes with the
-  coordinate changes of trivializations; that $\Psi_1$ is $C^n$ on the total
-  space is then issue 10's parametric smoothness, read in trivializations.
+  forms and its time derivative, with no metric. To see that $\Psi_1$ is $C^n$
+  on the total space, read everything in a trivialization at a base point
+  $x$ and take as parameter the pair $(a,b)=(\omega_1'(x),\omega_2(x))$ of
+  trivialized forms there, not the chart coordinates of $x$. The pair ranges
+  over the set of pairs all of whose convex combinations $(1-s)a+sb$,
+  $s\in[0,1]$, are invertible; this set is open, since $[0,1]$ is compact,
+  and it suffices for `hinv`, which only meets the values $\beta(t)\in[0,1]$.
+  The path $t\mapsto(1-\beta(t))a+\beta(t)b$ is affine in $(a,b)$, so issue
+  10's lemmas on an open parameter set give a propagator that is $C^n$ in
+  $(a,b,t)$. Composing with the trivialized sections, which are $C^n$ within
+  the chart range, a set that may meet the boundary, is then
+  `ContDiffOn.comp`. Two trivializations differ by a linear isomorphism, and
+  `moserGenerator_conj` carries the generator, hence $\Psi_1$, from one to
+  the other.
 
 ## Constructions
 
@@ -1493,9 +1505,13 @@ of *Constructions* for *First Chern number*.
    comes last. Blockers: 6, 19.
 10. **Parametric smoothness of the linear Moser flow.** The solution of the
     linear Moser equation, read in a trivialization, is $C^n$ jointly in the
-    time and in a parameter ranging over a subset of a normed space (the
-    chart coordinates of the base point, which may lie on the boundary), for
-    $C^n$ data; and the construction is natural under linear isomorphisms.
+    time and in a parameter ranging over an open subset $U$ of a normed
+    space, for $C^n$ data; and the construction is natural under linear
+    isomorphisms. The set must be open: on an arbitrary set, derivatives
+    within it need not be unique, and the superposition lemma the proof
+    uses (Tau Ceti's `ContinuousMap.contDiffAt_mkD_comp`) needs a
+    neighbourhood. Boundary points of the base are handled in the
+    *Classification* section, by taking the pair of forms as parameter.
     It is applied to the path $(1-\beta(t))\omega_1'+\beta(t)\omega_2$, with
     $\beta$ = `smoothTransition`, which is nondegenerate at every real time,
     as part 10's hypothesis `hinv` requires. Naturality comes from four
@@ -1541,15 +1557,20 @@ of *Constructions* for *First Chern number*.
     Blockers: 5, 6, 9, 10.
 12. **The interior of a manifold with boundary.**
     `IsManifold/InteriorBoundary.lean`, namespace `ModelWithCorners`:
-    `I.interior M` is open (Mathlib's `ModelWithCorners.isOpen_interior`), and
-    the instance `ModelWithCorners.BoundarylessManifold.interior` makes it, as
+    `I.interior M` is open (Mathlib's `ModelWithCorners.isOpen_interior`) and
+    dense (`ModelWithCorners.dense_interior`); `I.interiorOpens M` is it as an
+    `Opens M`, for `[IsManifold I 1 M]`, and the instance
+    `ModelWithCorners.BoundarylessManifold.interior` makes it, as
     an open submanifold, boundaryless; this is a few lines from Mathlib's
     `isInteriorPoint_iff_isInteriorPoint_val`, as Mathlib's instance
     `BoundarylessManifold.open` shows. Tau Ceti's `BoundarylessModel` gives
-    it charts in the model vector space. For a connected `M` with a model of
-    positive dimension it is connected (`ModelWithCorners.isConnected_interior`),
-    since every boundary point has a neighbourhood whose interior part is
-    connected. Blockers: none.
+    it charts in the model vector space. For a connected `M` it is connected
+    (`ModelWithCorners.isConnected_interior`, and the instance
+    `ModelWithCorners.connectedSpace_interiorOpens`), with no hypothesis on
+    the dimension, since every point has a neighbourhood whose interior part
+    is the image of a convex set in a chart; the topological step,
+    `Dense.isPreconnected_of_forall_exists_mem_nhds`, goes in
+    `Topology/Connected/Clopen.lean`. Blockers: none.
 13. **Pushing into the interior.** `Boundary/Collar/Push.lean`, namespace
     `TauCeti.IsCollar`: for a compact Hausdorff manifold modelled on
     `𝓡∂ (k + 1)` with a collar `hc : IsCollar c` (from Tau Ceti's
