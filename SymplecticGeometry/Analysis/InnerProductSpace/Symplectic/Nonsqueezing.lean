@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.Analysis.InnerProductSpace.Adjoint
 public import SymplecticGeometry.Analysis.InnerProductSpace.Basic
 public import SymplecticGeometry.Analysis.InnerProductSpace.Symplectic.AffineSymplectic
 
@@ -55,12 +56,13 @@ private theorem mul_norm_adjoint_le [DecidableEq ι] {f : StdSpace ι ≃ᵃ[ℝ
   have hf : ∀ z, f z c = inner ℝ z w + f 0 c := by
     intro z
     have hz : f z = f.linear z + f 0 := congr_fun f.toAffineMap.decomp z
-    have hw : inner ℝ z w = inner ℝ (f.linear z) (EuclideanSpace.single c (1 : ℝ)) := by
-      simp only [w, ContinuousLinearEquiv.adjointEquiv_apply,
-        ContinuousLinearMap.adjoint_inner_right, ContinuousLinearEquiv.coe_coe,
+    -- `f.linear` is the adjoint of its adjoint, whose coordinates `adjoint_apply_apply` gives
+    have hw : f.linear z c = inner ℝ z w := by
+      simp only [w, ContinuousLinearEquiv.adjointEquiv_apply]
+      rw [real_inner_comm, ← ContinuousLinearMap.adjoint_apply_apply,
+        ContinuousLinearMap.adjoint_adjoint, ContinuousLinearEquiv.coe_coe,
         LinearEquiv.coe_toContinuousLinearEquiv']
-    rw [hz, PiLp.add_apply, hw, EuclideanSpace.inner_single_right]
-    simp
+    rw [hz, PiLp.add_apply, hw]
   exact mul_norm_le_of_abs_inner_add_le hr fun z hz ↦ hf z ▸ h z hz
 
 /-- **Affine nonsqueezing.** If an affine symplectic map of `StdSpace ι` sends the closed ball

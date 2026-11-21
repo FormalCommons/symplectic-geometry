@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Analysis.Matrix.Polar.Basic
+public import SymplecticGeometry.Analysis.SpecialFunctions.ContinuousFunctionalCalculus.Polar
 public import TauCeti.Analysis.Matrix.Polar.Deformation
 
 /-!
@@ -14,19 +15,23 @@ public import TauCeti.Analysis.Matrix.Polar.Deformation
 Tau Ceti's polar deformation of `A : GL n 𝕜`, over `𝕜 = ℝ` or `ℂ`, is
 `Matrix.GeneralLinearGroup.polarDeformation A t = √(A Aᴴ) ^ (1 - t) U`, where `A = √(A Aᴴ) U` is
 the left polar decomposition. This file writes it in the right form `A (Aᴴ A) ^ (-t / 2)`, which
-involves `A` alone: conjugating by the unitary factor turns `√(A Aᴴ)` into `√(Aᴴ A)`.
+involves `A` alone: conjugating by the unitary factor turns `√(A Aᴴ)` into `√(Aᴴ A)`. It also
+shows that the deformation of a matrix of square `-1`, such as the matrix of a complex structure,
+keeps square `-1` at every time.
 
 ## Main results
 
 * `Matrix.GeneralLinearGroup.coe_polarDeformation_eq_mul_rpow`: the polar deformation at time
   `t` is `A (Aᴴ A) ^ (-t / 2)`.
+* `Matrix.GeneralLinearGroup.polarDeformation_mul_self_of_mul_self_eq_neg_one`: the polar
+  deformation of a matrix of square `-1` has square `-1` at every time.
 
 ## References
 
 * Brian C. Hall, *Lie Groups, Lie Algebras, and Representations*, second edition, Graduate Texts
   in Mathematics 222, Springer, 2015, Section 2.5.
 * [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017],
-  Section 2.2, Proposition 2.2.4.
+  Section 2.2, Proposition 2.2.4, and Section 2.5.
 -/
 
 public section
@@ -57,6 +62,26 @@ theorem coe_polarDeformation_eq_mul_rpow (t : ℝ) :
       = P * ((U : Matrix n n 𝕜) * star (U : Matrix n n 𝕜)) * P ^ (-t) * U := by
         rw [hUU, mul_one]
     _ = _ := by noncomm_ring
+
+/-- **The polar deformation preserves square `-1`.** If `A * A = -1`, then at every time `t` the
+polar deformation `√(A Aᴴ) ^ (1 - t) U` of `A = √(A Aᴴ) U` also squares to `-1`: conjugation by
+`U` inverts the powers of `√(A Aᴴ)`, so the square is `U * U = A * A`. -/
+theorem polarDeformation_mul_self_of_mul_self_eq_neg_one {A : GL n 𝕜}
+    (hA : (A : Matrix n n 𝕜) * A = -1) (t : ℝ) :
+    (polarDeformation A t : Matrix n n 𝕜) * polarDeformation A t = -1 := by
+  set P := CFC.sqrt ((A : Matrix n n 𝕜) * star (A : Matrix n n 𝕜))
+  set U := (A.polarUnitary : Matrix n n 𝕜)
+  have hP : IsStrictlyPositive P := Units.isStrictlyPositive_sqrt_mul_star A
+  have hU : star U * U = 1 := Unitary.star_mul_self_of_mem A.polarUnitary.property
+  -- `(P ^ s U) ^ 2 = P ^ s (U P ^ s U⋆) U ^ 2 = P ^ s P ^ (-s) U ^ 2 = U ^ 2` for every `s`.
+  have key (s : ℝ) : P ^ s * U * (P ^ s * U) = U * U := by
+    have h := Units.polarUnitary_mul_rpow_mul_star_of_mul_self_eq_neg_one A hA s
+    calc P ^ s * U * (P ^ s * U) = P ^ s * U * P ^ s * (star U * U) * U := by
+          rw [hU]; noncomm_ring
+      _ = P ^ s * (U * P ^ s * star U) * (U * U) := by noncomm_ring
+      _ = U * U := by rw [h, CFC.rpow_mul_rpow_neg s hP, one_mul]
+  rw [coe_polarDeformation, key, ← key 1, CFC.rpow_one P hP.nonneg,
+    Units.sqrt_mul_star_mul_polarUnitary, hA]
 
 end Matrix.GeneralLinearGroup
 
