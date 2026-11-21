@@ -24,7 +24,7 @@ symplectic width are stated.
   Tau Ceti's `LinearMap.BilinForm.isometryGroup ω.toBilinForm` under `AffineEquiv.linearHom`. In the
   standard model these are the maps `z ↦ A z + z₀` with `A` a symplectic matrix
   (`SymplecticGeometry.mem_affineSymplecticGroup_stdForm_iff_matrix`).
-* `SymplecticGeometry.stdCylinder i R`: the closed cylinder `Z(R) = {z | xᵢ² + yᵢ² ≤ R²}` over
+* `SymplecticGeometry.stdCylinder i R`: the closed cylinder `Z(R) = {z | √(xᵢ² + yᵢ²) ≤ R}` over
   the disc of radius `R` in the `(xᵢ, yᵢ)`-plane, empty for `R < 0`.
 * `SymplecticGeometry.stdConj ι`: the reflection `(x, y) ↦ (x, -y)`, complex conjugation in the
   coordinates of `TauCeti.complexToRealEuclidean ι`. It reverses the sign of `ω₀`, so the
@@ -86,15 +86,6 @@ theorem _root_.LinearEquiv.toAffineEquiv_mem_affineSymplecticGroup_iff (e : V �
     e.toAffineEquiv ∈ affineSymplecticGroup ω ↔ ω.IsSymplectomorphism ω e :=
   mem_affineSymplecticGroup_iff
 
-/-- An affine automorphism of the form `v ↦ g v + v₀`, with `g` linear, has linear part `g`. -/
-private theorem linear_apply_of_coe_eq {f : V ≃ᵃ[ℝ] V} {g : V →ₗ[ℝ] V} {v₀ : V}
-    (hf : ⇑f = fun v ↦ g v + v₀) (v : V) : f.linear v = g v := by
-  have := congr_fun f.toAffineMap.decomp' v
-  simp only [AffineEquiv.linear_toAffineMap, AffineEquiv.coe_toAffineMap, Pi.sub_apply,
-    LinearEquiv.coe_coe] at this
-  rw [this, hf]
-  simp
-
 /-- An affine automorphism is affine symplectic if and only if it has the form `v ↦ e v + v₀`
 for a linear symplectomorphism `e` and a vector `v₀`. -/
 theorem mem_affineSymplecticGroup_iff_exists {f : V ≃ᵃ[ℝ] V} :
@@ -105,7 +96,8 @@ theorem mem_affineSymplecticGroup_iff_exists {f : V ≃ᵃ[ℝ] V} :
   · intro h
     exact ⟨f.linear, h, f 0, funext fun v ↦ congr_fun f.toAffineMap.decomp v⟩
   · rintro ⟨e, he, v₀, hf⟩
-    have hlin : f.linear = e := LinearEquiv.ext (linear_apply_of_coe_eq (g := e.toLinearMap) hf)
+    have hlin : f.linear = e := LinearEquiv.ext fun v ↦ by
+      simpa [hf] using f.toAffineMap.linear_apply_vsub v 0
     rwa [hlin]
 
 end Affine
@@ -128,7 +120,9 @@ theorem mem_affineSymplecticGroup_stdForm_iff_matrix [Fintype ι] [DecidableEq �
   · rintro ⟨A, hA, z₀, hf⟩
     rw [mem_affineSymplecticGroup_iff, SymplecticForm.isSymplectomorphism_iff]
     intro v w
-    rw [linear_apply_of_coe_eq hf, linear_apply_of_coe_eq hf]
+    have hlin : ∀ v, f.linear v = Matrix.toEuclideanLin A v := fun v ↦ by
+      simpa [hf] using f.toAffineMap.linear_apply_vsub v 0
+    rw [hlin, hlin]
     exact mem_symplecticGroup_iff_forall_stdForm.1 hA v w
 
 /-! ### Cylinders -/
@@ -162,24 +156,13 @@ theorem stdCylinder_mono (i : ι) : Monotone (stdCylinder (ι := ι) i) :=
 
 variable [Fintype ι]
 
-/-- The squared distance of `z` from the axis of the `i`-th cylinder is at most `‖z‖²`. -/
-theorem sq_x_add_sq_y_le_norm_sq (z : StdSpace ι) (i : ι) :
-    z.x i ^ 2 + z.y i ^ 2 ≤ ‖z‖ ^ 2 := by
-  classical
-  rw [EuclideanSpace.real_norm_sq_eq, Fintype.sum_sum_type, StdSpace.x_apply, StdSpace.y_apply]
-  gcongr
-  · exact Finset.single_le_sum (f := fun j ↦ z (Sum.inl j) ^ 2) (fun _ _ ↦ sq_nonneg _)
-      (Finset.mem_univ i)
-  · exact Finset.single_le_sum (f := fun j ↦ z (Sum.inr j) ^ 2) (fun _ _ ↦ sq_nonneg _)
-      (Finset.mem_univ i)
-
 /-- The closed ball of radius `R` lies in the cylinder of radius `R`. -/
 theorem closedBall_subset_stdCylinder (i : ι) (R : ℝ) :
     Metric.closedBall (0 : StdSpace ι) R ⊆ stdCylinder i R := by
   intro z hz
   rw [mem_closedBall_zero_iff] at hz
   rw [mem_stdCylinder_iff]
-  calc √(z.x i ^ 2 + z.y i ^ 2) ≤ √(‖z‖ ^ 2) := Real.sqrt_le_sqrt (sq_x_add_sq_y_le_norm_sq z i)
+  calc √(z.x i ^ 2 + z.y i ^ 2) ≤ √(‖z‖ ^ 2) := Real.sqrt_le_sqrt (z.sq_x_add_sq_y_le_norm_sq i)
     _ = ‖z‖ := Real.sqrt_sq (norm_nonneg z)
     _ ≤ R := hz
 
@@ -221,6 +204,7 @@ theorem stdConj_y (z : StdSpace ι) : (stdConj ι z).y = -z.y := by
 theorem stdConj_stdConj (z : StdSpace ι) : stdConj ι (stdConj ι z) = z := by
   ext <;> simp
 
+@[simp]
 theorem stdConj_symm : (stdConj ι).symm = stdConj ι := by
   ext z : 1
   rw [LinearIsometryEquiv.symm_apply_eq, stdConj_stdConj]

@@ -7,6 +7,7 @@ module
 
 public import Mathlib.LinearAlgebra.FiniteDimensional.Basic
 public import TauCeti.Geometry.Symplectic.SymplecticTransport
+public import TauCeti.LinearAlgebra.BilinearForm.Isometry
 
 /-!
 # Linear maps that pull a symplectic form back to plus or minus itself
@@ -36,15 +37,10 @@ theorem bijective_of_forall_apply_eq_or_forall_apply_eq_neg [FiniteDimensional �
     (hΨ : (∀ v w, ω (Ψ v) (Ψ w) = ω v w) ∨ ∀ v w, ω (Ψ v) (Ψ w) = -ω v w) :
     Function.Bijective Ψ := by
   have hinj : Function.Injective Ψ := by
-    rw [← LinearMap.ker_eq_bot, LinearMap.ker_eq_bot']
-    intro v hv
-    refine ω.nondegenerate.1 v fun w ↦ ?_
-    change ω v w = 0
     rcases hΨ with h | h
-    · rw [← h, hv]
-      exact LinearMap.map_zero₂ _ _
-    · rw [← neg_eq_zero, ← h, hv]
-      exact LinearMap.map_zero₂ _ _
+    · exact LinearMap.BilinForm.Isometry.injective (B' := ω.toBilinForm) ⟨Ψ, h⟩ ω.separatingLeft
+    · exact LinearMap.BilinForm.Isometry.injective (B' := -ω.toBilinForm)
+        ⟨Ψ, fun v w ↦ neg_eq_iff_eq_neg.2 (h v w)⟩ ω.separatingLeft
   exact ⟨hinj, LinearMap.injective_iff_surjective.1 hinj⟩
 
 end TauCeti.SymplecticForm
