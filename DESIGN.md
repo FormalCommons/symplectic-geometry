@@ -211,7 +211,9 @@ also uses.
   `PiLp.continuousLinearEquiv 2 ℝ (fun _ : ι ↦ ℂ)` with
   `TauCeti.complexToRealEuclidean ι`, with `complexEuclideanEquiv_def` and the
   `@[simp]` lemmas `x_complexEuclideanEquiv` and `y_complexEuclideanEquiv`
-  (the real and imaginary parts of each coordinate). *Lagrangian
+  (the real and imaginary parts of each coordinate), and
+  `stdComplexStructure_complexEuclideanEquiv` (it carries multiplication by
+  `I` to `J₀`). *Lagrangian
   Grassmannian* uses it to compare its subspaces of `StdSpace ι` with Tau
   Ceti's subspaces of `EuclideanSpace ℂ ι`. It is built by that part's issue
   on Lagrangian frames (#118), not by *Standard model*'s issues.
