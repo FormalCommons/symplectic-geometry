@@ -74,7 +74,8 @@ A *frame* is a real `2n × n` matrix `Z = fromRows X Y`, whose columns span the 
   `range_toEuclideanLin_fromRows_eq_graphY`: a frame `fromRows X Y` of full rank spans a subspace
   transverse to `{y = 0}` iff `Y` is invertible, and then it spans `graphY (X Y⁻¹)`;
   `disjoint_range_toEuclideanLin_fromRows_ker_y_iff_of_isLagrangian`: the same for a Lagrangian
-  frame.
+  frame; `disjoint_range_toEuclideanLin_fromRows_ker_x_iff_of_isLagrangian`: a Lagrangian frame
+  spans a subspace transverse to `{x = 0}` iff `X` is invertible.
 * `SymplecticGeometry.StdSpace.range_toEuclideanLin_fromRows_eq_graph`: if `X` is invertible,
   the frame `fromRows X Y` spans `graph (Y X⁻¹)`.
 
@@ -459,6 +460,21 @@ theorem StdSpace.disjoint_range_toEuclideanLin_fromRows_ker_y_iff_of_isLagrangia
       IsUnit Y :=
   disjoint_range_toEuclideanLin_fromRows_ker_y_iff
     ((rank_eq_card_iff_mulVec_injective _).1 ((isLagrangian_range_fromRows_iff _ _).1 h).1)
+
+/-- A Lagrangian frame `fromRows X Y` spans a subspace meeting `{x = 0}` only in `0` exactly when
+`X` is invertible. -/
+theorem StdSpace.disjoint_range_toEuclideanLin_fromRows_ker_x_iff_of_isLagrangian
+    {X Y : Matrix ι ι ℝ}
+    (h : (stdForm ι).IsLagrangian (LinearMap.range (toEuclideanLin (fromRows X Y)))) :
+    Disjoint (LinearMap.range (toEuclideanLin (fromRows X Y))) (LinearMap.ker x) ↔
+      IsUnit X := by
+  -- The coordinate swap exchanges `fromRows X Y` with `fromRows Y X`, and `{x = 0}` with
+  -- `{y = 0}`.
+  rw [← disjoint_map_orderIso_iff (Submodule.orderIsoMapComap (swap ι)),
+    Submodule.orderIsoMapComap_apply, Submodule.orderIsoMapComap_apply,
+    map_swap_range_toEuclideanLin_fromRows, map_swap_ker_x]
+  refine disjoint_range_toEuclideanLin_fromRows_ker_y_iff_of_isLagrangian ?_
+  rwa [← map_swap_range_toEuclideanLin_fromRows, isLagrangian_map_swap_iff]
 
 /-- The Lagrangian subspace spanned by the columns of a Lagrangian frame `fromRows X Y`. By
 `isLagrangian_range_fromRows_iff`, the hypothesis says that the frame has rank `n` and that

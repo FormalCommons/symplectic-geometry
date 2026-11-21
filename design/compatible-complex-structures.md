@@ -88,7 +88,9 @@ and does not redefine any of it:
   `ContinuousLinearEquiv.toBilinForm_arrowCongr_arrowCongr` (as a bilinear
   form it is `LinearMap.BilinForm.congr` along `e`) and
   `ContinuousLinearEquiv.nondegenerate_arrowCongr_sub_flip_iff` (it keeps
-  $s-s^{\mathrm{flip}}$ nondegenerate or degenerate).
+  $s-s^{\mathrm{flip}}$ nondegenerate or degenerate). Also in that file, for
+  *Symplectic neighbourhoods*, the adjoint of a map for two forms,
+  `ContinuousLinearMap.bilinAdjoint`, with `coe_bilinAdjoint`.
 - For an alternating sesquilinear map $B$, $B-B^{\mathrm{flip}}=2\cdot B$,
   `LinearMap.IsAlt.sub_flip_eq_two_smul`, which Mathlib lacks; the library
   adds it in `LinearAlgebra/SesquilinearForm.lean`.
@@ -248,7 +250,7 @@ bundles* applies Tau Ceti's linear `cayleyPathFormula` and
 which gives the smoothness of its $J_{g,\omega}$ and of $J_{g,\omega_{g,B}}$
 on its endomorphism bundle. Its existence issue waits for issues 4 and 5
 below, its contractibility issue for issue 6, and its homotopy-equivalence
-issue for issues 4, 5 and 6, and for issue 1, for `Tames.lineMap`.
+issue for issues 4, 5 and 6.
 The two formulas:
 
 1. `TauCeti.metricPolarFormula`, the formula for $(g,\omega)\mapsto J_{g,\omega}$, on
@@ -376,7 +378,7 @@ request updates it to the files below. Each change, with its reason:
   `LinearMap.IsAlt`.
 - **`Tames.lineMap` in `LinearAlgebra/Symplectic/Compatible.lean`.** The
   straight line between two forms that tame one complex structure is used by
-  this part's homotopy on forms and by *Symplectic vector bundles*. It is
+  this part's homotopy on forms. It is
   linear algebra on Tau Ceti's types alone, so it sits in the part's linear
   file, in `TauCeti.SymplecticForm`, and not with the topology on
   `SymplecticForm V`.
@@ -385,8 +387,7 @@ request updates it to the files below. Each change, with its reason:
   vector bundles* uses this file, for `TauCeti.cayleyDomain`, the openness
   lemma `TauCeti.isOpen_setOf_forall_Icc_mem_cayleyDomain` and
   `TauCeti.SymplecticForm.Compatible.mem_cayleyDomain`; of the other files
-  of this part it uses only the two of `PolarComplexStructure/` and the
-  linear `LinearAlgebra/Symplectic/Compatible.lean`, for `Tames.lineMap`.
+  of this part it uses only the two of `PolarComplexStructure/`.
   It involves only Tau Ceti's `cayleyPathFormula`, so it goes in the folder
   of Tau Ceti's `Cayley/Smooth.lean`, which it extends, and can
   move there unchanged.
@@ -1218,8 +1219,7 @@ waits for issue 6. That part's existence issue (building issue 6 of
 $J_{g,\omega}$ from `metricPolarFormula` on `polarDomain` with its
 smoothness, so it waits for issues 4 and 5. That part's
 homotopy-equivalence issue uses `cayleyDomain` and `metricPolarFormula`
-both, so it waits for issues 4, 5 and 6, and for issue 1, for
-`Tames.lineMap`. No other issue of that part waits for this part.
+both, so it waits for issues 4, 5 and 6. No other issue of that part waits for this part.
 
 ## References
 
