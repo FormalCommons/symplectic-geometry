@@ -8,8 +8,8 @@ module
 public import Mathlib.Geometry.Manifold.Algebra.SmoothFunctions
 public import TauCeti.Geometry.Contact.Flow
 public import TauCeti.Geometry.Contact.Rescale
-import TauCeti.Geometry.Manifold.VectorBundle.Bilinear.SmulRight
-import TauCeti.Geometry.Manifold.VectorBundle.Scalar
+public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.DegreeOne
+public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.LieDeriv
 
 /-!
 # Contact vector fields and their Hamiltonians
@@ -33,14 +33,19 @@ For a contact form `α` with Reeb field `R` on a finite-dimensional manifold:
   field is `X_f`
   (`TauCeti.SmoothForm.IsContactForm.reebVectorField_eq_contactHamiltonianVectorField_of_eq_smul`);
   the identity map carries the coorientation of `α` to that of `f⁻¹ α` exactly when `f` is
-  positive (`TauCeti.SmoothForm.IsContactForm.preservesCoorientation_refl_iff_pos`).
+  positive (`Diffeomorph.preservesCoorientation_refl_iff_pos`, for any nowhere vanishing
+  one-form `α`).
 
-Closure of contact vector fields under scalar multiples uses that the Lie derivative of a smooth
-form commutes with constant multiples of a differentiable vector field
-(`TauCeti.SmoothForm.mlieDerivForm_const_smul_left`), proved from Cartan's formula.
+Closure of contact vector fields under sums and scalar multiples uses the linearity of the Lie
+derivative in the vector field (`TauCeti.mlieDerivForm_add_left`,
+`TauCeti.mlieDerivForm_const_smul_left`, `TauCeti.mlieDerivForm_zero_left`).
 
 The file extends Tau Ceti's file of the same path, in its namespace; the submodule is modelled on
-`TauCeti.SmoothTwoForm.symplecticVectorFields`.
+`TauCeti.SmoothTwoForm.symplecticVectorFields`. The converse direction of the flow
+characterization adapts the proof of the forward direction of Tau Ceti's
+`TauCeti.SmoothForm.IsContactHamiltonianVectorField.mpullback_flowOf_apply_eq_self_iff`:
+differentiate the pulled back form at time `0` with `TauCeti.hasDerivAt_mpullback_flowOf_zero`,
+on the open set of times where the flow from `x` is defined.
 
 ## References
 
@@ -62,27 +67,6 @@ namespace TauCeti.SmoothForm
 variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
   {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M] [IsManifold I ∞ M]
 
-/-! ### Linearity of the Lie derivative in the vector field -/
-
-section LieDeriv
-
-variable {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] {k : ℕ}
-
-/-- The Lie derivative of a smooth form along a differentiable vector field commutes with constant
-multiples of the field: `L_{c X} φ = c L_X φ`. -/
-theorem mlieDerivForm_const_smul_left {φ : SmoothForm I M F (k + 1)}
-    {X : (x : M) → TangentSpace I x}
-    (hX : MDifferentiable I I.tangent (fun y ↦ (X y : TangentBundle I M))) (c : ℝ) :
-    mlieDerivForm (c • X) φ.val = c • mlieDerivForm X φ.val := by
-  have hcX : MDifferentiable I I.tangent (fun y ↦ ((c • X) y : TangentBundle I M)) :=
-    fun x ↦ MDifferentiableAt.const_smul_section (hX x) c
-  have hint {j : ℕ} (ψ : RoughForm I M F (j + 1)) : ψ.interior (c • X) = c • ψ.interior X :=
-    RoughForm.interior_smul_field (fun _ ↦ c) X ψ
-  rw [mlieDerivForm_eq_interior_mextDeriv_add hcX, mlieDerivForm_eq_interior_mextDeriv_add hX,
-    hint, hint, mextDeriv_smul, smul_add]
-
-end LieDeriv
-
 /-! ### Contact vector fields -/
 
 /-- The **contact vector fields** of a one-form `α`: the smooth vector fields `X` whose Lie
@@ -98,18 +82,13 @@ def contactVectorFields (α : SmoothForm I M ℝ 1) :
     rw [ContMDiffSection.coe_add, mlieDerivForm_add_left α.val hXd hYd, hg, hh, Pi.add_apply,
       add_smul]
   zero_mem' := ⟨0, by
-    -- The zero field is `0 • 0`, along which the Lie derivative is `0` times a form.
-    have h := mlieDerivForm_const_smul_left (φ := α)
-      (ContMDiffSection.mdifferentiable (0 : Cₛ^∞⟮I; E, TangentSpace I (M := M)⟯)) 0
-    rw [zero_smul, zero_smul] at h
-    rw [ContMDiffSection.coe_zero, h]
+    rw [ContMDiffSection.coe_zero, mlieDerivForm_zero_left]
     funext x
     simp⟩
   smul_mem' c X := by
     rintro ⟨g, hg⟩
     refine ⟨c • g, ?_⟩
-    rw [ContMDiffSection.coe_smul,
-      mlieDerivForm_const_smul_left X.mdifferentiable, hg]
+    rw [ContMDiffSection.coe_smul, mlieDerivForm_const_smul_left, hg]
     funext x
     simp [smul_smul]
 
@@ -121,13 +100,6 @@ function `g`. -/
 theorem mem_contactVectorFields_iff {X : Cₛ^∞⟮I; E, TangentSpace I (M := M)⟯} :
     X ∈ α.contactVectorFields ↔ ∃ g : M → ℝ, mlieDerivForm X α.val = fun x ↦ g x • α.val x :=
   Iff.rfl
-
-/-- The value `α(X)` of a smooth one-form on a smooth vector field is a smooth function. -/
-theorem contMDiff_apply_contMDiffSection (α : SmoothForm I M ℝ 1)
-    (X : Cₛ^∞⟮I; E, TangentSpace I (M := M)⟯) :
-    ContMDiff I 𝓘(ℝ) ∞ fun x ↦ α.val x ![X x] := fun x ↦ by
-  simpa [degreeOneEquiv_apply_apply_vec] using
-    ((degreeOneEquiv α).contMDiff x).clm_bundle_apply_scalar (X.contMDiff x)
 
 /-! ### Contact forms -/
 
@@ -213,7 +185,7 @@ theorem mem_contactVectorFields_iff_kerDistribution_mpullback_flowOf [I.Boundary
     filter_upwards [hopen] with s hs
     exact hα.apply_eq_apply_reebVectorField_smul_of_kerDistribution_le (h s x hs).ge
 
-/-- **Contact vector fields and contact Hamiltonians.** For a contact form `α`, the map
+/-- **The contact Hamiltonian of a contact vector field.** For a contact form `α`, the map
 `X ↦ α(X)` is a linear equivalence from the contact vector fields to the smooth functions. Its
 inverse sends `f` to the contact Hamiltonian vector field `X_f`. -/
 def contactHamiltonianEquiv : α.contactVectorFields ≃ₗ[ℝ] C^∞⟮I, M; ℝ⟯ where
@@ -268,19 +240,27 @@ theorem reebVectorField_eq_contactHamiltonianVectorField_of_eq_smul {f : M → �
   rw [← hα.contactHamiltonianVectorField_of_eq_smul hu hu₀ hβ (hf.mdifferentiable one_ne_zero),
     h1, hβc.contactHamiltonianVectorField_one]
 
-omit [FiniteDimensional ℝ E] in
-/-- **Coorientations of rescaled contact forms.** For a contact form `α` and `β = f⁻¹ α`, the
-identity map carries the coorientation of `α` to that of `β` exactly when `f` is positive. No
-regularity of `f` is needed. -/
-theorem preservesCoorientation_refl_iff_pos {f : M → ℝ} {β : SmoothForm I M ℝ 1}
-    (hβ : ∀ x, β.val x = (f x)⁻¹ • α.val x) :
+end IsContactForm
+
+end TauCeti.SmoothForm
+
+namespace Diffeomorph
+
+open TauCeti TauCeti.SmoothForm
+
+variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
+  {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M] [IsManifold I ∞ M]
+
+/-- **Coorientations of rescaled forms.** For a nowhere vanishing one-form `α` and `β = f⁻¹ α`,
+the identity map carries the coorientation of `α` to that of `β` exactly when `f` is positive.
+No regularity of `f` is needed. -/
+theorem preservesCoorientation_refl_iff_pos {α β : SmoothForm I M ℝ 1} {f : M → ℝ}
+    (hα : ∀ x, α.val x ≠ 0) (hβ : ∀ x, β.val x = (f x)⁻¹ • α.val x) :
     (Diffeomorph.refl I M ∞).PreservesCoorientation α β ↔ ∀ x, 0 < f x := by
   simp only [Diffeomorph.preservesCoorientation_def, coe_mpullback, Diffeomorph.coe_refl,
     TauCeti.mpullback_id, hβ]
   refine forall_congr' fun x ↦ ⟨fun ⟨c, hc, hx⟩ ↦ ?_, fun hx ↦ ⟨_, inv_pos.2 hx, ?_⟩⟩
-  · exact inv_pos.1 (smul_left_injective ℝ (hα.apply_ne_zero x) hx ▸ hc)
+  · exact inv_pos.1 (smul_left_injective ℝ (hα x) hx ▸ hc)
   · rfl
 
-end IsContactForm
-
-end TauCeti.SmoothForm
+end Diffeomorph

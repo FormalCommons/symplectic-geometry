@@ -1951,7 +1951,11 @@ has either.
   `TauCeti.SmoothEmbedding.exists_isSmoothForm_relative_primitive`, and the
   Reeb flow); and `Geometry/Manifold/DifferentialForm/Flow/Family.lean`
   (named like Tau Ceti's file: Moser's principle along one trajectory, in
-  the rescaling case, which `Gray.lean` uses).
+  the rescaling case, which `Gray.lean` uses), and, named like Tau Ceti's
+  files, `Geometry/Manifold/DifferentialForm/LieDeriv.lean` (the Lie
+  derivative of forms is linear in the field) and
+  `Geometry/Manifold/DifferentialForm/DegreeOne.lean` (a smooth one-form on a
+  smooth field is smooth), which `Hamiltonian.lean` uses.
 - **Builds on:** Tau Ceti (contact forms, Reeb fields, contact Hamiltonians,
   strict and distribution Darboux charts, Gray's theorem for families over
   `ℝ`); `Family.lean` and `Gray.lean` also on *Smooth families* (`TimeExtension.lean`,

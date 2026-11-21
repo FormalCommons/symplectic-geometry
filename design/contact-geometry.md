@@ -338,6 +338,24 @@ module docstring credits both. The rate `c` is a function of time only,
 because along one trajectory nothing else is needed. Expected size: 100
 lines.
 
+### `Geometry/Manifold/DifferentialForm/LieDeriv.lean`
+
+Named like Tau Ceti's file, in the namespace `TauCeti`: the Lie derivative
+of forms is linear in the vector field, beside Tau Ceti's
+`mlieDerivForm_add_left`. `@[simp] lieDerivFormWithin_zero_left`,
+`@[simp] mlieDerivForm_zero_left`, `lieDerivFormWithin_const_smul_left`
+(with `UniqueDiffWithinAt`), `mlieDerivFormWithin_const_smul_left` and
+`mlieDerivForm_const_smul_left (c : ℝ) (V) (φ : RoughForm I M F k) :
+mlieDerivForm (c • V) φ = c • mlieDerivForm V φ`, with no differentiability
+asked. `Geometry/Contact/Hamiltonian.lean` uses them for its submodule.
+
+### `Geometry/Manifold/DifferentialForm/DegreeOne.lean`
+
+Named like Tau Ceti's file, in `TauCeti.SmoothForm`:
+`contMDiff_apply_contMDiffSection`, the value `x ↦ α.val x ![X x]` of a
+smooth one-form on a smooth vector field is smooth, from `degreeOneEquiv`.
+`Geometry/Contact/Hamiltonian.lean` uses it for `contactHamiltonianEquiv`.
+
 ### `Geometry/Contact/Hamiltonian.lean`
 
 Named like Tau Ceti's file, in `TauCeti.SmoothForm`.
@@ -346,7 +364,8 @@ Named like Tau Ceti's file, in `TauCeti.SmoothForm`.
   the smooth fields `X` with `∃ g : M → ℝ, mlieDerivForm X α.val = fun x ↦ g x • α.val x`,
   beside Tau Ceti's `TauCeti.SmoothTwoForm.symplecticVectorFields` (closure
   under sums by `TauCeti.mlieDerivForm_add_left`, under scalars by
-  `TauCeti.SmoothForm.mlieDerivForm_const_smul_left`, added here); `@[simp] mem_contactVectorFields_iff`.
+  `TauCeti.mlieDerivForm_const_smul_left` of `DifferentialForm/LieDeriv.lean`);
+  `@[simp] mem_contactVectorFields_iff`.
   The multiplier `g` may vanish; no smoothness of `g` is asked, since for a
   contact form it is forced:
 - `IsContactForm.mem_contactVectorFields_iff_mlieDerivForm_eq (hα) :
@@ -379,7 +398,8 @@ Named like Tau Ceti's file, in `TauCeti.SmoothForm`.
   `β.reebVectorField = α.contactHamiltonianVectorField H`; from
   `isContactForm_iff_of_eq_smul`, `contactHamiltonianVectorField_of_eq_smul`
   with $u=H^{-1}$, $f=H$, and `contactHamiltonianVectorField_one` for `β`.
-- `IsContactForm.preservesCoorientation_refl_iff_pos` for the same `β`:
+- `Diffeomorph.preservesCoorientation_refl_iff_pos` for the same `β`, with
+  `α` only nowhere zero (`∀ x, α.val x ≠ 0`):
   `(Diffeomorph.refl I M ∞).PreservesCoorientation α β ↔ ∀ x, 0 < H x`, Tau
   Ceti's notion of "the same coorientation".
 - `contMDiff_contactHamiltonianVectorField_prodMk (hα) (hH : ContMDiff (𝓘(ℝ, ℝ).prod I) 𝓘(ℝ) ∞ H)`:
@@ -604,7 +624,7 @@ In this order; each is blocked by the ones listed, and all are sub-issues of
 
 | # | Issue | Files | Blocked by | Size |
 |---|---|---|---|---|
-| H1 | Contact vector fields and their equivalence with functions | `Geometry/Contact/Hamiltonian.lean` (`contactVectorFields`, the two characterizations, `contactHamiltonianEquiv`, the Reeb field of `α/H` and its coorientation) | — | 300 |
+| H1 | Contact vector fields and their equivalence with functions | `Geometry/Manifold/DifferentialForm/LieDeriv.lean`, `Geometry/Manifold/DifferentialForm/DegreeOne.lean`, `Geometry/Contact/Hamiltonian.lean` (`contactVectorFields`, the two characterizations, `contactHamiltonianEquiv`, the Reeb field of `α/H` and its coorientation) | — | 300 |
 | H2 | Time-dependent contact Hamiltonians and the milestone | `Geometry/Contact/Hamiltonian.lean` (joint smoothness, rescaling formula, `contactVectorFields_correspondence`) | H1 | 200 |
 | D | The contact Darboux theorem in the page's signs | `Geometry/Contact/Darboux/Strict.lean` | — | 200 |
 | G0 | Moser's principle along one trajectory, rescaling case | `Geometry/Manifold/DifferentialForm/Flow/Family.lean` | — | 100 |
