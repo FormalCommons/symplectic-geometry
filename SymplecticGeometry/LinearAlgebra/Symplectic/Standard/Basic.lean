@@ -35,7 +35,8 @@ structures.
   `StdSpace ι` by real and imaginary parts, so that subspaces of `ℂⁿ` can be compared with
   subspaces of the model; it carries multiplication by `I` to `J₀`
   (`stdComplexStructure_complexEuclideanEquiv`).
-* `SymplecticGeometry.StdSpace.swap ι` is the coordinate swap `(x, y) ↦ (y, x)`.
+* `SymplecticGeometry.StdSpace.swap ι` is the coordinate swap `(x, y) ↦ (y, x)`, which reverses
+  the sign of `ω₀` (`stdForm_swap`).
 
 The main facts fixing the conventions are `stdForm_apply`
 (`ω₀(z, w) = ∑ᵢ (xᵢ(z) yᵢ(w) - yᵢ(z) xᵢ(w))`), `stdComplexStructure_eq_toEuclideanLin_J`,
@@ -259,6 +260,12 @@ theorem stdForm_def :
 theorem stdForm_apply (z w : StdSpace ι) :
     stdForm ι z w = ∑ i, (z.x i * w.y i - z.y i * w.x i) := by
   simp [stdForm_def, stdComplexSymplecticForm_apply]
+
+/-- The coordinate swap `(x, y) ↦ (y, x)` reverses the sign of the standard form:
+`ω₀(swap z, swap w) = -ω₀(z, w)`. -/
+theorem stdForm_swap (z w : StdSpace ι) : stdForm ι (swap ι z) (swap ι w) = -stdForm ι z w := by
+  simp only [stdForm_apply, x_swap, y_swap, ← Finset.sum_neg_distrib]
+  exact Finset.sum_congr rfl fun i _ ↦ by ring
 
 variable (ι) in
 /-- The standard complex structure `J₀` on `StdSpace ι`: the transport of multiplication by `I`

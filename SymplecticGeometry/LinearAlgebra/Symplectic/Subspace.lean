@@ -7,6 +7,8 @@ module
 
 public import TauCeti.Geometry.Symplectic.Darboux.Basis
 public import TauCeti.Geometry.Symplectic.Lagrangian.Basic
+public import TauCeti.Geometry.Symplectic.Lagrangian.Constructions
+public import TauCeti.Geometry.Symplectic.Rescale
 public import TauCeti.LinearAlgebra.BilinearForm.LagrangianBasis
 public import Mathlib.Order.Zorn
 public import SymplecticGeometry.LinearAlgebra.Matrix.SymplecticGroup.Basic
@@ -36,7 +38,10 @@ subspace `W`, this file adds to Tau Ceti's theory of the symplectic complement `
   `u₁, …, uₙ` of a Lagrangian subspace is the first half of a Darboux basis
   `u₁, …, uₙ, v₁, …, vₙ`, with `ω(uᵢ, vⱼ) = δᵢⱼ`, with no finiteness assumption on `V`;
 * `TauCeti.SymplecticForm.isLagrangian_iff_isIsotropic_and_two_mul_finrank_eq`: in finite
-  dimension, a subspace is Lagrangian exactly when it is isotropic of half the dimension.
+  dimension, a subspace is Lagrangian exactly when it is isotropic of half the dimension;
+* `TauCeti.SymplecticForm.isLagrangian_map_iff_of_apply_eq_mul`: a linear equivalence
+  `e : V ≃ W` with `ω'(e v, e w) = c · ω(v, w)` for some constant `c ≠ 0` maps the Lagrangian
+  subspaces of `ω` onto those of `ω'` (for `c = -1`: an anti-symplectic map).
 
 It then collects these with Tau Ceti's results into two theorems:
 `TauCeti.SymplecticForm.orthogonal_properties`, in finite dimension (dimension of the
@@ -171,6 +176,19 @@ theorem isLagrangian_properties (ω : SymplecticForm V) :
         ∃ b : Basis (Fin n × Fin 2) ℝ V, ω.IsDarbouxBasis b ∧ ∀ i, b (i, 0) = e i :=
   ⟨fun _ h => h.exists_le_isLagrangian, fun _ => isLagrangian_iff_maximal_isIsotropic,
     fun _ h _ e => h.exists_isDarbouxBasis_apply_zero_eq e⟩
+
+/-- A linear equivalence `e : V ≃ W` that scales the symplectic forms by a nonzero constant,
+`ω'(e v, e w) = c · ω(v, w)`, maps the Lagrangian subspaces of `ω` exactly onto those of `ω'`.
+The case `c = 1` is invariance under symplectomorphisms, and `c = -1` covers anti-symplectic
+maps. -/
+theorem isLagrangian_map_iff_of_apply_eq_mul {W : Type*} [AddCommGroup W] [Module ℝ W]
+    {ω' : SymplecticForm W} (e : V ≃ₗ[ℝ] W) {c : ℝ} (hc : c ≠ 0)
+    (he : ∀ v w, ω' (e v) (e w) = c * ω v w) :
+    ω'.IsLagrangian (L.map (e : V →ₗ[ℝ] W)) ↔ ω.IsLagrangian L := by
+  have h : (ω.rescale c hc).transport e = ω' :=
+    isSymplectomorphism_iff_transport_eq.1 <| isSymplectomorphism_iff.2 fun v w ↦ by
+      rw [rescale_apply, he]
+  rw [← h, isLagrangian_map_transport_iff, isLagrangian_rescale_iff]
 
 variable [FiniteDimensional ℝ V]
 
