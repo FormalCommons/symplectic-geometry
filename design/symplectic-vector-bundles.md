@@ -103,7 +103,8 @@ variable {EB HB M : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB]
 Issue 10 (parametric smoothness of the linear Moser flow) goes where part 10,
 *Linear Moser*, puts it (`Analysis/ODE/DysonSeries.lean`, as `DESIGN.md`
 says), except its lemma `moserGenerator_conj`, which goes in
-`Geometry/Symplectic/LinearMoser.lean`. The files `Section/Topology.lean`, `Section/Generic.lean`,
+`Geometry/Symplectic/LinearMoser.lean`. The files
+`Analysis/ODE/DysonSeries.lean`, `Section/Topology.lean`, `Section/Generic.lean`,
 `Riemannian/SectionTopology.lean`, `IsManifold/InteriorBoundary.lean` and the
 folder `Boundary/Collar/` have the names of a Tau Ceti or Mathlib file or
 folder at the same place, so that the two merge upstream.
@@ -691,15 +692,25 @@ at once.
     $C^n$ data; and the construction is natural under linear isomorphisms.
     It is applied to the path $(1-\beta(t))\omega_1'+\beta(t)\omega_2$, with
     $\beta$ = `smoothTransition`, which is nondegenerate at every real time,
-    as part 10's hypothesis `hinv` requires. Naturality comes from two
-    lemmas. The general one, `TauCeti.map_dysonSeriesLeft`, says that a
-    continuous algebra homomorphism `f : B →A[ℝ] C` sends
-    `dysonSeriesLeft p t` to `dysonSeriesLeft (f ∘ p) t`, under the
-    hypotheses on `p` that make the series converge. It concerns only Tau
-    Ceti's Dyson series, so it goes in `Analysis/ODE/DysonSeries.lean`, in
-    namespace `TauCeti`, beside the same statement `map_dysonSeries` (both
-    are candidates for Tau Ceti). Conjugation by `e : V ≃L[ℝ] W` is the case
-    `f = e.conjContinuousAlgEquiv` (Mathlib). The Moser half,
+    as part 10's hypothesis `hinv` requires. Naturality comes from three
+    new lemmas. The first, `SymplecticGeometry.map_dysonSeries`, takes
+    complete normed algebras `B` and `C` (`[CompleteSpace B]`,
+    `[CompleteSpace C]`), a continuous algebra homomorphism
+    `f : B →A[ℝ] C` and a continuous `p : ℝ → B`, and gives
+    `f (dysonSeries p t) = dysonSeries (f ∘ p) t`. Its proof passes `f`
+    through each iterated integral (`intervalIntegral_comp_comm`) and then
+    through the sum (`map_tsum`, using `summable_dysonTerm`). Completeness of
+    `C` cannot be dropped: Mathlib's integral is zero in an incomplete space,
+    so there the right side would be `1` for every `t`. The second,
+    `SymplecticGeometry.map_dysonSeriesLeft`, is the same statement for
+    `dysonSeriesLeft`, derived from the first in the opposite algebras via
+    `op_dysonSeriesLeft`. Both are about Tau Ceti's Dyson series alone, so
+    they go in `Analysis/ODE/DysonSeries.lean`, in namespace
+    `SymplecticGeometry`, as `DESIGN.md` prescribes for that file (dot
+    notation does not reach these functions); both are candidates for Tau
+    Ceti. Conjugation by `e : V ≃L[ℝ] W` is the case
+    `f = e.conjContinuousAlgEquiv` (Mathlib), where `W →L[ℝ] W` is complete
+    since `W` is finite-dimensional. The third,
     `moserGenerator_conj`, stays in `LinearMoser.lean`: the generator of the
     forms moved along `e` is `e.conjContinuousAlgEquiv (moserGenerator ω t)`.
     Part 10 (`Geometry/Symplectic/LinearMoser.lean`) proves
