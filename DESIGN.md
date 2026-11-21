@@ -163,11 +163,14 @@ also uses.
 
 - `StdSpace ι := EuclideanSpace ℝ (ι ⊕ ι)`, an `abbrev`.
 - Coordinates: `StdSpace.x, StdSpace.y : StdSpace ι →ₗ[ℝ] (ι → ℝ)`, with `ι`
-  implicit so that `z.x` and `z.y` elaborate by dot notation; they come with
+  implicit so that `z.x` and `z.y` elaborate by dot notation, defined as
+  `LinearMap.fst` and `LinearMap.snd` after `equivProd ι` (`x_def`, `y_def`, by `(rfl)`);
+  they come with
   `@[simp]` lemmas `StdSpace.x_apply`, `StdSpace.y_apply`; `StdSpace.ext`
   (`z.x = w.x → z.y = w.y → z = w`, tagged `@[ext]`); the constructor
   `StdSpace.equivProd ι : StdSpace ι ≃ₗ[ℝ] (ι → ℝ) × (ι → ℝ)` (built from
-  `EuclideanSpace.equiv` and `ContinuousLinearEquiv.sumPiEquivProdPi`), with `@[simp]`
+  `EuclideanSpace.equiv` and `ContinuousLinearEquiv.sumPiEquivProdPi`, `equivProd_def`
+  by `(rfl)`), with `@[simp]`
   lemmas for `x`, `y` of `(equivProd ι).symm (a, b)` and for
   `equivProd ι z = (z.x, z.y)`; and `x`, `y` of
   `complexToRealEuclidean ι u` as the real and imaginary parts of `u`.
