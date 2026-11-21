@@ -356,7 +356,10 @@ further when they grow, following `AGENTS.md`.
   `Matrix.UnitaryGroup.detSection` built by `TauCeti.unitaryTorusHom`: a loop
   in $\mathrm{SU}(n)$ is trivial in $\pi_1(\mathrm{U}(n))$, since its
   determinant is constant, and the retraction carries the null-homotopy back.
-  For $n=0$ the group is a point. The retraction and the facts about `detCircle`
+  For $n=0$ the group is a point. The two counterexamples for $n=0$, for
+  $\mathrm{U}(0)$ and $\mathrm{Sp}(0)$, both apply the general
+  `FundamentalGroup.not_surjective_map_circle_of_subsingleton`
+  (`AlgebraicTopology/FundamentalGroup.lean`). The retraction and the facts about `detCircle`
   it uses are in `Analysis/Matrix/UnitaryGroup/Basic.lean`.
   Tau Ceti's `Matrix.instSimplyConnectedSpaceSpecialUnitaryGroupFinTwoComplex`
   is the case $n=2$. Last, `Analysis/Matrix/SymplecticGroup/FundamentalGroup.lean`
