@@ -11,7 +11,7 @@ public import Mathlib.Analysis.Normed.Operator.Basic
 /-!
 # A unit vector of a line as a linear isometry equivalence
 
-A unit vector `v` of a normed space `E` of dimension one, over a nontrivially normed field `𝕜`,
+A unit vector `v` of a seminormed space `E` of dimension one, over a nontrivially normed field `𝕜`,
 spans `E`, and `a ↦ a • v` is then a linear isometry equivalence `𝕜 ≃ₗᵢ[𝕜] E`. This upgrades
 Mathlib's `LinearIsometry.toSpanSingleton` from an isometric embedding to an equivalence.
 
@@ -34,9 +34,9 @@ open Module
 
 namespace LinearIsometryEquiv
 
-variable (𝕜 E : Type*) [NontriviallyNormedField 𝕜] [NormedAddCommGroup E] [NormedSpace 𝕜 E]
+variable (𝕜 E : Type*) [NontriviallyNormedField 𝕜] [SeminormedAddCommGroup E] [NormedSpace 𝕜 E]
 
-/-- For a unit vector `v` of a normed space `E` of dimension one, the linear isometry
+/-- For a unit vector `v` of a seminormed space `E` of dimension one, the linear isometry
 equivalence `𝕜 ≃ₗᵢ[𝕜] E` sending `a` to `a • v`. -/
 def toSpanSingleton (h : finrank 𝕜 E = 1) {v : E} (hv : ‖v‖ = 1) : 𝕜 ≃ₗᵢ[𝕜] E :=
   haveI : FiniteDimensional 𝕜 E := Module.finite_of_finrank_eq_succ h
