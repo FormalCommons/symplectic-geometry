@@ -91,9 +91,9 @@ theorem invariant_iff_complexAssociatedForm_conj_symm :
   rw [Complex.conj_re, complexAssociatedForm_re, complexAssociatedForm_re] at h₁
   simpa using h₁
 
-/-- `J` is compatible with `ω` exactly when the Hermitian form
-`H(v, w) = ω(v, J w) + i ω(v, w)` is a Hermitian inner product on the complex vector space
-`(V, J)`. The forward direction is Tau Ceti's `TauCeti.SymplecticForm.Compatible.hermitianCore`. -/
+/-- `J` is compatible with `ω` exactly when some `InnerProductSpace.Core ℂ V`, for the complex
+structure `J.complexModule`, has `H(v, w) = ω(v, J w) + i ω(v, w)` as its inner product.
+The forward direction is Tau Ceti's `TauCeti.SymplecticForm.Compatible.hermitianCore`. -/
 theorem compatible_iff_exists_innerProductCore :
     ω.Compatible J ↔ ∃ c : (letI := J.complexModule; InnerProductSpace.Core ℂ V),
       ∀ v w, c.inner v w = ω.complexAssociatedForm J v w := by
