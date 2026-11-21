@@ -429,6 +429,11 @@ statements assume `[FiniteDimensional ℝ V]`.
   forward direction is `exists_isDarbouxBasis_forall_apply_eq_of_pairwise_commute`
   with an empty family. The converse checks invariance and positivity on the
   basis.
+- `isDarbouxBasis_iff_apply_apply_eq_ite (hbJ : ∀ k, b (k, 1) = J (b (k, 0))) :
+  ω.IsDarbouxBasis b ↔ ∀ x y, ω (b x) (J (b y)) = if x = y then 1 else 0`:
+  a basis adapted to `J` is a Darboux basis exactly when it is orthonormal
+  for $g_J$. The forward direction is `IsDarbouxBasis.apply_apply_eq_ite`.
+  *Symplectic vector bundles* uses the converse for its local Darboux frames.
 - `invariant_of_isSymm_associatedBilinForm : (ω.associatedBilinForm J).IsSymm →
   ω.Invariant J`. Symmetry of $g_J$ already forces invariance: put $Jw$ for
   $w$. With Tau Ceti's `Invariant.associatedBilinForm_isSymm` this gives
