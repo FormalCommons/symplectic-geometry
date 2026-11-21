@@ -312,9 +312,10 @@ request updates it to the files below. Each change, with its reason:
   topic parallel to `InnerProducts.lean`.
 - **New `Geometry/Symplectic/Cayley/Domain.lean`.** The open set where the
   Cayley path is smooth is used by two files of this part. *Symplectic
-  vector bundles* uses this file, for the openness lemma
-  `TauCeti.isOpen_setOf_forall_Icc_mem_cayleyDomain`, and nothing else of
-  this part.
+  vector bundles* uses this file, for `TauCeti.cayleyDomain`, the openness
+  lemma `TauCeti.isOpen_setOf_forall_Icc_mem_cayleyDomain` and
+  `TauCeti.SymplecticForm.Compatible.mem_cayleyDomain`; it uses no other
+  file of this part.
   It involves only Tau Ceti's `cayleyPathFormula`, so it goes in the folder
   of Tau Ceti's `Cayley/Smooth.lean`, which it extends, and can
   move there unchanged.
@@ -823,7 +824,9 @@ Each is a few hundred lines. External blockers are given by issue number.
 Issues 1, 3 and 6 can start at once. The contractibility issue of
 *Symplectic vector bundles* uses the same open set of Cayley units over
 $[0,1]$ as issue 6 here, through
-`TauCeti.isOpen_setOf_forall_Icc_mem_cayleyDomain`, so it waits for issue 6.
+`TauCeti.isOpen_setOf_forall_Icc_mem_cayleyDomain`, and the tame structures
+lie in it by `TauCeti.SymplecticForm.Compatible.mem_cayleyDomain`, so it
+waits for issue 6.
 No other issue of that part waits for this one.
 
 ## References

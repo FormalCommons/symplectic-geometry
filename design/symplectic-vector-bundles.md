@@ -411,10 +411,10 @@ $[0,1]$ is never fed to the lemma with `P = ℝ` directly.
   is continuous since $J_0$ is, of the open set of pairs of
   `TauCeti.isOpen_setOf_forall_Icc_mem_cayleyDomain`
   (`Geometry/Symplectic/Cayley/Domain.lean`, planned in *Compatible complex
-  structures*, whose issue 6 adds it). Tau Ceti's
-  `Tames.isUnit_one_sub_mul_of_toLinearMap` and
-  `Compatible.isUnit_one_sub_smul_cayleyFormula` show that the values of
-  every tame `J` lie in it. That the path stays tame, and compatible when `J` is, are Tau
+  structures*, whose issue 6 adds it). The values of every tame `J` lie in
+  it by `TauCeti.SymplecticForm.Compatible.mem_cayleyDomain`, from the same
+  file, applied at each point with $b\in[0,1]$. That the path stays tame, and
+  compatible when `J` is, are Tau
   Ceti's linear lemmas behind `SmoothTwoForm.Compatible.tames_cayleyPath` and
   `compatible_cayleyPath` (`.../AlmostComplex/CayleyPath.lean`), which this
   generalizes. Results: `ContMDiffTwoForm.IsNondegenerate.contractibleSpace_tames`
@@ -642,8 +642,9 @@ it, its design adds it.
   direction of the classification, with the parametric smoothness of issue 10.
   *Standard model* only for the corollary on `Matrix.symplecticGroup`. The
   part uses from *Compatible complex structures* (part 9) only the linear
-  file `Geometry/Symplectic/Cayley/Domain.lean`, for `TauCeti.cayleyDomain`
-  and its openness lemma `TauCeti.isOpen_setOf_forall_Icc_mem_cayleyDomain`.
+  file `Geometry/Symplectic/Cayley/Domain.lean`, for `TauCeti.cayleyDomain`,
+  its openness lemma `TauCeti.isOpen_setOf_forall_Icc_mem_cayleyDomain` and
+  the membership lemma `TauCeti.SymplecticForm.Compatible.mem_cayleyDomain`.
   That file is part 9's issue 6, which has no blockers, and issue 7 here
   waits for it. The fibrewise constructions it needs (the Cayley path,
   $J_{g,\omega}$, $\omega_{g,J}$, the complex-linear part) are Tau Ceti's
@@ -651,8 +652,9 @@ it, its design adds it.
 
 ## Building issues
 
-Each is a few hundred lines; the blockers are issues of this list, and an
-issue may start once its blockers are merged. Issues 1, 3, 4, 10, 12–15 can start
+Each is a few hundred lines. Blockers given by a number alone are issues of
+this list; a blocker in another part is named with that part (only issue 7
+has one). An issue may start once its blockers are merged. Issues 1, 3, 4, 10, 12–15 can start
 at once.
 
 1. **Complex structures on a bundle.** `ComplexStructure.lean`: the

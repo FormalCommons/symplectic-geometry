@@ -756,7 +756,9 @@ it into issues; the overview fixes its folders and its dependencies.
   Ceti's linear `cayleyPathFormula` and `SymplecticForm.polarComplexStructure`
   fibrewise (see that part). It uses the same set $U_{J_0}$ at each point,
   and takes its openness from
-  `TauCeti.isOpen_setOf_forall_Icc_mem_cayleyDomain`, so its contractibility
+  `TauCeti.isOpen_setOf_forall_Icc_mem_cayleyDomain` and the membership of
+  the tame structures from `TauCeti.SymplecticForm.Compatible.mem_cayleyDomain`,
+  so its contractibility
   issue waits for the issue of this part that writes `Cayley/Domain.lean`.
 
 ### 10. Linear Moser
@@ -952,8 +954,9 @@ it into issues; the overview fixes its folders and its dependencies.
   its generic sections, diffeotopies of configurations and collars, for the
   last milestone; for the constructions, the pieces listed under
   *Constructions*. From *Compatible complex structures* it uses only the
-  file `Geometry/Symplectic/Cayley/Domain.lean`: `TauCeti.cayleyDomain` and
-  its openness lemma `TauCeti.isOpen_setOf_forall_Icc_mem_cayleyDomain`.
+  file `Geometry/Symplectic/Cayley/Domain.lean`: `TauCeti.cayleyDomain`,
+  its openness lemma `TauCeti.isOpen_setOf_forall_Icc_mem_cayleyDomain` and
+  `TauCeti.SymplecticForm.Compatible.mem_cayleyDomain`.
   Its contractibility issue waits for the issue of that part that writes
   this file, which has no blockers.
 - **Milestones:** *Symplectic vector bundles are complex vector bundles*,
