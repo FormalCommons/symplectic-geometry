@@ -612,8 +612,8 @@ Below, `∂ₜ` at `(x, t)` is the tangent vector
 - The reading over `ℝ`: writing `s u` for `Real.smoothTransitionUnit u :=
   ⟨Real.smoothTransition u, _, _⟩ : unitInterval`, with
   `Real.coe_smoothTransitionUnit`, `Real.smoothTransitionUnit_of_nonpos`,
-  `Real.smoothTransitionUnit_of_one_le` and `Real.contMDiff_smoothTransitionUnit`
-  (all in `Geometry/Manifold/SmoothTransition.lean`, which imports nothing
+  `Real.smoothTransitionUnit_of_one_le`, `Real.contMDiff_smoothTransitionUnit` and
+  `Real.mfderiv_smoothTransitionUnit_one` (all in `Geometry/Manifold/SmoothTransition.lean`, which imports nothing
   of the library),
   `smoothTransitionFamily (Φ : Diffeotopy I ∞ M)
   (t : ℝ) : M ≃ₘ⟮I, I⟯ M := Φ.timeSlice (s t)`,
