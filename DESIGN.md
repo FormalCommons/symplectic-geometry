@@ -1658,7 +1658,9 @@ has either; Tau Ceti's extension across a boundary,
   in $(t,x)$ whenever $\eta_t$ is, and, for closed $z_t$ smooth in
   $(t,x)$, coordinates of $[z_t]$ that are smooth in $t$ in a basis
   of Tau Ceti's `TauCeti.deRhamCohomology`; with smooth families of
-  forms in `Geometry/Manifold/DifferentialForm/SmoothFamily/`
+  forms in `Geometry/Manifold/DifferentialForm/SmoothFamily/`,
+  restricted between open subsets with
+  `Geometry/Manifold/LocalDiffeomorph/OpenSubset.lean`,
   and the homotopy operator on smooth forms in
   `Geometry/Manifold/DifferentialForm/HomotopyOperator.lean`),
   `Geometry/Manifold/ContMDiff/TimeExtension.lean` and
