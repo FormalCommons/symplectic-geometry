@@ -23,6 +23,8 @@ contains no image of a ball, and `∞` for the whole space.
 ## Main results
 
 * `SymplecticGeometry.linearSymplecticWidth_mono`: monotonicity.
+* `SymplecticGeometry.nonempty_interior_of_linearSymplecticWidth_ne_zero`: a set of positive
+  width has nonempty interior.
 * `SymplecticGeometry.linearSymplecticWidth_image`: invariance under affine symplectic maps.
 * `SymplecticGeometry.linearSymplecticWidth_image_of_forall_apply_eq_or_forall_apply_eq_neg`:
   invariance under linear maps `Ψ` with `Ψ^* ω₀ = ±ω₀`.
@@ -33,6 +35,10 @@ contains no image of a ball, and `∞` for the whole space.
   cylinders of radius `r` under affine symplectic maps have width `π r²`.
 * `SymplecticGeometry.linearSymplecticWidth_stdCylinder_le`: a cylinder of radius `R` has width
   at most `π R²`, for every real `R`.
+* `SymplecticGeometry.ofReal_pi_mul_sq_le_linearSymplecticWidth_of_closedBall_subset`: a set
+  containing the ball of radius `r` about `0` has width at least `π r²`.
+* `SymplecticGeometry.linearSymplecticWidth_eq_iSup_image_closedBall`: the width of a set is
+  the supremum of the widths of the symplectic balls inside it.
 
 In dimension zero (`ι` empty) the space is a point, and every nonempty set has width `∞`; this is
 why the statement for balls assumes `Nonempty ι`, and the conformality `c ≠ 0`.
@@ -77,6 +83,12 @@ theorem le_linearSymplecticWidth {A : Set (StdSpace ι)} {f : StdSpace ι ≃ᵃ
   rw [linearSymplecticWidth_def]
   exact le_iSup₂_of_le (⟨r, hr⟩ : ℝ≥0) f (le_iSup₂_of_le hf h le_rfl)
 
+/-- A set that contains the closed ball of radius `r ≥ 0` about `0` has width at least `π r²`. -/
+theorem ofReal_pi_mul_sq_le_linearSymplecticWidth_of_closedBall_subset {A : Set (StdSpace ι)}
+    {r : ℝ} (hr : 0 ≤ r) (h : closedBall 0 r ⊆ A) :
+    ENNReal.ofReal (π * r ^ 2) ≤ linearSymplecticWidth A :=
+  le_linearSymplecticWidth (one_mem _) hr (by rwa [AffineEquiv.coe_one, Set.image_id])
+
 /-- The width of `A` is at most `c` if and only if `π r² ≤ c` for every ball of radius `r ≥ 0`
 whose image under an affine symplectic map lies in `A`. -/
 theorem linearSymplecticWidth_le_iff {A : Set (StdSpace ι)} {c : ℝ≥0∞} :
@@ -110,6 +122,24 @@ theorem linearSymplecticWidth_univ :
   rw [Real.sq_sqrt c.coe_nonneg, ← ENNReal.ofReal_coe_nnreal]
   exact ENNReal.ofReal_le_ofReal
     (le_mul_of_one_le_left c.coe_nonneg (by linarith [Real.two_le_pi]))
+
+/-- A set of positive width contains a nonempty open set: the image of an open ball under an
+affine symplectic map. -/
+theorem nonempty_interior_of_linearSymplecticWidth_ne_zero {A : Set (StdSpace ι)}
+    (h : linearSymplecticWidth A ≠ 0) : (interior A).Nonempty := by
+  have h' : ¬linearSymplecticWidth A ≤ 0 := by simpa using h
+  rw [linearSymplecticWidth_le_iff] at h'
+  push Not at h'
+  obtain ⟨f, -, r, hr, hA, hpos⟩ := h'
+  have hr' : 0 < r := by
+    rcases hr.eq_or_lt with rfl | hr'
+    · simp at hpos
+    · exact hr'
+  have hopen : IsOpen (f '' ball 0 r) := by
+    rw [Set.image_eq_preimage_of_inverse f.symm_apply_apply f.apply_symm_apply]
+    exact isOpen_ball.preimage (AffineMap.continuous_of_finiteDimensional f.symm.toAffineMap)
+  exact ⟨f 0, mem_interior.2 ⟨f '' ball 0 r, (Set.image_mono ball_subset_closedBall).trans hA,
+    hopen, 0, mem_ball_self hr', rfl⟩⟩
 
 /-! ### Invariance -/
 
@@ -234,9 +264,8 @@ theorem linearSymplecticWidth_image_stdCylinder {f : StdSpace ι ≃ᵃ[ℝ] Std
     linearSymplecticWidth (f '' stdCylinder i R) = ENNReal.ofReal (π * R ^ 2) := by
   rw [linearSymplecticWidth_image hf]
   refine le_antisymm (linearSymplecticWidth_stdCylinder_le i R) ?_
-  exact le_linearSymplecticWidth (one_mem _) hR (by
-    rw [AffineEquiv.coe_one, Set.image_id]
-    exact closedBall_subset_stdCylinder i R)
+  exact ofReal_pi_mul_sq_le_linearSymplecticWidth_of_closedBall_subset hR
+    (closedBall_subset_stdCylinder i R)
 
 /-- The image of a closed ball of radius `r ≥ 0` under an affine symplectic map has width
 `π r²`. In dimension zero a ball is a point, of width `∞`, hence the assumption `Nonempty ι`. -/
@@ -252,7 +281,20 @@ theorem linearSymplecticWidth_image_closedBall [Nonempty ι] {f : StdSpace ι �
   refine le_antisymm ((linearSymplecticWidth_mono
     (closedBall_subset_stdCylinder (Classical.arbitrary ι) r)).trans
       (linearSymplecticWidth_stdCylinder_le _ r)) ?_
-  exact le_linearSymplecticWidth (one_mem _) hr (by rw [AffineEquiv.coe_one, Set.image_id])
+  exact ofReal_pi_mul_sq_le_linearSymplecticWidth_of_closedBall_subset hr subset_rfl
+
+/-- The width of a set `A` is the supremum of the widths of the images of
+closed balls about `0` under affine symplectic maps that lie in `A`. -/
+theorem linearSymplecticWidth_eq_iSup_image_closedBall (A : Set (StdSpace ι)) :
+    linearSymplecticWidth A =
+      ⨆ (f ∈ affineSymplecticGroup (stdForm ι)) (r : ℝ≥0)
+        (_ : f '' closedBall 0 (r : ℝ) ⊆ A),
+        linearSymplecticWidth (f '' closedBall 0 (r : ℝ)) := by
+  refine le_antisymm ?_ (iSup₂_le fun _ _ ↦ iSup₂_le fun _ hr ↦ linearSymplecticWidth_mono hr)
+  rw [linearSymplecticWidth_def]
+  refine iSup_le fun r ↦ iSup₂_le fun f hf ↦ iSup_le fun hr ↦ ?_
+  refine le_iSup₂_of_le f hf (le_iSup₂_of_le r hr ?_)
+  exact le_linearSymplecticWidth hf r.coe_nonneg subset_rfl
 
 end SymplecticGeometry
 
