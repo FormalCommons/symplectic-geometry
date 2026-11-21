@@ -923,7 +923,7 @@ $J_{g,\omega}$ from `metricPolarFormula` on `polarDomain` with its
 smoothness, so it waits for issues 4 and 5. That part's
 homotopy-equivalence issue uses `cayleyDomain` and `metricPolarFormula`
 both, so it waits for issues 4, 5 and 6, and for issue 1, for
-`Tames.lineMap`. No other issue of that part waits for this one.
+`Tames.lineMap`. No other issue of that part waits for this part.
 
 ## References
 

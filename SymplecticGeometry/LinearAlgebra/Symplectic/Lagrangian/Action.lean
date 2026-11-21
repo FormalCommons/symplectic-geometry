@@ -174,11 +174,8 @@ theorem coe_unitaryFrame (U : unitaryGroup ι ℂ) :
     (unitaryFrame U : Submodule ℝ (StdSpace ι)) =
       LinearMap.range (toEuclideanLin
         (fromRows ((U : Matrix ι ι ℂ).map Complex.re) ((U : Matrix ι ι ℂ).map Complex.im))) := by
-  have hU : ((U : Matrix ι ι ℂ).map Complex.re).map Complex.ofReal +
-      Complex.I • ((U : Matrix ι ι ℂ).map Complex.im).map Complex.ofReal = U := by
-    ext i j
-    simp [mul_comm Complex.I]
-  rw [coe_unitaryFrame_eq_map, range_toEuclideanLin_fromRows_eq_map_realImage, hU]
+  rw [coe_unitaryFrame_eq_map, range_toEuclideanLin_fromRows_eq_map_realImage,
+    map_re_add_I_smul_map_im]
 
 @[simp]
 theorem unitaryFrame_one : unitaryFrame (1 : unitaryGroup ι ℂ) = horizontal ι :=
