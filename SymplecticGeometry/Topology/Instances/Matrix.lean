@@ -6,7 +6,6 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Analysis.Complex.Basic
-public import Mathlib.Data.Matrix.Block
 public import Mathlib.Topology.Instances.Matrix
 
 /-!
@@ -21,8 +20,8 @@ This file complements Mathlib's `Mathlib.Topology.Instances.Matrix`.
   form an open set.
 * `Matrix.isOpen_setOf_isUnit_det_map_im`: the complex matrices whose imaginary part is
   invertible form an open set.
-* `Matrix.isOpen_setOf_isUnit_det_toBlocks₂₁`: the real matrices indexed by `n ⊕ n` whose lower
-  left block is invertible form an open set.
+* `Matrix.isOpen_setOf_isUnit_det_toBlocks₂₁`: over a topological field in which points are
+  closed, the block matrices whose lower left block is square and invertible form an open set.
 
 ## References
 
@@ -49,11 +48,12 @@ theorem isOpen_setOf_isUnit_det_map_im :
     IsOpen {Z : Matrix n n ℂ | IsUnit (Z.map Complex.im).det} :=
   (continuous_id.matrix_map Complex.continuous_im).isOpen_setOf_isUnit_det
 
-/-- The real matrices indexed by `n ⊕ n` with invertible lower left block form an open set. -/
-theorem isOpen_setOf_isUnit_det_toBlocks₂₁ :
-    IsOpen {M : Matrix (n ⊕ n) (n ⊕ n) ℝ | IsUnit M.toBlocks₂₁.det} :=
-  Continuous.isOpen_setOf_isUnit_det (f := fun M : Matrix (n ⊕ n) (n ⊕ n) ℝ ↦ M.toBlocks₂₁)
-    (continuous_matrix fun i j ↦ continuous_apply_apply (Sum.inr i) (Sum.inl j))
+/-- Over a topological field whose points are closed, the matrices with rows indexed by `m ⊕ n`
+and columns by `n ⊕ o` whose square lower left block is invertible form an open set. -/
+theorem isOpen_setOf_isUnit_det_toBlocks₂₁ {K m o : Type*} [Field K] [TopologicalSpace K]
+    [IsTopologicalRing K] [T1Space K] :
+    IsOpen {M : Matrix (m ⊕ n) (n ⊕ o) K | IsUnit M.toBlocks₂₁.det} :=
+  (continuous_id.matrix_submatrix Sum.inr Sum.inl).isOpen_setOf_isUnit_det
 
 end Matrix
 
