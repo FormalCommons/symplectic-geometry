@@ -319,9 +319,9 @@ would give `-X₁` there. Further hypotheses are named where they are needed.
 
 ### `Geometry/Symplectic/Hamiltonian/PoissonAlgebra.lean`
 
-Under `[FiniteDimensional ℝ E]` and `hσ : σ.IsNondegenerate` (closed where
-said), in the namespace `TauCeti.SmoothTwoForm.IsNondegenerate` like Tau
-Ceti's bracket lemmas:
+For any two-form `σ`, in the namespace `TauCeti.SmoothTwoForm` like Tau
+Ceti's `hamiltonianVectorField_add`, since `X_f` is linear in `df` and
+needs neither nondegeneracy nor finite dimension:
 
 - `hamiltonianVectorField_mul`: for `f`, `g` differentiable at `x`,
   `σ.hamiltonianVectorField (f * g) x = f x • σ.hamiltonianVectorField g x +
@@ -329,20 +329,21 @@ Ceti's bracket lemmas:
 - `poissonBracket_mul_left`, `poissonBracket_mul_right` (the Leibniz rule):
   `σ.poissonBracket (f * g) k x = f x * σ.poissonBracket g k x +
   g x * σ.poissonBracket f k x`, and the same in the second slot, for
-  differentiable `f`, `g`, from `poissonBracket_eq_mvfderiv` and
-  `neg_poissonBracket`.
+  differentiable `f`, `g`, from `hamiltonianVectorField_mul`.
 
 In the namespace `TauCeti.SmoothTwoForm`, under the hypotheses of Tau
 Ceti's time-dependent flows (`[FiniteDimensional ℝ E] [J.Boundaryless]
-[T2Space M]`), for `H : ℝ → M → ℝ` jointly `C²` and `X` jointly `C²` with
-`σ.IsHamiltonianVectorField (H t) (X t)` for every `t`:
+[T2Space M]`), for `H : ℝ → M → ℝ` with every `H t` `C²` and `X` jointly
+`C²` with `σ.IsHamiltonianVectorField (H t) (X t)` for every `t`:
 
 - `mpullback_timeDependentFlowOf_apply_of_isHamiltonianVectorField`: for
   closed `σ`, `(timeDependentFlowOf X s t)^* σ` equals `σ` at every `x` with
   `((s, t), x) ∈ timeDependentFlowDomain X`; no completeness. From the local
   Moser principle `mpullback_timeDependentFlowOf_mpullback_prodMk_apply_eq_of_mem`
-  for the constant family. Tau Ceti's
-  `mpullback_timeDependentFlowOf_of_isHamiltonianVectorField` is the
+  for the constant family, through the general
+  `TauCeti.mpullback_timeDependentFlowOf_apply_of_mextDeriv_interior_eq_zero`
+  (a closed smooth form whose contractions with every `X t` are closed). Tau
+  Ceti's `mpullback_timeDependentFlowOf_of_isHamiltonianVectorField` is the
   complete case.
 
 For symplectic `σ` (`hσ : σ.IsSymplectic`):
@@ -358,7 +359,7 @@ For symplectic `σ` (`hσ : σ.IsSymplectic`):
   (σ.hamiltonianLieIdeal hσ.isClosed).toLieSubalgebra`, Mathlib's
   `LieHom.quotKerEquivRange` followed by `LieEquiv.ofEq` for the equality
   `range_negHamiltonianLieHom`, with
-  `negHamiltonianLieHomQuotKerEquiv_mk` (the class of `f` goes to `-X_f`).
+  `coe_negHamiltonianLieHomQuotKerEquiv_mk` (the class of `f` goes to `-X_f`).
   For connected `M` the quotient is by the constants, by the previous lemma.
 
 ### `Geometry/Symplectic/Hamiltonian/SymplecticIsotopy.lean`
