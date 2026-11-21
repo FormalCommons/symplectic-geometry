@@ -19,9 +19,11 @@ A *smooth cohomology splitting* of a manifold `M`
 * a linear map `h : Z^{k+1} → Ω^k` with `z = p z + d (h z)` for every closed `(k+1)`-form `z`,
 
 such that `p` and `h` take smooth families of forms over the unit interval to smooth families.
-This is the statement, for all degrees at once, that McDuff and Salamon prove by induction over a
-good cover in their proof of Theorem 3.2.4 [McDuffSalamon2017], following Bott and Tu
-[BottTu1982]; it is the form in which smooth families of primitives are constructed.
+In the proof of their Theorem 3.2.4 [McDuffSalamon2017], McDuff and Salamon need such primitives
+only for exact `2`-forms; they sketch a Mayer–Vietoris induction over a good cover for them,
+after Bott and Tu [BottTu1982], and leave its details to the reader. The structure here is the
+stronger statement, in all degrees at once, that such an induction establishes; it is the form
+in which smooth families of primitives are constructed.
 
 From a splitting `σ` this file derives that `S^k` maps isomorphically onto the de Rham cohomology
 in degree `k` (`SmoothCohomologySplitting.spaceEquiv`), so that cohomology is finite-dimensional;
@@ -96,6 +98,19 @@ namespace SmoothCohomologySplitting
 
 attribute [instance] finiteDimensional_space
 
+attribute [simp] proj_mem proj_zero mextDerivₗ_primitive
+
+/-- Two splittings with the same spaces, projections and primitives are equal. -/
+@[ext]
+theorem ext {σ τ : SmoothCohomologySplitting I M} (hspace : σ.space = τ.space)
+    (hproj : σ.proj = τ.proj) (hprimitive : σ.primitive = τ.primitive) : σ = τ := by
+  cases σ
+  cases τ
+  cases hspace
+  cases hproj
+  cases hprimitive
+  rfl
+
 variable {I} (σ : SmoothCohomologySplitting I M)
 
 /-- The projection of a splitting, as a map into its space of closed forms. -/
@@ -107,10 +122,6 @@ def projSpace (k : ℕ) : closedForms I M k →ₗ[ℝ] σ.space k :=
 theorem coe_projSpace (k : ℕ) (z : closedForms I M k) :
     (σ.projSpace k z : SmoothForm I M ℝ k) = σ.proj k z :=
   (rfl)
-
-/-- `projSpace` followed by the inclusion of the space of the splitting is `proj`. -/
-theorem subtype_comp_projSpace (k : ℕ) : (σ.space k).subtype ∘ₗ σ.projSpace k = σ.proj k :=
-  LinearMap.ext fun z ↦ σ.coe_projSpace k z
 
 /-- The projection of a closed form, as a closed form, has the same de Rham class as the form. -/
 theorem mk_proj (k : ℕ) (z : closedForms I M k) :
@@ -157,6 +168,21 @@ theorem spaceEquiv_projSpace (k : ℕ) (z : closedForms I M k) :
     σ.spaceEquiv k (σ.projSpace k z) = deRhamCohomology.mk I k z := by
   rw [spaceEquiv_apply, σ.mk_proj k z]
 
+/-- The inverse of `spaceEquiv` takes the class of a closed form to the projection of the
+form. -/
+@[simp]
+theorem spaceEquiv_symm_mk (k : ℕ) (z : closedForms I M k) :
+    (σ.spaceEquiv k).symm (deRhamCohomology.mk I k z) = σ.projSpace k z := by
+  rw [LinearEquiv.symm_apply_eq, spaceEquiv_projSpace]
+
+/-- The projection of a splitting is the identity on the closed forms of its space. -/
+theorem proj_eq_self_of_mem {k : ℕ} {z : closedForms I M k}
+    (hz : (z : SmoothForm I M ℝ k) ∈ σ.space k) : σ.proj k z = z := by
+  have h : σ.projSpace k z = ⟨z, hz⟩ := (σ.spaceEquiv k).injective <| by
+    rw [spaceEquiv_projSpace, spaceEquiv_apply]
+    exact congrArg _ (Subtype.ext (Submodule.coe_inclusion (σ.space_le_closedForms k) ⟨z, hz⟩).symm)
+  rw [← coe_projSpace, h]
+
 /-- The projection of a splitting vanishes on a closed form exactly when the form is exact. -/
 theorem proj_eq_zero_iff {k : ℕ} (z : closedForms I M k) :
     σ.proj k z = 0 ↔ (z : SmoothForm I M ℝ k) ∈ exactForms I M k := by
@@ -190,11 +216,8 @@ theorem mextDerivₗ_exactPrimitive (k : ℕ) (x : exactForms I M (k + 1)) :
 
 /-- The primitive on exact forms takes smooth families to smooth families. -/
 theorem preservesSmoothFamilies_exactPrimitive (k : ℕ) :
-    PreservesSmoothFamilies (σ.exactPrimitive k) := preservesSmoothFamilies_def.mpr fun α hα ↦ by
-  simpa only [exactPrimitive_apply] using
-    preservesSmoothFamilies_def.mp (σ.preservesSmoothFamilies_primitive k)
-    (fun t ↦ Submodule.inclusion (exactForms_le_closedForms I (k + 1)) (α t))
-    (by simpa only [Submodule.coe_inclusion] using hα)
+    PreservesSmoothFamilies (σ.exactPrimitive k) :=
+  (σ.preservesSmoothFamilies_primitive k).comp preservesSmoothFamilies_subtype _
 
 include σ in
 /-- **The classes of a smooth family of closed forms depend smoothly on the parameter.** For a
@@ -204,12 +227,10 @@ theorem contMDiff_repr_mk {k : ℕ} {ι : Type*} (b : Module.Basis ι ℝ (deRha
     {z : unitInterval → closedForms I M k}
     (hz : IsSmoothFamily (𝓡∂ 1) (fun t ↦ (z t : SmoothForm I M ℝ k))) (i : ι) :
     ContMDiff (𝓡∂ 1) 𝓘(ℝ) ∞ (fun t ↦ b.repr (deRhamCohomology.mk I k (z t)) i) := by
-  have := σ.finiteDimensional_deRhamCohomology k
-  have : Finite ι := Module.Finite.finite_basis b
-  have h := (preservesSmoothFamilies_iff_contMDiff_repr (b.map (σ.spaceEquiv k).symm)
-    (σ.projSpace k)).mp (σ.subtype_comp_projSpace k ▸ σ.preservesSmoothFamilies_proj k) z hz i
-  simpa only [Module.Basis.map_repr, LinearEquiv.symm_symm, LinearEquiv.trans_apply,
-    spaceEquiv_projSpace] using h
+  have hT : PreservesSmoothFamilies ((σ.space k).subtype ∘ₗ σ.projSpace k) := by
+    rw [projSpace, LinearMap.subtype_comp_codRestrict]
+    exact σ.preservesSmoothFamilies_proj k
+  simpa using hT.contMDiff_dual_apply hz (b.coord i ∘ₗ (σ.spaceEquiv k).toLinearMap)
 
 end SmoothCohomologySplitting
 
