@@ -1672,7 +1672,10 @@ has either; Tau Ceti's extension across a boundary,
   `Geometry/Manifold/DifferentialForm/HomotopyOperator.lean`),
   `Geometry/Manifold/ContMDiff/TimeExtension.lean` and
   `Geometry/Manifold/DifferentialForm/TimeExtension.lean` (Seeley's extension
-  in the time variable, from `Analysis/Calculus/ContDiff/Seeley/`:
+  in the time variable, from `Analysis/Calculus/ContDiff/Seeley/`, with
+  `Analysis/Calculus/ContDiff/FTaylorSeries.lean`,
+  `Analysis/Normed/Group/FunctionSeries.lean` and
+  `Analysis/Sobolev/Trace/Reflection/HalfSpace.lean`:
   a smooth map, and a smooth form, on `unitInterval × M` is
   the restriction of one on `ℝ × M`, chosen linearly), and
   `Geometry/Diffeomorphism/Diffeotopy/Real.lean` (the bridge: an
@@ -1841,8 +1844,8 @@ has either; Tau Ceti's extension across a boundary,
   Poincaré primitive with zero first jet of
   `Geometry/Manifold/DifferentialForm/Relative/FirstJet.lean`, and the domain
   of the Moser flow up to time one), `Geometry/Symplectic/Moser/Field.lean`
-  (the Moser field of the segment $\omega_0+t(\omega_1-\omega_0)$, cut off
-  on `ℝ × M`), `Geometry/Symplectic/Moser/Isotopy.lean`
+  (the cut-off Moser field of a family of two-forms, the segment
+  $\omega_0+t(\omega_1-\omega_0)$ among them), `Geometry/Symplectic/Moser/Isotopy.lean`
   (the isotopy of embeddings fixing a compact submanifold, with Tau Ceti's
   relative Poincaré primitive, which vanishes as a full covector, in place
   of the correction by $dF$; the trajectory argument of Tau Ceti's
@@ -2040,14 +2043,20 @@ has either; Tau Ceti's extension across a boundary,
   `Geometry/Manifold/DifferentialForm/LieDeriv.lean` (the Lie derivative of
   forms is linear in the field) and
   `Geometry/Manifold/DifferentialForm/DegreeOne.lean` (a smooth one-form on a
-  smooth field is smooth), which `Hamiltonian.lean` uses.
+  smooth field is smooth), which `Hamiltonian.lean` uses, and `Standard.lean`
+  and `Pullback.lean` (both named like Tau Ceti's files: the Reeb field of the
+  standard form, and the transport of Reeb vectors by a local pullback, which
+  `Darboux/Strict.lean` uses, as it uses
+  `PartialDiffeomorph.mvfderiv_trans_toDiffeomorph` from
+  `Geometry/Manifold/LocalDiffeomorph/MFDeriv.lean`).
 - **Builds on:** Tau Ceti (contact forms, Reeb fields, contact Hamiltonians,
   strict and distribution Darboux charts, Gray's theorem for families over
   `ℝ`); `Family.lean` and `Gray.lean` also on *Smooth families*
   (`ContMDiff/TimeExtension.lean`, `DifferentialForm/TimeExtension.lean`,
   `Diffeotopy/Real.lean`); `LegendrianNeighborhood.lean` also on *Symplectic
-  neighbourhoods* (`Lagrangian.lean`). The other files can start at
-  once.
+  neighbourhoods* (`Lagrangian.lean`); `Darboux/Strict.lean` also on
+  *Moser isotopy* (`LocalDiffeomorph/MFDeriv.lean`, merged). The other
+  files can start at once.
 - **Milestones:** *Contact vector fields and contact Hamiltonians*, *Contact
   Darboux theorem*, *Gray stability*, *Legendrian neighbourhood theorem*.
 - **The design file decides:** how a smooth family of contact structures
@@ -2079,6 +2088,9 @@ has either; Tau Ceti's extension across a boundary,
   model $\Omega-d(r\lambda)$ on $(-\varepsilon,\varepsilon)\times M$ for a
   compact $M$, the contact case, and the converse normal form, by Tau Ceti's
   compact relative Moser theorem along $\{0\}\times M$),
+  `Topology/Sets/Strip.lean` (the open strip
+  $(-\varepsilon,\varepsilon)\times X$ of $\mathbb R\times X$ and the tube
+  lemma for it),
   `Geometry/Manifold/Boundary/Collar/Flow/Local.lean` and
   `Geometry/Manifold/Boundary/Collar/Flow/Basic.lean` (the smooth collar of
   a compact boundary whose normal lines are the integral curves of a given
@@ -2102,11 +2114,15 @@ has either; Tau Ceti's extension across a boundary,
   boundaryless re-modelling `TauCeti.BoundarylessModel`), the
   library's `Geometry/Manifold/IsManifold/InteriorBoundary.lean` of
   *Symplectic vector bundles* (the interior of a manifold with boundary as a
-  boundaryless manifold), which is merged,
+  boundaryless manifold), which is merged, the library's
+  `Geometry/Symplectic/Manifold/Family.lean` of *Moser isotopy* (openness of
+  nondegeneracy, for `StableHamiltonian.lean`), which is merged,
   `Geometry/Manifold/DifferentialForm/Smooth.lean` of *Moser isotopy* (for
   `StableHamiltonian.lean`), and *Smooth families* (only
   `TimeExtension.lean`, for `Collar/Flow/Local.lean`, which extends a field
-  across the boundary; the other files can start at once). `Completion.lean` uses
+  across the boundary; the other files can start at once), and its
+  `DifferentialForm/SmoothFamily/Basic.lean`, which is merged, for
+  `StableHamiltonian.lean`. `Completion.lean` uses
   `Filling.lean` and `End.lean`.
 - **Milestones:** *Contact-type hypersurfaces and Liouville collars*, *Stable
   Hamiltonian structures and their neighbourhood model*, *Completion of a
@@ -2143,13 +2159,13 @@ so two parts can each use merged files of the other without either waiting.
 | 1 | *Symplectic vector bundles* | *Standard model*, *Linear Moser*; its existence issue also the two `PolarComplexStructure/` issues of *Compatible complex structures*, its contractibility issue the Cayley domain issue of that part, and its homotopy-equivalence issue those three, none of which waits for another part |
 | 1 | *Hamiltonian flows* | *Smooth families* (only `Diffeotopy/Real.lean`, for `SymplecticIsotopy.lean`, and `ContMDiff/TimeExtension.lean`, for `Flux/CompactSupport.lean`; the other files can start at once); `PoissonAlgebra.lean` imports `Geometry/Manifold/DifferentialForm/Flow/Family.lean` of *Contact geometry*, which imports only Tau Ceti and is merged |
 | 1 | *Moser isotopy* | *Smooth families* (only `Stability.lean`; the other files can start at once) |
-| 1 | *Liouville structures* | *Smooth families* (only `TimeExtension.lean`, for `Geometry/Manifold/Boundary/Collar/Flow/Local.lean`; the other files can start at once); it imports `Geometry/Manifold/IsManifold/InteriorBoundary.lean` of *Symplectic vector bundles*, which is merged, and `Geometry/Manifold/DifferentialForm/Smooth.lean` of *Moser isotopy*, which imports only Tau Ceti and is merged |
+| 1 | *Liouville structures* | *Smooth families* (only `TimeExtension.lean`, for `Geometry/Manifold/Boundary/Collar/Flow/Local.lean`; the other files can start at once); it imports `Geometry/Manifold/IsManifold/InteriorBoundary.lean` of *Symplectic vector bundles*, which is merged, `Geometry/Manifold/DifferentialForm/Smooth.lean` of *Moser isotopy*, which imports only Tau Ceti and is merged, and `Geometry/Symplectic/Manifold/Family.lean` of *Moser isotopy* and `Geometry/Manifold/DifferentialForm/SmoothFamily/Basic.lean` of *Smooth families*, in `StableHamiltonian.lean`, which are merged |
 | 2 | *Compatible complex structures* | *Standard model*, *Symplectic vector spaces*; *Linear complex structures* (only `LinearAlgebra/ComplexStructure/Action.lean`, which imports only Mathlib and Tau Ceti, `Topology/ComplexStructure/Basic.lean`, which besides it imports only Tau Ceti and the merged `LinearAlgebra/Matrix/NonsingularInverse.lean` and `Analysis/CStarAlgebra/Matrix.lean`, which import only Mathlib and merged files that do, and `LinearAlgebra/ComplexStructure/Standard.lean`, which besides `Action.lean` imports only `LinearAlgebra/Symplectic/Compatible.lean` of this part, `LinearAlgebra/Symplectic/Standard/Matrix.lean` of *Standard model*, the library's `Geometry/Symplectic/Orientation.lean`, which imports only Tau Ceti, and Tau Ceti; and `Topology/ComplexStructure/Orthogonal.lean`, which besides `Topology/ComplexStructure/Basic.lean` imports only `LinearAlgebra/Symplectic/Standard/Basic.lean` of *Standard model*, `Analysis/Matrix/Polar/Deformation.lean` of *Symplectic group* and Tau Ceti; all of them are merged); *Symplectic group* (only `LinearAlgebra/Matrix/SymplecticGroup/Basic.lean`, which imports only Mathlib and Tau Ceti and is merged, and `Analysis/Matrix/Polar/Deformation.lean`, through `Orthogonal.lean`, which is merged) |
 | 2 | *Maslov index* | *Standard model*, *Symplectic group*, *Unitary group topology*; its Lagrangian issues also *Lagrangian Grassmannian* |
 | 2 | *Isotopy extension* | *Hamiltonian flows* (only `Flux/Hamiltonian.lean` and `Flux/CompactSupport.lean`), *Smooth families* (only `ContMDiff/TimeExtension.lean`, `DifferentialForm/TimeExtension.lean` and `DeRham/SmoothFamily/GoodCover.lean`), *Moser isotopy* (only `Moser/Field.lean`); the merged *Standard model* and *Linear Moser*; the issues of its design file that use none of these can start at once |
 | 2 | *Symplectic neighbourhoods* | *Moser isotopy* (only `Relative.lean`); *Symplectic vector spaces* (only `LinearAlgebra/Symplectic/Reduction.lean` and `LinearAlgebra/Symplectic/Subspace.lean`, which are merged); *Compatible complex structures* (only `LinearAlgebra/Symplectic/Compatible.lean`, which is merged); `CharacteristicFoliation.lean` and `AdaptedDarboux.lean` can start at once |
 | 3 | *First Chern number* | *Symplectic vector bundles*, the symplectic-loop issues of *Maslov index* |
-| 3 | *Contact geometry* | *Smooth families* (only `Family.lean` and `Gray.lean`, through `ContMDiff/TimeExtension.lean`, `DifferentialForm/TimeExtension.lean` and `Diffeotopy/Real.lean`); *Symplectic neighbourhoods* (only `LegendrianNeighborhood.lean`, through `Lagrangian.lean`); the other files of the part can start at once |
+| 3 | *Contact geometry* | *Smooth families* (only `Family.lean` and `Gray.lean`, through `ContMDiff/TimeExtension.lean`, `DifferentialForm/TimeExtension.lean` and `Diffeotopy/Real.lean`); *Symplectic neighbourhoods* (only `LegendrianNeighborhood.lean`, through `Lagrangian.lean`); *Moser isotopy* (only `Darboux/Strict.lean`, through `LocalDiffeomorph/MFDeriv.lean`, merged); the other files of the part can start at once |
 
 The design issues of the parts marked as needing one can start at once, in
 parallel with the level-0 parts.

@@ -829,9 +829,9 @@ this design already follows. `Ball/Isotopy.lean` cites
   Tau Ceti's `hasHamiltonian_globalFlowDiffeotopy` in `Flux/Hamiltonian.lean`.
 - *Moser isotopy*: only `Moser/Field.lean`, whose `moserField` (#506) is
   the cut-off Moser field of both theorems of `Moser/Family.lean`. That
-  design plans it for the linear segment between two forms with a fixed
-  primitive. #551 proposes to generalize it to a smooth family of two-forms
-  over `ℝ` with a time-dependent primitive, the segment being the family
+  design planned it for the linear segment between two forms with a fixed
+  primitive. #551 generalizes it to a smooth family of two-forms
+  over a parameter manifold with a time-dependent primitive, the segment being the family
   `SmoothForm.lineMapFamily σ₀ σ₁ contDiff_id`, and this pull request records
   that choice in `design/moser-isotopy.md`. So the library adapts Tau Ceti's
   private field of `RelativeMoser.lean` once.
