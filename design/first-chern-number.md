@@ -711,11 +711,9 @@ issues, in an order where each issue's blockers come before it.
    `TauCeti.ManifoldTotalSpace.isSubmersion_proj` (or
    `isSubmersionOfComplement_proj`, with the fibre's model space as
    complement; `Geometry/Manifold/FiberBundle/Submersion.lean`), which is
-   what issue 4 applies to this bundle. For the projection from the
-   submanifold subtype, a use composes with `circleBundleDiffeomorph` and
-   applies `IsLocalDiffeomorphAt.isSubmersionAt_comp_iff`
-   (`Geometry/Manifold/Submersion/LocalDiffeomorph.lean`) at each point; no
-   later issue needs that form, so the design adds no named specialization.
+   what issue 4 applies to this bundle. No later issue needs the projection
+   from the submanifold subtype as a submersion, so the design adds no named
+   specialization for it.
    Blocked by the issue from #57 for the circle bundle. Done when these are
    proved.
 4. **Connection forms on principal circle bundles.**
