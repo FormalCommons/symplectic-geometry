@@ -434,7 +434,8 @@ The Maslov phase on $\mathcal{L}(n)$ and the index of Lagrangian loops.
   corollary `ℒ.detCircle_inv_mul_eq_exp`, $\det(U^{-1}V)=e^{i\pi\mu(\gamma)}$
   for `δ` from `U` to `V`.
 - The half-turn `ℒ.halfTurnLoop {ι} (k : ℤ) : Path (V₀ ι) (V₀ ι)`,
-  `t ↦ rotate (π * k * t) (V₀ ι)`, with `halfTurnLoop_apply`
+  `t ↦ rotate (π * k * t) (V₀ ι)`, built as `rotationPath (V₀ ι) (π * k)`
+  cast along `rotate_int_mul_pi`, with `halfTurnLoop_apply`
   (not `@[simp]`, so that the phase lemma below can fire),
   `maslovPhase_halfTurnLoop :
   maslovPhase (halfTurnLoop k t) = Circle.exp (2 * Fintype.card ι * (π * k * t))`
@@ -552,8 +553,9 @@ The Robbin–Salamon index of paths, relative to a Lagrangian `V`.
   constant, moved to `V₀` by `ℒ.finrank_inf_unitaryFrame` of
   `Lagrangian/Transverse.lean` and `ℒ.finrank_unitaryFrame_inf_horizontal` of
   `Lagrangian/Action.lean`), `ℒ.pathMaslovIndex_graph` (localization: for `V = V₀`
-  and a path of Lagrangians that are the graphs $\{(x,A(t)x)\}$ of a continuous path of real
-  matrices, with no symmetry hypothesis since each graph is Lagrangian, half the change of
+  and a path of Lagrangians that are the graphs $\{(x,A(t)x)\}$ of real matrices, with no
+  continuity hypothesis, since `ℒ.continuous_of_coe_eq_graph` derives it, and no symmetry
+  hypothesis, since each graph is Lagrangian, half the change of
   `Matrix.signature`, from `maslovIndex_eq_signature_sub_of_souriau_eq_cayley`,
   whose frames $\mathbb{1}+iA$ span exactly these graphs).
 - `ℒ.pathMaslovIndex_eq_transverseMaslovIndex`: for a path of frames `δ` whose
@@ -787,7 +789,8 @@ the part adds no signature function.
 The pieces of regular paths, each with an explicit frame and its crossing
 forms relative to `V₀`.
 
-- `ℒ.rotationPath`, a rotation $s\mapsto e^{\varepsilon sJ_0}\Lambda$ off a
+- `ℒ.rotationPath` (defined in `Topology/Grassmannian/Lagrangian/Quotient.lean`),
+  a rotation $s\mapsto e^{\varepsilon sJ_0}\Lambda$ off a
   Lagrangian `Λ`, with the frame $e^{\varepsilon sJ_0}Z_0$ (`rotationFrame`): its
   crossing form is $\pm\varepsilon\lvert Zu\rvert^2$ by
   `stdForm_apply_stdComplexStructure`, definite,
