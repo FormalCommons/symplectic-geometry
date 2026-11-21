@@ -8,6 +8,7 @@ module
 public import Mathlib.Analysis.Calculus.ContDiff.Defs
 public import Mathlib.Analysis.InnerProductSpace.Projection.FiniteDimensional
 import TauCeti.Analysis.Calculus.FDeriv.Equiv
+import TauCeti.Analysis.Calculus.FDeriv.Prod
 import TauCeti.Analysis.Calculus.InverseFunctionTheorem
 import TauCeti.Analysis.Calculus.IteratedFDeriv.Prod
 import TauCeti.Analysis.InnerProductSpace.RangeProjection
@@ -17,13 +18,13 @@ import TauCeti.Analysis.Normed.Module.ContinuousInverse
 # Graph coordinates over tangent spaces, uniformly in the base point
 
 Let `g : E → F` be a `C^∞` map from an open subset `U` of a finite-dimensional real normed space
-into a real inner product space, with injective derivatives, and for `w' ∈ U` let `Q w'` be the
-orthogonal projection of `F` onto the range of `fderiv ℝ g w'`. Near a point `w'`, the map
-`w ↦ Q w' (g w - g w')` presents the image of `g` as a graph over its tangent space at `w'`.
-This file shows that these graph coordinates can be chosen uniformly for `w'` near a point `w₀`:
-after a fixed linear map `S : F →L[ℝ] E`, they are inverted on one ball around `w₀`, their
-images contain one ball around `0`, and the derivatives of every order of `g` composed with
-their inverses are bounded independently of `w'`.
+into a real inner product space, whose derivative is injective at a point `w₀ ∈ U`, and for
+`w' ∈ U` let `Q w'` be the orthogonal projection of `F` onto the range of `fderiv ℝ g w'`. Near a
+point `w'`, the map `w ↦ Q w' (g w - g w')` presents the image of `g` as a graph over its tangent
+space at `w'`. This file shows that these graph coordinates can be chosen uniformly for `w'`
+near `w₀`: after a fixed linear map `S : F →L[ℝ] E`, they are inverted on one ball around `w₀`,
+their images contain one ball around `0`, and the derivatives of every order of `g` composed
+with their inverses are bounded independently of `w'`.
 
 ## Main results
 
@@ -33,10 +34,13 @@ their inverses are bounded independently of `w'`.
 
 The inverse function theorem is applied once, to the map `(w', w) ↦ (w', S (Q w' (g w - g w')))`
 of `E × E`, where `Q` depends smoothly on `w'` (`ContDiffAt.starProjection_range`) and `S` is a
-fixed left inverse of `fderiv ℝ g w₀`. Its inverse gives the inverses for all `w'` at once, and
-the bounds come from compactness of a closed ball. For a single `w'` this is the argument of
-Tau Ceti's `ContDiffOn.exists_openPartialHomeomorph_starProjection`, which builds the same graph
-chart: the projection fixes the tangent space, so its differential is an isomorphism onto it.
+fixed left inverse of `fderiv ℝ g w₀`, after shrinking `U` to the open set where the derivative
+of `g` is injective. Tau Ceti's `DifferentiableAt.hasFDerivAt_fst_prodMk_of_slices` gives the
+derivative of this map at `(w₀, w₀)` as a shear, hence an isomorphism. Its inverse gives the
+inverses for all `w'` at once, and the bounds come from compactness of a closed ball. For a
+single `w'` this is the argument of Tau Ceti's
+`ContDiffOn.exists_openPartialHomeomorph_starProjection`, which builds the same graph chart: the
+projection fixes the tangent space, so its differential is an isomorphism onto it.
 
 ## References
 
@@ -96,27 +100,22 @@ private theorem exists_openPartialHomeomorph_prod_starProjection (hU : IsOpen U)
       convert this using 1
       all_goals ext a <;> simp [G, Ψ]
     exact h₁.unique h₂
-  -- In the first variable, `G` is the identity; so its derivative at `(w₀, w₀)` is injective.
-  have hfst : ContinuousLinearMap.fst ℝ E E ∘L fderiv ℝ G (w₀, w₀) =
-      ContinuousLinearMap.fst ℝ E E :=
-    ((hasFDerivAt_fst (𝕜 := ℝ) (p := G (w₀, w₀))).comp (w₀, w₀)
-      (hGd (w₀, w₀) ⟨hw₀, hw₀⟩)).unique hasFDerivAt_fst
-  have hinj₀ : Injective (fderiv ℝ G (w₀, w₀)) := by
-    refine (injective_iff_map_eq_zero _).2 fun ⟨a, b⟩ hab ↦ ?_
-    have ha : a = 0 := by
-      simpa using (congrArg (fun L ↦ L (a, b)) hfst).symm.trans (congrArg Prod.fst hab)
-    subst ha
-    have hb := congrArg (fun L ↦ L b) (hslice (w₀, w₀) ⟨hw₀, hw₀⟩)
-    simp only [ContinuousLinearMap.comp_apply, ContinuousLinearMap.inr_apply] at hb
-    rw [hab, ContinuousLinearMap.starProjection_range_apply, hSD] at hb
-    simpa using (congrArg Prod.snd hb).symm
-  let L : (E × E) ≃L[ℝ] (E × E) :=
-    (LinearEquiv.ofInjectiveEndo (fderiv ℝ G (w₀, w₀) : E × E →ₗ[ℝ] E × E)
-      hinj₀).toContinuousLinearEquiv
+  -- At `(w₀, w₀)`, the slice of `Ψ` in `w` has derivative the identity, since `Q w₀` fixes the
+  -- range of `fderiv ℝ g w₀` and `S` is a left inverse of it; so `fderiv ℝ G (w₀, w₀)` is a shear.
+  have hΨd : DifferentiableAt ℝ Ψ (w₀, w₀) :=
+    ((hG.contDiffAt ((hU.prod hU).mem_nhds ⟨hw₀, hw₀⟩)).differentiableAt (by simp)).snd
+  have hx : HasFDerivAt (fun w ↦ Ψ (w, w₀)) _ w₀ :=
+    hΨd.hasFDerivAt.comp (f := fun w ↦ (w, w₀)) w₀ (hasFDerivAt_prodMk_left w₀ w₀)
+  have hy : HasFDerivAt (fun w ↦ Ψ (w₀, w)) (ContinuousLinearMap.id ℝ E) w₀ := by
+    have := ((S ∘L Q w₀).hasFDerivAt).comp w₀ ((hgd w₀ hw₀).sub_const (g w₀))
+    convert this using 1
+    · ext a
+      simp [Ψ, Q]
+    · ext a
+      simp [Q, ContinuousLinearMap.starProjection_range_apply, hSD a]
   obtain ⟨Θ, hΘ, hp₀Θ, hΘU, hΘsymm⟩ := TauCeti.ContDiffOn.exists_openPartialHomeomorph hG
-    (hU.prod hU) (a := (w₀, w₀)) ⟨hw₀, hw₀⟩ (by simp) (e := L) (ContinuousLinearMap.ext fun p ↦ by
-      rw [ContinuousLinearEquiv.coe_coe, LinearEquiv.coe_toContinuousLinearEquiv',
-        LinearEquiv.coe_ofInjectiveEndo, ContinuousLinearMap.coe_coe])
+    (hU.prod hU) (a := (w₀, w₀)) ⟨hw₀, hw₀⟩ (by simp)
+    (hΨd.hasFDerivAt_fst_prodMk_of_slices hx hy).fderiv.symm
   refine ⟨S, Θ, fun p ↦ congrFun hΘ p, hp₀Θ, hΘU, hΘsymm, fun q hq a b hab ↦ ?_⟩
   -- On the source of `Θ` the derivative of `G` is invertible, and so is its slice.
   have hq' := hΘU hq
@@ -133,18 +132,18 @@ private theorem exists_openPartialHomeomorph_prod_starProjection (hU : IsOpen U)
     exact congrArg (Prod.mk 0) hab
   simpa using Li.injective h
 
-/-- **Uniform graph coordinates over tangent spaces.** Let `g : E → F` be `C^∞` with injective
-derivatives on an open set `U ∋ w₀`, and write `Q w'` for the orthogonal projection of `F` onto
-the range of `fderiv ℝ g w'`. There are `S : F →L[ℝ] E`, radii `0 < η ≤ ε` with
+/-- **Uniform graph coordinates over tangent spaces.** Let `g : E → F` be `C^∞` on an open set
+`U ∋ w₀`, with injective derivative at `w₀`, and write `Q w'` for the orthogonal projection of `F`
+onto the range of `fderiv ℝ g w'`. There are `S : F →L[ℝ] E`, radii `0 < η ≤ ε` with
 `ball w₀ ε ⊆ U`, maps `h w' : E → E` and bounds `C : ℕ → ℝ` such that, for every
 `w' ∈ ball w₀ η`, the map `Ψ w' : w ↦ S (Q w' (g w - g w'))` satisfies:
 
-* on `ball w₀ ε`, its derivative `S ∘ Q w' ∘ fderiv ℝ g w` is injective, `h w'` is a left inverse
-  of it, and the iterated derivative of order `j` of `g ∘ h w'` at `Ψ w' w` has norm at most
-  `C j`, for every `j`;
+* on `ball w₀ ε`, the derivative `S ∘ Q w' ∘ fderiv ℝ g w` of `Ψ w'` is injective, `h w'` is a
+  left inverse of `Ψ w'` there, and the iterated derivative of order `j` of `g ∘ h w'` at
+  `Ψ w' w` has norm at most `C j`, for every `j`;
 * its image of `ball w₀ ε` contains `ball 0 η`. -/
 theorem ContDiffOn.exists_uniform_inverse_starProjection (hg : ContDiffOn ℝ ∞ g U)
-    (hU : IsOpen U) (hinj : ∀ w ∈ U, Injective (fderiv ℝ g w)) {w₀ : E} (hw₀ : w₀ ∈ U) :
+    (hU : IsOpen U) {w₀ : E} (hw₀ : w₀ ∈ U) (hinj : Injective (fderiv ℝ g w₀)) :
     ∃ S : F →L[ℝ] E, ∃ ε > 0, ∃ η > 0, ∃ C : ℕ → ℝ, ∃ h : E → E → E, η ≤ ε ∧ ball w₀ ε ⊆ U ∧
       ∀ w' ∈ ball w₀ η,
         (∀ w ∈ ball w₀ ε,
@@ -154,8 +153,15 @@ theorem ContDiffOn.exists_uniform_inverse_starProjection (hg : ContDiffOn ℝ �
             (S ((fderiv ℝ g w').range.starProjection (g w - g w')))‖ ≤ C j) ∧
         ∀ v ∈ ball (0 : E) η, ∃ w ∈ ball w₀ ε,
           S ((fderiv ℝ g w').range.starProjection (g w - g w')) = v := by
-  obtain ⟨S, Θ, hΘG, hp₀Θ, hΘU, hΘsymm, hinjS⟩ :=
-    exists_openPartialHomeomorph_prod_starProjection hU hg hinj hw₀
+  -- Injectivity of the derivative is an open condition, so it holds on an open `U' ∋ w₀`.
+  set U' := U ∩ fderiv ℝ g ⁻¹' {L | Injective L}
+  have hU' : IsOpen U' := (hg.continuousOn_fderiv_of_isOpen hU (by simp)).isOpen_inter_preimage
+    hU ContinuousLinearMap.isOpen_injective
+  obtain ⟨S, Θ, hΘG, hp₀Θ, hΘU', hΘsymm, hinjS⟩ :=
+    exists_openPartialHomeomorph_prod_starProjection hU' (hg.mono inter_subset_left)
+      (fun _ hw ↦ hw.2) (w₀ := w₀) ⟨hw₀, hinj⟩
+  have hΘU : Θ.source ⊆ U ×ˢ U :=
+    hΘU'.trans (prod_mono inter_subset_left inter_subset_left)
   set Q : E → F →L[ℝ] F := fun w ↦ (fderiv ℝ g w).range.starProjection
   set p₀ : E × E := (w₀, w₀)
   -- A closed ball around `(w₀, w₀)` in the source of `Θ`.

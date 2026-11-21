@@ -457,8 +457,8 @@ Named like Tau Ceti's file; in `TauCeti`.
 Named like Tau Ceti's file.
 
 - `ContDiffOn.exists_uniform_inverse_starProjection`: the graph coordinates
-  of a smooth map with injective derivatives over its tangent spaces, chosen
-  uniformly in the base point, with derivative bounds of every order; used by
+  of a smooth map over its tangent spaces, chosen uniformly in the base point
+  near a point `w₀` where its derivative is injective, with derivative bounds of every order; used by
   `Immersion/TangentProjection.lean`.
 
 ### `Geometry/Manifold/MFDeriv/Chart.lean`

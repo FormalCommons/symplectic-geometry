@@ -319,15 +319,15 @@ private theorem exists_uniform_tangentProjectionChart_nhds [CompactSpace M]
     ModelWithCorners.isInteriorPoint_iff.mp (BoundarylessManifold.isInteriorPoint (x := x₀))
   have hg : ContDiffOn ℝ ∞ g (interior c.target) :=
     (he.contDiffOn_comp_extChartAt_symm x₀).mono interior_subset
-  have hinjg : ∀ w ∈ interior c.target, Injective (fderiv ℝ g w) := fun w hw ↦ by
-    have hw' := interior_subset hw
+  have hinjg : Injective (fderiv ℝ g (c x₀)) := by
+    have hw' := interior_subset hw₀
     have h := TauCeti.fderiv_comp_extChartAt_symm_injective (c.map_target hw')
       (by rw [c.right_inv hw']
-          exact (hg.contDiffAt (isOpen_interior.mem_nhds hw)).differentiableAt (by simp))
+          exact (hg.contDiffAt (isOpen_interior.mem_nhds hw₀)).differentiableAt (by simp))
       (hinj _)
     rwa [c.right_inv hw'] at h
   obtain ⟨S, ε, hε, η, hη, C, h, hηε, hεU, hmain⟩ :=
-    hg.exists_uniform_inverse_starProjection isOpen_interior hinjg hw₀
+    hg.exists_uniform_inverse_starProjection isOpen_interior hw₀ hinjg
   have hcont : ContinuousOn c c.source := continuousOn_extChartAt x₀
   have hsrc : IsOpen c.source := isOpen_extChartAt_source x₀
   set s := c.source ∩ c ⁻¹' ball (c x₀) ε
