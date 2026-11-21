@@ -78,6 +78,7 @@ theorem detSection_apply (i₀ : ι) (z : Circle) :
     detSection ι i₀ z = unitaryTorusHom ι (Pi.mulSingle i₀ z) :=
   (rfl)
 
+@[simp]
 theorem coe_detSection (i₀ : ι) (z : Circle) :
     (detSection ι i₀ z : Matrix ι ι ℂ) =
       diagonal fun i ↦ ((Pi.mulSingle i₀ z : ι → Circle) i : ℂ) := by
@@ -102,6 +103,7 @@ noncomputable def toSpecialUnitary (i₀ : ι) (A : unitaryGroup ι ℂ) :
     mem_specialUnitaryGroup_iff.2 ⟨(A * detSection ι i₀ (detCircle A)⁻¹).property, by
       rw [← coe_detCircle, map_mul, detCircle_detSection, mul_inv_cancel, Circle.coe_one]⟩⟩
 
+@[simp]
 theorem inclusion_toSpecialUnitary (i₀ : ι) (A : unitaryGroup ι ℂ) :
     Submonoid.inclusion specialUnitaryGroup_le_unitaryGroup (toSpecialUnitary i₀ A) =
       A * detSection ι i₀ (detCircle A)⁻¹ :=

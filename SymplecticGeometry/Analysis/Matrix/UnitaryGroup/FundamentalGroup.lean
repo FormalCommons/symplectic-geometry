@@ -168,7 +168,6 @@ section IsEmpty
 
 variable [IsEmpty ι]
 
-
 /-- The hypothesis `Nonempty ι` of `bijective_fundamentalGroupMap_detCircle` is needed: for an
 empty index type `U(ι)` is a point, so its trivial fundamental group cannot map onto
 `π₁(S¹) ≅ ℤ`. -/
