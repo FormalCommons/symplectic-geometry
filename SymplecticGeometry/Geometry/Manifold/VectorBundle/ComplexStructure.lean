@@ -250,13 +250,11 @@ def ofContinuous (J : TauCeti.Bundle.ContinuousComplexStructure F V) :
   toEndomorphism := ⟨J, contMDiff_zero_iff.2 J.continuous⟩
   square_neg := J.comp_self
 
-@[simp]
+/-- The value of `ofContinuous J` at `x` is `J x`. This is not a `simp` lemma: `simp` first
+rewrites the cast `((0 : ℕ∞) : WithTop ℕ∞)` in the type of the section to `0`, after which
+the left-hand side no longer matches. Use it with `rw` or `simp only`. -/
 theorem ofContinuous_apply (J : TauCeti.Bundle.ContinuousComplexStructure F V) (x : M) :
     ofContinuous (I := I) J x = J x := (rfl)
-
-@[simp]
-theorem ofContinuous_toEndomorphism_apply (J : TauCeti.Bundle.ContinuousComplexStructure F V)
-    (x : M) : (ofContinuous (I := I) J).toEndomorphism x = J x := (rfl)
 
 @[simp]
 theorem ofContinuous_toContinuousComplexStructure (J : ContMDiffComplexStructure I 0 F V) :
