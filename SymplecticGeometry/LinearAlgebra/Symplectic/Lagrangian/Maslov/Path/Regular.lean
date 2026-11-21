@@ -620,7 +620,7 @@ local notation "σ[" Q "]" => ((sigPos Q : ℤ) - sigNeg Q)
   `Z'` by `Z g` and `Z' g + Z h` keeps its value on each vector `Z g w = Z (g w)` that lies
   in `V`;
 * naturality under `Sp(2n)`, catenation, the product property for direct sums, localization
-  relative to `{y = 0}` for paths of graphs `{(x, A t x)}` of a continuous family of matrices,
+  relative to `{y = 0}` when each `γ t` is the graph `{(x, A t x)}`, with `A` continuous,
   homotopy (two paths with the same ends have the same index if and only if they are homotopic
   with fixed ends), zero (for paths whose intersection with `V` has constant dimension), the
   values `μ(γ, V) + (dim(Λ ∩ V) - dim(Λ' ∩ V)) / 2 ∈ ℤ`, the difference of the indices relative
