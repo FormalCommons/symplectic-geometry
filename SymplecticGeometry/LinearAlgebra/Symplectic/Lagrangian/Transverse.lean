@@ -26,7 +26,8 @@ Write `ℒ ι` for the Lagrangian Grassmannian of the standard model `(StdSpace 
   `range_graphY`, `range_graph`: the Lagrangians transverse to `{y = 0}` (resp. `{x = 0}`) are
   exactly the graphs `{(S y, y)}` (resp. `{(x, S x)}`) of symmetric matrices.
 * `SymplecticGeometry.LagrangianGrassmannian.graphY_eq_ofFrame`: `graphY S` is spanned by the
-  Lagrangian frame `fromRows S 1`.
+  Lagrangian frame `fromRows S 1`; `eq_graphY_iff_of_coe_eq`: a Lagrangian spanned by the frame
+  `fromRows X Y` is `graphY S` iff `Y` is invertible and `S = X Y⁻¹`.
 * `SymplecticGeometry.LagrangianGrassmannian.coe_smul_graphY`: a symplectic matrix with blocks
   `A, B, C, D` maps `graphY S` to the span of the frame `fromRows (A S + B) (C S + D)`.
 * `SymplecticGeometry.LagrangianGrassmannian.graphY_eq_unitaryFrame`: a unitary frame of
@@ -113,6 +114,23 @@ theorem graphY_eq_ofFrame [DecidableEq ι] (S : selfAdjoint (Matrix ι ι ℝ)) 
     rw [coe_graphY, coe_ofFrame]
     exact (StdSpace.range_toEuclideanLin_fromRows_one_eq_graphY _).symm
 
+/-- A Lagrangian spanned by the frame `fromRows X Y` is the chart point `{(S y, y)}` exactly when
+`Y` is invertible and `S = X Y⁻¹`. -/
+theorem eq_graphY_iff_of_coe_eq [DecidableEq ι] {Λ : ℒ ι} {X Y : Matrix ι ι ℝ}
+    (hΛ : (Λ : Submodule ℝ (StdSpace ι)) = LinearMap.range (toEuclideanLin (fromRows X Y)))
+    {S : selfAdjoint (Matrix ι ι ℝ)} :
+    Λ = graphY S ↔ IsUnit Y ∧ X * Y⁻¹ = S := by
+  have hL := hΛ ▸ Λ.isLagrangian
+  rw [← toSubmodule_injective.eq_iff, hΛ, coe_graphY]
+  constructor
+  · intro h
+    have hY := (StdSpace.disjoint_range_toEuclideanLin_fromRows_ker_y_iff_of_isLagrangian hL).1
+      (h ▸ (StdSpace.isCompl_graphY_ker_y _).disjoint)
+    exact ⟨hY, StdSpace.graphY_injective
+      ((StdSpace.range_toEuclideanLin_fromRows_eq_graphY hY).symm.trans h)⟩
+  · rintro ⟨hY, hS⟩
+    rw [StdSpace.range_toEuclideanLin_fromRows_eq_graphY hY, hS]
+
 /-- A unitary frame of `graphY S`: the real orthonormalization of the complex frame `S + i` of
 the Lagrangian frame `fromRows S 1`. -/
 theorem graphY_eq_unitaryFrame [DecidableEq ι] (S : selfAdjoint (Matrix ι ι ℝ)) :
@@ -133,7 +151,7 @@ theorem coe_smul_graphY (S : selfAdjoint (Matrix ι ι ℝ)) :
       LinearMap.range (toEuclideanLin (fromRows
         (toBlocks₁₁ M * (S : Matrix ι ι ℝ) + toBlocks₁₂ M)
         (toBlocks₂₁ M * (S : Matrix ι ι ℝ) + toBlocks₂₂ M))) := by
-  rw [graphY_eq_ofFrame, coe_smul_ofFrame]
+  rw [graphY_eq_ofFrame, coe_smul_of_coe_eq g (coe_ofFrame _ _ _)]
   conv_lhs => rw [← fromBlocks_toBlocks M]
   rw [fromBlocks_mul_fromRows]
   simp only [Matrix.mul_one]

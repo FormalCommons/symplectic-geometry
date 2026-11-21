@@ -10,7 +10,6 @@ public import SymplecticGeometry.LinearAlgebra.Matrix.Symmetric
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Lagrangian.Transverse
 public import SymplecticGeometry.Topology.Grassmannian.Lagrangian.Quotient
 public import SymplecticGeometry.Topology.Instances.Matrix
-public import TauCeti.LinearAlgebra.Matrix.Rank
 public import TauCeti.Topology.Instances.Matrix
 
 /-!
@@ -100,18 +99,8 @@ private noncomputable def chartValue (U : unitaryGroup ι ℂ) : selfAdjoint (Ma
 `Im U` is invertible and `S = Re U (Im U)⁻¹`. -/
 theorem unitaryFrame_eq_graphY_iff {U : unitaryGroup ι ℂ} {S : selfAdjoint (Matrix ι ι ℝ)} :
     unitaryFrame U = graphY S ↔ IsUnit ((U : Matrix ι ι ℂ).map Complex.im) ∧
-      (U : Matrix ι ι ℂ).map Complex.re * ((U : Matrix ι ι ℂ).map Complex.im)⁻¹ = S := by
-  have hinj := (rank_eq_card_iff_mulVec_injective _).1
-    ((isLagrangian_range_fromRows_iff _ _).1 (isLagrangian_range_fromRows_re_im U)).1
-  rw [← toSubmodule_injective.eq_iff, coe_unitaryFrame, coe_graphY]
-  constructor
-  · intro h
-    have hY := (StdSpace.disjoint_range_toEuclideanLin_fromRows_ker_y_iff hinj).1
-      (h ▸ (StdSpace.isCompl_graphY_ker_y _).disjoint)
-    exact ⟨hY, StdSpace.graphY_injective
-      ((StdSpace.range_toEuclideanLin_fromRows_eq_graphY hY).symm.trans h)⟩
-  · rintro ⟨hY, hS⟩
-    rw [StdSpace.range_toEuclideanLin_fromRows_eq_graphY hY, hS]
+      (U : Matrix ι ι ℂ).map Complex.re * ((U : Matrix ι ι ℂ).map Complex.im)⁻¹ = S :=
+  eq_graphY_iff_of_coe_eq (coe_unitaryFrame U)
 
 private theorem continuousOn_chartValue :
     ContinuousOn chartValue
@@ -201,11 +190,9 @@ is, is transverse to `{y = 0}`, exactly when `Y` is invertible. -/
 theorem mem_graphYChart_source_iff_isUnit [DecidableEq ι] {Λ : ℒ ι} {X Y : Matrix ι ι ℝ}
     (hΛ : (Λ : Submodule ℝ (StdSpace ι)) = LinearMap.range (toEuclideanLin (fromRows X Y))) :
     Λ ∈ (graphYChart : OpenPartialHomeomorph (ℒ ι) _).source ↔ IsUnit Y := by
-  have hL := Λ.isLagrangian
-  rw [hΛ] at hL
   rw [graphYChart_source, mem_ofPred_eq, isCompl_iff_disjoint, hΛ, coe_horizontal]
-  exact StdSpace.disjoint_range_toEuclideanLin_fromRows_ker_y_iff
-    ((rank_eq_card_iff_mulVec_injective _).1 ((isLagrangian_range_fromRows_iff _ _).1 hL).1)
+  exact StdSpace.disjoint_range_toEuclideanLin_fromRows_ker_y_iff_of_isLagrangian
+    (hΛ ▸ Λ.isLagrangian)
 
 /-- If a Lagrangian is spanned by the frame `fromRows X Y` with `Y` invertible, the basic chart
 sends it to `X Y⁻¹`. -/

@@ -522,12 +522,15 @@ unitary action to Tau Ceti's `Matrix.realImage`.
 
 - `instance : MulAction (GLSymplectic ι ℝ) (ℒ ι)`, with
   `coe_smul : ((g • Λ : ℒ ι) : Submodule ℝ (StdSpace ι)) = Λ.map (Matrix.toEuclideanLin g)`
-  (`@[simp]`). The result is Lagrangian by
-  `IsSymplectomorphism.map_orthogonal`, the map `toEuclideanLin g` being a
-  symplectomorphism by `mem_symplecticGroup_iff_forall_stdForm`. On a frame,
-  `coe_smul_ofFrame`: `g • ofFrame X Y h` is spanned by the frame
-  `g * fromRows X Y`; `coe_smul_graphY` (`Transverse.lean`) and the
-  frame of `g • unitaryFrame U` (`Quotient.lean`) follow from it.
+  (`@[simp]`). The result is Lagrangian by Tau Ceti's
+  `SymplecticForm.isLagrangian_map_iff_of_apply_eq_mul` with `c = 1`, the
+  map `toEuclideanLin g` preserving `ω₀` by
+  `mem_symplecticGroup_iff_forall_stdForm`. On a frame,
+  `coe_smul_of_coe_eq`: if `Λ` is spanned by the columns of `Z`, then
+  `g • Λ` is spanned by those of `g * Z`; `coe_smul_graphY`
+  (`Transverse.lean`, with `coe_ofFrame`) and the frame of
+  `g • unitaryFrame U` (`Quotient.lean`, with `coe_unitaryFrame`) follow
+  from it.
 - `instance : MulAction (unitaryGroup ι ℂ) (ℒ ι)`, the action through the
   monoid homomorphism `TauCeti.GLSymplectic.ofUnitary` (`MulAction.compHom`),
   with `unitary_smul_def : U • Λ = ofUnitary U • Λ`.
@@ -765,7 +768,9 @@ is Tau Ceti's `Topology/Grassmannian/Graph.lean`, which does the same for
   for the frame `fromRows S 1`, which spans `graphY S`.
 - `ℒ.unitaryFrame_eq_graphY_iff`: `unitaryFrame U = graphY S` iff
   `U.map im` is invertible and `U.map re * (U.map im)⁻¹ = S`, the form of
-  Tau Ceti's `frameSpan_eq_graph_iff` for unitary frames.
+  Tau Ceti's `frameSpan_eq_graph_iff` for unitary frames. It is
+  `eq_graphY_iff_of_coe_eq` (`Transverse.lean`, for any Lagrangian spanned
+  by a frame `fromRows X Y`) applied to `coe_unitaryFrame U`.
 - `ℒ.isOpenEmbedding_graphY`: `graphY` is an open embedding. The preimage
   under the open quotient map `unitaryFrame` of the image of an open set is
   open, by the previous item.
@@ -783,9 +788,7 @@ is Tau Ceti's `Topology/Grassmannian/Graph.lean`, which does the same for
   `unitaryFrame U` is $XY^{-1}$ for `X = U.map re`. This gives continuity
   on the source through the open quotient map. Both are the frame lemmas
   `mem_graphYChart_source_iff_isUnit` and `coe_graphYChart_eq_mul_inv` below,
-  applied to `coe_unitaryFrame U`; and `unitaryFrame_eq_graphY_iff` rests on
-  `StdSpace.disjoint_range_toEuclideanLin_fromRows_ker_y_iff` and
-  `StdSpace.range_toEuclideanLin_fromRows_eq_graphY`.
+  applied to `coe_unitaryFrame U`.
 - `ℒ.graphChart : OpenPartialHomeomorph (ℒ ι) (selfAdjoint (Matrix ι ι ℝ))`,
   the chart on the Lagrangians transverse to the vertical subspace, with
   source `{Λ | IsCompl Λ (vertical ι)}` (`range_graph`), target
@@ -906,13 +909,16 @@ The manifold structure and the milestone.
   `unitaryChart_symm_trans_apply`, `unitaryChart_symm_trans_source` for the
   transition maps of the atlas. The proof uses three lemmas placed with
   their topics. In `Transverse.lean`, `ℒ.coe_smul_graphY`: `g • graphY S`
-  is spanned by `fromRows (A S + B) (C S + D)`, from `coe_smul_ofFrame` and
+  is spanned by `fromRows (A S + B) (C S + D)`, from `coe_smul_of_coe_eq` and
   `graphY_eq_ofFrame`. In `Graph.lean`, for a
   Lagrangian spanned by a frame `fromRows X Y`,
   `mem_graphYChart_source_iff_isUnit` (it is in the basic chart's source
   iff `Y` is invertible) and `coe_graphYChart_eq_mul_inv` (its chart value
-  is `X Y⁻¹`). These rest on two facts about frames added to `Frame.lean`,
-  `StdSpace.disjoint_range_toEuclideanLin_fromRows_ker_y_iff` and
+  is `X Y⁻¹`), and in `Transverse.lean`, `eq_graphY_iff_of_coe_eq`. These
+  rest on facts about frames added to `Frame.lean`:
+  `StdSpace.disjoint_range_toEuclideanLin_fromRows_ker_y_iff` and its form
+  `disjoint_range_toEuclideanLin_fromRows_ker_y_iff_of_isLagrangian` for a
+  Lagrangian frame, and
   `StdSpace.range_toEuclideanLin_fromRows_eq_graphY`.
 - The milestone, as one theorem, `lagrangianGrassmannian_properties`, stated
   for a finite type `ι` with decidable equality. In it, `ℒ ι` is the file's

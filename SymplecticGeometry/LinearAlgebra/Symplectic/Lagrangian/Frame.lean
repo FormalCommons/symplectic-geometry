@@ -14,6 +14,7 @@ public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Matrix
 public import TauCeti.Geometry.Symplectic.Lagrangian.Constructions
 public import TauCeti.Geometry.Symplectic.Lagrangian.TotallyReal
+public import TauCeti.LinearAlgebra.Matrix.Rank
 public import TauCeti.LinearAlgebra.Matrix.GeneralLinearGroup.Symplectic.Basic
 
 /-!
@@ -70,7 +71,9 @@ A *frame* is a real `2n × n` matrix `Z = fromRows X Y`, whose columns span the 
   the span of `fromRows X Y` to that of `fromRows Y X`.
 * `SymplecticGeometry.StdSpace.disjoint_range_toEuclideanLin_fromRows_ker_y_iff`,
   `range_toEuclideanLin_fromRows_eq_graphY`: a frame `fromRows X Y` of full rank spans a subspace
-  transverse to `{y = 0}` iff `Y` is invertible, and then it spans `graphY (X Y⁻¹)`.
+  transverse to `{y = 0}` iff `Y` is invertible, and then it spans `graphY (X Y⁻¹)`;
+  `disjoint_range_toEuclideanLin_fromRows_ker_y_iff_of_isLagrangian`: the same for a Lagrangian
+  frame.
 
 ## References
 
@@ -429,6 +432,16 @@ theorem isLagrangian_range_fromRows_one {A : Matrix ι ι ℝ} (hA : A.IsSymm) :
     (stdForm ι).IsLagrangian (LinearMap.range (toEuclideanLin (fromRows A 1))) := by
   rw [StdSpace.range_toEuclideanLin_fromRows_one_eq_graphY]
   exact (isLagrangian_graphY_iff A).2 hA
+
+/-- A Lagrangian frame `fromRows X Y` spans a subspace meeting `{y = 0}` only in `0` exactly when
+`Y` is invertible. -/
+theorem StdSpace.disjoint_range_toEuclideanLin_fromRows_ker_y_iff_of_isLagrangian
+    {X Y : Matrix ι ι ℝ}
+    (h : (stdForm ι).IsLagrangian (LinearMap.range (toEuclideanLin (fromRows X Y)))) :
+    Disjoint (LinearMap.range (toEuclideanLin (fromRows X Y))) (LinearMap.ker y) ↔
+      IsUnit Y :=
+  disjoint_range_toEuclideanLin_fromRows_ker_y_iff
+    ((rank_eq_card_iff_mulVec_injective _).1 ((isLagrangian_range_fromRows_iff _ _).1 h).1)
 
 /-- The Lagrangian subspace spanned by the columns of a Lagrangian frame `fromRows X Y`. By
 `isLagrangian_range_fromRows_iff`, the hypothesis says that the frame has rank `n` and that
