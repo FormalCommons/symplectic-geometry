@@ -7,7 +7,7 @@ module
 
 public import Mathlib.Analysis.InnerProductSpace.Basic
 public import TauCeti.Geometry.Symplectic.Hamiltonian.Williamson
-import Mathlib.LinearAlgebra.Matrix.Rank
+import SymplecticGeometry.LinearAlgebra.Matrix.Rank
 
 /-!
 # Orthogonal Darboux bases and the uniqueness of Williamson's frequencies
@@ -82,20 +82,6 @@ section Uniqueness
 variable {V : Type*} [AddCommGroup V] [Module ℝ V] [FiniteDimensional ℝ V]
   {ω : SymplecticForm V} {m : ℕ}
 
-omit [FiniteDimensional ℝ V] in
-/-- An endomorphism that is diagonal in a basis, with diagonal `d`, has rank the number of
-nonzero entries of `d`. -/
-private theorem finrank_range_of_apply_basis_eq_smul {ι : Type*} [Fintype ι]
-    (b : Basis ι ℝ V) {T : Module.End ℝ V} {d : ι → ℝ} (h : ∀ i, T (b i) = d i • b i) :
-    finrank ℝ (LinearMap.range T) = Fintype.card {i // d i ≠ 0} := by
-  classical
-  have hT : LinearMap.toMatrix b b T = Matrix.diagonal d := by
-    ext i j
-    rw [LinearMap.toMatrix_apply, h, map_smul, b.repr_self]
-    by_cases hij : i = j <;> simp [hij]
-  rw [← Matrix.rank_diagonal, ← hT, Matrix.rank_eq_finrank_range_toLin _ b b,
-    Matrix.toLin_toMatrix]
-
 /-- In a Darboux basis `b`, for `t > 0` and positive frequencies `ν`, the rank of
 `A ^ 2 + t ^ 2`, `A` the Hamiltonian endomorphism of `∑ₖ νₖ Iₖ`, counts the basis vectors whose
 frequency differs from `t`. -/
@@ -104,7 +90,7 @@ private theorem IsDarbouxBasis.finrank_range_sq_add_sq {b : Basis (Fin m × Fin 
     finrank ℝ (LinearMap.range (ω.hamiltonianEnd (∑ k, ν k • elliptic b k) ^ 2 +
         t ^ 2 • (1 : Module.End ℝ V))) =
       Fintype.card {i : Fin m × Fin 2 // ν i.1 ≠ t} := by
-  rw [finrank_range_of_apply_basis_eq_smul b (d := fun i ↦ t ^ 2 - ν i.1 ^ 2)]
+  rw [LinearMap.finrank_range_eq_card_of_apply_basis_eq_smul b (d := fun i ↦ t ^ 2 - ν i.1 ^ 2)]
   · refine Fintype.card_congr (Equiv.subtypeEquivRight fun i ↦ ?_)
     have := hν i.1
     rw [sub_ne_zero, Ne, Ne, sq_eq_sq₀ ht.le this.le, eq_comm]

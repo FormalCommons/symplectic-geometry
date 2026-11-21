@@ -43,9 +43,7 @@ theorem IsSymplectomorphism.hamiltonianEnd_comp (he : IsSymplectomorphism ω₁ 
     ω₁.hamiltonianEnd (Q.comp (e : V →ₗ[ℝ] W)) =
       (e.symm : W →ₗ[ℝ] V) ∘ₗ ω₂.hamiltonianEnd Q ∘ₗ (e : V →ₗ[ℝ] W) := by
   refine ((ω₁.eq_hamiltonianEnd_iff).2 fun v w ↦ ?_).symm
-  rw [← he.apply, LinearMap.comp_apply, LinearMap.comp_apply, LinearEquiv.coe_coe,
-    LinearEquiv.coe_coe, LinearEquiv.apply_symm_apply, apply_hamiltonianEnd]
-  simp [QuadraticMap.polar]
+  simp [← he.apply, QuadraticMap.polar]
 
 end TauCeti.SymplecticForm
 
