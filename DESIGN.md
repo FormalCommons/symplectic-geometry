@@ -1779,7 +1779,9 @@ has either; Tau Ceti's extension across a boundary,
   `TauCeti.Bundle.zeroSectionTangentEquiv`), `Lift.lean` (named like Tau
   Ceti's file: for a vector field $Y$, lifting its local flow to $T^*L$ gives
   the flow of $X_H$ for $H(q,p)=p(Y_q)$ where defined, and a complete flow
-  when $Y$ is complete); and
+  when $Y$ is complete); `Geometry/Manifold/Flow/Basic.lean` (named like Tau
+  Ceti's file: the differentials of the time-$t$ and time-$(-t)$ maps of a
+  maximal flow are inverse, which `Lift.lean` uses); and
   `Geometry/Manifold/VectorBundle/Section/Extension.lean` (named like Tau
   Ceti's file, whose `FiberBundle.contMDiffExtend` it uses: the differential
   of a section in the chart at its value, `Bundle.mfderiv_section_apply`, and
