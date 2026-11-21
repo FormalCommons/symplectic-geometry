@@ -454,6 +454,13 @@ range of `mvfderiv I e x`.
   order bounded on its target. It is not `tangentProjectionChart`, whose
   source is a choice.
 
+### `Analysis/Convex/Deriv.lean`
+
+Strict convexity from second derivatives, used by `GoodCover/Compact.lean`:
+`strictConvexOn_of_deriv2_add_smul_pos` (along lines, in a real topological
+vector space) and `ContDiffOn.strictConvexOn_norm_sub_sq` (the squared distance
+`u ↦ ‖ψ u - c‖ ^ 2` for a `C²` map `ψ`).
+
 ### `Geometry/Manifold/DeRham/GoodCover/Compact.lean`
 
 - `strictConvexOn_dist_sq_tangentProjectionChart`: for `r` small enough, in
@@ -665,7 +672,8 @@ can start at once; each issue's blockers come before it.
    `Geometry/Manifold/Immersion/TangentProjection.lean` and
    `Geometry/Manifold/MFDeriv/Chart.lean`.
 9. **Good covers of compact manifolds.**
-   `Geometry/Manifold/DeRham/GoodCover/Compact.lean`. Blocked by 7 and 8.
+   `Geometry/Manifold/DeRham/GoodCover/Compact.lean` and
+   `Analysis/Convex/Deriv.lean`. Blocked by 7 and 8.
 10. **Splittings and their consequences.**
     `Geometry/Manifold/DeRham/SmoothFamily/Basic.lean`. Blocked by 5.
 11. **The homotopy operator on families, and contractible manifolds.**
