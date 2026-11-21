@@ -1,0 +1,365 @@
+/-
+Copyright (c) 2026 The FormalCommons contributors. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: The FormalCommons contributors
+-/
+module
+
+public import Mathlib.Analysis.SpecialFunctions.SmoothTransition
+public import Mathlib.Geometry.Manifold.Instances.Icc
+public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Flow
+public import TauCeti.Geometry.Manifold.Flow.Eulerian
+import TauCeti.Geometry.Manifold.Instances.Icc
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
+
+/-!
+# Isotopies over `ℝ` and diffeotopies
+
+Families of diffeomorphisms of a manifold `M` come in two forms: a family `ψ : ℝ → M ≃ₘ M` over
+the real line, jointly smooth in `(t, x)`, as Tau Ceti's Eulerian field `TauCeti.eulerianField`
+and its time-dependent flows use, and a `TauCeti.Diffeotopy`, a level-preserving diffeomorphism of
+`unitInterval × M` that starts at the identity. This file passes between the two.
+
+## Main definitions
+
+* `Real.smoothTransitionUnit`: the smooth transition function `s = Real.smoothTransition`, as a
+  smooth map `ℝ → unitInterval`.
+* `TauCeti.Diffeotopy.ofReal ψ hψ h₀`: the restriction to `[0, 1]` of a jointly smooth family
+  `ψ` over `ℝ` with `ψ 0 = id`, as a diffeotopy.
+* `TauCeti.Diffeotopy.smoothTransitionFamily Φ`: the family `u ↦ φ_{s(u)}` over `ℝ` of a
+  diffeotopy `Φ`, with `s = Real.smoothTransitionUnit`; it is the identity for `u ≤ 0` and the final
+  map `Φ.final` for `u ≥ 1`.
+
+## Main results
+
+* `Diffeomorph.contMDiff_symm_eval`: on a finite-dimensional boundaryless manifold, the inverses
+  of a jointly `C^n` family of `C^n` diffeomorphisms, `1 ≤ n`, over a boundaryless parameter
+  manifold, are jointly `C^n`, by the inverse function theorem applied to `(p, x) ↦ (p, ψ_p x)`.
+* `TauCeti.Diffeotopy.mfderiv_cylinderMap_ofReal`: the time derivative of `ofReal ψ hψ h₀` at
+  `(x, t)` is the Eulerian field of `ψ` at time `t` and at the point `ψ_t x`.
+* `TauCeti.Diffeotopy.timeDependentFlowDiffeotopy_eq_ofReal`: the diffeotopy of a time-dependent
+  vector field is the restriction of its time-dependent flow from time `0`.
+* `TauCeti.Diffeotopy.contMDiff_smoothTransitionFamily`,
+  `TauCeti.Diffeotopy.contMDiff_smoothTransitionFamily_symm`: the family `u ↦ φ_{s(u)}` and its
+  inverses are jointly smooth.
+* `TauCeti.Diffeotopy.eulerianField_smoothTransitionFamily_apply`: the Eulerian field of
+  `u ↦ φ_{s(u)}` at `φ_{s(u)} x` is `s'(u)` times the time derivative of `Φ` at `(x, s(u))`.
+
+Time derivatives of a diffeotopy are taken, as in Tau Ceti's `TauCeti.Diffeotopy.HasHamiltonian`,
+through `Φ.cylinderMap` on the vector `∂ₜ = (0, 1)` at `(x, t)`, where `1` is the unit tangent
+vector of the interval, which points towards increasing time at both ends.
+
+The proofs of `mfderiv_cylinderMap_ofReal` and `eulerianField_smoothTransitionFamily_apply`
+follow Tau Ceti's `TauCeti.Diffeotopy.mfderiv_cylinderMap_globalFlowDiffeotopy_time`, which splits
+the derivative of the motion into its partial derivatives and differentiates through the inclusion
+of the interval.
+
+## References
+
+* [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017], §3.1.
+-/
+
+public noncomputable section
+
+open Set
+open scoped Manifold ContDiff
+
+section SymmEval
+
+variable {E E' H H' M P : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
+  [NormedAddCommGroup E'] [NormedSpace ℝ E'] [FiniteDimensional ℝ E']
+  [TopologicalSpace H] [TopologicalSpace H'] {I : ModelWithCorners ℝ E H}
+  {J : ModelWithCorners ℝ E' H'} [TopologicalSpace M] [ChartedSpace H M]
+  [TopologicalSpace P] [ChartedSpace H' P] {n : ℕ∞ω}
+  [IsManifold I n M] [IsManifold J n P] [BoundarylessManifold I M] [BoundarylessManifold J P]
+
+/-- On a finite-dimensional boundaryless manifold, the inverses of a jointly `C^n` family of
+`C^n` diffeomorphisms, `1 ≤ n`, over a finite-dimensional boundaryless parameter manifold `P` are
+jointly `C^n`: `(p, y) ↦ ψ_p⁻¹ y` is `C^n` on `P × M`. -/
+theorem Diffeomorph.contMDiff_symm_eval {ψ : P → M ≃ₘ^n⟮I, I⟯ M} (hn : 1 ≤ n)
+    (hψ : ContMDiff (J.prod I) I n (fun p : P × M ↦ ψ p.1 p.2)) :
+    ContMDiff (J.prod I) I n (fun p : P × M ↦ (ψ p.1).symm p.2) := by
+  have hn₀ : n ≠ 0 := by rintro rfl; exact absurd hn (by simp)
+  set F : P × M → P × M := fun p ↦ (p.1, ψ p.1 p.2) with hF
+  have hFs : ContMDiff (J.prod I) (J.prod I) n F := contMDiff_fst.prodMk hψ
+  -- The differential of `F` is `(v, w) ↦ (v, ∂ₚψ v + dψ_p w)`, which is injective since each
+  -- `dψ_p` is.
+  have hinj (q : P × M) : Function.Injective (mfderiv (J.prod I) (J.prod I) F q) := by
+    have hd : MDifferentiableAt (J.prod I) I (fun p : P × M ↦ ψ p.1 p.2) q :=
+      hψ.mdifferentiableAt hn₀
+    refine (injective_iff_map_eq_zero _).2 ?_
+    rintro ⟨v, w⟩ h
+    rw [hF, mfderiv_prodMk mdifferentiableAt_fst hd] at h
+    obtain ⟨h₁, h₂⟩ := Prod.ext_iff.1 ((ContinuousLinearMap.prod_apply _ _ (v, w)).symm.trans h)
+    rw [mfderiv_fst] at h₁
+    obtain rfl : v = 0 := h₁
+    have h₃ : mfderiv I I (ψ q.1) q.2 w = 0 := by
+      exact (zero_add _).symm.trans ((congrArg₂ (fun a b : E ↦ a + b) (map_zero _) rfl).symm.trans
+        ((mfderiv_prod_eq_add_apply hd (v := ((0 : E'), w))).symm.trans h₂))
+    obtain rfl : w = 0 := ((ψ q.1).isInvertible_mfderiv hn₀ (x := q.2)).injective
+      (h₃.trans (map_zero _).symm)
+    rfl
+  have hloc : IsLocalDiffeomorph (J.prod I) (J.prod I) n F := fun q ↦
+    TauCeti.isLocalDiffeomorphAt_of_injective_mfderiv hFs.contMDiffOn isOpen_univ (mem_univ q)
+      BoundarylessManifold.isInteriorPoint hn (hinj q) rfl
+  have hbij : Function.Bijective F := by
+    refine Function.bijective_iff_has_inverse.2 ⟨fun p ↦ (p.1, (ψ p.1).symm p.2), ?_, ?_⟩ <;>
+      intro p <;> simp [F]
+  set D := hloc.diffeomorphOfBijective hbij
+  have hD : ∀ p : P × M, D.symm p = (p.1, (ψ p.1).symm p.2) := fun p ↦ by
+    have h : D (p.1, (ψ p.1).symm p.2) = p := by
+      rw [IsLocalDiffeomorph.coe_diffeomorphOfBijective]
+      simp [F]
+    exact (congrArg D.symm h).symm.trans (D.symm_apply_apply _)
+  exact (contMDiff_snd.comp D.symm.contMDiff).congr fun p ↦ by simp [hD]
+
+end SymmEval
+
+namespace TauCeti.Diffeotopy
+
+variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
+  {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M]
+
+/-- The motion of a smooth diffeotopy sends `∂ₜ` at `(x, t)` to the derivative at `t` of the
+trajectory `s ↦ Φ (s, x)`, read on the cylinder. -/
+private theorem mfderiv_cylinderMap_zero_one (Φ : Diffeotopy I ∞ M) (x : M) (t : unitInterval) :
+    mfderiv (I.prod (𝓡∂ 1)) I Φ.cylinderMap (x, t) ((0 : E), (1 : TangentSpace (𝓡∂ 1) t)) =
+      mfderiv (𝓡∂ 1) I (fun s ↦ Φ.cylinderMap (x, s)) t 1 :=
+  (mfderiv_prod_eq_add_apply (Φ.contMDiff_cylinderMap.mdifferentiableAt (by simp))).trans
+    ((congrArg₂ (fun a b : E ↦ a + b) (map_zero _) rfl).trans (zero_add _))
+
+/-! ### The restriction of a family over `ℝ` -/
+
+section OfReal
+
+variable [FiniteDimensional ℝ E] [IsManifold I ∞ M] [BoundarylessManifold I M]
+  (ψ : ℝ → M ≃ₘ⟮I, I⟯ M) (hψ : ContMDiff (𝓘(ℝ, ℝ).prod I) I ∞ (fun p : ℝ × M ↦ ψ p.1 p.2))
+  (h₀ : ∀ x, ψ 0 x = x)
+
+/-- The restriction to `[0, 1]` of a jointly smooth family `ψ` of diffeomorphisms over `ℝ` with
+`ψ 0 = id`, as a diffeotopy: `(t, x) ↦ ψ_t x`. Its inverse is jointly smooth by
+`Diffeomorph.contMDiff_symm_eval`. -/
+def ofReal : Diffeotopy I ∞ M where
+  toDiffeomorph :=
+    { toFun := fun p ↦ (p.1, ψ p.1 p.2)
+      invFun := fun p ↦ (p.1, (ψ p.1).symm p.2)
+      left_inv := fun p ↦ by simp
+      right_inv := fun p ↦ by simp
+      contMDiff_toFun := contMDiff_fst.prodMk
+        (hψ.comp ((contMDiff_subtypeVal_Icc.comp contMDiff_fst).prodMk contMDiff_snd))
+      contMDiff_invFun := contMDiff_fst.prodMk
+        ((Diffeomorph.contMDiff_symm_eval (by simp) hψ).comp
+          ((contMDiff_subtypeVal_Icc.comp contMDiff_fst).prodMk contMDiff_snd)) }
+  fst_apply _ := rfl
+  snd_apply_zero' := h₀
+
+/-- The restriction `ofReal ψ hψ h₀` sends `(t, x)` to `ψ_t x`. -/
+@[simp]
+theorem ofReal_apply (p : unitInterval × M) : ofReal ψ hψ h₀ p = ψ p.1 p.2 :=
+  (rfl)
+
+/-- The time-`t` slice of the restriction `ofReal ψ hψ h₀` is `ψ_t`. -/
+@[simp]
+theorem timeSlice_ofReal (t : unitInterval) : (ofReal ψ hψ h₀).timeSlice t = ψ t :=
+  Diffeomorph.ext fun x ↦ by rw [timeSlice_apply, ofReal_apply]
+
+/-- The inverse of the level-preserving diffeomorphism of `ofReal ψ hψ h₀` sends `(t, y)` to
+`(t, ψ_t⁻¹ y)`. -/
+@[simp]
+theorem toDiffeomorph_symm_ofReal_apply (p : unitInterval × M) :
+    (ofReal ψ hψ h₀).toDiffeomorph.symm p = (p.1, (ψ p.1).symm p.2) :=
+  (rfl)
+
+/-- The inverse of the restriction `ofReal ψ hψ h₀` sends `(t, y)` to `ψ_t⁻¹ y`. `simp` proves
+it through `symm_apply` and `toDiffeomorph_symm_ofReal_apply`. -/
+theorem symm_ofReal_apply (p : unitInterval × M) : (ofReal ψ hψ h₀).symm p = (ψ p.1).symm p.2 := by
+  rw [symm_apply, toDiffeomorph_symm_ofReal_apply]
+
+/-- The final map of the restriction `ofReal ψ hψ h₀` is `ψ_1`. -/
+@[simp]
+theorem final_ofReal : (ofReal ψ hψ h₀).final = ψ 1 := by
+  rw [final_def, timeSlice_ofReal, Set.Icc.coe_one]
+
+/-- The time derivative of the restriction `ofReal ψ hψ h₀` at `(x, t)` is the Eulerian field of
+`ψ` at time `t` and at the point `ψ_t x`. -/
+theorem mfderiv_cylinderMap_ofReal (x : M) (t : unitInterval) :
+    mfderiv (I.prod (𝓡∂ 1)) I (ofReal ψ hψ h₀).cylinderMap (x, t)
+      ((0 : E), (1 : TangentSpace (𝓡∂ 1) t)) =
+      eulerianField I (fun u ↦ (ψ u).toEquiv) t (ψ t x) := by
+  have hcyl : (fun s ↦ (ofReal ψ hψ h₀).cylinderMap (x, s)) = (fun u ↦ ψ u x) ∘ Subtype.val :=
+    funext fun s ↦ by rw [cylinderMap_apply, ofReal_apply, Function.comp_apply]
+  have hval : MDifferentiableAt (𝓡∂ 1) 𝓘(ℝ) (Subtype.val : unitInterval → ℝ) t :=
+    (contMDiff_subtypeVal_Icc (n := 1)).mdifferentiableAt one_ne_zero
+  have hγ : MDifferentiableAt 𝓘(ℝ) I (fun u ↦ ψ u x) t :=
+    (hψ.comp (contMDiff_id.prodMk contMDiff_const)).mdifferentiableAt (by simp)
+  refine ((ofReal ψ hψ h₀).mfderiv_cylinderMap_zero_one x t).trans ?_
+  refine (congrArg (fun f ↦ mfderiv (𝓡∂ 1) I f t (1 : TangentSpace (𝓡∂ 1) t)) hcyl).trans
+    ((mfderiv_comp_apply t hγ hval _).trans ?_)
+  rw [mfderiv_subtypeVal_Icc_one]
+  exact Manifold.curveVelocity_apply.symm.trans
+    (eulerianField_apply_apply (φ := fun u ↦ (ψ u).toEquiv) x).symm
+
+end OfReal
+
+/-! ### Time-dependent flows -/
+
+/-- The time-dependent flow from a fixed time `s` of a `C^n` time-dependent vector field, `1 ≤ n`,
+with complete suspension is jointly `C^n` in the final time and the initial point. -/
+theorem _root_.TauCeti.contMDiff_timeDependentFlowDiffeomorph [FiniteDimensional ℝ E] [T2Space M]
+    [BoundarylessManifold I M] [IsManifold I 1 M] {n : ℕ∞} (hn : 1 ≤ n) [IsManifold I n M]
+    {X : ℝ → (x : M) → TangentSpace I x}
+    (hX : ContMDiff (𝓘(ℝ, ℝ).prod I) I.tangent n
+      (fun p : ℝ × M ↦ (⟨p.2, X p.1 p.2⟩ : TangentBundle I M)))
+    (hc : IsCompleteVectorField (timeDependentSuspensionField X)) (s : ℝ) :
+    ContMDiff (𝓘(ℝ, ℝ).prod I) I n
+      (fun p : ℝ × M ↦ timeDependentFlowDiffeomorph hc hn hX s p.1 p.2) :=
+  (contMDiff_timeDependentFlowOf hc hn hX).comp
+    ((contMDiff_const.prodMk contMDiff_fst).prodMk contMDiff_snd) |>.congr fun p ↦
+      timeDependentFlowDiffeomorph_apply hc hn hX s p.1 p.2
+
+section Flow
+
+variable [FiniteDimensional ℝ E] [T2Space M] [BoundarylessManifold I M] [IsManifold I ∞ M]
+  [IsManifold I 1 M] {X : ℝ → (x : M) → TangentSpace I x}
+  (hX : ContMDiff (𝓘(ℝ, ℝ).prod I) I.tangent ∞
+    (fun p : ℝ × M ↦ (⟨p.2, X p.1 p.2⟩ : TangentBundle I M)))
+  (hc : IsCompleteVectorField (timeDependentSuspensionField X))
+
+/-- The diffeotopy of a smooth time-dependent vector field `X` with complete suspension is the
+restriction to `[0, 1]` of the time-dependent flow of `X` from time `0`. -/
+theorem timeDependentFlowDiffeotopy_eq_ofReal :
+    timeDependentFlowDiffeotopy le_top hX hc =
+      ofReal (fun t ↦ timeDependentFlowDiffeomorph hc le_top hX 0 t)
+        (contMDiff_timeDependentFlowDiffeomorph le_top hX hc 0)
+        (fun x ↦ (timeDependentFlowDiffeomorph_apply hc le_top hX 0 0 x).trans
+          (timeDependentFlowOf_self X 0 x)) :=
+  ext fun p ↦ by
+    rw [timeDependentFlowDiffeotopy_apply, ofReal_apply, timeDependentFlowDiffeomorph_apply]
+
+end Flow
+
+end TauCeti.Diffeotopy
+
+/-! ### The smooth transition as a map to the unit interval -/
+
+namespace Real
+
+/-- The smooth transition function `Real.smoothTransition`, as a map `s : ℝ → unitInterval`. -/
+def smoothTransitionUnit (u : ℝ) : unitInterval :=
+  ⟨smoothTransition u, smoothTransition.nonneg u, smoothTransition.le_one u⟩
+
+/-- The point `s u` of the unit interval is `Real.smoothTransition u`. -/
+@[simp]
+theorem coe_smoothTransitionUnit (u : ℝ) :
+    (smoothTransitionUnit u : ℝ) = smoothTransition u :=
+  (rfl)
+
+/-- For `u ≤ 0`, `s u = 0`. -/
+theorem smoothTransitionUnit_of_nonpos {u : ℝ} (hu : u ≤ 0) : smoothTransitionUnit u = 0 :=
+  Subtype.ext (smoothTransition.zero_of_nonpos hu)
+
+/-- For `u ≥ 1`, `s u = 1`. -/
+theorem smoothTransitionUnit_of_one_le {u : ℝ} (hu : 1 ≤ u) : smoothTransitionUnit u = 1 :=
+  Subtype.ext (smoothTransition.one_of_one_le hu)
+
+/-- The map `s : ℝ → unitInterval` is `C^n` for every `n ≤ ∞`. -/
+theorem contMDiff_smoothTransitionUnit {n : ℕ∞ω} (hn : n ≤ ∞) :
+    ContMDiff 𝓘(ℝ) (𝓡∂ 1) n smoothTransitionUnit :=
+  contMDiff_id.smoothTransition hn
+
+end Real
+
+namespace TauCeti.Diffeotopy
+
+variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
+  {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M]
+
+/-! ### The reading of a diffeotopy over `ℝ` -/
+
+section SmoothTransition
+
+variable (Φ : Diffeotopy I ∞ M)
+
+/-- The family `u ↦ φ_{s(u)}` over `ℝ` of a diffeotopy `Φ`, where `s = Real.smoothTransition`:
+the identity for `u ≤ 0`, the final map for `u ≥ 1`, and a reparametrization of `Φ` in between. -/
+def smoothTransitionFamily (u : ℝ) : M ≃ₘ⟮I, I⟯ M :=
+  Φ.timeSlice (Real.smoothTransitionUnit u)
+
+/-- The family `u ↦ φ_{s(u)}` at `u` is the time slice of `Φ` at `s(u)`. -/
+theorem smoothTransitionFamily_def (u : ℝ) :
+    Φ.smoothTransitionFamily u = Φ.timeSlice (Real.smoothTransitionUnit u) :=
+  (rfl)
+
+/-- The family `u ↦ φ_{s(u)}` sends `x` to `Φ (s(u), x)`. -/
+@[simp]
+theorem smoothTransitionFamily_apply (u : ℝ) (x : M) :
+    Φ.smoothTransitionFamily u x = Φ (Real.smoothTransitionUnit u, x) :=
+  Φ.timeSlice_apply _ x
+
+/-- For `u ≤ 0`, the map `φ_{s(u)}` is the identity. -/
+theorem smoothTransitionFamily_of_nonpos {u : ℝ} (hu : u ≤ 0) :
+    Φ.smoothTransitionFamily u = Diffeomorph.refl I M ∞ := by
+  rw [smoothTransitionFamily_def, Real.smoothTransitionUnit_of_nonpos hu, timeSlice_zero]
+
+/-- For `u ≥ 1`, the map `φ_{s(u)}` is the final map of `Φ`. -/
+theorem smoothTransitionFamily_of_one_le {u : ℝ} (hu : 1 ≤ u) :
+    Φ.smoothTransitionFamily u = Φ.final := by
+  rw [smoothTransitionFamily_def, Real.smoothTransitionUnit_of_one_le hu, final_def]
+
+/-- The family `u ↦ φ_{s(u)}` is jointly smooth in `(u, x)`. -/
+theorem contMDiff_smoothTransitionFamily :
+    ContMDiff (𝓘(ℝ, ℝ).prod I) I ∞ (fun p : ℝ × M ↦ Φ.smoothTransitionFamily p.1 p.2) :=
+  Φ.contMDiff.comp (((Real.contMDiff_smoothTransitionUnit le_rfl).comp contMDiff_fst).prodMk
+    contMDiff_snd) |>.congr
+    fun p ↦ Φ.smoothTransitionFamily_apply p.1 p.2
+
+/-- The inverses of the family `u ↦ φ_{s(u)}` are jointly smooth in `(u, y)`. -/
+theorem contMDiff_smoothTransitionFamily_symm :
+    ContMDiff (𝓘(ℝ, ℝ).prod I) I ∞ (fun p : ℝ × M ↦ (Φ.smoothTransitionFamily p.1).symm p.2) :=
+  Φ.symm.contMDiff.comp (((Real.contMDiff_smoothTransitionUnit le_rfl).comp contMDiff_fst).prodMk
+    contMDiff_snd) |>.congr
+    fun _ ↦ symm_timeSlice_apply _ _ _
+
+/-- The Eulerian field of the family `u ↦ φ_{s(u)}`, `s = Real.smoothTransition`, at the point
+`φ_{s(u)} x` is `s'(u)` times the time derivative of `Φ` at `(x, s(u))`. -/
+theorem eulerianField_smoothTransitionFamily_apply (u : ℝ) (x : M) :
+    eulerianField I (fun v ↦ (Φ.smoothTransitionFamily v).toEquiv) u
+      (Φ.smoothTransitionFamily u x) =
+      deriv Real.smoothTransition u •
+        mfderiv (I.prod (𝓡∂ 1)) I Φ.cylinderMap (x, Real.smoothTransitionUnit u)
+          ((0 : E), (1 : TangentSpace (𝓡∂ 1) (Real.smoothTransitionUnit u))) := by
+  set σ : ℝ → unitInterval := Real.smoothTransitionUnit
+  have hσ : ContMDiff 𝓘(ℝ) (𝓡∂ 1) ∞ σ := Real.contMDiff_smoothTransitionUnit le_rfl
+  have hσu : MDifferentiableAt 𝓘(ℝ) (𝓡∂ 1) σ u := hσ.mdifferentiableAt (by simp)
+  have hval : MDifferentiableAt (𝓡∂ 1) 𝓘(ℝ) (Subtype.val : unitInterval → ℝ) (σ u) :=
+    (contMDiff_subtypeVal_Icc (n := 1)).mdifferentiableAt one_ne_zero
+  have hg : MDifferentiableAt (𝓡∂ 1) I (fun r ↦ Φ.cylinderMap (x, r)) (σ u) :=
+    (Φ.contMDiff_cylinderMap.comp (contMDiff_const.prodMk contMDiff_id)).mdifferentiableAt
+      (by simp)
+  -- The derivative of `σ` on `1` is `s'(u)` times the unit vector of the interval, since the
+  -- inclusion of the interval has injective derivative and sends both to `s'(u)`.
+  have hσ' : mfderiv 𝓘(ℝ) (𝓡∂ 1) σ u 1 = deriv Real.smoothTransition u • 1 := by
+    refine (isInvertible_mfderiv_subtypeVal_Icc (σ u)).injective ?_
+    rw [map_smul, mfderiv_subtypeVal_Icc_one, ← mfderiv_comp_apply u hval hσu]
+    have hc : Subtype.val ∘ σ = Real.smoothTransition :=
+      funext Real.coe_smoothTransitionUnit
+    rw [hc, mfderiv_eq_fderiv]
+    -- `NormedSpace.fromTangentSpace` is the identity by definition and has no apply lemma.
+    change fderiv ℝ Real.smoothTransition u 1 = deriv Real.smoothTransition u • (1 : ℝ)
+    rw [fderiv_apply_one_eq_deriv, smul_eq_mul, mul_one]
+  have hfun : (fun v ↦ (Φ.smoothTransitionFamily v).toEquiv x) =
+      (fun r ↦ Φ.cylinderMap (x, r)) ∘ σ :=
+    funext fun v ↦ by
+      rw [Diffeomorph.coe_toEquiv, smoothTransitionFamily_apply, Function.comp_apply,
+        cylinderMap_apply]
+  rw [← Diffeomorph.coe_toEquiv, eulerianField_apply_apply, Manifold.curveVelocity_apply, hfun]
+  refine (mfderiv_comp_apply u hg hσu _).trans
+    ((congrArg (mfderiv (𝓡∂ 1) I (fun r ↦ Φ.cylinderMap (x, r)) (σ u)) hσ').trans
+    ((map_smul _ _ _).trans ?_))
+  exact congrArg (deriv Real.smoothTransition u • ·) (Φ.mfderiv_cylinderMap_zero_one x (σ u)).symm
+
+end SmoothTransition
+
+end TauCeti.Diffeotopy
+
+end
