@@ -7,7 +7,7 @@ module
 
 public import TauCeti.Geometry.Manifold.VectorBundle.Section.FrameCover
 public import SymplecticGeometry.Geometry.Manifold.ContMDiffMap.Chart.CodRestrict
-import TauCeti.Analysis.Calculus.ContDiff.FaaDiBruno
+public import SymplecticGeometry.Geometry.Manifold.ContMDiffMap.Chart.Restriction
 import TauCeti.Geometry.Manifold.ContMDiffMap.Chart.ManifoldFamily
 
 /-!
@@ -73,112 +73,9 @@ theorem toContMDiffMap_injective :
   fun s t h ↦ ext fun x ↦ by
     simpa using (TotalSpace.mk_inj (b := x)).mp (congrArg (· x) h)
 
-section Chart
-
-variable [IsManifold I n M]
-
-/-- The coordinate derivatives, in an ambient chart at `x`, of a function that agrees on an open
-set `U` with a `C^n` map on `U`, through the chart of `U` at a point `y`. -/
-private theorem iteratedFDerivWithin_eq_taylorComp_of_opens (U : Opens M)
-    (g : C^n⟮I, U; 𝓘(𝕜, F), F⟯) (f : M → F) (hfg : ∀ y : U, f y = g y) (x : M) (y : U)
-    {z : E} (hz : z ∈ (extChartAt I x).target) (hy : (extChartAt I x).symm z ∈ U)
-    (hys : (extChartAt I x).symm z ∈ (extChartAt I (y : M)).source) (m : ℕ) (hm : m ≤ n) :
-    iteratedFDerivWithin 𝕜 m (f ∘ (extChartAt I x).symm) (extChartAt I x).target z =
-      (ftaylorSeriesWithin 𝕜 (g ∘ (extChartAt I y).symm)
-        (extChartAt I y).target (extChartAt I (y : M) ((extChartAt I x).symm z))).taylorComp
-        (ftaylorSeriesWithin 𝕜 (extChartAt I (y : M) ∘ (extChartAt I x).symm)
-          (extChartAt I x).target z) m := by
-  set φ := extChartAt I x
-  set ψ := extChartAt I y
-  set τ : E → E := extChartAt I (y : M) ∘ φ.symm
-  have hτ : Tendsto τ (𝓝[φ.target] z) (𝓝[ψ.target] τ z) :=
-    U.tendsto_extChartAt_restrict x y hz hy hys
-  have hv : τ z ∈ ψ.target := by
-    rw [U.extChartAt_target_eq y]
-    exact ⟨(extChartAt I (y : M)).map_source hys, by
-      simpa only [τ, Function.comp_apply, mem_preimage, (extChartAt I (y : M)).left_inv hys,
-        SetLike.mem_coe] using hy⟩
-  have hφ := continuousOn_extChartAt_symm (I := I) x z hz
-  -- Near `z`, the function is read through the chart of `U` at `y`.
-  have heq : ∀ w, φ.symm w ∈ (extChartAt I (y : M)).source → τ w ∈ ψ.target →
-      (f ∘ φ.symm) w = ((g ∘ ψ.symm) ∘ τ) w := by
-    intro w hws hwt
-    have hval : ((ψ.symm (τ w) : U) : M) = φ.symm w := by
-      rw [U.coe_extChartAt_symm_apply y hwt]
-      exact (extChartAt I (y : M)).left_inv hws
-    simp only [Function.comp_apply, ← hfg, hval]
-  have hev : f ∘ φ.symm =ᶠ[𝓝[φ.target] z] (g ∘ ψ.symm) ∘ τ := by
-    filter_upwards [hφ.eventually ((isOpen_extChartAt_source (I := I) (y : M)).mem_nhds hys),
-      (tendsto_nhdsWithin_iff.mp hτ).2] with w hws hwt
-    exact heq w hws hwt
-  rw [hev.iteratedFDerivWithin_eq (heq z hys hv)]
-  have hg : ContDiffWithinAt 𝕜 n (g ∘ ψ.symm) ψ.target (τ z) := by
-    simpa only [extChartAt_model_space_eq_id, PartialEquiv.refl_coe, Function.id_comp] using
-      g.contDiffWithinAt_extChartAt (y := (0 : F)) hv (by simp)
-  have hτd : ContDiffWithinAt 𝕜 n τ φ.target z :=
-    (ContMDiffMap.id : C^n⟮I, M; I, M⟯).contDiffWithinAt_extChartAt hz hys
-  exact iteratedFDerivWithin_comp_of_eventually_mem hg hτd (uniqueDiffOn_extChartAt_target y)
-    (uniqueDiffOn_extChartAt_target x) hz (tendsto_nhdsWithin_iff.mp hτ).2 hm
-
-variable [LocallyCompactSpace E]
-
-/-- Convergence in `C^n⟮I, U; 𝓘(𝕜, F), F⟯` of `C^n` maps on an open set `U` controls, jointly
-with the point, the coordinate derivatives in any ambient chart of functions on `M` that agree
-with them on `U`, at the points of `U`. -/
-private theorem tendsto_iteratedFDerivWithin_of_opens (U : Opens M) {P : Type*} {l : Filter P}
-    {g : P → C^n⟮I, U; 𝓘(𝕜, F), F⟯} {g₀ : C^n⟮I, U; 𝓘(𝕜, F), F⟯} (hg : Tendsto g l (𝓝 g₀))
-    {f : P → M → F} {f₀ : M → F} (hfg : ∀ p (y : U), f p y = g p y)
-    (hfg₀ : ∀ y : U, f₀ y = g₀ y) (x : M) {z : E} (hz : z ∈ (extChartAt I x).target)
-    (hy : (extChartAt I x).symm z ∈ U) (m : ℕ) (hm : m ≤ n) :
-    Tendsto (fun q : P × E ↦ iteratedFDerivWithin 𝕜 m (f q.1 ∘ (extChartAt I x).symm)
-        (extChartAt I x).target q.2)
-      (l ×ˢ 𝓝[(extChartAt I x).target] z)
-      (𝓝 (iteratedFDerivWithin 𝕜 m (f₀ ∘ (extChartAt I x).symm) (extChartAt I x).target z)) := by
-  let y : U := ⟨(extChartAt I x).symm z, hy⟩
-  set φ := extChartAt I x
-  set τ : E → E := fun w ↦ extChartAt I (y : M) (φ.symm w)
-  have hys : φ.symm z ∈ (extChartAt I (y : M)).source := mem_extChartAt_source (y : M)
-  have hv : τ z ∈ (extChartAt I y).target := by
-    rw [U.extChartAt_target_eq y]
-    exact ⟨(extChartAt I (y : M)).map_source hys, by
-      simpa only [τ, mem_preimage, (extChartAt I (y : M)).left_inv hys, SetLike.mem_coe] using hy⟩
-  have hτ : Tendsto τ (𝓝[φ.target] z) (𝓝[(extChartAt I y).target] τ z) :=
-    U.tendsto_extChartAt_restrict x y hz hy hys
-  have hjg (k : ℕ) (hk : k ≤ m) :
-      Tendsto (fun q : P × E ↦ ftaylorSeriesWithin 𝕜 (g q.1 ∘ (extChartAt I y).symm)
-        (extChartAt I y).target (τ q.2) k) (l ×ˢ 𝓝[φ.target] z)
-        (𝓝 (ftaylorSeriesWithin 𝕜 (g₀ ∘ (extChartAt I y).symm) (extChartAt I y).target
-          (τ z) k)) := by
-    have h := (ContMDiffMap.tendsto_iteratedFDerivWithin_extChartAt (f₀ := g₀)
-      (y := (0 : F)) hv (by simp) ((Nat.cast_le.mpr hk).trans hm)).comp (hg.prodMap hτ)
-    simpa only [ftaylorSeriesWithin, extChartAt_model_space_eq_id, PartialEquiv.refl_coe,
-      Function.id_comp, Function.comp_def, Prod.map_fst, Prod.map_snd, id_eq] using h
-  have hjp (k : ℕ) (hk : k ≤ m) :
-      Tendsto (fun q : P × E ↦ ftaylorSeriesWithin 𝕜
-        (extChartAt I (y : M) ∘ φ.symm) φ.target q.2 k) (l ×ˢ 𝓝[φ.target] z)
-        (𝓝 (ftaylorSeriesWithin 𝕜 (extChartAt I (y : M) ∘ φ.symm) φ.target z k)) :=
-    (TauCeti.continuousWithinAt_ftaylorSeriesWithin_extChartAt_comp_symm x y hz hys (k := k)
-      ((Nat.cast_le.mpr hk).trans hm)).tendsto.comp tendsto_snd
-  have hφ := continuousOn_extChartAt_symm (I := I) x z hz
-  have hfdb : ∀ᶠ q : P × E in l ×ˢ 𝓝[φ.target] z,
-      (ftaylorSeriesWithin 𝕜 (g q.1 ∘ (extChartAt I y).symm) (extChartAt I y).target
-        (τ q.2)).taylorComp (ftaylorSeriesWithin 𝕜 (extChartAt I (y : M) ∘ φ.symm)
-          φ.target q.2) m =
-        iteratedFDerivWithin 𝕜 m (f q.1 ∘ φ.symm) φ.target q.2 := by
-    filter_upwards [tendsto_snd.eventually (hφ.eventually (U.isOpen.mem_nhds hy)),
-      tendsto_snd.eventually
-        (hφ.eventually ((isOpen_extChartAt_source (I := I) (y : M)).mem_nhds hys)),
-      tendsto_snd.eventually self_mem_nhdsWithin] with q hU hS hq
-    exact (iteratedFDerivWithin_eq_taylorComp_of_opens U (g q.1) (f q.1) (hfg q.1) x y hq hU hS
-      m hm).symm
-  have h := (Filter.Tendsto.taylorComp hjg (fun k _ hk ↦ hjp k hk)).congr' hfdb
-  rwa [← iteratedFDerivWithin_eq_taylorComp_of_opens U g₀ f₀ hfg₀ x y hz hy hys m hm] at h
-
-end Chart
-
 /-- A section meets the source of the chart of the total space at `y` exactly over the base
 set of `trivializationAt F V y.proj` and the source of the chart of `M` at `y.proj`. -/
-private theorem toContMDiffMap_mem_extChartAt_source_iff (s : Cₛ^n⟮I; F, V⟯)
+theorem toContMDiffMap_mem_extChartAt_source_iff (s : Cₛ^n⟮I; F, V⟯)
     (y : TotalSpace F V) (p : M) :
     toContMDiffMap s p ∈ (extChartAt (I.prod 𝓘(𝕜, F)) y).source ↔
       p ∈ (trivializationAt F V y.proj).baseSet ∧ p ∈ (chartAt H y.proj).source := by
@@ -188,7 +85,7 @@ private theorem toContMDiffMap_mem_extChartAt_source_iff (s : Cₛ^n⟮I; F, V�
 /-- Over the base set of `trivializationAt F V y.proj`, a section read in the chart of the total
 space at `y` is the pair of the chart of `M` at `y.proj` and the coordinates of the section in
 that trivialization. -/
-private theorem extChartAt_toContMDiffMap (s : Cₛ^n⟮I; F, V⟯) (y : TotalSpace F V) {p : M}
+theorem extChartAt_toContMDiffMap (s : Cₛ^n⟮I; F, V⟯) (y : TotalSpace F V) {p : M}
     (hp : p ∈ (trivializationAt F V y.proj).baseSet) :
     extChartAt (I.prod 𝓘(𝕜, F)) y (toContMDiffMap s p) =
       (extChartAt I y.proj p, (trivializationAt F V y.proj ⟨p, s p⟩).2) := by
@@ -267,7 +164,7 @@ private theorem eventually_toContMDiffMap_mem (hcover : ∀ x, ∃ i, x ∈ U i)
         (uniqueDiffOn_extChartAt_target x) hm hw).tendsto.comp tendsto_snd
   -- The fibre part is controlled by the frame coordinates in `t`.
   let Ut : Opens M := ⟨t.baseSet, t.open_baseSet⟩
-  have hB := tendsto_iteratedFDerivWithin_of_opens Ut
+  have hB := ContMDiffMap.tendsto_iteratedFDerivWithin_of_eqOn_opens Ut
     ((continuous_frameCoordinates_of_cover e U hU hcover t Ut subset_rfl).tendsto s₀)
     (f := fun s p ↦ (t ⟨p, s p⟩).2) (f₀ := fun p ↦ (t ⟨p, s₀ p⟩).2)
     (fun s p ↦ (t.frameCoordinates_apply subset_rfl s p).symm)
@@ -280,8 +177,8 @@ private theorem eventually_toContMDiffMap_mem (hcover : ∀ x, ∃ i, x ∈ U i)
   rw [iteratedFDerivWithin_extChartAt_toContMDiffMap q.1 x y hqT hq m hm]
   exact hqW
 
-/-- A section depends continuously, for a covering frame topology, on the section viewed as a
-`C^n` map into the total space with the weak Whitney topology. -/
+/-- For a covering frame system, `s ↦ toContMDiffMap s` is continuous from the frame topology on
+sections to the weak Whitney topology on `C^n` maps into the total space. -/
 theorem continuous_toContMDiffMap (hcover : ∀ x, ∃ i, x ∈ U i) :
     letI := frameTopology (I := I) (n := n) e U hU
     Continuous (toContMDiffMap : Cₛ^n⟮I; F, V⟯ → C^n⟮I, M; I.prod 𝓘(𝕜, F), TotalSpace F V⟯) := by
