@@ -692,25 +692,38 @@ at once.
     $C^n$ data; and the construction is natural under linear isomorphisms.
     It is applied to the path $(1-\beta(t))\omega_1'+\beta(t)\omega_2$, with
     $\beta$ = `smoothTransition`, which is nondegenerate at every real time,
-    as part 10's hypothesis `hinv` requires. Naturality comes from three
-    new lemmas. The first, `SymplecticGeometry.map_dysonSeries`, takes
-    complete normed algebras `B` and `C` (`[CompleteSpace B]`,
-    `[CompleteSpace C]`), a continuous algebra homomorphism
-    `f : B →A[ℝ] C` and a continuous `p : ℝ → B`, and gives
-    `f (dysonSeries p t) = dysonSeries (f ∘ p) t`. Its proof passes `f`
-    through each iterated integral (`intervalIntegral_comp_comm`) and then
-    through the sum (`map_tsum`, using `summable_dysonTerm`). Completeness of
-    `C` cannot be dropped: Mathlib's integral is zero in an incomplete space,
-    so there the right side would be `1` for every `t`. The second,
-    `SymplecticGeometry.map_dysonSeriesLeft`, is the same statement for
-    `dysonSeriesLeft`, derived from the first in the opposite algebras via
-    `op_dysonSeriesLeft`. Both are about Tau Ceti's Dyson series alone, so
-    they go in `Analysis/ODE/DysonSeries.lean`, in namespace
-    `SymplecticGeometry`, as `DESIGN.md` prescribes for that file (dot
-    notation does not reach these functions); both are candidates for Tau
-    Ceti. Conjugation by `e : V ≃L[ℝ] W` is the case
+    as part 10's hypothesis `hinv` requires. Naturality comes from four
+    new lemmas. Their hypotheses on the map follow Mathlib's
+    `NormedSpace.map_exp`: a class of bundled morphisms
+    (`{F} [FunLike F B C] [AlgHomClass F ℝ B C] (f : F)`) with
+    `hf : Continuous f`, so that they apply to an `AlgHom`, an `AlgEquiv`,
+    a `ContinuousAlgHom` or a `ContinuousAlgEquiv` without conversion. The
+    algebras `B` and `C` are complete normed algebras (`[CompleteSpace B]`,
+    `[CompleteSpace C]`), and `p : ℝ → B` is continuous.
+    The first, `SymplecticGeometry.map_dysonTerm`, gives
+    `f (dysonTerm p n t) = dysonTerm (f ∘ p) n t`, by induction on `n`,
+    passing `f`, made a continuous linear map by `hf`, through each
+    integral (`ContinuousLinearMap.intervalIntegral_comp_comm`). The second,
+    `SymplecticGeometry.map_dysonSeries`, gives
+    `f (dysonSeries p t) = dysonSeries (f ∘ p) t`, from the first and
+    `ContinuousLinearMap.map_tsum` with `summable_dysonTerm`; Tau Ceti's
+    uniqueness lemma `eq_mul_dysonSeries` may give a shorter proof.
+    Completeness of `C` cannot be dropped: Mathlib's integral is zero in an
+    incomplete space, so there the right side would be `1` for every `t`.
+    The third, `SymplecticGeometry.map_dysonSeriesLeft`, is the same
+    statement for `dysonSeriesLeft`. It follows from the second through
+    `op_dysonSeriesLeft`, applied to Mathlib's
+    `AlgHom.op (AlgHom.ofClass f) : Bᵐᵒᵖ →ₐ[ℝ] Cᵐᵒᵖ`, continuous by
+    `continuous_op.comp (hf.comp continuous_unop)`. This is why the lemmas
+    take a morphism class rather than `B →A[ℝ] C`: Mathlib has no opposite
+    of a continuous algebra homomorphism. All three are about Tau Ceti's
+    Dyson series alone, so they go in `Analysis/ODE/DysonSeries.lean`, in
+    namespace `SymplecticGeometry`, as `DESIGN.md` prescribes for that file
+    (dot notation does not reach these functions); all three are
+    candidates for Tau Ceti.
+    Conjugation by `e : V ≃L[ℝ] W` is the case
     `f = e.conjContinuousAlgEquiv` (Mathlib), where `W →L[ℝ] W` is complete
-    since `W` is finite-dimensional. The third,
+    since `W` is finite-dimensional. The fourth,
     `moserGenerator_conj`, stays in `LinearMoser.lean`: the generator of the
     forms moved along `e` is `e.conjContinuousAlgEquiv (moserGenerator ω t)`.
     Part 10 (`Geometry/Symplectic/LinearMoser.lean`) proves
