@@ -239,8 +239,8 @@ file to it.
   a fibre bundle with another model fibre along a homeomorphism, involves no
   group, so it has its own file, `Topology/FiberBundle/ChangeModelFiber.lean`.
 - `Topology/FiberBundle/Basic.lean` is new: the openness argument behind
-  `isOpen_setOf_nondegenerate` holds for any fibrewise condition on any fibre
-  bundle, so it is stated there, in Mathlib's `FiberBundle` namespace, as
+  `isOpen_setOf_nondegenerate` and `isOpen_polarFormulaDomain` holds for any
+  fibrewise condition on any fibre bundle, so it is stated there, in Mathlib's `FiberBundle` namespace, as
   `FiberBundle.isOpen_of_forall_mem_iff_snd_mem` (#456).
 - The lemma of `Section/Topology.lean` asks for joint $C^n$ regularity in a
   manifold parameter instead of derivatives continuous in the parameter (see
@@ -482,8 +482,8 @@ the form and of the structure are independent.
   bundles, `Bundle.ContMDiffRiemannianMetric` and part 9's `TauCeti`
   operations, so they go in a file of their own,
   `Geometry/Manifold/VectorBundle/Riemannian/PolarEnd.lean`, which imports
-  no file of this part but `Topology/VectorBundle/Coordinates.lean`, in the
-  namespace `Bundle.ContMDiffRiemannianMetric` (where `g.polarFormulaAt x σ`
+  no file of this part but `Topology/VectorBundle/Coordinates.lean` and
+  `Topology/FiberBundle/Basic.lean`, in the namespace `Bundle.ContMDiffRiemannianMetric` (where `g.polarFormulaAt x σ`
   finds them), except `Bundle.polarFormulaDomain` and
   `Bundle.euclideanEquivAt`, which involve no metric. Only the lemmas named
   below as being in `SymplecticGeometry.Bundle` stay in this file. For a metric `g`:
@@ -492,17 +492,18 @@ the form and of the structure are independent.
     part of `σ` is nondegenerate, with `@[simp] mem_polarFormulaDomain_iff :
     q ∈ polarFormulaDomain F V ↔
     (q.snd.toBilinForm - q.snd.toBilinForm.flip).Nondegenerate`. It is open
-    (`isOpen_polarFormulaDomain`, `[FiniteDimensional ℝ F]`): over the base set
-    of a trivialization, the reading of `q.snd` in it is `q.snd` carried
-    along the fibre equivalence
+    (`isOpen_polarFormulaDomain`, `[FiniteDimensional ℝ F]`), by
+    `FiberBundle.isOpen_of_forall_mem_iff_snd_mem` with the open set
+    `ContinuousLinearMap.isOpen_setOf_nondegenerate_toBilinForm_sub_flip`
+    of forms on `F`: over the base set of a trivialization, the reading of
+    `q.snd` in it is `q.snd` carried along the fibre equivalence
     (`ContinuousLinearMap.inCoordinates_eq_arrowCongr_arrowCongr`, over any
     `NontriviallyNormedField` and topological base, in
     `Topology/VectorBundle/Coordinates.lean`), and carrying a form along a
     linear equivalence does not change whether its skew part is
     nondegenerate (`ContinuousLinearEquiv.nondegenerate_arrowCongr_sub_flip_iff`,
-    in part 9's `Topology/Algebra/Module/BilinearForm.lean`), so the domain
-    is there the preimage of an open set of forms on `F` under the chart of
-    the total space.
+    in part 9's `Topology/Algebra/Module/BilinearForm.lean`), so the chart
+    of the total space reads the domain as that open set.
   - `polarFormulaAt g x (σ : V x →L[ℝ] V x →L[ℝ] ℝ) : V x →L[ℝ] V x`, part 9's
     `TauCeti.metricPolarFormula` on `W` of the pair (`g x`, `σ`) carried
     along `e x : V x ≃L[ℝ] W` (the trivialization at `x` followed by
@@ -543,8 +544,10 @@ the form and of the structure are independent.
     inner product `g x` read the fibre through such an `e`.
   - In `SymplecticGeometry.Bundle`, two lemmas for
     `hω : ω.IsNondegenerate`. `IsNondegenerate.mk_flat_mem_polarFormulaDomain`:
-    `⟨x, ω.flat x⟩ ∈ polarFormulaDomain F V`, by `mem_polarFormulaDomain_iff`,
-    since the form is already skew. `IsNondegenerate.polarFormulaAt_flat g e he`:
+    `⟨x, ω.flat x⟩ ∈ polarFormulaDomain F V`, by `mem_polarFormulaDomain_iff`
+    and `LinearMap.IsAlt.sub_flip_eq_two_smul`: the skew part of the
+    alternating form is twice the form.
+    `IsNondegenerate.polarFormulaAt_flat g e he`:
     for `e : V x ≃L[ℝ] W` to a finite-dimensional inner product space with
     `he : ∀ u v, ⟪e u, e v⟫ = g.inner x u v`, `g.polarFormulaAt x (ω.flat x)`
     is the conjugate by `e` of the continuous endomorphism of Tau Ceti's
