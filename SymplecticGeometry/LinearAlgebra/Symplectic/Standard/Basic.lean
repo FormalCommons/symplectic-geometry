@@ -241,7 +241,6 @@ theorem stdForm_apply (z w : StdSpace ι) :
 
 /-- The coordinate swap `(x, y) ↦ (y, x)` reverses the sign of the standard form:
 `ω₀(swap z, swap w) = -ω₀(z, w)`. -/
-@[simp]
 theorem stdForm_swap (z w : StdSpace ι) : stdForm ι (swap ι z) (swap ι w) = -stdForm ι z w := by
   simp only [stdForm_apply, x_swap, y_swap, ← Finset.sum_neg_distrib]
   exact Finset.sum_congr rfl fun i _ ↦ by ring

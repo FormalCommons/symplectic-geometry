@@ -13,7 +13,6 @@ public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Matrix
 public import TauCeti.Geometry.Symplectic.Lagrangian.Constructions
 public import TauCeti.Geometry.Symplectic.Lagrangian.TotallyReal
-public import TauCeti.Geometry.Symplectic.Rescale
 public import TauCeti.LinearAlgebra.Matrix.GeneralLinearGroup.Symplectic.Basic
 
 /-!
@@ -259,14 +258,9 @@ it carries `ω₀` to `-ω₀`, which has the same Lagrangian subspaces. -/
 @[simp]
 theorem isLagrangian_map_swap_iff {L : Submodule ℝ (StdSpace ι)} :
     (stdForm ι).IsLagrangian (L.map (swap ι : StdSpace ι →ₗ[ℝ] StdSpace ι)) ↔
-      (stdForm ι).IsLagrangian L := by
-  have h : ((stdForm ι).rescale (-1) (by norm_num)).transport (swap ι) = stdForm ι :=
-    SymplecticForm.toBilinForm_injective <| LinearMap.ext₂ fun z w ↦ by
-      rw [← swap_swap z, ← swap_swap w]
-      simp only [SymplecticForm.transport_apply_apply, SymplecticForm.rescale_apply, stdForm_swap]
-      ring
-  conv_lhs => rw [← h]
-  rw [SymplecticForm.isLagrangian_map_transport_iff, SymplecticForm.isLagrangian_rescale_iff]
+      (stdForm ι).IsLagrangian L :=
+  SymplecticForm.isLagrangian_map_iff_of_apply_eq_mul (swap ι) (by norm_num) fun z w ↦ by
+    rw [stdForm_swap, neg_one_mul]
 
 /-- The graph `{(x, A x)}` is Lagrangian iff `A` is symmetric. -/
 theorem isLagrangian_graph_iff (A : Matrix ι ι ℝ) :
