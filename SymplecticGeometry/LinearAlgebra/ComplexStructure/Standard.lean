@@ -259,10 +259,8 @@ theorem exists_symplecticGroup_smul_stdComplexStructure_eq
   have hg : g ∈ GLSymplectic ι ℝ := by
     rw [mem_GLSymplectic_iff_isSymplectomorphism]
     simpa [g] using hΦ
-  refine ⟨GLSymplectic.mulEquivSymplecticGroup ι ℝ ⟨g, hg⟩, ?_⟩
-  have hΨ : GLSymplectic.ofSymplecticGroup ι ℝ
-      (GLSymplectic.mulEquivSymplecticGroup ι ℝ ⟨g, hg⟩) = g :=
-    Units.ext (by simp)
+  obtain ⟨Ψ, hΨ⟩ := (GLSymplectic.range_ofSymplecticGroup ι ℝ).ge hg
+  refine ⟨Ψ, ?_⟩
   rw [hΨ, AlmostComplexStructure.ofEuclideanCLE_smul,
     LinearEquiv.toLinearEquiv_toContinuousLinearEquiv,
     AlmostComplexStructure.transport_eq_iff_isComplexLinearMap]
@@ -272,12 +270,10 @@ theorem exists_symplecticGroup_smul_stdComplexStructure_eq
 compatible with `ω₀`. -/
 instance instIsPretransitiveSymplecticGroupCompatible :
     MulAction.IsPretransitive (Matrix.symplecticGroup ι ℝ)
-      {J : AlmostComplexStructure (StdSpace ι) // (stdForm ι).Compatible J} where
-  exists_smul_eq J J' := by
-    obtain ⟨Ψ, hΨ⟩ := exists_symplecticGroup_smul_stdComplexStructure_eq J.property
-    obtain ⟨Ψ', hΨ'⟩ := exists_symplecticGroup_smul_stdComplexStructure_eq J'.property
-    refine ⟨Ψ' * Ψ⁻¹, Subtype.ext ?_⟩
-    rw [coe_symplecticGroup_smul, map_mul, map_inv, mul_smul, ← hΨ, inv_smul_smul, hΨ']
+      {J : AlmostComplexStructure (StdSpace ι) // (stdForm ι).Compatible J} :=
+  MulAction.IsPretransitive.of_orbit (x₀ := ⟨stdComplexStructure ι, stdForm_compatible⟩)
+    fun J ↦ (exists_symplecticGroup_smul_stdComplexStructure_eq J.property).imp
+      fun _ h ↦ Subtype.ext h
 
 end SymplecticGeometry
 
