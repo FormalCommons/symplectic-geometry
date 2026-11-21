@@ -26,7 +26,8 @@ through Mathlib's `unitarySubgroupUnitsEquiv`.
 
 ## Main results
 
-* `Matrix.UnitaryGroup.mem_realSubgroup_iff_transpose_mul_self`: `U` lies in it iff `Uᵀ U = 1`.
+* `Matrix.UnitaryGroup.mem_realSubgroup_iff_transpose_mul_self_eq_one`: `U` lies in it iff
+  `Uᵀ U = 1`.
 * `Matrix.UnitaryGroup.mem_realSubgroup_iff_exists`: `U` lies in it iff `U` is the complex image
   of a real orthogonal matrix.
 * `Matrix.UnitaryGroup.mem_realSubgroup_iff`: `U` lies in it iff its entries are real.
@@ -62,19 +63,10 @@ variable {ι}
 
 /-- A unitary matrix is a real point of the unitary group iff it is complex orthogonal,
 `Uᵀ U = 1`. -/
-theorem mem_realSubgroup_iff_transpose_mul_self {U : unitaryGroup ι ℂ} :
+theorem mem_realSubgroup_iff_transpose_mul_self_eq_one {U : unitaryGroup ι ℂ} :
     U ∈ realSubgroup ι ↔ (U : Matrix ι ι ℂ)ᵀ * U = 1 := by
   rw [realSubgroup_def, Subgroup.mem_map_equiv, Subgroup.mem_subgroupOf,
     TauCeti.GLOrthogonal.mem_iff, val_unitarySubgroupUnitsEquiv_symm_apply_coe]
-
-/-- The complex image of a real matrix `O` satisfies `(O.map ofReal)ᵀ (O.map ofReal) = 1` iff
-`O` is orthogonal. -/
-private theorem transpose_map_ofReal_mul_self_eq_one_iff {O : Matrix ι ι ℝ} :
-    (O.map ((↑) : ℝ → ℂ))ᵀ * O.map ((↑) : ℝ → ℂ) = 1 ↔ O ∈ orthogonalGroup ι ℝ := by
-  rw [mem_orthogonalGroup_iff', ← transpose_map]
-  change Complex.ofRealHom.mapMatrix Oᵀ * Complex.ofRealHom.mapMatrix O = 1 ↔ _
-  rw [← map_mul, ← map_one Complex.ofRealHom.mapMatrix]
-  exact (Matrix.map_injective Complex.ofReal_injective).eq_iff
 
 /-- A unitary matrix is a real point of the unitary group iff it is the complex image of a real
 orthogonal matrix. -/
@@ -84,11 +76,11 @@ theorem mem_realSubgroup_iff_exists {U : unitaryGroup ι ℂ} :
   constructor
   · intro hU
     have hU' : (U : Matrix ι ι ℂ) * (U : Matrix ι ι ℂ)ᵀ = 1 :=
-      mul_eq_one_comm.mp (mem_realSubgroup_iff_transpose_mul_self.mp hU)
+      mul_eq_one_comm.mp (mem_realSubgroup_iff_transpose_mul_self_eq_one.mp hU)
     simpa using exists_mem_orthogonalGroup_map_eq_of_mul_transpose_eq_one U hU'
   · rintro ⟨O, hO, hOU⟩
-    rw [mem_realSubgroup_iff_transpose_mul_self, ← hOU]
-    exact transpose_map_ofReal_mul_self_eq_one_iff.mpr hO
+    rw [mem_realSubgroup_iff_transpose_mul_self_eq_one, ← hOU]
+    exact mul_eq_one_comm.mp (map_ofReal_mul_transpose_map_ofReal_eq_one hO)
 
 /-- A unitary matrix is a real point of the unitary group iff all its entries are real. -/
 theorem mem_realSubgroup_iff {U : unitaryGroup ι ℂ} :
@@ -104,7 +96,7 @@ theorem mem_realSubgroup_iff {U : unitaryGroup ι ℂ} :
       have hij := congr_fun₂ h j i
       simp only [map_apply] at hij
       simp [Complex.conj_eq_iff_im.mpr hij]
-    rw [mem_realSubgroup_iff_transpose_mul_self, ← hconj, ← star_eq_conjTranspose]
+    rw [mem_realSubgroup_iff_transpose_mul_self_eq_one, ← hconj, ← star_eq_conjTranspose]
     exact Unitary.star_mul_self_of_mem U.prop
 
 /-- The complex image of a real orthogonal matrix is a real point of the unitary group. -/
