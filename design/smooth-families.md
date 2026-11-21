@@ -533,7 +533,8 @@ Below, `∂ₜ` at `(x, t)` is the tangent vector
 
 - Joint smoothness of inverses, over any finite-dimensional boundaryless
   parameter manifold `P` (model `J`) and for any `1 ≤ n`, in Mathlib's
-  namespace `Diffeomorph`, as it is about Mathlib's notion:
+  namespace `Diffeomorph`, as it is about Mathlib's notion, and in
+  `Geometry/Manifold/Diffeomorph/Family.lean`, as it uses no diffeotopy:
   `Diffeomorph.contMDiff_symm_eval {ψ : P → M ≃ₘ^n⟮I, I⟯ M} (hn : 1 ≤ n)
   (hψ : ContMDiff (J.prod I) I n (fun p : P × M ↦ ψ p.1 p.2)) :
   ContMDiff (J.prod I) I n (fun p : P × M ↦ (ψ p.1).symm p.2)`, named like
@@ -549,7 +550,8 @@ Below, `∂ₜ` at `(x, t)` is the tangent vector
   TauCeti.eulerianField I (fun u ↦ (ψ u).toEquiv) t (ψ t x)`.
 - Flows: `timeDependentFlowDiffeotopy_eq_ofReal` (for `n = ∞`, the restriction
   of `fun t ↦ timeDependentFlowDiffeomorph hc le_top hX 0 t`, jointly smooth
-  by `TauCeti.contMDiff_timeDependentFlowDiffeomorph`). The velocity
+  by `TauCeti.contMDiff_timeDependentFlowDiffeomorph`, in
+  `Geometry/Manifold/Flow/TimeDependent.lean`). The velocity
   of the flow diffeotopy is `velocity_timeDependentFlowDiffeotopy` of
   *Hamiltonian flows*, and is not stated here.
 - The reading over `ℝ`: writing `s u` for `Real.smoothTransitionUnit u :=
@@ -594,7 +596,10 @@ In `TauCeti.Diffeotopy`, for `[FiniteDimensional ℝ E] [IsManifold I ∞ M]
 ## What the part uses
 
 - From Tau Ceti and Mathlib: everything listed under *What exists*.
-- From other parts: nothing. The part is at level 0 of `DESIGN.md`'s build
+- From other parts: only `TauCeti.Diffeotopy.mfderiv_cylinderMap_time` of
+  `Diffeotopy/Velocity.lean` of *Hamiltonian flows*, which `Diffeotopy/Real.lean`
+  imports for the time derivative of a diffeotopy; that file is merged and
+  imports no file of this part. The part is at level 0 of `DESIGN.md`'s build
   order and stays there.
 - What later parts take: *Hamiltonian flows* uses `Diffeotopy/Real.lean` (for
   `SymplecticIsotopy.lean`) and `ContMDiff/TimeExtension.lean` with
@@ -642,12 +647,14 @@ can start at once; each issue's blockers come before it.
     `Geometry/Manifold/DeRham/SmoothFamily/GoodCover.lean`. Blocked by 9, 11
     and 12.
 14. **Isotopies over `ℝ` and diffeotopies.**
-    `Analysis/SpecialFunctions/SmoothTransition.lean` and
+    `Analysis/SpecialFunctions/SmoothTransition.lean`,
+    `Geometry/Manifold/Diffeomorph/Family.lean`,
+    `Geometry/Manifold/Flow/TimeDependent.lean` and
     `Geometry/Diffeomorphism/Diffeotopy/Real.lean`.
 15. **Diffeotopies from families of diffeomorphisms.**
     `Geometry/Diffeomorphism/Diffeotopy/OfContMDiff.lean`. Blocked by 2 and 14
     (for the inverse function theorem step it shares with
-    `Diffeomorph.contMDiff_symm_eval`).
+    `Diffeomorph.contMDiff_symm_eval` of `Diffeomorph/Family.lean`).
 
 ## References
 
