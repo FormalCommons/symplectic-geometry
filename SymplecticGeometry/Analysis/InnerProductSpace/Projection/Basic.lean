@@ -12,10 +12,12 @@ public import Mathlib.Analysis.InnerProductSpace.Projection.Basic
 # Orthogonal projections onto unitary images
 
 For a unitary operator `u` of a Hilbert space and a subspace `K` with an orthogonal projection,
-the projection onto `u K` is the conjugate `u P_K u⋆` of the projection `P_K` onto `K`.
+the image `u K` has an orthogonal projection too, and it is the conjugate `u P_K u⋆` of the
+projection `P_K` onto `K`.
 
 ## Main results
 
+* `Submodule.HasOrthogonalProjection.map_unitary`: `u K` has an orthogonal projection.
 * `Submodule.starProjection_map_unitary`: `P_{u K} = u * P_K * star u`.
 -/
 
@@ -25,10 +27,17 @@ namespace Submodule
 
 variable {𝕜 E : Type*} [RCLike 𝕜] [NormedAddCommGroup E] [InnerProductSpace 𝕜 E] [CompleteSpace E]
 
+/-- The image of a subspace with an orthogonal projection under a unitary operator has an
+orthogonal projection. -/
+instance HasOrthogonalProjection.map_unitary (K : Submodule 𝕜 E) [K.HasOrthogonalProjection]
+    (u : unitary (E →L[𝕜] E)) :
+    (K.map ((u : E →L[𝕜] E) : E →ₗ[𝕜] E)).HasOrthogonalProjection :=
+  HasOrthogonalProjection.map_linearIsometryEquiv K (Unitary.linearIsometryEquiv u)
+
 /-- The orthogonal projection onto the image of a subspace `K` under a unitary operator `u` is
 the conjugate `u P_K u⋆` of the projection onto `K`. -/
 theorem starProjection_map_unitary (K : Submodule 𝕜 E) [K.HasOrthogonalProjection]
-    (u : unitary (E →L[𝕜] E)) [(K.map ((u : E →L[𝕜] E) : E →ₗ[𝕜] E)).HasOrthogonalProjection] :
+    (u : unitary (E →L[𝕜] E)) :
     (K.map ((u : E →L[𝕜] E) : E →ₗ[𝕜] E)).starProjection =
       (u : E →L[𝕜] E) * K.starProjection * star (u : E →L[𝕜] E) := by
   ext1 x

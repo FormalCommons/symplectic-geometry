@@ -6,7 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Analysis.CStarAlgebra.Matrix
-public import SymplecticGeometry.Analysis.InnerProductSpace.Projection
+public import SymplecticGeometry.Analysis.InnerProductSpace.Projection.Basic
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Lagrangian.Action
 public import SymplecticGeometry.Topology.Grassmannian.Lagrangian.Basic
 public import TauCeti.Topology.Algebra.GroupAction.Transitive
