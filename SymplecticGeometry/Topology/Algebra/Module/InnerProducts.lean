@@ -49,6 +49,7 @@ forward, `g ↦ g (e.symm ·) (e.symm ·)`, which is a homeomorphism.
   finite-dimensional space is carried to the standard one of a Euclidean space by some linear
   isomorphism.
 * `SymplecticGeometry.innerSL_mem_innerProducts`: the inner product of an inner product space.
+* `innerSL_real_apply_apply`: `simp` evaluates that element at `u` and `v` to `⟪u, v⟫`.
 * `TauCeti.SymplecticForm.Compatible.associatedBilinForm_mem_innerProducts`: the form
   `ω(·, J ·)` of a compatible pair.
 
@@ -116,6 +117,19 @@ product. -/
 theorem innerSL_mem_innerProducts {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] :
     innerSL ℝ ∈ innerProducts E :=
   ⟨fun v w ↦ real_inner_comm w v, fun _ hv ↦ real_inner_self_pos.2 hv⟩
+
+/-- The inner product of a real inner product space, read as a real bilinear map
+`E →L[ℝ] E →L[ℝ] ℝ` rather than as the conjugate-linear map `innerSL ℝ : E →L⋆[ℝ] E →L[ℝ] ℝ`,
+evaluates to `⟪u, v⟫`. This is the form that `simp` leaves of `innerSL ℝ` taken as an element of
+`innerProducts E`, `(⟨innerSL ℝ, innerSL_mem_innerProducts⟩ : innerProducts E)`, where
+`innerSL_apply_apply` does not apply. -/
+@[simp]
+theorem _root_.innerSL_real_apply_apply {E : Type*} [NormedAddCommGroup E]
+    [InnerProductSpace ℝ E] (u v : E) :
+    -- The coercion is given at the type `E →L[ℝ] E →L[ℝ] ℝ`, the ambient type of
+    -- `innerProducts E`, so that the left side matches that of the coerced element.
+    @DFunLike.coe (E →L[ℝ] E →L[ℝ] ℝ) E (fun _ ↦ E →L[ℝ] ℝ) _ (innerSL ℝ) u v = inner ℝ u v :=
+  innerSL_apply_apply ..
 
 namespace innerProducts
 
@@ -188,12 +202,12 @@ theorem transport_eq_innerSL_iff {E : Type*} [NormedAddCommGroup E] [InnerProduc
       ∀ u v, inner ℝ (e u) (e v) = (g : V →L[ℝ] V →L[ℝ] ℝ) u v := by
   refine ⟨fun he u v ↦ ?_, fun h ↦ Subtype.ext ?_⟩
   · have := congrArg (fun h : innerProducts _ ↦ (h : _ →L[ℝ] _ →L[ℝ] ℝ) (e u) (e v)) he
-    simp only [transport_apply, ContinuousLinearEquiv.symm_apply_apply] at this
-    rw [innerSL_apply_apply] at this
+    simp only [transport_apply, ContinuousLinearEquiv.symm_apply_apply,
+      innerSL_real_apply_apply] at this
     exact this.symm
   · ext w w'
-    simp only [transport_apply, ← h, ContinuousLinearEquiv.apply_symm_apply]
-    rfl
+    simp only [transport_apply, ← h, ContinuousLinearEquiv.apply_symm_apply,
+      innerSL_real_apply_apply]
 
 end innerProducts
 
@@ -212,8 +226,7 @@ theorem innerProducts.exists_transport_eq_innerSL (g : innerProducts V) :
     (transport e₀ g).property
   refine ⟨e₀.trans (h.metricChangeEquiv hH).symm, Subtype.ext ?_⟩
   ext w w'
-  rw [Subtype.coe_mk, innerSL_apply_apply,
-    ← h.apply_metricChangeTransport_metricChangeTransport hH w w']
+  rw [innerSL_real_apply_apply, ← h.apply_metricChangeTransport_metricChangeTransport hH w w']
   simp [h]
 
 variable (V) in

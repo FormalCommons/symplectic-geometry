@@ -543,6 +543,11 @@ This is $\mathrm{Met}(V)$, in `SymplecticGeometry`.
   $\mathrm{GL}(V)$ that equivariance uses.
 - `innerSL_mem_innerProducts` (for `V` an inner product space):
   `innerSL ℝ ∈ innerProducts V`, the ambient inner product as an element.
+- `innerSL_real_apply_apply` (`@[simp]`, in the root namespace): `innerSL ℝ`,
+  coerced at the real bilinear type `V →L[ℝ] V →L[ℝ] ℝ` of `innerProducts V`,
+  evaluates to `⟪u, v⟫`. That is the form `simp` leaves of
+  `⟨innerSL ℝ, innerSL_mem_innerProducts⟩` applied to `u` and `v`, where
+  Mathlib's `innerSL_apply_apply` does not apply.
 - `innerProducts.exists_transport_eq_innerSL (g : innerProducts V)`, for
   finite-dimensional `V`: some `e : V ≃L[ℝ] EuclideanSpace ℝ (Fin (finrank ℝ V))`
   has `transport e g = ⟨innerSL ℝ, innerSL_mem_innerProducts⟩`. It is
@@ -929,7 +934,9 @@ This is Proposition 2.5.6, for a fixed `g : innerProducts V`, in
   `metricSymplecticForms g : Set (SymplecticForm V)` ($\Omega(V,g)$, the forms
   $g(J\cdot,\cdot)$ for $J\in\mathcal{J}(V,g)$), with their `@[simp]`
   membership lemmas `mem_metricComplexStructures` and
-  `mem_metricSymplecticForms`, `metricSymplecticForms_eq_image`, and
+  `mem_metricSymplecticForms`, `mem_metricComplexStructures_innerSL` (for `V`
+  an inner product space, `J ∈ metricComplexStructures ⟨innerSL ℝ, _⟩ ↔
+  ∀ u v, ⟪J u, J v⟫ = ⟪u, v⟫`), `metricSymplecticForms_eq_image`, and
   `compatible_metricSymplecticForm`,
   `metricPolarComplexStructure_metricSymplecticForm` and
   `metricSymplecticForm_metricPolarComplexStructure`, by which the inverses
