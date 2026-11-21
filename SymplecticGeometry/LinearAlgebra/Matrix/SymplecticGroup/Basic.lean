@@ -63,15 +63,8 @@ variable [Fintype l]
 /-- A symmetric matrix `P` is symplectic, `Pᵀ J P = J`, exactly when `J P` squares to `-1`. -/
 theorem IsSymm.mem_symplecticGroup_iff {P : Matrix (l ⊕ l) (l ⊕ l) R} (hP : P.IsSymm) :
     P ∈ symplecticGroup l R ↔ J l R * P * (J l R * P) = -1 := by
-  rw [SymplecticGroup.mem_iff', hP.eq]
-  constructor
-  · intro h
-    rw [Matrix.mul_assoc, ← Matrix.mul_assoc P, h, J_squared]
-  · intro h
-    calc P * J l R * P = -J l R * J l R * (P * J l R * P) := by
-          rw [neg_J_mul_J, Matrix.one_mul]
-      _ = -J l R * (J l R * P * (J l R * P)) := by simp only [Matrix.mul_assoc]
-      _ = J l R := by rw [h, Matrix.mul_neg, Matrix.mul_one, neg_neg]
+  rw [SymplecticGroup.mem_iff_neg_J_mul_transpose_mul_J_mul_eq_one, hP.eq, neg_eq_iff_eq_neg,
+    Matrix.mul_assoc (J l R * P)]
 
 end IsSymm
 
