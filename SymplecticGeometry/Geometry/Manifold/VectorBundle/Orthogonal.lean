@@ -5,7 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import Mathlib.LinearAlgebra.BilinearForm.Orthogonal
+public import SymplecticGeometry.LinearAlgebra.BilinearForm.Orthogonal
 public import TauCeti.Geometry.Manifold.VectorBundle.ComplementarySubbundle
 import TauCeti.Geometry.Manifold.VectorBundle.Bilinear.Section
 import TauCeti.Geometry.Manifold.VectorBundle.Scalar
@@ -39,8 +39,6 @@ the family is orthonormal for a Hermitian metric and the Gram operator is the id
 
 ## Main results
 
-* `LinearMap.BilinForm.projection_orthogonal_eq_iff`: the projection onto a subspace `W` along
-  its `B`-orthogonal sends `v` to the vector `w ∈ W` with `B u w = B u v` for all `u ∈ W`.
 * `TauCeti.HasLocalContMDiffSubbundleFrames.contMDiff_totalSpace_projection_orthogonal`: the
   projection of `E` onto `V` along `V^β` is a `C^n` map from the total space of `E` to itself.
 * `TauCeti.HasLocalContMDiffSubbundleFrames.orthogonal_of_isCompl`,
@@ -64,30 +62,6 @@ public section
 open Bundle Module Set Filter
 open scoped Manifold ContDiff Topology
 
-namespace LinearMap.BilinForm
-
-variable {R M : Type*} [CommRing R] [AddCommGroup M] [Module R M]
-
-/-- The projection onto a subspace `W` along its `B`-orthogonal sends `v` to `w` exactly when `w`
-lies in `W` and pairs with every vector of `W` as `v` does: `B u w = B u v` for all `u ∈ W`. -/
-theorem projection_orthogonal_eq_iff (B : LinearMap.BilinForm R M) {W : Submodule R M}
-    (h : IsCompl W (B.orthogonal W)) (v w : M) :
-    W.projection (B.orthogonal W) h v = w ↔ w ∈ W ∧ ∀ u ∈ W, B u w = B u v := by
-  have hsub (v w : M) : v - w ∈ B.orthogonal W ↔ ∀ u ∈ W, B u w = B u v := by
-    simp only [mem_orthogonal_iff, map_sub, sub_eq_zero]
-    exact forall₂_congr fun _ _ ↦ eq_comm
-  constructor
-  · rintro rfl
-    refine ⟨Submodule.projection_apply_mem h v, (hsub _ _).mp ?_⟩
-    rw [← Submodule.projection_eq_self_sub_projection]
-    exact Submodule.projection_apply_mem h.symm v
-  · rintro ⟨hw, hwv⟩
-    have hv : v = w + (v - w) := (add_sub_cancel w v).symm
-    rw [hv, map_add, Submodule.projection_apply_of_mem_left h hw,
-      (Submodule.projection_apply_eq_zero_iff h).mpr ((hsub v w).mpr hwv), add_zero]
-
-end LinearMap.BilinForm
-
 namespace TauCeti.HasLocalContMDiffSubbundleFrames
 
 variable {𝕜 : Type*} [NontriviallyNormedField 𝕜] {B : Type*} {E : B → Type*}
@@ -105,14 +79,6 @@ private theorem gram_apply (D : Fin r → Π x, E x) (y : B) (c : Fin r → 𝕜
   simp [gram, Finset.sum_apply, Pi.single_apply, map_sum, mul_comm]
 
 variable [TopologicalSpace B] {F : Type*} [TopologicalSpace (TotalSpace F E)]
-
-omit [∀ x, TopologicalSpace (E x)] in
-/-- A combination of the members of a frame of `V` lies in `V`. -/
-private theorem sum_smul_mem {D : Fin r → Π x, E x} {U : Set B}
-    (hD : IsSubbundleFrameOn F V D U) {y : B} (hy : y ∈ U) (c : Fin r → 𝕜) :
-    ∑ i, c i • D i y ∈ V y := by
-  rw [← hD.span_eq hy]
-  exact Submodule.sum_mem _ fun i _ ↦ Submodule.smul_mem _ _ (Submodule.subset_span ⟨i, rfl⟩)
 
 /-- A vector of `E y` pairs with every vector of `V y` as another one does, if it does so with
 the members of a frame. -/
@@ -141,7 +107,8 @@ private theorem exists_gram_eq {D : Fin r → Π x, E x} {U : Set B}
       simpa using apply_eq_of_forall_apply_eq (β := β) hD hy (v := 0) (w := ∑ i, c i • D i y)
         (fun j ↦ by rw [map_zero, ← gram_apply, hc0, Pi.zero_apply]) u hu
     have h0 : ∑ i, c i • D i y = 0 :=
-      (Submodule.disjoint_def.mp (hc y).disjoint) _ (sum_smul_mem hD hy c) horth
+      (Submodule.disjoint_def.mp (hc y).disjoint) _
+        (Submodule.sum_smul_mem _ c fun i _ ↦ hD.apply_mem i hy) horth
     exact funext (Fintype.linearIndependent_iff.mp (hD.linearIndependent hy) c h0)
   let e := LinearEquiv.ofInjectiveEndo (gram β D y : (Fin r → 𝕜) →ₗ[𝕜] (Fin r → 𝕜)) hinj
   refine ⟨e.toContinuousLinearEquiv, ContinuousLinearMap.ext fun c ↦ ?_⟩
@@ -201,7 +168,7 @@ theorem contMDiff_totalSpace_projection_orthogonal
   refine congrArg (TotalSpace.mk p.proj) ?_
   refine (LinearMap.BilinForm.projection_orthogonal_eq_iff (β p.proj).toLinearMap₁₂ (hc p.proj)
     _ _).mpr ⟨?_, fun u hu ↦ ?_⟩
-  · exact sum_smul_mem hD hp (a p)
+  · exact Submodule.sum_smul_mem _ (a p) fun i _ ↦ hD.apply_mem i hp
   · refine apply_eq_of_forall_apply_eq hD hp (fun j ↦ ?_) u hu
     have hGa : gram β D p.proj (a p) = fun j ↦ β p.proj (D j p.proj) p.snd := by
       simp only [a, ← he', ContinuousLinearMap.inverse_equiv, ContinuousLinearEquiv.coe_coe,
@@ -234,10 +201,8 @@ theorem orthogonal_of_isCompl [FiniteDimensional 𝕜 F]
     rw [Submodule.projection_eq_self_sub_projection, neg_one_smul, sub_eq_add_neg]
   · obtain ⟨U, -, hx, D, hD, -⟩ := hasLocalContMDiffSubbundleFrames_iff.mp hV x
     have := VectorBundle.finiteDimensional 𝕜 F E x
-    have hE : finrank 𝕜 (E x) = finrank 𝕜 F := ((trivializationAt F E x).linearEquivAt 𝕜 x
-      (FiberBundle.mem_baseSet_trivializationAt' x)).finrank_eq
-    have hVr : finrank 𝕜 (V x) = r := by
-      rw [← hD.span_eq hx, finrank_span_eq_card (hD.linearIndependent hx), Fintype.card_fin]
+    have hE := VectorBundle.finrank_eq 𝕜 F E x
+    have hVr : finrank 𝕜 (V x) = r := by simpa using hD.finrank_eq hx
     have := Submodule.finrank_add_eq_of_isCompl (hc x)
     omega
 

@@ -207,15 +207,17 @@ following choices.
 `DESIGN.md` is updated with this file, in its part 19, its dependency row
 and two rows of its milestone table.
 
-- Six files are added: `LinearAlgebra/Symplectic/Extension.lean`,
+- Seven files are added: `LinearAlgebra/Symplectic/Extension.lean`,
   `Neighborhood/Extension.lean`, `Neighborhood/Basic.lean`,
   `Geometry/Manifold/VectorBundle/ZeroSection.lean`,
-  `Geometry/Manifold/TubularNeighborhood/MFDeriv.lean` and
-  `Geometry/Manifold/VectorBundle/Orthogonal.lean`. Each neighbourhood
+  `Geometry/Manifold/TubularNeighborhood/MFDeriv.lean`,
+  `Geometry/Manifold/VectorBundle/Orthogonal.lean` and
+  `LinearAlgebra/BilinearForm/Orthogonal.lean`. Each neighbourhood
   theorem would otherwise repeat the linear extension and its smoothness;
   `MFDeriv.lean` holds the step of `Tubular.lean` that uses nothing
   symplectic, and `Orthogonal.lean` the step of `Neighborhood/Extension.lean`
-  that uses nothing symplectic.
+  that uses nothing symplectic, with its linear-algebra lemma in
+  `LinearAlgebra/BilinearForm/Orthogonal.lean`.
 - `Lagrangian.lean` no longer uses *Cotangent bundles* or
   `normalBundleDiffeomorphOfIsLagrangianMap`, since the comparison theorem
   needs only that the zero section is Lagrangian. The part therefore no

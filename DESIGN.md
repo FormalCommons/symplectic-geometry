@@ -1940,7 +1940,8 @@ has either; Tau Ceti's extension across a boundary,
   submanifold, a smooth family of linear symplectomorphisms built from
   compatible complex structures by the formula of
   `LinearAlgebra/Symplectic/Extension.lean`, with frames of orthogonal
-  complements from `Geometry/Manifold/VectorBundle/Orthogonal.lean`),
+  complements from `Geometry/Manifold/VectorBundle/Orthogonal.lean` and
+  `LinearAlgebra/BilinearForm/Orthogonal.lean`),
   `Tubular.lean` (the common step of
   the four theorems: given a diffeomorphism between two properly embedded
   submanifolds and, over it, a bundle map $TM_0|_{Q_0}\to TM_1|_{Q_1}$ that
