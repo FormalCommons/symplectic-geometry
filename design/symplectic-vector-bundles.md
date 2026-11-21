@@ -126,7 +126,6 @@ variable {EB HB M : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB]
 | `Geometry/Manifold/VectorBundle/Pullback.lean` | smoothness of sections of the alternating bundle of a pull-back | 18 |
 | `Geometry/Manifold/VectorBundle/Symplectic/Pullback.lean` | pull-backs of forms, of tame and compatible pairs, of isomorphisms and of frames | 21 |
 | `Geometry/Manifold/VectorBundle/Symplectic/Prod.lean` | direct sums of forms, of tame and compatible pairs and of isomorphisms; block frames | 22 |
-| `LinearAlgebra/Symplectic/Standard/Basic.lean`, `.../Standard/Matrix.lean` | `StdSpace.sumEquiv` and its matrix lemma (files of *Standard model*) | 22 |
 | `Geometry/Symplectic/Manifold/Volume.lean` | the symplectic orientation of a negated two-form | 23 |
 | `Analysis/CStarAlgebra/Unitary/ContinuousLinearMap.lean` | `Unitary.continuousLinearMapSelfEquiv` | 24 |
 | `Geometry/Manifold/VectorBundle/Riemannian/Trivial.lean` | constant metrics on trivial bundles | 25 |
@@ -1077,21 +1076,16 @@ over the same base, on Mathlib's direct sum `V₁ ×ᵇ V₂` (`Bundle.Prod`, wi
   a sum is the image of the pair of loops under `TauCeti.GLSymplectic.sum`,
   the form of `TauCeti.GLSymplectic.maslovIndex_sum`.
 - `StdSpace.sumEquiv ι κ : StdSpace (ι ⊕ κ) ≃L[ℝ] StdSpace ι × StdSpace κ`
-  is built in this part, in *Standard model*'s files as `DESIGN.md` says:
-  in `LinearAlgebra/Symplectic/Standard/Basic.lean` the equivalence, which
-  regroups the coordinates by `Equiv.sumSumSumComm` as
-  `Matrix.symplecticSum` does. It is not assembled by hand but defined from
-  Mathlib's isometries:
-  `(LinearIsometryEquiv.piLpCongrLeft 2 ℝ ℝ (Equiv.sumSumSumComm ι κ ι κ)).toContinuousLinearEquiv.trans
-  EuclideanSpace.sumEquivProd` (`Analysis/Normed/Lp/PiLp.lean`,
-  `Analysis/InnerProductSpace/PiL2.lean`), which has the type above since
-  `StdSpace ι` is `EuclideanSpace ℝ (ι ⊕ ι)`. It comes with
-  `sumEquiv_def` and `@[simp]` lemmas for both components,
+  exists in *Standard model*'s files (merged, #232), and this part uses it:
+  `LinearAlgebra/Symplectic/Standard/Basic.lean` has the equivalence, with
+  `sumEquiv_def`, the `@[simp]` lemmas `x_sumEquiv_fst`, `y_sumEquiv_fst`,
+  `x_sumEquiv_snd`, `y_sumEquiv_snd`, `x_sumEquiv_symm`, `y_sumEquiv_symm`,
   and `isSymplectomorphism_sumEquiv` (it carries `stdForm (ι ⊕ κ)` to
-  `(stdForm ι).prod (stdForm κ)`); in `.../Standard/Matrix.lean`,
-  `sumEquiv_toEuclideanLin_symplecticSum`, which conjugates
+  `(stdForm ι).prod (stdForm κ)`); `.../Standard/Matrix.lean` has
+  `StdSpace.sumEquiv_toEuclideanLin_symplecticSum`, which conjugates
   `Matrix.toEuclideanLin (Matrix.symplecticSum A B)` to the product of the
-  maps of `A` and `B`.
+  maps of `A` and `B`. `IsSymplecticFrameOn.stdSum` and
+  `frameTransition_stdSum` rest on these two lemmas.
 
 Tau Ceti's topological Whitney sum `TauCeti.FiniteRankBundleCore.whitneySum`
 is not used; `whitneySumTotalSpaceHomeomorph` compares the total spaces
@@ -1396,8 +1390,8 @@ it, its design adds it.
 - **Other parts.** *Linear Moser* (part 10) for the complex-to-symplectic
   direction of the classification, with the parametric smoothness of issue 10.
   *Standard model* for the corollary on `Matrix.symplecticGroup`, for
-  `stdForm` and `complexToRealEuclidean` in the standard Hermitian case, and as
-  the home of `StdSpace.sumEquiv`, which issue 22 adds to its files. The
+  `stdForm` and `complexToRealEuclidean` in the standard Hermitian case, and
+  for `StdSpace.sumEquiv` with its two lemmas, which exist (#232). The
   part uses nothing from *Compatible complex structures* (part 9) beyond what
   Tau Ceti already has: the fibrewise constructions it needs (the Cayley path,
   $J_{g,\omega}$, $\omega_{g,J}$, the complex-linear part) are Tau Ceti's
@@ -1627,13 +1621,12 @@ of *Constructions* for *First Chern number*.
     `pushforward_pullback_comp`, `IsSymplecticFrameOn.pullback`,
     `frameTransition_pullback`. Blockers:
     5, 18, 19, 20.
-22. **Direct sums of symplectic bundles.** `StdSpace.sumEquiv` with its
-    lemmas in *Standard model*'s two files, then `Symplectic/Prod.lean`:
-    `ContMDiffTwoForm.prod` with its API, `Tames.prod`, `Compatible.prod`,
+22. **Direct sums of symplectic bundles.** `Symplectic/Prod.lean`, using
+    the existing `StdSpace.sumEquiv`: `ContMDiffTwoForm.prod` with its API,
+    `Tames.prod`, `Compatible.prod`,
     `pushforward_prodCongr`, `pushforward_prodComm`,
     `IsSymplecticFrameOn.prod`, `IsSymplecticFrameOn.stdSum` and
-    `frameTransition_stdSum`. If it grows past a few hundred lines,
-    `StdSpace.sumEquiv` goes first, on its own. Blockers: 5, 19, 20.
+    `frameTransition_stdSum`. Blockers: 5, 19, 20.
 23. **The orientation of a negated two-form.**
     `Geometry/Symplectic/Manifold/Volume.lean`:
     `TauCeti.SmoothTwoForm.IsNondegenerate.volumeOrientation_neg`. Blockers:
