@@ -7,7 +7,9 @@ module
 
 public import Mathlib.Analysis.Convex.Contractible
 public import Mathlib.Analysis.InnerProductSpace.PiL2
+public import TauCeti.Analysis.InnerProductSpace.Positive.MetricChange.Basic
 public import TauCeti.Geometry.Symplectic.AlmostComplex
+public import TauCeti.Geometry.Symplectic.Transport
 public import TauCeti.Topology.Algebra.Module.BilinearForm
 
 /-!
@@ -35,6 +37,9 @@ forward, `g ↦ g (e.symm ·) (e.symm ·)`, which is a homeomorphism.
   (`TauCeti.isOpen_setOf_forall_bilinear_apply_self_pos`).
 * The instances `Nonempty` and `ContractibleSpace` for `innerProducts V`, when `V` is
   finite-dimensional.
+* `SymplecticGeometry.innerProducts.exists_transport_eq_innerSL`: every inner product on a
+  finite-dimensional space is carried to the standard one of a Euclidean space by some linear
+  isomorphism.
 * `SymplecticGeometry.innerSL_mem_innerProducts`: the inner product of an inner product space.
 * `TauCeti.SymplecticForm.Compatible.associatedBilinForm_mem_innerProducts`: the form
   `ω(·, J ·)` of a compatible pair.
@@ -131,9 +136,43 @@ theorem transport_refl : transport (ContinuousLinearEquiv.refl ℝ V) = Homeomor
   ext g w w'
   simp
 
+/-- An inner product separates points through its first argument. -/
+theorem ext_apply_right (g : innerProducts V) {x y : V}
+    (h : ∀ v, (g : V →L[ℝ] V →L[ℝ] ℝ) x v = (g : V →L[ℝ] V →L[ℝ] ℝ) y v) : x = y := by
+  by_contra hxy
+  have hpos := g.property.2 (x - y) (sub_ne_zero.2 hxy)
+  simp [h] at hpos
+
+/-- An almost complex structure `J` preserves `g` exactly when its transport along `e` preserves
+the transport of `g`. -/
+theorem forall_transport_apply_transport_iff (e : V ≃L[ℝ] W) (g : innerProducts V)
+    (J : TauCeti.AlmostComplexStructure V) :
+    (∀ u v, (transport e g : W →L[ℝ] W →L[ℝ] ℝ)
+        (J.transport e.toLinearEquiv u) (J.transport e.toLinearEquiv v) =
+        (transport e g : W →L[ℝ] W →L[ℝ] ℝ) u v) ↔
+      ∀ u v, (g : V →L[ℝ] V →L[ℝ] ℝ) (J u) (J v) = (g : V →L[ℝ] V →L[ℝ] ℝ) u v :=
+  ⟨fun h u v ↦ by simpa using h (e u) (e v), fun h u v ↦ by simpa using h (e.symm u) (e.symm v)⟩
+
 end innerProducts
 
 variable [FiniteDimensional ℝ V]
+
+/-- Every inner product on a finite-dimensional real normed space `V` is the pull-back of the
+standard inner product of a Euclidean space of the same dimension along some continuous linear
+isomorphism. -/
+theorem innerProducts.exists_transport_eq_innerSL (g : innerProducts V) :
+    ∃ e : V ≃L[ℝ] EuclideanSpace ℝ (Fin (finrank ℝ V)),
+      transport e g = ⟨innerSL ℝ, innerSL_mem_innerProducts⟩ := by
+  let E := EuclideanSpace ℝ (Fin (finrank ℝ V))
+  let e₀ : V ≃L[ℝ] E := .ofFinrankEq finrank_euclideanSpace_fin.symm
+  let h : E →L[ℝ] E →L[ℝ] ℝ := transport e₀ g
+  have hH := InnerProductSpace.isStrictlyPositive_continuousLinearMapOfBilin_iff.2
+    (transport e₀ g).property
+  refine ⟨e₀.trans (h.metricChangeEquiv hH).symm, Subtype.ext ?_⟩
+  ext w w'
+  rw [Subtype.coe_mk, innerSL_apply_apply,
+    ← h.apply_metricChangeTransport_metricChangeTransport hH w w']
+  simp [h]
 
 variable (V) in
 /-- A finite-dimensional real normed space has an inner product: pull back the inner product of
