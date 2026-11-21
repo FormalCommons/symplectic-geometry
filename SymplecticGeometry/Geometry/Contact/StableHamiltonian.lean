@@ -127,20 +127,6 @@ theorem characteristicVectorField_smul {c : ℝ} (hc : c ≠ 0) (α : SmoothForm
   rw [characteristicVectorField_def, characteristicVectorField_def, bilinFormAt_smul,
     Module.Dual.reebVector_smul_bilinForm hc]
 
-/-- The bilinear form of a sum of two-forms is the sum of their bilinear forms. -/
-@[simp]
-theorem bilinFormAt_add (σ τ : SmoothForm I M ℝ 2) (x : M) :
-    (σ + τ).bilinFormAt x = σ.bilinFormAt x + τ.bilinFormAt x := by
-  ext v w
-  simp [SmoothBundleForm.eval₂_apply]
-
-/-- The bilinear form of a difference of two-forms is the difference of their bilinear forms. -/
-@[simp]
-theorem bilinFormAt_sub (σ τ : SmoothForm I M ℝ 2) (x : M) :
-    (σ - τ).bilinFormAt x = σ.bilinFormAt x - τ.bilinFormAt x := by
-  ext v w
-  simp [SmoothBundleForm.eval₂_apply]
-
 /-- Negating the two-form does not change the characteristic vector field. -/
 @[simp]
 theorem characteristicVectorField_neg (α : SmoothForm I M ℝ 1) (σ : SmoothForm I M ℝ 2) :
@@ -483,8 +469,13 @@ theorem ker_mpullback_prodMk_stableHamiltonianModel [FiniteDimensional ℝ E] {r
       LinearMap.ker ((σ - r • mextDerivₗ I 1 α).bilinFormAt x) := fun v hv ↦ by
     have hv' := h.ker_le_ker x hv
     rw [LinearMap.mem_ker] at hv hv' ⊢
-    rw [bilinFormAt_sub, bilinFormAt_smul, LinearMap.sub_apply, LinearMap.smul_apply, hv, hv',
-      smul_zero, sub_zero]
+    refine LinearMap.ext fun w ↦ ?_
+    have h₁ := LinearMap.congr_fun hv w
+    have h₂ := LinearMap.congr_fun hv' w
+    simp only [bilinFormAt_apply, SmoothBundleForm.eval₂_apply, Submodule.coe_sub,
+      Submodule.coe_smul, Pi.sub_apply, Pi.smul_apply, ContinuousAlternatingMap.sub_apply,
+      ContinuousAlternatingMap.smul_apply, LinearMap.zero_apply, smul_eq_mul] at h₁ h₂ ⊢
+    rw [h₁, h₂, mul_zero, sub_zero]
   -- Both kernels are lines spanned by Reeb vectors of `α_x`, and the two Reeb vectors agree.
   rw [mpullback_prodMk_stableHamiltonianModel,
     hc'.ker_eq_span_reebVector (isAlt_bilinFormAt _ x),
