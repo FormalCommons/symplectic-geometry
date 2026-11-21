@@ -40,11 +40,10 @@ Write `ℒ ι` for the space of Lagrangian subspaces of the standard model `(Std
   loop of totally real subspaces of `ℂⁿ`; such a lift exists since `unitaryFrame` is a fibration
   (`exists_realImageLoop_maslovIndex_eq`).
 * `maslovIndex_sum`: the index of a direct sum of loops is the sum of the indices.
-* `maslovIndex_eq_sub_div_pi`: if `det (X + i Y)(t) = e^{i α(t)}` along a path of unitary frames
-  of the loop, with `α` continuous, the index is `(α 1 - α 0) / π`.
 * `angleChange_map_detCircle`: along a path of unitary frames of a loop `γ`, the determinant has
   angle change `π μ(γ)`; so a path of frames from `U` to `V` has
-  `det (U⁻¹ V) = e^{iπμ(γ)}` (`detCircle_inv_mul_eq_exp`).
+  `det (U⁻¹ V) = e^{iπμ(γ)}` (`detCircle_inv_mul_eq_exp`), and if `det (X + i Y)(t) = e^{i α(t)}`
+  along it, with `α` continuous, the index is `(α 1 - α 0) / π` (`maslovIndex_eq_sub_div_pi`).
 * `maslovIndex_halfTurnLoop`: the loop `halfTurnLoop k` has index `k n`; for `n = 1`, `k = 1`
   this is the normalization of the index.
 
@@ -63,9 +62,6 @@ subspaces (`TauCeti/LinearAlgebra/TotallyReal/Loop.lean`,
   `TauCeti.GLSymplectic.maslovIndex_eq_of_homotopic`, `TauCeti.GLSymplectic.maslovIndex_refl`,
   `TauCeti.GLSymplectic.maslovIndex_trans`, `TauCeti.GLSymplectic.maslovIndex_symm` and
   `TauCeti.GLSymplectic.maslovIndex_sum`;
-* `maslovIndex_eq_sub_div_pi` follows the proof of
-  `TauCeti.TotallyRealLoop.sub_eq_maslovIndex_mul_pi`: write the phase as `exp (2 i α)` and read
-  off the degree from the angle `2 α`;
 * `halfTurnLoop` is the loop `TauCeti.TotallyRealLoop.rotationZPow` of `k` half-turns, and
   `maslovIndex_halfTurnLoop` is the analogue of `TauCeti.TotallyRealLoop.maslovIndex_rotationZPow`.
   The scalar unitary frame of `halfTurnLoop` is built as in
@@ -357,22 +353,6 @@ theorem maslovIndex_sum {Λ : ℒ ι} {Λ' : ℒ κ} (γ : Path Λ Λ) (γ' : Pa
   rw [maslovIndex_def, maslovIndex_def, maslovIndex_def, ← Circle.degree_mul]
   exact Circle.degree_congr _ _ fun t ↦ by simp
 
-/-- **The index as the angle of a frame.** Let `δ` be a path of unitary frames of a loop `γ`, and
-`det (δ t) = e^{i α(t)}` with `α` continuous. Then the Maslov index of `γ` is
-`(α 1 - α 0) / π`. -/
-theorem maslovIndex_eq_sub_div_pi {Λ : ℒ ι} (γ : Path Λ Λ) {U V : unitaryGroup ι ℂ}
-    (δ : Path U V) (hδ : ∀ t, unitaryFrame (δ t) = γ t) {α : I → ℝ} (hα : Continuous α)
-    (h : ∀ t, (δ t : Matrix ι ι ℂ).det = Complex.exp (α t * Complex.I)) :
-    (maslovIndex γ : ℝ) = (α 1 - α 0) / Real.pi := by
-  have hsub := Circle.sub_eq_degree_mul (γ.map continuous_maslovPhase)
-    (θ := fun t ↦ 2 * α t) (continuous_const.mul hα) fun t ↦ Circle.ext <| by
-      rw [Path.map_coe, Function.comp_apply, ← hδ t, maslovPhase_unitaryFrame, Circle.coe_pow,
-        coe_detCircle, h t, Circle.coe_exp, ← Complex.exp_natCast_mul]
-      push_cast
-      ring_nf
-  rw [maslovIndex_def, eq_div_iff Real.pi_ne_zero]
-  linarith
-
 /-- Along a path `δ` of unitary frames of a loop `γ` (`unitaryFrame (δ t) = γ t`), the determinant
 turns through the angle `π μ(γ)`. -/
 theorem angleChange_map_detCircle {Λ : ℒ ι} (γ : Path Λ Λ) {U V : unitaryGroup ι ℂ}
@@ -382,6 +362,18 @@ theorem angleChange_map_detCircle {Λ : ℒ ι} (γ : Path Λ Λ) {U V : unitary
   rw [← Circle.angleChange_congr ((δ.map continuous_detCircle).mul (δ.map continuous_detCircle))
     _ fun t ↦ by simp [← hδ t, sq], Circle.angleChange_mul, ← maslovIndex_def] at h
   linarith
+
+/-- **The index as the angle of a frame.** Let `δ` be a path of unitary frames of a loop `γ`, and
+`det (δ t) = e^{i α(t)}` with `α` continuous. Then the Maslov index of `γ` is
+`(α 1 - α 0) / π`. -/
+theorem maslovIndex_eq_sub_div_pi {Λ : ℒ ι} (γ : Path Λ Λ) {U V : unitaryGroup ι ℂ}
+    (δ : Path U V) (hδ : ∀ t, unitaryFrame (δ t) = γ t) {α : I → ℝ} (hα : Continuous α)
+    (h : ∀ t, (δ t : Matrix ι ι ℂ).det = Complex.exp (α t * Complex.I)) :
+    (maslovIndex γ : ℝ) = (α 1 - α 0) / Real.pi := by
+  have hsub := Circle.angleChange_eq_sub (δ.map continuous_detCircle) hα fun t ↦ Circle.ext <| by
+    rw [Path.map_coe, Function.comp_apply, coe_detCircle, h t, Circle.coe_exp]
+  rw [angleChange_map_detCircle γ δ hδ] at hsub
+  rw [eq_div_iff Real.pi_ne_zero, hsub]
 
 /-- If a path `δ` of unitary frames of a loop `γ` runs from `U` to `V`, then `det (U⁻¹ V)` is
 `(-1)^μ(γ)`, written `e^{iπμ(γ)}`. -/
