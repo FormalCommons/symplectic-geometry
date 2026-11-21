@@ -14,8 +14,8 @@ Let `Φ x : V₁ x ≃L V₂ x` be fibrewise equivalences of vector bundles whos
 `C^n`, with `V₁` of finite rank. Then the fibrewise inverses `(Φ x)⁻¹` form a `C^n` section of the
 bundle of continuous linear maps `V₂ x →L V₁ x` (`contMDiff_hom_bundle_symm`). The forward maps
 `Φ x` form a `C^n` section by Tau Ceti's `TauCeti.contMDiff_hom_bundle_iff`, and inversion
-preserves smoothness by Tau Ceti's `ContMDiff.clm_bundle_inverse`. No finite rank is asked of
-`V₂`, unlike for the map of total spaces of the inverse in `TauCeti.contMDiff_bundle_symm`.
+preserves smoothness by Tau Ceti's `ContMDiff.clm_bundle_inverse`. As in
+`TauCeti.contMDiff_bundle_symm`, only the source bundle `V₁` needs finite rank.
 -/
 
 public section

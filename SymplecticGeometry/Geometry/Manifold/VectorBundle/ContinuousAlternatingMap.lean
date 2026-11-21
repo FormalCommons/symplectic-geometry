@@ -7,7 +7,6 @@ module
 
 public import Mathlib.Geometry.Manifold.VectorBundle.ContinuousAlternatingMap
 public import TauCeti.Analysis.Calculus.ContDiff.ContinuousAlternatingMap
-public import TauCeti.Geometry.Manifold.VectorBundle.ContinuousAlternatingMap
 
 /-!
 # Precomposition in bundles of continuous alternating maps
