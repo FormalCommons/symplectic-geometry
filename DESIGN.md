@@ -528,7 +528,12 @@ it into issues; the overview fixes its folders and its dependencies.
   `Analysis/InnerProductSpace/Projection/Basic.lean`
   (`Submodule.starProjection_map_unitary`: the projection onto `u K`, for a
   unitary `u`, is `u P_K u⋆`; with the instance
-  `Submodule.HasOrthogonalProjection.map_unitary`). The part also adds
+  `Submodule.HasOrthogonalProjection.map_unitary`). One file of general
+  topology serves it as well: `Topology/Grassmannian/Tautological.lean`
+  (`TauCeti.finiteGrassmannian.isClosedEmbedding_starProjection_toEuclidean`,
+  for any `RCLike 𝕜`: on the compact space `finiteGrassmannian 𝕜 r N`, the
+  map to orthogonal projections is a closed embedding; `Finite.lean` uses
+  it). The part also adds
   one declaration about `StdSpace ι` alone to *Standard model*'s
   `Standard/Basic.lean`: `StdSpace.complexEuclideanEquiv`, the map from
   `EuclideanSpace ℂ ι`. For the coordinate permutation along
@@ -1062,7 +1067,7 @@ it into issues; the overview fixes its folders and its dependencies.
   smoothness of the linear Moser flow, which the classification uses, goes
   in the files of *Linear Moser*.
 - **Builds on:** *Linear Moser*, *Standard model* (`stdForm`,
-  the planned `StdSpace.sumEquiv` and the matrix dictionary, for frames and
+  `StdSpace.sumEquiv` and the matrix dictionary, for frames and
   transition maps), Mathlib's
   smooth vector bundles and bundle metrics, Tau Ceti's bundle constructions
   (`Topology/VectorBundle/`, `Geometry/Manifold/VectorBundle/`), its section
