@@ -1763,23 +1763,29 @@ has either.
   `TauCeti.SmoothTwoForm.exists_isotopy_mpullback_eq` applies, and
   `OfIsotopy.lean` restricts its isotopy to a `Diffeotopy`),
   `Geometry/Symplectic/Moser/Relative.lean` (the relative theorem with
-  prescribed first derivative along a properly embedded, not necessarily
-  compact, submanifold: Tau Ceti's
+  prescribed first derivative along an embedded, not necessarily compact
+  or properly embedded, submanifold: Tau Ceti's
   `TauCeti.SmoothTwoForm.exists_diffeomorph_opens_of_eq_along` is the compact
   case; the non-compact case uses Tau Ceti's tubular neighbourhoods of
   variable radius, `Geometry/Manifold/TubularNeighborhood/`, the relative
   Poincaré primitive with zero first jet of
   `Geometry/Manifold/DifferentialForm/Relative/FirstJet.lean`, and the domain
-  of the Moser flow up to time one), `Geometry/Symplectic/Moser/Isotopy.lean`
-  (the isotopy of embeddings fixing a compact submanifold, from a primitive
-  that vanishes on its tangent vectors, after the correction by $dF$ that
-  makes it vanish as a full covector; from Tau Ceti's
+  of the Moser flow up to time one), `Geometry/Symplectic/Moser/Field.lean`
+  (the Moser field of the segment $\omega_0+t(\omega_1-\omega_0)$, cut off
+  on `ℝ × M`), `Geometry/Symplectic/Moser/Isotopy.lean`
+  (the isotopy of embeddings fixing a compact submanifold, with Tau Ceti's
+  relative Poincaré primitive, which vanishes as a full covector, in place
+  of the correction by $dF$; the trajectory argument of Tau Ceti's
   `TauCeti.SmoothTwoForm.exists_diffeomorph_fix_eventually_mpullback_eq_of_mextDeriv_eq_sub`
-  and its Moser flow), and `Geometry/Symplectic/Manifold/Darboux.lean` (named
+  at every time, with the field of `Field.lean`), and
+  `Geometry/Symplectic/Manifold/Darboux.lean` (named
   like Tau Ceti's file: Darboux charts with a prescribed derivative at the
-  centre, for any linear symplectic form on the model space, from the
-  relative theorem for a point; and that transition maps of such charts have
-  symplectic derivatives). The folder is `Geometry/Symplectic/Moser/`, because
+  centre, for any linear symplectic form on the target, from Tau Ceti's
+  Darboux charts followed by a linear symplectomorphism; and that transition
+  maps of such charts have symplectic derivatives), with lemmas on
+  nondegenerate two-forms in
+  `Geometry/Symplectic/Manifold/Family.lean` and `Flat.lean`, named like
+  Tau Ceti's files. The folder is `Geometry/Symplectic/Moser/`, because
   Tau Ceti has the files `Geometry/Symplectic/Manifold/Moser.lean` and
   `RelativeMoser.lean`, beside which this library may not have folders of
   those names.
