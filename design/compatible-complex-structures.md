@@ -788,7 +788,8 @@ This is Proposition 2.5.6, for a fixed `g : innerProducts V`, in
   $\omega_{g,J}=\tfrac12\big(g(J\cdot,\cdot)-g(\cdot,J\cdot)\big)$, built
   with Tau Ceti's `SymplecticForm.ofTames`, since
   $\omega_{g,J}(v,Jv)=\tfrac12\big(g(Jv,Jv)+g(v,v)\big)>0$. It comes with
-  `metricSymplecticForm_apply` (`@[simp]`), `tames_metricSymplecticForm`,
+  `toBilinForm_metricSymplecticForm` (`@[simp]`), the pointwise
+  `metricSymplecticForm_apply` that follows from it, `tames_metricSymplecticForm`,
   `metricSymplecticForm_eq_of_apply_apply` (it is $g(J\cdot,\cdot)$ for
   $g$-orthogonal $J$) and `continuous_metricSymplecticForm`.
 - `metricSymplecticForm_innerSL` (for `V` an inner product space and `J`
@@ -806,7 +807,8 @@ This is Proposition 2.5.6, for a fixed `g : innerProducts V`, in
 - `polarHomotopyEquiv g : ContinuousMap.HomotopyEquiv (SymplecticForm V)
   (AlmostComplexStructure V)`, with maps $\omega\mapsto J_{g,\omega}$ and
   $J\mapsto\omega_{g,J}$, stated by the `@[simp]` lemmas
-  `polarHomotopyEquiv_toFun` and `polarHomotopyEquiv_invFun`. Mathlib's
+  `polarHomotopyEquiv_toFun` and `polarHomotopyEquiv_symm_apply` (Mathlib's
+  simp normal form `⇑h.symm` of `⇑h.invFun`). Mathlib's
   `ContinuousMap.HomotopyEquiv` keeps its homotopies only as the `Prop`s
   `left_inv` and `right_inv`, so the two homotopies are public definitions of
   their own, placed before `polarHomotopyEquiv g`, which takes `left_inv` from
@@ -840,8 +842,8 @@ This is Proposition 2.5.6, for a fixed `g : innerProducts V`, in
     Tau Ceti makes the same choice with `ofTames_toBilinForm`. A pointwise
     `polarStraightHomotopy_apply_apply`, not `@[simp]`, follows from it. The
     endpoints come from `Tames.lineMap_zero` and `_one`, and joint continuity
-    in $(t,\omega)$ from `continuous_iff` of `SymplecticForm V`, the value
-    lemma and the two continuity results above.
+    in $(t,\omega)$ from `continuous_iff` of `SymplecticForm V`, Mathlib's
+    `ContinuousMap.Homotopy.affine` and the two continuity results above.
   - `polarCayleyHomotopy g`, a `ContinuousMap.Homotopy` from
     $J\mapsto J_{g,\omega_{g,J}}$ to `ContinuousMap.id
     (AlmostComplexStructure V)`. Its value at `(t, J)` is Tau Ceti's
@@ -858,9 +860,6 @@ This is Proposition 2.5.6, for a fixed `g : innerProducts V`, in
     Tau Ceti's `Compatible.toContinuousLinearMap_cayleyInterp`; its joint
     continuity in $(t,J)$ comes from `contDiffOn_cayleyPathFormula`.
     The triple lies in `cayleyDomain` by `Compatible.mem_cayleyDomain`.
-
-  If the composites of `polarHomotopyEquiv g` are not syntactically the
-  endpoints above, `ContinuousMap.Homotopy.cast` adjusts them.
 - `metricComplexStructuresHomotopyEquiv g` and
   `metricSymplecticFormsHomotopyEquiv g`, whose forward maps are the
   inclusions. Their inverses are $J\mapsto J_{g,\omega_{g,J}}$ and

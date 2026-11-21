@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.Analysis.InnerProductSpace.Symplectic.PolarComplexStructure.Smooth
 public import SymplecticGeometry.Geometry.Symplectic.Cayley.Domain
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Compatible
+public import Mathlib.Topology.Homotopy.Affine
 public import Mathlib.Topology.Homotopy.Equiv
 
 /-!
@@ -87,12 +88,17 @@ it is `g (J ·, ·)` when `J` preserves `g`
 noncomputable def metricSymplecticForm : SymplecticForm V :=
   ofTames _ (isAlt_metricSymplecticBilinForm g J) fun _ hv ↦ metricSymplecticBilinForm_pos g J hv
 
+/-- The bilinear form of `ω_{g,J}` is `½ (g (J ·) · - g · (J ·))`. -/
 @[simp]
+theorem toBilinForm_metricSymplecticForm :
+    (metricSymplecticForm g J).toBilinForm = (2 : ℝ)⁻¹ •
+      ((g : V →L[ℝ] V →L[ℝ] ℝ).toBilinForm.compl₁₂ J.toLinearMap LinearMap.id -
+        (g : V →L[ℝ] V →L[ℝ] ℝ).toBilinForm.compl₁₂ LinearMap.id J.toLinearMap) :=
+  ofTames_toBilinForm _ _
+
 theorem metricSymplecticForm_apply (v w : V) :
     metricSymplecticForm g J v w =
       2⁻¹ * ((g : V →L[ℝ] V →L[ℝ] ℝ) (J v) w - (g : V →L[ℝ] V →L[ℝ] ℝ) v (J w)) := by
-  change (metricSymplecticForm g J).toBilinForm v w = _
-  rw [metricSymplecticForm, ofTames_toBilinForm]
   simp
 
 /-- A complex structure `J` tames `ω_{g,J}`. -/
@@ -149,20 +155,13 @@ private theorem continuous_polarStraightHomotopy :
     Continuous fun p : I × SymplecticForm V ↦
       (tames_metricSymplecticForm g (metricPolarComplexStructure g p.2)).lineMap
         (compatible_metricPolarComplexStructure g p.2).tames p.1.property := by
-  have h₀ := SymplecticForm.continuous_iff.1 ((continuous_metricSymplecticForm g).comp
-    (((continuous_const (y := g)).metricPolarComplexStructure continuous_id).comp
-      (continuous_snd (X := I))))
-  have h₁ := SymplecticForm.continuous_iff.1 (continuous_snd (X := I) (Y := SymplecticForm V))
-  have ht : Continuous fun p : I × SymplecticForm V ↦ (p.1 : ℝ) :=
-    continuous_subtypeVal.comp continuous_fst
   rw [SymplecticForm.continuous_iff]
-  -- Instance search does not find this instance on its own (it times out).
-  have : ContinuousAdd (V →L[ℝ] V →L[ℝ] ℝ) :=
-    ContinuousLinearMap.isTopologicalAddGroup.toContinuousAdd
-  refine ((((continuous_const (y := (1 : ℝ))).sub ht).smul h₀).add (ht.smul h₁)).congr
-    fun p ↦ ?_
+  refine (ContinuousMap.Homotopy.affine
+    ⟨_, SymplecticForm.continuous_iff.1 ((continuous_metricSymplecticForm g).comp
+      ((continuous_const (y := g)).metricPolarComplexStructure continuous_id))⟩
+    ⟨_, SymplecticForm.continuous_iff.1 continuous_id⟩).continuous.congr fun p ↦ ?_
   ext v w
-  simp
+  simp [AffineMap.lineMap_apply_module]
 
 /-- The straight-line homotopy `(t, ω) ↦ (1 - t) ω_{g,J_{g,ω}} + t ω`, from `ω ↦ ω_{g,J_{g,ω}}` at
 `t = 0` to the identity of the symplectic forms at `t = 1`. Both forms are tamed by `J_{g,ω}`, so
@@ -193,7 +192,6 @@ theorem polarStraightHomotopy_apply_apply (t : I) (ω : SymplecticForm V) (v w :
     polarStraightHomotopy g (t, ω) v w =
       (1 - (t : ℝ)) * metricSymplecticForm g (metricPolarComplexStructure g ω) v w +
         (t : ℝ) * ω v w := by
-  change (polarStraightHomotopy g (t, ω)).toBilinForm v w = _
   simp
 
 private theorem continuous_polarCayleyHomotopy :
@@ -264,8 +262,8 @@ theorem polarHomotopyEquiv_toFun (ω : SymplecticForm V) :
 
 /-- The homotopy inverse of `polarHomotopyEquiv g` is `J ↦ ω_{g,J}`. -/
 @[simp]
-theorem polarHomotopyEquiv_invFun (J : AlmostComplexStructure V) :
-    (polarHomotopyEquiv g).invFun J = metricSymplecticForm g J :=
+theorem polarHomotopyEquiv_symm_apply (J : AlmostComplexStructure V) :
+    (polarHomotopyEquiv g).symm J = metricSymplecticForm g J :=
   (rfl)
 
 end HomotopyEquiv
