@@ -398,7 +398,8 @@ Expected size of issue 4, both files: 300 lines.
   `symplecticSpectrum_eq` (the characterization: for `Q.PosDef`, positive `r`
   and a symplectomorphism `e` with `e '' {z | Q z ≤ 1} = stdEllipsoid r`, the
   spectrum is `Finset.univ.val.map r`; it makes the choice irrelevant),
-  `card_symplecticSpectrum` (`= n` for `Q.PosDef`), `pos_of_mem_symplecticSpectrum`,
+  `card_symplecticSpectrum` (`= n` for `Q.PosDef`), `posDef_of_mem_symplecticSpectrum`,
+  `pos_of_mem_symplecticSpectrum`,
   `symplecticSpectrum_comp` (invariance under `Q ↦ Q.comp e` for a
   symplectomorphism `e`) and `@[simp] symplecticSpectrum_stdEllipsoidForm`
   (`= Finset.univ.val.map r` for positive `r`).
@@ -486,7 +487,7 @@ Expected size: 300 lines.
   ```lean
   /-- Milestone: *Linear symplectic width of an ellipsoid*. -/
   theorem linearSymplecticWidth_setOf_le_one {Q : QuadraticForm ℝ (StdSpace ι)}
-      (hQ : Q.PosDef) {s : ℝ} (hs : s ∈ symplecticSpectrum Q)
+      {s : ℝ} (hs : s ∈ symplecticSpectrum Q)
       (hmin : ∀ t ∈ symplecticSpectrum Q, s ≤ t) :
       let E := {z | Q z ≤ 1}
       linearSymplecticWidth E = ENNReal.ofReal (π * s ^ 2) ∧
