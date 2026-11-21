@@ -19,10 +19,9 @@ orthogonal polar factor. For a nonempty finite index type `ι` this file shows t
 isomorphism `π₁(Sp(2n), A) ≅ π₁(S¹, ρ A)` at every base point `A`, so that the fundamental group of
 `Sp(2n)` is infinite cyclic.
 
-The realification `TauCeti.GLSymplectic.ofUnitary : U(ι) → Sp(2n)` is the composite of the
-homeomorphism of `U(ι)` with the orthogonal symplectic matrices and of their inclusion in `Sp(2n)`,
-which is a homotopy equivalence (`TauCeti.GLSymplectic.polarHomotopyEquiv`, the polar deformation
-retraction). So it is a weak homotopy equivalence, and `ρ ∘ ofUnitary` is the determinant
+The realification `TauCeti.GLSymplectic.ofUnitary : U(ι) → Sp(2n)` is a homotopy equivalence
+(`TauCeti.GLSymplectic.ofUnitaryHomotopyEquiv`, built from the polar deformation retraction), hence
+a weak homotopy equivalence, and `ρ ∘ ofUnitary` is the determinant
 `Matrix.UnitaryGroup.detCircle`, which is bijective on `π₁` at every base point
 (`Matrix.UnitaryGroup.bijective_fundamentalGroupMap_detCircle`). Comparing the two along this
 square gives the statement for `ρ`.
@@ -32,13 +31,13 @@ surjective on `π₁`: the hypothesis `Nonempty ι` cannot be dropped.
 
 ## Main results
 
-* `TauCeti.GLSymplectic.isWeakHomotopyEquivalence_ofUnitary`: the realification
-  `U(ι) → Sp(2n)` is a weak homotopy equivalence.
 * `TauCeti.GLSymplectic.bijective_fundamentalGroupMap_maslovPhase`: for nonempty `ι`, `ρ` induces
   a bijection `π₁(Sp(2n), A) → π₁(S¹, ρ A)`.
 * `TauCeti.GLSymplectic.fundamentalGroupMulEquivCircle`,
   `TauCeti.GLSymplectic.fundamentalGroupMulEquiv`: the resulting isomorphisms
   `π₁(Sp(2n), A) ≃* π₁(S¹, ρ A)` and `π₁(Sp(2n), A) ≃* ℤ`.
+* `TauCeti.GLSymplectic.fundamentalGroupMulEquiv_fromPath`: the second isomorphism sends a loop
+  to its Maslov index `TauCeti.GLSymplectic.maslovIndex`.
 * `TauCeti.GLSymplectic.not_bijective_fundamentalGroupMap_maslovPhase_of_isEmpty`: the statement
   fails for empty `ι`, where the fundamental group is trivial.
 * `TauCeti.GLSymplectic.nonempty_fundamentalGroup_mulEquiv_int`: for nonempty `ι`,
@@ -58,27 +57,11 @@ namespace TauCeti.GLSymplectic
 
 variable {ι : Type*} [Fintype ι] [DecidableEq ι]
 
-/-- The realification `ofUnitary : U(ι) → Sp(2n)`, as a continuous map. -/
-private noncomputable abbrev ofUnitaryCM : C(unitaryGroup ι ℂ, GLSymplectic ι ℝ) :=
-  ⟨ofUnitary, continuous_ofUnitary⟩
-
-/-- The realification `ofUnitary : U(ι) → Sp(2n)` is a weak homotopy equivalence: it is a
-homeomorphism onto the orthogonal symplectic matrices followed by their inclusion, a homotopy
-equivalence. -/
-theorem isWeakHomotopyEquivalence_ofUnitary :
-    (⟨ofUnitary, continuous_ofUnitary⟩ :
-      C(unitaryGroup ι ℂ, GLSymplectic ι ℝ)).IsWeakHomotopyEquivalence := by
-  have h := polarHomotopyEquiv.isWeakHomotopyEquivalence.comp
-    (unitaryGroupEquivSymplecticInfOrthogonal (n := ι)).toHomeomorph.isWeakHomotopyEquivalence
-  convert h using 1
-  ext U
-  simp [ofUnitary_apply]
-
 /-- The square `id ∘ detCircle = maslovPhase ∘ ofUnitary`. -/
 private theorem comp_detCircle_eq :
     (ContinuousMap.id Circle).comp ⟨detCircle, continuous_detCircle⟩ =
       (⟨maslovPhase, continuous_maslovPhase⟩ : C(GLSymplectic ι ℝ, Circle)).comp
-        ofUnitaryCM := by
+        (ofUnitaryHomotopyEquiv (n := ι)).toFun := by
   ext U
   simp
 
@@ -92,7 +75,7 @@ theorem bijective_homotopyGroupMap_maslovPhase (A : GLSymplectic ι ℝ) :
     Function.Bijective (HomotopyGroup.map (N := Fin 1)
       (⟨maslovPhase, continuous_maslovPhase⟩ : C(GLSymplectic ι ℝ, Circle))
       (rfl : maslovPhase A = maslovPhase A)) := by
-  have hf := isWeakHomotopyEquivalence_ofUnitary (ι := ι)
+  have hf := (ofUnitaryHomotopyEquiv (n := ι)).isWeakHomotopyEquivalence
   have hg := ContinuousMap.IsWeakHomotopyEquivalence.id (X := Circle)
   exact ⟨(hf.forall_injective_map_iff_of_comp_eq hg comp_detCircle_eq (Fin 1)).2
       (fun U ↦ (bijective_homotopyGroupMap_detCircle U).1) A,
@@ -137,11 +120,22 @@ theorem fundamentalGroupMulEquiv_apply (A : GLSymplectic ι ℝ)
         (⟨maslovPhase, continuous_maslovPhase⟩ : C(GLSymplectic ι ℝ, Circle)) A p) :=
   (rfl)
 
+/-- The isomorphism `fundamentalGroupMulEquiv` sends the class of a loop `γ` in `Sp(2n)` to its
+Maslov index `maslovIndex γ`. -/
+@[simp]
+theorem fundamentalGroupMulEquiv_fromPath {A : GLSymplectic ι ℝ} (γ : Path A A) :
+    fundamentalGroupMulEquiv ι A (FundamentalGroup.fromPath (Path.Homotopic.Quotient.mk γ)) =
+      Multiplicative.ofAdd (maslovIndex γ) := by
+  rw [fundamentalGroupMulEquiv_apply, FundamentalGroup.map_fromPath,
+    Circle.fundamentalGroupMulEquiv_fromPath, maslovIndex_def]
+
 /-- **The fundamental group of the symplectic group.** For a nonempty finite index type `ι` (that
 is, `Sp(2n)` with `n ≥ 1`), the fundamental group of the real symplectic group is isomorphic to
 `ℤ` at every base point; the isomorphism is induced by `maslovPhase`
-(`fundamentalGroupMulEquiv`). For empty `ι` the group `Sp(0)` is a point and its fundamental
-group is trivial (`not_bijective_fundamentalGroupMap_maslovPhase_of_isEmpty`).
+(`fundamentalGroupMulEquiv`) and sends a loop to its Maslov index. For empty `ι` the group
+`Sp(0)` is a point, so its fundamental group is trivial (instance search finds this), and
+`maslovPhase` is not bijective on `π₁`
+(`not_bijective_fundamentalGroupMap_maslovPhase_of_isEmpty`).
 
 Milestone: *Fundamental group of the unitary group*. -/
 theorem nonempty_fundamentalGroup_mulEquiv_int (A : GLSymplectic ι ℝ) :
