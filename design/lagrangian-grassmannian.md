@@ -363,6 +363,9 @@ Lagrangian frames on `StdSpace ι`, pure linear algebra. Namespace
   (hXY : Xᵀ * Y = Yᵀ * X) : ℒ ι`, the Lagrangian that the frame spans, with
   `coe_ofFrame` (`@[simp]`): its submodule is the range of
   `toEuclideanLin (fromRows X Y)`. This is the constructor of G6.
+- `ℒ.finrank_eq_card (Λ : ℒ ι) : finrank ℝ Λ = Fintype.card ι`, from
+  `IsLagrangian.two_mul_finrank` and `finrank_stdSpace`, for every use of the
+  dimension of a Lagrangian of `StdSpace ι`.
 - `isLagrangian_map_swap_iff` (`@[simp]`): `L.map (swap ι)` is Lagrangian for
   `ω₀` iff `L` is. Since `stdForm_swap` says that `swap` multiplies `ω₀` by
   `-1`, this is the case `e = swap`, `c = -1` of
@@ -640,6 +643,9 @@ The comparison with Tau Ceti's Grassmannian, for `ι = Fin n`.
   (the subspaces whose pull-back is Lagrangian). So `ℒ (Fin n)` has the
   subspace topology of `finiteGrassmannian`. The proof is as in decision 2,
   using `Submodule.starProjection_map_apply`.
+- `ℒ.isClosedEmbedding_toFiniteGrassmannian`: the embedding is closed, from
+  its continuity, its injectivity and the compactness of `ℒ (Fin n)`
+  (`Quotient.lean`).
 
 ### `Topology/Grassmannian/Lagrangian/Graph.lean`
 

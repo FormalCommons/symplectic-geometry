@@ -56,6 +56,8 @@ A *frame* is a real `2n × n` matrix `Z = fromRows X Y`, whose columns span the 
 * `SymplecticGeometry.isLagrangian_graph_iff`, `isLagrangian_graphY_iff`: a graph is Lagrangian
   iff its matrix is symmetric; `isLagrangian_range_fromRows_one`: so `fromRows A 1` is a
   Lagrangian frame for symmetric `A`.
+* `SymplecticGeometry.LagrangianGrassmannian.finrank_eq_card`: a Lagrangian subspace of
+  `StdSpace ι` has dimension `Fintype.card ι`.
 * `SymplecticGeometry.det_ne_zero_of_isLagrangian_range_fromRows`: the complex frame `X + i Y` of
   a Lagrangian frame is invertible.
 * `SymplecticGeometry.exists_eq_graph_of_isCompl`, `exists_eq_graphY_of_isCompl`: a Lagrangian
@@ -300,6 +302,14 @@ theorem exists_eq_graphY_of_isCompl {L : Submodule ℝ (StdSpace ι)}
   ⟨S, (isLagrangian_graphY_iff S).1 (hS ▸ hL), hS⟩
 
 /-! ### Lagrangian frames -/
+
+/-- A Lagrangian subspace of the standard model `StdSpace ι` has dimension `Fintype.card ι`, half
+the dimension of `StdSpace ι`. -/
+theorem LagrangianGrassmannian.finrank_eq_card (Λ : LagrangianGrassmannian (stdForm ι)) :
+    finrank ℝ (Λ : Submodule ℝ (StdSpace ι)) = Fintype.card ι := by
+  have h := Λ.isLagrangian.two_mul_finrank
+  rw [finrank_stdSpace] at h
+  omega
 
 section Frame
 
