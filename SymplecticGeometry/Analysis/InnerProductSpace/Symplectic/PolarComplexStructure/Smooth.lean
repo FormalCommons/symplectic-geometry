@@ -213,8 +213,7 @@ theorem metricPolarFormula_eq (g : innerProducts W) (ω : SymplecticForm W) :
     rw [← metricPolarComplexStructure_innerSL, ← metricPolarComplexStructure_transport]
     congr 1
     · ext c d
-      simp only [innerProducts.transport_apply, hg]
-      rw [innerSL_apply_apply]
+      simp only [innerProducts.transport_apply, hg, innerSL_real_apply_apply]
     · rw [SymplecticForm.transport_trans, LinearEquiv.symm_trans_self,
         SymplecticForm.transport_refl]
   have hg' : (symmetrizeBilinear (g : W →L[ℝ] W →L[ℝ] ℝ)).val = g :=
