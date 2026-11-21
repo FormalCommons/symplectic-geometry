@@ -53,7 +53,7 @@ variable {EB HB M : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB]
   on it, not the `∞` of the display above. The reason is the pull-back:
   along `f : C^n⟮I', N; I, M⟯`, `f *ᵖ V` is a $C^n$ bundle and no more
   (Mathlib's instance `ContMDiffVectorBundle.pullback`), and the Tau Ceti
-  lemmas used for transport (`contMDiff_bundle_symm`,
+  lemmas used for transport (`contMDiff_hom_bundle_iff`,
   `ContMDiff.clm_bundle_inverse`, `ContMDiffSection.mapEquiv`,
   `ContMDiffSection.clmComp`) need no more. The topologies, the existence
   results and the milestones keep the smooth bundle of the display.
@@ -72,8 +72,9 @@ variable {EB HB M : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB]
   - local compactness of `F`: `continuous_fiberwiseMap`, for Tau Ceti's
     continuity of composition through the total space (see *Continuity of
     fibrewise maps*);
-  - finite rank of the source bundle: each use of `contMDiff_bundle_symm` or
-    `contMDiff_hom_bundle_iff` (the `pushforward`s, the classification, the
+  - finite rank of the source bundle: each use of `contMDiff_bundle_symm`,
+    `contMDiff_hom_bundle_iff` or this library's `contMDiff_hom_bundle_symm`
+    (the `pushforward`s, the classification, the
     transition maps of symplectic frames and the direct sum of complex
     structures), and each use of Tau Ceti's
     `contMDiffAt_continuousAlternatingMap_bundle_of_bilinear` (the direct sum
@@ -127,6 +128,8 @@ variable {EB HB M : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB]
 | `Geometry/Manifold/VectorBundle/Symplectic/ComplexStructure/Contractible.lean` | contractibility for a fixed form or structure, the homotopy equivalence, the second milestone | 7, 8 |
 | `Geometry/Manifold/VectorBundle/Symplectic/Trivialization.lean` | local Darboux frames and the reduction of the structure group | 9 |
 | `Geometry/Manifold/VectorBundle/Symplectic/Classification.lean` | the first milestone | 11 |
+| `Geometry/Manifold/VectorBundle/Hom.lean` | `contMDiff_hom_bundle_symm`: the fibrewise inverses of a $C^n$ isomorphism of bundles as a $C^n$ section of the hom bundle | 1, 3 |
+| `Geometry/Manifold/VectorBundle/ContinuousAlternatingMap.lean` | `contMDiff_compContinuousLinearMap_totalSpace`: precomposition by a $C^n$ hom-bundle section is $C^n$ on total spaces of alternating bundles | 3 |
 | `Geometry/Manifold/VectorBundle/Pullback.lean` | smoothness of sections of the alternating bundle of a pull-back | 18 |
 | `Topology/VectorBundle/Pullback.lean` | coordinates of alternating maps on a pull-back bundle | 18 |
 | `Geometry/Manifold/VectorBundle/Symplectic/Pullback.lean` | pull-backs of forms, of tame and compatible pairs, of isomorphisms and of frames | 21 |
@@ -247,14 +250,11 @@ name, so that the $TM$ statements are special cases:
   $C^n$ sections of the hom bundles from `V₁` to `V₂` and back. Tau Ceti's
   `contMDiff_hom_bundle_iff` (same file) gives `Φₛ` from `hΦ`, and needs
   only `[FiniteDimensional ℝ F₁]`. Then `Φ⁻¹ₛ` is the fibrewise inverse of
-  `Φₛ`, which is $C^n$ by Tau Ceti's `ContMDiff.clm_bundle_inverse` (same
-  file, no hypothesis on the dimension), with Mathlib's
-  `ContinuousLinearMap.isInvertible_equiv` and
-  `ContinuousLinearMap.inverse_equiv`, following the proof of
-  `contMDiff_bundle_symm`. This step is the root-namespace lemma
-  `contMDiff_hom_bundle_symm` of this library's
-  `Geometry/Manifold/VectorBundle/Hom.lean`, shared with the two-form
-  `pushforward`.
+  `Φₛ`, given by `contMDiff_hom_bundle_symm` (this library's
+  `Geometry/Manifold/VectorBundle/Hom.lean`, root namespace, shared with the
+  two-form `pushforward`); its proof applies Tau Ceti's
+  `ContMDiff.clm_bundle_inverse` to `Φₛ` and rewrites with Mathlib's
+  `ContinuousLinearMap.inverse_equiv`.
   So `F₂` may have any dimension, as for the two-form `pushforward`; nothing
   about sections is rebuilt;
 - `toContinuousComplexStructure : ContMDiffComplexStructure I n F V →
@@ -365,12 +365,16 @@ but the predicate below, as in Tau Ceti for $TM$.
   It is Tau Ceti's `ContMDiffSection.mapEquiv`
   (`Geometry/Manifold/VectorBundle/Section/Map.lean`) for the fibrewise map
   $\omega_x\mapsto\omega_x\circ(\Phi_x^{-1}\times\Phi_x^{-1})$ of the
-  alternating bundles; that map and its inverse are $C^n$ on total spaces
-  because $\Phi$ is and, by Tau Ceti's `contMDiff_bundle_symm`
-  (`Geometry/Manifold/VectorBundle/Hom.lean`), so is $\Phi^{-1}$. Nothing
-  about sections is rebuilt. The transport of complex structures,
-  `ContMDiffComplexStructure.pushforward`, composes hom-bundle sections
-  instead, as its entry above says.
+  alternating bundles. Both that map and its inverse are precompositions by
+  a $C^n$ section of a hom bundle, so they are $C^n$ on total spaces by
+  `contMDiff_compContinuousLinearMap_totalSpace` (this library's
+  `Geometry/Manifold/VectorBundle/ContinuousAlternatingMap.lean`, root
+  namespace, any arity and coefficient bundle). For the map the section is
+  $x\mapsto\Phi_x^{-1}$, given by `contMDiff_hom_bundle_symm` (this
+  library's `Geometry/Manifold/VectorBundle/Hom.lean`, root namespace, shared
+  with the transport of complex structures); for its inverse it is
+  $x\mapsto\Phi_x$, given by Tau Ceti's `contMDiff_hom_bundle_iff`. Nothing
+  about sections is rebuilt.
 - **The tangent bundle.** `tangentEquiv : ContMDiffTwoForm I ⊤ EB
   (TangentSpace I) ≃ₗ[ℝ] TauCeti.SmoothTwoForm I M`, built from
   `TauCeti.SmoothForm.ofContMDiffSection` and `SmoothForm.toContMDiffSection`
