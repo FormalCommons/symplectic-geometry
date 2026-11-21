@@ -176,8 +176,8 @@ overview in line with them.
 - The lemma of `Section/Topology.lean` asks for joint $C^n$ regularity in a
   manifold parameter instead of derivatives continuous in the parameter (see
   below), and only issues 7 and 8 wait for part 9: issue 7 for its Cayley
-  domain issue 6, and issue 8 for its building issues 4, 5 and 6 (see *What
-  the part uses*).
+  domain issue 6, and issue 8 for its building issues 1, 4, 5 and 6 (see
+  *What the part uses*).
 
 ## Complex structures on a bundle
 
@@ -627,14 +627,13 @@ $[0,1]$ is never fed to the lemma with `P = ℝ` directly.
   forms, $\omega$ and $\omega_{g,J_{g,\omega}}$ both tame $J_{g,\omega}$, and
   the straight line between them stays nondegenerate. This is the fibrewise
   form of the linear straight line `TauCeti.SymplecticForm.Tames.lineMap` of
-  part 9 (`Topology/Algebra/Module/SymplecticForms.lean` of
+  part 9 (`LinearAlgebra/Symplectic/Compatible.lean` of
   `design/compatible-complex-structures.md`), the same definition that part
   9's homotopy on forms uses: at each `x`, the `symplecticFormAt x` of the
   two forms both tame the value of $J_{g,\omega}$ at `x`, so the
   combination at time `t` is, at `x`, the `toBilinForm` of their
   `Tames.lineMap` (by `Tames.toBilinForm_lineMap`), and its nondegeneracy
-  there is that of this symplectic form; the taming argument is not
-  repeated. On the structures, $J$
+  there is that of this symplectic form. On the structures, $J$
   and $J_{g,\omega_{g,J}}$ are both compatible with $\omega_{g,J}$, and the
   Cayley path between them, with $J_{g,\omega_{g,J}}$ as reference and
   coefficient `smoothTransition t`, is a fibrewise formula in $(t, J_x)$
@@ -1318,9 +1317,8 @@ it, its design adds it.
   is private. These are part 9's issues 4 and 5. The straight line on
   forms of the homotopy equivalence (issue 8) is part 9's
   `TauCeti.SymplecticForm.Tames.lineMap`, with `Tames.toBilinForm_lineMap`,
-  from its `Topology/Algebra/Module/SymplecticForms.lean`; that file is part
-  9's issue 3, which its issue 4 waits for already, so issue 8 has no new
-  blocker. The other fibrewise
+  from its linear `LinearAlgebra/Symplectic/Compatible.lean`; it is part
+  9's issue 1, a blocker of issue 8. The other fibrewise
   constructions the part needs (the Cayley path, $J_{g,\omega}$,
   $\omega_{g,J}$, the complex-linear part) are Tau Ceti's linear ones or
   explicit formulas. So only issues 7 and 8 wait for part 9.
@@ -1374,8 +1372,9 @@ of *Constructions* for *First Chern number*.
    lemmas; and, in `Symplectic/ComplexStructure/Basic.lean`,
    `bilinFormAt_compatibleForm`, `mk_mem_polarEndDomain` and
    `polarEndAt_eq_polarComplexStructure`. Blockers: 7, and
-   part 9's building issues 4, 5 and 6 (`PolarComplexStructure/Basic.lean`,
-   `Smooth.lean` and `Geometry/Symplectic/Cayley/Domain.lean` of
+   part 9's building issues 1, 4, 5 and 6 (`LinearAlgebra/Symplectic/Compatible.lean`,
+   `PolarComplexStructure/Basic.lean`, `Smooth.lean` and
+   `Geometry/Symplectic/Cayley/Domain.lean` of
    `design/compatible-complex-structures.md`). If this
    issue gets too long, the `PolarEnd.lean` declarations and the three
    `Basic.lean` lemmas become an issue of their own.

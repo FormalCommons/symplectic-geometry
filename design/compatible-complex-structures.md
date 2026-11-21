@@ -311,9 +311,13 @@ request updates it to the files below. Each change, with its reason:
 - **New `Topology/Algebra/Module/SymplecticForms.lean`.** The homotopy
   equivalence between forms and complex structures needs a topology on
   `SymplecticForm V`. Neither Tau Ceti nor the overview gives one. It is a
-  topic parallel to `InnerProducts.lean`. The file also holds
-  `Tames.lineMap`, the straight line between two forms that tame one
-  complex structure, which this part and *Symplectic vector bundles* share.
+  topic parallel to `InnerProducts.lean`.
+- **`Tames.lineMap` in `LinearAlgebra/Symplectic/Compatible.lean`.** The
+  straight line between two forms that tame one complex structure is used by
+  this part's homotopy on forms and by *Symplectic vector bundles*. It is
+  linear algebra on Tau Ceti's types alone, so it sits in the part's linear
+  file, in `TauCeti.SymplecticForm`, and not with the topology on
+  `SymplecticForm V`.
 - **New `Geometry/Symplectic/Cayley/Domain.lean`.** The open set where the
   Cayley path is smooth is used by two files of this part. *Symplectic
   vector bundles* uses this file, for `TauCeti.cayleyDomain`, the openness
@@ -403,6 +407,38 @@ statements assume `[FiniteDimensional ℝ V]`.
   with the six conditions written as in the lemmas above. Its docstring ends
   with "Milestone: *Characterizations of compatible complex structures*."
 
+The file also holds the straight line between two forms that tame one
+complex structure, in a section with only `[AddCommGroup V] [Module ℝ V]`.
+
+- `TauCeti.SymplecticForm.Tames.lineMap (h₀ : ω₀.Tames J) (h₁ : ω₁.Tames J)
+  (ht : t ∈ Set.Icc (0 : ℝ) 1) : SymplecticForm V`, with `t` implicit: the
+  form $(1-t)\,\omega_0+t\,\omega_1$. A combination of alternating forms is
+  alternating, and $J$ tames it, since
+  $(1-t)\,\omega_0(v,Jv)+t\,\omega_1(v,Jv)>0$ for $v\ne0$ when the two weights
+  are nonnegative and add up to one; so it is built with Tau Ceti's
+  `SymplecticForm.ofTames`. The name follows Mathlib's `AffineMap.lineMap`,
+  whose value at `t` is the same combination. Its API:
+  - `@[simp] Tames.toBilinForm_lineMap : (h₀.lineMap h₁ ht).toBilinForm =
+    (1 - t) • ω₀.toBilinForm + t • ω₁.toBilinForm`. As for `ofTames`, the
+    `toBilinForm` equation is the simp lemma; a pointwise
+    `Tames.lineMap_apply` (the value at `v w`), if added, is not, since the
+    coercion of a form to a function unfolds to `toBilinForm`.
+  - `Tames.tames_lineMap : (h₀.lineMap h₁ ht).Tames J`, from Tau Ceti's
+    `tames_ofTames`.
+  - `@[simp] Tames.lineMap_zero : h₀.lineMap h₁ ht = ω₀` for
+    `ht : (0 : ℝ) ∈ Set.Icc 0 1`, and `@[simp] Tames.lineMap_one`, whose
+    value is `ω₁`, both by `toBilinForm_injective`. They give the endpoints
+    of a homotopy built from the line.
+
+  The statement mentions only Tau Ceti's types and uses neither a metric nor
+  a topology. Tau Ceti has neither this definition nor a convexity lemma for
+  the forms that tame one structure; its convexity results are about the
+  Cayley ball (`Geometry/Symplectic/Cayley/`). The homotopy on forms of
+  `Topology/ComplexStructure/Compatible/SymplecticForms.lean` and the
+  fibrewise line of `exists_homotopyEquiv_polarComplexStructure` in
+  `design/symplectic-vector-bundles.md` both take their values from it, so
+  neither builds a value with `ofTames` itself.
+
 ### `Topology/Algebra/Module/InnerProducts.lean`
 
 This is $\mathrm{Met}(V)$, in `SymplecticGeometry`.
@@ -452,40 +488,6 @@ This is $\Omega(V)$, in `TauCeti.SymplecticForm`.
   `toBilinForm_toContinuousBilinearMap_ofContinuousBilinearMap`.
 - `continuous_transport (e : V ≃L[ℝ] W)`: `ω ↦ ω.transport e.toLinearEquiv`
   is continuous.
-- `TauCeti.SymplecticForm.Tames.lineMap (h₀ : ω₀.Tames J) (h₁ : ω₁.Tames J)
-  (ht : t ∈ Set.Icc (0 : ℝ) 1) : SymplecticForm V`, in a section with only
-  `[AddCommGroup V] [Module ℝ V]` and with `t` implicit: the form
-  $(1-t)\,\omega_0+t\,\omega_1$. A combination of alternating forms is
-  alternating, and $J$ tames it, since
-  $(1-t)\,\omega_0(v,Jv)+t\,\omega_1(v,Jv)>0$ for $v\ne0$ when the two weights
-  are nonnegative and add up to one; so it is built with Tau Ceti's
-  `SymplecticForm.ofTames`. The name follows Mathlib's `AffineMap.lineMap`,
-  whose value at `t` is the same combination. Its API:
-  - `@[simp] Tames.toBilinForm_lineMap : (h₀.lineMap h₁ ht).toBilinForm =
-    (1 - t) • ω₀.toBilinForm + t • ω₁.toBilinForm`. As for `ofTames`, the
-    `toBilinForm` equation is the simp lemma; a pointwise
-    `Tames.lineMap_apply` (the value at `v w`), if added, is not, since the
-    coercion of a form to a function unfolds to `toBilinForm`.
-  - `Tames.tames_lineMap : (h₀.lineMap h₁ ht).Tames J`, from Tau Ceti's
-    `tames_ofTames`.
-  - `@[simp] Tames.lineMap_zero : h₀.lineMap h₁ ht = ω₀` for
-    `ht : (0 : ℝ) ∈ Set.Icc 0 1`, and `@[simp] Tames.lineMap_one`, whose
-    value is `ω₁`, both by `toBilinForm_injective`. They give the endpoints
-    of a homotopy built from the line.
-
-  The statement mentions only Tau Ceti's types and uses neither a metric nor
-  a topology. Tau Ceti has neither this definition nor a convexity lemma for
-  the forms that tame one structure; its convexity results are about the
-  Cayley ball (`Geometry/Symplectic/Cayley/`). It is the library's only
-  straight line between symplectic forms: the homotopy on forms of
-  `Topology/ComplexStructure/Compatible/SymplecticForms.lean` and the
-  fibrewise line of `exists_homotopyEquiv_polarComplexStructure` in
-  `design/symplectic-vector-bundles.md` both take their values from it, and
-  neither repeats the taming argument. It stays in this file, the part's file
-  on `SymplecticForm V` as a space, rather than in one of its own: it is
-  a few short declarations, and the homotopy on forms, which builds on it,
-  needs this file's topology as well.
-
 ### `Analysis/InnerProductSpace/Symplectic/PolarComplexStructure/Basic.lean`
 
 This is $J_{g,\omega}$, the first file of the folder (see *Departures from
@@ -712,40 +714,77 @@ This is Proposition 2.5.6, for a fixed `g : innerProducts V`, in
 - `polarHomotopyEquiv g : ContinuousMap.HomotopyEquiv (SymplecticForm V)
   (AlmostComplexStructure V)`, with maps $\omega\mapsto J_{g,\omega}$ and
   $J\mapsto\omega_{g,J}$, stated by the `@[simp]` lemmas
-  `polarHomotopyEquiv_toFun` and `polarHomotopyEquiv_invFun`. There are two
-  homotopies:
-  - On forms, the straight line between $\omega_{g,J_{g,\omega}}$ and
-    $\omega$. Both forms are tamed by $J_{g,\omega}$, by
+  `polarHomotopyEquiv_toFun` and `polarHomotopyEquiv_invFun`. Mathlib's
+  `ContinuousMap.HomotopyEquiv` keeps its homotopies only as the `Prop`s
+  `left_inv` and `right_inv`, so the two homotopies are public definitions of
+  their own, placed before `polarHomotopyEquiv g`, which takes `left_inv` from
+  the first and `right_inv` from the second. Like `metricStraightHomotopy`,
+  each runs from the composite at time $0$ to the identity at time $1$, the
+  direction of `left_inv` and `right_inv`. The composites are written as
+  `ContinuousMap`s, continuous by `continuous_metricSymplecticForm` and
+  `continuous_metricPolarComplexStructure`.
+  - `polarStraightHomotopy g`, a `ContinuousMap.Homotopy` from
+    $\omega\mapsto\omega_{g,J_{g,\omega}}$ to `ContinuousMap.id
+    (SymplecticForm V)`: the straight line
+    $(t,\omega)\mapsto(1-t)\,\omega_{g,J_{g,\omega}}+t\,\omega$, from
+    $\omega_{g,J_{g,\omega}}$ at `t = 0` to $\omega$ at `t = 1`.
+    Both forms are tamed by $J_{g,\omega}$, by
     `tames_metricSymplecticForm` and
     `(compatible_metricPolarComplexStructure g ω).tames`, so its value at
-    `(t, ω)` is `Tames.lineMap` of
-    `Topology/Algebra/Module/SymplecticForms.lean`, taken with these two
-    proofs and the weight `t.2`, as the homotopy on complex structures takes
-    its value from Tau Ceti's `Compatible.cayleyInterp`. No value is built
-    inline with `SymplecticForm.ofTames`. Its value lemma is a `toBilinForm`
-    equation, from `Tames.toBilinForm_lineMap`; its endpoints come from
-    `Tames.lineMap_zero` and `_one`; and its joint continuity in
-    $(t,\omega)$ from `continuous_iff` of `SymplecticForm V`, that value
-    lemma, `continuous_metricSymplecticForm` and
-    `continuous_metricPolarComplexStructure`.
-  - On complex structures, the Cayley path relative to
+    `(t, ω)` is `Tames.lineMap` of `LinearAlgebra/Symplectic/Compatible.lean`,
+    taken with these two proofs, in this order, and the weight `t.2`, as
+    `polarCayleyHomotopy g` takes its value from Tau Ceti's
+    `Compatible.cayleyInterp`. No value is built inline with
+    `SymplecticForm.ofTames`. Its value is the `@[simp]` lemma
+    `toBilinForm_polarStraightHomotopy_apply`, an equation of bilinear forms:
+    `(polarStraightHomotopy g (t, ω)).toBilinForm = (1 - (t : ℝ)) •
+    (metricSymplecticForm g (metricPolarComplexStructure g ω)).toBilinForm +
+    (t : ℝ) • ω.toBilinForm`, which is `Tames.toBilinForm_lineMap`.
+    It is stated on `toBilinForm` and not on `⇑`: Tau Ceti's `CoeFun` on
+    `SymplecticForm V` unfolds to a lambda, so a simp lemma on `⇑` would get
+    no useful key and would not fire on `polarStraightHomotopy g (t, ω) v w`.
+    Tau Ceti makes the same choice with `ofTames_toBilinForm`. A pointwise
+    `polarStraightHomotopy_apply_apply`, not `@[simp]`, follows from it. The
+    endpoints come from `Tames.lineMap_zero` and `_one`, and joint continuity
+    in $(t,\omega)$ from `continuous_iff` of `SymplecticForm V`, the value
+    lemma and the two continuity results above.
+  - `polarCayleyHomotopy g`, a `ContinuousMap.Homotopy` from
+    $J\mapsto J_{g,\omega_{g,J}}$ to `ContinuousMap.id
+    (AlmostComplexStructure V)`. Its value at `(t, J)` is Tau Ceti's
+    `Compatible.cayleyInterp`, taken with
+    `compatible_metricPolarComplexStructure g (metricSymplecticForm g J)`,
+    `tames_metricSymplecticForm g J` and the weight `t.2`; the endpoints are
+    `Compatible.cayleyInterp_zero` and `_one`. This is the `@[simp]` value
+    lemma `polarCayleyHomotopy_apply`, named like Mathlib's
+    `ContinuousMap.Homotopy.trans_apply`. It is the Cayley path relative to
     $J_{g,\omega_{g,J}}$ (compatible with $\omega_{g,J}$) towards $J$ (tame
     for $\omega_{g,J}$). Its endomorphism at time $b$ is
     `cayleyPathFormula b A B`, with `A` and `B` the endomorphisms of
-    `metricPolarComplexStructure g (metricSymplecticForm g J)` and of `J`.
+    `metricPolarComplexStructure g (metricSymplecticForm g J)` and of `J`, by
+    Tau Ceti's `Compatible.toContinuousLinearMap_cayleyInterp`; its joint
+    continuity in $(t,J)$ comes from `contDiffOn_cayleyPathFormula`.
     The triple lies in `cayleyDomain` by `Compatible.mem_cayleyDomain`. After
     transport along any `e : V ≃L[ℝ] W` to an inner product space `W`, `A` is
     `e`-conjugate to `metricPolarFormula` on `W`, by `metricPolarFormula_eq`
     and `metricPolarComplexStructure_transport`.
 
-  Each homotopy comes with a `@[simp]` lemma for its value.
+  If the composites of `polarHomotopyEquiv g` are not syntactically the
+  endpoints above, `ContinuousMap.Homotopy.cast` adjusts them.
 - `metricComplexStructuresHomotopyEquiv g` and
   `metricSymplecticFormsHomotopyEquiv g`, whose forward maps are the
   inclusions. Their inverses are $J\mapsto J_{g,\omega_{g,J}}$ and
-  $\omega\mapsto\omega_{g,J_{g,\omega}}$, and the homotopies are the two
-  above. Each comes with `@[simp]` `_toFun` and `_invFun` lemmas that state
-  these maps. On the subsets, the inverses fix every point, by
-  `metricPolarComplexStructure_eq_iff`.
+  $\omega\mapsto\omega_{g,J_{g,\omega}}$. Each comes with `@[simp]` `_toFun`
+  and `_invFun` lemmas that state these maps. Neither has a homotopy of its
+  own, nor a restriction of one. On the subsets, the inverses fix every
+  point, by `metricPolarComplexStructure_eq_iff` (and, on
+  `metricSymplecticForms g`, `metricSymplecticForm_eq_of_apply_apply`), so the composite on the
+  subset is equal to the identity and `left_inv` is
+  `ContinuousMap.Homotopic.refl` after `ContinuousMap.ext`. The composite on
+  the whole space is $J\mapsto J_{g,\omega_{g,J}}$, respectively
+  $\omega\mapsto\omega_{g,J_{g,\omega}}$, so `right_inv` is
+  `polarCayleyHomotopy g`, respectively `polarStraightHomotopy g`, unchanged
+  up to `ContinuousMap.Homotopy.cast`. Their values are thus
+  `polarCayleyHomotopy_apply` and `toBilinForm_polarStraightHomotopy_apply`.
 - **Milestone** `metricPolarComplexStructure_eq_inverse_mul_and_homotopyEquiv`,
   named after its first and last conjuncts. Its `V` carries only
   `[NormedAddCommGroup V] [NormedSpace ℝ V] [FiniteDimensional ℝ V]`, and no
@@ -835,7 +874,9 @@ Each is a few hundred lines. External blockers are given by issue number.
    `invariant_iff_isSymm_associatedBilinForm`,
    `compatible_iff_associatedBilinForm`,
    `invariant_iff_complexAssociatedForm_conj_symm`,
-   `compatible_iff_exists_innerProductCore`. Blockers: none.
+   `compatible_iff_exists_innerProductCore`, and `Tames.lineMap` with
+   `Tames.toBilinForm_lineMap`, `Tames.tames_lineMap`, `Tames.lineMap_zero`
+   and `Tames.lineMap_one`. Blockers: none.
 2. **Compatible structures: the standard model, Lagrangians, and the
    characterization milestone.** The rest of the file:
    `compatible_iff_exists_isSymplectomorphism_stdForm`,
@@ -843,9 +884,7 @@ Each is a few hundred lines. External blockers are given by issue number.
    Blockers: 1 (#7 and #25 are merged).
 3. **Inner products and symplectic forms as topological spaces.**
    `Topology/Algebra/Module/InnerProducts.lean` and
-   `Topology/Algebra/Module/SymplecticForms.lean`, including
-   `Tames.lineMap` with `Tames.toBilinForm_lineMap`, `Tames.tames_lineMap`,
-   `Tames.lineMap_zero` and `Tames.lineMap_one`. Blockers: none.
+   `Topology/Algebra/Module/SymplecticForms.lean`. Blockers: none.
 4. **$J_{g,\omega}$ for an arbitrary inner product.**
    `PolarComplexStructure/Basic.lean`. Blockers: 3.
 5. **Smoothness of $J_{g,\omega}$.** `PolarComplexStructure/Smooth.lean`.
@@ -862,10 +901,15 @@ Each is a few hundred lines. External blockers are given by issue number.
 9. **Forms versus complex structures for a fixed metric.** The first part of
    `Topology/ComplexStructure/Compatible/SymplecticForms.lean`:
    `metricSymplecticForm` and its API, `metricSymplecticForm_innerSL`, and
-   `polarHomotopyEquiv` with its two homotopies. Blockers: 5, 6.
+   `polarStraightHomotopy` with `toBilinForm_polarStraightHomotopy_apply`,
+   `polarCayleyHomotopy` with `polarCayleyHomotopy_apply`, and
+   `polarHomotopyEquiv`. Blockers: 1, 5, 6.
 10. **The metric subsets and the milestone *Complex structures versus
     symplectic forms*.** The rest of the file: `metricComplexStructures`,
-    `metricSymplecticForms`, their two homotopy equivalences, and the
+    `metricSymplecticForms`, their two homotopy equivalences
+    `metricComplexStructuresHomotopyEquiv` and
+    `metricSymplecticFormsHomotopyEquiv` (homotopies: the identity, and
+    `polarCayleyHomotopy` or `polarStraightHomotopy`), and the
     milestone. Blockers: 9.
 11. **Compact subgroups of the symplectic group.**
     `Topology/Algebra/Matrix/SymplecticGroup/CompactSubgroup.lean`. Blockers:
@@ -878,8 +922,8 @@ $[0,1]$ as issue 6 here, through
 lie in it by `TauCeti.SymplecticForm.Compatible.mem_cayleyDomain`, so it
 waits for issue 6. Its homotopy-equivalence issue uses `cayleyDomain` too,
 and `metricPolarFormula` on `polarDomain` with its smoothness, so it waits
-for issues 4, 5 and 6; it also uses `Tames.lineMap` from issue 3, which
-issue 4 waits for already. No other issue of that part waits for this one.
+for issues 4, 5 and 6, and for issue 1, for `Tames.lineMap`. No other issue
+of that part waits for this one.
 
 ## References
 
