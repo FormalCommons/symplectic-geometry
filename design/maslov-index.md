@@ -826,7 +826,10 @@ forms relative to `V₀`.
   its reverse, so that every value of the allowed coset is reached. At a
   junction both pieces span the same Lagrangian, so a constant change of
   frame on the later piece makes the frame continuous, and a
-  reparametrization that is flat at the junctions makes it smooth.
+  reparametrization that is flat at the junctions makes it smooth. The
+  file imports `Analysis/SpecialFunctions/SmoothTransition.lean` (*Smooth
+  families*) for `Real.smoothTransition.deriv_pos`, which that
+  reparametrization uses.
 - **Milestone theorem** `pathMaslovIndex_eq_crossing_sum_and_properties`, in
   `SymplecticGeometry` like the other three milestone theorems: one
   conjunction of `ℒ.eventually_not_crossing_of_regular`,

@@ -12,6 +12,7 @@ public import Mathlib.Analysis.Matrix.Normed
 public import SymplecticGeometry.Analysis.Matrix.UnitaryGroup.Basic
 public import SymplecticGeometry.Data.Matrix.Basis
 public import SymplecticGeometry.LinearAlgebra.Matrix.Realify
+import TauCeti.Analysis.Matrix.ContDiff
 
 /-!
 # Regular pieces of paths of Lagrangian subspaces
@@ -150,6 +151,13 @@ theorem hasDerivAt_rotationFrame_comp (Z : Matrix (ι ⊕ ι) ι ℝ) {f : ℝ �
     rw [Matrix.smul_apply, smul_eq_mul, mul_comm]
     exact h
 
+open scoped ContDiff Matrix.Norms.Elementwise in
+/-- The frame of a rotation is smooth in the angle, for the entrywise norm on matrices. -/
+theorem contDiff_rotationFrame (Z : Matrix (ι ⊕ ι) ι ℝ) : ContDiff ℝ ∞ (rotationFrame Z) := by
+  rw [show rotationFrame Z = _ from funext (rotationFrame_def Z)]
+  exact ((Real.contDiff_cos.smul contDiff_const).add
+    (Real.contDiff_sin.smul contDiff_const)).matrix_mul contDiff_const
+
 /-! ### Frames of coordinate rotations -/
 
 /-- The frame `fromRows (-sin θ Eᵢᵢ) (1 + (cos θ - 1) Eᵢᵢ)` of `coordinateRotate i θ {x = 0}`
@@ -180,6 +188,17 @@ theorem hasDerivAt_coordinateRotationFrame_comp [Finite ι] (i : ι) {f : ℝ �
     simpa [coordinateRotationFrame_def, mul_comm f'] using (hf.cos.sub_const 1).const_add 1
   · simpa [coordinateRotationFrame_def, single_apply, h] using
       hasDerivAt_const s ((1 : Matrix ι ι ℝ) p q)
+
+omit [Fintype ι] in
+open scoped ContDiff Matrix.Norms.Elementwise in
+/-- The frame of a coordinate rotation is smooth in the angle, for the entrywise norm on
+matrices. -/
+theorem contDiff_coordinateRotationFrame [Fintype ι] (i : ι) :
+    ContDiff ℝ ∞ (coordinateRotationFrame (ι := ι) i) := by
+  refine contDiff_pi' fun p ↦ contDiff_pi' fun q ↦ ?_
+  rcases p with p | p <;>
+    simp only [coordinateRotationFrame_def, fromRows_apply_inl, fromRows_apply_inr,
+      Matrix.neg_apply, Matrix.add_apply, Matrix.single_apply] <;> split_ifs <;> fun_prop
 
 /-- The crossing form of `coordinateRotationFrame i θ` with derivative
 `c • fromRows (-cos θ Eᵢᵢ) (-sin θ Eᵢᵢ)`, relative to any subspace, is `u ↦ c uᵢ²`. -/

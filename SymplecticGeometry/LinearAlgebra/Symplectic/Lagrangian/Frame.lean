@@ -334,6 +334,30 @@ theorem LagrangianGrassmannian.injective_toEuclideanLin_of_range_eq
   rw [hZ, finrank_eq_card, finrank_euclideanSpace] at h
   exact LinearMap.ker_eq_bot.1 (Submodule.finrank_eq_zero.1 (by omega))
 
+/-- Two real frames of one Lagrangian subspace differ by an invertible change of frame: if the
+columns of `Z₁` and of `Z₂` both span `Λ`, then `Z₂ * g = Z₁` for some `g : GL ι ℝ`. -/
+theorem LagrangianGrassmannian.exists_mul_eq_of_range_eq
+    {Λ : LagrangianGrassmannian (stdForm ι)} {Z₁ Z₂ : Matrix (ι ⊕ ι) ι ℝ}
+    (h₁ : LinearMap.range (toEuclideanLin Z₁) = Λ) (h₂ : LinearMap.range (toEuclideanLin Z₂) = Λ) :
+    ∃ g : GL ι ℝ, Z₂ * (g : Matrix ι ι ℝ) = Z₁ := by
+  obtain ⟨L, hL⟩ := (toEuclideanLin Z₂).exists_leftInverse_of_injective
+    (LinearMap.ker_eq_bot.2 (injective_toEuclideanLin_of_range_eq h₂))
+  set g : Matrix ι ι ℝ := toEuclideanLin.symm (L ∘ₗ toEuclideanLin Z₁)
+  have hg : Z₂ * g = Z₁ := by
+    refine toEuclideanLin.injective (LinearMap.ext fun u ↦ ?_)
+    obtain ⟨v, hv⟩ : toEuclideanLin Z₁ u ∈ LinearMap.range (toEuclideanLin Z₂) := by
+      rw [h₂, ← h₁]; exact ⟨u, rfl⟩
+    rw [toLpLin_mul_same, LinearMap.comp_apply, LinearEquiv.apply_symm_apply,
+      LinearMap.comp_apply, ← hv, ← LinearMap.comp_apply L, hL, LinearMap.id_apply]
+  clear_value g
+  have hinj : Function.Injective g.mulVec := fun a b hab ↦ by
+    have h : toEuclideanLin Z₁ (WithLp.toLp 2 a) = toEuclideanLin Z₁ (WithLp.toLp 2 b) := by
+      rw [← hg, toLpLin_mul_same, LinearMap.comp_apply, LinearMap.comp_apply]
+      congr 1
+      simp [toLpLin_apply, hab]
+    simpa using injective_toEuclideanLin_of_range_eq h₁ h
+  exact ⟨(mulVec_injective_iff_isUnit.1 hinj).unit, hg⟩
+
 /-- The `x`-coordinates of `fromRows X Y` applied to `u` are `X u`. -/
 @[simp]
 theorem StdSpace.x_toEuclideanLin_fromRows (X Y : Matrix ι ι ℝ) (u : EuclideanSpace ℝ ι) :
