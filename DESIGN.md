@@ -1113,8 +1113,9 @@ it into issues; the overview fixes its folders and its dependencies.
     `Fiber ℂ F V ℂ` that *First Chern number* asks for, whose trivializations
     are those of `instPrincipalBundleFiber` followed by that isomorphism.
     All of this is topological: the smooth side (smoothness of the action
-    and of the coordinate changes, the diffeomorphism onto the submanifold)
-    is *First Chern number*'s prerequisite 3.
+    and of the coordinate changes, the diffeomorphism onto the submanifold,
+    the submersion of the projection) is *First Chern number*'s
+    prerequisite 3.
     The isomorphism of `unitary (𝕜 →L[𝕜] 𝕜)` with `unitary 𝕜` involves no
     bundle and holds for every `RCLike 𝕜`, so it has a file of its own,
     `Analysis/CStarAlgebra/Unitary/ContinuousLinearMap.lean`. As a group
