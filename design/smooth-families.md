@@ -222,7 +222,9 @@ $\sum_ka_k(-2^k)^n=1$ for every $n\ge0$ and $\sum_k|a_k|2^{kn}<\infty$ for every
 $n$. Seeley takes the limit of the Lagrange weights at the nodes $-2^k$,
 $a_k=\prod_{j\ne k}(1+2^j)/(2^j-2^k)$, and bounds it.
 
-- `SymplecticGeometry.seeleyCoeff : ℕ → ℝ`, with `seeleyCoeff_def`.
+- `SymplecticGeometry.seeleyCoeff : ℕ → ℝ`, with `seeleyCoeff_def` and
+  `hasProd_seeleyCoeff (k : ℕ) : HasProd (fun j : ({k}ᶜ : Set ℕ) ↦
+  (1 + 2 ^ (j : ℕ)) / (2 ^ (j : ℕ) - 2 ^ k)) (seeleyCoeff k)`.
 - `summable_seeleyCoeff_mul_pow (n : ℕ) :
   Summable fun k ↦ |seeleyCoeff k| * 2 ^ (k * n)`.
 - `tsum_seeleyCoeff_mul_neg_two_pow (n : ℕ) :

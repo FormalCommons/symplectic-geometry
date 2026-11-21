@@ -7,7 +7,6 @@ module
 
 public import Mathlib.Analysis.SpecialFunctions.Log.Summable
 public import Mathlib.Analysis.Normed.Group.Tannery
-public import Mathlib.Analysis.SpecificLimits.Normed
 public import Mathlib.LinearAlgebra.Lagrange
 
 /-!
@@ -32,6 +31,7 @@ products. They tend to `aₖ` as `N → ∞`, and are bounded uniformly in `N` b
 
 ## Main results
 
+* `SymplecticGeometry.hasProd_seeleyCoeff`: the product defining `aₖ` converges to `aₖ`.
 * `SymplecticGeometry.summable_seeleyCoeff_mul_pow`: `∑ₖ |aₖ| 2 ^ (k n)` converges.
 * `SymplecticGeometry.tsum_seeleyCoeff_mul_neg_two_pow`: `∑ₖ aₖ (-2 ^ k) ^ n = 1`.
 
@@ -61,10 +61,10 @@ noncomputable def seeleyCoeff (k : ℕ) : ℝ :=
 theorem seeleyCoeff_def (k : ℕ) :
     seeleyCoeff k = ∏' j : ({k}ᶜ : Set ℕ), (1 + 2 ^ (j : ℕ)) / (2 ^ (j : ℕ) - 2 ^ k) := (rfl)
 
-private theorem seeleyCoeff_eq_tprod (k : ℕ) : seeleyCoeff k = ∏' j, seeleyFactor k j := by
-  rw [seeleyCoeff_def,
-    _root_.tprod_subtype ({k}ᶜ : Set ℕ) fun j : ℕ ↦ (1 + 2 ^ j : ℝ) / (2 ^ j - 2 ^ k)]
-  congr 1; ext j
+private theorem mulIndicator_eq_seeleyFactor (k : ℕ) :
+    Set.mulIndicator ({k}ᶜ : Set ℕ) (fun j : ℕ ↦ (1 + 2 ^ j : ℝ) / (2 ^ j - 2 ^ k)) =
+      seeleyFactor k := by
+  ext j
   by_cases h : j = k <;> simp [seeleyFactor, h, Set.mulIndicator]
 
 private theorem abs_seeleyFactor_of_lt {k j : ℕ} (h : j < k) :
@@ -127,10 +127,23 @@ private theorem multipliable_seeleyFactor (k : ℕ) : Multipliable (seeleyFactor
     · rw [add_comm]; linarith [(seeleyFactor_add_bounds k i).2]
   simpa using Real.multipliable_one_add_of_summable h
 
+/-- Seeley's product converges: `seeleyCoeff k` is the value of the infinite product
+`∏_{j ≠ k} (1 + 2 ^ j) / (2 ^ j - 2 ^ k)`. -/
+theorem hasProd_seeleyCoeff (k : ℕ) :
+    HasProd (fun j : ({k}ᶜ : Set ℕ) ↦ (1 + 2 ^ (j : ℕ)) / (2 ^ (j : ℕ) - 2 ^ k))
+      (seeleyCoeff k) := by
+  rw [seeleyCoeff_def]
+  refine Multipliable.hasProd <| (multipliable_subtype_iff_mulIndicator (s := {k}ᶜ)
+    (f := fun j : ℕ ↦ (1 + 2 ^ j : ℝ) / (2 ^ j - 2 ^ k))).mpr ?_
+  rw [mulIndicator_eq_seeleyFactor]
+  exact multipliable_seeleyFactor k
+
 private theorem tendsto_prod_seeleyFactor (k : ℕ) :
     Tendsto (fun N ↦ ∏ j ∈ range N, seeleyFactor k j) atTop (𝓝 (seeleyCoeff k)) := by
-  rw [seeleyCoeff_eq_tprod]
-  exact (multipliable_seeleyFactor k).hasProd.tendsto_prod_nat
+  have h := (hasProd_subtype_iff_mulIndicator (s := {k}ᶜ)
+    (f := fun j : ℕ ↦ (1 + 2 ^ j : ℝ) / (2 ^ j - 2 ^ k))).mp (hasProd_seeleyCoeff k)
+  rw [mulIndicator_eq_seeleyFactor] at h
+  exact h.tendsto_prod_nat
 
 /-- The moment identities for the partial products of length `N > n`: they are the values at `1`
 of the Lagrange basis of the nodes `-2 ^ k`, `k < N`. -/
