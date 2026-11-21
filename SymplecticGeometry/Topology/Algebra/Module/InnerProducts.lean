@@ -9,6 +9,7 @@ public import Mathlib.Analysis.Convex.Contractible
 public import Mathlib.Analysis.InnerProductSpace.PiL2
 public import TauCeti.Analysis.InnerProductSpace.Positive.MetricChange.Basic
 public import TauCeti.Geometry.Symplectic.AlmostComplex
+public import TauCeti.Geometry.Symplectic.Transport
 public import TauCeti.Topology.Algebra.Module.BilinearForm
 
 /-!
@@ -136,20 +137,29 @@ theorem transport_refl : transport (ContinuousLinearEquiv.refl ℝ V) = Homeomor
   simp
 
 /-- An inner product separates points through its first argument. -/
-theorem eq_of_forall_apply_eq (g : innerProducts V) {x y : V}
+theorem ext_apply_right (g : innerProducts V) {x y : V}
     (h : ∀ v, (g : V →L[ℝ] V →L[ℝ] ℝ) x v = (g : V →L[ℝ] V →L[ℝ] ℝ) y v) : x = y := by
   by_contra hxy
   have hpos := g.property.2 (x - y) (sub_ne_zero.2 hxy)
   simp [h] at hpos
+
+/-- An almost complex structure `J` preserves `g` exactly when its transport along `e` preserves
+the transport of `g`. -/
+theorem forall_transport_apply_transport_iff (e : V ≃L[ℝ] W) (g : innerProducts V)
+    (J : TauCeti.AlmostComplexStructure V) :
+    (∀ u v, (transport e g : W →L[ℝ] W →L[ℝ] ℝ)
+        (J.transport e.toLinearEquiv u) (J.transport e.toLinearEquiv v) =
+        (transport e g : W →L[ℝ] W →L[ℝ] ℝ) u v) ↔
+      ∀ u v, (g : V →L[ℝ] V →L[ℝ] ℝ) (J u) (J v) = (g : V →L[ℝ] V →L[ℝ] ℝ) u v :=
+  ⟨fun h u v ↦ by simpa using h (e u) (e v), fun h u v ↦ by simpa using h (e.symm u) (e.symm v)⟩
 
 end innerProducts
 
 variable [FiniteDimensional ℝ V]
 
 /-- Every inner product on a finite-dimensional real normed space `V` is the pull-back of the
-standard inner product of a Euclidean space along a continuous linear isomorphism. The
-isomorphism is any linear isomorphism onto the Euclidean space followed by the inverse of the
-metric change transport (`ContinuousLinearMap.metricChangeEquiv`) of the pushed-forward form. -/
+standard inner product of a Euclidean space of the same dimension along some continuous linear
+isomorphism. -/
 theorem innerProducts.exists_transport_eq_innerSL (g : innerProducts V) :
     ∃ e : V ≃L[ℝ] EuclideanSpace ℝ (Fin (finrank ℝ V)),
       transport e g = ⟨innerSL ℝ, innerSL_mem_innerProducts⟩ := by

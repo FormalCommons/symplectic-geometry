@@ -471,8 +471,10 @@ This is $\mathrm{Met}(V)$, in `SymplecticGeometry`.
   `metricChangeEquiv` of the pushed-forward form, so no orthonormal basis is
   built. `PolarComplexStructure/Basic.lean` uses it to reduce statements about
   `g` to the ambient case.
-- `innerProducts.eq_of_forall_apply_eq`: an inner product separates points
+- `innerProducts.ext_apply_right`: an inner product separates points
   through its first argument.
+- `innerProducts.forall_transport_apply_transport_iff`: `J` preserves `g`
+  exactly when `J.transport e` preserves `transport e g`.
 - `TauCeti.SymplecticForm.Compatible.associatedBilinForm_mem_innerProducts (h :
   ω.Compatible J) : (ω.associatedBilinForm J).toContinuousBilinearMap ∈
   innerProducts V`.
@@ -519,7 +521,11 @@ the file list of `DESIGN.md`*).
   (metricPolarComplexStructure g ω v) = g u v` (orthogonality for `g`; the
   name leads with the head symbol `g` of the left-hand side, as Tau Ceti's
   `inner_polarComplexStructure_apply_apply` leads with `inner`). These
-  are the first bullet of Proposition 2.5.6.
+  are the first bullet of Proposition 2.5.6. With them,
+  `apply_metricPolarComplexStructure_left : (g : V →L[ℝ] V →L[ℝ] ℝ)
+  (metricPolarComplexStructure g ω u) v = -g u (metricPolarComplexStructure g ω v)`,
+  skew-adjointness for `g`, from Tau Ceti's
+  `AlmostComplexStructure.bilinForm_apply_left_eq_neg_apply_right`.
 - `metricPolarComplexStructure_eq_inverse_mul {A Q : V →L[ℝ] V}
   (hA : ∀ u v, (g : V →L[ℝ] V →L[ℝ] ℝ) (A u) v = ω u v)
   (hQs : ∀ u v, (g : V →L[ℝ] V →L[ℝ] ℝ) (Q u) v = g u (Q v))

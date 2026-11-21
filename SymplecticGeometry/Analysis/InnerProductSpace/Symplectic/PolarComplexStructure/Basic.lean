@@ -63,37 +63,25 @@ theorem polarComplexStructure_eq_iff :
   refine ⟨?_, fun ⟨hJ, hc⟩ ↦ ?_⟩
   · rintro rfl
     exact ⟨ω.inner_polarComplexStructure_apply_apply, ω.compatible_polarComplexStructure⟩
-  set A := ω.innerOperator with hA
-  -- `J` is skew-adjoint and commutes with the operator `A` of `ω`.
-  have hskew : ∀ u v, ⟪J u, v⟫ = -⟪u, J v⟫ := fun u v ↦ by
-    rw [← hJ u (J v)]
-    simp
-  have hcomm : ∀ u, A (J u) = J (A u) := fun u ↦ ext_inner_right ℝ fun v ↦ by
-    have := hc.invariant.apply_add_apply_eq_zero u v
-    rw [hA, inner_innerOperator_apply, hskew, inner_innerOperator_apply]
-    beta_reduce at this ⊢
-    linarith
-  -- So `Q = -J A` is a positive square root of `A† A = -A²`, hence the modulus of `A`.
-  have hQ : ∀ u v, ⟪-J (A u), v⟫ = ω u (J v) := fun u v ↦ by
-    rw [inner_neg_left, hskew, neg_neg, hA, inner_innerOperator_apply]
-  have hmod : -(J.toLinearMap ∘ₗ A) = A.operatorAbs := by
-    refine LinearMap.IsPositive.eq_operatorAbs ⟨fun u v ↦ ?_, fun u ↦ ?_⟩ ?_
+  -- `Q = -J A` is positive, and `A = J Q`, so `J` is the isometric polar factor of `A`.
+  have hskew : ∀ u v, ⟪J u, v⟫ = -⟪u, J v⟫ :=
+    J.bilinForm_apply_left_eq_neg_apply_right (g := innerₗ V) hJ
+  have hQ : ∀ u v, ⟪-J (ω.innerOperator u), v⟫ = ω u (J v) := fun u v ↦ by
+    rw [inner_neg_left, hskew, neg_neg, inner_innerOperator_apply]
+  have hpos : (-(J.toLinearMap ∘ₗ ω.innerOperator)).IsPositive := by
+    refine ⟨fun u v ↦ ?_, fun u ↦ ?_⟩
     · simp only [LinearMap.neg_apply, LinearMap.comp_apply]
       rw [hQ, real_inner_comm, hQ, hc.associatedBilinForm_apply_swap]
     · simp only [LinearMap.neg_apply, LinearMap.comp_apply, RCLike.re_to_real, hQ]
       rcases eq_or_ne u 0 with rfl | hu
       · simp
       · exact (hc.tames u hu).le
-    · rw [hA, adjoint_innerOperator, ← hA]
-      ext u
-      simp [hcomm]
+  have h := LinearMap.eq_polarIsometry_of_comp_eq ω.innerOperator_injective hpos
+    (J.toLinearMap.isometryOfInner hJ) (by ext u; simp)
   refine AlmostComplexStructure.toLinearMap_injective ?_
-  rw [polarComplexStructure_toLinearMap, ← hA]
-  refine ((LinearMap.eq_polarFactor_iff A).2 ⟨?_, fun x hx ↦ ?_⟩).symm
-  · ext u
-    simp [← hmod]
-  · rw [LinearMap.mem_ker, hA, ← map_zero ω.innerOperator] at hx
-    rw [ω.innerOperator_injective hx, map_zero]
+  rw [polarComplexStructure_toLinearMap, ← LinearMap.polarIsometry_toLinearMap _
+    ω.innerOperator_injective, ← h]
+  rfl
 
 end TauCeti.SymplecticForm
 
@@ -104,21 +92,6 @@ open TauCeti Module
 variable {V W : Type*} [NormedAddCommGroup V] [NormedSpace ℝ V] [FiniteDimensional ℝ V]
   [NormedAddCommGroup W] [NormedSpace ℝ W] [FiniteDimensional ℝ W]
   {g : innerProducts V} {ω : SymplecticForm V} {J : AlmostComplexStructure V}
-
-omit [FiniteDimensional ℝ V] [FiniteDimensional ℝ W] in
-/-- The defining properties of `J_{g,ω}` hold for `J` exactly when they hold for the structures
-transported along a linear isomorphism. -/
-private theorem forall_apply_apply_and_compatible_transport_iff (e : V ≃L[ℝ] W)
-    (g : innerProducts V) (ω : SymplecticForm V) (J : AlmostComplexStructure V) :
-    ((∀ u v, (innerProducts.transport e g : W →L[ℝ] W →L[ℝ] ℝ)
-        (J.transport e.toLinearEquiv u) (J.transport e.toLinearEquiv v) =
-        (innerProducts.transport e g : W →L[ℝ] W →L[ℝ] ℝ) u v) ∧
-      (ω.transport e.toLinearEquiv).Compatible (J.transport e.toLinearEquiv)) ↔
-      (∀ u v, (g : V →L[ℝ] V →L[ℝ] ℝ) (J u) (J v) = (g : V →L[ℝ] V →L[ℝ] ℝ) u v) ∧
-        ω.Compatible J := by
-  refine and_congr ⟨fun h u v ↦ ?_, fun h u v ↦ ?_⟩ (SymplecticForm.compatible_transport_iff ..)
-  · simpa using h (e u) (e v)
-  · simpa using h (e.symm u) (e.symm v)
 
 /-- There is exactly one almost complex structure that preserves the inner product `g` and is
 compatible with the symplectic form `ω`. -/
@@ -133,7 +106,8 @@ theorem existsUnique_metricPolarComplexStructure (g : innerProducts V) (ω : Sym
         ω.Compatible J) ↔
         (ω.transport e.toLinearEquiv).polarComplexStructure = J.transport e.toLinearEquiv :=
       fun J ↦ by
-    rw [← forall_apply_apply_and_compatible_transport_iff e, he,
+    rw [← and_congr (innerProducts.forall_transport_apply_transport_iff e g J)
+      (ω.compatible_transport_iff J e.toLinearEquiv), he,
       SymplecticForm.polarComplexStructure_eq_iff]
     refine and_congr (forall₂_congr fun u v ↦ ?_) Iff.rfl
     rw [innerSL_apply_apply, innerSL_apply_apply]
@@ -178,6 +152,13 @@ theorem apply_metricPolarComplexStructure_apply (u v : V) :
       (metricPolarComplexStructure g ω v) = (g : V →L[ℝ] V →L[ℝ] ℝ) u v :=
   (metricPolarComplexStructure_eq_iff.1 rfl).1 u v
 
+/-- `J_{g,ω}` is skew-adjoint for `g`. -/
+theorem apply_metricPolarComplexStructure_left (u v : V) :
+    (g : V →L[ℝ] V →L[ℝ] ℝ) (metricPolarComplexStructure g ω u) v =
+      -(g : V →L[ℝ] V →L[ℝ] ℝ) u (metricPolarComplexStructure g ω v) :=
+  (metricPolarComplexStructure g ω).bilinForm_apply_left_eq_neg_apply_right
+    (g := (g : V →L[ℝ] V →L[ℝ] ℝ).toBilinForm) (apply_metricPolarComplexStructure_apply g ω) u v
+
 /-- **Naturality of `J_{g,ω}`.** Pushing `g` and `ω` forward along a linear isomorphism `e` pushes
 `J_{g,ω}` forward along `e`. In particular `J_{g,ω}` is equivariant under the general linear
 group. -/
@@ -185,7 +166,8 @@ theorem metricPolarComplexStructure_transport (e : V ≃L[ℝ] W) :
     metricPolarComplexStructure (innerProducts.transport e g) (ω.transport e.toLinearEquiv) =
       (metricPolarComplexStructure g ω).transport e.toLinearEquiv :=
   metricPolarComplexStructure_eq_iff.2 <|
-    (forall_apply_apply_and_compatible_transport_iff e g ω _).2
+    (and_congr (innerProducts.forall_transport_apply_transport_iff e g _)
+      (ω.compatible_transport_iff _ e.toLinearEquiv)).2
       (metricPolarComplexStructure_eq_iff.1 rfl)
 
 /-- For the inner product of an inner product space, `J_{g,ω}` is Tau Ceti's polar complex
@@ -218,15 +200,11 @@ theorem commute_metricPolarComplexStructure {A : V →L[ℝ] V}
     (hA : ∀ u v, (g : V →L[ℝ] V →L[ℝ] ℝ) (A u) v = ω u v) :
     Commute (LinearMap.toContinuousLinearMap (metricPolarComplexStructure g ω).toLinearMap) A := by
   set J := metricPolarComplexStructure g ω
-  refine ContinuousLinearMap.ext fun u ↦ innerProducts.eq_of_forall_apply_eq g fun v ↦ ?_
+  refine ContinuousLinearMap.ext fun u ↦ innerProducts.ext_apply_right g fun v ↦ ?_
   -- `J` is skew for `g`, and skew for `ω` since `ω` is `J`-invariant.
-  have hskew : ∀ x y, (g : V →L[ℝ] V →L[ℝ] ℝ) (J x) y = -(g : V →L[ℝ] V →L[ℝ] ℝ) x (J y) :=
-    fun x y ↦ by
-      rw [← apply_metricPolarComplexStructure_apply g ω x (J y)]
-      simp [J]
   have hω := (compatible_metricPolarComplexStructure g ω).invariant.apply_add_apply_eq_zero u v
   simp only [mul_apply_eq_comp, LinearMap.coe_toContinuousLinearMap']
-  rw [hskew, hA, hA]
+  rw [apply_metricPolarComplexStructure_left, hA, hA]
   beta_reduce at hω ⊢
   linarith
 
