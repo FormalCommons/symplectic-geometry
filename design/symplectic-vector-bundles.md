@@ -32,7 +32,8 @@ variable {EB HB M : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB]
   [TopologicalSpace M] [ChartedSpace HB M] [IsManifold I ∞ M]
   {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F]
   {V : M → Type*} [∀ x, AddCommGroup (V x)] [∀ x, Module ℝ (V x)]
-  [∀ x, TopologicalSpace (V x)] [TopologicalSpace (TotalSpace F V)]
+  [∀ x, TopologicalSpace (V x)] [∀ x, IsTopologicalAddGroup (V x)]
+  [∀ x, ContinuousSMul ℝ (V x)] [TopologicalSpace (TotalSpace F V)]
   [FiberBundle F V] [VectorBundle ℝ F V] [ContMDiffVectorBundle ∞ F V I]
 ```
 
@@ -79,9 +80,12 @@ variable {EB HB M : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB]
     `polarComplexStructure_tangentEquiv`, `IsNondegenerate.exists_compatible`,
     `exists_homotopyEquiv_polarComplexStructure`,
     `polarComplexStructure_homotopic`, both milestones, and the local
-    Darboux frames of issue 9); and each use of Tau Ceti's
+    Darboux frames of issue 9); each use of Tau Ceti's
     `Tames.isUnit_one_sub_mul` (`Geometry/Symplectic/Cayley/Basic.lean`), in
-    the symplectic-to-complex direction of the classification;
+    the symplectic-to-complex direction of the classification; and the set
+    `O` of the fixed-form contraction, whose openness and whose membership
+    argument apply Tau Ceti's normed lemmas in `F →L[ℝ] F` (see
+    *Contractibility and the homotopy equivalence*);
   - finite dimension of `EB` and `F`: the existence of bundle metrics, with
     everything that rests on it.
 - **No rank hypothesis.** The book takes rank $2n$. No statement here needs
@@ -466,11 +470,45 @@ $[0,1]$ is never fed to the lemma with `P = ℝ` directly.
   $|b|$ in general, which is why the coefficient goes through
   `smoothTransition`. The open set `O` of the lemma is the set of points
   $(x,B)$ of the endomorphism bundle where `1 - J₀ x * B` is a unit and
-  `1 - b • cayleyFormula (J₀ x) B` is a unit for every $b\in[0,1]$; it is
-  open because units are open and $[0,1]$ is compact. Tau Ceti's
-  `Tames.isUnit_one_sub_mul_of_toLinearMap` and
-  `Compatible.isUnit_one_sub_smul_cayleyFormula` show that the values of
-  every tame `J` lie in it. The hypothesis `hΦ` of `continuous_fiberwiseMap`
+  `1 - b • cayleyFormula (J₀ x) B` is a unit for every $b\in[0,1]$, units
+  taken in the ring `V x →L[ℝ] V x` (this ring structure is why the fibres
+  are topological modules in the variable block). The fibres carry no norm
+  and need not be finite-dimensional, so Tau Ceti's normed lemmas are never
+  applied to `V x` itself: both facts about `O` below are read in a
+  trivialization, under `[FiniteDimensional ℝ F]`. For a trivialization `e`
+  with `hx : x ∈ e.baseSet`, write
+  `φ := (e.continuousLinearEquivAt ℝ x hx).conjContinuousAlgEquiv`, an
+  algebra isomorphism `(V x →L[ℝ] V x) ≃A[ℝ] (F →L[ℝ] F)`. It sends
+  `1 - A * B` to `1 - φ A * φ B` and, by Tau Ceti's `map_cayleyFormula`,
+  `1 - b • cayleyFormula A B` to `1 - b • cayleyFormula (φ A) (φ B)`; as an
+  isomorphism it preserves and reflects units. So `(x, B) ∈ O` if and only
+  if `(φ (J₀ x), φ B)` lies in the same set formed in `F →L[ℝ] F`, whatever
+  `e` is chosen.
+  - *Openness.* Over `e.baseSet`, the trivialization of the endomorphism
+    bundle reads `(x, B)` as `(x, φ B)`
+    (`ContinuousLinearMap.inCoordinates_eq_conjContinuousAlgEquiv`), and
+    `x ↦ φ (J₀ x)` is continuous there, so `O` is locally the preimage of
+    the set of pairs `(A, B)` of `F →L[ℝ] F` for which both elements are
+    units for all $b\in[0,1]$. That set is open: `F →L[ℝ] F` is a complete
+    normed algebra, since `F` is finite-dimensional, so its units are open,
+    and $[0,1]$ is compact.
+  - *Membership.* Let `J` be tame for `ω`. Transport `hω.symplecticFormAt x`,
+    `almostComplexStructureAt J₀ x` and `almostComplexStructureAt J x` to
+    `F` along `(e.continuousLinearEquivAt ℝ x hx).toLinearEquiv` (Tau Ceti's
+    `SymplecticForm.transport` and `AlmostComplexStructure.transport`). The
+    transported `J₀` is compatible and the transported `J` tame
+    (`Compatible.transport`, `Tames.transport`,
+    `Geometry/Symplectic/SymplecticTransport.lean`), and their linear maps
+    are those of `φ (J₀ x)` and `φ (J x)`
+    (`conjContinuousAlgEquiv_apply_apply`,
+    `AlmostComplexStructure.transport_apply` and
+    `almostComplexStructureAt_apply`). On the normed finite-dimensional
+    space `F`, Tau Ceti's `Tames.isUnit_one_sub_mul_of_toLinearMap` and
+    `Compatible.isUnit_one_sub_smul_cayleyFormula` (for $|b|\le1$) give the
+    two units in `F →L[ℝ] F`, and `φ.symm` carries them back to
+    `V x →L[ℝ] V x`.
+
+  The hypothesis `hΦ` of `continuous_fiberwiseMap`
   is checked in trivializations, and for $V = TM$ with $n = \infty$ Tau Ceti
   has done this step: `ContMDiffAt.cayleyPathFormula_hom_bundle`
   (`.../AlmostComplex/CayleyPath.lean`) shows that

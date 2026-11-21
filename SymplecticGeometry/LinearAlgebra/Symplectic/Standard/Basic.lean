@@ -41,7 +41,9 @@ The main facts fixing the conventions are `stdForm_apply`
 Cauchy–Schwarz inequality `abs_stdForm_apply_le` (`|ω₀(z, w)| ≤ ‖z‖ ‖w‖`).
 Finally, `isSymplectomorphism_sumEquivProd` and `stdComplexStructure_transport_sumEquivProd`
 compare the model with Tau Ceti's product model `TauCeti.stdSymplecticForm` and
-`TauCeti.AlmostComplexStructure.product` on `EuclideanSpace ℝ ι × EuclideanSpace ℝ ι`.
+`TauCeti.AlmostComplexStructure.product` on `EuclideanSpace ℝ ι × EuclideanSpace ℝ ι`, and
+`isSymplectomorphism_piLpCongrLeft_sumCongr` says that relabelling the coordinate pairs along
+`σ : ι ≃ κ` is symplectic.
 
 The sign conventions are those of McDuff–Salamon, Section 2.1.
 
@@ -275,6 +277,27 @@ theorem stdForm_compatible : (stdForm ι).Compatible (stdComplexStructure ι) :=
 /-- Cauchy–Schwarz for `ω₀`: `|ω₀(z, w)| ≤ ‖z‖ ‖w‖`. -/
 theorem abs_stdForm_apply_le (z w : StdSpace ι) : |stdForm ι z w| ≤ ‖z‖ * ‖w‖ :=
   SymplecticForm.abs_apply_le_norm_mul_norm stdForm_apply_stdComplexStructure z w
+
+/-! ### Relabelling the coordinate pairs -/
+
+section Reindex
+
+variable {κ : Type*} [Fintype κ]
+
+/-- The reindexing `σ : ι ≃ κ` of the coordinate pairs `(xᵢ, yᵢ)`, which sends the coordinates
+of index `i` to those of index `σ i`, is a symplectomorphism from `ω₀` on `StdSpace ι` to `ω₀`
+on `StdSpace κ`. -/
+theorem isSymplectomorphism_piLpCongrLeft_sumCongr (σ : ι ≃ κ) :
+    (stdForm ι).IsSymplectomorphism (stdForm κ)
+      (LinearIsometryEquiv.piLpCongrLeft 2 ℝ ℝ (σ.sumCongr σ)).toLinearEquiv := by
+  rw [SymplecticForm.isSymplectomorphism_iff]
+  intro z w
+  simp only [stdForm_apply, x_apply, y_apply, LinearIsometryEquiv.coe_toLinearEquiv,
+    LinearIsometryEquiv.piLpCongrLeft_apply, Equiv.piCongrLeft'_apply, Equiv.sumCongr_symm,
+    Equiv.sumCongr_apply, Sum.map_inl, Sum.map_inr]
+  exact Equiv.sum_comp σ.symm fun i ↦ z (Sum.inl i) * w (Sum.inr i) - z (Sum.inr i) * w (Sum.inl i)
+
+end Reindex
 
 /-! ### Comparison with the product model -/
 
