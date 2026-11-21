@@ -124,7 +124,7 @@ can join them.
 
 | File | Contents | Issue |
 |---|---|---|
-| `Geometry/Symplectic/Manifold/Family.lean` | openness of nondegeneracy for families and segments of two-forms | 1 |
+| `Geometry/Symplectic/Manifold/Family.lean` | openness of nondegeneracy for families and segments of two-forms; the velocity of a reparametrized segment of forms | 1 |
 | `Geometry/Symplectic/Manifold/Flat.lean` | the inverse flat map of a covector field with zero first jet | 1 |
 | `Geometry/Symplectic/Moser/Relative.lean` | the relative Moser theorem with prescribed first derivative, the milestone | 2 |
 | `Geometry/Symplectic/Moser/Field.lean` | `moserField`, the cut-off Moser field of a segment of two-forms | 3 |
@@ -136,7 +136,8 @@ can join them.
 ### `Geometry/Symplectic/Manifold/Family.lean`
 
 The file has the name of Tau Ceti's file on smooth families of nondegenerate
-two-forms. It is in the namespace `TauCeti.SmoothTwoForm`.
+two-forms. It is in the namespace `TauCeti.SmoothTwoForm`, except for the
+velocity of segments, in `TauCeti.SmoothForm`.
 
 - `isOpen_setOf_isInvertible_flat_mpullback_prodMk`: for a smooth two-form
   `σ` on `N × M`, the set of `p : N × M` at which the slice `σ_{p.1}` has an
@@ -152,6 +153,10 @@ two-forms. It is in the namespace `TauCeti.SmoothTwoForm`.
   `SmoothForm.lineMapFamily σ₀ σ₁ contDiff_id` and then Mathlib's
   `generalized_tube_lemma` over `isCompact_Icc`, using
   `isInvertible_flat_iff` to pass between the flat map and nondegeneracy.
+- `SmoothForm.mpullback_prodMk_timeDeriv_lineMapFamily`: the slice at time
+  `t` of the time derivative of `SmoothForm.lineMapFamily α₀ α₁ hc` is
+  `deriv c t • (α₁ - α₀)`, with the `@[simp]` companion
+  `SmoothForm.coe_mpullback_prodMk_lineMapFamily` for the underlying rough forms.
 
 ### `Geometry/Symplectic/Manifold/Flat.lean`
 

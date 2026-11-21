@@ -52,13 +52,19 @@ The proof is Moser's argument along a flow that is only partially defined.
 The proof adapts Tau Ceti's
 `TauCeti.SmoothTwoForm.exists_diffeomorph_fix_embedding_eventually_mpullback_eq` and
 `TauCeti.SmoothTwoForm.exists_diffeomorph_opens_of_eq_along` from a compactly supported cut-off
-flow to the local flow, and restates two steps of Tau Ceti's file
-`TauCeti/Geometry/Symplectic/Manifold/RelativeMoser.lean`: the agreement of the segment with `σ₀`
-along `f(Q)` (its private `bilinFormAt_add_smul_sub_of_eq`) and the velocity of the reparametrized
-segment (in its private `moserRate_eq_zero`).
+flow to the local flow, and restates the agreement of the segment with `σ₀` along `f(Q)` from
+Tau Ceti's file `TauCeti/Geometry/Symplectic/Manifold/RelativeMoser.lean` (its private
+`bilinFormAt_add_smul_sub_of_eq`). Step 3 follows the construction of the Moser field in Tau
+Ceti's `TauCeti.SmoothTwoForm.mpullback_timeDependentFlowOf_eq` and
+`TauCeti.SmoothTwoForm.exists_isotopy_mpullback_eq_of_isCompact`. Step 4, and the reading of the
+time-one map in `M`, follow Tau Ceti's
+`TauCeti.SmoothForm.exists_partialDiffeomorph_mpullback_eq_smul_of_apply_eq`.
 
 ## Main results
 
+* `TauCeti.SmoothTwoForm.exists_partialDiffeomorph_mpullback_eq_of_mextDeriv_eq_sub`: Moser's
+  argument along the local flow, for a primitive `β` of `σ₁ - σ₀` on a manifold on which the
+  whole segment from `σ₀` to `σ₁` is nondegenerate.
 * `TauCeti.SmoothEmbedding.exists_diffeomorph_opens_of_eq_along`: the relative Moser theorem with
   prescribed first derivative, for an embedding with a source that need not be compact and an
   image that need not be closed.
@@ -137,18 +143,10 @@ private theorem exists_moserField {σ₀ σ₁ : SmoothTwoForm I M} (h₀ : σ�
   funext y
   have hvel : mpullback I (𝓘(ℝ, ℝ).prod I) (Prod.mk t)
       (mlieDerivForm (fun _ ↦ ((1 : ℝ), (0 : E))) σ.val) y = deriv c t • (σ₁ - σ₀).val y := by
-    have h := σ.hasDerivAt_mpullback_prodMk_timeDeriv t y
-    simp only [σ, SmoothForm.mpullback_prodMk_lineMapFamily, SmoothForm.coe_mpullback,
-      SmoothForm.coe_timeDeriv] at h
-    refine h.unique ?_
-    have hct : HasDerivAt c (deriv c t) t :=
-      ((Real.smoothTransition.contDiff (n := 1)).differentiable one_ne_zero t).hasDerivAt
-    -- The values of the slices are read in the model fibre `E [⋀^Fin 2]→L[ℝ] ℝ`.
-    have h2 : HasDerivAt (F := E [⋀^Fin 2]→L[ℝ] ℝ)
-        (fun u ↦ (σ₀.val y : E [⋀^Fin 2]→L[ℝ] ℝ) + c u • ((σ₁ - σ₀).val y : E [⋀^Fin 2]→L[ℝ] ℝ))
-        (deriv c t • ((σ₁ - σ₀).val y : E [⋀^Fin 2]→L[ℝ] ℝ)) t :=
-      (hct.smul_const _).const_add _
-    exact h2
+    have h := congrArg (fun α : SmoothTwoForm I M ↦ α.val y)
+      (SmoothForm.mpullback_prodMk_timeDeriv_lineMapFamily σ₀ σ₁ Real.smoothTransition.contDiff t)
+    simpa only [SmoothForm.coe_mpullback, SmoothForm.coe_timeDeriv, SetLike.val_smul,
+      Pi.smul_apply] using h
   have h := (hσ t).mlieDerivForm_interiorEquiv_symm
     (SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) α)
   have hd : mextDeriv (SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id)
@@ -162,7 +160,7 @@ and let every form `σ₀ + s (σ₁ - σ₀)`, `s ∈ [0, 1]`, be nondegenerate
 diffeomorphism `Φ` whose source contains and whose map fixes every point at which `β` vanishes,
 with identity differential at those points where `β` also has zero first jet, and with
 `(Φ^* σ₁)ₓ = (σ₀)ₓ` at every point `x` of its source. -/
-private theorem exists_partialDiffeomorph_mpullback_eq_of_mextDeriv_eq_sub
+theorem exists_partialDiffeomorph_mpullback_eq_of_mextDeriv_eq_sub
     {σ₀ σ₁ : SmoothTwoForm I M} (h₀ : σ₀.IsClosed) {β : SmoothForm I M ℝ 1}
     (hβ : mextDeriv β.val = (σ₁ - σ₀).val)
     (hnd : ∀ x, ∀ s ∈ Icc (0 : ℝ) 1, ((σ₀ + s • (σ₁ - σ₀)).bilinFormAt x).Nondegenerate) :
@@ -173,10 +171,6 @@ private theorem exists_partialDiffeomorph_mpullback_eq_of_mextDeriv_eq_sub
       ∀ x ∈ Φ.source, mpullback I I Φ σ₁.val x = σ₀.val x := by
   obtain ⟨X, hX, hX0, hXjet, hL⟩ := exists_moserField h₀ hβ hnd
   set σ := SmoothForm.lineMapFamily σ₀ σ₁ Real.smoothTransition.contDiff
-  have hσt (t : ℝ) : mpullback I (𝓘(ℝ, ℝ).prod I) (Prod.mk t) σ.val =
-      (σ₀ + Real.smoothTransition t • (σ₁ - σ₀)).val :=
-    (SmoothForm.coe_mpullback _ _ _).symm.trans
-      (congrArg Subtype.val (SmoothForm.mpullback_prodMk_lineMapFamily _ _ _ t))
   -- The time-one map of the Moser flow, defined where the trajectory reaches time one.
   let Φ := timeDependentFlowPartialDiffeomorph (n := ⊤) le_top hX 0 1
   have hΦ : ⇑Φ = timeDependentFlowOf X 0 1 :=
@@ -193,8 +187,9 @@ private theorem exists_partialDiffeomorph_mpullback_eq_of_mextDeriv_eq_sub
     have h := mpullback_timeDependentFlowOf_mpullback_prodMk_apply_eq_of_mem (hX.of_le (by simp))
       (σ.contMDiff.of_le (by simp)) hL
       ((mem_timeDependentFlowPartialDiffeomorph_source_iff le_top hX).1 hx)
-    rw [hσt, hσt, Real.smoothTransition.one, Real.smoothTransition.zero, one_smul, zero_smul,
-      add_zero, add_sub_cancel] at h
+    rw [SmoothForm.coe_mpullback_prodMk_lineMapFamily,
+      SmoothForm.coe_mpullback_prodMk_lineMapFamily, Real.smoothTransition.one,
+      Real.smoothTransition.zero, one_smul, zero_smul, add_zero, add_sub_cancel] at h
     rw [hΦ]
     exact h
 
@@ -299,18 +294,8 @@ theorem exists_diffeomorph_opens_of_eq_along (f : SmoothEmbedding J I ∞ Q M)
     · rw [Ψ.toDiffeomorphSourceTarget_apply_coe]
       exact (Φ.liftOpens_apply_coe hW hW _).trans (congrArg Subtype.val hfix)
     · -- The differential of `Φ` at `f q` is the identity, read in `M`, then on the opens.
-      have hΨ1 : mfderiv I I Ψ (f q) = ContinuousLinearMap.id ℝ (TangentSpace I (f q)) := by
-        ext v
-        have h := Manifold.tangentSpaceOpenEquiv_mfderiv_apply (I := I) (I' := I) (f := ⇑Φ)
-          (A := ⇑Ψ) (x := ⟨f q, hqW⟩) hΨΦ.symm v
-        rw [Manifold.tangentSpaceOpenEquiv_apply, hjet] at h
-        exact (congrArg (mfderiv I I Ψ (f q))
-          (Manifold.tangentSpaceOpenEquiv_apply (I := I) _ v)).symm.trans h.symm
-      ext v
-      have h := Manifold.tangentSpaceOpenEquiv_mfderiv_apply (I' := I) (f := ⇑φ) (A := ⇑Ψ)
-        (x := ⟨f q, hqΨ⟩) hφΨ v
-      rw [Manifold.tangentSpaceOpenEquiv_apply, Manifold.tangentSpaceOpenEquiv_apply, hΨ1] at h
-      exact h
+      exact (Manifold.mfderiv_eq_id_iff_of_comp_subtype_val hφΨ).2
+        ((Manifold.mfderiv_eq_id_iff_of_comp_subtype_val hΨΦ.symm).1 hjet)
   · -- At a point `z` of the source, `φ^* σ₁` is `Φ^* σ₁` at the point of `W` that `z` is.
     apply Subtype.ext
     funext z
