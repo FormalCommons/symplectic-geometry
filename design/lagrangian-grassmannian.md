@@ -479,6 +479,13 @@ Chart points and transverse pairs, as algebra: G7–G9.
   and lifted to `GLSymplectic ι ℝ` by
   `(TauCeti.GLSymplectic.mulEquivSymplecticGroup ι ℝ).symm`, fixes the
   horizontal subspace and carries the vertical one to `Λ'`.
+- Supporting statements: `ℒ.isCompl_smul_iff` (an element of
+  `GLSymplectic ι ℝ` preserves complementarity of Lagrangians, through
+  `Submodule.orderIsoMapComap`), which both transverse-pair results use; and,
+  in `LinearAlgebra/TotallyReal/Euclidean.lean`,
+  `Matrix.map_im_conjTranspose_mul_self_lagrangianChartFrame` (for symmetric
+  `S`, the imaginary part of `(S + i)ᴴ (S + i)` vanishes), the hypothesis of
+  `realOrthonormalize_mem_unitaryGroup` in `graphY_eq_unitaryFrame`.
 
 ### `LinearAlgebra/TotallyReal/Euclidean.lean`
 
