@@ -35,6 +35,7 @@ products. They tend to `aₖ` as `N → ∞`, and are bounded uniformly in `N` b
 * `SymplecticGeometry.summable_seeleyCoeff_mul_pow`: `∑ₖ |aₖ| 2 ^ (k n)` converges.
 * `SymplecticGeometry.tsum_seeleyCoeff_mul_neg_two_pow`: `∑ₖ aₖ (-2 ^ k) ^ n = 1`, with
   `SymplecticGeometry.hasSum_seeleyCoeff_mul_neg_two_pow` its form as a sum.
+* `SymplecticGeometry.hasSum_seeleyCoeff_smul`: `∑ₖ aₖ • x = x` in a module.
 
 ## References
 

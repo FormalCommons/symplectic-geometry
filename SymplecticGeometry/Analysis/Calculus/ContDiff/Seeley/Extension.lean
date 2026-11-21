@@ -30,7 +30,7 @@ Seeley's infinite sum in place of Hestenes' finite one: the Taylor series of the
 `aₖ (χ f) (timeScale (-2 ^ k) z)` on the lower half are bounded by `|aₖ| 2 ^ (k m)` times a local
 bound of the derivatives of `χ f`, so by `summable_seeleyCoeff_mul_pow` their sums converge locally
 uniformly (`HasFTaylorSeriesUpToOn.of_tendstoLocallyUniformlyOn_of_convex`); at `t = 0` the
-moment identities `tsum_seeleyCoeff_mul_neg_two_pow` and `map_timeScale_eq_sum_pow_card_smul`
+moment identities `hasSum_seeleyCoeff_mul_neg_two_pow` and `map_timeScale_eq_sum_pow_card_smul`
 make the limit series agree with that of `f`, as Tau Ceti's
 `sum_higherReflectionCoeff_smul_compContinuousLinearMap_timeScale` does for a finite sum; and the
 two series glue across `t = 0` by `HasFTaylorSeriesUpToOn.union`. The uniform convergence uses
@@ -115,7 +115,7 @@ private theorem exists_forall_lt_neg_two_pow_mul {t : ℝ} (ht : t < 0) (c : ℝ
   simpa using (h.eventually_gt_atTop c).exists_forall_of_atTop
 
 /-- For `t < 0`, the cutoff vanishes at `-2 ^ k t` for all large `k`. -/
-private theorem exists_seeleyCutoff_eq_zero {t : ℝ} (ht : t < 0) :
+theorem exists_seeleyCutoff_eq_zero {t : ℝ} (ht : t < 0) :
     ∃ N : ℕ, ∀ k, N ≤ k → seeleyCutoff (-2 ^ k * t) = 0 := by
   obtain ⟨N, hN⟩ := exists_forall_lt_neg_two_pow_mul ht (3 / 4)
   exact ⟨N, fun k hk ↦ seeleyCutoff_eq_zero_of_le (hN k hk).le⟩
@@ -131,7 +131,7 @@ theorem seeleyExtend_eq_sum (f : ℝ → F) {t : ℝ} (ht : t < 0) {N : ℕ}
   rw [hN k (by simpa using hk), zero_smul, smul_zero]
 
 /-- For `t < 0`, Seeley's sum depends only on the values of `f` on `(0, 1)`. -/
-private theorem seeleyExtend_congr_of_neg {f g : ℝ → F} (hfg : EqOn f g (Ioo 0 1)) {t : ℝ}
+theorem seeleyExtend_congr_of_neg {f g : ℝ → F} (hfg : EqOn f g (Ioo 0 1)) {t : ℝ}
     (ht : t < 0) : seeleyExtend f t = seeleyExtend g t := by
   obtain ⟨N, hN⟩ := exists_seeleyCutoff_eq_zero ht
   rw [seeleyExtend_eq_sum f ht hN, seeleyExtend_eq_sum g ht hN]
