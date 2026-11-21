@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Analysis.CStarAlgebra.Matrix
+public import SymplecticGeometry.Analysis.InnerProductSpace.Projection
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Lagrangian.Action
 public import SymplecticGeometry.Topology.Grassmannian.Lagrangian.Basic
 public import TauCeti.Topology.Algebra.GroupAction.Transitive
@@ -31,6 +32,9 @@ of `unitaryFrame`, and that the symplectic and unitary groups act continuously.
   `TauCeti.quotientStabilizerHomeomorph` and the stabilizer `stabilizer_horizontal`.
 * `SymplecticGeometry.LagrangianGrassmannian.isOpenQuotientMap_unitaryFrame` and
   `isQuotientMap_unitaryFrame`: `unitaryFrame` is an open quotient map.
+* `SymplecticGeometry.LagrangianGrassmannian.continuous_unitaryOfFrame` and
+  `continuous_mk_range_fromRows`: the unitary matrix of a Lagrangian frame, and the Lagrangian
+  that the frame spans, depend continuously on the frame.
 * `ContinuousSMul` instances for `GLSymplectic ι ℝ` and `unitaryGroup ι ℂ` acting on `ℒ ι`.
 
 The construction of the homeomorphism follows Tau Ceti's
@@ -60,28 +64,22 @@ theorem starProjection_unitaryFrame (U : unitaryGroup ι ℂ) :
       toEuclideanCLM (n := ι ⊕ ι) (𝕜 := ℝ) (U : Matrix ι ι ℂ).realify *
         (horizontal ι : Submodule ℝ (StdSpace ι)).starProjection *
           toEuclideanCLM (n := ι ⊕ ι) (𝕜 := ℝ) (star (U : Matrix ι ι ℂ).realify) := by
-  have hR : (U : Matrix ι ι ℂ).realify ∈ unitary (Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ) :=
-    realify_mem_orthogonalGroup_iff.2 U.property
-  set u : unitary (StdSpace ι →L[ℝ] StdSpace ι) :=
-    ⟨toEuclideanCLM (n := ι ⊕ ι) (𝕜 := ℝ) (U : Matrix ι ι ℂ).realify, Unitary.map_mem _ hR⟩
-  have hu : (Unitary.linearIsometryEquiv u).toLinearEquiv.toLinearMap =
-      toEuclideanLin (U : Matrix ι ι ℂ).realify := rfl
-  ext1 v
-  rw [unitaryFrame_def, coe_unitary_smul, ← hu, Submodule.starProjection_map_apply]
-  rw [map_star]
-  rfl
+  let u : unitary (StdSpace ι →L[ℝ] StdSpace ι) :=
+    ⟨toEuclideanCLM (n := ι ⊕ ι) (𝕜 := ℝ) (U : Matrix ι ι ℂ).realify,
+      Unitary.map_mem _ (realify_mem_orthogonalGroup_iff.2 U.property)⟩
+  have hu : ((u : StdSpace ι →L[ℝ] StdSpace ι) : StdSpace ι →ₗ[ℝ] StdSpace ι) =
+      toEuclideanLin (U : Matrix ι ι ℂ).realify :=
+    coe_toEuclideanCLM_eq_toEuclideanLin _
+  rw [unitaryFrame_def, coe_unitary_smul, ← hu, Submodule.starProjection_map_unitary, map_star]
 
 /-- The Lagrangian framed by a unitary matrix depends continuously on it. -/
 theorem continuous_unitaryFrame : Continuous (unitaryFrame : unitaryGroup ι ℂ → ℒ ι) := by
-  have hR : Continuous fun U : unitaryGroup ι ℂ ↦ (U : Matrix ι ι ℂ).realify := by
-    simp_rw [← GLSymplectic.coe_ofUnitary]
-    exact Units.continuous_val.comp (continuous_subtypeVal.comp GLSymplectic.continuous_ofUnitary)
-  have hE : Continuous (toEuclideanCLM (n := ι ⊕ ι) (𝕜 := ℝ)) :=
-    LinearMap.continuous_of_finiteDimensional
-      (toEuclideanCLM (n := ι ⊕ ι) (𝕜 := ℝ)).toAlgEquiv.toLinearEquiv.toLinearMap
+  have hR : Continuous fun U : unitaryGroup ι ℂ ↦ (U : Matrix ι ι ℂ).realify :=
+    Matrix.isClosedEmbedding_realify.continuous.comp continuous_subtypeVal
   rw [continuous_iff_continuous_starProjection]
   simp_rw [starProjection_unitaryFrame]
-  exact ((hE.comp hR).mul continuous_const).mul (hE.comp (continuous_star.comp hR))
+  exact ((continuous_toEuclideanCLM.comp hR).mul continuous_const).mul
+    (continuous_toEuclideanCLM.comp (continuous_star.comp hR))
 
 /-- The Lagrangian Grassmannian is compact, as the image of the compact group `U(n)`. -/
 instance {κ : Type*} [Fintype κ] : CompactSpace (ℒ κ) := by
@@ -118,6 +116,34 @@ theorem isQuotientMap_unitaryFrame :
     Topology.IsQuotientMap (unitaryFrame : unitaryGroup ι ℂ → ℒ ι) :=
   isOpenQuotientMap_unitaryFrame.isQuotientMap
 
+/-! ### Continuity in the frame -/
+
+open scoped Matrix.Norms.L2Operator in
+/-- The unitary matrix of a Lagrangian frame `fromRows X Y` depends continuously on the frame. -/
+theorem continuous_unitaryOfFrame {T : Type*} [TopologicalSpace T] {X Y : T → Matrix ι ι ℝ}
+    (hX : Continuous X) (hY : Continuous Y)
+    (h : ∀ t, (stdForm ι).IsLagrangian
+      (LinearMap.range (toEuclideanLin (fromRows (X t) (Y t))))) :
+    Continuous fun t ↦ unitaryOfFrame (h t) := by
+  have hM : Continuous fun t ↦ (X t).map Complex.ofReal + Complex.I • (Y t).map Complex.ofReal :=
+    (hX.matrix_map Complex.continuous_ofReal).add
+      ((hY.matrix_map Complex.continuous_ofReal).const_smul Complex.I)
+  have hGL : Continuous fun t ↦ GeneralLinearGroup.mkOfDetNeZero _
+      (det_ne_zero_of_isLagrangian_range_fromRows (h t)) :=
+    Units.isOpenEmbedding_val.continuous_iff.2 hM
+  simp_rw [continuous_induced_rng, Function.comp_def, coe_unitaryOfFrame]
+  exact Units.continuous_val.comp (GeneralLinearGroup.continuous_realOrthonormalize hGL)
+
+/-- The Lagrangian spanned by a continuous family of Lagrangian frames `fromRows X Y` depends
+continuously on the parameter. -/
+theorem continuous_mk_range_fromRows {T : Type*} [TopologicalSpace T] {X Y : T → Matrix ι ι ℝ}
+    (hX : Continuous X) (hY : Continuous Y)
+    (h : ∀ t, (stdForm ι).IsLagrangian
+      (LinearMap.range (toEuclideanLin (fromRows (X t) (Y t))))) :
+    Continuous fun t ↦ (⟨_, h t⟩ : ℒ ι) := by
+  simp_rw [← unitaryFrame_unitaryOfFrame]
+  exact continuous_unitaryFrame.comp (continuous_unitaryOfFrame hX hY h)
+
 /-! ### Continuity of the actions -/
 
 /-- The real `2n × n` frame `g · fromRows (Re U) (Im U)`; its columns span `g • unitaryFrame U`. -/
@@ -138,63 +164,29 @@ private theorem isLagrangian_smulFrame (g : GLSymplectic ι ℝ) (U : unitaryGro
       (toEuclideanLin (fromRows (smulFrame g U).toRows₁ (smulFrame g U).toRows₂))) :=
   coe_smul_unitaryFrame g U ▸ (g • unitaryFrame U).isLagrangian
 
-/-- The complex frame `X + i Y` of `smulFrame g U = fromRows X Y`, as an invertible matrix. -/
-private noncomputable def smulFrameGL (g : GLSymplectic ι ℝ) (U : unitaryGroup ι ℂ) : GL ι ℂ :=
-  GeneralLinearGroup.mkOfDetNeZero _
-    (det_ne_zero_of_isLagrangian_range_fromRows (isLagrangian_smulFrame g U))
-
-/-- A unitary frame of `g • unitaryFrame U`, the orthonormalization of `smulFrameGL g U`. -/
-private noncomputable def smulUnitary (g : GLSymplectic ι ℝ) (U : unitaryGroup ι ℂ) :
-    unitaryGroup ι ℂ :=
-  ⟨GeneralLinearGroup.realOrthonormalize (smulFrameGL g U),
-    GeneralLinearGroup.realOrthonormalize_mem_unitaryGroup
-      (map_im_conjTranspose_mul_self_eq_zero_of_transpose_mul_eq
-        ((isLagrangian_range_fromRows_iff _ _).1 (isLagrangian_smulFrame g U)).2)⟩
-
-private theorem smul_unitaryFrame_eq (g : GLSymplectic ι ℝ) (U : unitaryGroup ι ℂ) :
-    g • unitaryFrame U = unitaryFrame (smulUnitary g U) :=
-  toSubmodule_injective <| by
-    rw [coe_unitaryFrame_eq_map, smulUnitary, GeneralLinearGroup.realImage_realOrthonormalize,
-      smulFrameGL, GeneralLinearGroup.val_mkOfDetNeZero, coe_smul_unitaryFrame,
-      range_toEuclideanLin_fromRows_eq_map_realImage]
-
-private theorem continuous_smulUnitary :
-    Continuous fun p : GLSymplectic ι ℝ × unitaryGroup ι ℂ ↦ smulUnitary p.1 p.2 := by
-  have hA : Continuous fun p : GLSymplectic ι ℝ × unitaryGroup ι ℂ ↦ smulFrame p.1 p.2 := by
-    have hg : Continuous fun g : GLSymplectic ι ℝ ↦
-        ((g : GL (ι ⊕ ι) ℝ) : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ) :=
-      Units.continuous_val.comp continuous_subtypeVal
-    have hU : Continuous fun p : GLSymplectic ι ℝ × unitaryGroup ι ℂ ↦ (p.2 : Matrix ι ι ℂ) :=
-      continuous_subtypeVal.comp continuous_snd
-    exact (hg.comp continuous_fst).matrix_mul (continuous_matrix fun i j ↦ by
-      cases i <;> simp only [fromRows_apply_inl, fromRows_apply_inr, map_apply]
-      exacts [Complex.continuous_re.comp (hU.matrix_elem _ _),
-        Complex.continuous_im.comp (hU.matrix_elem _ _)])
-  have hM : Continuous fun p : GLSymplectic ι ℝ × unitaryGroup ι ℂ ↦
-      ((smulFrameGL p.1 p.2 : GL ι ℂ) : Matrix ι ι ℂ) := by
-    simp only [smulFrameGL, GeneralLinearGroup.val_mkOfDetNeZero]
-    have h₁ : Continuous fun p : GLSymplectic ι ℝ × unitaryGroup ι ℂ ↦
-        (smulFrame p.1 p.2).toRows₁ :=
-      continuous_matrix fun i j ↦ hA.matrix_elem (Sum.inl i) j
-    have h₂ : Continuous fun p : GLSymplectic ι ℝ × unitaryGroup ι ℂ ↦
-        (smulFrame p.1 p.2).toRows₂ :=
-      continuous_matrix fun i j ↦ hA.matrix_elem (Sum.inr i) j
-    exact (h₁.matrix_map Complex.continuous_ofReal).add
-      ((h₂.matrix_map Complex.continuous_ofReal).const_smul Complex.I)
-  have hGL : Continuous fun p : GLSymplectic ι ℝ × unitaryGroup ι ℂ ↦ smulFrameGL p.1 p.2 := by
-    refine Units.continuous_iff.2 ⟨hM, ?_⟩
-    simp only [Matrix.coe_units_inv, Matrix.inv_def, Ring.inverse_eq_inv']
-    exact (hM.matrix_det.inv₀ fun p ↦ (smulFrameGL p.1 p.2).isUnit.map detMonoidHom |>.ne_zero)
-      |>.smul hM.matrix_adjugate
-  exact continuous_induced_rng.2
-    (Units.continuous_val.comp (GeneralLinearGroup.continuous_realOrthonormalize hGL))
+private theorem continuous_smulFrame :
+    Continuous fun p : GLSymplectic ι ℝ × unitaryGroup ι ℂ ↦ smulFrame p.1 p.2 := by
+  have hg : Continuous fun g : GLSymplectic ι ℝ ↦
+      ((g : GL (ι ⊕ ι) ℝ) : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ) :=
+    Units.continuous_val.comp continuous_subtypeVal
+  have hU : Continuous fun p : GLSymplectic ι ℝ × unitaryGroup ι ℂ ↦ (p.2 : Matrix ι ι ℂ) :=
+    continuous_subtypeVal.comp continuous_snd
+  exact (hg.comp continuous_fst).matrix_mul (continuous_matrix fun i j ↦ by
+    cases i <;> simp only [fromRows_apply_inl, fromRows_apply_inr, map_apply]
+    exacts [Complex.continuous_re.comp (hU.matrix_elem _ _),
+      Complex.continuous_im.comp (hU.matrix_elem _ _)])
 
 /-- The symplectic group `Sp(2n)` acts continuously on the Lagrangian Grassmannian. -/
 instance : ContinuousSMul (GLSymplectic ι ℝ) (ℒ ι) := by
   refine ⟨(((IsOpenQuotientMap.id (X := GLSymplectic ι ℝ)).prodMap
     (isOpenQuotientMap_unitaryFrame (ι := ι))).continuous_comp_iff).1 ?_⟩
-  simp only [Function.comp_def, Prod.map_fst, Prod.map_snd, id_eq, smul_unitaryFrame_eq]
-  exact continuous_unitaryFrame.comp continuous_smulUnitary
+  have h : ∀ p : GLSymplectic ι ℝ × unitaryGroup ι ℂ,
+      p.1 • unitaryFrame p.2 = ⟨_, isLagrangian_smulFrame p.1 p.2⟩ :=
+    fun p ↦ toSubmodule_injective (coe_smul_unitaryFrame p.1 p.2)
+  simp only [Function.comp_def, Prod.map_fst, Prod.map_snd, id_eq, h]
+  exact continuous_mk_range_fromRows
+    (continuous_matrix fun i j ↦ continuous_smulFrame.matrix_elem (Sum.inl i) j)
+    (continuous_matrix fun i j ↦ continuous_smulFrame.matrix_elem (Sum.inr i) j) _
 
 /-- The unitary group `U(n)` acts continuously on the Lagrangian Grassmannian. -/
 instance : ContinuousSMul (unitaryGroup ι ℂ) (ℒ ι) :=

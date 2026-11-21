@@ -26,6 +26,9 @@ Write `ℒ ι` for the Lagrangian Grassmannian of the standard model `(StdSpace 
 * `SymplecticGeometry.LagrangianGrassmannian.unitaryFrame U`: the Lagrangian `U • {y = 0}` framed
   by the unitary matrix `U`. Its subspace is the span of the columns of
   `fromRows (Re U) (Im U)`, that is, Tau Ceti's real image `U ℝⁿ` read in real coordinates.
+* `SymplecticGeometry.LagrangianGrassmannian.unitaryOfFrame h`: the unitary matrix of a frame
+  `fromRows X Y` with Lagrangian range, the real orthonormalization of `X + i Y`; it frames that
+  range (`unitaryFrame_unitaryOfFrame`).
 
 ## Main results
 
@@ -188,6 +191,34 @@ theorem unitaryFrame_one : unitaryFrame (1 : unitaryGroup ι ℂ) = horizontal �
 theorem unitaryFrame_mul (U U' : unitaryGroup ι ℂ) :
     unitaryFrame (U * U') = U • unitaryFrame U' :=
   mul_smul _ _ _
+
+/-- The unitary matrix of a Lagrangian frame `fromRows X Y`: the real orthonormalization of its
+complex frame `X + i Y`, which is invertible since the range of the frame is Lagrangian. Its
+unitary frame is the range (`unitaryFrame_unitaryOfFrame`). -/
+noncomputable def unitaryOfFrame {X Y : Matrix ι ι ℝ}
+    (h : (stdForm ι).IsLagrangian (LinearMap.range (toEuclideanLin (fromRows X Y)))) :
+    unitaryGroup ι ℂ :=
+  ⟨GeneralLinearGroup.realOrthonormalize
+      (GeneralLinearGroup.mkOfDetNeZero _ (det_ne_zero_of_isLagrangian_range_fromRows h)),
+    GeneralLinearGroup.realOrthonormalize_mem_unitaryGroup
+      (map_im_conjTranspose_mul_self_eq_zero_of_transpose_mul_eq
+        ((isLagrangian_range_fromRows_iff _ _).1 h).2)⟩
+
+theorem coe_unitaryOfFrame {X Y : Matrix ι ι ℝ}
+    (h : (stdForm ι).IsLagrangian (LinearMap.range (toEuclideanLin (fromRows X Y)))) :
+    (unitaryOfFrame h : Matrix ι ι ℂ) = GeneralLinearGroup.realOrthonormalize
+      (GeneralLinearGroup.mkOfDetNeZero _ (det_ne_zero_of_isLagrangian_range_fromRows h)) :=
+  (rfl)
+
+/-- The Lagrangian framed by the unitary matrix of a Lagrangian frame is the range of the
+frame. -/
+theorem unitaryFrame_unitaryOfFrame {X Y : Matrix ι ι ℝ}
+    (h : (stdForm ι).IsLagrangian (LinearMap.range (toEuclideanLin (fromRows X Y)))) :
+    unitaryFrame (unitaryOfFrame h) = ⟨_, h⟩ :=
+  toSubmodule_injective <| by
+    rw [coe_unitaryFrame_eq_map, coe_unitaryOfFrame,
+      GeneralLinearGroup.realImage_realOrthonormalize, GeneralLinearGroup.val_mkOfDetNeZero,
+      ← range_toEuclideanLin_fromRows_eq_map_realImage]
 
 /-- **Transitivity of `U(n)`.** Every Lagrangian subspace of `StdSpace ι` is framed by a unitary
 matrix. -/
