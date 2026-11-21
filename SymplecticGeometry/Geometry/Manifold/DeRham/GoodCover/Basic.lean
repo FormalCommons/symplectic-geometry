@@ -63,6 +63,12 @@ def IsSmoothlyContractible (N : Type*) [TopologicalSpace N] [ChartedSpace H N] :
   ∃ (c : N) (F : N × unitInterval → N), ContMDiff (I.prod (𝓡∂ 1)) I ∞ F ∧
     (∀ x, F (x, 0) = c) ∧ ∀ x, F (x, 1) = x
 
+/-- Unfolds `IsSmoothlyContractible` into a contraction `F` to a point `c`. -/
+theorem isSmoothlyContractible_def {N : Type*} [TopologicalSpace N] [ChartedSpace H N] :
+    IsSmoothlyContractible I N ↔ ∃ (c : N) (F : N × unitInterval → N),
+      ContMDiff (I.prod (𝓡∂ 1)) I ∞ F ∧ (∀ x, F (x, 0) = c) ∧ ∀ x, F (x, 1) = x :=
+  Iff.rfl
+
 variable {N : Type*} [TopologicalSpace N] [ChartedSpace H N]
 
 /-- A smoothly contractible manifold is nonempty. -/
@@ -81,11 +87,13 @@ theorem IsSmoothlyContractible.of_diffeomorph {E' H' : Type*} [NormedAddCommGrou
 
 variable {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
 
-/-- **Straight-line contraction.** Let `U` be a nonempty open subset of `M`, and `φ : M → E` a
-map, smooth on `U`, with a left inverse `ψ` on `U` that is smooth on `φ '' U`. If `φ '' U` is
-star-convex, then `U` is smoothly contractible, by `(x, t) ↦ ψ (c + t • (φ x - c))`. -/
-theorem IsSmoothlyContractible.of_starConvex_image {U : Opens M} {φ : M → E} {ψ : E → M}
-    {c : E} (hφ : ContMDiffOn I 𝓘(ℝ, E) ∞ φ U) (hψ : ContMDiffOn 𝓘(ℝ, E) I ∞ ψ (φ '' U))
+/-- **Straight-line contraction.** Let `U` be a nonempty open subset of `M`, and `φ : M → E'` a
+map to a real normed space, smooth on `U`, with a left inverse `ψ` on `U` that is smooth on
+`φ '' U`. If `φ '' U` is star-convex, then `U` is smoothly contractible, by
+`(x, t) ↦ ψ (c + t • (φ x - c))`. -/
+theorem IsSmoothlyContractible.of_starConvex_image {E' : Type*} [NormedAddCommGroup E']
+    [NormedSpace ℝ E'] {U : Opens M} {φ : M → E'} {ψ : E' → M} {c : E'}
+    (hφ : ContMDiffOn I 𝓘(ℝ, E') ∞ φ U) (hψ : ContMDiffOn 𝓘(ℝ, E') I ∞ ψ (φ '' U))
     (hψφ : LeftInvOn ψ φ U) (hc : StarConvex ℝ c (φ '' U)) (hne : (U : Set M).Nonempty) :
     IsSmoothlyContractible I U := by
   have hcU : c ∈ φ '' U := hc.mem (hne.image φ)
@@ -93,14 +101,14 @@ theorem IsSmoothlyContractible.of_starConvex_image {U : Opens M} {φ : M → E} 
     rintro _ ⟨y, hy, rfl⟩
     rwa [hψφ hy]
   -- The straight line from `c` to `φ x`, at time `t`.
-  let G : U × unitInterval → E := fun p ↦ c + (p.2 : ℝ) • (φ p.1 - c)
+  let G : U × unitInterval → E' := fun p ↦ c + (p.2 : ℝ) • (φ p.1 - c)
   have hG : ∀ p, G p ∈ φ '' U := fun p ↦
     hc.add_smul_sub_mem (mem_image_of_mem φ p.1.property) p.2.property.1 p.2.property.2
-  have hφU : ContMDiff I 𝓘(ℝ, E) ∞ fun x : U ↦ φ x :=
+  have hφU : ContMDiff I 𝓘(ℝ, E') ∞ fun x : U ↦ φ x :=
     hφ.comp_contMDiff contMDiff_subtypeVal fun x ↦ x.property
-  have hlin : ContDiff ℝ ∞ fun q : ℝ × E ↦ c + q.1 • (q.2 - c) :=
+  have hlin : ContDiff ℝ ∞ fun q : ℝ × E' ↦ c + q.1 • (q.2 - c) :=
     contDiff_const.add (contDiff_fst.smul (contDiff_snd.sub contDiff_const))
-  have hGs : ContMDiff (I.prod (𝓡∂ 1)) 𝓘(ℝ, E) ∞ G := hlin.comp_contMDiff
+  have hGs : ContMDiff (I.prod (𝓡∂ 1)) 𝓘(ℝ, E') ∞ G := hlin.comp_contMDiff
       (((contMDiff_subtypeVal_Icc (x := 0) (y := 1)).comp contMDiff_snd).prodMk_space
         (hφU.comp contMDiff_fst))
   obtain ⟨x₀, hx₀, hφx₀⟩ := hcU
@@ -135,20 +143,45 @@ def IsFiniteGoodCover {ι : Type*} [Finite ι] (U : ι → Opens M) : Prop :=
   (⨆ i, U i) = ⊤ ∧ ∀ s : Finset ι, s.Nonempty → ((⨅ i ∈ s, U i : Opens M) : Set M).Nonempty →
     IsSmoothlyContractible I (⨅ i ∈ s, U i : Opens M)
 
+/-- Unfolds `IsFiniteGoodCover` into its two clauses: covering, and contractible intersections. -/
+theorem isFiniteGoodCover_def {ι : Type*} [Finite ι] (U : ι → Opens M) :
+    IsFiniteGoodCover I U ↔ (⨆ i, U i) = ⊤ ∧ ∀ s : Finset ι, s.Nonempty →
+      ((⨅ i ∈ s, U i : Opens M) : Set M).Nonempty →
+      IsSmoothlyContractible I (⨅ i ∈ s, U i : Opens M) :=
+  Iff.rfl
+
+/-- The sets of a finite good cover cover the manifold. -/
+theorem IsFiniteGoodCover.iSup_eq_top {ι : Type*} [Finite ι] {U : ι → Opens M}
+    (hU : IsFiniteGoodCover I U) : (⨆ i, U i) = ⊤ :=
+  hU.1
+
+/-- In a finite good cover, the intersection of a nonempty subfamily is smoothly contractible
+when it is nonempty. -/
+theorem IsFiniteGoodCover.isSmoothlyContractible {ι : Type*} [Finite ι] {U : ι → Opens M}
+    (hU : IsFiniteGoodCover I U) {s : Finset ι} (hs : s.Nonempty)
+    (hne : ((⨅ i ∈ s, U i : Opens M) : Set M).Nonempty) :
+    IsSmoothlyContractible I (⨅ i ∈ s, U i : Opens M) :=
+  hU.2 s hs hne
+
 variable (I M) in
 /-- A manifold `M` *has a finite good cover* if some family of open sets indexed by `Fin n` is a
 finite good cover of `M`. -/
 def HasFiniteGoodCover : Prop :=
   ∃ (n : ℕ) (U : Fin n → Opens M), IsFiniteGoodCover I U
 
+/-- Unfolds `HasFiniteGoodCover`: some family indexed by `Fin n` is a finite good cover. -/
+theorem hasFiniteGoodCover_def :
+    HasFiniteGoodCover I M ↔ ∃ (n : ℕ) (U : Fin n → Opens M), IsFiniteGoodCover I U :=
+  Iff.rfl
+
 /-- A finite good cover stays one when it is reindexed by an equivalence. -/
 theorem IsFiniteGoodCover.comp_equiv {ι κ : Type*} [Finite ι] [Finite κ] {U : ι → Opens M}
     (hU : IsFiniteGoodCover I U) (e : κ ≃ ι) : IsFiniteGoodCover I fun k ↦ U (e k) := by
   classical
-  refine ⟨by simpa [e.iSup_comp (g := U)] using hU.1, fun s hs hne ↦ ?_⟩
+  refine ⟨by simpa [e.iSup_comp (g := U)] using hU.iSup_eq_top, fun s hs hne ↦ ?_⟩
   have h : (⨅ k ∈ s, U (e k)) = ⨅ i ∈ s.image e, U i := Finset.iInf_finset_image.symm
   rw [h] at hne ⊢
-  exact hU.2 _ (hs.image e) hne
+  exact hU.isSmoothlyContractible (hs.image e) hne
 
 /-- A manifold with a finite good cover, indexed by any finite type, has a finite good cover. -/
 theorem IsFiniteGoodCover.hasFiniteGoodCover {ι : Type*} [Finite ι] {U : ι → Opens M}
