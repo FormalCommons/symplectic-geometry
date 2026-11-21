@@ -340,10 +340,11 @@ request updates it to the files below. Each change, with its reason:
 ### `LinearAlgebra/Symplectic/Compatible.lean`
 
 These are the characterizations (Proposition 2.5.4 and Exercise 2.5.3), in
-`TauCeti.SymplecticForm`. The results about $g_J$ and $H$ hold in every
+`TauCeti.SymplecticForm`, except those that involve `StdSpace`. The results
+about $g_J$ and $H$ hold in every
 dimension, as their Tau Ceti counterparts such as
 `Invariant.associatedBilinForm_isSymm` do, and carry no finite-dimensionality
-hypothesis. Only the Darboux-basis, standard-model, Lagrangian and TFAE
+hypothesis. Only the Darboux-basis, standard-model and TFAE
 statements assume `[FiniteDimensional ℝ V]`.
 
 - `compatible_iff_exists_isDarbouxBasis [FiniteDimensional ℝ V] :
@@ -372,37 +373,47 @@ statements assume `[FiniteDimensional ℝ V]`.
   symmetry gives invariance, and positivity of `re (H v v) = ω v (J v)`
   gives tameness.
 - `compatible_iff_exists_isSymplectomorphism_stdForm [FiniteDimensional ℝ V]
-  {ι : Type*} [Fintype ι]
-  [DecidableEq ι] (hι : Module.finrank ℝ V = 2 * Fintype.card ι) :
+  {ι : Type*} [Fintype ι] (hι : Module.finrank ℝ V = 2 * Fintype.card ι) :
   ω.Compatible J ↔ ∃ Ψ : StdSpace ι ≃ₗ[ℝ] V,
   IsSymplectomorphism (stdForm ι) ω Ψ ∧
-  IsComplexLinearMap (stdComplexStructure ι) J Ψ.toLinearMap`. This is
+  IsComplexLinearMap (stdComplexStructure ι) J Ψ.toLinearMap`, in
+  `SymplecticGeometry`, since it involves `StdSpace`. This is
   condition (3). The map is not built by hand. From (2), Tau Ceti's
   `b.darbouxBasisEquiv` is a symplectomorphism onto `stdSymplecticForm` on
   `EuclideanSpace ℝ (Fin n) × EuclideanSpace ℝ (Fin n)`
   (`IsDarbouxBasis.isSymplectomorphism_darbouxBasisEquiv`). It sends
   `b (k, 0)` to `(single k 1, 0)` and `b (k, 1)` to `(0, single k 1)`
   (`darbouxBasisEquiv_apply_zero`/`_one`), so it carries $J$ to
-  `AlmostComplexStructure.product`, which maps `(x, 0)` to `(0, x)`. $\Psi$ is
-  its inverse, composed with the reindexing along a bijection `Fin n ≃ ι` and
+  `AlmostComplexStructure.product`, which maps `(x, 0)` to `(0, x)`
+  (`Module.Basis.isComplexLinearMap_darbouxBasisEquiv`, in the namespace of
+  `darbouxBasisEquiv`). $\Psi$ is
+  its inverse, composed with the reindexing along a bijection `Fin n ≃ ι`,
+  which commutes with $J_0$ (`stdComplexStructure_piLpCongrLeft_sumCongr`, in
+  `LinearAlgebra/Symplectic/Standard/Basic.lean`), and
   with `EuclideanSpace.sumEquivProd`, which is a symplectomorphism from
   `stdForm ι` to that product model carrying `stdComplexStructure ι` to
   `AlmostComplexStructure.product` (`isSymplectomorphism_sumEquivProd` and
-  `stdComplexStructure_transport_sumEquivProd`). The converse is `Compatible.transport` of
-  `stdForm_compatible`.
-- `compatible_iff_tames_and_isLagrangian_map [FiniteDimensional ℝ V] :
+  `stdComplexStructure_transport_sumEquivProd`). The converse,
+  `compatible_of_isSymplectomorphism_stdForm`, needs no dimension hypothesis
+  and is `Compatible.transport` of `stdForm_compatible`.
+- `compatible_iff_tames_and_isLagrangian_map :
   ω.Compatible J ↔ ω.Tames J ∧
-  ∀ L : Submodule ℝ V, ω.IsLagrangian L → ω.IsLagrangian (L.map J.toLinearMap)`.
+  ∀ L : Submodule ℝ V, ω.IsLagrangian L → ω.IsLagrangian (L.map J.toLinearMap)`,
+  in every dimension, since neither direction uses a finite dimension.
   This is condition (4). Forward, an invariant $J$ is a symplectomorphism,
-  so it maps Lagrangian subspaces to Lagrangian subspaces. Backward, if
+  so it maps Lagrangian subspaces to Lagrangian subspaces
+  (`Invariant.isLagrangian_map`). Backward, if
   $\omega(v,w)=0$, extend the isotropic span of $v,w$ to a Lagrangian $L$
-  (`IsIsotropic.exists_le_isLagrangian`). Then $\omega(Jv,Jw)=0$. So for each $v$ the functional
-  $\omega(Jv,J\cdot)$ vanishes on the kernel of $\omega(v,\cdot)$, hence is
-  $\lambda_v\,\omega(v,\cdot)$. Comparing $v$, $w$ and $v+w$ shows that
-  $\lambda$ is constant. Evaluating at $(v,Jv)$ gives $\lambda=1$, by
-  tameness. Dimension zero is trivial.
+  (`IsIsotropic.exists_le_isLagrangian`). Then $\omega(Jv,Jw)=0$
+  (`apply_apply_eq_zero_of_forall_isLagrangian_map`). So for each $v\ne0$ the
+  functional $\omega(Jv,J\cdot)$ vanishes on the kernel of $\omega(v,\cdot)$,
+  hence is $c_v\,\omega(v,\cdot)$ (Mathlib's `mem_span_of_iInf_ker_le_ker`).
+  Evaluating at $Jv$ gives $c_v\,\omega(v,Jv)=\omega(v,Jv)$, so $c_v=1$ by
+  tameness, with no need to compare different $v$
+  (`Tames.invariant_of_forall_isLagrangian_map`).
 - **Milestone** `compatible_tfae [FiniteDimensional ℝ V] (hι : Module.finrank ℝ V = 2 * Fintype.card ι) :
   List.TFAE [ω.Compatible J, (2), (3), (4), (g_J condition), (H condition)]`,
+  in `SymplecticGeometry`,
   with the six conditions written as in the lemmas above. Its docstring ends
   with "Milestone: *Characterizations of compatible complex structures*."
 

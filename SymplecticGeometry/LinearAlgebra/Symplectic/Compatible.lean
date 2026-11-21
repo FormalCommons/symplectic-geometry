@@ -5,6 +5,11 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import Mathlib.LinearAlgebra.Dual.Lemmas
+public import Mathlib.Tactic.TFAE
+public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
+public import SymplecticGeometry.LinearAlgebra.Symplectic.Subspace
+public import TauCeti.Geometry.Symplectic.Darboux.EuclideanBasis
 public import TauCeti.Geometry.Symplectic.Hermitian
 public import TauCeti.Geometry.Symplectic.WeightDecomposition
 
@@ -33,10 +38,18 @@ converses.
   exactly when `H` is conjugate symmetric.
 * `TauCeti.SymplecticForm.compatible_iff_exists_innerProductCore`: `J` is compatible with `ω`
   exactly when `H` is a Hermitian inner product on the complex vector space `(V, J)`.
+* `TauCeti.SymplecticForm.compatible_iff_tames_and_isLagrangian_map`: `J` is compatible with
+  `ω` exactly when `ω` tames `J` and `J` maps Lagrangian subspaces to Lagrangian subspaces. The
+  converse rests on `TauCeti.SymplecticForm.Tames.invariant_of_forall_isLagrangian_map`.
+* `SymplecticGeometry.compatible_iff_exists_isSymplectomorphism_stdForm`: in dimension `2 n`,
+  `J` is compatible with `ω` exactly when some linear isomorphism `Ψ : ℝ²ⁿ ≃ V` has
+  `Ψ^* ω = ω₀` and `Ψ J₀ = J Ψ`.
+* `SymplecticGeometry.compatible_tfae`: the six conditions above are equivalent.
 * `TauCeti.SymplecticForm.Tames.lineMap`: the form `(1 - t) ω₀ + t ω₁`, for `t ∈ [0, 1]` and
   two forms that tame one `J`; it tames `J` too (`TauCeti.SymplecticForm.Tames.tames_lineMap`).
 
-Apart from the Darboux-basis statement, nothing here assumes finite dimension.
+Only the Darboux-basis and standard-model statements, and the list that collects them, assume
+finite dimension.
 
 ## References
 
@@ -160,6 +173,70 @@ theorem compatible_iff_exists_isDarbouxBasis [FiniteDimensional ℝ V] :
 
 end Characterizations
 
+section Lagrangian
+
+variable {ω : SymplecticForm V} {J : AlmostComplexStructure V}
+
+/-- A complex structure that leaves `ω` invariant maps Lagrangian subspaces to Lagrangian
+subspaces. -/
+theorem Invariant.isLagrangian_map (h : ω.Invariant J) {L : Submodule ℝ V}
+    (hL : ω.IsLagrangian L) : ω.IsLagrangian (L.map J.toLinearMap) :=
+  (isLagrangian_map_iff_of_apply_eq_mul J.linearEquiv one_ne_zero fun v w ↦ by
+    rw [one_mul]
+    exact (ω.invariant_iff J).1 h v w).2 hL
+
+/-- If `J` maps Lagrangian subspaces to Lagrangian subspaces, then it preserves orthogonality
+for `ω`: `ω(v, w) = 0` implies `ω(J v, J w) = 0`. -/
+theorem apply_apply_eq_zero_of_forall_isLagrangian_map
+    (h : ∀ L : Submodule ℝ V, ω.IsLagrangian L → ω.IsLagrangian (L.map J.toLinearMap))
+    {v w : V} (hvw : ω v w = 0) : ω (J v) (J w) = 0 := by
+  have hwv : ω w v = 0 := by rw [← ω.neg_eq, hvw, neg_zero]
+  have hiso : ω.IsIsotropic (Submodule.span ℝ {v, w}) := by
+    refine isIsotropic_span_iff.2 ?_
+    simp only [Set.mem_insert_iff, Set.mem_singleton_iff]
+    rintro a (rfl | rfl) b (rfl | rfl) <;> simp [hvw, hwv, ω.isAlt.self_eq_zero]
+  obtain ⟨L, hle, hL⟩ := hiso.exists_le_isLagrangian
+  exact (h L hL).symplecticForm_apply_eq_zero
+    (Submodule.mem_map_of_mem (hle (Submodule.subset_span (by simp))))
+    (Submodule.mem_map_of_mem (hle (Submodule.subset_span (by simp))))
+
+/-- A complex structure that is tamed by `ω` and maps Lagrangian subspaces to Lagrangian
+subspaces leaves `ω` invariant.
+
+For `v ≠ 0`, the functional `ω(J v, J ·)` vanishes on the kernel of `ω(v, ·)`, so it is
+`c • ω(v, ·)`; evaluating at `J v` and using `ω(v, J v) > 0` gives `c = 1`. -/
+theorem Tames.invariant_of_forall_isLagrangian_map (hJ : ω.Tames J)
+    (h : ∀ L : Submodule ℝ V, ω.IsLagrangian L → ω.IsLagrangian (L.map J.toLinearMap)) :
+    ω.Invariant J := by
+  refine (ω.invariant_iff J).2 fun v w ↦ ?_
+  rcases eq_or_ne v 0 with rfl | hv
+  · simp
+  have hker : ⨅ _ : Unit, LinearMap.ker (ω.toBilinForm v) ≤
+      LinearMap.ker ((ω.toBilinForm (J v)).comp J.toLinearMap) := fun u hu ↦ by
+    simpa using apply_apply_eq_zero_of_forall_isLagrangian_map h (by simpa using hu)
+  obtain ⟨c, hc⟩ := Submodule.mem_span_singleton.1
+    (by simpa using mem_span_of_iInf_ker_le_ker hker)
+  have hc' (u : V) : c * ω v u = ω (J v) (J u) := by
+    simpa using LinearMap.congr_fun hc u
+  have hc1 : c = 1 := by
+    have h₁ : c * ω v (J v) = ω (J v) (J (J v)) := hc' (J v)
+    have h₂ : ω (J v) (J (J v)) = ω v (J v) := by
+      rw [J.apply_apply]
+      exact (LinearMap.map_neg (ω.toBilinForm (J v)) v).trans (ω.neg_eq (J v) v)
+    rw [h₂] at h₁
+    exact mul_right_cancel₀ (hJ v hv).ne' (h₁.trans (one_mul _).symm)
+  rw [← hc' w, hc1, one_mul]
+
+/-- `J` is compatible with `ω` exactly when `ω` tames `J` and `J` maps Lagrangian subspaces to
+Lagrangian subspaces. -/
+theorem compatible_iff_tames_and_isLagrangian_map :
+    ω.Compatible J ↔ ω.Tames J ∧
+      ∀ L : Submodule ℝ V, ω.IsLagrangian L → ω.IsLagrangian (L.map J.toLinearMap) :=
+  ⟨fun h ↦ ⟨h.tames, fun _ ↦ h.invariant.isLagrangian_map⟩,
+    fun ⟨hJ, h⟩ ↦ .of_tames (hJ.invariant_of_forall_isLagrangian_map h) hJ⟩
+
+end Lagrangian
+
 section LineMap
 
 variable {ω₀ ω₁ : SymplecticForm V} {J : AlmostComplexStructure V} {t : ℝ}
@@ -210,5 +287,105 @@ theorem Tames.lineMap_one (h₀ : ω₀.Tames J) (h₁ : ω₁.Tames J)
 end LineMap
 
 end TauCeti.SymplecticForm
+
+namespace Module.Basis
+
+variable {V : Type*} [AddCommGroup V] [Module ℝ V]
+
+/-- For a basis `b` with `b (k, 1) = J (b (k, 0))`, the coordinate equivalence
+`b.darbouxBasisEquiv` is complex linear from `J` to the product structure `(x, y) ↦ (-y, x)` on
+`EuclideanSpace ℝ (Fin n) × EuclideanSpace ℝ (Fin n)`. -/
+theorem isComplexLinearMap_darbouxBasisEquiv {J : TauCeti.AlmostComplexStructure V} {n : ℕ}
+    {b : Basis (Fin n × Fin 2) ℝ V} (hbJ : ∀ k, b (k, 1) = J (b (k, 0))) :
+    TauCeti.IsComplexLinearMap J (TauCeti.AlmostComplexStructure.product _)
+      b.darbouxBasisEquiv.toLinearMap := by
+  unfold TauCeti.IsComplexLinearMap
+  refine b.ext fun ⟨k, i⟩ ↦ ?_
+  have hJ₁ : J (b (k, 1)) = -b (k, 0) := by rw [hbJ, J.apply_apply]
+  fin_cases i
+  · simp [← hbJ]
+  · simp [hJ₁]
+
+end Module.Basis
+
+namespace SymplecticGeometry
+
+open TauCeti TauCeti.SymplecticForm Module
+
+variable {V : Type*} [AddCommGroup V] [Module ℝ V] {ω : SymplecticForm V}
+  {J : AlmostComplexStructure V} {ι : Type*} [Fintype ι]
+
+/-- A linear isomorphism `Ψ : ℝ²ⁿ ≃ V` with `Ψ^* ω = ω₀` and `Ψ J₀ = J Ψ` makes `J` compatible
+with `ω`. -/
+theorem compatible_of_isSymplectomorphism_stdForm {Ψ : StdSpace ι ≃ₗ[ℝ] V}
+    (hΨ : IsSymplectomorphism (stdForm ι) ω Ψ)
+    (hJ : IsComplexLinearMap (stdComplexStructure ι) J Ψ.toLinearMap) : ω.Compatible J := by
+  have hJ' : (stdComplexStructure ι).transport Ψ = J := by
+    refine AlmostComplexStructure.toLinearMap_injective (LinearMap.ext fun w ↦ ?_)
+    simpa using (isComplexLinearMap_iff_apply _ _ _).1 hJ (Ψ.symm w)
+  rw [← isSymplectomorphism_iff_transport_eq.1 hΨ, ← hJ']
+  exact stdForm_compatible.transport Ψ
+
+/-- In dimension `2 n`, with `n` the cardinality of `ι`, `J` is compatible with `ω` exactly
+when some linear isomorphism `Ψ : ℝ²ⁿ ≃ V` from the standard model is a symplectomorphism from
+`ω₀` to `ω` and complex linear from `J₀` to `J`: `Ψ^* ω = ω₀` and `Ψ^* J = J₀`. -/
+theorem compatible_iff_exists_isSymplectomorphism_stdForm [FiniteDimensional ℝ V]
+    (hι : finrank ℝ V = 2 * Fintype.card ι) :
+    ω.Compatible J ↔ ∃ Ψ : StdSpace ι ≃ₗ[ℝ] V, IsSymplectomorphism (stdForm ι) ω Ψ ∧
+      IsComplexLinearMap (stdComplexStructure ι) J Ψ.toLinearMap := by
+  refine ⟨fun h ↦ ?_, fun ⟨Ψ, hΨ, hJ⟩ ↦ compatible_of_isSymplectomorphism_stdForm hΨ hJ⟩
+  obtain ⟨n, b, hb, hbJ⟩ := compatible_iff_exists_isDarbouxBasis.1 h
+  have hn : Fintype.card ι = n := by
+    have := finrank_eq_card_basis b
+    simp only [Fintype.card_prod, Fintype.card_fin] at this
+    omega
+  let σ : ι ≃ Fin n := Fintype.equivFinOfCardEq hn
+  have hD (v : V) : b.darbouxBasisEquiv (J v) =
+      AlmostComplexStructure.product _ (b.darbouxBasisEquiv v) :=
+    (isComplexLinearMap_iff_apply _ _ _).1 (b.isComplexLinearMap_darbouxBasisEquiv hbJ) v
+  have hS (u : StdSpace (Fin n)) : EuclideanSpace.sumEquivProd (stdComplexStructure (Fin n) u) =
+      AlmostComplexStructure.product _ (EuclideanSpace.sumEquivProd u) := by
+    rw [← stdComplexStructure_transport_sumEquivProd, AlmostComplexStructure.transport_apply]
+    simp
+  refine ⟨(LinearIsometryEquiv.piLpCongrLeft 2 ℝ ℝ (σ.sumCongr σ)).toLinearEquiv.trans
+      ((EuclideanSpace.sumEquivProd (𝕜 := ℝ)).toLinearEquiv.trans b.darbouxBasisEquiv.symm),
+    (isSymplectomorphism_piLpCongrLeft_sumCongr σ).trans
+      (isSymplectomorphism_sumEquivProd.trans hb.isSymplectomorphism_darbouxBasisEquiv.symm), ?_⟩
+  refine (isComplexLinearMap_iff_apply _ _ _).2 fun z ↦ b.darbouxBasisEquiv.injective ?_
+  simp only [LinearEquiv.coe_coe, LinearEquiv.trans_apply, hD, LinearEquiv.apply_symm_apply,
+    LinearIsometryEquiv.coe_toLinearEquiv, ContinuousLinearEquiv.coe_toLinearEquiv]
+  exact (congrArg _ (stdComplexStructure_piLpCongrLeft_sumCongr σ z).symm).trans (hS _)
+
+/-- **Characterizations of compatible complex structures.** Let `ω` be a symplectic form and `J`
+a complex structure on a real vector space `V` of dimension `2 n`, with `n` the cardinality of
+`ι`. The following are equivalent:
+1. `J` is compatible with `ω`;
+2. `ω` has a Darboux basis `(v₁, J v₁, …, vₙ, J vₙ)`;
+3. some linear isomorphism `Ψ : ℝ²ⁿ ≃ V` has `Ψ^* ω = ω₀` and `Ψ^* J = J₀`;
+4. `ω(v, J v) > 0` for `v ≠ 0`, and `J` maps Lagrangian subspaces to Lagrangian subspaces;
+5. `g_J(v, w) = ω(v, J w)` is a `J`-invariant inner product;
+6. `H(v, w) = ω(v, J w) + i ω(v, w)` is a Hermitian inner product on `(V, J)`.
+
+Milestone: *Characterizations of compatible complex structures*. -/
+theorem compatible_tfae [FiniteDimensional ℝ V] (hι : finrank ℝ V = 2 * Fintype.card ι) :
+    List.TFAE [ω.Compatible J,
+      ∃ (n : ℕ) (b : Basis (Fin n × Fin 2) ℝ V), ω.IsDarbouxBasis b ∧
+        ∀ k, b (k, 1) = J (b (k, 0)),
+      ∃ Ψ : StdSpace ι ≃ₗ[ℝ] V, IsSymplectomorphism (stdForm ι) ω Ψ ∧
+        IsComplexLinearMap (stdComplexStructure ι) J Ψ.toLinearMap,
+      ω.Tames J ∧
+        ∀ L : Submodule ℝ V, ω.IsLagrangian L → ω.IsLagrangian (L.map J.toLinearMap),
+      (ω.associatedBilinForm J).IsSymm ∧ (ω.associatedBilinForm J).toQuadraticMap.PosDef ∧
+        ∀ v w, ω.associatedBilinForm J (J v) (J w) = ω.associatedBilinForm J v w,
+      ∃ c : (letI := J.complexModule; InnerProductSpace.Core ℂ V),
+        ∀ v w, c.inner v w = ω.complexAssociatedForm J v w] := by
+  tfae_have 1 ↔ 2 := compatible_iff_exists_isDarbouxBasis
+  tfae_have 1 ↔ 3 := compatible_iff_exists_isSymplectomorphism_stdForm hι
+  tfae_have 1 ↔ 4 := compatible_iff_tames_and_isLagrangian_map
+  tfae_have 1 ↔ 5 := compatible_iff_associatedBilinForm
+  tfae_have 1 ↔ 6 := compatible_iff_exists_innerProductCore
+  tfae_finish
+
+end SymplecticGeometry
 
 end
