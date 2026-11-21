@@ -41,10 +41,17 @@ fixed Lagrangian `{y = 0}`, and along its two sides the dimension of the interse
 give the equality (`pathMaslovIndex_eq_of_homotopy`, through Mathlib's
 `Path.Homotopic.map_trans_evalAt`).
 
+The proofs of `pathMaslovIndex_eq_of_homotopy` and `pathMaslovIndex_smul` adapt Tau Ceti's proof
+of `TauCeti.GLSymplectic.conleyZehnderIndex_map_conj`: a path from `1` in the symplectic group, a
+square built from it and packaged as a homotopy, the square lemma, catenation, and the zero axiom
+on both edges through the invariance of a dimension under the group. The lift to unitary frames
+is the new step.
+
 The values property compares the formula of `μ` with Tau Ceti's
 `Matrix.det_eq_neg_one_pow_mul_exp_spectralAngleSum`, in which the multiplicity of the eigenvalue
 `1` of the Souriau map is the dimension of the intersection with `{y = 0}`
-(`rootMultiplicity_one_charpoly_souriau`).
+(`rootMultiplicity_one_charpoly_souriau`). This angle-and-determinant calculation follows the one
+in Tau Ceti's `Matrix.UnitaryGroup.maslovIndex_eq_zero_of_rootMultiplicity_eq`.
 
 ## References
 
@@ -114,10 +121,7 @@ theorem pathMaslovIndex_smul (Ψ : GLSymplectic ι ℝ) {Λ Λ' : ℒ ι} (γ : 
       ↥((F (s, t) : Submodule ℝ (StdSpace ι)) ⊓ (horizontal ι : Submodule ℝ (StdSpace ι))) =
       Module.finrank ℝ
         ↥((γ t : Submodule ℝ (StdSpace ι)) ⊓ (unitaryFrame U : Submodule ℝ (StdSpace ι))) := by
-    have : horizontal ι = (δ s)⁻¹ • (P s • unitaryFrame U) := by
-      rw [← hδ', unitaryFrame_def, inv_smul_smul]
-    rw [this, ContinuousMap.coe_mk, unitary_smul_def, unitary_smul_def, finrank_smul_inf_smul,
-      finrank_smul_inf_smul]
+    rw [ContinuousMap.coe_mk, ← finrank_inf_unitaryFrame, hδ', finrank_smul_inf_smul]
   rw [← hU', pathMaslovIndex_unitaryFrame, pathMaslovIndex_unitaryFrame]
   refine (pathMaslovIndex_eq_of_homotopy _ _ (horizontal ι) F (fun t ↦ ?_) (fun t ↦ ?_)
     (fun s ↦ by rw [hside, γ.source]) (fun s ↦ by rw [hside, γ.target])).symm
@@ -176,16 +180,11 @@ theorem pathMaslovIndex_add_half_sub_mem {Λ Λ' : ℒ ι} (γ : Path Λ Λ') (V
           Module.finrank ℝ ↥((Λ' : Submodule ℝ (StdSpace ι)) ⊓ V)) / 2 ∈
       Set.range (Int.cast : ℤ → ℝ) := by
   obtain ⟨U, rfl⟩ := unitaryFrame_surjective V
-  have hk (Λ₀ : ℒ ι) : Module.finrank ℝ
-      ↥((Λ₀ : Submodule ℝ (StdSpace ι)) ⊓ (unitaryFrame U : Submodule ℝ (StdSpace ι))) =
-      Module.finrank ℝ ↥(((U⁻¹ • Λ₀ : ℒ ι) : Submodule ℝ (StdSpace ι)) ⊓ horizontal ι) := by
-    have : horizontal ι = U⁻¹ • unitaryFrame U := by rw [unitaryFrame_def, inv_smul_smul]
-    rw [this, unitary_smul_def, unitary_smul_def, finrank_smul_inf_smul]
   obtain ⟨m, hm⟩ := pathMaslovIndex_horizontal_sub_half_sub_mem
     (γ.map (continuous_const_smul U⁻¹))
   refine ⟨m + Module.finrank ℝ ↥((Λ : Submodule ℝ (StdSpace ι)) ⊓ unitaryFrame U) -
     Module.finrank ℝ ↥((Λ' : Submodule ℝ (StdSpace ι)) ⊓ unitaryFrame U), ?_⟩
-  rw [pathMaslovIndex_unitaryFrame, hk Λ, hk Λ']
+  rw [pathMaslovIndex_unitaryFrame, finrank_inf_unitaryFrame Λ, finrank_inf_unitaryFrame Λ']
   push_cast
   linear_combination hm
 

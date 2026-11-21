@@ -181,15 +181,6 @@ theorem souriau_unitary_smul (U : unitaryGroup ι ℂ) (Λ : ℒ ι) :
   rw [UnitaryGroup.coe_souriau_mul_left]
   simp
 
-/-- The intersection of the Lagrangian framed by `U` with `{y = 0}` has the dimension of the
-intersection of Tau Ceti's real image `U ℝⁿ` with `ℝⁿ`. -/
-theorem finrank_unitaryFrame_inf_horizontal (U : unitaryGroup ι ℂ) :
-    Module.finrank ℝ ↥((unitaryFrame U : Submodule ℝ (StdSpace ι)) ⊓ horizontal ι) =
-      Module.finrank ℝ ↥((U : Matrix ι ι ℂ).realImage ⊓ TauCeti.realSubspace ι) := by
-  rw [coe_unitaryFrame_eq_map, coe_horizontal, ← StdSpace.map_realSubspace,
-    ← Submodule.map_inf _ (StdSpace.complexEuclideanEquiv ι).injective,
-    LinearEquiv.finrank_map_eq]
-
 /-- **The eigenvalue `1` of the Souriau map.** Its multiplicity as a root of the characteristic
 polynomial of `souriau Λ` is the dimension of `Λ ∩ {y = 0}`. -/
 theorem rootMultiplicity_one_charpoly_souriau (Λ : ℒ ι) :

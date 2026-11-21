@@ -152,7 +152,8 @@ These answer the questions that `DESIGN.md` leaves to this file.
    ends of the square $(s,t)\mapsto U(s)^{-1}P(s)\Lambda(t)$ relative to $V_0$
    with catenation, homotopy invariance and the zero axiom: along the two side
    edges of the square the dimension of the intersection with $V_0$ does not
-   change.
+   change. The argument adapts Tau Ceti's proof of
+   `TauCeti.GLSymplectic.conleyZehnderIndex_map_conj`.
 5. **The dictionary with Tau Ceti.** All of Tau Ceti's Lagrangian Maslov
    theory lives on `EuclideanSpace ℂ ι` (or on a general complex space),
    framed by unitary or complex-linear maps. A unitary
@@ -401,7 +402,8 @@ The Maslov phase on $\mathcal{L}(n)$ and the index of Lagrangian loops.
   `ℒ.reindexHomeomorph e` (`reindexHomeomorph_apply`).
 - `ℒ.rootMultiplicity_one_charpoly_souriau`: the multiplicity of the eigenvalue
   `1` of `souriau Λ` is `finrank (Λ ⊓ V₀)`, from Tau Ceti's lemma of the same
-  name through `ℒ.finrank_unitaryFrame_inf_horizontal`.
+  name through `ℒ.finrank_unitaryFrame_inf_horizontal` of
+  `Lagrangian/Action.lean`.
 - `ℒ.maslovIndex {Λ} (γ : Path Λ Λ) : ℤ := Circle.degree (γ.map continuous_maslovPhase)`,
   with `maslovIndex_def`; from the API of `Circle.degree` (Decision 5):
   `maslovIndex_eq_of_homotopy` (free homotopy, from
@@ -571,7 +573,9 @@ The Robbin–Salamon index of paths, relative to a Lagrangian `V`.
   `ℒ.pathMaslovIndex_eq_of_homotopy`: a homotopy `F : C(I × I, ℒ ι)` from
   `γ₀` to `γ₁` whose ends `F (s, 0)`, `F (s, 1)` keep the dimension of their
   intersections with `V` does not change the index relative to `V` (Mathlib's
-  `Path.Homotopic.map_trans_evalAt` and the zero axiom).
+  `Path.Homotopic.map_trans_evalAt` and the zero axiom); both adapt
+  the proof of Tau Ceti's `TauCeti.GLSymplectic.conleyZehnderIndex_map_conj`,
+  and move dimensions to `V₀` by `ℒ.finrank_inf_unitaryFrame`.
 - `ℒ.pathMaslovIndex_add_half_sub_mem (γ : Path Λ Λ') (V) :
   pathMaslovIndex γ V + (finrank (Λ ⊓ V) - finrank (Λ' ⊓ V)) / 2 ∈ Set.range (Int.cast : ℤ → ℝ)`
   (the values property), from Tau Ceti's
