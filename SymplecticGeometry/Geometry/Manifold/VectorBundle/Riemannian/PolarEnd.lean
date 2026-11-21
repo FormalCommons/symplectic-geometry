@@ -329,7 +329,7 @@ theorem isAlt_compatibleBilinAt (x : M) (B : V x →L[ℝ] V x) :
     (g.compatibleBilinAt x B).toBilinForm.IsAlt := fun u ↦ by
   simp [g.symm x (B u) u]
 
-theorem compatibleBilinAt_add [∀ x, IsTopologicalAddGroup (V x)] (x : M) (B C : V x →L[ℝ] V x) :
+theorem compatibleBilinAt_add [∀ x, ContinuousAdd (V x)] (x : M) (B C : V x →L[ℝ] V x) :
     g.compatibleBilinAt x (B + C) = g.compatibleBilinAt x B + g.compatibleBilinAt x C := by
   ext u v
   simp only [compatibleBilinAt_apply, add_apply, map_add]
