@@ -92,6 +92,7 @@ forms beyond graphs over $\mathbb{R}^n$.
   path lifting that *Lagrangian Grassmannian* supplies,
   `Subgroup.localSectionTrivializationOfCosetFibers`
   (`Topology/Algebra/Group/Quotient/LocalSection.lean`) with
+  `TauCeti.hasHomotopyLiftingProperty_of_exists_trivialization` and
   `TauCeti.TopCat.mem_serreFibrations_of_exists_trivialization`.
 - **Reindexing.** Mathlib's `Matrix.GeneralLinearGroup.reindex (R) (e)`
   (`LinearAlgebra/Matrix/GeneralLinearGroup/Defs.lean`) with `symm_reindex`,
@@ -220,18 +221,21 @@ and pairs).
   at `U₀` with `unitaryFrame (δ t) = γ t` for all `t`. The proof is that
   `unitaryFrame` is a fibration with fibre $\mathrm{O}(n)$
   (`ℒ.hasHomotopyLiftingProperty_unitaryFrame`), and the lift is Tau Ceti's
-  `HasHomotopyLiftingProperty.exists_path_lift`. Local sections, and with
+  `TauCeti.HasHomotopyLiftingProperty.exists_path_lift`. Local sections, and with
   them the trivializations of `ℒ.exists_trivialization_unitaryFrame`, come
   from the graph chart `ℒ.graphYChart`: every point of `ℒ ι` is `W • V₁ ι`
   for some unitary `W` (`MulAction.exists_smul_eq`), and on the open set
   `W • graphYChart.source` the section sends `Λ` to
-  `W * unitaryOfFrame (isLagrangian_range_fromRows_one hS)`. Here
+  `W * ℒ.unitaryOfFrame (isLagrangian_range_fromRows_one hS)`. Here
   `S : selfAdjoint (Matrix ι ι ℝ)` is the `graphYChart` value of `W⁻¹ • Λ`,
   and `hS := isHermitian_iff_isSymm.1 S.property` is its symmetry, since the
   chart takes values in `selfAdjoint`; the Lagrangian frame `fromRows S 1`
   (complex frame $S+i$) spans $\{x=Sy\}$. Tau Ceti's
-  `Subgroup.localSectionTrivializationOfCosetFibers` and
-  `TauCeti.TopCat.mem_serreFibrations_of_exists_trivialization` do the rest.
+  `Subgroup.localSectionTrivializationOfCosetFibers` makes the trivializations,
+  `TauCeti.hasHomotopyLiftingProperty_of_exists_trivialization` gives the
+  homotopy lifting property, and
+  `TauCeti.TopCat.mem_serreFibrations_of_exists_trivialization` the categorical
+  form `ℒ.unitaryFrame_mem_serreFibrations`.
 - **G4.** The actions of `GLSymplectic ι ℝ` and of `unitaryGroup ι ℂ` on
   `ℒ ι` (the `MulAction` instances of `Lagrangian/Action.lean`), the second
   through `TauCeti.GLSymplectic.ofUnitary`
