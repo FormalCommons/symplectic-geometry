@@ -5,7 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import Mathlib.Algebra.Lie.Quotient
+public import SymplecticGeometry.Algebra.Lie.Quotient
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Flow.Family
 public import TauCeti.Geometry.Symplectic.Hamiltonian.CommutingFlow
 public import TauCeti.Geometry.Symplectic.Hamiltonian.ExtendedPhaseSpace.Manifold
@@ -171,10 +171,8 @@ theorem coe_negHamiltonianLieHomQuotKerEquiv_mk (hσ : σ.IsSymplectic)
     (f : σ.PoissonLieAlgebra hσ) :
     (σ.negHamiltonianLieHomQuotKerEquiv hσ (LieSubmodule.Quotient.mk f) :
       σ.symplecticLieSubalgebra hσ.isClosed) = σ.negHamiltonianLieHom hσ f := by
-  rw [negHamiltonianLieHomQuotKerEquiv_def, LieEquiv.trans_apply, LieEquiv.ofEq_apply]
-  -- Mathlib states the value of `LieHom.quotKerEquivRange` on a class only through its
-  -- linear map (`LinearMap.quotKerEquivRange_apply_mk`); the two agree by definition.
-  rfl
+  rw [negHamiltonianLieHomQuotKerEquiv_def, LieEquiv.trans_apply, LieEquiv.ofEq_apply,
+    LieHom.coe_quotKerEquivRange_mk]
 
 
 /-! ### The milestone -/

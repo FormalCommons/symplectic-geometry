@@ -28,12 +28,18 @@ open sets on which the Moser fields of Moser's argument are defined
 
 * `TauCeti.SmoothTwoForm.isOpen_setOf_isInvertible_flat_mpullback_prodMk`: the set of points of
   `N × M` at which the slice has an invertible flat map is open.
+* `TauCeti.SmoothForm.coe_mpullback_prodMk_lineMapFamily`: the slices of
+  `TauCeti.SmoothForm.lineMapFamily`, stated for the underlying rough forms.
+* `TauCeti.SmoothTwoForm.isOpen_setOf_isInvertible_flat_add_smul_sub`: the same openness for the
+  segment `σ₀ + s (σ₁ - σ₀)`, as a set of points `(s, x)` of `ℝ × M`.
 * `TauCeti.SmoothTwoForm.isOpen_setOf_forall_mem_Icc_nondegenerate`: in finite dimensions, the
   set of points at which the whole segment from `σ₀` to `σ₁` is nondegenerate is open.
 * `TauCeti.SmoothForm.mpullback_prodMk_timeDeriv_lineMapFamily`: the velocity of the segment
   `α₀ + c(t) (α₁ - α₀)` at time `t` is `c'(t) (α₁ - α₀)`.
 
-The two openness proofs follow Tau Ceti's private `exists_isOpen_isInvertible_flat`
+The proofs of `isOpen_setOf_isInvertible_flat_mpullback_prodMk` and
+`isOpen_setOf_forall_mem_Icc_nondegenerate` follow Tau Ceti's private
+`exists_isOpen_isInvertible_flat`
 (`TauCeti/Geometry/Symplectic/Manifold/RelativeMoser.lean`): the flat maps form a continuous
 section along a projection, the invertible ones form an open set, and the tube lemma passes to
 the compact parameter interval. The velocity of the segment is computed as in the private
@@ -51,26 +57,26 @@ open scoped ContDiff Manifold
 
 namespace TauCeti
 
-namespace SmoothForm
-
-variable {E H M F : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
+variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
   {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M] [IsManifold I ∞ M]
-  [NormedAddCommGroup F] [NormedSpace ℝ F] {k : ℕ}
 
-/-- The slices of `TauCeti.SmoothForm.lineMapFamily α₀ α₁ hc`, as rough forms, are the forms
-`α₀ + c(t) (α₁ - α₀)`. -/
+/-- The slices of `TauCeti.SmoothForm.lineMapFamily α₀ α₁ hc`, as rough forms: the pullback of
+the underlying form along `x ↦ (t, x)` is the underlying form of `α₀ + c(t) (α₁ - α₀)`. -/
 @[simp]
-theorem coe_mpullback_prodMk_lineMapFamily (α₀ α₁ : SmoothForm I M F k) {c : ℝ → ℝ}
-    (hc : ContDiff ℝ ∞ c) (t : ℝ) :
+theorem SmoothForm.coe_mpullback_prodMk_lineMapFamily {F : Type*} [NormedAddCommGroup F]
+    [NormedSpace ℝ F] {k : ℕ} (α₀ α₁ : SmoothForm I M F k) {c : ℝ → ℝ} (hc : ContDiff ℝ ∞ c)
+    (t : ℝ) :
     TauCeti.mpullback (F := F) I (𝓘(ℝ, ℝ).prod I) (Prod.mk t) (lineMapFamily α₀ α₁ hc).val =
       (α₀ + c t • (α₁ - α₀)).val :=
-  (coe_mpullback _ _ _).symm.trans (congrArg Subtype.val (mpullback_prodMk_lineMapFamily _ _ _ t))
+  (coe_mpullback _ _ _).symm.trans
+    (congrArg Subtype.val (mpullback_prodMk_lineMapFamily α₀ α₁ hc t))
 
 /-- **The velocity of a reparametrized segment of forms.** The slice at time `t` of the time
 derivative of `TauCeti.SmoothForm.lineMapFamily α₀ α₁ hc`, the family `α₀ + c(t) (α₁ - α₀)`, is
 `c'(t) (α₁ - α₀)`. -/
-theorem mpullback_prodMk_timeDeriv_lineMapFamily [I.Boundaryless] (α₀ α₁ : SmoothForm I M F k)
-    {c : ℝ → ℝ} (hc : ContDiff ℝ ∞ c) (t : ℝ) :
+theorem SmoothForm.mpullback_prodMk_timeDeriv_lineMapFamily [I.Boundaryless] {F : Type*}
+    [NormedAddCommGroup F] [NormedSpace ℝ F] {k : ℕ} (α₀ α₁ : SmoothForm I M F k) {c : ℝ → ℝ}
+    (hc : ContDiff ℝ ∞ c) (t : ℝ) :
     mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id)
       (lineMapFamily α₀ α₁ hc).timeDeriv = deriv c t • (α₁ - α₀) := by
   apply Subtype.ext
@@ -87,12 +93,7 @@ theorem mpullback_prodMk_timeDeriv_lineMapFamily [I.Boundaryless] (α₀ α₁ :
     (hct.smul_const _).const_add _
   exact h2
 
-end SmoothForm
-
 namespace SmoothTwoForm
-
-variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
-  {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M] [IsManifold I ∞ M]
 
 /-- **Invertibility of the flat maps of a family is an open condition.** For a smooth two-form
 `σ` on `N × M`, the set of points `(t, x)` at which the slice `σ_t = ι_t^* σ` has an invertible
@@ -115,6 +116,16 @@ theorem isOpen_setOf_isInvertible_flat_mpullback_prodMk [CompleteSpace E] {EN HN
         SmoothForm.mpullback (Prod.mk q.1) (contMDiff_const.prodMk contMDiff_id) σ)
       (SmoothForm.contMDiff_mpullback_prodMk σ p))
 
+/-- **Invertibility of the flat maps along a segment is an open condition.** For two-forms `σ₀`,
+`σ₁` on `M`, the set of points `(s, x)` of `ℝ × M` at which `σ₀ + s (σ₁ - σ₀)` has an invertible
+flat map `T_x M → T_x^* M` is open. The model space of `M` is assumed complete. -/
+theorem isOpen_setOf_isInvertible_flat_add_smul_sub [CompleteSpace E]
+    (σ₀ σ₁ : SmoothTwoForm I M) :
+    IsOpen {p : ℝ × M | ((σ₀ + p.1 • (σ₁ - σ₀)).flat p.2).IsInvertible} := by
+  simpa only [SmoothForm.mpullback_prodMk_lineMapFamily, id_eq] using
+    isOpen_setOf_isInvertible_flat_mpullback_prodMk
+      (SmoothForm.lineMapFamily σ₀ σ₁ (contDiff_id (n := ∞)))
+
 /-- **Nondegeneracy of a segment of two-forms is an open condition.** For two-forms `σ₀`, `σ₁`
 on a finite-dimensional manifold, the set of points `x` at which every form
 `σ₀ + s (σ₁ - σ₀)` with `s ∈ [0, 1]` is nondegenerate is open. -/
@@ -122,9 +133,7 @@ theorem isOpen_setOf_forall_mem_Icc_nondegenerate [FiniteDimensional ℝ E]
     (σ₀ σ₁ : SmoothTwoForm I M) :
     IsOpen {x : M | ∀ s ∈ Icc (0 : ℝ) 1,
       ((σ₀ + s • (σ₁ - σ₀)).bilinFormAt x).Nondegenerate} := by
-  have hO := isOpen_setOf_isInvertible_flat_mpullback_prodMk
-    (SmoothForm.lineMapFamily σ₀ σ₁ contDiff_id)
-  simp only [SmoothForm.mpullback_prodMk_lineMapFamily, id_eq] at hO
+  have hO := isOpen_setOf_isInvertible_flat_add_smul_sub σ₀ σ₁
   refine isOpen_iff_forall_mem_open.2 fun x hx ↦ ?_
   have hsub : Icc (0 : ℝ) 1 ×ˢ {x} ⊆
       {p : ℝ × M | ((σ₀ + p.1 • (σ₁ - σ₀)).flat p.2).IsInvertible} := by

@@ -215,6 +215,18 @@ Named like Tau Ceti's file; in Mathlib's namespace `Real.smoothTransition`.
   $f(x)/(f(x)+f(1-x))$ and the positive derivative of
   `expNegInvGlue` on $(0,\infty)$ (Tau Ceti's `expNegInvGlue.hasDerivAt`).
 
+### `LinearAlgebra/Lagrange.lean`
+
+Evaluation of Mathlib's Lagrange basis, in Mathlib's namespace `Lagrange`,
+for `Seeley/Coefficients.lean`.
+
+- `Lagrange.eval_basis (s : Finset ι) (v : ι → F) (i : ι) (x : F) :
+  (basis s v i).eval x = ∏ j ∈ s.erase i, (x - v j) / (v i - v j)`.
+- `Lagrange.sum_eval_basis_mul_eval (hvs : Set.InjOn v s) (hP : P.degree < #s)
+  (x : F) : ∑ i ∈ s, (basis s v i).eval x * P.eval (v i) = P.eval x`.
+- `Lagrange.sum_eval_basis_mul_pow (hvs : Set.InjOn v s) (hn : n < #s) (x : F) :
+  ∑ i ∈ s, (basis s v i).eval x * v i ^ n = x ^ n`.
+
 ### `Analysis/Calculus/ContDiff/Seeley/Coefficients.lean`
 
 Seeley's coefficients: a real sequence $a_k$ with
@@ -296,13 +308,16 @@ Smooth families of forms over a parameter manifold `N` (model
   : Prop := ∃ Ω : SmoothForm (J.prod I) (N × M) F k, ∀ t,
   SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) Ω =
   α t`, with `isSmoothFamily_def`.
-- `SymplecticGeometry.SmoothForm.ofSlices`: from a family whose slice section
+- `TauCeti.SmoothForm.ofSlices` (in Tau Ceti's namespace, as it is about
+  Tau Ceti's `SmoothForm`): from a family whose slice section
   `p ↦ TotalSpace.mk' _ p.2 ((α p.1).val p.2)` is smooth along the projection,
   the form on `N × M` that vanishes on the parameter directions and has the
   slices `α t` (`mpullback_prodMk_ofSlices`). Hence
   `isSmoothFamily_iff_contMDiff`, the converse direction being Tau Ceti's
-  `contMDiff_mpullback_prodMk`. Every closure lemma below is proved through
-  this characterization, which makes smoothness of a family local in `M`.
+  `contMDiff_mpullback_prodMk`. The closure lemmas `.fun_smul`, `.funSMul`,
+  `.extendByZero_smul` and the one on `U ⊔ V` are proved through this
+  characterization, which makes smoothness of a family local in `M`; the
+  others are built from `Ω` directly.
 - Consequences: `IsSmoothFamily.contMDiff_apply` (for fixed `x` and `v`,
   `t ↦ (α t).val x v` is smooth); `isSmoothFamily_const`; `.add`, `.neg`,
   `.sub`, `.smul`, `.fun_smul` (by a smooth function of `t`), `.sum`;
@@ -313,8 +328,8 @@ Smooth families of forms over a parameter manifold `N` (model
   `isSmoothFamily_iff_mpullback_inclusion_sup` (a family on `U ⊔ V` is
   smooth exactly when its restrictions to `U` and `V` are).
 - The other order of the cylinder:
-  `mpullback_prodMk_mpullback_prodComm`, that the slice at `t` of the
-  pullback of `Ω : SmoothForm (I.prod J) (M × N) F k` along
+  `TauCeti.SmoothForm.mpullback_prodMk_mpullback_prodComm`, that the slice
+  at `t` of the pullback of `Ω : SmoothForm (I.prod J) (M × N) F k` along
   `Diffeomorph.prodComm` is the pullback of `Ω` along `(·, t)`.
 
 ### `Geometry/Manifold/DifferentialForm/SmoothFamily/Map.lean`
@@ -340,6 +355,14 @@ Smooth families of forms over a parameter manifold `N` (model
   maps into a finite-dimensional space whose coordinates are smooth on
   families, and finite linear combinations of fixed forms with such
   coefficients, take smooth families to smooth families.
+
+### `Geometry/Manifold/LocalDiffeomorph/OpenSubset.lean`
+
+Named like Tau Ceti's file; in `TauCeti`.
+
+- `TauCeti.isLocalDiffeomorph_inclusion`: for open subsets `U ≤ W`, the
+  inclusion `Opens.inclusion h : U → W` is a `C^n` local diffeomorphism, for
+  restricting families and forms between open subsets.
 
 ### `Geometry/Manifold/DifferentialForm/HomotopyOperator.lean`
 
@@ -555,7 +578,9 @@ Below, `∂ₜ` at `(x, t)` is the tangent vector
 - The reading over `ℝ`: writing `s u` for `Real.smoothTransitionUnit u :=
   ⟨Real.smoothTransition u, _, _⟩ : unitInterval`, with
   `Real.coe_smoothTransitionUnit`, `Real.smoothTransitionUnit_of_nonpos`,
-  `Real.smoothTransitionUnit_of_one_le` and `Real.contMDiff_smoothTransitionUnit`,
+  `Real.smoothTransitionUnit_of_one_le` and `Real.contMDiff_smoothTransitionUnit`
+  (all in `Geometry/Manifold/SmoothTransition.lean`, which imports nothing
+  of the library),
   `smoothTransitionFamily (Φ : Diffeotopy I ∞ M)
   (t : ℝ) : M ≃ₘ⟮I, I⟯ M := Φ.timeSlice (s t)`,
   with `smoothTransitionFamily_def`, `smoothTransitionFamily_apply`,
@@ -642,7 +667,8 @@ can start at once; each issue's blockers come before it.
     `Geometry/Manifold/DeRham/SmoothFamily/GoodCover.lean`. Blocked by 9, 11
     and 12.
 14. **Isotopies over `ℝ` and diffeotopies.**
-    `Analysis/SpecialFunctions/SmoothTransition.lean` and
+    `Analysis/SpecialFunctions/SmoothTransition.lean`,
+    `Geometry/Manifold/SmoothTransition.lean` and
     `Geometry/Diffeomorphism/Diffeotopy/Real.lean`.
 15. **Diffeotopies from families of diffeomorphisms.**
     `Geometry/Diffeomorphism/Diffeotopy/OfContMDiff.lean`. Blocked by 2 and 14
