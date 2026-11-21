@@ -28,7 +28,7 @@ Its Maslov index is `μ(γ) + 2 μ(Ψ)`, where `μ(Ψ)` is the Maslov index
 Tau Ceti's symplectic polar homotopy `TauCeti.GLSymplectic.polarHomotopy` deforms `Ψ`, through
 loops of symplectic matrices, into its loop of orthogonal polar factors, which are realified
 unitary matrices `U t`. Acting on `γ`, it gives a free homotopy of Lagrangian loops, and at its
-end the Maslov phase is `(det U t)² ρ(γ t)` (`maslovPhase_ofUnitary_smul`), whose degree is
+end the Maslov phase is `(det U t)² ρ(γ t)` (`maslovPhase_unitary_smul`), whose degree is
 `2 μ(Ψ) + μ(γ)`. This follows the proof of `TauCeti.GLSymplectic.maslovIndex_mul`, which deforms
 two symplectic loops the same way.
 
@@ -61,7 +61,7 @@ private theorem maslovPhase_inclusion_smul
   have hU : Subgroup.inclusion inf_le_left U =
       GLSymplectic.ofUnitary (unitaryGroupEquivSymplecticInfOrthogonal.symm U) := by
     rw [GLSymplectic.ofUnitary_apply, ContinuousMulEquiv.apply_symm_apply]
-  rw [hU, maslovPhase_ofUnitary_smul, GLSymplectic.maslovPhase_ofUnitary]
+  rw [hU, ofUnitary_smul, maslovPhase_unitary_smul, GLSymplectic.maslovPhase_ofUnitary]
 
 /-- **The product axiom.** A loop `Ψ` of symplectic matrices moves a loop `γ` of Lagrangian
 subspaces to the loop `t ↦ Ψ t • γ t`, whose Maslov index is that of `γ` plus twice the Maslov

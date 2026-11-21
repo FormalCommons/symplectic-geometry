@@ -72,11 +72,8 @@ theorem finrank_smul_inf_smul [DecidableEq ι] (g : GLSymplectic ι ℝ) (Λ Λ'
     Module.finrank ℝ ↥(((g • Λ : ℒ ι) : Submodule ℝ (StdSpace ι)) ⊓
         ((g • Λ' : ℒ ι) : Submodule ℝ (StdSpace ι))) =
       Module.finrank ℝ ↥((Λ : Submodule ℝ (StdSpace ι)) ⊓ (Λ' : Submodule ℝ (StdSpace ι))) := by
-  set M := ((g : GL (ι ⊕ ι) ℝ) : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ)
-  set e := (M.toEuclideanCLE (g : GL (ι ⊕ ι) ℝ).det_ne_zero).toLinearEquiv
-  have he : toEuclideanLin M = e.toLinearMap :=
-    LinearMap.ext fun v ↦ (toEuclideanCLE_apply _ _ v).symm
-  rw [coe_smul, coe_smul, he, ← Submodule.map_inf _ e.injective, LinearEquiv.finrank_map_eq]
+  rw [coe_smul_eq_map_toEuclideanCLE, coe_smul_eq_map_toEuclideanCLE,
+    ← Submodule.map_inf _ (LinearEquiv.injective _), LinearEquiv.finrank_map_eq]
 
 /-! ### The points of the basic chart -/
 
