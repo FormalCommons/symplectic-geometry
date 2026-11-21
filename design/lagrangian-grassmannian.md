@@ -235,8 +235,8 @@ find them there.
   `equivProd.symm`. It goes beside `equivProd`, before the file's
   `variable [Fintype ι]`, since it needs no finiteness. API: `swap_def`, and the
   `@[simp]` lemmas `x_swap` and `y_swap` (both by `(rfl)`), `swap_swap`,
-  `symm_swap`, and `map_swap_ker_x`, which says that it carries
-  `LinearMap.ker StdSpace.x` to `LinearMap.ker StdSpace.y`.
+  `symm_swap`, and `map_swap_ker_x` and `map_swap_ker_y`, which say that it
+  exchanges `LinearMap.ker StdSpace.x` and `LinearMap.ker StdSpace.y`.
 
 This part also uses
 `SymplecticGeometry.isSymplectomorphism_piLpCongrLeft_sumCongr` (`σ : ι ≃ κ`),
@@ -293,8 +293,8 @@ Lagrangian frames on `StdSpace ι`, pure linear algebra. Namespace
   Every `z` is `(z.x, A z.x) + (0, z.y - A z.x)`, and a vector of the graph
   with `x = 0` is zero.
 - The coordinate swap `StdSpace.swap ι` of `Standard/Basic.lean` carries
-  `graph A` to `graphY A` (`map_swap_graph`, `@[simp]`, the definition read
-  backwards), and the kernel of `x` to that of `y` (`map_swap_ker_x`). So
+  `graph A` to `graphY A` by the definition (`graphY_def`), and exchanges the
+  kernels of `x` and `y` (`map_swap_ker_x`, `map_swap_ker_y`). So
   `graphY_injective`, `isCompl_graphY_ker_y` and
   `exists_eq_graphY_of_isCompl_ker_y` are not proved again: they are
   `graph_injective`, `isCompl_graph_ker_x` and
