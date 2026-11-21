@@ -44,7 +44,9 @@ open quotient map, this formula gives the openness and continuity that the chart
   when a unitary frame lies in its source, and `coe_graphYChart_unitaryFrame` gives its value
   there.
 * `SymplecticGeometry.LagrangianGrassmannian.graphChart`: the chart on the Lagrangians transverse
-  to `{x = 0}`, with inverse `graph`.
+  to `{x = 0}`, with inverse `graph`. For a Lagrangian spanned by `fromRows X Y`,
+  `mem_graphChart_source_iff_isUnit` says it lies in the source iff `X` is invertible, and
+  `coe_graphChart_eq_mul_inv` gives its value `Y X⁻¹`.
 * `SymplecticGeometry.LagrangianGrassmannian.continuous_of_coe_eq_graph`: a continuous family of
   Lagrangians that are graphs `{(x, A t x)}` has continuous `A`.
 
@@ -277,6 +279,28 @@ theorem graphChart_graph (S : selfAdjoint (Matrix ι ι ℝ)) : graphChart (grap
 theorem graphChart_symm_apply (S : selfAdjoint (Matrix ι ι ℝ)) :
     (graphChart : OpenPartialHomeomorph (ℒ ι) _).symm S = graph S := by
   simp [graphChart_def, ← symJ_smul_graph]
+
+/-- A Lagrangian spanned by the frame `fromRows X Y` lies in the source of the chart transverse
+to `{x = 0}`, that is, meets `{x = 0}` only in `0`, iff `X` is invertible. -/
+theorem mem_graphChart_source_iff_isUnit {Λ : ℒ ι} {X Y : Matrix ι ι ℝ}
+    (hΛ : (Λ : Submodule ℝ (StdSpace ι)) = LinearMap.range (toEuclideanLin (fromRows X Y))) :
+    Λ ∈ (graphChart : OpenPartialHomeomorph (ℒ ι) _).source ↔ IsUnit X := by
+  rw [graphChart_source, mem_ofPred_eq, isCompl_iff_disjoint, hΛ, coe_vertical]
+  exact StdSpace.disjoint_range_toEuclideanLin_fromRows_ker_x_iff_of_isLagrangian
+    (hΛ ▸ Λ.isLagrangian)
+
+/-- If a Lagrangian is spanned by the frame `fromRows X Y` with `X` invertible, the chart
+transverse to `{x = 0}` sends it to `Y X⁻¹`. -/
+theorem coe_graphChart_eq_mul_inv {Λ : ℒ ι} {X Y : Matrix ι ι ℝ}
+    (hΛ : (Λ : Submodule ℝ (StdSpace ι)) = LinearMap.range (toEuclideanLin (fromRows X Y)))
+    (hX : IsUnit X) :
+    (graphChart Λ : Matrix ι ι ℝ) = Y * X⁻¹ := by
+  obtain ⟨T, rfl⟩ : Λ ∈ range graph := by
+    rw [range_graph, ← graphChart_source]
+    exact (mem_graphChart_source_iff_isUnit hΛ).2 hX
+  rw [graphChart_graph]
+  apply StdSpace.graph_injective
+  rw [← coe_graph, hΛ, StdSpace.range_toEuclideanLin_fromRows_eq_graph hX]
 
 end DecidableEq
 

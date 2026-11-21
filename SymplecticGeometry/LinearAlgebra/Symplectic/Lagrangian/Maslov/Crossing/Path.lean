@@ -147,8 +147,7 @@ private theorem crossing_sum_of_isCompl_vertical {Λ Λ' : ℒ ι} (γ : Path Λ
   have hZA (t : I) : Z t * (X t)⁻¹ = fromRows 1 (A t) := by
     rw [hZXY, fromRows_mul, mul_nonsing_inv _ ((isUnit_iff_isUnit_det _).1 (hX t))]
   have hγA (t : I) : (γ t : Submodule ℝ (StdSpace ι)) = StdSpace.graph (A t) := by
-    rw [← hZ t, ← StdSpace.range_toEuclideanLin_fromRows_one_eq_graph, ← hZA,
-      range_toLpLin_mul_of_isUnit 2 _ (isUnit_nonsing_inv_iff.2 (hX t))]
+    rw [← hZ t, hZXY, StdSpace.range_toEuclideanLin_fromRows_eq_graph (hX t)]
   -- The derivative of `A`, from those of the blocks, and the frame `fromRows 1 A` with it.
   set h' : ℝ → Matrix ι ι ℝ := fun r ↦ -((X r)⁻¹ * (Z' r).toRows₁ * (X r)⁻¹)
   set A' : ℝ → Matrix ι ι ℝ := fun r ↦ (Z' r).toRows₂ * (X r)⁻¹ + Y r * h' r

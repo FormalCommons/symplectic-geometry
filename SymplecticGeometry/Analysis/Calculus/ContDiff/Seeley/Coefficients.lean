@@ -7,7 +7,7 @@ module
 
 public import Mathlib.Analysis.SpecialFunctions.Log.Summable
 public import Mathlib.Analysis.Normed.Group.Tannery
-public import Mathlib.LinearAlgebra.Lagrange
+public import SymplecticGeometry.LinearAlgebra.Lagrange
 
 /-!
 # Seeley's coefficients
@@ -19,11 +19,11 @@ the moment identities `∑ₖ aₖ (-2 ^ k) ^ n = 1` for every `n : ℕ`, with
 `aₖ = ∏_{j ≠ k} (1 + 2 ^ j) / (2 ^ j - 2 ^ k)` and proves both properties.
 
 For `N > n`, the numbers `∏_{j < N, j ≠ k} (1 + 2 ^ j) / (2 ^ j - 2 ^ k)` are the values at `1`
-of the Lagrange basis polynomials of the nodes `-2 ^ k`, `k < N`, so Mathlib's
-`Lagrange.eq_interpolate`, applied to `X ^ n`, gives the moment identity for these finite
-products. They tend to `aₖ` as `N → ∞`, and are bounded uniformly in `N` by
-`exp 8 * ∏_{i < k} 2 / 2 ^ i`, which decays faster than any exponential. Dominated convergence
-(`tendsto_tsum_of_dominated_convergence`) then gives the identity for `aₖ`.
+of the Lagrange basis polynomials of the nodes `-2 ^ k`, `k < N` (`Lagrange.eval_basis`), so
+`Lagrange.sum_eval_basis_mul_pow`, which reproduces `X ^ n` from these values, gives the
+moment identity for these finite products. They tend to `aₖ` as `N → ∞`, and are bounded
+uniformly in `N` by `exp 8 * ∏_{i < k} 2 / 2 ^ i`, which decays faster than any exponential.
+Dominated convergence (`tendsto_tsum_of_dominated_convergence`) then gives the identity for `aₖ`.
 
 ## Main definitions
 
@@ -43,7 +43,7 @@ products. They tend to `aₖ` as `N → ∞`, and are bounded uniformly in `N` b
 
 public section
 
-open Filter Finset Polynomial
+open Filter Finset
 open scoped Topology
 
 namespace SymplecticGeometry
@@ -152,21 +152,17 @@ private theorem sum_prod_seeleyFactor_mul_pow {n N : ℕ} (hn : n < N) :
   set v : ℕ → ℝ := fun k ↦ -2 ^ k
   have hinj : Set.InjOn v (range N) := fun a _ b _ hab ↦
     pow_right_injective₀ (by norm_num : (0 : ℝ) < 2) (by norm_num) (neg_inj.mp hab)
-  have hdeg : ((X : ℝ[X]) ^ n).degree < (range N).card := by
-    rw [degree_X_pow, card_range]; exact_mod_cast hn
-  have := congrArg (eval 1) (Lagrange.eq_interpolate hinj hdeg)
-  rw [eval_pow, eval_X, one_pow, Lagrange.interpolate_apply, eval_finsetSum] at this
-  rw [this]
-  refine sum_congr rfl fun k _ ↦ ?_
-  rw [eval_mul, eval_C, eval_pow, eval_X, mul_comm, Lagrange.basis, eval_prod,
-    ← prod_erase (range N) (f := seeleyFactor k) (a := k) (by simp [seeleyFactor])]
-  congr 1
-  refine prod_congr rfl fun j hj ↦ ?_
-  rw [seeleyFactor, ite_eq_right (ne_of_mem_erase hj), Lagrange.basisDivisor, eval_mul, eval_C,
-    eval_sub, eval_X, eval_C]
-  simp only [v]
-  rw [div_eq_inv_mul]
-  congr 1 <;> ring
+  calc ∑ k ∈ range N, (∏ j ∈ range N, seeleyFactor k j) * v k ^ n
+      = ∑ k ∈ range N, (Lagrange.basis (range N) v k).eval 1 * v k ^ n := by
+        refine sum_congr rfl fun k _ ↦ ?_
+        rw [Lagrange.eval_basis,
+          ← prod_erase (range N) (f := seeleyFactor k) (a := k) (by simp [seeleyFactor])]
+        congr 1
+        refine prod_congr rfl fun j hj ↦ ?_
+        rw [seeleyFactor, ite_eq_right (ne_of_mem_erase hj)]
+        congr 1 <;> simp only [v] <;> ring
+    _ = 1 ^ n := Lagrange.sum_eval_basis_mul_pow hinj (by rwa [card_range]) 1
+    _ = 1 := one_pow n
 
 /-- For `k ≤ N`, the partial product of length `N` for `aₖ`, times `2 ^ (k n)`, is bounded,
 uniformly in `N`, by the `k`-th term of a summable sequence. -/

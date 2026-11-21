@@ -76,6 +76,8 @@ A *frame* is a real `2n × n` matrix `Z = fromRows X Y`, whose columns span the 
   `disjoint_range_toEuclideanLin_fromRows_ker_y_iff_of_isLagrangian`: the same for a Lagrangian
   frame; `disjoint_range_toEuclideanLin_fromRows_ker_x_iff_of_isLagrangian`: a Lagrangian frame
   spans a subspace transverse to `{x = 0}` iff `X` is invertible.
+* `SymplecticGeometry.StdSpace.range_toEuclideanLin_fromRows_eq_graph`: if `X` is invertible,
+  the frame `fromRows X Y` spans `graph (Y X⁻¹)`.
 
 ## References
 
@@ -404,6 +406,12 @@ theorem StdSpace.range_toEuclideanLin_fromRows_eq_graphY {X Y : Matrix ι ι ℝ
   rw [← range_toEuclideanLin_fromRows_one_eq_graphY,
     ← range_toLpLin_mul_of_isUnit 2 (fromRows (X * Y⁻¹) 1) hY, fromRows_mul, Matrix.one_mul,
     nonsing_inv_mul_cancel_right _ _ ((isUnit_iff_isUnit_det Y).1 hY)]
+
+/-- If `X` is invertible, the frame `fromRows X Y` spans the graph `{(x, Y X⁻¹ x)}`. -/
+theorem StdSpace.range_toEuclideanLin_fromRows_eq_graph {X Y : Matrix ι ι ℝ} (hX : IsUnit X) :
+    LinearMap.range (toEuclideanLin (fromRows X Y)) = graph (Y * X⁻¹) := by
+  rw [← map_swap_range_toEuclideanLin_fromRows Y X, range_toEuclideanLin_fromRows_eq_graphY hX,
+    graphY_def, ← symm_swap, Submodule.map_symm_eq_iff, symm_swap]
 
 /-- The standard form on the columns of a frame: `ω₀(Z u, Z v) = uᵀ (Xᵀ Y - Yᵀ X) v` for
 `Z = fromRows X Y`. -/

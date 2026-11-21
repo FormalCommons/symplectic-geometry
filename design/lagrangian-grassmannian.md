@@ -454,6 +454,9 @@ Lagrangian frames on `StdSpace ι`, pure linear algebra. Namespace
   `StdSpace.map_swap_range_toEuclideanLin_fromRows` say that `swap` carries
   the columns of `fromRows X Y` to those of `fromRows Y X`. With `coe_ofFrame`,
   they read the graph of a symmetric matrix as an `ofFrame`, for the charts.
+  `StdSpace.range_toEuclideanLin_fromRows_eq_graph`, the mirror of
+  `StdSpace.range_toEuclideanLin_fromRows_eq_graphY`: for invertible `X`,
+  `fromRows X Y` spans `graph (Y * X⁻¹)`, through `swap`.
 - `ℒ.ofFrame (X Y : Matrix ι ι ℝ)
   (h : (stdForm ι).IsLagrangian (range (toEuclideanLin (fromRows X Y)))) : ℒ ι`,
   the Lagrangian that the frame spans, with `coe_ofFrame` (`@[simp]`): its
@@ -832,7 +835,11 @@ is Tau Ceti's `Topology/Grassmannian/Graph.lean`, which does the same for
   `symJ_smul_graph`. API: `graphChart_def`, `graphChart_apply`
   (`graphChart Λ = -graphYChart (symJ ι ℝ • Λ)`), and `graphChart_source`,
   `graphChart_target`, `graphChart_symm_apply` and `graphChart_graph` (all
-  `@[simp]`).
+  `@[simp]`). The mirrors of the frame lemmas of `graphYChart`:
+  `mem_graphChart_source_iff_isUnit` (a Lagrangian spanned by `fromRows X Y`
+  is in the source iff `X` is invertible) and `coe_graphChart_eq_mul_inv`
+  (its value is `Y X⁻¹`); the first is the `graphY` version transported
+  along `swap`.
 
 ### `Topology/Grassmannian/Lagrangian/Fibration.lean`
 
