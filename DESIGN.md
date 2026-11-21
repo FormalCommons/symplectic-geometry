@@ -1032,7 +1032,8 @@ it into issues; the overview fixes its folders and its dependencies.
   line bundle as a principal `Circle`-bundle; see *Constructions*),
   and, for the last milestone, `Geometry/Manifold/IsManifold/InteriorBoundary.lean`
   (the interior of a manifold with boundary as a boundaryless manifold,
-  connected when the manifold is connected and of positive dimension),
+  connected when the manifold is connected; its topological step goes in
+  `Topology/Connected/Basic.lean`),
   `Geometry/Manifold/Boundary/Collar/Push.lean`
   (a homotopy pushing a compact manifold with boundary into a compact subset
   of its interior along a collar), `.../VectorBundle/Section/Generic.lean`
