@@ -9,6 +9,7 @@ public import TauCeti.Analysis.Matrix.UnitaryGroup.Connected
 public import TauCeti.AlgebraicTopology.UniversalCover.Circle.FundamentalGroup
 public import TauCeti.Topology.Algebra.Matrix.UnitaryGroup
 public import TauCeti.Topology.Homotopy.HomotopyGroup.BasepointChange
+public import SymplecticGeometry.AlgebraicTopology.FundamentalGroup
 public import SymplecticGeometry.Analysis.Matrix.UnitaryGroup.Basic
 public import SymplecticGeometry.Topology.Grassmannian.StiefelFibration.Stability
 
@@ -173,10 +174,8 @@ empty index type `U(ι)` is a point, so its trivial fundamental group cannot map
 `π₁(S¹) ≅ ℤ`. -/
 theorem not_bijective_fundamentalGroupMap_detCircle_of_isEmpty (U : unitaryGroup ι ℂ) :
     ¬ Function.Bijective (FundamentalGroup.map
-      (⟨detCircle, continuous_detCircle⟩ : C(unitaryGroup ι ℂ, Circle)) U) := fun h ↦ by
-  have := h.2.subsingleton
-  have := (Circle.fundamentalGroupMulEquiv (detCircle U)).symm.subsingleton
-  exact not_subsingleton (Multiplicative ℤ) this
+      (⟨detCircle, continuous_detCircle⟩ : C(unitaryGroup ι ℂ, Circle)) U) :=
+  fun h ↦ FundamentalGroup.not_surjective_map_circle_of_subsingleton U _ h.2
 
 end IsEmpty
 
