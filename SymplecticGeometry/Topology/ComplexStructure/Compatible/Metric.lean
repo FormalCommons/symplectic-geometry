@@ -24,6 +24,8 @@ segment from `g_{J_{g,ω}}` to `g` stays in the convex set `innerProducts V`.
 
 * `SymplecticGeometry.compatibleMetric ω`: the continuous map `J ↦ g_J` from the `ω`-compatible
   complex structures to the inner products.
+* `SymplecticGeometry.compatiblePolar ω`: the continuous map `g ↦ J_{g,ω}` in the other
+  direction.
 * `SymplecticGeometry.metricStraightHomotopy ω`: the straight-line homotopy
   `(t, g) ↦ (1 - t) • g_{J_{g,ω}} + t • g` from the composite to the identity of
   `innerProducts V`.
@@ -67,21 +69,24 @@ theorem coe_compatibleMetric_apply (J : {J : AlmostComplexStructure V // ω.Comp
       (ω.associatedBilinForm J.val).toContinuousBilinearMap :=
   (rfl)
 
-/-- The continuous map `g ↦ J_{g,ω}` from the inner products to the `ω`-compatible complex
-structures. -/
-private noncomputable def compatiblePolar :
+/-- The continuous map `g ↦ J_{g,ω}` from the inner products of `V` to the `ω`-compatible
+complex structures. -/
+noncomputable def compatiblePolar :
     C(innerProducts V, {J : AlmostComplexStructure V // ω.Compatible J}) :=
   ⟨fun g ↦ ⟨metricPolarComplexStructure g ω, compatible_metricPolarComplexStructure g ω⟩,
     (continuous_metricPolarComplexStructure.comp
       (continuous_id.prodMk continuous_const)).subtype_mk _⟩
 
+/-- The value of `compatiblePolar ω` at `g` is `J_{g,ω}`. -/
+@[simp]
+theorem coe_compatiblePolar_apply (g : innerProducts V) :
+    (compatiblePolar ω g : AlmostComplexStructure V) = metricPolarComplexStructure g ω :=
+  (rfl)
+
 /-- The straight-line homotopy `(t, g) ↦ (1 - t) • g_{J_{g,ω}} + t • g` in the convex set of inner
 products, from `g ↦ g_{J_{g,ω}}` to the identity. -/
 noncomputable def metricStraightHomotopy :
-    ((compatibleMetric ω).comp
-      ⟨fun g ↦ ⟨metricPolarComplexStructure g ω, compatible_metricPolarComplexStructure g ω⟩,
-        (continuous_metricPolarComplexStructure.comp
-          (continuous_id.prodMk continuous_const)).subtype_mk _⟩).Homotopy
+    ((compatibleMetric ω).comp (compatiblePolar ω)).Homotopy
       (ContinuousMap.id (innerProducts V)) where
   toFun p := ⟨ContinuousMap.Homotopy.affine
       ((ContinuousMap.subtypeVal _).comp ((compatibleMetric ω).comp (compatiblePolar ω)))
@@ -124,16 +129,14 @@ theorem metricHomotopyEquiv_toFun : (metricHomotopyEquiv ω).toFun = compatibleM
 
 /-- The homotopy inverse of `metricHomotopyEquiv ω` is `g ↦ J_{g,ω}`. -/
 @[simp]
-theorem metricHomotopyEquiv_invFun (g : innerProducts V) :
-    (metricHomotopyEquiv ω).invFun g =
-      ⟨metricPolarComplexStructure g ω, compatible_metricPolarComplexStructure g ω⟩ :=
+theorem metricHomotopyEquiv_invFun : (metricHomotopyEquiv ω).invFun = compatiblePolar ω :=
   (rfl)
 
-/-- The inverse of `metricHomotopyEquiv ω` sends an inner product `g` to `J_{g,ω}`. -/
+/-- The inverse of `metricHomotopyEquiv ω` sends an inner product `g` to `J_{g,ω}`, that is, to
+`compatiblePolar ω g`. -/
 @[simp]
 theorem metricHomotopyEquiv_symm_apply (g : innerProducts V) :
-    (metricHomotopyEquiv ω).symm g =
-      ⟨metricPolarComplexStructure g ω, compatible_metricPolarComplexStructure g ω⟩ :=
+    (metricHomotopyEquiv ω).symm g = compatiblePolar ω g :=
   (rfl)
 
 /-- On a finite-dimensional symplectic vector space `(V, ω)`, the `ω`-compatible complex
