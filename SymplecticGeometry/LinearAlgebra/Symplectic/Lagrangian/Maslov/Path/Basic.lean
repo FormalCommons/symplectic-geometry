@@ -47,9 +47,10 @@ Tau Ceti's index of paths of unitary frames.
   relative to any Lagrangian is the Maslov index of the loop, `(α 1 - α 0) / π` for
   `det (X + i Y)(t) = e^{i α(t)}`.
 
-The independence of the frame adapts the proof of Tau Ceti's
-`Matrix.UnitaryGroup.maslovIndex_map_mul_left`, and homotopy invariance, catenation, reversal and
-constant paths adapt those of `Matrix.UnitaryGroup.maslovIndex_eq_of_homotopic`,
+The independence of the frame is transferred from Tau Ceti's
+`Matrix.UnitaryGroup.maslovIndex_map_mul_left` through a lift to unitary frames. Homotopy
+invariance, catenation, reversal and constant paths adapt the proofs of
+`Matrix.UnitaryGroup.maslovIndex_eq_of_homotopic`,
 `Matrix.UnitaryGroup.maslovIndex_trans`, `Matrix.UnitaryGroup.maslovIndex_symm` and
 `Matrix.UnitaryGroup.maslovIndex_refl`, read on `ℒ ι` instead of on frames.
 
@@ -89,36 +90,6 @@ private theorem souriauIndex_congr {Λ₀ Λ₁ Λ₀' Λ₁' : ℒ ι} (η : Pa
   obtain rfl : η = η' := Path.ext (funext h)
   rfl
 
-/-- A real orthogonal matrix `O` does not change the Maslov phase: `ρ(O Λ) = (det O)² ρ(Λ)` and
-`det O = ±1`. -/
-private theorem maslovPhase_smul_of_mem_realSubgroup {O : unitaryGroup ι ℂ}
-    (hO : O ∈ UnitaryGroup.realSubgroup ι) (Λ : ℒ ι) : maslovPhase (O • Λ) = maslovPhase Λ := by
-  have h : UnitaryGroup.souriau O = 1 := Subtype.ext <| by
-    rw [UnitaryGroup.coe_souriau, mul_eq_one_comm.1
-      (UnitaryGroup.mem_realSubgroup_iff_transpose_mul_self_eq_one.1 hO), OneMemClass.coe_one]
-  rw [unitary_smul_def, maslovPhase_ofUnitary_smul, ← UnitaryGroup.detCircle_souriau, h, map_one,
-    one_mul]
-
-/-- A real orthogonal matrix `O` conjugates the Souriau map, `W(O Λ) = O W(Λ) Oᵀ`, so it does not
-change its spectral angle sum. -/
-private theorem spectralAngleSum_souriau_smul_of_mem_realSubgroup {O : unitaryGroup ι ℂ}
-    (hO : O ∈ UnitaryGroup.realSubgroup ι) (Λ : ℒ ι) :
-    spectralAngleSum (souriau (O • Λ) : Matrix ι ι ℂ) =
-      spectralAngleSum (souriau Λ : Matrix ι ι ℂ) := by
-  obtain ⟨W, rfl⟩ := unitaryFrame_surjective Λ
-  have h := UnitaryGroup.mem_realSubgroup_iff_transpose_mul_self_eq_one.1 hO
-  rw [← unitaryFrame_mul, souriau_unitaryFrame, souriau_unitaryFrame,
-    UnitaryGroup.coe_souriau_mul_left, spectralAngleSum_conj (mul_eq_one_comm.1 h) h]
-
-/-- Souriau's formula is invariant under real orthogonal matrices. -/
-private theorem souriauIndex_map_smul_of_mem_realSubgroup {O : unitaryGroup ι ℂ}
-    (hO : O ∈ UnitaryGroup.realSubgroup ι) {Λ Λ' : ℒ ι} (η : Path Λ Λ') :
-    souriauIndex (η.map (continuous_const_smul O)) = souriauIndex η := by
-  rw [souriauIndex, souriauIndex, spectralAngleSum_souriau_smul_of_mem_realSubgroup hO,
-    spectralAngleSum_souriau_smul_of_mem_realSubgroup hO,
-    Circle.angleChange_congr _ (η.map continuous_maslovPhase) fun t ↦ by
-      simp [maslovPhase_smul_of_mem_realSubgroup hO]]
-
 /-- For a path `δ` of unitary frames, Souriau's formula on the path of Lagrangians it frames is
 Tau Ceti's index `Matrix.UnitaryGroup.maslovIndex δ`. -/
 private theorem souriauIndex_map_unitaryFrame {U U' : unitaryGroup ι ℂ} (δ : Path U U') :
@@ -126,6 +97,20 @@ private theorem souriauIndex_map_unitaryFrame {U U' : unitaryGroup ι ℂ} (δ :
   rw [souriauIndex, UnitaryGroup.maslovIndex_def, souriau_unitaryFrame, souriau_unitaryFrame,
     Circle.angleChange_congr _ (UnitaryGroup.detSouriauPath δ) fun t ↦ by
       simp [maslovPhase_def]]
+
+/-- Souriau's formula is invariant under real orthogonal matrices. -/
+private theorem souriauIndex_map_smul_of_mem_realSubgroup {O : unitaryGroup ι ℂ}
+    (hO : O ∈ UnitaryGroup.realSubgroup ι) {Λ Λ' : ℒ ι} (η : Path Λ Λ') :
+    souriauIndex (η.map (continuous_const_smul O)) = souriauIndex η := by
+  obtain ⟨Γ, hΓ₀, hΓ⟩ := (hasHomotopyLiftingProperty_unitaryFrame ι Unit).exists_path_lift
+    (η.cast (unitaryFrame_surjective Λ).choose_spec (Eq.refl Λ'))
+  let δ : Path (unitaryFrame_surjective Λ).choose (Γ 1) := ⟨Γ, hΓ₀, rfl⟩
+  have hδ (t : I) : unitaryFrame (δ t) = η t := congrFun hΓ t
+  rw [souriauIndex_congr η (δ.map continuous_unitaryFrame) fun t ↦ (hδ t).symm,
+    souriauIndex_map_unitaryFrame, ← UnitaryGroup.maslovIndex_map_mul_left O
+      (mul_eq_one_comm.1 (UnitaryGroup.mem_realSubgroup_iff_transpose_mul_self_eq_one.1 hO)) δ,
+    ← souriauIndex_map_unitaryFrame]
+  exact souriauIndex_congr _ _ fun t ↦ by simp [unitaryFrame_mul, hδ]
 
 /-! ### The definition -/
 
@@ -344,14 +329,14 @@ theorem pathMaslovIndex_eq_zero_of_finrank_eq {Λ Λ' : ℒ ι} (γ : Path Λ Λ
       ← StdSpace.map_realSubspace]
   rw [h₁, h₂, unitary_smul_def, unitary_smul_def, finrank_smul_inf_smul, h]
 
-/-- **Localization.** Let `t ↦ A t` be a continuous path of real symmetric matrices and `γ` the
-path of their graphs `{(x, A t x)}`. Then the index of `γ` relative to `{y = 0}` is half the change
-of the signature of `A`. -/
+/-- **Localization.** Let `t ↦ A t` be a continuous path of real matrices and `γ` a path of
+Lagrangians that are their graphs `{(x, A t x)}`, so that each `A t` is symmetric. Then the index
+of `γ` relative to `{y = 0}` is half the change of the signature of `A`. -/
 theorem pathMaslovIndex_graph {Λ Λ' : ℒ ι} (γ : Path Λ Λ') {A : I → Matrix ι ι ℝ}
-    (hAc : Continuous A) (hA : ∀ t, (A t).IsSymm)
-    (hγ : ∀ t, (γ t : Submodule ℝ (StdSpace ι)) = StdSpace.graph (A t)) :
+    (hAc : Continuous A) (hγ : ∀ t, (γ t : Submodule ℝ (StdSpace ι)) = StdSpace.graph (A t)) :
     pathMaslovIndex γ (horizontal ι) = ((A 1).signature - (A 0).signature : ℝ) / 2 := by
-  have hA' (t : I) : (A t).IsHermitian := isHermitian_iff_isSymm.2 (hA t)
+  have hA' (t : I) : (A t).IsHermitian :=
+    isHermitian_iff_isSymm.2 ((isLagrangian_graph_iff _).1 (hγ t ▸ (γ t).isLagrangian))
   obtain ⟨_, _, δ, hδ⟩ := UnitaryGroup.exists_path_realImage_eq_and_souriau_eq_cayley hAc hA'
   rw [pathMaslovIndex_horizontal_eq_maslovIndex γ δ fun t ↦ ?_]
   · exact UnitaryGroup.maslovIndex_eq_signature_sub_of_souriau_eq_cayley δ hAc hA'

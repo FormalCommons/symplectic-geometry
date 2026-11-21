@@ -490,8 +490,10 @@ The Robbin–Salamon index of paths, relative to a Lagrangian `V`.
   formula on `ℒ ι` of the moved path `γ'` from `Λ₀` to `Λ₁`,
   `Circle.angleChange (γ'.map continuous_maslovPhase) / (2 * π) - (spectralAngleSum (souriau Λ₁) - spectralAngleSum (souriau Λ₀))`.
   API: `pathMaslovIndex_def`; `pathMaslovIndex_eq_of_unitaryFrame_eq`, any
-  such `U` gives the same value (Decision 4), which every other statement uses
-  instead of the choice; and the bridge to Tau Ceti,
+  such `U` gives the same value (Decision 4; two choices differ by a real
+  orthogonal matrix, and invariance under it is transferred from
+  `Matrix.UnitaryGroup.maslovIndex_map_mul_left` through a lift to frames), which
+  every other statement uses instead of the choice; and the bridge to Tau Ceti,
   `pathMaslovIndex_map_unitaryFrame (δ : Path U U') :
   pathMaslovIndex (δ.map continuous_unitaryFrame) (V₀ ι) = Matrix.UnitaryGroup.maslovIndex δ`,
   through which, with G3, all of Tau Ceti's theorems apply.
@@ -515,7 +517,8 @@ The Robbin–Salamon index of paths, relative to a Lagrangian `V`.
   G5), `ℒ.pathMaslovIndex_eq_zero_of_finrank_eq` (zero: `finrank (γ t ⊓ V)`
   constant, moved to `V₀` by `ℒ.finrank_smul_inf_smul` of
   `Lagrangian/Transverse.lean`), `ℒ.pathMaslovIndex_graph` (localization: for `V = V₀`
-  and the path of graphs $\{(x,A(t)x)\}$ of a path of symmetric matrices, half the change of
+  and a path of Lagrangians that are the graphs $\{(x,A(t)x)\}$ of a continuous path of real
+  matrices, with no symmetry hypothesis since each graph is Lagrangian, half the change of
   `Matrix.signature`, from `maslovIndex_eq_signature_sub_of_souriau_eq_cayley`,
   whose frames $\mathbb{1}+iA$ span exactly these graphs).
 - `ℒ.pathMaslovIndex_eq_transverseMaslovIndex`: for a path of frames `δ` whose
