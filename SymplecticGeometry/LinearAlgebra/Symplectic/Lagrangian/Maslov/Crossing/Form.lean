@@ -42,7 +42,10 @@ crossing-form formula for the Maslov index needs.
 * `SymplecticGeometry.lagrangianCrossingForm_symplectic_mul_apply`,
   `lagrangianCrossingForm_symplectic_mul_equivalent`: naturality under symplectic matrices.
 * `SymplecticGeometry.LagrangianGrassmannian.eventually_not_crossing_of_regular`: a crossing with
-  nondegenerate crossing form is isolated.
+  nondegenerate crossing form is isolated, for a family on `[0, 1]`;
+  `eventually_nhdsNE_not_crossing_of_regular` is the same for a family on `ℝ`, and
+  `eventually_nhdsLT_not_crossing_of_regular`, `eventually_nhdsGT_not_crossing_of_regular` its
+  one-sided forms.
 
 ## Implementation notes
 
@@ -377,9 +380,89 @@ private noncomputable def lagrangianCrossingFormIsometryEquivProjForm
   simp only at h0
   rw [h1, h0, zero_add]
 
+/-- The setup for the isolation of a regular crossing at a frame `Z₀` of a Lagrangian `Λ₀`: a
+Lagrangian `W` transverse to `V` and to `Λ₀` such that, for the projection `P` onto `V` along `W`,
+the crossing form of the forms `(u, v) ↦ ω₀(P (Z u), Z v)` at `Z₀`, with derivative `Z'`, is
+nondegenerate. -/
+private theorem exists_projForm_crossingForm_nondegenerate (V : ℒ ι) {Λ₀ : ℒ ι}
+    {Z₀ Z' : Matrix (ι ⊕ ι) ι ℝ} (hZ₀ : LinearMap.range (toEuclideanLin Z₀) = Λ₀)
+    (hreg : (lagrangianCrossingForm Z₀ Z' V).Nondegenerate) :
+    ∃ (W : ℒ ι) (hVW : IsCompl (V : Submodule ℝ (StdSpace ι)) W),
+      (ContinuousLinearMap.crossingForm
+        (projForm ((V : Submodule ℝ (StdSpace ι)).projection W hVW) Z₀ Z₀).toContinuousLinearMap₂'
+        (projForm ((V : Submodule ℝ (StdSpace ι)).projection W hVW) Z' Z₀ +
+          projForm ((V : Submodule ℝ (StdSpace ι)).projection W hVW) Z₀
+            Z').toContinuousLinearMap₂').Nondegenerate := by
+  obtain ⟨W, hWV, hWΛ⟩ := LagrangianGrassmannian.exists_isCompl_isCompl V Λ₀
+  exact ⟨W, hWV.symm, (lagrangianCrossingFormIsometryEquivProjForm V.isLagrangian.isIsotropic
+    hWV.symm (hZ₀ ▸ Λ₀.isLagrangian) (hZ₀ ▸ hWΛ.disjoint) Z').nondegenerate_iff.1 hreg⟩
 end Isolated
 
 namespace LagrangianGrassmannian
+
+/-- **Regular crossings are isolated on the left.** Let `Z` be a frame of a family `Λ` of
+Lagrangians at the times `r ≤ r₀` near `r₀`, with left derivative `Z'` at `r₀`. If the crossing
+form of `Z r₀` and `Z'` relative to a Lagrangian `V` is nondegenerate, then `Λ r` is transverse to
+`V` for all `r < r₀` near `r₀`. -/
+theorem eventually_nhdsLT_not_crossing_of_regular {Λ : ℝ → ℒ ι} (V : ℒ ι)
+    {Z : ℝ → Matrix (ι ⊕ ι) ι ℝ} {Z' : Matrix (ι ⊕ ι) ι ℝ} {r₀ : ℝ}
+    (hZ : ∀ᶠ r in 𝓝[≤] r₀, LinearMap.range (toEuclideanLin (Z r)) = Λ r)
+    (hd : HasDerivWithinAt Z Z' (Iic r₀) r₀)
+    (hreg : (lagrangianCrossingForm (Z r₀) Z' V).Nondegenerate) :
+    ∀ᶠ r in 𝓝[<] r₀, (Λ r : Submodule ℝ (StdSpace ι)) ⊓ V = ⊥ := by
+  have hZ₀ : LinearMap.range (toEuclideanLin (Z r₀)) = Λ r₀ :=
+    hZ.self_of_nhdsWithin self_mem_Iic
+  obtain ⟨W, hVW, hreg'⟩ :=
+    exists_projForm_crossingForm_nondegenerate V hZ₀ hreg
+  have hsymm {r : ℝ} (hr : LinearMap.range (toEuclideanLin (Z r)) = Λ r) :=
+    isSymm_projForm V.isLagrangian.isIsotropic W.isLagrangian.isIsotropic hVW
+      (hr ▸ (Λ r).isLagrangian.isIsotropic)
+  have hZ' : ∀ᶠ r in 𝓝[<] r₀, _ := hZ.filter_mono (nhdsWithin_mono _ Iio_subset_Iic_self)
+  filter_upwards [ContinuousLinearMap.eventually_nhdsLT_nondegenerate_of_crossingForm_nondegenerate
+    (hZ'.mono fun _ ↦ hsymm) (hsymm hZ₀) (hasDerivWithinAt_toContinuousLinearMap₂' fun i j ↦
+      (hasDerivWithinAt_projForm _ hd).matrix_elem i j) hreg', hZ'] with r hr hZr
+  rw [← hZr]
+  exact inf_eq_bot_of_nondegenerate hVW (hZr ▸ (Λ r).isLagrangian.isIsotropic) hr
+
+/-- **Regular crossings are isolated on the right.** Let `Z` be a frame of a family `Λ` of
+Lagrangians at the times `r ≥ r₀` near `r₀`, with right derivative `Z'` at `r₀`. If the crossing
+form of `Z r₀` and `Z'` relative to a Lagrangian `V` is nondegenerate, then `Λ r` is transverse to
+`V` for all `r > r₀` near `r₀`. -/
+theorem eventually_nhdsGT_not_crossing_of_regular {Λ : ℝ → ℒ ι} (V : ℒ ι)
+    {Z : ℝ → Matrix (ι ⊕ ι) ι ℝ} {Z' : Matrix (ι ⊕ ι) ι ℝ} {r₀ : ℝ}
+    (hZ : ∀ᶠ r in 𝓝[≥] r₀, LinearMap.range (toEuclideanLin (Z r)) = Λ r)
+    (hd : HasDerivWithinAt Z Z' (Ici r₀) r₀)
+    (hreg : (lagrangianCrossingForm (Z r₀) Z' V).Nondegenerate) :
+    ∀ᶠ r in 𝓝[>] r₀, (Λ r : Submodule ℝ (StdSpace ι)) ⊓ V = ⊥ := by
+  have hZ₀ : LinearMap.range (toEuclideanLin (Z r₀)) = Λ r₀ :=
+    hZ.self_of_nhdsWithin self_mem_Ici
+  obtain ⟨W, hVW, hreg'⟩ :=
+    exists_projForm_crossingForm_nondegenerate V hZ₀ hreg
+  have hsymm {r : ℝ} (hr : LinearMap.range (toEuclideanLin (Z r)) = Λ r) :=
+    isSymm_projForm V.isLagrangian.isIsotropic W.isLagrangian.isIsotropic hVW
+      (hr ▸ (Λ r).isLagrangian.isIsotropic)
+  have hZ' : ∀ᶠ r in 𝓝[>] r₀, _ := hZ.filter_mono (nhdsWithin_mono _ Ioi_subset_Ici_self)
+  filter_upwards [ContinuousLinearMap.eventually_nhdsGT_nondegenerate_of_crossingForm_nondegenerate
+    (hZ'.mono fun _ ↦ hsymm) (hsymm hZ₀) (hasDerivWithinAt_toContinuousLinearMap₂' fun i j ↦
+      (hasDerivWithinAt_projForm _ hd).matrix_elem i j) hreg', hZ'] with r hr hZr
+  rw [← hZr]
+  exact inf_eq_bot_of_nondegenerate hVW (hZr ▸ (Λ r).isLagrangian.isIsotropic) hr
+
+/-- **Regular crossings are isolated.** Let `Z` be a frame of a family `Λ` of Lagrangians indexed
+by `ℝ` near `r₀`, so that `LinearMap.range (toEuclideanLin (Z r)) = Λ r` for all `r` near `r₀`,
+and let `Z` be differentiable at `r₀` with derivative `Z'`. If the crossing form of `Z r₀` and `Z'`
+relative to a Lagrangian `V` is nondegenerate, then `Λ r` is transverse to `V` for all `r ≠ r₀`
+near `r₀`. Neither continuity of `Λ` nor differentiability of `Z` away from `r₀` is needed. -/
+theorem eventually_nhdsNE_not_crossing_of_regular {Λ : ℝ → ℒ ι} (V : ℒ ι)
+    {Z : ℝ → Matrix (ι ⊕ ι) ι ℝ} {Z' : Matrix (ι ⊕ ι) ι ℝ} {r₀ : ℝ}
+    (hZ : ∀ᶠ r in 𝓝 r₀, LinearMap.range (toEuclideanLin (Z r)) = Λ r)
+    (hd : HasDerivAt Z Z' r₀) (hreg : (lagrangianCrossingForm (Z r₀) Z' V).Nondegenerate) :
+    ∀ᶠ r in 𝓝[≠] r₀, (Λ r : Submodule ℝ (StdSpace ι)) ⊓ V = ⊥ := by
+  rw [← nhdsLT_sup_nhdsGT, eventually_sup]
+  exact ⟨eventually_nhdsLT_not_crossing_of_regular V (hZ.filter_mono nhdsWithin_le_nhds)
+      hd.matrix_hasDerivWithinAt hreg,
+    eventually_nhdsGT_not_crossing_of_regular V (hZ.filter_mono nhdsWithin_le_nhds)
+      hd.matrix_hasDerivWithinAt hreg⟩
 
 /-- **Regular crossings are isolated.** Let `Z` be a frame of a family `γ` of Lagrangians on
 `[0, 1]`, `LinearMap.range (toEuclideanLin (Z t)) = γ t`, differentiable within `[0, 1]` at `t₀`
@@ -392,61 +475,41 @@ theorem eventually_not_crossing_of_regular (γ : I → ℒ ι) (V : ℒ ι)
     (hd : HasDerivWithinAt Z Z' (Icc 0 1) t₀)
     (hreg : (lagrangianCrossingForm (Z t₀) Z' V).Nondegenerate) :
     ∀ᶠ t in 𝓝[≠] t₀, (γ t : Submodule ℝ (StdSpace ι)) ⊓ V = ⊥ := by
-  -- A Lagrangian `W` transverse to `V` and to `γ t₀`, and the projection onto `V` along `W`.
-  obtain ⟨W, hWV, hWγ⟩ := exists_isCompl_isCompl V (γ t₀)
-  have hVW : IsCompl (V : Submodule ℝ (StdSpace ι)) W := hWV.symm
-  set P := (V : Submodule ℝ (StdSpace ι)).projection W hVW
-  set β : ℝ → (ι → ℝ) →L[ℝ] (ι → ℝ) →L[ℝ] ℝ :=
-    fun r ↦ (projForm P (Z r) (Z r)).toContinuousLinearMap₂'
-  set β' := (projForm P Z' (Z t₀) + projForm P (Z t₀) Z').toContinuousLinearMap₂'
-  have hiso (r : ℝ) (hr : r ∈ Icc (0 : ℝ) 1) :
-      (stdForm ι).IsIsotropic (LinearMap.range (toEuclideanLin (Z r))) := by
-    rw [show r = ((⟨r, hr⟩ : I) : ℝ) from rfl, hZ]
-    exact (γ _).isLagrangian.isIsotropic
-  have hsymm (r : ℝ) (hr : r ∈ Icc (0 : ℝ) 1) : (β r).toBilinForm.IsSymm :=
-    isSymm_projForm V.isLagrangian.isIsotropic W.isLagrangian.isIsotropic hVW (hiso r hr)
-  -- The derivative of `β` within any set that agrees with `[0, 1]` near `t₀`.
-  have hβ {s : Set ℝ} (hs : Icc 0 1 ∈ 𝓝[s] (t₀ : ℝ)) : HasDerivWithinAt β β' s t₀ :=
-    hasDerivWithinAt_toContinuousLinearMap₂' fun i j ↦
-      ((hasDerivWithinAt_projForm P hd).matrix_elem i j).mono_of_mem_nhdsWithin hs
-  have hreg' : (ContinuousLinearMap.crossingForm (β t₀) β').Nondegenerate := by
-    have hZ₀ := hZ t₀
-    exact (lagrangianCrossingFormIsometryEquivProjForm V.isLagrangian.isIsotropic hVW
-      (hZ₀ ▸ (γ t₀).isLagrangian)
-      (hZ₀ ▸ hWγ.disjoint) Z').nondegenerate_iff.1 hreg
-  -- Tau Ceti's one-sided isolation theorems for symmetric bilinear forms, on each side of `t₀`
-  -- that lies in `[0, 1]`.
-  have hR : ∀ᶠ r in 𝓝[≠] (t₀ : ℝ), r ∈ Icc (0 : ℝ) 1 → (β r).toBilinForm.Nondegenerate := by
+  -- Extend `γ` to `ℝ`; near `t₀` on a side where `[0, 1]` reaches, the frame `Z` fits the
+  -- extension and its derivative within `[0, 1]` is a one-sided one.
+  have hZΛ {s : Set ℝ} (hs : Icc 0 1 ∈ 𝓝[s] (t₀ : ℝ)) :
+      ∀ᶠ r in 𝓝[s] (t₀ : ℝ),
+        LinearMap.range (toEuclideanLin (Z r)) = IccExtend (zero_le_one' ℝ) γ r := by
+    filter_upwards [hs] with r hr
+    rw [show r = ((⟨r, hr⟩ : I) : ℝ) from rfl, hZ, IccExtend_val]
+  have hdΛ {s : Set ℝ} (hs : Icc 0 1 ∈ 𝓝[s] (t₀ : ℝ)) : HasDerivWithinAt Z Z' s t₀ :=
+    hasDerivWithinAt_matrix.2 fun i j ↦ (hd.matrix_elem i j).mono_of_mem_nhdsWithin hs
+  have hR : ∀ᶠ r in 𝓝[≠] (t₀ : ℝ), r ∈ Icc (0 : ℝ) 1 →
+      ((IccExtend (zero_le_one' ℝ) γ r : ℒ ι) : Submodule ℝ (StdSpace ι)) ⊓ V = ⊥ := by
     rw [← nhdsLT_sup_nhdsGT, eventually_sup]
     constructor
     · -- Left of `t₀`: empty in `[0, 1]` if `t₀ = 0`.
       rcases t₀.property.1.eq_or_lt with h | h
       · filter_upwards [self_mem_nhdsWithin] with r hr hrI
         exact (by linarith [hrI.1, mem_Iio.1 hr] : False).elim
-      have hs : ∀ᶠ r in 𝓝[<] (t₀ : ℝ), (β r).toBilinForm.IsSymm := by
-        filter_upwards [Ioo_mem_nhdsLT h] with r hr
-          using hsymm r ⟨hr.1.le, hr.2.le.trans t₀.property.2⟩
       have hI : Icc (0 : ℝ) 1 ∈ 𝓝[≤] (t₀ : ℝ) :=
         mem_of_superset (Icc_mem_nhdsLE h) (Icc_subset_Icc_right t₀.property.2)
-      exact (ContinuousLinearMap.eventually_nhdsLT_nondegenerate_of_crossingForm_nondegenerate
-        hs (hsymm _ t₀.property) (hβ hI) hreg').mono fun _ hr _ ↦ hr
+      exact (eventually_nhdsLT_not_crossing_of_regular V (hZΛ hI) (hdΛ hI) hreg).mono
+        fun _ hr _ ↦ hr
     · -- Right of `t₀`: empty in `[0, 1]` if `t₀ = 1`.
       rcases t₀.property.2.eq_or_lt with h | h
       · filter_upwards [self_mem_nhdsWithin] with r hr hrI
         exact (by linarith [hrI.2, mem_Ioi.1 hr] : False).elim
-      have hs : ∀ᶠ r in 𝓝[>] (t₀ : ℝ), (β r).toBilinForm.IsSymm := by
-        filter_upwards [Ioo_mem_nhdsGT h] with r hr
-          using hsymm r ⟨t₀.property.1.trans hr.1.le, hr.2.le⟩
       have hI : Icc (0 : ℝ) 1 ∈ 𝓝[≥] (t₀ : ℝ) :=
         mem_of_superset (Icc_mem_nhdsGE h) (Icc_subset_Icc_left t₀.property.1)
-      exact (ContinuousLinearMap.eventually_nhdsGT_nondegenerate_of_crossingForm_nondegenerate
-        hs (hsymm _ t₀.property) (hβ hI) hreg').mono fun _ hr _ ↦ hr
+      exact (eventually_nhdsGT_not_crossing_of_regular V (hZΛ hI) (hdΛ hI) hreg).mono
+        fun _ hr _ ↦ hr
   -- Transfer from `ℝ` to `I`.
   have htend : Tendsto (fun t : I ↦ (t : ℝ)) (𝓝[≠] t₀) (𝓝[≠] (t₀ : ℝ)) :=
     continuous_subtypeVal.continuousWithinAt.tendsto_nhdsWithin fun _ ht h ↦ ht (Subtype.ext h)
   filter_upwards [htend.eventually hR] with t ht
-  rw [← hZ t]
-  exact inf_eq_bot_of_nondegenerate hVW (hiso t t.property) (ht t.property)
+  rw [← IccExtend_val zero_le_one γ t]
+  exact ht t.property
 
 end LagrangianGrassmannian
 
