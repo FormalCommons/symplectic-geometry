@@ -33,13 +33,16 @@ Tau Ceti's `TauCeti.Geometry.Contact.StableHamiltonian` with the following.
   pulls `σ` and `α` back to themselves wherever it is defined.
 * **The contact case, in the book's signs.** For a contact form `α`, the pair `(α, -dα)` is a
   stable Hamiltonian structure, and its characteristic field is the Reeb field of `α`. Both
-  follow from the general facts that replacing `σ` by `-σ` changes neither the stable
-  Hamiltonian condition (`TauCeti.SmoothForm.isStableHamiltonian_neg_iff`) nor the
-  characteristic field (`TauCeti.SmoothForm.characteristicVectorField_neg`).
+  follow from the general facts that multiplying `σ` by a nonzero constant changes neither the
+  stable Hamiltonian condition (`TauCeti.SmoothForm.isStableHamiltonian_smul_iff`) nor the
+  characteristic field (`TauCeti.SmoothForm.characteristicVectorField_smul`).
 
 The proof of `contMDiff_characteristicVectorField` adapts Tau Ceti's proof of
 `TauCeti.SmoothForm.IsContactForm.contMDiff_reebVectorField`, through the inverse of the contact
-flat map (`TauCeti.SmoothForm.IsContactForm.contactFlatEquiv`), with `σ` in place of `dα`.
+flat map (`TauCeti.SmoothForm.IsContactForm.contactFlatEquiv`), with `σ` in place of `dα`. The
+pointwise step of the wedge criterion,
+`TauCeti.SmoothForm.isContact_iff_wedge_wedgePow_apply_ne_zero`, adapts Tau Ceti's
+`TauCeti.SmoothForm.isContactFormAt_iff_wedge_wedgePow_apply_ne_zero` in the same way.
 
 ## Main results
 
@@ -55,7 +58,7 @@ flat map (`TauCeti.SmoothForm.IsContactForm.contactFlatEquiv`), with `σ` in pla
 ## References
 
 * [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017],
-  Definition 3.5.32
+  Exercise 3.5.37
 -/
 
 public section
@@ -76,6 +79,14 @@ section Basic
 
 variable [IsManifold I 2 M] {α : SmoothForm I M ℝ 1} {σ : SmoothForm I M ℝ 2}
 
+/-- The bilinear form of a scalar multiple of a two-form is the same multiple of its bilinear
+form. -/
+@[simp]
+theorem bilinFormAt_smul (c : ℝ) (σ : SmoothForm I M ℝ 2) (x : M) :
+    (c • σ).bilinFormAt x = c • σ.bilinFormAt x := by
+  ext v w
+  simp [SmoothBundleForm.eval₂_apply]
+
 /-- The bilinear form of the negative of a two-form is the negative of its bilinear form. -/
 @[simp]
 theorem bilinFormAt_neg (σ : SmoothForm I M ℝ 2) (x : M) :
@@ -83,29 +94,46 @@ theorem bilinFormAt_neg (σ : SmoothForm I M ℝ 2) (x : M) :
   ext v w
   simp [SmoothBundleForm.eval₂_apply]
 
+/-- Multiplying the two-form by a nonzero constant does not change the characteristic vector
+field. -/
+theorem characteristicVectorField_smul {c : ℝ} (hc : c ≠ 0) (α : SmoothForm I M ℝ 1)
+    (σ : SmoothForm I M ℝ 2) :
+    α.characteristicVectorField (c • σ) = α.characteristicVectorField σ := by
+  funext x
+  rw [characteristicVectorField_def, characteristicVectorField_def, bilinFormAt_smul,
+    Module.Dual.reebVector_smul_bilinForm hc]
+
 /-- Negating the two-form does not change the characteristic vector field. -/
 @[simp]
 theorem characteristicVectorField_neg (α : SmoothForm I M ℝ 1) (σ : SmoothForm I M ℝ 2) :
     α.characteristicVectorField (-σ) = α.characteristicVectorField σ := by
-  funext x
-  rw [characteristicVectorField_def, characteristicVectorField_def, bilinFormAt_neg,
-    ← neg_one_smul ℝ (σ.bilinFormAt x), Module.Dual.reebVector_smul_bilinForm (by norm_num)]
+  rw [← neg_one_smul ℝ σ, characteristicVectorField_smul (by norm_num)]
 
-/-- Negating the two-form preserves stable Hamiltonian structures. -/
-theorem IsStableHamiltonian.neg (h : α.IsStableHamiltonian σ) : α.IsStableHamiltonian (-σ) where
-  isClosed := h.isClosed.neg
+/-- Multiplying the two-form by a nonzero constant preserves stable Hamiltonian structures. -/
+theorem IsStableHamiltonian.smul {c : ℝ} (hc : c ≠ 0) (h : α.IsStableHamiltonian σ) :
+    α.IsStableHamiltonian (c • σ) where
+  isClosed := h.isClosed.smul c
   isContact x := by
-    rw [bilinFormAt_neg, ← neg_one_smul ℝ (σ.bilinFormAt x),
-      Module.Dual.isContact_smul_bilinForm_iff (by norm_num)]
+    rw [bilinFormAt_smul, Module.Dual.isContact_smul_bilinForm_iff hc]
     exact h.isContact x
   ker_le_ker x := by
-    rw [bilinFormAt_neg, LinearMap.ker_neg]
+    rw [bilinFormAt_smul, LinearMap.ker_smul _ _ hc]
     exact h.ker_le_ker x
+
+/-- For `c ≠ 0`, `(α, c • σ)` is a stable Hamiltonian structure exactly when `(α, σ)` is. -/
+theorem isStableHamiltonian_smul_iff {c : ℝ} (hc : c ≠ 0) :
+    α.IsStableHamiltonian (c • σ) ↔ α.IsStableHamiltonian σ :=
+  ⟨fun h ↦ by simpa [smul_smul, hc] using h.smul (inv_ne_zero hc), IsStableHamiltonian.smul hc⟩
+
+/-- Negating the two-form preserves stable Hamiltonian structures. -/
+theorem IsStableHamiltonian.neg (h : α.IsStableHamiltonian σ) : α.IsStableHamiltonian (-σ) := by
+  rw [← neg_one_smul ℝ σ]
+  exact h.smul (by norm_num)
 
 /-- `(α, -σ)` is a stable Hamiltonian structure exactly when `(α, σ)` is. -/
 @[simp]
-theorem isStableHamiltonian_neg_iff : α.IsStableHamiltonian (-σ) ↔ α.IsStableHamiltonian σ :=
-  ⟨fun h ↦ neg_neg σ ▸ h.neg, IsStableHamiltonian.neg⟩
+theorem isStableHamiltonian_neg_iff : α.IsStableHamiltonian (-σ) ↔ α.IsStableHamiltonian σ := by
+  rw [← neg_one_smul ℝ σ, isStableHamiltonian_smul_iff (by norm_num)]
 
 /-- **The contact case.** For a contact form `α`, the pair `(α, -dα)` is a stable Hamiltonian
 structure. -/
