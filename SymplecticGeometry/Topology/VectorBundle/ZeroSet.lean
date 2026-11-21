@@ -33,7 +33,7 @@ namespace VectorBundle
 variable {𝕜 M B F : Type*} [NontriviallyNormedField 𝕜] [TopologicalSpace M] [TopologicalSpace B]
   [NormedAddCommGroup F] [NormedSpace 𝕜 F]
   {E : B → Type*} [TopologicalSpace (TotalSpace F E)]
-  [∀ x, AddCommGroup (E x)] [∀ x, Module 𝕜 (E x)] [∀ x, TopologicalSpace (E x)]
+  [∀ x, AddCommMonoid (E x)] [∀ x, Module 𝕜 (E x)] [∀ x, TopologicalSpace (E x)]
   [FiberBundle F E] [VectorBundle 𝕜 F E]
 
 variable (𝕜) in
