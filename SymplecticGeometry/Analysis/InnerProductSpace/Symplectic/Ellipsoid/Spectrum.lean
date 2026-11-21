@@ -43,8 +43,8 @@ have determinant `1`, the volume of the ellipsoid is that of `E(r)`, namely
 * `SymplecticGeometry.volume_setOf_le_one`: the volume of the ellipsoid of `Q` in terms of its
   spectrum.
 * `SymplecticGeometry.exists_isDarbouxBasis_orthogonal_and_stdEllipsoid_normalForm`: the
-  simultaneous normal form of a symplectic form and an inner product, with the normal form of
-  ellipsoids, the uniqueness of their radii and their volume.
+  orthogonal Darboux bases for an inner product, together with the normal form of ellipsoids,
+  the uniqueness of their radii and their volume.
 
 ## References
 
@@ -276,7 +276,7 @@ section NormalForm
 
 open scoped RealInnerProductSpace
 
-/-- **Simultaneous normal form of a symplectic form and an inner product.**
+/-- **Normal forms for a symplectic form and a Euclidean structure.**
 
 * On a real inner product space `V` of finite dimension, every symplectic form `ω` has a Darboux
   basis `(q₁, p₁, …, qₘ, pₘ)` whose vectors are pairwise orthogonal, with `‖qₖ‖ = ‖pₖ‖`.
