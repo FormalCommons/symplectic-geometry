@@ -7,6 +7,7 @@ module
 
 public import Mathlib.Analysis.Convex.Contractible
 public import Mathlib.Analysis.InnerProductSpace.PiL2
+public import SymplecticGeometry.Analysis.InnerProductSpace.LinearMap
 public import TauCeti.Analysis.InnerProductSpace.Positive.MetricChange.Basic
 public import TauCeti.Geometry.Symplectic.AlmostComplex
 public import TauCeti.Geometry.Symplectic.Transport
@@ -49,7 +50,6 @@ forward, `g ↦ g (e.symm ·) (e.symm ·)`, which is a homeomorphism.
   finite-dimensional space is carried to the standard one of a Euclidean space by some linear
   isomorphism.
 * `SymplecticGeometry.innerSL_mem_innerProducts`: the inner product of an inner product space.
-* `innerSL_real_apply_apply`: `simp` evaluates that element at `u` and `v` to `⟪u, v⟫`.
 * `TauCeti.SymplecticForm.Compatible.associatedBilinForm_mem_innerProducts`: the form
   `ω(·, J ·)` of a compatible pair.
 
@@ -117,19 +117,6 @@ product. -/
 theorem innerSL_mem_innerProducts {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] :
     innerSL ℝ ∈ innerProducts E :=
   ⟨fun v w ↦ real_inner_comm w v, fun _ hv ↦ real_inner_self_pos.2 hv⟩
-
-/-- The inner product of a real inner product space, read as a real bilinear map
-`E →L[ℝ] E →L[ℝ] ℝ` rather than as the conjugate-linear map `innerSL ℝ : E →L⋆[ℝ] E →L[ℝ] ℝ`,
-evaluates to `⟪u, v⟫`. This is the form that `simp` leaves of `innerSL ℝ` taken as an element of
-`innerProducts E`, `(⟨innerSL ℝ, innerSL_mem_innerProducts⟩ : innerProducts E)`, where
-`innerSL_apply_apply` does not apply. -/
-@[simp]
-theorem _root_.innerSL_real_apply_apply {E : Type*} [NormedAddCommGroup E]
-    [InnerProductSpace ℝ E] (u v : E) :
-    -- The coercion is given at the type `E →L[ℝ] E →L[ℝ] ℝ`, the ambient type of
-    -- `innerProducts E`, so that the left side matches that of the coerced element.
-    @DFunLike.coe (E →L[ℝ] E →L[ℝ] ℝ) E (fun _ ↦ E →L[ℝ] ℝ) _ (innerSL ℝ) u v = inner ℝ u v :=
-  innerSL_apply_apply ..
 
 namespace innerProducts
 
