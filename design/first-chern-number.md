@@ -491,14 +491,22 @@ docstrings end with the same milestone line.
   `HomologicalOrientation` with `toHomologicalOrientation`.
 - `boundaryMaslovIndex_mul`: for `Ψ Ψ' : C(∂X, GLSymplectic n ℝ)`, the
   pointwise product has the sum of the two indices. Since `maslovPhase` is
-  not multiplicative on the whole symplectic group, the proof follows that
-  of `TauCeti.GLSymplectic.maslovIndex_mul`:
-  `TauCeti.GLSymplectic.polarHomotopy` deforms `Ψ Ψ'`, through symplectic
-  maps, into the product of the orthogonal polar factors;
-  `boundaryDegree_eq_of_homotopy` (prerequisite 7) keeps the degree along
-  the deformation; at its end `maslovPhase_inclusion_mul` and
-  `maslovPhase_inclusion_polarUnitary` make the phase of the product the
-  product of the phases, and `boundaryDegree_mul` applies.
+  not multiplicative on the whole symplectic group, the polar argument is
+  needed, but it is written once, for the group itself, and not again for
+  boundary maps: the issue adds
+  `TauCeti.GLSymplectic.maslovPhase_mul_homotopic` to this library's
+  `Analysis/Matrix/SymplecticGroup/Maslov.lean` (part 5's file, named after
+  Tau Ceti's, next to which `maslovIndex_mul` sits upstream). It says that
+  on `GLSymplectic n ℝ × GLSymplectic n ℝ` the maps
+  $(A,B)\mapsto\rho(AB)$ and $(A,B)\mapsto\rho(A)\rho(B)$ to `Circle` are
+  homotopic (`ContinuousMap.Homotopic`), with $\rho$ = `maslovPhase`: apply
+  `TauCeti.GLSymplectic.polarHomotopy` to each factor, and at the end use
+  `maslovPhase_inclusion_mul` and `maslovPhase_inclusion_polarUnitary`.
+  Then `boundaryMaslovIndex_mul` composes this homotopy with
+  $x\mapsto(\Psi x,\Psi' x)$ and concludes by
+  `boundaryDegree_eq_of_homotopy` (prerequisite 7) and
+  `boundaryDegree_mul`. The loop statement `maslovIndex_mul` is the same
+  composition with a loop in the product.
   `boundaryMaslovIndex_eq_zero_of_extend`: a `Ψ` that extends continuously
   over `X` has index $0$, by `boundaryDegree_eq_zero_of_extend`.
 - `symplecticChernNumber_eq_boundaryMaslovIndex`: for symplectic frames over
@@ -630,12 +638,19 @@ issues, in an order where each issue's blockers come before it.
      `Topology/VectorBundle/FiniteRank/ConjugateExteriorPower.lean` beside
      Tau Ceti's `FiniteRank/Conjugate.lean`, in Tau Ceti's terms only.
      `FiniteRankBundleCore.det` is a function on objects, not a functor, so
-     the natural statement is at a fixed degree: the natural isomorphism
-     `TauCeti.FiniteRankBundleCore.conjugateExteriorPowerIso k : conjugate B
-     ⋙ exteriorPower ℂ B k ≅ exteriorPower ℂ B k ⋙ conjugate B`, and from it,
-     objectwise, `TauCeti.FiniteRankBundleCore.detConjugateIso A :
+     the natural statement is at a fixed degree. Following Tau Ceti's
+     naming in `FiniteRank/` (`doubleConjugateIso` and
+     `doubleConjugateNatIso`, `exteriorPowerOneIso` and
+     `exteriorPowerOneNatIso`): the isomorphism at one object
+     `TauCeti.FiniteRankBundleCore.exteriorPowerConjugateIso k A :
+     (exteriorPower ℂ B k).obj ((conjugate B).obj A) ≅
+     (conjugate B).obj ((exteriorPower ℂ B k).obj A)`, the natural one
+     `TauCeti.FiniteRankBundleCore.exteriorPowerConjugateNatIso k : conjugate B
+     ⋙ exteriorPower ℂ B k ≅ exteriorPower ℂ B k ⋙ conjugate B` with
+     `@[simp] exteriorPowerConjugateNatIso_app`, and from them, objectwise,
+     `TauCeti.FiniteRankBundleCore.detConjugateIso A :
      ((conjugate B).obj A).det ≅ (conjugate B).obj A.det`, using that
-     conjugation keeps the rank (`conjugate_obj`);
+     conjugation keeps the rank (`rank_conjugate_obj`);
    - back in `Topology/VectorBundle/Determinant.lean`, since it is about this
      library's `detCore`: `SymplecticGeometry.Bundle.detCoreConjugateFiberwise`,
      a conjugate-linear fibrewise isomorphism between `detCore ℂ` of the
@@ -737,14 +752,22 @@ issues, in an order where each issue's blockers come before it.
    (`Circle.degree`) of `u/|u|` around the boundary loops sum to $0$. It is
    a corollary of prerequisite 7, with no argument of its own. The surface
    minus the open discs is an instance of the setting of 7: it is compact,
-   its interior is the surface minus the closed discs, and the annuli of the
-   coordinate discs (which are defined on `ball 0 2`) collar its boundary
-   circles. `u/|u|` is defined on all of it, so
-   `boundaryDegree_eq_zero_of_extend` gives degree $0$, and
-   `boundaryDegree_eq_sum_degree` turns that degree into the sum over the
-   boundary loops (which run against the boundary orientation, a sign that
-   does not matter for a sum equal to $0$). The work of the issue is that
-   instance. This is the half of the book's Lemma 2.7.3 needed for discs.
+   its interior is the surface minus the closed discs, and its boundary
+   circles are collared by thin annuli $1\le|z|<1+\delta$ of the coordinate
+   discs. The issue picks $\delta\in(0,1)$ such that the images of the
+   closed balls of radius $1+\delta$ are pairwise disjoint; one exists
+   because the closed discs are finitely many disjoint compact sets, so
+   they have pairwise disjoint open neighbourhoods, and for small $\delta$
+   each enlarged closed disc lies in its neighbourhood. Then the collars
+   are disjoint and miss the other closed discs, and together they give
+   the open embedding that `TauCeti.IsCollar` requires. The wider annuli
+   up to radius $2$ need not be disjoint, so they are not used. `u/|u|` is
+   defined on all of it, so `boundaryDegree_eq_zero_of_extend` gives
+   degree $0$. The boundary loops of the discs run against the boundary
+   orientation of this surface, so `boundaryDegree_eq_sum_degree` is
+   applied to their reversals (`Path.symm`); it gives minus the sum of the
+   degrees along the boundary loops, which is therefore $0$. The work of
+   the issue is that instance. This is the half of the book's Lemma 2.7.3 needed for discs.
    Blocked by 5 and 7.
 7. **Boundary degree and the argument principle on a surface with
    boundary.** The setting is that of `RelativeFundamentalClass.lean`: `X`
@@ -845,10 +868,21 @@ issues, in an order where each issue's blockers come before it.
    and the orientation it induces is `o.sphereOrientation`. That last step
    needs one small lemma: `IsNondegenerate.volumeOrientation` is `ofTopForm`
    of `(1!)⁻¹ • wedgePow σ 1` (`Geometry/Symplectic/Manifold/Volume.lean`),
-   and Tau Ceti has no `wedgePow_one`, so this issue proves
-   `TauCeti.SmoothForm.wedgePow_one` (`wedgePow σ 1 = σ`) and from it
-   that the induced orientation is `ofTopForm` of `σ`, which is how
-   `sphereOrientation` is defined. The genus of
+   and Tau Ceti has no `wedgePow_one`. These lemmas are about Tau Ceti's
+   notions only, so each goes in this library's counterpart of the Tau Ceti
+   file of its subject, not in `Collapse.lean`:
+   - `ContinuousAlternatingMap.wedgePow_one` (`wedgePow ω 1 = ω` for a
+     continuous alternating 2-form `ω`), in
+     `Topology/Algebra/Module/Alternating/Wedge/TwoForm.lean`, beside Tau
+     Ceti's `wedgePow_two_eq`;
+   - its smooth form `TauCeti.SmoothForm.wedgePow_one`, pointwise from the
+     first, in `Geometry/Manifold/DifferentialForm/Wedge/Smooth/Pow.lean`;
+   - `TauCeti.SmoothTwoForm.IsNondegenerate.volumeOrientation_eq_ofTopForm`
+     (on a surface, the orientation of a nondegenerate `σ` is `ofTopForm`
+     of `σ`), in `Geometry/Symplectic/Manifold/Volume.lean`.
+
+   With the last one the induced orientation is `o.sphereOrientation`,
+   which is defined by `ofTopForm`. The genus of
    the sphere is `TauCeti.surfaceGenus_sphere` of prerequisite 2. Blocked by
    5. Done when these are proved.
 
@@ -872,7 +906,9 @@ issues, in an order where each issue's blockers come before it.
 16. **Comparison with clutching numbers.** `ClutchingNumber.lean`. Blocked
     by 12.
 17. **The splitting description.** `Splitting.lean`, up to
-    `symplecticChernNumber_eq_boundaryMaslovIndex`. Blocked by 7 and 12.
+    `symplecticChernNumber_eq_boundaryMaslovIndex`, with
+    `TauCeti.GLSymplectic.maslovPhase_mul_homotopic` in
+    `Analysis/Matrix/SymplecticGroup/Maslov.lean`. Blocked by 7 and 12.
 18. **The extension lemma.** `exists_extension_iff_boundaryMaslovIndex_eq_zero`
     in `Splitting.lean`. Blocked by 8, 14 and 17.
 
