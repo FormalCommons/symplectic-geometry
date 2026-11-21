@@ -7,7 +7,7 @@ module
 
 public import SymplecticGeometry.Analysis.InnerProductSpace.PiL2
 public import SymplecticGeometry.Analysis.Normed.Lp.PiLp
-public import SymplecticGeometry.LinearAlgebra.Matrix.GeneralLinearGroup.Symplectic.Unitary
+public import SymplecticGeometry.Topology.Algebra.Matrix.Realify
 public import SymplecticGeometry.LinearAlgebra.Matrix.Realify
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Lagrangian.Transverse
 public import TauCeti.Topology.Algebra.Matrix.UnitaryGroup
@@ -213,7 +213,7 @@ theorem reindex_vertical (e : ι ≃ κ) :
 variable [DecidableEq ι] [DecidableEq κ]
 
 /-- Relabelling along `e` sends the Lagrangian framed by `U` to the Lagrangian framed by the
-reindexed unitary matrix `U.submatrix e.symm e.symm`. -/
+reindexed unitary matrix `Matrix.reindex e e U`. -/
 theorem reindex_unitaryFrame (e : ι ≃ κ) (U : unitaryGroup ι ℂ) :
     reindex e (unitaryFrame U) = unitaryFrame (unitaryReindexContinuousMulEquiv ℂ e U) :=
   toSubmodule_injective <| by
