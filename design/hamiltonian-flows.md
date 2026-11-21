@@ -166,7 +166,8 @@ These settle the questions that `DESIGN.md` leaves to this file.
    and its Eulerian field, stated pointwise along the motion as
    $X^{\mathbb R}_u(\phi_{s(u)}x)=s'(u)\,\partial_t\phi_t x|_{t=s(u)}$ with
    the time derivative written through `Φ.cylinderMap`, so that
-   `Diffeotopy/Real.lean` does not depend on this part. It also uses that
+   `Diffeotopy/Real.lean` does not depend on `velocity`: of this part it
+   imports only `Velocity.lean`, for `mfderiv_cylinderMap_time`. It also uses that
    `Real.smoothTransition` has positive derivative on $(0,1)$, which the
    review of #420 asks *Smooth families* to plan as a public lemma; if that
    part does not add it, the issue of `SymplecticIsotopy.lean` adds it
@@ -278,8 +279,8 @@ Tau Ceti unchanged.
 | `Geometry/Symplectic/Flux/Hamiltonian.lean` | the page's $H_t$ beside `HasHamiltonian`, the three rules in the page's form, uniqueness, Hamiltonians from exactness |
 | `Geometry/Symplectic/Flux/CompactSupport.lean` | `IsCompactlySupportedHamiltonian`, `compactlySupportedHamiltonianGroup`, the flow of a compactly supported Hamiltonian, the milestone *Hamiltonian isotopies and their composition* |
 
-Imports between the files: `Velocity.lean` imports `Instances/Icc.lean` and
-`MFDeriv/Prod.lean`;
+Imports between the files: `Velocity.lean` imports `Instances/Icc.lean`,
+`MFDeriv/Prod.lean` and `Diffeotopy/Basic.lean`;
 `SymplecticIsotopy.lean` and
 `Flux/Hamiltonian.lean` import `Velocity.lean`; `Flux/Hamiltonian.lean`
 imports `Diffeotopy/Basic.lean`; `Flux/CompactSupport.lean`
@@ -288,7 +289,8 @@ among it `Hamiltonian/ExtendedPhaseSpace/Manifold.lean` for the energy
 identity, `Algebra/Lie/Quotient.lean` for the value of
 `LieHom.quotKerEquivRange` on a class, and
 `Geometry/Manifold/DifferentialForm/Flow/Family.lean` of
-*Contact geometry* for the general flow lemma.
+*Contact geometry* for the general flow lemma. `Diffeotopy/Real.lean` of
+*Smooth families* imports `Velocity.lean`, for `mfderiv_cylinderMap_time`.
 
 ## Definitions and their API
 

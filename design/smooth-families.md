@@ -107,7 +107,11 @@ No statement of this part is one that the authors' errata
   *Contact geometry* compose with such a map in time, and the part adds it.
   Tau Ceti's `TauCeti.exists_contDiff_odd_truncation` is the identity on
   `[-r, r]` but does not bound its values between `r` and `R`, so the part
-  builds the map from Mathlib's `ContDiffBump` instead.
+  builds the map from Mathlib's `ContDiffBump` instead, as Tau Ceti's
+  `TauCeti.exists_contDiff_eventuallyEq_id_forall_mem_ball` and
+  `TauCeti.exists_contDiff_cutoff_id` do. Both need `0 < r`; the first is
+  the identity only on some neighbourhood of `0`, and the second is the
+  identity on `[-r, r]` but states no bound on its values.
 - **Embeddings.** Mathlib's `exists_embedding_euclidean_of_compact`
   (`Geometry/Manifold/WhitneyEmbedding.lean`): a compact Hausdorff manifold
   has a smooth closed embedding into some `EuclideanSpace ℝ (Fin N)` with
@@ -462,6 +466,22 @@ Named like Tau Ceti's file; in `TauCeti`.
 - `IsSmoothlyContractible.hasFiniteGoodCover` (one set is a good cover), as
   the example of the predicate.
 
+### `Geometry/Manifold/LocalDiffeomorph/Basic.lean`
+
+- `IsLocalDiffeomorphAt.exists_partialDiffeomorph`: a local diffeomorphism
+  at `x` agrees with a partial diffeomorphism on a source containing `x`,
+  since Mathlib does not expose the body of `IsLocalDiffeomorphAt`; used by
+  `Immersion/TangentProjection.lean`.
+
+### `Analysis/Calculus/TangentGraphChart.lean`
+
+Named like Tau Ceti's file.
+
+- `ContDiffOn.exists_uniform_inverse_starProjection`: the graph coordinates
+  of a smooth map over its tangent spaces, chosen uniformly in the base point
+  near a point `w₀` where its derivative is injective, with derivative bounds of every order; used by
+  `Immersion/TangentProjection.lean`.
+
 ### `Geometry/Manifold/MFDeriv/Chart.lean`
 
 Differentials of maps into normed spaces read in an extended chart not
@@ -488,6 +508,13 @@ range of `mvfderiv I e x`.
   $0$, and has an inverse whose composite with `e` has derivatives of every
   order bounded on its target. It is not `tangentProjectionChart`, whose
   source is a choice.
+
+### `Analysis/Convex/Deriv.lean`
+
+Strict convexity from second derivatives, used by `GoodCover/Compact.lean`:
+`strictConvexOn_of_deriv2_add_smul_pos` (along segments, in a real topological
+vector space) and `ContDiffOn.strictConvexOn_norm_sub_sq` (the squared distance
+`u ↦ ‖ψ u - c‖ ^ 2` for a `C²` map `ψ`).
 
 ### `Geometry/Manifold/DeRham/GoodCover/Compact.lean`
 
@@ -604,7 +631,8 @@ Below, `∂ₜ` at `(x, t)` is the tangent vector
 
 - Joint smoothness of inverses, over any finite-dimensional boundaryless
   parameter manifold `P` (model `J`) and for any `1 ≤ n`, in Mathlib's
-  namespace `Diffeomorph`, as it is about Mathlib's notion:
+  namespace `Diffeomorph`, as it is about Mathlib's notion, and in
+  `Geometry/Manifold/Diffeomorph/Family.lean`, as it uses no diffeotopy:
   `Diffeomorph.contMDiff_symm_eval {ψ : P → M ≃ₘ^n⟮I, I⟯ M} (hn : 1 ≤ n)
   (hψ : ContMDiff (J.prod I) I n (fun p : P × M ↦ ψ p.1 p.2)) :
   ContMDiff (J.prod I) I n (fun p : P × M ↦ (ψ p.1).symm p.2)`, named like
@@ -620,7 +648,8 @@ Below, `∂ₜ` at `(x, t)` is the tangent vector
   TauCeti.eulerianField I (fun u ↦ (ψ u).toEquiv) t (ψ t x)`.
 - Flows: `timeDependentFlowDiffeotopy_eq_ofReal` (for `n = ∞`, the restriction
   of `fun t ↦ timeDependentFlowDiffeomorph hc le_top hX 0 t`, jointly smooth
-  by `TauCeti.contMDiff_timeDependentFlowDiffeomorph`). The velocity
+  by `TauCeti.contMDiff_timeDependentFlowDiffeomorph`, in
+  `Geometry/Manifold/Flow/TimeDependent.lean`). The velocity
   of the flow diffeotopy is `velocity_timeDependentFlowDiffeotopy` of
   *Hamiltonian flows*, and is not stated here.
 - The reading over `ℝ`: writing `s u` for `Real.smoothTransitionUnit u :=
@@ -667,7 +696,10 @@ In `TauCeti.Diffeotopy`, for `[FiniteDimensional ℝ E] [IsManifold I ∞ M]
 ## What the part uses
 
 - From Tau Ceti and Mathlib: everything listed under *What exists*.
-- From other parts: nothing. The part is at level 0 of `DESIGN.md`'s build
+- From other parts: only `TauCeti.Diffeotopy.mfderiv_cylinderMap_time` of
+  `Diffeotopy/Velocity.lean` of *Hamiltonian flows*, which `Diffeotopy/Real.lean`
+  imports for the time derivative of a diffeotopy; that file is merged and
+  imports no file of this part. The part is at level 0 of `DESIGN.md`'s build
   order and stays there.
 - What later parts take: *Hamiltonian flows* uses `Diffeotopy/Real.lean` (for
   `SymplecticIsotopy.lean`) and `ContMDiff/TimeExtension.lean` with
@@ -702,7 +734,8 @@ can start at once; each issue's blockers come before it.
    `Geometry/Manifold/Immersion/TangentProjection.lean` and
    `Geometry/Manifold/MFDeriv/Chart.lean`.
 9. **Good covers of compact manifolds.**
-   `Geometry/Manifold/DeRham/GoodCover/Compact.lean`. Blocked by 7 and 8.
+   `Geometry/Manifold/DeRham/GoodCover/Compact.lean` and
+   `Analysis/Convex/Deriv.lean`. Blocked by 7 and 8.
 10. **Splittings and their consequences.**
     `Geometry/Manifold/DeRham/SmoothFamily/Basic.lean`. Blocked by 5.
 11. **The homotopy operator on families, and contractible manifolds.**
@@ -719,12 +752,14 @@ can start at once; each issue's blockers come before it.
     and 12.
 14. **Isotopies over `ℝ` and diffeotopies.**
     `Analysis/SpecialFunctions/SmoothTransition.lean`,
-    `Geometry/Manifold/SmoothTransition.lean` and
+    `Geometry/Manifold/SmoothTransition.lean`,
+    `Geometry/Manifold/Diffeomorph/Family.lean`,
+    `Geometry/Manifold/Flow/TimeDependent.lean` and
     `Geometry/Diffeomorphism/Diffeotopy/Real.lean`.
 15. **Diffeotopies from families of diffeomorphisms.**
     `Geometry/Diffeomorphism/Diffeotopy/OfContMDiff.lean`. Blocked by 2 and 14
     (for the inverse function theorem step it shares with
-    `Diffeomorph.contMDiff_symm_eval`).
+    `Diffeomorph.contMDiff_symm_eval` of `Diffeomorph/Family.lean`).
 16. **A reparametrization equal to the identity on an interval.**
     `exists_contDiff_eqOn_id_Icc_mem_Ioo` in
     `Analysis/SpecialFunctions/SmoothTransition.lean`. Blocked by 14, which
