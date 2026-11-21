@@ -156,12 +156,13 @@ These settle the questions that `DESIGN.md` leaves to this file.
 
 ## Files
 
-Files are under `SymplecticGeometry/`. The part has fifteen files, each with
+Files are under `SymplecticGeometry/`. The part has sixteen files, each with
 the topic its path says. Besides the standard model, the orbit space and the
 oriented components, they hold the actions on complex structures, their
 general topology, the general orbit–stabilizer homeomorphism, the units of
 square $-1$, the inverse of
-an element and of a matrix of square $-1$, a star-ring
+an element and of a matrix of square $-1$, the agreement of the
+matrices given by `Matrix.toEuclideanCLM` and `Matrix.toEuclideanLin`, a star-ring
 lemma on elements of square $-1$, the conjugation identity for units of square $-1$, the polar deformation of
 matrices of square $-1$, the orthogonal complex structures, the map from
 $\mathbb{R}^3$ to the pure quaternions, and the
