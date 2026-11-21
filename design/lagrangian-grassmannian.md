@@ -4,8 +4,8 @@ The detailed design of part 6 of `DESIGN.md`, *Lagrangian Grassmannian*. It
 serves the milestone *Lagrangian frames and the Lagrangian Grassmannian* of
 `atlas/linear-symplectic-geometry.md` (McDuff–Salamon [McDuffSalamon2017],
 §2.3, Lemmas 2.3.1 and 2.3.2 and p. 50), and it provides what the Lagrangian
-issues of *Maslov index* need from this part (`design/maslov-index.md`, PR
-#52, items G1–G9).
+issues of *Maslov index* need from this part (`design/maslov-index.md`,
+items G1–G9).
 
 Files are under `SymplecticGeometry/`. Paths of Tau Ceti files are relative to
 `.lake/packages/TauCeti/TauCeti/`. Declarations about this part's new type are
@@ -181,9 +181,10 @@ Tau Ceti's `Matrix.map_im_conjTranspose_mul_self_mul_map_ofReal`
 
 ### `LinearAlgebra/Matrix/SelfAdjoint.lean`
 
-- `Matrix.finrank_selfAdjoint`, for a commutative ring `R` with trivial star
-  (`[CommRing R] [StarRing R] [TrivialStar R]`), a finite `ι` and decidable
-  equality: `Module.finrank R (selfAdjoint (Matrix ι ι R)) =
+- `Matrix.finrank_selfAdjoint`, for a nontrivial commutative ring `R` with
+  trivial star (`[CommRing R] [Nontrivial R] [StarRing R] [TrivialStar R]`),
+  a finite `ι` and decidable equality:
+  `Module.finrank R (selfAdjoint (Matrix ι ι R)) =
   Fintype.card ι * (Fintype.card ι + 1) / 2`. Tau Ceti already counts the
   symmetric bilinear forms on a finite free module,
   `LinearMap.BilinForm.finrank_symmSubmodule`
@@ -195,7 +196,10 @@ Tau Ceti's `Matrix.map_im_conjTranspose_mul_self_mul_map_ofReal`
   `LinearMap.BilinForm.isSymm_toMatrix'_iff_isSymm` and
   `Matrix.isHermitian_iff_isSymm`; this equivalence stays inside the proof.
   `LinearEquiv.finrank_eq` and `Module.finrank_fintype_fun_eq_card` finish
-  it. The file adds no definition. The milestone uses the case `R = ℝ`.
+  it; `Nontrivial R` gives the `StrongRankCondition R` that the last lemma
+  needs, and cannot be dropped: over the zero ring every `finrank` is `1`,
+  while the formula gives `3` for `ι = Fin 2`. The file adds no definition.
+  The milestone uses the case `R = ℝ`.
 
 ### Additions to *Standard model*'s `LinearAlgebra/Symplectic/Standard/Basic.lean`
 
@@ -204,9 +208,10 @@ lacks. They go beside `x_complexToRealEuclidean`, in the namespace
 `SymplecticGeometry.StdSpace`, so that other parts find them there.
 
 - `StdSpace.complexEuclideanEquiv ι : EuclideanSpace ℂ ι ≃L[ℝ] StdSpace ι`,
-  the composite of `(EuclideanSpace.equiv ι ℂ).restrictScalars ℝ` and
-  `complexToRealEuclidean ι`. It is how this part compares its subspaces of
-  `StdSpace ι` with Tau Ceti's subspaces of `EuclideanSpace ℂ ι`. API:
+  defined as `(PiLp.continuousLinearEquiv 2 ℝ (fun _ : ι ↦ ℂ)).trans
+  (TauCeti.complexToRealEuclidean ι)`. It is how this part compares its
+  subspaces of `StdSpace ι` with Tau Ceti's subspaces of
+  `EuclideanSpace ℂ ι`. API:
   `complexEuclideanEquiv_def`, and the `@[simp]` lemmas
   `x_complexEuclideanEquiv : (complexEuclideanEquiv ι v).x = fun i ↦ (v i).re`
   and `y_complexEuclideanEquiv : (complexEuclideanEquiv ι v).y = fun i ↦ (v i).im`,
@@ -572,10 +577,11 @@ no `Topology/` file of this part.
   that `sumEquiv` carries `stdForm (ι ⊕ κ)` to the product form. API:
   `coe_sum`, `mem_sum_iff` (`@[simp]`); `sum_horizontal` and `sum_vertical`
   (`@[simp]`); `sum_graphY` (a block-diagonal chart value);
-  `sum_unitaryFrame`, whose value at `(unitaryFrame U, unitaryFrame U')` is
+  `sum_unitaryFrame` (`@[simp]`), whose value at
+  `(unitaryFrame U, unitaryFrame U')` is
   the frame of Tau Ceti's `Matrix.UnitaryGroup.sum (U, U')`
   (`LinearAlgebra/Matrix/UnitaryGroup/Block.lean`), through
-  `Matrix.realify_fromBlocks_zero` (`@[simp]`); and `sum_smul`, with
+  `Matrix.realify_fromBlocks_zero`; and `sum_smul`, with
   `sum (g • Λ, h • Λ') = TauCeti.GLSymplectic.sum (g, h) • sum (Λ, Λ')`
   (`LinearAlgebra/Matrix/GeneralLinearGroup/Symplectic/Sum.lean`), from
   §1's matrix lemma for `sumEquiv` in `Standard/Matrix.lean`.
@@ -584,9 +590,11 @@ no `Topology/` file of this part.
   Lagrangian by `isSymplectomorphism_piLpCongrLeft_sumCongr`. API:
   `coe_reindex`, `reindex_symm`, `reindex_trans`, `reindex_refl`;
   `reindex_unitaryFrame : reindex e (unitaryFrame U) =
-  unitaryFrame ⟨(U : Matrix ι ι ℂ).submatrix e.symm e.symm, _⟩`, unitary by
-  Mathlib's `Matrix.submatrix_equiv_mem_unitary`; `reindex_horizontal` and
-  `reindex_vertical`.
+  unitaryFrame (Matrix.unitaryReindexContinuousMulEquiv ℂ e U)`, with Tau
+  Ceti's map (`Topology/Algebra/Matrix/UnitaryGroup.lean`), whose coercion is
+  §6's `(U : Matrix ι ι ℂ).submatrix e.symm e.symm`, by
+  `coe_unitaryReindexContinuousMulEquiv_apply` and `Matrix.reindex_apply`;
+  `reindex_horizontal` and `reindex_vertical`.
 
 ### `Topology/Grassmannian/Lagrangian/Sum.lean`
 
@@ -597,7 +605,9 @@ The topology of the direct sum and of reindexing.
   `sum_unitaryFrame` and the continuity of `Matrix.UnitaryGroup.sum`.
 - `ℒ.reindexHomeomorph (e : ι ≃ κ) : ℒ ι ≃ₜ ℒ κ`, with underlying
   equivalence `reindex e`, continuous both ways in the same way, by
-  `reindex_unitaryFrame` and the continuity of `Matrix.submatrix`. API:
+  `reindex_unitaryFrame` and the continuity of
+  `Matrix.unitaryReindexContinuousMulEquiv ℂ e` and of its inverse
+  (`symm_unitaryReindexContinuousMulEquiv`). API:
   `reindexHomeomorph_apply` and `reindexHomeomorph_symm` (`@[simp]`), and
   `toEquiv_reindexHomeomorph`.
 
@@ -693,7 +703,9 @@ The manifold structure and the milestone.
     `Matrix.UnitaryGroup.continuous_sum`, `GLOrthogonal`,
     `GLOrthogonal.inf_unitarySubgroup_eq_map_real`,
     `Matrix.realify_fromBlocks_zero`, the `CompactSpace` instance of
-    `unitaryGroup`.
+    `unitaryGroup`, `Matrix.unitaryReindexContinuousMulEquiv`,
+    `Matrix.coe_unitaryReindexContinuousMulEquiv_apply`,
+    `Matrix.symm_unitaryReindexContinuousMulEquiv`.
   - Topology: `finiteGrassmannian`,
     `finiteGrassmannian.continuous_starProjection_toEuclidean`,
     `quotientStabilizerHomeomorph`, `quotientStabilizerHomeomorph_mk`,
@@ -708,7 +720,7 @@ The manifold structure and the milestone.
     `Topology/Grassmannian/StiefelFibration/Unitary.lean`.
 - Mathlib: `Submodule.starProjection`, `Submodule.starProjection_map_apply`,
   `Submodule.isCompl_iff_disjoint`, `Matrix.fromRows`, `Matrix.rank`,
-  `Matrix.toEuclideanLin`, `EuclideanSpace.equiv`, `LinearMap.graph`,
+  `Matrix.toEuclideanLin`, `LinearMap.graph`,
   `LinearEquiv.prodComm`, `Submodule.toLinearPMap`,
   `Submodule.toLinearPMap_graph_eq`, `Submodule.existsUnique_from_graph`,
   `LinearMap.BilinForm.toMatrix'`,
@@ -718,8 +730,8 @@ The manifold structure and the milestone.
   `MulAction.compHom`, `MulAction.exists_smul_eq`, `MulAction.stabilizer`,
   `unitarySubgroupUnitsEquiv`, `IsQuotientMap.continuous_iff`,
   `IsOpenQuotientMap.prodMap`, `Topology.IsInducing.of_comp`,
-  `LinearIsometryEquiv.piLpCongrLeft`, `Matrix.submatrix_equiv_mem_unitary`,
-  `Continuous.matrix_submatrix`, `contDiffAt_ringInverse`.
+  `LinearIsometryEquiv.piLpCongrLeft`, `Matrix.reindex_apply`,
+  `PiLp.continuousLinearEquiv`, `contDiffAt_ringInverse`.
 
 Nothing here redefines a Mathlib or Tau Ceti notion. The new definitions are
 `LagrangianGrassmannian` with its topology, `realSubgroup` (Tau Ceti's
