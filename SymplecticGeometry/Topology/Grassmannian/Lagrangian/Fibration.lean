@@ -26,9 +26,10 @@ every path of Lagrangians lifts to a path of unitary matrices through any given 
 The local sections come from the basic chart `graphYChart`. A symmetric matrix `S` gives the
 Lagrangian frame `fromRows S 1`, whose unitary matrix `unitaryOfFrame` frames the chart point
 `graphY S` and depends continuously on `S`. This is a continuous section of `unitaryFrame` over
-the Lagrangians transverse to `{y = 0}`, which contain `{x = 0}`. Every Lagrangian is `W • {x = 0}`
-for a unitary `W`, and translating the section by `W` gives one around it. Tau Ceti's
-`Subgroup.localSectionTrivializationOfCosetFibers` turns each such section into a trivialization.
+the open set of Lagrangians transverse to `{y = 0}`, and `{x = 0}` is one of them. Every
+Lagrangian is `W • {x = 0}` for a unitary `W`, and translating the section by `W` gives one
+around it. Tau Ceti's `Subgroup.localSectionTrivializationOfCosetFibers` turns each such
+section into a trivialization.
 
 ## Main results
 
@@ -63,19 +64,6 @@ local notation "ℒ" ι => LagrangianGrassmannian (stdForm ι)
 
 namespace LagrangianGrassmannian
 
-/-- The unitary matrix of the Lagrangian frame `fromRows S 1` of a symmetric matrix `S`; it frames
-the chart point `graphY S`. -/
-private noncomputable def graphYUnitary (S : selfAdjoint (Matrix ι ι ℝ)) : unitaryGroup ι ℂ :=
-  unitaryOfFrame (isLagrangian_range_fromRows_one (isHermitian_iff_isSymm.1 S.property))
-
-private theorem unitaryFrame_graphYUnitary (S : selfAdjoint (Matrix ι ι ℝ)) :
-    unitaryFrame (graphYUnitary S) = graphY S :=
-  (graphY_eq_unitaryFrame S).symm
-
-private theorem continuous_graphYUnitary :
-    Continuous (graphYUnitary : selfAdjoint (Matrix ι ι ℝ) → unitaryGroup ι ℂ) :=
-  continuous_unitaryOfFrame continuous_subtypeVal continuous_const _
-
 /-- **Local triviality of the unitary frame map.** Every Lagrangian subspace of `StdSpace ι` lies
 in the base set of a trivialization of `unitaryFrame : U(n) → ℒ ι` with fibre the orthogonal
 group `O(n)`, the real unitary matrices. -/
@@ -86,13 +74,17 @@ theorem exists_trivialization_unitaryFrame (Λ : ℒ ι) :
   let c : OpenPartialHomeomorph (ℒ ι) (selfAdjoint (Matrix ι ι ℝ)) := graphYChart
   let V : Set (ℒ ι) := W • c.source
   have hV : IsOpen V := c.open_source.smul W
-  have hsec : ∀ Λ' ∈ V, unitaryFrame (W * graphYUnitary (c (W⁻¹ • Λ'))) = Λ' := fun Λ' h ↦ by
-    rw [unitaryFrame_mul, unitaryFrame_graphYUnitary, ← graphYChart_symm_apply,
+  let s : (ℒ ι) → unitaryGroup ι ℂ := fun Λ' ↦ W * unitaryOfFrame
+    (isLagrangian_range_fromRows_one (isHermitian_iff_isSymm.1 (c (W⁻¹ • Λ')).property))
+  have hsec : ∀ Λ' ∈ V, unitaryFrame (s Λ') = Λ' := fun Λ' h ↦ by
+    rw [unitaryFrame_mul, ← graphY_eq_unitaryFrame, ← graphYChart_symm_apply,
       c.left_inv (mem_smul_set_iff_inv_smul_mem.1 h), smul_inv_smul]
-  have hs : ContinuousOn (fun Λ' ↦ W * graphYUnitary (c (W⁻¹ • Λ'))) V :=
-    continuousOn_const.mul (continuous_graphYUnitary.comp_continuousOn
+  have hs : ContinuousOn s V :=
+    continuousOn_const.mul <| (continuous_unitaryOfFrame continuous_subtypeVal
+      continuous_const fun S ↦ isLagrangian_range_fromRows_one
+        (isHermitian_iff_isSymm.1 S.property)).comp_continuousOn
       (c.continuousOn.comp (continuous_const_smul _).continuousOn
-        fun _ h ↦ mem_smul_set_iff_inv_smul_mem.1 h))
+        fun _ h ↦ mem_smul_set_iff_inv_smul_mem.1 h)
   refine ⟨Subgroup.localSectionTrivializationOfCosetFibers _ continuous_unitaryFrame
     (fun _ _ ↦ unitaryFrame_eq_unitaryFrame_iff) V hV _ hs hsec, ?_⟩
   rw [Subgroup.localSectionTrivializationOfCosetFibers_baseSet, smul_mem_smul_set_iff,
