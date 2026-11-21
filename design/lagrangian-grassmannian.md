@@ -422,9 +422,19 @@ unitary action to Tau Ceti's `Matrix.realImage`.
     of `realify U` indexed by `inl` are `fromRows (U.map re) (U.map im)`;
   - `unitaryFrame_one` and `unitaryFrame_mul` (both `@[simp]`):
     `unitaryFrame (U * U') = U • unitaryFrame U'`.
+- `ℒ.frameGL h : GL ι ℂ` and `ℒ.unitaryOfFrame h : unitaryGroup ι ℂ`, for
+  `h : (stdForm ι).IsLagrangian (range (toEuclideanLin (fromRows X Y)))`:
+  the complex frame `X + i Y`, invertible by
+  `det_ne_zero_of_isLagrangian_range_fromRows` (`coe_frameGL`, `@[simp]`),
+  and its `realOrthonormalize`, unitary by
+  `realOrthonormalize_mem_unitaryGroup` (`coe_unitaryOfFrame`). Then
+  `unitaryFrame_unitaryOfFrame : unitaryFrame (unitaryOfFrame h) = ⟨_, h⟩`
+  (`@[simp]`), by `realImage_realOrthonormalize`. Every passage from a
+  Lagrangian frame to a unitary frame goes through this construction, and a
+  continuous family of frames gives a continuous family of unitary frames by
+  `coe_unitaryOfFrame` and `continuous_realOrthonormalize`.
 - `ℒ.unitaryFrame_surjective`: transitivity of $\mathrm{U}(n)$. Take any basis
-  of `Λ` as a frame (`Frame.lean`), orthonormalize its complex frame by
-  `realOrthonormalize`, and use `realImage_realOrthonormalize`. It gives the
+  of `Λ` as a frame (`Frame.lean`) and apply `unitaryFrame_unitaryOfFrame`. It gives the
   instances `MulAction.IsPretransitive (unitaryGroup ι ℂ) (ℒ ι)` and
   `MulAction.IsPretransitive (GLSymplectic ι ℝ) (ℒ ι)`. Transitivity is then
   Mathlib's `MulAction.exists_smul_eq`, with no restatement here.
