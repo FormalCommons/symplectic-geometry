@@ -41,7 +41,10 @@ subspace `W`, this file adds to Tau Ceti's theory of the symplectic complement `
   dimension, a subspace is Lagrangian exactly when it is isotropic of half the dimension;
 * `TauCeti.SymplecticForm.isLagrangian_map_iff_of_apply_eq_mul`: a linear equivalence
   `e : V ≃ W` with `ω'(e v, e w) = c · ω(v, w)` for some constant `c ≠ 0` maps the Lagrangian
-  subspaces of `ω` onto those of `ω'` (for `c = -1`: an anti-symplectic map).
+  subspaces of `ω` onto those of `ω'` (for `c = -1`: an anti-symplectic map);
+* `TauCeti.SymplecticForm.orthogonal_sup`: `(L ⊔ L')^ω = L^ω ⊓ L'^ω`;
+* `TauCeti.SymplecticForm.isIsotropic_inf_orthogonal`: the radical `W ∩ W^ω` of a subspace is
+  isotropic.
 
 It then collects these with Tau Ceti's results into two theorems:
 `TauCeti.SymplecticForm.orthogonal_properties`, in finite dimension (dimension of the
@@ -189,6 +192,16 @@ theorem isLagrangian_map_iff_of_apply_eq_mul {W : Type*} [AddCommGroup W] [Modul
     isSymplectomorphism_iff_transport_eq.1 <| isSymplectomorphism_iff.2 fun v w ↦ by
       rw [rescale_apply, he]
   rw [← h, isLagrangian_map_transport_iff, isLagrangian_rescale_iff]
+
+/-- The symplectic complement of a sum is the intersection of the symplectic complements. -/
+theorem orthogonal_sup (ω : SymplecticForm V) (L L' : Submodule ℝ V) :
+    ω.orthogonal (L ⊔ L') = ω.orthogonal L ⊓ ω.orthogonal L' :=
+  Submodule.orthogonalBilin_sup (B := ω.toBilinForm) L L'
+
+/-- The radical `W ∩ W^ω` of a subspace is isotropic. -/
+theorem isIsotropic_inf_orthogonal (W : Submodule ℝ V) :
+    ω.IsIsotropic (W ⊓ ω.orthogonal W) :=
+  isIsotropic_iff.2 fun _ hv _ hw => mem_orthogonal_iff.1 hw.2 _ hv.1
 
 variable [FiniteDimensional ℝ V]
 
