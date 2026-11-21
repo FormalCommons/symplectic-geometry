@@ -907,8 +907,9 @@ $[0,1]$ is never fed to the lemma with `P = ℝ` directly.
     transport is the linear lemma
     `TauCeti.SymplecticForm.Compatible.mem_cayleyDomain_of_continuousLinearEquiv`
     (for a topological vector space with a continuous linear equivalence to a
-    finite-dimensional normed space), in the same file with
-    `Compatible.exists_toLinearMap_eq_cayleyPathFormula`: there the Cayley path
+    finite-dimensional normed space), in part 9's
+    `Geometry/Symplectic/Cayley/Domain.lean` next to `Compatible.mem_cayleyDomain`,
+    with `Compatible.exists_toLinearMap_eq_cayleyPathFormula`: there the Cayley path
     `cayleyPathFormula (smoothTransition t) A B` represents an `ω`-tame
     structure, `ω`-compatible when the endpoint is, transported from Tau
     Ceti's linear `Compatible.cayleyPath`. These statements need only
@@ -965,8 +966,7 @@ $[0,1]$ is never fed to the lemma with `P = ℝ` directly.
   above. That file imports only Mathlib's
   `Geometry/Manifold/VectorBundle/Hom.lean`, Tau Ceti's
   `Geometry/Symplectic/Cayley/Smooth.lean`,
-  `Topology/VectorBundle/Coordinates.lean` and
-  `Geometry/Symplectic/SymplecticTransport.lean`, and part 9's
+  `Topology/VectorBundle/Coordinates.lean`, and part 9's
   `Geometry/Symplectic/Cayley/Domain.lean`; `Contractible.lean` imports
   it. The suffix `_of_vectorBundle` is provisional, since the plain name
   is Tau Ceti's: if Tau Ceti generalizes its own lemma in this way, the

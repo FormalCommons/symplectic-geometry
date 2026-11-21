@@ -8,7 +8,6 @@ module
 public import Mathlib.Geometry.Manifold.VectorBundle.Hom
 public import TauCeti.Geometry.Symplectic.Cayley.Smooth
 public import TauCeti.Topology.VectorBundle.Coordinates
-public import TauCeti.Geometry.Symplectic.SymplecticTransport
 public import SymplecticGeometry.Geometry.Symplectic.Cayley.Domain
 
 /-!
@@ -32,9 +31,7 @@ point of `q`. It does not depend on the trivialization
 asks for (`Bundle.isUnit_of_mem_cayleyPathDomain`), is open where `A` is continuous
 (`Bundle.isOpen_cayleyPathDomain`), and contains the points where `A q` is compatible with, and
 `q` tamed by, a linear symplectic form on the fibre
-(`TauCeti.SymplecticForm.Compatible.mem_cayleyPathDomain`). On such points the path stays among
-the complex structures tamed by that form, and among the compatible ones when `q` is compatible
-(`TauCeti.SymplecticForm.Compatible.exists_toLinearMap_eq_cayleyPathFormula`).
+(`TauCeti.SymplecticForm.Compatible.mem_cayleyPathDomain`).
 
 ## Main definitions and results
 
@@ -43,8 +40,6 @@ the complex structures tamed by that form, and among the compatible ones when `q
 * `Bundle.cayleyPathDomain`, with `Bundle.mem_cayleyPathDomain_iff`,
   `Bundle.mem_cayleyPathDomain_iff_of_mem_baseSet`, `Bundle.isUnit_of_mem_cayleyPathDomain`,
   `Bundle.isOpen_cayleyPathDomain` and `TauCeti.SymplecticForm.Compatible.mem_cayleyPathDomain`.
-* `TauCeti.SymplecticForm.Compatible.exists_toLinearMap_eq_cayleyPathFormula`: the linear Cayley
-  path on a topological vector space isomorphic to a finite-dimensional normed space.
 
 The proof of `ContMDiffAt.cayleyPathFormula_hom_bundle_of_vectorBundle` is Tau Ceti's proof of
 `ContMDiffAt.cayleyPathFormula_hom_bundle`, for the tangent bundle and order `∞`, with the tangent
@@ -217,53 +212,6 @@ theorem isOpen_cayleyPathDomain [CompleteSpace F]
 end Bundle
 
 namespace TauCeti.SymplecticForm
-
-section Linear
-
-variable {W : Type*} [AddCommGroup W] [Module ℝ W] [TopologicalSpace W]
-  [IsTopologicalAddGroup W] [ContinuousSMul ℝ W]
-  {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] [FiniteDimensional ℝ F]
-  {ω : SymplecticForm W} {J₀ J : AlmostComplexStructure W} {A B : W →L[ℝ] W}
-
-/-- Let `W` be a topological vector space isomorphic to a finite-dimensional normed space, `ω` a
-symplectic form on `W`, `J₀` an `ω`-compatible and `J` an `ω`-tame complex structure, represented
-by continuous endomorphisms `A` and `B`. Then for every `|b| ≤ 1` the triple `(b, A, B)` lies in
-the domain of the Cayley path. -/
-theorem Compatible.mem_cayleyDomain_of_continuousLinearEquiv (h₀ : ω.Compatible J₀)
-    (h : ω.Tames J) (L : W ≃L[ℝ] F) (hA : A.toLinearMap = J₀.toLinearMap)
-    (hB : B.toLinearMap = J.toLinearMap) {b : ℝ} (hb : |b| ≤ 1) :
-    (b, A, B) ∈ cayleyDomain (W →L[ℝ] W) := by
-  rw [← map_mem_cayleyDomain_iff L.conjContinuousAlgEquiv]
-  exact (h₀.transport L.toLinearEquiv).mem_cayleyDomain (h.transport L.toLinearEquiv)
-    hb (by ext; simp [← hA]) (by ext; simp [← hB])
-
-/-- Let `W` be a topological vector space isomorphic to a finite-dimensional normed space, `ω` a
-symplectic form on `W`, `J₀` an `ω`-compatible and `J` an `ω`-tame complex structure, represented
-by continuous endomorphisms `A` and `B`. Then the Cayley path
-`cayleyPathFormula (Real.smoothTransition t) A B` represents an `ω`-tame complex structure, which is
-`ω`-compatible when `J` is. -/
-theorem Compatible.exists_toLinearMap_eq_cayleyPathFormula (h₀ : ω.Compatible J₀)
-    (h : ω.Tames J) (L : W ≃L[ℝ] F) (hA : A.toLinearMap = J₀.toLinearMap)
-    (hB : B.toLinearMap = J.toLinearMap) (t : ℝ) :
-    ∃ K : AlmostComplexStructure W,
-      K.toLinearMap = (cayleyPathFormula (Real.smoothTransition t) A B).toLinearMap ∧
-        ω.Tames K ∧ (ω.Compatible J → ω.Compatible K) := by
-  have h₀' := h₀.transport L.toLinearEquiv
-  have h' := h.transport L.toLinearEquiv
-  refine ⟨(h₀'.cayleyPath h' t).transport L.toLinearEquiv.symm, ?_, ?_, fun hc ↦ ?_⟩
-  · have hL := h₀'.toContinuousLinearMap_cayleyPath h' t
-      (A := L.conjContinuousAlgEquiv A) (B := L.conjContinuousAlgEquiv B) (by ext; simp [← hA])
-      (by ext; simp [← hB])
-    rw [← map_cayleyPathFormula] at hL
-    ext v
-    have := congrArg (fun C : F →L[ℝ] F ↦ L.symm (C (L v))) hL
-    simpa [AlmostComplexStructure.transport_apply] using this
-  · simpa [transport_transport_symm] using
-      (h₀'.tames_cayleyPath h' t).transport L.toLinearEquiv.symm
-  · simpa [transport_transport_symm] using
-      (h₀'.compatible_cayleyPath (hc.transport L.toLinearEquiv) t).transport L.toLinearEquiv.symm
-
-end Linear
 
 variable {M : Type*} [TopologicalSpace M]
   {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] [FiniteDimensional ℝ F]

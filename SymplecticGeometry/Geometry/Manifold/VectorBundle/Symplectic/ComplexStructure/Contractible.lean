@@ -78,7 +78,7 @@ namespace ContMDiffComplexStructure
 /-- For a complex structure `J₀`, the Cayley path `cayleyPathFormula (smoothTransition t) (J₀ x) B`
 from `J₀ x` to an endomorphism `B` of the fibre over `x` is jointly `Cⁿ` in `t` and the point
 `⟨x, B⟩` of the endomorphism bundle, on the domain of the Cayley path from `J₀`. -/
-theorem contMDiffOn_cayleyPathFormula [IsManifold I n M] [ContMDiffVectorBundle n F V I]
+theorem contMDiffOn_cayleyPathFormula
     (J₀ : ContMDiffComplexStructure I n F V) :
     ContMDiffOn (𝓘(ℝ).prod (I.prod 𝓘(ℝ, F →L[ℝ] F))) (I.prod 𝓘(ℝ, F →L[ℝ] F)) n
       (fun q : ℝ × TotalSpace (F →L[ℝ] F) (fun x ↦ V x →L[ℝ] V x) ↦
@@ -117,7 +117,6 @@ theorem Compatible.mem_cayleyPathDomain (h₀ : ω.Compatible J₀) (h : ω.Tame
     (J₀.almostComplexStructureAt_toLinearMap x).symm
     (J.almostComplexStructureAt_toLinearMap x).symm
 
-variable [IsManifold I n M] [ContMDiffVectorBundle n F V I]
 
 /-- The Cayley path from an `ω`-compatible complex structure `J₀` to an `ω`-tame complex
 structure `J`, at time `t`: the complex structure whose value at `x` is
@@ -145,6 +144,7 @@ variable (h₀ : ω.Compatible J₀) (h : ω.Tames J)
 
 /-- The value of the Cayley path at `x` is `cayleyPathFormula (smoothTransition t) (J₀ x) (J x)`.
 -/
+@[simp]
 theorem Compatible.cayleyPath_apply (t : ℝ) (x : M) :
     h₀.cayleyPath h t x = cayleyPathFormula (Real.smoothTransition t) (J₀ x) (J x) :=
   ContMDiffSection.fiberwiseMap_apply _ _ t _ x
@@ -184,11 +184,13 @@ theorem Compatible.compatible_cayleyPath (h : ω.Compatible J) (t : ℝ) :
     exact hC h
 
 /-- The Cayley path is at `J₀` for `t ≤ 0`. -/
+@[simp]
 theorem Compatible.cayleyPath_of_nonpos {t : ℝ} (ht : t ≤ 0) : h₀.cayleyPath h t = J₀ := by
   ext x v
   rw [h₀.cayleyPath_apply, Real.smoothTransition.zero_of_nonpos ht, cayleyPathFormula_zero]
 
 /-- The Cayley path is at `J` for `1 ≤ t`. -/
+@[simp]
 theorem Compatible.cayleyPath_of_one_le {t : ℝ} (ht : 1 ≤ t) : h₀.cayleyPath h t = J := by
   ext x v
   have hJ₀ : J₀ x * J₀ x = -1 := by
@@ -197,7 +199,7 @@ theorem Compatible.cayleyPath_of_one_le {t : ℝ} (ht : 1 ≤ t) : h₀.cayleyPa
   rw [h₀.cayleyPath_apply, Real.smoothTransition.one_of_one_le ht, cayleyPathFormula_one hJ₀
     (isUnit_of_mem_cayleyPathDomain (h₀.mem_cayleyPathDomain h x) ⟨zero_le_one, le_rfl⟩).1]
 
-variable [LocallyCompactSpace EB] {ι : Type*}
+variable [IsManifold I n M] [ContMDiffVectorBundle n F V I] [LocallyCompactSpace EB] {ι : Type*}
   (e : ι → Trivialization (F →L[ℝ] F) (π (F →L[ℝ] F) (fun x ↦ V x →L[ℝ] V x)))
   [∀ i, MemTrivializationAtlas (e i)]
   (U : ι → Opens M) (hU : ∀ i, (U i : Set M) ⊆ (e i).baseSet)
