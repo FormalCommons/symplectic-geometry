@@ -240,7 +240,9 @@ $\sum_ka_k(-2^k)^n=1$ for every $n\ge0$ and $\sum_k|a_k|2^{kn}<\infty$ for every
 $n$. Seeley takes the limit of the Lagrange weights at the nodes $-2^k$,
 $a_k=\prod_{j\ne k}(1+2^j)/(2^j-2^k)$, and bounds it.
 
-- `SymplecticGeometry.seeleyCoeff : ℕ → ℝ`, with `seeleyCoeff_def`.
+- `SymplecticGeometry.seeleyCoeff : ℕ → ℝ`, with `seeleyCoeff_def` and
+  `hasProd_seeleyCoeff (k : ℕ) : HasProd (fun j : ({k}ᶜ : Set ℕ) ↦
+  (1 + 2 ^ (j : ℕ)) / (2 ^ (j : ℕ) - 2 ^ k)) (seeleyCoeff k)`.
 - `summable_seeleyCoeff_mul_pow (n : ℕ) :
   Summable fun k ↦ |seeleyCoeff k| * 2 ^ (k * n)`.
 - `tsum_seeleyCoeff_mul_neg_two_pow (n : ℕ) :
@@ -397,13 +399,26 @@ Named like Tau Ceti's file; in `TauCeti`.
   `Convex.isSmoothlyContractible` for a nonempty open convex subset of a
   normed space, by straight lines, with its corollary for an open subset of
   `M` carried by a chart or a partial diffeomorphism onto such a set.
+  `isSmoothlyContractible_def` states the body.
+  Both come from `IsSmoothlyContractible.of_starConvex_image`, for a nonempty
+  open `U` and a map `φ : M → E'` to any real normed space, smooth on `U`,
+  with a left inverse on `U`
+  smooth on the star-convex set `φ '' U`, which covers a partial
+  diffeomorphism directly; its other cases are
+  `StarConvex.isSmoothlyContractible` (an open set of the model with
+  star-convex image under `I`) and
+  `IsSmoothlyContractible.of_starConvex_image_extChartAt` (a chart).
 - `SymplecticGeometry.IsFiniteGoodCover (I) {ι : Type*} [Finite ι]
   (U : ι → Opens M) : Prop := (⨆ i, U i) = ⊤ ∧ ∀ s : Finset ι, s.Nonempty →
   ((⨅ i ∈ s, U i : Opens M) : Set M).Nonempty →
-  IsSmoothlyContractible I (⨅ i ∈ s, U i : Opens M)`.
+  IsSmoothlyContractible I (⨅ i ∈ s, U i : Opens M)`, with
+  `isFiniteGoodCover_def` and the eliminators `IsFiniteGoodCover.iSup_eq_top`
+  and `IsFiniteGoodCover.isSmoothlyContractible`.
 - `SymplecticGeometry.HasFiniteGoodCover (I) (M) : Prop := ∃ (n : ℕ)
-  (U : Fin n → Opens M), IsFiniteGoodCover I U`, and
-  `IsFiniteGoodCover.hasFiniteGoodCover` for any finite index type.
+  (U : Fin n → Opens M), IsFiniteGoodCover I U`, with `hasFiniteGoodCover_def`,
+  and
+  `IsFiniteGoodCover.hasFiniteGoodCover` for any finite index type, through
+  `IsFiniteGoodCover.comp_equiv` (reindexing).
 - `IsSmoothlyContractible.hasFiniteGoodCover` (one set is a good cover), as
   the example of the predicate.
 
@@ -534,32 +549,42 @@ Below, `∂ₜ` at `(x, t)` is the tangent vector
 `((0 : E), (1 : TangentSpace (𝓡∂ 1) t))` of `M × unitInterval`, as in
 *Decisions*.
 
-- Joint smoothness of inverses over `ℝ`: `TauCeti.contMDiff_diffeomorph_symm_apply
-  {ψ : ℝ → M ≃ₘ⟮I, I⟯ M} (hψ : ContMDiff (𝓘(ℝ, ℝ).prod I) I ∞
-  (fun p : ℝ × M ↦ ψ p.1 p.2)) : ContMDiff (𝓘(ℝ, ℝ).prod I) I ∞
-  (fun p : ℝ × M ↦ (ψ p.1).symm p.2)`, by
-  `isLocalDiffeomorph_of_mfderiv_eq` and `diffeomorphOfBijective` applied to
-  `(t, x) ↦ (t, ψ t x)`; this is the hypothesis `hφ'` of Tau Ceti's
+- Joint smoothness of inverses, over any finite-dimensional boundaryless
+  parameter manifold `P` (model `J`) and for any `1 ≤ n`, in Mathlib's
+  namespace `Diffeomorph`, as it is about Mathlib's notion:
+  `Diffeomorph.contMDiff_symm_eval {ψ : P → M ≃ₘ^n⟮I, I⟯ M} (hn : 1 ≤ n)
+  (hψ : ContMDiff (J.prod I) I n (fun p : P × M ↦ ψ p.1 p.2)) :
+  ContMDiff (J.prod I) I n (fun p : P × M ↦ (ψ p.1).symm p.2)`, named like
+  Tau Ceti's `TauCeti.continuous_equiv_symm_eval`, by
+  `isLocalDiffeomorphAt_of_injective_mfderiv` and `diffeomorphOfBijective`
+  applied to `(p, x) ↦ (p, ψ p x)`; this is the hypothesis `hφ'` of Tau Ceti's
   `forall_mpullback_eq_iff_forall_mextDeriv_interior_eulerianField_eq_zero`.
 - Restriction: `ofReal (ψ : ℝ → M ≃ₘ⟮I, I⟯ M) (hψ : …) (h₀ : ∀ x, ψ 0 x = x) :
-  Diffeotopy I ∞ M`, with `ofReal_apply`, `timeSlice_ofReal` and
+  Diffeotopy I ∞ M`, with `ofReal_apply`, `toDiffeomorph_symm_ofReal_apply`,
+  `symm_ofReal_apply`, `timeSlice_ofReal`, `final_ofReal` and
   `mfderiv_cylinderMap_ofReal (x : M) (t : unitInterval) : mfderiv
   (I.prod (𝓡∂ 1)) I (ofReal ψ hψ h₀).cylinderMap (x, t) ∂ₜ =
   TauCeti.eulerianField I (fun u ↦ (ψ u).toEquiv) t (ψ t x)`.
 - Flows: `timeDependentFlowDiffeotopy_eq_ofReal` (for `n = ∞`, the restriction
-  of `fun t ↦ timeDependentFlowDiffeomorph hc le_top hX 0 t`). The velocity
+  of `fun t ↦ timeDependentFlowDiffeomorph hc le_top hX 0 t`, jointly smooth
+  by `TauCeti.contMDiff_timeDependentFlowDiffeomorph`). The velocity
   of the flow diffeotopy is `velocity_timeDependentFlowDiffeotopy` of
   *Hamiltonian flows*, and is not stated here.
-- The reading over `ℝ`: `smoothTransitionFamily (Φ : Diffeotopy I ∞ M)
-  (t : ℝ) : M ≃ₘ⟮I, I⟯ M := Φ.timeSlice ⟨Real.smoothTransition t, _, _⟩`,
-  with `smoothTransitionFamily_apply`, `smoothTransitionFamily_of_nonpos`
+- The reading over `ℝ`: writing `s u` for `Real.smoothTransitionUnit u :=
+  ⟨Real.smoothTransition u, _, _⟩ : unitInterval`, with
+  `Real.coe_smoothTransitionUnit`, `Real.smoothTransitionUnit_of_nonpos`,
+  `Real.smoothTransitionUnit_of_one_le` and `Real.contMDiff_smoothTransitionUnit`,
+  `smoothTransitionFamily (Φ : Diffeotopy I ∞ M)
+  (t : ℝ) : M ≃ₘ⟮I, I⟯ M := Φ.timeSlice (s t)`,
+  with `smoothTransitionFamily_def`, `smoothTransitionFamily_apply`,
+  `smoothTransitionFamily_of_nonpos`
   (the identity), `smoothTransitionFamily_of_one_le` (`Φ.final`),
   `contMDiff_smoothTransitionFamily` and
   `contMDiff_smoothTransitionFamily_symm` (both jointly smooth, by
-  `ContMDiff.smoothTransition` and `Φ.symm`, with no inverse function
-  theorem), and, writing `s u` for `⟨Real.smoothTransition u, _, _⟩`,
+  `Real.contMDiff_smoothTransitionUnit` and `Φ.symm`, with no inverse function
+  theorem), and
   `eulerianField_smoothTransitionFamily_apply (u : ℝ) (x : M) :
-  TauCeti.eulerianField I (fun u ↦ (Φ.smoothTransitionFamily u).toEquiv) u
+  TauCeti.eulerianField I (fun v ↦ (Φ.smoothTransitionFamily v).toEquiv) u
   (Φ.smoothTransitionFamily u x) = deriv Real.smoothTransition u •
   mfderiv (I.prod (𝓡∂ 1)) I Φ.cylinderMap (x, s u) ∂ₜ`, by
   `eulerianField_apply_apply` and the chain rule through
@@ -640,7 +665,7 @@ can start at once; each issue's blockers come before it.
 15. **Diffeotopies from families of diffeomorphisms.**
     `Geometry/Diffeomorphism/Diffeotopy/OfContMDiff.lean`. Blocked by 2 and 14
     (for the inverse function theorem step it shares with
-    `contMDiff_diffeomorph_symm_apply`).
+    `Diffeomorph.contMDiff_symm_eval`).
 16. **A reparametrization equal to the identity on an interval.**
     `exists_contDiff_eqOn_id_Icc_mem_Ioo` in
     `Analysis/SpecialFunctions/SmoothTransition.lean`. Blocked by 14, which

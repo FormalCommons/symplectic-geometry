@@ -310,8 +310,8 @@ review of #420 raise four more.
 
 ### `Geometry/Manifold/DifferentialForm/Flow/Family.lean`
 
-Named like Tau Ceti's file, in the namespace `TauCeti`. One theorem, the
-rescaling form of Moser's principle along a single trajectory:
+Named like Tau Ceti's file, in the namespace `TauCeti`. Two theorems. The
+first is the rescaling form of Moser's principle along a single trajectory:
 
 ```lean
 theorem mpullback_timeDependentFlowOf_mpullback_prodMk_apply_eq_exp_integral_smul_of_forall_mem_uIcc_of_mem
@@ -337,6 +337,20 @@ with the hypothesis read only along the trajectory, through
 module docstring credits both. The rate `c` is a function of time only,
 because along one trajectory nothing else is needed. Expected size: 100
 lines.
+
+The second, added by *Hamiltonian flows* for `PoissonAlgebra.lean`, under
+the same `[IsManifold I 2 M]`, is Tau Ceti's
+`mpullback_timeDependentFlowOf_mpullback_prodMk_apply_eq_of_mem` for the
+constant family of a closed form whose contractions are closed:
+
+```lean
+theorem mpullback_timeDependentFlowOf_apply_of_mextDeriv_interior_eq_zero
+    (hX : ContMDiff (𝓘(ℝ, ℝ).prod I) I.tangent 2 (fun p : ℝ × M ↦ (⟨p.2, X p.1 p.2⟩ : TangentBundle I M)))
+    {β : SmoothForm I M F (k + 1)} (hβ : β.IsClosed)
+    (hXβ : ∀ t, mextDeriv (RoughForm.interior (X t) β.val) = 0)
+    {s t : ℝ} {x : M} (h : ((s, t), x) ∈ timeDependentFlowDomain X) :
+    mpullback I I (timeDependentFlowOf X s t) β.val x = β.val x
+```
 
 ### `Geometry/Contact/Hamiltonian.lean`
 
