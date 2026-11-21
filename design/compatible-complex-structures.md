@@ -73,6 +73,7 @@ and does not redefine any of it:
   `Topology/Algebra/Module/BilinearForm.lean`, as
   `ContinuousLinearMap.skewSymmetrizeBilinear`, with `_def`, `_apply`,
   `flip_skewSymmetrizeBilinear`, `skewSymmetrizeBilinear_of_flip_eq_neg`,
+  `skewSymmetrizeBilinear_eq_self_iff`, `skewSymmetrizeBilinear_eq_zero_iff`,
   `skewSymmetrizeBilinear_of_isAlt`, idempotence
   (`skewSymmetrizeBilinear_skewSymmetrizeBilinear`),
   `skewSymmetrizeBilinear_bilinearComp`,

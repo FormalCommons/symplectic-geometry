@@ -39,6 +39,9 @@ value is alternating, and it is nondegenerate exactly when `b - bᵀ` is.
   idempotent.
 * `ContinuousLinearMap.skewSymmetrizeBilinear_bilinearComp`: it commutes with simultaneous
   pullback of both arguments.
+* `ContinuousLinearMap.skewSymmetrizeBilinear_eq_self_iff`,
+  `ContinuousLinearMap.skewSymmetrizeBilinear_eq_zero_iff`: the skew part fixes exactly the
+  antisymmetric maps and kills exactly the symmetric ones.
 * `ContinuousLinearMap.symmetrizeBilinear_add_skewSymmetrizeBilinear`: a continuous bilinear
   map is the sum of its symmetric and skew parts.
 * `ContinuousLinearMap.isAlt_toBilinForm_skewSymmetrizeBilinear`: the skew part of a form is
@@ -101,8 +104,14 @@ theorem flip_skewSymmetrizeBilinear (b : V →L[𝕜] V →L[𝕜] G) :
 itself. -/
 theorem skewSymmetrizeBilinear_of_flip_eq_neg [NeZero (2 : 𝕜)] {b : V →L[𝕜] V →L[𝕜] G}
     (hb : b.flip = -b) : skewSymmetrizeBilinear b = b := by
-  rw [skewSymmetrizeBilinear_def, hb, sub_neg_eq_add, ← two_smul 𝕜, smul_smul,
-    inv_mul_cancel₀ (NeZero.ne (2 : 𝕜)), one_smul]
+  rw [skewSymmetrizeBilinear_def, hb, sub_neg_eq_add, ← two_smul 𝕜]
+  simp [NeZero.ne (2 : 𝕜)]
+
+/-- A continuous bilinear map is its own skew part exactly when its transpose is its
+negative. -/
+theorem skewSymmetrizeBilinear_eq_self_iff [NeZero (2 : 𝕜)] {b : V →L[𝕜] V →L[𝕜] G} :
+    skewSymmetrizeBilinear b = b ↔ b.flip = -b :=
+  ⟨fun h => h ▸ flip_skewSymmetrizeBilinear b, skewSymmetrizeBilinear_of_flip_eq_neg⟩
 
 /-- The skew part is idempotent. -/
 @[simp]
@@ -127,12 +136,6 @@ theorem skewSymmetrizeBilinear_coe (b : symmetricBilinearMaps 𝕜 V G) :
   ext v w
   simp [(mem_symmetricBilinearMaps 𝕜 V G b.val).1 b.property v w]
 
-/-- The skew part of the symmetric part is zero. -/
-@[simp]
-theorem skewSymmetrizeBilinear_symmetrizeBilinear (b : V →L[𝕜] V →L[𝕜] G) :
-    skewSymmetrizeBilinear (symmetrizeBilinear b).val = 0 :=
-  skewSymmetrizeBilinear_coe _
-
 /-- The symmetric part of the skew part is zero. -/
 @[simp]
 theorem symmetrizeBilinear_skewSymmetrizeBilinear (b : V →L[𝕜] V →L[𝕜] G) :
@@ -146,8 +149,14 @@ theorem symmetrizeBilinear_add_skewSymmetrizeBilinear [NeZero (2 : 𝕜)]
     (b : V →L[𝕜] V →L[𝕜] G) :
     (symmetrizeBilinear b).val + skewSymmetrizeBilinear b = b := by
   ext v w
-  rw [add_apply, add_apply, symmetrizeBilinear_apply, skewSymmetrizeBilinear_apply, ← smul_add,
-    add_add_sub_cancel, ← two_smul 𝕜, smul_smul, inv_mul_cancel₀ (NeZero.ne (2 : 𝕜)), one_smul]
+  simp [← smul_add, ← two_smul 𝕜, NeZero.ne (2 : 𝕜)]
+
+/-- The skew part of a continuous bilinear map vanishes exactly when the map is symmetric. -/
+theorem skewSymmetrizeBilinear_eq_zero_iff [NeZero (2 : 𝕜)] {b : V →L[𝕜] V →L[𝕜] G} :
+    skewSymmetrizeBilinear b = 0 ↔ b ∈ symmetricBilinearMaps 𝕜 V G := by
+  refine ⟨fun h => ?_, fun h => skewSymmetrizeBilinear_coe ⟨b, h⟩⟩
+  rw [← symmetrizeBilinear_add_skewSymmetrizeBilinear b, h, add_zero]
+  exact (symmetrizeBilinear b).property
 
 /-- The skew part of a continuous bilinear form is alternating. -/
 theorem isAlt_toBilinForm_skewSymmetrizeBilinear (b : V →L[𝕜] V →L[𝕜] 𝕜) :
