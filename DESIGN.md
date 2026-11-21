@@ -862,7 +862,8 @@ it into issues; the overview fixes its folders and its dependencies.
   with closed points, the parameters $x$ where $f(x)$ is invertible form an
   open set). They import only Mathlib, Tau Ceti and each other.
 - **Builds on:** *Standard model*; compatibility is Tau Ceti's `Compatible`.
-  It also depends on five files of three other parts. `Action.lean` imports
+  It also depends on five files of three other parts. `Basic.lean` (for
+  `Matrix.map_re_add_I_smul_map_im`, $Z = X + iY$) and `Action.lean` import
   `LinearAlgebra/Matrix/OfReal.lean`, the general matrix file of
   *Lagrangian Grassmannian* on reading real matrices as complex ones.
   `ComplexStructure.lean` imports
