@@ -21,7 +21,7 @@ Write `ℒ ι` for the space of Lagrangian subspaces of the standard model `(Std
   `Λ ↦ U Uᵀ` for any unitary frame `U` of `Λ`. Two frames of one Lagrangian differ by a real
   orthogonal matrix on the right, which does not change `U Uᵀ`, and conversely
   (`unitaryFrame_eq_unitaryFrame_iff_souriau_eq`); so `souriau` is well defined, continuous and
-  injective.
+  injective, hence a closed embedding (`isClosedEmbedding_souriau`).
 * `SymplecticGeometry.LagrangianGrassmannian.maslovPhase Λ = det (souriau Λ)`, the map
   `ρ : ℒ(n) → S¹` of McDuff–Salamon; on a unitary frame it is `(det U)²`.
 * `SymplecticGeometry.LagrangianGrassmannian.maslovIndex γ`, for a loop `γ : Path Λ Λ`, the degree
@@ -119,6 +119,12 @@ theorem souriau_injective : Function.Injective (souriau : (ℒ ι) → unitaryGr
   obtain ⟨V, rfl⟩ := unitaryFrame_surjective Λ'
   rw [souriau_unitaryFrame, souriau_unitaryFrame] at h
   exact unitaryFrame_eq_unitaryFrame_iff_souriau_eq.2 h
+
+/-- The Souriau map is a closed embedding of `ℒ ι` into the unitary group: it is a continuous
+injection from a compact space into a Hausdorff space. -/
+theorem isClosedEmbedding_souriau :
+    Topology.IsClosedEmbedding (souriau : (ℒ ι) → unitaryGroup ι ℂ) :=
+  continuous_souriau.isClosedEmbedding souriau_injective
 
 /-- The Souriau map of a direct sum is the block-diagonal sum of the Souriau maps. -/
 @[simp]
