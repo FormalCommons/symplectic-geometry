@@ -889,10 +889,14 @@ $[0,1]$ is never fed to the lemma with `P = ℝ` directly.
     for every $b\in[0,1]$, with `mem_cayleyPathDomain_iff`, which says so.
   - `mem_cayleyPathDomain_iff_of_mem_baseSet`: the same condition, with
     `φ q` replaced by conjugation by the fibre equivalence at `q.proj` of any
-    trivialization of the atlas whose base set contains `q.proj`. Two such
+    linear trivialization (`[e.IsLinear ℝ]`) whose base set contains `q.proj`. Two such
     conjugations differ by an algebra automorphism of `F →L[ℝ] F`, which
     preserves units and, by Tau Ceti's `map_cayleyFormula`, the Cayley
     formula, so the set does not depend on the choice.
+  - `mem_cayleyPathDomain_iff_forall_mem_cayleyDomain`: the same condition
+    read in the fibre ring, `(b, A q, q.snd) ∈ cayleyDomain (V q.proj →L[ℝ] V q.proj)`
+    for every $b\in[0,1]$; the two lemmas before and after it follow from it
+    by part 9's `map_mem_cayleyDomain_iff`.
   - `isUnit_of_mem_cayleyPathDomain`: for `q` in the set and $b\in[0,1]$,
     `IsUnit (1 - A q * q.snd)` and
     `IsUnit (1 - b • cayleyFormula (A q) q.snd)` in the fibre ring
@@ -926,10 +930,18 @@ $[0,1]$ is never fed to the lemma with `P = ℝ` directly.
     (`conjContinuousAlgEquiv_apply_apply`,
     `AlmostComplexStructure.transport_apply`). So part 9's
     `TauCeti.SymplecticForm.Compatible.mem_cayleyDomain`, on the normed
-    finite-dimensional space `F`, gives the triple for $|b|\le1$. The
-    statements that mention `cayleyPathDomain` keep `[CompleteSpace F]`
-    beside `[FiniteDimensional ℝ F]`, since `FiniteDimensional.completeSpace`
-    is not an instance.
+    finite-dimensional space `F`, gives the triple for $|b|\le1$. This
+    transport is the linear lemma
+    `TauCeti.SymplecticForm.Compatible.mem_cayleyDomain_of_continuousLinearEquiv`
+    (for a topological vector space with a continuous linear equivalence to a
+    finite-dimensional normed space), in part 9's
+    `Geometry/Symplectic/Cayley/Domain.lean` next to `Compatible.mem_cayleyDomain`,
+    with `Compatible.exists_toLinearMap_eq_cayleyPathFormula`: there the Cayley path
+    `cayleyPathFormula (smoothTransition t) A B` represents an `ω`-tame
+    structure, `ω`-compatible when the endpoint is, transported from Tau
+    Ceti's linear `Compatible.cayleyPath`. These statements need only
+    `[FiniteDimensional ℝ F]`: completeness of `F` then comes from Mathlib's
+    instance `FiniteDimensional.proper_real`.
 - **Fixed form, tame and compatible structures.** Fix a compatible `J₀`
   (`IsNondegenerate.exists_compatible`). The contraction is
   $(t,J)\mapsto$ `TauCeti.cayleyPathFormula (smoothTransition (1 - t)) (J₀ x) (J x)`
@@ -981,8 +993,7 @@ $[0,1]$ is never fed to the lemma with `P = ℝ` directly.
   above. That file imports only Mathlib's
   `Geometry/Manifold/VectorBundle/Hom.lean`, Tau Ceti's
   `Geometry/Symplectic/Cayley/Smooth.lean`,
-  `Topology/VectorBundle/Coordinates.lean` and
-  `Geometry/Symplectic/SymplecticTransport.lean`, and part 9's
+  `Topology/VectorBundle/Coordinates.lean`, and part 9's
   `Geometry/Symplectic/Cayley/Domain.lean`; `Contractible.lean` imports
   it. The suffix `_of_vectorBundle` is provisional, since the plain name
   is Tau Ceti's: if Tau Ceti generalizes its own lemma in this way, the
@@ -998,7 +1009,19 @@ $[0,1]$ is never fed to the lemma with `P = ℝ` directly.
   stays tame, and compatible when `J` is, are Tau
   Ceti's linear lemmas behind `SmoothTwoForm.Compatible.tames_cayleyPath` and
   `compatible_cayleyPath` (`.../AlmostComplex/CayleyPath.lean`), which this
-  generalizes. Results: `ContMDiffTwoForm.IsNondegenerate.contractibleSpace_tames`
+  generalizes. In `Contractible.lean` the smoothness on `univ ×ˢ O` is
+  `ContMDiffComplexStructure.contMDiffOn_cayleyPathFormula` (with the time
+  through `smoothTransition`), the membership of the values of a tame `J` is
+  `ContMDiffTwoForm.Compatible.mem_cayleyPathDomain`, and the structures on
+  the path are `ContMDiffTwoForm.Compatible.cayleyPath h₀ h t`, the bundle
+  form of Tau Ceti's `SmoothTwoForm.Compatible.cayleyPath`, with
+  `cayleyPath_apply`, `exists_almostComplexStructureAt_cayleyPath`,
+  `tames_cayleyPath`, `compatible_cayleyPath`, `cayleyPath_of_nonpos`,
+  `cayleyPath_of_one_le` and `continuous_cayleyPath` (joint continuity in the
+  time and the tame structure, from `continuous_fiberwiseMap`); the
+  contraction is the path at time `1 - t`. The endpoints use part 9's
+  `cayleyPathFormula_zero` and `cayleyPathFormula_one`.
+  Results: `ContMDiffTwoForm.IsNondegenerate.contractibleSpace_tames`
   and `contractibleSpace_compatible` (`ContractibleSpace {J // ω.Tames J}`,
   resp. `Compatible`, for every covering frame system).
 - **Fixed structure, taming and compatible forms.** These sets are convex
@@ -1007,8 +1030,10 @@ $[0,1]$ is never fed to the lemma with `P = ℝ` directly.
   (`isTopologicalAddGroup_frameTopology`, `continuousSMul_frameTopology`), so
   Mathlib's `Convex.contractibleSpace` applies: `ContMDiffComplexStructure.contractibleSpace_tames`
   and `contractibleSpace_compatible` for `{ω // ω.Tames J}` and
-  `{ω // ω.Compatible J}`. Their docstrings note that a contractible space is
-  nonempty, which is the existence half of the milestone.
+  `{ω // ω.Compatible J}`, for any frame system of the alternating bundle,
+  covering or not, since the proof does not use a cover. Their docstrings
+  note that a contractible space is nonempty, which is the existence half of
+  the milestone.
 - **Metrics.** `Bundle.ContMDiffRiemannianMetric.contractibleSpace_frameTopology`,
   from Tau Ceti's `continuous_convexCombination_frameTopology`, over a
   Hausdorff σ-compact base. It mentions only Mathlib and Tau Ceti types, so it
@@ -1962,7 +1987,7 @@ of *Constructions* for *First Chern number*.
    `Symplectic/ComplexStructure/Contractible.lean`: the four
    `contractibleSpace_…` theorems; the bundle Cayley lemma
    `ContMDiffAt.cayleyPathFormula_hom_bundle_of_vectorBundle` and
-   `cayleyPathDomain` with its five lemmas in `VectorBundle/Cayley.lean`;
+   `cayleyPathDomain` with its lemmas in `VectorBundle/Cayley.lean`;
    and the contractibility of metrics in
    `Riemannian/SectionTopology.lean`. Blockers: 4, 6, and part 9's building
    issue 6 (`Geometry/Symplectic/Cayley/Domain.lean` of
