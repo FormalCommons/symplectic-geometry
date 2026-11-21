@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.Analysis.Matrix.EuclideanLin
 public import SymplecticGeometry.LinearAlgebra.Matrix.UnitaryGroup.Real
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Lagrangian.Frame
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Matrix
@@ -34,6 +35,8 @@ Write `ℒ ι` for the Lagrangian Grassmannian of the standard model `(StdSpace 
 
 * `SymplecticGeometry.isLagrangian_map_toEuclideanLin`: a matrix of
   `Matrix.symplecticGroup ι ℝ` maps Lagrangian subspaces to Lagrangian subspaces.
+* `SymplecticGeometry.LagrangianGrassmannian.coe_smul_eq_map_toEuclideanCLE`: the subspace of
+  `g • Λ` is the image of `Λ` under the linear equivalence of the matrix `g`.
 * `SymplecticGeometry.LagrangianGrassmannian.coe_smul_of_coe_eq`: if `Λ` is spanned by the
   columns of a frame `Z`, then `g • Λ` is spanned by those of `g * Z`.
 * `SymplecticGeometry.LagrangianGrassmannian.unitaryFrame_surjective`: every Lagrangian subspace
@@ -66,9 +69,7 @@ theorem isLagrangian_map_toEuclideanLin {A : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ}
     (hL : (stdForm ι).IsLagrangian L) :
     (stdForm ι).IsLagrangian (L.map (toEuclideanLin A)) := by
   let e := (A.toEuclideanCLE (SymplecticGroup.symplectic_det hA).ne_zero).toLinearEquiv
-  have he : toEuclideanLin A = e.toLinearMap :=
-    LinearMap.ext fun v ↦ (toEuclideanCLE_apply _ _ v).symm
-  rw [he]
+  rw [← coe_toLinearEquiv_toEuclideanCLE A (SymplecticGroup.symplectic_det hA).ne_zero]
   exact (SymplecticForm.isLagrangian_map_iff_of_apply_eq_mul e one_ne_zero fun v w ↦ by
     simpa [e] using mem_symplecticGroup_iff_forall_stdForm.1 hA v w).2 hL
 
@@ -99,6 +100,15 @@ theorem coe_smul (g : GLSymplectic ι ℝ) (Λ : ℒ ι) :
       (Λ : Submodule ℝ (StdSpace ι)).map
         (toEuclideanLin ((g : GL (ι ⊕ ι) ℝ) : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ)) :=
   (rfl)
+
+/-- The subspace of `g • Λ` is the image of `Λ` under the linear automorphism of `StdSpace ι`
+given by the symplectic matrix `g`. -/
+theorem coe_smul_eq_map_toEuclideanCLE (g : GLSymplectic ι ℝ) (Λ : ℒ ι) :
+    ((g • Λ : ℒ ι) : Submodule ℝ (StdSpace ι)) =
+      (Λ : Submodule ℝ (StdSpace ι)).map
+        ((((g : GL (ι ⊕ ι) ℝ) : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ).toEuclideanCLE
+          (g : GL (ι ⊕ ι) ℝ).det_ne_zero).toLinearEquiv : StdSpace ι →ₗ[ℝ] StdSpace ι) := by
+  rw [coe_smul, coe_toLinearEquiv_toEuclideanCLE]
 
 /-- If a Lagrangian `Λ` is spanned by the columns of a frame `Z`, its image under a symplectic
 matrix `g` is spanned by the columns of `g * Z`. -/
