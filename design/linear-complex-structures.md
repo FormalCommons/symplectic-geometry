@@ -649,7 +649,9 @@ imports `Action.lean` into `LinearAlgebra/Symplectic/Compatible.lean`, for
 `AlmostComplexStructure.transport_eq_iff_isComplexLinearMap`, and
 `Topology/ComplexStructure/Basic.lean` into
 `Topology/ComplexStructure/Compatible/Matrix.lean`, for
-`AlmostComplexStructure.homeomorphMatrix`; it states its own equivariance
+`AlmostComplexStructure.homeomorphMatrix`, and `Standard.lean` into
+`Topology/Algebra/Matrix/SymplecticGroup/CompactSubgroup.lean`, for
+`stabilizer_stdComplexStructure`; it states its own equivariance
 with Tau Ceti's `transport` directly. *Siegel upper half
 space* imports `Action.lean` and `Standard.lean`. `DESIGN.md` records both
 in its build-order table.

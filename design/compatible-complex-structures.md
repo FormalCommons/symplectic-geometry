@@ -271,7 +271,7 @@ The part uses the following from other parts:
   (`IsIsotropic.exists_le_isLagrangian` in `LinearAlgebra/Symplectic/Subspace.lean`), used only in the
   implication from (4) to (1). An isotropic plane containing $v$ and $w$ is
   extended to a Lagrangian subspace.
-- From *Linear complex structures*, only two merged files.
+- From *Linear complex structures*, only three merged files.
   `Compatible.lean` imports `LinearAlgebra/ComplexStructure/Action.lean`,
   which imports only Mathlib and Tau Ceti, for
   `AlmostComplexStructure.transport_eq_iff_isComplexLinearMap`, used in
@@ -280,8 +280,14 @@ The part uses the following from other parts:
   `Topology/ComplexStructure/Compatible/Matrix.lean` imports
   `Topology/ComplexStructure/Basic.lean`, which besides `Action.lean` imports
   only Tau Ceti, for `AlmostComplexStructure.homeomorphMatrix` and
-  `coe_homeomorphMatrix` in `compatibleEquivPosDefSymplectic`. Since both
-  files are merged, the part waits for nothing of *Linear complex
+  `coe_homeomorphMatrix` in `compatibleEquivPosDefSymplectic`.
+  `Topology/Algebra/Matrix/SymplecticGroup/CompactSubgroup.lean` imports
+  `LinearAlgebra/ComplexStructure/Standard.lean`, for
+  `stabilizer_stdComplexStructure`; besides `Action.lean`, that file imports
+  this part's `Compatible.lean`, `Symplectic/Standard/Matrix.lean` of
+  *Standard model*, the library's `Geometry/Symplectic/Orientation.lean`
+  (which imports only Tau Ceti) and Tau Ceti. Since all of these files are
+  merged, the part waits for nothing of *Linear complex
   structures*; `DESIGN.md` lists them with that note.
 - From *Symplectic group*, only the merged file
   `LinearAlgebra/Matrix/SymplecticGroup/Basic.lean`, which imports only
