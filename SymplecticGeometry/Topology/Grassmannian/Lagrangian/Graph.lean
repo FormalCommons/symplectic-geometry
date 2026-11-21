@@ -6,9 +6,12 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Topology.OpenPartialHomeomorph.Composition
+public import SymplecticGeometry.LinearAlgebra.Matrix.Rank
 public import SymplecticGeometry.LinearAlgebra.Matrix.Symmetric
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Lagrangian.Transverse
 public import SymplecticGeometry.Topology.Grassmannian.Lagrangian.Quotient
+public import SymplecticGeometry.Topology.Instances.Matrix
+public import TauCeti.Topology.Instances.Matrix
 
 /-!
 # The graph charts of the Lagrangian Grassmannian
@@ -35,8 +38,9 @@ open quotient map, this formula gives the openness and continuity that the chart
 * `SymplecticGeometry.LagrangianGrassmannian.isOpen_setOf_isCompl`: the Lagrangians transverse to
   a given one form an open set.
 * `SymplecticGeometry.LagrangianGrassmannian.graphYChart`: the chart on the Lagrangians
-  transverse to `{y = 0}`, with inverse `graphY`; `coe_graphYChart_unitaryFrame` gives its value
-  on a unitary frame.
+  transverse to `{y = 0}`, with inverse `graphY`; `unitaryFrame_mem_graphYChart_source_iff` says
+  when a unitary frame lies in its source, and `coe_graphYChart_unitaryFrame` gives its value
+  there.
 * `SymplecticGeometry.LagrangianGrassmannian.graphChart`: the chart on the Lagrangians transverse
   to `{x = 0}`, with inverse `graph`.
 
@@ -64,6 +68,7 @@ namespace LagrangianGrassmannian
 /-! ### Continuity of the chart points -/
 
 /-- The chart point `{(S y, y)}` depends continuously on the symmetric matrix `S`. -/
+@[fun_prop]
 theorem continuous_graphY : Continuous (graphY : selfAdjoint (Matrix ι ι ℝ) → ℒ ι) := by
   classical
   have h (S : selfAdjoint (Matrix ι ι ℝ)) : (stdForm ι).IsLagrangian
@@ -82,20 +87,6 @@ theorem continuous_graphY : Continuous (graphY : selfAdjoint (Matrix ι ι ℝ) 
 section DecidableEq
 
 variable [DecidableEq ι]
-
-/-- The frame `fromRows (X Y) Y` spans the same subspace as `fromRows X 1` when `Y` is
-invertible. -/
-private theorem range_toEuclideanLin_fromRows_mul {X Y : Matrix ι ι ℝ} (hY : IsUnit Y) :
-    LinearMap.range (toEuclideanLin (fromRows (X * Y) Y)) =
-      LinearMap.range (toEuclideanLin (fromRows X 1)) := by
-  have hdet := (isUnit_iff_isUnit_det Y).1 hY
-  have hsurj : LinearMap.range (toEuclideanLin Y) = ⊤ :=
-    LinearMap.range_eq_top.2 fun v ↦ ⟨toEuclideanLin Y⁻¹ v, by
-      rw [← LinearMap.comp_apply, ← toLpLin_mul_same, mul_nonsing_inv _ hdet, toLpLin_one,
-        LinearMap.id_apply]⟩
-  have hXY : fromRows (X * Y) Y = fromRows X 1 * Y := by rw [fromRows_mul, Matrix.one_mul]
-  rw [hXY, toLpLin_mul_same,
-    LinearMap.range_comp_of_range_eq_top _ hsurj]
 
 /-- The frame `fromRows (Re U) (Im U)` of a unitary matrix spans a Lagrangian. -/
 private theorem isLagrangian_range_fromRows_re_im (U : unitaryGroup ι ℂ) :
@@ -143,14 +134,8 @@ theorem unitaryFrame_eq_graphY_iff {U : unitaryGroup ι ℂ} {S : selfAdjoint (M
       rw [← hS, nonsing_inv_mul_cancel_right (A := Y) _ ((isUnit_iff_isUnit_det Y).1 hY)]
     refine toSubmodule_injective ?_
     rw [coe_unitaryFrame, coe_graphY, ← StdSpace.range_toEuclideanLin_fromRows_one_eq_graphY,
-      ← range_toEuclideanLin_fromRows_mul hY, ← hXS]
-
-/-- The unitary matrices whose imaginary part is invertible form an open set. -/
-private theorem isOpen_setOf_isUnit_map_im :
-    IsOpen {U : unitaryGroup ι ℂ | IsUnit ((U : Matrix ι ι ℂ).map Complex.im)} := by
-  simp_rw [isUnit_iff_isUnit_det, isUnit_iff_ne_zero]
-  exact isOpen_ne.preimage
-    (continuous_subtypeVal.matrix_map Complex.continuous_im).matrix_det
+      ← range_toEuclideanLin_mul_of_isUnit (fromRows (S : Matrix ι ι ℝ) 1) hY, fromRows_mul,
+      Matrix.one_mul, ← hXS]
 
 private theorem continuousOn_chartValue :
     ContinuousOn chartValue
@@ -160,13 +145,8 @@ private theorem continuousOn_chartValue :
     continuous_subtypeVal.matrix_map Complex.continuous_re
   have hY : Continuous fun U : unitaryGroup ι ℂ ↦ (U : Matrix ι ι ℂ).map Complex.im :=
     continuous_subtypeVal.matrix_map Complex.continuous_im
-  have hinv : ContinuousAt Inv.inv ((U : Matrix ι ι ℂ).map Complex.im) := by
-    apply continuousAt_matrix_inv
-    rw [Ring.inverse_eq_inv']
-    exact continuousAt_inv₀ (isUnit_iff_ne_zero.1 ((isUnit_iff_isUnit_det _).1 hU))
-  exact (hX.continuousAt.mul (hinv.comp
-    (f := fun U : unitaryGroup ι ℂ ↦ (U : Matrix ι ι ℂ).map Complex.im)
-    hY.continuousAt)).continuousWithinAt
+  exact (hX.continuousAt.mul (hY.continuousAt.matrix_inv
+    (isUnit_iff_ne_zero.1 ((isUnit_iff_isUnit_det _).1 hU)))).continuousWithinAt
 
 end DecidableEq
 
@@ -187,8 +167,11 @@ theorem isOpenEmbedding_graphY : IsOpenEmbedding (graphY : selfAdjoint (Matrix �
       exact ⟨hY, by rwa [show chartValue U = S from Subtype.ext hXY]⟩
     · rintro ⟨hY, hs⟩
       exact ⟨_, hs, (unitaryFrame_eq_graphY_iff.2 ⟨hY, rfl⟩).symm⟩
+  have hopen : IsOpen {U : unitaryGroup ι ℂ | IsUnit ((U : Matrix ι ι ℂ).map Complex.im)} := by
+    simp_rw [isUnit_iff_isUnit_det]
+    exact (continuous_subtypeVal.matrix_map Complex.continuous_im).isOpen_setOf_isUnit_det
   rw [he]
-  exact continuousOn_chartValue.isOpen_inter_preimage isOpen_setOf_isUnit_map_im hs
+  exact continuousOn_chartValue.isOpen_inter_preimage hopen hs
 
 /-- The Lagrangians transverse to a given Lagrangian `Λ₀` form an open subset of `ℒ ι`. -/
 theorem isOpen_setOf_isCompl (Λ₀ : ℒ ι) :
@@ -216,6 +199,7 @@ theorem graphYChart_def :
       ((isOpenEmbedding_graphY (ι := ι)).toOpenPartialHomeomorph graphY).symm :=
   (rfl)
 
+@[simp]
 theorem graphYChart_source :
     (graphYChart : OpenPartialHomeomorph (ℒ ι) (selfAdjoint (Matrix ι ι ℝ))).source =
       {Λ : ℒ ι | IsCompl (Λ : Submodule ℝ (StdSpace ι)) (horizontal ι)} := by
@@ -237,13 +221,25 @@ theorem graphYChart_graphY (S : selfAdjoint (Matrix ι ι ℝ)) :
   rw [graphYChart_def]
   exact (isOpenEmbedding_graphY (ι := ι)).toOpenPartialHomeomorph_left_inv graphY
 
-/-- On its source, the basic chart sends the Lagrangian framed by a unitary matrix `U` to
-`Re U (Im U)⁻¹`. -/
+/-- The Lagrangian framed by a unitary matrix `U = X + i Y` lies in the source of the basic chart,
+that is, is transverse to `{y = 0}`, exactly when `Y` is invertible. -/
+theorem unitaryFrame_mem_graphYChart_source_iff [DecidableEq ι] {U : unitaryGroup ι ℂ} :
+    unitaryFrame U ∈ (graphYChart : OpenPartialHomeomorph (ℒ ι) _).source ↔
+      IsUnit ((U : Matrix ι ι ℂ).map Complex.im) := by
+  rw [graphYChart_source, ← range_graphY]
+  constructor
+  · rintro ⟨S, hS⟩
+    exact (unitaryFrame_eq_graphY_iff.1 hS.symm).1
+  · intro hU
+    exact ⟨chartValue U, (unitaryFrame_eq_graphY_iff.2 ⟨hU, rfl⟩).symm⟩
+
+/-- For a unitary matrix `U = X + i Y` with `Y` invertible, the basic chart sends the Lagrangian
+framed by `U` to `X Y⁻¹`. -/
 theorem coe_graphYChart_unitaryFrame [DecidableEq ι] {U : unitaryGroup ι ℂ}
-    (hU : unitaryFrame U ∈ (graphYChart : OpenPartialHomeomorph (ℒ ι) _).source) :
+    (hU : IsUnit ((U : Matrix ι ι ℂ).map Complex.im)) :
     (graphYChart (unitaryFrame U) : Matrix ι ι ℝ) =
       (U : Matrix ι ι ℂ).map Complex.re * ((U : Matrix ι ι ℂ).map Complex.im)⁻¹ := by
-  rw [graphYChart_source, ← range_graphY] at hU
+  rw [← unitaryFrame_mem_graphYChart_source_iff, graphYChart_source, ← range_graphY] at hU
   obtain ⟨S, hS⟩ := hU
   rw [← hS, graphYChart_graphY]
   exact (unitaryFrame_eq_graphY_iff.1 hS.symm).2.symm
@@ -272,6 +268,7 @@ theorem graphChart_apply (Λ : ℒ ι) :
     graphChart Λ = -graphYChart (GLSymplectic.symJ ι ℝ • Λ) :=
   (rfl)
 
+@[simp]
 theorem graphChart_source :
     (graphChart : OpenPartialHomeomorph (ℒ ι) (selfAdjoint (Matrix ι ι ℝ))).source =
       {Λ : ℒ ι | IsCompl (Λ : Submodule ℝ (StdSpace ι)) (vertical ι)} := by
