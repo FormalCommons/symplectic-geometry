@@ -103,8 +103,7 @@ theorem isLagrangian (Λ : LagrangianGrassmannian ω) : ω.IsLagrangian Λ :=
 /-- A point of the Lagrangian Grassmannian is its own symplectic complement. -/
 @[simp]
 theorem orthogonal_eq (Λ : LagrangianGrassmannian ω) : ω.orthogonal Λ = Λ :=
-  le_antisymm (TauCeti.SymplecticForm.isCoisotropic_iff_le.1 Λ.isLagrangian.isCoisotropic)
-    (TauCeti.SymplecticForm.isIsotropic_iff_le.1 Λ.isLagrangian.isIsotropic)
+  Λ.isLagrangian.orthogonal_eq
 
 @[simp]
 theorem coe_mk (L : Submodule ℝ V) (h : ω.IsLagrangian L) :
