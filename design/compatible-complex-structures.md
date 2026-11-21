@@ -288,7 +288,7 @@ The part uses the following from other parts:
   (`IsIsotropic.exists_le_isLagrangian` in `LinearAlgebra/Symplectic/Subspace.lean`), used only in the
   implication from (4) to (1). An isotropic plane containing $v$ and $w$ is
   extended to a Lagrangian subspace.
-- From *Linear complex structures*, only three merged files.
+- From *Linear complex structures*, only four merged files.
   `Compatible.lean` imports `LinearAlgebra/ComplexStructure/Action.lean`,
   which imports only Mathlib and Tau Ceti, for
   `AlmostComplexStructure.transport_eq_iff_isComplexLinearMap`, used in
@@ -303,7 +303,16 @@ The part uses the following from other parts:
   `stabilizer_stdComplexStructure`; besides `Action.lean`, that file imports
   this part's `Compatible.lean`, `Symplectic/Standard/Matrix.lean` of
   *Standard model*, the library's `Geometry/Symplectic/Orientation.lean`
-  (which imports only Tau Ceti) and Tau Ceti. So `Compatible.lean` is
+  (which imports only Tau Ceti) and Tau Ceti.
+  `Topology/ComplexStructure/Compatible/SymplecticForms.lean` imports
+  `Topology/ComplexStructure/Orthogonal.lean`, for
+  `orthogonalComplexStructures` and
+  `mem_orthogonalComplexStructures_iff_inner` in
+  `metricComplexStructures_innerSL`; that file imports only
+  `Topology/ComplexStructure/Basic.lean`,
+  `LinearAlgebra/Symplectic/Standard/Basic.lean` of *Standard model*,
+  `Analysis/Matrix/Polar/Deformation.lean` of *Symplectic group* and Tau
+  Ceti, none of which imports a file of this part. So `Compatible.lean` is
   imported by `Standard.lean` of *Linear complex structures* while it
   imports that part's `Action.lean`: each part uses a merged file of the
   other. Since all of these files are merged, the part waits for nothing of
@@ -913,6 +922,10 @@ This is Proposition 2.5.6, for a fixed `g : innerProducts V`, in
   `metricPolarComplexStructure_metricSymplecticForm` and
   `metricSymplecticForm_metricPolarComplexStructure`, by which the inverses
   below fix the subsets.
+- `metricComplexStructures_innerSL n`: for the standard inner product of
+  `EuclideanSpace ℝ n`, `metricComplexStructures ⟨innerSL ℝ,
+  innerSL_mem_innerProducts⟩ = orthogonalComplexStructures n`, the set of
+  *Linear complex structures* in `Topology/ComplexStructure/Orthogonal.lean`.
 - `polarHomotopyEquiv g : ContinuousMap.HomotopyEquiv (SymplecticForm V)
   (AlmostComplexStructure V)`, with maps $\omega\mapsto J_{g,\omega}$ and
   $J\mapsto\omega_{g,J}$, stated by the `@[simp]` lemmas
