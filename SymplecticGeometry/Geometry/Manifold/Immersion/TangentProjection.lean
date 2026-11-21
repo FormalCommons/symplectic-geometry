@@ -37,6 +37,10 @@ covers [Weil1952, §1, pp. 120–122].
 * `SymplecticGeometry.isLocalDiffeomorphAt_orthogonalProjectionOnto_sub`: for a subspace `V` of
   the dimension of `E`, `z ↦ P_V (e z - a)` is a local diffeomorphism where its differential is
   injective.
+* `SymplecticGeometry.orthogonalProjectionOnto_comp_fderiv_comp_symm` and
+  `SymplecticGeometry.norm_le_norm_fderiv_comp_symm_apply`: for a partial diffeomorphism `Φ`
+  given by `z ↦ P_V (e z - a)`, the differential of `e ∘ Φ⁻¹` followed by `P_V` is the identity,
+  so that differential does not shrink vectors.
 * `SymplecticGeometry.exists_uniform_tangentProjectionChart`: for a compact `M` and a smooth
   injective `e`, one radius `r > 0` such that for every `x` such a chart is defined on all `z`
   with `‖e z - e x‖ < r` and reaches the ball of radius `r` in `T`, and one bound for the
@@ -152,6 +156,50 @@ theorem tangentProjectionChart_self : tangentProjectionChart hn he x hx x = 0 :=
   rw [tangentProjectionChart_apply mem_tangentProjectionChart_source, sub_self, map_zero]
 
 end Pointwise
+
+/-! ### Differentials of the inverse of a projection chart -/
+
+section Deriv
+
+omit [FiniteDimensional ℝ E] in
+/-- Let `Φ` be a partial diffeomorphism from `M` to a subspace `V` of `F` that is given on its
+source by `z ↦ P (e z - a)`, for `P` the orthogonal projection onto `V` and `e` a `C^n` map with
+`1 ≤ n`, as `tangentProjectionChart` is. At each point of the target of `Φ`, the differential of
+`e ∘ Φ⁻¹` followed by `P` is the identity of `V`. -/
+theorem orthogonalProjectionOnto_comp_fderiv_comp_symm (V : Submodule ℝ F)
+    [V.HasOrthogonalProjection] {a : F} (hn : 1 ≤ n) (he : ContMDiff I 𝓘(ℝ, F) n e)
+    {Φ : PartialDiffeomorph I 𝓘(ℝ, V) M V n}
+    (hΦ : ∀ z ∈ Φ.source, Φ z = V.orthogonalProjectionOnto (e z - a)) {u : V}
+    (hu : u ∈ Φ.target) :
+    V.orthogonalProjectionOnto ∘L fderiv ℝ (e ∘ Φ.symm) u = ContinuousLinearMap.id ℝ V := by
+  have hψ : ContDiffOn ℝ n (e ∘ Φ.symm) Φ.target :=
+    contMDiffOn_iff_contDiffOn.1 (he.comp_contMDiffOn Φ.symm.contMDiffOn)
+  have hd : DifferentiableAt ℝ (e ∘ Φ.symm) u :=
+    (hψ.contDiffAt (Φ.open_target.mem_nhds hu)).differentiableAt
+      (by rintro rfl; exact absurd hn (by simp))
+  -- Near `u`, projecting `e ∘ Φ⁻¹ - a` onto `V` gives back the identity.
+  have hproj : (fun w ↦ V.orthogonalProjectionOnto ((e ∘ Φ.symm) w - a)) =ᶠ[𝓝 u] id :=
+    eventually_of_mem (Φ.open_target.mem_nhds hu) fun w hw ↦ by
+      simpa [Φ.right_inv hw] using (hΦ _ (Φ.map_target hw)).symm
+  exact (V.orthogonalProjectionOnto.hasFDerivAt.comp u (hd.hasFDerivAt.sub_const a)).unique
+    ((hasFDerivAt_id u).congr_of_eventuallyEq hproj)
+
+omit [FiniteDimensional ℝ E] in
+/-- Under the hypotheses of `orthogonalProjectionOnto_comp_fderiv_comp_symm`, the differential of
+`e ∘ Φ⁻¹` does not shrink vectors: `‖v‖ ≤ ‖D(e ∘ Φ⁻¹) v‖` at each point of the target of `Φ`. -/
+theorem norm_le_norm_fderiv_comp_symm_apply (V : Submodule ℝ F) [V.HasOrthogonalProjection]
+    {a : F} (hn : 1 ≤ n) (he : ContMDiff I 𝓘(ℝ, F) n e)
+    {Φ : PartialDiffeomorph I 𝓘(ℝ, V) M V n}
+    (hΦ : ∀ z ∈ Φ.source, Φ z = V.orthogonalProjectionOnto (e z - a)) {u : V}
+    (hu : u ∈ Φ.target) (v : V) :
+    ‖v‖ ≤ ‖fderiv ℝ (e ∘ Φ.symm) u v‖ := by
+  calc ‖v‖ = ‖V.orthogonalProjectionOnto (fderiv ℝ (e ∘ Φ.symm) u v)‖ := by
+        rw [← ContinuousLinearMap.comp_apply,
+          orthogonalProjectionOnto_comp_fderiv_comp_symm V hn he hΦ hu,
+          ContinuousLinearMap.id_apply]
+    _ ≤ ‖fderiv ℝ (e ∘ Φ.symm) u v‖ := V.norm_orthogonalProjectionOnto_apply_le _
+
+end Deriv
 
 /-! ### Uniform charts on a compact manifold -/
 
