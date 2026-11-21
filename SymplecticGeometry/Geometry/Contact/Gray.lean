@@ -20,15 +20,16 @@ pulled-back family at time `t` and point `x` to the Gray vector of `α` at time 
 `f x` (`TauCeti.SmoothForm.mfderiv_grayVectorField_mpullback_prodMap`). The case of an open subset
 `U ⊆ N`, `f = Subtype.val`, says that the Gray vector field of a family restricted to `ℝ × U`
 is the restriction of the Gray vector field
-(`TauCeti.SmoothForm.grayVectorField_mpullback_prodMap_subtype_val`). This lets one compare Gray
-vector fields of local defining families of a contact family that live on different open sets.
+(`TauCeti.SmoothForm.tangentSpaceOpenEquiv_grayVectorField_mpullback_prodMap_subtype_val`).
+This lets one compare Gray vector fields of local defining families of a contact family that
+live on different open sets.
 
 ## Main results
 
 * `TauCeti.SmoothForm.mfderiv_grayVectorField_mpullback_prodMap`: naturality of the Gray vector
   field under `id × f` for maps `f` with bijective differentials.
-* `TauCeti.SmoothForm.grayVectorField_mpullback_prodMap_subtype_val`: its restriction to an open
-  subset.
+* `TauCeti.SmoothForm.tangentSpaceOpenEquiv_grayVectorField_mpullback_prodMap_subtype_val`:
+  its restriction to an open subset.
 
 ## References
 
@@ -70,7 +71,8 @@ theorem mfderiv_grayVectorField_mpullback_prodMap [FiniteDimensional ℝ E] {t :
 slice `α_t` at time `t` is a contact form, and let `U ⊆ N` be open. Under the canonical
 identification of tangent spaces, the Gray vector at time `t` and point `x ∈ U` of the
 restriction of `α` to `ℝ × U` is the Gray vector of `α` at time `t` and point `x`. -/
-theorem grayVectorField_mpullback_prodMap_subtype_val [FiniteDimensional ℝ F] {t : ℝ}
+theorem tangentSpaceOpenEquiv_grayVectorField_mpullback_prodMap_subtype_val
+    [FiniteDimensional ℝ F] {t : ℝ}
     (hc : (mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) α).IsContactForm)
     (U : Opens N) (x : U) :
     Manifold.tangentSpaceOpenEquiv x
@@ -79,7 +81,7 @@ theorem grayVectorField_mpullback_prodMap_subtype_val [FiniteDimensional ℝ F] 
       α.grayVectorField t x := by
   simpa only [Manifold.mfderiv_subtype_val, ContinuousLinearEquiv.coe_coe] using
     mfderiv_grayVectorField_mpullback_prodMap hc Subtype.val contMDiff_subtypeVal
-      Manifold.bijective_mfderiv_subtype_val x
+      (fun y ↦ Manifold.mfderiv_subtype_val y ▸ (Manifold.tangentSpaceOpenEquiv y).bijective) x
 
 end TauCeti.SmoothForm
 

@@ -152,7 +152,8 @@ review of #420 raise four more.
      needed).
      Two such forms live on `ℝ × U` and `ℝ × U'`; they are compared on
      `ℝ × (U ∩ U')` after restriction, which commutes with the Gray field
-     (`grayVectorField_mpullback_prodMap_subtype_val`, `Gray.lean`).
+     (`tangentSpaceOpenEquiv_grayVectorField_mpullback_prodMap_subtype_val`,
+     `Gray.lean`).
   3. Finitely many of the products cover `[0, 1] × M` when `M` is compact.
      Together with `ℝ × M` minus `[0, 1] × M`, on which the field is taken
      to be `0`, they form an open cover of `ℝ × M`; a smooth partition of
@@ -348,25 +349,6 @@ The same file has, in `TauCeti.SmoothForm`, the slices of a pullback along
 `timeDeriv`, by uniqueness of the derivative of $u\mapsto f^*\alpha_u$).
 `Gray.lean` uses them.
 
-### `Geometry/Manifold/VectorBundle/Tangent/Basic.lean`
-
-Named like Tau Ceti's file, in `TauCeti.Manifold`:
-`bijective_mfderiv_subtype_val`, the differential of the inclusion of an
-open subset is bijective, so that Tau Ceti's pullback theorems for maps with
-bijective differentials apply to restriction to an open subset.
-
-### `Geometry/Contact/Moser.lean`
-
-Named like Tau Ceti's file, in `TauCeti.SmoothForm.IsContactForm`.
-
-- `mfderiv_contactMoserVectorField_mpullback (hα) (f) (hf) (hdf) (β) (x)`:
-  for a contact form `α` and `f` smooth with bijective differentials,
-  `mfderiv I J f x ((mpullback f hf α).contactMoserVectorField (mpullback f hf β) x) = α.contactMoserVectorField β (f x)`;
-  the proof of Tau Ceti's `IsContactForm.mfderiv_reebVectorField_mpullback`,
-  through `eq_contactMoserVectorField_iff`.
-- `contactMoserVectorField_mpullback_subtype_val`: the case of an open
-  subset, with `TauCeti.Manifold.tangentSpaceOpenEquiv`.
-
 ### `Geometry/Contact/Hamiltonian.lean`
 
 Named like Tau Ceti's file, in `TauCeti.SmoothForm`.
@@ -480,19 +462,46 @@ Tau Ceti's file, `V = EuclideanSpace ℝ (Fin n)` and `σ` as above.
 
 Expected size: 200 lines.
 
+### `Geometry/Contact/Levi.lean`
+
+Named like Tau Ceti's file, in Tau Ceti's namespaces.
+
+- `TauCeti.IsContMDiffDistribution.of_forall_eventuallyEq_kerDistribution`:
+  a distribution that near each `x` is the kernel of a smooth one-form `β`
+  with `β_x ≠ 0` is `C^n` of rank `finrank ℝ E - 1`; the local form of
+  `TauCeti.SmoothForm.isContMDiffDistribution_kerDistribution`.
+
+### `Geometry/Contact/Moser.lean`
+
+Named like Tau Ceti's file, in Tau Ceti's namespaces.
+
+- `TauCeti.SmoothForm.IsContactForm.contactMoserVectorField_apply_of_eventuallyEq_smul`:
+  the pointwise form of `IsContactForm.contactMoserVectorField_of_eq_smul`,
+  for contact forms with `α' = f α` near `x`, `f` differentiable and
+  nonzero at `x`, and `β'_x = f(x) β_x + c α_x`.
+- `TauCeti.SmoothForm.IsContactForm.mfderiv_contactMoserVectorField_mpullback (hα) (f) (hf) (hdf) (β) (x)`:
+  for a contact form `α` and `f` smooth with bijective differentials,
+  `mfderiv I J f x ((mpullback f hf α).contactMoserVectorField (mpullback f hf β) x) = α.contactMoserVectorField β (f x)`;
+  the proof of Tau Ceti's `IsContactForm.mfderiv_reebVectorField_mpullback`,
+  through `eq_contactMoserVectorField_iff`.
+- `TauCeti.SmoothForm.IsContactForm.tangentSpaceOpenEquiv_contactMoserVectorField_mpullback_subtype_val`:
+  the case of an open subset, with `TauCeti.Manifold.tangentSpaceOpenEquiv`.
+
 ### `Geometry/Contact/Family.lean`
 
 Named like Tau Ceti's file, in `SymplecticGeometry`.
 
-- `IsContactFamily ξ` as in *Decisions*, with `isContactFamily_iff`.
+- `IsContactFamily ξ` as in *Decisions*, with `isContactFamily_def` and
+  `isContactFamily_iff` (the kernels read on vertical vectors `(0, v)`).
 - `IsContactFamily.of_isContactForm`: if every slice of
   `α : SmoothForm ((𝓡∂ 1).prod I) (unitInterval × M) ℝ 1` is a contact
   form, then `IsContactFamily fun t ↦ (α_t).kerDistribution`. This is the
   example of the predicate and the input of the global-form clause.
 - `IsContactFamily.isContactDistribution (hξ) (t) : TauCeti.IsContactDistribution I ∞ (ξ t)`,
   from `TauCeti.isContactDistribution_iff_forall_exists_isContactFormAt` and
-  `TauCeti.SmoothForm.isContMDiffDistribution_kerDistribution` applied to
-  the slices of local defining forms.
+  `TauCeti.IsContMDiffDistribution.of_forall_eventuallyEq_kerDistribution`
+  (`Geometry/Contact/Levi.lean`) applied to the slices of local defining
+  forms.
 - `IsContactFamily.exists_local_extension (hξ) [CompactSpace M] (p)`: step 1
   of the extension in *Decisions*. For every `p : unitInterval × M` there
   are an open interval `J ∋ p.1`, an open `U ∋ p.2` with compact closure, and
@@ -501,9 +510,16 @@ Named like Tau Ceti's file, in `SymplecticGeometry`.
   for `t ∈ J ∩ [0, 1]`, `x ∈ U`. Uses `DifferentialForm/TimeExtension.lean` of
   *Smooth families* and a smooth reparametrization `ℝ → J` that is the identity on
   a neighbourhood of the relevant times.
-- `IsContactFamily.grayVector_eq_of_eq_smul`: the pointwise independence of
-  step 2, for two local defining families related by a smooth nowhere zero
-  multiplier near a point, from `eq_grayVectorField_iff` on both sides.
+- `TauCeti.SmoothForm.grayVectorField_eq_of_eventuallyEq_smul` (`[I.Boundaryless]`):
+  the pointwise independence of step 2, for two families on `ℝ × M` with
+  contact slices at `t ∈ s`, `UniqueDiffWithinAt ℝ s t` (`s = [0, 1]` in
+  use), whose slices are related by `α'_u = f(u, ·) α_u` on
+  `𝓝[s ×ˢ univ] (t, x)`, with `f (t, x) ≠ 0`, `f` differentiable within
+  `s` in time at `t` and in space at `x`. It is about Tau Ceti's
+  `grayVectorField`, hence in its namespace, and follows from the pointwise
+  form of `IsContactForm.contactMoserVectorField_of_eq_smul`,
+  `TauCeti.SmoothForm.IsContactForm.contactMoserVectorField_apply_of_eventuallyEq_smul`,
+  in `Geometry/Contact/Moser.lean`.
 
 Expected size: 400 lines, in two issues (G1 and G2).
 
@@ -518,8 +534,8 @@ Named like Tau Ceti's file. With `[I.Boundaryless] [T2Space M] [CompactSpace M]`
   `mfderiv I J f x ((mpullback (Prod.map id f) _ α).grayVectorField t x) = α.grayVectorField t (f x)`,
   from the slice lemmas of `Flow/Family.lean` and
   `mfderiv_contactMoserVectorField_mpullback`; and
-  `grayVectorField_mpullback_prodMap_subtype_val`, the case of an open
-  subset `U`, which compares local Gray fields on different open sets in
+  `tangentSpaceOpenEquiv_grayVectorField_mpullback_prodMap_subtype_val`, the
+  case of an open subset `U`, which compares local Gray fields on different open sets in
   step 2 of *Decisions*.
 - `TauCeti.Diffeotopy.Transports (Φ : Diffeotopy I ∞ M) (ξ : unitInterval → Π x, Submodule ℝ (TangentSpace I x)) : Prop`,
   `∀ t x, ξ 0 x = (ξ t (Φ (t, x))).comap (mfderiv I I (Φ.timeSlice t) x).toLinearMap`,
@@ -648,9 +664,9 @@ In this order; each is blocked by the ones listed, and all are sub-issues of
 | H2 | Time-dependent contact Hamiltonians and the milestone | `Geometry/Contact/Hamiltonian.lean` (joint smoothness, rescaling formula, `contactVectorFields_correspondence`) | H1 | 200 |
 | D | The contact Darboux theorem in the page's signs | `Geometry/Contact/Darboux/Strict.lean` | — | 200 |
 | G0 | Moser's principle along one trajectory, rescaling case | `Geometry/Manifold/DifferentialForm/Flow/Family.lean` | — | 100 |
-| G1 | Smooth families of contact structures | `Geometry/Contact/Family.lean` (`IsContactFamily` and its API, `grayVector_eq_of_eq_smul`) | — | 250 |
+| G1 | Smooth families of contact structures | `Geometry/Contact/Family.lean` (`IsContactFamily` and its API, `grayVectorField_eq_of_eventuallyEq_smul`), `Geometry/Contact/Levi.lean` (`of_forall_eventuallyEq_kerDistribution`), `Geometry/Contact/Moser.lean` (`contactMoserVectorField_apply_of_eventuallyEq_smul`) | — | 250 |
 | G2 | Local defining families over `ℝ` | `Geometry/Contact/Family.lean` (`exists_local_extension`) | G1, the issue of *Smooth families* that adds `DifferentialForm/TimeExtension.lean` | 150 |
-| N | Naturality of the contact-Moser and Gray vectors under pullback and restriction to open subsets (#598) | `Geometry/Contact/Moser.lean`, `Geometry/Contact/Gray.lean` (`mfderiv_grayVectorField_mpullback_prodMap`), the slice lemmas of `Flow/Family.lean`, `Tangent/Basic.lean` | — | 150 |
+| N | Naturality of the contact-Moser and Gray vectors under pullback and restriction to open subsets (#598) | `Geometry/Contact/Moser.lean`, `Geometry/Contact/Gray.lean` (`mfderiv_grayVectorField_mpullback_prodMap`), the slice lemmas of `Flow/Family.lean` | — | 150 |
 | G3 | The Gray field and the Gray isotopy of a family | `Geometry/Contact/Gray.lean` (`Transports`, `exists_grayField`, `grayDiffeotopy`, transport and velocity) | G0, G2, N | 350 |
 | G4 | Uniqueness, rescaling of forms, and Gray stability | `Geometry/Contact/Gray.lean` (`eq_grayDiffeotopy_of_transports`, `Transports.exists_mpullback_eq_smul`, the milestone) | G3, the issue of *Smooth families* that adds `Diffeotopy/Real.lean` | 250 |
 | L1 | A slice through a Legendrian submanifold | `Geometry/Contact/LegendrianNeighborhood.lean` (`exists_contactSlice`) | — | 300 |

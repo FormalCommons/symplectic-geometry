@@ -563,7 +563,10 @@ it into issues; the overview fixes its folders and its dependencies.
   ends is a free one. The crossing forms add a third file outside these
   folders, `Analysis/Calculus/Deriv/Matrix.lean` (derivatives of
   matrix-valued functions), beside Tau Ceti's file of the same name so that
-  the two merge upstream.
+  the two merge upstream. The regular pieces add a fourth,
+  `Data/Matrix/Basis.lean` (the matrix `1 + Eᵢᵢ a`, beside the files of the
+  same name in Mathlib and Tau Ceti), and the lemma `Matrix.realify_smul_one`
+  (`LinearAlgebra/Matrix/Realify.lean`).
 - **Builds on:** *Standard model*, *Symplectic group*, *Unitary group
   topology*, *Lagrangian Grassmannian*. From Mathlib and Tau Ceti, in two
   ways, none of it re-derived:
@@ -1973,6 +1976,11 @@ has either; Tau Ceti's extension across a boundary,
   $\sum_ip_i\,dq_i-dz$ at a point, with Reeb field $-\partial_z$, from Tau
   Ceti's `TauCeti.SmoothForm.IsContactForm.exists_strictDarbouxChart_of_finrank_eq`
   by the change of coordinates of *Manifolds, families and signs*),
+  `Levi.lean` and `Moser.lean` (named like Tau Ceti's files: kernels of
+  local one-forms as smooth hyperplane fields, and the change-of-form law
+  of the contact-Moser vector at one point, both used by `Family.lean`, and
+  the contact-Moser vector under pullback and restriction to open subsets,
+  which `Gray.lean` uses for the Gray vector),
   `Family.lean` (named like Tau Ceti's file: `IsContactFamily`, smooth
   families over $[0,1]$ of contact structures that need not be
   coorientable, and their local defining forms over `ℝ`, through the time
@@ -1988,14 +1996,10 @@ has either; Tau Ceti's extension across a boundary,
   a hypersurface through $L$ transverse to the Reeb field, the Lagrangian
   neighbourhood theorem there, a relative primitive from Tau Ceti's
   `TauCeti.SmoothEmbedding.exists_isSmoothForm_relative_primitive`, and the
-  Reeb flow); `Geometry/Manifold/DifferentialForm/Flow/Family.lean`
+  Reeb flow); and `Geometry/Manifold/DifferentialForm/Flow/Family.lean`
   (named like Tau Ceti's file: Moser's principle along one trajectory, in
   the rescaling case, which `Gray.lean` uses, and the slices of pullbacks
-  along `Prod.map id f`); `Moser.lean` (named like Tau Ceti's file: the
-  contact-Moser vector under pullback and restriction to open subsets, which
-  `Gray.lean` uses for the Gray vector); and
-  `Geometry/Manifold/VectorBundle/Tangent/Basic.lean` (named like Tau Ceti's
-  file: the differential of an open-subset inclusion is bijective).
+  along `Prod.map id f`).
 - **Builds on:** Tau Ceti (contact forms, Reeb fields, contact Hamiltonians,
   strict and distribution Darboux charts, Gray's theorem for families over
   `ℝ`); `Family.lean` and `Gray.lean` also on *Smooth families*
