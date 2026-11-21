@@ -381,10 +381,11 @@ form is alternating, its skew part is twice the form. -/
 theorem IsNondegenerate.mk_flat_mem_polarFormulaDomain (hω : ω.IsNondegenerate) (x : M) :
     (⟨x, ω.flat x⟩ : TotalSpace (F →L[ℝ] F →L[ℝ] ℝ) fun x ↦ V x →L[ℝ] V x →L[ℝ] ℝ) ∈
       _root_.Bundle.polarFormulaDomain F V := by
-  -- `BilinForm.flip` is `LinearMap.flip` through `flipHom` and `LinearMap.lflip`.
-  rw [_root_.Bundle.mem_polarFormulaDomain_iff, toBilinForm_flat, LinearMap.BilinForm.flip,
-    LinearMap.BilinForm.flipHom, LinearMap.lflip_apply,
-    (ω.isAlt_bilinFormAt x).sub_flip_eq_two_smul, ← ofNat_smul_eq_nsmul ℝ]
+  have h : ω.bilinFormAt x - (ω.bilinFormAt x).flip = (2 : ℝ) • ω.bilinFormAt x := by
+    ext v w
+    simpa [two_smul, two_nsmul] using
+      congr($((ω.isAlt_bilinFormAt x).sub_flip_eq_two_smul) v w)
+  rw [_root_.Bundle.mem_polarFormulaDomain_iff, toBilinForm_flat, h]
   exact (TauCeti.BilinForm.nondegenerate_smul_iff (IsRegular.of_ne_zero two_ne_zero)).2
     (hω.nondegenerate_bilinFormAt x)
 
