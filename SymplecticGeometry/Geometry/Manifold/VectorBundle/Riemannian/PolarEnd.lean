@@ -9,6 +9,7 @@ public import Mathlib.Geometry.Manifold.VectorBundle.Hom
 public import Mathlib.Geometry.Manifold.VectorBundle.Riemannian
 public import SymplecticGeometry.Analysis.InnerProductSpace.Symplectic.PolarComplexStructure.Smooth
 public import SymplecticGeometry.Topology.Algebra.Module.BilinearForm
+public import SymplecticGeometry.Topology.FiberBundle.Basic
 public import SymplecticGeometry.Topology.VectorBundle.Coordinates
 public import TauCeti.Topology.VectorBundle.Coordinates
 
@@ -54,8 +55,9 @@ trivialization at `x`. The proof of `contMDiffOn_polarFormulaAt` adapts that of 
 trivialization at a base point, where it becomes the formula at the coordinate readings of the
 metric and of the form, conjugated by a constant equivalence. Here the form is a coordinate of the
 total space instead of a fixed section, and the formula is smooth by
-`TauCeti.contDiffOn_metricPolarFormula`. The openness proof follows that of
-`SymplecticGeometry.Bundle.isOpen_setOf_nondegenerate`.
+`TauCeti.contDiffOn_metricPolarFormula`. The domain is open by
+`FiberBundle.isOpen_of_forall_mem_iff_snd_mem`, since each trivialization reads it as the open
+set `ContinuousLinearMap.isOpen_setOf_nondegenerate_toBilinForm_sub_flip` of the model fibre.
 
 ## References
 
@@ -99,26 +101,15 @@ variable [TopologicalSpace M] [ChartedSpace HB M]
 /-- In finite rank, the domain of the polar formula is open in the bundle of bilinear forms. -/
 theorem isOpen_polarFormulaDomain [FiniteDimensional ℝ F] :
     IsOpen (polarFormulaDomain F V) := by
-  rw [isOpen_iff_mem_nhds]
-  intro q₀ hq₀
-  let e := trivializationAt (F →L[ℝ] F →L[ℝ] ℝ) (fun x ↦ V x →L[ℝ] V x →L[ℝ] ℝ) q₀.proj
-  have hT : IsOpen {s : F →L[ℝ] F →L[ℝ] ℝ | (s - s.flip).toBilinForm.Nondegenerate} :=
-    ContinuousLinearMap.isOpen_setOf_nondegenerate_toBilinForm.preimage
-      (continuous_id.sub (ContinuousLinearMap.flipₗᵢ ℝ F F ℝ).continuous)
-  -- In the fibre coordinates of `e`, a form becomes its carrying along a linear equivalence.
-  have key : ∀ q ∈ e.source,
-      (q ∈ polarFormulaDomain F V ↔ ((e q).2 - (e q).2.flip).toBilinForm.Nondegenerate) := by
-    intro q hq
-    have hy : q.proj ∈ (trivializationAt F V q₀.proj).baseSet := by
-      simpa [e] using hq
-    rw [mem_polarFormulaDomain_iff, hom_trivializationAt_apply,
-      ContinuousLinearMap.inCoordinates_eq_arrowCongr_arrowCongr hy,
-      ContinuousLinearEquiv.nondegenerate_arrowCongr_sub_flip_iff]
-  have hU := e.continuousOn.isOpen_inter_preimage e.open_source (hT.preimage continuous_snd)
-  have hq₀e : q₀ ∈ e.source := FiberBundle.mem_trivializationAt_proj_source
-  refine Filter.mem_of_superset (hU.mem_nhds ⟨hq₀e, (key q₀ hq₀e).1 hq₀⟩) ?_
-  rintro q ⟨hq, hq'⟩
-  exact (key q hq).2 hq'
+  refine FiberBundle.isOpen_of_forall_mem_iff_snd_mem
+    ContinuousLinearMap.isOpen_setOf_nondegenerate_toBilinForm_sub_flip fun b q hq ↦ ?_
+  -- In the fibre coordinates of the trivialization, a form becomes its carrying along a linear
+  -- equivalence.
+  have hy : q.proj ∈ (trivializationAt F V b).baseSet := by
+    simpa using hq
+  rw [mem_polarFormulaDomain_iff, Set.mem_ofPred_eq, hom_trivializationAt_apply,
+    ContinuousLinearMap.inCoordinates_eq_arrowCongr_arrowCongr hy,
+    ContinuousLinearEquiv.nondegenerate_arrowCongr_sub_flip_iff]
 
 /-! ### The polar formula on a fibre -/
 

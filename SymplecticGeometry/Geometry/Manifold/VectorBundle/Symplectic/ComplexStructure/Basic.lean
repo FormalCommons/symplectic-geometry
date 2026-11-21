@@ -10,6 +10,7 @@ public import Mathlib.Geometry.Manifold.VectorBundle.Riemannian
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.ComplexStructure
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Riemannian.PolarEnd
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.Basic
+public import SymplecticGeometry.LinearAlgebra.SesquilinearForm
 public import TauCeti.Geometry.Manifold.VectorBundle.Bilinear.Section
 public import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Existence
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Polar
@@ -380,14 +381,11 @@ form is alternating, its skew part is twice the form. -/
 theorem IsNondegenerate.mk_flat_mem_polarFormulaDomain (hω : ω.IsNondegenerate) (x : M) :
     (⟨x, ω.flat x⟩ : TotalSpace (F →L[ℝ] F →L[ℝ] ℝ) fun x ↦ V x →L[ℝ] V x →L[ℝ] ℝ) ∈
       _root_.Bundle.polarFormulaDomain F V := by
-  have h : ω.bilinFormAt x - (ω.bilinFormAt x).flip = (2 : ℝ) • ω.bilinFormAt x := by
-    ext v w
-    have := (ω.isAlt_bilinFormAt x).neg_eq v w
-    simp only [LinearMap.sub_apply, LinearMap.BilinForm.flip_apply, LinearMap.smul_apply,
-      smul_eq_mul] at this ⊢
-    linarith
-  rw [_root_.Bundle.mem_polarFormulaDomain_iff, toBilinForm_flat, h]
-  exact (TauCeti.BilinForm.nondegenerate_smul_iff (IsRegular.of_ne_zero (by norm_num))).2
+  -- `BilinForm.flip` is `LinearMap.flip` through `flipHom` and `LinearMap.lflip`.
+  rw [_root_.Bundle.mem_polarFormulaDomain_iff, toBilinForm_flat, LinearMap.BilinForm.flip,
+    LinearMap.BilinForm.flipHom, LinearMap.lflip_apply,
+    (ω.isAlt_bilinFormAt x).sub_flip_eq_two_smul, ← ofNat_smul_eq_nsmul ℝ]
+  exact (TauCeti.BilinForm.nondegenerate_smul_iff (IsRegular.of_ne_zero two_ne_zero)).2
     (hω.nondegenerate_bilinFormAt x)
 
 variable [FiniteDimensional ℝ F]
