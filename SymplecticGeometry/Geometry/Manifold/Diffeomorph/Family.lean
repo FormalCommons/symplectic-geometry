@@ -53,7 +53,7 @@ theorem Diffeomorph.contMDiff_symm_eval {ψ : P → M ≃ₘ^n⟮I, I⟯ M} (hn 
     (hψ : ContMDiff (J.prod I) I n (fun p : P × M ↦ ψ p.1 p.2)) :
     ContMDiff (J.prod I) I n (fun p : P × M ↦ (ψ p.1).symm p.2) := by
   have hn₀ : n ≠ 0 := by rintro rfl; exact absurd hn (by simp)
-  set F : P × M → P × M := fun p ↦ (p.1, ψ p.1 p.2) with hF
+  set F : P × M → P × M := fun p ↦ (p.1, ψ p.1 p.2)
   have hFs : ContMDiff (J.prod I) (J.prod I) n F := contMDiff_fst.prodMk hψ
   -- The differential of `F` is `(v, w) ↦ (v, ∂ₚψ v + dψ_p w)`, which is injective since each
   -- `dψ_p` is.
