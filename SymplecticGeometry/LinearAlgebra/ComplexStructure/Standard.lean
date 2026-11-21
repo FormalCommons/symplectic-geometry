@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.LinearAlgebra.ComplexStructure.Action
+public import SymplecticGeometry.LinearAlgebra.Symplectic.Compatible
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Matrix
 public import TauCeti.Geometry.Symplectic.Finrank
 public import SymplecticGeometry.Geometry.Symplectic.Orientation
@@ -45,6 +46,9 @@ induce the symplectic orientation of `ω₀` (Tau Ceti's `TauCeti.SymplecticForm
 * `SymplecticGeometry.compatible_generalLinearGroup_smul_iff`: an invertible symplectic matrix
   preserves and reflects compatibility with `ω₀`; so the symplectic group acts on the compatible
   structures (`SymplecticGeometry.instMulActionSymplecticGroupCompatible`).
+* `SymplecticGeometry.instIsPretransitiveSymplecticGroupCompatible`: the symplectic group acts
+  transitively on the compatible structures, since each is `Ψ • J₀` for a symplectic `Ψ`
+  (`SymplecticGeometry.exists_symplecticGroup_smul_stdComplexStructure_eq`).
 * `SymplecticGeometry.isPositivelyOriented_smul_stdComplexStructure_iff`: `g • J₀` is positively
   oriented exactly when `det g > 0`.
 * `SymplecticGeometry.isPositivelyOriented_iff_orientation`: `J` is positively oriented exactly
@@ -243,6 +247,33 @@ theorem coe_symplecticGroup_smul (Ψ : Matrix.symplecticGroup ι ℝ)
       AlmostComplexStructure (StdSpace ι)) =
       GLSymplectic.ofSymplecticGroup ι ℝ Ψ • (J : AlmostComplexStructure (StdSpace ι)) :=
   (rfl)
+
+/-- Every complex structure on `StdSpace ι` compatible with `ω₀` is `Ψ • J₀` for a symplectic
+matrix `Ψ`. -/
+theorem exists_symplecticGroup_smul_stdComplexStructure_eq
+    {J : AlmostComplexStructure (StdSpace ι)} (hJ : (stdForm ι).Compatible J) :
+    ∃ Ψ : Matrix.symplecticGroup ι ℝ,
+      GLSymplectic.ofSymplecticGroup ι ℝ Ψ • stdComplexStructure ι = J := by
+  obtain ⟨Φ, hΦ, hΦJ⟩ := (compatible_iff_exists_isSymplectomorphism_stdForm finrank_stdSpace).1 hJ
+  set g : GL (ι ⊕ ι) ℝ := Matrix.GeneralLinearGroup.ofEuclideanCLE Φ.toContinuousLinearEquiv
+  have hg : g ∈ GLSymplectic ι ℝ := by
+    rw [mem_GLSymplectic_iff_isSymplectomorphism]
+    simpa [g] using hΦ
+  obtain ⟨Ψ, hΨ⟩ := (GLSymplectic.range_ofSymplecticGroup ι ℝ).ge hg
+  refine ⟨Ψ, ?_⟩
+  rw [hΨ, AlmostComplexStructure.ofEuclideanCLE_smul,
+    LinearEquiv.toLinearEquiv_toContinuousLinearEquiv,
+    AlmostComplexStructure.transport_eq_iff_isComplexLinearMap]
+  exact hΦJ
+
+/-- The symplectic group `Sp(2n)` acts transitively on the complex structures of `StdSpace ι`
+compatible with `ω₀`. -/
+instance instIsPretransitiveSymplecticGroupCompatible :
+    MulAction.IsPretransitive (Matrix.symplecticGroup ι ℝ)
+      {J : AlmostComplexStructure (StdSpace ι) // (stdForm ι).Compatible J} :=
+  MulAction.IsPretransitive.of_orbit (x₀ := ⟨stdComplexStructure ι, stdForm_compatible⟩)
+    fun J ↦ (exists_symplecticGroup_smul_stdComplexStructure_eq J.property).imp
+      fun _ h ↦ Subtype.ext h
 
 end SymplecticGeometry
 
