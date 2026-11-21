@@ -805,14 +805,20 @@ it into issues; the overview fixes its folders and its dependencies.
   For $n=1$ it is compared with Mathlib's `UpperHalfPlane` action and with Tau
   Ceti's `stdComplexSymplecticForm_tames_iff_im_pos`.
 - **Builds on:** *Standard model*; compatibility is Tau Ceti's `Compatible`.
-  It also imports one file from each of three other parts. `Action.lean`
-  imports `LinearAlgebra/Matrix/OfReal.lean`, the general matrix file of
+  It also imports four files of three other parts. `Action.lean` imports
+  `LinearAlgebra/Matrix/OfReal.lean`, the general matrix file of
   *Lagrangian Grassmannian* on reading real matrices as complex ones.
-  `ComplexStructure.lean` imports `LinearAlgebra/ComplexStructure/Action.lean`
-  from *Linear complex structures* and
-  `LinearAlgebra/Matrix/SymplecticGroup/Basic.lean` from *Symplectic group*.
-  These three files import only Mathlib and Tau Ceti, so the part still sits
-  at level 1.
+  `ComplexStructure.lean` imports
+  `LinearAlgebra/Matrix/SymplecticGroup/Basic.lean` from *Symplectic group*
+  and two files of *Linear complex structures*:
+  `LinearAlgebra/ComplexStructure/Action.lean` and
+  `LinearAlgebra/ComplexStructure/Standard.lean` (transitivity of the action
+  and the stabilizer of the standard structure). The first three import only
+  Mathlib and Tau Ceti. `Standard.lean` imports `Action.lean`, the
+  *Standard model* file `LinearAlgebra/Symplectic/Standard/Matrix.lean` and
+  `Geometry/Symplectic/Orientation.lean`, which imports only Tau Ceti. So the
+  part needs only level-0 parts and merged files of level-1 parts, and still
+  sits at level 1.
 - **Milestones:** *Siegel upper half space*. The proof of transitivity checks
   the formula for $J(Z)$ directly, which breaks the circularity between the
   book's exercise and lemma that the plan points out. The milestone's
@@ -1197,7 +1203,7 @@ Each part depends only on the parts listed, besides Mathlib and Tau Ceti.
 | 1 | *Lagrangian Grassmannian* | *Standard model*, *Symplectic vector spaces* (only `Subspace.lean`, which is merged) |
 | 1 | *Linear nonsqueezing* | *Standard model* |
 | 1 | *Linear complex structures* | *Standard model* |
-| 1 | *Siegel upper half space* | *Standard model*; *Lagrangian Grassmannian* (only `LinearAlgebra/Matrix/OfReal.lean`, which imports only Mathlib and is merged); *Linear complex structures* (only `LinearAlgebra/ComplexStructure/Action.lean`, which imports only Mathlib and Tau Ceti and is merged); *Symplectic group* (only `LinearAlgebra/Matrix/SymplecticGroup/Basic.lean`, which imports only Mathlib and is merged) |
+| 1 | *Siegel upper half space* | *Standard model*; *Lagrangian Grassmannian* (only `LinearAlgebra/Matrix/OfReal.lean`, which imports only Mathlib and is merged); *Linear complex structures* (only `LinearAlgebra/ComplexStructure/Action.lean`, which imports only Mathlib and Tau Ceti, and `LinearAlgebra/ComplexStructure/Standard.lean`, which besides it imports only *Standard model* and `Geometry/Symplectic/Orientation.lean`, a file that imports only Tau Ceti; both are merged); *Symplectic group* (only `LinearAlgebra/Matrix/SymplecticGroup/Basic.lean`, which imports only Mathlib and is merged) |
 | 2 | *Compatible complex structures* | *Standard model*, *Symplectic vector spaces* |
 | 2 | *Maslov index* | *Standard model*, *Symplectic group*, *Unitary group topology*; its Lagrangian issues also *Lagrangian Grassmannian* |
 | 3 | *Symplectic vector bundles* | *Compatible complex structures*, *Linear Moser* |
