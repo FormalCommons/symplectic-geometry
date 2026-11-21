@@ -298,9 +298,10 @@ with `α = λ`, `ω = Ω`). Issue 3:
   boundaryless `M` the field is complete and the global flow is meant.
 - `IsContactForm.isStableHamiltonian_neg`: for a contact form `α`,
   `IsStableHamiltonian α (-mextDerivₗ I 1 α)`, and
-  `IsContactForm.characteristicVectorField_neg_mextDerivₗ`: its
-  characteristic field is `α.reebVectorField`, since negating the two-form
-  changes neither its kernel nor the normalization `α(R) = 1`. From
+  `characteristicVectorField_neg_mextDerivₗ` (for every one-form, so without
+  the contact hypothesis): its characteristic field is `α.reebVectorField`,
+  since negating the two-form changes neither its kernel nor the
+  normalization `α(R) = 1`. From
   `IsContactForm.isStableHamiltonian` and the invariance of the pointwise
   contact condition and of kernels under negating the two-form.
 
