@@ -189,6 +189,10 @@ also uses.
   `EuclideanSpace ℝ ι × EuclideanSpace ℝ ι` along
   `EuclideanSpace.sumEquivProd`, carrying `stdComplexStructure ι` to
   `AlmostComplexStructure.product`.
+- Relabelling the coordinate pairs: `isSymplectomorphism_piLpCongrLeft_sumCongr`,
+  for `σ : ι ≃ κ`, says that
+  `(LinearIsometryEquiv.piLpCongrLeft 2 ℝ ℝ (σ.sumCongr σ)).toLinearEquiv` carries
+  `stdForm ι` to `stdForm κ`.
 - The direct sum of two models: `StdSpace.sumEquiv ι κ : StdSpace (ι ⊕ κ)
   ≃L[ℝ] StdSpace ι × StdSpace κ`, which regroups the coordinates by
   `Equiv.sumSumSumComm` as Tau Ceti's `Matrix.symplecticSum` does, with
@@ -220,7 +224,7 @@ further when they grow, following `AGENTS.md`.
 
 - **Files:** `LinearAlgebra/Symplectic/Standard/Basic.lean` (`StdSpace`, its
   coordinates, `stdForm`, `stdComplexStructure`, the product comparison,
-  `StdSpace.sumEquiv`),
+  `isSymplectomorphism_piLpCongrLeft_sumCongr`, `StdSpace.sumEquiv`),
   `LinearAlgebra/Symplectic/Standard/Matrix.lean` (the matrix dictionary).
 - **Builds on:** Mathlib, Tau Ceti.
 - **Milestones:** none. It is the interface the other parts share.

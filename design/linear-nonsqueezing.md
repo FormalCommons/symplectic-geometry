@@ -308,8 +308,8 @@ dimension). The reindexing uses the public lemma
 `isSymplectomorphism_piLpCongrLeft_sumCongr`: for `σ : ι ≃ κ`, relabelling
 the coordinate pairs, `(LinearIsometryEquiv.piLpCongrLeft 2 ℝ ℝ
 (σ.sumCongr σ)).toLinearEquiv`, is a symplectomorphism from `stdForm ι` to
-`stdForm κ` (search *Standard model* for it first). Expected size of issue 3,
-its four files together: 350 lines.
+`stdForm κ`, which is in *Standard model*'s `Standard/Basic.lean`. Expected
+size of issue 3, its four files together: 350 lines.
 
 ### `Geometry/Symplectic/Hamiltonian/Quadratic.lean`
 

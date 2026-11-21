@@ -21,8 +21,6 @@ Darboux basis, `Q = ∑ₖ νₖ (xₖ² + yₖ²) / 2` with `νₖ > 0`, so the
 
 ## Main results
 
-* `SymplecticGeometry.isSymplectomorphism_piLpCongrLeft_sumCongr`: reindexing the coordinate
-  pairs of the standard model is symplectic.
 * `SymplecticGeometry.exists_isSymplectomorphism_image_eq_stdEllipsoid`: the normal form of an
   ellipsoid centred at `0`.
 
@@ -38,20 +36,7 @@ namespace SymplecticGeometry
 
 open TauCeti TauCeti.SymplecticForm StdSpace
 
-variable {ι κ : Type*} [Fintype ι] [Fintype κ]
-
-/-- The reindexing `σ : ι ≃ κ` of the coordinate pairs `(xᵢ, yᵢ)`, which sends the coordinates
-of index `i` to those of index `σ i`, is a symplectomorphism from `ω₀` on `StdSpace ι` to `ω₀`
-on `StdSpace κ`. -/
-theorem isSymplectomorphism_piLpCongrLeft_sumCongr (σ : ι ≃ κ) :
-    IsSymplectomorphism (stdForm ι) (stdForm κ)
-      (LinearIsometryEquiv.piLpCongrLeft 2 ℝ ℝ (σ.sumCongr σ)).toLinearEquiv := by
-  rw [isSymplectomorphism_iff]
-  intro z w
-  simp only [stdForm_apply, x_apply, y_apply, LinearIsometryEquiv.coe_toLinearEquiv,
-    LinearIsometryEquiv.piLpCongrLeft_apply, Equiv.piCongrLeft'_apply, Equiv.sumCongr_symm,
-    Equiv.sumCongr_apply, Sum.map_inl, Sum.map_inr]
-  exact Equiv.sum_comp σ.symm fun i ↦ z (Sum.inl i) * w (Sum.inr i) - z (Sum.inr i) * w (Sum.inl i)
+variable {ι : Type*} [Fintype ι]
 
 /-- The normal form of an ellipsoid centred at `0`: for a positive definite quadratic form `Q`
 on `StdSpace ι`, there are positive radii `r` and a linear symplectic map `e` of `(ℝ²ⁿ, ω₀)`

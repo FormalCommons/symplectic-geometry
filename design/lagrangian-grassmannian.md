@@ -203,9 +203,9 @@ Tau Ceti's `Matrix.map_im_conjTranspose_mul_self_mul_map_ofReal`
 
 ### Additions to *Standard model*'s `LinearAlgebra/Symplectic/Standard/Basic.lean`
 
-Two declarations about `StdSpace ι` alone, which this part needs and part 1
-lacks. They go beside `x_complexToRealEuclidean`, in the namespace
-`SymplecticGeometry.StdSpace`, so that other parts find them there.
+One declaration about `StdSpace ι` alone, which this part needs and part 1
+lacks. It goes beside `x_complexToRealEuclidean`, in the namespace
+`SymplecticGeometry.StdSpace`, so that other parts find it there.
 
 - `StdSpace.complexEuclideanEquiv ι : EuclideanSpace ℂ ι ≃L[ℝ] StdSpace ι`,
   defined as `(PiLp.continuousLinearEquiv 2 ℝ (fun _ : ι ↦ ℂ)).trans
@@ -217,10 +217,12 @@ lacks. They go beside `x_complexToRealEuclidean`, in the namespace
   and `y_complexEuclideanEquiv : (complexEuclideanEquiv ι v).y = fun i ↦ (v i).im`,
   from `x_complexToRealEuclidean` and `y_complexToRealEuclidean`. Building
   issue 3 adds it.
-- `isSymplectomorphism_piLpCongrLeft_sumCongr (e : ι ≃ κ)`: the coordinate
-  permutation `LinearIsometryEquiv.piLpCongrLeft 2 ℝ ℝ (e.sumCongr e)`
-  carries `stdForm ι` to `stdForm κ`, by `stdForm_apply`. Building issue 11
-  adds it.
+
+This part also uses
+`SymplecticGeometry.isSymplectomorphism_piLpCongrLeft_sumCongr` (`e : ι ≃ κ`),
+which is already in `Standard/Basic.lean`: the coordinate
+permutation `LinearIsometryEquiv.piLpCongrLeft 2 ℝ ℝ (e.sumCongr e)` carries
+`stdForm ι` to `stdForm κ`.
 
 The direct sum of two models is §1's `StdSpace.sumEquiv ι κ : StdSpace (ι ⊕ κ)
 ≃L[ℝ] StdSpace ι × StdSpace κ`, in this same file, with its lemma that it
@@ -670,8 +672,9 @@ The manifold structure and the milestone.
   `isSymplectomorphism_sumEquivProd`, `x_complexToRealEuclidean`,
   `y_complexToRealEuclidean` (merged, #41); the matrix dictionary
   `mem_symplecticGroup_iff_forall_stdForm` and
-  `TauCeti.conj_complexToRealEuclidean_toLin'` (merged, #62); `StdSpace.sumEquiv`
-  with its two lemmas (planned by §1, built as in building issue 11).
+  `TauCeti.conj_complexToRealEuclidean_toLin'` (merged, #62);
+  `isSymplectomorphism_piLpCongrLeft_sumCongr`; `StdSpace.sumEquiv` with its two
+  lemmas (planned by §1, built as in building issue 11).
 - *Symplectic subspaces* (merged, #64):
   `isLagrangian_iff_isIsotropic_and_two_mul_finrank_eq`.
 - Tau Ceti:
@@ -795,9 +798,9 @@ merged.
     About 200 lines. Blocked by 9.
 11. **Direct sums and reindexing, as algebra.**
     `LinearAlgebra/Symplectic/Lagrangian/Sum.lean`: `ℒ.sum`, `ℒ.reindex` and
-    their compatibilities, with `isSymplectomorphism_piLpCongrLeft_sumCongr`
-    in `Standard/Basic.lean`; and §1's `StdSpace.sumEquiv` with its two
-    lemmas, if the *Symplectic vector bundles* issue that builds it has not
+    their compatibilities, using the existing
+    `isSymplectomorphism_piLpCongrLeft_sumCongr` from `Standard/Basic.lean`;
+    and §1's `StdSpace.sumEquiv` with its two lemmas, if the *Symplectic vector bundles* issue that builds it has not
     merged first. About 300 lines. Blocked by 6.
 12. **Direct sums and reindexing, topology.**
     `Topology/Grassmannian/Lagrangian/Sum.lean`: `continuous_sum` and
