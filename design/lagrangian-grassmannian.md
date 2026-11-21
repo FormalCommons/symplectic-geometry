@@ -792,8 +792,10 @@ built the same way; the building issue credits it.
 - `ℒ.exists_trivialization_unitaryFrame (Λ : ℒ ι) :
   ∃ e : Bundle.Trivialization (realSubgroup ι) unitaryFrame, Λ ∈ e.baseSet`.
   Write `Λ = U • vertical ι` (`MulAction.exists_smul_eq`). Over the open
-  set `U • {Λ' | IsCompl Λ' (horizontal ι)}`, which contains `Λ` because the
-  vertical subspace is the chart point of `0`, the section is
+  set `U • graphYChart.source` (by `graphYChart_source`, the translate by
+  `U` of `{Λ' | IsCompl Λ' (horizontal ι)}`), which contains `Λ` because
+  `vertical ι = graphY 0` (`graphY_zero`, `Transverse.lean`) is in the
+  chart source, the section is
   `Λ' ↦ U * unitaryOfFrame (isLagrangian_range_fromRows_one hS)`, where
   `S` is the chart value of `U⁻¹ • Λ'` in `graphYChart` and `hS` its
   symmetry (`isHermitian_iff_isSymm.1 S.property`). It is a section by
@@ -805,14 +807,15 @@ built the same way; the building issue credits it.
   `Subgroup.localSectionTrivializationOfCosetFibers` makes the
   trivialization, with fibres given by `unitaryFrame_eq_unitaryFrame_iff`.
 - `ℒ.hasHomotopyLiftingProperty_unitaryFrame (A)`, from Tau Ceti's
-  `hasHomotopyLiftingProperty_of_exists_trivialization`. `ℒ ι` is compact
-  Hausdorff, hence normal and paracompact. Path lifting is then Tau Ceti's
-  `HasHomotopyLiftingProperty.exists_path_lift` applied to it, with no
-  restatement here.
+  `TauCeti.hasHomotopyLiftingProperty_of_exists_trivialization`. `ℒ ι` is
+  compact Hausdorff, hence normal and paracompact. Path lifting is then Tau
+  Ceti's `TauCeti.HasHomotopyLiftingProperty.exists_path_lift` applied to
+  it, with no restatement here.
 - The same fact in the categorical form that Tau Ceti's fibration results
   use, `ℒ.unitaryFrame_mem_serreFibrations`, by Tau Ceti's
-  `TopCat.mem_serreFibrations_of_exists_trivialization`; with it Tau Ceti's
-  `TopCat.exists_path_lift_of_mem_serreFibrations` lifts paths too.
+  `TauCeti.TopCat.mem_serreFibrations_of_exists_trivialization`; with it
+  Tau Ceti's `TauCeti.TopCat.exists_path_lift_of_mem_serreFibrations` lifts
+  paths too.
 
 ### `LinearAlgebra/Symplectic/Lagrangian/Sum.lean`
 
