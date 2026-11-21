@@ -188,7 +188,9 @@ Further choices of this design:
   The one exception is the Moser lemma along a family in `Moser/Family.lean`.
   It is a tool for proofs, and it takes its family over `ℝ` as Tau Ceti's
   Moser theorems do. A proof that runs a flow extends its
-  family past both ends with *Smooth families*' `TimeExtension.lean`, and
+  family past both ends with *Smooth families*' time extensions
+  (`ContMDiff/TimeExtension.lean` for maps and functions,
+  `DifferentialForm/TimeExtension.lean` for forms), and
   then reparametrizes into an open interval where its open conditions hold.
   This gives the vector field over `ℝ` that `timeDependentFlowDiffeotopy`
   needs, the second note of the review of #420.
@@ -316,8 +318,8 @@ time. The steps:
    embedding of a neighbourhood `W`, with a smooth retraction of a
    neighbourhood of its image onto it
    (`TauCeti.SmoothEmbedding.exists_contMDiffOn_retraction`). The extension is
-   *Smooth families*' `TimeExtension.lean` applied to the composite with the
-   embedding, followed by the retraction, for times close to $[0,1]$. The
+   *Smooth families*' `ContMDiff/TimeExtension.lean` applied to the
+   composite with the embedding, followed by the retraction, for times close to $[0,1]$. The
    embedding property of the slices for those times comes from
    `SmoothEmbedding/Neighborhood.lean` again.
 2. Compose with a smooth `c : ℝ → (-δ, 1 + δ)` that is the identity on
@@ -419,7 +421,8 @@ both:
    $0$ elsewhere. It is smooth on `unitInterval × M`, because `Ψ⁻¹` is
    jointly smooth and $f_0$ is an open embedding with a smooth inverse on
    its image.
-3. Extend $H$ (and $\beta$) past both ends with `TimeExtension.lean`, and let
+3. Extend $H$ past both ends with `ContMDiff/TimeExtension.lean` (and $\beta$
+   with `DifferentialForm/TimeExtension.lean`), and let
    $X_t$ solve $\iota_{X_t}\omega=dH_t$ (resp. $\beta_t+dH_t$). It is smooth
    by `TauCeti.SmoothTwoForm.contMDiff_interiorEquiv_symm_mpullback_prodMk`,
    and complete because its support is compact (resp. `M` is compact). Its
@@ -446,8 +449,8 @@ of two-forms that #551 gives it, and both returning a compactly supported
 family runs in the Moser time and is written over `ℝ`, as a form on
 `ℝ × M` with Tau Ceti's slices and `SmoothForm.timeDeriv`
 (`Geometry/Manifold/DifferentialForm/Flow/Family.lean`). Callers extend
-their families over `unitInterval` with `TimeExtension.lean`, which keeps
-the slices. In the second, the parameter is not a time and runs over
+their families over `unitInterval` with
+`DifferentialForm/TimeExtension.lean`, which keeps the slices. In the second, the parameter is not a time and runs over
 `unitInterval`.
 
 *Along a family*, fixing a compact submanifold `f : SmoothEmbedding J I ∞ Q M`,
@@ -793,12 +796,20 @@ this design already follows. `Ball/Isotopy.lean` cites
   `StdSpace` for the balls.
 - *Linear Moser* (merged): `Geometry/Symplectic/LinearMoser.lean`, for the
   frames along a path of centres.
-- *Smooth families*: `TimeExtension.lean`, Seeley's extension of maps into a
-  normed space and of forms on `unitInterval × M` (used by `Extension.lean`,
-  `Flow.lean` and `Moser/Family.lean`). It also uses the
-  finite-dimensionality of `deRhamCohomology I M k` for a compact
-  boundaryless `M`, which `DESIGN.md`'s smooth cohomology coordinates of
-  `SmoothFamily.lean` rest on (used by `Cohomological/Primitive.lean`).
+- *Smooth families* (`design/smooth-families.md`, merged): Seeley's
+  extension in the time variable, of maps in
+  `Geometry/Manifold/ContMDiff/TimeExtension.lean` (used by `Extension.lean`
+  and `Flow.lean`) and of forms on `unitInterval × M` in
+  `Geometry/Manifold/DifferentialForm/TimeExtension.lean` (used by
+  `Flow.lean` and `Moser/Family.lean`); and the instance
+  `FiniteDimensional ℝ (deRhamCohomology I M k)` for a compact boundaryless
+  `M`, which `Geometry/Manifold/DeRham/SmoothFamily/GoodCover.lean` derives
+  from `hasFiniteGoodCover_of_compactSpace` (used by
+  `Cohomological/Primitive.lean`). The part uses neither the splittings and
+  `contMDiff_repr_mk_of_hasFiniteGoodCover` nor the bridge
+  `Diffeotopy/Real.lean`: the periods are smooth in `t` as line integrals,
+  and its flows are Tau Ceti's `timeDependentFlowDiffeotopy`, already a
+  `Diffeotopy`.
 - *Hamiltonian flows*: in `Flux/Hamiltonian.lean`, the smooth primitive of a
   smooth family of exact one-forms over $[0,1]$, which that part's design
   (`design/hamiltonian-flows.md`, Decision 4) builds on chart balls and glues
@@ -865,13 +876,13 @@ build the files named, as their design files list them.
 | 1 | Singular homology near the subset of an NDR pair | `AlgebraicTopology/Singular/NDRPair.lean` | — | 150 |
 | 2 | Smooth paths in the symplectic group | `Analysis/Matrix/SymplecticGroup/Connected.lean` | — | 150 |
 | 3 | Embeddings near a compact set | `Geometry/Manifold/SmoothEmbedding/Neighborhood.lean` | — | 250 |
-| 4 | Isotopy extension at every time | `Geometry/Manifold/SmoothIsotopy/Extension.lean` | 3; S14 (`TimeExtension.lean`) | 450 |
+| 4 | Isotopy extension at every time | `Geometry/Manifold/SmoothIsotopy/Extension.lean` | 3; S14 (`ContMDiff/TimeExtension.lean`) | 450 |
 | 5 | Velocity forms of symplectic isotopies | `IsotopyExtension/Velocity.lean` | — | 300 |
-| 6 | Extension by symplectic and Hamiltonian flows | `IsotopyExtension/Flow.lean` | 4, 5; S14 (`TimeExtension.lean`); S15 (`Flux/Hamiltonian.lean`, `Flux/CompactSupport.lean`) | 450 |
-| 7 | Moser's argument along a family and with a parameter | `Moser/Family.lean` | S14 (`TimeExtension.lean`); #506 and #551 (`moserField` for a family) | 550 |
+| 6 | Extension by symplectic and Hamiltonian flows | `IsotopyExtension/Flow.lean` | 4, 5; S14 (both `TimeExtension.lean` files); S15 (`Flux/Hamiltonian.lean`, `Flux/CompactSupport.lean`) | 450 |
+| 7 | Moser's argument along a family and with a parameter | `Moser/Family.lean` | S14 (`DifferentialForm/TimeExtension.lean`); #506 and #551 (`moserField` for a family) | 550 |
 | 8 | Symplectic ball embeddings and their enlargement | `IsotopyExtension/Ball/Basic.lean` | 3 | 350 |
 | 9 | The symplectic ball extension | `IsotopyExtension/Ball/Isotopy.lean` | 2, 4, 6, 7, 8 | 550 |
-| 10 | Closed forms with prescribed periods, and uniform primitives | `IsotopyExtension/Cohomological/Primitive.lean` | 1, 5; S14 (finite-dimensional `deRhamCohomology`); S15 (`Flux/Hamiltonian.lean`) | 450 |
+| 10 | Closed forms with prescribed periods, and uniform primitives | `IsotopyExtension/Cohomological/Primitive.lean` | 1, 5; S14 (`DeRham/SmoothFamily/GoodCover.lean`, the `FiniteDimensional` instance); S15 (`Flux/Hamiltonian.lean`) | 450 |
 | 11 | The symplectic isotopy extension | `IsotopyExtension/Cohomological/Basic.lean` | 6, 10 | 250 |
 | 12 | Neighbourhood extension of submanifold isotopies | `IsotopyExtension/Submanifold.lean` | 4, 5, 7 | 350 |
 

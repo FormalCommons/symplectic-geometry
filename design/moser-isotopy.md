@@ -45,7 +45,7 @@ written out in the Lean statements, as Tau Ceti writes it.
   because they are restrictions of diffeomorphisms
   (`isSmoothEmbedding_diffeomorph_comp`, with Mathlib's
   `Manifold.IsSmoothEmbedding.of_opens`). This file therefore does not use
-  `OfIsotopy.lean` of *Smooth families*, and the row of `DESIGN.md` that has
+  `Diffeotopy/Real.lean` of *Smooth families*, and the row of `DESIGN.md` that has
   the part build on *Smooth families* only through `Stability.lean` stays
   as it is. The library states the ambient version as a theorem of its own,
   since *Isotopy extension* needs that version.
@@ -429,15 +429,16 @@ definition (`Diffeotopy.apply_zero`), which is $\psi_0=\mathrm{id}$.
 The proof follows the route of `DESIGN.md`. *Smooth families* supplies the
 following; its design file, from #466, gives their names.
 
-1. (★) of `SmoothFamily.lean`: a one-form `β` on `unitInterval × M` whose
-   slices satisfy `d β_t = ω_t - ω_0`.
-2. `TimeExtension.lean`: an extension `B` of `β` to `ℝ × M`.
+1. (★) of `DeRham/SmoothFamily/GoodCover.lean`, through
+   `exists_isSmoothFamily_mextDerivₗ_eq`: a one-form `β` on
+   `unitInterval × M` whose slices satisfy `d β_t = ω_t - ω_0`.
+2. `DifferentialForm/TimeExtension.lean`: an extension `B` of `β` to `ℝ × M`.
 3. A smooth reparametrization `c : ℝ → ℝ` that is the identity on
    $[0,1]$ and takes values in $(-\varepsilon,1+\varepsilon)$, for a given
    `ε > 0`. *Manifolds, families and signs* names this step. If
    `design/smooth-families.md` does not provide it, the building issue
    proposes it there.
-4. `OfIsotopy.lean`: the restriction of an isotopy over `ℝ` to a
+4. `Diffeotopy/Real.lean`: the restriction of an isotopy over `ℝ` to a
    `Diffeotopy`.
 
 Let `B' := (c × id)^* B`. Over `ℝ`, the forms are
@@ -450,7 +451,7 @@ lemma). Hence every slice of `σ` is symplectic. The velocity of `σ` is
 `L_{∂_t} d B' = d α`, so the hypothesis of
 `TauCeti.SmoothTwoForm.exists_isotopy_mpullback_eq` holds: Lie derivatives
 and pullbacks commute with `d`. That theorem gives
-`ψ : ℝ → M ≃ₘ⟮I, I⟯ M`, which `OfIsotopy.lean` restricts to `Ψ`.
+`ψ : ℝ → M ≃ₘ⟮I, I⟯ M`, which `Diffeotopy/Real.lean` restricts to `Ψ`.
 
 ## What the part uses
 
@@ -511,7 +512,7 @@ sub-issues of #472, *Build the part Moser isotopy*. Sizes are estimates.
 | 3 | The cut-off Moser field of a segment of two-forms | `Moser/Field.lean` | — | 350 |
 | 4 | The Moser isotopy fixing a compact submanifold | `Moser/Isotopy.lean` | 1, 3 | 300 |
 | 5 | Darboux charts with prescribed derivative | `Geometry/Symplectic/Manifold/Darboux.lean` | — | 200 |
-| 6 | Moser stability | `Moser/Stability.lean` | 1; the issues of #467 that build `SmoothFamily.lean`, `TimeExtension.lean` and `OfIsotopy.lean` (#467 itself until it is split) | 250 |
+| 6 | Moser stability | `Moser/Stability.lean` | 1; the issues of #467 that build `DeRham/SmoothFamily/GoodCover.lean`, `DifferentialForm/TimeExtension.lean` and `Diffeotopy/Real.lean` (#467 itself until it is split) | 250 |
 
 Issues 1, 3 and 5 can start at once, and issues 2 and 4 need nothing outside the
 part. The milestones are proved in issues 2 (*Relative Moser theorem with
