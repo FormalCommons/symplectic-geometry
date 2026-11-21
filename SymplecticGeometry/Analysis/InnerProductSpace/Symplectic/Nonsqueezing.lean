@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.Analysis.InnerProductSpace.Basic
 public import SymplecticGeometry.Analysis.InnerProductSpace.Symplectic.AffineSymplectic
 
 /-!
@@ -56,28 +57,11 @@ private theorem mul_norm_adjoint_le [DecidableEq ι] {f : StdSpace ι ≃ᵃ[ℝ
     have hz : f z = f.linear z + f 0 := congr_fun f.toAffineMap.decomp z
     have hw : inner ℝ z w = inner ℝ (f.linear z) (EuclideanSpace.single c (1 : ℝ)) := by
       simp only [w, ContinuousLinearEquiv.adjointEquiv_apply,
-        ContinuousLinearMap.adjoint_inner_right]
-      rfl
+        ContinuousLinearMap.adjoint_inner_right, ContinuousLinearEquiv.coe_coe,
+        LinearEquiv.coe_toContinuousLinearEquiv']
     rw [hz, PiLp.add_apply, hw, EuclideanSpace.inner_single_right]
     simp
-  have h0 := h 0 (Metric.mem_closedBall_self hr)
-  by_cases hw : w = 0
-  · rw [hw, norm_zero, mul_zero]
-    exact (abs_nonneg _).trans h0
-  have hw' : 0 < ‖w‖ := norm_pos_iff.2 hw
-  set z := (r / ‖w‖) • w
-  have hz : z ∈ Metric.closedBall (0 : StdSpace ι) r := by
-    rw [mem_closedBall_zero_iff, norm_smul, Real.norm_eq_abs, abs_of_nonneg (by positivity),
-      div_mul_cancel₀ _ hw'.ne']
-  have hzw : inner ℝ z w = r * ‖w‖ := by
-    rw [real_inner_smul_left, real_inner_self_eq_norm_sq]
-    field_simp
-  have h₁ := h z hz
-  have h₂ := h (-z) (by rwa [Metric.mem_closedBall, dist_zero_right, norm_neg,
-    ← dist_zero_right])
-  rw [hf, hzw] at h₁
-  rw [hf, inner_neg_left, hzw] at h₂
-  linarith [(abs_le.1 h₁).2, (abs_le.1 h₂).1]
+  exact mul_norm_le_of_abs_inner_add_le hr fun z hz ↦ hf z ▸ h z hz
 
 /-- **Affine nonsqueezing.** If an affine symplectic map of `StdSpace ι` sends the closed ball
 of radius `r ≥ 0` into the cylinder `stdCylinder i R`, then `r ≤ R`. -/
@@ -132,17 +116,15 @@ theorem le_of_mem_symplecticGroup_of_image_closedBall_subset_stdCylinder [Decida
     (h : (fun z ↦ Matrix.toEuclideanLin A z + z₀) '' Metric.closedBall 0 r ⊆
       stdCylinder i R) :
     r ≤ R := by
-  have hω := mem_symplecticGroup_iff_forall_stdForm.1 hA
   set e := LinearEquiv.ofBijective (Matrix.toEuclideanLin A)
-    ((stdForm ι).bijective_of_forall_apply_eq_or_forall_apply_eq_neg (Or.inl hω))
-  have he : (stdForm ι).IsSymplectomorphism (stdForm ι) e :=
-    SymplecticForm.isSymplectomorphism_iff.2 hω
+    ((stdForm ι).bijective_of_forall_apply_eq_or_forall_apply_eq_neg
+      (Or.inl (mem_symplecticGroup_iff_forall_stdForm.1 hA)))
   set f := e.toAffineEquiv.trans (AffineEquiv.constVAdd ℝ (StdSpace ι) z₀)
   have hf : ⇑f = fun z ↦ Matrix.toEuclideanLin A z + z₀ := by
     funext z
     simp [f, e, add_comm]
   exact le_of_image_closedBall_subset_stdCylinder
-    (mem_affineSymplecticGroup_iff_exists.2 ⟨e, he, z₀, by rw [hf]; rfl⟩) hr (hf ▸ h)
+    (mem_affineSymplecticGroup_stdForm_iff_matrix.2 ⟨A, hA, z₀, hf⟩) hr (hf ▸ h)
 
 end SymplecticGeometry
 
