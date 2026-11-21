@@ -222,6 +222,9 @@ and two rows of its milestone table.
   `CharacteristicFoliation.lean`, that use nothing symplectic; the
   linear-algebra lemma of `VectorBundle/Orthogonal.lean` is in
   `LinearAlgebra/BilinearForm/Orthogonal.lean`.
+- `Geometry/Manifold/Diffeomorph/Basic.lean` is added for the
+  diffeomorphism between empty manifolds on two models, which `MFDeriv.lean`
+  and `Tubular.lean` both use.
 - `Lagrangian.lean` no longer uses *Cotangent bundles* or
   `normalBundleDiffeomorphOfIsLagrangianMap`, since the comparison theorem
   needs only that the zero section is Lagrangian. The part therefore no
@@ -446,6 +449,15 @@ symplectic, so it sits with the manifold topic, beside Tau Ceti's
   $\Theta$ a partial diffeomorphism near the zero section, and
   $\psi=\Theta\circ\mathrm{normalExp}_0^{-1}$ on the intersection of the
   sources. It needs no compactness and no closed image.
+
+### `Geometry/Manifold/Diffeomorph/Basic.lean`
+
+The case of an empty `Q` in `MFDeriv.lean` and `Tubular.lean`. Namespace
+`Diffeomorph`.
+
+- `Diffeomorph.ofIsEmpty : M ≃ₘ^n⟮I, I'⟯ M'` for `[IsEmpty M] [IsEmpty M']`,
+  Mathlib's `Diffeomorph.empty` with two models, and the `Unique` instance
+  on such diffeomorphisms.
 
 ### `Geometry/Symplectic/Neighborhood/Tubular.lean`
 
