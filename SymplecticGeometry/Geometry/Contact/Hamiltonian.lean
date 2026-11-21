@@ -8,6 +8,11 @@ module
 public import Mathlib.Geometry.Manifold.Algebra.SmoothFunctions
 public import TauCeti.Geometry.Contact.Flow
 public import TauCeti.Geometry.Contact.Rescale
+public import TauCeti.Geometry.Manifold.DifferentialForm.Flow.Family
+public import TauCeti.Geometry.Manifold.VectorBundle.Bilinear.SmulRight
+public import TauCeti.Geometry.Manifold.VectorBundle.Hom
+public import TauCeti.Geometry.Manifold.VectorBundle.Scalar
+public import TauCeti.Geometry.Manifold.VectorBundle.Translate
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.DegreeOne
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.LieDeriv
 
@@ -34,7 +39,17 @@ For a contact form `α` with Reeb field `R` on a finite-dimensional manifold:
   (`TauCeti.SmoothForm.IsContactForm.reebVectorField_eq_contactHamiltonianVectorField_of_eq_smul`);
   the identity map carries the coorientation of `α` to that of `f⁻¹ α` exactly when `f` is
   positive (`Diffeomorph.preservesCoorientation_refl_iff_pos`, for any nowhere vanishing
-  one-form `α`).
+  one-form `α`);
+* for a family `f : N → M → ℝ` that is jointly `C^(n+1)`, the fields `(p, x) ↦ X_{f_p}(x)` are
+  jointly `C^n`
+  (`TauCeti.SmoothForm.IsContactForm.contMDiff_contactHamiltonianVectorField_uncurry`);
+* on a boundaryless Hausdorff manifold, the time-dependent flow `φ_{s,t}` of the contact
+  Hamiltonian vector fields of a jointly `C³` time-dependent function `f_t` rescales the form:
+  `(φ_{s,t}^* α)ₓ = exp (∫ₛᵗ (R f_u)(φ_{s,u} x) du) • αₓ` wherever the flow is defined
+  (`TauCeti.SmoothForm.IsContactForm.mpullback_timeDependentFlowOf_apply_eq_exp_integral_smul`).
+
+The theorem `TauCeti.SmoothForm.IsContactForm.contactVectorFields_correspondence` collects these
+statements.
 
 Closure of contact vector fields under sums and scalar multiples uses the linearity of the Lie
 derivative in the vector field (`TauCeti.mlieDerivForm_add_left`,
@@ -46,6 +61,18 @@ characterization adapts the proof of the forward direction of Tau Ceti's
 `TauCeti.SmoothForm.IsContactHamiltonianVectorField.mpullback_flowOf_apply_eq_self_iff`:
 differentiate the pulled back form at time `0` with `TauCeti.hasDerivAt_mpullback_flowOf_zero`,
 on the open set of times where the flow from `x` is defined.
+
+The joint regularity of `X_{f_p}` adapts Tau Ceti's
+`TauCeti.SmoothForm.IsContactForm.contMDiff_contactHamiltonianVectorField` to sections along the
+projection `N × M → M`, as Tau Ceti's
+`TauCeti.SmoothForm.contMDiffAt_sectionAlong_strictContactMoserVectorField` does for strict
+contact-Moser fields: the inverse contact flat map applied to `(f + R f) α - df`. The rescaling
+formula is the time-dependent analogue of Tau Ceti's
+`TauCeti.SmoothForm.IsContactHamiltonianVectorField.mpullback_flowOf_apply`. It applies Tau Ceti's
+`TauCeti.mpullback_timeDependentFlowOf_mpullback_prodMk_apply_eq_exp_integral_smul_of_mem` to the
+constant family `(u, y) ↦ α_y`, as
+`TauCeti.mpullback_timeDependentFlowOf_apply_of_mextDeriv_interior_eq_zero`
+(`Geometry/Manifold/DifferentialForm/Flow/Family.lean`) does for a closed form.
 
 ## References
 
@@ -240,6 +267,102 @@ theorem reebVectorField_eq_contactHamiltonianVectorField_of_eq_smul {f : M → �
   rw [← hα.contactHamiltonianVectorField_of_eq_smul hu hu₀ hβ (hf.mdifferentiable one_ne_zero),
     h1, hβc.contactHamiltonianVectorField_one]
 
+/-! ### Time-dependent contact Hamiltonians -/
+
+section Family
+
+variable {E' H' N : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [TopologicalSpace H']
+  {J : ModelWithCorners ℝ E' H'} [TopologicalSpace N] [ChartedSpace H' N] [IsManifold J 1 N]
+  {n : WithTop ℕ∞} {f : N → M → ℝ}
+
+/-- For a contact form `α` with Reeb field `R` and a family of functions `f : N → M → ℝ` that is
+jointly `C^(n+1)` on `N × M`, the derivatives `(p, x) ↦ (R f_p)(x)` are jointly `C^n`, for
+`n ≤ ∞`. -/
+theorem contMDiff_mvfderiv_reebVectorField_uncurry (hn : n ≤ ∞)
+    (hf : ContMDiff (J.prod I) 𝓘(ℝ) (n + 1) (Function.uncurry f)) :
+    ContMDiff (J.prod I) 𝓘(ℝ) n
+      fun q : N × M ↦ mvfderiv I (f q.1) q.2 (α.reebVectorField q.2) := fun q ↦
+  (hf.contMDiff_totalSpaceMk_mvfderiv_uncurry q).clm_bundle_apply_scalar
+    (((hα.contMDiff_reebVectorField q.2).of_le hn).comp q contMDiffAt_snd)
+
+/-- **Joint regularity of contact Hamiltonian vector fields.** For a contact form `α` on a
+finite-dimensional manifold and a family of functions `f : N → M → ℝ` that is jointly `C^(n+1)`
+on `N × M`, the contact Hamiltonian vector fields `X_{f_p}` form a jointly `C^n` map
+`(p, x) ↦ X_{f_p}(x)` from `N × M` to the tangent bundle, for `n ≤ ∞`. For `N = ℝ` this is the
+regularity of the time-dependent field of a time-dependent contact Hamiltonian. -/
+theorem contMDiff_contactHamiltonianVectorField_uncurry (hn : n ≤ ∞)
+    (hf : ContMDiff (J.prod I) 𝓘(ℝ) (n + 1) (Function.uncurry f)) :
+    ContMDiff (J.prod I) I.tangent n fun q : N × M ↦
+      (⟨q.2, α.contactHamiltonianVectorField (f q.1) q.2⟩ : TangentBundle I M) := by
+  intro q
+  have hα₀ : ContMDiffAt (J.prod I) (I.prod 𝓘(ℝ, E [⋀^Fin 1]→L[ℝ] ℝ)) n
+      (fun p : N × M ↦ TotalSpace.mk' (E [⋀^Fin 1]→L[ℝ] ℝ)
+        (E := fun x : M ↦ TangentSpace I x [⋀^Fin 1]→L[ℝ] Trivial M ℝ x) p.2 (α.val p.2)) q :=
+    ((α.contMDiff q.2).of_le hn).comp q contMDiffAt_snd
+  have hdα₀ : ContMDiffAt (J.prod I) (I.prod 𝓘(ℝ, E [⋀^Fin 2]→L[ℝ] ℝ)) n
+      (fun p : N × M ↦ TotalSpace.mk' (E [⋀^Fin 2]→L[ℝ] ℝ)
+        (E := fun x : M ↦ TangentSpace I x [⋀^Fin 2]→L[ℝ] Trivial M ℝ x) p.2
+        (mextDeriv α.val p.2)) q :=
+    ((contMDiff_mextDeriv α q.2).of_le hn).comp q contMDiffAt_snd
+  have hcov := ((((hf q).of_le le_self_add).add
+    (hα.contMDiff_mvfderiv_reebVectorField_uncurry hn hf q)).smul_totalSpace
+      (contMDiffAt_sectionAlong_degreeOneEquiv_iff.2 hα₀)).sub_sectionAlong
+    (hf.contMDiff_totalSpaceMk_mvfderiv_uncurry q)
+  have hX := (ContMDiffAt.clm_bundle_inverse (x := q) (ϕ := fun p : N × M ↦ α.contactFlat p.2)
+    (contMDiffAt_sectionAlong_contactFlat (α := fun _ ↦ α) hα₀ hdα₀)
+    (hα.isInvertible_contactFlat q.2)).clm_bundle_apply hcov
+  simpa only [contactHamiltonianVectorField_def, Pi.add_apply, Function.uncurry_def] using hX
+
+end Family
+
+/-- **Time-dependent contact Hamiltonian flows rescale the contact form.** Let `α` be a contact
+form with Reeb field `R` on a boundaryless Hausdorff manifold, let `f : ℝ → M → ℝ` be a jointly
+`C³` time-dependent function, and let `X t` be the contact Hamiltonian vector field of `f t`.
+Wherever the time-dependent flow `φ_{s,t}` of `X` from `(s, x)` is defined up to time `t`,
+`(φ_{s,t}^* α)ₓ = exp (∫ₛᵗ (R f_u)(φ_{s,u} x) du) • αₓ`. -/
+theorem mpullback_timeDependentFlowOf_apply_eq_exp_integral_smul [I.Boundaryless] [T2Space M]
+    {f : ℝ → M → ℝ} (hf : ContMDiff (𝓘(ℝ, ℝ).prod I) 𝓘(ℝ) 3 (Function.uncurry f))
+    {X : ℝ → (x : M) → TangentSpace I x}
+    (hX : ∀ t, α.IsContactHamiltonianVectorField (f t) (X t)) {s t : ℝ} {x : M}
+    (hx : ((s, t), x) ∈ timeDependentFlowDomain X) :
+    TauCeti.mpullback I I (timeDependentFlowOf X s t) α.val x =
+      Real.exp (∫ u in s..t, mvfderiv I (f u) (timeDependentFlowOf X s u x)
+        (α.reebVectorField (timeDependentFlowOf X s u x))) • α.val x := by
+  have hXe : X = fun t ↦ α.contactHamiltonianVectorField (f t) :=
+    funext fun t ↦ hα.isContactHamiltonianVectorField_iff_eq.1 (hX t)
+  have hX2 : ContMDiff (𝓘(ℝ, ℝ).prod I) I.tangent 2
+      (fun p : ℝ × M ↦ (⟨p.2, X p.1 p.2⟩ : TangentBundle I M)) := by
+    rw [hXe]
+    exact hα.contMDiff_contactHamiltonianVectorField_uncurry (by simp) (by norm_num [hf])
+  -- The constant family `p ↦ α (p.2)` on `ℝ × M`, whose slices are all `α`.
+  set β := SmoothForm.mpullback (Prod.snd : ℝ × M → M)
+    (contMDiff_snd : ContMDiff (𝓘(ℝ, ℝ).prod I) I ∞ (Prod.snd : ℝ × M → M)) α
+  have hslice (u : ℝ) :
+      TauCeti.mpullback I (𝓘(ℝ, ℝ).prod I) (Prod.mk u : M → ℝ × M) β.val = α.val := by
+    have hc : (Prod.snd : ℝ × M → M) ∘ Prod.mk u = id := rfl
+    rw [← SmoothForm.coe_mpullback (Prod.mk u) (contMDiff_const.prodMk contMDiff_id),
+      ← LinearMap.comp_apply, ← SmoothForm.mpullback_comp]
+    simp only [hc, SmoothForm.mpullback_id, LinearMap.id_apply]
+  have hL (u : ℝ) : TauCeti.mpullback I (𝓘(ℝ, ℝ).prod I) (Prod.mk u)
+        (mlieDerivForm (fun _ ↦ ((1 : ℝ), (0 : E))) β.val) +
+      mlieDerivForm (X u) (TauCeti.mpullback I (𝓘(ℝ, ℝ).prod I) (Prod.mk u : M → ℝ × M) β.val) =
+      fun y ↦ mvfderiv I (f u) y (α.reebVectorField y) •
+        TauCeti.mpullback I (𝓘(ℝ, ℝ).prod I) (Prod.mk u : M → ℝ × M) β.val y := by
+    funext y
+    -- The slices of the constant family do not move, so their time derivative vanishes.
+    have hd := hasDerivAt_mpullback_prodMk u y (β.mdifferentiable (u, y))
+    simp only [hslice] at hd
+    have hXu : MDifferentiable I I.tangent (fun y ↦ (⟨y, X u y⟩ : TangentBundle I M)) :=
+      (hX2.comp ((contMDiff_const (c := u)).prodMk contMDiff_id)).mdifferentiable two_ne_zero
+    rw [Pi.add_apply, hd.unique (hasDerivAt_const u _), hslice, (hX u).mlieDerivForm_eq hXu]
+    -- The zero derivative is taken in the model space of forms, the sum in the fibre at `y`.
+    exact zero_add _
+  simpa only [hslice] using
+    mpullback_timeDependentFlowOf_mpullback_prodMk_apply_eq_exp_integral_smul_of_mem hX2
+      (g := fun p ↦ mvfderiv I (f p.1) p.2 (α.reebVectorField p.2))
+      (hα.contMDiff_mvfderiv_reebVectorField_uncurry (J := 𝓘(ℝ, ℝ)) (n := 0) (by simp)
+        (hf.of_le (by norm_num))).continuous (β.contMDiff.of_le (by simp)) hL hx
+
 end IsContactForm
 
 end TauCeti.SmoothForm
@@ -264,3 +387,72 @@ theorem preservesCoorientation_refl_iff_pos {α β : SmoothForm I M ℝ 1} {f : 
   · rfl
 
 end Diffeomorph
+
+namespace TauCeti.SmoothForm.IsContactForm
+
+variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
+  [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [I.Boundaryless] [TopologicalSpace M]
+  [ChartedSpace H M] [T2Space M] [IsManifold I ∞ M] {α : SmoothForm I M ℝ 1}
+
+/-- **Contact vector fields and contact Hamiltonians.** Let `α` be a contact form with Reeb field
+`R` on a boundaryless Hausdorff manifold of finite dimension. Then:
+
+* a smooth vector field `X` is a contact vector field exactly when `L_X α = R(α(X)) α`, and
+  exactly when its local flow `φ_t` satisfies `ker (φ_t^* α)ₓ = ker αₓ` wherever it is defined;
+* `X ↦ α(X)` is a linear equivalence `e` from contact vector fields to smooth functions, and
+  `e⁻¹ f` is the unique contact Hamiltonian vector field `X_f` of `f`, that is, the unique field
+  with `α(X_f) = f` and `ι_{X_f} dα = R(f) α - df`; it satisfies `L_{X_f} α = R(f) α`, and
+  `X_1 = R`;
+* for a smooth time-dependent function `f`, the time-dependent flow `φ_t` of `X_{f_t}` from time
+  `0` satisfies `(φ_t^* α)ₓ = exp (∫₀ᵗ (R f_s)(φ_s x) ds) • αₓ` wherever it is defined;
+* `X_f` is transverse to `ker α` at `x` exactly when `f x ≠ 0`; and if `f` vanishes nowhere and
+  `β = f⁻¹ α`, then `β` is a contact form with Reeb field `X_f`, and it induces the coorientation
+  of `α` exactly when `f` is positive.
+
+Milestone: *Contact vector fields and contact Hamiltonians*. -/
+theorem contactVectorFields_correspondence (hα : α.IsContactForm) :
+    (∀ X : Cₛ^∞⟮I; E, TangentSpace I (M := M)⟯, X ∈ α.contactVectorFields ↔
+      mlieDerivForm X α.val = fun x ↦
+        mvfderiv I (fun y ↦ α.val y ![X y]) x (α.reebVectorField x) • α.val x) ∧
+    (∀ X : Cₛ^∞⟮I; E, TangentSpace I (M := M)⟯, X ∈ α.contactVectorFields ↔
+      ∀ t x, (t, x) ∈ flowDomain X →
+        (TauCeti.mpullback I I (flowOf X t) α.val).ker x = α.kerDistribution x) ∧
+    (∀ (X : α.contactVectorFields) (x : M), hα.contactHamiltonianEquiv X x =
+      α.val x ![(X : Cₛ^∞⟮I; E, TangentSpace I (M := M)⟯) x]) ∧
+    (∀ (f : C^∞⟮I, M; ℝ⟯) (X : (x : M) → TangentSpace I x),
+      α.IsContactHamiltonianVectorField f X ↔
+        X = (hα.contactHamiltonianEquiv.symm f : Cₛ^∞⟮I; E, TangentSpace I (M := M)⟯)) ∧
+    (∀ f : C^∞⟮I, M; ℝ⟯,
+      mlieDerivForm (hα.contactHamiltonianEquiv.symm f : Cₛ^∞⟮I; E, TangentSpace I (M := M)⟯)
+        α.val = fun x ↦ mvfderiv I f x (α.reebVectorField x) • α.val x) ∧
+    α.contactHamiltonianVectorField 1 = α.reebVectorField ∧
+    (∀ f : ℝ → M → ℝ, ContMDiff (𝓘(ℝ, ℝ).prod I) 𝓘(ℝ) ∞ (Function.uncurry f) →
+      ∀ X : ℝ → (x : M) → TangentSpace I x,
+        (∀ t, α.IsContactHamiltonianVectorField (f t) (X t)) →
+        ∀ t x, ((0, t), x) ∈ timeDependentFlowDomain X →
+          TauCeti.mpullback I I (timeDependentFlowOf X 0 t) α.val x =
+            Real.exp (∫ s in 0..t, mvfderiv I (f s) (timeDependentFlowOf X 0 s x)
+              (α.reebVectorField (timeDependentFlowOf X 0 s x))) • α.val x) ∧
+    (∀ (f : M → ℝ) (x : M),
+      α.contactHamiltonianVectorField f x ∉ α.kerDistribution x ↔ f x ≠ 0) ∧
+    (∀ (f : C^∞⟮I, M; ℝ⟯) (β : SmoothForm I M ℝ 1), (∀ x, f x ≠ 0) →
+      (∀ x, β.val x = (f x)⁻¹ • α.val x) →
+        β.IsContactForm ∧ β.reebVectorField = α.contactHamiltonianVectorField f ∧
+          ((Diffeomorph.refl I M ∞).PreservesCoorientation α β ↔ ∀ x, 0 < f x)) := by
+  refine ⟨fun _ ↦ hα.mem_contactVectorFields_iff_mlieDerivForm_eq,
+    fun _ ↦ hα.mem_contactVectorFields_iff_kerDistribution_mpullback_flowOf,
+    hα.contactHamiltonianEquiv_apply, fun f X ↦ ?_, fun f ↦ ?_,
+    hα.contactHamiltonianVectorField_one,
+    fun f hf X hX t x hx ↦ hα.mpullback_timeDependentFlowOf_apply_eq_exp_integral_smul
+      (hf.of_le (by simp)) hX hx,
+    fun f x ↦ ((hα.isContactHamiltonianVectorField_contactHamiltonianVectorField f
+      ).mem_kerDistribution_iff x).not, fun f β hf₀ hβ ↦ ?_⟩
+  · rw [coe_contactHamiltonianEquiv_symm_apply, hα.isContactHamiltonianVectorField_iff_eq]
+  · rw [coe_contactHamiltonianEquiv_symm_apply]
+    exact (hα.isContactHamiltonianVectorField_contactHamiltonianVectorField f).mlieDerivForm_eq
+      (hα.mdifferentiable_contactHamiltonianVectorField (f.contMDiff.of_le (by simp)))
+  · obtain ⟨hβc, hR⟩ := hα.reebVectorField_eq_contactHamiltonianVectorField_of_eq_smul
+      (f.contMDiff.of_le (by simp)) hf₀ hβ
+    exact ⟨hβc, hR, Diffeomorph.preservesCoorientation_refl_iff_pos hα.apply_ne_zero hβ⟩
+
+end TauCeti.SmoothForm.IsContactForm

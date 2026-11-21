@@ -303,7 +303,7 @@ review of #420 raise four more.
   Tau Ceti's maximal time-dependent flow `TauCeti.timeDependentFlowOf`,
   with its domain `TauCeti.timeDependentFlowDomain`, is over `ℝ`, and a
   `Diffeotopy` over `[0, 1]` cannot express "wherever defined". So this one
-  family statement is made over `ℝ`, for `H : ℝ × M → ℝ` smooth; a
+  family statement is made over `ℝ`, for `f : ℝ → M → ℝ` jointly smooth; a
   Hamiltonian over `[0, 1]` enters through its extension by
   `ContMDiff/TimeExtension.lean`. `DESIGN.md`'s convention on families records the
   exception.
@@ -440,31 +440,35 @@ Named like Tau Ceti's file, in `TauCeti.SmoothForm`.
   `α` only nowhere zero (`∀ x, α.val x ≠ 0`):
   `(Diffeomorph.refl I M ∞).PreservesCoorientation α β ↔ ∀ x, 0 < H x`, Tau
   Ceti's notion of "the same coorientation".
-- `contMDiff_contactHamiltonianVectorField_prodMk (hα) (hH : ContMDiff (𝓘(ℝ, ℝ).prod I) 𝓘(ℝ) ∞ H)`:
-  the time-dependent field `(t, y) ↦ X_{H_t}(y)`, with
-  $H_t=$ `fun y ↦ H (t, y)`, is jointly smooth as a map `ℝ × M → TM`. Tau
+- `IsContactForm.contMDiff_contactHamiltonianVectorField_uncurry (hα) (hn : n ≤ ∞)
+  (hf : ContMDiff (J.prod I) 𝓘(ℝ) (n + 1) (Function.uncurry f))`, for
+  `f : N → M → ℝ`: the field `(p, y) ↦ X_{f p}(y)` is jointly `C^n` as a map
+  `N × M → TM`; for `N = ℝ` it is the time-dependent field. Tau
   Ceti proves smoothness only for one function; the proof follows
-  `TauCeti.SmoothForm.contMDiffAt_sectionAlong_contactMoserVectorField`
+  `TauCeti.SmoothForm.contMDiffAt_sectionAlong_strictContactMoserVectorField`
   (inverse contact flat map along a parameter), which the docstring credits.
-- `IsContactForm.mpullback_timeDependentFlowOf_contactHamiltonianVectorField_apply`
-  (`[I.Boundaryless] [T2Space M]`): writing
-  `X t := α.contactHamiltonianVectorField (fun y ↦ H (t, y))`, for every
-  `((0, t), x) ∈ timeDependentFlowDomain X`,
-  `TauCeti.mpullback I I (timeDependentFlowOf X 0 t) α.val x =
-   Real.exp (∫ s in 0..t, mvfderiv I (fun y ↦ H (s, y)) (timeDependentFlowOf X 0 s x)
-     (α.reebVectorField (timeDependentFlowOf X 0 s x))) • α.val x`.
+- `IsContactForm.mpullback_timeDependentFlowOf_apply_eq_exp_integral_smul`
+  (`[I.Boundaryless] [T2Space M]`): for `f : ℝ → M → ℝ` jointly `C³` and any
+  `X` with `∀ t, α.IsContactHamiltonianVectorField (f t) (X t)`, for every
+  `((s, t), x) ∈ timeDependentFlowDomain X`,
+  `TauCeti.mpullback I I (timeDependentFlowOf X s t) α.val x =
+   Real.exp (∫ u in s..t, mvfderiv I (f u) (timeDependentFlowOf X s u x)
+     (α.reebVectorField (timeDependentFlowOf X s u x))) • α.val x`.
   From Tau Ceti's
   `mpullback_timeDependentFlowOf_mpullback_prodMk_apply_eq_exp_integral_smul_of_mem`
   for the constant family `mpullback Prod.snd α` (time derivative `0`), with
-  $g(t,y)=R(H_t)(y)$ and Gray's equation given by
+  $g(t,y)=R(f_t)(y)$ and Gray's equation given by
   `IsContactHamiltonianVectorField.mlieDerivForm_eq`.
 - **Milestone theorem** `IsContactForm.contactVectorFields_correspondence (hα)`,
   the conjunction of: the two characterizations of `contactVectorFields`
-  above; for every `H : C^∞⟮I, M; ℝ⟯`, that `(e.symm H : Π x, _)` is the
+  above; `contactHamiltonianEquiv_apply`; for every `H : C^∞⟮I, M; ℝ⟯`, that
+  `(e.symm H : Π x, _)` is the
   unique field `X` with `IsContactHamiltonianVectorField α H X`, that
   `mlieDerivForm` of it is `R(H) • α`, and `X_1 = R`; the rescaling
-  formula; and, for nowhere zero `H`, transversality
-  (`IsContactHamiltonianVectorField.mem_kerDistribution_iff`), the Reeb field
+  formula from time `0`, for `f` smooth; for every `H` and `x`,
+  transversality at `x` as an iff
+  (`IsContactHamiltonianVectorField.mem_kerDistribution_iff`); and, for nowhere
+  zero `H`, the Reeb field
   of `α/H` and the coorientation clause. Milestone: *Contact vector fields
   and contact Hamiltonians*.
 
