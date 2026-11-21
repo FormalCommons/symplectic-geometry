@@ -31,9 +31,9 @@ to it, and derives the contact form of the hypersurface in the signs of the book
   instead of on all of `M`, and the exterior derivative of the primitive at a point of `U` is
   that of `ι_Z σ` because the two forms agree near the point.
 * `TauCeti.IsContactType.isContactFormAt_mpullback`: for a nondegenerate two-form, the pullback
-  of a primitive `α` along a `C²` map `ι` of contact type, with injective differentials and
-  codimension one, is contact at every point. Here `α` is only a rough form; it is smooth near
-  the image of `ι` because it equals `ι_Z σ` there. The proof is that of Tau Ceti's
+  of a primitive `α` along a map `ι` of contact type and codimension one is contact at each
+  point where `ι` is `C²` with injective differential. Here `α` is only a rough form; it is
+  smooth near the image of `ι` because it equals `ι_Z σ` there. The proof is that of Tau Ceti's
   `TauCeti.IsContactType.isContactForm_mpullback`, adapted to such a primitive.
 * `TauCeti.SmoothEmbedding.exists_isContactForm_eq_neg_mpullback_interior`: for `σ`
   symplectic, a smooth embedding `i : S → M` of codimension one and such a field `Z`, the one-form
@@ -99,15 +99,15 @@ theorem exists_isContactType_iff (hσ : IsSmoothForm I 1 σ) (hdσ : mextDeriv �
 
 end Rough
 
-/-- **Contact type for a rough primitive gives contact forms pointwise.** If a map `ι : S → M`
-of class `C²` with injective differentials, from a manifold of one dimension less, is of contact
-type for a nondegenerate two-form `σ`, with a primitive `α` that need only be a rough form, then
-the pullback `ι^* α` is a contact form at every point of `S`. -/
+/-- **Contact type for a rough primitive gives contact forms pointwise.** Let `ι : S → M`, from a
+manifold of one dimension less, be of contact type for a nondegenerate two-form `σ`, with a
+primitive `α` that need only be a rough form. If `ι` is `C²` at a point `s` and its differential
+at `s` is injective, then the pullback `ι^* α` is a contact form at `s`. -/
 theorem IsContactType.isContactFormAt_mpullback [IsManifold I ∞ M] [IsManifold J 2 S]
     {σ : SmoothTwoForm I M} (hσ : σ.IsNondegenerate) {α : RoughForm I M ℝ 1} {ι : S → M}
-    (h : IsContactType J σ.val α ι) (hι : ContMDiff J I 2 ι)
-    (hιs : ∀ s, Function.Injective (mfderiv J I ι s)) (hdim : finrank ℝ E' + 1 = finrank ℝ E)
-    (s : S) : IsContactFormAt (mpullback J I ι α) s := by
+    (h : IsContactType J σ.val α ι) {s : S} (hι : ContMDiffAt J I 2 ι s)
+    (hιs : Function.Injective (mfderiv J I ι s)) (hdim : finrank ℝ E' + 1 = finrank ℝ E) :
+    IsContactFormAt (mpullback J I ι α) s := by
   obtain ⟨U, hU, hιU, hdα, Z, hZ, hZα, hZι⟩ := isContactType_iff.1 h
   have hs : ι s ∈ U := hιU (mem_range_self s)
   -- Near `ι s` the primitive agrees with `ι_Z σ`, which is smooth there.
@@ -116,7 +116,7 @@ theorem IsContactType.isContactFormAt_mpullback [IsManifold I ∞ M] [IsManifold
     (RoughForm.contMDiffAt_interior (hZ.contMDiffAt (hU.mem_nhds hs))
       (σ.contMDiff (ι s))).congr_of_eventuallyEq
       (Filter.eventually_of_mem (hU.mem_nhds hs) fun x hx ↦ by simp only [hZα x hx])
-  refine TauCeti.isContactFormAt_mpullback hdim (hι s) (hιs s) (fun v hv ↦ ?_) (hα.of_le (by simp))
+  refine TauCeti.isContactFormAt_mpullback hdim hι hιs (fun v hv ↦ ?_) (hα.of_le (by simp))
     (hdα _ hs) (isTransverseAlong_iff.1 hZι s) fun v ↦ ?_
   · exact (SmoothTwoForm.isNondegenerate_iff_separatingLeft.1 hσ) _ v fun w ↦ by
       simpa [SmoothBundleForm.eval₂_apply] using hv w
@@ -154,8 +154,8 @@ theorem SmoothEmbedding.exists_isContactForm_eq_neg_mpullback_interior [IsManifo
     rw [mpullback_apply, mpullback_apply, hdα _ (hiV (mem_range_self s))]
   refine ⟨-α', rfl, SmoothForm.isContactForm_neg_iff.2 ?_, by rw [map_neg, hα'd]⟩
   exact SmoothForm.isContactForm_iff_forall_isContactFormAt.2
-    (hct.isContactFormAt_mpullback hσ.isNondegenerate (i.contMDiff.of_le (by simp))
-      (i.isImmersion.mfderiv_injective (by simp)) hdim)
+    fun s ↦ hct.isContactFormAt_mpullback hσ.isNondegenerate ((i.contMDiff s).of_le (by simp))
+      (i.isImmersion.mfderiv_injective (by simp) s) hdim
 
 end TauCeti
 
