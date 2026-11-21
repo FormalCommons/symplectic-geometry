@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Symplectic.Cayley.Smooth
+import TauCeti.Analysis.Calculus.ContinuousLinearMapInverse
 import Mathlib.Analysis.Normed.Ring.Units
 
 /-!
@@ -22,6 +23,8 @@ for which the whole segment `b ∈ [0, 1]` lies in it form an open set too, by c
 ## Main definitions and results
 
 * `TauCeti.cayleyDomain R`: the triples where both denominators are units.
+* `TauCeti.contDiffAt_cayleyFormula`: the Cayley coordinate is smooth, jointly in both
+  arguments, wherever `1 - A B` is a unit.
 * `TauCeti.isOpen_cayleyDomain`, `TauCeti.contDiffOn_cayleyPathFormula`.
 * `TauCeti.isOpen_setOf_forall_Icc_mem_cayleyDomain`: the pairs `(A, B)` whose segment over
   `[0, 1]` lies in the domain form an open set.
@@ -64,15 +67,14 @@ section Normed
 
 variable {R : Type*} [NormedRing R] [NormedAlgebra ℝ R] [CompleteSpace R]
 
-omit [NormedAlgebra ℝ R] in
-/-- The Cayley coordinate is continuous at every pair `(A, B)` with `1 - A B` a unit. -/
-private lemma continuousAt_cayleyFormula {b : ℝ} {A B : R} (h : IsUnit (1 - A * B)) :
-    ContinuousAt (fun q : ℝ × R × R ↦ cayleyFormula q.2.1 q.2.2) (b, A, B) := by
-  have hAB : ContinuousAt (fun q : ℝ × R × R ↦ q.2.1 * q.2.2) (b, A, B) := by fun_prop
-  have hinv : ContinuousAt (fun q : ℝ × R × R ↦ Ring.inverse (1 - q.2.1 * q.2.2)) (b, A, B) :=
-    (NormedRing.inverse_continuousAt h.unit).comp_of_eq (continuousAt_const.sub hAB) h.unit_spec
+/-- The Cayley coordinate `cayleyFormula A B` is smooth, jointly in `A` and `B`, at every pair
+with `1 - A B` a unit. -/
+theorem contDiffAt_cayleyFormula {n : WithTop ℕ∞} {A B : R} (h : IsUnit (1 - A * B)) :
+    ContDiffAt ℝ n (fun p : R × R ↦ cayleyFormula p.1 p.2) (A, B) := by
+  have hAB : ContDiffAt ℝ n (fun p : R × R ↦ p.1 * p.2) (A, B) :=
+    contDiffAt_fst.mul contDiffAt_snd
   simp only [cayleyFormula_def]
-  exact ((continuousAt_const.add hAB).mul hinv).neg
+  exact ((contDiffAt_const.add hAB).mul ((contDiffAt_const.sub hAB).inverse h)).neg
 
 variable (R) in
 /-- The domain of the Cayley path is open. -/
@@ -82,8 +84,9 @@ theorem isOpen_cayleyDomain : IsOpen (cayleyDomain R) := by
   have hf : ContinuousOn (fun q : ℝ × R × R ↦ 1 - q.1 • cayleyFormula q.2.1 q.2.2)
       {q | IsUnit (1 - q.2.1 * q.2.2)} := by
     rintro ⟨b, A, B⟩ h
-    exact (continuousAt_const.sub
-      (continuousAt_fst.smul (continuousAt_cayleyFormula h))).continuousWithinAt
+    have hC : ContinuousAt (fun q : ℝ × R × R ↦ cayleyFormula q.2.1 q.2.2) (b, A, B) :=
+      (contDiffAt_cayleyFormula (n := 0) h).continuousAt.comp_of_eq continuousAt_snd rfl
+    exact (continuousAt_const.sub (continuousAt_fst.smul hC)).continuousWithinAt
   exact hf.isOpen_inter_preimage hs Units.isOpen
 
 /-- The Cayley path is smooth, jointly in the parameter and both endpoints, on its domain. -/
