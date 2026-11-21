@@ -631,7 +631,11 @@ boundaryless and Hausdorff, and both are second countable.
   transverse to a vector field,
   `ContMDiffAt.eventually_injective_mfderiv_and_notMem_range`, which it adds
   in `Geometry/Manifold/Immersion/Transverse.lean` (beside Tau Ceti's
-  `ContMDiffAt.eventually_injective_mfderiv`), and the smooth injective map
+  `ContMDiffAt.eventually_injective_mfderiv`; it uses
+  `ContinuousLinearMap.injective_coprod_toSpanSingleton_iff` of
+  `Topology/Algebra/Module/ContinuousLinearMap/PiProd.lean`, the continuous
+  form of `LinearMap.injective_coprod_toSpanSingleton_iff` of
+  `LinearAlgebra/Prod.lean`), and the smooth injective map
   of the normal bundle
   `TauCeti.SmoothEmbedding.exists_contMDiff_injective_normalBundle`, which it
   adds in `Geometry/Manifold/TubularNeighborhood/Riemannian/Injective.lean`
