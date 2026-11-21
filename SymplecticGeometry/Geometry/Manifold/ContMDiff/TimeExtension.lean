@@ -18,6 +18,7 @@ For a map `f : unitInterval × M → F` into a real normed space, `timeExtend f 
 extends `f` in the time variable by Seeley's operator from `[0, 1]`, applied at each point of
 `M` separately: `timeExtend f (t, x) = seeleyIccExtend (fun s ↦ f (projIcc 0 1 _ s, x)) t`.
 It agrees with `f` on `unitInterval × M`, is linear in `f`, commutes with linear maps, and
+its value at a point of `M` depends only on the values of `f` at that point; in particular it
 vanishes at every time at a point where `f` vanishes at every time.
 
 The main result is that on a boundaryless manifold `M` the extension of a map smooth on
@@ -81,14 +82,19 @@ theorem _root_.LinearMap.map_timeExtend (L : F →ₗ[ℝ] G) (f : unitInterval 
     (p : ℝ × M) : L (timeExtend f p) = timeExtend (L ∘ f) p :=
   L.map_seeleyIccExtend _ p.1
 
+/-- The time extension at a point `x` depends only on the values of `f` at `x`. -/
+theorem timeExtend_congr {f g : unitInterval × M → F} {x : M} (h : ∀ s, f (s, x) = g (s, x))
+    (t : ℝ) : timeExtend f (t, x) = timeExtend g (t, x) := by
+  simp only [timeExtend_def, h]
+
+@[simp]
+theorem timeExtend_zero : timeExtend (0 : unitInterval × M → F) = 0 := by
+  rw [← zero_smul ℝ (0 : unitInterval × M → F), timeExtend_smul, zero_smul]
+
 /-- If `f` vanishes at `x` at every time, so does its time extension. -/
 theorem timeExtend_eq_zero {f : unitInterval × M → F} {x : M} (h : ∀ s, f (s, x) = 0) (t : ℝ) :
     timeExtend f (t, x) = 0 := by
-  have h0 : (fun s ↦ f (projIcc 0 1 zero_le_one s, x)) =
-      (0 : ℝ) • fun s ↦ f (projIcc 0 1 zero_le_one s, x) := by
-    funext s
-    simp [h]
-  rw [timeExtend_def, h0, seeleyIccExtend_smul, zero_smul, Pi.zero_apply]
+  rw [timeExtend_congr (g := 0) h, timeExtend_zero, Pi.zero_apply]
 
 section Smooth
 
