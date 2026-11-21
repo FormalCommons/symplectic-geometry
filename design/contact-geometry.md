@@ -474,7 +474,8 @@ Expected size: 450 lines, in two issues (H1 and H2 below).
 
 Named like Tau Ceti's file, in `TauCeti.SmoothForm.IsContactForm` and
 `TauCeti.IsContactDistribution`, with `[I.Boundaryless] [T2Space M]` as in
-Tau Ceti's file, `V = EuclideanSpace ℝ (Fin n)` and `σ` as above.
+Tau Ceti's file (the second theorem does not need `T2Space M`),
+`V = EuclideanSpace ℝ (Fin n)` and `σ` as above.
 
 - `IsContactForm.exists_strictDarbouxChart_reebVectorField_of_finrank_eq
   (hα) (hn : finrank ℝ E = 2 * n + 1) (x₀ : M)`:
@@ -483,22 +484,27 @@ Tau Ceti's file, `V = EuclideanSpace ℝ (Fin n)` and `σ` as above.
   ∃ chart : PartialDiffeomorph I 𝓘(ℝ, V × V × ℝ) M (V × V × ℝ) ∞,
     x₀ ∈ chart.source ∧ chart x₀ = 0 ∧
     (∀ x ∈ chart.source, ∀ v : TangentSpace I x,
-      (innerProductContactForm V).val (σ (chart x)) ![σ (mvfderiv I _ chart x v)] =
+      (innerProductContactForm V).val (σ (chart x)) ![σ (mvfderiv I chart x v)] =
         α.val x ![v]) ∧
-    (∀ x ∈ chart.source, mvfderiv I _ chart x (α.reebVectorField x) = (0, 0, -1)) ∧
+    (∀ x ∈ chart.source, mvfderiv I chart x (α.reebVectorField x) = (0, 0, -1)) ∧
     ∀ x ∈ chart.source, α.kerDistribution x =
       ((innerProductContactForm V).kerDistribution (σ (chart x))).comap
         (σ.toLinearMap ∘ₗ (mfderiv I _ chart x).toLinearMap)
   ```
 
   The chart is Tau Ceti's strict chart followed by
-  `σ.toDiffeomorph.toPartialDiffeomorph` (`PartialDiffeomorph.trans`); the
-  form identity holds because $\sigma$ is an involution. The Reeb clause:
-  the chart is a strict contactomorphism on its source, so it carries $R_\alpha$
-  to the Reeb field of the standard form, $-\partial_z$, by
-  `eq_reebVectorField_iff` read through the chart (restricted to its source
-  as an open submanifold, where it is a diffeomorphism onto the target and
-  `Diffeomorph.IsStrictContactomorphism.mfderiv_reebVectorField` applies).
+  `σ.toDiffeomorph.toPartialDiffeomorph` (`PartialDiffeomorph.trans`), whose
+  differential is `PartialDiffeomorph.mvfderiv_trans_toDiffeomorph` in
+  `Geometry/Manifold/LocalDiffeomorph/MFDeriv.lean`; the form identity holds
+  because $\sigma$ is an involution.
+  The Reeb clause: Tau Ceti's chart carries $R_\alpha$ to the Reeb field
+  $\partial_z$ of its form (`reebVectorField_innerProductContactForm`, in
+  `Geometry/Contact/Standard.lean`), by
+  `IsContactForm.mfderiv_reebVectorField_of_eventuallyEq_mpullback` (in
+  `Geometry/Contact/Pullback.lean`), the pointwise form of
+  `IsContactForm.mfderiv_reebVectorField_mpullback` for a map that pulls one
+  form back to the other only near the point; $\sigma$ then sends
+  $\partial_z$ to $-\partial_z$. Both new files are named like Tau Ceti's.
   The last clause, the kernels, follows from the first. Milestone: *Contact
   Darboux theorem*.
 - `IsContactDistribution.exists_darbouxChart_comap_of_finrank_eq
@@ -702,6 +708,9 @@ Expected size: 650 lines, in two issues (L1 and L2).
   Lagrangian embedding into a symplectic manifold, with model
   $-d\lambda_{\mathrm{can}}$ on `T*L` and a map fixing the zero section; it
   is applied on an open submanifold of `T*L`.
+- *Moser isotopy*: `PartialDiffeomorph.mvfderiv_trans_toDiffeomorph` of
+  `Geometry/Manifold/LocalDiffeomorph/MFDeriv.lean`, already merged (for
+  `Darboux/Strict.lean`).
 - *Cotangent bundles* (#470) only through Tau Ceti: the zero section and
   `TauCeti.Bundle.zeroSectionTangentEquiv`. The part does not need the
   library's `ZeroSection.lean`.
@@ -725,7 +734,7 @@ In this order; each is blocked by the ones listed, and all are sub-issues of
 |---|---|---|---|---|
 | H1 | Contact vector fields and their equivalence with functions | `Geometry/Manifold/DifferentialForm/LieDeriv.lean`, `Geometry/Manifold/DifferentialForm/DegreeOne.lean`, `Geometry/Contact/Hamiltonian.lean` (`contactVectorFields`, the two characterizations, `contactHamiltonianEquiv`, the Reeb field of `α/H` and its coorientation) | — | 300 |
 | H2 | Time-dependent contact Hamiltonians and the milestone | `Geometry/Contact/Hamiltonian.lean` (joint smoothness, rescaling formula, `contactVectorFields_correspondence`) | H1 | 200 |
-| D | The contact Darboux theorem in the page's signs | `Geometry/Contact/Darboux/Strict.lean` | — | 200 |
+| D | The contact Darboux theorem in the page's signs | `Geometry/Contact/Darboux/Strict.lean`, `Geometry/Contact/Standard.lean`, `Geometry/Contact/Pullback.lean` | — | 200 |
 | G0 | Moser's principle along one trajectory, rescaling case | `Geometry/Manifold/DifferentialForm/Flow/Family.lean` | — | 100 |
 | G1 | Smooth families of contact structures | `Geometry/Contact/Family.lean` (`IsContactFamily` and its API, `grayVectorField_eq_of_eventuallyEq_smul`), `Geometry/Contact/Levi.lean` (`of_forall_eventuallyEq_kerDistribution`), `Geometry/Contact/Moser.lean` (`contactMoserVectorField_apply_of_eventuallyEq_smul`) | — | 250 |
 | G2 | Local defining families over `ℝ` | `Geometry/Contact/Family.lean` (`exists_local_extension`) | G1, the issues of *Smooth families* that add `DifferentialForm/TimeExtension.lean` and `exists_contDiff_eqOn_id_Icc_mem_Ioo` (its issue 16) | 150 |
