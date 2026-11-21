@@ -790,7 +790,7 @@ The manifold structure and the milestone.
   `mem_symplecticGroup_iff_forall_stdForm` and
   `TauCeti.conj_complexToRealEuclidean_toLin'` (merged, #62);
   `isSymplectomorphism_piLpCongrLeft_sumCongr`; `StdSpace.sumEquiv` with its two
-  lemmas (planned by §1, built as in building issue 11).
+  lemmas (merged, #232).
 - *Symplectic subspaces* (merged, #64):
   `isLagrangian_iff_isIsotropic_and_two_mul_finrank_eq`.
 - Tau Ceti:
@@ -919,8 +919,7 @@ merged.
     `LinearAlgebra/Symplectic/Lagrangian/Sum.lean`: `ℒ.sum`, `ℒ.reindex` and
     their compatibilities, using the existing
     `isSymplectomorphism_piLpCongrLeft_sumCongr` from `Standard/Basic.lean`;
-    and §1's `StdSpace.sumEquiv` with its two lemmas, if the *Symplectic
-    vector bundles* issue that builds it has not merged first. About 300
+    and §1's `StdSpace.sumEquiv` with its two lemmas. About 300
     lines. Blocked by 6.
 12. **Direct sums and reindexing, topology.**
     `Topology/Grassmannian/Lagrangian/Sum.lean`: `continuous_sum` and

@@ -1057,7 +1057,7 @@ it into issues; the overview fixes its folders and its dependencies.
   smoothness of the linear Moser flow, which the classification uses, goes
   in the files of *Linear Moser*.
 - **Builds on:** *Linear Moser*, *Standard model* (`stdForm`,
-  the planned `StdSpace.sumEquiv` and the matrix dictionary, for frames and
+  `StdSpace.sumEquiv` and the matrix dictionary, for frames and
   transition maps), Mathlib's
   smooth vector bundles and bundle metrics, Tau Ceti's bundle constructions
   (`Topology/VectorBundle/`, `Geometry/Manifold/VectorBundle/`), its section
