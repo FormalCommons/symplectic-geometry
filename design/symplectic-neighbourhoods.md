@@ -191,14 +191,13 @@ following choices.
   (`hω.HasSymplecticTangentImages J f`, `IsIsotropicMap`, `IsLagrangianMap`,
   `IsCoisotropicMap`). Tau Ceti's `...Embedding` structures are equivalent
   for a smooth embedding (`is…Embedding_iff_of_isSmoothEmbedding`).
-  *Properly embedded* is `IsClosed (Set.range f)`. It is needed only for the
-  submanifold of `M₀`, which the relative Moser theorem is applied along.
-  The image of $f_1$ is then closed near $\psi(U_0)$; the theorems do not
-  assume it.
+  *Properly embedded* is `IsClosed (Set.range f)`. `Tubular.lean` does not
+  need it, since the relative Moser theorem of *Moser isotopy* assumes no
+  closed image; the theorems never assume it of $f_1$.
 - **The relative Moser theorem that the part uses.** `Tubular.lean` needs
   the milestone *Relative Moser theorem with prescribed first derivative*
-  in the form of Tau Ceti's `exists_diffeomorph_opens_of_eq_along`, with
-  `[CompactSpace Q]` replaced by `IsClosed (Set.range f)`. Its Lean name and
+  in the form of Tau Ceti's `exists_diffeomorph_opens_of_eq_along`, without
+  `[CompactSpace Q]`. Its Lean name and
   exact form are for `design/moser-isotopy.md` to fix; issue 6 below uses
   whatever that file gives.
 
@@ -418,7 +417,7 @@ The second half of the common step of `DESIGN.md`. Namespace
 `TauCeti.SmoothEmbedding`. It imports `MFDeriv.lean`.
 
 - `exists_symplectomorphism_opens_mfderiv_eq`: the same for symplectic
-  `ω₀`, `ω₁`, with `IsClosed (Set.range f₀)` and each `A q` a linear
+  `ω₀`, `ω₁`, and each `A q` a linear
   symplectomorphism, now with `ψ` also pulling the restriction of `ω₁` back
   to that of `ω₀` (in the form of `exists_diffeomorph_opens_of_eq_along`).
   Route: the first theorem gives `ψ'`, with `ψ'^*ω₁` and `ω₀` equal on
