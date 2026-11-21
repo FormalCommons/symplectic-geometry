@@ -256,7 +256,9 @@ find them there.
   `variable [Fintype ι]`, since it needs no finiteness. API: `swap_def`, and the
   `@[simp]` lemmas `x_swap` and `y_swap` (both by `(rfl)`), `swap_swap`,
   `symm_swap`, and `map_swap_ker_x` and `map_swap_ker_y`, which say that it
-  exchanges `LinearMap.ker StdSpace.x` and `LinearMap.ker StdSpace.y`.
+  exchanges `LinearMap.ker StdSpace.x` and `LinearMap.ker StdSpace.y`. After
+  `stdForm_apply`, the `@[simp]` lemma `stdForm_swap` says that it reverses the
+  sign of `ω₀`: `stdForm ι (swap ι z) (swap ι w) = -stdForm ι z w`.
 
 This part also uses
 `SymplecticGeometry.isSymplectomorphism_piLpCongrLeft_sumCongr` (`σ : ι ≃ κ`),
@@ -358,18 +360,19 @@ Lagrangian frames on `StdSpace ι`, pure linear algebra. Namespace
   (hXY : Xᵀ * Y = Yᵀ * X) : ℒ ι`, the Lagrangian that the frame spans, with
   `coe_ofFrame` (`@[simp]`): its submodule is the range of
   `toEuclideanLin (fromRows X Y)`. This is the constructor of G6.
+- `isLagrangian_map_swap_iff` (`@[simp]`): `L.map (swap ι)` is Lagrangian for
+  `ω₀` iff `L` is. By `stdForm_swap`, transporting `ω₀` along `swap` gives
+  Tau Ceti's `rescale` of `ω₀` by `-1`, so this is
+  `isLagrangian_map_transport_iff` followed by `isLagrangian_rescale_iff`.
 - `isLagrangian_graph_iff (A : Matrix ι ι ℝ) :
-  (stdForm ι).IsLagrangian (StdSpace.graph A) ↔ A.IsSymm` and
-  `isLagrangian_graphY_iff`, the same for `graphY A`. Both come from one
-  private lemma about the image of `A.mulVecLin.graph` under a linear
-  equivalence `e` that turns `ω₀` into a nonzero multiple of the pairing
-  of `(ι → ℝ) × (ι → ℝ)`: `(equivProd ι).symm` for `graph`, and its
-  composite `(equivProd ι).symm.trans (swap ι)` with the swap for `graphY`,
-  which turns `ω₀` into minus the pairing. That lemma transports along `e`
-  (`isLagrangian_map_transport_iff`), applies Tau Ceti's
-  `isLagrangian_graph_iff_of_pairing`, and recognizes the resulting
-  condition as Mathlib's `Matrix.isSymm_toBilin'_iff_isSymm`. Neither is
-  derived from the frame criterion.
+  (stdForm ι).IsLagrangian (StdSpace.graph A) ↔ A.IsSymm`. Under
+  `(equivProd ι).symm`, `ω₀` is the standard pairing of `(ι → ℝ) × (ι → ℝ)`;
+  the proof transports along it (`isLagrangian_map_transport_iff`), applies
+  Tau Ceti's `isLagrangian_graph_iff_of_pairing`, and recognizes the
+  resulting condition as Mathlib's `Matrix.isSymm_toBilin'_iff_isSymm`.
+  `isLagrangian_graphY_iff`, the same for `graphY A`, follows from it
+  through `graphY_def` and `isLagrangian_map_swap_iff`. Neither is derived
+  from the frame criterion.
 - `det_ne_zero_of_isLagrangian_range_fromRows`: the complex frame of a
   Lagrangian frame is invertible. The Lagrangian range is maximal totally
   real for `J₀` (`IsLagrangian.isMaximalTotallyReal_of_compatible` with
@@ -790,6 +793,7 @@ The manifold structure and the milestone.
   - Lagrangian subspaces and graphs: `SymplecticForm.IsLagrangian`,
     `IsLagrangian.two_mul_finrank`,
     `isLagrangian_graph_iff_of_pairing`, `isLagrangian_map_transport_iff`,
+    `SymplecticForm.rescale`, `isLagrangian_rescale_iff`,
     `IsSymplectomorphism.map_orthogonal`, `isLagrangian_prod_iff`,
     `IsLagrangian.prod`, `isLagrangian_prod_top_bot`,
     `isLagrangian_prod_bot_top`, `IsIsotropic.disjoint_map_of_tames`.

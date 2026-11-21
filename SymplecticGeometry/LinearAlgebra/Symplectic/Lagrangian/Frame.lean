@@ -13,6 +13,7 @@ public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Matrix
 public import TauCeti.Geometry.Symplectic.Lagrangian.Constructions
 public import TauCeti.Geometry.Symplectic.Lagrangian.TotallyReal
+public import TauCeti.Geometry.Symplectic.Rescale
 public import TauCeti.LinearAlgebra.Matrix.GeneralLinearGroup.Symplectic.Basic
 
 /-!
@@ -51,6 +52,8 @@ A *frame* is a real `2n × n` matrix `Z = fromRows X Y`, whose columns span the 
   `Matrix.lagrangianChart S` is `graphY S`, and `ω₀` is `Im ⟪·, ·⟫`.
 * `SymplecticGeometry.isLagrangian_range_fromRows_iff`: `fromRows X Y` spans a Lagrangian
   subspace iff it has rank `n` and `Xᵀ Y = Yᵀ X`.
+* `SymplecticGeometry.isLagrangian_map_swap_iff`: the coordinate swap preserves and reflects
+  Lagrangian subspaces.
 * `SymplecticGeometry.isLagrangian_graph_iff`, `isLagrangian_graphY_iff`: a graph is Lagrangian
   iff its matrix is symmetric.
 * `SymplecticGeometry.det_ne_zero_of_isLagrangian_range_fromRows`: the complex frame `X + i Y` of
@@ -251,36 +254,40 @@ theorem stdForm_apply_eq_im_inner (v w : EuclideanSpace ℂ ι) :
 
 /-! ### Graphs are Lagrangian exactly for symmetric matrices -/
 
-/-- A graph `{e (v, A v)}`, for a linear identification `e` under which `ω₀` is a nonzero
-multiple of the standard pairing of `(ι → ℝ) × (ι → ℝ)`, is Lagrangian iff `A` is symmetric. -/
-private theorem isLagrangian_map_graph_iff (e : ((ι → ℝ) × (ι → ℝ)) ≃ₗ[ℝ] StdSpace ι) {c : ℝ}
-    (hc : c ≠ 0) (he : ∀ p q, stdForm ι (e p) (e q) = c * (q.2 ⬝ᵥ p.1 - p.2 ⬝ᵥ q.1))
-    (A : Matrix ι ι ℝ) :
-    (stdForm ι).IsLagrangian (A.mulVecLin.graph.map e.toLinearMap) ↔ A.IsSymm := by
-  classical
-  rw [← SymplecticForm.transport_transport_symm (stdForm ι) e,
-    SymplecticForm.isLagrangian_map_transport_iff,
-    SymplecticForm.isLagrangian_graph_iff_of_pairing _ (fun d v ↦ c * (d ⬝ᵥ v))
-      (fun p q ↦ by simp [he, mul_sub]),
-    ← isSymm_toBilin'_iff_isSymm, LinearMap.BilinForm.isSymm_def]
-  simp only [mul_right_inj' hc, toBilin'_apply', mulVecLin_apply, dotProduct_comm (A *ᵥ _)]
-  exact forall_comm
+/-- The coordinate swap `(x, y) ↦ (y, x)` preserves and reflects Lagrangian subspaces of `ω₀`:
+it carries `ω₀` to `-ω₀`, which has the same Lagrangian subspaces. -/
+@[simp]
+theorem isLagrangian_map_swap_iff {L : Submodule ℝ (StdSpace ι)} :
+    (stdForm ι).IsLagrangian (L.map (swap ι : StdSpace ι →ₗ[ℝ] StdSpace ι)) ↔
+      (stdForm ι).IsLagrangian L := by
+  have h : ((stdForm ι).rescale (-1) (by norm_num)).transport (swap ι) = stdForm ι :=
+    SymplecticForm.toBilinForm_injective <| LinearMap.ext₂ fun z w ↦ by
+      rw [← swap_swap z, ← swap_swap w]
+      simp only [SymplecticForm.transport_apply_apply, SymplecticForm.rescale_apply, stdForm_swap]
+      ring
+  conv_lhs => rw [← h]
+  rw [SymplecticForm.isLagrangian_map_transport_iff, SymplecticForm.isLagrangian_rescale_iff]
 
 /-- The graph `{(x, A x)}` is Lagrangian iff `A` is symmetric. -/
 theorem isLagrangian_graph_iff (A : Matrix ι ι ℝ) :
-    (stdForm ι).IsLagrangian (graph A) ↔ A.IsSymm :=
-  isLagrangian_map_graph_iff _ one_ne_zero (fun ⟨a, b⟩ ⟨a', b'⟩ ↦ by
+    (stdForm ι).IsLagrangian (graph A) ↔ A.IsSymm := by
+  classical
+  have he : ∀ p q : (ι → ℝ) × (ι → ℝ), stdForm ι ((equivProd ι).symm p) ((equivProd ι).symm q) =
+      q.2 ⬝ᵥ p.1 - p.2 ⬝ᵥ q.1 := fun ⟨a, b⟩ ⟨a', b'⟩ ↦ by
     simp only [stdForm_apply, x_equivProd_symm, y_equivProd_symm]
-    simp [dotProduct, ← Finset.sum_sub_distrib, mul_comm]) A
+    simp [dotProduct, ← Finset.sum_sub_distrib, mul_comm]
+  rw [graph_def, ← SymplecticForm.transport_transport_symm (stdForm ι) (equivProd ι).symm,
+    SymplecticForm.isLagrangian_map_transport_iff,
+    SymplecticForm.isLagrangian_graph_iff_of_pairing _ (fun d v ↦ d ⬝ᵥ v)
+      (fun p q ↦ by simp [he]),
+    ← isSymm_toBilin'_iff_isSymm, LinearMap.BilinForm.isSymm_def]
+  simp only [toBilin'_apply', mulVecLin_apply, dotProduct_comm (A *ᵥ _)]
+  exact forall_comm
 
 /-- The graph `{(A y, y)}` is Lagrangian iff `A` is symmetric. -/
 theorem isLagrangian_graphY_iff (A : Matrix ι ι ℝ) :
     (stdForm ι).IsLagrangian (graphY A) ↔ A.IsSymm := by
-  rw [graphY_def, graph_def, ← Submodule.map_comp, ← LinearEquiv.coe_trans]
-  exact isLagrangian_map_graph_iff _ (neg_ne_zero.2 one_ne_zero) (fun ⟨a, b⟩ ⟨a', b'⟩ ↦ by
-    simp only [LinearEquiv.trans_apply, stdForm_apply, x_swap, y_swap, x_equivProd_symm,
-      y_equivProd_symm]
-    simp [dotProduct, ← Finset.sum_sub_distrib, ← Finset.sum_neg_distrib, mul_comm]) A
+  rw [graphY_def, isLagrangian_map_swap_iff, isLagrangian_graph_iff]
 
 /-- A Lagrangian subspace transverse to the vertical subspace `{x = 0}` is the graph
 `{(x, S x)}` of a symmetric matrix `S`. -/
