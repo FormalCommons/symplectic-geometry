@@ -182,11 +182,10 @@ theorem isSymm_toBlocks₁₁_mul_inv_toBlocks₂₁_of_compatible
       (toEuclideanLin.symm J.toLinearMap).toBlocks₂₁⁻¹).IsSymm := by
   set M := toEuclideanLin.symm J.toLinearMap
   have hC := posDef_toBlocks₂₁_of_compatible hJ
-  have hdet : IsUnit M.toBlocks₂₁.det := isUnit_det_toBlocks₂₁_of_compatible hJ
   have h₂₁ :=
     toBlocks₂₁_mul_toBlocks₁₁_add_of_mul_self_eq_neg_one J.toEuclideanLin_symm_mul_self
   have hCt : M.toBlocks₂₁ᵀ = M.toBlocks₂₁ := isHermitian_iff_isSymm.1 hC.isHermitian
-  refine isSymm_mul_nonsing_inv_of_transpose_mul_eq ?_ hdet
+  refine isSymm_mul_nonsing_inv_of_transpose_mul_eq ?_
   rw [hCt, ← neg_neg M.toBlocks₁₁ᵀ, ← toBlocks₂₂_eq_neg_transpose_of_invariant hJ.invariant,
     Matrix.neg_mul, ← eq_neg_of_add_eq_zero_left h₂₁]
 
