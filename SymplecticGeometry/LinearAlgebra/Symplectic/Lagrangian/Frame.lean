@@ -33,6 +33,8 @@ A *frame* is a real `2n × n` matrix `Z = fromRows X Y`, whose columns span the 
 
 ## Main results
 
+* `SymplecticGeometry.StdSpace.graph_zero`, `graphY_zero`: the graphs of `0` are the coordinate
+  subspaces `{y = 0}` and `{x = 0}`.
 * `SymplecticGeometry.StdSpace.isCompl_graph_ker_x`, `isCompl_graphY_ker_y`: each graph is
   complementary to the coordinate subspace it is a graph over, and conversely
   `exists_eq_graph_of_isCompl_ker_x`, `exists_eq_graphY_of_isCompl_ker_y`.
@@ -113,6 +115,19 @@ theorem graphY_injective :
   refine mulVec_injective (funext fun v ↦ ?_)
   have hv : (equivProd ι).symm (A *ᵥ v, v) ∈ graphY B := h ▸ mem_graphY_iff.2 (by simp)
   simpa using mem_graphY_iff.1 hv
+
+/-- The graph `{(x, 0)}` of the zero matrix is the horizontal subspace `{y = 0}`. -/
+@[simp]
+theorem graph_zero : graph (0 : Matrix ι ι ℝ) = LinearMap.ker y := by
+  ext z
+  simp
+
+/-- The graph `{(0, y)}` of the zero matrix over the `y`-coordinates is the vertical subspace
+`{x = 0}`. -/
+@[simp]
+theorem graphY_zero : graphY (0 : Matrix ι ι ℝ) = LinearMap.ker x := by
+  ext z
+  simp
 
 /-- Every graph `{(x, A x)}` is complementary to the vertical subspace `{x = 0}`. -/
 theorem isCompl_graph_ker_x (A : Matrix ι ι ℝ) : IsCompl (graph A) (LinearMap.ker x) := by

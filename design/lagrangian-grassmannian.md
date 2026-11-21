@@ -414,6 +414,18 @@ unitary action to Tau Ceti's `Matrix.realImage`.
   corollary is
   `ℒ.stabilizer_horizontal :
   MulAction.stabilizer (unitaryGroup ι ℂ) (horizontal ι) = Matrix.UnitaryGroup.realSubgroup ι`.
+- Supporting statements of the file. In `StdSpace`:
+  `complexEuclideanEquiv_toEuclideanCLM` (through `complexEuclideanEquiv ι`, a
+  complex matrix acts as its realification) and `map_realImage`
+  (`A.realImage.map ε = (LinearMap.ker y).map (toEuclideanLin A.realify)`).
+  In `SymplecticGeometry`: `isLagrangian_map_toEuclideanLin`, the image of a
+  Lagrangian under a matrix of `GLSymplectic ι ℝ`. In `ℒ.`: `coe_unitary_smul`,
+  `coe_unitaryFrame_eq_map` (the second description of `coe_unitaryFrame`) and
+  `unitaryFrame_eq_horizontal_iff`, from which both
+  `unitaryFrame_eq_unitaryFrame_iff` and `stabilizer_horizontal` follow. The
+  horizontal and vertical subspaces are shown Lagrangian as `graph 0` and
+  `graphY 0`, by `StdSpace.graph_zero` and `StdSpace.graphY_zero`, which go to
+  `Frame.lean`.
 
 ### `LinearAlgebra/Symplectic/Lagrangian/Transverse.lean`
 
