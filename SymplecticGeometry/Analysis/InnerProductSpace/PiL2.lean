@@ -1,0 +1,40 @@
+/-
+Copyright (c) 2026 The FormalCommons contributors. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: The FormalCommons contributors
+-/
+module
+
+public import Mathlib.Analysis.InnerProductSpace.PiL2
+
+/-!
+# Matrices acting on Euclidean space and reindexing
+
+A square matrix `M` indexed by `m` acts on `EuclideanSpace 𝕜 m` by `Matrix.toEuclideanLin`.
+This file shows that moving the coordinates along `e : m ≃ n`, by Mathlib's
+`LinearIsometryEquiv.piLpCongrLeft`, turns this action into that of `Matrix.reindex e e M`.
+
+## Main results
+
+* `Matrix.piLpCongrLeft_toEuclideanLin_apply`: `e (M z) = (reindex e e M) (e z)`.
+-/
+
+public section
+
+namespace Matrix
+
+variable {m n 𝕜 : Type*} [Fintype m] [Fintype n] [DecidableEq m] [DecidableEq n] [RCLike 𝕜]
+
+/-- Moving the coordinates along `e : m ≃ n` intertwines the action of `M` on
+`EuclideanSpace 𝕜 m` with the action of `M` reindexed along `e` on `EuclideanSpace 𝕜 n`. -/
+theorem piLpCongrLeft_toEuclideanLin_apply (e : m ≃ n) (M : Matrix m m 𝕜)
+    (z : EuclideanSpace 𝕜 m) :
+    LinearIsometryEquiv.piLpCongrLeft 2 𝕜 𝕜 e (toEuclideanLin M z) =
+      toEuclideanLin (reindex e e M) (LinearIsometryEquiv.piLpCongrLeft 2 𝕜 𝕜 e z) := by
+  ext k
+  simp [LinearIsometryEquiv.piLpCongrLeft_apply, Equiv.piCongrLeft'_apply, Matrix.mulVec,
+    dotProduct]
+
+end Matrix
+
+end
