@@ -32,6 +32,8 @@ gives actions of the invertible matrices and of the special orthogonal matrices.
   exactly when `e` is complex linear from `J` to `J'`.
 * `TauCeti.AlmostComplexStructure.smul_apply`, `generalLinearGroup_smul_apply`: the actions
   evaluated at a vector.
+* `LinearEquiv.trans_assoc_id`: associativity of composition of linear equivalences over one
+  ring, in a form that `simp` can use, so that it proves the group laws of the action.
 * `TauCeti.SymplecticForm.IsSymplectomorphism.compatible_transport_iff`: a linear
   symplectomorphism `e : (V, ω₁) → (W, ω₂)` preserves and reflects compatibility, that is,
   `ω₂` is compatible with `J.transport e` exactly when `ω₁` is compatible with `J`.
@@ -43,6 +45,22 @@ gives actions of the invertible matrices and of the special orthogonal matrices.
 -/
 
 public section
+
+namespace LinearEquiv
+
+variable {R V W X Y : Type*} [Semiring R] [AddCommMonoid V] [Module R V] [AddCommMonoid W]
+  [Module R W] [AddCommMonoid X] [Module R X] [AddCommMonoid Y] [Module R Y]
+
+/-- Composition of linear equivalences over one ring is associative. Unlike Mathlib's
+`LinearEquiv.trans_assoc`, whose composite ring homomorphisms are determined only by instance
+arguments, this form can be used by `simp`, which with it brackets every composite of linear
+equivalences over one ring to the right. -/
+@[simp]
+theorem trans_assoc_id (a : V ≃ₗ[R] W) (b : W ≃ₗ[R] X) (c : X ≃ₗ[R] Y) :
+    (a ≪≫ₗ b) ≪≫ₗ c = a ≪≫ₗ (b ≪≫ₗ c) :=
+  (rfl)
+
+end LinearEquiv
 
 namespace TauCeti.AlmostComplexStructure
 
@@ -80,15 +98,36 @@ instance instMulActionLinearEquiv : MulAction (V ≃ₗ[ℝ] V) (AlmostComplexSt
   one_smul J := J.transport_refl
   mul_smul e₁ e₂ J := (J.transport_trans e₂ e₁).symm
 
+/-- The action of a linear automorphism is transport along it. This is the simp normal form of
+the action: `simp` rewrites `e • J` to `J.transport e`, which Tau Ceti's simp lemmas then
+evaluate. -/
+@[simp]
 theorem smul_def (e : V ≃ₗ[ℝ] V) (J : AlmostComplexStructure V) : e • J = J.transport e :=
   (rfl)
 
+/-- Transport along the identity automorphism `1` does nothing. -/
 @[simp]
+theorem transport_one (J : AlmostComplexStructure V) : J.transport (1 : V ≃ₗ[ℝ] V) = J :=
+  J.transport_refl
+
+/-- Transport along a product of automorphisms is transport along the right factor, then along
+the left one. The right side is nested, so that `simp` rewrites a product or an inverse in
+either factor while it is still the argument of `transport`. -/
+@[simp]
+theorem transport_mul (J : AlmostComplexStructure V) (e f : V ≃ₗ[ℝ] V) :
+    J.transport (e * f) = (J.transport f).transport e :=
+  (rfl)
+
+/-- Transport along the inverse of an automorphism is transport along its inverse equivalence. -/
+@[simp]
+theorem transport_inv (J : AlmostComplexStructure V) (e : V ≃ₗ[ℝ] V) :
+    J.transport e⁻¹ = J.transport e.symm :=
+  (rfl)
+
 theorem smul_apply (e : V ≃ₗ[ℝ] V) (J : AlmostComplexStructure V) (v : V) :
     (e • J) v = e (J (e.symm v)) :=
   (rfl)
 
-@[simp]
 theorem toLinearMap_smul (e : V ≃ₗ[ℝ] V) (J : AlmostComplexStructure V) :
     (e • J).toLinearMap = e.conj J.toLinearMap :=
   (rfl)
@@ -113,7 +152,6 @@ theorem generalLinearGroup_smul_def (g : GL n ℝ)
   rw [MulAction.compHom_smul_def, smul_def]
   simp
 
-@[simp]
 theorem generalLinearGroup_smul_apply (g : GL n ℝ)
     (J : AlmostComplexStructure (EuclideanSpace ℝ n)) (v : EuclideanSpace ℝ n) :
     (g • J) v = Matrix.toEuclideanLin (g : Matrix n n ℝ)
@@ -126,17 +164,15 @@ theorem generalLinearGroup_smul_apply (g : GL n ℝ)
 theorem toLinearMap_generalLinearGroup_smul (g : GL n ℝ)
     (J : AlmostComplexStructure (EuclideanSpace ℝ n)) :
     (g • J).toLinearMap = Matrix.toEuclideanLin (g : Matrix n n ℝ) ∘ₗ J.toLinearMap ∘ₗ
-      Matrix.toEuclideanLin (g : Matrix n n ℝ)⁻¹ := by
-  ext v
-  simp
+      Matrix.toEuclideanLin (g : Matrix n n ℝ)⁻¹ :=
+  LinearMap.ext (generalLinearGroup_smul_apply g J)
 
 /-- The matrix of a continuous linear automorphism `Φ` acts on complex structures as `Φ` does. -/
 @[simp]
 theorem ofEuclideanCLE_smul (Φ : EuclideanSpace ℝ n ≃L[ℝ] EuclideanSpace ℝ n)
     (J : AlmostComplexStructure (EuclideanSpace ℝ n)) :
-    Matrix.GeneralLinearGroup.ofEuclideanCLE Φ • J = Φ.toLinearEquiv • J := by
-  rw [generalLinearGroup_smul_def, Matrix.GeneralLinearGroup.toEuclideanCLE_ofEuclideanCLE,
-    smul_def]
+    Matrix.GeneralLinearGroup.ofEuclideanCLE Φ • J = J.transport Φ.toLinearEquiv := by
+  rw [generalLinearGroup_smul_def, Matrix.GeneralLinearGroup.toEuclideanCLE_ofEuclideanCLE]
 
 /-- The special orthogonal matrices act on the complex structures of `EuclideanSpace ℝ n` as
 invertible matrices. -/
