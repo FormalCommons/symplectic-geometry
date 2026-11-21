@@ -670,8 +670,14 @@ built the same way; the building issue credits it.
   Write `Λ = U • vertical ι` (`MulAction.exists_smul_eq`). Over the open
   set `U • {Λ' | IsCompl Λ' (horizontal ι)}`, which contains `Λ` because the
   vertical subspace is the chart point of `0`, the section is
-  `Λ' ↦ U * realOrthonormalize (S + i·1)`, where `S` is the chart value of
-  `U⁻¹ • Λ'` in `graphYChart`. Tau Ceti's
+  `Λ' ↦ U * unitaryOfFrame (isLagrangian_range_fromRows_one hS)`, where
+  `S` is the chart value of `U⁻¹ • Λ'` in `graphYChart` and `hS` its
+  symmetry (`isHermitian_iff_isSymm.1 S.property`). It is a section by
+  `unitaryFrame_mul`, `graphY_eq_unitaryFrame` (`Transverse.lean`) and
+  `graphYChart_symm_apply`; it is continuous on the open set by
+  `continuous_unitaryOfFrame` (`Quotient.lean`) for the frames
+  `fromRows S 1`, composed with the continuity of `graphYChart` on its
+  source and of the action. No frame is orthonormalized by hand here. Tau Ceti's
   `Subgroup.localSectionTrivializationOfCosetFibers` makes the
   trivialization, with fibres given by `unitaryFrame_eq_unitaryFrame_iff`.
 - `ℒ.hasHomotopyLiftingProperty_unitaryFrame (A)`, from Tau Ceti's
@@ -813,7 +819,7 @@ The manifold structure and the milestone.
     `IsLagrangian.isMaximalTotallyReal_of_compatible`,
     `LinearEquiv.isMaximalTotallyReal_map_iff`,
     `Matrix.rank_eq_finrank_range_toEuclideanLin`,
-    `det_lagrangianChartFrame_ne_zero`, `realOrthonormalize`,
+    `realOrthonormalize`,
     `realImage_realOrthonormalize`, `realOrthonormalize_mem_unitaryGroup`,
     `continuous_realOrthonormalize`.
   - Groups: `GLSymplectic`, `GLSymplectic.ofUnitary`,
