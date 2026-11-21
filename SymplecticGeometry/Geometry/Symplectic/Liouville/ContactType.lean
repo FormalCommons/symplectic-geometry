@@ -30,16 +30,19 @@ to it, and derives the contact form of the hypersurface in the signs of the book
   `L_Z σ = d(ι_Z σ)` is applied at each point of `U` (`mlieDerivForm_eq_mextDeriv_interior_apply`)
   instead of on all of `M`, and the exterior derivative of the primitive at a point of `U` is
   that of `ι_Z σ` because the two forms agree near the point.
-* `TauCeti.SmoothEmbedding.isContactForm_neg_mpullback_interior`: for `σ` symplectic, a smooth
-  embedding `i : S → M` of codimension one and such a field `Z`, the one-form
+* `TauCeti.IsContactType.isContactFormAt_mpullback`: for a nondegenerate two-form, the pullback
+  of a primitive `α` along a `C²` map `ι` of contact type, with injective differentials and
+  codimension one, is contact at every point. Here `α` is only a rough form; it is smooth near
+  the image of `ι` because it equals `ι_Z σ` there. The proof is that of Tau Ceti's
+  `TauCeti.IsContactType.isContactForm_mpullback`, adapted to such a primitive.
+* `TauCeti.SmoothEmbedding.exists_isContactForm_eq_neg_mpullback_interior`: for `σ`
+  symplectic, a smooth embedding `i : S → M` of codimension one and such a field `Z`, the one-form
   `α = -i^*(ι_Z σ)` on `S` is a contact form with `dα = -i^*σ`. These are McDuff–Salamon's
   signs: the Liouville primitive is `λ = -ι_Z σ`, with `dλ = -σ`. The vector field is smooth
   only on `U`, so the form is built from the rough interior product `RoughForm.interior Z σ`;
   its pullback is nevertheless a smooth form on `S`, and the conclusion is stated for the bundled
-  form with that value. The contact condition is checked point by point with
-  `TauCeti.isContactFormAt_mpullback`, as in the proof of Tau Ceti's
-  `TauCeti.IsContactType.isContactForm_mpullback`, which this proof adapts to a primitive that is
-  smooth only near the image of `i`.
+  form with that value. The contact condition follows from
+  `TauCeti.IsContactType.isContactFormAt_mpullback`.
 
 ## References
 
@@ -96,12 +99,35 @@ theorem exists_isContactType_iff (hσ : IsSmoothForm I 1 σ) (hdσ : mextDeriv �
 
 end Rough
 
+/-- **Contact type for a rough primitive gives contact forms pointwise.** If a map `ι : S → M`
+of class `C²` with injective differentials, from a manifold of one dimension less, is of contact
+type for a nondegenerate two-form `σ`, with a primitive `α` that need only be a rough form, then
+the pullback `ι^* α` is a contact form at every point of `S`. -/
+theorem IsContactType.isContactFormAt_mpullback [IsManifold I ∞ M] [IsManifold J 2 S]
+    {σ : SmoothTwoForm I M} (hσ : σ.IsNondegenerate) {α : RoughForm I M ℝ 1} {ι : S → M}
+    (h : IsContactType J σ.val α ι) (hι : ContMDiff J I 2 ι)
+    (hιs : ∀ s, Function.Injective (mfderiv J I ι s)) (hdim : finrank ℝ E' + 1 = finrank ℝ E)
+    (s : S) : IsContactFormAt (mpullback J I ι α) s := by
+  obtain ⟨U, hU, hιU, hdα, Z, hZ, hZα, hZι⟩ := isContactType_iff.1 h
+  have hs : ι s ∈ U := hιU (mem_range_self s)
+  -- Near `ι s` the primitive agrees with `ι_Z σ`, which is smooth there.
+  have hα : ContMDiffAt I (I.prod 𝓘(ℝ, E [⋀^Fin 1]→L[ℝ] ℝ)) ∞
+      (fun y ↦ TotalSpace.mk' (E [⋀^Fin 1]→L[ℝ] ℝ) y (α y)) (ι s) :=
+    (RoughForm.contMDiffAt_interior (hZ.contMDiffAt (hU.mem_nhds hs))
+      (σ.contMDiff (ι s))).congr_of_eventuallyEq
+      (Filter.eventually_of_mem (hU.mem_nhds hs) fun x hx ↦ by simp only [hZα x hx])
+  refine TauCeti.isContactFormAt_mpullback hdim (hι s) (hιs s) (fun v hv ↦ ?_) (hα.of_le (by simp))
+    (hdα _ hs) (isTransverseAlong_iff.1 hZι s) fun v ↦ ?_
+  · exact (SmoothTwoForm.isNondegenerate_iff_separatingLeft.1 hσ) _ v fun w ↦ by
+      simpa [SmoothBundleForm.eval₂_apply] using hv w
+  · rw [← hZα _ hs, RoughForm.interior_apply]
+
 /-- **The contact form induced by a local Liouville field**, in McDuff–Salamon's signs. Let `σ` be
 a symplectic form on `M`, `i : S → M` a smooth embedding of codimension one, and `Z` a vector
 field, smooth on an open neighbourhood `U` of the image of `i`, with `L_Z σ = σ` on `U` and
 transverse along `i`. Then the one-form `α = -i^*(ι_Z σ)` on `S` is smooth, is a contact form,
 and satisfies `dα = -i^*σ`. -/
-theorem SmoothEmbedding.isContactForm_neg_mpullback_interior [IsManifold I ∞ M]
+theorem SmoothEmbedding.exists_isContactForm_eq_neg_mpullback_interior [IsManifold I ∞ M]
     [IsManifold J 2 S] {σ : SmoothTwoForm I M} (hσ : σ.IsSymplectic)
     (i : SmoothEmbedding J I ∞ S M) (hdim : finrank ℝ E' + 1 = finrank ℝ E) (hU : IsOpen U)
     (hiU : range i ⊆ U) (hZ : ContMDiffOn I I.tangent (⊤ : ℕ∞) (T% Z) U)
@@ -120,7 +146,6 @@ theorem SmoothEmbedding.isContactForm_neg_mpullback_interior [IsManifold I ∞ M
   have hpb : IsSmoothForm J ∞ (mpullback J I i (RoughForm.interior Z σ.val)) :=
     (isSmoothForm_def ∞ _).mpr fun s ↦ (hβ s).mpullback_form (i.contMDiff s) (by simp)
   let α' : SmoothForm J S ℝ 1 := ⟨_, hpb.mem_smoothBundleForms⟩
-  have hα' : α'.val = mpullback J I i (RoughForm.interior Z σ.val) := rfl
   have hα'd : mextDerivₗ J 1 α' = SmoothForm.mpullback i i.contMDiff σ := by
     refine Subtype.ext (funext fun s ↦ ?_)
     rw [mextDerivₗ_apply, SmoothForm.coe_mpullback, ← mpullback_mextDeriv_at
@@ -128,14 +153,9 @@ theorem SmoothEmbedding.isContactForm_neg_mpullback_interior [IsManifold I ∞ M
     ext v
     rw [mpullback_apply, mpullback_apply, hdα _ (hiV (mem_range_self s))]
   refine ⟨-α', rfl, SmoothForm.isContactForm_neg_iff.2 ?_, by rw [map_neg, hα'd]⟩
-  refine SmoothForm.isContactForm_iff_forall_isContactFormAt.2 fun s ↦ ?_
-  rw [hα']
-  refine isContactFormAt_mpullback hdim ((i.contMDiff s).of_le (by simp))
-    (i.isImmersion.mfderiv_injective (by simp) s) (fun v hv ↦ ?_) ((hβ s).of_le (by simp))
-    (hdα _ (hiV (mem_range_self s))) (isTransverseAlong_iff.1 hZi s) fun v ↦ ?_
-  · exact (SmoothTwoForm.isNondegenerate_iff_separatingLeft.1 hσ.isNondegenerate) _ v fun w ↦ by
-      simpa [SmoothBundleForm.eval₂_apply] using hv w
-  · rw [RoughForm.interior_apply]
+  exact SmoothForm.isContactForm_iff_forall_isContactFormAt.2
+    (hct.isContactFormAt_mpullback hσ.isNondegenerate (i.contMDiff.of_le (by simp))
+      (i.isImmersion.mfderiv_injective (by simp)) hdim)
 
 end TauCeti
 

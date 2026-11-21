@@ -197,7 +197,7 @@ In `TauCeti`, beside Tau Ceti's file, for `ω` a closed `C¹` two-form
   pointwise Cartan formula `mlieDerivForm_eq_mextDeriv_interior_apply` at
   each point of `U` and `mextDeriv_congr_of_eventuallyEq`, with no passage
   to the open submanifold `U`.
-- `SmoothEmbedding.isContactForm_neg_mpullback_interior` (the book's
+- `SmoothEmbedding.exists_isContactForm_eq_neg_mpullback_interior` (the book's
   direction 2 ⇒ 1): for `ω` symplectic, `hdim`, and `U`, `Y` as above, there
   is `α : SmoothForm J Q ℝ 1` with value
   `-mpullback J I i (RoughForm.interior Y ω.val)`, a contact form with
