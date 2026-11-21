@@ -8,6 +8,7 @@ module
 public import Mathlib.Geometry.Manifold.VectorBundle.ContinuousAlternatingMap
 public import Mathlib.Geometry.Manifold.VectorBundle.ContMDiffSection
 public import Mathlib.Topology.VectorBundle.FiniteDimensional
+public import SymplecticGeometry.Topology.FiberBundle.Basic
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.ContinuousAlternatingMap
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Hom
 public import TauCeti.Analysis.Normed.Module.Alternating.Curry
@@ -309,42 +310,31 @@ is nondegenerate form an open subset of the total space of the bundle of alterna
 theorem isOpen_setOf_nondegenerate [FiniteDimensional ℝ F] :
     IsOpen {p : TotalSpace (F [⋀^Fin 2]→L[ℝ] ℝ) (fun x ↦ V x [⋀^Fin 2]→L[ℝ] Trivial M ℝ x) |
       LinearMap.BilinForm.Nondegenerate (MultilinearMap.toBilinMap p.snd.toMultilinearMap)} := by
-  rw [isOpen_iff_mem_nhds]
-  intro p₀ hp₀
-  let e := trivializationAt (F [⋀^Fin 2]→L[ℝ] ℝ)
-    (fun x ↦ V x [⋀^Fin 2]→L[ℝ] Trivial M ℝ x) p₀.proj
   have hT : IsOpen {A : F [⋀^Fin 2]→L[ℝ] ℝ |
       LinearMap.BilinForm.Nondegenerate (MultilinearMap.toBilinMap A.toMultilinearMap)} :=
     TauCeti.isOpen_setOf_nondegenerate fun v w ↦ by
       simpa using continuous_eval_const ![v, w]
-  -- In the fibre coordinates of `e`, a form becomes its pull-back by a linear equivalence.
-  have key : ∀ q ∈ e.source,
-      (LinearMap.BilinForm.Nondegenerate (MultilinearMap.toBilinMap q.snd.toMultilinearMap) ↔
-        LinearMap.BilinForm.Nondegenerate
-          (MultilinearMap.toBilinMap (e q).2.toMultilinearMap)) := by
-    intro q hq
-    have hy : q.proj ∈ (trivializationAt F V p₀.proj).baseSet := by
-      simpa [e] using hq
-    let L := ((trivializationAt F V p₀.proj).continuousLinearEquivAt ℝ q.proj hy).toLinearEquiv
-    have heq : MultilinearMap.toBilinMap (e q).2.toMultilinearMap =
-        LinearMap.BilinForm.congr L (MultilinearMap.toBilinMap q.snd.toMultilinearMap) := by
-      ext v w
-      simp only [e, FiberBundle.trivializationAt_continuousAlternatingMap_apply,
-        ContinuousAlternatingMap.inCoordinates, MultilinearMap.toBilinMap_apply,
-        LinearMap.BilinForm.congr_apply, Trivial.fiberBundle_trivializationAt',
-        Trivial.continuousLinearMapAt_trivialization,
-        ContinuousLinearMap.id_compContinuousAlternatingMap, ContinuousMultilinearMap.coe_coe,
-        ContinuousAlternatingMap.coe_toContinuousMultilinearMap,
-        ContinuousAlternatingMap.compContinuousLinearMap_apply]
-      congr 1
-      ext i
-      fin_cases i <;> simp [L, Trivialization.symmL_apply _ hy]
-    rw [heq, LinearMap.BilinForm.nondegenerate_congr_iff]
-  have hU := e.continuousOn.isOpen_inter_preimage e.open_source (hT.preimage continuous_snd)
-  have hp₀e : p₀ ∈ e.source := FiberBundle.mem_trivializationAt_proj_source
-  refine Filter.mem_of_superset (hU.mem_nhds ⟨hp₀e, (key p₀ hp₀e).1 hp₀⟩) ?_
-  rintro q ⟨hq, hq'⟩
-  exact (key q hq).2 hq'
+  refine FiberBundle.isOpen_of_forall_mem_iff_snd_mem hT fun b q hq ↦ ?_
+  -- In the fibre coordinates of the trivialization, a form becomes its pull-back by a linear
+  -- equivalence.
+  have hy : q.proj ∈ (trivializationAt F V b).baseSet := by
+    simpa using hq
+  let L := ((trivializationAt F V b).continuousLinearEquivAt ℝ q.proj hy).toLinearEquiv
+  have heq : MultilinearMap.toBilinMap ((trivializationAt (F [⋀^Fin 2]→L[ℝ] ℝ)
+      (fun x ↦ V x [⋀^Fin 2]→L[ℝ] Trivial M ℝ x) b) q).2.toMultilinearMap =
+      LinearMap.BilinForm.congr L (MultilinearMap.toBilinMap q.snd.toMultilinearMap) := by
+    ext v w
+    simp only [FiberBundle.trivializationAt_continuousAlternatingMap_apply,
+      ContinuousAlternatingMap.inCoordinates, MultilinearMap.toBilinMap_apply,
+      LinearMap.BilinForm.congr_apply, Trivial.fiberBundle_trivializationAt',
+      Trivial.continuousLinearMapAt_trivialization,
+      ContinuousLinearMap.id_compContinuousAlternatingMap, ContinuousMultilinearMap.coe_coe,
+      ContinuousAlternatingMap.coe_toContinuousMultilinearMap,
+      ContinuousAlternatingMap.compContinuousLinearMap_apply]
+    congr 1
+    ext i
+    fin_cases i <;> simp [L, Trivialization.symmL_apply _ hy]
+  rw [Set.mem_ofPred_eq, Set.mem_ofPred_eq, heq, LinearMap.BilinForm.nondegenerate_congr_iff]
 
 namespace ContMDiffTwoForm
 
@@ -752,6 +742,19 @@ theorem contMDiffOn_frameTransition [FiniteDimensional ℝ W] (h : ω.IsSymplect
     ContMDiffOn I 𝓘(ℝ, W →L[ℝ] W) n (fun x ↦ (frameTransition Φ Φ' x : W →L[ℝ] W)) U :=
   Bundle.contMDiffOn_frameTransition h.contMDiffOn h'.contMDiffOn hU
 
+/-- Precomposing a symplectic frame for `σ` with a linear symplectomorphism `e` from `(W', σ')`
+to `(W, σ)` gives a symplectic frame for `σ'`. -/
+theorem precomp {W' : Type*} [NormedAddCommGroup W'] [NormedSpace ℝ W']
+    {σ' : TauCeti.SymplecticForm W'} (h : ω.IsSymplecticFrameOn σ U Φ) (e : W' ≃L[ℝ] W)
+    (he : σ'.IsSymplectomorphism σ e.toLinearEquiv) :
+    ω.IsSymplecticFrameOn σ' U fun x ↦ e.trans (Φ x) := by
+  refine ⟨h.contMDiffOn.comp (contMDiff_fst.prodMk
+    ((e : W' →L[ℝ] W).contDiff.contMDiff.comp contMDiff_snd)).contMDiffOn
+    fun p hp ↦ ⟨hp.1, Set.mem_univ _⟩, fun x hx v w ↦ ?_⟩
+  rw [ContinuousLinearEquiv.trans_apply, ContinuousLinearEquiv.trans_apply,
+    h.map_bilinFormAt x hx]
+  exact he.apply v w
+
 end IsSymplecticFrameOn
 
 /-- On the trivial bundle with fibre `W'` and the constant form of `ω'`, a linear symplectomorphism
@@ -760,8 +763,11 @@ theorem isSymplecticFrameOn_const {W' : Type*} [NormedAddCommGroup W'] [NormedSp
     [FiniteDimensional ℝ W'] {ω' : TauCeti.SymplecticForm W'} {e : W ≃L[ℝ] W'}
     (he : σ.IsSymplectomorphism ω' e.toLinearEquiv) :
     (const (I := I) (n := n) (M := M) ω').IsSymplecticFrameOn σ Set.univ fun _ ↦ e := by
-  refine ⟨(Trivial.contMDiff_mk_iff.2 ⟨contMDiff_fst,
-    (e : W →L[ℝ] W').contDiff.contMDiff.comp contMDiff_snd⟩).contMDiffOn, fun x _ v w ↦ ?_⟩
+  refine ⟨(((Trivial.contMDiff_totalSpaceMk_clm (e : W →L[ℝ] W')).comp
+    (Trivial.diffeomorphProd I M W n).symm.contMDiff).congr fun q ↦ by
+      rw [Function.comp_apply, Trivial.diffeomorphProd_symm_apply,
+        ContinuousLinearEquiv.coe_coe]).contMDiffOn,
+    fun x _ v w ↦ ?_⟩
   rw [bilinFormAt_const]
   exact he.apply v w
 
