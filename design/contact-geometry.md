@@ -373,6 +373,27 @@ The file also has, in `TauCeti.SmoothForm`, the slices of a pullback along
 `timeDeriv`, by uniqueness of the derivative of $u\mapsto f^*\alpha_u$).
 `Gray.lean` uses them.
 
+### `Geometry/Manifold/DifferentialForm/LieDeriv.lean`
+
+Named like Tau Ceti's file, in the namespace `TauCeti`: the Lie derivative
+of forms is linear in the vector field, beside Tau Ceti's
+`mlieDerivForm_add_left`. Along the zero field, `@[simp]`
+`lieDerivFormWithin_zero_left`, `lieDerivForm_zero_left`,
+`mlieDerivFormWithin_zero_left` and `mlieDerivForm_zero_left`. For constant
+multiples, `@[simp]` `lieDerivFormWithin_const_smul_left` (with
+`UniqueDiffWithinAt`), `lieDerivForm_const_smul_left`,
+`mlieDerivFormWithin_const_smul_left` (with `UniqueMDiffWithinAt`) and
+`mlieDerivForm_const_smul_left (c : ℝ) (V) (φ : RoughForm I M F k) :
+mlieDerivForm (c • V) φ = c • mlieDerivForm V φ`, with no differentiability
+asked. `Geometry/Contact/Hamiltonian.lean` uses them for its submodule.
+
+### `Geometry/Manifold/DifferentialForm/DegreeOne.lean`
+
+Named like Tau Ceti's file, in `TauCeti.SmoothForm`:
+`contMDiff_apply_contMDiffSection`, the value `x ↦ α.val x ![X x]` of a
+smooth one-form on a smooth vector field is smooth, from `degreeOneEquiv`.
+`Geometry/Contact/Hamiltonian.lean` uses it for `contactHamiltonianEquiv`.
+
 ### `Geometry/Contact/Hamiltonian.lean`
 
 Named like Tau Ceti's file, in `TauCeti.SmoothForm`.
@@ -380,7 +401,9 @@ Named like Tau Ceti's file, in `TauCeti.SmoothForm`.
 - `contactVectorFields (α : SmoothForm I M ℝ 1) : Submodule ℝ Cₛ^∞⟮I; E, TangentSpace I (M := M)⟯`,
   the smooth fields `X` with `∃ g : M → ℝ, mlieDerivForm X α.val = fun x ↦ g x • α.val x`,
   beside Tau Ceti's `TauCeti.SmoothTwoForm.symplecticVectorFields` (closure
-  under sums by `TauCeti.mlieDerivForm_add`); `@[simp] mem_contactVectorFields_iff`.
+  under sums by `TauCeti.mlieDerivForm_add_left`, under scalars by
+  `TauCeti.mlieDerivForm_const_smul_left` of `DifferentialForm/LieDeriv.lean`);
+  `@[simp] mem_contactVectorFields_iff`.
   The multiplier `g` may vanish; no smoothness of `g` is asked, since for a
   contact form it is forced:
 - `IsContactForm.mem_contactVectorFields_iff_mlieDerivForm_eq (hα) :
@@ -408,12 +431,13 @@ Named like Tau Ceti's file, in `TauCeti.SmoothForm`.
   `@[simp] coe_contactHamiltonianEquiv_symm_apply`
   (`⇑(e.symm H) = α.contactHamiltonianVectorField H`).
 - `IsContactForm.reebVectorField_eq_contactHamiltonianVectorField_of_eq_smul`:
-  for `H` smooth and nowhere zero and `β` with
+  for `H` nowhere zero and `C¹` (`ContMDiff I 𝓘(ℝ) 1 H`) and `β` with
   `∀ x, β.val x = (H x)⁻¹ • α.val x`, `β.IsContactForm` and
   `β.reebVectorField = α.contactHamiltonianVectorField H`; from
   `isContactForm_iff_of_eq_smul`, `contactHamiltonianVectorField_of_eq_smul`
   with $u=H^{-1}$, $f=H$, and `contactHamiltonianVectorField_one` for `β`.
-- `IsContactForm.preservesCoorientation_refl_iff_pos` for the same `β`:
+- `Diffeomorph.preservesCoorientation_refl_iff_pos` for the same `β`, with
+  `α` only nowhere zero (`∀ x, α.val x ≠ 0`):
   `(Diffeomorph.refl I M ∞).PreservesCoorientation α β ↔ ∀ x, 0 < H x`, Tau
   Ceti's notion of "the same coorientation".
 - `contMDiff_contactHamiltonianVectorField_prodMk (hα) (hH : ContMDiff (𝓘(ℝ, ℝ).prod I) 𝓘(ℝ) ∞ H)`:
@@ -533,7 +557,8 @@ Named like Tau Ceti's file, in `SymplecticGeometry`.
   all of whose slices are contact, with `ξ t x = (α_t).kerDistribution x`
   for `t ∈ J ∩ [0, 1]`, `x ∈ U`. Uses `DifferentialForm/TimeExtension.lean` of
   *Smooth families* and a smooth reparametrization `ℝ → J` that is the identity on
-  a neighbourhood of the relevant times.
+  a neighbourhood of the relevant times (`exists_contDiff_eqOn_id_Icc_mem_Ioo` of
+  *Smooth families*).
 - `TauCeti.SmoothForm.grayVectorField_eq_of_eventuallyEq_smul` (`[I.Boundaryless]`):
   the pointwise independence of step 2, for two families on `ℝ × M` with
   contact slices at `t ∈ s`, `UniqueDiffWithinAt ℝ s t` (`s = [0, 1]` in
@@ -631,7 +656,11 @@ boundaryless and Hausdorff, and both are second countable.
   transverse to a vector field,
   `ContMDiffAt.eventually_injective_mfderiv_and_notMem_range`, which it adds
   in `Geometry/Manifold/Immersion/Transverse.lean` (beside Tau Ceti's
-  `ContMDiffAt.eventually_injective_mfderiv`), and the smooth injective map
+  `ContMDiffAt.eventually_injective_mfderiv`; it uses
+  `ContinuousLinearMap.injective_coprod_toSpanSingleton_iff` of
+  `Topology/Algebra/Module/ContinuousLinearMap/PiProd.lean`, the continuous
+  form of `LinearMap.injective_coprod_toSpanSingleton_iff` of
+  `LinearAlgebra/Prod.lean`), and the smooth injective map
   of the normal bundle
   `TauCeti.SmoothEmbedding.exists_contMDiff_injective_normalBundle`, which it
   adds in `Geometry/Manifold/TubularNeighborhood/Riemannian/Injective.lean`
@@ -659,7 +688,9 @@ Expected size: 650 lines, in two issues (L1 and L2).
 - *Smooth families* (#466, #467):
   `Geometry/Manifold/DifferentialForm/TimeExtension.lean`, the extension of
   a smooth form on `unitInterval × M` to `ℝ × M` (for
-  `IsContactFamily.exists_local_extension`); and
+  `IsContactFamily.exists_local_extension`, with
+  `exists_contDiff_eqOn_id_Icc_mem_Ioo` of
+  `Analysis/SpecialFunctions/SmoothTransition.lean`); and
   `Geometry/Diffeomorphism/Diffeotopy/Real.lean`, the reading of a
   `Diffeotopy` $\Phi$ over `ℝ` as $\Phi_{s(t)}$, $s=$ `Real.smoothTransition`,
   with `TauCeti.eulerianField` $s'(t)X_{s(t)}$, where $X$ is the velocity
@@ -692,12 +723,12 @@ In this order; each is blocked by the ones listed, and all are sub-issues of
 
 | # | Issue | Files | Blocked by | Size |
 |---|---|---|---|---|
-| H1 | Contact vector fields and their equivalence with functions | `Geometry/Contact/Hamiltonian.lean` (`contactVectorFields`, the two characterizations, `contactHamiltonianEquiv`, the Reeb field of `α/H` and its coorientation) | — | 300 |
+| H1 | Contact vector fields and their equivalence with functions | `Geometry/Manifold/DifferentialForm/LieDeriv.lean`, `Geometry/Manifold/DifferentialForm/DegreeOne.lean`, `Geometry/Contact/Hamiltonian.lean` (`contactVectorFields`, the two characterizations, `contactHamiltonianEquiv`, the Reeb field of `α/H` and its coorientation) | — | 300 |
 | H2 | Time-dependent contact Hamiltonians and the milestone | `Geometry/Contact/Hamiltonian.lean` (joint smoothness, rescaling formula, `contactVectorFields_correspondence`) | H1 | 200 |
 | D | The contact Darboux theorem in the page's signs | `Geometry/Contact/Darboux/Strict.lean` | — | 200 |
 | G0 | Moser's principle along one trajectory, rescaling case | `Geometry/Manifold/DifferentialForm/Flow/Family.lean` | — | 100 |
 | G1 | Smooth families of contact structures | `Geometry/Contact/Family.lean` (`IsContactFamily` and its API, `grayVectorField_eq_of_eventuallyEq_smul`), `Geometry/Contact/Levi.lean` (`of_forall_eventuallyEq_kerDistribution`), `Geometry/Contact/Moser.lean` (`contactMoserVectorField_apply_of_eventuallyEq_smul`) | — | 250 |
-| G2 | Local defining families over `ℝ` | `Geometry/Contact/Family.lean` (`exists_local_extension`) | G1, the issue of *Smooth families* that adds `DifferentialForm/TimeExtension.lean` | 150 |
+| G2 | Local defining families over `ℝ` | `Geometry/Contact/Family.lean` (`exists_local_extension`) | G1, the issues of *Smooth families* that add `DifferentialForm/TimeExtension.lean` and `exists_contDiff_eqOn_id_Icc_mem_Ioo` (its issue 16) | 150 |
 | N | Naturality of the contact-Moser and Gray vectors under pullback and restriction to open subsets (#598) | `Geometry/Contact/Moser.lean`, `Geometry/Contact/Gray.lean` (`mfderiv_grayVectorField_mpullback_prodMap`), the slice lemmas of `Flow/Family.lean` | — | 150 |
 | G3 | The Gray field and the Gray isotopy of a family | `Geometry/Contact/Gray.lean` (`Transports`, `exists_grayField`, `grayDiffeotopy`, transport and velocity) | G0, G2, N | 350 |
 | G4 | Uniqueness, rescaling of forms, and Gray stability | `Geometry/Contact/Gray.lean` (`eq_grayDiffeotopy_of_transports`, `Transports.exists_mpullback_eq_smul`, the milestone) | G3, the issue of *Smooth families* that adds `Diffeotopy/Real.lean` | 250 |
