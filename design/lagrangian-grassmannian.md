@@ -168,9 +168,20 @@ which the stabilizer and the fibration need.
 
 ### `LinearAlgebra/Matrix/OfReal.lean`
 
-Two facts about complex frames, in the namespace `Matrix`, next in spirit to
-Tau Ceti's `Matrix.map_im_conjTranspose_mul_self_mul_map_ofReal`
-(`LinearAlgebra/Matrix/OfReal.lean`).
+Facts about real matrices read over `ℂ` through `map ofReal`, in the namespace
+`Matrix`, next in spirit to Tau Ceti's
+`Matrix.map_im_conjTranspose_mul_self_mul_map_ofReal`
+(`LinearAlgebra/Matrix/OfReal.lean`). Three general lemmas, which the
+Siegel upper half space uses too:
+
+- `Matrix.map_ofReal_mul`: `(P * Q).map ofReal = P.map ofReal * Q.map ofReal`,
+  Mathlib's `Matrix.map_mul` for `Complex.ofRealHom` in a form that `rw` and
+  `simp` match.
+- `Matrix.transpose_map_ofReal_mul_map_ofReal`:
+  `(P.map ofReal)ᵀ * Q.map ofReal = (Pᵀ * Q).map ofReal`.
+- `Matrix.conjTranspose_map_ofReal`: `(P.map ofReal)ᴴ = (P.map ofReal)ᵀ`.
+
+Two facts about complex frames:
 
 - `Matrix.map_im_conjTranspose_mul_self_eq_zero_of_transpose_mul_eq
   {X Y : Matrix m n ℝ} (h : Xᵀ * Y = Yᵀ * X)`: for

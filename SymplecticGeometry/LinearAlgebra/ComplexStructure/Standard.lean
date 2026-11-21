@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.LinearAlgebra.ComplexStructure.Action
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Matrix
 public import TauCeti.Geometry.Symplectic.Finrank
+public import SymplecticGeometry.Geometry.Symplectic.Orientation
 public import TauCeti.LinearAlgebra.Matrix.GeneralLinearGroup.Symplectic.Unitary
 
 /-!
@@ -23,6 +24,16 @@ and the stabilizer of `J₀` consists of the matrices commuting with `Matrix.J �
 realifications of the invertible complex `n × n` matrices; so the complex structures of `ℝ²ⁿ`
 are the points of `GL(2n, ℝ) / GL(n, ℂ)`.
 
+A complex structure is *positively oriented* (`SymplecticGeometry.IsPositivelyOriented`) if it is
+`g • J₀` for a matrix `g` of positive determinant. This agrees with the orientation condition of
+McDuff–Salamon: these are exactly the structures whose adapted bases `(v₁, J v₁, …, vₙ, J vₙ)`
+induce the symplectic orientation of `ω₀` (Tau Ceti's `TauCeti.SymplecticForm.orientation`).
+
+## Main definitions
+
+* `SymplecticGeometry.IsPositivelyOriented`: the complex structures in the orbit of `J₀` under
+  matrices of positive determinant.
+
 ## Main results
 
 * `SymplecticGeometry.exists_transport_stdComplexStructure_eq`: every complex structure on a
@@ -31,6 +42,10 @@ are the points of `GL(2n, ℝ) / GL(n, ℂ)`.
   on the complex structures of `StdSpace ι`.
 * `SymplecticGeometry.stabilizer_stdComplexStructure`: the stabilizer of `J₀` in `GL (ι ⊕ ι) ℝ`
   is the range of `Matrix.GeneralLinearGroup.realify ι ℂ`.
+* `SymplecticGeometry.isPositivelyOriented_smul_stdComplexStructure_iff`: `g • J₀` is positively
+  oriented exactly when `det g > 0`.
+* `SymplecticGeometry.isPositivelyOriented_iff_orientation`: `J` is positively oriented exactly
+  when its adapted bases induce the symplectic orientation of `ω₀`.
 
 ## References
 
@@ -100,6 +115,100 @@ theorem stabilizer_stdComplexStructure :
   ext g
   rw [MulAction.mem_stabilizer_iff, generalLinearGroup_smul_stdComplexStructure_eq_iff,
     Matrix.GeneralLinearGroup.mem_range_realify_iff]
+
+/-! ### Positively oriented structures -/
+
+/-- A complex structure on `StdSpace ι` is *positively oriented* if it is `g • J₀` for a matrix
+`g` of positive determinant. Equivalently, its adapted bases `(v₁, J v₁, …, vₙ, J vₙ)` induce
+the symplectic orientation of `ω₀` (`isPositivelyOriented_iff_orientation`). -/
+def IsPositivelyOriented (J : AlmostComplexStructure (StdSpace ι)) : Prop :=
+  ∃ g ∈ Matrix.GLPos (ι ⊕ ι) ℝ, g • stdComplexStructure ι = J
+
+theorem isPositivelyOriented_def (J : AlmostComplexStructure (StdSpace ι)) :
+    IsPositivelyOriented J ↔ ∃ g ∈ Matrix.GLPos (ι ⊕ ι) ℝ, g • stdComplexStructure ι = J :=
+  (Iff.rfl)
+
+@[simp]
+theorem isPositivelyOriented_stdComplexStructure :
+    IsPositivelyOriented (stdComplexStructure ι) :=
+  ⟨1, one_mem _, one_smul _ _⟩
+
+/-- A matrix of positive determinant preserves positively oriented structures. -/
+theorem IsPositivelyOriented.smul {J : AlmostComplexStructure (StdSpace ι)}
+    (hJ : IsPositivelyOriented J) {g : GL (ι ⊕ ι) ℝ}
+    (hg : 0 < (g : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ).det) :
+    IsPositivelyOriented (g • J) := by
+  obtain ⟨h, hh, rfl⟩ := hJ
+  exact ⟨g * h, mul_mem (by simpa [Matrix.mem_glpos] using hg) hh, mul_smul _ _ _⟩
+
+/-- `g • J₀` is positively oriented exactly when `det g > 0`. -/
+@[simp]
+theorem isPositivelyOriented_smul_stdComplexStructure_iff (g : GL (ι ⊕ ι) ℝ) :
+    IsPositivelyOriented (g • stdComplexStructure ι) ↔
+      0 < (g : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ).det := by
+  -- If also `h • J₀ = g • J₀` with `det h > 0`, then `g⁻¹ * h` fixes `J₀`, so it is a
+  -- realified complex matrix, and its determinant `|det|²` is positive.
+  refine ⟨fun ⟨h, hh, hgh⟩ ↦ ?_, fun hg ↦ isPositivelyOriented_stdComplexStructure.smul hg⟩
+  have hs : g⁻¹ * h ∈ MulAction.stabilizer _ (stdComplexStructure ι) := by
+    rw [MulAction.mem_stabilizer_iff, mul_smul, hgh, inv_smul_smul]
+  rw [stabilizer_stdComplexStructure] at hs
+  obtain ⟨A, hA⟩ := hs
+  have hA' : 0 < ((g⁻¹ * h : GL (ι ⊕ ι) ℝ) : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ).det := by
+    rw [← hA, Matrix.GeneralLinearGroup.coe_realify, Matrix.det_realify]
+    exact RCLike.normSq_pos.2 A.det_ne_zero
+  have hh' : 0 < (h : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ).det := by simpa [Matrix.mem_glpos] using hh
+  have hmul : (h : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ).det =
+      (g : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ).det *
+        ((g⁻¹ * h : GL (ι ⊕ ι) ℝ) : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ).det := by
+    rw [← Matrix.det_mul, ← Units.val_mul, mul_inv_cancel_left]
+  exact (pos_iff_pos_of_mul_pos (hmul ▸ hh')).2 hA'
+
+/-- The transport of `J₀` along an automorphism `Φ` of `StdSpace ι` is positively oriented
+exactly when `det Φ > 0`. -/
+@[simp]
+theorem isPositivelyOriented_transport_iff (Φ : StdSpace ι ≃ₗ[ℝ] StdSpace ι) :
+    IsPositivelyOriented ((stdComplexStructure ι).transport Φ) ↔
+      0 < LinearMap.det (Φ : StdSpace ι →ₗ[ℝ] StdSpace ι) := by
+  set g := Matrix.GeneralLinearGroup.ofEuclideanCLE Φ.toContinuousLinearEquiv
+  have hg : g • stdComplexStructure ι = (stdComplexStructure ι).transport Φ := by
+    rw [AlmostComplexStructure.ofEuclideanCLE_smul,
+      LinearEquiv.toLinearEquiv_toContinuousLinearEquiv, AlmostComplexStructure.smul_def]
+  have hdet := Matrix.det_toEuclideanCLE _ g.det_ne_zero
+  rw [Matrix.GeneralLinearGroup.toEuclideanCLE_ofEuclideanCLE] at hdet
+  rw [← hg, isPositivelyOriented_smul_stdComplexStructure_iff, ← hdet]
+  simp
+
+/-- In positive dimension, some complex structure on `StdSpace ι` is not positively oriented:
+for instance, the transport of `J₀` by the reflection `x₁ ↦ -x₁`. -/
+theorem exists_not_isPositivelyOriented [Nonempty ι] :
+    ∃ J : AlmostComplexStructure (StdSpace ι), ¬IsPositivelyOriented J := by
+  obtain ⟨i⟩ := ‹Nonempty ι›
+  set D : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ := Matrix.diagonal (Function.update 1 (Sum.inl i) (-1))
+  have hD : D.det = -1 := by
+    simp [D, Matrix.det_diagonal, Finset.prod_update_of_mem]
+  refine ⟨Matrix.GeneralLinearGroup.mkOfDetNeZero D (by simp [hD]) • stdComplexStructure ι, ?_⟩
+  simp [hD]
+
+/-- A complex structure `J` on `StdSpace ι` is positively oriented exactly when every adapted
+basis `(v₁, J v₁, …, vₙ, J vₙ)` induces the symplectic orientation of `ω₀`. Adapted bases exist
+(`TauCeti.AlmostComplexStructure.exists_basis_apply_one_eq`), so the condition is not vacuous. -/
+theorem isPositivelyOriented_iff_orientation {k : ℕ}
+    (hk : finrank ℝ (StdSpace ι) = k) (J : AlmostComplexStructure (StdSpace ι)) :
+    IsPositivelyOriented J ↔
+      ∀ {m : ℕ} (b : Basis (Fin m × Fin 2) ℝ (StdSpace ι))
+        (_ : ∀ i, b (i, 1) = J (b (i, 0))) (h : m * 2 = k),
+        (b.reindex (finProdFinEquiv.trans (finCongr h))).orientation =
+          (stdForm ι).orientation hk := by
+  obtain ⟨Φ, rfl⟩ := exists_transport_stdComplexStructure_eq J finrank_stdSpace
+  rw [isPositivelyOriented_transport_iff,
+    ← Orientation.map_eq_iff_det_pos ((stdForm ι).orientation hk) _
+      (by rw [Fintype.card_fin, hk])]
+  refine ⟨fun hΦ m b hb h ↦ ?_, fun H ↦ ?_⟩
+  · rw [stdForm_compatible.tames.orientation_reindex_transport Φ hk hb h, hΦ]
+  · obtain ⟨m, b, hb⟩ := ((stdComplexStructure ι).transport Φ).exists_basis_apply_one_eq
+    have h : m * 2 = k := by
+      rw [← hk, finrank_eq_card_basis b, Fintype.card_prod, Fintype.card_fin, Fintype.card_fin]
+    rw [← stdForm_compatible.tames.orientation_reindex_transport Φ hk hb h, H b hb h]
 
 end SymplecticGeometry
 
