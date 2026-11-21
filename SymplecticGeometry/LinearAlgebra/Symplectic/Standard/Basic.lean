@@ -144,6 +144,12 @@ theorem map_swap_ker_x :
   ext z
   simp [Submodule.mem_map_equiv]
 
+/-- The coordinate swap sends the horizontal subspace `{y = 0}` to the vertical one `{x = 0}`. -/
+@[simp]
+theorem map_swap_ker_y :
+    (LinearMap.ker y).map (swap ι : StdSpace ι →ₗ[ℝ] StdSpace ι) = LinearMap.ker (x (ι := ι)) := by
+  rw [← symm_swap, Submodule.map_symm_eq_iff, map_swap_ker_x]
+
 variable [Fintype ι]
 
 /-- The `x`-coordinates of `complexToRealEuclidean ι u` are the real parts of `u`. -/

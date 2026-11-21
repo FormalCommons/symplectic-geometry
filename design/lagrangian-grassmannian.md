@@ -240,8 +240,8 @@ find them there.
   `equivProd.symm`. It goes beside `equivProd`, before the file's
   `variable [Fintype ι]`, since it needs no finiteness. API: `swap_def`, and the
   `@[simp]` lemmas `x_swap` and `y_swap` (both by `(rfl)`), `swap_swap`,
-  `symm_swap`, and `map_swap_ker_x`, which says that it carries
-  `LinearMap.ker StdSpace.x` to `LinearMap.ker StdSpace.y`.
+  `symm_swap`, and `map_swap_ker_x` and `map_swap_ker_y`, which say that it
+  exchanges `LinearMap.ker StdSpace.x` and `LinearMap.ker StdSpace.y`.
 
 This part also uses
 `SymplecticGeometry.isSymplectomorphism_piLpCongrLeft_sumCongr` (`σ : ι ≃ κ`),
@@ -285,10 +285,9 @@ Lagrangian frames on `StdSpace ι`, pure linear algebra. Namespace
   API: `StdSpace.mem_graph_iff : z ∈ graph A ↔ z.y = A *ᵥ z.x` (`@[simp]`),
   and `StdSpace.graph_injective`.
 - `StdSpace.graphY (A : Matrix ι ι ℝ) : Submodule ℝ (StdSpace ι)`, the graph
-  over the `y` coordinate, the image of `A.mulVecLin.graph` under the
-  linear equivalence
-  `(LinearEquiv.prodComm ℝ (ι → ℝ) (ι → ℝ)).trans (StdSpace.equivProd ι).symm`.
-  API: `StdSpace.mem_graphY_iff : z ∈ graphY A ↔ z.x = A *ᵥ z.y` (`@[simp]`),
+  over the `y` coordinate, defined as the image `(graph A).map (StdSpace.swap ι)`
+  of `graph A` under the coordinate swap of `Standard/Basic.lean`
+  (`graphY_def`, by `(rfl)`). API: `StdSpace.mem_graphY_iff : z ∈ graphY A ↔ z.x = A *ᵥ z.y` (`@[simp]`),
   `StdSpace.graphY_injective`, and `StdSpace.map_symJ_graph`, saying that
   `symJ` sends `graph A` to `graphY (-A)`.
 - Both graphs are complementary to the coordinate subspace they are graphs
@@ -299,11 +298,15 @@ Lagrangian frames on `StdSpace ι`, pure linear algebra. Namespace
   Every `z` is `(z.x, A z.x) + (0, z.y - A z.x)`, and a vector of the graph
   with `x = 0` is zero.
 - The coordinate swap `StdSpace.swap ι` of `Standard/Basic.lean` carries
-  `graph A` to `graphY A` (`map_swap_graph`, `@[simp]`), and the kernel of `x`
-  to that of `y` (`map_swap_ker_x`). So `graphY_injective` and
-  `isCompl_graphY_ker_y` are not proved again: they are `graph_injective` and `isCompl_graph_ker_x`
-  transported along `swap` (`Submodule.map_injective_of_injective`,
-  `OrderIso.isCompl` with `Submodule.orderIsoMapComap`).
+  `graph A` to `graphY A` by the definition (`graphY_def`), and exchanges the
+  kernels of `x` and `y` (`map_swap_ker_x`, `map_swap_ker_y`). So
+  `graphY_injective`, `isCompl_graphY_ker_y` and
+  `exists_eq_graphY_of_isCompl_ker_y` are not proved again: they are
+  `graph_injective`, `isCompl_graph_ker_x` and
+  `exists_eq_graph_of_isCompl_ker_x` transported along `swap`
+  (`Submodule.map_injective_of_injective`, `OrderIso.isCompl` with
+  `Submodule.orderIsoMapComap`; for the last, `swap` is an involution, by
+  `symm_swap`).
 - The comparison with Tau Ceti's complex picture, through
   `StdSpace.complexEuclideanEquiv ι` (written `ε` here). Then
   `StdSpace.map_realSubspace :
@@ -345,8 +348,9 @@ Lagrangian frames on `StdSpace ι`, pure linear algebra. Namespace
   `isLagrangian_graphY_iff`, the same for `graphY A`. Both come from one
   private lemma about the image of `A.mulVecLin.graph` under a linear
   equivalence `e` that turns `ω₀` into a nonzero multiple of the pairing
-  of `(ι → ℝ) × (ι → ℝ)`: `equivProd` for `graph` and its composite with
-  `prodComm` for `graphY`. That lemma transports along `e`
+  of `(ι → ℝ) × (ι → ℝ)`: `(equivProd ι).symm` for `graph`, and its
+  composite `(equivProd ι).symm.trans (swap ι)` with the swap for `graphY`,
+  which turns `ω₀` into minus the pairing. That lemma transports along `e`
   (`isLagrangian_map_transport_iff`), applies Tau Ceti's
   `isLagrangian_graph_iff_of_pairing`, and recognizes the resulting
   condition as Mathlib's `Matrix.isSymm_toBilin'_iff_isSymm`. Neither is
@@ -370,8 +374,9 @@ Lagrangian frames on `StdSpace ι`, pure linear algebra. Namespace
     `StdSpace.exists_eq_graphY_of_isCompl_ker_y`: any subspace `L`
     complementary to `LinearMap.ker StdSpace.x` (resp. `StdSpace.y`) is
     `graph A` (resp. `graphY A`) for some `A`. These are the converses of
-    `isCompl_graph_ker_x` and `isCompl_graphY_ker_y`. The projection to `x`
-    (resp. `y`) is bijective on `L`: its kernel on `L` is zero, and `L` plus
+    `isCompl_graph_ker_x` and `isCompl_graphY_ker_y`. The second is the first
+    transported along `swap`, as above. For the first, the projection to `x`
+    is bijective on `L`: its kernel on `L` is zero, and `L` plus
     the kernel is everything. So Mathlib's `Submodule.exists_eq_graph`
     applies to the image of `L` in `(ι → ℝ) × (ι → ℝ)`, and
     `Submodule.map_symm_eq_iff` brings the graph back to `StdSpace ι`.
