@@ -25,7 +25,9 @@ crossing-form formula for the Maslov index needs.
 ## Main definitions
 
 * `SymplecticGeometry.lagrangianCrossingForm Z Z' V`: the quadratic form
-  `u ↦ ω₀(Z u, Z' u)` on `V.comap (toEuclideanLin Z)`.
+  `u ↦ ω₀(Z u, Z' u)` on `V.comap (toEuclideanLin Z)`; it is homogeneous in `Z'`
+  (`lagrangianCrossingForm_smul`) and vanishes where the image of `Z` meets `V` only in `0`
+  (`lagrangianCrossingForm_eq_zero_of_inf_eq_bot`).
 
 ## Main results
 
@@ -98,6 +100,23 @@ theorem lagrangianCrossingForm_apply (Z Z' : Matrix (ι ⊕ ι) ι ℝ) (V : Sub
     lagrangianCrossingForm Z Z' V u =
       stdForm ι (toEuclideanLin Z (u : EuclideanSpace ℝ ι)) (toEuclideanLin Z' u) := by
   simp [lagrangianCrossingForm_def]
+
+/-- The crossing form is linear in the derivative: scaling `Z'` by `c` scales the form by `c`. -/
+theorem lagrangianCrossingForm_smul (Z Z' : Matrix (ι ⊕ ι) ι ℝ) (c : ℝ)
+    (V : Submodule ℝ (StdSpace ι)) :
+    lagrangianCrossingForm Z (c • Z') V = c • lagrangianCrossingForm Z Z' V := by
+  ext u
+  simp
+
+/-- Away from a crossing, where the image of `Z` meets `V` only in `0`, the crossing form is
+zero: its vectors `u` have `Z u = 0`. -/
+theorem lagrangianCrossingForm_eq_zero_of_inf_eq_bot {Z : Matrix (ι ⊕ ι) ι ℝ}
+    {V : Submodule ℝ (StdSpace ι)} (h : LinearMap.range (toEuclideanLin Z) ⊓ V = ⊥)
+    (Z' : Matrix (ι ⊕ ι) ι ℝ) : lagrangianCrossingForm Z Z' V = 0 := by
+  ext u
+  have hu : toEuclideanLin Z (u : EuclideanSpace ℝ ι) = 0 :=
+    (Submodule.mem_bot ℝ).1 (h ▸ ⟨⟨_, rfl⟩, u.property⟩)
+  simp [hu]
 
 /-- Relative to the vertical Lagrangian `{x = 0}`, where `X u = 0`, the crossing form of the
 frame `fromRows X Y` and of `fromRows X' Y'` is `u ↦ -⟪Y u, X' u⟫`. -/

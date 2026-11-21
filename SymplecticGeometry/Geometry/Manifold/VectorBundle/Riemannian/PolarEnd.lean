@@ -14,7 +14,7 @@ public import SymplecticGeometry.Topology.VectorBundle.Coordinates
 public import TauCeti.Topology.VectorBundle.Coordinates
 
 /-!
-# The polar formula on the bundle of bilinear forms
+# The polar formula on the bundles of bilinear forms and of endomorphisms
 
 Let `g` be a bundle metric on a real vector bundle `V → M` of finite rank. For a continuous
 bilinear form `σ` on a fibre `V x` whose skew part is nondegenerate, this file defines the
@@ -26,6 +26,12 @@ on the open set where it is defined. At the flat map of a nondegenerate two-form
 complex structure `J_{g,ω}` of the bundle, which is built from it in
 `SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.ComplexStructure.Basic`.
 
+For an endomorphism `B` of `V x`, it then defines the alternating form
+`(u, v) ↦ (g(B u, v) - g(u, B v)) / 2` and the endomorphism `J_{g,ω_{g,B}}` of `V x` obtained by
+applying the polar formula to it, and shows that the latter is a `Cⁿ` map from the endomorphism
+bundle to itself on the open set where it is defined. At the value `B = J x` of a complex
+structure, the form is the flat map of `ω_{g,J}`.
+
 ## Main definitions
 
 * `Bundle.polarFormulaDomain F V`: the points `(x, σ)` of the bundle of bilinear forms where the
@@ -33,6 +39,11 @@ complex structure `J_{g,ω}` of the bundle, which is built from it in
 * `Bundle.euclideanEquivAt F V x`: the equivalence of `V x` with a Euclidean space given by the
   trivialization at `x`.
 * `Bundle.ContMDiffRiemannianMetric.polarFormulaAt g x σ`: the endomorphism `J_{g,σ}` of `V x`.
+* `Bundle.ContMDiffRiemannianMetric.compatibleBilinAt g x B`: the form
+  `(u, v) ↦ (g(B u, v) - g(u, B v)) / 2` on `V x`, for an endomorphism `B` of `V x`.
+* `Bundle.ContMDiffRiemannianMetric.polarEndDomain g`: the points `(x, B)` of the endomorphism
+  bundle where `compatibleBilinAt g x B` is nondegenerate.
+* `Bundle.ContMDiffRiemannianMetric.polarEndAt g x B`: the endomorphism `J_{g,ω_{g,B}}` of `V x`.
 
 ## Main results
 
@@ -44,6 +55,11 @@ complex structure `J_{g,ω}` of the bundle, which is built from it in
   map `(x, σ) ↦ (x, J_{g,σ})` is `Cⁿ` on the domain.
 * `Bundle.ContMDiffRiemannianMetric.exists_continuousLinearEquiv_inner_eq`: each fibre of a
   bundle metric of finite rank is isometric to a Euclidean space.
+* `Bundle.ContMDiffRiemannianMetric.contMDiff_compatibleBilinAt`: for a metric of class `Cⁿ`, the
+  map `(x, B) ↦ (x, compatibleBilinAt g x B)` is `Cⁿ`.
+* `Bundle.ContMDiffRiemannianMetric.isOpen_polarEndDomain` and
+  `Bundle.ContMDiffRiemannianMetric.contMDiffOn_polarEndAt`: in finite rank, `polarEndDomain g` is
+  open, and for a metric of class `Cⁿ` the map `(x, B) ↦ (x, J_{g,ω_{g,B}})` is `Cⁿ` on it.
 
 ## Implementation notes
 
@@ -58,6 +74,12 @@ total space instead of a fixed section, and the formula is smooth by
 `TauCeti.contDiffOn_metricPolarFormula`. The domain is open by
 `FiberBundle.isOpen_of_forall_mem_iff_snd_mem`, since each trivialization reads it as the open
 set `ContinuousLinearMap.isOpen_setOf_nondegenerate_toBilinForm_sub_flip` of the model fibre.
+
+The form `compatibleBilinAt g x B` is built from `(g x).comp B` and Mathlib's
+`ContinuousLinearMap.precomp`, so that the fibres need no norm. In a trivialization it reads as
+a fixed expression in the readings of `g` and of `B`, which gives `contMDiff_compatibleBilinAt`;
+`polarEndDomain g` and `polarEndAt g` are then `polarFormulaDomain F V` and `polarFormulaAt g`
+pulled back along it.
 
 ## References
 
@@ -278,6 +300,126 @@ theorem contMDiffOn_polarFormulaAt :
     g.polarFormulaAt_eq_conj hq.2 (E q hq.1), ← hC q hq.1, ← hC q hq.1]
   ext v
   simp [E, Ts, e₀, G, S, gC, sC, Trivialization.apply_mk_symm _ hq.1]
+
+end ContMDiffRiemannianMetric
+
+/-! ### The polar formula on the endomorphism bundle -/
+
+namespace ContMDiffRiemannianMetric
+
+variable {n : WithTop ℕ∞} (g : ContMDiffRiemannianMetric I n F V)
+
+/-- The continuous bilinear form `(u, v) ↦ (g(B u, v) - g(u, B v)) / 2` on the fibre `V x`, for a
+bundle metric `g` and an endomorphism `B` of `V x`. -/
+def compatibleBilinAt (x : M) (B : V x →L[ℝ] V x) : V x →L[ℝ] V x →L[ℝ] ℝ :=
+  (2 : ℝ)⁻¹ • ((g.inner x).comp B - (ContinuousLinearMap.precomp ℝ B).comp (g.inner x))
+
+theorem compatibleBilinAt_def (x : M) (B : V x →L[ℝ] V x) :
+    g.compatibleBilinAt x B =
+      (2 : ℝ)⁻¹ • ((g.inner x).comp B - (ContinuousLinearMap.precomp ℝ B).comp (g.inner x)) :=
+  (rfl)
+
+@[simp]
+theorem compatibleBilinAt_apply (x : M) (B : V x →L[ℝ] V x) (u v : V x) :
+    g.compatibleBilinAt x B u v = (2 : ℝ)⁻¹ * (g.inner x (B u) v - g.inner x u (B v)) := by
+  simp [compatibleBilinAt_def]
+
+/-- The form `compatibleBilinAt g x B` is alternating. -/
+theorem isAlt_compatibleBilinAt (x : M) (B : V x →L[ℝ] V x) :
+    (g.compatibleBilinAt x B).toBilinForm.IsAlt := fun u ↦ by
+  simp [g.symm x (B u) u]
+
+theorem compatibleBilinAt_add [∀ x, ContinuousAdd (V x)] (x : M) (B C : V x →L[ℝ] V x) :
+    g.compatibleBilinAt x (B + C) = g.compatibleBilinAt x B + g.compatibleBilinAt x C := by
+  ext u v
+  simp only [compatibleBilinAt_apply, add_apply, map_add]
+  ring
+
+theorem compatibleBilinAt_smul [∀ x, ContinuousConstSMul ℝ (V x)] (x : M) (c : ℝ)
+    (B : V x →L[ℝ] V x) :
+    g.compatibleBilinAt x (c • B) = c • g.compatibleBilinAt x B := by
+  ext u v
+  simp only [compatibleBilinAt_apply, smul_apply, map_smul, smul_eq_mul]
+  ring
+
+/-- For a metric of class `Cⁿ`, the map `(x, B) ↦ (x, compatibleBilinAt g x B)` from the
+endomorphism bundle to the bundle of bilinear forms is `Cⁿ`. -/
+theorem contMDiff_compatibleBilinAt [∀ x, IsTopologicalAddGroup (V x)]
+    [∀ x, ContinuousSMul ℝ (V x)] :
+    ContMDiff (I.prod 𝓘(ℝ, F →L[ℝ] F)) (I.prod 𝓘(ℝ, F →L[ℝ] F →L[ℝ] ℝ)) n
+      (fun q : TotalSpace (F →L[ℝ] F) (fun x ↦ V x →L[ℝ] V x) ↦
+        TotalSpace.mk' (F →L[ℝ] F →L[ℝ] ℝ) (E := fun x ↦ V x →L[ℝ] V x →L[ℝ] ℝ) q.proj
+          (g.compatibleBilinAt q.proj q.snd)) := by
+  intro q₀
+  rw [contMDiffAt_hom_bundle]
+  refine ⟨contMDiffAt_proj _, ?_⟩
+  set x₀ := q₀.proj
+  let e₀ := trivializationAt F V x₀
+  -- The readings of the metric and of the endomorphism in the trivialization at `x₀`.
+  let gC (q : TotalSpace (F →L[ℝ] F) (fun x ↦ V x →L[ℝ] V x)) :=
+    ContinuousLinearMap.inCoordinates F V (F →L[ℝ] ℝ) (fun y ↦ V y →L[ℝ] Trivial M ℝ y)
+      x₀ q.proj x₀ q.proj (g.inner q.proj)
+  let bC (q : TotalSpace (F →L[ℝ] F) (fun x ↦ V x →L[ℝ] V x)) :=
+    ContinuousLinearMap.inCoordinates F V F V x₀ q.proj x₀ q.proj q.snd
+  have hgC : ContMDiffAt (I.prod 𝓘(ℝ, F →L[ℝ] F)) 𝓘(ℝ, F →L[ℝ] F →L[ℝ] ℝ) n gC q₀ :=
+    ((contMDiffAt_hom_bundle (fun q : TotalSpace (F →L[ℝ] F)
+      (fun x ↦ V x →L[ℝ] V x) ↦ TotalSpace.mk' (F →L[ℝ] F →L[ℝ] ℝ)
+        (E := fun x ↦ V x →L[ℝ] V x →L[ℝ] ℝ) q.proj (g.inner q.proj))).1
+      ((g.contMDiff q₀.proj).comp q₀ (contMDiffAt_proj _))).2
+  have hbC : ContMDiffAt (I.prod 𝓘(ℝ, F →L[ℝ] F)) 𝓘(ℝ, F →L[ℝ] F) n bC q₀ :=
+    ((contMDiffAt_hom_bundle (fun q ↦ q)).1 contMDiffAt_id).2
+  have hd : ContDiff ℝ n fun p : (F →L[ℝ] F →L[ℝ] ℝ) × (F →L[ℝ] F →L[ℝ] ℝ) ↦
+      (2 : ℝ)⁻¹ • (p.1 - p.2) :=
+    (contDiff_fst.sub contDiff_snd).const_smul _
+  refine (hd.comp_contMDiffAt ((hgC.clm_comp hbC).prodMk_space
+    (hbC.clm_precomp.clm_comp hgC))).congr_of_eventuallyEq ?_
+  filter_upwards [(FiberBundle.continuous_proj _ _).continuousAt.preimage_mem_nhds
+    (e₀.open_baseSet.mem_nhds (FiberBundle.mem_baseSet_trivializationAt' x₀))] with q hq
+  ext u v
+  simp [gC, bC, e₀, ContinuousLinearMap.inCoordinates_eq_arrowCongr_arrowCongr hq,
+    ContinuousLinearMap.inCoordinates_eq_conjContinuousAlgEquiv hq,
+    Trivialization.symm_apply_apply_mk _ hq]
+
+/-- The points `(x, B)` of the endomorphism bundle at which the form `compatibleBilinAt g x B` is
+nondegenerate: the preimage of `Bundle.polarFormulaDomain F V` under `compatibleBilinAt g`. -/
+def polarEndDomain : Set (TotalSpace (F →L[ℝ] F) fun x ↦ V x →L[ℝ] V x) :=
+  {q | (⟨q.proj, g.compatibleBilinAt q.proj q.snd⟩ :
+    TotalSpace (F →L[ℝ] F →L[ℝ] ℝ) fun x ↦ V x →L[ℝ] V x →L[ℝ] ℝ) ∈ polarFormulaDomain F V}
+
+@[simp]
+theorem mem_polarEndDomain_iff {q : TotalSpace (F →L[ℝ] F) fun x ↦ V x →L[ℝ] V x} :
+    q ∈ g.polarEndDomain ↔
+      ((g.compatibleBilinAt q.proj q.snd).toBilinForm -
+        (g.compatibleBilinAt q.proj q.snd).toBilinForm.flip).Nondegenerate :=
+  Iff.rfl
+
+/-- In finite rank, the set `polarEndDomain g` is open in the endomorphism bundle. -/
+theorem isOpen_polarEndDomain [FiniteDimensional ℝ F] [∀ x, IsTopologicalAddGroup (V x)]
+    [∀ x, ContinuousSMul ℝ (V x)] : IsOpen g.polarEndDomain :=
+  isOpen_polarFormulaDomain.preimage g.contMDiff_compatibleBilinAt.continuous
+
+variable [FiniteDimensional ℝ F] [∀ x, IsTopologicalAddGroup (V x)] [∀ x, ContinuousSMul ℝ (V x)]
+
+/-- The endomorphism `J_{g,ω_{g,B}}` of the fibre `V x`, for an endomorphism `B` of `V x`: the
+polar formula `polarFormulaAt g x` at the form `compatibleBilinAt g x B`. -/
+def polarEndAt (x : M) (B : V x →L[ℝ] V x) : V x →L[ℝ] V x :=
+  g.polarFormulaAt x (g.compatibleBilinAt x B)
+
+theorem polarEndAt_def (x : M) (B : V x →L[ℝ] V x) :
+    g.polarEndAt x B = g.polarFormulaAt x (g.compatibleBilinAt x B) :=
+  (rfl)
+
+/-- For a metric of class `Cⁿ`, the map `(x, B) ↦ (x, polarEndAt g x B)` of the endomorphism
+bundle to itself is `Cⁿ` on `polarEndDomain g`. -/
+theorem contMDiffOn_polarEndAt :
+    ContMDiffOn (I.prod 𝓘(ℝ, F →L[ℝ] F)) (I.prod 𝓘(ℝ, F →L[ℝ] F)) n
+      (fun q : TotalSpace (F →L[ℝ] F) (fun x ↦ V x →L[ℝ] V x) ↦
+        TotalSpace.mk' (F →L[ℝ] F) (E := fun x ↦ V x →L[ℝ] V x) q.proj
+          (g.polarEndAt q.proj q.snd))
+      g.polarEndDomain := by
+  simp only [polarEndAt_def]
+  exact g.contMDiffOn_polarFormulaAt.comp g.contMDiff_compatibleBilinAt.contMDiffOn
+    fun _ hq ↦ hq
 
 end ContMDiffRiemannianMetric
 
