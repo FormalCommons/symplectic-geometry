@@ -107,28 +107,33 @@ global name.
    anyway, since the milestone asks for it, and $\mathrm{U}(n)\subset\mathrm{Sp}(2n)$
    through `TauCeti.GLSymplectic.ofUnitary`. That gives
    $\mathrm{Sp}$-transitivity directly, so Witt's theorem is not used.
-8. **Comparison with `DESIGN.md` §6.** Every file in §6's list on `main`
-   (after #67 and #75) is kept, with the content §6 gives it: the type in
-   `LinearAlgebra/Symplectic/Lagrangian/Basic.lean` and its topology in
+8. **Comparison with `DESIGN.md`.** Every file in §6's list on `main`
+   (after #67, #75 and #101) is kept, with the content §6 gives it: the type
+   in `LinearAlgebra/Symplectic/Lagrangian/Basic.lean` and its topology in
    `Topology/Grassmannian/Lagrangian/Basic.lean`, `Frame.lean` with both
-   graph statements, `Action.lean` and `Transverse.lean` under
-   `LinearAlgebra/Symplectic/Lagrangian/`, `Quotient.lean`, `Graph.lean`
-   with both graph charts, the manifold file,
+   graph statements, `Action.lean`, `Transverse.lean` and `Sum.lean` (the
+   sum, the reindexing equivalence, their unitary frames and the
+   equivariance) under `LinearAlgebra/Symplectic/Lagrangian/`,
+   `Quotient.lean`, `Graph.lean` with both graph charts, the manifold file,
    `LinearAlgebra/TotallyReal/Euclidean.lean` with the range of
    `Matrix.lagrangianChart` and the example showing isotropy is needed,
-   `Fibration.lean` and `Sum.lean`. One statement moves within the part:
+   `Fibration.lean`, and `Topology/Grassmannian/Lagrangian/Sum.lean` with
+   only the continuity of the sum and the reindexing homeomorphism. The
+   direct sum of standard spaces is §1's `StdSpace.sumEquiv`, used as §1
+   states it (after #63). One statement moves within the part:
    complementary iff disjoint, which §6 puts in `Transverse.lean`, is
    `isCompl_iff_disjoint` in `LinearAlgebra/Symplectic/Lagrangian/Basic.lean`,
    since it holds for a general `ω` and `Transverse.lean` is about
-   `StdSpace ι`. The other departures are #79's, the issue that changes §6
-   to match: `Topology/Grassmannian/Lagrangian/Finite.lean`; the general files
-   outside the part's folders (the real points of the unitary group, the
-   complex frame facts and the dimension of the space of symmetric matrices
-   under `LinearAlgebra/Matrix/`, and the direct sum of standard spaces in
-   part 1's folder); the route to transitivity of decision 7; and dropping
-   `Matrix.lagrangianChartCLE`, which this design does not use. The chart
-   file keeps §6's name `Graph.lean`, so the `Chart.lean` item that #79
-   lists lapses; #79 says to follow the design as merged.
+   `StdSpace ι`. A definition and a lemma about `StdSpace ι` alone are added to part 1's
+   `Standard/Basic.lean` (see that section). The other departures are #79's,
+   the issue that changes §6 to match: `Topology/Grassmannian/Lagrangian/Finite.lean`;
+   the general files under `LinearAlgebra/Matrix/` (the real points of the
+   unitary group, the complex frame facts and the dimension of the space of
+   symmetric matrices); the route to transitivity of decision 7; and
+   dropping `Matrix.lagrangianChartCLE`, which this design does not use.
+   Two items of #79's list have lapsed: `Standard/Sum.lean`, which §1's
+   `StdSpace.sumEquiv` replaces, and `Chart.lean`, since the chart file
+   keeps §6's name `Graph.lean`. #79 says to follow the design as merged.
 
    This file does not edit `DESIGN.md`.
 9. **Dimension zero.** For `ι` empty, `StdSpace ι` is zero, `ℒ ι` has one
@@ -176,19 +181,51 @@ Tau Ceti's `Matrix.map_im_conjTranspose_mul_self_mul_map_ofReal`
 
 ### `LinearAlgebra/Matrix/SelfAdjoint.lean`
 
-- `Matrix.finrank_selfAdjoint : Module.finrank ℝ (selfAdjoint (Matrix ι ι ℝ)) =
-  Fintype.card ι * (Fintype.card ι + 1) / 2`. Tau Ceti has the same count as
-  `finrank_symmetricMatrix`, but in
-  `MeasureTheory/Measure/SymmetricMatrix/Basic.lean`, which imports Haar
-  measure; this file does not import it, and stays within linear algebra.
-  The proof is a linear equivalence
-  `Matrix.selfAdjointEquivSym2 : selfAdjoint (Matrix ι ι ℝ) ≃ₗ[ℝ] (Sym2 ι → ℝ)`,
-  sending `S` to `Sym2.lift ⟨fun i j ↦ S i j, _⟩` (well defined since `S` is
-  symmetric), with inverse `f ↦ of fun i j ↦ f s(i, j)`. Then
-  `Module.finrank_fintype_fun_eq_card`, Mathlib's `Sym2.card`
-  (`Mathlib/Data/Sym/Card.lean`) and `Nat.choose_two_right` give the count.
-  API: `selfAdjointEquivSym2_apply` and `selfAdjointEquivSym2_symm_apply`
-  (`@[simp]`).
+- `Matrix.finrank_selfAdjoint`, for a commutative ring `R` with trivial star
+  (`[CommRing R] [StarRing R] [TrivialStar R]`), a finite `ι` and decidable
+  equality: `Module.finrank R (selfAdjoint (Matrix ι ι R)) =
+  Fintype.card ι * (Fintype.card ι + 1) / 2`. Tau Ceti already counts the
+  symmetric bilinear forms on a finite free module,
+  `LinearMap.BilinForm.finrank_symmSubmodule`
+  (`LinearAlgebra/BilinearForm/Symmetric.lean`, which imports no measure
+  theory), so the proof carries that count over. Mathlib's
+  `LinearMap.BilinForm.toMatrix'` restricts to a linear equivalence from
+  `LinearMap.BilinForm.symmSubmodule R (ι → R)` onto
+  `selfAdjoint (Matrix ι ι R)`, by
+  `LinearMap.BilinForm.isSymm_toMatrix'_iff_isSymm` and
+  `Matrix.isHermitian_iff_isSymm`; this equivalence stays inside the proof.
+  `LinearEquiv.finrank_eq` and `Module.finrank_fintype_fun_eq_card` finish
+  it. The file adds no definition. The milestone uses the case `R = ℝ`.
+
+### Additions to *Standard model*'s `LinearAlgebra/Symplectic/Standard/Basic.lean`
+
+Two declarations about `StdSpace ι` alone, which this part needs and part 1
+lacks. They go beside `x_complexToRealEuclidean`, in the namespace
+`SymplecticGeometry.StdSpace`, so that other parts find them there.
+
+- `StdSpace.complexEuclideanEquiv ι : EuclideanSpace ℂ ι ≃L[ℝ] StdSpace ι`,
+  the composite of `(EuclideanSpace.equiv ι ℂ).restrictScalars ℝ` and
+  `complexToRealEuclidean ι`. It is how this part compares its subspaces of
+  `StdSpace ι` with Tau Ceti's subspaces of `EuclideanSpace ℂ ι`. API:
+  `complexEuclideanEquiv_def`, and the `@[simp]` lemmas
+  `x_complexEuclideanEquiv : (complexEuclideanEquiv ι v).x = fun i ↦ (v i).re`
+  and `y_complexEuclideanEquiv : (complexEuclideanEquiv ι v).y = fun i ↦ (v i).im`,
+  from `x_complexToRealEuclidean` and `y_complexToRealEuclidean`. Building
+  issue 3 adds it.
+- `isSymplectomorphism_piLpCongrLeft_sumCongr (e : ι ≃ κ)`: the coordinate
+  permutation `LinearIsometryEquiv.piLpCongrLeft 2 ℝ ℝ (e.sumCongr e)`
+  carries `stdForm ι` to `stdForm κ`, by `stdForm_apply`. Building issue 11
+  adds it.
+
+The direct sum of two models is §1's `StdSpace.sumEquiv ι κ : StdSpace (ι ⊕ κ)
+≃L[ℝ] StdSpace ι × StdSpace κ`, in this same file, with its lemma that it
+carries `stdForm (ι ⊕ κ)` to `(stdForm ι).prod (stdForm κ)`, and its lemma
+in `Standard/Matrix.lean` that it conjugates
+`Matrix.toEuclideanLin (Matrix.symplecticSum A B)` to the product of the
+maps of `A` and `B`. `DESIGN.md` gives its construction to the first
+direct-sum issue of *Symplectic vector bundles*. If building issue 11 of
+this part starts first, issue 11 builds it, exactly as §1 states it, in
+those two files, and the bundle issue then uses it.
 
 ### `LinearAlgebra/Symplectic/Lagrangian/Basic.lean`
 
@@ -227,17 +264,16 @@ Lagrangian frames on `StdSpace ι`, pure linear algebra. Namespace
   `StdSpace.isCompl_graphY_ker_y : IsCompl (graphY A) (LinearMap.ker StdSpace.y)`.
   Every `z` is `(z.x, A z.x) + (0, z.y - A z.x)`, and a vector of the graph
   with `x = 0` is zero.
-- The comparison with Tau Ceti's complex picture. Write
-  `e := ((EuclideanSpace.equiv ι ℂ).toLinearEquiv.restrictScalars ℝ).trans
-  (complexToRealEuclidean ι).toLinearEquiv`, from `EuclideanSpace ℂ ι` to
-  `StdSpace ι`. Then `StdSpace.map_realSubspace :
-  (TauCeti.realSubspace ι).map e = LinearMap.ker StdSpace.y` and
+- The comparison with Tau Ceti's complex picture, through
+  `StdSpace.complexEuclideanEquiv ι` (written `ε` here). Then
+  `StdSpace.map_realSubspace :
+  (TauCeti.realSubspace ι).map ε = LinearMap.ker StdSpace.y` and
   `StdSpace.map_lagrangianChart (S : Matrix ι ι ℝ) :
-  (Matrix.lagrangianChart S).map e = StdSpace.graphY S`, both from
-  `x_complexToRealEuclidean`, `y_complexToRealEuclidean` and Tau Ceti's
+  (Matrix.lagrangianChart S).map ε = StdSpace.graphY S`, both from
+  `x_complexEuclideanEquiv`, `y_complexEuclideanEquiv` and Tau Ceti's
   `Matrix.mem_lagrangianChart`. Also
   `stdForm_apply_eq_im_inner (v w : EuclideanSpace ℂ ι) :
-  stdForm ι (e v) (e w) = (inner ℂ v w).im`, from `stdForm_apply` and
+  stdForm ι (ε v) (ε w) = (inner ℂ v w).im`, from `stdForm_apply` and
   `PiLp.inner_apply`.
 - `isLagrangian_range_fromRows_iff (X Y : Matrix ι ι ℝ) :
   (stdForm ι).IsLagrangian (LinearMap.range (Matrix.toEuclideanLin (Matrix.fromRows X Y)))
@@ -316,7 +352,7 @@ unitary action to Tau Ceti's `Matrix.realImage`.
   - `unitaryFrame_def`;
   - `coe_unitaryFrame`: the range of
     `toEuclideanLin (fromRows (U.map re) (U.map im))`, which is the image
-    of `Matrix.realImage U` under `e` (`Frame.lean`). Both come from
+    of `Matrix.realImage U` under `StdSpace.complexEuclideanEquiv ι`. Both come from
     `coe_ofUnitary` and `conj_complexToRealEuclidean_toLin'`: the columns
     of `realify U` indexed by `inl` are `fromRows (U.map re) (U.map im)`;
   - `unitaryFrame_one` and `unitaryFrame_mul` (both `@[simp]`):
@@ -339,17 +375,22 @@ unitary action to Tau Ceti's `Matrix.realImage`.
 
 Chart points and transverse pairs, as algebra: G7–G9.
 
-- `ℒ.lagrangianChart (S : selfAdjoint (Matrix ι ι ℝ)) : ℒ ι`, whose
-  submodule is `StdSpace.graphY S` (`coe_lagrangianChart`). API:
-  `mem_lagrangianChart_iff` (`@[simp]`); `coe_lagrangianChart_eq_map`, the
-  image of Tau Ceti's `Matrix.lagrangianChart S` under `e`, which is
-  `StdSpace.map_lagrangianChart`; `lagrangianChart_injective`;
-  `lagrangianChart_zero`, which is the vertical subspace; and
-  `lagrangianChart_eq_unitaryFrame`, saying
-  `lagrangianChart S = unitaryFrame ⟨realOrthonormalize (S + i·1), _⟩`. The
+- `ℒ.graphY (S : selfAdjoint (Matrix ι ι ℝ)) : ℒ ι`, whose submodule is
+  `StdSpace.graphY S` (`coe_graphY`): the points of the basic chart. API:
+  `mem_graphY_iff` (`@[simp]`); `coe_graphY_eq_map`, the image of Tau
+  Ceti's `Matrix.lagrangianChart S` under `complexEuclideanEquiv ι`, which
+  is `StdSpace.map_lagrangianChart`; `graphY_injective`; `graphY_zero`,
+  which is the vertical subspace; and `graphY_eq_unitaryFrame`, saying
+  `graphY S = unitaryFrame ⟨realOrthonormalize (S + i·1), _⟩`. The
   unitary proof is `realOrthonormalize_mem_unitaryGroup`, whose hypothesis
   holds since $(S+i)^*(S+i)=S^2+1$ is real; the equality is Tau Ceti's
   `det_lagrangianChartFrame_ne_zero` and `realImage_realOrthonormalize`.
+- `ℒ.graph (S : selfAdjoint (Matrix ι ι ℝ)) : ℒ ι`, whose submodule is
+  `StdSpace.graph S` (`coe_graph`): the points of the second chart.
+  API: `mem_graph_iff` (`@[simp]`), `graph_injective`,
+  `graph_zero` (the horizontal subspace), and
+  `symJ_smul_graph : symJ ι ℝ • graph S = graphY (-S)`
+  (from `map_symJ_graph`).
 - The two transverse-chart facts, in the same form:
   - `ℒ.isCompl_horizontal_iff : IsCompl (Λ : Submodule ℝ _) (horizontal ι) ↔
     ∃ S, S.IsSymm ∧ (Λ : Submodule ℝ _) = StdSpace.graphY S`;
@@ -357,21 +398,16 @@ Chart points and transverse pairs, as algebra: G7–G9.
     ∃ S, S.IsSymm ∧ (Λ : Submodule ℝ _) = StdSpace.graph S`.
 
   The forward directions are `exists_eq_graphY_of_isCompl` and
-  `exists_eq_graph_of_isCompl`. The corollary
-  `ℒ.range_lagrangianChart : Set.range lagrangianChart =
-  {Λ | IsCompl (Λ : Submodule ℝ _) (horizontal ι)}` is the source of the
-  basic graph chart.
-- `ℒ.graphPoint (S : selfAdjoint (Matrix ι ι ℝ)) : ℒ ι`, whose submodule is
-  `StdSpace.graph S` (`coe_graphPoint`): the points of the second chart.
-  API: `mem_graphPoint_iff` (`@[simp]`), `graphPoint_injective`,
-  `graphPoint_zero` (the horizontal subspace),
-  `symJ_smul_graphPoint : symJ ι ℝ • graphPoint S = lagrangianChart (-S)`
-  (from `map_symJ_graph`), and `ℒ.range_graphPoint : Set.range graphPoint =
-  {Λ | IsCompl (Λ : Submodule ℝ _) (vertical ι)}`.
+  `exists_eq_graph_of_isCompl`. Their corollaries
+  `ℒ.range_graphY : Set.range graphY =
+  {Λ | IsCompl (Λ : Submodule ℝ _) (horizontal ι)}` and
+  `ℒ.range_graph : Set.range graph =
+  {Λ | IsCompl (Λ : Submodule ℝ _) (vertical ι)}` are the sources of the
+  two graph charts.
 - `ℒ.exists_isCompl_isCompl (Λ Λ' : ℒ ι) :
   ∃ Λ'' : ℒ ι, IsCompl (Λ'' : Submodule ℝ _) Λ ∧ IsCompl (Λ'' : Submodule ℝ _) Λ'`.
   Move `Λ` to the horizontal subspace by a unitary matrix, and write
-  `Λ' = unitaryFrame (X + iY)`. The point `lagrangianChart (t • 1)` is
+  `Λ' = unitaryFrame (X + iY)`. The point `graphY ⟨t • 1, _⟩` is
   transverse to `Λ'` iff `det (X - t • Y) ≠ 0`. That determinant is a real
   polynomial in `t` whose value at `t = i` is $\det\overline{(X+iY)}\neq0$, so
   some real `t` is not a root.
@@ -379,7 +415,7 @@ Chart points and transverse pairs, as algebra: G7–G9.
   (h : IsCompl (Λ : Submodule ℝ _) Λ') :
   ∃ g : GLSymplectic ι ℝ, g • horizontal ι = Λ ∧ g • vertical ι = Λ'`.
   Move `Λ` to the horizontal subspace by a unitary matrix. Then `Λ'` is
-  `lagrangianChart S`, and the shear `fromBlocks 1 S 0 1`, symplectic by
+  `graphY S`, and the shear `fromBlocks 1 S 0 1`, symplectic by
   Tau Ceti's `SymplecticGroup.fromBlocks_upper_mem` since `S` is symmetric
   and lifted to `GLSymplectic ι ℝ` by
   `(TauCeti.GLSymplectic.mulEquivSymplecticGroup ι ℝ).symm`, fixes the
@@ -397,13 +433,13 @@ and `Matrix.lagrangianChart_inf_realSubspace`, in Tau Ceti's terms. Write
   (hiso : ∀ v ∈ V, ∀ w ∈ V, (inner ℂ v w).im = 0)
   (hreal : V ⊓ TauCeti.realSubspace n = ⊥) :
   ∃ S : Matrix n n ℝ, S.IsSymm ∧ V = S.lagrangianChart`.
-  Its image `V.map e` (`Frame.lean`) is isotropic for `stdForm` by
+  Its image `V.map (StdSpace.complexEuclideanEquiv n)` is isotropic for `stdForm` by
   `stdForm_apply_eq_im_inner`, and has dimension `n` by Tau Ceti's
   `IsMaximalTotallyReal.two_mul_finrank_eq` (`J` is injective), so it is
-  Lagrangian. It meets `LinearMap.ker StdSpace.y = (realSubspace n).map e`
+  Lagrangian. It meets `LinearMap.ker StdSpace.y = (realSubspace n).map (complexEuclideanEquiv n)`
   (`StdSpace.map_realSubspace`) only in zero, so the two are complementary
   by dimension. Then `exists_eq_graphY_of_isCompl` gives `S`, and
-  `StdSpace.map_lagrangianChart` with the injectivity of `Submodule.map e`
+  `StdSpace.map_lagrangianChart` with the injectivity of this map
   gives `V = S.lagrangianChart`.
 - The isotropy hypothesis is needed, and the file shows it by an `example`:
   for `n = Fin 2` and `S = !![0, 1; 0, 0]`, `det (S + i·1) = -1 ≠ 0`, so
@@ -479,26 +515,26 @@ The two graph charts of `DESIGN.md` §6, as partial homeomorphisms. The model
 is Tau Ceti's `Topology/Grassmannian/Graph.lean`, which does the same for
 `TauCeti.finiteGrassmannian`; the building issue credits it.
 
-- `ℒ.continuous_lagrangianChart`, from `lagrangianChart_eq_unitaryFrame`,
+- `ℒ.continuous_graphY`, from `graphY_eq_unitaryFrame`,
   `continuous_realOrthonormalize` and `continuous_unitaryFrame`.
 - `ℒ.isOpen_setOf_isCompl (Λ₀ : ℒ ι) : IsOpen {Λ : ℒ ι | IsCompl (Λ : Submodule ℝ _) Λ₀}`.
   For `Λ₀` horizontal, the preimage under `unitaryFrame` is
   `{U | det (U.map im) ≠ 0}`. Translate for general `Λ₀`.
 - `ℒ.graphYChart : OpenPartialHomeomorph (ℒ ι) (selfAdjoint (Matrix ι ι ℝ))`,
   the basic chart, with source `{Λ | IsCompl Λ (horizontal ι)}`
-  (`range_lagrangianChart`), target `univ`, and inverse `lagrangianChart`.
+  (`range_graphY`), target `univ`, and inverse `graphY`.
   API: `graphYChart_source`, `graphYChart_target`, `graphYChart_symm_apply`
-  and `graphYChart_lagrangianChart` (both `@[simp]`). Also
+  and `graphYChart_graphY` (both `@[simp]`). Also
   `coe_graphYChart_unitaryFrame`: on the source, the value at
   `unitaryFrame U` is $XY^{-1}$ for `X = U.map re` and `Y = U.map im`. This
   gives continuity on the source through the open quotient map.
 - `ℒ.graphChart : OpenPartialHomeomorph (ℒ ι) (selfAdjoint (Matrix ι ι ℝ))`,
   the chart on the Lagrangians transverse to the vertical subspace, with
-  source `{Λ | IsCompl Λ (vertical ι)}` (`range_graphPoint`), target
-  `univ`, and inverse `graphPoint`. It is the homeomorphism `symJ ι ℝ • ·`
+  source `{Λ | IsCompl Λ (vertical ι)}` (`range_graph`), target
+  `univ`, and inverse `graph`. It is the homeomorphism `symJ ι ℝ • ·`
   of `ℒ ι`, then `graphYChart`, then the homeomorphism `S ↦ -S`; this is
-  `symJ_smul_graphPoint`. API: `graphChart_source`, `graphChart_target`,
-  `graphChart_symm_apply` and `graphChart_graphPoint` (both `@[simp]`).
+  `symJ_smul_graph`. API: `graphChart_source`, `graphChart_target`,
+  `graphChart_symm_apply` and `graphChart_graph` (both `@[simp]`).
 
 ### `Topology/Grassmannian/Lagrangian/Fibration.lean`
 
@@ -525,44 +561,45 @@ built the same way; the building issue credits it.
   `TopCat.mem_serreFibrations_of_exists_trivialization`; with it Tau Ceti's
   `TopCat.exists_path_lift_of_mem_serreFibrations` lifts paths too.
 
-### `LinearAlgebra/Symplectic/Standard/Sum.lean`
+### `LinearAlgebra/Symplectic/Lagrangian/Sum.lean`
 
-The direct sum of standard spaces. It belongs with *Standard model*, but only
-this part uses it so far.
+Direct sum and reindexing as algebra (G5). Following §6, this file imports
+no `Topology/` file of this part.
 
-- `StdSpace.sumEquiv ι κ : StdSpace ι × StdSpace κ ≃ₗ[ℝ] StdSpace (ι ⊕ κ)`,
-  which regroups the coordinates by `Equiv.sumSumSumComm`, as Tau Ceti's
-  `Matrix.symplecticSum` does. API: `x` and `y` of `sumEquiv ι κ (z, w)`
-  (`@[simp]`); `isSymplectomorphism_sumEquiv` from
-  `(stdForm ι).prod (stdForm κ)` to `stdForm (ι ⊕ κ)`; and
-  `toEuclideanLin_symplecticSum`, which says that `sumEquiv` intertwines
-  `toEuclideanLin A × toEuclideanLin B` with
-  `toEuclideanLin (Matrix.symplecticSum A B)`.
-- `isSymplectomorphism_piLpCongrLeft_sumCongr (e : ι ≃ κ)`: the coordinate
-  permutation `LinearIsometryEquiv.piLpCongrLeft 2 ℝ ℝ (e.sumCongr e)`
-  carries `stdForm ι` to `stdForm κ`.
+- `ℒ.sum : ℒ ι × ℒ κ → ℒ (ι ⊕ κ)`, the image of `Λ.prod Λ'` under
+  `(StdSpace.sumEquiv ι κ).symm`. It is Lagrangian by Tau Ceti's
+  `IsLagrangian.prod` and `isLagrangian_map_transport_iff`, with §1's lemma
+  that `sumEquiv` carries `stdForm (ι ⊕ κ)` to the product form. API:
+  `coe_sum`, `mem_sum_iff` (`@[simp]`); `sum_horizontal` and `sum_vertical`
+  (`@[simp]`); `sum_graphY` (a block-diagonal chart value);
+  `sum_unitaryFrame`, whose value at `(unitaryFrame U, unitaryFrame U')` is
+  the frame of Tau Ceti's `Matrix.UnitaryGroup.sum (U, U')`
+  (`LinearAlgebra/Matrix/UnitaryGroup/Block.lean`), through
+  `Matrix.realify_fromBlocks_zero` (`@[simp]`); and `sum_smul`, with
+  `sum (g • Λ, h • Λ') = TauCeti.GLSymplectic.sum (g, h) • sum (Λ, Λ')`
+  (`LinearAlgebra/Matrix/GeneralLinearGroup/Symplectic/Sum.lean`), from
+  §1's matrix lemma for `sumEquiv` in `Standard/Matrix.lean`.
+- `ℒ.reindex (e : ι ≃ κ) : ℒ ι ≃ ℒ κ`, the image under
+  `LinearIsometryEquiv.piLpCongrLeft 2 ℝ ℝ (e.sumCongr e)`, which is
+  Lagrangian by `isSymplectomorphism_piLpCongrLeft_sumCongr`. API:
+  `coe_reindex`, `reindex_symm`, `reindex_trans`, `reindex_refl`;
+  `reindex_unitaryFrame : reindex e (unitaryFrame U) =
+  unitaryFrame ⟨(U : Matrix ι ι ℂ).submatrix e.symm e.symm, _⟩`, unitary by
+  Mathlib's `Matrix.submatrix_equiv_mem_unitary`; `reindex_horizontal` and
+  `reindex_vertical`.
 
 ### `Topology/Grassmannian/Lagrangian/Sum.lean`
 
-Direct sum and reindexing (G5).
+The topology of the direct sum and of reindexing.
 
-- `ℒ.sum : ℒ ι × ℒ κ → ℒ (ι ⊕ κ)`, the image of `Λ.prod Λ'` under
-  `sumEquiv`. It is Lagrangian by Tau Ceti's `IsLagrangian.prod` and
-  `isLagrangian_map_transport_iff`. API: `coe_sum`; `continuous_sum`, through
-  the open quotient map on both factors; `sum_unitaryFrame`, whose value at
-  `(unitaryFrame U, unitaryFrame U')` is the frame of
-  `Matrix.UnitaryGroup.sum (U, U')` (`@[simp]`); `sum_smul`, with
-  `sum (g • Λ, h • Λ') = TauCeti.GLSymplectic.sum (g, h) • sum (Λ, Λ')`;
-  `sum_horizontal` and `sum_vertical` (`@[simp]`); `sum_lagrangianChart`
-  (a block-diagonal chart value).
-- `ℒ.reindex (e : ι ≃ κ) : ℒ ι ≃ₜ ℒ κ`, the image under
-  `piLpCongrLeft 2 ℝ ℝ (e.sumCongr e)`. API: `coe_reindex`, `reindex_symm`,
-  `reindex_trans`, `reindex_refl`;
-  `reindex_unitaryFrame : reindex e (unitaryFrame U) =
-  unitaryFrame (Matrix.unitaryReindexContinuousMulEquiv ℂ e U)`, with Tau
-  Ceti's reindexing of unitary groups
-  (`Topology/Algebra/Matrix/UnitaryGroup.lean`); `reindex_horizontal` and
-  `reindex_vertical`.
+- `ℒ.continuous_sum`, through the open quotient map on both factors
+  (`isOpenQuotientMap_unitaryFrame`, Mathlib's `IsOpenQuotientMap.prodMap`),
+  `sum_unitaryFrame` and the continuity of `Matrix.UnitaryGroup.sum`.
+- `ℒ.reindexHomeomorph (e : ι ≃ κ) : ℒ ι ≃ₜ ℒ κ`, with underlying
+  equivalence `reindex e`, continuous both ways in the same way, by
+  `reindex_unitaryFrame` and the continuity of `Matrix.submatrix`. API:
+  `reindexHomeomorph_apply` and `reindexHomeomorph_symm` (`@[simp]`), and
+  `toEquiv_reindexHomeomorph`.
 
 ### `Geometry/Manifold/Instances/LagrangianGrassmannian.lean`
 
@@ -574,7 +611,7 @@ The manifold structure and the milestone.
   `U • vertical ι = Λ`. The basic
   chart is centred at the vertical subspace, so its translate by `U` contains
   `Λ`. The atlas is the set of all such translates. API:
-  `chartAt_symm_apply`, with `(chartAt _ Λ).symm S = U • lagrangianChart S`,
+  `chartAt_symm_apply`, with `(chartAt _ Λ).symm S = U • graphY S`,
   and `mem_chart_source`.
 - `instance : IsManifold 𝓘(ℝ, selfAdjoint (Matrix ι ι ℝ)) ∞ (ℒ ι)`. A
   transition map is `S ↦ (A S + B)(C S + D)⁻¹` for the blocks of a real
@@ -603,7 +640,7 @@ The manifold structure and the milestone.
         Fintype.card ι * (Fintype.card ι + 1) / 2 ∧
       ∀ Λ : ℒ ι, ∃ U : unitaryGroup ι ℂ, ∀ S,
         (chartAt (selfAdjoint (Matrix ι ι ℝ)) Λ).symm S =
-          TauCeti.GLSymplectic.ofUnitary U • ℒ.lagrangianChart S
+          TauCeti.GLSymplectic.ofUnitary U • ℒ.graphY S
   ```
 
   Its docstring ends with "Milestone: *Lagrangian frames and the Lagrangian
@@ -623,7 +660,8 @@ The manifold structure and the milestone.
   `isSymplectomorphism_sumEquivProd`, `x_complexToRealEuclidean`,
   `y_complexToRealEuclidean` (merged, #41); the matrix dictionary
   `mem_symplecticGroup_iff_forall_stdForm` and
-  `TauCeti.conj_complexToRealEuclidean_toLin'` (merged, #62).
+  `TauCeti.conj_complexToRealEuclidean_toLin'` (merged, #62); `StdSpace.sumEquiv`
+  with its two lemmas (planned by §1, built as in building issue 11).
 - *Symplectic subspaces* (merged, #64):
   `isLagrangian_iff_isIsotropic_and_two_mul_finrank_eq`.
 - Tau Ceti:
@@ -654,7 +692,7 @@ The manifold structure and the milestone.
     `Matrix.symplecticSum`, `Matrix.UnitaryGroup.sum`,
     `Matrix.UnitaryGroup.continuous_sum`, `GLOrthogonal`,
     `GLOrthogonal.inf_unitarySubgroup_eq_map_real`,
-    `Matrix.unitaryReindexContinuousMulEquiv`, the `CompactSpace` instance of
+    `Matrix.realify_fromBlocks_zero`, the `CompactSpace` instance of
     `unitaryGroup`.
   - Topology: `finiteGrassmannian`,
     `finiteGrassmannian.continuous_starProjection_toEuclidean`,
@@ -673,20 +711,24 @@ The manifold structure and the milestone.
   `Matrix.toEuclideanLin`, `EuclideanSpace.equiv`, `LinearMap.graph`,
   `LinearEquiv.prodComm`, `Submodule.toLinearPMap`,
   `Submodule.toLinearPMap_graph_eq`, `Submodule.existsUnique_from_graph`,
-  `Sym2.lift`, `Sym2.card`, `Nat.choose_two_right`,
+  `LinearMap.BilinForm.toMatrix'`,
+  `LinearMap.BilinForm.isSymm_toMatrix'_iff_isSymm`,
+  `Matrix.isHermitian_iff_isSymm`, `LinearEquiv.finrank_eq`,
   `Module.finrank_fintype_fun_eq_card`, `Homeomorph.Quotient.congrRight`,
   `MulAction.compHom`, `MulAction.exists_smul_eq`, `MulAction.stabilizer`,
   `unitarySubgroupUnitsEquiv`, `IsQuotientMap.continuous_iff`,
   `IsOpenQuotientMap.prodMap`, `Topology.IsInducing.of_comp`,
-  `LinearIsometryEquiv.piLpCongrLeft`, `contDiffAt_ringInverse`.
+  `LinearIsometryEquiv.piLpCongrLeft`, `Matrix.submatrix_equiv_mem_unitary`,
+  `Continuous.matrix_submatrix`, `contDiffAt_ringInverse`.
 
 Nothing here redefines a Mathlib or Tau Ceti notion. The new definitions are
 `LagrangianGrassmannian` with its topology, `realSubgroup` (Tau Ceti's
 $\mathrm{O}(n)\subset\mathrm{U}(n)$ carried from `GL ι ℂ` to
 `unitaryGroup ι ℂ`), `StdSpace.graph`, `StdSpace.graphY`,
-`StdSpace.sumEquiv`, `Matrix.selfAdjointEquivSym2`, the unitary action, and
-the maps `ofFrame`, `unitaryFrame`, `lagrangianChart`, `graphPoint`,
-`graphYChart`, `graphChart`, `sum`, `reindex` and `toFiniteGrassmannian`
+`StdSpace.complexEuclideanEquiv` (in part 1's file), the unitary action, and
+the maps `ofFrame`, `unitaryFrame`, `graphY`, `graph`, `graphYChart`,
+`graphChart`, `sum`, `reindex`, `reindexHomeomorph` and
+`toFiniteGrassmannian`
 on the new type. Tau Ceti has a
 `Matrix.lagrangianChart` on `EuclideanSpace ℂ ι`, but no space of Lagrangian
 subspaces, no topology on one, and no real graph on `StdSpace ι`. Each new
@@ -700,7 +742,7 @@ map comes with its comparison to Tau Ceti's object.
 | G2, unitary frames, $\mathrm{U}(n)/\mathrm{O}(n)$ | `ℒ.unitaryFrame`, `unitaryFrame_surjective`, `unitaryFrame_eq_unitaryFrame_iff`, `quotientHomeomorph`; continuity of maps out of `ℒ ι` by `isQuotientMap_unitaryFrame.continuous_iff` |
 | G3, path lifting | `hasHomotopyLiftingProperty_unitaryFrame` with Tau Ceti's `HasHomotopyLiftingProperty.exists_path_lift` |
 | G4, the action | the `MulAction` and `ContinuousSMul` instances, `unitaryFrame_mul` |
-| G5, sum and reindexing | `ℒ.sum`, `ℒ.reindex` and their compatibilities |
+| G5, sum and reindexing | `ℒ.sum`, `ℒ.reindex` and their compatibilities; `continuous_sum`, `ℒ.reindexHomeomorph` |
 | G6, frame criterion and spanned Lagrangian | `isLagrangian_range_fromRows_iff` (stated with `fromRows X Y` for the book's frame `Z`) and `ℒ.ofFrame` with `coe_ofFrame` |
 | G7, transverse charts | `ℒ.isCompl_horizontal_iff`, `ℒ.isCompl_vertical_iff`; as charts, `ℒ.graphYChart` and `ℒ.graphChart` |
 | G8, a Lagrangian transverse to two given ones | `ℒ.exists_isCompl_isCompl` |
@@ -717,7 +759,8 @@ merged.
 2. **The space of Lagrangian subspaces.** `LinearAlgebra/Symplectic/Lagrangian/Basic.lean`.
    About 150 lines. No blockers.
 3. **Lagrangian frames.** `LinearAlgebra/Matrix/OfReal.lean` and
-   `LinearAlgebra/Symplectic/Lagrangian/Frame.lean`: the complex frame facts,
+   `LinearAlgebra/Symplectic/Lagrangian/Frame.lean`, with
+   `StdSpace.complexEuclideanEquiv` in `Standard/Basic.lean`: the complex frame facts,
    `StdSpace.graph` and `StdSpace.graphY` with `isCompl_graph_ker_x` and
    `isCompl_graphY_ker_y`, the comparison `map_realSubspace`,
    `map_lagrangianChart` and `stdForm_apply_eq_im_inner`, the frame and
@@ -728,7 +771,7 @@ merged.
 5. **The actions and unitary frames.** `LinearAlgebra/Symplectic/Lagrangian/Action.lean`.
    About 300 lines. Blocked by 1 and 3.
 6. **Chart points and transverse pairs.** `LinearAlgebra/Symplectic/Lagrangian/Transverse.lean`:
-   `lagrangianChart`, `graphPoint`, the transverse-chart facts, and both
+   `graphY`, `graph`, the transverse-chart facts, and both
    transverse-pair results. About 350 lines. Blocked by 5.
 7. **The quotient topology.** `Topology/Grassmannian/Lagrangian/Quotient.lean`.
    About 300 lines. Blocked by 4 and 5.
@@ -738,19 +781,25 @@ merged.
    `graphYChart` and `graphChart`. About 300 lines. Blocked by 6 and 7.
 10. **Path lifting.** `Topology/Grassmannian/Lagrangian/Fibration.lean`.
     About 200 lines. Blocked by 9.
-11. **Direct sums and reindexing.** `LinearAlgebra/Symplectic/Standard/Sum.lean`
-    and `Topology/Grassmannian/Lagrangian/Sum.lean`. About 350 lines. Blocked
-    by 6 and 7.
-12. **The manifold structure and the milestone.**
+11. **Direct sums and reindexing, as algebra.**
+    `LinearAlgebra/Symplectic/Lagrangian/Sum.lean`: `ℒ.sum`, `ℒ.reindex` and
+    their compatibilities, with `isSymplectomorphism_piLpCongrLeft_sumCongr`
+    in `Standard/Basic.lean`; and §1's `StdSpace.sumEquiv` with its two
+    lemmas, if the *Symplectic vector bundles* issue that builds it has not
+    merged first. About 300 lines. Blocked by 6.
+12. **Direct sums and reindexing, topology.**
+    `Topology/Grassmannian/Lagrangian/Sum.lean`: `continuous_sum` and
+    `reindexHomeomorph`. About 100 lines. Blocked by 7 and 11.
+13. **The manifold structure and the milestone.**
     `LinearAlgebra/Matrix/SelfAdjoint.lean` and
     `Geometry/Manifold/Instances/LagrangianGrassmannian.lean`. About 450
     lines. Blocked by 9.
-13. **The range of Tau Ceti's chart.** `LinearAlgebra/TotallyReal/Euclidean.lean`:
+14. **The range of Tau Ceti's chart.** `LinearAlgebra/TotallyReal/Euclidean.lean`:
     `Matrix.exists_isSymm_eq_lagrangianChart` and its example. About 120
     lines. Blocked by 3.
 
-The Lagrangian issues of *Maslov index* wait for 6, 7, 9, 10 and 11. Issues 8,
-12 and 13 are not needed there.
+The Lagrangian issues of *Maslov index* wait for 6, 7, 9, 10, 11 and 12.
+Issues 8, 13 and 14 are not needed there.
 
 ## References
 
