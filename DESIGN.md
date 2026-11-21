@@ -1113,7 +1113,10 @@ it into issues; the overview fixes its folders and its dependencies.
   `Topology/Connected/Clopen.lean`),
   `Geometry/Manifold/Boundary/Collar/Push.lean`
   (a homotopy pushing a compact manifold with boundary into a compact subset
-  of its interior along a collar), `.../VectorBundle/Section/Generic.lean`
+  of its interior along a collar),
+  `Geometry/Diffeomorphism/Diffeotopy/Discrete.lean` (a diffeotopy of a
+  connected boundaryless manifold whose final map sends a compact set off a
+  closed discrete set), `.../VectorBundle/Section/Generic.lean`
   (over a boundaryless manifold, a smooth section of a bundle of rank equal
   to the dimension whose zero set is closed and discrete),
   `.../VectorBundle/Section/Nonvanishing.lean` (smoothing a continuous
