@@ -261,7 +261,7 @@ involved are empty, and the statements still hold.
 
 ### Dependencies
 
-The part uses only two things from other parts:
+The part uses only three things from other parts:
 
 - *Standard model* (`StdSpace`, `stdForm`, `stdComplexStructure`, the
   comparison with Tau Ceti's product model, and the matrix dictionary of #8).
@@ -272,9 +272,14 @@ The part uses only two things from other parts:
   implication from (4) to (1). An isotropic plane containing $v$ and $w$ is
   extended to a Lagrangian subspace.
 
-The part uses nothing from *Linear complex structures*. The same pull
-request updates `DESIGN.md` to match: part 9 builds on *Standard model* and
-*Symplectic vector spaces*.
+- From *Linear complex structures*, only the merged file
+  `LinearAlgebra/ComplexStructure/Action.lean`, which imports only Mathlib
+  and Tau Ceti. `Compatible.lean` imports it for
+  `AlmostComplexStructure.transport_eq_iff_isComplexLinearMap`, used in
+  `compatible_of_isSymplectomorphism_stdForm` and
+  `compatible_iff_exists_isSymplectomorphism_stdForm`. Since the file is
+  merged, the part waits for nothing of *Linear complex structures*;
+  `DESIGN.md` lists it with that note.
 
 ## Files, definitions and results
 
