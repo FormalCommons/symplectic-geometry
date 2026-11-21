@@ -688,7 +688,7 @@ The two graph charts of `DESIGN.md` §6, as partial homeomorphisms. The model
 is Tau Ceti's `Topology/Grassmannian/Graph.lean`, which does the same for
 `TauCeti.finiteGrassmannian`; the building issue credits it.
 
-- `ℒ.continuous_graphY`, from `continuous_mk_range_fromRows` (`Quotient.lean`)
+- `ℒ.continuous_graphY`, from `continuous_ofFrame` (`Quotient.lean`)
   for the frame `fromRows S 1`, which spans `graphY S`.
 - `ℒ.unitaryFrame_eq_graphY_iff`: `unitaryFrame U = graphY S` iff
   `U.map im` is invertible and `U.map re * (U.map im)⁻¹ = S`, the form of

@@ -73,12 +73,13 @@ theorem continuous_graphY : Continuous (graphY : selfAdjoint (Matrix ι ι ℝ) 
   classical
   have h (S : selfAdjoint (Matrix ι ι ℝ)) :=
     isLagrangian_range_fromRows_one (isHermitian_iff_isSymm.1 S.property)
-  have he : (graphY : selfAdjoint (Matrix ι ι ℝ) → ℒ ι) = fun S ↦ ⟨_, h S⟩ :=
+  have he : (graphY : selfAdjoint (Matrix ι ι ℝ) → ℒ ι) =
+      fun S : selfAdjoint (Matrix ι ι ℝ) ↦ ofFrame (S : Matrix ι ι ℝ) 1 (h S) :=
     funext fun S ↦ toSubmodule_injective (by
-      rw [coe_graphY]
+      rw [coe_graphY, coe_ofFrame]
       exact (StdSpace.range_toEuclideanLin_fromRows_one_eq_graphY (S : Matrix ι ι ℝ)).symm)
   rw [he]
-  exact continuous_mk_range_fromRows continuous_subtypeVal continuous_const h
+  exact continuous_ofFrame continuous_subtypeVal continuous_const h
 
 /-! ### Unitary frames transverse to the horizontal subspace -/
 
