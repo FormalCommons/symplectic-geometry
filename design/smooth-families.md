@@ -671,8 +671,11 @@ In `TauCeti.Diffeotopy`, for `[FiniteDimensional ℝ E] [IsManifold I ∞ M]
 - From Tau Ceti and Mathlib: everything listed under *What exists*.
 - From other parts: only `TauCeti.Diffeotopy.mfderiv_cylinderMap_time` of
   `Diffeotopy/Velocity.lean` of *Hamiltonian flows*, which `Diffeotopy/Real.lean`
-  imports for the time derivative of a diffeotopy; that file is merged and
-  imports no file of this part. The part is at level 0 of `DESIGN.md`'s build
+  imports for the time derivative of a diffeotopy, and
+  `MDifferentiableAt.mfderiv_curry_right_apply` of `MFDeriv/Prod.lean` of
+  *Hamiltonian flows*, which `Diffeomorph/Family.lean` imports for the
+  derivative of a map on a product on `(0, w)`; both files are merged and
+  import no file of this part. The part is at level 0 of `DESIGN.md`'s build
   order and stays there.
 - What later parts take: *Hamiltonian flows* uses `Diffeotopy/Real.lean` (for
   `SymplecticIsotopy.lean`) and `ContMDiff/TimeExtension.lean` with

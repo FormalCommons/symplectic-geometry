@@ -9,6 +9,7 @@ public import Mathlib.Geometry.Manifold.Diffeomorph
 public import Mathlib.Geometry.Manifold.IsManifold.InteriorBoundary
 import Mathlib.Geometry.Manifold.LocalDiffeomorph
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
+import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
 
 /-!
 # Smooth families of diffeomorphisms
@@ -65,9 +66,7 @@ theorem Diffeomorph.contMDiff_symm_eval {ψ : P → M ≃ₘ^n⟮I, I⟯ M} (hn 
     obtain ⟨h₁, h₂⟩ := Prod.ext_iff.1 ((ContinuousLinearMap.prod_apply _ _ (v, w)).symm.trans h)
     rw [mfderiv_fst] at h₁
     obtain rfl : v = 0 := h₁
-    have h₃ : mfderiv I I (ψ q.1) q.2 w = 0 := by
-      exact (zero_add _).symm.trans ((congrArg₂ (fun a b : E ↦ a + b) (map_zero _) rfl).symm.trans
-        ((mfderiv_prod_eq_add_apply hd (v := ((0 : E'), w))).symm.trans h₂))
+    have h₃ : mfderiv I I (ψ q.1) q.2 w = 0 := (hd.mfderiv_curry_right_apply w).symm.trans h₂
     obtain rfl : w = 0 := ((ψ q.1).isInvertible_mfderiv hn₀ (x := q.2)).injective
       (h₃.trans (map_zero _).symm)
     rfl
