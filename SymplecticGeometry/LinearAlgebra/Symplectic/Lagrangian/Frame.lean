@@ -29,8 +29,8 @@ A *frame* is a real `2n × n` matrix `Z = fromRows X Y`, whose columns span the 
 
 * `SymplecticGeometry.StdSpace.graph A`: the graph `{(x, A x)}` over the `x`-coordinates.
 * `SymplecticGeometry.StdSpace.graphY A`: the graph `{(A y, y)}` over the `y`-coordinates.
-* `SymplecticGeometry.LagrangianGrassmannian.ofFrame X Y`: the Lagrangian subspace spanned by a
-  Lagrangian frame `fromRows X Y`.
+* `SymplecticGeometry.LagrangianGrassmannian.ofFrame X Y h`: the Lagrangian subspace spanned by
+  the Lagrangian frame `fromRows X Y`.
 
 ## Main results
 
@@ -401,20 +401,27 @@ theorem isLagrangian_range_fromRows_one {A : Matrix ι ι ℝ} (hA : A.IsSymm) :
   rw [StdSpace.range_toEuclideanLin_fromRows_one_eq_graphY]
   exact (isLagrangian_graphY_iff A).2 hA
 
-/-- The Lagrangian subspace spanned by the columns of a Lagrangian frame `fromRows X Y`, one of
-rank `n` with `Xᵀ Y = Yᵀ X`. -/
+/-- The Lagrangian subspace spanned by the columns of a Lagrangian frame `fromRows X Y`. By
+`isLagrangian_range_fromRows_iff`, the hypothesis says that the frame has rank `n` and that
+`Xᵀ Y = Yᵀ X`. -/
 noncomputable def LagrangianGrassmannian.ofFrame (X Y : Matrix ι ι ℝ)
-    (hrank : (fromRows X Y).rank = Fintype.card ι) (hXY : Xᵀ * Y = Yᵀ * X) :
+    (h : (stdForm ι).IsLagrangian (LinearMap.range (toEuclideanLin (fromRows X Y)))) :
     LagrangianGrassmannian (stdForm ι) :=
-  ⟨LinearMap.range (toEuclideanLin (fromRows X Y)),
-    (isLagrangian_range_fromRows_iff X Y).2 ⟨hrank, hXY⟩⟩
+  ⟨_, h⟩
 
 @[simp]
 theorem LagrangianGrassmannian.coe_ofFrame (X Y : Matrix ι ι ℝ)
-    (hrank : (fromRows X Y).rank = Fintype.card ι) (hXY : Xᵀ * Y = Yᵀ * X) :
-    (ofFrame X Y hrank hXY : Submodule ℝ (StdSpace ι)) =
+    (h : (stdForm ι).IsLagrangian (LinearMap.range (toEuclideanLin (fromRows X Y)))) :
+    (ofFrame X Y h : Submodule ℝ (StdSpace ι)) =
       LinearMap.range (toEuclideanLin (fromRows X Y)) :=
   (rfl)
+
+@[simp]
+theorem LagrangianGrassmannian.mem_ofFrame_iff {X Y : Matrix ι ι ℝ}
+    {h : (stdForm ι).IsLagrangian (LinearMap.range (toEuclideanLin (fromRows X Y)))}
+    {z : StdSpace ι} :
+    z ∈ ofFrame X Y h ↔ z ∈ LinearMap.range (toEuclideanLin (fromRows X Y)) :=
+  Iff.rfl
 
 /-- The complex frame `X + i Y` of a Lagrangian frame `fromRows X Y` is invertible. -/
 theorem det_ne_zero_of_isLagrangian_range_fromRows {X Y : Matrix ι ι ℝ}
