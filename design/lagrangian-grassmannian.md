@@ -108,24 +108,27 @@ global name.
    through `TauCeti.GLSymplectic.ofUnitary`. That gives
    $\mathrm{Sp}$-transitivity directly, so Witt's theorem is not used.
 8. **Comparison with `DESIGN.md` §6.** Every file in §6's list on `main`
-   (after #67) is kept, with the content §6 gives it: `Frame.lean` with both
-   graph statements, `Graph.lean` with both graph charts, the manifold file,
+   (after #67 and #75) is kept, with the content §6 gives it: the type in
+   `LinearAlgebra/Symplectic/Lagrangian/Basic.lean` and its topology in
+   `Topology/Grassmannian/Lagrangian/Basic.lean`, `Frame.lean` with both
+   graph statements, `Action.lean` and `Transverse.lean` under
+   `LinearAlgebra/Symplectic/Lagrangian/`, `Quotient.lean`, `Graph.lean`
+   with both graph charts, the manifold file,
    `LinearAlgebra/TotallyReal/Euclidean.lean` with the range of
    `Matrix.lagrangianChart` and the example showing isotropy is needed,
-   `Fibration.lean` and `Sum.lean`. The departures fall in two groups, each
-   with the issue that changes §6 to match:
-   - #74 (PR #75): the type goes to `LinearAlgebra/Symplectic/Lagrangian/`;
-     the action file becomes `Action.lean` there (algebra) and
-     `Topology/Grassmannian/Lagrangian/Quotient.lean` (topology); and
-     `Transverse.lean` goes to `LinearAlgebra/Symplectic/Lagrangian/`.
-   - #79: `Topology/Grassmannian/Lagrangian/Finite.lean`; the general files
-     outside the part's folders (the real points of the unitary group, the
-     complex frame facts and the dimension of the space of symmetric matrices
-     under `LinearAlgebra/Matrix/`, and the direct sum of standard spaces in
-     part 1's folder); the route to transitivity of decision 7; and dropping
-     `Matrix.lagrangianChartCLE`, which this design does not use. The chart
-     file keeps §6's name `Graph.lean`, so the `Chart.lean` item that #79
-     lists lapses; #79 says to follow the design as merged.
+   `Fibration.lean` and `Sum.lean`. One statement moves within the part:
+   complementary iff disjoint, which §6 puts in `Transverse.lean`, is
+   `isCompl_iff_disjoint` in `LinearAlgebra/Symplectic/Lagrangian/Basic.lean`,
+   since it holds for a general `ω` and `Transverse.lean` is about
+   `StdSpace ι`. The other departures are #79's, the issue that changes §6
+   to match: `Topology/Grassmannian/Lagrangian/Finite.lean`; the general files
+   outside the part's folders (the real points of the unitary group, the
+   complex frame facts and the dimension of the space of symmetric matrices
+   under `LinearAlgebra/Matrix/`, and the direct sum of standard spaces in
+   part 1's folder); the route to transitivity of decision 7; and dropping
+   `Matrix.lagrangianChartCLE`, which this design does not use. The chart
+   file keeps §6's name `Graph.lean`, so the `Chart.lean` item that #79
+   lists lapses; #79 says to follow the design as merged.
 
    This file does not edit `DESIGN.md`.
 9. **Dimension zero.** For `ι` empty, `StdSpace ι` is zero, `ℒ ι` has one
