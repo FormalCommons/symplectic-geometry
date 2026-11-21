@@ -135,7 +135,7 @@ variable {EB HB M : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB]
 | `Geometry/Manifold/VectorBundle/Hom.lean` | `contMDiff_hom_bundle_symm`: the fibrewise inverses of a $C^n$ isomorphism of bundles as a $C^n$ section of the hom bundle | 1, 3 |
 | `Geometry/Manifold/VectorBundle/ContinuousAlternatingMap.lean` | `contMDiff_compContinuousLinearMap_totalSpace`: precomposition by a $C^n$ hom-bundle section is $C^n$ on total spaces of alternating bundles | 3 |
 | `Geometry/Manifold/VectorBundle/Pullback.lean` | smoothness of sections of the alternating bundle of a pull-back | 18 |
-| `Geometry/Manifold/VectorBundle/Prod.lean` | `Bundle.Prod.contMDiff_prodCongr` and `Bundle.Prod.contMDiff_prodComm`: smoothness of the direct sum of two bundle isomorphisms and of the swap on total spaces | 22 |
+| `Geometry/Manifold/VectorBundle/Prod.lean` | `Bundle.Prod.contMDiff_prodMap` and `Bundle.Prod.contMDiff_swap`: smoothness on total spaces of the fibrewise product of two maps and of the swap, for fibres with only a zero; `Bundle.Prod.contMDiff_prodCongr` and `Bundle.Prod.contMDiff_prodComm`: the same for bundle isomorphisms | 22 |
 | `Topology/VectorBundle/Pullback.lean` | coordinates of alternating maps on a pull-back bundle | 18 |
 | `Data/Bundle.lean` | `Bundle.Pullback.eq_iff`: equations in a fibre of a pull-back bundle, for `simp` | 20 |
 | `Geometry/Manifold/VectorBundle/Symplectic/Pullback.lean` | pull-backs of forms, of tame and compatible pairs, of isomorphisms and of frames | 21 |
@@ -1314,7 +1314,9 @@ over the same base, on Mathlib's direct sum `V₁ ×ᵇ V₂` (`Bundle.Prod`, wi
   images; `pushforward_prodComm`, the fibrewise swap
   `ContinuousLinearEquiv.prodComm` carries `ω₁.prod ω₂` to `ω₂.prod ω₁`.
   Smoothness of these maps of total spaces is the product criterion:
-  `Bundle.Prod.contMDiff_prodCongr` and `Bundle.Prod.contMDiff_prodComm`, in
+  `Bundle.Prod.contMDiff_prodCongr` and `Bundle.Prod.contMDiff_prodComm`,
+  corollaries of `Bundle.Prod.contMDiff_prodMap` and `Bundle.Prod.contMDiff_swap`
+  (fibrewise `Prod.map` and swap, for fibres with only a zero), in
   the library's `Geometry/Manifold/VectorBundle/Prod.lean` (root namespace,
   with the path of Tau Ceti's file of the criterion). So
   `pushforward_prodCongr` takes only the smoothness of `Φ₁` and `Φ₂`, and
@@ -2008,7 +2010,8 @@ of *Constructions* for *First Chern number*.
     `frameTransition_pullback`. Blockers:
     5, 18, 19, 20.
 22. **Direct sums of symplectic bundles.** `Symplectic/Prod.lean`, with
-    `Bundle.Prod.contMDiff_prodCongr` and `Bundle.Prod.contMDiff_prodComm`
+    `Bundle.Prod.contMDiff_prodMap`, `Bundle.Prod.contMDiff_swap` and their
+    corollaries `Bundle.Prod.contMDiff_prodCongr` and `Bundle.Prod.contMDiff_prodComm`
     in `Geometry/Manifold/VectorBundle/Prod.lean`, using
     the existing `StdSpace.sumEquiv`: `ContMDiffTwoForm.prod` with its API,
     `Tames.prod`, `Compatible.prod`,
