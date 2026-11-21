@@ -1781,7 +1781,10 @@ has either; Tau Ceti's extension across a boundary,
   the flow of $X_H$ for $H(q,p)=p(Y_q)$ where defined, and a complete flow
   when $Y$ is complete); `Geometry/Manifold/Flow/Basic.lean` (named like Tau
   Ceti's file: the differentials of the time-$t$ and time-$(-t)$ maps of a
-  maximal flow are inverse, which `Lift.lean` uses); and
+  maximal flow are inverse, which `Lift.lean` uses);
+  `Geometry/Symplectic/Hamiltonian/Manifold.lean` (named like Tau Ceti's
+  file: Hamiltonian vector fields of $C^{n+1}$ functions are $C^n$, which
+  `Lift.lean` uses); and
   `Geometry/Manifold/VectorBundle/Section/Extension.lean` (named like Tau
   Ceti's file, whose `FiberBundle.contMDiffExtend` it uses: the differential
   of a section in the chart at its value, `Bundle.mfderiv_section_apply`, and
