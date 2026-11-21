@@ -273,7 +273,9 @@ Expected size: 300 lines.
 
 In `TauCeti.SmoothForm`, beside Tau Ceti's file, for `α` a one-form and `ω`
 a two-form on `M` (the book's $(\Omega,\lambda)$ is `IsStableHamiltonian α ω`
-with `α = λ`, `ω = Ω`). Issue 3:
+with `α = λ`, `ω = Ω`). It imports
+`Geometry/Manifold/DifferentialForm/Smooth.lean` of *Moser isotopy* for
+`SmoothForm.bilinFormAt_smul` and `_neg`. Issue 3:
 
 - `isStableHamiltonian_iff_wedge_wedgePow_apply_ne_zero`: for
   `finrank ℝ E = 2 * m + 1`, `IsStableHamiltonian α ω` if and only if `ω` is
@@ -590,6 +592,9 @@ Expected size: 300 lines.
 - The library: `Geometry/Manifold/IsManifold/InteriorBoundary.lean` of
   *Symplectic vector bundles* (`ModelWithCorners.interiorOpens`,
   `ModelWithCorners.BoundarylessManifold.interior`), merged.
+- *Moser isotopy*: `Geometry/Manifold/DifferentialForm/Smooth.lean`
+  (`SmoothForm.bilinFormAt_smul`, `SmoothForm.bilinFormAt_neg`), only in
+  `StableHamiltonian.lean`.
 - Tau Ceti, Liouville and contact type: `IsLiouvilleVectorField`,
   `isLiouvilleVectorField_iff_mextDeriv_interior_eq`, `IsContactType`,
   `isContactType_iff`, `exists_isRestrictedContactType_iff`,
