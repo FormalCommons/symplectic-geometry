@@ -80,15 +80,15 @@ theorem linearSymplecticWidth_setOf_le_one_eq {Q : QuadraticForm ℝ (StdSpace �
   rw [← linearSymplecticWidth_stdEllipsoid (hr i) hi, ← h, ← LinearEquiv.coe_toAffineEquiv,
     linearSymplecticWidth_image ((LinearEquiv.toAffineEquiv_mem_affineSymplecticGroup_iff e).2 he)]
 
-/-- **The linear symplectic width of an ellipsoid.** Let `Q` be a positive definite form on
-`ℝ²ⁿ` and `s` the smallest element of its symplectic spectrum. The ellipsoid
+/-- **The linear symplectic width of an ellipsoid.** Let `Q` be a quadratic form on `ℝ²ⁿ`
+and `s` the smallest element of its symplectic spectrum (so `Q` is positive definite). The ellipsoid
 `E = {z | Q z ≤ 1}` has width `π s²`; this is the supremum of the widths of the affine
 symplectic images of balls that lie in `E`, and the infimum of the widths of the affine
 symplectic images of cylinders that contain `E`.
 
 Milestone: *Linear symplectic width of an ellipsoid*. -/
 theorem linearSymplecticWidth_setOf_le_one {Q : QuadraticForm ℝ (StdSpace ι)}
-    (hQ : Q.PosDef) {s : ℝ} (hs : s ∈ symplecticSpectrum Q)
+    {s : ℝ} (hs : s ∈ symplecticSpectrum Q)
     (hmin : ∀ t ∈ symplecticSpectrum Q, s ≤ t) :
     linearSymplecticWidth {z | Q z ≤ 1} = ENNReal.ofReal (π * s ^ 2) ∧
     linearSymplecticWidth {z | Q z ≤ 1} =
@@ -101,7 +101,8 @@ theorem linearSymplecticWidth_setOf_le_one {Q : QuadraticForm ℝ (StdSpace ι)}
         linearSymplecticWidth (f '' stdCylinder i R) := by
   have hE := linearSymplecticWidth_setOf_le_one_eq hs hmin
   have : Nonempty ι := Fintype.card_pos_iff.1
-    (card_symplecticSpectrum hQ ▸ Multiset.card_pos_iff_exists_mem.2 ⟨s, hs⟩)
+    (card_symplecticSpectrum (posDef_of_mem_symplecticSpectrum hs) ▸
+      Multiset.card_pos_iff_exists_mem.2 ⟨s, hs⟩)
   refine ⟨hE, ?_, ?_⟩
   · refine le_antisymm ?_ (iSup₂_le fun _ _ ↦ iSup₂_le fun r hr ↦
       linearSymplecticWidth_mono hr)

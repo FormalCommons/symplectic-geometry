@@ -215,9 +215,11 @@ Tau Ceti's namespace. It is the input for the general case.
 The part states smoothness through three explicit formulas, each smooth on
 an open set and natural under continuous linear equivalences, so that they
 could also be read in trivializations of a bundle. *Symplectic vector
-bundles* does not use them: its design applies Tau Ceti's linear
-`cayleyPathFormula` and `SymplecticForm.polarComplexStructure` fibrewise,
-and only its contractibility issue waits for this part, for issue 6 below.
+bundles* applies Tau Ceti's linear `cayleyPathFormula` and
+`SymplecticForm.polarComplexStructure` fibrewise, but reads
+`metricPolarFormula` in trivializations for $J_{g,\omega}$ on its
+endomorphism bundle. Its contractibility issue waits for issue 6 below, and
+its homotopy-equivalence issue for issues 4, 5 and 6.
 The three formulas:
 
 1. `TauCeti.metricPolarFormula`, the formula for $(g,\omega)\mapsto J_{g,\omega}$, on
@@ -314,8 +316,8 @@ request updates it to the files below. Each change, with its reason:
   Cayley path is smooth is used by two files of this part. *Symplectic
   vector bundles* uses this file, for `TauCeti.cayleyDomain`, the openness
   lemma `TauCeti.isOpen_setOf_forall_Icc_mem_cayleyDomain` and
-  `TauCeti.SymplecticForm.Compatible.mem_cayleyDomain`; it uses no other
-  file of this part.
+  `TauCeti.SymplecticForm.Compatible.mem_cayleyDomain`; of the other files
+  of this part it uses only the two of `PolarComplexStructure/`.
   It involves only Tau Ceti's `cayleyPathFormula`, so it goes in the folder
   of Tau Ceti's `Cayley/Smooth.lean`, which it extends, and can
   move there unchanged.
@@ -826,8 +828,9 @@ Issues 1, 3 and 6 can start at once. The contractibility issue of
 $[0,1]$ as issue 6 here, through
 `TauCeti.isOpen_setOf_forall_Icc_mem_cayleyDomain`, and the tame structures
 lie in it by `TauCeti.SymplecticForm.Compatible.mem_cayleyDomain`, so it
-waits for issue 6.
-No other issue of that part waits for this one.
+waits for issue 6. Its homotopy-equivalence issue uses `cayleyDomain` too,
+and `metricPolarFormula` on `polarDomain` with its smoothness, so it waits
+for issues 4, 5 and 6. No other issue of that part waits for this one.
 
 ## References
 

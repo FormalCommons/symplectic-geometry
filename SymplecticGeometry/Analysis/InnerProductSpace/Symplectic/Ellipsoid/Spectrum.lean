@@ -137,6 +137,12 @@ theorem symplecticSpectrum_of_not_posDef {Q : QuadraticForm ℝ (StdSpace ι)} (
     symplecticSpectrum Q = 0 := by
   simp only [symplecticSpectrum_def, hQ, ↓reduceDIte]
 
+/-- A quadratic form whose symplectic spectrum is nonempty is positive definite. -/
+theorem posDef_of_mem_symplecticSpectrum {Q : QuadraticForm ℝ (StdSpace ι)} {s : ℝ}
+    (hs : s ∈ symplecticSpectrum Q) : Q.PosDef := by
+  by_contra hQ
+  simp [symplecticSpectrum_of_not_posDef hQ] at hs
+
 /-- The **characterization of the symplectic spectrum**: if a linear symplectic map `e` carries
 the ellipsoid of a positive definite form `Q` onto the standard ellipsoid `E(r)`, with positive
 radii `r`, then the spectrum of `Q` is the multiset of the `rⱼ`. -/
@@ -162,9 +168,7 @@ theorem exists_isSymplectomorphism_image_eq_stdEllipsoid_of_mem_symplecticSpectr
     ∃ (r : ι → ℝ) (e : StdSpace ι ≃ₗ[ℝ] StdSpace ι) (i : ι), (∀ j, 0 < r j) ∧
       IsSymplectomorphism (stdForm ι) (stdForm ι) e ∧ e '' {z | Q z ≤ 1} = stdEllipsoid r ∧
       symplecticSpectrum Q = Finset.univ.val.map r ∧ r i = s := by
-  have hQ : Q.PosDef := by
-    by_contra hQ
-    simp [symplecticSpectrum_of_not_posDef hQ] at hs
+  have hQ := posDef_of_mem_symplecticSpectrum hs
   obtain ⟨r, e, hr, he, h⟩ := exists_isSymplectomorphism_image_eq_stdEllipsoid hQ
   have hspec := symplecticSpectrum_eq hQ hr he h
   obtain ⟨i, -, rfl⟩ := Multiset.mem_map.1 (hspec ▸ hs)
@@ -179,11 +183,9 @@ theorem card_symplecticSpectrum {Q : QuadraticForm ℝ (StdSpace ι)} (hQ : Q.Po
 /-- The elements of a symplectic spectrum are positive. -/
 theorem pos_of_mem_symplecticSpectrum {Q : QuadraticForm ℝ (StdSpace ι)} {s : ℝ}
     (hs : s ∈ symplecticSpectrum Q) : 0 < s := by
-  by_cases hQ : Q.PosDef
-  · simp only [symplecticSpectrum_def, hQ, ↓reduceDIte] at hs
-    obtain ⟨j, -, rfl⟩ := Multiset.mem_map.1 hs
-    exact (exists_isSymplectomorphism_image_eq_stdEllipsoid hQ).choose_spec.choose_spec.1 j
-  · simp [symplecticSpectrum_of_not_posDef hQ] at hs
+  obtain ⟨r, -, i, hr, -, -, -, rfl⟩ :=
+    exists_isSymplectomorphism_image_eq_stdEllipsoid_of_mem_symplecticSpectrum hs
+  exact hr i
 
 /-- The symplectic spectrum is invariant under linear symplectic maps: `Q ∘ e` has the same
 spectrum as `Q` for a linear symplectic map `e` of `(ℝ²ⁿ, ω₀)`. -/

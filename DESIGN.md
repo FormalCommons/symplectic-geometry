@@ -412,7 +412,15 @@ it into issues; the overview fixes its folders and its dependencies.
   `LinearAlgebra/Matrix/GeneralLinearGroup/Symplectic/Reindex.lean`
   (`TauCeti.GLSymplectic.reindex` along `ι ≃ κ`, with its API) and
   `Topology/Algebra/SymplecticGroup.lean` (its continuity,
-  `continuous_reindex`).
+  `continuous_reindex`). The proof that reindexing keeps $\rho$ adds three
+  lemmas where their subjects live: `Matrix.realify_submatrix`
+  (`LinearAlgebra/Matrix/Realify.lean`) and
+  `Matrix.GeneralLinearGroup.coe_polarUnitary_reindex`
+  (`Analysis/Matrix/Polar/Basic.lean`) with its symplectic form
+  `TauCeti.GLSymplectic.coe_polarUnitary_reindex`
+  (`Analysis/Matrix/Polar/GLSymplectic.lean`); and `Path.Homotopic.homotopicWith`
+  (`Topology/Homotopy/Path.lean`) says that a homotopy of loops with fixed
+  ends is a free one.
 - **Builds on:** *Standard model*, *Symplectic group*, *Unitary group
   topology*, *Lagrangian Grassmannian*. From Mathlib and Tau Ceti, in two
   ways, none of it re-derived:
@@ -762,14 +770,17 @@ it into issues; the overview fixes its folders and its dependencies.
   compatible (both in `Geometry/Symplectic/Cayley/Smooth.lean`). The
   contractions also take a compatible $J_0$, as Tau Ceti's do. The formulas
   are $C^\infty$ on their domains in the structure (and $J_{g,\omega}$ also
-  in $g$). *Symplectic vector bundles* does not wait for them: it applies Tau
-  Ceti's linear `cayleyPathFormula` and `SymplecticForm.polarComplexStructure`
-  fibrewise (see that part). It uses the same set $U_{J_0}$ at each point,
-  and takes its openness from
-  `TauCeti.isOpen_setOf_forall_Icc_mem_cayleyDomain` and the membership of
-  the tame structures from `TauCeti.SymplecticForm.Compatible.mem_cayleyDomain`,
-  so its contractibility
-  issue waits for the issue of this part that writes `Cayley/Domain.lean`.
+  in $g$). *Symplectic vector bundles* applies Tau Ceti's linear
+  `cayleyPathFormula` and `SymplecticForm.polarComplexStructure` fibrewise
+  (see that part). It uses the same set $U_{J_0}$ at each point, and takes
+  its openness from `TauCeti.isOpen_setOf_forall_Icc_mem_cayleyDomain` and
+  the membership of the tame structures from
+  `TauCeti.SymplecticForm.Compatible.mem_cayleyDomain`, so its
+  contractibility issue waits for the issue of this part that writes
+  `Cayley/Domain.lean`. Its homotopy-equivalence issue also uses that file,
+  and `metricPolarFormula` on `polarDomain` for $J_{g,\omega}$ on its
+  endomorphism bundle, where the form varies in the fibre; so it waits for the
+  issues that write `Cayley/Domain.lean` and `PolarComplexStructure/`.
 
 ### 10. Linear Moser
 
@@ -814,6 +825,24 @@ it into issues; the overview fixes its folders and its dependencies.
   the compatible complex structures on `StdSpace ι` and its explicit formula).
   For $n=1$ it is compared with Mathlib's `UpperHalfPlane` action and with Tau
   Ceti's `stdComplexSymplecticForm_tames_iff_im_pos`.
+  Six general files about matrices, outside the part's folder, serve it:
+  `LinearAlgebra/Matrix/PosDef/Basic.lean` (`Matrix.posDef_iff_of_unique`:
+  over an index type with one element, a matrix is positive definite exactly
+  when its entry is positive), `LinearAlgebra/Matrix/PosDef/Block.lean`
+  (`Matrix.posDef_fromBlocks_zero_zero_iff` and its semidefinite analogue:
+  `fromBlocks A 0 0 D` is positive (semi)definite exactly when $A$ and $D$
+  are), `LinearAlgebra/Matrix/PosDef/OfReal.lean`
+  (`Matrix.posDef_map_algebraMap_iff` and `Matrix.posDef_map_ofReal_iff`: a
+  real matrix is positive definite exactly when its image over an `RCLike`
+  field is, through Tau Ceti's realification),
+  `LinearAlgebra/Matrix/Symmetric.lean` (`Matrix.IsSymm.sub_conjTranspose`:
+  $Z-Z^{*}=2i\,\mathrm{Im}\,Z$ for a symmetric complex $Z$),
+  `LinearAlgebra/Matrix/Block.lean` (the two identities between the blocks
+  of $M$ that the first block column of $M^2=-1$ gives), and
+  `Topology/Instances/Matrix.lean` (`Continuous.isOpen_setOf_isUnit_det`:
+  for a continuous family $f$ of square matrices over a topological field
+  with closed points, the parameters $x$ where $f(x)$ is invertible form an
+  open set). They import only Mathlib, Tau Ceti and each other.
 - **Builds on:** *Standard model*; compatibility is Tau Ceti's `Compatible`.
   It also imports one file from each of three other parts. `Action.lean`
   imports `LinearAlgebra/Matrix/OfReal.lean`, the general matrix file of
@@ -896,6 +925,11 @@ it into issues; the overview fixes its folders and its dependencies.
   `continuous_convexCombination_frameTopology`; the file has the name of the
   Tau Ceti file with that lemma, since it mentions only Mathlib and Tau Ceti
   types),
+  `Geometry/Manifold/VectorBundle/Riemannian/PolarEnd.lean` (for a bundle
+  metric $g$, the structure $J_{g,\omega_{g,B}}$ on the endomorphism bundle,
+  `polarEndAt` on the open set `polarEndDomain`, smooth there by part 9's
+  `metricPolarFormula` read in trivializations; it mentions no symplectic
+  form on the bundle, so it sits apart from the symplectic files),
   `.../Symplectic/Trivialization.lean` (local Darboux frames, by Tau Ceti's
   smooth Gram–Schmidt applied with $J_{g,\omega}$, local symplectic
   trivializations and the reduction of the structure group to
@@ -983,12 +1017,16 @@ it into issues; the overview fixes its folders and its dependencies.
   structure (`SymplecticForm.polarComplexStructure`), applied fibrewise;
   its generic sections, diffeotopies of configurations and collars, for the
   last milestone; for the constructions, the pieces listed under
-  *Constructions*. From *Compatible complex structures* it uses only the
-  file `Geometry/Symplectic/Cayley/Domain.lean`: `TauCeti.cayleyDomain`,
-  its openness lemma `TauCeti.isOpen_setOf_forall_Icc_mem_cayleyDomain` and
-  `TauCeti.SymplecticForm.Compatible.mem_cayleyDomain`.
-  Its contractibility issue waits for the issue of that part that writes
-  this file, which has no blockers.
+  *Constructions*. From *Compatible complex structures* it uses the file
+  `Geometry/Symplectic/Cayley/Domain.lean` (`TauCeti.cayleyDomain`, its
+  openness lemma `TauCeti.isOpen_setOf_forall_Icc_mem_cayleyDomain` and
+  `TauCeti.SymplecticForm.Compatible.mem_cayleyDomain`), and the two files of
+  `Analysis/InnerProductSpace/Symplectic/PolarComplexStructure/`
+  (`TauCeti.metricPolarFormula` on `TauCeti.polarDomain`, with its smoothness
+  and naturality) for `polarEndAt`. Its contractibility issue waits for the
+  issue of that part that writes `Cayley/Domain.lean`, which has no
+  blockers; its homotopy-equivalence issue waits for that one and for the two
+  that write `PolarComplexStructure/`.
 - **Milestones:** *Symplectic vector bundles are complex vector bundles*,
   *Compatible and tame complex structures on symplectic vector bundles*,
   *Unitary trivializations over surfaces with boundary*.
@@ -1262,7 +1300,7 @@ Each part depends only on the parts listed, besides Mathlib and Tau Ceti.
 | 1 | *Linear nonsqueezing* | *Standard model* |
 | 1 | *Linear complex structures* | *Standard model* |
 | 1 | *Siegel upper half space* | *Standard model*; *Lagrangian Grassmannian* (only `LinearAlgebra/Matrix/OfReal.lean`, which imports only Mathlib and is merged); *Linear complex structures* (only `LinearAlgebra/ComplexStructure/Action.lean`, which imports only Mathlib and Tau Ceti and is merged); *Symplectic group* (only `LinearAlgebra/Matrix/SymplecticGroup/Basic.lean`, which imports only Mathlib and is merged) |
-| 1 | *Symplectic vector bundles* | *Standard model*, *Linear Moser*; its contractibility issue also the Cayley domain issue of *Compatible complex structures*, which has no blockers |
+| 1 | *Symplectic vector bundles* | *Standard model*, *Linear Moser*; its contractibility issue also the Cayley domain issue of *Compatible complex structures*, and its homotopy-equivalence issue that one and the two `PolarComplexStructure/` issues, none of which waits for another part |
 | 2 | *Compatible complex structures* | *Standard model*, *Symplectic vector spaces* |
 | 2 | *Maslov index* | *Standard model*, *Symplectic group*, *Unitary group topology*; its Lagrangian issues also *Lagrangian Grassmannian* |
 | 3 | *First Chern number* | *Symplectic vector bundles*, the symplectic-loop issues of *Maslov index* |
