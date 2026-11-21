@@ -216,6 +216,22 @@ Named like Tau Ceti's file; in Mathlib's namespace `Real.smoothTransition`.
   $f(x)/(f(x)+f(1-x))$ and the positive derivative of
   `expNegInvGlue` on $(0,\infty)$ (Tau Ceti's `expNegInvGlue.hasDerivAt`).
 
+### `Analysis/Calculus/ContDiff/FTaylorSeries.lean`
+
+Named like Tau Ceti's file. `HasFTaylorSeriesUpToOn.union`, for sets each
+closed relative to their union.
+
+### `Analysis/Normed/Group/FunctionSeries.lean`
+
+Named like Mathlib's file. `tendstoUniformlyOn_finsetSum_of_hasSum`, the
+form of `tendstoUniformlyOn_tsum` that assumes the pointwise sums exist
+instead of completeness.
+
+### `Analysis/Sobolev/Trace/Reflection/HalfSpace.lean`
+
+Named like Tau Ceti's file; in its namespace `TauCeti.HalfSpaceExtension`.
+`norm_timeScale_le` and `timeScale_of_fst_eq_zero`.
+
 ### `Analysis/Calculus/ContDiff/Seeley/Coefficients.lean`
 
 Seeley's coefficients: a real sequence $a_k$ with
@@ -613,8 +629,10 @@ Each is a few hundred lines. The issues on the analysis and on families
 can start at once; each issue's blockers come before it.
 
 1. **Seeley coefficients.** `Analysis/Calculus/ContDiff/Seeley/Coefficients.lean`.
-2. **Seeley's extension.** `Analysis/Calculus/ContDiff/Seeley/Extension.lean`.
-   Blocked by 1.
+2. **Seeley's extension.** `Analysis/Calculus/ContDiff/Seeley/Extension.lean`,
+   with `Analysis/Calculus/ContDiff/FTaylorSeries.lean`,
+   `Analysis/Normed/Group/FunctionSeries.lean` and
+   `Analysis/Sobolev/Trace/Reflection/HalfSpace.lean`. Blocked by 1.
 3. **Time extension of maps.** `Geometry/Manifold/ContMDiff/TimeExtension.lean`.
    Blocked by 2.
 4. **Smooth families of forms.**

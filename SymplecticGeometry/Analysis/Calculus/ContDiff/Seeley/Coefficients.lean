@@ -235,6 +235,11 @@ theorem hasSum_seeleyCoeff_mul_neg_two_pow (n : ℕ) :
     HasSum (fun k ↦ seeleyCoeff k * (-2 ^ k) ^ n) 1 :=
   (summable_seeleyCoeff_mul_neg_two_pow n).hasSum_iff.mpr (tsum_seeleyCoeff_mul_neg_two_pow n)
 
+/-- The moment identity of order `0`, in a module: `∑ₖ aₖ • x = x`. -/
+theorem hasSum_seeleyCoeff_smul {M : Type*} [AddCommMonoid M] [TopologicalSpace M] [Module ℝ M]
+    [ContinuousSMul ℝ M] (x : M) : HasSum (fun k ↦ seeleyCoeff k • x) x := by
+  simpa using (hasSum_seeleyCoeff_mul_neg_two_pow 0).smul_const x
+
 end SymplecticGeometry
 
 end

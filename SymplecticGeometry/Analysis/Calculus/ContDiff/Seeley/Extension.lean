@@ -6,8 +6,10 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Analysis.SpecialFunctions.SmoothTransition
-public import TauCeti.Analysis.Sobolev.Trace.Reflection.HalfSpace
+public import SymplecticGeometry.Analysis.Calculus.ContDiff.FTaylorSeries
 public import SymplecticGeometry.Analysis.Calculus.ContDiff.Seeley.Coefficients
+public import SymplecticGeometry.Analysis.Normed.Group.FunctionSeries
+public import SymplecticGeometry.Analysis.Sobolev.Trace.Reflection.HalfSpace
 
 /-!
 # Seeley's extension
@@ -29,10 +31,10 @@ Seeley's infinite sum in place of Hestenes' finite one: the Taylor series of the
 bound of the derivatives of `χ f`, so by `summable_seeleyCoeff_mul_pow` their sums converge locally
 uniformly (`HasFTaylorSeriesUpToOn.of_tendstoLocallyUniformlyOn_of_convex`); at `t = 0` the
 moment identities `tsum_seeleyCoeff_mul_neg_two_pow` and `map_timeScale_eq_sum_pow_card_smul`
-make the limit series agree with that of `f`; and the two series glue across `t = 0` as in
-`HasFTaylorSeriesUpToOn.union_of_isClosed`, here for sets closed only relative to their union.
-The uniform convergence uses `tendstoUniformlyOn_finsetSum_of_hasSum`, whose proof adapts
-Mathlib's `tendstoUniformlyOn_tsum` to sums that exist without completeness.
+make the limit series agree with that of `f`, as Tau Ceti's
+`sum_higherReflectionCoeff_smul_compContinuousLinearMap_timeScale` does for a finite sum; and the
+two series glue across `t = 0` by `HasFTaylorSeriesUpToOn.union`. The uniform convergence uses
+`tendstoUniformlyOn_finsetSum_of_hasSum`, which needs no completeness.
 
 ## Main definitions
 
@@ -55,76 +57,6 @@ public section
 
 open Set Filter
 open scoped Topology ContDiff
-
-section General
-
-variable {𝕜 E F : Type*} [NontriviallyNormedField 𝕜] [NormedAddCommGroup E] [NormedSpace 𝕜 E]
-  [NormedAddCommGroup F] [NormedSpace 𝕜 F] {n : WithTop ℕ∞} {f : E → F}
-  {p : E → FormalMultilinearSeries 𝕜 E F} {s t : Set E}
-
-/-- Taylor series on two sets glue to their union when each set is closed relative to the
-union. -/
-theorem HasFTaylorSeriesUpToOn.union (hs : HasFTaylorSeriesUpToOn n f p s)
-    (ht : HasFTaylorSeriesUpToOn n f p t) (hst : closure s ∩ t ⊆ s) (hts : closure t ∩ s ⊆ t) :
-    HasFTaylorSeriesUpToOn n f p (s ∪ t) := by
-  have key : ∀ x ∈ s ∪ t, (x ∈ s ∨ x ∉ closure s) ∧ (x ∈ t ∨ x ∉ closure t) := by
-    rintro x (hx | hx)
-    · exact ⟨.inl hx, (em (x ∈ closure t)).imp (fun h ↦ hts ⟨h, hx⟩) id⟩
-    · exact ⟨(em (x ∈ closure s)).imp (fun h ↦ hst ⟨h, hx⟩) id, .inl hx⟩
-  constructor
-  · rintro x (hx | hx)
-    exacts [hs.zero_eq x hx, ht.zero_eq x hx]
-  · intro m hm x hx
-    obtain ⟨h₁, h₂⟩ := key x hx
-    apply HasFDerivWithinAt.union
-    · rcases h₁ with h | h
-      exacts [hs.fderivWithin m hm x h, .of_notMem_closure h]
-    · rcases h₂ with h | h
-      exacts [ht.fderivWithin m hm x h, .of_notMem_closure h]
-  · intro m hm x hx
-    obtain ⟨h₁, h₂⟩ := key x hx
-    apply ContinuousWithinAt.union
-    · rcases h₁ with h | h
-      exacts [hs.cont m hm x h, continuousWithinAt_of_notMem_closure h]
-    · rcases h₂ with h | h
-      exacts [ht.cont m hm x h, continuousWithinAt_of_notMem_closure h]
-
-end General
-
-/-- Weierstrass' test for a series of functions whose sums exist: the partial sums converge
-uniformly on `s` when the terms are bounded on `s` by a summable sequence. Unlike
-`tendstoUniformlyOn_tsum`, this needs no completeness of the target. -/
-theorem tendstoUniformlyOn_finsetSum_of_hasSum {α β G : Type*} [NormedAddCommGroup G]
-    {f : α → β → G} {g : β → G} {u : α → ℝ} {s : Set β}
-    (hg : ∀ x ∈ s, HasSum (fun n ↦ f n x) (g x)) (hu : Summable u)
-    (hfu : ∀ n, ∀ x ∈ s, ‖f n x‖ ≤ u n) :
-    TendstoUniformlyOn (fun t x ↦ ∑ n ∈ t, f n x) g atTop s := by
-  refine Metric.tendstoUniformlyOn_iff.2 fun ε εpos ↦ ?_
-  filter_upwards [(tendsto_order.1 (tendsto_tsum_compl_atTop_zero u)).2 _ εpos] with t ht x hx
-  have htail : HasSum (fun n : {n // n ∉ t} ↦ f n x) (g x - ∑ n ∈ t, f n x) :=
-    (t.hasSum_compl_iff (f := fun n ↦ f n x)).2 (by rw [sub_add_cancel]; exact hg x hx)
-  rw [dist_eq_norm]
-  exact (htail.norm_le_of_bounded (hu.subtype _).hasSum fun n ↦ hfu n x hx).trans_lt ht
-
-namespace TauCeti.HalfSpaceExtension
-
-variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
-
-/-- The time dilation by `a` has operator norm at most `max |a| 1`. -/
-theorem norm_timeScale_le (a : ℝ) : ‖timeScale (E := E) a‖ ≤ max |a| 1 := by
-  refine ContinuousLinearMap.opNorm_le_bound _ (by positivity) fun z ↦ ?_
-  rw [timeScale_apply, Prod.norm_def, Prod.norm_def, norm_mul, Real.norm_eq_abs]
-  refine max_le ?_ ?_
-  · exact mul_le_mul (le_max_left _ _) (le_max_left _ _) (norm_nonneg _) (by positivity)
-  · calc ‖z.2‖ = 1 * ‖z.2‖ := (one_mul _).symm
-      _ ≤ _ := mul_le_mul (le_max_right _ _) (le_max_right _ _) (norm_nonneg _) (by positivity)
-
-/-- The time dilations fix the points of time `0`. -/
-theorem timeScale_of_fst_eq_zero {z : ℝ × E} (hz : z.1 = 0) (a : ℝ) :
-    timeScale a z = z := by
-  ext <;> simp [hz]
-
-end TauCeti.HalfSpaceExtension
 
 namespace SymplecticGeometry
 
@@ -166,17 +98,21 @@ theorem seeleyExtend_def (f : ℝ → F) (t : ℝ) :
     seeleyExtend f t = if 0 ≤ t then f t
       else ∑' k, seeleyCoeff k • seeleyCutoff (-2 ^ k * t) • f (-2 ^ k * t) := (rfl)
 
+@[simp]
 theorem seeleyExtend_of_nonneg (f : ℝ → F) {t : ℝ} (ht : 0 ≤ t) : seeleyExtend f t = f t := by
   simp [seeleyExtend_def, ht]
+
+@[simp]
+theorem seeleyExtend_of_neg (f : ℝ → F) {t : ℝ} (ht : t < 0) :
+    seeleyExtend f t = ∑' k, seeleyCoeff k • seeleyCutoff (-2 ^ k * t) • f (-2 ^ k * t) := by
+  simp [seeleyExtend_def, not_le.mpr ht]
 
 /-- For `t < 0` the dilated times `-2 ^ k t` eventually exceed any bound. -/
 private theorem exists_forall_lt_neg_two_pow_mul {t : ℝ} (ht : t < 0) (c : ℝ) :
     ∃ N : ℕ, ∀ k, N ≤ k → c < -2 ^ k * t := by
-  obtain ⟨N, hN⟩ := pow_unbounded_of_one_lt (c / -t) (one_lt_two : (1 : ℝ) < 2)
-  refine ⟨N, fun k hk ↦ ?_⟩
-  have h2 : (2 : ℝ) ^ N ≤ 2 ^ k := pow_le_pow_right₀ one_le_two hk
-  rw [div_lt_iff₀ (by linarith)] at hN
-  nlinarith
+  have h : Tendsto (fun k : ℕ ↦ (2 : ℝ) ^ k * -t) atTop atTop :=
+    (tendsto_pow_atTop_atTop_of_one_lt one_lt_two).atTop_mul_const (neg_pos.2 ht)
+  simpa using (h.eventually_gt_atTop c).exists_forall_of_atTop
 
 /-- For `t < 0`, the cutoff vanishes at `-2 ^ k t` for all large `k`. -/
 private theorem exists_seeleyCutoff_eq_zero {t : ℝ} (ht : t < 0) :
@@ -184,12 +120,13 @@ private theorem exists_seeleyCutoff_eq_zero {t : ℝ} (ht : t < 0) :
   obtain ⟨N, hN⟩ := exists_forall_lt_neg_two_pow_mul ht (3 / 4)
   exact ⟨N, fun k hk ↦ seeleyCutoff_eq_zero_of_le (hN k hk).le⟩
 
-/-- For `t < 0`, Seeley's sum is a finite sum. -/
-private theorem seeleyExtend_eq_sum (f : ℝ → F) {t : ℝ} (ht : t < 0) {N : ℕ}
+/-- For `t < 0`, Seeley's sum is the finite sum up to any `N` from which on the cutoff vanishes
+at `-2 ^ k t`. -/
+theorem seeleyExtend_eq_sum (f : ℝ → F) {t : ℝ} (ht : t < 0) {N : ℕ}
     (hN : ∀ k, N ≤ k → seeleyCutoff (-2 ^ k * t) = 0) :
     seeleyExtend f t =
       ∑ k ∈ Finset.range N, seeleyCoeff k • seeleyCutoff (-2 ^ k * t) • f (-2 ^ k * t) := by
-  simp only [seeleyExtend_def, not_le.mpr ht, ↓reduceIte]
+  rw [seeleyExtend_of_neg f ht]
   refine tsum_eq_sum fun k hk ↦ ?_
   rw [hN k (by simpa using hk), zero_smul, smul_zero]
 
@@ -243,6 +180,7 @@ theorem seeleyIccExtend_def (f : ℝ → F) (t : ℝ) :
     seeleyIccExtend f t =
       if t ≤ 1 / 2 then seeleyExtend f t else seeleyExtend (fun s ↦ f (1 - s)) (1 - t) := (rfl)
 
+@[simp]
 theorem seeleyIccExtend_of_mem (f : ℝ → F) {t : ℝ} (h : t ∈ Icc 0 1) :
     seeleyIccExtend f t = f t := by
   rw [seeleyIccExtend_def]
@@ -251,7 +189,7 @@ theorem seeleyIccExtend_of_mem (f : ℝ → F) {t : ℝ} (h : t ∈ Icc 0 1) :
   · rw [seeleyExtend_of_nonneg _ (by linarith [h.2]), sub_sub_cancel]
 
 /-- For `t < 1`, `seeleyIccExtend f t = seeleyExtend f t`. -/
-private theorem seeleyIccExtend_of_lt_one (f : ℝ → F) {t : ℝ} (ht : t < 1) :
+theorem seeleyIccExtend_of_lt_one (f : ℝ → F) {t : ℝ} (ht : t < 1) :
     seeleyIccExtend f t = seeleyExtend f t := by
   rw [seeleyIccExtend_def]
   split_ifs with h
@@ -260,7 +198,7 @@ private theorem seeleyIccExtend_of_lt_one (f : ℝ → F) {t : ℝ} (ht : t < 1)
       sub_sub_cancel]
 
 /-- For `t > 0`, `seeleyIccExtend f t` is the extension of `s ↦ f (1 - s)` at `1 - t`. -/
-private theorem seeleyIccExtend_of_pos (f : ℝ → F) {t : ℝ} (ht : 0 < t) :
+theorem seeleyIccExtend_of_pos (f : ℝ → F) {t : ℝ} (ht : 0 < t) :
     seeleyIccExtend f t = seeleyExtend (fun s ↦ f (1 - s)) (1 - t) := by
   rw [seeleyIccExtend_def]
   split_ifs with h
@@ -344,6 +282,22 @@ theorem hasSum_seeleyCoeff_smul_compContinuousLinearMap_timeScale {m : ℕ}
   rw [hB, Finset.smul_sum]
   simp_rw [smul_smul]
 
+/-- At time `0`, Seeley's sum `∑ₖ aₖ h (timeScale (-2 ^ k) z)` sums to `h z`. -/
+theorem hasSum_seeleyCoeff_smul_timeScale_of_fst_eq_zero (h : ℝ × E → F) {z : ℝ × E}
+    (hz : z.1 = 0) : HasSum (fun k ↦ seeleyCoeff k • h (timeScale (-2 ^ k) z)) (h z) := by
+  simp_rw [timeScale_of_fst_eq_zero hz]
+  exact hasSum_seeleyCoeff_smul (h z)
+
+/-- At time `0`, Seeley's sum of the dilated coefficients of order `m` of a series `p` sums to
+`p z m`. -/
+theorem hasSum_seeleyCoeff_smul_compContinuousLinearMap_timeScale_of_fst_eq_zero
+    (p : ℝ × E → FormalMultilinearSeries ℝ (ℝ × E) F) {z : ℝ × E} (hz : z.1 = 0) (m : ℕ) :
+    HasSum (fun k ↦ seeleyCoeff k •
+      (p (timeScale (-2 ^ k) z) m).compContinuousLinearMap fun _ ↦ timeScale (-2 ^ k))
+      (p z m) := by
+  simp_rw [timeScale_of_fst_eq_zero hz]
+  exact hasSum_seeleyCoeff_smul_compContinuousLinearMap_timeScale (p z m)
+
 /-- The dilations by `-2 ^ k` map the lower half of `univ ×ˢ U` to its upper half. -/
 private theorem timeScale_mem_Ici_prod {z : ℝ × E} (hz : z ∈ Iic 0 ×ˢ U) (k : ℕ) :
     timeScale (-2 ^ k) z ∈ Ici 0 ×ˢ U := by
@@ -418,9 +372,7 @@ private theorem hasFTaylorSeriesUpToOn_seeleySum (hU : IsOpen U)
       Summable fun k ↦ seeleyCoeff k • h (timeScale (-2 ^ k) z) := by
     rcases hz.1.lt_or_eq with hz₀ | hz₀
     · exact summable_of_fst_neg hz₀ fun k hk ↦ by rw [h1 _ hk.le, smul_zero]
-    · simp_rw [timeScale_of_fst_eq_zero hz₀]
-      exact (by simpa using (hasSum_seeleyCoeff_mul_neg_two_pow 0).smul_const (h z) :
-        HasSum (fun k ↦ seeleyCoeff k • h z) (h z)).summable
+    · exact (hasSum_seeleyCoeff_smul_timeScale_of_fst_eq_zero h hz₀).summable
   have hcoef (m : ℕ) {z : ℝ × E} (hz : z ∈ Iic 0 ×ˢ U) :
       Summable fun k ↦ seeleyCoeff k •
         (p (timeScale (-2 ^ k) z) m).compContinuousLinearMap fun _ ↦ timeScale (-2 ^ k) := by
@@ -429,8 +381,8 @@ private theorem hasFTaylorSeriesUpToOn_seeleySum (hU : IsOpen U)
       rw [hp_def, ftaylorSeriesWithin_eq_zero h1 hk]
       ext v
       simp
-    · simp_rw [timeScale_of_fst_eq_zero hz₀]
-      exact (hasSum_seeleyCoeff_smul_compContinuousLinearMap_timeScale (p z m)).summable
+    · exact (hasSum_seeleyCoeff_smul_compContinuousLinearMap_timeScale_of_fst_eq_zero p hz₀
+        m).summable
   have hnhds {z : ℝ × E} {r : ℝ} (hr : 0 < r) :
       Iic 0 ×ˢ Metric.ball z.2 r ∈ 𝓝[Iic 0 ×ˢ U] z :=
     mem_nhdsWithin.2 ⟨univ ×ˢ Metric.ball z.2 r, isOpen_univ.prod Metric.isOpen_ball,
@@ -476,16 +428,6 @@ private theorem contDiffOn_seeleyGlue (hU : IsOpen U) (hh : ContDiffOn ℝ ∞ h
   have hp : HasFTaylorSeriesUpToOn ∞ h p (Ici 0 ×ˢ U) :=
     hh.ftaylorSeriesWithin ((uniqueDiffOn_Ici 0).prod hU.uniqueDiffOn)
   have hq := hasFTaylorSeriesUpToOn_seeleySum hU hh h1
-  have hval {z : ℝ × E} (hz : z.1 = 0) :
-      ∑' k, seeleyCoeff k • h (timeScale (-2 ^ k) z) = h z := by
-    simp_rw [timeScale_of_fst_eq_zero hz]
-    exact (by simpa using (hasSum_seeleyCoeff_mul_neg_two_pow 0).smul_const (h z) :
-      HasSum (fun k ↦ seeleyCoeff k • h z) (h z)).tsum_eq
-  have hcoef {z : ℝ × E} (hz : z.1 = 0) (m : ℕ) :
-      ∑' k, seeleyCoeff k • (p (timeScale (-2 ^ k) z) m).compContinuousLinearMap
-        (fun _ ↦ timeScale (-2 ^ k)) = p z m := by
-    simp_rw [timeScale_of_fst_eq_zero hz]
-    exact (hasSum_seeleyCoeff_smul_compContinuousLinearMap_timeScale (p z m)).tsum_eq
   let r : ℝ × E → FormalMultilinearSeries ℝ (ℝ × E) F := fun z m ↦ if 0 ≤ z.1 then p z m
     else ∑' k, seeleyCoeff k • (p (timeScale (-2 ^ k) z) m).compContinuousLinearMap
       (fun _ ↦ timeScale (-2 ^ k))
@@ -497,11 +439,13 @@ private theorem contDiffOn_seeleyGlue (hU : IsOpen U) (hh : ContDiffOn ℝ ∞ h
       else ∑' k, seeleyCoeff k • h (timeScale (-2 ^ k) z)) r (Iic 0 ×ˢ U) := by
     refine (hq.congr fun z hz ↦ ?_).congr_series fun m _ z hz ↦ ?_
     · split_ifs with h0
-      · exact (hval (le_antisymm hz.1 h0)).symm
+      · exact (hasSum_seeleyCoeff_smul_timeScale_of_fst_eq_zero h
+          (le_antisymm hz.1 h0)).tsum_eq.symm
       · rfl
     · simp only [r]
       split_ifs with h0
-      · exact hcoef (le_antisymm hz.1 h0) m
+      · exact (hasSum_seeleyCoeff_smul_compContinuousLinearMap_timeScale_of_fst_eq_zero p
+          (le_antisymm hz.1 h0) m).tsum_eq
       · rfl
   have hcl {a : Set ℝ} (ha : IsClosed a) : closure (a ×ˢ U) ⊆ a ×ˢ univ :=
     closure_minimal (prod_mono subset_rfl (subset_univ U)) (ha.prod isClosed_univ)
