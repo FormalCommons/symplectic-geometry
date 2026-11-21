@@ -565,9 +565,10 @@ This is $\Omega(V)$, in `TauCeti.SymplecticForm`.
   `toBilinForm_toContinuousBilinearMap_ofContinuousBilinearMap`.
 - `toContinuousBilinearMap_sub_flip (ω : SymplecticForm V)`: writing `B` for
   `ω.toBilinForm.toContinuousBilinearMap`, `B - B.flip = (2 : ℝ) • B`; and
-  `inv_two_smul_toContinuousBilinearMap_sub_flip (ω : SymplecticForm V)`:
-  `(2 : ℝ)⁻¹ • (B - B.flip) = B`, so the skew part of a symplectic form is
-  the form itself. `PolarComplexStructure/Smooth.lean` uses them.
+  `@[simp] skewSymmetrizeBilinear_toContinuousBilinearMap (ω : SymplecticForm V)`:
+  `B.skewSymmetrizeBilinear = B`, so the skew part of a symplectic form is
+  the form itself, by `skewSymmetrizeBilinear_of_isAlt`.
+  `PolarComplexStructure/Smooth.lean` uses the second.
 - `continuous_transport (e : V ≃L[ℝ] W)`: `ω ↦ ω.transport e.toLinearEquiv`
   is continuous.
 
@@ -646,7 +647,7 @@ the file list of `DESIGN.md`*).
 Here `V` is a real normed space, `W` and `W'` are finite-dimensional real
 inner product spaces, and `s♯` is Tau Ceti's Riesz map
 `continuousLinearMapOfBilin s`, as in Tau Ceti's file. The skew part of `s`
-is written out as `(2 : ℝ)⁻¹ • (s - s.flip)`.
+is `ContinuousLinearMap.skewSymmetrizeBilinear s`.
 
 The domain, the formula and their smoothness and naturality mention only
 continuous bilinear forms and Tau Ceti's operations on them
@@ -664,9 +665,10 @@ involve `metricPolarComplexStructure`, but the merged code puts them in
 The file uses helpers stated in their own files:
 `SymplecticGeometry.symmetrizeBilinear_mem_innerProducts`
 (`Topology/Algebra/Module/InnerProducts.lean`), and
-`TauCeti.SymplecticForm.toContinuousBilinearMap_sub_flip` and
-`TauCeti.SymplecticForm.inv_two_smul_toContinuousBilinearMap_sub_flip`
-(`Topology/Algebra/Module/SymplecticForms.lean`).
+`TauCeti.SymplecticForm.skewSymmetrizeBilinear_toContinuousBilinearMap`
+(`Topology/Algebra/Module/SymplecticForms.lean`), and the lemmas on
+`ContinuousLinearMap.skewSymmetrizeBilinear`
+(`Topology/Algebra/Module/BilinearForm.lean`).
 
 - `TauCeti.polarDomain (V) : Set ((V →L[ℝ] V →L[ℝ] ℝ) ×
   (V →L[ℝ] V →L[ℝ] ℝ))`, for any real normed space `V`, since it uses no
@@ -676,8 +678,8 @@ The file uses helpers stated in their own files:
   `design/symplectic-vector-bundles.md`. It comes with
   - `@[simp] mem_polarDomain_iff`, which unfolds it;
   - `nondegenerate_toBilinForm_of_mem_polarDomain (h : (g, s) ∈ polarDomain V) :
-    ((2 : ℝ)⁻¹ • (s - s.flip)).toBilinForm.Nondegenerate`, by Tau Ceti's
-    `BilinForm.nondegenerate_smul_iff`;
+    (skewSymmetrizeBilinear s).toBilinForm.Nondegenerate`, by
+    `nondegenerate_toBilinForm_skewSymmetrizeBilinear_iff`;
   - `isOpen_polarDomain (V) [FiniteDimensional ℝ V] : IsOpen (polarDomain V)`,
     from Tau Ceti's `isOpen_setOf_forall_bilinear_apply_self_pos` and
     `isOpen_setOf_nondegenerate_toBilinForm`.
@@ -686,12 +688,13 @@ The file uses helpers stated in their own files:
   ((g : V →L[ℝ] V →L[ℝ] ℝ), ω.toBilinForm.toContinuousBilinearMap) ∈
   polarDomain V`. Every inner product and symplectic form lie in the domain,
   so the smoothness statement covers all of them. Its proof uses
-  `toContinuousBilinearMap_sub_flip`. It is in `SymplecticGeometry` because
+  `nondegenerate_toBilinForm_skewSymmetrizeBilinear_iff` and
+  `skewSymmetrizeBilinear_toContinuousBilinearMap`. It is in `SymplecticGeometry` because
   it mentions `innerProducts`.
 - `TauCeti.metricPolarFormula (g s : W →L[ℝ] W →L[ℝ] ℝ) : W →L[ℝ] W`. With
   `g' := (symmetrizeBilinear g).val` (Tau Ceti's
   `ContinuousLinearMap.symmetrizeBilinear`), `R := g'.metricChangeTransport`
-  and `A := R * ((2 : ℝ)⁻¹ • (s - s.flip))♯ * R`, it is Tau Ceti's expression
+  and `A := R * (skewSymmetrizeBilinear s)♯ * R`, it is Tau Ceti's expression
   `R * (A * Ring.inverse (CFC.sqrt (-(A * A)))) * CFC.sqrt g'♯`. No case
   split is needed: `Ring.inverse`, `CFC.sqrt` and `metricChangeTransport`
   already have junk values off the domain. It comes with
@@ -714,7 +717,7 @@ The file uses helpers stated in their own files:
   `metricPolarComplexStructure_transport` along `K`, which carries the ambient
   inner product to `g`, this is $J_{g,\omega}$. On the left, the symmetric
   part of `g` is `g` (Tau Ceti's `symmetrizeBilinear_coe`) and the skew part
-  of `ω` is `ω` (`inv_two_smul_toContinuousBilinearMap_sub_flip`). The
+  of `ω` is `ω` (`skewSymmetrizeBilinear_toContinuousBilinearMap`). The
   formula is not derived a second time.
 - `TauCeti.contDiffOn_metricPolarFormula {n : WithTop ℕ∞} :
   ContDiffOn ℝ n (fun p ↦ metricPolarFormula p.1 p.2) (polarDomain W)`. The
@@ -733,15 +736,15 @@ The file uses helpers stated in their own files:
   private and stated for families on a manifold, so it cannot be used here.
   The library states the pointwise version once, in Tau Ceti's style and
   namespace, so that it can replace the private lemma upstream.
-- `TauCeti.metricPolarFormula_symmetrizeBilinear_skewPart
+- `TauCeti.metricPolarFormula_symmetrizeBilinear_skewSymmetrizeBilinear
   (g s : W →L[ℝ] W →L[ℝ] ℝ) :
-  metricPolarFormula (symmetrizeBilinear g).val ((2 : ℝ)⁻¹ • (s - s.flip)) =
+  metricPolarFormula (symmetrizeBilinear g).val (skewSymmetrizeBilinear s) =
   metricPolarFormula g s`: the formula depends only on the symmetric part of
-  `g` and the skew part of `s`.
+  `g` and the skew part of `s`, by idempotence of both parts.
 - `TauCeti.metricPolarFormula_eq_of_toContinuousBilinearMap_eq
   {g s : W →L[ℝ] W →L[ℝ] ℝ} (hg : ∀ v, v ≠ 0 → 0 < g v v)
   {ω : SymplecticForm W}
-  (hω : ω.toBilinForm.toContinuousBilinearMap = (2 : ℝ)⁻¹ • (s - s.flip)) :
+  (hω : ω.toBilinForm.toContinuousBilinearMap = skewSymmetrizeBilinear s) :
   metricPolarFormula g s = LinearMap.toContinuousLinearMap
   (metricPolarComplexStructure ⟨_, symmetrizeBilinear_mem_innerProducts hg⟩ ω).toLinearMap`,
   by `metricPolarFormula_eq` and the previous lemma.
@@ -760,8 +763,9 @@ The file uses helpers stated in their own files:
   e.conjContinuousAlgEquiv (metricPolarFormula g s)`: on `polarDomain W`,
   pushing both forms forward along `e` conjugates the formula by `e`. The
   proof is `metricPolarFormula_eq_of_mem`,
-  `metricPolarFormula_symmetrizeBilinear_skewPart` with Tau Ceti's
-  `symmetrizeBilinear_bilinearComp`, then `metricPolarFormula_eq` and
+  `metricPolarFormula_symmetrizeBilinear_skewSymmetrizeBilinear` with Tau
+  Ceti's `symmetrizeBilinear_bilinearComp` and
+  `skewSymmetrizeBilinear_bilinearComp`, then `metricPolarFormula_eq` and
   `metricPolarComplexStructure_transport`, since the symmetric and skew parts
   commute with transport. This is naturality on the whole domain, and it
   does not depend on the inner products of `W` and `W'`. Because this proof
@@ -772,7 +776,10 @@ The file uses helpers stated in their own files:
   Continuous fun p : innerProducts V × SymplecticForm V ↦
   metricPolarComplexStructure p.1 p.2`, for a normed space `V` with no inner
   product. It carries `V` to `EuclideanSpace ℝ (Fin (finrank ℝ V))` along
-  `ContinuousLinearEquiv.ofFinrankEq` and uses the formula there.
+  `ContinuousLinearEquiv.ofFinrankEq` and uses the formula there. Its
+  composition form `Continuous.metricPolarComplexStructure` (continuous
+  families `g x`, `ω x` give a continuous `J_{g x, ω x}`) gives continuity in
+  `ω` for fixed `g`.
 
 ### `Geometry/Symplectic/Cayley/Domain.lean`
 
@@ -842,11 +849,17 @@ This is Corollary 2.5.7, in `SymplecticGeometry`.
   $J\mapsto g_J$, with `@[simp]` `coe_compatibleMetric_apply`
   (its value is `(ω.associatedBilinForm J).toContinuousBilinearMap`). It is
   continuous by Tau Ceti's `toContinuousBilinearMap_associatedBilinForm`.
+- `compatiblePolar ω : C(innerProducts V, {J // ω.Compatible J})`, the map
+  `g ↦ metricPolarComplexStructure g ω`, with `@[simp]`
+  `coe_compatiblePolar_apply` (its value is
+  `metricPolarComplexStructure g ω`).
 - `metricHomotopyEquiv ω : ContinuousMap.HomotopyEquiv {J // ω.Compatible J}
   (innerProducts V)`. Its forward map is `compatibleMetric ω`, and its
-  inverse is `g ↦ metricPolarComplexStructure g ω`. They come with `@[simp]`
+  inverse is `compatiblePolar ω`. They come with `@[simp]`
   `metricHomotopyEquiv_toFun` and `metricHomotopyEquiv_invFun`, which state
-  the two maps. One composite is the identity, by
+  the two maps as continuous maps, and `@[simp]`
+  `metricHomotopyEquiv_symm_apply`, `(metricHomotopyEquiv ω).symm g =
+  compatiblePolar ω g`. One composite is the identity, by
   `metricPolarComplexStructure_associatedBilinForm`. The other is homotopic to
   the identity by the straight-line homotopy `metricStraightHomotopy ω`,
   $(t,g)\mapsto(1-t)\,g_{J_{g,\omega}}+t\,g$, inside the convex set. Its value
@@ -873,7 +886,8 @@ This is Proposition 2.5.6, for a fixed `g : innerProducts V`, in
   $\omega_{g,J}=\tfrac12\big(g(J\cdot,\cdot)-g(\cdot,J\cdot)\big)$, built
   with Tau Ceti's `SymplecticForm.ofTames`, since
   $\omega_{g,J}(v,Jv)=\tfrac12\big(g(Jv,Jv)+g(v,v)\big)>0$. It comes with
-  `metricSymplecticForm_apply` (`@[simp]`), `tames_metricSymplecticForm`,
+  `toBilinForm_metricSymplecticForm` (`@[simp]`), the pointwise
+  `metricSymplecticForm_apply` that follows from it, `tames_metricSymplecticForm`,
   `metricSymplecticForm_eq_of_apply_apply` (it is $g(J\cdot,\cdot)$ for
   $g$-orthogonal $J$) and `continuous_metricSymplecticForm`.
 - `metricSymplecticForm_innerSL` (for `V` an inner product space and `J`
@@ -891,7 +905,8 @@ This is Proposition 2.5.6, for a fixed `g : innerProducts V`, in
 - `polarHomotopyEquiv g : ContinuousMap.HomotopyEquiv (SymplecticForm V)
   (AlmostComplexStructure V)`, with maps $\omega\mapsto J_{g,\omega}$ and
   $J\mapsto\omega_{g,J}$, stated by the `@[simp]` lemmas
-  `polarHomotopyEquiv_toFun` and `polarHomotopyEquiv_invFun`. Mathlib's
+  `polarHomotopyEquiv_toFun` and `polarHomotopyEquiv_symm_apply` (Mathlib's
+  simp normal form `⇑h.symm` of `⇑h.invFun`). Mathlib's
   `ContinuousMap.HomotopyEquiv` keeps its homotopies only as the `Prop`s
   `left_inv` and `right_inv`, so the two homotopies are public definitions of
   their own, placed before `polarHomotopyEquiv g`, which takes `left_inv` from
@@ -899,7 +914,9 @@ This is Proposition 2.5.6, for a fixed `g : innerProducts V`, in
   each runs from the composite at time $0$ to the identity at time $1$, the
   direction of `left_inv` and `right_inv`. The composites are written as
   `ContinuousMap`s, continuous by `continuous_metricSymplecticForm` and
-  `continuous_metricPolarComplexStructure`.
+  `Continuous.metricPolarComplexStructure`. Each homotopy is from the
+  `ContinuousMap.comp` of the two maps of `polarHomotopyEquiv g`, so `left_inv`
+  and `right_inv` take the homotopies as they are, with no cast.
   - `polarStraightHomotopy g`, a `ContinuousMap.Homotopy` from
     $\omega\mapsto\omega_{g,J_{g,\omega}}$ to `ContinuousMap.id
     (SymplecticForm V)`: the straight line
@@ -923,8 +940,8 @@ This is Proposition 2.5.6, for a fixed `g : innerProducts V`, in
     Tau Ceti makes the same choice with `ofTames_toBilinForm`. A pointwise
     `polarStraightHomotopy_apply_apply`, not `@[simp]`, follows from it. The
     endpoints come from `Tames.lineMap_zero` and `_one`, and joint continuity
-    in $(t,\omega)$ from `continuous_iff` of `SymplecticForm V`, the value
-    lemma and the two continuity results above.
+    in $(t,\omega)$ from `continuous_iff` of `SymplecticForm V`, Mathlib's
+    `ContinuousMap.Homotopy.affine` and the two continuity results above.
   - `polarCayleyHomotopy g`, a `ContinuousMap.Homotopy` from
     $J\mapsto J_{g,\omega_{g,J}}$ to `ContinuousMap.id
     (AlmostComplexStructure V)`. Its value at `(t, J)` is Tau Ceti's
@@ -941,9 +958,6 @@ This is Proposition 2.5.6, for a fixed `g : innerProducts V`, in
     Tau Ceti's `Compatible.toContinuousLinearMap_cayleyInterp`; its joint
     continuity in $(t,J)$ comes from `contDiffOn_cayleyPathFormula`.
     The triple lies in `cayleyDomain` by `Compatible.mem_cayleyDomain`.
-
-  If the composites of `polarHomotopyEquiv g` are not syntactically the
-  endpoints above, `ContinuousMap.Homotopy.cast` adjusts them.
 - `metricComplexStructuresHomotopyEquiv g` and
   `metricSymplecticFormsHomotopyEquiv g`, whose forward maps are the
   inclusions. Their inverses are $J\mapsto J_{g,\omega_{g,J}}$ and
