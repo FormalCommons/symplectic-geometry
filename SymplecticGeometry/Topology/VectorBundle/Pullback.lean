@@ -7,6 +7,7 @@ module
 
 public import Mathlib.Topology.VectorBundle.ContinuousAlternatingMap
 public import TauCeti.Topology.VectorBundle.Pullback
+public import SymplecticGeometry.Data.Bundle
 
 /-!
 # Alternating maps and fibre operations on a pull-back bundle
@@ -32,13 +33,17 @@ terms built in the other. The lemmas take each operation at the type of its argu
 in `V (f y)` on vectors of type `(f *ᵖ V) y` to `(f *ᵖ V) y`, and `neg_pullback`,
 `add_pullback`, `sub_pullback` and `smul_pullback` move an operation taken in `(f *ᵖ V) y` on
 vectors of type `V (f y)` to `V (f y)`. Each applies only where the two types differ, so the
-two families do not undo each other. `neg_apply_fiber` and `neg_apply_pullback` evaluate a
-negated function on a vector of the other type, where `Pi.neg_apply` does not apply.
-`zero_fiber` relates the two zeros; it is not a `simp` lemma, since a zero has no argument
-whose type could decide between them. `smul_fiber` is Tau Ceti's `Bundle.Pullback.smul_eq` read
-from right to left, for Mathlib's module structure on the fibres: the file of `smul_eq` gives the
-fibres a second scalar action, `Bundle.Pullback.instSMul`, and importing it here would change
-the action that `c • v` elaborates to in every file that imports this one.
+two families do not undo each other. `zero_fiber` relates the two zeros; it is not a `simp`
+lemma, since a zero alone has no argument whose type could decide between them. In an equation
+the other side decides: `eq_zero_fiber_iff`, `zero_fiber_eq_iff`, `eq_zero_pullback_iff` and
+`zero_pullback_eq_iff` replace a zero of the other type by the zero of the type of the
+equation. The equations between two vectors are in `SymplecticGeometry/Data/Bundle.lean`, which
+this file imports so that the whole simp set comes with it.
+
+`smul_fiber` is Tau Ceti's `Bundle.Pullback.smul_eq` read from right to left, for Mathlib's
+module structure on the fibres: the file of `smul_eq` gives the fibres a second scalar action,
+`Bundle.Pullback.instSMul`, and importing it here would change the action that
+`c • v` elaborates to in every file that imports this one.
 
 ## References
 
@@ -92,8 +97,33 @@ section AddCommMonoid
 variable [∀ b, AddCommMonoid (E b)]
 
 /-- The zero of `E (f y)` is the zero of the fibre of `f *ᵖ E` at `y`. This is not a `simp`
-lemma: its left-hand side is any zero of `E (f y)`. -/
+lemma: its left-hand side is any zero of `E (f y)`. The lemmas below use it inside equations,
+where the other side fixes the type. -/
 theorem zero_fiber : @Eq ((f *ᵖ E) y) (0 : E (f y)) 0 := (rfl)
+
+/-- A vector `v` of the fibre of `f *ᵖ E` at `y` equals the zero of `E (f y)` if and only if
+it is the zero of that fibre. -/
+@[simp]
+theorem eq_zero_fiber_iff {v : (f *ᵖ E) y} : @Eq ((f *ᵖ E) y) v (0 : E (f y)) ↔ v = 0 :=
+  Iff.rfl
+
+/-- The zero of `E (f y)` equals a vector `v` of the fibre of `f *ᵖ E` at `y` if and only if
+the zero of that fibre does. -/
+@[simp]
+theorem zero_fiber_eq_iff {v : (f *ᵖ E) y} : @Eq ((f *ᵖ E) y) (0 : E (f y)) v ↔ 0 = v :=
+  Iff.rfl
+
+/-- A vector `v` of `E (f y)` equals the zero of the fibre of `f *ᵖ E` at `y` if and only if
+it is the zero of `E (f y)`. -/
+@[simp]
+theorem eq_zero_pullback_iff {v : E (f y)} : @Eq (E (f y)) v (0 : (f *ᵖ E) y) ↔ v = 0 :=
+  Iff.rfl
+
+/-- The zero of the fibre of `f *ᵖ E` at `y` equals a vector `v` of `E (f y)` if and only if
+the zero of `E (f y)` does. -/
+@[simp]
+theorem zero_pullback_eq_iff {v : E (f y)} : @Eq (E (f y)) (0 : (f *ᵖ E) y) v ↔ 0 = v :=
+  Iff.rfl
 
 /-- The sum, taken in `E (f y)`, of two vectors `v` and `w` of the fibre of `f *ᵖ E` at `y` is
 their sum in that fibre. -/
@@ -156,22 +186,6 @@ theorem smul_pullback (c : R) (v : E (f y)) :
     @Eq (E (f y)) (@HSMul.hSMul R ((f *ᵖ E) y) ((f *ᵖ E) y) _ c v) (c • v) := (rfl)
 
 end Module
-
-section Neg
-
-variable {β : Type*} [Neg β]
-
-/-- The negative of a function `g` on `E (f y)`, applied to a vector `v` of the fibre of
-`f *ᵖ E` at `y`, is `-g v`. This is `Pi.neg_apply` for a vector of the pull-back fibre. -/
-@[simp]
-theorem neg_apply_fiber (g : E (f y) → β) (v : (f *ᵖ E) y) : (-g) v = -g v := (rfl)
-
-/-- The negative of a function `g` on the fibre of `f *ᵖ E` at `y`, applied to a vector `v` of
-`E (f y)`, is `-g v`. This is `Pi.neg_apply` for a vector of `E (f y)`. -/
-@[simp]
-theorem neg_apply_pullback (g : (f *ᵖ E) y → β) (v : E (f y)) : (-g) v = -g v := (rfl)
-
-end Neg
 
 end Bundle.Pullback
 
