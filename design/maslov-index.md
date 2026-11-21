@@ -386,7 +386,7 @@ The Maslov phase on $\mathcal{L}(n)$ and the index of Lagrangian loops.
   `souriau_unitaryFrame : souriau (unitaryFrame U) = Matrix.UnitaryGroup.souriau U`
   (`@[simp]`), `souriau_horizontal`, `continuous_souriau`, `souriau_injective`,
   `isClosedEmbedding_souriau`, `souriau_sum`, `souriau_reindex`, and
-  `souriau_ofUnitary_smul : souriau (ofUnitary U • Λ) = U * souriau Λ * UnitaryGroup.transpose U`
+  `souriau_unitary_smul : souriau (U • Λ) = U * souriau Λ * UnitaryGroup.transpose U`
   (`@[simp]`, by `Matrix.UnitaryGroup.coe_souriau_mul_left`).
 - `ℒ.maslovPhase (Λ : ℒ ι) : Circle := detCircle (souriau Λ)`, the book's
   $\rho$, with `maslovPhase_def`, `continuous_maslovPhase`,
