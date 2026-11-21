@@ -68,7 +68,7 @@ instance : SMulMemClass (LagrangianGrassmannian ω) ℝ V where
 instance : CoeOut (LagrangianGrassmannian ω) (Submodule ℝ V) :=
   ⟨toSubmodule⟩
 
-@[simp]
+/-- A vector lies in the carrier set of `Λ` exactly when it lies in `Λ`. -/
 theorem mem_carrier {Λ : LagrangianGrassmannian ω} {x : V} : x ∈ Λ.carrier ↔ x ∈ Λ :=
   Iff.rfl
 
