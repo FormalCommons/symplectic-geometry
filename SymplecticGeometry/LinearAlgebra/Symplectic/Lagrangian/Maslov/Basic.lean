@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.Topology.Grassmannian.Lagrangian.Fibration
 public import SymplecticGeometry.Topology.Grassmannian.Lagrangian.Sum
 public import TauCeti.Analysis.Matrix.UnitaryGroup.Maslov.Loop
+public import TauCeti.Analysis.Matrix.UnitaryGroup.Maslov.Multiplicity
 
 /-!
 # The Maslov phase and the Maslov index of loops of Lagrangian subspaces
@@ -179,6 +180,15 @@ theorem souriau_unitary_smul (U : unitaryGroup ι ℂ) (Λ : ℒ ι) :
   refine Subtype.ext ?_
   rw [UnitaryGroup.coe_souriau_mul_left]
   simp
+
+/-- **The eigenvalue `1` of the Souriau map.** Its multiplicity as a root of the characteristic
+polynomial of `souriau Λ` is the dimension of `Λ ∩ {y = 0}`. -/
+theorem rootMultiplicity_one_charpoly_souriau (Λ : ℒ ι) :
+    (souriau Λ : Matrix ι ι ℂ).charpoly.rootMultiplicity 1 =
+      Module.finrank ℝ ↥((Λ : Submodule ℝ (StdSpace ι)) ⊓ horizontal ι) := by
+  obtain ⟨U, rfl⟩ := unitaryFrame_surjective Λ
+  rw [souriau_unitaryFrame, UnitaryGroup.rootMultiplicity_one_charpoly_souriau,
+    finrank_unitaryFrame_inf_horizontal]
 
 /-! ### The Maslov phase -/
 
