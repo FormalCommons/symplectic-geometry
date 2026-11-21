@@ -296,6 +296,11 @@ theorem IsNondegenerate.symplecticFormAt_apply (h : ω.IsNondegenerate) (x : M) 
     h.symplecticFormAt x v w = ω x ![v, w] :=
   ω.bilinFormAt_apply x v w
 
+/-- The bilinear form of the symplectic form on a fibre is that of the two-form. -/
+theorem IsNondegenerate.toBilinForm_symplecticFormAt (h : ω.IsNondegenerate) (x : M) :
+    (h.symplecticFormAt x).toBilinForm = ω.bilinFormAt x :=
+  (rfl)
+
 end ContMDiffTwoForm
 
 omit [∀ x, IsTopologicalAddGroup (V x)] [∀ x, ContinuousSMul ℝ (V x)] in
@@ -746,6 +751,19 @@ theorem contMDiffOn_frameTransition [FiniteDimensional ℝ W] (h : ω.IsSymplect
     (h' : ω.IsSymplecticFrameOn σ U Φ') (hU : IsOpen U) :
     ContMDiffOn I 𝓘(ℝ, W →L[ℝ] W) n (fun x ↦ (frameTransition Φ Φ' x : W →L[ℝ] W)) U :=
   Bundle.contMDiffOn_frameTransition h.contMDiffOn h'.contMDiffOn hU
+
+/-- Precomposing a symplectic frame for `σ` with a linear symplectomorphism `e` from `(W', σ')`
+to `(W, σ)` gives a symplectic frame for `σ'`. -/
+theorem precomp {W' : Type*} [NormedAddCommGroup W'] [NormedSpace ℝ W']
+    {σ' : TauCeti.SymplecticForm W'} (h : ω.IsSymplecticFrameOn σ U Φ) (e : W' ≃L[ℝ] W)
+    (he : σ'.IsSymplectomorphism σ e.toLinearEquiv) :
+    ω.IsSymplecticFrameOn σ' U fun x ↦ e.trans (Φ x) := by
+  refine ⟨h.contMDiffOn.comp (contMDiff_fst.prodMk
+    ((e : W' →L[ℝ] W).contDiff.contMDiff.comp contMDiff_snd)).contMDiffOn
+    fun p hp ↦ ⟨hp.1, Set.mem_univ _⟩, fun x hx v w ↦ ?_⟩
+  rw [ContinuousLinearEquiv.trans_apply, ContinuousLinearEquiv.trans_apply,
+    h.map_bilinFormAt x hx]
+  exact he.apply v w
 
 end IsSymplecticFrameOn
 
