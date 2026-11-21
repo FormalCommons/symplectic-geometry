@@ -36,12 +36,12 @@ namespace SmoothForm.IsContactForm
 
 variable {E H M F G N : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
   [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M]
-  [IsManifold I ∞ M] [NormedAddCommGroup F] [NormedSpace ℝ F] [FiniteDimensional ℝ F]
+  [IsManifold I 2 M] [NormedAddCommGroup F] [NormedSpace ℝ F] [FiniteDimensional ℝ F]
   [TopologicalSpace G] {J : ModelWithCorners ℝ F G} [TopologicalSpace N] [ChartedSpace G N]
-  [IsManifold J ∞ N] {α : SmoothForm I M ℝ 1} {β : SmoothForm J N ℝ 1}
+  [IsManifold J 2 N] {α : SmoothForm I M ℝ 1} {β : SmoothForm J N ℝ 1}
 
-/-- A map that is smooth at `x`, has surjective differential there, and pulls the contact form
-`β` back to the contact form `α` near `x`, carries the Reeb vector of `α` at `x` to the Reeb
+/-- A map that is of class `C²` at `x`, has surjective differential there, and pulls the contact
+form `β` back to the contact form `α` near `x`, carries the Reeb vector of `α` at `x` to the Reeb
 vector of `β` at its image. -/
 theorem mfderiv_reebVectorField_of_eventuallyEq_mpullback (hα : α.IsContactForm)
     (hβ : β.IsContactForm) {f : M → N} {x : M} (hf : ContMDiffAt I J 2 f x)

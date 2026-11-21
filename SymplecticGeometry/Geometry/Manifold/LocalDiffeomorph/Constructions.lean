@@ -33,7 +33,7 @@ variable {𝕜 : Type*} [NontriviallyNormedField 𝕜]
 
 /-- On the source of a partial diffeomorphism `φ` into a normed space, the differential of `φ`
 followed by a continuous linear equivalence `e` is `e` applied to the differential of `φ`. -/
-theorem mvfderiv_trans_toPartialDiffeomorph_apply [IsManifold I n M] (hn : n ≠ 0) {x : M}
+theorem mvfderiv_trans_toPartialDiffeomorph_apply (hn : n ≠ 0) {x : M}
     (hx : x ∈ φ.source) (v : TangentSpace I x) :
     mvfderiv I (φ.trans e.toPartialDiffeomorph) x v = e (mvfderiv I φ x v) := by
   have h : ⇑(φ.trans e.toPartialDiffeomorph) = (e : F →L[𝕜] F') ∘ φ :=

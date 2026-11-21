@@ -171,18 +171,22 @@ theorem IsContactDistribution.exists_darbouxChart_comap_of_finrank_eq
   rw [hsrc] at hx
   rw [hφD x hx]
   ext v
+  -- The statement composes `σ` with `mfderiv chart x`, whose values lie in a tangent space of
+  -- `ℝⁿ × ℝⁿ × ℝ`; `LinearMap.comp_apply` applies since that is the space itself by definition.
+  have hcomp : (σ.toLinearMap ∘ₗ
+      (mfderiv I 𝓘(ℝ, V × V × ℝ) chart x).toLinearMap) v = σ (mvfderiv I chart x v) := by
+    rw [mvfderiv_apply_eq_mfderiv_apply]
+    exact LinearMap.comp_apply _ _ _
   refine (Submodule.mem_comap.trans SmoothForm.mem_kerDistribution).trans
     (Iff.trans ?_ (Submodule.mem_comap.trans SmoothForm.mem_kerDistribution).symm)
-  have key : (innerProductContactForm (EuclideanSpace ℝ (Fin n))).val (φ x) ![mvfderiv I φ x v] =
-      (innerProductContactForm (EuclideanSpace ℝ (Fin n))).val
-        ((ContinuousLinearEquiv.refl ℝ (EuclideanSpace ℝ (Fin n))).prodCongr
-          (ContinuousLinearEquiv.neg ℝ) (chart x))
-        ![(ContinuousLinearEquiv.refl ℝ (EuclideanSpace ℝ (Fin n))).prodCongr
-          (ContinuousLinearEquiv.neg ℝ) (mvfderiv I chart x v)] := by
-    rw [hd x hx, hcoe, hσσ, hσσ]
-  -- The two sides differ from `key` only in reading the differentials as maps into the model
-  -- space `ℝⁿ × ℝⁿ × ℝ` instead of its tangent spaces.
-  exact iff_of_eq (congrArg (· = 0) key)
+  simp only [ContinuousLinearMap.coe_coe, ← mvfderiv_apply_eq_mfderiv_apply]
+  have hR : (innerProductContactForm (EuclideanSpace ℝ (Fin n))).val (σ (chart x))
+      ![(σ.toLinearMap ∘ₗ (mfderiv I 𝓘(ℝ, V × V × ℝ) chart x).toLinearMap) v] =
+      (innerProductContactForm (EuclideanSpace ℝ (Fin n))).val (φ x) ![mvfderiv I φ x v] := by
+    rw [hcomp, hd x hx, hcoe, hσσ, hσσ]
+  -- The two sides now differ only in the type at which `![·]` is formed: the tangent space of
+  -- `ℝⁿ × ℝⁿ × ℝ` at a point, or the space itself, which are the same type by definition.
+  exact iff_of_eq (congrArg (· = 0) hR.symm)
 
 end Darboux
 
