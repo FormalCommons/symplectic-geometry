@@ -141,6 +141,10 @@ open StdSpace
 
 variable [Fintype ι]
 
+/-- The standard model `StdSpace ι` has real dimension `2 * Fintype.card ι`. -/
+theorem finrank_stdSpace : Module.finrank ℝ (StdSpace ι) = 2 * Fintype.card ι := by
+  rw [finrank_euclideanSpace, Fintype.card_sum, two_mul]
+
 variable (ι) in
 /-- The standard symplectic form `ω₀ = ∑ᵢ dxᵢ ∧ dyᵢ` on `StdSpace ι`: the transport of
 `TauCeti.stdComplexPiSymplecticForm ι` along `complexToRealEuclidean ι`. -/
