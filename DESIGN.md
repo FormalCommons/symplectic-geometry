@@ -1041,6 +1041,11 @@ it into issues; the overview fixes its folders and its dependencies.
   a $C^n$ map to an open subset of its target, continuous for Tau Ceti's
   weak Whitney topology; a step of the proof of the previous lemma, placed
   beside Tau Ceti's weak Whitney files so that it can merge there),
+  `Geometry/Manifold/ContMDiffMap/Chart/Restriction.lean` (ambient chart
+  derivatives of a function that agrees on an open set with a $C^n$ map on
+  it, and their convergence in the weak Whitney topology; another step of
+  the proof of that lemma, generalizing the lemmas of Tau Ceti's file of the
+  same name and sitting beside it so that the two can merge),
   `Geometry/Manifold/VectorBundle/Cayley.lean` (smoothness of Tau Ceti's
   `cayleyPathFormula` as a map into the endomorphism bundle of any vector
   bundle, along a base map, at every order, generalizing by the same proof
