@@ -234,7 +234,9 @@ $\sum_ka_k(-2^k)^n=1$ for every $n\ge0$ and $\sum_k|a_k|2^{kn}<\infty$ for every
 $n$. Seeley takes the limit of the Lagrange weights at the nodes $-2^k$,
 $a_k=\prod_{j\ne k}(1+2^j)/(2^j-2^k)$, and bounds it.
 
-- `SymplecticGeometry.seeleyCoeff : ℕ → ℝ`, with `seeleyCoeff_def`.
+- `SymplecticGeometry.seeleyCoeff : ℕ → ℝ`, with `seeleyCoeff_def` and
+  `hasProd_seeleyCoeff (k : ℕ) : HasProd (fun j : ({k}ᶜ : Set ℕ) ↦
+  (1 + 2 ^ (j : ℕ)) / (2 ^ (j : ℕ) - 2 ^ k)) (seeleyCoeff k)`.
 - `summable_seeleyCoeff_mul_pow (n : ℕ) :
   Summable fun k ↦ |seeleyCoeff k| * 2 ^ (k * n)`.
 - `tsum_seeleyCoeff_mul_neg_two_pow (n : ℕ) :
@@ -391,13 +393,26 @@ Named like Tau Ceti's file; in `TauCeti`.
   `Convex.isSmoothlyContractible` for a nonempty open convex subset of a
   normed space, by straight lines, with its corollary for an open subset of
   `M` carried by a chart or a partial diffeomorphism onto such a set.
+  `isSmoothlyContractible_def` states the body.
+  Both come from `IsSmoothlyContractible.of_starConvex_image`, for a nonempty
+  open `U` and a map `φ : M → E'` to any real normed space, smooth on `U`,
+  with a left inverse on `U`
+  smooth on the star-convex set `φ '' U`, which covers a partial
+  diffeomorphism directly; its other cases are
+  `StarConvex.isSmoothlyContractible` (an open set of the model with
+  star-convex image under `I`) and
+  `IsSmoothlyContractible.of_starConvex_image_extChartAt` (a chart).
 - `SymplecticGeometry.IsFiniteGoodCover (I) {ι : Type*} [Finite ι]
   (U : ι → Opens M) : Prop := (⨆ i, U i) = ⊤ ∧ ∀ s : Finset ι, s.Nonempty →
   ((⨅ i ∈ s, U i : Opens M) : Set M).Nonempty →
-  IsSmoothlyContractible I (⨅ i ∈ s, U i : Opens M)`.
+  IsSmoothlyContractible I (⨅ i ∈ s, U i : Opens M)`, with
+  `isFiniteGoodCover_def` and the eliminators `IsFiniteGoodCover.iSup_eq_top`
+  and `IsFiniteGoodCover.isSmoothlyContractible`.
 - `SymplecticGeometry.HasFiniteGoodCover (I) (M) : Prop := ∃ (n : ℕ)
-  (U : Fin n → Opens M), IsFiniteGoodCover I U`, and
-  `IsFiniteGoodCover.hasFiniteGoodCover` for any finite index type.
+  (U : Fin n → Opens M), IsFiniteGoodCover I U`, with `hasFiniteGoodCover_def`,
+  and
+  `IsFiniteGoodCover.hasFiniteGoodCover` for any finite index type, through
+  `IsFiniteGoodCover.comp_equiv` (reindexing).
 - `IsSmoothlyContractible.hasFiniteGoodCover` (one set is a good cover), as
   the example of the predicate.
 
