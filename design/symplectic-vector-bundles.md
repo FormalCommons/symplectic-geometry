@@ -149,9 +149,8 @@ says), except its lemma `moserGenerator_conj`, which goes in
 have the names of a Tau Ceti or Mathlib file or
 folder at the same place, so that the two merge upstream.
 
-**Departures from `DESIGN.md`.** Each has its reason; #59 and #113 brought
-the overview in line with them, except for the schedule of issue 6 and the
-contents of `Riemannian/PolarEnd.lean`, which #212 brings in line.
+**Departures from `DESIGN.md`.** Each has its reason; #59, #113 and #212
+brought the overview in line with them.
 
 - The overview's `.../Symplectic/ComplexStructure.lean` becomes a folder of
   two files from the start, since its content is more than one file holds.

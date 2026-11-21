@@ -217,9 +217,11 @@ an open set and natural under continuous linear equivalences, so that they
 could also be read in trivializations of a bundle. *Symplectic vector
 bundles* applies Tau Ceti's linear `cayleyPathFormula` and
 `SymplecticForm.polarComplexStructure` fibrewise, but reads
-`metricPolarFormula` in trivializations for $J_{g,\omega}$ on its
-endomorphism bundle. Its contractibility issue waits for issue 6 below, and
-its homotopy-equivalence issue for issues 4, 5 and 6.
+`metricPolarFormula` in trivializations of its bundle of bilinear forms,
+which gives the smoothness of its $J_{g,\omega}$ and of $J_{g,\omega_{g,B}}$
+on its endomorphism bundle. Its existence issue waits for issues 4 and 5
+below, its contractibility issue for issue 6, and its homotopy-equivalence
+issue for issues 4, 5 and 6.
 The three formulas:
 
 1. `TauCeti.metricPolarFormula`, the formula for $(g,\omega)\mapsto J_{g,\omega}$, on
@@ -874,9 +876,12 @@ Issues 1, 3 and 6 can start at once. The contractibility issue of
 $[0,1]$ as issue 6 here, through
 `TauCeti.isOpen_setOf_forall_Icc_mem_cayleyDomain`, and the tame structures
 lie in it by `TauCeti.SymplecticForm.Compatible.mem_cayleyDomain`, so it
-waits for issue 6. Its homotopy-equivalence issue uses `cayleyDomain` too,
-and `metricPolarFormula` on `polarDomain` with its smoothness, so it waits
-for issues 4, 5 and 6. No other issue of that part waits for this one.
+waits for issue 6. That part's existence issue (building issue 6 of
+`design/symplectic-vector-bundles.md`) proves the smoothness of its
+$J_{g,\omega}$ from `metricPolarFormula` on `polarDomain` with its
+smoothness, so it waits for issues 4 and 5. Its homotopy-equivalence issue uses
+`cayleyDomain` and `metricPolarFormula` both, so it waits for issues 4, 5
+and 6. No other issue of that part waits for this part.
 
 ## References
 
