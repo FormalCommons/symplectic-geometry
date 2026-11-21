@@ -241,8 +241,10 @@ further when they grow, following `AGENTS.md`.
 
 - **Files:** `LinearAlgebra/Symplectic/Standard/Basic.lean` (`StdSpace`, its
   coordinates, `stdForm`, `stdComplexStructure`, the product comparison,
-  `isSymplectomorphism_piLpCongrLeft_sumCongr`, `StdSpace.sumEquiv`,
-  `StdSpace.complexEuclideanEquiv`),
+  `isSymplectomorphism_piLpCongrLeft_sumCongr` with its coordinates
+  `StdSpace.x_piLpCongrLeft_sumCongr` and `StdSpace.y_piLpCongrLeft_sumCongr`,
+  `StdSpace.sumEquiv`, and the additions of *Lagrangian Grassmannian*:
+  `StdSpace.complexEuclideanEquiv`, `StdSpace.swap`, `StdSpace.finSumIsometry`),
   `LinearAlgebra/Symplectic/Standard/Matrix.lean` (the matrix dictionary).
 - **Builds on:** Mathlib, Tau Ceti. `Matrix.lean` also imports two general
   matrix files that *Siegel upper half space* lists:
@@ -523,7 +525,7 @@ it into issues; the overview fixes its folders and its dependencies.
   `Matrix.toEuclideanLin (Matrix.fromRows X Y)`), and
   `LinearAlgebra/Matrix/SelfAdjoint.lean` (`Matrix.finrank_selfAdjoint`:
   the symmetric $n\times n$ matrices have dimension $n(n+1)/2$, from Tau
-  Ceti's `LinearMap.BilinForm.finrank_symmSubmodule`). Four more general
+  Ceti's `LinearMap.BilinForm.finrank_symmSubmodule`). Three more general
   files serve it too:
   `Analysis/InnerProductSpace/Projection/Basic.lean`
   (`Submodule.starProjection_map_unitary`: the projection onto `u K`, for a
@@ -534,21 +536,28 @@ it into issues; the overview fixes its folders and its dependencies.
   along `e` turns the action of `M` into that of `reindex e e M`),
   `Analysis/Normed/Lp/PiLp.lean`
   (`LinearIsometryEquiv.piLpCongrLeft_trans`: relabelling along `e`, then
-  along `f`, is relabelling along `e.trans f`), and
-  `LinearAlgebra/Matrix/GeneralLinearGroup/Symplectic/Unitary.lean`
+  along `f`, is relabelling along `e.trans f`). Two files under
+  `Topology/` serve it as well: `Topology/Algebra/Matrix/Realify.lean`
   (`TauCeti.GLSymplectic.sum_ofUnitary`: `ofUnitary` turns the block sum
-  `Matrix.UnitaryGroup.sum` into `GLSymplectic.sum`). One file of general
-  topology serves it as well: `Topology/Grassmannian/Tautological.lean`
+  `Matrix.UnitaryGroup.sum` into `GLSymplectic.sum`; it sits beside the
+  Tau Ceti file of that name, which defines `ofUnitary`), and
+  `Topology/Grassmannian/Tautological.lean`
   (`TauCeti.finiteGrassmannian.isClosedEmbedding_starProjection_toEuclidean`,
   for any `RCLike 𝕜`: on the compact space `finiteGrassmannian 𝕜 r N`, the
   map to orthogonal projections is a closed embedding; `Finite.lean` uses
-  it). The part also adds
-  one declaration about `StdSpace ι` alone to *Standard model*'s
-  `Standard/Basic.lean`: `StdSpace.complexEuclideanEquiv`, the map from
-  `EuclideanSpace ℂ ι`. For the coordinate permutation along
-  `Equiv.sumCongr e e` it uses the existing
+  it). The part also adds declarations about `StdSpace ι` alone to
+  *Standard model*'s `Standard/Basic.lean`: `StdSpace.complexEuclideanEquiv`,
+  the map from `EuclideanSpace ℂ ι`; the coordinate swap `StdSpace.swap`;
+  the isometry `StdSpace.finSumIsometry` onto `EuclideanSpace ℝ (Fin (n + n))`;
+  and the coordinates `StdSpace.x_piLpCongrLeft_sumCongr` and
+  `StdSpace.y_piLpCongrLeft_sumCongr` of the coordinate permutation; the
+  part's design lists them with their API. For the coordinate permutation
+  along `Equiv.sumCongr e e` it uses the existing
   `isSymplectomorphism_piLpCongrLeft_sumCongr` of §1.
-  The `LinearAlgebra/` files import no `Topology/` file of this part. Below,
+  The `LinearAlgebra/` files import no `Topology/` file of this part; the
+  general `Topology/Algebra/Matrix/Realify.lean`, which
+  `LinearAlgebra/Symplectic/Lagrangian/Sum.lean` imports, is not one of
+  them. Below,
   $V_0$ is $\mathbb{R}^n\times\{0\}$ ($y=0$), $V_1$ is
   $\{0\}\times\mathbb{R}^n$ ($x=0$), and the unitary frame map
   $\mathrm{U}(n)\to\mathcal{L}(n)$ sends $U$ to the image of $V_0$ under
