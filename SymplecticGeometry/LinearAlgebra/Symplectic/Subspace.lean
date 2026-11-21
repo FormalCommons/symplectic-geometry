@@ -9,6 +9,7 @@ public import TauCeti.Geometry.Symplectic.Darboux.Basis
 public import TauCeti.Geometry.Symplectic.Lagrangian.Basic
 public import TauCeti.LinearAlgebra.BilinearForm.LagrangianBasis
 public import Mathlib.Order.Zorn
+public import SymplecticGeometry.LinearAlgebra.Matrix.SymplecticGroup.Basic
 
 /-!
 # Symplectic complements and Lagrangian extension
@@ -139,9 +140,9 @@ theorem IsLagrangian.exists_isDarbouxBasis_apply_zero_eq (h : ω.IsLagrangian L)
     rw [finrank_eq_card_basis d]
     simp [mul_two]
   obtain ⟨b, hb, hbv⟩ := exists_isDarbouxBasis_coe_eq (ω := ω) hdim (v := v)
-    (fun i j => by simp [v, hJ, Matrix.J])
-    (fun i j => by simp [v, hJ, Matrix.J])
-    (fun i j => by simp [v, hJ, Matrix.J, Matrix.one_apply])
+    (fun i j => by simp [v, hJ])
+    (fun i j => by simp [v, hJ])
+    (fun i j => by simp [v, hJ, Matrix.one_apply])
   exact ⟨b, hb, fun i => by simp [hbv, v, hde]⟩
 
 /-- **Lagrangian extension lemma.** For any symplectic form `ω` on `V`, of any dimension,
