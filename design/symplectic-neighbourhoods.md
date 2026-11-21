@@ -216,6 +216,9 @@ and two rows of its milestone table.
   needs only that the zero section is Lagrangian. The part therefore no
   longer builds on *Cotangent bundles*. No open issue has a blocker that
   this changes: #476 is blocked only by its design issue.
+- `Analysis/Calculus/DifferentialForm/LieDeriv.lean` is added, in the root
+  namespace, for the flat lemmas that `CharacteristicFoliation.lean` uses:
+  they use nothing of symplectic geometry.
 - `AdaptedDarboux.lean` uses Tau Ceti's pointwise relative Darboux theorem
   instead of the neighbourhood theorems, so it can start at once.
 - The part no longer builds on *Symplectic vector bundles*, neither on
@@ -253,10 +256,14 @@ On an open `U`, it is applied to `U` and the restriction
   kernel (`IsCharacteristicSubmersion.apply_eq_of_mfderiv_eq`).
   $x\mapsto\tau_x$ is locally constant on the fibre. Near `x`, the chart
   of the submersion `p` at `x` (Mathlib's `IsSubmersionAt.domChart`), in
-  which `p` is a linear projection, carries `σ` to a closed form whose
+  which `p` is a linear projection, carries `σ` to a closed form
+  (`differentiableAt_mpullback_extend_symm`,
+  `IsClosed.extDeriv_mpullback_extend_symm_eq_zero`) whose
   kernel contains the constant subspace `W` of vertical vectors. By
   Cartan's formula for a constant vector field
-  (`fderiv_apply_eq_zero_of_extDeriv_eq_zero`, in the root namespace),
+  (`fderiv_apply_eq_zero_of_extDeriv_eq_zero` and
+  `apply_add_eq_of_extDeriv_eq_zero`, in
+  `Analysis/Calculus/DifferentialForm/LieDeriv.lean`),
   its coefficients do not change along `W`. On a ball in the chart, the
   part of the fibre through `x` is a slice parallel to `W`, so $\tau$ is
   constant there. A locally constant map on a preconnected fibre is

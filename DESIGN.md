@@ -1888,7 +1888,8 @@ has either; Tau Ceti's extension across a boundary,
   `TauCeti.SmoothForm.characteristicFoliation`,
   `TauCeti.IsInvolutiveDistribution.exists_flatChart`,
   `TauCeti.RoughForm.descendedForm` and
-  `TauCeti.SmoothTwoForm.isSymplectic_descendedForm_iff`), and in
+  `TauCeti.SmoothTwoForm.isSymplectic_descendedForm_iff`, and the flat lemmas of
+  `Analysis/Calculus/DifferentialForm/LieDeriv.lean`), and in
   `Geometry/Symplectic/Neighborhood/`: `Extension.lean` (along the
   submanifold, a smooth family of linear symplectomorphisms built from
   compatible complex structures by the formula of
@@ -1918,7 +1919,8 @@ has either; Tau Ceti's extension across a boundary,
   vector spaces* (`Reduction.lean`, merged), Tau Ceti (tubular
   neighbourhoods, the normal bundles of Lagrangian and symplectic embeddings,
   compatible almost complex structures, relative Darboux, `TauCeti.SmoothTwoForm.exists_partialDiffeomorph_fix_immersion_mpullback_eq`).
-  `CharacteristicFoliation.lean` uses only Tau Ceti and can start at once.
+  `CharacteristicFoliation.lean` uses only Tau Ceti and `LieDeriv.lean` and can
+  start at once.
 - **Unmerged work of #3 it may wait for.** The linear extensions in the
   proofs choose complements: Lagrangian complements of a Lagrangian or
   isotropic tangent bundle, and a symplectic trivialization of the normal

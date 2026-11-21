@@ -6,9 +6,9 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Symplectic.Manifold.Descent
-import TauCeti.Analysis.Calculus.DifferentialForm.LieDeriv
-import TauCeti.Analysis.Calculus.MeanValue
-import TauCeti.LinearAlgebra.Multilinear.Quotient
+import SymplecticGeometry.Analysis.Calculus.DifferentialForm.LieDeriv
+import TauCeti.LinearAlgebra.Alternating.Conormal
+import TauCeti.LinearAlgebra.Alternating.Curry
 
 /-!
 # Descent of a closed two-form along a characteristic submersion
@@ -33,9 +33,9 @@ vanishes on the kernel of `dp_x`, so it is determined by the images of its argum
 `σ` in the chart of the submersion `p` at `x` (Mathlib's `IsSubmersionAt.domChart`), in which `p`
 is a linear projection `π`. In this chart `σ` becomes a closed form `α` on an open subset of the
 model space whose kernel contains the constant subspace `ker π`. For `w ∈ ker π`, Cartan's formula
-`L_w α = ι_w dα + d (ι_w α)` shows that the derivative of `α` along `w` vanishes
-(`fderiv_apply_eq_zero_of_extDeriv_eq_zero`), so `α` is constant on the part of the fibre of `π`
-in a ball. Hence the form that `σ` induces on `T_{p x} B` is locally constant along the fibre
+`L_w α = ι_w dα + d (ι_w α)` shows that `α` is constant along `w`
+(`apply_add_eq_of_extDeriv_eq_zero`), so `α` is constant on the part of the fibre of `π` in a
+ball. Hence the form that `σ` induces on `T_{p x} B` is locally constant along the fibre
 through `x`, and so constant on the preconnected fibre.
 
 ## Main definitions
@@ -45,14 +45,17 @@ through `x`, and so constant on the preconnected fibre.
 
 ## Main results
 
-* `fderiv_apply_eq_zero_of_extDeriv_eq_zero`: a closed form on a normed space whose kernel near
-  `x` contains a fixed vector `w` has zero derivative along `w` at `x`.
+* `TauCeti.SmoothForm.differentiableAt_mpullback_extend_symm` and
+  `TauCeti.SmoothForm.IsClosed.extDeriv_mpullback_extend_symm_eq_zero`: a smooth form read in a
+  chart of the maximal atlas is differentiable on the chart's image, and closed there if the form
+  is closed.
 * `TauCeti.SmoothForm.IsCharacteristicSubmersion.isBasic`: a closed form is basic for each of its
   characteristic submersions.
 * `TauCeti.SmoothForm.IsCharacteristicSubmersion.existsUnique_isSymplectic_mpullback_eq`: it is
   the pullback of a unique symplectic form on the base.
 
-The projection `B × F → B` with a form pulled back from a symplectic form on `B` is an example.
+The projection `B × F → B` with a form pulled back from a nondegenerate form on `B` is an
+example.
 
 ## References
 
@@ -69,33 +72,9 @@ noncomputable section
 open Set Filter Function Manifold Bundle
 open scoped Manifold ContDiff Topology
 
-section Flat
-
-variable {E F : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [NormedAddCommGroup F]
-  [NormedSpace ℝ F] {k : ℕ}
-
-/-- **A closed form is invariant along its kernel directions.** Let `α` be a differential form on
-a normed space, differentiable and closed at `x`, and let `w` be a fixed vector with `ι_w α = 0`
-near `x`. Then the derivative of `α` at `x` along `w` vanishes. This is Cartan's formula
-`L_w α = ι_w dα + d (ι_w α)` for the constant vector field `w`, whose Lie derivative is the
-directional derivative. -/
-theorem fderiv_apply_eq_zero_of_extDeriv_eq_zero {α : E → E [⋀^Fin (k + 1)]→L[ℝ] F} {x w : E}
-    (hα : DifferentiableAt ℝ α x) (hd : extDeriv α x = 0)
-    (hw : ∀ᶠ y in 𝓝 x, (α y).curryLeft w = 0) : fderiv ℝ α x w = 0 := by
-  have h := TauCeti.lieDerivForm_eq_curryLeft_extDeriv_add (V := fun _ ↦ w) hα
-    (differentiableAt_const w)
-  have h0 : extDeriv (fun y ↦ (α y).curryLeft w) x = 0 := by
-    rw [Filter.EventuallyEq.extDeriv_eq (ω₂ := fun _ ↦ 0) hw]
-    simp
-  simpa [TauCeti.lieDerivForm_def, hd, h0] using h
-
-end Flat
-
 namespace TauCeti.SmoothForm
 
-universe u
-
-variable {E : Type u} {H M EB HB B : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+variable {E H M EB HB B : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
   [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M]
   [IsManifold I ∞ M]
   [NormedAddCommGroup EB] [NormedSpace ℝ EB] [TopologicalSpace HB]
@@ -118,6 +97,42 @@ structure IsCharacteristicSubmersion (σ : SmoothForm I M ℝ 2) (p : M → B) :
 
 variable {IB} {σ : SmoothForm I M ℝ 2} {p : M → B}
 
+section Chart
+
+variable [I.Boundaryless] {k : ℕ} {e : OpenPartialHomeomorph M H}
+
+/-- On a boundaryless manifold, a smooth form read in a chart `e` of the maximal atlas, that is,
+pulled back along `(e.extend I).symm`, is differentiable on the image of the chart. -/
+theorem differentiableAt_mpullback_extend_symm (form : SmoothForm I M ℝ k)
+    (he : e ∈ IsManifold.maximalAtlas I ∞ M) {z : E} (hz : z ∈ (e.extend I).target) :
+    DifferentiableAt (E := E) (F := E [⋀^Fin k]→L[ℝ] ℝ) ℝ
+      (TauCeti.mpullback 𝓘(ℝ, E) I (e.extend I).symm form.val) z := by
+  have hs : ContMDiffAt 𝓘(ℝ, E) I ∞ (e.extend I).symm z :=
+    ((contMDiffOn_extend_symm he).mono (by rw [← e.extend_target'])).contMDiffAt
+      (e.isOpen_extend_target.mem_nhds hz)
+  have := ((form.contMDiff ((e.extend I).symm z)).of_le (m := 1) (by simp)).mpullback_form hs
+    (by simp)
+  exact (contDiffWithinAt_univ.1
+    (TauCeti.RoughForm.contDiffWithinAt_of_contMDiffWithinAt_modelSpace
+      this.contMDiffWithinAt)).differentiableAt (by simp)
+
+/-- On a boundaryless manifold, a closed form read in a chart `e` of the maximal atlas, that is,
+pulled back along `(e.extend I).symm`, is closed on the image of the chart. -/
+theorem IsClosed.extDeriv_mpullback_extend_symm_eq_zero {form : SmoothForm I M ℝ k}
+    (hform : form.IsClosed) (he : e ∈ IsManifold.maximalAtlas I ∞ M) {z : E}
+    (hz : z ∈ (e.extend I).target) :
+    extDeriv (E := E) (F := ℝ)
+      (TauCeti.mpullback 𝓘(ℝ, E) I (e.extend I).symm form.val) z = 0 := by
+  have hs : ContMDiffAt 𝓘(ℝ, E) I ∞ (e.extend I).symm z :=
+    ((contMDiffOn_extend_symm he).mono (by rw [← e.extend_target'])).contMDiffAt
+      (e.isOpen_extend_target.mem_nhds hz)
+  rw [← TauCeti.mextDeriv_eq_extDeriv, ← TauCeti.mpullback_mextDeriv_at (hs.of_le (by simp))
+    ((form.contMDiff _).of_le (by simp)), (isClosed_def form).1 hform, TauCeti.mpullback_zero]
+  -- The zero form on the model space, read on tangent spaces of the model space.
+  rfl
+
+end Chart
+
 namespace IsCharacteristicSubmersion
 
 /-- At a point `x`, the value of `σ_x` on two vectors depends only on their images under the
@@ -126,20 +141,15 @@ theorem apply_eq_of_mfderiv_eq (hp : IsCharacteristicSubmersion IB σ p) {x : M}
     {v w : Fin 2 → TangentSpace I x}
     (h : ∀ i, mfderiv I IB p x (v i) = mfderiv I IB p x (w i)) :
     σ.val x v = σ.val x w := by
-  refine (σ.val x).toMultilinearMap.apply_eq_of_mkQ_eq
-    (fun _ ↦ (mfderiv I IB p x).ker)
-    (fun m i u hu ↦ ?_) fun j ↦ (Submodule.Quotient.eq _).2 (by simp [h j])
-  rw [hp.ker_mfderiv x] at hu
-  have hu' (w : TangentSpace I x) : σ.val x ![u, w] = 0 := by
-    simpa using LinearMap.congr_fun (LinearMap.mem_ker.1 hu) w
-  obtain rfl : ‹DecidableEq (Fin 2)› = instDecidableEqFin 2 := Subsingleton.elim _ _
-  simp only [ContinuousAlternatingMap.coe_toContinuousMultilinearMap,
-    ContinuousMultilinearMap.coe_coe]
-  obtain rfl | rfl : i = 0 ∨ i = 1 := by fin_cases i <;> simp
-  · rw [show update m 0 u = ![u, m 1] from funext fun j ↦ by fin_cases j <;> simp, hu']
-  · rw [show update m 1 u = ![m 0, u] from funext fun j ↦ by fin_cases j <;> simp,
-      ← SmoothBundleForm.eval₂_apply, SmoothBundleForm.eval₂_swap, SmoothBundleForm.eval₂_apply,
-      hu', neg_zero]
+  refine Submodule.conormalForms_apply_eq_of_sub_mem (W := (mfderiv I IB p x).ker)
+    (α := (σ.val x).toAlternatingMap) (Submodule.mem_conormalForms.2 fun m j hj ↦ ?_)
+    fun j ↦ by simp [h j]
+  rw [hp.ker_mfderiv x, mem_ker_bilinFormAt_iff] at hj
+  refine AlternatingMap.map_eq_zero_of_curryLeft_eq_zero (x := m j) ?_ rfl
+  ext u
+  have e : Matrix.vecCons (m j) u = ![m j, u 0] := by
+    funext i; fin_cases i <;> rfl
+  simpa [AlternatingMap.curryLeft_apply_apply, e] using hj (u 0)
 
 /-- The form `σ` read on `T_{p y} B` at a point `y`, through a (non-canonical) right inverse of
 the derivative of `p`. -/
@@ -209,22 +219,6 @@ private theorem eventually_fibreForm_eq (hp : IsCharacteristicSubmersion IB σ p
     convert h1 using 2
     funext i
     fin_cases i <;> simp
-  -- The form in the chart is differentiable and closed.
-  have hsmooth (z : E) (hz : z ∈ κ.target) : ContMDiffAt 𝓘(ℝ, E) I ∞ κ.symm z :=
-    ((contMDiffOn_extend_symm h.domChart_mem_maximalAtlas).mono
-      (by rw [← h.domChart.extend_target'])).contMDiffAt (hU.mem_nhds hz)
-  have hdiff (z : E) (hz : z ∈ κ.target) : DifferentiableAt ℝ α z := by
-    have := ((σ.contMDiff (κ.symm z)).of_le (m := 1) (by simp)).mpullback_form (hsmooth z hz)
-      (by simp)
-    exact (contDiffWithinAt_univ.1
-      (TauCeti.RoughForm.contDiffWithinAt_of_contMDiffWithinAt_modelSpace
-        this.contMDiffWithinAt)).differentiableAt (by simp)
-  have hclosed (z : E) (hz : z ∈ κ.target) : extDeriv α z = 0 := by
-    rw [← TauCeti.mextDeriv_eq_extDeriv, ← TauCeti.mpullback_mextDeriv_at
-      ((hsmooth z hz).of_le (by simp)) ((σ.contMDiff _).of_le (by simp)),
-      (isClosed_def σ).1 hσ, TauCeti.mpullback_zero]
-    -- The zero form on the model space, read on tangent spaces of the model space.
-    rfl
   -- At points of the fibre through `x`, `fibreForm` is the form in the chart, evaluated on
   -- fixed lifts of the arguments.
   have hstar (z : E) (hz : z ∈ κ.target) (hpz : p (κ.symm z) = p x) :
@@ -252,13 +246,11 @@ private theorem eventually_fibreForm_eq (hp : IsCharacteristicSubmersion IB σ p
       sub_self]
   -- The form in the chart takes the same value at `κ x` and `κ y`.
   have hαeq : α (κ y) = α (κ x) := by
-    have hmem (t : ℝ) (ht : t ∈ Icc (0 : ℝ) 1) : κ x + t • (κ y - κ x) ∈ Metric.ball (κ x) r :=
-      (convex_ball _ _).add_smul_sub_mem (Metric.mem_ball_self hr) hyb ht
-    have := TauCeti.apply_add_eq_of_fderiv_apply_eq_zero (𝕂 := ℝ) (g := α)
-      (fun t ht ↦ hdiff _ (hball (hmem t ht))) fun t ht ↦
-        fderiv_apply_eq_zero_of_extDeriv_eq_zero (hdiff _ (hball (hmem t ht)))
-          (hclosed _ (hball (hmem t ht))) (eventually_of_mem (hU.mem_nhds (hball (hmem t ht)))
-            fun z' hz' ↦ hker z' hz' _ hfst)
+    have := apply_add_eq_of_extDeriv_eq_zero hU
+      (fun _ ↦ differentiableAt_mpullback_extend_symm σ h.domChart_mem_maximalAtlas)
+      (fun _ ↦ hσ.extDeriv_mpullback_extend_symm_eq_zero h.domChart_mem_maximalAtlas)
+      (fun z' hz' ↦ hker z' hz' _ hfst) fun t ht ↦
+        hball ((convex_ball _ _).add_smul_sub_mem (Metric.mem_ball_self hr) hyb ht)
     rwa [add_sub_cancel] at this
   calc hp.fibreForm y = hp.fibreForm (κ.symm (κ y)) := by rw [hyx]
     _ = hp.fibreForm (κ.symm (κ x)) := by
