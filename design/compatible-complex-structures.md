@@ -842,11 +842,17 @@ This is Corollary 2.5.7, in `SymplecticGeometry`.
   $J\mapsto g_J$, with `@[simp]` `coe_compatibleMetric_apply`
   (its value is `(ω.associatedBilinForm J).toContinuousBilinearMap`). It is
   continuous by Tau Ceti's `toContinuousBilinearMap_associatedBilinForm`.
+- `compatiblePolar ω : C(innerProducts V, {J // ω.Compatible J})`, the map
+  `g ↦ metricPolarComplexStructure g ω`, with `@[simp]`
+  `coe_compatiblePolar_apply` (its value is
+  `metricPolarComplexStructure g ω`).
 - `metricHomotopyEquiv ω : ContinuousMap.HomotopyEquiv {J // ω.Compatible J}
   (innerProducts V)`. Its forward map is `compatibleMetric ω`, and its
-  inverse is `g ↦ metricPolarComplexStructure g ω`. They come with `@[simp]`
+  inverse is `compatiblePolar ω`. They come with `@[simp]`
   `metricHomotopyEquiv_toFun` and `metricHomotopyEquiv_invFun`, which state
-  the two maps. One composite is the identity, by
+  the two maps as continuous maps, and `@[simp]`
+  `metricHomotopyEquiv_symm_apply`, `(metricHomotopyEquiv ω).symm g =
+  compatiblePolar ω g`. One composite is the identity, by
   `metricPolarComplexStructure_associatedBilinForm`. The other is homotopic to
   the identity by the straight-line homotopy `metricStraightHomotopy ω`,
   $(t,g)\mapsto(1-t)\,g_{J_{g,\omega}}+t\,g$, inside the convex set. Its value
