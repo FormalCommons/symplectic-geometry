@@ -816,7 +816,8 @@ it into issues; the overview fixes its folders and its dependencies.
   nondegenerate; isomorphisms; local symplectic trivializations and the
   reduction of the structure group to $\mathrm{Sp}(2n)$; for $E=TM$, the
   identification of these forms with Tau Ceti's `TauCeti.SmoothTwoForm I M`
-  and of nondegeneracy with `TauCeti.SmoothTwoForm.IsNondegenerate`, and
+  and of nondegeneracy with `TauCeti.SmoothTwoForm.IsNondegenerate`; the
+  nondegeneracy criterion for forms on bundles of rank two, and
   with it the tangent bundle of a surface with an area form; see
   *Constructions* below),
   `.../Symplectic/Pullback.lean` and `.../Symplectic/Prod.lean` (pull-backs
@@ -889,6 +890,11 @@ it into issues; the overview fixes its folders and its dependencies.
   upstream),
   `Geometry/Manifold/VectorBundle/Hermitian/Basic.lean` (the symplectic form
   of a Hermitian bundle; see *Constructions* below),
+  `Geometry/Manifold/VectorBundle/Riemannian/Trivial.lean` (the constant
+  metric `Bundle.ContMDiffRiemannianMetric.const` on a trivial bundle, in
+  the root namespace since it involves only Mathlib's types; neither Mathlib
+  nor Tau Ceti has one, and the standard case of the form of a Hermitian
+  bundle needs it),
   `.../Hermitian/CircleBundle.lean` (the unit circle bundle of a Hermitian
   line bundle as a principal `Circle`-bundle; see *Constructions*),
   `Geometry/Manifold/VectorBundle/Hermitian/Surface.lean` (unitary
@@ -954,8 +960,9 @@ it into issues; the overview fixes its folders and its dependencies.
   - *Pull-back* (`Symplectic/Pullback.lean`). For `f : C^n⟮I', N; I, M⟯`,
     the argument of Mathlib's instance `ContMDiffVectorBundle.pullback`, the
     pull-back of a form `ω` on `E` to `f *ᵖ E` (`Bundle.Pullback`) is
-    `ContMDiffTwoForm.pullback f ω`, which is Tau Ceti's
-    `ContMDiffSection.pullback ω f` read as a section of the bundle of
+    `ContMDiffTwoForm.pullback ω f`, written `ω.pullback f`, with the
+    section first as in Tau Ceti's `ContMDiffSection.pullback ω f`, of
+    which it is that section read as a section of the bundle of
     alternating maps of `f *ᵖ E`: the fibres of the two bundles at `y` are
     both the alternating maps on `E (f y)`, and the new lemma
     `Bundle.Pullback.contMDiff_continuousAlternatingMap_section_iff`
@@ -968,7 +975,8 @@ it into issues; the overview fixes its folders and its dependencies.
     `y` is `ω (f y)`, from Tau Ceti's `ContMDiffSection.pullback_apply`),
     `IsNondegenerate.pullback`, and `symplecticFormAt` of the pull-back at
     `y` is that of `ω` at `f y`. For complex structures,
-    `ContMDiffComplexStructure.pullback f J` (`ComplexStructure.lean`) is
+    `ContMDiffComplexStructure.pullback J f` (`ComplexStructure.lean`,
+    `J.pullback f`, in the same order) is
     `ContMDiffSection.pullback` of the endomorphism section, smooth by
     `Bundle.Pullback.contMDiff_hom_section_iff` itself, with `@[simp]
     pullback_toEndomorphism`; `Pullback.lean` adds that tame and compatible
@@ -1011,10 +1019,14 @@ it into issues; the overview fixes its folders and its dependencies.
     `TauCeti.SmoothTwoForm`). On a manifold `S` whose model space `E` has
     `finrank ℝ E = 2`, a smooth two-form `σ : TauCeti.SmoothTwoForm I S`
     that vanishes nowhere is, through that identification, a symplectic
-    form on `TangentSpace I`: the lemma
-    `isNondegenerate_iff_forall_ne_zero_of_finrank_eq_two` (of the
-    identified form) comes from Tau Ceti's
+    form on `TangentSpace I`. The criterion is stated for every bundle of
+    rank two, since the proof is the same pointwise fact:
+    `ContMDiffTwoForm.isNondegenerate_iff_forall_ne_zero_of_finrank_eq_two`,
+    for `finrank ℝ F = 2`, says that `ω` is nondegenerate if and only if
+    `ω x ≠ 0` for every `x`, by the pointwise step of Tau Ceti's
     `TauCeti.SmoothTwoForm.isNondegenerate_iff_forall_ne_zero_of_finrank_eq_two`.
+    The tangent case is then `tangentEquiv.symm σ`, nondegenerate by
+    `isNondegenerate_tangentEquiv_iff` and Tau Ceti's lemma.
     No definition is added. The orientation that `σ` induces is Tau Ceti's
     symplectic orientation `TauCeti.SmoothTwoForm.IsNondegenerate.volumeOrientation`
     with `n = 1`, and *First Chern number* states with it that an area form
