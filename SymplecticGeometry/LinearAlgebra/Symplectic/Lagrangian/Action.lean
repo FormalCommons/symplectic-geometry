@@ -1,0 +1,265 @@
+/-
+Copyright (c) 2026 The FormalCommons contributors. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: The FormalCommons contributors
+-/
+module
+
+public import SymplecticGeometry.LinearAlgebra.Matrix.UnitaryGroup.Real
+public import SymplecticGeometry.LinearAlgebra.Symplectic.Lagrangian.Frame
+public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Matrix
+public import TauCeti.LinearAlgebra.TotallyReal.Lagrangian
+public import TauCeti.Topology.Algebra.Matrix.Realify
+
+/-!
+# The symplectic and unitary actions on the Lagrangian Grassmannian
+
+Write `ℒ ι` for the Lagrangian Grassmannian of the standard model `(StdSpace ι, ω₀)`.
+
+## Main definitions
+
+* An action of the symplectic group `GLSymplectic ι ℝ` on `ℒ ι`, by images of subspaces, and the
+  action of the unitary group `unitaryGroup ι ℂ` through realification
+  `TauCeti.GLSymplectic.ofUnitary`.
+* `SymplecticGeometry.LagrangianGrassmannian.horizontal ι` and `vertical ι`: the coordinate
+  Lagrangians `{y = 0}` and `{x = 0}`.
+* `SymplecticGeometry.LagrangianGrassmannian.unitaryFrame U`: the Lagrangian `U • {y = 0}` framed
+  by the unitary matrix `U`. Its subspace is the span of the columns of
+  `fromRows (Re U) (Im U)`, that is, Tau Ceti's real image `U ℝⁿ` read in real coordinates.
+
+## Main results
+
+* `SymplecticGeometry.LagrangianGrassmannian.unitaryFrame_surjective`: every Lagrangian subspace
+  has a unitary frame, so `U(n)` and `Sp(2n)` act transitively on `ℒ ι` (the two
+  `MulAction.IsPretransitive` instances).
+* `SymplecticGeometry.LagrangianGrassmannian.unitaryFrame_eq_unitaryFrame_iff`: two unitary
+  frames span the same Lagrangian iff they differ by a real orthogonal matrix, so the stabilizer
+  of `{y = 0}` in `U(n)` is `O(n)` (`stabilizer_horizontal`).
+
+## References
+
+* [D. McDuff, D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017], §2.3.
+-/
+
+public section
+
+namespace SymplecticGeometry
+
+open Matrix TauCeti
+
+variable {ι : Type*} [Fintype ι] [DecidableEq ι]
+
+local notation "ℒ" ι => LagrangianGrassmannian (stdForm ι)
+
+open StdSpace
+
+/-- A symplectic matrix maps Lagrangian subspaces of `StdSpace ι` to Lagrangian subspaces. -/
+theorem isLagrangian_map_toEuclideanLin {g : GL (ι ⊕ ι) ℝ} (hg : g ∈ GLSymplectic ι ℝ)
+    {L : Submodule ℝ (StdSpace ι)} (hL : (stdForm ι).IsLagrangian L) :
+    (stdForm ι).IsLagrangian (L.map (toEuclideanLin (g : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ))) := by
+  have he := (mem_GLSymplectic_iff_isSymplectomorphism g).1 hg
+  have hg' : toEuclideanLin (g : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ) =
+      ((g : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ).toEuclideanCLE g.det_ne_zero).toLinearEquiv.toLinearMap :=
+    LinearMap.ext fun v ↦ (toEuclideanCLE_apply _ _ v).symm
+  rw [SymplecticForm.isLagrangian_iff_orthogonal_eq] at hL ⊢
+  rw [hg', ← he.map_orthogonal, hL]
+
+namespace LagrangianGrassmannian
+
+/-! ### The actions -/
+
+/-- The symplectic group `Sp(2n) = GLSymplectic ι ℝ` acts on the Lagrangian subspaces of
+`StdSpace ι` by images, `g • Λ = g Λ`. -/
+noncomputable instance : MulAction (GLSymplectic ι ℝ) (ℒ ι) where
+  smul g Λ := ⟨(Λ : Submodule ℝ (StdSpace ι)).map
+      (toEuclideanLin ((g : GL (ι ⊕ ι) ℝ) : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ)),
+    isLagrangian_map_toEuclideanLin g.property Λ.isLagrangian⟩
+  -- In both proofs, the subspace of `g • Λ` is by definition the `Submodule.map` given in
+  -- `smul` above; `change` unfolds to it, as `coe_smul` can only be stated after the instance.
+  one_smul Λ := toSubmodule_injective <| by
+    change Submodule.map _ _ = _
+    simp
+  mul_smul g h Λ := toSubmodule_injective <| by
+    change Submodule.map _ _ = Submodule.map _ (Submodule.map _ _)
+    simp [Submodule.map_comp]
+
+/-- The subspace of `g • Λ` is the image of `Λ` under the symplectic matrix `g`. -/
+@[simp]
+theorem coe_smul (g : GLSymplectic ι ℝ) (Λ : ℒ ι) :
+    ((g • Λ : ℒ ι) : Submodule ℝ (StdSpace ι)) =
+      (Λ : Submodule ℝ (StdSpace ι)).map
+        (toEuclideanLin ((g : GL (ι ⊕ ι) ℝ) : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ)) :=
+  (rfl)
+
+/-- The unitary group `U(n)` acts on the Lagrangian subspaces of `StdSpace ι` through its
+realification `TauCeti.GLSymplectic.ofUnitary : U(n) → Sp(2n)`. -/
+noncomputable instance : MulAction (unitaryGroup ι ℂ) (ℒ ι) :=
+  MulAction.compHom _ GLSymplectic.ofUnitary
+
+theorem unitary_smul_def (U : unitaryGroup ι ℂ) (Λ : ℒ ι) :
+    U • Λ = GLSymplectic.ofUnitary U • Λ :=
+  (rfl)
+
+/-- The subspace of `U • Λ` is the image of `Λ` under the realification of `U`. -/
+@[simp]
+theorem coe_unitary_smul (U : unitaryGroup ι ℂ) (Λ : ℒ ι) :
+    ((U • Λ : ℒ ι) : Submodule ℝ (StdSpace ι)) =
+      (Λ : Submodule ℝ (StdSpace ι)).map (toEuclideanLin (U : Matrix ι ι ℂ).realify) := by
+  rw [unitary_smul_def, coe_smul, GLSymplectic.coe_ofUnitary]
+
+/-! ### The coordinate Lagrangians -/
+
+variable (ι) in
+/-- The horizontal Lagrangian subspace `{y = 0}` of `StdSpace ι`. -/
+noncomputable def horizontal : ℒ ι :=
+  ⟨LinearMap.ker y, graph_zero (ι := ι) ▸ (isLagrangian_graph_iff 0).2 isSymm_zero⟩
+
+variable (ι) in
+/-- The vertical Lagrangian subspace `{x = 0}` of `StdSpace ι`. -/
+noncomputable def vertical : ℒ ι :=
+  ⟨LinearMap.ker x, graphY_zero (ι := ι) ▸ (isLagrangian_graphY_iff 0).2 isSymm_zero⟩
+
+omit [DecidableEq ι] in
+@[simp]
+theorem coe_horizontal : (horizontal ι : Submodule ℝ (StdSpace ι)) = LinearMap.ker y :=
+  (rfl)
+
+omit [DecidableEq ι] in
+@[simp]
+theorem coe_vertical : (vertical ι : Submodule ℝ (StdSpace ι)) = LinearMap.ker x :=
+  (rfl)
+
+omit [DecidableEq ι] in
+@[simp]
+theorem mem_horizontal_iff {z : StdSpace ι} : z ∈ horizontal ι ↔ z.y = 0 :=
+  LinearMap.mem_ker
+
+omit [DecidableEq ι] in
+@[simp]
+theorem mem_vertical_iff {z : StdSpace ι} : z ∈ vertical ι ↔ z.x = 0 :=
+  LinearMap.mem_ker
+
+omit [DecidableEq ι] in
+/-- The horizontal and vertical Lagrangians are complementary. -/
+theorem isCompl_horizontal_vertical :
+    IsCompl (horizontal ι : Submodule ℝ (StdSpace ι)) (vertical ι) := by
+  simpa using isCompl_graph_ker_x (0 : Matrix ι ι ℝ)
+
+/-- The matrix `J` of `TauCeti.GLSymplectic.symJ`, `(x, y) ↦ (-y, x)`, maps the horizontal
+Lagrangian to the vertical one. -/
+theorem symJ_smul_horizontal : GLSymplectic.symJ ι ℝ • horizontal ι = vertical ι :=
+  toSubmodule_injective <| by
+    simpa using map_symJ_graph (0 : Matrix ι ι ℝ)
+
+/-! ### Unitary frames -/
+
+/-- The Lagrangian subspace `U • {y = 0}` framed by a unitary matrix `U`: the span of the columns
+of `fromRows (Re U) (Im U)`. -/
+noncomputable def unitaryFrame (U : unitaryGroup ι ℂ) : ℒ ι :=
+  U • horizontal ι
+
+theorem unitaryFrame_def (U : unitaryGroup ι ℂ) : unitaryFrame U = U • horizontal ι :=
+  (rfl)
+
+/-- The Lagrangian framed by `U` is Tau Ceti's real image `U ℝⁿ`, read in `StdSpace ι`. -/
+theorem coe_unitaryFrame_eq_map (U : unitaryGroup ι ℂ) :
+    (unitaryFrame U : Submodule ℝ (StdSpace ι)) =
+      (U : Matrix ι ι ℂ).realImage.map
+        (complexEuclideanEquiv ι : EuclideanSpace ℂ ι →ₗ[ℝ] StdSpace ι) := by
+  rw [unitaryFrame_def, coe_unitary_smul, coe_horizontal, map_realImage]
+
+/-- The Lagrangian framed by `U` is spanned by the columns of the real `2n × n` matrix
+`fromRows (Re U) (Im U)`. -/
+theorem coe_unitaryFrame (U : unitaryGroup ι ℂ) :
+    (unitaryFrame U : Submodule ℝ (StdSpace ι)) =
+      LinearMap.range (toEuclideanLin
+        (fromRows ((U : Matrix ι ι ℂ).map Complex.re) ((U : Matrix ι ι ℂ).map Complex.im))) := by
+  have hU : ((U : Matrix ι ι ℂ).map Complex.re).map Complex.ofReal +
+      Complex.I • ((U : Matrix ι ι ℂ).map Complex.im).map Complex.ofReal = U := by
+    ext i j
+    simp [mul_comm Complex.I]
+  rw [coe_unitaryFrame_eq_map, range_toEuclideanLin_fromRows_eq_map_realImage, hU]
+
+@[simp]
+theorem unitaryFrame_one : unitaryFrame (1 : unitaryGroup ι ℂ) = horizontal ι :=
+  one_smul _ _
+
+@[simp]
+theorem unitaryFrame_mul (U U' : unitaryGroup ι ℂ) :
+    unitaryFrame (U * U') = U • unitaryFrame U' :=
+  mul_smul _ _ _
+
+/-- **Transitivity of `U(n)`.** Every Lagrangian subspace of `StdSpace ι` is framed by a unitary
+matrix. -/
+theorem unitaryFrame_surjective :
+    Function.Surjective (unitaryFrame : unitaryGroup ι ℂ → ℒ ι) := by
+  intro Λ
+  have hdim : Module.finrank ℝ (EuclideanSpace ℝ ι) =
+      Module.finrank ℝ (Λ : Submodule ℝ (StdSpace ι)) := by
+    have := Λ.isLagrangian.two_mul_finrank
+    rw [finrank_stdSpace] at this
+    rw [finrank_euclideanSpace]
+    omega
+  set Z := toEuclideanLin.symm
+    ((Λ : Submodule ℝ (StdSpace ι)).subtype ∘ₗ (LinearEquiv.ofFinrankEq _ _ hdim).toLinearMap)
+  have hZ : LinearMap.range (toEuclideanLin (fromRows Z.toRows₁ Z.toRows₂)) = Λ := by
+    rw [fromRows_toRows, LinearEquiv.apply_symm_apply, LinearMap.range_comp,
+      LinearEquiv.range, Submodule.map_top, Submodule.range_subtype]
+  have hL : (stdForm ι).IsLagrangian
+      (LinearMap.range (toEuclideanLin (fromRows Z.toRows₁ Z.toRows₂))) :=
+    hZ ▸ Λ.isLagrangian
+  have hXY := ((isLagrangian_range_fromRows_iff _ _).1 hL).2
+  have hdet := det_ne_zero_of_isLagrangian_range_fromRows hL
+  set M := Z.toRows₁.map Complex.ofReal + Complex.I • Z.toRows₂.map Complex.ofReal
+  set M' : GL ι ℂ := ((isUnit_iff_isUnit_det M).2 (isUnit_iff_ne_zero.2 hdet)).unit
+  have hM' : (M' : Matrix ι ι ℂ) = M := IsUnit.unit_spec _
+  have hu := GeneralLinearGroup.realOrthonormalize_mem_unitaryGroup (M := M')
+    (by rw [hM']; exact map_im_conjTranspose_mul_self_eq_zero_of_transpose_mul_eq hXY)
+  refine ⟨⟨_, hu⟩, toSubmodule_injective ?_⟩
+  rw [coe_unitaryFrame_eq_map, GeneralLinearGroup.realImage_realOrthonormalize, hM', ← hZ,
+    range_toEuclideanLin_fromRows_eq_map_realImage]
+
+instance : MulAction.IsPretransitive (unitaryGroup ι ℂ) (ℒ ι) :=
+  MulAction.IsPretransitive.of_orbit (x₀ := horizontal ι) unitaryFrame_surjective
+
+instance : MulAction.IsPretransitive (GLSymplectic ι ℝ) (ℒ ι) :=
+  MulAction.IsPretransitive.of_smul_eq GLSymplectic.ofUnitary (unitary_smul_def _ _).symm
+
+/-- A unitary matrix frames the horizontal Lagrangian iff it is real, that is, orthogonal. -/
+theorem unitaryFrame_eq_horizontal_iff {U : unitaryGroup ι ℂ} :
+    unitaryFrame U = horizontal ι ↔ U ∈ UnitaryGroup.realSubgroup ι := by
+  have h1 : ((1 : Matrix ι ι ℝ).map ((↑) : ℝ → ℂ)) = 1 :=
+    Matrix.map_one _ Complex.ofReal_zero Complex.ofReal_one
+  rw [← toSubmodule_inj, coe_unitaryFrame_eq_map, coe_horizontal, ← map_realSubspace,
+    (Submodule.map_injective_of_injective (complexEuclideanEquiv ι).injective).eq_iff,
+    UnitaryGroup.mem_realSubgroup_iff_exists]
+  constructor
+  · intro h
+    rw [← realImage_map_ofReal (isUnit_one (M := Matrix ι ι ℝ)), h1] at h
+    obtain ⟨O, hO, hUO⟩ := exists_mem_orthogonalGroup_eq_mul_map_ofReal
+      (M := 1) (M' := Unitary.toUnits U) h.symm (by simp)
+      (UnitaryGroup.map_re_conjTranspose_mul_self U)
+    exact ⟨O, hO, by simpa using hUO.symm⟩
+  · rintro ⟨O, hO, hUO⟩
+    rw [← hUO]
+    exact realImage_map_ofReal ((isUnit_iff_isUnit_det _).2
+      (isUnit_det_of_left_inverse ((mem_orthogonalGroup_iff' ι ℝ).1 hO)))
+
+/-- Two unitary matrices frame the same Lagrangian iff they differ by a real orthogonal matrix
+on the right. -/
+theorem unitaryFrame_eq_unitaryFrame_iff {U U' : unitaryGroup ι ℂ} :
+    unitaryFrame U = unitaryFrame U' ↔ U⁻¹ * U' ∈ UnitaryGroup.realSubgroup ι := by
+  rw [← unitaryFrame_eq_horizontal_iff, unitaryFrame_mul, inv_smul_eq_iff, ← unitaryFrame_def,
+    eq_comm]
+
+/-- The stabilizer of the horizontal Lagrangian in `U(n)` is the orthogonal group `O(n)`. -/
+theorem stabilizer_horizontal :
+    MulAction.stabilizer (unitaryGroup ι ℂ) (horizontal ι) = UnitaryGroup.realSubgroup ι := by
+  ext U
+  rw [MulAction.mem_stabilizer_iff, ← unitaryFrame_def, unitaryFrame_eq_horizontal_iff]
+
+end LagrangianGrassmannian
+
+end SymplecticGeometry
+
+end

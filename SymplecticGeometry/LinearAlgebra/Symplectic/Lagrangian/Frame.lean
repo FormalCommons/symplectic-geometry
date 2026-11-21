@@ -10,6 +10,7 @@ public import Mathlib.LinearAlgebra.Matrix.ToLinearEquiv
 public import SymplecticGeometry.LinearAlgebra.Matrix.OfReal
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Lagrangian.Basic
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
+public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Matrix
 public import TauCeti.Geometry.Symplectic.Lagrangian.Constructions
 public import TauCeti.Geometry.Symplectic.Lagrangian.TotallyReal
 public import TauCeti.LinearAlgebra.Matrix.GeneralLinearGroup.Symplectic.Basic
@@ -27,12 +28,18 @@ A *frame* is a real `2n × n` matrix `Z = fromRows X Y`, whose columns span the 
 ## Main definitions
 
 * `SymplecticGeometry.StdSpace.graph A`: the graph `{(x, A x)}` over the `x`-coordinates.
-  carries `graph A` to `graphY A`.
+* `SymplecticGeometry.StdSpace.graphY A`: the graph `{(A y, y)}` over the `y`-coordinates.
 * `SymplecticGeometry.LagrangianGrassmannian.ofFrame X Y`: the Lagrangian subspace spanned by a
   Lagrangian frame `fromRows X Y`.
 
 ## Main results
 
+* `SymplecticGeometry.StdSpace.range_toEuclideanLin_fromRows_eq_map_realImage`: the span of
+  `fromRows X Y` is the real image of its complex frame `X + i Y`, carried to `StdSpace ι`;
+  `map_realImage`: the real image of a complex matrix `A` is the image of `{y = 0}` under the
+  realification of `A`.
+* `SymplecticGeometry.StdSpace.graph_zero`, `graphY_zero`: the graphs of `0` are the coordinate
+  subspaces `{y = 0}` and `{x = 0}`.
 * `SymplecticGeometry.StdSpace.isCompl_graph_ker_x`, `isCompl_graphY_ker_y`: each graph is
   complementary to the coordinate subspace it is a graph over, and conversely
   `exists_eq_graph_of_isCompl_ker_x`, `exists_eq_graphY_of_isCompl_ker_y`.
@@ -53,8 +60,6 @@ A *frame* is a real `2n × n` matrix `Z = fromRows X Y`, whose columns span the 
 * `SymplecticGeometry.exists_eq_graph_of_isCompl`, `exists_eq_graphY_of_isCompl`: a Lagrangian
   subspace transverse to `{x = 0}` (resp. `{y = 0}`) is `graph S` (resp. `graphY S`) for a
   symmetric `S`.
-* `SymplecticGeometry.StdSpace.range_toEuclideanLin_fromRows_eq_map_realImage`: the span of
-  `fromRows X Y` is the real image of its complex frame `X + i Y`, carried to `StdSpace ι`.
 * `SymplecticGeometry.StdSpace.range_toEuclideanLin_fromRows_one_eq_graph`,
   `range_toEuclideanLin_fromRows_one_eq_graphY`: `fromRows 1 A` spans `graph A`, and
   `fromRows A 1` spans `graphY A`; `map_swap_range_toEuclideanLin_fromRows`: the swap carries
@@ -113,6 +118,19 @@ theorem graph_injective : Function.Injective (graph : Matrix ι ι ℝ → Submo
   refine mulVec_injective (funext fun v ↦ ?_)
   have hv : (equivProd ι).symm (v, A *ᵥ v) ∈ graph B := h ▸ mem_graph_iff.2 (by simp)
   simpa using mem_graph_iff.1 hv
+
+/-- The graph `{(x, 0)}` of the zero matrix is the horizontal subspace `{y = 0}`. -/
+@[simp]
+theorem graph_zero : graph (0 : Matrix ι ι ℝ) = LinearMap.ker y := by
+  ext z
+  simp
+
+/-- The graph `{(0, y)}` of the zero matrix over the `y`-coordinates is the vertical subspace
+`{x = 0}`. -/
+@[simp]
+theorem graphY_zero : graphY (0 : Matrix ι ι ℝ) = LinearMap.ker x := by
+  ext z
+  simp
 
 /-- Every graph `{(x, A x)}` is complementary to the vertical subspace `{x = 0}`. -/
 theorem isCompl_graph_ker_x (A : Matrix ι ι ℝ) : IsCompl (graph A) (LinearMap.ker x) := by
@@ -214,6 +232,29 @@ theorem map_lagrangianChart [DecidableEq ι] (S : Matrix ι ι ℝ) :
     ext v
     simp [funext_iff, mem_lagrangianChart, mulVec, dotProduct])
 
+/-- The column space of a frame `fromRows X Y` is the real image `(X + i Y) ℝⁿ ⊆ ℂⁿ` of its
+complex frame, carried to `StdSpace ι` by `StdSpace.complexEuclideanEquiv`. -/
+theorem range_toEuclideanLin_fromRows_eq_map_realImage [DecidableEq ι] (X Y : Matrix ι ι ℝ) :
+    LinearMap.range (toEuclideanLin (fromRows X Y)) =
+      (X.map Complex.ofReal + Complex.I • Y.map Complex.ofReal).realImage.map
+        (complexEuclideanEquiv ι : EuclideanSpace ℂ ι →ₗ[ℝ] StdSpace ι) := by
+  rw [range_toEuclideanLin_fromRows, complexEuclideanEquiv_def,
+    ContinuousLinearEquiv.trans_toLinearEquiv, LinearEquiv.coe_trans]
+
+/-- Through `StdSpace.complexEuclideanEquiv`, the real image `A ℝⁿ` of a complex matrix is the
+image of the horizontal subspace `{y = 0}` under its realification. -/
+theorem map_realImage [DecidableEq ι] (A : Matrix ι ι ℂ) :
+    A.realImage.map (complexEuclideanEquiv ι : EuclideanSpace ℂ ι →ₗ[ℝ] StdSpace ι) =
+      (LinearMap.ker y).map (toEuclideanLin A.realify) := by
+  ext z
+  simp only [Submodule.mem_map, mem_realImage, ← map_realSubspace]
+  constructor
+  · rintro ⟨_, ⟨w, hw, rfl⟩, rfl⟩
+    exact ⟨_, ⟨w, hw, rfl⟩, (complexEuclideanEquiv_toEuclideanCLM A w).symm⟩
+  · rintro ⟨_, ⟨w, hw, rfl⟩, rfl⟩
+    exact ⟨_, ⟨w, hw, rfl⟩, complexEuclideanEquiv_toEuclideanCLM A w⟩
+
+
 end StdSpace
 
 open StdSpace
@@ -290,15 +331,6 @@ theorem StdSpace.y_toEuclideanLin_fromRows (X Y : Matrix ι ι ℝ) (u : Euclide
     y (toEuclideanLin (fromRows X Y) u) = Y *ᵥ u := by
   ext i
   simp [fromRows_mulVec]
-
-/-- The column space of a frame `fromRows X Y` is the real image `(X + i Y) ℝⁿ ⊆ ℂⁿ` of its
-complex frame, carried to `StdSpace ι` by `StdSpace.complexEuclideanEquiv`. -/
-theorem StdSpace.range_toEuclideanLin_fromRows_eq_map_realImage (X Y : Matrix ι ι ℝ) :
-    LinearMap.range (toEuclideanLin (fromRows X Y)) =
-      (X.map Complex.ofReal + Complex.I • Y.map Complex.ofReal).realImage.map
-        (complexEuclideanEquiv ι : EuclideanSpace ℂ ι →ₗ[ℝ] StdSpace ι) := by
-  rw [Matrix.range_toEuclideanLin_fromRows, complexEuclideanEquiv_def,
-    ContinuousLinearEquiv.trans_toLinearEquiv, LinearEquiv.coe_trans]
 
 /-- The column space of the frame `fromRows 1 A` is the graph `{(x, A x)}`. -/
 theorem StdSpace.range_toEuclideanLin_fromRows_one_eq_graph (A : Matrix ι ι ℝ) :
