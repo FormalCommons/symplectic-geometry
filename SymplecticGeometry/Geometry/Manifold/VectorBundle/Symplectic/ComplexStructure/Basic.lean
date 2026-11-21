@@ -422,8 +422,8 @@ theorem Compatible.metric_inner (hc : ω.Compatible J) (x : M) (u v : V x) :
   (ContMDiffRiemannianMetric.ofPositiveDefiniteSection_inner _ _ x u v).trans
     (hc.compatibleMetricBilin_apply x u v)
 
-/-- The form `ω_{g,J}` of the metric `g` of a compatible pair `(ω, J)` is `ω` again: `metric`
-and `ContMDiffComplexStructure.compatibleForm` are inverse to each other on compatible forms. -/
+/-- The form `ω_{g,J}` of the metric `g` of a compatible pair `(ω, J)` is `ω` again. So
+`Compatible.metric` is a right inverse of `ContMDiffComplexStructure.compatibleForm · J`. -/
 @[simp]
 theorem Compatible.compatibleForm_metric (hc : ω.Compatible J) :
     ContMDiffComplexStructure.compatibleForm hc.metric J = ω := by
