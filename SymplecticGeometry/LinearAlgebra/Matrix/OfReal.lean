@@ -45,6 +45,7 @@ theorem transpose_map_ofReal_mul_map_ofReal [Fintype m] (P : Matrix m n ℝ) (Q 
   rw [← transpose_map, map_ofReal_mul]
 
 /-- A real matrix, read over `ℂ`, has its transpose as conjugate transpose. -/
+@[simp]
 theorem conjTranspose_map_ofReal (P : Matrix m n ℝ) : (P.map ofReal)ᴴ = (P.map ofReal)ᵀ := by
   ext i j
   simp
