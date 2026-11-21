@@ -5,7 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Analysis.Normed.Operator.Bilinear
+public import SymplecticGeometry.Topology.Algebra.Module.BilinearForm
 public import TauCeti.Geometry.Symplectic.SymplecticTransport
 public import TauCeti.Topology.Algebra.Module.BilinearForm
 
@@ -66,7 +66,7 @@ variable [FiniteDimensional ℝ V] [FiniteDimensional ℝ W]
 theorem toBilinForm_toContinuousBilinearMap_ofContinuousBilinearMap (B : V →L[ℝ] V →L[ℝ] ℝ)
     (hB : B.toBilinForm.IsAlt) (hnd : B.toBilinForm.Nondegenerate) :
     (ofContinuousBilinearMap B hB hnd).toBilinForm.toContinuousBilinearMap = B :=
-  (rfl)
+  B.toContinuousBilinearMap_toBilinForm
 
 /-- The topology on the symplectic forms of a finite-dimensional real normed space induced by the
 operator norm of their continuous bilinear forms. As all norms on a finite-dimensional space are
@@ -101,12 +101,11 @@ theorem continuous_transport (e : V ≃L[ℝ] W) :
     Continuous fun ω : SymplecticForm V ↦ ω.transport e.toLinearEquiv := by
   have h : (fun ω : SymplecticForm V ↦
       (ω.transport e.toLinearEquiv).toBilinForm.toContinuousBilinearMap) =
-      fun ω ↦ ω.toBilinForm.toContinuousBilinearMap.bilinearComp
-        (e.symm : W →L[ℝ] V) (e.symm : W →L[ℝ] V) := by
+      fun ω ↦ e.arrowCongr (e.arrowCongr (.refl ℝ ℝ)) ω.toBilinForm.toContinuousBilinearMap := by
     ext
     simp
   rw [continuous_iff, h]
-  exact (ContinuousLinearMap.continuous_bilinearComp _ _).comp
+  exact (e.arrowCongr (e.arrowCongr (.refl ℝ ℝ))).continuous.comp
     isEmbedding_toContinuousBilinearMap.continuous
 
 end TauCeti.SymplecticForm

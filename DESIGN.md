@@ -737,8 +737,8 @@ it into issues; the overview fixes its folders and its dependencies.
   from Tau Ceti's `TauCeti.convex_setOfPred_symm_pos`),
   `Topology/Algebra/Module/SymplecticForms.lean` (the topology on
   `SymplecticForm V`), with the general file
-  `Analysis/Normed/Operator/Bilinear.lean` (precomposing continuous bilinear
-  forms with fixed maps is continuous, which both transports use),
+  `Topology/Algebra/Module/BilinearForm.lean` (a continuous bilinear form in
+  finite dimensions is recovered from its bilinear form),
   `Geometry/Symplectic/Cayley/Domain.lean` (the open set where Tau Ceti's
   Cayley path is smooth),
   `Topology/ComplexStructure/Compatible/` (`Matrix.lean`: the identification

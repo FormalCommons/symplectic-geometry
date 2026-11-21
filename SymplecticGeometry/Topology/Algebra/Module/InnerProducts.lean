@@ -7,7 +7,6 @@ module
 
 public import Mathlib.Analysis.Convex.Contractible
 public import Mathlib.Analysis.InnerProductSpace.PiL2
-public import SymplecticGeometry.Analysis.Normed.Operator.Bilinear
 public import TauCeti.Geometry.Symplectic.AlmostComplex
 public import TauCeti.Topology.Algebra.Module.BilinearForm
 
@@ -91,25 +90,26 @@ namespace innerProducts
 variable {W X : Type*} [NormedAddCommGroup W] [NormedSpace ℝ W] [NormedAddCommGroup X]
   [NormedSpace ℝ X]
 
-/-- Pushing a continuous bilinear form forward along `e`, `g ↦ g (e.symm ·) (e.symm ·)`, maps
-inner products to inner products. -/
-theorem bilinearComp_mem {g : V →L[ℝ] V →L[ℝ] ℝ} (hg : g ∈ innerProducts V) (e : V ≃L[ℝ] W) :
-    g.bilinearComp (e.symm : W →L[ℝ] V) (e.symm : W →L[ℝ] V) ∈ innerProducts W :=
-  ⟨fun v w ↦ by simp [hg.1 (e.symm v)], fun v hv ↦ by
-    simpa using hg.2 (e.symm v) (by simpa using hv)⟩
+/-- Pulling an inner product back along an injective continuous linear map `f : W →L[ℝ] V`,
+`g ↦ g (f ·) (f ·)`, gives an inner product. In particular an inner product restricts to one on
+every subspace. -/
+theorem bilinearComp_mem {g : V →L[ℝ] V →L[ℝ] ℝ} (hg : g ∈ innerProducts V) (f : W →L[ℝ] V)
+    (hf : Function.Injective f) : g.bilinearComp f f ∈ innerProducts W :=
+  ⟨fun v w ↦ by simp [hg.1 (f v)], fun v hv ↦ by
+    simpa using hg.2 (f v) (by simpa [map_eq_zero_iff _ hf] using hv)⟩
 
 /-- The homeomorphism of the inner products on `V` with those on `W` induced by a continuous
 linear equivalence `e : V ≃L[ℝ] W`: it pushes an inner product forward along `e`, sending `g` to
 `(w, w') ↦ g (e.symm w) (e.symm w')`. -/
 noncomputable def transport (e : V ≃L[ℝ] W) : innerProducts V ≃ₜ innerProducts W where
-  toFun g := ⟨_, bilinearComp_mem g.property e⟩
-  invFun g := ⟨_, bilinearComp_mem g.property e.symm⟩
+  toFun g := ⟨_, bilinearComp_mem g.property _ e.symm.injective⟩
+  invFun g := ⟨_, bilinearComp_mem g.property _ e.injective⟩
   left_inv g := by ext; simp
   right_inv g := by ext; simp
-  continuous_toFun :=
-    (ContinuousLinearMap.continuous_bilinearComp _ _).comp continuous_subtypeVal |>.subtype_mk _
-  continuous_invFun :=
-    (ContinuousLinearMap.continuous_bilinearComp _ _).comp continuous_subtypeVal |>.subtype_mk _
+  continuous_toFun := (e.arrowCongr (e.arrowCongr (.refl ℝ ℝ))).continuous.comp
+    continuous_subtypeVal |>.subtype_mk _
+  continuous_invFun := (e.symm.arrowCongr (e.symm.arrowCongr (.refl ℝ ℝ))).continuous.comp
+    continuous_subtypeVal |>.subtype_mk _
 
 @[simp]
 theorem transport_apply (e : V ≃L[ℝ] W) (g : innerProducts V) (w w' : W) :
@@ -138,9 +138,10 @@ variable [FiniteDimensional ℝ V]
 variable (V) in
 /-- A finite-dimensional real normed space has an inner product: pull back the inner product of
 a Euclidean space of the same dimension. -/
-theorem innerProducts_nonempty : (innerProducts V).Nonempty :=
+theorem innerProducts_nonempty : (innerProducts V).Nonempty := by
   let e : V ≃L[ℝ] EuclideanSpace ℝ (Fin (finrank ℝ V)) := .ofFinrankEq (by simp)
-  ⟨_, innerProducts.bilinearComp_mem innerSL_mem_innerProducts e.symm⟩
+  exact ⟨_, innerProducts.bilinearComp_mem innerSL_mem_innerProducts
+    (e : V →L[ℝ] EuclideanSpace ℝ (Fin (finrank ℝ V))) e.injective⟩
 
 instance : Nonempty (innerProducts V) :=
   (innerProducts_nonempty V).to_subtype
