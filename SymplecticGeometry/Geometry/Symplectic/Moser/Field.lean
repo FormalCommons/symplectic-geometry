@@ -8,6 +8,7 @@ module
 public import TauCeti.Geometry.Symplectic.Manifold.Flat
 public import TauCeti.Geometry.Manifold.DifferentialForm.LieDeriv
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Family
+import SymplecticGeometry.Geometry.Symplectic.Manifold.Family
 import TauCeti.Geometry.Manifold.DifferentialForm.Flow.Family
 import TauCeti.Geometry.Manifold.VectorBundle.Hom
 import TauCeti.Geometry.Manifold.VectorBundle.Scalar
@@ -187,10 +188,6 @@ theorem moserField_rate_eq_zero [I.Boundaryless] (h₀ : σ₀.IsClosed) {t : �
       mlieDerivForm (moserField σ₀ σ₁ β ρ t)
         (mpullback I (𝓘(ℝ, ℝ).prod I) (Prod.mk t)
           (SmoothForm.lineMapFamily σ₀ σ₁ (contDiff_id (n := ∞))).val)) y = 0 := by
-  have hslice : mpullback I (𝓘(ℝ, ℝ).prod I) (Prod.mk t)
-      (SmoothForm.lineMapFamily σ₀ σ₁ (contDiff_id (n := ∞))).val = (σ₀ + t • (σ₁ - σ₀)).val :=
-    (SmoothForm.coe_mpullback _ _ _).symm.trans
-      (congrArg Subtype.val (SmoothForm.mpullback_prodMk_lineMapFamily σ₀ σ₁ _ t))
   -- The slices `σ₀ + u (σ₁ - σ₀)` have velocity `σ₁ - σ₀`.
   have hvel : mpullback I (𝓘(ℝ, ℝ).prod I) (Prod.mk t)
       (mlieDerivForm (fun _ ↦ ((1 : ℝ), (0 : E)))
@@ -231,6 +228,7 @@ theorem moserField_rate_eq_zero [I.Boundaryless] (h₀ : σ₀.IsClosed) {t : �
       rw [interior_moserField σ₀ σ₁ β ρ hz.2, hz.1, Pi.smul_apply]
     rw [mextDeriv_congr_of_eventuallyEq hev, mextDeriv_smul, Pi.smul_apply,
       hβ.self_of_nhds, neg_one_smul]
-  rw [Pi.add_apply, hvel, hslice, hL, add_neg_cancel]
+  rw [Pi.add_apply, hvel, SmoothForm.coe_mpullback_prodMk_lineMapFamily, id_eq, hL,
+    add_neg_cancel]
 
 end SymplecticGeometry

@@ -92,10 +92,7 @@ theorem exists_diffeotopy_fix_eventually_mpullback_eq_of_mextDeriv_eq_sub
           (σ₀ + (t : ℝ) • (σ₁ - σ₀))).val x = σ₀.val x := by
   -- The points `(s, x)` at which `σ_s = σ₀ + s (σ₁ - σ₀)` is nondegenerate form an open set.
   set O := {p : ℝ × M | ((σ₀ + p.1 • (σ₁ - σ₀)).flat p.2).IsInvertible}
-  have hO : IsOpen O := by
-    have h := isOpen_setOf_isInvertible_flat_mpullback_prodMk
-      (SmoothForm.lineMapFamily σ₀ σ₁ (contDiff_id (n := ∞)))
-    simpa only [SmoothForm.mpullback_prodMk_lineMapFamily, id_eq] using h
+  have hO : IsOpen O := isOpen_setOf_isInvertible_flat_add_smul_sub σ₀ σ₁
   have hKO : Icc (0 : ℝ) 1 ×ˢ K ⊆ O := fun p hp ↦ isInvertible_flat_iff.2 (hnd _ hp.2 _ hp.1)
   have hIK : IsCompact (Icc (0 : ℝ) 1 ×ˢ K) := isCompact_Icc.prod hK
   obtain ⟨ρ, hρ, hρ1, hρc, hρO, -⟩ :=
@@ -146,11 +143,7 @@ theorem exists_diffeotopy_fix_eventually_mpullback_eq_of_mextDeriv_eq_sub
       (huW (mk_mem_prod (hu (Icc_subset_Icc_right t.property.2
         ((uIcc_of_le t.property.1).subset hs))) hx))
       (Eventually.of_forall fun z ↦ congrFun hβ z)
-  have hslice (s : ℝ) : mpullback I (𝓘(ℝ, ℝ).prod I) (Prod.mk s)
-      (SmoothForm.lineMapFamily σ₀ σ₁ (contDiff_id (n := ∞))).val = (σ₀ + s • (σ₁ - σ₀)).val :=
-    (SmoothForm.coe_mpullback _ _ _).symm.trans
-      (congrArg Subtype.val (SmoothForm.mpullback_prodMk_lineMapFamily σ₀ σ₁ _ s))
-  rw [hslice, hslice, zero_smul, add_zero] at h
+  simp only [SmoothForm.coe_mpullback_prodMk_lineMapFamily, id_eq, zero_smul, add_zero] at h
   rw [SmoothForm.coe_mpullback, hΨ]
   exact h
 
