@@ -7,8 +7,9 @@ module
 
 public import Mathlib.LinearAlgebra.BilinearForm.Properties
 public import Mathlib.LinearAlgebra.Projection
-public import TauCeti.Geometry.Symplectic.CompatibleMetric
-public import TauCeti.Geometry.Symplectic.LinearReduction
+public import SymplecticGeometry.LinearAlgebra.Symplectic.Compatible
+public import SymplecticGeometry.LinearAlgebra.Symplectic.Reduction
+public import TauCeti.LinearAlgebra.Submodule.Compl
 
 /-!
 # An explicit linear symplectic extension
@@ -52,12 +53,7 @@ submanifold needs.
   `TauCeti.SymplecticForm.Compatible.isCompl_sup_map_normalComplement`: the splittings.
 * `TauCeti.SymplecticForm.Compatible.isSymplectic_radicalComplement`,
   `TauCeti.SymplecticForm.Compatible.isSymplectic_normalComplement`,
-  `TauCeti.SymplecticForm.Compatible.isSymplectic_sup_map`.
 * `TauCeti.SymplecticForm.Compatible.isSymplectomorphism_normalComplementEquiv`.
-* `TauCeti.SymplecticForm.ker_restrict_le_comap_of_forall_apply_eq`,
-  `TauCeti.SymplecticForm.exists_isSymplectomorphism_reducedSpace_of_forall_apply_eq`: a linear
-  map preserving `ω` on `U₀` and mapping it into `U₁`, with reduced spaces of equal dimension,
-  maps the radical of `U₀` into the radical of `U₁` and induces a symplectomorphism of the
   reduced spaces.
 * `TauCeti.SymplecticForm.Compatible.isSymplectomorphism_extendAlong`,
   `TauCeti.SymplecticForm.Compatible.extendAlong_apply_coe`,
@@ -74,53 +70,6 @@ public section
 open Module
 
 namespace TauCeti.SymplecticForm
-
-section Basic
-
-variable {V : Type*} [AddCommGroup V] [Module ℝ V] {ω : SymplecticForm V}
-  {J : AlmostComplexStructure V}
-
-/-- The symplectic complement of a sum is the intersection of the symplectic complements. -/
-theorem orthogonal_sup (ω : SymplecticForm V) (L L' : Submodule ℝ V) :
-    ω.orthogonal (L ⊔ L') = ω.orthogonal L ⊓ ω.orthogonal L' :=
-  Submodule.orthogonalBilin_sup (B := ω.toBilinForm) L L'
-
-/-- The radical `W ∩ W^ω` of a subspace is isotropic. -/
-theorem isIsotropic_inf_orthogonal (W : Submodule ℝ V) :
-    ω.IsIsotropic (W ⊓ ω.orthogonal W) :=
-  isIsotropic_iff.2 fun _ hv _ hw => mem_orthogonal_iff.1 hw.2 _ hv.1
-
-/-- For a `J`-invariant form, the symplectic complement of `J U` is the orthogonal of `U` for the
-associated form `g = ω(·, J ·)`. -/
-theorem Invariant.orthogonal_map (hJ : ω.Invariant J) (U : Submodule ℝ V) :
-    ω.orthogonal (U.map J.toLinearMap) = (ω.associatedBilinForm J).orthogonal U := by
-  ext x
-  simp only [mem_orthogonal_iff, LinearMap.BilinForm.mem_orthogonal_iff,
-    associatedBilinForm_apply, Submodule.mem_map]
-  refine ⟨fun h u hu => ?_, ?_⟩
-  · linarith [hJ.apply_add_apply_eq_zero u x, h _ ⟨u, hu, rfl⟩]
-  · rintro h _ ⟨u, hu, rfl⟩
-    linarith [hJ.apply_add_apply_eq_zero u x, h u hu]
-
-/-- For a `J`-invariant form, the image under `J` of an isotropic subspace is isotropic. -/
-theorem Invariant.isIsotropic_map (hJ : ω.Invariant J) {U : Submodule ℝ V}
-    (hU : ω.IsIsotropic U) : ω.IsIsotropic (U.map J.toLinearMap) := by
-  rw [isIsotropic_iff] at hU ⊢
-  rintro _ ⟨u, hu, rfl⟩ _ ⟨v, hv, rfl⟩
-  exact ((ω.invariant_iff J).1 hJ u v).trans (hU u hu v hv)
-
-/-- For a compatible pair on a finite-dimensional space, every subspace is complementary to its
-orthogonal for the associated inner product `g = ω(·, J ·)`. -/
-theorem Compatible.isCompl_orthogonal_associatedBilinForm [FiniteDimensional ℝ V]
-    (hJ : ω.Compatible J) (U : Submodule ℝ V) :
-    IsCompl U ((ω.associatedBilinForm J).orthogonal U) := by
-  refine (LinearMap.BilinForm.isCompl_orthogonal_iff_disjoint
-    (fun x y h => by rw [hJ.associatedBilinForm_isSymm.eq, h])).2 ?_
-  rw [Submodule.disjoint_def]
-  exact fun x hx hx' => hJ.associatedBilinForm_self_eq_zero.1
-    (LinearMap.BilinForm.mem_orthogonal_iff.1 hx' x hx)
-
-end Basic
 
 section Pieces
 
@@ -290,29 +239,22 @@ theorem Compatible.inf_sup_normalComplement [FiniteDimensional ℝ V] :
 
 variable (W) in
 /-- The normal complement `E` of `W` maps isomorphically onto the reduced space `W^ω ⧸ K`,
-`K = W ∩ W^ω`, by `e ↦ [e]`. It is a symplectomorphism
+`K = W ∩ W^ω`, by `e ↦ [e]` (`TauCeti.SymplecticForm.Compatible.normalComplementEquiv_apply`).
+Its inverse is the projection of `W^ω` onto `E` along `K`. It is a symplectomorphism
 (`TauCeti.SymplecticForm.Compatible.isSymplectomorphism_normalComplementEquiv`). -/
 noncomputable def Compatible.normalComplementEquiv [FiniteDimensional ℝ V] :
     ω.normalComplement J W ≃ₗ[ℝ] ω.ReducedSpace (ω.orthogonal W) :=
-  LinearEquiv.ofBijective
-    ((LinearMap.ker (ω.toBilinForm.restrict (ω.orthogonal W))).mkQ ∘ₗ
-      Submodule.inclusion normalComplement_le_orthogonal) <| by
-    refine ⟨fun x y hxy => ?_, fun z => ?_⟩
-    · rw [LinearMap.comp_apply, LinearMap.comp_apply, Submodule.mkQ_apply, Submodule.mkQ_apply,
-        ReducedSpace.mk_eq_mk_iff, orthogonal_orthogonal] at hxy
-      rw [← sub_eq_zero, ← Submodule.coe_eq_zero, Submodule.coe_sub]
-      exact Submodule.disjoint_def.1 hJ.disjoint_inf_normalComplement _
-        ⟨hxy, Submodule.sub_mem _ (normalComplement_le_orthogonal x.property)
-          (normalComplement_le_orthogonal y.property)⟩ (Submodule.sub_mem _ x.property y.property)
-    · induction z using Submodule.Quotient.induction_on with
-      | H u =>
-        obtain ⟨k, hk, e, he, hke⟩ :=
-          Submodule.mem_sup.1 ((hJ.inf_sup_normalComplement (W := W)).ge u.property)
-        refine ⟨⟨e, he⟩, ?_⟩
-        rw [LinearMap.comp_apply, Submodule.mkQ_apply, ReducedSpace.mk_eq_mk_iff]
-        simpa [← hke] using
-          Submodule.neg_mem _ (le_orthogonal_orthogonal (L := W) hk.1)
+  (Submodule.comapSubtypeEquivOfLe normalComplement_le_orthogonal).symm ≪≫ₗ
+    (Submodule.quotientEquivOfIsCompl _ _ <| ker_restrict_orthogonal ω W ▸
+      Submodule.isCompl_comap_subtype_iff.2
+        ⟨by rw [inf_eq_right.2 inf_le_right, inf_eq_right.2 normalComplement_le_orthogonal]
+            exact hJ.disjoint_inf_normalComplement,
+          by rw [inf_eq_right.2 inf_le_right, inf_eq_right.2 normalComplement_le_orthogonal,
+            hJ.inf_sup_normalComplement]⟩).symm
 
+/-- The identification of the normal complement with the reduced space sends `e` to its class
+`[e]`. -/
+@[simp]
 theorem Compatible.normalComplementEquiv_apply [FiniteDimensional ℝ V]
     (x : ω.normalComplement J W) :
     hJ.normalComplementEquiv W x =
@@ -331,85 +273,7 @@ theorem Compatible.isSymplectomorphism_normalComplementEquiv [FiniteDimensional 
 
 end Pieces
 
-section Reduction
-
-variable {V₀ V₁ : Type*} [AddCommGroup V₀] [Module ℝ V₀] [AddCommGroup V₁] [Module ℝ V₁]
-  [FiniteDimensional ℝ V₀] [FiniteDimensional ℝ V₁]
-  {ω₀ : SymplecticForm V₀} {ω₁ : SymplecticForm V₁} {U₀ : Submodule ℝ V₀}
-  {U₁ : Submodule ℝ V₁} {L : V₀ →ₗ[ℝ] V₁}
-
-omit [FiniteDimensional ℝ V₀] [FiniteDimensional ℝ V₁] in
-/-- A vector of `U₀` that `L`, followed by the quotient map, sends to zero in the reduced space
-of `U₁` lies in the radical of `U₀`, when `L` preserves `ω` on `U₀`. -/
-private theorem ker_mkQ_comp_restrict_le (hL : ∀ u ∈ U₀, L u ∈ U₁)
-    (hLω : ∀ u ∈ U₀, ∀ v ∈ U₀, ω₁ (L u) (L v) = ω₀ u v) :
-    LinearMap.ker ((LinearMap.ker (ω₁.toBilinForm.restrict U₁)).mkQ ∘ₗ L.restrict hL) ≤
-      LinearMap.ker (ω₀.toBilinForm.restrict U₀) := by
-  intro u hu
-  rw [LinearMap.mem_ker, LinearMap.comp_apply, Submodule.mkQ_apply] at hu
-  rw [mem_ker_restrict_iff, mem_orthogonal_iff']
-  intro y hy
-  have h := congrArg (fun z => ω₁.reduction U₁ z (Submodule.Quotient.mk ⟨L y, hL y hy⟩)) hu
-  simp only [LinearMap.restrict_apply, reduction_mk, map_zero, LinearMap.zero_apply] at h
-  rw [← hLω u u.property y hy]
-  exact h
-
-/-- **Radicals are preserved.** If `L` maps `U₀` into `U₁` and preserves `ω` on `U₀`, and the
-reduced space of `U₁` has at most the dimension of that of `U₀`, then `L` maps the radical
-`U₀ ∩ U₀^ω` into the radical `U₁ ∩ U₁^ω`, both seen as the kernels of the restricted forms. -/
-theorem ker_restrict_le_comap_of_forall_apply_eq (hL : ∀ u ∈ U₀, L u ∈ U₁)
-    (hLω : ∀ u ∈ U₀, ∀ v ∈ U₀, ω₁ (L u) (L v) = ω₀ u v)
-    (hdim : finrank ℝ (ω₁.ReducedSpace U₁) ≤ finrank ℝ (ω₀.ReducedSpace U₀)) :
-    LinearMap.ker (ω₀.toBilinForm.restrict U₀) ≤
-      (LinearMap.ker (ω₁.toBilinForm.restrict U₁)).comap (L.restrict hL) := by
-  have hle := ker_mkQ_comp_restrict_le hL hLω
-  have h₁ := LinearMap.finrank_range_add_finrank_ker
-    ((LinearMap.ker (ω₁.toBilinForm.restrict U₁)).mkQ ∘ₗ L.restrict hL)
-  have h₂ : finrank ℝ (ω₀.ReducedSpace U₀) +
-      finrank ℝ (LinearMap.ker (ω₀.toBilinForm.restrict U₀)) = finrank ℝ U₀ :=
-    Submodule.finrank_quotient_add_finrank _
-  have h₃ : finrank ℝ (LinearMap.range
-      ((LinearMap.ker (ω₁.toBilinForm.restrict U₁)).mkQ ∘ₗ L.restrict hL)) ≤
-      finrank ℝ (ω₁.ReducedSpace U₁) :=
-    Submodule.finrank_le _
-  have heq := Submodule.eq_of_le_of_finrank_le hle (by omega)
-  intro u hu
-  rw [← heq, LinearMap.mem_ker, LinearMap.comp_apply, Submodule.mkQ_apply,
-    Submodule.Quotient.mk_eq_zero] at hu
-  exact hu
-
-/-- **Reduction of a map preserving `ω`.** If `L` maps `U₀` into `U₁` and preserves `ω` on `U₀`,
-and the reduced space of `U₁` has at most the dimension of that of `U₀`, then `[u] ↦ [L u]` is
-a well-defined symplectomorphism of the reduced spaces. -/
-theorem exists_isSymplectomorphism_reducedSpace_of_forall_apply_eq (hL : ∀ u ∈ U₀, L u ∈ U₁)
-    (hLω : ∀ u ∈ U₀, ∀ v ∈ U₀, ω₁ (L u) (L v) = ω₀ u v)
-    (hdim : finrank ℝ (ω₁.ReducedSpace U₁) ≤ finrank ℝ (ω₀.ReducedSpace U₀)) :
-    ∃ e : ω₀.ReducedSpace U₀ ≃ₗ[ℝ] ω₁.ReducedSpace U₁,
-      IsSymplectomorphism (ω₀.reduction U₀) (ω₁.reduction U₁) e ∧
-        ∀ u : U₀, e (Submodule.Quotient.mk u) = Submodule.Quotient.mk ⟨L u, hL u u.property⟩ := by
-  set g := Submodule.mapQ _ _ (L.restrict hL) (ker_restrict_le_comap_of_forall_apply_eq hL hLω hdim)
-  have hg : ∀ x y, ω₁.reduction U₁ (g x) (g y) = ω₀.reduction U₀ x y := by
-    intro x y
-    induction x using Submodule.Quotient.induction_on with
-    | H u =>
-    induction y using Submodule.Quotient.induction_on with
-    | H v =>
-    simp only [g, Submodule.mapQ_apply, LinearMap.restrict_apply, reduction_mk]
-    exact hLω u u.property v v.property
-  have hinj : Function.Injective g := by
-    rw [← LinearMap.ker_eq_bot, Submodule.eq_bot_iff]
-    intro x hx
-    refine (ω₀.reduction U₀).separatingLeft x fun y => ?_
-    have := hg x y
-    rw [LinearMap.mem_ker.1 hx] at this
-    simpa using this.symm
-  exact ⟨LinearMap.linearEquivOfInjective g hinj
-      (le_antisymm (LinearMap.finrank_le_finrank_of_injective hinj) hdim),
-    isSymplectomorphism_iff.2 hg, fun u => rfl⟩
-
-end Reduction
-
-section Extension
+section Construction
 
 variable {V₀ V₁ : Type*} [AddCommGroup V₀] [Module ℝ V₀] [AddCommGroup V₁] [Module ℝ V₁]
   [FiniteDimensional ℝ V₀] [FiniteDimensional ℝ V₁]
@@ -659,41 +523,7 @@ private theorem extendAlongMap_injective (hb : ∀ x y : W₀, ω₁ (b x) (b y)
   rw [LinearMap.mem_ker.1 hv] at h
   simpa using h.symm
 
-end Extension
-
-section Radical
-
-variable {V₀ V₁ : Type*} [AddCommGroup V₀] [Module ℝ V₀] [AddCommGroup V₁] [Module ℝ V₁]
-  [FiniteDimensional ℝ V₀] [FiniteDimensional ℝ V₁]
-  {ω₀ : SymplecticForm V₀} {ω₁ : SymplecticForm V₁} {W₀ : Submodule ℝ V₀}
-  {W₁ : Submodule ℝ V₁}
-
-omit [FiniteDimensional ℝ V₀] in
-private theorem finrank_inf_orthogonal_le {b : W₀ ≃ₗ[ℝ] W₁}
-    (hb : ∀ x y : W₀, ω₁ (b x) (b y) = ω₀ x y) :
-    finrank ℝ ↥(W₀ ⊓ ω₀.orthogonal W₀) ≤ finrank ℝ ↥(W₁ ⊓ ω₁.orthogonal W₁) := by
-  refine LinearMap.finrank_le_finrank_of_injective
-    (f := LinearMap.codRestrict (W₁ ⊓ ω₁.orthogonal W₁)
-      (W₁.subtype ∘ₗ b.toLinearMap ∘ₗ Submodule.inclusion inf_le_left)
-      fun c => ⟨(b _).property, fun y hy => ?_⟩) fun c c' h => ?_
-  · have h := hb (b.symm ⟨y, hy⟩) (Submodule.inclusion inf_le_left c)
-    rw [LinearEquiv.apply_symm_apply] at h
-    exact h.trans (mem_orthogonal_iff.1 c.property.2 _ (b.symm ⟨y, hy⟩).property)
-  · have h₀ := congrArg (fun z : ↥(W₁ ⊓ ω₁.orthogonal W₁) => (z : V₁)) h
-    have h₂ := b.injective (Subtype.ext h₀ :
-      b (Submodule.inclusion inf_le_left c) = b (Submodule.inclusion inf_le_left c'))
-    rw [Subtype.ext_iff, Submodule.coe_inclusion, Submodule.coe_inclusion] at h₂
-    exact Subtype.ext h₂
-
-/-- A linear isomorphism `b : W₀ ≃ W₁` preserving the restrictions of `ω₀` and `ω₁` preserves
-the dimension of the radical `W ∩ W^ω`. -/
-theorem finrank_inf_orthogonal_eq_of_forall_apply_eq {b : W₀ ≃ₗ[ℝ] W₁}
-    (hb : ∀ x y : W₀, ω₁ (b x) (b y) = ω₀ x y) :
-    finrank ℝ ↥(W₀ ⊓ ω₀.orthogonal W₀) = finrank ℝ ↥(W₁ ⊓ ω₁.orthogonal W₁) :=
-  le_antisymm (finrank_inf_orthogonal_le hb) (finrank_inf_orthogonal_le (b := b.symm)
-    fun x y => by simpa using (hb (b.symm x) (b.symm y)).symm)
-
-end Radical
+end Construction
 
 section Extension
 

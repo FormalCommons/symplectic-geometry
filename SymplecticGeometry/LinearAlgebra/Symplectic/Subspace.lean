@@ -190,6 +190,16 @@ theorem isLagrangian_map_iff_of_apply_eq_mul {W : Type*} [AddCommGroup W] [Modul
       rw [rescale_apply, he]
   rw [← h, isLagrangian_map_transport_iff, isLagrangian_rescale_iff]
 
+/-- The symplectic complement of a sum is the intersection of the symplectic complements. -/
+theorem orthogonal_sup (ω : SymplecticForm V) (L L' : Submodule ℝ V) :
+    ω.orthogonal (L ⊔ L') = ω.orthogonal L ⊓ ω.orthogonal L' :=
+  Submodule.orthogonalBilin_sup (B := ω.toBilinForm) L L'
+
+/-- The radical `W ∩ W^ω` of a subspace is isotropic. -/
+theorem isIsotropic_inf_orthogonal (W : Submodule ℝ V) :
+    ω.IsIsotropic (W ⊓ ω.orthogonal W) :=
+  isIsotropic_iff.2 fun _ hv _ hw => mem_orthogonal_iff.1 hw.2 _ hv.1
+
 variable [FiniteDimensional ℝ V]
 
 /-- In finite dimension, the symplectic complement of a subspace is isotropic if and only if the

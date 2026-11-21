@@ -337,7 +337,10 @@ the table of *Conventions*), and `W : Submodule ℝ V`.
   induces a form-preserving bijection of the reduced spaces, with the
   dimension count that makes $L(K_0)\subseteq K_1$ automatic, is
   `exists_isSymplectomorphism_reducedSpace_of_forall_apply_eq`, with
-  `ker_restrict_le_comap_of_forall_apply_eq` for $L(K_0)\subseteq K_1$.
+  `ker_restrict_le_comap_of_forall_apply_eq` for $L(K_0)\subseteq K_1$; they
+  are in `LinearAlgebra/Symplectic/Reduction.lean`, as is
+  `finrank_inf_orthogonal_eq_of_forall_apply_eq` (an isometry `b` preserves
+  the dimension of the radical).
   Tau Ceti's Witt extension is the existence
   statement; this file gives a formula, so that the next file can prove it
   smooth.
@@ -542,7 +545,10 @@ being an embedding, the image of `Q` in the source is exactly the part of
   structures of `Neighborhood/Basic.lean` come from Tau Ceti's
   `TauCeti.SmoothTwoForm.IsNondegenerate.exists_compatible`.
 - From *Symplectic vector spaces*: `LinearAlgebra/Symplectic/Reduction.lean`
-  (merged), in `Extension.lean` and `Isotropic.lean`.
+  (merged), in `Extension.lean` and `Isotropic.lean`, and
+  `LinearAlgebra/Symplectic/Subspace.lean` (merged), in `Extension.lean`.
+- From *Compatible complex structures*:
+  `LinearAlgebra/Symplectic/Compatible.lean` (merged), in `Extension.lean`.
 - From *Standard model*: `StdSpace`, `stdForm`, `stdForm_apply`, in
   `AdaptedDarboux.lean`.
 - *Cotangent bundles* is not used: `Lagrangian.lean` needs only Tau Ceti's
