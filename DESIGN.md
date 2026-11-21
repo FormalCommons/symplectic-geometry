@@ -1040,25 +1040,28 @@ it into issues; the overview fixes its folders and its dependencies.
     (`ComplexStructure.lean`, for any complex bundle, with no metric), whose
     section is smooth by Tau Ceti's `TauCeti.contMDiff_smulIEquiv_bundle`
     and whose map to `TauCeti.Bundle.ContinuousComplexStructure` gives back
-    the complex structure of `V`. The form
-    `Bundle.ContMDiffRiemannianMetric.hermitianTwoForm g hI` (in the root
-    namespace `Bundle.ContMDiffRiemannianMetric`, outside
-    `SymplecticGeometry`, so that `g.hermitianTwoForm hI` resolves) has at
-    `x` the value `(AlmostComplexStructure.ofComplexModule (V x)).symplecticForm _`,
-    Tau Ceti's form $g_x(J\cdot,\cdot)$ of an orthogonal complex structure
-    (`Geometry/Symplectic/CompatibleMetric.lean`), with the orthogonality
-    from `hI` as in Tau Ceti's `complexInnerProductSpace`
-    (`Riemannian/Hermitian.lean`); so $\omega_x(v,w)=g_x(iv,w)$
-    (`hermitianTwoForm_apply`, from `symplecticForm_apply`), and
-    nondegeneracy comes with Tau Ceti's definition. New are: compatibility
-    with `ofComplexModule`, with $\omega(v,iw)=g(v,w)$; that $\omega$ is the
+    the complex structure of `V`. The form of the Hermitian bundle is no new
+    definition: it is
+    `(ContMDiffComplexStructure.ofComplexModule I n F V).compatibleForm g`,
+    the form $\omega_{g,J}$ of tame and compatible pairs for $J$ the
+    multiplication by `Complex.I`. Under `hI`, $g_x(v,iw)=-g_x(iv,w)$, so
+    its value $\tfrac12(g_x(iv,w)-g_x(v,iw))$ is $g_x(iv,w)$
+    (`compatibleForm_ofComplexModule_apply`). Its compatibility with
+    `ofComplexModule`, nondegeneracy and smoothness are those of any
+    `compatibleForm` (`compatible_compatibleForm`,
+    `Compatible.isNondegenerate`). The lemmas stated for it, in
+    `SymplecticGeometry.Bundle.ContMDiffComplexStructure` and all under
+    `hI`: $\omega(v,iw)=g(v,w)$
+    (`compatibleForm_ofComplexModule_apply_smul_I`); $\omega$ is the
     imaginary part of the Hermitian product of
-    `g.complexInnerProductSpace hI` (a short consequence of Tau Ceti's
-    `Bundle.ContMDiffRiemannianMetric.complexInnerProductSpace_inner` and
-    `symplecticForm_apply`; conjugate-linear in its first argument,
-    as in Mathlib); and, on the trivial line bundle with fibre `Fin 1 → ℂ`
-    and the standard metric, that `complexToRealEuclidean (Fin 1)` carries
-    it to `stdForm (Fin 1)`, so the conventions agree with *Standard model*.
+    `g.complexInnerProductSpace hI`
+    (`im_inner_eq_compatibleForm_ofComplexModule`, from Tau Ceti's
+    `Bundle.ContMDiffRiemannianMetric.complexInnerProductSpace_inner`;
+    conjugate-linear in its first argument, as in Mathlib); and, on the
+    trivial line bundle with fibre `Fin 1 → ℂ` and the constant metric
+    pulled back along `complexToRealEuclidean (Fin 1)`, that map carries it
+    to `stdForm (Fin 1)` (`compatibleForm_ofComplexModule_trivial`), so the
+    conventions agree with *Standard model*.
   - *The circle bundle of a Hermitian line bundle*
     (`Hermitian/CircleBundle.lean`). With the fibre norm of `g` (the local
     `RiemannianBundle V` of `g.toRiemannianMetric`), the circle bundle is the
@@ -1079,10 +1082,13 @@ it into issues; the overview fixes its folders and its dependencies.
     `φ 1`; the isomorphism of topological groups from `unitary (ℂ →L[ℂ] ℂ)`
     to `Circle`, the case `𝕜 = ℂ` of the isomorphism below composed with
     Tau Ceti's `circleEquivUnitary`, which the homeomorphism turns into the action of `Circle` on the subtype by
-    scalar multiplication in the fibres, smooth and free with the fibres as
-    orbits; and the `TauCeti.PrincipalBundle Circle` instance on
+    scalar multiplication in the fibres, free with the fibres as orbits;
+    and the `TauCeti.PrincipalBundle Circle` instance on
     `Fiber ℂ F V ℂ` that *First Chern number* asks for, whose trivializations
     are those of `instPrincipalBundleFiber` followed by that isomorphism.
+    All of this is topological: the smooth side (smoothness of the action
+    and of the coordinate changes, the diffeomorphism onto the submanifold)
+    is *First Chern number*'s prerequisite 3.
     The isomorphism of `unitary (𝕜 →L[𝕜] 𝕜)` with `unitary 𝕜` involves no
     bundle and holds for every `RCLike 𝕜`, so it has a file of its own,
     `Analysis/CStarAlgebra/Unitary/ContinuousLinearMap.lean`. As a group
