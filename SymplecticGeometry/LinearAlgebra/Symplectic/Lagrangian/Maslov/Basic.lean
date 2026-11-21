@@ -76,19 +76,30 @@ theorem unitaryFrame_eq_unitaryFrame_iff_souriau_eq {U V : unitaryGroup ι ℂ} 
     UnitaryGroup.realImage_eq_realImage_iff_souriau_eq]
 
 /-- The **Souriau map** `Λ ↦ U Uᵀ` of the Lagrangian Grassmannian into the unitary group, where
-`U` is any unitary frame of `Λ`. -/
+`U` is any unitary frame of `Λ`: the descent of `Matrix.UnitaryGroup.souriau` along the quotient
+map `unitaryFrame`. -/
 noncomputable def souriau (Λ : ℒ ι) : unitaryGroup ι ℂ :=
-  UnitaryGroup.souriau (Function.surjInv unitaryFrame_surjective Λ)
+  (isQuotientMap_unitaryFrame (ι := ι)).lift
+    (f := ⟨unitaryFrame (ι := ι), continuous_unitaryFrame⟩)
+    ⟨UnitaryGroup.souriau, UnitaryGroup.continuous_souriau⟩
+    (fun _ _ h ↦ unitaryFrame_eq_unitaryFrame_iff_souriau_eq.1 h) Λ
 
 theorem souriau_def (Λ : ℒ ι) :
-    souriau Λ = UnitaryGroup.souriau (Function.surjInv unitaryFrame_surjective Λ) :=
+    souriau Λ =
+      (isQuotientMap_unitaryFrame (ι := ι)).lift
+        (f := ⟨unitaryFrame (ι := ι), continuous_unitaryFrame⟩)
+        ⟨UnitaryGroup.souriau, UnitaryGroup.continuous_souriau⟩
+        (fun _ _ h ↦ unitaryFrame_eq_unitaryFrame_iff_souriau_eq.1 h) Λ :=
   (rfl)
 
 /-- The Souriau map of the Lagrangian framed by `U` is `U Uᵀ`. -/
 @[simp]
 theorem souriau_unitaryFrame (U : unitaryGroup ι ℂ) :
     souriau (unitaryFrame U) = UnitaryGroup.souriau U :=
-  unitaryFrame_eq_unitaryFrame_iff_souriau_eq.1 (Function.surjInv_eq unitaryFrame_surjective _)
+  DFunLike.congr_fun ((isQuotientMap_unitaryFrame (ι := ι)).lift_comp
+    (f := ⟨unitaryFrame (ι := ι), continuous_unitaryFrame⟩)
+    ⟨UnitaryGroup.souriau, UnitaryGroup.continuous_souriau⟩
+    (fun _ _ h ↦ unitaryFrame_eq_unitaryFrame_iff_souriau_eq.1 h)) U
 
 /-- The Souriau map of the horizontal Lagrangian `{y = 0}` is the identity. -/
 @[simp]
@@ -97,13 +108,9 @@ theorem souriau_horizontal : souriau (horizontal ι) = 1 := by
   exact Subtype.ext (by simp)
 
 /-- The Souriau map is continuous. -/
-theorem continuous_souriau : Continuous (souriau : (ℒ ι) → unitaryGroup ι ℂ) := by
-  refine (isQuotientMap_unitaryFrame (ι := ι)).continuous_iff.2 ?_
-  have h : (souriau ∘ unitaryFrame : unitaryGroup ι ℂ → unitaryGroup ι ℂ) =
-      UnitaryGroup.souriau :=
-    funext souriau_unitaryFrame
-  rw [h]
-  exact UnitaryGroup.continuous_souriau
+@[continuity, fun_prop]
+theorem continuous_souriau : Continuous (souriau : (ℒ ι) → unitaryGroup ι ℂ) :=
+  ContinuousMap.continuous _
 
 /-- A Lagrangian subspace is determined by its Souriau map. -/
 theorem souriau_injective : Function.Injective (souriau : (ℒ ι) → unitaryGroup ι ℂ) := by
@@ -123,6 +130,7 @@ theorem souriau_sum (Λ : ℒ ι) (Λ' : ℒ κ) :
     UnitaryGroup.souriau_sum]
 
 /-- Relabelling the coordinate pairs along `e` reindexes the Souriau map along `e`. -/
+@[simp]
 theorem souriau_reindex (e : ι ≃ κ) (Λ : ℒ ι) :
     souriau (reindex e Λ) = unitaryReindexContinuousMulEquiv ℂ e (souriau Λ) := by
   obtain ⟨U, rfl⟩ := unitaryFrame_surjective Λ
@@ -142,6 +150,7 @@ theorem maslovPhase_def (Λ : ℒ ι) : maslovPhase Λ = detCircle (souriau Λ) 
   (rfl)
 
 /-- The Maslov phase is continuous. -/
+@[continuity, fun_prop]
 theorem continuous_maslovPhase : Continuous (maslovPhase : (ℒ ι) → Circle) :=
   continuous_detCircle.comp continuous_souriau
 
@@ -171,6 +180,7 @@ theorem maslovPhase_reindex (e : ι ≃ κ) (Λ : ℒ ι) : maslovPhase (reindex
 
 /-- A unitary matrix `U`, acting through its realification, multiplies the Maslov phase by
 `(det U)²`. -/
+@[simp]
 theorem maslovPhase_ofUnitary_smul (U : unitaryGroup ι ℂ) (Λ : ℒ ι) :
     maslovPhase (GLSymplectic.ofUnitary U • Λ) = detCircle U ^ 2 * maslovPhase Λ := by
   obtain ⟨W, rfl⟩ := unitaryFrame_surjective Λ
@@ -329,6 +339,18 @@ theorem halfTurnLoop_apply (k : ℤ) (t : I) :
       Unitary.smul_mem_of_mem (Circle.exp _).coe_mem_unitary (one_mem _)⟩ :=
   (rfl)
 
+/-- The Maslov phase of `halfTurnLoop k` at time `t` is `e^{2iπnkt}`, where `n` is the
+cardinality of `ι`. -/
+@[simp]
+theorem maslovPhase_halfTurnLoop (k : ℤ) (t : I) :
+    maslovPhase (halfTurnLoop (ι := ι) k t) =
+      Circle.exp (2 * Fintype.card ι * (Real.pi * k * t)) := by
+  refine Circle.ext ?_
+  rw [halfTurnLoop_apply, maslovPhase_unitaryFrame, Circle.coe_pow, coe_detCircle, det_smul,
+    det_one, mul_one, ← pow_mul, Circle.coe_exp, Circle.coe_exp, ← Complex.exp_natCast_mul]
+  push_cast
+  ring_nf
+
 /-- **Normalization.** The loop of `k` half-turns of the horizontal Lagrangian of `StdSpace ι` has
 Maslov index `k n`, where `n` is the cardinality of `ι`. In particular the half-turn
 `t ↦ e^{iπt} ℝ` in `ℒ(1)` has Maslov index `1`. -/
@@ -336,13 +358,8 @@ Maslov index `k n`, where `n` is the cardinality of `ι`. In particular the half
 theorem maslovIndex_halfTurnLoop (k : ℤ) :
     maslovIndex (halfTurnLoop (ι := ι) k) = k * Fintype.card ι := by
   refine Circle.degree_eq_of_sub_eq _ (θ := fun t ↦ 2 * Fintype.card ι * (Real.pi * k * t))
-    (by fun_prop) (fun t ↦ Circle.ext ?_)
+    (by fun_prop) (fun t ↦ by rw [Path.map_coe, Function.comp_apply, maslovPhase_halfTurnLoop])
     (by simp only [Set.Icc.coe_one, Set.Icc.coe_zero]; push_cast; ring)
-  rw [Path.map_coe, Function.comp_apply, halfTurnLoop_apply, maslovPhase_unitaryFrame,
-    Circle.coe_pow, coe_detCircle, det_smul, det_one, mul_one, ← pow_mul, Circle.coe_exp,
-    Circle.coe_exp, ← Complex.exp_natCast_mul]
-  push_cast
-  ring_nf
 
 end LagrangianGrassmannian
 
