@@ -247,9 +247,7 @@ theorem lagrangianGrassmannian_properties :
       (chartAt (selfAdjoint (Matrix ι ι ℝ)) Λ).symm S =
         TauCeti.GLSymplectic.ofUnitary U • LagrangianGrassmannian.graphY S :=
   ⟨isLagrangian_range_fromRows_iff, isLagrangian_graph_iff,
-    fun A hA _ hL ↦ isLagrangian_map_toEuclideanLin
-      (g := GeneralLinearGroup.mkOfDetNeZero A (SymplecticGroup.symplectic_det hA).ne_zero)
-      (GLSymplectic.mem_iff_mem_symplecticGroup.2 hA) hL,
+    fun _ hA _ hL ↦ isLagrangian_map_toEuclideanLin hA hL,
     fun Λ ↦ (LagrangianGrassmannian.unitaryFrame_surjective Λ).imp fun U h ↦ by
       rwa [LagrangianGrassmannian.unitaryFrame_def, LagrangianGrassmannian.unitary_smul_def] at h,
     ⟨LagrangianGrassmannian.quotientHomeomorph ι, fun U ↦
