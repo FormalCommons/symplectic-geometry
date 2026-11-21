@@ -114,16 +114,16 @@ theorem generalLinearGroup_smul_def (g : GL n ℝ)
 theorem generalLinearGroup_smul_apply (g : GL n ℝ)
     (J : AlmostComplexStructure (EuclideanSpace ℝ n)) (v : EuclideanSpace ℝ n) :
     (g • J) v = Matrix.toEuclideanLin (g : Matrix n n ℝ)
-      (J (Matrix.toEuclideanLin (↑g⁻¹ : Matrix n n ℝ) v)) := by
+      (J (Matrix.toEuclideanLin (g : Matrix n n ℝ)⁻¹ v)) := by
   rw [generalLinearGroup_smul_def, transport_apply]
-  simp [Matrix.coe_units_inv]
+  simp
 
 /-- The linear map of `g • J` is `g ∘ J ∘ g⁻¹`, matrices acting by `Matrix.toEuclideanLin`. -/
 @[simp]
 theorem toLinearMap_generalLinearGroup_smul (g : GL n ℝ)
     (J : AlmostComplexStructure (EuclideanSpace ℝ n)) :
     (g • J).toLinearMap = Matrix.toEuclideanLin (g : Matrix n n ℝ) ∘ₗ J.toLinearMap ∘ₗ
-      Matrix.toEuclideanLin (↑g⁻¹ : Matrix n n ℝ) := by
+      Matrix.toEuclideanLin (g : Matrix n n ℝ)⁻¹ := by
   ext v
   simp
 

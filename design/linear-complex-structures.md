@@ -204,9 +204,9 @@ Declarations about Tau Ceti's type go in its namespace
   continuity. API: `generalLinearGroup_smul_def` (the formula above; not
   `(rfl)`, since Tau Ceti does not expose the body of `ofEuclideanCLE`),
   `@[simp] generalLinearGroup_smul_apply :
-  (g • J) v = Matrix.toEuclideanLin g (J (Matrix.toEuclideanLin ↑g⁻¹ v))` and
+  (g • J) v = Matrix.toEuclideanLin g (J (Matrix.toEuclideanLin (↑g)⁻¹ v))` and
   `@[simp] toLinearMap_generalLinearGroup_smul :
-  (g • J).toLinearMap = toEuclideanLin g ∘ₗ J.toLinearMap ∘ₗ toEuclideanLin ↑g⁻¹`.
+  (g • J).toLinearMap = toEuclideanLin g ∘ₗ J.toLinearMap ∘ₗ toEuclideanLin (↑g)⁻¹`.
 - `isComplexLinearMap_self_iff_commute :
   IsComplexLinearMap J J f ↔ Commute f J.toLinearMap`, for
   `f : Module.End ℝ V`, and `transport_eq_transport_iff`: for any `J` and
@@ -501,9 +501,9 @@ names, and the first two by the *Standard model* issues (#7, #8).
 
 1. **Complex structures: the standard form and the action of matrices.** The
    actions of `V ≃ₗ[ℝ] V`, of `GL n ℝ` and of `specialOrthogonalGroup n ℝ` in
-   `LinearAlgebra/ComplexStructure/Action.lean`;
-   `exists_transport_stdComplexStructure_eq`,
-   `transport_eq_transport_iff`, transitivity and
+   `LinearAlgebra/ComplexStructure/Action.lean`, with
+   `isComplexLinearMap_self_iff_commute` and `transport_eq_transport_iff`;
+   `exists_transport_stdComplexStructure_eq`, transitivity and
    `stabilizer_stdComplexStructure`, in
    `LinearAlgebra/ComplexStructure/Standard.lean`. About 200 lines. Blocked
    by #7 and #8.
