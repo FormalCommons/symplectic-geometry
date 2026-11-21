@@ -212,7 +212,7 @@ Tau Ceti's namespace. It is the input for the general case.
 
 ### Explicit formulas on open sets
 
-The part states smoothness through three explicit formulas, each smooth on
+The part states smoothness through two explicit formulas, each smooth on
 an open set and natural under continuous linear equivalences, so that they
 could also be read in trivializations of a bundle. *Symplectic vector
 bundles* applies Tau Ceti's linear `cayleyPathFormula` and
@@ -222,7 +222,7 @@ which gives the smoothness of its $J_{g,\omega}$ and of $J_{g,\omega_{g,B}}$
 on its endomorphism bundle. Its existence issue waits for issues 4 and 5
 below, its contractibility issue for issue 6, and its homotopy-equivalence
 issue for issues 4, 5 and 6.
-The three formulas:
+The two formulas:
 
 1. `TauCeti.metricPolarFormula`, the formula for $(g,\omega)\mapsto J_{g,\omega}$, on
    the open set `TauCeti.polarDomain W` of pairs of continuous bilinear forms. It is
@@ -245,14 +245,10 @@ The three formulas:
    variable of the formula, which is smooth in it too. Tau Ceti's compatible
    and tame contractions are this formula at $b=1-t$
    (`Compatible.toContinuousLinearMap_cayleyContraction`).
-3. The homotopies of Proposition 2.5.6 and Corollary 2.5.7. Each is given
-   with a lemma that writes it, after transport along any
-   `e : V ≃L[ℝ] W` to an inner product space `W`, through
-   `metricPolarFormula` on `W` (by `metricPolarFormula_eq` and
-   `metricPolarComplexStructure_transport`), `cayleyPathFormula` and
-   continuous (bi)linear operations. Its smoothness
-   in the data, and in the time, therefore follows from items 1 and 2 by
-   composition.
+
+The homotopies of Proposition 2.5.6 and Corollary 2.5.7 get no such
+formula lemma: no other part uses them, and their own API is the `@[simp]`
+lemma that gives each one's value.
 
 ### Statement of the milestones
 
@@ -721,10 +717,7 @@ This is Proposition 2.5.6, for a fixed `g : innerProducts V`, in
     `metricPolarComplexStructure g (metricSymplecticForm g J)` and of `J`, by
     Tau Ceti's `Compatible.toContinuousLinearMap_cayleyInterp`; its joint
     continuity in $(t,J)$ comes from `contDiffOn_cayleyPathFormula`.
-    The triple lies in `cayleyDomain` by `Compatible.mem_cayleyDomain`. After
-    transport along any `e : V ≃L[ℝ] W` to an inner product space `W`, `A` is
-    `e`-conjugate to `metricPolarFormula` on `W`, by `metricPolarFormula_eq`
-    and `metricPolarComplexStructure_transport`.
+    The triple lies in `cayleyDomain` by `Compatible.mem_cayleyDomain`.
 
   If the composites of `polarHomotopyEquiv g` are not syntactically the
   endpoints above, `ContinuousMap.Homotopy.cast` adjusts them.
@@ -879,9 +872,10 @@ lie in it by `TauCeti.SymplecticForm.Compatible.mem_cayleyDomain`, so it
 waits for issue 6. That part's existence issue (building issue 6 of
 `design/symplectic-vector-bundles.md`) proves the smoothness of its
 $J_{g,\omega}$ from `metricPolarFormula` on `polarDomain` with its
-smoothness, so it waits for issues 4 and 5. Its homotopy-equivalence issue uses
-`cayleyDomain` and `metricPolarFormula` both, so it waits for issues 4, 5
-and 6. No other issue of that part waits for this part.
+smoothness, so it waits for issues 4 and 5. That part's
+homotopy-equivalence issue uses `cayleyDomain` and `metricPolarFormula`
+both, so it waits for issues 4, 5 and 6. No other issue of that part waits
+for this part.
 
 ## References
 
