@@ -152,6 +152,11 @@ theorem flatAt_apply {x : M} (α : V x [⋀^Fin 2]→L[𝕜] Trivial M G x) (v w
   fin_cases i <;> simp [Trivialization.symm_apply_apply_mk _
     (FiberBundle.mem_baseSet_trivializationAt F V x)]
 
+/-- The flat map of an alternating map vanishes on the diagonal: `α♭ v v = 0`. -/
+theorem flatAt_apply_self {x : M} (α : V x [⋀^Fin 2]→L[𝕜] Trivial M G x) (v : V x) :
+    flatAt F α v v = 0 := by
+  simp [α.map_eq_zero_of_eq ![v, v] (i := 0) (j := 1) rfl (by decide)]
+
 variable [∀ x, IsTopologicalAddGroup (V x)] [∀ x, ContinuousSMul 𝕜 (V x)] [CompleteSpace 𝕜]
   [FiniteDimensional 𝕜 F]
 
