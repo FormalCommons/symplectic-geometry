@@ -434,7 +434,8 @@ The Maslov phase on $\mathcal{L}(n)$ and the index of Lagrangian loops.
   corollary `ℒ.detCircle_inv_mul_eq_exp`, $\det(U^{-1}V)=e^{i\pi\mu(\gamma)}$
   for `δ` from `U` to `V`.
 - The half-turn `ℒ.halfTurnLoop {ι} (k : ℤ) : Path (V₀ ι) (V₀ ι)`,
-  `t ↦ rotate (π * k * t) (V₀ ι)`, with `halfTurnLoop_apply`
+  `t ↦ rotate (π * k * t) (V₀ ι)`, built as `rotationPath (V₀ ι) (π * k)`
+  cast along `rotate_int_mul_pi`, with `halfTurnLoop_apply`
   (not `@[simp]`, so that the phase lemma below can fire),
   `maslovPhase_halfTurnLoop :
   maslovPhase (halfTurnLoop k t) = Circle.exp (2 * Fintype.card ι * (π * k * t))`
@@ -787,7 +788,8 @@ the part adds no signature function.
 The pieces of regular paths, each with an explicit frame and its crossing
 forms relative to `V₀`.
 
-- `ℒ.rotationPath`, a rotation $s\mapsto e^{\varepsilon sJ_0}\Lambda$ off a
+- `ℒ.rotationPath` (defined in `Topology/Grassmannian/Lagrangian/Quotient.lean`),
+  a rotation $s\mapsto e^{\varepsilon sJ_0}\Lambda$ off a
   Lagrangian `Λ`, with the frame $e^{\varepsilon sJ_0}Z_0$ (`rotationFrame`): its
   crossing form is $\pm\varepsilon\lvert Zu\rvert^2$ by
   `stdForm_apply_stdComplexStructure`, definite,

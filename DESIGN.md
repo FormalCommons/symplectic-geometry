@@ -219,7 +219,7 @@ objects as they are.
   | $\{F,G\}=\omega(X_F,X_G)$ | `TauCeti.SmoothTwoForm.poissonBracket` | as it is |
   | $\lambda_{\mathrm{can}}$, $\omega_{\mathrm{can}}=-d\lambda_{\mathrm{can}}$ on $T^*L$ | `TauCeti.CotangentBundle.liouvilleForm`, `symplecticForm` | as they are |
   | contact Hamiltonian $X_H$ | `TauCeti.SmoothForm.contactHamiltonianVectorField` | as it is |
-  | $\sum_ip_i\,dq_i-dz$ | `TauCeti.innerProductContactForm`, which is $dz-\sum_ip_i\,dq_i$ | its pullback by $(q,p,z)\mapsto(q,-p,-z)$ |
+  | $\sum_ip_i\,dq_i-dz$ | `TauCeti.innerProductContactForm`, which is $dz-\sum_ip_i\,dq_i$ | `-innerProductContactForm V`, equal to its pullback by $(q,p,z)\mapsto(q,-p,-z)$ (`mpullback_innerProductContactForm_neg`) |
   | the symplectization form $-d(e^s\alpha)$ on $\mathbb{R}\times M$ | `TauCeti.SmoothForm.symplectization α`, which is $e^t\alpha$ | $-d$ of it |
   | the contact form $-i^*(\iota_Y\omega)$ of a hypersurface of contact type | `TauCeti.IsContactType`, whose primitive $\lambda$ has $d\lambda=\omega$ and $\iota_Z\omega=\lambda$ | $-i^*\lambda$, with $Y=Z$ |
 
@@ -1194,11 +1194,10 @@ it into issues; the overview fixes its folders and its dependencies.
   orthogonal `J`, Mathlib's Gram–Schmidt turns `u₀, J u₀, u₁, J u₁, …` into
   `e₀, J e₀, e₁, J e₁, …`,
   in Mathlib's namespace `InnerProductSpace`; the file has the name of the
-  Mathlib file that defines `gramSchmidt`, and the local Darboux frames use
-  it),
+  Mathlib file that defines `gramSchmidt`),
   `Topology/VectorBundle/LinearIndependent.lean` (sections continuous and
   linearly independent at a point stay independent near it, in Mathlib's
-  namespace `Bundle.Trivialization`; the local Darboux frames use it),
+  namespace `Bundle.Trivialization`),
   `Analysis/Normed/Operator/SpanSingleton.lean`
   (`LinearIsometryEquiv.toSpanSingleton`, a unit vector of a line as a
   linear isometry from the scalars),
@@ -1250,11 +1249,9 @@ it into issues; the overview fixes its folders and its dependencies.
   endomorphism bundle, `polarEndAt` on the open set `polarEndDomain`; it
   mentions no symplectic form on the bundle, so it sits apart from the
   symplectic files),
-  `.../Symplectic/Trivialization.lean` (local Darboux frames, by Tau Ceti's
-  smooth Gram–Schmidt applied with $J_{g,\omega}$, local symplectic
-  trivializations and the reduction of the structure group to
-  $\mathrm{Sp}(F,\sigma)$; after `ComplexStructure/Basic.lean`, whose
-  $J_{g,\omega}$ it uses),
+  `.../Symplectic/Trivialization.lean` (local Darboux frames, by a
+  symplectic Gram–Schmidt on sections, local symplectic trivializations and
+  the reduction of the structure group to $\mathrm{Sp}(F,\sigma)$),
   `.../Symplectic/Classification.lean` (two symplectic bundles
   with tame complex structures are isomorphic as symplectic bundles if and
   only if they are as complex bundles),
@@ -1949,7 +1946,7 @@ has either; Tau Ceti's extension across a boundary,
   compatible complex structures by the formula of
   `LinearAlgebra/Symplectic/Extension.lean`, whose adjoint step is smooth by
   `Geometry/Manifold/VectorBundle/Adjoint.lean`), `Tubular.lean` (the common step of
-  the four theorems: given a diffeomorphism between two properly embedded
+  the four theorems: given a diffeomorphism between two embedded
   submanifolds and, over it, a bundle map $TM_0|_{Q_0}\to TM_1|_{Q_1}$ that
   is a linear symplectomorphism on each fibre, some diffeomorphism of
   neighbourhoods has that bundle map as its derivative along $Q_0$, proved
