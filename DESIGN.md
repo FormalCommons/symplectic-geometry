@@ -1672,7 +1672,10 @@ has either; Tau Ceti's extension across a boundary,
   `Geometry/Manifold/DifferentialForm/HomotopyOperator.lean`),
   `Geometry/Manifold/ContMDiff/TimeExtension.lean` and
   `Geometry/Manifold/DifferentialForm/TimeExtension.lean` (Seeley's extension
-  in the time variable, from `Analysis/Calculus/ContDiff/Seeley/`:
+  in the time variable, from `Analysis/Calculus/ContDiff/Seeley/`, with
+  `Analysis/Calculus/ContDiff/FTaylorSeries.lean`,
+  `Analysis/Normed/Group/FunctionSeries.lean` and
+  `Analysis/Sobolev/Trace/Reflection/HalfSpace.lean`:
   a smooth map, and a smooth form, on `unitInterval × M` is
   the restriction of one on `ℝ × M`, chosen linearly), and
   `Geometry/Diffeomorphism/Diffeotopy/Real.lean` (the bridge: an
