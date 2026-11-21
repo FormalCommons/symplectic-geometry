@@ -27,9 +27,7 @@ A *frame* is a real `2n × n` matrix `Z = fromRows X Y`, whose columns span the 
 ## Main definitions
 
 * `SymplecticGeometry.StdSpace.graph A`: the graph `{(x, A x)}` over the `x`-coordinates.
-* `SymplecticGeometry.StdSpace.graphY A`: the graph `{(A y, y)}` over the `y`-coordinates.
-* `SymplecticGeometry.StdSpace.swap ι`: the coordinate swap `(x, y) ↦ (y, x)`, which carries
-  `graph A` to `graphY A` (`map_swap_graph`) and `{x = 0}` to `{y = 0}`.
+  carries `graph A` to `graphY A`.
 * `SymplecticGeometry.LagrangianGrassmannian.ofFrame X Y`: the Lagrangian subspace spanned by a
   Lagrangian frame `fromRows X Y`.
 
@@ -38,6 +36,8 @@ A *frame* is a real `2n × n` matrix `Z = fromRows X Y`, whose columns span the 
 * `SymplecticGeometry.StdSpace.isCompl_graph_ker_x`, `isCompl_graphY_ker_y`: each graph is
   complementary to the coordinate subspace it is a graph over, and conversely
   `exists_eq_graph_of_isCompl_ker_x`, `exists_eq_graphY_of_isCompl_ker_y`.
+* `SymplecticGeometry.StdSpace.map_swap_graph`: the coordinate swap `StdSpace.swap ι` carries
+  `graph A` to `graphY A`, so the `graphY` lemmas follow from the `graph` ones.
 * `SymplecticGeometry.StdSpace.map_symJ_graph`: the matrix `J` of `TauCeti.GLSymplectic.symJ`
   sends `graph A` to `graphY (-A)`.
 * `SymplecticGeometry.StdSpace.map_realSubspace`, `map_lagrangianChart`,
@@ -57,7 +57,8 @@ A *frame* is a real `2n × n` matrix `Z = fromRows X Y`, whose columns span the 
   `fromRows X Y` is the real image of its complex frame `X + i Y`, carried to `StdSpace ι`.
 * `SymplecticGeometry.StdSpace.range_toEuclideanLin_fromRows_one_eq_graph`,
   `range_toEuclideanLin_fromRows_one_eq_graphY`: `fromRows 1 A` spans `graph A`, and
-  `fromRows A 1` spans `graphY A`.
+  `fromRows A 1` spans `graphY A`; `map_swap_range_toEuclideanLin_fromRows`: the swap carries
+  the span of `fromRows X Y` to that of `fromRows Y X`.
 
 ## References
 
@@ -70,49 +71,9 @@ namespace SymplecticGeometry
 
 open Matrix TauCeti Module
 
-variable {ι : Type*}
+variable {ι : Type*} [Fintype ι]
 
 /-! ### The two kinds of graph -/
-
-namespace StdSpace
-
-variable (ι) in
-/-- The coordinate swap `(x, y) ↦ (y, x)` of `StdSpace ι`. It exchanges the two kinds of graph
-(`map_swap_graph`), so that statements about `graphY` follow from those about `graph`. -/
-noncomputable def swap : StdSpace ι ≃ₗ[ℝ] StdSpace ι :=
-  (equivProd ι).trans ((LinearEquiv.prodComm ℝ (ι → ℝ) (ι → ℝ)).trans (equivProd ι).symm)
-
-variable (ι) in
-theorem swap_def :
-    swap ι =
-      (equivProd ι).trans ((LinearEquiv.prodComm ℝ (ι → ℝ) (ι → ℝ)).trans (equivProd ι).symm) :=
-  (rfl)
-
-@[simp]
-theorem x_swap (z : StdSpace ι) : (swap ι z).x = z.y := by
-  simp [swap_def]
-
-@[simp]
-theorem y_swap (z : StdSpace ι) : (swap ι z).y = z.x := by
-  simp [swap_def]
-
-@[simp]
-theorem swap_swap (z : StdSpace ι) : swap ι (swap ι z) = z :=
-  StdSpace.ext (by simp) (by simp)
-
-@[simp]
-theorem symm_swap : (swap ι).symm = swap ι :=
-  LinearEquiv.ext fun z ↦ (swap ι).symm_apply_eq.2 (swap_swap z).symm
-
-/-- The coordinate swap sends the vertical subspace `{x = 0}` to the horizontal one `{y = 0}`. -/
-theorem map_swap_ker_x :
-    (LinearMap.ker x).map (swap ι : StdSpace ι →ₗ[ℝ] StdSpace ι) = LinearMap.ker (y (ι := ι)) := by
-  ext z
-  simp [Submodule.mem_map_equiv]
-
-end StdSpace
-
-variable [Fintype ι]
 
 namespace StdSpace
 
@@ -163,6 +124,7 @@ theorem isCompl_graph_ker_x (A : Matrix ι ι ℝ) : IsCompl (graph A) (LinearMa
   exact StdSpace.ext (by simpa using hx) (by simpa using hz)
 
 /-- The coordinate swap sends the graph `{(x, A x)}` to the graph `{(A y, y)}`. -/
+@[simp]
 theorem map_swap_graph (A : Matrix ι ι ℝ) :
     (graph A).map (swap ι : StdSpace ι →ₗ[ℝ] StdSpace ι) = graphY A := by
   ext z
@@ -176,8 +138,7 @@ theorem graphY_injective :
 
 /-- Every graph `{(A y, y)}` is complementary to the horizontal subspace `{y = 0}`. -/
 theorem isCompl_graphY_ker_y (A : Matrix ι ι ℝ) : IsCompl (graphY A) (LinearMap.ker y) := by
-  simpa [map_swap_graph, map_swap_ker_x] using
-    (Submodule.orderIsoMapComap (swap ι)).isCompl (isCompl_graph_ker_x A)
+  simpa using (Submodule.orderIsoMapComap (swap ι)).isCompl (isCompl_graph_ker_x A)
 
 /-- A subspace complementary to the kernel of the first coordinate of `e⁻¹` is the image under
 `e` of a graph `{(v, A v)}`. -/
@@ -336,8 +297,8 @@ theorem StdSpace.range_toEuclideanLin_fromRows_eq_map_realImage (X Y : Matrix ι
     LinearMap.range (toEuclideanLin (fromRows X Y)) =
       (X.map Complex.ofReal + Complex.I • Y.map Complex.ofReal).realImage.map
         (complexEuclideanEquiv ι : EuclideanSpace ℂ ι →ₗ[ℝ] StdSpace ι) := by
-  rw [Matrix.range_toEuclideanLin_fromRows, complexEuclideanEquiv_def]
-  rfl
+  rw [Matrix.range_toEuclideanLin_fromRows, complexEuclideanEquiv_def,
+    ContinuousLinearEquiv.trans_toLinearEquiv, LinearEquiv.coe_trans]
 
 /-- The column space of the frame `fromRows 1 A` is the graph `{(x, A x)}`. -/
 theorem StdSpace.range_toEuclideanLin_fromRows_one_eq_graph (A : Matrix ι ι ℝ) :
@@ -349,15 +310,29 @@ theorem StdSpace.range_toEuclideanLin_fromRows_one_eq_graph (A : Matrix ι ι �
   rintro ⟨u, rfl⟩
   simp
 
+/-- Swapping the coordinates of a column combination of `fromRows X Y` gives the same
+combination of `fromRows Y X`. -/
+@[simp]
+theorem StdSpace.swap_toEuclideanLin_fromRows (X Y : Matrix ι ι ℝ) (u : EuclideanSpace ℝ ι) :
+    swap ι (toEuclideanLin (fromRows X Y) u) = toEuclideanLin (fromRows Y X) u :=
+  StdSpace.ext (by simp) (by simp)
+
+/-- The coordinate swap carries the column space of `fromRows X Y` to that of `fromRows Y X`. -/
+@[simp]
+theorem StdSpace.map_swap_range_toEuclideanLin_fromRows (X Y : Matrix ι ι ℝ) :
+    (LinearMap.range (toEuclideanLin (fromRows X Y))).map
+        (swap ι : StdSpace ι →ₗ[ℝ] StdSpace ι) =
+      LinearMap.range (toEuclideanLin (fromRows Y X)) := by
+  rw [← LinearMap.range_comp]
+  congr 1
+  ext u : 1
+  exact swap_toEuclideanLin_fromRows X Y u
+
 /-- The column space of the frame `fromRows A 1` is the graph `{(A y, y)}`. -/
 theorem StdSpace.range_toEuclideanLin_fromRows_one_eq_graphY (A : Matrix ι ι ℝ) :
     LinearMap.range (toEuclideanLin (fromRows A 1)) = graphY A := by
-  ext z
-  refine ⟨?_, fun hz ↦ ⟨WithLp.toLp 2 (y z), StdSpace.ext
-    (by rw [x_toEuclideanLin_fromRows]; simp [mem_graphY_iff.1 hz])
-    (by rw [y_toEuclideanLin_fromRows]; simp)⟩⟩
-  rintro ⟨u, rfl⟩
-  simp
+  rw [← map_swap_graph, ← range_toEuclideanLin_fromRows_one_eq_graph,
+    map_swap_range_toEuclideanLin_fromRows]
 
 /-- The standard form on the columns of a frame: `ω₀(Z u, Z v) = uᵀ (Xᵀ Y - Yᵀ X) v` for
 `Z = fromRows X Y`. -/

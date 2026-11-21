@@ -215,9 +215,9 @@ Two facts about complex frames:
 
 ### Additions to *Standard model*'s `LinearAlgebra/Symplectic/Standard/Basic.lean`
 
-One declaration about `StdSpace ι` alone, which this part needs and part 1
-lacks. It goes beside `x_complexToRealEuclidean`, in the namespace
-`SymplecticGeometry.StdSpace`, so that other parts find it there.
+Two declarations about `StdSpace ι` alone, which this part needs and part 1
+lacks, in the namespace `SymplecticGeometry.StdSpace`, so that other parts
+find them there.
 
 - `StdSpace.complexEuclideanEquiv ι : EuclideanSpace ℂ ι ≃L[ℝ] StdSpace ι`,
   defined as `(PiLp.continuousLinearEquiv 2 ℝ (fun _ : ι ↦ ℂ)).trans
@@ -230,6 +230,13 @@ lacks. It goes beside `x_complexToRealEuclidean`, in the namespace
   from `x_complexToRealEuclidean` and `y_complexToRealEuclidean`. The `@[simp]` lemma
   `stdComplexStructure_complexEuclideanEquiv` says that it carries
   multiplication by `I` to `J₀`. Building issue 3 adds it.
+- `StdSpace.swap ι : StdSpace ι ≃ₗ[ℝ] StdSpace ι`, the coordinate swap
+  `(x, y) ↦ (y, x)`, the composite of `equivProd`, `LinearEquiv.prodComm` and
+  `equivProd.symm`. It goes beside `equivProd`, before the file's
+  `variable [Fintype ι]`, since it needs no finiteness. API: `swap_def`, and the
+  `@[simp]` lemmas `x_swap` and `y_swap` (both by `(rfl)`), `swap_swap`,
+  `symm_swap`, and `map_swap_ker_x`, which says that it carries
+  `LinearMap.ker StdSpace.x` to `LinearMap.ker StdSpace.y`.
 
 This part also uses
 `SymplecticGeometry.isSymplectomorphism_piLpCongrLeft_sumCongr` (`σ : ι ≃ κ`),
@@ -286,13 +293,10 @@ Lagrangian frames on `StdSpace ι`, pure linear algebra. Namespace
   `StdSpace.isCompl_graphY_ker_y : IsCompl (graphY A) (LinearMap.ker StdSpace.y)`.
   Every `z` is `(z.x, A z.x) + (0, z.y - A z.x)`, and a vector of the graph
   with `x = 0` is zero.
-- The coordinate swap `StdSpace.swap ι : StdSpace ι ≃ₗ[ℝ] StdSpace ι`,
-  `(x, y) ↦ (y, x)`, the composite of `equivProd`, `LinearEquiv.prodComm` and
-  `equivProd.symm`, with `swap_def`, `x_swap`, `y_swap`, `swap_swap` and
-  `symm_swap` (`@[simp]`). It carries `graph A` to `graphY A`
-  (`map_swap_graph`) and `LinearMap.ker StdSpace.x` to `LinearMap.ker StdSpace.y`
-  (`map_swap_ker_x`). So `graphY_injective` and `isCompl_graphY_ker_y` are
-  not proved again: they are `graph_injective` and `isCompl_graph_ker_x`
+- The coordinate swap `StdSpace.swap ι` of `Standard/Basic.lean` carries
+  `graph A` to `graphY A` (`map_swap_graph`, `@[simp]`), and the kernel of `x`
+  to that of `y` (`map_swap_ker_x`). So `graphY_injective` and
+  `isCompl_graphY_ker_y` are not proved again: they are `graph_injective` and `isCompl_graph_ker_x`
   transported along `swap` (`Submodule.map_injective_of_injective`,
   `OrderIso.isCompl` with `Submodule.orderIsoMapComap`).
 - The comparison with Tau Ceti's complex picture, through
@@ -327,8 +331,11 @@ Lagrangian frames on `StdSpace ι`, pure linear algebra. Namespace
 - `StdSpace.range_toEuclideanLin_fromRows_one_eq_graph :
   LinearMap.range (toEuclideanLin (fromRows 1 A)) = StdSpace.graph A` and
   `StdSpace.range_toEuclideanLin_fromRows_one_eq_graphY`, the same for
-  `fromRows A 1` and `graphY A`. With `coe_ofFrame`, they read the graph of
-  a symmetric matrix as an `ofFrame`, for the charts.
+  `fromRows A 1` and `graphY A`, derived from the first through `swap`: the
+  `@[simp]` lemmas `StdSpace.swap_toEuclideanLin_fromRows` (pointwise) and
+  `StdSpace.map_swap_range_toEuclideanLin_fromRows` say that `swap` carries
+  the columns of `fromRows X Y` to those of `fromRows Y X`. With `coe_ofFrame`,
+  they read the graph of a symmetric matrix as an `ofFrame`, for the charts.
 - `ℒ.ofFrame (X Y : Matrix ι ι ℝ) (hrank : (fromRows X Y).rank = Fintype.card ι)
   (hXY : Xᵀ * Y = Yᵀ * X) : ℒ ι`, the Lagrangian that the frame spans, with
   `coe_ofFrame` (`@[simp]`): its submodule is the range of
