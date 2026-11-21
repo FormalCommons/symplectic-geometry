@@ -17,6 +17,7 @@ import TauCeti.Data.Matrix.Block
 import TauCeti.LinearAlgebra.Matrix.GeneralLinearGroup.Symplectic.Unitary
 import SymplecticGeometry.LinearAlgebra.Matrix.PosDef.OfReal
 import SymplecticGeometry.LinearAlgebra.Matrix.Symmetric
+import SymplecticGeometry.Topology.Instances.Matrix
 
 /-!
 # The action of the symplectic group on the Siegel upper half space
@@ -327,11 +328,8 @@ open scoped Matrix.Norms.Operator
 
 /-- The complex matrices `Z` at which `CZ + D` is invertible form an open set. -/
 theorem isOpen_setOf_isUnit_det_denom (Ψ : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ) :
-    IsOpen {Z : Matrix ι ι ℂ | IsUnit (denom Ψ Z).det} := by
-  simp only [isUnit_iff_ne_zero]
-  exact isOpen_ne_fun
-    (((continuous_const.matrix_mul continuous_id).add continuous_const).matrix_det)
-    continuous_const
+    IsOpen {Z : Matrix ι ι ℂ | IsUnit (denom Ψ Z).det} :=
+  ((continuous_const.matrix_mul continuous_id).add continuous_const).isOpen_setOf_isUnit_det
 
 /-- The open set where `CZ + D` is invertible contains the Siegel upper half space, when `Ψ` is
 symplectic. -/
