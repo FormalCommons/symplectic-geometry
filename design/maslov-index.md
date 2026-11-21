@@ -294,7 +294,7 @@ Two files lie outside the folders that `DESIGN.md` §5 lists:
 algebra about Tau Ceti's `GLSymplectic`, not about the Maslov index, and its
 continuity is topology of that group. They go where Tau Ceti keeps the algebra
 and the topology of `GLSymplectic`, so that they can move there unchanged.
-#58 brings `DESIGN.md` §5 in line.
+`DESIGN.md` §5 names both, among the files outside its folders.
 
 ### `LinearAlgebra/Matrix/GeneralLinearGroup/Symplectic/Reindex.lean`
 
