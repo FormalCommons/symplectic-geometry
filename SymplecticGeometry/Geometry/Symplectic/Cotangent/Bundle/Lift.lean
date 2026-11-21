@@ -8,6 +8,8 @@ module
 public import SymplecticGeometry.Geometry.Manifold.Flow.Basic
 public import SymplecticGeometry.Geometry.Symplectic.Cotangent.Bundle.Liouville
 public import SymplecticGeometry.Geometry.Symplectic.Cotangent.Bundle.ZeroSection
+public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.Manifold
+public import TauCeti.Geometry.Manifold.IntegralCurve.GlobalFlow
 public import TauCeti.Geometry.Manifold.DifferentialForm.Flow
 public import TauCeti.Geometry.Manifold.Flow.Related
 public import TauCeti.Geometry.Manifold.VectorBundle.Bilinear.SmulRight
@@ -38,6 +40,10 @@ existence of `X_H` at `z`
 (`TauCeti.CotangentBundle.maximalIntegralCurveInterval_eq_of_isHamiltonianVectorField`),
 and so `X_H` is complete exactly when `Y` is
 (`TauCeti.CotangentBundle.isCompleteVectorField_iff_of_isHamiltonianVectorField`).
+When `Y` is complete, the lifted flow at time `t` is the cotangent lift `Diffeomorph.cotangent` of
+the time-`t` diffeomorphism `TauCeti.globalFlowDiffeomorph`
+(`TauCeti.CotangentBundle.liftFlow_eq_cotangent_globalFlowDiffeomorph`), so that Tau Ceti's
+results on cotangent lifts, such as `Diffeomorph.mpullback_cotangent_liouvilleForm`, apply to it.
 
 The proof is intrinsic. A Hamiltonian vector field `X` of `H` covers `Y`, `dπ (X z) = Y z.proj`,
 since `ω` pairs `X` with a vertical vector `(0, β)` to `β (dπ X)` and `dH (0, β) = β (Y q)`
@@ -77,6 +83,8 @@ lifts of diffeomorphisms and their characterization by `F^* λ = λ`, and the li
 * `TauCeti.CotangentBundle.maximalIntegralCurveInterval_eq_of_isHamiltonianVectorField` and
   `TauCeti.CotangentBundle.isCompleteVectorField_iff_of_isHamiltonianVectorField`: the maximal
   intervals of `X_H` and `Y` agree, and `X_H` is complete exactly when `Y` is.
+* `TauCeti.CotangentBundle.liftFlow_eq_cotangent_globalFlowDiffeomorph`: for a complete `Y`, the
+  lifted flow is the cotangent lift of the flow.
 * `TauCeti.CotangentBundle.liouvilleForm_symplecticForm_and_cotangent_lifts`: the canonical
   structure of the cotangent bundle and cotangent lifts.
 
@@ -216,6 +224,13 @@ def liftFlow (t : ℝ) (z : CotangentBundle I L) : CotangentBundle I L :=
   TotalSpace.mk' (E →L[ℝ] ℝ) (flowOf Y t z.proj)
     (z.snd ∘L mfderiv I I (flowOf Y (-t)) (flowOf Y t z.proj))
 
+/-- The lifted flow at time `t` sends the covector `p` at `q` to `p ∘ (dφ_{-t})_{φ_t q}` at
+`φ_t q`. -/
+theorem liftFlow_def (t : ℝ) (z : CotangentBundle I L) :
+    liftFlow Y t z = TotalSpace.mk' (E →L[ℝ] ℝ) (flowOf Y t z.proj)
+      (z.snd ∘L mfderiv I I (flowOf Y (-t)) (flowOf Y t z.proj)) :=
+  (rfl)
+
 /-- The lifted flow covers the flow of `Y`. -/
 @[simp]
 theorem proj_liftFlow (t : ℝ) (z : CotangentBundle I L) :
@@ -262,6 +277,27 @@ theorem liftFlow_liftFlow {s t : ℝ} {z : CotangentBundle I L} (ht : (t, z.proj
 
 end Flow
 
+section Complete
+
+variable [CompleteSpace E] [BoundarylessManifold I L] [T2Space L] [IsManifold I ∞ L]
+
+/-- **Lifted flows of complete fields are cotangent lifts.** For a complete smooth vector field
+`Y`, the lifted flow at time `t` is the cotangent lift `Diffeomorph.cotangent` of the time-`t`
+diffeomorphism of the flow of `Y` (`TauCeti.globalFlowDiffeomorph`). -/
+theorem liftFlow_eq_cotangent_globalFlowDiffeomorph (hcomplete : IsCompleteVectorField Y)
+    (hY : ContMDiff I I.tangent ∞ (fun x ↦ (⟨x, Y x⟩ : TangentBundle I L))) (t : ℝ) :
+    liftFlow Y t = (globalFlowDiffeomorph hcomplete le_top hY t).cotangent := by
+  have hflow := flowOf_eq_globalFlow (hY.of_le (by exact_mod_cast le_top)) hcomplete
+  have h₁ : ⇑(globalFlowDiffeomorph hcomplete le_top hY t) = flowOf Y t := by
+    rw [coe_globalFlowDiffeomorph, hflow]
+  have h₂ : ⇑(globalFlowDiffeomorph hcomplete le_top hY t).symm = flowOf Y (-t) := by
+    funext x
+    rw [globalFlowDiffeomorph_symm_apply, hflow]
+  funext z
+  rw [Diffeomorph.cotangent_apply, h₁, h₂, liftFlow_def]
+
+end Complete
+
 section HamiltonianFlow
 
 variable [FiniteDimensional ℝ E] [I.Boundaryless] [T2Space L] [IsManifold I ∞ L]
@@ -274,10 +310,9 @@ omit [I.Boundaryless] [T2Space L] in
 /-- A Hamiltonian vector field of the momentum function of a smooth vector field is smooth. -/
 theorem contMDiff_of_isHamiltonianVectorField_momentumFunction :
     ContMDiff (I.prod 𝓘(ℝ, E →L[ℝ] ℝ)) (I.prod 𝓘(ℝ, E →L[ℝ] ℝ)).tangent ∞
-      fun z ↦ (⟨z, X z⟩ : TangentBundle (I.prod 𝓘(ℝ, E →L[ℝ] ℝ)) (CotangentBundle I L)) := by
-  have hnd := (isSymplectic_symplecticForm (I := I) (M := L)).isNondegenerate
-  obtain rfl := hnd.isHamiltonianVectorField_iff_eq.1 hX
-  exact hnd.contMDiff_hamiltonianVectorField le_rfl (by simpa using contMDiff_momentumFunction hY)
+      fun z ↦ (⟨z, X z⟩ : TangentBundle (I.prod 𝓘(ℝ, E →L[ℝ] ℝ)) (CotangentBundle I L)) :=
+  isSymplectic_symplecticForm.isNondegenerate.contMDiff_of_isHamiltonianVectorField le_rfl
+    (by simpa using contMDiff_momentumFunction hY) hX
 
 /-- **The Hamiltonian flow is the lifted flow.** Wherever the flow of a Hamiltonian vector field
 `X` of the momentum function `H(q, p) = p(Y_q)` is defined, it is the cotangent lift of the flow
