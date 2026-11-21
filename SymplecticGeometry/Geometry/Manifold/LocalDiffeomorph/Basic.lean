@@ -46,10 +46,9 @@ namespace IsLocalDiffeomorphAt
 /-- A local diffeomorphism `f` at `x` agrees with the inverse of its local inverse
 `hf.localInverse` on the target of `hf.localInverse`. -/
 theorem eqOn_localInverse_symm (hf : IsLocalDiffeomorphAt I J n f x) :
-    EqOn f hf.localInverse.symm hf.localInverse.target := fun z hz ↦ by
-  have h := hf.localInverse_right_inv (hf.localInverse.map_target hz)
-  rw [hf.localInverse.right_inv hz] at h
-  simpa using h
+    EqOn f hf.localInverse.symm hf.localInverse.target :=
+  eqOn_of_leftInvOn_of_rightInvOn hf.localInverse_eqOn_right
+    hf.localInverse.toPartialEquiv.rightInvOn hf.localInverse.toPartialEquiv.mapsTo_symm
 
 /-- A `C^n` local diffeomorphism `f` at `x` agrees with some `C^n` partial diffeomorphism on
 its source, and that source contains `x`. It is the inverse of
