@@ -78,7 +78,7 @@ The file ends with the classification theorem, which collects these results.
 * `SymplecticGeometry.eq_of_apply_eq_of_mem_positiveOrthogonalComplexStructures`: on `ℝ⁴`, an
   orthogonal positively oriented structure is determined by its value on one nonzero vector.
 * `SymplecticGeometry.coe_positivelyOrientedHomotopyEquivSphere_symm_apply`,
-  `SymplecticGeometry.coe_sphereHomeomorphOrthogonal_positivelyOrientedHomotopyEquivSphere`: the
+  `SymplecticGeometry.quaternionComplexStructure_positivelyOrientedHomotopyEquivSphere`: the
   homotopy equivalence with `S²` sends `J` to the point of its polar retraction, and its inverse
   sends `u` to `quaternionComplexStructure u`.
 * `SymplecticGeometry.complexStructures_classification`: every linear complex structure is
@@ -152,7 +152,6 @@ theorem mem_positiveOrthogonalComplexStructures {J : AlmostComplexStructure (Std
   (Iff.rfl)
 
 /-- `J₀` is orthogonal and positively oriented. -/
-@[simp]
 theorem stdComplexStructure_mem_positiveOrthogonalComplexStructures :
     stdComplexStructure ι ∈ positiveOrthogonalComplexStructures ι :=
   ⟨stdComplexStructure_mem_orthogonalComplexStructures, isPositivelyOriented_stdComplexStructure⟩
@@ -675,18 +674,16 @@ theorem coe_positivelyOrientedHomotopyEquivSphere_symm_apply
     ← hg, coe_positivelyOrientedHomotopyEquiv_symm_mk, ← coe_quotientUnitaryHomeomorph_mk, hg,
     Homeomorph.apply_symm_apply, sphereHomeomorphOrthogonal_apply]
 
-/-- Followed by `sphereHomeomorphOrthogonal`, the homotopy equivalence
-`positivelyOrientedHomotopyEquivSphere` sends a positively oriented structure to its polar
-retraction. -/
+/-- The quaternionic complex structure of the point `positivelyOrientedHomotopyEquivSphere J` of
+the sphere is the polar retraction of `J`. -/
 @[simp]
-theorem coe_sphereHomeomorphOrthogonal_positivelyOrientedHomotopyEquivSphere
+theorem quaternionComplexStructure_positivelyOrientedHomotopyEquivSphere
     (J : {J : AlmostComplexStructure (StdSpace (Fin 2)) // IsPositivelyOriented J}) :
-    (sphereHomeomorphOrthogonal (positivelyOrientedHomotopyEquivSphere J) :
-      AlmostComplexStructure (StdSpace (Fin 2))) =
+    quaternionComplexStructure (positivelyOrientedHomotopyEquivSphere J) =
       complexStructurePolarRetraction (Fin 2 ⊕ Fin 2) J := by
-  rw [positivelyOrientedHomotopyEquivSphere, ContinuousMap.HomotopyEquiv.trans_apply,
-    Homeomorph.coe_toHomotopyEquiv, Homeomorph.trans_apply, Homeomorph.apply_symm_apply,
-    coe_quotientUnitaryHomeomorph_positivelyOrientedHomotopyEquiv]
+  rw [← sphereHomeomorphOrthogonal_apply, positivelyOrientedHomotopyEquivSphere,
+    ContinuousMap.HomotopyEquiv.trans_apply, Homeomorph.coe_toHomotopyEquiv, Homeomorph.trans_apply,
+    Homeomorph.apply_symm_apply, coe_quotientUnitaryHomeomorph_positivelyOrientedHomotopyEquiv]
 
 /-! ### The classification of linear complex structures -/
 
