@@ -63,7 +63,8 @@ end AddCommGroup
 
 section CommRing
 
-variable {R M : Type*} [CommRing R] [NoZeroDivisors R] [AddCommGroup M] [Module R M]
+variable {R M N : Type*} [CommRing R] [NoZeroDivisors R] [AddCommGroup M] [Module R M]
+  [AddCommGroup N] [Module R N]
 
 /-- Two linear functionals with the same squares at every point agree up to sign. -/
 theorem eq_or_eq_neg_of_forall_sq_eq_sq {f g : M →ₗ[R] R} (h : ∀ x, f x ^ 2 = g x ^ 2) :
@@ -71,7 +72,7 @@ theorem eq_or_eq_neg_of_forall_sq_eq_sq {f g : M →ₗ[R] R} (h : ∀ x, f x ^ 
   eq_or_eq_neg_of_forall_eq_or_eq_neg fun x ↦ sq_eq_sq_iff_eq_or_eq_neg.1 (h x)
 
 /-- Two bilinear maps with the same squares at every pair of points agree up to sign. -/
-theorem eq_or_eq_neg_of_forall_sq_eq_sq₂ {B ω : M →ₗ[R] M →ₗ[R] R}
+theorem eq_or_eq_neg_of_forall_sq_eq_sq₂ {B ω : M →ₗ[R] N →ₗ[R] R}
     (h : ∀ x y, B x y ^ 2 = ω x y ^ 2) : B = ω ∨ B = -ω :=
   eq_or_eq_neg_of_forall_eq_or_eq_neg fun x ↦ by
     simpa only [LinearMap.neg_apply, LinearMap.ext_iff] using eq_or_eq_neg_of_forall_sq_eq_sq (h x)

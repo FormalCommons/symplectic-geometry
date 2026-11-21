@@ -7,6 +7,7 @@ module
 
 public import Mathlib.Analysis.InnerProductSpace.Adjoint
 public import Mathlib.LinearAlgebra.AffineSpace.AffineEquiv
+public import SymplecticGeometry.Analysis.InnerProductSpace.Adjoint
 public import SymplecticGeometry.Geometry.Symplectic.SymplecticTransport
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Matrix
 public import TauCeti.Analysis.InnerProductSpace.Adjoint
@@ -33,7 +34,11 @@ symplectic width are stated.
   (`SymplecticGeometry.det_eq_neg_one_pow_of_forall_apply_eq_neg`).
 * `TauCeti.SymplecticForm.IsSymplectomorphism.adjoint`: the adjoint of a linear symplectomorphism
   of `ω₀` is again one, which is the statement that the transpose of a symplectic matrix is
-  symplectic.
+  symplectic. Likewise the transpose of an anti-symplectic linear equivalence is
+  anti-symplectic (`SymplecticGeometry.forall_adjointEquiv_apply_eq_neg_of_forall_apply_eq_neg`).
+* `SymplecticGeometry.image_adjointEquiv_symm_stdCylinder`: the image of a cylinder under the
+  inverse transpose of a linear equivalence `σ` is `{z | ⟪σ e, z⟫² + ⟪σ f, z⟫² ≤ R²}`, for the
+  coordinate vectors `e`, `f` of the cylinder's plane.
 
 The conventions are those of McDuff–Salamon, Sections 2.1 and 2.4.
 
@@ -165,6 +170,21 @@ theorem closedBall_subset_stdCylinder (i : ι) (R : ℝ) :
   calc √(z.x i ^ 2 + z.y i ^ 2) ≤ √(‖z‖ ^ 2) := Real.sqrt_le_sqrt (z.sq_x_add_sq_y_le_norm_sq i)
     _ = ‖z‖ := Real.sqrt_sq (norm_nonneg z)
     _ ≤ R := hz
+
+/-- The image of the cylinder of radius `R ≥ 0` over the `(xᵢ, yᵢ)`-plane under the inverse of
+the transpose of a linear equivalence `σ` is `{z | ⟪σ eᵢ, z⟫² + ⟪σ fᵢ, z⟫² ≤ R²}`, where `eᵢ` and
+`fᵢ` are the unit vectors of the coordinates `xᵢ` and `yᵢ`. -/
+theorem image_adjointEquiv_symm_stdCylinder [DecidableEq ι] (σ : StdSpace ι ≃ₗ[ℝ] StdSpace ι)
+    (i : ι) {R : ℝ} (hR : 0 ≤ R) :
+    (ContinuousLinearEquiv.adjointEquiv σ.toContinuousLinearEquiv).symm '' stdCylinder i R =
+      {z | inner ℝ (σ (EuclideanSpace.single (Sum.inl i) 1)) z ^ 2 +
+        inner ℝ (σ (EuclideanSpace.single (Sum.inr i) 1)) z ^ 2 ≤ R ^ 2} := by
+  ext z
+  rw [ContinuousLinearEquiv.image_symm_eq_preimage, Set.mem_preimage,
+    mem_stdCylinder_iff_of_nonneg hR, StdSpace.x_apply, StdSpace.y_apply,
+    ContinuousLinearEquiv.adjointEquiv_apply_apply,
+    ContinuousLinearEquiv.adjointEquiv_apply_apply]
+  rfl
 
 /-! ### The reflection `(x, y) ↦ (x, -y)` -/
 
@@ -319,9 +339,8 @@ open TauCeti
 
 variable {ι : Type*} [Fintype ι]
 
-/-- The adjoint of an anti-symplectic linear equivalence of the standard model is
-anti-symplectic: composing with the reflection `stdConj ι`, which is its own adjoint, reduces
-this to `TauCeti.SymplecticForm.IsSymplectomorphism.adjoint`. -/
+/-- The transpose of an anti-symplectic linear equivalence of the standard model is
+anti-symplectic: if `Ψ^* ω₀ = -ω₀`, then `(Ψᵀ)^* ω₀ = -ω₀`. -/
 theorem forall_adjointEquiv_apply_eq_neg_of_forall_apply_eq_neg
     {Ψ : StdSpace ι ≃ₗ[ℝ] StdSpace ι} (hΨ : ∀ z w, stdForm ι (Ψ z) (Ψ w) = -stdForm ι z w)
     (z w : StdSpace ι) :

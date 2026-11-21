@@ -8,9 +8,7 @@ module
 public import SymplecticGeometry.Analysis.InnerProductSpace.Ellipsoid
 public import SymplecticGeometry.Analysis.InnerProductSpace.Symplectic.LinearWidth.Basic
 public import SymplecticGeometry.LinearAlgebra.BilinearMap.Sign
-public import SymplecticGeometry.LinearAlgebra.QuadraticForm.PosDef
 public import TauCeti.Geometry.Symplectic.WittExtension
-public import TauCeti.LinearAlgebra.QuadraticForm.PosDef
 
 /-!
 # Linear symplectic rigidity
@@ -33,11 +31,11 @@ changing `b`. By homogeneity `|ω₀(a, b)| ≤ |ω₀(Ψᵀ a, Ψᵀ b)|` for a
 `Ψ⁻¹` gives the reverse inequality, and `LinearMap.eq_or_eq_neg_of_forall_sq_eq_sq₂` turns the
 equality of absolute values into `(Ψᵀ)^* ω₀ = ±ω₀`, hence `Ψ^* ω₀ = ±ω₀`.
 
-Finally, a linear map preserves the linear symplectic width of every ellipsoid centred at `0`
-exactly when it is symplectic or anti-symplectic (McDuff–Salamon, Theorem 2.4.4): such a map is
-onto, since the image of the unit ball has positive width; images of balls are ellipsoids, of
-width `π r²`, and images of cylinders have width `π R²`, so the map and its inverse have the
-linear nonsqueezing property.
+Finally, for any linear map `Ψ`, the identity `Ψ^* ω₀ = ±ω₀` is equivalent to the equality
+`linearSymplecticWidth (Ψ '' E) = linearSymplecticWidth E` for all ellipsoids `E = {z | Q z ≤ 1}`
+(McDuff–Salamon, Theorem 2.4.4). For the nontrivial direction, `Ψ` is onto, since the image of
+the unit ball has positive width; images of balls are ellipsoids, of width `π r²`, and images of
+cylinders have width `π R²`, so the map and its inverse have the linear nonsqueezing property.
 
 ## Main definitions
 
@@ -130,28 +128,6 @@ theorem hasLinearNonsqueezing_of_forall_apply_eq_or_forall_apply_eq_neg
 
 /-! ### Affine rigidity -/
 
-/-- The adjoint `eᵀ` of `e` satisfies `⟪eᵀ x, y⟫ = ⟪x, e y⟫`. -/
-private theorem inner_adjointEquiv_left (e : StdSpace ι ≃ₗ[ℝ] StdSpace ι) (x y : StdSpace ι) :
-    inner ℝ (ContinuousLinearEquiv.adjointEquiv e.toContinuousLinearEquiv x) y =
-      inner ℝ x (e y) := by
-  rw [ContinuousLinearEquiv.adjointEquiv_apply, ContinuousLinearMap.adjoint_inner_left]
-  rfl
-
-/-- The adjoint `eᵀ` of `e` satisfies `⟪x, eᵀ y⟫ = ⟪e x, y⟫`. -/
-private theorem inner_adjointEquiv_right (e : StdSpace ι ≃ₗ[ℝ] StdSpace ι) (x y : StdSpace ι) :
-    inner ℝ x (ContinuousLinearEquiv.adjointEquiv e.toContinuousLinearEquiv y) =
-      inner ℝ (e x) y := by
-  rw [ContinuousLinearEquiv.adjointEquiv_apply, ContinuousLinearMap.adjoint_inner_right]
-  rfl
-
-/-- The coordinate `c` of the image of `w` under the adjoint of `σ` is the inner product of `w`
-with the image under `σ` of the unit vector at `c`. -/
-private theorem adjointEquiv_apply_eq_inner [DecidableEq ι] (σ : StdSpace ι ≃ₗ[ℝ] StdSpace ι)
-    (w : StdSpace ι) (c : ι ⊕ ι) :
-    ContinuousLinearEquiv.adjointEquiv σ.toContinuousLinearEquiv w c =
-      inner ℝ (σ (EuclideanSpace.single c 1)) w := by
-  rw [← inner_adjointEquiv_right, EuclideanSpace.inner_single_left, map_one, one_mul]
-
 /-- The key step of affine rigidity: if `Ψ` has the linear nonsqueezing property, `ω₀(a, b) = 1`
 and `λ = ω₀(Ψᵀ a, Ψᵀ b)` is not zero, then `|λ| ≥ 1`. If `|λ| < 1`, Witt's theorem gives a
 linear symplectic cylinder of radius `1` defined by `a` and `b`, and a linear symplectic ball of
@@ -182,12 +158,10 @@ private theorem one_le_abs_stdForm_adjointEquiv_of_ne_zero {Ψ : StdSpace ι ≃
   obtain ⟨τ, hτ, hτe, hτf⟩ := SymplecticForm.exists_isSymplectomorphism_apply_eq
     (ω₁ := stdForm ι) (ω₂ := stdForm ι) (q' := s⁻¹ • A a) (p' := t⁻¹ • A b) rfl hef (by
       simp only [map_smul, LinearMap.smul_apply, smul_eq_mul]
-      change t⁻¹ * (s⁻¹ * l) = 1
-      field_simp [t]
-      exact (div_mul_cancel₀ l hs.ne').symm)
+      rw [← mul_assoc, ← mul_inv, show t * s = l from div_mul_cancel₀ l hs.ne']
+      exact inv_mul_cancel₀ hne)
   have ht : t ≠ 0 := div_ne_zero hne hs.ne'
-  set X := ContinuousLinearEquiv.adjointEquiv σ.toContinuousLinearEquiv
-  set θ := X.toLinearEquiv.symm
+  set θ := (ContinuousLinearEquiv.adjointEquiv σ.toContinuousLinearEquiv).symm.toLinearEquiv
   set φ := (ContinuousLinearEquiv.adjointEquiv τ.symm.toContinuousLinearEquiv).toLinearEquiv
   have hτa : τ.symm (A a) = s • e := by
     rw [LinearEquiv.symm_apply_eq, map_smul, hτe, smul_inv_smul₀ hs.ne']
@@ -195,22 +169,25 @@ private theorem one_le_abs_stdForm_adjointEquiv_of_ne_zero {Ψ : StdSpace ι ≃
     rw [LinearEquiv.symm_apply_eq, map_smul, hτf, smul_inv_smul₀ ht]
   -- `⟪u, Ψ (φ z)⟫ = ⟪τ⁻¹ (Ψᵀ u), z⟫`
   have hinner (u z : StdSpace ι) : inner ℝ u (Ψ (φ z)) = inner ℝ (τ.symm (A u)) z := by
-    rw [← inner_adjointEquiv_left, ← inner_adjointEquiv_right]
+    simp only [A, φ, ContinuousLinearEquiv.coe_toLinearEquiv,
+      ContinuousLinearEquiv.adjointEquiv_apply]
+    rw [← LinearEquiv.coe_toContinuousLinearEquiv' Ψ, ← ContinuousLinearEquiv.coe_coe,
+      ← ContinuousLinearMap.adjoint_inner_left, ContinuousLinearMap.adjoint_inner_right]
     rfl
   have key := h φ θ hτ.symm.adjoint hσ.adjoint.symm i s⁻¹ 1 (inv_nonneg.2 hs.le) (by
     rintro _ ⟨_, ⟨z, hz, rfl⟩, rfl⟩
-    refine ⟨X (Ψ (φ z)), ?_, by simp [θ]⟩
-    rw [mem_stdCylinder_iff_of_nonneg zero_le_one, StdSpace.x_apply, StdSpace.y_apply,
-      adjointEquiv_apply_eq_inner, adjointEquiv_apply_eq_inner]
-    change inner ℝ (σ e) _ ^ 2 + inner ℝ (σ f) _ ^ 2 ≤ _
-    rw [hσe, hσf, hinner, hinner, hτa, hτb, real_inner_smul_left, real_inner_smul_left,
-      EuclideanSpace.inner_single_left, EuclideanSpace.inner_single_left]
+    rw [ContinuousLinearEquiv.coe_toLinearEquiv,
+      image_adjointEquiv_symm_stdCylinder σ i zero_le_one,
+      Set.mem_ofPred_eq, LinearEquiv.coe_coe, hσe, hσf, hinner, hinner, hτa, hτb,
+      real_inner_smul_left,
+      real_inner_smul_left]
+    simp only [e, f, EuclideanSpace.inner_single_left, map_one, one_mul]
     have hn := StdSpace.sq_x_add_sq_y_le_norm_sq z i
     rw [StdSpace.x_apply, StdSpace.y_apply] at hn
     have hz' : ‖z‖ ≤ s⁻¹ := mem_closedBall_zero_iff.1 hz
-    calc (s * (starRingEnd ℝ 1 * z (Sum.inl i))) ^ 2 + (t * (starRingEnd ℝ 1 * z (Sum.inr i))) ^ 2
+    calc (s * z (Sum.inl i)) ^ 2 + (t * z (Sum.inr i)) ^ 2
         = |l| * (z (Sum.inl i) ^ 2 + z (Sum.inr i) ^ 2) := by
-          rw [map_one, one_mul, one_mul, mul_pow, mul_pow, hs2, ht2]; ring
+          rw [mul_pow, mul_pow, hs2, ht2]; ring
       _ ≤ |l| * ‖z‖ ^ 2 := by gcongr
       _ ≤ |l| * s⁻¹ ^ 2 := by gcongr
       _ = 1 ^ 2 := by rw [← hs2]; field_simp)
@@ -279,9 +256,9 @@ theorem forall_apply_eq_or_forall_apply_eq_neg_of_hasLinearNonsqueezing
       ∀ z w, stdForm ι (Ψ z) (Ψ w) = -stdForm ι z w := by
   set A := ContinuousLinearEquiv.adjointEquiv Ψ.toContinuousLinearEquiv
   have hinv (a : StdSpace ι) :
-      ContinuousLinearEquiv.adjointEquiv Ψ.symm.toContinuousLinearEquiv (A a) = a :=
-    ext_inner_right ℝ fun y ↦ by
-      rw [inner_adjointEquiv_left, inner_adjointEquiv_left, LinearEquiv.apply_symm_apply]
+      ContinuousLinearEquiv.adjointEquiv Ψ.symm.toContinuousLinearEquiv (A a) = a := by
+    simp only [A, ContinuousLinearEquiv.adjointEquiv_apply]
+    exact ContinuousLinearEquiv.adjoint_symm_adjoint_apply Ψ.toContinuousLinearEquiv a
   -- `|ω₀(Ψᵀ a, Ψᵀ b)| = |ω₀(a, b)|`, by the nonsqueezing property of `Ψ` and of `Ψ⁻¹`
   have hsq (a b : StdSpace ι) : stdForm ι (A a) (A b) ^ 2 = stdForm ι a b ^ 2 := by
     have h₂ := h'.abs_stdForm_le_abs_stdForm_adjointEquiv (A a) (A b)
@@ -290,10 +267,12 @@ theorem forall_apply_eq_or_forall_apply_eq_neg_of_hasLinearNonsqueezing
       (le_antisymm h₂ (h.abs_stdForm_le_abs_stdForm_adjointEquiv a b))
   -- the adjoint of `Ψᵀ` is `Ψ`
   have hA (z : StdSpace ι) :
-      ContinuousLinearEquiv.adjointEquiv A.toLinearEquiv.toContinuousLinearEquiv z = Ψ z :=
-    ext_inner_left ℝ fun y ↦ by
-      rw [inner_adjointEquiv_right, ← inner_adjointEquiv_left]
-      rfl
+      ContinuousLinearEquiv.adjointEquiv A.toLinearEquiv.toContinuousLinearEquiv z = Ψ z := by
+    have hcoe : (A.toLinearEquiv.toContinuousLinearEquiv : StdSpace ι →L[ℝ] StdSpace ι) =
+        ContinuousLinearMap.adjoint (Ψ.toContinuousLinearEquiv : StdSpace ι →L[ℝ] StdSpace ι) :=
+      ContinuousLinearMap.ext fun _ ↦ ContinuousLinearEquiv.adjointEquiv_apply _ _
+    rw [ContinuousLinearEquiv.adjointEquiv_apply, hcoe, ContinuousLinearMap.adjoint_adjoint,
+      ContinuousLinearEquiv.coe_coe, LinearEquiv.coe_toContinuousLinearEquiv']
   rcases LinearMap.eq_or_eq_neg_of_forall_sq_eq_sq₂
     (B := (stdForm ι).toBilinForm.compl₁₂ (A : StdSpace ι →ₗ[ℝ] StdSpace ι)
       (A : StdSpace ι →ₗ[ℝ] StdSpace ι)) (ω := (stdForm ι).toBilinForm) hsq with hB | hB
@@ -327,9 +306,9 @@ theorem hasLinearNonsqueezing_and_hasLinearNonsqueezing_symm_iff
 
 /-! ### Linear symplectic rigidity -/
 
-/-- **Linear symplectic rigidity.** A linear map `Ψ` of the standard model preserves the linear
-symplectic width of every ellipsoid `{z | Q z ≤ 1}` centred at `0`, for `Q` a positive definite
-quadratic form, if and only if `Ψ^* ω₀ = ω₀` or `Ψ^* ω₀ = -ω₀`.
+/-- **Linear symplectic rigidity.** For a linear map `Ψ` of the standard model, `Ψ^* ω₀ = ω₀` or
+`Ψ^* ω₀ = -ω₀` holds if and only if `Ψ` does not change the linear symplectic width of the
+ellipsoids `{z | Q z ≤ 1}`, for `Q` ranging over the positive definite quadratic forms.
 
 Milestone: *Linear symplectic rigidity*. -/
 theorem forall_linearSymplecticWidth_image_eq_iff (Ψ : StdSpace ι →ₗ[ℝ] StdSpace ι) :
@@ -353,7 +332,8 @@ theorem forall_linearSymplecticWidth_image_eq_iff (Ψ : StdSpace ι →ₗ[ℝ] 
     have h1 : linearSymplecticWidth (Ψ '' closedBall 0 1) =
         linearSymplecticWidth (closedBall (0 : StdSpace ι) 1) := by
       have := hball (LinearEquiv.refl ℝ _) 1 one_pos
-      rwa [show ⇑(LinearEquiv.refl ℝ (StdSpace ι)) = id from rfl, Set.image_id] at this
+      rwa [show ⇑(LinearEquiv.refl ℝ (StdSpace ι)) = id from funext LinearEquiv.refl_apply,
+        Set.image_id] at this
     have h2 := linearSymplecticWidth_image_closedBall (one_mem _) (0 : StdSpace ι) zero_le_one
     rw [AffineEquiv.coe_one, Set.image_id] at h2
     obtain ⟨z, hz⟩ := nonempty_interior_of_linearSymplecticWidth_ne_zero
@@ -361,7 +341,7 @@ theorem forall_linearSymplecticWidth_image_eq_iff (Ψ : StdSpace ι →ₗ[ℝ] 
     refine LinearMap.range_eq_top.1 (Submodule.eq_top_of_nonempty_interior' _ ⟨z, ?_⟩)
     exact interior_mono (Set.image_subset_range _ _) hz
   set e := LinearEquiv.ofBijective Ψ ⟨LinearMap.injective_iff_surjective.2 hsurj, hsurj⟩
-  have he : ⇑e = ⇑Ψ := rfl
+  have he : ⇑e = ⇑Ψ := funext fun _ ↦ LinearEquiv.ofBijective_apply _ _
   have h₁ : HasLinearNonsqueezing (e : StdSpace ι →ₗ[ℝ] StdSpace ι) :=
     hasLinearNonsqueezing_of_forall_linearSymplecticWidth_le fun φ _ r hr ↦ by
       rw [LinearEquiv.coe_coe, he, hball φ r hr]
