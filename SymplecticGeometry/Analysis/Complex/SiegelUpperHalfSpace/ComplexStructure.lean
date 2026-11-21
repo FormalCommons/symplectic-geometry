@@ -14,6 +14,7 @@ public import TauCeti.LinearAlgebra.Matrix.GeneralLinearGroup.Symplectic.Basic
 import TauCeti.Analysis.Calculus.ContinuousLinearMapInverse
 import TauCeti.Analysis.Matrix.Sqrt
 import TauCeti.Geometry.Symplectic.Complex.Line
+import SymplecticGeometry.LinearAlgebra.ComplexStructure.Standard
 import SymplecticGeometry.LinearAlgebra.Matrix.Block
 import SymplecticGeometry.LinearAlgebra.Matrix.SymplecticGroup.Basic
 import SymplecticGeometry.Topology.Instances.Matrix
@@ -244,17 +245,9 @@ theorem complexStructure_smul (Ψ : symplecticGroup ι ℝ) (Z : SiegelUpperHalf
 theorem compatible_complexStructure (Z : SiegelUpperHalfSpace ι) :
     (stdForm ι).Compatible (complexStructure Z) := by
   obtain ⟨Φ, rfl⟩ := exists_smul_I_eq Z
-  rw [complexStructure_smul, complexStructure_I,
-    AlmostComplexStructure.generalLinearGroup_smul_def]
-  set g := GLSymplectic.ofSymplecticGroup ι ℝ Φ
-  set e := ((g : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ).toEuclideanCLE g.det_ne_zero).toLinearEquiv
-  have he : toEuclideanLin.symm e.toLinearMap = Φ := by
-    rw [LinearEquiv.symm_apply_eq, ← GLSymplectic.coe_ofSymplecticGroup]
-    exact LinearMap.ext fun v ↦ toEuclideanCLE_apply _ _ v
-  have hω : (stdForm ι).transport e = stdForm ι :=
-    SymplecticForm.isSymplectomorphism_iff_transport_eq.1
-      ((mem_symplecticGroup_iff_isSymplectomorphism e).1 (he ▸ Φ.property))
-  exact hω ▸ stdForm_compatible.transport e
+  rw [complexStructure_smul, complexStructure_I]
+  exact (compatible_generalLinearGroup_smul_iff (GLSymplectic.ofSymplecticGroup_mem ι ℝ Φ) _).2
+    stdForm_compatible
 
 /-- **Uniqueness.** A map from the Siegel upper half space to the complex structures on
 `StdSpace ι` that sends `i𝟙` to `J₀` and intertwines the action of the symplectic group with
