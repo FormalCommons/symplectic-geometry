@@ -187,10 +187,10 @@ theorem maslovPhase_reindex (e : ι ≃ κ) (Λ : ℒ ι) : maslovPhase (reindex
 /-- A unitary matrix `U`, acting through its realification, multiplies the Maslov phase by
 `(det U)²`. -/
 @[simp]
-theorem maslovPhase_ofUnitary_smul (U : unitaryGroup ι ℂ) (Λ : ℒ ι) :
-    maslovPhase (GLSymplectic.ofUnitary U • Λ) = detCircle U ^ 2 * maslovPhase Λ := by
+theorem maslovPhase_unitary_smul (U : unitaryGroup ι ℂ) (Λ : ℒ ι) :
+    maslovPhase (U • Λ) = detCircle U ^ 2 * maslovPhase Λ := by
   obtain ⟨W, rfl⟩ := unitaryFrame_surjective Λ
-  rw [← unitary_smul_def, ← unitaryFrame_mul, maslovPhase_unitaryFrame, maslovPhase_unitaryFrame,
+  rw [← unitaryFrame_mul, maslovPhase_unitaryFrame, maslovPhase_unitaryFrame,
     map_mul, mul_pow]
 
 /-! ### The Maslov index of a loop -/

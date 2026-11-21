@@ -392,7 +392,7 @@ The Maslov phase on $\mathcal{L}(n)$ and the index of Lagrangian loops.
   `maslovPhase_horizontal`, `maslovPhase_sum`
   (`@[simp]`, the phase of a direct sum is the product), `maslovPhase_reindex`,
   and
-  `maslovPhase_ofUnitary_smul : maslovPhase (ofUnitary U • Λ) = detCircle U ^ 2 * maslovPhase Λ`.
+  `maslovPhase_unitary_smul : maslovPhase (U • Λ) = detCircle U ^ 2 * maslovPhase Λ`.
   The reindexing lemmas here and below are stated with `ℒ.reindex e` and its
   continuity `ℒ.continuous_reindex e`, the simp normal form of
   `ℒ.reindexHomeomorph e` (`reindexHomeomorph_apply`).
@@ -433,7 +433,7 @@ The Maslov phase on $\mathcal{L}(n)$ and the index of Lagrangian loops.
 - `ℒ.maslovIndex_smul {A Λ} (Ψ : Path A A) (γ : Path Λ Λ) :
   maslovIndex ((Ψ.prod γ).map continuous_smul) = maslovIndex γ + 2 * GLSymplectic.maslovIndex Ψ`
   (`@[simp]`).
-  For a loop of `ofUnitary` matrices this is `maslovPhase_ofUnitary_smul` with
+  For a loop of `ofUnitary` matrices this is `maslovPhase_unitary_smul` with
   `Circle.degree_mul`. In general, Tau Ceti's `polarHomotopy` deforms `Ψ`
   through loops of symplectic matrices to its loop of unitary polar factors;
   acting on `γ` it gives a free homotopy of Lagrangian loops (G4), and
@@ -780,7 +780,7 @@ the interface items named.
    `isMaslovIndex_iff`. Blocked by 1.
    (Part of #34; with 1 it completes the symplectic milestone.)
 3. **Lagrangian loops: phase and index.** `Maslov/Basic.lean`. Blocked by
-   G1, G2, G3, G4 (for `maslovPhase_ofUnitary_smul`) and G5.
+   G1, G2, G3, G4 (for `maslovPhase_unitary_smul`) and G5.
 4. **Lagrangian loops: product axiom.** `Maslov/Product.lean`. Blocked by 3
    and G4.
 5. **Lagrangian loops: classification and uniqueness.** `Maslov/Loop.lean`.
