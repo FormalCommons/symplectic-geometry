@@ -138,7 +138,7 @@ can join them.
 
 The file has the name of Tau Ceti's file on smooth families of nondegenerate
 two-forms. It is in the namespace `TauCeti.SmoothTwoForm`, except for the
-velocity of segments, in `TauCeti.SmoothForm`.
+slices and the velocity of segments, in `TauCeti.SmoothForm`.
 
 - `isOpen_setOf_isInvertible_flat_mpullback_prodMk`: for a smooth two-form
   `σ` on `N × M`, the set of `p : N × M` at which the slice `σ_{p.1}` has an
@@ -147,17 +147,23 @@ velocity of segments, in `TauCeti.SmoothForm`.
   section along `Prod.snd` (`contMDiffAt_sectionAlong_flat` with
   `SmoothForm.contMDiff_mpullback_prodMk`), and
   `Continuous.isOpen_setOf_clm_bundle_isInvertible` applies.
+- `isOpen_setOf_isInvertible_flat_add_smul_sub`: for
+  `σ₀ σ₁ : SmoothTwoForm I M`, the set of `p : ℝ × M` at which
+  `σ₀ + p.1 • (σ₁ - σ₀)` has an invertible flat map at `p.2` is open. It is
+  the previous lemma for `SmoothForm.lineMapFamily σ₀ σ₁ contDiff_id`.
 - `isOpen_setOf_forall_mem_Icc_nondegenerate`: for `σ₀ σ₁ : SmoothTwoForm I M`,
   the set
   `{x | ∀ s ∈ Icc (0 : ℝ) 1, ((σ₀ + s • (σ₁ - σ₀)).bilinFormAt x).Nondegenerate}`
-  is open. The proof applies the previous lemma to
-  `SmoothForm.lineMapFamily σ₀ σ₁ contDiff_id` and then Mathlib's
+  is open. The proof starts from
+  `isOpen_setOf_isInvertible_flat_add_smul_sub` and applies Mathlib's
   `generalized_tube_lemma` over `isCompact_Icc`, using
   `isInvertible_flat_iff` to pass between the flat map and nondegeneracy.
+- `SmoothForm.coe_mpullback_prodMk_lineMapFamily` (`@[simp]`): the slices of
+  `SmoothForm.lineMapFamily α₀ α₁ hc` for the underlying rough forms, the
+  `.val` form of Tau Ceti's `mpullback_prodMk_lineMapFamily`.
 - `SmoothForm.mpullback_prodMk_timeDeriv_lineMapFamily`: the slice at time
   `t` of the time derivative of `SmoothForm.lineMapFamily α₀ α₁ hc` is
-  `deriv c t • (α₁ - α₀)`, with the `@[simp]` companion
-  `SmoothForm.coe_mpullback_prodMk_lineMapFamily` for the underlying rough forms.
+  `deriv c t • (α₁ - α₀)`.
 
 ### `Geometry/Manifold/DifferentialForm/Smooth.lean`
 
@@ -561,7 +567,7 @@ and pullbacks commute with `d`. That theorem gives
   `RoughForm.extendByZero` with `IsSmoothForm.extendByZero`,
   `IsCompact.exists_contMDiff_one_nhds_tsupport_subset`,
   `Continuous.isOpen_setOf_clm_bundle_isInvertible`, `exactForms`,
-  `Manifold.tangentSpaceOpenEquiv_mfderiv_apply`, `ContMDiffAt.clm_bundle_inverse`.
+  `Manifold.mfderiv_eq_id_iff_of_comp_subtype_val`, `ContMDiffAt.clm_bundle_inverse`.
 - Mathlib: `generalized_tube_lemma`, `Real.smoothTransition`,
   `Manifold.IsSmoothEmbedding.of_opens`, `PartialDiffeomorph`, `Diffeomorph`.
 - *Smooth families* (#466, #467), for `Stability.lean` only: (★), the time
