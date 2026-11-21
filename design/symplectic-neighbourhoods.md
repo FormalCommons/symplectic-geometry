@@ -577,7 +577,7 @@ being an embedding, the image of `Q` in the source is exactly the part of
 `S` that `e` hits. The pull-back along the local inverse is
 `IsLocalDiffeomorphAt.mpullback_localInverse_apply_eq`, in the general
 `Geometry/Manifold/DifferentialForm/Pullback/LocalDiffeomorph.lean`, with
-`Geometry/Manifold/LocalDiffeomorph/LocalInverse.lean`; the
+`Geometry/Manifold/LocalDiffeomorph/Basic.lean`; the
 shrinking is `Topology.IsInducing.exists_isOpen_inter_range_eq`, in the
 general `Topology/Maps/Embedding.lean`. These steps, for any chart `c` and injective linear
 `ι : E' → StdSpace (Fin n)` with `range ι = S`, are the public
@@ -643,7 +643,7 @@ list. Issues 1, 3, 5 and 10 can start at once.
     general files `Geometry/Manifold/LocalDiffeomorph/Extend.lean`,
     `LinearAlgebra/FiniteDimensional/Extension.lean`,
     `Geometry/Manifold/DifferentialForm/Pullback/LocalDiffeomorph.lean`,
-    `Geometry/Manifold/LocalDiffeomorph/LocalInverse.lean` and
+    `Geometry/Manifold/LocalDiffeomorph/Basic.lean` and
     `Topology/Maps/Embedding.lean`. About 400
     lines. Blockers: none.
 11. **Adapted Darboux charts of coisotropic submanifolds.**
