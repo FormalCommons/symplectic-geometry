@@ -71,15 +71,8 @@ namespace LagrangianGrassmannian
 @[fun_prop]
 theorem continuous_graphY : Continuous (graphY : selfAdjoint (Matrix ι ι ℝ) → ℒ ι) := by
   classical
-  have h (S : selfAdjoint (Matrix ι ι ℝ)) :=
-    isLagrangian_range_fromRows_one (isHermitian_iff_isSymm.1 S.property)
-  have he : (graphY : selfAdjoint (Matrix ι ι ℝ) → ℒ ι) =
-      fun S : selfAdjoint (Matrix ι ι ℝ) ↦ ofFrame (S : Matrix ι ι ℝ) 1 (h S) :=
-    funext fun S ↦ toSubmodule_injective (by
-      rw [coe_graphY, coe_ofFrame]
-      exact (StdSpace.range_toEuclideanLin_fromRows_one_eq_graphY (S : Matrix ι ι ℝ)).symm)
-  rw [he]
-  exact continuous_ofFrame continuous_subtypeVal continuous_const h
+  rw [funext graphY_eq_ofFrame]
+  exact continuous_ofFrame continuous_subtypeVal continuous_const _
 
 /-! ### Unitary frames transverse to the horizontal subspace -/
 
@@ -166,11 +159,10 @@ theorem isOpenEmbedding_graphY : IsOpenEmbedding (graphY : selfAdjoint (Matrix �
       exact ⟨hY, by rwa [show chartValue U = S from Subtype.ext hXY]⟩
     · rintro ⟨hY, hs⟩
       exact ⟨_, hs, (unitaryFrame_eq_graphY_iff.2 ⟨hY, rfl⟩).symm⟩
-  have hopen : IsOpen {U : unitaryGroup ι ℂ | IsUnit ((U : Matrix ι ι ℂ).map Complex.im)} := by
-    simp_rw [isUnit_iff_isUnit_det]
-    exact (continuous_subtypeVal.matrix_map Complex.continuous_im).isOpen_setOf_isUnit_det
   rw [he]
-  exact continuousOn_chartValue.isOpen_inter_preimage hopen hs
+  refine continuousOn_chartValue.isOpen_inter_preimage ?_ hs
+  simp_rw [isUnit_iff_isUnit_det]
+  exact Matrix.isOpen_setOf_isUnit_det_map_im.preimage continuous_subtypeVal
 
 /-- The Lagrangians transverse to a given Lagrangian `Λ₀` form an open subset of `ℒ ι`. -/
 theorem isOpen_setOf_isCompl (Λ₀ : ℒ ι) :
