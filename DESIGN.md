@@ -241,7 +241,8 @@ further when they grow, following `AGENTS.md`.
   one), `LinearAlgebra/Symplectic/Reduction.lean` (for coisotropic $W$, the
   form on $W/W^\omega$ and its uniqueness, from Tau Ceti's `reduction`, whose
   quotient is by $W\cap W^\omega=W^\omega$).
-- **Builds on:** *Standard model*.
+- **Builds on:** *Standard model*, *Symplectic group* (its entry lemmas for
+  `Matrix.J`).
 - **Milestones:** *Linear Darboux theorem*, *Symplectic complements*,
   *Lagrangian extension lemma*, *Linear symplectic reduction*.
 
@@ -254,8 +255,11 @@ further when they grow, following `AGENTS.md`.
   `SymplecticGroup.charpoly_inv`, `SymplecticGroup.reflect_charpolyRev` and
   `LinearMap.IsAdjointPair.apply_eq_zero_of_mem_genEigenspace`),
   `LinearAlgebra/Matrix/SymplecticGroup/Basic.lean` (algebraic facts beside
-  Mathlib's `SymplecticGroup.transpose_mem`, over a commutative star ring:
-  `SymplecticGroup.star_mem` and `SymplecticGroup.star_mem_iff`),
+  Mathlib's `SymplecticGroup.transpose_mem`: the `simp` lemmas
+  `Matrix.J_inl_inl`, `Matrix.J_inl_inr`, `Matrix.J_inr_inl` and
+  `Matrix.J_inr_inr` for the four blocks of `Matrix.J`, and, over a
+  commutative star ring, `SymplecticGroup.star_mem` and
+  `SymplecticGroup.star_mem_iff`),
   `Analysis/Matrix/Polar/Basic.lean` (the general right polar decomposition
   of `GL n 𝕜` over `RCLike 𝕜`, beside Tau Ceti's left forms:
   `Matrix.GeneralLinearGroup.posDef_sqrt_star_mul` and
@@ -1063,7 +1067,7 @@ Each part depends only on the parts listed, besides Mathlib and Tau Ceti.
 | 0 | *Symplectic group* | — |
 | 0 | *Linear Moser* | — |
 | 1 | *Unitary group topology* | *Symplectic group* (only the file on $\mathrm{Sp}(2n)$; the other files can start at once) |
-| 1 | *Symplectic vector spaces* | *Standard model* |
+| 1 | *Symplectic vector spaces* | *Standard model*, *Symplectic group* |
 | 1 | *Lagrangian Grassmannian* | *Standard model* |
 | 1 | *Linear nonsqueezing* | *Standard model* |
 | 1 | *Linear complex structures* | *Standard model* |
