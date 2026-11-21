@@ -1993,20 +1993,20 @@ has either; Tau Ceti's extension across a boundary,
   `TauCeti.SmoothEmbedding.exists_isSmoothForm_relative_primitive`, and the
   Reeb flow), `Geometry/Manifold/DifferentialForm/Flow/Family.lean`
   (named like Tau Ceti's file: Moser's principle along one trajectory, in
-  the rescaling case, which `Gray.lean` uses), and
-  `Geometry/Manifold/LocalDiffeomorph/Constructions.lean` (named like Tau
-  Ceti's file: the differential of a partial diffeomorphism followed by a
-  linear equivalence, which `Darboux/Strict.lean` uses, as it uses the Reeb
-  field of the standard form in `Standard.lean` and the transport of Reeb
-  vectors by a local pullback in `Pullback.lean`, both named like Tau Ceti's
-  files).
+  the rescaling case, which `Gray.lean` uses), and `Standard.lean` and
+  `Pullback.lean` (both named like Tau Ceti's files: the Reeb field of the
+  standard form, and the transport of Reeb vectors by a local pullback, which
+  `Darboux/Strict.lean` uses, as it uses
+  `PartialDiffeomorph.mvfderiv_trans_toDiffeomorph` from
+  `Geometry/Manifold/LocalDiffeomorph/MFDeriv.lean`).
 - **Builds on:** Tau Ceti (contact forms, Reeb fields, contact Hamiltonians,
   strict and distribution Darboux charts, Gray's theorem for families over
   `ℝ`); `Family.lean` and `Gray.lean` also on *Smooth families*
   (`ContMDiff/TimeExtension.lean`, `DifferentialForm/TimeExtension.lean`,
   `Diffeotopy/Real.lean`); `LegendrianNeighborhood.lean` also on *Symplectic
-  neighbourhoods* (`Lagrangian.lean`). The other files can start at
-  once.
+  neighbourhoods* (`Lagrangian.lean`); `Darboux/Strict.lean` also on
+  *Moser isotopy* (`LocalDiffeomorph/MFDeriv.lean`, merged). The other
+  files can start at once.
 - **Milestones:** *Contact vector fields and contact Hamiltonians*, *Contact
   Darboux theorem*, *Gray stability*, *Legendrian neighbourhood theorem*.
 - **The design file decides:** how a smooth family of contact structures
@@ -2106,7 +2106,7 @@ so two parts can each use merged files of the other without either waiting.
 | 2 | *Isotopy extension* | *Hamiltonian flows* (only `Flux/Hamiltonian.lean` and `Flux/CompactSupport.lean`), *Smooth families* (only `ContMDiff/TimeExtension.lean`, `DifferentialForm/TimeExtension.lean` and `DeRham/SmoothFamily/GoodCover.lean`), *Moser isotopy* (only `Moser/Field.lean`); the merged *Standard model* and *Linear Moser*; the issues of its design file that use none of these can start at once |
 | 2 | *Symplectic neighbourhoods* | *Moser isotopy* (only `Relative.lean`); *Symplectic vector spaces* (only `LinearAlgebra/Symplectic/Reduction.lean`, which is merged); `CharacteristicFoliation.lean` and `AdaptedDarboux.lean` can start at once |
 | 3 | *First Chern number* | *Symplectic vector bundles*, the symplectic-loop issues of *Maslov index* |
-| 3 | *Contact geometry* | *Smooth families* (only `Family.lean` and `Gray.lean`, through `ContMDiff/TimeExtension.lean`, `DifferentialForm/TimeExtension.lean` and `Diffeotopy/Real.lean`); *Symplectic neighbourhoods* (only `LegendrianNeighborhood.lean`, through `Lagrangian.lean`); the other files of the part can start at once |
+| 3 | *Contact geometry* | *Smooth families* (only `Family.lean` and `Gray.lean`, through `ContMDiff/TimeExtension.lean`, `DifferentialForm/TimeExtension.lean` and `Diffeotopy/Real.lean`); *Symplectic neighbourhoods* (only `LegendrianNeighborhood.lean`, through `Lagrangian.lean`); *Moser isotopy* (only `Darboux/Strict.lean`, through `LocalDiffeomorph/MFDeriv.lean`, merged); the other files of the part can start at once |
 
 The design issues of the parts marked as needing one can start at once, in
 parallel with the level-0 parts.

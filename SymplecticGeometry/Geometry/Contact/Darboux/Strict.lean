@@ -7,10 +7,9 @@ module
 
 public import TauCeti.Geometry.Contact.Darboux.Strict
 import TauCeti.Geometry.Contact.Darboux.Manifold
-import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 import SymplecticGeometry.Geometry.Contact.Pullback
 import SymplecticGeometry.Geometry.Contact.Standard
-import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Constructions
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 
 /-!
 # Contact Darboux charts for the form `Σᵢ pᵢ dqᵢ - dz`
@@ -96,11 +95,13 @@ theorem SmoothForm.IsContactForm.exists_strictDarbouxChart_reebVectorField_of_fi
   obtain ⟨φ, hx₀, hφ₀, hpb⟩ := hα.exists_strictDarbouxChart_of_finrank_eq hn x₀
   set σ : (V × V × ℝ) ≃L[ℝ] V × V × ℝ :=
     (ContinuousLinearEquiv.refl ℝ V).prodCongr (ContinuousLinearEquiv.neg ℝ)
-  set chart := φ.trans σ.toPartialDiffeomorph
+  set chart := φ.trans σ.toDiffeomorph.toPartialDiffeomorph
   have hsrc : chart.source = φ.source := by simp [chart]
   have hcoe (x : M) : chart x = σ (φ x) := by simp [chart]
   have hd : ∀ x ∈ φ.source, ∀ v : TangentSpace I x, mvfderiv I chart x v = σ (mvfderiv I φ x v) :=
-    fun x hx v ↦ φ.mvfderiv_trans_toPartialDiffeomorph_apply σ (by simp) hx v
+    fun x hx v ↦ by
+      rw [φ.mvfderiv_trans_toDiffeomorph σ hx, ContinuousLinearMap.comp_apply,
+        ContinuousLinearEquiv.coe_coe]
   have hσσ (y : V × V × ℝ) : σ (σ y) = y := by simp [σ]
   have hform : ∀ x ∈ chart.source, ∀ v : TangentSpace I x,
       (innerProductContactForm V).val
@@ -161,11 +162,13 @@ theorem IsContactDistribution.exists_darbouxChart_comap_of_finrank_eq
   obtain ⟨φ, hx₀, hφ₀, hφD⟩ := hD.exists_darbouxChart_of_finrank_eq hn x₀
   set σ : (V × V × ℝ) ≃L[ℝ] V × V × ℝ :=
     (ContinuousLinearEquiv.refl ℝ V).prodCongr (ContinuousLinearEquiv.neg ℝ)
-  set chart := φ.trans σ.toPartialDiffeomorph
+  set chart := φ.trans σ.toDiffeomorph.toPartialDiffeomorph
   have hsrc : chart.source = φ.source := by simp [chart]
   have hcoe (x : M) : chart x = σ (φ x) := by simp [chart]
   have hd : ∀ x ∈ φ.source, ∀ v : TangentSpace I x, mvfderiv I chart x v = σ (mvfderiv I φ x v) :=
-    fun x hx v ↦ φ.mvfderiv_trans_toPartialDiffeomorph_apply σ (by simp) hx v
+    fun x hx v ↦ by
+      rw [φ.mvfderiv_trans_toDiffeomorph σ hx, ContinuousLinearMap.comp_apply,
+        ContinuousLinearEquiv.coe_coe]
   have hσσ (y : V × V × ℝ) : σ (σ y) = y := by simp [σ]
   refine ⟨chart, hsrc ▸ hx₀, by rw [hcoe, hφ₀, map_zero], fun x hx ↦ ?_⟩
   rw [hsrc] at hx
