@@ -1,0 +1,216 @@
+/-
+Copyright (c) 2026 The FormalCommons contributors. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: The FormalCommons contributors
+-/
+module
+
+public import TauCeti.Geometry.Manifold.DeRham.Basic
+public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Map
+
+/-!
+# Splittings of closed forms that depend smoothly on families
+
+A *smooth cohomology splitting* of a manifold `M`
+(`SymplecticGeometry.SmoothCohomologySplitting I M`) consists, in every degree `k`, of
+
+* a finite-dimensional space `S^k` of closed `k`-forms containing no nonzero exact form,
+* a linear map `p : Z^k → S^k` on the closed `k`-forms, the identity in degree zero, and
+* a linear map `h : Z^{k+1} → Ω^k` with `z = p z + d (h z)` for every closed `(k+1)`-form `z`,
+
+such that `p` and `h` take smooth families of forms over the unit interval to smooth families.
+This is the statement, for all degrees at once, that McDuff and Salamon prove by induction over a
+good cover in their proof of Theorem 3.2.4 [McDuffSalamon2017], following Bott and Tu
+[BottTu1982]; it is the form in which smooth families of primitives are constructed.
+
+From a splitting `σ` this file derives that `S^k` maps isomorphically onto the de Rham cohomology
+in degree `k` (`SmoothCohomologySplitting.spaceEquiv`), so that cohomology is finite-dimensional;
+that `p z = 0` exactly when `z` is exact; a primitive of exact forms that preserves smooth
+families (`SmoothCohomologySplitting.exactPrimitive`); and that if `t ↦ z t` is smooth and each
+`z t` is closed, then the cohomology classes `[z t]` have coordinates, in any basis, that are
+smooth in `t` (`SmoothCohomologySplitting.contMDiff_repr_mk`).
+
+## Main definitions
+
+* `SymplecticGeometry.SmoothCohomologySplitting I M`: the spaces `S^k` and the maps `p` and `h`
+  of every degree, preserving smooth families.
+* `SymplecticGeometry.SmoothCohomologySplitting.spaceEquiv`: the class map `S^k ≃ H^k`.
+* `SymplecticGeometry.SmoothCohomologySplitting.exactPrimitive`: a primitive on exact forms.
+
+## Main results
+
+* `SmoothCohomologySplitting.mk_proj`: `p z` has the class of `z`.
+* `SmoothCohomologySplitting.proj_eq_zero_iff`: `p z = 0` exactly when `z` is exact.
+* `SmoothCohomologySplitting.finiteDimensional_deRhamCohomology`.
+* `SmoothCohomologySplitting.mextDerivₗ_exactPrimitive` and
+  `SmoothCohomologySplitting.preservesSmoothFamilies_exactPrimitive`.
+* `SmoothCohomologySplitting.contMDiff_repr_mk`: the coordinates of the classes of a smooth
+  family of closed forms are smooth.
+
+## References
+
+* [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017], proof of
+  Theorem 3.2.4.
+* [R. Bott and L. W. Tu, *Differential Forms in Algebraic Topology*][BottTu1982]
+-/
+
+public section
+
+noncomputable section
+
+open scoped Manifold ContDiff
+
+namespace SymplecticGeometry
+
+open TauCeti
+
+variable {E H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
+  (I : ModelWithCorners ℝ E H) {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
+  [IsManifold I ∞ M]
+
+variable (M) in
+/-- **Smooth cohomology splittings.** In every degree `k`, a finite-dimensional space
+`space k` of closed `k`-forms containing no nonzero exact form, a linear map `proj k` from the
+closed `k`-forms into `space k`, the identity in degree zero, and a linear map `primitive k` on
+the closed `(k + 1)`-forms with `z = proj (k + 1) z + d (primitive k z)`, such that `proj` and
+`primitive` take smooth families of forms over the unit interval to smooth families. -/
+structure SmoothCohomologySplitting where
+  /-- The space of closed `k`-forms that represents the cohomology in degree `k`. -/
+  space (k : ℕ) : Submodule ℝ (SmoothForm I M ℝ k)
+  space_le_closedForms (k : ℕ) : space k ≤ closedForms I M k
+  finiteDimensional_space (k : ℕ) : FiniteDimensional ℝ (space k)
+  /-- The projection of the closed `k`-forms to `space k`. -/
+  proj (k : ℕ) : closedForms I M k →ₗ[ℝ] SmoothForm I M ℝ k
+  proj_mem (k : ℕ) (z : closedForms I M k) : proj k z ∈ space k
+  proj_zero (z : closedForms I M 0) : proj 0 z = z
+  /-- A primitive of the difference between a closed `(k + 1)`-form and its projection. -/
+  primitive (k : ℕ) : closedForms I M (k + 1) →ₗ[ℝ] SmoothForm I M ℝ k
+  mextDerivₗ_primitive (k : ℕ) (z : closedForms I M (k + 1)) :
+    mextDerivₗ I k (primitive k z) = z - proj (k + 1) z
+  eq_zero_of_mem_exactForms (k : ℕ) {s : SmoothForm I M ℝ k} :
+    s ∈ space k → s ∈ exactForms I M k → s = 0
+  preservesSmoothFamilies_proj (k : ℕ) : PreservesSmoothFamilies (proj k)
+  preservesSmoothFamilies_primitive (k : ℕ) : PreservesSmoothFamilies (primitive k)
+
+namespace SmoothCohomologySplitting
+
+attribute [instance] finiteDimensional_space
+
+variable {I} (σ : SmoothCohomologySplitting I M)
+
+/-- The projection of a splitting, as a map into its space of closed forms. -/
+def projSpace (k : ℕ) : closedForms I M k →ₗ[ℝ] σ.space k :=
+  (σ.proj k).codRestrict (σ.space k) (σ.proj_mem k)
+
+/-- `projSpace` is `proj`, with its values in the space of the splitting. -/
+@[simp]
+theorem coe_projSpace (k : ℕ) (z : closedForms I M k) :
+    (σ.projSpace k z : SmoothForm I M ℝ k) = σ.proj k z :=
+  (rfl)
+
+/-- `projSpace` followed by the inclusion of the space of the splitting is `proj`. -/
+theorem subtype_comp_projSpace (k : ℕ) : (σ.space k).subtype ∘ₗ σ.projSpace k = σ.proj k :=
+  LinearMap.ext fun z ↦ σ.coe_projSpace k z
+
+/-- The projection of a closed form, as a closed form, has the same de Rham class as the form. -/
+theorem mk_proj (k : ℕ) (z : closedForms I M k) :
+    deRhamCohomology.mk I k (Submodule.inclusion (σ.space_le_closedForms k) (σ.projSpace k z)) =
+      deRhamCohomology.mk I k z := by
+  cases k with
+  | zero => exact congrArg _ (Subtype.ext (σ.proj_zero z))
+  | succ k =>
+    rw [eq_comm, ← sub_eq_zero, ← map_sub, deRhamCohomology.mk_eq_zero_iff, exactForms_succ,
+      Submodule.coe_sub, Submodule.coe_inclusion, coe_projSpace, ← σ.mextDerivₗ_primitive]
+    exact LinearMap.mem_range_self _ _
+
+/-- A closed form of the space of a splitting whose class vanishes is zero. -/
+theorem eq_zero_of_mk_eq_zero {k : ℕ} {s : σ.space k}
+    (hs : deRhamCohomology.mk I k (Submodule.inclusion (σ.space_le_closedForms k) s) = 0) :
+    s = 0 :=
+  Subtype.ext <| σ.eq_zero_of_mem_exactForms k s.property <|
+    (deRhamCohomology.mk_eq_zero_iff I k _).mp hs
+
+/-- The class map of a splitting, from its space of closed `k`-forms to the de Rham cohomology
+in degree `k`, is bijective. -/
+theorem bijective_mk_comp_inclusion (k : ℕ) :
+    Function.Bijective
+      (deRhamCohomology.mk I k ∘ₗ Submodule.inclusion (σ.space_le_closedForms k)) := by
+  refine ⟨(injective_iff_map_eq_zero _).mpr fun _ hs ↦
+    σ.eq_zero_of_mk_eq_zero (by rwa [LinearMap.comp_apply] at hs), fun c ↦ ?_⟩
+  obtain ⟨z, rfl⟩ := deRhamCohomology.mk_surjective I k c
+  exact ⟨σ.projSpace k z, σ.mk_proj k z⟩
+
+/-- The class map of a splitting, from its space of closed `k`-forms to the de Rham cohomology
+in degree `k`, as a linear isomorphism. -/
+def spaceEquiv (k : ℕ) : σ.space k ≃ₗ[ℝ] deRhamCohomology I M k :=
+  LinearEquiv.ofBijective _ (σ.bijective_mk_comp_inclusion k)
+
+/-- `spaceEquiv` takes a form of the space of the splitting to its de Rham class. -/
+theorem spaceEquiv_apply (k : ℕ) (s : σ.space k) :
+    σ.spaceEquiv k s =
+      deRhamCohomology.mk I k (Submodule.inclusion (σ.space_le_closedForms k) s) := by
+  rw [spaceEquiv, LinearEquiv.ofBijective_apply, LinearMap.comp_apply]
+
+/-- `spaceEquiv` takes the projection of a closed form to the class of the form. -/
+@[simp]
+theorem spaceEquiv_projSpace (k : ℕ) (z : closedForms I M k) :
+    σ.spaceEquiv k (σ.projSpace k z) = deRhamCohomology.mk I k z := by
+  rw [spaceEquiv_apply, σ.mk_proj k z]
+
+/-- The projection of a splitting vanishes on a closed form exactly when the form is exact. -/
+theorem proj_eq_zero_iff {k : ℕ} (z : closedForms I M k) :
+    σ.proj k z = 0 ↔ (z : SmoothForm I M ℝ k) ∈ exactForms I M k := by
+  rw [← deRhamCohomology.mk_eq_zero_iff, ← spaceEquiv_projSpace, LinearEquiv.map_eq_zero_iff,
+    ← coe_projSpace, ZeroMemClass.coe_eq_zero]
+
+include σ in
+/-- A manifold with a smooth cohomology splitting has finite-dimensional de Rham cohomology in
+every degree. -/
+theorem finiteDimensional_deRhamCohomology (k : ℕ) :
+    FiniteDimensional ℝ (deRhamCohomology I M k) :=
+  Module.Finite.equiv (σ.spaceEquiv k)
+
+/-- The primitive of a splitting, restricted to the exact `(k + 1)`-forms: a linear map giving
+each exact form a primitive. -/
+def exactPrimitive (k : ℕ) : exactForms I M (k + 1) →ₗ[ℝ] SmoothForm I M ℝ k :=
+  σ.primitive k ∘ₗ Submodule.inclusion (exactForms_le_closedForms I (k + 1))
+
+/-- `exactPrimitive` is `primitive` on exact forms, seen as closed forms. -/
+theorem exactPrimitive_apply (k : ℕ) (x : exactForms I M (k + 1)) :
+    σ.exactPrimitive k x =
+      σ.primitive k (Submodule.inclusion (exactForms_le_closedForms I (k + 1)) x) :=
+  (rfl)
+
+/-- The exterior derivative of `exactPrimitive k x` is the exact form `x`. -/
+@[simp]
+theorem mextDerivₗ_exactPrimitive (k : ℕ) (x : exactForms I M (k + 1)) :
+    mextDerivₗ I k (σ.exactPrimitive k x) = x := by
+  rw [exactPrimitive_apply, σ.mextDerivₗ_primitive,
+    (σ.proj_eq_zero_iff _).mpr (by simpa using x.property), sub_zero, Submodule.coe_inclusion]
+
+/-- The primitive on exact forms takes smooth families to smooth families. -/
+theorem preservesSmoothFamilies_exactPrimitive (k : ℕ) :
+    PreservesSmoothFamilies (σ.exactPrimitive k) := preservesSmoothFamilies_def.mpr fun α hα ↦ by
+  simpa only [exactPrimitive_apply] using
+    preservesSmoothFamilies_def.mp (σ.preservesSmoothFamilies_primitive k)
+    (fun t ↦ Submodule.inclusion (exactForms_le_closedForms I (k + 1)) (α t))
+    (by simpa only [Submodule.coe_inclusion] using hα)
+
+include σ in
+/-- **The classes of a smooth family of closed forms depend smoothly on the parameter.** For a
+basis `b` of the de Rham cohomology in degree `k` and a smooth family `z` of closed `k`-forms
+over the unit interval, each coordinate `t ↦ b.repr [z t] i` is a smooth function. -/
+theorem contMDiff_repr_mk {k : ℕ} {ι : Type*} (b : Module.Basis ι ℝ (deRhamCohomology I M k))
+    {z : unitInterval → closedForms I M k}
+    (hz : IsSmoothFamily (𝓡∂ 1) (fun t ↦ (z t : SmoothForm I M ℝ k))) (i : ι) :
+    ContMDiff (𝓡∂ 1) 𝓘(ℝ) ∞ (fun t ↦ b.repr (deRhamCohomology.mk I k (z t)) i) := by
+  have := σ.finiteDimensional_deRhamCohomology k
+  have : Finite ι := Module.Finite.finite_basis b
+  have h := (preservesSmoothFamilies_iff_contMDiff_repr (b.map (σ.spaceEquiv k).symm)
+    (σ.projSpace k)).mp (σ.subtype_comp_projSpace k ▸ σ.preservesSmoothFamilies_proj k) z hz i
+  simpa only [Module.Basis.map_repr, LinearEquiv.symm_symm, LinearEquiv.trans_apply,
+    spaceEquiv_projSpace] using h
+
+end SmoothCohomologySplitting
+
+end SymplecticGeometry
