@@ -25,6 +25,8 @@ Write `ℒ ι` for the Lagrangian Grassmannian of the standard model `(StdSpace 
 * `SymplecticGeometry.LagrangianGrassmannian.isCompl_horizontal_iff`, `isCompl_vertical_iff`,
   `range_graphY`, `range_graph`: the Lagrangians transverse to `{y = 0}` (resp. `{x = 0}`) are
   exactly the graphs `{(S y, y)}` (resp. `{(x, S x)}`) of symmetric matrices.
+* `SymplecticGeometry.LagrangianGrassmannian.graphY_eq_ofFrame`: `graphY S` is spanned by the
+  Lagrangian frame `fromRows S 1`.
 * `SymplecticGeometry.LagrangianGrassmannian.graphY_eq_unitaryFrame`: a unitary frame of
   `graphY S`, the unitary frame `unitaryOfFrame` of the Lagrangian frame `fromRows S 1`
   (`SymplecticGeometry.isLagrangian_range_fromRows_one`), that is, the real
@@ -101,15 +103,20 @@ theorem graphY_injective :
 theorem graphY_zero : graphY (0 : selfAdjoint (Matrix ι ι ℝ)) = vertical ι :=
   toSubmodule_injective <| by simp
 
+/-- The chart point `graphY S` is the Lagrangian spanned by the frame `fromRows S 1`. -/
+theorem graphY_eq_ofFrame [DecidableEq ι] (S : selfAdjoint (Matrix ι ι ℝ)) :
+    graphY S = ofFrame (S : Matrix ι ι ℝ) 1
+      (isLagrangian_range_fromRows_one (isHermitian_iff_isSymm.1 S.property)) :=
+  toSubmodule_injective <| by
+    rw [coe_graphY, coe_ofFrame]
+    exact (StdSpace.range_toEuclideanLin_fromRows_one_eq_graphY _).symm
+
 /-- A unitary frame of `graphY S`: the real orthonormalization of the complex frame `S + i` of
 the Lagrangian frame `fromRows S 1`. -/
 theorem graphY_eq_unitaryFrame [DecidableEq ι] (S : selfAdjoint (Matrix ι ι ℝ)) :
     graphY S = unitaryFrame (unitaryOfFrame
       (isLagrangian_range_fromRows_one (isHermitian_iff_isSymm.1 S.property))) := by
-  rw [unitaryFrame_unitaryOfFrame]
-  exact toSubmodule_injective <| by
-    rw [coe_ofFrame]
-    exact (StdSpace.range_toEuclideanLin_fromRows_one_eq_graphY _).symm
+  rw [unitaryFrame_unitaryOfFrame, graphY_eq_ofFrame]
 
 /-! ### The points of the second chart -/
 
