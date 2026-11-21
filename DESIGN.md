@@ -189,6 +189,19 @@ also uses.
   `EuclideanSpace ℝ ι × EuclideanSpace ℝ ι` along
   `EuclideanSpace.sumEquivProd`, carrying `stdComplexStructure ι` to
   `AlmostComplexStructure.product`.
+- The direct sum of two models: `StdSpace.sumEquiv ι κ : StdSpace (ι ⊕ κ)
+  ≃L[ℝ] StdSpace ι × StdSpace κ`, which regroups the coordinates by
+  `Equiv.sumSumSumComm` as Tau Ceti's `Matrix.symplecticSum` does, with
+  `@[simp]` lemmas for `x` and `y` of both components and the lemma that it
+  carries `stdForm (ι ⊕ κ)` to `(stdForm ι).prod (stdForm κ)`, the product
+  being Tau Ceti's `TauCeti.SymplecticForm.prod`;
+  and, in `Matrix.lean`, that it conjugates
+  `Matrix.toEuclideanLin (Matrix.symplecticSum A B)` to the product of the
+  maps of `A` and `B`. *Symplectic vector bundles* writes frames of a direct
+  sum with it, so that their transition loops are `TauCeti.GLSymplectic.sum`
+  of two loops, the form `TauCeti.GLSymplectic.maslovIndex_sum` takes. It is
+  built by that part's first issue on direct sums, not by *Standard model*'s
+  issues.
 - The matrix dictionary: `mem_symplecticGroup_iff_isSymplectomorphism`
   (`A ∈ Matrix.symplecticGroup ι ℝ` if and only if `Matrix.toEuclideanLin A`
   preserves `stdForm ι`); a real matrix commutes with `Matrix.J` if and only if
@@ -206,7 +219,8 @@ further when they grow, following `AGENTS.md`.
 ### 1. Standard model
 
 - **Files:** `LinearAlgebra/Symplectic/Standard/Basic.lean` (`StdSpace`, its
-  coordinates, `stdForm`, `stdComplexStructure`, the product comparison),
+  coordinates, `stdForm`, `stdComplexStructure`, the product comparison,
+  `StdSpace.sumEquiv`),
   `LinearAlgebra/Symplectic/Standard/Matrix.lean` (the matrix dictionary).
 - **Builds on:** Mathlib, Tau Ceti.
 - **Milestones:** none. It is the interface the other parts share.
@@ -227,7 +241,8 @@ further when they grow, following `AGENTS.md`.
   one), `LinearAlgebra/Symplectic/Reduction.lean` (for coisotropic $W$, the
   form on $W/W^\omega$ and its uniqueness, from Tau Ceti's `reduction`, whose
   quotient is by $W\cap W^\omega=W^\omega$).
-- **Builds on:** *Standard model*.
+- **Builds on:** *Standard model*, *Symplectic group* (its entry lemmas for
+  `Matrix.J`).
 - **Milestones:** *Linear Darboux theorem*, *Symplectic complements*,
   *Lagrangian extension lemma*, *Linear symplectic reduction*.
 
@@ -240,12 +255,20 @@ further when they grow, following `AGENTS.md`.
   `SymplecticGroup.charpoly_inv`, `SymplecticGroup.reflect_charpolyRev` and
   `LinearMap.IsAdjointPair.apply_eq_zero_of_mem_genEigenspace`),
   `LinearAlgebra/Matrix/SymplecticGroup/Basic.lean` (algebraic facts beside
-  Mathlib's `SymplecticGroup.transpose_mem`, over a commutative star ring:
-  `SymplecticGroup.star_mem` and `SymplecticGroup.star_mem_iff`),
+  Mathlib's `SymplecticGroup.transpose_mem`: the `simp` lemmas
+  `Matrix.J_inl_inl`, `Matrix.J_inl_inr`, `Matrix.J_inr_inl` and
+  `Matrix.J_inr_inr` for the four blocks of `Matrix.J`, and, over a
+  commutative star ring, `SymplecticGroup.star_mem` and
+  `SymplecticGroup.star_mem_iff`),
   `Analysis/Matrix/Polar/Basic.lean` (the general right polar decomposition
   of `GL n 𝕜` over `RCLike 𝕜`, beside Tau Ceti's left forms:
   `Matrix.GeneralLinearGroup.posDef_sqrt_star_mul` and
-  `Matrix.GeneralLinearGroup.existsUnique_unitary_mul_posDef`),
+  `Matrix.GeneralLinearGroup.existsUnique_unitary_mul_posDef`, and the
+  unitary factor as $A(A^*A)^{-1/2}$,
+  `Matrix.GeneralLinearGroup.coe_polarUnitary_eq_mul_rpow`),
+  `Analysis/Matrix/Polar/Deformation.lean` (beside Tau Ceti's file of that
+  name: its polar deformation at time $t$ is $A(A^*A)^{-t/2}$,
+  `Matrix.GeneralLinearGroup.coe_polarDeformation_eq_mul_rpow`),
   `Analysis/Matrix/Polar/Symplectic.lean` (the right decomposition
   $\Psi=UP$ with uniqueness, `SymplecticGroup.existsUnique_unitary_mul_posDef`:
   Tau Ceti's `Units.polarUnitary_mul_sqrt_star_mul` gives the factorization,
@@ -254,7 +277,9 @@ further when they grow, following `AGENTS.md`.
   adds for the symplectic group is `SymplecticGroup.sqrt_star_mul_mem`, that
   $\sqrt{\Psi^*\Psi}$ is symplectic, $\Psi^*$ the conjugate transpose, which
   is `SymplecticGroup.sqrt_mul_star_mem` applied to `star Ψ`, symplectic by
-  `SymplecticGroup.star_mem`),
+  `SymplecticGroup.star_mem`; and the characterization of both factors,
+  `SymplecticGroup.unitary_mul_posDef_eq_iff`, that they are
+  $\Psi(\Psi^*\Psi)^{-1/2}$ and $(\Psi^*\Psi)^{1/2}$),
   `Analysis/Matrix/Polar/GLSymplectic.lean` (the deformation retraction:
   `TauCeti.GLSymplectic.polarHomotopy` fixes $\mathrm{U}(n)$ at all times,
   since it is the restriction of `Matrix.GeneralLinearGroup.polarHomotopy`
@@ -387,16 +412,42 @@ it into issues; the overview fixes its folders and its dependencies.
 
 ### 6. Lagrangian Grassmannian (needs `design/lagrangian-grassmannian.md`)
 
-- **Files:** `Topology/Grassmannian/Lagrangian/Basic.lean` (the space
-  $\mathcal{L}(V,\omega)$ of Lagrangian subspaces and its topology),
-  `LinearAlgebra/Symplectic/Lagrangian/Frame.lean` (the frame criterion
-  $\operatorname{rank}=n$, $X^TY=Y^TX$; graphs of symmetric matrices, from Tau
-  Ceti's `isLagrangian_graph_iff_of_pairing`),
-  `Topology/Grassmannian/Lagrangian/Action.lean` (the action of
-  $\mathrm{Sp}(2n)$, transitivity already for $\mathrm{U}(n)$, the stabilizer
-  $\mathrm{O}(n)$ and $\mathcal{L}(n)\cong\mathrm{U}(n)/\mathrm{O}(n)$),
-  `Geometry/Manifold/Instances/LagrangianGrassmannian.lean` (the charts by
-  symmetric matrices and the manifold structure of dimension $n(n+1)/2$).
+- **Files:** `LinearAlgebra/Symplectic/Lagrangian/Basic.lean` (the type
+  $\mathcal{L}(V,\omega)$ of Lagrangian subspaces, with its `SetLike` and
+  `ext` API), `LinearAlgebra/Symplectic/Lagrangian/Frame.lean` (the frame
+  criterion $\operatorname{rank}=n$, $X^TY=Y^TX$; graphs of symmetric
+  matrices, from Tau Ceti's `isLagrangian_graph_iff_of_pairing`),
+  `LinearAlgebra/Symplectic/Lagrangian/Action.lean` (the action of
+  $\mathrm{Sp}(2n)$, transitivity already for $\mathrm{U}(n)$ and the
+  stabilizer $\mathrm{O}(n)$, hence
+  $\mathcal{L}(n)\simeq\mathrm{U}(n)/\mathrm{O}(n)$ as sets by
+  orbit–stabilizer),
+  `LinearAlgebra/Symplectic/Lagrangian/Transverse.lean` (transverse
+  Lagrangians: two Lagrangians are complementary if and only if they meet in
+  $0$, any two have a common transverse Lagrangian, and $\mathrm{Sp}(2n)$ acts
+  transitively on transverse pairs),
+  `LinearAlgebra/Symplectic/Lagrangian/Sum.lean` (the direct sum of
+  Lagrangians and the reindexing equivalence, their compatibility with
+  unitary frames, and the equivariance of the sum),
+  `LinearAlgebra/TotallyReal/Euclidean.lean` (the range of Tau Ceti's
+  `Matrix.lagrangianChart`, beside Tau Ceti's file of that name),
+  `Topology/Grassmannian/Lagrangian/Basic.lean` (the topology of
+  $\mathcal{L}(V,\omega)$), `Topology/Grassmannian/Lagrangian/Quotient.lean`
+  (continuity of the action, and the equivalence
+  $\mathcal{L}(n)\simeq\mathrm{U}(n)/\mathrm{O}(n)$ of `Action.lean` as a
+  homeomorphism), `Topology/Grassmannian/Lagrangian/Graph.lean` (the graph
+  charts by symmetric matrices),
+  `Geometry/Manifold/Instances/LagrangianGrassmannian.lean` (the manifold
+  structure of dimension $n(n+1)/2$, from the charts of `Graph.lean`),
+  `Topology/Grassmannian/Lagrangian/Fibration.lean` (path lifting),
+  `Topology/Grassmannian/Lagrangian/Sum.lean` (continuity of the direct sum,
+  and the reindexing equivalence as a homeomorphism).
+  The `LinearAlgebra/` files import no `Topology/` file of this part. Below,
+  $V_0$ is $\mathbb{R}^n\times\{0\}$ ($y=0$), $V_1$ is
+  $\{0\}\times\mathbb{R}^n$ ($x=0$), and the unitary frame map
+  $\mathrm{U}(n)\to\mathcal{L}(n)$ sends $U$ to the image of $V_0$ under
+  `Matrix.toEuclideanLin (Matrix.realify U)`. `design/maslov-index.md` lists
+  what the *Maslov index* part needs of the items below.
 - **Builds on:** *Standard model*. From Tau Ceti, transferred along
   `complexToRealEuclidean`: the charts `Matrix.lagrangianChart` and
   `Matrix.lagrangianChartCLE` (`LinearAlgebra/TotallyReal/Euclidean.lean`);
@@ -404,6 +455,100 @@ it into issues; the overview fixes its folders and its dependencies.
   `Matrix.exists_mem_orthogonalGroup_eq_mul_map_ofReal` and
   `realOrthonormalize_mem_unitaryGroup`; $\mathrm{Sp}$-transitivity from the
   Witt theorem `TauCeti.SymplecticForm.exists_isSymplectomorphism_extend`.
+- **Graphs of transverse Lagrangians** (`Frame.lean`). A Lagrangian
+  transverse to $V_1$ is $\{y=Sx\}$, and one transverse to $V_0$ is
+  $\{x=Sy\}$, for a unique symmetric $S$. This is the converse of the graph
+  criterion: Mathlib's `Submodule.exists_eq_graph` gives a linear map whose
+  `LinearMap.graph` is the subspace, from the bijectivity of the projection
+  onto the complement, and Tau Ceti's `isLagrangian_graph_iff_of_pairing`
+  its symmetry; uniqueness is that of a graph.
+- **The range of `Matrix.lagrangianChart`**
+  (`LinearAlgebra/TotallyReal/Euclidean.lean`, namespace `Matrix`). The
+  surjectivity Tau Ceti lacks beside `Matrix.lagrangianChart_injective` and
+  `Matrix.lagrangianChart_inf_realSubspace`, in Tau Ceti's terms: a real
+  subspace `V` of `EuclideanSpace ℂ n` that is `IsMaximalTotallyReal` for
+  multiplication by $i$, is isotropic in the form of
+  `Matrix.im_inner_eq_zero_of_mem_lagrangianChart`
+  (`(inner ℂ v w).im = 0` for `v w ∈ V`), and has
+  `V ⊓ TauCeti.realSubspace n = ⊥` is `lagrangianChart S` for a symmetric
+  `S`. The isotropy cannot be dropped: for `n = Fin 2` and
+  $S=\begin{pmatrix}0&1\\0&0\end{pmatrix}$, $\det(S+i)=-1$, so
+  `lagrangianChart S` is maximal totally real and transverse to
+  `realSubspace (Fin 2)`, but by `Matrix.lagrangianChart_injective` it is
+  the chart of no symmetric matrix. The statement follows from the second
+  graph statement, transferred along `TauCeti.complexToRealEuclidean n`
+  composed with `EuclideanSpace.equiv` (`EuclideanSpace ℂ n ≃ (n → ℂ)`); the
+  composite carries `TauCeti.realSubspace n` to $V_0$ and
+  `lagrangianChart S` to $\{x=Sy\}$.
+- **Graph charts** (`Graph.lean`). For the topology the design file picks,
+  the Lagrangians transverse to $V_0$, and those transverse to $V_1$, form
+  open subsets of $\mathcal{L}(n)$, each homeomorphic to the symmetric
+  matrices by the graph statements above; the first chart sends $S$ to the
+  transfer of `Matrix.lagrangianChart S`. Tau Ceti's
+  `Topology/Grassmannian/Graph.lean` does the same for
+  `TauCeti.finiteGrassmannian`. The manifold file and `Fibration.lean` both
+  use these charts, so that no `Topology/` file depends on the manifold one.
+- **Path lifting** (`Fibration.lean`). The unitary frame map is locally
+  trivial with fibre $\mathrm{O}(n)$, hence a Serre fibration, so every path
+  in $\mathcal{L}(n)$ lifts to a path in $\mathrm{U}(n)$ from any frame of its
+  start point. Its fibres are the left cosets of the real orthogonal matrices
+  (from `Action.lean`). Near $V_1$, a continuous section sends $\{x=Sy\}$ to
+  `Matrix.GeneralLinearGroup.realOrthonormalize` of
+  `Matrix.lagrangianChartFrame S`, transferred (unitary by
+  `realOrthonormalize_mem_unitaryGroup`, continuous by
+  `continuous_realOrthonormalize`, with the same real image by
+  `realImage_realOrthonormalize`), $S$ being the coordinate of the graph
+  chart of `Graph.lean` on the Lagrangians transverse to $V_0$; left
+  translation by $\mathrm{U}(n)$ gives sections near every point. Tau Ceti's
+  `Subgroup.localSectionTrivializationOfCosetFibers`
+  (`Topology/Algebra/Group/Quotient/LocalSection.lean`) turns these sections
+  into trivializations,
+  `TauCeti.TopCat.mem_serreFibrations_of_exists_trivialization`
+  (`Topology/Homotopy/SerreFibration/FiberBundle.lean`) into a Serre
+  fibration, and `TauCeti.TopCat.exists_path_lift_of_mem_serreFibrations`
+  (`Topology/Homotopy/SerreFibration/Basic.lean`) into the lift. Tau Ceti's
+  unitary Stiefel fibration (`Topology/Grassmannian/StiefelFibration/Unitary.lean`)
+  is built the same way and is the model for the file.
+- **Direct sums and reindexing** (`LinearAlgebra/Symplectic/Lagrangian/Sum.lean`
+  and `Topology/Grassmannian/Lagrangian/Sum.lean`). In the `LinearAlgebra/`
+  file: the direct sum
+  $\mathcal{L}(\iota)\times\mathcal{L}(\kappa)\to\mathcal{L}(\iota\oplus\kappa)$,
+  read in the coordinates of `Equiv.sumSumSumComm` as Tau Ceti's
+  `Matrix.symplecticSum` is; and for `e : ι ≃ κ` the equivalence
+  $\mathcal{L}(\iota)\simeq\mathcal{L}(\kappa)$, the image under the
+  coordinate permutation along `Equiv.sumCongr e e`, with lemmas for its
+  inverse and for composition. Both commute with unitary frames: the
+  sum of the frames of $U$ and $U'$ is the frame of
+  `Matrix.UnitaryGroup.sum (U, U')` (`LinearAlgebra/Matrix/UnitaryGroup/Block.lean`,
+  through `Matrix.realify_fromBlocks_zero`), and reindexing the frame of $U$
+  gives the frame of the reindexed matrix `U.submatrix e.symm e.symm`, unitary
+  by Mathlib's `Matrix.submatrix_equiv_mem_unitary`. The sum is equivariant
+  for `TauCeti.GLSymplectic.sum`
+  (`LinearAlgebra/Matrix/GeneralLinearGroup/Symplectic/Sum.lean`). In the
+  `Topology/` file: the sum is continuous, and the reindexing equivalence is
+  a homeomorphism $\mathcal{L}(\iota)\simeq_t\mathcal{L}(\kappa)$. Continuity
+  comes from $\mathcal{L}(n)\cong\mathrm{U}(n)/\mathrm{O}(n)$ (`Quotient.lean`):
+  the frame map is an open quotient map, and so is a product of two such
+  maps (Mathlib's `IsOpenQuotientMap.prodMap`). How the reindexing meets
+  `GLSymplectic.reindex` is proved with that definition, in the *Maslov
+  index* part, so that this part does not depend on it.
+- **Transverse Lagrangians** (`Transverse.lean`). Any two Lagrangians
+  $\Lambda_1,\Lambda_2$ have a common transverse Lagrangian: move $\Lambda_1$
+  to $V_0$ by a unitary matrix; if $X+iY$ is a unitary frame of the moved
+  $\Lambda_2$, then $\det(X+tY)$ is a polynomial in $t$ that is nonzero at
+  $t=i$, so it has finitely many real roots, and for any other real $t$ the
+  Lagrangian $\{x=-ty\}$, the transfer of `Matrix.lagrangianChart` of the
+  scalar matrix $-t$ (Tau Ceti's `Matrix.lagrangianChart_smul_one` describes
+  it), is transverse to both. And $\mathrm{Sp}(2n)$ acts
+  transitively on pairs $(V,W)$ of transverse Lagrangians, each pair being
+  $g\cdot(V_0,V_1)$: a unitary matrix takes $V$ to $V_0$; the moved $W$ is
+  $\{x=Sy\}$ with $S$ symmetric, by the graph statement above; and the shear
+  $\begin{pmatrix}1&S\\0&1\end{pmatrix}$ fixes $V_0$ and takes $V_1$ to
+  $\{x=Sy\}$. The shear is symplectic for symmetric $S$ by Tau Ceti's
+  `SymplecticGroup.fromBlocks_upper_mem`, for any index type, lifted to
+  `TauCeti.GLSymplectic ι ℝ` by
+  `(TauCeti.GLSymplectic.mulEquivSymplecticGroup ι ℝ).symm`. For $n=0$ these
+  statements hold trivially, $\mathcal{L}(0)$ being a point.
 - **Milestones:** *Lagrangian frames and the Lagrangian Grassmannian*.
 - **The design file decides:** the topology of $\mathcal{L}(n)$. The
   candidates are the subspace topology of Tau Ceti's
@@ -435,20 +580,36 @@ it into issues; the overview fixes its folders and its dependencies.
 
 ### 8. Linear complex structures (needs `design/linear-complex-structures.md`)
 
-- **Files:** `LinearAlgebra/ComplexStructure/Standard.lean` (every complex
-  structure $J$ on a $2n$-dimensional space is conjugate to
-  `stdComplexStructure (Fin n)` by a linear isomorphism $\Phi$: Tau Ceti's
-  `ContinuousLinearMap.exists_continuousLinearEquiv_euclideanSpace_comp_eq_comp_I_smul`
-  (`Geometry/Symplectic/Complex/Module/Conjugacy.lean`) gives $\Phi$ from
-  `EuclideanSpace ℂ (Fin n)` with multiplication by `I`, composed with
-  `complexToRealEuclidean`), `Topology/ComplexStructure/Orbit.lean` (the space
-  `AlmostComplexStructure (StdSpace ι)` with Tau Ceti's topology, as the orbit
-  of $J_0$ under $\mathrm{GL}(2n,\mathbb{R})$, with stabilizer the realified
-  $\mathrm{GL}(n,\mathbb{C})$ by Tau Ceti's
-  `Matrix.GeneralLinearGroup.mem_range_realify_iff`; the homeomorphism with
-  the quotient; the two components), `Topology/ComplexStructure/Oriented.lean`
-  (the component of $J_0$, its homotopy type $\mathrm{SO}(2n)/\mathrm{U}(n)$,
-  and the case $\mathbb{R}^4$, homotopy equivalent to $S^2$).
+- **Files:** as `design/linear-complex-structures.md` lists them.
+  `LinearAlgebra/ComplexStructure/Action.lean` (the action of `V ≃ₗ[ℝ] V` on
+  `AlmostComplexStructure V` by transport, and of `GL n ℝ` and
+  `specialOrthogonalGroup n ℝ` on the structures of `EuclideanSpace ℝ n`),
+  `Topology/ComplexStructure/Basic.lean` (closed embedding into operators,
+  `T2Space`, `LocallyCompactSpace`, the homeomorphism with matrices of square
+  $-1$, continuity of the actions),
+  `LinearAlgebra/ComplexStructure/Standard.lean` (every complex structure $J$
+  on a space of dimension $2\,|\iota|$ is the transport of
+  `stdComplexStructure ι` by a linear isomorphism $\Phi$, which Tau Ceti's
+  `TauCeti.AlmostComplexStructure.exists_linearEquiv_I_smul`
+  (`Geometry/Symplectic/Finrank.lean`) gives from `ι → ℂ`, composed with
+  `complexToRealEuclidean ι`; transitivity, the stabilizer of $J_0$ as the
+  realified $\mathrm{GL}(n,\mathbb{C})$ by Tau Ceti's
+  `Matrix.GeneralLinearGroup.mem_range_realify_iff`, positively oriented
+  structures), `Topology/Algebra/GroupAction/Transitive.lean` (the
+  orbit–stabilizer homeomorphism for σ-compact groups),
+  `Topology/ComplexStructure/Orbit.lean` (the space as the quotient
+  $\mathrm{GL}(2n,\mathbb{R})/\mathrm{GL}(n,\mathbb{C})$; the positively
+  oriented structures are clopen),
+  `Analysis/SpecialFunctions/ContinuousFunctionalCalculus/Polar.lean` (for a
+  unit of square $-1$, the polar unitary factor conjugates the powers of the
+  positive factor to their inverses), `Analysis/Matrix/Polar/Deformation.lean`
+  (the polar deformation keeps square $-1$),
+  `Topology/ComplexStructure/Orthogonal.lean` (the orthogonal complex
+  structures and the deformation retraction onto them),
+  `Topology/ComplexStructure/Oriented.lean` (the stabilizer of $J_0$ in
+  $\mathrm{SO}(2n)$, the component of $J_0$, the two components for $n\ge1$,
+  the homotopy type $\mathrm{SO}(2n)/\mathrm{U}(n)$, the case $\mathbb{R}^4$,
+  homotopy equivalent to $S^2$, and the milestone).
 - **Builds on:** *Standard model*.
 - **Milestones:** *Linear complex structures are standard*.
 - **The design file decides:** how the quotient homeomorphism is obtained (an
@@ -464,28 +625,34 @@ it into issues; the overview fixes its folders and its dependencies.
 - **Files:** `LinearAlgebra/Symplectic/Compatible.lean` (the four equivalent
   characterizations and the two of the exercise, including the converse of
   Tau Ceti's `Compatible.hermitianCore`),
-  `Analysis/InnerProductSpace/Symplectic/PolarComplexStructure.lean`
-  ($J_{g,\omega}$ for an arbitrary inner product $g$ given as a bilinear form,
+  `Analysis/InnerProductSpace/Symplectic/PolarComplexStructure/` (`Basic.lean`:
+  $J_{g,\omega}$ for an arbitrary inner product $g$ given as a bilinear form,
   its equivariance under $\mathrm{GL}(V)$, and the lemma identifying it, for
   the ambient inner product, with Tau Ceti's `polarComplexStructure`; Tau
   Ceti's `TauCeti.SymplecticForm.polarComplexStructure_transport` gives the
-  equivariance in that case),
+  equivariance in that case; `Smooth.lean`: its explicit formula and
+  smoothness),
   `Topology/Algebra/Module/InnerProducts.lean` (the space $\mathrm{Met}(V)$
   of all inner products on $V$, a convex open subset of the symmetric bilinear forms,
-  from Tau Ceti's `TauCeti.convex_setOfPred_posDef` in coordinates),
-  `Topology/ComplexStructure/Compatible.lean` (the identification
+  from Tau Ceti's `TauCeti.convex_setOfPred_symm_pos`),
+  `Topology/Algebra/Module/SymplecticForms.lean` (the topology on
+  `SymplecticForm V`),
+  `Geometry/Symplectic/Cayley/Domain.lean` (the open set where Tau Ceti's
+  Cayley path is smooth),
+  `Topology/ComplexStructure/Compatible/` (`Matrix.lean`: the identification
   $J\mapsto-J_0J$ with the symmetric positive definite symplectic matrices,
-  using Tau Ceti's `Compatible.cayleyEquiv`; the homotopy equivalences with
-  $\mathrm{Met}(V)$ and between forms and complex structures for fixed $g$;
-  the inclusion of compatible into tame structures as a homotopy equivalence;
-  the contractions are explicit maps, not only Tau Ceti's contractibility
-  instances, see below),
+  by linear formulas; `Metric.lean` and `SymplecticForms.lean`: the homotopy
+  equivalences with $\mathrm{Met}(V)$ and between forms and complex
+  structures for fixed $g$; `Tame.lean`: the inclusion of compatible into
+  tame structures as a homotopy equivalence; the contractions are explicit
+  maps, not only Tau Ceti's contractibility instances, see below),
   `Topology/Algebra/Matrix/SymplecticGroup/CompactSubgroup.lean`
   (a compact subgroup of the symplectic group lies in some conjugate of
   $\mathrm{U}(n)$, from Tau Ceti's
   `exists_compatible_forall_isComplexLinearMap` and the transport of a
   compatible pair to $(\omega_0,J_0)$).
-- **Builds on:** *Standard model*, *Linear complex structures*.
+- **Builds on:** *Standard model*; *Symplectic vector spaces* for the
+  Lagrangian extension lemma, used in one characterization.
 - **Milestones:** *Characterizations of compatible complex structures*,
   *Contractibility of the space of compatible complex structures*, *Complex
   structures versus symplectic forms*, *Compact subgroups of the symplectic
@@ -582,7 +749,25 @@ it into issues; the overview fixes its folders and its dependencies.
   bundle of alternating maps, Mathlib's
   `ContMDiffVectorBundle.continuousAlternatingMap`, that are fibrewise
   nondegenerate; isomorphisms; local symplectic trivializations and the
-  reduction of the structure group to $\mathrm{Sp}(2n)$),
+  reduction of the structure group to $\mathrm{Sp}(2n)$; for $E=TM$, the
+  identification of these forms with Tau Ceti's `TauCeti.SmoothTwoForm I M`
+  and of nondegeneracy with `TauCeti.SmoothTwoForm.IsNondegenerate`, and
+  with it the tangent bundle of a surface with an area form; see
+  *Constructions* below),
+  `.../Symplectic/Pullback.lean` and `.../Symplectic/Prod.lean` (pull-backs
+  and direct sums of forms, with their tame and compatible pairs,
+  isomorphisms and frames; see *Constructions*),
+  `Geometry/Manifold/VectorBundle/Pullback.lean` (the smoothness criterion
+  for sections of the bundle of alternating maps of a pull-back, in the root
+  namespace `Bundle.Pullback`; the file has the name of the Tau Ceti file
+  with the criterion for Hom sections, so that the two merge upstream),
+  `Geometry/Symplectic/Manifold/Volume.lean` (the symplectic orientation of
+  a negated two-form, in Tau Ceti's namespace; the file has the name of the
+  Tau Ceti file that defines `volumeOrientation`),
+  `Analysis/CStarAlgebra/Unitary/ContinuousLinearMap.lean` (for `RCLike 𝕜`,
+  `Unitary.continuousLinearMapSelfEquiv`, the isomorphism of topological
+  groups from the unitaries of `𝕜 →L[𝕜] 𝕜` to those of `𝕜`, in Mathlib's
+  namespace `Unitary`; see *Constructions*),
   `Geometry/Manifold/VectorBundle/ComplexStructure.lean` (the one model of
   $C^n$ complex structures on a bundle, `SymplecticGeometry.Bundle.ContMDiffComplexStructure`,
   generalizing from $TM$ to any bundle Tau Ceti's
@@ -596,7 +781,9 @@ it into issues; the overview fixes its folders and its dependencies.
   induced from `ContMDiffSection.frameTopology`, and
   `isClosedEmbedding_toEndomorphism_frameTopology`; the map to Tau Ceti's
   `TauCeti.Bundle.ContinuousComplexStructure`, so that its complex bundle is
-  available; and for $E=TM$, for every $n$, the identification with
+  available; its pull-back, direct sum, and the structure of multiplication
+  by `Complex.I` on a complex bundle (see *Constructions*); and for $E=TM$,
+  for every $n$, the identification with
   `ContMDiffAlmostComplexStructure I n M`, under which the map to
   `ContinuousComplexStructure` is Tau Ceti's
   `ContMDiffAlmostComplexStructure.toContinuousComplexStructure`
@@ -635,6 +822,10 @@ it into issues; the overview fixes its folders and its dependencies.
   `ContMDiffSection.continuous_frameTopology_iff`; the file has the name of
   the Tau Ceti file that defines that topology, so that the two merge
   upstream),
+  `Geometry/Manifold/VectorBundle/Hermitian/Basic.lean` (the symplectic form
+  of a Hermitian bundle; see *Constructions* below),
+  `.../Hermitian/CircleBundle.lean` (the unit circle bundle of a Hermitian
+  line bundle as a principal `Circle`-bundle; see *Constructions*),
   `Geometry/Manifold/VectorBundle/Hermitian/Surface.lean` (unitary
   trivializations along curves and over compact connected oriented surfaces
   with nonempty boundary).
@@ -651,7 +842,8 @@ it into issues; the overview fixes its folders and its dependencies.
   structures (`Geometry/Symplectic/Manifold/AlmostComplex/ContMDiff.lean`,
   `.../AlmostComplex/ComplexTangentBundle.lean`), and its other
   results for $E=TM$ (`Geometry/Symplectic/Manifold/`), which it generalizes
-  rather than duplicates.
+  rather than duplicates; for the constructions, the pieces listed under
+  *Constructions*.
 - **Milestones:** *Symplectic vector bundles are complex vector bundles*,
   *Compatible and tame complex structures on symplectic vector bundles*,
   *Unitary trivializations over surfaces with boundary*.
@@ -683,6 +875,176 @@ it into issues; the overview fixes its folders and its dependencies.
   for `frameTopology`; `ContMDiffSection.continuous_totalSpace_eval` and
   `locallyConvexSpace_frameTopology` give the evaluation and the convex
   combinations.
+- **Constructions.** *First Chern number* needs four ways to make symplectic
+  bundles, which this part provides, in the namespace
+  `SymplecticGeometry.Bundle` unless a name says otherwise. None of them is
+  a new type of bundle: each is a form, a complex structure or a lemma on
+  bundles that Mathlib or Tau Ceti already builds. Forms are elements of
+  the type of two-forms on a bundle that `Symplectic/Basic.lean` defines
+  (`ContMDiffTwoForm I n F E`, a $C^n$ section of the bundle of alternating
+  maps, with the predicate `ContMDiffTwoForm.IsNondegenerate`), and the
+  constructions on forms sit in its namespace, so that dot notation finds
+  them; those on complex structures sit in `ContMDiffComplexStructure`, in
+  `ComplexStructure.lean`, since they use no form.
+  - *Pull-back* (`Symplectic/Pullback.lean`). For `f : C^n⟮I', N; I, M⟯`,
+    the argument of Mathlib's instance `ContMDiffVectorBundle.pullback`, the
+    pull-back of a form `ω` on `E` to `f *ᵖ E` (`Bundle.Pullback`) is
+    `ContMDiffTwoForm.pullback f ω`, which is Tau Ceti's
+    `ContMDiffSection.pullback ω f` read as a section of the bundle of
+    alternating maps of `f *ᵖ E`: the fibres of the two bundles at `y` are
+    both the alternating maps on `E (f y)`, and the new lemma
+    `Bundle.Pullback.contMDiff_continuousAlternatingMap_section_iff`
+    (`Geometry/Manifold/VectorBundle/Pullback.lean`, in the root namespace
+    `Bundle.Pullback` and not under `SymplecticGeometry`, so that it sits
+    beside Tau Ceti's lemma and moves upstream unrenamed), the analogue for
+    alternating maps of Tau Ceti's
+    `Bundle.Pullback.contMDiff_hom_section_iff`, says that the two
+    smoothness conditions agree. API: `@[simp] pullback_apply` (the value at
+    `y` is `ω (f y)`, from Tau Ceti's `ContMDiffSection.pullback_apply`),
+    `IsNondegenerate.pullback`, and `symplecticFormAt` of the pull-back at
+    `y` is that of `ω` at `f y`. For complex structures,
+    `ContMDiffComplexStructure.pullback f J` (`ComplexStructure.lean`) is
+    `ContMDiffSection.pullback` of the endomorphism section, smooth by
+    `Bundle.Pullback.contMDiff_hom_section_iff` itself, with `@[simp]
+    pullback_toEndomorphism`; `Pullback.lean` adds that tame and compatible
+    pairs pull back to tame and compatible pairs. Isomorphisms: a
+    symplectic isomorphism of bundles pulls back to one (Tau Ceti's
+    `Bundle.Pullback.contMDiff_fiberwise`), a symplectic frame over `U`
+    pulls back to a frame over `f ⁻¹' U`, and the pull-backs along the
+    identity and along `g ∘ f` are symplectically isomorphic to `ω` and to
+    the iterated pull-back, through Tau Ceti's
+    `Bundle.Pullback.idDiffeomorph` and `Bundle.Pullback.compDiffeomorph`.
+  - *Direct sum* (`Symplectic/Prod.lean`). For forms `ω₁` on `E₁` and `ω₂`
+    on `E₂`, the form `ContMDiffTwoForm.prod ω₁ ω₂` on Mathlib's
+    `E₁ ×ᵇ E₂` (`Bundle.Prod`, with `Bundle.Prod.contMDiffVectorBundle`),
+    which is Tau Ceti's linear `TauCeti.SymplecticForm.prod` in each fibre:
+    `@[simp] prod_apply`, $(\omega_1\oplus\omega_2)((v_1,v_2),(w_1,w_2))=
+    \omega_1(v_1,w_1)+\omega_2(v_2,w_2)$, `IsNondegenerate.prod`, and
+    `symplecticFormAt` of the sum is `SymplecticForm.prod` of the two. For
+    complex structures, `ContMDiffComplexStructure.prod J₁ J₂`
+    (`ComplexStructure.lean`), fibrewise
+    `TauCeti.AlmostComplexStructure.prod`; `Prod.lean` adds that tame and
+    compatible pairs are preserved, by Tau Ceti's
+    `SymplecticForm.prod_tames` and `SymplecticForm.prod_compatible`.
+    Smoothness of maps into and out of the sum is Tau Ceti's criterion in
+    `Geometry/Manifold/VectorBundle/Prod.lean`. Isomorphisms: the direct sum
+    of two symplectic isomorphisms is one, and `E₁ ×ᵇ E₂` is symplectically
+    isomorphic to `E₂ ×ᵇ E₁`. Block frames: symplectic frames `Φ₁` of `E₁`
+    for `stdForm ι` and `Φ₂` of `E₂` for `stdForm κ` over a set `U` give the
+    frame of the sum for `stdForm (ι ⊕ κ)` that is their product after
+    `StdSpace.sumEquiv ι κ` (*Standard model*), and the transition map of
+    two such block frames is, through `Matrix.toEuclideanLin`, the
+    `Matrix.symplecticSum` of the two transition maps. So a transition loop
+    of the sum is `TauCeti.GLSymplectic.sum` of the two loops, as
+    `TauCeti.GLSymplectic.maslovIndex_sum` takes it. Tau Ceti's other
+    Whitney sum, `TauCeti.FiniteRankBundleCore.whitneySum`, is a topological
+    construction on bundle cores; this part does not use it, and its total
+    space is identified with that of `×ᵇ` by Tau Ceti's
+    `whitneySumTotalSpaceHomeomorph` where a comparison is needed.
+  - *The tangent bundle of a surface with an area form*
+    (`Symplectic/Basic.lean`, beside the identification with
+    `TauCeti.SmoothTwoForm`). On a manifold `S` whose model space `E` has
+    `finrank ℝ E = 2`, a smooth two-form `σ : TauCeti.SmoothTwoForm I S`
+    that vanishes nowhere is, through that identification, a symplectic
+    form on `TangentSpace I`: the lemma
+    `isNondegenerate_iff_forall_ne_zero_of_finrank_eq_two` (of the
+    identified form) comes from Tau Ceti's
+    `TauCeti.SmoothTwoForm.isNondegenerate_iff_forall_ne_zero_of_finrank_eq_two`.
+    No definition is added. The orientation that `σ` induces is Tau Ceti's
+    symplectic orientation `TauCeti.SmoothTwoForm.IsNondegenerate.volumeOrientation`
+    with `n = 1`, and *First Chern number* states with it that an area form
+    induces a given orientation; no second name for it is introduced. As it
+    involves no bundle form, the lemma
+    `TauCeti.SmoothTwoForm.IsNondegenerate.volumeOrientation_neg` goes in
+    `Geometry/Symplectic/Manifold/Volume.lean`, in Tau Ceti's namespace so
+    that it can move there: for odd
+    `n`, the symplectic orientation of `-σ` (with Tau Ceti's
+    `IsNondegenerate.neg`) is the negation of that of `σ`, since the volume
+    form of `-σ` is $(-1)^n$ times that of `σ` and
+    `Manifold.Orientation.orientation_eq_orientationAt_ofTopForm_iff`
+    reverses with the sign of the form.
+  - *Hermitian bundles* (`Hermitian/Basic.lean`). A Hermitian bundle is
+    represented as Tau Ceti does in
+    `Geometry/Manifold/VectorBundle/Riemannian/LineSplitting.lean`: a complex
+    vector bundle `[VectorBundle ℂ F V]`, smooth as a real bundle through
+    `VectorBundle.restrictScalars`, with
+    `g : Bundle.ContMDiffRiemannianMetric I n F V` and
+    `hI : ∀ x v w, g.inner x (Complex.I • v) (Complex.I • w) = g.inner x v w`;
+    a Hermitian line bundle is the case `finrank ℂ F = 1`. Multiplication by
+    `Complex.I` is `ContMDiffComplexStructure.ofComplexModule`
+    (`ComplexStructure.lean`, for any complex bundle, with no metric), whose
+    section is smooth by Tau Ceti's `TauCeti.contMDiff_smulIEquiv_bundle`
+    and whose map to `TauCeti.Bundle.ContinuousComplexStructure` gives back
+    the complex structure of `V`. The form
+    `Bundle.ContMDiffRiemannianMetric.hermitianTwoForm g hI` (in the root
+    namespace `Bundle.ContMDiffRiemannianMetric`, outside
+    `SymplecticGeometry`, so that `g.hermitianTwoForm hI` resolves) has at
+    `x` the value `(AlmostComplexStructure.ofComplexModule (V x)).symplecticForm _`,
+    Tau Ceti's form $g_x(J\cdot,\cdot)$ of an orthogonal complex structure
+    (`Geometry/Symplectic/CompatibleMetric.lean`), with the orthogonality
+    from `hI` as in Tau Ceti's `complexInnerProductSpace`
+    (`Riemannian/Hermitian.lean`); so $\omega_x(v,w)=g_x(iv,w)$
+    (`hermitianTwoForm_apply`, from `symplecticForm_apply`), and
+    nondegeneracy comes with Tau Ceti's definition. New are: compatibility
+    with `ofComplexModule`, with $\omega(v,iw)=g(v,w)$; that $\omega$ is the
+    imaginary part of the Hermitian product of
+    `g.complexInnerProductSpace hI` (a short consequence of Tau Ceti's
+    `Bundle.ContMDiffRiemannianMetric.complexInnerProductSpace_inner` and
+    `symplecticForm_apply`; conjugate-linear in its first argument,
+    as in Mathlib); and, on the trivial line bundle with fibre `Fin 1 → ℂ`
+    and the standard metric, that `complexToRealEuclidean (Fin 1)` carries
+    it to `stdForm (Fin 1)`, so the conventions agree with *Standard model*.
+  - *The circle bundle of a Hermitian line bundle*
+    (`Hermitian/CircleBundle.lean`). With the fibre norm of `g` (the local
+    `RiemannianBundle V` of `g.toRiemannianMetric`), the circle bundle is the
+    subtype `{p : TotalSpace F V // ‖p.snd‖ = 1}`, used throughout: it is
+    the type on which Tau Ceti's `sphereBundleChartedSpace` and
+    `isManifold_sphereBundle` (`Riemannian/Sphere.lean`, radius `1`) put the
+    smooth structure. Tau Ceti's set `TauCeti.sphereBundle F V` has the same
+    membership condition (`TauCeti.mem_sphereBundle`, by `Iff.rfl`), and a
+    lemma of `Topology/VectorBundle/SphereBundle/` is used through the
+    homeomorphism `Homeomorph.setCongr` that this gives; no second circle
+    bundle type is introduced. Its principal-bundle form is Tau Ceti's
+    rank-one unitary frame bundle `OrthonormalFrameBundle.Fiber ℂ F V ℂ`,
+    whose fibre at `x` is `ℂ ≃ₗᵢ[ℂ] V x` for the inner product
+    `g.complexInnerProductSpace hI`, and which
+    `OrthonormalFrameBundle.instPrincipalBundleFiber` makes a principal
+    bundle for `unitary (ℂ →L[ℂ] ℂ)`. The file gives: the homeomorphism from
+    the total space of that bundle to the subtype, sending a frame `φ` to
+    `φ 1`; the isomorphism of topological groups from `unitary (ℂ →L[ℂ] ℂ)`
+    to `Circle`, the case `𝕜 = ℂ` of the isomorphism below composed with
+    Tau Ceti's `circleEquivUnitary`, which the homeomorphism turns into the action of `Circle` on the subtype by
+    scalar multiplication in the fibres, smooth and free with the fibres as
+    orbits; and the `TauCeti.PrincipalBundle Circle` instance on
+    `Fiber ℂ F V ℂ` that *First Chern number* asks for, whose trivializations
+    are those of `instPrincipalBundleFiber` followed by that isomorphism.
+    The isomorphism of `unitary (𝕜 →L[𝕜] 𝕜)` with `unitary 𝕜` involves no
+    bundle and holds for every `RCLike 𝕜`, so it has a file of its own,
+    `Analysis/CStarAlgebra/Unitary/ContinuousLinearMap.lean`. As a group
+    isomorphism it is already in Tau Ceti
+    (`Analysis/InnerProductSpace/StrongUnitary/Basic.lean`): the inverse of
+    `TauCeti.StrongUnitary.unitaryEquivStrongUnitary 𝕜`
+    (`unitary 𝕜 ≃ₜ* StrongUnitary 𝕜 𝕜`, `α ↦ α • 1`, inverse `u ↦ u 1`)
+    followed by `TauCeti.StrongUnitary.mulEquivUnitary`
+    (`StrongUnitary 𝕜 H ≃* unitary (H →L[𝕜] H)`, the identity on the
+    underlying maps). Tau Ceti's topology there is the strong operator
+    topology, whereas `OrthonormalFrameBundle` gives `unitary (𝕜 →L[𝕜] 𝕜)`
+    the norm topology, so the only new content is continuity for the norm.
+    The file defines, in Mathlib's root namespace `Unitary` (it is about
+    Mathlib's `unitary`), the `ContinuousMulEquiv`
+    `Unitary.continuousLinearMapSelfEquiv 𝕜 : unitary (𝕜 →L[𝕜] 𝕜) ≃ₜ* unitary 𝕜`,
+    whose `MulEquiv` is by definition
+    `((unitaryEquivStrongUnitary 𝕜).toMulEquiv.trans
+    StrongUnitary.mulEquivUnitary).symm`
+    (`Unitary.toMulEquiv_continuousLinearMapSelfEquiv`, by `rfl`), so that
+    the library has one identification of this group and not two. Both
+    directions are continuous by the arguments of Tau Ceti's proof,
+    `continuous_eval_const 1` and `continuous_id.smul continuous_const`.
+    Its API: `Unitary.coe_continuousLinearMapSelfEquiv_apply` (the value is
+    `(u : 𝕜 →L[𝕜] 𝕜) 1`) and `Unitary.continuousLinearMapSelfEquiv_symm_apply`
+    (`α` acts by `x ↦ α * x`), both `@[simp]`.
+    The connection forms on the circle bundle and their curvature are
+    prerequisites of *First Chern number*, which its design lists.
 - **The design file decides:** the details of
   `ContMDiffComplexStructure` and its subtypes; the precise form of the
   section spaces above (which bundle; the cover, which `frameTopology` takes
@@ -693,18 +1055,21 @@ it into issues; the overview fixes its folders and its dependencies.
 
 ### 13. First Chern number (needs `design/first-chern-number.md`)
 
-- **Files:** `Geometry/Manifold/VectorBundle/ChernNumber/Basic.lean` (the
-  first Chern number of a symplectic bundle over a closed connected oriented
-  surface, through a splitting of the surface and the Maslov index of the
-  overlap loop; the extension lemma for maps from the boundary into
-  $\mathrm{Sp}(2n)$), `.../Axioms.lean` (naturality, functoriality,
-  additivity, normalization, uniqueness), `.../ChernWeil.lean`,
-  `.../EulerNumber.lean` (comparison with Tau Ceti's Euler class and
+- **Files:** `Topology/VectorBundle/Complex/FirstChernClass.lean` (the
+  first Chern class of a complex bundle, as `TauCeti.complexEulerClass` of
+  its determinant line, and the first Chern number over a compact oriented
+  surface), and in `Geometry/Manifold/VectorBundle/ChernNumber/`:
+  `Basic.lean` (the number of a symplectic bundle, through a compatible
+  complex structure), `Clutching.lean` (the disc clutching formula, by
+  determinants and Maslov indices), `Gluing.lean`, `Axioms.lean`
+  (naturality, functoriality, additivity, normalization, uniqueness),
+  `ChernWeil.lean`, `EulerNumber.lean` (with
   `TauCeti.VectorBundleOrientation.evalFundamentalClass_eulerClass_eq_sum_sectionIndex`),
-  `.../Clutching.lean` (comparison with Tau Ceti's `TauCeti.clutchingNumber`
-  (`Topology/VectorBundle/Complex/Clutching.lean`) for the complex bundle
-  given by a compatible structure, and with `TauCeti.complexEulerClass`
-  (`Topology/VectorBundle/Orientation/Complex/EulerClass.lean`)).
+  `ClutchingNumber.lean` (comparison with Tau Ceti's
+  `TauCeti.clutchingNumber`, `Topology/VectorBundle/Complex/Clutching.lean`)
+  and `Splitting.lean` (the splitting description through the Maslov index
+  of the overlap loop, and the extension lemma for maps from the boundary
+  into $\mathrm{Sp}(2n)$). `design/first-chern-number.md` gives the details.
 - **Builds on:** *Maslov index* (symplectic loops), *Symplectic vector
   bundles*, Tau Ceti's degree of maps (`TauCeti.HomologicalOrientation.degree`),
   surface genus (`TauCeti.surfaceGenus`), integration of top forms
@@ -713,13 +1078,13 @@ it into issues; the overview fixes its folders and its dependencies.
 - **Milestones:** *First Chern number of symplectic vector bundles over
   surfaces*, *Chern–Weil formula for circle bundles over surfaces*, *First
   Chern number as an Euler number*.
-- This part needs the most infrastructure that neither library has
-  (decomposition of closed surfaces, degree with regular values linked to the
-  splitting, principal connections on circle bundles). Its design file lists
-  those prerequisites as separate issues before any of its own, and decides
-  whether the Chern number is defined by the splitting, as in the book, or
-  from `clutchingNumber` or `complexEulerClass`, with the book's description
-  as a theorem.
+- The number is defined from `complexEulerClass` of the determinant line;
+  the splitting description of the book, the disc clutching formula and
+  `clutchingNumber` are theorems, and no decomposition of surfaces is
+  needed. The infrastructure that neither library has (determinant lines,
+  coordinate discs, boundary degrees on surfaces with boundary, connection
+  forms on circle bundles, among others) comes as prerequisite issues
+  before the part's own, as the design file lists them.
 
 ## Dependencies and build order
 
@@ -731,12 +1096,12 @@ Each part depends only on the parts listed, besides Mathlib and Tau Ceti.
 | 0 | *Symplectic group* | — |
 | 0 | *Linear Moser* | — |
 | 1 | *Unitary group topology* | *Symplectic group* (only the file on $\mathrm{Sp}(2n)$; the other files can start at once) |
-| 1 | *Symplectic vector spaces* | *Standard model* |
+| 1 | *Symplectic vector spaces* | *Standard model*, *Symplectic group* |
 | 1 | *Lagrangian Grassmannian* | *Standard model* |
 | 1 | *Linear nonsqueezing* | *Standard model* |
 | 1 | *Linear complex structures* | *Standard model* |
 | 1 | *Siegel upper half space* | *Standard model* |
-| 2 | *Compatible complex structures* | *Standard model*, *Linear complex structures* |
+| 2 | *Compatible complex structures* | *Standard model*, *Symplectic vector spaces* |
 | 2 | *Maslov index* | *Standard model*, *Symplectic group*, *Unitary group topology*; its Lagrangian issues also *Lagrangian Grassmannian* |
 | 3 | *Symplectic vector bundles* | *Compatible complex structures*, *Linear Moser* |
 | 4 | *First Chern number* | *Symplectic vector bundles*, the symplectic-loop issues of *Maslov index* |

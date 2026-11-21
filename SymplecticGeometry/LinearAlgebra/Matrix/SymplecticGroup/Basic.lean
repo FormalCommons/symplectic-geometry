@@ -8,7 +8,10 @@ module
 public import Mathlib.LinearAlgebra.SymplecticGroup
 
 /-!
-# The symplectic group and the conjugate transpose
+# The matrix `J` and the symplectic group
+
+The entries of Mathlib's `Matrix.J l R`, the block matrix `fromBlocks 0 (-1) 1 0`, are given
+block by block as `simp` lemmas, so that `simp` evaluates `J` at indices `Sum.inl i`, `Sum.inr j`.
 
 Over a commutative star ring `R`, the conjugate transpose `Aᴴ` of a matrix `A` is the transpose of
 its entrywise conjugate. Both operations preserve the symplectic group `Sp(2n, R)` (Mathlib's
@@ -17,6 +20,8 @@ when `A` is.
 
 ## Main results
 
+* `Matrix.J_inl_inl`, `Matrix.J_inl_inr`, `Matrix.J_inr_inl`, `Matrix.J_inr_inr`: the four
+  blocks of `Matrix.J`.
 * `SymplecticGroup.star_mem`: the conjugate transpose of a symplectic matrix is symplectic.
 * `SymplecticGroup.star_mem_iff`: a matrix is symplectic exactly when its conjugate transpose is.
 
@@ -27,6 +32,28 @@ when `A` is.
 -/
 
 public section
+
+namespace Matrix
+
+variable {l R : Type*} [DecidableEq l] [CommRing R] (i j : l)
+
+/-- The upper left block of `Matrix.J` is zero. -/
+@[simp]
+theorem J_inl_inl : J l R (.inl i) (.inl j) = 0 := rfl
+
+/-- The upper right block of `Matrix.J` is `-1`. -/
+@[simp]
+theorem J_inl_inr : J l R (.inl i) (.inr j) = -(1 : Matrix l l R) i j := rfl
+
+/-- The lower left block of `Matrix.J` is `1`. -/
+@[simp]
+theorem J_inr_inl : J l R (.inr i) (.inl j) = (1 : Matrix l l R) i j := rfl
+
+/-- The lower right block of `Matrix.J` is zero. -/
+@[simp]
+theorem J_inr_inr : J l R (.inr i) (.inr j) = 0 := rfl
+
+end Matrix
 
 open Matrix
 
