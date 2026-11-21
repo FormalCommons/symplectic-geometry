@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Manifold.DifferentialForm.Flow.Family
+public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Family
 import TauCeti.Analysis.ODE.ScalarLinear
 
 /-!
@@ -51,7 +52,11 @@ The file also records how slices behave under pullback along `id × f : ℝ × M
 smooth `f : M → N`. The slice of `(id × f)^* α` at time `t` is `f^* α_t`, and the slice at time
 `t` of its time derivative (`TauCeti.SmoothForm.timeDeriv`) is the pullback along `f` of the
 slice of `∂_t α`: both are the velocity of `u ↦ f^* α_u`, by Tau Ceti's
-`TauCeti.SmoothForm.hasDerivAt_mpullback_prodMk_timeDeriv`.
+`TauCeti.SmoothForm.hasDerivAt_mpullback_prodMk_timeDeriv`. The same lemma computes the velocity
+of the reparametrized segment `α₀ + c(t) (α₁ - α₀)` of forms
+(`TauCeti.SmoothForm.lineMapFamily`): its slice at time `t` is `c'(t) (α₁ - α₀)`. The
+computation is the one in the private `moserRate_eq_zero` of Tau Ceti's
+`TauCeti/Geometry/Symplectic/Manifold/RelativeMoser.lean`.
 
 ## Main results
 
@@ -68,6 +73,8 @@ slice of `∂_t α`: both are the velocity of `u ↦ f^* α_u`, by Tau Ceti's
 * `TauCeti.SmoothForm.mpullback_prodMk_mpullback_prodMap`: `ι_t^* (id × f)^* α = f^* ι_t^* α`.
 * `TauCeti.SmoothForm.mpullback_prodMk_timeDeriv_mpullback_prodMap`: the same for the time
   derivative, `ι_t^* ∂_t ((id × f)^* α) = f^* ι_t^* ∂_t α`.
+* `TauCeti.SmoothForm.mpullback_prodMk_timeDeriv_lineMapFamily`: the velocity of the segment
+  `α₀ + c(t) (α₁ - α₀)` at time `t` is `c'(t) (α₁ - α₀)`.
 
 ## References
 
@@ -275,6 +282,29 @@ theorem mpullback_prodMk_timeDeriv_mpullback_prodMap (f : M → N) (hf : ContMDi
   have hs (u : ℝ) := congrArg (fun γ ↦ γ.val x) (mpullback_prodMk_mpullback_prodMap f hf α u)
   simp only [hs, hx] at h₁ ⊢
   exact h₁.unique h₂
+
+/-! ### The velocity of a reparametrized segment -/
+
+/-- **The velocity of a reparametrized segment of forms.** The slice at time `t` of the time
+derivative of `TauCeti.SmoothForm.lineMapFamily α₀ α₁ hc`, the family `α₀ + c(t) (α₁ - α₀)`, is
+`c'(t) (α₁ - α₀)`. -/
+theorem mpullback_prodMk_timeDeriv_lineMapFamily (α₀ α₁ : SmoothForm I M F k) {c : ℝ → ℝ}
+    (hc : ContDiff ℝ ∞ c) (t : ℝ) :
+    mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id)
+      (lineMapFamily α₀ α₁ hc).timeDeriv = deriv c t • (α₁ - α₀) := by
+  apply Subtype.ext
+  funext x
+  have h := (lineMapFamily α₀ α₁ hc).hasDerivAt_mpullback_prodMk_timeDeriv t x
+  simp only [mpullback_prodMk_lineMapFamily] at h
+  refine h.unique ?_
+  have hct : HasDerivAt c (deriv c t) t :=
+    ((hc.of_le (by simp) : ContDiff ℝ 1 c).differentiable one_ne_zero t).hasDerivAt
+  -- The values of the slices are read in the model fibre `E [⋀^Fin k]→L[ℝ] F`.
+  have h2 : HasDerivAt (F := E [⋀^Fin k]→L[ℝ] F)
+      (fun u ↦ (α₀.val x : E [⋀^Fin k]→L[ℝ] F) + c u • ((α₁ - α₀).val x : E [⋀^Fin k]→L[ℝ] F))
+      (deriv c t • ((α₁ - α₀).val x : E [⋀^Fin k]→L[ℝ] F)) t :=
+    (hct.smul_const _).const_add _
+  exact h2
 
 end TauCeti.SmoothForm
 

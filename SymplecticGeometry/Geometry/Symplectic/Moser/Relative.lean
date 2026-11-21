@@ -13,6 +13,8 @@ import TauCeti.Geometry.Manifold.Flow.TimeDependent.RestPoint
 import TauCeti.Geometry.Symplectic.Hamiltonian.SymplecticVectorField
 import TauCeti.Geometry.Symplectic.Manifold.Opens
 import SymplecticGeometry.Geometry.Symplectic.Manifold.Family
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Flow.Family
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Family
 import SymplecticGeometry.Geometry.Symplectic.Manifold.Flat
 
 /-!
