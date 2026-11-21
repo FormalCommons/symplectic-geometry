@@ -339,7 +339,7 @@ because along one trajectory nothing else is needed. Expected size: 100
 lines.
 
 The second, added by *Hamiltonian flows* for `PoissonAlgebra.lean`, under
-`[IsManifold I ∞ M]`, is Tau Ceti's
+the same `[IsManifold I 2 M]`, is Tau Ceti's
 `mpullback_timeDependentFlowOf_mpullback_prodMk_apply_eq_of_mem` for the
 constant family of a closed form whose contractions are closed:
 

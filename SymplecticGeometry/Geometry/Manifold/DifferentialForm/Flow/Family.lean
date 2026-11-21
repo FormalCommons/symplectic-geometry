@@ -9,7 +9,7 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.Flow.Family
 import TauCeti.Analysis.ODE.ScalarLinear
 
 /-!
-# Rescaling of a family of forms along one trajectory of a time-dependent flow
+# Moser's principle along trajectories of local time-dependent flows
 
 Let `X` be a jointly `C²` time-dependent vector field on a finite-dimensional manifold `M`
 without boundary, with time-dependent flow `φ_{s,t}` (`TauCeti.timeDependentFlowOf`), and let `α`
@@ -71,13 +71,9 @@ namespace TauCeti
 
 variable {E H M F : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
   [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [I.Boundaryless]
-  [TopologicalSpace M] [ChartedSpace H M] [T2Space M]
+  [TopologicalSpace M] [ChartedSpace H M] [IsManifold I 2 M] [T2Space M]
   [NormedAddCommGroup F] [NormedSpace ℝ F] {k : ℕ}
-  {X : ℝ → (x : M) → TangentSpace I x}
-
-section Rescaling
-
-variable [IsManifold I 2 M] {α : RoughForm (𝓘(ℝ, ℝ).prod I) (ℝ × M) F k}
+  {X : ℝ → (x : M) → TangentSpace I x} {α : RoughForm (𝓘(ℝ, ℝ).prod I) (ℝ × M) F k}
 
 /-- **Moser's principle along a trajectory**, rescaling case. Let `X` be a jointly `C²`
 time-dependent vector field with time-dependent flow `φ`, defined at `x` from time `s` to time `t`,
@@ -128,12 +124,6 @@ mpullback_timeDependentFlowOf_mpullback_prodMk_apply_eq_exp_integral_smul_of_for
   exact eq_exp_integral_smul_of_hasDerivWithinAt_smul (V := E [⋀^Fin k]→L[ℝ] F) ordConnected_uIcc
     hc hP left_mem_uIcc right_mem_uIcc
 
-end Rescaling
-
-section Constant
-
-variable [IsManifold I ∞ M]
-
 /-- **Local time-dependent flows preserve closed forms with closed contractions.** Let `X` be a
 jointly `C²` time-dependent vector field and `β` a closed smooth form whose contraction
 `ι_{X_t} β` is closed for every time `t`. Wherever the time-dependent flow `φ` of `X` from
@@ -171,8 +161,6 @@ theorem mpullback_timeDependentFlowOf_apply_of_mextDeriv_interior_eq_zero
   simpa only [hslice] using
     mpullback_timeDependentFlowOf_mpullback_prodMk_apply_eq_of_mem hX
       (α.contMDiff.of_le (by simp)) hL h
-
-end Constant
 
 end TauCeti
 
