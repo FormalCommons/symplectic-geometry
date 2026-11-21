@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 public import TauCeti.Geometry.Contact.Flat
 public import TauCeti.Geometry.Contact.StableHamiltonian
 public import TauCeti.Geometry.Contact.Volume
@@ -78,21 +79,6 @@ variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [Topological
 section Basic
 
 variable [IsManifold I 2 M] {α : SmoothForm I M ℝ 1} {σ : SmoothForm I M ℝ 2}
-
-/-- The bilinear form of a scalar multiple of a two-form is the same multiple of its bilinear
-form. -/
-@[simp]
-theorem bilinFormAt_smul (c : ℝ) (σ : SmoothForm I M ℝ 2) (x : M) :
-    (c • σ).bilinFormAt x = c • σ.bilinFormAt x := by
-  ext v w
-  simp [SmoothBundleForm.eval₂_apply]
-
-/-- The bilinear form of the negative of a two-form is the negative of its bilinear form. -/
-@[simp]
-theorem bilinFormAt_neg (σ : SmoothForm I M ℝ 2) (x : M) :
-    (-σ).bilinFormAt x = -σ.bilinFormAt x := by
-  ext v w
-  simp [SmoothBundleForm.eval₂_apply]
 
 /-- Multiplying the two-form by a nonzero constant does not change the characteristic vector
 field. -/
