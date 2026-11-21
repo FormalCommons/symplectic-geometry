@@ -144,8 +144,8 @@ submanifold theorem raises a third.
   depend on $t$. Its pull-back by a smooth retraction $r$ of a tubular
   neighbourhood onto $Q$ is therefore closed too, so subtracting it leaves a
   primitive of $\partial_t\omega_t$, and this one vanishes on $TQ$.
-  The relative Moser theorem for a family (*Moser isotopy*'s `Isotopy.lean`,
-  see *What the part uses*) then gives $\chi_t$ fixing $Q$ with
+  The relative Moser theorem along a family (`Moser/Family.lean` below)
+  then gives $\chi_t$ fixing $Q$ with
   $\chi_t^*\omega_t=\omega$ near $Q$, and $F_t=G_t\circ\chi_t$ is the wanted
   family. Nothing in this argument uses the constant rank of $i^*\omega$. So
   the library proves the theorem for every compact embedded submanifold,
@@ -183,8 +183,11 @@ Further choices of this design:
   adds on Tau Ceti's type. The atlas's correspondence page notes that
   `SmoothIsotopy` has no symplectic field, and the predicate is what each
   milestone needs.
-- **Families over `ℝ` only inside proofs.** As `DESIGN.md` asks, statements
-  use families over `unitInterval`. A proof that runs a flow extends its
+- **Families over `ℝ` only inside proofs.** As `DESIGN.md` asks, the
+  milestones and the extension theorems use families over `unitInterval`.
+  The one exception is the Moser lemma along a family in `Moser/Family.lean`.
+  It is a tool for proofs, and it takes its family over `ℝ` as Tau Ceti's
+  Moser theorems do. A proof that runs a flow extends its
   family past both ends with *Smooth families*' `TimeExtension.lean`, and
   then reparametrizes into an open interval where its open conditions hold.
   This gives the vector field over `ℝ` that `timeDependentFlowDiffeotopy`
@@ -200,16 +203,18 @@ Further choices of this design:
 | `Geometry/Manifold/SmoothIsotopy/Extension.lean` | time extension of an isotopy past its ends, and isotopy extension at every time (named like Tau Ceti's file) |
 | `Geometry/Symplectic/IsotopyExtension/Velocity.lean` | `SmoothIsotopy.IsSymplectic`, velocity forms, their closedness, the link with `HasHamiltonian` |
 | `Geometry/Symplectic/IsotopyExtension/Flow.lean` | extension of a family of symplectic embeddings by an ambient symplectic or Hamiltonian flow |
-| `Geometry/Symplectic/Moser/Parametric.lean` | Moser's argument with a parameter, relative to a compact set, and parametric radial primitives |
+| `Geometry/Symplectic/Moser/Family.lean` | Moser's argument near a compact set along a family, and with a parameter; parametric radial primitives |
 | `Geometry/Symplectic/IsotopyExtension/Ball/Basic.lean` | `IsSymplecticBallEmbedding`, `IsSymplecticBallFamily`, enlarging a symplectic ball |
 | `Geometry/Symplectic/IsotopyExtension/Ball/Isotopy.lean` | the Hamiltonian ball extension and the milestone *Symplectic ball extension* |
 | `Geometry/Symplectic/IsotopyExtension/Cohomological/Primitive.lean` | ambient closed forms with prescribed periods, and primitives on one neighbourhood for all times |
 | `Geometry/Symplectic/IsotopyExtension/Cohomological/Basic.lean` | the milestone *Symplectic isotopy extension* |
 | `Geometry/Symplectic/IsotopyExtension/Submanifold.lean` | the milestone *Neighbourhood extension of submanifold isotopies* |
 
-`Moser/Parametric.lean` sits in the folder of *Moser isotopy*, beside that
+`Moser/Family.lean` sits in the folder of *Moser isotopy*, beside that
 part's files, because its subject is Moser's argument. It is a file of this
-part, which only the ball theorem uses. Where a Tau Ceti file has the same
+part: *Moser isotopy* proves its milestone fixing a submanifold for the
+linear segment between two forms, and the submanifold theorem here needs a
+general family, which is not on a segment. Where a Tau Ceti file has the same
 name (`Extension.lean`, `Connected.lean`), the two merge upstream, as
 `DESIGN.md`'s *Principles* allow. No folder of this part has the name of a
 Tau Ceti file.
@@ -420,7 +425,8 @@ both:
    both contractions are $dh_t$ (resp. $k_t^*\beta_t+dh_t$), and $dk_t$ is
    onto. Uniqueness of integral curves gives `Φ (t, f₀ x) = k (t, x)`.
 5. In the Hamiltonian case `Φ.HasHamiltonian ω.val (fun p ↦ H (p.2, Φ (p.2, p.1)))`,
-   by the time-dependent version of Tau Ceti's
+   by *Hamiltonian flows*' `exists_isCompactlySupportedHamiltonian`, or by
+   the time-dependent version of Tau Ceti's
    `TauCeti.Diffeotopy.hasHamiltonian_globalFlowDiffeotopy` (see *What the
    part uses*). In the other case the slices preserve `ω` by
    `TauCeti.mpullback_timeDependentFlowOf_of_mextDeriv_interior_eq_zero`,
@@ -428,9 +434,48 @@ both:
 
 Expected size: 450 lines.
 
-### `Geometry/Symplectic/Moser/Parametric.lean`
+### `Geometry/Symplectic/Moser/Family.lean`
 
-Moser's argument for the linear paths $\omega_0+s\,d\beta_t$, $s\in[0,1]$, for
+Two forms of Moser's argument near a compact set, both with the cut-off
+Moser field of Tau Ceti's `RelativeMoser.lean` (private there) adapted, and
+both returning a compactly supported `Diffeotopy`. In the first, the
+family runs in the Moser time and is written over `ℝ`, as a form on
+`ℝ × M` with Tau Ceti's slices and `SmoothForm.timeDeriv`
+(`Geometry/Manifold/DifferentialForm/Flow/Family.lean`). Callers extend
+their families over `unitInterval` with `TimeExtension.lean`, which keeps
+the slices. In the second, the parameter is not a time and runs over
+`unitInterval`.
+
+*Along a family*, fixing a compact submanifold `f : SmoothEmbedding J I ∞ Q M`,
+`[CompactSpace Q]`:
+
+```lean
+theorem TauCeti.SmoothEmbedding.exists_diffeotopy_mpullback_eq_of_timeDeriv
+    [I.Boundaryless] [T2Space M] [SecondCountableTopology M] (f : SmoothEmbedding J I ∞ Q M)
+    (σ : SmoothForm (𝓘(ℝ, ℝ).prod I) (ℝ × M) ℝ 2) (hσ : ∀ t, (σ.slice t).IsClosed)
+    (γ : SmoothForm (𝓘(ℝ, ℝ).prod I) (ℝ × M) ℝ 1)
+    (hγ : ∀ t ∈ Icc (0 : ℝ) 1, (σ.timeDeriv.slice t).val = mextDeriv (γ.slice t).val)
+    (hγf : ∀ t ∈ Icc (0 : ℝ) 1, SmoothForm.mpullback f f.contMDiff (γ.slice t) = 0)
+    (hnd : ∀ t ∈ Icc (0 : ℝ) 1, ∀ q, ((σ.slice t).bilinFormAt (f q)).Nondegenerate) :
+    ∃ Ψ : Diffeotopy I ∞ M, (∃ C, IsCompact C ∧ ∀ t, ∀ x ∉ C, Ψ (t, x) = x) ∧
+      (∀ t q, Ψ (t, f q) = f q) ∧
+      ∀ᶠ x in 𝓝ˢ (range f), ∀ t : unitInterval,
+        (SmoothForm.mpullback (Ψ.timeSlice t) (Ψ.timeSlice t).contMDiff
+          (σ.slice t)).val x = (σ.slice 0).val x
+```
+
+The primitive `γ_t` vanishes on the tangent vectors of `Q`. Its correction
+by $dF_t$, with $F_t$ the fibrewise linear function of `γ_t` in a tubular
+neighbourhood (Tau Ceti's `exists_isTubularNeighborhood_subset`), the same
+for every `t`, makes it vanish as a full covector along `Q`. The cut-off
+Moser field then vanishes on `Q`, and Moser's principle along trajectories
+(`mpullback_timeDependentFlowOf_mpullback_prodMk_apply_eq_exp_integral_smul_of_mem`)
+gives the identity near `Q` for every $t\in[0,1]$. This is the argument of
+*Moser isotopy*'s milestone *Relative Moser theorem fixing a submanifold*
+for a general family. If `Moser/Isotopy.lean` is merged first, its
+correction lemma is reused.
+
+*With a parameter*: Moser's argument for the linear paths $\omega_0+s\,d\beta_t$, $s\in[0,1]$, for
 every value of a parameter $t\in[0,1]$, relative to a compact set:
 
 ```lean
@@ -567,7 +612,7 @@ The route keeps the times of `e` exactly:
    family $k_t=k'_t\circ g_t$ is still right along $B(\lambda)$, and
    $k_0=j_0$, $k_1=j_1$ near $B(\lambda)$. For $\lambda>0$ this is the
    source's Theorem A.2.1(iii) step, which keeps both ends.
-3. *Make it symplectic.* `Moser/Parametric.lean`, with $\beta_t$ the
+3. *Make it symplectic.* `Moser/Family.lean`, with $\beta_t$ the
    parametric radial primitive of $k_t^*\omega-\omega_0$ and
    $K=B(\lambda)$, gives $\chi_t$. Here $\beta_0=\beta_1=0$ because $j_0$ and
    $j_1$ are symplectic, so $\chi_0=\chi_1=\mathrm{id}$. The family
@@ -691,7 +736,9 @@ with $\gamma_t$ the velocity form of the restriction of `G` to the identity
 (`Velocity.lean`).
 The form $\gamma_t-r^*(i^*\gamma_t)$, for the retraction `r` of
 `TauCeti.SmoothEmbedding.exists_contMDiffOn_retraction`, vanishes on `TQ`.
-*Moser isotopy*'s relative Moser theorem for a family gives $\chi_t$, and
+The relative Moser theorem along a family of `Moser/Family.lean`, applied to
+the extensions of $\omega_t$ and of this primitive past both ends, gives
+$\chi_t$, and
 $F_t=G_t\circ\chi_t$ on the neighbourhood it provides. Expected size: 350
 lines.
 
@@ -737,7 +784,7 @@ this design already follows. `Ball/Isotopy.lean` cites
   frames along a path of centres.
 - *Smooth families*: `TimeExtension.lean`, Seeley's extension of maps into a
   normed space and of forms on `unitInterval × M` (used by `Extension.lean`,
-  `Flow.lean` and `Moser/Parametric.lean`). It also uses the
+  `Flow.lean` and `Moser/Family.lean`). It also uses the
   finite-dimensionality of `deRhamCohomology I M k` for a compact
   boundaryless `M`, which `DESIGN.md`'s smooth cohomology coordinates of
   `SmoothFamily.lean` rest on (used by `Cohomological/Primitive.lean`).
@@ -745,20 +792,23 @@ this design already follows. `Ball/Isotopy.lean` cites
   smooth family of exact one-forms over $[0,1]$, by path integration from
   base points in each component, which `DESIGN.md` plans for the Hamiltonian
   of a diffeotopy. This part needs it stated for any manifold, so that it
-  applies on an open subset (`Cohomological/Primitive.lean`). In the same
-  file it uses the Hamiltonian of a time-dependent Hamiltonian flow:
-  `TauCeti.Diffeotopy.hasHamiltonian_timeDependentFlowDiffeotopy`, the
-  diffeotopy `timeDependentFlowDiffeotopy` of the field of a smooth
-  `H : ℝ × M → ℝ` has the Hamiltonian `(x, t) ↦ H (t, φ_t x)`. This is the
-  time-dependent version of Tau Ceti's `hasHamiltonian_globalFlowDiffeotopy`
-  (used by `Flow.lean`). If *Hamiltonian flows* does not add it, the issue
-  of `Flow.lean` adds it to that file.
-- *Moser isotopy*: `Isotopy.lean`, the relative Moser theorem fixing a
-  compact submanifold, in the form for a smooth family $\omega_t$ near `Q`
-  with $\partial_t\omega_t=d\sigma_t$ and $i^*\sigma_t=0$. The milestone
-  *Relative Moser theorem fixing a submanifold* is its linear case.
-  `DESIGN.md` records this form (used by `Submanifold.lean`).
-  `Relative.lean` is not used.
+  applies on an open subset (`Cohomological/Primitive.lean`). The design
+  of that part (#491, open) builds this primitive in its Decision 4, and
+  this part asks for it as a public lemma. It also uses the Hamiltonian
+  diffeotopy generated by a smooth function on `M × unitInterval` that
+  vanishes off a compact set, which #491 plans as
+  `TauCeti.Diffeotopy.exists_isCompactlySupportedHamiltonian` in
+  `Flux/CompactSupport.lean`, with the predicate
+  `IsCompactlySupportedHamiltonian` (used by steps 3 and 5 of `Flow.lean`).
+  If that predicate is merged, the conclusions above that say "Hamiltonian
+  with compact support" are stated with it, since it says the same thing.
+  Otherwise the issue of `Flow.lean` proves the time-dependent version of
+  Tau Ceti's `hasHamiltonian_globalFlowDiffeotopy` in `Flux/Hamiltonian.lean`.
+- *Moser isotopy*: no file. Its `Moser/Isotopy.lean` and `Moser/Field.lean`
+  treat the linear segment between two forms, and the families here are not
+  on a segment. `Moser/Family.lean` adapts the same Tau Ceti proofs. If
+  *Moser isotopy*'s cut-off field or its jets are merged first in a form
+  that takes a family, the issue of `Moser/Family.lean` uses them.
 - Tau Ceti, besides the declarations named above:
   `TauCeti.SmoothIsotopy` with `timeSlice`, `ContMDiffMap.smoothIsotopyRefl`;
   `TauCeti.Diffeotopy` with `timeSlice`, `final`, `trans`, `symm`,
@@ -791,9 +841,9 @@ three milestones. They have only the ingredients listed above.
 ## Building issues
 
 In this order; each is blocked by the ones listed. All are sub-issues of
-#474, *Build the part Isotopy extension*. Sizes are estimates. "S14", "S15"
-and "S17" stand for the issues of *Smooth families*, *Hamiltonian flows* and
-*Moser isotopy* that build the files named, as their design files list them.
+#474, *Build the part Isotopy extension*. Sizes are estimates. "S14" and
+"S15" stand for the issues of *Smooth families* and *Hamiltonian flows* that
+build the files named, as their design files list them.
 
 | # | Issue | Files | Blocked by | Size |
 |---|---|---|---|---|
@@ -802,13 +852,13 @@ and "S17" stand for the issues of *Smooth families*, *Hamiltonian flows* and
 | 3 | Embeddings near a compact set | `Geometry/Manifold/SmoothEmbedding/Neighborhood.lean` | — | 250 |
 | 4 | Isotopy extension at every time | `Geometry/Manifold/SmoothIsotopy/Extension.lean` | 3; S14 (`TimeExtension.lean`) | 450 |
 | 5 | Velocity forms of symplectic isotopies | `IsotopyExtension/Velocity.lean` | — | 300 |
-| 6 | Extension by symplectic and Hamiltonian flows | `IsotopyExtension/Flow.lean` | 4, 5; S14 (`TimeExtension.lean`); S15 (`Flux/Hamiltonian.lean`) | 450 |
-| 7 | Moser's argument with a parameter | `Moser/Parametric.lean` | S14 (`TimeExtension.lean`) | 500 |
+| 6 | Extension by symplectic and Hamiltonian flows | `IsotopyExtension/Flow.lean` | 4, 5; S14 (`TimeExtension.lean`); S15 (`Flux/Hamiltonian.lean`, `Flux/CompactSupport.lean`) | 450 |
+| 7 | Moser's argument along a family and with a parameter | `Moser/Family.lean` | S14 (`TimeExtension.lean`) | 550 |
 | 8 | Symplectic ball embeddings and their enlargement | `IsotopyExtension/Ball/Basic.lean` | 3 | 350 |
 | 9 | The symplectic ball extension | `IsotopyExtension/Ball/Isotopy.lean` | 2, 4, 6, 7, 8 | 550 |
 | 10 | Closed forms with prescribed periods, and uniform primitives | `IsotopyExtension/Cohomological/Primitive.lean` | 1, 5; S14 (finite-dimensional `deRhamCohomology`); S15 (`Flux/Hamiltonian.lean`) | 450 |
 | 11 | The symplectic isotopy extension | `IsotopyExtension/Cohomological/Basic.lean` | 6, 10 | 250 |
-| 12 | Neighbourhood extension of submanifold isotopies | `IsotopyExtension/Submanifold.lean` | 4, 5; S17 (`Isotopy.lean`) | 350 |
+| 12 | Neighbourhood extension of submanifold isotopies | `IsotopyExtension/Submanifold.lean` | 4, 5, 7 | 350 |
 
 Issues 1, 2, 3 and 5 can start at once. The milestones are proved in issues 9
 (*Symplectic ball extension*), 11 (*Symplectic isotopy extension*) and 12
