@@ -35,7 +35,8 @@ structures.
   `StdSpace ι` by real and imaginary parts, so that subspaces of `ℂⁿ` can be compared with
   subspaces of the model; it carries multiplication by `I` to `J₀`
   (`stdComplexStructure_complexEuclideanEquiv`).
-* `SymplecticGeometry.StdSpace.swap ι` is the coordinate swap `(x, y) ↦ (y, x)`.
+* `SymplecticGeometry.StdSpace.swap ι` is the coordinate swap `(x, y) ↦ (y, x)`, which reverses
+  the sign of `ω₀` (`stdForm_swap`).
 
 The main facts fixing the conventions are `stdForm_apply`
 (`ω₀(z, w) = ∑ᵢ (xᵢ(z) yᵢ(w) - yᵢ(z) xᵢ(w))`), `stdComplexStructure_eq_toEuclideanLin_J`,
@@ -143,6 +144,14 @@ theorem x_swap (z : StdSpace ι) : (swap ι z).x = z.y := (rfl)
 @[simp]
 theorem y_swap (z : StdSpace ι) : (swap ι z).y = z.x := (rfl)
 
+/-- The `xᵢ`-coordinate of `swap ι z` is the `yᵢ`-coordinate of `z`. -/
+@[simp]
+theorem swap_apply_inl (z : StdSpace ι) (i : ι) : swap ι z (Sum.inl i) = z (Sum.inr i) := (rfl)
+
+/-- The `yᵢ`-coordinate of `swap ι z` is the `xᵢ`-coordinate of `z`. -/
+@[simp]
+theorem swap_apply_inr (z : StdSpace ι) (i : ι) : swap ι z (Sum.inr i) = z (Sum.inl i) := (rfl)
+
 @[simp]
 theorem swap_swap (z : StdSpace ι) : swap ι (swap ι z) = z :=
   StdSpace.ext (by simp) (by simp)
@@ -225,6 +234,27 @@ theorem sq_x_add_sq_y_le_norm_sq (z : StdSpace ι) (i : ι) :
   · exact Finset.single_le_sum (f := fun j ↦ z (Sum.inr j) ^ 2) (fun _ _ ↦ sq_nonneg _)
       (Finset.mem_univ i)
 
+variable (n : ℕ) in
+/-- The linear isometry of `StdSpace (Fin n)` onto `EuclideanSpace ℝ (Fin (n + n))` that
+relabels the coordinates along `finSumFinEquiv`: the `xᵢ` become the first `n` coordinates and
+the `yᵢ` the last `n`. -/
+noncomputable def finSumIsometry : StdSpace (Fin n) ≃ₗᵢ[ℝ] EuclideanSpace ℝ (Fin (n + n)) :=
+  LinearIsometryEquiv.piLpCongrLeft 2 ℝ ℝ finSumFinEquiv
+
+theorem finSumIsometry_def (n : ℕ) :
+    finSumIsometry n = LinearIsometryEquiv.piLpCongrLeft 2 ℝ ℝ finSumFinEquiv :=
+  (rfl)
+
+@[simp]
+theorem finSumIsometry_apply {n : ℕ} (z : StdSpace (Fin n)) (k : Fin (n + n)) :
+    finSumIsometry n z k = z (finSumFinEquiv.symm k) := by
+  simp [finSumIsometry_def, Equiv.piCongrLeft']
+
+@[simp]
+theorem finSumIsometry_symm_apply {n : ℕ} (v : EuclideanSpace ℝ (Fin (n + n)))
+    (i : Fin n ⊕ Fin n) : (finSumIsometry n).symm v i = v (finSumFinEquiv i) := by
+  simp [finSumIsometry_def, Equiv.piCongrLeft']
+
 end StdSpace
 
 open StdSpace
@@ -251,6 +281,12 @@ theorem stdForm_def :
 theorem stdForm_apply (z w : StdSpace ι) :
     stdForm ι z w = ∑ i, (z.x i * w.y i - z.y i * w.x i) := by
   simp [stdForm_def, stdComplexSymplecticForm_apply]
+
+/-- The coordinate swap `(x, y) ↦ (y, x)` reverses the sign of the standard form:
+`ω₀(swap z, swap w) = -ω₀(z, w)`. -/
+theorem stdForm_swap (z w : StdSpace ι) : stdForm ι (swap ι z) (swap ι w) = -stdForm ι z w := by
+  simp only [stdForm_apply, x_swap, y_swap, ← Finset.sum_neg_distrib]
+  exact Finset.sum_congr rfl fun i _ ↦ by ring
 
 variable (ι) in
 /-- The standard complex structure `J₀` on `StdSpace ι`: the transport of multiplication by `I`

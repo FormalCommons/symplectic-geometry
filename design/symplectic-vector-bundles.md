@@ -137,6 +137,7 @@ variable {EB HB M : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB]
 | `Geometry/Manifold/VectorBundle/Hermitian/Basic.lean` | the symplectic form of a Hermitian bundle | 25 |
 | `Geometry/Manifold/VectorBundle/Hermitian/CircleBundle.lean` | the circle bundle of a Hermitian line bundle as a principal `Circle`-bundle | 26 |
 | `Geometry/Manifold/IsManifold/InteriorBoundary.lean` | the interior of a manifold with boundary as a boundaryless manifold | 12 |
+| `Topology/Connected/Clopen.lean` | preconnectedness of a dense subset from local preconnectedness | 12 |
 | `Geometry/Manifold/Boundary/Collar/Push.lean` | pushing a compact manifold with boundary into its interior | 13 |
 | `Geometry/Manifold/VectorBundle/Section/Generic.lean` | sections with closed discrete zero sets over boundaryless manifolds | 14 |
 | `Geometry/Manifold/VectorBundle/Section/Nonvanishing.lean` | smoothing nowhere-zero sections; nowhere-zero sections over surfaces with boundary | 15, 16 |
@@ -148,7 +149,7 @@ says), except its lemma `moserGenerator_conj`, which goes in
 `Geometry/Symplectic/LinearMoser.lean`. The files
 `Analysis/ODE/DysonSeries.lean`, `Section/Topology.lean`, `Section/Generic.lean`,
 `Riemannian/SectionTopology.lean`, `IsManifold/InteriorBoundary.lean`,
-`Geometry/Manifold/VectorBundle/Pullback.lean`,
+`Topology/Connected/Clopen.lean`, `Geometry/Manifold/VectorBundle/Pullback.lean`,
 `Geometry/Symplectic/Manifold/Volume.lean` and the folder `Boundary/Collar/`
 have the names of a Tau Ceti or Mathlib file or
 folder at the same place, so that the two merge upstream.
@@ -167,8 +168,8 @@ file to it.
   about Tau Ceti's weak Whitney topology that the proof of
   `continuous_fiberwiseMap` uses (see *Continuity of fibrewise maps*), and
   sits in the Tau Ceti folder of that topology so that it can merge there.
-- Four files are new (`IsManifold/InteriorBoundary.lean`,
-  `Boundary/Collar/Push.lean`, `Section/Generic.lean`,
+- Five files are new (`IsManifold/InteriorBoundary.lean`,
+  `Topology/Connected/Clopen.lean`, `Boundary/Collar/Push.lean`, `Section/Generic.lean`,
   `Section/Nonvanishing.lean`): they hold the prerequisites of the route to
   the third milestone below, which replaces the book's cutting of the surface.
 - `VectorBundle/Cayley.lean` stands apart from the symplectic files: the
@@ -1642,15 +1643,20 @@ of *Constructions* for *First Chern number*.
     Blockers: 5, 6, 9, 10.
 12. **The interior of a manifold with boundary.**
     `IsManifold/InteriorBoundary.lean`, namespace `ModelWithCorners`:
-    `I.interior M` is open (Mathlib's `ModelWithCorners.isOpen_interior`), and
-    the instance `ModelWithCorners.BoundarylessManifold.interior` makes it, as
+    `I.interior M` is open (Mathlib's `ModelWithCorners.isOpen_interior`) and
+    dense (`ModelWithCorners.dense_interior`); `I.interiorOpens M` is it as an
+    `Opens M`, for `[IsManifold I 1 M]`, and the instance
+    `ModelWithCorners.BoundarylessManifold.interior` makes it, as
     an open submanifold, boundaryless; this is a few lines from Mathlib's
     `isInteriorPoint_iff_isInteriorPoint_val`, as Mathlib's instance
     `BoundarylessManifold.open` shows. Tau Ceti's `BoundarylessModel` gives
-    it charts in the model vector space. For a connected `M` with a model of
-    positive dimension it is connected (`ModelWithCorners.isConnected_interior`),
-    since every boundary point has a neighbourhood whose interior part is
-    connected. Blockers: none.
+    it charts in the model vector space. For a connected `M` it is connected
+    (`ModelWithCorners.isConnected_interior`, and the instance
+    `ModelWithCorners.connectedSpace_interiorOpens`), with no hypothesis on
+    the dimension, since every point has a neighbourhood whose interior part
+    is the image of a convex set in a chart; the topological step,
+    `Dense.isPreconnected_of_forall_exists_mem_nhds`, goes in
+    `Topology/Connected/Clopen.lean`. Blockers: none.
 13. **Pushing into the interior.** `Boundary/Collar/Push.lean`, namespace
     `TauCeti.IsCollar`: for a compact Hausdorff manifold modelled on
     `𝓡∂ (k + 1)` with a collar `hc : IsCollar c` (from Tau Ceti's
