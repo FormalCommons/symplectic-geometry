@@ -612,8 +612,10 @@ on complex structures are in `ContMDiffComplexStructure` and in
   `IsSymplecticFrameOn.mono` (to a smaller set);
   `IsSymplecticFrameOn.isSymplectomorphism` (at `x ∈ U`,
   `σ.IsSymplectomorphism (hω.symplecticFormAt x) (Φ x).toLinearEquiv`, Tau
-  Ceti's predicate of `Geometry/Symplectic/SymplecticTransport.lean`);
-  `IsSymplecticFrameOn.isNondegenerateAt` (on `U` the form is nondegenerate);
+  Ceti's predicate of `Geometry/Symplectic/SymplecticTransport.lean`, for
+  `hω : ω.IsNondegenerate`);
+  `IsSymplecticFrameOn.nondegenerate_bilinFormAt` (`(ω.bilinFormAt x).Nondegenerate`
+  for `x ∈ U`, since `Φ x` carries it to `σ`);
   `IsSymplecticFrameOn.trans` (composing with a symplectic isomorphism `Ψ`
   from `ω` to `ω'` gives a frame `fun x ↦ (Φ x).trans (Ψ x)` of `ω'`); and,
   for `[FiniteDimensional ℝ W]`, the transition map of two frames `Φ`, `Φ'`
