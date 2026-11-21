@@ -306,7 +306,10 @@ theorem exists_isSymplectomorphism_image_eq_stdEllipsoid
 The file first builds `stdDarbouxBasisOf (τ : Fin m ≃ ι) : Module.Basis
 (Fin m × Fin 2) ℝ (StdSpace ι)`, Tau Ceti's `stdDarbouxBasis m` carried to
 `StdSpace ι` by the product comparison of *Standard model* and the relabelling
-`τ`, with `stdDarbouxBasisOf_def`, the `@[simp]` coordinate lemmas
+`τ`, with `stdDarbouxBasisOf_def`, the `@[simp]` basis-vector lemmas
+`stdDarbouxBasisOf_zero` and `_one` (`EuclideanSpace.single (Sum.inl (τ k)) 1`
+and `EuclideanSpace.single (Sum.inr (τ k)) 1`, under `[DecidableEq ι]`), the
+`@[simp]` coordinate lemmas
 `stdDarbouxBasisOf_repr_zero` and `_one` (`x_{τ k}` and `y_{τ k}`),
 `isDarbouxBasis_stdDarbouxBasisOf`, and
 `stdEllipsoidForm_eq_sum_smul_elliptic`: `stdEllipsoidForm r = ∑ k, (2 /

@@ -148,8 +148,7 @@ have the names of a Tau Ceti or Mathlib file or
 folder at the same place, so that the two merge upstream.
 
 **Departures from `DESIGN.md`.** Each has its reason; #59 brings the overview
-in line once this design is merged, and #138 and #157 do so for the
-departures that *Constructions* adds.
+in line once this design is merged.
 
 - The overview's `.../Symplectic/ComplexStructure.lean` becomes a folder of
   two files from the start, since its content is more than one file holds.
@@ -178,31 +177,6 @@ departures that *Constructions* adds.
   manifold parameter instead of derivatives continuous in the parameter (see
   below), and only issue 8 waits for part 9, for its building issues 4, 5
   and 6 (see *What the part uses*).
-- The criterion for area forms is stated for every bundle of rank two, not
-  only for the tangent bundle of a surface, since the proof is the same
-  pointwise fact; the tangent case follows through `tangentEquiv` (see
-  *Constructions*).
-- The overview's `Bundle.ContMDiffRiemannianMetric.hermitianTwoForm` is not
-  defined. Under `hI` it is this design's $\omega_{g,J}$ for $J$ the
-  multiplication by `Complex.I`, so the form of a Hermitian bundle is
-  `(ContMDiffComplexStructure.ofComplexModule I n F V).compatibleForm g`,
-  and the lemmas the overview gives the form are stated for it (see
-  *Hermitian bundles*).
-- `Hermitian/CircleBundle.lean` gives the circle bundle, the action of
-  `Circle` on it and its principal-bundle instance, but not the smoothness
-  of the action, which the overview puts in that file: the smooth side is
-  left to *First Chern number*'s prerequisite 3, as that part's design
-  plans it (see *The circle bundle of a Hermitian line bundle*).
-- `Geometry/Manifold/VectorBundle/Riemannian/Trivial.lean` is a new file,
-  for `Bundle.ContMDiffRiemannianMetric.const`: the standard case of the
-  form of a Hermitian bundle needs a constant metric on a trivial bundle,
-  which neither Mathlib nor Tau Ceti has, and the definition mentions only
-  Mathlib's types (see *Hermitian bundles*).
-- The pull-backs take the section first, `ContMDiffTwoForm.pullback ω f` and
-  `ContMDiffComplexStructure.pullback J f`, where the overview puts the map
-  first: this is the order of Tau Ceti's `ContMDiffSection.pullback`, of
-  which `ContMDiffTwoForm` is an `abbrev`, so both read `ω.pullback f` and
-  `J.pullback f` (see *Pull-backs*).
 
 ## Complex structures on a bundle
 
