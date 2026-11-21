@@ -286,6 +286,15 @@ Lagrangian frames on `StdSpace ι`, pure linear algebra. Namespace
   `StdSpace.isCompl_graphY_ker_y : IsCompl (graphY A) (LinearMap.ker StdSpace.y)`.
   Every `z` is `(z.x, A z.x) + (0, z.y - A z.x)`, and a vector of the graph
   with `x = 0` is zero.
+- The coordinate swap `StdSpace.swap ι : StdSpace ι ≃ₗ[ℝ] StdSpace ι`,
+  `(x, y) ↦ (y, x)`, the composite of `equivProd`, `LinearEquiv.prodComm` and
+  `equivProd.symm`, with `swap_def`, `x_swap`, `y_swap`, `swap_swap` and
+  `symm_swap` (`@[simp]`). It carries `graph A` to `graphY A`
+  (`map_swap_graph`) and `LinearMap.ker StdSpace.x` to `LinearMap.ker StdSpace.y`
+  (`map_swap_ker_x`). So `graphY_injective` and `isCompl_graphY_ker_y` are
+  not proved again: they are `graph_injective` and `isCompl_graph_ker_x`
+  transported along `swap` (`Submodule.map_injective_of_injective`,
+  `OrderIso.isCompl` with `Submodule.orderIsoMapComap`).
 - The comparison with Tau Ceti's complex picture, through
   `StdSpace.complexEuclideanEquiv ι` (written `ε` here). Then
   `StdSpace.map_realSubspace :
@@ -310,6 +319,16 @@ Lagrangian frames on `StdSpace ι`, pure linear algebra. Namespace
   isotropic subspace of half dimension by
   `isLagrangian_iff_isIsotropic_and_two_mul_finrank_eq` of
   `LinearAlgebra/Symplectic/Subspace.lean` (#64).
+- `StdSpace.range_toEuclideanLin_fromRows_eq_map_realImage`: the range of
+  `toEuclideanLin (fromRows X Y)` is `(X + i Y).realImage` mapped by
+  `StdSpace.complexEuclideanEquiv ι`. This is `Matrix.range_toEuclideanLin_fromRows`
+  of `LinearAlgebra/Matrix/OfReal.lean` read through `complexEuclideanEquiv_def`;
+  it lives here because that file does not import `StdSpace`.
+- `StdSpace.range_toEuclideanLin_fromRows_one_eq_graph :
+  LinearMap.range (toEuclideanLin (fromRows 1 A)) = StdSpace.graph A` and
+  `StdSpace.range_toEuclideanLin_fromRows_one_eq_graphY`, the same for
+  `fromRows A 1` and `graphY A`. With `coe_ofFrame`, they read the graph of
+  a symmetric matrix as an `ofFrame`, for the charts.
 - `ℒ.ofFrame (X Y : Matrix ι ι ℝ) (hrank : (fromRows X Y).rank = Fintype.card ι)
   (hXY : Xᵀ * Y = Yᵀ * X) : ℒ ι`, the Lagrangian that the frame spans, with
   `coe_ofFrame` (`@[simp]`): its submodule is the range of
@@ -328,10 +347,10 @@ Lagrangian frames on `StdSpace ι`, pure linear algebra. Namespace
 - `det_ne_zero_of_isLagrangian_range_fromRows`: the complex frame of a
   Lagrangian frame is invertible. The Lagrangian range is maximal totally
   real for `J₀` (`IsLagrangian.isMaximalTotallyReal_of_compatible` with
-  `stdForm_compatible`). By `Matrix.range_toEuclideanLin_fromRows` it is the
-  image under `complexEuclideanEquiv`, which intertwines multiplication by
-  `I` with `J₀` (`stdComplexStructure_complexEuclideanEquiv`), of `(X + i Y).realImage`; so that real image is maximal
-  totally real (`LinearEquiv.isMaximalTotallyReal_map_iff`), and Tau Ceti's
+  `stdForm_compatible`). By `StdSpace.range_toEuclideanLin_fromRows_eq_map_realImage`
+  it is the image under `complexEuclideanEquiv`, which intertwines multiplication by
+  `I` with `J₀` (`stdComplexStructure_complexEuclideanEquiv`), of `(X + i Y).realImage`;
+  so that real image is maximal totally real (`LinearEquiv.isMaximalTotallyReal_map_iff`), and Tau Ceti's
   `isMaximalTotallyReal_realImage_iff` gives `det (X + i Y) ≠ 0`. With
   `Matrix.map_im_conjTranspose_mul_self_eq_zero_of_transpose_mul_eq`
   (a corollary of `Matrix.map_im_conjTranspose_mul_self`,
