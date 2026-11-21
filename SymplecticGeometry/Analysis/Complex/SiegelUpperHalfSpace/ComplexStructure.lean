@@ -8,8 +8,11 @@ module
 public import Mathlib.Analysis.Calculus.ContDiff.Operations
 public import SymplecticGeometry.Analysis.Complex.SiegelUpperHalfSpace.Action
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Matrix
+public import TauCeti.Analysis.Matrix.EuclideanLin
+import TauCeti.Analysis.Calculus.ContinuousLinearMapInverse
 import TauCeti.Analysis.Matrix.Sqrt
 import TauCeti.Data.Matrix.Block
+import TauCeti.Geometry.Symplectic.Complex.Line
 import SymplecticGeometry.LinearAlgebra.Matrix.SymplecticGroup.Basic
 
 /-!
@@ -37,7 +40,9 @@ To a point `Z = X + iY` of the Siegel upper half space this file attaches the re
 * `SiegelUpperHalfSpace.complexStructureMatrix_smul_I`: `J(Ψ • i𝟙) = Ψ J₀ Ψ⁻¹`, and
   `SiegelUpperHalfSpace.complexStructureMatrix_smul`: `J(Ψ • Z) = Ψ J(Z) Ψ⁻¹`.
 * `SiegelUpperHalfSpace.compatible_complexStructure`: `J(Z)` is compatible with `ω₀`.
-* `SiegelUpperHalfSpace.complexStructure_smul`: the same equivariance for the linear maps.
+* `SiegelUpperHalfSpace.complexStructureMatrix_mul_self`: `J(Z)² = -1` whenever `Y` is invertible.
+* `SiegelUpperHalfSpace.complexStructure_smul`: the complex structure of `Ψ • Z` is the transport
+  of that of `Z` along the map of `Ψ`.
 * `SiegelUpperHalfSpace.eq_complexStructure_of_smul`: an equivariant map from the Siegel upper
   half space to the complex structures that sends `i𝟙` to `J₀` is `Z ↦ J(Z)`; and
   `SiegelUpperHalfSpace.eq_compatibleEquiv_iff`: `compatibleEquiv` is the only equivariant
@@ -46,7 +51,9 @@ To a point `Z = X + iY` of the Siegel upper half space this file attaches the re
   `SiegelUpperHalfSpace.contDiffOn_ofComplexStructureMatrix`: both formulas are smooth on open
   sets of matrices containing the Siegel upper half space and the compatible complex structures.
 * `SiegelUpperHalfSpace.complexStructure_single_inl`: for one index, `J(x + iy)` sends `(1, 0)` to
-  `(x + i) / y`, with positive imaginary part, as in Tau Ceti's
+  `(x + i) / y`; and
+  `SiegelUpperHalfSpace.stdComplexSymplecticForm_tames_transport_complexStructure`: moved to `ℂ`,
+  `J(Z)` is tamed by the standard area form, by Tau Ceti's
   `TauCeti.stdComplexSymplecticForm_tames_iff_im_pos`.
 * `SiegelUpperHalfSpace.mulAction_symplecticGroup_and_compatibleEquiv`: the statement of
   McDuff–Salamon's Exercise 2.5.11 and Lemma 2.5.12 as one theorem.
@@ -143,15 +150,13 @@ theorem complexStructureMatrix_smul_I (Ψ : symplecticGroup ι ℝ) :
     complexStructureMatrix ((Ψ • (SiegelUpperHalfSpace.I : SiegelUpperHalfSpace ι) :
         SiegelUpperHalfSpace ι) : Matrix ι ι ℂ) =
       (Ψ : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ) * J ι ℝ * (↑Ψ⁻¹ : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ) := by
-  set Z := Ψ • (SiegelUpperHalfSpace.I : SiegelUpperHalfSpace ι)
+  set Z := Ψ • (SiegelUpperHalfSpace.I : SiegelUpperHalfSpace ι) with hZ
   obtain ⟨G, hG⟩ := Z.posDef_im.exists_generalLinearGroup_mul_transpose_eq
   set Φ : symplecticGroup ι ℝ := ⟨_, fromBlocks_re_mem_symplecticGroup Z G⟩
   have hΦ : Φ • (SiegelUpperHalfSpace.I : SiegelUpperHalfSpace ι) = Z := fromBlocks_re_smul_I Z hG
   set K := Φ⁻¹ * Ψ
   have hK : Commute (J ι ℝ) (K : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ) := by
-    rw [← smul_I_eq_I_iff_commute, mul_smul]
-    change Φ⁻¹ • Z = _
-    rw [← hΦ, inv_smul_smul]
+    rw [← smul_I_eq_I_iff_commute, mul_smul, ← hZ, ← hΦ, inv_smul_smul]
   have hΨ : (Ψ : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ) = Φ * K := by
     rw [← Submonoid.coe_mul, mul_inv_cancel_left]
   have hΨinv : (↑Ψ⁻¹ : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ) =
@@ -188,26 +193,25 @@ theorem complexStructureMatrix_smul (Ψ : symplecticGroup ι ℝ) (Z : SiegelUpp
     _root_.mul_inv_rev, Submonoid.coe_mul, Submonoid.coe_mul]
   simp only [Matrix.mul_assoc]
 
-/-- `J(Z)² = -1`. -/
-theorem complexStructureMatrix_mul_self (Z : SiegelUpperHalfSpace ι) :
-    complexStructureMatrix (Z : Matrix ι ι ℂ) * complexStructureMatrix (Z : Matrix ι ι ℂ) = -1 := by
-  obtain ⟨Φ, rfl⟩ := exists_smul_I_eq Z
-  have h₁ : (↑Φ⁻¹ : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ) * Φ = 1 := by
-    rw [← Submonoid.coe_mul, inv_mul_cancel, OneMemClass.coe_one]
-  have h₂ : (Φ : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ) * (Φ⁻¹).val = 1 := by
-    rw [← Submonoid.coe_mul, mul_inv_cancel, OneMemClass.coe_one]
-  rw [complexStructureMatrix_smul_I]
-  calc (Φ : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ) * J ι ℝ * (Φ⁻¹).val * (Φ * J ι ℝ * (Φ⁻¹).val)
-      = Φ * (J ι ℝ * ((Φ⁻¹).val * Φ) * J ι ℝ) * (Φ⁻¹).val := by simp only [Matrix.mul_assoc]
-    _ = -1 := by
-        rw [h₁, Matrix.mul_one, J_squared, Matrix.mul_neg, Matrix.mul_one, Matrix.neg_mul, h₂]
+/-- `J(Z)² = -1` for every complex matrix `Z` with invertible imaginary part. -/
+theorem complexStructureMatrix_mul_self {Z : Matrix ι ι ℂ} (hZ : IsUnit (Z.map Complex.im).det) :
+    complexStructureMatrix Z * complexStructureMatrix Z = -1 := by
+  have h₁ : Z.map Complex.im * (Z.map Complex.im)⁻¹ = 1 := mul_nonsing_inv _ hZ
+  have h₂ : (Z.map Complex.im)⁻¹ * Z.map Complex.im = 1 := nonsing_inv_mul _ hZ
+  rw [complexStructureMatrix_def, fromBlocks_multiply, ← fromBlocks_one, fromBlocks_neg]
+  congr 1 <;> simp only [Matrix.mul_sub, Matrix.sub_mul, Matrix.mul_neg, Matrix.neg_mul,
+    Matrix.mul_assoc, h₁, h₂,
+    ← Matrix.mul_assoc (Z.map Complex.im) (Z.map Complex.im)⁻¹, Matrix.one_mul,
+    Matrix.mul_one, neg_neg, neg_zero] <;> abel
+
 /-! ### The complex structure `J(Z)` on `StdSpace ι` -/
 
 /-- The complex structure on `StdSpace ι` whose matrix is `J(Z)`. -/
 def complexStructure (Z : SiegelUpperHalfSpace ι) : AlmostComplexStructure (StdSpace ι) where
   toLinearMap := toEuclideanLin (complexStructureMatrix (Z : Matrix ι ι ℂ))
   square_neg := by
-    rw [← toLpLin_mul, complexStructureMatrix_mul_self, map_neg, toLpLin_one]
+    rw [← toLpLin_mul, complexStructureMatrix_mul_self (isUnit_det_map_im Z), map_neg,
+      toLpLin_one]
 
 @[simp]
 theorem complexStructure_toLinearMap (Z : SiegelUpperHalfSpace ι) :
@@ -222,31 +226,23 @@ theorem complexStructure_I :
     rw [complexStructure_toLinearMap, complexStructureMatrix_I,
       stdComplexStructure_eq_toEuclideanLin_J]
 
-/-- The complex structure of `Ψ • Z` is the conjugate of that of `Z` by `Ψ`. -/
+/-- The complex structure of `Ψ • Z` is the transport of that of `Z` along the map of `Ψ`,
+that is, its conjugate `Ψ J(Z) Ψ⁻¹`. -/
 theorem complexStructure_smul (Ψ : symplecticGroup ι ℝ) (Z : SiegelUpperHalfSpace ι) :
-    (complexStructure (Ψ • Z)).toLinearMap =
-      toEuclideanLin (Ψ : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ) ∘ₗ (complexStructure Z).toLinearMap ∘ₗ
-        toEuclideanLin (↑Ψ⁻¹ : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ) := by
-  simp only [complexStructure_toLinearMap, complexStructureMatrix_smul, toLpLin_mul_same,
-    LinearMap.comp_assoc]
-
-/-- The complex structure of `Ψ • i𝟙` is the transport of `J₀` along the map of `Ψ`. -/
-private theorem complexStructure_smul_I_eq_transport (Φ : symplecticGroup ι ℝ) :
-    complexStructure (Φ • (SiegelUpperHalfSpace.I : SiegelUpperHalfSpace ι)) =
-      (stdComplexStructure ι).transport ((Φ : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ).toEuclideanCLE
-        (SymplecticGroup.symplectic_det Φ.property).ne_zero).toLinearEquiv := by
+    complexStructure (Ψ • Z) = (complexStructure Z).transport
+      (toEuclideanCLE (Ψ : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ)
+        (SymplecticGroup.symplectic_det Ψ.property).ne_zero).toLinearEquiv := by
   refine AlmostComplexStructure.toLinearMap_injective (LinearMap.ext fun v ↦ ?_)
-  have hJ₀ := LinearMap.congr_fun (stdComplexStructure_eq_toEuclideanLin_J (ι := ι))
-  simp only [complexStructure_toLinearMap, complexStructureMatrix_smul_I,
-    SymplecticGroup.coe_inv', AlmostComplexStructure.transport_toLinearMap, LinearEquiv.conj_apply,
-    LinearMap.comp_apply, toLpLin_mul_same]
-  simp [hJ₀]
+  simp only [complexStructure_toLinearMap, complexStructureMatrix_smul, SymplecticGroup.coe_inv',
+    AlmostComplexStructure.transport_toLinearMap, LinearEquiv.conj_apply, LinearMap.comp_apply,
+    toLpLin_mul_same]
+  simp
 
 /-- The complex structure `J(Z)` is compatible with `ω₀`. -/
 theorem compatible_complexStructure (Z : SiegelUpperHalfSpace ι) :
     (stdForm ι).Compatible (complexStructure Z) := by
   obtain ⟨Φ, rfl⟩ := exists_smul_I_eq Z
-  rw [complexStructure_smul_I_eq_transport]
+  rw [complexStructure_smul, complexStructure_I]
   set e := ((Φ : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ).toEuclideanCLE
     (SymplecticGroup.symplectic_det Φ.property).ne_zero).toLinearEquiv
   have he : toEuclideanLin.symm e.toLinearMap = Φ := by
@@ -263,14 +259,14 @@ conjugation is `Z ↦ J(Z)`. -/
 theorem eq_complexStructure_of_smul
     {F : SiegelUpperHalfSpace ι → AlmostComplexStructure (StdSpace ι)}
     (hI : F SiegelUpperHalfSpace.I = stdComplexStructure ι)
-    (hF : ∀ (Ψ : symplecticGroup ι ℝ) Z, (F (Ψ • Z)).toLinearMap =
-      toEuclideanLin (Ψ : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ) ∘ₗ (F Z).toLinearMap ∘ₗ
-        toEuclideanLin (↑Ψ⁻¹ : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ)) :
+    (hF : ∀ (Ψ : symplecticGroup ι ℝ) Z, F (Ψ • Z) = (F Z).transport
+      (toEuclideanCLE (Ψ : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ)
+        (SymplecticGroup.symplectic_det Ψ.property).ne_zero).toLinearEquiv) :
     F = complexStructure := by
   funext Z
   obtain ⟨Ψ, rfl⟩ := exists_smul_I_eq Z
-  refine AlmostComplexStructure.toLinearMap_injective ?_
   rw [hF, complexStructure_smul, hI, complexStructure_I]
+
 /-! ### The inverse -/
 
 /-- For a real matrix `M = !![M₁₁, M₁₂; M₂₁, M₂₂]`, the complex matrix `M₁₁ M₂₁⁻¹ + i M₂₁⁻¹`. On
@@ -300,7 +296,7 @@ half space. -/
 @[simp]
 theorem ofComplexStructureMatrix_complexStructureMatrix (Z : SiegelUpperHalfSpace ι) :
     ofComplexStructureMatrix (complexStructureMatrix (Z : Matrix ι ι ℂ)) = Z := by
-  have hY : IsUnit Z.im.det := (isUnit_iff_isUnit_det _).1 Z.posDef_im.isUnit
+  have hY : IsUnit Z.im.det := im_def Z ▸ isUnit_det_map_im Z
   rw [ofComplexStructureMatrix_def, complexStructureMatrix_coe, toBlocks_fromBlocks₁₁,
     toBlocks_fromBlocks₂₁, nonsing_inv_nonsing_inv _ hY, Matrix.mul_assoc,
     nonsing_inv_mul _ hY, Matrix.mul_one]
@@ -311,10 +307,7 @@ matrices `M` with `M² = -1` whose lower left block is invertible. -/
 theorem complexStructureMatrix_ofComplexStructureMatrix {M : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ}
     (hM : M * M = -1) (hM₂₁ : IsUnit M.toBlocks₂₁.det) :
     complexStructureMatrix (ofComplexStructureMatrix M) = M := by
-  have h₁₁ : M.toBlocks₁₁ * M.toBlocks₁₁ + M.toBlocks₁₂ * M.toBlocks₂₁ = -1 := by
-    rw [← toBlocks₁₁_mul, hM, ← fromBlocks_one, fromBlocks_neg, toBlocks_fromBlocks₁₁]
-  have h₂₁ : M.toBlocks₂₁ * M.toBlocks₁₁ + M.toBlocks₂₂ * M.toBlocks₂₁ = 0 := by
-    rw [← toBlocks₂₁_mul, hM, ← fromBlocks_one, fromBlocks_neg, toBlocks_fromBlocks₂₁, neg_zero]
+  obtain ⟨h₁₁, h₂₁⟩ := toBlocks_mul_self_eq_neg_one hM
   set B := M.toBlocks₂₁⁻¹
   have hBC : B * M.toBlocks₂₁ = 1 := nonsing_inv_mul _ hM₂₁
   have hCB : M.toBlocks₂₁ * B = 1 := mul_nonsing_inv _ hM₂₁
@@ -331,69 +324,6 @@ theorem complexStructureMatrix_ofComplexStructureMatrix {M : Matrix (ι ⊕ ι) 
   · rw [← Matrix.mul_assoc, eq_neg_of_add_eq_zero_left h₂₁, Matrix.neg_mul, neg_neg,
       Matrix.mul_assoc, hCB, Matrix.mul_one]
 
-end SiegelUpperHalfSpace
-
-/-! ### Compatible complex structures in coordinates -/
-
-/-- The matrix of a complex structure on a Euclidean space squares to `-1`. -/
-theorem _root_.TauCeti.AlmostComplexStructure.toEuclideanLin_symm_mul_self {n : Type*}
-    [Fintype n] [DecidableEq n] (J : AlmostComplexStructure (EuclideanSpace ℝ n)) :
-    toEuclideanLin.symm J.toLinearMap * toEuclideanLin.symm J.toLinearMap = -1 := by
-  apply toEuclideanLin.injective
-  rw [toLpLin_mul (q := 2), LinearEquiv.apply_symm_apply, map_neg, toLpLin_one]
-  exact J.square_neg
-
-/-- `ω₀(v, M w)` for `v = (a, b)` and `w = (c, d)`, in the blocks of `M`. -/
-private theorem stdForm_toLp_sumElim (M : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ) (a b c d : ι → ℝ) :
-    stdForm ι (WithLp.toLp 2 (Sum.elim a b)) (toEuclideanLin M (WithLp.toLp 2 (Sum.elim c d))) =
-      a ⬝ᵥ (M.toBlocks₂₁ *ᵥ c + M.toBlocks₂₂ *ᵥ d) -
-        b ⬝ᵥ (M.toBlocks₁₁ *ᵥ c + M.toBlocks₁₂ *ᵥ d) := by
-  simp [StdSpace.x_apply, StdSpace.y_apply, toLpLin_apply, mulVec, dotProduct,
-    Fintype.sum_sum_type, toBlocks₁₁, toBlocks₁₂, toBlocks₂₁, toBlocks₂₂, Finset.sum_sub_distrib]
-
-/-- The lower left block `M₂₁` of the matrix `M` of an `ω₀`-compatible complex structure is
-positive definite: it is the Gram matrix of `ω₀(·, J ·)` on the `x`-coordinates. -/
-theorem posDef_toBlocks₂₁_of_compatible {J : AlmostComplexStructure (StdSpace ι)}
-    (hJ : (stdForm ι).Compatible J) : (toEuclideanLin.symm J.toLinearMap).toBlocks₂₁.PosDef := by
-  set M := toEuclideanLin.symm J.toLinearMap
-  have hJM : ∀ v, J v = toEuclideanLin M v := fun v ↦ by simp [M]
-  have hswap := hJ.invariant.associatedBilinForm_apply_swap
-  have key : ∀ a b, stdForm ι (WithLp.toLp 2 (Sum.elim a 0)) (J (WithLp.toLp 2 (Sum.elim b 0))) =
-      a ⬝ᵥ (M.toBlocks₂₁ *ᵥ b) := fun a b ↦ by
-    rw [hJM, stdForm_toLp_sumElim]
-    simp
-  refine posDef_iff_dotProduct_mulVec.2 ⟨IsHermitian.ext fun i j ↦ ?_, fun a ha ↦ ?_⟩
-  · have := hswap (WithLp.toLp 2 (Sum.elim (Pi.single j 1) 0))
-      (WithLp.toLp 2 (Sum.elim (Pi.single i 1) 0))
-    rw [key, key] at this
-    simpa [mulVec_single_one] using this
-  · have hv : WithLp.toLp 2 (Sum.elim a 0) ≠ (0 : StdSpace ι) := by
-      intro h
-      apply ha
-      funext i
-      simpa using congrFun (congrArg WithLp.ofLp h) (Sum.inl i)
-    simpa [key] using hJ.tames _ hv
-
-/-- For the matrix `M` of an `ω₀`-compatible complex structure, `M₂₂ = -M₁₁ᵀ`. -/
-theorem toBlocks₂₂_eq_neg_transpose_of_compatible {J : AlmostComplexStructure (StdSpace ι)}
-    (hJ : (stdForm ι).Compatible J) :
-    (toEuclideanLin.symm J.toLinearMap).toBlocks₂₂ =
-      -(toEuclideanLin.symm J.toLinearMap).toBlocks₁₁ᵀ := by
-  set M := toEuclideanLin.symm J.toLinearMap
-  have hJM : ∀ v, J v = toEuclideanLin M v := fun v ↦ by simp [M]
-  ext i j
-  have := hJ.invariant.associatedBilinForm_apply_swap
-    (WithLp.toLp 2 (Sum.elim (Pi.single i 1) 0)) (WithLp.toLp 2 (Sum.elim 0 (Pi.single j 1)))
-  rw [hJM, hJM, stdForm_toLp_sumElim, stdForm_toLp_sumElim] at this
-  simpa [mulVec_single_one] using this
-/-- The matrix of an `ω₀`-compatible complex structure has invertible lower left block. -/
-theorem isUnit_det_toBlocks₂₁_of_compatible {J : AlmostComplexStructure (StdSpace ι)}
-    (hJ : (stdForm ι).Compatible J) :
-    IsUnit (toEuclideanLin.symm J.toLinearMap).toBlocks₂₁.det :=
-  (isUnit_iff_isUnit_det _).1 (posDef_toBlocks₂₁_of_compatible hJ).isUnit
-
-namespace SiegelUpperHalfSpace
-
 /-- For the matrix `M` of an `ω₀`-compatible complex structure, the real part `M₁₁ M₂₁⁻¹` of
 `ofComplexStructureMatrix M` is symmetric. -/
 private theorem isSymm_toBlocks₁₁_mul_inv_of_compatible {J : AlmostComplexStructure (StdSpace ι)}
@@ -402,13 +332,11 @@ private theorem isSymm_toBlocks₁₁_mul_inv_of_compatible {J : AlmostComplexSt
       (toEuclideanLin.symm J.toLinearMap).toBlocks₂₁⁻¹).IsSymm := by
   set M := toEuclideanLin.symm J.toLinearMap
   have hC := posDef_toBlocks₂₁_of_compatible hJ
-  have hdet : IsUnit M.toBlocks₂₁.det := (isUnit_iff_isUnit_det _).1 hC.isUnit
-  have h₂₁ : M.toBlocks₂₁ * M.toBlocks₁₁ + M.toBlocks₂₂ * M.toBlocks₂₁ = 0 := by
-    rw [← toBlocks₂₁_mul, J.toEuclideanLin_symm_mul_self, ← fromBlocks_one, fromBlocks_neg,
-      toBlocks_fromBlocks₂₁, neg_zero]
+  have hdet : IsUnit M.toBlocks₂₁.det := isUnit_det_toBlocks₂₁_of_compatible hJ
+  have h₂₁ := (toBlocks_mul_self_eq_neg_one J.toEuclideanLin_symm_mul_self).2
   have hCt : M.toBlocks₂₁ᵀ = M.toBlocks₂₁ := isHermitian_iff_isSymm.1 hC.isHermitian
   rw [IsSymm, transpose_mul, transpose_nonsing_inv, hCt,
-    ← neg_neg M.toBlocks₁₁ᵀ, ← toBlocks₂₂_eq_neg_transpose_of_compatible hJ]
+    ← neg_neg M.toBlocks₁₁ᵀ, ← toBlocks₂₂_eq_neg_transpose_of_invariant hJ.invariant]
   calc M.toBlocks₂₁⁻¹ * -M.toBlocks₂₂
       = M.toBlocks₂₁⁻¹ * (-M.toBlocks₂₂ * M.toBlocks₂₁) * M.toBlocks₂₁⁻¹ := by
         rw [Matrix.mul_assoc, Matrix.mul_assoc, mul_nonsing_inv _ hdet, Matrix.mul_one]
@@ -430,6 +358,12 @@ private def ofCompatible {J : AlmostComplexStructure (StdSpace ι)}
     rw [map_im_ofComplexStructureMatrix]
     exact (posDef_toBlocks₂₁_of_compatible hJ).inv
 
+private theorem coe_ofCompatible {J : AlmostComplexStructure (StdSpace ι)}
+    (hJ : (stdForm ι).Compatible J) :
+    (ofCompatible hJ : Matrix ι ι ℂ) =
+      ofComplexStructureMatrix (toEuclideanLin.symm J.toLinearMap) :=
+  (rfl)
+
 /-- **The Siegel upper half space and the compatible complex structures.** `Z ↦ J(Z)` is a
 bijection from the Siegel upper half space onto the `ω₀`-compatible complex structures on
 `StdSpace ι`, with inverse `J ↦ M₁₁ M₂₁⁻¹ + i M₂₁⁻¹` for `M` the matrix of `J`. -/
@@ -440,15 +374,14 @@ def compatibleEquiv :
   invFun J := ofCompatible J.property
   left_inv Z := by
     ext1
-    exact (congrArg ofComplexStructureMatrix (LinearEquiv.symm_apply_apply _ _)).trans
-      (ofComplexStructureMatrix_complexStructureMatrix Z)
+    rw [coe_ofCompatible, complexStructure_toLinearMap, LinearEquiv.symm_apply_apply,
+      ofComplexStructureMatrix_complexStructureMatrix]
   right_inv J := by
     obtain ⟨J, hJ⟩ := J
     refine Subtype.ext (AlmostComplexStructure.toLinearMap_injective ?_)
-    change toEuclideanLin (complexStructureMatrix
-      (ofComplexStructureMatrix (toEuclideanLin.symm J.toLinearMap))) = _
-    rw [complexStructureMatrix_ofComplexStructureMatrix J.toEuclideanLin_symm_mul_self
-      (isUnit_det_toBlocks₂₁_of_compatible hJ),
+    rw [complexStructure_toLinearMap, coe_ofCompatible,
+      complexStructureMatrix_ofComplexStructureMatrix J.toEuclideanLin_symm_mul_self
+        (isUnit_det_toBlocks₂₁_of_compatible hJ),
       LinearEquiv.apply_symm_apply]
 
 @[simp]
@@ -472,10 +405,10 @@ theorem eq_compatibleEquiv_iff
     (Function.Bijective F ∧
       (F SiegelUpperHalfSpace.I : AlmostComplexStructure (StdSpace ι)) = stdComplexStructure ι ∧
       ∀ (Ψ : symplecticGroup ι ℝ) Z,
-        (F (Ψ • Z) : AlmostComplexStructure (StdSpace ι)).toLinearMap =
-          toEuclideanLin (Ψ : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ) ∘ₗ
-            (F Z : AlmostComplexStructure (StdSpace ι)).toLinearMap ∘ₗ
-              toEuclideanLin (↑Ψ⁻¹ : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ)) ↔
+        (F (Ψ • Z) : AlmostComplexStructure (StdSpace ι)) =
+          (F Z : AlmostComplexStructure (StdSpace ι)).transport
+            (toEuclideanCLE (Ψ : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ)
+              (SymplecticGroup.symplectic_det Ψ.property).ne_zero).toLinearEquiv) ↔
       F = compatibleEquiv := by
   constructor
   · rintro ⟨-, hI, hF⟩
@@ -487,40 +420,22 @@ theorem eq_compatibleEquiv_iff
 /-! ### Smoothness in coordinates -/
 
 /-- The complex matrices with invertible imaginary part form an open set. -/
-theorem isOpen_setOf_isUnit_det_map_im :
+theorem _root_.Matrix.isOpen_setOf_isUnit_det_map_im :
     IsOpen {Z : Matrix ι ι ℂ | IsUnit (Z.map Complex.im).det} := by
   simp only [isUnit_iff_ne_zero]
   exact isOpen_ne_fun (continuous_id.matrix_map Complex.continuous_im).matrix_det continuous_const
 
 /-- The real matrices indexed by `ι ⊕ ι` with invertible lower left block form an open set. -/
-theorem isOpen_setOf_isUnit_det_toBlocks₂₁ :
+theorem _root_.Matrix.isOpen_setOf_isUnit_det_toBlocks₂₁ :
     IsOpen {M : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ | IsUnit M.toBlocks₂₁.det} := by
   simp only [isUnit_iff_ne_zero]
   have h : Continuous fun M : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ ↦ M.toBlocks₂₁ :=
     continuous_matrix fun i j ↦ continuous_apply_apply (Sum.inr i) (Sum.inl j)
   exact isOpen_ne_fun h.matrix_det continuous_const
 
-/-- The points of the Siegel upper half space have invertible imaginary part. -/
-theorem isUnit_det_map_im (Z : SiegelUpperHalfSpace ι) :
-    IsUnit ((Z : Matrix ι ι ℂ).map Complex.im).det :=
-  (isUnit_iff_isUnit_det _).1 Z.posDef_map_im.isUnit
-
 section Smooth
 
 open scoped Matrix.Norms.Operator ContDiff
-
-/-- Inversion of real matrices is smooth at every invertible matrix. -/
-private theorem contDiffAt_nonsing_inv {Y : Matrix ι ι ℝ} (hY : IsUnit Y.det) :
-    ContDiffAt ℝ ∞ (fun Y : Matrix ι ι ℝ ↦ Y⁻¹) Y := by
-  have h : (fun Y : Matrix ι ι ℝ ↦ Y⁻¹) = Ring.inverse := funext nonsing_inv_eq_ringInverse
-  rw [h, ← ((isUnit_iff_isUnit_det _).2 hY).unit_spec]
-  exact contDiffAt_ringInverse ℝ _
-
-/-- A linear map between matrix spaces is smooth. -/
-private theorem contDiff_of_linearMap {E F : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
-    [FiniteDimensional ℝ E] [NormedAddCommGroup F] [NormedSpace ℝ F] (f : E →ₗ[ℝ] F) :
-    ContDiff ℝ ∞ f :=
-  (LinearMap.toContinuousLinearMap f).contDiff
 
 /-- The formula `J(Z)` is smooth on the open set of complex matrices with invertible imaginary
 part, which contains the Siegel upper half space (`isUnit_det_map_im`). -/
@@ -534,13 +449,16 @@ theorem contDiffOn_complexStructureMatrix :
       map_add' p q := (fromBlocks_add ..).symm
       map_smul' c p := (fromBlocks_smul ..).symm }
   have hre : ContDiff ℝ ∞ fun Z : Matrix ι ι ℂ ↦ Z.map Complex.re :=
-    contDiff_of_linearMap (f := (Complex.reLm.mapMatrix : Matrix ι ι ℂ →ₗ[ℝ] Matrix ι ι ℝ))
+    (LinearMap.toContinuousLinearMap
+      (Complex.reLm.mapMatrix : Matrix ι ι ℂ →ₗ[ℝ] Matrix ι ι ℝ)).contDiff
   have him : ContDiff ℝ ∞ fun Z : Matrix ι ι ℂ ↦ Z.map Complex.im :=
-    contDiff_of_linearMap (f := (Complex.imLm.mapMatrix : Matrix ι ι ℂ →ₗ[ℝ] Matrix ι ι ℝ))
-  have hinv : ContDiffAt ℝ ∞ (fun W : Matrix ι ι ℂ ↦ (W.map Complex.im)⁻¹) Z :=
-    (contDiffAt_nonsing_inv hZ).comp Z him.contDiffAt
+    (LinearMap.toContinuousLinearMap
+      (Complex.imLm.mapMatrix : Matrix ι ι ℂ →ₗ[ℝ] Matrix ι ι ℝ)).contDiff
+  have hinv : ContDiffAt ℝ ∞ (fun W : Matrix ι ι ℂ ↦ (W.map Complex.im)⁻¹) Z := by
+    simpa only [nonsing_inv_eq_ringInverse] using
+      him.contDiffAt.inverse ((isUnit_iff_isUnit_det _).2 hZ)
   have hXYinv := hre.contDiffAt.mul hinv
-  exact ((contDiff_of_linearMap blocks).contDiffAt.comp Z
+  exact ((LinearMap.toContinuousLinearMap blocks).contDiff.contDiffAt.comp Z
     ((hXYinv.prodMk ((him.contDiffAt.neg).sub (hXYinv.mul hre.contDiffAt))).prodMk
       (hinv.prodMk (hinv.mul hre.contDiffAt).neg))).contDiffWithinAt
 
@@ -556,22 +474,26 @@ theorem contDiffOn_ofComplexStructureMatrix :
   let b₂₁ : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ →ₗ[ℝ] Matrix ι ι ℝ :=
     { toFun := toBlocks₂₁, map_add' _ _ := rfl, map_smul' _ _ := rfl }
   have hofReal : ContDiff ℝ ∞ fun Y : Matrix ι ι ℝ ↦ Y.map ofReal :=
-    contDiff_of_linearMap
-      (f := (Complex.ofRealCLM.toLinearMap.mapMatrix : Matrix ι ι ℝ →ₗ[ℝ] Matrix ι ι ℂ))
-  have hinv : ContDiffAt ℝ ∞ (fun N : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ ↦ N.toBlocks₂₁⁻¹) M :=
-    (contDiffAt_nonsing_inv hM).comp M (contDiff_of_linearMap b₂₁).contDiffAt
-  exact ((hofReal.contDiffAt.comp M ((contDiff_of_linearMap b₁₁).contDiffAt.mul hinv)).add
+    (LinearMap.toContinuousLinearMap
+      (Complex.ofRealCLM.toLinearMap.mapMatrix : Matrix ι ι ℝ →ₗ[ℝ] Matrix ι ι ℂ)).contDiff
+  have h₂₁ : ContDiff ℝ ∞ fun N : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ ↦ N.toBlocks₂₁ :=
+    (LinearMap.toContinuousLinearMap b₂₁).contDiff
+  have hinv : ContDiffAt ℝ ∞ (fun N : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ ↦ N.toBlocks₂₁⁻¹) M := by
+    simpa only [nonsing_inv_eq_ringInverse] using
+      h₂₁.contDiffAt.inverse ((isUnit_iff_isUnit_det _).2 hM)
+  exact ((hofReal.contDiffAt.comp M
+      ((LinearMap.toContinuousLinearMap b₁₁).contDiff.contDiffAt.mul hinv)).add
     ((hofReal.contDiffAt.comp M hinv).const_smul Complex.I)).contDiffWithinAt
-
 
 /-- **The Siegel upper half space.** The symplectic group acts on the Siegel upper half space by
 `Ψ • Z = (AZ + B)(CZ + D)⁻¹`, transitively, and holomorphically on an open set containing the
 Siegel upper half space. The stabilizer of `i𝟙` is the realified unitary group, and the orbit map
 of `i𝟙` is a bijection from the quotient by it. There is exactly one bijection onto the
 `ω₀`-compatible complex structures on `StdSpace ι` that sends `i𝟙` to `J₀` and intertwines the
-action with conjugation; its matrix is `J(Z) = !![X Y⁻¹, -Y - X Y⁻¹ X; Y⁻¹, -Y⁻¹ X]`, and it is a
-diffeomorphism in coordinates: `J(Z)` and the formula of the inverse are smooth on open sets of
-matrices containing the Siegel upper half space and the compatible complex structures.
+action with transport along `Ψ`, that is, with conjugation `J ↦ Ψ J Ψ⁻¹`; its matrix is
+`J(Z) = !![X Y⁻¹, -Y - X Y⁻¹ X; Y⁻¹, -Y⁻¹ X]`, and it is a diffeomorphism in coordinates: `J(Z)`
+and the formula of the inverse are smooth on open sets of matrices containing the Siegel upper
+half space and the compatible complex structures.
 
 Milestone: *Siegel upper half space*. -/
 theorem mulAction_symplecticGroup_and_compatibleEquiv :
@@ -593,10 +515,10 @@ theorem mulAction_symplecticGroup_and_compatibleEquiv :
       (Function.Bijective F ∧
         (F SiegelUpperHalfSpace.I : AlmostComplexStructure (StdSpace ι)) = stdComplexStructure ι ∧
         ∀ (Ψ : symplecticGroup ι ℝ) Z,
-          (F (Ψ • Z) : AlmostComplexStructure (StdSpace ι)).toLinearMap =
-            toEuclideanLin (Ψ : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ) ∘ₗ
-              (F Z : AlmostComplexStructure (StdSpace ι)).toLinearMap ∘ₗ
-                toEuclideanLin (↑Ψ⁻¹ : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ)) ↔
+          (F (Ψ • Z) : AlmostComplexStructure (StdSpace ι)) =
+            (F Z : AlmostComplexStructure (StdSpace ι)).transport
+              (toEuclideanCLE (Ψ : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ)
+                (SymplecticGroup.symplectic_det Ψ.property).ne_zero).toLinearEquiv) ↔
         F = compatibleEquiv) ∧
     (∀ Z : SiegelUpperHalfSpace ι,
       toEuclideanLin.symm (compatibleEquiv Z : AlmostComplexStructure (StdSpace ι)).toLinearMap =
@@ -605,8 +527,14 @@ theorem mulAction_symplecticGroup_and_compatibleEquiv :
       (compatibleEquiv.symm J : Matrix ι ι ℂ) =
         ofComplexStructureMatrix
           (toEuclideanLin.symm (J : AlmostComplexStructure (StdSpace ι)).toLinearMap)) ∧
+    IsOpen {Z : Matrix ι ι ℂ | IsUnit (Z.map Complex.im).det} ∧
+    (∀ Z : SiegelUpperHalfSpace ι, IsUnit ((Z : Matrix ι ι ℂ).map Complex.im).det) ∧
     ContDiffOn ℝ ∞ (complexStructureMatrix : Matrix ι ι ℂ → Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ)
       {Z : Matrix ι ι ℂ | IsUnit (Z.map Complex.im).det} ∧
+    IsOpen {M : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ | IsUnit M.toBlocks₂₁.det} ∧
+    (∀ J : {J : AlmostComplexStructure (StdSpace ι) // (stdForm ι).Compatible J},
+      IsUnit (toEuclideanLin.symm
+        (J : AlmostComplexStructure (StdSpace ι)).toLinearMap).toBlocks₂₁.det) ∧
     ContDiffOn ℝ ∞ (ofComplexStructureMatrix : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ → Matrix ι ι ℂ)
       {M : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ | IsUnit M.toBlocks₂₁.det} :=
   ⟨inferInstance,
@@ -620,18 +548,19 @@ theorem mulAction_symplecticGroup_and_compatibleEquiv :
     eq_compatibleEquiv_iff,
     fun _ ↦ LinearEquiv.symm_apply_apply _ _,
     fun _ ↦ rfl,
+    isOpen_setOf_isUnit_det_map_im,
+    isUnit_det_map_im,
     contDiffOn_complexStructureMatrix,
+    isOpen_setOf_isUnit_det_toBlocks₂₁,
+    fun J ↦ isUnit_det_toBlocks₂₁_of_compatible J.property,
     contDiffOn_ofComplexStructureMatrix⟩
-
 end Smooth
 
 /-! ### Index one -/
 
 /-- For a type `ι` with one element and `Z = x + iy`, the complex structure `J(Z)` sends the
 first basis vector `(1, 0)` to `(x / y, 1 / y)`, that is, to `(x + i) / y` in the coordinates of
-`complexToRealEuclidean`. Its imaginary part `1 / y` is positive, which is the criterion of Tau
-Ceti's `TauCeti.stdComplexSymplecticForm_tames_iff_im_pos` for a complex structure on `ℂ` to be
-tamed by the standard area form. -/
+`complexToRealEuclidean`. -/
 theorem complexStructure_single_inl [Unique ι] (Z : SiegelUpperHalfSpace ι) :
     complexStructure Z (EuclideanSpace.single (Sum.inl default) 1) =
       complexToRealEuclidean ι fun _ ↦
@@ -644,6 +573,23 @@ theorem complexStructure_single_inl [Unique ι] (Z : SiegelUpperHalfSpace ι) :
   refine StdSpace.ext ?_ ?_ <;> ext i <;>
     simp [Subsingleton.elim i default, StdSpace.x_apply, StdSpace.y_apply, toLpLin_apply,
       complexStructureMatrix_coe, div_eq_mul_inv, h.symm]
+
+/-- For a type `ι` with one element, the complex structure `J(Z)`, moved to `ℂ` along
+`(x, y) ↦ x + iy`, is tamed by the standard area form of `ℂ`: by Tau Ceti's
+`TauCeti.stdComplexSymplecticForm_tames_iff_im_pos`, this says that it sends `1` to
+`(x + i) / y`, whose imaginary part `1 / y` is positive. -/
+theorem stdComplexSymplecticForm_tames_transport_complexStructure [Unique ι]
+    (Z : SiegelUpperHalfSpace ι) :
+    stdComplexSymplecticForm.Tames ((complexStructure Z).transport
+      ((complexToRealEuclidean ι).toLinearEquiv.symm ≪≫ₗ LinearEquiv.funUnique ι ℝ ℂ)) := by
+  have hy : 0 < Z.im default default := posDef_iff_of_unique.1 Z.posDef_im
+  have h1 : ((complexToRealEuclidean ι).toLinearEquiv.symm ≪≫ₗ
+      LinearEquiv.funUnique ι ℝ ℂ).symm 1 = EuclideanSpace.single (Sum.inl default) 1 := by
+    ext k <;> simp [StdSpace.x_apply, StdSpace.y_apply, complexToRealEuclidean_apply,
+      Subsingleton.elim k default]
+  rw [stdComplexSymplecticForm_tames_iff_im_pos, AlmostComplexStructure.transport_apply, h1,
+    complexStructure_single_inl]
+  simpa [Complex.div_im] using hy
 
 end SiegelUpperHalfSpace
 

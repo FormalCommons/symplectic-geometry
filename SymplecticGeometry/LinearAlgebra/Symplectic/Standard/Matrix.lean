@@ -7,6 +7,7 @@ module
 
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
 public import TauCeti.Analysis.Complex.Euclidean.Matrix
+import TauCeti.Data.Matrix.Block
 
 /-!
 # The matrix dictionary for the standard model
@@ -28,6 +29,10 @@ conditions on that map.
   `Matrix.realify A`. With `A = I • 1`, whose realification is `Matrix.J ι ℝ`
   (Tau Ceti's `Matrix.realify_I_smul_one`), this recovers
   `stdComplexStructure_eq_toEuclideanLin_J`.
+* `SymplecticGeometry.posDef_toBlocks₂₁_of_compatible` and
+  `SymplecticGeometry.toBlocks₂₂_eq_neg_transpose_of_invariant`: the matrix `M` of an
+  `ω₀`-compatible complex structure has positive definite lower left block `M₂₁`, and
+  `M₂₂ = -M₁₁ᵀ` as soon as the structure preserves `ω₀`.
 
 The conventions are those of `SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic`, which
 follow McDuff–Salamon, Section 2.1.
@@ -85,7 +90,74 @@ theorem commute_toEuclideanLin_stdComplexStructure_iff {A : Matrix (ι ⊕ ι) (
   exact commute_map_iff (f := toLpLinAlgEquiv (R := ℝ) (n := ι ⊕ ι) 2)
     (toLpLinAlgEquiv 2).injective
 
+/-- `ω₀(v, M w)` for `v = (a, b)` and `w = (c, d)`, in terms of the blocks of `M`. -/
+theorem stdForm_toLp_sumElim_toEuclideanLin (M : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ) (a b c d : ι → ℝ) :
+    stdForm ι (WithLp.toLp 2 (Sum.elim a b)) (toEuclideanLin M (WithLp.toLp 2 (Sum.elim c d))) =
+      a ⬝ᵥ (M.toBlocks₂₁ *ᵥ c + M.toBlocks₂₂ *ᵥ d) -
+        b ⬝ᵥ (M.toBlocks₁₁ *ᵥ c + M.toBlocks₁₂ *ᵥ d) := by
+  simp [StdSpace.x_apply, StdSpace.y_apply, toLpLin_apply, mulVec, dotProduct,
+    Fintype.sum_sum_type, toBlocks₁₁, toBlocks₁₂, toBlocks₂₁, toBlocks₂₂, Finset.sum_sub_distrib]
+
+/-- The lower left block `M₂₁` of the matrix `M` of an `ω₀`-compatible complex structure is
+positive definite: it is the Gram matrix of `ω₀(·, J ·)` on the `x`-coordinates. -/
+theorem posDef_toBlocks₂₁_of_compatible {J : AlmostComplexStructure (StdSpace ι)}
+    (hJ : (stdForm ι).Compatible J) : (toEuclideanLin.symm J.toLinearMap).toBlocks₂₁.PosDef := by
+  set M := toEuclideanLin.symm J.toLinearMap
+  have hJM : ∀ v, J v = toEuclideanLin M v := fun v ↦ by simp [M]
+  have hswap := hJ.invariant.associatedBilinForm_apply_swap
+  have key : ∀ a b, stdForm ι (WithLp.toLp 2 (Sum.elim a 0)) (J (WithLp.toLp 2 (Sum.elim b 0))) =
+      a ⬝ᵥ (M.toBlocks₂₁ *ᵥ b) := fun a b ↦ by
+    rw [hJM, stdForm_toLp_sumElim_toEuclideanLin]
+    simp
+  refine posDef_iff_dotProduct_mulVec.2 ⟨IsHermitian.ext fun i j ↦ ?_, fun a ha ↦ ?_⟩
+  · have := hswap (WithLp.toLp 2 (Sum.elim (Pi.single j 1) 0))
+      (WithLp.toLp 2 (Sum.elim (Pi.single i 1) 0))
+    rw [key, key] at this
+    simpa [mulVec_single_one] using this
+  · have hv : WithLp.toLp 2 (Sum.elim a 0) ≠ (0 : StdSpace ι) := by
+      intro h
+      apply ha
+      funext i
+      simpa using congrFun (congrArg WithLp.ofLp h) (Sum.inl i)
+    simpa [key] using hJ.tames _ hv
+
+/-- The matrix of an `ω₀`-compatible complex structure has invertible lower left block. -/
+theorem isUnit_det_toBlocks₂₁_of_compatible {J : AlmostComplexStructure (StdSpace ι)}
+    (hJ : (stdForm ι).Compatible J) :
+    IsUnit (toEuclideanLin.symm J.toLinearMap).toBlocks₂₁.det :=
+  (isUnit_iff_isUnit_det _).1 (posDef_toBlocks₂₁_of_compatible hJ).isUnit
+
+/-- For the matrix `M` of a complex structure `J` on `StdSpace ι` that preserves `ω₀`,
+`ω₀(J v, J w) = ω₀(v, w)`, the lower right block is `M₂₂ = -M₁₁ᵀ`. -/
+theorem toBlocks₂₂_eq_neg_transpose_of_invariant {J : AlmostComplexStructure (StdSpace ι)}
+    (hJ : (stdForm ι).Invariant J) :
+    (toEuclideanLin.symm J.toLinearMap).toBlocks₂₂ =
+      -(toEuclideanLin.symm J.toLinearMap).toBlocks₁₁ᵀ := by
+  set M := toEuclideanLin.symm J.toLinearMap
+  have hJM : ∀ v, J v = toEuclideanLin M v := fun v ↦ by simp [M]
+  ext i j
+  have := hJ.associatedBilinForm_apply_swap
+    (WithLp.toLp 2 (Sum.elim (Pi.single i 1) 0)) (WithLp.toLp 2 (Sum.elim 0 (Pi.single j 1)))
+  rw [hJM, hJM, stdForm_toLp_sumElim_toEuclideanLin, stdForm_toLp_sumElim_toEuclideanLin] at this
+  simpa [mulVec_single_one] using this
+
 end SymplecticGeometry
+
+namespace Matrix
+
+variable {m n R : Type*} [Fintype m] [Fintype n] [Ring R]
+
+/-- The block identities of the first block column of `M² = -1`, for a block matrix `M`:
+`M₁₁² + M₁₂ M₂₁ = -1` and `M₂₁ M₁₁ + M₂₂ M₂₁ = 0`. -/
+theorem toBlocks_mul_self_eq_neg_one [DecidableEq m] [DecidableEq n]
+    {M : Matrix (m ⊕ n) (m ⊕ n) R} (hM : M * M = -1) :
+    M.toBlocks₁₁ * M.toBlocks₁₁ + M.toBlocks₁₂ * M.toBlocks₂₁ = -1 ∧
+      M.toBlocks₂₁ * M.toBlocks₁₁ + M.toBlocks₂₂ * M.toBlocks₂₁ = 0 := by
+  constructor
+  · rw [← toBlocks₁₁_mul, hM, ← fromBlocks_one, fromBlocks_neg, toBlocks_fromBlocks₁₁]
+  · rw [← toBlocks₂₁_mul, hM, ← fromBlocks_one, fromBlocks_neg, toBlocks_fromBlocks₂₁, neg_zero]
+
+end Matrix
 
 namespace TauCeti
 
@@ -99,6 +171,13 @@ theorem conj_complexToRealEuclidean_toLin' (A : Matrix ι ι ℂ) :
       Matrix.toEuclideanLin A.realify := by
   ext1 z
   simpa using complexToRealEuclidean_mulVec A ((complexToRealEuclidean ι).symm z)
+
+/-- The matrix of a complex structure on a Euclidean space squares to `-1`. -/
+theorem AlmostComplexStructure.toEuclideanLin_symm_mul_self {n : Type*} [Fintype n]
+    [DecidableEq n] (J : AlmostComplexStructure (EuclideanSpace ℝ n)) :
+    Matrix.toEuclideanLin.symm J.toLinearMap * Matrix.toEuclideanLin.symm J.toLinearMap = -1 := by
+  rw [← Matrix.toLpLin_symm_comp, J.square_neg, map_neg]
+  simp
 
 end TauCeti
 
