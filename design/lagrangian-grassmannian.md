@@ -598,7 +598,9 @@ unitary action to Tau Ceti's `Matrix.realImage`.
   `SymplecticGeometry`), the image of a Lagrangian under a matrix
   `A ∈ Matrix.symplecticGroup ι ℝ`, which the `smul` instance applies through
   `TauCeti.GLSymplectic.mem_iff_mem_symplecticGroup`; and, in `ℒ.`, `coe_unitary_smul`,
-  `coe_unitaryFrame_eq_map` (the second description of `coe_unitaryFrame`) and
+  `coe_unitaryFrame_eq_map` (the second description of `coe_unitaryFrame`),
+  `finrank_unitaryFrame_inf_horizontal` (`finrank (unitaryFrame U ⊓ V₀)` is the
+  dimension of `U.realImage ⊓ realSubspace ι`) and
   `unitaryFrame_eq_horizontal_iff`, from which both
   `unitaryFrame_eq_unitaryFrame_iff` and `stabilizer_horizontal` follow.
 - Supporting statements placed elsewhere. In `Standard/Matrix.lean`:
@@ -669,7 +671,10 @@ Chart points and transverse pairs, as algebra: G7–G9.
   `Submodule.orderIsoMapComap` after `coe_smul_eq_map_toEuclideanCLE`), which
   both transverse-pair results use; and
   `ℒ.finrank_smul_inf_smul` (it keeps `finrank (Λ ⊓ Λ')`), which the zero axiom
-  of *Maslov index* (`Maslov/Path/Basic.lean`) uses.
+  of *Maslov index* (`Maslov/Path/Basic.lean`) uses; its unitary form
+  `ℒ.finrank_unitary_smul_inf_smul`, and `ℒ.finrank_inf_unitaryFrame`
+  (`finrank (Λ ⊓ unitaryFrame U) = finrank ((U⁻¹ • Λ) ⊓ V₀)`), which
+  `Maslov/Path/Naturality.lean` uses.
 
 ### `LinearAlgebra/TotallyReal/Euclidean.lean`
 
