@@ -381,9 +381,9 @@ unitary action to Tau Ceti's `Matrix.realImage`.
   with `unitary_smul_def : U • Λ = ofUnitary U • Λ`.
 - `ℒ.horizontal ι`, `ℒ.vertical ι : ℒ ι`: $\{y=0\}$ and $\{x=0\}$ (G1). Their
   submodules are `LinearMap.ker StdSpace.y` and `LinearMap.ker StdSpace.x`
-  (`coe_horizontal`, `coe_vertical`). They are Lagrangian by Tau Ceti's
-  `isLagrangian_prod_top_bot` and `isLagrangian_prod_bot_top`, carried along
-  `isSymplectomorphism_sumEquivProd` of *Standard model*. API:
+  (`coe_horizontal`, `coe_vertical`). They are Lagrangian as `graph 0` and
+  `graphY 0` (`StdSpace.graph_zero`, `StdSpace.graphY_zero` of `Frame.lean`),
+  by `isLagrangian_graph_iff` and `isLagrangian_graphY_iff`. API:
   `mem_horizontal_iff`, `mem_vertical_iff` (`@[simp]`),
   `isCompl_horizontal_vertical`, and
   `symJ_smul_horizontal : TauCeti.GLSymplectic.symJ ι ℝ • horizontal ι = vertical ι`.
@@ -410,22 +410,25 @@ unitary action to Tau Ceti's `Matrix.realImage`.
 - `ℒ.unitaryFrame_eq_unitaryFrame_iff :
   unitaryFrame U = unitaryFrame U' ↔ U⁻¹ * U' ∈ Matrix.UnitaryGroup.realSubgroup ι`,
   from `Matrix.exists_mem_orthogonalGroup_eq_mul_map_ofReal`,
-  `Matrix.realImage_mul_map_ofReal` and `mem_realSubgroup_iff_exists`. Its
+  `Matrix.realImage_map_ofReal` and `mem_realSubgroup_iff_exists`. Its
   corollary is
   `ℒ.stabilizer_horizontal :
   MulAction.stabilizer (unitaryGroup ι ℂ) (horizontal ι) = Matrix.UnitaryGroup.realSubgroup ι`.
-- Supporting statements of the file. In `StdSpace`:
-  `complexEuclideanEquiv_toEuclideanCLM` (through `complexEuclideanEquiv ι`, a
-  complex matrix acts as its realification) and `map_realImage`
-  (`A.realImage.map ε = (LinearMap.ker y).map (toEuclideanLin A.realify)`).
-  In `SymplecticGeometry`: `isLagrangian_map_toEuclideanLin`, the image of a
-  Lagrangian under a matrix of `GLSymplectic ι ℝ`. In `ℒ.`: `coe_unitary_smul`,
+- Supporting statements of the file: `isLagrangian_map_toEuclideanLin` (in
+  `SymplecticGeometry`), the image of a Lagrangian under a matrix of
+  `GLSymplectic ι ℝ`; and, in `ℒ.`, `coe_unitary_smul`,
   `coe_unitaryFrame_eq_map` (the second description of `coe_unitaryFrame`) and
   `unitaryFrame_eq_horizontal_iff`, from which both
-  `unitaryFrame_eq_unitaryFrame_iff` and `stabilizer_horizontal` follow. The
-  horizontal and vertical subspaces are shown Lagrangian as `graph 0` and
-  `graphY 0`, by `StdSpace.graph_zero` and `StdSpace.graphY_zero`, which go to
-  `Frame.lean`.
+  `unitaryFrame_eq_unitaryFrame_iff` and `stabilizer_horizontal` follow.
+- Supporting statements placed elsewhere. In `Standard/Matrix.lean`:
+  `StdSpace.complexEuclideanEquiv_toEuclideanCLM` (through
+  `complexEuclideanEquiv ι`, a complex matrix acts as its realification). In
+  `Frame.lean`: `StdSpace.map_realImage`
+  (`A.realImage.map ε = (LinearMap.ker y).map (toEuclideanLin A.realify)`),
+  `StdSpace.range_toEuclideanLin_fromRows_eq_map_realImage` (the span of
+  `fromRows X Y` is `(X + i Y).realImage` carried by `ε`), `StdSpace.graph_zero`
+  and `StdSpace.graphY_zero`. In `Matrix/UnitaryGroup/Real.lean`:
+  `Matrix.UnitaryGroup.map_re_conjTranspose_mul_self` (`Re (Uᴴ U) = 1`).
 
 ### `LinearAlgebra/Symplectic/Lagrangian/Transverse.lean`
 

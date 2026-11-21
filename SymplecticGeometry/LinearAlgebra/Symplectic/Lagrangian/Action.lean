@@ -51,31 +51,6 @@ variable {ι : Type*} [Fintype ι] [DecidableEq ι]
 
 local notation "ℒ" ι => LagrangianGrassmannian (stdForm ι)
 
-namespace StdSpace
-
-/-- Through `StdSpace.complexEuclideanEquiv`, a complex matrix acts on `StdSpace ι` as its
-realification. -/
-theorem complexEuclideanEquiv_toEuclideanCLM (A : Matrix ι ι ℂ) (v : EuclideanSpace ℂ ι) :
-    complexEuclideanEquiv ι (toEuclideanCLM (𝕜 := ℂ) A v) =
-      toEuclideanLin A.realify (complexEuclideanEquiv ι v) := by
-  rw [complexEuclideanEquiv_def]
-  exact complexToRealEuclidean_mulVec A v.ofLp
-
-/-- Through `StdSpace.complexEuclideanEquiv`, the real image `A ℝⁿ` of a complex matrix is the
-image of the horizontal subspace `{y = 0}` under its realification. -/
-theorem map_realImage (A : Matrix ι ι ℂ) :
-    A.realImage.map (complexEuclideanEquiv ι : EuclideanSpace ℂ ι →ₗ[ℝ] StdSpace ι) =
-      (LinearMap.ker y).map (toEuclideanLin A.realify) := by
-  ext z
-  simp only [Submodule.mem_map, mem_realImage, ← map_realSubspace]
-  constructor
-  · rintro ⟨_, ⟨w, hw, rfl⟩, rfl⟩
-    exact ⟨_, ⟨w, hw, rfl⟩, (complexEuclideanEquiv_toEuclideanCLM A w).symm⟩
-  · rintro ⟨_, ⟨w, hw, rfl⟩, rfl⟩
-    exact ⟨_, ⟨w, hw, rfl⟩, complexEuclideanEquiv_toEuclideanCLM A w⟩
-
-end StdSpace
-
 open StdSpace
 
 /-- A symplectic matrix maps Lagrangian subspaces of `StdSpace ι` to Lagrangian subspaces. -/
@@ -99,6 +74,8 @@ noncomputable instance : MulAction (GLSymplectic ι ℝ) (ℒ ι) where
   smul g Λ := ⟨(Λ : Submodule ℝ (StdSpace ι)).map
       (toEuclideanLin ((g : GL (ι ⊕ ι) ℝ) : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ)),
     isLagrangian_map_toEuclideanLin g.property Λ.isLagrangian⟩
+  -- In both proofs, the subspace of `g • Λ` is by definition the `Submodule.map` given in
+  -- `smul` above; `change` unfolds to it, as `coe_smul` can only be stated after the instance.
   one_smul Λ := toSubmodule_injective <| by
     change Submodule.map _ _ = _
     simp
@@ -201,8 +178,7 @@ theorem coe_unitaryFrame (U : unitaryGroup ι ℂ) :
       Complex.I • ((U : Matrix ι ι ℂ).map Complex.im).map Complex.ofReal = U := by
     ext i j
     simp [mul_comm Complex.I]
-  rw [coe_unitaryFrame_eq_map, range_toEuclideanLin_fromRows, hU, complexEuclideanEquiv_def]
-  rfl
+  rw [coe_unitaryFrame_eq_map, range_toEuclideanLin_fromRows_eq_map_realImage, hU]
 
 @[simp]
 theorem unitaryFrame_one : unitaryFrame (1 : unitaryGroup ι ℂ) = horizontal ι :=
@@ -241,20 +217,13 @@ theorem unitaryFrame_surjective :
     (by rw [hM']; exact map_im_conjTranspose_mul_self_eq_zero_of_transpose_mul_eq hXY)
   refine ⟨⟨_, hu⟩, toSubmodule_injective ?_⟩
   rw [coe_unitaryFrame_eq_map, GeneralLinearGroup.realImage_realOrthonormalize, hM', ← hZ,
-    range_toEuclideanLin_fromRows, complexEuclideanEquiv_def]
-  rfl
+    range_toEuclideanLin_fromRows_eq_map_realImage]
 
 instance : MulAction.IsPretransitive (unitaryGroup ι ℂ) (ℒ ι) :=
   MulAction.IsPretransitive.of_orbit (x₀ := horizontal ι) unitaryFrame_surjective
 
 instance : MulAction.IsPretransitive (GLSymplectic ι ℝ) (ℒ ι) :=
   MulAction.IsPretransitive.of_smul_eq GLSymplectic.ofUnitary (unitary_smul_def _ _).symm
-
-/-- The real Gram matrix `Re (Uᴴ U)` of a unitary matrix is the identity. -/
-private theorem map_re_conjTranspose_mul_self (U : unitaryGroup ι ℂ) :
-    ((U : Matrix ι ι ℂ)ᴴ * U).map Complex.re = 1 := by
-  rw [← star_eq_conjTranspose, Unitary.star_mul_self_of_mem U.property,
-    Matrix.map_one _ Complex.zero_re Complex.one_re]
 
 /-- A unitary matrix frames the horizontal Lagrangian iff it is real, that is, orthogonal. -/
 theorem unitaryFrame_eq_horizontal_iff {U : unitaryGroup ι ℂ} :
@@ -268,7 +237,8 @@ theorem unitaryFrame_eq_horizontal_iff {U : unitaryGroup ι ℂ} :
   · intro h
     rw [← realImage_map_ofReal (isUnit_one (M := Matrix ι ι ℝ)), h1] at h
     obtain ⟨O, hO, hUO⟩ := exists_mem_orthogonalGroup_eq_mul_map_ofReal
-      (M := 1) (M' := Unitary.toUnits U) h.symm (by simp) (map_re_conjTranspose_mul_self U)
+      (M := 1) (M' := Unitary.toUnits U) h.symm (by simp)
+      (UnitaryGroup.map_re_conjTranspose_mul_self U)
     exact ⟨O, hO, by simpa using hUO.symm⟩
   · rintro ⟨O, hO, hUO⟩
     rw [← hUO]
