@@ -64,10 +64,11 @@ Each entry has this form:
   groups are trivial, which is the counterexample. For the unitary group
   this is `Matrix.UnitaryGroup.bijective_fundamentalGroupMap_detCircle_and_simplyConnectedSpace`,
   stated for a nonempty index type, with the counterexample
-  `Matrix.UnitaryGroup.subsingleton_fundamentalGroup_of_isEmpty` and
   `Matrix.UnitaryGroup.not_bijective_fundamentalGroupMap_detCircle_of_isEmpty`
-  (`Analysis/Matrix/UnitaryGroup/FundamentalGroup.lean`); the simple
-  connectivity of $\mathrm{SU}(n)$ holds for every $n$.
+  (`Analysis/Matrix/UnitaryGroup/FundamentalGroup.lean`); that the fundamental
+  group is trivial for an empty index type needs no new lemma, as instance
+  search derives it from the group being a point. The simple connectivity of
+  $\mathrm{SU}(n)$ holds for every $n$.
 - **Issue:** #4.
 
 ## Other sources

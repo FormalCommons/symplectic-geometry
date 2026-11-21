@@ -9,6 +9,7 @@ public import TauCeti.Analysis.Matrix.UnitaryGroup.Connected
 public import TauCeti.AlgebraicTopology.UniversalCover.Circle.FundamentalGroup
 public import TauCeti.Topology.Algebra.Matrix.UnitaryGroup
 public import TauCeti.Topology.Homotopy.HomotopyGroup.BasepointChange
+public import SymplecticGeometry.Analysis.Matrix.UnitaryGroup.Basic
 public import SymplecticGeometry.Topology.Grassmannian.StiefelFibration.Stability
 
 /-!
@@ -28,7 +29,8 @@ homeomorphism `U(1) ≃ S¹` (`Matrix.UnitaryGroup.detCircleEquivOfUnique`). The
 preserves the determinant; this carries the statement from `m` to `1 + m`. Path-connectedness of
 `U(n)` moves the base point, and reindexing passes from `Fin (card ι)` to `ι`.
 
-For `SU(ι)`, the map `A ↦ A · diag(1, …, (det A)⁻¹, …, 1)` is a retraction of `U(ι)` onto `SU(ι)`.
+For `SU(ι)`, the map `A ↦ A · diag(1, …, (det A)⁻¹, …, 1)` is a retraction of `U(ι)` onto `SU(ι)`
+(`Matrix.UnitaryGroup.toSpecialUnitary`).
 A loop in `SU(ι)` has constant determinant, so it is null-homotopic in `U(ι)` by injectivity on
 `π₁`, and the retraction carries this null-homotopy back into `SU(ι)`.
 
@@ -45,8 +47,9 @@ the determinant is not surjective on `π₁`: the hypothesis `Nonempty ι` canno
 * `Matrix.UnitaryGroup.not_bijective_fundamentalGroupMap_detCircle_of_isEmpty`: the statement fails
   for empty `ι`.
 * `Matrix.instSimplyConnectedSpaceSpecialUnitaryGroup`: `SU(ι)` is simply connected.
-* `Matrix.UnitaryGroup.bijective_fundamentalGroupMap_detCircle_and_simplyConnectedSpace`: the two
-  statements together.
+* `Matrix.UnitaryGroup.bijective_fundamentalGroupMap_detCircle_and_simplyConnectedSpace`: for
+  nonempty `ι`, three statements together: the determinant is bijective on `π₁` at every base
+  point, `π₁(U(ι), U) ≃* ℤ`, and `SU(ι)` is simply connected.
 
 ## References
 
@@ -63,22 +66,6 @@ open TauCeti
 namespace Matrix.UnitaryGroup
 
 variable {ι : Type*} [Fintype ι] [DecidableEq ι]
-
-/-- The determinant of a block-diagonal unitary matrix `diag(1_r, B)` is that of `B`. -/
-@[simp]
-theorem detCircle_fromBlocksOne (r : ℕ) {m : ℕ} (B : unitaryGroup (Fin m) ℂ) :
-    detCircle (fromBlocksOne ℂ r m B) = detCircle B := by
-  refine Circle.ext ?_
-  rw [coe_detCircle, coe_detCircle, coe_fromBlocksOne, det_reindex_self, det_fromBlocks_zero₂₁,
-    det_one, one_mul]
-
-/-- Reindexing a unitary matrix does not change its determinant. -/
-@[simp]
-theorem detCircle_unitaryReindexContinuousMulEquiv {κ : Type*} [Fintype κ] [DecidableEq κ]
-    (e : ι ≃ κ) (U : unitaryGroup ι ℂ) :
-    detCircle (unitaryReindexContinuousMulEquiv ℂ e U) = detCircle U := by
-  refine Circle.ext ?_
-  rw [coe_detCircle, coe_detCircle, coe_unitaryReindexContinuousMulEquiv_apply, det_reindex_self]
 
 /-- The case `ι = Fin n` of `bijective_homotopyGroupMap_detCircle`, by induction on `n ≥ 1`. -/
 private theorem bijective_homotopyGroupMap_detCircle_fin (n : ℕ) (hn : 1 ≤ n)
@@ -142,14 +129,8 @@ theorem bijective_homotopyGroupMap_detCircle (U : unitaryGroup ι ℂ) :
 theorem bijective_fundamentalGroupMap_detCircle (U : unitaryGroup ι ℂ) :
     Function.Bijective (FundamentalGroup.map
       (⟨detCircle, continuous_detCircle⟩ : C(unitaryGroup ι ℂ, Circle)) U) := by
-  have h := (HomotopyGroup.bijective_map_iff_bijective_mapOfEq _ _).1
+  simpa using (HomotopyGroup.bijective_map_iff_bijective_mapOfEq _ _).1
     (bijective_homotopyGroupMap_detCircle U)
-  have heq : FundamentalGroup.mapOfEq
-      (⟨detCircle, continuous_detCircle⟩ : C(unitaryGroup ι ℂ, Circle)) rfl =
-      FundamentalGroup.map ⟨detCircle, continuous_detCircle⟩ U := by
-    ext p
-    simp [FundamentalGroup.mapOfEq]
-  rwa [heq] at h
 
 variable (ι) in
 /-- For a nonempty index type, the isomorphism `π₁(U(ι), U) ≃* π₁(S¹, det U)` induced by the
@@ -173,16 +154,20 @@ noncomputable def fundamentalGroupMulEquiv (U : unitaryGroup ι ℂ) :
     FundamentalGroup (unitaryGroup ι ℂ) U ≃* Multiplicative ℤ :=
   (fundamentalGroupMulEquivCircle ι U).trans (Circle.fundamentalGroupMulEquiv _)
 
+@[simp]
+theorem fundamentalGroupMulEquiv_apply (U : unitaryGroup ι ℂ)
+    (p : FundamentalGroup (unitaryGroup ι ℂ) U) :
+    fundamentalGroupMulEquiv ι U p = Circle.fundamentalGroupMulEquiv _
+      (FundamentalGroup.map
+        (⟨detCircle, continuous_detCircle⟩ : C(unitaryGroup ι ℂ, Circle)) U p) :=
+  (rfl)
+
 end Nonempty
 
 section IsEmpty
 
 variable [IsEmpty ι]
 
-/-- For an empty index type, the fundamental group of `U(ι)`, a one-point group, is trivial. -/
-instance subsingleton_fundamentalGroup_of_isEmpty (U : unitaryGroup ι ℂ) :
-    Subsingleton (FundamentalGroup (unitaryGroup ι ℂ) U) :=
-  HomotopyGroup.pi1EquivFundamentalGroup.subsingleton_congr.1 inferInstance
 
 /-- The hypothesis `Nonempty ι` of `bijective_fundamentalGroupMap_detCircle` is needed: for an
 empty index type `U(ι)` is a point, so its trivial fundamental group cannot map onto
@@ -204,65 +189,20 @@ open UnitaryGroup
 
 variable {ι : Type*} [Fintype ι] [DecidableEq ι]
 
-/-- A unitary matrix with determinant `z`: the diagonal matrix `diag(1, …, z, …, 1)`, with `z` in
-position `i₀`. -/
-private noncomputable def detSection (i₀ : ι) (z : Circle) : unitaryGroup ι ℂ :=
-  unitaryTorusHom ι (Pi.mulSingle i₀ z)
-
-private theorem continuous_detSection (i₀ : ι) : Continuous (detSection i₀) :=
-  continuous_unitaryTorusHom.comp (continuous_mulSingle (A := fun _ : ι ↦ Circle) i₀)
-
-private theorem detCircle_detSection (i₀ : ι) (z : Circle) : detCircle (detSection i₀ z) = z := by
-  refine Circle.ext ?_
-  rw [coe_detCircle, detSection, coe_unitaryTorusHom, det_diagonal,
-    Finset.prod_eq_single i₀ (fun i _ hi ↦ by simp [Pi.mulSingle_eq_of_ne hi])
-      (by simp)]
-  simp
-
-/-- The retraction `U(ι) → SU(ι)`, `A ↦ A · diag(1, …, (det A)⁻¹, …, 1)`. -/
-private noncomputable def toSpecialUnitary (i₀ : ι) (A : unitaryGroup ι ℂ) :
-    specialUnitaryGroup ι ℂ :=
-  ⟨(A * detSection i₀ (detCircle A)⁻¹ : unitaryGroup ι ℂ),
-    mem_specialUnitaryGroup_iff.2 ⟨(A * detSection i₀ (detCircle A)⁻¹).property, by
-      rw [← coe_detCircle, map_mul, detCircle_detSection, mul_inv_cancel, Circle.coe_one]⟩⟩
-
-private theorem continuous_toSpecialUnitary (i₀ : ι) : Continuous (toSpecialUnitary i₀) :=
-  ((continuous_id.mul ((continuous_detSection i₀).comp
-    (continuous_detCircle.inv))).subtypeVal).subtype_mk _
-
-/-- The inclusion `SU(ι) → U(ι)`. -/
-private def ofSpecialUnitary (A : specialUnitaryGroup ι ℂ) : unitaryGroup ι ℂ :=
-  ⟨A, (mem_specialUnitaryGroup_iff.1 A.property).1⟩
-
-private theorem continuous_ofSpecialUnitary :
-    Continuous (ofSpecialUnitary : specialUnitaryGroup ι ℂ → unitaryGroup ι ℂ) :=
-  continuous_subtypeVal.subtype_mk _
-
-private theorem detCircle_ofSpecialUnitary (A : specialUnitaryGroup ι ℂ) :
-    detCircle (ofSpecialUnitary A) = 1 :=
-  Circle.ext (by simpa [ofSpecialUnitary] using (mem_specialUnitaryGroup_iff.1 A.property).2)
-
-private theorem toSpecialUnitary_ofSpecialUnitary (i₀ : ι) (A : specialUnitaryGroup ι ℂ) :
-    toSpecialUnitary i₀ (ofSpecialUnitary A) = A := by
-  apply Subtype.ext
-  change ((ofSpecialUnitary A * detSection i₀ (detCircle (ofSpecialUnitary A))⁻¹ :
-    unitaryGroup ι ℂ) : Matrix ι ι ℂ) = A
-  rw [detCircle_ofSpecialUnitary, inv_one, detSection, Pi.mulSingle_one, map_one, mul_one]
-  rfl
-
 private theorem simplyConnectedSpace_specialUnitaryGroup_of_nonempty [Nonempty ι] :
     SimplyConnectedSpace (specialUnitaryGroup ι ℂ) := by
   let i₀ : ι := Classical.arbitrary ι
   let r : C(unitaryGroup ι ℂ, specialUnitaryGroup ι ℂ) :=
     ⟨toSpecialUnitary i₀, continuous_toSpecialUnitary i₀⟩
   let s : C(specialUnitaryGroup ι ℂ, unitaryGroup ι ℂ) :=
-    ⟨ofSpecialUnitary, continuous_ofSpecialUnitary⟩
+    ⟨Submonoid.inclusion specialUnitaryGroup_le_unitaryGroup,
+      continuous_inclusion specialUnitaryGroup_le_unitaryGroup⟩
   let d : C(unitaryGroup ι ℂ, Circle) := ⟨detCircle, continuous_detCircle⟩
   have hrs : r.comp s = ContinuousMap.id _ :=
-    ContinuousMap.ext (toSpecialUnitary_ofSpecialUnitary i₀)
+    ContinuousMap.ext (toSpecialUnitary_inclusion i₀)
   have : PathConnectedSpace (specialUnitaryGroup ι ℂ) :=
     Function.Surjective.pathConnectedSpace (f := r)
-      (fun A ↦ ⟨s A, toSpecialUnitary_ofSpecialUnitary i₀ A⟩) r.continuous
+      (fun A ↦ ⟨s A, toSpecialUnitary_inclusion i₀ A⟩) r.continuous
   -- A loop in `SU(ι)` becomes, in `U(ι)`, a loop with constant determinant, so it is trivial in
   -- `π_1(U(ι))`; the retraction brings it back.
   have : Subsingleton (HomotopyGroup (Fin 1) (specialUnitaryGroup ι ℂ) 1) := by
@@ -272,11 +212,11 @@ private theorem simplyConnectedSpace_specialUnitaryGroup_of_nonempty [Nonempty �
       apply (bijective_homotopyGroupMap_detCircle (s 1)).1
       rw [HomotopyGroup.map_comp_apply, HomotopyGroup.map_one]
       have hds : d.comp s = ContinuousMap.const _ (detCircle (s 1)) :=
-        ContinuousMap.ext fun A ↦ (detCircle_ofSpecialUnitary A).trans
-          (detCircle_ofSpecialUnitary 1).symm
+        ContinuousMap.ext fun A ↦ (detCircle_inclusion_specialUnitaryGroup A).trans
+          (detCircle_inclusion_specialUnitaryGroup 1).symm
       exact (HomotopyGroup.map_congr hds _ rfl c).trans
         (HomotopyGroup.map_continuousMap_const_apply_eq_one _ _ _)
-    have hr1 : r (s 1) = 1 := toSpecialUnitary_ofSpecialUnitary i₀ 1
+    have hr1 : r (s 1) = 1 := toSpecialUnitary_inclusion i₀ 1
     rw [← HomotopyGroup.map_map_of_comp_eq_id r s rfl hr1 hrs a,
       ← HomotopyGroup.map_map_of_comp_eq_id r s rfl hr1 hrs b, key, key]
   have : Subsingleton (FundamentalGroup (specialUnitaryGroup ι ℂ) 1) :=
@@ -288,8 +228,7 @@ private theorem simplyConnectedSpace_specialUnitaryGroup_of_nonempty [Nonempty �
 instance instSimplyConnectedSpaceSpecialUnitaryGroup :
     SimplyConnectedSpace (specialUnitaryGroup ι ℂ) := by
   cases isEmpty_or_nonempty ι
-  · have : Subsingleton (specialUnitaryGroup ι ℂ) := inferInstance
-    exact SimplyConnectedSpace.ofContractible _
+  · infer_instance
   · exact simplyConnectedSpace_specialUnitaryGroup_of_nonempty
 
 end Matrix
