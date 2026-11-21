@@ -1136,16 +1136,22 @@ it into issues; the overview fixes its folders and its dependencies.
   Tau Ceti file with the product criterion, so that the two merge upstream),
   `Topology/VectorBundle/Pullback.lean` (the coordinates of alternating maps
   on a pull-back bundle, a step that uses no charts, and
-  `Bundle.Pullback.neg_fiber`, a negative in a fibre of a pull-back bundle
-  for Tau Ceti's group structure on it; the file has the path
-  of the Tau Ceti file with `ContinuousLinearMap.inCoordinates_pullback_of_mem`,
+  `Bundle.Pullback.neg_fiber` and its companions for sums, differences,
+  multiples and zeros, which take each operation in a fibre of a pull-back
+  bundle at the type of its arguments; it imports `Data/Bundle.lean`; the
+  file has the path of the Tau Ceti file with
+  `ContinuousLinearMap.inCoordinates_pullback_of_mem`,
   so that the two merge upstream),
   `Topology/VectorBundle/Coordinates.lean` (the coordinates of continuous
   bilinear forms on a vector bundle; the file has the path of the Tau Ceti
   file with `ContinuousLinearMap.inCoordinates_eq_conjContinuousAlgEquiv`,
   so that the two merge upstream),
   `Data/Bundle.lean` (`Bundle.Pullback.eq_iff`, an equation in a fibre of a
-  pull-back bundle as one in the fibre it is defined as, in the root
+  pull-back bundle as one in the fibre it is defined as, and
+  `Bundle.Pullback.eq_fiber_iff`, which states an equation between vectors
+  of a fibre of a pull-back bundle in that fibre, and
+  `Bundle.Pullback.neg_apply_fiber` and `neg_apply_pullback`, which evaluate
+  a negated function on a vector of the other fibre type, in the root
   namespace and at the path of the Mathlib file that defines
   `Bundle.Pullback`),
   `Geometry/Manifold/VectorBundle/Hom.lean` (for fibrewise equivalences
@@ -1819,7 +1825,9 @@ has either; Tau Ceti's extension across a boundary,
   Darboux charts followed by a linear symplectomorphism; and that transition
   maps of such charts have symplectic derivatives), with lemmas on
   nondegenerate two-forms in
-  `Geometry/Symplectic/Manifold/Family.lean` and `Flat.lean`, named like
+  `Geometry/Symplectic/Manifold/Family.lean` and `Flat.lean`, and the chain
+  rule for transitions that `Darboux.lean` uses, in
+  `Geometry/Manifold/LocalDiffeomorph/MFDeriv.lean`, named like
   Tau Ceti's files. The folder is `Geometry/Symplectic/Moser/`, because
   Tau Ceti has the files `Geometry/Symplectic/Manifold/Moser.lean` and
   `RelativeMoser.lean`, beside which this library may not have folders of
