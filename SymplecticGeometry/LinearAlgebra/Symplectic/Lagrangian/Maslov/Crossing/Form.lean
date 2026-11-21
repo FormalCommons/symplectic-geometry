@@ -449,22 +449,20 @@ theorem eventually_nhdsGT_not_crossing_of_regular {Λ : ℝ → ℒ ι} (V : ℒ
   exact inf_eq_bot_of_nondegenerate hVW (hZr ▸ (Λ r).isLagrangian.isIsotropic) hr
 
 /-- **Regular crossings are isolated.** Let `Z` be a frame of a family `Λ` of Lagrangians indexed
-by `ℝ`, `LinearMap.range (toEuclideanLin (Z r)) = Λ r`, differentiable at `r₀` with derivative
-`Z'`. If the crossing form of `Z r₀` and `Z'` relative to a Lagrangian `V` is nondegenerate, then
-`Λ r` is transverse to `V` for all `r ≠ r₀` near `r₀`. Neither continuity of `Λ` nor
-differentiability of `Z` away from `r₀` is needed. -/
+by `ℝ` near `r₀`, so that `LinearMap.range (toEuclideanLin (Z r)) = Λ r` for all `r` near `r₀`,
+and let `Z` be differentiable at `r₀` with derivative `Z'`. If the crossing form of `Z r₀` and `Z'`
+relative to a Lagrangian `V` is nondegenerate, then `Λ r` is transverse to `V` for all `r ≠ r₀`
+near `r₀`. Neither continuity of `Λ` nor differentiability of `Z` away from `r₀` is needed. -/
 theorem eventually_nhdsNE_not_crossing_of_regular {Λ : ℝ → ℒ ι} (V : ℒ ι)
     {Z : ℝ → Matrix (ι ⊕ ι) ι ℝ} {Z' : Matrix (ι ⊕ ι) ι ℝ} {r₀ : ℝ}
-    (hZ : ∀ r, LinearMap.range (toEuclideanLin (Z r)) = Λ r) (hd : HasDerivAt Z Z' r₀)
-    (hreg : (lagrangianCrossingForm (Z r₀) Z' V).Nondegenerate) :
+    (hZ : ∀ᶠ r in 𝓝 r₀, LinearMap.range (toEuclideanLin (Z r)) = Λ r)
+    (hd : HasDerivAt Z Z' r₀) (hreg : (lagrangianCrossingForm (Z r₀) Z' V).Nondegenerate) :
     ∀ᶠ r in 𝓝[≠] r₀, (Λ r : Submodule ℝ (StdSpace ι)) ⊓ V = ⊥ := by
-  -- `HasDerivAt.hasDerivWithinAt` needs a normed space; matrices carry the topology of
-  -- functions `ι ⊕ ι → ι → ℝ`, where it applies.
-  have hd' {s : Set ℝ} : HasDerivWithinAt Z Z' s r₀ :=
-    (show HasDerivAt (F := ι ⊕ ι → ι → ℝ) Z Z' r₀ from hd).hasDerivWithinAt
   rw [← nhdsLT_sup_nhdsGT, eventually_sup]
-  exact ⟨eventually_nhdsLT_not_crossing_of_regular V (.of_forall hZ) hd' hreg,
-    eventually_nhdsGT_not_crossing_of_regular V (.of_forall hZ) hd' hreg⟩
+  exact ⟨eventually_nhdsLT_not_crossing_of_regular V (hZ.filter_mono nhdsWithin_le_nhds)
+      hd.matrix_hasDerivWithinAt hreg,
+    eventually_nhdsGT_not_crossing_of_regular V (hZ.filter_mono nhdsWithin_le_nhds)
+      hd.matrix_hasDerivWithinAt hreg⟩
 
 /-- **Regular crossings are isolated.** Let `Z` be a frame of a family `γ` of Lagrangians on
 `[0, 1]`, `LinearMap.range (toEuclideanLin (Z t)) = γ t`, differentiable within `[0, 1]` at `t₀`

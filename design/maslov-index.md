@@ -672,7 +672,7 @@ an element of `ℒ ι`.
   `Λ : ℝ → ℒ ι`. The one-sided forms take a frame of `Λ` on `Iic r₀` (or
   `Ici r₀`) near `r₀`, eventually in `𝓝[≤] r₀` (or `𝓝[≥] r₀`), and a derivative
   within `Iic r₀` (or `Ici r₀`), and conclude in `𝓝[<] r₀` (or `𝓝[>] r₀`);
-  the two-sided one takes a frame for every `r`, `HasDerivAt Z Z' r₀`, and
+  the two-sided one takes a frame of `Λ` eventually in `𝓝 r₀`, `HasDerivAt Z Z' r₀`, and
   concludes in `𝓝[≠] r₀`. `ℒ.eventually_not_crossing_of_regular` is proved
   from the one-sided forms, applied to `Set.IccExtend` of `γ`.
 
