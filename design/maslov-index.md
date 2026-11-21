@@ -384,7 +384,9 @@ The Maslov phase on $\mathcal{L}(n)$ and the index of Lagrangian loops.
   `Matrix.UnitaryGroup.realImage_eq_realImage_iff_souriau_eq` and G2). API:
   `souriau_unitaryFrame : souriau (unitaryFrame U) = Matrix.UnitaryGroup.souriau U`
   (`@[simp]`), `souriau_horizontal`, `continuous_souriau`, `souriau_injective`,
-  `isClosedEmbedding_souriau`, `souriau_sum`, `souriau_reindex`.
+  `isClosedEmbedding_souriau`, `souriau_sum`, `souriau_reindex`, and
+  `souriau_ofUnitary_smul : souriau (ofUnitary U • Λ) = U * souriau Λ * UnitaryGroup.transpose U`
+  (`@[simp]`, by `Matrix.UnitaryGroup.coe_souriau_mul_left`).
 - `ℒ.maslovPhase (Λ : ℒ ι) : Circle := detCircle (souriau Λ)`, the book's
   $\rho$, with `maslovPhase_def`, `continuous_maslovPhase`,
   `maslovPhase_unitaryFrame : maslovPhase (unitaryFrame U) = detCircle U ^ 2`
@@ -415,7 +417,10 @@ The Maslov phase on $\mathcal{L}(n)$ and the index of Lagrangian loops.
   direct sum `(γ.prod γ').map continuous_sum` of two loops (G5) is the sum;
   and `ℒ.maslovIndex_eq_sub_div_pi`: if `δ` is a path of frames of the loop
   and $\det\delta(t)=e^{i\alpha(t)}$ with `α` continuous, the index is
-  $(\alpha(1)-\alpha(0))/\pi$.
+  $(\alpha(1)-\alpha(0))/\pi$; `ℒ.angleChange_map_detCircle`, for such a
+  `δ` the angle change of $\det\delta$ is `maslovIndex γ * π`, and its
+  corollary `ℒ.detCircle_inv_mul_eq_exp`, $\det(U^{-1}V)=e^{i\pi\mu(\gamma)}$
+  for `δ` from `U` to `V`.
 - The half-turn `ℒ.halfTurnLoop {ι} (k : ℤ) : Path (V₀ ι) (V₀ ι)`,
   `t ↦ unitaryFrame (e^{iπkt} • 1)`, with `halfTurnLoop_apply`
   (not `@[simp]`, so that the phase lemma below can fire),
@@ -484,6 +489,16 @@ The Maslov phase on $\mathcal{L}(n)$ and the index of Lagrangian loops.
   both having index `2 * k`, so `homotopicWith_iff` and `sum` give `k` for
   `halfTurnLoop k`; `homotopicWith_reindex_sum_halfTurnLoop` does the rest.
   *Maslov index for loops of Lagrangian subspaces*.
+- Supporting declarations of the file: `ℒ.maslovIndex_eq_of_homotopicWith`;
+  `isLagrangianMaslovIndex_maslovIndex`; and in the namespace
+  `IsLagrangianMaslovIndex`, `eq_of_maslovIndex_eq`,
+  `apply_halfTurnLoop_two_mul`, `apply_halfTurnLoop` and
+  `apply_eq_maslovIndex`. The proof of `maslovIndex_eq_iff_homotopic` corrects
+  one lift on the right by a path in `O(n)` from `1` to `W⁻¹ W'`, where `U W`
+  and `U W'` are the ends of the two lifts (joined since
+  `det W = det W' = (-1)^k`, by `TauCeti.Matrix.joined_orthogonalGroup_iff_det_eq`),
+  instead of moving both ends to `U * D`, and then uses
+  `Matrix.UnitaryGroup.homotopic_iff_angleChange_eq` (part *Unitary group topology*).
 
 ### `LinearAlgebra/Symplectic/Lagrangian/Maslov/Path/Basic.lean`
 

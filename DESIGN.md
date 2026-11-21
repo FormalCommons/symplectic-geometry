@@ -474,8 +474,11 @@ further when they grow, following `AGENTS.md`.
   does not reach $-1$. It is the analogue of
   `TauCeti.Matrix.SpecialOrthogonalGroup.isNConnected_fromBlocksOne` and is
   proved in the same way. Then
-  `Analysis/Matrix/UnitaryGroup/FundamentalGroup.lean`, which holds only the
-  milestone: $\det:\mathrm{U}(n)\to S^1$, Tau Ceti's
+  `Analysis/Matrix/UnitaryGroup/FundamentalGroup.lean`, which holds the
+  milestone and `Matrix.UnitaryGroup.homotopic_iff_angleChange_eq` (paths in
+  $\mathrm{U}(n)$ with the same ends are homotopic iff $\det$ has the same
+  `Circle.angleChange` along them, for every $n$): $\det:\mathrm{U}(n)\to S^1$,
+  Tau Ceti's
   `Matrix.UnitaryGroup.detCircle`, induces an isomorphism of fundamental
   groups for $n\ge1$, by induction from $\mathrm{U}(1)\cong S^1$, which is
   Tau Ceti's `Matrix.UnitaryGroup.detCircleEquivOfUnique`
@@ -493,7 +496,10 @@ further when they grow, following `AGENTS.md`.
   For $n=0$ the group is a point. The two counterexamples for $n=0$, for
   $\mathrm{U}(0)$ and $\mathrm{Sp}(0)$, both apply the general
   `FundamentalGroup.not_surjective_map_circle_of_subsingleton`
-  (`AlgebraicTopology/FundamentalGroup.lean`). The retraction and the facts about `detCircle`
+  (`AlgebraicTopology/FundamentalGroup.lean`), which also holds
+  `Circle.homotopic_iff_angleChange_map_eq`: for `d : X → S¹` injective on
+  $\pi_1$, two paths with the same ends are homotopic iff their images have
+  the same angle change. The retraction and the facts about `detCircle`
   it uses are in `Analysis/Matrix/UnitaryGroup/Basic.lean`.
   Tau Ceti's `Matrix.instSimplyConnectedSpaceSpecialUnitaryGroupFinTwoComplex`
   is the case $n=2$. Last, `Analysis/Matrix/SymplecticGroup/FundamentalGroup.lean`
@@ -642,7 +648,7 @@ it into issues; the overview fixes its folders and its dependencies.
   `Matrix.toEuclideanLin (Matrix.fromRows X Y)`), and
   `LinearAlgebra/Matrix/SelfAdjoint.lean` (`Matrix.finrank_selfAdjoint`:
   the symmetric $n\times n$ matrices have dimension $n(n+1)/2$, from Tau
-  Ceti's `LinearMap.BilinForm.finrank_symmSubmodule`). Three more general
+  Ceti's `LinearMap.BilinForm.finrank_symmSubmodule`). Four more general
   files serve it too:
   `Analysis/InnerProductSpace/Projection/Basic.lean`
   (`Submodule.starProjection_map_unitary`: the projection onto `u K`, for a
@@ -651,6 +657,9 @@ it into issues; the overview fixes its folders and its dependencies.
   `Analysis/InnerProductSpace/PiL2.lean`
   (`Matrix.piLpCongrLeft_toEuclideanLin_apply`: relabelling coordinates
   along `e` turns the action of `M` into that of `reindex e e M`),
+  `Analysis/Matrix/EuclideanLin.lean`
+  (`Matrix.coe_toLinearEquiv_toEuclideanCLE`: the linear equivalence of an
+  invertible matrix `A` is `Matrix.toEuclideanLin A` as a linear map),
   `Analysis/Normed/Lp/PiLp.lean`
   (`LinearIsometryEquiv.piLpCongrLeft_trans`: relabelling along `e`, then
   along `f`, is relabelling along `e.trans f`). Two files under
@@ -856,7 +865,8 @@ it into issues; the overview fixes its folders and its dependencies.
   structures* (which imports only Tau Ceti), `Symplectic/Standard/Basic.lean` of *Standard model* and
   `Symplectic/Subspace.lean` of *Symplectic vector spaces*, all merged. In
   turn, *Compatible complex structures* uses the merged `Action.lean`,
-  `Topology/ComplexStructure/Basic.lean` and `Standard.lean` of this part, so
+  `Topology/ComplexStructure/Basic.lean`, `Standard.lean` and
+  `Topology/ComplexStructure/Orthogonal.lean` of this part, so
   each of the two parts uses merged files of the other.
 - **Milestones:** *Linear complex structures are standard*.
 - **The design file decides:** how the quotient homeomorphism is obtained (an
@@ -888,7 +898,8 @@ it into issues; the overview fixes its folders and its dependencies.
   `SymplecticForm V`), with the general file
   `Topology/Algebra/Module/BilinearForm.lean` (a continuous bilinear form in
   finite dimensions is recovered from its bilinear form; the skew part of a
-  continuous bilinear map),
+  continuous bilinear map) and `LinearAlgebra/SesquilinearForm.lean`
+  (an alternating form minus its transpose is twice the form),
   `Geometry/Symplectic/Darboux/EuclideanBasis.lean` (the coordinates of a
   basis adapted to $J$ are complex linear),
   `Geometry/Symplectic/Cayley/Domain.lean` (the open set where Tau Ceti's
@@ -912,20 +923,23 @@ it into issues; the overview fixes its folders and its dependencies.
   `MaximalCompact.lean`, whose private version of it it makes public).
 - **Builds on:** *Standard model*; *Symplectic vector spaces* for the
   Lagrangian extension lemma, used in one characterization. Besides, it uses
-  three merged files of *Linear complex structures*:
+  four merged files of *Linear complex structures*:
   `LinearAlgebra/Symplectic/Compatible.lean` imports
   `LinearAlgebra/ComplexStructure/Action.lean`, for
   `AlmostComplexStructure.transport_eq_iff_isComplexLinearMap` in the
   standard-model characterization;
   `Topology/ComplexStructure/Compatible/Matrix.lean` imports
   `Topology/ComplexStructure/Basic.lean`, for
-  `AlmostComplexStructure.homeomorphMatrix`; and
+  `AlmostComplexStructure.homeomorphMatrix`;
   `Topology/Algebra/Matrix/SymplecticGroup/CompactSubgroup.lean` imports
   `LinearAlgebra/ComplexStructure/Standard.lean`, for
-  `stabilizer_stdComplexStructure`. `Action.lean` imports only Mathlib and
+  `stabilizer_stdComplexStructure`; and
+  `Topology/ComplexStructure/Compatible/SymplecticForms.lean` imports
+  `Topology/ComplexStructure/Orthogonal.lean`, for
+  `metricComplexStructures_innerSL`. `Action.lean` imports only Mathlib and
   Tau Ceti, `Topology/ComplexStructure/Basic.lean` only `Action.lean` and Tau
-  Ceti, and `Standard.lean` only merged files, as the build-order table
-  lists, so the part waits for nothing of *Linear complex structures*. `Compatible/Matrix.lean` also
+  Ceti, `Standard.lean` and `Orthogonal.lean` only merged files, as the
+  build-order table lists, so the part waits for nothing of *Linear complex structures*. `Compatible/Matrix.lean` also
   imports the merged `LinearAlgebra/Matrix/SymplecticGroup/Basic.lean` of
   *Symplectic group*, for `Matrix.IsSymm.mem_symplecticGroup_iff`.
 - **Milestones:** *Characterizations of compatible complex structures*,
@@ -1105,6 +1119,11 @@ it into issues; the overview fixes its folders and its dependencies.
   for sections of the bundle of alternating maps of a pull-back, in the root
   namespace `Bundle.Pullback`; the file has the name of the Tau Ceti file
   with the criterion for Hom sections, so that the two merge upstream),
+  `Geometry/Manifold/VectorBundle/Prod.lean` (smoothness on total spaces of the
+  fibrewise product of two maps and of the swap of a direct-sum bundle, for
+  fibres with only a zero, and for bundle isomorphisms as
+  corollaries, in the root namespace `Bundle.Prod`; the file has the path of the
+  Tau Ceti file with the product criterion, so that the two merge upstream),
   `Topology/VectorBundle/Pullback.lean` (the coordinates of alternating maps
   on a pull-back bundle, a step that uses no charts; the file has the path
   of the Tau Ceti file with `ContinuousLinearMap.inCoordinates_pullback_of_mem`,
@@ -1127,6 +1146,8 @@ it into issues; the overview fixes its folders and its dependencies.
   file has the name of the Mathlib file that defines
   `ContMDiffVectorBundle.continuousAlternatingMap`, so that the two merge
   upstream),
+  `Topology/FiberBundle/Basic.lean` (a fibrewise open condition on a fibre
+  bundle gives an open set of the total space, in Mathlib's namespace),
   `Topology/FiberBundle/ChangeModelFiber.lean` (a fibre bundle read with
   another model fibre along a homeomorphism, in Mathlib's namespaces and at
   Mathlib's fibre-bundle level, since it involves no group),
@@ -1984,12 +2005,12 @@ so two parts can each use merged files of the other without either waiting.
 | 1 | *Symplectic vector spaces* | *Standard model*, *Symplectic group* |
 | 1 | *Lagrangian Grassmannian* | *Standard model*, *Symplectic vector spaces* (only `Subspace.lean`, which is merged) |
 | 1 | *Linear nonsqueezing* | *Standard model* |
-| 1 | *Linear complex structures* | *Standard model*; *Compatible complex structures* (only `LinearAlgebra/Symplectic/Compatible.lean`, which besides Mathlib and Tau Ceti imports only `LinearAlgebra/ComplexStructure/Action.lean` of this part, `Geometry/Symplectic/Darboux/EuclideanBasis.lean` of *Compatible complex structures* itself, which imports only Tau Ceti, `LinearAlgebra/Symplectic/Standard/Basic.lean` of *Standard model* and `LinearAlgebra/Symplectic/Subspace.lean` of *Symplectic vector spaces* (which in turn imports `LinearAlgebra/Matrix/SymplecticGroup/Basic.lean` of *Symplectic group*, which imports only Mathlib and Tau Ceti); all of them are merged. In turn, *Compatible complex structures* uses the merged `LinearAlgebra/ComplexStructure/Action.lean`, `Topology/ComplexStructure/Basic.lean` and `LinearAlgebra/ComplexStructure/Standard.lean` of this part, as its row lists) |
+| 1 | *Linear complex structures* | *Standard model*; *Compatible complex structures* (only `LinearAlgebra/Symplectic/Compatible.lean`, which besides Mathlib and Tau Ceti imports only `LinearAlgebra/ComplexStructure/Action.lean` of this part, `Geometry/Symplectic/Darboux/EuclideanBasis.lean` of *Compatible complex structures* itself, which imports only Tau Ceti, `LinearAlgebra/Symplectic/Standard/Basic.lean` of *Standard model* and `LinearAlgebra/Symplectic/Subspace.lean` of *Symplectic vector spaces* (which in turn imports `LinearAlgebra/Matrix/SymplecticGroup/Basic.lean` of *Symplectic group*, which imports only Mathlib and Tau Ceti); all of them are merged. In turn, *Compatible complex structures* uses the merged `LinearAlgebra/ComplexStructure/Action.lean`, `Topology/ComplexStructure/Basic.lean`, `LinearAlgebra/ComplexStructure/Standard.lean` and `Topology/ComplexStructure/Orthogonal.lean` of this part, as its row lists) |
 | 1 | *Siegel upper half space* | *Standard model*; *Lagrangian Grassmannian* (only `LinearAlgebra/Matrix/OfReal.lean`, which imports only Mathlib and Tau Ceti and is merged); *Linear complex structures* (only `LinearAlgebra/ComplexStructure/Action.lean`, which imports only Mathlib and Tau Ceti, `LinearAlgebra/ComplexStructure/Standard.lean`, which besides it imports only *Standard model*, `LinearAlgebra/Symplectic/Compatible.lean` of *Compatible complex structures* (which in turn imports, besides Mathlib and Tau Ceti, only `Action.lean`, `Geometry/Symplectic/Darboux/EuclideanBasis.lean` of *Compatible complex structures*, which imports only Tau Ceti, `LinearAlgebra/Symplectic/Standard/Basic.lean` of *Standard model* and `LinearAlgebra/Symplectic/Subspace.lean` of *Symplectic vector spaces*) and the library's `Geometry/Symplectic/Orientation.lean`, and that file, which imports only Tau Ceti; all of them are merged); *Symplectic group* (only `LinearAlgebra/Matrix/SymplecticGroup/Basic.lean`, which imports only Mathlib and Tau Ceti and is merged) |
 | 1 | *Symplectic vector bundles* | *Standard model*, *Linear Moser*; its existence issue also the two `PolarComplexStructure/` issues of *Compatible complex structures*, its contractibility issue the Cayley domain issue of that part, and its homotopy-equivalence issue those three and the `Tames.lineMap` issue, none of which waits for another part |
 | 1 | *Hamiltonian flows* | *Smooth families* (only `OfIsotopy.lean`, for `SymplecticIsotopy.lean` and `Flux/Hamiltonian.lean`; the other files can start at once) |
 | 1 | *Moser isotopy* | *Smooth families* (only `Stability.lean`, and `Isotopy.lean` if its form for a family extends the family in time; the other files can start at once) |
-| 2 | *Compatible complex structures* | *Standard model*, *Symplectic vector spaces*; *Linear complex structures* (only `LinearAlgebra/ComplexStructure/Action.lean`, which imports only Mathlib and Tau Ceti, `Topology/ComplexStructure/Basic.lean`, which besides it imports only Tau Ceti, and `LinearAlgebra/ComplexStructure/Standard.lean`, which besides `Action.lean` imports only `LinearAlgebra/Symplectic/Compatible.lean` of this part, `LinearAlgebra/Symplectic/Standard/Matrix.lean` of *Standard model*, the library's `Geometry/Symplectic/Orientation.lean`, which imports only Tau Ceti, and Tau Ceti; all of them are merged); *Symplectic group* (only `LinearAlgebra/Matrix/SymplecticGroup/Basic.lean`, which imports only Mathlib and Tau Ceti and is merged) |
+| 2 | *Compatible complex structures* | *Standard model*, *Symplectic vector spaces*; *Linear complex structures* (only `LinearAlgebra/ComplexStructure/Action.lean`, which imports only Mathlib and Tau Ceti, `Topology/ComplexStructure/Basic.lean`, which besides it imports only Tau Ceti, and `LinearAlgebra/ComplexStructure/Standard.lean`, which besides `Action.lean` imports only `LinearAlgebra/Symplectic/Compatible.lean` of this part, `LinearAlgebra/Symplectic/Standard/Matrix.lean` of *Standard model*, the library's `Geometry/Symplectic/Orientation.lean`, which imports only Tau Ceti, and Tau Ceti; and `Topology/ComplexStructure/Orthogonal.lean`, which besides `Topology/ComplexStructure/Basic.lean` imports only `LinearAlgebra/Symplectic/Standard/Basic.lean` of *Standard model*, `Analysis/Matrix/Polar/Deformation.lean` of *Symplectic group* and Tau Ceti; all of them are merged); *Symplectic group* (only `LinearAlgebra/Matrix/SymplecticGroup/Basic.lean`, which imports only Mathlib and Tau Ceti and is merged, and `Analysis/Matrix/Polar/Deformation.lean`, through `Orthogonal.lean`, which is merged) |
 | 2 | *Maslov index* | *Standard model*, *Symplectic group*, *Unitary group topology*; its Lagrangian issues also *Lagrangian Grassmannian* |
 | 2 | *Isotopy extension* | *Hamiltonian flows* (only `Flux/Hamiltonian.lean`), *Moser isotopy* (only `Isotopy.lean`), *Smooth families* (only `TimeExtension.lean` and `SmoothFamily.lean`); the merged *Standard model* and *Linear Moser*; the issues of its design file that use none of these can start at once |
 | 2 | *Symplectic neighbourhoods* | *Moser isotopy* (only `Relative.lean`), *Cotangent bundles*; *Symplectic vector spaces* and *Symplectic vector bundles* (only `LinearAlgebra/Symplectic/Reduction.lean` and `Geometry/Manifold/VectorBundle/Symplectic/Basic.lean`, which are merged, unless its design file also takes the open issues #254, #266 or #269 of *Symplectic vector bundles*, which are at level 1); `CharacteristicFoliation.lean` can start at once |
