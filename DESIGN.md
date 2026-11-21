@@ -211,7 +211,9 @@ also uses.
   `PiLp.continuousLinearEquiv 2 ℝ (fun _ : ι ↦ ℂ)` with
   `TauCeti.complexToRealEuclidean ι`, with `complexEuclideanEquiv_def` and the
   `@[simp]` lemmas `x_complexEuclideanEquiv` and `y_complexEuclideanEquiv`
-  (the real and imaginary parts of each coordinate). *Lagrangian
+  (the real and imaginary parts of each coordinate), and
+  `stdComplexStructure_complexEuclideanEquiv` (it carries multiplication by
+  `I` to `J₀`). *Lagrangian
   Grassmannian* uses it to compare its subspaces of `StdSpace ι` with Tau
   Ceti's subspaces of `EuclideanSpace ℂ ι`. It is built by that part's issue
   on Lagrangian frames (#118), not by *Standard model*'s issues.
@@ -828,7 +830,9 @@ it into issues; the overview fixes its folders and its dependencies.
   real matrix is positive definite exactly when its image over an `RCLike`
   field is, through Tau Ceti's realification),
   `LinearAlgebra/Matrix/Symmetric.lean` (`Matrix.IsSymm.sub_conjTranspose`:
-  $Z-Z^{*}=2i\,\mathrm{Im}\,Z$ for a symmetric complex $Z$),
+  $Z-Z^{*}=2i\,\mathrm{Im}\,Z$ for a symmetric complex $Z$, and
+  `Matrix.isSymm_mul_nonsing_inv_of_transpose_mul_eq`: $AB^{-1}$ is symmetric
+  when $A^{T}B=B^{T}A$),
   `LinearAlgebra/Matrix/Block.lean` (the two identities between the blocks
   of $M$ that the first block column of $M^2=-1$ gives), and
   `Topology/Instances/Matrix.lean` (`Continuous.isOpen_setOf_isUnit_det`:
