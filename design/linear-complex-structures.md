@@ -213,12 +213,16 @@ Declarations about Tau Ceti's type go in its namespace
   or an inverse in a factor is still the argument of `transport` when `simp`
   reaches it. Tau Ceti's `transport_trans` then gathers the nested
   transports into one composite bracketed to the left, while Mathlib's
-  cancellation lemmas for `e ≪≫ₗ e.symm` need it bracketed to the right; the
-  fourth simp lemma, `transport_trans_trans : J.transport ((a ≪≫ₗ b) ≪≫ₗ c) =
-  J.transport (a ≪≫ₗ (b ≪≫ₗ c))` (by `(rfl)`, for equivalences between any
-  four spaces), brackets it to the right. With them `simp` proves
-  `e⁻¹ • e • J = J`, `e⁻¹ • f⁻¹ • f • e • J = J`,
-  `(e * f)⁻¹ • (e * f) • J = J`, `e • f • J = (e * f) • J`,
+  cancellation lemmas for `e ≪≫ₗ e.symm` need it bracketed to the right.
+  Mathlib's `LinearEquiv.trans_assoc` cannot serve, since `simp` cannot
+  find its composite ring homomorphisms, so the file adds the same-ring form
+  `@[simp] LinearEquiv.trans_assoc_id : (a ≪≫ₗ b) ≪≫ₗ c = a ≪≫ₗ (b ≪≫ₗ c)`
+  (by `(rfl)`, over any semiring), in Mathlib's namespace so that it can move
+  upstream. It rebrackets every composite to the right, at any depth. With
+  these lemmas `simp` proves `e⁻¹ • e • J = J`,
+  `e⁻¹ • f⁻¹ • g⁻¹ • g • f • e • J = J`,
+  `(e * f * g)⁻¹ • (e * f * g) • J = J`, `f⁻¹ • e⁻¹ • e • f • g • J = g • J`,
+  `e • f • g • h • J = (e * f * g * h) • J`,
   `(e * f * g) • J = e • f • g • J` and
   `(e * f)⁻¹ • J = f⁻¹ • e⁻¹ • J`. Lemmas whose right side is an action of
   `V ≃ₗ[ℝ] V` state it with `transport`, as `ofEuclideanCLE_smul :

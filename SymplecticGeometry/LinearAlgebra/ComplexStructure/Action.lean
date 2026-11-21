@@ -32,6 +32,8 @@ gives actions of the invertible matrices and of the special orthogonal matrices.
   exactly when `e` is complex linear from `J` to `J'`.
 * `TauCeti.AlmostComplexStructure.smul_apply`, `generalLinearGroup_smul_apply`: the actions
   evaluated at a vector.
+* `LinearEquiv.trans_assoc_id`: associativity of composition of linear equivalences over one
+  ring, in a form that `simp` can use, so that it proves the group laws of the action.
 * `TauCeti.SymplecticForm.IsSymplectomorphism.compatible_transport_iff`: a linear
   symplectomorphism `e : (V, ω₁) → (W, ω₂)` preserves and reflects compatibility, that is,
   `ω₂` is compatible with `J.transport e` exactly when `ω₁` is compatible with `J`.
@@ -43,6 +45,22 @@ gives actions of the invertible matrices and of the special orthogonal matrices.
 -/
 
 public section
+
+namespace LinearEquiv
+
+variable {R V W X Y : Type*} [Semiring R] [AddCommMonoid V] [Module R V] [AddCommMonoid W]
+  [Module R W] [AddCommMonoid X] [Module R X] [AddCommMonoid Y] [Module R Y]
+
+/-- Composition of linear equivalences over one ring is associative. Unlike Mathlib's
+`LinearEquiv.trans_assoc`, whose composite ring homomorphisms are determined only by instance
+arguments, this form can be used by `simp`, which with it brackets every composite of linear
+equivalences over one ring to the right. -/
+@[simp]
+theorem trans_assoc_id (a : V ≃ₗ[R] W) (b : W ≃ₗ[R] X) (c : X ≃ₗ[R] Y) :
+    (a ≪≫ₗ b) ≪≫ₗ c = a ≪≫ₗ (b ≪≫ₗ c) :=
+  (rfl)
+
+end LinearEquiv
 
 namespace TauCeti.AlmostComplexStructure
 
@@ -104,17 +122,6 @@ theorem transport_mul (J : AlmostComplexStructure V) (e f : V ≃ₗ[ℝ] V) :
 @[simp]
 theorem transport_inv (J : AlmostComplexStructure V) (e : V ≃ₗ[ℝ] V) :
     J.transport e⁻¹ = J.transport e.symm :=
-  (rfl)
-
-/-- Transport along a composite of three equivalences does not depend on how the composite is
-bracketed. As a simp lemma it brackets the composite to the right, the form in which Mathlib's
-cancellation lemmas for `e ≪≫ₗ e.symm` apply, after Tau Ceti's `transport_trans` has gathered
-nested transports into one composite bracketed to the left. -/
-@[simp]
-theorem transport_trans_trans {X Y : Type*} [AddCommGroup X] [Module ℝ X] [AddCommGroup Y]
-    [Module ℝ Y] (J : AlmostComplexStructure V) (a : V ≃ₗ[ℝ] W) (b : W ≃ₗ[ℝ] X)
-    (c : X ≃ₗ[ℝ] Y) :
-    J.transport ((a ≪≫ₗ b) ≪≫ₗ c) = J.transport (a ≪≫ₗ (b ≪≫ₗ c)) :=
   (rfl)
 
 theorem smul_apply (e : V ≃ₗ[ℝ] V) (J : AlmostComplexStructure V) (v : V) :
