@@ -32,9 +32,9 @@ gives actions of the invertible matrices and of the special orthogonal matrices.
   exactly when `e` is complex linear from `J` to `J'`.
 * `TauCeti.AlmostComplexStructure.smul_apply`, `generalLinearGroup_smul_apply`: the actions
   evaluated at a vector.
-* `TauCeti.SymplecticForm.IsSymplectomorphism.compatible_smul_iff`: a linear symplectomorphism
-  `e` of `(V, ω)` preserves and reflects compatibility with `ω`, that is, `ω` is compatible
-  with `e • J` exactly when it is compatible with `J`.
+* `TauCeti.SymplecticForm.IsSymplectomorphism.compatible_transport_iff`: a linear
+  symplectomorphism `e : (V, ω₁) → (W, ω₂)` preserves and reflects compatibility, that is,
+  `ω₂` is compatible with `J.transport e` exactly when `ω₁` is compatible with `J`.
 
 ## References
 
@@ -160,14 +160,16 @@ end TauCeti.AlmostComplexStructure
 
 namespace TauCeti.SymplecticForm
 
-variable {V : Type*} [AddCommGroup V] [Module ℝ V] {ω : SymplecticForm V} {e : V ≃ₗ[ℝ] V}
+variable {V W : Type*} [AddCommGroup V] [Module ℝ V] [AddCommGroup W] [Module ℝ W]
+  {ω₁ : SymplecticForm V} {ω₂ : SymplecticForm W} {e : V ≃ₗ[ℝ] W}
 
-/-- A linear symplectomorphism `e` of `(V, ω)` preserves and reflects compatibility: `ω` is
-compatible with `e • J = e ∘ J ∘ e⁻¹` exactly when it is compatible with `J`. -/
-theorem IsSymplectomorphism.compatible_smul_iff (he : ω.IsSymplectomorphism ω e)
-    (J : AlmostComplexStructure V) : ω.Compatible (e • J) ↔ ω.Compatible J := by
-  conv_lhs => rw [← isSymplectomorphism_iff_transport_eq.1 he]
-  exact compatible_transport_iff ω J e
+/-- A linear symplectomorphism `e : (V, ω₁) → (W, ω₂)` carries compatible complex structures to
+compatible ones and back: `ω₂` is compatible with `e ∘ J ∘ e⁻¹` exactly when `ω₁` is compatible
+with `J`. For `V = W` and `ω₁ = ω₂` this says that the symplectic automorphisms of `(V, ω)` act on
+the complex structures compatible with `ω`, through `e • J = J.transport e`. -/
+theorem IsSymplectomorphism.compatible_transport_iff (he : ω₁.IsSymplectomorphism ω₂ e)
+    (J : AlmostComplexStructure V) : ω₂.Compatible (J.transport e) ↔ ω₁.Compatible J := by
+  rw [← isSymplectomorphism_iff_transport_eq.1 he, SymplecticForm.compatible_transport_iff]
 
 end TauCeti.SymplecticForm
 

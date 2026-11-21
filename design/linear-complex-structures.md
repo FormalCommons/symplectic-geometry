@@ -219,8 +219,9 @@ Declarations about Tau Ceti's type go in its namespace
   into `GL n ℝ` (no new name for that homomorphism). It has no apply lemma of
   its own: `@[simp] specialOrthogonalGroup_smul_def` rewrites `g • J` as the
   action of that unit, so `generalLinearGroup_smul_apply` serves both actions.
-- `TauCeti.SymplecticForm.IsSymplectomorphism.compatible_smul_iff
-  (he : ω.IsSymplectomorphism ω e) (J) : ω.Compatible (e • J) ↔ ω.Compatible J`,
+- `TauCeti.SymplecticForm.IsSymplectomorphism.compatible_transport_iff
+  (he : ω₁.IsSymplectomorphism ω₂ e) (J) :
+  ω₂.Compatible (J.transport e) ↔ ω₁.Compatible J`, for `e : V ≃ₗ[ℝ] W`,
   from Tau Ceti's `compatible_transport_iff` and
   `isSymplectomorphism_iff_transport_eq`.
 
