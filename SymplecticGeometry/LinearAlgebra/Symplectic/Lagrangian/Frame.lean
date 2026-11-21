@@ -73,9 +73,10 @@ A *frame* is a real `2n × n` matrix `Z = fromRows X Y`, whose columns span the 
 * `SymplecticGeometry.StdSpace.disjoint_range_toEuclideanLin_fromRows_ker_y_iff`,
   `range_toEuclideanLin_fromRows_eq_graphY`: a frame `fromRows X Y` of full rank spans a subspace
   transverse to `{y = 0}` iff `Y` is invertible, and then it spans `graphY (X Y⁻¹)`;
-  `range_toEuclideanLin_fromRows_eq_graph`: if `X` is invertible, it spans `graph (Y X⁻¹)`;
   `disjoint_range_toEuclideanLin_fromRows_ker_y_iff_of_isLagrangian`: the same for a Lagrangian
   frame.
+* `SymplecticGeometry.StdSpace.range_toEuclideanLin_fromRows_eq_graph`: if `X` is invertible,
+  the frame `fromRows X Y` spans `graph (Y X⁻¹)`.
 
 ## References
 
