@@ -14,7 +14,9 @@ Appendix 6.
 All names below are in the namespace `SymplecticGeometry` unless they are
 written with another one. Paths of new files are under `SymplecticGeometry/`;
 Tau Ceti paths are relative to `.lake/packages/TauCeti/TauCeti/`, as in
-`DESIGN.md`. `ι` is a `Fintype` with `DecidableEq`, and `n` is `Fintype.card ι`.
+`DESIGN.md`. `ι` is a `Fintype`, and `n` is `Fintype.card ι`. A statement that
+needs `DecidableEq ι` takes it as an extra hypothesis, as the diagonal-matrix
+results of `Ellipsoid/Basic.lean` do.
 
 ## Decisions
 
@@ -610,8 +612,10 @@ Expected size: 450 lines, with `Sign.lean`.
   `LinearMap.BilinForm.Isometry.injective`, `QuadraticMap.PosDef.comp`,
   `EuclideanSpace.posDef_iff_of_forall_eq_sum_mul_sq`,
   `TauCeti.nonempty_isometryEquiv_toQuadraticForm'_one_of_posDef`,
-  `ContinuousLinearEquiv.adjointEquiv`, `IsDarbouxBasis`,
+  `ContinuousLinearEquiv.adjointEquiv`, `IsDarbouxBasis` with
+  `IsDarbouxBasis.map`, `stdDarbouxBasis` with `isDarbouxBasis_stdDarbouxBasis`,
   `Module.Basis.darbouxBasisEquiv` with
+  `Module.Basis.darbouxBasisEquiv_fst_apply`, `_snd_apply` and
   `IsDarbouxBasis.isSymplectomorphism_darbouxBasisEquiv`, `elliptic` with
   `elliptic_apply` and `polar_elliptic`, `hamiltonianEnd` with
   `IsDarbouxBasis.hamiltonianEnd_sum_smul_elliptic_apply_fst` and `_snd`,
