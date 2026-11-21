@@ -212,9 +212,11 @@ transverse charts and pairs).
   with `unitaryFrame U = Λ`, a path `δ` in `unitaryGroup ι ℂ` starting at `U`
   with `unitaryFrame (δ t) = γ t` for all `t`. The natural proof is that
   `unitaryFrame` is a Serre fibration with fibre $\mathrm{O}(n)$: local sections
-  come from the graph charts (the frame $\mathbb{1}+iS$ of the graph of a
-  symmetric $S$, made unitary by Tau Ceti's `realOrthonormalize`), and Tau
-  Ceti's `Subgroup.localSectionTrivializationOfCosetFibers` and
+  come from the graph chart `graphYChart`: near `U • V₁`, the subspace `Λ'`
+  goes to `U * unitaryOfFrame (isLagrangian_range_fromRows_one hS)`, where
+  the symmetric `S` is the `graphYChart` value of `U⁻¹ • Λ'`, so that the
+  Lagrangian frame `fromRows S 1` (complex frame $S+i$) spans $\{x=Sy\}$;
+  and Tau Ceti's `Subgroup.localSectionTrivializationOfCosetFibers` and
   `TauCeti.TopCat.mem_serreFibrations_of_exists_trivialization` do the rest.
 - **G4.** The action of `GLSymplectic ι ℝ` on `ℒ ι`, with
   `ContinuousSMul`, and `ofUnitary U • unitaryFrame U' = unitaryFrame (U * U')`.
