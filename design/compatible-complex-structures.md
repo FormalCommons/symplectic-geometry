@@ -464,6 +464,15 @@ This is $\mathrm{Met}(V)$, in `SymplecticGeometry`.
   $\mathrm{GL}(V)$ that equivariance uses.
 - `innerSL_mem_innerProducts` (for `V` an inner product space):
   `innerSL ℝ ∈ innerProducts V`, the ambient inner product as an element.
+- `innerProducts.exists_transport_eq_innerSL (g : innerProducts V)`, for
+  finite-dimensional `V`: some `e : V ≃L[ℝ] EuclideanSpace ℝ (Fin (finrank ℝ V))`
+  has `transport e g = ⟨innerSL ℝ, innerSL_mem_innerProducts⟩`. It is
+  `ContinuousLinearEquiv.ofFinrankEq` followed by the inverse of Tau Ceti's
+  `metricChangeEquiv` of the pushed-forward form, so no orthonormal basis is
+  built. `PolarComplexStructure/Basic.lean` uses it to reduce statements about
+  `g` to the ambient case.
+- `innerProducts.eq_of_forall_apply_eq`: an inner product separates points
+  through its first argument.
 - `TauCeti.SymplecticForm.Compatible.associatedBilinForm_mem_innerProducts (h :
   ω.Compatible J) : (ω.associatedBilinForm J).toContinuousBilinearMap ∈
   innerProducts V`.
