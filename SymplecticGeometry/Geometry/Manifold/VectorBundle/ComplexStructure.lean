@@ -6,7 +6,12 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Hom
+public import TauCeti.Geometry.Manifold.VectorBundle.Complexification
+public import TauCeti.Geometry.Manifold.VectorBundle.Prod
+public import TauCeti.Geometry.Manifold.VectorBundle.Pullback
 public import TauCeti.Geometry.Manifold.VectorBundle.Section.FrameCover
+public import TauCeti.Geometry.Symplectic.Complex.Module.Basic
+public import TauCeti.Geometry.Symplectic.Prod.Basic
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.ContMDiff
 public import TauCeti.Topology.VectorBundle.Complex.Structure
 
@@ -28,6 +33,12 @@ bundle, in `TauCeti/Geometry/Symplectic/Manifold/AlmostComplex/ContMDiff.lean` a
   trivial bundle.
 * `SymplecticGeometry.Bundle.ContMDiffComplexStructure.pushforward`: the transport
   `Φ ∘ J ∘ Φ⁻¹` along a `Cⁿ` isomorphism of vector bundles `Φ`.
+* `SymplecticGeometry.Bundle.ContMDiffComplexStructure.pullback`: the structure `y ↦ J (f y)` on
+  the pull-back bundle `f *ᵖ V` along a `Cⁿ` map `f`.
+* `SymplecticGeometry.Bundle.ContMDiffComplexStructure.prod`: the direct sum of two structures,
+  on the direct-sum bundle `V₁ ×ᵇ V₂`.
+* `SymplecticGeometry.Bundle.ContMDiffComplexStructure.ofComplexModule`: multiplication by
+  `Complex.I` on a complex vector bundle.
 * `SymplecticGeometry.Bundle.ContMDiffComplexStructure.toContinuousComplexStructure`: the
   underlying continuous structure, which makes `V` a complex vector bundle; for `n = 0` this is
   an equivalence (`continuousEquiv`).
@@ -377,6 +388,159 @@ theorem pushforward_trans [FiniteDimensional ℝ F₂] (Φ : ∀ x, V₁ x ≃L[
   simp
 
 end Pushforward
+
+/-! ### Pull-backs -/
+
+section Pullback
+
+variable {EN HN N : Type*} [NormedAddCommGroup EN] [NormedSpace ℝ EN] [TopologicalSpace HN]
+  {I' : ModelWithCorners ℝ EN HN} [TopologicalSpace N] [ChartedSpace HN N] {n : ℕ∞}
+
+/-- The pull-back of a complex structure `J` on `V` along a `Cⁿ` map `f : N → M`: the complex
+structure on the pull-back bundle `f *ᵖ V` whose value at `y` is `J (f y)`. -/
+def pullback (J : ContMDiffComplexStructure I n F V) (f : C^n⟮I', N; I, M⟯) :
+    ContMDiffComplexStructure I' n F ((f : N → M) *ᵖ V) where
+  toEndomorphism :=
+    ⟨fun y ↦ J.toEndomorphism (f y), (Pullback.contMDiff_hom_section_iff f f.contMDiff _).2
+      (J.toEndomorphism.contMDiff.comp f.contMDiff)⟩
+  square_neg y := J.square_neg (f y)
+
+@[simp]
+theorem pullback_toEndomorphism (J : ContMDiffComplexStructure I n F V) (f : C^n⟮I', N; I, M⟯)
+    (y : N) : (J.pullback f).toEndomorphism y = J.toEndomorphism (f y) := (rfl)
+
+@[simp]
+theorem pullback_apply (J : ContMDiffComplexStructure I n F V) (f : C^n⟮I', N; I, M⟯) (y : N)
+    (v : V (f y)) : J.pullback f y v = J (f y) v := (rfl)
+
+@[simp]
+theorem almostComplexStructureAt_pullback (J : ContMDiffComplexStructure I n F V)
+    (f : C^n⟮I', N; I, M⟯) (y : N) :
+    (J.pullback f).almostComplexStructureAt y = J.almostComplexStructureAt (f y) :=
+  TauCeti.AlmostComplexStructure.toLinearMap_injective <| by
+    rw [almostComplexStructureAt_toLinearMap, almostComplexStructureAt_toLinearMap]
+    rfl
+
+@[simp]
+theorem pullback_neg (J : ContMDiffComplexStructure I n F V) (f : C^n⟮I', N; I, M⟯) :
+    (-J).pullback f = -(J.pullback f) := by
+  ext y v
+  rfl
+
+end Pullback
+
+/-! ### Direct sums -/
+
+section Prod
+
+variable {F₁ F₂ : Type*}
+  [NormedAddCommGroup F₁] [NormedSpace ℝ F₁] [FiniteDimensional ℝ F₁]
+  [NormedAddCommGroup F₂] [NormedSpace ℝ F₂] [FiniteDimensional ℝ F₂]
+  {V₁ V₂ : M → Type*}
+  [∀ x, AddCommGroup (V₁ x)] [∀ x, Module ℝ (V₁ x)] [∀ x, TopologicalSpace (V₁ x)]
+  [∀ x, IsTopologicalAddGroup (V₁ x)] [∀ x, ContinuousSMul ℝ (V₁ x)]
+  [TopologicalSpace (TotalSpace F₁ V₁)] [FiberBundle F₁ V₁] [VectorBundle ℝ F₁ V₁]
+  [∀ x, AddCommGroup (V₂ x)] [∀ x, Module ℝ (V₂ x)] [∀ x, TopologicalSpace (V₂ x)]
+  [∀ x, IsTopologicalAddGroup (V₂ x)] [∀ x, ContinuousSMul ℝ (V₂ x)]
+  [TopologicalSpace (TotalSpace F₂ V₂)] [FiberBundle F₂ V₂] [VectorBundle ℝ F₂ V₂]
+  {n : ℕ∞}
+
+/-- The direct sum of complex structures `J₁` on `V₁` and `J₂` on `V₂`: the complex structure on
+the direct-sum bundle `V₁ ×ᵇ V₂` acting by `(v₁, v₂) ↦ (J₁ x v₁, J₂ x v₂)` on the fibre at `x`. -/
+def prod (J₁ : ContMDiffComplexStructure I n F₁ V₁) (J₂ : ContMDiffComplexStructure I n F₂ V₂) :
+    ContMDiffComplexStructure I n (F₁ × F₂) (V₁ ×ᵇ V₂) where
+  toEndomorphism :=
+    ⟨fun x ↦ (J₁.toEndomorphism x).prodMap (J₂.toEndomorphism x), by
+      have h₁ := (TauCeti.contMDiff_hom_bundle_iff _).1 J₁.toEndomorphism.contMDiff
+      have h₂ := (TauCeti.contMDiff_hom_bundle_iff _).1 J₂.toEndomorphism.contMDiff
+      refine (TauCeti.contMDiff_hom_bundle_iff _).2 fun p ↦
+        contMDiffAt_totalSpace_prod_iff.2 ⟨?_, ?_⟩
+      · exact (h₁.comp Prod.contMDiff_fst) p
+      · exact (h₂.comp Prod.contMDiff_snd) p⟩
+  square_neg x := by
+    ext v <;> simp
+
+@[simp]
+theorem prod_toEndomorphism (J₁ : ContMDiffComplexStructure I n F₁ V₁)
+    (J₂ : ContMDiffComplexStructure I n F₂ V₂) (x : M) :
+    (J₁.prod J₂).toEndomorphism x = (J₁.toEndomorphism x).prodMap (J₂.toEndomorphism x) := (rfl)
+
+@[simp]
+theorem prod_apply (J₁ : ContMDiffComplexStructure I n F₁ V₁)
+    (J₂ : ContMDiffComplexStructure I n F₂ V₂) (x : M) (v : V₁ x × V₂ x) :
+    J₁.prod J₂ x v = (J₁ x v.1, J₂ x v.2) := (rfl)
+
+@[simp]
+theorem almostComplexStructureAt_prod (J₁ : ContMDiffComplexStructure I n F₁ V₁)
+    (J₂ : ContMDiffComplexStructure I n F₂ V₂) (x : M) :
+    (J₁.prod J₂).almostComplexStructureAt x =
+      (J₁.almostComplexStructureAt x).prod (J₂.almostComplexStructureAt x) :=
+  TauCeti.AlmostComplexStructure.toLinearMap_injective <| LinearMap.ext fun v ↦ by
+    simp
+
+@[simp]
+theorem prod_neg (J₁ : ContMDiffComplexStructure I n F₁ V₁)
+    (J₂ : ContMDiffComplexStructure I n F₂ V₂) : (-J₁).prod (-J₂) = -(J₁.prod J₂) := by
+  ext x v <;> rfl
+
+@[simp]
+theorem prod_ofLE (J₁ : ContMDiffComplexStructure I n F₁ V₁)
+    (J₂ : ContMDiffComplexStructure I n F₂ V₂) {m : ℕ∞} (h : m ≤ n) :
+    (J₁.prod J₂).ofLE h = (J₁.ofLE h).prod (J₂.ofLE h) := by
+  ext x v <;> rfl
+
+end Prod
+
+/-! ### Multiplication by `Complex.I` on a complex vector bundle -/
+
+section OfComplexModule
+
+variable (I) in
+/-- Fibrewise multiplication by `Complex.I`, as a complex structure on a complex vector bundle
+`V`, viewed as a real vector bundle. Its regularity `n` is arbitrary: the section is constant in
+every complex trivialization. -/
+def ofComplexModule (n : ℕ∞) (F : Type*) [NormedAddCommGroup F] [NormedSpace ℝ F]
+    [NormedSpace ℂ F] (V : M → Type*) [∀ x, AddCommGroup (V x)] [∀ x, Module ℝ (V x)]
+    [∀ x, Module ℂ (V x)] [∀ x, IsScalarTower ℝ ℂ (V x)] [∀ x, TopologicalSpace (V x)]
+    [∀ x, IsTopologicalAddGroup (V x)] [∀ x, ContinuousSMul ℝ (V x)]
+    [∀ x, ContinuousConstSMul ℂ (V x)] [TopologicalSpace (TotalSpace F V)]
+    [FiberBundle F V] [VectorBundle ℝ F V] [VectorBundle ℂ F V] :
+    ContMDiffComplexStructure I n F V where
+  toEndomorphism :=
+    ⟨fun x ↦ (Complex.smulIEquiv (V x) : V x →L[ℝ] V x), TauCeti.contMDiff_smulIEquiv_bundle⟩
+  square_neg x := by
+    ext v
+    simp [smul_smul]
+
+variable [NormedSpace ℂ F] [∀ x, Module ℂ (V x)] [∀ x, IsScalarTower ℝ ℂ (V x)]
+  [∀ x, ContinuousConstSMul ℂ (V x)] [VectorBundle ℂ F V]
+
+@[simp]
+theorem ofComplexModule_toEndomorphism (x : M) :
+    (ofComplexModule I n F V).toEndomorphism x = (Complex.smulIEquiv (V x) : V x →L[ℝ] V x) :=
+  (rfl)
+
+@[simp]
+theorem ofComplexModule_apply (x : M) (v : V x) :
+    ofComplexModule I n F V x v = Complex.I • v :=
+  Complex.smulIEquiv_apply v
+
+/-- In each fibre, `ofComplexModule` is the almost complex structure of the complex module
+`V x`. -/
+@[simp]
+theorem almostComplexStructureAt_ofComplexModule (x : M) :
+    (ofComplexModule I n F V).almostComplexStructureAt x =
+      TauCeti.AlmostComplexStructure.ofComplexModule (V x) :=
+  TauCeti.AlmostComplexStructure.toLinearMap_injective <| LinearMap.ext fun v ↦ by
+    simp
+
+@[simp]
+theorem ofComplexModule_ofLE {m : ℕ∞} (h : m ≤ n) :
+    (ofComplexModule I n F V).ofLE h = ofComplexModule I m F V := by
+  ext x v
+  rfl
+
+end OfComplexModule
 
 /-! ### The topology on complex structures -/
 
