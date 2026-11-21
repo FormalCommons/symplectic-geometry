@@ -5,27 +5,26 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.Analysis.Calculus.DifferentialForm.LieDeriv
 public import TauCeti.Geometry.Manifold.DifferentialForm.LieDeriv
 
 /-!
-# Linearity of the Lie derivative of forms in the vector field
+# Linearity of the Lie derivative of forms on a manifold in the vector field
 
-Tau Ceti's `TauCeti.lieDerivFormWithin` and `TauCeti.mlieDerivFormWithin` are additive in the
-vector field (`TauCeti.lieDerivFormWithin_add_left`, `TauCeti.mlieDerivFormWithin_add_left`).
-This file adds the rest of their linearity in the field: they vanish along the zero field and
-commute with constant multiples of the field, `L_{c V} φ = c L_V φ`. Neither needs any
-differentiability of the field or of the form, since the derivative of a constant multiple is the
-constant multiple of the derivative (`fderivWithin_const_smul_field`).
-
-The proofs follow Tau Ceti's `TauCeti.mlieBracket_const_smul_left_field`.
+Tau Ceti's `TauCeti.mlieDerivFormWithin` and `TauCeti.mlieDerivForm` are additive in the vector
+field (`TauCeti.mlieDerivFormWithin_add_left`, `TauCeti.mlieDerivForm_add_left`). This file adds
+the rest of their linearity in the field: they vanish along the zero field and commute with
+constant multiples of the field, `L_{c V} φ = c L_V φ`, with no differentiability asked of the
+field or of the form. Both are read in charts from the flat statements
+`TauCeti.lieDerivFormWithin_zero_left` and `TauCeti.lieDerivFormWithin_const_smul_left` of
+`SymplecticGeometry.Analysis.Calculus.DifferentialForm.LieDeriv`. The proofs follow Tau Ceti's
+`TauCeti.mlieBracket_const_smul_left_field`.
 
 ## Main declarations
 
-* `TauCeti.lieDerivFormWithin_zero_left`, `TauCeti.lieDerivForm_zero_left`,
-  `TauCeti.mlieDerivFormWithin_zero_left`, `TauCeti.mlieDerivForm_zero_left`: the Lie derivative
+* `TauCeti.mlieDerivFormWithin_zero_left`, `TauCeti.mlieDerivForm_zero_left`: the Lie derivative
   along the zero field.
-* `TauCeti.lieDerivFormWithin_const_smul_left`, `TauCeti.lieDerivForm_const_smul_left`,
-  `TauCeti.mlieDerivFormWithin_const_smul_left`, `TauCeti.mlieDerivForm_const_smul_left`:
+* `TauCeti.mlieDerivFormWithin_const_smul_left`, `TauCeti.mlieDerivForm_const_smul_left`:
   homogeneity in the field.
 
 ## References
@@ -41,45 +40,6 @@ noncomputable section
 open Set VectorField
 
 namespace TauCeti
-
-section Flat
-
-variable {𝕜 E F : Type*} [NontriviallyNormedField 𝕜]
-  [NormedAddCommGroup E] [NormedSpace 𝕜 E] [NormedAddCommGroup F] [NormedSpace 𝕜 F]
-  {k : ℕ} {s : Set E} {x : E}
-
-/-- The Lie derivative within a set of a form along the zero vector field vanishes. -/
-@[simp]
-theorem lieDerivFormWithin_zero_left (ω : E → E [⋀^Fin k]→L[𝕜] F) (s : Set E) (x : E) :
-    lieDerivFormWithin 0 ω s x = 0 := by
-  simp [lieDerivFormWithin_def, fderivWithin_zero]
-
-/-- The Lie derivative of a form along the zero vector field vanishes. -/
-@[simp]
-theorem lieDerivForm_zero_left (ω : E → E [⋀^Fin k]→L[𝕜] F) :
-    lieDerivForm 0 ω = 0 := by
-  rw [← lieDerivFormWithin_univ]
-  exact funext (lieDerivFormWithin_zero_left ω univ)
-
-/-- The Lie derivative within a set commutes with constant multiples of the vector field, where
-derivatives within the set are unique. -/
-@[simp]
-theorem lieDerivFormWithin_const_smul_left (c : 𝕜) (V : E → E) (ω : E → E [⋀^Fin k]→L[𝕜] F)
-    (hs : UniqueDiffWithinAt 𝕜 s x) :
-    lieDerivFormWithin (c • V) ω s x = c • lieDerivFormWithin V ω s x := by
-  simp only [lieDerivFormWithin_def, fderivWithin_const_smul_field c hs, Pi.smul_apply, map_smul,
-    smul_add]
-
-/-- The Lie derivative commutes with constant multiples of the vector field:
-`L_{c V} ω = c L_V ω`. -/
-@[simp]
-theorem lieDerivForm_const_smul_left (c : 𝕜) (V : E → E) (ω : E → E [⋀^Fin k]→L[𝕜] F) :
-    lieDerivForm (c • V) ω = c • lieDerivForm V ω := by
-  ext x : 1
-  simpa only [lieDerivFormWithin_univ, Pi.smul_apply] using
-    lieDerivFormWithin_const_smul_left c V ω (uniqueDiffWithinAt_univ (x := x))
-
-end Flat
 
 variable {E H M F : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
   {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M]
