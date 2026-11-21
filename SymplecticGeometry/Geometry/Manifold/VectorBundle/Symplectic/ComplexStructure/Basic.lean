@@ -54,6 +54,8 @@ tangent bundle, and for a nondegenerate form they are, on each fibre, Tau Ceti's
 * `convex_setOf_tames`, `convex_setOf_invariant`, `convex_setOf_compatible`: the two-forms
   taming, invariant under, or compatible with a fixed complex structure form a convex set.
 * `ContMDiffComplexStructure.compatible_compatibleForm`: `ω_{g,J}` is compatible with `J`.
+* `ContMDiffComplexStructure.flat_compatibleForm`: the flat map of `ω_{g,J}` at `x` is
+  `Bundle.ContMDiffRiemannianMetric.compatibleBilinAt g x (J x)`.
 * `ContMDiffTwoForm.Compatible.compatibleForm_metric`: for a compatible pair `(ω, J)`, the form
   `ω_{g,J}` of the metric `g = Compatible.metric` is `ω` again.
 * `IsNondegenerate.polarFormulaAt_flat`: the polar formula of
@@ -62,6 +64,11 @@ tangent bundle, and for a nondegenerate form they are, on each fibre, Tau Ceti's
 * `IsNondegenerate.compatible_polarComplexStructure`, `apply_polarComplexStructure_apply` and
   `polarComplexStructure_eq_iff`: `J_{g,ω}` is the only complex structure compatible with `ω` and
   orthogonal for `g`.
+* `ContMDiffComplexStructure.mk_mem_polarEndDomain`,
+  `IsNondegenerate.polarEndAt_eq_polarComplexStructure`: the
+  values of a complex structure lie in `Bundle.ContMDiffRiemannianMetric.polarEndDomain g`, and
+  `Bundle.ContMDiffRiemannianMetric.polarEndAt g x B` is the value of `J_{g,ω}` at `x` when the
+  flat map of `ω` at `x` is `compatibleBilinAt g x B`.
 * `IsNondegenerate.polarComplexStructure_tangentEquiv`: on the tangent bundle, `J_{g,ω}` is Tau
   Ceti's `TauCeti.SmoothTwoForm.IsNondegenerate.polarComplexStructure`.
 * `IsNondegenerate.exists_compatible`, `ContMDiffComplexStructure.exists_compatible`: over a
@@ -373,6 +380,13 @@ theorem compatible_compatibleForm (g : ContMDiffRiemannianMetric I n F V)
     simp only [Matrix.cons_val_zero, Matrix.cons_val_one, apply_apply, map_neg]
     linarith
 
+/-- The flat map of `ω_{g,J}` at `x` is the form `compatibleBilinAt g x (J x)`. -/
+theorem flat_compatibleForm (g : ContMDiffRiemannianMetric I n F V)
+    (J : ContMDiffComplexStructure I n F V) (x : M) :
+    (compatibleForm g J).flat x = g.compatibleBilinAt x (J x) := by
+  ext u v
+  simp [ContMDiffTwoForm.flat_apply]
+
 end ContMDiffComplexStructure
 
 /-! ### The metric of a compatible pair -/
@@ -577,6 +591,28 @@ theorem IsNondegenerate.polarComplexStructure_eq_iff {J : ContMDiffComplexStruct
   rw [hω.polarComplexStructure_apply e he, hK]
   simp
 
+
+/-! ### The polar formula on the endomorphism bundle -/
+
+/-- For every complex structure `J`, the point `(x, J x)` of the endomorphism bundle lies in
+`polarEndDomain g`: there `compatibleBilinAt g x (J x)` is the flat map of the nondegenerate
+form `ω_{g,J}`. -/
+theorem _root_.SymplecticGeometry.Bundle.ContMDiffComplexStructure.mk_mem_polarEndDomain
+    (J : ContMDiffComplexStructure I n F V) (g : ContMDiffRiemannianMetric I n F V) (x : M) :
+    (⟨x, J x⟩ : TotalSpace (F →L[ℝ] F) fun x ↦ V x →L[ℝ] V x) ∈ g.polarEndDomain := by
+  rw [ContMDiffRiemannianMetric.mem_polarEndDomain_iff,
+    ← ContMDiffComplexStructure.flat_compatibleForm]
+  exact mem_polarFormulaDomain_iff.1 <|
+    (ContMDiffComplexStructure.compatible_compatibleForm g J).isNondegenerate
+    |>.mk_flat_mem_polarFormulaDomain x
+
+/-- If the flat map of a nondegenerate two-form `ω` at `x` is `compatibleBilinAt g x B`, then
+`polarEndAt g x B` is the value of `J_{g,ω}` at `x`. -/
+theorem IsNondegenerate.polarEndAt_eq_polarComplexStructure {x : M} {B : V x →L[ℝ] V x}
+    (h : ω.flat x = g.compatibleBilinAt x B) :
+    g.polarEndAt x B = hω.polarComplexStructure g x := by
+  rw [ContMDiffRiemannianMetric.polarEndAt_def, ← h,
+    hω.polarComplexStructure_eq_polarFormulaAt]
 
 /-! ### The tangent bundle and existence -/
 

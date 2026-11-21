@@ -9,6 +9,7 @@ public import SymplecticGeometry.Analysis.Matrix.EuclideanLin
 public import SymplecticGeometry.LinearAlgebra.Matrix.UnitaryGroup.Real
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Lagrangian.Frame
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Matrix
+public import TauCeti.Analysis.Complex.Circle
 public import TauCeti.LinearAlgebra.TotallyReal.Lagrangian
 public import TauCeti.Topology.Algebra.Matrix.Realify
 
@@ -30,6 +31,9 @@ Write `ℒ ι` for the Lagrangian Grassmannian of the standard model `(StdSpace 
 * `SymplecticGeometry.LagrangianGrassmannian.unitaryOfFrame h`: the unitary matrix of a frame
   `fromRows X Y` with Lagrangian range, the real orthonormalization of `X + i Y`; it frames that
   range (`unitaryFrame_unitaryOfFrame`).
+* `SymplecticGeometry.LagrangianGrassmannian.rotate θ Λ`: the image of `Λ` under the scalar
+  unitary matrix `e^{iθ} 1`, that is, under `e^{θ J₀}`, with `rotate_rotate` for composition
+  and period `π` (`periodic_rotate`, `rotate_int_mul_pi`).
 
 ## Main results
 
@@ -45,6 +49,13 @@ Write `ℒ ι` for the Lagrangian Grassmannian of the standard model `(StdSpace 
 * `SymplecticGeometry.LagrangianGrassmannian.unitaryFrame_eq_unitaryFrame_iff`: two unitary
   frames span the same Lagrangian iff they differ by a real orthogonal matrix, so the stabilizer
   of `{y = 0}` in `U(n)` is `O(n)` (`stabilizer_horizontal`).
+* `SymplecticGeometry.LagrangianGrassmannian.rotate_pi_div_two_horizontal`: a quarter turn
+  takes `{y = 0}` to `{x = 0}`.
+
+## Implementation notes
+
+The scalar unitary matrix `e^{iθ} 1` of `rotate` is built as in Tau Ceti's
+`TauCeti.GLSymplectic.scalarRotationLoop`, with the angle `θ` in place of `2 π t`.
 
 ## References
 
@@ -228,6 +239,67 @@ theorem unitaryFrame_one : unitaryFrame (1 : unitaryGroup ι ℂ) = horizontal �
 theorem unitaryFrame_mul (U U' : unitaryGroup ι ℂ) :
     unitaryFrame (U * U') = U • unitaryFrame U' :=
   mul_smul _ _ _
+
+/-! ### Rotations -/
+
+/-- The rotation of a Lagrangian `Λ` by the scalar unitary matrix `e^{iθ} 1`, that is, by
+`e^{θ J₀}`. -/
+noncomputable def rotate (θ : ℝ) (Λ : ℒ ι) : ℒ ι :=
+  (circleEquivUnitary (Circle.exp θ) • (1 : unitaryGroup ι ℂ)) • Λ
+
+theorem rotate_def (θ : ℝ) (Λ : ℒ ι) :
+    rotate θ Λ = (circleEquivUnitary (Circle.exp θ) • (1 : unitaryGroup ι ℂ)) • Λ :=
+  (rfl)
+
+@[simp]
+theorem rotate_zero (Λ : ℒ ι) : rotate 0 Λ = Λ := by
+  have h : circleEquivUnitary (Circle.exp 0) • (1 : unitaryGroup ι ℂ) = 1 :=
+    Subtype.ext (by simp [Unitary.coe_smul])
+  rw [rotate_def, h, one_smul]
+
+/-- Rotating by `φ` and then by `θ` is rotating by `θ + φ`. -/
+theorem rotate_rotate (θ φ : ℝ) (Λ : ℒ ι) : rotate θ (rotate φ Λ) = rotate (θ + φ) Λ := by
+  rw [rotate_def, rotate_def, rotate_def, smul_smul]
+  congr 1
+  refine Subtype.ext ?_
+  simp only [Submonoid.coe_mul, Unitary.coe_smul, OneMemClass.coe_one, Submonoid.smul_def,
+    coe_circleEquivUnitary, Circle.exp_add, Circle.coe_mul, smul_mul_smul_comm, mul_one]
+
+/-- The scalar unitary matrix `-1` fixes every Lagrangian subspace. -/
+@[simp]
+theorem unitary_neg_one_smul (Λ : ℒ ι) : (-1 : unitaryGroup ι ℂ) • Λ = Λ :=
+  toSubmodule_injective <| by simp [Unitary.coe_neg]
+
+/-- Rotating by `π` fixes every Lagrangian subspace, since `e^{iπ} = -1`. -/
+@[simp]
+theorem rotate_pi (Λ : ℒ ι) : rotate Real.pi Λ = Λ := by
+  have h : circleEquivUnitary (Circle.exp Real.pi) • (1 : unitaryGroup ι ℂ) = -1 :=
+    Subtype.ext (by simp [Unitary.coe_smul, Unitary.coe_neg, Submonoid.smul_def, Circle.coe_exp,
+      Complex.exp_pi_mul_I])
+  rw [rotate_def, h, unitary_neg_one_smul]
+
+/-- Rotating by `θ + π` is rotating by `θ`: rotations have period `π`. -/
+@[simp]
+theorem rotate_add_pi (θ : ℝ) (Λ : ℒ ι) : rotate (θ + Real.pi) Λ = rotate θ Λ := by
+  rw [← rotate_rotate, rotate_pi]
+
+/-- The rotations of a fixed Lagrangian subspace are periodic in the angle, with period `π`. -/
+theorem periodic_rotate (Λ : ℒ ι) : Function.Periodic (rotate · Λ) Real.pi :=
+  fun θ => rotate_add_pi θ Λ
+
+/-- Rotating by an integer multiple of `π` fixes every Lagrangian subspace. -/
+@[simp]
+theorem rotate_int_mul_pi (k : ℤ) (Λ : ℒ ι) : rotate (k * Real.pi) Λ = Λ :=
+  ((periodic_rotate Λ).int_mul_eq k).trans (rotate_zero Λ)
+
+/-- A quarter turn takes the horizontal Lagrangian `{y = 0}` to the vertical one `{x = 0}`. -/
+theorem rotate_pi_div_two_horizontal : rotate (Real.pi / 2) (horizontal ι) = vertical ι := by
+  rw [← symJ_smul_horizontal, rotate_def, unitary_smul_def]
+  congr 1
+  refine Subtype.ext (Units.ext ?_)
+  rw [GLSymplectic.coe_ofUnitary, GLSymplectic.coe_symJ, ← realify_I_smul_one, Unitary.coe_smul,
+    OneMemClass.coe_one, Submonoid.smul_def, coe_circleEquivUnitary]
+  simp [Circle.coe_exp, Complex.exp_mul_I]
 
 /-- The unitary matrix of a Lagrangian frame `fromRows X Y`: the real orthonormalization of its
 complex frame `X + i Y`, which is invertible since the range of the frame is Lagrangian. Its

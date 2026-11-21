@@ -76,8 +76,9 @@ No statement of this part is one that the authors' errata
   $\sum_jc_j(-\lambda_j)^n=1$ for every $n$, that is
   $\sum_jc_j/(1+\lambda_jz)=1/(1-z)$ as rational functions, which the poles
   forbid. So the $C^\infty$ extension is Seeley's series, new here. It reuses `timeScale`, `map_timeScale_eq_sum_pow_card_smul` for the
-  derivatives of the dilated terms, and `HasFTaylorSeriesUpToOn.contDiff_piecewise`
-  for the gluing at $t=0$, but not the reflection itself. Mathlib has neither.
+  derivatives of the dilated terms, and glues at $t=0$ as
+  `HasFTaylorSeriesUpToOn.union_of_isClosed` does, by `HasFTaylorSeriesUpToOn.union`
+  for sets closed only in their union, but not the reflection itself. Mathlib has neither.
 - **Isotopies.** `TauCeti.Diffeotopy J n M`
   (`Geometry/Diffeomorphism/Diffeotopy/Basic.lean`), a level-preserving
   diffeomorphism of `unitInterval × M`, with `timeSlice`, `final`,
@@ -233,6 +234,22 @@ except for the reparametrization, which is in `SymplecticGeometry`.
   does not mention `Real.smoothTransition`. It sits in this file because Tau
   Ceti keeps its truncations in its file of the same name.
 
+### `Analysis/Calculus/ContDiff/FTaylorSeries.lean`
+
+Named like Tau Ceti's file. `HasFTaylorSeriesUpToOn.union`, for sets each
+closed relative to their union.
+
+### `Analysis/Normed/Group/FunctionSeries.lean`
+
+Named like Mathlib's file. `tendstoUniformlyOn_finsetSum_of_hasSum`, the
+form of `tendstoUniformlyOn_tsum` that assumes the pointwise sums exist
+instead of completeness.
+
+### `Analysis/Sobolev/Trace/Reflection/HalfSpace.lean`
+
+Named like Tau Ceti's file; in its namespace `TauCeti.HalfSpaceExtension`.
+`norm_timeScale_le` and `timeScale_of_fst_eq_zero`.
+
 ### `LinearAlgebra/Lagrange.lean`
 
 Evaluation of Mathlib's Lagrange basis, in Mathlib's namespace `Lagrange`,
@@ -288,8 +305,8 @@ reflection $t\mapsto1-t$.
   (`map_timeScale_eq_sum_pow_card_smul` for the dilated terms), so the series
   of derivatives converges locally uniformly on $t<0$; its Taylor series at
   $t=0$ is that of $f$ by `tsum_seeleyCoeff_mul_neg_two_pow`; and
-  `HasFTaylorSeriesUpToOn.contDiff_piecewise` glues the two sides, for every
-  finite order and hence for `∞`.
+  `HasFTaylorSeriesUpToOn.union` glues the two sides on `univ ×ˢ U`, where
+  they are closed only relative to their union.
 
 The module docstring cites R. T. Seeley, *Extension of $C^\infty$ functions
 defined in a half space*, Proc. Amer. Math. Soc. 15 (1964), 625–626, which
@@ -609,8 +626,8 @@ Below, `∂ₜ` at `(x, t)` is the tangent vector
 - The reading over `ℝ`: writing `s u` for `Real.smoothTransitionUnit u :=
   ⟨Real.smoothTransition u, _, _⟩ : unitInterval`, with
   `Real.coe_smoothTransitionUnit`, `Real.smoothTransitionUnit_of_nonpos`,
-  `Real.smoothTransitionUnit_of_one_le` and `Real.contMDiff_smoothTransitionUnit`
-  (all in `Geometry/Manifold/SmoothTransition.lean`, which imports nothing
+  `Real.smoothTransitionUnit_of_one_le`, `Real.contMDiff_smoothTransitionUnit` and
+  `Real.mfderiv_smoothTransitionUnit_one` (all in `Geometry/Manifold/SmoothTransition.lean`, which imports nothing
   of the library),
   `smoothTransitionFamily (Φ : Diffeotopy I ∞ M)
   (t : ℝ) : M ≃ₘ⟮I, I⟯ M := Φ.timeSlice (s t)`,
@@ -668,8 +685,10 @@ Each is a few hundred lines. The issues on the analysis and on families
 can start at once; each issue's blockers come before it.
 
 1. **Seeley coefficients.** `Analysis/Calculus/ContDiff/Seeley/Coefficients.lean`.
-2. **Seeley's extension.** `Analysis/Calculus/ContDiff/Seeley/Extension.lean`.
-   Blocked by 1.
+2. **Seeley's extension.** `Analysis/Calculus/ContDiff/Seeley/Extension.lean`,
+   with `Analysis/Calculus/ContDiff/FTaylorSeries.lean`,
+   `Analysis/Normed/Group/FunctionSeries.lean` and
+   `Analysis/Sobolev/Trace/Reflection/HalfSpace.lean`. Blocked by 1.
 3. **Time extension of maps.** `Geometry/Manifold/ContMDiff/TimeExtension.lean`.
    Blocked by 2.
 4. **Smooth families of forms.**
