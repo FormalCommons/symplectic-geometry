@@ -1706,7 +1706,9 @@ has either; Tau Ceti's extension across a boundary,
   velocity $X_t$ of a `TauCeti.Diffeotopy`, read along the motion, as
   `TauCeti.Diffeotopy.velocity`), with
   `Geometry/Manifold/Instances/Icc.lean` (the unit vector field of an
-  interval is smooth),
+  interval is smooth) and `Geometry/Manifold/MFDeriv/Prod.lean` (the
+  derivative of a map on a product on `(0, w)` and `(v, 0)` is a partial
+  derivative),
   `Geometry/Symplectic/Hamiltonian/SymplecticIsotopy.lean`
   (symplectic vector fields and their local flows; a `TauCeti.Diffeotopy`
   has all its slices in `TauCeti.SmoothForm.diffeomorphStabilizer ω`

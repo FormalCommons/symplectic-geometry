@@ -10,6 +10,7 @@ public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Flow
 public import TauCeti.Geometry.Manifold.DifferentialForm.Interior
 import Mathlib.Geometry.Manifold.ContMDiffMFDeriv
 import SymplecticGeometry.Geometry.Manifold.Instances.Icc
+import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
 import TauCeti.Geometry.Manifold.MFDeriv.Prod
 
 /-!
@@ -52,11 +53,14 @@ Its proof follows that of Tau Ceti's `TauCeti.contMDiff_vectorBundleEulerField`:
 built from the zero section and a smooth vector of the other factor, is pushed forward by the
 tangent map of a smooth map.
 
-The proofs of `mfderiv_cylinderMap_time` and `mfderiv_cylinderMap_space` follow those of Tau
-Ceti's `TauCeti.Diffeotopy.mfderiv_cylinderMap_globalFlowDiffeotopy_time` and
-`TauCeti.Diffeotopy.mfderiv_cylinderMap_globalFlowDiffeotopy_space`, which split the derivative of
-the motion into its partial derivatives, and the proof of `velocity_timeDependentFlowDiffeotopy`
-follows that of `TauCeti.eulerianField_eq_of_coe_eq_timeDependentFlowOf`.
+`mfderiv_cylinderMap_time` and `mfderiv_cylinderMap_space` read the derivative of the motion on
+`(0, ∂ₜ)` and on `(v, 0)` as a partial derivative, by
+`MDifferentiableAt.mfderiv_prod_apply_zero_left` and
+`MDifferentiableAt.mfderiv_prod_apply_zero_right`, as Tau Ceti's
+`TauCeti.Diffeotopy.mfderiv_cylinderMap_globalFlowDiffeotopy_time` and
+`TauCeti.Diffeotopy.mfderiv_cylinderMap_globalFlowDiffeotopy_space` do for a flow. The proof of
+`velocity_timeDependentFlowDiffeotopy` follows that of
+`TauCeti.eulerianField_eq_of_coe_eq_timeDependentFlowOf`.
 
 ## References
 
@@ -84,11 +88,9 @@ theorem mfderiv_cylinderMap_time (hn : 1 ≤ n) (p : M × unitInterval) :
       mfderiv (𝓡∂ 1) J (fun s ↦ Φ (s, p.1)) p.2 1 := by
   have h : (fun s ↦ Φ.cylinderMap (p.1, s)) = fun s ↦ Φ (s, p.1) :=
     funext fun s ↦ Φ.cylinderMap_apply (p.1, s)
-  refine (mfderiv_prod_eq_add_apply (Φ.contMDiff_cylinderMap.mdifferentiableAt
-    (zero_lt_one.trans_le hn).ne')).trans ?_
-  exact (congrArg₂ (fun a b : E ↦ a + b) (map_zero _)
-    (congrArg (fun f ↦ mfderiv (𝓡∂ 1) J f p.2 (1 : TangentSpace (𝓡∂ 1) p.2)) h)).trans
-    (zero_add _)
+  have hd := Φ.contMDiff_cylinderMap.mdifferentiableAt (x := p) (zero_lt_one.trans_le hn).ne'
+  exact (hd.mfderiv_prod_apply_zero_left _).trans
+    (congrArg (fun f ↦ mfderiv (𝓡∂ 1) J f p.2 (1 : TangentSpace (𝓡∂ 1) p.2)) h)
 
 /-- The motion of a `C^n` diffeotopy, `1 ≤ n`, acts on spatial tangent vectors at `(x, t)` by the
 differential of the time-`t` map. -/
@@ -97,10 +99,8 @@ theorem mfderiv_cylinderMap_space (hn : 1 ≤ n) (p : M × unitInterval) (v : E)
       mfderiv J J (Φ.timeSlice p.2) p.1 v := by
   have h : (fun z ↦ Φ.cylinderMap (z, p.2)) = Φ.timeSlice p.2 :=
     funext fun z ↦ (Φ.cylinderMap_apply (z, p.2)).trans (Φ.timeSlice_apply p.2 z).symm
-  refine (mfderiv_prod_eq_add_apply (Φ.contMDiff_cylinderMap.mdifferentiableAt
-    (zero_lt_one.trans_le hn).ne')).trans ?_
-  exact (congrArg₂ (fun a b : E ↦ a + b) (congrArg (fun f ↦ mfderiv J J f p.1 v) h)
-    (map_zero _)).trans (add_zero _)
+  have hd := Φ.contMDiff_cylinderMap.mdifferentiableAt (x := p) (zero_lt_one.trans_le hn).ne'
+  exact (hd.mfderiv_prod_apply_zero_right v).trans (congrArg (fun f ↦ mfderiv J J f p.1 v) h)
 
 end Derivative
 
