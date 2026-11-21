@@ -1793,7 +1793,9 @@ has either.
   Darboux charts followed by a linear symplectomorphism; and that transition
   maps of such charts have symplectic derivatives), with lemmas on
   nondegenerate two-forms in
-  `Geometry/Symplectic/Manifold/Family.lean` and `Flat.lean`, named like
+  `Geometry/Symplectic/Manifold/Family.lean` and `Flat.lean`, and the chain
+  rule for transitions that `Darboux.lean` uses, in
+  `Geometry/Manifold/LocalDiffeomorph/MFDeriv.lean`, named like
   Tau Ceti's files. The folder is `Geometry/Symplectic/Moser/`, because
   Tau Ceti has the files `Geometry/Symplectic/Manifold/Moser.lean` and
   `RelativeMoser.lean`, beside which this library may not have folders of
