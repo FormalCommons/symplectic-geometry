@@ -1746,7 +1746,8 @@ has either; Tau Ceti's extension across a boundary,
   subgroup $\mathrm{Ham}_c$ of their time-one maps, normal in `diffeomorphStabilizer`, and
   $\mathrm{Ham}_c=$ `hamiltonianGroup` on a compact $M$). The folder of
   these two is Tau Ceti's `Geometry/Symplectic/Flux/`, since a folder
-  `Flux/Hamiltonian/` would clash with Tau Ceti's file.
+  `Flux/Hamiltonian/` beside Tau Ceti's file would keep the two trees from
+  moving upstream unchanged.
 - **Builds on:** *Smooth families* (only `Diffeotopy/Real.lean`, for
   `SymplecticIsotopy.lean`, and `ContMDiff/TimeExtension.lean`, for
   `Flux/CompactSupport.lean`); Mathlib, Tau Ceti (Hamiltonian vector fields,
