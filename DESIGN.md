@@ -922,7 +922,8 @@ it into issues; the overview fixes its folders and its dependencies.
   when its entry is positive), `LinearAlgebra/Matrix/PosDef/Block.lean`
   (`Matrix.posDef_fromBlocks_zero_zero_iff` and its semidefinite analogue:
   `fromBlocks A 0 0 D` is positive (semi)definite exactly when $A$ and $D$
-  are), `LinearAlgebra/Matrix/PosDef/OfReal.lean`
+  are; `Matrix.PosDef.toBlocks₁₁` and `Matrix.PosDef.toBlocks₂₂`: the
+  diagonal blocks of a positive definite matrix are positive definite), `LinearAlgebra/Matrix/PosDef/OfReal.lean`
   (`Matrix.posDef_map_algebraMap_iff` and `Matrix.posDef_map_ofReal_iff`: a
   real matrix is positive definite exactly when its image over an `RCLike`
   field is, through Tau Ceti's realification),
