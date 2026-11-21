@@ -1935,7 +1935,9 @@ has either; Tau Ceti's extension across a boundary,
   `TauCeti.IsInvolutiveDistribution.exists_flatChart`,
   `TauCeti.RoughForm.descendedForm` and
   `TauCeti.SmoothTwoForm.isSymplectic_descendedForm_iff`, and the flat lemmas of
-  `Analysis/Calculus/DifferentialForm/LieDeriv.lean`), and in
+  `Analysis/Calculus/DifferentialForm/LieDeriv.lean`; the flat chart into a
+  product, which uses nothing symplectic, is in
+  `Geometry/Manifold/Distribution/FlatChart.lean`), and in
   `Geometry/Symplectic/Neighborhood/`: `Extension.lean` (along the
   submanifold, a smooth family of linear symplectomorphisms built from
   compatible complex structures by the formula of
@@ -1963,8 +1965,8 @@ has either; Tau Ceti's extension across a boundary,
   symplectic normal bundle $(TQ)^\omega/TQ$ of an isotropic one is given by
   smooth lifts of its maps (see the design file).
 - **Builds on:** *Moser isotopy* (`Relative.lean`, only for `Tubular.lean` and
-  what follows it), *Symplectic
-  vector spaces* (`Reduction.lean` and `Subspace.lean`, merged), *Compatible
+  what follows it), *Standard model* (only `Standard/Basic.lean`, merged),
+  *Symplectic vector spaces* (`Reduction.lean` and `Subspace.lean`, merged), *Compatible
   complex structures* (`LinearAlgebra/Symplectic/Compatible.lean`, merged), Tau Ceti (tubular
   neighbourhoods, the normal bundles of Lagrangian and symplectic embeddings,
   compatible almost complex structures, relative Darboux, `TauCeti.SmoothTwoForm.exists_partialDiffeomorph_fix_immersion_mpullback_eq`).
@@ -2149,7 +2151,7 @@ so two parts can each use merged files of the other without either waiting.
 | 2 | *Compatible complex structures* | *Standard model*, *Symplectic vector spaces*; *Linear complex structures* (only `LinearAlgebra/ComplexStructure/Action.lean`, which imports only Mathlib and Tau Ceti, `Topology/ComplexStructure/Basic.lean`, which besides it imports only Tau Ceti and the merged `LinearAlgebra/Matrix/NonsingularInverse.lean` and `Analysis/CStarAlgebra/Matrix.lean`, which import only Mathlib and merged files that do, and `LinearAlgebra/ComplexStructure/Standard.lean`, which besides `Action.lean` imports only `LinearAlgebra/Symplectic/Compatible.lean` of this part, `LinearAlgebra/Symplectic/Standard/Matrix.lean` of *Standard model*, the library's `Geometry/Symplectic/Orientation.lean`, which imports only Tau Ceti, and Tau Ceti; and `Topology/ComplexStructure/Orthogonal.lean`, which besides `Topology/ComplexStructure/Basic.lean` imports only `LinearAlgebra/Symplectic/Standard/Basic.lean` of *Standard model*, `Analysis/Matrix/Polar/Deformation.lean` of *Symplectic group* and Tau Ceti; all of them are merged); *Symplectic group* (only `LinearAlgebra/Matrix/SymplecticGroup/Basic.lean`, which imports only Mathlib and Tau Ceti and is merged, and `Analysis/Matrix/Polar/Deformation.lean`, through `Orthogonal.lean`, which is merged) |
 | 2 | *Maslov index* | *Standard model*, *Symplectic group*, *Unitary group topology*; its Lagrangian issues also *Lagrangian Grassmannian* |
 | 2 | *Isotopy extension* | *Hamiltonian flows* (only `Flux/Hamiltonian.lean` and `Flux/CompactSupport.lean`), *Smooth families* (only `ContMDiff/TimeExtension.lean`, `DifferentialForm/TimeExtension.lean` and `DeRham/SmoothFamily/GoodCover.lean`), *Moser isotopy* (only `Moser/Field.lean`); the merged *Standard model* and *Linear Moser*; the issues of its design file that use none of these can start at once |
-| 2 | *Symplectic neighbourhoods* | *Moser isotopy* (only `Relative.lean`); *Symplectic vector spaces* (only `LinearAlgebra/Symplectic/Reduction.lean` and `LinearAlgebra/Symplectic/Subspace.lean`, which are merged); *Compatible complex structures* (only `LinearAlgebra/Symplectic/Compatible.lean`, which is merged); `CharacteristicFoliation.lean` and `AdaptedDarboux.lean` can start at once |
+| 2 | *Symplectic neighbourhoods* | *Moser isotopy* (only `Relative.lean`); *Standard model* (only `LinearAlgebra/Symplectic/Standard/Basic.lean`, which is merged); *Symplectic vector spaces* (only `LinearAlgebra/Symplectic/Reduction.lean` and `LinearAlgebra/Symplectic/Subspace.lean`, which are merged); *Compatible complex structures* (only `LinearAlgebra/Symplectic/Compatible.lean`, which is merged); `CharacteristicFoliation.lean` and `AdaptedDarboux.lean` can start at once |
 | 3 | *First Chern number* | *Symplectic vector bundles*, the symplectic-loop issues of *Maslov index* |
 | 3 | *Contact geometry* | *Smooth families* (only `Family.lean` and `Gray.lean`, through `ContMDiff/TimeExtension.lean`, `DifferentialForm/TimeExtension.lean` and `Diffeotopy/Real.lean`); *Symplectic neighbourhoods* (only `LegendrianNeighborhood.lean`, through `Lagrangian.lean`); the other files of the part can start at once |
 

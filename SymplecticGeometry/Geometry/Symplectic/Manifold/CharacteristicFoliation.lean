@@ -9,10 +9,9 @@ public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
 public import TauCeti.Geometry.Symplectic.Lagrangian.Presymplectic
 public import TauCeti.Geometry.Symplectic.Manifold.Descent
 import SymplecticGeometry.Analysis.Calculus.DifferentialForm.LieDeriv
+import SymplecticGeometry.Geometry.Manifold.Distribution.FlatChart
 import SymplecticGeometry.LinearAlgebra.Symplectic.Subspace
 import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.ModelSpace
-import TauCeti.Geometry.Manifold.Diffeomorph.NormedSpace
-import TauCeti.Geometry.Manifold.Distribution.FlatChart
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import TauCeti.Geometry.Manifold.Submersion.Split
@@ -54,12 +53,12 @@ constant dimension `k` and `dim M = k + 2r`
 (`TauCeti.SmoothForm.exists_isCharacteristicSubmersion`): every point has a neighbourhood `U`
 diffeomorphic to the product of the unit balls of `ℝᵏ` and `ℝ²ʳ`, by a diffeomorphism whose second
 component is a characteristic submersion of `σ` on `U`. The kernels of `σ` form an involutive
-distribution (Tau Ceti's `TauCeti.SmoothForm.isInvolutiveDistribution_ker_bilinFormAt`), so the
-Frobenius theorem (`TauCeti.IsInvolutiveDistribution.exists_flatChart`) gives a chart in which
-they are a constant subspace `W`. Split the model space as `W ⊕ C`, identify `W` with `ℝᵏ` and `C`
-with `ℝ²ʳ`, then translate and rescale so that the chart covers the unit ball, and restrict to its
-preimage. In these coordinates the fibres of the second projection are slices `ball × {b}`, which
-are convex.
+distribution (Tau Ceti's `TauCeti.SmoothForm.isInvolutiveDistribution_ker_bilinFormAt`), so
+`TauCeti.IsInvolutiveDistribution.exists_flatPartialDiffeomorph`, a form of the Frobenius theorem,
+gives a partial diffeomorphism into `ℝᵏ × ℝ²ʳ`, centred at the point and with the unit ball in its
+target, whose derivative sends the kernels to the vectors with second component `0`. Restrict it
+to the preimage of the unit ball. In these coordinates the fibres of the second projection are
+slices `ball × {b}`, which are convex.
 
 For a coisotropic immersion `f : N → M` into a symplectic manifold, this applies to `f^* ω`, whose
 kernels have dimension `dim M - dim N`, and `df` carries those kernels onto isotropic subspaces.
@@ -399,83 +398,6 @@ private theorem exists_isCharacteristicSubmersion_of_partialDiffeomorph
       SmoothTwoForm.bilinFormAt_mpullback_subtype_val]
     exact hker u (huΦ u) v
 
-/-- Near each point, a closed two-form `σ` whose kernels all have dimension `k`, on a manifold of
-dimension `k + 2r`, has a chart `Φ` into `ℝᵏ × ℝ²ʳ`, sending the point to `0` and with the unit ball
-in its image, whose derivative carries the kernel of `σ` onto the vectors with second component
-`0`. -/
-private theorem exists_partialDiffeomorph_flat (σ : SmoothForm I M ℝ 2) (hσ : σ.IsClosed)
-    {k r : ℕ} (hk : ∀ x, finrank ℝ (LinearMap.ker (σ.bilinFormAt x)) = k)
-    (hr : finrank ℝ E = k + 2 * r) (x : M) :
-    ∃ Φ : PartialDiffeomorph I 𝓘(ℝ, EuclideanSpace ℝ (Fin k) × StdSpace (Fin r)) M
-        (EuclideanSpace ℝ (Fin k) × StdSpace (Fin r)) ∞,
-      x ∈ Φ.source ∧ Φ x = 0 ∧ Metric.ball 0 1 ⊆ Φ.target ∧
-        ∀ y ∈ Φ.source, ∀ v : TangentSpace I y,
-          (mfderiv I 𝓘(ℝ, EuclideanSpace ℝ (Fin k) × StdSpace (Fin r)) Φ y v).2 = 0 ↔
-            v ∈ LinearMap.ker (σ.bilinFormAt y) := by
-  have : IsManifold I (∞ + 1) M := IsManifold.of_le (n := ∞) (by simp)
-  -- A flat chart `e` of the kernel distribution at `x`: `d(I ∘ e)` carries the kernels onto `W`.
-  obtain ⟨e, W, he, hxe, hW, hflat⟩ :=
-    (isInvolutiveDistribution_ker_bilinFormAt σ hσ).exists_flatChart (m := ⊤) le_top
-      (n := ∞) (by simp) (isContMDiffDistribution_ker_bilinFormAt σ hk)
-      (BoundarylessManifold.isInteriorPoint (I := I) (x := x))
-  -- A splitting `A : E ≃ ℝᵏ × ℝ²ʳ` that carries `W` onto the first factor.
-  obtain ⟨C, hWC⟩ := W.exists_isCompl
-  have hC : finrank ℝ C = finrank ℝ (StdSpace (Fin r)) := by
-    have := Submodule.finrank_add_eq_of_isCompl hWC
-    rw [finrank_stdSpace, Fintype.card_fin]; omega
-  let A : E ≃L[ℝ] EuclideanSpace ℝ (Fin k) × StdSpace (Fin r) :=
-    (Submodule.prodEquivOfIsCompl W C hWC).symm.toContinuousLinearEquiv.trans
-      ((ContinuousLinearEquiv.ofFinrankEq (by simp [hW])).prodCongr
-        (ContinuousLinearEquiv.ofFinrankEq hC))
-  have hA (z : E) : (A z).2 = 0 ↔ z ∈ W := by
-    simp only [A, ContinuousLinearEquiv.trans_apply, ContinuousLinearEquiv.prodCongr_apply,
-      LinearEquiv.coe_toContinuousLinearEquiv', ContinuousLinearEquiv.map_eq_zero_iff,
-      Submodule.prodEquivOfIsCompl_symm_apply_snd_eq_zero]
-  let κ := e.toPartialDiffeomorphOfMemMaximalAtlas he
-  have hκ : (κ : M → E) = I ∘ e := e.coe_toPartialDiffeomorphOfMemMaximalAtlas he
-  have hxκ : x ∈ κ.source := by simpa [κ] using hxe
-  -- `Φ` is `κ` followed by the affine map `z ↦ ε⁻¹ • A (z - κ x)`, with `ε` small enough.
-  obtain ⟨ε, hε, hball⟩ := Metric.isOpen_iff.1 (A.toHomeomorph.isOpenMap _ κ.open_target)
-    (A (κ x)) (mem_image_of_mem _ (κ.map_source hxκ))
-  let G : E ≃ₘ^∞⟮𝓘(ℝ, E), 𝓘(ℝ, EuclideanSpace ℝ (Fin k) × StdSpace (Fin r))⟯
-      EuclideanSpace ℝ (Fin k) × StdSpace (Fin r) :=
-    (A.toContDiffDiffeomorph ∞).trans
-      (Diffeomorph.smulAdd ∞ ε⁻¹ (-(ε⁻¹ • A (κ x))) (inv_ne_zero hε.ne'))
-  have hG (z : E) : G z = ε⁻¹ • (A z - A (κ x)) := by simp [G, sub_eq_add_neg]
-  have hGs (v) : G.symm v = A.symm (ε • v + A (κ x)) := by
-    simp [G, smul_add, smul_smul, hε.ne']
-  let Φ := κ.trans G.toPartialDiffeomorph
-  have hΦ : (Φ : M → EuclideanSpace ℝ (Fin k) × StdSpace (Fin r)) =
-      (fun z ↦ ε⁻¹ • (A z - A (κ x))) ∘ (I ∘ e) := by
-    ext1 y; simp [Φ, hG, hκ]
-  refine ⟨Φ, by simpa [Φ] using hxκ, by simp [hΦ, ← hκ], fun v hv ↦ ?_, fun y hy v ↦ ?_⟩
-  · have hv' : ε • v + A (κ x) ∈ Metric.ball (A (κ x)) ε := by
-      rw [mem_ball_zero_iff] at hv
-      simpa [norm_smul, abs_of_pos hε] using mul_lt_of_lt_one_right hε hv
-    obtain ⟨z, hz, hz'⟩ := hball hv'
-    have : G.symm v ∈ κ.target := by rw [hGs, ← hz']; simpa using hz
-    simpa [Φ] using this
-  · have hye : y ∈ e.source := by simpa [Φ, κ] using hy
-    have hd : MDifferentiableAt I 𝓘(ℝ, E) (I ∘ e) y := by
-      rw [← hκ]
-      exact κ.mdifferentiableAt (by simp) (by simpa [κ] using hye)
-    have hg : HasMFDerivAt 𝓘(ℝ, E) 𝓘(ℝ, EuclideanSpace ℝ (Fin k) × StdSpace (Fin r))
-        (fun z ↦ ε⁻¹ • (A z - A (κ x))) ((I ∘ e) y)
-        (ε⁻¹ • (A : E →L[ℝ] EuclideanSpace ℝ (Fin k) × StdSpace (Fin r))) :=
-      ((A.hasFDerivAt.sub_const _).const_smul ε⁻¹).hasMFDerivAt
-    have hinj : Injective (mfderiv I 𝓘(ℝ, E) (I ∘ e) y) := by
-      rw [← hκ]; exact (κ.isInvertible_mfderiv (by simp) (by simpa [κ] using hye)).injective
-    rw [hΦ, (hg.comp y hd.hasMFDerivAt).mfderiv]
-    -- The derivatives land in tangent spaces of normed spaces, which are the spaces themselves;
-    -- `change` reads the composite as a plain composite, which `rw` cannot reach through them.
-    change (ε⁻¹ • A (mfderiv I 𝓘(ℝ, E) (I ∘ e) y v)).2 = 0 ↔ _
-    simp only [Prod.smul_snd,
-      smul_eq_zero, inv_eq_zero, hε.ne', false_or]
-    refine (hA _).trans ?_
-    rw [← hflat y hye]
-    exact ⟨fun ⟨w, hw, hwv⟩ ↦ hinj hwv ▸ hw, fun h ↦ ⟨v, h, rfl⟩⟩
-
-
 /-- **Characteristic charts.** Let `σ` be a closed two-form on a boundaryless manifold of dimension
 `k + 2r` whose kernels all have dimension `k`. Every point `x` has an open neighbourhood `U` with a
 diffeomorphism `Ψ` onto the product of the open unit balls of `ℝᵏ` and of `ℝ²ʳ = StdSpace (Fin r)`,
@@ -494,7 +416,12 @@ theorem exists_isCharacteristicSubmersion (σ : SmoothForm I M ℝ 2) (hσ : σ.
         (SmoothForm.mpullback (Subtype.val : U → M) contMDiff_subtypeVal σ)
         (fun u ↦ (⟨(Ψ u : EuclideanSpace ℝ (Fin k) × StdSpace (Fin r)).2, (Ψ u).property.2⟩ :
           (⟨Metric.ball 0 1, Metric.isOpen_ball⟩ : Opens (StdSpace (Fin r))))) := by
-  obtain ⟨Φ, hx, h0, hball, hker⟩ := exists_partialDiffeomorph_flat σ hσ hk hr x
+  have : IsManifold I (∞ + 1) M := IsManifold.of_le (n := ∞) (by simp)
+  obtain ⟨Φ, hx, h0, hball, hker⟩ :=
+    (isInvolutiveDistribution_ker_bilinFormAt σ hσ).exists_flatPartialDiffeomorph
+      (F₁ := EuclideanSpace ℝ (Fin k)) (F₂ := StdSpace (Fin r))
+      (isContMDiffDistribution_ker_bilinFormAt σ hk) (by simp)
+      (by rw [hr, finrank_stdSpace, Fintype.card_fin]) x
   exact exists_isCharacteristicSubmersion_of_partialDiffeomorph σ Φ hx h0 hball hker
 
 /-- **Local symplectic quotients of a presymplectic form.** Let `σ` be a closed two-form on a

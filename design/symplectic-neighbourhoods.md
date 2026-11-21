@@ -207,12 +207,15 @@ following choices.
 `DESIGN.md` is updated with this file, in its part 19, its dependency row
 and two rows of its milestone table.
 
-- Five files are added: `LinearAlgebra/Symplectic/Extension.lean`,
+- Six files are added: `LinearAlgebra/Symplectic/Extension.lean`,
   `Neighborhood/Extension.lean`, `Neighborhood/Basic.lean`,
-  `Geometry/Manifold/VectorBundle/ZeroSection.lean` and
-  `Geometry/Manifold/TubularNeighborhood/MFDeriv.lean`. Each neighbourhood
+  `Geometry/Manifold/VectorBundle/ZeroSection.lean`,
+  `Geometry/Manifold/TubularNeighborhood/MFDeriv.lean` and
+  `Geometry/Manifold/Distribution/FlatChart.lean`. Each neighbourhood
   theorem would otherwise repeat the linear extension and its smoothness;
-  the last holds the step of `Tubular.lean` that uses nothing symplectic.
+  `MFDeriv.lean` holds the step of `Tubular.lean` that uses nothing
+  symplectic, and `FlatChart.lean` the step of
+  `CharacteristicFoliation.lean` that uses nothing symplectic.
 - `Lagrangian.lean` no longer uses *Cotangent bundles* or
   `normalBundleDiffeomorphOfIsLagrangianMap`, since the comparison theorem
   needs only that the zero section is Lagrangian. The part therefore no
@@ -283,12 +286,13 @@ On an open `U`, it is applied to `U` and the restriction
   `StdSpace (Fin r)` (an open subset of the product) whose second component
   `p` is an `IsCharacteristicSubmersion` of the restriction of `σ` onto the
   ball of `StdSpace (Fin r)`. The first component gives the leaf
-  coordinates that `AdaptedDarboux.lean` needs. Route: from
-  `exists_flatChart_extend` at `x`, choose a complement `C` of `W` and
-  linear identifications of `W` and `C` with the two model spaces. Then
-  restrict to the preimage of a small product of balls, rescaled to unit
-  balls. The fibres of `p` are the preimages of balls in `W`-directions, so
-  they are convex in the chart, hence connected. `p` is a submersion by
+  coordinates that `AdaptedDarboux.lean` needs; `Ψ` sends `x` to `0`.
+  Route: `exists_flatPartialDiffeomorph` (`FlatChart.lean`) for the
+  kernel distribution gives a partial diffeomorphism `Φ` into the product,
+  with `Φ x = 0` and the unit ball in its target, whose derivative sends
+  the kernels to the vectors with second component `0`. Restrict `Φ` to
+  the preimage of the unit ball. The fibres of `p` are the preimages of
+  slices `ball × {b}`, so they are convex in the chart, hence connected. `p` is a submersion by
   Tau Ceti's `ContMDiff.isSubmersionOfComplement_of_surjective_mfderiv`
   (`Geometry/Manifold/Submersion/Split.lean`). The kernel of `dp` is the
   flat directions, so it is the kernel of `σ`.
@@ -386,6 +390,20 @@ hom bundle of the pull-backs satisfying `hL` and `hLω` at every `q`:
   `isSymplectomorphism_smoothExtendAlong` (at each `q`, for
   `hω₀.symplecticFormAt (f₀ q)` and `hω₁.symplecticFormAt (f₁ q)`), and
   `smoothExtendAlong_sub_mem`.
+
+### `Geometry/Manifold/Distribution/FlatChart.lean`
+
+The flat chart that `exists_isCharacteristicSubmersion` uses. It uses
+nothing symplectic, so it sits with the manifold topic, beside Tau Ceti's
+`Geometry/Manifold/Distribution/FlatChart.lean`. Namespace `TauCeti`.
+
+- `IsInvolutiveDistribution.exists_flatPartialDiffeomorph (hinv) (hD :
+  IsContMDiffDistribution I ∞ k D) (h₁ : finrank ℝ F₁ = k) (h₂ : finrank ℝ
+  E = k + finrank ℝ F₂) (x : M)`, on a boundaryless manifold: a
+  `PartialDiffeomorph` `Φ` into `F₁ × F₂` with `x` in its source,
+  `Φ x = 0`, the unit ball in its target, and `(dΦ_y v).2 = 0 ↔ v ∈ D y`
+  on its source. Route: Tau Ceti's `exists_flatChart`, a splitting of the
+  model space along the flat subspace, and `Diffeomorph.smulAdd`.
 
 ### `Geometry/Manifold/TubularNeighborhood/MFDeriv.lean`
 
@@ -589,8 +607,9 @@ list. Issues 1, 3, 5 and 10 can start at once.
    projection of a product $B\times F$ with a form pulled back from $B$).
    About 350 lines. Blockers: none.
 2. **Characteristic charts and the milestone.** `CharacteristicFoliation.lean`:
-   `exists_isCharacteristicSubmersion`, the milestone theorem, and the
-   coisotropic statements. About 350 lines. Blockers: 1.
+   `exists_isCharacteristicSubmersion` (with `exists_flatPartialDiffeomorph`
+   in `Geometry/Manifold/Distribution/FlatChart.lean`), the milestone
+   theorem, and the coisotropic statements. About 350 lines. Blockers: 1.
 3. **The linear extension.** `LinearAlgebra/Symplectic/Extension.lean`: the
    pieces and their lemmas, `extendAlong` and its API, and the lemma on the
    reduced spaces. About 400 lines. Blockers: none.
