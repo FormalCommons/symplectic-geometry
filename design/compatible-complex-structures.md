@@ -114,7 +114,7 @@ These settle the questions that `DESIGN.md` leaves to this file.
 - **Bilinear forms.** Inner products and symplectic forms are seen as
   continuous bilinear forms `V →L[ℝ] V →L[ℝ] ℝ`, with the operator norm. This
   is how Mathlib's `Bundle.RiemannianMetric` and Tau Ceti's metric change
-  present them, so the bundle part can use the same maps. A
+  present them. A
   `LinearMap.BilinForm ℝ V` on a finite-dimensional space becomes one by
   Mathlib's `LinearMap.toContinuousBilinearMap`
   (`Topology/Algebra/Module/FiniteDimensionBilinear.lean`).
@@ -210,11 +210,17 @@ is the ambient inner product. The ambient case of the characterization,
 `TauCeti.SymplecticForm.polarComplexStructure_eq_iff`, is proved first, in
 Tau Ceti's namespace. It is the input for the general case.
 
-### Statements that the bundle part applies fibrewise
+### Explicit formulas on open sets
 
-*Symplectic vector bundles* gets two explicit formulas, each smooth on an
-open set and natural under continuous linear equivalences, so that the
-expressions in two trivializations agree:
+The part states smoothness through two explicit formulas, each smooth on
+an open set and natural under continuous linear equivalences, so that they
+could also be read in trivializations of a bundle. *Symplectic vector
+bundles* applies Tau Ceti's linear `cayleyPathFormula` and
+`SymplecticForm.polarComplexStructure` fibrewise, but reads
+`metricPolarFormula` in trivializations for $J_{g,\omega}$ on its
+endomorphism bundle. Its contractibility issue waits for issue 6 below, and
+its homotopy-equivalence issue for issues 4, 5 and 6.
+The two formulas:
 
 1. `TauCeti.metricPolarFormula`, the formula for $(g,\omega)\mapsto J_{g,\omega}$, on
    the open set `TauCeti.polarDomain W` of pairs of continuous bilinear forms. It is
@@ -234,9 +240,9 @@ expressions in two trivializations agree:
    denominators are invertible. The `B` with `(b, J₀, B)` in it for all
    $b\in[0,1]$ form the set $U_{J_0}$ of `DESIGN.md`. The domain contains
    $[0,1]\times\{(J_0,J)\}$ for $J_0$ $\omega$-compatible and $J$ $\omega$-tame. The reference structure is a
-   variable of the formula, so the bundle part can let it vary with the
-   point. Tau Ceti's compatible and tame contractions are this formula at
-   $b=1-t$ (`Compatible.toContinuousLinearMap_cayleyContraction`).
+   variable of the formula, which is smooth in it too. Tau Ceti's compatible
+   and tame contractions are this formula at $b=1-t$
+   (`Compatible.toContinuousLinearMap_cayleyContraction`).
 
 The homotopies of Proposition 2.5.6 and Corollary 2.5.7 get no such
 formula lemma: no other part uses them, and their own API is the `@[simp]`
@@ -303,9 +309,13 @@ request updates it to the files below. Each change, with its reason:
   `SymplecticForm V`. Neither Tau Ceti nor the overview gives one. It is a
   topic parallel to `InnerProducts.lean`.
 - **New `Geometry/Symplectic/Cayley/Domain.lean`.** The open set where the
-  Cayley path is smooth is used by two files of this part and by *Symplectic
-  vector bundles*. It involves only Tau Ceti's `cayleyPathFormula`, so it goes
-  in the folder of Tau Ceti's `Cayley/Smooth.lean`, which it extends, and can
+  Cayley path is smooth is used by two files of this part. *Symplectic
+  vector bundles* uses this file, for `TauCeti.cayleyDomain`, the openness
+  lemma `TauCeti.isOpen_setOf_forall_Icc_mem_cayleyDomain` and
+  `TauCeti.SymplecticForm.Compatible.mem_cayleyDomain`; of the other files
+  of this part it uses only the two of `PolarComplexStructure/`.
+  It involves only Tau Ceti's `cayleyPathFormula`, so it goes in the folder
+  of Tau Ceti's `Cayley/Smooth.lean`, which it extends, and can
   move there unchanged.
 - **Lemma 2.5.5 without `Compatible.cayleyEquiv`.** The overview suggested
   that equivalence. It maps the *tame* structures onto Tau Ceti's Cayley ball.
@@ -622,7 +632,7 @@ This is Corollary 2.5.7, in `SymplecticGeometry`.
   `metricPolarComplexStructure_associatedBilinForm`. The other is homotopic to
   the identity by the straight-line homotopy `metricStraightHomotopy ω`,
   $(t,g)\mapsto(1-t)\,g_{J_{g,\omega}}+t\,g$, inside the convex set. Its value
-  is the `@[simp]` lemma `coe_metricStraightHomotopy_apply`, which states it
+  is the `@[simp]` lemma `coe_metricStraightHomotopy_apply`, which gives it
   as an explicit formula.
 - **Milestone** `contractibleSpace_compatible_and_homotopyEquiv`, named like
   its sibling `contractibleSpace_tames_and_homotopyEquiv`. It states three
@@ -806,15 +816,14 @@ Each is a few hundred lines. External blockers are given by issue number.
     `Topology/Algebra/Matrix/SymplecticGroup/CompactSubgroup.lean`. Blockers:
     2, #8.
 
-Issues 1, 3 and 6 can start at once. *Symplectic vector bundles* needs 4, 5
-and 6, and nothing from issues 7 to 11:
-
-- issue 4: `metricPolarComplexStructure_transport` and
-  `metricPolarComplexStructure_innerSL`;
-- issue 5: `polarDomain` and `metricPolarFormula`, their smoothness and
-  naturality, and `metricPolarFormula_eq`;
-- issue 6: `cayleyDomain`, `isOpen_setOf_forall_Icc_mem_cayleyDomain` and
-  `Compatible.mem_cayleyDomain`.
+Issues 1, 3 and 6 can start at once. The contractibility issue of
+*Symplectic vector bundles* uses the same open set of Cayley units over
+$[0,1]$ as issue 6 here, through
+`TauCeti.isOpen_setOf_forall_Icc_mem_cayleyDomain`, and the tame structures
+lie in it by `TauCeti.SymplecticForm.Compatible.mem_cayleyDomain`, so it
+waits for issue 6. Its homotopy-equivalence issue uses `cayleyDomain` too,
+and `metricPolarFormula` on `polarDomain` with its smoothness, so it waits
+for issues 4, 5 and 6. No other issue of that part waits for this one.
 
 ## References
 
