@@ -22,9 +22,10 @@ differential of the chart. These are the `mvfderiv` and off-centre forms of Tau 
 
 ## Main results
 
-* `mvfderiv_eq_fderiv_comp_mfderiv_extChartAt`: `mvfderiv I f y` in the chart at `x`.
-* `range_mvfderiv_eq_range_fderiv_comp_extChartAt_symm_of_mem_source`: the range of
-  `mvfderiv I f y` is that of the coordinate derivative at the chart image of `y`.
+* `SymplecticGeometry.mvfderiv_eq_fderiv_comp_mfderiv_extChartAt`: `mvfderiv I f y` in the chart
+  at `x`.
+* `SymplecticGeometry.range_mvfderiv_eq_range_fderiv_comp_extChartAt_symm_of_mem_source`: the
+  range of `mvfderiv I f y` is that of the coordinate derivative at the chart image of `y`.
 * `ContMDiff.contDiffOn_comp_extChartAt_symm`: a `C^n` map into a normed space is `C^n` in every
   chart.
 -/
@@ -39,6 +40,8 @@ variable {𝕜 : Type*} [NontriviallyNormedField 𝕜]
   {H : Type*} [TopologicalSpace H] {I : ModelWithCorners 𝕜 E H}
   {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
   {F : Type*} [NormedAddCommGroup F] [NormedSpace 𝕜 F] {f : M → F} {x y : M}
+
+namespace SymplecticGeometry
 
 /-- At a point `y` of the source of the extended chart at `x`, the differential of a map into a
 normed space is the Fréchet derivative of its coordinate expression `f ∘ (extChartAt I x).symm`
@@ -64,6 +67,8 @@ theorem range_mvfderiv_eq_range_fderiv_comp_extChartAt_symm_of_mem_source [IsMan
   obtain ⟨L, hL⟩ := isInvertible_mfderiv_extChartAt hy
   rw [mvfderiv_eq_fderiv_comp_mfderiv_extChartAt hy hf, ← hL]
   exact LinearMap.range_comp_of_range_eq_top _ (LinearMap.range_eq_top.mpr L.surjective)
+
+end SymplecticGeometry
 
 /-- A `C^n` map into a normed space is `C^n` in every chart: its coordinate expression
 `f ∘ (extChartAt I x).symm` is `C^n` on the target of the extended chart. -/
