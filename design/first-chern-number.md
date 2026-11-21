@@ -705,10 +705,19 @@ issues, in an order where each issue's blockers come before it.
    bundle and the smoothness of the isomorphism onto `Circle`), so that
    `TauCeti.ManifoldTotalSpace Circle` of the family is a smooth principal
    bundle; `SymplecticGeometry.Bundle.circleBundleDiffeomorph`, the
-   homeomorphism of #63 as a diffeomorphism onto the submanifold subtype; and
-   `SymplecticGeometry.Bundle.isSubmersion_circleBundle_proj`, the
-   projection is a smooth submersion. Blocked by the issue from #57 for the
-   circle bundle. Done when these are proved.
+   homeomorphism of #63 as a diffeomorphism onto the submanifold subtype.
+   The issue proves no submersion lemma of its own: once the bundle is a
+   smooth fibre bundle, its projection is a smooth submersion by Tau Ceti's
+   `TauCeti.ManifoldTotalSpace.isSubmersion_proj` (or
+   `isSubmersionOfComplement_proj`, with the fibre's model space as
+   complement; `Geometry/Manifold/FiberBundle/Submersion.lean`), which is
+   what issue 4 applies to this bundle. For the projection from the
+   submanifold subtype, a use composes with `circleBundleDiffeomorph` and
+   applies `IsLocalDiffeomorphAt.isSubmersionAt_comp_iff`
+   (`Geometry/Manifold/Submersion/LocalDiffeomorph.lean`) at each point; no
+   later issue needs that form, so the design adds no named specialization.
+   Blocked by the issue from #57 for the circle bundle. Done when these are
+   proved.
 4. **Connection forms on principal circle bundles.**
    `Geometry/Manifold/FiberBundle/Principal/CircleConnection.lean`: for a
    smooth principal `Circle`-bundle `P` over `M`, the predicate
