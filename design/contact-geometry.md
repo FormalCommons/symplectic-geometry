@@ -150,6 +150,10 @@ review of #420 raise four more.
      nowhere zero multiplies this equation by $f$ (the pointwise form of
      `IsContactForm.contactMoserVectorField_of_eq_smul`; no sign of $f$ is
      needed).
+     Two such forms live on `ℝ × U` and `ℝ × U'`; they are compared on
+     `ℝ × (U ∩ U')` after restriction, which commutes with the Gray field
+     (`tangentSpaceOpenEquiv_grayVectorField_mpullback_prodMap_subtype_val`,
+     `Gray.lean`).
   3. Finitely many of the products cover `[0, 1] × M` when `M` is compact.
      Together with `ℝ × M` minus `[0, 1] × M`, on which the field is taken
      to be `0`, they form an open cover of `ℝ × M`; a smooth partition of
@@ -221,27 +225,37 @@ review of #420 raise four more.
   hypothesis; and the first-order agreement itself needs a diffeomorphism
   with prescribed derivative along $L$. The page's route needs neither and
   gives equality at once, so the design follows it:
-  1. *A hypersurface through `L` tangent to `ξ`, parametrized by `T*L`.* Tau
-     Ceti's tubular neighbourhood
-     `TauCeti.SmoothEmbedding.exists_diffeomorph_normalBundle_subset` gives a
-     diffeomorphism $\Psi$ from the normal bundle $\nu$ of $L$ onto an open
-     neighbourhood, with $\Psi\circ0=f$. At $0_q$ its derivative on
-     vertical vectors, followed by the quotient by $df(T_qL)$, is an
-     isomorphism $\nu_q\to\nu_q$. The map
-     $v\mapsto\bigl(d\alpha(df\,\cdot,d\Psi(v)),\ \alpha(d\Psi(v))\bigr)$,
-     $\nu_q\to T_q^*L\times\mathbb R$, is then injective (its kernel
-     consists of $v$ with $d\Psi(v)\in\xi\cap(df\,T_qL)^{d\alpha}=df\,T_qL$,
-     because $L$ is Legendrian), hence bijective by dimension; its inverse
-     restricted to $T_q^*L\times\{0\}$ is a smooth, fibrewise linear,
-     injective bundle map $j:T^*L\to\nu$, smooth by
-     `ContMDiffAt.clm_bundle_inverse`, as in Tau Ceti's
-     `TauCeti.SmoothEmbedding.normalBundleDiffeomorphOfIsLagrangianMap`. The
+  1. *A hypersurface through `L` tangent to `ξ`, parametrized by `T*L`.* The
+     map $[w]\mapsto\bigl(d\alpha(df\,\cdot,w),\ \alpha(w)\bigr)$,
+     $\nu_q\to T_q^*L\times\mathbb R$, on the normal space
+     $\nu_q=T_{f(q)}M/df(T_qL)$, is well defined and injective (its kernel
+     consists of the classes of $w\in\xi\cap(df\,T_qL)^{d\alpha}=df\,T_qL$,
+     because $L$ is Legendrian), hence bijective by dimension; these maps
+     form a smooth bundle isomorphism, by Tau Ceti's
+     `TauCeti.SmoothEmbedding.contMDiff_normalBundle_iff` and
+     `TauCeti.contMDiff_bundle_symm`, as in Tau Ceti's
+     `TauCeti.SmoothEmbedding.normalBundleDiffeomorphOfIsLagrangianMap`, and
+     its inverse restricted to $T_q^*L\times\{0\}$ is a smooth, fibrewise
+     linear, injective bundle map $j:T^*L\to\nu$. The tubular map is not the
+     diffeomorphism of `TauCeti.SmoothEmbedding.exists_diffeomorph_normalBundle_subset`,
+     whose derivative along the zero section Tau Ceti does not state: it is
+     the normal exponential of an auxiliary metric
+     (`TauCeti.SmoothEmbedding.exists_partialDiffeomorph_normalExp_subset`,
+     with derivative from `TauCeti.SmoothEmbedding.mfderiv_normalExp_zeroSection_apply`),
+     precomposed with a radial compression
+     `TauCeti.vectorBundleRadialPartialDiffeomorphOfRadius` into its domain,
+     a smooth injective $\Psi:\nu\to M$ with $\Psi\circ0=f$ whose derivative
+     on the vertical vector $v$ at $0_q$ has class $c(q)\,v$, $c(q)>0$
+     (`TauCeti.SmoothEmbedding.exists_contMDiff_injective_normalBundle`, in
+     `Geometry/Manifold/TubularNeighborhood/Riemannian/Injective.lean`). The
      map $\iota=\Psi\circ j:T^*L\to M$ is injective, sends $0_q$ to $f(q)$,
      and its differential at $0_q$ is an isomorphism onto $\xi_{f(q)}$
      (horizontal part $df$, vertical part in $\xi$, dimension $2n$; read
      through `TauCeti.Bundle.zeroSectionTangentEquiv`). So on an open
      neighbourhood $N$ of the zero section it is an immersion transverse to
-     the Reeb field, and
+     the Reeb field (openness by
+     `ContMDiffAt.eventually_injective_mfderiv_and_notMem_range`, in
+     `Geometry/Manifold/Immersion/Transverse.lean`), and
      `IsContactForm.nondegenerate_bilinFormAt_mextDerivₗ_mpullback` makes
      $-d(\iota^*\alpha)$ nondegenerate there. The zero section is
      Lagrangian for it, since $\iota^*\alpha$ vanishes on its tangent
@@ -351,6 +365,13 @@ theorem mpullback_timeDependentFlowOf_apply_of_mextDeriv_interior_eq_zero
     {s t : ℝ} {x : M} (h : ((s, t), x) ∈ timeDependentFlowDomain X) :
     mpullback I I (timeDependentFlowOf X s t) β.val x = β.val x
 ```
+
+The file also has, in `TauCeti.SmoothForm`, the slices of a pullback along
+`Prod.map id f`: `mpullback_prodMk_mpullback_prodMap`
+($\iota_t^*(\mathrm{id}\times f)^*\alpha=f^*\iota_t^*\alpha$) and
+`mpullback_prodMk_timeDeriv_mpullback_prodMap` (the same for
+`timeDeriv`, by uniqueness of the derivative of $u\mapsto f^*\alpha_u$).
+`Gray.lean` uses them.
 
 ### `Geometry/Contact/Hamiltonian.lean`
 
@@ -482,6 +503,13 @@ Named like Tau Ceti's file, in Tau Ceti's namespaces.
   the pointwise form of `IsContactForm.contactMoserVectorField_of_eq_smul`,
   for contact forms with `α' = f α` near `x`, `f` differentiable and
   nonzero at `x`, and `β'_x = f(x) β_x + c α_x`.
+- `TauCeti.SmoothForm.IsContactForm.mfderiv_contactMoserVectorField_mpullback (hα) (f) (hf) (hdf) (β) (x)`:
+  for a contact form `α` and `f` smooth with bijective differentials,
+  `mfderiv I J f x ((mpullback f hf α).contactMoserVectorField (mpullback f hf β) x) = α.contactMoserVectorField β (f x)`;
+  the proof of Tau Ceti's `IsContactForm.mfderiv_reebVectorField_mpullback`,
+  through `eq_contactMoserVectorField_iff`.
+- `TauCeti.SmoothForm.IsContactForm.tangentSpaceOpenEquiv_contactMoserVectorField_mpullback_subtype_val`:
+  the case of an open subset, with `TauCeti.Manifold.tangentSpaceOpenEquiv`.
 
 ### `Geometry/Contact/Family.lean`
 
@@ -524,6 +552,16 @@ Expected size: 400 lines, in two issues (G1 and G2).
 
 Named like Tau Ceti's file. With `[I.Boundaryless] [T2Space M] [CompactSpace M]`.
 
+- First, in `TauCeti.SmoothForm`, with `[I.Boundaryless]` only:
+  `mfderiv_grayVectorField_mpullback_prodMap (hc) (f) (hf) (hdf) (x)`, for
+  `α` on `ℝ × N` whose slice at `t` is contact and `f` smooth with bijective
+  differentials,
+  `mfderiv I J f x ((mpullback (Prod.map id f) _ α).grayVectorField t x) = α.grayVectorField t (f x)`,
+  from the slice lemmas of `Flow/Family.lean` and
+  `mfderiv_contactMoserVectorField_mpullback`; and
+  `tangentSpaceOpenEquiv_grayVectorField_mpullback_prodMap_subtype_val`, the
+  case of an open subset `U`, which compares local Gray fields on different open sets in
+  step 2 of *Decisions*.
 - `TauCeti.Diffeotopy.Transports (Φ : Diffeotopy I ∞ M) (ξ : unitInterval → Π x, Submodule ℝ (TangentSpace I x)) : Prop`,
   `∀ t x, ξ 0 x = (ξ t (Φ (t, x))).comap (mfderiv I I (Φ.timeSlice t) x).toLinearMap`,
   the condition $\psi_t^*\xi_t=\xi_0$ written as Tau Ceti writes pullbacks of
@@ -573,7 +611,8 @@ Named like Tau Ceti's file. With `[I.Boundaryless] [T2Space M] [CompactSpace M]`
 
   Milestone: *Gray stability*.
 
-Expected size: 550 lines, in two issues (G3 and G4).
+Expected size: 550 lines, in two issues (G3 and G4), after the naturality
+lemmas of N.
 
 ### `Geometry/Contact/LegendrianNeighborhood.lean`
 
@@ -588,8 +627,16 @@ boundaryless and Hausdorff, and both are second countable.
   differential of `ι` at each point of `N` injective with range transverse to
   `α.reebVectorField`, and at `0_q` with range `α.kerDistribution (f q)`.
   Public, since the isotropic neighbourhood theorem of a later page builds
-  its slice the same way. It uses Tau Ceti's tubular neighbourhood, normal
-  bundle and zero-section splitting.
+  its slice the same way. It uses Tau Ceti's normal exponential, normal
+  bundle and zero-section splitting, and the openness of immersions
+  transverse to a vector field,
+  `ContMDiffAt.eventually_injective_mfderiv_and_notMem_range`, which it adds
+  in `Geometry/Manifold/Immersion/Transverse.lean` (beside Tau Ceti's
+  `ContMDiffAt.eventually_injective_mfderiv`), and the smooth injective map
+  of the normal bundle
+  `TauCeti.SmoothEmbedding.exists_contMDiff_injective_normalBundle`, which it
+  adds in `Geometry/Manifold/TubularNeighborhood/Riemannian/Injective.lean`
+  (mirroring Tau Ceti's `TubularNeighborhood/Riemannian/`).
 - **Milestone theorem**
   `IsLegendrianEmbedding.exists_diffeomorph_opens_mpullback_eq_neg_contactization (hα) (hf)`:
 
@@ -654,12 +701,13 @@ In this order; each is blocked by the ones listed, and all are sub-issues of
 | G0 | Moser's principle along one trajectory, rescaling case | `Geometry/Manifold/DifferentialForm/Flow/Family.lean` | — | 100 |
 | G1 | Smooth families of contact structures | `Geometry/Contact/Family.lean` (`IsContactFamily` and its API, `grayVectorField_eq_of_eventuallyEq_smul`), `Geometry/Contact/Levi.lean` (`of_forall_eventuallyEq_kerDistribution`), `Geometry/Contact/Moser.lean` (`contactMoserVectorField_apply_of_eventuallyEq_smul`) | — | 250 |
 | G2 | Local defining families over `ℝ` | `Geometry/Contact/Family.lean` (`exists_local_extension`) | G1, the issues of *Smooth families* that add `DifferentialForm/TimeExtension.lean` and `exists_contDiff_eqOn_id_Icc_mem_Ioo` (its issue 16) | 150 |
-| G3 | The Gray field and the Gray isotopy of a family | `Geometry/Contact/Gray.lean` (`Transports`, `exists_grayField`, `grayDiffeotopy`, transport and velocity) | G0, G2 | 350 |
+| N | Naturality of the contact-Moser and Gray vectors under pullback and restriction to open subsets (#598) | `Geometry/Contact/Moser.lean`, `Geometry/Contact/Gray.lean` (`mfderiv_grayVectorField_mpullback_prodMap`), the slice lemmas of `Flow/Family.lean` | — | 150 |
+| G3 | The Gray field and the Gray isotopy of a family | `Geometry/Contact/Gray.lean` (`Transports`, `exists_grayField`, `grayDiffeotopy`, transport and velocity) | G0, G2, N | 350 |
 | G4 | Uniqueness, rescaling of forms, and Gray stability | `Geometry/Contact/Gray.lean` (`eq_grayDiffeotopy_of_transports`, `Transports.exists_mpullback_eq_smul`, the milestone) | G3, the issue of *Smooth families* that adds `Diffeotopy/Real.lean` | 250 |
 | L1 | A slice through a Legendrian submanifold | `Geometry/Contact/LegendrianNeighborhood.lean` (`exists_contactSlice`) | — | 300 |
 | L2 | The Legendrian neighbourhood theorem | `Geometry/Contact/LegendrianNeighborhood.lean` (the milestone) | L1, the issue of *Symplectic neighbourhoods* that adds `Lagrangian.lean` | 350 |
 
-H1, D, G0, G1 and L1 can start at once. While the issues of *Smooth
+H1, D, G0, G1, N and L1 can start at once. While the issues of *Smooth
 families* and *Symplectic neighbourhoods* that add the files named do not
 exist yet, G2, G4 and L2 are blocked by those parts' building issues, #467
 and #476. The milestones are proved in H2 (*Contact vector fields and
