@@ -1676,7 +1676,9 @@ has either.
 
 - **Files:** `Geometry/Diffeomorphism/Diffeotopy/Velocity.lean` (the
   velocity $X_t$ of a `TauCeti.Diffeotopy`, read along the motion, as
-  `TauCeti.Diffeotopy.velocity`),
+  `TauCeti.Diffeotopy.velocity`), with
+  `Geometry/Manifold/Instances/Icc.lean` (the unit vector field of an
+  interval is smooth),
   `Geometry/Symplectic/Hamiltonian/SymplecticIsotopy.lean`
   (symplectic vector fields and their local flows; a `TauCeti.Diffeotopy`
   has all its slices in `TauCeti.SmoothForm.diffeomorphStabilizer ω`
