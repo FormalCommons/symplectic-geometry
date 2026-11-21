@@ -15,6 +15,7 @@ public import SymplecticGeometry.Analysis.Complex.SiegelUpperHalfSpace.Basic
 import TauCeti.Analysis.Matrix.Sqrt
 import TauCeti.Data.Matrix.Block
 import TauCeti.LinearAlgebra.Matrix.GeneralLinearGroup.Symplectic.Unitary
+import SymplecticGeometry.LinearAlgebra.Matrix.OfReal
 import SymplecticGeometry.LinearAlgebra.Matrix.PosDef.OfReal
 import SymplecticGeometry.LinearAlgebra.Matrix.Symmetric
 import SymplecticGeometry.Topology.Instances.Matrix
@@ -115,20 +116,6 @@ theorem denom_def (Ψ : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ) (Z : Matrix ι ι �
     denom Ψ Z = Ψ.toBlocks₂₁.map ofReal * Z + Ψ.toBlocks₂₂.map ofReal :=
   (rfl)
 
-private theorem map_ofReal_mul (P Q : Matrix ι ι ℝ) :
-    (P * Q).map ofReal = P.map ofReal * Q.map ofReal :=
-  Matrix.map_mul (f := ofRealHom)
-
-private theorem map_ofReal_transpose_mul (P Q : Matrix ι ι ℝ) :
-    (P.map ofReal)ᵀ * Q.map ofReal = (Pᵀ * Q).map ofReal := by
-  rw [← transpose_map, map_ofReal_mul]
-
-omit [Fintype ι] in
-private theorem conjTranspose_map_ofReal (P : Matrix ι ι ℝ) :
-    (P.map ofReal)ᴴ = (P.map ofReal)ᵀ := by
-  ext i j
-  simp
-
 variable [DecidableEq ι]
 
 /-- The relations between the blocks of a symplectic matrix, read over `ℂ`. -/
@@ -145,7 +132,7 @@ private theorem blocks_relations {Ψ : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ} (hΨ 
   obtain ⟨h₁, h₂, h₃⟩ := hΨ
   have h₄ : Ψ.toBlocks₂₂ᵀ * Ψ.toBlocks₁₁ - Ψ.toBlocks₁₂ᵀ * Ψ.toBlocks₂₁ = 1 := by
     simpa [transpose_sub, transpose_mul] using congrArg transpose h₃
-  simp only [map_ofReal_transpose_mul, h₁, h₂, true_and]
+  simp only [transpose_map_ofReal_mul_map_ofReal, h₁, h₂, true_and]
   constructor <;>
   · rw [← Matrix.map_sub _ (by simp)]
     simp [h₃, h₄]
