@@ -118,7 +118,7 @@ The part owns the folder `Geometry/Symplectic/Moser/`, except
 `Moser/Family.lean`, a file of *Isotopy extension*
 (`design/isotopy-extension.md`). Tau Ceti has the
 files `Geometry/Symplectic/Manifold/Moser.lean` and `RelativeMoser.lean`, so
-this library may not have folders with those names. The five files outside
+this library may not have folders with those names. The six files outside
 that folder have the names of the Tau Ceti files they extend, so that they
 can join them.
 
@@ -133,6 +133,7 @@ can join them.
 | `Geometry/Manifold/LocalDiffeomorph/MFDeriv.lean` | the derivative of a transition between partial diffeomorphisms, composed with a differential; the differential of a partial diffeomorphism followed by a continuous linear equivalence (`PartialDiffeomorph.mvfderiv_trans_toDiffeomorph`) | 5 |
 | `Geometry/Symplectic/Moser/Stability.lean` | Moser stability, the milestone | 6 |
 | `Geometry/Manifold/DifferentialForm/Smooth.lean` | `TauCeti.SmoothForm.bilinFormAt` of sums, real multiples, zero, negatives and differences of two-forms | — |
+| `Geometry/Manifold/TubularNeighborhood/RelativePoincare.lean` | a primitive of the difference of two closed forms with the same pullback to `f(Q)`, as a smooth form on a tube around `f(Q)` | — |
 
 ### `Geometry/Symplectic/Manifold/Family.lean`
 
@@ -175,6 +176,20 @@ rewrite the bilinear form at a point of a segment `σ₀ + s • (σ₁ - σ₀)
 two-forms. The file is about two-forms in general,
 so any part may import it.
 
+### `Geometry/Manifold/TubularNeighborhood/RelativePoincare.lean`
+
+The file has the name of Tau Ceti's file that proves
+`TauCeti.SmoothEmbedding.exists_isSmoothForm_relative_primitive`. It is in
+the namespace `TauCeti.SmoothEmbedding`.
+
+- `exists_smoothForm_relative_primitive_sub`: for a smooth embedding `f`,
+  closed `η₀ η₁ : SmoothForm I M F (k + 1)` with `f^* η₁ = f^* η₀`, and an
+  open `O ⊇ range f`, a tube `W` with `range f ⊆ W ⊆ O` and
+  `β : SmoothForm I W F k` with `dβ` the difference of the restrictions of
+  `η₁` and `η₀` to `W`. It vanishes at every `f q`, and its chart expression
+  has zero derivative at each `f q` where `η₁` and `η₀` agree. Step 1 of
+  `Relative.lean` and of `Isotopy.lean` both use it.
+
 ### `Geometry/Symplectic/Manifold/Flat.lean`
 
 The file has the name of Tau Ceti's file that defines
@@ -194,6 +209,25 @@ namespace `TauCeti.SmoothTwoForm.IsNondegenerate`.
   (`RelativeMoser.lean`). In the chart at `x`, the field is the inverse flat
   map of the coordinate form applied to `β`. The inverse flat map is bounded
   near `x`, and `β` is `o(‖z - x‖)`.
+
+Four lemmas cover the inverse flat map of a covector field that is smooth
+only near a set. Each asks only that the flat map be invertible at a point,
+not that the form be nondegenerate, so they are in `TauCeti.SmoothTwoForm`,
+except the second:
+
+- `interior_flat_inverse_apply`: if `(σ.flat x).IsInvertible`, then for a
+  covector field `c`, `RoughForm.interior (fun y ↦ (σ.flat y).inverse (c y))
+  σ.val x` is `c x` read as a one-form.
+- `IsNondegenerate.interior_flat_inverse_ofSubsingleton`: for a nondegenerate
+  `σ` and a rough one-form `β`, the field sending `x` to `(σ.flat x).inverse`
+  of `β x` read as a covector contracts with `σ` to `β`.
+- `contMDiffAt_sectionAlong_flat_inverse_apply`: for two-forms `σ m` and
+  covectors `c m` at `b m`, along `b : N → M`, both `C^n` at `m₀`, with the
+  flat map of `σ m₀` invertible at `b m₀`, the map
+  `m ↦ ⟨b m, ((σ m).flat (b m)).inverse (c m)⟩` into the tangent bundle is
+  `C^n` at `m₀`. `contMDiffAt_moserField` uses it along `Prod.snd`.
+- `contMDiffAt_flat_inverse_apply`: the case `b = id` with one form, for
+  `n ≤ ∞`.
 
 ### `Geometry/Symplectic/Moser/Relative.lean`
 
@@ -303,7 +337,9 @@ API, in the order the proofs need it. `hinv` stands for
   smooth at `p₀`. `contMDiff_moserField`: given
   `ContMDiff (J.prod I) 𝓘(ℝ) ∞ ρ` and `hinv`, that map is smooth on `N × M`.
   Near `tsupport ρ` the proof is that of Tau Ceti's
-  `TauCeti.SmoothTwoForm.contMDiff_interiorEquiv_symm_mpullback_prodMk`.
+  `TauCeti.SmoothTwoForm.contMDiff_interiorEquiv_symm_mpullback_prodMk`,
+  through `contMDiffAt_sectionAlong_flat_inverse_apply`, for which the file
+  imports `Geometry/Symplectic/Manifold/Flat.lean`.
   Away from it, the field is the zero section.
 - `moserField_rate_eq_zero`: Moser's equation at `(t, y)`, for `N = ℝ`.
   Assume `mextDeriv σ_t.val y = 0`,

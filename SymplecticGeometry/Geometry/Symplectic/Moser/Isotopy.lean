@@ -9,13 +9,13 @@ public import SymplecticGeometry.Geometry.Symplectic.Moser.Field
 public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Basic
 public import TauCeti.Geometry.Manifold.SmoothIsotopy.Basic
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Basic
+import SymplecticGeometry.Geometry.Manifold.TubularNeighborhood.RelativePoincare
 import SymplecticGeometry.Geometry.Symplectic.Manifold.Family
 import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Extend
 import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Flow
 import TauCeti.Geometry.Manifold.DifferentialForm.Flow.Family
 import TauCeti.Geometry.Manifold.PartitionOfUnity.Compact
 import TauCeti.Geometry.Manifold.SmoothIsotopy.Diffeotopy
-import TauCeti.Geometry.Manifold.TubularNeighborhood.RelativePoincare
 import TauCeti.Geometry.Symplectic.Manifold.Opens
 
 /-!
@@ -36,8 +36,9 @@ for a primitive `β` of `σ₁ - σ₀` vanishing along it.
 * `TauCeti.SmoothEmbedding.exists_diffeotopy_fix_eventually_mpullback_eq`: the diffeotopy near
   the image of a compact embedded submanifold `f : Q → M`, assuming only `f^* σ₁ = f^* σ₀`. The
   primitive comes from Tau Ceti's relative Poincaré lemma on a tube around `f(Q)`
-  (`TauCeti.SmoothEmbedding.exists_isSmoothForm_relative_primitive`); the diffeotopy built on the
-  tube is extended by the identity (`TauCeti.Diffeotopy.exists_extend_of_isCompact`).
+  (`TauCeti.SmoothEmbedding.exists_isSmoothForm_relative_primitive`, in the form of
+  `TauCeti.SmoothEmbedding.exists_smoothForm_relative_primitive_sub`); the diffeotopy built on
+  the tube is extended by the identity (`TauCeti.Diffeotopy.exists_extend_of_isCompact`).
 * `TauCeti.SmoothEmbedding.exists_smoothIsotopy_fix_mpullback_eq`: the relative Moser theorem
   fixing a submanifold, with a primitive `σ` of `σ₁ - σ₀` such that `f^* σ = 0`, as a smooth
   isotopy of embeddings of an open neighbourhood `U` of `f(Q)` starting at the inclusion, whose
@@ -157,16 +158,9 @@ theorem exists_diffeotopy_fix_eventually_mpullback_eq_of_mextDeriv_eq_sub
     -- The slices `σ₀ + u (σ₁ - σ₀)` have velocity `σ₁ - σ₀`.
     have hvel : (SmoothForm.mpullback (Prod.mk s) (contMDiff_const.prodMk contMDiff_id)
         σ.timeDeriv).val y = (σ₁ - σ₀).val y := by
-      have h := SmoothForm.hasDerivAt_mpullback_prodMk_timeDeriv σ s y
-      simp only [hσt] at h
-      refine h.unique ?_
-      -- The values of the slices are read in the model fibre `E [⋀^Fin 2]→L[ℝ] ℝ`.
-      have h2 := ((hasDerivAt_id s).smul_const
-        (@id (E [⋀^Fin 2]→L[ℝ] ℝ) ((σ₁ - σ₀).val y))).const_add
-          (@id (E [⋀^Fin 2]→L[ℝ] ℝ) (σ₀.val y))
-      rw [one_smul] at h2
-      -- `h2` is the goal up to the identity maps, which only fix the type of the values.
-      exact h2
+      have h := congrArg (fun α : SmoothTwoForm I M ↦ α.val y)
+        (SmoothForm.mpullback_prodMk_timeDeriv_lineMapFamily σ₀ σ₁ (contDiff_id (n := ∞)) s)
+      simpa only [deriv_id, one_smul] using h
     -- The slice at time `s` is closed, since `σ₁ - σ₀ = dβ`.
     have hclosed : mextDeriv
         (SmoothForm.mpullback (Prod.mk s) (contMDiff_const.prodMk contMDiff_id) σ).val y = 0 := by
@@ -218,23 +212,15 @@ theorem exists_diffeotopy_fix_eventually_mpullback_eq (f : SmoothEmbedding J I �
           (σ₀ + (t : ℝ) • (σ₁ - σ₀))).val x = σ₀.val x := by
   -- The relative Poincaré lemma gives a primitive of `σ₁ - σ₀` on a tubular neighbourhood `W` of
   -- `f(Q)`, vanishing along `f(Q)`.
-  have hf0 : mpullback J I f (σ₁ - σ₀).val = 0 := by
-    have h := congrArg Subtype.val (sub_eq_zero.2 hf)
-    rwa [← map_sub, SmoothForm.coe_mpullback] at h
-  obtain ⟨W, -, hfW, hprim⟩ := f.exists_isSmoothForm_relative_primitive (F := ℝ) isOpen_univ
-    (subset_univ _)
-  obtain ⟨βW, hβW, hdβW, hβW0, -⟩ := hprim (k := 1) (r := ⊤) le_top (σ₁ - σ₀).isSmoothForm
-    ((SmoothForm.isClosed_def _).1 (h₁.sub h₀)) hf0
+  obtain ⟨W, -, hfW, βW, hdβW, hβW0, -⟩ :=
+    f.exists_smoothForm_relative_primitive_sub h₀ h₁ hf isOpen_univ (subset_univ _)
   -- Moser's argument runs on the open submanifold `W`, with the restricted forms.
-  let res := SmoothForm.mpullback (I := I) (I' := I) (F := ℝ) (k := 2) (Subtype.val : W → M)
-    contMDiff_subtypeVal
   let g : Q → W := fun q ↦ ⟨f q, hfW (mem_range_self q)⟩
   have hgK : IsCompact (range g) :=
     isCompact_range (f.contMDiff.continuous.subtype_mk fun q ↦ hfW (mem_range_self q))
   obtain ⟨Λ, ⟨C, hC, hΛC⟩, hΛK, hΛ⟩ :=
     SmoothTwoForm.exists_diffeotopy_fix_eventually_mpullback_eq_of_mextDeriv_eq_sub
-      (σ₀ := res σ₀) (σ₁ := res σ₁) (h₀.mpullback _ _) (β := ⟨βW, hβW.mem_smoothBundleForms⟩)
-      (by rw [hdβW, ← map_sub]; exact (SmoothForm.coe_mpullback _ _ _).symm) hgK
+      (h₀.mpullback _ _) hdβW hgK
       (by rintro _ ⟨q, rfl⟩; exact hβW0 q)
       (by
         rintro _ ⟨q, rfl⟩ s hs
