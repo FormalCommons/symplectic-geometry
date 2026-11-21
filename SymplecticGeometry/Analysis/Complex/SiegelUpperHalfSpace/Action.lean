@@ -50,9 +50,9 @@ plane by Möbius transformations.
 * `SiegelUpperHalfSpace.differentiableOn_num_mul_inv_denom`: the formula is holomorphic on the
   open set (`SiegelUpperHalfSpace.isOpen_setOf_isUnit_det_denom`) where `CZ + D` is invertible,
   which contains the Siegel upper half space.
-* `SiegelUpperHalfSpace.exists_smul_I_eq`: every point `X + iY` is the image of `i𝟙` under the
-  symplectic matrix `!![G, X G⁻ᵀ; 0, G⁻ᵀ]`, where `G` is invertible with `G Gᵀ = Y`; hence the
-  action is transitive.
+* `SiegelUpperHalfSpace.fromBlocks_re_smul_I`: every point `X + iY` is the image of `i𝟙` under
+  the symplectic matrix `!![G, X G⁻ᵀ; 0, G⁻ᵀ]`, where `G` is invertible with `G Gᵀ = Y`; hence
+  the action is transitive (`SiegelUpperHalfSpace.exists_smul_I_eq`).
 * `SiegelUpperHalfSpace.smul_I_eq_I_iff_commute`: a symplectic matrix fixes `i𝟙` exactly when it
   commutes with `Matrix.J`.
 * `SiegelUpperHalfSpace.mem_stabilizer_I_iff`: a symplectic matrix fixes `i𝟙` exactly when it is
@@ -368,21 +368,28 @@ end Holomorphy
 
 /-! ### Transitivity -/
 
-/-- Every point `Z = X + iY` of the Siegel upper half space is the image of `i𝟙` under a
-symplectic matrix, namely `!![G, X G⁻ᵀ; 0, G⁻ᵀ]` for an invertible `G` with `G Gᵀ = Y`. -/
-theorem exists_smul_I_eq (Z : SiegelUpperHalfSpace ι) :
-    ∃ Ψ : symplecticGroup ι ℝ, Ψ • (SiegelUpperHalfSpace.I : SiegelUpperHalfSpace ι) = Z := by
-  obtain ⟨G, hG⟩ := Z.posDef_im.exists_generalLinearGroup_mul_transpose_eq
+/-- For a point `Z = X + iY` of the Siegel upper half space and an invertible `G`, the matrix
+`!![G, X G⁻ᵀ; 0, G⁻ᵀ]` is symplectic. -/
+theorem fromBlocks_re_mem_symplecticGroup (Z : SiegelUpperHalfSpace ι) (G : GL ι ℝ) :
+    fromBlocks (G : Matrix ι ι ℝ) (Z.re * (↑G⁻¹ : Matrix ι ι ℝ)ᵀ) 0 (↑G⁻¹ : Matrix ι ι ℝ)ᵀ ∈
+      symplecticGroup ι ℝ := by
+  have hDG : (G : Matrix ι ι ℝ)ᵀ * (↑G⁻¹ : Matrix ι ι ℝ)ᵀ = 1 := by
+    rw [← transpose_mul, ← Units.val_mul, inv_mul_cancel, Units.val_one, transpose_one]
+  rw [SymplecticGroup.fromBlocks_mem_iff]
+  refine ⟨by simp, ?_, by simpa using hDG⟩
+  rw [transpose_mul, Z.isSymm_re.eq, Matrix.mul_assoc]
+
+/-- A point `Z = X + iY` of the Siegel upper half space is the image of `i𝟙` under the symplectic
+matrix `!![G, X G⁻ᵀ; 0, G⁻ᵀ]`, for any invertible `G` with `G Gᵀ = Y`. -/
+theorem fromBlocks_re_smul_I (Z : SiegelUpperHalfSpace ι) {G : GL ι ℝ}
+    (hG : (G : Matrix ι ι ℝ) * (G : Matrix ι ι ℝ)ᵀ = Z.im) :
+    (⟨_, fromBlocks_re_mem_symplecticGroup Z G⟩ : symplecticGroup ι ℝ) •
+      (SiegelUpperHalfSpace.I : SiegelUpperHalfSpace ι) = Z := by
   set D : Matrix ι ι ℝ := (↑G⁻¹ : Matrix ι ι ℝ)ᵀ
   have hDG : (G : Matrix ι ι ℝ)ᵀ * D = 1 := by
     rw [← transpose_mul, ← Units.val_mul, inv_mul_cancel, Units.val_one, transpose_one]
   have hGD : D * (G : Matrix ι ι ℝ)ᵀ = 1 := by
     rw [← transpose_mul, ← Units.val_mul, mul_inv_cancel, Units.val_one, transpose_one]
-  have hmem : fromBlocks (G : Matrix ι ι ℝ) (Z.re * D) 0 D ∈ symplecticGroup ι ℝ := by
-    rw [SymplecticGroup.fromBlocks_mem_iff]
-    refine ⟨by simp, ?_, by simpa using hDG⟩
-    rw [transpose_mul, Z.isSymm_re.eq, Matrix.mul_assoc]
-  refine ⟨⟨_, hmem⟩, ?_⟩
   have hinv : (D.map ofReal)⁻¹ = (G : Matrix ι ι ℝ)ᵀ.map ofReal :=
     inv_eq_left_inv (by rw [← map_ofReal_mul, hDG]; simp)
   ext1
@@ -392,6 +399,13 @@ theorem exists_smul_I_eq (Z : SiegelUpperHalfSpace ι) :
   rw [Matrix.map_zero _ (by simp), Matrix.zero_mul, zero_add, hinv, Matrix.add_mul,
     Matrix.mul_smul, Matrix.mul_one, Matrix.smul_mul, ← map_ofReal_mul, ← map_ofReal_mul, hG,
     Matrix.mul_assoc, hGD, Matrix.mul_one, add_comm]
+
+/-- Every point `Z = X + iY` of the Siegel upper half space is the image of `i𝟙` under a
+symplectic matrix, namely `!![G, X G⁻ᵀ; 0, G⁻ᵀ]` for an invertible `G` with `G Gᵀ = Y`. -/
+theorem exists_smul_I_eq (Z : SiegelUpperHalfSpace ι) :
+    ∃ Ψ : symplecticGroup ι ℝ, Ψ • (SiegelUpperHalfSpace.I : SiegelUpperHalfSpace ι) = Z := by
+  obtain ⟨G, hG⟩ := Z.posDef_im.exists_generalLinearGroup_mul_transpose_eq
+  exact ⟨_, fromBlocks_re_smul_I Z hG⟩
 
 /-- The symplectic group acts transitively on the Siegel upper half space. -/
 instance : MulAction.IsPretransitive (symplecticGroup ι ℝ) (SiegelUpperHalfSpace ι) :=
