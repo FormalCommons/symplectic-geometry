@@ -72,25 +72,26 @@ theorem toContinuousBilinearMap_toBilinForm
     (L : V →L[𝕜] V →L[𝕜] 𝕜) : L.toBilinForm.toContinuousBilinearMap = L :=
   (rfl)
 
-section ArrowCongr
-
-variable {𝕜 : Type*} [NontriviallyNormedField 𝕜]
-  {X : Type*} [AddCommGroup X] [Module 𝕜 X] [TopologicalSpace X]
-
 /-- Carrying a continuous bilinear form along a continuous linear equivalence `e` in both
 arguments is, as a bilinear form, `LinearMap.BilinForm.congr` along `e`. -/
-theorem _root_.ContinuousLinearEquiv.toBilinForm_arrowCongr_arrowCongr {W : Type*}
-    [AddCommGroup W] [Module 𝕜 W] [TopologicalSpace W] [IsTopologicalAddGroup W]
-    [ContinuousSMul 𝕜 W] (e : X ≃L[𝕜] W) (σ : X →L[𝕜] X →L[𝕜] 𝕜) :
+theorem _root_.ContinuousLinearEquiv.toBilinForm_arrowCongr_arrowCongr
+    {𝕜 X W : Type*} [NormedField 𝕜]
+    [AddCommGroup X] [Module 𝕜 X] [TopologicalSpace X]
+    [AddCommGroup W] [Module 𝕜 W] [TopologicalSpace W]
+    (e : X ≃L[𝕜] W) (σ : X →L[𝕜] X →L[𝕜] 𝕜) :
     (e.arrowCongr (e.arrowCongr (.refl 𝕜 𝕜)) σ).toBilinForm =
       LinearMap.BilinForm.congr e.toLinearEquiv σ.toBilinForm := by
   ext v w
   simp
 
+section ArrowCongr
+
+variable {𝕜 : Type*} [NontriviallyNormedField 𝕜]
+  {X : Type*} [AddCommGroup X] [Module 𝕜 X] [TopologicalSpace X]
+
 /-- Carrying a continuous bilinear form along a continuous linear equivalence `e` does not change
 whether its skew part `σ - σᵀ` is nondegenerate. -/
-theorem _root_.ContinuousLinearEquiv.nondegenerate_arrowCongr_sub_flip_iff
-    [IsTopologicalAddGroup X] [ContinuousSMul 𝕜 X] {W : Type*}
+theorem _root_.ContinuousLinearEquiv.nondegenerate_arrowCongr_sub_flip_iff {W : Type*}
     [NormedAddCommGroup W] [NormedSpace 𝕜 W] (e : X ≃L[𝕜] W) {σ : X →L[𝕜] X →L[𝕜] 𝕜} :
     (e.arrowCongr (e.arrowCongr (.refl 𝕜 𝕜)) σ -
         (e.arrowCongr (e.arrowCongr (.refl 𝕜 𝕜)) σ).flip).toBilinForm.Nondegenerate ↔

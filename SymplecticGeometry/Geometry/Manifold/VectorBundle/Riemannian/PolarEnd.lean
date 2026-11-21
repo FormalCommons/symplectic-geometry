@@ -94,7 +94,6 @@ theorem mem_polarFormulaDomain_iff
   Iff.rfl
 
 variable [TopologicalSpace M] [ChartedSpace HB M]
-  [∀ x, IsTopologicalAddGroup (V x)] [∀ x, ContinuousSMul ℝ (V x)]
   [TopologicalSpace (TotalSpace F V)] [FiberBundle F V] [VectorBundle ℝ F V]
 
 /-- In finite rank, the domain of the polar formula is open in the bundle of bilinear forms. -/
@@ -123,7 +122,6 @@ theorem isOpen_polarFormulaDomain [FiniteDimensional ℝ F] :
 
 /-! ### The polar formula on a fibre -/
 
-omit [∀ x, IsTopologicalAddGroup (V x)] [∀ x, ContinuousSMul ℝ (V x)] in
 variable (F V) in
 /-- The continuous linear equivalence of the fibre `V x` with the Euclidean space
 `EuclideanSpace ℝ (Fin (finrank ℝ F))`: the fibre equivalence of the trivialization at `x`,
@@ -134,7 +132,6 @@ def euclideanEquivAt [FiniteDimensional ℝ F] (x : M) :
     (FiberBundle.mem_baseSet_trivializationAt' x)).trans
     (.ofFinrankEq finrank_euclideanSpace_fin.symm)
 
-omit [∀ x, IsTopologicalAddGroup (V x)] [∀ x, ContinuousSMul ℝ (V x)] in
 variable (F V) in
 theorem euclideanEquivAt_def [FiniteDimensional ℝ F] (x : M) :
     euclideanEquivAt F V x =
@@ -159,7 +156,6 @@ namespace ContMDiffRiemannianMetric
 
 variable [FiniteDimensional ℝ F] {n : WithTop ℕ∞} (g : ContMDiffRiemannianMetric I n F V)
 
-omit [∀ x, IsTopologicalAddGroup (V x)] [∀ x, ContinuousSMul ℝ (V x)] in
 /-- Each fibre of a bundle metric of finite rank is isometric to a Euclidean space: some continuous
 linear equivalence `e` of `V x` with `EuclideanSpace ℝ (Fin (finrank ℝ F))` carries `g x` to the
 standard inner product. -/
@@ -177,6 +173,8 @@ theorem exists_continuousLinearEquiv_inner_eq (x : M) :
   rw [ContinuousLinearEquiv.trans_apply, ContinuousLinearEquiv.trans_apply,
     (SymplecticGeometry.innerProducts.transport_eq_innerSL_iff e₂ g₁).1 he₂]
   simp [g₁]
+
+variable [∀ x, IsTopologicalAddGroup (V x)] [∀ x, ContinuousSMul ℝ (V x)]
 
 /-- The polar formula `J_{g,σ}` of a bundle metric `g` and a continuous bilinear form `σ` on the
 fibre `V x`: the formula `TauCeti.metricPolarFormula` of the pair `(g x, σ)`, carried to the
