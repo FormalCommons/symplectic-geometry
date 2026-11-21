@@ -28,7 +28,8 @@ Write `ℒ ι` for the Lagrangian Grassmannian of the standard model `(StdSpace 
   `fromRows (Re U) (Im U)`, that is, Tau Ceti's real image `U ℝⁿ` read in real coordinates.
 * `SymplecticGeometry.LagrangianGrassmannian.unitaryOfFrame h`: for a real frame `fromRows X Y`
   spanning a Lagrangian, the real orthonormalization of the invertible complex matrix `X + i Y`
-  (`frameGL h`), a unitary frame of the same Lagrangian (`unitaryFrame_unitaryOfFrame`).
+  (`SymplecticGeometry.frameGL h`), a unitary frame of the same Lagrangian
+  (`unitaryFrame_unitaryOfFrame`).
 
 ## Main results
 
@@ -191,18 +192,6 @@ theorem unitaryFrame_one : unitaryFrame (1 : unitaryGroup ι ℂ) = horizontal �
 theorem unitaryFrame_mul (U U' : unitaryGroup ι ℂ) :
     unitaryFrame (U * U') = U • unitaryFrame U' :=
   mul_smul _ _ _
-
-/-- The invertible complex frame `X + i Y` of a Lagrangian frame `fromRows X Y`. -/
-noncomputable def frameGL {X Y : Matrix ι ι ℝ}
-    (h : (stdForm ι).IsLagrangian (LinearMap.range (toEuclideanLin (fromRows X Y)))) :
-    GL ι ℂ :=
-  GeneralLinearGroup.mkOfDetNeZero _ (det_ne_zero_of_isLagrangian_range_fromRows h)
-
-@[simp]
-theorem coe_frameGL {X Y : Matrix ι ι ℝ}
-    (h : (stdForm ι).IsLagrangian (LinearMap.range (toEuclideanLin (fromRows X Y)))) :
-    (frameGL h : Matrix ι ι ℂ) = X.map Complex.ofReal + Complex.I • Y.map Complex.ofReal :=
-  GeneralLinearGroup.val_mkOfDetNeZero _ _
 
 /-- The unitary frame of a Lagrangian frame `fromRows X Y`: the real orthonormalization of its
 complex frame `X + i Y`. It frames the Lagrangian spanned by `fromRows X Y`

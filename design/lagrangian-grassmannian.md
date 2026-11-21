@@ -358,6 +358,10 @@ Lagrangian frames on `StdSpace ι`, pure linear algebra. Namespace
   (a corollary of `Matrix.map_im_conjTranspose_mul_self`,
   `Im ((X + i Y)ᴴ (X + i Y)) = Xᵀ Y - Yᵀ X`), this is the hypothesis of Tau
   Ceti's `realOrthonormalize_mem_unitaryGroup`.
+- `frameGL h : GL ι ℂ`, for
+  `h : (stdForm ι).IsLagrangian (range (toEuclideanLin (fromRows X Y)))`:
+  the complex frame `X + i Y` as a unit, by `GeneralLinearGroup.mkOfDetNeZero`
+  and the lemma above (`coe_frameGL`, `@[simp]`).
 - Transverse subspaces are graphs, stated for submodules. The horizontal and
   vertical subspaces are `LinearMap.ker StdSpace.y` and
   `LinearMap.ker StdSpace.x`, so they need no new names here.
@@ -422,17 +426,17 @@ unitary action to Tau Ceti's `Matrix.realImage`.
     of `realify U` indexed by `inl` are `fromRows (U.map re) (U.map im)`;
   - `unitaryFrame_one` and `unitaryFrame_mul` (both `@[simp]`):
     `unitaryFrame (U * U') = U • unitaryFrame U'`.
-- `ℒ.frameGL h : GL ι ℂ` and `ℒ.unitaryOfFrame h : unitaryGroup ι ℂ`, for
+- `ℒ.unitaryOfFrame h : unitaryGroup ι ℂ`, for
   `h : (stdForm ι).IsLagrangian (range (toEuclideanLin (fromRows X Y)))`:
-  the complex frame `X + i Y`, invertible by
-  `det_ne_zero_of_isLagrangian_range_fromRows` (`coe_frameGL`, `@[simp]`),
-  and its `realOrthonormalize`, unitary by
+  the `realOrthonormalize` of `frameGL h` (`Frame.lean`), unitary by
   `realOrthonormalize_mem_unitaryGroup` (`coe_unitaryOfFrame`). Then
   `unitaryFrame_unitaryOfFrame : unitaryFrame (unitaryOfFrame h) = ⟨_, h⟩`
   (`@[simp]`), by `realImage_realOrthonormalize`. Every passage from a
   Lagrangian frame to a unitary frame goes through this construction, and a
   continuous family of frames gives a continuous family of unitary frames by
-  `coe_unitaryOfFrame` and `continuous_realOrthonormalize`.
+  `coe_unitaryOfFrame` and `continuous_realOrthonormalize` (continuity of
+  `frameGL` into `GL ι ℂ` reduces to that of its matrix by
+  `Units.isOpenEmbedding_val.continuous_iff`).
 - `ℒ.unitaryFrame_surjective`: transitivity of $\mathrm{U}(n)$. Take any basis
   of `Λ` as a frame (`Frame.lean`) and apply `unitaryFrame_unitaryOfFrame`. It gives the
   instances `MulAction.IsPretransitive (unitaryGroup ι ℂ) (ℒ ι)` and
@@ -471,10 +475,9 @@ Chart points and transverse pairs, as algebra: G7–G9.
   Ceti's `Matrix.lagrangianChart S` under `complexEuclideanEquiv ι`, which
   is `StdSpace.map_lagrangianChart`; `graphY_injective`; `graphY_zero`,
   which is the vertical subspace; and `graphY_eq_unitaryFrame`, saying
-  `graphY S = unitaryFrame ⟨realOrthonormalize (S + i·1), _⟩`. The
-  unitary proof is `realOrthonormalize_mem_unitaryGroup`, whose hypothesis
-  holds since $(S+i)^*(S+i)=S^2+1$ is real; the equality is Tau Ceti's
-  `det_lagrangianChartFrame_ne_zero` and `realImage_realOrthonormalize`.
+  `graphY S = unitaryFrame (unitaryOfFrame h)` for the Lagrangian frame
+  `fromRows S 1`, whose span is `StdSpace.graphY S` and whose complex
+  frame is `S + i·1`. It is `unitaryFrame_unitaryOfFrame` (`Action.lean`).
 - `ℒ.graph (S : selfAdjoint (Matrix ι ι ℝ)) : ℒ ι`, whose submodule is
   `StdSpace.graph S` (`coe_graph`): the points of the second chart.
   API: `mem_graph_iff` (`@[simp]`), `graph_injective`,
@@ -578,11 +581,12 @@ The topology of `ℒ ι` in terms of unitary frames.
 - `instance : ContinuousSMul (GLSymplectic ι ℝ) (ℒ ι)` and
   `instance : ContinuousSMul (unitaryGroup ι ℂ) (ℒ ι)` (G4). Use
   `IsOpenQuotientMap.prodMap` with the identity on `GLSymplectic ι ℝ`. The
-  composite `(g, U) ↦ g • unitaryFrame U` is `unitaryFrame` of the
-  orthonormalized complex frame of `g * realify U` restricted to the
-  horizontal columns (`Frame.lean`; the matrix of `ofUnitary U` is
-  `realify U` by `coe_ofUnitary`, and `conj_complexToRealEuclidean_toLin'`
-  turns the columns into a complex frame), and it is continuous by
+  composite `(g, U) ↦ g • unitaryFrame U` is `unitaryFrame (unitaryOfFrame h)`
+  (`Action.lean`, by `unitaryFrame_unitaryOfFrame`) for the Lagrangian frame
+  given by the horizontal columns of `g * realify U` (the matrix of
+  `ofUnitary U` is `realify U` by `coe_ofUnitary`, and
+  `conj_complexToRealEuclidean_toLin'` reads the columns as a complex
+  frame). It is continuous by `coe_unitaryOfFrame` and
   `continuous_realOrthonormalize`. The unitary instance follows by
   `continuous_ofUnitary`.
 
