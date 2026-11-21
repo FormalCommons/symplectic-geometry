@@ -10,6 +10,7 @@ public import Mathlib.Geometry.Manifold.VectorBundle.Riemannian
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.ComplexStructure
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Riemannian.PolarEnd
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.Basic
+public import SymplecticGeometry.LinearAlgebra.SesquilinearForm
 public import TauCeti.Geometry.Manifold.Riemannian.Section
 public import TauCeti.Geometry.Manifold.VectorBundle.Bilinear.Section
 public import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Existence
@@ -33,6 +34,9 @@ tangent bundle, and for a nondegenerate form they are, on each fibre, Tau Ceti's
   With this sign, the formula for the Euclidean inner product and the standard complex structure
   `J₀` of `StdSpace ι` gives the standard form `stdForm ι`
   (`SymplecticGeometry.stdForm_apply_eq_inner_sub_inner`).
+* `SymplecticGeometry.Bundle.ContMDiffTwoForm.Compatible.metric hc`: for a two-form `ω` compatible
+  with a complex structure `J`, the bundle metric `g(u, v) = ω(u, J v)`; going the other way from
+  `compatibleForm`.
 * `SymplecticGeometry.Bundle.ContMDiffTwoForm.IsNondegenerate.polarComplexStructure g hω`: for a
   bundle metric `g` and a nondegenerate two-form `ω`, the complex structure `J_{g,ω}` whose value
   at each point is Tau Ceti's polar complex structure of `ω_x` for the inner product `g x`.
@@ -435,12 +439,10 @@ theorem IsNondegenerate.mk_flat_mem_polarFormulaDomain (hω : ω.IsNondegenerate
       _root_.Bundle.polarFormulaDomain F V := by
   have h : ω.bilinFormAt x - (ω.bilinFormAt x).flip = (2 : ℝ) • ω.bilinFormAt x := by
     ext v w
-    have := (ω.isAlt_bilinFormAt x).neg_eq v w
-    simp only [LinearMap.sub_apply, LinearMap.BilinForm.flip_apply, LinearMap.smul_apply,
-      smul_eq_mul] at this ⊢
-    linarith
+    simpa [two_smul, two_nsmul] using
+      congr($((ω.isAlt_bilinFormAt x).sub_flip_eq_two_smul) v w)
   rw [_root_.Bundle.mem_polarFormulaDomain_iff, toBilinForm_flat, h]
-  exact (TauCeti.BilinForm.nondegenerate_smul_iff (IsRegular.of_ne_zero (by norm_num))).2
+  exact (TauCeti.BilinForm.nondegenerate_smul_iff (IsRegular.of_ne_zero two_ne_zero)).2
     (hω.nondegenerate_bilinFormAt x)
 
 variable [FiniteDimensional ℝ F]

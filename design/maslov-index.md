@@ -290,18 +290,23 @@ goes in `SymplecticGeometry`: in particular the families `IsMaslovIndex` and
 `IsLagrangianMaslovIndex`, the loop `symplecticRotationLoop`, and the
 statements about them, which dot notation on a `GLSymplectic` or on an `ℒ ι` would not find.
 
-Three files lie outside the folders that `DESIGN.md` §5 lists:
+Four files lie outside the folders that `DESIGN.md` §5 lists:
 `LinearAlgebra/Matrix/GeneralLinearGroup/Symplectic/Reindex.lean`,
-`Topology/Algebra/SymplecticGroup.lean` and
-`Analysis/Calculus/Deriv/Matrix.lean`. Reindexing a symplectic group is
+`Topology/Algebra/SymplecticGroup.lean`,
+`Analysis/Calculus/Deriv/Matrix.lean` and `Data/Matrix/Basis.lean`.
+Reindexing a symplectic group is
 algebra about Tau Ceti's `GLSymplectic`, not about the Maslov index, and its
 continuity is topology of that group. They go where Tau Ceti keeps the algebra
 and the topology of `GLSymplectic`, so that they can move there unchanged.
 The third file holds derivatives of matrix-valued functions (entrywise
 derivatives, transpose, product rule), which `Crossing/Form.lean` uses and
 which changes of frame `Z * g` need later; it sits beside Tau Ceti's file of
-the same name, so that the two merge upstream.
-`DESIGN.md` §5 names all three, among the files outside its folders.
+the same name, so that the two merge upstream. The fourth holds the matrix
+`1 + Eᵢᵢ a` of the coordinate half-turn's frame
+(`Matrix.one_add_single_eq_diagonal`, `Matrix.isUnit_one_add_single_iff`),
+beside the files of the same name in Mathlib and Tau Ceti, which hold the matrix
+units `Matrix.single`.
+`DESIGN.md` §5 names all four, among the files outside its folders.
 
 ### `LinearAlgebra/Matrix/GeneralLinearGroup/Symplectic/Reindex.lean`
 
@@ -665,18 +670,11 @@ an element of `ℒ ι`.
   `ℒ.pathMaslovIndex_eq_crossing_sum` below, with
   `HasDerivWithinAt Z (Z' t₀) (Icc 0 1) t₀` at some `t₀ ∈ Icc 0 1` and a
   nondegenerate form there, `γ t ⊓ V = ⊥` for `t ≠ t₀` near `t₀` in
-  `Icc 0 1`. Proof: G8 and G9 give a symplectic `Ψ` taking `V` to `V₀` and a
-  Lagrangian transverse to `V` and `γ t₀` to `V₁`; near `t₀` in `Icc 0 1` the
-  moved path is transverse to `V₁`, hence a path of graphs of symmetric
-  matrices `A` (G7), with `A` differentiable within `Icc 0 1` at `t₀`.
-  Naturality and `lagrangianCrossingForm_graph` carry the nondegeneracy over to
-  `Matrix.crossingForm`. For `t₀ < 1`, a derivative within `Icc 0 1` is one
-  within `Ici t₀` (the two sets agree near `t₀` on the right), and Tau Ceti's
-  one-sided `ContinuousLinearMap.eventually_nhdsGT_nondegenerate_of_crossingForm_nondegenerate`
-  gives the times after `t₀`; for `0 < t₀`,
-  `eventually_nhdsLT_nondegenerate_of_crossingForm_nondegenerate`, with `Iic t₀`,
-  gives those before. Their symmetry hypotheses hold because `A t` is symmetric
-  for every `t ∈ Icc 0 1` near `t₀`.
+  `Icc 0 1`. Proof: `γ` is extended to `ℝ` by `Set.IccExtend`. On each side
+  of `t₀` that `Icc 0 1` reaches, `Z` is a frame of the extension near `t₀`,
+  and its derivative within `Icc 0 1` is a one-sided one (the two sets agree
+  near `t₀` on that side), so the one-sided forms below give the times before
+  and after `t₀`.
 - `ℒ.eventually_nhdsLT_not_crossing_of_regular`,
   `ℒ.eventually_nhdsGT_not_crossing_of_regular` and
   `ℒ.eventually_nhdsNE_not_crossing_of_regular`: the same for a family
@@ -684,8 +682,24 @@ an element of `ℒ ι`.
   `Ici r₀`) near `r₀`, eventually in `𝓝[≤] r₀` (or `𝓝[≥] r₀`), and a derivative
   within `Iic r₀` (or `Ici r₀`), and conclude in `𝓝[<] r₀` (or `𝓝[>] r₀`);
   the two-sided one takes a frame of `Λ` eventually in `𝓝 r₀`, `HasDerivAt Z Z' r₀`, and
-  concludes in `𝓝[≠] r₀`. `ℒ.eventually_not_crossing_of_regular` is proved
-  from the one-sided forms, applied to `Set.IccExtend` of `γ`.
+  concludes in `𝓝[≠] r₀`, from the two one-sided forms. Proof of the
+  one-sided forms, without graphs or symplectic changes of coordinates: G8
+  gives a Lagrangian `W` transverse to `V` and to `Λ r₀`; let `P` be the
+  projection onto `V` along `W` (Mathlib's `Submodule.projection`). For each
+  `r`, take the bilinear form `β r (u, v) = ω₀(P (Z r u), Z r v)` on `ℝ^ι`, as
+  a matrix. It is symmetric wherever the image of `Z r` is isotropic, since
+  `V` and `W` are; where it is nondegenerate, the image of `Z r` meets `V`
+  only in `0`, since `P` fixes `V`; and its one-sided derivative at `r₀`
+  comes from that of `Z` by the product rule. At `r₀` its kernel is the
+  preimage of `V` under `Z r₀` (the image of `Z r₀` is Lagrangian and meets
+  `W` only in `0`), and `LinearEquiv.ofSubmodules` on that kernel is an
+  isometry from the crossing form of `Z r₀` and `Z'` to Tau Ceti's
+  `ContinuousLinearMap.crossingForm` of `β` at `r₀`, which is therefore
+  nondegenerate. Tau Ceti's one-sided
+  `ContinuousLinearMap.eventually_nhdsLT_nondegenerate_of_crossingForm_nondegenerate`
+  and `eventually_nhdsGT_nondegenerate_of_crossingForm_nondegenerate`
+  conclude. Their symmetry hypotheses hold because `β r` is symmetric at
+  every `r` where `Z r` is a frame of `Λ r`, so eventually on that side.
 
 Signatures are `(sigPos Q : ℤ) - sigNeg Q`, as in Tau Ceti's crossing theorem;
 the part adds no signature function.
@@ -757,19 +771,27 @@ The pieces of regular paths, each with an explicit frame and its crossing
 forms relative to `V₀`.
 
 - `ℒ.rotationPath`, a rotation $s\mapsto e^{\varepsilon sJ_0}\Lambda$ off a
-  Lagrangian `Λ`, with the frame $e^{\varepsilon sJ_0}Z_0$: its crossing form
-  is $\pm\varepsilon\lvert Zu\rvert^2$ by `stdForm_apply_eq_inner`, definite,
+  Lagrangian `Λ`, with the frame $e^{\varepsilon sJ_0}Z_0$ (`rotationFrame`): its
+  crossing form is $\pm\varepsilon\lvert Zu\rvert^2$ by
+  `stdForm_apply_stdComplexStructure`, definite,
   so the crossing at `s = 0` is regular, and for small $\varepsilon$ there is
-  no other (`ℒ.crossing_rotationPath_iff`, `ℒ.lagrangianCrossingForm_rotationPath`).
+  no other (`ℒ.eventually_rotationPath_inf_eq_bot`;
+  `lagrangianCrossingForm_smul_J_mul_apply`, in `SymplecticGeometry` since it is
+  about matrices).
 - Segments inside Tau Ceti's chart `Matrix.lagrangianChart` of the
   Lagrangians transverse to `V₀` (G7, `lagrangianChart_inf_realSubspace`):
   between any two such Lagrangians there is a path with a smooth frame and no
-  crossing at all (`ℒ.exists_chartPath`).
+  crossing at all (`ℒ.exists_chartPath`; smoothness for the entrywise norm
+  `Matrix.Norms.Elementwise`, as in Tau Ceti's `ContDiff.matrix_mul`).
 - The single-coordinate half-turn
   $s\mapsto\operatorname{diag}(e^{i\pi s},1,\dots,1)V_1$
   (`ℒ.coordinateHalfTurn`): its only crossing, at $s=\tfrac12$, has the
   one-dimensional form $\pi$, and its index is `1`
-  (`ℒ.pathMaslovIndex_coordinateHalfTurn`).
+  (`ℒ.pathMaslovIndex_coordinateHalfTurn`). The file imports
+  `Data/Matrix/Basis.lean` for the matrix `1 + Eᵢᵢ a` of its frame, and
+  `Analysis/Matrix/UnitaryGroup/Basic.lean` (*Unitary group topology*) for
+  the diagonal unitary `Matrix.UnitaryGroup.detSection ι i (Circle.exp θ)` that
+  turns the `i`-th coordinate plane.
 
 ### `LinearAlgebra/Symplectic/Lagrangian/Maslov/Path/Regular.lean`
 
