@@ -23,6 +23,12 @@ of the trivializations and open on the model fibre.
   trivialization `trivializationAt F E b` reads, on its source, as the preimage of an open set of
   the model fibre under the fibre coordinate, is open.
 
+## Implementation notes
+
+The proof is the trivialization argument of Tau Ceti's `TauCeti.isOpen_zeroSectionCompl`
+(`TauCeti/Topology/VectorBundle/EulerClass.lean`): the preimage of `Prod.snd ⁻¹' t` under a
+trivialization is open in its source, by `ContinuousOn.isOpen_inter_preimage`.
+
 ## References
 
 * D. Husemoller, *Fibre Bundles*, 3rd ed., Graduate Texts in Mathematics 20, Springer, 1994,
