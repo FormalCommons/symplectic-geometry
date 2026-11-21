@@ -819,10 +819,14 @@ Each is a few hundred lines. External blockers are given by issue number.
     2, #8.
 
 Issues 1, 3 and 6 can start at once. *Symplectic vector bundles* needs 4, 5
-and 6: `metricPolarFormula` on `polarDomain` with its smoothness and
-naturality, the lemmas of `PolarComplexStructure/Basic.lean` that identify it
-with $J_{g,\omega}$, and `cayleyDomain` with its openness and
-`Compatible.mem_cayleyDomain`. It uses nothing from issues 7 to 11.
+and 6, and nothing from issues 7 to 11:
+
+- issue 4: `metricPolarComplexStructure_transport` and
+  `metricPolarComplexStructure_innerSL`;
+- issue 5: `polarDomain` and `metricPolarFormula`, their smoothness and
+  naturality, and `metricPolarFormula_eq`;
+- issue 6: `cayleyDomain`, `isOpen_setOf_forall_Icc_mem_cayleyDomain` and
+  `Compatible.mem_cayleyDomain`.
 
 ## References
 
