@@ -547,11 +547,9 @@ theorem tangentEquiv_toEndomorphism
 theorem tangentEquiv_symm_toEndomorphism (J : TauCeti.ContMDiffAlmostComplexStructure I n M) :
     (tangentEquiv.symm J).toEndomorphism = J.toEndomorphism := (rfl)
 
-@[simp]
 theorem tangentEquiv_apply (J : ContMDiffComplexStructure I n EB (TangentSpace I : M → Type _))
     (x : M) (v : TangentSpace I x) : tangentEquiv J x v = J x v := (rfl)
 
-@[simp]
 theorem tangentEquiv_symm_apply (J : TauCeti.ContMDiffAlmostComplexStructure I n M) (x : M)
     (v : TangentSpace I x) : tangentEquiv.symm J x v = J x v := (rfl)
 
