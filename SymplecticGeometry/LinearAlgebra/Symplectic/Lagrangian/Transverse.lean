@@ -107,7 +107,9 @@ theorem graphY_eq_unitaryFrame [DecidableEq ι] (S : selfAdjoint (Matrix ι ι �
     graphY S = unitaryFrame (unitaryOfFrame
       (isLagrangian_range_fromRows_one (isHermitian_iff_isSymm.1 S.property))) := by
   rw [unitaryFrame_unitaryOfFrame]
-  exact toSubmodule_injective (StdSpace.range_toEuclideanLin_fromRows_one_eq_graphY _).symm
+  exact toSubmodule_injective <| by
+    rw [coe_ofFrame]
+    exact (StdSpace.range_toEuclideanLin_fromRows_one_eq_graphY _).symm
 
 /-! ### The points of the second chart -/
 
