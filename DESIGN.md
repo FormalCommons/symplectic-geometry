@@ -255,6 +255,9 @@ further when they grow, following `AGENTS.md`.
   It imports, too, `LinearAlgebra/Matrix/SymplecticGroup/Basic.lean` of
   *Symplectic group*, for `Matrix.neg_J_mul_eq_fromBlocks`; that file also
   imports only Mathlib and Tau Ceti and is merged, so the level stays 0.
+  Likewise it imports `LinearAlgebra/Matrix/PosDef/Block.lean` of *Siegel
+  upper half space*, for `Matrix.PosDef.toBlocks₁₁`; that file imports only
+  Mathlib and Tau Ceti and is merged, so the level stays 0.
   `Matrix.lean` also imports `LinearAlgebra/Symplectic/Compatible.lean` of
   *Compatible complex structures*, for the matrix form of compatibility on
   `StdSpace ι` (`compatible_stdForm_iff_posDef` and its companions). That
@@ -1473,7 +1476,7 @@ so two parts can each use merged files of the other without either waiting.
 
 | Level | Part | Builds on |
 |---|---|---|
-| 0 | *Standard model* | — (it imports `LinearAlgebra/Matrix/Block.lean` and `LinearAlgebra/Matrix/Symmetric.lean` of *Siegel upper half space*, which import only Mathlib and Tau Ceti and are merged, `LinearAlgebra/Matrix/SymplecticGroup/Basic.lean` of *Symplectic group*, which imports only Mathlib and Tau Ceti and is merged, and the merged `LinearAlgebra/Symplectic/Compatible.lean` of *Compatible complex structures*, which besides `Standard/Basic.lean` imports only merged files that do not import `Standard/Matrix.lean`) |
+| 0 | *Standard model* | — (it imports `LinearAlgebra/Matrix/Block.lean` and `LinearAlgebra/Matrix/Symmetric.lean` of *Siegel upper half space*, which import only Mathlib and Tau Ceti and are merged, `LinearAlgebra/Matrix/SymplecticGroup/Basic.lean` of *Symplectic group*, which imports only Mathlib and Tau Ceti and is merged, `LinearAlgebra/Matrix/PosDef/Block.lean` of *Siegel upper half space*, which imports only Mathlib and Tau Ceti and is merged, and the merged `LinearAlgebra/Symplectic/Compatible.lean` of *Compatible complex structures*, which besides `Standard/Basic.lean` imports only merged files that do not import `Standard/Matrix.lean`) |
 | 0 | *Symplectic group* | — |
 | 0 | *Linear Moser* | — |
 | 1 | *Unitary group topology* | *Symplectic group* (only the file on $\mathrm{Sp}(2n)$; the other files can start at once) |
