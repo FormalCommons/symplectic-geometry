@@ -118,7 +118,7 @@ The part owns the folder `Geometry/Symplectic/Moser/`, except
 `Moser/Family.lean`, a file of *Isotopy extension*
 (`design/isotopy-extension.md`). Tau Ceti has the
 files `Geometry/Symplectic/Manifold/Moser.lean` and `RelativeMoser.lean`, so
-this library may not have folders with those names. The five files outside
+this library may not have folders with those names. The seven files outside
 that folder have the names of the Tau Ceti files they extend, so that they
 can join them.
 
@@ -133,6 +133,8 @@ can join them.
 | `Geometry/Manifold/LocalDiffeomorph/MFDeriv.lean` | the derivative of a transition between partial diffeomorphisms, composed with a differential; the differential of a partial diffeomorphism followed by a continuous linear equivalence (`PartialDiffeomorph.mvfderiv_trans_toDiffeomorph`) | 5 |
 | `Geometry/Symplectic/Moser/Stability.lean` | Moser stability, the milestone | 6 |
 | `Geometry/Manifold/DifferentialForm/Smooth.lean` | `TauCeti.SmoothForm.bilinFormAt` of sums, real multiples, zero, negatives and differences of two-forms | — |
+| `Geometry/Manifold/DifferentialForm/Opens.lean` | the pull-back of restricted forms along a partial diffeomorphism of open subsets, read in the ambient manifolds as a diffeomorphism between its source and its target (`PartialDiffeomorph.mpullback_toDiffeomorphSourceTarget_liftOpens`) | — |
+| `Geometry/Symplectic/Manifold/TwoForm.lean` | a smooth map whose differential at a point is a linear symplectomorphism for two nondegenerate two-forms pulls the second back to the first at that point (`TauCeti.SmoothTwoForm.coe_mpullback_apply_eq_of_mfderiv_eq`) | — |
 
 ### `Geometry/Symplectic/Manifold/Family.lean`
 
@@ -174,6 +176,25 @@ in the namespace `TauCeti.SmoothForm`, for real smooth two-forms. They
 rewrite the bilinear form at a point of a segment `σ₀ + s • (σ₁ - σ₀)` of
 two-forms. The file is about two-forms in general,
 so any part may import it.
+
+### `Geometry/Manifold/DifferentialForm/Opens.lean`
+
+The file has the name of Tau Ceti's file with `mpullback_liftOpens_apply_coe`.
+It has `PartialDiffeomorph.mpullback_toDiffeomorphSourceTarget_liftOpens`:
+for `Φ : PartialDiffeomorph I I' U V ∞` between open subsets, if `Φ` pulls
+the restriction of `σ` to `V` back to `τ` at every point of its source, then
+`(Φ.liftOpens hU hV).toDiffeomorphSourceTarget` pulls the restriction of `σ`
+to its target back to the restriction of `τ` to its source, as smooth forms.
+`Moser/Relative.lean` ends with it, and so may the neighbourhood theorems.
+
+### `Geometry/Symplectic/Manifold/TwoForm.lean`
+
+The file has the name of Tau Ceti's file that defines
+`IsNondegenerate.symplecticFormAt`. It has
+`TauCeti.SmoothTwoForm.coe_mpullback_apply_eq_of_mfderiv_eq`: for a smooth
+`f` with `f x₀ = x₁` and `mfderiv I₀ I₁ f x₀ = A`, `A` a linear
+symplectomorphism for `hω₀.symplecticFormAt x₀` and `hω₁.symplecticFormAt x₁`,
+`(SmoothForm.mpullback f hf ω₁).val x₀ = ω₀.val x₀`.
 
 ### `Geometry/Symplectic/Manifold/Flat.lean`
 
