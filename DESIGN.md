@@ -1988,7 +1988,9 @@ has either; Tau Ceti's extension across a boundary,
   by the change of coordinates of *Manifolds, families and signs*),
   `Levi.lean` and `Moser.lean` (named like Tau Ceti's files: kernels of
   local one-forms as smooth hyperplane fields, and the change-of-form law
-  of the contact-Moser vector at one point, both used by `Family.lean`),
+  of the contact-Moser vector at one point, both used by `Family.lean`, and
+  the contact-Moser vector under pullback and restriction to open subsets,
+  which `Gray.lean` uses for the Gray vector),
   `Family.lean` (named like Tau Ceti's file: `IsContactFamily`, smooth
   families over $[0,1]$ of contact structures that need not be
   coorientable, and their local defining forms over `ℝ`, through the time
@@ -2006,9 +2008,10 @@ has either; Tau Ceti's extension across a boundary,
   `TauCeti.SmoothEmbedding.exists_isSmoothForm_relative_primitive`, and the
   Reeb flow); and `Geometry/Manifold/DifferentialForm/Flow/Family.lean`
   (named like Tau Ceti's file: Moser's principle along one trajectory, in
-  the rescaling case, which `Gray.lean` uses, and the preservation of a
+  the rescaling case, which `Gray.lean` uses, the preservation of a
   closed form with closed contractions by a local time-dependent flow, which
-  `PoissonAlgebra.lean` of *Hamiltonian flows* uses).
+  `PoissonAlgebra.lean` of *Hamiltonian flows* uses, and the slices of
+  pullbacks along `Prod.map id f`).
 - **Builds on:** Tau Ceti (contact forms, Reeb fields, contact Hamiltonians,
   strict and distribution Darboux charts, Gray's theorem for families over
   `ℝ`); `Family.lean` and `Gray.lean` also on *Smooth families*
