@@ -245,12 +245,8 @@ theorem maslovPhase_rotate (θ : ℝ) (Λ : ℒ ι) :
   rw [rotate_def, maslovPhase_unitary_smul]
   congr 1
   refine Circle.ext ?_
-  rw [Circle.coe_pow, coe_detCircle, UnitaryGroup.coe_circleEquivUnitary_smul_one, det_smul,
-    det_one, mul_one, Circle.coe_exp, Circle.coe_exp, ← Complex.exp_natCast_mul,
-    ← Complex.exp_natCast_mul]
-  congr 1
-  push_cast
-  ring
+  simp [Circle.coe_exp, ← Complex.exp_natCast_mul]
+  ring_nf
 
 /-! ### The Maslov index of a loop -/
 
@@ -399,8 +395,8 @@ noncomputable def halfTurnLoop (k : ℤ) : Path (horizontal ι) (horizontal ι) 
 
 /-- The loop `halfTurnLoop k` at time `t` is the rotation of `{y = 0}` by the angle `π k t`. -/
 theorem halfTurnLoop_apply (k : ℤ) (t : I) :
-    halfTurnLoop k t = rotate (Real.pi * k * t) (horizontal ι) := by
-  rw [halfTurnLoop, Path.cast_coe, rotationPath_apply]
+    halfTurnLoop k t = rotate (Real.pi * k * t) (horizontal ι) :=
+  rotationPath_apply _ _ t
 
 /-- The Maslov phase of `halfTurnLoop k` at time `t` is `e^{2iπnkt}`, where `n` is the
 cardinality of `ι`. -/

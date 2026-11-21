@@ -210,8 +210,8 @@ theorem range_rotationFrame {Λ : ℒ ι} {Z : Matrix (ι ⊕ ι) ι ℝ}
     (hZ : LinearMap.range (toEuclideanLin Z) = Λ) (θ : ℝ) :
     LinearMap.range (toEuclideanLin (rotationFrame Z θ)) = rotate θ Λ := by
   rw [rotate_def, unitary_smul_def, coe_smul_of_coe_eq _ hZ.symm, GLSymplectic.coe_ofUnitary,
-    UnitaryGroup.coe_circleEquivUnitary_smul_one, realify_smul_one, Circle.coe_exp,
-    Complex.exp_ofReal_mul_I_re, Complex.exp_ofReal_mul_I_im, rotationFrame_def]
+    Unitary.coe_smul, OneMemClass.coe_one, circleEquivUnitary_smul, realify_smul_one,
+    Circle.coe_exp, Complex.exp_ofReal_mul_I_re, Complex.exp_ofReal_mul_I_im, rotationFrame_def]
 
 /-- Rotating a Lagrangian `Λ` by a small nonzero angle makes it transverse to any given
 Lagrangian `V`: the crossing form of the rotation is definite, so its crossing at `0` is
@@ -443,8 +443,8 @@ theorem pathMaslovIndex_coordinateHalfTurn (i : ι) (V : ℒ ι) :
   have hdet (t : I) : ((g t : unitaryGroup ι ℂ) : Matrix ι ι ℂ).det =
       Complex.exp ((Real.pi * t + Fintype.card ι * (Real.pi / 2) : ℝ) * Complex.I) := by
     rw [Submonoid.coe_mul, det_mul, ← coe_detCircle, detCircle_detSection]
-    simp only [E, UnitaryGroup.coe_circleEquivUnitary_smul_one, det_smul, det_one, mul_one,
-      Circle.coe_exp]
+    simp only [E, Unitary.coe_smul, OneMemClass.coe_one, circleEquivUnitary_smul, det_smul,
+      det_one, mul_one, Circle.coe_exp]
     rw [← Complex.exp_natCast_mul, ← Complex.exp_add]
     congr 1
     push_cast
