@@ -313,4 +313,39 @@ theorem adjoint {e : StdSpace ι ≃ₗ[ℝ] StdSpace ι}
 
 end TauCeti.SymplecticForm.IsSymplectomorphism
 
+namespace SymplecticGeometry
+
+open TauCeti
+
+variable {ι : Type*} [Fintype ι]
+
+/-- The adjoint of an anti-symplectic linear equivalence of the standard model is
+anti-symplectic: composing with the reflection `stdConj ι`, which is its own adjoint, reduces
+this to `TauCeti.SymplecticForm.IsSymplectomorphism.adjoint`. -/
+theorem forall_adjointEquiv_apply_eq_neg_of_forall_apply_eq_neg
+    {Ψ : StdSpace ι ≃ₗ[ℝ] StdSpace ι} (hΨ : ∀ z w, stdForm ι (Ψ z) (Ψ w) = -stdForm ι z w)
+    (z w : StdSpace ι) :
+    stdForm ι (ContinuousLinearEquiv.adjointEquiv Ψ.toContinuousLinearEquiv z)
+      (ContinuousLinearEquiv.adjointEquiv Ψ.toContinuousLinearEquiv w) = -stdForm ι z w := by
+  set e := (stdConj ι).toLinearEquiv.trans Ψ
+  -- the adjoint of `Ψ ∘ stdConj` is `stdConj ∘ Ψ†`
+  have hadj : ∀ v, ContinuousLinearEquiv.adjointEquiv e.toContinuousLinearEquiv v =
+      stdConj ι (ContinuousLinearEquiv.adjointEquiv Ψ.toContinuousLinearEquiv v) := by
+    intro v
+    refine ext_inner_right ℝ fun u ↦ ?_
+    calc inner ℝ (ContinuousLinearEquiv.adjointEquiv e.toContinuousLinearEquiv v) u
+        = inner ℝ (ContinuousLinearEquiv.adjointEquiv Ψ.toContinuousLinearEquiv v)
+            (stdConj ι u) := by
+          simp [e, ContinuousLinearMap.adjoint_inner_left]
+      _ = _ := by rw [← (stdConj ι).inner_map_map, stdConj_stdConj]
+  have he : ∀ z w, stdForm ι (ContinuousLinearEquiv.adjointEquiv e.toContinuousLinearEquiv z)
+      (ContinuousLinearEquiv.adjointEquiv e.toContinuousLinearEquiv w) = stdForm ι z w :=
+    SymplecticForm.isSymplectomorphism_iff.1
+      (isSymplectomorphism_stdConj_trans_of_forall_apply_eq_neg hΨ).adjoint
+  have h := he z w
+  rw [hadj, hadj, stdForm_stdConj] at h
+  linarith
+
+end SymplecticGeometry
+
 end
