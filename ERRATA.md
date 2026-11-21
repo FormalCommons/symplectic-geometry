@@ -61,7 +61,14 @@ Each entry has this form:
 - **Fix:** the *Unitary group topology* part of `DESIGN.md` states both
   isomorphisms for $n\ge1$, the generality in which the book's argument
   works; for $n=0$, next to them, the library proves that the fundamental
-  groups are trivial, which is the counterexample.
+  groups are trivial, which is the counterexample. For the unitary group
+  this is `Matrix.UnitaryGroup.bijective_fundamentalGroupMap_detCircle_and_simplyConnectedSpace`,
+  stated for a nonempty index type, with the counterexample
+  `Matrix.UnitaryGroup.not_bijective_fundamentalGroupMap_detCircle_of_isEmpty`
+  (`Analysis/Matrix/UnitaryGroup/FundamentalGroup.lean`); that the fundamental
+  group is trivial for an empty index type needs no new lemma, as instance
+  search derives it from the group being a point. The simple connectivity of
+  $\mathrm{SU}(n)$ holds for every $n$.
 - **Issue:** #4.
 
 ## Other sources
