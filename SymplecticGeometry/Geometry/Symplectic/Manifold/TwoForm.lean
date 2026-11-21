@@ -6,7 +6,6 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Symplectic.Manifold.TwoForm
-import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 
 /-!
 # Pull-back of a nondegenerate two-form by a map with symplectic differential
@@ -54,14 +53,9 @@ theorem coe_mpullback_apply_eq_of_mfderiv_eq {f : M₀ → M₁} (hf : ContMDiff
     (hfA : mfderiv I₀ I₁ f x₀ = (A : TangentSpace I₀ x₀ →L[ℝ] TangentSpace I₁ x₁)) :
     (SmoothForm.mpullback f hf ω₁).val x₀ = ω₀.val x₀ := by
   subst hfx
-  rw [← sub_eq_zero, ← Pi.sub_apply, ← AddSubgroupClass.coe_sub,
-    ← SmoothForm.bilinFormAt_eq_zero_iff]
-  ext v w
-  have h := hA.apply v w
-  simp only [IsNondegenerate.symplecticFormAt_apply, ContinuousLinearEquiv.coe_toLinearEquiv] at h
-  rw [SmoothForm.bilinFormAt_sub, LinearMap.sub_apply, LinearMap.sub_apply,
-    SmoothForm.bilinFormAt_apply, SmoothForm.bilinFormAt_apply, SmoothForm.eval₂_mpullback, hfA]
-  exact sub_eq_zero.2 h
+  refine SmoothBundleForm.apply_eq_of_eval₂_eq fun v w ↦ ?_
+  rw [SmoothForm.eval₂_mpullback, hfA]
+  simpa using hA.apply v w
 
 end TauCeti.SmoothTwoForm
 

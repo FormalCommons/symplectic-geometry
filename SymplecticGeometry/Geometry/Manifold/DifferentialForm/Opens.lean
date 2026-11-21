@@ -25,9 +25,8 @@ carried out on an open submanifold, such as a Moser flow defined only on part of
 diffeomorphism of open subsets of the ambient manifold that pulls one form back to another.
 
 The proof combines Tau Ceti's `TauCeti.mpullback_liftOpens_apply_coe` with the functoriality of
-pull-backs at a point (`TauCeti.mpullback_comp_at`); it is the step that ended the proof of
-`TauCeti.SmoothEmbedding.exists_diffeomorph_opens_of_eq_along` in
-`SymplecticGeometry/Geometry/Symplectic/Moser/Relative.lean`, moved here.
+pull-backs at a point (`TauCeti.mpullback_comp_at`). The relative Moser theorem
+`TauCeti.SmoothEmbedding.exists_diffeomorph_opens_of_eq_along` uses it.
 
 ## Main results
 
