@@ -9,7 +9,7 @@ public import Mathlib.Geometry.Manifold.Diffeomorph
 public import Mathlib.Geometry.Manifold.IsManifold.InteriorBoundary
 import Mathlib.Geometry.Manifold.LocalDiffeomorph
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
-import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
+import TauCeti.Geometry.Manifold.MFDeriv.Prod
 
 /-!
 # Smooth families of diffeomorphisms
@@ -57,19 +57,9 @@ theorem Diffeomorph.contMDiff_symm_eval {ψ : P → M ≃ₘ^n⟮I, I⟯ M} (hn 
   have hFs : ContMDiff (J.prod I) (J.prod I) n F := contMDiff_fst.prodMk hψ
   -- The differential of `F` is `(v, w) ↦ (v, ∂ₚψ v + dψ_p w)`, which is injective since each
   -- `dψ_p` is.
-  have hinj (q : P × M) : Function.Injective (mfderiv (J.prod I) (J.prod I) F q) := by
-    have hd : MDifferentiableAt (J.prod I) I (fun p : P × M ↦ ψ p.1 p.2) q :=
-      hψ.mdifferentiableAt hn₀
-    refine (injective_iff_map_eq_zero _).2 ?_
-    rintro ⟨v, w⟩ h
-    rw [hF, mfderiv_prodMk mdifferentiableAt_fst hd] at h
-    obtain ⟨h₁, h₂⟩ := Prod.ext_iff.1 ((ContinuousLinearMap.prod_apply _ _ (v, w)).symm.trans h)
-    rw [mfderiv_fst] at h₁
-    obtain rfl : v = 0 := h₁
-    have h₃ : mfderiv I I (ψ q.1) q.2 w = 0 := (hd.mfderiv_curry_right_apply w).symm.trans h₂
-    obtain rfl : w = 0 := ((ψ q.1).isInvertible_mfderiv hn₀ (x := q.2)).injective
-      (h₃.trans (map_zero _).symm)
-    rfl
+  have hinj (q : P × M) : Function.Injective (mfderiv (J.prod I) (J.prod I) F q) :=
+    (hψ.mdifferentiableAt hn₀).injective_mfderiv_fst_prod_iff.2
+      ((ψ q.1).isInvertible_mfderiv hn₀).injective
   have hloc : IsLocalDiffeomorph (J.prod I) (J.prod I) n F := fun q ↦
     TauCeti.isLocalDiffeomorphAt_of_injective_mfderiv hFs.contMDiffOn isOpen_univ (mem_univ q)
       BoundarylessManifold.isInteriorPoint hn (hinj q) rfl
