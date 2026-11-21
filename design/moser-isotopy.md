@@ -257,16 +257,19 @@ API, in the order the proofs need it. `hinv` stands for
   `RoughForm.interior (moserField σ₀ σ₁ β ρ t) (σ₀ + t • (σ₁ - σ₀)).val x =
   -ρ (t, x) • β.val x`. `interior_moserField_eq` is the same identity at
   every point, given `hinv`.
-- `contMDiff_moserField`: given `ContMDiff (𝓘(ℝ, ℝ).prod I) 𝓘(ℝ) ∞ ρ` and
-  `hinv`, the map `p ↦ ⟨p.2, moserField σ₀ σ₁ β ρ p.1 p.2⟩` into the tangent
-  bundle is smooth. Near `tsupport ρ` the proof uses
+- `contMDiffAt_moserField`: if `ρ` is smooth at `p₀` and the flat map at
+  `p₀` is invertible when `p₀ ∈ tsupport ρ`, the map
+  `p ↦ ⟨p.2, moserField σ₀ σ₁ β ρ p.1 p.2⟩` into the tangent bundle is
+  smooth at `p₀`. `contMDiff_moserField`: given
+  `ContMDiff (𝓘(ℝ, ℝ).prod I) 𝓘(ℝ) ∞ ρ` and `hinv`, that map is smooth.
+  Near `tsupport ρ` the proof uses
   `ContMDiffAt.clm_bundle_inverse` on the flat maps of
   `SmoothForm.lineMapFamily σ₀ σ₁ contDiff_id`. Away from it, the field is
   the zero section.
 - `moserField_rate_eq_zero`:
-  Moser's equation at `(t, y)`. Assume `σ₀` is closed, `ρ` and `hinv` are as in
-  `contMDiff_moserField`, `ρ = 1` on a
-  neighbourhood of `(t, y)`, and `mextDeriv β.val = (σ₁ - σ₀).val` on a
+  Moser's equation at `(t, y)`. Assume `σ₀` is closed,
+  `∀ᶠ p in 𝓝 (t, y), ρ p = 1 ∧ ((σ₀ + p.1 • (σ₁ - σ₀)).flat p.2).IsInvertible`,
+  and `mextDeriv β.val = (σ₁ - σ₀).val` on a
   neighbourhood of `y`. Then the rate of `SmoothForm.lineMapFamily σ₀ σ₁
   contDiff_id` along `moserField σ₀ σ₁ β ρ` vanishes at `(t, y)`. This is
   the hypothesis of Tau Ceti's
@@ -279,6 +282,7 @@ API, in the order the proofs need it. `hinv` stands for
   `moserField_eq_zero_of_notMem_tsupport`.
 
 The module docstring credits Tau Ceti's private `moserField`,
+`moserField_eq_zero`, `interior_moserField`, `interior_moserField_eq`,
 `contMDiff_moserField` and `moserRate_eq_zero` (`RelativeMoser.lean`). This
 file adapts them from the reparametrized path and a cutoff on `M` to the
 linear path and a cutoff on `ℝ × M`.

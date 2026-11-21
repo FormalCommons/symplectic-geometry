@@ -21,7 +21,7 @@ For smooth two-forms `σ₀`, `σ₁` on a manifold `M`, a one-form `β` and a f
 map `v ↦ ι_v σ_t`. Where `σ_t` is nondegenerate it is the field with `ι_{X_t} σ_t = -ρ(t, ·) β`.
 
 If `σ₀` is closed and `β` is a primitive of `σ₁ - σ₀` near a point `y`, then at every `(t, y)`
-near which `ρ = 1`, Cartan's formula gives Moser's equation
+near which `ρ = 1` and `σ_t` is nondegenerate, Cartan's formula gives Moser's equation
 `∂_t σ_t + L_{X_t} σ_t = (σ₁ - σ₀) - dβ = 0`, which is the hypothesis of Tau Ceti's Moser
 principle along trajectories
 (`TauCeti.mpullback_timeDependentFlowOf_mpullback_prodMk_apply_eq_of_forall_mem_uIcc`).
@@ -31,13 +31,15 @@ principle along trajectories
 * `SymplecticGeometry.moserField`: the cut-off Moser field of the segment from `σ₀` to `σ₁`.
 * `SymplecticGeometry.interior_moserField`, `SymplecticGeometry.interior_moserField_eq`:
   the identity `ι_{X_t} σ_t = -ρ(t, ·) β`.
-* `SymplecticGeometry.contMDiff_moserField`: the field is jointly smooth on `ℝ × M` when `ρ` is
-  smooth and `σ_t` is nondegenerate at every point `(t, x)` of the support of `ρ`.
-* `SymplecticGeometry.moserField_rate_eq_zero`: Moser's equation at a point near which `ρ = 1`
-  and `β` is a primitive of `σ₁ - σ₀`.
+* `SymplecticGeometry.contMDiffAt_moserField`, `SymplecticGeometry.contMDiff_moserField`: the
+  field is jointly smooth on `ℝ × M` where `ρ` is smooth and `σ_t` is nondegenerate at every
+  point `(t, x)` of the support of `ρ`.
+* `SymplecticGeometry.moserField_rate_eq_zero`: Moser's equation at a point near which `ρ = 1`,
+  `σ_t` is nondegenerate and `β` is a primitive of `σ₁ - σ₀`.
 
-The definition and the proofs adapt Tau Ceti's private `moserField`, `contMDiff_moserField` and
-`moserRate_eq_zero` (`TauCeti/Geometry/Symplectic/Manifold/RelativeMoser.lean`) from the segment
+The definition and the proofs adapt Tau Ceti's private `moserField`, `moserField_eq_zero`,
+`interior_moserField`, `interior_moserField_eq`, `contMDiff_moserField` and `moserRate_eq_zero`
+(`TauCeti/Geometry/Symplectic/Manifold/RelativeMoser.lean`) from the segment
 reparametrized by `Real.smoothTransition` and a cutoff on `M` to the linear segment and a cutoff
 on `ℝ × M`. With the linear segment, `σ_t = ω_t` for every `t ∈ [0, 1]`, which is what an isotopy
 `ψ_t` with `ψ_t^* ω_t = ω_0` for every such `t` needs.
@@ -122,15 +124,14 @@ theorem interior_moserField_eq
 
 variable [FiniteDimensional ℝ E]
 
-/-- The cut-off Moser field `(t, x) ↦ X_t(x)` is jointly smooth on `ℝ × M` when `ρ` is smooth and
-the flat map of `σ_t = σ₀ + t (σ₁ - σ₀)` at `x` is invertible at every point `(t, x)` of the
-support of `ρ`. -/
-theorem contMDiff_moserField (β : SmoothForm I M ℝ 1)
-    (hρ : ContMDiff (𝓘(ℝ, ℝ).prod I) 𝓘(ℝ) ∞ ρ)
-    (hinv : ∀ p ∈ tsupport ρ, ((σ₀ + p.1 • (σ₁ - σ₀)).flat p.2).IsInvertible) :
-    ContMDiff (𝓘(ℝ, ℝ).prod I) I.tangent ∞
-      (fun p : ℝ × M ↦ (⟨p.2, moserField σ₀ σ₁ β ρ p.1 p.2⟩ : TangentBundle I M)) := by
-  intro p₀
+/-- The cut-off Moser field `(t, x) ↦ X_t(x)` is smooth at `p₀ = (t₀, x₀)` when `ρ` is smooth at
+`p₀` and, if `p₀` lies in the support of `ρ`, the flat map of `σ_{t₀} = σ₀ + t₀ (σ₁ - σ₀)` at `x₀`
+is invertible. -/
+theorem contMDiffAt_moserField (β : SmoothForm I M ℝ 1) {p₀ : ℝ × M}
+    (hρ : ContMDiffAt (𝓘(ℝ, ℝ).prod I) 𝓘(ℝ) ∞ ρ p₀)
+    (hinv : p₀ ∈ tsupport ρ → ((σ₀ + p₀.1 • (σ₁ - σ₀)).flat p₀.2).IsInvertible) :
+    ContMDiffAt (𝓘(ℝ, ℝ).prod I) I.tangent ∞
+      (fun p : ℝ × M ↦ (⟨p.2, moserField σ₀ σ₁ β ρ p.1 p.2⟩ : TangentBundle I M)) p₀ := by
   by_cases hp₀ : p₀ ∈ tsupport ρ
   · -- The flat maps of the slices form a smooth section along `Prod.snd`.
     have hflat : ContMDiffAt (𝓘(ℝ, ℝ).prod I) (I.prod 𝓘(ℝ, E →L[ℝ] E →L[ℝ] ℝ)) ∞
@@ -151,8 +152,8 @@ theorem contMDiff_moserField (β : SmoothForm I M ℝ 1)
     simp only [map_neg, ContMDiffSection.coe_neg, Pi.neg_apply] at hβ
     have h := (ContMDiffAt.clm_bundle_inverse (x := p₀) (b := Prod.snd)
       (ϕ := fun p : ℝ × M ↦ (σ₀ + p.1 • (σ₁ - σ₀)).flat p.2)
-      hflat (hinv p₀ hp₀)).clm_bundle_apply hβ
-    exact hρ.contMDiffAt.smul_totalSpace h
+      hflat (hinv hp₀)).clm_bundle_apply hβ
+    exact hρ.smul_totalSpace h
   · -- Away from the support of `ρ` the field vanishes identically.
     refine ((contMDiff_zeroSection ℝ (TangentSpace I)).comp contMDiff_snd).contMDiffAt
       |>.congr_of_eventuallyEq ?_
@@ -161,16 +162,24 @@ theorem contMDiff_moserField (β : SmoothForm I M ℝ 1)
     -- The zero section at `p.2` is the pair `⟨p.2, 0⟩` by definition.
     rfl
 
-/-- **Moser's equation for the cut-off Moser field.** Let `σ₀` be closed, let `ρ` be smooth
-with the flat map of `σ_t` at `x` invertible at every point `(t, x)` of its support, let `ρ = 1`
-near `(t, y)`, and let `dβ = σ₁ - σ₀` near `y`. Then the rate `∂_t σ_t + L_{X_t} σ_t` of the family
+/-- The cut-off Moser field `(t, x) ↦ X_t(x)` is jointly smooth on `ℝ × M` when `ρ` is smooth and
+the flat map of `σ_t = σ₀ + t (σ₁ - σ₀)` at `x` is invertible at every point `(t, x)` of the
+support of `ρ`. -/
+theorem contMDiff_moserField (β : SmoothForm I M ℝ 1)
+    (hρ : ContMDiff (𝓘(ℝ, ℝ).prod I) 𝓘(ℝ) ∞ ρ)
+    (hinv : ∀ p ∈ tsupport ρ, ((σ₀ + p.1 • (σ₁ - σ₀)).flat p.2).IsInvertible) :
+    ContMDiff (𝓘(ℝ, ℝ).prod I) I.tangent ∞
+      (fun p : ℝ × M ↦ (⟨p.2, moserField σ₀ σ₁ β ρ p.1 p.2⟩ : TangentBundle I M)) :=
+  fun p ↦ contMDiffAt_moserField β (hρ p) (hinv p)
+
+/-- **Moser's equation for the cut-off Moser field.** Let `σ₀` be closed, let `ρ = 1` and let the
+flat map of `σ_s` at `z` be invertible at every point `(s, z)` near `(t, y)`, and let
+`dβ = σ₁ - σ₀` near `y`. Then the rate `∂_t σ_t + L_{X_t} σ_t` of the family
 `σ_t = σ₀ + t (σ₁ - σ₀)` (`TauCeti.SmoothForm.lineMapFamily`) along the cut-off Moser field
 vanishes at `y`: `∂_t σ_t = σ₁ - σ₀`, while Cartan's formula gives
 `L_{X_t} σ_t = d (ι_{X_t} σ_t) = -dβ`. -/
-theorem moserField_rate_eq_zero [I.Boundaryless] (h₀ : σ₀.IsClosed)
-    (hρ : ContMDiff (𝓘(ℝ, ℝ).prod I) 𝓘(ℝ) ∞ ρ)
-    (hinv : ∀ p ∈ tsupport ρ, ((σ₀ + p.1 • (σ₁ - σ₀)).flat p.2).IsInvertible)
-    {t : ℝ} {y : M} (hρy : ∀ᶠ p in 𝓝 (t, y), ρ p = 1)
+theorem moserField_rate_eq_zero [I.Boundaryless] (h₀ : σ₀.IsClosed) {t : ℝ} {y : M}
+    (hρ : ∀ᶠ p in 𝓝 (t, y), ρ p = 1 ∧ ((σ₀ + p.1 • (σ₁ - σ₀)).flat p.2).IsInvertible)
     (hβ : ∀ᶠ z in 𝓝 y, mextDeriv β.val z = (σ₁ - σ₀).val z) :
     (mpullback I (𝓘(ℝ, ℝ).prod I) (Prod.mk t)
         (mlieDerivForm (fun _ ↦ ((1 : ℝ), (0 : E)))
@@ -208,19 +217,18 @@ theorem moserField_rate_eq_zero [I.Boundaryless] (h₀ : σ₀.IsClosed)
       Pi.zero_apply]
   have hXt : MDifferentiableAt I I.tangent
       (fun z ↦ (⟨z, moserField σ₀ σ₁ β ρ t z⟩ : TangentBundle I M)) y :=
-    ((contMDiff_moserField β hρ hinv).comp (contMDiff_const.prodMk contMDiff_id)
-      |>.mdifferentiableAt (by simp))
+    have hρt : ContMDiffAt (𝓘(ℝ, ℝ).prod I) 𝓘(ℝ) ∞ ρ (t, y) :=
+      contMDiffAt_const.congr_of_eventuallyEq (hρ.mono fun _ hp ↦ hp.1)
+    ((contMDiffAt_moserField β hρt fun _ ↦ hρ.self_of_nhds.2).comp y
+      (contMDiffAt_const.prodMk contMDiffAt_id)).mdifferentiableAt (by simp)
   -- Near `y` the contraction `ι_{X_t} σ_t` is `-β`, whose exterior derivative is `-(σ₁ - σ₀)`.
   have hL : mlieDerivForm (moserField σ₀ σ₁ β ρ t) (σ₀ + t • (σ₁ - σ₀)).val y =
       -(σ₁ - σ₀).val y := by
     rw [mlieDerivForm_eq_mextDeriv_interior_apply (SmoothForm.mdifferentiableAt _ y) hXt hclosed]
     have hev : ∀ᶠ z in 𝓝 y, RoughForm.interior (moserField σ₀ σ₁ β ρ t)
         (σ₀ + t • (σ₁ - σ₀)).val z = ((-1 : ℝ) • β.val) z := by
-      have hρz : ∀ᶠ z in 𝓝 y, ρ (t, z) = 1 :=
-        (Continuous.prodMk_right t).continuousAt.eventually hρy
-      filter_upwards [hρz] with z hz
-      have hz' : (t, z) ∈ tsupport ρ := subset_tsupport _ (by simp [hz])
-      rw [interior_moserField σ₀ σ₁ β ρ (hinv _ hz'), hz, Pi.smul_apply]
+      filter_upwards [(Continuous.prodMk_right t).continuousAt.eventually hρ] with z hz
+      rw [interior_moserField σ₀ σ₁ β ρ hz.2, hz.1, Pi.smul_apply]
     rw [mextDeriv_congr_of_eventuallyEq hev, mextDeriv_smul, Pi.smul_apply,
       hβ.self_of_nhds, neg_one_smul]
   rw [Pi.add_apply, hvel, hslice, hL, add_neg_cancel]
