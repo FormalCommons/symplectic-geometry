@@ -104,7 +104,7 @@ theorem pathMaslovIndex_graph_eq_crossing_sum {Λ Λ' : ℒ ι} (γ : Path Λ Λ
     isHermitian_iff_isSymm.2 ((isLagrangian_graph_iff _).1
       (hγ ⟨t, ht⟩ ▸ (γ ⟨t, ht⟩).isLagrangian))
   obtain ⟨_, _, δ, hδ, h⟩ := exists_souriau_eq_cayley_and_pathMaslovIndex_eq_maslovIndex γ
-    (A := fun t : I ↦ A t) (continuousOn_iff_continuous_domRestrict.1 hAc) hγ
+    (A := fun t : I ↦ A t) hγ
   rw [h]
   exact UnitaryGroup.maslovIndex_eq_crossingForm_add_finsum_of_souriau_eq_cayley δ hAc hA hδ
     (fun t ht h ↦ (hd t ht h).matrix_elem) hreg

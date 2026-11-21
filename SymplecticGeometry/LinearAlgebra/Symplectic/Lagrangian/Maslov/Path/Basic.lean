@@ -315,16 +315,16 @@ theorem pathMaslovIndex_eq_zero_of_finrank_eq {Λ Λ' : ℒ ι} (γ : Path Λ Λ
   rw [← finrank_unitaryFrame_inf_horizontal, Path.map_coe, Function.comp_apply,
     unitaryFrame_mul, hδ, ← finrank_inf_unitaryFrame, h]
 
-/-- Let `t ↦ A t` be a continuous path of real matrices and `γ` a path of Lagrangians that are
-their graphs `{(x, A t x)}`. Then `γ` is framed by a path `δ` of unitary matrices whose
+/-- Let `γ` be a path of Lagrangians that are the graphs `{(x, A t x)}` of real matrices `A t`.
+Then `γ` is framed by a path `δ` of unitary matrices whose
 Souriau maps `souriau (δ t)` are the Cayley transforms of the `A t`, and the index of `γ`
 relative to `{y = 0}` is Tau Ceti's index of `δ`. -/
 theorem exists_souriau_eq_cayley_and_pathMaslovIndex_eq_maslovIndex {Λ Λ' : ℒ ι} (γ : Path Λ Λ')
-    {A : I → Matrix ι ι ℝ} (hAc : Continuous A)
-    (hγ : ∀ t, (γ t : Submodule ℝ (StdSpace ι)) = StdSpace.graph (A t)) :
+    {A : I → Matrix ι ι ℝ} (hγ : ∀ t, (γ t : Submodule ℝ (StdSpace ι)) = StdSpace.graph (A t)) :
     ∃ (U U' : unitaryGroup ι ℂ) (δ : Path U U'),
       (∀ t, (UnitaryGroup.souriau (δ t) : Matrix ι ι ℂ) = cayley ((A t).map ((↑) : ℝ → ℂ))) ∧
         pathMaslovIndex γ (horizontal ι) = UnitaryGroup.maslovIndex δ := by
+  have hAc : Continuous A := continuous_of_coe_eq_graph γ.continuous hγ
   have hA' (t : I) : (A t).IsHermitian :=
     isHermitian_iff_isSymm.2 ((isLagrangian_graph_iff _).1 (hγ t ▸ (γ t).isLagrangian))
   obtain ⟨U, U', δ, hδ⟩ := UnitaryGroup.exists_path_realImage_eq_and_souriau_eq_cayley hAc hA'
@@ -340,7 +340,7 @@ of `γ` relative to `{y = 0}` is half the change of the signature of `A`. -/
 theorem pathMaslovIndex_graph {Λ Λ' : ℒ ι} (γ : Path Λ Λ') {A : I → Matrix ι ι ℝ}
     (hAc : Continuous A) (hγ : ∀ t, (γ t : Submodule ℝ (StdSpace ι)) = StdSpace.graph (A t)) :
     pathMaslovIndex γ (horizontal ι) = ((A 1).signature - (A 0).signature : ℝ) / 2 := by
-  obtain ⟨_, _, δ, hδ, h⟩ := exists_souriau_eq_cayley_and_pathMaslovIndex_eq_maslovIndex γ hAc hγ
+  obtain ⟨_, _, δ, hδ, h⟩ := exists_souriau_eq_cayley_and_pathMaslovIndex_eq_maslovIndex γ hγ
   rw [h]
   exact UnitaryGroup.maslovIndex_eq_signature_sub_of_souriau_eq_cayley δ hAc
     (fun t ↦ isHermitian_iff_isSymm.2 ((isLagrangian_graph_iff _).1
