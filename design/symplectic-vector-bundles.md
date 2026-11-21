@@ -406,8 +406,13 @@ $[0,1]$ is never fed to the lemma with `P = ℝ` directly.
   $|b|$ in general, which is why the coefficient goes through
   `smoothTransition`. The open set `O` of the lemma is the set of points
   $(x,B)$ of the endomorphism bundle where `1 - J₀ x * B` is a unit and
-  `1 - b • cayleyFormula (J₀ x) B` is a unit for every $b\in[0,1]$; it is
-  open because units are open and $[0,1]$ is compact. Tau Ceti's
+  `1 - b • cayleyFormula (J₀ x) B` is a unit for every $b\in[0,1]$. In a
+  trivialization it is the preimage, under $(x,B)\mapsto(J_0(x),B)$, which
+  is continuous since $J_0$ is, of the open set of pairs of
+  `TauCeti.isOpen_setOf_forall_Icc_mem_cayleyDomain`
+  (`Geometry/Symplectic/Cayley/Domain.lean`, planned in *Compatible complex
+  structures*). If that lemma does not exist yet, issue 7 adds it there, in
+  the form that design gives. Tau Ceti's
   `Tames.isUnit_one_sub_mul_of_toLinearMap` and
   `Compatible.isUnit_one_sub_smul_cayleyFormula` show that the values of
   every tame `J` lie in it. That the path stays tame, and compatible when `J` is, are Tau
@@ -637,8 +642,10 @@ it, its design adds it.
 - **Other parts.** *Linear Moser* (part 10) for the complex-to-symplectic
   direction of the classification, with the parametric smoothness of issue 10.
   *Standard model* only for the corollary on `Matrix.symplecticGroup`. The
-  part uses nothing from *Compatible complex structures* (part 9) beyond what
-  Tau Ceti already has: the fibrewise constructions it needs (the Cayley path,
+  part uses from *Compatible complex structures* (part 9) only the linear
+  openness lemma `TauCeti.isOpen_setOf_forall_Icc_mem_cayleyDomain` in
+  `Geometry/Symplectic/Cayley/Domain.lean`, which issue 7 adds there if part 9
+  has not yet. The fibrewise constructions it needs (the Cayley path,
   $J_{g,\omega}$, $\omega_{g,J}$, the complex-linear part) are Tau Ceti's
   linear ones or explicit formulas. So none of its issues waits for part 9,
   and `DESIGN.md` does not list that part among its prerequisites.

@@ -695,13 +695,16 @@ it into issues; the overview fixes its folders and its dependencies.
   (`Geometry/Symplectic/Cayley/Domain.lean`), and $(g,\omega)\mapsto
   J_{g,\omega}$ as `TauCeti.metricPolarFormula` on `TauCeti.polarDomain`
   (`PolarComplexStructure/Smooth.lean`), an open set that contains every
-  pair of an inner product and a symplectic form. The two Cayley-transform
-  contractions, taken relative to a reference structure $J_0$, are given on
-  the set $U_{J_0}$ of $A\in\mathrm{End}(V)$ such that $1-J_0A$ is invertible
+  pair of an inner product and a symplectic form. These three, and the
+  openness lemma below, are planned declarations of this part, not existing
+  Tau Ceti API; they go in Tau Ceti's namespace so that they can move there.
+  The two Cayley-transform contractions, taken relative to a reference
+  structure $J_0$, are given on the set $U_{J_0}$ of $A\in\mathrm{End}(V)$ such that $1-J_0A$ is invertible
   and $1-b\cdot$`cayleyFormula J₀ A` is invertible for every $b\in[0,1]$: the
   two units that `contDiffAt_cayleyPathFormula`
   (`Geometry/Symplectic/Cayley/Smooth.lean`) asks for. This set is open,
-  since $[0,1]$ is compact (`isOpen_setOf_forall_Icc_mem_cayleyDomain`). It
+  since $[0,1]$ is compact (`TauCeti.isOpen_setOf_forall_Icc_mem_cayleyDomain`
+  in `Cayley/Domain.lean`, stated for the pairs $(J_0,A)$). It
   does not contain every complex structure ($A=-J_0$ gives $1-J_0A=0$), but
   for an $\omega$-compatible $J_0$ it contains the $\omega$-tame structures,
   hence the compatible ones. The first unit is
@@ -713,8 +716,9 @@ it into issues; the overview fixes its folders and its dependencies.
   in $g$). *Symplectic vector bundles* does not wait for them: it applies Tau
   Ceti's linear `cayleyPathFormula` and `SymplecticForm.polarComplexStructure`
   fibrewise (see that part). It uses the same set $U_{J_0}$ at each point,
-  so whichever of the two parts builds that set second takes the other's
-  openness lemma instead of proving it again.
+  and takes its openness from
+  `TauCeti.isOpen_setOf_forall_Icc_mem_cayleyDomain`; whichever issue of the
+  two parts needs that lemma first adds it to `Cayley/Domain.lean`.
 
 ### 10. Linear Moser
 
@@ -852,9 +856,10 @@ it into issues; the overview fixes its folders and its dependencies.
   since their fibre maps are explicit formulas. Openness in each fibre would
   not do, since derivatives in trivializations need an open set of the total
   space. Examples are the union over $x\in M$ of the sets $U_{J_0(x)}$ of
-  the two Cayley units, for a reference structure $J_0$ compatible with the
-  form, which contains the tame structures, and the fibrewise nondegenerate
-  forms. Continuity in the point alone is not enough for $n\ge1$: on the
+  the two Cayley units, for a continuous reference structure $J_0$
+  compatible with the form, which contains the tame structures, and the
+  fibrewise nondegenerate forms. Continuity in the point alone is not
+  enough for $n\ge1$: on the
   trivial line bundle over $\mathbb{R}$, $\Phi_t(x,v)=v+t\sin(x/t)$ is
   continuous in $(t,x,v)$ with $\Phi_0=\mathrm{id}$, but
   $\partial_x(\Phi_t\circ s-s)=\cos(x/t)$ does not tend to $0$. The proof
@@ -888,8 +893,8 @@ it into issues; the overview fixes its folders and its dependencies.
   smoothness of the linear Moser flow, which the classification uses, goes
   in the files of *Linear Moser*.
 - **Builds on:** *Linear Moser*, *Standard model* (`stdForm`,
-  `StdSpace.sumEquiv` and the matrix dictionary, for frames and transition
-  maps), Mathlib's
+  the planned `StdSpace.sumEquiv` and the matrix dictionary, for frames and
+  transition maps), Mathlib's
   smooth vector bundles and bundle metrics, Tau Ceti's bundle constructions
   (`Topology/VectorBundle/`, `Geometry/Manifold/VectorBundle/`), its section
   spaces with their topology (`Geometry/Manifold/VectorBundle/Section/`), the
@@ -907,8 +912,10 @@ it into issues; the overview fixes its folders and its dependencies.
   structure (`SymplecticForm.polarComplexStructure`), applied fibrewise;
   its generic sections, diffeotopies of configurations and collars, for the
   last milestone; for the constructions, the pieces listed under
-  *Constructions*. It uses nothing from *Compatible complex structures*
-  beyond what Tau Ceti has, so none of its issues waits for that part.
+  *Constructions*. From *Compatible complex structures* it uses only the
+  openness lemma `isOpen_setOf_forall_Icc_mem_cayleyDomain`, which its
+  contractibility issue adds to `Cayley/Domain.lean` if that part has not
+  yet, so none of its issues waits for that part.
 - **Milestones:** *Symplectic vector bundles are complex vector bundles*,
   *Compatible and tame complex structures on symplectic vector bundles*,
   *Unitary trivializations over surfaces with boundary*.
@@ -1216,7 +1223,7 @@ proves it, using what is listed in the part.
 | *Siegel upper half space* | *Siegel upper half space*. |
 | *Symplectic vector bundles are complex vector bundles* | *Symplectic vector bundles*. |
 | *Compatible and tame complex structures on symplectic vector bundles* | *Symplectic vector bundles*, in the compact-open $C^0$ and $C^\infty$ topologies on sections (Tau Ceti's `ContMDiffSection.frameTopology`). |
-| *Unitary trivializations over surfaces with boundary* | *Symplectic vector bundles*, with the surface connected, as the plan already corrects the book. |
+| *Unitary trivializations over surfaces with boundary* | *Symplectic vector bundles*, with the surface connected, as the plan already corrects the book, and not assumed oriented. |
 | *First Chern number of symplectic vector bundles over surfaces* | *First Chern number*, with the surface connected, as the plan already corrects the book. |
 | *Chern–Weil formula for circle bundles over surfaces* | *First Chern number*, with the surface connected for the converse, as the plan notes. |
 | *First Chern number as an Euler number* | *First Chern number*. |
