@@ -44,6 +44,24 @@ Write `ℒ ι` for the space of Lagrangian subspaces of the standard model `(Std
 * `maslovIndex_halfTurnLoop`: the loop `halfTurnLoop k` has index `k n`; for `n = 1`, `k = 1`
   this is the normalization of the index.
 
+## Implementation notes
+
+Several proofs here follow Tau Ceti's proofs for the Maslov index of loops of symplectic matrices
+(`TauCeti/Analysis/Matrix/SymplecticGroup/Maslov.lean`), step by step, with `ℒ ι` and the phase
+`maslovPhase` in place of the symplectic group and its phase:
+
+* `maslovIndex_eq_of_homotopy`, `maslovIndex_eq_of_homotopic`, `maslovIndex_refl`,
+  `maslovIndex_trans`, `maslovIndex_symm` and `maslovIndex_sum` adapt Tau Ceti's
+  `TauCeti.GLSymplectic.maslovIndex_eq_of_homotopy`,
+  `TauCeti.GLSymplectic.maslovIndex_eq_of_homotopic`, `TauCeti.GLSymplectic.maslovIndex_refl`,
+  `TauCeti.GLSymplectic.maslovIndex_trans`, `TauCeti.GLSymplectic.maslovIndex_symm` and
+  `TauCeti.GLSymplectic.maslovIndex_sum`;
+* the section on half-turns adapts the loop of scalar rotations: `halfTurnLoop` and
+  `halfTurnLoop_apply` are built as `TauCeti.GLSymplectic.scalarRotationLoop` and
+  `TauCeti.GLSymplectic.coe_scalarRotationLoop_apply` are, with the angle `π k t` in place of
+  `2 π t`, and `maslovPhase_halfTurnLoop` and `maslovIndex_halfTurnLoop` split the proof of
+  `TauCeti.GLSymplectic.maslovIndex_scalarRotationLoop` into the phase and its degree.
+
 ## References
 
 * [D. McDuff, D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017], §2.3
