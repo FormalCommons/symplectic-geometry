@@ -75,13 +75,23 @@ noncomputable def equivProd : StdSpace ι ≃ₗ[ℝ] (ι → ℝ) × (ι → �
   (EuclideanSpace.equiv (ι ⊕ ι) ℝ).toLinearEquiv.trans
     (ContinuousLinearEquiv.sumPiEquivProdPi ℝ ι ι fun _ ↦ ℝ).toLinearEquiv
 
+variable (ι) in
+theorem equivProd_def :
+    equivProd ι = (EuclideanSpace.equiv (ι ⊕ ι) ℝ).toLinearEquiv.trans
+      (ContinuousLinearEquiv.sumPiEquivProdPi ℝ ι ι fun _ ↦ ℝ).toLinearEquiv :=
+  (rfl)
+
 /-- The `x`-coordinates `(z (Sum.inl i))ᵢ` of a point of the standard model. -/
 noncomputable def x : StdSpace ι →ₗ[ℝ] (ι → ℝ) :=
   LinearMap.fst ℝ _ _ ∘ₗ (equivProd ι).toLinearMap
 
+theorem x_def : x = LinearMap.fst ℝ (ι → ℝ) (ι → ℝ) ∘ₗ (equivProd ι).toLinearMap := (rfl)
+
 /-- The `y`-coordinates `(z (Sum.inr i))ᵢ` of a point of the standard model. -/
 noncomputable def y : StdSpace ι →ₗ[ℝ] (ι → ℝ) :=
   LinearMap.snd ℝ _ _ ∘ₗ (equivProd ι).toLinearMap
+
+theorem y_def : y = LinearMap.snd ℝ (ι → ℝ) (ι → ℝ) ∘ₗ (equivProd ι).toLinearMap := (rfl)
 
 @[simp]
 theorem x_apply (z : StdSpace ι) (i : ι) : z.x i = z (Sum.inl i) := (rfl)
