@@ -13,13 +13,17 @@ public import TauCeti.Topology.Algebra.Module.SymmetricBilinear.Basic
 /-!
 # Continuous bilinear forms
 
-This file collects two facts about continuous bilinear maps `V →L[𝕜] V →L[𝕜] G`.
+This file collects three facts about continuous bilinear maps `V →L[𝕜] V →L[𝕜] G`.
 
 On a finite-dimensional Hausdorff topological vector space over a complete field, every bilinear
 form is continuous. Tau Ceti shows that making a bilinear form continuous and then forgetting
 continuity gives the form back (`LinearMap.BilinForm.toBilinForm_toContinuousBilinearMap`). This
 file gives the other round trip: forgetting the continuity of a continuous bilinear form and
 making it continuous again gives the same continuous bilinear form.
+
+Carrying a continuous bilinear form along a continuous linear equivalence `e` in both arguments
+is, once continuity is forgotten, `LinearMap.BilinForm.congr` along `e`; in particular it does
+not change whether `b - bᵀ` is nondegenerate.
 
 On normed spaces, Tau Ceti's `ContinuousLinearMap.symmetrizeBilinear` is the symmetric part
 `b ↦ ½ (b + bᵀ)` of a continuous bilinear map. This file adds its complement, the skew part
@@ -37,6 +41,10 @@ finite dimension.
 
 * `ContinuousLinearMap.toContinuousBilinearMap_toBilinForm`:
   `L.toBilinForm.toContinuousBilinearMap = L`.
+* `ContinuousLinearEquiv.toBilinForm_arrowCongr_arrowCongr`: carrying a form along `e` is
+  `LinearMap.BilinForm.congr` along `e`.
+* `ContinuousLinearEquiv.nondegenerate_arrowCongr_sub_flip_iff`: it preserves the
+  nondegeneracy of `b - bᵀ`.
 * `ContinuousLinearMap.skewSymmetrizeBilinear_skewSymmetrizeBilinear`: the skew part is
   idempotent.
 * `ContinuousLinearMap.skewSymmetrizeBilinear_bilinearComp`: it commutes with simultaneous
@@ -67,6 +75,43 @@ theorem toContinuousBilinearMap_toBilinForm
     [ContinuousSMul 𝕜 V] [FiniteDimensional 𝕜 V] [T2Space V]
     (L : V →L[𝕜] V →L[𝕜] 𝕜) : L.toBilinForm.toContinuousBilinearMap = L :=
   (rfl)
+
+/-- Carrying a continuous bilinear form along a continuous linear equivalence `e` in both
+arguments is, as a bilinear form, `LinearMap.BilinForm.congr` along `e`. -/
+theorem _root_.ContinuousLinearEquiv.toBilinForm_arrowCongr_arrowCongr
+    {𝕜 X W : Type*} [NormedField 𝕜]
+    [AddCommGroup X] [Module 𝕜 X] [TopologicalSpace X]
+    [AddCommGroup W] [Module 𝕜 W] [TopologicalSpace W]
+    (e : X ≃L[𝕜] W) (σ : X →L[𝕜] X →L[𝕜] 𝕜) :
+    (e.arrowCongr (e.arrowCongr (.refl 𝕜 𝕜)) σ).toBilinForm =
+      LinearMap.BilinForm.congr e.toLinearEquiv σ.toBilinForm := by
+  ext v w
+  simp
+
+section ArrowCongr
+
+variable {𝕜 : Type*} [NontriviallyNormedField 𝕜]
+  {X : Type*} [AddCommGroup X] [Module 𝕜 X] [TopologicalSpace X]
+
+/-- Carrying a continuous bilinear form along a continuous linear equivalence `e` does not change
+whether its skew part `σ - σᵀ` is nondegenerate. -/
+theorem _root_.ContinuousLinearEquiv.nondegenerate_arrowCongr_sub_flip_iff {W : Type*}
+    [NormedAddCommGroup W] [NormedSpace 𝕜 W] (e : X ≃L[𝕜] W) {σ : X →L[𝕜] X →L[𝕜] 𝕜} :
+    (e.arrowCongr (e.arrowCongr (.refl 𝕜 𝕜)) σ -
+        (e.arrowCongr (e.arrowCongr (.refl 𝕜 𝕜)) σ).flip).toBilinForm.Nondegenerate ↔
+      (σ.toBilinForm - σ.toBilinForm.flip).Nondegenerate := by
+  set τ := e.arrowCongr (e.arrowCongr (.refl 𝕜 𝕜)) σ
+  have h : (τ - τ.flip).toBilinForm = τ.toBilinForm - τ.toBilinForm.flip := by
+    ext v w
+    simp
+  have hc : LinearMap.BilinForm.congr e.toLinearEquiv (σ.toBilinForm - σ.toBilinForm.flip) =
+      LinearMap.BilinForm.congr e.toLinearEquiv σ.toBilinForm -
+        (LinearMap.BilinForm.congr e.toLinearEquiv σ.toBilinForm).flip := by
+    ext v w
+    simp
+  rw [h, e.toBilinForm_arrowCongr_arrowCongr, ← hc, LinearMap.BilinForm.nondegenerate_congr_iff]
+
+end ArrowCongr
 
 section SkewPart
 
