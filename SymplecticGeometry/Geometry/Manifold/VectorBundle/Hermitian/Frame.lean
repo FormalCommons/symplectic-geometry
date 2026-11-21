@@ -24,7 +24,10 @@ facts about smooth families of sections that are orthonormal at every point.
   if `s` is a smooth pointwise orthonormal family and `u` a smooth nowhere-zero section of its
   Hermitian orthogonal complement (Tau Ceti's `orthogonalSpanFamily`), then `u / ‖u‖` followed by
   `s` is again a smooth pointwise orthonormal family. This is the step of the induction that
-  builds unitary frames; the normalization uses Tau Ceti's `ContMDiff.sqrt`.
+  builds unitary frames. The lemma and its proof are adapted from the append step of Tau Ceti's
+  proof of `Bundle.ContMDiffRiemannianMetric.exists_orthonormal_contMDiffSection_of_finrank_lt`
+  (`TauCeti/Geometry/Manifold/VectorBundle/Riemannian/LineSplitting.lean`); the normalization
+  here is rewritten with Tau Ceti's `ContMDiff.sqrt`.
 * `Bundle.ContMDiffRiemannianMetric.exists_unitary_trivialization_of_orthonormal`: a smooth
   family `s` that is a unitary basis of every fibre over an open set `U` gives, for any complex
   basis `b` of the model fibre, a trivialization over `U` in the smooth maximal atlas whose map on
@@ -63,7 +66,10 @@ namespace Bundle.ContMDiffRiemannianMetric
 
 /-- Let `s` be `k` smooth sections of a smooth Hermitian bundle that are orthonormal at every
 point, and `u` a smooth nowhere-zero section that is Hermitian orthogonal to all of them. Then
-the `k + 1` sections `u / ‖u‖, s 0, …, s (k - 1)` are smooth and orthonormal at every point. -/
+the `k + 1` sections `u / ‖u‖, s 0, …, s (k - 1)` are smooth and orthonormal at every point.
+
+The statement and proof are adapted from the append step of Tau Ceti's proof of
+`Bundle.ContMDiffRiemannianMetric.exists_orthonormal_contMDiffSection_of_finrank_lt`. -/
 theorem contMDiff_and_orthonormal_vecCons_of_mem_orthogonalSpanFamily
     (g : ContMDiffRiemannianMetric IB n F V)
     (hI : ∀ x (v w : V x), g.inner x (Complex.I • v) (Complex.I • w) = g.inner x v w)
