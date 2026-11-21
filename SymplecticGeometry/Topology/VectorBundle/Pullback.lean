@@ -38,6 +38,8 @@ public section
 
 open Bundle
 
+section Coordinates
+
 variable {𝕜 B X F G K ι : Type*} [NontriviallyNormedField 𝕜]
   [TopologicalSpace B] [TopologicalSpace X]
   [NormedAddCommGroup F] [NormedSpace 𝕜 F] [NormedAddCommGroup G] [NormedSpace 𝕜 G]
@@ -67,9 +69,11 @@ theorem inCoordinates_pullback_trivial_of_mem (f : K) (x₀ x : X)
 
 end ContinuousAlternatingMap
 
+end Coordinates
+
 namespace Bundle.Pullback
 
-variable {B' : Type*} {E : B → Type*} [∀ b, AddCommGroup (E b)] {f : B' → B} {y : B'}
+variable {B B' : Type*} {E : B → Type*} [∀ b, AddCommGroup (E b)] {f : B' → B} {y : B'}
 
 /-- The negative, taken in `E (f y)`, of a vector `v` of the fibre of `f *ᵖ E` at `y` is the
 negative of `v` in that fibre. -/
