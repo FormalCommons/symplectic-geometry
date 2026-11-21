@@ -356,6 +356,14 @@ Smooth families of forms over a parameter manifold `N` (model
   families, and finite linear combinations of fixed forms with such
   coefficients, take smooth families to smooth families.
 
+### `Geometry/Manifold/LocalDiffeomorph/OpenSubset.lean`
+
+Named like Tau Ceti's file; in `TauCeti`.
+
+- `TauCeti.isLocalDiffeomorph_inclusion`: for open subsets `U ≤ W`, the
+  inclusion `Opens.inclusion h : U → W` is a `C^n` local diffeomorphism, for
+  restricting families and forms between open subsets.
+
 ### `Geometry/Manifold/DifferentialForm/HomotopyOperator.lean`
 
 Named like Tau Ceti's file; in `TauCeti`.
@@ -570,7 +578,9 @@ Below, `∂ₜ` at `(x, t)` is the tangent vector
 - The reading over `ℝ`: writing `s u` for `Real.smoothTransitionUnit u :=
   ⟨Real.smoothTransition u, _, _⟩ : unitInterval`, with
   `Real.coe_smoothTransitionUnit`, `Real.smoothTransitionUnit_of_nonpos`,
-  `Real.smoothTransitionUnit_of_one_le` and `Real.contMDiff_smoothTransitionUnit`,
+  `Real.smoothTransitionUnit_of_one_le` and `Real.contMDiff_smoothTransitionUnit`
+  (all in `Geometry/Manifold/SmoothTransition.lean`, which imports nothing
+  of the library),
   `smoothTransitionFamily (Φ : Diffeotopy I ∞ M)
   (t : ℝ) : M ≃ₘ⟮I, I⟯ M := Φ.timeSlice (s t)`,
   with `smoothTransitionFamily_def`, `smoothTransitionFamily_apply`,
@@ -657,7 +667,8 @@ can start at once; each issue's blockers come before it.
     `Geometry/Manifold/DeRham/SmoothFamily/GoodCover.lean`. Blocked by 9, 11
     and 12.
 14. **Isotopies over `ℝ` and diffeotopies.**
-    `Analysis/SpecialFunctions/SmoothTransition.lean` and
+    `Analysis/SpecialFunctions/SmoothTransition.lean`,
+    `Geometry/Manifold/SmoothTransition.lean` and
     `Geometry/Diffeomorphism/Diffeotopy/Real.lean`.
 15. **Diffeotopies from families of diffeomorphisms.**
     `Geometry/Diffeomorphism/Diffeotopy/OfContMDiff.lean`. Blocked by 2 and 14
