@@ -329,9 +329,9 @@ find them there.
   sign of `ω₀`: `stdForm ι (swap ι z) (swap ι w) = -stdForm ι z w`.
 - `StdSpace.finSumIsometry n : StdSpace (Fin n) ≃ₗᵢ[ℝ] EuclideanSpace ℝ (Fin (n + n))`,
   the relabelling of coordinates
-  `LinearIsometryEquiv.piLpCongrLeft 2 ℝ ℝ finSumFinEquiv`. It is the last
-  declaration of the namespace `SymplecticGeometry.StdSpace`, after
-  `sq_x_add_sq_y_le_norm_sq`. `Finite.lean` uses it to reach Tau
+  `LinearIsometryEquiv.piLpCongrLeft 2 ℝ ℝ finSumFinEquiv`. It comes right
+  after `sq_x_add_sq_y_le_norm_sq`, between the file's two
+  `variable [Fintype ι]` lines. `Finite.lean` uses it to reach Tau
   Ceti's Grassmannian. API: `finSumIsometry_def`, and the `@[simp]` lemmas
   `finSumIsometry_apply : finSumIsometry n z k = z (finSumFinEquiv.symm k)`
   and `finSumIsometry_symm_apply :
