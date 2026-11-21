@@ -221,12 +221,8 @@ theorem compatible_generalLinearGroup_smul_iff {g : GL (ι ⊕ ι) ℝ} (hg : g 
     (J : AlmostComplexStructure (StdSpace ι)) :
     (stdForm ι).Compatible (g • J) ↔ (stdForm ι).Compatible J := by
   rw [AlmostComplexStructure.generalLinearGroup_smul_def]
-  refine SymplecticForm.IsSymplectomorphism.compatible_transport_iff ?_ J
-  rw [← mem_symplecticGroup_iff_isSymplectomorphism]
-  convert GLSymplectic.mem_iff_mem_symplecticGroup.1 hg
-  rw [LinearEquiv.symm_apply_eq]
-  ext v : 1
-  simp
+  exact SymplecticForm.IsSymplectomorphism.compatible_transport_iff
+    ((mem_GLSymplectic_iff_isSymplectomorphism g).1 hg) J
 
 /-- The symplectic group `Sp(2n)` acts on the complex structures of `StdSpace ι` compatible with
 `ω₀`, by conjugation: `Ψ • J = Ψ J Ψ⁻¹`. -/

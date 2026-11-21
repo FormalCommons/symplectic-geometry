@@ -7,6 +7,8 @@ module
 
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
 public import TauCeti.Analysis.Complex.Euclidean.Matrix
+public import TauCeti.Analysis.Matrix.EuclideanLin
+public import TauCeti.LinearAlgebra.Matrix.GeneralLinearGroup.Symplectic.Basic
 
 /-!
 # The matrix dictionary for the standard model
@@ -21,6 +23,9 @@ conditions on that map.
 * `SymplecticGeometry.mem_symplecticGroup_iff_isSymplectomorphism`: the same in terms of Tau Ceti's
   `SymplecticForm.IsSymplectomorphism`, for a linear automorphism `e` of `StdSpace ι` and its
   matrix `Matrix.toEuclideanLin.symm e`.
+* `SymplecticGeometry.mem_GLSymplectic_iff_isSymplectomorphism`: an invertible matrix `g` lies in
+  Tau Ceti's `GLSymplectic ι ℝ` if and only if its linear automorphism of `StdSpace ι`, through
+  `Matrix.toEuclideanCLE`, is a symplectomorphism of `ω₀`.
 * `SymplecticGeometry.commute_toEuclideanLin_stdComplexStructure_iff`: `A` commutes with
   `Matrix.J ι ℝ` if and only if its map commutes with `J₀`.
 * `TauCeti.conj_complexToRealEuclidean_toLin'`: conjugating the complex-linear map of
@@ -77,6 +82,16 @@ theorem mem_symplecticGroup_iff_isSymplectomorphism (e : StdSpace ι ≃ₗ[ℝ]
     Matrix.toEuclideanLin.symm e.toLinearMap ∈ symplecticGroup ι ℝ ↔
       (stdForm ι).IsSymplectomorphism (stdForm ι) e := by
   rw [mem_symplecticGroup_iff_forall_stdForm, LinearEquiv.apply_symm_apply,
+    SymplecticForm.isSymplectomorphism_iff]
+  simp
+
+/-- An invertible real matrix `g` indexed by `ι ⊕ ι` lies in `GLSymplectic ι ℝ` if and only if
+its linear automorphism `Matrix.toEuclideanCLE g` of `StdSpace ι` is a symplectomorphism of
+`ω₀`. -/
+theorem mem_GLSymplectic_iff_isSymplectomorphism (g : GL (ι ⊕ ι) ℝ) :
+    g ∈ GLSymplectic ι ℝ ↔ (stdForm ι).IsSymplectomorphism (stdForm ι)
+      ((g : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ).toEuclideanCLE g.det_ne_zero).toLinearEquiv := by
+  rw [GLSymplectic.mem_iff_mem_symplecticGroup, mem_symplecticGroup_iff_forall_stdForm,
     SymplecticForm.isSymplectomorphism_iff]
   simp
 
