@@ -684,28 +684,47 @@ issues, in an order where each issue's blockers come before it.
    are created. Done when the evenness theorem is proved.
 3. **The unit circle bundle of a Hermitian line bundle.**
    `Geometry/Manifold/VectorBundle/Hermitian/CircleBundle.lean`, the file
-   that #57 (its design in #63) gives *Symplectic vector bundles*. The type
-   that carries the principal-bundle structure is the family of Tau Ceti's
-   rank-one unitary frame bundle, `fun x ↦ OrthonormalFrameBundle.Fiber ℂ F L
-   ℂ x` (fibre `ℂ ≃ₗᵢ[ℂ] L x`), which
-   `OrthonormalFrameBundle.instPrincipalBundleFiber`
+   of *Symplectic vector bundles* (its section *The circle bundle of a
+   Hermitian line bundle*). The type that carries the principal-bundle
+   structure is the family of Tau Ceti's rank-one unitary frame bundle,
+   `fun x ↦ OrthonormalFrameBundle.Fiber ℂ F L ℂ x` (fibre `ℂ ≃ₗᵢ[ℂ] L x`),
+   which `OrthonormalFrameBundle.instPrincipalBundleFiber`
    (`Topology/VectorBundle/OrthonormalFrame/Principal.lean`) makes a
-   principal bundle for `unitary (ℂ →L[ℂ] ℂ)`. The `Circle` action on it, its
-   homeomorphism onto the unit circle subtype `{p : TotalSpace F L // ‖p.snd‖
-   = 1}` (on which Tau Ceti's `isManifold_sphereBundle` puts the smooth
-   structure), and the `TauCeti.PrincipalBundle Circle` instance, through
-   `circleEquivUnitary`, are planned by #63 for *Symplectic vector bundles*,
-   and this design takes them from there rather than adding them again.
-   Since `circleEquivUnitary` lands in `unitary ℂ` while the frame bundle's
-   group is `unitary (ℂ →L[ℂ] ℂ)`, that plan includes the isomorphism
-   between the two unitary groups. This
-   issue adds only the smooth side: the hypothesis of
+   principal bundle for `unitary (ℂ →L[ℂ] ℂ)`. The topological side is
+   there already, and this design takes it from there rather than adding
+   it again: the action of `Circle` on the unit circle subtype
+   `{p : TotalSpace F L // ‖p.snd‖ = 1}` (on which Tau Ceti's
+   `isManifold_sphereBundle` puts the smooth structure); the homeomorphism
+   `SymplecticGeometry.Bundle.circleBundleHomeomorph` from the frame bundle
+   onto it, `φ ↦ ⟨x, φ.frame 1⟩`, `Circle`-equivariant fibre by fibre
+   (`circleBundleHomeomorph_op_circle_smul`); the isomorphism of structure
+   groups `Unitary.continuousLinearMapCircleEquiv : unitary (ℂ →L[ℂ] ℂ) ≃ₜ*
+   Circle` (`Analysis/CStarAlgebra/Unitary/ContinuousLinearMap.lean`); and
+   the instances `SymplecticGeometry.Bundle.instFiberBundleCircleFiber` and
+   `instPrincipalBundleCircleFiber : TauCeti.PrincipalBundle Circle
+   (Fiber ℂ F L ℂ)`, whose trivializations are those of the frame bundle
+   read through that isomorphism (`Bundle.Trivialization.changeModelFiber`).
+   That file states them for fibres with their own `InnerProductSpace ℂ`
+   instances and `TauCeti.ContinuousFiberNorm F L`, and `Fact (finrank ℂ F
+   = 1)`. This issue, and the issues that use `P`, work with a Hermitian
+   line bundle `(g, hI)` in the representation of *Symplectic vector
+   bundles*, and get those hypotheses from it by the three local instances
+   that its section gives: `RiemannianBundle L` from `g.toRiemannianMetric`,
+   the inner products `g.complexInnerProductSpace hI`, and
+   `IsContinuousRiemannianBundle F L` from
+   `instIsContinuousRiemannianBundle g.toContinuousRiemannianMetric`, which
+   gives `ContinuousFiberNorm F L`. This issue adds only the smooth side,
+   in the same file, with the hypotheses of the sphere-bundle atlas that
+   that section lists: the hypothesis of
    `TauCeti.PrincipalBundle.contMDiffFiberBundle_iff` for the `Circle`
    instance (smooth coordinate changes, from those of the unitary frame
-   bundle and the smoothness of the isomorphism onto `Circle`), so that
+   bundle and the smoothness of `continuousLinearMapCircleEquiv`), so that
    `TauCeti.ManifoldTotalSpace Circle` of the family is a smooth principal
-   bundle; `SymplecticGeometry.Bundle.circleBundleDiffeomorph`, the
-   homeomorphism of #63 as a diffeomorphism onto the submanifold subtype.
+   bundle; `SymplecticGeometry.Bundle.circleBundleDiffeomorph`,
+   `circleBundleHomeomorph` as a diffeomorphism onto the submanifold
+   subtype. Its equivariance is that of `circleBundleHomeomorph`, stated
+   fibre by fibre: *Symplectic vector bundles* records why the file does
+   not use the right action on the total space.
    The issue proves no submersion lemma of its own: once the bundle is a
    smooth fibre bundle, its projection is a smooth submersion by Tau Ceti's
    `TauCeti.ManifoldTotalSpace.isSubmersion_proj` (or

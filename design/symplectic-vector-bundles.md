@@ -136,10 +136,11 @@ variable {EB HB M : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB]
 | `Geometry/Manifold/VectorBundle/Symplectic/Pullback.lean` | pull-backs of forms, of tame and compatible pairs, of isomorphisms and of frames | 21 |
 | `Geometry/Manifold/VectorBundle/Symplectic/Prod.lean` | direct sums of forms, of tame and compatible pairs and of isomorphisms; block frames | 22 |
 | `Geometry/Symplectic/Manifold/Volume.lean` | the symplectic orientation of a negated two-form | 23 |
-| `Analysis/CStarAlgebra/Unitary/ContinuousLinearMap.lean` | `Unitary.continuousLinearMapSelfEquiv` | 24 |
+| `Analysis/CStarAlgebra/Unitary/ContinuousLinearMap.lean` | `Unitary.continuousLinearMapSelfEquiv`; its case `𝕜 = ℂ` as `Unitary.continuousLinearMapCircleEquiv : unitary (ℂ →L[ℂ] ℂ) ≃ₜ* Circle` | 24, 26 |
+| `Analysis/Normed/Operator/SpanSingleton.lean` | `LinearIsometryEquiv.toSpanSingleton`: a unit vector of a line `E` as `𝕜 ≃ₗᵢ[𝕜] E` | 26 |
 | `Geometry/Manifold/VectorBundle/Riemannian/Trivial.lean` | constant metrics on trivial bundles | 25 |
 | `Geometry/Manifold/VectorBundle/Hermitian/Basic.lean` | the symplectic form of a Hermitian bundle | 25 |
-| `Geometry/Manifold/VectorBundle/Hermitian/CircleBundle.lean` | the circle bundle of a Hermitian line bundle as a principal `Circle`-bundle | 26 |
+| `Geometry/Manifold/VectorBundle/Hermitian/CircleBundle.lean` | the circle bundle of a Hermitian line bundle as a principal `Circle`-bundle, for fibres with their own complex inner products; the smooth side is *First Chern number*'s prerequisite 3 | 26 |
 | `Topology/FiberBundle/ChangeModelFiber.lean` | change of model fibre of a fibre bundle along a homeomorphism | 26 |
 | `Topology/FiberBundle/Principal/ChangeGroup.lean` | change of structure group of a principal bundle along `G ≃ₜ* H` | 26 |
 | `Geometry/Manifold/IsManifold/InteriorBoundary.lean` | the interior of a manifold with boundary as a boundaryless manifold | 12 |
@@ -147,6 +148,7 @@ variable {EB HB M : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB]
 | `Geometry/Manifold/Boundary/Collar/Push.lean` | pushing a compact manifold with boundary into its interior | 13 |
 | `Topology/VectorBundle/ZeroSet.lean` | closedness of the zero set of a continuous section along a map | 14 |
 | `Geometry/Manifold/VectorBundle/Section/Generic.lean` | sections with closed discrete zero sets over boundaryless manifolds | 14 |
+| `Geometry/Diffeomorphism/Diffeotopy/Discrete.lean` | a diffeotopy whose final map sends a compact set off a closed discrete set | 16 |
 | `Geometry/Manifold/VectorBundle/Section/Nonvanishing.lean` | smoothing nowhere-zero sections; nowhere-zero sections over surfaces with boundary | 15, 16 |
 | `Geometry/Manifold/VectorBundle/Hermitian/Surface.lean` | the third milestone | 17 |
 
@@ -158,8 +160,8 @@ says), except its lemma `moserGenerator_conj`, which goes in
 `Riemannian/SectionTopology.lean`, `IsManifold/InteriorBoundary.lean`,
 `Topology/Connected/Clopen.lean`, `Geometry/Manifold/VectorBundle/Pullback.lean`,
 `Topology/VectorBundle/Pullback.lean`,
-`Geometry/Symplectic/Manifold/Volume.lean` and the folder `Boundary/Collar/`
-have the names of a Tau Ceti or Mathlib file or
+`Geometry/Symplectic/Manifold/Volume.lean` and the folders `Boundary/Collar/`
+and `Geometry/Diffeomorphism/Diffeotopy/` have the names of a Tau Ceti or Mathlib file or
 folder at the same place, so that the two merge upstream.
 
 **Departures from `DESIGN.md`.** Each has its reason, and the overview
@@ -185,6 +187,11 @@ file to it.
   `Topology/Connected/Clopen.lean`, `Boundary/Collar/Push.lean`, `Section/Generic.lean`,
   `Section/Nonvanishing.lean`): they hold the prerequisites of the route to
   the third milestone below, which replaces the book's cutting of the surface.
+- `Geometry/Diffeomorphism/Diffeotopy/Discrete.lean` is new: the step of
+  issue 16 that moves the zeros of a section off a compact set is a fact
+  about diffeotopies of boundaryless manifolds, with no bundle in it. It
+  sits in Tau Ceti's diffeotopy folder, in the `TauCeti` namespace of the
+  lemma it builds on, so that it can merge there.
 - `Topology/VectorBundle/ZeroSet.lean` is new too: the closedness of the
   zero set that `Section/Generic.lean` uses holds for any continuous section
   of a topological vector bundle and needs no smooth structure, so it sits
@@ -210,6 +217,11 @@ file to it.
   alternating maps on a pull-back bundle uses no charts, so it sits in a
   topological file, beside Tau Ceti's linear-map lemma in its file of the same
   path. #323 asks the overview to record it.
+- `Analysis/Normed/Operator/SpanSingleton.lean` is new, and
+  `Analysis/CStarAlgebra/Unitary/ContinuousLinearMap.lean` also holds
+  `Unitary.continuousLinearMapCircleEquiv`: the circle bundle uses both, but
+  neither mentions a bundle, so each sits with its topic, in Mathlib's
+  namespace of its type. They came with the code of issue 26 (#328).
 - `Topology/FiberBundle/Principal/ChangeGroup.lean` is new: the change of
   structure group behind the principal `Circle`-bundle of
   `Hermitian/CircleBundle.lean` uses nothing about circles or frames, so it is stated
@@ -676,20 +688,11 @@ $C^n$ maps, so they are public and named.
   coordinates of `s` in `trivializationAt F V b`. These coordinates are
   continuous in `s` by Tau Ceti's `continuous_frameCoordinates_of_cover`
   (`Section/FrameCover.lean`), which is where `hcover` and the local
-  compactness of `EB` are used. Two public lemmas of the same file state
-  these facts about the chart of the total space:
-
-  ```lean
-  theorem toContMDiffMap_mem_extChartAt_source_iff (s : Cₛ^n⟮I; F, V⟯)
-      (y : TotalSpace F V) (p : M) :
-      toContMDiffMap s p ∈ (extChartAt (I.prod 𝓘(𝕜, F)) y).source ↔
-        p ∈ (trivializationAt F V y.proj).baseSet ∧ p ∈ (chartAt H y.proj).source
-
-  theorem extChartAt_toContMDiffMap (s : Cₛ^n⟮I; F, V⟯) (y : TotalSpace F V) {p : M}
-      (hp : p ∈ (trivializationAt F V y.proj).baseSet) :
-      extChartAt (I.prod 𝓘(𝕜, F)) y (toContMDiffMap s p) =
-        (extChartAt I y.proj p, (trivializationAt F V y.proj ⟨p, s p⟩).2)
-  ```
+  compactness of `EB` are used. The two facts about the chart of the total
+  space are Tau Ceti's `Bundle.mem_extChartAt_source_iff` and
+  `Bundle.extChartAt_apply_of_mem_baseSet`
+  (`Geometry/Manifold/VectorBundle/Submersion.lean`), applied at the point
+  `toContMDiffMap s p`; the library does not restate them.
 
   The frame coordinates are $C^n$ maps on the open base set only, while the
   chart test reads `p ↦ (trivializationAt F V b ⟨p, s p⟩).2` in an ambient
@@ -1339,8 +1342,10 @@ where needed.
 ### Hermitian bundles
 
 The one representation of a Hermitian bundle in this part, used by
-`Hermitian/Basic.lean`, `Hermitian/CircleBundle.lean` and
-`Hermitian/Surface.lean` alike, is Tau Ceti's of
+`Hermitian/Basic.lean` and `Hermitian/Surface.lean`, and by the users of
+`Hermitian/CircleBundle.lean` (whose results are stated more generally,
+for fibres with their own complex inner products; see its section), is
+Tau Ceti's of
 `Geometry/Manifold/VectorBundle/Riemannian/LineSplitting.lean` and
 `Riemannian/Hermitian.lean`:
 
@@ -1420,67 +1425,133 @@ Hausdorff σ-compact base.
 
 ### The circle bundle of a Hermitian line bundle
 
-`Hermitian/CircleBundle.lean`, for a Hermitian line bundle as above
-(`finrank ℂ F = 1`), with the fibre norm of the local
-`RiemannianBundle V` given by `g.toRiemannianMetric`. What this file
-proves is topological and holds over any base, with or without boundary: Tau
-Ceti's `OrthonormalFrameBundle.instPrincipalBundleFiber` asks for no smooth
-hypothesis. Only the smooth structure on the circle bundle needs more, the
-hypotheses of Tau Ceti's `sphereBundleChartedSpace` and
-`isManifold_sphereBundle`. Three of these come with the variables above:
-`[IsManifold I n M]`, which follows from `[IsManifold I ∞ M]`,
-`[ContMDiffVectorBundle n F V I]`, and `[FiniteDimensional ℝ F]`, the local
-instance `Module.Finite.trans ℂ F` above (instance search does not find it
-alone, since Mathlib's `FiniteDimensional.complexToReal` goes through
-`Module.complexToReal`). The rest, `[I.Boundaryless]`,
-`[FiniteDimensional ℝ EB]`, `[IsContMDiffRiemannianBundle I n F V]` (a
-local instance from the smoothness of `g`) and `1 ≤ n`, are stated only where that atlas is used,
-in *First Chern number*'s prerequisite 3, and not on the results below.
+`Hermitian/CircleBundle.lean`, namespace `SymplecticGeometry.Bundle`,
+except for the lemmas that dot notation on a Tau Ceti or Mathlib type finds,
+which sit in that type's namespace (below).
 
-- The circle bundle is the subtype
-  `{p : TotalSpace F V // ‖p.snd‖ = 1}`, on which Tau Ceti's
-  `sphereBundleChartedSpace` and `isManifold_sphereBundle`
-  (`Riemannian/Sphere.lean`, radius `1`) put the smooth structure under the
-  hypotheses above. Tau
-  Ceti's set `TauCeti.sphereBundle F V` has the same condition
-  (`TauCeti.mem_sphereBundle`), so its lemmas are used through
+**Hypotheses.** The file does not mention `g` or `hI`. Its fibres carry
+their own norms and complex inner products, as in Tau Ceti's
+`OrthonormalFrameBundle`:
+
+```lean
+variable {B F : Type*} [NormedAddCommGroup F] [NormedSpace ℂ F] [TopologicalSpace B]
+  {E : B → Type*} [∀ x, NormedAddCommGroup (E x)] [∀ x, InnerProductSpace ℂ (E x)]
+  [TopologicalSpace (TotalSpace F E)] [FiberBundle F E] [VectorBundle ℂ F E]
+  [Fact (Module.finrank ℂ F = 1)]
+```
+
+and the principal `Circle`-bundle adds `[TauCeti.ContinuousFiberNorm F E]`,
+which is what Tau Ceti's `OrthonormalFrameBundle.instPrincipalBundleFiber`
+asks for. Each declaration takes only the instances it uses: the action of
+`Circle` on unit vectors needs only normed fibres, and its freeness no
+bundle structure at all. The dimension of a fibre comes from Mathlib's
+`VectorBundle.finrank_eq`. Nothing smooth is assumed, and the base is
+arbitrary, with or without boundary.
+
+A Hermitian line bundle `(g, hI)` of *Hermitian bundles* above is a special
+case. With the variables of that section and `[Fact (finrank ℂ F = 1)]`,
+the results apply after three local instances, in this form (checked to
+elaborate against the merged file):
+
+```lean
+letI : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
+letI : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
+letI : IsContinuousRiemannianBundle F V :=
+  instIsContinuousRiemannianBundle g.toContinuousRiemannianMetric
+```
+
+The third gives `ContinuousFiberNorm F V` through Tau Ceti's instance for
+continuous Riemannian bundles; its type has to be written out, or instance
+search does not find `ContinuousFiberNorm`. The smooth structure on the
+circle bundle needs more: the hypotheses of Tau Ceti's
+`sphereBundleChartedSpace` and `isManifold_sphereBundle`. Three of these come
+with the variables of *Hermitian bundles*: `[IsManifold I n M]`, which
+follows from `[IsManifold I ∞ M]`, `[ContMDiffVectorBundle n F V I]`, and
+`[FiniteDimensional ℝ F]`, the local instance `Module.Finite.trans ℂ F`
+(instance search does not find it alone, since Mathlib's
+`FiniteDimensional.complexToReal` goes through `Module.complexToReal`). The
+rest, `[I.Boundaryless]`, `[FiniteDimensional ℝ EB]`,
+`[IsContMDiffRiemannianBundle I n F V]` (a local instance from the
+smoothness of `g`) and `1 ≤ n`, are stated only where that atlas is used, in
+*First Chern number*'s prerequisite 3.
+
+**Contents.**
+
+- The circle bundle is the subtype `{p : TotalSpace F E // ‖p.snd‖ = 1}`,
+  on which Tau Ceti's `sphereBundleChartedSpace` and
+  `isManifold_sphereBundle` (`Riemannian/Sphere.lean`, radius `1`) put the
+  smooth structure. Tau Ceti's set `TauCeti.sphereBundle F E` has the same
+  condition (`TauCeti.mem_sphereBundle`), so its lemmas are used through
   `Homeomorph.setCongr`; no second circle bundle type is introduced.
-- Its principal-bundle form is Tau Ceti's rank-one unitary frame bundle
-  `fun x ↦ OrthonormalFrameBundle.Fiber ℂ F V ℂ x` (fibre `ℂ ≃ₗᵢ[ℂ] V x`, for
-  the inner products `g.complexInnerProductSpace hI`), a principal bundle for
-  `unitary (ℂ →L[ℂ] ℂ)` by `OrthonormalFrameBundle.instPrincipalBundleFiber`.
-  The file gives `circleBundleHomeomorph`, from its total space to the
-  subtype, `φ ↦ ⟨x, φ.frame 1⟩`, with `@[simp] circleBundleHomeomorph_apply`;
-  the action of `Circle` on the subtype by scalar multiplication in the
-  fibres, free with the fibres as orbits (`circleBundle_smul_apply`,
-  `circleBundle_smul_eq_iff`, `exists_circleBundle_smul_eq_iff`), which the
-  homeomorphism intertwines with the right action of
-  `unitary (ℂ →L[ℂ] ℂ)` through the isomorphism below; and the instance
-  `TauCeti.PrincipalBundle Circle` on the frame bundle. Both instances are
-  built from that isomorphism by the general change of model fibre and of
-  structure group. The `FiberBundle Circle` instance is
+- The action of `Circle` on the subtype by scalar multiplication in the
+  fibres: the instance `instMulActionCircleBundle`, with
+  `@[simp] circleBundle_smul_apply`; freeness, the iff
+  `@[simp] circleBundle_smul_eq_iff` (`z • p = w • p ↔ z = w`); the orbits
+  are the fibres, `exists_circleBundle_smul_eq_iff`
+  (`(∃ z, z • p = q) ↔ p.val.proj = q.val.proj`, in rank one); and
+  continuity, the instance `instContinuousSMulCircleBundle`.
+- The principal-bundle form is Tau Ceti's rank-one unitary frame bundle
+  `OrthonormalFrameBundle.Fiber ℂ F E ℂ` (fibre `ℂ ≃ₗᵢ[ℂ] E x`), a principal
+  bundle for `unitary (ℂ →L[ℂ] ℂ)` by `instPrincipalBundleFiber`.
+  `circleBundleHomeomorph` is the homeomorphism from its total space to the
+  subtype, `φ ↦ ⟨x, φ.frame 1⟩`, whose inverse sends a unit vector `v` to
+  the frame `z ↦ z • v`, built with `LinearIsometryEquiv.toSpanSingleton`
+  (below). API: `@[simp] circleBundleHomeomorph_apply`,
+  `proj_circleBundleHomeomorph_symm` and
+  `@[simp] circleBundleHomeomorph_symm_apply_frame`.
+- **The intertwining is stated fibre by fibre**, in the form that
+  `Bundle.Trivialization.IsEquivariant` uses, and not with the right action
+  on the total space: with frame domain `ℂ`, instance search for Tau Ceti's
+  total-space action `Bundle.TotalSpace.instSMul` times out.
+  `circleBundleHomeomorph_smul (u : unitary (ℂ →L[ℂ] ℂ)) (φ : Fiber ℂ F E ℂ x)`
+  says that `circleBundleHomeomorph ⟨x, op u • φ⟩` is
+  `Unitary.continuousLinearMapCircleEquiv u • circleBundleHomeomorph ⟨x, φ⟩`.
+- The right action of `Circle` on frames, the instance
+  `instMulActionCircleFiber : MulAction Circleᵐᵒᵖ (Fiber ℂ F E ℂ x)`, is that
+  of `unitary (ℂ →L[ℂ] ℂ)` along the inverse of
+  `Unitary.continuousLinearMapCircleEquiv`. Its lemmas are in Tau Ceti's
+  namespace `TauCeti.OrthonormalFrameBundle.Fiber`, next to
+  `Fiber.frame_smul_apply`: `op_circle_smul_eq` (by `rfl`) and
+  `@[simp] frame_op_circle_smul_apply` (`(op z • φ).frame v =
+  φ.frame (z * v)`). The **equivariance** of the homeomorphism is
+  `circleBundleHomeomorph_op_circle_smul (z : Circle) (φ : Fiber ℂ F E ℂ x)`:
+  `circleBundleHomeomorph ⟨x, op z • φ⟩ = z • circleBundleHomeomorph ⟨x, φ⟩`.
+- The principal `Circle`-bundle. Both instances on
+  `TotalSpace Circle (Fiber ℂ F E ℂ)` come from the general change of model
+  fibre and of structure group, applied to
+  `Unitary.continuousLinearMapCircleEquiv`:
+  `instFiberBundleCircleFiber : FiberBundle Circle (Fiber ℂ F E ℂ)` is
   `FiberBundle.changeModelFiber`
-  (`Topology/FiberBundle/ChangeModelFiber.lean`), and the principal instance
-  is `TauCeti.PrincipalBundle.changeGroup`
-  (`Topology/FiberBundle/Principal/ChangeGroup.lean`). The file supplies
-  what these constructions take as instance arguments: the topology on
-  `TotalSpace Circle`, induced along `Bundle.TotalSpace.modelFiberEquiv`, and
-  the right action of `Circle` on frames, by `MulAction.compHom` along the
-  inverse of the isomorphism. The hypotheses of the constructions (that
-  `Bundle.TotalSpace.modelFiberEquiv` is inducing, and that the action of
-  `Circle` is that of `unitary (ℂ →L[ℂ] ℂ)` through the isomorphism) then
-  hold by `rfl`. The trivializations
-  are thus those of `instPrincipalBundleFiber` read through the isomorphism
-  (`Bundle.Trivialization.changeModelFiber`); no trivialization or
-  total-space equivalence specific to `Circle` is defined. The group
-  isomorphism is `Unitary.continuousLinearMapCircleEquiv`, defined as
-  `(Unitary.continuousLinearMapSelfEquiv ℂ).trans TauCeti.circleEquivUnitary.symm`,
-  with Tau Ceti's `TauCeti.circleEquivUnitary : Circle ≃ₜ* unitary ℂ`
-  (`Analysis/Complex/Circle.lean`). The smooth side (smoothness of the
-  action and of the coordinate changes, the diffeomorphism onto the
-  submanifold, and the submersion, which comes from Tau Ceti's
-  `TauCeti.ManifoldTotalSpace.isSubmersion_proj`) belongs to *First Chern
-  number*'s prerequisite 3.
+  (`Topology/FiberBundle/ChangeModelFiber.lean`), and
+  `instPrincipalBundleCircleFiber : TauCeti.PrincipalBundle Circle
+  (Fiber ℂ F E ℂ)` is `TauCeti.PrincipalBundle.changeGroup`
+  (`Topology/FiberBundle/Principal/ChangeGroup.lean`). These constructions
+  take as instance arguments the topology on the new total space and the
+  action of `Circle` on frames, so the file supplies
+  `instTopologicalSpaceTotalSpaceCircleFiber`, the topology induced along
+  `Bundle.TotalSpace.modelFiberEquiv`, and `instMulActionCircleFiber`
+  (above). Their hypotheses, that `Bundle.TotalSpace.modelFiberEquiv` is
+  inducing and that the action of `Circle` is that of
+  `unitary (ℂ →L[ℂ] ℂ)` through the isomorphism, then hold by `rfl`. The
+  trivializations are those of `instPrincipalBundleFiber` read through the
+  isomorphism by `Bundle.Trivialization.changeModelFiber`, and no
+  trivialization or total-space equivalence specific to `Circle` is
+  defined. *First Chern number* uses both instances.
+- The smooth side (smoothness of the action and of the coordinate changes,
+  the diffeomorphism onto the submanifold, and the submersion, which comes
+  from Tau Ceti's `TauCeti.ManifoldTotalSpace.isSubmersion_proj`) belongs to
+  *First Chern number*'s prerequisite 3, in this file.
+
+**Placement.** Everything the file has now is topological, but the file
+stays in `Geometry/Manifold/VectorBundle/Hermitian/` and does not move to
+`Topology/VectorBundle/`. *First Chern number*'s prerequisite 3 adds the
+smooth side of the same circle bundle (`circleBundleDiffeomorph` and the
+smooth principal bundle) to this file, and that side needs manifolds; the
+circle bundle stays one topic in one file, with the other Hermitian files.
+The parts that involve no bundle at all have their own files, by topic:
+`Unitary.continuousLinearMapCircleEquiv` and
+`LinearIsometryEquiv.toSpanSingleton`, below.
+
 - `Analysis/CStarAlgebra/Unitary/ContinuousLinearMap.lean`, in Mathlib's
   namespace `Unitary`, for `RCLike 𝕜`:
   `Unitary.continuousLinearMapSelfEquiv 𝕜 : unitary (𝕜 →L[𝕜] 𝕜) ≃ₜ* unitary 𝕜`,
@@ -1496,6 +1567,28 @@ in *First Chern number*'s prerequisite 3, and not on the results below.
   `@[simp]`: `Unitary.coe_continuousLinearMapSelfEquiv_apply`
   (`(u : 𝕜 →L[𝕜] 𝕜) 1`) and `Unitary.continuousLinearMapSelfEquiv_symm_apply`
   (`α` acts by `x ↦ α * x`).
+  The case `𝕜 = ℂ` composed with Tau Ceti's
+  `TauCeti.circleEquivUnitary : Circle ≃ₜ* unitary ℂ`
+  (`Analysis/Complex/Circle.lean`) is the isomorphism of structure groups
+  of the circle bundle, in the same file and namespace:
+  `Unitary.continuousLinearMapCircleEquiv : unitary (ℂ →L[ℂ] ℂ) ≃ₜ* Circle`,
+  by definition
+  `(continuousLinearMapSelfEquiv ℂ).trans circleEquivUnitary.symm`
+  (`continuousLinearMapCircleEquiv_def`, by `rfl`), so that the library has
+  one identification of the two groups. API, both `@[simp]`:
+  `Unitary.coe_continuousLinearMapCircleEquiv_apply` (`u 1`) and
+  `Unitary.continuousLinearMapCircleEquiv_symm_apply` (`z` acts by
+  `v ↦ z * v`).
+- `Analysis/Normed/Operator/SpanSingleton.lean`, in Mathlib's namespace
+  `LinearIsometryEquiv`: for a seminormed space `E` over a nontrivially
+  normed field `𝕜` with `h : finrank 𝕜 E = 1` and a unit vector `v`
+  (`hv : ‖v‖ = 1`), `LinearIsometryEquiv.toSpanSingleton 𝕜 E h hv :
+  𝕜 ≃ₗᵢ[𝕜] E`, `a ↦ a • v`, the equivalence that Mathlib's
+  `LinearIsometry.toSpanSingleton` becomes when `E` is a line. It is the
+  inverse of `circleBundleHomeomorph` on each fibre. API:
+  `@[simp] toSpanSingleton_apply`, `@[simp] toLinearIsometry_toSpanSingleton`
+  and `toSpanSingleton_one`. Mathlib's `LinearIsometryEquiv.toSpanUnitSingleton`
+  is different: its target is the submodule `𝕜 ∙ v`.
 
 ## Unitary frames over surfaces with boundary
 
@@ -1834,7 +1927,9 @@ of *Constructions* for *First Chern number*.
 16. **Nowhere-zero sections over surfaces with boundary.** Same file: step 1
     of the route above,
     `SymplecticGeometry.exists_contMDiffSection_forall_ne_zero_of_boundary_nonempty`
-    for real bundles of rank at least $2$ over `S`. Blockers: 12, 13, 14, 15.
+    for real bundles of rank at least $2$ over `S`, with its diffeotopy step
+    `TauCeti.exists_diffeotopy_apply_one_notMem` in
+    `Geometry/Diffeomorphism/Diffeotopy/Discrete.lean`. Blockers: 12, 13, 14, 15.
 17. **Unitary frames and the third milestone.** `Hermitian/Surface.lean`:
     the frame theorem and its trivialization corollary. Blockers: 16.
 
@@ -1880,7 +1975,11 @@ of *Constructions* for *First Chern number*.
     `Hermitian/CircleBundle.lean`: `circleBundleHomeomorph`, the action of
     `Circle` and the `TauCeti.PrincipalBundle Circle` instance, over any
     base: none of them needs the smooth hypotheses of the sphere-bundle
-    atlas, which its section leaves to *First Chern number*. Blockers: 24.
+    atlas, which its section leaves to *First Chern number*. With it,
+    `Unitary.continuousLinearMapCircleEquiv` in
+    `Analysis/CStarAlgebra/Unitary/ContinuousLinearMap.lean` and
+    `LinearIsometryEquiv.toSpanSingleton` in
+    `Analysis/Normed/Operator/SpanSingleton.lean`. Blockers: 24.
 
 The issues of *First Chern number* that its design says wait for "the issues
 from #57" wait for these: its pull-backs and isomorphisms for 19 and 21, its

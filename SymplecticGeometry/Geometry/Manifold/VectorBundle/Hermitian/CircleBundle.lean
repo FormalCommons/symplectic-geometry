@@ -259,7 +259,8 @@ variable {B F : Type*} {E : B → Type*} [∀ x, NormedAddCommGroup (E x)]
 
 /-- The topology on the total space of the unitary frame bundle with model fibre `Circle`,
 induced from the one with model fibre `unitary (ℂ →L[ℂ] ℂ)` along
-`Bundle.TotalSpace.modelFiberEquiv`, as `TauCeti.PrincipalBundle.changeGroup` asks. -/
+`Bundle.TotalSpace.modelFiberEquiv`, as `FiberBundle.changeModelFiber` and
+`TauCeti.PrincipalBundle.changeGroup` ask. -/
 instance instTopologicalSpaceTotalSpaceCircleFiber :
     TopologicalSpace (TotalSpace Circle (Fiber ℂ F E ℂ)) :=
   .induced (TotalSpace.modelFiberEquiv (unitary (ℂ →L[ℂ] ℂ)) Circle (Fiber ℂ F E ℂ))
