@@ -136,6 +136,7 @@ variable {EB HB M : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB]
 | `Geometry/Manifold/VectorBundle/ContinuousAlternatingMap.lean` | `contMDiff_compContinuousLinearMap_totalSpace`: precomposition by a $C^n$ hom-bundle section is $C^n$ on total spaces of alternating bundles | 3 |
 | `Geometry/Manifold/VectorBundle/Pullback.lean` | smoothness of sections of the alternating bundle of a pull-back | 18 |
 | `Topology/VectorBundle/Pullback.lean` | coordinates of alternating maps on a pull-back bundle | 18 |
+| `Topology/VectorBundle/Coordinates.lean` | coordinates of continuous bilinear forms on a vector bundle | 6 |
 | `Data/Bundle.lean` | `Bundle.Pullback.eq_iff`: equations in a fibre of a pull-back bundle, for `simp` | 20 |
 | `Geometry/Manifold/VectorBundle/Symplectic/Pullback.lean` | pull-backs of forms, of tame and compatible pairs, of isomorphisms and of frames | 21 |
 | `Geometry/Manifold/VectorBundle/Symplectic/Prod.lean` | direct sums of forms, of tame and compatible pairs and of isomorphisms; block frames | 22 |
@@ -471,10 +472,11 @@ the form and of the structure are independent.
   bundles, `Bundle.ContMDiffRiemannianMetric` and part 9's `TauCeti`
   operations, so they go in a file of their own,
   `Geometry/Manifold/VectorBundle/Riemannian/PolarEnd.lean`, which imports
-  no file of this part, in the namespace `Bundle.ContMDiffRiemannianMetric`
-  (where `g.polarFormulaAt x σ` finds them), except `Bundle.polarFormulaDomain`,
-  which involves no metric. Only the lemmas named below as being in
-  `SymplecticGeometry.Bundle` stay in this file. For a metric `g`:
+  no file of this part but `Topology/VectorBundle/Coordinates.lean`, in the
+  namespace `Bundle.ContMDiffRiemannianMetric` (where `g.polarFormulaAt x σ`
+  finds them), except `Bundle.polarFormulaDomain` and
+  `Bundle.euclideanEquivAt`, which involve no metric. Only the lemmas named
+  below as being in `SymplecticGeometry.Bundle` stay in this file. For a metric `g`:
   - `Bundle.polarFormulaDomain F V : Set (TotalSpace (F →L[ℝ] F →L[ℝ] ℝ)
     fun x ↦ V x →L[ℝ] V x →L[ℝ] ℝ)`, the points $(x,\sigma)$ where the skew
     part of `σ` is nondegenerate, with `@[simp] mem_polarFormulaDomain_iff :
@@ -483,18 +485,21 @@ the form and of the structure are independent.
     (`isOpen_polarFormulaDomain`, `[FiniteDimensional ℝ F]`): over the base set
     of a trivialization, the reading of `q.snd` in it is `q.snd` carried
     along the fibre equivalence
-    (`ContinuousLinearMap.inCoordinates_eq_arrowCongr_arrowCongr`, in this
-    file), and carrying a form along a linear equivalence does not change
-    whether its skew part is nondegenerate
-    (`ContinuousLinearEquiv.nondegenerate_arrowCongr_sub_flip_iff`, in this
-    file), so the domain is there the preimage of an open set of forms on
-    `F` under the chart of the total space.
+    (`ContinuousLinearMap.inCoordinates_eq_arrowCongr_arrowCongr`, over any
+    `NontriviallyNormedField` and topological base, in
+    `Topology/VectorBundle/Coordinates.lean`), and carrying a form along a
+    linear equivalence does not change whether its skew part is
+    nondegenerate (`ContinuousLinearEquiv.nondegenerate_arrowCongr_sub_flip_iff`,
+    in part 9's `Topology/Algebra/Module/BilinearForm.lean`), so the domain
+    is there the preimage of an open set of forms on `F` under the chart of
+    the total space.
   - `polarFormulaAt g x (σ : V x →L[ℝ] V x →L[ℝ] ℝ) : V x →L[ℝ] V x`, part 9's
     `TauCeti.metricPolarFormula` on `W` of the pair (`g x`, `σ`) carried
     along `e x : V x ≃L[ℝ] W` (the trivialization at `x` followed by
-    Mathlib's `ContinuousLinearEquiv.ofFinrankEq`), conjugated back by
-    `e x`; with `polarFormulaAt_def`. Since `g x` is positive, the carried pair
-    lies in `polarDomain W` exactly when `⟨x, σ⟩ ∈ polarFormulaDomain F V`
+    Mathlib's `ContinuousLinearEquiv.ofFinrankEq`, the definition
+    `Bundle.euclideanEquivAt F V x` with `euclideanEquivAt_def`), conjugated
+    back by `e x`; with `polarFormulaAt_def`. Since `g x` is positive, the
+    carried pair lies in `polarDomain W` exactly when `⟨x, σ⟩ ∈ polarFormulaDomain F V`
     (`mem_polarDomain_arrowCongr`, for any `e : V x ≃L[ℝ] W`).
     `polarFormulaAt_eq_conj`: for `σ` with
     `(σ.toBilinForm - σ.toBilinForm.flip).Nondegenerate`, the same holds for any
@@ -589,8 +594,8 @@ the form and of the structure are independent.
     g.polarFormulaAt x (g.compatibleBilinAt x B)`, with `polarEndAt_def`. In
     `SymplecticGeometry.Bundle`, `polarEndAt_eq_polarComplexStructure`: if
     `hω : ω.IsNondegenerate` and `ω.flat x = compatibleBilinAt g x B`, then
-    `polarEndAt g x B = hω.polarComplexStructure g x`, by `polarEndAt_def`,
-    `polarFormulaAt_flat` and `polarComplexStructure_apply`. So at `B = J x`
+    `polarEndAt g x B = hω.polarComplexStructure g x`, by `polarEndAt_def`
+    and `polarComplexStructure_eq_polarFormulaAt`. So at `B = J x`
     it is $J_{g,\omega_{g,J}}$ at `x`, with `ω` the form
     `compatibleForm g J`, nondegenerate by `compatible_compatibleForm`.
   - `contMDiffOn_polarEndAt`: the map

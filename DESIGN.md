@@ -793,7 +793,7 @@ it into issues; the overview fixes its folders and its dependencies.
   `SymplecticForm V`), with the general file
   `Topology/Algebra/Module/BilinearForm.lean` (a continuous bilinear form in
   finite dimensions is recovered from its bilinear form; the skew part of a
-  continuous bilinear map),
+  continuous bilinear map; carrying a form along an equivalence),
   `Geometry/Symplectic/Darboux/EuclideanBasis.lean` (the coordinates of a
   basis adapted to $J$ are complex linear),
   `Geometry/Symplectic/Cayley/Domain.lean` (the open set where Tau Ceti's
@@ -1013,6 +1013,10 @@ it into issues; the overview fixes its folders and its dependencies.
   `Topology/VectorBundle/Pullback.lean` (the coordinates of alternating maps
   on a pull-back bundle, a step that uses no charts; the file has the path
   of the Tau Ceti file with `ContinuousLinearMap.inCoordinates_pullback_of_mem`,
+  so that the two merge upstream),
+  `Topology/VectorBundle/Coordinates.lean` (the coordinates of continuous
+  bilinear forms on a vector bundle; the file has the path of the Tau Ceti
+  file with `ContinuousLinearMap.inCoordinates_eq_conjContinuousAlgEquiv`,
   so that the two merge upstream),
   `Data/Bundle.lean` (`Bundle.Pullback.eq_iff`, an equation in a fibre of a
   pull-back bundle as one in the fibre it is defined as, in the root

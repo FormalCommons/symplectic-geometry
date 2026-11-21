@@ -81,7 +81,12 @@ and does not redefine any of it:
   `isAlt_toBilinForm_skewSymmetrizeBilinear` and
   `nondegenerate_toBilinForm_skewSymmetrizeBilinear_iff` (nondegenerate
   exactly when $s-s^{\mathrm{flip}}$ is, by Tau Ceti's
-  `TauCeti.BilinForm.nondegenerate_smul_iff`).
+  `TauCeti.BilinForm.nondegenerate_smul_iff`). In the same file, carrying a
+  form along a continuous linear equivalence `e` in both arguments:
+  `ContinuousLinearEquiv.toBilinForm_arrowCongr_arrowCongr` (as a bilinear
+  form it is `LinearMap.BilinForm.congr` along `e`) and
+  `ContinuousLinearEquiv.nondegenerate_arrowCongr_sub_flip_iff` (it keeps
+  $s-s^{\mathrm{flip}}$ nondegenerate or degenerate).
 - The Cayley transform (`Geometry/Symplectic/Cayley/`): `cayleyFormula`,
   `cayleyPathFormula`, `contDiffAt_cayleyPathFormula`,
   `Compatible.cayleyEquiv`, `Compatible.cayleyInterp`,

@@ -8,6 +8,8 @@ module
 public import Mathlib.Geometry.Manifold.VectorBundle.Hom
 public import Mathlib.Geometry.Manifold.VectorBundle.Riemannian
 public import SymplecticGeometry.Analysis.InnerProductSpace.Symplectic.PolarComplexStructure.Smooth
+public import SymplecticGeometry.Topology.Algebra.Module.BilinearForm
+public import SymplecticGeometry.Topology.VectorBundle.Coordinates
 public import TauCeti.Topology.VectorBundle.Coordinates
 
 /-!
@@ -27,6 +29,8 @@ complex structure `J_{g,ω}` of the bundle, which is built from it in
 
 * `Bundle.polarFormulaDomain F V`: the points `(x, σ)` of the bundle of bilinear forms where the
   skew part of `σ` is nondegenerate.
+* `Bundle.euclideanEquivAt F V x`: the equivalence of `V x` with a Euclidean space given by the
+  trivialization at `x`.
 * `Bundle.ContMDiffRiemannianMetric.polarFormulaAt g x σ`: the endomorphism `J_{g,σ}` of `V x`.
 
 ## Main results
@@ -66,22 +70,6 @@ noncomputable section
 open Module Set Filter
 open scoped Manifold Topology RealInnerProductSpace
 
-/-- Carrying a continuous bilinear form along a continuous linear equivalence `e` does not change
-whether its skew part `σ - σᵀ` is nondegenerate. -/
-theorem ContinuousLinearEquiv.nondegenerate_arrowCongr_sub_flip_iff {X W : Type*}
-    [AddCommGroup X] [Module ℝ X] [TopologicalSpace X] [IsTopologicalAddGroup X]
-    [ContinuousSMul ℝ X] [NormedAddCommGroup W] [NormedSpace ℝ W] (e : X ≃L[ℝ] W)
-    {σ : X →L[ℝ] X →L[ℝ] ℝ} :
-    (e.arrowCongr (e.arrowCongr (.refl ℝ ℝ)) σ -
-        (e.arrowCongr (e.arrowCongr (.refl ℝ ℝ)) σ).flip).toBilinForm.Nondegenerate ↔
-      (σ.toBilinForm - σ.toBilinForm.flip).Nondegenerate := by
-  have h : (e.arrowCongr (e.arrowCongr (.refl ℝ ℝ)) σ -
-        (e.arrowCongr (e.arrowCongr (.refl ℝ ℝ)) σ).flip).toBilinForm =
-      LinearMap.BilinForm.congr e.toLinearEquiv (σ.toBilinForm - σ.toBilinForm.flip) := by
-    ext v w
-    simp
-  rw [h, LinearMap.BilinForm.nondegenerate_congr_iff]
-
 namespace Bundle
 
 variable {EB HB M : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB]
@@ -109,20 +97,6 @@ variable [TopologicalSpace M] [ChartedSpace HB M]
   [∀ x, IsTopologicalAddGroup (V x)] [∀ x, ContinuousSMul ℝ (V x)]
   [TopologicalSpace (TotalSpace F V)] [FiberBundle F V] [VectorBundle ℝ F V]
 
-omit [∀ x, IsTopologicalAddGroup (V x)] [∀ x, ContinuousSMul ℝ (V x)] in
-/-- A continuous bilinear form on `V x`, read in the trivialization at `x₀` whose base set
-contains `x`, is the form carried along the fibre equivalence of that trivialization. -/
-theorem _root_.ContinuousLinearMap.inCoordinates_eq_arrowCongr_arrowCongr {x₀ x : M}
-    (hx : x ∈ (trivializationAt F V x₀).baseSet) (σ : V x →L[ℝ] V x →L[ℝ] ℝ) :
-    ContinuousLinearMap.inCoordinates F V (F →L[ℝ] ℝ) (fun y ↦ V y →L[ℝ] Trivial M ℝ y)
-        x₀ x x₀ x σ =
-      ((trivializationAt F V x₀).continuousLinearEquivAt ℝ x hx).arrowCongr
-        (((trivializationAt F V x₀).continuousLinearEquivAt ℝ x hx).arrowCongr
-          (.refl ℝ ℝ)) σ := by
-  ext v w
-  rw [inCoordinates_apply_eq₂ (E₃ := Trivial M ℝ) hx hx (Set.mem_univ _)]
-  simp
-
 /-- In finite rank, the domain of the polar formula is open in the bundle of bilinear forms. -/
 theorem isOpen_polarFormulaDomain [FiniteDimensional ℝ F] :
     IsOpen (polarFormulaDomain F V) := by
@@ -148,6 +122,26 @@ theorem isOpen_polarFormulaDomain [FiniteDimensional ℝ F] :
   exact (key q hq).2 hq'
 
 /-! ### The polar formula on a fibre -/
+
+omit [∀ x, IsTopologicalAddGroup (V x)] [∀ x, ContinuousSMul ℝ (V x)] in
+variable (F V) in
+/-- The continuous linear equivalence of the fibre `V x` with the Euclidean space
+`EuclideanSpace ℝ (Fin (finrank ℝ F))`: the fibre equivalence of the trivialization at `x`,
+followed by Mathlib's `ContinuousLinearEquiv.ofFinrankEq`. -/
+def euclideanEquivAt [FiniteDimensional ℝ F] (x : M) :
+    V x ≃L[ℝ] EuclideanSpace ℝ (Fin (finrank ℝ F)) :=
+  ((trivializationAt F V x).continuousLinearEquivAt ℝ x
+    (FiberBundle.mem_baseSet_trivializationAt' x)).trans
+    (.ofFinrankEq finrank_euclideanSpace_fin.symm)
+
+omit [∀ x, IsTopologicalAddGroup (V x)] [∀ x, ContinuousSMul ℝ (V x)] in
+variable (F V) in
+theorem euclideanEquivAt_def [FiniteDimensional ℝ F] (x : M) :
+    euclideanEquivAt F V x =
+      ((trivializationAt F V x).continuousLinearEquivAt ℝ x
+        (FiberBundle.mem_baseSet_trivializationAt' x)).trans
+        (.ofFinrankEq finrank_euclideanSpace_fin.symm) :=
+  (rfl)
 
 /-- Carrying a metric and a form along a linear equivalence with an inner product space gives a
 point of the domain of `TauCeti.metricPolarFormula` exactly when the skew part of the form is
@@ -184,31 +178,26 @@ theorem exists_continuousLinearEquiv_inner_eq (x : M) :
     (SymplecticGeometry.innerProducts.transport_eq_innerSL_iff e₂ g₁).1 he₂]
   simp [g₁]
 
-
 /-- The polar formula `J_{g,σ}` of a bundle metric `g` and a continuous bilinear form `σ` on the
 fibre `V x`: the formula `TauCeti.metricPolarFormula` of the pair `(g x, σ)`, carried to the
-Euclidean space `EuclideanSpace ℝ (Fin (finrank ℝ F))` along the trivialization at `x` and
+Euclidean space `EuclideanSpace ℝ (Fin (finrank ℝ F))` along `Bundle.euclideanEquivAt F V x` and
 conjugated back.
 Where the skew part of `σ` is nondegenerate, the choice of the equivalence does not matter
 (`polarFormulaAt_eq_conj`). -/
 def polarFormulaAt (x : M) (σ : V x →L[ℝ] V x →L[ℝ] ℝ) : V x →L[ℝ] V x :=
-  let e : V x ≃L[ℝ] EuclideanSpace ℝ (Fin (finrank ℝ F)) :=
-    ((trivializationAt F V x).continuousLinearEquivAt ℝ x
-      (FiberBundle.mem_baseSet_trivializationAt' x)).trans
-      (.ofFinrankEq finrank_euclideanSpace_fin.symm)
-  e.symm.conjContinuousAlgEquiv (TauCeti.metricPolarFormula
-    (e.arrowCongr (e.arrowCongr (ContinuousLinearEquiv.refl ℝ ℝ)) (g.inner x))
-    (e.arrowCongr (e.arrowCongr (ContinuousLinearEquiv.refl ℝ ℝ)) σ))
+  (euclideanEquivAt F V x).symm.conjContinuousAlgEquiv (TauCeti.metricPolarFormula
+    ((euclideanEquivAt F V x).arrowCongr
+      ((euclideanEquivAt F V x).arrowCongr (ContinuousLinearEquiv.refl ℝ ℝ)) (g.inner x))
+    ((euclideanEquivAt F V x).arrowCongr
+      ((euclideanEquivAt F V x).arrowCongr (ContinuousLinearEquiv.refl ℝ ℝ)) σ))
 
 theorem polarFormulaAt_def (x : M) (σ : V x →L[ℝ] V x →L[ℝ] ℝ) :
     g.polarFormulaAt x σ =
-      let e : V x ≃L[ℝ] EuclideanSpace ℝ (Fin (finrank ℝ F)) :=
-        ((trivializationAt F V x).continuousLinearEquivAt ℝ x
-          (FiberBundle.mem_baseSet_trivializationAt' x)).trans
-          (.ofFinrankEq finrank_euclideanSpace_fin.symm)
-      e.symm.conjContinuousAlgEquiv (TauCeti.metricPolarFormula
-        (e.arrowCongr (e.arrowCongr (ContinuousLinearEquiv.refl ℝ ℝ)) (g.inner x))
-        (e.arrowCongr (e.arrowCongr (ContinuousLinearEquiv.refl ℝ ℝ)) σ)) :=
+      (euclideanEquivAt F V x).symm.conjContinuousAlgEquiv (TauCeti.metricPolarFormula
+        ((euclideanEquivAt F V x).arrowCongr
+          ((euclideanEquivAt F V x).arrowCongr (ContinuousLinearEquiv.refl ℝ ℝ)) (g.inner x))
+        ((euclideanEquivAt F V x).arrowCongr
+          ((euclideanEquivAt F V x).arrowCongr (ContinuousLinearEquiv.refl ℝ ℝ)) σ)) :=
   (rfl)
 
 /-- **Independence of the equivalence.** Where the skew part of `σ` is nondegenerate, `J_{g,σ}` is
@@ -220,10 +209,7 @@ theorem polarFormulaAt_eq_conj {x : M} {σ : V x →L[ℝ] V x →L[ℝ] ℝ}
     g.polarFormulaAt x σ = e.symm.conjContinuousAlgEquiv (TauCeti.metricPolarFormula
       (e.arrowCongr (e.arrowCongr (ContinuousLinearEquiv.refl ℝ ℝ)) (g.inner x))
       (e.arrowCongr (e.arrowCongr (ContinuousLinearEquiv.refl ℝ ℝ)) σ)) := by
-  let e₀ : V x ≃L[ℝ] EuclideanSpace ℝ (Fin (finrank ℝ F)) :=
-    ((trivializationAt F V x).continuousLinearEquivAt ℝ x
-      (FiberBundle.mem_baseSet_trivializationAt' x)).trans
-      (.ofFinrankEq finrank_euclideanSpace_fin.symm)
+  let e₀ := euclideanEquivAt F V x
   -- Carrying along `e` is carrying along `e₀`, then along `f = e₀⁻¹ ≫ e`.
   let f := e₀.symm.trans e
   have hc (τ : V x →L[ℝ] V x →L[ℝ] ℝ) :
@@ -275,22 +261,19 @@ theorem contMDiffOn_polarFormulaAt :
   let E (q : TotalSpace (F →L[ℝ] F →L[ℝ] ℝ) (fun x ↦ V x →L[ℝ] V x →L[ℝ] ℝ))
       (hq : q.proj ∈ e₀.baseSet) : V q.proj ≃L[ℝ] W :=
     (e₀.continuousLinearEquivAt ℝ q.proj hq).trans T
-  have hG (q) (hq : q.proj ∈ e₀.baseSet) : G q =
-      (E q hq).arrowCongr ((E q hq).arrowCongr (ContinuousLinearEquiv.refl ℝ ℝ))
-        (g.inner q.proj) := by
+  have hC (q) (hq : q.proj ∈ e₀.baseSet) (τ : V q.proj →L[ℝ] V q.proj →L[ℝ] ℝ) :
+      pull.comp ((ContinuousLinearMap.inCoordinates F V (F →L[ℝ] ℝ)
+        (fun y ↦ V y →L[ℝ] Trivial M ℝ y) x₀ q.proj x₀ q.proj τ).comp Ts) =
+      (E q hq).arrowCongr ((E q hq).arrowCongr (ContinuousLinearEquiv.refl ℝ ℝ)) τ := by
     ext v w
-    simp [G, gC, pull, Ts, E, e₀, ContinuousLinearMap.inCoordinates_eq_arrowCongr_arrowCongr hq]
-  have hS (q) (hq : q.proj ∈ e₀.baseSet) : S q =
-      (E q hq).arrowCongr ((E q hq).arrowCongr (ContinuousLinearEquiv.refl ℝ ℝ)) q.snd := by
-    ext v w
-    simp [S, sC, pull, Ts, E, e₀, ContinuousLinearMap.inCoordinates_eq_arrowCongr_arrowCongr hq]
+    simp [pull, Ts, E, e₀, ContinuousLinearMap.inCoordinates_eq_arrowCongr_arrowCongr hq]
   have hU : {q | q.proj ∈ e₀.baseSet} ∩ polarFormulaDomain F V ∈ 𝓝 q₀ :=
     inter_mem ((FiberBundle.continuous_proj _ _).continuousAt.preimage_mem_nhds
       (e₀.open_baseSet.mem_nhds (FiberBundle.mem_baseSet_trivializationAt' x₀)))
       (isOpen_polarFormulaDomain.mem_nhds hq₀)
   have hmem (q) (hq : q ∈ {q | q.proj ∈ e₀.baseSet} ∩ polarFormulaDomain F V) :
       (G q, S q) ∈ TauCeti.polarDomain W := by
-    rw [hG q hq.1, hS q hq.1]
+    simp only [G, S, gC, sC, hC q hq.1]
     exact g.mem_polarDomain_arrowCongr _ hq.2
   have hGS : ContMDiffAt (I.prod 𝓘(ℝ, F →L[ℝ] F →L[ℝ] ℝ))
       𝓘(ℝ, (W →L[ℝ] W →L[ℝ] ℝ) × (W →L[ℝ] W →L[ℝ] ℝ)) n (fun q ↦ (G q, S q)) q₀ :=
@@ -303,10 +286,9 @@ theorem contMDiffOn_polarFormulaAt :
     (contMDiffAt_const (c := (T : F →L[ℝ] W))))).congr_of_eventuallyEq ?_
   filter_upwards [hU] with q hq
   rw [ContinuousLinearMap.inCoordinates_eq_conjContinuousAlgEquiv hq.1,
-    g.polarFormulaAt_eq_conj hq.2 (E q hq.1),
-    ← hG q hq.1, ← hS q hq.1]
+    g.polarFormulaAt_eq_conj hq.2 (E q hq.1), ← hC q hq.1, ← hC q hq.1]
   ext v
-  simp [E, Ts, e₀, Trivialization.apply_mk_symm _ hq.1]
+  simp [E, Ts, e₀, G, S, gC, sC, Trivialization.apply_mk_symm _ hq.1]
 
 end ContMDiffRiemannianMetric
 
