@@ -424,11 +424,12 @@ Named like Tau Ceti's file; in `TauCeti`.
 
 ### `Geometry/Manifold/DifferentialForm/TimeExtension.lean`
 
-- `SymplecticGeometry.SmoothForm.timeExtend : SmoothForm ((𝓡∂ 1).prod I)
-  (unitInterval × M) F k →ₗ[ℝ] SmoothForm (𝓘(ℝ, ℝ).prod I) (ℝ × M) F k`,
+- `TauCeti.SmoothForm.timeExtend : SmoothForm ((𝓡∂ 1).prod I)
+  (unitInterval × M) F k →ₗ[ℝ] SmoothForm (𝓘(ℝ, ℝ).prod I) (ℝ × M) F k`
+  (in Tau Ceti's namespace, as it is about Tau Ceti's `SmoothForm`),
   for a boundaryless `M`: the form `ofSlices` of the slices extended by
-  `seeleyIccExtend` at each point (see *Decisions*), with
-  `timeExtend_def`.
+  `seeleyIccExtend` at each point (see *Decisions*), named
+  `TauCeti.SmoothForm.timeExtendSlice Ω s`, with `timeExtend_def`.
 - `mpullback_prodMk_timeExtend (t : unitInterval)`: the slice of
   `timeExtend Ω` at `(t : ℝ)` is the slice of `Ω` at `t`.
 - `IsSmoothFamily.exists_extend`: every smooth family over `unitInterval` is
