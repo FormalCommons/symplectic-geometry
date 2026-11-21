@@ -43,23 +43,24 @@ sum runs over the finitely many crossings (`finite_setOf_inf_ne_bot_of_regular`)
 
 The graph case is Tau Ceti's
 `Matrix.UnitaryGroup.maslovIndex_eq_crossingForm_add_finsum_of_souriau_eq_cayley`, read through a
-path of unitary frames as in `pathMaslovIndex_graph`. For a general path, near each time `t₀`
-some Lagrangian `W` is transverse to `V` and to `γ t₀` (`exists_isCompl_isCompl`), and a
-symplectic matrix carries `V` to `{y = 0}` and `W` to `{x = 0}`
-(`exists_smul_eq_horizontal_vertical`). On the open set of times where `γ t` is transverse to
-`W`, each moved value `γ t` is the graph `{(x, A t x)}`, with `A = Y X⁻¹` for the blocks of the
-moved frame, and `A` is continuous since it is read in the chart `graphChart`. The naturality
-of the index (`pathMaslovIndex_smul`) and of the crossing form
-(`lagrangianCrossingForm_symplectic_mul_equivalent`), and the change of frame from `fromRows X Y`
-to `fromRows 1 A` (`lagrangianCrossingForm_mul_equivalent`, `lagrangianCrossingForm_graph`),
-carry the formula over. A partition of `[0, 1]` subordinate to these open sets
-(`exists_monotone_Icc_subset_open_cover_unitInterval`) cuts `γ` into subpaths, each
-reparametrized by `[0, 1]`, and the index adds up over them (`pathMaslovIndex_trans`).
+path of unitary frames (`exists_souriau_eq_cayley_and_pathMaslovIndex_eq_maslovIndex`). For a
+general path, near each time `t₀` some Lagrangian `W` is transverse to `V` and to `γ t₀`
+(`exists_isCompl_isCompl`), and a symplectic matrix carries `V` to `{y = 0}` and `W` to
+`{x = 0}` (`exists_smul_eq_horizontal_vertical`). On the open set of times where `γ t` is
+transverse to `W`, each moved value `γ t` is the graph `{(x, A t x)}`, with `A = Y X⁻¹` for the
+blocks of the moved frame, and `A` is continuous since it is read in the chart `graphChart`
+(`continuous_of_coe_eq_graph`). The naturality of the index (`pathMaslovIndex_smul`) and of the
+crossing form (`lagrangianCrossingForm_symplectic_mul_equivalent`), and the change of frame from
+`fromRows X Y` to `fromRows 1 A` (`lagrangianCrossingForm_mul_equivalent`,
+`lagrangianCrossingForm_graph`), carry the formula over. A partition of `[0, 1]` subordinate to
+these open sets (`exists_monotone_Icc_subset_open_cover_unitInterval`) cuts `γ` into subpaths,
+each reparametrized by `[0, 1]`, and the index adds up over them (`pathMaslovIndex_trans`).
 
 ## References
 
-* [J. Robbin and D. Salamon, *The Maslov index for paths*][RobbinSalamon1993], §2 (Theorem 2.3:
-  the index of a path with regular crossings).
+* [J. Robbin and D. Salamon, *The Maslov index for paths*][RobbinSalamon1993], §2 (the
+  formula for paths with regular crossings; the reduction to graphs follows the proof of
+  Theorem 2.3).
 * [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017], §2.3
   (crossing forms of paths of Lagrangian subspaces).
 -/
@@ -83,32 +84,30 @@ namespace LagrangianGrassmannian
 /-! ### Paths of graphs -/
 
 /-- **The crossing-form formula for paths of graphs.** Let `γ` be a path of Lagrangians that are
-the graphs `{(x, A t x)}` of matrices `A t`, with `A` continuous on `[0, 1]`. Suppose that at each
-`t ∈ [0, 1]` where `A t` is singular, that is, where `γ t` meets `{y = 0}`, `A` has derivative
-`A' t` within `[0, 1]` and Tau Ceti's crossing form `Matrix.crossingForm (A t) (A' t)` is
-nondegenerate. Then the index of `γ` relative to `{y = 0}` is the sum of the signatures of the
-crossing forms, those at `0` and `1` counting one half. -/
+the graphs `{(x, A t x)}` of matrices `A t`. Suppose that at each `t ∈ [0, 1]` where `A t` is
+singular, that is, where `γ t` meets `{y = 0}`, `A` has derivative `A' t` within `[0, 1]` and
+Tau Ceti's crossing form `Matrix.crossingForm (A t) (A' t)` is nondegenerate. Then the index of
+`γ` relative to `{y = 0}` is the sum of the signatures of the crossing forms, those at `0` and
+`1` counting one half. -/
 theorem pathMaslovIndex_graph_eq_crossing_sum {Λ Λ' : ℒ ι} (γ : Path Λ Λ')
-    {A A' : ℝ → Matrix ι ι ℝ} (hAc : ContinuousOn A (Icc 0 1))
+    {A A' : ℝ → Matrix ι ι ℝ}
     (hγ : ∀ t : I, (γ t : Submodule ℝ (StdSpace ι)) = StdSpace.graph (A t))
     (hd : ∀ t ∈ Icc (0 : ℝ) 1, (A t).det = 0 → HasDerivWithinAt A (A' t) (Icc 0 1) t)
     (hreg : ∀ t ∈ Icc (0 : ℝ) 1, (A t).det = 0 → (crossingForm (A t) (A' t)).Nondegenerate) :
     pathMaslovIndex γ (horizontal ι) =
       ((σ[crossingForm (A 0) (A' 0)] + σ[crossingForm (A 1) (A' 1)] : ℤ) : ℝ) / 2 +
         ((∑ᶠ t ∈ Ioo (0 : ℝ) 1, σ[crossingForm (A t) (A' t)] : ℤ) : ℝ) := by
+  have hAc : ContinuousOn A (Icc 0 1) := by
+    rw [continuousOn_iff_continuous_domRestrict]
+    exact continuous_of_coe_eq_graph γ.continuous hγ
   have hA (t : ℝ) (ht : t ∈ Icc (0 : ℝ) 1) : (A t).IsHermitian :=
     isHermitian_iff_isSymm.2 ((isLagrangian_graph_iff _).1
       (hγ ⟨t, ht⟩ ▸ (γ ⟨t, ht⟩).isLagrangian))
-  obtain ⟨_, _, δ, hδ⟩ := UnitaryGroup.exists_path_realImage_eq_and_souriau_eq_cayley
-    (A := fun t : I ↦ A t) (hAc.comp_continuous continuous_subtypeVal fun t ↦ t.property)
-    fun t ↦ hA t t.property
-  rw [pathMaslovIndex_horizontal_eq_maslovIndex γ δ fun t ↦ ?_]
-  · exact UnitaryGroup.maslovIndex_eq_crossingForm_add_finsum_of_souriau_eq_cayley δ hAc hA
-      (fun t ↦ (hδ t).2) (fun t ht h ↦ (hd t ht h).matrix_elem) hreg
-  · rw [← toSubmodule_inj, coe_unitaryFrame_eq_map, (hδ t).1, hγ,
-      ← StdSpace.range_toEuclideanLin_fromRows_one_eq_graph,
-      StdSpace.range_toEuclideanLin_fromRows_eq_map_realImage,
-      Matrix.map_one _ Complex.ofReal_zero Complex.ofReal_one]
+  obtain ⟨_, _, δ, hδ, h⟩ := exists_souriau_eq_cayley_and_pathMaslovIndex_eq_maslovIndex γ
+    (A := fun t : I ↦ A t) (continuousOn_iff_continuous_domRestrict.1 hAc) hγ
+  rw [h]
+  exact UnitaryGroup.maslovIndex_eq_crossingForm_add_finsum_of_souriau_eq_cayley δ hAc hA hδ
+    (fun t ht h ↦ (hd t ht h).matrix_elem) hreg
 
 /-- Two integer weightings of `[0, 1]` that agree there give the same crossing sum. -/
 private theorem crossing_sum_congr {f g : ℝ → ℤ} (h : ∀ t ∈ Icc (0 : ℝ) 1, f t = g t) :
@@ -150,20 +149,6 @@ private theorem crossing_sum_of_isCompl_vertical {Λ Λ' : ℒ ι} (γ : Path Λ
   have hγA (t : I) : (γ t : Submodule ℝ (StdSpace ι)) = StdSpace.graph (A t) := by
     rw [← hZ t, ← StdSpace.range_toEuclideanLin_fromRows_one_eq_graph, ← hZA,
       range_toLpLin_mul_of_isUnit 2 _ (isUnit_nonsing_inv_iff.2 (hX t))]
-  -- `A` is continuous: it is `γ` read in the chart `graphChart`.
-  have hAc : ContinuousOn A (Icc 0 1) := by
-    have h (t : I) : A t = (graphChart (γ t) : Matrix ι ι ℝ) := by
-      have hAs : (A t).IsSymm := (isLagrangian_graph_iff _).1 (hγA t ▸ (γ t).isLagrangian)
-      have hg : γ t = graph ⟨A t, isHermitian_iff_isSymm.2 hAs⟩ :=
-        toSubmodule_injective (by rw [coe_graph]; exact hγA t)
-      rw [hg, graphChart_graph]
-    have hc : Continuous fun t : I ↦ (graphChart (γ t) : Matrix ι ι ℝ) :=
-      continuous_subtypeVal.comp ((graphChart (ι := ι)).continuousOn.comp_continuous
-        γ.continuous fun t ↦ by rw [graphChart_source]; exact hW t)
-    rw [continuousOn_iff_continuous_domRestrict]
-    convert hc using 1
-    funext t
-    rw [domRestrict_apply, h t]
   -- The derivative of `A`, from those of the blocks, and the frame `fromRows 1 A` with it.
   set h' : ℝ → Matrix ι ι ℝ := fun r ↦ -((X r)⁻¹ * (Z' r).toRows₁ * (X r)⁻¹)
   set A' : ℝ → Matrix ι ι ℝ := fun r ↦ (Z' r).toRows₂ * (X r)⁻¹ + Y r * h' r
@@ -175,20 +160,14 @@ private theorem crossing_sum_of_isCompl_vertical {Λ Λ' : ℒ ι} (γ : Path Λ
   -- Where `A t` is singular, `γ t` meets `{y = 0}`.
   have hcross (t : I) (h : (A t).det = 0) :
       (γ t : Submodule ℝ (StdSpace ι)) ⊓ horizontal ι ≠ ⊥ := by
-    obtain ⟨v, hv, hAv⟩ := Matrix.exists_mulVec_eq_zero_iff.2 h
-    intro hbot
-    have hz : toEuclideanLin (fromRows 1 (A t)) (WithLp.toLp 2 v) ∈
-        (γ t : Submodule ℝ (StdSpace ι)) ⊓ horizontal ι := by
-      refine ⟨?_, ?_⟩
-      · rw [SetLike.mem_coe, hγA, ← StdSpace.range_toEuclideanLin_fromRows_one_eq_graph]
-        exact LinearMap.mem_range_self _ _
-      · rw [SetLike.mem_coe, mem_toSubmodule, mem_horizontal_iff,
-          StdSpace.y_toEuclideanLin_fromRows]
-        simpa using hAv
-    rw [hbot, Submodule.mem_bot] at hz
-    have hx := congrArg StdSpace.x hz
-    rw [StdSpace.x_toEuclideanLin_fromRows, one_mulVec, map_zero] at hx
-    exact hv hx
+    have hL : (stdForm ι).IsLagrangian
+        (LinearMap.range (toEuclideanLin (fromRows (1 : Matrix ι ι ℝ) (A t)))) := by
+      rw [StdSpace.range_toEuclideanLin_fromRows_one_eq_graph, ← hγA]; exact (γ t).isLagrangian
+    rw [coe_horizontal, ne_eq, ← disjoint_iff, hγA,
+      ← StdSpace.range_toEuclideanLin_fromRows_one_eq_graph,
+      StdSpace.disjoint_range_toEuclideanLin_fromRows_ker_y_iff_of_isLagrangian hL,
+      isUnit_iff_isUnit_det, h]
+    exact not_isUnit_zero
   have hdA (t : ℝ) (ht : t ∈ Icc (0 : ℝ) 1) (h : (A t).det = 0) :
       HasDerivWithinAt A (A' t) (Icc 0 1) t := by
     have hZd := hd ⟨t, ht⟩ (hcross ⟨t, ht⟩ h)
@@ -214,7 +193,7 @@ private theorem crossing_sum_of_isCompl_vertical {Λ Λ' : ℒ ι} (γ : Path Λ
     have h := (heq ⟨t, ht⟩).symm
     rw [h.sigPos_eq, h.sigNeg_eq]
   have hsum := crossing_sum_congr hσ
-  exact (pathMaslovIndex_graph_eq_crossing_sum γ hAc hγA hdA hregA).trans hsum
+  exact (pathMaslovIndex_graph_eq_crossing_sum γ hγA hdA hregA).trans hsum
 
 /-! ### Paths in one chart, and subpaths -/
 

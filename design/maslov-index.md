@@ -613,7 +613,7 @@ an element of `ℒ ι`.
   `lagrangianCrossingForm_vertical`, the value $-\langle Yu,X'u\rangle$ for
   `V = V₁` (the form of the loop formula); `lagrangianCrossingForm_graph`, the
   identification with Tau Ceti's `Matrix.crossingForm A A'` for `Z = (1; A)`
-  and `V = V₀`; `lagrangianCrossingForm_smul`, linearity in `Z'`; and
+  and `V = V₀`; `lagrangianCrossingForm_smul`, homogeneity in `Z'`; and
   `lagrangianCrossingForm_eq_zero_of_inf_eq_bot`, the form is zero where the
   image of `Z` meets `V` only in `0`.
 - `stdForm_toEuclideanLin_comm_of_hasDerivWithinAt`: let

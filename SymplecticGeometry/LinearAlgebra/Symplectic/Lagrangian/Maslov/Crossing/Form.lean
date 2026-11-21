@@ -25,7 +25,7 @@ crossing-form formula for the Maslov index needs.
 ## Main definitions
 
 * `SymplecticGeometry.lagrangianCrossingForm Z Z' V`: the quadratic form
-  `u ↦ ω₀(Z u, Z' u)` on `V.comap (toEuclideanLin Z)`; it is linear in `Z'`
+  `u ↦ ω₀(Z u, Z' u)` on `V.comap (toEuclideanLin Z)`; it is homogeneous in `Z'`
   (`lagrangianCrossingForm_smul`) and vanishes where the image of `Z` meets `V` only in `0`
   (`lagrangianCrossingForm_eq_zero_of_inf_eq_bot`).
 

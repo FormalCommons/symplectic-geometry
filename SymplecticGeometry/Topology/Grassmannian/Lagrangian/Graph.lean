@@ -45,6 +45,8 @@ open quotient map, this formula gives the openness and continuity that the chart
   there.
 * `SymplecticGeometry.LagrangianGrassmannian.graphChart`: the chart on the Lagrangians transverse
   to `{x = 0}`, with inverse `graph`.
+* `SymplecticGeometry.LagrangianGrassmannian.continuous_of_coe_eq_graph`: a continuous family of
+  Lagrangians that are graphs `{(x, A t x)}` has continuous `A`.
 
 The construction follows Tau Ceti's graph charts on finite Grassmannians,
 `TauCeti.finiteGrassmannian.graphChart` (`TauCeti/Topology/Grassmannian/Graph.lean`), there
@@ -277,6 +279,24 @@ theorem graphChart_symm_apply (S : selfAdjoint (Matrix ι ι ℝ)) :
   simp [graphChart_def, ← symJ_smul_graph]
 
 end DecidableEq
+
+/-- A continuous family of Lagrangians that are graphs `{(x, A t x)}` has continuous `A`: the
+matrix `A t` is the value of `γ t` in the chart `graphChart`. -/
+theorem continuous_of_coe_eq_graph {X : Type*} [TopologicalSpace X] {γ : X → ℒ ι}
+    (hγc : Continuous γ) {A : X → Matrix ι ι ℝ}
+    (hγ : ∀ t, (γ t : Submodule ℝ (StdSpace ι)) = StdSpace.graph (A t)) : Continuous A := by
+  classical
+  have hg (t : X) : γ t = graph ⟨A t, isHermitian_iff_isSymm.2
+      ((isLagrangian_graph_iff _).1 (hγ t ▸ (γ t).isLagrangian))⟩ :=
+    toSubmodule_injective (by rw [coe_graph]; exact hγ t)
+  have hs (t : X) :
+      γ t ∈ (graphChart : OpenPartialHomeomorph (ℒ ι) (selfAdjoint (Matrix ι ι ℝ))).source := by
+    rw [hg t, ← graphChart_symm_apply]
+    exact graphChart.map_target (by rw [graphChart_target]; exact mem_univ _)
+  have hA (t : X) : A t = (graphChart (γ t) : Matrix ι ι ℝ) := by
+    rw [hg t, graphChart_graph]
+  rw [show A = _ from funext hA]
+  exact continuous_subtypeVal.comp ((graphChart (ι := ι)).continuousOn.comp_continuous hγc hs)
 
 end LagrangianGrassmannian
 
