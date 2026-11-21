@@ -431,13 +431,14 @@ The Maslov phase on $\mathcal{L}(n)$ and the index of Lagrangian loops.
 ### `LinearAlgebra/Symplectic/Lagrangian/Maslov/Product.lean`
 
 - `ℒ.maslovIndex_smul {A Λ} (Ψ : Path A A) (γ : Path Λ Λ) :
-  maslovIndex ((Ψ.prod γ).map continuous_smul) = maslovIndex γ + 2 * GLSymplectic.maslovIndex Ψ`.
+  maslovIndex ((Ψ.prod γ).map continuous_smul) = maslovIndex γ + 2 * GLSymplectic.maslovIndex Ψ`
+  (`@[simp]`).
   For a loop of `ofUnitary` matrices this is `maslovPhase_ofUnitary_smul` with
   `Circle.degree_mul`. In general, Tau Ceti's `polarHomotopy` deforms `Ψ`
   through loops of symplectic matrices to its loop of unitary polar factors;
   acting on `γ` it gives a free homotopy of Lagrangian loops (G4), and
   `maslovIndex_map_polarUnitary` keeps the symplectic index.
-- `ℒ.maslovIndex_smul_const`: the case of a constant `γ`, which gives
+- `ℒ.maslovIndex_smul_const` (`@[simp]`): the case of a constant `γ`, which gives
   $\mu(\Psi V)=2\mu(\Psi)$ for the loops $t\mapsto\Psi(t)V$ that the
   symplectic crossing formula uses.
 
