@@ -233,6 +233,39 @@ name, in the namespace `Submodule`, for a complete inner product space over
   `Submodule.starProjection_map_apply` as an identity of operators.
   `Quotient.lean` uses it for `continuous_unitaryFrame`.
 
+### `Analysis/InnerProductSpace/PiL2.lean`
+
+A general fact about matrices acting on Euclidean space, beside Mathlib's
+file of that name, in the namespace `Matrix`, over `RCLike 𝕜`:
+
+- `Matrix.piLpCongrLeft_toEuclideanLin_apply (e : m ≃ n) (M : Matrix m m 𝕜) z`:
+  `piLpCongrLeft 2 𝕜 𝕜 e (toEuclideanLin M z) =
+  toEuclideanLin (reindex e e M) (piLpCongrLeft 2 𝕜 𝕜 e z)`.
+  `Lagrangian/Sum.lean` uses it for `reindex_unitaryFrame`.
+
+### `Analysis/Normed/Lp/PiLp.lean`
+
+A general fact about Mathlib's `LinearIsometryEquiv.piLpCongrLeft`, beside
+Mathlib's file of that name, in the namespace `LinearIsometryEquiv`:
+
+- `LinearIsometryEquiv.piLpCongrLeft_trans (e : ι ≃ ι') (f : ι' ≃ ι'')`
+  (`@[simp]`): `(piLpCongrLeft p 𝕜 E e).trans (piLpCongrLeft p 𝕜 E f) =
+  piLpCongrLeft p 𝕜 E (e.trans f)`, the composition counterpart of Tau
+  Ceti's `piLpCongrLeft_refl`. `Lagrangian/Sum.lean` uses it for
+  `reindex_trans`.
+
+### `LinearAlgebra/Matrix/GeneralLinearGroup/Symplectic/Unitary.lean`
+
+A general fact about Tau Ceti's `GLSymplectic`, in the namespace
+`TauCeti.GLSymplectic`, beside Tau Ceti's file of that name, so that it can
+move there unchanged; it imports only Tau Ceti:
+
+- `TauCeti.GLSymplectic.sum_ofUnitary (U : unitaryGroup ι ℂ)
+  (U' : unitaryGroup κ ℂ)`: `sum (ofUnitary U, ofUnitary U') =
+  ofUnitary (Matrix.UnitaryGroup.sum (U, U'))`, from
+  `Matrix.realify_fromBlocks_zero`. `Lagrangian/Sum.lean` uses it for
+  `sum_unitaryFrame`.
+
 ### Additions to *Standard model*'s `LinearAlgebra/Symplectic/Standard/Basic.lean`
 
 Two declarations about `StdSpace ι` alone, which this part needs and part 1
@@ -262,7 +295,12 @@ This part also uses
 `SymplecticGeometry.isSymplectomorphism_piLpCongrLeft_sumCongr` (`σ : ι ≃ κ`),
 which is already in `Standard/Basic.lean`: the coordinate
 permutation `LinearIsometryEquiv.piLpCongrLeft 2 ℝ ℝ (σ.sumCongr σ)` carries
-`stdForm ι` to `stdForm κ`.
+`stdForm ι` to `stdForm κ`. Beside it, building issue 11 adds the
+coordinates of that permutation, as two `@[simp]` lemmas in the namespace
+`SymplecticGeometry.StdSpace`:
+`x_piLpCongrLeft_sumCongr : x (piLpCongrLeft 2 ℝ ℝ (σ.sumCongr σ) z) = z.x ∘ σ.symm`
+and `y_piLpCongrLeft_sumCongr`, the same for `y`. `Lagrangian/Sum.lean`
+uses them for `reindex_horizontal` and `reindex_vertical`.
 
 The direct sum of two models is §1's `StdSpace.sumEquiv ι κ : StdSpace (ι ⊕ κ)
 ≃L[ℝ] StdSpace ι × StdSpace κ`, in this same file, with its lemma that it
@@ -710,9 +748,16 @@ no `Topology/` file of this part.
   `reindex_unitaryFrame : reindex e (unitaryFrame U) =
   unitaryFrame (Matrix.unitaryReindexContinuousMulEquiv ℂ e U)`, with Tau
   Ceti's map (`Topology/Algebra/Matrix/UnitaryGroup.lean`), whose coercion is
-  §6's `(U : Matrix ι ι ℂ).submatrix e.symm e.symm`, by
-  `coe_unitaryReindexContinuousMulEquiv_apply` and `Matrix.reindex_apply`;
-  `reindex_horizontal` and `reindex_vertical`.
+  `Matrix.reindex e e U` (§6's `U.submatrix e.symm e.symm`). The proof goes
+  through `coe_unitaryReindexContinuousMulEquiv_apply`, then `Matrix.realify_reindex`
+  (`(reindex e e A).realify = reindex (e.sumCongr e) (e.sumCongr e) A.realify`,
+  in the general file `LinearAlgebra/Matrix/Realify.lean`, beside
+  `Matrix.realify_submatrix`), and then
+  `Matrix.piLpCongrLeft_toEuclideanLin_apply` along `e.sumCongr e`;
+  `reindex_horizontal` and `reindex_vertical`, by
+  `x_piLpCongrLeft_sumCongr` and `y_piLpCongrLeft_sumCongr`.
+  `sum_unitaryFrame` goes through `TauCeti.GLSymplectic.sum_ofUnitary`, and
+  `reindex_trans` through `LinearIsometryEquiv.piLpCongrLeft_trans`.
 
 ### `Topology/Grassmannian/Lagrangian/Sum.lean`
 
@@ -793,6 +838,9 @@ The manifold structure and the milestone.
   lemmas (planned by §1, built as in building issue 11).
 - *Symplectic subspaces* (merged, #64):
   `isLagrangian_iff_isIsotropic_and_two_mul_finrank_eq`.
+- The library's general `LinearAlgebra/Matrix/Realify.lean` (merged, #173 and
+  #232; it imports only Tau Ceti): `Matrix.realify_reindex`, for
+  `reindex_unitaryFrame`.
 - Tau Ceti:
   - Lagrangian subspaces and graphs: `SymplecticForm.IsLagrangian`,
     `IsLagrangian.two_mul_finrank`,
@@ -852,7 +900,7 @@ The manifold structure and the milestone.
   `MulAction.compHom`, `MulAction.exists_smul_eq`, `MulAction.stabilizer`,
   `unitarySubgroupUnitsEquiv`, `IsQuotientMap.continuous_iff`,
   `IsOpenQuotientMap.prodMap`, `Topology.IsInducing.of_comp`,
-  `LinearIsometryEquiv.piLpCongrLeft`, `Matrix.reindex_apply`,
+  `LinearIsometryEquiv.piLpCongrLeft`,
   `PiLp.continuousLinearEquiv`, `contDiffAt_ringInverse`.
 
 Nothing here redefines a Mathlib or Tau Ceti notion. The new definitions are

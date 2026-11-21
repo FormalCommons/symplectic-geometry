@@ -523,12 +523,21 @@ it into issues; the overview fixes its folders and its dependencies.
   `Matrix.toEuclideanLin (Matrix.fromRows X Y)`), and
   `LinearAlgebra/Matrix/SelfAdjoint.lean` (`Matrix.finrank_selfAdjoint`:
   the symmetric $n\times n$ matrices have dimension $n(n+1)/2$, from Tau
-  Ceti's `LinearMap.BilinForm.finrank_symmSubmodule`). One file of general
-  operator theory serves it too:
+  Ceti's `LinearMap.BilinForm.finrank_symmSubmodule`). Four more general
+  files serve it too:
   `Analysis/InnerProductSpace/Projection/Basic.lean`
   (`Submodule.starProjection_map_unitary`: the projection onto `u K`, for a
   unitary `u`, is `u P_K u⋆`; with the instance
-  `Submodule.HasOrthogonalProjection.map_unitary`). The part also adds
+  `Submodule.HasOrthogonalProjection.map_unitary`),
+  `Analysis/InnerProductSpace/PiL2.lean`
+  (`Matrix.piLpCongrLeft_toEuclideanLin_apply`: relabelling coordinates
+  along `e` turns the action of `M` into that of `reindex e e M`),
+  `Analysis/Normed/Lp/PiLp.lean`
+  (`LinearIsometryEquiv.piLpCongrLeft_trans`: relabelling along `e`, then
+  along `f`, is relabelling along `e.trans f`), and
+  `LinearAlgebra/Matrix/GeneralLinearGroup/Symplectic/Unitary.lean`
+  (`TauCeti.GLSymplectic.sum_ofUnitary`: `ofUnitary` turns the block sum
+  `Matrix.UnitaryGroup.sum` into `GLSymplectic.sum`). The part also adds
   one declaration about `StdSpace ι` alone to *Standard model*'s
   `Standard/Basic.lean`: `StdSpace.complexEuclideanEquiv`, the map from
   `EuclideanSpace ℂ ι`. For the coordinate permutation along
