@@ -169,6 +169,7 @@ theorem bilinFormAt_sub (ω' : ContMDiffTwoForm I n F V) (x : M) :
   simp
 
 /-- On a fibre, two two-forms have the same bilinear form exactly when they agree there. -/
+@[simp]
 theorem bilinFormAt_inj (ω' : ContMDiffTwoForm I n F V) (x : M) :
     ω.bilinFormAt x = ω'.bilinFormAt x ↔ ω x = ω' x :=
   ⟨fun h ↦ ContinuousAlternatingMap.toAlternatingMap_injective <|
@@ -184,8 +185,8 @@ theorem ext_bilinFormAt {ω' : ContMDiffTwoForm I n F V}
 /-- The bilinear form of a two-form vanishes on a fibre exactly when the form vanishes there. -/
 @[simp]
 theorem bilinFormAt_eq_zero_iff (x : M) : ω.bilinFormAt x = 0 ↔ ω x = 0 := by
-  rw [← bilinFormAt_zero (I := I) (n := n) (F := F) x, bilinFormAt_inj]
-  rfl
+  rw [← bilinFormAt_zero (I := I) (n := n) (F := F) x, bilinFormAt_inj, ContMDiffSection.coe_zero,
+    Pi.zero_apply]
 
 /-! ### The flat map -/
 
@@ -597,7 +598,7 @@ end FrameTransition
 section ContMDiffFrameTransition
 
 variable {W : Type*} [NormedAddCommGroup W] [NormedSpace ℝ W] [FiniteDimensional ℝ W]
-  {Φ Φ' : ∀ x, W ≃L[ℝ] V x} {U : Set M}
+  {Φ Φ' : ∀ x, W ≃L[ℝ] V x} {U : Set M} {n : WithTop ℕ∞}
 
 /-- Over an open set `U`, if two frames `Φ` and `Φ'` with model fibre `W` of finite dimension
 depend `C^n` on `(x, v) ∈ U × W`, then so does their transition map, as a map from `U` to
