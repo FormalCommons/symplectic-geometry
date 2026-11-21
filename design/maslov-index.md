@@ -549,8 +549,9 @@ The Robbin–Salamon index of paths, relative to a Lagrangian `V`.
   `ℒ.pathMaslovIndex_refl` (`@[simp]`), `ℒ.pathMaslovIndex_sum` (the product
   property, for the sum of two paths relative to the sum of two Lagrangians,
   G5), `ℒ.pathMaslovIndex_eq_zero_of_finrank_eq` (zero: `finrank (γ t ⊓ V)`
-  constant, moved to `V₀` by `ℒ.finrank_smul_inf_smul` of
-  `Lagrangian/Transverse.lean`), `ℒ.pathMaslovIndex_graph` (localization: for `V = V₀`
+  constant, moved to `V₀` by `ℒ.finrank_inf_unitaryFrame` of
+  `Lagrangian/Transverse.lean` and `ℒ.finrank_unitaryFrame_inf_horizontal` of
+  `Lagrangian/Action.lean`), `ℒ.pathMaslovIndex_graph` (localization: for `V = V₀`
   and a path of Lagrangians that are the graphs $\{(x,A(t)x)\}$ of a continuous path of real
   matrices, with no symmetry hypothesis since each graph is Lagrangian, half the change of
   `Matrix.signature`, from `maslovIndex_eq_signature_sub_of_souriau_eq_cayley`,
