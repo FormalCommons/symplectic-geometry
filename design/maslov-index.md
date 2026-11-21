@@ -299,8 +299,9 @@ algebra about Tau Ceti's `GLSymplectic`, not about the Maslov index, and its
 continuity is topology of that group. They go where Tau Ceti keeps the algebra
 and the topology of `GLSymplectic`, so that they can move there unchanged.
 The third file holds derivatives of matrix-valued functions (entrywise
-derivatives, transpose, product rule), which `Crossing/Form.lean` uses and
-which changes of frame `Z * g` need later; it sits beside Tau Ceti's file of
+derivatives, transpose, product rule, inverse), which `Crossing/Form.lean`
+uses, `Crossing/Path.lean` for the inverse (`HasDerivWithinAt.matrix_inv`),
+and which changes of frame `Z * g` need later; it sits beside Tau Ceti's file of
 the same name, so that the two merge upstream. The fourth holds the matrix
 `1 + Eᵢᵢ a` of the coordinate half-turn's frame
 (`Matrix.one_add_single_eq_diagonal`, `Matrix.isUnit_one_add_single_iff`),
@@ -613,7 +614,9 @@ an element of `ℒ ι`.
   `lagrangianCrossingForm_vertical`, the value $-\langle Yu,X'u\rangle$ for
   `V = V₁` (the form of the loop formula); `lagrangianCrossingForm_graph`, the
   identification with Tau Ceti's `Matrix.crossingForm A A'` for `Z = (1; A)`
-  and `V = V₀`.
+  and `V = V₀`; `lagrangianCrossingForm_smul`, homogeneity in `Z'`; and
+  `lagrangianCrossingForm_eq_zero_of_inf_eq_bot`, the form is zero where the
+  image of `Z` meets `V` only in `0`.
 - `stdForm_toEuclideanLin_comm_of_hasDerivWithinAt`: let
   `Z : ℝ → Matrix (ι ⊕ ι) ι ℝ` have isotropic images on a set `s`,
   `stdForm ι (toEuclideanLin (Z r) u) (toEuclideanLin (Z r) v) = 0` for all
@@ -708,22 +711,35 @@ the part adds no signature function.
 ### `LinearAlgebra/Symplectic/Lagrangian/Maslov/Crossing/Path.lean`
 
 - `ℒ.pathMaslovIndex_eq_crossing_sum`: let `γ : Path Λ Λ'`, `V : ℒ ι`, and
-  `Z Z' : ℝ → Matrix (ι ⊕ ι) ι ℝ` with `Z` continuous on `Icc 0 1`, each `Z t`
-  injective with image `γ t`, and, at each crossing `t ∈ Icc 0 1`
-  (`γ t ⊓ V ≠ ⊥`), `HasDerivWithinAt Z (Z' t) (Icc 0 1) t` and a nondegenerate
-  `lagrangianCrossingForm (Z t) (Z' t) V`. Then `pathMaslovIndex γ V` is half
-  the sum of the signatures at `0` and `1` plus `∑ᶠ t ∈ Ioo 0 1` of the
-  signatures, exactly the shape of Tau Ceti's
-  `maslovIndex_eq_crossingForm_add_finsum_of_souriau_eq_cayley`. Proof: the
-  crossings are finite (`ℒ.eventually_not_crossing_of_regular`, in a compact
-  interval). Near each time `t₀` choose a Lagrangian `W` transverse to both
+  `Z Z' : ℝ → Matrix (ι ⊕ ι) ι ℝ` with image `γ t` for each `t : I`
+  (`LinearMap.range (toEuclideanLin (Z t)) = γ t`), and, at each crossing
+  `t : I` (`γ t ⊓ V ≠ ⊥`), `HasDerivWithinAt Z (Z' t) (Icc 0 1) t` and a
+  nondegenerate `lagrangianCrossingForm (Z t) (Z' t) V`. Then
+  `pathMaslovIndex γ V` is half the sum of the signatures at `0` and `1` plus
+  `∑ᶠ t ∈ Ioo 0 1` of the signatures, exactly the shape of Tau Ceti's
+  `maslovIndex_eq_crossingForm_add_finsum_of_souriau_eq_cayley`. Neither
+  continuity of `Z` nor injectivity of `Z t` is assumed: the second follows
+  from the image being Lagrangian, and the proof reads continuity off `γ`.
+  Proof: the crossings are finite (`ℒ.finite_setOf_inf_ne_bot_of_regular`,
+  from `ℒ.eventually_not_crossing_of_regular` in a compact interval), and the
+  signatures vanish elsewhere (`lagrangianCrossingForm_eq_zero_of_inf_eq_bot`).
+  Near each time `t₀` choose a Lagrangian `W` transverse to both
   `V` and `γ t₀` (G8), and a symplectic matrix taking `V` to `V₀` and `W` to
-  `V₁` (G9); near `t₀` the moved path is transverse to `V₁`, hence of the form
-  $t\mapsto\operatorname{graph}A(t)$ over `V₀` (G7), with `A` differentiable
-  wherever `Z` is. Cut `[0, 1]` at non-crossing times into pieces that each
-  lie in one such neighbourhood, apply Tau Ceti's graph theorem to each
-  through `ℒ.pathMaslovIndex_smul`, the naturality of the form,
-  `ℒ.pathMaslovIndex_graph` and `lagrangianCrossingForm_graph`, and add the
+  `V₁` (G9); where `γ t` is transverse to `W`, the moved path is transverse to
+  `V₁`, hence of the form $t\mapsto\operatorname{graph}A(t)$ over `V₀` with
+  $A=YX^{-1}$ for the blocks of the moved frame (G7, with
+  `StdSpace.disjoint_range_toEuclideanLin_fromRows_ker_x_iff_of_isLagrangian`
+  for the invertibility of $X$); `A` is continuous as `γ` read in
+  `ℒ.graphChart`, and differentiable wherever `Z` is
+  (`HasDerivWithinAt.matrix_inv`). Cut `[0, 1]` into pieces that each lie in
+  one such neighbourhood (`exists_monotone_Icc_subset_open_cover_unitInterval`;
+  a cut may fall on a crossing, which then counts half on each side),
+  reparametrize each piece by `[0, 1]` (which scales the crossing forms by a
+  positive constant, `lagrangianCrossingForm_smul`), apply Tau Ceti's graph
+  theorem to each through `ℒ.pathMaslovIndex_smul`, the naturality of the
+  form, `lagrangianCrossingForm_graph` and
+  `ℒ.pathMaslovIndex_graph_eq_crossing_sum` (the graph case relative to `V₀`,
+  read through unitary frames as `ℒ.pathMaslovIndex_graph` is), and add the
   pieces with `ℒ.pathMaslovIndex_trans`.
 
 ### `LinearAlgebra/Symplectic/Lagrangian/Maslov/Crossing/Loop.lean`

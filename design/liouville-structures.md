@@ -164,7 +164,6 @@ Further choices:
 | File | Contents | Issue |
 |---|---|---|
 | `Geometry/Symplectic/Liouville/ContactType.lean` | contact type through local Liouville fields; both directions in the book's signs | 1 |
-| `Geometry/Manifold/TubularNeighborhood/RelativePoincare.lean` | primitives with prescribed pullback near an embedding, for the converse in `ContactType.lean` | 1 |
 | `Geometry/Symplectic/Liouville/Collar.lean` | the Liouville collar of a hypersurface; first milestone | 2 |
 | `Geometry/Contact/StableHamiltonian.lean` | wedge criterion, smooth Reeb field, invariance, contact case; the model and its converse; second milestone | 3, 4 |
 | `Topology/Sets/Strip.lean` | the open strip `(-ε, ε) × X` of `ℝ × X` and the tube lemma for it | 4 |
@@ -175,7 +174,7 @@ Further choices:
 | `Geometry/Symplectic/Liouville/Completion.lean` | $\widehat\omega$, $\widehat Y$, $\widehat\lambda$; third milestone | 9, 10 |
 | `Geometry/Symplectic/Liouville/Domain.lean` | the completion of a Liouville domain is a Tau Ceti completion | 11 |
 
-`ContactType.lean`, `RelativePoincare.lean`, `Collar.lean`, `StableHamiltonian.lean`,
+`ContactType.lean`, `Collar.lean`, `StableHamiltonian.lean`,
 `Completion.lean` and `Domain.lean` have the paths of Tau Ceti files and
 extend them. No folder below has the name of a Tau Ceti file at its place:
 Tau Ceti's `Geometry/Manifold/Boundary/Collar/` is a folder with no
@@ -224,8 +223,9 @@ In `TauCeti`, beside Tau Ceti's file, for `ω` a closed `C¹` two-form
   vanishes, gives $\eta$ with $d\eta=\omega+d\bar\alpha$, vanishing along
   `i`; $\lambda=\bar\alpha-\eta$ has $d\lambda=-\omega$ and $i^*\lambda=\alpha$
   (these steps, for forms of any degree, are
-  `SmoothEmbedding.exists_mextDeriv_eq_and_mpullback_eq` in
-  `Geometry/Manifold/TubularNeighborhood/RelativePoincare.lean`);
+  `SmoothEmbedding.exists_mextDeriv_eq_and_mpullback_eq`, which issue 1 adds
+  to `Geometry/Manifold/TubularNeighborhood/RelativePoincare.lean` of
+  *Moser isotopy*);
   `Y` is the field with $\iota_Y\omega=-\lambda$, given at each point by the
   inverse flat map `(ω.flat x).inverse` of
   `TauCeti.SmoothTwoForm.IsNondegenerate.interiorEquiv`, which itself needs a
@@ -609,6 +609,10 @@ Expected size: 300 lines.
 - *Moser isotopy*: `Geometry/Manifold/DifferentialForm/Smooth.lean`
   (`SmoothForm.bilinFormAt_smul`, `SmoothForm.bilinFormAt_neg`), only in
   `StableHamiltonian.lean`.
+- *Moser isotopy*: `Geometry/Manifold/TubularNeighborhood/RelativePoincare.lean`,
+  merged, which issue 1 extends by
+  `SmoothEmbedding.exists_mextDeriv_eq_and_mpullback_eq`, only in
+  `ContactType.lean`.
 - Tau Ceti, Liouville and contact type: `IsLiouvilleVectorField`,
   `isLiouvilleVectorField_iff_mextDeriv_interior_eq`, `IsContactType`,
   `isContactType_iff`, `exists_isRestrictedContactType_iff`,

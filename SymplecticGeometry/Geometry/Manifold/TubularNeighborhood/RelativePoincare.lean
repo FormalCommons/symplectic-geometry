@@ -5,27 +5,41 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
 public import TauCeti.Geometry.Manifold.DifferentialForm.Closed
-import TauCeti.Geometry.Manifold.TubularNeighborhood.RelativePoincare
+public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
+public import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.LocalDiffeomorph
+public import TauCeti.Geometry.Manifold.TubularNeighborhood.RelativePoincare
 import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffeomorph
 import TauCeti.Geometry.Manifold.DifferentialForm.Opens
 
 /-!
-# Primitives with prescribed pullback near an embedded submanifold
+# Relative primitives near an embedded submanifold
 
-Let `f : M → N` be a smooth embedding of boundaryless finite-dimensional manifolds, with `N`
-Hausdorff and second countable, let `θ` be a closed smooth `(k + 1)`-form on `N`, and let `β` be a
-smooth `k`-form on `M` with `dβ = f^* θ`. Then on an open neighbourhood of the image of `f`,
-`θ` has a smooth primitive whose pullback along `f` is `β`
-(`TauCeti.SmoothEmbedding.exists_mextDeriv_eq_and_mpullback_eq`). For `β = 0` its conclusion
-`f^* γ = 0` is weaker than that of Tau Ceti's relative Poincaré lemma
-`TauCeti.SmoothEmbedding.exists_isSmoothForm_relative_primitive`, whose primitive vanishes along
-the image as an ambient tensor and has a first-jet property there; the theorem generalizes the
-pullback condition to an arbitrary `β`.
+This file derives, from Tau Ceti's relative Poincaré lemma
+`TauCeti.SmoothEmbedding.exists_isSmoothForm_relative_primitive`, two kinds of primitives of
+closed forms near the image of a smooth embedding.
 
-The proof follows the converse half of McDuff–Salamon's Proposition 3.5.31.
+**The difference of two closed forms.** Let `f : Q → M` be an embedding into a boundaryless
+Hausdorff second-countable manifold, and let `η₀`, `η₁` be closed smooth `(k + 1)`-forms on `M`
+with the same pullback to `Q`. Then on a tube `W` around `f(Q)`, inside any given open set
+containing `f(Q)`, there is a smooth `k`-form `β` with `dβ = η₁ - η₀` on `W` that vanishes along
+`f(Q)`. Its coordinate expressions have zero derivative at each point `f q` at which `η₁` and `η₀`
+agree as forms on `T_{f q} M`. This is the first step of the relative Moser theorems
+([McDuffSalamon2017], Lemma 3.2.1 and Exercise 3.2.6; [CannasdaSilva2001], Theorem 7.4). The
+proof applies the relative Poincaré lemma to `η₁ - η₀` and bundles the primitive as a smooth form
+on the tube, as Tau Ceti's
+`TauCeti.SmoothTwoForm.exists_diffeomorph_fix_embedding_eventually_mpullback_eq` does inside its
+proof.
+
+**Prescribed pullback.** Let `f : M → N` be a smooth embedding of boundaryless
+finite-dimensional manifolds, with `N` Hausdorff and second countable, let `θ` be a closed smooth
+`(k + 1)`-form on `N`, and let `β` be a smooth `k`-form on `M` with `dβ = f^* θ`. Then on an open
+neighbourhood of the image of `f`, `θ` has a smooth primitive whose pullback along `f` is `β`.
+For `β = 0` its conclusion `f^* γ = 0` is weaker than that of the relative Poincaré lemma, whose
+primitive vanishes along the image as an ambient tensor and has a first-jet property there; the
+theorem generalizes the pullback condition to an arbitrary `β`. The proof follows the converse
+half of McDuff–Salamon's Proposition 3.5.31 ([McDuffSalamon2017]):
 
 * `TauCeti.SmoothForm.mpullback_sub_mextDerivₗ_eq_zero`: if `dβ = f^* θ` and `f^* ψ = β`, then
   `θ - dψ` pulls back to zero along `f`.
@@ -41,14 +55,21 @@ The proof follows the converse half of McDuff–Salamon's Proposition 3.5.31.
   `TauCeti.mpullback_mextDeriv_at`). They are the `Subtype.val` counterparts of Tau Ceti's
   `TauCeti.contMDiffAt_mpullback_inclusion_iff` and `TauCeti.mpullback_inclusion_mextDeriv`.
 
-The main theorem applies the case of a left inverse on the open neighbourhood where the smooth
+The theorem itself applies the case of a left inverse on the open neighbourhood where the smooth
 retraction of `TauCeti.SmoothEmbedding.exists_contMDiffOn_retraction` is defined, and extends the
 primitive to `N`.
 
+## Main results
+
+* `TauCeti.SmoothEmbedding.exists_mextDeriv_eq_and_mpullback_eq`: a primitive of `θ` near the
+  image of `f` whose pullback along `f` is `β`.
+* `TauCeti.SmoothEmbedding.exists_smoothForm_relative_primitive_sub`: the primitive of `η₁ - η₀`
+  on a tube around `f(Q)`.
+
 ## References
 
-* [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017],
-  Proposition 3.5.31.
+* [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017]
+* [A. Cannas da Silva, *Lectures on Symplectic Geometry*][CannasdaSilva2001]
 -/
 
 public section
@@ -73,21 +94,19 @@ theorem exists_mpullback_subtype_val_eq {U : TopologicalSpace.Opens N} (ξ : Rou
   rw [mpullback_subtype_val_apply]
   exact dite_eq_left_of_eq_true (eq_true x.property)
 
-variable [IsManifold J ∞ N]
-
 /-- At a point of an open subset `U`, a form is `C^n` exactly when its restriction to `U` is. -/
-theorem contMDiffAt_mpullback_subtype_val_iff {U : TopologicalSpace.Opens N} {n : ℕ∞}
-    (γ : RoughForm J N F k) (x : U) :
+theorem contMDiffAt_mpullback_subtype_val_iff [IsManifold J 1 N] {U : TopologicalSpace.Opens N}
+    {n : WithTop ℕ∞} (γ : RoughForm J N F k) (x : U) :
     ContMDiffAt J (J.prod 𝓘(ℝ, V [⋀^Fin k]→L[ℝ] F)) n
         (fun y ↦ TotalSpace.mk' (V [⋀^Fin k]→L[ℝ] F) y
           (mpullback J J (Subtype.val : U → N) γ y)) x ↔
       ContMDiffAt J (J.prod 𝓘(ℝ, V [⋀^Fin k]→L[ℝ] F)) n
         (fun y ↦ TotalSpace.mk' (V [⋀^Fin k]→L[ℝ] F) y (γ y)) (x : N) :=
-  (isLocalDiffeomorph_subtype_val (n := ∞) x).contMDiffAt_mpullback_form_iff (by simp)
+  (isLocalDiffeomorph_subtype_val (n := ω) x).contMDiffAt_mpullback_form_iff (by simp)
 
 /-- At a point of an open subset `U` where a form is `C¹`, its restriction to `U` has the same
 exterior derivative. -/
-theorem mextDeriv_mpullback_subtype_val_apply {U : TopologicalSpace.Opens N}
+theorem mextDeriv_mpullback_subtype_val_apply [IsManifold J 2 N] {U : TopologicalSpace.Opens N}
     {γ : RoughForm J N F k} {x : U}
     (hγ : ContMDiffAt J (J.prod 𝓘(ℝ, V [⋀^Fin k]→L[ℝ] F)) 1
       (fun y ↦ TotalSpace.mk' (V [⋀^Fin k]→L[ℝ] F) y (γ y)) (x : N)) :
@@ -229,6 +248,50 @@ theorem exists_mextDeriv_eq_and_mpullback_eq (f : SmoothEmbedding I J ∞ M N) {
       ((hval.comp hval').mdifferentiable (by simp)), mpullback_comp
       (hval'.mdifferentiable (by simp)) (hval.mdifferentiable (by simp)), hγ, hγ',
       ← SmoothForm.coe_mpullback _ j'.contMDiff, hjξ]
+
+end SmoothEmbedding
+
+namespace SmoothEmbedding
+
+variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
+  [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [I.Boundaryless]
+  [TopologicalSpace M] [ChartedSpace H M] [IsManifold I ∞ M] [T2Space M]
+  [SecondCountableTopology M]
+  {E' H' Q : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [FiniteDimensional ℝ E']
+  [TopologicalSpace H'] {J : ModelWithCorners ℝ E' H'} [J.Boundaryless]
+  [TopologicalSpace Q] [ChartedSpace H' Q] [IsManifold J ∞ Q]
+  {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] [CompleteSpace F]
+
+open TopologicalSpace in
+/-- **A relative primitive of a difference of closed forms on a tube.** Let `f : Q → M` be a
+smooth embedding and let `η₀`, `η₁` be closed smooth `(k + 1)`-forms on `M` with
+`f^* η₁ = f^* η₀`. For every open set `O ⊇ f(Q)` there are an open set `W` with
+`f(Q) ⊆ W ⊆ O` and a smooth `k`-form `β` on `W` with `dβ = η₁|_W - η₀|_W`, such that `β`
+vanishes at every point `f q`, and the chart expression of `β` at `f q` has zero derivative
+whenever `η₁` and `η₀` agree at `f q`. -/
+theorem exists_smoothForm_relative_primitive_sub (f : SmoothEmbedding J I ∞ Q M) {k : ℕ}
+    {η₀ η₁ : SmoothForm I M F (k + 1)} (h₀ : η₀.IsClosed) (h₁ : η₁.IsClosed)
+    (hf : SmoothForm.mpullback f f.contMDiff η₁ = SmoothForm.mpullback f f.contMDiff η₀)
+    {O : Set M} (hO : IsOpen O) (hfO : range f ⊆ O) :
+    ∃ (W : Opens M) (_ : (W : Set M) ⊆ O) (hfW : range f ⊆ W) (β : SmoothForm I W F k),
+      mextDeriv β.val =
+        (SmoothForm.mpullback (Subtype.val : W → M) contMDiff_subtypeVal η₁ -
+          SmoothForm.mpullback (Subtype.val : W → M) contMDiff_subtypeVal η₀).val ∧
+      (∀ q, β.val ⟨f q, hfW (mem_range_self q)⟩ = 0) ∧
+      ∀ q, η₁.val (f q) = η₀.val (f q) →
+        HasFDerivAt (RoughForm.inChartAt β.val ⟨f q, hfW (mem_range_self q)⟩)
+          (0 : E →L[ℝ] E [⋀^Fin k]→L[ℝ] F)
+          (extChartAt I (⟨f q, hfW (mem_range_self q)⟩ : W) ⟨f q, hfW (mem_range_self q)⟩) := by
+  have hf0 : mpullback (F := F) J I f (η₁ - η₀).val = 0 := by
+    have h := congrArg Subtype.val (sub_eq_zero.2 hf)
+    rwa [← map_sub, SmoothForm.coe_mpullback] at h
+  obtain ⟨W, hWO, hfW, hprim⟩ := f.exists_isSmoothForm_relative_primitive (F := F) hO hfO
+  obtain ⟨β, hβ, hdβ, hβ0, hβ1⟩ := hprim (r := ⊤) le_top (η₁ - η₀).isSmoothForm
+    ((SmoothForm.isClosed_def _).1 (h₁.sub h₀)) hf0
+  refine ⟨W, hWO, hfW, ⟨β, hβ.mem_smoothBundleForms⟩, ?_, hβ0, fun q hq ↦ hβ1 q ?_⟩
+  · rw [hdβ, ← map_sub]
+    exact (SmoothForm.coe_mpullback _ _ _).symm
+  · rw [AddSubgroupClass.coe_sub, Pi.sub_apply, hq, sub_self]
 
 end SmoothEmbedding
 

@@ -13,7 +13,7 @@ public import TauCeti.Topology.Algebra.Module.SymmetricBilinear.Basic
 /-!
 # Continuous bilinear forms
 
-This file collects three facts about continuous bilinear maps `V →L[𝕜] V →L[𝕜] G`.
+This file collects four facts about continuous bilinear maps `V →L[𝕜] V →L[𝕜] G`.
 
 On a finite-dimensional Hausdorff topological vector space over a complete field, every bilinear
 form is continuous. Tau Ceti shows that making a bilinear form continuous and then forgetting
@@ -33,9 +33,17 @@ together with the symmetric part it decomposes every continuous bilinear map. Fo
 value is alternating, and it is nondegenerate exactly when `b - bᵀ` is, an open condition in
 finite dimension.
 
+For continuous bilinear forms `β₀` on `V₀` and `β₁` on `V₁` and a continuous linear map
+`T : V₁ →L V₀`, the adjoint `ContinuousLinearMap.bilinAdjoint β₀ β₁ T : V₀ →L V₁` is
+`u ↦ β₁⁻¹ (β₀ u ∘ T)`. When `β₁` is invertible it is the unique map `A` with
+`β₁ (A u) y = β₀ u (T y)`, so `A` and `T` form an adjoint pair. In finite dimensions, for `β₁`
+nondegenerate, it is the linear map `(β₁.toDual)⁻¹ ∘ T.dualMap ∘ β₀`.
+
 ## Main definitions
 
 * `ContinuousLinearMap.skewSymmetrizeBilinear`: the skew part `b ↦ 2⁻¹ • (b - b.flip)`.
+* `ContinuousLinearMap.bilinAdjoint`: the adjoint `u ↦ β₁⁻¹ (β₀ u ∘ T)` of `T` for the forms
+  `β₀` and `β₁`.
 
 ## Main results
 
@@ -60,6 +68,12 @@ finite dimension.
   nondegenerate if and only if `b - b.flip` is.
 * `ContinuousLinearMap.isOpen_setOf_nondegenerate_toBilinForm_sub_flip`: in finite dimension,
   the forms `b` with `b - b.flip` nondegenerate form an open set.
+* `ContinuousLinearMap.apply_bilinAdjoint_apply`, `ContinuousLinearMap.eq_bilinAdjoint_iff`:
+  for invertible `β₁`, the adjoint is the unique map `A` with `β₁ (A u) y = β₀ u (T y)`.
+* `ContinuousLinearMap.isAdjointPair_bilinAdjoint`: for invertible `β₁`, the adjoint and `T`
+  are an adjoint pair in the sense of `LinearMap.IsAdjointPair`.
+* `ContinuousLinearMap.coe_bilinAdjoint`: in finite dimensions, its linear map is
+  `(β₁.toDual)⁻¹ ∘ T.dualMap ∘ β₀`.
 -/
 
 public section
@@ -238,6 +252,59 @@ theorem isOpen_setOf_nondegenerate_toBilinForm_sub_flip [FiniteDimensional 𝕜 
     (continuous_id.sub (flipₗᵢ 𝕜 V V 𝕜).continuous)
 
 end SkewPart
+
+section BilinAdjoint
+
+variable {𝕜 V₀ V₁ : Type*} [NontriviallyNormedField 𝕜]
+  [AddCommGroup V₀] [Module 𝕜 V₀] [TopologicalSpace V₀] [IsNormableSpace 𝕜 V₀]
+  [AddCommGroup V₁] [Module 𝕜 V₁] [TopologicalSpace V₁] [IsNormableSpace 𝕜 V₁]
+
+/-- The adjoint `u ↦ β₁⁻¹ (β₀ u ∘ T)` of `T : V₁ →L V₀` for the bilinear forms `β₀` on `V₀` and
+`β₁` on `V₁`. When `β₁` is invertible, it is the unique map `A` with `β₁ (A u) y = β₀ u (T y)`
+(`ContinuousLinearMap.eq_bilinAdjoint_iff`). -/
+noncomputable def bilinAdjoint (β₀ : V₀ →L[𝕜] V₀ →L[𝕜] 𝕜) (β₁ : V₁ →L[𝕜] V₁ →L[𝕜] 𝕜)
+    (T : V₁ →L[𝕜] V₀) : V₀ →L[𝕜] V₁ :=
+  β₁.inverse ∘L (β₀.flip ∘L T).flip
+
+theorem bilinAdjoint_def (β₀ : V₀ →L[𝕜] V₀ →L[𝕜] 𝕜) (β₁ : V₁ →L[𝕜] V₁ →L[𝕜] 𝕜)
+    (T : V₁ →L[𝕜] V₀) : bilinAdjoint β₀ β₁ T = β₁.inverse ∘L (β₀.flip ∘L T).flip :=
+  (rfl)
+
+variable {β₀ : V₀ →L[𝕜] V₀ →L[𝕜] 𝕜} {β₁ : V₁ →L[𝕜] V₁ →L[𝕜] 𝕜}
+
+/-- The defining identity of the adjoint: `β₁ (A u) y = β₀ u (T y)`. -/
+theorem apply_bilinAdjoint_apply (hβ₁ : β₁.IsInvertible) (T : V₁ →L[𝕜] V₀) (u : V₀) (y : V₁) :
+    β₁ (bilinAdjoint β₀ β₁ T u) y = β₀ u (T y) := by
+  simp [bilinAdjoint_def, hβ₁.self_apply_inverse]
+
+/-- For invertible `β₁`, the adjoint is the only map `A` with `β₁ (A u) y = β₀ u (T y)`. -/
+theorem eq_bilinAdjoint_iff (hβ₁ : β₁.IsInvertible) {T : V₁ →L[𝕜] V₀} {A : V₀ →L[𝕜] V₁} :
+    A = bilinAdjoint β₀ β₁ T ↔ ∀ u y, β₁ (A u) y = β₀ u (T y) := by
+  refine ⟨fun h ↦ h ▸ apply_bilinAdjoint_apply hβ₁ T, fun h ↦ ext fun u ↦ hβ₁.injective ?_⟩
+  ext y
+  rw [h, apply_bilinAdjoint_apply hβ₁]
+
+/-- For invertible `β₁`, the adjoint of `T` and `T` are an adjoint pair for the bilinear forms of
+`β₀` and `β₁`: `β₁ (A u) y = β₀ u (T y)`. -/
+theorem isAdjointPair_bilinAdjoint (hβ₁ : β₁.IsInvertible) (T : V₁ →L[𝕜] V₀) :
+    LinearMap.IsAdjointPair β₀.toBilinForm β₁.toBilinForm
+      (bilinAdjoint β₀ β₁ T : V₀ →ₗ[𝕜] V₁) (T : V₁ →ₗ[𝕜] V₀) :=
+  fun u y ↦ by simp [apply_bilinAdjoint_apply hβ₁]
+
+variable [CompleteSpace 𝕜] [IsTopologicalAddGroup V₁] [ContinuousSMul 𝕜 V₁] [T2Space V₁]
+  [FiniteDimensional 𝕜 V₁]
+
+/-- In finite dimensions, for nondegenerate `β₁`, the adjoint is the linear map
+`(β₁.toDual)⁻¹ ∘ T.dualMap ∘ β₀`. -/
+theorem coe_bilinAdjoint (hβ₁ : β₁.toBilinForm.Nondegenerate) (T : V₁ →L[𝕜] V₀) :
+    (bilinAdjoint β₀ β₁ T : V₀ →ₗ[𝕜] V₁) =
+      (β₁.toBilinForm.toDual hβ₁).symm.toLinearMap ∘ₗ (T : V₁ →ₗ[𝕜] V₀).dualMap ∘ₗ
+        β₀.toBilinForm := by
+  refine LinearMap.ext fun u ↦ (β₁.toBilinForm.toDual hβ₁).injective (LinearMap.ext fun y ↦ ?_)
+  simp [LinearMap.BilinForm.toDual_def,
+    apply_bilinAdjoint_apply (isInvertible_iff_nondegenerate_toBilinForm.2 hβ₁)]
+
+end BilinAdjoint
 
 end ContinuousLinearMap
 
