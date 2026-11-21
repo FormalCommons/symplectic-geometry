@@ -124,7 +124,8 @@ global name.
    complementary iff disjoint, which §6 puts in `Transverse.lean`, is
    `isCompl_iff_disjoint` in `LinearAlgebra/Symplectic/Lagrangian/Basic.lean`,
    since it holds for a general `ω` and `Transverse.lean` is about
-   `StdSpace ι`. A definition and a lemma about `StdSpace ι` alone are added to part 1's
+   `StdSpace ι`. One definition about `StdSpace ι` alone,
+   `StdSpace.complexEuclideanEquiv` with its three lemmas, is added to part 1's
    `Standard/Basic.lean` (see that section). The other departures are #79's,
    the issue that changes §6 to match: `Topology/Grassmannian/Lagrangian/Finite.lean`;
    the general files under `LinearAlgebra/Matrix/` (the real points of the
@@ -220,12 +221,12 @@ lacks. It goes beside `x_complexToRealEuclidean`, in the namespace
 
 This part also needs that the coordinate permutation
 `LinearIsometryEquiv.piLpCongrLeft 2 ℝ ℝ (e.sumCongr e)`, for `e : ι ≃ κ`,
-carries `stdForm ι` to `stdForm κ`. That lemma exists already:
-`SymplecticGeometry.isSymplectomorphism_piLpCongrLeft_sumCongr`, in
-`Analysis/InnerProductSpace/Symplectic/Ellipsoid/NormalForm.lean` (from
-*Linear nonsqueezing*). Building issue 11 imports and uses it, and does not
-add it again; moving it to `Standard/Basic.lean` is a refactor of its own,
-#141.
+carries `stdForm ι` to `stdForm κ`. That lemma exists already, as
+`SymplecticGeometry.isSymplectomorphism_piLpCongrLeft_sumCongr`, so this part
+does not add it again. It currently sits in a *Linear nonsqueezing* file; the
+refactor #141 moves it to `Standard/Basic.lean`, and building issue 11 uses it
+from there, so that issue waits for #141 rather than importing the
+nonsqueezing file.
 
 The direct sum of two models is §1's `StdSpace.sumEquiv ι κ : StdSpace (ι ⊕ κ)
 ≃L[ℝ] StdSpace ι × StdSpace κ`, in this same file, with its lemma that it
@@ -677,10 +678,6 @@ The manifold structure and the milestone.
   `mem_symplecticGroup_iff_forall_stdForm` and
   `TauCeti.conj_complexToRealEuclidean_toLin'` (merged, #62); `StdSpace.sumEquiv`
   with its two lemmas (planned by §1, built as in building issue 11).
-- *Linear nonsqueezing* (merged, #99): only
-  `isSymplectomorphism_piLpCongrLeft_sumCongr`, which building issue 11
-  imports from `Ellipsoid/NormalForm.lean` until #141 moves it to
-  `Standard/Basic.lean`.
 - *Symplectic subspaces* (merged, #64):
   `isLagrangian_iff_isIsotropic_and_two_mul_finrank_eq`.
 - Tau Ceti:
@@ -805,10 +802,10 @@ merged.
 11. **Direct sums and reindexing, as algebra.**
     `LinearAlgebra/Symplectic/Lagrangian/Sum.lean`: `ℒ.sum`, `ℒ.reindex` and
     their compatibilities, using the existing
-    `isSymplectomorphism_piLpCongrLeft_sumCongr` from
-    `Ellipsoid/NormalForm.lean`; and §1's `StdSpace.sumEquiv` with its two
+    `isSymplectomorphism_piLpCongrLeft_sumCongr` from `Standard/Basic.lean`,
+    where #141 moves it; and §1's `StdSpace.sumEquiv` with its two
     lemmas, if the *Symplectic vector bundles* issue that builds it has not
-    merged first. About 300 lines. Blocked by 6.
+    merged first. About 300 lines. Blocked by 6 and by #141.
 12. **Direct sums and reindexing, topology.**
     `Topology/Grassmannian/Lagrangian/Sum.lean`: `continuous_sum` and
     `reindexHomeomorph`. About 100 lines. Blocked by 7 and 11.
