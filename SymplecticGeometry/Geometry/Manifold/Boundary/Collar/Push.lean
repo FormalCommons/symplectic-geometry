@@ -7,6 +7,7 @@ module
 
 public import TauCeti.Geometry.Manifold.Boundary.Collar.Deformation
 public import TauCeti.Geometry.Manifold.Boundary.Invariance
+public import TauCeti.Topology.Homeomorph.Extend
 
 /-!
 # Pushing a compact manifold with boundary into its interior
@@ -16,7 +17,8 @@ Let `c : N × [0, 1) → M` be a collar of `f : N → M` (`TauCeti.IsCollar`), w
 `c (y, s)` to `max s (τ * t)`, and fixing the points outside the collar, is a homotopy, for
 `τ ∈ [0, 1]`, from the identity of `M` to a map `g` that sends `c (y, s)` to `c (y, t)` when
 `s < t` and fixes every point outside `TauCeti.collarPart c t = c(N × [0, t))`. So `g` takes its
-values outside `c(N × [0, t))` (`TauCeti.IsCollar.exists_homotopic_push`).
+values outside `c(N × [0, t))`
+(`TauCeti.IsCollar.exists_homotopic_push_off_collarPart`).
 
 For a compact Hausdorff charted space `M` over a finite-dimensional real model `I`, the boundary is
 closed and so compact, and it has a collar by Brown's theorem
@@ -27,8 +29,8 @@ when the boundary is (`TauCeti.IsCollar.exists_homotopy_push`).
 
 ## Main results
 
-* `TauCeti.IsCollar.exists_homotopic_push`: a collar of a compact space in a Hausdorff space
-  gives a map homotopic to the identity that raises the depth below `t` to `t`.
+* `TauCeti.IsCollar.exists_homotopic_push_off_collarPart`: a collar of a compact space in a
+  Hausdorff space gives a map homotopic to the identity that raises the depth below `t` to `t`.
 * `TauCeti.IsCollar.exists_homotopy_push`: a compact Hausdorff manifold with boundary is pushed,
   by a map homotopic to the identity, into a compact subset of its interior that misses an open
   part of the collar, nonempty when the boundary is.
@@ -72,106 +74,69 @@ private lemma raise_of_le {t : Ico (0 : ℝ) 1} {τ : unitInterval} {p : N × Ic
     (h : (τ : ℝ) * t ≤ p.2) : raise t τ p = p :=
   Prod.ext rfl (Subtype.ext (max_eq_left h))
 
-open scoped Classical in
-/-- The push at time `τ`: it raises the depth of the collar points and fixes the others. -/
-private def pushFun (t : Ico (0 : ℝ) 1) (q : unitInterval × M) : M :=
-  if h : q.2 ∈ range c then c (raise t q.1 h.choose) else q.2
-
-omit [TopologicalSpace M] [TopologicalSpace N] in
-/-- The push at time `τ` fixes the points whose collar depth, if any, is at least `τ * t`. -/
-private lemma pushFun_eq_self {t : Ico (0 : ℝ) 1} {q : unitInterval × M}
-    (h : ∀ p, c p = q.2 → (q.1 : ℝ) * t ≤ p.2) : pushFun (c := c) t q = q.2 := by
-  unfold pushFun
-  split_ifs with hq
-  · have hp := hq.choose_spec
-    rw [raise_of_le (h _ hp), hp]
-  · rfl
-
 variable (hc : IsCollar f c)
 include hc
 
-private lemma pushFun_apply (t : Ico (0 : ℝ) 1) (τ : unitInterval) (p : N × Ico (0 : ℝ) 1) :
-    pushFun (c := c) t (τ, c p) = c (raise t τ p) := by
-  unfold pushFun
-  split_ifs with h
-  · rw [hc.isOpenEmbedding.injective (h.choose_spec : c h.choose = c p)]
-  · exact (h (mem_range_self p)).elim
-
-/-- For compact `N`, the collar of depth at most `t < 1` is closed. -/
-private lemma isClosed_image [CompactSpace N] [T2Space M] (t : Ico (0 : ℝ) 1) :
-    IsClosed (c '' {p | (p.2 : ℝ) ≤ t}) := by
+/-- For compact `N` and `t < 1`, the part `c(N × [0, t])` of the collar of depth at most `t` is
+compact. -/
+theorem isCompact_image_setOf_le [CompactSpace N] {t : ℝ} (ht : t < 1) :
+    IsCompact (c '' {p | (p.2 : ℝ) ≤ t}) := by
   have hs : IsCompact {s : Ico (0 : ℝ) 1 | (s : ℝ) ≤ t} := by
     rw [Subtype.isCompact_iff]
     convert isCompact_Icc (a := (0 : ℝ)) (b := t) using 1
     ext x
-    refine ⟨?_, fun hx ↦ ⟨⟨x, hx.1, hx.2.trans_lt t.property.2⟩, hx.2, rfl⟩⟩
+    refine ⟨?_, fun hx ↦ ⟨⟨x, hx.1, hx.2.trans_lt ht⟩, hx.2, rfl⟩⟩
     rintro ⟨s, hs, rfl⟩
     exact ⟨s.property.1, hs⟩
   have hp : {p : N × Ico (0 : ℝ) 1 | (p.2 : ℝ) ≤ t} =
       (univ : Set N) ×ˢ {s : Ico (0 : ℝ) 1 | (s : ℝ) ≤ t} := by
     ext; simp
   rw [hp]
-  exact ((isCompact_univ.prod hs).image hc.isOpenEmbedding.continuous).isClosed
-
-private lemma continuous_pushFun [CompactSpace N] [T2Space M] (t : Ico (0 : ℝ) 1) :
-    Continuous (pushFun (c := c) t) := by
-  refine continuous_iff_continuousAt.2 fun ⟨τ, x⟩ ↦ ?_
-  by_cases hx : x ∈ range c
-  · -- Near a collar point, the push is the raised collar read in collar coordinates.
-    have : Nonempty (N × Ico (0 : ℝ) 1) := ⟨hx.choose⟩
-    let e := hc.isOpenEmbedding.toOpenPartialHomeomorph c
-    have hxe : x ∈ e.target := by rwa [IsOpenEmbedding.toOpenPartialHomeomorph_target]
-    have hG : ContinuousAt (fun q : unitInterval × M ↦ c (raise t q.1 (e.symm q.2))) (τ, x) :=
-      hc.isOpenEmbedding.continuous.continuousAt.comp ((continuous_raise t).continuousAt.comp
-        (continuousAt_fst.prodMk ((e.continuousAt_symm hxe).comp continuousAt_snd)))
-    refine hG.congr ?_
-    filter_upwards [continuousAt_snd.preimage_mem_nhds
-      (hc.isOpenEmbedding.isOpen_range.mem_nhds hx)] with q hq
-    obtain ⟨p, hp⟩ := hq
-    obtain ⟨σ, y⟩ := q
-    simp only at hp
-    subst hp
-    rw [hc.pushFun_apply, hc.isOpenEmbedding.toOpenPartialHomeomorph_left_inv]
-  · -- Away from the collar of depth at most `t`, the push is the identity.
-    have hxC : x ∉ c '' {p | (p.2 : ℝ) ≤ t} := fun h ↦ hx (image_subset_range _ _ h)
-    refine continuousAt_snd.congr ?_
-    filter_upwards [continuousAt_snd.preimage_mem_nhds
-      ((hc.isClosed_image t).isOpen_compl.mem_nhds hxC)] with q hq
-    refine (pushFun_eq_self fun p hp ↦ ?_).symm
-    have hpt : (t : ℝ) < p.2 := lt_of_not_ge fun h' ↦ hq ⟨p, h', hp⟩
-    exact (mul_le_of_le_one_left t.property.1 q.1.property.2).trans hpt.le
+  exact (isCompact_univ.prod hs).image hc.isOpenEmbedding.continuous
 
 /-- **Pushing along a collar.** Let `c` be a collar of `f : N → M`, with `N` compact and `M`
 Hausdorff, and let `t ∈ [0, 1)`. There is a map `g : M → M`, homotopic to the identity, that
 sends a collar point `c (y, s)` of depth `s < t` to `c (y, t)` and fixes every point outside the
 collar `c(N × [0, t))` of depth less than `t`. In particular `g` takes no value in that collar. -/
-theorem exists_homotopic_push [CompactSpace N] [T2Space M] (t : Ico (0 : ℝ) 1) :
+theorem exists_homotopic_push_off_collarPart [CompactSpace N] [T2Space M] (t : Ico (0 : ℝ) 1) :
     ∃ g : C(M, M), (ContinuousMap.id M).Homotopic g ∧
       (∀ p : N × Ico (0 : ℝ) 1, (p.2 : ℝ) < t → g (c p) = c (p.1, t)) ∧
       (∀ x ∉ collarPart c t, g x = x) ∧ range g ⊆ (collarPart c t)ᶜ := by
-  let F : C(unitInterval × M, M) := ⟨pushFun t, hc.continuous_pushFun t⟩
+  -- Away from the collar of depth at most `t`, every stage of the push is the identity.
+  obtain ⟨F, hFc, hFV⟩ := hc.isOpenEmbedding.exists_continuousMap_extend_id
+    (hc.isCompact_image_setOf_le t.property.2).isClosed.isOpen_compl
+    (fun x hx h ↦ hx (image_subset_range _ _ h))
+    ⟨fun q : unitInterval × (N × Ico (0 : ℝ) 1) ↦ raise t q.1 q.2, continuous_raise t⟩
+    fun τ p hp ↦ raise_of_le <| (mul_le_of_le_one_left t.property.1 τ.property.2).trans
+      (le_of_not_ge fun h ↦ hp ⟨p, h, rfl⟩)
   let g : C(M, M) := ⟨fun x ↦ F (1, x), F.continuous.comp (continuous_const.prodMk continuous_id)⟩
   have hg : ∀ p : N × Ico (0 : ℝ) 1, (p.2 : ℝ) < t → g (c p) = c (p.1, t) := fun p hp ↦ by
-    change pushFun t (1, c p) = _
-    rw [hc.pushFun_apply]
-    exact congrArg c (Prod.ext rfl (Subtype.ext ((max_eq_right (by simpa using hp.le)).trans
-      (one_mul _))))
-  have hg' : ∀ x ∉ collarPart c t, g x = x := fun x hx ↦ by
-    refine pushFun_eq_self fun p hp ↦ ?_
-    rw [show ((1 : unitInterval) : ℝ) = 1 from rfl, one_mul]
-    exact le_of_not_gt fun h ↦ hx (mem_collarPart_iff.2 ⟨p, h, hp⟩)
-  refine ⟨g, ⟨{ toContinuousMap := F, map_zero_left := fun x ↦ ?_, map_one_left := fun _ ↦ rfl }⟩,
+    refine (hFc 1 p).trans (congrArg c (Prod.ext rfl (Subtype.ext ?_)))
+    simp [raise, hp.le]
+  -- A point outside `collarPart c t` is either off the collar or of depth at least `t`.
+  have hF : ∀ τ : unitInterval, ∀ x ∉ collarPart c t, F (τ, x) = x := fun τ x hx ↦ by
+    by_cases hxc : x ∈ range c
+    · obtain ⟨p, rfl⟩ := hxc
+      rw [hFc]
+      refine congrArg c (raise_of_le ?_)
+      exact (mul_le_of_le_one_left t.property.1 τ.property.2).trans
+        (le_of_not_gt fun h ↦ hx (mem_collarPart_iff.2 ⟨p, h, rfl⟩))
+    · exact hFV τ x fun ⟨p, _, hp⟩ ↦ hxc ⟨p, hp⟩
+  have hg' : ∀ x ∉ collarPart c t, g x = x := hF 1
+  have hF0 : ∀ x, F (0, x) = x := fun x ↦ by
+    by_cases hxc : x ∈ range c
+    · obtain ⟨p, rfl⟩ := hxc
+      rw [hFc]
+      exact congrArg c (raise_of_le (by simpa using p.2.property.1))
+    · exact hFV 0 x fun ⟨p, _, hp⟩ ↦ hxc ⟨p, hp⟩
+  refine ⟨g, ⟨{ toContinuousMap := F, map_zero_left := hF0, map_one_left := fun _ ↦ rfl }⟩,
     hg, hg', ?_⟩
-  · change pushFun t (0, x) = x
-    refine pushFun_eq_self fun p _ ↦ ?_
-    rw [show ((0 : unitInterval) : ℝ) = 0 from rfl, zero_mul]
-    exact p.2.property.1
-  · rintro _ ⟨x, rfl⟩ hgx
-    by_cases hx : x ∈ collarPart c t
-    · obtain ⟨p, hp, rfl⟩ := mem_collarPart_iff.1 hx
-      rw [hg p hp, apply_mem_collarPart_iff hc.isOpenEmbedding.injective] at hgx
-      exact lt_irrefl _ hgx
-    · exact hx (hg' x hx ▸ hgx)
+  rintro _ ⟨x, rfl⟩ hgx
+  by_cases hx : x ∈ collarPart c t
+  · obtain ⟨p, hp, rfl⟩ := mem_collarPart_iff.1 hx
+    rw [hg p hp, apply_mem_collarPart_iff hc.isOpenEmbedding.injective] at hgx
+    exact lt_irrefl _ hgx
+  · exact hx (hg' x hx ▸ hgx)
 
 end IsCollar
 
@@ -200,7 +165,8 @@ theorem IsCollar.exists_homotopy_push [CompactSpace M] [T2Space M]
       ∀ x ∉ collarPart c (1 / 2), g x = x := by
   have : CompactSpace (I.boundary M) :=
     isCompact_iff_compactSpace.1 I.isClosed_boundary_of_finiteDimensional.isCompact
-  obtain ⟨g, hg, hgc, hgo, hgr⟩ := hc.exists_homotopic_push ⟨1 / 2, by norm_num, by norm_num⟩
+  obtain ⟨g, hg, hgc, hgo, hgr⟩ :=
+    hc.exists_homotopic_push_off_collarPart ⟨1 / 2, by norm_num, by norm_num⟩
   have hU : c '' {p | (p.2 : ℝ) ∈ Ioo 0 (1 / 2)} ⊆ collarPart c (1 / 2) :=
     fun _ ⟨p, hp, hpx⟩ ↦
       mem_collarPart_iff.2 ⟨p, (show (p.2 : ℝ) ∈ Ioo 0 (1 / 2) from hp).2, hpx⟩
@@ -215,11 +181,10 @@ theorem IsCollar.exists_homotopy_push [CompactSpace M] [T2Space M]
       (isOpen_Ioo.preimage (continuous_subtypeVal.comp continuous_snd))
   · -- A collar point of positive depth is not `c (x, 0)` for a boundary point `x`.
     rintro _ ⟨p, hp, rfl⟩
-    rw [← I.compl_boundary]
+    rw [← I.compl_boundary, ← Subtype.range_coe (s := I.boundary M)]
     intro hb
-    have h := hc.isOpenEmbedding.injective ((hc.apply_zero ⟨c p, hb⟩).trans rfl :
-      c (⟨c p, hb⟩, ⟨0, by norm_num⟩) = c p)
-    exact hp.1.ne (congrArg (fun q : I.boundary M × Ico (0 : ℝ) 1 ↦ (q.2 : ℝ)) h)
+    have h : p.2 = ⟨0, by norm_num⟩ := (hc.preimage_range.subset hb).2
+    exact hp.1.ne' (congrArg Subtype.val h)
   · rintro ⟨x, hx⟩
     exact ⟨c (⟨x, hx⟩, ⟨1 / 4, by norm_num, by norm_num⟩), mem_image_of_mem _
       (show (1 / 4 : ℝ) ∈ Ioo 0 (1 / 2) by norm_num)⟩
