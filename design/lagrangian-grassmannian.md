@@ -336,6 +336,17 @@ Lagrangian frames on `StdSpace ι`, pure linear algebra. Namespace
   `isLagrangian_graphY_iff`) makes it symmetric. The converses are
   `isCompl_graph_ker_x` and `isCompl_graphY_ker_y` above.
 
+As built, the graphs use `Matrix.mulVecLin A` in place of `Matrix.toLin' A` (the same map,
+without `DecidableEq ι`). The file also has the public lemmas the proofs above go through:
+`StdSpace.x_toEuclideanLin_fromRows` and `StdSpace.y_toEuclideanLin_fromRows` (`@[simp]`), the
+coordinates of a frame's column combination; `stdForm_toEuclideanLin_fromRows`, the form on
+the frame, and `isIsotropic_range_fromRows_iff`; `StdSpace.map_complexEuclideanEquiv_eq`, which
+identifies an image under `complexEuclideanEquiv` from its membership test; and
+`StdSpace.exists_eq_graph_of_isCompl_ker_x` and `StdSpace.exists_eq_graphY_of_isCompl_ker_y`,
+the converses of the complement facts for any subspace, Lagrangian or not, which
+`exists_eq_graph_of_isCompl` and `exists_eq_graphY_of_isCompl` refine. Both are proved by
+projecting directly onto the coordinate, not by `Submodule.toLinearPMap`.
+
 ### `LinearAlgebra/Symplectic/Lagrangian/Action.lean`
 
 The actions of $\mathrm{Sp}(2n)$ and $\mathrm{U}(n)$ and the unitary frames,
