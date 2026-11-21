@@ -382,30 +382,37 @@ Declarations about Tau Ceti's type go in its namespace
 
 ### `Topology/ComplexStructure/Orthogonal.lean`
 
-- `orthogonalComplexStructures ι : Set (AlmostComplexStructure (StdSpace ι)) :=
+Everything here is stated for `AlmostComplexStructure (EuclideanSpace ℝ n)`,
+with `[Fintype n]`, and `[DecidableEq n]` where `homeomorphMatrix` enters;
+only the lemma about $J_0$ takes `n = ι ⊕ ι`. Since `StdSpace ι` is an
+`abbrev` for `EuclideanSpace ℝ (ι ⊕ ι)`, the results apply to it as they are.
+
+- `orthogonalComplexStructures n :
+  Set (AlmostComplexStructure (EuclideanSpace ℝ n)) :=
   {J | ∀ v, ‖J v‖ = ‖v‖}`, the structures compatible with the Euclidean
   metric, in the form of Tau Ceti's hypotheses; `mem_orthogonalComplexStructures`
-  (`J ∈ orthogonalComplexStructures ι ↔ ∀ v, ‖J v‖ = ‖v‖`, by `(rfl)`),
+  (`J ∈ orthogonalComplexStructures n ↔ ∀ v, ‖J v‖ = ‖v‖`, by `(rfl)`),
   `mem_orthogonalComplexStructures_iff_inner` (`⟪J v, J w⟫ = ⟪v, w⟫`),
   `mem_orthogonalComplexStructures_iff_mem_orthogonalGroup`
   (through `AlmostComplexStructure.homeomorphMatrix`),
-  `@[simp] stdComplexStructure_mem_orthogonalComplexStructures`, and
+  `@[simp] stdComplexStructure_mem_orthogonalComplexStructures`
+  (`J₀ ∈ orthogonalComplexStructures (ι ⊕ ι)`), and
   `isCompact_orthogonalComplexStructures`.
-- `complexStructurePolarRetraction ι :
-  C(AlmostComplexStructure (StdSpace ι), orthogonalComplexStructures ι)`,
+- `complexStructurePolarRetraction n :
+  C(AlmostComplexStructure (EuclideanSpace ℝ n), orthogonalComplexStructures n)`,
   the structure of the orthogonal polar factor of the matrix of `J`; with
   `complexStructurePolarRetraction_apply` (under `homeomorphMatrix`, the
   matrix of the retraction of `J` is the matrix of `Units.polarUnitary` of the
   matrix of `J`), and `complexStructurePolarRetraction_of_mem` (it fixes
   orthogonal structures).
-- `complexStructurePolarHomotopy ι :
+- `complexStructurePolarHomotopy n :
   (ContinuousMap.id _).HomotopyRel
-    ((ContinuousMap.subtypeVal).comp (complexStructurePolarRetraction ι))
-    (orthogonalComplexStructures ι)`,
+    ((ContinuousMap.subtypeVal).comp (complexStructurePolarRetraction n))
+    (orthogonalComplexStructures n)`,
   at time `t` the structure of `polarDeformation` of the matrix of `J` at
   time `t`; `complexStructurePolarHomotopy_apply`.
-- `orthogonalComplexStructuresHomotopyEquiv ι :
-  orthogonalComplexStructures ι ≃ₕ AlmostComplexStructure (StdSpace ι)`, from
+- `orthogonalComplexStructuresHomotopyEquiv n :
+  orthogonalComplexStructures n ≃ₕ AlmostComplexStructure (EuclideanSpace ℝ n)`, from
   `ofDeformationRetraction`.
 - `TauCeti.AlmostComplexStructure.exists_linearIsometryEquiv_transport_eq`: two
   norm-preserving complex structures on finite-dimensional real inner product
@@ -431,13 +438,13 @@ Declarations about Tau Ceti's type go in its namespace
   ```
   from `Matrix.orthogonalGroup_inf_centralizer_J` and `Matrix.det_realify`.
 - `exists_specialOrthogonalGroup_smul_stdComplexStructure_eq
-  (hJ : J ∈ orthogonalComplexStructures ι) (hJ' : IsPositivelyOriented J) :
+  (hJ : J ∈ orthogonalComplexStructures (ι ⊕ ι)) (hJ' : IsPositivelyOriented J) :
   ∃ g : specialOrthogonalGroup (ι ⊕ ι) ℝ, g • J₀ = J`,
   from `exists_adapted_orthonormalBasis` and
   `isPositivelyOriented_transport_iff`.
 - `quotientUnitaryHomeomorph ι :
   specialOrthogonalGroup (ι ⊕ ι) ℝ ⧸ MulAction.stabilizer _ J₀ ≃ₜ
-  {J // J ∈ orthogonalComplexStructures ι ∧ IsPositivelyOriented J}`, Tau
+  {J // J ∈ orthogonalComplexStructures (ι ⊕ ι) ∧ IsPositivelyOriented J}`, Tau
   Ceti's `quotientStabilizerHomeomorph` for the action of
   `specialOrthogonalGroup` on that subtype (transitive by the previous
   lemma; the quotient of a compact group is compact, the subtype is
@@ -477,7 +484,7 @@ Declarations about Tau Ceti's type go in its namespace
   value on the basis vector $x_1$ is the vector $u_0y_1+u_1x_2+u_2y_2$;
   `sphereHomeomorphOrthogonal :
   Metric.sphere (0 : EuclideanSpace ℝ (Fin 3)) 1 ≃ₜ
-  {J // J ∈ orthogonalComplexStructures (Fin 2) ∧ IsPositivelyOriented J}`
+  {J // J ∈ orthogonalComplexStructures (Fin 2 ⊕ Fin 2) ∧ IsPositivelyOriented J}`
   (injectivity from the value on $x_1$; surjectivity because an orthogonal
   positively oriented structure is determined by its value on one unit vector:
   on the orthogonal complement of the plane that vector spans with its image
