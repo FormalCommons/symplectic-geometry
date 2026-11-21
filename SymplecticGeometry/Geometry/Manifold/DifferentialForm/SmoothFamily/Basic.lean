@@ -9,8 +9,8 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Family
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffeomorph
 public import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
 public import TauCeti.Geometry.Manifold.DifferentialForm.Opens
-public import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Prod.Basic
+public import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 
 /-!
 # Smooth families of forms
@@ -195,12 +195,8 @@ theorem contMDiffAt_mpullback_inclusion_iff_of_family {m : WithTop ℕ∞} {U W 
         (fun q : N × W ↦ TotalSpace.mk' (E [⋀^Fin k]→L[ℝ] F)
           (E := fun y : W ↦ TangentSpace I y [⋀^Fin k]→L[ℝ] Trivial W F y) q.2 (β q.1 q.2))
         (p.1, Opens.inclusion h p.2) := by
-  have hinc : IsLocalDiffeomorphAt I I ω (Opens.inclusion h) p.2 :=
-    IsLocalDiffeomorphAt.of_comp_left (f := (Subtype.val : W → M))
-      (isLocalDiffeomorph_subtype_val p.2) (isLocalDiffeomorph_subtype_val _)
-      (continuous_inclusion h).continuousAt
   have hf : IsLocalDiffeomorphAt (J.prod I) (J.prod I) ω (Prod.map id (Opens.inclusion h)) p :=
-    ((Diffeomorph.refl J N ω).isLocalDiffeomorph p.1).prodMap hinc
+    ((Diffeomorph.refl J N ω).isLocalDiffeomorph p.1).prodMap (isLocalDiffeomorph_inclusion h p.2)
   rw [← contMDiffAt_fun_mpullback_snd_iff,
     ← contMDiffAt_fun_mpullback_snd_iff (fun t ↦ mpullback I I (Opens.inclusion h) (β t))]
   refine Iff.trans (Iff.of_eq (congrArg (ContMDiffAt _ _ _ · p) (funext fun q ↦ ?_)))

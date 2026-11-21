@@ -1188,6 +1188,15 @@ it into issues; the overview fixes its folders and its dependencies.
   groups from the unitaries of `𝕜 →L[𝕜] 𝕜` to those of `𝕜`, and its case
   `Unitary.continuousLinearMapCircleEquiv` onto `Circle`, in Mathlib's
   namespace `Unitary`; see *Constructions*),
+  `Analysis/InnerProductSpace/GramSchmidtOrtho.lean` (for a skew-adjoint
+  orthogonal `J`, Mathlib's Gram–Schmidt turns `u₀, J u₀, u₁, J u₁, …` into
+  `e₀, J e₀, e₁, J e₁, …`,
+  in Mathlib's namespace `InnerProductSpace`; the file has the name of the
+  Mathlib file that defines `gramSchmidt`, and the local Darboux frames use
+  it),
+  `Topology/VectorBundle/LinearIndependent.lean` (sections continuous and
+  linearly independent at a point stay independent near it, in Mathlib's
+  namespace `Bundle.Trivialization`; the local Darboux frames use it),
   `Analysis/Normed/Operator/SpanSingleton.lean`
   (`LinearIsometryEquiv.toSpanSingleton`, a unit vector of a line as a
   linear isometry from the scalars),
@@ -2024,7 +2033,11 @@ has either; Tau Ceti's extension across a boundary,
   the rescaling case, which `Gray.lean` uses, the preservation of a
   closed form with closed contractions by a local time-dependent flow, which
   `PoissonAlgebra.lean` of *Hamiltonian flows* uses, and the slices of
-  pullbacks along `Prod.map id f`).
+  pullbacks along `Prod.map id f`), and, named like Tau Ceti's files,
+  `Geometry/Manifold/DifferentialForm/LieDeriv.lean` (the Lie derivative of
+  forms is linear in the field) and
+  `Geometry/Manifold/DifferentialForm/DegreeOne.lean` (a smooth one-form on a
+  smooth field is smooth), which `Hamiltonian.lean` uses.
 - **Builds on:** Tau Ceti (contact forms, Reeb fields, contact Hamiltonians,
   strict and distribution Darboux charts, Gray's theorem for families over
   `ℝ`); `Family.lean` and `Gray.lean` also on *Smooth families*
