@@ -356,7 +356,10 @@ further when they grow, following `AGENTS.md`.
   `Matrix.UnitaryGroup.detSection` built by `TauCeti.unitaryTorusHom`: a loop
   in $\mathrm{SU}(n)$ is trivial in $\pi_1(\mathrm{U}(n))$, since its
   determinant is constant, and the retraction carries the null-homotopy back.
-  For $n=0$ the group is a point. The retraction and the facts about `detCircle`
+  For $n=0$ the group is a point. The two counterexamples for $n=0$, for
+  $\mathrm{U}(0)$ and $\mathrm{Sp}(0)$, both apply the general
+  `FundamentalGroup.not_surjective_map_circle_of_subsingleton`
+  (`AlgebraicTopology/FundamentalGroup.lean`). The retraction and the facts about `detCircle`
   it uses are in `Analysis/Matrix/UnitaryGroup/Basic.lean`.
   Tau Ceti's `Matrix.instSimplyConnectedSpaceSpecialUnitaryGroupFinTwoComplex`
   is the case $n=2$. Last, `Analysis/Matrix/SymplecticGroup/FundamentalGroup.lean`
@@ -806,6 +809,14 @@ it into issues; the overview fixes its folders and its dependencies.
   For $n=1$ it is compared with Mathlib's `UpperHalfPlane` action and with Tau
   Ceti's `stdComplexSymplecticForm_tames_iff_im_pos`.
 - **Builds on:** *Standard model*; compatibility is Tau Ceti's `Compatible`.
+  It also imports one file from each of three other parts. `Action.lean`
+  imports `LinearAlgebra/Matrix/OfReal.lean`, the general matrix file of
+  *Lagrangian Grassmannian* on reading real matrices as complex ones.
+  `ComplexStructure.lean` imports `LinearAlgebra/ComplexStructure/Action.lean`
+  from *Linear complex structures* and
+  `LinearAlgebra/Matrix/SymplecticGroup/Basic.lean` from *Symplectic group*.
+  These three files import only Mathlib and Tau Ceti, so the part still sits
+  at level 1.
 - **Milestones:** *Siegel upper half space*. The proof of transitivity checks
   the formula for $J(Z)$ directly, which breaks the circularity between the
   book's exercise and lemma that the plan points out. The milestone's
@@ -1226,7 +1237,7 @@ Each part depends only on the parts listed, besides Mathlib and Tau Ceti.
 | 1 | *Lagrangian Grassmannian* | *Standard model*, *Symplectic vector spaces* (only `Subspace.lean`, which is merged) |
 | 1 | *Linear nonsqueezing* | *Standard model* |
 | 1 | *Linear complex structures* | *Standard model* |
-| 1 | *Siegel upper half space* | *Standard model* |
+| 1 | *Siegel upper half space* | *Standard model*; *Lagrangian Grassmannian* (only `LinearAlgebra/Matrix/OfReal.lean`, which imports only Mathlib and is merged); *Linear complex structures* (only `LinearAlgebra/ComplexStructure/Action.lean`, which imports only Mathlib and Tau Ceti and is merged); *Symplectic group* (only `LinearAlgebra/Matrix/SymplecticGroup/Basic.lean`, which imports only Mathlib and is merged) |
 | 1 | *Symplectic vector bundles* | *Standard model*, *Linear Moser*; its contractibility issue also the Cayley domain issue of *Compatible complex structures*, which has no blockers |
 | 2 | *Compatible complex structures* | *Standard model*, *Symplectic vector spaces* |
 | 2 | *Maslov index* | *Standard model*, *Symplectic group*, *Unitary group topology*; its Lagrangian issues also *Lagrangian Grassmannian* |
