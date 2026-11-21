@@ -366,11 +366,10 @@ theorem mpullback_prodMk_stableHamiltonianModel (α : SmoothForm I M ℝ 1)
   set g : C^∞⟮𝓘(ℝ).prod I, ℝ × M; ℝ⟯ := ⟨Prod.fst, contMDiff_fst⟩
   have hsmul : mpullback (Prod.mk r) (contMDiff_const.prodMk contMDiff_id)
       (funSMulₗ g (mpullback Prod.snd contMDiff_snd α)) = r • α := by
-    apply Subtype.ext
-    rw [coe_mpullback, coe_funSMulₗ g, TauCeti.mpullback_fun_smul,
-      ← coe_mpullback (Prod.mk r) (contMDiff_const.prodMk contMDiff_id),
-      mpullback_prodMk_mpullback_snd, smul_toRoughForm]
-    simp only [g, ContMDiffMap.coeFn_mk, Pi.smul_def]
+    -- Both sides send `x` to `r`; Mathlib states no evaluation lemma for `ContMDiffMap.const`.
+    have hg : g.comp ⟨Prod.mk r, contMDiff_const.prodMk contMDiff_id⟩ = ContMDiffMap.const r :=
+      ContMDiffMap.ext fun _ ↦ rfl
+    rw [mpullback_funSMulₗ, mpullback_prodMk_mpullback_snd, hg, funSMulₗ_const]
   rw [stableHamiltonianModel_def, map_sub, mpullback_prodMk_mpullback_snd, ← mextDerivₗ_mpullback,
     hsmul, map_smul]
 
