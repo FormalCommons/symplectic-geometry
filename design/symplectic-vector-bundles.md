@@ -1433,9 +1433,18 @@ in *First Chern number*'s prerequisite 3, and not on the results below.
   `circleBundle_smul_eq_iff`, `exists_circleBundle_smul_eq_iff`), which the
   homeomorphism intertwines with the right action of
   `unitary (ℂ →L[ℂ] ℂ)` through the isomorphism below; and the instance
-  `TauCeti.PrincipalBundle Circle` on the frame bundle, whose
-  trivializations are those of `instPrincipalBundleFiber` followed by that
-  isomorphism. The group isomorphism is
+  `TauCeti.PrincipalBundle Circle` on the frame bundle. That instance and the
+  `FiberBundle Circle` instance under it are one application each of
+  `Topology/FiberBundle/Principal/ChangeGroup.lean` to that isomorphism:
+  `FiberBundle.changeModelFiber` and `TauCeti.PrincipalBundle.changeGroup`,
+  with the right action of `Circle` on frames given by `MulAction.compHom`
+  along its inverse and the topology on `TotalSpace Circle` induced along
+  `Bundle.TotalSpace.modelFiberEquiv`, the two client-supplied pieces the
+  general construction asks for, which then hold by `rfl`. The trivializations
+  are thus those of `instPrincipalBundleFiber` read through the isomorphism
+  (`Bundle.Trivialization.changeModelFiber`); no trivialization or
+  total-space equivalence specific to `Circle` is defined. The group
+  isomorphism is `Unitary.continuousLinearMapCircleEquiv`, defined as
   `(Unitary.continuousLinearMapSelfEquiv ℂ).trans TauCeti.circleEquivUnitary.symm`,
   with Tau Ceti's `TauCeti.circleEquivUnitary : Circle ≃ₜ* unitary ℂ`
   (`Analysis/Complex/Circle.lean`). The smooth side (smoothness of the
