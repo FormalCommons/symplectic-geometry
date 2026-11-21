@@ -15,7 +15,8 @@ public import TauCeti.Topology.Algebra.Matrix.Realify
 Tau Ceti's `TauCeti.GLSymplectic.ofUnitary` sends a complex unitary matrix `U` to its
 realification, a symplectic matrix. This file shows that it turns the block-diagonal sum
 `Matrix.UnitaryGroup.sum` of unitary matrices into the direct sum `TauCeti.GLSymplectic.sum` of
-symplectic matrices.
+symplectic matrices. It sits beside Tau Ceti's `TauCeti.Topology.Algebra.Matrix.Realify`, where
+`ofUnitary` is defined, so that the lemma can join `ofUnitary` there.
 
 ## Main results
 
