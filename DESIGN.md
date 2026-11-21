@@ -1989,16 +1989,19 @@ has either; Tau Ceti's extension across a boundary,
 ### 21. Liouville structures (needs `design/liouville-structures.md`)
 
 - **Files:** `Geometry/Symplectic/Liouville/ContactType.lean` (named like Tau
-  Ceti's file: for a properly embedded hypersurface, a contact form $\alpha$
+  Ceti's file: for an embedded hypersurface, a contact form $\alpha$
   with $d\alpha=-i^*\omega$ exists exactly when a transverse Liouville field
-  exists near it; for a prescribed $\alpha$ a Liouville field inducing it,
-  and its collar, with $\Phi^*\omega=-d(e^s\alpha)$ on a neighbourhood of
-  $\{0\}\times Q$, of uniform width when $Q$ is compact. Tau Ceti has the
-  direction from a Liouville field, `TauCeti.IsContactType.isContactForm_mpullback`,
-  and the collars for a given field, `TauCeti.mpullback_flowOf_comp_apply_eq_symplectization`,
+  exists near it; for a prescribed $\alpha$ a Liouville field inducing it.
+  Tau Ceti has the
+  direction from a Liouville field, `TauCeti.IsContactType.isContactForm_mpullback`;
+  the converse comes from a relative
+  primitive), `Geometry/Symplectic/Liouville/Collar.lean` (named like Tau
+  Ceti's file: the collar of such a hypersurface, with
+  $\Phi^*\omega=-d(e^s\alpha)$ on a neighbourhood of $\{0\}\times Q$, of
+  uniform width when $Q$ is compact, from Tau Ceti's collars for a given
+  field, `TauCeti.mpullback_flowOf_comp_apply_eq_symplectization`,
   `TauCeti.exists_continuous_pos_injOn_flowOf_comp` and
-  `TauCeti.exists_pos_injOn_flowOf_comp`; the converse comes from a relative
-  primitive), `Geometry/Contact/StableHamiltonian.lean` (named like Tau
+  `TauCeti.exists_pos_injOn_flowOf_comp`), `Geometry/Contact/StableHamiltonian.lean` (named like Tau
   Ceti's file: Tau Ceti's `TauCeti.SmoothForm.IsStableHamiltonian α ω`, with
   $(\Omega,\lambda)=(\omega,\alpha)$, and its Reeb field
   `TauCeti.SmoothForm.characteristicVectorField`; the library adds the
@@ -2007,21 +2010,33 @@ has either; Tau Ceti's extension across a boundary,
   model $\Omega-d(r\lambda)$ on $(-\varepsilon,\varepsilon)\times M$ for a
   compact $M$, the contact case, and the converse normal form, by Tau Ceti's
   compact relative Moser theorem along $\{0\}\times M$),
+  `Geometry/Manifold/Boundary/Collar/Flow/Local.lean` and
+  `Geometry/Manifold/Boundary/Collar/Flow/Basic.lean` (the smooth collar of
+  a compact boundary whose normal lines are the integral curves of a given
+  outward field),
   `Geometry/Symplectic/Liouville/Filling.lean` (strong fillings: compact
   symplectic manifolds with boundary with an outward Liouville field near
-  the boundary), and `Geometry/Symplectic/Liouville/Completion.lean` (named
+  the boundary, and their Liouville collar),
+  `Geometry/Manifold/Boundary/Collar/End.lean` (attaching the end
+  $[0,\infty)\times\partial W$ to a manifold with boundary along a smooth
+  collar, with Tau Ceti's `Geometry/Manifold/Gluing/`), `Geometry/Symplectic/Liouville/Completion.lean` (named
   like Tau Ceti's file: the completion $\widehat W$, glued from the interior
   of $W$ and $(-\varepsilon,\infty)\times\partial W$ along the Liouville
-  collar with Tau Ceti's `Geometry/Manifold/Gluing/` (`TauCeti.chartedSpaceOfIsOpenEmbedding`),
+  collar by `End.lean`,
   with its form, its Liouville field $\partial_s$ on the end, and the
-  extension of the primitive of a Liouville domain).
+  extension of the primitive of a Liouville domain), and
+  `Geometry/Symplectic/Liouville/Domain.lean` (named like Tau Ceti's file:
+  the completion of a Liouville domain is a `TauCeti.IsLiouvilleCompletion`).
 - **Builds on:** Tau Ceti (Liouville fields and collars, contact type,
   stable Hamiltonian structures, the compact relative Moser theorem, gluing,
-  boundary collars in `Geometry/Manifold/Boundary/Collar/`), and the
+  boundary collars in `Geometry/Manifold/Boundary/Collar/`, the
+  boundaryless re-modelling `TauCeti.BoundarylessModel`), the
   library's `Geometry/Manifold/IsManifold/InteriorBoundary.lean` of
   *Symplectic vector bundles* (the interior of a manifold with boundary as a
-  boundaryless manifold), which is merged. `Completion.lean` uses
-  `Filling.lean` and the collar of `ContactType.lean`.
+  boundaryless manifold), which is merged, and *Smooth families* (only
+  `TimeExtension.lean`, for `Collar/Flow/Local.lean`, which extends a field
+  across the boundary; the other files can start at once). `Completion.lean` uses
+  `Filling.lean` and `End.lean`.
 - **Milestones:** *Contact-type hypersurfaces and Liouville collars*, *Stable
   Hamiltonian structures and their neighbourhood model*, *Completion of a
   strong filling*.
@@ -2048,7 +2063,6 @@ so two parts can each use merged files of the other without either waiting.
 | 0 | *Linear Moser* | — |
 | 0 | *Smooth families* | — |
 | 0 | *Cotangent bundles* | — |
-| 0 | *Liouville structures* | — (it imports `Geometry/Manifold/IsManifold/InteriorBoundary.lean` of *Symplectic vector bundles*, which is merged) |
 | 1 | *Unitary group topology* | *Symplectic group* (only the file on $\mathrm{Sp}(2n)$; the other files can start at once) |
 | 1 | *Symplectic vector spaces* | *Standard model*, *Symplectic group* |
 | 1 | *Lagrangian Grassmannian* | *Standard model*, *Symplectic vector spaces* (only `Subspace.lean`, which is merged) |
@@ -2058,6 +2072,7 @@ so two parts can each use merged files of the other without either waiting.
 | 1 | *Symplectic vector bundles* | *Standard model*, *Linear Moser*; its existence issue also the two `PolarComplexStructure/` issues of *Compatible complex structures*, its contractibility issue the Cayley domain issue of that part, and its homotopy-equivalence issue those three and the `Tames.lineMap` issue, none of which waits for another part |
 | 1 | *Hamiltonian flows* | *Smooth families* (only `Diffeotopy/Real.lean`, for `SymplecticIsotopy.lean`, and `ContMDiff/TimeExtension.lean`, for `Flux/CompactSupport.lean`; the other files can start at once) |
 | 1 | *Moser isotopy* | *Smooth families* (only `Stability.lean`; the other files can start at once) |
+| 1 | *Liouville structures* | *Smooth families* (only `TimeExtension.lean`, for `Geometry/Manifold/Boundary/Collar/Flow/Local.lean`; the other files can start at once); it imports `Geometry/Manifold/IsManifold/InteriorBoundary.lean` of *Symplectic vector bundles*, which is merged |
 | 2 | *Compatible complex structures* | *Standard model*, *Symplectic vector spaces*; *Linear complex structures* (only `LinearAlgebra/ComplexStructure/Action.lean`, which imports only Mathlib and Tau Ceti, `Topology/ComplexStructure/Basic.lean`, which besides it imports only Tau Ceti and the merged `LinearAlgebra/Matrix/NonsingularInverse.lean` and `Analysis/CStarAlgebra/Matrix.lean`, which import only Mathlib and merged files that do, and `LinearAlgebra/ComplexStructure/Standard.lean`, which besides `Action.lean` imports only `LinearAlgebra/Symplectic/Compatible.lean` of this part, `LinearAlgebra/Symplectic/Standard/Matrix.lean` of *Standard model*, the library's `Geometry/Symplectic/Orientation.lean`, which imports only Tau Ceti, and Tau Ceti; and `Topology/ComplexStructure/Orthogonal.lean`, which besides `Topology/ComplexStructure/Basic.lean` imports only `LinearAlgebra/Symplectic/Standard/Basic.lean` of *Standard model*, `Analysis/Matrix/Polar/Deformation.lean` of *Symplectic group* and Tau Ceti; all of them are merged); *Symplectic group* (only `LinearAlgebra/Matrix/SymplecticGroup/Basic.lean`, which imports only Mathlib and Tau Ceti and is merged, and `Analysis/Matrix/Polar/Deformation.lean`, through `Orthogonal.lean`, which is merged) |
 | 2 | *Maslov index* | *Standard model*, *Symplectic group*, *Unitary group topology*; its Lagrangian issues also *Lagrangian Grassmannian* |
 | 2 | *Isotopy extension* | *Hamiltonian flows*, *Moser isotopy*, *Smooth families* |

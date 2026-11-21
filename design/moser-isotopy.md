@@ -8,7 +8,7 @@ and *Relative Moser theorem fixing a submanifold* of
 [McDuffSalamon2017], §3.2 (Lemma 3.2.1, Theorem 3.2.2, Corollary 3.2.3,
 Theorem 3.2.4 and Exercise 3.2.6), with the stronger first-order
 conclusion of the relative theorem from the authors' errata
-[McDuffSalamon2019Errata], p. 109, and Cannas da Silva [CannasdaSilva2001],
+[McDuffSalamon2019Errata], p. 109, and Cannas da Silva [CannasdaSilva2001Lectures],
 Lectures 6–7.
 
 All names below are in the namespace `SymplecticGeometry` unless they are
@@ -63,7 +63,7 @@ written out in the Lean statements, as Tau Ceti writes it.
   and uses the local versions of Moser's principle
   (`TauCeti.mpullback_timeDependentFlowOf_mpullback_prodMk_apply_eq_of_mem`)
   and of the first-jet statement
-  (`TauCeti.mfderiv_timeDependentFlowOf_eq_id_of_jet_eq_zero`), which need
+  (`TauCeti.mfderiv_timeDependentFlowOf_eq_id_of_forall_eq_zero`), which need
   no completeness. *Symplectic neighbourhoods* uses the theorem of
   `Relative.lean` and Tau Ceti's tubular neighbourhoods
   (`Geometry/Manifold/TubularNeighborhood/`) directly.
@@ -155,13 +155,15 @@ The file has the name of Tau Ceti's file that defines
 `TauCeti.SmoothTwoForm.IsNondegenerate.interiorEquiv`. It is in the
 namespace `TauCeti.SmoothTwoForm.IsNondegenerate`.
 
-- `jet_interiorEquiv_symm_eq_zero`: let `σ` be a nondegenerate smooth
+- `hasFDerivAt_mpullbackWithin_interiorEquiv_symm`: let `σ` be a nondegenerate smooth
   two-form, let `β : SmoothForm I M ℝ 1`, and let `x` be a point with
   `β.val x = 0` at which the chart expression of `β` has zero derivative
   (`HasFDerivAt (RoughForm.inChartAt β.val x) 0 (extChartAt I x x)`, the
   form in which Tau Ceti's relative primitive states it). Then
-  `TauCeti.FirstJetBundle.jet I E (h.interiorEquiv.symm β) x = 0`. This is
-  the hypothesis of Tau Ceti's `mfderiv_timeDependentFlowOf_eq_id_of_jet_eq_zero`.
+  `HasFDerivAt (VectorField.mpullbackWithin 𝓘(ℝ, E) I (extChartAt I x).symm
+  (h.interiorEquiv.symm β) (range I)) 0 (extChartAt I x x)`. This gives the
+  hypothesis of Tau Ceti's `mfderiv_timeDependentFlowOf_eq_id_of_forall_eq_zero`
+  with no bridge through `FirstJetBundle.jet`.
   The proof adapts Tau Ceti's private `hasFDerivAt_mpullbackWithin_moserField`
   (`RelativeMoser.lean`). In the chart at `x`, the field is the inverse flat
   map of the coordinate form applied to `β`. The inverse flat map is bounded
@@ -215,14 +217,15 @@ Proof, in four steps.
    $\partial_t\sigma_t+L_{X_t}\sigma_t=c'(t)\,d\beta-c'(t)\,d\beta$
    vanishes everywhere on `N`, by Tau Ceti's
    `IsSymplectic.mlieDerivForm_interiorEquiv_symm`. `X t` vanishes at
-   `f q` with zero first jet, by `jet_interiorEquiv_symm_eq_zero`.
+   `f q`, and its chart expression has zero derivative there, by
+   `hasFDerivAt_mpullbackWithin_interiorEquiv_symm`.
 4. *Domain up to time one.* Let `Φ := timeDependentFlowPartialDiffeomorph
    (hn := le_top) hX 0 1` on `N`. Its source contains `f(Q)`, by
    `mem_timeDependentFlowDomain_of_forall_eq_zero`. Along its source,
    `mpullback_timeDependentFlowOf_mpullback_prodMk_apply_eq_of_mem` gives
    `Φ^* σ₁ = σ₀`, since `c 0 = 0` and `c 1 = 1`. `Φ` fixes `f(Q)`
    (`timeDependentFlowOf_eq_self_of_forall_eq_zero`), and its differential
-   there is the identity (`mfderiv_timeDependentFlowOf_eq_id_of_jet_eq_zero`).
+   there is the identity (`mfderiv_timeDependentFlowOf_eq_id_of_forall_eq_zero`).
    Tau Ceti's `PartialDiffeomorph.toDiffeomorphSourceTarget` makes `Φ` a
    diffeomorphism between opens of `N`. Reading these opens as opens of `M`
    gives `U₀`, `U₁` and `φ`. The differential is compared through
@@ -257,27 +260,32 @@ API, in the order the proofs need it. `hinv` stands for
   `RoughForm.interior (moserField σ₀ σ₁ β ρ t) (σ₀ + t • (σ₁ - σ₀)).val x =
   -ρ (t, x) • β.val x`. `interior_moserField_eq` is the same identity at
   every point, given `hinv`.
-- `contMDiff_moserField`: given `ContMDiff (𝓘(ℝ, ℝ).prod I) 𝓘(ℝ) ∞ ρ` and
-  `hinv`, the map `p ↦ ⟨p.2, moserField σ₀ σ₁ β ρ p.1 p.2⟩` into the tangent
-  bundle is smooth. Near `tsupport ρ` the proof uses
+- `contMDiffAt_moserField`: if `ρ` is smooth at `p₀` and the flat map at
+  `p₀` is invertible when `p₀ ∈ tsupport ρ`, the map
+  `p ↦ ⟨p.2, moserField σ₀ σ₁ β ρ p.1 p.2⟩` into the tangent bundle is
+  smooth at `p₀`. `contMDiff_moserField`: given
+  `ContMDiff (𝓘(ℝ, ℝ).prod I) 𝓘(ℝ) ∞ ρ` and `hinv`, that map is smooth.
+  Near `tsupport ρ` the proof uses
   `ContMDiffAt.clm_bundle_inverse` on the flat maps of
   `SmoothForm.lineMapFamily σ₀ σ₁ contDiff_id`. Away from it, the field is
   the zero section.
-- `mpullback_prodMk_mlieDerivForm_lineMapFamily_add_mlieDerivForm_moserField_apply_eq_zero`:
-  Moser's equation at `(t, y)`. Assume `σ₀` is closed, `ρ = 1` on a
-  neighbourhood of `(t, y)`, and `mextDeriv β.val = (σ₁ - σ₀).val` on a
+- `moserField_rate_eq_zero`:
+  Moser's equation at `(t, y)`. Assume `σ₀` is closed,
+  `∀ᶠ p in 𝓝 (t, y), ρ p = 1 ∧ ((σ₀ + p.1 • (σ₁ - σ₀)).flat p.2).IsInvertible`,
+  and `mextDeriv β.val = (σ₁ - σ₀).val` on a
   neighbourhood of `y`. Then the rate of `SmoothForm.lineMapFamily σ₀ σ₁
   contDiff_id` along `moserField σ₀ σ₁ β ρ` vanishes at `(t, y)`. This is
   the hypothesis of Tau Ceti's
   `mpullback_timeDependentFlowOf_mpullback_prodMk_apply_eq_of_forall_mem_uIcc`.
   The primitive is asked to be one only near `y`, because `Isotopy.lean`
   extends a primitive defined on a tube by zero.
-- `isCompleteVectorField_timeDependentSuspensionField_moserField`: if
-  `tsupport ρ` is compact and `hinv` holds, the suspension is complete,
-  from Tau Ceti's `isCompleteVectorField_timeDependentSuspensionField`
-  applied to the compact projection of `tsupport ρ` to `M`.
+- No completeness lemma: when `tsupport ρ` is compact, `Isotopy.lean`
+  applies Tau Ceti's `isCompleteVectorField_timeDependentSuspensionField`
+  directly, to the compact projection of `tsupport ρ` to `M` and
+  `moserField_eq_zero_of_notMem_tsupport`.
 
 The module docstring credits Tau Ceti's private `moserField`,
+`moserField_eq_zero`, `interior_moserField`, `interior_moserField_eq`,
 `contMDiff_moserField` and `moserRate_eq_zero` (`RelativeMoser.lean`). This
 file adapts them from the reparametrized path and a cutoff on `M` to the
 linear path and a cutoff on `ℝ × M`.
@@ -466,9 +474,9 @@ and pullbacks commute with `d`. That theorem gives
   `isCompleteVectorField_timeDependentSuspensionField`,
   `mem_timeDependentFlowDomain_of_forall_eq_zero`,
   `timeDependentFlowOf_eq_self_of_forall_eq_zero`,
-  `mfderiv_timeDependentFlowOf_eq_id_of_jet_eq_zero`,
+  `mfderiv_timeDependentFlowOf_eq_id_of_forall_eq_zero`,
   `mpullback_timeDependentFlowOf_mpullback_prodMk_apply_eq_of_mem` and
-  `_of_forall_mem_uIcc`, `FirstJetBundle.jet`.
+  `_of_forall_mem_uIcc`.
 - Tau Ceti, submanifolds and forms: `SmoothEmbedding`,
   `SmoothEmbedding.exists_isSmoothForm_relative_primitive`, `SmoothIsotopy`,
   `Diffeotopy` with `timeSlice`, `final` and `Diffeotopy.smoothIsotopy`,
@@ -477,10 +485,9 @@ and pullbacks commute with `d`. That theorem gives
   `RoughForm.extendByZero` with `IsSmoothForm.extendByZero`,
   `IsCompact.exists_contMDiff_one_nhds_tsupport_subset`,
   `Continuous.isOpen_setOf_clm_bundle_isInvertible`, `exactForms`,
-  `Manifold.tangentSpaceOpenEquiv_mfderiv_apply`.
+  `Manifold.tangentSpaceOpenEquiv_mfderiv_apply`, `ContMDiffAt.clm_bundle_inverse`.
 - Mathlib: `generalized_tube_lemma`, `Real.smoothTransition`,
-  `Manifold.IsSmoothEmbedding.of_opens`, `ContMDiffAt.clm_bundle_inverse`,
-  `PartialDiffeomorph`, `Diffeomorph`.
+  `Manifold.IsSmoothEmbedding.of_opens`, `PartialDiffeomorph`, `Diffeomorph`.
 - *Smooth families* (#466, #467), for `Stability.lean` only: (★), the time
   extension, the reparametrization, and the restriction to a `Diffeotopy`.
 - *Standard model*, merged, only for the plan's case `F = StdSpace (Fin n)`
@@ -524,7 +531,9 @@ submanifold*), 5 (*Darboux theorem with prescribed derivative*) and 6
   §3.2.
 * [D. McDuff, D. Salamon, errata to the third edition][McDuffSalamon2019Errata],
   p. 109 (the first-order conclusion of Lemma 3.2.1).
-* [A. Cannas da Silva, *Lectures on Symplectic Geometry*][CannasdaSilva2001],
-  Lectures 6–7.
+* [A. Cannas da Silva, *Lectures on Symplectic Geometry*, Lecture Notes in
+  Mathematics 1764, Springer, Berlin, 2001][CannasdaSilva2001Lectures],
+  Lectures 6–7. The plan's bibliography has no key for this book; its key
+  `CannasdaSilva2001` is her 2001 notes *Symplectic Toric Manifolds*.
 * J. Moser, *On the volume elements on a manifold*, Transactions of the
   American Mathematical Society 120 (1965), 286–294.

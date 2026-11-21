@@ -147,12 +147,13 @@ These answer the questions that `DESIGN.md` leaves to this file.
    ones, under which Souriau's formula is invariant (Tau Ceti's
    `Matrix.spectralAngleSum_conj`), so the definition does not depend on the
    choice. Naturality under all of $\mathrm{Sp}(2n)$ is then a theorem. Its
-   proof joins a symplectic matrix fixing $V_0$,
-   $\begin{pmatrix}A&B\\0&A^{-T}\end{pmatrix}$, to a real orthogonal one inside
-   the stabilizer of $V_0$ (shrink $B$ to $0$, then deform $A$ to its
-   orthogonal polar factor), and compares the two ends with catenation,
-   homotopy invariance and the zero axiom: along the two side edges of the
-   square the dimension of the intersection with $V_0$ does not change.
+   proof joins $1$ to $\Psi$ by a path $P$ in $\mathrm{Sp}(2n)$, lifts
+   $s\mapsto P(s)V$ to a path $U(s)$ of unitary frames, and compares the two
+   ends of the square $(s,t)\mapsto U(s)^{-1}P(s)\Lambda(t)$ relative to $V_0$
+   with catenation, homotopy invariance and the zero axiom: along the two side
+   edges of the square the dimension of the intersection with $V_0$ does not
+   change. The argument adapts Tau Ceti's proof of
+   `TauCeti.GLSymplectic.conleyZehnderIndex_map_conj`.
 5. **The dictionary with Tau Ceti.** All of Tau Ceti's Lagrangian Maslov
    theory lives on `EuclideanSpace ℂ ι` (or on a general complex space),
    framed by unitary or complex-linear maps. A unitary
@@ -399,6 +400,10 @@ The Maslov phase on $\mathcal{L}(n)$ and the index of Lagrangian loops.
   The reindexing lemmas here and below are stated with `ℒ.reindex e` and its
   continuity `ℒ.continuous_reindex e`, the simp normal form of
   `ℒ.reindexHomeomorph e` (`reindexHomeomorph_apply`).
+- `ℒ.rootMultiplicity_one_charpoly_souriau`: the multiplicity of the eigenvalue
+  `1` of `souriau Λ` is `finrank (Λ ⊓ V₀)`, from Tau Ceti's lemma of the same
+  name through `ℒ.finrank_unitaryFrame_inf_horizontal` of
+  `Lagrangian/Action.lean`.
 - `ℒ.maslovIndex {Λ} (γ : Path Λ Λ) : ℤ := Circle.degree (γ.map continuous_maslovPhase)`,
   with `maslovIndex_def`; from the API of `Circle.degree` (Decision 5):
   `maslovIndex_eq_of_homotopy` (free homotopy, from
@@ -564,7 +569,13 @@ The Robbin–Salamon index of paths, relative to a Lagrangian `V`.
 
 - `ℒ.pathMaslovIndex_smul (Ψ : GLSymplectic ι ℝ) (γ) (V) :
   pathMaslovIndex (γ.map (continuous_const_smul Ψ)) (Ψ • V) = pathMaslovIndex γ V`,
-  by the stabilizer argument of Decision 4.
+  by the square of Decision 4, through
+  `ℒ.pathMaslovIndex_eq_of_homotopy`: a homotopy `F : C(I × I, ℒ ι)` from
+  `γ₀` to `γ₁` whose ends `F (s, 0)`, `F (s, 1)` keep the dimension of their
+  intersections with `V` does not change the index relative to `V` (Mathlib's
+  `Path.Homotopic.map_trans_evalAt` and the zero axiom); both adapt
+  the proof of Tau Ceti's `TauCeti.GLSymplectic.conleyZehnderIndex_map_conj`,
+  and move dimensions to `V₀` by `ℒ.finrank_inf_unitaryFrame`.
 - `ℒ.pathMaslovIndex_add_half_sub_mem (γ : Path Λ Λ') (V) :
   pathMaslovIndex γ V + (finrank (Λ ⊓ V) - finrank (Λ' ⊓ V)) / 2 ∈ Set.range (Int.cast : ℤ → ℝ)`
   (the values property), from Tau Ceti's
@@ -666,6 +677,15 @@ an element of `ℒ ι`.
   `eventually_nhdsLT_nondegenerate_of_crossingForm_nondegenerate`, with `Iic t₀`,
   gives those before. Their symmetry hypotheses hold because `A t` is symmetric
   for every `t ∈ Icc 0 1` near `t₀`.
+- `ℒ.eventually_nhdsLT_not_crossing_of_regular`,
+  `ℒ.eventually_nhdsGT_not_crossing_of_regular` and
+  `ℒ.eventually_nhdsNE_not_crossing_of_regular`: the same for a family
+  `Λ : ℝ → ℒ ι`. The one-sided forms take a frame of `Λ` on `Iic r₀` (or
+  `Ici r₀`) near `r₀`, eventually in `𝓝[≤] r₀` (or `𝓝[≥] r₀`), and a derivative
+  within `Iic r₀` (or `Ici r₀`), and conclude in `𝓝[<] r₀` (or `𝓝[>] r₀`);
+  the two-sided one takes a frame of `Λ` eventually in `𝓝 r₀`, `HasDerivAt Z Z' r₀`, and
+  concludes in `𝓝[≠] r₀`. `ℒ.eventually_not_crossing_of_regular` is proved
+  from the one-sided forms, applied to `Set.IccExtend` of `γ`.
 
 Signatures are `(sigPos Q : ℤ) - sigNeg Q`, as in Tau Ceti's crossing theorem;
 the part adds no signature function.
