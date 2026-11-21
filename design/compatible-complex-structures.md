@@ -326,6 +326,11 @@ request updates it to the files below. Each change, with its reason:
   It involves only Tau Ceti's `cayleyPathFormula`, so it goes in the folder
   of Tau Ceti's `Cayley/Smooth.lean`, which it extends, and can
   move there unchanged.
+- **New `Geometry/Symplectic/Darboux/EuclideanBasis.lean`.** The complex
+  linearity of `b.darbouxBasisEquiv` for a basis adapted to $J$ is stated
+  with Tau Ceti's notions alone and does not need a symplectic form, so it
+  sits in the folder of Tau Ceti's `Darboux/EuclideanBasis.lean`, which
+  defines `darbouxBasisEquiv`, and can move there unchanged.
 - **Lemma 2.5.5 without `Compatible.cayleyEquiv`.** The overview suggested
   that equivalence. It maps the *tame* structures onto Tau Ceti's Cayley ball.
   It does not map the compatible structures onto the positive symplectic
@@ -385,9 +390,11 @@ statements assume `[FiniteDimensional ℝ V]`.
   `b (k, 0)` to `(single k 1, 0)` and `b (k, 1)` to `(0, single k 1)`
   (`darbouxBasisEquiv_apply_zero`/`_one`), so it carries $J$ to
   `AlmostComplexStructure.product`, which maps `(x, 0)` to `(0, x)`
-  (`Module.Basis.isComplexLinearMap_darbouxBasisEquiv`, in the namespace of
-  `darbouxBasisEquiv`). $\Psi$ is
-  its inverse, composed with the reindexing along a bijection `Fin n ≃ ι`,
+  (`Module.Basis.isComplexLinearMap_darbouxBasisEquiv`, in
+  `Geometry/Symplectic/Darboux/EuclideanBasis.lean`). $\Psi$ is
+  its inverse, complex linear by
+  `TauCeti.IsComplexLinearMap.symm_linearEquiv`
+  (`LinearAlgebra/ComplexStructure/Action.lean`), composed with the reindexing along a bijection `Fin n ≃ ι`,
   which commutes with $J_0$ (`stdComplexStructure_piLpCongrLeft_sumCongr` and
   `isComplexLinearMap_piLpCongrLeft_sumCongr`, in
   `LinearAlgebra/Symplectic/Standard/Basic.lean`), and
@@ -667,6 +674,16 @@ and `Compatible.mem_cayleyDomain` in `TauCeti.SymplecticForm`.
   `J₀` and `J` lies in the domain. This combines
   `Tames.isUnit_one_sub_mul_of_toLinearMap` and
   `Compatible.isUnit_one_sub_smul_cayleyFormula`.
+
+### `Geometry/Symplectic/Darboux/EuclideanBasis.lean`
+
+- `Module.Basis.isComplexLinearMap_darbouxBasisEquiv
+  {b : Basis (Fin n × Fin 2) ℝ V} (hbJ : ∀ k, b (k, 1) = J (b (k, 0)))`:
+  `b.darbouxBasisEquiv` is complex linear from `J` to
+  `AlmostComplexStructure.product`. The proof checks the identity of linear
+  maps on the basis and concludes with Tau Ceti's
+  `isComplexLinearMap_iff_apply`, so it does not use the body of
+  `IsComplexLinearMap`.
 
 ### `Topology/ComplexStructure/Compatible/Matrix.lean`
 
