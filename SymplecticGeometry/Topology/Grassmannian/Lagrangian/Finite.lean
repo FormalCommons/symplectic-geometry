@@ -7,7 +7,9 @@ module
 
 public import Mathlib.Topology.Algebra.Module.Spaces.ContinuousLinearMap
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
+public import SymplecticGeometry.LinearAlgebra.Symplectic.Lagrangian.Frame
 public import SymplecticGeometry.Topology.Grassmannian.Lagrangian.Basic
+public import SymplecticGeometry.Topology.Grassmannian.Lagrangian.Quotient
 public import SymplecticGeometry.Topology.Grassmannian.Tautological
 
 /-!
@@ -21,9 +23,9 @@ onto `EuclideanSpace ℝ (Fin (n + n))`, and then `WithLp.linearEquiv` forgets t
 The image of a Lagrangian under this identification is an `n`-dimensional subspace of
 `Fin (n + n) → ℝ`, a point of `TauCeti.finiteGrassmannian ℝ n (n + n)`.
 
-This file shows that the resulting map is a topological embedding, whose image consists of the
-subspaces that pull back to Lagrangian subspaces. So the topology of `ℒ(n)` is the subspace
-topology of the finite Grassmannian.
+This file shows that the resulting map is a closed topological embedding, whose image consists
+of the subspaces that pull back to Lagrangian subspaces. So the topology of `ℒ(n)` is the
+subspace topology of the finite Grassmannian.
 
 The proof compares orthogonal projections. The isometry conjugates the projection onto a
 Lagrangian into the projection onto its image (`Submodule.starProjection_map_apply`), and on the
@@ -36,6 +38,8 @@ finite Grassmannian the map `V ↦ V.toEuclidean.starProjection` is a closed emb
   `StdSpace (Fin n)` as a point of `TauCeti.finiteGrassmannian ℝ n (n + n)`.
 * `SymplecticGeometry.LagrangianGrassmannian.isEmbedding_toFiniteGrassmannian`: this map is a
   topological embedding.
+* `SymplecticGeometry.LagrangianGrassmannian.isClosedEmbedding_toFiniteGrassmannian`: since the
+  space of Lagrangians is compact, the map is even a closed embedding.
 * `SymplecticGeometry.LagrangianGrassmannian.range_toFiniteGrassmannian`: its image is the set
   of subspaces whose pull-back to `StdSpace (Fin n)` is Lagrangian.
 
@@ -61,10 +65,8 @@ noncomputable def toFiniteGrassmannian (Λ : LagrangianGrassmannian (stdForm (Fi
     finiteGrassmannian ℝ n (n + n) :=
   ⟨((Λ : Submodule ℝ (StdSpace (Fin n))).map (finSumIsometry n).toLinearEquiv.toLinearMap).map
       (WithLp.linearEquiv 2 ℝ (Fin (n + n) → ℝ)).toLinearMap, by
-    rw [LinearEquiv.finrank_map_eq, LinearEquiv.finrank_map_eq]
-    have h := Λ.isLagrangian.two_mul_finrank
-    rw [finrank_stdSpace, Fintype.card_fin] at h
-    exact Nat.eq_of_mul_eq_mul_left two_pos h⟩
+    rw [LinearEquiv.finrank_map_eq, LinearEquiv.finrank_map_eq, Λ.finrank_eq_card,
+      Fintype.card_fin]⟩
 
 @[simp]
 theorem coe_toFiniteGrassmannian (Λ : LagrangianGrassmannian (stdForm (Fin n))) :
@@ -126,6 +128,13 @@ theorem isEmbedding_toFiniteGrassmannian : IsEmbedding (toFiniteGrassmannian (n 
 @[fun_prop]
 theorem continuous_toFiniteGrassmannian : Continuous (toFiniteGrassmannian (n := n)) :=
   isEmbedding_toFiniteGrassmannian.continuous
+
+/-- The map from the Lagrangians of `StdSpace (Fin n)` to Tau Ceti's finite Grassmannian of
+`n`-planes in `Fin (n + n) → ℝ` is a closed embedding: an embedding with closed image, since the
+space of Lagrangians is compact. -/
+theorem isClosedEmbedding_toFiniteGrassmannian :
+    IsClosedEmbedding (toFiniteGrassmannian (n := n)) :=
+  continuous_toFiniteGrassmannian.isClosedEmbedding toFiniteGrassmannian_injective
 
 /-- The image of the Lagrangians of `StdSpace (Fin n)` in Tau Ceti's finite Grassmannian
 consists of the `n`-planes of `Fin (n + n) → ℝ` whose pull-back to `StdSpace (Fin n)`, along the

@@ -431,6 +431,9 @@ Lagrangian frames on `StdSpace ι`, pure linear algebra. Namespace
   constructor of G6; `isLagrangian_range_fromRows_iff` turns the rank and
   symmetry conditions into `h`. Every Lagrangian spanned by a frame, in this
   part, is written `ofFrame X Y h`, never as an anonymous pair.
+- `ℒ.finrank_eq_card (Λ : ℒ ι) : finrank ℝ Λ = Fintype.card ι`, from
+  `IsLagrangian.two_mul_finrank` and `finrank_stdSpace`, for every use of the
+  dimension of a Lagrangian of `StdSpace ι`.
 - `isLagrangian_map_swap_iff` (`@[simp]`): `L.map (swap ι)` is Lagrangian for
   `ω₀` iff `L` is. Since `stdForm_swap` says that `swap` multiplies `ω₀` by
   `-1`, this is the case `e = swap`, `c = -1` of
@@ -719,6 +722,11 @@ The comparison with Tau Ceti's Grassmannian, for `ι = Fin n`.
   `finSumIsometry n` is Lagrangian). So `ℒ (Fin n)` has the subspace
   topology of `finiteGrassmannian`. The proof is as in decision 2, through
   `TauCeti.finiteGrassmannian.isClosedEmbedding_starProjection_toEuclidean`.
+- `ℒ.isClosedEmbedding_toFiniteGrassmannian`: the embedding is closed, since
+  it is continuous and injective, `ℒ (Fin n)` is compact and
+  `finiteGrassmannian` is Hausdorff. `Quotient.lean` is imported only for the
+  instance `CompactSpace (ℒ (Fin n))`, which the closedness of the image needs
+  and the embedding itself does not.
 
 ### `Topology/Grassmannian/Lagrangian/Graph.lean`
 
