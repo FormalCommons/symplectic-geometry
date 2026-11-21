@@ -589,12 +589,11 @@ it into issues; the overview fixes its folders and its dependencies.
   in $\mathcal{L}(n)$ lifts to a path in $\mathrm{U}(n)$ from any frame of its
   start point. Its fibres are the left cosets of the real orthogonal matrices
   (from `Action.lean`). Near $V_1$, a continuous section sends $\{x=Sy\}$ to
-  `Matrix.GeneralLinearGroup.realOrthonormalize` of
-  `Matrix.lagrangianChartFrame S`, transferred (unitary by
-  `realOrthonormalize_mem_unitaryGroup`, continuous by
-  `continuous_realOrthonormalize`, with the same real image by
-  `realImage_realOrthonormalize`), $S$ being the coordinate of the graph
-  chart of `Graph.lean` on the Lagrangians transverse to $V_0$; left
+  the unitary matrix `unitaryOfFrame` (`Action.lean`) of the Lagrangian
+  frame `fromRows S 1`, $S$ being the coordinate of the graph chart of
+  `Graph.lean` on the Lagrangians transverse to $V_0$: it frames
+  $\{x=Sy\}$ by `graphY_eq_unitaryFrame` and is continuous by
+  `continuous_unitaryOfFrame`, so no unitary frame is built by hand; left
   translation by $\mathrm{U}(n)$ gives sections near every point. Tau Ceti's
   `Subgroup.localSectionTrivializationOfCosetFibers`
   (`Topology/Algebra/Group/Quotient/LocalSection.lean`) turns these sections
@@ -737,7 +736,9 @@ it into issues; the overview fixes its folders and its dependencies.
   of all inner products on $V$, a convex open subset of the symmetric bilinear forms,
   from Tau Ceti's `TauCeti.convex_setOfPred_symm_pos`),
   `Topology/Algebra/Module/SymplecticForms.lean` (the topology on
-  `SymplecticForm V`),
+  `SymplecticForm V`), with the general file
+  `Topology/Algebra/Module/BilinearForm.lean` (a continuous bilinear form in
+  finite dimensions is recovered from its bilinear form),
   `Geometry/Symplectic/Cayley/Domain.lean` (the open set where Tau Ceti's
   Cayley path is smooth),
   `Topology/ComplexStructure/Compatible/` (`Matrix.lean`: the identification
@@ -1036,7 +1037,8 @@ it into issues; the overview fixes its folders and its dependencies.
   line bundle as a principal `Circle`-bundle; see *Constructions*),
   and, for the last milestone, `Geometry/Manifold/IsManifold/InteriorBoundary.lean`
   (the interior of a manifold with boundary as a boundaryless manifold,
-  connected when the manifold is connected and of positive dimension),
+  connected when the manifold is connected; its topological step goes in
+  `Topology/Connected/Clopen.lean`),
   `Geometry/Manifold/Boundary/Collar/Push.lean`
   (a homotopy pushing a compact manifold with boundary into a compact subset
   of its interior along a collar), `.../VectorBundle/Section/Generic.lean`
