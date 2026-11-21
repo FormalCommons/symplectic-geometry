@@ -530,11 +530,7 @@ Chart points and transverse pairs, as algebra: G7–G9.
   horizontal subspace and carries the vertical one to `Λ'`.
 - Supporting statements: `ℒ.isCompl_smul_iff` (an element of
   `GLSymplectic ι ℝ` preserves complementarity of Lagrangians, through
-  `Submodule.orderIsoMapComap`), which both transverse-pair results use; and,
-  in `LinearAlgebra/TotallyReal/Euclidean.lean`,
-  `Matrix.map_im_conjTranspose_mul_self_lagrangianChartFrame` (for symmetric
-  `S`, the imaginary part of `(S + i)ᴴ (S + i)` vanishes, the case
-  `X = S`, `Y = 1` of `map_im_conjTranspose_mul_self_eq_zero_of_transpose_mul_eq`).
+  `Submodule.orderIsoMapComap`), which both transverse-pair results use.
 
 ### `LinearAlgebra/TotallyReal/Euclidean.lean`
 
@@ -556,10 +552,6 @@ and `Matrix.lagrangianChart_inf_realSubspace`, in Tau Ceti's terms. Write
   by dimension. Then `exists_eq_graphY_of_isCompl` gives `S`, and
   `StdSpace.map_lagrangianChart` with the injectivity of this map
   gives `V = S.lagrangianChart`.
-- `Matrix.map_im_conjTranspose_mul_self_lagrangianChartFrame (hS : S.IsSymm)`:
-  `(S.lagrangianChartFrameᴴ * S.lagrangianChartFrame).map Complex.im = 0`, the
-  case `X = S`, `Y = 1` of
-  `Matrix.map_im_conjTranspose_mul_self_eq_zero_of_transpose_mul_eq`.
 - The isotropy hypothesis is needed, and the file shows it by an `example`:
   for `n = Fin 2` and `S = !![0, 1; 0, 0]`, `det (S + i·1) = -1 ≠ 0`, so
   `S.lagrangianChart` is maximal totally real (`lagrangianChart_def` and

@@ -6,7 +6,6 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Lagrangian.Action
-public import SymplecticGeometry.LinearAlgebra.TotallyReal.Euclidean
 public import TauCeti.LinearAlgebra.SymplecticGroup
 
 /-!
