@@ -7,7 +7,6 @@ module
 
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Lagrangian.Maslov.Crossing.Path
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Lagrangian.Maslov.Product
-import Mathlib.Analysis.Calculus.Deriv.Shift
 
 /-!
 # The crossing-form formula for loops
@@ -83,24 +82,6 @@ private theorem inf_vertical_ne_bot_iff {Λ : ℒ ι} {Z : Matrix (ι ⊕ ι) ι
   rw [StdSpace.disjoint_range_toEuclideanLin_fromRows_ker_x_iff_of_isLagrangian hL,
     isUnit_iff_isUnit_det, isUnit_iff_ne_zero, not_not]
 
-/-- The signature of the crossing form vanishes away from the crossings. -/
-private theorem signature_eq_zero_of_inf_eq_bot {Z : Matrix (ι ⊕ ι) ι ℝ}
-    {V : Submodule ℝ (StdSpace ι)} (h : LinearMap.range (toEuclideanLin Z) ⊓ V = ⊥)
-    (Z' : Matrix (ι ⊕ ι) ι ℝ) : σ[lagrangianCrossingForm Z Z' V] = 0 := by
-  rw [lagrangianCrossingForm_eq_zero_of_inf_eq_bot h,
-    (QuadraticForm.forall_nonpos_iff_sigPos_eq_zero _).1 fun _ ↦ le_rfl,
-    QuadraticForm.sigNeg_zero]
-  simp
-
-/-- A change of frame `g` that keeps `Z * g` a frame of a Lagrangian is invertible. -/
-private theorem isUnit_of_range_mul_eq {Λ : ℒ ι} {Z : Matrix (ι ⊕ ι) ι ℝ} {g : Matrix ι ι ℝ}
-    (h : LinearMap.range (toEuclideanLin (Z * g)) = Λ) : IsUnit g := by
-  have hinj := injective_toEuclideanLin_of_range_eq h
-  rw [toLpLin_mul_same, LinearMap.coe_comp] at hinj
-  refine mulVec_injective_iff_isUnit.1 fun u v huv ↦ ?_
-  simpa using hinj.of_comp (a₁ := WithLp.toLp 2 u) (a₂ := WithLp.toLp 2 v)
-    (by simp [toLpLin_apply, huv])
-
 /-- For a frame that closes up as `Z 1 = Z 0 * g`, the crossing form at time `1`, with the
 derivative `Z' 0 * g`, is equivalent to the crossing form at time `0`. -/
 private theorem lagrangianCrossingForm_equivalent_of_eq_mul {Λ : ℒ ι}
@@ -149,17 +130,9 @@ theorem maslovIndex_eq_crossing_sum {Λ : ℒ ι} (γ : Path Λ Λ) {Z Z' : ℝ 
       HasDerivWithinAt Z (Z'' t) (Icc 0 1) t := by
     rw [hcross] at h
     rcases eq_or_ne t 1 with rfl | ht
-    · -- Near `1`, `Z r = Z (r - 1) * g`.
-      have hd0 := hd 0 ⟨le_rfl, zero_lt_one⟩ (hc10.1 h)
-      have hZ1 : Z = fun r ↦ Z (r - 1) * g := funext fun r ↦ by rw [← hg, sub_add_cancel]
-      have hs : HasDerivAt (fun r ↦ Z (r - 1)) (Z' 0) 1 := hasDerivAt_matrix.2 fun i j ↦
-        HasDerivAt.comp_sub_const (f := fun r ↦ Z r i j) (1 : ℝ) 1
-          (by simpa using hasDerivAt_matrix.1 hd0 i j)
-      have hm := (hasDerivWithinAt_matrix_univ.2 hs).matrix_mul
-        (hasDerivWithinAt_matrix_const g univ (1 : ℝ))
-      rw [Matrix.mul_zero, add_zero, hasDerivWithinAt_matrix_univ, ← hZ1] at hm
-      rw [Icc.coe_one, hZ''1]
-      exact hm.matrix_hasDerivWithinAt
+    · rw [Icc.coe_one, hZ''1, ← zero_add (1 : ℝ)]
+      exact ((hd 0 ⟨le_rfl, zero_lt_one⟩ (hc10.1 h)).matrix_of_forall_add_eq_mul
+        hg).matrix_hasDerivWithinAt
     · have ht' : (t : ℝ) ≠ 1 := fun h ↦ ht (Subtype.ext h)
       rw [hZ''t ht']
       exact (hd t ⟨t.property.1, lt_of_le_of_ne t.property.2 ht'⟩ h).matrix_hasDerivWithinAt
@@ -185,7 +158,8 @@ theorem maslovIndex_eq_crossing_sum {Λ : ℒ ι} (γ : Path Λ Λ) {Z Z' : ℝ 
     ((finite_setOf_inf_ne_bot_of_regular γ (vertical ι) hZ hd' hreg').image
       ((↑) : I → ℝ)).subset fun t ⟨ht, hst⟩ ↦
         ⟨⟨t, Ioo_subset_Icc_self ht⟩, fun h ↦
-          hst (signature_eq_zero_of_inf_eq_bot (by rwa [← hZ] at h) _), rfl⟩
+          hst (sigPos_sub_sigNeg_lagrangianCrossingForm_eq_zero_of_inf_eq_bot
+            (by rwa [← hZ] at h) _), rfl⟩
   rw [hσ1, hIoo, hZ''t zero_ne_one] at key
   rw [← insert_left_Ioo zero_lt_one, finsum_mem_insert' sgn left_notMem_Ioo hfin]
   have : (maslovIndex γ : ℝ) = ((sgn 0 + ∑ᶠ t ∈ Ioo (0 : ℝ) 1, sgn t : ℤ) : ℝ) := by
