@@ -125,13 +125,14 @@ variable {EB HB M : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB]
 | `Geometry/Manifold/VectorBundle/Section/Topology.lean` | a section as a $C^n$ map into the total space; continuity of fibrewise maps on section spaces | 4 |
 | `Geometry/Manifold/ContMDiffMap/Chart/CodRestrict.lean` | corestriction of $C^n$ maps to an open subset of the target, continuous for the weak Whitney topology | 4 |
 | `Geometry/Manifold/ContMDiffMap/Chart/Restriction.lean` | ambient chart derivatives of a function that agrees on an open set `U` with a $C^n$ map on `U`, and their convergence as that map converges in the weak Whitney topology on `U` | 4 |
-| `Geometry/Manifold/VectorBundle/Symplectic/ComplexStructure/Basic.lean` | tame and compatible pairs, $\omega_{g,J}$, the spaces of forms taming a fixed $J$; $J_{g,\omega}$ and existence; the five lemmas that tie `polarFormulaAt` and `polarEndAt` to these | 5, 6, 8 |
+| `Geometry/Manifold/VectorBundle/Symplectic/ComplexStructure/Basic.lean` | tame and compatible pairs, $\omega_{g,J}$, the metric `Compatible.metric` of a compatible pair, the spaces of forms taming a fixed $J$; $J_{g,\omega}$ and existence; the five lemmas that tie `polarFormulaAt` and `polarEndAt` to these | 5, 6, 8 |
 | `Geometry/Manifold/VectorBundle/Cayley.lean` | the Cayley path formula in the endomorphism bundle of a vector bundle: smoothness along a base map, and the set `cayleyPathDomain` of the points where the path from a reference endomorphism is defined for every coefficient in $[0,1]$ | 7 |
 | `Geometry/Manifold/VectorBundle/Riemannian/PolarEnd.lean` | for a bundle metric `g`, $J_{g,\sigma}$ on the bundle of bilinear forms (`polarFormulaDomain`, `polarFormulaAt` and its smoothness) and $J_{g,\omega_{g,B}}$ on the endomorphism bundle (`compatibleBilinAt`, `polarEndDomain`, `polarEndAt` and its smoothness) | 6, 8 |
 | `Geometry/Manifold/VectorBundle/Riemannian/SectionTopology.lean` | contractibility of the space of bundle metrics | 7 |
 | `Geometry/Manifold/VectorBundle/Symplectic/ComplexStructure/Contractible.lean` | contractibility for a fixed form or structure, the homotopy equivalence, the second milestone | 7, 8 |
 | `Geometry/Manifold/VectorBundle/Symplectic/Trivialization.lean` | local Darboux frames and the reduction of the structure group | 9 |
 | `Analysis/InnerProductSpace/GramSchmidtOrtho.lean` | Gram–Schmidt turns `u₀, J u₀, u₁, …` into `e₀, J e₀, e₁, …` for a skew-adjoint orthogonal `J` | 9 |
+| `Topology/VectorBundle/LinearIndependent.lean` | `Bundle.Trivialization.eventually_linearIndependent`: sections continuous and linearly independent at a point stay independent near it | 9 |
 | `Geometry/Manifold/VectorBundle/Symplectic/Classification.lean` | the first milestone | 11 |
 | `Geometry/Manifold/VectorBundle/Hom.lean` | `contMDiff_hom_bundle_symm`: the fibrewise inverses of a $C^n$ isomorphism of bundles as a $C^n$ section of the hom bundle; `Bundle.Trivial.contMDiff_comp_mk_iff` (with its `At`, `WithinAt` and `On` forms): $C^n$ maps out of the total space of a trivial bundle read on $M \times W$; `Bundle.Trivial.contMDiff_totalSpaceMk_clm`: a fixed continuous linear map, applied in each fibre, as a $C^n$ map of total spaces of trivial bundles | 1, 3, 25 |
 | `Geometry/Manifold/VectorBundle/ContinuousAlternatingMap.lean` | `contMDiff_compContinuousLinearMap_totalSpace`: precomposition by a $C^n$ hom-bundle section is $C^n$ on total spaces of alternating bundles | 3 |
@@ -248,6 +249,16 @@ file to it.
   `e₀, J e₀, e₁, J e₁, …` uses only an inner product space and a skew-adjoint
   orthogonal `J`. It is in Mathlib's namespace `InnerProductSpace`, in a file
   with the name of Mathlib's file of `gramSchmidt`, so that it can merge there.
+- `Topology/VectorBundle/LinearIndependent.lean` is new: the step of issue 9
+  that keeps the extended sections independent near the point holds for any
+  sections of a topological vector bundle that are continuous there, so it is
+  stated there, in Mathlib's namespace `Bundle.Trivialization`, as
+  `Bundle.Trivialization.eventually_linearIndependent`.
+- `ContMDiffTwoForm.Compatible.metric`, the bundle metric $\omega(\cdot,J\cdot)$
+  of a compatible pair, is public, in `Symplectic/ComplexStructure/Basic.lean`
+  next to `compatibleForm`, which goes the other way. Issue 9 uses it, and
+  `Trivialization.lean` imports part 9's `LinearAlgebra/Symplectic/Compatible.lean`
+  for `isDarbouxBasis_iff_apply_apply_eq_ite`.
 - The lemma of `Section/Topology.lean` asks for joint $C^n$ regularity in a
   manifold parameter instead of derivatives continuous in the parameter (see
   below), and issues 6, 7 and 8 wait for part 9: issue 6 for its building
@@ -476,6 +487,13 @@ the form and of the structure are independent.
   `contMDiffAt_continuousAlternatingMap_bundle_of_bilinear`. The same issue
   adds `bilinFormAt_pushforward_apply` there, next to
   `bilinFormAt_pushforward`.
+- The metric of a compatible pair: for `hc : ω.Compatible J`,
+  `ContMDiffTwoForm.Compatible.metric hc : Bundle.ContMDiffRiemannianMetric I n F V`
+  (`[FiniteDimensional ℝ F]`), with `Compatible.metric_inner`
+  (`hc.metric.inner x u v = ω.bilinFormAt x u (J x v)`) and
+  `Compatible.symplecticFormAt_apply_apply_eq_metric_inner`, the same on each
+  fibre for the linear pair, the hypothesis of Tau Ceti's lemmas on an inner
+  product of the form `ω(·, J ·)` (`Geometry/Symplectic/CompatibleMetric.lean`).
 - $J_{g,\sigma}$ on the bundle of bilinear forms. Two maps need the
   smoothness of the polar formula: $J_{g,\omega}$ along a nondegenerate
   two-form, and, for the homotopy equivalence below, $J_{g,\omega_{g,B}}$ as
@@ -1076,6 +1094,10 @@ $[0,1]$ is never fed to the lemma with `P = ℝ` directly.
   `J`, with no hypothesis on the base; the route above runs with that `J`,
   and the previous result applies it to $J_{g,\omega}$ (which needs a bundle
   metric) over a Hausdorff σ-compact base.
+  The metric is `Compatible.metric`; the sections stay independent near the
+  point by `Bundle.Trivialization.eventually_linearIndependent`
+  (`Topology/VectorBundle/LinearIndependent.lean`), and the orthonormal output
+  is a Darboux basis by part 9's `isDarbouxBasis_iff_apply_apply_eq_ite`.
 - `IsNondegenerate.exists_trivialization_isSymplectomorphism`: for a symplectic
   form `σ` on the model fibre `F`, every point lies in the base set of a
   trivialization in the $C^n$ maximal atlas whose fibre maps carry

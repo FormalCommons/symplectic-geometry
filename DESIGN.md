@@ -1185,6 +1185,9 @@ it into issues; the overview fixes its folders and its dependencies.
   in Mathlib's namespace `InnerProductSpace`; the file has the name of the
   Mathlib file that defines `gramSchmidt`, and the local Darboux frames use
   it),
+  `Topology/VectorBundle/LinearIndependent.lean` (sections continuous and
+  linearly independent at a point stay independent near it, in Mathlib's
+  namespace `Bundle.Trivialization`; the local Darboux frames use it),
   `Analysis/Normed/Operator/SpanSingleton.lean`
   (`LinearIsometryEquiv.toSpanSingleton`, a unit vector of a line as a
   linear isometry from the scalars),

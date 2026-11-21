@@ -10,6 +10,7 @@ public import Mathlib.Geometry.Manifold.VectorBundle.Riemannian
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.ComplexStructure
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Riemannian.PolarEnd
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.Basic
+public import TauCeti.Geometry.Manifold.Riemannian.Section
 public import TauCeti.Geometry.Manifold.VectorBundle.Bilinear.Section
 public import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Existence
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Polar
@@ -368,6 +369,58 @@ theorem compatible_compatibleForm (g : ContMDiffRiemannianMetric I n F V)
 
 end ContMDiffComplexStructure
 
+/-! ### The metric of a compatible pair -/
+
+namespace ContMDiffTwoForm
+
+variable {ω : ContMDiffTwoForm I n F V} {J : ContMDiffComplexStructure I n F V}
+
+/-- The bilinear section `(u, v) ↦ -ω(J u, v)`, which for a compatible pair is `ω(u, J v)`. -/
+private def compatibleMetricBilin (ω : ContMDiffTwoForm I n F V)
+    (J : ContMDiffComplexStructure I n F V) : TauCeti.Manifold.BilinearSection I F V ℝ n :=
+  -⟨fun x ↦ (ω.flat x).comp (J x), ω.contMDiff_flat.clm_bundle_comp J.toEndomorphism.contMDiff⟩
+
+private theorem compatibleMetricBilin_apply (x : M) (u v : V x) :
+    compatibleMetricBilin ω J x u v = -ω.bilinFormAt x (J x u) v := by
+  simp [compatibleMetricBilin, flat_apply, bilinFormAt_apply]
+
+/-- For a compatible pair, `ω(u, J v) = -ω(J u, v)`. -/
+private theorem Compatible.bilinFormAt_apply_eq_neg (hc : ω.Compatible J) (x : M) (u v : V x) :
+    ω.bilinFormAt x u (J x v) = -ω.bilinFormAt x (J x u) v := by
+  rw [← invariant_def.1 hc.invariant x u (J x v), ContMDiffComplexStructure.apply_apply,
+    map_neg]
+
+variable [FiniteDimensional ℝ F]
+
+/-- The bundle metric `g(u, v) = ω(u, J v)` of a two-form `ω` compatible with a complex structure
+`J`. It is the counterpart of `ContMDiffComplexStructure.compatibleForm`, which goes from a metric
+to a form. -/
+def Compatible.metric (hc : ω.Compatible J) : ContMDiffRiemannianMetric I n F V :=
+  .ofPositiveDefiniteSection (compatibleMetricBilin ω J) <| by
+    refine (TauCeti.Manifold.mem_positiveDefiniteBilinearSections _).2
+      ⟨(TauCeti.Manifold.mem_symmetricBilinearSections _).2 fun x u v ↦ ?_,
+      fun x v hv ↦ ?_⟩
+    · rw [compatibleMetricBilin_apply, compatibleMetricBilin_apply,
+        ← hc.bilinFormAt_apply_eq_neg, (ω.isAlt_bilinFormAt x).neg_eq]
+    · rw [compatibleMetricBilin_apply, ← hc.bilinFormAt_apply_eq_neg]
+      exact tames_def.1 hc.tames x v hv
+
+/-- The metric of a compatible pair is `g(u, v) = ω(u, J v)`. -/
+theorem Compatible.metric_inner (hc : ω.Compatible J) (x : M) (u v : V x) :
+    hc.metric.inner x u v = ω.bilinFormAt x u (J x v) :=
+  (ContMDiffRiemannianMetric.ofPositiveDefiniteSection_inner _ _ x u v).trans
+    ((compatibleMetricBilin_apply x u v).trans (hc.bilinFormAt_apply_eq_neg x u v).symm)
+
+/-- On each fibre, the metric of a compatible pair is the metric `ω_x(·, J_x ·)` of the linear
+compatible pair. -/
+theorem Compatible.symplecticFormAt_apply_apply_eq_metric_inner (hc : ω.Compatible J) (x : M)
+    (u v : V x) :
+    hc.isNondegenerate.symplecticFormAt x u (J.almostComplexStructureAt x v) =
+      hc.metric.inner x u v := by
+  rw [hc.metric_inner, ContMDiffComplexStructure.almostComplexStructureAt_apply,
+    IsNondegenerate.symplecticFormAt_apply, bilinFormAt_apply]
+
+end ContMDiffTwoForm
 
 /-! ### The complex structure `J_{g,ω}` -/
 

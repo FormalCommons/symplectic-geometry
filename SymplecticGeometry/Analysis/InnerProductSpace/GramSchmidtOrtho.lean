@@ -23,6 +23,9 @@ For a complex structure `J` that is orthogonal for the inner product, applied to
 real Gram–Schmidt process is then a complex one. This is the step of the construction of
 Darboux frames in McDuff–Salamon, §2.6, that orthonormalizes a complex basis.
 
+Over any `RCLike` field, `InnerProductSpace.gramSchmidt_sub_mem_span` says that each output differs
+from its input by a vector in the span of the earlier outputs.
+
 ## References
 
 * [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017], §2.6
@@ -35,17 +38,24 @@ open scoped RealInnerProductSpace
 
 namespace InnerProductSpace
 
-variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
-  {ι : Type*} [LinearOrder ι] [LocallyFiniteOrderBot ι]
+variable {ι : Type*} [LinearOrder ι] [LocallyFiniteOrderBot ι]
+
+section RCLike
+
+variable (𝕜 : Type*) {E : Type*} [RCLike 𝕜] [NormedAddCommGroup E] [InnerProductSpace 𝕜 E]
 
 /-- The difference between a Gram–Schmidt output and its input lies in the span of the earlier
 outputs. -/
 theorem gramSchmidt_sub_mem_span (f : ι → E) (n : ι) :
-    gramSchmidt ℝ f n - f n ∈ span ℝ (gramSchmidt ℝ f '' Iio n) := by
-  rw [gramSchmidt_def ℝ f n, sub_sub_cancel_left]
+    gramSchmidt 𝕜 f n - f n ∈ span 𝕜 (gramSchmidt 𝕜 f '' Iio n) := by
+  rw [gramSchmidt_def 𝕜 f n, sub_sub_cancel_left]
   refine neg_mem (sum_mem fun k hk ↦ ?_)
   rw [starProjection_singleton]
   exact smul_mem _ _ (subset_span (mem_image_of_mem _ (Finset.mem_Iio.1 hk)))
+
+end RCLike
+
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
 
 /-- Let `J` be skew-adjoint, `⟪J u, v⟫ = -⟪u, J v⟫`. If `j` covers `i`, `f j = J (f i)`, and `J`
 maps the span of the inputs `f k`, `k < i`, into itself, then the Gram–Schmidt outputs satisfy
@@ -74,8 +84,8 @@ theorem gramSchmidt_eq_apply_gramSchmidt {J : E →ₗ[ℝ] E} (hJ : ∀ u v, �
   -- to each of them, so it vanishes.
   set d := g j - J (g i)
   have hd : d ∈ span ℝ (g '' Iio j) := by
-    have h₁ := gramSchmidt_sub_mem_span f j
-    have h₂ := hspan (hS' _ (gramSchmidt_sub_mem_span f i))
+    have h₁ := gramSchmidt_sub_mem_span ℝ f j
+    have h₂ := hspan (hS' _ (gramSchmidt_sub_mem_span ℝ f i))
     rw [map_sub, ← hf] at h₂
     simpa [d] using sub_mem h₁ h₂
   have hdk : ∀ k ∈ Iio j, ⟪g k, d⟫ = 0 := by
@@ -109,6 +119,7 @@ theorem gramSchmidtNormed_eq_apply_gramSchmidtNormed {J : E →ₗ[ℝ] E}
     gramSchmidtNormed ℝ f j = J (gramSchmidtNormed ℝ f i) := by
   rw [gramSchmidtNormed, gramSchmidtNormed, gramSchmidt_eq_apply_gramSchmidt hJ hij hf hS, hJn,
     map_smul]
+
 /-- Let `J` be skew-adjoint and norm-preserving, so that `J` is an orthogonal complex structure.
 Apply Gram–Schmidt to the inputs `u₀, J u₀, u₁, J u₁, …`, indexed by `Fin (2 * k)`. Then each
 output at an odd index `2 i + 1` is `J` applied to the output at `2 i`. -/

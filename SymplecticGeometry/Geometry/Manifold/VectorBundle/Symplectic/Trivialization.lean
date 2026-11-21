@@ -9,9 +9,10 @@ public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.Compl
 public import TauCeti.Geometry.Manifold.VectorBundle.FrameTrivialization
 public import TauCeti.Geometry.Symplectic.Darboux.Basis
 import TauCeti.Geometry.Symplectic.Darboux.EuclideanBasis
-import Mathlib.Analysis.Normed.Module.FiniteDimension
 import SymplecticGeometry.Analysis.InnerProductSpace.GramSchmidtOrtho
-import TauCeti.Geometry.Manifold.Riemannian.Section
+import SymplecticGeometry.LinearAlgebra.Symplectic.Compatible
+import SymplecticGeometry.Topology.VectorBundle.LinearIndependent
+import TauCeti.Geometry.Symplectic.CompatibleMetric
 import TauCeti.Geometry.Manifold.VectorBundle.GramSchmidt
 import TauCeti.Geometry.Manifold.VectorBundle.MaximalAtlas
 import TauCeti.Geometry.Symplectic.Complex.OrthonormalBasis
@@ -41,23 +42,25 @@ structure group of `(V, ω)` reduces to the linear symplectic group.
 
 ## Implementation notes
 
-The frame is built as in McDuff–Salamon, §2.6. For `ω` compatible with `J`, the bilinear form
-`g(u, v) = ω(u, J v)` is a `Cⁿ` bundle metric for which `J` is orthogonal, and
-`ω(u, v) = g(J u, v)`. A `J`-adapted orthonormal basis `u₁, J u₁, …` of the fibre at the given
+The frame is built as in McDuff–Salamon, §2.6. For `ω` compatible with `J`, the bundle metric
+`g(u, v) = ω(u, J v)` (`ContMDiffTwoForm.Compatible.metric`) makes `J` skew-adjoint and orthogonal
+on each fibre, by Tau Ceti's lemmas on `TauCeti.SymplecticForm` for an inner product of the form
+`ω(·, J ·)`. A `J`-adapted orthonormal basis `u₁, J u₁, …` of the fibre at the given
 point (Tau Ceti's `TauCeti.AlmostComplexStructure.exists_adapted_orthonormalBasis`) is extended to
 constant sections in a trivialization, and the sections `u₁, J u₁, u₂, J u₂, …` are
 orthonormalized by Tau Ceti's smooth Gram–Schmidt (`ContMDiffWithinAt.gramSchmidtNormed_bundle`)
-where they stay independent. Since `J` is skew-adjoint and orthogonal for `g`, the output has the
-form `e₁, J e₁, e₂, J e₂, …` (`InnerProductSpace.gramSchmidtNormed_eq_apply_gramSchmidtNormed`),
-and such an orthonormal family is a Darboux basis of `ω`; this last step follows the proof of
-Tau Ceti's `TauCeti.AlmostComplexStructure.toBasis_orientation_eq_symplecticForm_orientation`.
+where they stay independent (`Bundle.Trivialization.eventually_linearIndependent`). Since `J` is
+skew-adjoint and orthogonal for `g`, the output has the form `e₁, J e₁, e₂, J e₂, …`
+(`InnerProductSpace.gramSchmidtNormed_eq_apply_gramSchmidtNormed`), and such an orthonormal
+family is a Darboux basis of `ω` (`TauCeti.SymplecticForm.isDarbouxBasis_iff_apply_apply_eq_ite`).
 The smooth Gram–Schmidt needs a linearly ordered index, so the frame is built on `Fin (2 * k)`
 and reindexed to `Fin k × Fin 2`. The trivializations are Tau Ceti's frame trivializations
 `IsLocalFrameOn.trivialization`.
 
 ## References
 
-* [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017], §2.6
+* [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017], §2.6,
+  Exercise 2.6.2 and Theorem 2.6.3
 -/
 
 public section
@@ -81,61 +84,6 @@ variable {EB HB M : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB]
 namespace ContMDiffTwoForm
 
 variable {ω : ContMDiffTwoForm I n F V} {J : ContMDiffComplexStructure I n F V}
-
-/-! ### The metric of a compatible pair -/
-
-/-- The bilinear section `(u, v) ↦ -ω(J u, v)`, which for a compatible pair is `ω(u, J v)`. -/
-private def compatibleMetricBilin (ω : ContMDiffTwoForm I n F V)
-    (J : ContMDiffComplexStructure I n F V) : TauCeti.Manifold.BilinearSection I F V ℝ n :=
-  -⟨fun x ↦ (ω.flat x).comp (J x), ω.contMDiff_flat.clm_bundle_comp J.toEndomorphism.contMDiff⟩
-
-private theorem compatibleMetricBilin_apply (x : M) (u v : V x) :
-    compatibleMetricBilin ω J x u v = -ω.bilinFormAt x (J x u) v := by
-  simp [compatibleMetricBilin, flat_apply, bilinFormAt_apply]
-
-section Metric
-
-variable [FiniteDimensional ℝ F]
-
-/-- The bundle metric `g(u, v) = -ω(J u, v) = ω(u, J v)` of a compatible pair. -/
-private def compatibleMetric (hc : ω.Compatible J) : ContMDiffRiemannianMetric I n F V :=
-  .ofPositiveDefiniteSection (compatibleMetricBilin ω J) <| by
-    refine (TauCeti.Manifold.mem_positiveDefiniteBilinearSections _).2
-      ⟨(TauCeti.Manifold.mem_symmetricBilinearSections _).2 fun x u v ↦ ?_,
-      fun x v hv ↦ ?_⟩
-    · rw [compatibleMetricBilin_apply, compatibleMetricBilin_apply,
-        ← invariant_def.1 hc.invariant x (J x u) v,
-        ContMDiffComplexStructure.apply_apply, map_neg, LinearMap.neg_apply,
-        (ω.isAlt_bilinFormAt x).neg_eq]
-    · rw [compatibleMetricBilin_apply x v v, (ω.isAlt_bilinFormAt x).neg_eq]
-      exact tames_def.1 hc.tames x v hv
-
-private theorem compatibleMetric_inner (hc : ω.Compatible J) (x : M) (u v : V x) :
-    (compatibleMetric hc).inner x u v = -ω.bilinFormAt x (J x u) v :=
-  (ContMDiffRiemannianMetric.ofPositiveDefiniteSection_inner _ _ x u v).trans
-    (compatibleMetricBilin_apply x u v)
-
-/-- A basis `(q₁, p₁, …)` of a fibre that is orthonormal for the metric of a compatible pair, with
-`pᵢ = J qᵢ`, is a Darboux basis of `ω`. The proof follows the Darboux step in the proof of Tau
-Ceti's `TauCeti.AlmostComplexStructure.toBasis_orientation_eq_symplecticForm_orientation`. -/
-private theorem Compatible.isDarbouxBasis_of_inner (hc : ω.Compatible J) {y : M} {k : ℕ}
-    (b : Basis (Fin k × Fin 2) ℝ (V y))
-    (hon : ∀ p q, (compatibleMetric hc).inner y (b p) (b q) = if p = q then 1 else 0)
-    (hJ : ∀ i, b (i, 1) = J y (b (i, 0))) :
-    (hc.isNondegenerate.symplecticFormAt y).IsDarbouxBasis b := by
-  have hform (u v : V y) :
-      hc.isNondegenerate.symplecticFormAt y u v = (compatibleMetric hc).inner y (J y u) v := by
-    rw [compatibleMetric_inner, J.apply_apply, map_neg, LinearMap.neg_apply, neg_neg,
-      IsNondegenerate.symplecticFormAt_apply, bilinFormAt_apply]
-  refine ⟨fun i j ↦ ?_, fun i j ↦ ?_, fun i j ↦ ?_⟩
-  · rw [hform, ← hJ, hon]
-    simp
-  · rw [hform, hJ, J.apply_apply, map_neg, neg_apply, hon]
-    simp
-  · rw [hform, ← hJ, hon]
-    simp
-
-end Metric
 
 /-! ### Coordinate changes of symplectic trivializations -/
 
@@ -164,21 +112,20 @@ theorem Compatible.exists_isLocalFrameOn_isDarbouxBasis (hc : ω.Compatible J) (
       (hs : IsLocalFrameOn I F n s U), ∀ y (hy : y ∈ U),
         (hc.isNondegenerate.symplecticFormAt y).IsDarbouxBasis (hs.toBasisAt hy) := by
   classical
-  set g := compatibleMetric hc
-  let : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
-  let : IsContMDiffRiemannianBundle I n F V := _root_.Bundle.instIsContMDiffRiemannianBundle g
+  let : RiemannianBundle V := ⟨hc.metric.toRiemannianMetric⟩
+  let : IsContMDiffRiemannianBundle I n F V :=
+    _root_.Bundle.instIsContMDiffRiemannianBundle hc.metric
   have := VectorBundle.finiteDimensional ℝ F V
-  have hinner (x : M) (u v : V x) : ⟪u, v⟫ = -ω.bilinFormAt x (J x u) v :=
-    (g.inner_riemannianBundle x u v).trans (compatibleMetric_inner hc x u v)
-  -- On each fibre, `ω(u, v) = ⟪J u, v⟫`, and `J` is skew-adjoint and orthogonal.
-  have hω (x : M) (u v : V x) : ω.bilinFormAt x u v = ⟪J x u, v⟫ := by
-    rw [hinner, J.apply_apply, map_neg, LinearMap.neg_apply, neg_neg]
+  -- On each fibre, the inner product is the metric `ω_x(·, J_x ·)` of a linear compatible pair, so
+  -- `J` is skew-adjoint and orthogonal.
+  have hg (x : M) (u v : V x) :
+      hc.isNondegenerate.symplecticFormAt x u (J.almostComplexStructureAt x v) = ⟪u, v⟫ := by
+    rw [hc.symplecticFormAt_apply_apply_eq_metric_inner, hc.metric.inner_riemannianBundle]
   have hskew (x : M) (u v : V x) : ⟪J x u, v⟫ = -⟪u, J x v⟫ := by
-    rw [← hω, hinner, invariant_def.1 hc.invariant, neg_neg]
+    simpa using TauCeti.SymplecticForm.inner_apply_left_eq_neg_of_apply_apply_eq_inner (hg x) u v
   have hnorm (x : M) (v : V x) : ‖J x v‖ = ‖v‖ := by
-    have h : ⟪J x v, J x v⟫ = ⟪v, v⟫ := by rw [hskew, J.apply_apply, inner_neg_right, neg_neg]
-    rw [← sq_eq_sq₀ (norm_nonneg _) (norm_nonneg _), ← real_inner_self_eq_norm_sq,
-      ← real_inner_self_eq_norm_sq, h]
+    simpa using TauCeti.SymplecticForm.norm_apply_eq_norm_of_apply_apply_self_eq_inner
+      (fun v ↦ hg x v v) v
   -- A `J`-adapted orthonormal basis `b` of the fibre at `x₀`.
   obtain ⟨k, b₀, -⟩ := (hc.isNondegenerate.symplecticFormAt x₀).exists_isDarbouxBasis
   have hk : finrank ℝ F = 2 * k := by
@@ -213,23 +160,13 @@ theorem Compatible.exists_isLocalFrameOn_isDarbouxBasis (hc : ω.Compatible J) (
       simp only [w, u, h, ↓reduceIte, hLx₀]
       rw [← hb ⟨(j : ℕ) / 2, by omega⟩, ← hj]
   -- The sections `w` stay linearly independent on an open neighbourhood `U` of `x₀`.
-  have hcont : ContinuousAt (fun y ↦ fun j ↦ (e ⟨y, w j y⟩).2) x₀ := by
-    refine continuousAt_pi.2 fun j ↦ ?_
-    have hc := (hw j).continuousOn.continuousAt (e.open_baseSet.mem_nhds hx₀)
-    exact ((e.toOpenPartialHomeomorph.continuousAt (e.mem_source.2 hx₀)).comp hc).snd
-  have hli₀ : LinearIndependent ℝ (fun j ↦ (e ⟨x₀, w j x₀⟩).2) := by
-    have h := b.toBasis.linearIndependent.map' _ (e.linearEquivAt ℝ x₀ hx₀).ker
-    convert h using 2 with j
-    simp [hwx₀, Trivialization.linearEquivAt_apply]
-  obtain ⟨U, hUS, hU, hx₀U⟩ := mem_nhds_iff.1
-    (inter_mem (e.open_baseSet.mem_nhds hx₀)
-    (hcont.eventually hli₀.eventually))
+  have hli₀ : LinearIndependent ℝ (fun j ↦ w j x₀) := by
+    simpa only [hwx₀] using b.orthonormal.linearIndependent
+  obtain ⟨U, hUS, hU, hx₀U⟩ := mem_nhds_iff.1 (inter_mem (e.open_baseSet.mem_nhds hx₀)
+    (e.eventually_linearIndependent hx₀
+      (fun j ↦ (hw j).continuousOn.continuousAt (e.open_baseSet.mem_nhds hx₀)) hli₀))
   have hUe : U ⊆ e.baseSet := fun y hy ↦ (hUS hy).1
-  have hli (y : M) (hy : y ∈ U) : LinearIndependent ℝ (fun j ↦ w j y) := by
-    refine LinearIndependent.of_comp (e.linearMapAt ℝ y) ?_
-    convert (hUS hy).2 using 1
-    rw [e.coe_linearMapAt_of_mem (hUe hy)]
-    rfl
+  have hli (y : M) (hy : y ∈ U) : LinearIndependent ℝ (fun j ↦ w j y) := (hUS hy).2
   -- Their Gram–Schmidt orthonormalization `f` has the form `e₀, J e₀, e₁, J e₁, …`.
   set f : ∀ y, Fin (2 * k) → V y := fun y ↦ gramSchmidtNormed ℝ (fun j ↦ w j y)
   have horth (y : M) (hy : y ∈ U) : Orthonormal ℝ (f y) :=
@@ -254,10 +191,12 @@ theorem Compatible.exists_isLocalFrameOn_isDarbouxBasis (hc : ω.Compatible J) (
         (fun j _ ↦ (hw j).mono hUe y hy) ((hli y hy).linearIndepOn _) }
   refine ⟨U, hU, hx₀U, k, _, hs, fun y hy ↦ ?_⟩
   have hval (p : Fin k × Fin 2) : hs.toBasisAt hy p = f y (E p) := hs.toBasisAt_coe hy p
-  refine hc.isDarbouxBasis_of_inner _ (fun p q ↦ ?_) fun i ↦ ?_
-  · rw [hval, hval, ← g.inner_riemannianBundle, orthonormal_iff_ite.1 (horth y hy)]
+  -- An orthonormal basis of the form `(e₀, J e₀, e₁, J e₁, …)` is a Darboux basis.
+  refine (TauCeti.SymplecticForm.isDarbouxBasis_iff_apply_apply_eq_ite
+    (J := J.almostComplexStructureAt y) fun i ↦ ?_).2 fun p q ↦ ?_
+  · rw [ContMDiffComplexStructure.almostComplexStructureAt_apply, hval, hval, hE0, hE1, hrel]
+  · rw [hg, hval, hval, orthonormal_iff_ite.1 (horth y hy)]
     exact if_congr E.injective.eq_iff rfl rfl
-  · rw [hval, hval, hE0, hE1, hrel]
 
 variable [FiniteDimensional ℝ EB] [T2Space M] [SigmaCompactSpace M]
   [IsManifold I ((⊤ : ℕ∞) : WithTop ℕ∞) M]

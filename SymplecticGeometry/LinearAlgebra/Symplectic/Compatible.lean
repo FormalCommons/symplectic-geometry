@@ -29,6 +29,9 @@ converses.
 
 * `TauCeti.SymplecticForm.compatible_iff_exists_isDarbouxBasis`: in finite dimension, `J` is
   compatible with `ω` exactly when `ω` has a Darboux basis `(v₁, J v₁, …, vₙ, J vₙ)`.
+* `TauCeti.SymplecticForm.isDarbouxBasis_iff_apply_apply_eq_ite`: a basis
+  `(v₁, J v₁, …, vₙ, J vₙ)` is a Darboux basis of `ω` exactly when it is orthonormal for
+  `ω(·, J ·)`.
 * `TauCeti.SymplecticForm.invariant_iff_isSymm_associatedBilinForm`: `ω` is `J`-invariant
   exactly when `g_J` is symmetric.
 * `TauCeti.SymplecticForm.compatible_iff_isSymm_and_posDef_associatedBilinForm`: `J` is
@@ -148,6 +151,17 @@ theorem IsDarbouxBasis.apply_apply_eq_ite {n : ℕ} {b : Basis (Fin n × Fin 2) 
   · simp [hJ₁, hb.apply_fst_fst]
   · simp [← hbJ, hb.apply_snd_snd]
   · simp [hJ₁, hb.apply_snd_fst, apply_ite]
+
+/-- For a basis `b` indexed like a Darboux basis, with `b (k, 1) = J (b (k, 0))`, `b` is a
+Darboux basis of `ω` exactly when the metric `ω(·, J ·)` is the Kronecker delta on `b`. -/
+theorem isDarbouxBasis_iff_apply_apply_eq_ite {n : ℕ} {b : Basis (Fin n × Fin 2) ℝ V}
+    (hbJ : ∀ k, b (k, 1) = J (b (k, 0))) :
+    ω.IsDarbouxBasis b ↔ ∀ x y, ω (b x) (J (b y)) = if x = y then 1 else 0 := by
+  refine ⟨fun hb ↦ hb.apply_apply_eq_ite hbJ, fun h ↦ ⟨fun i j ↦ ?_, fun i j ↦ ?_, fun i j ↦ ?_⟩⟩
+  · have hJ₁ : J (b (j, 1)) = -b (j, 0) := by rw [hbJ, J.apply_apply]
+    simpa [hJ₁] using h (i, 0) (j, 1)
+  · simpa [← hbJ] using h (i, 1) (j, 0)
+  · simpa [← hbJ] using h (i, 0) (j, 0)
 
 /-- A Darboux basis of the form `(v₁, J v₁, …, vₙ, J vₙ)` makes `J` compatible with `ω`. -/
 theorem IsDarbouxBasis.compatible {n : ℕ} {b : Basis (Fin n × Fin 2) ℝ V}
