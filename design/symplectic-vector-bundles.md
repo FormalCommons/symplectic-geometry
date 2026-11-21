@@ -76,13 +76,12 @@ variable {EB HB M : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB]
     `contMDiff_hom_bundle_iff` or this library's `contMDiff_hom_bundle_symm`
     (the `pushforward`s, the classification, the
     transition maps of symplectic frames and the direct sum of complex
-    structures), and each use of Tau Ceti's
-    `contMDiffAt_continuousAlternatingMap_bundle_of_bilinear` (the direct sum
-    of forms);
+    structures);
   - finite rank of `F`: `isOpen_setOf_nondegenerate`;
     `ContMDiffTwoForm.ofBilinearSection`, whose smoothness comes from Tau
     Ceti's `contMDiffAt_continuousAlternatingMap_bundle_of_bilinear`, and
-    `compatibleForm`, built with it; every result that
+    `compatibleForm` and the direct sum of forms, both built with it; every
+    result that
     uses `polarComplexStructure` (`compatible_polarComplexStructure`,
     `polarComplexStructure_tangentEquiv`, `IsNondegenerate.exists_compatible`,
     `exists_homotopyEquiv_polarComplexStructure`,

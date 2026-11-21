@@ -500,7 +500,6 @@ theorem bilinFormAt_pushforward (ω : ContMDiffTwoForm I n F₁ V₁) (x : M) :
   fin_cases i <;> rfl
 
 /-- The transported form takes on `u`, `v` the value of `ω` on `Φ_x⁻¹ u`, `Φ_x⁻¹ v`. -/
-@[simp]
 theorem bilinFormAt_pushforward_apply (ω : ContMDiffTwoForm I n F₁ V₁) (x : M) (u v : V₂ x) :
     (pushforward Φ hΦ ω).bilinFormAt x u v = ω.bilinFormAt x ((Φ x).symm u) ((Φ x).symm v) := by
   simp [bilinFormAt_pushforward]
