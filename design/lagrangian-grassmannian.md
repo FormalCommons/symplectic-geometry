@@ -533,7 +533,9 @@ unitary action to Tau Ceti's `Matrix.realImage`.
   from it.
 - `instance : MulAction (unitaryGroup ι ℂ) (ℒ ι)`, the action through the
   monoid homomorphism `TauCeti.GLSymplectic.ofUnitary` (`MulAction.compHom`),
-  with `unitary_smul_def : U • Λ = ofUnitary U • Λ`.
+  with `unitary_smul_def : U • Λ = ofUnitary U • Λ` and its reverse
+  `ofUnitary_smul : ofUnitary U • Λ = U • Λ` (`@[simp]`), so that `U • Λ` is the
+  simp normal form.
 - `ℒ.horizontal ι`, `ℒ.vertical ι : ℒ ι`: $\{y=0\}$ and $\{x=0\}$ (G1). Their
   submodules are `LinearMap.ker StdSpace.y` and `LinearMap.ker StdSpace.x`
   (`coe_horizontal`, `coe_vertical`). They are Lagrangian as `graph 0` and

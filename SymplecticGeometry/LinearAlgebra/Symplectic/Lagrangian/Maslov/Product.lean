@@ -61,7 +61,7 @@ private theorem maslovPhase_inclusion_smul
   have hU : Subgroup.inclusion inf_le_left U =
       GLSymplectic.ofUnitary (unitaryGroupEquivSymplecticInfOrthogonal.symm U) := by
     rw [GLSymplectic.ofUnitary_apply, ContinuousMulEquiv.apply_symm_apply]
-  rw [hU, ← unitary_smul_def, maslovPhase_unitary_smul, GLSymplectic.maslovPhase_ofUnitary]
+  rw [hU, ofUnitary_smul, maslovPhase_unitary_smul, GLSymplectic.maslovPhase_ofUnitary]
 
 /-- **The product axiom.** A loop `Ψ` of symplectic matrices moves a loop `γ` of Lagrangian
 subspaces to the loop `t ↦ Ψ t • γ t`, whose Maslov index is that of `γ` plus twice the Maslov

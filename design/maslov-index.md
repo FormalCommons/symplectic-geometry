@@ -244,7 +244,8 @@ and pairs).
 - **G4.** The actions of `GLSymplectic ι ℝ` and of `unitaryGroup ι ℂ` on
   `ℒ ι` (the `MulAction` instances of `Lagrangian/Action.lean`), the second
   through `TauCeti.GLSymplectic.ofUnitary`
-  (`ℒ.unitary_smul_def : U • Λ = ofUnitary U • Λ`), both with
+  (`ℒ.unitary_smul_def : U • Λ = ofUnitary U • Λ`, with the `@[simp]` reverse
+  `ℒ.ofUnitary_smul`, so that `U • Λ` is the normal form), both with
   `ContinuousSMul`, and
   `ℒ.unitaryFrame_mul : unitaryFrame (U * U') = U • unitaryFrame U'`, so that
   `ofUnitary U • unitaryFrame U' = unitaryFrame (U * U')`.
@@ -433,7 +434,8 @@ The Maslov phase on $\mathcal{L}(n)$ and the index of Lagrangian loops.
 - `ℒ.maslovIndex_smul {A Λ} (Ψ : Path A A) (γ : Path Λ Λ) :
   maslovIndex ((Ψ.prod γ).map continuous_smul) = maslovIndex γ + 2 * GLSymplectic.maslovIndex Ψ`
   (`@[simp]`).
-  For a loop of `ofUnitary` matrices this is `maslovPhase_unitary_smul` with
+  For a loop of `ofUnitary` matrices this is `ofUnitary_smul`, then
+  `maslovPhase_unitary_smul`, with
   `Circle.degree_mul`. In general, Tau Ceti's `polarHomotopy` deforms `Ψ`
   through loops of symplectic matrices to its loop of unitary polar factors;
   acting on `γ` it gives a free homotopy of Lagrangian loops (G4), and
