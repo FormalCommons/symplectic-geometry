@@ -393,17 +393,6 @@ theorem eq_compatibleEquiv_iff
 
 /-! ### Smoothness in coordinates -/
 
-/-- The complex matrices with invertible imaginary part form an open set. -/
-theorem _root_.Matrix.isOpen_setOf_isUnit_det_map_im :
-    IsOpen {Z : Matrix ι ι ℂ | IsUnit (Z.map Complex.im).det} :=
-  (continuous_id.matrix_map Complex.continuous_im).isOpen_setOf_isUnit_det
-
-/-- The real matrices indexed by `ι ⊕ ι` with invertible lower left block form an open set. -/
-theorem _root_.Matrix.isOpen_setOf_isUnit_det_toBlocks₂₁ :
-    IsOpen {M : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ | IsUnit M.toBlocks₂₁.det} :=
-  Continuous.isOpen_setOf_isUnit_det (f := fun M : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ ↦ M.toBlocks₂₁)
-    (continuous_matrix fun i j ↦ continuous_apply_apply (Sum.inr i) (Sum.inl j))
-
 section Smooth
 
 open scoped Matrix.Norms.Operator ContDiff

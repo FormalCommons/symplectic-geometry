@@ -872,7 +872,10 @@ it into issues; the overview fixes its folders and its dependencies.
   `Topology/Instances/Matrix.lean` (`Continuous.isOpen_setOf_isUnit_det`:
   for a continuous family $f$ of square matrices over a topological field
   with closed points, the parameters $x$ where $f(x)$ is invertible form an
-  open set). They import only Mathlib, Tau Ceti and each other.
+  open set; and its two consequences `Matrix.isOpen_setOf_isUnit_det_map_im`
+  and `Matrix.isOpen_setOf_isUnit_det_toBlocks₂₁`: the complex matrices
+  with invertible imaginary part, and the real matrices on $n\oplus n$ with
+  invertible lower left block, are open). They import only Mathlib, Tau Ceti and each other.
 - **Builds on:** *Standard model*; compatibility is Tau Ceti's `Compatible`.
   It also depends on five files of three other parts. `Basic.lean` (for
   `Matrix.map_re_add_I_smul_map_im`, $Z = X + iY$) and `Action.lean` import
