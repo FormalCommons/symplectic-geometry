@@ -14,6 +14,7 @@ public import Mathlib.Topology.Algebra.Group.Quotient
 public import Mathlib.Topology.Homotopy.Equiv
 public import Mathlib.Topology.Homotopy.Path
 public import SymplecticGeometry.Analysis.Quaternion
+public import SymplecticGeometry.Analysis.InnerProductSpace.PiL2
 public import Mathlib.Analysis.Normed.Module.Connected
 public import Mathlib.Topology.Homeomorph.Lemmas
 import TauCeti.Geometry.Symplectic.Complex.InnerProductSpace
@@ -90,12 +91,6 @@ The file ends with the classification theorem, which collects these results.
 -/
 
 public section
-
-/-- A standard basis vector of `EuclideanSpace 𝕜 ι` lies on the unit sphere. -/
-theorem EuclideanSpace.single_one_mem_sphere {𝕜 ι : Type*} [RCLike 𝕜] [Fintype ι] [DecidableEq ι]
-    (i : ι) :
-    EuclideanSpace.single i (1 : 𝕜) ∈ Metric.sphere (0 : EuclideanSpace 𝕜 ι) 1 := by
-  simp
 
 namespace SymplecticGeometry
 

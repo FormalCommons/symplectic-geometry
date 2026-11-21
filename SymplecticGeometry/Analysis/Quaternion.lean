@@ -44,8 +44,8 @@ noncomputable def pureOfEuclideanSpace : EuclideanSpace ℝ (Fin 3) →ₗᵢ[�
       Fin.sum_univ_three]
     simp
 
-/-- The pure quaternion of `u` is `0 + u₀ i + u₁ j + u₂ k`. -/
-@[simp]
+/-- The pure quaternion of `u` is `0 + u₀ i + u₁ j + u₂ k`. This is not a simp lemma: simp works
+with the four components, `re_pureOfEuclideanSpace` to `imK_pureOfEuclideanSpace`. -/
 theorem pureOfEuclideanSpace_apply (u : EuclideanSpace ℝ (Fin 3)) :
     pureOfEuclideanSpace u = ⟨0, u 0, u 1, u 2⟩ :=
   (rfl)
