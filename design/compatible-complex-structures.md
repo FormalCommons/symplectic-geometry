@@ -217,7 +217,8 @@ an open set and natural under continuous linear equivalences, so that they
 could also be read in trivializations of a bundle. *Symplectic vector
 bundles* does not use them: its design applies Tau Ceti's linear
 `cayleyPathFormula` and `SymplecticForm.polarComplexStructure` fibrewise,
-and none of its issues waits for this part. The three formulas:
+and only its contractibility issue waits for this part, for issue 6 below.
+The three formulas:
 
 1. `TauCeti.metricPolarFormula`, the formula for $(g,\omega)\mapsto J_{g,\omega}$, on
    the open set `TauCeti.polarDomain W` of pairs of continuous bilinear forms. It is
@@ -311,8 +312,9 @@ request updates it to the files below. Each change, with its reason:
   topic parallel to `InnerProducts.lean`.
 - **New `Geometry/Symplectic/Cayley/Domain.lean`.** The open set where the
   Cayley path is smooth is used by two files of this part. *Symplectic
-  vector bundles* uses its openness lemma
-  `isOpen_setOf_forall_Icc_mem_cayleyDomain` and nothing else of this part.
+  vector bundles* uses this file, for the openness lemma
+  `TauCeti.isOpen_setOf_forall_Icc_mem_cayleyDomain`, and nothing else of
+  this part.
   It involves only Tau Ceti's `cayleyPathFormula`, so it goes in the folder
   of Tau Ceti's `Cayley/Smooth.lean`, which it extends, and can
   move there unchanged.
@@ -818,11 +820,11 @@ Each is a few hundred lines. External blockers are given by issue number.
     `Topology/Algebra/Matrix/SymplecticGroup/CompactSubgroup.lean`. Blockers:
     2, #8.
 
-Issues 1, 3 and 6 can start at once. No issue of *Symplectic vector bundles*
-waits for this part. Its contractibility issue uses the same open set of
-Cayley units over $[0,1]$ as issue 6 here, through
-`isOpen_setOf_forall_Icc_mem_cayleyDomain` in `Cayley/Domain.lean`; whichever
-of the two issues comes first adds that lemma there.
+Issues 1, 3 and 6 can start at once. The contractibility issue of
+*Symplectic vector bundles* uses the same open set of Cayley units over
+$[0,1]$ as issue 6 here, through
+`TauCeti.isOpen_setOf_forall_Icc_mem_cayleyDomain`, so it waits for issue 6.
+No other issue of that part waits for this one.
 
 ## References
 

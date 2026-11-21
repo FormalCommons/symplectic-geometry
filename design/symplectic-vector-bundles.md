@@ -131,8 +131,8 @@ the overview in line with them.
   not use an orientation, so the statement is more general.
 - The lemma of `Section/Topology.lean` asks for joint $C^n$ regularity in a
   manifold parameter instead of derivatives continuous in the parameter (see
-  below), and no issue of this part waits for part 9 (see *What the part
-  uses*).
+  below), and only issue 7 waits for part 9, for its Cayley domain issue
+  (see *What the part uses*).
 
 ## Complex structures on a bundle
 
@@ -411,8 +411,7 @@ $[0,1]$ is never fed to the lemma with `P = ℝ` directly.
   is continuous since $J_0$ is, of the open set of pairs of
   `TauCeti.isOpen_setOf_forall_Icc_mem_cayleyDomain`
   (`Geometry/Symplectic/Cayley/Domain.lean`, planned in *Compatible complex
-  structures*). If that lemma does not exist yet, issue 7 adds it there, in
-  the form that design gives. Tau Ceti's
+  structures*, whose issue 6 adds it). Tau Ceti's
   `Tames.isUnit_one_sub_mul_of_toLinearMap` and
   `Compatible.isUnit_one_sub_smul_cayleyFormula` show that the values of
   every tame `J` lie in it. That the path stays tame, and compatible when `J` is, are Tau
@@ -643,12 +642,12 @@ it, its design adds it.
   direction of the classification, with the parametric smoothness of issue 10.
   *Standard model* only for the corollary on `Matrix.symplecticGroup`. The
   part uses from *Compatible complex structures* (part 9) only the linear
-  openness lemma `TauCeti.isOpen_setOf_forall_Icc_mem_cayleyDomain` in
-  `Geometry/Symplectic/Cayley/Domain.lean`, which issue 7 adds there if part 9
-  has not yet. The fibrewise constructions it needs (the Cayley path,
+  file `Geometry/Symplectic/Cayley/Domain.lean`, for `TauCeti.cayleyDomain`
+  and its openness lemma `TauCeti.isOpen_setOf_forall_Icc_mem_cayleyDomain`.
+  That file is part 9's issue 6, which has no blockers, and issue 7 here
+  waits for it. The fibrewise constructions it needs (the Cayley path,
   $J_{g,\omega}$, $\omega_{g,J}$, the complex-linear part) are Tau Ceti's
-  linear ones or explicit formulas. So none of its issues waits for part 9,
-  and `DESIGN.md` does not list that part among its prerequisites.
+  linear ones or explicit formulas, so no other issue waits for part 9.
 
 ## Building issues
 
@@ -683,7 +682,8 @@ at once.
 7. **Contractibility of tame and compatible structures and forms.**
    `Symplectic/ComplexStructure/Contractible.lean`: the four
    `contractibleSpace_…` theorems; and the contractibility of metrics in
-   `Riemannian/SectionTopology.lean`. Blockers: 4, 6.
+   `Riemannian/SectionTopology.lean`. Blockers: 4, 6, and issue 6 of
+   *Compatible complex structures* (`Geometry/Symplectic/Cayley/Domain.lean`).
 8. **The homotopy equivalence and the second milestone.**
    `Symplectic/ComplexStructure/Contractible.lean`:
    `exists_homotopyEquiv_polarComplexStructure`, `polarComplexStructure_homotopic`,

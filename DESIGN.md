@@ -721,8 +721,8 @@ it into issues; the overview fixes its folders and its dependencies.
   Ceti's linear `cayleyPathFormula` and `SymplecticForm.polarComplexStructure`
   fibrewise (see that part). It uses the same set $U_{J_0}$ at each point,
   and takes its openness from
-  `TauCeti.isOpen_setOf_forall_Icc_mem_cayleyDomain`; whichever issue of the
-  two parts needs that lemma first adds it to `Cayley/Domain.lean`.
+  `TauCeti.isOpen_setOf_forall_Icc_mem_cayleyDomain`, so its contractibility
+  issue waits for the issue of this part that writes `Cayley/Domain.lean`.
 
 ### 10. Linear Moser
 
@@ -917,9 +917,10 @@ it into issues; the overview fixes its folders and its dependencies.
   its generic sections, diffeotopies of configurations and collars, for the
   last milestone; for the constructions, the pieces listed under
   *Constructions*. From *Compatible complex structures* it uses only the
-  openness lemma `isOpen_setOf_forall_Icc_mem_cayleyDomain`, which its
-  contractibility issue adds to `Cayley/Domain.lean` if that part has not
-  yet, so none of its issues waits for that part.
+  file `Geometry/Symplectic/Cayley/Domain.lean`: `TauCeti.cayleyDomain` and
+  its openness lemma `TauCeti.isOpen_setOf_forall_Icc_mem_cayleyDomain`.
+  Its contractibility issue waits for the issue of that part that writes
+  this file, which has no blockers.
 - **Milestones:** *Symplectic vector bundles are complex vector bundles*,
   *Compatible and tame complex structures on symplectic vector bundles*,
   *Unitary trivializations over surfaces with boundary*.
@@ -1181,7 +1182,7 @@ Each part depends only on the parts listed, besides Mathlib and Tau Ceti.
 | 1 | *Linear nonsqueezing* | *Standard model* |
 | 1 | *Linear complex structures* | *Standard model* |
 | 1 | *Siegel upper half space* | *Standard model* |
-| 1 | *Symplectic vector bundles* | *Standard model*, *Linear Moser* |
+| 1 | *Symplectic vector bundles* | *Standard model*, *Linear Moser*; its contractibility issue also the Cayley domain issue of *Compatible complex structures*, which has no blockers |
 | 2 | *Compatible complex structures* | *Standard model*, *Symplectic vector spaces* |
 | 2 | *Maslov index* | *Standard model*, *Symplectic group*, *Unitary group topology*; its Lagrangian issues also *Lagrangian Grassmannian* |
 | 3 | *First Chern number* | *Symplectic vector bundles*, the symplectic-loop issues of *Maslov index* |
