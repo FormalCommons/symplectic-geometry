@@ -49,26 +49,21 @@ theorem exists_isSymm_eq_lagrangianChart {V : Submodule ℝ (EuclideanSpace ℂ 
     (hreal : V ⊓ realSubspace n = ⊥) :
     ∃ S : Matrix n n ℝ, S.IsSymm ∧ V = S.lagrangianChart := by
   let ε := (complexEuclideanEquiv n).toLinearEquiv
-  have hJ : ∀ W : Submodule ℝ (EuclideanSpace ℂ n), Function.Injective
-      (((LinearMap.lsmul ℂ (EuclideanSpace ℂ n) Complex.I).restrictScalars ℝ).domRestrict W) :=
-    fun W v w h ↦ Subtype.ext (smul_right_injective _ Complex.I_ne_zero (by simpa using h))
-  have hdimE : finrank ℝ (EuclideanSpace ℂ n) = 2 * Fintype.card n := by
-    rw [ε.finrank_eq, finrank_stdSpace]
-  have hdimV := hV.two_mul_finrank_eq (hJ V)
-  have hdimR := isMaximalTotallyReal_realSubspace.two_mul_finrank_eq (hJ (realSubspace n))
+  have hdimV := hV.finrank_eq_finrank_complex
+  have hdimR := (isMaximalTotallyReal_realSubspace (n := n)).finrank_eq_finrank_complex
   -- The image of `V` in `StdSpace n` is Lagrangian.
   have hL : (stdForm n).IsLagrangian (V.map ε.toLinearMap) := by
     refine SymplecticForm.isLagrangian_iff_isIsotropic_and_two_mul_finrank_eq.2
       ⟨SymplecticForm.isIsotropic_iff.2 ?_, ?_⟩
     · rintro _ ⟨v, hv, rfl⟩ _ ⟨w, hw, rfl⟩
       exact (stdForm_apply_eq_im_inner v w).trans (hiso v hv w hw)
-    · rw [LinearEquiv.finrank_map_eq, finrank_stdSpace]
-      omega
+    · rw [LinearEquiv.finrank_map_eq, finrank_stdSpace, hdimV, finrank_euclideanSpace]
   -- It is transverse to the horizontal subspace `{y = 0}`, the image of `ℝⁿ`.
   have hcompl : IsCompl (V.map ε.toLinearMap) (LinearMap.ker y) := by
     rw [← map_realSubspace]
     refine (Submodule.isCompl_iff_disjoint _ _ ?_).2 ?_
-    · rw [LinearEquiv.finrank_map_eq, LinearEquiv.finrank_map_eq, finrank_stdSpace]
+    · rw [LinearEquiv.finrank_map_eq, LinearEquiv.finrank_map_eq, finrank_stdSpace, hdimV,
+        hdimR, finrank_euclideanSpace]
       omega
     · rw [disjoint_iff, ← Submodule.map_inf _ ε.injective, hreal, Submodule.map_bot]
   obtain ⟨S, hS, hSV⟩ := exists_eq_graphY_of_isCompl hL hcompl
