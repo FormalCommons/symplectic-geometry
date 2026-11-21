@@ -6,7 +6,6 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Analysis.Normed.Module.Ball.Pointwise
-public import Mathlib.Analysis.Real.Pi.Bounds
 public import SymplecticGeometry.Analysis.InnerProductSpace.Symplectic.Nonsqueezing
 
 /-!
@@ -32,6 +31,8 @@ contains no image of a ball, and `∞` for the whole space.
 * `SymplecticGeometry.linearSymplecticWidth_image_closedBall` and
   `SymplecticGeometry.linearSymplecticWidth_image_stdCylinder`: the images of balls and of
   cylinders of radius `r` under affine symplectic maps have width `π r²`.
+* `SymplecticGeometry.linearSymplecticWidth_stdCylinder_le`: a cylinder of radius `R` has width
+  at most `π R²`, for every real `R`.
 
 In dimension zero (`ι` empty) the space is a point, and every nonempty set has width `∞`; this is
 why the statement for balls assumes `Nonempty ι`, and the conformality `c ≠ 0`.
@@ -98,15 +99,6 @@ theorem linearSymplecticWidth_empty : linearSymplecticWidth (∅ : Set (StdSpace
   have h0 : f 0 ∈ f '' closedBall (0 : StdSpace ι) r := ⟨0, mem_closedBall_self hr, rfl⟩
   exact absurd (hA h0) (Set.notMem_empty _)
 
-/-- The map `z ↦ e z + v` is affine symplectic when the linear equivalence `e` is a
-symplectomorphism. -/
-private theorem trans_constVAdd_mem {e : StdSpace ι ≃ₗ[ℝ] StdSpace ι}
-    (he : (stdForm ι).IsSymplectomorphism (stdForm ι) e) (v : StdSpace ι) :
-    e.toAffineEquiv.trans (AffineEquiv.constVAdd ℝ (StdSpace ι) v) ∈
-      affineSymplecticGroup (stdForm ι) :=
-  Subgroup.mul_mem _ (AffineEquiv.constVAdd_mem_affineSymplecticGroup v)
-    ((LinearEquiv.toAffineEquiv_mem_affineSymplecticGroup_iff e).2 he)
-
 /-- The whole space contains balls of every radius, so its width is `∞`. -/
 @[simp]
 theorem linearSymplecticWidth_univ :
@@ -117,7 +109,7 @@ theorem linearSymplecticWidth_univ :
   refine le_trans ?_ h
   rw [Real.sq_sqrt c.coe_nonneg, ← ENNReal.ofReal_coe_nnreal]
   exact ENNReal.ofReal_le_ofReal
-    (le_mul_of_one_le_left c.coe_nonneg (by linarith [Real.pi_gt_three]))
+    (le_mul_of_one_le_left c.coe_nonneg (by linarith [Real.two_le_pi]))
 
 /-! ### Invariance -/
 
@@ -136,7 +128,7 @@ theorem linearSymplecticWidth_image {f : StdSpace ι ≃ᵃ[ℝ] StdSpace ι}
     linearSymplecticWidth (f '' A) = linearSymplecticWidth A := by
   refine le_antisymm ?_ (linearSymplecticWidth_le_image hf A)
   have h := linearSymplecticWidth_le_image (inv_mem hf) (f '' A)
-  rwa [AffineEquiv.inv_def, show ⇑f.symm '' (⇑f '' A) = A from f.toEquiv.symm_image_image A] at h
+  simpa [AffineEquiv.inv_def, Set.image_image] using h
 
 /-- Linear equivalences with `Ψ^* ω₀ = -ω₀` do not decrease the width: if `g` maps a ball into
 `A`, then `z ↦ Ψ (g (z̄))` is affine symplectic and maps the ball into `Ψ '' A`. -/
@@ -145,14 +137,12 @@ private theorem linearSymplecticWidth_le_image_of_forall_apply_eq_neg
     (A : Set (StdSpace ι)) :
     linearSymplecticWidth A ≤ linearSymplecticWidth (Ψ '' A) := by
   refine linearSymplecticWidth_le_iff.2 fun g hg r hr hA ↦ ?_
-  have hg' := SymplecticForm.isSymplectomorphism_iff.1 (mem_affineSymplecticGroup_iff.1 hg)
-  set e := ((stdConj ι).toLinearEquiv.trans g.linear).trans Ψ
-  have he : (stdForm ι).IsSymplectomorphism (stdForm ι) e := by
-    rw [SymplecticForm.isSymplectomorphism_iff]
-    intro v w
-    simp only [e, LinearEquiv.trans_apply, LinearIsometryEquiv.coe_toLinearEquiv, hΨ, hg',
-      stdForm_stdConj, neg_neg]
-  refine le_linearSymplecticWidth (trans_constVAdd_mem he (Ψ (g 0))) hr ?_
+  set e := (stdConj ι).toLinearEquiv.trans (g.linear.trans Ψ)
+  have he : (stdForm ι).IsSymplectomorphism (stdForm ι) e :=
+    isSymplectomorphism_stdConj_trans_of_forall_apply_eq_neg (Ψ := g.linear.trans Ψ)
+      fun z w ↦ by simp [hΨ, (mem_affineSymplecticGroup_iff.1 hg).apply]
+  refine le_linearSymplecticWidth (f := e.toAffineEquiv.trans
+    (AffineEquiv.constVAdd ℝ (StdSpace ι) (Ψ (g 0)))) (mem_affineSymplecticGroup_iff.2 he) hr ?_
   rintro _ ⟨z, hz, rfl⟩
   refine ⟨g (stdConj ι z), hA ⟨stdConj ι z, ?_, rfl⟩, ?_⟩
   · simpa using hz
@@ -169,8 +159,8 @@ theorem linearSymplecticWidth_image_of_forall_apply_eq_or_forall_apply_eq_neg
     linearSymplecticWidth (Ψ '' A) = linearSymplecticWidth A := by
   set e := LinearEquiv.ofBijective Ψ
     ((stdForm ι).bijective_of_forall_apply_eq_or_forall_apply_eq_neg hΨ)
-  have hcoe : ⇑Ψ = ⇑e := rfl
-  rw [hcoe]
+  have hcoe : ⇑Ψ = ⇑e := funext fun z ↦ (LinearEquiv.ofBijective_apply Ψ z).symm
+  rw [hcoe] at hΨ ⊢
   rcases hΨ with h | h
   · have he : (stdForm ι).IsSymplectomorphism (stdForm ι) e :=
       SymplecticForm.isSymplectomorphism_iff.2 h
@@ -178,12 +168,11 @@ theorem linearSymplecticWidth_image_of_forall_apply_eq_or_forall_apply_eq_neg
       ((LinearEquiv.toAffineEquiv_mem_affineSymplecticGroup_iff e).2 he) A
   · have hsymm : ∀ z w, stdForm ι (e.symm z) (e.symm w) = -stdForm ι z w := fun z w ↦ by
       have := h (e.symm z) (e.symm w)
-      rw [show Ψ (e.symm z) = z from e.apply_symm_apply z,
-        show Ψ (e.symm w) = w from e.apply_symm_apply w] at this
+      simp only [LinearEquiv.apply_symm_apply] at this
       linarith
     refine le_antisymm ?_ (linearSymplecticWidth_le_image_of_forall_apply_eq_neg h A)
     have h' := linearSymplecticWidth_le_image_of_forall_apply_eq_neg hsymm (e '' A)
-    rwa [show ⇑e.symm '' (⇑e '' A) = A from e.toEquiv.symm_image_image A] at h'
+    simpa [Set.image_image] using h'
 
 /-! ### Conformality -/
 
@@ -201,7 +190,8 @@ private theorem ofReal_sq_mul_linearSymplecticWidth_le (c : ℝ) (A : Set (StdSp
   have hball : closedBall (0 : StdSpace ι) (|c| * r) = c • closedBall 0 r := by
     rw [smul_closedBall c 0 hr, smul_zero, Real.norm_eq_abs]
   have key := le_linearSymplecticWidth (A := c • A)
-    (trans_constVAdd_mem (mem_affineSymplecticGroup_iff.1 hg) (c • g 0))
+    (f := g.linear.toAffineEquiv.trans (AffineEquiv.constVAdd ℝ (StdSpace ι) (c • g 0)))
+    (mem_affineSymplecticGroup_iff.2 ((mem_affineSymplecticGroup_iff (f := g)).1 hg))
     (mul_nonneg (abs_nonneg c) hr) (by
       rw [hball]
       rintro _ ⟨_, ⟨z, hz, rfl⟩, rfl⟩
@@ -229,8 +219,9 @@ theorem linearSymplecticWidth_smul {c : ℝ} (hc : c ≠ 0) (A : Set (StdSpace �
 
 /-! ### Balls and cylinders -/
 
-/-- A cylinder of radius `R` has width at most `π R²`, by affine nonsqueezing. -/
-private theorem linearSymplecticWidth_stdCylinder_le (i : ι) (R : ℝ) :
+/-- The cylinder `Z²ⁿ(R)` over the `i`-th coordinate plane has width at most `π R²`, for every
+real `R`: an affine symplectic image of a ball of radius `r` inside it has `r ≤ R`. -/
+theorem linearSymplecticWidth_stdCylinder_le (i : ι) (R : ℝ) :
     linearSymplecticWidth (stdCylinder i R) ≤ ENNReal.ofReal (π * R ^ 2) := by
   refine linearSymplecticWidth_le_iff.2 fun f hf r hr hA ↦ ENNReal.ofReal_le_ofReal ?_
   have := le_of_image_closedBall_subset_stdCylinder hf hr hA
@@ -253,7 +244,8 @@ theorem linearSymplecticWidth_image_closedBall [Nonempty ι] {f : StdSpace ι �
     (hf : f ∈ affineSymplecticGroup (stdForm ι)) (z : StdSpace ι) {r : ℝ} (hr : 0 ≤ r) :
     linearSymplecticWidth (f '' closedBall z r) = ENNReal.ofReal (π * r ^ 2) := by
   have hz : closedBall z r = AffineEquiv.constVAdd ℝ (StdSpace ι) z '' closedBall 0 r := by
-    rw [show ⇑(AffineEquiv.constVAdd ℝ (StdSpace ι) z) = (z +ᵥ ·) from rfl, Set.image_vadd,
+    rw [show ⇑(AffineEquiv.constVAdd ℝ (StdSpace ι) z) = (z +ᵥ ·) from
+      funext fun _ ↦ AffineEquiv.constVAdd_apply .., Set.image_vadd,
       Metric.vadd_closedBall, vadd_eq_add, add_zero]
   rw [hz, linearSymplecticWidth_image hf,
     linearSymplecticWidth_image (AffineEquiv.constVAdd_mem_affineSymplecticGroup z)]
