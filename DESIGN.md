@@ -500,10 +500,11 @@ it into issues; the overview fixes its folders and its dependencies.
   `LinearAlgebra/Matrix/SelfAdjoint.lean` (`Matrix.finrank_selfAdjoint`:
   the symmetric $n\times n$ matrices have dimension $n(n+1)/2$, from Tau
   Ceti's `LinearMap.BilinForm.finrank_symmSubmodule`). The part also adds
-  two declarations about `StdSpace ι` alone to *Standard model*'s
+  one declaration about `StdSpace ι` alone to *Standard model*'s
   `Standard/Basic.lean`: `StdSpace.complexEuclideanEquiv`, the map from
-  `EuclideanSpace ℂ ι`, and the symplecticity of the coordinate
-  permutation along `Equiv.sumCongr e e`.
+  `EuclideanSpace ℂ ι`. For the coordinate permutation along
+  `Equiv.sumCongr e e` it uses the existing
+  `isSymplectomorphism_piLpCongrLeft_sumCongr` of §1.
   The `LinearAlgebra/` files import no `Topology/` file of this part. Below,
   $V_0$ is $\mathbb{R}^n\times\{0\}$ ($y=0$), $V_1$ is
   $\{0\}\times\mathbb{R}^n$ ($x=0$), and the unitary frame map
