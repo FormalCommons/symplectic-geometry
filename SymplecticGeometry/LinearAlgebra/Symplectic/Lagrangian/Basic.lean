@@ -6,7 +6,6 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.LinearAlgebra.FiniteDimensional.Lemmas
-public import TauCeti.Geometry.Symplectic.Lagrangian.Basic
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Subspace
 
 /-!
@@ -23,7 +22,8 @@ proof that the subspace is Lagrangian. This file has no topology.
 ## Main definitions and results
 
 * `SymplecticGeometry.LagrangianGrassmannian ω`: the Lagrangian subspaces of `(V, ω)`, with a
-  `SetLike` instance, extensionality and the basic API relating it to `Submodule ℝ V`.
+  `SetLike` instance and closure classes, extensionality, the basic API relating it to
+  `Submodule ℝ V`, and `orthogonal_eq`, the equation `Λ^ω = Λ` that defines a point.
 * `SymplecticGeometry.LagrangianGrassmannian.instNonempty`: every symplectic vector space has a
   Lagrangian subspace (Lagrangian extension of the zero subspace).
 * `SymplecticGeometry.LagrangianGrassmannian.isCompl_iff_disjoint`: in finite dimension, two
@@ -57,8 +57,20 @@ instance : SetLike (LagrangianGrassmannian ω) V where
   coe Λ := Λ.carrier
   coe_injective := fun ⟨⟨⟨⟨_, _⟩, _⟩, _⟩, _⟩ ⟨⟨⟨⟨_, _⟩, _⟩, _⟩, _⟩ h => by congr
 
+instance : AddSubgroupClass (LagrangianGrassmannian ω) V where
+  zero_mem Λ := Λ.toSubmodule.zero_mem
+  add_mem {Λ} _ _ := Λ.toSubmodule.add_mem
+  neg_mem {Λ} _ := Λ.toSubmodule.neg_mem
+
+instance : SMulMemClass (LagrangianGrassmannian ω) ℝ V where
+  smul_mem {Λ} _ _ := Λ.toSubmodule.smul_mem _
+
 instance : CoeOut (LagrangianGrassmannian ω) (Submodule ℝ V) :=
   ⟨toSubmodule⟩
+
+@[simp]
+theorem mem_carrier {Λ : LagrangianGrassmannian ω} {x : V} : x ∈ Λ.carrier ↔ x ∈ Λ :=
+  Iff.rfl
 
 @[simp]
 theorem coe_toSubmodule (Λ : LagrangianGrassmannian ω) :
@@ -88,9 +100,20 @@ theorem ext {Λ Λ' : LagrangianGrassmannian ω} (h : ∀ x, x ∈ Λ ↔ x ∈ 
 theorem isLagrangian (Λ : LagrangianGrassmannian ω) : ω.IsLagrangian Λ :=
   Λ.isLagrangian'
 
+/-- A point of the Lagrangian Grassmannian is its own symplectic complement. -/
+@[simp]
+theorem orthogonal_eq (Λ : LagrangianGrassmannian ω) : ω.orthogonal Λ = Λ :=
+  le_antisymm (TauCeti.SymplecticForm.isCoisotropic_iff_le.1 Λ.isLagrangian.isCoisotropic)
+    (TauCeti.SymplecticForm.isIsotropic_iff_le.1 Λ.isLagrangian.isIsotropic)
+
 @[simp]
 theorem coe_mk (L : Submodule ℝ V) (h : ω.IsLagrangian L) :
     ((⟨L, h⟩ : LagrangianGrassmannian ω) : Submodule ℝ V) = L :=
+  rfl
+
+@[simp]
+theorem coe_set_mk (L : Submodule ℝ V) (h : ω.IsLagrangian L) :
+    ((⟨L, h⟩ : LagrangianGrassmannian ω) : Set V) = L :=
   rfl
 
 @[simp]
