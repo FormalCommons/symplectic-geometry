@@ -84,6 +84,24 @@ evaluate. -/
 theorem smul_def (e : V ≃ₗ[ℝ] V) (J : AlmostComplexStructure V) : e • J = J.transport e :=
   (rfl)
 
+/-- Transport along the identity automorphism `1` does nothing. -/
+@[simp]
+theorem transport_one (J : AlmostComplexStructure V) : J.transport (1 : V ≃ₗ[ℝ] V) = J :=
+  J.transport_refl
+
+/-- Transport along a product of automorphisms is transport along the right factor, then along
+the left one. -/
+@[simp]
+theorem transport_mul (J : AlmostComplexStructure V) (e f : V ≃ₗ[ℝ] V) :
+    J.transport (e * f) = J.transport (f ≪≫ₗ e) :=
+  (rfl)
+
+/-- Transport along the inverse of an automorphism is transport along its inverse equivalence. -/
+@[simp]
+theorem transport_inv (J : AlmostComplexStructure V) (e : V ≃ₗ[ℝ] V) :
+    J.transport e⁻¹ = J.transport e.symm :=
+  (rfl)
+
 theorem smul_apply (e : V ≃ₗ[ℝ] V) (J : AlmostComplexStructure V) (v : V) :
     (e • J) v = e (J (e.symm v)) :=
   (rfl)

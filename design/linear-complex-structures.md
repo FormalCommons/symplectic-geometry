@@ -203,7 +203,13 @@ Declarations about Tau Ceti's type go in its namespace
   as Tau Ceti's `transport`: `smul_def` turns `e • J` into `J.transport e`,
   and Tau Ceti's simp lemmas (`transport_apply`, `transport_toLinearMap`,
   `transport_trans`, …) take over, so `smul_apply` and `toLinearMap_smul`
-  would be redundant as simp lemmas. Lemmas whose right side is an action of
+  would be redundant as simp lemmas. So that the group laws of the action
+  survive this rewriting, the group operations of `V ≃ₗ[ℝ] V` inside
+  `transport` are rewritten to Tau Ceti's form by `@[simp]` lemmas, all by
+  `(rfl)` or `transport_refl`: `transport_one : J.transport 1 = J`,
+  `transport_mul : J.transport (e * f) = J.transport (f ≪≫ₗ e)` and
+  `transport_inv : J.transport e⁻¹ = J.transport e.symm`. With them `simp`
+  proves `e⁻¹ • e • J = J` and `e • f • J = (e * f) • J`. Lemmas whose right side is an action of
   `V ≃ₗ[ℝ] V` state it with `transport`, as `ofEuclideanCLE_smul :
   ofEuclideanCLE Φ • J = J.transport Φ.toLinearEquiv` (`@[simp]`) does. The
   matrix actions keep `•` as their normal form.
