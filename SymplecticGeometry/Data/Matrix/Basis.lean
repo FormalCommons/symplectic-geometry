@@ -7,7 +7,7 @@ module
 
 public import Mathlib.Algebra.Group.Pi.Units
 public import Mathlib.Data.Matrix.Basis
-public import Mathlib.LinearAlgebra.Matrix.NonsingularInverse
+public import TauCeti.LinearAlgebra.Matrix.Diagonal
 
 /-!
 # Perturbing the identity matrix at one diagonal entry
@@ -36,9 +36,9 @@ theorem one_add_single_eq_diagonal [Semiring R] (i : ι) (a : R) :
   by_cases hj : j = i <;> simp [hj]
 
 /-- `1 + Eᵢᵢ a` is invertible exactly when `1 + a` is. -/
-theorem isUnit_one_add_single_iff [Fintype ι] [CommRing R] (i : ι) (a : R) :
+theorem isUnit_one_add_single_iff [Fintype ι] [Semiring R] (i : ι) (a : R) :
     IsUnit (1 + single i i a) ↔ IsUnit (1 + a) := by
-  rw [one_add_single_eq_diagonal, isUnit_diagonal, Pi.isUnit_iff]
+  rw [one_add_single_eq_diagonal, TauCeti.isUnit_diagonal_iff, Pi.isUnit_iff]
   refine ⟨fun h ↦ by simpa using h i, fun h j ↦ ?_⟩
   by_cases hj : j = i <;> simp [hj, h]
 

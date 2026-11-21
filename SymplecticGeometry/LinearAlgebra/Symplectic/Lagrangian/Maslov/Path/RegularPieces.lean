@@ -9,9 +9,9 @@ public import SymplecticGeometry.LinearAlgebra.Symplectic.Lagrangian.Maslov.Cros
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Lagrangian.Maslov.Path.Basic
 public import Mathlib.Analysis.Calculus.ContDiff.Operations
 public import Mathlib.Analysis.Matrix.Normed
-public import SymplecticGeometry.LinearAlgebra.Matrix.Basis
+public import SymplecticGeometry.Analysis.Matrix.UnitaryGroup.Basic
+public import SymplecticGeometry.Data.Matrix.Basis
 public import SymplecticGeometry.LinearAlgebra.Matrix.Realify
-public import TauCeti.LinearAlgebra.Matrix.UnitaryGroup.Basic
 
 /-!
 # Regular pieces of paths of Lagrangian subspaces
@@ -27,8 +27,8 @@ paths are built.
   unitary matrix `e^{iθ}`, that is, under `e^{θ J₀}`, with `rotate_rotate` for composition;
   `rotationPath Λ ε` is the path `s ↦ rotate (ε s) Λ`, with frame
   `s ↦ rotationFrame Z (ε s) = e^{ε s J₀} Z` for a frame `Z` of `Λ`.
-* `SymplecticGeometry.coordinateUnitary i θ`: the unitary matrix `diag(1, …, e^{iθ}, …, 1)`;
-  `SymplecticGeometry.LagrangianGrassmannian.coordinateRotate i θ Λ`: the image of `Λ` under it,
+* `SymplecticGeometry.LagrangianGrassmannian.coordinateRotate i θ Λ`: the image of `Λ` under the
+  unitary matrix `Matrix.UnitaryGroup.detSection ι i (Circle.exp θ) = diag(1, …, e^{iθ}, …, 1)`,
   which turns the `i`-th coordinate plane; `coordinateHalfTurn i` is the loop
   `s ↦ coordinateRotate i (π s) {x = 0}`, with frame `s ↦ coordinateRotationFrame i (π s)`.
 
@@ -62,7 +62,7 @@ loop formula `pathMaslovIndex_eq_sub_div_pi`, with the unitary frames
 
 public section
 
-open Matrix TauCeti Set Filter Topology
+open Matrix Matrix.UnitaryGroup TauCeti Set Filter Topology
 open scoped unitInterval
 
 variable {ι : Type*} [Fintype ι] [DecidableEq ι]
@@ -186,34 +186,6 @@ theorem hasDerivAt_rotationFrame_comp (Z : Matrix (ι ⊕ ι) ι ℝ) {f : ℝ �
     exact h
 
 /-! ### Frames of coordinate rotations -/
-
-/-- The diagonal unitary matrix `diag(1, …, e^{iθ}, …, 1)`, with `e^{iθ}` at the place `i`. It
-turns the `i`-th coordinate plane `(xᵢ, yᵢ)` of `StdSpace ι` by the angle `θ`. -/
-noncomputable def coordinateUnitary (i : ι) (θ : ℝ) : unitaryGroup ι ℂ :=
-  ⟨diagonal (Function.update 1 i (Circle.exp θ : ℂ)),
-    diagonal_update_one_mem_unitary_iff.2 (Circle.exp θ).coe_mem_unitary⟩
-
-theorem coe_coordinateUnitary (i : ι) (θ : ℝ) :
-    (coordinateUnitary i θ : Matrix ι ι ℂ) = diagonal (Function.update 1 i (Circle.exp θ : ℂ)) :=
-  (rfl)
-
-@[simp]
-theorem coordinateUnitary_zero (i : ι) : coordinateUnitary i 0 = 1 :=
-  Subtype.ext <| by simp [coe_coordinateUnitary]
-
-theorem coordinateUnitary_add (i : ι) (θ φ : ℝ) :
-    coordinateUnitary i (θ + φ) = coordinateUnitary i θ * coordinateUnitary i φ := by
-  refine Subtype.ext ?_
-  rw [Submonoid.coe_mul, coe_coordinateUnitary, coe_coordinateUnitary, coe_coordinateUnitary,
-    diagonal_mul_diagonal]
-  congr 1
-  ext j
-  by_cases hj : j = i <;> simp [hj, Circle.exp_add]
-
-theorem continuous_coordinateUnitary (i : ι) : Continuous (coordinateUnitary i) :=
-  continuous_induced_rng.2 <| by
-    simpa only [Function.comp_def, coe_coordinateUnitary] using
-      Continuous.matrix_diagonal (continuous_const.update i (by fun_prop))
 
 /-- The frame `fromRows (-sin θ Eᵢᵢ) (1 + (cos θ - 1) Eᵢᵢ)` of `coordinateRotate i θ {x = 0}`
 (`range_coordinateRotationFrame`), where `Eᵢᵢ = Matrix.single i i 1`. -/
@@ -402,28 +374,28 @@ theorem rotate_pi_div_two_horizontal : rotate (Real.pi / 2) (horizontal ι) = ve
   simp [Circle.coe_exp, Complex.exp_mul_I]
 
 /-- The rotation of a Lagrangian `Λ` by the diagonal unitary matrix
-`coordinateUnitary i θ = diag(1, …, e^{iθ}, …, 1)`, which turns the `i`-th coordinate plane
-`(xᵢ, yᵢ)` by the angle `θ` and fixes the others. -/
+`detSection ι i (Circle.exp θ) = diag(1, …, e^{iθ}, …, 1)`, which turns the `i`-th coordinate
+plane `(xᵢ, yᵢ)` by the angle `θ` and fixes the others. -/
 noncomputable def coordinateRotate (i : ι) (θ : ℝ) (Λ : ℒ ι) : ℒ ι :=
-  coordinateUnitary i θ • Λ
+  detSection ι i (Circle.exp θ) • Λ
 
 theorem coordinateRotate_def (i : ι) (θ : ℝ) (Λ : ℒ ι) :
-    coordinateRotate i θ Λ = coordinateUnitary i θ • Λ :=
+    coordinateRotate i θ Λ = detSection ι i (Circle.exp θ) • Λ :=
   (rfl)
 
 @[simp]
 theorem coordinateRotate_zero (i : ι) (Λ : ℒ ι) : coordinateRotate i 0 Λ = Λ := by
-  rw [coordinateRotate_def, coordinateUnitary_zero, one_smul]
+  rw [coordinateRotate_def, Circle.exp_zero, map_one, one_smul]
 
 /-- Turning the `i`-th coordinate plane by `φ` and then by `θ` is turning it by `θ + φ`. -/
 theorem coordinateRotate_coordinateRotate (i : ι) (θ φ : ℝ) (Λ : ℒ ι) :
     coordinateRotate i θ (coordinateRotate i φ Λ) = coordinateRotate i (θ + φ) Λ := by
   rw [coordinateRotate_def, coordinateRotate_def, coordinateRotate_def, smul_smul,
-    coordinateUnitary_add]
+    Circle.exp_add, map_mul]
 
 theorem continuous_coordinateRotate (i : ι) (Λ : ℒ ι) :
     Continuous fun θ : ℝ ↦ coordinateRotate i θ Λ :=
-  (continuous_coordinateUnitary i).smul continuous_const
+  ((continuous_detSection i).comp Circle.exp.continuous).smul continuous_const
 
 /-- The columns of `coordinateRotationFrame i θ` span `coordinateRotate i θ {x = 0}`. -/
 theorem range_coordinateRotationFrame (i : ι) (θ : ℝ) :
@@ -433,9 +405,9 @@ theorem range_coordinateRotationFrame (i : ι) (θ : ℝ) :
       LinearMap.range (toEuclideanLin (fromRows (0 : Matrix ι ι ℝ) 1)) := by
     rw [StdSpace.range_toEuclideanLin_fromRows_one_eq_graphY, StdSpace.graphY_zero, coe_vertical]
   rw [coordinateRotate_def, unitary_smul_def, coe_smul_of_coe_eq _ hV, GLSymplectic.coe_ofUnitary,
-    coe_coordinateUnitary]
+    coe_detSection]
   congr 2
-  set D := diagonal (Function.update (1 : ι → ℂ) i (Circle.exp θ : ℂ)) with hD
+  set D := diagonal fun j ↦ ((Pi.mulSingle i (Circle.exp θ) : ι → Circle) j : ℂ) with hD
   have hR : D.realify = fromBlocks (D.map RCLike.re) (-D.map RCLike.im) (D.map RCLike.im)
       (D.map RCLike.re) := by
     ext (p | p) (q | q) <;> simp
@@ -540,9 +512,10 @@ theorem posDef_lagrangianCrossingForm_coordinateRotationFrame_pi_div_two (i : ι
 theorem pathMaslovIndex_coordinateHalfTurn (i : ι) (V : ℒ ι) :
     pathMaslovIndex (coordinateHalfTurn i) V = 1 := by
   let E : unitaryGroup ι ℂ := circleEquivUnitary (Circle.exp (Real.pi / 2)) • 1
-  let g (t : I) : unitaryGroup ι ℂ := coordinateUnitary i (Real.pi * t) * E
+  let g (t : I) : unitaryGroup ι ℂ := detSection ι i (Circle.exp (Real.pi * t)) * E
   have hg : Continuous g :=
-    ((continuous_coordinateUnitary i).comp (continuous_const.mul continuous_subtypeVal)).mul
+    (((continuous_detSection i).comp Circle.exp.continuous).comp
+      (continuous_const.mul continuous_subtypeVal)).mul
       continuous_const
   have hE : unitaryFrame E = vertical ι := by
     rw [unitaryFrame_def, ← rotate_pi_div_two_horizontal, rotate_def]
@@ -550,10 +523,9 @@ theorem pathMaslovIndex_coordinateHalfTurn (i : ι) (V : ℒ ι) :
     rw [unitaryFrame_mul, hE, coordinateHalfTurn_apply, coordinateRotate_def]
   have hdet (t : I) : ((g t : unitaryGroup ι ℂ) : Matrix ι ι ℂ).det =
       Complex.exp ((Real.pi * t + Fintype.card ι * (Real.pi / 2) : ℝ) * Complex.I) := by
-    simp only [g, E, Submonoid.coe_mul, coe_coordinateUnitary, Unitary.coe_smul,
-      OneMemClass.coe_one, Submonoid.smul_def, coe_circleEquivUnitary, det_mul, det_diagonal,
-      det_smul, det_one, mul_one, Finset.prod_update_of_mem (Finset.mem_univ i), Pi.one_apply,
-      Finset.prod_const_one, Circle.coe_exp]
+    rw [Submonoid.coe_mul, det_mul, ← coe_detCircle, detCircle_detSection]
+    simp only [E, Unitary.coe_smul, OneMemClass.coe_one, Submonoid.smul_def,
+      coe_circleEquivUnitary, det_smul, det_one, mul_one, Circle.coe_exp]
     rw [← Complex.exp_natCast_mul, ← Complex.exp_add]
     congr 1
     push_cast

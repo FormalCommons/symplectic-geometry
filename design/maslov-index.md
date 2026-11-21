@@ -292,7 +292,7 @@ statements about them, which dot notation on a `GLSymplectic` or on an `ℒ ι` 
 Four files lie outside the folders that `DESIGN.md` §5 lists:
 `LinearAlgebra/Matrix/GeneralLinearGroup/Symplectic/Reindex.lean`,
 `Topology/Algebra/SymplecticGroup.lean`,
-`Analysis/Calculus/Deriv/Matrix.lean` and `LinearAlgebra/Matrix/Basis.lean`.
+`Analysis/Calculus/Deriv/Matrix.lean` and `Data/Matrix/Basis.lean`.
 Reindexing a symplectic group is
 algebra about Tau Ceti's `GLSymplectic`, not about the Maslov index, and its
 continuity is topology of that group. They go where Tau Ceti keeps the algebra
@@ -303,7 +303,8 @@ which changes of frame `Z * g` need later; it sits beside Tau Ceti's file of
 the same name, so that the two merge upstream. The fourth holds the matrix
 `1 + Eᵢᵢ a` of the coordinate half-turn's frame
 (`Matrix.one_add_single_eq_diagonal`, `Matrix.isUnit_one_add_single_iff`),
-after Mathlib's `Data/Matrix/Basis.lean`.
+beside the files of the same name in Mathlib and Tau Ceti, which hold the matrix
+units `Matrix.single`.
 `DESIGN.md` §5 names all four, among the files outside its folders.
 
 ### `LinearAlgebra/Matrix/GeneralLinearGroup/Symplectic/Reindex.lean`
@@ -758,7 +759,10 @@ forms relative to `V₀`.
   (`ℒ.coordinateHalfTurn`): its only crossing, at $s=\tfrac12$, has the
   one-dimensional form $\pi$, and its index is `1`
   (`ℒ.pathMaslovIndex_coordinateHalfTurn`). The file imports
-  `LinearAlgebra/Matrix/Basis.lean` for the matrix `1 + Eᵢᵢ a` of its frame.
+  `Data/Matrix/Basis.lean` for the matrix `1 + Eᵢᵢ a` of its frame, and
+  `Analysis/Matrix/UnitaryGroup/Basic.lean` (*Unitary group topology*) for
+  the diagonal unitary `Matrix.UnitaryGroup.detSection ι i (Circle.exp θ)` that
+  turns the `i`-th coordinate plane.
 
 ### `LinearAlgebra/Symplectic/Lagrangian/Maslov/Path/Regular.lean`
 
