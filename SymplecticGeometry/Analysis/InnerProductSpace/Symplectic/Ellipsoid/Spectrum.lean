@@ -38,6 +38,8 @@ have determinant `1`, the volume of the ellipsoid is that of `E(r)`, namely
   ellipsoid are a linear symplectic invariant, up to order.
 * `SymplecticGeometry.symplecticSpectrum_eq`: any normal form of the ellipsoid of `Q` has the
   radii `symplecticSpectrum Q`.
+* `SymplecticGeometry.exists_isSymplectomorphism_image_eq_stdEllipsoid_of_mem_symplecticSpectrum`:
+  each element of the spectrum is a radius of some normal form.
 * `SymplecticGeometry.symplecticSpectrum_comp`: the spectrum is invariant under linear
   symplectic maps.
 * `SymplecticGeometry.volume_setOf_le_one`: the volume of the ellipsoid of `Q` in terms of its
@@ -151,6 +153,22 @@ theorem symplecticSpectrum_eq {Q : QuadraticForm ℝ (StdSpace ι)} (hQ : Q.PosD
     simpa using h₀
   obtain ⟨σ, hσ⟩ := exists_perm_eq_of_image_stdEllipsoid_eq hr hr₀ (he.symm.trans he₀) himage
   rw [hσ, ← Multiset.map_map, Multiset.map_univ_val_equiv]
+
+/-- Every element `s` of the symplectic spectrum of `Q` is a radius of a normal form of the
+ellipsoid of `Q`: a linear symplectic map carries `{z | Q z ≤ 1}` onto `E(r)`, with positive
+radii `r`, such that the spectrum of `Q` is the multiset of the `rⱼ` and `rᵢ = s`. -/
+theorem exists_isSymplectomorphism_image_eq_stdEllipsoid_of_mem_symplecticSpectrum
+    {Q : QuadraticForm ℝ (StdSpace ι)} {s : ℝ} (hs : s ∈ symplecticSpectrum Q) :
+    ∃ (r : ι → ℝ) (e : StdSpace ι ≃ₗ[ℝ] StdSpace ι) (i : ι), (∀ j, 0 < r j) ∧
+      IsSymplectomorphism (stdForm ι) (stdForm ι) e ∧ e '' {z | Q z ≤ 1} = stdEllipsoid r ∧
+      symplecticSpectrum Q = Finset.univ.val.map r ∧ r i = s := by
+  have hQ : Q.PosDef := by
+    by_contra hQ
+    simp [symplecticSpectrum_of_not_posDef hQ] at hs
+  obtain ⟨r, e, hr, he, h⟩ := exists_isSymplectomorphism_image_eq_stdEllipsoid hQ
+  have hspec := symplecticSpectrum_eq hQ hr he h
+  obtain ⟨i, -, rfl⟩ := Multiset.mem_map.1 (hspec ▸ hs)
+  exact ⟨r, e, i, hr, he, h, hspec, rfl⟩
 
 /-- The symplectic spectrum of a positive definite form has `n` elements. -/
 theorem card_symplecticSpectrum {Q : QuadraticForm ℝ (StdSpace ι)} (hQ : Q.PosDef) :
