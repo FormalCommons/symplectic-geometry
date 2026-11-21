@@ -33,7 +33,9 @@ open sets on which the Moser fields of Moser's argument are defined
 * `TauCeti.SmoothTwoForm.isOpen_setOf_forall_mem_Icc_nondegenerate`: in finite dimensions, the
   set of points at which the whole segment from `σ₀` to `σ₁` is nondegenerate is open.
 
-The two openness proofs follow Tau Ceti's private `exists_isOpen_isInvertible_flat`
+The proofs of `isOpen_setOf_isInvertible_flat_mpullback_prodMk` and
+`isOpen_setOf_forall_mem_Icc_nondegenerate` follow Tau Ceti's private
+`exists_isOpen_isInvertible_flat`
 (`TauCeti/Geometry/Symplectic/Manifold/RelativeMoser.lean`): the flat maps form a continuous
 section along a projection, the invertible ones form an open set, and the tube lemma passes to
 the compact parameter interval.
@@ -55,6 +57,7 @@ variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [Topological
 
 /-- The slices of `TauCeti.SmoothForm.lineMapFamily α₀ α₁ hc`, as rough forms: the pullback of
 the underlying form along `x ↦ (t, x)` is the underlying form of `α₀ + c(t) (α₁ - α₀)`. -/
+@[simp]
 theorem SmoothForm.coe_mpullback_prodMk_lineMapFamily {F : Type*} [NormedAddCommGroup F]
     [NormedSpace ℝ F] {k : ℕ} (α₀ α₁ : SmoothForm I M F k) {c : ℝ → ℝ} (hc : ContDiff ℝ ∞ c)
     (t : ℝ) :
