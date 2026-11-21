@@ -547,20 +547,36 @@ it into issues; the overview fixes its folders and its dependencies.
 
 ### 8. Linear complex structures (needs `design/linear-complex-structures.md`)
 
-- **Files:** `LinearAlgebra/ComplexStructure/Standard.lean` (every complex
-  structure $J$ on a $2n$-dimensional space is conjugate to
-  `stdComplexStructure (Fin n)` by a linear isomorphism $\Phi$: Tau Ceti's
-  `ContinuousLinearMap.exists_continuousLinearEquiv_euclideanSpace_comp_eq_comp_I_smul`
-  (`Geometry/Symplectic/Complex/Module/Conjugacy.lean`) gives $\Phi$ from
-  `EuclideanSpace ℂ (Fin n)` with multiplication by `I`, composed with
-  `complexToRealEuclidean`), `Topology/ComplexStructure/Orbit.lean` (the space
-  `AlmostComplexStructure (StdSpace ι)` with Tau Ceti's topology, as the orbit
-  of $J_0$ under $\mathrm{GL}(2n,\mathbb{R})$, with stabilizer the realified
-  $\mathrm{GL}(n,\mathbb{C})$ by Tau Ceti's
-  `Matrix.GeneralLinearGroup.mem_range_realify_iff`; the homeomorphism with
-  the quotient; the two components), `Topology/ComplexStructure/Oriented.lean`
-  (the component of $J_0$, its homotopy type $\mathrm{SO}(2n)/\mathrm{U}(n)$,
-  and the case $\mathbb{R}^4$, homotopy equivalent to $S^2$).
+- **Files:** as `design/linear-complex-structures.md` lists them.
+  `LinearAlgebra/ComplexStructure/Action.lean` (the action of `V ≃ₗ[ℝ] V` on
+  `AlmostComplexStructure V` by transport, and of `GL n ℝ` and
+  `specialOrthogonalGroup n ℝ` on the structures of `EuclideanSpace ℝ n`),
+  `Topology/ComplexStructure/Basic.lean` (closed embedding into operators,
+  `T2Space`, `LocallyCompactSpace`, the homeomorphism with matrices of square
+  $-1$, continuity of the actions),
+  `LinearAlgebra/ComplexStructure/Standard.lean` (every complex structure $J$
+  on a space of dimension $2\,|\iota|$ is the transport of
+  `stdComplexStructure ι` by a linear isomorphism $\Phi$, which Tau Ceti's
+  `TauCeti.AlmostComplexStructure.exists_linearEquiv_I_smul`
+  (`Geometry/Symplectic/Finrank.lean`) gives from `ι → ℂ`, composed with
+  `complexToRealEuclidean ι`; transitivity, the stabilizer of $J_0$ as the
+  realified $\mathrm{GL}(n,\mathbb{C})$ by Tau Ceti's
+  `Matrix.GeneralLinearGroup.mem_range_realify_iff`, positively oriented
+  structures), `Topology/Algebra/GroupAction/Transitive.lean` (the
+  orbit–stabilizer homeomorphism for σ-compact groups),
+  `Topology/ComplexStructure/Orbit.lean` (the space as the quotient
+  $\mathrm{GL}(2n,\mathbb{R})/\mathrm{GL}(n,\mathbb{C})$; the positively
+  oriented structures are clopen),
+  `Analysis/SpecialFunctions/ContinuousFunctionalCalculus/Polar.lean` (for a
+  unit of square $-1$, the polar unitary factor conjugates the powers of the
+  positive factor to their inverses), `Analysis/Matrix/Polar/Deformation.lean`
+  (the polar deformation keeps square $-1$),
+  `Topology/ComplexStructure/Orthogonal.lean` (the orthogonal complex
+  structures and the deformation retraction onto them),
+  `Topology/ComplexStructure/Oriented.lean` (the stabilizer of $J_0$ in
+  $\mathrm{SO}(2n)$, the component of $J_0$, the two components for $n\ge1$,
+  the homotopy type $\mathrm{SO}(2n)/\mathrm{U}(n)$, the case $\mathbb{R}^4$,
+  homotopy equivalent to $S^2$, and the milestone).
 - **Builds on:** *Standard model*.
 - **Milestones:** *Linear complex structures are standard*.
 - **The design file decides:** how the quotient homeomorphism is obtained (an
