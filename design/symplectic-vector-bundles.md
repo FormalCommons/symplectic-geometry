@@ -60,7 +60,9 @@ variable {EB HB M : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB]
     `polarComplexStructure_tangentEquiv`, `IsNondegenerate.exists_compatible`,
     `exists_homotopyEquiv_polarComplexStructure`,
     `polarComplexStructure_homotopic`, both milestones, and the local
-    Darboux frames of issue 9); and each use of Tau Ceti's
+    Darboux frames of issue 9); `isOpen_polarEndDomain`, `polarEndAt` with
+    its lemmas, and `contMDiffOn_polarEndAt`, which go through an
+    equivalence of `F` with a Euclidean space; and each use of Tau Ceti's
     `Tames.isUnit_one_sub_mul` (`Geometry/Symplectic/Cayley/Basic.lean`), in
     the symplectic-to-complex direction of the classification;
   - finite dimension of `EB` and `F`: the existence of bundle metrics, with
@@ -131,8 +133,8 @@ in line once this design is merged.
   not use an orientation, so the statement is more general.
 - The lemma of `Section/Topology.lean` asks for joint $C^n$ regularity in a
   manifold parameter instead of derivatives continuous in the parameter (see
-  below), and no issue of this part waits for part 9 (see *What the part
-  uses*).
+  below), and only issue 8 waits for part 9, for its building issues 4, 5
+  and 6 (see *What the part uses*).
 
 ## Complex structures on a bundle
 
@@ -328,16 +330,22 @@ the form and of the structure are independent.
   equivalence below needs $J_{g,\omega_{g,B}}$ as a function of a point
   $(x,B)$ of the endomorphism bundle, where `B` need not be a complex
   structure; the bullet above gives smoothness only along a section, so these
-  declarations give it on the total space. For a metric `g`, they are:
-  - `Bundle.compatibleBilinAt g x (B : V x →L[ℝ] V x) :
+  declarations give it on the total space. Except for the three lemmas
+  named below as being in `SymplecticGeometry.Bundle`, they mention only
+  Mathlib's `Bundle.ContMDiffRiemannianMetric` and part 9's `TauCeti`
+  operations, so they go in the namespace `Bundle.ContMDiffRiemannianMetric`,
+  where `g.polarEndAt x B` finds them. For a metric `g`, they are:
+  - `compatibleBilinAt g x (B : V x →L[ℝ] V x) :
     LinearMap.BilinForm ℝ (V x)`, the form
-    $\tfrac12(g_x(Bu,v)-g_x(u,Bv))$ of the formula above, linear in `B`
-    and defined for every `B`, with `@[simp] compatibleBilinAt_apply` and
-    `bilinFormAt_compatibleForm`:
-    `(compatibleForm g J).bilinFormAt x = compatibleBilinAt g x (J x)`.
-  - `Bundle.polarEndDomain g : Set (TotalSpace (F →L[ℝ] F) fun x ↦ V x →L[ℝ] V x)`,
+    $\tfrac12(g_x(Bu,v)-g_x(u,Bv))$ of the formula above, defined for every
+    `B`, with `@[simp] compatibleBilinAt_apply`, `isAlt_compatibleBilinAt`
+    (it is alternating, as `isAlt_bilinFormAt` says for a two-form), and
+    linearity in `B`: `compatibleBilinAt_add` and `compatibleBilinAt_smul`.
+    In `SymplecticGeometry.Bundle`, `bilinFormAt_compatibleForm`:
+    `(compatibleForm g J).bilinFormAt x = g.compatibleBilinAt x (J x)`.
+  - `polarEndDomain g : Set (TotalSpace (F →L[ℝ] F) fun x ↦ V x →L[ℝ] V x)`,
     the points $(x,B)$ where `compatibleBilinAt g x B` is nondegenerate, with
-    `mem_polarEndDomain_iff`. It is open (`isOpen_polarEndDomain`): over the
+    `@[simp] mem_polarEndDomain_iff`. It is open (`isOpen_polarEndDomain`): over the
     base set of a trivialization, read through the fibre equivalence and an
     equivalence `F ≃L[ℝ] W` with an inner product space `W`, it is the
     preimage of part 9's open `TauCeti.polarDomain W`
@@ -345,10 +353,12 @@ the form and of the structure are independent.
     (`mem_polarDomain_iff`) is positivity of the first form and
     nondegeneracy of the skew part of the second, both unchanged by a linear
     equivalence, and `compatibleBilinAt g x B` is already skew. It contains
-    the values of every complex structure (`mem_polarEndDomain`:
-    `⟨x, J x⟩ ∈ polarEndDomain g`), by `bilinFormAt_compatibleForm`,
+    the values of every complex structure
+    (`SymplecticGeometry.Bundle.ContMDiffComplexStructure.mk_mem_polarEndDomain`,
+    so that `J.mk_mem_polarEndDomain g x : ⟨x, J x⟩ ∈ g.polarEndDomain`), by
+    `bilinFormAt_compatibleForm`,
     `compatible_compatibleForm` and `Compatible.isNondegenerate`.
-  - `Bundle.polarEndAt g x B : V x →L[ℝ] V x`, part 9's
+  - `polarEndAt g x B : V x →L[ℝ] V x`, part 9's
     `TauCeti.metricPolarFormula` on
     `W = EuclideanSpace ℝ (Fin (finrank ℝ F))` of the pair
     (`g x`, `compatibleBilinAt g x B`) carried along
@@ -357,8 +367,8 @@ the form and of the structure are independent.
     `polarEndAt_def`. `polarEndAt_eq_conj`: on `polarEndDomain g`, the same
     holds for any `e' : V x ≃L[ℝ] W'` to an inner product space, by
     `metricPolarFormula_conj` (applied to `e'` after the inverse of `e x`),
-    so the choice of `e x` does not matter. `polarEndAt_eq_polarComplexStructure`:
-    if `hω : ω.IsNondegenerate` and
+    so the choice of `e x` does not matter. In `SymplecticGeometry.Bundle`,
+    `polarEndAt_eq_polarComplexStructure`: if `hω : ω.IsNondegenerate` and
     `ω.bilinFormAt x = compatibleBilinAt g x B`, then
     `polarEndAt g x B = hω.polarComplexStructure g x`, by
     `polarEndAt_eq_conj`, part 9's `metricPolarFormula_eq`,
@@ -503,23 +513,27 @@ $[0,1]$ is never fed to the lemma with `P = ℝ` directly.
   Here the reference is not a fixed section: at a point `q` of the
   endomorphism bundle it is `A q = polarEndAt g q.proj q.snd`, which at
   `q = ⟨x, J x⟩` is $J_{g,\omega_{g,J}}$ at `x`
-  (`polarEndAt_eq_polarComplexStructure`). So the open set `O` is the set
-  of `q ∈ polarEndDomain g` such that `1 - A q * q.snd` is a unit and
-  `1 - b • cayleyFormula (A q) q.snd` is a unit for every $b\in[0,1]$.
-  The formula's smoothness in `A` is fed by `contMDiffOn_polarEndAt`,
-  which makes `A` a $C^n$ function of `q` on `polarEndDomain g`. `O` is
-  open: `polarEndDomain g` is open, `A` is continuous on it, and then the
-  argument for the contraction's set applies (units are open, $[0,1]$ is
-  compact; in a trivialization, conjugation by the fibre equivalence is an
-  algebra isomorphism, which preserves units and, by Tau Ceti's
-  `map_cayleyFormula`, the Cayley formula). It contains `⟨x, J x⟩` for
+  (`polarEndAt_eq_polarComplexStructure`). The open set `O` is built from
+  part 9's Cayley domain (`Geometry/Symplectic/Cayley/Domain.lean` of
+  `design/compatible-complex-structures.md`): it is the set of
+  `q ∈ polarEndDomain g` with `(b, A q, q.snd) ∈ cayleyDomain` of the fibre
+  algebra `V q.proj →L[ℝ] V q.proj` for every $b\in[0,1]$. The formula's
+  smoothness in `A` is fed by `contMDiffOn_polarEndAt`, which makes `A` a
+  $C^n$ function of `q` on `polarEndDomain g`. `O` is open: over the base
+  set of a trivialization, conjugation by its fibre equivalence is an
+  algebra isomorphism onto `F →L[ℝ] F`, which preserves units and, by Tau
+  Ceti's `map_cayleyFormula`, the Cayley formula, so it carries the
+  condition to `cayleyDomain (F →L[ℝ] F)`. There `O` is the preimage, under
+  the reading of `q ↦ (A q, q.snd)`, which is continuous on the open
+  `polarEndDomain g`, of the open set of part 9's
+  `isOpen_setOf_forall_Icc_mem_cayleyDomain`. It contains `⟨x, J x⟩` for
   every complex structure `J`: the point is in `polarEndDomain g`
-  (`mem_polarEndDomain`); `A` there is $J_{g,\omega_{g,J}}$ at `x`, which is
-  compatible with $\omega_{g,J}$ (`compatible_polarComplexStructure`); and
-  `J` is compatible with $\omega_{g,J}$ (`compatible_compatibleForm`), hence
-  tame. So `Tames.isUnit_one_sub_mul_of_toLinearMap` and
-  `Compatible.isUnit_one_sub_smul_cayleyFormula` give the two units for
-  $|b|\le1$. `polarComplexStructure_homotopic`: for two metrics
+  (`mk_mem_polarEndDomain`); `A` there is $J_{g,\omega_{g,J}}$ at `x`, which
+  is compatible with $\omega_{g,J}$ (`compatible_polarComplexStructure`);
+  and `J` is compatible with $\omega_{g,J}$ (`compatible_compatibleForm`),
+  hence tame. So part 9's `TauCeti.SymplecticForm.Compatible.mem_cayleyDomain`
+  gives the triple for $|b|\le1$. `polarComplexStructure_homotopic`: for
+  two metrics
   the two maps $\omega\mapsto J_{g,\omega}$ are homotopic, by contracting the
   metrics.
 - **Milestone.** `SymplecticGeometry.Bundle.contractibleSpace_compatible_tames`:
@@ -719,7 +733,7 @@ it, its design adds it.
   part uses nothing from *Compatible complex structures* (part 9) beyond what
   Tau Ceti already has: the fibrewise constructions it needs (the Cayley path,
   $J_{g,\omega}$, $\omega_{g,J}$, the complex-linear part) are Tau Ceti's
-  linear ones or explicit formulas. The one exception is `polarEndAt` and
+  linear ones or explicit formulas. There are two exceptions. The first is `polarEndAt` and
   its smoothness, which use part 9's
   `Analysis/InnerProductSpace/Symplectic/PolarComplexStructure/Smooth.lean`
   (`TauCeti.polarDomain`, `isOpen_polarDomain`, `mem_polarDomain_iff`,
@@ -729,12 +743,16 @@ it, its design adds it.
   `metricPolarComplexStructure_innerSL` from its `Basic.lean`: there the
   form varies with the fibre variable, not only with the point, and part 9
   states the pointwise smoothness of the formula publicly, where Tau Ceti's
-  is private. So only issue 8 waits for part 9.
+  is private. The second is the open set of the homotopy equivalence's Cayley path, which
+  uses part 9's `Geometry/Symplectic/Cayley/Domain.lean` (`cayleyDomain`,
+  `isOpen_setOf_forall_Icc_mem_cayleyDomain`,
+  `Compatible.mem_cayleyDomain`). So only issue 8 waits for part 9.
 
 ## Building issues
 
-Each is a few hundred lines; the blockers are issues of this list, and an
-issue may start once its blockers are merged. Issues 1, 3, 4, 10, 12–15 can start
+Each is a few hundred lines; a blocker given by number alone is an issue of
+this list, and a blocker from another part is named with its part and its
+design file. An issue may start once its blockers are merged. Issues 1, 3, 4, 10, 12–15 can start
 at once.
 
 1. **Complex structures on a bundle.** `ComplexStructure.lean`: the
@@ -771,8 +789,9 @@ at once.
    `contractibleSpace_compatible_tames`; and, in
    `Symplectic/ComplexStructure/Basic.lean`, `compatibleBilinAt`,
    `polarEndDomain` and `polarEndAt` with their lemmas. Blockers: 7, and
-   part 9's building issues 4 and 5 (`PolarComplexStructure/Basic.lean` and
-   `Smooth.lean` of `design/compatible-complex-structures.md`). If this
+   part 9's building issues 4, 5 and 6 (`PolarComplexStructure/Basic.lean`,
+   `Smooth.lean` and `Geometry/Symplectic/Cayley/Domain.lean` of
+   `design/compatible-complex-structures.md`). If this
    issue gets too long, the `Basic.lean` declarations become an issue of
    their own.
 9. **Local Darboux frames.** `Symplectic/Trivialization.lean`, as above. The
