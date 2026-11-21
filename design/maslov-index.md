@@ -654,18 +654,25 @@ an element of `ℒ ι`.
   `ℒ.pathMaslovIndex_eq_crossing_sum` below, with
   `HasDerivWithinAt Z (Z' t₀) (Icc 0 1) t₀` at some `t₀ ∈ Icc 0 1` and a
   nondegenerate form there, `γ t ⊓ V = ⊥` for `t ≠ t₀` near `t₀` in
-  `Icc 0 1`. Proof: G8 and G9 give a symplectic `Ψ` taking `V` to `V₀` and a
-  Lagrangian transverse to `V` and `γ t₀` to `V₁`; near `t₀` in `Icc 0 1` the
-  moved path is transverse to `V₁`, hence a path of graphs of symmetric
-  matrices `A` (G7), with `A` differentiable within `Icc 0 1` at `t₀`.
-  Naturality and `lagrangianCrossingForm_graph` carry the nondegeneracy over to
-  `Matrix.crossingForm`. For `t₀ < 1`, a derivative within `Icc 0 1` is one
-  within `Ici t₀` (the two sets agree near `t₀` on the right), and Tau Ceti's
-  one-sided `ContinuousLinearMap.eventually_nhdsGT_nondegenerate_of_crossingForm_nondegenerate`
+  `Icc 0 1`. Proof, without graphs or symplectic changes of coordinates: G8
+  gives a Lagrangian `W` transverse to `V` and to `γ t₀`; let `P` be the
+  projection onto `V` along `W` (Mathlib's `Submodule.projection`). For each
+  `t`, take the bilinear form `β t (u, v) = ω₀(P (Z t u), Z t v)` on `ℝ^ι`, as
+  a matrix. It is symmetric wherever the image of `Z t` is isotropic, since
+  `V` and `W` are; where it is nondegenerate, `γ t ⊓ V = ⊥`, since `P` fixes
+  `V`; and its derivative within `Icc 0 1` at `t₀` comes from that of `Z` by
+  the product rule. At `t₀` its kernel is the preimage of `V` under `Z t₀`
+  (the image of `Z t₀` is Lagrangian and meets `W` only in `0`), and
+  `LinearEquiv.ofSubmodules` on that kernel is an isometry from the crossing
+  form of `Z t₀` and `Z'` to Tau Ceti's `ContinuousLinearMap.crossingForm` of
+  `β` at `t₀`, which is therefore nondegenerate. For `t₀ < 1`, a derivative
+  within `Icc 0 1` is one within `Ici t₀` (the two sets agree near `t₀` on the
+  right), and Tau Ceti's one-sided
+  `ContinuousLinearMap.eventually_nhdsGT_nondegenerate_of_crossingForm_nondegenerate`
   gives the times after `t₀`; for `0 < t₀`,
   `eventually_nhdsLT_nondegenerate_of_crossingForm_nondegenerate`, with `Iic t₀`,
-  gives those before. Their symmetry hypotheses hold because `A t` is symmetric
-  for every `t ∈ Icc 0 1` near `t₀`.
+  gives those before. Their symmetry hypotheses hold because `β t` is
+  symmetric for every `t ∈ Icc 0 1`.
 
 Signatures are `(sigPos Q : ℤ) - sigNeg Q`, as in Tau Ceti's crossing theorem;
 the part adds no signature function.
