@@ -225,27 +225,37 @@ review of #420 raise four more.
   hypothesis; and the first-order agreement itself needs a diffeomorphism
   with prescribed derivative along $L$. The page's route needs neither and
   gives equality at once, so the design follows it:
-  1. *A hypersurface through `L` tangent to `ξ`, parametrized by `T*L`.* Tau
-     Ceti's tubular neighbourhood
-     `TauCeti.SmoothEmbedding.exists_diffeomorph_normalBundle_subset` gives a
-     diffeomorphism $\Psi$ from the normal bundle $\nu$ of $L$ onto an open
-     neighbourhood, with $\Psi\circ0=f$. At $0_q$ its derivative on
-     vertical vectors, followed by the quotient by $df(T_qL)$, is an
-     isomorphism $\nu_q\to\nu_q$. The map
-     $v\mapsto\bigl(d\alpha(df\,\cdot,d\Psi(v)),\ \alpha(d\Psi(v))\bigr)$,
-     $\nu_q\to T_q^*L\times\mathbb R$, is then injective (its kernel
-     consists of $v$ with $d\Psi(v)\in\xi\cap(df\,T_qL)^{d\alpha}=df\,T_qL$,
-     because $L$ is Legendrian), hence bijective by dimension; its inverse
-     restricted to $T_q^*L\times\{0\}$ is a smooth, fibrewise linear,
-     injective bundle map $j:T^*L\to\nu$, smooth by
-     `ContMDiffAt.clm_bundle_inverse`, as in Tau Ceti's
-     `TauCeti.SmoothEmbedding.normalBundleDiffeomorphOfIsLagrangianMap`. The
+  1. *A hypersurface through `L` tangent to `ξ`, parametrized by `T*L`.* The
+     map $[w]\mapsto\bigl(d\alpha(df\,\cdot,w),\ \alpha(w)\bigr)$,
+     $\nu_q\to T_q^*L\times\mathbb R$, on the normal space
+     $\nu_q=T_{f(q)}M/df(T_qL)$, is well defined and injective (its kernel
+     consists of the classes of $w\in\xi\cap(df\,T_qL)^{d\alpha}=df\,T_qL$,
+     because $L$ is Legendrian), hence bijective by dimension; these maps
+     form a smooth bundle isomorphism, by Tau Ceti's
+     `TauCeti.SmoothEmbedding.contMDiff_normalBundle_iff` and
+     `TauCeti.contMDiff_bundle_symm`, as in Tau Ceti's
+     `TauCeti.SmoothEmbedding.normalBundleDiffeomorphOfIsLagrangianMap`, and
+     its inverse restricted to $T_q^*L\times\{0\}$ is a smooth, fibrewise
+     linear, injective bundle map $j:T^*L\to\nu$. The tubular map is not the
+     diffeomorphism of `TauCeti.SmoothEmbedding.exists_diffeomorph_normalBundle_subset`,
+     whose derivative along the zero section Tau Ceti does not state: it is
+     the normal exponential of an auxiliary metric
+     (`TauCeti.SmoothEmbedding.exists_partialDiffeomorph_normalExp_subset`,
+     with derivative from `TauCeti.SmoothEmbedding.mfderiv_normalExp_zeroSection_apply`),
+     precomposed with a radial compression
+     `TauCeti.vectorBundleRadialPartialDiffeomorphOfRadius` into its domain,
+     a smooth injective $\Psi:\nu\to M$ with $\Psi\circ0=f$ whose derivative
+     on the vertical vector $v$ at $0_q$ has class $c(q)\,v$, $c(q)>0$
+     (`TauCeti.SmoothEmbedding.exists_contMDiff_injective_normalBundle`, in
+     `Geometry/Manifold/TubularNeighborhood/Riemannian/Injective.lean`). The
      map $\iota=\Psi\circ j:T^*L\to M$ is injective, sends $0_q$ to $f(q)$,
      and its differential at $0_q$ is an isomorphism onto $\xi_{f(q)}$
      (horizontal part $df$, vertical part in $\xi$, dimension $2n$; read
      through `TauCeti.Bundle.zeroSectionTangentEquiv`). So on an open
      neighbourhood $N$ of the zero section it is an immersion transverse to
-     the Reeb field, and
+     the Reeb field (openness by
+     `ContMDiffAt.eventually_injective_mfderiv_and_notMem_range`, in
+     `Geometry/Manifold/Immersion/Transverse.lean`), and
      `IsContactForm.nondegenerate_bilinFormAt_mextDerivₗ_mpullback` makes
      $-d(\iota^*\alpha)$ nondegenerate there. The zero section is
      Lagrangian for it, since $\iota^*\alpha$ vanishes on its tangent
@@ -363,6 +373,27 @@ The file also has, in `TauCeti.SmoothForm`, the slices of a pullback along
 `timeDeriv`, by uniqueness of the derivative of $u\mapsto f^*\alpha_u$).
 `Gray.lean` uses them.
 
+### `Geometry/Manifold/DifferentialForm/LieDeriv.lean`
+
+Named like Tau Ceti's file, in the namespace `TauCeti`: the Lie derivative
+of forms is linear in the vector field, beside Tau Ceti's
+`mlieDerivForm_add_left`. Along the zero field, `@[simp]`
+`lieDerivFormWithin_zero_left`, `lieDerivForm_zero_left`,
+`mlieDerivFormWithin_zero_left` and `mlieDerivForm_zero_left`. For constant
+multiples, `@[simp]` `lieDerivFormWithin_const_smul_left` (with
+`UniqueDiffWithinAt`), `lieDerivForm_const_smul_left`,
+`mlieDerivFormWithin_const_smul_left` (with `UniqueMDiffWithinAt`) and
+`mlieDerivForm_const_smul_left (c : ℝ) (V) (φ : RoughForm I M F k) :
+mlieDerivForm (c • V) φ = c • mlieDerivForm V φ`, with no differentiability
+asked. `Geometry/Contact/Hamiltonian.lean` uses them for its submodule.
+
+### `Geometry/Manifold/DifferentialForm/DegreeOne.lean`
+
+Named like Tau Ceti's file, in `TauCeti.SmoothForm`:
+`contMDiff_apply_contMDiffSection`, the value `x ↦ α.val x ![X x]` of a
+smooth one-form on a smooth vector field is smooth, from `degreeOneEquiv`.
+`Geometry/Contact/Hamiltonian.lean` uses it for `contactHamiltonianEquiv`.
+
 ### `Geometry/Contact/Hamiltonian.lean`
 
 Named like Tau Ceti's file, in `TauCeti.SmoothForm`.
@@ -370,7 +401,9 @@ Named like Tau Ceti's file, in `TauCeti.SmoothForm`.
 - `contactVectorFields (α : SmoothForm I M ℝ 1) : Submodule ℝ Cₛ^∞⟮I; E, TangentSpace I (M := M)⟯`,
   the smooth fields `X` with `∃ g : M → ℝ, mlieDerivForm X α.val = fun x ↦ g x • α.val x`,
   beside Tau Ceti's `TauCeti.SmoothTwoForm.symplecticVectorFields` (closure
-  under sums by `TauCeti.mlieDerivForm_add`); `@[simp] mem_contactVectorFields_iff`.
+  under sums by `TauCeti.mlieDerivForm_add_left`, under scalars by
+  `TauCeti.mlieDerivForm_const_smul_left` of `DifferentialForm/LieDeriv.lean`);
+  `@[simp] mem_contactVectorFields_iff`.
   The multiplier `g` may vanish; no smoothness of `g` is asked, since for a
   contact form it is forced:
 - `IsContactForm.mem_contactVectorFields_iff_mlieDerivForm_eq (hα) :
@@ -398,12 +431,13 @@ Named like Tau Ceti's file, in `TauCeti.SmoothForm`.
   `@[simp] coe_contactHamiltonianEquiv_symm_apply`
   (`⇑(e.symm H) = α.contactHamiltonianVectorField H`).
 - `IsContactForm.reebVectorField_eq_contactHamiltonianVectorField_of_eq_smul`:
-  for `H` smooth and nowhere zero and `β` with
+  for `H` nowhere zero and `C¹` (`ContMDiff I 𝓘(ℝ) 1 H`) and `β` with
   `∀ x, β.val x = (H x)⁻¹ • α.val x`, `β.IsContactForm` and
   `β.reebVectorField = α.contactHamiltonianVectorField H`; from
   `isContactForm_iff_of_eq_smul`, `contactHamiltonianVectorField_of_eq_smul`
   with $u=H^{-1}$, $f=H$, and `contactHamiltonianVectorField_one` for `β`.
-- `IsContactForm.preservesCoorientation_refl_iff_pos` for the same `β`:
+- `Diffeomorph.preservesCoorientation_refl_iff_pos` for the same `β`, with
+  `α` only nowhere zero (`∀ x, α.val x ≠ 0`):
   `(Diffeomorph.refl I M ∞).PreservesCoorientation α β ↔ ∀ x, 0 < H x`, Tau
   Ceti's notion of "the same coorientation".
 - `contMDiff_contactHamiltonianVectorField_prodMk (hα) (hH : ContMDiff (𝓘(ℝ, ℝ).prod I) 𝓘(ℝ) ∞ H)`:
@@ -616,8 +650,16 @@ boundaryless and Hausdorff, and both are second countable.
   differential of `ι` at each point of `N` injective with range transverse to
   `α.reebVectorField`, and at `0_q` with range `α.kerDistribution (f q)`.
   Public, since the isotropic neighbourhood theorem of a later page builds
-  its slice the same way. It uses Tau Ceti's tubular neighbourhood, normal
-  bundle and zero-section splitting.
+  its slice the same way. It uses Tau Ceti's normal exponential, normal
+  bundle and zero-section splitting, and the openness of immersions
+  transverse to a vector field,
+  `ContMDiffAt.eventually_injective_mfderiv_and_notMem_range`, which it adds
+  in `Geometry/Manifold/Immersion/Transverse.lean` (beside Tau Ceti's
+  `ContMDiffAt.eventually_injective_mfderiv`), and the smooth injective map
+  of the normal bundle
+  `TauCeti.SmoothEmbedding.exists_contMDiff_injective_normalBundle`, which it
+  adds in `Geometry/Manifold/TubularNeighborhood/Riemannian/Injective.lean`
+  (mirroring Tau Ceti's `TubularNeighborhood/Riemannian/`).
 - **Milestone theorem**
   `IsLegendrianEmbedding.exists_diffeomorph_opens_mpullback_eq_neg_contactization (hα) (hf)`:
 
@@ -674,7 +716,7 @@ In this order; each is blocked by the ones listed, and all are sub-issues of
 
 | # | Issue | Files | Blocked by | Size |
 |---|---|---|---|---|
-| H1 | Contact vector fields and their equivalence with functions | `Geometry/Contact/Hamiltonian.lean` (`contactVectorFields`, the two characterizations, `contactHamiltonianEquiv`, the Reeb field of `α/H` and its coorientation) | — | 300 |
+| H1 | Contact vector fields and their equivalence with functions | `Geometry/Manifold/DifferentialForm/LieDeriv.lean`, `Geometry/Manifold/DifferentialForm/DegreeOne.lean`, `Geometry/Contact/Hamiltonian.lean` (`contactVectorFields`, the two characterizations, `contactHamiltonianEquiv`, the Reeb field of `α/H` and its coorientation) | — | 300 |
 | H2 | Time-dependent contact Hamiltonians and the milestone | `Geometry/Contact/Hamiltonian.lean` (joint smoothness, rescaling formula, `contactVectorFields_correspondence`) | H1 | 200 |
 | D | The contact Darboux theorem in the page's signs | `Geometry/Contact/Darboux/Strict.lean` | — | 200 |
 | G0 | Moser's principle along one trajectory, rescaling case | `Geometry/Manifold/DifferentialForm/Flow/Family.lean` | — | 100 |
