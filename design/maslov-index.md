@@ -484,6 +484,21 @@ The Maslov phase on $\mathcal{L}(n)$ and the index of Lagrangian loops.
   both having index `2 * k`, so `homotopicWith_iff` and `sum` give `k` for
   `halfTurnLoop k`; `homotopicWith_reindex_sum_halfTurnLoop` does the rest.
   *Maslov index for loops of Lagrangian subspaces*.
+- Supporting declarations of the file:
+  `Matrix.UnitaryGroup.homotopic_iff_angleChange_eq` (paths in `U(n)` with the
+  same ends are homotopic iff `Circle.angleChange` of `det` agrees along them,
+  from the isomorphism of #22, with no hypothesis on `ι`);
+  `ℒ.angleChange_map_detCircle` (along a path of frames of a loop `γ`, the
+  angle change of `det` is `maslovIndex γ * π`) and its corollary
+  `ℒ.detCircle_inv_mul_eq_exp`; `ℒ.maslovIndex_eq_of_homotopicWith`;
+  `isLagrangianMaslovIndex_maslovIndex`; and in the namespace
+  `IsLagrangianMaslovIndex`, `eq_of_maslovIndex_eq`,
+  `apply_halfTurnLoop_two_mul`, `apply_halfTurnLoop` and
+  `apply_eq_maslovIndex`. The proof of `maslovIndex_eq_iff_homotopic` corrects
+  one lift on the right by a path in `O(n)` from `1` to `W⁻¹ W'`, where `U W`
+  and `U W'` are the ends of the two lifts (joined since
+  `det W = det W' = (-1)^k`, by `TauCeti.Matrix.joined_orthogonalGroup_iff_det_eq`),
+  instead of moving both ends to `U * D`.
 
 ### `LinearAlgebra/Symplectic/Lagrangian/Maslov/Path/Basic.lean`
 
