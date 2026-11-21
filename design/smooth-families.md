@@ -106,7 +106,10 @@ No statement of this part is one that the authors' errata
   *Contact geometry* compose with such a map in time, and the part adds it.
   Tau Ceti's `TauCeti.exists_contDiff_odd_truncation` is the identity on
   `[-r, r]` but does not bound its values between `r` and `R`, so the part
-  builds the map from Mathlib's `ContDiffBump` instead.
+  builds the map from Mathlib's `ContDiffBump` instead, as Tau Ceti's
+  `TauCeti.exists_contDiff_eventuallyEq_id_forall_mem_ball` and
+  `TauCeti.exists_contDiff_cutoff_id` do; those need a positive radius and
+  do not bound their values.
 - **Embeddings.** Mathlib's `exists_embedding_euclidean_of_compact`
   (`Geometry/Manifold/WhitneyEmbedding.lean`): a compact Hausdorff manifold
   has a smooth closed embedding into some `EuclideanSpace ℝ (Fin N)` with
