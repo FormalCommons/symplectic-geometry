@@ -103,6 +103,19 @@ theorem IsNondegenerate.isSymplectomorphism_coordChangeL (hω : ω.IsNondegenera
 
 variable [FiniteDimensional ℝ F] [ContMDiffVectorBundle n F V I]
 
+/-- The order `(0, 0), (0, 1), (1, 0), (1, 1), …` of `Fin k × Fin 2`, by which the frame built on
+the linearly ordered `Fin (2 * k)` is indexed like a Darboux basis. -/
+private def darbouxIndexEquiv (k : ℕ) : Fin k × Fin 2 ≃ Fin (2 * k) :=
+  finProdFinEquiv.trans (finCongr (Nat.mul_comm k 2))
+
+private theorem darbouxIndexEquiv_apply_zero {k : ℕ} (i : Fin k) :
+    darbouxIndexEquiv k (i, 0) = ⟨2 * i, by omega⟩ := by
+  ext; simp [darbouxIndexEquiv, finProdFinEquiv]
+
+private theorem darbouxIndexEquiv_apply_one {k : ℕ} (i : Fin k) :
+    darbouxIndexEquiv k (i, 1) = ⟨2 * i + 1, by omega⟩ := by
+  ext; simp [darbouxIndexEquiv, finProdFinEquiv]; omega
+
 /-- **Local Darboux frames of a compatible pair.** If `ω` is compatible with a `Cⁿ` complex
 structure `J`, every point `x₀` has an open neighbourhood `U` with a `Cⁿ` local frame
 `s : Fin k × Fin 2 → ∀ y, V y` on `U` that is a Darboux basis of `ω_y` at every `y ∈ U`:
@@ -176,12 +189,7 @@ theorem Compatible.exists_isLocalFrameOn_isDarbouxBasis (hc : ω.Compatible J) (
     gramSchmidtNormed_two_mul_add_one (J := (J y : V y →L[ℝ] V y).toLinearMap) (hskew y)
       (hnorm y) (fun i ↦ u i y) i
   -- Reindexed by `Fin k × Fin 2`, the family `f` is the required frame.
-  let E : Fin k × Fin 2 ≃ Fin (2 * k) :=
-    finProdFinEquiv.trans (finCongr (Nat.mul_comm k 2))
-  have hE0 (i : Fin k) : E (i, 0) = ⟨2 * i, by omega⟩ := by
-    ext; simp [E, finProdFinEquiv]
-  have hE1 (i : Fin k) : E (i, 1) = ⟨2 * i + 1, by omega⟩ := by
-    ext; simp [E, finProdFinEquiv]; omega
+  let E := darbouxIndexEquiv k
   have hs : IsLocalFrameOn I F n (fun p y ↦ f y (E p)) U :=
     { linearIndependent := fun {y} hy ↦ (horth y hy).linearIndependent.comp E E.injective
       generating := fun {y} hy ↦ ((horth y hy).linearIndependent.comp E
@@ -194,7 +202,8 @@ theorem Compatible.exists_isLocalFrameOn_isDarbouxBasis (hc : ω.Compatible J) (
   -- An orthonormal basis of the form `(e₀, J e₀, e₁, J e₁, …)` is a Darboux basis.
   refine (TauCeti.SymplecticForm.isDarbouxBasis_iff_apply_apply_eq_ite
     (J := J.almostComplexStructureAt y) fun i ↦ ?_).2 fun p q ↦ ?_
-  · rw [ContMDiffComplexStructure.almostComplexStructureAt_apply, hval, hval, hE0, hE1, hrel]
+  · rw [ContMDiffComplexStructure.almostComplexStructureAt_apply, hval, hval,
+      darbouxIndexEquiv_apply_zero, darbouxIndexEquiv_apply_one, hrel]
   · rw [hg, hval, hval, orthonormal_iff_ite.1 (horth y hy)]
     exact if_congr E.injective.eq_iff rfl rfl
 
