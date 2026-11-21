@@ -145,6 +145,16 @@ theorem souriau_reindex (e : ι ≃ κ) (Λ : ℒ ι) :
   simp only [UnitaryGroup.coe_souriau, coe_unitaryReindexContinuousMulEquiv_apply, reindex_apply,
     transpose_submatrix, submatrix_mul_equiv]
 
+/-- A unitary matrix `U`, acting through its realification, conjugates the Souriau map:
+`souriau (U • Λ) = U (souriau Λ) Uᵀ`. -/
+@[simp]
+theorem souriau_ofUnitary_smul (U : unitaryGroup ι ℂ) (Λ : ℒ ι) :
+    (souriau (GLSymplectic.ofUnitary U • Λ) : Matrix ι ι ℂ) =
+      (U : Matrix ι ι ℂ) * souriau Λ * (U : Matrix ι ι ℂ)ᵀ := by
+  obtain ⟨W, rfl⟩ := unitaryFrame_surjective Λ
+  rw [← unitary_smul_def, ← unitaryFrame_mul, souriau_unitaryFrame, souriau_unitaryFrame,
+    UnitaryGroup.coe_souriau_mul_left]
+
 /-! ### The Maslov phase -/
 
 /-- The **Maslov phase** `ρ(Λ) = det (U Uᵀ) = (det U)²` of a Lagrangian subspace `Λ` with unitary
