@@ -342,9 +342,12 @@ lines.
 
 Named like Tau Ceti's file, in the namespace `TauCeti`: the Lie derivative
 of forms is linear in the vector field, beside Tau Ceti's
-`mlieDerivForm_add_left`. `@[simp] lieDerivFormWithin_zero_left`,
-`@[simp] mlieDerivForm_zero_left`, `lieDerivFormWithin_const_smul_left`
-(with `UniqueDiffWithinAt`), `mlieDerivFormWithin_const_smul_left` and
+`mlieDerivForm_add_left`. Along the zero field, `@[simp]`
+`lieDerivFormWithin_zero_left`, `lieDerivForm_zero_left`,
+`mlieDerivFormWithin_zero_left` and `mlieDerivForm_zero_left`. For constant
+multiples, `@[simp]` `lieDerivFormWithin_const_smul_left` (with
+`UniqueDiffWithinAt`), `lieDerivForm_const_smul_left`,
+`mlieDerivFormWithin_const_smul_left` (with `UniqueMDiffWithinAt`) and
 `mlieDerivForm_const_smul_left (c : ℝ) (V) (φ : RoughForm I M F k) :
 mlieDerivForm (c • V) φ = c • mlieDerivForm V φ`, with no differentiability
 asked. `Geometry/Contact/Hamiltonian.lean` uses them for its submodule.
