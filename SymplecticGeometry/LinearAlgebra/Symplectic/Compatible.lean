@@ -49,8 +49,18 @@ converses.
 * `TauCeti.SymplecticForm.Tames.lineMap`: the form `(1 - t) ω₀ + t ω₁`, for `t ∈ [0, 1]` and
   two forms that tame one `J`; it tames `J` too (`TauCeti.SymplecticForm.Tames.tames_lineMap`).
 
-Only the Darboux-basis and standard-model statements, and the list that collects them, assume
-finite dimension.
+It also relates images under `J` to orthogonals for the metric `g_J`:
+
+* `TauCeti.SymplecticForm.Invariant.orthogonal_map`: for `J`-invariant `ω`, the symplectic
+  complement of `J U` is the `g_J`-orthogonal of `U`;
+* `TauCeti.SymplecticForm.Invariant.isIsotropic_map`: for `J`-invariant `ω`, `J` maps isotropic
+  subspaces to isotropic subspaces;
+* `TauCeti.SymplecticForm.Compatible.isCompl_orthogonal_associatedBilinForm`: in finite
+  dimension, for compatible `J`, each subspace is a complement of its `g_J`-orthogonal.
+
+Only the Darboux-basis and standard-model statements, the list that collects them, and
+`TauCeti.SymplecticForm.Compatible.isCompl_orthogonal_associatedBilinForm` assume finite
+dimension.
 
 ## References
 

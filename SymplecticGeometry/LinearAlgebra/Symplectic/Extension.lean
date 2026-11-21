@@ -52,9 +52,11 @@ submanifold needs.
   `TauCeti.SymplecticForm.Compatible.inf_sup_normalComplement`,
   `TauCeti.SymplecticForm.Compatible.isCompl_sup_map_normalComplement`: the splittings.
 * `TauCeti.SymplecticForm.Compatible.isSymplectic_radicalComplement`,
-  `TauCeti.SymplecticForm.Compatible.isSymplectic_normalComplement`,
-* `TauCeti.SymplecticForm.Compatible.isSymplectomorphism_normalComplementEquiv`.
-  reduced spaces.
+  `TauCeti.SymplecticForm.Compatible.isSymplectic_sup_map`,
+  `TauCeti.SymplecticForm.Compatible.isSymplectic_normalComplement`: `H`, `W ⊕ J K` and `E`
+  are symplectic.
+* `TauCeti.SymplecticForm.Compatible.isSymplectomorphism_normalComplementEquiv`: the map
+  `E ≃ W^ω ⧸ K` carries the restriction of `ω` to `E` to the reduced form.
 * `TauCeti.SymplecticForm.Compatible.isSymplectomorphism_extendAlong`,
   `TauCeti.SymplecticForm.Compatible.extendAlong_apply_coe`,
   `TauCeti.SymplecticForm.Compatible.extendAlong_sub_mem`.
