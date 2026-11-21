@@ -454,7 +454,10 @@ it into issues; the overview fixes its folders and its dependencies.
   `TauCeti.GLSymplectic.coe_polarUnitary_reindex`
   (`Analysis/Matrix/Polar/GLSymplectic.lean`); and `Path.Homotopic.homotopicWith`
   (`Topology/Homotopy/Path.lean`) says that a homotopy of loops with fixed
-  ends is a free one.
+  ends is a free one. The crossing forms add a third file outside these
+  folders, `Analysis/Calculus/Deriv/Matrix.lean` (derivatives of
+  matrix-valued functions), beside Tau Ceti's file of the same name so that
+  the two merge upstream.
 - **Builds on:** *Standard model*, *Symplectic group*, *Unitary group
   topology*, *Lagrangian Grassmannian*. From Mathlib and Tau Ceti, in two
   ways, none of it re-derived:
