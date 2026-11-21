@@ -149,14 +149,17 @@ following choices.
   $L$ on reduced normal spaces. A compatible $J$ gives the metric
   $g=\omega(\cdot,J\cdot)$, and with it the $\omega$-orthogonal splitting
   $V=H\oplus(K\oplus JK)\oplus E$ with $H=W\cap K^{\perp_g}$ and
-  $E=W^\omega\cap K^{\perp_g}$ (*`LinearAlgebra/Symplectic/Extension.lean`*
-  below). On it, $A$ is given by an explicit formula. So the part uses
-  #254 (`ContMDiffTwoForm.IsNondegenerate.exists_compatible`, through
-  `SymplecticGeometry.Bundle.ContMDiffTwoForm.tangentEquiv`) to get a
+  $E=(H\oplus K\oplus JK)^\omega$ (*`LinearAlgebra/Symplectic/Extension.lean`*
+  below). On it, $A$ is given by an explicit formula. A
   `TauCeti.SmoothAlmostComplexStructure` on each $M_j$ compatible with
-  $\omega_j$. That existence is used in `Neighborhood/Basic.lean` only:
+  $\omega_j$ comes from Tau Ceti's
+  `TauCeti.SmoothTwoForm.IsNondegenerate.exists_compatible`, under the
+  standing `[T2Space M]` and `[SigmaCompactSpace M]`, and
+  `TauCeti.SmoothTwoForm.Compatible.compatibleAt` reads it at each point.
+  That existence is used in `Neighborhood/Basic.lean` only:
   `Neighborhood/Extension.lean` takes the complex structures as
-  arguments.
+  arguments. So the part waits for no open issue of *Symplectic vector
+  bundles*: neither #254, nor #266, nor #269.
 - **Pull-backs and local Darboux frames are not needed.** $L$ and $A$ are
   stated as sections over $Q$ of the bundle of linear maps between the
   pull-backs `f₀ *ᵖ TangentSpace I₀` and `f₁ *ᵖ TangentSpace I₁`. These are
@@ -215,7 +218,10 @@ and two rows of its milestone table.
   this changes: #476 is blocked only by its design issue.
 - `AdaptedDarboux.lean` uses Tau Ceti's pointwise relative Darboux theorem
   instead of the neighbourhood theorems, so it can start at once.
-- The part waits for #254, only in `Neighborhood/Basic.lean`.
+- The part no longer builds on *Symplectic vector bundles*, neither on
+  `Symplectic/Basic.lean` nor on any of its open issues: the compatible
+  complex structures come from Tau Ceti, and the symplectic normal bundle
+  is read through Tau Ceti's `symplecticNormalForm`.
 
 ## Files and their contents
 
@@ -304,7 +310,9 @@ the table of *Conventions*), and `W : Submodule ℝ V`.
 - The pieces, as submodules defined from `ω`, `J` and `W`, each with its
   `_def` lemma: `W ⊓ ω.orthogonal W` (the radical $K$, a Tau Ceti
   expression, not a new definition); `hJ.radicalComplement W` ($H=W\cap
-  K^{\perp_g}$); `hJ.normalComplement W` ($E=W^\omega\cap K^{\perp_g}$).
+  K^{\perp_g}$); `hJ.normalComplement W` ($E=(H\oplus K\oplus JK)^\omega$,
+  the $g$-orthogonal of $J(H\oplus K\oplus JK)$; it lies in $W^\omega$,
+  but need not be $g$-orthogonal to $H$).
   Lemmas: `isCompl` statements for $W=H\oplus K$ and $W^\omega=K\oplus E$;
   `IsSymplectic` for $H$ and $E$; $J K$ is isotropic and
   $V=H\oplus K\oplus JK\oplus E$, with $H$, $K\oplus JK$ and $E$ pairwise
@@ -350,7 +358,9 @@ hom bundle of the pull-backs satisfying `hL` and `hLω` at every `q`:
   completed by frames of $TQ$, is orthonormalized by Tau Ceti's smooth
   Gram–Schmidt (`Geometry/Manifold/VectorBundle/GramSchmidt.lean`) for
   $g_j$. That gives smooth frames of $H_j$, $K_j$, $J_jK_j$ and of $E_j$, the
-  last as the $g_j$-orthogonal complement of the others. In these frames
+  last as the $g_j$-orthogonal complement of $J_j(H_j\oplus K_j\oplus
+  J_jK_j)$, that is, the $\omega_j$-orthogonal of $H_j\oplus K_j\oplus
+  J_jK_j$. In these frames
   every step of `extendAlong` is a matrix formula with inverses of smooth
   invertible Gram matrices.
 - `mfderiv_comp_smoothExtendAlong` ($A\circ df_0=df_1$),
@@ -401,8 +411,9 @@ The comparison theorem. Namespace `TauCeti.SmoothEmbedding`.
   `ψ : U₀ ≃ₘ⟮I₀, I₁⟯ U₁` with, for every `q`, `ψ ⟨f₀ q, _⟩ = ⟨f₁ q, _⟩`,
   `mfderiv ψ` after `mfderiv f₀` equal to `mfderiv f₁`, and
   `mfderiv ψ v - L q v ∈ LinearMap.range (mfderiv J I₁ f₁ q)` for
-  `v ∈ ω₀`-orthogonal of the tangent range. Route: #254 gives compatible
-  `J₀`, `J₁`. Then `smoothExtendAlong` is an `A` for
+  `v ∈ ω₀`-orthogonal of the tangent range. Route: Tau Ceti's
+  `TauCeti.SmoothTwoForm.IsNondegenerate.exists_compatible` gives compatible
+  `J₀`, `J₁`, read pointwise by `Compatible.compatibleAt`. Then `smoothExtendAlong` is an `A` for
   `exists_symplectomorphism_opens_mfderiv_eq`.
 
 ### `Geometry/Symplectic/Neighborhood/Symplectic.lean`
@@ -523,11 +534,9 @@ being an embedding, the image of `Q` in the source is exactly the part of
 ## What the part uses
 
 - From *Moser isotopy*: `Relative.lean`, only in `Tubular.lean`.
-- From *Symplectic vector bundles*: `Symplectic/Basic.lean` (merged; for
-  `SymplecticGeometry.Bundle.ContMDiffTwoForm.tangentEquiv`), and #254
-  (`ContMDiffTwoForm.IsNondegenerate.exists_compatible` and the comparison
-  of its complex structure with Tau Ceti's `SmoothAlmostComplexStructure`),
-  only in `Neighborhood/Basic.lean`.
+- *Symplectic vector bundles* is not used: the compatible complex
+  structures of `Neighborhood/Basic.lean` come from Tau Ceti's
+  `TauCeti.SmoothTwoForm.IsNondegenerate.exists_compatible`.
 - From *Symplectic vector spaces*: `LinearAlgebra/Symplectic/Reduction.lean`
   (merged), in `Extension.lean` and `Isotropic.lean`.
 - From *Standard model*: `StdSpace`, `stdForm`, `stdForm_apply`, in
@@ -563,7 +572,7 @@ list. Issues 1, 3, 5 and 10 can start at once.
    5, and the issue of *Moser isotopy* that builds `Relative.lean`, which
    `design/moser-isotopy.md` (#471) lists.
 7. **The comparison theorem.** `Neighborhood/Basic.lean`. About 200 lines.
-   Blockers: 4, 6, and #254.
+   Blockers: 4 and 6.
 8. **Symplectic and Lagrangian neighbourhoods.** `Symplectic.lean`,
    `Geometry/Manifold/VectorBundle/ZeroSection.lean`, `Lagrangian.lean`.
    About 350 lines. Blockers: 7.
