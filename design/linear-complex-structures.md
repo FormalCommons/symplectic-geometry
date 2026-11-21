@@ -169,7 +169,7 @@ them.
 |---|---|
 | `LinearAlgebra/ComplexStructure/Action.lean` | the action of `V ≃ₗ[ℝ] V`, and of `GL n ℝ` and `specialOrthogonalGroup n ℝ` on the structures of `EuclideanSpace ℝ n` |
 | `Topology/ComplexStructure/Basic.lean` | the closed embedding into operators, `T2Space` and `LocallyCompactSpace`, for finite-dimensional normed `V`; the matrix homeomorphism and continuity of the actions, for `EuclideanSpace ℝ n` |
-| `LinearAlgebra/ComplexStructure/Standard.lean` | the isomorphism $\Phi$, transitivity, the stabilizer, positively oriented structures |
+| `LinearAlgebra/ComplexStructure/Standard.lean` | the isomorphism $\Phi$, transitivity, the stabilizer, positively oriented structures, compatibility with $\omega_0$ under symplectic matrices and the action of `Matrix.symplecticGroup ι ℝ` on the compatible structures |
 | `Topology/Algebra/GroupAction/Transitive.lean` | the orbit–stabilizer homeomorphism for σ-compact groups |
 | `Topology/ComplexStructure/Orbit.lean` | the space as GL(2n,ℝ)/GL(n,ℂ), the positively oriented structures form a clopen set |
 | `Analysis/SpecialFunctions/ContinuousFunctionalCalculus/Polar.lean` | the polar unitary factor of a unit of square $-1$ inverts the powers of its positive factor |
@@ -270,7 +270,10 @@ Declarations about Tau Ceti's type go in its namespace
   instance `instMulActionSymplecticGroupCompatible` of
   `Matrix.symplecticGroup ι ℝ` on `{J // (stdForm ι).Compatible J}`, through
   `GLSymplectic.ofSymplecticGroup`, with `@[simp] coe_symplecticGroup_smul`
-  (by `(rfl)`).
+  (by `(rfl)`). The first is
+  `SymplecticForm.IsSymplectomorphism.compatible_transport_iff` (`Action.lean`)
+  applied to *Standard model*'s
+  `mem_GLSymplectic_iff_isSymplectomorphism`.
 
 ### `Topology/Algebra/GroupAction/Transitive.lean`
 

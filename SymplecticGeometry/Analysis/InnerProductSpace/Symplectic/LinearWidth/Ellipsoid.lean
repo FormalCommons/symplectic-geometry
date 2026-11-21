@@ -63,9 +63,8 @@ theorem linearSymplecticWidth_stdEllipsoid {r : ι → ℝ} {i : ι} (hi : 0 < r
     linearSymplecticWidth (stdEllipsoid r) = ENNReal.ofReal (π * r i ^ 2) := by
   refine le_antisymm ((linearSymplecticWidth_mono (stdEllipsoid_subset_stdCylinder hi)).trans
     (linearSymplecticWidth_stdCylinder_le i (r i))) ?_
-  exact le_linearSymplecticWidth (one_mem _) hi.le (by
-    rw [AffineEquiv.coe_one, Set.image_id]
-    exact closedBall_subset_stdEllipsoid hmin)
+  exact ofReal_pi_mul_sq_le_linearSymplecticWidth_of_closedBall_subset hi.le
+    (closedBall_subset_stdEllipsoid hmin)
 
 /-- The ellipsoid `{z | Q z ≤ 1}` has width `π s²`, for `s` the smallest element of the
 symplectic spectrum of `Q`. Such an `s` exists only if `Q` is positive definite. -/
@@ -100,16 +99,7 @@ theorem linearSymplecticWidth_setOf_le_one {Q : QuadraticForm ℝ (StdSpace ι)}
         (_ : {z | Q z ≤ 1} ⊆ f '' stdCylinder i R),
         linearSymplecticWidth (f '' stdCylinder i R) := by
   have hE := linearSymplecticWidth_setOf_le_one_eq hs hmin
-  have : Nonempty ι := Fintype.card_pos_iff.1
-    (card_symplecticSpectrum (posDef_of_mem_symplecticSpectrum hs) ▸
-      Multiset.card_pos_iff_exists_mem.2 ⟨s, hs⟩)
-  refine ⟨hE, ?_, ?_⟩
-  · refine le_antisymm ?_ (iSup₂_le fun _ _ ↦ iSup₂_le fun r hr ↦
-      linearSymplecticWidth_mono hr)
-    rw [linearSymplecticWidth_def]
-    refine iSup_le fun r ↦ iSup₂_le fun f hf ↦ iSup_le fun hr ↦ ?_
-    refine le_iSup₂_of_le f hf (le_iSup₂_of_le r hr ?_)
-    rw [linearSymplecticWidth_image_closedBall hf 0 r.coe_nonneg]
+  refine ⟨hE, linearSymplecticWidth_eq_iSup_image_closedBall _, ?_⟩
   · refine le_antisymm (le_iInf₂ fun _ _ ↦ le_iInf₂ fun i R ↦ le_iInf fun h ↦
       linearSymplecticWidth_mono h) ?_
     obtain ⟨r, e, i, hr, he, h, -, rfl⟩ :=
