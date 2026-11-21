@@ -89,9 +89,10 @@ These settle the questions that `DESIGN.md` leaves to this file.
 1. **The conjugating isomorphism** comes from Tau Ceti's
    `exists_linearEquiv_I_smul` with $G=$ `ι → ℂ`, composed with
    `complexToRealEuclidean ι`. This needs no norm on $V$ and works for any
-   finite index type `ι`, so it replaces the route through
-   `exists_continuousLinearEquiv_euclideanSpace_comp_eq_comp_I_smul` that
-   `DESIGN.md` mentions, whose dimension is only existential.
+   finite index type `ι`. It replaces the route through Tau Ceti's
+   `ContinuousLinearMap.exists_continuousLinearEquiv_euclideanSpace_comp_eq_comp_I_smul`
+   (`Geometry/Symplectic/Complex/Module/Conjugacy.lean`), whose dimension is
+   only existential.
 2. **The quotient homeomorphism** is obtained from the open mapping theorem
    for group actions, not from a local section or the inverse function
    theorem. The orbit map $g\mapsto g\cdot J_0$ is continuous, surjective and,
@@ -155,13 +156,14 @@ These settle the questions that `DESIGN.md` leaves to this file.
 
 ## Files
 
-Files are under `SymplecticGeometry/`. `DESIGN.md` lists three files for this
-part; this design keeps them and adds six, each with the topic its path says:
-the actions on complex structures, their general topology, the general
-orbit–stabilizer homeomorphism, the conjugation identity for units of square
-$-1$, the polar deformation of matrices of square $-1$, and the orthogonal
-complex structures. The first two are stated for any space, since
-*Compatible complex structures* uses them too.
+Files are under `SymplecticGeometry/`. The part has nine files, each with
+the topic its path says. Besides the standard model, the orbit space and the
+oriented components, they hold the actions on complex structures, their
+general topology, the general orbit–stabilizer homeomorphism, the
+conjugation identity for units of square $-1$, the polar deformation of
+matrices of square $-1$, and the orthogonal complex structures. The actions
+and their topology are stated for any space, so that later work can use
+them.
 
 | File | Contents |
 |---|---|
@@ -192,8 +194,7 @@ Declarations about Tau Ceti's type go in its namespace
   for any `[AddCommGroup V] [Module ℝ V]`; with `smul_def` (by `(rfl)`),
   `@[simp] smul_apply : (e • J) v = e (J (e.symm v))`, and
   `@[simp] toLinearMap_smul`. The axioms are `transport_refl` and
-  `transport_trans`. *Compatible complex structures* states the equivariance
-  of $J_{g,\omega}$ with it.
+  `transport_trans`.
 - `instance instMulActionGeneralLinearGroup :
   MulAction (GL n ℝ) (AlmostComplexStructure (EuclideanSpace ℝ n))`, the
   action of matrices,
@@ -481,10 +482,9 @@ Declarations about Tau Ceti's type go in its namespace
   `stdForm`, `stdForm_compatible`, and the matrix dictionary (commuting with
   `Matrix.J`).
 - Tau Ceti and Mathlib, as listed in the first section.
-- No other part. *Compatible complex structures* builds on this part: it uses
-  the action of `V ≃ₗ[ℝ] V` (`Action.lean`),
-  `exists_transport_stdComplexStructure_eq`, and the topological facts of
-  `Topology/ComplexStructure/Basic.lean`.
+- No other part. No part builds on this one either: *Compatible complex
+  structures* states its equivariance with Tau Ceti's `transport` directly
+  and uses nothing from this part, as its design and `DESIGN.md` say.
 
 ## Building issues
 
