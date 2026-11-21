@@ -184,7 +184,7 @@ theorem image_adjointEquiv_symm_stdCylinder [DecidableEq ι] (σ : StdSpace ι �
     mem_stdCylinder_iff_of_nonneg hR, StdSpace.x_apply, StdSpace.y_apply,
     ContinuousLinearEquiv.adjointEquiv_apply_apply,
     ContinuousLinearEquiv.adjointEquiv_apply_apply]
-  rfl
+  simp only [LinearEquiv.coe_toContinuousLinearEquiv', Set.mem_ofPred_eq]
 
 /-! ### The reflection `(x, y) ↦ (x, -y)` -/
 

@@ -173,7 +173,7 @@ private theorem one_le_abs_stdForm_adjointEquiv_of_ne_zero {Ψ : StdSpace ι ≃
       ContinuousLinearEquiv.adjointEquiv_apply]
     rw [← LinearEquiv.coe_toContinuousLinearEquiv' Ψ, ← ContinuousLinearEquiv.coe_coe,
       ← ContinuousLinearMap.adjoint_inner_left, ContinuousLinearMap.adjoint_inner_right]
-    rfl
+    simp only [ContinuousLinearEquiv.coe_coe, LinearEquiv.coe_toContinuousLinearEquiv']
   have key := h φ θ hτ.symm.adjoint hσ.adjoint.symm i s⁻¹ 1 (inv_nonneg.2 hs.le) (by
     rintro _ ⟨_, ⟨z, hz, rfl⟩, rfl⟩
     rw [ContinuousLinearEquiv.coe_toLinearEquiv,
