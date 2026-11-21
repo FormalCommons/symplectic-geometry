@@ -413,7 +413,8 @@ The Maslov phase on $\mathcal{L}(n)$ and the index of Lagrangian loops.
   $(\alpha(1)-\alpha(0))/\pi$.
 - The half-turn `ℒ.halfTurnLoop {ι} (k : ℤ) : Path (V₀ ι) (V₀ ι)`,
   `t ↦ unitaryFrame (e^{iπkt} • 1)`, with `halfTurnLoop_apply`
-  (`@[simp]`), `maslovPhase_halfTurnLoop :
+  (not `@[simp]`, so that the phase lemma below can fire),
+  `maslovPhase_halfTurnLoop :
   maslovPhase (halfTurnLoop k t) = Circle.exp (2 * Fintype.card ι * (π * k * t))`
   (`@[simp]`) and `maslovIndex_halfTurnLoop :
   maslovIndex (halfTurnLoop (ι := ι) k) = k * Fintype.card ι` (`@[simp]`), the

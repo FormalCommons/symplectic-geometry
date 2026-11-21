@@ -333,7 +333,6 @@ noncomputable def halfTurnLoop (k : ℤ) : Path (horizontal ι) (horizontal ι) 
     simp [smul_smul, h]
 
 /-- The loop `halfTurnLoop k` at time `t` is the Lagrangian framed by `e^{iπkt} I`. -/
-@[simp]
 theorem halfTurnLoop_apply (k : ℤ) (t : I) :
     halfTurnLoop k t = unitaryFrame ⟨(Circle.exp (Real.pi * k * t) : ℂ) • (1 : Matrix ι ι ℂ),
       Unitary.smul_mem_of_mem (Circle.exp _).coe_mem_unitary (one_mem _)⟩ :=
