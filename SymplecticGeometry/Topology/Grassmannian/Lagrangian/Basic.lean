@@ -31,6 +31,8 @@ choice that fixes the projections.
 * `SymplecticGeometry.LagrangianGrassmannian.continuous_iff_continuous_starProjection`: a map into
   the Lagrangian Grassmannian is continuous exactly when its orthogonal projections depend
   continuously on the parameter.
+* `Continuous.lagrangianGrassmannian_starProjection`: the projections onto a continuous family
+  of Lagrangian subspaces are continuous in the parameter; `fun_prop` uses this form.
 * The Lagrangian Grassmannian is Hausdorff.
 
 ## References
@@ -59,7 +61,7 @@ noncomputable instance instTopologicalSpace : TopologicalSpace (LagrangianGrassm
 theorem instTopologicalSpace_def :
     (instTopologicalSpace : TopologicalSpace (LagrangianGrassmannian ω)) =
       .induced (fun Λ ↦ (Λ : Submodule ℝ V).starProjection) inferInstance :=
-  rfl
+  (rfl)
 
 /-- A Lagrangian subspace is determined by its orthogonal projection. -/
 theorem starProjection_injective :
@@ -82,10 +84,17 @@ theorem isEmbedding_starProjection :
   ⟨isInducing_starProjection, starProjection_injective⟩
 
 /-- The orthogonal projection onto a Lagrangian subspace depends continuously on the subspace. -/
-@[continuity, fun_prop]
 theorem continuous_starProjection :
     Continuous fun Λ : LagrangianGrassmannian ω ↦ (Λ : Submodule ℝ V).starProjection :=
   isInducing_starProjection.continuous
+
+/-- For a continuous family of Lagrangian subspaces, the orthogonal projections onto its members
+form a continuous family of operators. This is the form `fun_prop` and `continuity` apply. -/
+@[continuity, fun_prop]
+theorem _root_.Continuous.lagrangianGrassmannian_starProjection {X : Type*}
+    [TopologicalSpace X] {f : X → LagrangianGrassmannian ω} (hf : Continuous f) :
+    Continuous fun x ↦ (f x : Submodule ℝ V).starProjection :=
+  continuous_starProjection.comp hf
 
 /-- A map into the Lagrangian Grassmannian is continuous if and only if the orthogonal
 projections onto its values depend continuously on the parameter. -/
