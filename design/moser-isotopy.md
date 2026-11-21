@@ -283,7 +283,7 @@ API, in the order the proofs need it. `hinv` stands for
   Away from it, the field is the zero section.
 - `moserField_rate_eq_zero`: Moser's equation at `(t, y)`, for `N = ℝ`.
   Assume `mextDeriv σ_t.val y = 0`,
-  `∀ᶠ p in 𝓝 (t, y), ρ p = 1 ∧ (SmoothTwoForm.flat σ_{p.1} p.2).IsInvertible`,
+  `∀ᶠ z in 𝓝 y, ρ (t, z) = 1 ∧ (SmoothTwoForm.flat σ_t z).IsInvertible`,
   and that the slice of `σ.timeDeriv` at `t` equals `mextDeriv β_t.val`
   at `y`. Then the rate of `σ` along `moserField σ β ρ` vanishes at
   `(t, y)`. This is the hypothesis of Tau Ceti's

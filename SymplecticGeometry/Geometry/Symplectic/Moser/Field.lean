@@ -21,8 +21,8 @@ Let `σ` be a smooth two-form and `β` a smooth one-form on `N × M`, with slice
 depending on `t : N`, where `σ_t♭` is the flat map `v ↦ ι_v σ_t`. Where `σ_t` is nondegenerate it
 is the field with `ι_{X_t} σ_t = -ρ(t, ·) β_t`.
 
-For `N = ℝ`, if `σ_t` is closed at a point `y` and the time derivative of `σ` at `(t, y)` is
-`dβ_t`, then at every `(t, y)` near which `ρ = 1` and the slices of `σ` are nondegenerate,
+For `N = ℝ`, suppose that `σ_t` is closed at a point `y`, that the time derivative of `σ` at
+`(t, y)` is `dβ_t`, and that near `y` we have `ρ(t, ·) = 1` and `σ_t` nondegenerate. Then
 Cartan's formula gives Moser's equation `∂_t σ_t + L_{X_t} σ_t = dβ_t - dβ_t = 0` at `y`, which
 is the hypothesis of Tau Ceti's Moser principle along trajectories
 (`TauCeti.mpullback_timeDependentFlowOf_mpullback_prodMk_apply_eq_of_forall_mem_uIcc`).
@@ -37,8 +37,8 @@ The segment `σ_t = σ₀ + t (σ₁ - σ₀)` with a primitive `β` constant in
 * `SymplecticGeometry.contMDiffAt_moserField`, `SymplecticGeometry.contMDiff_moserField`: the
   field is jointly smooth on `N × M` where `ρ` is smooth and `σ_t` is nondegenerate at every
   point `(t, x)` of the support of `ρ`.
-* `SymplecticGeometry.moserField_rate_eq_zero`: Moser's equation at a point near which `ρ = 1`
-  and the slices of `σ` are nondegenerate, where `σ_t` is closed and `∂_t σ_t = dβ_t`.
+* `SymplecticGeometry.moserField_rate_eq_zero`: Moser's equation at a point `y` near which
+  `ρ(t, ·) = 1` and `σ_t` is nondegenerate, where `σ_t` is closed and `∂_t σ_t = dβ_t`.
 
 The definition and the proofs adapt Tau Ceti's private `moserField`, `moserField_eq_zero`,
 `interior_moserField`, `interior_moserField_eq`, `contMDiff_moserField` and `moserRate_eq_zero`
@@ -200,16 +200,16 @@ theorem contMDiff_moserField (σ : SmoothForm (J.prod I) (N × M) ℝ 2)
 
 /-- **Moser's equation for the cut-off Moser field.** Let `σ` and `β` be forms on `ℝ × M`. At a
 point `y` where the slice `σ_t` is closed and the slice of the time derivative `∂_t σ` is `dβ_t`,
-if `ρ = 1` and the flat map of `σ_s` at `z` is invertible at every point `(s, z)` near `(t, y)`,
+if `ρ (t, z) = 1` and the flat map of `σ_t` at `z` is invertible at every point `z` near `y`,
 then the rate `∂_t σ_t + L_{X_t} σ_t` of `σ` along the cut-off Moser field vanishes at `y`:
 Cartan's formula gives `L_{X_t} σ_t = d (ι_{X_t} σ_t) = -dβ_t` at `y`. -/
-theorem moserField_rate_eq_zero [I.Boundaryless] {σ : SmoothForm (𝓘(ℝ, ℝ).prod I) (ℝ × M) ℝ 2}
+theorem moserField_rate_eq_zero {σ : SmoothForm (𝓘(ℝ, ℝ).prod I) (ℝ × M) ℝ 2}
     {β : SmoothForm (𝓘(ℝ, ℝ).prod I) (ℝ × M) ℝ 1} {ρ : ℝ × M → ℝ} {t : ℝ} {y : M}
     (hσ : mextDeriv
       (SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) σ).val y = 0)
-    (hρ : ∀ᶠ p in 𝓝 (t, y), ρ p = 1 ∧ (SmoothTwoForm.flat
-      (SmoothForm.mpullback (Prod.mk p.1) (contMDiff_const.prodMk contMDiff_id) σ)
-        p.2).IsInvertible)
+    (hρ : ∀ᶠ z in 𝓝 y, ρ (t, z) = 1 ∧ (SmoothTwoForm.flat
+      (SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) σ)
+        z).IsInvertible)
     (hβ : (SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id)
         σ.timeDeriv).val y =
       mextDeriv (SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) β).val
@@ -218,11 +218,14 @@ theorem moserField_rate_eq_zero [I.Boundaryless] {σ : SmoothForm (𝓘(ℝ, ℝ
         (mlieDerivForm (fun _ ↦ ((1 : ℝ), (0 : E))) σ.val) +
       mlieDerivForm (moserField σ β ρ t) (mpullback I (𝓘(ℝ, ℝ).prod I) (Prod.mk t) σ.val))
         y = 0 := by
+  -- The cutoff `(s, z) ↦ ρ (t, z)` gives the same field at time `t` and is constant near
+  -- `(t, y)`, so smoothness of the field at `y` needs `hρ` only on the slice at `t`.
   have hXt : MDifferentiableAt I I.tangent
       (fun z ↦ (⟨z, moserField σ β ρ t z⟩ : TangentBundle I M)) y :=
-    have hρt : ContMDiffAt (𝓘(ℝ, ℝ).prod I) 𝓘(ℝ) ∞ ρ (t, y) :=
-      contMDiffAt_const.congr_of_eventuallyEq (hρ.mono fun _ hp ↦ hp.1)
-    ((contMDiffAt_moserField σ β hρt fun _ ↦ hρ.self_of_nhds.2).comp y
+    have hρ' : ContMDiffAt (𝓘(ℝ, ℝ).prod I) 𝓘(ℝ) ∞ (fun p : ℝ × M ↦ ρ (t, p.2)) (t, y) :=
+      contMDiffAt_const.congr_of_eventuallyEq
+        ((continuous_snd.continuousAt.eventually hρ).mono fun _ hp ↦ hp.1)
+    ((contMDiffAt_moserField σ β hρ' fun _ ↦ hρ.self_of_nhds.2).comp y
       (contMDiffAt_const.prodMk contMDiffAt_id)).mdifferentiableAt (by simp)
   -- Near `y` the contraction `ι_{X_t} σ_t` is `-β_t`, whose exterior derivative at `y` is
   -- `-(∂_t σ)_t`.
@@ -235,7 +238,7 @@ theorem moserField_rate_eq_zero [I.Boundaryless] {σ : SmoothForm (𝓘(ℝ, ℝ
         (SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) σ).val z =
         ((-1 : ℝ) •
           (SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) β).val) z := by
-      filter_upwards [(Continuous.prodMk_right t).continuousAt.eventually hρ] with z hz
+      filter_upwards [hρ] with z hz
       rw [interior_moserField σ β ρ hz.2, hz.1, Pi.smul_apply]
     rw [mextDeriv_congr_of_eventuallyEq hev, mextDeriv_smul, Pi.smul_apply, ← hβ, neg_one_smul]
   have hs : ContMDiff I (𝓘(ℝ, ℝ).prod I) ∞ (Prod.mk t : M → ℝ × M) :=
