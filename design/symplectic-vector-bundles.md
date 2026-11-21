@@ -124,6 +124,7 @@ variable {EB HB M : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB]
 | `Geometry/Manifold/VectorBundle/Symplectic/Trivialization.lean` | local Darboux frames and the reduction of the structure group | 9 |
 | `Geometry/Manifold/VectorBundle/Symplectic/Classification.lean` | the first milestone | 11 |
 | `Geometry/Manifold/VectorBundle/Pullback.lean` | smoothness of sections of the alternating bundle of a pull-back | 18 |
+| `Topology/VectorBundle/Pullback.lean` | coordinates of alternating maps on a pull-back bundle | 18 |
 | `Geometry/Manifold/VectorBundle/Symplectic/Pullback.lean` | pull-backs of forms, of tame and compatible pairs, of isomorphisms and of frames | 21 |
 | `Geometry/Manifold/VectorBundle/Symplectic/Prod.lean` | direct sums of forms, of tame and compatible pairs and of isomorphisms; block frames | 22 |
 | `LinearAlgebra/Symplectic/Standard/Basic.lean`, `.../Standard/Matrix.lean` | `StdSpace.sumEquiv` and its matrix lemma (files of *Standard model*) | 22 |
@@ -145,6 +146,7 @@ says), except its lemma `moserGenerator_conj`, which goes in
 `Analysis/ODE/DysonSeries.lean`, `Section/Topology.lean`, `Section/Generic.lean`,
 `Riemannian/SectionTopology.lean`, `IsManifold/InteriorBoundary.lean`,
 `Geometry/Manifold/VectorBundle/Pullback.lean`,
+`Topology/VectorBundle/Pullback.lean`,
 `Geometry/Symplectic/Manifold/Volume.lean` and the folder `Boundary/Collar/`
 have the names of a Tau Ceti or Mathlib file or
 folder at the same place, so that the two merge upstream.
@@ -976,9 +978,17 @@ For a map `f : C^n⟮I', N; I, M⟯` (the argument of Mathlib's instance
   only if `y ↦ ⟨f y, A y⟩` is $C^n$ into the alternating bundle of `V` and
   `Bundle.Trivial M G`. Its proof follows Tau Ceti's: near `y`, both are read
   in the trivializations at `f y` and at `y`, and the coordinate expressions
-  agree on a neighbourhood. No rank hypothesis, and any finite index type
-  `ι`; the field is any nontrivially normed field with `[CharZero 𝕜]`, which
-  Mathlib's smooth-bundle instance for alternating maps asks for.
+  agree on a neighbourhood. That they agree is
+  `ContinuousAlternatingMap.inCoordinates_pullback_trivial_of_mem`, which
+  involves no charts and so lives in `Topology/VectorBundle/Pullback.lean`,
+  beside Tau Ceti's `ContinuousLinearMap.inCoordinates_pullback_of_mem` in
+  the file of the same name. No rank hypothesis, and any finite index type
+  `ι`. The field is any nontrivially normed field: Mathlib's
+  `contMDiffAt_continuousAlternatingMap_bundle`, on which the proof rests,
+  needs no `[CharZero 𝕜]`. Only the smoothness instances of that bundle,
+  such as `ContMDiffVectorBundle.continuousAlternatingMap`, do, so a caller
+  adds `[CharZero 𝕜]` only where it needs the alternating bundle to be a
+  $C^n$ vector bundle.
 - `Symplectic/Pullback.lean`: `ContMDiffTwoForm.pullback ω f :
   ContMDiffTwoForm I' n F (f *ᵖ V)`, with value `ω (f y)` at `y`. The
   argument order is that of Tau Ceti's `ContMDiffSection.pullback ω f`
@@ -1590,7 +1600,9 @@ of *Constructions* for *First Chern number*.
 
 18. **Sections of the alternating bundle of a pull-back.**
     `Geometry/Manifold/VectorBundle/Pullback.lean`:
-    `Bundle.Pullback.contMDiff_continuousAlternatingMap_section_iff`.
+    `Bundle.Pullback.contMDiff_continuousAlternatingMap_section_iff`; and
+    `Topology/VectorBundle/Pullback.lean`:
+    `ContinuousAlternatingMap.inCoordinates_pullback_trivial_of_mem`.
     Blockers: none.
 19. **Symplectic isomorphisms, frames and forms of rank two.**
     `Symplectic/Basic.lean`: `pushforward_eq_iff`, `IsSymplecticFrameOn` with
