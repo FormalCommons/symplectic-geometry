@@ -461,33 +461,42 @@ Expected size: 400 lines.
 
 ### `Geometry/Manifold/Boundary/Collar/End.lean`
 
-In `TauCeti.SmoothCollar`, for `W` modelled on `𝓡∂ (n + 1)`, Hausdorff, and
-`c : SmoothCollar n ∞ W`. This is differential topology, with no forms:
+In `TauCeti.SmoothCollar`, for `W` modelled on `𝓡∂ (n + 1)` and
+`c : SmoothCollar n ∞ W`; Hausdorffness of `W` is assumed only for the `T2Space`
+instance and `isClosedEmbedding_inclusion`. This is differential topology, with no forms:
 
 - `WithEnd c : Type`, the manifold $W\cup_{\partial W}([0,\infty)\times\partial W)$,
-  glued from the interior of `W` (as `BoundarylessModel` of
-  `(𝓡∂ (n + 1)).interiorOpens W`) and `Ioi (-1) × ∂W`, along
-  `(s, x) ↦ c (x, -s)` on `Ioo (-1) 0 × ∂W`, with Tau Ceti's gluing
-  (`TopCat.GlueData` and `Geometry/Manifold/Gluing/GlueData.lean`, or
-  `chartedSpaceOfIsOpenEmbedding` on a carrier built by hand; the second
-  piece re-modelled by a linear equivalence
-  `ℝ × EuclideanSpace ℝ (Fin n) ≃L[ℝ] EuclideanSpace ℝ (Fin (n + 1))`,
-  `Gluing/ModelChange.lean`). Instances: `TopologicalSpace`, `T2Space`,
-  `ChartedSpace (EuclideanSpace ℝ (Fin (n + 1)))`,
+  the glued space of `c.glueData : TopCat.GlueData`, glued from the interior
+  of `W` (as `BoundarylessModel` of `(𝓡∂ (n + 1)).interiorOpens W`) and
+  `Ioi (-1) × ∂W`, along `(s, x) ↦ c (x, -s)` on `Ioo (-1) 0 × ∂W`, with
+  Tau Ceti's `Geometry/Manifold/Gluing/GlueData.lean`; the second piece is
+  re-modelled by a linear equivalence
+  `ℝ × EuclideanSpace ℝ (Fin n) ≃L[ℝ] EuclideanSpace ℝ (Fin (n + 1))`
+  through `Diffeomorph.isManifold_chartedSpaceComp`
+  (`ModelTransport/Diffeomorph.lean`). The pieces, overlaps and their atlases
+  are private. Instances: `TopologicalSpace`, `T2Space` (for `T2Space W`),
+  `ChartedSpace (EuclideanSpace ℝ (Fin (n + 1)))` (`c.chartedSpaceWithEnd`),
   `IsManifold (𝓡 (n + 1)) ∞`, with no compactness or countability
   hypothesis.
-- `WithEnd.inclusion : W → c.WithEnd`, a smooth embedding
-  (`TauCeti.SmoothEmbedding (𝓡∂ (n + 1)) (𝓡 (n + 1)) ∞`) with closed range,
-  an open embedding on the interior; smoothness at the boundary through
-  the inverse of `c` (`SmoothCollar.diffeomorphOpensRange`).
-- `WithEnd.endMap : ℝ × ∂W → c.WithEnd`, smooth, injective and a local
-  diffeomorphism on `Ioi (-1) ×ˢ univ` (values for `s ≤ -1` are junk), with
-  `endMap (s, x) = inclusion (c (x, -s))` for `s ∈ (-1, 0]`.
+- `WithEnd.inclusion : W → c.WithEnd`, with `isSmoothEmbedding_inclusion`
+  (Mathlib's `IsSmoothEmbedding (𝓡∂ (n + 1)) (𝓡 (n + 1)) ∞`) and
+  `isClosedEmbedding_inclusion`, `isOpenEmbedding_inclusion_comp_subtypeVal`
+  and `isLocalDiffeomorphAt_inclusion` on the interior; smoothness at the
+  boundary through the inverse of `c` (`SmoothCollar.diffeomorphOpensRange`).
+  `WithEnd.retraction : C(c.WithEnd, W)` is a left inverse
+  (`retraction_inclusion`, `retraction_endMap`).
+- `WithEnd.endMap : ℝ × ∂W → c.WithEnd`, with `contMDiffOn_endMap`,
+  `injOn_endMap` and `isLocalDiffeomorphOn_endMap` on `Ioi (-1) ×ˢ univ`
+  (values for `s ≤ -1` are junk), `endMap_neg_eq_inclusion`
+  (`endMap (-t, x) = inclusion (c (x, t))` for `t ∈ [0, 1)`) and
+  `endMap_zero`.
 - `WithEnd.range_inclusion_union`: `range inclusion ∪ endMap '' (Ioi 0 ×ˢ univ)`
-  is everything, the two disjoint; `WithEnd.isOpen_endMap_image`;
+  is everything, and `WithEnd.disjoint_range_inclusion_endMap_image`: the two
+  are disjoint; `WithEnd.isOpen_endMap_image`;
   `WithEnd.exists_eq_inclusion_or_endMap` for case analysis; and
-  `WithEnd.isOpenCover` (the images of the two pieces cover), the form in
-  which forms and fields are glued.
+  `WithEnd.isOpenCover` (of `![interiorPart c, endPart c]`, the images of the
+  interior of `W` and of `Ioi (-1) ×ˢ univ`), the form in which forms and
+  fields are glued.
 
 Expected size: 600 lines.
 
@@ -622,7 +631,8 @@ Expected size: 300 lines.
   `diffeomorphOpensRange`, `EuclideanHalfSpace.normalIioOpens`,
   `BoundarylessModel` with `interiorChartedSpace` and
   `interiorDiffeomorph`; gluing: `chartedSpaceOfIsOpenEmbedding`,
-  `TopCat.GlueData.IsCompatible.isManifold`,
+  `TopCat.GlueData.IsCompatible.isManifold`, `TopCat.GlueData.t2Space_iff_forall_nhds`,
+  `Diffeomorph.isManifold_chartedSpaceComp`,
   `isCompatible_transContinuousLinearEquiv_iff`.
 - Mathlib: `IsMIntegralCurveOn`, the implicit and inverse function
   theorems, `ModelWithCorners.isClosed_boundary_of_finiteDimensional`,
