@@ -736,7 +736,9 @@ it into issues; the overview fixes its folders and its dependencies.
   of all inner products on $V$, a convex open subset of the symmetric bilinear forms,
   from Tau Ceti's `TauCeti.convex_setOfPred_symm_pos`),
   `Topology/Algebra/Module/SymplecticForms.lean` (the topology on
-  `SymplecticForm V`),
+  `SymplecticForm V`), with the general file
+  `Topology/Algebra/Module/BilinearForm.lean` (a continuous bilinear form in
+  finite dimensions is recovered from its bilinear form),
   `Geometry/Symplectic/Cayley/Domain.lean` (the open set where Tau Ceti's
   Cayley path is smooth),
   `Topology/ComplexStructure/Compatible/` (`Matrix.lean`: the identification
