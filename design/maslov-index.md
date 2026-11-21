@@ -195,8 +195,9 @@ These answer the questions that `DESIGN.md` leaves to this file.
 `design/lagrangian-grassmannian.md` is not written yet. This part needs the
 following from it, under the names that design chooses; below, `ℒ ι` stands
 for its space of Lagrangian subspaces of `(StdSpace ι, stdForm ι)` with its
-topology, with a coercion to `Submodule ℝ (StdSpace ι)`. #58 asks `DESIGN.md`
-§6 to promise G3, G5 and G7–G9.
+topology, with a coercion to `Submodule ℝ (StdSpace ι)`. `DESIGN.md` §6
+promises G3, G5 and G7–G9 (path lifting, direct sums and reindexing, and the
+transverse charts and pairs).
 
 - **G1.** The horizontal and vertical Lagrangians `V₀ ι`, `V₁ ι : ℒ ι`
   ($y=0$ and $x=0$).
@@ -531,9 +532,9 @@ an element of `ℒ ι`.
   by `lagrangianCrossingForm_apply`; the extra term
   `stdForm ι (Z g w) (Z h w)` vanishes by isotropy. Neither step inverts
   `g`, so the lemma holds for every square `g`; only the corollary below
-  needs `g` invertible. The membership step needs a small helper
-  `Matrix.toEuclideanLin_mul`, which Mathlib lacks (`Matrix.mulVec_mulVec`
-  proves it). The statement is about
+  needs `g` invertible. The membership step is Mathlib's
+  `Matrix.toLpLin_mul_same` (`Matrix.toEuclideanLin` is an `abbrev` for
+  `Matrix.toLpLin 2 2`), or `simp`; no helper is added. The statement is about
   single matrices and needs no derivative: for a change of frame `t ↦ g t`
   with `HasDerivWithinAt g g' (Icc 0 1) t`, the product rule gives the
   derivative `Z' t * g t + Z t * g'` of `Z * g` within `Icc 0 1`, and this
@@ -548,7 +549,8 @@ an element of `ℒ ι`.
   symplectic and `u` with `hu : toEuclideanLin Z u ∈ V`,
   `lagrangianCrossingForm (Ψ * Z) (Ψ * Z') (V.map (toEuclideanLin Ψ)) ⟨u, _⟩ = lagrangianCrossingForm Z Z' V ⟨u, hu⟩`,
   where the membership proof is `Submodule.mem_map_of_mem hu` after rewriting
-  `toEuclideanLin (Ψ * Z) u` as `toEuclideanLin Ψ (toEuclideanLin Z u)`. The
+  `toEuclideanLin (Ψ * Z) u` as `toEuclideanLin Ψ (toEuclideanLin Z u)`,
+  again by `Matrix.toLpLin_mul_same`. The
   two domains are the same subspace (`toEuclideanLin Ψ` is injective), and
   the forms agree on it because `Ψ` preserves `stdForm ι`. The corollary
   `lagrangianCrossingForm_symplectic_mul_equivalent`,
