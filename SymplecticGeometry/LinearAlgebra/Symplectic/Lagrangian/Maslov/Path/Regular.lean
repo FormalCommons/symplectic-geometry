@@ -9,6 +9,7 @@ public import SymplecticGeometry.LinearAlgebra.Symplectic.Lagrangian.Maslov.Cros
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Lagrangian.Maslov.Path.RegularPieces
 import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition
 import TauCeti.Analysis.Matrix.ContDiff
+import TauCeti.Geometry.Manifold.Instances.Icc.CollaredSmoothTransition
 
 /-!
 # Regular representatives of paths of Lagrangian subspaces
@@ -53,8 +54,9 @@ At a junction the two frames span the same Lagrangian, so they differ by an inve
 (`LagrangianGrassmannian.exists_mul_eq_of_range_eq`), and a constant change of frame on the later
 piece makes them agree; such a change keeps the crossing forms up to isometry
 (`lagrangianCrossingForm_mul_equivalent`). Each piece is first reparametrized so that its frame is
-constant near the junctions: by `s ↦ smoothTransition (3 s - 1)`, constant near both ends, whose
-derivative is positive where it is neither `0` nor `1` (`Real.smoothTransition.deriv_pos`); and
+constant near the junctions: by Tau Ceti's `TauCeti.collaredSmoothTransition`, constant near both
+ends, whose derivative is positive where it is neither `0` nor `1`
+(`Real.smoothTransition.deriv_pos`); and
 for the rotations, whose first point is a crossing that must stay regular, by a map equal to the
 identity near `0`. The glued frame is then smooth. Making the pieces stationary near the joining
 time follows Tau Ceti's `TauCeti.SmoothIsotopy.trans`, which concatenates smooth isotopies with
@@ -133,20 +135,10 @@ private theorem IsRegularFrame.mul_const {Λ Λ' : ℒ ι} {γ : Path Λ Λ'} {V
     {Z : ℝ → Matrix (ι ⊕ ι) ι ℝ} (h : IsRegularFrame γ V Z) (g : GL ι ℝ) :
     IsRegularFrame γ V (fun s ↦ Z s * (g : Matrix ι ι ℝ)) where
   contDiff := h.contDiff.matrix_mul contDiff_const
-  range_eq t := by
-    rw [← h.range_eq t]
-    refine le_antisymm (by rw [toLpLin_mul_same]; exact LinearMap.range_comp_le_range _ _) ?_
-    conv_lhs => rw [show Z t = Z t * (g : Matrix ι ι ℝ) * ((g⁻¹ : GL ι ℝ) : Matrix ι ι ℝ) by
-      rw [Matrix.mul_assoc, ← Units.val_mul, mul_inv_cancel, Units.val_one, Matrix.mul_one]]
-    rw [toLpLin_mul_same]
-    exact LinearMap.range_comp_le_range _ _
+  range_eq t := by rw [range_toEuclideanLin_mul_of_isUnit _ g.isUnit, h.range_eq t]
   nondegenerate t ht := by
-    have hd : deriv (fun s ↦ Z s * (g : Matrix ι ι ℝ)) t = deriv Z t * (g : Matrix ι ι ℝ) := by
-      refine HasDerivAt.deriv ?_
-      have := ((h.hasDerivAt t).matrix_hasDerivWithinAt (s := univ)).matrix_mul
-        (hasDerivWithinAt_matrix_const (g : Matrix ι ι ℝ) univ (t : ℝ))
-      rw [Matrix.mul_zero, add_zero] at this
-      exact hasDerivWithinAt_matrix_univ.1 this
+    have hd : deriv (fun s ↦ Z s * (g : Matrix ι ι ℝ)) t = deriv Z t * (g : Matrix ι ι ℝ) :=
+      ((h.hasDerivAt t).matrix_mul_const _).deriv
     have hiso : (stdForm ι).IsIsotropic (LinearMap.range (toEuclideanLin (Z t))) := by
       rw [h.range_eq t]; exact (γ t).isLagrangian.isIsotropic
     have e := lagrangianCrossingForm_mul_equivalent hiso (deriv Z t) V g 0
@@ -264,65 +256,57 @@ private theorem IsRegularFrame.trans {Λ₀ Λ₁ Λ₂ : ℒ ι} {γ₁ : Path 
 
 /-! ### Flat reparametrizations -/
 
-/-- A reparametrization of `[0, 1]` that is constant near both ends: `0` up to `1 / 3` and `1`
-from `2 / 3` on. -/
-private noncomputable def flatReparam (s : ℝ) : ℝ := Real.smoothTransition (3 * s - 1)
+private theorem collaredSmoothTransition_eventuallyEq_zero :
+    collaredSmoothTransition =ᶠ[𝓝 0] fun _ ↦ 0 := by
+  filter_upwards [Iio_mem_nhds (by norm_num : (0 : ℝ) < 1 / 4)] with s hs
+  exact collaredSmoothTransition_eq_zero_of_le hs.le
 
-private theorem contDiff_flatReparam : ContDiff ℝ ∞ flatReparam :=
-  (Real.smoothTransition.contDiff (n := ⊤)).comp (by fun_prop)
+private theorem collaredSmoothTransition_eventuallyEq_one :
+    collaredSmoothTransition =ᶠ[𝓝 1] fun _ ↦ 1 := by
+  filter_upwards [Ioi_mem_nhds (by norm_num : (3 / 4 : ℝ) < 1)] with s hs
+  exact collaredSmoothTransition_eq_one_of_ge hs.le
 
-private theorem flatReparam_of_le {s : ℝ} (hs : s ≤ 1 / 3) : flatReparam s = 0 :=
-  Real.smoothTransition.zero_of_nonpos (by linarith)
-
-private theorem flatReparam_of_ge {s : ℝ} (hs : 2 / 3 ≤ s) : flatReparam s = 1 :=
-  Real.smoothTransition.one_of_one_le (by linarith)
-
-private theorem flatReparam_mem (s : ℝ) : flatReparam s ∈ I :=
-  ⟨Real.smoothTransition.nonneg _, Real.smoothTransition.le_one _⟩
-
-private theorem flatReparam_eventuallyEq_zero : flatReparam =ᶠ[𝓝 0] fun _ ↦ 0 := by
-  filter_upwards [Iio_mem_nhds (by norm_num : (0 : ℝ) < 1 / 3)] with s hs
-  exact flatReparam_of_le hs.le
-
-private theorem flatReparam_eventuallyEq_one : flatReparam =ᶠ[𝓝 1] fun _ ↦ 1 := by
-  filter_upwards [Ioi_mem_nhds (by norm_num : (2 / 3 : ℝ) < 1)] with s hs
-  exact flatReparam_of_ge hs.le
-
-/-- Where `flatReparam` is neither `0` nor `1`, its derivative is positive. -/
-private theorem deriv_flatReparam_ne_zero {s : ℝ} (h₀ : flatReparam s ≠ 0)
-    (h₁ : flatReparam s ≠ 1) : deriv flatReparam s ≠ 0 := by
-  have hs₀ : 0 < 3 * s - 1 := lt_of_not_ge fun h ↦ h₀ (Real.smoothTransition.zero_of_nonpos h)
-  have hs₁ : 3 * s - 1 < 1 := lt_of_not_ge fun h ↦ h₁ (Real.smoothTransition.one_of_one_le h)
-  have hd : HasDerivAt flatReparam (deriv Real.smoothTransition (3 * s - 1) * 3) s := by
+/-- Where `collaredSmoothTransition` is neither `0` nor `1`, its derivative is positive. -/
+private theorem deriv_collaredSmoothTransition_ne_zero {s : ℝ}
+    (h₀ : collaredSmoothTransition s ≠ 0) (h₁ : collaredSmoothTransition s ≠ 1) :
+    deriv collaredSmoothTransition s ≠ 0 := by
+  rw [collaredSmoothTransition_def] at h₀ h₁
+  have hs₀ : 0 < 2 * s - 1 / 2 :=
+    lt_of_not_ge fun h ↦ h₀ (Real.smoothTransition.zero_of_nonpos h)
+  have hs₁ : 2 * s - 1 / 2 < 1 :=
+    lt_of_not_ge fun h ↦ h₁ (Real.smoothTransition.one_of_one_le h)
+  have hd : HasDerivAt collaredSmoothTransition
+      (deriv Real.smoothTransition (2 * s - 1 / 2) * 2) s := by
     have := ((Real.smoothTransition.contDiff (n := 1)).differentiable one_ne_zero
-      (3 * s - 1)).hasDerivAt.comp s (((hasDerivAt_id' s).const_mul 3).sub_const 1)
+      (2 * s - 1 / 2)).hasDerivAt.comp s (((hasDerivAt_id' s).const_mul 2).sub_const (1 / 2))
     rw [mul_one] at this
-    exact this
+    exact this.congr_of_eventuallyEq
+      (Eventually.of_forall fun r ↦ collaredSmoothTransition_def r)
   rw [hd.deriv]
-  exact (mul_pos (Real.smoothTransition.deriv_pos hs₀ hs₁) three_pos).ne'
+  exact (mul_pos (Real.smoothTransition.deriv_pos hs₀ hs₁) two_pos).ne'
 
-/-- A reparametrization of `[0, 1]` that is the identity near `0` and `1` from `2 / 3` on. -/
-private noncomputable def startReparam (s : ℝ) : ℝ := s + (1 - s) * flatReparam s
+/-- A reparametrization of `[0, 1]` that is the identity near `0` and `1` from `3 / 4` on. -/
+private noncomputable def startReparam (s : ℝ) : ℝ := s + (1 - s) * collaredSmoothTransition s
 
 private theorem contDiff_startReparam : ContDiff ℝ ∞ startReparam :=
-  contDiff_id.add ((contDiff_const.sub contDiff_id).mul contDiff_flatReparam)
+  contDiff_id.add ((contDiff_const.sub contDiff_id).mul (contDiff_collaredSmoothTransition le_rfl))
 
 private theorem startReparam_mem {s : ℝ} (hs : s ∈ I) : startReparam s ∈ I := by
-  have := flatReparam_mem s
+  have := collaredSmoothTransition_mem s
   constructor <;> simp only [startReparam] <;> nlinarith [hs.1, hs.2, this.1, this.2]
 
 private theorem le_startReparam {s : ℝ} (hs : s ∈ I) : s ≤ startReparam s := by
-  have := flatReparam_mem s
+  have := collaredSmoothTransition_mem s
   simp only [startReparam]
   nlinarith [hs.2, this.1]
 
 private theorem startReparam_eventuallyEq_one : startReparam =ᶠ[𝓝 1] fun _ ↦ 1 := by
-  filter_upwards [flatReparam_eventuallyEq_one] with s hs
+  filter_upwards [collaredSmoothTransition_eventuallyEq_one] with s hs
   simp [startReparam, hs]
 
 private theorem deriv_startReparam_zero : deriv startReparam 0 = 1 := by
   have h : startReparam =ᶠ[𝓝 0] id := by
-    filter_upwards [flatReparam_eventuallyEq_zero] with s hs
+    filter_upwards [collaredSmoothTransition_eventuallyEq_zero] with s hs
     simp [startReparam, hs]
   rw [h.deriv_eq, deriv_id]
 
@@ -333,16 +317,17 @@ private theorem IsRegularFrame.exists_flat {Λ Λ' : ℒ ι} {γ : Path Λ Λ'} 
     (hΛ : (Λ : Submodule ℝ (StdSpace ι)) ⊓ V = ⊥) (hΛ' : (Λ' : Submodule ℝ (StdSpace ι)) ⊓ V = ⊥) :
     ∃ (γ' : Path Λ Λ') (Z' : ℝ → Matrix (ι ⊕ ι) ι ℝ), γ.Homotopic γ' ∧ IsRegularFrame γ' V Z' ∧
       (Z' =ᶠ[𝓝 0] fun _ ↦ Z' 0) ∧ (Z' =ᶠ[𝓝 1] fun _ ↦ Z' 1) := by
-  have hφ0 : flatReparam 0 = 0 := flatReparam_of_le (by norm_num)
-  have hφ1 : flatReparam 1 = 1 := flatReparam_of_ge (by norm_num)
+  have hφ0 : collaredSmoothTransition 0 = 0 := collaredSmoothTransition_eq_zero_of_le (by norm_num)
+  have hφ1 : collaredSmoothTransition 1 = 1 := collaredSmoothTransition_eq_one_of_ge (by norm_num)
   refine ⟨_, _, ⟨Path.Homotopy.reparam γ _ _ (Subtype.ext hφ0) (Subtype.ext hφ1)⟩,
-    h.reparam contDiff_flatReparam (fun t ↦ flatReparam_mem t) hφ0 hφ1 fun t ht ↦ ?_, ?_, ?_⟩
-  · refine deriv_flatReparam_ne_zero (fun h0 ↦ ht ?_) (fun h1 ↦ ht ?_)
-    · rw [show (⟨flatReparam t, _⟩ : I) = 0 from Subtype.ext h0, γ.source]; exact hΛ
-    · rw [show (⟨flatReparam t, _⟩ : I) = 1 from Subtype.ext h1, γ.target]; exact hΛ'
-  · filter_upwards [flatReparam_eventuallyEq_zero] with s hs
+    h.reparam (contDiff_collaredSmoothTransition le_rfl) (fun t ↦ collaredSmoothTransition_mem t)
+      hφ0 hφ1 fun t ht ↦ ?_, ?_, ?_⟩
+  · refine deriv_collaredSmoothTransition_ne_zero (fun h0 ↦ ht ?_) (fun h1 ↦ ht ?_)
+    · rw [show (⟨collaredSmoothTransition t, _⟩ : I) = 0 from Subtype.ext h0, γ.source]; exact hΛ
+    · rw [show (⟨collaredSmoothTransition t, _⟩ : I) = 1 from Subtype.ext h1, γ.target]; exact hΛ'
+  · filter_upwards [collaredSmoothTransition_eventuallyEq_zero] with s hs
     simp [hs, hφ0]
-  · filter_upwards [flatReparam_eventuallyEq_one] with s hs
+  · filter_upwards [collaredSmoothTransition_eventuallyEq_one] with s hs
     simp [hs, hφ1]
 
 /-- **Flattening the last end.** A path with a regular frame whose only crossing is at `0` is
@@ -352,7 +337,7 @@ private theorem IsRegularFrame.exists_flat_one {Λ Λ' : ℒ ι} {γ : Path Λ �
     (hγ : ∀ t : I, t ≠ 0 → (γ t : Submodule ℝ (StdSpace ι)) ⊓ V = ⊥) :
     ∃ (γ' : Path Λ Λ') (Z' : ℝ → Matrix (ι ⊕ ι) ι ℝ), γ.Homotopic γ' ∧ IsRegularFrame γ' V Z' ∧
       (Z' =ᶠ[𝓝 1] fun _ ↦ Z' 1) := by
-  have hφ0 : startReparam 0 = 0 := by simp [startReparam, flatReparam_of_le]
+  have hφ0 : startReparam 0 = 0 := by simp [startReparam, collaredSmoothTransition_eq_zero_of_le]
   have hφ1 : startReparam 1 = 1 := by simp [startReparam]
   refine ⟨_, _, ⟨Path.Homotopy.reparam γ _ _ (Subtype.ext hφ0) (Subtype.ext hφ1)⟩,
     h.reparam contDiff_startReparam (fun t ↦ startReparam_mem t.property) hφ0 hφ1
@@ -546,12 +531,8 @@ private theorem IsRegularFrame.smul {Λ Λ' : ℒ ι} {γ : Path Λ Λ'} {V : �
     have hcross : (γ t : Submodule ℝ (StdSpace ι)) ⊓ V ≠ ⊥ := by
       rwa [Path.map_coe, Function.comp_apply, Ne, ← Submodule.finrank_eq_zero,
         finrank_smul_inf_smul, Submodule.finrank_eq_zero] at ht
-    have hd : deriv (fun s ↦ M * Z s) t = M * deriv Z t := by
-      refine HasDerivAt.deriv ?_
-      have := (hasDerivWithinAt_matrix_const M univ (t : ℝ)).matrix_mul
-        ((h.hasDerivAt t).matrix_hasDerivWithinAt (s := univ))
-      rw [Matrix.zero_mul, zero_add] at this
-      exact hasDerivWithinAt_matrix_univ.1 this
+    have hd : deriv (fun s ↦ M * Z s) t = M * deriv Z t :=
+      ((h.hasDerivAt t).matrix_const_mul M).deriv
     have e := lagrangianCrossingForm_symplectic_mul_equivalent hM (Z t) (deriv Z t) V
     rw [← coe_smul] at e
     rw [hd]

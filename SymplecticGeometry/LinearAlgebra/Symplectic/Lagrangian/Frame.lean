@@ -358,6 +358,18 @@ theorem LagrangianGrassmannian.exists_mul_eq_of_range_eq
     simpa using injective_toEuclideanLin_of_range_eq h₁ h
   exact ⟨(mulVec_injective_iff_isUnit.1 hinj).unit, hg⟩
 
+/-- An invertible change of frame keeps the span of the columns: if `g` is invertible, then
+`Z * g` and `Z` have the same range. This is the converse of
+`LagrangianGrassmannian.exists_mul_eq_of_range_eq`. -/
+theorem _root_.Matrix.range_toEuclideanLin_mul_of_isUnit {m : Type*}
+    (Z : Matrix m ι ℝ) {g : Matrix ι ι ℝ} (hg : IsUnit g) :
+    LinearMap.range (toEuclideanLin (Z * g)) = LinearMap.range (toEuclideanLin Z) := by
+  rw [toLpLin_mul_same]
+  refine LinearMap.range_comp_of_range_eq_top _ (LinearMap.range_eq_top.2 fun v ↦ ?_)
+  obtain ⟨u, rfl⟩ := hg
+  refine ⟨toEuclideanLin (u⁻¹ : (Matrix ι ι ℝ)ˣ).val v, ?_⟩
+  rw [← LinearMap.comp_apply, ← toLpLin_mul_same, Units.mul_inv, toLpLin_one, LinearMap.id_apply]
+
 /-- The `x`-coordinates of `fromRows X Y` applied to `u` are `X u`. -/
 @[simp]
 theorem StdSpace.x_toEuclideanLin_fromRows (X Y : Matrix ι ι ℝ) (u : EuclideanSpace ℝ ι) :
