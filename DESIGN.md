@@ -609,8 +609,9 @@ it into issues; the overview fixes its folders and its dependencies.
   a negated two-form, in Tau Ceti's namespace; the file has the name of the
   Tau Ceti file that defines `volumeOrientation`),
   `Analysis/CStarAlgebra/Unitary/ContinuousLinearMap.lean` (for `RCLike 𝕜`,
-  `𝕜 →L[𝕜] 𝕜` as a star algebra isomorphic to `𝕜`, and the isomorphism of
-  topological groups of their unitaries; see *Constructions*),
+  `Unitary.continuousLinearMapSelfEquiv`, the isomorphism of topological
+  groups from the unitaries of `𝕜 →L[𝕜] 𝕜` to those of `𝕜`, in Mathlib's
+  namespace `Unitary`; see *Constructions*),
   `Geometry/Manifold/VectorBundle/ComplexStructure.lean` (the one model of
   $C^n$ complex structures on a bundle, `SymplecticGeometry.Bundle.ContMDiffComplexStructure`,
   generalizing from $TM$ to any bundle Tau Ceti's
@@ -819,8 +820,10 @@ it into issues; the overview fixes its folders and its dependencies.
     section is smooth by Tau Ceti's `TauCeti.contMDiff_smulIEquiv_bundle`
     and whose map to `TauCeti.Bundle.ContinuousComplexStructure` gives back
     the complex structure of `V`. The form
-    `Bundle.ContMDiffRiemannianMetric.hermitianTwoForm g hI` has at `x` the
-    value `(AlmostComplexStructure.ofComplexModule (V x)).symplecticForm _`,
+    `Bundle.ContMDiffRiemannianMetric.hermitianTwoForm g hI` (in the root
+    namespace `Bundle.ContMDiffRiemannianMetric`, outside
+    `SymplecticGeometry`, so that `g.hermitianTwoForm hI` resolves) has at
+    `x` the value `(AlmostComplexStructure.ofComplexModule (V x)).symplecticForm _`,
     Tau Ceti's form $g_x(J\cdot,\cdot)$ of an orthogonal complex structure
     (`Geometry/Symplectic/CompatibleMetric.lean`), with the orthogonality
     from `hI` as in Tau Ceti's `complexInnerProductSpace`
@@ -861,14 +864,29 @@ it into issues; the overview fixes its folders and its dependencies.
     are those of `instPrincipalBundleFiber` followed by that isomorphism.
     The isomorphism of `unitary (𝕜 →L[𝕜] 𝕜)` with `unitary 𝕜` involves no
     bundle and holds for every `RCLike 𝕜`, so it has a file of its own,
-    `Analysis/CStarAlgebra/Unitary/ContinuousLinearMap.lean`, in Mathlib's
-    namespaces: a star algebra isomorphism
-    `(𝕜 →L[𝕜] 𝕜) ≃⋆ₐ[𝕜] 𝕜`, `f ↦ f 1`, whose linear isometric part is the
-    inverse of Mathlib's `ContinuousLinearMap.toSpanSingletonLIE 𝕜 𝕜` (the
-    star on the left being the adjoint, so that `star f` sends `1` to the
-    conjugate of `f 1`), and its image under Mathlib's `Unitary.mapEquiv`,
-    which is an isomorphism of topological groups since both directions are
-    isometries.
+    `Analysis/CStarAlgebra/Unitary/ContinuousLinearMap.lean`. As a group
+    isomorphism it is already in Tau Ceti
+    (`Analysis/InnerProductSpace/StrongUnitary/Basic.lean`): the inverse of
+    `TauCeti.StrongUnitary.unitaryEquivStrongUnitary 𝕜`
+    (`unitary 𝕜 ≃ₜ* StrongUnitary 𝕜 𝕜`, `α ↦ α • 1`, inverse `u ↦ u 1`)
+    followed by `TauCeti.StrongUnitary.mulEquivUnitary`
+    (`StrongUnitary 𝕜 H ≃* unitary (H →L[𝕜] H)`, the identity on the
+    underlying maps). Tau Ceti's topology there is the strong operator
+    topology, whereas `OrthonormalFrameBundle` gives `unitary (𝕜 →L[𝕜] 𝕜)`
+    the norm topology, so the only new content is continuity for the norm.
+    The file defines, in Mathlib's root namespace `Unitary` (it is about
+    Mathlib's `unitary`), the `ContinuousMulEquiv`
+    `Unitary.continuousLinearMapSelfEquiv 𝕜 : unitary (𝕜 →L[𝕜] 𝕜) ≃ₜ* unitary 𝕜`,
+    whose `MulEquiv` is by definition
+    `((unitaryEquivStrongUnitary 𝕜).toMulEquiv.trans
+    StrongUnitary.mulEquivUnitary).symm`
+    (`Unitary.toMulEquiv_continuousLinearMapSelfEquiv`, by `rfl`), so that
+    the library has one identification of this group and not two. Both
+    directions are continuous by the arguments of Tau Ceti's proof,
+    `continuous_eval_const 1` and `continuous_id.smul continuous_const`.
+    Its API: `Unitary.coe_continuousLinearMapSelfEquiv_apply` (the value is
+    `(u : 𝕜 →L[𝕜] 𝕜) 1`) and `Unitary.continuousLinearMapSelfEquiv_symm_apply`
+    (`α` acts by `x ↦ α * x`), both `@[simp]`.
     The connection forms on the circle bundle and their curvature are
     prerequisites of *First Chern number*, which its design lists.
 - **The design file decides:** the details of
