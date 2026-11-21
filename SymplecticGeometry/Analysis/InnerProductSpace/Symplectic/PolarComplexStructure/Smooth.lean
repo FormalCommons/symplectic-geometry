@@ -34,16 +34,19 @@ products and symplectic forms the formula is `J_{g,ω}`, which does not depend o
 ## Main results
 
 * `TauCeti.isOpen_polarDomain`: the domain is open.
+* `InnerProductSpace.isStrictlyPositive_continuousLinearMapOfBilin_symmetrizeBilinear`: the
+  Riesz map of the symmetric part of a form that is positive on nonzero vectors is strictly
+  positive.
 * `TauCeti.contDiffOn_metricPolarFormula`: the formula is smooth on the domain, of every order.
 * `TauCeti.metricPolarFormula_symmetrizeBilinear_skewPart`: the formula only depends on the
   symmetric part of `g` and the skew part of `s`.
-* `TauCeti.metricPolarFormula_eq_of_mem`: on the domain, the formula is `J_{g',ω'}` for the
-  symmetric part `g'` of `g` and the skew part `ω'` of `s`.
 * `TauCeti.metricPolarFormula_conj`: naturality of the formula on the domain under linear
   isomorphisms.
 * `SymplecticGeometry.mem_polarDomain`: every inner product and symplectic form lie in the
   domain.
 * `SymplecticGeometry.metricPolarFormula_eq`: on them, the formula is `J_{g,ω}`.
+* `SymplecticGeometry.metricPolarFormula_eq_of_mem`: on the domain, the formula is `J_{g',ω'}`
+  for the symmetric part `g'` of `g` and the skew part `ω'` of `s`.
 * `SymplecticGeometry.continuous_metricPolarComplexStructure`: `J_{g,ω}` depends continuously
   on `(g, ω)`.
 
@@ -59,7 +62,7 @@ lemma `contMDiffAt_metricChangeTransport_mul_mul_sqrt`
 (`TauCeti/Geometry/Symplectic/Manifold/AlmostComplex/Polar.lean`) from smoothness at a point of a
 manifold to smoothness on an open set of pairs of forms: the same factors `R` and `A`, the same
 use of `CFC.isUnit_sqrt_iff` and `contDiffAt_ringInverse` for the inverse, and the same final
-product.
+product. Its proof uses no declaration of the namespace `SymplecticGeometry`.
 -/
 
 public section
@@ -123,6 +126,15 @@ theorem metricPolarFormula_def (g s : W →L[ℝ] W →L[ℝ] ℝ) :
       g'.metricChangeTransport * (A * Ring.inverse (CFC.sqrt (-(A * A)))) * CFC.sqrt g'♯ :=
   (rfl)
 
+/-- The Riesz map of the symmetric part of a continuous bilinear form that is positive on nonzero
+vectors is strictly positive. -/
+theorem _root_.InnerProductSpace.isStrictlyPositive_continuousLinearMapOfBilin_symmetrizeBilinear
+    {g : W →L[ℝ] W →L[ℝ] ℝ} (hg : ∀ v, v ≠ 0 → 0 < g v v) :
+    IsStrictlyPositive (symmetrizeBilinear g).val♯ :=
+  isStrictlyPositive_continuousLinearMapOfBilin_iff.2
+    ⟨(mem_symmetricBilinearMaps ℝ W ℝ _).1 (symmetrizeBilinear g).property,
+      fun v hv ↦ by simpa using hg v hv⟩
+
 /-- The formula is smooth, of every order including analyticity, on the domain
 `TauCeti.polarDomain W`. -/
 theorem contDiffOn_metricPolarFormula {n : WithTop ℕ∞} :
@@ -137,9 +149,7 @@ theorem contDiffOn_metricPolarFormula {n : WithTop ℕ∞} :
       (E := W →L[ℝ] W →L[ℝ] ℝ) (F := W →L[ℝ] W →L[ℝ] ℝ)
   -- On the domain, `g'♯` and `-A²` are strictly positive.
   have hgpos : ∀ p ∈ polarDomain W, IsStrictlyPositive (g' p)♯ := fun p hp ↦
-    isStrictlyPositive_continuousLinearMapOfBilin_iff.2
-      (SymplecticGeometry.mem_innerProducts.1
-        (SymplecticGeometry.symmetrizeBilinear_mem_innerProducts hp.1))
+    isStrictlyPositive_continuousLinearMapOfBilin_symmetrizeBilinear hp.1
   have hApos : ∀ p ∈ polarDomain W, IsStrictlyPositive (-(A p * A p)) := fun p hp ↦ by
     let ω := SymplecticForm.ofContinuousBilinearMap (s' p) (fun v ↦ by simp [s'])
       (nondegenerate_toBilinForm_of_mem_polarDomain hp)
@@ -166,6 +176,18 @@ theorem contDiffOn_metricPolarFormula {n : WithTop ℕ∞} :
     rw [hu] at h
     exact h.comp_contDiffWithinAt p (hsqrt p hp)
   exact (hR.mul (hA.mul hinv)).mul hQ
+
+/-- The formula only sees the symmetric part of its first argument and the skew part of its
+second. -/
+theorem metricPolarFormula_symmetrizeBilinear_skewPart (g s : W →L[ℝ] W →L[ℝ] ℝ) :
+    metricPolarFormula (symmetrizeBilinear g).val ((2 : ℝ)⁻¹ • (s - s.flip)) =
+      metricPolarFormula g s := by
+  have h₂ : (2 : ℝ)⁻¹ • ((2 : ℝ)⁻¹ • (s - s.flip) - ((2 : ℝ)⁻¹ • (s - s.flip)).flip) =
+      (2 : ℝ)⁻¹ • (s - s.flip) := by
+    ext u v
+    simp only [smul_apply, sub_apply, ContinuousLinearMap.flip_apply, smul_eq_mul]
+    ring
+  simp only [metricPolarFormula_def, symmetrizeBilinear_coe, h₂]
 
 end TauCeti
 
@@ -223,27 +245,6 @@ theorem metricPolarFormula_eq (g : innerProducts W) (ω : SymplecticForm W) :
   ext v
   simp
 
-end SymplecticGeometry
-
-namespace TauCeti
-
-open SymplecticGeometry
-
-variable {W W' : Type*} [NormedAddCommGroup W] [InnerProductSpace ℝ W] [FiniteDimensional ℝ W]
-  [NormedAddCommGroup W'] [InnerProductSpace ℝ W'] [FiniteDimensional ℝ W']
-
-/-- The formula only sees the symmetric part of its first argument and the skew part of its
-second. -/
-theorem metricPolarFormula_symmetrizeBilinear_skewPart (g s : W →L[ℝ] W →L[ℝ] ℝ) :
-    metricPolarFormula (symmetrizeBilinear g).val ((2 : ℝ)⁻¹ • (s - s.flip)) =
-      metricPolarFormula g s := by
-  have h₂ : (2 : ℝ)⁻¹ • ((2 : ℝ)⁻¹ • (s - s.flip) - ((2 : ℝ)⁻¹ • (s - s.flip)).flip) =
-      (2 : ℝ)⁻¹ • (s - s.flip) := by
-    ext u v
-    simp only [smul_apply, sub_apply, ContinuousLinearMap.flip_apply, smul_eq_mul]
-    ring
-  simp only [metricPolarFormula_def, symmetrizeBilinear_coe, h₂]
-
 /-- If `g` is positive on nonzero vectors and `ω` is a symplectic form whose bilinear form is the
 skew part of `s`, then the formula at `(g, s)` is `J_{g',ω}` for the symmetric part `g'` of `g`.
 On the domain, such an `ω` always exists. -/
@@ -263,6 +264,15 @@ theorem metricPolarFormula_eq_of_mem {g s : W →L[ℝ] W →L[ℝ] ℝ} (h : (g
         (nondegenerate_toBilinForm_of_mem_polarDomain h))).toLinearMap :=
   metricPolarFormula_eq_of_toContinuousBilinearMap_eq (mem_polarDomain_iff.1 h).1
     (SymplecticForm.toBilinForm_toContinuousBilinearMap_ofContinuousBilinearMap _ _ _)
+
+end SymplecticGeometry
+
+namespace TauCeti
+
+open SymplecticGeometry
+
+variable {W W' : Type*} [NormedAddCommGroup W] [InnerProductSpace ℝ W] [FiniteDimensional ℝ W]
+  [NormedAddCommGroup W'] [InnerProductSpace ℝ W'] [FiniteDimensional ℝ W']
 
 /-- **Naturality of the formula.** On the domain, pushing both forms forward along a linear
 isomorphism `e` conjugates the formula by `e`. -/

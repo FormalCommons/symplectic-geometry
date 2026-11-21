@@ -623,8 +623,9 @@ The domain, the formula and their smoothness and naturality mention only
 continuous bilinear forms and Tau Ceti's operations on them
 (`metricChangeTransport`, `continuousLinearMapOfBilin`, `CFC.sqrt`,
 `Ring.inverse`), so by the namespace rule above they go in `TauCeti`, next
-to `cayleyPathFormula`. Only `mem_polarDomain`, `metricPolarFormula_eq` and
-`continuous_metricPolarComplexStructure`, which involve `innerProducts` and
+to `cayleyPathFormula`. Only `mem_polarDomain`, `metricPolarFormula_eq`,
+`metricPolarFormula_eq_of_toContinuousBilinearMap_eq`, `metricPolarFormula_eq_of_mem`
+and `continuous_metricPolarComplexStructure`, which involve `innerProducts` or
 `metricPolarComplexStructure`, are in `SymplecticGeometry`.
 
 - `TauCeti.polarDomain (W) : Set ((W →L[ℝ] W →L[ℝ] ℝ) ×
@@ -665,12 +666,28 @@ to `cayleyPathFormula`. Only `mem_polarDomain`, `metricPolarFormula_eq` and
   `metricPolarComplexStructure_transport` along `K`, which carries the ambient
   inner product to `g`, this is $J_{g,\omega}$. The formula is not derived a
   second time.
+- `SymplecticGeometry.metricPolarFormula_eq_of_toContinuousBilinearMap_eq
+  {g s : W →L[ℝ] W →L[ℝ] ℝ} (hg : ∀ v, v ≠ 0 → 0 < g v v)
+  {ω : SymplecticForm W}
+  (hω : ω.toBilinForm.toContinuousBilinearMap = (2 : ℝ)⁻¹ • (s - s.flip))`:
+  `metricPolarFormula g s` is the endomorphism of
+  `metricPolarComplexStructure ⟨_, symmetrizeBilinear_mem_innerProducts hg⟩ ω`,
+  and `SymplecticGeometry.metricPolarFormula_eq_of_mem
+  (h : (g, s) ∈ polarDomain W)`, the same with `ω` the skew part of `s` as
+  a symplectic form (`ofContinuousBilinearMap`). They follow from
+  `metricPolarFormula_eq` and `metricPolarFormula_symmetrizeBilinear_skewPart`.
 - `TauCeti.contDiffOn_metricPolarFormula {n : WithTop ℕ∞} :
   ContDiffOn ℝ n (fun p ↦ metricPolarFormula p.1 p.2) (polarDomain W)`. The
   proof composes the symmetrization (a continuous linear map),
   `contDiffOn_metricChangeTransport`, `contDiffOn_sqrt_continuousLinearMapOfBilin`,
   `ContinuousLinearMap.contDiffOn_sqrt` and the smoothness of `Ring.inverse`
-  at units. It is the `ContDiffOn` form of the argument of Tau Ceti's private
+  at units. On the domain, `g'♯` is strictly positive by
+  `InnerProductSpace.isStrictlyPositive_continuousLinearMapOfBilin_symmetrizeBilinear
+  {g : W →L[ℝ] W →L[ℝ] ℝ} (hg : ∀ v, v ≠ 0 → 0 < g v v) :
+  IsStrictlyPositive (symmetrizeBilinear g).val♯`, stated in this file in Tau
+  Ceti's terms, so the proof uses no declaration of the namespace
+  `SymplecticGeometry`. It is the
+  `ContDiffOn` form of the argument of Tau Ceti's private
   `contMDiffAt_metricChangeTransport_mul_mul_sqrt`
   (`Geometry/Symplectic/Manifold/AlmostComplex/Polar.lean`). That lemma is
   private and stated for families on a manifold, so it cannot be used here.
