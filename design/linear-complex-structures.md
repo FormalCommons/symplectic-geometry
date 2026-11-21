@@ -407,12 +407,21 @@ Declarations about Tau Ceti's type go in its namespace
 - `orthogonalComplexStructuresHomotopyEquiv ι :
   orthogonalComplexStructures ι ≃ₕ AlmostComplexStructure (StdSpace ι)`, from
   `ofDeformationRetraction`.
+- `TauCeti.AlmostComplexStructure.exists_linearIsometryEquiv_transport_eq`: two
+  norm-preserving complex structures on finite-dimensional real inner product
+  spaces of equal dimension are conjugate by a linear isometry (it matches
+  adapted orthonormal bases from `exists_adapted_orthonormalBasis`); the
+  transitivity of `SO(2n)` below uses it.
 
 ### `Topology/ComplexStructure/Oriented.lean`
 
 - The action of `specialOrthogonalGroup (ι ⊕ ι) ℝ` from `Action.lean` (with
   `n = ι ⊕ ι`) preserves the orthogonal and the positively oriented
-  structures.
+  structures. So it acts on the subtype
+  `{J // J ∈ orthogonalComplexStructures ι ∧ IsPositivelyOriented J}`
+  (`instMulActionSpecialOrthogonalGroupOrthogonal`, with `@[simp]`
+  `coe_specialOrthogonalGroup_smul`), the action that
+  `quotientUnitaryHomeomorph` is built on.
 - `map_stabilizer_specialOrthogonalGroup_stdComplexStructure`, an equality of
   submonoids of `Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ`:
   ```lean
@@ -432,7 +441,8 @@ Declarations about Tau Ceti's type go in its namespace
   Ceti's `quotientStabilizerHomeomorph` for the action of
   `specialOrthogonalGroup` on that subtype (transitive by the previous
   lemma; the quotient of a compact group is compact, the subtype is
-  Hausdorff); `@[simp] quotientUnitaryHomeomorph_mk`.
+  Hausdorff); `@[simp] coe_quotientUnitaryHomeomorph_mk` (the image of the coset
+  of `g`, as a structure, is `g • J₀`).
 - `isPathConnected_setOf_isPositivelyOriented` (each structure is joined by
   the polar homotopy, inside the clopen set, to an orthogonal positively
   oriented one, and these form the image of the path-connected group
