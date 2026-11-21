@@ -288,12 +288,17 @@ goes in `SymplecticGeometry`: in particular the families `IsMaslovIndex` and
 `IsLagrangianMaslovIndex`, the loop `symplecticRotationLoop`, and the
 statements about them, which dot notation on a `GLSymplectic` or on an `ℒ ι` would not find.
 
-Two files lie outside the folders that `DESIGN.md` §5 lists:
-`LinearAlgebra/Matrix/GeneralLinearGroup/Symplectic/Reindex.lean` and
-`Topology/Algebra/SymplecticGroup.lean`. Reindexing a symplectic group is
+Three files lie outside the folders that `DESIGN.md` §5 lists:
+`LinearAlgebra/Matrix/GeneralLinearGroup/Symplectic/Reindex.lean`,
+`Topology/Algebra/SymplecticGroup.lean` and
+`Analysis/Calculus/Deriv/Matrix.lean`. Reindexing a symplectic group is
 algebra about Tau Ceti's `GLSymplectic`, not about the Maslov index, and its
 continuity is topology of that group. They go where Tau Ceti keeps the algebra
 and the topology of `GLSymplectic`, so that they can move there unchanged.
+The third file holds derivatives of matrix-valued functions (entrywise
+derivatives, transpose, product rule), which `Crossing/Form.lean` uses and
+which changes of frame `Z * g` need later; it sits beside Tau Ceti's file of
+the same name, so that the two merge upstream.
 #58 brings `DESIGN.md` §5 in line.
 
 ### `LinearAlgebra/Matrix/GeneralLinearGroup/Symplectic/Reindex.lean`
@@ -426,13 +431,14 @@ The Maslov phase on $\mathcal{L}(n)$ and the index of Lagrangian loops.
 ### `LinearAlgebra/Symplectic/Lagrangian/Maslov/Product.lean`
 
 - `ℒ.maslovIndex_smul {A Λ} (Ψ : Path A A) (γ : Path Λ Λ) :
-  maslovIndex ((Ψ.prod γ).map continuous_smul) = maslovIndex γ + 2 * GLSymplectic.maslovIndex Ψ`.
+  maslovIndex ((Ψ.prod γ).map continuous_smul) = maslovIndex γ + 2 * GLSymplectic.maslovIndex Ψ`
+  (`@[simp]`).
   For a loop of `ofUnitary` matrices this is `maslovPhase_ofUnitary_smul` with
   `Circle.degree_mul`. In general, Tau Ceti's `polarHomotopy` deforms `Ψ`
   through loops of symplectic matrices to its loop of unitary polar factors;
   acting on `γ` it gives a free homotopy of Lagrangian loops (G4), and
   `maslovIndex_map_polarUnitary` keeps the symplectic index.
-- `ℒ.maslovIndex_smul_const`: the case of a constant `γ`, which gives
+- `ℒ.maslovIndex_smul_const` (`@[simp]`): the case of a constant `γ`, which gives
   $\mu(\Psi V)=2\mu(\Psi)$ for the loops $t\mapsto\Psi(t)V$ that the
   symplectic crossing formula uses.
 
@@ -784,7 +790,8 @@ the interface items named.
    `(ofUnitary U)⁻¹`).
 7. **Paths: naturality, values, homotopy, dependence on `V`.**
    `Maslov/Path/Naturality.lean`. Blocked by 5 and 6.
-8. **Crossing forms.** `Maslov/Crossing/Form.lean`. Blocked by G1, G4 and G6–G9;
+8. **Crossing forms.** `Maslov/Crossing/Form.lean`, with
+   `Analysis/Calculus/Deriv/Matrix.lean`. Blocked by G1, G4 and G6–G9;
    can go in parallel with 3–7.
 9. **Crossing-form formula for paths.** `Maslov/Crossing/Path.lean`. Blocked
    by 7 and 8.

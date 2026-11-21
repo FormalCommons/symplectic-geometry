@@ -77,12 +77,12 @@ theorem toContinuousBilinearMap_sub_flip (ω : SymplecticForm V) :
     smul_apply, LinearMap.toContinuousBilinearMap_apply, smul_eq_mul]
   linarith [ω.isAlt.neg_eq u v]
 
-/-- The skew part `½(B - Bᵀ)` of the continuous bilinear form `B` of a symplectic form is `B`. -/
-theorem inv_two_smul_toContinuousBilinearMap_sub_flip (ω : SymplecticForm V) :
-    (2 : ℝ)⁻¹ • (ω.toBilinForm.toContinuousBilinearMap -
-      ω.toBilinForm.toContinuousBilinearMap.flip) = ω.toBilinForm.toContinuousBilinearMap := by
-  rw [toContinuousBilinearMap_sub_flip, smul_smul]
-  norm_num
+/-- The skew part of the continuous bilinear form of a symplectic form is that form itself. -/
+@[simp]
+theorem skewSymmetrizeBilinear_toContinuousBilinearMap (ω : SymplecticForm V) :
+    ω.toBilinForm.toContinuousBilinearMap.skewSymmetrizeBilinear =
+      ω.toBilinForm.toContinuousBilinearMap :=
+  ContinuousLinearMap.skewSymmetrizeBilinear_of_isAlt ω.isAlt
 
 /-- The topology on the symplectic forms of a finite-dimensional real normed space induced by the
 operator norm of their continuous bilinear forms. As all norms on a finite-dimensional space are
