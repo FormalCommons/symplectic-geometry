@@ -39,7 +39,7 @@ converses.
 * `TauCeti.SymplecticForm.compatible_iff_exists_innerProductCore`: `J` is compatible with `ω`
   exactly when `H` is a Hermitian inner product on the complex vector space `(V, J)`.
 * `TauCeti.SymplecticForm.compatible_iff_tames_and_isLagrangian_map`: `J` is compatible with
-  `ω` exactly when `ω` tames `J` and `J` maps Lagrangian subspaces to Lagrangian subspaces. The
+  `ω` exactly when `ω` tames `J` and the image under `J` of each Lagrangian is Lagrangian. The
   converse rests on `TauCeti.SymplecticForm.Tames.invariant_of_forall_isLagrangian_map`.
 * `SymplecticGeometry.compatible_iff_exists_isSymplectomorphism_stdForm`: in dimension `2 n`,
   `J` is compatible with `ω` exactly when some linear isomorphism `Ψ : ℝ²ⁿ ≃ V` has
@@ -227,8 +227,8 @@ theorem Tames.invariant_of_forall_isLagrangian_map (hJ : ω.Tames J)
     exact mul_right_cancel₀ (hJ v hv).ne' (h₁.trans (one_mul _).symm)
   rw [← hc' w, hc1, one_mul]
 
-/-- `J` is compatible with `ω` exactly when `ω` tames `J` and `J` maps Lagrangian subspaces to
-Lagrangian subspaces. -/
+/-- `J` is compatible with `ω` exactly when `ω` tames `J` and the image under `J` of each
+Lagrangian subspace is Lagrangian. -/
 theorem compatible_iff_tames_and_isLagrangian_map :
     ω.Compatible J ↔ ω.Tames J ∧
       ∀ L : Submodule ℝ V, ω.IsLagrangian L → ω.IsLagrangian (L.map J.toLinearMap) :=
@@ -362,9 +362,10 @@ a complex structure on a real vector space `V` of dimension `2 n`, with `n` the 
 1. `J` is compatible with `ω`;
 2. `ω` has a Darboux basis `(v₁, J v₁, …, vₙ, J vₙ)`;
 3. some linear isomorphism `Ψ : ℝ²ⁿ ≃ V` has `Ψ^* ω = ω₀` and `Ψ^* J = J₀`;
-4. `ω(v, J v) > 0` for `v ≠ 0`, and `J` maps Lagrangian subspaces to Lagrangian subspaces;
-5. `g_J(v, w) = ω(v, J w)` is a `J`-invariant inner product;
-6. `H(v, w) = ω(v, J w) + i ω(v, w)` is a Hermitian inner product on `(V, J)`.
+4. `ω` tames `J` (`ω(v, J v) > 0` when `v ≠ 0`), and `J` sends each Lagrangian to a Lagrangian;
+5. the bilinear form `g_J(v, w) = ω(v, J w)` is symmetric, positive definite and `J`-invariant;
+6. `H(v, w) = ω(v, J w) + i ω(v, w)` is the inner product of an `InnerProductSpace.Core ℂ V`
+   for the complex structure `J`.
 
 Milestone: *Characterizations of compatible complex structures*. -/
 theorem compatible_tfae [FiniteDimensional ℝ V] (hι : finrank ℝ V = 2 * Fintype.card ι) :
