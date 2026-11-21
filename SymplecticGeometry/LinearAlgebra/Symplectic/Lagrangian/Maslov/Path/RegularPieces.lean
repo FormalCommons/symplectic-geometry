@@ -48,9 +48,9 @@ paths are built.
 ## Implementation notes
 
 The isolation of the crossing of a rotation is
-`SymplecticGeometry.LagrangianGrassmannian.eventually_not_crossing_of_regular`, applied to the
-rotation through the angle `2 (t - 1 / 2)` at its interior crossing `t = 1 / 2`, so that one
-application covers both signs of the angle. The index of the coordinate half-turn comes from the
+`SymplecticGeometry.LagrangianGrassmannian.eventually_nhdsNE_not_crossing_of_regular`, applied to
+the family of rotations `θ ↦ e^{θ J₀} Λ` on `ℝ` at `θ = 0`, which covers both signs of the
+angle at once. The index of the coordinate half-turn comes from the
 loop formula `pathMaslovIndex_eq_sub_div_pi`, with the unitary frames
 `diag(1, …, e^{iπs}, …, 1) e^{iπ/2}`.
 
@@ -267,41 +267,15 @@ theorem eventually_rotate_inf_eq_bot (Λ V : ℒ ι) :
   obtain ⟨Z, hZ⟩ : ∃ Z : Matrix (ι ⊕ ι) ι ℝ, LinearMap.range (toEuclideanLin Z) = Λ := by
     obtain ⟨U, rfl⟩ := unitaryFrame_surjective Λ
     exact ⟨_, (coe_unitaryFrame U).symm⟩
-  -- The rotation through the angle `2 (t - 1 / 2)`, `t ∈ [0, 1]`, has a regular crossing at
-  -- `t = 1 / 2`.
-  obtain ⟨h, hh⟩ : ∃ h : I, (h : ℝ) = 1 / 2 := ⟨⟨1 / 2, by norm_num, by norm_num⟩, rfl⟩
-  have hd : HasDerivAt (fun r ↦ rotationFrame Z (2 * (r - 1 / 2))) ((2 : ℝ) • (J ι ℝ * Z))
-      (h : ℝ) := by
-    convert hasDerivAt_rotationFrame_comp Z (((hasDerivAt_id (h : ℝ)).sub_const (1 / 2)).const_mul
-      (2 : ℝ)) using 2 <;> simp [hh]
-  have hreg : (lagrangianCrossingForm (rotationFrame Z (2 * ((h : ℝ) - 1 / 2)))
-      ((2 : ℝ) • (J ι ℝ * Z)) V).Nondegenerate := by
-    rw [show rotationFrame Z (2 * ((h : ℝ) - 1 / 2)) = Z by simp [hh]]
-    exact (anisotropic_lagrangianCrossingForm_smul_J_mul
-      (injective_toEuclideanLin_of_range_eq hZ) two_ne_zero V).nondegenerate
-  have key := eventually_not_crossing_of_regular
-    (fun t : I ↦ rotate (2 * ((t : ℝ) - 1 / 2)) Λ) V
-    (Z := fun r ↦ rotationFrame Z (2 * (r - 1 / 2))) (t₀ := h)
-    (fun t ↦ range_rotationFrame hZ (2 * ((t : ℝ) - 1 / 2)))
-    hd.matrix_hasDerivWithinAt hreg
-  -- Read near `t = 1 / 2` through `θ ↦ θ / 2 + 1 / 2`.
-  obtain ⟨f, hfc, hf⟩ : ∃ f : ℝ → I, Continuous f ∧
-      ∀ {θ : ℝ}, θ ∈ Ioo (-1 : ℝ) 1 → (f θ : ℝ) = θ / 2 + 1 / 2 :=
-    ⟨fun θ ↦ projIcc 0 1 zero_le_one (θ / 2 + 1 / 2), continuous_projIcc.comp (by fun_prop),
-      fun hθ ↦ by dsimp only; rw [projIcc_of_mem _ ⟨by linarith [hθ.1], by linarith [hθ.2]⟩]⟩
-  have hI : Ioo (-1 : ℝ) 1 ∈ 𝓝[≠] (0 : ℝ) :=
-    nhdsWithin_le_nhds (Ioo_mem_nhds (by norm_num) (by norm_num))
-  have htend : Tendsto f (𝓝[≠] 0) (𝓝[≠] h) := by
-    refine tendsto_nhdsWithin_iff.2 ⟨tendsto_nhdsWithin_of_tendsto_nhds ?_, ?_⟩
-    · convert hfc.tendsto 0 using 2
-      exact Subtype.ext (by rw [hf (by norm_num), hh]; norm_num)
-    · filter_upwards [hI, self_mem_nhdsWithin] with θ hθ hθ0 hfθ
-      have := congrArg Subtype.val hfθ
-      rw [hf hθ] at this
-      rw [hh] at this
-      exact hθ0 (mem_singleton_iff.2 (by linarith))
-  filter_upwards [htend.eventually key, hI] with θ hθ hθI
-  simpa only [hf hθI, show 2 * (θ / 2 + 1 / 2 - 1 / 2) = θ by ring] using hθ
+  -- The rotation `θ ↦ e^{θ J₀} Λ` has a regular crossing at `θ = 0`.
+  have h0 : rotationFrame Z 0 = Z := by simp
+  have hd := hasDerivAt_rotationFrame Z 0
+  rw [h0] at hd
+  refine eventually_nhdsNE_not_crossing_of_regular V (Λ := fun θ ↦ rotate θ Λ)
+    (Eventually.of_forall fun θ ↦ range_rotationFrame hZ θ) hd ?_
+  rw [h0]
+  simpa using (anisotropic_lagrangianCrossingForm_smul_J_mul
+    (injective_toEuclideanLin_of_range_eq hZ) one_ne_zero V).nondegenerate
 
 /-- **The rotation off a Lagrangian has no crossing but its first point.** For every nonzero
 angle `ε` small enough, the rotation `rotationPath Λ ε` meets a given Lagrangian `V` nontrivially

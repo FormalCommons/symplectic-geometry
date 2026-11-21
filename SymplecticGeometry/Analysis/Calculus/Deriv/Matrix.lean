@@ -48,6 +48,8 @@ corresponding entry of `A'` as derivative. -/
 theorem hasDerivAt_matrix {A : 𝕜 → Matrix m n F} {A' : Matrix m n F} :
     HasDerivAt A A' t ↔ ∀ i j, HasDerivAt (fun r ↦ A r i j) (A' i j) t := by
   have := Fintype.ofFinite n
+  -- As in `hasDerivWithinAt_matrix`, we read the goal on `m → n → F`, where `hasDerivAt_pi`
+  -- applies.
   change HasDerivAt (F := m → n → F) A A' t ↔ _
   exact hasDerivAt_pi.trans (forall_congr' fun _ ↦ hasDerivAt_pi)
 

@@ -159,26 +159,27 @@ These settle the questions that `DESIGN.md` leaves to this file.
      $\phi_{s(u)}^*\omega$ independent of $u$, equal to $\omega$ at $u=0$,
      and $s$ maps $[0,1]$ onto $[0,1]$.
 3. **What *Smooth families* provides.** `SymplecticIsotopy.lean` takes from
-   `OfIsotopy.lean` the reading of a `Diffeotopy` over `ℝ` by
+   `Diffeotopy/Real.lean` the reading of a `Diffeotopy` over `ℝ` by
    `Real.smoothTransition`: its apply lemma, the joint `C^∞` smoothness of
    the family and of its inverses (the two hypotheses of
    `TauCeti.forall_mpullback_eq_iff_forall_mextDeriv_interior_eulerianField_eq_zero`),
    and its Eulerian field, stated pointwise along the motion as
    $X^{\mathbb R}_u(\phi_{s(u)}x)=s'(u)\,\partial_t\phi_t x|_{t=s(u)}$ with
    the time derivative written through `Φ.cylinderMap`, so that
-   `OfIsotopy.lean` does not depend on this part. It also uses that
+   `Diffeotopy/Real.lean` does not depend on this part. It also uses that
    `Real.smoothTransition` has positive derivative on $(0,1)$, which the
    review of #420 asks *Smooth families* to plan as a public lemma; if that
    part does not add it, the issue of `SymplecticIsotopy.lean` adds it
    in the namespace `Real.smoothTransition`. `Flux/CompactSupport.lean` takes
-   from `TimeExtension.lean` the extension of a smooth function on
+   from `ContMDiff/TimeExtension.lean` the extension of a smooth function on
    `unitInterval × M` to `ℝ × M`, and uses that it vanishes at every time at
    a point where the function vanishes at every time, which holds for
    Seeley's formula, a combination of values at the same point; the issue
-   of `TimeExtension.lean` should state it. `Flux/Hamiltonian.lean` and
+   of `ContMDiff/TimeExtension.lean` states it as `timeExtend_eq_zero`.
+   `Flux/Hamiltonian.lean` and
    `PoissonAlgebra.lean` take nothing from *Smooth families*.
 4. **Hamiltonians from exactness** are built directly, not from the
-   smooth-primitive map of `SmoothFamily.lean`, which needs a compact
+   smooth-primitive map of `DeRham/SmoothFamily/GoodCover.lean`, which needs a compact
    manifold. Let $\alpha_t=\phi_t^*(\iota_{X_t}\omega)$, the one-form read
    along the motion that `HasHamiltonian` uses; it is jointly smooth, and it
    is exact for every $t$ when every $\iota_{X_t}\omega$ is. Choose a base
@@ -520,9 +521,9 @@ identity, which Tau Ceti proves (`IsNondegenerate.poissonBracket_jacobi`).
 
 ## What it uses
 
-- From *Smooth families*: `OfIsotopy.lean` (the reading of a `Diffeotopy`
+- From *Smooth families*: `Diffeotopy/Real.lean` (the reading of a `Diffeotopy`
   over `ℝ`, Decision 3) for `SymplecticIsotopy.lean`, and
-  `TimeExtension.lean` (the extension in time, Decision 3) for
+  `ContMDiff/TimeExtension.lean` (the extension in time, Decision 3) for
   `Flux/CompactSupport.lean`. `Velocity.lean`, `PoissonAlgebra.lean` and
   `Flux/Hamiltonian.lean` use only Mathlib and Tau Ceti.
 - From Tau Ceti: the declarations of *What there is*.
@@ -540,7 +541,7 @@ Each is a few hundred lines; each is blocked by the issues it names.
    with its milestone. About 350 lines. No blockers.
 3. **Symplectic isotopies.** `SymplecticIsotopy.lean`, with its milestone.
    About 300 lines. Blocked by 1 and by the issue of *Smooth families* that
-   builds `OfIsotopy.lean` (#467 until it is split).
+   builds `Diffeotopy/Real.lean` (#467 until it is split).
 4. **Hamiltonians of a diffeotopy in the page's form.** In
    `Flux/Hamiltonian.lean`: `hasHamiltonian_iff_isHamiltonianVectorField_velocity`,
    `hasHamiltonian_comp_iff`, the three rules and the uniqueness lemmas.
@@ -556,7 +557,7 @@ Each is a few hundred lines; each is blocked by the issues it names.
    `Flux/CompactSupport.lean`: `exists_isCompactlySupportedHamiltonian` and
    the milestone *Hamiltonian isotopies and their composition*. About 250
    lines. Blocked by 5, 6 and the issue of *Smooth families* that builds
-   `TimeExtension.lean` (#467 until it is split).
+   `ContMDiff/TimeExtension.lean` (#467 until it is split).
 
 Issues 1 and 2 can start at once, 4 and 6 after 1, and 5 after 4; only 3
 and 7 wait for *Smooth families*.
@@ -571,4 +572,4 @@ and 7 wait for *Smooth families*.
   the correction to p. 100 (Exercise 3.1.8).
 * R. T. Seeley, *Extension of C^∞ functions defined in a half space*,
   Proc. Amer. Math. Soc. 15 (1964), 625–626, for the time extension that
-  issue 7 uses through `TimeExtension.lean`.
+  issue 7 uses through `ContMDiff/TimeExtension.lean`.
