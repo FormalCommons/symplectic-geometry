@@ -169,17 +169,22 @@ These answer the questions that `DESIGN.md` leaves to this file.
    frames.
 
    The comparison with Tau Ceti's loop index is a theorem
-   (`ℒ.maslovIndex_eq_totallyRealLoop_maslovIndex`). Through it the direct-sum
-   axiom, the half-turns and the angle description of Lagrangian loops are
-   transferred from `TotallyRealLoop.maslovIndex_prod`,
-   `maslovIndex_rotationZPow` and `sub_eq_maslovIndex_mul_pi`, as `DESIGN.md`
-   asks, and later pages can use Tau Ceti's boundary-value results. Constancy,
-   catenation, reversal and free homotopy invariance are read off the
-   definition as a degree (`Circle.degree_*`) instead: each is a line there,
-   while transferring Tau Ceti's `maslovIndex_const`, `maslovIndex_trans`,
-   `maslovIndex_symm` would need lifts of the loops, and transferring
-   `maslovIndex_eq_of_homotopy` a lift of a whole free homotopy to frames,
-   which path lifting does not give.
+   (`ℒ.maslovIndex_eq_totallyRealLoop_maslovIndex`), so that later pages can
+   use Tau Ceti's results on totally real loops, such as its boundary-value
+   results, for loops in `ℒ ι`. All the loop properties of
+   `Maslov/Basic.lean` are read off the definition as a degree
+   (`Circle.degree_*`) instead, and agree with Tau Ceti's through the
+   comparison. Constancy, catenation, reversal and free homotopy invariance
+   are a line each there, while transferring Tau Ceti's `maslovIndex_const`,
+   `maslovIndex_trans`, `maslovIndex_symm` would need lifts of the loops, and
+   transferring `maslovIndex_eq_of_homotopy` a lift of a whole free homotopy
+   to frames, which path lifting does not give. The direct-sum axiom, the
+   half-turns and the angle description follow in a few lines from Tau
+   Ceti's `Matrix.UnitaryGroup.souriau_sum`, `detCircle_sum`,
+   `detCircle_souriau` and `Circle.degree_mul`; transferring
+   `TotallyRealLoop.maslovIndex_prod` would in addition need an
+   identification of `EuclideanSpace ℂ (ι ⊕ κ)` with the product of the two
+   spaces, on which Tau Ceti's direct sum of loops lives.
 
    The path index is Souriau's (`Matrix.UnitaryGroup.maslovIndex`), not
    `TotallyRealPath.transverseMaslovIndex`: the latter is defined only for
@@ -370,38 +375,48 @@ The Maslov phase on $\mathcal{L}(n)$ and the index of Lagrangian loops.
 
 - `ℒ.souriau : ℒ ι → unitaryGroup ι ℂ`, the Souriau embedding
   $\Lambda\mapsto UU^T$ for any unitary frame `U` of `Λ`; well defined by
-  `Matrix.UnitaryGroup.realImage_eq_realImage_iff_souriau_eq` and G2. API:
+  `ℒ.unitaryFrame_eq_unitaryFrame_iff_souriau_eq` (from
+  `Matrix.UnitaryGroup.realImage_eq_realImage_iff_souriau_eq` and G2). API:
   `souriau_unitaryFrame : souriau (unitaryFrame U) = Matrix.UnitaryGroup.souriau U`
-  (`@[simp]`), `continuous_souriau`, `souriau_injective`, `souriau_sum`.
+  (`@[simp]`), `souriau_horizontal`, `continuous_souriau`, `souriau_injective`,
+  `souriau_sum`, `souriau_reindex`.
 - `ℒ.maslovPhase (Λ : ℒ ι) : Circle := detCircle (souriau Λ)`, the book's
   $\rho$, with `maslovPhase_def`, `continuous_maslovPhase`,
   `maslovPhase_unitaryFrame : maslovPhase (unitaryFrame U) = detCircle U ^ 2`
-  (`@[simp]`, by `Matrix.UnitaryGroup.detCircle_souriau`), `maslovPhase_sum`
+  (`@[simp]`, by `Matrix.UnitaryGroup.detCircle_souriau`),
+  `maslovPhase_horizontal`, `maslovPhase_sum`
   (`@[simp]`, the phase of a direct sum is the product), `maslovPhase_reindex`,
   and
   `maslovPhase_ofUnitary_smul : maslovPhase (ofUnitary U • Λ) = detCircle U ^ 2 * maslovPhase Λ`.
+  The reindexing lemmas here and below are stated with `ℒ.reindex e` and its
+  continuity `ℒ.continuous_reindex e`, the simp normal form of
+  `ℒ.reindexHomeomorph e` (`reindexHomeomorph_apply`).
 - `ℒ.maslovIndex {Λ} (γ : Path Λ Λ) : ℤ := Circle.degree (γ.map continuous_maslovPhase)`,
   with `maslovIndex_def`; from the API of `Circle.degree` (Decision 5):
   `maslovIndex_eq_of_homotopy` (free homotopy, from
-  `Circle.degree_eq_of_homotopy`), `maslovIndex_refl` (`@[simp]`, zero),
+  `Circle.degree_eq_of_homotopy`), `maslovIndex_eq_of_homotopic`,
+  `maslovIndex_refl` (`@[simp]`, zero),
   `maslovIndex_trans` (`@[simp]`), `maslovIndex_symm` (`@[simp]`),
   `maslovIndex_reindex`; and `maslovIndex_map_unitaryFrame`: for a loop of
   frames `δ`, the index of `δ.map continuous_unitaryFrame` is twice the degree
   of $\det\delta$.
-- `ℒ.maslovIndex_eq_totallyRealLoop_maslovIndex`: the index of a loop in `ℒ ι`
-  is the Tau Ceti index of the `TotallyRealLoop` that a lift of it to unitary
-  frames gives through `Matrix.UnitaryGroup.realImageLoop`
-  (`maslovIndex_realImageLoop`, `maslovIndex_eq_degree`). It needs G3.
-- Transferred through it: `ℒ.maslovIndex_sum`, the index of the direct sum of
-  two loops (G5) is the sum, from `TotallyRealLoop.maslovIndex_prod`; and
-  `ℒ.maslovIndex_eq_sub_div_pi`: if `δ` is a path of frames of the loop and
-  $\det\delta(t)=e^{i\alpha(t)}$ with `α` continuous, the index is
-  $(\alpha(1)-\alpha(0))/\pi$, from `TotallyRealLoop.sub_eq_maslovIndex_mul_pi`.
-- The half-turn `ℒ.halfTurnLoop (k : ℤ) : Path (V₀ ι) (V₀ ι)`,
-  `t ↦ unitaryFrame (e^{iπkt} • 1)`, with `coe_halfTurnLoop_apply`
+- `ℒ.maslovIndex_eq_totallyRealLoop_maslovIndex`: for a path `δ` of unitary
+  frames lifting a loop in `ℒ ι`, the index of the loop is the Tau Ceti index
+  of the `TotallyRealLoop` that `δ` gives through
+  `Matrix.UnitaryGroup.realImageLoop` (`maslovIndex_realImageLoop`,
+  `maslovIndex_eq_degree`); and `ℒ.exists_realImageLoop_maslovIndex_eq`, that
+  such a lift exists, by G3.
+- From the degree as well (Decision 5): `ℒ.maslovIndex_sum`, the index of the
+  direct sum `(γ.prod γ').map continuous_sum` of two loops (G5) is the sum;
+  and `ℒ.maslovIndex_eq_sub_div_pi`: if `δ` is a path of frames of the loop
+  and $\det\delta(t)=e^{i\alpha(t)}$ with `α` continuous, the index is
+  $(\alpha(1)-\alpha(0))/\pi$.
+- The half-turn `ℒ.halfTurnLoop {ι} (k : ℤ) : Path (V₀ ι) (V₀ ι)`,
+  `t ↦ unitaryFrame (e^{iπkt} • 1)`, with `halfTurnLoop_apply`
   (`@[simp]`) and `maslovIndex_halfTurnLoop :
-  maslovIndex (halfTurnLoop k) = k * Fintype.card ι` (`@[simp]`), transferred
-  from Tau Ceti's `maslovIndex_rotationZPow`, whose loop corresponds to it.
+  maslovIndex (halfTurnLoop (ι := ι) k) = k * Fintype.card ι` (`@[simp]`), the
+  degree of $t\mapsto e^{2\pi iknt}$; Tau Ceti's `rotationZPow` is the totally
+  real loop that corresponds to it.
   For `ι = Fin 1` and `k = 1` this is the half-turn of the milestone, of
   index `1`.
 
