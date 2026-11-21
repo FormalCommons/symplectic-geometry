@@ -7,6 +7,8 @@ module
 
 public import Mathlib.LinearAlgebra.UnitaryGroup
 public import TauCeti.Analysis.Matrix.EuclideanLin
+public import TauCeti.Geometry.Symplectic.Complex.OrthonormalBasis
+public import TauCeti.Geometry.Symplectic.Finrank
 public import TauCeti.Geometry.Symplectic.SymplecticTransport
 
 /-!
@@ -30,6 +32,9 @@ gives actions of the invertible matrices and of the special orthogonal matrices.
 
 * `TauCeti.AlmostComplexStructure.transport_eq_iff_isComplexLinearMap`: `J.transport e = J'`
   exactly when `e` is complex linear from `J` to `J'`.
+* `TauCeti.AlmostComplexStructure.exists_linearIsometryEquiv_transport_eq`: two norm-preserving
+  complex structures on inner product spaces of the same finite dimension are conjugate by a
+  linear isometry.
 * `TauCeti.AlmostComplexStructure.smul_apply`, `generalLinearGroup_smul_apply`: the actions
   evaluated at a vector.
 * `LinearEquiv.trans_assoc_id`: associativity of composition of linear equivalences over one
@@ -133,6 +138,40 @@ theorem toLinearMap_smul (e : V ≃ₗ[ℝ] V) (J : AlmostComplexStructure V) :
   (rfl)
 
 end LinearEquiv
+
+section InnerProductSpace
+
+variable {V W : Type*} [NormedAddCommGroup V] [InnerProductSpace ℝ V] [FiniteDimensional ℝ V]
+  [NormedAddCommGroup W] [InnerProductSpace ℝ W] [FiniteDimensional ℝ W]
+
+/-- Two norm-preserving complex structures `J` on `V` and `J'` on `W`, inner product spaces of the
+same finite dimension, are conjugate by a linear isometry `Φ`: `Φ ∘ J = J' ∘ Φ`. The isometry
+sends an adapted orthonormal basis `(u₁, J u₁, …)` of `J` to one of `J'`. -/
+theorem exists_linearIsometryEquiv_transport_eq (J : AlmostComplexStructure V)
+    (J' : AlmostComplexStructure W) (hJ : ∀ v, ‖J v‖ = ‖v‖) (hJ' : ∀ w, ‖J' w‖ = ‖w‖)
+    (h : Module.finrank ℝ V = Module.finrank ℝ W) :
+    ∃ Φ : V ≃ₗᵢ[ℝ] W, J.transport Φ.toLinearEquiv = J' := by
+  obtain ⟨n, hn⟩ := J.even_finrank_real
+  obtain ⟨b, hb⟩ := J.exists_adapted_orthonormalBasis hJ n (by omega)
+  obtain ⟨b', hb'⟩ := J'.exists_adapted_orthonormalBasis hJ' n (by omega)
+  set Φ := b.equiv b' (Equiv.refl _)
+  have hΦ (i : Fin (2 * n)) : Φ (J (b i)) = J' (Φ (b i)) := by
+    obtain ⟨k, hk⟩ :
+        ∃ k : Fin n, i = ⟨2 * k.val, by omega⟩ ∨ i = ⟨2 * k.val + 1, by omega⟩ := by
+      refine ⟨⟨i / 2, by omega⟩, ?_⟩
+      rcases Nat.even_or_odd' i.val with ⟨m, hm | hm⟩
+      · exact Or.inl (Fin.ext (by simp; omega))
+      · exact Or.inr (Fin.ext (by simp; omega))
+    have e1 := b.equiv_apply_basis b' (Equiv.refl _) ⟨2 * k.val, by omega⟩
+    have e2 := b.equiv_apply_basis b' (Equiv.refl _) ⟨2 * k.val + 1, by omega⟩
+    rw [Equiv.refl_apply] at e1 e2
+    rcases hk with rfl | rfl
+    · rw [← hb, e2, e1, hb']
+    · rw [e2, hb' k, apply_apply, hb k, apply_apply, map_neg, e1]
+  exact ⟨Φ, (transport_eq_iff_isComplexLinearMap _).2
+    (b.toBasis.ext fun i ↦ by simpa using hΦ i)⟩
+
+end InnerProductSpace
 
 section Matrix
 
