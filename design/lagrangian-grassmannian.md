@@ -222,11 +222,16 @@ Three facts about complex frames:
   `LinearMap.BilinForm.symmSubmodule R (ι → R)` onto
   `selfAdjoint (Matrix ι ι R)`, by
   `LinearMap.BilinForm.isSymm_toMatrix'_iff_isSymm` and
-  `Matrix.isHermitian_iff_isSymm`; this equivalence stays inside the proof.
+  `Matrix.isHermitian_iff_isSymm`. The file makes it public, as
+  `Matrix.symmSubmoduleEquivSelfAdjoint` (for decidable equality on `ι`),
+  with `coe_symmSubmoduleEquivSelfAdjoint_apply` and
+  `coe_symmSubmoduleEquivSelfAdjoint_symm_apply` (both `@[simp]`,
+  by `rfl`).
   `LinearEquiv.finrank_eq` and `Module.finrank_fintype_fun_eq_card` finish
   it; `Nontrivial R` gives the `StrongRankCondition R` that the last lemma
   needs, and cannot be dropped: over the zero ring every `finrank` is `1`,
-  while the formula gives `3` for `ι = Fin 2`. The file adds no definition.
+  while the formula gives `3` for `ι = Fin 2`. Its one definition is that
+  equivalence.
   The milestone uses the case `R = ℝ`.
 
 ### `Analysis/InnerProductSpace/Projection/Basic.lean`
@@ -518,8 +523,14 @@ unitary action to Tau Ceti's `Matrix.realImage`.
 - `instance : MulAction (GLSymplectic ι ℝ) (ℒ ι)`, with
   `coe_smul : ((g • Λ : ℒ ι) : Submodule ℝ (StdSpace ι)) = Λ.map (Matrix.toEuclideanLin g)`
   (`@[simp]`). The result is Lagrangian by
-  `TauCeti.SymplecticForm.IsSymplectomorphism.map_orthogonal`, the map `toEuclideanLin g` being a
-  symplectomorphism by `mem_symplecticGroup_iff_forall_stdForm`.
+  `SymplecticForm.isLagrangian_map_iff_of_apply_eq_mul` (`Subspace.lean`) with
+  `c = 1`, the map `toEuclideanLin g` preserving `ω₀` by
+  `mem_symplecticGroup_iff_forall_stdForm`. On a frame,
+  `coe_smul_of_coe_eq`: if `Λ` is spanned by the columns of `Z`, then
+  `g • Λ` is spanned by those of `g * Z`; `coe_smul_graphY`
+  (`Transverse.lean`, with `coe_ofFrame`) and the frame of
+  `g • unitaryFrame U` (`Quotient.lean`, with `coe_unitaryFrame`) follow
+  from it.
 - `instance : MulAction (unitaryGroup ι ℂ) (ℒ ι)`, the action through the
   monoid homomorphism `TauCeti.GLSymplectic.ofUnitary` (`MulAction.compHom`),
   with `unitary_smul_def : U • Λ = ofUnitary U • Λ`.
@@ -568,8 +579,9 @@ unitary action to Tau Ceti's `Matrix.realImage`.
   `ℒ.stabilizer_horizontal :
   MulAction.stabilizer (unitaryGroup ι ℂ) (horizontal ι) = Matrix.UnitaryGroup.realSubgroup ι`.
 - Supporting statements of the file: `isLagrangian_map_toEuclideanLin` (in
-  `SymplecticGeometry`), the image of a Lagrangian under a matrix of
-  `TauCeti.GLSymplectic ι ℝ`; and, in `ℒ.`, `coe_unitary_smul`,
+  `SymplecticGeometry`), the image of a Lagrangian under a matrix
+  `A ∈ Matrix.symplecticGroup ι ℝ`, which the `smul` instance applies through
+  `TauCeti.GLSymplectic.mem_iff_mem_symplecticGroup`; and, in `ℒ.`, `coe_unitary_smul`,
   `coe_unitaryFrame_eq_map` (the second description of `coe_unitaryFrame`) and
   `unitaryFrame_eq_horizontal_iff`, from which both
   `unitaryFrame_eq_unitaryFrame_iff` and `stabilizer_horizontal` follow.
@@ -756,7 +768,9 @@ is Tau Ceti's `Topology/Grassmannian/Graph.lean`, which does the same for
   for the frame `fromRows S 1`, which spans `graphY S`.
 - `ℒ.unitaryFrame_eq_graphY_iff`: `unitaryFrame U = graphY S` iff
   `U.map im` is invertible and `U.map re * (U.map im)⁻¹ = S`, the form of
-  Tau Ceti's `TauCeti.finiteGrassmannian.frameSpan_eq_graph_iff` for unitary frames.
+  `TauCeti.finiteGrassmannian.frameSpan_eq_graph_iff` for unitary frames. It is
+  `eq_graphY_iff_of_coe_eq` (`Transverse.lean`, for any Lagrangian spanned
+  by a frame `fromRows X Y`) applied to `coe_unitaryFrame U`.
 - `ℒ.isOpenEmbedding_graphY`: `graphY` is an open embedding. The preimage
   under the open quotient map `unitaryFrame` of the image of an open set is
   open, by the previous item.
@@ -772,7 +786,9 @@ is Tau Ceti's `Topology/Grassmannian/Graph.lean`, which does the same for
   source iff `Y = U.map im` is invertible; and
   `coe_graphYChart_unitaryFrame`: for such `U`, the value at
   `unitaryFrame U` is $XY^{-1}$ for `X = U.map re`. This gives continuity
-  on the source through the open quotient map.
+  on the source through the open quotient map. Both are the frame lemmas
+  `mem_graphYChart_source_iff_isUnit` and `coe_graphYChart_eq_mul_inv` below,
+  applied to `coe_unitaryFrame U`.
 - `ℒ.graphChart : OpenPartialHomeomorph (ℒ ι) (selfAdjoint (Matrix ι ι ℝ))`,
   the chart on the Lagrangians transverse to the vertical subspace, with
   source `{Λ | IsCompl Λ (vertical ι)}` (`range_graph`), target
@@ -896,12 +912,16 @@ The manifold structure and the milestone.
   `unitaryChart_symm_trans_apply`, `unitaryChart_symm_trans_source` for the
   transition maps of the atlas. The proof uses three lemmas placed with
   their topics. In `Transverse.lean`, `ℒ.coe_smul_graphY`: `g • graphY S`
-  is spanned by `fromRows (A S + B) (C S + D)`. In `Graph.lean`, for a
+  is spanned by `fromRows (A S + B) (C S + D)`, from `coe_smul_of_coe_eq` and
+  `graphY_eq_ofFrame`. In `Graph.lean`, for a
   Lagrangian spanned by a frame `fromRows X Y`,
   `mem_graphYChart_source_iff_isUnit` (it is in the basic chart's source
   iff `Y` is invertible) and `coe_graphYChart_eq_mul_inv` (its chart value
-  is `X Y⁻¹`). These rest on two facts about frames added to `Frame.lean`,
-  `StdSpace.disjoint_range_toEuclideanLin_fromRows_ker_y_iff` and
+  is `X Y⁻¹`), and in `Transverse.lean`, `eq_graphY_iff_of_coe_eq`. These
+  rest on facts about frames added to `Frame.lean`:
+  `StdSpace.disjoint_range_toEuclideanLin_fromRows_ker_y_iff` and its form
+  `disjoint_range_toEuclideanLin_fromRows_ker_y_iff_of_isLagrangian` for a
+  Lagrangian frame, and
   `StdSpace.range_toEuclideanLin_fromRows_eq_graphY`.
 - The milestone, as one theorem, `lagrangianGrassmannian_properties`, stated
   for a finite type `ι` with decidable equality. In it, `ℒ ι` is the file's
@@ -935,8 +955,7 @@ The manifold structure and the milestone.
   slightly more general, since `ι` is any finite type and not only `Fin n`.
   It needs no entry in `ERRATA.md`. The third item starts from a matrix
   `A ∈ Matrix.symplecticGroup ι ℝ`: it is
-  `isLagrangian_map_toEuclideanLin`, applied to `A` as an element of
-  `TauCeti.GLSymplectic ι ℝ`. The dimension item is
+  `isLagrangian_map_toEuclideanLin` itself. The dimension item is
   `Matrix.finrank_selfAdjoint`.
 
 ## What the part uses
