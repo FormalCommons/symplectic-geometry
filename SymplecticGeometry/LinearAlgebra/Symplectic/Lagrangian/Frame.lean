@@ -151,21 +151,20 @@ theorem isCompl_graphY_ker_y (A : Matrix ι ι ℝ) : IsCompl (graphY A) (Linear
 theorem exists_eq_graph_of_isCompl_ker_x {L : Submodule ℝ (StdSpace ι)}
     (hL : IsCompl L (LinearMap.ker x)) : ∃ A : Matrix ι ι ℝ, L = graph A := by
   classical
-  set p := LinearMap.fst ℝ (ι → ℝ) (ι → ℝ) ∘ₗ (equivProd ι).toLinearMap
-  replace hL : IsCompl L (LinearMap.ker p) := by convert hL using 2; ext; simp [p]
   -- the first coordinate is bijective from `L` onto `ι → ℝ`
-  have hinj : Function.Injective (p ∘ₗ L.subtype) := by
+  have hinj : Function.Injective (x ∘ₗ L.subtype) := by
     refine (injective_iff_map_eq_zero _).2 fun z hz ↦ Subtype.ext ?_
     exact Submodule.disjoint_def.1 hL.disjoint z z.property hz
-  have hsurj : Function.Surjective (p ∘ₗ L.subtype) := fun a ↦ by
+  have hsurj : Function.Surjective (x ∘ₗ L.subtype) := fun a ↦ by
     obtain ⟨l, k, hl, hk, hlk⟩ :=
       Submodule.codisjoint_iff_exists_add_eq.1 hL.codisjoint ((equivProd ι).symm (a, 0))
     refine ⟨⟨l, hl⟩, ?_⟩
-    have := congrArg p hlk
+    have := congrArg x hlk
     rw [map_add, LinearMap.mem_ker.1 hk, add_zero] at this
-    simpa [p] using this
+    simpa using this
   have hbij : Function.Bijective (Prod.fst ∘ (L.map (equivProd ι).toLinearMap).subtype) := by
     rw [← Function.Bijective.of_comp_iff _ ((equivProd ι).submoduleMap L).bijective]
+    rw [x_def] at hinj hsurj
     exact ⟨hinj, hsurj⟩
   obtain ⟨f, hf⟩ := Submodule.exists_eq_graph hbij
   refine ⟨LinearMap.toMatrix' f, ?_⟩
