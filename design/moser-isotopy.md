@@ -106,7 +106,7 @@ Further choices of this design:
   field is cut off there by a function on `ℝ × M`. That field is
   `moserField` of `Moser/Field.lean`. *Isotopy extension*'s
   `Moser/Family.lean` uses it too, for a general family of two-forms,
-  once #551 generalizes it to one.
+  which it takes.
 - **Moser stability goes through Tau Ceti's theorem over `ℝ`.** It uses
   `TauCeti.SmoothTwoForm.exists_isotopy_mpullback_eq`, as `DESIGN.md` says.
   The data for that theorem, a family over `ℝ` with symplectic slices and
@@ -127,7 +127,7 @@ can join them.
 | `Geometry/Symplectic/Manifold/Family.lean` | openness of nondegeneracy for families and segments of two-forms; the velocity of a reparametrized segment of forms | 1 |
 | `Geometry/Symplectic/Manifold/Flat.lean` | the inverse flat map of a covector field with zero first jet | 1 |
 | `Geometry/Symplectic/Moser/Relative.lean` | the relative Moser theorem with prescribed first derivative, the milestone | 2 |
-| `Geometry/Symplectic/Moser/Field.lean` | `moserField`, the cut-off Moser field of a segment of two-forms | 3 |
+| `Geometry/Symplectic/Moser/Field.lean` | `moserField`, the cut-off Moser field of a family of two-forms | 3 |
 | `Geometry/Symplectic/Moser/Isotopy.lean` | the Moser isotopy fixing a compact submanifold, the milestone | 4 |
 | `Geometry/Symplectic/Manifold/Darboux.lean` | Darboux charts with prescribed derivative, symplectic transitions, the milestone | 5 |
 | `Geometry/Manifold/LocalDiffeomorph/MFDeriv.lean` | the derivative of a transition between partial diffeomorphisms, composed with a differential; the differential of a partial diffeomorphism followed by a continuous linear equivalence (`PartialDiffeomorph.mvfderiv_trans_toDiffeomorph`) | 5 |
@@ -261,46 +261,53 @@ the local flow.
 
 ### `Geometry/Symplectic/Moser/Field.lean`
 
-The cut-off Moser field of the segment $\sigma_0+t(\sigma_1-\sigma_0)$. It is
-a new definition, so it is in `SymplecticGeometry`. For
-`σ₀ σ₁ : SmoothTwoForm I M`, `β : SmoothForm I M ℝ 1` and `ρ : ℝ × M → ℝ`:
+The cut-off Moser field of a family of two-forms over a parameter manifold
+`N` (model `J`). It is a new definition, so it is in `SymplecticGeometry`.
+For `σ : SmoothForm (J.prod I) (N × M) ℝ 2`,
+`β : SmoothForm (J.prod I) (N × M) ℝ 1` and `ρ : N × M → ℝ`, with slices
+`σ_t` and `β_t` written out as above:
 
 ```lean
-/-- The Moser field `X_t = ρ(t, ·) (σ_t♭)⁻¹(-β)` of the segment `σ_t = σ₀ + t (σ₁ - σ₀)`. -/
-def moserField (σ₀ σ₁ : SmoothTwoForm I M) (β : SmoothForm I M ℝ 1) (ρ : ℝ × M → ℝ)
-    (t : ℝ) (x : M) : TangentSpace I x :=
-  ρ (t, x) • ((σ₀ + t • (σ₁ - σ₀)).flat x).inverse (-SmoothForm.degreeOneEquiv β x)
+/-- The Moser field `X_t = ρ(t, ·) (σ_t♭)⁻¹(-β_t)` of the family `σ`. -/
+def moserField (σ : SmoothForm (J.prod I) (N × M) ℝ 2)
+    (β : SmoothForm (J.prod I) (N × M) ℝ 1) (ρ : N × M → ℝ) (t : N) (x : M) :
+    TangentSpace I x :=
+  ρ (t, x) • (SmoothTwoForm.flat
+    (SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) σ) x).inverse
+      (-SmoothForm.degreeOneEquiv
+        (SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) β) x)
 ```
 
+The segment $\sigma_0+t(\sigma_1-\sigma_0)$ with a primitive `β` fixed in
+time is `σ = SmoothForm.lineMapFamily σ₀ σ₁ contDiff_id` with `β` pulled
+back along `Prod.snd`.
+
 API, in the order the proofs need it. `hinv` stands for
-`∀ p ∈ tsupport ρ, ((σ₀ + p.1 • (σ₁ - σ₀)).flat p.2).IsInvertible`.
+`∀ p ∈ tsupport ρ, (SmoothTwoForm.flat σ_{p.1} p.2).IsInvertible`.
 
 - `moserField_def` (by `(rfl)`).
-- `moserField_eq_zero_of_apply_eq_zero`: `β.val x = 0 → moserField σ₀ σ₁ β ρ t x = 0`.
+- `moserField_eq_zero_of_apply_eq_zero`: `β_t.val x = 0 → moserField σ β ρ t x = 0`.
 - `moserField_eq_zero_of_notMem_tsupport`: `(t, x) ∉ tsupport ρ → … = 0`.
-- `interior_moserField`: if the flat map at `(t, x)` is invertible, then
-  `RoughForm.interior (moserField σ₀ σ₁ β ρ t) (σ₀ + t • (σ₁ - σ₀)).val x =
-  -ρ (t, x) • β.val x`. `interior_moserField_eq` is the same identity at
-  every point, given `hinv`.
+- `interior_moserField`: if the flat map of `σ_t` at `x` is invertible, then
+  `RoughForm.interior (moserField σ β ρ t) σ_t.val x = -ρ (t, x) • β_t.val x`.
+  `interior_moserField_eq` is the same identity at every point, given `hinv`.
 - `contMDiffAt_moserField`: if `ρ` is smooth at `p₀` and the flat map at
   `p₀` is invertible when `p₀ ∈ tsupport ρ`, the map
-  `p ↦ ⟨p.2, moserField σ₀ σ₁ β ρ p.1 p.2⟩` into the tangent bundle is
+  `p ↦ ⟨p.2, moserField σ β ρ p.1 p.2⟩` into the tangent bundle is
   smooth at `p₀`. `contMDiff_moserField`: given
-  `ContMDiff (𝓘(ℝ, ℝ).prod I) 𝓘(ℝ) ∞ ρ` and `hinv`, that map is smooth.
-  Near `tsupport ρ` the proof uses
-  `ContMDiffAt.clm_bundle_inverse` on the flat maps of
-  `SmoothForm.lineMapFamily σ₀ σ₁ contDiff_id`. Away from it, the field is
-  the zero section.
-- `moserField_rate_eq_zero`:
-  Moser's equation at `(t, y)`. Assume `σ₀` is closed,
-  `∀ᶠ p in 𝓝 (t, y), ρ p = 1 ∧ ((σ₀ + p.1 • (σ₁ - σ₀)).flat p.2).IsInvertible`,
-  and `mextDeriv β.val = (σ₁ - σ₀).val` on a
-  neighbourhood of `y`. Then the rate of `SmoothForm.lineMapFamily σ₀ σ₁
-  contDiff_id` along `moserField σ₀ σ₁ β ρ` vanishes at `(t, y)`. This is
-  the hypothesis of Tau Ceti's
+  `ContMDiff (J.prod I) 𝓘(ℝ) ∞ ρ` and `hinv`, that map is smooth on `N × M`.
+  Near `tsupport ρ` the proof is that of Tau Ceti's
+  `TauCeti.SmoothTwoForm.contMDiff_interiorEquiv_symm_mpullback_prodMk`.
+  Away from it, the field is the zero section.
+- `moserField_rate_eq_zero`: Moser's equation at `(t, y)`, for `N = ℝ`.
+  Assume `mextDeriv σ_t.val y = 0`,
+  `∀ᶠ z in 𝓝 y, ρ (t, z) = 1 ∧ (SmoothTwoForm.flat σ_t z).IsInvertible`,
+  and that the slice of `σ.timeDeriv` at `t` equals `mextDeriv β_t.val`
+  at `y`. Then the rate of `σ` along `moserField σ β ρ` vanishes at
+  `(t, y)`. This is the hypothesis of Tau Ceti's
   `mpullback_timeDependentFlowOf_mpullback_prodMk_apply_eq_of_forall_mem_uIcc`.
-  The primitive is asked to be one only near `y`, so that a primitive that
-  is one only near a set can be used.
+  Both conditions on the forms are asked only at `y`, so that `β` need be
+  a primitive only near a set.
 - No completeness lemma: when `tsupport ρ` is compact, `Isotopy.lean`
   applies Tau Ceti's `isCompleteVectorField_timeDependentSuspensionField`
   directly, to the compact projection of `tsupport ρ` to `M` and
@@ -309,8 +316,9 @@ API, in the order the proofs need it. `hinv` stands for
 The module docstring credits Tau Ceti's private `moserField`,
 `moserField_eq_zero`, `interior_moserField`, `interior_moserField_eq`,
 `contMDiff_moserField` and `moserRate_eq_zero` (`RelativeMoser.lean`). This
-file adapts them from the reparametrized path and a cutoff on `M` to the
-linear path and a cutoff on `ℝ × M`.
+file adapts them from the reparametrized path, a fixed primitive and a
+cutoff on `M` to a general family, a primitive depending on the parameter
+and a cutoff on `N × M`.
 
 ### `Geometry/Symplectic/Moser/Isotopy.lean`
 
@@ -356,7 +364,8 @@ set, by `isOpen_setOf_isInvertible_flat_mpullback_prodMk` applied to
 compact set `Icc 0 1 ×ˢ K`. Take a cutoff `ρ : ℝ × M → ℝ`
 (`IsCompact.exists_contMDiff_one_nhds_tsupport_subset` on `ℝ × M`) that is
 `1` near `Icc 0 1 ×ˢ K`, with compact support in this open set. The field
-`moserField σ₀ σ₁ β ρ` is smooth, and its suspension is complete, so
+`moserField (SmoothForm.lineMapFamily σ₀ σ₁ contDiff_id)
+(SmoothForm.mpullback Prod.snd contMDiff_snd β) ρ` is smooth, and its suspension is complete, so
 `Ψ := timeDependentFlowDiffeotopy` exists. It is compactly supported, and it
 fixes `K` because the field vanishes there. Trajectories starting near `K`
 stay, up to time one, where `ρ = 1`; this follows from
