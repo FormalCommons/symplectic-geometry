@@ -589,12 +589,11 @@ it into issues; the overview fixes its folders and its dependencies.
   in $\mathcal{L}(n)$ lifts to a path in $\mathrm{U}(n)$ from any frame of its
   start point. Its fibres are the left cosets of the real orthogonal matrices
   (from `Action.lean`). Near $V_1$, a continuous section sends $\{x=Sy\}$ to
-  `Matrix.GeneralLinearGroup.realOrthonormalize` of
-  `Matrix.lagrangianChartFrame S`, transferred (unitary by
-  `realOrthonormalize_mem_unitaryGroup`, continuous by
-  `continuous_realOrthonormalize`, with the same real image by
-  `realImage_realOrthonormalize`), $S$ being the coordinate of the graph
-  chart of `Graph.lean` on the Lagrangians transverse to $V_0$; left
+  the unitary matrix `unitaryOfFrame` (`Action.lean`) of the Lagrangian
+  frame `fromRows S 1`, $S$ being the coordinate of the graph chart of
+  `Graph.lean` on the Lagrangians transverse to $V_0$: it frames
+  $\{x=Sy\}$ by `graphY_eq_unitaryFrame` and is continuous by
+  `continuous_unitaryOfFrame`, so no unitary frame is built by hand; left
   translation by $\mathrm{U}(n)$ gives sections near every point. Tau Ceti's
   `Subgroup.localSectionTrivializationOfCosetFibers`
   (`Topology/Algebra/Group/Quotient/LocalSection.lean`) turns these sections
