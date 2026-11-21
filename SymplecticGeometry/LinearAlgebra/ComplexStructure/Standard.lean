@@ -88,7 +88,7 @@ theorem exists_generalLinearGroup_smul_stdComplexStructure_eq
   obtain ⟨Φ, hΦ⟩ := exists_transport_stdComplexStructure_eq J finrank_stdSpace
   exact ⟨Matrix.GeneralLinearGroup.ofEuclideanCLE Φ.toContinuousLinearEquiv, by
     rw [AlmostComplexStructure.ofEuclideanCLE_smul,
-      LinearEquiv.toLinearEquiv_toContinuousLinearEquiv, ← hΦ, AlmostComplexStructure.smul_def]⟩
+      LinearEquiv.toLinearEquiv_toContinuousLinearEquiv, ← hΦ]⟩
 
 /-- The invertible matrices act transitively on the complex structures of `StdSpace ι`. -/
 instance instIsPretransitiveGeneralLinearGroup :
@@ -175,7 +175,7 @@ theorem isPositivelyOriented_transport_iff (Φ : StdSpace ι ≃ₗ[ℝ] StdSpac
   set g := Matrix.GeneralLinearGroup.ofEuclideanCLE Φ.toContinuousLinearEquiv
   have hg : g • stdComplexStructure ι = (stdComplexStructure ι).transport Φ := by
     rw [AlmostComplexStructure.ofEuclideanCLE_smul,
-      LinearEquiv.toLinearEquiv_toContinuousLinearEquiv, AlmostComplexStructure.smul_def]
+      LinearEquiv.toLinearEquiv_toContinuousLinearEquiv]
   have hdet := Matrix.det_toEuclideanCLE _ g.det_ne_zero
   rw [Matrix.GeneralLinearGroup.toEuclideanCLE_ofEuclideanCLE] at hdet
   rw [← hg, isPositivelyOriented_smul_stdComplexStructure_iff, ← hdet]

@@ -677,29 +677,70 @@ This is Proposition 2.5.6, for a fixed `g : innerProducts V`, in
 - `polarHomotopyEquiv g : ContinuousMap.HomotopyEquiv (SymplecticForm V)
   (AlmostComplexStructure V)`, with maps $\omega\mapsto J_{g,\omega}$ and
   $J\mapsto\omega_{g,J}$, stated by the `@[simp]` lemmas
-  `polarHomotopyEquiv_toFun` and `polarHomotopyEquiv_invFun`. There are two
-  homotopies:
-  - On forms, the straight line from $\omega$ to $\omega_{g,J_{g,\omega}}$.
-    Both forms are tamed by $J_{g,\omega}$, and taming is convex in the form,
-    so the line stays nondegenerate.
-  - On complex structures, the Cayley path relative to
+  `polarHomotopyEquiv_toFun` and `polarHomotopyEquiv_invFun`. Mathlib's
+  `ContinuousMap.HomotopyEquiv` keeps its homotopies only as the `Prop`s
+  `left_inv` and `right_inv`, so the two homotopies are public definitions of
+  their own, placed before `polarHomotopyEquiv g`, which takes `left_inv` from
+  the first and `right_inv` from the second. Like `metricStraightHomotopy`,
+  each runs from the composite at time $0$ to the identity at time $1$, the
+  direction of `left_inv` and `right_inv`. The composites are written as
+  `ContinuousMap`s, continuous by `continuous_metricSymplecticForm` and
+  `continuous_metricPolarComplexStructure`.
+  - `polarStraightHomotopy g`, a `ContinuousMap.Homotopy` from
+    $\omega\mapsto\omega_{g,J_{g,\omega}}$ to `ContinuousMap.id
+    (SymplecticForm V)`: the straight line
+    $(t,\omega)\mapsto(1-t)\,\omega_{g,J_{g,\omega}}+t\,\omega$.
+    Both forms are tamed by $J_{g,\omega}$ (by
+    `compatible_metricPolarComplexStructure` and `tames_metricSymplecticForm`),
+    and taming is convex in the form, so the line stays nondegenerate; each
+    value is built with `SymplecticForm.ofTames` for $J_{g,\omega}$. Its value
+    is the `@[simp]` lemma `toBilinForm_polarStraightHomotopy_apply`, an
+    equation of bilinear forms:
+    `(polarStraightHomotopy g (t, ω)).toBilinForm = (1 - (t : ℝ)) •
+    (metricSymplecticForm g (metricPolarComplexStructure g ω)).toBilinForm +
+    (t : ℝ) • ω.toBilinForm`.
+    It is stated on `toBilinForm` and not on `⇑`: Tau Ceti's `CoeFun` on
+    `SymplecticForm V` unfolds to a lambda, so a simp lemma on `⇑` would get
+    no useful key and would not fire on `polarStraightHomotopy g (t, ω) v w`.
+    Tau Ceti makes the same choice with `ofTames_toBilinForm`. A pointwise
+    `polarStraightHomotopy_apply_apply`, not `@[simp]`, follows from it.
+  - `polarCayleyHomotopy g`, a `ContinuousMap.Homotopy` from
+    $J\mapsto J_{g,\omega_{g,J}}$ to `ContinuousMap.id
+    (AlmostComplexStructure V)`. Its value at `(t, J)` is Tau Ceti's
+    `Compatible.cayleyInterp`, taken with
+    `compatible_metricPolarComplexStructure g (metricSymplecticForm g J)`,
+    `tames_metricSymplecticForm g J` and the weight `t.2`; the endpoints are
+    `Compatible.cayleyInterp_zero` and `_one`. This is the `@[simp]` value
+    lemma `polarCayleyHomotopy_apply`, named like Mathlib's
+    `ContinuousMap.Homotopy.trans_apply`. It is the Cayley path relative to
     $J_{g,\omega_{g,J}}$ (compatible with $\omega_{g,J}$) towards $J$ (tame
     for $\omega_{g,J}$). Its endomorphism at time $b$ is
     `cayleyPathFormula b A B`, with `A` and `B` the endomorphisms of
-    `metricPolarComplexStructure g (metricSymplecticForm g J)` and of `J`.
+    `metricPolarComplexStructure g (metricSymplecticForm g J)` and of `J`, by
+    Tau Ceti's `Compatible.toContinuousLinearMap_cayleyInterp`; its joint
+    continuity in $(t,J)$ comes from `contDiffOn_cayleyPathFormula`.
     The triple lies in `cayleyDomain` by `Compatible.mem_cayleyDomain`. After
     transport along any `e : V ≃L[ℝ] W` to an inner product space `W`, `A` is
     `e`-conjugate to `metricPolarFormula` on `W`, by `metricPolarFormula_eq`
     and `metricPolarComplexStructure_transport`.
 
-  Each homotopy comes with a `@[simp]` lemma for its value.
+  If the composites of `polarHomotopyEquiv g` are not syntactically the
+  endpoints above, `ContinuousMap.Homotopy.cast` adjusts them.
 - `metricComplexStructuresHomotopyEquiv g` and
   `metricSymplecticFormsHomotopyEquiv g`, whose forward maps are the
   inclusions. Their inverses are $J\mapsto J_{g,\omega_{g,J}}$ and
-  $\omega\mapsto\omega_{g,J_{g,\omega}}$, and the homotopies are the two
-  above. Each comes with `@[simp]` `_toFun` and `_invFun` lemmas that state
-  these maps. On the subsets, the inverses fix every point, by
-  `metricPolarComplexStructure_eq_iff`.
+  $\omega\mapsto\omega_{g,J_{g,\omega}}$. Each comes with `@[simp]` `_toFun`
+  and `_invFun` lemmas that state these maps. Neither has a homotopy of its
+  own, nor a restriction of one. On the subsets, the inverses fix every
+  point, by `metricPolarComplexStructure_eq_iff` (and, on
+  `metricSymplecticForms g`, `metricSymplecticForm_eq_of_apply_apply`), so the composite on the
+  subset is equal to the identity and `left_inv` is
+  `ContinuousMap.Homotopic.refl` after `ContinuousMap.ext`. The composite on
+  the whole space is $J\mapsto J_{g,\omega_{g,J}}$, respectively
+  $\omega\mapsto\omega_{g,J_{g,\omega}}$, so `right_inv` is
+  `polarCayleyHomotopy g`, respectively `polarStraightHomotopy g`, unchanged
+  up to `ContinuousMap.Homotopy.cast`. Their values are thus
+  `polarCayleyHomotopy_apply` and `toBilinForm_polarStraightHomotopy_apply`.
 - **Milestone** `metricPolarComplexStructure_eq_inverse_mul_and_homotopyEquiv`,
   named after its first and last conjuncts. Its `V` carries only
   `[NormedAddCommGroup V] [NormedSpace ℝ V] [FiniteDimensional ℝ V]`, and no
@@ -814,10 +855,15 @@ Each is a few hundred lines. External blockers are given by issue number.
 9. **Forms versus complex structures for a fixed metric.** The first part of
    `Topology/ComplexStructure/Compatible/SymplecticForms.lean`:
    `metricSymplecticForm` and its API, `metricSymplecticForm_innerSL`, and
-   `polarHomotopyEquiv` with its two homotopies. Blockers: 5, 6.
+   `polarStraightHomotopy` with `toBilinForm_polarStraightHomotopy_apply`,
+   `polarCayleyHomotopy` with `polarCayleyHomotopy_apply`, and
+   `polarHomotopyEquiv`. Blockers: 5, 6.
 10. **The metric subsets and the milestone *Complex structures versus
     symplectic forms*.** The rest of the file: `metricComplexStructures`,
-    `metricSymplecticForms`, their two homotopy equivalences, and the
+    `metricSymplecticForms`, their two homotopy equivalences
+    `metricComplexStructuresHomotopyEquiv` and
+    `metricSymplecticFormsHomotopyEquiv` (homotopies: the identity, and
+    `polarCayleyHomotopy` or `polarStraightHomotopy`), and the
     milestone. Blockers: 9.
 11. **Compact subgroups of the symplectic group.**
     `Topology/Algebra/Matrix/SymplecticGroup/CompactSubgroup.lean`. Blockers:
