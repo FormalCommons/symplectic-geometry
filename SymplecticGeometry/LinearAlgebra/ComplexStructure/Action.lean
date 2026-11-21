@@ -93,10 +93,11 @@ theorem transport_one (J : AlmostComplexStructure V) : J.transport (1 : V ≃ₗ
   J.transport_refl
 
 /-- Transport along a product of automorphisms is transport along the right factor, then along
-the left one. -/
+the left one. The right side is nested, so that `simp` rewrites a product or an inverse in
+either factor while it is still the argument of `transport`. -/
 @[simp]
 theorem transport_mul (J : AlmostComplexStructure V) (e f : V ≃ₗ[ℝ] V) :
-    J.transport (e * f) = J.transport (f ≪≫ₗ e) :=
+    J.transport (e * f) = (J.transport f).transport e :=
   (rfl)
 
 /-- Transport along the inverse of an automorphism is transport along its inverse equivalence. -/

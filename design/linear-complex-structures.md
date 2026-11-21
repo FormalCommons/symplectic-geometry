@@ -207,9 +207,12 @@ Declarations about Tau Ceti's type go in its namespace
   survive this rewriting, the group operations of `V ≃ₗ[ℝ] V` inside
   `transport` are rewritten to Tau Ceti's form by `@[simp]` lemmas, all by
   `(rfl)` or `transport_refl`: `transport_one : J.transport 1 = J`,
-  `transport_mul : J.transport (e * f) = J.transport (f ≪≫ₗ e)` and
-  `transport_inv : J.transport e⁻¹ = J.transport e.symm`. With them `simp`
-  proves `e⁻¹ • e • J = J` and `e • f • J = (e * f) • J`. Lemmas whose right side is an action of
+  `transport_mul : J.transport (e * f) = (J.transport f).transport e` and
+  `transport_inv : J.transport e⁻¹ = J.transport e.symm`. The right side of
+  `transport_mul` is nested, not `J.transport (f ≪≫ₗ e)`, so that a product
+  or an inverse in a factor is still the argument of `transport` when `simp`
+  reaches it. With them `simp` proves `e⁻¹ • e • J = J`,
+  `e • f • J = (e * f) • J` and `(e * f)⁻¹ • J = f⁻¹ • e⁻¹ • J`. Lemmas whose right side is an action of
   `V ≃ₗ[ℝ] V` state it with `transport`, as `ofEuclideanCLE_smul :
   ofEuclideanCLE Φ • J = J.transport Φ.toLinearEquiv` (`@[simp]`) does. The
   matrix actions keep `•` as their normal form.
