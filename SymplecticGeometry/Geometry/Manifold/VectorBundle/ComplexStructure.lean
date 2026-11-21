@@ -482,7 +482,7 @@ theorem almostComplexStructureAt_prod (J₁ : ContMDiffComplexStructure I n F₁
     (J₁.prod J₂).almostComplexStructureAt x =
       (J₁.almostComplexStructureAt x).prod (J₂.almostComplexStructureAt x) :=
   TauCeti.AlmostComplexStructure.toLinearMap_injective <| LinearMap.ext fun v ↦ by
-    simp
+    simp [almostComplexStructureAt_toLinearMap]
 
 @[simp]
 theorem neg_prod_neg (J₁ : ContMDiffComplexStructure I n F₁ V₁)
