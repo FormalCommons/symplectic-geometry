@@ -270,9 +270,10 @@ Tau Ceti unchanged.
 
 Imports between the files: `SymplecticIsotopy.lean` and
 `Flux/Hamiltonian.lean` import `Velocity.lean`; `Flux/CompactSupport.lean`
-imports `Flux/Hamiltonian.lean`. `PoissonAlgebra.lean` imports only Tau
-Ceti, among it `Hamiltonian/ExtendedPhaseSpace/Manifold.lean` for the energy
-identity.
+imports `Flux/Hamiltonian.lean`. `PoissonAlgebra.lean` imports Tau Ceti,
+among it `Hamiltonian/ExtendedPhaseSpace/Manifold.lean` for the energy
+identity, and `Geometry/Manifold/DifferentialForm/Flow/Family.lean` of
+*Contact geometry* for the general flow lemma.
 
 ## Definitions and their API
 
@@ -342,7 +343,8 @@ Ceti's time-dependent flows (`[FiniteDimensional ℝ E] [J.Boundaryless]
   `((s, t), x) ∈ timeDependentFlowDomain X`; no completeness. From the local
   Moser principle `mpullback_timeDependentFlowOf_mpullback_prodMk_apply_eq_of_mem`
   for the constant family, through the general
-  `TauCeti.mpullback_timeDependentFlowOf_apply_of_mextDeriv_interior_eq_zero`
+  `TauCeti.mpullback_timeDependentFlowOf_apply_of_mextDeriv_interior_eq_zero`,
+  in `Geometry/Manifold/DifferentialForm/Flow/Family.lean` of *Contact geometry*
   (a closed smooth form whose contractions with every `X t` are closed). Tau
   Ceti's `mpullback_timeDependentFlowOf_of_isHamiltonianVectorField` is the
   complete case.
@@ -360,6 +362,7 @@ For symplectic `σ` (`hσ : σ.IsSymplectic`):
   (σ.hamiltonianLieIdeal hσ.isClosed).toLieSubalgebra`, Mathlib's
   `LieHom.quotKerEquivRange` followed by `LieEquiv.ofEq` for the equality
   `range_negHamiltonianLieHom`, with
+  `negHamiltonianLieHomQuotKerEquiv_def` and
   `coe_negHamiltonianLieHomQuotKerEquiv_mk` (the class of `f` goes to `-X_f`).
   For connected `M` the quotient is by the constants, by the previous lemma.
 
@@ -483,18 +486,20 @@ compositions is as in Decision 1.
   `σ.IsHamiltonianVectorField H (σ.hamiltonianVectorField H)` and uniqueness
   (`isHamiltonianVectorField_iff_eq`); the local autonomous flow preserves
   `σ` and `H` on its domain (Tau Ceti's `mpullback_flowOf_apply` and
-  `apply_eq_of_isMIntegralCurveOn`); the local time-dependent flow preserves
-  `σ` and satisfies the energy identity (Tau Ceti's
+  `IsFirstIntegral.apply_maximalIntegralCurve`); the local time-dependent
+  flow preserves `σ` and satisfies the energy identity (Tau Ceti's
   `(hX t).hasDerivAt_apply_self_of_hasMFDerivAt hH
   (hasMFDerivAt_timeDependentFlowOf …)`); the bracket is bilinear,
-  skew-symmetric, and satisfies Jacobi and Leibniz, on smooth functions;
+  skew-symmetric, and satisfies Jacobi and Leibniz, on smooth functions, and
+  the bracket of two smooth functions is smooth (Tau Ceti's
+  `IsNondegenerate.contMDiff_poissonBracket`);
   `σ.hamiltonianVectorField (σ.poissonBracket F G) = -mlieBracket J X_F X_G`;
   naturality for `χ ∈ diffeomorphStabilizer σ`, as
   `mfderiv J J χ q (σ.hamiltonianVectorField (H ∘ χ) q) =
   σ.hamiltonianVectorField H (χ q)` (the page's
   $X_{H\circ\chi}=\chi^*X_H$ with $d\chi_q$ applied to both sides); the
   kernel of `negHamiltonianLieHom hσ` is the locally constant functions;
-  and, for `[PreconnectedSpace M]`, it is the constants and
+  for `[PreconnectedSpace M]` it is the constants; and
   `negHamiltonianLieHomQuotKerEquiv hσ` identifies the quotient with the
   Hamiltonian fields. Milestone: *Hamiltonian flows and the Poisson
   algebra*.
@@ -525,8 +530,10 @@ identity, which Tau Ceti proves (`IsNondegenerate.poissonBracket_jacobi`).
 - From *Smooth families*: `Diffeotopy/Real.lean` (the reading of a `Diffeotopy`
   over `ℝ`, Decision 3) for `SymplecticIsotopy.lean`, and
   `ContMDiff/TimeExtension.lean` (the extension in time, Decision 3) for
-  `Flux/CompactSupport.lean`. `Velocity.lean`, `PoissonAlgebra.lean` and
+  `Flux/CompactSupport.lean`. `Velocity.lean` and
   `Flux/Hamiltonian.lean` use only Mathlib and Tau Ceti.
+- From *Contact geometry*: `Geometry/Manifold/DifferentialForm/Flow/Family.lean`
+  (the general flow lemma) for `PoissonAlgebra.lean`.
 - From Tau Ceti: the declarations of *What there is*.
 - From Mathlib: `VectorField.mlieBracket`, `ContMDiffAt.mfderiv_apply`,
   `LieHom.quotKerEquivRange`, `LieEquiv.ofEq`,

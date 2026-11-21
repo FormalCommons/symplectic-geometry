@@ -6,7 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Algebra.Lie.Quotient
-public import TauCeti.Geometry.Manifold.DifferentialForm.Flow.Family
+public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Flow.Family
 public import TauCeti.Geometry.Symplectic.Hamiltonian.CommutingFlow
 public import TauCeti.Geometry.Symplectic.Hamiltonian.ExtendedPhaseSpace.Manifold
 public import TauCeti.Geometry.Symplectic.Hamiltonian.LieAlgebra
@@ -26,16 +26,12 @@ Poisson algebra on which Hamiltonian flows act, and collects the whole statement
   (`TauCeti.SmoothTwoForm.poissonBracket_mul_left`,
   `TauCeti.SmoothTwoForm.poissonBracket_mul_right`). Since `X_f` is a linear function of `df`,
   neither nondegeneracy nor finite dimension is needed.
-* **Local time-dependent flows** preserve a closed form `β` whose contractions `ι_{X_t} β` are
-  all closed, at every point where the flow is defined, with no completeness
-  (`TauCeti.mpullback_timeDependentFlowOf_apply_of_mextDeriv_interior_eq_zero`); in particular
-  time-dependent Hamiltonian flows preserve a closed `σ`
-  (`TauCeti.SmoothTwoForm.mpullback_timeDependentFlowOf_apply_of_isHamiltonianVectorField`).
-  This is the local form of Tau Ceti's
-  `TauCeti.mpullback_timeDependentFlowOf_of_mextDeriv_interior_eq_zero`; it applies Moser's
-  principle along the domain of the flow,
-  `TauCeti.mpullback_timeDependentFlowOf_mpullback_prodMk_apply_eq_of_mem`, to the constant
-  family `(t, y) ↦ β_y`.
+* **Local time-dependent Hamiltonian flows** preserve a closed `σ` at every point where the
+  flow is defined, with no completeness
+  (`TauCeti.SmoothTwoForm.mpullback_timeDependentFlowOf_apply_of_isHamiltonianVectorField`),
+  from the general statement for closed forms with closed contractions
+  (`TauCeti.mpullback_timeDependentFlowOf_apply_of_mextDeriv_interior_eq_zero`, in
+  `SymplecticGeometry.Geometry.Manifold.DifferentialForm.Flow.Family`).
 * The **kernel of `f ↦ -X_f`** on the Poisson Lie algebra of a symplectic form consists of the
   locally constant functions
   (`TauCeti.SmoothTwoForm.mem_ker_negHamiltonianLieHom_iff_isLocallyConstant`), and of the
@@ -49,7 +45,7 @@ The main theorem, `TauCeti.SmoothTwoForm.IsSymplectic.hamiltonianFlow_and_poisso
 collects these results with Tau Ceti's: existence, uniqueness and smoothness of `X_f`;
 preservation of `σ` and of `f` by the local flow of `X_f`; preservation of `σ` by local
 time-dependent Hamiltonian flows and the energy identity `d/dt H_t(φ_t q) = (∂_t H_t)(φ_t q)`;
-bilinearity, skew-symmetry, the Jacobi identity and the Leibniz rule of the bracket;
+smoothness, bilinearity, skew-symmetry, the Jacobi identity and the Leibniz rule of the bracket;
 `X_{{f, g}} = -[X_f, X_g]`, where `-[X, Y]` with Mathlib's bracket `VectorField.mlieBracket` is
 the bracket of McDuff–Salamon; naturality of `X_f` under symplectomorphisms; and the kernel and
 quotient of `f ↦ -X_f`.
@@ -77,52 +73,6 @@ namespace TauCeti
 
 variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
   {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M] [IsManifold I ∞ M]
-
-section Flow
-
-variable [FiniteDimensional ℝ E] [I.Boundaryless] [T2Space M]
-  {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] {k : ℕ}
-  {X : ℝ → (x : M) → TangentSpace I x}
-
-/-- **Local time-dependent flows preserve closed forms with closed contractions.** Let `X` be a
-jointly `C²` time-dependent vector field and `β` a closed smooth form whose contraction
-`ι_{X_t} β` is closed for every time `t`. Wherever the time-dependent flow `φ` of `X` from
-`(s, x)` is defined up to time `t`, it satisfies `(φ_{s,t}^* β)ₓ = βₓ`. The suspension of `X`
-need not be complete. -/
-theorem mpullback_timeDependentFlowOf_apply_of_mextDeriv_interior_eq_zero
-    (hX : ContMDiff (𝓘(ℝ, ℝ).prod I) I.tangent 2
-      (fun p : ℝ × M ↦ (⟨p.2, X p.1 p.2⟩ : TangentBundle I M)))
-    {β : SmoothForm I M F (k + 1)} (hβ : β.IsClosed)
-    (hXβ : ∀ t, mextDeriv (RoughForm.interior (X t) β.val) = 0)
-    {s t : ℝ} {x : M} (h : ((s, t), x) ∈ timeDependentFlowDomain X) :
-    mpullback I I (timeDependentFlowOf X s t) β.val x = β.val x := by
-  -- The constant family `p ↦ β (p.2)` on `ℝ × M`, whose slices are all `β`.
-  set α := SmoothForm.mpullback (Prod.snd : ℝ × M → M)
-    (contMDiff_snd : ContMDiff (𝓘(ℝ, ℝ).prod I) I ∞ (Prod.snd : ℝ × M → M)) β
-  have hslice (u : ℝ) : mpullback (F := F) (k := k + 1) I (𝓘(ℝ, ℝ).prod I)
-      (Prod.mk u : M → ℝ × M) α.val = β.val := by
-    have hc : (Prod.snd : ℝ × M → M) ∘ Prod.mk u = id := rfl
-    rw [← SmoothForm.coe_mpullback (Prod.mk u) (contMDiff_const.prodMk contMDiff_id),
-      ← LinearMap.comp_apply, ← SmoothForm.mpullback_comp]
-    simp only [hc, SmoothForm.mpullback_id, LinearMap.id_apply]
-  have hL (u : ℝ) : mpullback I (𝓘(ℝ, ℝ).prod I) (Prod.mk u)
-        (mlieDerivForm (fun _ ↦ ((1 : ℝ), (0 : E))) α.val) +
-      mlieDerivForm (X u) (mpullback I (𝓘(ℝ, ℝ).prod I) (Prod.mk u : M → ℝ × M) α.val) = 0 := by
-    funext y
-    -- The slices of the constant family do not move, so their time derivative vanishes.
-    have hd := hasDerivAt_mpullback_prodMk u y (α.mdifferentiable (u, y))
-    simp only [hslice] at hd
-    have hXu : MDifferentiable I I.tangent (fun y ↦ (⟨y, X u y⟩ : TangentBundle I M)) :=
-      (hX.comp ((contMDiff_const (c := u)).prodMk contMDiff_id)).mdifferentiable two_ne_zero
-    rw [Pi.add_apply, hd.unique (hasDerivAt_const u _), hslice,
-      mlieDerivForm_eq_mextDeriv_interior β.mdifferentiable hXu
-        ((SmoothForm.isClosed_def β).1 hβ), hXβ u, Pi.zero_apply]
-    exact add_zero _
-  simpa only [hslice] using
-    mpullback_timeDependentFlowOf_mpullback_prodMk_apply_eq_of_mem hX
-      (α.contMDiff.of_le (by simp)) hL h
-
-end Flow
 
 namespace SmoothTwoForm
 
@@ -209,6 +159,11 @@ def negHamiltonianLieHomQuotKerEquiv (hσ : σ.IsSymplectic) :
   (σ.negHamiltonianLieHom hσ).quotKerEquivRange.trans
     (LieEquiv.ofEq _ _ (congrArg _ (range_negHamiltonianLieHom hσ)))
 
+theorem negHamiltonianLieHomQuotKerEquiv_def (hσ : σ.IsSymplectic) :
+    σ.negHamiltonianLieHomQuotKerEquiv hσ = (σ.negHamiltonianLieHom hσ).quotKerEquivRange.trans
+      (LieEquiv.ofEq _ _ (congrArg _ (range_negHamiltonianLieHom hσ))) :=
+  (rfl)
+
 /-- The isomorphism `TauCeti.SmoothTwoForm.negHamiltonianLieHomQuotKerEquiv` sends the class of
 `f` to `-X_f`. -/
 @[simp]
@@ -216,7 +171,7 @@ theorem coe_negHamiltonianLieHomQuotKerEquiv_mk (hσ : σ.IsSymplectic)
     (f : σ.PoissonLieAlgebra hσ) :
     (σ.negHamiltonianLieHomQuotKerEquiv hσ (LieSubmodule.Quotient.mk f) :
       σ.symplecticLieSubalgebra hσ.isClosed) = σ.negHamiltonianLieHom hσ f := by
-  rw [negHamiltonianLieHomQuotKerEquiv, LieEquiv.trans_apply, LieEquiv.ofEq_apply]
+  rw [negHamiltonianLieHomQuotKerEquiv_def, LieEquiv.trans_apply, LieEquiv.ofEq_apply]
   -- Mathlib states the value of `LieHom.quotKerEquivRange` on a class only through its
   -- linear map (`LinearMap.quotKerEquivRange_apply_mk`); the two agree by definition.
   rfl
@@ -235,15 +190,17 @@ finite-dimensional manifold `M` without boundary.
 * For a smooth time-dependent Hamiltonian `H`, the local time-dependent flow `φ` of the fields
   `X_{H_t}` preserves `σ` wherever it is defined, and satisfies the energy identity
   `d/du H_u(φ_{s,u} x) = (∂_t H_t)(φ_{s,t} x)` at `u = t`.
-* On smooth functions, the bracket `{f, g} = σ(X_f, X_g) = df(X_g)` is linear in each argument
-  and antisymmetric, and the Jacobi identity and the Leibniz rule hold for it.
+* The bracket `{f, g} = σ(X_f, X_g) = df(X_g)` of smooth functions is smooth; on smooth
+  functions it is linear in each argument and antisymmetric, and the Jacobi identity and the
+  Leibniz rule hold for it.
 * `X_{{f, g}} = -[X_f, X_g]` for Mathlib's bracket `VectorField.mlieBracket`; that is,
   `X_{{f, g}}` is the bracket of `X_f` and `X_g` in McDuff–Salamon's convention.
 * For a symplectomorphism `χ`, `dχ_q (X_{f ∘ χ}(q)) = X_f(χ q)`, that is `X_{f ∘ χ} = χ^* X_f`.
-* The kernel of `f ↦ -X_f`, on the Poisson Lie algebra, is the locally constant functions; if
-  `M` is preconnected it is the constant functions, and the class of `f` going to `-X_f` is an
+* The kernel of `f ↦ -X_f`, on the Poisson Lie algebra, is the locally constant functions, and
+  the constant functions if `M` is preconnected. The class of `f` going to `-X_f` is an
   isomorphism `TauCeti.SmoothTwoForm.negHamiltonianLieHomQuotKerEquiv` of the quotient onto the
-  Lie algebra of Hamiltonian vector fields.
+  Lie algebra of Hamiltonian vector fields; the sign is there because that Lie algebra carries
+  Mathlib's bracket, so that `f ↦ X_f` reverses brackets.
 
 Milestone: *Hamiltonian flows and the Poisson algebra*. -/
 theorem hamiltonianFlow_and_poissonAlgebra [I.Boundaryless] [T2Space M] (hσ : σ.IsSymplectic) :
@@ -264,7 +221,7 @@ theorem hamiltonianFlow_and_poissonAlgebra [I.Boundaryless] [T2Space M] (hσ : �
           (deriv (fun u ↦
             H u (timeDependentFlowOf (fun u ↦ σ.hamiltonianVectorField (H u)) s t x)) t) t) ∧
     (∀ f g k : M → ℝ, ContMDiff I 𝓘(ℝ) ∞ f → ContMDiff I 𝓘(ℝ) ∞ g → ContMDiff I 𝓘(ℝ) ∞ k →
-      ∀ (c : ℝ) (x : M),
+      ContMDiff I 𝓘(ℝ) ∞ (σ.poissonBracket f g) ∧ ∀ (c : ℝ) (x : M),
       σ.poissonBracket f g x = mvfderiv I f x (σ.hamiltonianVectorField g x) ∧
       σ.poissonBracket (f + g) k x = σ.poissonBracket f k x + σ.poissonBracket g k x ∧
       σ.poissonBracket k (f + g) x = σ.poissonBracket k f x + σ.poissonBracket k g x ∧
@@ -282,12 +239,11 @@ theorem hamiltonianFlow_and_poissonAlgebra [I.Boundaryless] [T2Space M] (hσ : �
       mfderiv I I χ q (σ.hamiltonianVectorField (f ∘ χ) q) = σ.hamiltonianVectorField f (χ q)) ∧
     (∀ f : σ.PoissonLieAlgebra hσ,
       f ∈ (σ.negHamiltonianLieHom hσ).ker ↔ IsLocallyConstant (σ.poissonLieAlgebraEquiv hσ f)) ∧
-    (PreconnectedSpace M →
-      (∀ f : σ.PoissonLieAlgebra hσ, f ∈ (σ.negHamiltonianLieHom hσ).ker ↔
-        ∃ c : ℝ, ⇑(σ.poissonLieAlgebraEquiv hσ f) = fun _ ↦ c) ∧
-      ∀ f : σ.PoissonLieAlgebra hσ,
-        (σ.negHamiltonianLieHomQuotKerEquiv hσ (LieSubmodule.Quotient.mk f) :
-          σ.symplecticLieSubalgebra hσ.isClosed) = σ.negHamiltonianLieHom hσ f) := by
+    (PreconnectedSpace M → ∀ f : σ.PoissonLieAlgebra hσ, f ∈ (σ.negHamiltonianLieHom hσ).ker ↔
+      ∃ c : ℝ, ⇑(σ.poissonLieAlgebraEquiv hσ f) = fun _ ↦ c) ∧
+    (∀ f : σ.PoissonLieAlgebra hσ,
+      (σ.negHamiltonianLieHomQuotKerEquiv hσ (LieSubmodule.Quotient.mk f) :
+        σ.symplecticLieSubalgebra hσ.isClosed) = σ.negHamiltonianLieHom hσ f) := by
   have hnd := hσ.isNondegenerate
   have hX2 {f : M → ℝ} (hf : ContMDiff I 𝓘(ℝ) ∞ f) :
       ContMDiff I I.tangent 2 (fun y ↦ (⟨y, σ.hamiltonianVectorField f y⟩ : TangentBundle I M)) :=
@@ -302,20 +258,18 @@ theorem hamiltonianFlow_and_poissonAlgebra [I.Boundaryless] [T2Space M] (hσ : �
       fun X ↦ hnd.isHamiltonianVectorField_iff_eq,
       hnd.contMDiff_hamiltonianVectorField le_rfl (hf.of_le (by simp))⟩,
     fun f hf t x hx ↦ ⟨?_, ?_⟩, fun H hH s t x hx ↦ ⟨?_, ?_⟩,
-    fun f g k hf hg hk c x ↦ ⟨hnd.poissonBracket_eq_mvfderiv f g x, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩,
+    fun f g k hf hg hk ↦ ⟨hnd.contMDiff_poissonBracket le_rfl (hf.of_le (by simp))
+      (hg.of_le (by simp)), fun c x ↦
+        ⟨hnd.poissonBracket_eq_mvfderiv f g x, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩⟩,
     fun f g hf hg ↦ ?_, fun χ hχ f hf q ↦ ?_,
     fun f ↦ mem_ker_negHamiltonianLieHom_iff_isLocallyConstant hσ,
-    fun _ ↦ ⟨fun f ↦ mem_ker_negHamiltonianLieHom_iff_exists_eq_const hσ,
-      fun f ↦ coe_negHamiltonianLieHomQuotKerEquiv_mk hσ f⟩⟩
+    fun _ f ↦ mem_ker_negHamiltonianLieHom_iff_exists_eq_const hσ,
+    fun f ↦ coe_negHamiltonianLieHomQuotKerEquiv_mk hσ f⟩
   · exact (hnd.isHamiltonianVectorField_hamiltonianVectorField f).mpullback_flowOf_apply
       hσ.isClosed (hf.of_le (by simp)) (hX2 hf) hx
-  · have hpre : IsPreconnected {t | (t, x) ∈ flowDomain (σ.hamiltonianVectorField f)} := by
-      simp only [mem_flowDomain]
-      exact ordConnected_maximalIntegralCurveInterval.isPreconnected
-    simpa only [flowOf_zero] using
-      (hnd.isHamiltonianVectorField_hamiltonianVectorField f).apply_eq_of_isMIntegralCurveOn hpre
-        (isMIntegralCurveOn_flowOf ((hX2 hf).of_le one_le_two) x) (fun u _ ↦ hmd hf _)
-        (mem_flowDomain_zero_of_mem hx) hx
+  · rw [flowOf_apply]
+    exact (isFirstIntegral_self f).apply_maximalIntegralCurve hnd (hf.of_le (by simp))
+      (hf.mdifferentiable (by simp)) (mem_flowDomain.1 hx)
   · exact mpullback_timeDependentFlowOf_apply_of_isHamiltonianVectorField
       (fun u ↦ hnd.isHamiltonianVectorField_hamiltonianVectorField (H u)) hσ.isClosed
       (fun u ↦ (hH.comp (contMDiff_const.prodMk contMDiff_id)).of_le (by simp)) (hv hH) hx
