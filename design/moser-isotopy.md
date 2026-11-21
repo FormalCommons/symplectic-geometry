@@ -8,7 +8,7 @@ and *Relative Moser theorem fixing a submanifold* of
 [McDuffSalamon2017], §3.2 (Lemma 3.2.1, Theorem 3.2.2, Corollary 3.2.3,
 Theorem 3.2.4 and Exercise 3.2.6), with the stronger first-order
 conclusion of the relative theorem from the authors' errata
-[McDuffSalamon2019Errata], p. 109, and Cannas da Silva [CannasdaSilva2001],
+[McDuffSalamon2019Errata], p. 109, and Cannas da Silva [CannasdaSilva2001Lectures],
 Lectures 6–7.
 
 All names below are in the namespace `SymplecticGeometry` unless they are
@@ -115,7 +115,7 @@ Further choices of this design:
 
 The part owns the folder `Geometry/Symplectic/Moser/`. Tau Ceti has the
 files `Geometry/Symplectic/Manifold/Moser.lean` and `RelativeMoser.lean`, so
-this library may not have folders with those names. The three files outside
+this library may not have folders with those names. The four files outside
 that folder have the names of the Tau Ceti files they extend, so that they
 can join them.
 
@@ -127,6 +127,7 @@ can join them.
 | `Geometry/Symplectic/Moser/Field.lean` | `moserField`, the cut-off Moser field of a segment of two-forms | 3 |
 | `Geometry/Symplectic/Moser/Isotopy.lean` | the Moser isotopy fixing a compact submanifold, the milestone | 4 |
 | `Geometry/Symplectic/Manifold/Darboux.lean` | Darboux charts with prescribed derivative, symplectic transitions, the milestone | 5 |
+| `Geometry/Manifold/LocalDiffeomorph/MFDeriv.lean` | the derivative of a transition between partial diffeomorphisms, composed with a differential; the differential of a partial diffeomorphism followed by a continuous linear equivalence (`PartialDiffeomorph.mvfderiv_trans_toDiffeomorph`) | 5 |
 | `Geometry/Symplectic/Moser/Stability.lean` | Moser stability, the milestone | 6 |
 
 ### `Geometry/Symplectic/Manifold/Family.lean`
@@ -260,27 +261,32 @@ API, in the order the proofs need it. `hinv` stands for
   `RoughForm.interior (moserField σ₀ σ₁ β ρ t) (σ₀ + t • (σ₁ - σ₀)).val x =
   -ρ (t, x) • β.val x`. `interior_moserField_eq` is the same identity at
   every point, given `hinv`.
-- `contMDiff_moserField`: given `ContMDiff (𝓘(ℝ, ℝ).prod I) 𝓘(ℝ) ∞ ρ` and
-  `hinv`, the map `p ↦ ⟨p.2, moserField σ₀ σ₁ β ρ p.1 p.2⟩` into the tangent
-  bundle is smooth. Near `tsupport ρ` the proof uses
+- `contMDiffAt_moserField`: if `ρ` is smooth at `p₀` and the flat map at
+  `p₀` is invertible when `p₀ ∈ tsupport ρ`, the map
+  `p ↦ ⟨p.2, moserField σ₀ σ₁ β ρ p.1 p.2⟩` into the tangent bundle is
+  smooth at `p₀`. `contMDiff_moserField`: given
+  `ContMDiff (𝓘(ℝ, ℝ).prod I) 𝓘(ℝ) ∞ ρ` and `hinv`, that map is smooth.
+  Near `tsupport ρ` the proof uses
   `ContMDiffAt.clm_bundle_inverse` on the flat maps of
   `SmoothForm.lineMapFamily σ₀ σ₁ contDiff_id`. Away from it, the field is
   the zero section.
-- `mpullback_prodMk_mlieDerivForm_lineMapFamily_add_mlieDerivForm_moserField_apply_eq_zero`:
-  Moser's equation at `(t, y)`. Assume `σ₀` is closed, `ρ = 1` on a
-  neighbourhood of `(t, y)`, and `mextDeriv β.val = (σ₁ - σ₀).val` on a
+- `moserField_rate_eq_zero`:
+  Moser's equation at `(t, y)`. Assume `σ₀` is closed,
+  `∀ᶠ p in 𝓝 (t, y), ρ p = 1 ∧ ((σ₀ + p.1 • (σ₁ - σ₀)).flat p.2).IsInvertible`,
+  and `mextDeriv β.val = (σ₁ - σ₀).val` on a
   neighbourhood of `y`. Then the rate of `SmoothForm.lineMapFamily σ₀ σ₁
   contDiff_id` along `moserField σ₀ σ₁ β ρ` vanishes at `(t, y)`. This is
   the hypothesis of Tau Ceti's
   `mpullback_timeDependentFlowOf_mpullback_prodMk_apply_eq_of_forall_mem_uIcc`.
   The primitive is asked to be one only near `y`, because `Isotopy.lean`
   extends a primitive defined on a tube by zero.
-- `isCompleteVectorField_timeDependentSuspensionField_moserField`: if
-  `tsupport ρ` is compact and `hinv` holds, the suspension is complete,
-  from Tau Ceti's `isCompleteVectorField_timeDependentSuspensionField`
-  applied to the compact projection of `tsupport ρ` to `M`.
+- No completeness lemma: when `tsupport ρ` is compact, `Isotopy.lean`
+  applies Tau Ceti's `isCompleteVectorField_timeDependentSuspensionField`
+  directly, to the compact projection of `tsupport ρ` to `M` and
+  `moserField_eq_zero_of_notMem_tsupport`.
 
 The module docstring credits Tau Ceti's private `moserField`,
+`moserField_eq_zero`, `interior_moserField`, `interior_moserField_eq`,
 `contMDiff_moserField` and `moserRate_eq_zero` (`RelativeMoser.lean`). This
 file adapts them from the reparametrized path and a cutoff on `M` to the
 linear path and a cutoff on `ℝ × M`.
@@ -377,32 +383,51 @@ theorem IsSymplectic.exists_darbouxChart_mvfderiv_eq {ω : SmoothTwoForm I M}
         ω.eval₂ x v w = form₀ (mvfderiv I chart x v) (mvfderiv I chart x w)
 ```
 
+It is the corollary, for `[BoundarylessManifold I M]`, of
+`exists_darbouxChart_mvfderiv_eq_of_isInteriorPoint`, which assumes only
+`ω.IsClosed` and `I.IsInteriorPoint p`, as Tau Ceti's
+`exists_darbouxChart_of_nondegenerate_of_isInteriorPoint` does: `hA` makes
+`ω` nondegenerate at `p`.
+
 Milestone: *Darboux theorem with prescribed derivative*. The milestone's
-other two conclusions are the next theorem, for the transitions, and Tau
-Ceti's `IsSymplectic.exists_darbouxChart_of_symplecticForm`, for charts at
-every point. The docstring names both. `A` gives
-`finrank ℝ F = finrank ℝ E`, so `E ≃L[ℝ] F`. Pull `form₀` back to `E` along
-such an equivalence, take Tau Ceti's chart for that form, and compose with
-`A ∘ (mvfderiv I χ p)⁻¹` as in *Decisions*. The composition with a linear
-symplectomorphism is Tau Ceti's private `trans_toDiffeomorph_darboux`
-(`chart.trans L.toDiffeomorph.toPartialDiffeomorph`). This file restates it
-as a public lemma, `trans_toDiffeomorph_darbouxChart`, credited in the module
-docstring. The derivative of `χ` at `p` is invertible because `χ` is a
-partial diffeomorphism. It is symplectic by the chart identity at `p`.
+other two conclusions are the transition lemma below, and, for charts into
+`StdSpace (Fin n)` at every point, this theorem at each point with `A` from
+the linear Darboux theorem `exists_isSymplectomorphism_stdForm`. The
+docstring names both. Take Tau Ceti's chart `χ` for some constant form on
+`E`, and compose with `A ∘ (mvfderiv I χ p)⁻¹` as in *Decisions*. The
+composition with a linear symplectomorphism is Tau Ceti's private
+`trans_toDiffeomorph_darboux` (`chart.trans L.toDiffeomorph.toPartialDiffeomorph`).
+This file restates it as a public lemma, `trans_toDiffeomorph_darbouxChart`,
+credited in the module docstring, with the source, the values and the
+derivative at every point of the source; the derivative comes from
+`PartialDiffeomorph.mvfderiv_trans_toDiffeomorph` in
+`Geometry/Manifold/LocalDiffeomorph/MFDeriv.lean`. The derivative of `χ` at `p` is
+invertible because `χ` is a partial diffeomorphism
+(`PartialDiffeomorph.bijective_mvfderiv`). It is symplectic by the chart
+identity at `p`.
+
+In the namespace `TauCeti.SymplecticForm`, so that it is reached from
+`form₀`, and at the image `φ x` of a point of both sources, as Tau Ceti's
+`PartialDiffeomorph.fderiv_comp_symm_eq_comp` states transitions:
 
 ```lean
-theorem apply_fderiv_comp_symm_apply_eq {ω : SmoothTwoForm I M} {form₀ : SymplecticForm F}
-    {φ ψ : PartialDiffeomorph I 𝓘(ℝ, F) M F ∞}
-    (hφ : ∀ x ∈ φ.source, ∀ v w, ω.eval₂ x v w = form₀ (mvfderiv I φ x v) (mvfderiv I φ x w))
-    (hψ : ∀ x ∈ ψ.source, ∀ v w, ω.eval₂ x v w = form₀ (mvfderiv I ψ x v) (mvfderiv I ψ x w))
-    {y : F} (hy : y ∈ φ.target) (hyψ : φ.symm y ∈ ψ.source) (v w : F) :
-    form₀ (fderiv ℝ (ψ ∘ φ.symm) y v) (fderiv ℝ (ψ ∘ φ.symm) y w) = form₀ v w
+theorem apply_fderiv_transition_eq (form₀ : SymplecticForm F) {ω : SmoothTwoForm I M}
+    {φ ψ : PartialDiffeomorph I 𝓘(ℝ, F) M F ∞} {x : M} (hxφ : x ∈ φ.source)
+    (hxψ : x ∈ ψ.source)
+    (hφ : ∀ v w, ω.eval₂ x v w = form₀ (mvfderiv I φ x v) (mvfderiv I φ x w))
+    (hψ : ∀ v w, ω.eval₂ x v w = form₀ (mvfderiv I ψ x v) (mvfderiv I ψ x w))
+    (v w : F) :
+    form₀ (fderiv ℝ (fun z ↦ ψ (φ.symm z)) (φ x) v)
+      (fderiv ℝ (fun z ↦ ψ (φ.symm z)) (φ x) w) = form₀ v w
 ```
 
-The proof uses the chain rule. `mvfderiv I φ (φ.symm y)` is surjective, so
-both sides are `ω` at `φ.symm y`, read through the two charts. This holds
-for any two charts that pull the same constant form back to `ω`, so
-`ω` needs no hypothesis.
+The proof uses the chain rule
+`PartialDiffeomorph.fderiv_comp_symm_comp_mvfderiv`, in
+`Geometry/Manifold/LocalDiffeomorph/MFDeriv.lean` (named like Tau Ceti's
+file, since it holds for any partial diffeomorphisms into normed spaces).
+`mvfderiv I φ x` is surjective, so both sides are `ω` at `x`, read through
+the two charts. It needs only that both charts pull the same constant form
+back to `ω` at `x`, so `ω` needs no hypothesis.
 
 ### `Geometry/Symplectic/Moser/Stability.lean`
 
@@ -480,10 +505,9 @@ and pullbacks commute with `d`. That theorem gives
   `RoughForm.extendByZero` with `IsSmoothForm.extendByZero`,
   `IsCompact.exists_contMDiff_one_nhds_tsupport_subset`,
   `Continuous.isOpen_setOf_clm_bundle_isInvertible`, `exactForms`,
-  `Manifold.tangentSpaceOpenEquiv_mfderiv_apply`.
+  `Manifold.tangentSpaceOpenEquiv_mfderiv_apply`, `ContMDiffAt.clm_bundle_inverse`.
 - Mathlib: `generalized_tube_lemma`, `Real.smoothTransition`,
-  `Manifold.IsSmoothEmbedding.of_opens`, `ContMDiffAt.clm_bundle_inverse`,
-  `PartialDiffeomorph`, `Diffeomorph`.
+  `Manifold.IsSmoothEmbedding.of_opens`, `PartialDiffeomorph`, `Diffeomorph`.
 - *Smooth families* (#466, #467), for `Stability.lean` only: (★), the time
   extension, the reparametrization, and the restriction to a `Diffeotopy`.
 - *Standard model*, merged, only for the plan's case `F = StdSpace (Fin n)`
@@ -511,7 +535,7 @@ sub-issues of #472, *Build the part Moser isotopy*. Sizes are estimates.
 | 2 | The relative Moser theorem with prescribed first derivative | `Moser/Relative.lean` | 1 | 300 |
 | 3 | The cut-off Moser field of a segment of two-forms | `Moser/Field.lean` | — | 350 |
 | 4 | The Moser isotopy fixing a compact submanifold | `Moser/Isotopy.lean` | 1, 3 | 300 |
-| 5 | Darboux charts with prescribed derivative | `Geometry/Symplectic/Manifold/Darboux.lean` | — | 200 |
+| 5 | Darboux charts with prescribed derivative | `Geometry/Symplectic/Manifold/Darboux.lean`, `Geometry/Manifold/LocalDiffeomorph/MFDeriv.lean` | — | 200 |
 | 6 | Moser stability | `Moser/Stability.lean` | 1; the issues of #467 that build `DeRham/SmoothFamily/GoodCover.lean`, `DifferentialForm/TimeExtension.lean` and `Diffeotopy/Real.lean` (#467 itself until it is split) | 250 |
 
 Issues 1, 3 and 5 can start at once, and issues 2 and 4 need nothing outside the
@@ -527,7 +551,9 @@ submanifold*), 5 (*Darboux theorem with prescribed derivative*) and 6
   §3.2.
 * [D. McDuff, D. Salamon, errata to the third edition][McDuffSalamon2019Errata],
   p. 109 (the first-order conclusion of Lemma 3.2.1).
-* [A. Cannas da Silva, *Lectures on Symplectic Geometry*][CannasdaSilva2001],
-  Lectures 6–7.
+* [A. Cannas da Silva, *Lectures on Symplectic Geometry*, Lecture Notes in
+  Mathematics 1764, Springer, Berlin, 2001][CannasdaSilva2001Lectures],
+  Lectures 6–7. The plan's bibliography has no key for this book; its key
+  `CannasdaSilva2001` is her 2001 notes *Symplectic Toric Manifolds*.
 * J. Moser, *On the volume elements on a manifold*, Transactions of the
   American Mathematical Society 120 (1965), 286–294.
