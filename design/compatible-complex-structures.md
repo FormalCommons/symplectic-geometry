@@ -696,13 +696,20 @@ This is Lemma 2.5.5, on `StdSpace ι`, in `SymplecticGeometry`.
   `-(Matrix.J ι ℝ) * Matrix.toEuclideanLin.symm J.toLinearMap`, and
   `compatibleEquivPosDefSymplectic_symm_apply_toLinearMap`, which is
   `Matrix.toEuclideanLin (Matrix.J ι ℝ * P)`.
-- The underlying facts, each a lemma. Since
-  $\omega_0(z,w)=\langle J_0z,w\rangle$ (`stdForm_apply_eq_inner`), the
-  matrix $P=-J_0J$ is the Gram matrix of $g_J$. So $P$ is symmetric if and
-  only if $J$ is $\omega_0$-invariant (by `invariant_iff_isSymm_associatedBilinForm`),
-  and positive definite if and only if $J$ is tame. A symmetric $P$ is
-  symplectic if and only if $(J_0P)^2=-1$. The matrix dictionary of #8
-  translates between matrices and maps.
+- The underlying facts use no topology, so they are lemmas of the
+  *Standard model* file `LinearAlgebra/Symplectic/Standard/Matrix.lean`,
+  which imports `LinearAlgebra/Symplectic/Compatible.lean` for them:
+  `stdForm_apply_toEuclideanLin` ($\omega_0(v,Aw)=v^T(-J_0A)w$),
+  `associatedBilinForm_stdForm_apply` and
+  `toMatrix_associatedBilinForm_stdForm` (the matrix $P=-J_0J$ is the Gram
+  matrix of $g_J$), `invariant_stdForm_iff_isSymm` ($P$ is symmetric if and
+  only if $J$ is $\omega_0$-invariant, by
+  `invariant_iff_isSymm_associatedBilinForm`), `tames_stdForm_iff`, and
+  `compatible_stdForm_iff_posDef` ($J$ is compatible if and only if $P$ is
+  positive definite, by `compatible_iff_isSymm_and_posDef_associatedBilinForm`).
+  The same file proves `posDef_toBlocks₂₁_of_compatible` from the last one,
+  as a principal submatrix. This file adds that a symmetric $P$ is
+  symplectic if and only if $(J_0P)^2=-1$, and the topology.
 
 ### `Topology/ComplexStructure/Compatible/Metric.lean`
 

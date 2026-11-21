@@ -164,7 +164,7 @@ folder at the same place, so that the two merge upstream.
 
 **Departures from `DESIGN.md`.** Each has its reason, and the overview
 lists each one: #59, #113, #212 and #218 brought it in line with the
-earlier ones, and the change that planned `CodRestrict.lean` added that
+earlier ones, and #276, which planned `CodRestrict.lean`, added that
 file to it.
 
 - The overview's `.../Symplectic/ComplexStructure.lean` becomes a folder of
@@ -594,7 +594,7 @@ is what the uses provide, since the fibre maps are explicit formulas.
 
 ```lean
 variable {P : Type*} [TopologicalSpace P] [ChartedSpace HP P] {IP : ModelWithCorners 𝕜 EP HP}
-  (Φ : P → ∀ x, V x → W x) {O : Set (TotalSpace F V)} (hO : IsOpen O)
+  (Φ : P → ∀ x, V x → W x) {O : Set (TotalSpace F V)}
   (hΦ : ContMDiffOn (IP.prod (I.prod 𝓘(𝕜, F))) (I.prod 𝓘(𝕜, F')) n
     (fun q : P × TotalSpace F V ↦ TotalSpace.mk' F' q.2.proj (Φ q.1 q.2.proj q.2.snd))
     (univ ×ˢ O))
@@ -602,19 +602,21 @@ variable {P : Type*} [TopologicalSpace P] [ChartedSpace HP P] {IP : ModelWithCor
 def fiberwiseMap (p : P) (s : {s : Cₛ^n⟮I; F, V⟯ // ∀ x, ⟨x, s x⟩ ∈ O}) : Cₛ^n⟮I; F', W⟯
 
 theorem continuous_fiberwiseMap [IsManifold IP n P] [LocallyCompactSpace EB]
-    [LocallyCompactSpace F] (hcover) :
+    [LocallyCompactSpace F] (hO : IsOpen O) (hcover) :
     letI := frameTopology e U hU; letI := frameTopology e' U' hU'
-    Continuous fun q : P × {s // ∀ x, ⟨x, s x⟩ ∈ O} ↦ fiberwiseMap Φ hO hΦ q.1 q.2
+    Continuous fun q : P × {s // ∀ x, ⟨x, s x⟩ ∈ O} ↦ fiberwiseMap Φ hΦ q.1 q.2
 ```
 
-with `fiberwiseMap_apply`. Here `e U hU` is a covering frame system of `V`
-(`hcover`) and `e' U' hU'` is any frame system of `W`. The target needs no
-cover, since `continuous_frameTopology_iff_frameCoordinates` tests one frame
-of `W` at a time; the uses supply covers of both bundles anyway.
+with `fiberwiseMap_apply`. The definition does not use that `O` is open, so
+`fiberwiseMap` does not take `hO`; only `continuous_fiberwiseMap` does.
+Here `e U hU` is a covering frame system of `V` (`hcover`) and `e' U' hU'`
+is any frame system of `W`. The target needs no cover, since
+`continuous_frameTopology_iff_frameCoordinates` tests one frame of `W` at a
+time; the uses supply covers of both bundles anyway.
 
 **The route.** By `continuous_frameTopology_iff_frameCoordinates`, it is
 enough to show, for each `j`, that the frame coordinates of
-`fiberwiseMap Φ hO hΦ p s` in `e' j` on `U' j` are continuous in `(p, s)` in
+`fiberwiseMap Φ hΦ p s` in `e' j` on `U' j` are continuous in `(p, s)` in
 `C^n⟮I, U' j; 𝓘(𝕜, F'), F'⟯`. Let `N j : Opens (TotalSpace F V)` be the
 points of `O` over `(e' j).baseSet` (open, since `O` is and the projection is
 continuous); it is a manifold with model `I.prod 𝓘(𝕜, F)`. The coordinates
@@ -632,8 +634,8 @@ Then `p ↦ G p` is continuous by Tau Ceti's
 `ContMDiff.continuous_manifoldWeakWhitney`
 (`Geometry/Manifold/ContMDiffMap/Chart/ManifoldFamily.lean`); `s ↦ σ s` by
 `continuous_toContMDiffMap`, Tau Ceti's `ContMDiffMap.continuous_restrict`
-(`.../ContMDiffMap/Chart/Restriction.lean`) and
-`ContMDiffMap.continuous_codRestrict_manifoldWeakWhitney`; and the
+(`.../ContMDiffMap/Chart/Restriction.lean`) and the family form
+`Continuous.codRestrict_manifoldWeakWhitney`; and the
 composite by Tau Ceti's `ContMDiffMap.continuous_comp_manifoldWeakWhitney`
 (`.../ContMDiffMap/Chart/Comp.lean`). That last lemma assumes local
 compactness of the models of the source (`EB`) and of the middle manifold
@@ -657,6 +659,9 @@ $C^n$ maps, so they are public and named.
 
   @[simp] theorem toContMDiffMap_apply (s : Cₛ^n⟮I; F, V⟯) (x : M) :
       toContMDiffMap s x = TotalSpace.mk' F x (s x)
+
+  theorem toContMDiffMap_injective :
+      Function.Injective (toContMDiffMap : Cₛ^n⟮I; F, V⟯ → C^n⟮I, M; I.prod 𝓘(𝕜, F), _⟯)
 
   theorem continuous_toContMDiffMap [LocallyCompactSpace EB] (hcover : ∀ x, ∃ i, x ∈ U i) :
       letI := frameTopology e U hU
@@ -733,9 +738,27 @@ $C^n$ maps, so they are public and named.
   @[simp] theorem coe_codRestrict_apply (f : C^n⟮I, M; J, N⟯) (W : Opens N)
       (h : ∀ x, f x ∈ W) (x : M) : (f.codRestrict W h x : N) = f x
 
-  theorem continuous_codRestrict_manifoldWeakWhitney (W : Opens N) :
+  @[simp] theorem val_comp_codRestrict (f : C^n⟮I, M; J, N⟯) (W : Opens N)
+      (h : ∀ x, f x ∈ W) : Subtype.val ∘ f.codRestrict W h = f
+
+  theorem codRestrict_mem_chartJetSet_iff [IsManifold I n M] [IsManifold J n N]
+      (f : C^n⟮I, M; J, N⟯) (W : Opens N) (h : ∀ x, f x ∈ W) (x : M) (y : W) (m : ℕ)
+      (K : Set (extChartAt I x).target) (V : Set (E [×m]→L[𝕜] F)) :
+      f.codRestrict W h ∈ chartJetSet x y m K V ↔ f ∈ chartJetSet x (y : N) m K V
+
+  theorem continuous_codRestrict_manifoldWeakWhitney [IsManifold I n M] [IsManifold J n N]
+      (W : Opens N) :
       Continuous fun f : {f : C^n⟮I, M; J, N⟯ // ∀ x, f x ∈ W} ↦ f.1.codRestrict W f.2
+
+  theorem _root_.Continuous.codRestrict_manifoldWeakWhitney [IsManifold I n M]
+      [IsManifold J n N] {P : Type*} [TopologicalSpace P] {g : P → C^n⟮I, M; J, N⟯}
+      (hg : Continuous g) (W : Opens N) (h : ∀ p x, g p x ∈ W) :
+      Continuous fun p ↦ (g p).codRestrict W (h p)
   ```
+
+  Here `E` and `F` are the model spaces of `M` and `N`. The last lemma is the
+  form for a continuous family of maps, which the proof of
+  `continuous_fiberwiseMap` uses.
 
   Smoothness of the corestriction is Tau Ceti's
   `TauCeti.ContMDiff.subtypeVal_comp_iff`. Continuity needs no local

@@ -252,6 +252,14 @@ further when they grow, following `AGENTS.md`.
   square $-1$) and `LinearAlgebra/Matrix/Symmetric.lean` (for
   `Matrix.isSymm_mul_nonsing_inv_of_transpose_mul_eq`). Both import only
   Mathlib and Tau Ceti and are merged, so the part still sits at level 0.
+  `Matrix.lean` also imports `LinearAlgebra/Symplectic/Compatible.lean` of
+  *Compatible complex structures*, for the matrix form of compatibility on
+  `StdSpace ι` (`compatible_stdForm_iff_posDef` and its companions). That
+  file imports only Tau Ceti, Mathlib, `Standard/Basic.lean`,
+  `LinearAlgebra/ComplexStructure/Action.lean` and
+  `LinearAlgebra/Symplectic/Subspace.lean`, none of which imports
+  `Matrix.lean`, and it is merged; so there is no cycle, and the files that
+  build on the dictionary see no change in order.
 - **Milestones:** none. It is the interface the other parts share.
 
 ### 2. Symplectic vector spaces
@@ -1408,7 +1416,7 @@ Each part depends only on the parts listed, besides Mathlib and Tau Ceti.
 
 | Level | Part | Builds on |
 |---|---|---|
-| 0 | *Standard model* | — (it imports `LinearAlgebra/Matrix/Block.lean` and `LinearAlgebra/Matrix/Symmetric.lean` of *Siegel upper half space*, which import only Mathlib and Tau Ceti and are merged) |
+| 0 | *Standard model* | — (it imports `LinearAlgebra/Matrix/Block.lean` and `LinearAlgebra/Matrix/Symmetric.lean` of *Siegel upper half space*, which import only Mathlib and Tau Ceti and are merged, and the merged `LinearAlgebra/Symplectic/Compatible.lean` of *Compatible complex structures*, which besides `Standard/Basic.lean` imports only merged files that do not import `Standard/Matrix.lean`) |
 | 0 | *Symplectic group* | — |
 | 0 | *Linear Moser* | — |
 | 1 | *Unitary group topology* | *Symplectic group* (only the file on $\mathrm{Sp}(2n)$; the other files can start at once) |
