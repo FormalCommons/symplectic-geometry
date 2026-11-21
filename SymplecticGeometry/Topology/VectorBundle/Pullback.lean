@@ -9,7 +9,7 @@ public import Mathlib.Topology.VectorBundle.ContinuousAlternatingMap
 public import TauCeti.Topology.VectorBundle.Pullback
 
 /-!
-# Alternating maps and negatives on a pull-back bundle
+# Alternating maps and fibre operations on a pull-back bundle
 
 Let `V` be a topological vector bundle over `B` and `f : X → B` a continuous map. An alternating
 map `A : V (f x) [⋀^ι]→L[𝕜] G` is a point of two bundles of alternating maps: the one from
@@ -23,10 +23,22 @@ the identity over both bases.
 This is the counterpart for alternating maps of Tau Ceti's
 `ContinuousLinearMap.inCoordinates_pullback_of_mem`, and its proof follows that one.
 
-The file also has `Bundle.Pullback.neg_fiber`: the negative, taken in `V (f y)`, of a vector of
-type `(f *ᵖ V) y` is its negative for Tau Ceti's group structure
-`Bundle.Pullback.instAddCommGroup` on that fibre. Since `Bundle.Pullback` is not reducible,
-`simp` does not see this equation by itself.
+The file also has `simp` lemmas for vectors of the fibre `(f *ᵖ V) y`, which is `V (f y)` by
+definition, with the group and module structures of `V (f y)` under another name (Tau Ceti's
+`Bundle.Pullback.instAddCommGroup`, Mathlib's module structure). Since `Bundle.Pullback` is not
+reducible, `simp` does not identify the two types, and the lemmas about one do not apply to
+terms built in the other. The lemmas take each operation at the type of its arguments:
+`Bundle.Pullback.neg_fiber`, `add_fiber`, `sub_fiber` and `smul_fiber` move an operation taken
+in `V (f y)` on vectors of type `(f *ᵖ V) y` to `(f *ᵖ V) y`, and `neg_pullback`,
+`add_pullback`, `sub_pullback` and `smul_pullback` move an operation taken in `(f *ᵖ V) y` on
+vectors of type `V (f y)` to `V (f y)`. Each applies only where the two types differ, so the
+two families do not undo each other. `neg_apply_fiber` and `neg_apply_pullback` evaluate a
+negated function on a vector of the other type, where `Pi.neg_apply` does not apply.
+`zero_fiber` relates the two zeros; it is not a `simp` lemma, since a zero has no argument
+whose type could decide between them. `smul_fiber` is Tau Ceti's `Bundle.Pullback.smul_eq` read
+from right to left, for Mathlib's module structure on the fibres: the file of `smul_eq` gives the
+fibres a second scalar action, `Bundle.Pullback.instSMul`, and importing it here would change
+the action that `c • v` elaborates to in every file that imports this one.
 
 ## References
 
@@ -73,13 +85,93 @@ end Coordinates
 
 namespace Bundle.Pullback
 
-variable {B B' : Type*} {E : B → Type*} [∀ b, AddCommGroup (E b)] {f : B' → B} {y : B'}
+variable {B B' : Type*} {E : B → Type*} {f : B' → B} {y : B'}
+
+section AddCommMonoid
+
+variable [∀ b, AddCommMonoid (E b)]
+
+/-- The zero of `E (f y)` is the zero of the fibre of `f *ᵖ E` at `y`. This is not a `simp`
+lemma: its left-hand side is any zero of `E (f y)`. -/
+theorem zero_fiber : @Eq ((f *ᵖ E) y) (0 : E (f y)) 0 := (rfl)
+
+/-- The sum, taken in `E (f y)`, of two vectors `v` and `w` of the fibre of `f *ᵖ E` at `y` is
+their sum in that fibre. -/
+@[simp]
+theorem add_fiber (v w : (f *ᵖ E) y) :
+    @Eq ((f *ᵖ E) y) (@HAdd.hAdd (E (f y)) (E (f y)) (E (f y)) _ v w) (v + w) := (rfl)
+
+/-- The sum, taken in the fibre of `f *ᵖ E` at `y`, of two vectors `v` and `w` of `E (f y)` is
+their sum in `E (f y)`. -/
+@[simp]
+theorem add_pullback (v w : E (f y)) :
+    @Eq (E (f y)) (@HAdd.hAdd ((f *ᵖ E) y) ((f *ᵖ E) y) ((f *ᵖ E) y) _ v w) (v + w) := (rfl)
+
+end AddCommMonoid
+
+section AddCommGroup
+
+variable [∀ b, AddCommGroup (E b)]
 
 /-- The negative, taken in `E (f y)`, of a vector `v` of the fibre of `f *ᵖ E` at `y` is the
 negative of `v` in that fibre. -/
 @[simp]
 theorem neg_fiber (v : (f *ᵖ E) y) :
     @Eq ((f *ᵖ E) y) (@Neg.neg (E (f y)) _ v) (-v) := (rfl)
+
+/-- The negative, taken in the fibre of `f *ᵖ E` at `y`, of a vector `v` of `E (f y)` is the
+negative of `v` in `E (f y)`. -/
+@[simp]
+theorem neg_pullback (v : E (f y)) :
+    @Eq (E (f y)) (@Neg.neg ((f *ᵖ E) y) _ v) (-v) := (rfl)
+
+/-- The difference, taken in `E (f y)`, of two vectors `v` and `w` of the fibre of `f *ᵖ E` at
+`y` is their difference in that fibre. -/
+@[simp]
+theorem sub_fiber (v w : (f *ᵖ E) y) :
+    @Eq ((f *ᵖ E) y) (@HSub.hSub (E (f y)) (E (f y)) (E (f y)) _ v w) (v - w) := (rfl)
+
+/-- The difference, taken in the fibre of `f *ᵖ E` at `y`, of two vectors `v` and `w` of
+`E (f y)` is their difference in `E (f y)`. -/
+@[simp]
+theorem sub_pullback (v w : E (f y)) :
+    @Eq (E (f y)) (@HSub.hSub ((f *ᵖ E) y) ((f *ᵖ E) y) ((f *ᵖ E) y) _ v w) (v - w) := (rfl)
+
+end AddCommGroup
+
+section Module
+
+variable {R : Type*} [Semiring R] [∀ b, AddCommMonoid (E b)] [∀ b, Module R (E b)]
+
+/-- The multiple `c • v`, taken in `E (f y)`, of a vector `v` of the fibre of `f *ᵖ E` at `y` is
+the multiple `c • v` in that fibre. -/
+@[simp]
+theorem smul_fiber (c : R) (v : (f *ᵖ E) y) :
+    @Eq ((f *ᵖ E) y) (@HSMul.hSMul R (E (f y)) (E (f y)) _ c v) (c • v) := (rfl)
+
+/-- The multiple `c • v`, taken in the fibre of `f *ᵖ E` at `y`, of a vector `v` of `E (f y)` is
+the multiple `c • v` in `E (f y)`. -/
+@[simp]
+theorem smul_pullback (c : R) (v : E (f y)) :
+    @Eq (E (f y)) (@HSMul.hSMul R ((f *ᵖ E) y) ((f *ᵖ E) y) _ c v) (c • v) := (rfl)
+
+end Module
+
+section Neg
+
+variable {β : Type*} [Neg β]
+
+/-- The negative of a function `g` on `E (f y)`, applied to a vector `v` of the fibre of
+`f *ᵖ E` at `y`, is `-g v`. This is `Pi.neg_apply` for a vector of the pull-back fibre. -/
+@[simp]
+theorem neg_apply_fiber (g : E (f y) → β) (v : (f *ᵖ E) y) : (-g) v = -g v := (rfl)
+
+/-- The negative of a function `g` on the fibre of `f *ᵖ E` at `y`, applied to a vector `v` of
+`E (f y)`, is `-g v`. This is `Pi.neg_apply` for a vector of `E (f y)`. -/
+@[simp]
+theorem neg_apply_pullback (g : (f *ᵖ E) y → β) (v : E (f y)) : (-g) v = -g v := (rfl)
+
+end Neg
 
 end Bundle.Pullback
 
