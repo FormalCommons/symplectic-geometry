@@ -435,6 +435,24 @@ In `TauCeti.Diffeotopy`, for any two-form `σ` unless said:
   `TauCeti` on the homotopy operator if it is stated for any smooth family
   of slicewise closed one-forms on a chart ball, which is its natural
   generality. This is what *Isotopy extension* uses.
+- The gluing of Decision 4 is a public lemma, in the namespace `TauCeti`,
+  for any manifold `M` (no compactness, no form `σ`), because *Isotopy
+  extension* applies it on open subsets (its `Cohomological/Primitive.lean`):
+
+  ```lean
+  theorem TauCeti.exists_contMDiff_mextDeriv_eq_of_forall_mem_exactForms
+      {α : SmoothForm (J.prod (𝓡∂ 1)) (M × unitInterval) ℝ 1}
+      (hα : ∀ t, SmoothForm.mpullback (fun x ↦ (x, t)) _ α ∈ exactForms J M 1) :
+      ∃ F : M × unitInterval → ℝ, ContMDiff (J.prod (𝓡∂ 1)) 𝓘(ℝ) ∞ F ∧
+        ∀ t, mextDeriv (RoughForm.ofFunction J (fun x ↦ F (x, t))) =
+          (SmoothForm.mpullback (fun x ↦ (x, t)) _ α : RoughForm J M ℝ 1)
+  ```
+
+  It is the family version of Tau Ceti's
+  `exists_contMDiff_mextDeriv_eq_of_mem_exactForms`, and
+  `exists_hasHamiltonian_of_forall_mem_exactForms` applies it to
+  $\alpha_t=\phi_t^*(\iota_{X_t}\sigma)$. The slices are written as *Smooth
+  families* fixes, and the smoothness proof of each slice as Lean needs it.
 
 ### `Geometry/Symplectic/Flux/CompactSupport.lean`
 
@@ -557,7 +575,8 @@ Each is a few hundred lines; each is blocked by the issues it names.
    `hasHamiltonian_comp_iff`, the three rules and the uniqueness lemmas.
    About 250 lines. Blocked by 1.
 5. **Hamiltonians from exactness.** In `Flux/Hamiltonian.lean`: the local
-   step, the gluing, `exists_hasHamiltonian_of_forall_mem_exactForms` and
+   step, the gluing (`exists_contMDiff_mextDeriv_eq_of_forall_mem_exactForms`),
+   `exists_hasHamiltonian_of_forall_mem_exactForms` and
    `isHamiltonian_iff_forall_interiorₗ_velocity_mem_exactForms`. About 350
    lines. Blocked by 4.
 6. **Compactly supported Hamiltonian diffeomorphisms.**
