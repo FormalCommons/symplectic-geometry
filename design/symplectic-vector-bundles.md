@@ -410,7 +410,29 @@ $[0,1]$ is never fed to the lemma with `P = ℝ` directly.
   open because units are open and $[0,1]$ is compact. Tau Ceti's
   `Tames.isUnit_one_sub_mul_of_toLinearMap` and
   `Compatible.isUnit_one_sub_smul_cayleyFormula` show that the values of
-  every tame `J` lie in it. That the path stays tame, and compatible when `J` is, are Tau
+  every tame `J` lie in it. The hypothesis `hΦ` of `continuous_fiberwiseMap`
+  is checked in trivializations, and for $V = TM$ with $n = \infty$ Tau Ceti
+  has done this step: `ContMDiffAt.cayleyPathFormula_hom_bundle`
+  (`.../AlmostComplex/CayleyPath.lean`) shows that
+  `cayleyPathFormula (b q) (A q) (B q)` is smooth at `q₀` as a map into the
+  endomorphism bundle of $TM$ along a smooth base map `f : P → M`, given
+  smooth `b`, `A`, `B` and the two units at `q₀` only. Its proof rewrites
+  `inCoordinates` as conjugation by the fibre equivalence
+  (`ContinuousLinearMap.inCoordinates_eq_conjContinuousAlgEquiv`,
+  `Topology/VectorBundle/Coordinates.lean`, stated for any vector bundle),
+  moves the formula through it with `map_cayleyPathFormula`, and ends with
+  `contDiffAt_cayleyPathFormula`. This file states the same lemma for the
+  endomorphism bundle of any $C^n$ vector bundle `V` with complete fibre
+  `F`, as `ContMDiffAt.cayleyPathFormula_hom_bundle_of_vectorBundle` (in
+  the root namespace, next to Tau Ceti's), by the same proof with
+  `TangentSpace I` replaced by `V`; it does not redo the chart computation
+  in another way. Then `hΦ` holds at each point of `univ ×ˢ O`: apply the
+  lemma with parameter space `ℝ × TotalSpace (F →L[ℝ] F) (fun x ↦ V x →L[ℝ] V x)`, base
+  map the bundle projection, `b` the time through `smoothTransition (1 - ·)`,
+  `A` the value of `J₀` and `B` the fibre value. On $TM$ the two lemmas
+  coincide, so no comparison with Tau Ceti is needed; if Tau Ceti
+  generalizes its lemma, this one is removed in favour of it. That the path
+  stays tame, and compatible when `J` is, are Tau
   Ceti's linear lemmas behind `SmoothTwoForm.Compatible.tames_cayleyPath` and
   `compatible_cayleyPath` (`.../AlmostComplex/CayleyPath.lean`), which this
   generalizes. Results: `ContMDiffTwoForm.IsNondegenerate.contractibleSpace_tames`
