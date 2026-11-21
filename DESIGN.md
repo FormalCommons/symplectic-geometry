@@ -1838,11 +1838,10 @@ has either; Tau Ceti's extension across a boundary,
   nondegenerate two-forms in
   `Geometry/Symplectic/Manifold/Family.lean` and `Flat.lean`, and the chain
   rule for transitions that `Darboux.lean` uses, in
-  `Geometry/Manifold/LocalDiffeomorph/MFDeriv.lean`, named like
-  Tau Ceti's files, and the bilinear forms of sums, multiples and
-  differences of smooth two-forms in
-  `Geometry/Manifold/DifferentialForm/BilinFormAt.lean`. The folder is
-  `Geometry/Symplectic/Moser/`, because
+  `Geometry/Manifold/LocalDiffeomorph/MFDeriv.lean`, and the bilinear forms
+  of sums, multiples and differences of smooth two-forms in
+  `Geometry/Manifold/DifferentialForm/Smooth.lean`, named like
+  Tau Ceti's files. The folder is `Geometry/Symplectic/Moser/`, because
   Tau Ceti has the files `Geometry/Symplectic/Manifold/Moser.lean` and
   `RelativeMoser.lean`, beside which this library may not have folders of
   those names.
@@ -2069,7 +2068,9 @@ has either; Tau Ceti's extension across a boundary,
   boundaryless re-modelling `TauCeti.BoundarylessModel`), the
   library's `Geometry/Manifold/IsManifold/InteriorBoundary.lean` of
   *Symplectic vector bundles* (the interior of a manifold with boundary as a
-  boundaryless manifold), which is merged, and *Smooth families* (only
+  boundaryless manifold), which is merged,
+  `Geometry/Manifold/DifferentialForm/Smooth.lean` of *Moser isotopy* (for
+  `StableHamiltonian.lean`), and *Smooth families* (only
   `TimeExtension.lean`, for `Collar/Flow/Local.lean`, which extends a field
   across the boundary; the other files can start at once). `Completion.lean` uses
   `Filling.lean` and `End.lean`.
