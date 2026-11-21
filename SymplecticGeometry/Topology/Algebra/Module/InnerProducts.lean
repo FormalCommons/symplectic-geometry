@@ -34,6 +34,9 @@ forward, `g ↦ g (e.symm ·) (e.symm ·)`, which is a homeomorphism.
 
 * `SymplecticGeometry.symmetrizeBilinear_mem_innerProducts`: the symmetric part of a form that
   is positive on nonzero vectors is an inner product.
+* `InnerProductSpace.isStrictlyPositive_continuousLinearMapOfBilin_symmetrizeBilinear`: the
+  Riesz map of the symmetric part of a form that is positive on nonzero vectors is strictly
+  positive.
 * `SymplecticGeometry.convex_innerProducts`: the inner products form a convex set.
 * `SymplecticGeometry.innerProducts_eq_inter`: they are the symmetric forms that are positive
   on nonzero vectors; in finite dimensions the second condition is open
@@ -81,6 +84,17 @@ theorem symmetrizeBilinear_mem_innerProducts {g : V →L[ℝ] V →L[ℝ] ℝ}
     (ContinuousLinearMap.symmetrizeBilinear g).val ∈ innerProducts V :=
   ⟨fun u v ↦ by simp [ContinuousLinearMap.symmetrizeBilinear_apply, add_comm], fun v hv ↦ by
     simpa [ContinuousLinearMap.symmetrizeBilinear_apply] using hg v hv⟩
+
+/-- The Riesz map of the symmetric part of a continuous bilinear form that is positive on nonzero
+vectors is strictly positive. -/
+theorem _root_.InnerProductSpace.isStrictlyPositive_continuousLinearMapOfBilin_symmetrizeBilinear
+    {W : Type*} [NormedAddCommGroup W] [InnerProductSpace ℝ W] [FiniteDimensional ℝ W]
+    {g : W →L[ℝ] W →L[ℝ] ℝ} (hg : ∀ v, v ≠ 0 → 0 < g v v) :
+    IsStrictlyPositive (InnerProductSpace.continuousLinearMapOfBilin (𝕜 := ℝ)
+      (ContinuousLinearMap.symmetrizeBilinear g).val) :=
+  InnerProductSpace.isStrictlyPositive_continuousLinearMapOfBilin_iff.2
+    ⟨(TauCeti.mem_symmetricBilinearMaps ℝ W ℝ _).1
+      (ContinuousLinearMap.symmetrizeBilinear g).property, fun v hv ↦ by simpa using hg v hv⟩
 
 variable (V) in
 /-- The inner products form a convex set. -/
