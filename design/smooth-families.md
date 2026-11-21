@@ -466,6 +466,22 @@ Named like Tau Ceti's file; in `TauCeti`.
 - `IsSmoothlyContractible.hasFiniteGoodCover` (one set is a good cover), as
   the example of the predicate.
 
+### `Geometry/Manifold/LocalDiffeomorph/Basic.lean`
+
+- `IsLocalDiffeomorphAt.exists_partialDiffeomorph`: a local diffeomorphism
+  at `x` agrees with a partial diffeomorphism on a source containing `x`,
+  since Mathlib does not expose the body of `IsLocalDiffeomorphAt`; used by
+  `Immersion/TangentProjection.lean`.
+
+### `Analysis/Calculus/TangentGraphChart.lean`
+
+Named like Tau Ceti's file.
+
+- `ContDiffOn.exists_uniform_inverse_starProjection`: the graph coordinates
+  of a smooth map over its tangent spaces, chosen uniformly in the base point
+  near a point `w₀` where its derivative is injective, with derivative bounds of every order; used by
+  `Immersion/TangentProjection.lean`.
+
 ### `Geometry/Manifold/MFDeriv/Chart.lean`
 
 Differentials of maps into normed spaces read in an extended chart not
@@ -492,6 +508,13 @@ range of `mvfderiv I e x`.
   $0$, and has an inverse whose composite with `e` has derivatives of every
   order bounded on its target. It is not `tangentProjectionChart`, whose
   source is a choice.
+
+### `Analysis/Convex/Deriv.lean`
+
+Strict convexity from second derivatives, used by `GoodCover/Compact.lean`:
+`strictConvexOn_of_deriv2_add_smul_pos` (along segments, in a real topological
+vector space) and `ContDiffOn.strictConvexOn_norm_sub_sq` (the squared distance
+`u ↦ ‖ψ u - c‖ ^ 2` for a `C²` map `ψ`).
 
 ### `Geometry/Manifold/DeRham/GoodCover/Compact.lean`
 
@@ -713,7 +736,8 @@ can start at once; each issue's blockers come before it.
    `Geometry/Manifold/Immersion/TangentProjection.lean` and
    `Geometry/Manifold/MFDeriv/Chart.lean`.
 9. **Good covers of compact manifolds.**
-   `Geometry/Manifold/DeRham/GoodCover/Compact.lean`. Blocked by 7 and 8.
+   `Geometry/Manifold/DeRham/GoodCover/Compact.lean` and
+   `Analysis/Convex/Deriv.lean`. Blocked by 7 and 8.
 10. **Splittings and their consequences.**
     `Geometry/Manifold/DeRham/SmoothFamily/Basic.lean`. Blocked by 5.
 11. **The homotopy operator on families, and contractible manifolds.**

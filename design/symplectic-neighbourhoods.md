@@ -175,8 +175,9 @@ following choices.
   directions, gives a local diffeomorphism $g$ from a ball of
   `StdSpace (Fin n)` into $M$. It carries the linear subspace $S$ of the
   milestone's equations into $Q$, and $g^*\omega$ restricts on $S$ to the
-  restriction of `stdForm`. Tau Ceti's
-  `exists_partialDiffeomorph_fix_immersion_mpullback_eq` then corrects $g$
+  restriction of `stdForm`. Tau Ceti's flat theorem
+  `exists_partialDiffeomorph_fix_immersion_compContinuousLinearMap_fderiv_eq`
+  then corrects $g$
   to a symplectic one fixing $S$ near $0$. So `AdaptedDarboux.lean` waits
   only for `CharacteristicFoliation.lean`, which gives the coisotropic chart
   of $Q$. This follows the note of the review of #420.
@@ -207,14 +208,19 @@ following choices.
 `DESIGN.md` is updated with this file, in its part 19, its dependency row
 and two rows of its milestone table.
 
-- Six files are added: `LinearAlgebra/Symplectic/Extension.lean`,
+- Eight files are added: `LinearAlgebra/Symplectic/Extension.lean`,
   `Neighborhood/Extension.lean`, `Neighborhood/Basic.lean`,
   `Geometry/Manifold/VectorBundle/ZeroSection.lean`,
-  `Geometry/Manifold/VectorBundle/Adjoint.lean` and
-  `Geometry/Manifold/TubularNeighborhood/MFDeriv.lean`. Each neighbourhood
+  `Geometry/Manifold/VectorBundle/Adjoint.lean`,
+  `Geometry/Manifold/TubularNeighborhood/MFDeriv.lean`,
+  `Geometry/Manifold/VectorBundle/Orthogonal.lean` and
+  `LinearAlgebra/BilinearForm/Orthogonal.lean`. Each neighbourhood
   theorem would otherwise repeat the linear extension and its smoothness;
-  `Adjoint.lean` holds the step of `Neighborhood/Extension.lean`, and the
-  last the step of `Tubular.lean`, that use nothing symplectic.
+  `Adjoint.lean` and `VectorBundle/Orthogonal.lean` hold steps of
+  `Neighborhood/Extension.lean`, and `MFDeriv.lean` the step of
+  `Tubular.lean`, that use nothing symplectic; the linear-algebra lemma
+  of `VectorBundle/Orthogonal.lean` is in
+  `LinearAlgebra/BilinearForm/Orthogonal.lean`.
 - `Lagrangian.lean` no longer uses *Cotangent bundles* or
   `normalBundleDiffeomorphOfIsLagrangianMap`, since the comparison theorem
   needs only that the zero section is Lagrangian. The part therefore no
@@ -225,7 +231,8 @@ and two rows of its milestone table.
   they use nothing of symplectic geometry. *Contact geometry* later adds to
   it, in `TauCeti`, the linearity of the flat Lie derivative in the field.
 - `AdaptedDarboux.lean` uses Tau Ceti's pointwise relative Darboux theorem
-  instead of the neighbourhood theorems, so it can start at once.
+  instead of the neighbourhood theorems, so it can start at once. Its general
+  steps are in five files of their own, listed in building issue 10.
 - The part no longer builds on *Symplectic vector bundles*, neither on
   `Symplectic/Basic.lean` nor on any of its open issues: the compatible
   complex structures come from Tau Ceti, and the symplectic normal bundle
@@ -382,7 +389,10 @@ hom bundle of the pull-backs satisfying `hL` and `hLω` at every `q`:
   $g_j$. That gives smooth frames of $H_j$, $K_j$, $J_jK_j$ and of $E_j$, the
   last as the $g_j$-orthogonal complement of $J_j(H_j\oplus K_j\oplus
   J_jK_j)$, that is, the $\omega_j$-orthogonal of $H_j\oplus K_j\oplus
-  J_jK_j$. In these frames
+  J_jK_j$. Frames of such orthogonal complements come from
+  `TauCeti.HasLocalContMDiffSubbundleFrames.orthogonal`
+  (`Geometry/Manifold/VectorBundle/Orthogonal.lean`), which uses nothing
+  symplectic. In these frames
   every step of `extendAlong` is a matrix formula with inverses of smooth
   invertible Gram matrices.
 - The adjoint step $(\omega_1^\flat)^{-1}\circ T^*\circ\omega_0^\flat$ of
@@ -538,8 +548,8 @@ set:
 
 | Theorem (namespace `TauCeti.SmoothTwoForm.IsNondegenerate`) | Hypothesis | `S` |
 |---|---|---|
-| `HasSymplecticTangentImages.exists_darbouxChart_inter_range_eq` | `finrank ℝ E' = 2 * k` | `{z | ∀ j : Fin n, k ≤ j → z.x j = 0 ∧ z.y j = 0}` |
-| `IsIsotropicMap.exists_darbouxChart_inter_range_eq` | `finrank ℝ E' = k` | `{z | z.y = 0 ∧ ∀ j : Fin n, k ≤ j → z.x j = 0}` |
+| `HasSymplecticTangentImages.exists_darbouxChart_inter_range_eq` | `finrank ℝ E' = 2 * k` | `{z | ∀ j : Fin n, k ≤ (j : ℕ) → z.x j = 0 ∧ z.y j = 0}` |
+| `IsIsotropicMap.exists_darbouxChart_inter_range_eq` | `finrank ℝ E' = k` | `{z | z.y = 0 ∧ ∀ j : Fin n, k ≤ (j : ℕ) → z.x j = 0}` |
 | `IsLagrangianMap.exists_darbouxChart_inter_range_eq` | — | `{z | z.y = 0}` |
 | `IsCoisotropicMap.exists_darbouxChart_inter_range_eq` | `finrank ℝ E' = 2 * n - k` | `{z | ∀ j : Fin n, j < k → z.y j = 0}` |
 
@@ -555,18 +565,32 @@ linear space `S` is chosen so that `c` carries `f^*ω` to the restriction of
 (Tau Ceti's). For an isotropic or Lagrangian `Q`, any chart will do, since
 both restricted forms are `0`. For a coisotropic `Q`, `c` combines the leaf
 coordinates of `exists_isCharacteristicSubmersion` with a Darboux chart of
-the descended form on the ball. A shared lemma, `exists_localDiffeomorph_extend`
-(private if only this file uses it), extends `f ∘ c⁻¹` in the directions
+the descended form on the ball. The lemma `exists_localDiffeomorph_extend`,
+public in `Geometry/Manifold/LocalDiffeomorph/Extend.lean` (with the centred charts
+`exists_partialDiffeomorph_apply_eq_zero` that the isotropic case uses),
+extends `f ∘ c⁻¹` in the directions
 of a complement of `S`. It does so in a chart of `M`, by adding a fixed
 linear map transverse to the image, as Tau Ceti's flat model in
-`Geometry/Symplectic/Darboux/Immersion.lean` does. That gives a local
-diffeomorphism `g` near `0` with `g = f ∘ c⁻¹` on `S`. Tau Ceti's
-`exists_partialDiffeomorph_fix_immersion_mpullback_eq` is applied on a
-ball, with `σ₁ = g^*ω`, `σ₀ = stdForm` and the inclusion of `S`. Its
+`Geometry/Symplectic/Darboux/Immersion.lean` does; the linear map comes from
+`LinearMap.exists_linearEquiv_comp_eq_of_injective`
+(`LinearAlgebra/FiniteDimensional/Extension.lean`). That gives a local
+diffeomorphism `g` near `0` with `g = f ∘ c⁻¹` on `S`. Since `g^*ω` is
+defined only near `0`, Tau Ceti's flat theorem
+`exists_partialDiffeomorph_fix_immersion_compContinuousLinearMap_fderiv_eq`
+is applied on an open set of `StdSpace (Fin n)` around `0`,
+with `σ₁ = g^*ω`, `σ₀ = stdForm` and the inclusion of `S`. Its
 `htan` is the property of `c`. It gives `Φ` fixing `S` near `0` with
 `Φ^*σ₁ = σ₀`. Then `e` is the inverse of `g ∘ Φ`, shrunk so that, `f`
 being an embedding, the image of `Q` in the source is exactly the part of
-`S` that `e` hits.
+`S` that `e` hits. The pull-back along the local inverse is
+`IsLocalDiffeomorphAt.mpullback_localInverse_apply_eq`, in the general
+`Geometry/Manifold/DifferentialForm/Pullback/LocalDiffeomorph.lean`, with
+`Geometry/Manifold/LocalDiffeomorph/LocalInverse.lean`; the
+shrinking is `Topology.IsInducing.exists_isOpen_inter_range_eq`, in the
+general `Topology/Maps/Embedding.lean`. These steps, for any chart `c` and injective linear
+`ι : E' → StdSpace (Fin n)` with `range ι = S`, are the public
+`exists_darbouxChart_inter_range_eq_of_chart` (same namespace), which the
+four theorems share.
 
 ## What the part uses
 
@@ -581,8 +605,9 @@ being an embedding, the image of `Q` in the source is exactly the part of
   `LinearAlgebra/Symplectic/Compatible.lean` (merged), in `Extension.lean`, and
   `Topology/Algebra/Module/BilinearForm.lean` (merged), in
   `Geometry/Manifold/VectorBundle/Adjoint.lean`.
-- From *Standard model*: `StdSpace`, `stdForm`, `stdForm_apply`, in
-  `AdaptedDarboux.lean`.
+- From *Standard model*: `StdSpace`, `stdForm`, `stdForm_apply`, and the
+  inclusions `StdSpace.stdInl` and `StdSpace.ofX` that this part adds to
+  `LinearAlgebra/Symplectic/Standard/Basic.lean`, in `AdaptedDarboux.lean`.
 - *Cotangent bundles* is not used: `Lagrangian.lean` needs only Tau Ceti's
   `symplecticForm` and `isLagrangianMap_zeroSection`, because the comparison
   theorem replaces the zero-section splitting.
@@ -622,7 +647,12 @@ list. Issues 1, 3, 5 and 10 can start at once.
 9. **Isotropic and coisotropic neighbourhoods.** `Isotropic.lean` and
    `Coisotropic.lean`. About 300 lines. Blockers: 7.
 10. **Adapted Darboux charts.** `AdaptedDarboux.lean`: the local extension
-    step and the symplectic, isotropic and Lagrangian theorems. About 400
+    step and the symplectic, isotropic and Lagrangian theorems, with the
+    general files `Geometry/Manifold/LocalDiffeomorph/Extend.lean`,
+    `LinearAlgebra/FiniteDimensional/Extension.lean`,
+    `Geometry/Manifold/DifferentialForm/Pullback/LocalDiffeomorph.lean`,
+    `Geometry/Manifold/LocalDiffeomorph/LocalInverse.lean` and
+    `Topology/Maps/Embedding.lean`. About 400
     lines. Blockers: none.
 11. **Adapted Darboux charts of coisotropic submanifolds.**
     `AdaptedDarboux.lean`: the coisotropic theorem. About 200 lines.

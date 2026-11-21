@@ -1866,7 +1866,9 @@ has either; Tau Ceti's extension across a boundary,
   rule for transitions that `Darboux.lean` uses, in
   `Geometry/Manifold/LocalDiffeomorph/MFDeriv.lean`, and the bilinear forms
   of sums, multiples and differences of smooth two-forms in
-  `Geometry/Manifold/DifferentialForm/Smooth.lean`, named like
+  `Geometry/Manifold/DifferentialForm/Smooth.lean`, and the primitive on a
+  tube of a difference of closed forms in
+  `Geometry/Manifold/TubularNeighborhood/RelativePoincare.lean`, named like
   Tau Ceti's files. The folder is `Geometry/Symplectic/Moser/`, because
   Tau Ceti has the files `Geometry/Symplectic/Manifold/Moser.lean` and
   `RelativeMoser.lean`, beside which this library may not have folders of
@@ -1964,7 +1966,16 @@ has either; Tau Ceti's extension across a boundary,
   *Symplectic vector spaces*' linear reduction), `Coisotropic.lean` and
   `AdaptedDarboux.lean` (Darboux charts adapted to the four types, from a
   chart of the submanifold suited to its type and Tau Ceti's pointwise
-  relative Darboux theorem).
+  relative Darboux theorem), with the general
+  `Geometry/Manifold/LocalDiffeomorph/Extend.lean` (an immersion extended to a local
+  diffeomorphism, and centred charts) and
+  `LinearAlgebra/FiniteDimensional/Extension.lean` (an injective linear map
+  extended to a linear equivalence),
+  `Geometry/Manifold/DifferentialForm/Pullback/LocalDiffeomorph.lean` (pull-back
+  along the local inverse of a local diffeomorphism),
+  `Geometry/Manifold/LocalDiffeomorph/LocalInverse.lean` (a local
+  diffeomorphism on the target of its local inverse) and
+  `Topology/Maps/Embedding.lean` (an inducing map cut out by a chart).
   The symplectic normal bundle of a symplectic submanifold is Tau Ceti's
   normal bundle with `TauCeti.SmoothEmbedding.symplecticNormalForm`; the
   symplectic normal bundle $(TQ)^\omega/TQ$ of an isotropic one is given by
@@ -1975,7 +1986,7 @@ has either; Tau Ceti's extension across a boundary,
   complex structures* (`LinearAlgebra/Symplectic/Compatible.lean` and
   `Topology/Algebra/Module/BilinearForm.lean`, merged), Tau Ceti (tubular
   neighbourhoods, the normal bundles of Lagrangian and symplectic embeddings,
-  compatible almost complex structures, relative Darboux, `TauCeti.SmoothTwoForm.exists_partialDiffeomorph_fix_immersion_mpullback_eq`).
+  compatible almost complex structures, relative Darboux, `TauCeti.exists_partialDiffeomorph_fix_immersion_compContinuousLinearMap_fderiv_eq`).
   `CharacteristicFoliation.lean` uses only Tau Ceti and `LieDeriv.lean` and can
   start at once.
 - **Unmerged work of #3 it may wait for.** The linear extensions in the
