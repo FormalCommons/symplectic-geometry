@@ -522,7 +522,12 @@ it into issues; the overview fixes its folders and its dependencies.
   `Matrix.toEuclideanLin (Matrix.fromRows X Y)`), and
   `LinearAlgebra/Matrix/SelfAdjoint.lean` (`Matrix.finrank_selfAdjoint`:
   the symmetric $n\times n$ matrices have dimension $n(n+1)/2$, from Tau
-  Ceti's `LinearMap.BilinForm.finrank_symmSubmodule`). The part also adds
+  Ceti's `LinearMap.BilinForm.finrank_symmSubmodule`). One file of general
+  operator theory serves it too:
+  `Analysis/InnerProductSpace/Projection/Basic.lean`
+  (`Submodule.starProjection_map_unitary`: the projection onto `u K`, for a
+  unitary `u`, is `u P_K u⋆`; with the instance
+  `Submodule.HasOrthogonalProjection.map_unitary`). The part also adds
   one declaration about `StdSpace ι` alone to *Standard model*'s
   `Standard/Basic.lean`: `StdSpace.complexEuclideanEquiv`, the map from
   `EuclideanSpace ℂ ι`. For the coordinate permutation along
@@ -789,14 +794,17 @@ it into issues; the overview fixes its folders and its dependencies.
   are $C^\infty$ on their domains in the structure (and $J_{g,\omega}$ also
   in $g$). *Symplectic vector bundles* applies Tau Ceti's linear
   `cayleyPathFormula` and `SymplecticForm.polarComplexStructure` fibrewise
-  (see that part). It uses the same set $U_{J_0}$ at each point, and takes
-  its openness from `TauCeti.isOpen_setOf_forall_Icc_mem_cayleyDomain` and
-  the membership of the tame structures from
+  (see that part), and reads `metricPolarFormula` on `polarDomain` in
+  trivializations of its bundle of bilinear forms, where the form varies in
+  the fibre; the smoothness of its $J_{g,\omega}$ and of $J_{g,\omega_{g,B}}$
+  on its endomorphism bundle both come from that one reading. So its
+  existence issue waits for the two issues of this part that write
+  `PolarComplexStructure/`. It uses the same set $U_{J_0}$ at each point, and
+  takes its openness from `TauCeti.isOpen_setOf_forall_Icc_mem_cayleyDomain`
+  and the membership of the tame structures from
   `TauCeti.SymplecticForm.Compatible.mem_cayleyDomain`, so its
   contractibility issue waits for the issue of this part that writes
-  `Cayley/Domain.lean`. Its homotopy-equivalence issue also uses that file,
-  and `metricPolarFormula` on `polarDomain` for $J_{g,\omega}$ on its
-  endomorphism bundle, where the form varies in the fibre, and
+  `Cayley/Domain.lean`. Its homotopy-equivalence issue uses both, and
   `Tames.lineMap` of `LinearAlgebra/Symplectic/Compatible.lean` for its
   straight line on forms; so it waits for the issues that write
   `Cayley/Domain.lean`, `PolarComplexStructure/` and that line.
@@ -958,10 +966,14 @@ it into issues; the overview fixes its folders and its dependencies.
   Tau Ceti file with that lemma, since it mentions only Mathlib and Tau Ceti
   types),
   `Geometry/Manifold/VectorBundle/Riemannian/PolarEnd.lean` (for a bundle
-  metric $g$, the structure $J_{g,\omega_{g,B}}$ on the endomorphism bundle,
-  `polarEndAt` on the open set `polarEndDomain`, smooth there by part 9's
-  `metricPolarFormula` read in trivializations; it mentions no symplectic
-  form on the bundle, so it sits apart from the symplectic files),
+  metric $g$, the polar formula $J_{g,\sigma}$ on the bundle of bilinear
+  forms, `polarFormulaAt` on the open set `Bundle.polarFormulaDomain`, smooth
+  there by `contMDiffOn_polarFormulaAt`, which reads part 9's
+  `metricPolarFormula` in trivializations; from it come both the smoothness
+  of `polarComplexStructure` and the structure $J_{g,\omega_{g,B}}$ on the
+  endomorphism bundle, `polarEndAt` on the open set `polarEndDomain`; it
+  mentions no symplectic form on the bundle, so it sits apart from the
+  symplectic files),
   `.../Symplectic/Trivialization.lean` (local Darboux frames, by Tau Ceti's
   smooth Gram–Schmidt applied with $J_{g,\omega}$, local symplectic
   trivializations and the reduction of the structure group to
@@ -1069,13 +1081,16 @@ it into issues; the overview fixes its folders and its dependencies.
   `TauCeti.SymplecticForm.Compatible.mem_cayleyDomain`), and the two files of
   `Analysis/InnerProductSpace/Symplectic/PolarComplexStructure/`
   (`TauCeti.metricPolarFormula` on `TauCeti.polarDomain`, with its smoothness
-  and naturality) for `polarEndAt`, and `TauCeti.SymplecticForm.Tames.lineMap`
-  of `LinearAlgebra/Symplectic/Compatible.lean` for the straight line on
-  forms. Its contractibility issue waits for the
-  issue of that part that writes `Cayley/Domain.lean`, which has no
-  blockers; its homotopy-equivalence issue waits for that one, for the two
-  that write `PolarComplexStructure/`, and for the one that writes
-  `Tames.lineMap`, which has no blockers either.
+  and naturality) for `polarFormulaAt`, and so for the smoothness of
+  `polarComplexStructure` and for `polarEndAt`, and
+  `TauCeti.SymplecticForm.Tames.lineMap` of
+  `LinearAlgebra/Symplectic/Compatible.lean` for the straight line on forms.
+  Its existence issue waits for the two issues of that part that write
+  `PolarComplexStructure/`; its contractibility issue waits for the issue of
+  that part that writes `Cayley/Domain.lean`, which has no blockers; its
+  homotopy-equivalence issue waits for that one, for the two that write
+  `PolarComplexStructure/`, and for the one that writes `Tames.lineMap`,
+  which has no blockers either.
 - **Milestones:** *Symplectic vector bundles are complex vector bundles*,
   *Compatible and tame complex structures on symplectic vector bundles*,
   *Unitary trivializations over surfaces with boundary*.
@@ -1350,7 +1365,7 @@ Each part depends only on the parts listed, besides Mathlib and Tau Ceti.
 | 1 | *Linear nonsqueezing* | *Standard model* |
 | 1 | *Linear complex structures* | *Standard model* |
 | 1 | *Siegel upper half space* | *Standard model*; *Lagrangian Grassmannian* (only `LinearAlgebra/Matrix/OfReal.lean`, which imports only Mathlib and Tau Ceti and is merged); *Linear complex structures* (only `LinearAlgebra/ComplexStructure/Action.lean`, which imports only Mathlib and Tau Ceti, `LinearAlgebra/ComplexStructure/Standard.lean`, which besides it imports only *Standard model* and the library's `Geometry/Symplectic/Orientation.lean`, and that file, which imports only Tau Ceti; all three are merged); *Symplectic group* (only `LinearAlgebra/Matrix/SymplecticGroup/Basic.lean`, which imports only Mathlib and is merged) |
-| 1 | *Symplectic vector bundles* | *Standard model*, *Linear Moser*; its contractibility issue also the Cayley domain issue of *Compatible complex structures*, and its homotopy-equivalence issue that one, the two `PolarComplexStructure/` issues and the `Tames.lineMap` issue, none of which waits for another part |
+| 1 | *Symplectic vector bundles* | *Standard model*, *Linear Moser*; its existence issue also the two `PolarComplexStructure/` issues of *Compatible complex structures*, its contractibility issue the Cayley domain issue of that part, and its homotopy-equivalence issue those three and the `Tames.lineMap` issue, none of which waits for another part |
 | 2 | *Compatible complex structures* | *Standard model*, *Symplectic vector spaces* |
 | 2 | *Maslov index* | *Standard model*, *Symplectic group*, *Unitary group topology*; its Lagrangian issues also *Lagrangian Grassmannian* |
 | 3 | *First Chern number* | *Symplectic vector bundles*, the symplectic-loop issues of *Maslov index* |
