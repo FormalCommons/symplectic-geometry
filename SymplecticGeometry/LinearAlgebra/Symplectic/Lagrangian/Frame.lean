@@ -98,13 +98,17 @@ theorem mem_graph_iff {A : Matrix ι ι ℝ} {z : StdSpace ι} : z ∈ graph A �
 /-- The graph `{(A y, y)}` of a real square matrix `A` over the `y`-coordinates, as a subspace
 of `StdSpace ι`. -/
 noncomputable def graphY (A : Matrix ι ι ℝ) : Submodule ℝ (StdSpace ι) :=
-  A.mulVecLin.graph.map
-    ((LinearEquiv.prodComm ℝ (ι → ℝ) (ι → ℝ)).trans (equivProd ι).symm).toLinearMap
+  (graph A).map (swap ι : StdSpace ι →ₗ[ℝ] StdSpace ι)
 
 theorem graphY_def (A : Matrix ι ι ℝ) :
-    graphY A = A.mulVecLin.graph.map
-      ((LinearEquiv.prodComm ℝ (ι → ℝ) (ι → ℝ)).trans (equivProd ι).symm).toLinearMap :=
+    graphY A = (graph A).map (swap ι : StdSpace ι →ₗ[ℝ] StdSpace ι) :=
   (rfl)
+
+/-- The coordinate swap sends the graph `{(x, A x)}` to the graph `{(A y, y)}`. -/
+@[simp]
+theorem map_swap_graph (A : Matrix ι ι ℝ) :
+    (graph A).map (swap ι : StdSpace ι →ₗ[ℝ] StdSpace ι) = graphY A :=
+  (graphY_def A).symm
 
 @[simp]
 theorem mem_graphY_iff {A : Matrix ι ι ℝ} {z : StdSpace ι} :
@@ -140,13 +144,6 @@ theorem isCompl_graph_ker_x (A : Matrix ι ι ℝ) : IsCompl (graph A) (LinearMa
   rw [LinearMap.mem_ker] at hx
   rw [mem_graph_iff, hx, mulVec_zero] at hz
   exact StdSpace.ext (by simpa using hx) (by simpa using hz)
-
-/-- The coordinate swap sends the graph `{(x, A x)}` to the graph `{(A y, y)}`. -/
-@[simp]
-theorem map_swap_graph (A : Matrix ι ι ℝ) :
-    (graph A).map (swap ι : StdSpace ι →ₗ[ℝ] StdSpace ι) = graphY A := by
-  ext z
-  simp [Submodule.mem_map_equiv]
 
 /-- A matrix is determined by its graph over the `y`-coordinates. -/
 theorem graphY_injective :
@@ -191,10 +188,17 @@ theorem exists_eq_graph_of_isCompl_ker_x {L : Submodule ℝ (StdSpace ι)}
 
 /-- A subspace complementary to the horizontal subspace `{y = 0}` is a graph `{(A y, y)}`. -/
 theorem exists_eq_graphY_of_isCompl_ker_y {L : Submodule ℝ (StdSpace ι)}
-    (hL : IsCompl L (LinearMap.ker y)) : ∃ A : Matrix ι ι ℝ, L = graphY A :=
-  exists_eq_map_graph_of_isCompl
-    ((LinearEquiv.prodComm ℝ (ι → ℝ) (ι → ℝ)).trans (equivProd ι).symm)
-    (by convert hL using 2; ext; simp)
+    (hL : IsCompl L (LinearMap.ker y)) : ∃ A : Matrix ι ι ℝ, L = graphY A := by
+  -- the swap is an involution, so it carries `L.map swap` back to `L`
+  have hswap (M : Submodule ℝ (StdSpace ι)) :
+      (M.map (swap ι : StdSpace ι →ₗ[ℝ] StdSpace ι)).map
+        (swap ι : StdSpace ι →ₗ[ℝ] StdSpace ι) = M := by
+    rw [Submodule.map_equiv_eq_comap_symm, symm_swap]
+    exact Submodule.comap_map_eq_of_injective (swap ι).injective M
+  obtain ⟨A, hA⟩ := exists_eq_graph_of_isCompl_ker_x
+    (L := L.map (swap ι : StdSpace ι →ₗ[ℝ] StdSpace ι))
+    (by simpa [← map_swap_ker_x, hswap] using (Submodule.orderIsoMapComap (swap ι)).isCompl hL)
+  exact ⟨A, by rw [← map_swap_graph, ← hA, hswap]⟩
 
 /-- The matrix `J = !![0, -1; 1, 0]` of `TauCeti.GLSymplectic.symJ`, which maps `(x, y)` to
 `(-y, x)`, sends the graph `{(x, A x)}` to the graph `{(-A y, y)}`. -/
@@ -292,8 +296,11 @@ theorem isLagrangian_graph_iff (A : Matrix ι ι ℝ) :
 
 /-- The graph `{(A y, y)}` is Lagrangian iff `A` is symmetric. -/
 theorem isLagrangian_graphY_iff (A : Matrix ι ι ℝ) :
-    (stdForm ι).IsLagrangian (graphY A) ↔ A.IsSymm :=
-  isLagrangian_map_graph_iff _ (neg_ne_zero.2 one_ne_zero) (fun ⟨a, b⟩ ⟨a', b'⟩ ↦ by
+    (stdForm ι).IsLagrangian (graphY A) ↔ A.IsSymm := by
+  rw [graphY_def, graph_def, ← Submodule.map_comp, ← LinearEquiv.coe_trans]
+  exact isLagrangian_map_graph_iff _ (neg_ne_zero.2 one_ne_zero) (fun ⟨a, b⟩ ⟨a', b'⟩ ↦ by
+    simp only [LinearEquiv.trans_apply, stdForm_apply, x_swap, y_swap, x_equivProd_symm,
+      y_equivProd_symm]
     simp [dotProduct, ← Finset.sum_sub_distrib, ← Finset.sum_neg_distrib, mul_comm]) A
 
 /-- A Lagrangian subspace transverse to the vertical subspace `{x = 0}` is the graph
