@@ -181,7 +181,7 @@ Siegel upper half space uses too:
   `(P.map ofReal)ᵀ * Q.map ofReal = (Pᵀ * Q).map ofReal`.
 - `Matrix.conjTranspose_map_ofReal`: `(P.map ofReal)ᴴ = (P.map ofReal)ᵀ`.
 
-Two facts about complex frames:
+Three facts about complex frames:
 
 - `Matrix.map_im_conjTranspose_mul_self_eq_zero_of_transpose_mul_eq
   {X Y : Matrix m n ℝ} (h : Xᵀ * Y = Yᵀ * X)`: for
@@ -190,6 +190,11 @@ Two facts about complex frames:
   `toEuclideanLin (fromRows X Y)` is the image of
   `Matrix.realImage (X.map ofReal + I • Y.map ofReal)` under
   `complexToRealEuclidean ι`, read through `WithLp.equiv`.
+- `Matrix.exists_det_sub_smul_ne_zero {X Y : Matrix ι ι ℝ}
+  (h : (X.map ofReal + I • Y.map ofReal).det ≠ 0) : ∃ t : ℝ, (X - t • Y).det ≠ 0`:
+  `t ↦ det (X - t Y)` is a real polynomial, nonzero at `t = -i`, so it is not
+  identically zero (Mathlib's `Polynomial.funext`). `Transverse.lean` uses it
+  for a common transverse Lagrangian.
 
 ### `LinearAlgebra/Matrix/SelfAdjoint.lean`
 
@@ -528,6 +533,10 @@ and `Matrix.lagrangianChart_inf_realSubspace`, in Tau Ceti's terms. Write
   by dimension. Then `exists_eq_graphY_of_isCompl` gives `S`, and
   `StdSpace.map_lagrangianChart` with the injectivity of this map
   gives `V = S.lagrangianChart`.
+- `Matrix.map_im_conjTranspose_mul_self_lagrangianChartFrame (hS : S.IsSymm)`:
+  `(S.lagrangianChartFrameᴴ * S.lagrangianChartFrame).map Complex.im = 0`, the
+  case `X = S`, `Y = 1` of
+  `Matrix.map_im_conjTranspose_mul_self_eq_zero_of_transpose_mul_eq`.
 - The isotropy hypothesis is needed, and the file shows it by an `example`:
   for `n = Fin 2` and `S = !![0, 1; 0, 0]`, `det (S + i·1) = -1 ≠ 0`, so
   `S.lagrangianChart` is maximal totally real (`lagrangianChart_def` and

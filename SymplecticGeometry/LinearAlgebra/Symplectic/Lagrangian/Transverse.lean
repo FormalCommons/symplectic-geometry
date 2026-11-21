@@ -5,7 +5,6 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import Mathlib.Algebra.Polynomial.Roots
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Lagrangian.Action
 public import SymplecticGeometry.LinearAlgebra.TotallyReal.Euclidean
 public import TauCeti.LinearAlgebra.SymplecticGroup
@@ -42,7 +41,7 @@ Write `ℒ ι` for the Lagrangian Grassmannian of the standard model `(StdSpace 
 
 public section
 
-open Matrix TauCeti Polynomial
+open Matrix TauCeti
 
 namespace SymplecticGeometry
 
@@ -145,8 +144,7 @@ to the basic one: it maps `{(x, S x)}` to `{(-S y, y)}`. -/
 theorem symJ_smul_graph [DecidableEq ι] (S : selfAdjoint (Matrix ι ι ℝ)) :
     GLSymplectic.symJ ι ℝ • graph S = graphY (-S) :=
   toSubmodule_injective <| by
-    rw [coe_smul, coe_graph, coe_graphY, StdSpace.map_symJ_graph]
-    rfl
+    rw [coe_smul, coe_graph, coe_graphY, StdSpace.map_symJ_graph, NegMemClass.coe_neg]
 
 /-! ### Transverse Lagrangians are graphs -/
 
@@ -201,33 +199,6 @@ theorem range_graph :
 section DecidableEq
 
 variable [DecidableEq ι]
-
-/-- For real matrices `X`, `Y` with `det (X + i Y) ≠ 0`, some real `t` has
-`det (X - t Y) ≠ 0`: the determinant is a real polynomial in `t`, nonzero at `t = -i`. -/
-private theorem exists_det_sub_smul_ne_zero {X Y : Matrix ι ι ℝ}
-    (h : (X.map Complex.ofReal + Complex.I • Y.map Complex.ofReal).det ≠ 0) :
-    ∃ t : ℝ, (X - t • Y).det ≠ 0 := by
-  set p : ℝ[X] := (X.map C - (Polynomial.X : ℝ[X]) • Y.map C).det
-  have heval (t : ℝ) : p.eval t = (X - t • Y).det := by
-    rw [← coe_evalRingHom, RingHom.map_det]
-    congr 1
-    ext i j
-    simp only [RingHom.mapMatrix_apply, map_apply, Matrix.sub_apply, Matrix.smul_apply,
-      smul_eq_mul, map_sub, coe_evalRingHom, eval_C, eval_mul, eval_X]
-  have haeval : aeval (-Complex.I) p =
-      (X.map Complex.ofReal + Complex.I • Y.map Complex.ofReal).det := by
-    rw [AlgHom.map_det]
-    congr 1
-    ext i j
-    simp only [AlgHom.mapMatrix_apply, map_apply, Matrix.sub_apply, Matrix.add_apply,
-      Matrix.smul_apply, smul_eq_mul, map_sub, map_mul, aeval_C, aeval_X,
-      Complex.coe_algebraMap]
-    ring
-  have hp : p ≠ 0 := fun hp ↦ h (by rw [← haeval, hp, map_zero])
-  obtain ⟨t, ht⟩ := Infinite.exists_notMem_finset p.roots.toFinset
-  refine ⟨t, ?_⟩
-  rw [← heval]
-  simpa [Multiset.mem_toFinset, mem_roots hp] using ht
 
 /-- Some chart point `{(t y, y)}` is transverse to a given Lagrangian. -/
 private theorem exists_isCompl_graphY_smul_one (Λ : ℒ ι) :
@@ -288,8 +259,7 @@ private theorem toEuclideanLin_shear {S : Matrix ι ι ℝ} (hS : S.IsSymm) (z :
   simp only [shear, GLSymplectic.coe_mulEquivSymplecticGroup_symm_apply,
     GLSymplectic.coe_ofSymplecticGroup]
   constructor <;> ext i <;>
-    simp [StdSpace.x_apply, StdSpace.y_apply, fromBlocks_mulVec, hy]
-  rfl
+    simp [StdSpace.x_apply, StdSpace.y_apply, fromBlocks_mulVec, hy, Function.comp_def]
 
 private theorem shear_smul_horizontal {S : Matrix ι ι ℝ} (hS : S.IsSymm) :
     shear hS • horizontal ι = horizontal ι := by
