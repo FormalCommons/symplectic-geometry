@@ -172,7 +172,7 @@ theorem inv_toEuclideanCLM_symm_toContinuousLinearMap
         (LinearMap.toContinuousLinearMap J.toLinearMap))⁻¹ =
       -(Matrix.toEuclideanCLM (n := n) (𝕜 := ℝ)).symm
         (LinearMap.toContinuousLinearMap J.toLinearMap) :=
-  Matrix.inv_eq_left_inv (by rw [neg_mul, toEuclideanCLM_symm_mul_self, neg_neg])
+  Matrix.inv_eq_neg_of_mul_self_eq_neg_one (toEuclideanCLM_symm_mul_self n J)
 
 /-- The invertible matrix of a complex structure depends continuously on it. -/
 theorem continuous_toGeneralLinearGroup :
