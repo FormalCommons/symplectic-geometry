@@ -81,9 +81,9 @@ open Complex Matrix TauCeti
 
 namespace SymplecticGeometry
 
-namespace SiegelUpperHalfSpace
-
 variable {ι : Type*} [Fintype ι] [DecidableEq ι]
+
+namespace SiegelUpperHalfSpace
 
 /-! ### The matrix `J(Z)` -/
 
@@ -331,10 +331,13 @@ theorem complexStructureMatrix_ofComplexStructureMatrix {M : Matrix (ι ⊕ ι) 
   · rw [← Matrix.mul_assoc, eq_neg_of_add_eq_zero_left h₂₁, Matrix.neg_mul, neg_neg,
       Matrix.mul_assoc, hCB, Matrix.mul_one]
 
+end SiegelUpperHalfSpace
+
 /-! ### Compatible complex structures in coordinates -/
 
-/-- The matrix of a complex structure on `StdSpace ι` squares to `-1`. -/
-theorem toEuclideanLin_symm_mul_self (J : AlmostComplexStructure (StdSpace ι)) :
+/-- The matrix of a complex structure on a Euclidean space squares to `-1`. -/
+theorem _root_.TauCeti.AlmostComplexStructure.toEuclideanLin_symm_mul_self {n : Type*}
+    [Fintype n] [DecidableEq n] (J : AlmostComplexStructure (EuclideanSpace ℝ n)) :
     toEuclideanLin.symm J.toLinearMap * toEuclideanLin.symm J.toLinearMap = -1 := by
   apply toEuclideanLin.injective
   rw [toLpLin_mul (q := 2), LinearEquiv.apply_symm_apply, map_neg, toLpLin_one]
@@ -383,6 +386,14 @@ theorem toBlocks₂₂_eq_neg_transpose_of_compatible {J : AlmostComplexStructur
     (WithLp.toLp 2 (Sum.elim (Pi.single i 1) 0)) (WithLp.toLp 2 (Sum.elim 0 (Pi.single j 1)))
   rw [hJM, hJM, stdForm_toLp_sumElim, stdForm_toLp_sumElim] at this
   simpa [mulVec_single_one] using this
+/-- The matrix of an `ω₀`-compatible complex structure has invertible lower left block. -/
+theorem isUnit_det_toBlocks₂₁_of_compatible {J : AlmostComplexStructure (StdSpace ι)}
+    (hJ : (stdForm ι).Compatible J) :
+    IsUnit (toEuclideanLin.symm J.toLinearMap).toBlocks₂₁.det :=
+  (isUnit_iff_isUnit_det _).1 (posDef_toBlocks₂₁_of_compatible hJ).isUnit
+
+namespace SiegelUpperHalfSpace
+
 /-- For the matrix `M` of an `ω₀`-compatible complex structure, the real part `M₁₁ M₂₁⁻¹` of
 `ofComplexStructureMatrix M` is symmetric. -/
 private theorem isSymm_toBlocks₁₁_mul_inv_of_compatible {J : AlmostComplexStructure (StdSpace ι)}
@@ -393,7 +404,7 @@ private theorem isSymm_toBlocks₁₁_mul_inv_of_compatible {J : AlmostComplexSt
   have hC := posDef_toBlocks₂₁_of_compatible hJ
   have hdet : IsUnit M.toBlocks₂₁.det := (isUnit_iff_isUnit_det _).1 hC.isUnit
   have h₂₁ : M.toBlocks₂₁ * M.toBlocks₁₁ + M.toBlocks₂₂ * M.toBlocks₂₁ = 0 := by
-    rw [← toBlocks₂₁_mul, toEuclideanLin_symm_mul_self, ← fromBlocks_one, fromBlocks_neg,
+    rw [← toBlocks₂₁_mul, J.toEuclideanLin_symm_mul_self, ← fromBlocks_one, fromBlocks_neg,
       toBlocks_fromBlocks₂₁, neg_zero]
   have hCt : M.toBlocks₂₁ᵀ = M.toBlocks₂₁ := isHermitian_iff_isSymm.1 hC.isHermitian
   rw [IsSymm, transpose_mul, transpose_nonsing_inv, hCt,
@@ -436,8 +447,8 @@ def compatibleEquiv :
     refine Subtype.ext (AlmostComplexStructure.toLinearMap_injective ?_)
     change toEuclideanLin (complexStructureMatrix
       (ofComplexStructureMatrix (toEuclideanLin.symm J.toLinearMap))) = _
-    rw [complexStructureMatrix_ofComplexStructureMatrix (toEuclideanLin_symm_mul_self J)
-      ((isUnit_iff_isUnit_det _).1 (posDef_toBlocks₂₁_of_compatible hJ).isUnit),
+    rw [complexStructureMatrix_ofComplexStructureMatrix J.toEuclideanLin_symm_mul_self
+      (isUnit_det_toBlocks₂₁_of_compatible hJ),
       LinearEquiv.apply_symm_apply]
 
 @[simp]
@@ -493,12 +504,6 @@ theorem isOpen_setOf_isUnit_det_toBlocks₂₁ :
 theorem isUnit_det_map_im (Z : SiegelUpperHalfSpace ι) :
     IsUnit ((Z : Matrix ι ι ℂ).map Complex.im).det :=
   (isUnit_iff_isUnit_det _).1 Z.posDef_map_im.isUnit
-
-/-- The matrix of an `ω₀`-compatible complex structure has invertible lower left block. -/
-theorem isUnit_det_toBlocks₂₁_of_compatible {J : AlmostComplexStructure (StdSpace ι)}
-    (hJ : (stdForm ι).Compatible J) :
-    IsUnit (toEuclideanLin.symm J.toLinearMap).toBlocks₂₁.det :=
-  (isUnit_iff_isUnit_det _).1 (posDef_toBlocks₂₁_of_compatible hJ).isUnit
 
 section Smooth
 
