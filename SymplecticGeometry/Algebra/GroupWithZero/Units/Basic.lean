@@ -6,18 +6,18 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Algebra.GroupWithZero.Units.Basic
-public import Mathlib.Algebra.Ring.Defs
+public import SymplecticGeometry.Algebra.Ring.Units
 
 /-!
-# Square roots of `-1` are units
+# The inverse of a square root of `-1`
 
-In a monoid with a distributive negation, an element `a` with `a * a = -1` is a unit whose
-inverse is `-a`, because `a * -a = -(a * a) = 1`, and likewise `-a * a = 1`.
+In a monoid with zero and a distributive negation, an element `a` with `a * a = -1` is a unit
+(`isUnit_of_mul_self_eq_neg_one`), so `Ring.inverse a` is its inverse, which is `-a`.
 
 ## Main results
 
-* `isUnit_of_mul_self_eq_neg_one`: an element of square `-1` is a unit.
-* `Ring.inverse_eq_neg_of_mul_self_eq_neg_one`: its inverse `Ring.inverse a` is `-a`.
+* `Ring.inverse_eq_neg_of_mul_self_eq_neg_one`: the inverse `Ring.inverse a` of an element of
+  square `-1` is `-a`.
 -/
 
 public section
@@ -25,11 +25,6 @@ public section
 open Ring
 
 variable {M : Type*}
-
-/-- In a monoid with a distributive negation, an element of square `-1` is a unit. -/
-theorem isUnit_of_mul_self_eq_neg_one [Monoid M] [HasDistribNeg M] {a : M} (ha : a * a = -1) :
-    IsUnit a :=
-  isUnit_iff_exists.2 ⟨-a, by rw [mul_neg, ha, neg_neg], by rw [neg_mul, ha, neg_neg]⟩
 
 /-- In a monoid with zero and a distributive negation, the inverse of an element of square `-1`
 is its negative. -/

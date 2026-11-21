@@ -176,12 +176,10 @@ theorem inv_toEuclideanCLM_symm_toContinuousLinearMap
 
 /-- The invertible matrix of a complex structure depends continuously on it. -/
 theorem continuous_toGeneralLinearGroup :
-    Continuous (toGeneralLinearGroup (n := n)) :=
-  Units.continuous_iff.2
-    ⟨continuous_subtypeVal.comp (homeomorphMatrix n).continuous,
-      by
-        simp only [coe_toGeneralLinearGroup_inv]
-        fun_prop⟩
+    Continuous (toGeneralLinearGroup (n := n)) := by
+  refine Units.continuous_iff.2 ⟨?_, ?_⟩ <;>
+    simp only [Function.comp_def, coe_toGeneralLinearGroup, coe_toGeneralLinearGroup_inv] <;>
+    fun_prop
 
 /-- The endomorphism of `g • J` in the operator norm is `g J g⁻¹`, matrices acting by
 `Matrix.toEuclideanCLM`. -/

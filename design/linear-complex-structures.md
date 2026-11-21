@@ -156,10 +156,11 @@ These settle the questions that `DESIGN.md` leaves to this file.
 
 ## Files
 
-Files are under `SymplecticGeometry/`. The part has fourteen files, each with
+Files are under `SymplecticGeometry/`. The part has fifteen files, each with
 the topic its path says. Besides the standard model, the orbit space and the
 oriented components, they hold the actions on complex structures, their
-general topology, the general orbit–stabilizer homeomorphism, the inverse of
+general topology, the general orbit–stabilizer homeomorphism, the units of
+square $-1$, the inverse of
 an element and of a matrix of square $-1$, a star-ring
 lemma on elements of square $-1$, the conjugation identity for units of square $-1$, the polar deformation of
 matrices of square $-1$, the orthogonal complex structures, the map from
@@ -178,7 +179,8 @@ lemma extends that file and is a candidate to move there.
 | `LinearAlgebra/ComplexStructure/Standard.lean` | the isomorphism $\Phi$, transitivity, the stabilizer, positively oriented structures, compatibility with $\omega_0$ under symplectic matrices and the action of `Matrix.symplecticGroup ι ℝ` on the compatible structures |
 | `Topology/Algebra/GroupAction/Transitive.lean` | the orbit–stabilizer homeomorphism for σ-compact groups |
 | `Topology/ComplexStructure/Orbit.lean` | the space as GL(2n,ℝ)/GL(n,ℂ), the positively oriented structures form a clopen set |
-| `Algebra/GroupWithZero/Units/Basic.lean` | an element of square $-1$ is a unit with `Ring.inverse` its negative |
+| `Algebra/Ring/Units.lean` | an element of square $-1$ is a unit |
+| `Algebra/GroupWithZero/Units/Basic.lean` | an element of square $-1$ has `Ring.inverse` its negative |
 | `LinearAlgebra/Matrix/NonsingularInverse.lean` | a matrix of square $-1$ has inverse its negative |
 | `Algebra/Star/Basic.lean` | in a star ring, an element of square $-1$ has $a^\ast a = (a a^\ast)^{-1}$ |
 | `Analysis/SpecialFunctions/ContinuousFunctionalCalculus/Polar.lean` | the polar unitary factor of a unit of square $-1$ inverts the powers of its positive factor |
@@ -374,12 +376,17 @@ Declarations about Tau Ceti's type go in its namespace
   it and its complement are the images of the open sets `{det > 0}` and
   `{det < 0}` of `GL (ι ⊕ ι) ℝ` under the open orbit map.
 
-### `Algebra/GroupWithZero/Units/Basic.lean`
+### `Algebra/Ring/Units.lean`
 
 - `isUnit_of_mul_self_eq_neg_one (ha : a * a = -1) : IsUnit a`, in the root
-  namespace, for `[Monoid M] [HasDistribNeg M]`, and
-  `Ring.inverse_eq_neg_of_mul_self_eq_neg_one (ha : a * a = -1) : a⁻¹ʳ = -a`,
-  for `[MonoidWithZero M] [HasDistribNeg M]`.
+  namespace, for `[Monoid M] [HasDistribNeg M]`. It imports only
+  `Mathlib.Algebra.Ring.Units`, whose level it has.
+
+### `Algebra/GroupWithZero/Units/Basic.lean`
+
+- `Ring.inverse_eq_neg_of_mul_self_eq_neg_one (ha : a * a = -1) : a⁻¹ʳ = -a`,
+  for `[MonoidWithZero M] [HasDistribNeg M]`. It imports
+  `Algebra/Ring/Units.lean`.
 
 ### `LinearAlgebra/Matrix/NonsingularInverse.lean`
 
