@@ -149,6 +149,7 @@ variable {EB HB M : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB]
 | `Geometry/Manifold/Boundary/Collar/Push.lean` | pushing a compact manifold with boundary into its interior | 13 |
 | `Topology/VectorBundle/ZeroSet.lean` | closedness of the zero set of a continuous section along a map | 14 |
 | `Geometry/Manifold/VectorBundle/Section/Generic.lean` | sections with closed discrete zero sets over boundaryless manifolds | 14 |
+| `Geometry/Diffeomorphism/Diffeotopy/Discrete.lean` | a diffeotopy whose final map sends a compact set off a closed discrete set | 16 |
 | `Geometry/Manifold/VectorBundle/Section/Nonvanishing.lean` | smoothing nowhere-zero sections; nowhere-zero sections over surfaces with boundary | 15, 16 |
 | `Geometry/Manifold/VectorBundle/Hermitian/Surface.lean` | the third milestone | 17 |
 
@@ -160,8 +161,8 @@ says), except its lemma `moserGenerator_conj`, which goes in
 `Riemannian/SectionTopology.lean`, `IsManifold/InteriorBoundary.lean`,
 `Topology/Connected/Clopen.lean`, `Geometry/Manifold/VectorBundle/Pullback.lean`,
 `Topology/VectorBundle/Pullback.lean`,
-`Geometry/Symplectic/Manifold/Volume.lean` and the folder `Boundary/Collar/`
-have the names of a Tau Ceti or Mathlib file or
+`Geometry/Symplectic/Manifold/Volume.lean` and the folders `Boundary/Collar/`
+and `Geometry/Diffeomorphism/Diffeotopy/` have the names of a Tau Ceti or Mathlib file or
 folder at the same place, so that the two merge upstream.
 
 **Departures from `DESIGN.md`.** Each has its reason, and the overview
@@ -187,6 +188,11 @@ file to it.
   `Topology/Connected/Clopen.lean`, `Boundary/Collar/Push.lean`, `Section/Generic.lean`,
   `Section/Nonvanishing.lean`): they hold the prerequisites of the route to
   the third milestone below, which replaces the book's cutting of the surface.
+- `Geometry/Diffeomorphism/Diffeotopy/Discrete.lean` is new: the step of
+  issue 16 that moves the zeros of a section off a compact set is a fact
+  about diffeotopies of boundaryless manifolds, with no bundle in it. It
+  sits in Tau Ceti's diffeotopy folder, in the `TauCeti` namespace of the
+  lemma it builds on, so that it can merge there.
 - `Topology/VectorBundle/ZeroSet.lean` is new too: the closedness of the
   zero set that `Section/Generic.lean` uses holds for any continuous section
   of a topological vector bundle and needs no smooth structure, so it sits
@@ -686,20 +692,11 @@ $C^n$ maps, so they are public and named.
   coordinates of `s` in `trivializationAt F V b`. These coordinates are
   continuous in `s` by Tau Ceti's `continuous_frameCoordinates_of_cover`
   (`Section/FrameCover.lean`), which is where `hcover` and the local
-  compactness of `EB` are used. Two public lemmas of the same file state
-  these facts about the chart of the total space:
-
-  ```lean
-  theorem toContMDiffMap_mem_extChartAt_source_iff (s : Cₛ^n⟮I; F, V⟯)
-      (y : TotalSpace F V) (p : M) :
-      toContMDiffMap s p ∈ (extChartAt (I.prod 𝓘(𝕜, F)) y).source ↔
-        p ∈ (trivializationAt F V y.proj).baseSet ∧ p ∈ (chartAt H y.proj).source
-
-  theorem extChartAt_toContMDiffMap (s : Cₛ^n⟮I; F, V⟯) (y : TotalSpace F V) {p : M}
-      (hp : p ∈ (trivializationAt F V y.proj).baseSet) :
-      extChartAt (I.prod 𝓘(𝕜, F)) y (toContMDiffMap s p) =
-        (extChartAt I y.proj p, (trivializationAt F V y.proj ⟨p, s p⟩).2)
-  ```
+  compactness of `EB` are used. The two facts about the chart of the total
+  space are Tau Ceti's `Bundle.mem_extChartAt_source_iff` and
+  `Bundle.extChartAt_apply_of_mem_baseSet`
+  (`Geometry/Manifold/VectorBundle/Submersion.lean`), applied at the point
+  `toContMDiffMap s p`; the library does not restate them.
 
   The frame coordinates are $C^n$ maps on the open base set only, while the
   chart test reads `p ↦ (trivializationAt F V b ⟨p, s p⟩).2` in an ambient
@@ -1829,7 +1826,9 @@ of *Constructions* for *First Chern number*.
 16. **Nowhere-zero sections over surfaces with boundary.** Same file: step 1
     of the route above,
     `SymplecticGeometry.exists_contMDiffSection_forall_ne_zero_of_boundary_nonempty`
-    for real bundles of rank at least $2$ over `S`. Blockers: 12, 13, 14, 15.
+    for real bundles of rank at least $2$ over `S`, with its diffeotopy step
+    `TauCeti.exists_diffeotopy_apply_one_notMem` in
+    `Geometry/Diffeomorphism/Diffeotopy/Discrete.lean`. Blockers: 12, 13, 14, 15.
 17. **Unitary frames and the third milestone.** `Hermitian/Surface.lean`:
     the frame theorem and its trivialization corollary. Blockers: 16.
 
