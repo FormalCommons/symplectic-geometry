@@ -131,6 +131,7 @@ variable {EB HB M : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB]
 | `Geometry/Manifold/VectorBundle/Riemannian/SectionTopology.lean` | contractibility of the space of bundle metrics | 7 |
 | `Geometry/Manifold/VectorBundle/Symplectic/ComplexStructure/Contractible.lean` | contractibility for a fixed form or structure, the homotopy equivalence, the second milestone | 7, 8 |
 | `Geometry/Manifold/VectorBundle/Symplectic/Trivialization.lean` | local Darboux frames and the reduction of the structure group | 9 |
+| `Analysis/InnerProductSpace/GramSchmidtOrtho.lean` | Gram–Schmidt turns `u₀, J u₀, u₁, …` into `e₀, J e₀, e₁, …` for a skew-adjoint orthogonal `J` | 9 |
 | `Geometry/Manifold/VectorBundle/Symplectic/Classification.lean` | the first milestone | 11 |
 | `Geometry/Manifold/VectorBundle/Hom.lean` | `contMDiff_hom_bundle_symm`: the fibrewise inverses of a $C^n$ isomorphism of bundles as a $C^n$ section of the hom bundle; `Bundle.Trivial.contMDiff_comp_mk_iff` (with its `At`, `WithinAt` and `On` forms): $C^n$ maps out of the total space of a trivial bundle read on $M \times W$; `Bundle.Trivial.contMDiff_totalSpaceMk_clm`: a fixed continuous linear map, applied in each fibre, as a $C^n$ map of total spaces of trivial bundles | 1, 3, 25 |
 | `Geometry/Manifold/VectorBundle/ContinuousAlternatingMap.lean` | `contMDiff_compContinuousLinearMap_totalSpace`: precomposition by a $C^n$ hom-bundle section is $C^n$ on total spaces of alternating bundles | 3 |
@@ -242,6 +243,11 @@ file to it.
   `isOpen_setOf_nondegenerate` holds for any fibrewise condition on any fibre
   bundle, so it is stated there, in Mathlib's `FiberBundle` namespace, as
   `FiberBundle.isOpen_of_forall_mem_iff_snd_mem` (#456).
+- `Analysis/InnerProductSpace/GramSchmidtOrtho.lean` is new: the step of
+  issue 9 showing that Gram–Schmidt applied to `u₀, J u₀, u₁, J u₁, …` gives
+  `e₀, J e₀, e₁, J e₁, …` uses only an inner product space and a skew-adjoint
+  orthogonal `J`. It is in Mathlib's namespace `InnerProductSpace`, in a file
+  with the name of Mathlib's file of `gramSchmidt`, so that it can merge there.
 - The lemma of `Section/Topology.lean` asks for joint $C^n$ regularity in a
   manifold parameter instead of derivatives continuous in the parameter (see
   below), and issues 6, 7 and 8 wait for part 9: issue 6 for its building
@@ -1065,13 +1071,18 @@ $[0,1]$ is never fed to the lemma with `P = ℝ` directly.
   Gram–Schmidt (`Geometry/Manifold/VectorBundle/GramSchmidt.lean`) to
   $u_1,Ju_1,u_2,Ju_2,\dots$; since the metric is $J$-invariant, the output is
   $e_1,Je_1,e_2,Je_2,\dots$, a Darboux frame. No ODE is needed.
+- `ContMDiffTwoForm.Compatible.exists_isLocalFrameOn_isDarbouxBasis`: the
+  same frames for a form compatible with a given $C^n$ complex structure
+  `J`, with no hypothesis on the base; the route above runs with that `J`,
+  and the previous result applies it to $J_{g,\omega}$ (which needs a bundle
+  metric) over a Hausdorff σ-compact base.
 - `IsNondegenerate.exists_trivialization_isSymplectomorphism`: for a symplectic
   form `σ` on the model fibre `F`, every point lies in the base set of a
   trivialization in the $C^n$ maximal atlas whose fibre maps carry
   `symplecticFormAt y` to `σ`, built from the frame by Tau Ceti's
   `IsLocalFrameOn.trivialization` (`Geometry/Manifold/VectorBundle/FrameTrivialization.lean`)
   with a Darboux basis of `σ`; and
-  `isSymplectomorphism_coordChangeL`: the coordinate changes of two such
+  `IsNondegenerate.isSymplectomorphism_coordChangeL`: the coordinate changes of two such
   trivializations preserve `σ`, so the structure group reduces to
   $\mathrm{Sp}(F,\sigma)$. For `F = StdSpace (Fin k)` and `σ = stdForm`, the
   matrices of the coordinate changes lie in `Matrix.symplecticGroup` by
