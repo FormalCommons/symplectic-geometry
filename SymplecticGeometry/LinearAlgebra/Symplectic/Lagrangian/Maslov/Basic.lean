@@ -41,6 +41,9 @@ Write `ℒ ι` for the space of Lagrangian subspaces of the standard model `(Std
 * `maslovIndex_sum`: the index of a direct sum of loops is the sum of the indices.
 * `maslovIndex_eq_sub_div_pi`: if `det (X + i Y)(t) = e^{i α(t)}` along a path of unitary frames
   of the loop, with `α` continuous, the index is `(α 1 - α 0) / π`.
+* `angleChange_map_detCircle`: along a path of unitary frames of a loop `γ`, the determinant has
+  angle change `π μ(γ)`; so a path of frames from `U` to `V` has
+  `det (U⁻¹ V) = e^{iπμ(γ)}` (`detCircle_inv_mul_eq_exp`).
 * `maslovIndex_halfTurnLoop`: the loop `halfTurnLoop k` has index `k n`; for `n = 1`, `k = 1`
   this is the normalization of the index.
 
@@ -350,6 +353,24 @@ theorem maslovIndex_eq_sub_div_pi {Λ : ℒ ι} (γ : Path Λ Λ) {U V : unitary
       ring_nf
   rw [maslovIndex_def, eq_div_iff Real.pi_ne_zero]
   linarith
+
+/-- Along a path `δ` of unitary frames of a loop `γ` (`unitaryFrame (δ t) = γ t`), the determinant
+turns through the angle `π μ(γ)`. -/
+theorem angleChange_map_detCircle {Λ : ℒ ι} (γ : Path Λ Λ) {U V : unitaryGroup ι ℂ}
+    (δ : Path U V) (hδ : ∀ t, unitaryFrame (δ t) = γ t) :
+    Circle.angleChange (δ.map continuous_detCircle) = maslovIndex γ * Real.pi := by
+  have h := Circle.angleChange_eq_degree_mul (γ.map continuous_maslovPhase)
+  rw [← Circle.angleChange_congr ((δ.map continuous_detCircle).mul (δ.map continuous_detCircle))
+    _ fun t ↦ by simp [← hδ t, sq], Circle.angleChange_mul, ← maslovIndex_def] at h
+  linarith
+
+/-- If a path `δ` of unitary frames of a loop `γ` runs from `U` to `V`, then `det (U⁻¹ V)` is
+`(-1)^μ(γ)`, written `e^{iπμ(γ)}`. -/
+theorem detCircle_inv_mul_eq_exp {Λ : ℒ ι} (γ : Path Λ Λ) {U V : unitaryGroup ι ℂ}
+    (δ : Path U V) (hδ : ∀ t, unitaryFrame (δ t) = γ t) :
+    detCircle (U⁻¹ * V) = Circle.exp (maslovIndex γ * Real.pi) := by
+  rw [← angleChange_map_detCircle γ δ hδ, Circle.exp_angleChange, map_mul, map_inv,
+    div_eq_inv_mul]
 
 /-! ### Half-turns -/
 
