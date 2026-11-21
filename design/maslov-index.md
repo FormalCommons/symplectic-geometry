@@ -244,7 +244,8 @@ and pairs).
 - **G4.** The actions of `GLSymplectic ι ℝ` and of `unitaryGroup ι ℂ` on
   `ℒ ι` (the `MulAction` instances of `Lagrangian/Action.lean`), the second
   through `TauCeti.GLSymplectic.ofUnitary`
-  (`ℒ.unitary_smul_def : U • Λ = ofUnitary U • Λ`), both with
+  (`ℒ.unitary_smul_def : U • Λ = ofUnitary U • Λ`, with the `@[simp]` reverse
+  `ℒ.ofUnitary_smul`, so that `U • Λ` is the normal form), both with
   `ContinuousSMul`, and
   `ℒ.unitaryFrame_mul : unitaryFrame (U * U') = U • unitaryFrame U'`, so that
   `ofUnitary U • unitaryFrame U' = unitaryFrame (U * U')`.
@@ -385,7 +386,7 @@ The Maslov phase on $\mathcal{L}(n)$ and the index of Lagrangian loops.
   `souriau_unitaryFrame : souriau (unitaryFrame U) = Matrix.UnitaryGroup.souriau U`
   (`@[simp]`), `souriau_horizontal`, `continuous_souriau`, `souriau_injective`,
   `isClosedEmbedding_souriau`, `souriau_sum`, `souriau_reindex`, and
-  `souriau_ofUnitary_smul : souriau (ofUnitary U • Λ) = U * souriau Λ * UnitaryGroup.transpose U`
+  `souriau_unitary_smul : souriau (U • Λ) = U * souriau Λ * UnitaryGroup.transpose U`
   (`@[simp]`, by `Matrix.UnitaryGroup.coe_souriau_mul_left`).
 - `ℒ.maslovPhase (Λ : ℒ ι) : Circle := detCircle (souriau Λ)`, the book's
   $\rho$, with `maslovPhase_def`, `continuous_maslovPhase`,
@@ -394,13 +395,13 @@ The Maslov phase on $\mathcal{L}(n)$ and the index of Lagrangian loops.
   `maslovPhase_horizontal`, `maslovPhase_sum`
   (`@[simp]`, the phase of a direct sum is the product), `maslovPhase_reindex`,
   and
-  `maslovPhase_ofUnitary_smul : maslovPhase (ofUnitary U • Λ) = detCircle U ^ 2 * maslovPhase Λ`.
-- `ℒ.rootMultiplicity_one_charpoly_souriau`: the multiplicity of the eigenvalue
-  `1` of `souriau Λ` is `finrank (Λ ⊓ V₀)`, from Tau Ceti's lemma of the same
-  name through `ℒ.finrank_unitaryFrame_inf_horizontal`.
+  `maslovPhase_unitary_smul : maslovPhase (U • Λ) = detCircle U ^ 2 * maslovPhase Λ`.
   The reindexing lemmas here and below are stated with `ℒ.reindex e` and its
   continuity `ℒ.continuous_reindex e`, the simp normal form of
   `ℒ.reindexHomeomorph e` (`reindexHomeomorph_apply`).
+- `ℒ.rootMultiplicity_one_charpoly_souriau`: the multiplicity of the eigenvalue
+  `1` of `souriau Λ` is `finrank (Λ ⊓ V₀)`, from Tau Ceti's lemma of the same
+  name through `ℒ.finrank_unitaryFrame_inf_horizontal`.
 - `ℒ.maslovIndex {Λ} (γ : Path Λ Λ) : ℤ := Circle.degree (γ.map continuous_maslovPhase)`,
   with `maslovIndex_def`; from the API of `Circle.degree` (Decision 5):
   `maslovIndex_eq_of_homotopy` (free homotopy, from
@@ -441,7 +442,8 @@ The Maslov phase on $\mathcal{L}(n)$ and the index of Lagrangian loops.
 - `ℒ.maslovIndex_smul {A Λ} (Ψ : Path A A) (γ : Path Λ Λ) :
   maslovIndex ((Ψ.prod γ).map continuous_smul) = maslovIndex γ + 2 * GLSymplectic.maslovIndex Ψ`
   (`@[simp]`).
-  For a loop of `ofUnitary` matrices this is `maslovPhase_ofUnitary_smul` with
+  For a loop of `ofUnitary` matrices this is `ofUnitary_smul`, then
+  `maslovPhase_unitary_smul`, with
   `Circle.degree_mul`. In general, Tau Ceti's `polarHomotopy` deforms `Ψ`
   through loops of symplectic matrices to its loop of unitary polar factors;
   acting on `γ` it gives a free homotopy of Lagrangian loops (G4), and
@@ -818,7 +820,7 @@ the interface items named.
    `isMaslovIndex_iff`. Blocked by 1.
    (Part of #34; with 1 it completes the symplectic milestone.)
 3. **Lagrangian loops: phase and index.** `Maslov/Basic.lean`. Blocked by
-   G1, G2, G3, G4 (for `maslovPhase_ofUnitary_smul`) and G5.
+   G1, G2, G3, G4 (for `maslovPhase_unitary_smul`) and G5.
 4. **Lagrangian loops: product axiom.** `Maslov/Product.lean`. Blocked by 3
    and G4.
 5. **Lagrangian loops: classification and uniqueness.** `Maslov/Loop.lean`.
