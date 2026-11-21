@@ -240,8 +240,8 @@ theorem exists_maslovIndex_eq_pathMaslovIndex {Λ Λ' : ℒ ι} (γ : Path Λ Λ
 
 /-! ### Properties read off the formula -/
 
-/-- **Homotopy invariance.** Paths that are homotopic with fixed endpoints have the same index
-relative to every Lagrangian. -/
+/-- **Homotopy invariance.** A homotopy of paths that keeps both ends fixed does not change the
+index, whatever the reference Lagrangian. -/
 theorem pathMaslovIndex_eq_of_homotopic {Λ Λ' : ℒ ι} {γ₀ γ₁ : Path Λ Λ'} (h : γ₀.Homotopic γ₁)
     (V : ℒ ι) : pathMaslovIndex γ₀ V = pathMaslovIndex γ₁ V := by
   rw [pathMaslovIndex, pathMaslovIndex, souriauIndex, souriauIndex,
