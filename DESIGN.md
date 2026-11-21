@@ -497,7 +497,9 @@ it into issues; the overview fixes its folders and its dependencies.
   `Matrix.toEuclideanLin (Matrix.realify U)`. `design/maslov-index.md` lists
   what the *Maslov index* part needs of the items below.
 - **Builds on:** *Standard model*, including `StdSpace.sumEquiv` for the
-  direct sum. From Tau Ceti, transferred along `complexToRealEuclidean`: the
+  direct sum; *Symplectic vector spaces*, only `Subspace.lean`, for
+  `TauCeti.SymplecticForm.isLagrangian_iff_isIsotropic_and_two_mul_finrank_eq`
+  in the frame criterion. From Tau Ceti, transferred along `complexToRealEuclidean`: the
   chart `Matrix.lagrangianChart` (`LinearAlgebra/TotallyReal/Euclidean.lean`);
   frames and the stabilizer through `Matrix.realImage`,
   `Matrix.exists_mem_orthogonalGroup_eq_mul_map_ofReal` and
@@ -526,11 +528,11 @@ it into issues; the overview fixes its folders and its dependencies.
   `lagrangianChart S` is maximal totally real and transverse to
   `realSubspace (Fin 2)`, but by `Matrix.lagrangianChart_injective` it is
   the chart of no symmetric matrix. The statement follows from the second
-  graph statement, transferred along `TauCeti.complexToRealEuclidean n`
-  composed with `EuclideanSpace.equiv` (`EuclideanSpace ℂ n ≃ (n → ℂ)`); the
-  composite carries `TauCeti.realSubspace n` to $V_0$ and
+  graph statement, transferred along `StdSpace.complexEuclideanEquiv n`,
+  which carries `TauCeti.realSubspace n` to $V_0$ and
   `lagrangianChart S` to $\{x=Sy\}$.
-- **Graph charts** (`Graph.lean`). For the topology the design file picks,
+- **Graph charts** (`Graph.lean`). For the projection topology (**The
+  topology** below),
   the Lagrangians transverse to $V_0$, and those transverse to $V_1$, form
   open subsets of $\mathcal{L}(n)$, each homeomorphic to the symmetric
   matrices by the graph statements above; the first chart sends $S$ to the
@@ -600,8 +602,9 @@ it into issues; the overview fixes its folders and its dependencies.
   `(TauCeti.GLSymplectic.mulEquivSymplecticGroup ι ℝ).symm`. For $n=0$ these
   statements hold trivially, $\mathcal{L}(0)$ being a point.
 - **Milestones:** *Lagrangian frames and the Lagrangian Grassmannian*.
-- **The topology**, as the design file decides it: $\mathcal{L}(V,\omega)$
-  has the topology induced by orthogonal projections. The two other
+- **The topology**, as the design file decides it: for $V$ a real inner
+  product space of finite dimension, $\mathcal{L}(V,\omega)$ has the
+  topology induced by orthogonal projections. The two other
   descriptions are theorems about it: the quotient
   $\mathrm{U}(n)/\mathrm{O}(n)$ in `Quotient.lean`, which the Maslov part
   uses, and the subspace topology of `TauCeti.finiteGrassmannian` in
@@ -1147,7 +1150,7 @@ Each part depends only on the parts listed, besides Mathlib and Tau Ceti.
 | 0 | *Linear Moser* | — |
 | 1 | *Unitary group topology* | *Symplectic group* (only the file on $\mathrm{Sp}(2n)$; the other files can start at once) |
 | 1 | *Symplectic vector spaces* | *Standard model*, *Symplectic group* |
-| 1 | *Lagrangian Grassmannian* | *Standard model* |
+| 1 | *Lagrangian Grassmannian* | *Standard model*, *Symplectic vector spaces* (only `Subspace.lean`, which is merged) |
 | 1 | *Linear nonsqueezing* | *Standard model* |
 | 1 | *Linear complex structures* | *Standard model* |
 | 1 | *Siegel upper half space* | *Standard model* |
