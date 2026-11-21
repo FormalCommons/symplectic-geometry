@@ -217,10 +217,6 @@ private def endPieceDiffeomorph :
       (X := EndPiece n W) (M := endInterval × (𝓡∂ (n + 1)).boundary W)
       (f := (id : EndPiece n W → endInterval × (𝓡∂ (n + 1)).boundary W))).1 contMDiff_id
 
-private theorem mem_interiorOpens_iff {p : W} :
-    p ∈ (𝓡∂ (n + 1)).interiorOpens W ↔ p ∈ (𝓡∂ (n + 1)).interior W := by
-  rw [← SetLike.mem_coe, ModelWithCorners.coe_interiorOpens]
-
 /-- The identification of the interior of `W` with the interior piece. -/
 private def ofInterior : (𝓡∂ (n + 1)).interiorOpens W ≃ₜ InteriorPiece n W :=
   BoundarylessModel.homeomorph _ _
@@ -237,7 +233,8 @@ private theorem continuous_interiorPieceVal : Continuous (InteriorPiece.val (n :
 
 private theorem InteriorPiece.val_mem (q : InteriorPiece n W) :
     q.val ∈ (𝓡∂ (n + 1)).interior W :=
-  mem_interiorOpens_iff.1 (ofInterior.symm q).property
+  ModelWithCorners.coe_interiorOpens (I := 𝓡∂ (n + 1)) (M := W) ▸
+    SetLike.mem_coe.2 (ofInterior.symm q).property
 
 private theorem InteriorPiece.val_injective :
     Injective (InteriorPiece.val (n := n) (W := W)) :=
@@ -245,11 +242,15 @@ private theorem InteriorPiece.val_injective :
 
 /-- The point of the interior piece at an interior point of `W`. -/
 private def InteriorPiece.mk (p : W) (hp : p ∈ (𝓡∂ (n + 1)).interior W) : InteriorPiece n W :=
-  ofInterior ⟨p, mem_interiorOpens_iff.2 hp⟩
+  ofInterior ⟨p, SetLike.mem_coe.1
+    (ModelWithCorners.coe_interiorOpens (I := 𝓡∂ (n + 1)) (M := W) ▸ hp)⟩
 
 @[simp] private theorem InteriorPiece.val_mk (p : W) (hp : p ∈ (𝓡∂ (n + 1)).interior W) :
     (InteriorPiece.mk p hp).val = p := by
   simp [InteriorPiece.mk]
+
+@[simp] private theorem InteriorPiece.mk_coe (p : (𝓡∂ (n + 1)).interiorOpens W)
+    (hp : (p : W) ∈ (𝓡∂ (n + 1)).interior W) : InteriorPiece.mk (p : W) hp = ofInterior p := rfl
 
 @[simp] private theorem InteriorPiece.mk_val (q : InteriorPiece n W) :
     InteriorPiece.mk q.val q.val_mem = q := by
@@ -257,24 +258,19 @@ private def InteriorPiece.mk (p : W) (hp : p ∈ (𝓡∂ (n + 1)).interior W) :
 
 variable (c : SmoothCollar n ∞ W)
 
-omit [IsManifold (𝓡∂ (n + 1)) ∞ W] in
+section
+
+omit [IsManifold (𝓡∂ (n + 1)) ∞ W]
+
 /-- A collar point lies in the interior exactly when its depth is not zero. -/
 theorem apply_mem_interior_iff (p : ↥((𝓡∂ (n + 1)).boundary W) × normalIioOpens 1) :
     c p ∈ (𝓡∂ (n + 1)).interior W ↔ p.2 ≠ normalIioOpensZero one_pos := by
   rw [← ModelWithCorners.compl_boundary, mem_compl_iff, apply_mem_boundary_iff]
 
-omit [IsManifold (𝓡∂ (n + 1)) ∞ W] in
 /-- The collar undoes the inverse of its diffeomorphism onto its image. -/
 @[simp] theorem apply_diffeomorphOpensRange_symm (w : c.opensRange) :
     c (c.diffeomorphOpensRange.symm w) = w := by
   rw [← coe_diffeomorphOpensRange_apply, Diffeomorph.apply_symm_apply]
-
-/-- The part of the interior piece covered by the collar. -/
-private def interiorOverlap : Opens (InteriorPiece n W) :=
-  ⟨InteriorPiece.val ⁻¹' range c, c.isOpen_range.preimage continuous_interiorPieceVal⟩
-
-private theorem mem_interiorOverlap {q : InteriorPiece n W} :
-    q ∈ c.interiorOverlap ↔ q.val ∈ range c := Iff.rfl
 
 /-- The part of the end piece with negative first coordinate. -/
 private def endOverlap : Opens (EndPiece n W) :=
@@ -284,40 +280,68 @@ private def endOverlap : Opens (EndPiece n W) :=
 /-- The coordinates of a point of the end piece. -/
 private def EndPiece.coord (q : EndPiece n W) : endInterval × (𝓡∂ (n + 1)).boundary W := q
 
-omit [IsManifold (𝓡∂ (n + 1)) ∞ W] in
+private theorem EndPiece.coord_eq (q : EndPiece n W) : q.coord = q := rfl
+
 private theorem mem_endOverlap {q : EndPiece n W} :
     q ∈ endOverlap ↔ (q.coord.1 : ℝ) < 0 := Iff.rfl
 
-omit [IsManifold (𝓡∂ (n + 1)) ∞ W] in
-private theorem continuous_coord : Continuous (EndPiece.coord (n := n) (W := W)) :=
-  continuous_id
+/-- The collar point of a point of the end piece, the boundary point for nonnegative `s`. -/
+private def endRetract (q : EndPiece n W) : W := c (q.coord.2, collarDepth q.coord.1)
+
+private theorem endRetract_def (q : EndPiece n W) :
+    c.endRetract q = c (q.coord.2, collarDepth q.coord.1) := rfl
+
+private theorem endRetract_mk (s : endInterval) (x : (𝓡∂ (n + 1)).boundary W) :
+    c.endRetract ((s, x) : endInterval × (𝓡∂ (n + 1)).boundary W) = c (x, collarDepth s) := rfl
+
+private theorem continuous_endRetract : Continuous c.endRetract :=
+  c.continuous.comp (continuous_snd.prodMk (continuous_collarDepth.comp continuous_fst))
+
+/-- The end coordinates `(-t, x)` of collar coordinates `(x, t)`. -/
+private def collarToEnd (p : ↥((𝓡∂ (n + 1)).boundary W) × normalIioOpens 1) :
+    endInterval × (𝓡∂ (n + 1)).boundary W :=
+  (negNormalCoord p.2, p.1)
+
+private theorem collarToEnd_mk (x : (𝓡∂ (n + 1)).boundary W) (t : normalIioOpens 1) :
+    collarToEnd (x, t) = (negNormalCoord t, x) := rfl
+
+private theorem endRetract_collarToEnd (p : ↥((𝓡∂ (n + 1)).boundary W) × normalIioOpens 1) :
+    c.endRetract (collarToEnd p) = c p := by
+  obtain ⟨x, t⟩ := p
+  rw [collarToEnd_mk, endRetract_mk, collarDepth_negNormalCoord]
+
+end
+
+/-- The part of the interior piece covered by the collar. -/
+private def interiorOverlap : Opens (InteriorPiece n W) :=
+  ⟨InteriorPiece.val ⁻¹' range c, c.isOpen_range.preimage continuous_interiorPieceVal⟩
+
+private theorem mem_interiorOverlap {q : InteriorPiece n W} :
+    q ∈ c.interiorOverlap ↔ q.val ∈ range c := Iff.rfl
 
 /-- The point of the interior piece glued to a point of the end overlap. -/
 private def endToInteriorPt (q : endOverlap (n := n) (W := W)) : InteriorPiece n W :=
-  ofInterior ⟨c (q.val.coord.2, collarDepth q.val.coord.1), by
-    rw [mem_interiorOpens_iff]
-    rw [apply_mem_interior_iff]
+  ofInterior ⟨c.endRetract q.val, by
+    rw [← SetLike.mem_coe, ModelWithCorners.coe_interiorOpens, endRetract_def,
+      apply_mem_interior_iff]
     intro h
     have := collarDepth_val_pos (s := q.val.coord.1) (mem_endOverlap.1 q.property)
     rw [show collarDepth q.val.coord.1 = _ from h] at this
     simp at this⟩
 
 private theorem endToInteriorPt_val (q : endOverlap (n := n) (W := W)) :
-    (c.endToInteriorPt q).val = c (q.val.coord.2, collarDepth q.val.coord.1) := by
+    (c.endToInteriorPt q).val = c.endRetract q.val := by
   simp [endToInteriorPt]
 
 /-- The gluing map from the end overlap to the interior overlap. -/
 private def endToInterior : C(endOverlap (n := n) (W := W), c.interiorOverlap) where
-  toFun q := ⟨c.endToInteriorPt q, c.mem_interiorOverlap.2 ⟨_, (c.endToInteriorPt_val q).symm⟩⟩
-  continuous_toFun := by
-    refine Continuous.subtype_mk (ofInterior.continuous.comp (Continuous.subtype_mk ?_ _)) _
-    exact c.continuous.comp (((continuous_snd.comp continuous_coord).comp
-      continuous_subtypeVal).prodMk
-      (continuous_collarDepth.comp ((continuous_fst.comp continuous_coord).comp
-        continuous_subtypeVal)))
+  toFun q := ⟨c.endToInteriorPt q, c.mem_interiorOverlap.2
+    ⟨_, ((c.endToInteriorPt_val q).trans (c.endRetract_def q.val)).symm⟩⟩
+  continuous_toFun := Continuous.subtype_mk (ofInterior.continuous.comp
+    ((c.continuous_endRetract.comp continuous_subtypeVal).subtype_mk _)) _
 
 private theorem endToInterior_val (q : endOverlap (n := n) (W := W)) :
-    (c.endToInterior q).val.val = c (q.val.coord.2, collarDepth q.val.coord.1) :=
+    (c.endToInterior q).val.val = c.endRetract q.val :=
   c.endToInteriorPt_val q
 
 /-- The collar coordinates of a point of the interior overlap. -/
@@ -346,8 +370,10 @@ private theorem collarCoord_val_pos (q : c.interiorOverlap) :
 
 /-- The point of the end piece with the collar coordinates of a point of the interior overlap. -/
 private def interiorToEndPt (q : c.interiorOverlap) : EndPiece n W :=
-  ((negNormalCoord (c.collarCoord q).2, (c.collarCoord q).1) :
-    endInterval × (𝓡∂ (n + 1)).boundary W)
+  collarToEnd (c.collarCoord q)
+
+private theorem interiorToEndPt_def (q : c.interiorOverlap) :
+    c.interiorToEndPt q = collarToEnd (c.collarCoord q) := rfl
 
 private theorem continuous_interiorToEndPt : Continuous c.interiorToEndPt :=
   (continuous_negNormalCoord.comp (continuous_snd.comp c.continuous_collarCoord)).prodMk
@@ -358,26 +384,28 @@ private def interiorToEnd : C(c.interiorOverlap, endOverlap (n := n) (W := W)) w
   toFun q := ⟨c.interiorToEndPt q, neg_neg_of_pos (c.collarCoord_val_pos q)⟩
   continuous_toFun := c.continuous_interiorToEndPt.subtype_mk _
 
+private theorem interiorToEnd_val (q : c.interiorOverlap) :
+    (c.interiorToEnd q).val = c.interiorToEndPt q := rfl
+
 private theorem collarCoord_endToInterior (q : endOverlap (n := n) (W := W)) :
     c.collarCoord (c.endToInterior q) = (q.val.coord.2, collarDepth q.val.coord.1) := by
   refine c.injective ?_
-  rw [apply_collarCoord, endToInterior_val]
+  rw [apply_collarCoord, endToInterior_val, endRetract_def]
 
 private theorem interiorToEnd_endToInterior (q : endOverlap (n := n) (W := W)) :
     c.interiorToEnd (c.endToInterior q) = q := by
   have hq : ((q.val.coord.1 : endInterval) : ℝ) ≤ 0 := le_of_lt (mem_endOverlap.1 q.property)
   apply Subtype.ext
-  change ((negNormalCoord (c.collarCoord (c.endToInterior q)).2,
-    (c.collarCoord (c.endToInterior q)).1) : endInterval × _) = q.val.coord
-  rw [collarCoord_endToInterior, negNormalCoord_collarDepth hq]
+  rw [interiorToEnd_val, interiorToEndPt_def, collarCoord_endToInterior, collarToEnd_mk,
+    negNormalCoord_collarDepth hq]
+  exact Prod.mk.eta.trans (EndPiece.coord_eq _)
 
 private theorem endToInterior_interiorToEnd (q : c.interiorOverlap) :
     c.endToInterior (c.interiorToEnd q) = q := by
   apply Subtype.ext
   apply InteriorPiece.val_injective
-  rw [endToInterior_val]
-  change c ((c.collarCoord q).1, collarDepth (negNormalCoord (c.collarCoord q).2)) = q.val.val
-  rw [collarDepth_negNormalCoord, apply_collarCoord]
+  rw [endToInterior_val, interiorToEnd_val, interiorToEndPt_def, endRetract_collarToEnd,
+    apply_collarCoord]
 
 /-- The pieces of the gluing. -/
 private def piece (i : ULift.{u} Bool) : TopCat.{u} :=
@@ -417,11 +445,6 @@ def glueData : TopCat.GlueData.{u} :=
           | rfl
           | exact congrArg Subtype.val (c.endToInterior_interiorToEnd x)
           | exact congrArg Subtype.val (c.interiorToEnd_endToInterior x) }
-
-/-- The end coordinates `(-t, x)` of collar coordinates `(x, t)`. -/
-private def collarToEnd (p : ↥((𝓡∂ (n + 1)).boundary W) × normalIioOpens 1) :
-    endInterval × (𝓡∂ (n + 1)).boundary W :=
-  (negNormalCoord p.2, p.1)
 
 omit [IsManifold (𝓡∂ (n + 1)) ∞ W] in
 private theorem isLocalDiffeomorphAt_collarToEnd {p : ↥((𝓡∂ (n + 1)).boundary W) × normalIioOpens 1}
@@ -562,17 +585,9 @@ private theorem endIncl_eq_interiorIncl_iff {q : EndPiece n W} {p : InteriorPiec
   · rintro ⟨h, rfl⟩
     exact ⟨⟨q, h⟩, rfl, rfl⟩
 
-/-- The collar point of a point of the end piece, the boundary point for nonnegative `s`. -/
-private def endRetract (q : EndPiece n W) : W := c (q.coord.2, collarDepth q.coord.1)
-
-omit [IsManifold (𝓡∂ (n + 1)) ∞ W] in
-private theorem continuous_endRetract : Continuous c.endRetract :=
-  c.continuous.comp (continuous_snd.prodMk (continuous_collarDepth.comp continuous_fst))
-
 private theorem endRetract_interiorToEndPt (q : c.interiorOverlap) :
     c.endRetract (c.interiorToEndPt q) = q.val.val := by
-  change c ((c.collarCoord q).1, collarDepth (negNormalCoord (c.collarCoord q).2)) = _
-  rw [collarDepth_negNormalCoord, apply_collarCoord]
+  rw [interiorToEndPt_def, endRetract_collarToEnd, apply_collarCoord]
 
 private theorem endRetract_eq_val_endToInterior (q : endOverlap (n := n) (W := W)) :
     c.endRetract q.val = (c.endToInterior q : InteriorPiece n W).val :=
@@ -582,7 +597,7 @@ omit [IsManifold (𝓡∂ (n + 1)) ∞ W] in
 private theorem endRetract_mem_boundary {q : EndPiece n W} (hq : q ∉ endOverlap) :
     c.endRetract q ∈ (𝓡∂ (n + 1)).boundary W := by
   have h0 : ((q.coord.1 : endInterval) : ℝ) ≥ 0 := not_lt.1 hq
-  rw [endRetract, apply_mem_boundary_iff]
+  rw [endRetract_def, apply_mem_boundary_iff]
   apply Subtype.ext
   simp [collarDepth, h0]
 
@@ -622,9 +637,7 @@ private theorem endIncl_collarToEnd_eq {p : ↥((𝓡∂ (n + 1)).boundary W) ×
   refine c.endIncl_eq_interiorIncl_iff.2 ⟨neg_neg_of_pos hp, ?_⟩
   apply InteriorPiece.val_injective
   rw [InteriorPiece.val_mk]
-  refine (c.endToInterior_val _).trans ?_
-  change c (p.1, collarDepth (negNormalCoord p.2)) = c p
-  rw [collarDepth_negNormalCoord]
+  exact (c.endToInterior_val _).trans (c.endRetract_collarToEnd p)
 
 omit [IsManifold (𝓡∂ (n + 1)) ∞ W] in
 /-- A point outside the image of a collar is an interior point. -/
@@ -673,9 +686,8 @@ private theorem endMap_of_lt {s : ℝ} (hs : -1 < s) (x : (𝓡∂ (n + 1)).boun
 /-- For `s ∈ (-1, 0]`, the point `(s, x)` of the end is the collar point `c (x, -s)` of `W`. -/
 theorem endMap_neg_eq_inclusion (x : (𝓡∂ (n + 1)).boundary W) (t : normalIioOpens 1) :
     endMap c (-(t : EuclideanHalfSpace 1).val 0, x) = inclusion c (c (x, t)) := by
-  rw [inclusion_apply_collar, endMap_of_lt c (s := -(t : EuclideanHalfSpace 1).val 0)
-    (negNormalCoord t).property]
-  rfl
+  rw [inclusion_apply_collar, ← coe_negNormalCoord, endMap_of_lt c (negNormalCoord t).property,
+    Subtype.coe_eta, collarToEnd_mk]
 
 /-- The end is attached along `∂W`: `(0, x)` is the boundary point `x` of `W`. -/
 theorem endMap_zero (x : (𝓡∂ (n + 1)).boundary W) : endMap c (0, x) = inclusion c x := by
@@ -713,9 +725,7 @@ private theorem retraction_endIncl (q : EndPiece n W) :
   by_cases h : p ∈ range c
   · obtain ⟨q, rfl⟩ := h
     rw [inclusion_apply_collar]
-    refine (retraction_endIncl c (collarToEnd q)).trans ?_
-    change c (q.1, collarDepth (negNormalCoord q.2)) = _
-    rw [collarDepth_negNormalCoord]
+    exact (retraction_endIncl c (collarToEnd q)).trans (c.endRetract_collarToEnd q)
   · rw [inclusion_apply_of_mem_interior c (c.mem_interior_of_notMem_range h),
       retraction_interiorIncl]
     exact InteriorPiece.val_mk _ _
@@ -748,9 +758,9 @@ private theorem inclusion_comp_collar :
 private theorem inclusion_comp_subtypeVal :
     inclusion c ∘ Subtype.val = c.interiorIncl ∘ interiorPieceDiffeomorph := by
   funext q
-  rw [comp_apply, inclusion_apply_of_mem_interior c (mem_interiorOpens_iff.1 q.property),
-    comp_apply, congr_fun coe_interiorPieceDiffeomorph q]
-  rfl
+  rw [comp_apply, inclusion_apply_of_mem_interior c
+    (ModelWithCorners.coe_interiorOpens (I := 𝓡∂ (n + 1)) (M := W) ▸ SetLike.mem_coe.2 q.property),
+    InteriorPiece.mk_coe, comp_apply, congr_fun coe_interiorPieceDiffeomorph q]
 
 /-- On the interior of `W`, the inclusion is an open embedding. -/
 theorem isOpenEmbedding_inclusion_comp_subtypeVal :
@@ -762,7 +772,8 @@ theorem isOpenEmbedding_inclusion_comp_subtypeVal :
 theorem isLocalDiffeomorphAt_inclusion {p : W} (hp : p ∈ (𝓡∂ (n + 1)).interior W) :
     IsLocalDiffeomorphAt (𝓡∂ (n + 1)) (𝓡 (n + 1)) ∞ (inclusion c) p := by
   have h : IsLocalDiffeomorphAt (𝓡∂ (n + 1)) (𝓡 (n + 1)) ∞ (inclusion c ∘ Subtype.val)
-      (⟨p, mem_interiorOpens_iff.2 hp⟩ : (𝓡∂ (n + 1)).interiorOpens W) := by
+      (⟨p, SetLike.mem_coe.1 (ModelWithCorners.coe_interiorOpens (I := 𝓡∂ (n + 1)) (M := W) ▸ hp)⟩ :
+        (𝓡∂ (n + 1)).interiorOpens W) := by
     rw [inclusion_comp_subtypeVal]
     exact (interiorPieceDiffeomorph.isLocalDiffeomorph _).comp
       (hg := c.isLocalDiffeomorph_interiorIncl _)
@@ -821,10 +832,11 @@ theorem isClosedEmbedding_inclusion [T2Space W] : IsClosedEmbedding (inclusion c
     (continuous_inclusion c)
 
 /-- The inclusion of `W` in `c.WithEnd` is a smooth embedding. -/
-theorem isSmoothEmbedding_inclusion [T2Space W] :
+theorem isSmoothEmbedding_inclusion :
     IsSmoothEmbedding (𝓡∂ (n + 1)) (𝓡 (n + 1)) ∞ (inclusion c) :=
   ⟨isImmersion_iff_forall_isImmersionAt.2 (isImmersionAt_inclusion c),
-    (isClosedEmbedding_inclusion c).isEmbedding⟩
+    Function.LeftInverse.isEmbedding (retraction_inclusion c) (retraction c).continuous
+      (continuous_inclusion c)⟩
 
 omit [IsManifold (𝓡∂ (n + 1)) ∞ W] in
 /-- The inclusion of `endInterval × ∂W` into `ℝ × ∂W`. -/
@@ -895,8 +907,7 @@ theorem exists_eq_inclusion_or_endMap (z : c.WithEnd) :
     by_cases h0 : s ≤ 0
     · refine Or.inl ⟨c (x, collarDepth ⟨s, hs⟩), ?_⟩
       rw [inclusion_apply_collar]
-      change c.endIncl ((negNormalCoord (collarDepth ⟨s, hs⟩), x) : endInterval × _) = _
-      rw [negNormalCoord_collarDepth h0]
+      rw [collarToEnd_mk, negNormalCoord_collarDepth h0]
     · exact Or.inr ⟨s, x, not_le.1 h0, endMap_of_lt c hs x⟩
 
 /-- The retraction sends a point `(s, x)` of the end with `0 ≤ s` to `x`. -/
@@ -904,7 +915,7 @@ theorem retraction_endMap {s : ℝ} (hs : 0 ≤ s) (x : (𝓡∂ (n + 1)).bounda
     retraction c (endMap c (s, x)) = x := by
   rw [endMap_of_lt c (by linarith)]
   refine (retraction_endIncl c _).trans ?_
-  change c (x, collarDepth _) = _
+  rw [endRetract_mk]
   convert c.apply_zero x using 3
   apply Subtype.ext
   simpa [collarDepth, EndPiece.coord] using hs
@@ -971,12 +982,10 @@ theorem isOpenCover : IsOpenCover ![interiorPart c, endPart c] := by
   rw [Opens.mem_iSup]
   rcases interiorIncl_or_endIncl c z with ⟨p, rfl⟩ | ⟨q, rfl⟩
   · refine ⟨0, ?_⟩
-    change _ ∈ (interiorPart c : Set c.WithEnd)
-    rw [coe_interiorPart, image_inclusion_interior]
+    rw [Matrix.cons_val_zero, ← SetLike.mem_coe, coe_interiorPart, image_inclusion_interior]
     exact mem_range_self p
   · refine ⟨1, ?_⟩
-    change _ ∈ (endPart c : Set c.WithEnd)
-    rw [coe_endPart, endMap_image_Ioi]
+    rw [Matrix.cons_val_one, Matrix.cons_val_zero, ← SetLike.mem_coe, coe_endPart, endMap_image_Ioi]
     exact mem_range_self q
 
 end WithEnd

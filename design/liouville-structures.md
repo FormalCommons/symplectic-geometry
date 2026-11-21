@@ -455,8 +455,9 @@ Expected size: 400 lines.
 
 ### `Geometry/Manifold/Boundary/Collar/End.lean`
 
-In `TauCeti.SmoothCollar`, for `W` modelled on `𝓡∂ (n + 1)`, Hausdorff, and
-`c : SmoothCollar n ∞ W`. This is differential topology, with no forms:
+In `TauCeti.SmoothCollar`, for `W` modelled on `𝓡∂ (n + 1)` and
+`c : SmoothCollar n ∞ W`; Hausdorffness of `W` is assumed only for the `T2Space`
+instance and `isClosedEmbedding_inclusion`. This is differential topology, with no forms:
 
 - `WithEnd c : Type`, the manifold $W\cup_{\partial W}([0,\infty)\times\partial W)$,
   the glued space of `c.glueData : TopCat.GlueData`, glued from the interior
