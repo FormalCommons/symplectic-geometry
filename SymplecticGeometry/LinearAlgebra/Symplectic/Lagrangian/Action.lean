@@ -209,6 +209,7 @@ theorem coe_unitaryOfFrame {X Y : Matrix ι ι ℝ}
 
 /-- The Lagrangian framed by the unitary matrix of a Lagrangian frame is the range of the
 frame. -/
+@[simp]
 theorem unitaryFrame_unitaryOfFrame {X Y : Matrix ι ι ℝ}
     (h : (stdForm ι).IsLagrangian (LinearMap.range (toEuclideanLin (fromRows X Y)))) :
     unitaryFrame (unitaryOfFrame h) = ⟨_, h⟩ :=
@@ -236,16 +237,7 @@ theorem unitaryFrame_surjective :
   have hL : (stdForm ι).IsLagrangian
       (LinearMap.range (toEuclideanLin (fromRows Z.toRows₁ Z.toRows₂))) :=
     hZ ▸ Λ.isLagrangian
-  have hXY := ((isLagrangian_range_fromRows_iff _ _).1 hL).2
-  have hdet := det_ne_zero_of_isLagrangian_range_fromRows hL
-  set M := Z.toRows₁.map Complex.ofReal + Complex.I • Z.toRows₂.map Complex.ofReal
-  set M' : GL ι ℂ := ((isUnit_iff_isUnit_det M).2 (isUnit_iff_ne_zero.2 hdet)).unit
-  have hM' : (M' : Matrix ι ι ℂ) = M := IsUnit.unit_spec _
-  have hu := GeneralLinearGroup.realOrthonormalize_mem_unitaryGroup (M := M')
-    (by rw [hM']; exact map_im_conjTranspose_mul_self_eq_zero_of_transpose_mul_eq hXY)
-  refine ⟨⟨_, hu⟩, toSubmodule_injective ?_⟩
-  rw [coe_unitaryFrame_eq_map, GeneralLinearGroup.realImage_realOrthonormalize, hM', ← hZ,
-    range_toEuclideanLin_fromRows_eq_map_realImage]
+  exact ⟨unitaryOfFrame hL, by rw [unitaryFrame_unitaryOfFrame]; exact toSubmodule_injective hZ⟩
 
 instance : MulAction.IsPretransitive (unitaryGroup ι ℂ) (ℒ ι) :=
   MulAction.IsPretransitive.of_orbit (x₀ := horizontal ι) unitaryFrame_surjective
