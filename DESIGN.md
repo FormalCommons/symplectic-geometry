@@ -252,6 +252,9 @@ further when they grow, following `AGENTS.md`.
   square $-1$) and `LinearAlgebra/Matrix/Symmetric.lean` (for
   `Matrix.isSymm_mul_nonsing_inv_of_transpose_mul_eq`). Both import only
   Mathlib and Tau Ceti and are merged, so the part still sits at level 0.
+  It imports, too, `LinearAlgebra/Matrix/SymplecticGroup/Basic.lean` of
+  *Symplectic group*, for `Matrix.neg_J_mul_eq_fromBlocks`; that file also
+  imports only Mathlib and Tau Ceti and is merged, so the level stays 0.
   `Matrix.lean` also imports `LinearAlgebra/Symplectic/Compatible.lean` of
   *Compatible complex structures*, for the matrix form of compatibility on
   `StdSpace ι` (`compatible_stdForm_iff_posDef` and its companions). That

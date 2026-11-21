@@ -14,6 +14,7 @@ public import TauCeti.LinearAlgebra.Matrix.GeneralLinearGroup.Symplectic.Sum
 import SymplecticGeometry.LinearAlgebra.Matrix.Block
 import SymplecticGeometry.LinearAlgebra.Matrix.SymplecticGroup.Basic
 import SymplecticGeometry.LinearAlgebra.Matrix.Symmetric
+import TauCeti.LinearAlgebra.Matrix.Block
 
 /-!
 # The matrix dictionary for the standard model
@@ -195,8 +196,7 @@ matrix of `ω₀(·, J ·)`. -/
 theorem posDef_toBlocks₂₁_of_compatible {J : AlmostComplexStructure (StdSpace ι)}
     (hJ : (stdForm ι).Compatible J) : (toEuclideanLin.symm J.toLinearMap).toBlocks₂₁.PosDef := by
   have h := (compatible_stdForm_iff_posDef.1 hJ).submatrix Sum.inl_injective
-  rw [neg_J_mul_eq_fromBlocks] at h
-  exact h
+  rwa [← toBlocks₁₁_eq_submatrix, neg_J_mul_eq_fromBlocks, toBlocks_fromBlocks₁₁] at h
 
 /-- The matrix of an `ω₀`-compatible complex structure has invertible lower left block. -/
 theorem isUnit_det_toBlocks₂₁_of_compatible {J : AlmostComplexStructure (StdSpace ι)}
@@ -212,8 +212,9 @@ theorem toBlocks₂₂_eq_neg_transpose_of_invariant {J : AlmostComplexStructure
     (toEuclideanLin.symm J.toLinearMap).toBlocks₂₂ =
       -(toEuclideanLin.symm J.toLinearMap).toBlocks₁₁ᵀ := by
   have h := congrArg toBlocks₁₂ (invariant_stdForm_iff_isSymm.1 hJ).eq
-  rwa [neg_J_mul_eq_fromBlocks, fromBlocks_transpose, toBlocks_fromBlocks₁₂, transpose_neg,
-    eq_comm] at h
+  rw [neg_J_mul_eq_fromBlocks, fromBlocks_transpose, toBlocks_fromBlocks₁₂, toBlocks_fromBlocks₁₂,
+    transpose_neg] at h
+  exact h.symm
 
 end SymplecticGeometry
 
