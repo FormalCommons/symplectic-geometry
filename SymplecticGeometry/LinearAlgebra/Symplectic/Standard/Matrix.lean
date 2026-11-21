@@ -9,6 +9,7 @@ public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
 public import TauCeti.Analysis.Complex.Euclidean.Matrix
 public import TauCeti.Analysis.Matrix.EuclideanLin
 public import TauCeti.LinearAlgebra.Matrix.GeneralLinearGroup.Symplectic.Basic
+public import TauCeti.LinearAlgebra.Matrix.GeneralLinearGroup.Symplectic.Sum
 import SymplecticGeometry.LinearAlgebra.Matrix.Block
 import SymplecticGeometry.LinearAlgebra.Matrix.Symmetric
 
@@ -43,6 +44,9 @@ conditions on that map.
   `M₂₂ = -M₁₁ᵀ` as soon as the structure preserves `ω₀`.
 * `SymplecticGeometry.isSymm_toBlocks₁₁_mul_inv_toBlocks₂₁_of_compatible`: for such `M`, the
   product `M₁₁ M₂₁⁻¹` is symmetric.
+* `SymplecticGeometry.StdSpace.sumEquiv_toEuclideanLin_symplecticSum`: through the splitting
+  `StdSpace.sumEquiv ι κ`, the map of Tau Ceti's `Matrix.symplecticSum A B` is the product of the
+  maps of `A` and `B`.
 
 The conventions are those of `SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic`, which
 follow McDuff–Salamon, Section 2.1.
@@ -221,6 +225,17 @@ theorem isSymm_toBlocks₁₁_mul_inv_toBlocks₂₁_of_compatible
   refine isSymm_mul_nonsing_inv_of_transpose_mul_eq ?_
   rw [hCt, ← neg_neg M.toBlocks₁₁ᵀ, ← toBlocks₂₂_eq_neg_transpose_of_invariant hJ.invariant,
     Matrix.neg_mul, ← eq_neg_of_add_eq_zero_left h₂₁]
+
+/-- Through the splitting `StdSpace.sumEquiv ι κ`, Tau Ceti's symplectic direct sum
+`Matrix.symplecticSum A B` acts on `StdSpace (ι ⊕ κ)` as `A` on the first factor and `B` on the
+second. -/
+theorem StdSpace.sumEquiv_toEuclideanLin_symplecticSum {κ : Type*} [Fintype κ] [DecidableEq κ]
+    (A : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ) (B : Matrix (κ ⊕ κ) (κ ⊕ κ) ℝ) (z : StdSpace (ι ⊕ κ)) :
+    sumEquiv ι κ (toEuclideanLin (symplecticSum A B) z) =
+      (toEuclideanLin A (sumEquiv ι κ z).1, toEuclideanLin B (sumEquiv ι κ z).2) := by
+  rw [symplecticSum_def]
+  apply Prod.ext <;> apply StdSpace.ext <;> funext i <;>
+    simp [sumEquiv_def, fromBlocks_mulVec, Function.comp_def]
 
 end SymplecticGeometry
 
