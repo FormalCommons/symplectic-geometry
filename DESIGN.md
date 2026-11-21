@@ -1607,7 +1607,8 @@ has either.
   primitive map $P$, linear on exact $k$-forms, with $P\eta_t$ smooth in
   $(t,x)$ whenever $\eta_t$ is, and, for closed $z_t$ smooth in $(t,x)$,
   coordinates of $[z_t]$ that are smooth in $t$ in a basis of Tau Ceti's
-  `TauCeti.deRhamCohomology`),
+  `TauCeti.deRhamCohomology`, which is finite-dimensional on a compact
+  boundaryless manifold, as *Isotopy extension* also uses),
   `Geometry/Manifold/ContMDiff/TimeExtension.lean` (Seeley's extension in
   the time variable: a smooth map, and a smooth form, on `unitInterval × M`
   is the restriction of one on `ℝ × M`, chosen linearly), and
@@ -1675,7 +1676,9 @@ has either.
   adds what is missing, in Tau Ceti's namespaces: a diffeotopy of slices in
   the stabilizer is Hamiltonian exactly when each $\iota_{X_t}\omega$ is
   exact, with a smooth Hamiltonian built by path integration from base
-  points in each component; and uniqueness of the Hamiltonian up to a
+  points in each component (the primitive of a smooth family of exact
+  one-forms being a public lemma on any manifold, which *Isotopy extension*
+  applies on open subsets); and uniqueness of the Hamiltonian up to a
   function of time on each component), and
   `Geometry/Symplectic/Flux/CompactSupport.lean` (Hamiltonian diffeotopies
   with compact support, the subgroup $\mathrm{Ham}_c$ of their time-one
@@ -1751,7 +1754,10 @@ has either.
   that vanishes on its tangent vectors, after the correction by $dF$ that
   makes it vanish as a full covector; from Tau Ceti's
   `TauCeti.SmoothTwoForm.exists_diffeomorph_fix_eventually_mpullback_eq_of_mextDeriv_eq_sub`
-  and its Moser flow), and `Geometry/Symplectic/Manifold/Darboux.lean` (named
+  and its Moser flow; stated for a smooth family $\omega_t$ near the
+  submanifold with $\partial_t\omega_t=d\sigma_t$ and $i^*\sigma_t=0$, the
+  milestone being the linear path, since *Isotopy extension* uses the
+  family), and `Geometry/Symplectic/Manifold/Darboux.lean` (named
   like Tau Ceti's file: Darboux charts with a prescribed derivative at the
   centre, for any linear symplectic form on the model space, from the
   relative theorem for a point; and that transition maps of such charts have
@@ -1775,27 +1781,38 @@ has either.
 
 ### 18. Isotopy extension (needs `design/isotopy-extension.md`)
 
-- **Files:** `Geometry/Symplectic/IsotopyExtension/Ball.lean` (symplectic
-  ball extension, on closed balls of `StdSpace (Fin n)` with `stdForm`, as
-  *Conventions* asks of metric statements; the case of radius $0$ through
-  symplectic frames along a path, by Tau Ceti's
-  `Matrix.isPathConnected_symplecticGroup`),
-  `Geometry/Symplectic/IsotopyExtension/Cohomological.lean` (extension of a
-  family of symplectic embeddings of a neighbourhood of a compact
+- **Files:** in `Geometry/Symplectic/IsotopyExtension/`: `Velocity.lean`
+  (symplectic families of embeddings and their velocity forms), `Flow.lean`
+  (extension of such a family by an ambient symplectic or Hamiltonian flow),
+  `Ball/Basic.lean` and `Ball/Isotopy.lean` (symplectic ball extension, on
+  closed balls of `StdSpace (Fin n)` with `stdForm`, as *Conventions* asks
+  of metric statements; the case of radius $0$ through smooth symplectic
+  frames along the path of centres),
+  `Cohomological/Primitive.lean` and `Cohomological/Basic.lean` (extension of
+  a family of symplectic embeddings of a neighbourhood of a compact
   neighbourhood deformation retract $Q$ when $H^1(M)\to H^1(Q)$ is onto,
-  Hamiltonian when $H^1(Q)=0$), and
-  `Geometry/Symplectic/IsotopyExtension/Submanifold.lean` (neighbourhood
-  extension of isotopies of a compact submanifold on which $\omega$ has
-  constant rank, by the homotopy operator of a fixed tubular contraction
-  applied for every $t$ and a parametric relative Moser argument).
-- **Builds on:** *Hamiltonian flows* (`Flux/Hamiltonian.lean`, to get a
-  `TauCeti.Diffeotopy.IsHamiltonian` from exactness), *Moser isotopy*
-  (`Relative.lean`, `Isotopy.lean`), *Smooth families* (smooth primitives,
-  smooth cohomology coordinates, and `TimeExtension.lean` with
-  `OfIsotopy.lean`, since the families are over $[0,1]$ and the isotopies
-  `TauCeti.Diffeotopy` and `TauCeti.SmoothIsotopy`); Tau Ceti's smooth
-  isotopy extension `TauCeti.SmoothIsotopy.exists_diffeotopy_apply_eq` and
-  relative primitives.
+  Hamiltonian when $H^1(Q)=0$, with $H^1(Q)$ read through the periods on
+  $H_1(Q;\mathbb{Z})$), and `Submanifold.lean` (neighbourhood extension of
+  isotopies of a compact submanifold, by isotopy extension and Moser's
+  argument along the family); and the general files
+  `Geometry/Symplectic/Moser/Parametric.lean` (Moser's argument with a
+  parameter, beside *Moser isotopy*'s files),
+  `Geometry/Manifold/SmoothIsotopy/Extension.lean` (named like Tau Ceti's
+  file: isotopy extension at every time, without Tau Ceti's change of time),
+  `Geometry/Manifold/SmoothEmbedding/Neighborhood.lean`,
+  `AlgebraicTopology/Singular/NDRPair.lean` (singular homology near the
+  subset of Tau Ceti's NDR pairs) and
+  `Analysis/Matrix/SymplecticGroup/Connected.lean` (named like Tau Ceti's
+  file: smooth paths in $\mathrm{Sp}(2n)$), as the design file gives them.
+- **Builds on:** *Hamiltonian flows* (only `Flux/Hamiltonian.lean`: the
+  primitives of a family of exact one-forms, and the Hamiltonian of a
+  time-dependent Hamiltonian flow), *Moser isotopy* (only `Isotopy.lean`,
+  in its form for a family), *Smooth families* (only `TimeExtension.lean`,
+  and finite-dimensional de Rham cohomology from `SmoothFamily.lean`), the
+  merged *Standard model* and *Linear Moser*; Tau Ceti's smooth isotopy
+  extension `TauCeti.SmoothIsotopy.exists_diffeotopy_apply_eq` and ambient
+  velocity fields, relative primitives, tubular neighbourhoods and periods
+  on singular homology.
 - **Milestones:** *Symplectic ball extension*, *Symplectic isotopy
   extension*, *Neighbourhood extension of submanifold isotopies*.
 - **The design file decides:** how a symplectic embedding of a closed ball is
@@ -1971,10 +1988,10 @@ so two parts can each use merged files of the other without either waiting.
 | 1 | *Siegel upper half space* | *Standard model*; *Lagrangian Grassmannian* (only `LinearAlgebra/Matrix/OfReal.lean`, which imports only Mathlib and Tau Ceti and is merged); *Linear complex structures* (only `LinearAlgebra/ComplexStructure/Action.lean`, which imports only Mathlib and Tau Ceti, `LinearAlgebra/ComplexStructure/Standard.lean`, which besides it imports only *Standard model*, `LinearAlgebra/Symplectic/Compatible.lean` of *Compatible complex structures* (which in turn imports, besides Mathlib and Tau Ceti, only `Action.lean`, `Geometry/Symplectic/Darboux/EuclideanBasis.lean` of *Compatible complex structures*, which imports only Tau Ceti, `LinearAlgebra/Symplectic/Standard/Basic.lean` of *Standard model* and `LinearAlgebra/Symplectic/Subspace.lean` of *Symplectic vector spaces*) and the library's `Geometry/Symplectic/Orientation.lean`, and that file, which imports only Tau Ceti; all of them are merged); *Symplectic group* (only `LinearAlgebra/Matrix/SymplecticGroup/Basic.lean`, which imports only Mathlib and Tau Ceti and is merged) |
 | 1 | *Symplectic vector bundles* | *Standard model*, *Linear Moser*; its existence issue also the two `PolarComplexStructure/` issues of *Compatible complex structures*, its contractibility issue the Cayley domain issue of that part, and its homotopy-equivalence issue those three and the `Tames.lineMap` issue, none of which waits for another part |
 | 1 | *Hamiltonian flows* | *Smooth families* (only `OfIsotopy.lean`, for `SymplecticIsotopy.lean` and `Flux/Hamiltonian.lean`; the other files can start at once) |
-| 1 | *Moser isotopy* | *Smooth families* (only `Stability.lean`; the other files can start at once) |
+| 1 | *Moser isotopy* | *Smooth families* (only `Stability.lean`, and `Isotopy.lean` if its form for a family extends the family in time; the other files can start at once) |
 | 2 | *Compatible complex structures* | *Standard model*, *Symplectic vector spaces*; *Linear complex structures* (only `LinearAlgebra/ComplexStructure/Action.lean`, which imports only Mathlib and Tau Ceti, `Topology/ComplexStructure/Basic.lean`, which besides it imports only Tau Ceti, and `LinearAlgebra/ComplexStructure/Standard.lean`, which besides `Action.lean` imports only `LinearAlgebra/Symplectic/Compatible.lean` of this part, `LinearAlgebra/Symplectic/Standard/Matrix.lean` of *Standard model*, the library's `Geometry/Symplectic/Orientation.lean`, which imports only Tau Ceti, and Tau Ceti; all of them are merged); *Symplectic group* (only `LinearAlgebra/Matrix/SymplecticGroup/Basic.lean`, which imports only Mathlib and Tau Ceti and is merged) |
 | 2 | *Maslov index* | *Standard model*, *Symplectic group*, *Unitary group topology*; its Lagrangian issues also *Lagrangian Grassmannian* |
-| 2 | *Isotopy extension* | *Hamiltonian flows*, *Moser isotopy*, *Smooth families* |
+| 2 | *Isotopy extension* | *Hamiltonian flows* (only `Flux/Hamiltonian.lean`), *Moser isotopy* (only `Isotopy.lean`), *Smooth families* (only `TimeExtension.lean` and `SmoothFamily.lean`); the merged *Standard model* and *Linear Moser*; the issues of its design file that use none of these can start at once |
 | 2 | *Symplectic neighbourhoods* | *Moser isotopy* (only `Relative.lean`), *Cotangent bundles*; *Symplectic vector spaces* and *Symplectic vector bundles* (only `LinearAlgebra/Symplectic/Reduction.lean` and `Geometry/Manifold/VectorBundle/Symplectic/Basic.lean`, which are merged, unless its design file also takes the open issues #254, #266 or #269 of *Symplectic vector bundles*, which are at level 1); `CharacteristicFoliation.lean` can start at once |
 | 3 | *First Chern number* | *Symplectic vector bundles*, the symplectic-loop issues of *Maslov index* |
 | 3 | *Contact geometry* | *Smooth families* (only `Gray.lean`, through `TimeExtension.lean` and `OfIsotopy.lean`); *Symplectic neighbourhoods* (only `LegendrianNeighborhood.lean`, through `Lagrangian.lean`); the other files of the part can start at once |
