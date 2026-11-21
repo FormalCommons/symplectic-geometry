@@ -151,8 +151,9 @@ theorem unitaryChart_symm_trans_source (U U' : unitaryGroup ι ℂ) :
       {S | GLSymplectic.ofUnitary (U'⁻¹ * U) • graphY S ∈
         (graphYChart : OpenPartialHomeomorph (ℒ ι) _).source} := by
   ext S
-  simp [mem_unitaryChart_source_iff, smul_smul,
-    unitary_smul_def]
+  -- The statement keeps the symplectic matrix `ofUnitary (U'⁻¹ * U)`, so unfold the unitary
+  -- action into that form instead of the simp normal form `U • Λ`.
+  simp [mem_unitaryChart_source_iff, smul_smul, unitary_smul_def, -ofUnitary_smul]
 
 /-- A unitary matrix `U` with `U • {x = 0} = Λ`, chosen once and for all. The chart of `ℒ ι` at
 `Λ` is the basic chart translated by `U`, so that it is centred at `Λ`. -/

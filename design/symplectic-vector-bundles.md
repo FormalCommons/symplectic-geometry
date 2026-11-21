@@ -136,7 +136,7 @@ variable {EB HB M : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB]
 | `Geometry/Manifold/VectorBundle/ContinuousAlternatingMap.lean` | `contMDiff_compContinuousLinearMap_totalSpace`: precomposition by a $C^n$ hom-bundle section is $C^n$ on total spaces of alternating bundles | 3 |
 | `Geometry/Manifold/VectorBundle/Pullback.lean` | smoothness of sections of the alternating bundle of a pull-back | 18 |
 | `Geometry/Manifold/VectorBundle/Prod.lean` | `Bundle.Prod.contMDiff_prodMap` and `Bundle.Prod.contMDiff_swap`: smoothness on total spaces of the fibrewise product of two maps and of the swap, for fibres with only a zero; `Bundle.Prod.contMDiff_prodCongr` and `Bundle.Prod.contMDiff_prodComm`: the same for bundle isomorphisms | 22 |
-| `Topology/VectorBundle/Pullback.lean` | coordinates of alternating maps on a pull-back bundle | 18 |
+| `Topology/VectorBundle/Pullback.lean` | coordinates of alternating maps on a pull-back bundle; `Bundle.Pullback.neg_fiber`: negatives in a fibre of a pull-back bundle, for `simp` | 18, 20 |
 | `Topology/VectorBundle/Coordinates.lean` | coordinates of continuous bilinear forms on a vector bundle | 6 |
 | `Data/Bundle.lean` | `Bundle.Pullback.eq_iff`: equations in a fibre of a pull-back bundle, for `simp` | 20 |
 | `Geometry/Manifold/VectorBundle/Symplectic/Pullback.lean` | pull-backs of forms, of tame and compatible pairs, of isomorphisms and of frames | 21 |
@@ -1281,18 +1281,30 @@ For a map `f : C^n⟮I', N; I, M⟯` (the argument of Mathlib's instance
 - `ComplexStructure.lean`: `ContMDiffComplexStructure.pullback J f :
   ContMDiffComplexStructure I' n F (f *ᵖ V)`, the endomorphism section
   `y ↦ J (f y)`, which is $C^n$ by `Bundle.Pullback.contMDiff_hom_section_iff`
-  itself. API: `pullback_toEndomorphism` and `pullback_apply` (both
-  `J (f y)`), `almostComplexStructureAt_pullback`, `@[simp] pullback_neg`;
-  `simp` evaluates the pull-back on vectors through `@[simp] coe_pullback`
-  and `@[simp] coe_almostComplexStructureAt_pullback`, equations of
-  functions (`⇑(J.pullback f y) = ⇑(J (f y))`), which apply to vectors of
-  `V (f y)` and of `(f *ᵖ V) y` alike, and the root-namespace
-  `@[simp] Bundle.Pullback.eq_iff` (`Data/Bundle.lean`), which moves an
-  equation stated in `(f *ᵖ V) y` to `V (f y)`, where `simp` can close it.
+  itself. API: `pullback_toEndomorphism` (`J (f y)`),
+  `almostComplexStructureAt_pullback`, `pullback_neg`, and `coe_pullback`
+  (`⇑(J.pullback f y) = ⇑(J (f y))`). `simp` treats a vector by its type.
+  On a vector of `V (f y)` it evaluates the pull-back by `@[simp]
+  pullback_apply` (`J.pullback f y v = J (f y) v`). A vector of
+  `(f *ᵖ V) y` stays in the pull-back bundle, where the lemmas about
+  `J.pullback f` as a complex structure apply to it; there
+  `@[simp] apply_eq_pullback_apply` (`J (f y) v = J.pullback f y v`) and
+  `@[simp] pullback_neg_apply` (`(-J).pullback f y v = -J.pullback f y v`)
+  bring `J (f y)` and `-J` to it. `@[simp]
+  coe_almostComplexStructureAt_pullback` evaluates the almost complex
+  structure of the pull-back. The root-namespace `@[simp]
+  Bundle.Pullback.eq_iff` (`Data/Bundle.lean`) moves an equation stated in
+  `(f *ᵖ V) y` between vectors of `V (f y)` to `V (f y)`, and `@[simp]
+  Bundle.Pullback.neg_fiber` (`Topology/VectorBundle/Pullback.lean`) takes
+  the negative in `V (f y)` of a vector of `(f *ᵖ V) y` in `(f *ᵖ V) y`.
+  `coe_pullback` and `pullback_neg` are not `@[simp]`: `coe_pullback` would
+  undo `apply_eq_pullback_apply`, and after `pullback_neg` a vector of
+  `V (f y)` meets a function on `(f *ᵖ V) y` negated pointwise, which
+  `simp` cannot evaluate. Neither is `ContMDiffComplexStructure.neg_apply`,
+  whose left-hand side `simp` rewrites with `neg_toEndomorphism`.
   `pullback_toEndomorphism` and `almostComplexStructureAt_pullback` are
   not `@[simp]`: they rewrite under the coercion of the pulled-back bundle,
-  and the rewritten term no longer matches the lemmas about `V (f y)`;
-  `simp` proves `pullback_apply`.
+  and the rewritten term no longer matches the lemmas about `V (f y)`.
 - `Symplectic/Pullback.lean`, the pairs: `Tames.pullback`,
   `Invariant.pullback` and `Compatible.pullback`, for a form and a complex
   structure of the same regularity `n`, from `ω.Tames J` to
@@ -1336,9 +1348,9 @@ over the same base, on Mathlib's direct sum `V₁ ×ᵇ V₂` (`Bundle.Prod`, wi
   (`Geometry/Symplectic/Prod/Basic.lean`).
 - `ComplexStructure.lean`: `ContMDiffComplexStructure.prod J₁ J₂ :
   ContMDiffComplexStructure I n (F₁ × F₂) (V₁ ×ᵇ V₂)`, with value
-  `(J₁ x).prodMap (J₂ x)`, $C^n$ by the product criterion and
-  `contMDiff_hom_bundle_iff`. API: `@[simp] prod_apply`,
-  `@[simp] almostComplexStructureAt_prod` (Tau Ceti's
+  `(J₁ x).prodMap (J₂ x)`, $C^n$ by `Bundle.Prod.contMDiff_prodMap`
+  (`Geometry/Manifold/VectorBundle/Prod.lean`) and `contMDiff_hom_bundle_iff`.
+  API: `@[simp] prod_apply`, `@[simp] almostComplexStructureAt_prod` (Tau Ceti's
   `TauCeti.AlmostComplexStructure.prod` of the two), and
   `prod_toEndomorphism`, which is not `@[simp]`, since it would rewrite the
   left side of `prod_apply` to a `Prod.map`.
@@ -2053,7 +2065,9 @@ of *Constructions* for *First Chern number*.
 20. **Pull-back, direct sum and multiplication by `Complex.I` for complex
     structures.** `ComplexStructure.lean`: `ContMDiffComplexStructure.pullback`,
     `prod` and `ofComplexModule` with their API, and `Bundle.Pullback.eq_iff`
-    in `Data/Bundle.lean`. Blockers: 1.
+    in `Data/Bundle.lean`, and `Bundle.Pullback.neg_fiber` in
+    `Topology/VectorBundle/Pullback.lean`, which `ComplexStructure.lean`
+    imports. Blockers: 1.
 21. **Pull-backs of symplectic bundles.** `Symplectic/Pullback.lean`:
     `ContMDiffTwoForm.pullback` with its API, `Tames.pullback`,
     `Compatible.pullback`, `pullback_pushforward`, `pushforward_pullback_id`,
