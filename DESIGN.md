@@ -1679,9 +1679,11 @@ has either; Tau Ceti's extension across a boundary,
   `Geometry/Diffeomorphism/Diffeotopy/Real.lean` (the bridge: an
   isotopy `ψ : ℝ → M ≃ₘ⟮I, I⟯ M` over `ℝ` restricts to a
   `TauCeti.Diffeotopy I ∞ M`, its inverse being smooth by the inverse
-  function theorem; how its `TauCeti.eulerianField` reads in the velocity
+  function theorem, in `Geometry/Manifold/Diffeomorph/Family.lean`; how its `TauCeti.eulerianField` reads in the velocity
   along the motion that `TauCeti.Diffeotopy.HasHamiltonian` uses; and how the
-  restriction compares with `TauCeti.timeDependentFlowDiffeotopy`; and the
+  restriction compares with `TauCeti.timeDependentFlowDiffeotopy`, whose
+  family over `ℝ` is jointly smooth by
+  `Geometry/Manifold/Flow/TimeDependent.lean`; and the
   reading of a `Diffeotopy` $\Phi$ over `ℝ` as $t\mapsto\Phi_{s(t)}$,
   $s=$ `Real.smoothTransition`, with its `TauCeti.eulerianField`
   $s'(t)X_{s(t)}$, with `Analysis/SpecialFunctions/SmoothTransition.lean`
@@ -1700,7 +1702,9 @@ has either; Tau Ceti's extension across a boundary,
   as the page's formalization notes say.
 - **Builds on:** Mathlib, Tau Ceti (homotopy operators, partitions of unity,
   extension by zero, de Rham cohomology, diffeotopies, the inverse function
-  theorem).
+  theorem); `Diffeotopy/Real.lean` imports the merged
+  `Diffeotopy/Velocity.lean` of *Hamiltonian flows*, for
+  `TauCeti.Diffeotopy.mfderiv_cylinderMap_time`.
 - **Milestones:** *Smooth families of primitives*, the milestone of the
   auxiliary page. It is not one of the milestones that #94 lists, but Moser
   stability uses it.
@@ -1933,7 +1937,7 @@ has either; Tau Ceti's extension across a boundary,
   `TauCeti.SmoothForm.characteristicFoliation`,
   `TauCeti.IsInvolutiveDistribution.exists_flatChart`,
   `TauCeti.RoughForm.descendedForm` and
-  `TauCeti.SmoothTwoForm.isSymplectic_descendedForm_iff`, and the flat lemmas of
+  `TauCeti.SmoothTwoForm.isSymplectic_descendedForm_iff`, and the closed-form lemmas of
   `Analysis/Calculus/DifferentialForm/LieDeriv.lean`), and in
   `Geometry/Symplectic/Neighborhood/`: `Extension.lean` (along the
   submanifold, a smooth family of linear symplectomorphisms built from
@@ -2041,7 +2045,8 @@ has either; Tau Ceti's extension across a boundary,
   `PoissonAlgebra.lean` of *Hamiltonian flows* uses, and the slices of
   pullbacks along `Prod.map id f`), and, named like Tau Ceti's files,
   `Geometry/Manifold/DifferentialForm/LieDeriv.lean` (the Lie derivative of
-  forms is linear in the field) and
+  forms on a manifold is linear in the field, from flat lemmas that this part adds to
+  `Analysis/Calculus/DifferentialForm/LieDeriv.lean`) and
   `Geometry/Manifold/DifferentialForm/DegreeOne.lean` (a smooth one-form on a
   smooth field is smooth), which `Hamiltonian.lean` uses, and `Standard.lean`
   and `Pullback.lean` (both named like Tau Ceti's files: the Reeb field of the
@@ -2148,7 +2153,7 @@ so two parts can each use merged files of the other without either waiting.
 | 0 | *Standard model* | — (it imports `LinearAlgebra/Matrix/Block.lean` and `LinearAlgebra/Matrix/Symmetric.lean` of *Siegel upper half space*, which import only Mathlib and Tau Ceti and are merged, `LinearAlgebra/Matrix/SymplecticGroup/Basic.lean` of *Symplectic group*, which imports only Mathlib and Tau Ceti and is merged, `LinearAlgebra/Matrix/PosDef/Block.lean` of *Siegel upper half space*, which imports only Mathlib and Tau Ceti and is merged, and the merged `LinearAlgebra/Symplectic/Compatible.lean` of *Compatible complex structures*, which besides `Standard/Basic.lean` imports only merged files that do not import `Standard/Matrix.lean`) |
 | 0 | *Symplectic group* | — |
 | 0 | *Linear Moser* | — |
-| 0 | *Smooth families* | — |
+| 0 | *Smooth families* | — (`Diffeotopy/Real.lean` imports `Geometry/Diffeomorphism/Diffeotopy/Velocity.lean` of *Hamiltonian flows*, which is merged and imports no file of *Smooth families*) |
 | 0 | *Cotangent bundles* | — |
 | 1 | *Unitary group topology* | *Symplectic group* (only the file on $\mathrm{Sp}(2n)$; the other files can start at once) |
 | 1 | *Symplectic vector spaces* | *Standard model*, *Symplectic group* |

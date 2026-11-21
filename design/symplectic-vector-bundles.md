@@ -103,7 +103,7 @@ variable {EB HB M : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB]
   statements are about a given form or structure, or are equivalences between
   spaces that are both empty in odd rank. Rank $0$ is allowed everywhere.
 - **Base hypotheses.** Results that need a bundle metric (existence of
-  compatible structures, the classification) add `[T2Space M]
+  compatible structures) add `[T2Space M]
   [SigmaCompactSpace M]`, the hypotheses of Tau Ceti's
   `nonempty_contMDiffRiemannianMetric`
   (`Geometry/Manifold/VectorBundle/Riemannian/Existence.lean`). Nothing else
@@ -1310,8 +1310,8 @@ $[0,1]$ is never fed to the lemma with `P = ℝ` directly.
 ## Classification
 
 `Symplectic/Classification.lean`. For two bundles `V₁`, `V₂` over `M`, with
-$C^n$ forms and structures `h₁ : ω₁.Tames J₁`, `h₂ : ω₂.Tames J₂`, over a
-Hausdorff σ-compact base:
+$C^n$ forms and structures `h₁ : ω₁.Tames J₁`, `h₂ : ω₂.Tames J₂` (no
+hypothesis on the base, since neither direction uses a bundle metric):
 
 ```lean
 theorem exists_symplectic_bundleEquiv_iff_exists_complex_bundleEquiv :

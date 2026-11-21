@@ -222,7 +222,8 @@ and two rows of its milestone table.
   this changes: #476 is blocked only by its design issue.
 - `Analysis/Calculus/DifferentialForm/LieDeriv.lean` is added, in the root
   namespace, for the flat lemmas that `CharacteristicFoliation.lean` uses:
-  they use nothing of symplectic geometry.
+  they use nothing of symplectic geometry. *Contact geometry* later adds to
+  it, in `TauCeti`, the linearity of the flat Lie derivative in the field.
 - `AdaptedDarboux.lean` uses Tau Ceti's pointwise relative Darboux theorem
   instead of the neighbourhood theorems, so it can start at once.
 - The part no longer builds on *Symplectic vector bundles*, neither on

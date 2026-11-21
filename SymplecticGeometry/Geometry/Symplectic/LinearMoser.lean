@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Analysis.Calculus.ContDiff.Operations
+public import Mathlib.Analysis.SpecialFunctions.SmoothTransition
 public import TauCeti.Geometry.Symplectic.AlmostComplex.Topology
 public import TauCeti.Geometry.Symplectic.Transport
 public import TauCeti.Topology.Algebra.Module.BilinearForm
@@ -44,6 +45,10 @@ an inner product.
 * `SymplecticGeometry.moserGenerator`: the generator `-(1/2) (ω t)⁻¹ ∘ ω̇ t` of a path of forms.
 * `SymplecticGeometry.complexMoserGenerator`: the generator `(1/2) J t * J̇ t` of a path of
   complex structures.
+* `SymplecticGeometry.invertibleSegments`: the pairs `(a, b)` of forms whose convex combinations
+  are all invertible.
+* `SymplecticGeometry.segmentMoserFlow`: the time-one propagator of the Moser generator of the
+  path `(1 - β t) • a + β t • b`, with `β = Real.smoothTransition`.
 
 ## Main results
 
@@ -59,6 +64,10 @@ an inner product.
   `SymplecticGeometry.contDiffOn_parametric_dysonSeriesLeft_moserGenerator`: for a family of
   paths of forms that is `Cⁿ⁺¹` jointly in a parameter from an open set and the time, the
   generator and its propagator are `Cⁿ` jointly in both.
+* `SymplecticGeometry.isOpen_invertibleSegments`, `SymplecticGeometry.apply_segmentMoserFlow`,
+  `SymplecticGeometry.contDiffOn_segmentMoserFlow`, `SymplecticGeometry.segmentMoserFlow_conj`:
+  the pairs with invertible segments are open, and on them the flow pulls `b` back to `a`, is
+  smooth in `(a, b)`, and is natural under linear isomorphisms.
 * `SymplecticGeometry.dysonSeriesLeft_complexMoserGenerator_mul`: the propagator of the complex
   Moser generator conjugates `J 0` to `J t`.
 * `SymplecticGeometry.exists_contDiff_isUnit_mul_eq_mul`: the analogue for complex structures in
@@ -243,6 +252,125 @@ theorem contDiffOn_parametric_dysonSeriesLeft_moserGenerator {n : ℕ∞} (hU : 
     (contDiffOn_parametric_moserGenerator hU hω hinv)
 
 end Parametric
+
+section Segment
+
+variable (V) in
+/-- The pairs `(a, b)` of bilinear forms on `V` all of whose convex combinations
+`(1 - s) • a + s • b`, `0 ≤ s ≤ 1`, have invertible contractions `V → V*`. -/
+def invertibleSegments : Set ((V →L[ℝ] V →L[ℝ] ℝ) × (V →L[ℝ] V →L[ℝ] ℝ)) :=
+  {p | ∀ s ∈ Set.Icc (0 : ℝ) 1, ((1 - s) • p.1 + s • p.2).IsInvertible}
+
+omit [CompleteSpace V] in
+@[simp]
+theorem mem_invertibleSegments_iff {p : (V →L[ℝ] V →L[ℝ] ℝ) × (V →L[ℝ] V →L[ℝ] ℝ)} :
+    p ∈ invertibleSegments V ↔
+      ∀ s ∈ Set.Icc (0 : ℝ) 1, ((1 - s) • p.1 + s • p.2).IsInvertible :=
+  Iff.rfl
+
+/-- On a Banach space, the pairs of bilinear forms whose segment consists of invertible forms
+form an open set. -/
+theorem isOpen_invertibleSegments : IsOpen (invertibleSegments V) := by
+  refine isOpen_iff_eventually.2 fun p hp ↦
+    isCompact_Icc.eventually_forall_of_forall_eventually fun s hs ↦ ?_
+  -- Instance search does not find this one on the space of bilinear maps by itself.
+  have : IsBoundedSMul ℝ (V →L[ℝ] V →L[ℝ] ℝ) := ContinuousLinearMap.toNormedSpace.toIsBoundedSMul
+  have hc : ContDiff ℝ 0 fun q : ((V →L[ℝ] V →L[ℝ] ℝ) × (V →L[ℝ] V →L[ℝ] ℝ)) × ℝ ↦
+      (1 - q.2) • q.1.1 + q.2 • q.1.2 :=
+    ((contDiff_const.sub contDiff_snd).smul contDiff_fst.fst).add
+      (contDiff_snd.smul contDiff_fst.snd)
+  exact hc.continuous.continuousAt.eventually (hp s hs).eventually_nhds
+
+/-- The time-one linear Moser flow from `a` to `b`: the propagator at time `1` of the Moser
+generator of the path `t ↦ (1 - β t) • a + β t • b`, where `β` is `Real.smoothTransition`. For a
+pair of skew forms in `invertibleSegments V` it pulls `b` back to `a`
+(`apply_segmentMoserFlow`). -/
+def segmentMoserFlow (a b : V →L[ℝ] V →L[ℝ] ℝ) : V →L[ℝ] V :=
+  dysonSeriesLeft (moserGenerator fun t ↦ (1 - t.smoothTransition) • a + t.smoothTransition • b) 1
+
+omit [CompleteSpace V] in
+theorem segmentMoserFlow_def (a b : V →L[ℝ] V →L[ℝ] ℝ) :
+    segmentMoserFlow a b =
+      dysonSeriesLeft
+        (moserGenerator fun t ↦ (1 - t.smoothTransition) • a + t.smoothTransition • b) 1 :=
+  (rfl)
+
+variable {a b : V →L[ℝ] V →L[ℝ] ℝ}
+
+omit [CompleteSpace V] in
+/-- The smooth path from `a` to `b` along which `segmentMoserFlow` is taken is smooth. -/
+private theorem contDiff_segmentPath :
+    ContDiff ℝ (⊤ : ℕ∞) fun t : ℝ ↦ (1 - t.smoothTransition) • a + t.smoothTransition • b :=
+  have : IsBoundedSMul ℝ (V →L[ℝ] V →L[ℝ] ℝ) := ContinuousLinearMap.toNormedSpace.toIsBoundedSMul
+  ((contDiff_const.sub Real.smoothTransition.contDiff).smul contDiff_const).add
+    (Real.smoothTransition.contDiff.smul contDiff_const)
+
+omit [CompleteSpace V] in
+/-- Along the path of `segmentMoserFlow`, every form is invertible when the pair is in
+`invertibleSegments V`, since `smoothTransition` takes values in `[0, 1]`. -/
+private theorem isInvertible_segmentPath (hp : (a, b) ∈ invertibleSegments V) (t : ℝ) :
+    ((1 - t.smoothTransition) • a + t.smoothTransition • b).IsInvertible :=
+  hp _ ⟨Real.smoothTransition.nonneg t, Real.smoothTransition.le_one t⟩
+
+/-- **The linear Moser flow of a segment.** For skew forms `a`, `b` all of whose convex
+combinations are invertible, `segmentMoserFlow a b` pulls `b` back to `a`. -/
+theorem apply_segmentMoserFlow (hp : (a, b) ∈ invertibleSegments V)
+    (ha : ∀ v w, a v w = -a w v) (hb : ∀ v w, b v w = -b w v) (u v : V) :
+    b (segmentMoserFlow a b u) (segmentMoserFlow a b v) = a u v := by
+  rw [segmentMoserFlow_def]
+  have h := apply_dysonSeriesLeft_moserGenerator (contDiff_segmentPath.of_le (by simp))
+    (isInvertible_segmentPath hp) (fun t v w ↦ by simp [ha v w, hb v w]; ring) 1 u v
+  simpa [Real.smoothTransition.one, Real.smoothTransition.zero] using h
+
+/-- The linear Moser flow of a pair in `invertibleSegments V` is invertible. -/
+theorem isUnit_segmentMoserFlow (hp : (a, b) ∈ invertibleSegments V) :
+    IsUnit (segmentMoserFlow a b) :=
+  isUnit_dysonSeriesLeft (continuous_moserGenerator (contDiff_segmentPath.of_le (by simp))
+    (isInvertible_segmentPath hp)) 1
+
+omit [CompleteSpace V] in
+/-- The family of paths of `segmentMoserFlow`, as a function of the pair of forms and the time,
+is smooth. -/
+private theorem contDiff_segmentFamily :
+    ContDiff ℝ (⊤ : ℕ∞) (Function.uncurry fun (p : (V →L[ℝ] V →L[ℝ] ℝ) × (V →L[ℝ] V →L[ℝ] ℝ))
+      (t : ℝ) ↦ (1 - t.smoothTransition) • p.1 + t.smoothTransition • p.2) := by
+  -- Instance search does not find this one on the space of bilinear maps by itself.
+  have : IsBoundedSMul ℝ (V →L[ℝ] V →L[ℝ] ℝ) := ContinuousLinearMap.toNormedSpace.toIsBoundedSMul
+  have hβ : ContDiff ℝ (⊤ : ℕ∞) fun q : ((V →L[ℝ] V →L[ℝ] ℝ) × (V →L[ℝ] V →L[ℝ] ℝ)) × ℝ ↦
+      q.2.smoothTransition := Real.smoothTransition.contDiff.comp contDiff_snd
+  exact ((contDiff_const.sub hβ).smul contDiff_fst.fst).add (hβ.smul contDiff_fst.snd)
+
+/-- The linear Moser flow of a segment is smooth in the pair of forms, on the open set
+`invertibleSegments V`. -/
+theorem contDiffOn_segmentMoserFlow {n : ℕ∞} :
+    ContDiffOn ℝ n (fun p : (V →L[ℝ] V →L[ℝ] ℝ) × (V →L[ℝ] V →L[ℝ] ℝ) ↦ segmentMoserFlow p.1 p.2)
+      (invertibleSegments V) := by
+  have hω : ContDiffOn ℝ (((⊤ : ℕ∞) : WithTop ℕ∞) + 1) (Function.uncurry
+      fun (p : (V →L[ℝ] V →L[ℝ] ℝ) × (V →L[ℝ] V →L[ℝ] ℝ)) (t : ℝ) ↦
+        (1 - t.smoothTransition) • p.1 + t.smoothTransition • p.2)
+      (invertibleSegments V ×ˢ Set.univ) :=
+    (contDiff_segmentFamily.of_le (by simp)).contDiffOn
+  have h := contDiffOn_parametric_dysonSeriesLeft_moserGenerator (n := ⊤)
+    isOpen_invertibleSegments hω fun p hp t ↦ isInvertible_segmentPath hp t
+  have h1 : ContDiffOn ℝ (⊤ : ℕ∞)
+      (fun p : (V →L[ℝ] V →L[ℝ] ℝ) × (V →L[ℝ] V →L[ℝ] ℝ) ↦ (p, (1 : ℝ)))
+      (invertibleSegments V) := contDiffOn_id.prodMk contDiffOn_const
+  refine ((h.comp h1 fun p hp ↦ ⟨hp, Set.mem_univ _⟩).of_le (by exact_mod_cast le_top)).congr
+    fun p _ ↦ ?_
+  simp only [Function.comp_apply, segmentMoserFlow_def]
+
+/-- **Naturality of the linear Moser flow of a segment.** Moving both forms along a linear
+isomorphism `e : V ≃L[ℝ] W` conjugates their linear Moser flow by `e`. -/
+theorem segmentMoserFlow_conj {W : Type*} [NormedAddCommGroup W] [NormedSpace ℝ W]
+    [CompleteSpace W] (e : V ≃L[ℝ] W) (hp : (a, b) ∈ invertibleSegments V) :
+    segmentMoserFlow (a.bilinearComp (e.symm : W →L[ℝ] V) (e.symm : W →L[ℝ] V))
+        (b.bilinearComp (e.symm : W →L[ℝ] V) (e.symm : W →L[ℝ] V)) =
+      e.conjContinuousAlgEquiv (segmentMoserFlow a b) := by
+  rw [segmentMoserFlow_def, segmentMoserFlow_def, ← dysonSeriesLeft_moserGenerator_conj e
+    (contDiff_segmentPath.of_le (by simp)) (isInvertible_segmentPath hp)]
+  congr 2
+
+end Segment
 
 /-- **The linear Moser lemma.** On a finite-dimensional real space `V`, a `Cⁿ⁺¹` path `t ↦ ω t`
 of skew forms, each nondegenerate, is trivialized by a `Cⁿ⁺¹` path `Ψ` of invertible operators:
