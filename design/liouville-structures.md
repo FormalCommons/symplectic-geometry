@@ -39,19 +39,19 @@ and no new definition is made for the sign:
 
 | The book | In the statements |
 |---|---|
-| $\lambda=-\iota_Y\omega$ | `-ω.interior Y`, where Tau Ceti's primitive is `ω.interior Y` |
-| $\alpha=-i^*(\iota_Y\omega)$ | `-SmoothForm.mpullback i hi β` with `β = ω.interior Y` |
+| $\lambda=-\iota_Y\omega$ | `-ω.interiorₗ ⟨Y, hY⟩`, where Tau Ceti's primitive is `ω.interiorₗ ⟨Y, hY⟩` |
+| $\alpha=-i^*(\iota_Y\omega)$ | `-SmoothForm.mpullback i hi β` with `β = ω.interiorₗ ⟨Y, hY⟩` |
 | $-d(e^s\alpha)$ on `ℝ × Q` | `mextDerivₗ _ 1 (SmoothForm.symplectization (-α))` |
 | $e^s\alpha$ | `SmoothForm.symplectization α` |
 | the pair $(\Omega,\lambda)$ of a stable Hamiltonian structure | `TauCeti.SmoothForm.IsStableHamiltonian λ Ω` (one-form first) |
 | the contact pair $(-d\alpha,\alpha)$ | `IsStableHamiltonian α (-mextDerivₗ _ 1 α)` |
 
-Here `ω.interior Y` is the smooth one-form with value
-`RoughForm.interior Y ω.val`, smooth by Tau Ceti's `IsSmoothForm.interior`
-(`Geometry/Manifold/DifferentialForm/Interior.lean`). Tau Ceti has no
-bundled form for it, so issue 1 adds `TauCeti.SmoothForm.interior` (taking
-the smoothness of `Y`) with `coe_interior`, in this library's file of the
-same path.
+Here `hY : ContMDiff I I.tangent ∞ (T% Y)` is the smoothness of `Y`, and
+`ω.interiorₗ ⟨Y, hY⟩` is Tau Ceti's bundled interior product
+`TauCeti.SmoothTwoForm.interiorₗ` (`Geometry/Symplectic/Manifold/Flat.lean`),
+applied to `Y` as a smooth section; its value is `RoughForm.interior Y ω.val`
+by `coe_interiorₗ`. For a strong filling `h`, `hY` is
+`h.isOutwardPointingField.1`. The part adds no interior product of its own.
 
 ## Decisions
 
@@ -80,9 +80,8 @@ same path.
     isSymplectic : ω.IsSymplectic
     isOpen : IsOpen U
     boundary_subset : (𝓡∂ (n + 1)).boundary W ⊆ U
-    contMDiff : ContMDiff (𝓡∂ (n + 1)) (𝓡∂ (n + 1)).tangent ∞ (T% Y)
+    isOutwardPointingField : IsOutwardPointingField Y
     mlieDerivForm_eq : ∀ x ∈ U, mlieDerivForm Y ω.val x = ω.val x
-    isOutwardPointing : ∀ x ∈ (𝓡∂ (n + 1)).boundary W, IsOutwardPointing x (Y x)
   ```
 
   `Y` is a global smooth field that is Liouville on `U`. This loses nothing
@@ -138,7 +137,7 @@ Further choices:
   `U ⊇ range i` and a field `Y`, smooth on `U`, with
   `∀ x ∈ U, mlieDerivForm Y ω.val x = ω.val x`; transversality is Tau Ceti's
   `TauCeti.IsTransverseAlong J Y i`. For a closed `ω` this is Tau Ceti's
-  `IsContactType` with the primitive `ω.interior Y` (the local form of
+  `IsContactType` with the primitive `ω.interiorₗ ⟨Y, hY⟩` (the local form of
   `TauCeti.exists_isRestrictedContactType_iff`).
 - **Collars as diffeomorphisms of open sets.** A collar of a hypersurface is
   a diffeomorphism `D ≃ₘ⟮𝓘(ℝ).prod J, I⟯ V` between `D : Opens (ℝ × Q)`
@@ -163,7 +162,6 @@ Further choices:
 
 | File | Contents | Issue |
 |---|---|---|
-| `Geometry/Manifold/DifferentialForm/Interior.lean` | `TauCeti.SmoothForm.interior`, the bundled interior product | 1 |
 | `Geometry/Symplectic/Liouville/ContactType.lean` | contact type through local Liouville fields; both directions in the book's signs | 1 |
 | `Geometry/Symplectic/Liouville/Collar.lean` | the Liouville collar of a hypersurface; first milestone | 2 |
 | `Geometry/Contact/StableHamiltonian.lean` | wedge criterion, smooth Reeb field, invariance, contact case; the model and its converse; second milestone | 3, 4 |
@@ -174,7 +172,7 @@ Further choices:
 | `Geometry/Symplectic/Liouville/Completion.lean` | $\widehat\omega$, $\widehat Y$, $\widehat\lambda$; third milestone | 9, 10 |
 | `Geometry/Symplectic/Liouville/Domain.lean` | the completion of a Liouville domain is a Tau Ceti completion | 11 |
 
-`Interior.lean`, `ContactType.lean`, `Collar.lean`, `StableHamiltonian.lean`,
+`ContactType.lean`, `Collar.lean`, `StableHamiltonian.lean`,
 `Completion.lean` and `Domain.lean` have the paths of Tau Ceti files and
 extend them. No folder below has the name of a Tau Ceti file at its place:
 Tau Ceti's `Geometry/Manifold/Boundary/Collar/` is a folder with no
@@ -198,18 +196,18 @@ smooth two-form:
   restriction to an open set, `Geometry/Manifold/DifferentialForm/Opens.lean`).
 - `SmoothEmbedding.isContactForm_neg_mpullback_interior` (the book's
   direction 2 ⇒ 1): for `ω` symplectic, `hdim`, and `U`, `Y` as above, the
-  form `α := -SmoothForm.mpullback i _ (ω.interior Y)` is a contact form
+  form `α := -SmoothForm.mpullback i _ (ω.interiorₗ ⟨Y, hY⟩)` is a contact form
   with `mextDerivₗ J 1 α = -SmoothForm.mpullback i _ ω`. From
   `IsContactType.isContactForm_mpullback` and
   `SmoothForm.isContactForm_neg_iff`; the derivative by naturality of `d`
   and Cartan's formula `mlieDerivForm_eq_interior_mextDeriv_add`. (If the
-  global form `ω.interior Y` is needed, `Y` is first cut off to a global
+  global form `ω.interiorₗ ⟨Y, hY⟩` is needed, `Y` is first cut off to a global
   field equal to it near `range i`, as in `IsStrongFilling.of_contMDiffOn`.)
 - `SmoothEmbedding.exists_liouville_of_isContactForm` (the converse, for a
   prescribed form): for `ω` symplectic, `hdim`, and a contact form
   `α : SmoothForm J Q ℝ 1` with `mextDerivₗ J 1 α = -i^*ω`, there are an
   open `U ⊇ range i` and a field `Y`, smooth on `U` and Liouville there,
-  transverse along `i`, with `-i^*(ω.interior Y) = α` on `Q`. Route: the
+  transverse along `i`, with `-i^*(ω.interiorₗ ⟨Y, hY⟩) = α` on `Q`. Route: the
   tubular neighbourhood `T` of `i` (`SmoothEmbedding.exists_diffeomorph_normalBundle_subset`)
   with its projection `π : T → Q`; $\bar\alpha=\pi^*\alpha$; the relative
   Poincaré lemma `SmoothEmbedding.exists_isSmoothForm_relative_primitive`
@@ -217,8 +215,9 @@ smooth two-form:
   vanishes, gives $\eta$ with $d\eta=\omega+d\bar\alpha$, vanishing along
   `i`; $\lambda=\bar\alpha-\eta$ has $d\lambda=-\omega$ and $i^*\lambda=\alpha$;
   `Y` is the field with $\iota_Y\omega=-\lambda$, which Tau Ceti's
-  nondegenerate `ω` gives through its flat isomorphism (the one behind
-  `hamiltonianVectorField`; reuse it, do not rebuild it); it is Liouville by
+  nondegenerate `ω` gives through its flat isomorphism
+  `TauCeti.SmoothTwoForm.IsNondegenerate.interiorEquiv` (reuse it, do not
+  rebuild it); it is Liouville by
   Cartan's formula. Transversality: at a point where `Y` is tangent,
   $Y=di(v)$ with $\alpha(v)=0$ and $\iota_v d\alpha=\alpha$, so `v` lies in
   the kernel of $d\alpha$ on $\ker\alpha$, hence `v = 0`, while
@@ -230,7 +229,7 @@ Expected size: 400 lines.
 
 In `TauCeti`, beside Tau Ceti's file, for `ω` symplectic, `hdim`, `U` and `Y`
 as above with `Y` Liouville on `U` and transverse along `i`, and
-`α := -i^*(ω.interior Y)`:
+`α := -i^*(ω.interiorₗ ⟨Y, hY⟩)`:
 
 - `SmoothEmbedding.exists_liouvilleCollar`: there are `D : Opens (ℝ × Q)`
   with `{0} ×ˢ univ ⊆ D`, `V : Opens W` with `range i ⊆ V ⊆ U`, and
@@ -364,8 +363,9 @@ Expected size: 300 lines for issue 3, 500 for issue 4.
 
 ### `Geometry/Manifold/Boundary/Collar/Flow/Local.lean`
 
-In `TauCeti`, for `W` as in *Decisions* (no compactness) and a field `Y`,
-smooth, outward at a boundary point `p`:
+In `TauCeti`, for `W` as in *Decisions* (no compactness), a field `Y` with
+`hY : IsOutwardPointingField Y` (Tau Ceti's smooth field that points outward
+along the boundary), and a boundary point `p`:
 
 - In a product collar chart at `p`
   (`TauCeti.exists_isProductCollarChart_of_mem_boundary`,
@@ -392,7 +392,7 @@ Expected size: 500 lines.
 ### `Geometry/Manifold/Boundary/Collar/Flow/Basic.lean`
 
 In `TauCeti.SmoothCollar`, for `W` with `[CompactSpace ↥((𝓡∂ (n + 1)).boundary W)]`
-and a smooth field `Y` outward at every boundary point:
+and a field `Y` with `hY : IsOutwardPointingField Y`:
 
 - `exists_eq_of_isOutwardPointing`: there are `ε > 0`, a map
   `Φ : ℝ × ∂W → W` with `Φ (0, x) = x` and each `s ↦ Φ (s, x)` an integral
@@ -425,7 +425,7 @@ For `W` as in *Decisions*:
   `exists_contMDiff_zero_iff_one_iff_of_isClosed`, with `∂W` closed by
   `ModelWithCorners.isClosed_boundary_of_finiteDimensional`), and
   `IsStrongFilling.isContactType`: the boundary inclusion is of contact type
-  for `ω` with primitive `ω.interior Y`, as Tau Ceti's `IsContactType` (it
+  for `ω` with primitive `ω.interiorₗ ⟨Y, hY⟩`, as Tau Ceti's `IsContactType` (it
   takes any model; transversality from outwardness).
 - `fillingContactForm ω Y : SmoothForm (𝓡 n) ∂W ℝ 1`, the form
   $-\iota^*(\iota_Y\omega)$ along the boundary inclusion, with
@@ -438,7 +438,7 @@ For `W` as in *Decisions*:
   `Φ : ℝ × ∂W → W` and `c : SmoothCollar n ∞ W` as in
   `SmoothCollar.exists_eq_of_isOutwardPointing`, with `range c ⊆ U`, such
   that on `Ioo (-ε) 0 ×ˢ univ`,
-  `mpullback Φ (-(ω.interior Y)) = symplectization (fillingContactForm ω Y)`
+  `mpullback Φ (-(ω.interiorₗ ⟨Y, hY⟩)) = symplectization (fillingContactForm ω Y)`
   and `mpullback Φ ω = mextDerivₗ _ 1 (symplectization (-fillingContactForm ω Y))`,
   $\Phi^*\lambda=e^s\alpha$ and $\Phi^*\omega=-d(e^s\alpha)$. Route: on the
   interior, re-modelled over `EuclideanSpace ℝ (Fin (n + 1))` by Tau Ceti's
@@ -515,7 +515,7 @@ Issue 9:
 - The characterizing lemmas: `mpullback_toCompletion_completionForm`
   (`= ω`), `mpullback_completionEnd_completionForm` (on `Ioi (-ε) ×ˢ univ`,
   `= mextDerivₗ _ 1 (symplectization (-α))`), the same two for
-  `completionPrimitive` (`= -(ω.interior Y)` and `= symplectization α`),
+  `completionPrimitive` (`= -(ω.interiorₗ ⟨Y, hY⟩)` and `= symplectization α`),
   and `mfderiv_toCompletion_apply` (`d toCompletion (Y x) = completionField (toCompletion x)`)
   and `mfderiv_completionEnd_apply` (∂_s goes to `completionField`).
 
@@ -597,6 +597,8 @@ Expected size: 300 lines.
   `Module.Dual.isContact_iff_nondegenerate_symplectizationForm`.
 - Tau Ceti, forms and flows: `mlieDerivForm`,
   `mlieDerivForm_eq_interior_mextDeriv_add`, `RoughForm.interior`,
+  `SmoothTwoForm.interiorₗ` with `coe_interiorₗ`,
+  `SmoothTwoForm.IsNondegenerate.interiorEquiv`,
   `SmoothForm.mpullback`, `mextDerivₗ`, `flowOf`, `globalFlow`,
   `mpullback_flowOf_apply_of_mextDeriv_interior_eq_zero`,
   `mpullback_flowOf_apply_of_interior_mextDeriv_eq_zero`,
@@ -608,6 +610,7 @@ Expected size: 300 lines.
 - Tau Ceti, manifolds with boundary: `boundaryChartedSpace`,
   `isManifold_boundary`, `isSmoothEmbedding_subtypeVal_boundary`,
   `IsOutwardPointing` with `isOutwardPointing_iff_tangentCoordChange`,
+  `IsOutwardPointingField`, `exists_isOutwardPointingField`,
   `exists_isProductCollarChart_of_mem_boundary`,
   `IsProductCollarChart.diffeomorphProd`, `SmoothCollar` with
   `diffeomorphOpensRange`, `EuclideanHalfSpace.normalIioOpens`,
@@ -636,7 +639,7 @@ In this order; each is blocked by the ones listed. All are parts of #480,
 
 | # | Issue | Files | Blocked by | Size |
 |---|---|---|---|---|
-| 1 | Contact type through local Liouville fields | `DifferentialForm/Interior.lean`, `Liouville/ContactType.lean` | — | 400 |
+| 1 | Contact type through local Liouville fields | `Liouville/ContactType.lean` | — | 400 |
 | 2 | Liouville collars of hypersurfaces, first milestone | `Liouville/Collar.lean` | 1 | 300 |
 | 3 | Stable Hamiltonian structures: wedge criterion, Reeb field, invariance | `Contact/StableHamiltonian.lean` | — | 300 |
 | 4 | The stable Hamiltonian model and its converse, second milestone | `Contact/StableHamiltonian.lean` | 3 | 500 |

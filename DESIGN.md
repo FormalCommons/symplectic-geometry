@@ -1929,10 +1929,8 @@ has either.
 
 ### 21. Liouville structures (needs `design/liouville-structures.md`)
 
-- **Files:** `Geometry/Manifold/DifferentialForm/Interior.lean` (named like
-  Tau Ceti's file: the bundled interior product `TauCeti.SmoothForm.interior`),
-  `Geometry/Symplectic/Liouville/ContactType.lean` (named like Tau
-  Ceti's file: for a properly embedded hypersurface, a contact form $\alpha$
+- **Files:** `Geometry/Symplectic/Liouville/ContactType.lean` (named like Tau
+  Ceti's file: for an embedded hypersurface, a contact form $\alpha$
   with $d\alpha=-i^*\omega$ exists exactly when a transverse Liouville field
   exists near it; for a prescribed $\alpha$ a Liouville field inducing it.
   Tau Ceti has the
