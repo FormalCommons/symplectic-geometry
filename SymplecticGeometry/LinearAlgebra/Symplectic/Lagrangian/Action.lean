@@ -33,7 +33,7 @@ Write `ℒ ι` for the Lagrangian Grassmannian of the standard model `(StdSpace 
   range (`unitaryFrame_unitaryOfFrame`).
 * `SymplecticGeometry.LagrangianGrassmannian.rotate θ Λ`: the image of `Λ` under the scalar
   unitary matrix `e^{iθ} 1`, that is, under `e^{θ J₀}`, with `rotate_rotate` for composition
-  and period `π` (`rotate_int_mul_pi`).
+  and period `π` (`periodic_rotate`, `rotate_int_mul_pi`).
 
 ## Main results
 
@@ -268,9 +268,7 @@ theorem rotate_rotate (θ φ : ℝ) (Λ : ℒ ι) : rotate θ (rotate φ Λ) = r
 /-- The scalar unitary matrix `-1` fixes every Lagrangian subspace. -/
 @[simp]
 theorem unitary_neg_one_smul (Λ : ℒ ι) : (-1 : unitaryGroup ι ℂ) • Λ = Λ :=
-  toSubmodule_injective <| by
-    rw [coe_unitary_smul, Unitary.coe_neg, OneMemClass.coe_one, realify_neg, realify_one,
-      map_neg, toLpLin_one, Submodule.map_neg, Submodule.map_id]
+  toSubmodule_injective <| by simp [Unitary.coe_neg]
 
 /-- Rotating by `π` fixes every Lagrangian subspace, since `e^{iπ} = -1`. -/
 @[simp]
@@ -281,17 +279,18 @@ theorem rotate_pi (Λ : ℒ ι) : rotate Real.pi Λ = Λ := by
   rw [rotate_def, h, unitary_neg_one_smul]
 
 /-- Rotating by `θ + π` is rotating by `θ`: rotations have period `π`. -/
+@[simp]
 theorem rotate_add_pi (θ : ℝ) (Λ : ℒ ι) : rotate (θ + Real.pi) Λ = rotate θ Λ := by
   rw [← rotate_rotate, rotate_pi]
 
+/-- The rotations of a fixed Lagrangian subspace are periodic in the angle, with period `π`. -/
+theorem periodic_rotate (Λ : ℒ ι) : Function.Periodic (rotate · Λ) Real.pi :=
+  fun θ => rotate_add_pi θ Λ
+
 /-- Rotating by an integer multiple of `π` fixes every Lagrangian subspace. -/
 @[simp]
-theorem rotate_int_mul_pi (k : ℤ) (Λ : ℒ ι) : rotate (k * Real.pi) Λ = Λ := by
-  induction k using Int.induction_on with
-  | zero => simp
-  | succ k ih => rw [Int.cast_add, Int.cast_one, add_mul, one_mul, rotate_add_pi, ih]
-  | pred k ih =>
-    rw [← rotate_add_pi, Int.cast_sub, Int.cast_one, sub_mul, one_mul, sub_add_cancel, ih]
+theorem rotate_int_mul_pi (k : ℤ) (Λ : ℒ ι) : rotate (k * Real.pi) Λ = Λ :=
+  ((periodic_rotate Λ).int_mul_eq k).trans (rotate_zero Λ)
 
 /-- A quarter turn takes the horizontal Lagrangian `{y = 0}` to the vertical one `{x = 0}`. -/
 theorem rotate_pi_div_two_horizontal : rotate (Real.pi / 2) (horizontal ι) = vertical ι := by
