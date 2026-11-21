@@ -1188,6 +1188,15 @@ it into issues; the overview fixes its folders and its dependencies.
   groups from the unitaries of `𝕜 →L[𝕜] 𝕜` to those of `𝕜`, and its case
   `Unitary.continuousLinearMapCircleEquiv` onto `Circle`, in Mathlib's
   namespace `Unitary`; see *Constructions*),
+  `Analysis/InnerProductSpace/GramSchmidtOrtho.lean` (for a skew-adjoint
+  orthogonal `J`, Mathlib's Gram–Schmidt turns `u₀, J u₀, u₁, J u₁, …` into
+  `e₀, J e₀, e₁, J e₁, …`,
+  in Mathlib's namespace `InnerProductSpace`; the file has the name of the
+  Mathlib file that defines `gramSchmidt`, and the local Darboux frames use
+  it),
+  `Topology/VectorBundle/LinearIndependent.lean` (sections continuous and
+  linearly independent at a point stay independent near it, in Mathlib's
+  namespace `Bundle.Trivialization`; the local Darboux frames use it),
   `Analysis/Normed/Operator/SpanSingleton.lean`
   (`LinearIsometryEquiv.toSpanSingleton`, a unit vector of a line as a
   linear isometry from the scalars),
@@ -1676,7 +1685,8 @@ has either; Tau Ceti's extension across a boundary,
   restriction compares with `TauCeti.timeDependentFlowDiffeotopy`; and the
   reading of a `Diffeotopy` $\Phi$ over `ℝ` as $t\mapsto\Phi_{s(t)}$,
   $s=$ `Real.smoothTransition`, with its `TauCeti.eulerianField`
-  $s'(t)X_{s(t)}$, with `Analysis/SpecialFunctions/SmoothTransition.lean`)
+  $s'(t)X_{s(t)}$, with `Analysis/SpecialFunctions/SmoothTransition.lean`
+  and `Geometry/Manifold/SmoothTransition.lean`)
   and `Geometry/Diffeomorphism/Diffeotopy/OfContMDiff.lean` (the
   constructor of a `TauCeti.Diffeotopy I ∞ M` from a jointly smooth map on
   `unitInterval × M` that is the identity at time $0$ and whose slices
@@ -1708,7 +1718,9 @@ has either; Tau Ceti's extension across a boundary,
   velocity $X_t$ of a `TauCeti.Diffeotopy`, read along the motion, as
   `TauCeti.Diffeotopy.velocity`), with
   `Geometry/Manifold/Instances/Icc.lean` (the unit vector field of an
-  interval is smooth),
+  interval is smooth) and `Geometry/Manifold/MFDeriv/Prod.lean` (the
+  derivative of a map on a product on `(0, w)` and `(v, 0)` is a partial
+  derivative),
   `Geometry/Symplectic/Hamiltonian/SymplecticIsotopy.lean`
   (symplectic vector fields and their local flows; a `TauCeti.Diffeotopy`
   has all its slices in `TauCeti.SmoothForm.diffeomorphStabilizer ω`
@@ -1783,7 +1795,10 @@ has either; Tau Ceti's extension across a boundary,
   the flow of $X_H$ for $H(q,p)=p(Y_q)$ where defined, and a complete flow
   when $Y$ is complete); `Geometry/Manifold/Flow/Basic.lean` (named like Tau
   Ceti's file: the differentials of the time-$t$ and time-$(-t)$ maps of a
-  maximal flow are inverse, which `Lift.lean` uses); and
+  maximal flow are inverse, which `Lift.lean` uses);
+  `Geometry/Symplectic/Hamiltonian/Manifold.lean` (named like Tau Ceti's
+  file: Hamiltonian vector fields of $C^{n+1}$ functions are $C^n$, which
+  `Lift.lean` uses); and
   `Geometry/Manifold/VectorBundle/Section/Extension.lean` (named like Tau
   Ceti's file, whose `FiberBundle.contMDiffExtend` it uses: the differential
   of a section in the chart at its value, `Bundle.mfderiv_section_apply`, and
@@ -2016,8 +2031,12 @@ has either; Tau Ceti's extension across a boundary,
   the rescaling case, which `Gray.lean` uses, the preservation of a
   closed form with closed contractions by a local time-dependent flow, which
   `PoissonAlgebra.lean` of *Hamiltonian flows* uses, and the slices of
-  pullbacks along `Prod.map id f`), and `Standard.lean` and
-  `Pullback.lean` (both named like Tau Ceti's files: the Reeb field of the
+  pullbacks along `Prod.map id f`), and, named like Tau Ceti's files,
+  `Geometry/Manifold/DifferentialForm/LieDeriv.lean` (the Lie derivative of
+  forms is linear in the field) and
+  `Geometry/Manifold/DifferentialForm/DegreeOne.lean` (a smooth one-form on a
+  smooth field is smooth), which `Hamiltonian.lean` uses, and `Standard.lean`
+  and `Pullback.lean` (both named like Tau Ceti's files: the Reeb field of the
   standard form, and the transport of Reeb vectors by a local pullback, which
   `Darboux/Strict.lean` uses, as it uses
   `PartialDiffeomorph.mvfderiv_trans_toDiffeomorph` from
