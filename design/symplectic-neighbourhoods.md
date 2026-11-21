@@ -385,9 +385,11 @@ hom bundle of the pull-backs satisfying `hL` and `hLω` at every `q`:
   every step of `extendAlong` is a matrix formula with inverses of smooth
   invertible Gram matrices.
 - The adjoint step $(\omega_1^\flat)^{-1}\circ T^*\circ\omega_0^\flat$ of
-  `extendAlong_def` is smooth by `ContMDiff.clm_bundle_bilinAdjoint`, for
-  `ContinuousLinearMap.bilinAdjoint` (`Geometry/Manifold/VectorBundle/Adjoint.lean`),
-  whose linear map is that formula (`ContinuousLinearMap.coe_bilinAdjoint`).
+  `extendAlong_def` is smooth by `ContMDiff.clm_bundle_bilinAdjoint`
+  (`Geometry/Manifold/VectorBundle/Adjoint.lean`), for
+  `ContinuousLinearMap.bilinAdjoint`, whose linear map is that formula
+  (`ContinuousLinearMap.coe_bilinAdjoint`); both are in part 9's
+  `Topology/Algebra/Module/BilinearForm.lean`.
 - `mfderiv_comp_smoothExtendAlong` ($A\circ df_0=df_1$),
   `isSymplectomorphism_smoothExtendAlong` (at each `q`, for
   `hω₀.symplecticFormAt (f₀ q)` and `hω₁.symplecticFormAt (f₁ q)`), and
@@ -575,7 +577,9 @@ being an embedding, the image of `Q` in the source is exactly the part of
   (merged), in `Extension.lean` and `Isotropic.lean`, and
   `LinearAlgebra/Symplectic/Subspace.lean` (merged), in `Extension.lean`.
 - From *Compatible complex structures*:
-  `LinearAlgebra/Symplectic/Compatible.lean` (merged), in `Extension.lean`.
+  `LinearAlgebra/Symplectic/Compatible.lean` (merged), in `Extension.lean`, and
+  `Topology/Algebra/Module/BilinearForm.lean` (merged), in
+  `Geometry/Manifold/VectorBundle/Adjoint.lean`.
 - From *Standard model*: `StdSpace`, `stdForm`, `stdForm_apply`, in
   `AdaptedDarboux.lean`.
 - *Cotangent bundles* is not used: `Lagrangian.lean` needs only Tau Ceti's
