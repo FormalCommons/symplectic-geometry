@@ -118,13 +118,14 @@ The part owns the folder `Geometry/Symplectic/Moser/`, except
 `Moser/Family.lean`, a file of *Isotopy extension*
 (`design/isotopy-extension.md`). Tau Ceti has the
 files `Geometry/Symplectic/Manifold/Moser.lean` and `RelativeMoser.lean`, so
-this library may not have folders with those names. The six files outside
+this library may not have folders with those names. The seven files outside
 that folder have the names of the Tau Ceti files they extend, so that they
 can join them.
 
 | File | Contents | Issue |
 |---|---|---|
-| `Geometry/Symplectic/Manifold/Family.lean` | openness of nondegeneracy for families and segments of two-forms; the slices and the velocity of a reparametrized segment of forms (`SmoothForm.lineMapFamily`) | 1 |
+| `Geometry/Symplectic/Manifold/Family.lean` | openness of nondegeneracy for families and segments of two-forms | 1 |
+| `Geometry/Manifold/DifferentialForm/Pullback/Family.lean` | the slices of a reparametrized segment of forms (`SmoothForm.lineMapFamily`), for the underlying rough forms | — |
 | `Geometry/Symplectic/Manifold/Flat.lean` | the inverse flat map of a covector field with zero first jet | 1 |
 | `Geometry/Symplectic/Moser/Relative.lean` | the relative Moser theorem with prescribed first derivative, the milestone | 2 |
 | `Geometry/Symplectic/Moser/Field.lean` | `moserField`, the cut-off Moser field of a family of two-forms | 3 |
@@ -138,8 +139,7 @@ can join them.
 ### `Geometry/Symplectic/Manifold/Family.lean`
 
 The file has the name of Tau Ceti's file on smooth families of nondegenerate
-two-forms. It is in the namespace `TauCeti.SmoothTwoForm`, except for the
-slices and the velocity of segments, in `TauCeti.SmoothForm`.
+two-forms. It is in the namespace `TauCeti.SmoothTwoForm`.
 
 - `isOpen_setOf_isInvertible_flat_mpullback_prodMk`: for a smooth two-form
   `σ` on `N × M`, the set of `p : N × M` at which the slice `σ_{p.1}` has an
@@ -159,12 +159,24 @@ slices and the velocity of segments, in `TauCeti.SmoothForm`.
   `isOpen_setOf_isInvertible_flat_add_smul_sub` and applies Mathlib's
   `generalized_tube_lemma` over `isCompact_Icc`, using
   `isInvertible_flat_iff` to pass between the flat map and nondegeneracy.
-- `SmoothForm.coe_mpullback_prodMk_lineMapFamily` (`@[simp]`): the slices of
+
+### `Geometry/Manifold/DifferentialForm/Pullback/Family.lean`
+
+The file has the name of Tau Ceti's file that defines
+`TauCeti.SmoothForm.lineMapFamily`. It is in the namespace
+`TauCeti.SmoothForm`.
+
+- `coe_mpullback_prodMk_lineMapFamily` (`@[simp]`): the slices of
   `SmoothForm.lineMapFamily α₀ α₁ hc` for the underlying rough forms, the
   `.val` form of Tau Ceti's `mpullback_prodMk_lineMapFamily`.
-- `SmoothForm.mpullback_prodMk_timeDeriv_lineMapFamily`: the slice at time
-  `t` of the time derivative of `SmoothForm.lineMapFamily α₀ α₁ hc` is
-  `deriv c t • (α₁ - α₀)`.
+
+The velocity of the same segment,
+`SmoothForm.mpullback_prodMk_timeDeriv_lineMapFamily` (the slice at time
+`t` of the time derivative of `SmoothForm.lineMapFamily α₀ α₁ hc` is
+`deriv c t • (α₁ - α₀)`), is in
+`Geometry/Manifold/DifferentialForm/Flow/Family.lean` of *Contact
+geometry*, beside the other consequences of Tau Ceti's
+`hasDerivAt_mpullback_prodMk_timeDeriv`.
 
 ### `Geometry/Manifold/DifferentialForm/Smooth.lean`
 
@@ -587,6 +599,9 @@ and pullbacks commute with `d`. That theorem gives
   `Manifold.IsSmoothEmbedding.of_opens`, `PartialDiffeomorph`, `Diffeomorph`.
 - *Smooth families* (#466, #467), for `Stability.lean` only: (★), the time
   extension, the reparametrization, and the restriction to a `Diffeotopy`.
+- *Contact geometry*, merged: `Geometry/Manifold/DifferentialForm/Flow/Family.lean`,
+  for `SmoothForm.mpullback_prodMk_timeDeriv_lineMapFamily` in `Relative.lean`
+  and `Isotopy.lean`.
 - *Standard model*, merged, only for the plan's case `F = StdSpace (Fin n)`
   of `Darboux.lean`. The general statement does not mention it.
 
