@@ -149,9 +149,9 @@ says), except its lemma `moserGenerator_conj`, which goes in
 have the names of a Tau Ceti or Mathlib file or
 folder at the same place, so that the two merge upstream.
 
-**Departures from `DESIGN.md`.** Each has its reason; #59 and #113 brought
-the overview in line with them, except for the schedule of issue 6 and the
-contents of `Riemannian/PolarEnd.lean`, which #212 brings in line.
+**Departures from `DESIGN.md`.** Each has its reason; #59, #113 and #218
+brought the overview in line with them, except for the schedule of issue 6
+and the contents of `Riemannian/PolarEnd.lean`, which #212 brings in line.
 
 - The overview's `.../Symplectic/ComplexStructure.lean` becomes a folder of
   two files from the start, since its content is more than one file holds.
@@ -162,19 +162,18 @@ contents of `Riemannian/PolarEnd.lean`, which #212 brings in line.
   `Boundary/Collar/Push.lean`, `Section/Generic.lean`,
   `Section/Nonvanishing.lean`): they hold the prerequisites of the route to
   the third milestone below, which replaces the book's cutting of the surface.
-- `VectorBundle/Cayley.lean` is new: the bundle Cayley lemma and the set
-  `cayleyPathDomain` that the contractibility proofs use mention no
-  symplectic notion of this part, only Mathlib's endomorphism bundle and Tau
-  Ceti's and part 9's linear Cayley formula (and, for one membership lemma,
-  Tau Ceti's linear forms on a fibre), so they are kept out of the
-  symplectic files.
+- `VectorBundle/Cayley.lean` stands apart from the symplectic files: the
+  bundle Cayley lemma and the set `cayleyPathDomain` that the contractibility
+  proofs use mention no symplectic notion of this part, only Mathlib's
+  endomorphism bundle and Tau Ceti's and part 9's linear Cayley formula
+  (and, for one membership lemma, Tau Ceti's linear forms on a fibre).
 - The contractibility of bundle metrics sits with Tau Ceti's topology on
   metrics, not in a symplectic file, since it mentions only Mathlib and Tau
   Ceti types.
-- `Riemannian/PolarEnd.lean` is new, for the same reason: $J_{g,\sigma}$ on
-  the bundle of bilinear forms and $J_{g,\omega_{g,B}}$ on the endomorphism
-  bundle mention only Mathlib's bundle metrics and part 9's linear
-  formula, so they are kept out of the symplectic files.
+- `Riemannian/PolarEnd.lean` stands apart from the symplectic files for the
+  same reason: $J_{g,\sigma}$ on the bundle of bilinear forms and
+  $J_{g,\omega_{g,B}}$ on the endomorphism bundle mention only Mathlib's
+  bundle metrics and part 9's linear formula.
 - Lemma 2.6.6 of the book (unitary frames along curves), which the overview
   puts in `Hermitian/Surface.lean`, is not planned here: the route below does
   not use it. If *First Chern number* needs it, that part's design plans it.
