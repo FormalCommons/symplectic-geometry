@@ -147,12 +147,12 @@ These answer the questions that `DESIGN.md` leaves to this file.
    ones, under which Souriau's formula is invariant (Tau Ceti's
    `Matrix.spectralAngleSum_conj`), so the definition does not depend on the
    choice. Naturality under all of $\mathrm{Sp}(2n)$ is then a theorem. Its
-   proof joins a symplectic matrix fixing $V_0$,
-   $\begin{pmatrix}A&B\\0&A^{-T}\end{pmatrix}$, to a real orthogonal one inside
-   the stabilizer of $V_0$ (shrink $B$ to $0$, then deform $A$ to its
-   orthogonal polar factor), and compares the two ends with catenation,
-   homotopy invariance and the zero axiom: along the two side edges of the
-   square the dimension of the intersection with $V_0$ does not change.
+   proof joins $1$ to $\Psi$ by a path $P$ in $\mathrm{Sp}(2n)$, lifts
+   $s\mapsto P(s)V$ to a path $U(s)$ of unitary frames, and compares the two
+   ends of the square $(s,t)\mapsto U(s)^{-1}P(s)\Lambda(t)$ relative to $V_0$
+   with catenation, homotopy invariance and the zero axiom: along the two side
+   edges of the square the dimension of the intersection with $V_0$ does not
+   change.
 5. **The dictionary with Tau Ceti.** All of Tau Ceti's Lagrangian Maslov
    theory lives on `EuclideanSpace ℂ ι` (or on a general complex space),
    framed by unitary or complex-linear maps. A unitary
@@ -395,6 +395,9 @@ The Maslov phase on $\mathcal{L}(n)$ and the index of Lagrangian loops.
   (`@[simp]`, the phase of a direct sum is the product), `maslovPhase_reindex`,
   and
   `maslovPhase_ofUnitary_smul : maslovPhase (ofUnitary U • Λ) = detCircle U ^ 2 * maslovPhase Λ`.
+- `ℒ.rootMultiplicity_one_charpoly_souriau`: the multiplicity of the eigenvalue
+  `1` of `souriau Λ` is `finrank (Λ ⊓ V₀)`, from Tau Ceti's lemma of the same
+  name through `ℒ.finrank_unitaryFrame_inf_horizontal`.
   The reindexing lemmas here and below are stated with `ℒ.reindex e` and its
   continuity `ℒ.continuous_reindex e`, the simp normal form of
   `ℒ.reindexHomeomorph e` (`reindexHomeomorph_apply`).
@@ -562,7 +565,11 @@ The Robbin–Salamon index of paths, relative to a Lagrangian `V`.
 
 - `ℒ.pathMaslovIndex_smul (Ψ : GLSymplectic ι ℝ) (γ) (V) :
   pathMaslovIndex (γ.map (continuous_const_smul Ψ)) (Ψ • V) = pathMaslovIndex γ V`,
-  by the stabilizer argument of Decision 4.
+  by the square of Decision 4, through
+  `ℒ.pathMaslovIndex_eq_of_homotopy`: a homotopy `F : C(I × I, ℒ ι)` from
+  `γ₀` to `γ₁` whose ends `F (s, 0)`, `F (s, 1)` keep the dimension of their
+  intersections with `V` does not change the index relative to `V` (Mathlib's
+  `Path.Homotopic.map_trans_evalAt` and the zero axiom).
 - `ℒ.pathMaslovIndex_add_half_sub_mem (γ : Path Λ Λ') (V) :
   pathMaslovIndex γ V + (finrank (Λ ⊓ V) - finrank (Λ' ⊓ V)) / 2 ∈ Set.range (Int.cast : ℤ → ℝ)`
   (the values property), from Tau Ceti's
