@@ -112,7 +112,6 @@ noncomputable def fundamentalGroupMulEquiv (A : GLSymplectic ι ℝ) :
     FundamentalGroup (GLSymplectic ι ℝ) A ≃* Multiplicative ℤ :=
   (fundamentalGroupMulEquivCircle ι A).trans (Circle.fundamentalGroupMulEquiv _)
 
-@[simp]
 theorem fundamentalGroupMulEquiv_apply (A : GLSymplectic ι ℝ)
     (p : FundamentalGroup (GLSymplectic ι ℝ) A) :
     fundamentalGroupMulEquiv ι A p = Circle.fundamentalGroupMulEquiv _
