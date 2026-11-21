@@ -763,6 +763,8 @@ it into issues; the overview fixes its folders and its dependencies.
   `SymplecticForm V`), with the general file
   `Topology/Algebra/Module/BilinearForm.lean` (a continuous bilinear form in
   finite dimensions is recovered from its bilinear form),
+  `Geometry/Symplectic/Darboux/EuclideanBasis.lean` (the coordinates of a
+  basis adapted to $J$ are complex linear),
   `Geometry/Symplectic/Cayley/Domain.lean` (the open set where Tau Ceti's
   Cayley path is smooth),
   `Topology/ComplexStructure/Compatible/` (`Matrix.lean`: the identification
@@ -964,6 +966,13 @@ it into issues; the overview fixes its folders and its dependencies.
   file has the name of the Mathlib file that defines
   `ContMDiffVectorBundle.continuousAlternatingMap`, so that the two merge
   upstream),
+  `Topology/FiberBundle/ChangeModelFiber.lean` (a fibre bundle read with
+  another model fibre along a homeomorphism, in Mathlib's namespaces and at
+  Mathlib's fibre-bundle level, since it involves no group),
+  `Topology/FiberBundle/Principal/ChangeGroup.lean` (the change of structure group
+  of a Tau Ceti principal bundle along an isomorphism of topological groups,
+  in the namespaces of the Tau Ceti and Mathlib types it is about; it sits
+  in the Tau Ceti folder of principal bundles, so that it can merge there),
   `Geometry/Symplectic/Manifold/Volume.lean` (the symplectic orientation of
   a negated two-form, in Tau Ceti's namespace; the file has the name of the
   Tau Ceti file that defines `volumeOrientation`),
@@ -1053,6 +1062,11 @@ it into issues; the overview fixes its folders and its dependencies.
   a $C^n$ map to an open subset of its target, continuous for Tau Ceti's
   weak Whitney topology; a step of the proof of the previous lemma, placed
   beside Tau Ceti's weak Whitney files so that it can merge there),
+  `Geometry/Manifold/ContMDiffMap/Chart/Restriction.lean` (ambient chart
+  derivatives of a function that agrees on an open set with a $C^n$ map on
+  it, and their convergence in the weak Whitney topology; another step of
+  the proof of that lemma, generalizing the lemmas of Tau Ceti's file of the
+  same name and sitting beside it so that the two can merge),
   `Geometry/Manifold/VectorBundle/Cayley.lean` (smoothness of Tau Ceti's
   `cayleyPathFormula` as a map into the endomorphism bundle of any vector
   bundle, along a base map, at every order, generalizing by the same proof

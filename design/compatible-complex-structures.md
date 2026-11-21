@@ -326,6 +326,11 @@ request updates it to the files below. Each change, with its reason:
   It involves only Tau Ceti's `cayleyPathFormula`, so it goes in the folder
   of Tau Ceti's `Cayley/Smooth.lean`, which it extends, and can
   move there unchanged.
+- **New `Geometry/Symplectic/Darboux/EuclideanBasis.lean`.** The complex
+  linearity of `b.darbouxBasisEquiv` for a basis adapted to $J$ is stated
+  with Tau Ceti's notions alone and does not need a symplectic form, so it
+  sits in the folder of Tau Ceti's `Darboux/EuclideanBasis.lean`, which
+  defines `darbouxBasisEquiv`, and can move there unchanged.
 - **Lemma 2.5.5 without `Compatible.cayleyEquiv`.** The overview suggested
   that equivalence. It maps the *tame* structures onto Tau Ceti's Cayley ball.
   It does not map the compatible structures onto the positive symplectic
@@ -385,9 +390,11 @@ statements assume `[FiniteDimensional ℝ V]`.
   `b (k, 0)` to `(single k 1, 0)` and `b (k, 1)` to `(0, single k 1)`
   (`darbouxBasisEquiv_apply_zero`/`_one`), so it carries $J$ to
   `AlmostComplexStructure.product`, which maps `(x, 0)` to `(0, x)`
-  (`Module.Basis.isComplexLinearMap_darbouxBasisEquiv`, in the namespace of
-  `darbouxBasisEquiv`). $\Psi$ is
-  its inverse, composed with the reindexing along a bijection `Fin n ≃ ι`,
+  (`Module.Basis.isComplexLinearMap_darbouxBasisEquiv`, in
+  `Geometry/Symplectic/Darboux/EuclideanBasis.lean`). $\Psi$ is
+  its inverse, complex linear by
+  `TauCeti.IsComplexLinearMap.symm_linearEquiv`
+  (`LinearAlgebra/ComplexStructure/Action.lean`), composed with the reindexing along a bijection `Fin n ≃ ι`,
   which commutes with $J_0$ (`stdComplexStructure_piLpCongrLeft_sumCongr` and
   `isComplexLinearMap_piLpCongrLeft_sumCongr`, in
   `LinearAlgebra/Symplectic/Standard/Basic.lean`), and
@@ -479,6 +486,17 @@ This is $\mathrm{Met}(V)$, in `SymplecticGeometry`.
   $\mathrm{GL}(V)$ that equivariance uses.
 - `innerSL_mem_innerProducts` (for `V` an inner product space):
   `innerSL ℝ ∈ innerProducts V`, the ambient inner product as an element.
+- `innerProducts.exists_transport_eq_innerSL (g : innerProducts V)`, for
+  finite-dimensional `V`: some `e : V ≃L[ℝ] EuclideanSpace ℝ (Fin (finrank ℝ V))`
+  has `transport e g = ⟨innerSL ℝ, innerSL_mem_innerProducts⟩`. It is
+  `ContinuousLinearEquiv.ofFinrankEq` followed by the inverse of Tau Ceti's
+  `metricChangeEquiv` of the pushed-forward form, so no orthonormal basis is
+  built. `PolarComplexStructure/Basic.lean` uses it to reduce statements about
+  `g` to the ambient case.
+- `innerProducts.ext_apply_right`: an inner product separates points
+  through its first argument.
+- `innerProducts.forall_transport_apply_transport_iff`: `J` preserves `g`
+  exactly when `J.transport e` preserves `transport e g`.
 - `TauCeti.SymplecticForm.Compatible.associatedBilinForm_mem_innerProducts (h :
   ω.Compatible J) : (ω.associatedBilinForm J).toContinuousBilinearMap ∈
   innerProducts V`.
@@ -525,7 +543,11 @@ the file list of `DESIGN.md`*).
   (metricPolarComplexStructure g ω v) = g u v` (orthogonality for `g`; the
   name leads with the head symbol `g` of the left-hand side, as Tau Ceti's
   `inner_polarComplexStructure_apply_apply` leads with `inner`). These
-  are the first bullet of Proposition 2.5.6.
+  are the first bullet of Proposition 2.5.6. With them,
+  `apply_metricPolarComplexStructure_left : (g : V →L[ℝ] V →L[ℝ] ℝ)
+  (metricPolarComplexStructure g ω u) v = -g u (metricPolarComplexStructure g ω v)`,
+  skew-adjointness for `g`, from Tau Ceti's
+  `AlmostComplexStructure.bilinForm_apply_left_eq_neg_apply_right`.
 - `metricPolarComplexStructure_eq_inverse_mul {A Q : V →L[ℝ] V}
   (hA : ∀ u v, (g : V →L[ℝ] V →L[ℝ] ℝ) (A u) v = ω u v)
   (hQs : ∀ u v, (g : V →L[ℝ] V →L[ℝ] ℝ) (Q u) v = g u (Q v))
@@ -652,6 +674,16 @@ and `Compatible.mem_cayleyDomain` in `TauCeti.SymplecticForm`.
   `J₀` and `J` lies in the domain. This combines
   `Tames.isUnit_one_sub_mul_of_toLinearMap` and
   `Compatible.isUnit_one_sub_smul_cayleyFormula`.
+
+### `Geometry/Symplectic/Darboux/EuclideanBasis.lean`
+
+- `Module.Basis.isComplexLinearMap_darbouxBasisEquiv
+  {b : Basis (Fin n × Fin 2) ℝ V} (hbJ : ∀ k, b (k, 1) = J (b (k, 0)))`:
+  `b.darbouxBasisEquiv` is complex linear from `J` to
+  `AlmostComplexStructure.product`. The proof checks the identity of linear
+  maps on the basis and concludes with Tau Ceti's
+  `isComplexLinearMap_iff_apply`, so it does not use the body of
+  `IsComplexLinearMap`.
 
 ### `Topology/ComplexStructure/Compatible/Matrix.lean`
 

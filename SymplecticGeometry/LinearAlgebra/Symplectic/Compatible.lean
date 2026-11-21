@@ -7,10 +7,10 @@ module
 
 public import Mathlib.LinearAlgebra.Dual.Lemmas
 public import Mathlib.Tactic.TFAE
+public import SymplecticGeometry.Geometry.Symplectic.Darboux.EuclideanBasis
 public import SymplecticGeometry.LinearAlgebra.ComplexStructure.Action
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Subspace
-public import TauCeti.Geometry.Symplectic.Darboux.EuclideanBasis
 public import TauCeti.Geometry.Symplectic.Hermitian
 public import TauCeti.Geometry.Symplectic.WeightDecomposition
 
@@ -291,26 +291,6 @@ end LineMap
 
 end TauCeti.SymplecticForm
 
-namespace Module.Basis
-
-variable {V : Type*} [AddCommGroup V] [Module ℝ V]
-
-/-- For a basis `b` with `b (k, 1) = J (b (k, 0))`, the coordinate equivalence
-`b.darbouxBasisEquiv` is complex linear from `J` to the product structure `(x, y) ↦ (-y, x)` on
-`EuclideanSpace ℝ (Fin n) × EuclideanSpace ℝ (Fin n)`. -/
-theorem isComplexLinearMap_darbouxBasisEquiv {J : TauCeti.AlmostComplexStructure V} {n : ℕ}
-    {b : Basis (Fin n × Fin 2) ℝ V} (hbJ : ∀ k, b (k, 1) = J (b (k, 0))) :
-    TauCeti.IsComplexLinearMap J (TauCeti.AlmostComplexStructure.product _)
-      b.darbouxBasisEquiv.toLinearMap := by
-  unfold TauCeti.IsComplexLinearMap
-  refine b.ext fun ⟨k, i⟩ ↦ ?_
-  have hJ₁ : J (b (k, 1)) = -b (k, 0) := by rw [hbJ, J.apply_apply]
-  fin_cases i
-  · simp [← hbJ]
-  · simp [hJ₁]
-
-end Module.Basis
-
 namespace SymplecticGeometry
 
 open TauCeti TauCeti.SymplecticForm Module
@@ -341,11 +321,7 @@ theorem compatible_iff_exists_isSymplectomorphism_stdForm [FiniteDimensional ℝ
     simp only [Fintype.card_prod, Fintype.card_fin] at this
     omega
   let σ : ι ≃ Fin n := Fintype.equivFinOfCardEq hn
-  have hDs : IsComplexLinearMap (AlmostComplexStructure.product _) J
-      b.darbouxBasisEquiv.symm.toLinearMap := by
-    rw [← (AlmostComplexStructure.transport_eq_iff_isComplexLinearMap _).2
-      (b.isComplexLinearMap_darbouxBasisEquiv hbJ)]
-    exact AlmostComplexStructure.isComplexLinearMap_symm_transport J _
+  have hDs := (b.isComplexLinearMap_darbouxBasisEquiv hbJ).symm_linearEquiv
   refine ⟨(LinearIsometryEquiv.piLpCongrLeft 2 ℝ ℝ (σ.sumCongr σ)).toLinearEquiv.trans
       ((EuclideanSpace.sumEquivProd (𝕜 := ℝ)).toLinearEquiv.trans b.darbouxBasisEquiv.symm),
     (isSymplectomorphism_piLpCongrLeft_sumCongr σ).trans
