@@ -672,11 +672,13 @@ Chart points and transverse pairs, as algebra: G7–G9.
   `TauCeti.GLSymplectic ι ℝ` preserves complementarity of Lagrangians, through
   `Submodule.orderIsoMapComap` after `coe_smul_eq_map_toEuclideanCLE`), which
   both transverse-pair results use; and
-  `ℒ.finrank_smul_inf_smul` (it keeps `finrank (Λ ⊓ Λ')`), which the zero axiom
-  of *Maslov index* (`Maslov/Path/Basic.lean`) uses; its unitary form
+  `ℒ.finrank_smul_inf_smul` (it keeps `finrank (Λ ⊓ Λ')`), which
+  `Maslov/Path/Naturality.lean` uses; its unitary form
   `ℒ.finrank_unitary_smul_inf_smul`, and `ℒ.finrank_inf_unitaryFrame`
   (`finrank (Λ ⊓ unitaryFrame U) = finrank ((U⁻¹ • Λ) ⊓ V₀)`), which
-  `Maslov/Path/Naturality.lean` uses.
+  `Maslov/Path/Naturality.lean` uses, and so does the zero axiom of *Maslov
+  index* (`Maslov/Path/Basic.lean`), with `finrank_unitaryFrame_inf_horizontal`
+  of `Lagrangian/Action.lean`.
 
 ### `LinearAlgebra/TotallyReal/Euclidean.lean`
 
