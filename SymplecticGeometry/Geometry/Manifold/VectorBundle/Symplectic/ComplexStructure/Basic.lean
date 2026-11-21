@@ -8,8 +8,11 @@ module
 public import Mathlib.Analysis.Convex.Basic
 public import Mathlib.Geometry.Manifold.VectorBundle.Riemannian
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.ComplexStructure
+public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Riemannian.PolarEnd
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.Basic
 public import TauCeti.Geometry.Manifold.VectorBundle.Bilinear.Section
+public import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Existence
+public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Polar
 
 /-!
 # Tame and compatible pairs on a vector bundle
@@ -29,6 +32,9 @@ tangent bundle, and for a nondegenerate form they are, on each fibre, Tau Ceti's
   With this sign, the formula for the Euclidean inner product and the standard complex structure
   `J₀` of `StdSpace ι` gives the standard form `stdForm ι`
   (`SymplecticGeometry.stdForm_apply_eq_inner_sub_inner`).
+* `SymplecticGeometry.Bundle.ContMDiffTwoForm.IsNondegenerate.polarComplexStructure g hω`: for a
+  bundle metric `g` and a nondegenerate two-form `ω`, the complex structure `J_{g,ω}` whose value
+  at each point is Tau Ceti's polar complex structure of `ω_x` for the inner product `g x`.
 
 ## Main results
 
@@ -43,6 +49,17 @@ tangent bundle, and for a nondegenerate form they are, on each fibre, Tau Ceti's
 * `convex_setOf_tames`, `convex_setOf_invariant`, `convex_setOf_compatible`: the two-forms
   taming, invariant under, or compatible with a fixed complex structure form a convex set.
 * `ContMDiffComplexStructure.compatible_compatibleForm`: `ω_{g,J}` is compatible with `J`.
+* `IsNondegenerate.polarFormulaAt_flat`: the polar formula of
+  `Bundle.ContMDiffRiemannianMetric.polarFormulaAt` at the flat map of a nondegenerate form is
+  Tau Ceti's linear polar complex structure.
+* `IsNondegenerate.compatible_polarComplexStructure`, `apply_polarComplexStructure_apply` and
+  `polarComplexStructure_eq_iff`: `J_{g,ω}` is the only complex structure compatible with `ω` and
+  orthogonal for `g`.
+* `IsNondegenerate.polarComplexStructure_tangentEquiv`: on the tangent bundle, `J_{g,ω}` is Tau
+  Ceti's `TauCeti.SmoothTwoForm.IsNondegenerate.polarComplexStructure`.
+* `IsNondegenerate.exists_compatible`, `ContMDiffComplexStructure.exists_compatible`: over a
+  Hausdorff σ-compact base, every nondegenerate two-form has a compatible complex structure, and
+  every complex structure a compatible two-form.
 
 ## Implementation notes
 
@@ -50,6 +67,14 @@ The form `ω_{g,J}` is `ContMDiffTwoForm.ofBilinearSection` of the bilinear sect
 `(g ∘ J - (g ∘ J)ᵀ) / 2`, whose transpose is Tau Ceti's `TauCeti.Manifold.transposeBilinearSection`.
 That constructor needs a model fibre of finite dimension, so `compatibleForm` assumes that `F` is
 finite-dimensional.
+
+The smoothness of `J_{g,ω}` is that of the polar formula on the bundle of bilinear forms
+(`Bundle.ContMDiffRiemannianMetric.contMDiffOn_polarFormulaAt`), composed with the flat map of
+`ω`; the fibres carry no norm, so its value at a point is stated through an equivalence of the
+fibre with an inner product space that carries `g x` to the inner product. The existence of
+compatible complex structures follows Tau Ceti's
+`TauCeti.SmoothTwoForm.IsNondegenerate.exists_compatible` for the tangent bundle: take `J_{g,ω}`
+for a bundle metric `g` given by `TauCeti.nonempty_contMDiffRiemannianMetric`.
 
 ## References
 
@@ -61,7 +86,7 @@ public section
 noncomputable section
 
 open _root_.Bundle Set
-open scoped Manifold
+open scoped Manifold RealInnerProductSpace
 
 namespace SymplecticGeometry.Bundle
 
@@ -342,6 +367,209 @@ theorem compatible_compatibleForm (g : ContMDiffRiemannianMetric I n F V)
     linarith
 
 end ContMDiffComplexStructure
+
+
+/-! ### The complex structure `J_{g,ω}` -/
+
+namespace ContMDiffTwoForm
+
+variable {ω : ContMDiffTwoForm I n F V}
+
+/-- The flat map of a nondegenerate two-form lies in the domain of the polar formula: since the
+form is alternating, its skew part is twice the form. -/
+theorem IsNondegenerate.mk_flat_mem_polarFormulaDomain (hω : ω.IsNondegenerate) (x : M) :
+    (⟨x, ω.flat x⟩ : TotalSpace (F →L[ℝ] F →L[ℝ] ℝ) fun x ↦ V x →L[ℝ] V x →L[ℝ] ℝ) ∈
+      _root_.Bundle.polarFormulaDomain F V := by
+  have h : ω.bilinFormAt x - (ω.bilinFormAt x).flip = (2 : ℝ) • ω.bilinFormAt x := by
+    ext v w
+    have := (ω.isAlt_bilinFormAt x).neg_eq v w
+    simp only [LinearMap.sub_apply, LinearMap.BilinForm.flip_apply, LinearMap.smul_apply,
+      smul_eq_mul] at this ⊢
+    linarith
+  rw [_root_.Bundle.mem_polarFormulaDomain_iff, toBilinForm_flat, h]
+  exact (TauCeti.BilinForm.nondegenerate_smul_iff (IsRegular.of_ne_zero (by norm_num))).2
+    (hω.nondegenerate_bilinFormAt x)
+
+variable [FiniteDimensional ℝ F]
+
+/-- On a fibre, the polar formula of a bundle metric `g` at the flat map of a nondegenerate
+two-form `ω` is Tau Ceti's polar complex structure of `ω_x` for the inner product `g x`: read
+through any continuous linear equivalence `e` of `V x` with an inner product space that carries
+`g x` to the inner product, it is `TauCeti.SymplecticForm.polarComplexStructure` of the form
+carried along `e`. -/
+theorem IsNondegenerate.polarFormulaAt_flat (hω : ω.IsNondegenerate)
+    (g : ContMDiffRiemannianMetric I n F V) {x : M} {W : Type*} [NormedAddCommGroup W]
+    [InnerProductSpace ℝ W] [FiniteDimensional ℝ W] (e : V x ≃L[ℝ] W)
+    (he : ∀ u v, ⟪e u, e v⟫ = g.inner x u v) :
+    g.polarFormulaAt x (ω.flat x) = e.symm.conjContinuousAlgEquiv (LinearMap.toContinuousLinearMap
+      ((hω.symplecticFormAt x).transport e.toLinearEquiv).polarComplexStructure.toLinearMap) := by
+  have hg : e.arrowCongr (e.arrowCongr (.refl ℝ ℝ)) (g.inner x) = innerSL ℝ := by
+    ext u v
+    rw [innerSL_apply_apply]
+    simp [← he]
+  have hs : e.arrowCongr (e.arrowCongr (.refl ℝ ℝ)) (ω.flat x) =
+      ((hω.symplecticFormAt x).transport e.toLinearEquiv).toBilinForm.toContinuousBilinearMap := by
+    ext u v
+    simp
+  have hJ := SymplecticGeometry.metricPolarFormula_eq ⟨innerSL ℝ, innerSL_mem_innerProducts⟩
+    ((hω.symplecticFormAt x).transport e.toLinearEquiv)
+  rw [metricPolarComplexStructure_innerSL] at hJ
+  rw [g.polarFormulaAt_eq_conj
+    (_root_.Bundle.mem_polarFormulaDomain_iff.1 (hω.mk_flat_mem_polarFormulaDomain x)) e, hg, hs]
+  exact congrArg e.symm.conjContinuousAlgEquiv hJ
+
+/-- The complex structure `J_{g,ω}` of a bundle metric `g` and a nondegenerate two-form `ω`: at each
+point `x`, Tau Ceti's polar complex structure of `ω_x` for the inner product `g x`
+(`polarComplexStructure_apply`). It is compatible with `ω` (`compatible_polarComplexStructure`)
+and orthogonal for `g` (`apply_polarComplexStructure_apply`), and these two properties
+characterize it (`polarComplexStructure_eq_iff`). -/
+def IsNondegenerate.polarComplexStructure (g : ContMDiffRiemannianMetric I n F V)
+    (hω : ω.IsNondegenerate) : ContMDiffComplexStructure I n F V where
+  toEndomorphism := ⟨fun x ↦ g.polarFormulaAt x (ω.flat x),
+    g.contMDiffOn_polarFormulaAt.comp_contMDiff ω.contMDiff_flat
+      hω.mk_flat_mem_polarFormulaDomain⟩
+  square_neg x := by
+    obtain ⟨e, he⟩ := g.exists_continuousLinearEquiv_inner_eq x
+    ext v
+    simp [hω.polarFormulaAt_flat g e he]
+
+variable {g : ContMDiffRiemannianMetric I n F V} (hω : ω.IsNondegenerate)
+
+/-- At each point, `J_{g,ω}` is the polar formula of `g` at the flat map of `ω`. -/
+theorem IsNondegenerate.polarComplexStructure_eq_polarFormulaAt (x : M) :
+    hω.polarComplexStructure g x = g.polarFormulaAt x (ω.flat x) :=
+  (rfl)
+
+/-- The value of `J_{g,ω}` at `x`, read through a continuous linear equivalence `e` of `V x` with an
+inner product space that carries `g x` to the inner product, is Tau Ceti's polar complex structure
+of the form carried along `e`. -/
+theorem IsNondegenerate.polarComplexStructure_apply {x : M} {W : Type*} [NormedAddCommGroup W]
+    [InnerProductSpace ℝ W] [FiniteDimensional ℝ W] (e : V x ≃L[ℝ] W)
+    (he : ∀ u v, ⟪e u, e v⟫ = g.inner x u v) (v : V x) :
+    hω.polarComplexStructure g x v =
+      e.symm (((hω.symplecticFormAt x).transport e.toLinearEquiv).polarComplexStructure (e v)) := by
+  rw [polarComplexStructure_eq_polarFormulaAt, hω.polarFormulaAt_flat g e he]
+  simp
+
+/-- As an almost complex structure on the fibre, `J_{g,ω}` at `x` is Tau Ceti's polar complex
+structure of `ω_x` carried along an equivalence `e` that carries `g x` to an inner product, then
+carried back. -/
+theorem IsNondegenerate.almostComplexStructureAt_polarComplexStructure {x : M} {W : Type*}
+    [NormedAddCommGroup W] [InnerProductSpace ℝ W] [FiniteDimensional ℝ W] (e : V x ≃L[ℝ] W)
+    (he : ∀ u v, ⟪e u, e v⟫ = g.inner x u v) :
+    (hω.polarComplexStructure g).almostComplexStructureAt x =
+      ((hω.symplecticFormAt x).transport e.toLinearEquiv).polarComplexStructure.transport
+        e.toLinearEquiv.symm := by
+  ext v
+  rw [ContMDiffComplexStructure.almostComplexStructureAt_apply, hω.polarComplexStructure_apply e he,
+    TauCeti.AlmostComplexStructure.transport_apply]
+  simp
+
+/-- `J_{g,ω}` is orthogonal for `g`. -/
+@[simp]
+theorem IsNondegenerate.apply_polarComplexStructure_apply (x : M) (u v : V x) :
+    g.inner x (hω.polarComplexStructure g x u) (hω.polarComplexStructure g x v) =
+      g.inner x u v := by
+  obtain ⟨e, he⟩ := g.exists_continuousLinearEquiv_inner_eq x
+  rw [← he, ← he, hω.polarComplexStructure_apply e he, hω.polarComplexStructure_apply e he]
+  simp only [ContinuousLinearEquiv.apply_symm_apply]
+  exact TauCeti.SymplecticForm.inner_polarComplexStructure_apply_apply _ _ _
+
+variable (g) in
+/-- `J_{g,ω}` is compatible with `ω`. -/
+theorem IsNondegenerate.compatible_polarComplexStructure :
+    ω.Compatible (hω.polarComplexStructure g) :=
+  hω.compatible_iff.2 fun x ↦ by
+    obtain ⟨e, he⟩ := g.exists_continuousLinearEquiv_inner_eq x
+    rw [hω.almostComplexStructureAt_polarComplexStructure e he]
+    have h := ((hω.symplecticFormAt x).transport
+      e.toLinearEquiv).compatible_polarComplexStructure.transport e.toLinearEquiv.symm
+    rwa [TauCeti.SymplecticForm.transport_symm_transport] at h
+
+/-- `J_{g,ω}` is the only complex structure that is orthogonal for `g` and compatible with `ω`. -/
+theorem IsNondegenerate.polarComplexStructure_eq_iff {J : ContMDiffComplexStructure I n F V} :
+    hω.polarComplexStructure g = J ↔
+      (∀ x u v, g.inner x (J x u) (J x v) = g.inner x u v) ∧ ω.Compatible J := by
+  refine ⟨?_, fun ⟨hJ, hc⟩ ↦ ContMDiffComplexStructure.ext fun x v ↦ ?_⟩
+  · rintro rfl
+    exact ⟨hω.apply_polarComplexStructure_apply, hω.compatible_polarComplexStructure g⟩
+  obtain ⟨e, he⟩ := g.exists_continuousLinearEquiv_inner_eq x
+  have hK : ((hω.symplecticFormAt x).transport e.toLinearEquiv).polarComplexStructure =
+      (J.almostComplexStructureAt x).transport e.toLinearEquiv := by
+    refine TauCeti.SymplecticForm.polarComplexStructure_eq_iff.2 ⟨fun u w ↦ ?_, ?_⟩
+    · simp [he, hJ, ← he (e.symm u)]
+    · exact (TauCeti.SymplecticForm.compatible_transport_iff _ _ _).2
+        ((hω.compatible_iff.1 hc) x)
+  rw [hω.polarComplexStructure_apply e he, hK]
+  simp
+
+
+/-! ### The tangent bundle and existence -/
+
+section Tangent
+
+variable [FiniteDimensional ℝ EB] [IsManifold I ((⊤ : ℕ∞) : WithTop ℕ∞) M]
+
+/-- On the tangent bundle, `J_{g,ω}` is Tau Ceti's polar complex structure
+`TauCeti.SmoothTwoForm.IsNondegenerate.polarComplexStructure` of the corresponding smooth two-form,
+for the metric `g` installed as the Riemannian metric of `M`. -/
+theorem IsNondegenerate.polarComplexStructure_tangentEquiv
+    (g : ContMDiffRiemannianMetric I ((⊤ : ℕ∞) : WithTop ℕ∞) EB (TangentSpace I : M → Type _))
+    {ω : ContMDiffTwoForm I ⊤ EB (TangentSpace I (M := M))} (hω : ω.IsNondegenerate) :
+    letI : RiemannianBundle (fun x : M ↦ TangentSpace I x) := ⟨g.toRiemannianMetric⟩
+    letI : IsContMDiffRiemannianBundle I ((⊤ : ℕ∞) : WithTop ℕ∞) EB
+      (fun x : M ↦ TangentSpace I x) :=
+        _root_.Bundle.instIsContMDiffRiemannianBundle g
+    (ContMDiffComplexStructure.tangentEquiv (hω.polarComplexStructure g)).toSmooth =
+      (isNondegenerate_tangentEquiv_iff.2 hω).polarComplexStructure := by
+  let : RiemannianBundle (fun x : M ↦ TangentSpace I x) := ⟨g.toRiemannianMetric⟩
+  let : IsContMDiffRiemannianBundle I ((⊤ : ℕ∞) : WithTop ℕ∞) EB (fun x : M ↦ TangentSpace I x) :=
+    _root_.Bundle.instIsContMDiffRiemannianBundle g
+  set K := (ContMDiffComplexStructure.tangentEquiv (hω.polarComplexStructure g)).toSmooth
+  -- Both are orthogonal for `g` and compatible with `ω` on each fibre, which characterizes Tau
+  -- Ceti's linear polar complex structure.
+  have hc := compatible_tangentEquiv_iff.2 (hω.compatible_polarComplexStructure g)
+  refine TauCeti.SmoothAlmostComplexStructure.ext fun x v ↦ ?_
+  have hK : ((isNondegenerate_tangentEquiv_iff.2 hω).symplecticFormAt x).polarComplexStructure =
+      K.almostComplexStructureAt x :=
+    TauCeti.SymplecticForm.polarComplexStructure_eq_iff.2
+      ⟨fun u w ↦ by
+        simp only [K, TauCeti.SmoothAlmostComplexStructure.almostComplexStructureAt_apply,
+          TauCeti.ContMDiffAlmostComplexStructure.toSmooth_toEndomorphism,
+          ContMDiffComplexStructure.tangentEquiv_toEndomorphism]
+        -- The inner product of the installed Riemannian bundle is `g` by definition.
+        exact hω.apply_polarComplexStructure_apply (g := g) x u w, hc.compatibleAt x⟩
+  rw [TauCeti.SmoothTwoForm.IsNondegenerate.polarComplexStructure_apply, hK,
+    TauCeti.SmoothAlmostComplexStructure.almostComplexStructureAt_apply]
+
+end Tangent
+
+section Existence
+
+variable [FiniteDimensional ℝ EB] [T2Space M] [SigmaCompactSpace M]
+  [IsManifold I ((⊤ : ℕ∞) : WithTop ℕ∞) M]
+  [ContMDiffVectorBundle n F V I]
+
+/-- **Existence of compatible complex structures.** Over a Hausdorff σ-compact base, every
+nondegenerate two-form on a vector bundle of finite rank is compatible with some complex structure
+of the same regularity: `J_{g,ω}` for any bundle metric `g`. -/
+theorem IsNondegenerate.exists_compatible {ω : ContMDiffTwoForm I n F V}
+    (hω : ω.IsNondegenerate) : ∃ J : ContMDiffComplexStructure I n F V, ω.Compatible J := by
+  obtain ⟨g⟩ := TauCeti.nonempty_contMDiffRiemannianMetric (IB := I) (n := n) (F := F) (E := V)
+  exact ⟨hω.polarComplexStructure g, hω.compatible_polarComplexStructure g⟩
+
+/-- **Existence of compatible forms.** Over a Hausdorff σ-compact base, every complex structure on
+a vector bundle of finite rank is compatible with some two-form of the same regularity:
+`ω_{g,J}` for any bundle metric `g`. -/
+theorem _root_.SymplecticGeometry.Bundle.ContMDiffComplexStructure.exists_compatible
+    (J : ContMDiffComplexStructure I n F V) :
+    ∃ ω : ContMDiffTwoForm I n F V, ω.Compatible J := by
+  obtain ⟨g⟩ := TauCeti.nonempty_contMDiffRiemannianMetric (IB := I) (n := n) (F := F) (E := V)
+  exact ⟨J.compatibleForm g, J.compatible_compatibleForm g⟩
+
+end Existence
+
+end ContMDiffTwoForm
 
 end SymplecticGeometry.Bundle
 
