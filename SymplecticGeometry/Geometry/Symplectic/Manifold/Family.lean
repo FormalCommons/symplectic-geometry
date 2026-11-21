@@ -13,9 +13,12 @@ import TauCeti.Topology.VectorBundle.Hom
 # Openness of nondegeneracy for families of two-forms
 
 For a smooth family of two-forms on `M`, given as a smooth two-form `σ` on `N × M` with slices
-`σ_t = ι_t^* σ`, the points `(t, x)` at which `σ_t` is nondegenerate at `x` form an open subset of
-`N × M`. For two two-forms `σ₀`, `σ₁` on `M`, the points at which every form
-`σ₀ + s (σ₁ - σ₀)`, `s ∈ [0, 1]`, is nondegenerate form an open subset of `M`. These are the
+`σ_t = ι_t^* σ`, the points `(t, x)` at which `σ_t` has an invertible flat map
+`T_x M → T_x^* M` form an open subset of `N × M`. When the model space is finite-dimensional,
+having an invertible flat map at `x` is the same as being nondegenerate at `x`
+(`TauCeti.SmoothTwoForm.isInvertible_flat_iff`). In that case, for two two-forms `σ₀`, `σ₁` on
+`M`, the points at which every form `σ₀ + s (σ₁ - σ₀)`, `s ∈ [0, 1]`, is nondegenerate form an
+open subset of `M`. These are the
 open sets on which the Moser fields of Moser's argument are defined
 ([McDuffSalamon2017], §3.2).
 
@@ -23,8 +26,8 @@ open sets on which the Moser fields of Moser's argument are defined
 
 * `TauCeti.SmoothTwoForm.isOpen_setOf_isInvertible_flat_mpullback_prodMk`: the set of points of
   `N × M` at which the slice has an invertible flat map is open.
-* `TauCeti.SmoothTwoForm.isOpen_setOf_forall_mem_Icc_nondegenerate`: the set of points at which
-  the whole segment from `σ₀` to `σ₁` is nondegenerate is open.
+* `TauCeti.SmoothTwoForm.isOpen_setOf_forall_mem_Icc_nondegenerate`: in finite dimensions, the
+  set of points at which the whole segment from `σ₀` to `σ₁` is nondegenerate is open.
 
 Both proofs follow Tau Ceti's private `exists_isOpen_isInvertible_flat`
 (`TauCeti/Geometry/Symplectic/Manifold/RelativeMoser.lean`): the flat maps form a continuous
