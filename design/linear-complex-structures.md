@@ -654,7 +654,10 @@ imports `Action.lean` into `LinearAlgebra/Symplectic/Compatible.lean`, for
 `stabilizer_stdComplexStructure`; it states its own equivariance
 with Tau Ceti's `transport` directly. *Siegel upper half
 space* imports `Action.lean` and `Standard.lean`. `DESIGN.md` records both
-in its build-order table.
+in its build-order table. Since `Standard.lean` in turn imports
+`LinearAlgebra/Symplectic/Compatible.lean` of *Compatible complex
+structures*, as listed above, each of this part and *Compatible complex
+structures* uses a merged file of the other.
 
 ## Building issues
 

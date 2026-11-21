@@ -78,6 +78,9 @@ noncomputable def reindexHomeomorph (e : ι ≃ κ) : (ℒ ι) ≃ₜ ℒ κ whe
     exact continuous_reindex e.symm
 
 @[simp]
+theorem coe_reindexHomeomorph (e : ι ≃ κ) : ⇑(reindexHomeomorph e) = reindex e :=
+  (rfl)
+
 theorem reindexHomeomorph_apply (e : ι ≃ κ) (Λ : ℒ ι) : reindexHomeomorph e Λ = reindex e Λ :=
   (rfl)
 
