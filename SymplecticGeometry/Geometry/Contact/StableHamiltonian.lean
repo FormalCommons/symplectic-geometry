@@ -11,7 +11,7 @@ public import TauCeti.Geometry.Contact.StableHamiltonian
 public import TauCeti.Geometry.Contact.Symplectization.Basic
 public import TauCeti.Geometry.Contact.Volume
 public import TauCeti.Geometry.Manifold.DifferentialForm.Flow
-public import SymplecticGeometry.Topology.Sets.Strip
+public import SymplecticGeometry.Geometry.Manifold.Strip
 import TauCeti.Geometry.Manifold.DifferentialForm.Wedge.Leibniz
 import TauCeti.Geometry.Manifold.ContMDiff.Subtype
 import TauCeti.Geometry.Manifold.MFDeriv.Prod
@@ -111,29 +111,6 @@ noncomputable section
 
 open Bundle Module
 open scoped ContDiff Manifold
-
-namespace SymplecticGeometry
-
-section SliceMaps
-
-variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
-  {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M]
-
-/-- The slice map `x ↦ (r, x)` of a symmetric strip is smooth. -/
-theorem contMDiff_symmStripMk {n : WithTop ℕ∞} {ε r : ℝ} (hr : |r| < ε) :
-    ContMDiff I (𝓘(ℝ).prod I) n (symmStripMk (X := M) hr) := by
-  rw [← TauCeti.ContMDiff.subtypeVal_comp_iff, val_comp_symmStripMk]
-  exact contMDiff_const.prodMk contMDiff_id
-
-/-- The differential of the slice map `x ↦ (r, x)` sends `v` to `(0, v)`. -/
-theorem mfderiv_symmStripMk_apply {ε r : ℝ} (hr : |r| < ε) (x : M) (v : TangentSpace I x) :
-    mfderiv I (𝓘(ℝ).prod I) (symmStripMk hr) x v = ((0 : ℝ), v) := by
-  rw [← TauCeti.Manifold.mfderiv_subtype_val_comp_apply, val_comp_symmStripMk, mfderiv_prod_right]
-  exact ContinuousLinearMap.inr_apply ..
-
-end SliceMaps
-
-end SymplecticGeometry
 
 namespace TauCeti
 
@@ -717,18 +694,6 @@ theorem zeroSliceOneForm_apply (hε : 0 < ε) (σ : SmoothTwoForm (𝓘(ℝ).pro
   rw [zeroSliceOneForm, smul_toRoughForm]
   rw [Pi.smul_apply, ContinuousAlternatingMap.smul_apply, mpullback_prodMk_stripInterior_apply,
     smul_eq_mul, ← mul_assoc, neg_mul, inv_mul_cancel₀ (by positivity), neg_one_mul]
-
-/-- The slice at `r` of a two-form `σ` on the strip, evaluated on `v` and `w`, is the value of `σ`
-at `(r, x)` on `(0, v)` and `(0, w)`. -/
-theorem bilinFormAt_mpullback_symmStripMk {r : ℝ} (hr : |r| < ε)
-    (σ : SmoothTwoForm (𝓘(ℝ).prod I) (symmStrip M ε)) (x : M) (v w : TangentSpace I x) :
-    (mpullback (symmStripMk hr) (contMDiff_symmStripMk hr) σ).bilinFormAt x v w =
-      σ.bilinFormAt (symmStripMk hr x) ((0 : ℝ), v) ((0 : ℝ), w) := by
-  rw [bilinFormAt_apply, SmoothBundleForm.eval₂_apply, mpullback_apply]
-  refine Eq.trans ?_ ((σ.bilinFormAt_apply _ _ _).trans (SmoothBundleForm.eval₂_apply _ _ _ _)).symm
-  congr 1
-  funext i
-  fin_cases i <;> exact mfderiv_symmStripMk_apply _ _ _
 
 /-- `λ₀` is `-ι₀^*(ι_{∂_r} σ)`, with `ι₀ : x ↦ (0, x)` and `∂_r = (1, 0)`. -/
 theorem coe_zeroSliceOneForm (hε : 0 < ε) (σ : SmoothTwoForm (𝓘(ℝ).prod I) (symmStrip M ε)) :
