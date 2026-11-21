@@ -212,9 +212,12 @@ Further choices of this design:
 
 `Moser/Family.lean` sits in the folder of *Moser isotopy*, beside that
 part's files, because its subject is Moser's argument. It is a file of this
-part: *Moser isotopy* proves its milestone fixing a submanifold for the
-linear segment between two forms, and the submanifold theorem here needs a
-general family, which is not on a segment. Where a Tau Ceti file has the same
+part, and `design/moser-isotopy.md` records it as the one exception to that
+part's folder. *Moser isotopy* proves its milestone fixing a submanifold for
+the linear segment between two forms, and the submanifold theorem here needs
+a general family. Both parts use one cut-off Moser field, *Moser isotopy*'s
+`moserField` (`Moser/Field.lean`), generalized to a family of two-forms
+by #551 (see *What the part uses*). Where a Tau Ceti file has the same
 name (`Extension.lean`, `Connected.lean`), the two merge upstream, as
 `DESIGN.md`'s *Principles* allow. No folder of this part has the name of a
 Tau Ceti file.
@@ -437,8 +440,9 @@ Expected size: 450 lines.
 ### `Geometry/Symplectic/Moser/Family.lean`
 
 Two forms of Moser's argument near a compact set, both with the cut-off
-Moser field of Tau Ceti's `RelativeMoser.lean` (private there) adapted, and
-both returning a compactly supported `Diffeotopy`. In the first, the
+Moser field `moserField` of `Moser/Field.lean`, in the form for a family
+of two-forms that #551 gives it, and both returning a compactly supported
+`Diffeotopy`. In the first, the
 family runs in the Moser time and is written over `ℝ`, as a form on
 `ℝ × M` with Tau Ceti's slices and `SmoothForm.timeDeriv`
 (`Geometry/Manifold/DifferentialForm/Flow/Family.lean`). Callers extend
@@ -470,7 +474,9 @@ neighbourhood (Tau Ceti's `exists_isTubularNeighborhood_subset`), the same
 for every `t`, makes it vanish as a full covector along `Q`. The cut-off
 Moser field then vanishes on `Q`, and Moser's principle along trajectories
 (`mpullback_timeDependentFlowOf_mpullback_prodMk_apply_eq_exp_integral_smul_of_mem`)
-gives the identity near `Q` for every $t\in[0,1]$. This is the argument of
+gives the identity near `Q` for every $t\in[0,1]$. The field is
+`moserField σ γ' ρ` for the corrected primitive `γ'` and a cutoff `ρ` on
+`ℝ × M`. This is the argument of
 *Moser isotopy*'s milestone *Relative Moser theorem fixing a submanifold*
 for a general family. If `Moser/Isotopy.lean` is merged first, its
 correction lemma is reused.
@@ -503,12 +509,15 @@ is a `Diffeotopy` in the parameter `t`. The conclusion that the slices are
 the identity where `β_t = 0` is what keeps the ends of a family fixed. For
 each `t`, the Moser field solves
 $\iota_{X_{s,t}}(\omega_0+s\,d\beta_t)=-\rho\beta_t$, with a cutoff `ρ` near
-`K`, and `χ (t, ·)` is the time-one map of its flow. For one `t` this is the
-construction of Tau Ceti's
-`exists_diffeomorph_fix_eventually_mpullback_eq_of_mextDeriv_eq_sub`, whose
-field is private in `RelativeMoser.lean`. The proof adapts it, and the module
-docstring credits it. For
-joint smoothness in `t`, the issue extends `β` in `t` past both ends and runs
+`K`, and `χ (t, ·)` is the time-one map of its flow. For each `t` this
+field is `moserField` of the segment family
+`SmoothForm.lineMapFamily ω₀ (σ.slice t) contDiff_id`, with `β.slice t`
+constant in the Moser time, and the steps follow Tau Ceti's
+`exists_diffeomorph_fix_eventually_mpullback_eq_of_mextDeriv_eq_sub`, which
+the module docstring credits. The file proves that this field is jointly
+smooth in `t`, `s` and the point, by the argument of
+`contMDiff_moserField`. For joint smoothness of the flow in `t`, the issue
+extends `β` in `t` past both ends and runs
 the flow of the vertical field $(0,X_{s,t})$ on the manifold `ℝ × N`. Its
 first component is constant, so by uniqueness its slices are the flows of the
 $X_{\cdot,t}$. The same file gives the parametric radial primitives on a
@@ -544,8 +553,10 @@ def IsSymplecticBallFamily (ω : TauCeti.SmoothTwoForm I M) (r : ℝ)
 API: `isSymplecticBallEmbedding_def`, `isSymplecticBallFamily_def`;
 `IsSymplecticBallEmbedding.mpullback_eq_of_mem_closedBall` (for `0 < r`, the
 pullback is `ω₀` on the closed ball, by continuity) and
-`IsSymplecticBallEmbedding.injective_mfderiv` (immersion on $B(r)$, from
-nondegeneracy, through `TauCeti.SmoothTwoForm.IsNondegenerate.injective_mvfderiv`);
+`IsSymplecticBallEmbedding.injective_mfderiv` (immersion on the open ball:
+if $dj_z\,v=0$ then $\omega_0(v,\cdot)=\omega(dj_z\,v,dj_z\,\cdot)=0$, so
+$v=0$ by nondegeneracy of `stdForm`; on $B(r)$ for `0 < r`, with the
+previous lemma);
 `IsSymplecticBallEmbedding.mono` (a smaller radius);
 `isSymplecticBallEmbedding_id` (the identity of `StdSpace (Fin n)` into
 itself with `ω₀`: the example); `IsSymplecticBallFamily.of_path` (a smooth
@@ -672,8 +683,8 @@ Let `M : Type` be compact, `Q : Set M`, `U : Opens M` with `Q ⊆ U`, and let
   symplectic `φ` with velocity forms `α`, the forms `α_t - φ_t^* β_t` are
   exact on `V` with a primitive `h` smooth on `unitInterval × V`. Exactness
   comes from the last two items. The smooth choice is *Hamiltonian flows*'
-  primitive of a smooth family of exact one-forms (see *What the part uses*),
-  applied on the manifold `V`.
+  `TauCeti.exists_contMDiff_mextDeriv_eq_of_forall_mem_exactForms` (see
+  *What the part uses*), applied on the manifold `V`.
 
 Expected size: 450 lines.
 
@@ -789,14 +800,15 @@ this design already follows. `Ball/Isotopy.lean` cites
   boundaryless `M`, which `DESIGN.md`'s smooth cohomology coordinates of
   `SmoothFamily.lean` rest on (used by `Cohomological/Primitive.lean`).
 - *Hamiltonian flows*: in `Flux/Hamiltonian.lean`, the smooth primitive of a
-  smooth family of exact one-forms over $[0,1]$, by path integration from
-  base points in each component, which `DESIGN.md` plans for the Hamiltonian
-  of a diffeotopy. This part needs it stated for any manifold, so that it
-  applies on an open subset (`Cohomological/Primitive.lean`). The design
-  of that part (#491, open) builds this primitive in its Decision 4, and
-  this part asks for it as a public lemma. It also uses the Hamiltonian
+  smooth family of exact one-forms over $[0,1]$, which that part's design
+  (`design/hamiltonian-flows.md`, Decision 4) builds on chart balls and glues
+  over the components. This part needs it on any manifold, so that it
+  applies on an open subset (`Cohomological/Primitive.lean`). This pull
+  request records it in `design/hamiltonian-flows.md` as the public lemma
+  `TauCeti.exists_contMDiff_mextDeriv_eq_of_forall_mem_exactForms`, part of
+  that part's building issue 5. It also uses the Hamiltonian
   diffeotopy generated by a smooth function on `M × unitInterval` that
-  vanishes off a compact set, which #491 plans as
+  vanishes off a compact set, which that design plans as
   `TauCeti.Diffeotopy.exists_isCompactlySupportedHamiltonian` in
   `Flux/CompactSupport.lean`, with the predicate
   `IsCompactlySupportedHamiltonian` (used by steps 3 and 5 of `Flow.lean`).
@@ -804,11 +816,14 @@ this design already follows. `Ball/Isotopy.lean` cites
   with compact support" are stated with it, since it says the same thing.
   Otherwise the issue of `Flow.lean` proves the time-dependent version of
   Tau Ceti's `hasHamiltonian_globalFlowDiffeotopy` in `Flux/Hamiltonian.lean`.
-- *Moser isotopy*: no file. Its `Moser/Isotopy.lean` and `Moser/Field.lean`
-  treat the linear segment between two forms, and the families here are not
-  on a segment. `Moser/Family.lean` adapts the same Tau Ceti proofs. If
-  *Moser isotopy*'s cut-off field or its jets are merged first in a form
-  that takes a family, the issue of `Moser/Family.lean` uses them.
+- *Moser isotopy*: only `Moser/Field.lean`, whose `moserField` (#506) is
+  the cut-off Moser field of both theorems of `Moser/Family.lean`. That
+  design plans it for the linear segment between two forms with a fixed
+  primitive. #551 proposes to generalize it to a smooth family of two-forms
+  over `ℝ` with a time-dependent primitive, the segment being the family
+  `SmoothForm.lineMapFamily σ₀ σ₁ contDiff_id`, and this pull request records
+  that choice in `design/moser-isotopy.md`. So the library adapts Tau Ceti's
+  private field of `RelativeMoser.lean` once.
 - Tau Ceti, besides the declarations named above:
   `TauCeti.SmoothIsotopy` with `timeSlice`, `ContMDiffMap.smoothIsotopyRefl`;
   `TauCeti.Diffeotopy` with `timeSlice`, `final`, `trans`, `symm`,
@@ -853,7 +868,7 @@ build the files named, as their design files list them.
 | 4 | Isotopy extension at every time | `Geometry/Manifold/SmoothIsotopy/Extension.lean` | 3; S14 (`TimeExtension.lean`) | 450 |
 | 5 | Velocity forms of symplectic isotopies | `IsotopyExtension/Velocity.lean` | — | 300 |
 | 6 | Extension by symplectic and Hamiltonian flows | `IsotopyExtension/Flow.lean` | 4, 5; S14 (`TimeExtension.lean`); S15 (`Flux/Hamiltonian.lean`, `Flux/CompactSupport.lean`) | 450 |
-| 7 | Moser's argument along a family and with a parameter | `Moser/Family.lean` | S14 (`TimeExtension.lean`) | 550 |
+| 7 | Moser's argument along a family and with a parameter | `Moser/Family.lean` | S14 (`TimeExtension.lean`); #506 and #551 (`moserField` for a family) | 550 |
 | 8 | Symplectic ball embeddings and their enlargement | `IsotopyExtension/Ball/Basic.lean` | 3 | 350 |
 | 9 | The symplectic ball extension | `IsotopyExtension/Ball/Isotopy.lean` | 2, 4, 6, 7, 8 | 550 |
 | 10 | Closed forms with prescribed periods, and uniform primitives | `IsotopyExtension/Cohomological/Primitive.lean` | 1, 5; S14 (finite-dimensional `deRhamCohomology`); S15 (`Flux/Hamiltonian.lean`) | 450 |
