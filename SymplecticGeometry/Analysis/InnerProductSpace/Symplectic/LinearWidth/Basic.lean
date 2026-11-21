@@ -23,6 +23,8 @@ contains no image of a ball, and `∞` for the whole space.
 ## Main results
 
 * `SymplecticGeometry.linearSymplecticWidth_mono`: monotonicity.
+* `SymplecticGeometry.nonempty_interior_of_linearSymplecticWidth_ne_zero`: a set of positive
+  width has nonempty interior.
 * `SymplecticGeometry.linearSymplecticWidth_image`: invariance under affine symplectic maps.
 * `SymplecticGeometry.linearSymplecticWidth_image_of_forall_apply_eq_or_forall_apply_eq_neg`:
   invariance under linear maps `Ψ` with `Ψ^* ω₀ = ±ω₀`.
@@ -120,6 +122,24 @@ theorem linearSymplecticWidth_univ :
   rw [Real.sq_sqrt c.coe_nonneg, ← ENNReal.ofReal_coe_nnreal]
   exact ENNReal.ofReal_le_ofReal
     (le_mul_of_one_le_left c.coe_nonneg (by linarith [Real.two_le_pi]))
+
+/-- A set of positive width contains a nonempty open set: the image of an open ball under an
+affine symplectic map. -/
+theorem nonempty_interior_of_linearSymplecticWidth_ne_zero {A : Set (StdSpace ι)}
+    (h : linearSymplecticWidth A ≠ 0) : (interior A).Nonempty := by
+  have h' : ¬linearSymplecticWidth A ≤ 0 := by simpa using h
+  rw [linearSymplecticWidth_le_iff] at h'
+  push Not at h'
+  obtain ⟨f, -, r, hr, hA, hpos⟩ := h'
+  have hr' : 0 < r := by
+    rcases hr.eq_or_lt with rfl | hr'
+    · simp at hpos
+    · exact hr'
+  have hopen : IsOpen (f '' ball 0 r) := by
+    rw [Set.image_eq_preimage_of_inverse f.symm_apply_apply f.apply_symm_apply]
+    exact isOpen_ball.preimage (AffineMap.continuous_of_finiteDimensional f.symm.toAffineMap)
+  exact ⟨f 0, mem_interior.2 ⟨f '' ball 0 r, (Set.image_mono ball_subset_closedBall).trans hA,
+    hopen, 0, mem_ball_self hr', rfl⟩⟩
 
 /-! ### Invariance -/
 
