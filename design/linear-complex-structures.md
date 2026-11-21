@@ -642,9 +642,19 @@ it mentions complex structures.
   `LinearAlgebra/Symplectic/Compatible.lean`, which `Standard.lean` imports for
   `compatible_iff_exists_isSymplectomorphism_stdForm` (transitivity of the
   symplectic group on the compatible structures).
-- No other part. No part builds on this one either: *Compatible complex
-  structures* states its equivariance with Tau Ceti's `transport` directly
-  and uses nothing from this part, as its design and `DESIGN.md` say.
+- No other part.
+
+Two parts use merged files of this one. *Compatible complex structures*
+imports `Action.lean` into `LinearAlgebra/Symplectic/Compatible.lean`, for
+`AlmostComplexStructure.transport_eq_iff_isComplexLinearMap`, and
+`Topology/ComplexStructure/Basic.lean` into
+`Topology/ComplexStructure/Compatible/Matrix.lean`, for
+`AlmostComplexStructure.homeomorphMatrix`, and `Standard.lean` into
+`Topology/Algebra/Matrix/SymplecticGroup/CompactSubgroup.lean`, for
+`stabilizer_stdComplexStructure`; it states its own equivariance
+with Tau Ceti's `transport` directly. *Siegel upper half
+space* imports `Action.lean` and `Standard.lean`. `DESIGN.md` records both
+in its build-order table.
 
 ## Building issues
 
