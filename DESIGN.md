@@ -1937,9 +1937,15 @@ has either.
   a hypersurface through $L$ transverse to the Reeb field, the Lagrangian
   neighbourhood theorem there, a relative primitive from Tau Ceti's
   `TauCeti.SmoothEmbedding.exists_isSmoothForm_relative_primitive`, and the
-  Reeb flow); and `Geometry/Manifold/DifferentialForm/Flow/Family.lean`
+  Reeb flow), `Geometry/Manifold/DifferentialForm/Flow/Family.lean`
   (named like Tau Ceti's file: Moser's principle along one trajectory, in
-  the rescaling case, which `Gray.lean` uses).
+  the rescaling case, which `Gray.lean` uses), and
+  `Geometry/Manifold/LocalDiffeomorph/Constructions.lean` (named like Tau
+  Ceti's file: the differential of a partial diffeomorphism followed by a
+  linear equivalence, which `Darboux/Strict.lean` uses, as it uses the Reeb
+  field of the standard form in `Standard.lean` and the transport of Reeb
+  vectors by a local pullback in `Pullback.lean`, both named like Tau Ceti's
+  files).
 - **Builds on:** Tau Ceti (contact forms, Reeb fields, contact Hamiltonians,
   strict and distribution Darboux charts, Gray's theorem for families over
   `ℝ`); `Family.lean` and `Gray.lean` also on *Smooth families* (`TimeExtension.lean`,
