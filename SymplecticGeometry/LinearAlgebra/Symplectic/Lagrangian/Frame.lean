@@ -31,8 +31,6 @@ A *frame* is a real `2n × n` matrix `Z = fromRows X Y`, whose columns span the 
 * `SymplecticGeometry.StdSpace.graphY A`: the graph `{(A y, y)}` over the `y`-coordinates.
 * `SymplecticGeometry.LagrangianGrassmannian.ofFrame X Y`: the Lagrangian subspace spanned by a
   Lagrangian frame `fromRows X Y`.
-* `SymplecticGeometry.frameGL h`: the complex frame `X + i Y` of a Lagrangian frame
-  `fromRows X Y`, an element of `GL ι ℂ` (`coe_frameGL`).
 
 ## Main results
 
@@ -419,18 +417,6 @@ theorem det_ne_zero_of_isLagrangian_range_fromRows {X Y : Matrix ι ι ℝ}
   have hJ := h.isMaximalTotallyReal_of_compatible stdForm_compatible
   rw [range_toEuclideanLin_fromRows_eq_map_realImage] at hJ
   exact isMaximalTotallyReal_realImage_iff.1 ((e.isMaximalTotallyReal_map_iff he).1 hJ)
-
-/-- The invertible complex frame `X + i Y` of a Lagrangian frame `fromRows X Y`. -/
-noncomputable def frameGL {X Y : Matrix ι ι ℝ}
-    (h : (stdForm ι).IsLagrangian (LinearMap.range (toEuclideanLin (fromRows X Y)))) :
-    GL ι ℂ :=
-  GeneralLinearGroup.mkOfDetNeZero _ (det_ne_zero_of_isLagrangian_range_fromRows h)
-
-@[simp]
-theorem coe_frameGL {X Y : Matrix ι ι ℝ}
-    (h : (stdForm ι).IsLagrangian (LinearMap.range (toEuclideanLin (fromRows X Y)))) :
-    (frameGL h : Matrix ι ι ℂ) = X.map Complex.ofReal + Complex.I • Y.map Complex.ofReal :=
-  GeneralLinearGroup.val_mkOfDetNeZero _ _
 
 end Frame
 

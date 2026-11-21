@@ -218,6 +218,21 @@ Three facts about complex frames:
   while the formula gives `3` for `ι = Fin 2`. The file adds no definition.
   The milestone uses the case `R = ℝ`.
 
+### `Analysis/InnerProductSpace/Projection/Basic.lean`
+
+A general fact about orthogonal projections, beside Mathlib's file of that
+name, in the namespace `Submodule`, for a complete inner product space over
+`RCLike 𝕜`:
+
+- `Submodule.HasOrthogonalProjection.map_unitary`: an instance, the image of
+  `K` under `u : unitary (E →L[𝕜] E)` has an orthogonal projection when `K`
+  does (Mathlib's `HasOrthogonalProjection.map_linearIsometryEquiv` along
+  `Unitary.linearIsometryEquiv u`).
+- `Submodule.starProjection_map_unitary`: the projection onto `u K` is
+  `u * K.starProjection * star u`, Mathlib's pointwise
+  `Submodule.starProjection_map_apply` as an identity of operators.
+  `Quotient.lean` uses it for `continuous_unitaryFrame`.
+
 ### Additions to *Standard model*'s `LinearAlgebra/Symplectic/Standard/Basic.lean`
 
 Two declarations about `StdSpace ι` alone, which this part needs and part 1
@@ -370,10 +385,6 @@ Lagrangian frames on `StdSpace ι`, pure linear algebra. Namespace
 - `isLagrangian_range_fromRows_one (hA : A.IsSymm)`: `fromRows A 1` is a
   Lagrangian frame, since it spans `graphY A`
   (`StdSpace.range_toEuclideanLin_fromRows_one_eq_graphY`, `isLagrangian_graphY_iff`).
-- `frameGL h : GL ι ℂ`, for
-  `h : (stdForm ι).IsLagrangian (range (toEuclideanLin (fromRows X Y)))`:
-  the complex frame `X + i Y` as a unit, by `GeneralLinearGroup.mkOfDetNeZero`
-  and the lemma above (`coe_frameGL`, `@[simp]`).
 - Transverse subspaces are graphs, stated for submodules. The horizontal and
   vertical subspaces are `LinearMap.ker StdSpace.y` and
   `LinearMap.ker StdSpace.x`, so they need no new names here.
@@ -441,15 +452,14 @@ unitary action to Tau Ceti's `Matrix.realImage`.
     `unitaryFrame (U * U') = U • unitaryFrame U'`.
 - `ℒ.unitaryOfFrame h : unitaryGroup ι ℂ`, for
   `h : (stdForm ι).IsLagrangian (range (toEuclideanLin (fromRows X Y)))`:
-  the `realOrthonormalize` of `frameGL h` (`Frame.lean`), unitary by
+  the `realOrthonormalize` of `X + i Y`, made a unit by
+  `GeneralLinearGroup.mkOfDetNeZero` and
+  `det_ne_zero_of_isLagrangian_range_fromRows` (`Frame.lean`), unitary by
   `realOrthonormalize_mem_unitaryGroup` (`coe_unitaryOfFrame`). Then
   `unitaryFrame_unitaryOfFrame : unitaryFrame (unitaryOfFrame h) = ⟨_, h⟩`
   (`@[simp]`), by `realImage_realOrthonormalize`. Every passage from a
-  Lagrangian frame to a unitary frame goes through this construction, and a
-  continuous family of frames gives a continuous family of unitary frames by
-  `coe_unitaryOfFrame` and `continuous_realOrthonormalize` (continuity of
-  `frameGL` into `GL ι ℂ` reduces to that of its matrix by
-  `Units.isOpenEmbedding_val.continuous_iff`).
+  Lagrangian frame to a unitary frame goes through this construction; its
+  continuity in the frame is `continuous_unitaryOfFrame` (`Quotient.lean`).
 - `ℒ.unitaryFrame_surjective`: transitivity of $\mathrm{U}(n)$. Take any basis
   of `Λ` as a frame (`Frame.lean`) and apply `unitaryFrame_unitaryOfFrame`. It gives the
   instances `MulAction.IsPretransitive (unitaryGroup ι ℂ) (ℒ ι)` and
@@ -599,13 +609,14 @@ The topology of `ℒ ι` in terms of unitary frames.
 - `instance : ContinuousSMul (GLSymplectic ι ℝ) (ℒ ι)` and
   `instance : ContinuousSMul (unitaryGroup ι ℂ) (ℒ ι)` (G4). Use
   `IsOpenQuotientMap.prodMap` with the identity on `GLSymplectic ι ℝ`. The
-  composite `(g, U) ↦ g • unitaryFrame U` is `unitaryFrame (unitaryOfFrame h)`
-  (`Action.lean`, by `unitaryFrame_unitaryOfFrame`) for the Lagrangian frame
-  given by the horizontal columns of `g * realify U` (the matrix of
-  `ofUnitary U` is `realify U` by `coe_ofUnitary`, and
-  `conj_complexToRealEuclidean_toLin'` reads the columns as a complex
-  frame). It is continuous by `coe_unitaryOfFrame` and
-  `continuous_realOrthonormalize`. The unitary instance follows by
+  composite `(g, U) ↦ g • unitaryFrame U` is the Lagrangian spanned by the
+  horizontal columns of `g * realify U` (the matrix of `ofUnitary U` is
+  `realify U` by `coe_ofUnitary`), and it is continuous by
+  `continuous_mk_range_fromRows`: the Lagrangian spanned by a continuous
+  family of Lagrangian frames is `unitaryFrame (unitaryOfFrame h)`
+  (`unitaryFrame_unitaryOfFrame`), continuous by `continuous_unitaryOfFrame`
+  (`coe_unitaryOfFrame` and `continuous_realOrthonormalize`) and
+  `continuous_unitaryFrame`. The unitary instance follows by
   `continuous_ofUnitary`.
 
 ### `Topology/Grassmannian/Lagrangian/Finite.lean`
