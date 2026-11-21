@@ -207,15 +207,20 @@ following choices.
 `DESIGN.md` is updated with this file, in its part 19, its dependency row
 and two rows of its milestone table.
 
-- Four files are added: `LinearAlgebra/Symplectic/Extension.lean`,
-  `Neighborhood/Extension.lean`, `Neighborhood/Basic.lean` and
-  `Geometry/Manifold/VectorBundle/ZeroSection.lean`. Each neighbourhood
-  theorem would otherwise repeat the linear extension and its smoothness.
+- Five files are added: `LinearAlgebra/Symplectic/Extension.lean`,
+  `Neighborhood/Extension.lean`, `Neighborhood/Basic.lean`,
+  `Geometry/Manifold/VectorBundle/ZeroSection.lean` and
+  `Geometry/Manifold/TubularNeighborhood/MFDeriv.lean`. Each neighbourhood
+  theorem would otherwise repeat the linear extension and its smoothness;
+  the last holds the step of `Tubular.lean` that uses nothing symplectic.
 - `Lagrangian.lean` no longer uses *Cotangent bundles* or
   `normalBundleDiffeomorphOfIsLagrangianMap`, since the comparison theorem
   needs only that the zero section is Lagrangian. The part therefore no
   longer builds on *Cotangent bundles*. No open issue has a blocker that
   this changes: #476 is blocked only by its design issue.
+- `Analysis/Calculus/DifferentialForm/LieDeriv.lean` is added, in the root
+  namespace, for the flat lemmas that `CharacteristicFoliation.lean` uses:
+  they use nothing of symplectic geometry.
 - `AdaptedDarboux.lean` uses Tau Ceti's pointwise relative Darboux theorem
   instead of the neighbourhood theorems, so it can start at once.
 - The part no longer builds on *Symplectic vector bundles*, neither on
@@ -230,10 +235,12 @@ and two rows of its milestone table.
 The local quotients of a closed two-form of constant rank. Namespace
 `TauCeti.SmoothForm`, beside Tau Ceti's `characteristicFoliation`, since
 dot notation on `σ` finds it. For `σ : SmoothForm I M ℝ 2` with
-`[I.Boundaryless]`, and a manifold `B` over a model `IB`:
+`[I.Boundaryless]`, and a manifold `B` over a model `IB`, which is an
+explicit argument, `IsCharacteristicSubmersion IB σ p`, since `p` does not
+determine it:
 
 ```lean
-structure IsCharacteristicSubmersion (σ : SmoothForm I M ℝ 2) (p : M → B) : Prop where
+structure IsCharacteristicSubmersion (IB) (σ : SmoothForm I M ℝ 2) (p : M → B) : Prop where
   isSubmersion : Manifold.IsSubmersion I IB ∞ p
   surjective : Function.Surjective p
   isPreconnected_preimage_singleton : ∀ b, IsPreconnected (p ⁻¹' {b})
@@ -248,18 +255,23 @@ On an open `U`, it is applied to `U` and the restriction
   RoughForm.IsBasic IB p σ.val`. Route: for `x` in the fibre over `b`,
   write $\tau_x$ for the form on $T_bB$ with $\tau_x(dp\,u,dp\,v)=\sigma_x(u,v)$.
   It is well defined because `ker_mfderiv` holds and `σ` vanishes on its
-  kernel. $x\mapsto\tau_x$ is locally constant on the fibre. Near `x`, a flat
-  chart of Tau Ceti (`exists_flatChart_extend`, applied to the kernel
-  distribution) shrunk to a product of convex sets carries `σ` to a closed
-  form that vanishes on the constant subspace `W`. By Cartan's formula
-  (`TauCeti.mlieDerivForm_eq_interior_mextDeriv_add`,
-  `Geometry/Manifold/DifferentialForm/LieDeriv.lean`), or directly in
-  coordinates, its coefficients do not change along `W`. On the plaque
-  through `x`, which is the part of the fibre near `x`, $\tau$ is
-  therefore constant. A locally constant map on a preconnected fibre is
+  kernel (`IsCharacteristicSubmersion.apply_eq_of_mfderiv_eq`).
+  $x\mapsto\tau_x$ is locally constant on the fibre. Near `x`, the chart
+  of the submersion `p` at `x` (Mathlib's `IsSubmersionAt.domChart`), in
+  which `p` is a linear projection, carries `σ` to a closed form
+  (Tau Ceti's `SmoothForm.contDiffOn_mpullback`,
+  `SmoothForm.IsClosed.extDeriv_mpullback_eq_zero`) whose
+  kernel contains the constant subspace `W` of vertical vectors. By
+  Cartan's formula for a constant vector field
+  (`fderiv_apply_eq_zero_of_extDeriv_eq_zero` and
+  `apply_add_eq_of_extDeriv_eq_zero`, in
+  `Analysis/Calculus/DifferentialForm/LieDeriv.lean`),
+  its coefficients do not change along `W`. On a ball in the chart, the
+  part of the fibre through `x` is a slice parallel to `W`, so $\tau$ is
+  constant there. A locally constant map on a preconnected fibre is
   constant.
 - `IsCharacteristicSubmersion.existsUnique_isSymplectic_mpullback_eq (hp)
-  (hσ : σ.IsClosed) : ∃! τ : SmoothForm IB B ℝ 2, τ.IsSymplectic ∧
+  (hσ : σ.IsClosed) : ∃! τ : SmoothTwoForm IB B, τ.IsSymplectic ∧
   SmoothForm.mpullback p hp.isSubmersion.contMDiff τ = σ`, from Tau Ceti's
   `existsUnique_isSymplectic_mpullback_eq` with `isBasic`. Uniqueness among
   all forms, symplectic or not, is Tau Ceti's
@@ -368,9 +380,12 @@ hom bundle of the pull-backs satisfying `hL` and `hLω` at every `q`:
   `hω₀.symplecticFormAt (f₀ q)` and `hω₁.symplecticFormAt (f₁ q)`), and
   `smoothExtendAlong_sub_mem`.
 
-### `Geometry/Symplectic/Neighborhood/Tubular.lean`
+### `Geometry/Manifold/TubularNeighborhood/MFDeriv.lean`
 
-The common step of `DESIGN.md`. Namespace `TauCeti.SmoothEmbedding`.
+The first half of the common step of `DESIGN.md`. It uses nothing
+symplectic, so it sits with the manifold topic, beside Tau Ceti's
+`Geometry/Manifold/TubularNeighborhood/`. Namespace
+`TauCeti.SmoothEmbedding`.
 
 - `exists_diffeomorph_opens_mfderiv_eq (f₀ f₁) (A) (hA) (hAf)`: for a
   smooth section `A` over `Q` of the hom bundle of the pull-backs, each
@@ -389,6 +404,12 @@ The common step of `DESIGN.md`. Namespace `TauCeti.SmoothEmbedding`.
   $\Theta$ a partial diffeomorphism near the zero section, and
   $\psi=\Theta\circ\mathrm{normalExp}_0^{-1}$ on the intersection of the
   sources. It needs no compactness and no closed image.
+
+### `Geometry/Symplectic/Neighborhood/Tubular.lean`
+
+The second half of the common step of `DESIGN.md`. Namespace
+`TauCeti.SmoothEmbedding`. It imports `MFDeriv.lean`.
+
 - `exists_symplectomorphism_opens_mfderiv_eq`: the same for symplectic
   `ω₀`, `ω₁`, with `IsClosed (Set.range f₀)` and each `A q` a linear
   symplectomorphism, now with `ψ` also pulling the restriction of `ω₁` back
@@ -565,7 +586,8 @@ list. Issues 1, 3, 5 and 10 can start at once.
 4. **The extension along a submanifold.** `Neighborhood/Extension.lean`.
    About 400 lines. Blockers: 3.
 5. **Diffeomorphisms of neighbourhoods with a prescribed derivative.**
-   `Tubular.lean`: `exists_diffeomorph_opens_mfderiv_eq`. About 450 lines.
+   `Geometry/Manifold/TubularNeighborhood/MFDeriv.lean`:
+   `exists_diffeomorph_opens_mfderiv_eq`. About 450 lines.
    Blockers: none.
 6. **Symplectic correction.** `Tubular.lean`:
    `exists_symplectomorphism_opens_mfderiv_eq`. About 200 lines. Blockers:

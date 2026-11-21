@@ -1912,7 +1912,8 @@ has either; Tau Ceti's extension across a boundary,
   `TauCeti.SmoothForm.characteristicFoliation`,
   `TauCeti.IsInvolutiveDistribution.exists_flatChart`,
   `TauCeti.RoughForm.descendedForm` and
-  `TauCeti.SmoothTwoForm.isSymplectic_descendedForm_iff`), and in
+  `TauCeti.SmoothTwoForm.isSymplectic_descendedForm_iff`, and the flat lemmas of
+  `Analysis/Calculus/DifferentialForm/LieDeriv.lean`), and in
   `Geometry/Symplectic/Neighborhood/`: `Extension.lean` (along the
   submanifold, a smooth family of linear symplectomorphisms built from
   compatible complex structures by the formula of
@@ -1920,7 +1921,9 @@ has either; Tau Ceti's extension across a boundary,
   the four theorems: given a diffeomorphism between two properly embedded
   submanifolds and, over it, a bundle map $TM_0|_{Q_0}\to TM_1|_{Q_1}$ that
   is a linear symplectomorphism on each fibre, some diffeomorphism of
-  neighbourhoods has that bundle map as its derivative along $Q_0$, which *Moser isotopy*'s relative theorem
+  neighbourhoods has that bundle map as its derivative along $Q_0$, proved
+  without symplectic forms in `Geometry/Manifold/TubularNeighborhood/MFDeriv.lean`,
+  which *Moser isotopy*'s relative theorem
   then corrects to a symplectomorphism with the same first jet),
   `Basic.lean` (the comparison theorem for submanifolds whose restricted
   form has constant rank, from the two files before it, of which the four
@@ -1942,7 +1945,8 @@ has either; Tau Ceti's extension across a boundary,
   vector spaces* (`Reduction.lean`, merged), Tau Ceti (tubular
   neighbourhoods, the normal bundles of Lagrangian and symplectic embeddings,
   compatible almost complex structures, relative Darboux, `TauCeti.SmoothTwoForm.exists_partialDiffeomorph_fix_immersion_mpullback_eq`).
-  `CharacteristicFoliation.lean` uses only Tau Ceti and can start at once.
+  `CharacteristicFoliation.lean` uses only Tau Ceti and `LieDeriv.lean` and can
+  start at once.
 - **Unmerged work of #3 it may wait for.** The linear extensions in the
   proofs choose complements: Lagrangian complements of a Lagrangian or
   isotropic tangent bundle, and a symplectic trivialization of the normal
