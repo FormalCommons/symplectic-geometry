@@ -1909,7 +1909,7 @@ has either; Tau Ceti's extension across a boundary,
   `AdaptedDarboux.lean` (Darboux charts adapted to the four types, from a
   chart of the submanifold suited to its type and Tau Ceti's pointwise
   relative Darboux theorem), with the general
-  `Geometry/Manifold/LocalDiffeomorph.lean` (an immersion extended to a local
+  `Geometry/Manifold/LocalDiffeomorph/Extend.lean` (an immersion extended to a local
   diffeomorphism, and centred charts) and
   `LinearAlgebra/FiniteDimensional/Extension.lean` (an injective linear map
   extended to a linear equivalence).

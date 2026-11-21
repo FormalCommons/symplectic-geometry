@@ -14,7 +14,7 @@ import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import TauCeti.Geometry.Symplectic.Darboux.Immersion
 import TauCeti.Geometry.Symplectic.Manifold.Darboux
-import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Extend
 
 /-!
 # Darboux charts adapted to submanifolds

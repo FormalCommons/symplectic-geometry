@@ -520,7 +520,7 @@ linear space `S` is chosen so that `c` carries `f^*ω` to the restriction of
 both restricted forms are `0`. For a coisotropic `Q`, `c` combines the leaf
 coordinates of `exists_isCharacteristicSubmersion` with a Darboux chart of
 the descended form on the ball. The lemma `exists_localDiffeomorph_extend`,
-public in `Geometry/Manifold/LocalDiffeomorph.lean` (with the centred charts
+public in `Geometry/Manifold/LocalDiffeomorph/Extend.lean` (with the centred charts
 `exists_partialDiffeomorph_apply_eq_zero` that the isotropic case uses),
 extends `f ∘ c⁻¹` in the directions
 of a complement of `S`. It does so in a chart of `M`, by adding a fixed
