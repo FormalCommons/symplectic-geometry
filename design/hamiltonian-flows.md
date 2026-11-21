@@ -242,10 +242,12 @@ These settle the questions that `DESIGN.md` leaves to this file.
    `DESIGN.md`'s table of signs says. The bracket conjunct of the first
    milestone and $[X_F,X_G]_{\mathrm b}=X_{\{F,G\}}$ are stated with it; no
    definition is made for it.
-9. **Layout.** `DESIGN.md`'s files are kept, with one more:
+9. **Layout.** `DESIGN.md`'s files are kept, with two more:
    `Geometry/Diffeomorphism/Diffeotopy/Velocity.lean`, for the velocity, which
-   concerns diffeotopies and not forms. Tau Ceti has a folder
-   `Geometry/Diffeomorphism/Diffeotopy/` with no `Velocity.lean`. The two
+   concerns diffeotopies and not forms, and
+   `Geometry/Manifold/Instances/Icc.lean`, for the smoothness of the unit
+   vector field of an interval, which concerns intervals only. Tau Ceti has a
+   folder `Geometry/Diffeomorphism/Diffeotopy/` with no `Velocity.lean`. The two
    flux files stay flat in `Geometry/Symplectic/Flux/`: a folder
    `Flux/Hamiltonian/` here would stand beside Tau Ceti's
    `Flux/Hamiltonian.lean`, which the *Principles* of `DESIGN.md` rule out
@@ -262,17 +264,20 @@ Tau Ceti unchanged.
 
 | File | Contents |
 |---|---|
+| `Geometry/Manifold/Instances/Icc.lean` | `contMDiff_totalSpaceMk_one_Icc`: the unit vector field `z ↦ 1` of a closed interval is smooth |
 | `Geometry/Diffeomorphism/Diffeotopy/Velocity.lean` | `Diffeotopy.velocity`, its joint smoothness, its value along the motion, its values for `refl` and the flow diffeotopies, and the pullback of $\iota_{X_t}\sigma$ by $\phi_t$ |
 | `Geometry/Symplectic/Hamiltonian/PoissonAlgebra.lean` | the Leibniz rule, the local time-dependent flow, the kernel and the quotient, the milestone *Hamiltonian flows and the Poisson algebra* |
 | `Geometry/Symplectic/Hamiltonian/SymplecticIsotopy.lean` | symplectic fields and their local flows, the book's bracket, the isotopy criterion, the milestone *Symplectic vector fields and isotopy generators* |
 | `Geometry/Symplectic/Flux/Hamiltonian.lean` | the page's $H_t$ beside `HasHamiltonian`, the three rules in the page's form, uniqueness, Hamiltonians from exactness |
 | `Geometry/Symplectic/Flux/CompactSupport.lean` | `IsCompactlySupportedHamiltonian`, `compactlySupportedHamiltonianGroup`, the flow of a compactly supported Hamiltonian, the milestone *Hamiltonian isotopies and their composition* |
 
-Imports between the files: `SymplecticIsotopy.lean` and
+Imports between the files: `Velocity.lean` imports `Instances/Icc.lean`;
+`SymplecticIsotopy.lean` and
 `Flux/Hamiltonian.lean` import `Velocity.lean`; `Flux/CompactSupport.lean`
-imports `Flux/Hamiltonian.lean`. `PoissonAlgebra.lean` imports only Tau
-Ceti, among it `Hamiltonian/ExtendedPhaseSpace/Manifold.lean` for the energy
-identity.
+imports `Flux/Hamiltonian.lean`. `PoissonAlgebra.lean` imports Tau Ceti,
+among it `Hamiltonian/ExtendedPhaseSpace/Manifold.lean` for the energy
+identity, and `Geometry/Manifold/DifferentialForm/Flow/Family.lean` of
+*Contact geometry* for the general flow lemma.
 
 ## Definitions and their API
 
@@ -300,29 +305,33 @@ would give `-X₁` there. Further hypotheses are named where they are needed.
     `HasHamiltonian`;
   - `contMDiff_velocity : ContMDiff ((𝓡∂ 1).prod J) J.tangent ∞
     (fun p : I × M ↦ (⟨p.2, Φ.velocity p.1 p.2⟩ : TangentBundle J M))`, from
-    Mathlib's `ContMDiffAt.mfderiv_apply`; the smoothness of each slice, used
+    Mathlib's `ContMDiff.contMDiff_tangentMap` and
+    `contMDiff_totalSpaceMk_one_Icc`; the smoothness of each slice, used
     to build the section, is its composite with `Prod.mk t`;
   - `@[simp] velocity_refl : (refl J ∞ M).velocity t = 0`;
   - `velocity_globalFlowDiffeotopy` (the flow of a complete field `X`, run
     for duration `a`, has velocity `a • X`), from
     `mfderiv_cylinderMap_globalFlowDiffeotopy_time`;
   - `velocity_timeDependentFlowDiffeotopy`, under
-    `[FiniteDimensional ℝ E] [J.Boundaryless] [T2Space M]`: the velocity of
+    `[FiniteDimensional ℝ E] [BoundarylessManifold J M] [T2Space M]`: the velocity of
     `timeDependentFlowDiffeotopy le_top hX hc` at `t` is `X t`, from
     `hasMFDerivAt_timeDependentFlowOf` (at the ends, the one-sided
     derivative on `I` is the restriction of the derivative on `ℝ`);
   - `mpullback_timeSlice_interior_velocity_apply`: for a two-form `σ`,
     `(φ_t^* ι_{X_t} σ)_x v = (Φ.cylinderMap^* σ)_{(x, t)}(∂ₜ, (v, 0))`, the
     integrand of `fluxForm` and of `HasHamiltonian`.
+  - `mfderiv_cylinderMap_time` and `mfderiv_cylinderMap_space`, for
+    `Φ : Diffeotopy J n M` with `1 ≤ n`: the motion sends `∂ₜ` at `(x, t)` to
+    the velocity of `s ↦ Φ (s, x)` at `t`, and `(v, 0)` to `dφ_t v`.
   The velocities of `trans`, `symm` and `transDiffeomorph` are not needed:
   the three rules come from Tau Ceti's `HasHamiltonian` lemmas through the
   translation of Decision 1.
 
 ### `Geometry/Symplectic/Hamiltonian/PoissonAlgebra.lean`
 
-Under `[FiniteDimensional ℝ E]` and `hσ : σ.IsNondegenerate` (closed where
-said), in the namespace `TauCeti.SmoothTwoForm.IsNondegenerate` like Tau
-Ceti's bracket lemmas:
+For any two-form `σ`, in the namespace `TauCeti.SmoothTwoForm` like Tau
+Ceti's `hamiltonianVectorField_add`, since `X_f` is linear in `df` and
+needs neither nondegeneracy nor finite dimension:
 
 - `hamiltonianVectorField_mul`: for `f`, `g` differentiable at `x`,
   `σ.hamiltonianVectorField (f * g) x = f x • σ.hamiltonianVectorField g x +
@@ -330,20 +339,22 @@ Ceti's bracket lemmas:
 - `poissonBracket_mul_left`, `poissonBracket_mul_right` (the Leibniz rule):
   `σ.poissonBracket (f * g) k x = f x * σ.poissonBracket g k x +
   g x * σ.poissonBracket f k x`, and the same in the second slot, for
-  differentiable `f`, `g`, from `poissonBracket_eq_mvfderiv` and
-  `neg_poissonBracket`.
+  differentiable `f`, `g`, from `hamiltonianVectorField_mul`.
 
 In the namespace `TauCeti.SmoothTwoForm`, under the hypotheses of Tau
 Ceti's time-dependent flows (`[FiniteDimensional ℝ E] [J.Boundaryless]
-[T2Space M]`), for `H : ℝ → M → ℝ` jointly `C²` and `X` jointly `C²` with
-`σ.IsHamiltonianVectorField (H t) (X t)` for every `t`:
+[T2Space M]`), for `H : ℝ → M → ℝ` with every `H t` `C²` and `X` jointly
+`C²` with `σ.IsHamiltonianVectorField (H t) (X t)` for every `t`:
 
 - `mpullback_timeDependentFlowOf_apply_of_isHamiltonianVectorField`: for
   closed `σ`, `(timeDependentFlowOf X s t)^* σ` equals `σ` at every `x` with
   `((s, t), x) ∈ timeDependentFlowDomain X`; no completeness. From the local
   Moser principle `mpullback_timeDependentFlowOf_mpullback_prodMk_apply_eq_of_mem`
-  for the constant family. Tau Ceti's
-  `mpullback_timeDependentFlowOf_of_isHamiltonianVectorField` is the
+  for the constant family, through the general
+  `TauCeti.mpullback_timeDependentFlowOf_apply_of_mextDeriv_interior_eq_zero`,
+  in `Geometry/Manifold/DifferentialForm/Flow/Family.lean` of *Contact geometry*
+  (a closed smooth form whose contractions with every `X t` are closed). Tau
+  Ceti's `mpullback_timeDependentFlowOf_of_isHamiltonianVectorField` is the
   complete case.
 
 For symplectic `σ` (`hσ : σ.IsSymplectic`):
@@ -359,7 +370,8 @@ For symplectic `σ` (`hσ : σ.IsSymplectic`):
   (σ.hamiltonianLieIdeal hσ.isClosed).toLieSubalgebra`, Mathlib's
   `LieHom.quotKerEquivRange` followed by `LieEquiv.ofEq` for the equality
   `range_negHamiltonianLieHom`, with
-  `negHamiltonianLieHomQuotKerEquiv_mk` (the class of `f` goes to `-X_f`).
+  `negHamiltonianLieHomQuotKerEquiv_def` and
+  `coe_negHamiltonianLieHomQuotKerEquiv_mk` (the class of `f` goes to `-X_f`).
   For connected `M` the quotient is by the constants, by the previous lemma.
 
 ### `Geometry/Symplectic/Hamiltonian/SymplecticIsotopy.lean`
@@ -427,6 +439,24 @@ In `TauCeti.Diffeotopy`, for any two-form `σ` unless said:
   `TauCeti` on the homotopy operator if it is stated for any smooth family
   of slicewise closed one-forms on a chart ball, which is its natural
   generality. This is what *Isotopy extension* uses.
+- The gluing of Decision 4 is a public lemma, in the namespace `TauCeti`,
+  for any manifold `M` (no compactness, no form `σ`), because *Isotopy
+  extension* applies it on open subsets (its `Cohomological/Primitive.lean`):
+
+  ```lean
+  theorem TauCeti.exists_contMDiff_mextDeriv_eq_of_forall_mem_exactForms
+      {α : SmoothForm (J.prod (𝓡∂ 1)) (M × unitInterval) ℝ 1}
+      (hα : ∀ t, SmoothForm.mpullback (fun x ↦ (x, t)) _ α ∈ exactForms J M 1) :
+      ∃ F : M × unitInterval → ℝ, ContMDiff (J.prod (𝓡∂ 1)) 𝓘(ℝ) ∞ F ∧
+        ∀ t, mextDeriv (RoughForm.ofFunction J (fun x ↦ F (x, t))) =
+          (SmoothForm.mpullback (fun x ↦ (x, t)) _ α : RoughForm J M ℝ 1)
+  ```
+
+  It is the family version of Tau Ceti's
+  `exists_contMDiff_mextDeriv_eq_of_mem_exactForms`, and
+  `exists_hasHamiltonian_of_forall_mem_exactForms` applies it to
+  $\alpha_t=\phi_t^*(\iota_{X_t}\sigma)$. The slices are written as *Smooth
+  families* fixes, and the smoothness proof of each slice as Lean needs it.
 
 ### `Geometry/Symplectic/Flux/CompactSupport.lean`
 
@@ -482,18 +512,20 @@ compositions is as in Decision 1.
   `σ.IsHamiltonianVectorField H (σ.hamiltonianVectorField H)` and uniqueness
   (`isHamiltonianVectorField_iff_eq`); the local autonomous flow preserves
   `σ` and `H` on its domain (Tau Ceti's `mpullback_flowOf_apply` and
-  `apply_eq_of_isMIntegralCurveOn`); the local time-dependent flow preserves
-  `σ` and satisfies the energy identity (Tau Ceti's
+  `IsFirstIntegral.apply_maximalIntegralCurve`); the local time-dependent
+  flow preserves `σ` and satisfies the energy identity (Tau Ceti's
   `(hX t).hasDerivAt_apply_self_of_hasMFDerivAt hH
   (hasMFDerivAt_timeDependentFlowOf …)`); the bracket is bilinear,
-  skew-symmetric, and satisfies Jacobi and Leibniz, on smooth functions;
+  skew-symmetric, and satisfies Jacobi and Leibniz, on smooth functions, and
+  the bracket of two smooth functions is smooth (Tau Ceti's
+  `IsNondegenerate.contMDiff_poissonBracket`);
   `σ.hamiltonianVectorField (σ.poissonBracket F G) = -mlieBracket J X_F X_G`;
   naturality for `χ ∈ diffeomorphStabilizer σ`, as
   `mfderiv J J χ q (σ.hamiltonianVectorField (H ∘ χ) q) =
   σ.hamiltonianVectorField H (χ q)` (the page's
   $X_{H\circ\chi}=\chi^*X_H$ with $d\chi_q$ applied to both sides); the
   kernel of `negHamiltonianLieHom hσ` is the locally constant functions;
-  and, for `[PreconnectedSpace M]`, it is the constants and
+  for `[PreconnectedSpace M]` it is the constants; and
   `negHamiltonianLieHomQuotKerEquiv hσ` identifies the quotient with the
   Hamiltonian fields. Milestone: *Hamiltonian flows and the Poisson
   algebra*.
@@ -524,10 +556,12 @@ identity, which Tau Ceti proves (`IsNondegenerate.poissonBracket_jacobi`).
 - From *Smooth families*: `Diffeotopy/Real.lean` (the reading of a `Diffeotopy`
   over `ℝ`, Decision 3) for `SymplecticIsotopy.lean`, and
   `ContMDiff/TimeExtension.lean` (the extension in time, Decision 3) for
-  `Flux/CompactSupport.lean`. `Velocity.lean`, `PoissonAlgebra.lean` and
+  `Flux/CompactSupport.lean`. `Velocity.lean` (with `Instances/Icc.lean`) and
   `Flux/Hamiltonian.lean` use only Mathlib and Tau Ceti.
+- From *Contact geometry*: `Geometry/Manifold/DifferentialForm/Flow/Family.lean`
+  (the general flow lemma) for `PoissonAlgebra.lean`.
 - From Tau Ceti: the declarations of *What there is*.
-- From Mathlib: `VectorField.mlieBracket`, `ContMDiffAt.mfderiv_apply`,
+- From Mathlib: `VectorField.mlieBracket`, `ContMDiff.contMDiff_tangentMap`,
   `LieHom.quotKerEquivRange`, `LieEquiv.ofEq`,
   `ConnectedComponents`, `Real.smoothTransition`.
 
@@ -535,7 +569,8 @@ identity, which Tau Ceti proves (`IsNondegenerate.poissonBracket_jacobi`).
 
 Each is a few hundred lines; each is blocked by the issues it names.
 
-1. **The velocity of a diffeotopy.** `Velocity.lean`, all of it. About 250
+1. **The velocity of a diffeotopy.** `Velocity.lean`, all of it, and
+   `Instances/Icc.lean`. About 250
    lines. No blockers.
 2. **The Poisson algebra on a symplectic manifold.** `PoissonAlgebra.lean`,
    with its milestone. About 350 lines. No blockers.
@@ -547,7 +582,8 @@ Each is a few hundred lines; each is blocked by the issues it names.
    `hasHamiltonian_comp_iff`, the three rules and the uniqueness lemmas.
    About 250 lines. Blocked by 1.
 5. **Hamiltonians from exactness.** In `Flux/Hamiltonian.lean`: the local
-   step, the gluing, `exists_hasHamiltonian_of_forall_mem_exactForms` and
+   step, the gluing (`exists_contMDiff_mextDeriv_eq_of_forall_mem_exactForms`),
+   `exists_hasHamiltonian_of_forall_mem_exactForms` and
    `isHamiltonian_iff_forall_interiorₗ_velocity_mem_exactForms`. About 350
    lines. Blocked by 4.
 6. **Compactly supported Hamiltonian diffeomorphisms.**

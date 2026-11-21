@@ -136,9 +136,9 @@ variable {EB HB M : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB]
 | `Geometry/Manifold/VectorBundle/ContinuousAlternatingMap.lean` | `contMDiff_compContinuousLinearMap_totalSpace`: precomposition by a $C^n$ hom-bundle section is $C^n$ on total spaces of alternating bundles | 3 |
 | `Geometry/Manifold/VectorBundle/Pullback.lean` | smoothness of sections of the alternating bundle of a pull-back | 18 |
 | `Geometry/Manifold/VectorBundle/Prod.lean` | `Bundle.Prod.contMDiff_prodMap` and `Bundle.Prod.contMDiff_swap`: smoothness on total spaces of the fibrewise product of two maps and of the swap, for fibres with only a zero; `Bundle.Prod.contMDiff_prodCongr` and `Bundle.Prod.contMDiff_prodComm`: the same for bundle isomorphisms | 22 |
-| `Topology/VectorBundle/Pullback.lean` | coordinates of alternating maps on a pull-back bundle; `Bundle.Pullback.neg_fiber`: negatives in a fibre of a pull-back bundle, for `simp` | 18, 20 |
+| `Topology/VectorBundle/Pullback.lean` | coordinates of alternating maps on a pull-back bundle; `Bundle.Pullback.neg_fiber`, `add_fiber`, `sub_fiber`, `smul_fiber`, `neg_pullback`, `add_pullback`, `sub_pullback`, `smul_pullback`, `zero_fiber`, `eq_zero_fiber_iff`, `zero_fiber_eq_iff`, `eq_zero_pullback_iff` and `zero_pullback_eq_iff`: operations and zeros in a fibre of a pull-back bundle, for `simp` | 18, 20 |
 | `Topology/VectorBundle/Coordinates.lean` | coordinates of continuous bilinear forms on a vector bundle | 6 |
-| `Data/Bundle.lean` | `Bundle.Pullback.eq_iff`: equations in a fibre of a pull-back bundle, for `simp` | 20 |
+| `Data/Bundle.lean` | `Bundle.Pullback.eq_iff`, `eq_fiber_iff`, `neg_apply_fiber` and `neg_apply_pullback`: equations and negated functions in a fibre of a pull-back bundle, for `simp` | 20 |
 | `Geometry/Manifold/VectorBundle/Symplectic/Pullback.lean` | pull-backs of forms, of tame and compatible pairs, of isomorphisms and of frames | 21 |
 | `Geometry/Manifold/VectorBundle/Symplectic/Prod.lean` | direct sums of forms, of tame and compatible pairs and of isomorphisms; block frames | 22 |
 | `Geometry/Symplectic/Manifold/Volume.lean` | the symplectic orientation of a negated two-form | 23 |
@@ -239,8 +239,8 @@ file to it.
   a fibre bundle with another model fibre along a homeomorphism, involves no
   group, so it has its own file, `Topology/FiberBundle/ChangeModelFiber.lean`.
 - `Topology/FiberBundle/Basic.lean` is new: the openness argument behind
-  `isOpen_setOf_nondegenerate` holds for any fibrewise condition on any fibre
-  bundle, so it is stated there, in Mathlib's `FiberBundle` namespace, as
+  `isOpen_setOf_nondegenerate` and `isOpen_polarFormulaDomain` holds for any
+  fibrewise condition on any fibre bundle, so it is stated there, in Mathlib's `FiberBundle` namespace, as
   `FiberBundle.isOpen_of_forall_mem_iff_snd_mem` (#456).
 - The lemma of `Section/Topology.lean` asks for joint $C^n$ regularity in a
   manifold parameter instead of derivatives continuous in the parameter (see
@@ -482,8 +482,8 @@ the form and of the structure are independent.
   bundles, `Bundle.ContMDiffRiemannianMetric` and part 9's `TauCeti`
   operations, so they go in a file of their own,
   `Geometry/Manifold/VectorBundle/Riemannian/PolarEnd.lean`, which imports
-  no file of this part but `Topology/VectorBundle/Coordinates.lean`, in the
-  namespace `Bundle.ContMDiffRiemannianMetric` (where `g.polarFormulaAt x σ`
+  no file of this part but `Topology/VectorBundle/Coordinates.lean` and
+  `Topology/FiberBundle/Basic.lean`, in the namespace `Bundle.ContMDiffRiemannianMetric` (where `g.polarFormulaAt x σ`
   finds them), except `Bundle.polarFormulaDomain` and
   `Bundle.euclideanEquivAt`, which involve no metric. Only the lemmas named
   below as being in `SymplecticGeometry.Bundle` stay in this file. For a metric `g`:
@@ -492,17 +492,18 @@ the form and of the structure are independent.
     part of `σ` is nondegenerate, with `@[simp] mem_polarFormulaDomain_iff :
     q ∈ polarFormulaDomain F V ↔
     (q.snd.toBilinForm - q.snd.toBilinForm.flip).Nondegenerate`. It is open
-    (`isOpen_polarFormulaDomain`, `[FiniteDimensional ℝ F]`): over the base set
-    of a trivialization, the reading of `q.snd` in it is `q.snd` carried
-    along the fibre equivalence
+    (`isOpen_polarFormulaDomain`, `[FiniteDimensional ℝ F]`), by
+    `FiberBundle.isOpen_of_forall_mem_iff_snd_mem` with the open set
+    `ContinuousLinearMap.isOpen_setOf_nondegenerate_toBilinForm_sub_flip`
+    of forms on `F`: over the base set of a trivialization, the reading of
+    `q.snd` in it is `q.snd` carried along the fibre equivalence
     (`ContinuousLinearMap.inCoordinates_eq_arrowCongr_arrowCongr`, over any
     `NontriviallyNormedField` and topological base, in
     `Topology/VectorBundle/Coordinates.lean`), and carrying a form along a
     linear equivalence does not change whether its skew part is
     nondegenerate (`ContinuousLinearEquiv.nondegenerate_arrowCongr_sub_flip_iff`,
-    in part 9's `Topology/Algebra/Module/BilinearForm.lean`), so the domain
-    is there the preimage of an open set of forms on `F` under the chart of
-    the total space.
+    in part 9's `Topology/Algebra/Module/BilinearForm.lean`), so the chart
+    of the total space reads the domain as that open set.
   - `polarFormulaAt g x (σ : V x →L[ℝ] V x →L[ℝ] ℝ) : V x →L[ℝ] V x`, part 9's
     `TauCeti.metricPolarFormula` on `W` of the pair (`g x`, `σ`) carried
     along `e x : V x ≃L[ℝ] W` (the trivialization at `x` followed by
@@ -543,8 +544,10 @@ the form and of the structure are independent.
     inner product `g x` read the fibre through such an `e`.
   - In `SymplecticGeometry.Bundle`, two lemmas for
     `hω : ω.IsNondegenerate`. `IsNondegenerate.mk_flat_mem_polarFormulaDomain`:
-    `⟨x, ω.flat x⟩ ∈ polarFormulaDomain F V`, by `mem_polarFormulaDomain_iff`,
-    since the form is already skew. `IsNondegenerate.polarFormulaAt_flat g e he`:
+    `⟨x, ω.flat x⟩ ∈ polarFormulaDomain F V`, by `mem_polarFormulaDomain_iff`
+    and `LinearMap.IsAlt.sub_flip_eq_two_smul`: the skew part of the
+    alternating form is twice the form.
+    `IsNondegenerate.polarFormulaAt_flat g e he`:
     for `e : V x ≃L[ℝ] W` to a finite-dimensional inner product space with
     `he : ∀ u v, ⟪e u, e v⟫ = g.inner x u v`, `g.polarFormulaAt x (ω.flat x)`
     is the conjugate by `e` of the continuous endomorphism of Tau Ceti's
@@ -862,10 +865,14 @@ $[0,1]$ is never fed to the lemma with `P = ℝ` directly.
     for every $b\in[0,1]$, with `mem_cayleyPathDomain_iff`, which says so.
   - `mem_cayleyPathDomain_iff_of_mem_baseSet`: the same condition, with
     `φ q` replaced by conjugation by the fibre equivalence at `q.proj` of any
-    trivialization of the atlas whose base set contains `q.proj`. Two such
+    linear trivialization (`[e.IsLinear ℝ]`) whose base set contains `q.proj`. Two such
     conjugations differ by an algebra automorphism of `F →L[ℝ] F`, which
     preserves units and, by Tau Ceti's `map_cayleyFormula`, the Cayley
     formula, so the set does not depend on the choice.
+  - `mem_cayleyPathDomain_iff_forall_mem_cayleyDomain`: the same condition
+    read in the fibre ring, `(b, A q, q.snd) ∈ cayleyDomain (V q.proj →L[ℝ] V q.proj)`
+    for every $b\in[0,1]$; the two lemmas before and after it follow from it
+    by part 9's `map_mem_cayleyDomain_iff`.
   - `isUnit_of_mem_cayleyPathDomain`: for `q` in the set and $b\in[0,1]$,
     `IsUnit (1 - A q * q.snd)` and
     `IsUnit (1 - b • cayleyFormula (A q) q.snd)` in the fibre ring
@@ -899,10 +906,18 @@ $[0,1]$ is never fed to the lemma with `P = ℝ` directly.
     (`conjContinuousAlgEquiv_apply_apply`,
     `AlmostComplexStructure.transport_apply`). So part 9's
     `TauCeti.SymplecticForm.Compatible.mem_cayleyDomain`, on the normed
-    finite-dimensional space `F`, gives the triple for $|b|\le1$. The
-    statements that mention `cayleyPathDomain` keep `[CompleteSpace F]`
-    beside `[FiniteDimensional ℝ F]`, since `FiniteDimensional.completeSpace`
-    is not an instance.
+    finite-dimensional space `F`, gives the triple for $|b|\le1$. This
+    transport is the linear lemma
+    `TauCeti.SymplecticForm.Compatible.mem_cayleyDomain_of_continuousLinearEquiv`
+    (for a topological vector space with a continuous linear equivalence to a
+    finite-dimensional normed space), in part 9's
+    `Geometry/Symplectic/Cayley/Domain.lean` next to `Compatible.mem_cayleyDomain`,
+    with `Compatible.exists_toLinearMap_eq_cayleyPathFormula`: there the Cayley path
+    `cayleyPathFormula (smoothTransition t) A B` represents an `ω`-tame
+    structure, `ω`-compatible when the endpoint is, transported from Tau
+    Ceti's linear `Compatible.cayleyPath`. These statements need only
+    `[FiniteDimensional ℝ F]`: completeness of `F` then comes from Mathlib's
+    instance `FiniteDimensional.proper_real`.
 - **Fixed form, tame and compatible structures.** Fix a compatible `J₀`
   (`IsNondegenerate.exists_compatible`). The contraction is
   $(t,J)\mapsto$ `TauCeti.cayleyPathFormula (smoothTransition (1 - t)) (J₀ x) (J x)`
@@ -954,8 +969,7 @@ $[0,1]$ is never fed to the lemma with `P = ℝ` directly.
   above. That file imports only Mathlib's
   `Geometry/Manifold/VectorBundle/Hom.lean`, Tau Ceti's
   `Geometry/Symplectic/Cayley/Smooth.lean`,
-  `Topology/VectorBundle/Coordinates.lean` and
-  `Geometry/Symplectic/SymplecticTransport.lean`, and part 9's
+  `Topology/VectorBundle/Coordinates.lean`, and part 9's
   `Geometry/Symplectic/Cayley/Domain.lean`; `Contractible.lean` imports
   it. The suffix `_of_vectorBundle` is provisional, since the plain name
   is Tau Ceti's: if Tau Ceti generalizes its own lemma in this way, the
@@ -971,7 +985,19 @@ $[0,1]$ is never fed to the lemma with `P = ℝ` directly.
   stays tame, and compatible when `J` is, are Tau
   Ceti's linear lemmas behind `SmoothTwoForm.Compatible.tames_cayleyPath` and
   `compatible_cayleyPath` (`.../AlmostComplex/CayleyPath.lean`), which this
-  generalizes. Results: `ContMDiffTwoForm.IsNondegenerate.contractibleSpace_tames`
+  generalizes. In `Contractible.lean` the smoothness on `univ ×ˢ O` is
+  `ContMDiffComplexStructure.contMDiffOn_cayleyPathFormula` (with the time
+  through `smoothTransition`), the membership of the values of a tame `J` is
+  `ContMDiffTwoForm.Compatible.mem_cayleyPathDomain`, and the structures on
+  the path are `ContMDiffTwoForm.Compatible.cayleyPath h₀ h t`, the bundle
+  form of Tau Ceti's `SmoothTwoForm.Compatible.cayleyPath`, with
+  `cayleyPath_apply`, `exists_almostComplexStructureAt_cayleyPath`,
+  `tames_cayleyPath`, `compatible_cayleyPath`, `cayleyPath_of_nonpos`,
+  `cayleyPath_of_one_le` and `continuous_cayleyPath` (joint continuity in the
+  time and the tame structure, from `continuous_fiberwiseMap`); the
+  contraction is the path at time `1 - t`. The endpoints use part 9's
+  `cayleyPathFormula_zero` and `cayleyPathFormula_one`.
+  Results: `ContMDiffTwoForm.IsNondegenerate.contractibleSpace_tames`
   and `contractibleSpace_compatible` (`ContractibleSpace {J // ω.Tames J}`,
   resp. `Compatible`, for every covering frame system).
 - **Fixed structure, taming and compatible forms.** These sets are convex
@@ -980,8 +1006,10 @@ $[0,1]$ is never fed to the lemma with `P = ℝ` directly.
   (`isTopologicalAddGroup_frameTopology`, `continuousSMul_frameTopology`), so
   Mathlib's `Convex.contractibleSpace` applies: `ContMDiffComplexStructure.contractibleSpace_tames`
   and `contractibleSpace_compatible` for `{ω // ω.Tames J}` and
-  `{ω // ω.Compatible J}`. Their docstrings note that a contractible space is
-  nonempty, which is the existence half of the milestone.
+  `{ω // ω.Compatible J}`, for any frame system of the alternating bundle,
+  covering or not, since the proof does not use a cover. Their docstrings
+  note that a contractible space is nonempty, which is the existence half of
+  the milestone.
 - **Metrics.** `Bundle.ContMDiffRiemannianMetric.contractibleSpace_frameTopology`,
   from Tau Ceti's `continuous_convexCombination_frameTopology`, over a
   Hausdorff σ-compact base. It mentions only Mathlib and Tau Ceti types, so it
@@ -1295,12 +1323,23 @@ For a map `f : C^n⟮I', N; I, M⟯` (the argument of Mathlib's instance
   structure of the pull-back. The root-namespace `@[simp]
   Bundle.Pullback.eq_iff` (`Data/Bundle.lean`) moves an equation stated in
   `(f *ᵖ V) y` between vectors of `V (f y)` to `V (f y)`, and `@[simp]
-  Bundle.Pullback.neg_fiber` (`Topology/VectorBundle/Pullback.lean`) takes
-  the negative in `V (f y)` of a vector of `(f *ᵖ V) y` in `(f *ᵖ V) y`.
+  Bundle.Pullback.eq_fiber_iff` moves one stated in `V (f y)` between
+  vectors of `(f *ᵖ V) y` to `(f *ᵖ V) y`, and `@[simp] neg_apply_fiber`
+  and `neg_apply_pullback` evaluate a negated function on a vector of the
+  other type. In `Topology/VectorBundle/Pullback.lean`, which imports
+  `Data/Bundle.lean`, `@[simp]
+  Bundle.Pullback.neg_fiber`, `add_fiber`, `sub_fiber` and `smul_fiber`
+  take an operation in `V (f y)` on vectors of `(f *ᵖ V) y` in
+  `(f *ᵖ V) y`, and `@[simp] neg_pullback`, `add_pullback`, `sub_pullback`
+  and `smul_pullback` take one in `(f *ᵖ V) y` on vectors of `V (f y)` in
+  `V (f y)`. Each fires only where the two types differ. `zero_fiber` is
+  not `@[simp]`: a zero alone has no argument whose type could decide
+  between them. In an equation, `@[simp] eq_zero_fiber_iff`,
+  `zero_fiber_eq_iff`, `eq_zero_pullback_iff` and `zero_pullback_eq_iff`
+  replace a zero of the other type by the zero of the equation's type.
   `coe_pullback` and `pullback_neg` are not `@[simp]`: `coe_pullback` would
-  undo `apply_eq_pullback_apply`, and after `pullback_neg` a vector of
-  `V (f y)` meets a function on `(f *ᵖ V) y` negated pointwise, which
-  `simp` cannot evaluate. Neither is `ContMDiffComplexStructure.neg_apply`,
+  undo `apply_eq_pullback_apply`, and `pullback_neg` would rewrite the
+  left-hand side of `pullback_neg_apply`. Neither is `ContMDiffComplexStructure.neg_apply`,
   whose left-hand side `simp` rewrites with `neg_toEndomorphism`.
   `pullback_toEndomorphism` and `almostComplexStructureAt_pullback` are
   not `@[simp]`: they rewrite under the coercion of the pulled-back bundle,
@@ -1915,7 +1954,7 @@ of *Constructions* for *First Chern number*.
    `Symplectic/ComplexStructure/Contractible.lean`: the four
    `contractibleSpace_…` theorems; the bundle Cayley lemma
    `ContMDiffAt.cayleyPathFormula_hom_bundle_of_vectorBundle` and
-   `cayleyPathDomain` with its five lemmas in `VectorBundle/Cayley.lean`;
+   `cayleyPathDomain` with its lemmas in `VectorBundle/Cayley.lean`;
    and the contractibility of metrics in
    `Riemannian/SectionTopology.lean`. Blockers: 4, 6, and part 9's building
    issue 6 (`Geometry/Symplectic/Cayley/Domain.lean` of
