@@ -118,7 +118,7 @@ The part owns the folder `Geometry/Symplectic/Moser/`, except
 `Moser/Family.lean`, a file of *Isotopy extension*
 (`design/isotopy-extension.md`). Tau Ceti has the
 files `Geometry/Symplectic/Manifold/Moser.lean` and `RelativeMoser.lean`, so
-this library may not have folders with those names. The five files outside
+this library may not have folders with those names. The six files outside
 that folder have the names of the Tau Ceti files they extend, so that they
 can join them.
 
@@ -133,6 +133,7 @@ can join them.
 | `Geometry/Manifold/LocalDiffeomorph/MFDeriv.lean` | the derivative of a transition between partial diffeomorphisms, composed with a differential; the differential of a partial diffeomorphism followed by a continuous linear equivalence (`PartialDiffeomorph.mvfderiv_trans_toDiffeomorph`) | 5 |
 | `Geometry/Symplectic/Moser/Stability.lean` | Moser stability, the milestone | 6 |
 | `Geometry/Manifold/DifferentialForm/Smooth.lean` | `TauCeti.SmoothForm.bilinFormAt` of sums, real multiples, zero, negatives and differences of two-forms | — |
+| `Geometry/Manifold/TubularNeighborhood/RelativePoincare.lean` | a primitive of the difference of two closed forms with the same pullback to `f(Q)`, as a smooth form on a tube around `f(Q)` | — |
 
 ### `Geometry/Symplectic/Manifold/Family.lean`
 
@@ -174,6 +175,20 @@ in the namespace `TauCeti.SmoothForm`, for real smooth two-forms. They
 rewrite the bilinear form at a point of a segment `σ₀ + s • (σ₁ - σ₀)` of
 two-forms. The file is about two-forms in general,
 so any part may import it.
+
+### `Geometry/Manifold/TubularNeighborhood/RelativePoincare.lean`
+
+The file has the name of Tau Ceti's file that proves
+`TauCeti.SmoothEmbedding.exists_isSmoothForm_relative_primitive`. It is in
+the namespace `TauCeti.SmoothEmbedding`.
+
+- `exists_smoothForm_relative_primitive_sub`: for a smooth embedding `f`,
+  closed `η₀ η₁ : SmoothForm I M F (k + 1)` with `f^* η₁ = f^* η₀`, and an
+  open `O ⊇ range f`, a tube `W` with `range f ⊆ W ⊆ O` and
+  `β : SmoothForm I W F k` with `dβ` the difference of the restrictions of
+  `η₁` and `η₀` to `W`. It vanishes at every `f q`, and its chart expression
+  has zero derivative at each `f q` where `η₁` and `η₀` agree. Step 1 of
+  `Relative.lean` and of `Isotopy.lean` both use it.
 
 ### `Geometry/Symplectic/Manifold/Flat.lean`
 
