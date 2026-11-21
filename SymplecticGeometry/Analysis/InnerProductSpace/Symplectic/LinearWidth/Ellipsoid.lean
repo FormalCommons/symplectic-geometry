@@ -22,8 +22,10 @@ the supremum of the widths of the former and the infimum of the widths of the la
 ## Main results
 
 * `SymplecticGeometry.stdEllipsoid_subset_stdCylinder`: `E(r) ⊆ Z²ⁿ(rᵢ)` for `0 < rᵢ`.
-* `SymplecticGeometry.linearSymplecticWidth_stdEllipsoid`: `w_L(E(r)) = π rᵢ²` for positive
-  radii with smallest radius `rᵢ`.
+* `SymplecticGeometry.linearSymplecticWidth_stdEllipsoid`: `w_L(E(r)) = π rᵢ²` for a positive
+  smallest radius `rᵢ`.
+* `SymplecticGeometry.linearSymplecticWidth_setOf_le_one_eq`: the ellipsoid of a positive
+  definite form has width `π s²`, for `s` the smallest element of its symplectic spectrum.
 * `SymplecticGeometry.linearSymplecticWidth_setOf_le_one`: the width of the ellipsoid of a
   positive definite form, in terms of its symplectic spectrum, as a supremum over symplectic
   balls and as an infimum over symplectic cylinders.
@@ -54,41 +56,28 @@ theorem stdEllipsoid_subset_stdCylinder {r : ι → ℝ} {i : ι} (hi : 0 < r i)
     (Finset.single_le_sum (fun j _ ↦ by positivity) (Finset.mem_univ i)).trans hz
   rwa [div_le_one (by positivity)] at h
 
-/-- The standard ellipsoid `E(r)` with positive radii has width `π rᵢ²`, for `rᵢ` its smallest
-radius. -/
-theorem linearSymplecticWidth_stdEllipsoid {r : ι → ℝ} (hr : ∀ j, 0 < r j) {i : ι}
+/-- The standard ellipsoid `E(r)` has width `π rᵢ²`, for `rᵢ` its smallest radius, if that
+radius is positive. -/
+theorem linearSymplecticWidth_stdEllipsoid {r : ι → ℝ} {i : ι} (hi : 0 < r i)
     (hmin : ∀ j, r i ≤ r j) :
     linearSymplecticWidth (stdEllipsoid r) = ENNReal.ofReal (π * r i ^ 2) := by
-  refine le_antisymm ((linearSymplecticWidth_mono (stdEllipsoid_subset_stdCylinder (hr i))).trans
+  refine le_antisymm ((linearSymplecticWidth_mono (stdEllipsoid_subset_stdCylinder hi)).trans
     (linearSymplecticWidth_stdCylinder_le i (r i))) ?_
-  exact le_linearSymplecticWidth (one_mem _) (hr i).le (by
+  exact le_linearSymplecticWidth (one_mem _) hi.le (by
     rw [AffineEquiv.coe_one, Set.image_id]
     exact closedBall_subset_stdEllipsoid hmin)
 
-/-- The normal form of an ellipsoid with a smallest element `s` of its spectrum: a linear
-symplectic map carries it onto `E(r)` with positive radii, `s = rᵢ` and `rᵢ` the smallest
-radius. -/
-private theorem exists_normalForm_of_mem_symplecticSpectrum {Q : QuadraticForm ℝ (StdSpace ι)}
-    (hQ : Q.PosDef) {s : ℝ} (hs : s ∈ symplecticSpectrum Q)
-    (hmin : ∀ t ∈ symplecticSpectrum Q, s ≤ t) :
-    ∃ (r : ι → ℝ) (e : StdSpace ι ≃ₗ[ℝ] StdSpace ι) (i : ι), (∀ j, 0 < r j) ∧
-      IsSymplectomorphism (stdForm ι) (stdForm ι) e ∧ e '' {z | Q z ≤ 1} = stdEllipsoid r ∧
-      r i = s ∧ ∀ j, r i ≤ r j := by
-  obtain ⟨r, e, hr, he, h⟩ := exists_isSymplectomorphism_image_eq_stdEllipsoid hQ
-  have hspec := symplecticSpectrum_eq hQ hr he h
-  rw [hspec] at hs hmin
-  obtain ⟨i, -, rfl⟩ := Multiset.mem_map.1 hs
-  exact ⟨r, e, i, hr, he, h, rfl,
-    fun j ↦ hmin _ (Multiset.mem_map_of_mem _ (Finset.mem_univ j))⟩
-
-/-- The ellipsoid of a positive definite form `Q` has width `π s²`, for `s` the smallest element
-of the symplectic spectrum of `Q`. -/
+/-- The ellipsoid `{z | Q z ≤ 1}` has width `π s²`, for `s` the smallest element of the
+symplectic spectrum of `Q`. Such an `s` exists only if `Q` is positive definite. -/
 theorem linearSymplecticWidth_setOf_le_one_eq {Q : QuadraticForm ℝ (StdSpace ι)}
-    (hQ : Q.PosDef) {s : ℝ} (hs : s ∈ symplecticSpectrum Q)
+    {s : ℝ} (hs : s ∈ symplecticSpectrum Q)
     (hmin : ∀ t ∈ symplecticSpectrum Q, s ≤ t) :
     linearSymplecticWidth {z | Q z ≤ 1} = ENNReal.ofReal (π * s ^ 2) := by
-  obtain ⟨r, e, i, hr, he, h, rfl, hi⟩ := exists_normalForm_of_mem_symplecticSpectrum hQ hs hmin
-  rw [← linearSymplecticWidth_stdEllipsoid hr hi, ← h, ← LinearEquiv.coe_toAffineEquiv,
+  obtain ⟨r, e, i, hr, he, h, hspec, rfl⟩ :=
+    exists_isSymplectomorphism_image_eq_stdEllipsoid_of_mem_symplecticSpectrum hs
+  have hi : ∀ j, r i ≤ r j := fun j ↦
+    hmin _ (hspec ▸ Multiset.mem_map_of_mem _ (Finset.mem_univ j))
+  rw [← linearSymplecticWidth_stdEllipsoid (hr i) hi, ← h, ← LinearEquiv.coe_toAffineEquiv,
     linearSymplecticWidth_image ((LinearEquiv.toAffineEquiv_mem_affineSymplecticGroup_iff e).2 he)]
 
 /-- **The linear symplectic width of an ellipsoid.** Let `Q` be a positive definite form on
@@ -110,7 +99,7 @@ theorem linearSymplecticWidth_setOf_le_one {Q : QuadraticForm ℝ (StdSpace ι)}
       ⨅ (f ∈ affineSymplecticGroup (stdForm ι)) (i : ι) (R : ℝ)
         (_ : {z | Q z ≤ 1} ⊆ f '' stdCylinder i R),
         linearSymplecticWidth (f '' stdCylinder i R) := by
-  have hE := linearSymplecticWidth_setOf_le_one_eq hQ hs hmin
+  have hE := linearSymplecticWidth_setOf_le_one_eq hs hmin
   have : Nonempty ι := Fintype.card_pos_iff.1
     (card_symplecticSpectrum hQ ▸ Multiset.card_pos_iff_exists_mem.2 ⟨s, hs⟩)
   refine ⟨hE, ?_, ?_⟩
@@ -122,18 +111,17 @@ theorem linearSymplecticWidth_setOf_le_one {Q : QuadraticForm ℝ (StdSpace ι)}
     rw [linearSymplecticWidth_image_closedBall hf 0 r.coe_nonneg]
   · refine le_antisymm (le_iInf₂ fun _ _ ↦ le_iInf₂ fun i R ↦ le_iInf fun h ↦
       linearSymplecticWidth_mono h) ?_
-    obtain ⟨r, e, i, hr, he, h, rfl, -⟩ :=
-      exists_normalForm_of_mem_symplecticSpectrum hQ hs hmin
+    obtain ⟨r, e, i, hr, he, h, -, rfl⟩ :=
+      exists_isSymplectomorphism_image_eq_stdEllipsoid_of_mem_symplecticSpectrum hs
     have hg := (LinearEquiv.toAffineEquiv_mem_affineSymplecticGroup_iff e).2 he
     have hsub : {z | Q z ≤ 1} ⊆
         (e.toAffineEquiv⁻¹ : StdSpace ι ≃ᵃ[ℝ] StdSpace ι) '' stdCylinder i (r i) := by
-      intro z hz
-      refine ⟨e z, stdEllipsoid_subset_stdCylinder (hr i) (h ▸ ⟨z, hz, rfl⟩), ?_⟩
-      simpa [AffineEquiv.inv_def] using e.toAffineEquiv.symm_apply_apply z
+      rw [AffineEquiv.inv_def, AffineEquiv.image_symm, ← Set.image_subset_iff,
+        LinearEquiv.coe_toAffineEquiv, h]
+      exact stdEllipsoid_subset_stdCylinder (hr i)
     refine (iInf₂_le _ (inv_mem hg)).trans
       ((iInf₂_le i (r i)).trans ((iInf_le _ hsub).trans ?_))
-    rw [linearSymplecticWidth_image (inv_mem hg), hE]
-    exact linearSymplecticWidth_stdCylinder_le i (r i)
+    rw [linearSymplecticWidth_image_stdCylinder (inv_mem hg) i (hr i).le, hE]
 
 end SymplecticGeometry
 
