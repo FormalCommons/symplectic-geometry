@@ -149,8 +149,9 @@ says), except its lemma `moserGenerator_conj`, which goes in
 have the names of a Tau Ceti or Mathlib file or
 folder at the same place, so that the two merge upstream.
 
-**Departures from `DESIGN.md`.** Each has its reason; #59 brings the overview
-in line once this design is merged.
+**Departures from `DESIGN.md`.** Each has its reason; #59 and #113 brought
+the overview in line with them, except for the schedule of issue 6 and the
+contents of `Riemannian/PolarEnd.lean`, which #212 brings in line.
 
 - The overview's `.../Symplectic/ComplexStructure.lean` becomes a folder of
   two files from the start, since its content is more than one file holds.
@@ -1237,8 +1238,9 @@ in *First Chern number*'s prerequisite 3, and not on the results below.
   with Tau Ceti's `TauCeti.circleEquivUnitary : Circle ≃ₜ* unitary ℂ`
   (`Analysis/Complex/Circle.lean`). The smooth side (smoothness of the
   action and of the coordinate changes, the diffeomorphism onto the
-  submanifold, the submersion) belongs to *First Chern number*'s
-  prerequisite 3.
+  submanifold, and the submersion, which comes from Tau Ceti's
+  `TauCeti.ManifoldTotalSpace.isSubmersion_proj`) belongs to *First Chern
+  number*'s prerequisite 3.
 - `Analysis/CStarAlgebra/Unitary/ContinuousLinearMap.lean`, in Mathlib's
   namespace `Unitary`, for `RCLike 𝕜`:
   `Unitary.continuousLinearMapSelfEquiv 𝕜 : unitary (𝕜 →L[𝕜] 𝕜) ≃ₜ* unitary 𝕜`,
@@ -1413,10 +1415,10 @@ it, its design adds it.
 
 Each is a few hundred lines; a blocker given by number alone is an issue of
 this list, and a blocker from another part is named with its part and its
-design file. An issue may start once its blockers are merged. Issues 1, 3, 4,
-10, 12–15, 18, 23 and 24 can start at once. Issues 1–17 build the milestones,
-and issues 18–26 the constructions of *Constructions* for *First Chern
-number*.
+design file (only issues 6, 7 and 8 have one). An issue may start once its
+blockers are merged. Issues 1, 3, 4, 10, 12–15, 18, 23 and 24 can start at
+once. Issues 1–17 build the milestones, and issues 18–26 the constructions
+of *Constructions* for *First Chern number*.
 
 1. **Complex structures on a bundle.** `ComplexStructure.lean`: the
    structure and its API up to `toContinuousComplexStructure` and
