@@ -19,8 +19,8 @@ import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Extend
 /-!
 # Darboux charts adapted to submanifolds
 
-Let `(M, σ)` be a symplectic manifold of dimension `2n` and `f : Q → M` a smooth embedding, not
-necessarily with closed image. Near each point `f q₀` there is a Darboux chart
+Take a smooth embedding `f : Q → M`, whose image need not be closed, into a symplectic manifold
+`(M, σ)` with `dim M = 2n`. Near each point `f q₀` there is a Darboux chart
 `e : M → StdSpace (Fin n)`, pulling `stdForm (Fin n)` (that is, `ω₀ = ∑ⱼ dxⱼ ∧ dyⱼ`) back to `σ`,
 centred at `f q₀`, in which `Q` is a linear subspace `S`: the source of `e` meets the image of `f`
 exactly where `e` takes values in `S`. With the coordinates `xⱼ = z.x j`, `yⱼ = z.y j`,
