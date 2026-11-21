@@ -894,6 +894,8 @@ it into issues; the overview fixes its folders and its dependencies.
   Ceti's `TauCeti.SymplecticForm.polarComplexStructure_transport` gives the
   equivariance in that case; `Smooth.lean`: its explicit formula and
   smoothness),
+  `Analysis/InnerProductSpace/LinearMap.lean` (`simp` for `innerSL ℝ` at
+  the real bilinear type),
   `Topology/Algebra/Module/InnerProducts.lean` (the space $\mathrm{Met}(V)$
   of all inner products on $V$, a convex open subset of the symmetric bilinear forms,
   from Tau Ceti's `TauCeti.convex_setOfPred_symm_pos`),
