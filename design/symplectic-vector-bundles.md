@@ -1230,19 +1230,21 @@ For a map `f : C^n⟮I', N; I, M⟯` (the argument of Mathlib's instance
   (`Section/Module.lean`), of which `ContMDiffTwoForm` is an `abbrev`: that
   is a section of the pull-back of the alternating bundle, and the lemma
   above makes it a section of the alternating bundle of `f *ᵖ V`, since the
-  two fibres at `y` are the same type. API: `@[simp] pullback_apply`;
-  `pullback_add`, `pullback_smul` and the linear map
-  `pullbackLinearMap f`, as Tau Ceti has them for
+  two fibres at `y` are the same type. API: `@[simp] pullback_apply` and
+  `bilinFormAt_pullback`; `pullback_zero`, `pullback_add`, `pullback_smul`
+  and the linear map `pullbackLinearMap I F V n f`, as Tau Ceti has them for
   sections; `IsNondegenerate.pullback`;
   `IsNondegenerate.symplecticFormAt_pullback` (the symplectic form of the
-  pull-back at `y` is that of `ω` at `f y`).
+  pull-back at `y` is that of `ω` at `f y`), through
+  `IsNondegenerate.toBilinForm_symplecticFormAt` in `Symplectic/Basic.lean`.
 - `ComplexStructure.lean`: `ContMDiffComplexStructure.pullback J f :
   ContMDiffComplexStructure I' n F (f *ᵖ V)`, the endomorphism section
   `y ↦ J (f y)`, which is $C^n$ by `Bundle.Pullback.contMDiff_hom_section_iff`
   itself. API: `@[simp] pullback_toEndomorphism` and `pullback_apply` (both
   `J (f y)`), `almostComplexStructureAt_pullback`, `pullback_neg`.
-- `Symplectic/Pullback.lean`, the pairs: `Tames.pullback` and
-  `Compatible.pullback`, from `ω.Tames J` to
+- `Symplectic/Pullback.lean`, the pairs: `Tames.pullback`,
+  `Invariant.pullback` and `Compatible.pullback`, for a form and a complex
+  structure of the same regularity `n`, from `ω.Tames J` to
   `(ω.pullback f).Tames (J.pullback f)`, pointwise.
 - Isomorphisms: `pullback_pushforward`, `(pushforward Φ hΦ ω).pullback f` is
   `pushforward (fun y ↦ Φ (f y)) _ (ω.pullback f)`,
@@ -1258,7 +1260,8 @@ For a map `f : C^n⟮I', N; I, M⟯` (the argument of Mathlib's instance
   the frame `fun y ↦ Φ (f y)` of `ω.pullback f` over `f ⁻¹' U`; the
   transition maps of pulled-back frames are
   `@[simp] frameTransition_pullback`: `frameTransition (fun y ↦ Φ (f y))
-  (fun y ↦ Φ' (f y)) y = frameTransition Φ Φ' (f y)`, by `(rfl)`.
+  (fun y ↦ Φ' (f y)) y = frameTransition Φ Φ' (f y)`, for any map
+  `f : N → M`, by `frameTransition_apply`.
 
 ### Direct sums
 
