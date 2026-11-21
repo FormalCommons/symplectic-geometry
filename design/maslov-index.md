@@ -491,24 +491,40 @@ The Robbin–Salamon index of paths, relative to a Lagrangian `V`.
 `ℒ.pathMaslovIndex` is the only public index of paths.
 
 - `ℒ.pathMaslovIndex {Λ Λ'} (γ : Path Λ Λ') (V : ℒ ι) : ℝ`: choose `U` with
-  `unitaryFrame U = V`, move the path by `(ofUnitary U)⁻¹`, and take Souriau's
+  `unitaryFrame U = V`, move the path by `U⁻¹` (the unitary action of G4, so by
+  `(ofUnitary U)⁻¹`), and take Souriau's
   formula on `ℒ ι` of the moved path `γ'` from `Λ₀` to `Λ₁`,
   `Circle.angleChange (γ'.map continuous_maslovPhase) / (2 * π) - (spectralAngleSum (souriau Λ₁) - spectralAngleSum (souriau Λ₀))`.
   API: `pathMaslovIndex_def`; `pathMaslovIndex_eq_of_unitaryFrame_eq`, any
-  such `U` gives the same value (Decision 4), which every other statement uses
-  instead of the choice; and the bridge to Tau Ceti,
+  such `U` gives the same value (Decision 4; two choices differ by a real
+  orthogonal matrix, and invariance under it is transferred from
+  `Matrix.UnitaryGroup.maslovIndex_map_mul_left` through a lift to frames), which
+  every other statement uses instead of the choice; and the bridge to Tau Ceti,
   `pathMaslovIndex_map_unitaryFrame (δ : Path U U') :
   pathMaslovIndex (δ.map continuous_unitaryFrame) (V₀ ι) = Matrix.UnitaryGroup.maslovIndex δ`,
   through which, with G3, all of Tau Ceti's theorems apply.
-- Transferred from Tau Ceti, each for every `V`:
+  With it: `pathMaslovIndex_horizontal` (the formula for `V = V₀`, with no
+  move), `pathMaslovIndex_unitaryFrame` (the index relative to
+  `unitaryFrame U` is that of the path moved by `U⁻¹`, relative to `V₀`),
+  `pathMaslovIndex_congr` (paths with the same values), and for a path `δ` of
+  frames of `γ`, `pathMaslovIndex_horizontal_eq_maslovIndex` and
+  `pathMaslovIndex_unitaryFrame_eq_maslovIndex` (relative to `unitaryFrame W`,
+  the index of `t ↦ W⁻¹ δ t`); `exists_maslovIndex_eq_pathMaslovIndex` gives
+  such a `δ` by G3.
+- Transferred from Tau Ceti, each for every `V` (the first four, and the
+  loop statements below, are read off the formula on `ℒ ι` with the
+  `Circle.angleChange` API, as Tau Ceti proves them on frames: transferring
+  homotopy invariance would need a lift of the homotopy that fixes the ends):
   `ℒ.pathMaslovIndex_eq_of_homotopic` (fixed ends), `ℒ.pathMaslovIndex_trans`
   (`@[simp]`, catenation, with the corollary `ℒ.pathMaslovIndex_eq_subpath_add`
   for a split point `c`), `ℒ.pathMaslovIndex_symm` (`@[simp]`),
   `ℒ.pathMaslovIndex_refl` (`@[simp]`), `ℒ.pathMaslovIndex_sum` (the product
   property, for the sum of two paths relative to the sum of two Lagrangians,
   G5), `ℒ.pathMaslovIndex_eq_zero_of_finrank_eq` (zero: `finrank (γ t ⊓ V)`
-  constant), `ℒ.pathMaslovIndex_graph` (localization: for `V = V₀` and the path
-  of graphs $\{(x,A(t)x)\}$ of a path of symmetric matrices, half the change of
+  constant, moved to `V₀` by `ℒ.finrank_smul_inf_smul` of
+  `Lagrangian/Transverse.lean`), `ℒ.pathMaslovIndex_graph` (localization: for `V = V₀`
+  and a path of Lagrangians that are the graphs $\{(x,A(t)x)\}$ of a continuous path of real
+  matrices, with no symmetry hypothesis since each graph is Lagrangian, half the change of
   `Matrix.signature`, from `maslovIndex_eq_signature_sub_of_souriau_eq_cayley`,
   whose frames $\mathbb{1}+iA$ span exactly these graphs).
 - `ℒ.pathMaslovIndex_eq_transverseMaslovIndex`: for a path of frames `δ` whose

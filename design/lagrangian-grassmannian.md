@@ -650,7 +650,9 @@ Chart points and transverse pairs, as algebra: G7–G9.
   horizontal subspace and carries the vertical one to `Λ'`.
 - Supporting statements: `ℒ.isCompl_smul_iff` (an element of
   `TauCeti.GLSymplectic ι ℝ` preserves complementarity of Lagrangians, through
-  `Submodule.orderIsoMapComap`), which both transverse-pair results use.
+  `Submodule.orderIsoMapComap`), which both transverse-pair results use; and
+  `ℒ.finrank_smul_inf_smul` (it keeps `finrank (Λ ⊓ Λ')`), which the zero axiom
+  of *Maslov index* (`Maslov/Path/Basic.lean`) uses.
 
 ### `LinearAlgebra/TotallyReal/Euclidean.lean`
 
