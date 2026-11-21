@@ -429,7 +429,8 @@ $[0,1]$ is never fed to the lemma with `P = ℝ` directly.
   structure of the bundle or the order `∞`: Mathlib's `contMDiffAt_hom_bundle`
   needs only a topological vector bundle, and `contDiffAt_cayleyPathFormula`
   holds at every order. So the library states the lemma once, at every order
-  `n : ℕ∞` (`f`, `b`, `A`, `B` of order `n`, conclusion of order `n`), for
+  `n : WithTop ℕ∞`, analytic order included, as for its two inputs (`f`, `b`,
+  `A`, `B` of order `n`, conclusion of order `n`), for
   the endomorphism bundle of any topological vector bundle `V` with complete
   fibre `F` (`[FiberBundle F V] [VectorBundle ℝ F V]`, the fibres topological
   modules, `[CompleteSpace F]`; no `ContMDiffVectorBundle` and no
@@ -449,8 +450,9 @@ $[0,1]$ is never fed to the lemma with `P = ℝ` directly.
   each point of `univ ×ˢ O`: apply the lemma with parameter space
   `ℝ × TotalSpace (F →L[ℝ] F) (fun x ↦ V x →L[ℝ] V x)`, base map the bundle
   projection, `b` the time through `smoothTransition (1 - ·)`, `A` the value
-  of `J₀` and `B` the fibre value. This uses that the order `n` is in `ℕ∞`,
-  since `smoothTransition` is smooth but not analytic. That the path
+  of `J₀` and `B` the fibre value. The lemma is applied at the cast to
+  `WithTop ℕ∞` of the design's regularity `n : ℕ∞`, never at the analytic
+  order, since `smoothTransition` is smooth but not analytic. That the path
   stays tame, and compatible when `J` is, are Tau
   Ceti's linear lemmas behind `SmoothTwoForm.Compatible.tames_cayleyPath` and
   `compatible_cayleyPath` (`.../AlmostComplex/CayleyPath.lean`), which this
