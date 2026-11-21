@@ -127,7 +127,7 @@ can join them.
 | `Geometry/Symplectic/Moser/Field.lean` | `moserField`, the cut-off Moser field of a segment of two-forms | 3 |
 | `Geometry/Symplectic/Moser/Isotopy.lean` | the Moser isotopy fixing a compact submanifold, the milestone | 4 |
 | `Geometry/Symplectic/Manifold/Darboux.lean` | Darboux charts with prescribed derivative, symplectic transitions, the milestone | 5 |
-| `Geometry/Manifold/LocalDiffeomorph/MFDeriv.lean` | the derivative of a transition between partial diffeomorphisms, composed with a differential | 5 |
+| `Geometry/Manifold/LocalDiffeomorph/MFDeriv.lean` | the derivative of a transition between partial diffeomorphisms, composed with a differential; the differential of a partial diffeomorphism followed by a continuous linear equivalence (`PartialDiffeomorph.mvfderiv_trans_toDiffeomorph`) | 5 |
 | `Geometry/Symplectic/Moser/Stability.lean` | Moser stability, the milestone | 6 |
 
 ### `Geometry/Symplectic/Manifold/Family.lean`
@@ -391,7 +391,9 @@ composition with a linear symplectomorphism is Tau Ceti's private
 `trans_toDiffeomorph_darboux` (`chart.trans L.toDiffeomorph.toPartialDiffeomorph`).
 This file restates it as a public lemma, `trans_toDiffeomorph_darbouxChart`,
 credited in the module docstring, with the source, the values and the
-derivative at every point of the source. The derivative of `χ` at `p` is
+derivative at every point of the source; the derivative comes from
+`PartialDiffeomorph.mvfderiv_trans_toDiffeomorph` in
+`Geometry/Manifold/LocalDiffeomorph/MFDeriv.lean`. The derivative of `χ` at `p` is
 invertible because `χ` is a partial diffeomorphism
 (`PartialDiffeomorph.bijective_mvfderiv`). It is symplectic by the chart
 identity at `p`.
@@ -402,10 +404,11 @@ In the namespace `TauCeti.SymplecticForm`, so that it is reached from
 
 ```lean
 theorem apply_fderiv_transition_eq (form₀ : SymplecticForm F) {ω : SmoothTwoForm I M}
-    {φ ψ : PartialDiffeomorph I 𝓘(ℝ, F) M F ∞}
-    (hφ : ∀ x ∈ φ.source, ∀ v w, ω.eval₂ x v w = form₀ (mvfderiv I φ x v) (mvfderiv I φ x w))
-    (hψ : ∀ x ∈ ψ.source, ∀ v w, ω.eval₂ x v w = form₀ (mvfderiv I ψ x v) (mvfderiv I ψ x w))
-    {x : M} (hxφ : x ∈ φ.source) (hxψ : x ∈ ψ.source) (v w : F) :
+    {φ ψ : PartialDiffeomorph I 𝓘(ℝ, F) M F ∞} {x : M} (hxφ : x ∈ φ.source)
+    (hxψ : x ∈ ψ.source)
+    (hφ : ∀ v w, ω.eval₂ x v w = form₀ (mvfderiv I φ x v) (mvfderiv I φ x w))
+    (hψ : ∀ v w, ω.eval₂ x v w = form₀ (mvfderiv I ψ x v) (mvfderiv I ψ x w))
+    (v w : F) :
     form₀ (fderiv ℝ (fun z ↦ ψ (φ.symm z)) (φ x) v)
       (fderiv ℝ (fun z ↦ ψ (φ.symm z)) (φ x) w) = form₀ v w
 ```
@@ -415,8 +418,8 @@ The proof uses the chain rule
 `Geometry/Manifold/LocalDiffeomorph/MFDeriv.lean` (named like Tau Ceti's
 file, since it holds for any partial diffeomorphisms into normed spaces).
 `mvfderiv I φ x` is surjective, so both sides are `ω` at `x`, read through
-the two charts. This holds for any two charts that pull the same constant
-form back to `ω`, so `ω` needs no hypothesis.
+the two charts. It needs only that both charts pull the same constant form
+back to `ω` at `x`, so `ω` needs no hypothesis.
 
 ### `Geometry/Symplectic/Moser/Stability.lean`
 

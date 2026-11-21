@@ -78,11 +78,8 @@ theorem trans_toDiffeomorph_darbouxChart {F₁ F₂ : Type*}
   have hsrc : chart'.source = chart.source := by simp [chart']
   have hcoe (y : M) : chart' y = L (chart y) := by simp [chart']
   have hderiv (x : M) (hx : x ∈ chart.source) :
-      mvfderiv I chart' x = L.toContinuousLinearMap.comp (mvfderiv I chart x) := by
-    have heq : ⇑chart' = ⇑L ∘ ⇑chart := funext hcoe
-    ext v
-    rw [heq]
-    exact L.toContinuousLinearMap.mvfderiv_comp_apply (chart.mdifferentiableAt (by simp) hx) v
+      mvfderiv I chart' x = L.toContinuousLinearMap.comp (mvfderiv I chart x) :=
+    chart.mvfderiv_trans_toDiffeomorph L hx
   refine ⟨hsrc, hcoe, hderiv, fun x hx v w ↦ ?_⟩
   rw [hderiv x hx, ContinuousLinearMap.comp_apply, ContinuousLinearMap.comp_apply,
     ContinuousLinearEquiv.coe_coe, ← ContinuousLinearEquiv.coe_toLinearEquiv, hL.apply,
@@ -97,16 +94,15 @@ variable {E H M F : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
   [IsManifold I ∞ M]
   [NormedAddCommGroup F] [NormedSpace ℝ F]
 
-/-- Let `φ` and `ψ` be charts into `F` that both pull the constant form `form₀` back to the same
-two-form `σ`. At the image under `φ` of a point of both sources, the derivative of the transition
-map `ψ ∘ φ⁻¹` preserves `form₀`. -/
+/-- Let `φ` and `ψ` be charts into `F`, and `x` a point of both sources at which both pull the
+constant form `form₀` back to the same two-form `σ`. Then the derivative of the transition map
+`ψ ∘ φ⁻¹` at `φ x` preserves `form₀`. -/
 theorem apply_fderiv_transition_eq (form₀ : SymplecticForm F) {σ : SmoothTwoForm I M}
-    {φ ψ : PartialDiffeomorph I 𝓘(ℝ, F) M F ∞}
-    (hφ : ∀ x ∈ φ.source, ∀ v w : TangentSpace I x,
-      σ.eval₂ x v w = form₀ (mvfderiv I φ x v) (mvfderiv I φ x w))
-    (hψ : ∀ x ∈ ψ.source, ∀ v w : TangentSpace I x,
-      σ.eval₂ x v w = form₀ (mvfderiv I ψ x v) (mvfderiv I ψ x w))
-    {x : M} (hxφ : x ∈ φ.source) (hxψ : x ∈ ψ.source) (v w : F) :
+    {φ ψ : PartialDiffeomorph I 𝓘(ℝ, F) M F ∞} {x : M} (hxφ : x ∈ φ.source)
+    (hxψ : x ∈ ψ.source)
+    (hφ : ∀ v w : TangentSpace I x, σ.eval₂ x v w = form₀ (mvfderiv I φ x v) (mvfderiv I φ x w))
+    (hψ : ∀ v w : TangentSpace I x, σ.eval₂ x v w = form₀ (mvfderiv I ψ x v) (mvfderiv I ψ x w))
+    (v w : F) :
     form₀ (fderiv ℝ (fun z ↦ ψ (φ.symm z)) (φ x) v)
         (fderiv ℝ (fun z ↦ ψ (φ.symm z)) (φ x) w) = form₀ v w := by
   have hn : (∞ : WithTop ℕ∞) ≠ 0 := by simp
@@ -114,7 +110,7 @@ theorem apply_fderiv_transition_eq (form₀ : SymplecticForm F) {σ : SmoothTwoF
   obtain ⟨b, rfl⟩ := (φ.bijective_mvfderiv hn hxφ).surjective w
   have hcomp := ψ.fderiv_comp_symm_comp_mvfderiv φ hn hxψ hxφ
   rw [← ContinuousLinearMap.comp_apply, hcomp, ← ContinuousLinearMap.comp_apply, hcomp,
-    ← hψ x hxψ, hφ x hxφ]
+    ← hψ, hφ]
 
 end SymplecticForm
 
