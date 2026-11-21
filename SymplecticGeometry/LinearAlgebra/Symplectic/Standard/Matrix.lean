@@ -7,7 +7,6 @@ module
 
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
 public import TauCeti.Analysis.Complex.Euclidean.Matrix
-import TauCeti.Data.Matrix.Block
 
 /-!
 # The matrix dictionary for the standard model
@@ -142,22 +141,6 @@ theorem toBlocks₂₂_eq_neg_transpose_of_invariant {J : AlmostComplexStructure
   simpa [mulVec_single_one] using this
 
 end SymplecticGeometry
-
-namespace Matrix
-
-variable {m n R : Type*} [Fintype m] [Fintype n] [Ring R]
-
-/-- The block identities of the first block column of `M² = -1`, for a block matrix `M`:
-`M₁₁² + M₁₂ M₂₁ = -1` and `M₂₁ M₁₁ + M₂₂ M₂₁ = 0`. -/
-theorem toBlocks_mul_self_eq_neg_one [DecidableEq m] [DecidableEq n]
-    {M : Matrix (m ⊕ n) (m ⊕ n) R} (hM : M * M = -1) :
-    M.toBlocks₁₁ * M.toBlocks₁₁ + M.toBlocks₁₂ * M.toBlocks₂₁ = -1 ∧
-      M.toBlocks₂₁ * M.toBlocks₁₁ + M.toBlocks₂₂ * M.toBlocks₂₁ = 0 := by
-  constructor
-  · rw [← toBlocks₁₁_mul, hM, ← fromBlocks_one, fromBlocks_neg, toBlocks_fromBlocks₁₁]
-  · rw [← toBlocks₂₁_mul, hM, ← fromBlocks_one, fromBlocks_neg, toBlocks_fromBlocks₂₁, neg_zero]
-
-end Matrix
 
 namespace TauCeti
 

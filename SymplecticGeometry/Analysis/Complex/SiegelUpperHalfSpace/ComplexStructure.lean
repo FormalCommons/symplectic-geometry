@@ -7,12 +7,14 @@ module
 
 public import Mathlib.Analysis.Calculus.ContDiff.Operations
 public import SymplecticGeometry.Analysis.Complex.SiegelUpperHalfSpace.Action
+public import SymplecticGeometry.LinearAlgebra.ComplexStructure.Action
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Matrix
 public import TauCeti.Analysis.Matrix.EuclideanLin
+public import TauCeti.LinearAlgebra.Matrix.GeneralLinearGroup.Symplectic.Basic
 import TauCeti.Analysis.Calculus.ContinuousLinearMapInverse
 import TauCeti.Analysis.Matrix.Sqrt
-import TauCeti.Data.Matrix.Block
 import TauCeti.Geometry.Symplectic.Complex.Line
+import SymplecticGeometry.LinearAlgebra.Matrix.Block
 import SymplecticGeometry.LinearAlgebra.Matrix.SymplecticGroup.Basic
 
 /-!
@@ -41,8 +43,8 @@ To a point `Z = X + iY` of the Siegel upper half space this file attaches the re
   `SiegelUpperHalfSpace.complexStructureMatrix_smul`: `J(Ψ • Z) = Ψ J(Z) Ψ⁻¹`.
 * `SiegelUpperHalfSpace.compatible_complexStructure`: `J(Z)` is compatible with `ω₀`.
 * `SiegelUpperHalfSpace.complexStructureMatrix_mul_self`: `J(Z)² = -1` whenever `Y` is invertible.
-* `SiegelUpperHalfSpace.complexStructure_smul`: the complex structure of `Ψ • Z` is the transport
-  of that of `Z` along the map of `Ψ`.
+* `SiegelUpperHalfSpace.complexStructure_smul`: the complex structure of `Ψ • Z` is `Ψ` acting on
+  that of `Z`, by the action of `GL` on complex structures.
 * `SiegelUpperHalfSpace.eq_complexStructure_of_smul`: an equivariant map from the Siegel upper
   half space to the complex structures that sends `i𝟙` to `J₀` is `Z ↦ J(Z)`; and
   `SiegelUpperHalfSpace.eq_compatibleEquiv_iff`: `compatibleEquiv` is the only equivariant
@@ -226,12 +228,11 @@ theorem complexStructure_I :
     rw [complexStructure_toLinearMap, complexStructureMatrix_I,
       stdComplexStructure_eq_toEuclideanLin_J]
 
-/-- The complex structure of `Ψ • Z` is the transport of that of `Z` along the map of `Ψ`,
-that is, its conjugate `Ψ J(Z) Ψ⁻¹`. -/
+/-- The complex structure of `Ψ • Z` is `Ψ`, read in `GL`, acting on that of `Z`, that is, its
+conjugate `Ψ J(Z) Ψ⁻¹`. -/
 theorem complexStructure_smul (Ψ : symplecticGroup ι ℝ) (Z : SiegelUpperHalfSpace ι) :
-    complexStructure (Ψ • Z) = (complexStructure Z).transport
-      (toEuclideanCLE (Ψ : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ)
-        (SymplecticGroup.symplectic_det Ψ.property).ne_zero).toLinearEquiv := by
+    complexStructure (Ψ • Z) = GLSymplectic.ofSymplecticGroup ι ℝ Ψ • complexStructure Z := by
+  rw [AlmostComplexStructure.generalLinearGroup_smul_def]
   refine AlmostComplexStructure.toLinearMap_injective (LinearMap.ext fun v ↦ ?_)
   simp only [complexStructure_toLinearMap, complexStructureMatrix_smul, SymplecticGroup.coe_inv',
     AlmostComplexStructure.transport_toLinearMap, LinearEquiv.conj_apply, LinearMap.comp_apply,
@@ -242,11 +243,12 @@ theorem complexStructure_smul (Ψ : symplecticGroup ι ℝ) (Z : SiegelUpperHalf
 theorem compatible_complexStructure (Z : SiegelUpperHalfSpace ι) :
     (stdForm ι).Compatible (complexStructure Z) := by
   obtain ⟨Φ, rfl⟩ := exists_smul_I_eq Z
-  rw [complexStructure_smul, complexStructure_I]
-  set e := ((Φ : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ).toEuclideanCLE
-    (SymplecticGroup.symplectic_det Φ.property).ne_zero).toLinearEquiv
+  rw [complexStructure_smul, complexStructure_I,
+    AlmostComplexStructure.generalLinearGroup_smul_def]
+  set g := GLSymplectic.ofSymplecticGroup ι ℝ Φ
+  set e := ((g : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ).toEuclideanCLE g.det_ne_zero).toLinearEquiv
   have he : toEuclideanLin.symm e.toLinearMap = Φ := by
-    rw [LinearEquiv.symm_apply_eq]
+    rw [LinearEquiv.symm_apply_eq, ← GLSymplectic.coe_ofSymplecticGroup]
     exact LinearMap.ext fun v ↦ toEuclideanCLE_apply _ _ v
   have hω : (stdForm ι).transport e = stdForm ι :=
     SymplecticForm.isSymplectomorphism_iff_transport_eq.1
@@ -259,9 +261,8 @@ conjugation is `Z ↦ J(Z)`. -/
 theorem eq_complexStructure_of_smul
     {F : SiegelUpperHalfSpace ι → AlmostComplexStructure (StdSpace ι)}
     (hI : F SiegelUpperHalfSpace.I = stdComplexStructure ι)
-    (hF : ∀ (Ψ : symplecticGroup ι ℝ) Z, F (Ψ • Z) = (F Z).transport
-      (toEuclideanCLE (Ψ : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ)
-        (SymplecticGroup.symplectic_det Ψ.property).ne_zero).toLinearEquiv) :
+    (hF : ∀ (Ψ : symplecticGroup ι ℝ) Z, F (Ψ • Z) =
+      GLSymplectic.ofSymplecticGroup ι ℝ Ψ • F Z) :
     F = complexStructure := by
   funext Z
   obtain ⟨Ψ, rfl⟩ := exists_smul_I_eq Z
@@ -307,7 +308,8 @@ matrices `M` with `M² = -1` whose lower left block is invertible. -/
 theorem complexStructureMatrix_ofComplexStructureMatrix {M : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ}
     (hM : M * M = -1) (hM₂₁ : IsUnit M.toBlocks₂₁.det) :
     complexStructureMatrix (ofComplexStructureMatrix M) = M := by
-  obtain ⟨h₁₁, h₂₁⟩ := toBlocks_mul_self_eq_neg_one hM
+  have h₁₁ := toBlocks₁₁_mul_toBlocks₁₁_add_of_mul_self_eq_neg_one hM
+  have h₂₁ := toBlocks₂₁_mul_toBlocks₁₁_add_of_mul_self_eq_neg_one hM
   set B := M.toBlocks₂₁⁻¹
   have hBC : B * M.toBlocks₂₁ = 1 := nonsing_inv_mul _ hM₂₁
   have hCB : M.toBlocks₂₁ * B = 1 := mul_nonsing_inv _ hM₂₁
@@ -333,7 +335,8 @@ private theorem isSymm_toBlocks₁₁_mul_inv_of_compatible {J : AlmostComplexSt
   set M := toEuclideanLin.symm J.toLinearMap
   have hC := posDef_toBlocks₂₁_of_compatible hJ
   have hdet : IsUnit M.toBlocks₂₁.det := isUnit_det_toBlocks₂₁_of_compatible hJ
-  have h₂₁ := (toBlocks_mul_self_eq_neg_one J.toEuclideanLin_symm_mul_self).2
+  have h₂₁ :=
+    toBlocks₂₁_mul_toBlocks₁₁_add_of_mul_self_eq_neg_one J.toEuclideanLin_symm_mul_self
   have hCt : M.toBlocks₂₁ᵀ = M.toBlocks₂₁ := isHermitian_iff_isSymm.1 hC.isHermitian
   rw [IsSymm, transpose_mul, transpose_nonsing_inv, hCt,
     ← neg_neg M.toBlocks₁₁ᵀ, ← toBlocks₂₂_eq_neg_transpose_of_invariant hJ.invariant]
@@ -406,9 +409,7 @@ theorem eq_compatibleEquiv_iff
       (F SiegelUpperHalfSpace.I : AlmostComplexStructure (StdSpace ι)) = stdComplexStructure ι ∧
       ∀ (Ψ : symplecticGroup ι ℝ) Z,
         (F (Ψ • Z) : AlmostComplexStructure (StdSpace ι)) =
-          (F Z : AlmostComplexStructure (StdSpace ι)).transport
-            (toEuclideanCLE (Ψ : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ)
-              (SymplecticGroup.symplectic_det Ψ.property).ne_zero).toLinearEquiv) ↔
+          GLSymplectic.ofSymplecticGroup ι ℝ Ψ • (F Z : AlmostComplexStructure (StdSpace ι))) ↔
       F = compatibleEquiv := by
   constructor
   · rintro ⟨-, hI, hF⟩
@@ -516,9 +517,7 @@ theorem mulAction_symplecticGroup_and_compatibleEquiv :
         (F SiegelUpperHalfSpace.I : AlmostComplexStructure (StdSpace ι)) = stdComplexStructure ι ∧
         ∀ (Ψ : symplecticGroup ι ℝ) Z,
           (F (Ψ • Z) : AlmostComplexStructure (StdSpace ι)) =
-            (F Z : AlmostComplexStructure (StdSpace ι)).transport
-              (toEuclideanCLE (Ψ : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ)
-                (SymplecticGroup.symplectic_det Ψ.property).ne_zero).toLinearEquiv) ↔
+            GLSymplectic.ofSymplecticGroup ι ℝ Ψ • (F Z : AlmostComplexStructure (StdSpace ι))) ↔
         F = compatibleEquiv) ∧
     (∀ Z : SiegelUpperHalfSpace ι,
       toEuclideanLin.symm (compatibleEquiv Z : AlmostComplexStructure (StdSpace ι)).toLinearMap =
