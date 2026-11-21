@@ -360,7 +360,11 @@ Issue 4, in `TauCeti.SmoothForm`:
   Ceti's compact relative Moser theorem
   `SmoothTwoForm.exists_diffeomorph_opens_of_eq_along` along
   `x ↦ (0, x)` gives a diffeomorphism of neighbourhoods, and the tube
-  lemma a strip inside.
+  lemma a strip inside. On the strip, the slice at `r` is the pullback along
+  `SymplecticGeometry.symmStripMk hr : M → symmStrip M ε`, and
+  `λ₀` is `zeroSliceOneForm hε σ`. The first half is
+  `isStableHamiltonian_zeroSliceOneForm` and
+  `val_symmStripMk_zero_eq_stableHamiltonianModel`.
 - The milestone,
   `IsStableHamiltonian.characteristicVectorField_and_stableHamiltonianModel`:
   for compact boundaryless `M` with `finrank ℝ E = 2 * m + 1`: the wedge
