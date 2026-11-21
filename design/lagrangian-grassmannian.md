@@ -464,7 +464,9 @@ Lagrangian frames on `StdSpace ι`, pure linear algebra. Namespace
   part, is written `ofFrame X Y h`, never as an anonymous pair.
 - `ℒ.finrank_eq_card (Λ : ℒ ι) : finrank ℝ Λ = Fintype.card ι`, from
   `TauCeti.SymplecticForm.IsLagrangian.two_mul_finrank` and `finrank_stdSpace`, for every use of the
-  dimension of a Lagrangian of `StdSpace ι`.
+  dimension of a Lagrangian of `StdSpace ι`. With it,
+  `ℒ.injective_toEuclideanLin_of_range_eq`: a matrix `Z` whose columns span a
+  Lagrangian is injective, as `Maslov/Path/RegularPieces.lean` uses.
 - `isLagrangian_map_swap_iff` (`@[simp]`): `L.map (swap ι)` is Lagrangian for
   `ω₀` iff `L` is. Since `stdForm_swap` says that `swap` multiplies `ω₀` by
   `-1`, this is the case `e = swap`, `c = -1` of
@@ -1000,7 +1002,8 @@ The manifold structure and the milestone.
   `TauCeti.SymplecticForm.isLagrangian_map_iff_of_apply_eq_mul` there.
 - The library's general `LinearAlgebra/Matrix/Realify.lean` (merged, #173 and
   #232; it imports only Tau Ceti): `Matrix.realify_reindex`, for
-  `reindex_unitaryFrame`.
+  `reindex_unitaryFrame`; and `Matrix.realify_smul_one`, the realification of
+  a complex scalar matrix, for `Maslov/Path/RegularPieces.lean`.
 - Tau Ceti:
   - Lagrangian subspaces and graphs: `TauCeti.SymplecticForm.IsLagrangian`,
     `TauCeti.SymplecticForm.IsLagrangian.two_mul_finrank`,

@@ -290,18 +290,23 @@ goes in `SymplecticGeometry`: in particular the families `IsMaslovIndex` and
 `IsLagrangianMaslovIndex`, the loop `symplecticRotationLoop`, and the
 statements about them, which dot notation on a `GLSymplectic` or on an `ℒ ι` would not find.
 
-Three files lie outside the folders that `DESIGN.md` §5 lists:
+Four files lie outside the folders that `DESIGN.md` §5 lists:
 `LinearAlgebra/Matrix/GeneralLinearGroup/Symplectic/Reindex.lean`,
-`Topology/Algebra/SymplecticGroup.lean` and
-`Analysis/Calculus/Deriv/Matrix.lean`. Reindexing a symplectic group is
+`Topology/Algebra/SymplecticGroup.lean`,
+`Analysis/Calculus/Deriv/Matrix.lean` and `Data/Matrix/Basis.lean`.
+Reindexing a symplectic group is
 algebra about Tau Ceti's `GLSymplectic`, not about the Maslov index, and its
 continuity is topology of that group. They go where Tau Ceti keeps the algebra
 and the topology of `GLSymplectic`, so that they can move there unchanged.
 The third file holds derivatives of matrix-valued functions (entrywise
 derivatives, transpose, product rule), which `Crossing/Form.lean` uses and
 which changes of frame `Z * g` need later; it sits beside Tau Ceti's file of
-the same name, so that the two merge upstream.
-`DESIGN.md` §5 names all three, among the files outside its folders.
+the same name, so that the two merge upstream. The fourth holds the matrix
+`1 + Eᵢᵢ a` of the coordinate half-turn's frame
+(`Matrix.one_add_single_eq_diagonal`, `Matrix.isUnit_one_add_single_iff`),
+beside the files of the same name in Mathlib and Tau Ceti, which hold the matrix
+units `Matrix.single`.
+`DESIGN.md` §5 names all four, among the files outside its folders.
 
 ### `LinearAlgebra/Matrix/GeneralLinearGroup/Symplectic/Reindex.lean`
 
@@ -766,19 +771,27 @@ The pieces of regular paths, each with an explicit frame and its crossing
 forms relative to `V₀`.
 
 - `ℒ.rotationPath`, a rotation $s\mapsto e^{\varepsilon sJ_0}\Lambda$ off a
-  Lagrangian `Λ`, with the frame $e^{\varepsilon sJ_0}Z_0$: its crossing form
-  is $\pm\varepsilon\lvert Zu\rvert^2$ by `stdForm_apply_eq_inner`, definite,
+  Lagrangian `Λ`, with the frame $e^{\varepsilon sJ_0}Z_0$ (`rotationFrame`): its
+  crossing form is $\pm\varepsilon\lvert Zu\rvert^2$ by
+  `stdForm_apply_stdComplexStructure`, definite,
   so the crossing at `s = 0` is regular, and for small $\varepsilon$ there is
-  no other (`ℒ.crossing_rotationPath_iff`, `ℒ.lagrangianCrossingForm_rotationPath`).
+  no other (`ℒ.eventually_rotationPath_inf_eq_bot`;
+  `lagrangianCrossingForm_smul_J_mul_apply`, in `SymplecticGeometry` since it is
+  about matrices).
 - Segments inside Tau Ceti's chart `Matrix.lagrangianChart` of the
   Lagrangians transverse to `V₀` (G7, `lagrangianChart_inf_realSubspace`):
   between any two such Lagrangians there is a path with a smooth frame and no
-  crossing at all (`ℒ.exists_chartPath`).
+  crossing at all (`ℒ.exists_chartPath`; smoothness for the entrywise norm
+  `Matrix.Norms.Elementwise`, as in Tau Ceti's `ContDiff.matrix_mul`).
 - The single-coordinate half-turn
   $s\mapsto\operatorname{diag}(e^{i\pi s},1,\dots,1)V_1$
   (`ℒ.coordinateHalfTurn`): its only crossing, at $s=\tfrac12$, has the
   one-dimensional form $\pi$, and its index is `1`
-  (`ℒ.pathMaslovIndex_coordinateHalfTurn`).
+  (`ℒ.pathMaslovIndex_coordinateHalfTurn`). The file imports
+  `Data/Matrix/Basis.lean` for the matrix `1 + Eᵢᵢ a` of its frame, and
+  `Analysis/Matrix/UnitaryGroup/Basic.lean` (*Unitary group topology*) for
+  the diagonal unitary `Matrix.UnitaryGroup.detSection ι i (Circle.exp θ)` that
+  turns the `i`-th coordinate plane.
 
 ### `LinearAlgebra/Symplectic/Lagrangian/Maslov/Path/Regular.lean`
 

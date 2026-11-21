@@ -379,13 +379,26 @@ Named like Tau Ceti's file; in `TauCeti`.
   `Convex.isSmoothlyContractible` for a nonempty open convex subset of a
   normed space, by straight lines, with its corollary for an open subset of
   `M` carried by a chart or a partial diffeomorphism onto such a set.
+  `isSmoothlyContractible_def` states the body.
+  Both come from `IsSmoothlyContractible.of_starConvex_image`, for a nonempty
+  open `U` and a map `φ : M → E'` to any real normed space, smooth on `U`,
+  with a left inverse on `U`
+  smooth on the star-convex set `φ '' U`, which covers a partial
+  diffeomorphism directly; its other cases are
+  `StarConvex.isSmoothlyContractible` (an open set of the model with
+  star-convex image under `I`) and
+  `IsSmoothlyContractible.of_starConvex_image_extChartAt` (a chart).
 - `SymplecticGeometry.IsFiniteGoodCover (I) {ι : Type*} [Finite ι]
   (U : ι → Opens M) : Prop := (⨆ i, U i) = ⊤ ∧ ∀ s : Finset ι, s.Nonempty →
   ((⨅ i ∈ s, U i : Opens M) : Set M).Nonempty →
-  IsSmoothlyContractible I (⨅ i ∈ s, U i : Opens M)`.
+  IsSmoothlyContractible I (⨅ i ∈ s, U i : Opens M)`, with
+  `isFiniteGoodCover_def` and the eliminators `IsFiniteGoodCover.iSup_eq_top`
+  and `IsFiniteGoodCover.isSmoothlyContractible`.
 - `SymplecticGeometry.HasFiniteGoodCover (I) (M) : Prop := ∃ (n : ℕ)
-  (U : Fin n → Opens M), IsFiniteGoodCover I U`, and
-  `IsFiniteGoodCover.hasFiniteGoodCover` for any finite index type.
+  (U : Fin n → Opens M), IsFiniteGoodCover I U`, with `hasFiniteGoodCover_def`,
+  and
+  `IsFiniteGoodCover.hasFiniteGoodCover` for any finite index type, through
+  `IsFiniteGoodCover.comp_equiv` (reindexing).
 - `IsSmoothlyContractible.hasFiniteGoodCover` (one set is a good cover), as
   the example of the predicate.
 
@@ -576,9 +589,8 @@ In `TauCeti.Diffeotopy`, for `[FiniteDimensional ℝ E] [IsManifold I ∞ M]
   `timeExtend_eq_zero` (for `Flux/CompactSupport.lean`); *Moser isotopy* uses
   `exists_isSmoothFamily_mextDerivₗ_eq`, `hasFiniteGoodCover_of_compactSpace`,
   `DifferentialForm/TimeExtension.lean` (to pass its primitives to `ℝ × M`)
-  and `ofReal`; *Isotopy extension* uses the splittings, the smooth
-  cohomology coordinates, `DifferentialForm/TimeExtension.lean` and the
-  bridge; *Contact geometry* uses both
+  and `ofReal`; *Isotopy extension* uses both `TimeExtension.lean` files and
+  the `FiniteDimensional` instance of `SmoothFamily/GoodCover.lean`; *Contact geometry* uses both
   `TimeExtension.lean` files and the bridge, in `Family.lean` and
   `Gray.lean`.
 
