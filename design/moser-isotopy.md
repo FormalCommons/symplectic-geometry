@@ -8,7 +8,7 @@ and *Relative Moser theorem fixing a submanifold* of
 [McDuffSalamon2017], §3.2 (Lemma 3.2.1, Theorem 3.2.2, Corollary 3.2.3,
 Theorem 3.2.4 and Exercise 3.2.6), with the stronger first-order
 conclusion of the relative theorem from the authors' errata
-[McDuffSalamon2019Errata], p. 109, and Cannas da Silva [CannasdaSilva2001],
+[McDuffSalamon2019Errata], p. 109, and Cannas da Silva [CannasdaSilva2001Lectures],
 Lectures 6–7.
 
 All names below are in the namespace `SymplecticGeometry` unless they are
@@ -527,7 +527,9 @@ submanifold*), 5 (*Darboux theorem with prescribed derivative*) and 6
   §3.2.
 * [D. McDuff, D. Salamon, errata to the third edition][McDuffSalamon2019Errata],
   p. 109 (the first-order conclusion of Lemma 3.2.1).
-* [A. Cannas da Silva, *Lectures on Symplectic Geometry*][CannasdaSilva2001],
-  Lectures 6–7.
+* [A. Cannas da Silva, *Lectures on Symplectic Geometry*, Lecture Notes in
+  Mathematics 1764, Springer, Berlin, 2001][CannasdaSilva2001Lectures],
+  Lectures 6–7. The plan's bibliography has no key for this book; its key
+  `CannasdaSilva2001` is her 2001 notes *Symplectic Toric Manifolds*.
 * J. Moser, *On the volume elements on a manifold*, Transactions of the
   American Mathematical Society 120 (1965), 286–294.
