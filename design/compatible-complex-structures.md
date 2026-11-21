@@ -261,7 +261,7 @@ involved are empty, and the statements still hold.
 
 ### Dependencies
 
-The part uses only two things from other parts:
+The part uses the following from other parts:
 
 - *Standard model* (`StdSpace`, `stdForm`, `stdComplexStructure`, the
   comparison with Tau Ceti's product model, and the matrix dictionary of #8).
@@ -271,10 +271,28 @@ The part uses only two things from other parts:
   (`IsIsotropic.exists_le_isLagrangian` in `LinearAlgebra/Symplectic/Subspace.lean`), used only in the
   implication from (4) to (1). An isotropic plane containing $v$ and $w$ is
   extended to a Lagrangian subspace.
-
-The part uses nothing from *Linear complex structures*. The same pull
-request updates `DESIGN.md` to match: part 9 builds on *Standard model* and
-*Symplectic vector spaces*.
+- From *Linear complex structures*, only three merged files.
+  `Compatible.lean` imports `LinearAlgebra/ComplexStructure/Action.lean`,
+  which imports only Mathlib and Tau Ceti, for
+  `AlmostComplexStructure.transport_eq_iff_isComplexLinearMap`, used in
+  `compatible_of_isSymplectomorphism_stdForm` and
+  `compatible_iff_exists_isSymplectomorphism_stdForm`.
+  `Topology/ComplexStructure/Compatible/Matrix.lean` imports
+  `Topology/ComplexStructure/Basic.lean`, which besides `Action.lean` imports
+  only Tau Ceti, for `AlmostComplexStructure.homeomorphMatrix` and
+  `coe_homeomorphMatrix` in `compatibleEquivPosDefSymplectic`.
+  `Topology/Algebra/Matrix/SymplecticGroup/CompactSubgroup.lean` imports
+  `LinearAlgebra/ComplexStructure/Standard.lean`, for
+  `stabilizer_stdComplexStructure`; besides `Action.lean`, that file imports
+  this part's `Compatible.lean`, `Symplectic/Standard/Matrix.lean` of
+  *Standard model*, the library's `Geometry/Symplectic/Orientation.lean`
+  (which imports only Tau Ceti) and Tau Ceti. Since all of these files are
+  merged, the part waits for nothing of *Linear complex
+  structures*; `DESIGN.md` lists them with that note.
+- From *Symplectic group*, only the merged file
+  `LinearAlgebra/Matrix/SymplecticGroup/Basic.lean`, which imports only
+  Mathlib and Tau Ceti. `Compatible/Matrix.lean` uses
+  `Matrix.IsSymm.mem_symplecticGroup_iff` from it.
 
 ## Files, definitions and results
 
@@ -908,6 +926,17 @@ Ceti's group. It takes the shape of Tau Ceti's maximal-compact family
 the maximal compact subgroup of `GLSymplectic.maximal_isCompact_unitarySubgroup`,
 and starts no parallel API.
 
+- **Supporting file** `Topology/Algebra/Matrix/GeneralLinearGroup.lean`,
+  in the namespace `Matrix.GeneralLinearGroup` and importing only Mathlib
+  and Tau Ceti: `contRep 𝕜 ι : ContRepresentation 𝕜 (GL ι 𝕜)
+  (EuclideanSpace 𝕜 ι)`, in which a matrix acts by `toEuclideanCLM`
+  (`contRep_apply`, simp), and `continuous_contRep`. A subgroup such as $K$
+  acts through `ContRepresentation.restrict`, which is how step 1 below gets
+  its continuous action. Tau Ceti's
+  `LinearAlgebra/Matrix/GeneralLinearGroup/MaximalCompact.lean` builds the
+  same representation privately for a subgroup; this file is the public
+  version for the whole group, and is meant to move upstream next to that
+  file.
 - **Milestone** `exists_conj_smul_le_unitarySubgroup {K : Subgroup
   (GLSymplectic ι ℝ)} (hK : IsCompact (K : Set (GLSymplectic ι ℝ))) :
   ∃ g : GLSymplectic ι ℝ, MulAut.conj g • K ≤

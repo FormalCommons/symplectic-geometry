@@ -1532,30 +1532,27 @@ smoothness of `g`) and `1 ≤ n`, are stated only where that atlas is used, in
   φ.frame (z * v)`). The **equivariance** of the homeomorphism is
   `circleBundleHomeomorph_op_circle_smul (z : Circle) (φ : Fiber ℂ F E ℂ x)`:
   `circleBundleHomeomorph ⟨x, op z • φ⟩ = z • circleBundleHomeomorph ⟨x, φ⟩`.
-- The principal `Circle`-bundle. The total space with fibre `Circle`,
-  `TotalSpace Circle (Fiber ℂ F E ℂ)`, is the same set of pairs as the one
-  with fibre `unitary (ℂ →L[ℂ] ℂ)`: `totalSpaceCircleEquiv` (with `@[simp]`
-  apply and symm-apply lemmas) identifies them, the instance
-  `instTopologicalSpaceTotalSpaceCircleFiber` is the induced topology, and
-  `totalSpaceCircleHomeomorph` (with `@[simp]` coercion lemmas) is the
-  identification as a homeomorphism. In Mathlib's namespace
-  `Bundle.Trivialization`, `t.circleTrivialization` is a trivialization `t`
-  of the frame bundle read with fibre `Circle`, that is, followed by
-  `Unitary.continuousLinearMapCircleEquiv`, with `@[simp]`
-  `circleTrivialization_apply`, `circleTrivialization_symm_apply` and
-  `baseSet_circleTrivialization`, and the instances
-  `isEquivariant_circleTrivialization` and
-  `memTrivializationAtlas_circleTrivialization`. Then
-  `instFiberBundleCircleFiber : FiberBundle Circle (Fiber ℂ F E ℂ)` has the
-  trivializations of the frame bundle's atlas, read this way, as its atlas
-  (`trivializationAt_circleFiber`), and
+- The principal `Circle`-bundle. Both instances on
+  `TotalSpace Circle (Fiber ℂ F E ℂ)` come from the general change of model
+  fibre and of structure group, applied to
+  `Unitary.continuousLinearMapCircleEquiv`:
+  `instFiberBundleCircleFiber : FiberBundle Circle (Fiber ℂ F E ℂ)` is
+  `FiberBundle.changeModelFiber`
+  (`Topology/FiberBundle/ChangeModelFiber.lean`), and
   `instPrincipalBundleCircleFiber : TauCeti.PrincipalBundle Circle
-  (Fiber ℂ F E ℂ)` follows from `instPrincipalBundleFiber`. *First Chern
-  number* uses both instances. These are the hand-made form of the change of structure group
-  of `Topology/FiberBundle/Principal/ChangeGroup.lean`; #333 restates the
-  two instances through it and deletes `totalSpaceCircleEquiv`,
-  `totalSpaceCircleHomeomorph` and `circleTrivialization` with their lemmas,
-  updating this section.
+  (Fiber ℂ F E ℂ)` is `TauCeti.PrincipalBundle.changeGroup`
+  (`Topology/FiberBundle/Principal/ChangeGroup.lean`). These constructions
+  take as instance arguments the topology on the new total space and the
+  action of `Circle` on frames, so the file supplies
+  `instTopologicalSpaceTotalSpaceCircleFiber`, the topology induced along
+  `Bundle.TotalSpace.modelFiberEquiv`, and `instMulActionCircleFiber`
+  (above). Their hypotheses, that `Bundle.TotalSpace.modelFiberEquiv` is
+  inducing and that the action of `Circle` is that of
+  `unitary (ℂ →L[ℂ] ℂ)` through the isomorphism, then hold by `rfl`. The
+  trivializations are those of `instPrincipalBundleFiber` read through the
+  isomorphism by `Bundle.Trivialization.changeModelFiber`, and no
+  trivialization or total-space equivalence specific to `Circle` is
+  defined. *First Chern number* uses both instances.
 - The smooth side (smoothness of the action and of the coordinate changes,
   the diffeomorphism onto the submanifold, and the submersion, which comes
   from Tau Ceti's `TauCeti.ManifoldTotalSpace.isSubmersion_proj`) belongs to
