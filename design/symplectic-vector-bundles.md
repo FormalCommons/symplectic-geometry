@@ -73,7 +73,7 @@ variable {EB HB M : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB]
     transition maps of symplectic frames and the direct sum of complex
     structures), and each use of Tau Ceti's
     `contMDiffAt_continuousAlternatingMap_bundle_of_bilinear` (the direct sum
-    of forms and the form of a Hermitian bundle);
+    of forms);
   - finite rank of `F`: `isOpen_setOf_nondegenerate`; every result that
     uses `polarComplexStructure` (`compatible_polarComplexStructure`,
     `polarComplexStructure_tangentEquiv`, `IsNondegenerate.exists_compatible`,
@@ -119,6 +119,7 @@ variable {EB HB M : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB]
 | `LinearAlgebra/Symplectic/Standard/Basic.lean`, `.../Standard/Matrix.lean` | `StdSpace.sumEquiv` and its matrix lemma (files of *Standard model*) | 22 |
 | `Geometry/Symplectic/Manifold/Volume.lean` | the symplectic orientation of a negated two-form | 23 |
 | `Analysis/CStarAlgebra/Unitary/ContinuousLinearMap.lean` | `Unitary.continuousLinearMapSelfEquiv` | 24 |
+| `Geometry/Manifold/VectorBundle/Riemannian/Trivial.lean` | constant metrics on trivial bundles | 25 |
 | `Geometry/Manifold/VectorBundle/Hermitian/Basic.lean` | the symplectic form of a Hermitian bundle | 25 |
 | `Geometry/Manifold/VectorBundle/Hermitian/CircleBundle.lean` | the circle bundle of a Hermitian line bundle as a principal `Circle`-bundle | 26 |
 | `Geometry/Manifold/IsManifold/InteriorBoundary.lean` | the interior of a manifold with boundary as a boundaryless manifold | 12 |
@@ -166,6 +167,17 @@ in line once this design is merged.
   only for the tangent bundle of a surface, since the proof is the same
   pointwise fact; the tangent case follows through `tangentEquiv` (see
   *Constructions*).
+- The overview's `Bundle.ContMDiffRiemannianMetric.hermitianTwoForm` is not
+  defined. Under `hI` it is this design's $\omega_{g,J}$ for $J$ the
+  multiplication by `Complex.I`, so the form of a Hermitian bundle is
+  `(ContMDiffComplexStructure.ofComplexModule I n F V).compatibleForm g`,
+  and the lemmas the overview gives the form are stated for it (see
+  *Hermitian bundles*).
+- `Hermitian/CircleBundle.lean` gives the circle bundle, the action of
+  `Circle` on it and its principal-bundle instance, but not the smoothness
+  of the action, which the overview puts in that file: the smooth side is
+  left to *First Chern number*'s prerequisite 3, as that part's design
+  plans it (see *The circle bundle of a Hermitian line bundle*).
 
 ## Complex structures on a bundle
 
@@ -518,7 +530,8 @@ $[0,1]$ is never fed to the lemma with `P = ℝ` directly.
   *Standard model*'s `mem_symplecticGroup_iff_isSymplectomorphism`.
 - `IsNondegenerate.exists_isSymplecticFrameOn`: the same in the language of
   the symplectic frames of *Constructions* below. For a symplectic form `σ`
-  on a normed space `W` with `finrank ℝ W = finrank ℝ F`, every point has an
+  on a normed space `W` with `[FiniteDimensional ℝ W]` and
+  `finrank ℝ W = finrank ℝ F`, every point has an
   open neighbourhood `U` and a frame `Φ` with `ω.IsSymplecticFrameOn σ U Φ`:
   choose a linear equivalence `e : W ≃L[ℝ] F`, apply the previous result to
   the form `σ` moved to `F` along `e`, and compose `e` with the inverses of
@@ -617,16 +630,29 @@ on complex structures are in `ContMDiffComplexStructure` and in
   `IsSymplecticFrameOn.nondegenerate_bilinFormAt` (`(ω.bilinFormAt x).Nondegenerate`
   for `x ∈ U`, since `Φ x` carries it to `σ`);
   `IsSymplecticFrameOn.trans` (composing with a symplectic isomorphism `Ψ`
-  from `ω` to `ω'` gives a frame `fun x ↦ (Φ x).trans (Ψ x)` of `ω'`); and,
-  for `[FiniteDimensional ℝ W]`, the transition map of two frames `Φ`, `Φ'`
-  over `U`: `IsSymplecticFrameOn.isSymplectomorphism_transition`
-  (`(Φ x).trans (Φ' x).symm` preserves `σ` at `x ∈ U`) and
-  `IsSymplecticFrameOn.contMDiffOn_transition` (it is $C^n$ on `U` as a map
-  to `W →L[ℝ] W`, by the argument of `contMDiff_bundle_symm` restricted to
-  `U`). **Example.** `isSymplecticFrameOn_const`: on `Bundle.Trivial M W'`
+  from `ω` to `ω'` gives a frame `fun x ↦ (Φ x).trans (Ψ x)` of `ω'`).
+  **Example.** `isSymplecticFrameOn_const`: on `Bundle.Trivial M W'`
   with `const ω'`, a linear symplectomorphism `e : W ≃L[ℝ] W'` from `σ` to
   `ω'` is a frame `fun _ ↦ e` over `univ`. Existence over small open sets is
   `IsNondegenerate.exists_isSymplecticFrameOn` (*Local Darboux frames*).
+- **Transition maps.** For two families `Φ Φ' : ∀ x, W ≃L[ℝ] V x`, the
+  definition `frameTransition Φ Φ' x : W ≃L[ℝ] W` is
+  `(Φ x).trans (Φ' x).symm`, with `frameTransition_def` (by `(rfl)`),
+  `@[simp] frameTransition_apply` (`(Φ' x).symm (Φ x v)`),
+  `@[simp] frameTransition_self` (the identity) and `frameTransition_trans`
+  (`(frameTransition Φ Φ' x).trans (frameTransition Φ' Φ'' x) =
+  frameTransition Φ Φ'' x`). It uses no form, so it is in
+  `SymplecticGeometry.Bundle`; *First Chern number*'s transition loops are
+  its values along a loop. For frames `Φ`, `Φ'` of `ω` for `σ` over `U`:
+  `IsSymplecticFrameOn.isSymplectomorphism_frameTransition`
+  (`frameTransition Φ Φ' x` preserves `σ` at `x ∈ U`) and, for
+  `[FiniteDimensional ℝ W]`, `IsSymplecticFrameOn.contMDiffOn_frameTransition`
+  (`fun x ↦ (frameTransition Φ Φ' x : W →L[ℝ] W)` is $C^n$ on `U`). For the
+  latter, the fibrewise inverses of `Φ'` are $C^n$ on `U` by Tau Ceti's
+  `ContMDiffOn.clm_bundle_inverse` (`Geometry/Manifold/VectorBundle/Hom.lean`),
+  and their composite with `Φ` is $C^n$ within `U` as in the proof of Tau
+  Ceti's `ContMDiffAt.clm_bundle_comp` (Mathlib's `contMDiffWithinAt_hom_bundle`
+  and `ContMDiffWithinAt.clm_comp`).
 
 ### Pull-backs
 
@@ -638,34 +664,42 @@ For a map `f : C^n⟮I', N; I, M⟯` (the argument of Mathlib's instance
   `Bundle.Pullback`, beside Tau Ceti's lemma of the same file name:
   `Bundle.Pullback.contMDiff_continuousAlternatingMap_section_iff`, the
   analogue for alternating maps of Tau Ceti's
-  `Bundle.Pullback.contMDiff_hom_section_iff`. For a family
-  `A : ∀ y, V (f y) [⋀^ι]→L[𝕜] W (f y)`, the section `y ↦ A y` of the
-  alternating bundle of `f *ᵖ V` and `f *ᵖ W` is $C^n$ if and only if
-  `y ↦ ⟨f y, A y⟩` is $C^n$ into the alternating bundle of `V` and `W`. Its
-  proof follows Tau Ceti's: near `y`, both are read in the trivialization at
-  `f y`, and the coordinate expressions agree on a neighbourhood. No rank
-  hypothesis, over any nontrivially normed field and any finite index type
-  `ι`, as Mathlib's alternating bundle allows.
-- `Symplectic/Pullback.lean`: `ContMDiffTwoForm.pullback f ω :
-  ContMDiffTwoForm I' n F (f *ᵖ V)`, with value `ω (f y)` at `y`: Tau Ceti's
-  `ContMDiffSection.pullback ω f` (`Section/Module.lean`), a section of the
-  pull-back of the alternating bundle, made a section of the alternating
-  bundle of `f *ᵖ V` by the lemma above, since the two fibres at `y` are the
-  same type. API: `@[simp] pullback_apply`; `pullback_add`, `pullback_smul`
-  and the linear map `pullbackLinearMap f`, as Tau Ceti has them for
+  `Bundle.Pullback.contMDiff_hom_section_iff`, in its generality: a map
+  `f : K` with `[FunLike K N M] [ContinuousMapClass K N M]` and
+  `hf : ContMDiff I' I n f`. The target is a trivial bundle over each base,
+  since that is what `ContMDiffTwoForm` uses: `Bundle.Trivial N G` over `N`,
+  not the pull-back `f *ᵖ Bundle.Trivial M G`, whose fibres are the same type
+  but whose total-space topology and atlas are other instances. For a
+  family `A : ∀ y, V (f y) [⋀^ι]→L[𝕜] G`, the section `y ↦ A y` of the
+  alternating bundle of `f *ᵖ V` and `Bundle.Trivial N G` is $C^n$ if and
+  only if `y ↦ ⟨f y, A y⟩` is $C^n$ into the alternating bundle of `V` and
+  `Bundle.Trivial M G`. Its proof follows Tau Ceti's: near `y`, both are read
+  in the trivializations at `f y` and at `y`, and the coordinate expressions
+  agree on a neighbourhood. No rank hypothesis, and any finite index type
+  `ι`; the field is any nontrivially normed field with `[CharZero 𝕜]`, which
+  Mathlib's smooth-bundle instance for alternating maps asks for.
+- `Symplectic/Pullback.lean`: `ContMDiffTwoForm.pullback ω f :
+  ContMDiffTwoForm I' n F (f *ᵖ V)`, with value `ω (f y)` at `y`. The
+  argument order is that of Tau Ceti's `ContMDiffSection.pullback ω f`
+  (`Section/Module.lean`), of which `ContMDiffTwoForm` is an `abbrev`: that
+  is a section of the pull-back of the alternating bundle, and the lemma
+  above makes it a section of the alternating bundle of `f *ᵖ V`, since the
+  two fibres at `y` are the same type. API: `@[simp] pullback_apply`;
+  `pullback_add`, `pullback_smul` and the linear map
+  `pullbackLinearMap f`, as Tau Ceti has them for
   sections; `IsNondegenerate.pullback`;
   `IsNondegenerate.symplecticFormAt_pullback` (the symplectic form of the
   pull-back at `y` is that of `ω` at `f y`).
-- `ComplexStructure.lean`: `ContMDiffComplexStructure.pullback f J :
+- `ComplexStructure.lean`: `ContMDiffComplexStructure.pullback J f :
   ContMDiffComplexStructure I' n F (f *ᵖ V)`, the endomorphism section
   `y ↦ J (f y)`, which is $C^n$ by `Bundle.Pullback.contMDiff_hom_section_iff`
   itself. API: `@[simp] pullback_toEndomorphism` and `pullback_apply` (both
   `J (f y)`), `almostComplexStructureAt_pullback`, `pullback_neg`.
 - `Symplectic/Pullback.lean`, the pairs: `Tames.pullback` and
   `Compatible.pullback`, from `ω.Tames J` to
-  `(pullback f ω).Tames (J.pullback f)`, pointwise.
-- Isomorphisms: `pullback_pushforward`, the pull-back of
-  `pushforward Φ hΦ ω` is `pushforward (fun y ↦ Φ (f y)) _ (pullback f ω)`,
+  `(ω.pullback f).Tames (J.pullback f)`, pointwise.
+- Isomorphisms: `pullback_pushforward`, `(pushforward Φ hΦ ω).pullback f` is
+  `pushforward (fun y ↦ Φ (f y)) _ (ω.pullback f)`,
   the smoothness coming from Tau Ceti's `Bundle.Pullback.contMDiff_fiberwise`
   (so a symplectic isomorphism pulls back to one);
   `pushforward_pullback_id`, the pull-back along `ContMDiffMap.id`, moved to
@@ -673,9 +707,11 @@ For a map `f : C^n⟮I', N; I, M⟯` (the argument of Mathlib's instance
   `Bundle.Pullback.idDiffeomorph`), is `ω`; `pushforward_pullback_comp`, for
   `g : C^n⟮I', N; I, M⟯` and `f : C^n⟮I'', P; I', N⟯`, the pull-back along
   `g.comp f`, moved to `f *ᵖ (g *ᵖ V)` by the identity of each fibre (smooth
-  by `Bundle.Pullback.compDiffeomorph`), is `pullback f (pullback g ω)`.
+  by `Bundle.Pullback.compDiffeomorph`), is `(ω.pullback g).pullback f`.
 - Frames: `IsSymplecticFrameOn.pullback`, a frame `Φ` of `ω` over `U` gives
-  the frame `fun y ↦ Φ (f y)` of `pullback f ω` over `f ⁻¹' U`.
+  the frame `fun y ↦ Φ (f y)` of `ω.pullback f` over `f ⁻¹' U`; the
+  transition map of two pulled-back frames at `y` is
+  `frameTransition Φ Φ' (f y)` by definition.
 
 ### Direct sums
 
@@ -720,8 +756,8 @@ over the same base, on Mathlib's direct sum `V₁ ×ᵇ V₂` (`Bundle.Prod`, wi
   `U`. For the standard models, `IsSymplecticFrameOn.stdSum`: for frames
   for `stdForm ι` and `stdForm κ`, the frame
   `fun x ↦ (StdSpace.sumEquiv ι κ).trans ((Φ₁ x).prodCongr (Φ₂ x))` for
-  `stdForm (ι ⊕ κ)`; and `transition_stdSum`: if the transition maps of two
-  such pairs at `x` are `Matrix.toEuclideanLin A` and
+  `stdForm (ι ⊕ κ)`; and `frameTransition_stdSum`: if the `frameTransition`s
+  of two such pairs at `x` are `Matrix.toEuclideanLin A` and
   `Matrix.toEuclideanLin B`, that of the block frames is
   `Matrix.toEuclideanLin (Matrix.symplecticSum A B)`. So a transition loop of
   a sum is the image of the pair of loops under `TauCeti.GLSymplectic.sum`,
@@ -730,7 +766,13 @@ over the same base, on Mathlib's direct sum `V₁ ×ᵇ V₂` (`Bundle.Prod`, wi
   is built in this part, in *Standard model*'s files as `DESIGN.md` says:
   in `LinearAlgebra/Symplectic/Standard/Basic.lean` the equivalence, which
   regroups the coordinates by `Equiv.sumSumSumComm` as
-  `Matrix.symplecticSum` does, with `@[simp]` lemmas for both components,
+  `Matrix.symplecticSum` does. It is not assembled by hand but defined from
+  Mathlib's isometries:
+  `(LinearIsometryEquiv.piLpCongrLeft 2 ℝ ℝ (Equiv.sumSumSumComm ι κ ι κ)).toContinuousLinearEquiv.trans
+  EuclideanSpace.sumEquivProd` (`Analysis/Normed/Lp/PiLp.lean`,
+  `Analysis/InnerProductSpace/PiL2.lean`), which has the type above since
+  `StdSpace ι` is `EuclideanSpace ℝ (ι ⊕ ι)`. It comes with
+  `sumEquiv_def` and `@[simp]` lemmas for both components,
   and `isSymplectomorphism_sumEquiv` (it carries `stdForm (ι ⊕ κ)` to
   `(stdForm ι).prod (stdForm κ)`); in `.../Standard/Matrix.lean`,
   `sumEquiv_toEuclideanLin_symplecticSum`, which conjugates
@@ -765,8 +807,9 @@ where needed.
   `TauCeti.SmoothTwoForm.IsNondegenerate.volumeOrientation_neg`: for odd `n`
   and `hn : finrank ℝ E = 2 * n`, `h.neg.volumeOrientation hn =
   -h.volumeOrientation hn`, with Tau Ceti's `IsNondegenerate.neg` and the
-  negation of `Manifold.Orientation`. The volume form of `-σ` is $(-1)^n$
-  times that of `σ` (from the definition of `volumeForm` by `wedgePow`), and
+  negation of `Manifold.Orientation`. The volume form of `-σ = (-1) • σ` is
+  $(-1)^n$ times that of `σ` by Tau Ceti's `TauCeti.SmoothTwoForm.volumeForm_smul`
+  (same file) with `c = -1`, so no separate `volumeForm_neg` is added, and
   `Manifold.Orientation.orientation_eq_orientationAt_ofTopForm_iff` turns
   the sign of the form into the sign of the orientation at each point.
   *First Chern number* plans `volumeOrientation_eq_ofTopForm` for the same
@@ -811,44 +854,54 @@ Hausdorff σ-compact base.
   `almostComplexStructureAt_ofComplexModule` (Tau Ceti's
   `AlmostComplexStructure.ofComplexModule (V x)`), so that its
   `toContinuousComplexStructure` gives back the complex structure of `V`.
-- `Hermitian/Basic.lean`: the form
-  `Bundle.ContMDiffRiemannianMetric.hermitianTwoForm g hI :
-  ContMDiffTwoForm I n F V`, in the root namespace
-  `Bundle.ContMDiffRiemannianMetric` so that `g.hermitianTwoForm hI`
-  resolves. At `x` it is Tau Ceti's
-  `(AlmostComplexStructure.ofComplexModule (V x)).symplecticForm _`
-  (`Geometry/Symplectic/CompatibleMetric.lean`) for the inner product of
-  `g x`, the orthogonality hypothesis being `hI`. Its smoothness: the
-  bilinear section $x\mapsto g_x(i\,\cdot,\cdot)$ is `g`'s section composed
-  with that of `ofComplexModule`, and
-  `contMDiffAt_continuousAlternatingMap_bundle_of_bilinear` makes it an
-  alternating section. API:
-  - `@[simp] hermitianTwoForm_apply`: $\omega_x(v,w)=g_x(iv,w)$, from Tau
-    Ceti's `symplecticForm_apply`;
-  - `isNondegenerate_hermitianTwoForm`, from the nondegeneracy that Tau
-    Ceti's `symplecticForm` carries;
-  - `compatible_hermitianTwoForm`:
-    `(g.hermitianTwoForm hI).Compatible (ContMDiffComplexStructure.ofComplexModule I n F V)`,
-    with `hermitianTwoForm_apply_smul_I`, $\omega_x(v,iw)=g_x(v,w)$;
-  - `im_inner_eq_hermitianTwoForm`: the imaginary part of the Hermitian
-    product of `v` and `w` is $\omega_x(v,w)$, from Tau Ceti's
+- `Hermitian/Basic.lean`, namespace
+  `SymplecticGeometry.Bundle.ContMDiffComplexStructure`: the form of the
+  Hermitian bundle is no new definition. It is
+  `(ofComplexModule I n F V).compatibleForm g : ContMDiffTwoForm I n F V`,
+  the form $\omega_{g,J}$ of *Tame and compatible pairs* for $J$ the
+  multiplication by `Complex.I`. Its value
+  $\tfrac12(g_x(iv,w)-g_x(v,iw))$ is $g_x(iv,w)$ once `hI` gives
+  $g_x(v,iw)=-g_x(iv,w)$, which is the overview's form. Compatibility with
+  `ofComplexModule`, and so nondegeneracy, are `compatible_compatibleForm`
+  and `Compatible.isNondegenerate`, and its smoothness is that of
+  `compatibleForm`: nothing is proved twice. API, all under `hI`:
+  - `compatibleForm_ofComplexModule_apply`: $\omega_x(v,w)=g_x(iv,w)$, and
+    `compatibleForm_ofComplexModule_apply_smul_I`, $\omega_x(v,iw)=g_x(v,w)$;
+  - `im_inner_eq_compatibleForm_ofComplexModule`: the imaginary part of the
+    Hermitian product of `v` and `w` is $\omega_x(v,w)$, from Tau Ceti's
     `Bundle.ContMDiffRiemannianMetric.complexInnerProductSpace_inner`;
-  - the standard case, `hermitianTwoForm_trivial`: on
+  - the standard case, `compatibleForm_ofComplexModule_trivial`: on
     `Bundle.Trivial M (Fin 1 → ℂ)` with the constant metric
     $g_0(u,v)=\langle c\,u,c\,v\rangle$ for
     `c = TauCeti.complexToRealEuclidean (Fin 1)`, the fibrewise map `c`
-    is a symplectic isomorphism from `g₀.hermitianTwoForm hI₀` to
-    `const (stdForm (Fin 1))` (`pushforward` of the one is the other). So
+    is a symplectic isomorphism from `(ofComplexModule I n _ _).compatibleForm g₀`
+    to `const (stdForm (Fin 1))` (`pushforward` of the one is the other). So
     the sign agrees with *Standard model*, where `stdForm ι z w =
     ⟪J₀ z, w⟫` and `J₀` is multiplication by `Complex.I` moved along
-    `complexToRealEuclidean`. The issue defines `g₀` if Tau Ceti has no
-    constant metric on a trivial bundle.
+    `complexToRealEuclidean`. Neither Mathlib nor Tau Ceti has a constant
+    `ContMDiffRiemannianMetric` on a trivial bundle (Mathlib's instance
+    `IsContMDiffRiemannianBundle` for `Bundle.Trivial` is only a `Prop`),
+    so the issue builds `g₀` in
+    `Geometry/Manifold/VectorBundle/Riemannian/Trivial.lean`:
+    `Bundle.ContMDiffRiemannianMetric.const b hb hpos`, in the root namespace
+    since it is about Mathlib's type alone, for a symmetric positive
+    definite `b : W →L[ℝ] W →L[ℝ] ℝ` on a finite-dimensional normed space
+    `W`, on `Bundle.Trivial M W`, with `@[simp] const_inner`. Its smoothness
+    is the proof of that Mathlib instance, and finite dimension gives the
+    boundedness field. Then `g₀` is the case
+    `b = (innerSL ℝ).bilinearComp c c`. It is a candidate for Mathlib.
 
 ### The circle bundle of a Hermitian line bundle
 
 `Hermitian/CircleBundle.lean`, for a Hermitian line bundle as above
 (`finrank ℂ F = 1`), with the fibre norm of the local
-`RiemannianBundle V` given by `g.toRiemannianMetric`.
+`RiemannianBundle V` given by `g.toRiemannianMetric`. Tau Ceti's sphere-bundle
+lemmas ask for more than the rest of this part: a boundaryless base
+(`[I.Boundaryless]`), a finite-dimensional model `EB`, and fibres that are
+real inner product spaces with `[IsContMDiffRiemannianBundle I n F V]`. The
+file assumes the first two; the local `RiemannianBundle V` instance gives the
+fibres their inner products, and the smoothness of `g` gives the last as a
+local instance.
 
 - The circle bundle is the subtype
   `{p : TotalSpace F V // ‖p.snd‖ = 1}`, on which Tau Ceti's
@@ -901,8 +954,8 @@ Hausdorff σ-compact base.
 Hermitian bundle is in the one representation of *Hermitian bundles* above,
 over `S` with `I = 𝓡∂ 2` and `n = ∞`: `g : Bundle.ContMDiffRiemannianMetric
 (𝓡∂ 2) ∞ F V` and `hI : ∀ x v w, g.inner x (Complex.I • v) (Complex.I • w) =
-g.inner x v w`. The theorem uses neither `hermitianTwoForm` nor the circle
-bundle, so this issue does not wait for theirs.
+g.inner x v w`. The theorem uses neither the form of a Hermitian bundle
+nor the circle bundle, so this issue does not wait for theirs.
 
 ```lean
 theorem Bundle.ContMDiffRiemannianMetric.exists_orthonormal_contMDiffSection_of_boundary_nonempty
@@ -996,17 +1049,21 @@ it, its design adds it.
   `contMDiffAt_continuousAlternatingMap_bundle_of_bilinear`, the linear
   `SymplecticForm.prod` and `AlmostComplexStructure.prod` with their tame and
   compatible lemmas, `GLSymplectic.sum` and `maslovIndex_sum`,
-  `contMDiff_smulIEquiv_bundle`, `AlmostComplexStructure.symplecticForm`,
+  `contMDiff_smulIEquiv_bundle`,
   `complexInnerProductSpace`, the sphere bundle, the orthonormal frame bundle
   with its principal-bundle instance, `circleEquivUnitary`, the one-dimensional
-  `StrongUnitary` isomorphisms, and the symplectic orientation
-  `IsNondegenerate.volumeOrientation`.
+  `StrongUnitary` isomorphisms, the symplectic orientation
+  `IsNondegenerate.volumeOrientation` with `volumeForm_smul`, and
+  `ContMDiffOn.clm_bundle_inverse` for transition maps.
 - **Mathlib:** smooth vector bundles, the bundles of linear and alternating
   maps, `ContMDiffSection`, `IsLocalFrameOn`, `Bundle.ContMDiffRiemannianMetric`,
   manifolds with boundary (`ModelWithCorners.interior`, `boundary`),
   `ContractibleSpace`, `ContinuousMap.HomotopyEquiv`, and smooth approximation
   (`exists_contMDiffMap_forall_mem_convex_of_local` and its section
-  version `exists_contMDiffSection_forall_mem_convex_of_local`).
+  version `exists_contMDiffSection_forall_mem_convex_of_local`); for the
+  constructions, `EuclideanSpace.sumEquivProd`,
+  `LinearIsometryEquiv.piLpCongrLeft`, and the proof of the instance
+  `IsContMDiffRiemannianBundle` on `Bundle.Trivial`.
 - **Other parts.** *Linear Moser* (part 10) for the complex-to-symplectic
   direction of the classification, with the parametric smoothness of issue 10.
   *Standard model* for the corollary on `Matrix.symplecticGroup`, for
@@ -1165,8 +1222,8 @@ issue may start once its blockers are merged. Issues 1, 3, 4, 10, 12–15, 18,
     Blockers: none.
 19. **Symplectic isomorphisms, frames and forms of rank two.**
     `Symplectic/Basic.lean`: `pushforward_eq_iff`, `IsSymplecticFrameOn` with
-    its API and `isSymplecticFrameOn_const`, and
-    `isNondegenerate_iff_forall_ne_zero_of_finrank_eq_two`. Blockers: 3.
+    its API and `isSymplecticFrameOn_const`, `frameTransition` with its API,
+    and `isNondegenerate_iff_forall_ne_zero_of_finrank_eq_two`. Blockers: 3.
 20. **Pull-back, direct sum and multiplication by `Complex.I` for complex
     structures.** `ComplexStructure.lean`: `ContMDiffComplexStructure.pullback`,
     `prod` and `ofComplexModule` with their API. Blockers: 1.
@@ -1180,7 +1237,7 @@ issue may start once its blockers are merged. Issues 1, 3, 4, 10, 12–15, 18,
     `ContMDiffTwoForm.prod` with its API, `Tames.prod`, `Compatible.prod`,
     `pushforward_prodCongr`, `pushforward_prodComm`,
     `IsSymplecticFrameOn.prod`, `IsSymplecticFrameOn.stdSum` and
-    `transition_stdSum`. If it grows past a few hundred lines,
+    `frameTransition_stdSum`. If it grows past a few hundred lines,
     `StdSpace.sumEquiv` goes first, on its own. Blockers: 5, 19, 20.
 23. **The orientation of a negated two-form.**
     `Geometry/Symplectic/Manifold/Volume.lean`:
@@ -1189,11 +1246,16 @@ issue may start once its blockers are merged. Issues 1, 3, 4, 10, 12–15, 18,
 24. **Unitaries of `𝕜 →L[𝕜] 𝕜`.**
     `Analysis/CStarAlgebra/Unitary/ContinuousLinearMap.lean`:
     `Unitary.continuousLinearMapSelfEquiv` with its API. Blockers: none.
-25. **The symplectic form of a Hermitian bundle.** `Hermitian/Basic.lean`:
-    `hermitianTwoForm` with its API and the standard case. Blockers: 5, 20.
+25. **The symplectic form of a Hermitian bundle.**
+    `Riemannian/Trivial.lean`: `Bundle.ContMDiffRiemannianMetric.const`;
+    then `Hermitian/Basic.lean`: the lemmas on
+    `(ofComplexModule I n F V).compatibleForm g` and the standard case.
+    Blockers: 5, 20.
 26. **The circle bundle of a Hermitian line bundle.**
     `Hermitian/CircleBundle.lean`: `circleBundleHomeomorph`, the action of
-    `Circle` and the `TauCeti.PrincipalBundle Circle` instance. Blockers: 24.
+    `Circle` and the `TauCeti.PrincipalBundle Circle` instance, under the
+    hypotheses of Tau Ceti's sphere-bundle lemmas that its section lists
+    (`[I.Boundaryless]` among them). Blockers: 24.
 
 The issues of *First Chern number* that its design says wait for "the issues
 from #57" wait for these: its pull-backs and isomorphisms for 19 and 21, its
