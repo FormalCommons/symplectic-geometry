@@ -235,8 +235,8 @@ finite-dimensional manifold `M` without boundary.
 * For a smooth time-dependent Hamiltonian `H`, the local time-dependent flow `φ` of the fields
   `X_{H_t}` preserves `σ` wherever it is defined, and satisfies the energy identity
   `d/du H_u(φ_{s,u} x) = (∂_t H_t)(φ_{s,t} x)` at `u = t`.
-* On smooth functions, the bracket `{f, g} = σ(X_f, X_g) = df(X_g)` is bilinear,
-  skew-symmetric, and satisfies the Jacobi identity and the Leibniz rule.
+* On smooth functions, the bracket `{f, g} = σ(X_f, X_g) = df(X_g)` is linear in each argument
+  and antisymmetric, and the Jacobi identity and the Leibniz rule hold for it.
 * `X_{{f, g}} = -[X_f, X_g]` for Mathlib's bracket `VectorField.mlieBracket`; that is,
   `X_{{f, g}}` is the bracket of `X_f` and `X_g` in McDuff–Salamon's convention.
 * For a symplectomorphism `χ`, `dχ_q (X_{f ∘ χ}(q)) = X_f(χ q)`, that is `X_{f ∘ χ} = χ^* X_f`.
