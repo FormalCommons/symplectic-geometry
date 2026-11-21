@@ -30,6 +30,10 @@ structures.
   `u : ι → ℂ` to its real parts (`x`) and imaginary parts (`y`).
 * `SymplecticGeometry.stdComplexStructure ι` is `J₀`, the transport of multiplication by `I`,
   so that `x (J₀ z) = -y z` and `y (J₀ z) = x z`; it is the map of `Matrix.J ι ℝ`.
+* `SymplecticGeometry.StdSpace.complexEuclideanEquiv ι` identifies `EuclideanSpace ℂ ι` with
+  `StdSpace ι` by real and imaginary parts, so that subspaces of `ℂⁿ` can be compared with
+  subspaces of the model; it carries multiplication by `I` to `J₀`
+  (`stdComplexStructure_complexEuclideanEquiv`).
 
 The main facts fixing the conventions are `stdForm_apply`
 (`ω₀(z, w) = ∑ᵢ (xᵢ(z) yᵢ(w) - yᵢ(z) xᵢ(w))`), `stdComplexStructure_eq_toEuclideanLin_J`,
@@ -123,6 +127,30 @@ theorem y_complexToRealEuclidean (u : ι → ℂ) :
   ext i
   simp [complexToRealEuclidean_apply]
 
+variable (ι) in
+/-- The real-linear identification of `ℂⁿ = EuclideanSpace ℂ ι` with the standard model
+`ℝ²ⁿ = StdSpace ι`, sending `v` to `(Re v, Im v)`. It is how subspaces of `ℂⁿ` (as in Tau Ceti's
+totally real geometry) are compared with subspaces of `StdSpace ι`. -/
+noncomputable def complexEuclideanEquiv : EuclideanSpace ℂ ι ≃L[ℝ] StdSpace ι :=
+  (PiLp.continuousLinearEquiv 2 ℝ (fun _ : ι ↦ ℂ)).trans (complexToRealEuclidean ι)
+
+theorem complexEuclideanEquiv_def :
+    complexEuclideanEquiv ι =
+      (PiLp.continuousLinearEquiv 2 ℝ (fun _ : ι ↦ ℂ)).trans (complexToRealEuclidean ι) :=
+  (rfl)
+
+/-- The `x`-coordinates of `complexEuclideanEquiv ι v` are the real parts of `v`. -/
+@[simp]
+theorem x_complexEuclideanEquiv (v : EuclideanSpace ℂ ι) :
+    (complexEuclideanEquiv ι v).x = fun i ↦ (v i).re := by
+  simp [complexEuclideanEquiv_def]
+
+/-- The `y`-coordinates of `complexEuclideanEquiv ι v` are the imaginary parts of `v`. -/
+@[simp]
+theorem y_complexEuclideanEquiv (v : EuclideanSpace ℂ ι) :
+    (complexEuclideanEquiv ι v).y = fun i ↦ (v i).im := by
+  simp [complexEuclideanEquiv_def]
+
 /-- The inner product of the standard model in coordinates. -/
 theorem inner_eq_sum (z w : StdSpace ι) :
     inner ℝ z w = ∑ i, (z.x i * w.x i + z.y i * w.y i) := by
@@ -209,6 +237,12 @@ theorem stdComplexStructure_apply_inr (z : StdSpace ι) (i : ι) :
     stdComplexStructure ι z (Sum.inr i) = z (Sum.inl i) := by
   rw [← y_apply, stdComplexStructure_y]
   rfl
+
+/-- `complexEuclideanEquiv ι` carries multiplication by `I` on `ℂⁿ` to `J₀`. -/
+@[simp]
+theorem stdComplexStructure_complexEuclideanEquiv (v : EuclideanSpace ℂ ι) :
+    stdComplexStructure ι (complexEuclideanEquiv ι v) = complexEuclideanEquiv ι (Complex.I • v) :=
+  StdSpace.ext (by simp [Pi.neg_def]) (by simp)
 
 /-- `J₀` is the linear map of the matrix `Matrix.J ι ℝ = !![0, -1; 1, 0]`. -/
 theorem stdComplexStructure_eq_toEuclideanLin_J [DecidableEq ι] :
