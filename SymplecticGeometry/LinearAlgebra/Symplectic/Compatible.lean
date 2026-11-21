@@ -7,10 +7,10 @@ module
 
 public import Mathlib.LinearAlgebra.Dual.Lemmas
 public import Mathlib.Tactic.TFAE
+public import SymplecticGeometry.Geometry.Symplectic.Darboux.EuclideanBasis
 public import SymplecticGeometry.LinearAlgebra.ComplexStructure.Action
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Subspace
-public import TauCeti.Geometry.Symplectic.Darboux.EuclideanBasis
 public import TauCeti.Geometry.Symplectic.Hermitian
 public import TauCeti.Geometry.Symplectic.WeightDecomposition
 
@@ -290,26 +290,6 @@ theorem Tames.lineMap_one (h₀ : ω₀.Tames J) (h₁ : ω₁.Tames J)
 end LineMap
 
 end TauCeti.SymplecticForm
-
-namespace Module.Basis
-
-variable {V : Type*} [AddCommGroup V] [Module ℝ V]
-
-/-- For a basis `b` with `b (k, 1) = J (b (k, 0))`, the coordinate equivalence
-`b.darbouxBasisEquiv` is complex linear from `J` to the product structure `(x, y) ↦ (-y, x)` on
-`EuclideanSpace ℝ (Fin n) × EuclideanSpace ℝ (Fin n)`. -/
-theorem isComplexLinearMap_darbouxBasisEquiv {J : TauCeti.AlmostComplexStructure V} {n : ℕ}
-    {b : Basis (Fin n × Fin 2) ℝ V} (hbJ : ∀ k, b (k, 1) = J (b (k, 0))) :
-    TauCeti.IsComplexLinearMap J (TauCeti.AlmostComplexStructure.product _)
-      b.darbouxBasisEquiv.toLinearMap := by
-  unfold TauCeti.IsComplexLinearMap
-  refine b.ext fun ⟨k, i⟩ ↦ ?_
-  have hJ₁ : J (b (k, 1)) = -b (k, 0) := by rw [hbJ, J.apply_apply]
-  fin_cases i
-  · simp [← hbJ]
-  · simp [hJ₁]
-
-end Module.Basis
 
 namespace SymplecticGeometry
 
