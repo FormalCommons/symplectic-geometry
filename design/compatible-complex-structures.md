@@ -81,7 +81,12 @@ and does not redefine any of it:
   `isAlt_toBilinForm_skewSymmetrizeBilinear` and
   `nondegenerate_toBilinForm_skewSymmetrizeBilinear_iff` (nondegenerate
   exactly when $s-s^{\mathrm{flip}}$ is, by Tau Ceti's
-  `TauCeti.BilinForm.nondegenerate_smul_iff`).
+  `TauCeti.BilinForm.nondegenerate_smul_iff`), and
+  `isOpen_setOf_nondegenerate_toBilinForm_sub_flip` (in finite dimension,
+  the $s$ with $s-s^{\mathrm{flip}}$ nondegenerate are open).
+- For an alternating sesquilinear map $B$, $B-B^{\mathrm{flip}}=2\cdot B$,
+  `LinearMap.IsAlt.sub_flip_eq_two_smul`, which Mathlib lacks; the library
+  adds it in `LinearAlgebra/SesquilinearForm.lean`.
 - The Cayley transform (`Geometry/Symplectic/Cayley/`): `cayleyFormula`,
   `cayleyPathFormula`, `contDiffAt_cayleyPathFormula`,
   `Compatible.cayleyEquiv`, `Compatible.cayleyInterp`,
@@ -347,6 +352,12 @@ request updates it to the files below. Each change, with its reason:
   equivalence between forms and complex structures needs a topology on
   `SymplecticForm V`. Neither Tau Ceti nor the overview gives one. It is a
   topic parallel to `InnerProducts.lean`.
+- **New `LinearAlgebra/SesquilinearForm.lean`.** It holds
+  `LinearMap.IsAlt.sub_flip_eq_two_smul`, for
+  `toContinuousBilinearMap_sub_flip`. The identity is linear algebra on
+  Mathlib's alternating maps alone, so it sits in the file named after
+  Mathlib's `LinearAlgebra/SesquilinearForm/Basic.lean`, which defines
+  `LinearMap.IsAlt`.
 - **`Tames.lineMap` in `LinearAlgebra/Symplectic/Compatible.lean`.** The
   straight line between two forms that tame one complex structure is used by
   this part's homotopy on forms and by *Symplectic vector bundles*. It is
@@ -571,7 +582,8 @@ This is $\Omega(V)$, in `TauCeti.SymplecticForm`.
   a `SymplecticForm`), with `@[simp]` `ofContinuousBilinearMap_apply` and
   `toBilinForm_toContinuousBilinearMap_ofContinuousBilinearMap`.
 - `toContinuousBilinearMap_sub_flip (ω : SymplecticForm V)`: writing `B` for
-  `ω.toBilinForm.toContinuousBilinearMap`, `B - B.flip = (2 : ℝ) • B`; and
+  `ω.toBilinForm.toContinuousBilinearMap`, `B - B.flip = (2 : ℝ) • B`, from
+  `LinearMap.IsAlt.sub_flip_eq_two_smul`; and
   `@[simp] skewSymmetrizeBilinear_toContinuousBilinearMap (ω : SymplecticForm V)`:
   `B.skewSymmetrizeBilinear = B`, so the skew part of a symplectic form is
   the form itself, by `skewSymmetrizeBilinear_of_isAlt`.
@@ -687,7 +699,7 @@ The file uses helpers stated in their own files:
     `nondegenerate_toBilinForm_skewSymmetrizeBilinear_iff`;
   - `isOpen_polarDomain (V) [FiniteDimensional ℝ V] : IsOpen (polarDomain V)`,
     from Tau Ceti's `isOpen_setOf_forall_bilinear_apply_self_pos` and
-    `isOpen_setOf_nondegenerate_toBilinForm`.
+    `isOpen_setOf_nondegenerate_toBilinForm_sub_flip`.
 - `SymplecticGeometry.mem_polarDomain [FiniteDimensional ℝ V]
   (g : innerProducts V) (ω : SymplecticForm V) :
   ((g : V →L[ℝ] V →L[ℝ] ℝ), ω.toBilinForm.toContinuousBilinearMap) ∈
@@ -908,7 +920,11 @@ This is Proposition 2.5.6, for a fixed `g : innerProducts V`, in
   `metricSymplecticForms g : Set (SymplecticForm V)` ($\Omega(V,g)$, the forms
   $g(J\cdot,\cdot)$ for $J\in\mathcal{J}(V,g)$), with their `@[simp]`
   membership lemmas `mem_metricComplexStructures` and
-  `mem_metricSymplecticForms`.
+  `mem_metricSymplecticForms`, `metricSymplecticForms_eq_image`, and
+  `compatible_metricSymplecticForm`,
+  `metricPolarComplexStructure_metricSymplecticForm` and
+  `metricSymplecticForm_metricPolarComplexStructure`, by which the inverses
+  below fix the subsets.
 - `polarHomotopyEquiv g : ContinuousMap.HomotopyEquiv (SymplecticForm V)
   (AlmostComplexStructure V)`, with maps $\omega\mapsto J_{g,\omega}$ and
   $J\mapsto\omega_{g,J}$, stated by the `@[simp]` lemmas
@@ -968,9 +984,13 @@ This is Proposition 2.5.6, for a fixed `g : innerProducts V`, in
 - `metricComplexStructuresHomotopyEquiv g` and
   `metricSymplecticFormsHomotopyEquiv g`, whose forward maps are the
   inclusions. Their inverses are $J\mapsto J_{g,\omega_{g,J}}$ and
-  $\omega\mapsto\omega_{g,J_{g,\omega}}$. Each comes with `@[simp]` `_toFun`
-  and `_symm_apply` lemmas that state these maps, as
-  `polarHomotopyEquiv_symm_apply` does. Neither has a homotopy of its
+  $\omega\mapsto\omega_{g,J_{g,\omega}}$. Each is Tau Ceti's
+  `ContinuousMap.HomotopyEquiv.ofDeformationRetraction`, and comes with a
+  `@[simp]` `_toFun` lemma (the forward map is `ContinuousMap.subtypeVal _`),
+  an `_apply` lemma, and, for the inverse, a `@[simp]` `coe_…_symm_apply`
+  lemma, in Mathlib's simp normal form `⇑h.symm` of `⇑h.invFun` as
+  `polarHomotopyEquiv_symm_apply` is; its `coe_` is the inclusion of the
+  subset, since the inverse maps into it. Neither has a homotopy of its
   own, nor a restriction of one. On the subsets, the inverses fix every
   point, by `metricPolarComplexStructure_eq_iff` (and, on
   `metricSymplecticForms g`, `metricSymplecticForm_eq_of_apply_apply`), so the composite on the
@@ -979,7 +999,7 @@ This is Proposition 2.5.6, for a fixed `g : innerProducts V`, in
   the whole space is $J\mapsto J_{g,\omega_{g,J}}$, respectively
   $\omega\mapsto\omega_{g,J_{g,\omega}}$, so `right_inv` is
   `polarCayleyHomotopy g`, respectively `polarStraightHomotopy g`, unchanged
-  up to `ContinuousMap.Homotopy.cast`. Their values are thus
+  and with no cast. Their values are thus
   `polarCayleyHomotopy_apply` and `toBilinForm_polarStraightHomotopy_apply`.
 - **Milestone** `metricPolarComplexStructure_eq_inverse_mul_and_homotopyEquiv`,
   named after its first and last conjuncts. Its `V` carries only
@@ -987,7 +1007,9 @@ This is Proposition 2.5.6, for a fixed `g : innerProducts V`, in
   inner product: an `InnerProductSpace ℝ V` instance would have to induce the
   norm `V` already has, which fails for a sup norm or a normed bundle fibre.
   It is the conjunction of the following:
-  - the plan's definition: `metricPolarComplexStructure_eq_inverse_mul`;
+  - the plan's definition: `metricPolarComplexStructure_eq_inverse_mul`,
+    with the existence of `A` and `Q`,
+    `exists_operator_and_sqrt_neg_mul_self`;
   - smoothness, through an auxiliary space: for every real inner product
     space `W` and every `e : V ≃L[ℝ] W`, `polarDomain W` is open
     (`isOpen_polarDomain`), `contDiffOn_metricPolarFormula` holds on it, and,
