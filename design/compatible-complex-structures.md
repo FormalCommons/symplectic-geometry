@@ -81,7 +81,12 @@ and does not redefine any of it:
   `isAlt_toBilinForm_skewSymmetrizeBilinear` and
   `nondegenerate_toBilinForm_skewSymmetrizeBilinear_iff` (nondegenerate
   exactly when $s-s^{\mathrm{flip}}$ is, by Tau Ceti's
-  `TauCeti.BilinForm.nondegenerate_smul_iff`).
+  `TauCeti.BilinForm.nondegenerate_smul_iff`), and
+  `isOpen_setOf_nondegenerate_toBilinForm_sub_flip` (in finite dimension,
+  the $s$ with $s-s^{\mathrm{flip}}$ nondegenerate are open).
+- For an alternating sesquilinear map $B$, $B-B^{\mathrm{flip}}=2\cdot B$,
+  `LinearMap.IsAlt.sub_flip_eq_two_smul`, which Mathlib lacks; the library
+  adds it in `LinearAlgebra/SesquilinearForm.lean`.
 - The Cayley transform (`Geometry/Symplectic/Cayley/`): `cayleyFormula`,
   `cayleyPathFormula`, `contDiffAt_cayleyPathFormula`,
   `Compatible.cayleyEquiv`, `Compatible.cayleyInterp`,
@@ -356,6 +361,12 @@ request updates it to the files below. Each change, with its reason:
   equivalence between forms and complex structures needs a topology on
   `SymplecticForm V`. Neither Tau Ceti nor the overview gives one. It is a
   topic parallel to `InnerProducts.lean`.
+- **New `LinearAlgebra/SesquilinearForm.lean`.** It holds
+  `LinearMap.IsAlt.sub_flip_eq_two_smul`, for
+  `toContinuousBilinearMap_sub_flip`. The identity is linear algebra on
+  Mathlib's alternating maps alone, so it sits in the file named after
+  Mathlib's `LinearAlgebra/SesquilinearForm/Basic.lean`, which defines
+  `LinearMap.IsAlt`.
 - **`Tames.lineMap` in `LinearAlgebra/Symplectic/Compatible.lean`.** The
   straight line between two forms that tame one complex structure is used by
   this part's homotopy on forms and by *Symplectic vector bundles*. It is
@@ -580,7 +591,8 @@ This is $\Omega(V)$, in `TauCeti.SymplecticForm`.
   a `SymplecticForm`), with `@[simp]` `ofContinuousBilinearMap_apply` and
   `toBilinForm_toContinuousBilinearMap_ofContinuousBilinearMap`.
 - `toContinuousBilinearMap_sub_flip (ω : SymplecticForm V)`: writing `B` for
-  `ω.toBilinForm.toContinuousBilinearMap`, `B - B.flip = (2 : ℝ) • B`; and
+  `ω.toBilinForm.toContinuousBilinearMap`, `B - B.flip = (2 : ℝ) • B`, from
+  `LinearMap.IsAlt.sub_flip_eq_two_smul`; and
   `@[simp] skewSymmetrizeBilinear_toContinuousBilinearMap (ω : SymplecticForm V)`:
   `B.skewSymmetrizeBilinear = B`, so the skew part of a symplectic form is
   the form itself, by `skewSymmetrizeBilinear_of_isAlt`.
@@ -696,7 +708,7 @@ The file uses helpers stated in their own files:
     `nondegenerate_toBilinForm_skewSymmetrizeBilinear_iff`;
   - `isOpen_polarDomain (V) [FiniteDimensional ℝ V] : IsOpen (polarDomain V)`,
     from Tau Ceti's `isOpen_setOf_forall_bilinear_apply_self_pos` and
-    `isOpen_setOf_nondegenerate_toBilinForm`.
+    `isOpen_setOf_nondegenerate_toBilinForm_sub_flip`.
 - `SymplecticGeometry.mem_polarDomain [FiniteDimensional ℝ V]
   (g : innerProducts V) (ω : SymplecticForm V) :
   ((g : V →L[ℝ] V →L[ℝ] ℝ), ω.toBilinForm.toContinuousBilinearMap) ∈
