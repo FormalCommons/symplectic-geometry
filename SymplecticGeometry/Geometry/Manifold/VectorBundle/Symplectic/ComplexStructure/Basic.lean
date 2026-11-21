@@ -54,6 +54,8 @@ tangent bundle, and for a nondegenerate form they are, on each fibre, Tau Ceti's
 * `convex_setOf_tames`, `convex_setOf_invariant`, `convex_setOf_compatible`: the two-forms
   taming, invariant under, or compatible with a fixed complex structure form a convex set.
 * `ContMDiffComplexStructure.compatible_compatibleForm`: `ω_{g,J}` is compatible with `J`.
+* `ContMDiffTwoForm.Compatible.compatibleForm_metric`: for a compatible pair `(ω, J)`, the form
+  `ω_{g,J}` of the metric `g = Compatible.metric` is `ω` again.
 * `IsNondegenerate.polarFormulaAt_flat`: the polar formula of
   `Bundle.ContMDiffRiemannianMetric.polarFormulaAt` at the flat map of a nondegenerate form is
   Tau Ceti's linear polar complex structure.
@@ -388,11 +390,14 @@ private theorem compatibleMetricBilin_apply (x : M) (u v : V x) :
     compatibleMetricBilin ω J x u v = -ω.bilinFormAt x (J x u) v := by
   simp [compatibleMetricBilin, flat_apply, bilinFormAt_apply]
 
-/-- For a compatible pair, `ω(u, J v) = -ω(J u, v)`. -/
-private theorem Compatible.bilinFormAt_apply_eq_neg (hc : ω.Compatible J) (x : M) (u v : V x) :
-    ω.bilinFormAt x u (J x v) = -ω.bilinFormAt x (J x u) v := by
-  rw [← invariant_def.1 hc.invariant x u (J x v), ContMDiffComplexStructure.apply_apply,
-    map_neg]
+/-- For a compatible pair, the bilinear section `-ω(J u, v)` is `ω(u, J v)`. -/
+private theorem Compatible.compatibleMetricBilin_apply (hc : ω.Compatible J) (x : M)
+    (u v : V x) : compatibleMetricBilin ω J x u v = ω.bilinFormAt x u (J x v) := by
+  simpa [ContMDiffTwoForm.compatibleMetricBilin_apply] using neg_eq_iff_eq_neg.2
+    ((J.almostComplexStructureAt x).bilinForm_apply_left_eq_neg_apply_right
+      (g := ω.bilinFormAt x) (fun v w ↦ by
+        simpa only [ContMDiffComplexStructure.almostComplexStructureAt_apply] using
+          hc.invariant x v w) u v)
 
 variable [FiniteDimensional ℝ F]
 
@@ -404,16 +409,30 @@ def Compatible.metric (hc : ω.Compatible J) : ContMDiffRiemannianMetric I n F V
     refine (TauCeti.Manifold.mem_positiveDefiniteBilinearSections _).2
       ⟨(TauCeti.Manifold.mem_symmetricBilinearSections _).2 fun x u v ↦ ?_,
       fun x v hv ↦ ?_⟩
-    · rw [compatibleMetricBilin_apply, compatibleMetricBilin_apply,
-        ← hc.bilinFormAt_apply_eq_neg, (ω.isAlt_bilinFormAt x).neg_eq]
-    · rw [compatibleMetricBilin_apply, ← hc.bilinFormAt_apply_eq_neg]
+    · rw [ContMDiffTwoForm.compatibleMetricBilin_apply x u v,
+        hc.compatibleMetricBilin_apply x v u,
+        (ω.isAlt_bilinFormAt x).neg_eq]
+    · rw [hc.compatibleMetricBilin_apply]
       exact tames_def.1 hc.tames x v hv
 
 /-- The metric of a compatible pair is `g(u, v) = ω(u, J v)`. -/
+@[simp]
 theorem Compatible.metric_inner (hc : ω.Compatible J) (x : M) (u v : V x) :
     hc.metric.inner x u v = ω.bilinFormAt x u (J x v) :=
   (ContMDiffRiemannianMetric.ofPositiveDefiniteSection_inner _ _ x u v).trans
-    ((compatibleMetricBilin_apply x u v).trans (hc.bilinFormAt_apply_eq_neg x u v).symm)
+    (hc.compatibleMetricBilin_apply x u v)
+
+/-- The form `ω_{g,J}` of the metric `g` of a compatible pair `(ω, J)` is `ω` again: `metric`
+and `ContMDiffComplexStructure.compatibleForm` are inverse to each other on compatible forms. -/
+@[simp]
+theorem Compatible.compatibleForm_metric (hc : ω.Compatible J) :
+    ContMDiffComplexStructure.compatibleForm hc.metric J = ω := by
+  refine ext_bilinFormAt fun x ↦ LinearMap.ext₂ fun u v ↦ ?_
+  have h := invariant_def.1 hc.invariant x u v
+  simp only [bilinFormAt_apply, ContMDiffComplexStructure.compatibleForm_apply, metric_inner,
+    Matrix.cons_val_zero, Matrix.cons_val_one, ContMDiffComplexStructure.apply_apply,
+    map_neg] at h ⊢
+  linarith
 
 /-- On each fibre, the metric of a compatible pair is the metric `ω_x(·, J_x ·)` of the linear
 compatible pair. -/

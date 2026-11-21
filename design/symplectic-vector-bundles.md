@@ -490,7 +490,8 @@ the form and of the structure are independent.
 - The metric of a compatible pair: for `hc : ω.Compatible J`,
   `ContMDiffTwoForm.Compatible.metric hc : Bundle.ContMDiffRiemannianMetric I n F V`
   (`[FiniteDimensional ℝ F]`), with `Compatible.metric_inner`
-  (`hc.metric.inner x u v = ω.bilinFormAt x u (J x v)`) and
+  (`hc.metric.inner x u v = ω.bilinFormAt x u (J x v)`),
+  `Compatible.compatibleForm_metric` (`compatibleForm hc.metric J = ω`) and
   `Compatible.symplecticFormAt_apply_apply_eq_metric_inner`, the same on each
   fibre for the linear pair, the hypothesis of Tau Ceti's lemmas on an inner
   product of the form `ω(·, J ·)` (`Geometry/Symplectic/CompatibleMetric.lean`).
@@ -1905,7 +1906,7 @@ it, its design adds it.
   part uses nothing from *Compatible complex structures* (part 9) beyond what
   Tau Ceti already has: the fibrewise constructions it needs (the Cayley path,
   $J_{g,\omega}$, $\omega_{g,J}$, the complex-linear part) are Tau Ceti's
-  linear ones or explicit formulas. There are three exceptions. The first is
+  linear ones or explicit formulas. There are four exceptions. The first is
   the polar formula on the bundle of bilinear forms (`polarFormulaDomain`,
   `polarFormulaAt` and `contMDiffOn_polarFormulaAt`), from which both the
   smoothness of `polarComplexStructure` and `polarEndAt` with its
@@ -1935,8 +1936,11 @@ it, its design adds it.
   it is part 9's `TauCeti.SymplecticForm.Tames.lineMap`, with
   `Tames.toBilinForm_lineMap`, from its linear
   `LinearAlgebra/Symplectic/Compatible.lean`, which is part 9's building
-  issue 1, with no blocker; it makes issue 8 wait for that issue too. So
-  issues 6, 7 and 8 wait for part 9.
+  issue 1, with no blocker; it makes issue 8 wait for that issue too. The
+  fourth is the converse `isDarbouxBasis_iff_apply_apply_eq_ite`, which
+  issue 9 adds to the same `LinearAlgebra/Symplectic/Compatible.lean` and
+  uses for its Darboux frames. Part 9's building issue 1 is merged, so issue 9
+  needs no new blocker. So issues 6, 7 and 8 wait for part 9.
 
 ## Building issues
 
