@@ -340,11 +340,15 @@ further when they grow, following `AGENTS.md`.
   along the
   stable range, which commutes with $\det$; and its corollary that
   $\mathrm{SU}(n)$ (Mathlib's `Matrix.specialUnitaryGroup`) is simply
-  connected, for $n\ge1$ through the homeomorphism
-  $\mathrm{U}(n)\cong\mathrm{SU}(n)\times S^1$,
-  $A\mapsto(A\operatorname{diag}(\det A^{-1},1,\dots,1),\det A)$, with the
-  diagonal factor built by `TauCeti.unitaryTorusHom`, under which
-  $\det$ is the second projection, and for $n=0$ because the group is a point.
+  connected, for $n\ge1$ through the continuous retraction
+  `Matrix.UnitaryGroup.toSpecialUnitary` of $\mathrm{U}(n)$ onto $\mathrm{SU}(n)$,
+  $A\mapsto A\operatorname{diag}(1,\dots,\det A^{-1},\dots,1)$ with the
+  correcting entry at a chosen index $i_0$ and the diagonal factor
+  `Matrix.UnitaryGroup.detSection` built by `TauCeti.unitaryTorusHom`: a loop
+  in $\mathrm{SU}(n)$ is trivial in $\pi_1(\mathrm{U}(n))$, since its
+  determinant is constant, and the retraction carries the null-homotopy back.
+  For $n=0$ the group is a point. The retraction and the facts about `detCircle`
+  it uses are in `Analysis/Matrix/UnitaryGroup/Basic.lean`.
   Tau Ceti's `Matrix.instSimplyConnectedSpaceSpecialUnitaryGroupFinTwoComplex`
   is the case $n=2$. Last, `Analysis/Matrix/SymplecticGroup/FundamentalGroup.lean`
   ($\pi_1(\mathrm{Sp}(2n))\cong\mathbb{Z}$ for $n\ge1$, through *Symplectic
