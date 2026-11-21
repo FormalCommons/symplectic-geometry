@@ -788,7 +788,12 @@ it into issues; the overview fixes its folders and its dependencies.
   (a compact subgroup of the symplectic group lies in some conjugate of
   $\mathrm{U}(n)$, from Tau Ceti's
   `exists_compatible_forall_isComplexLinearMap` and the transport of a
-  compatible pair to $(\omega_0,J_0)$).
+  compatible pair to $(\omega_0,J_0)$), with the general file
+  `Topology/Algebra/Matrix/GeneralLinearGroup.lean` (the standard
+  representation of `GL ι 𝕜` on `EuclideanSpace 𝕜 ι` as a continuous
+  representation, `Matrix.GeneralLinearGroup.contRep`; it imports only
+  Mathlib and Tau Ceti, and belongs upstream beside Tau Ceti's
+  `MaximalCompact.lean`, whose private version of it it makes public).
 - **Builds on:** *Standard model*; *Symplectic vector spaces* for the
   Lagrangian extension lemma, used in one characterization.
 - **Milestones:** *Characterizations of compatible complex structures*,
