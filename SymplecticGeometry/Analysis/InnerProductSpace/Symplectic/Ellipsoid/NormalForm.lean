@@ -58,6 +58,20 @@ theorem stdDarbouxBasisOf_def {m : ℕ} (τ : Fin m ≃ ι) :
         (LinearIsometryEquiv.piLpCongrLeft 2 ℝ ℝ (τ.sumCongr τ)).toLinearEquiv) :=
   (rfl)
 
+/-- The basis vector of index `(k, 0)` in `stdDarbouxBasisOf τ` is the unit vector of
+`x_{τ k}`. -/
+@[simp]
+theorem stdDarbouxBasisOf_zero [DecidableEq ι] {m : ℕ} (τ : Fin m ≃ ι) (k : Fin m) :
+    stdDarbouxBasisOf τ (k, 0) = EuclideanSpace.single (Sum.inl (τ k)) (1 : ℝ) := by
+  ext j <;> simp [stdDarbouxBasisOf_def, Basis.map_apply, Equiv.eq_symm_apply, eq_comm]
+
+/-- The basis vector of index `(k, 1)` in `stdDarbouxBasisOf τ` is the unit vector of
+`y_{τ k}`. -/
+@[simp]
+theorem stdDarbouxBasisOf_one [DecidableEq ι] {m : ℕ} (τ : Fin m ≃ ι) (k : Fin m) :
+    stdDarbouxBasisOf τ (k, 1) = EuclideanSpace.single (Sum.inr (τ k)) (1 : ℝ) := by
+  ext j <;> simp [stdDarbouxBasisOf_def, Basis.map_apply, Equiv.eq_symm_apply, eq_comm]
+
 /-- The coordinate of index `(k, 0)` in `stdDarbouxBasisOf τ` is `x_{τ k}`. -/
 @[simp]
 theorem stdDarbouxBasisOf_repr_zero {m : ℕ} (τ : Fin m ≃ ι) (z : StdSpace ι) (k : Fin m) :
