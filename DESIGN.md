@@ -675,7 +675,10 @@ it into issues; the overview fixes its folders and its dependencies.
   `complexToRealEuclidean ι`; transitivity, the stabilizer of $J_0$ as the
   realified $\mathrm{GL}(n,\mathbb{C})$ by Tau Ceti's
   `Matrix.GeneralLinearGroup.mem_range_realify_iff`, positively oriented
-  structures), `Topology/Algebra/GroupAction/Transitive.lean` (the
+  structures; an invertible symplectic matrix preserves and reflects
+  compatibility with $\omega_0$, and `Matrix.symplecticGroup ι ℝ` acts on the
+  structures compatible with $\omega_0$ by conjugation),
+  `Topology/Algebra/GroupAction/Transitive.lean` (the
   orbit–stabilizer homeomorphism for σ-compact groups),
   `Topology/ComplexStructure/Orbit.lean` (the space as the quotient
   $\mathrm{GL}(2n,\mathbb{R})/\mathrm{GL}(n,\mathbb{C})$; the positively
