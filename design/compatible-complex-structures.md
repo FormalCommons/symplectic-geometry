@@ -542,6 +542,13 @@ This is $\mathrm{Met}(V)$, in `SymplecticGeometry`.
   (ContinuousLinearMap.symmetrizeBilinear g).val ∈ innerProducts V`: the
   symmetric part of a form that is positive on nonzero vectors is an inner
   product. `PolarComplexStructure/Smooth.lean` uses it on `polarDomain`.
+- `InnerProductSpace.isStrictlyPositive_continuousLinearMapOfBilin_symmetrizeBilinear
+  [InnerProductSpace ℝ W] [FiniteDimensional ℝ W] {g : W →L[ℝ] W →L[ℝ] ℝ}
+  (hg : ∀ v, v ≠ 0 → 0 < g v v) :
+  IsStrictlyPositive (continuousLinearMapOfBilin (symmetrizeBilinear g).val)`:
+  the same fact in Tau Ceti's terms, by
+  `isStrictlyPositive_continuousLinearMapOfBilin_iff`, for the positivity
+  step of `contDiffOn_metricPolarFormula`.
 - `TauCeti.SymplecticForm.Compatible.associatedBilinForm_mem_innerProducts (h :
   ω.Compatible J) : (ω.associatedBilinForm J).toContinuousBilinearMap ∈
   innerProducts V`.
@@ -654,16 +661,14 @@ continuous bilinear forms and Tau Ceti's operations on them
 (`metricChangeTransport`, `continuousLinearMapOfBilin`, `CFC.sqrt`,
 `Ring.inverse`), so by the namespace rule above they go in `TauCeti`, next
 to `cayleyPathFormula`. The declarations that involve `innerProducts` or
-`metricPolarComplexStructure` (`mem_polarDomain`, `metricPolarFormula_eq`
-and `continuous_metricPolarComplexStructure`) are in `SymplecticGeometry`.
-The two lemmas that identify the formula with `metricPolarComplexStructure`
-at pairs of forms (`metricPolarFormula_eq_of_toContinuousBilinearMap_eq` and
-`metricPolarFormula_eq_of_mem`) depart from that rule: their conclusions
-involve `metricPolarComplexStructure`, but the merged code puts them in
-`TauCeti`. #418 moves them to `SymplecticGeometry`.
+`metricPolarComplexStructure` (`mem_polarDomain`, `metricPolarFormula_eq`,
+`metricPolarFormula_eq_of_toContinuousBilinearMap_eq`,
+`metricPolarFormula_eq_of_mem` and `continuous_metricPolarComplexStructure`)
+are in `SymplecticGeometry`.
 
 The file uses helpers stated in their own files:
-`SymplecticGeometry.symmetrizeBilinear_mem_innerProducts`
+`SymplecticGeometry.symmetrizeBilinear_mem_innerProducts` and
+`InnerProductSpace.isStrictlyPositive_continuousLinearMapOfBilin_symmetrizeBilinear`
 (`Topology/Algebra/Module/InnerProducts.lean`), and
 `TauCeti.SymplecticForm.skewSymmetrizeBilinear_toContinuousBilinearMap`
 (`Topology/Algebra/Module/SymplecticForms.lean`), and the lemmas on
@@ -726,7 +731,9 @@ The file uses helpers stated in their own files:
   `ContDiffOn.sqrt_continuousLinearMapOfBilin`,
   `ContinuousLinearMap.contDiffOn_sqrt`, and `contDiffAt_ringInverse` at the
   unit that `CFC.isUnit_sqrt_iff` gives. On the domain `g'♯` is strictly
-  positive by `symmetrizeBilinear_mem_innerProducts`, and `-A²` by Tau
+  positive by
+  `InnerProductSpace.isStrictlyPositive_continuousLinearMapOfBilin_symmetrizeBilinear`
+  (`Topology/Algebra/Module/InnerProducts.lean`), and `-A²` by Tau
   Ceti's `isStrictlyPositive_neg_mul_self_metricChangeTransport`, applied to
   the skew part as a symplectic form (`ofContinuousBilinearMap` with
   `nondegenerate_toBilinForm_of_mem_polarDomain`). It is the `ContDiffOn`
@@ -741,14 +748,14 @@ The file uses helpers stated in their own files:
   metricPolarFormula (symmetrizeBilinear g).val (skewSymmetrizeBilinear s) =
   metricPolarFormula g s`: the formula depends only on the symmetric part of
   `g` and the skew part of `s`, by idempotence of both parts.
-- `TauCeti.metricPolarFormula_eq_of_toContinuousBilinearMap_eq
+- `SymplecticGeometry.metricPolarFormula_eq_of_toContinuousBilinearMap_eq
   {g s : W →L[ℝ] W →L[ℝ] ℝ} (hg : ∀ v, v ≠ 0 → 0 < g v v)
   {ω : SymplecticForm W}
   (hω : ω.toBilinForm.toContinuousBilinearMap = skewSymmetrizeBilinear s) :
   metricPolarFormula g s = LinearMap.toContinuousLinearMap
   (metricPolarComplexStructure ⟨_, symmetrizeBilinear_mem_innerProducts hg⟩ ω).toLinearMap`,
   by `metricPolarFormula_eq` and the previous lemma.
-- `TauCeti.metricPolarFormula_eq_of_mem {g s : W →L[ℝ] W →L[ℝ] ℝ}
+- `SymplecticGeometry.metricPolarFormula_eq_of_mem {g s : W →L[ℝ] W →L[ℝ] ℝ}
   (h : (g, s) ∈ polarDomain W) : metricPolarFormula g s =
   LinearMap.toContinuousLinearMap (metricPolarComplexStructure
   ⟨_, symmetrizeBilinear_mem_innerProducts (mem_polarDomain_iff.1 h).1⟩
@@ -969,7 +976,9 @@ This is Proposition 2.5.6, for a fixed `g : innerProducts V`, in
   `ContinuousMap.HomotopyEquiv.ofDeformationRetraction`, and comes with a
   `@[simp]` `_toFun` lemma (the forward map is `ContinuousMap.subtypeVal _`),
   an `_apply` lemma, and, for the inverse, a `@[simp]` `coe_…_symm_apply`
-  lemma (Mathlib's simp normal form `⇑h.symm` of `⇑h.invFun`). Neither has a homotopy of its
+  lemma, in Mathlib's simp normal form `⇑h.symm` of `⇑h.invFun` as
+  `polarHomotopyEquiv_symm_apply` is; its `coe_` is the inclusion of the
+  subset, since the inverse maps into it. Neither has a homotopy of its
   own, nor a restriction of one. On the subsets, the inverses fix every
   point, by `metricPolarComplexStructure_eq_iff` (and, on
   `metricSymplecticForms g`, `metricSymplecticForm_eq_of_apply_apply`), so the composite on the
@@ -978,7 +987,7 @@ This is Proposition 2.5.6, for a fixed `g : innerProducts V`, in
   the whole space is $J\mapsto J_{g,\omega_{g,J}}$, respectively
   $\omega\mapsto\omega_{g,J_{g,\omega}}$, so `right_inv` is
   `polarCayleyHomotopy g`, respectively `polarStraightHomotopy g`, unchanged
-  up to `ContinuousMap.Homotopy.cast`. Their values are thus
+  and with no cast. Their values are thus
   `polarCayleyHomotopy_apply` and `toBilinForm_polarStraightHomotopy_apply`.
 - **Milestone** `metricPolarComplexStructure_eq_inverse_mul_and_homotopyEquiv`,
   named after its first and last conjuncts. Its `V` carries only
