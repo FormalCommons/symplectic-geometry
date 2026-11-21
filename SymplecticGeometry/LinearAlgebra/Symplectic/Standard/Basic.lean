@@ -124,6 +124,11 @@ theorem inner_eq_sum (z w : StdSpace ι) :
     inner ℝ z w = ∑ i, (z.x i * w.x i + z.y i * w.y i) := by
   simp [PiLp.inner_apply, Fintype.sum_sum_type, Finset.sum_add_distrib, mul_comm]
 
+/-- The squared norm of the standard model in coordinates: `‖z‖² = ∑ᵢ (xᵢ² + yᵢ²)`. -/
+theorem norm_sq_eq_sum (z : StdSpace ι) : ‖z‖ ^ 2 = ∑ i, (z.x i ^ 2 + z.y i ^ 2) := by
+  rw [EuclideanSpace.real_norm_sq_eq, Fintype.sum_sum_type, Finset.sum_add_distrib]
+  rfl
+
 end StdSpace
 
 open StdSpace

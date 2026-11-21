@@ -28,7 +28,7 @@ ellipsoid centred at `0` is carried to one of these by a linear symplectic map
   is `0`.
 * `SymplecticGeometry.closedBall_subset_stdEllipsoid`: the ellipsoid contains the closed ball
   whose radius is its smallest radius.
-* `SymplecticGeometry.stdEllipsoid_eq_image_closedBall`: for positive radii, `E(r)` is the image
+* `SymplecticGeometry.stdEllipsoid_eq_image_closedBall`: for nonzero radii, `E(r)` is the image
   of the closed unit ball under the diagonal map `(xⱼ, yⱼ) ↦ (rⱼ xⱼ, rⱼ yⱼ)`.
 
 ## References
@@ -90,15 +90,14 @@ theorem mem_stdEllipsoid_iff {r : ι → ℝ} {z : StdSpace ι} :
     z ∈ stdEllipsoid r ↔ ∑ j, (z.x j ^ 2 + z.y j ^ 2) / r j ^ 2 ≤ 1 := by
   rw [stdEllipsoid_def, Set.mem_ofPred_eq, stdEllipsoidForm_apply]
 
-/-- The squared norm of a point of the standard model in coordinates. -/
-private theorem norm_sq_eq_sum (z : StdSpace ι) : ‖z‖ ^ 2 = ∑ j, (z.x j ^ 2 + z.y j ^ 2) := by
-  rw [← real_inner_self_eq_norm_sq, inner_eq_sum]
-  simp [sq]
-
-/-- If `r i` is a smallest radius and is positive, the ellipsoid `E(r)` contains the closed ball
-of radius `r i`. -/
-theorem closedBall_subset_stdEllipsoid {r : ι → ℝ} {i : ι} (hi : 0 < r i)
-    (hmin : ∀ j, r i ≤ r j) : closedBall 0 (r i) ⊆ stdEllipsoid r := by
+/-- If `r i` is a smallest radius, the ellipsoid `E(r)` contains the closed ball of radius
+`r i`. If `r i < 0` the ball is empty, and if `r i = 0` it is `{0}`. -/
+theorem closedBall_subset_stdEllipsoid {r : ι → ℝ} {i : ι} (hmin : ∀ j, r i ≤ r j) :
+    closedBall 0 (r i) ⊆ stdEllipsoid r := by
+  rcases lt_trichotomy (r i) 0 with hi | hi | hi
+  · simp [closedBall_eq_empty.2 hi]
+  · rw [hi, closedBall_zero, Set.singleton_subset_iff, mem_stdEllipsoid_iff]
+    simp
   intro z hz
   have hz' : ‖z‖ ^ 2 ≤ r i ^ 2 := by
     rw [mem_closedBall_zero_iff] at hz
@@ -113,22 +112,23 @@ theorem closedBall_subset_stdEllipsoid {r : ι → ℝ} {i : ι} (hi : 0 < r i)
 
 variable [DecidableEq ι]
 
-/-- For positive radii, the ellipsoid `E(r)` is the image of the closed unit ball under the
+/-- For nonzero radii, the ellipsoid `E(r)` is the image of the closed unit ball under the
 diagonal map `(xⱼ, yⱼ) ↦ (rⱼ xⱼ, rⱼ yⱼ)`. -/
-theorem stdEllipsoid_eq_image_closedBall {r : ι → ℝ} (hr : ∀ j, 0 < r j) :
+theorem stdEllipsoid_eq_image_closedBall {r : ι → ℝ} (hr : ∀ j, r j ≠ 0) :
     stdEllipsoid r =
       Matrix.toEuclideanLin (Matrix.diagonal (Sum.elim r r)) '' closedBall 0 1 := by
-  have hr' (j : ι) : r j ≠ 0 := (hr j).ne'
   let D (s : ι → ℝ) : StdSpace ι →ₗ[ℝ] StdSpace ι :=
     Matrix.toEuclideanLin (Matrix.diagonal (Sum.elim s s))
   have hD (s : ι → ℝ) (z : StdSpace ι) (k : ι ⊕ ι) : D s z k = Sum.elim s s k * z k := by
     simp [D, Matrix.ofLp_toLpLin, Matrix.mulVec_diagonal]
   have hinv (z : StdSpace ι) : D r (D r⁻¹ z) = z := by
     refine PiLp.ext fun k ↦ ?_
-    rcases k with j | j <;> simp [hD, hr' j]
+    rcases k with j | j <;> simp [hD, hr j]
   have hinv' (z : StdSpace ι) : D r⁻¹ (D r z) = z := by
     refine PiLp.ext fun k ↦ ?_
-    rcases k with j | j <;> simp [hD, hr' j]
+    rcases k with j | j <;> simp [hD, hr j]
+  -- Write the goal's map as the local `D r`, so that the rewrite below with `hinv'` and
+  -- `hinv` (stated about `D`) finds it.
   change _ = D r '' _
   rw [Set.image_eq_preimage_of_inverse (f := D r) (g := D r⁻¹) hinv' hinv]
   ext z
