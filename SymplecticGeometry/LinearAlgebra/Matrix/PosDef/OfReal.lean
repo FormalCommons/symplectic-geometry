@@ -37,7 +37,6 @@ field. -/
 @[simp]
 theorem posDef_map_algebraMap_iff {A : Matrix n n ℝ} :
     (A.map (algebraMap ℝ 𝕜)).PosDef ↔ A.PosDef := by
-  let _ := Fintype.ofFinite n
   rw [← posDef_realify_iff, realify_map_ofReal, posDef_fromBlocks_zero_zero_iff, and_self]
 
 /-- A real matrix is positive definite exactly when it is positive definite as a complex matrix.
