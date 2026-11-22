@@ -7,6 +7,7 @@ module
 
 public import SymplecticGeometry.Analysis.Distribution.LinearEquiv
 public import SymplecticGeometry.Analysis.Distribution.OfFun
+public import TauCeti.Analysis.Distribution.Restriction
 public import TauCeti.Analysis.Distribution.SingularSupport
 import TauCeti.MeasureTheory.Function.LocalRepresentative
 
@@ -32,6 +33,8 @@ the interior regularity of elliptic systems applies.
 * `Distribution.coordOfFun_zero`, `Distribution.coordOfFun_neg`, `Distribution.coordOfFun_add`,
   `Distribution.coordOfFun_sub`, `Distribution.coordOfFun_smul`,
   `Distribution.coordOfFun_congr_ae`: linearity, and independence of the representative of `w`.
+* `Distribution.restrictCLM_coordOfFun`: restricting to a smaller open set gives the coordinate
+  distributions there.
 * `Distribution.lineDerivOp_coordOfFun`, `Distribution.iteratedLineDerivOp_coordOfFun`: for an
   additive Haar measure and `w` of class `C¹` (resp. `C^k`) on `U`, the derivative along `v` of
   the coordinate distributions is that of `x ↦ fderiv ℝ w x (e⁻¹ v)`, and the iterated derivative
@@ -159,6 +162,16 @@ theorem coordOfFun_sub (hw : LocallyIntegrableOn w U μ) (hw' : LocallyIntegrabl
     (i : ι) :
     coordOfFun e hΩ b (w - w') μ i = coordOfFun e hΩ b w μ i - coordOfFun e hΩ b w' μ i := by
   rw [sub_eq_add_neg, coordOfFun_add e hΩ b hw hw'.neg, coordOfFun_neg, sub_eq_add_neg]
+
+/-- On an open `Ω' ≤ Ω`, the restriction of the coordinate distributions of `w` on `Ω` is the
+coordinate distributions of `w` on `Ω'`, read through any open `U'` that contains the image of
+`Ω'` under `e⁻¹` and on which `w` is locally integrable. -/
+theorem restrictCLM_coordOfFun {U' : Opens E} {Ω' : Opens E'} (hΩ' : MapsTo e.symm Ω' U')
+    (h : Ω' ≤ Ω) (hw : LocallyIntegrableOn w U μ) (hw' : LocallyIntegrableOn w U' μ) (i : ι) :
+    (restrictCLM (coordOfFun e hΩ b w μ i) : 𝓓'(Ω', ℂ)) = coordOfFun e hΩ' b w μ i := by
+  ext φ
+  rw [restrictCLM_apply, coordOfFun_apply e hΩ b hw, coordOfFun_apply e hΩ' b hw']
+  simp [TestFunction.monoCLM_apply, h]
 
 /-- The derivatives along `v` of the coordinate distributions of a function `w` of class `C¹` on
 `U` are the coordinate distributions of its derivative `x ↦ fderiv ℝ w x (e⁻¹ v)`, for an

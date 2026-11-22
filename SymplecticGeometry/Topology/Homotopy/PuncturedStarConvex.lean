@@ -7,6 +7,7 @@ module
 
 public import Mathlib.Analysis.Normed.Module.Normalize
 public import TauCeti.AlgebraicTopology.Sphere.Equator
+public import TauCeti.AlgebraicTopology.Sphere.Puncture
 public import TauCeti.Analysis.Normed.Group.BallSphere
 public import TauCeti.Topology.Homotopy.FiberHomotopyEquiv.Basic
 public import TauCeti.Topology.Homotopy.PuncturedStarConvex
@@ -24,6 +25,8 @@ that the punctured cone `ρ⁻¹ W` over any subset `W` of the unit sphere is ho
 
 For a point `p` of the unit sphere, `E ∖ {0}` is covered by `TauCeti.complRay p` and
 `TauCeti.complRay (-p)`, the points off the open rays `{t • p | t > 0}` and `{t • p | t < 0}`.
+Each is contractible, as the punctured cone over the sphere minus a point
+(`TauCeti.contractibleSpace_complRay`).
 Their intersection is the complement of the line `ℝ ∙ p`
 (`TauCeti.mem_complRay_inter_complRay_neg_iff`), the punctured cone over the sphere minus `±p`.
 In an inner product space it is therefore homotopy equivalent to the unit sphere of `(ℝ ∙ p)ᗮ`
@@ -258,6 +261,13 @@ theorem mem_complRay_inter_complRay_neg_iff {p : sphere (0 : E) 1} {x : ({0}ᶜ 
   rw [complRay_def, complRay_def, ← Set.preimage_inter, Set.mem_preimage,
     compl_singleton_inter_compl_singleton_neg_eq, Set.mem_ofPred_eq,
     coe_complSingletonHomotopyEquivSphere_apply, sub_zero, Submodule.smul_mem_iff _ hx]
+
+/-- `TauCeti.complRay p` is contractible: it is the punctured cone over the sphere minus `p`,
+which is contractible (`TauCeti.contractibleSpace_sphere_compl_singleton`). -/
+instance contractibleSpace_complRay (p : sphere (0 : E) 1) : ContractibleSpace (complRay p) := by
+  have := contractibleSpace_sphere_compl_singleton p
+  rw [complRay_def]
+  exact (complZeroPreimageHomotopyEquiv {p}ᶜ).contractibleSpace
 
 end ComplRay
 

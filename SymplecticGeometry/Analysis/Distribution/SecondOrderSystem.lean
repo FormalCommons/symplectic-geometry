@@ -9,6 +9,8 @@ public import SymplecticGeometry.Analysis.Distribution.Coordinates
 public import SymplecticGeometry.Analysis.Distribution.EllipticSystem
 public import SymplecticGeometry.Analysis.Distribution.SmulLeft
 import Mathlib.Analysis.InnerProductSpace.Dual
+import SymplecticGeometry.Analysis.Distribution.NegativeSobolev
+import SymplecticGeometry.MeasureTheory.Function.LpSeminorm.LinearEquiv
 import TauCeti.Analysis.Calculus.BumpFunction.Cutoff
 import TauCeti.Analysis.Distribution.WaveFrontSet.Sobolev.Smoothness
 import TauCeti.MeasureTheory.Function.LocalRepresentative
@@ -46,12 +48,25 @@ operator times the identity, for distributions and in weak form.
   Haar measure `μ`, then `w` agrees almost everywhere on `U` with a function smooth on `U`. This
   is the operator of `SymplecticGeometry.exists_mpullback_symm_hodgeLaplacian_eq`, the Hodge
   Laplacian in a chart.
+* `SymplecticGeometry.isLocallySobolevAt_one_coordOfFun_of_abs_integral_le`: the `H^{-1}` case.
+  If `w` is locally integrable on `U` and, for each compact `K ⊆ U`, `|∫ w (P a) dμ|` is at most
+  a constant times `‖a‖_{L²} + ∑ i, ‖∂_{b i} a‖_{L²}` for smooth `a` supported in `K`, then the
+  coordinate distributions of `w` are `H^1` near every point of any open `Ω` with
+  `e⁻¹ '' Ω ⊆ U`.
 
-For the last result, the weak equation says, by the previous one, that the coordinate
-distributions of `w` solve the system with the coordinate distributions of `h`, which are
-smooth, as right sides. The regular representatives
-(`Distribution.exists_contDiffOn_ae_eq_of_singularSupport_coordOfFun_eq_empty`) are glued by Tau
-Ceti's `TauCeti.exists_contDiffOn_ae_eq_of_locally`.
+For the smoothness of weak solutions, the weak equation says, by
+`exists_secondOrderSystem_coordOfFun`, that the coordinate distributions of `w` solve the
+system with the coordinate distributions of `h`, which are smooth, as right sides. The regular
+representatives (`Distribution.exists_contDiffOn_ae_eq_of_singularSupport_coordOfFun_eq_empty`)
+are glued by Tau Ceti's `TauCeti.exists_contDiffOn_ae_eq_of_locally`.
+
+For the `H^{-1}` case, near a point the system of the coordinate distributions is again the weak
+form, restricted (`Distribution.restrictCLM_coordOfFun`) to where the coefficients agree. Its
+right sides are bounded by the `W^{1,2}` norm of `φ ∘ e`, which a change of variables
+(`MeasureTheory.eLpNorm_comp_continuousLinearEquiv_eq_addHaarScalarFactor_rpow_mul`) turns into
+that of `φ` along the vectors `e (b i)`. So they are `H^{-1}` near the point
+(`Distribution.isLocallySobolevAt_neg_one_of_norm_le`), and the first result with `s = -1` gives
+`H^1`.
 
 ## Main results
 
@@ -60,6 +75,7 @@ Ceti's `TauCeti.exists_contDiffOn_ae_eq_of_locally`.
 * `SymplecticGeometry.secondOrderSystem_coordOfFun_apply`.
 * `SymplecticGeometry.exists_secondOrderSystem_coordOfFun`.
 * `SymplecticGeometry.exists_contDiffOn_ae_eq_of_forall_integral_apply_eq`.
+* `SymplecticGeometry.isLocallySobolevAt_one_coordOfFun_of_abs_integral_le`.
 
 ## References
 
@@ -67,6 +83,9 @@ Ceti's `TauCeti.exists_contDiffOn_ae_eq_of_locally`.
   Chapter 0, §6 (weak solutions of elliptic equations and their regularity).
 * L. Hörmander, *The Analysis of Linear Partial Differential Operators I*, §3.1 (the transpose
   of a differential operator and the Leibniz rule).
+* G. B. Folland, *Real Analysis: Modern Techniques and Their Applications*, 2nd ed., Wiley, 1999,
+  §9.3 (`H_{-1}` as the dual of `H_1`, and `H_1` as the `L²` functions with first derivatives in
+  `L²`).
 -/
 
 public section
@@ -387,6 +406,87 @@ theorem exists_contDiffOn_ae_eq_of_forall_integral_apply_eq {U : Set E} (hU : Is
     ∃ g : E → F →L[ℝ] ℝ, ContDiffOn ℝ ∞ g U ∧ w =ᵐ[μ.restrict U] g :=
   TauCeti.exists_contDiffOn_ae_eq_of_locally fun _ hx ↦
     exists_contDiffOn_ae_eq_nhds hU b hA hB hC hAell hw hh hwh hx
+
+
+/-- **Weak solutions whose right side is bounded in `W^{1,2}` are locally `H^1`.** Let `U` be
+an open subset of `E`, `b` a basis of `E`, and
+`P a = -∑ i j, A i j ∂_{b j} ∂_{b i} a + ∑ i, B i (∂_{b i} a) + C a` an operator on maps
+`a : E → F` with coefficients `A i j : E → ℝ` and `B i, C : E → F →L[ℝ] F` smooth on `U`, such
+that `∑ i j, A i j y ξ i ξ j ≠ 0` for every `y ∈ U` and `ξ ≠ 0`. Let `w : E → F →L[ℝ] ℝ` be
+locally integrable on `U`, for an additive Haar measure `μ`, and suppose that for every compact
+`K ⊆ U` there is `c` with
+`|∫ w (P a) dμ| ≤ c * (‖a‖_{L²(μ)} + ∑ i, ‖∂_{b i} a‖_{L²(μ)})` for every smooth `a` supported
+in `K`. Then, in coordinates `e : E ≃L[ℝ] CoordinateSpace n` on any open `Ω` with
+`e⁻¹ '' Ω ⊆ U`, the coordinate distributions of `w` in the dual basis `bD` of a basis `bF` of
+`F` are `H^1` near every point of `Ω`. -/
+theorem isLocallySobolevAt_one_coordOfFun_of_abs_integral_le {U : TopologicalSpace.Opens E}
+    (b : Module.Basis ι ℝ E) {A : ι → ι → E → ℝ} {B : ι → E → F →L[ℝ] F} {C : E → F →L[ℝ] F}
+    (hA : ∀ i j, ContDiffOn ℝ ∞ (A i j) U) (hB : ∀ i, ContDiffOn ℝ ∞ (B i) U)
+    (hC : ContDiffOn ℝ ∞ C U)
+    (hAell : ∀ y ∈ U, ∀ ξ : ι → ℝ, ξ ≠ 0 → ∑ i, ∑ j, A i j y * ξ i * ξ j ≠ 0)
+    {w : E → F →L[ℝ] ℝ} (hw : LocallyIntegrableOn w U μ)
+    (hwP : ∀ K : Set E, IsCompact K → K ⊆ U → ∃ c : ℝ, ∀ a : E → F, ContDiff ℝ ∞ a →
+      tsupport a ⊆ K →
+      |∫ y, w y (-∑ i, ∑ j, A i j y • fderiv ℝ (fun z ↦ fderiv ℝ a z (b i)) y (b j) +
+        ∑ i, B i y (fderiv ℝ a y (b i)) + C y (a y)) ∂μ| ≤
+        c * ((eLpNorm a 2 μ).toReal + ∑ i, (eLpNorm (fun y ↦ fderiv ℝ a y (b i)) 2 μ).toReal))
+    {n : ℕ} (e : E ≃L[ℝ] CoordinateSpace n) {Ω : TopologicalSpace.Opens (CoordinateSpace n)}
+    (hΩ : MapsTo e.symm Ω U) {κ : Type*} [Finite κ] (bF : Module.Basis κ ℝ F)
+    (bD : Module.Basis κ ℝ (F →L[ℝ] ℝ)) (hbD : ∀ L l, bD.repr L l = L (bF l)) (k : κ)
+    {z : CoordinateSpace n} (hz : z ∈ Ω) :
+    (coordOfFun e hΩ bD w μ k).IsLocallySobolevAt 1 z := by
+  have := Fintype.ofFinite κ
+  obtain ⟨V, hxV, hVU, g, β, γ, hg, hβ, hγ, hσ, hP⟩ :=
+    exists_secondOrderSystem_coordOfFun (μ := μ) U.isOpen b hA hB hC hAell e bF bD hbD (hΩ hz)
+  have hwV : LocallyIntegrableOn w V μ := hw.mono_set hVU
+  -- A compact neighbourhood `K ⊆ V` of `e⁻¹ z`, and the constant of the hypothesis for it.
+  obtain ⟨K, hK, hxK, hKV⟩ := exists_compact_subset V.isOpen hxV
+  obtain ⟨c, hc⟩ := hwP K hK (hKV.trans hVU)
+  -- Restrict to the open set `Ω'` where the system of `exists_secondOrderSystem_coordOfFun` holds.
+  let Ω' : TopologicalSpace.Opens (CoordinateSpace n) :=
+    Ω ⊓ ⟨e.symm ⁻¹' V, V.isOpen.preimage e.symm.continuous⟩
+  have hΩ' : MapsTo e.symm Ω' V := fun _ h ↦ h.2
+  have hzΩ' : z ∈ Ω' := ⟨hz, hxV⟩
+  rw [← isLocallySobolevAt_restrictCLM_iff (inf_le_left : Ω' ≤ Ω) hzΩ',
+    restrictCLM_coordOfFun e hΩ bD hΩ' inf_le_left hw hwV]
+  have h := IsLocallySobolevAt.of_secondOrderSystem (s := -1) (fun i ↦ e (b i)) hg hβ hγ
+    (hσ z hxV) (T := coordOfFun e hΩ' bD w μ) ?_ k
+  · norm_num at h
+    exact h
+  -- Each right side is `H^{-1}` near `z`, by the bound of the hypothesis.
+  intro l
+  -- The `L²` norm of `ψ ∘ e • bF l` for `μ` is a constant multiple of that of `ψ`.
+  set m : ℝ := ‖bF l‖ * ((μ.map e).addHaarScalarFactor volume : ℝ) ^ (2 : ℝ)⁻¹
+  have hL (ψ : 𝓓(Ω', ℝ)) :
+      (eLpNorm (fun y ↦ ψ (e y) • bF l) 2 μ).toReal =
+        m * (eLpNorm (ψ : _ → ℝ) 2 volume).toReal := by
+    have h₁ : eLpNorm (fun y ↦ ψ (e y) • bF l) 2 μ = eLpNorm (‖bF l‖ • (ψ ∘ e)) 2 μ :=
+      eLpNorm_congr_norm_ae
+        ((ψ.continuous.comp e.continuous).smul continuous_const).aestronglyMeasurable
+        (continuous_const.smul (ψ.continuous.comp e.continuous)).aestronglyMeasurable
+        (ae_of_all _ fun y ↦ by simp [norm_smul, mul_comm])
+    rw [h₁, eLpNorm_const_smul,
+      eLpNorm_comp_continuousLinearEquiv_eq_addHaarScalarFactor_rpow_mul μ volume e,
+      ENNReal.toReal_mul, ENNReal.toReal_mul, toReal_eNorm, norm_norm, ← ENNReal.toReal_rpow,
+      ENNReal.coe_toReal]
+    norm_num [m, mul_assoc]
+  have hde (ψ : 𝓓(Ω', ℝ)) (y v : E) :
+      fderiv ℝ (fun y ↦ ψ (e y) • bF l) y v = ∂_{e v} ψ (e y) • bF l := by
+    simpa using TestFunction.fderiv_comp_smul_const_apply (e : E →L[ℝ] _) ψ (bF l) y v
+  refine isLocallySobolevAt_neg_one_of_norm_le hzΩ' (fun i ↦ e (b i))
+    ((isOpen_interior.preimage e.symm.continuous).mem_nhds hxK) (C := max c 0 * m)
+    fun φ hφ ↦ ?_
+  have hsupp : tsupport (fun y ↦ φ (e y) • bF l) ⊆ K := by
+    refine (tsupport_smul_subset_left _ _).trans fun y hy ↦ ?_
+    have : e y ∈ tsupport φ := by
+      simpa [Function.comp_def] using
+        (tsupport_comp_subset_preimage (φ : _ → ℝ) e.continuous) hy
+    simpa using interior_subset (hφ this)
+  rw [hP hΩ' hwV l φ, integral_complex_ofReal, Complex.norm_real, Real.norm_eq_abs]
+  refine (hc (fun y ↦ φ (e y) • bF l) ((φ.contDiff.comp e.contDiff).smul contDiff_const)
+    hsupp).trans ?_
+  simp only [hde, hL, ← Finset.mul_sum, ← mul_add]
+  exact (mul_le_mul_of_nonneg_right (le_max_left c 0) (by positivity)).trans_eq (by ring)
 
 end SymplecticGeometry
 
