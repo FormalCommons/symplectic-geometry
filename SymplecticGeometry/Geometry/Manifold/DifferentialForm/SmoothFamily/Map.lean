@@ -52,8 +52,8 @@ are smooth on smooth families; the other writes `T (α t)` as `∑ i, c i t • 
   coordinates in a finite basis are smooth along smooth families, followed by any linear map,
   preserves smooth families; and `PreservesSmoothFamilies.comp_of_finiteDimensional`: a map
   that preserves smooth families into a finite-dimensional space of forms may be followed by
-  any linear map; `SymplecticGeometry.isSmoothFamily_of_contMDiff_dual`: a family in a
-  finite-dimensional space whose values under linear functionals are smooth is carried by any
+  any linear map; `SymplecticGeometry.isSmoothFamily_of_contMDiff_dual`: a family in a finite
+  free module whose values under linear functionals are smooth is carried by any
   linear map to a smooth family of forms.
 
 ## References
