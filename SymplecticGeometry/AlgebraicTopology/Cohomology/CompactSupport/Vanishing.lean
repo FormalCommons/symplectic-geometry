@@ -1,0 +1,129 @@
+/-
+Copyright (c) 2026 The FormalCommons contributors. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: The FormalCommons contributors
+-/
+module
+
+public import TauCeti.AlgebraicTopology.Cohomology.CompactSupport.MayerVietoris
+
+/-!
+# Invariance and vanishing of cohomology with compact supports
+
+A homeomorphism `e : X ≃ₜ Y` induces an isomorphism `Hᵐ_c(Y) ≅ Hᵐ_c(X)`, by pulling back along
+the proper maps `e` and `e.symm`. The Mayer–Vietoris sequence of an open cover `X = U ∪ V` shows
+that `Hᵐ_c(X)` vanishes once `Hᵐ_c(U)`, `Hᵐ_c(V)` and `Hᵐ⁺¹_c(U ∩ V)` do, and the same holds for
+the union of two open sets of a Hausdorff space.
+
+## Main results
+
+* `TopCat.compactSupportCohomologyIsoOfHomeomorph`: the isomorphism `Hᵐ_c(Y) ≅ Hᵐ_c(X)`.
+* `TopCat.isZero_compactSupportCohomology_iff_of_homeomorph`: vanishing of `Hᵐ_c` is invariant
+  under homeomorphisms.
+* `TopCat.isZero_compactSupportCohomology_of_sup_eq_top` and
+  `TopCat.isZero_compactSupportCohomology_sup`: vanishing of `Hᵐ_c` passes from `U`, `V` and
+  `U ∩ V` to `U ∪ V`.
+
+## References
+
+* A. Hatcher, *Algebraic Topology*, Cambridge University Press, 2002, Section 3.3, the
+  Mayer–Vietoris sequence for cohomology with compact supports in the proof of Lemma 3.36.
+-/
+
+public section
+
+noncomputable section
+
+open CategoryTheory Limits TopologicalSpace Topology Opens
+
+universe v u
+
+namespace TopCat
+
+variable {C : Type u} [Category.{v} C] [HasCoproducts.{v} C] [Abelian C] (R : C) (k : Type v)
+  [Ring k] [Linear k C] (N : C)
+
+/-- A homeomorphism `e : X ≃ₜ Y` induces an isomorphism `Hᵐ_c(Y) ≅ Hᵐ_c(X)`, the pullback along
+`e`, with inverse the pullback along `e.symm`. -/
+def compactSupportCohomologyIsoOfHomeomorph {X Y : TopCat.{v}} (e : X ≃ₜ Y) (m : ℕ) :
+    Y.compactSupportCohomology R k N m ≅ X.compactSupportCohomology R k N m where
+  hom := compactSupportCohomologyMap (ofHom (e : C(X, Y))) e.isProperMap m
+  inv := compactSupportCohomologyMap (ofHom (e.symm : C(Y, X))) e.symm.isProperMap m
+  hom_inv_id := by
+    have h : ofHom (e.symm : C(Y, X)) ≫ ofHom (e : C(X, Y)) = 𝟙 Y := by ext; simp
+    rw [← compactSupportCohomologyMap_comp]
+    simp only [h, compactSupportCohomologyMap_id]
+  inv_hom_id := by
+    have h : ofHom (e : C(X, Y)) ≫ ofHom (e.symm : C(Y, X)) = 𝟙 X := by ext; simp
+    rw [← compactSupportCohomologyMap_comp]
+    simp only [h, compactSupportCohomologyMap_id]
+
+@[simp]
+lemma compactSupportCohomologyIsoOfHomeomorph_hom {X Y : TopCat.{v}} (e : X ≃ₜ Y) (m : ℕ) :
+    (compactSupportCohomologyIsoOfHomeomorph R k N e m).hom =
+      compactSupportCohomologyMap (ofHom (e : C(X, Y))) e.isProperMap m :=
+  (rfl)
+
+@[simp]
+lemma compactSupportCohomologyIsoOfHomeomorph_inv {X Y : TopCat.{v}} (e : X ≃ₜ Y) (m : ℕ) :
+    (compactSupportCohomologyIsoOfHomeomorph R k N e m).inv =
+      compactSupportCohomologyMap (ofHom (e.symm : C(Y, X))) e.symm.isProperMap m :=
+  (rfl)
+
+/-- Cohomology with compact supports vanishes on a space exactly when it vanishes on a homeomorphic
+one. -/
+theorem isZero_compactSupportCohomology_iff_of_homeomorph {X Y : TopCat.{v}} (e : X ≃ₜ Y)
+    (m : ℕ) :
+    IsZero (X.compactSupportCohomology R k N m) ↔ IsZero (Y.compactSupportCohomology R k N m) :=
+  ⟨fun h ↦ h.of_iso (compactSupportCohomologyIsoOfHomeomorph R k N e m),
+    fun h ↦ h.of_iso (compactSupportCohomologyIsoOfHomeomorph R k N e m).symm⟩
+
+/-- **Vanishing of cohomology with compact supports along a cover by two open sets.** If the
+Hausdorff space `X` is the union of open sets `U` and `V` with `Hᵐ_c(U) = 0`, `Hᵐ_c(V) = 0` and
+`Hᵐ⁺¹_c(U ∩ V) = 0`, then `Hᵐ_c(X) = 0`. -/
+theorem isZero_compactSupportCohomology_of_sup_eq_top {X : TopCat.{v}} [T2Space X] {U V : Opens X}
+    (hUV : U ⊔ V = ⊤) {m : ℕ}
+    (hU : IsZero (((Opens.toTopCat X).obj U).compactSupportCohomology R k N m))
+    (hV : IsZero (((Opens.toTopCat X).obj V).compactSupportCohomology R k N m))
+    (hW : IsZero (((Opens.toTopCat X).obj (U ⊓ V)).compactSupportCohomology R k N (m + 1))) :
+    IsZero (X.compactSupportCohomology R k N m) :=
+  (compactSupportCohomologyMayerVietoris_exact₃ R k N U V hUV m (m + 1)).isZero_X₂
+    (((biprod_isZero_iff _ _).2 ⟨hU, hV⟩).eq_of_src _ _) (hW.eq_of_tgt _ _)
+
+variable {X : Type v} [TopologicalSpace X]
+
+/-- Cohomology with compact supports of an open set `W ≤ Y` of `X` vanishes exactly when that of
+`W`, read as an open set of `Y`, does. -/
+theorem isZero_compactSupportCohomology_comap_iff {Y W : Opens X} (hWY : W ≤ Y) (m : ℕ) :
+    IsZero ((of ↥(Opens.comap ⟨Subtype.val, continuous_subtypeVal⟩ W :
+        Opens Y)).compactSupportCohomology R k N m) ↔
+      IsZero ((of W).compactSupportCohomology R k N m) :=
+  isZero_compactSupportCohomology_iff_of_homeomorph R k N
+    (X := of ↥(Opens.comap ⟨Subtype.val, continuous_subtypeVal⟩ W : Opens Y)) (Y := of W)
+    { toFun x := ⟨x.val.val, x.property⟩
+      invFun y := ⟨⟨y.val, hWY y.property⟩, y.property⟩
+      left_inv _ := rfl
+      right_inv _ := rfl
+      continuous_toFun := by fun_prop
+      continuous_invFun := by fun_prop } m
+
+/-- **Vanishing of cohomology with compact supports for a union of two open sets.** For open sets
+`U` and `V` of a Hausdorff space with `Hᵐ_c(U) = 0`, `Hᵐ_c(V) = 0` and `Hᵐ⁺¹_c(U ∩ V) = 0`, also
+`Hᵐ_c(U ∪ V) = 0`. -/
+theorem isZero_compactSupportCohomology_sup [T2Space X] {U V : Opens X} {m : ℕ}
+    (hU : IsZero ((of U).compactSupportCohomology R k N m))
+    (hV : IsZero ((of V).compactSupportCohomology R k N m))
+    (hW : IsZero ((of ↥(U ⊓ V)).compactSupportCohomology R k N (m + 1))) :
+    IsZero ((of ↥(U ⊔ V)).compactSupportCohomology R k N m) := by
+  let i : C(↥(U ⊔ V), X) := ⟨Subtype.val, continuous_subtypeVal⟩
+  refine isZero_compactSupportCohomology_of_sup_eq_top R k N
+    (X := of ↥(U ⊔ V)) (U := Opens.comap i U) (V := Opens.comap i V) ?_
+    ((isZero_compactSupportCohomology_comap_iff R k N le_sup_left m).2 hU)
+    ((isZero_compactSupportCohomology_comap_iff R k N le_sup_right m).2 hV) ?_
+  · rw [← map_sup, eq_top_iff]
+    exact fun x _ ↦ x.property
+  · rw [← map_inf]
+    exact (isZero_compactSupportCohomology_comap_iff R k N
+      (inf_le_left.trans le_sup_left) (m + 1)).2 hW
+
+end TopCat
