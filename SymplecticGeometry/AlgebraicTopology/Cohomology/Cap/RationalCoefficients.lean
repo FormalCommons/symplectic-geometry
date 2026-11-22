@@ -7,10 +7,13 @@ module
 
 public import SymplecticGeometry.Algebra.Homology.ShortComplex.PreservesHomology
 public import SymplecticGeometry.AlgebraicTopology.Cohomology.Cap.Basic
+public import SymplecticGeometry.AlgebraicTopology.Cohomology.CompactSupport.Duality.Manifold
 public import SymplecticGeometry.AlgebraicTopology.SimplicialSet.Homology.RestrictScalars
 public import TauCeti.Algebra.Category.ModuleCat.RestrictScalars
 public import TauCeti.AlgebraicTopology.Cohomology.CompactSupport.Duality
 public import TauCeti.AlgebraicTopology.Cohomology.IntegralComparison
+public import TauCeti.AlgebraicTopology.Cohomology.UniversalCoefficient.CapDuality
+public import TauCeti.AlgebraicTopology.Singular.BettiNumber
 
 /-!
 # The cap product with integral and with rational chains
@@ -56,7 +59,13 @@ As a consequence, for a compact oriented manifold, injectivity of the duality ma
 fundamental class
 (`TauCeti.HomologicalOrientation.injective_singularCapLinearMap_of_injective_dualityMap`), which
 is the hypothesis of Tau Ceti's evenness criterion
-`TopCat.even_finrank_singularHomology_of_injective_singularCapLinearMap`.
+`TopCat.even_finrank_singularHomology_of_injective_singularCapLinearMap`. In the same way,
+Poincaré duality (`TauCeti.HomologicalOrientation.bijective_dualityMap`) makes the rational cap
+product with the rational fundamental class bijective
+(`TauCeti.HomologicalOrientation.bijective_singularCapLinearMap_fundamentalClass`). With Tau
+Ceti's `TopCat.finrank_singularHomology_eq_of_bijective_singularCapLinearMap`, it follows that the
+rational Betti numbers of a compact oriented `n`-manifold satisfy `b_q = b_p` for `p + q = n`
+(`TauCeti.HomologicalOrientation.bettiNumber_eq_bettiNumber`).
 
 ## Implementation notes
 
@@ -83,7 +92,7 @@ or use `erw`, and say so.
 ## References
 
 * A. Hatcher, *Algebraic Topology*, Cambridge University Press, 2002, Section 3.1 (change of
-  coefficients) and Section 3.3 (the cap product).
+  coefficients) and Section 3.3 (the cap product, and Theorem 3.30, Poincaré duality).
 -/
 
 public section
@@ -561,6 +570,21 @@ variable {M E : Type} [TopologicalSpace M] [T2Space M]
   [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E] [ChartedSpace E M]
   {n : ℕ} (o : HomologicalOrientation M E n) (hn : Module.finrank ℝ E = n)
 
+/-- For a compact oriented `n`-manifold `M` and `p + q = n`, the rational cap product of
+`α ∈ Hᵖ(M; ℚ)` with the image of the fundamental class in `Hₙ(M; ℚ)`, read in homology with
+coefficients in the abelian group `ℚ`, is the duality map, computed from integral chains, applied
+to the class of `α` in compactly supported cohomology with values in `ℚ`. -/
+theorem singularHomologyRatIso_hom_singularCapLinearMap [CompactSpace M] {p q : ℕ}
+    (h : p + q = n)
+    (α : (TopCat.of M).singularCohomology (𝟙_ (ModuleCat.{0} ℚ)) ℚ (𝟙_ (ModuleCat.{0} ℚ)) p) :
+    ((TopCat.of M).singularHomologyRatIso q).hom ((TopCat.of M).singularCapLinearMap ℚ h
+        ((TopCat.of M).singularHomologyIntToRat n (o.fundamentalClass hn)) α) =
+      o.dualityMap hn (ModuleCat.of ℤ ℚ) p q h
+        ((TopCat.compactSupportCohomologyIsoOfCompactSpace p).inv
+          (((TopCat.of M).singularCohomologyRatIso p).hom α)) := by
+  rw [dualityMap_compactSupportCohomologyIsoOfCompactSpace_inv]
+  exact (TopCat.singularCap_singularCohomologyRatIso_hom _ h α _).symm
+
 /-- **Rational duality from the duality map.** For a compact oriented `n`-manifold `M` and
 `p + q = n`, if the duality map `Hᵖ_c(M; ℚ) ⟶ H_q(M; ℚ)`, computed from integral chains, is
 injective, then capping with the image of the fundamental class in `Hₙ(M; ℚ)` is injective on
@@ -570,19 +594,39 @@ theorem injective_singularCapLinearMap_of_injective_dualityMap [CompactSpace M] 
     Function.Injective ((TopCat.of M).singularCapLinearMap ℚ h
       ((TopCat.of M).singularHomologyIntToRat n (o.fundamentalClass hn))) := by
   intro α β hαβ
-  have hd (α : (TopCat.of M).singularCohomology (𝟙_ (ModuleCat.{0} ℚ)) ℚ
-      (𝟙_ (ModuleCat.{0} ℚ)) p) :
-      o.dualityMap hn (ModuleCat.of ℤ ℚ) p q h
-          ((TopCat.compactSupportCohomologyIsoOfCompactSpace p).inv
-            (((TopCat.of M).singularCohomologyRatIso p).hom α)) =
-        ((TopCat.of M).singularHomologyRatIso q).hom ((TopCat.of M).singularCapLinearMap ℚ h
-          ((TopCat.of M).singularHomologyIntToRat n (o.fundamentalClass hn)) α) := by
-    rw [dualityMap_compactSupportCohomologyIsoOfCompactSpace_inv]
-    exact TopCat.singularCap_singularCohomologyRatIso_hom _ h α _
   exact (ConcreteCategory.bijective_of_isIso ((TopCat.of M).singularCohomologyRatIso p).hom).1
     ((ConcreteCategory.bijective_of_isIso
       (TopCat.compactSupportCohomologyIsoOfCompactSpace p).inv).1
-        (hinj ((hd α).trans ((congrArg _ hαβ).trans (hd β).symm))))
+        (hinj (by simp only [← o.singularHomologyRatIso_hom_singularCapLinearMap hn h, hαβ])))
+
+/-- **Rational Poincaré duality for a compact manifold.** For a compact homologically oriented
+`n`-manifold `M` without boundary and `p + q = n`, capping with the image of the fundamental
+class in `Hₙ(M; ℚ)` is a bijection `Hᵖ(M; ℚ) → H_q(M; ℚ)`, computed from rational chains. -/
+theorem bijective_singularCapLinearMap_fundamentalClass [CompactSpace M] {p q : ℕ}
+    (h : p + q = n) :
+    Function.Bijective ((TopCat.of M).singularCapLinearMap ℚ h
+      ((TopCat.of M).singularHomologyIntToRat n (o.fundamentalClass hn))) := by
+  have hbij := o.bijective_dualityMap hn (ModuleCat.of ℤ ℚ) h
+  refine ⟨o.injective_singularCapLinearMap_of_injective_dualityMap hn h hbij.1, fun y ↦ ?_⟩
+  obtain ⟨c, hc⟩ := hbij.2 (((TopCat.of M).singularHomologyRatIso q).hom y)
+  obtain ⟨α, rfl⟩ := (ConcreteCategory.bijective_of_isIso
+    (((TopCat.of M).singularCohomologyRatIso p).hom ≫
+      (TopCat.compactSupportCohomologyIsoOfCompactSpace p).inv)).2 c
+  refine ⟨α, (ConcreteCategory.bijective_of_isIso ((TopCat.of M).singularHomologyRatIso q).hom).1
+    ((o.singularHomologyRatIso_hom_singularCapLinearMap hn h α).trans ?_)⟩
+  simpa using hc
+
+include o hn in
+/-- **Poincaré duality for rational Betti numbers.** For a compact homologically oriented
+`n`-manifold `M` and `p + q = n`, the `q`-th and the `p`-th Betti numbers of `M` with rational
+coefficients agree. -/
+theorem bettiNumber_eq_bettiNumber [CompactSpace M] {p q : ℕ} (h : p + q = n) :
+    bettiNumber ℚ M q = bettiNumber ℚ M p := by
+  rw [bettiNumber_def, bettiNumber_def]
+  -- `bettiNumber` takes coefficients `ModuleCat.of ℚ ℚ`, which is `𝟙_ (ModuleCat ℚ)` by the
+  -- definition of the monoidal structure; Mathlib states no lemma for it.
+  exact (TopCat.of M).finrank_singularHomology_eq_of_bijective_singularCapLinearMap ℚ h _
+    (o.bijective_singularCapLinearMap_fundamentalClass hn h)
 
 end TauCeti.HomologicalOrientation
 
