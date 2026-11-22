@@ -11,7 +11,7 @@ public import SymplecticGeometry.Geometry.Manifold.RegularValue.ChartBall
 /-!
 # Regular sublevel sets around a coordinate disc and its complement
 
-Let `e` be a chart of the smooth maximal atlas of a Hausdorff, σ-compact smooth surface `M`, and
+Let `e` be a chart of the smooth maximal atlas of a Hausdorff smooth surface `M`, and
 `CoordinateDisc.ofChart e hr hc he` the coordinate disc it gives. This file gives two smooth
 functions on `M` with regular value `0`: one whose strict sublevel set contains the closed disc,
 and one whose strict sublevel set contains the complement `discComplement` of the open disc. In
@@ -44,14 +44,14 @@ open scoped Manifold ContDiff
 namespace SymplecticGeometry.CoordinateDisc
 
 variable {M : Type} [TopologicalSpace M] [T2Space M] [ChartedSpace (EuclideanSpace ℝ (Fin 2)) M]
-  [IsManifold (𝓡 2) ∞ M] [SigmaCompactSpace M]
+  [IsManifold (𝓡 2) ∞ M]
   {o : Manifold.Orientation (𝓡 2) M (Fin 2)}
   {e : OpenPartialHomeomorph M (EuclideanSpace ℝ (Fin 2))}
   {c : EuclideanSpace ℝ (Fin 2)} {r : ℝ}
 
 /-- **A regular sublevel set around a coordinate disc.** Let `e` be a chart of the smooth
-maximal atlas of a Hausdorff, σ-compact smooth surface `M`, and `CoordinateDisc.ofChart e hr hc he`
-the coordinate disc it gives. There is a smooth function `f : M → ℝ` with regular value `0` such
+maximal atlas of a Hausdorff smooth surface `M`, and `CoordinateDisc.ofChart e hr hc he` the
+coordinate disc it gives. There is a smooth function `f : M → ℝ` with regular value `0` such
 that the closed disc lies in `{f < 0}`, the sublevel set `{f ≤ 0}` is compact and connected, and
 the level set `{f = 0}` is nonempty. -/
 theorem exists_isRegularValue_disc_subset_ofChart
@@ -77,7 +77,7 @@ theorem exists_isRegularValue_disc_subset_ofChart
     exact (NormedSpace.sphere_nonempty.2 hρ.le).image _
 
 /-- **A regular sublevel set around the complement of a coordinate disc.** Let `e` be a chart of
-the smooth maximal atlas of a connected, Hausdorff, σ-compact smooth surface `M`, and
+the smooth maximal atlas of a connected Hausdorff smooth surface `M`, and
 `CoordinateDisc.ofChart e hr hc he` the coordinate disc it gives. There is a smooth function
 `g : M → ℝ` with regular value `0` such that the complement `discComplement` of the open disc
 lies in `{g < 0}`, the sublevel set `{g ≤ 0}` is connected and the level set `{g = 0}` is
