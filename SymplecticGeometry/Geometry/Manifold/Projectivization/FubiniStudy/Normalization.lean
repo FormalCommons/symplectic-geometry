@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.Instances.OnePoint
+public import SymplecticGeometry.Geometry.Manifold.Orientation.Sphere
 public import SymplecticGeometry.Geometry.Manifold.Projectivization.FubiniStudy.Basic
 public import TauCeti.Geometry.Manifold.Complex.Orientation
 public import TauCeti.Geometry.Manifold.Instances.OnePoint.FubiniStudy
@@ -13,14 +14,6 @@ public import TauCeti.Geometry.Manifold.Instances.OnePoint.Projectivization
 public import TauCeti.Geometry.Manifold.Instances.OnePoint.Sphere
 public import TauCeti.Geometry.Manifold.Orientation.Sphere
 public import TauCeti.Geometry.Manifold.Projectivization.ProjectiveLine
-import Mathlib.Analysis.InnerProductSpace.Calculus
-import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
-import TauCeti.Geometry.Manifold.MFDeriv.RestrictScalars
-import TauCeti.Geometry.Manifold.Orientation.TopForm
-import TauCeti.Geometry.Symplectic.Manifold.Sphere
-import TauCeti.LinearAlgebra.Complex.Orientation
-import TauCeti.LinearAlgebra.Orientation.Basic
-import TauCeti.Topology.Algebra.Module.Equiv.RestrictScalars
 
 /-!
 # The Fubini–Study form of `ℂP¹`: affine formula and stereographic coordinates
@@ -45,23 +38,16 @@ coordinate `x 0` in Lean.
   `ι = equatorIsometry`, `z ↦ (Re z, -Im z, 0)`. It sends `x` to `[x₁ - i x₂ : 1 - x₃]` off the
   north pole (`sphereToProjectiveLine_of_ne_northPole`) and to `[1 + x₃ : x₁ + i x₂]` off the
   south pole (`sphereToProjectiveLine_of_ne_southPole`).
-* `SymplecticGeometry.mpullback_diffeomorphSphere_sphereVolumeForm`: inverse stereographic
-  projection `OnePoint.diffeomorphSphere v ι` pulls the area form `vol(x, ·, ·)` of the round
-  sphere back to `4π` times `OnePoint.fubiniStudyForm`. Tau Ceti's
-  `OnePoint.inner_mfderiv_diffeomorphSphere` says as much for the metrics; the sign of the area
-  forms is read off the triple product, computed at the finite points.
-* `SymplecticGeometry.mpullback_sphereToProjectiveLine_fubiniStudyForm`: hence `ω_FS` pulls back
-  along `sphereToProjectiveLine` to a quarter of the area form of the round sphere, and
+* `SymplecticGeometry.mpullback_sphereToProjectiveLine_fubiniStudyForm`: `ω_FS` pulls back along
+  `sphereToProjectiveLine` to a quarter of the area form `vol(x, ·, ·)` of the round sphere, by
+  `SymplecticGeometry.mpullback_diffeomorphSphere_symm_fubiniStudyForm`, and
   `sphereToProjectiveLine` preserves the outward-normal orientation of the sphere and the complex
   orientation of `ℂP¹` (`isOrientationPreservingAt_sphereToProjectiveLine`).
 
-The comparisons at the finite points through `TauCeti.SmoothBundleForm.eq_of_forall_mem_dense`
-follow the proof of Tau Ceti's
+The comparison at the finite points through `TauCeti.SmoothBundleForm.eq_of_forall_mem_dense`
+follows the proof of Tau Ceti's
 `OnePoint.mpullback_smul_fubiniStudyForm_eq_self_iff_mem_unitaryGroup` (through its step
-`mpullback_eq_of_sq_norm_add_sq_norm_eq`), and the triple product of inverse stereographic
-projection with its derivatives is computed as in Tau Ceti's
-`Orientation.integralTopForm_sphereOrientation_sphereVolumeForm` (through its step
-`dotProduct_cross_fderiv_stereoParam`), here for the projection from the north pole.
+`mpullback_eq_of_sq_norm_add_sq_norm_eq`).
 
 ## References
 
@@ -71,7 +57,6 @@ projection with its derivatives is computed as in Tau Ceti's
   Springer, 2013, Chapters 15 and 16 (the outward-normal orientation and the volume form of the
   sphere).
 -/
-
 public section
 
 open Metric TauCeti Projectivization ComplexConjugate
@@ -203,167 +188,6 @@ theorem mpullback_equivProjectivization_fubiniStudyForm :
     rw [SmoothForm.eval₂_smul, h, OnePoint.fubiniStudyDensity_def, smul_eq_mul]
     field_simp
 
-/-! ### The north pole and the plane orthogonal to it -/
-
-/-- The north pole `(0, 0, 1)` of the unit sphere of `ℝ³`. -/
-noncomputable def northPole : sphere (0 : ℝ³) 1 :=
-  ⟨EuclideanSpace.single 2 1, by simp⟩
-
-@[simp]
-theorem coe_northPole : (northPole : ℝ³) = EuclideanSpace.single 2 1 :=
-  (rfl)
-
-/-- The inner product with the north pole is the third coordinate. -/
-theorem inner_northPole (p : ℝ³) : inner ℝ (northPole : ℝ³) p = p 2 := by
-  simp [EuclideanSpace.inner_single_left]
-
-private theorem single_zero_mem : (EuclideanSpace.single 0 1 : ℝ³) ∈ (ℝ ∙ (northPole : ℝ³))ᗮ := by
-  rw [Submodule.mem_orthogonal_singleton_iff_inner_right]
-  simp [EuclideanSpace.inner_single_left]
-
-private theorem neg_single_one_mem :
-    -(EuclideanSpace.single 1 1 : ℝ³) ∈ (ℝ ∙ (northPole : ℝ³))ᗮ := by
-  rw [Submodule.mem_orthogonal_singleton_iff_inner_right]
-  simp [EuclideanSpace.inner_single_left]
-
-/-- The vectors `e₁` and `-e₂` of the plane orthogonal to the north pole. -/
-private noncomputable def equatorBasisVec : Fin 2 → (ℝ ∙ (northPole : ℝ³))ᗮ :=
-  ![⟨_, single_zero_mem⟩, ⟨_, neg_single_one_mem⟩]
-
-private theorem orthonormal_equatorBasisVec : Orthonormal ℝ equatorBasisVec := by
-  rw [orthonormal_iff_ite]
-  intro i j
-  fin_cases i <;> fin_cases j <;> simp [equatorBasisVec, EuclideanSpace.inner_single_left]
-
-/-- The orthonormal basis `(e₁, -e₂)` of the plane orthogonal to the north pole. -/
-private noncomputable def equatorBasis : OrthonormalBasis (Fin 2) ℝ (ℝ ∙ (northPole : ℝ³))ᗮ :=
-  OrthonormalBasis.mk orthonormal_equatorBasisVec <| by
-    rw [orthonormal_equatorBasisVec.linearIndependent.span_eq_top_of_card_eq_finrank']
-    rw [Submodule.finrank_orthogonal_span_singleton (n := 2) (by simp)]
-    simp
-
-/-- The isometry `z ↦ (Re z, -Im z, 0)` from `ℂ` onto the plane orthogonal to the north pole,
-built from the orthonormal basis `(e₁, -e₂)`. The conjugation makes inverse stereographic
-projection through it orientation-preserving. -/
-noncomputable def equatorIsometry : ℂ ≃ₗᵢ[ℝ] (ℝ ∙ (northPole : ℝ³))ᗮ :=
-  Complex.isometryOfOrthonormal equatorBasis
-
-@[simp]
-theorem coe_equatorIsometry_apply (z : ℂ) :
-    (equatorIsometry z : ℝ³) = WithLp.toLp 2 ![z.re, -z.im, 0] := by
-  rw [equatorIsometry, Complex.isometryOfOrthonormal_apply]
-  ext i
-  fin_cases i <;> simp [equatorBasis, equatorBasisVec]
-
-/-- The inverse of `equatorIsometry` reads the orthogonal projection of `p` onto the plane
-orthogonal to the north pole as `p 0 - i p 1`. -/
-theorem equatorIsometry_symm_orthogonalProjectionOnto (p : ℝ³) :
-    equatorIsometry.symm ((ℝ ∙ (northPole : ℝ³))ᗮ.orthogonalProjectionOnto p) = ⟨p 0, -p 1⟩ := by
-  rw [LinearIsometryEquiv.symm_apply_eq]
-  ext i
-  have hn : ‖(northPole : ℝ³)‖ = 1 := by simp
-  simp only [Submodule.orthogonalProjectionOnto_orthogonal,
-    Submodule.starProjection_unit_singleton ℝ hn, inner_northPole, coe_equatorIsometry_apply]
-  fin_cases i <;> simp
-
-/-- Off the north pole, the third coordinate of a point of the unit sphere is not `1`. -/
-theorem one_sub_ne_zero_of_ne_northPole {p : sphere (0 : ℝ³) 1} (hp : p ≠ northPole) :
-    1 - (p : ℝ³) 2 ≠ 0 := by
-  rw [sub_ne_zero, ← inner_northPole]
-  intro h
-  exact hp (Subtype.ext ((inner_eq_one_iff_of_norm_eq_one (by simp)
-    (norm_eq_of_mem_sphere p)).1 h.symm).symm)
-
-/-- Off the south pole, the third coordinate of a point of the unit sphere is not `-1`. -/
-theorem one_add_ne_zero_of_ne_neg_northPole {p : sphere (0 : ℝ³) 1} (hp : p ≠ -northPole) :
-    1 + (p : ℝ³) 2 ≠ 0 := by
-  have h := one_sub_ne_zero_of_ne_northPole (p := -p) fun h ↦ hp (by rw [← h, neg_neg])
-  rwa [coe_neg_sphere, PiLp.neg_apply, sub_neg_eq_add] at h
-
-/-! ### Inverse stereographic projection and the area form of the sphere -/
-
-/-- The derivative of inverse stereographic projection from the north pole, read on `ℂ`. -/
-private theorem hasFDerivAt_coe_diffeomorphSphere_coe (z : ℂ) :
-    HasFDerivAt (fun y : ℂ ↦ (OnePoint.diffeomorphSphere northPole equatorIsometry y : ℝ³))
-      ((-((1 + ‖z‖ ^ 2) ^ 2)⁻¹ • (2 • (innerSL ℝ z).comp (ContinuousLinearMap.id ℝ ℂ))).smulRight
-          ((2 : ℝ) • (equatorIsometry z : ℝ³) + (‖z‖ ^ 2 - 1) • (northPole : ℝ³)) +
-        (1 + ‖z‖ ^ 2)⁻¹ • ((2 : ℝ) • ((ℝ ∙ (northPole : ℝ³))ᗮ.subtypeL.comp
-          equatorIsometry.toContinuousLinearEquiv.toContinuousLinearMap) +
-          (2 • (innerSL ℝ z).comp (ContinuousLinearMap.id ℝ ℂ)).smulRight (northPole : ℝ³))) z := by
-  have hN := (hasFDerivAt_id z).norm_sq
-  have h := ((hasDerivAt_inv (by positivity : (1 + ‖z‖ ^ 2) ≠ 0)).comp_hasFDerivAt z
-    (hN.const_add 1)).smul ((((ℝ ∙ (northPole : ℝ³))ᗮ.subtypeL.comp
-      equatorIsometry.toContinuousLinearEquiv.toContinuousLinearMap).hasFDerivAt.const_smul
-        (2 : ℝ)).add ((hN.sub_const 1).smul_const (northPole : ℝ³)))
-  refine (h.congr_of_eventuallyEq (.of_forall fun y ↦ ?_)).congr_fderiv ?_
-  · simp
-  · ext a
-    simp [smul_add, add_comm]
-
-/-- **The round sphere is `4π` times the Fubini–Study sphere, as an area form.** Inverse
-stereographic projection `OnePoint.diffeomorphSphere northPole equatorIsometry` from the north
-pole pulls the outward-normal area form `vol(x, ·, ·)` of the unit sphere of `ℝ³` back to `4π`
-times the Fubini–Study form `OnePoint.fubiniStudyForm` of the Riemann sphere. -/
-theorem mpullback_diffeomorphSphere_sphereVolumeForm :
-    SmoothForm.mpullback (OnePoint.diffeomorphSphere northPole equatorIsometry)
-        ((OnePoint.diffeomorphSphere northPole equatorIsometry).contMDiff.of_le le_top)
-        (Orientation.sphereVolumeForm o₃) =
-      (4 * Real.pi) • OnePoint.fubiniStudyForm := by
-  set σ := OnePoint.diffeomorphSphere northPole equatorIsometry
-  -- The forms agree at the finite points, which are dense in the sphere.
-  refine SmoothBundleForm.eq_of_forall_mem_dense OnePoint.denseRange_coe ?_
-  rintro _ ⟨z, rfl⟩
-  refine SmoothBundleForm.apply_eq_of_eval₂_eq fun a b ↦ ?_
-  have hσ : MDifferentiableAt 𝓘(ℝ, ℂ) (𝓡 2) σ z := σ.mdifferentiable (by simp) _
-  have hcoe : MDifferentiableAt (𝓡 2) 𝓘(ℝ, ℝ³) ((↑) : sphere (0 : ℝ³) 1 → ℝ³) (σ z) :=
-    (contMDiff_coe_sphere _).mdifferentiableAt one_ne_zero
-  have hd (c : TangentSpace 𝓘(ℝ, ℂ) (z : OnePoint ℂ)) :
-      mvfderiv (𝓡 2) ((↑) : sphere (0 : ℝ³) 1 → ℝ³) (σ z) (mfderiv 𝓘(ℝ, ℂ) (𝓡 2) σ z c) =
-        fderiv ℝ (fun y : ℂ ↦ (σ y : ℝ³)) z c :=
-    (mvfderiv_comp_apply _ hcoe hσ c).symm.trans (OnePoint.mvfderiv_coe_apply (hcoe.comp _ hσ) c)
-  rw [SmoothForm.eval₂_mpullback, ← sphereAreaForm_eq_sphereVolumeForm, eval₂_sphereAreaForm,
-    hd, hd, (hasFDerivAt_coe_diffeomorphSphere_coe z).fderiv]
-  have h₁ := SmoothForm.eval₂_smul (4 * Real.pi) OnePoint.fubiniStudyForm (z : OnePoint ℂ) a b
-  have h₂ := OnePoint.eval₂_fubiniStudyForm_coe z a b
-  rw [h₁, h₂, OnePoint.fubiniStudyDensity_def, OnePoint.coe_diffeomorphSphere_coe]
-  clear h₁ h₂ hd
-  -- Read `a` and `b` as complex numbers, and compute the triple product in coordinates.
-  revert a b
-  intro (a : ℂ) (b : ℂ)
-  simp only [add_apply, smul_apply, ContinuousLinearMap.smulRight_apply,
-    ContinuousLinearMap.comp_apply, innerSL_apply_apply, ContinuousLinearMap.id_apply,
-    Submodule.subtypeL_apply, ContinuousLinearEquiv.coe_coe,
-    LinearIsometryEquiv.coe_toContinuousLinearEquiv, coe_equatorIsometry_apply, coe_northPole,
-    Complex.inner, WithLp.ofLp_add, WithLp.ofLp_smul]
-  have hv : (EuclideanSpace.single 2 1 : ℝ³).ofLp = ![0, 0, 1] := by
-    ext i
-    fin_cases i <;> simp
-  rw [hv]
-  simp only [cross_apply, dotProduct, Fin.sum_univ_three, Complex.sq_norm, Complex.normSq_apply,
-    Complex.mul_re, Complex.mul_im, Complex.conj_re, Complex.conj_im, smul_eq_mul, Pi.add_apply,
-    Pi.smul_apply, Matrix.cons_val_zero, Matrix.cons_val_one, Matrix.cons_val_two,
-    Matrix.head_cons, Matrix.tail_cons, nsmul_eq_mul, Nat.cast_ofNat]
-  field_simp
-  ring
-
-/-- Stereographic projection from the north pole, the inverse of
-`OnePoint.diffeomorphSphere northPole equatorIsometry`, pulls the Fubini–Study form of the
-Riemann sphere back to `(4π)⁻¹` times the area form of the unit sphere of `ℝ³`. -/
-theorem mpullback_diffeomorphSphere_symm_fubiniStudyForm :
-    SmoothForm.mpullback (OnePoint.diffeomorphSphere northPole equatorIsometry).symm
-        ((OnePoint.diffeomorphSphere northPole equatorIsometry).symm.contMDiff.of_le le_top)
-        OnePoint.fubiniStudyForm =
-      (4 * Real.pi)⁻¹ • Orientation.sphereVolumeForm o₃ := by
-  have hid : ⇑(OnePoint.diffeomorphSphere northPole equatorIsometry) ∘
-      ⇑(OnePoint.diffeomorphSphere northPole equatorIsometry).symm = id :=
-    funext (OnePoint.diffeomorphSphere northPole equatorIsometry).apply_symm_apply
-  have h₄ : (4 * Real.pi)⁻¹ • (4 * Real.pi) • OnePoint.fubiniStudyForm =
-      OnePoint.fubiniStudyForm := by
-    rw [smul_smul, inv_mul_cancel₀ (by positivity), one_smul]
-  rw [← h₄, map_smul, ← mpullback_diffeomorphSphere_sphereVolumeForm,
-    SmoothForm.mpullback_mpullback]
-  simp only [hid, SmoothForm.mpullback_id, LinearMap.id_apply]
-
 /-! ### The stereographic map onto `ℂP¹` -/
 
 /-- **Stereographic coordinates on `ℂP¹`.** The analytic diffeomorphism from the unit sphere of
@@ -459,83 +283,6 @@ theorem mpullback_sphereToProjectiveLine_fubiniStudyForm :
 
 /-! ### Orientations -/
 
-/-- The outward-normal orientation of the unit sphere is the orientation of its volume form
-`Orientation.sphereVolumeForm`. -/
-theorem _root_.Orientation.sphereOrientation_eq_ofTopForm {E : Type*} [NormedAddCommGroup E]
-    [InnerProductSpace ℝ E] {n : ℕ} [Fact (Module.finrank ℝ E = n + 1)]
-    (o : Orientation ℝ E (Fin (n + 1))) :
-    o.sphereOrientation = Manifold.Orientation.ofTopForm finrank_euclideanSpace_fin
-      o.sphereVolumeForm.val (o.sphereVolumeForm.isSmoothForm.of_le zero_le)
-      o.sphereVolumeForm_apply_ne_zero := by
-  ext u
-  set o' := Manifold.Orientation.ofTopForm finrank_euclideanSpace_fin o.sphereVolumeForm.val
-    (o.sphereVolumeForm.isSmoothForm.of_le zero_le) o.sphereVolumeForm_apply_ne_zero
-  let b := Module.finBasisOfFinrankEq ℝ (TangentSpace (𝓡 n) u)
-    (finrank_euclideanSpace_fin (𝕜 := ℝ))
-  -- A tangent basis is positive for both orientations exactly when `vol(u, b₁, …, bₙ) > 0`.
-  have h : b.orientation = o.sphereOrientation.orientationAt u ↔
-      b.orientation = o'.orientationAt u := by
-    rw [o.orientation_eq_orientationAt_sphereOrientation_iff,
-      Manifold.Orientation.orientation_eq_orientationAt_ofTopForm_iff,
-      Orientation.sphereVolumeForm_apply]
-  have hcard (o'' : Manifold.Orientation (𝓡 n) (sphere (0 : E) 1) (Fin n)) :=
-    Nat.card_eq_fintype_card.trans (o''.finrank_tangentSpace_eq u).symm
-  rcases b.orientation.eq_or_eq_neg (o.sphereOrientation.orientationAt u)
-    (hcard o.sphereOrientation) with hb | hb
-  · exact hb.symm.trans (h.1 hb)
-  · rcases b.orientation.eq_or_eq_neg (o'.orientationAt u) (hcard o') with hb' | hb'
-    · exact absurd (h.2 hb') (hb ▸ (Module.Ray.ne_neg_self _).symm)
-    · exact neg_injective (hb.symm.trans hb')
-
-/-- The orientation of the Riemann sphere defined by its Fubini–Study form. -/
-private noncomputable def onePointOrientation :
-    Manifold.Orientation 𝓘(ℝ, ℂ) (OnePoint ℂ) (Fin 2) :=
-  Manifold.Orientation.ofTopForm Complex.finrank_real_complex OnePoint.fubiniStudyForm.val
-    (OnePoint.fubiniStudyForm.isSmoothForm.of_le zero_le) OnePoint.fubiniStudyForm_apply_ne_zero
-
-/-- In the preferred chart, the orientation of the Fubini–Study form is that of the basis
-`(1, i)`. -/
-private theorem orientationAt_onePointOrientation (x : OnePoint ℂ) :
-    Manifold.Orientation.orientationAt onePointOrientation x = Complex.orientation := by
-  refine ((Manifold.Orientation.orientation_eq_orientationAt_ofTopForm_iff
-    Complex.finrank_real_complex (OnePoint.fubiniStudyForm.isSmoothForm.of_le zero_le)
-    OnePoint.fubiniStudyForm_apply_ne_zero (x := x) Complex.basisOneI).2 ?_).symm
-  have h := (SmoothBundleForm.eval₂_apply _ _ _ _).symm.trans
-    (OnePoint.eval₂_fubiniStudyForm x 1 Complex.I)
-  have hb : (⇑Complex.basisOneI : Fin 2 → TangentSpace 𝓘(ℝ, ℂ) x) = ![1, Complex.I] :=
-    Complex.coe_basisOneI
-  refine lt_of_lt_of_eq ?_ ((congrArg (OnePoint.fubiniStudyForm.val x) hb).trans h).symm
-  simpa using OnePoint.fubiniStudyDensity_pos _
-
-/-- The biholomorphism of the Riemann sphere onto `ℂP¹` carries the orientation of the
-Fubini–Study form to the complex orientation: its derivative is complex-linear. -/
-private theorem isOrientationPreservingAt_equivProjectivization (x : OnePoint ℂ) :
-    Manifold.Orientation.IsOrientationPreservingAt onePointOrientation oCP1
-      (OnePoint.equivProjectivization ℂ) x := by
-  set P₀ := OnePoint.diffeomorphProjectivization ℂ ω
-  -- The real derivative is the complex one, the casts between tangent spaces being identities.
-  have hpt (v : ℂ) : mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin 1 → ℂ) (OnePoint.equivProjectivization ℂ) x v =
-      mfderiv 𝓘(ℂ, ℂ) 𝓘(ℂ, Fin 1 → ℂ) P₀ x v := by
-    rw [OnePoint.coe_diffeomorphProjectivization]
-    exact DFunLike.congr_fun (((OnePoint.contMDiff_equivProjectivization (𝕜 := ℂ) x
-      ).mdifferentiableAt (by simp)).mfderiv_restrictScalars ℝ) v
-  let Lc : ℂ ≃L[ℂ] (Fin 1 → ℂ) := P₀.mfderivToContinuousLinearEquiv (by simp) x
-  refine (Manifold.Orientation.isOrientationPreservingAt_iff _ _ _ _).2
-    ⟨Lc.restrictScalars' ℝ, ?_, ?_⟩
-  · ext v
-    exact ((congrFun (Lc.coe_restrictScalars' (R := ℝ)) v).trans
-      (DFunLike.congr_fun (P₀.mfderivToContinuousLinearEquiv_coe (by simp)) v)).trans
-        (hpt v).symm
-  · have key : Orientation.map (Fin 2) (Lc.restrictScalars' ℝ).toLinearEquiv Complex.orientation =
-        Orientation.reindex ℝ (Fin 1 → ℂ) (finCongr (by simp))
-          (complexOrientation (Fin 1 → ℂ)) := by
-      rw [← reindex_complexOrientation_complex, Orientation.map_reindex,
-        ContinuousLinearEquiv.restrictScalars'_toLinearEquiv, LinearEquiv.map_complexOrientation,
-        Orientation.reindex_finCongr_reindex_finCongr]
-    rw [Manifold.Orientation.orientationAt_reindex,
-      orientationAt_complexManifoldOrientation_eq_complexOrientation]
-    exact (congrArg _ (orientationAt_onePointOrientation x)).trans key
-
 /-- `sphereToProjectiveLine` preserves orientations: from the outward-normal orientation of the
 unit sphere of `ℝ³`, for the standard orientation of `ℝ³`, to the canonical orientation of
 `ℂP¹` as a complex manifold. -/
@@ -543,11 +290,11 @@ theorem isOrientationPreservingAt_sphereToProjectiveLine (p : sphere (0 : ℝ³)
     Manifold.Orientation.IsOrientationPreservingAt (Orientation.sphereOrientation o₃) oCP1
       sphereToProjectiveLine p := by
   rw [coe_sphereToProjectiveLine]
-  refine (isOrientationPreservingAt_equivProjectivization _).comp ?_
+  refine (OnePoint.isOrientationPreservingAt_equivProjectivization _).comp ?_
   have h := congrArg (fun φ : SmoothForm (𝓡 2) (sphere (0 : ℝ³) 1) ℝ 2 ↦ φ.val p)
     mpullback_diffeomorphSphere_symm_fubiniStudyForm
   simp only [SmoothForm.coe_mpullback] at h
-  rw [Orientation.sphereOrientation_eq_ofTopForm, onePointOrientation]
+  rw [Orientation.sphereOrientation_eq_ofTopForm, ← OnePoint.ofTopForm_fubiniStudyForm]
   exact Manifold.Orientation.isOrientationPreservingAt_ofTopForm_of_mpullback_eq_smul _ _ _ _ _ _
     (by positivity) h
 
