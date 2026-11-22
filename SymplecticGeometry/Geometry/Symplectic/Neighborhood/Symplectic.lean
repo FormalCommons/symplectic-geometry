@@ -202,9 +202,7 @@ theorem HasSymplecticTangentImages.exists_symplectomorphism_opens {hσ₀ : σ�
   have hdg (q : Q₀) (v : TangentSpace J₀ q) :
       mfderiv J₀ I₁ g q v = mfderiv J₁ I₁ f₁ (φ q) (mfderiv J₀ J₁ φ q v) := by
     rw [f₁.mfderiv_compDiffeomorphOfBoundaryless φ (by simp) q]
-    -- `ContinuousLinearMap.comp_apply` fails to elaborate here: the sides lie in
-    -- `TangentSpace I₁ (g q)` and `TangentSpace I₁ (f₁ (φ q))`, equal only by unfolding.
-    rfl
+    exact ContinuousLinearMap.comp_apply (M₃ := TangentSpace I₁ (f₁ (φ q))) _ _ _
   have hσ : SmoothForm.mpullback g g.contMDiff σ₁ = SmoothForm.mpullback f₀ f₀.contMDiff σ₀ := by
     rw [← hφ, ← LinearMap.comp_apply, ← SmoothForm.mpullback_comp]
     congr 2
