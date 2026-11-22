@@ -85,10 +85,10 @@ def isColimitCofanSingularHomologyProd [HasExactColimitsOfShape (Discrete ι) C]
 
 end Coproduct
 
-section Sum
+section FiberComp
 
-variable {C : Type u} [Category.{v} C] [HasCoproducts.{w} C] [Abelian C] (R : C)
-  (ι : TopCat.{w}) [DiscreteTopology ι] {X : TopCat.{w}}
+variable {C : Type u} [Category.{v} C] [HasCoproducts.{w} C] [Preadditive C]
+  [CategoryWithHomology C] (R : C) (ι : TopCat.{w}) [DiscreteTopology ι] {X : TopCat.{w}}
 
 /-- In positive degree, the map on `Hₙ` induced by including the fibre over `j` and then
 retracting onto the fibre over `i` is the identity if `j = i` and `0` otherwise. -/
@@ -103,6 +103,13 @@ theorem singularHomologyFunctor_map_prodFiberInclusion_comp_prodFiberRetraction 
     rw [prodFiberInclusion_comp_prodFiberRetraction, CategoryTheory.Functor.map_id]
   · rw [prodFiberInclusion_comp_prodFiberRetraction_of_ne ι x₀ h,
       singularHomologyFunctor_map_const_eq_zero R x₀ hn]
+
+end FiberComp
+
+section Sum
+
+variable {C : Type u} [Category.{v} C] [HasCoproducts.{w} C] [Abelian C] (R : C)
+  (ι : TopCat.{w}) [DiscreteTopology ι] {X : TopCat.{w}}
 
 /-- **Decomposition of the identity of `Hₙ(ι ⊗ X)`.** For a finite discrete space `ι`, a point
 `x₀ : X` and `n ≠ 0`, the endomorphisms of `Hₙ(ι ⊗ X; R)` induced by retracting onto the fibre
