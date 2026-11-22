@@ -6,7 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.DeRham.GoodCover.Basic
-public import SymplecticGeometry.Geometry.Manifold.DeRham.SmoothFamily.Contractible
+public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.HomotopyOperator
 public import TauCeti.Geometry.Manifold.DeRham.Basic
 import TauCeti.Geometry.Manifold.DeRham.Map
 
@@ -26,7 +26,7 @@ The proof has two steps.
   the `0`-forms `h (G^* α_t)`, the homotopy operator after pullback along `G`, form a smooth
   family over `N`, so they are the slices `f (t, ·)` of a smooth function `f` on `N × M`,
   explicitly `f (t, x) = ∫₀¹ α_t (G (x, s)) (∂ₛ G (x, s)) ds`. Since `α_t` is closed,
-  `SymplecticGeometry.mextDerivₗ_homotopyOperator_mpullback_of_contraction` gives
+  `TauCeti.SmoothForm.mextDerivₗ_homotopyOperator_mpullback_of_contraction` gives
   `d (h (G^* α_t)) = α_t`.
 * *Gluing.* Choose primitives `g_t` of the `α_t` and a point `r i` in each connected component
   `i`, and let `f (t, x) = g_t x - g_t (r i)` for `x` in the component `i`. Every point has a
@@ -110,7 +110,8 @@ theorem IsSmoothlyContractible.exists_contMDiff_mextDeriv_eq_of_forall_mem_close
     conv_rhs => rw [RoughForm.eq_ofFunction Ω.val, mpullback_ofFunction]
     -- Both sides are the `0`-form of `x ↦ Ω (t, x)`, written with and without `∘`.
     rfl
-  rw [hslice, ← mextDerivₗ_apply, mextDerivₗ_homotopyOperator_mpullback_of_contraction hG hG₀ hG₁
+  rw [hslice, ← mextDerivₗ_apply,
+    SmoothForm.mextDerivₗ_homotopyOperator_mpullback_of_contraction hG hG₀ hG₁
     ((mem_closedForms_iff_mextDerivₗ_eq_zero I _).1 (hcl t))]
 
 /-- Near every point of `M`, a family `g_t` of primitives of a smooth family of closed one-forms

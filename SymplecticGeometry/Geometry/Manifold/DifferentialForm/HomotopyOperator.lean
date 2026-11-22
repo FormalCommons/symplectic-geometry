@@ -5,7 +5,9 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 public import TauCeti.Geometry.Manifold.DifferentialForm.HomotopyOperator
+public import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 
 /-!
@@ -33,10 +35,15 @@ on a smooth manifold `M` possibly with boundary or corners. Smoothness of `h φ`
   `TauCeti.mextDeriv_homotopyOperator_add_homotopyOperator_mextDeriv` on smooth forms.
 * `TauCeti.SmoothForm.mextDerivₗ_homotopyOperator`: its case of a closed form,
   `d (h φ) = ι₁^* φ - ι₀^* φ`.
+* `TauCeti.SmoothForm.mextDerivₗ_homotopyOperator_mpullback_of_contraction`: for a smooth
+  `Φ : M × [0, 1] → M` from a constant map to the identity and a closed form `z` of positive
+  degree with values in a Banach space, `h (Φ^* z)` is a primitive of `z`.
 
 ## References
 
 * [R. Bott and L. W. Tu, *Differential Forms in Algebraic Topology*][BottTu1982], §4.
+* [A. Weil, *Sur les théorèmes de de Rham*][Weil1952], §2 (the homotopy operator of a
+  contraction).
 -/
 
 public section
@@ -101,6 +108,21 @@ theorem mextDerivₗ_homotopyOperator [CompleteSpace F]
         mpullback (fun x : M ↦ (x, (0 : Icc (0 : ℝ) 1))) (contMDiff_id.prodMk contMDiff_const)
           φ := by
   rw [← mextDerivₗ_homotopyOperator_add_homotopyOperator_mextDerivₗ, hφ, map_zero, add_zero]
+
+/-- Let `Φ : M × [0, 1] → M` be a smooth contraction of `M` to `c`, with `Φ (x, 0) = c` and
+`Φ (x, 1) = x`. For a closed `(k + 1)`-form `z` with values in a Banach space, the form
+`h (Φ^* z)` is a primitive of `z`. -/
+theorem mextDerivₗ_homotopyOperator_mpullback_of_contraction [CompleteSpace F] {c : M}
+    {Φ : M × unitInterval → M} (hΦ : ContMDiff (I.prod (𝓡∂ 1)) I ∞ Φ) (h₀ : ∀ x, Φ (x, 0) = c)
+    (h₁ : ∀ x, Φ (x, 1) = x) {z : SmoothForm I M F (k + 1)} (hz : mextDerivₗ I (k + 1) z = 0) :
+    mextDerivₗ I k (homotopyOperator (mpullback Φ hΦ z)) = z := by
+  have hclosed : mextDerivₗ (I.prod (𝓡∂ 1)) (k + 1) (mpullback Φ hΦ z) = 0 := by
+    rw [mextDerivₗ_mpullback, hz, map_zero]
+  rw [mextDerivₗ_homotopyOperator hclosed, mpullback_mpullback, mpullback_mpullback]
+  -- The end slices of the contraction are the identity and the constant map at `c`.
+  have hid : Φ ∘ (fun x : M ↦ (x, (1 : unitInterval))) = id := funext h₁
+  have hconst : Φ ∘ (fun x : M ↦ (x, (0 : unitInterval))) = fun _ ↦ c := funext h₀
+  simp_rw [hid, hconst, mpullback_id, mpullback_const, LinearMap.id_apply, sub_zero]
 
 end SmoothForm
 

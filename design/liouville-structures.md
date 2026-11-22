@@ -246,35 +246,48 @@ Expected size: 400 lines.
 ### `Geometry/Symplectic/Liouville/Collar.lean`
 
 In `TauCeti`, beside Tau Ceti's file, for `ω` symplectic, `hdim`, `U` and `Y`
-as above with `Y` Liouville on `U` and transverse along `i`, and
-`α := -i^*(ω.interiorₗ ⟨Y, hY⟩)`:
+as above with `Y` Liouville on `U` and transverse along `i`, and `α` with
+`hα : α.val = -mpullback J I i (RoughForm.interior Y ω.val)` (a hypothesis,
+since `Y` is smooth only on `U`):
 
-- `SmoothEmbedding.exists_liouvilleCollar`: there are `D : Opens (ℝ × Q)`
-  with `{0} ×ˢ univ ⊆ D`, `V : Opens W` with `range i ⊆ V ⊆ U`, and
-  `Φ : D ≃ₘ⟮𝓘(ℝ).prod J, I⟯ V` such that `(Φ ⟨(0, q), _⟩ : W) = i q`, each
-  `t ↦ Φ (t, q)` is an integral curve of `Y` where defined, and
-  `Φ^*(ω|V) = (mextDerivₗ _ 1 (SmoothForm.symplectization (-α)))|D`, that is
-  $\Phi^*\omega=-d(e^s\alpha)$; also $\Phi^*\lambda=e^s\alpha$. From Tau
+- `IsLiouvilleCollar ω Y i α Φ φ`, in `SymplecticGeometry`, a `Prop`-valued
+  structure, for
+  `Φ : D ≃ₘ⟮𝓘(ℝ).prod J, I⟯ V` with `D : Opens (ℝ × Q)`, `V : Opens W`, and
+  `φ : ℝ × Q → W`: its fields are `zero_mem : ∀ q, (0, q) ∈ D`,
+  `mem_of_mem : ∀ p ∈ D, ∀ s ∈ uIcc 0 p.1, (s, p.2) ∈ D`,
+  `coe_apply : Φ p = φ p`, `apply_zero : φ (0, q) = i q`,
+  `isMIntegralCurveOn` (each `t ↦ φ (t, q)` an integral curve of `Y` on the
+  slice of `D`), `mpullback_eq`:
+  `mpullback _ I Φ ω.val = (mextDerivₗ _ 1 (SmoothForm.symplectization (-α))).val|D`,
+  that is $\Phi^*\omega=-d(e^s\alpha)$, and `mpullback_interior_eq`:
+  `mpullback _ I Φ (RoughForm.interior Y ω.val) = (symplectization (-α)).val|D`,
+  that is $\Phi^*\lambda=e^s\alpha$; both are pullbacks of rough forms to `D`.
+  `range_subset : range i ⊆ V` is a theorem.
+- `SmoothEmbedding.exists_liouvilleCollar`: there are `D : Opens (ℝ × Q)`,
+  `V : Opens W` with `V ⊆ U`,
+  `Φ : D ≃ₘ⟮𝓘(ℝ).prod J, I⟯ V` and `φ : ℝ × Q → W` with
+  `IsLiouvilleCollar ω Y i α Φ φ`.
+  From Tau
   Ceti's `exists_continuous_pos_injOn_flowOf_comp` (variable width, `D` the
   set `|t| < ε q`) applied on the open submanifold `U` with
-  $\beta=\iota_Y\omega$, its formulas
+  $\beta=\iota_Y\omega$, and its formulas
   `mpullback_flowOf_comp_apply_eq_symplectization` and
-  `mpullback_flowOf_comp_mextDeriv_apply`, and
-  `isLocalDiffeomorphAt_flowOf_comp_of_isTransverseAlong`. Second
+  `mpullback_flowOf_comp_mextDeriv_apply`. Second
   countability and Hausdorffness give the pseudometrizability that the
   variable width needs.
 - `SmoothEmbedding.exists_liouvilleCollar_of_compactSpace`: for compact `Q`,
-  the same with `D = Ioo (-ε) ε ×ˢ univ` for some `ε > 0`, from
-  `exists_pos_injOn_flowOf_comp`.
-- The milestone,
-  `SmoothEmbedding.exists_isContactForm_iff_exists_liouville_and_collar`: for
-  `ω` symplectic and `hdim`, (1) some contact `α` on `Q` has
+  the same with `D = symmStrip Q ε` for some `ε > 0`, from the collar of
+  variable width and `exists_symmStrip_le`.
+- The milestone, in two theorems: for `ω` symplectic and `hdim`,
+  `SmoothEmbedding.exists_isContactForm_iff_exists_liouville`: (1) some
+  contact `α` on `Q` has
   `mextDerivₗ J 1 α = -i^*ω` if and only if (2) some field, Liouville and
-  smooth on an open `U ⊇ range i`, is transverse along `i`; and for every
+  smooth on an open `U ⊇ range i`, is transverse along `i`; and
+  `SmoothEmbedding.exists_liouvilleCollar_of_isContactForm`: for every
   such `α` there are `U` and `Y` as in
   `exists_liouville_of_isContactForm` together with a collar as in
-  `exists_liouvilleCollar`, and with `D = Ioo (-ε) ε ×ˢ univ` when `Q` is
-  compact. Docstring line: "Milestone: *Contact-type hypersurfaces and
+  `exists_liouvilleCollar`, and with `D = symmStrip Q ε` when `Q` is
+  compact. Docstring line of both: "Milestone: *Contact-type hypersurfaces and
   Liouville collars*."
 
 The book's Proposition 3.5.31 assumes `Q` compact; the statement here holds
@@ -642,6 +655,9 @@ Expected size: 300 lines.
 - *Moser isotopy*: `Geometry/Manifold/TubularNeighborhood/RelativePoincare.lean`,
   merged, which issue 1 extends by
   `SmoothEmbedding.exists_mextDeriv_eq_and_mpullback_eq`, only in
+  `ContactType.lean`.
+- *Moser isotopy*: `Geometry/Manifold/DifferentialForm/Opens.lean`
+  (`TauCeti.mpullback_subtype_val_mextDeriv`), merged, only in
   `ContactType.lean`.
 - *Moser isotopy*: `Geometry/Symplectic/Manifold/Flat.lean`
   (`SmoothTwoForm.IsNondegenerate.interior_flat_inverse_ofSubsingleton`,

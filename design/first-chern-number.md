@@ -804,8 +804,21 @@ issues, in an order where each issue's blockers come before it.
    boundary.** The setting is that of `RelativeFundamentalClass.lean`: `X`
    compact Hausdorff, `ι : M → X` an open embedding of a surface with
    `o : HomologicalOrientation M E 2`, and `f : N → X` collared with image
-   `∂X`, the complement of `ι(M)`. Its topological and smooth files are kept
-   apart, so that no Topology file imports Geometry:
+   `∂X`, the complement of `ι(M)`. The topological files are kept apart
+   from the smooth ones, so that no Topology file imports Geometry:
+   - `AlgebraicTopology/Singular/CircleMap.lean`, needed by
+     `BoundaryDegree.lean`: maps `Y → Circle` act additively on first
+     homology, `(u * v)_* = u_* + v_*`
+     (`ContinuousMap.singularHomologyFunctor_map_mul`), a self-map of the
+     circle acts on `H₁(S¹)` by its `circleDegree`, and so `u` sends the class
+     of a free loop `ℓ` to the degree of `u ∘ ℓ`
+     (`ContinuousMap.singularHomologyOneIso_hom_map_map_inv_one`). These give
+     `boundaryDegree_mul` and `boundaryDegree_eq_sum_degree`.
+   - `AlgebraicTopology/Singular/ModuleChains.lean`, needed by
+     `CircleMap.lean`: with coefficients `k`, Mathlib's
+     `singularHomologyFunctor` induces Tau Ceti's
+     `ContinuousMap.singularHomologyMap`
+     (`AlgebraicTopology.singularHomologyFunctor_obj_map_ofHom_hom`).
    - `AlgebraicTopology/Singular/Circle.lean`, used by
      `DiscBoundaryClass.lean`:
      `Circle.singularHomologyOneIso_inv_eq_complexOrientation`, the
@@ -814,7 +827,7 @@ issues, in an order where each issue's blockers come before it.
    - `Analysis/Normed/Module/Ball/Collar.lean`, used by
      `DiscBoundaryClass.lean`: in a real normed space the unit sphere is
      collared in the closed unit ball
-     (`SymplecticGeometry.isCollared_inclusion_sphere_closedBall`), and the
+     (`Metric.isCollared_inclusion_sphere_closedBall`), and the
      open ball is the complement of the sphere in the closed ball
      (`Metric.range_inclusion_ball_eq_compl`).
    - `AlgebraicTopology/Singular/LocalHomology/OrientedChart.lean`, used by
