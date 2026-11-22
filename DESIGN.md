@@ -2324,8 +2324,8 @@ has either; Tau Ceti's extension across a boundary,
 
 - **Files:** `Geometry/Manifold/Complex/Isothermal.lean` (named like Tau
   Ceti's file: every smooth almost complex structure on a surface modelled
-  on `𝓘(ℝ, ℂ)` has isothermal charts, an instance of Tau Ceti's
-  `HasIsothermalCharts`, from Tau Ceti's planar
+  on `𝓘(ℝ, ℂ)` has smooth isothermal charts, with no instance of Tau
+  Ceti's `HasIsothermalCharts`, from Tau Ceti's planar
   `TauCeti.Beltrami.exists_isothermal_chart_of_contDiffAt` read through the
   charts of the surface and made smooth by
   `TauCeti.Beltrami.contDiffOn_infty_of_fderiv_comp` with the regularity
@@ -2365,15 +2365,18 @@ has either; Tau Ceti's extension across a boundary,
   (for a `TauCeti.SmoothEmbedding` $f:N\to M$ whose tangent images are
   $J$-invariant: the restricted structure on $N$, with $df$ complex linear;
   the pull-back of a form taming, or compatible with, $J$ is nondegenerate
-  and tames, or is compatible with, the restriction, the linear step being
-  Tau Ceti's `TauCeti.SymplecticForm.Compatible.restrict` with nondegeneracy
-  derived from taming; closedness passes to the pull-back, so $N$ is a
+  and tames, or is compatible with, the restriction, the form conditions
+  being checked on $df_x v$ through `mfderiv_restrict_apply` and
+  nondegeneracy following from taming; closedness passes to the pull-back, so $N$ is a
   symplectic submanifold in the sense of Tau Ceti's
   `IsSymplecticSubmanifoldEmbedding`; the Nijenhuis tensor of the
   restriction is the restriction of $N_J$, so `IsKahler` passes to $N$; and
   if $J$ is integrable, so is the restriction, since $N$ is locally a graph
   whose differential is complex linear, hence holomorphic by Tau Ceti's
-  `mdifferentiableAt_iff_mvfderiv_ofComplexManifold_apply`).
+  `mdifferentiableAt_iff_mvfderiv_ofComplexManifold_apply`) and
+  `Geometry/Manifold/Immersion/TangentEndomorphism.lean` (an endomorphism
+  field of $TN$ that $df$ relates to a smooth one along $f$ is smooth, when
+  $df$ has left inverses; it gives the restriction its smoothness).
 - **Builds on:** *Nijenhuis tensor* (`Nijenhuis.lean` for naturality along
   embeddings, `Integrable.lean`); Tau Ceti.
 - **Milestones:** *Complex submanifolds of Kähler manifolds*, except its
@@ -2505,9 +2508,8 @@ has either; Tau Ceti's extension across a boundary,
   folder of the same name): `Density.lean` (the norm of a linear map from a
   tangent plane of $\Sigma$, measured by $\mathrm{dvol}_\Sigma(\cdot,j\cdot)$,
   to a tangent space, its value on a frame $(e,je)$, and the pointwise
-  identity, by Tau Ceti's
-  `TauCeti.SmoothTwoForm.Invariant.stdComplexLineEnergyDensity_sub_two_mul_twoForm`
-  on each tangent plane, with $\bar\partial_J$ Tau Ceti's
+  identity, read on each tangent plane from their vector-space versions,
+  with $\bar\partial_J$ Tau Ceti's
   `TauCeti.complexAntilinearPart`), `Metric.lean` (that norm read in
   $g_J$), `Surface.lean` (the energy as an integral over
   the closed surface, Tau Ceti's `integralTopForm`, the integrated
@@ -2789,14 +2791,14 @@ manifolds and characteristic classes*).
 | *Levi-Civita derivative of a compatible almost complex structure* | *Almost Kähler geometry*. Existing inputs: Mathlib's `CovariantDerivative.leviCivitaConnection`, Tau Ceti's `CovariantDerivative.hom` and `TauCeti.SmoothForm.mextDeriv_apply_two`. |
 | *Nijenhuis tensor* | *Nijenhuis tensor*. Existing parts: `TauCeti.SmoothAlmostComplexStructure.nijenhuis`, `nijenhuis_apply`, `nijenhuis_antisymm`, `nijenhuis_self`, `nijenhuis_apply_left`, `nijenhuis_apply_right`, `nijenhuis_eq_zero_of_finrank_eq_two`, `nijenhuis_const`, `isInvolutiveComplexDistribution_eigenspace_I_iff`. |
 | *Parallel almost complex structures and the Kähler condition* | *Almost Kähler geometry*, with $N_J=0$ in condition 2, as the page asks. |
-| *Integrability of almost complex structures on surfaces* | *Isothermal coordinates*. Existing inputs: `TauCeti.Beltrami.exists_isothermal_chart_of_contDiffAt` ($C^1$ charts only), `TauCeti.Beltrami.contDiffOn_infty_of_fderiv_comp` (which assumes $C^m$ charts for every $m$), `TauCeti.SmoothAlmostComplexStructure.HasIsothermalCharts`. Missing: isothermal charts of class $C^m$ for smooth $J$, built by the part. |
+| *Integrability of almost complex structures on surfaces* | *Isothermal coordinates*. Existing inputs: `TauCeti.Beltrami.exists_isothermal_chart_of_contDiffAt` ($C^1$ charts only), `TauCeti.Beltrami.contDiffOn_infty_of_fderiv_comp` (which assumes $C^m$ charts for every $m$). Missing: isothermal charts of class $C^m$ for smooth $J$, built by the part. |
 | *Fubini–Study form on complex projective space* | *Complex projective space*. Existing inputs: Tau Ceti's complex manifold `ℙ ℂ (Fin (n + 1) → ℂ)`, `TauCeti.SmoothTwoForm.existsUnique_isSymplectic_mpullback_eq`, `OnePoint.fubiniStudyForm`. |
 | *Complex submanifolds of Kähler manifolds* | *Complex submanifolds*; its last sentence *Complex projective space*. Existing input: the linear `TauCeti.SymplecticForm.Compatible.restrict`. |
 | *Kähler structure on the space of compatible linear complex structures* | *Space of compatible complex structures*. Existing inputs: `TauCeti.SymplecticForm.compatibleTangentSpace`, `TauCeti.SymplecticForm.Compatible.compatibleCayleyEquiv`, and the bijection with $\mathcal S_n$ of *Siegel upper half space*. |
 | *Hodge decomposition on closed Kähler manifolds* | *Hodge theory*. Existing inputs: `TauCeti.harmonicForms` and its orthogonality results, `TauCeti.complexDeRhamCohomology`, `TauCeti.dolbeaultCohomology`, Tau Ceti's interior elliptic regularity. |
 | *Adjunction formula* | *Adjunction*; the example of plane curves *Projective hypersurfaces*. |
 | *Chern classes of projective hypersurfaces* | *Projective hypersurfaces*, on *Chern classes*. Existing inputs: `TauCeti.isManifold_complexProjectiveZeroLocus`, `Projectivization.twistCore`, Tau Ceti's Lefschetz theorems in `Geometry/Manifold/Projectivization/Lefschetz.lean`. |
-| *Energy identity for J-holomorphic curves* | *Energy of pseudoholomorphic curves*. Existing inputs: Tau Ceti's pointwise identity `TauCeti.SmoothTwoForm.Invariant.stdComplexLineEnergyDensity_sub_two_mul_twoForm`, `TauCeti.integralTopForm_mpullback_nonneg`. |
+| *Energy identity for J-holomorphic curves* | *Energy of pseudoholomorphic curves*. Existing input: `TauCeti.integralTopForm_mpullback_nonneg`. |
 
 The results that the page quotes rather than proves are handled as follows.
 The integral first Chern class is *First Chern number*'s, the Euler class of

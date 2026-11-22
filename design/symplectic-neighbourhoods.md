@@ -223,6 +223,9 @@ and two rows of its milestone table.
     `IsNormableSpace` on tangent spaces, which `Adjoint.lean` needs when
     its fibres are tangent spaces, and `Nontrivial` on tangent spaces, which
     `Energy/Density.lean` of *Pseudoholomorphic energy* uses.
+  - `Geometry/Manifold/SmoothEmbedding/Diffeomorph.lean`: reparametrising a
+    smooth embedding by a diffeomorphism from a manifold on another model, which
+    `Isotropic.lean` and `Coisotropic.lean` use.
   - `Geometry/Manifold/TubularNeighborhood/MFDeriv.lean`: the step of
     `Tubular.lean` that uses nothing symplectic.
   - `Geometry/Manifold/VectorBundle/Adjoint.lean`: a step of
@@ -576,12 +579,23 @@ forms are `0`. The dimensions agree by Tau Ceti's
 `IsLagrangianMap.two_mul_finrank`. Milestone:
 *Lagrangian neighbourhood theorem*.
 
+### `Geometry/Manifold/SmoothEmbedding/Diffeomorph.lean`
+
+At Tau Ceti's path, in its namespace `TauCeti`, beside Tau Ceti's
+`compDiffeomorph`, which needs one model. For boundaryless `M'` and `N`,
+`N` on a finite-dimensional model, and `e : M' ≃ₘ^n⟮I', I⟯ M` with `1 ≤ n`:
+`isImmersion_comp_diffeomorph_of_boundaryless`,
+`isSmoothEmbedding_comp_diffeomorph_of_boundaryless`, and the bundled
+`SmoothEmbedding.compDiffeomorphOfBoundaryless`, with its `_apply`, `coe_`
+and `range_` lemmas.
+
 ### `Geometry/Symplectic/Neighborhood/Isotropic.lean`
 
 `TauCeti.SmoothTwoForm.IsNondegenerate.IsIsotropicMap.exists_symplectomorphism_opens_of_finrank_eq`.
-Isotropic `f₀` and `f₁`, both modelled on one `J`, a diffeomorphism
-`φ : Q₀ ≃ₘ⟮J, J⟯ Q₁`, and `L` over `Q₀` from `T_{f₀ q}M₀` to
-`T_{f₁ (φ q)}M₁`, smooth as a section along `f₁.compDiffeomorph φ`,
+Isotropic `f₀` and `f₁`, modelled on `J₀` and `J₁`, a diffeomorphism
+`φ : Q₀ ≃ₘ⟮J₀, J₁⟯ Q₁`, and `L` over `Q₀` from `T_{f₀ q}M₀` to
+`T_{f₁ (φ q)}M₁`, smooth as a section along
+`f₁.compDiffeomorphOfBoundaryless φ _`,
 mapping $W_0^\omega$ into $W_1^\omega$ and preserving $\omega$ there; the
 dimensions of `M₀` and `M₁` are equal. Conclusion: `ψ` with
 `ψ ∘ f₀ = f₁ ∘ φ`, and `mfderiv ψ v = L q v + mfderiv f₁ (φ q) u` for
@@ -602,9 +616,9 @@ dimension `dim M - 2 dim Q`. Milestone: *Isotropic neighbourhood theorem*.
 ### `Geometry/Symplectic/Neighborhood/Coisotropic.lean`
 
 `TauCeti.SmoothTwoForm.IsNondegenerate.IsCoisotropicMap.exists_symplectomorphism_opens`,
-the milestone. Coisotropic `f₀` and `f₁` (no closed image is needed), both
-modelled on one `J`, a diffeomorphism
-`φ` pulling `f₁^*ω₁` back to `f₀^*ω₀`, and nothing else. Conclusion: `ψ`
+the milestone. Coisotropic `f₀` and `f₁` (no closed image is needed),
+modelled on `J₀` and `J₁`, a diffeomorphism `φ : Q₀ ≃ₘ⟮J₀, J₁⟯ Q₁`
+pulling `f₁^*ω₁` back to `f₀^*ω₀`, and nothing else. Conclusion: `ψ`
 with `ψ ∘ f₀ = f₁ ∘ φ` that pulls `ω₁` back to `ω₀`. Route: the comparison
 theorem with `L = 0`, since $W^\omega=K$. The equal dimensions follow from
 `φ` and Tau Ceti's `IsCoisotropicMap.finrank_ker_bilinFormAt_mpullback_add`
