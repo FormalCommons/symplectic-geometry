@@ -186,19 +186,21 @@ section Along
 variable {E' H' N : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [TopologicalSpace H']
   {I : ModelWithCorners ℝ E' H'} [TopologicalSpace N] [ChartedSpace H' N]
 
-/-- Let `Y` be a field along a map `p` into the compatible complex structures, whose ambient
-reading `Ŷ : x ↦ Ŷ x` is differentiable at `x`. Each `Ŷ x` is skew for `ω`, and so is the
-derivative of `Ŷ` along any tangent vector `v` at `x`. -/
+/-- Let `Y` be a field along a map `p` into the compatible complex structures, with ambient
+reading `Ŷ : x ↦ Ŷ x`. Each `Ŷ x` is skew for `ω`, and so is the derivative of `Ŷ` at `x`
+along any tangent vector `v` at `x`. -/
 theorem mvfderiv_mfderiv_compatibleCLM_skew {p : N → 𝒥}
     {Y : ∀ x, TangentSpace 𝓘(ℝ, ω.compatibleModel) (p x)} {x : N}
-    (hY : MDifferentiableAt I 𝓘(ℝ, V →L[ℝ] V) (fun x ↦
-      (mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM (p x) (Y x) :
-        V →L[ℝ] V)) x)
     (v : TangentSpace I x) (u w : V) :
     ω (mvfderiv I (fun x ↦ (mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM
         (p x) (Y x) : V →L[ℝ] V)) x v u) w +
       ω u (mvfderiv I (fun x ↦ (mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V)
         ω.compatibleCLM (p x) (Y x) : V →L[ℝ] V)) x v w) = 0 := by
+  by_cases hY : MDifferentiableAt I 𝓘(ℝ, V →L[ℝ] V) (fun x ↦
+      (mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM (p x) (Y x) :
+        V →L[ℝ] V)) x
+  swap
+  · simp [mvfderiv, mfderiv_zero_of_not_mdifferentiableAt hY]
   have h := (skewFunctional ω u w).mvfderiv_comp_apply hY v
   rw [show ⇑(skewFunctional ω u w) ∘ (fun x ↦ (mfderiv 𝓘(ℝ, ω.compatibleModel)
       𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM (p x) (Y x) : V →L[ℝ] V)) = fun _ => 0 from
@@ -239,16 +241,11 @@ theorem compatibleCLM_comp_mvfderiv_mfderiv_add {p : N → 𝒥}
   have h0 : ((fun y ↦ (ω.compatibleCLM ∘ p) y (g y w)) + fun y ↦ g y ((ω.compatibleCLM ∘ p) y w)) =
       fun _ ↦ 0 := by
     funext y
-    -- Name the ambient reading `g y` as an element of `V →L[ℝ] V`.
-    obtain ⟨Z, hZ⟩ : ∃ Z : V →L[ℝ] V,
-        mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM (p y) (Y y) = Z :=
-      ⟨_, rfl⟩
-    have h := compatibleCLM_mul_add_mul_compatibleCLM (p y)
-      (hZ ▸ mfderiv_compatibleCLM_mem_tangentSpace (p y) (Y y))
-    rw [ContinuousLinearMap.mul_def, ContinuousLinearMap.mul_def] at h
-    simp only [Pi.add_apply, Function.comp_apply, hg, hZ, ← ContinuousLinearMap.comp_apply,
-      ← add_apply,
-      h, zero_apply]
+    have h : ω.compatibleCLM (p y) ∘L g y + g y ∘L ω.compatibleCLM (p y) = 0 :=
+      compatibleCLM_comp_add_comp_compatibleCLM (p y)
+        (mfderiv_compatibleCLM_mem_tangentSpace (p y) (Y y))
+    simpa only [Pi.add_apply, Function.comp_apply, add_apply,
+      ContinuousLinearMap.comp_apply, zero_apply] using DFunLike.congr_fun h w
   have hsum := mvfderiv_add (I := I) (x := x) (hc.clm_apply hgw) (hY.clm_apply hJw)
   rw [h0, mvfderiv_const] at hsum
   have hv := DFunLike.congr_fun hsum v
@@ -292,7 +289,7 @@ theorem leviCivitaConnection_compatibleSpace_apply
   have hgd : MDifferentiableAt 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) g J :=
     hgm ▸ TauCeti.mdifferentiableAt_mvfderiv_apply hf le_rfl hY
   refine mfderiv_compatibleCLM_eq_of_inner_eq_trace (a := a) (b := Y J)
-    (mvfderiv_mfderiv_compatibleCLM_skew (p := fun J' ↦ J') hgd a) ?_ fun w => ?_
+    (mvfderiv_mfderiv_compatibleCLM_skew (p := fun J' ↦ J') a) ?_ fun w => ?_
   · have h := compatibleCLM_comp_mvfderiv_mfderiv_add (p := fun J' ↦ J') (Y := Y)
       mdifferentiableAt_id hgd a
     simp only [Function.comp_def] at h
@@ -359,7 +356,7 @@ theorem alongCurve_leviCivitaConnection_compatibleSpace {γ : ℝ → 𝒥}
   rw [hc.deriv]
   refine mfderiv_compatibleCLM_eq_of_inner_eq_trace
     (a := curveVelocity 𝓘(ℝ, ω.compatibleModel) γ t) (b := W t) (fun u v => ?_) ?_ fun w => ?_
-  · have h := mvfderiv_mfderiv_compatibleCLM_skew (p := γ) (Y := W) hgd' 1 u v
+  · have h := mvfderiv_mfderiv_compatibleCLM_skew (I := 𝓘(ℝ)) (p := γ) (Y := W) (x := t) 1 u v
     rwa [← hg, hD] at h
   · have h := compatibleCLM_comp_mvfderiv_mfderiv_add (Y := W) hγ hgd' 1
     rwa [← hg, hD, hX] at h

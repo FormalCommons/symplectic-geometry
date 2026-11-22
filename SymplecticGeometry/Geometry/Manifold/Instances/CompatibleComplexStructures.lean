@@ -334,12 +334,13 @@ theorem mfderiv_compatibleCLM_mem_tangentSpace (J : 𝒥)
   compatibleTangentSpace_le_tangentSpace (mfderiv_compatibleCLM_mem_compatibleTangentSpace J a)
 
 /-- An endomorphism in the tangent space at `J` anticommutes with `J`. -/
-theorem compatibleCLM_mul_add_mul_compatibleCLM (J : 𝒥) {X : V →L[ℝ] V}
+theorem compatibleCLM_comp_add_comp_compatibleCLM (J : 𝒥) {X : V →L[ℝ] V}
     (hX : (X : Module.End ℝ V) ∈ J.val.tangentSpace) :
-    ω.compatibleCLM J * X + X * ω.compatibleCLM J = 0 := by
+    ω.compatibleCLM J ∘L X + X ∘L ω.compatibleCLM J = 0 := by
   rw [AlmostComplexStructure.mem_tangentSpace] at hX
   apply ContinuousLinearMap.coe_injective
-  rw [ContinuousLinearMap.toLinearMap_add, ContinuousLinearMap.toLinearMap_mul,
+  rw [← ContinuousLinearMap.mul_def, ← ContinuousLinearMap.mul_def,
+    ContinuousLinearMap.toLinearMap_add, ContinuousLinearMap.toLinearMap_mul,
     ContinuousLinearMap.toLinearMap_mul, toLinearMap_compatibleCLM, add_comm, hX,
     ContinuousLinearMap.toLinearMap_zero]
 
