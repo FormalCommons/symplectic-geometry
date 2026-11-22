@@ -8,9 +8,10 @@ module
 public import TauCeti.Geometry.Symplectic.Liouville.Collar
 public import TauCeti.Geometry.Symplectic.Manifold.Flat
 import TauCeti.Geometry.Manifold.Flow.Diffeomorph
-import TauCeti.Geometry.Manifold.ModelTransport.Interior
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffeomorph
 import SymplecticGeometry.Geometry.Manifold.Flow.Basic
+import SymplecticGeometry.Geometry.Manifold.MFDeriv.Opens
+import SymplecticGeometry.Geometry.Manifold.ModelTransport.InteriorModel
 import SymplecticGeometry.Geometry.Manifold.VectorField.Pullback
 import SymplecticGeometry.Geometry.Symplectic.Liouville.ContactType
 
@@ -26,8 +27,10 @@ and, by Tau Ceti's `TauCeti.mpullback_flowOf_comp_apply_eq_symplectization`, it 
 the symplectization form `e^(t - t₀) Φ(t₀, ·)^* α`
 (`TauCeti.mpullback_apply_eq_symplectization_of_isMIntegralCurveOn`). Tau Ceti's theorem asks for
 a boundaryless model; a manifold without boundary points over any model is re-modelled over the
-model vector space by Tau Ceti's `TauCeti.BoundarylessModel.interiorDiffeomorph`, and a
-diffeomorphism, being a local diffeomorphism, pulls a Liouville pair back to a Liouville pair
+model vector space by `SymplecticGeometry.interiorModelDiffeomorph` (in
+`SymplecticGeometry.Geometry.Manifold.ModelTransport.InteriorModel`, after Tau Ceti's
+`TauCeti.BoundarylessModel`), and a diffeomorphism, being a local diffeomorphism, pulls a
+Liouville pair back to a Liouville pair
 (`IsLocalDiffeomorph.interior_mextDeriv_mpullback_of_interior_mextDeriv`, in
 `SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffeomorph`).
 
@@ -37,8 +40,10 @@ subset of the interior of `W` with `L_Y σ = σ` on `U`. If `Φ` maps `(a, b) ×
 lines are integral curves of `Y`, then `Φ` pulls the primitive `ι_Y σ` back to
 `e^(t - t₀) Φ(t₀, ·)^*(ι_Y σ)`; it vanishes on `∂ₜ`, since `ι_Y σ (Y) = σ(Y, Y) = 0`
 (`TauCeti.mpullback_interiorₗ_apply_eq_symplectization_of_isMIntegralCurveOn`). The proof
-restricts `Y` and `ι_Y σ` to `U`, as `TauCeti.SmoothEmbedding.exists_pos_forall_liouvilleCollar`
-does; `U` has no boundary points, so the boundaryless case applies there.
+restricts `Y` and `ι_Y σ` to `U` (`TauCeti.SmoothForm.restrictInterior`, Liouville there by
+`TauCeti.SmoothTwoForm.interior_mextDeriv_restrictInterior`), as
+`TauCeti.SmoothEmbedding.exists_pos_forall_liouvilleCollar` does; `U` has no boundary points, so
+the boundaryless case applies there.
 
 In McDuff–Salamon's signs, with the primitive `λ = -ι_Y σ` and `α = -Φ(t₀, ·)^*(ι_Y σ)`, the
 identity reads `Φ^* λ = e^(t - t₀) α`.
@@ -119,30 +124,7 @@ private theorem mpullback_apply_eq_symplectization_of_isMIntegralCurveOn_of_boun
       (fun q : ℝ × S ↦ (q.1 - t₀, q.2)), mpullback_comp_at hshift hΨ,
     mpullback_fst_sub_const_apply, mpullback_flowOf_comp_apply_eq_symplectization hZ hΦ₀ hZα hdom]
 
-variable (I) in
-/-- A boundaryless manifold `M`, as a manifold modelled on `E` through Tau Ceti's
-`BoundarylessModel`: its charts are the extended charts of `M`. -/
-private def InteriorModel (M : Type*) [TopologicalSpace M] [ChartedSpace H M] : Type _ :=
-  BoundarylessModel I M
-
-private noncomputable instance : TopologicalSpace (InteriorModel I M) :=
-  inferInstanceAs (TopologicalSpace (BoundarylessModel I M))
-
-private instance : T2Space (InteriorModel I M) :=
-  inferInstanceAs (T2Space M)
-
 variable [BoundarylessManifold I M]
-
-private noncomputable instance : ChartedSpace E (InteriorModel I M) :=
-  BoundarylessModel.interiorChartedSpace I (M := M)
-
-private instance : IsManifold 𝓘(ℝ, E) ∞ (InteriorModel I M) :=
-  BoundarylessModel.instIsManifoldInteriorChartedSpace I (M := M)
-
-variable (I M) in
-/-- The identity of `M`, as a diffeomorphism onto its re-modelled copy. -/
-private noncomputable def interiorModelDiffeomorph : M ≃ₘ^∞⟮I, 𝓘(ℝ, E)⟯ InteriorModel I M :=
-  BoundarylessModel.interiorDiffeomorph I (M := M) ∞
 
 /-- **Liouville scaling along integral curves.** Let the smooth vector field `Z` be the Liouville
 field of the one-form `α`, `ι_Z dα = α`, on a boundaryless manifold, let each line
@@ -158,13 +140,13 @@ theorem mpullback_apply_eq_symplectization_of_isMIntegralCurveOn
     mpullback (𝓘(ℝ).prod J) I Φ α.val (t, s) =
       (SmoothForm.mpullback _ hΦ₀ α).symplectization.val (t - t₀, s) := by
   -- Transport `Z`, `α` and `Φ` to the copy `M'` of `M` modelled on `E`.
-  set h := interiorModelDiffeomorph I M
-  let Z' : (y : InteriorModel I M) → TangentSpace 𝓘(ℝ, E) y :=
+  set h := SymplecticGeometry.interiorModelDiffeomorph I M ∞
+  let Z' : (y : SymplecticGeometry.InteriorModel I M) → TangentSpace 𝓘(ℝ, E) y :=
     VectorField.mpullback 𝓘(ℝ, E) I h.symm Z
   have hZ' : ContMDiff 𝓘(ℝ, E) 𝓘(ℝ, E).tangent ∞ (T% Z') := by
     have := h.symm.isLocalDiffeomorph.contMDiffOn_mpullback (t := univ) hZ.contMDiffOn le_rfl
     rwa [preimage_univ, contMDiffOn_univ] at this
-  let α' : SmoothForm 𝓘(ℝ, E) (InteriorModel I M) ℝ 1 :=
+  let α' : SmoothForm 𝓘(ℝ, E) (SymplecticGeometry.InteriorModel I M) ℝ 1 :=
     SmoothForm.mpullback h.symm h.symm.contMDiff α
   have hα' : α'.val = mpullback 𝓘(ℝ, E) I h.symm α.val := SmoothForm.coe_mpullback _ _ _
   have hdα' : (mextDeriv α'.val).interior Z' = α'.val := by
@@ -216,13 +198,11 @@ theorem mpullback_interiorₗ_apply_eq_symplectization_of_isMIntegralCurveOn
   -- The field `Y` and the primitive `ι_Y σ`, restricted to `U'`.
   let Y₁ : (x : U') → TangentSpace I x := VectorField.mpullback I I Subtype.val Y
   have hY₁ : ContMDiff I I.tangent ∞ (T% Y₁) := VectorField.contMDiff_mpullback_subtypeVal hYU
-  let β₁ : SmoothForm I U' ℝ 1 :=
-    SmoothForm.mpullback Subtype.val contMDiff_subtypeVal (σ.interiorₗ ⟨Y, hY⟩)
-  have hβ₁ : β₁.val = mpullback I I Subtype.val (σ.interiorₗ ⟨Y, hY⟩).val :=
-    SmoothForm.coe_mpullback _ _ _
-  have hdβ₁ : (mextDeriv β₁.val).interior Y₁ = β₁.val := by
-    rw [hβ₁, SmoothTwoForm.coe_interiorₗ]
-    exact interior_mextDeriv_mpullback_subtypeVal_interior hσ hYU hYσ
+  let β₁ : SmoothForm I U' ℝ 1 := σ.restrictInterior Y hYU
+  have hβ₁ : β₁.val = mpullback I I Subtype.val (σ.interiorₗ ⟨Y, hY⟩).val := by
+    rw [SmoothForm.coe_restrictInterior, SmoothTwoForm.coe_interiorₗ, ContMDiffSection.coeFn_mk]
+  have hdβ₁ : (mextDeriv β₁.val).interior Y₁ = β₁.val :=
+    SmoothTwoForm.interior_mextDeriv_restrictInterior hσ hYU hYσ
   -- The lines of `Φ`, as curves in `U'`.
   let Φ₁ : ℝ × S → U' := fun p ↦
     if hp : Φ p ∈ U then ⟨Φ p, hp⟩ else ⟨Φ (t₀, p.2), hΦU t₀ ht₀ p.2⟩
@@ -234,17 +214,18 @@ theorem mpullback_interiorₗ_apply_eq_symplectization_of_isMIntegralCurveOn
   -- The slice of `Φ₁` at `t₀` is the slice of `Φ`, read in `U'`.
   have hΦ₁₀ : ContMDiff J I ∞ fun s ↦ Φ₁ (t₀, s) :=
     (ContMDiff.subtypeVal_comp_iff _ _).1 (by simpa [comp_def, hΦ₁ (p := (t₀, _)) ht₀] using hΦ₀)
-  have hval (y : U') : MDifferentiableAt I I (Subtype.val : U' → W) y :=
-    (contMDiff_subtypeVal (n := 1) y).mdifferentiableAt one_ne_zero
   have hια : SmoothForm.mpullback _ hΦ₁₀ β₁ =
       SmoothForm.mpullback _ hΦ₀ (σ.interiorₗ ⟨Y, hY⟩) := by
-    simp only [β₁, SmoothForm.mpullback_mpullback, comp_def, hΦ₁ (p := (t₀, _)) ht₀]
+    -- `β₁` is the pullback of `ι_Y σ` along the inclusion, as a smooth form.
+    rw [show β₁ = SmoothForm.mpullback Subtype.val contMDiff_subtypeVal (σ.interiorₗ ⟨Y, hY⟩) from
+      Subtype.ext (hβ₁.trans (SmoothForm.coe_mpullback _ _ _).symm)]
+    simp only [SmoothForm.mpullback_mpullback, comp_def, hΦ₁ (p := (t₀, _)) ht₀]
   -- `Φ` is `Φ₁` read back in `W`, near `(t, s)`.
   have hΦeq : Φ =ᶠ[𝓝 (t, s)] Subtype.val ∘ Φ₁ := by
     filter_upwards [(isOpen_Ioo.prod isOpen_univ).mem_nhds (mk_mem_prod ht (mem_univ s))] with p hp
     exact (hΦ₁ hp.1).symm
   rw [hΦeq.mpullback_eq, mpullback_comp_at ((contMDiffAt_of_isMIntegralCurveOn le_top hY₁ hΦ₁Y ht₀
-      hΦ₁₀ ht s).mdifferentiableAt (by simp)) (hval _), ← hβ₁,
+      hΦ₁₀ ht s).mdifferentiableAt (by simp)) mdifferentiableAt_subtypeVal, ← hβ₁,
     mpullback_apply_eq_symplectization_of_isMIntegralCurveOn hY₁ hdβ₁ hΦ₁Y ht₀ hΦ₁₀ ht, hια]
 
 end TauCeti
