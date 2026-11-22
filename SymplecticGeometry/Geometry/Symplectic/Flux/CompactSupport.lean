@@ -122,11 +122,10 @@ theorem isCompactlySupportedHamiltonian_iff_isGeneratedBy : Φ.IsCompactlySuppor
     (∀ t, Φ.timeSlice t ∈ SmoothForm.diffeomorphStabilizer σ) ∧
       ∃ G, Φ.IsGeneratedBy σ G ∧ ∃ K : Set M, IsCompact K ∧
         ∀ p : M × unitInterval, p.1 ∉ K → G p = 0 := by
-  refine and_congr_right fun _ ↦ ⟨fun ⟨F, hF, K, hK, hFK⟩ ↦ ⟨fun p ↦ F (Φ.symm (p.2, p.1), p.2),
-    hasHamiltonian_comp_iff.1 ?_, K, hK, fun p hp ↦ hFK _ ?_⟩,
-    fun ⟨G, hG, K, hK, hGK⟩ ↦ ⟨_, hasHamiltonian_comp_iff.2 hG, K, hK, fun _ hp ↦ hGK _ hp⟩⟩
-  · simpa only [cylinderMap_apply, symm_apply_mk_apply] using hF
-  · rwa [cylinderMap_apply, apply_mk_symm_apply]
+  refine and_congr_right fun _ ↦ ⟨fun ⟨F, hF, K, hK, hFK⟩ ↦ ⟨_, hF.isGeneratedBy, K, hK,
+    fun p hp ↦ hFK _ ?_⟩, fun ⟨G, hG, K, hK, hGK⟩ ↦ ⟨_, hasHamiltonian_comp_iff.2 hG, K, hK,
+    fun _ hp ↦ hGK _ hp⟩⟩
+  rwa [cylinderMap_apply, apply_mk_symm_apply]
 
 /-- A compactly supported Hamiltonian diffeotopy is Hamiltonian. -/
 theorem IsCompactlySupportedHamiltonian.isHamiltonian (hΦ : Φ.IsCompactlySupportedHamiltonian σ) :
@@ -228,16 +227,13 @@ theorem exists_isCompactlySupportedHamiltonian (hσ : SmoothTwoForm.IsSymplectic
     exact (SymplecticGeometry.timeExtend_apply_coe (fun q : unitInterval × M ↦ G (q.2, q.1)) t
       y).symm
   have hslice (t : unitInterval) : Φ.timeSlice t ∈ SmoothForm.diffeomorphStabilizer σ := by
-    have h : ⇑(Φ.timeSlice t) = timeDependentFlowOf X 0 t :=
-      funext fun x ↦ (timeSlice_apply Φ t x).trans
-        (timeDependentFlowDiffeotopy_apply le_top hX hc (t, x))
     have hpull := SmoothTwoForm.mpullback_timeDependentFlowOf_of_isHamiltonianVectorField (X := X)
       (fun u ↦ hσ.isNondegenerate.isHamiltonianVectorField_hamiltonianVectorField
         (fun y ↦ g (u, y))) hσ.isClosed
       (fun u ↦ (hg.comp (contMDiff_const.prodMk contMDiff_id)).of_le (by simp)) hc
       (hX.of_le (by simp)) 0 t
     refine SmoothForm.mem_diffeomorphStabilizer_iff_forall.2 fun x ↦ ?_
-    rw [h, hpull]
+    rw [timeSlice_timeDependentFlowDiffeotopy, hpull]
   exact ⟨Φ, hgen, isCompactlySupportedHamiltonian_iff_isGeneratedBy.2 ⟨hslice, G, hgen, K, hK,
     hGK⟩, fun t x hx ↦ timeDependentFlowDiffeotopy_apply_of_forall_eq_zero _ _ _
       (fun u ↦ hXK u x hx) t⟩

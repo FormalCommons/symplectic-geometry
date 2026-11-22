@@ -5,11 +5,11 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Velocity
 public import SymplecticGeometry.Geometry.Manifold.Flow.TimeDependent
 public import SymplecticGeometry.Geometry.Manifold.SmoothTransition
 public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Flow
 public import TauCeti.Geometry.Manifold.Flow.Eulerian
-import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Velocity
 import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Family
 import TauCeti.Geometry.Manifold.Instances.Icc
 
@@ -40,6 +40,8 @@ and its time-dependent flows use, and a `TauCeti.Diffeotopy`, a level-preserving
   inverses are jointly smooth.
 * `TauCeti.Diffeotopy.eulerianField_smoothTransitionFamily_apply`: the Eulerian field of
   `u ↦ φ_{s(u)}` at `φ_{s(u)} x` is `s'(u)` times the time derivative of `Φ` at `(x, s(u))`.
+* `TauCeti.Diffeotopy.eulerianField_smoothTransitionFamily`: as a vector field, the Eulerian field
+  of `u ↦ φ_{s(u)}` at time `u` is `s'(u)` times the velocity `X_{s(u)}` of `Φ`.
 
 Time derivatives of a diffeotopy are taken, as in Tau Ceti's `TauCeti.Diffeotopy.HasHamiltonian`,
 through `Φ.cylinderMap` on the vector `∂ₜ = (0, 1)` at `(x, t)`, where `1` is the unit tangent
@@ -234,6 +236,20 @@ theorem eulerianField_smoothTransitionFamily_apply (u : ℝ) (x : M) :
     ((map_smul _ _ _).trans ?_))
   exact congrArg (deriv Real.smoothTransition u • ·)
     (Φ.mfderiv_cylinderMap_time (by simp) (x, σ u)).symm
+
+/-- The Eulerian field at time `u` of the family `u ↦ φ_{s(u)}` over `ℝ` of a diffeotopy `Φ`,
+`s = Real.smoothTransition`, is `s'(u)` times the velocity `X_{s(u)}` of `Φ`. -/
+theorem eulerianField_smoothTransitionFamily [IsManifold I ∞ M] (u : ℝ) :
+    eulerianField I (fun v ↦ (Φ.smoothTransitionFamily v).toEquiv) u =
+      ⇑(deriv Real.smoothTransition u • Φ.velocity (Real.smoothTransitionUnit u)) := by
+  funext y
+  obtain ⟨x, rfl⟩ : ∃ x, Φ.smoothTransitionFamily u x = y :=
+    ⟨(Φ.smoothTransitionFamily u).symm y, (Φ.smoothTransitionFamily u).apply_symm_apply y⟩
+  rw [eulerianField_smoothTransitionFamily_apply, ContMDiffSection.coe_smul, Pi.smul_apply,
+    smoothTransitionFamily_apply, velocity_apply_apply]
+  -- The sides differ only in the base point that names the fibre of the scalar multiplication,
+  -- `Φ (s u, x)` on the left and `Φ.cylinderMap (x, s u)` on the right, equal by definition.
+  rfl
 
 end SmoothTransition
 
