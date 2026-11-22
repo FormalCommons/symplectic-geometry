@@ -12,7 +12,7 @@ public import SymplecticGeometry.Topology.VectorBundle.Complex.Structure
 public import TauCeti.Geometry.Manifold.Degree.Homological
 
 /-!
-# The first Chern number of a symplectic vector bundle over a surface
+# First Chern numbers of symplectic bundles on surfaces
 
 The first Chern number `chernNumber` of a complex vector bundle over a compact oriented surface
 (`SymplecticGeometry/Topology/VectorBundle/Complex/FirstChernClass.lean`) is here related to smooth
