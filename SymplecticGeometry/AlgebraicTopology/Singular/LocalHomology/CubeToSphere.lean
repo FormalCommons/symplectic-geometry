@@ -143,6 +143,12 @@ theorem existsUnique_forall_localOrientationEquiv_openSquareToSphere_eq :
   ⟨cubeToSphereOrientation, localOrientationEquiv_openSquareToSphere,
     fun _ h ↦ eq_cubeToSphereOrientation (h ⟨(1 + Complex.I) / 2, by norm_num⟩)⟩
 
+/-- The point of the square that corresponds to a point `w` of the open square of `ℂ` has offset
+`w - (1 + i) / 2` from the centre of the square. -/
+theorem squareCenterOffset_openSquareHomeomorph (w : openSquare) :
+    squareCenterOffset (openSquareHomeomorph w : I^(Fin 2)) = (w : ℂ) - (1 + Complex.I) / 2 := by
+  apply Complex.ext <;> simp [re_squareCenterOffset, im_squareCenterOffset]
+
 /-! ### A coordinate disc in the open square -/
 
 /-- A point at distance less than `2 / 5` from the centre `(1 + i) / 2` lies in the open square. -/
@@ -163,6 +169,12 @@ def ballToOpenSquare (z : CoordinateDisc.ball) : openSquare :=
 theorem coe_ballToOpenSquare_apply (z : CoordinateDisc.ball) :
     (ballToOpenSquare z : ℂ) = (1 + Complex.I) / 2 + z / 5 :=
   (rfl)
+
+/-- The point of the square that `ballToOpenSquare` sends `z` to has offset `z / 5` from the
+centre of the square. -/
+theorem squareCenterOffset_openSquareHomeomorph_ballToOpenSquare (z : CoordinateDisc.ball) :
+    squareCenterOffset (openSquareHomeomorph (ballToOpenSquare z) : I^(Fin 2)) = (z : ℂ) / 5 := by
+  rw [squareCenterOffset_openSquareHomeomorph, coe_ballToOpenSquare_apply, add_sub_cancel_left]
 
 private theorem subtypeVal_comp_ballToOpenSquare :
     Subtype.val ∘ ballToOpenSquare =
@@ -203,13 +215,6 @@ def cubeToSphere : CoordinateDisc cubeToSphereOrientation where
 theorem cubeToSphere_apply_eq (z : ball) :
     cubeToSphere z = openSquareToSphere (ballToOpenSquare z) :=
   (rfl)
-
-/-- The point of the square that `ballToOpenSquare` sends `z` to has offset `z / 5` from the
-centre of the square. -/
-theorem squareCenterOffset_openSquareHomeomorph_ballToOpenSquare (z : ball) :
-    squareCenterOffset (openSquareHomeomorph (ballToOpenSquare z) : I^(Fin 2)) = (z : ℂ) / 5 := by
-  apply Complex.ext <;>
-    simp [re_squareCenterOffset, im_squareCenterOffset]
 
 /-- The coordinate disc `cubeToSphere` sends `z` to the image under the collapse of the point of
 the square at offset `z / 5` from the centre. -/
