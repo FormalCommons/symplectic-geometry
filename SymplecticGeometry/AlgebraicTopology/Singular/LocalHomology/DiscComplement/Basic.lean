@@ -7,8 +7,8 @@ module
 
 public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.CoordinateDisc
 public import TauCeti.Geometry.Manifold.Boundary.Collar.Global
-import Mathlib.Topology.MetricSpace.Thickening
 import SymplecticGeometry.Analysis.Normed.Module.Ball.Collar
+import SymplecticGeometry.Topology.MetricSpace.ProperSpace.Lemmas
 import TauCeti.Analysis.Complex.Circle
 
 /-!
@@ -227,12 +227,11 @@ theorem exists_pairwise_disjoint_image_ball (hφ : Pairwise (Disjoint on fun i �
     intro i
     have ho : IsOpen (Subtype.val '' (φ i ⁻¹' U i) : Set ℂ) :=
       CoordinateDisc.ball.isOpen.isOpenMap_subtypeVal _ ((hU i).1.preimage (φ i).continuous)
-    obtain ⟨ε, hε, hεU⟩ := (isCompact_closedBall (0 : ℂ) 1).exists_thickening_subset_open ho
-      fun z hz ↦ ⟨⟨z, CoordinateDisc.mem_ball_of_norm_le_one (mem_closedBall_zero_iff.1 hz)⟩,
+    obtain ⟨r, hr, hrU⟩ := exists_lt_ball_subset_of_closedBall_subset ho
+      fun (z : ℂ) hz ↦ ⟨⟨z, CoordinateDisc.mem_ball_of_norm_le_one (mem_closedBall_zero_iff.1 hz)⟩,
         (hU i).2 ((φ i).apply_mem_disc_iff.2 (mem_closedBall_zero_iff.1 hz)), rfl⟩
-    refine ⟨ε, hε, fun z hz ↦ ?_⟩
-    rw [thickening_closedBall hε zero_le_one] at hεU
-    obtain ⟨w, hw, hwz⟩ := hεU (mem_ball_zero_iff.2 (by linarith))
+    refine ⟨r - 1, by linarith, fun z hz ↦ ?_⟩
+    obtain ⟨w, hw, hwz⟩ := hrU (mem_ball_zero_iff.2 (by linarith))
     rwa [Subtype.ext hwz] at hw
   choose ε hε hεU using key
   refine ⟨fun i ↦ min (ε i) (1 / 2), fun i ↦ ⟨lt_min (hε i) one_half_pos,
