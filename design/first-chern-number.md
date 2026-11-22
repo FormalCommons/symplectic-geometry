@@ -1247,7 +1247,7 @@ issues, in an order where each issue's blockers come before it.
    of pieces, in `Geometry/Manifold/Orientation/Glue.lean`.
    On the annuli, the orientation of the caps is compared with that of
    the surface through the collar, by
-   `TauCeti.SmoothCollar.orientationSign_eq` in
+   `TauCeti.SmoothCollar.orientationSign_eq_neg_one_pow` in
    `Geometry/Manifold/Boundary/Collar/Orientation.lean`: with the
    outward-first boundary orientation, the standard orientation
    `TauCeti.EuclideanHalfSpace.normalIioOpensOrientation` of $[0,1)$ and

@@ -49,7 +49,8 @@ invertible (`TauCeti.Manifold.Orientation.eventually_orientationSign_eq`) and ea
   the boundary directions is the derivative of the inclusion of the boundary.
 * `TauCeti.SmoothCollar.isOutwardPointing_neg_mfderiv_inr`: on the zero slice, minus the image of
   the depth direction points outward.
-* `TauCeti.SmoothCollar.orientationSign_eq`: the orientation sign of a collar is `(-1) ^ (n + 1)`.
+* `TauCeti.SmoothCollar.orientationSign_eq_neg_one_pow`: the orientation sign of a collar is
+  `(-1) ^ (n + 1)`.
 * `TauCeti.SmoothCollar.isOrientationPreservingAt_of_odd`,
   `TauCeti.SmoothCollar.isOrientationReversingAt_of_even`: a collar preserves orientation when
   `n` is odd and reverses it when `n` is even.
@@ -129,9 +130,8 @@ theorem mfderiv_comp_inl (hk : k ≠ 0) (y : (𝓡∂ (n + 1)).boundary M) :
 has positive normal coordinate. -/
 private theorem proj_zero_mfderiv_inr_pos (hk : k ≠ 0) (y : (𝓡∂ (n + 1)).boundary M) :
     0 < EuclideanSpace.proj (0 : Fin (n + 1))
-      ((mfderiv ((𝓡 n).prod (𝓡∂ 1)) (𝓡∂ (n + 1)) c (y, normalIioOpensZero one_pos)).comp
-        (ContinuousLinearMap.inr ℝ (EuclideanSpace ℝ (Fin n)) (EuclideanSpace ℝ (Fin 1)))
-        (EuclideanSpace.single 0 1)) := by
+      (mfderiv ((𝓡 n).prod (𝓡∂ 1)) (𝓡∂ (n + 1)) c (y, normalIioOpensZero one_pos)
+        (0, EuclideanSpace.single 0 1)) := by
   set I := (𝓡 n).prod (𝓡∂ 1)
   set p : ↥((𝓡∂ (n + 1)).boundary M) × normalIioOpens 1 := (y, normalIioOpensZero one_pos)
   set z := extChartAt I p p
@@ -189,9 +189,8 @@ variable [IsManifold (𝓡∂ (n + 1)) 1 M]
 derivative points outward. -/
 theorem isOutwardPointing_neg_mfderiv_inr (hk : k ≠ 0) (y : (𝓡∂ (n + 1)).boundary M) :
     IsOutwardPointing (y : M)
-      (-(mfderiv ((𝓡 n).prod (𝓡∂ 1)) (𝓡∂ (n + 1)) c (y, normalIioOpensZero one_pos)).comp
-        (ContinuousLinearMap.inr ℝ (EuclideanSpace ℝ (Fin n)) (EuclideanSpace ℝ (Fin 1)))
-        (EuclideanSpace.single 0 1)) := by
+      (-mfderiv ((𝓡 n).prod (𝓡∂ 1)) (𝓡∂ (n + 1)) c (y, normalIioOpensZero one_pos)
+        (0, EuclideanSpace.single 0 1)) := by
   refine (isOutwardPointing_iff_tangentCoordChange y.property
     (mem_extChartAt_source (y : M)) _).2 ?_
   refine (congrArg (fun w : EuclideanSpace ℝ (Fin (n + 1)) ↦ w 0)
@@ -240,18 +239,13 @@ private theorem orientationSign_mk_normalIioOpensZero (hk : k ≠ 0)
     (Equiv.symm_apply_eq _).2 finRotate_last.symm
   have hrot (j : Fin n) : (finRotate (n + 1)).symm j.succ = j.castSucc :=
     (Equiv.symm_apply_eq _).2 (Fin.ext (by simp))
-  have hB'0 : B' 0 = -((mfderiv ((𝓡 n).prod (𝓡∂ 1)) (𝓡∂ (n + 1)) c p).comp
-      (ContinuousLinearMap.inr ℝ (EuclideanSpace ℝ (Fin n)) (EuclideanSpace ℝ (Fin 1)))
-      (EuclideanSpace.single 0 1)) := by
+  have hB'0 : B' 0 =
+      -mfderiv ((𝓡 n).prod (𝓡∂ 1)) (𝓡∂ (n + 1)) c p (0, EuclideanSpace.single 0 1) := by
     have h : B' 0 = -B (Fin.last n) := by
       simp only [B', Module.Basis.unitsSMul_apply, Function.update_self,
         Module.Basis.reindex_apply, hrot0]
       rw [Units.neg_smul, one_smul]
     rw [h, ← hB]
-    -- Unfold the composite with `inr` to an application of the derivative.
-    change -(mfderiv ((𝓡 n).prod (𝓡∂ 1)) (𝓡∂ (n + 1)) c p) (B₀ (Fin.last n)) =
-      -(mfderiv ((𝓡 n).prod (𝓡∂ 1)) (𝓡∂ (n + 1)) c p)
-        (ContinuousLinearMap.inr ℝ _ _ (EuclideanSpace.single 0 1))
     congr 2
   have hB'succ (j : Fin n) : B' j.succ =
       mfderiv (𝓡 n) (𝓡∂ (n + 1)) (Subtype.val : (𝓡∂ (n + 1)).boundary M → M) y (b j) := by
@@ -264,9 +258,8 @@ private theorem orientationSign_mk_normalIioOpensZero (hk : k ≠ 0)
       (mfderiv ((𝓡 n).prod (𝓡∂ 1)) (𝓡∂ (n + 1)) c p) (ContinuousLinearMap.inl ℝ _ _ (b j))
     congr 1
     exact hcast j
-  have hB' : ⇑B' = Fin.cons (-((mfderiv ((𝓡 n).prod (𝓡∂ 1)) (𝓡∂ (n + 1)) c p).comp
-      (ContinuousLinearMap.inr ℝ (EuclideanSpace ℝ (Fin n)) (EuclideanSpace ℝ (Fin 1)))
-      (EuclideanSpace.single 0 1)))
+  have hB' : ⇑B' = Fin.cons
+      (-mfderiv ((𝓡 n).prod (𝓡∂ 1)) (𝓡∂ (n + 1)) c p (0, EuclideanSpace.single 0 1))
       (fun i ↦ mfderiv (𝓡 n) (𝓡∂ (n + 1)) (Subtype.val : (𝓡∂ (n + 1)).boundary M → M) y
         (b i)) := by
     funext i
@@ -306,7 +299,8 @@ private theorem orientationSign_mk_normalIioOpensZero (hk : k ≠ 0)
 orientation of `o`, `[0, 1)` by its standard orientation, and `∂M × [0, 1)` by their product,
 with the boundary directions first. Then a `C^k` smooth collar `c`, `k ≠ 0`, has orientation sign
 `(-1) ^ (n + 1)` at every point. -/
-theorem orientationSign_eq (hk : k ≠ 0) (q : (𝓡∂ (n + 1)).boundary M × normalIioOpens 1) :
+theorem orientationSign_eq_neg_one_pow (hk : k ≠ 0)
+    (q : (𝓡∂ (n + 1)).boundary M × normalIioOpens 1) :
     Manifold.Orientation.orientationSign
       ((boundaryOrientation o).prod (normalIioOpensOrientation 1)) o c q = (-1) ^ (n + 1) := by
   obtain ⟨y, t⟩ := q
@@ -331,8 +325,8 @@ theorem isOrientationPreservingAt_of_odd (hk : k ≠ 0) (hn : Odd n)
     (q : (𝓡∂ (n + 1)).boundary M × normalIioOpens 1) :
     Manifold.Orientation.IsOrientationPreservingAt
       ((boundaryOrientation o).prod (normalIioOpensOrientation 1)) o c q := by
-  rw [← Manifold.Orientation.orientationSign_eq_one_iff, c.orientationSign_eq o hk,
-    hn.add_one.neg_one_pow]
+  rw [← Manifold.Orientation.orientationSign_eq_one_iff,
+    c.orientationSign_eq_neg_one_pow o hk, hn.add_one.neg_one_pow]
 
 /-- When `n` is even, a smooth collar reverses orientation at every point, from the product of
 the boundary orientation and the standard orientation of `[0, 1)`. -/
@@ -340,8 +334,8 @@ theorem isOrientationReversingAt_of_even (hk : k ≠ 0) (hn : Even n)
     (q : (𝓡∂ (n + 1)).boundary M × normalIioOpens 1) :
     Manifold.Orientation.IsOrientationReversingAt
       ((boundaryOrientation o).prod (normalIioOpensOrientation 1)) o c q := by
-  rw [← Manifold.Orientation.orientationSign_eq_neg_one_iff, c.orientationSign_eq o hk,
-    hn.add_one.neg_one_pow]
+  rw [← Manifold.Orientation.orientationSign_eq_neg_one_iff,
+    c.orientationSign_eq_neg_one_pow o hk, hn.add_one.neg_one_pow]
 
 end SmoothCollar
 
