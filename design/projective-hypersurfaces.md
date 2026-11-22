@@ -275,6 +275,7 @@ The list is in the order of the paths.
 | `AlgebraicTopology/Cohomology/Cap/RationalCoefficients.lean` (addition) | Poincaré duality for rational Betti numbers | 13 |
 | `AlgebraicTopology/Singular/HomologyMap.lean` | homology isomorphisms across a commutative square | 12 |
 | `Geometry/Manifold/Complex/EulerCharacteristic.lean` | real and complex tangent bundles of a complex manifold; $\chi=\langle c_{top},[M]\rangle$ | 7 |
+| `Geometry/Manifold/Instances/Projectivization.lean` | the derivatives of the transition maps of projective space | 3 |
 | `Geometry/Manifold/Projectivization/ChernClass.lean` | $c(\mathcal O(k))$, $c(\mathcal O(k)^{\oplus r})$, $c(T\mathbb CP^m)$ | 6 |
 | `Geometry/Manifold/Projectivization/EulerSequence.lean` | $T\mathbb CP^m\oplus\mathbb C\cong\mathcal O(1)^{\oplus(m+1)}$ | 3 |
 | `Geometry/Manifold/Projectivization/Hypersurface/Basic.lean` | the structure, its manifold structure, the Fermat hypersurfaces | 1 |
@@ -294,6 +295,7 @@ The list is in the order of the paths.
 | `Geometry/Manifold/SmoothEmbedding/RestrictScalars.lean` | a holomorphic embedding is a real smooth embedding | 12 |
 | `LinearAlgebra/Pi/LinearForm.lean` | a nonzero linear form as a coordinate of an automorphism | 12 |
 | `LinearAlgebra/Projectivization/BinaryForm.lean` | a binary form with simple zeros has `d` zeros on $\mathbb CP^1$ | 9 |
+| `LinearAlgebra/Projectivization/HermitianProjector.lean` | the Hermitian projector in the standard affine charts | 3 |
 | `LinearAlgebra/Projectivization/VeroneseLinearForm.lean` | the linear form of a nonzero homogeneous polynomial is nonzero | 12 |
 | `Topology/Algebra/Module/Equiv/Pi.lean` | `ContinuousLinearEquiv.piOptionEquivProd` | 2 |
 | `Topology/ComplexProjectiveSpace/SimplyConnected.lean` | `ℙ ℂ (Fin (m + 1) → ℂ)` is simply connected | 12 |
@@ -375,6 +377,11 @@ Namespace `Projectivization`, on `ℙ ℂ (Fin (m + 1) → ℂ)`.
   spaces and of its inverse, checked in the charts of both bundles (the
   tangent charts are the affine charts that `twistCore` also uses,
   `chartAt_eq_affineOpenPartialHomeomorph_twistCore_indexAt`).
+- It uses the derivatives of the transition maps from
+  `Geometry/Manifold/Instances/Projectivization.lean`, the Hermitian
+  projector in the charts from
+  `LinearAlgebra/Projectivization/HermitianProjector.lean`, and
+  `normalizedRep` from `LinearAlgebra/Projectivization/Basic.lean`.
 
 ### `Geometry/Manifold/Projectivization/ChernClass.lean`
 

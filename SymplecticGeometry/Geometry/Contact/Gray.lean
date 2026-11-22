@@ -816,19 +816,13 @@ theorem eq_of_transports [SigmaCompactSpace M] (hξ : IsContactFamily ξ) {Φ Ψ
       ((0 : E), (1 : TangentSpace (𝓡∂ 1) t)) ∈ ξ t (Ψ (t, x))) :
     Φ = Ψ := by
   obtain ⟨Y, -, -, hgray⟩ := hξ.exists_grayField
-  -- Read along the motion, the normalization says that the velocity lies in `ξ`.
-  have hvel {Ψ : Diffeotopy I ∞ M} (h : ∀ (t : unitInterval) (x : M),
-      mfderiv (I.prod (𝓡∂ 1)) I Ψ.cylinderMap (x, t)
-        ((0 : E), (1 : TangentSpace (𝓡∂ 1) t)) ∈ ξ t (Ψ (t, x))) (t : unitInterval) (y : M) :
-      Ψ.velocity t y ∈ ξ t y := by
-    obtain ⟨x, rfl⟩ : ∃ x, Ψ (t, x) = y := ⟨_, Ψ.apply_mk_symm_apply t y⟩
-    rw [Diffeotopy.velocity_apply_apply]
-    exact h t x
   refine Diffeotopy.ext fun p ↦ ?_
   obtain ⟨u, hu⟩ := Real.smoothTransitionUnit_surjective p.1
   rw [← Prod.mk.eta (p := p), ← hu,
-    apply_smoothTransitionUnit_eq_timeDependentFlowOf hξ hgray hΦ (hvel hvΦ),
-    apply_smoothTransitionUnit_eq_timeDependentFlowOf hξ hgray hΨ (hvel hvΨ)]
+    apply_smoothTransitionUnit_eq_timeDependentFlowOf hξ hgray hΦ
+      ((Φ.forall_velocity_mem_iff ξ).2 hvΦ),
+    apply_smoothTransitionUnit_eq_timeDependentFlowOf hξ hgray hΨ
+      ((Ψ.forall_velocity_mem_iff ξ).2 hvΨ)]
 
 variable [CompactSpace M]
 

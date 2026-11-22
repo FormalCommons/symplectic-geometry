@@ -38,7 +38,7 @@ open scoped ContDiff Manifold
 namespace TauCeti.SmoothForm
 
 variable {E H M F : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
-  {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M] [IsManifold I ∞ M]
+  {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M] [IsManifold I 1 M]
   [NormedAddCommGroup F] [NormedSpace ℝ F] {k : ℕ}
 
 /-- The slices of `TauCeti.SmoothForm.lineMapFamily α₀ α₁ hc`, as rough forms: the pullback of
@@ -56,7 +56,7 @@ theorem coe_mpullback_prodMk_lineMapFamily (α₀ α₁ : SmoothForm I M F k) {c
 section prodMap
 
 variable {E' H' N : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [TopologicalSpace H']
-  {J : ModelWithCorners ℝ E' H'} [TopologicalSpace N] [ChartedSpace H' N] [IsManifold J ∞ N]
+  {J : ModelWithCorners ℝ E' H'} [TopologicalSpace N] [ChartedSpace H' N] [IsManifold J 1 N]
 
 /-- The slice at time `t` of the pullback of a form `α` on `ℝ × N` along `c × f`, for a smooth
 reparametrization `c : ℝ → ℝ` of time, is the pullback along `f` of the slice of `α` at time
@@ -65,11 +65,10 @@ theorem mpullback_prodMk_mpullback_prodMap' {c : ℝ → ℝ} (hc : ContMDiff �
     (f : M → N) (hf : ContMDiff I J ∞ f) (α : SmoothForm (𝓘(ℝ, ℝ).prod J) (ℝ × N) F k) (t : ℝ) :
     mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id)
         (mpullback (Prod.map c f) (hc.prodMap hf) α) =
-      mpullback f hf (mpullback (Prod.mk (c t)) (contMDiff_const.prodMk contMDiff_id) α) := by
-  rw [← LinearMap.comp_apply, ← mpullback_comp, ← LinearMap.comp_apply, ← mpullback_comp]
-  have h : Prod.map c f ∘ Prod.mk t = Prod.mk (c t) ∘ f := by
-    ext x <;> simp
-  simp only [h]
+      mpullback f hf (mpullback (Prod.mk (c t)) (contMDiff_const.prodMk contMDiff_id) α) :=
+  -- The square `Prod.map c f ∘ Prod.mk t = Prod.mk (c t) ∘ f` commutes by definition.
+  mpullback_mpullback_of_comp_eq (contMDiff_const.prodMk contMDiff_id) (hc.prodMap hf) hf
+    (contMDiff_const.prodMk contMDiff_id) rfl α
 
 /-- The slice at time `t` of the pullback of a form `α` on `ℝ × N` along `id × f` is the pullback
 along `f` of the slice of `α` at time `t`: `ι_t^* (id × f)^* α = f^* ι_t^* α`. -/

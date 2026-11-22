@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Flow.Local
 public import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Local
 public import TauCeti.Geometry.Manifold.Boundary.Collar.Smooth
+public import TauCeti.Geometry.Manifold.Boundary.OutwardExistence
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
 
 /-!
@@ -34,8 +35,10 @@ adapts the proof of Tau Ceti's `TauCeti.exists_pos_injOn_flowOf_comp`, the unifo
 Liouville collar of a compact hypersurface, from the time interval `(-ε, ε)` of a boundaryless
 manifold to the half-open interval of a boundary.
 
-Since outward fields always exist (Tau Ceti's `TauCeti.exists_isOutwardPointingField`), this
-gives smooth collars of compact boundaries; that corollary is not stated here.
+On a σ-compact manifold, outward fields exist (Tau Ceti's
+`TauCeti.exists_isOutwardPointingField`, by a partition of unity), so every compact boundary of a
+σ-compact Hausdorff manifold has a smooth collar, inside any given open neighbourhood of the
+boundary.
 
 ## Main results
 
@@ -43,6 +46,9 @@ gives smooth collars of compact boundaries; that corollary is not stated here.
   run at speed `ε`, are the integral curves of an outward field through the boundary points.
 * `TauCeti.SmoothCollar.exists_eq_of_isOutwardPointing_of_subset`: the same, with the image of
   the collar inside a given open neighbourhood of the boundary.
+* `TauCeti.SmoothCollar.exists_range_subset` and the instance `Nonempty (SmoothCollar n ∞ W)`:
+  a compact boundary of a σ-compact Hausdorff manifold has a smooth collar, which may be taken
+  inside any open neighbourhood of the boundary.
 * `TauCeti.SmoothCollar.exists_eq_of_isLocalDiffeomorphOn`: a local diffeomorphism from
   `∂W × [0, η)` that is the inclusion on `∂W × {0}` gives, after rescaling, a smooth collar.
 * `TauCeti.SmoothCollar.apply_normalIioRay_eq` and
@@ -219,6 +225,22 @@ theorem exists_eq_of_isOutwardPointing [CompactSpace ↥((𝓡∂ (n + 1)).bound
   obtain ⟨ε, Φ, c, hε, hΦ0, hΦY, hc, -⟩ :=
     exists_eq_of_isOutwardPointing_of_subset hY isOpen_univ (subset_univ _)
   exact ⟨ε, Φ, c, hε, hΦ0, hΦY, hc⟩
+
+/-- **Smooth collars of compact boundaries.** Let `W` be a smooth σ-compact Hausdorff manifold
+modelled on the half-space, with compact boundary `∂W`, and `U` an open set containing `∂W`.
+Then `∂W` has a smooth collar with image in `U`. -/
+theorem exists_range_subset [CompactSpace ↥((𝓡∂ (n + 1)).boundary W)] [SigmaCompactSpace W]
+    {U : Set W} (hU : IsOpen U) (hbU : (𝓡∂ (n + 1)).boundary W ⊆ U) :
+    ∃ c : SmoothCollar n ∞ W, range c ⊆ U := by
+  obtain ⟨Y, hY⟩ := exists_isOutwardPointingField (n := n) (M := W)
+  obtain ⟨-, -, c, -, -, -, -, hcU⟩ := exists_eq_of_isOutwardPointing_of_subset hY hU hbU
+  exact ⟨c, hcU⟩
+
+/-- **Smooth collars of compact boundaries.** A smooth σ-compact Hausdorff manifold modelled on
+the half-space whose boundary is compact has a smooth collar of its boundary. -/
+instance instNonempty [CompactSpace ↥((𝓡∂ (n + 1)).boundary W)] [SigmaCompactSpace W] :
+    Nonempty (SmoothCollar n ∞ W) :=
+  (exists_range_subset isOpen_univ (subset_univ ((𝓡∂ (n + 1)).boundary W))).nonempty
 
 omit [IsManifold (𝓡∂ (n + 1)) ∞ W] [T2Space W] in
 /-- If the normal lines of a collar `c` are the lines of `Φ` run at speed `ε`,
