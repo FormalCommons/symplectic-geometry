@@ -20,10 +20,14 @@ This lemma is from Tau Ceti's main branch
 commit `b9a3084bbb4cc2ac2c5a0b3ae0323198b47a34b8`, not yet in the pinned release; it is stated here
 under its Tau Ceti name, so that moving Tau Ceti past it deletes this file without renames.
 
+The Hatcher entry under References is Tau Ceti's, with one correction: Tau Ceti cites step (3) of
+the proof of Lemma 3.36, but Lemma 3.36 has no numbered steps, and Hatcher passes to increasing
+unions of open sets in step (B) of the proof of Theorem 3.35.
+
 ## References
 
 * A. Hatcher, [*Algebraic Topology*](https://pi.math.cornell.edu/~hatcher/AT/AT.pdf),
-  Section 3.3, step (3) of the proof of Lemma 3.36 (compactly supported cohomology of an
+  Section 3.3, step (B) of the proof of Theorem 3.35 (compactly supported cohomology of an
   increasing union of open sets is the direct limit).
 -/
 
