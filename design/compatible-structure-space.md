@@ -185,8 +185,8 @@ diffeomorphism. No Mathlib or Tau Ceti notion is redefined.
    for the trace form $B(P,Q)=\tfrac12\operatorname{tr}(PQ)$ of
    `V →L[ℝ] V`, and the Koszul formula gives
    $\langle\nabla_XY,w\rangle=B(D_X\hat Y,\hat w)$. Tau Ceti's Gauss formula
-   asks for an inner product on the ambient space, while $B$ is positive only
-   on self-adjoint maps, so its proof is redone for a symmetric bilinear
+   asks for an inner product on the ambient space, while $B$ is positive
+   definite on the self-adjoint maps but not on all of `V →L[ℝ] V`, so its proof is redone for a symmetric bilinear
    form in `Geometry/Manifold/VectorBundle/CovariantDerivative/LeviCivita/Bilinear.lean`.
    Differentiating $J\hat Y+\hat YJ=0$ and the $\omega$-skewness of $\hat Y$
    shows that $D_X\hat Y-\tfrac12J(\hat Y\hat X+\hat X\hat Y)$ lies in

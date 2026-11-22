@@ -31,7 +31,8 @@ formula of Tau Ceti's
 `CovariantDerivative.IsLeviCivitaConnection.inner_apply_eq_inner_mvfderiv` and
 `CovariantDerivative.IsLeviCivitaConnection.inner_alongCurve_eq_inner`, for an ambient form that
 is not an inner product, such as the trace form `(X, Y) ↦ ½ tr (X Y)` on endomorphisms, which is
-positive only on self-adjoint maps. The proofs are Tau Ceti's, with the product rule for `B`
+positive definite on the self-adjoint maps but not on all endomorphisms. The proofs are Tau
+Ceti's, with the product rule for `B`
 (from `TauCeti.mvfderiv_clm_apply` and `ContinuousLinearMap.hasDerivAt_of_bilinear`) in place of
 the product rule for the inner product.
 
