@@ -62,6 +62,11 @@ such as `Bundle.Pullback.instNormedSpace`. Together with `TangentSpace.instIsNor
 `SymplecticGeometry/Geometry/Manifold/IsManifold/Basic.lean`, it covers the fibres
 `(f *ᵖ TangentSpace I) q`.
 
+`Bundle.Pullback.castEquiv f h χ` carries a continuous linear equivalence `χ : F ≃L[R] E a` to
+the fibre `(f *ᵖ E) b` along an equation `h : a = f b`, as for a frame of `E` at a point read
+through a chosen preimage under `f`. `Bundle.Pullback.lift_mk_castEquiv` says that it lifts back
+to `χ`, and `Bundle.Pullback.castEquiv_trans_symm` that it preserves transitions.
+
 ## References
 
 * D. Husemoller, *Fibre Bundles*, 3rd ed., Graduate Texts in Mathematics 20, Springer, 1994,
@@ -296,6 +301,40 @@ instance instIsNormableSpace {𝕜 : Type*} [NormedField 𝕜] [∀ b, AddCommGr
     [∀ b, Module 𝕜 (E b)] [∀ b, TopologicalSpace (E b)] [∀ b, IsNormableSpace 𝕜 (E b)] :
     IsNormableSpace 𝕜 ((f *ᵖ E) y) :=
   inferInstanceAs (IsNormableSpace 𝕜 (E (f y)))
+
+section CastEquiv
+
+variable {R F : Type*} [Semiring R] [TopologicalSpace F] [AddCommMonoid F] [Module R F]
+  [∀ b, AddCommMonoid (E b)] [∀ b, Module R (E b)] [∀ b, TopologicalSpace (E b)]
+
+/-- A continuous linear equivalence `F ≃ E a` read as one onto the fibre at `b` of the pull-back
+`f *ᵖ E`, which is `E (f b)`, where `a = f b`. -/
+def castEquiv (f : B' → B) {a : B} {b : B'} (h : a = f b) (χ : F ≃L[R] E a) :
+    F ≃L[R] (f *ᵖ E) b :=
+  cast (congrArg (fun c ↦ F ≃L[R] E c) h) χ
+
+@[simp]
+theorem castEquiv_rfl (f : B' → B) (b : B') (χ : F ≃L[R] E (f b)) :
+    castEquiv f rfl χ = χ :=
+  (rfl)
+
+/-- The vector `castEquiv f h χ v` of the pull-back, lifted to `E`, is the vector `χ v` over
+`a`. -/
+theorem lift_mk_castEquiv (f : B' → B) {a : B} {b : B'} (h : a = f b) (χ : F ≃L[R] E a)
+    (v : F) :
+    Pullback.lift f (TotalSpace.mk' F b (castEquiv f h χ v)) = TotalSpace.mk' F a (χ v) := by
+  subst h
+  rfl
+
+/-- The transition between two equivalences carried to the pull-back is the transition between
+the original ones. -/
+theorem castEquiv_trans_symm (f : B' → B) {a : B} {b : B'} (h : a = f b)
+    (α β : F ≃L[R] E a) :
+    (castEquiv f h α).trans (castEquiv f h β).symm = α.trans β.symm := by
+  subst h
+  rfl
+
+end CastEquiv
 
 end Bundle.Pullback
 
