@@ -92,6 +92,8 @@ the time derivative of `σ`.
   Theorem 2.2.2 (Gray stability, whose proof integrates this rescaling).
 * John M. Lee, *Introduction to Smooth Manifolds*, 2nd ed., Springer, 2012, Chapter 22 (the
   derivative of pullbacks of a time-dependent family of forms along a time-dependent flow).
+* John M. Lee, *Introduction to Smooth Manifolds*, 2nd ed., Springer, 2012, Theorem 14.35
+  (Cartan's formula, for the contraction with the time field).
 -/
 
 public section
