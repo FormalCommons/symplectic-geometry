@@ -13,6 +13,7 @@ import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Neighborhood
 import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Flow
 import TauCeti.Geometry.Manifold.ContMDiffMap.Extension
 import TauCeti.Geometry.Manifold.Immersion.LocalDiffeomorph
+import TauCeti.Geometry.Manifold.MFDeriv.Basic
 import TauCeti.Geometry.Manifold.SmoothEmbedding.Euclidean
 import TauCeti.Geometry.Manifold.SmoothIsotopy.Velocity.Basic
 import TauCeti.Geometry.Manifold.TubularNeighborhood.Existence
@@ -107,8 +108,7 @@ theorem exists_contMDiff_extend {f₀ f₁ : C^∞⟮J, P; I, N⟯} (F : SmoothI
       (f₀.contMDiff.comp contMDiff_snd).contMDiffOn, fun _ x hx ↦ hx.elim, fun _ _ ↦ ?_⟩
     exact F.isSmoothEmbedding_left.comp_subtypeVal ⊥
   -- The source model is finite-dimensional, since `f₀` is an immersion into `N`.
-  have : FiniteDimensional ℝ E' := FiniteDimensional.of_injective
-    (mfderiv J I f₀ x₀ : E' →L[ℝ] E).toLinearMap
+  have : FiniteDimensional ℝ E' := finiteDimensional_of_injective_mfderiv
     (F.isSmoothEmbedding_left.isImmersion.mfderiv_injective (by simp) x₀)
   -- A neighbourhood `W` of the compact track `T` of `A` embeds into a Euclidean space by `e`,
   -- and `r` retracts a neighbourhood `O` of the image of `e`.
