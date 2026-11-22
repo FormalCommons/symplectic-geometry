@@ -17,8 +17,7 @@ For `C^n` maps `f₁ f₂ : M → V` into a normed space over a nontrivially nor
 
 ## Main results
 
-* `ContMDiff.lineMap`: the manifold version of Mathlib's `ContDiff.lineMap`, proved the same way,
-  by composing `AffineMap.contDiff_lineMap_uncurry` with the smooth map `(f₁, f₂, g)`.
+* `ContMDiff.lineMap`: the manifold version of Mathlib's `ContDiff.lineMap`.
 -/
 
 public section
