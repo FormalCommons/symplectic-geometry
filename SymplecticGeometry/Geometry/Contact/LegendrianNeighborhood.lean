@@ -529,8 +529,9 @@ variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimen
   [IsManifold J ∞ S]
   {α : SmoothForm I M ℝ 1}
 
-/-- On a hypersurface `ι : S → M` that is everywhere an immersion transverse to the Reeb field
-of a contact form `α`, the two-form `-d(ι^* α)` is symplectic. -/
+/-- Let `ι : S → M` be a smooth map from a manifold of one dimension less which is, at every point,
+an immersion whose image does not contain the Reeb vector of a contact form `α`. Then the two-form
+`-d(ι^* α)` on `S` is symplectic. -/
 theorem isSymplectic_neg_mextDerivₗ_mpullback (hα : α.IsContactForm)
     (hdim : finrank ℝ E' + 1 = finrank ℝ E) {ι : S → M} (hι : ContMDiff J I ∞ ι)
     (hιs : ∀ s, Injective (mfderiv J I ι s) ∧ α.reebVectorField (ι s) ∉ (mfderiv J I ι s).range) :
@@ -553,6 +554,7 @@ variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimen
   [TopologicalSpace H'] {J : ModelWithCorners ℝ E' H'} [TopologicalSpace L] [ChartedSpace H' L]
   [IsManifold J ∞ L]
   {α : SmoothForm I M ℝ 1}
+
 /-- Step 2 of the proof: given a map `κ` from an open neighbourhood `N` of the zero section of
 `T^* L` into `M`, which is `f` on the zero section and for which `-d(κ^* α)` is symplectic, the
 Lagrangian neighbourhood theorem reparametrizes it near the zero section so that `d(κ^* α)` becomes
