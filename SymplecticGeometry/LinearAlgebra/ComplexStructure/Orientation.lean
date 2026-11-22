@@ -13,9 +13,9 @@ public import TauCeti.LinearAlgebra.Complex.Orientation
 /-!
 # The orientation induced by an almost complex structure
 
-An almost complex structure `J` on a finite-dimensional real vector space `V` makes `V` a complex
-vector space (Tau Ceti's `TauCeti.AlmostComplexStructure.complexModule`), which carries Tau Ceti's
-canonical real orientation `TauCeti.complexOrientation`: the orientation of
+Let `V` be a finite-dimensional real vector space. Each almost complex structure `J` on `V`
+makes it a complex vector space (Tau Ceti's `TauCeti.AlmostComplexStructure.complexModule`),
+which carries Tau Ceti's canonical real orientation `TauCeti.complexOrientation`: the orientation of
 `(v₁, J v₁, …, vₙ, J vₙ)` for any complex basis `(v₁, …, vₙ)`. This file names it
 `TauCeti.AlmostComplexStructure.orientation`, indexed by `Fin (finrank ℝ V)`, and shows how it
 meets complex-linear isomorphisms, direct sums, and quotients by invariant subspaces.
