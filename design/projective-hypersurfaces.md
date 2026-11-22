@@ -529,8 +529,10 @@ For `d ≠ 0`, with the inclusion `X → ℙ ℂ (Fin (n + 2) → ℂ)`.
 In the namespace `TauCeti.HomologicalOrientation`, beside
 `injective_singularCapLinearMap_of_injective_dualityMap`:
 
-- `bijective_singularCapLinearMap_of_bijective_dualityMap`, its bijective
-  form, by the same proof;
+- `bijective_singularCapLinearMap_fundamentalClass`: for a compact
+  homologically oriented `m`-manifold and `p + q = m`, capping with the image
+  of the fundamental class is a bijection `Hᵖ(M; ℚ) → H_q(M; ℚ)`, with no
+  hypothesis on the duality map, by #810's bijectivity of the duality map;
 - `bettiNumber_eq_bettiNumber`: for a compact homologically oriented
   `m`-manifold and `p + q = m`, `bettiNumber ℚ M q = bettiNumber ℚ M p`, from
   #810's bijectivity of the duality map and Tau Ceti's

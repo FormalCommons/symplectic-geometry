@@ -60,10 +60,10 @@ fundamental class
 (`TauCeti.HomologicalOrientation.injective_singularCapLinearMap_of_injective_dualityMap`), which
 is the hypothesis of Tau Ceti's evenness criterion
 `TopCat.even_finrank_singularHomology_of_injective_singularCapLinearMap`. In the same way,
-bijectivity of the duality map gives bijectivity of the rational cap product
-(`TauCeti.HomologicalOrientation.bijective_singularCapLinearMap_of_bijective_dualityMap`). With
-Poincaré duality (`TauCeti.HomologicalOrientation.bijective_dualityMap`) and Tau Ceti's
-`TopCat.finrank_singularHomology_eq_of_bijective_singularCapLinearMap`, it follows that the
+Poincaré duality (`TauCeti.HomologicalOrientation.bijective_dualityMap`) makes the rational cap
+product with the rational fundamental class bijective
+(`TauCeti.HomologicalOrientation.bijective_singularCapLinearMap_fundamentalClass`). With Tau
+Ceti's `TopCat.finrank_singularHomology_eq_of_bijective_singularCapLinearMap`, it follows that the
 rational Betti numbers of a compact oriented `n`-manifold satisfy `b_q = b_p` for `p + q = n`
 (`TauCeti.HomologicalOrientation.bettiNumber_eq_bettiNumber`).
 
@@ -599,14 +599,14 @@ theorem injective_singularCapLinearMap_of_injective_dualityMap [CompactSpace M] 
       (TopCat.compactSupportCohomologyIsoOfCompactSpace p).inv).1
         (hinj (by simp only [← o.singularHomologyRatIso_hom_singularCapLinearMap hn h, hαβ])))
 
-/-- **Rational Poincaré duality from the duality map.** For a compact oriented `n`-manifold `M`
-and `p + q = n`, if the duality map `Hᵖ_c(M; ℚ) ⟶ H_q(M; ℚ)`, computed from integral chains, is
-bijective, then capping with the image of the fundamental class in `Hₙ(M; ℚ)` is a bijection
-`Hᵖ(M; ℚ) → H_q(M; ℚ)`, computed from rational chains. -/
-theorem bijective_singularCapLinearMap_of_bijective_dualityMap [CompactSpace M] {p q : ℕ}
-    (h : p + q = n) (hbij : Function.Bijective (o.dualityMap hn (ModuleCat.of ℤ ℚ) p q h)) :
+/-- **Rational Poincaré duality for a compact manifold.** For a compact homologically oriented
+`n`-manifold `M` without boundary and `p + q = n`, capping with the image of the fundamental
+class in `Hₙ(M; ℚ)` is a bijection `Hᵖ(M; ℚ) → H_q(M; ℚ)`, computed from rational chains. -/
+theorem bijective_singularCapLinearMap_fundamentalClass [CompactSpace M] {p q : ℕ}
+    (h : p + q = n) :
     Function.Bijective ((TopCat.of M).singularCapLinearMap ℚ h
       ((TopCat.of M).singularHomologyIntToRat n (o.fundamentalClass hn))) := by
+  have hbij := o.bijective_dualityMap hn (ModuleCat.of ℤ ℚ) h
   refine ⟨o.injective_singularCapLinearMap_of_injective_dualityMap hn h hbij.1, fun y ↦ ?_⟩
   obtain ⟨c, hc⟩ := hbij.2 (((TopCat.of M).singularHomologyRatIso q).hom y)
   obtain ⟨α, rfl⟩ := (ConcreteCategory.bijective_of_isIso
@@ -626,8 +626,7 @@ theorem bettiNumber_eq_bettiNumber [CompactSpace M] {p q : ℕ} (h : p + q = n) 
   -- `bettiNumber` takes coefficients `ModuleCat.of ℚ ℚ`, which is `𝟙_ (ModuleCat ℚ)` by the
   -- definition of the monoidal structure; Mathlib states no lemma for it.
   exact (TopCat.of M).finrank_singularHomology_eq_of_bijective_singularCapLinearMap ℚ h _
-    (o.bijective_singularCapLinearMap_of_bijective_dualityMap hn h
-      (o.bijective_dualityMap hn _ h))
+    (o.bijective_singularCapLinearMap_fundamentalClass hn h)
 
 end TauCeti.HomologicalOrientation
 
