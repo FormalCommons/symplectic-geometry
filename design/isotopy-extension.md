@@ -834,7 +834,8 @@ this design already follows. `Ball/Isotopy.lean` cites
   `FiniteDimensional ℝ (deRhamCohomology I M k)` for a compact boundaryless
   `M`, which `Geometry/Manifold/DeRham/SmoothFamily/GoodCover.lean` derives
   from `hasFiniteGoodCover_of_compactSpace` (used by
-  `Cohomological/Primitive.lean`). It also uses
+  `Cohomological/Primitive.lean`, which also imports `Geometry/Manifold/DeRham/Map.lean`
+  for `TauCeti.SmoothForm.mpullback_mem_closedForms`). It also uses
   `SymplecticGeometry.IsSmoothFamily.homotopyOperator`
   (`Geometry/Manifold/DifferentialForm/SmoothFamily/HomotopyOperator.lean`,
   used by `DifferentialForm/VectorBundlePoincare.lean`). The part uses neither the splittings and
