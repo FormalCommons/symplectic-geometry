@@ -725,20 +725,17 @@ theorem complexStructure_single_inl [Unique ι] (Z : SiegelUpperHalfSpace ι) :
       complexStructureMatrix_coe, div_eq_mul_inv, h.symm]
 
 /-- For a type `ι` with one element, the complex structure `J(Z)`, moved to `ℂ` along
-`(x, y) ↦ x + iy`, is tamed by the standard area form of `ℂ`: by Tau Ceti's
-`TauCeti.stdComplexSymplecticForm_tames_iff_im_pos`, this says that it sends `1` to
+`(x, y) ↦ x + iy` (`StdSpace.equivComplex`), is tamed by the standard area form of `ℂ`: by Tau
+Ceti's `TauCeti.stdComplexSymplecticForm_tames_iff_im_pos`, this says that it sends `1` to
 `(x + i) / y`, whose imaginary part `1 / y` is positive. -/
 theorem stdComplexSymplecticForm_tames_transport_complexStructure [Unique ι]
     (Z : SiegelUpperHalfSpace ι) :
-    stdComplexSymplecticForm.Tames ((complexStructure Z).transport
-      ((complexToRealEuclidean ι).toLinearEquiv.symm ≪≫ₗ LinearEquiv.funUnique ι ℝ ℂ)) := by
+    stdComplexSymplecticForm.Tames
+      ((complexStructure Z).transport (StdSpace.equivComplex ι).toLinearEquiv) := by
   have hy : 0 < Z.im default default := posDef_iff_of_unique.1 Z.posDef_im
-  have h1 : ((complexToRealEuclidean ι).toLinearEquiv.symm ≪≫ₗ
-      LinearEquiv.funUnique ι ℝ ℂ).symm 1 = EuclideanSpace.single (Sum.inl default) 1 := by
-    ext k <;> simp [StdSpace.x_apply, StdSpace.y_apply, complexToRealEuclidean_apply,
-      Subsingleton.elim k default]
-  rw [stdComplexSymplecticForm_tames_iff_im_pos, AlmostComplexStructure.transport_apply, h1,
-    complexStructure_single_inl]
+  rw [stdComplexSymplecticForm_tames_iff_im_pos, AlmostComplexStructure.transport_apply,
+    LinearIsometryEquiv.coe_symm_toLinearEquiv, LinearIsometryEquiv.coe_toLinearEquiv,
+    StdSpace.equivComplex_symm_one, complexStructure_single_inl]
   simpa [Complex.div_im] using hy
 
 end SiegelUpperHalfSpace
