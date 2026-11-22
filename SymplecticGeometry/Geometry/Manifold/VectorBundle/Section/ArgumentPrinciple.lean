@@ -316,6 +316,7 @@ theorem evalFundamentalClass_complexEulerClass_eq_boundaryDegree (hG : finrank �
   have hΦc : Continuous fun v : TotalSpace ℂ (Bundle.Trivial (g ⁻¹' Iic 0) ℂ) ↦
       TotalSpace.mk' G (E := (⇑i₁) *ᵖ L) v.proj (Φ v.proj v.snd) := by
     simp only [hΦ]
+    -- The frame lives over the base itself, so the base map is `id`.
     exact hσ₁.smul_totalSpace_trivial (f := id)
   have hτ := (continuous_snd.comp (Bundle.Trivial.isInducing_toProd _ ℂ).continuous).comp
     (TauCeti.continuous_bundle_symm (F₁ := ℂ) (E₁ := Bundle.Trivial (g ⁻¹' Iic 0) ℂ) (F₂ := G)
