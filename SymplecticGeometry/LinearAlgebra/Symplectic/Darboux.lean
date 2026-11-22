@@ -49,6 +49,10 @@ model `SymplecticGeometry.stdForm` on `SymplecticGeometry.StdSpace ι`; it follo
   when their dimensions agree.
 * `LinearMap.BilinForm.IsAlt.exists_basis_and_equivalent`: the linear Darboux theorem, the
   three statements together.
+* `LinearMap.BilinForm.apply_sum_smul_add_smul_eq_left_coeff` and
+  `LinearMap.BilinForm.IsAlt.apply_sum_smul_add_smul_eq_neg_right_coeff`: for vectors `aᵢ`, `bᵢ`
+  with the Darboux relations, pairing `∑ᵢ (cᵢ aᵢ + dᵢ bᵢ)` with `bⱼ` and with `aⱼ` gives `cⱼ`
+  and `-dⱼ`.
 * `SymplecticGeometry.exists_isSymplectomorphism_stdForm`,
   `SymplecticGeometry.exists_isSymplectomorphism_stdForm_fin`: the real version, with `stdForm`.
 
@@ -107,6 +111,24 @@ theorem apply_basis_of_toMatrix_eq_J {m : ℕ} {b : Basis (Fin m ⊕ Fin m) R M}
       B (b (.inr i)) (b (.inl j)) = if i = j then 1 else 0 := by
   simp only [← toMatrix_apply, hb]
   simp [Matrix.one_apply]
+
+/-- Let the `bᵢ` be pairwise `B`-orthogonal, with `B(aᵢ, bⱼ) = δᵢⱼ`. Then pairing
+`∑ᵢ (cᵢ aᵢ + dᵢ bᵢ)` with `bⱼ` on the right gives the coefficient `cⱼ`. -/
+theorem apply_sum_smul_add_smul_eq_left_coeff {κ : Type*} [Fintype κ] [DecidableEq κ]
+    {a b : κ → M} (hbb : ∀ i j, B (b i) (b j) = 0)
+    (hab : ∀ i j, B (a i) (b j) = if i = j then 1 else 0) (c d : κ → R) (j : κ) :
+    B (∑ i, (c i • a i + d i • b i)) (b j) = c j := by
+  simp [map_sum, hbb, hab]
+
+/-- Let `B` be alternating, the `aᵢ` pairwise `B`-orthogonal, and `B(aᵢ, bⱼ) = δᵢⱼ`. Then pairing
+`∑ᵢ (cᵢ aᵢ + dᵢ bᵢ)` with `aⱼ` on the right gives `-dⱼ`. -/
+theorem IsAlt.apply_sum_smul_add_smul_eq_neg_right_coeff (hB : B.IsAlt) {κ : Type*} [Fintype κ]
+    [DecidableEq κ] {a b : κ → M} (haa : ∀ i j, B (a i) (a j) = 0)
+    (hab : ∀ i j, B (a i) (b j) = if i = j then 1 else 0) (c d : κ → R) (j : κ) :
+    B (∑ i, (c i • a i + d i • b i)) (a j) = -d j := by
+  have hba (i j : κ) : B (b i) (a j) = -if j = i then 1 else 0 := by
+    rw [← hab j i, ← hB.neg_eq]
+  simp [map_sum, haa, hba]
 
 end LinearMap.BilinForm
 
