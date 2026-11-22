@@ -1228,6 +1228,15 @@ issues, in an order where each issue's blockers come before it.
    finitely many uses `finite_of_compactSpace_of_pairwise_disjoint`, a
    disjoint open cover of a compact space has finite index, in
    `Topology/Compactness/LocallyFinite.lean`.
+   On the annuli, the orientation of the caps is compared with that of
+   the surface through the collar, by
+   `TauCeti.SmoothCollar.orientationSign_eq` in
+   `Geometry/Manifold/Boundary/Collar/Orientation.lean`: with the
+   outward-first boundary orientation, the standard orientation
+   `TauCeti.EuclideanHalfSpace.normalIioOpensOrientation` of $[0,1)$ and
+   their product, a smooth collar of an $(n+1)$-manifold has orientation
+   sign $(-1)^{n+1}$, so on a surface it preserves orientation
+   (`TauCeti.SmoothCollar.isOrientationPreservingAt_of_odd`).
 9. **A map of degree one onto the sphere.**
    `Geometry/Manifold/Degree/Collapse.lean`:
    `SymplecticGeometry.exists_contMDiff_degree_eq_one`, every compact
