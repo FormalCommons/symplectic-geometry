@@ -133,7 +133,7 @@ pull-back bundle `f *ᵖ TangentSpace I` over the compact surface, and with a
 symplectic form instead of a metric, so that *First Chern number*'s
 additivity, which is stated for symplectic bundles, applies to it directly:
 
-1. Let `Jf` be `f.pullbackComplexStructure J`, the pull-back of $J$ to
+1. Let `Jf` be `J.pullbackComplexStructure f f.contMDiff`, the pull-back of $J$ to
    `f *ᵖ TangentSpace I`, and `ω` a two-form compatible with `Jf`, given by
    the library's `ContMDiffComplexStructure.exists_compatible`
    (`Symplectic/ComplexStructure/Basic.lean`).
@@ -235,8 +235,11 @@ Namespace `TauCeti.SmoothEmbedding`, for an embedding of any regularity.
 ### `Geometry/Symplectic/Manifold/AlmostComplex/NormalSplitting.lean`
 
 Namespace `TauCeti.SmoothEmbedding`, for `f`, `J`, `hJ` as above, with
-`Jf = f.pullbackComplexStructure J`, the pull-back of $J$ to
-`f *ᵖ TangentSpace I` (`pullbackComplexStructure_apply`). No hypothesis on
+`Jf = J.pullbackComplexStructure f f.contMDiff`, the pull-back of $J$ to
+`f *ᵖ TangentSpace I`, defined for any smooth map as
+`TauCeti.SmoothAlmostComplexStructure.pullbackComplexStructure` in
+`Geometry/Manifold/VectorBundle/ComplexStructure.lean`, with
+`pullbackComplexStructure_apply`. No hypothesis on
 `M` is needed: a form compatible with `Jf` comes from the library's
 `ContMDiffComplexStructure.exists_compatible` where it is used. The
 statements take a form `ω : ContMDiffTwoForm I' ⊤ E (f *ᵖ TangentSpace I)`
@@ -351,7 +354,7 @@ Namespace `TauCeti.AlmostComplexStructure`, for an almost complex structure
   second form, $K\cdot\Sigma+\Sigma\cdot\Sigma=2g-2$ with $K=-c_1(TX,J)$, is
   the same equation, and is not stated again. Proof: choose `ω` by
   `ContMDiffComplexStructure.exists_compatible` for
-  `f.pullbackComplexStructure J`. Then
+  `J.pullbackComplexStructure f f.contMDiff`. Then
 
   - $\langle c_1(TX,J),[\Sigma]\rangle$ is `chernNumber` of `Jf` by
     `chernNumber_pullback_complexStructure`, which is
