@@ -7,6 +7,7 @@ module
 
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.OpenEmbedding
 public import TauCeti.Geometry.Manifold.Complex.FundamentalClass
+public import TauCeti.Geometry.Manifold.Diffeomorph.NormedSpace
 public import Mathlib.Geometry.Manifold.Instances.Real
 public import TauCeti.Geometry.Manifold.Orientation.Euclidean
 public import TauCeti.Geometry.Manifold.Orientation.Preserving
@@ -468,38 +469,18 @@ theorem coe_affineBall_apply (a : ℂ) {r : ℝ} (hr : 0 < r) (h : ‖a‖ + 2 *
     (affineBall a hr h z : ℂ) = a + r * z :=
   (rfl)
 
-/-- The affine map `z ↦ a + r z` of `ℂ`, for `r ≠ 0`, as a diffeomorphism. -/
-private def affineDiffeomorph (a : ℂ) {r : ℝ} (hr : r ≠ 0) :
-    ℂ ≃ₘ^1⟮𝓘(ℂ, ℂ), 𝓘(ℂ, ℂ)⟯ ℂ where
-  toFun z := a + r * z
-  invFun z := (z - a) / r
-  left_inv z := by
-    have : (r : ℂ) ≠ 0 := Complex.ofReal_ne_zero.2 hr
-    simp only
-    field_simp
-    ring
-  right_inv z := by
-    have : (r : ℂ) ≠ 0 := Complex.ofReal_ne_zero.2 hr
-    simp only
-    field_simp
-    ring
-  contMDiff_toFun := (contDiff_const.add (contDiff_const.mul contDiff_id)).contMDiff
-  contMDiff_invFun := ((contDiff_id.sub contDiff_const).div_const _).contMDiff
-
-private theorem affineDiffeomorph_apply (a : ℂ) {r : ℝ} (hr : r ≠ 0) (z : ℂ) :
-    affineDiffeomorph a hr z = a + r * z :=
-  (rfl)
-
 private theorem subtypeVal_comp_affineBall (a : ℂ) {r : ℝ} (hr : 0 < r) (h : ‖a‖ + 2 * r ≤ 2) :
-    Subtype.val ∘ affineBall a hr h = affineDiffeomorph a hr.ne' ∘ Subtype.val := by
+    Subtype.val ∘ affineBall a hr h =
+      Diffeomorph.smulAdd 1 (r : ℂ) a (Complex.ofReal_ne_zero.2 hr.ne') ∘ Subtype.val := by
   ext z
-  simp [affineDiffeomorph_apply]
+  simp [add_comm]
 
 theorem isOpenEmbedding_affineBall (a : ℂ) {r : ℝ} (hr : 0 < r) (h : ‖a‖ + 2 * r ≤ 2) :
     IsOpenEmbedding (affineBall a hr h) :=
   (IsOpenEmbedding.of_comp_iff _ ball.isOpenEmbedding').1 <| by
     rw [subtypeVal_comp_affineBall]
-    exact (affineDiffeomorph a hr.ne').toHomeomorph.isOpenEmbedding.comp ball.isOpenEmbedding'
+    exact (Diffeomorph.smulAdd 1 (r : ℂ) a
+      (Complex.ofReal_ne_zero.2 hr.ne')).toHomeomorph.isOpenEmbedding.comp ball.isOpenEmbedding'
 
 /-- The affine map `z ↦ a + r z`, `r > 0`, of the ball into itself preserves its canonical
 orientation. -/
@@ -507,12 +488,13 @@ theorem comap_affineBall_complexHomologicalOrientation (a : ℂ) {r : ℝ} (hr :
     (h : ‖a‖ + 2 * r ≤ 2) :
     (complexHomologicalOrientation ball).comap (isOpenEmbedding_affineBall a hr h) =
       complexHomologicalOrientation ball := by
-  have hT := (affineDiffeomorph a hr.ne').toHomeomorph.isOpenEmbedding
+  set T := Diffeomorph.smulAdd 1 (r : ℂ) a (Complex.ofReal_ne_zero.2 hr.ne')
+  have hT := T.toHomeomorph.isOpenEmbedding
   have hv := ball.isOpenEmbedding'
   rw [← comap_subtypeVal_complexHomologicalOrientation hv, HomologicalOrientation.comap_comap,
     ← HomologicalOrientation.comap_comap_of_comp_eq _ hT hv
       (hv.comp (isOpenEmbedding_affineBall a hr h)) (subtypeVal_comp_affineBall a hr h).symm,
-    comap_complexHomologicalOrientation hT (affineDiffeomorph a hr.ne').isLocalDiffeomorph]
+    comap_complexHomologicalOrientation hT T.isLocalDiffeomorph]
 
 /-- Precomposing a coordinate disc with an open embedding of the ball into itself that preserves
 its canonical orientation gives a coordinate disc. -/

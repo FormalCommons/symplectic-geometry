@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.AlgebraicTopology.Singular.DisjointCircles
 public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.DiscComplement.Basic
 public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.HolomorphicZero
+import Mathlib.Analysis.SpecialFunctions.SmoothTransition
 import SymplecticGeometry.Analysis.Complex.RadialProjection
 
 /-!
@@ -47,8 +48,8 @@ On `∂X`, `G / |G|` is homotopic to the inverse map above, through the normaliz
 * [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017], §2.7,
   where the first Chern number of a bundle over a surface is computed from trivializations over
   discs and over their complement.
-* L. Ahlfors, *Complex Analysis*, 3rd ed., McGraw-Hill, 1979, Chapter 4, §3.3 (the argument
-  principle).
+* L. Ahlfors, *Complex Analysis*, 3rd ed., McGraw-Hill, 1979, Chapter 4, §3.3 (the local
+  mapping theorem), for the degree `1` of a simple zero.
 -/
 
 public section
@@ -65,35 +66,6 @@ variable {M : Type} [TopologicalSpace M] [T2Space M] {E : Type} [NormedAddCommGr
 
 namespace DiscComplementBoundaryDegree
 
-/-! ### The cut-off -/
-
-/-- The cut-off `s ↦ min 1 (max 0 (4/δ (1 + 3δ/4 - s)))`: `1` up to `1 + δ/2`, `0` from
-`1 + 3δ/4` on. -/
-private def cutoff (δ s : ℝ) : ℝ :=
-  min 1 (max 0 (4 / δ * (1 + 3 * δ / 4 - s)))
-
-private lemma continuous_cutoff (δ : ℝ) : Continuous (cutoff δ) := by
-  unfold cutoff
-  fun_prop
-
-private lemma cutoff_eq_one {δ s : ℝ} (hδ : 0 < δ) (hs : s ≤ 1 + δ / 2) : cutoff δ s = 1 := by
-  refine min_eq_left (le_max_of_le_right ?_)
-  rw [div_mul_eq_mul_div, le_div_iff₀ hδ]
-  linarith
-
-private lemma cutoff_eq_zero {δ s : ℝ} (hδ : 0 < δ) (hs : 1 + 3 * δ / 4 ≤ s) :
-    cutoff δ s = 0 := by
-  refine (min_eq_right ?_).trans (max_eq_left ?_)
-  · exact max_le zero_le_one (by rw [div_mul_eq_mul_div, div_le_one hδ]; linarith)
-  · rw [div_mul_eq_mul_div]
-    exact div_nonpos_of_nonpos_of_nonneg (by linarith) hδ.le
-
-private lemma cutoff_le_one (δ s : ℝ) : cutoff δ s ≤ 1 :=
-  min_le_left _ _
-
-private lemma cutoff_nonneg (δ s : ℝ) : 0 ≤ cutoff δ s :=
-  le_min zero_le_one (le_max_left _ _)
-
 /-! ### The test map -/
 
 variable (i : ι) (δ c : ℝ)
@@ -106,15 +78,19 @@ private lemma chartInv_apply (w : CoordinateDisc.ball) : chartInv φ i (φ i w) 
   (φ i).isOpenEmbedding.toOpenPartialHomeomorph_left_inv _
 
 open scoped Classical in
-/-- The test map: `λ(|w|) w⁻¹ - c` at `φ i w`, and `-c` off the range of `φ i`. -/
+/-- The test map: `λ(|w|) w⁻¹ - c` at `φ i w`, and `-c` off the range of `φ i`, where the
+cut-off `λ s = smoothTransition (4/δ (1 + 3δ/4 - s))` is `1` up to `1 + δ/2` and `0` from
+`1 + 3δ/4` on. -/
 private def testFun (x : discComplement φ) : ℂ :=
   if (x : M) ∈ range (φ i) then
-    (cutoff δ ‖(chartInv φ i x : ℂ)‖ : ℂ) * (chartInv φ i x : ℂ)⁻¹ - c
+    (Real.smoothTransition (4 / δ * (1 + 3 * δ / 4 - ‖(chartInv φ i x : ℂ)‖)) : ℂ) *
+      (chartInv φ i x : ℂ)⁻¹ - c
   else -c
 
 private lemma testFun_of_eq {x : discComplement φ} {w : CoordinateDisc.ball}
     (hx : (x : M) = φ i w) :
-    testFun φ i δ c x = (cutoff δ ‖(w : ℂ)‖ : ℂ) * (w : ℂ)⁻¹ - c := by
+    testFun φ i δ c x =
+      (Real.smoothTransition (4 / δ * (1 + 3 * δ / 4 - ‖(w : ℂ)‖)) : ℂ) * (w : ℂ)⁻¹ - c := by
   rw [testFun, ite_eq_left ⟨w, hx.symm⟩, hx, chartInv_apply]
 
 private lemma testFun_of_notMem {x : discComplement φ} (hx : (x : M) ∉ range (φ i)) :
@@ -134,9 +110,12 @@ private lemma continuous_testFun (hδ : δ ∈ Ioo (0 : ℝ) 1) : Continuous (te
   have hF : Continuous fun x ↦ testFun φ i δ c x + c := by
     refine ContinuousOn.continuous_of_tsupport_subset (s := s) ?_ hs ?_
     · refine ContinuousOn.congr (f := fun x : discComplement φ ↦
-        (cutoff δ ‖(chartInv φ i x : ℂ)‖ : ℂ) * (chartInv φ i x : ℂ)⁻¹) ?_ fun x hx ↦ ?_
+        (Real.smoothTransition (4 / δ * (1 + 3 * δ / 4 - ‖(chartInv φ i x : ℂ)‖)) : ℂ) *
+          (chartInv φ i x : ℂ)⁻¹) ?_ fun x hx ↦ ?_
       · refine (Complex.continuous_ofReal.comp_continuousOn
-          ((continuous_cutoff δ).comp_continuousOn hinv.norm)).mul (hinv.inv₀ fun x hx ↦ ?_)
+          (Real.smoothTransition.continuous.comp_continuousOn
+            ((continuous_const.mul (continuous_const.sub continuous_id)).comp_continuousOn
+              hinv.norm))).mul (hinv.inv₀ fun x hx ↦ ?_)
         obtain ⟨w, hw⟩ := hx
         rw [← hw, chartInv_apply]
         exact norm_pos_iff.1 (zero_lt_one.trans_le
@@ -150,7 +129,9 @@ private lemma continuous_testFun (hδ : δ ∈ Ioo (0 : ℝ) 1) : Continuous (te
       by_cases hxr : (x : M) ∈ range (φ i)
       · obtain ⟨w, hw⟩ := hxr
         refine ⟨w, show ‖(w : ℂ)‖ ≤ 1 + 3 * δ / 4 from not_lt.1 fun h ↦ hx ?_, hw⟩
-        simp only [testFun_of_eq φ i δ c hw.symm, cutoff_eq_zero hδ.1 h.le]
+        have h0 : 4 / δ * (1 + 3 * δ / 4 - ‖(w : ℂ)‖) ≤ 0 :=
+          mul_nonpos_of_nonneg_of_nonpos (div_nonneg (by norm_num) hδ.1.le) (by linarith)
+        simp only [testFun_of_eq φ i δ c hw.symm, Real.smoothTransition.zero_of_nonpos h0]
         simp
       · exact absurd (by simp only [testFun_of_notMem φ i δ c hxr]; ring) hx
   exact (hF.sub continuous_const).congr fun x ↦ add_sub_cancel_right _ (c : ℂ)
@@ -207,7 +188,8 @@ private lemma smallBall_mem_discComplementInterior [Finite ι] {ε : ι → ℝ}
 private lemma testFun_smallBall (hδ : δ ∈ Ioo (0 : ℝ) 1) {x : discComplement φ}
     {z : CoordinateDisc.ball} (hx : (x : M) = φ i (smallBall hδ z)) :
     testFun φ i δ (1 + δ / 4)⁻¹ x = (smallBall hδ z : ℂ)⁻¹ - ((1 + δ / 4)⁻¹ : ℝ) := by
-  rw [testFun_of_eq φ i δ _ hx, cutoff_eq_one hδ.1 (by linarith [(norm_smallBall hδ z).2, hδ.1]),
+  rw [testFun_of_eq φ i δ _ hx, Real.smoothTransition.one_of_one_le (by
+    rw [div_mul_eq_mul_div, le_div_iff₀ hδ.1]; linarith [(norm_smallBall hδ z).2, hδ.1]),
     Complex.ofReal_one, one_mul]
 
 /-- The only zero of the test map is `φ i (1 + δ/4)`. -/
@@ -223,24 +205,26 @@ private lemma testFun_eq_zero_iff (hδ : δ ∈ Ioo (0 : ℝ) 1) (x : discComple
         norm_pos_iff.1 (zero_lt_one.trans_le
           (one_le_norm_of_mem_discComplement φ (hw ▸ x.property)))
       -- `λ w⁻¹ = c` gives `w = λ / c = λ (1 + δ/4)`, of norm at most `1 + δ/4`, so `λ = 1`.
-      have hwl : (w : ℂ) = ((cutoff δ ‖(w : ℂ)‖ * (1 + δ / 4) : ℝ) : ℂ) := by
+      set l := Real.smoothTransition (4 / δ * (1 + 3 * δ / 4 - ‖(w : ℂ)‖)) with hl
+      have hwl : (w : ℂ) = ((l * (1 + δ / 4) : ℝ) : ℂ) := by
         have h4 : (4 + δ : ℂ) ≠ 0 := by exact_mod_cast (by linarith [hδ.1] : (4 + δ : ℝ) ≠ 0)
         push_cast at hx ⊢
         field_simp at hx
         linear_combination -hx / 4
       have hnorm : ‖(w : ℂ)‖ ≤ 1 + δ / 2 := by
-        rw [hwl, Complex.norm_real, Real.norm_of_nonneg (mul_nonneg (cutoff_nonneg _ _)
-          (by linarith [hδ.1]))]
-        nlinarith [cutoff_le_one δ ‖(w : ℂ)‖, hδ.1]
-      rw [cutoff_eq_one hδ.1 hnorm, one_mul] at hwl
+        rw [hwl, Complex.norm_real, Real.norm_of_nonneg (mul_nonneg
+          (Real.smoothTransition.nonneg _) (by linarith [hδ.1]))]
+        nlinarith [Real.smoothTransition.le_one (4 / δ * (1 + 3 * δ / 4 - ‖(w : ℂ)‖)), hδ.1]
+      rw [hl, Real.smoothTransition.one_of_one_le (by
+        rw [div_mul_eq_mul_div, le_div_iff₀ hδ.1]; linarith), one_mul] at hwl
       rw [← hw]
       exact congrArg (φ i) (Subtype.ext hwl)
     · rw [testFun_of_notMem φ i δ _ hxr, neg_eq_zero, Complex.ofReal_eq_zero] at hx
       exact absurd hx hc.ne'
   · intro hx
-    rw [testFun_of_eq φ i δ _ hx, zeroPt, cutoff_eq_one hδ.1 (by
-      rw [norm_zeroPt hδ]; linarith [hδ.1]), Complex.ofReal_one, one_mul, Complex.ofReal_inv,
-      sub_self]
+    rw [testFun_of_eq φ i δ _ hx, zeroPt, Real.smoothTransition.one_of_one_le (by
+      rw [div_mul_eq_mul_div, le_div_iff₀ hδ.1, norm_zeroPt hδ]; linarith [hδ.1]),
+      Complex.ofReal_one, one_mul, Complex.ofReal_inv, sub_self]
 
 /-! ### The test map on the boundary circles -/
 
@@ -252,7 +236,8 @@ variable [TopologicalSpace ι] [DiscreteTopology ι] (hφ : Pairwise (Disjoint o
 private lemma testFun_boundary_self (hδ : δ ∈ Ioo (0 : ℝ) 1) (c : ℝ) (z : Circle) :
     testFun φ i δ c (discComplementBoundary φ hφ (i, z)) = (z : ℂ)⁻¹ - c := by
   rw [testFun_of_eq φ i δ c (by rw [coe_discComplementBoundary_apply,
-    CoordinateDisc.boundaryCircle_apply]), cutoff_eq_one hδ.1 (by simp; linarith [hδ.1]),
+    CoordinateDisc.boundaryCircle_apply]), Real.smoothTransition.one_of_one_le (by
+      rw [div_mul_eq_mul_div, le_div_iff₀ hδ.1]; simp; linarith [hδ.1]),
     Complex.ofReal_one, one_mul]
 
 /-- On the other circles, the test map is `-c`. -/
@@ -262,13 +247,15 @@ private lemma testFun_boundary_of_ne {ε : ι → ℝ} (hε : ∀ j, ε j ∈ Io
     testFun φ i (ε i) c (discComplementBoundary φ hφ (j, z)) = -c := by
   by_cases hxr : (discComplementBoundary φ hφ (j, z) : M) ∈ range (φ i)
   · obtain ⟨w, hw⟩ := hxr
-    rw [testFun_of_eq φ i (ε i) c hw.symm, cutoff_eq_zero (hε i).1, Complex.ofReal_zero, zero_mul,
-      zero_sub]
-    refine not_lt.1 fun h ↦ (disjoint_image_ball_disc φ (fun k ↦ (hε k).1) hd
-      hij.symm).notMem_of_mem_left
-      ⟨w, show ‖(w : ℂ)‖ < 1 + ε i by linarith [(hε i).1], hw⟩ ?_
-    rw [coe_discComplementBoundary_apply]
-    exact (φ j).boundaryCircle_mem_disc z
+    have hs : 1 + 3 * ε i / 4 ≤ ‖(w : ℂ)‖ := by
+      refine not_lt.1 fun h ↦ (disjoint_image_ball_disc φ (fun k ↦ (hε k).1) hd
+        hij.symm).notMem_of_mem_left
+        ⟨w, show ‖(w : ℂ)‖ < 1 + ε i by linarith [(hε i).1], hw⟩ ?_
+      rw [coe_discComplementBoundary_apply]
+      exact (φ j).boundaryCircle_mem_disc z
+    rw [testFun_of_eq φ i (ε i) c hw.symm, Real.smoothTransition.zero_of_nonpos
+      (mul_nonpos_of_nonneg_of_nonpos (div_nonneg (by norm_num) (hε i).1.le) (by linarith)),
+      Complex.ofReal_zero, zero_mul, zero_sub]
   · exact testFun_of_notMem φ i (ε i) c hxr
 
 end Boundary
