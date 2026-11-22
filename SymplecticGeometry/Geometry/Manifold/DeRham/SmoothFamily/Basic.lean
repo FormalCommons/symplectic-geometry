@@ -299,7 +299,7 @@ def ofDiffeomorph : SmoothCohomologySplitting I M where
   eq_zero_of_mem_exactForms k := by
     rintro _ ⟨s, hs, rfl⟩ hex
     have h := closedForms.mpullback_mem_exactForms Φ.symm Φ.symm.contMDiff k
-      ⟨_, (closedForms.mpullback Φ Φ.contMDiff k ⟨s, τ.space_le_closedForms k hs⟩).property⟩
+      ⟨_, SmoothForm.mpullback_mem_closedForms Φ Φ.contMDiff (τ.space_le_closedForms k hs)⟩
       (by simpa using hex)
     simp only [closedForms.coe_mpullback, SmoothForm.mpullback_symm_mpullback] at h
     rw [τ.eq_zero_of_mem_exactForms k hs h, map_zero]
