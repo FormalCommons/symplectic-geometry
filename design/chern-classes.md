@@ -236,6 +236,10 @@ In the namespace `TopCat`, for `X : TopCat.{0}`, with
   `uliftIntIso` carries Tau Ceti's `ModuleCat.uliftTensorSelfIso ℤ`, the
   multiplication `a ⊗ b ↦ ⟨a.down * b.down⟩` of the values, to
   `integralCoeffMul`.
+- `integralCohomologyLinearEquiv X n`, the linear equivalence from
+  cohomology with chain coefficients and values `ℤ`, in the form
+  `TopCat.lerayHirsch` takes for `k = ℤ`, to `X.integralCohomology n`,
+  with `_naturality` and `_singularCup`.
 
 ### `AlgebraicTopology/Cohomology/ChangeOfValues.lean`
 
@@ -307,14 +311,19 @@ homology projective in every degree and finitely generated in degrees
   that point, form a basis of `Hᵖ(F; k)`, then it is bijective in degree
   `n`. Over one trivializing set it is `TopCat.lerayHirschProdOfClasses_bijective`
   through the trivialization; the finite cover is handled by induction with
-  the previous file.
+  the previous file. The fibre inclusion `Bundle.Trivialization.fiberInclusion`
+  comes from `Topology/FiberBundle/Basic.lean` of *Symplectic vector bundles*.
 - `TopCat.lerayHirschEquiv`, the linear equivalence, with its value on
-  summands; and `TopCat.lerayHirsch_injective_pullback`, the injectivity of
+  summands; and `TopCat.singularCohomologyMap_injective_of_lerayHirsch_injective`,
+  the injectivity of
   `π^*` (the summand of the unit class, when `c 0` is the unit), the form
   the splitting principle uses.
 - The integral form, for `TopCat.integralCohomology` and `integralCup`,
-  through `TopCat.integralCup_singularCohomologyChainCoefficientMap`; the
-  Chern classes use only this form.
+  through `TopCat.integralCohomologyLinearEquiv`; the
+  Chern classes use only this form. Its map `TopCat.integralLerayHirsch` is
+  additive, with `TopCat.integralLerayHirsch_bijective`, the additive
+  equivalence `TopCat.integralLerayHirschEquiv` and
+  `TopCat.singularCohomologyMap_injective_of_integralLerayHirsch_injective`.
 
 ### `Topology/VectorBundle/ProjectiveBundle/Basic.lean`
 
@@ -360,12 +369,34 @@ The instance `FiberBundle.compactSpace_totalSpace`, compactness of the total
 space of a fibre bundle with compact fibre over a compact base, is in a file
 of its own, `Topology/FiberBundle/Compact.lean`, which this file imports.
 
+### `LinearAlgebra/Projectivization/Basic.lean`
+
+`Projectivization.normalizedRep φ x`, the representative of a point `x` of
+`ℙ K V` on which a linear form `φ` is `1`, with its algebraic lemmas, and
+`Projectivization.mk_eq_of_mem_submodule`. The path is that of Tau Ceti's
+file with `linearProjectionDomain`, which it imports.
+
+### `Topology/Algebra/Projectivization.lean`
+
+`Projectivization.continuousOn_normalizedRep`: for a continuous `φ`, the
+normalized representative is continuous on `linearProjectionDomain φ`. The
+path is that of Tau Ceti's file with `isOpen_linearProjectionDomain`.
+
+### `Topology/Algebra/Module/Equiv/Submodule.lean`
+
+`ContinuousLinearMap.equivMapOfLeftInverse`: a continuous linear map with a
+continuous left inverse restricts to a continuous linear equivalence of a
+submodule onto its image, the continuous form of Mathlib's
+`Submodule.equivMapOfInjective`. The path is that of Mathlib's file with
+`ContinuousLinearEquiv.ofSubmodules`.
+
 ### `Topology/VectorBundle/ProjectiveBundle/Tautological.lean`
 
 - `Projectivization.Tautological 𝕜 V : ℙ 𝕜 V → Type`, `ℓ ↦ ℓ.submodule`, the
-  tautological line over the projective space of a finite-dimensional normed
-  space `V`, a vector bundle with model `𝕜`, trivialized over the affine
-  open set of a nonzero functional `φ` by `v ↦ φ v`. And
+  tautological line over the projective space of a topological vector space
+  `V` (not only a normed one, since the fibres `E b` are not normed), a vector
+  bundle with model `𝕜` under `[SeparatingDual 𝕜 V]`, trivialized over the affine
+  open set of a nonzero continuous functional `φ` by `v ↦ φ v`. And
   `Projectivization.tautologicalComplZeroHomeomorph`: the complement of its
   zero section is homeomorphic to `{v : V // v ≠ 0}` by `v ↦ ([v], v)`.
   Tau Ceti's `finiteGrassmannian.Tautological 𝕜 1 N` lives on a
@@ -378,6 +409,10 @@ of its own, `Topology/FiberBundle/Compact.lean`, which this file imports.
   `b` is `Projectivization.Tautological 𝕜 (E b)`; its pull-backs along
   `ProjectiveBundle.map`, `pullbackMap`, `inl` and `inr` are the tautological
   lines of the source, by fibrewise isomorphisms continuous on total spaces.
+
+The topology of the second line is Tau Ceti's `TauCeti.subbundleTopology`
+(`Topology/VectorBundle/Subbundle.lean`), for the lines as subspaces of the
+fibres of that pull-back. The file imports the three files above.
 
 ### `Topology/VectorBundle/Complex/ChernClass/ProjectiveSpace.lean`
 
@@ -412,7 +447,7 @@ In the namespace `SymplecticGeometry.Bundle`, for a complex vector bundle
   `complexEulerClass` under `uliftIntegralCohomologyIso`, negated; its
   restriction to each fibre is `hyperplaneClass (E b)`.
 - `chernClass G E k : (TopCat.of B).integralCohomology (2 * k)`, defined
-  from `TopCat.lerayHirschEquiv` for the classes $x^i$, $i<n$, applied to
+  from `TopCat.integralLerayHirschEquiv` for the classes $x^i$, $i<n$, applied to
   $-x^n$ when the Leray–Hirsch map is bijective, `1` for `k = 0`, and `0`
   for `k > n` and where the map is not bijective; with `chernClass_def`.
 - `totalChernClass G E : TopCat.EvenIntegralCohomology (TopCat.of B)`, the
@@ -612,6 +647,8 @@ dimensions are included (both sides vanish).
   `AlgebraicTopology/Singular/LocalHomology/OrientedChart.lean`, only in
   `Geometry/Manifold/Orientation/EulerCharacteristic.lean`, for
   `TauCeti.Manifold.Orientation.localHomologyMap_sub_toHomologicalOrientation`.
+- From *Symplectic vector bundles*: `Bundle.Trivialization.fiberInclusion`
+  (`Topology/FiberBundle/Basic.lean`), only in `LerayHirsch/Bundle.lean`.
 - From Tau Ceti: integral cohomology and cup products
   (`AlgebraicTopology/Cohomology/IntegralCup.lean`, `Cup/Relative.lean`),
   the isomorphism `uliftIntIso` of `ULift ℤ` with `ℤ`, the multiplication

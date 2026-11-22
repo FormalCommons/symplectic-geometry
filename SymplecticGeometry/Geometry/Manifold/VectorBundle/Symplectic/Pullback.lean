@@ -226,21 +226,21 @@ variable {J : ContMDiffComplexStructure I n F V}
 
 /-- If `ω` tames `J`, the pull-back of `ω` tames the pull-back of `J`. -/
 theorem Tames.pullback (h : ω.Tames J) (f : C^n⟮I', N; I, M⟯) :
-    (ω.pullback f).Tames (J.pullback f) :=
+    (ω.pullback f).Tames (J.pullback f f.contMDiff) :=
   tames_def.2 fun y v hv ↦ by
     simp only [bilinFormAt_pullback, ContMDiffComplexStructure.pullback_toEndomorphism]
     exact tames_def.1 h (f y) v hv
 
 /-- If `ω` is invariant under `J`, the pull-back of `ω` is invariant under the pull-back of `J`. -/
 theorem Invariant.pullback (h : ω.Invariant J) (f : C^n⟮I', N; I, M⟯) :
-    (ω.pullback f).Invariant (J.pullback f) :=
+    (ω.pullback f).Invariant (J.pullback f f.contMDiff) :=
   invariant_def.2 fun y v w ↦ by
     simp only [bilinFormAt_pullback, ContMDiffComplexStructure.pullback_toEndomorphism]
     exact invariant_def.1 h (f y) v w
 
 /-- If `ω` is compatible with `J`, the pull-back of `ω` is compatible with the pull-back of `J`. -/
 theorem Compatible.pullback (h : ω.Compatible J) (f : C^n⟮I', N; I, M⟯) :
-    (ω.pullback f).Compatible (J.pullback f) :=
+    (ω.pullback f).Compatible (J.pullback f f.contMDiff) :=
   ⟨h.invariant.pullback f, h.tames.pullback f⟩
 
 /-! ### Symplectic frames -/
