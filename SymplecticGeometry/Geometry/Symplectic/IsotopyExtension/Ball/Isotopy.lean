@@ -7,21 +7,24 @@ module
 
 public import SymplecticGeometry.Geometry.Symplectic.IsotopyExtension.Ball.Basic
 public import SymplecticGeometry.Geometry.Symplectic.IsotopyExtension.Flow
+import SymplecticGeometry.Geometry.Symplectic.IsotopyExtension.Ball.Interpolation
+import SymplecticGeometry.Geometry.Symplectic.IsotopyExtension.Ball.Moser
+import SymplecticGeometry.Topology.MetricSpace.ProperSpace.Lemmas
 import SymplecticGeometry.Geometry.Manifold.DeRham.FamilyPrimitive
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Neighborhood
 
 /-!
-# Hamiltonian extension of families of symplectic balls
+# The symplectic ball extension
+
+This file proves the ball extension theorem of McDuff–Salamon, Theorem 3.3.1
+(`SymplecticGeometry.exists_ballEmbedding_extension_and_hasHamiltonian_extension`).
 
 Let `e : [0, 1] × StdSpace (Fin n) → M` be a family, smooth in both variables, of symplectic
 embeddings of the closed ball `B(r)` (`SymplecticGeometry.IsSymplecticBallFamily σ r e`) into a
 symplectic manifold of dimension `2n`. On every smaller closed ball `B(ρ)`, `ρ < r`, the family is
 the restriction of a compactly supported Hamiltonian diffeotopy `Φ` of `M` that keeps its times:
 `Φ_t (e_0 z) = e_t z` for `z ∈ B(ρ)` and every `t`
-(`SymplecticGeometry.IsSymplecticBallFamily.exists_hasHamiltonian_forall_apply_eq`). This is the
-last step of the proof of the ball extension of McDuff–Salamon, Theorem 3.3.1.
-
-The proof:
+(`SymplecticGeometry.IsSymplecticBallFamily.exists_hasHamiltonian_forall_apply_eq`). The proof:
 
 1. The slices of `e` are injective immersions along `B(r)`
    (`SymplecticGeometry.IsSymplecticBallEmbedding.injective_mfderiv`), hence smooth embeddings of
@@ -38,6 +41,24 @@ The proof:
 3. `TauCeti.SmoothIsotopy.exists_hasHamiltonian_forall_apply_eq`, with the compact set `B(ρ)`,
    concludes.
 
+Given symplectic embeddings `j₀`, `j₁` of `B(r)` and a family `e` of symplectic embeddings of a
+smaller ball `B(r₀)`, `0 ≤ r₀ < r`, with ends `j₀` and `j₁` on `B(r₀)`,
+`SymplecticGeometry.IsSymplecticBallFamily.exists_hasHamiltonian_extension` combines three steps:
+
+1. `SymplecticGeometry.IsSymplecticBallFamily.exists_contMDiffOn_eqOn_mpullback_eq` gives a family
+   `k`, smooth near `[0, 1] × B(r₀)`, equal to `e` on `B(r₀)` and pulling `σ` back to `ω₀` there,
+   whose ends are `j₀` and `j₁` on an open set `U ⊇ B(r₀)`.
+2. On `U ∩ ball 0 r` its ends pull `σ` back to `ω₀`, as `j₀` and `j₁` do, so Moser's argument
+   with a parameter (`SymplecticGeometry.exists_isSymplecticBallFamily_eqOn_of_mpullback_eq`)
+   changes `k` away from `B(r₀)`, keeping both ends, into a family `k'` of symplectic embeddings
+   of a ball `B(r₁)`, `r₀ < r₁`. Its forms are compared on `ℝ²ⁿ`, as the errata of McDuff–Salamon
+   correct the source.
+3. For `r₀ < ρ < r₁` with `B(ρ) ⊆ U ∩ ball 0 r`, the first theorem applied to `k'` on `B(ρ)` gives
+   `Φ`; then `Φ_1 ∘ j₀ = k'_1 = j₁` on `B(ρ)`.
+
+The milestone theorem is the conjunction of this extension and the enlargement of a single ball,
+`SymplecticGeometry.IsSymplecticBallEmbedding.exists_lt_isSymplecticBallEmbedding_eqOn`.
+
 ## Main results
 
 * `SymplecticGeometry.IsSymplecticBallFamily.exists_smoothIsotopy`: for `0 < r`, a smooth family
@@ -45,11 +66,18 @@ The proof:
 * `SymplecticGeometry.IsSymplecticBallFamily.exists_hasHamiltonian_forall_apply_eq`: a smooth
   family of symplectic embeddings of `B(r)` is, on `B(ρ)` for `0 ≤ ρ < r`, the restriction of a
   compactly supported Hamiltonian diffeotopy.
+* `SymplecticGeometry.IsSymplecticBallFamily.exists_hasHamiltonian_extension`: a family of
+  symplectic balls of radius `r₀` with ends `j₀`, `j₁` extends to a compactly supported
+  Hamiltonian diffeotopy that keeps its times and takes `j₀` to `j₁` on a ball `B(ρ)`, `r₀ < ρ`.
+* `SymplecticGeometry.exists_ballEmbedding_extension_and_hasHamiltonian_extension`: the symplectic
+  ball extension.
 
 ## References
 
 * [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017],
   Theorem 3.3.1.
+* [D. McDuff and D. Salamon, *Errata for Introduction to Symplectic Topology, Third
+  Edition*][McDuffSalamon2019Errata], p. 114.
 -/
 
 public section
@@ -145,6 +173,97 @@ theorem IsSymplecticBallFamily.exists_hasHamiltonian_forall_apply_eq [FiniteDime
   have h0 := hk (0, ⟨z, hLP hz⟩)
   rw [SmoothIsotopy.apply_zero] at h0
   simpa [h0, hk] using happly t ⟨z, hLP hz⟩ hz
+
+/-- **Hamiltonian extension of a family of symplectic balls with prescribed ends.** Let `σ` be a
+symplectic form on a Hausdorff, σ-compact, boundaryless manifold `M` of dimension `2n`, let
+`0 ≤ r₀ < r`, let `j₀`, `j₁` be symplectic embeddings of `B(r)`, and let `e` be a smooth family
+over `[0, 1]` of symplectic embeddings of `B(r₀)` with `e_0 = j₀` and `e_1 = j₁` on `B(r₀)`. Then
+there are a radius `ρ` with `r₀ < ρ < r`, a compactly supported Hamiltonian diffeotopy `Φ` of `M`
+with Hamiltonian `F`, and a compact set `K ⊆ M` off which `F` vanishes and every `Φ_t` is the
+identity, such that `Φ_t (j₀ z) = e_t z` for every `t` and `z ∈ B(r₀)`, and
+`Φ_1 (j₀ z) = j₁ z` for `z ∈ B(ρ)`. -/
+theorem IsSymplecticBallFamily.exists_hasHamiltonian_extension [FiniteDimensional ℝ E]
+    [I.Boundaryless] [T2Space M] [SigmaCompactSpace M] (hσ : σ.IsSymplectic)
+    (hdim : Module.finrank ℝ E = 2 * n) {r₀ r : ℝ} (hr₀ : 0 ≤ r₀) (hr₀r : r₀ < r)
+    {j₀ j₁ : StdSpace (Fin n) → M} (hj₀ : IsSymplecticBallEmbedding σ r j₀)
+    (hj₁ : IsSymplecticBallEmbedding σ r j₁) {e : unitInterval × StdSpace (Fin n) → M}
+    (he : IsSymplecticBallFamily σ r₀ e)
+    (he₀ : ∀ z ∈ closedBall 0 r₀, e (0, z) = j₀ z)
+    (he₁ : ∀ z ∈ closedBall 0 r₀, e (1, z) = j₁ z) :
+    ∃ ρ, r₀ < ρ ∧ ρ < r ∧ ∃ (Φ : Diffeotopy I ∞ M) (F : M × unitInterval → ℝ) (K : Set M),
+      IsCompact K ∧ Φ.IsCompactlySupportedHamiltonian σ ∧ Φ.HasHamiltonian σ F ∧
+      (∀ p, p.1 ∉ K → F p = 0) ∧ (∀ t, ∀ y ∉ K, Φ (t, y) = y) ∧
+      (∀ t, ∀ z ∈ closedBall 0 r₀, Φ (t, j₀ z) = e (t, z)) ∧
+      ∀ z ∈ closedBall 0 ρ, Φ.final (j₀ z) = j₁ z := by
+  -- Steps 1 and 2: a family `k` that is right along `B(r₀)`, with ends `j₀` and `j₁` near it.
+  obtain ⟨k, U, hUo, hKU, hk, hke, hkK, hk₀, hk₁⟩ :=
+    he.exists_contMDiffOn_eqOn_mpullback_eq hσ.isNondegenerate hdim hr₀ hr₀r hj₀ hj₁ he₀ he₁
+  -- On `W = U ∩ ball 0 r`, the ends of `k` pull `σ` back to `ω₀`, as `j₀` and `j₁` do.
+  set W := U ∩ ball (0 : StdSpace (Fin n)) r
+  have hWo : IsOpen W := hUo.inter isOpen_ball
+  have hKW : closedBall (0 : StdSpace (Fin n)) r₀ ⊆ W :=
+    subset_inter hKU (closedBall_subset_ball hr₀r)
+  have hend {j : StdSpace (Fin n) → M} (hj : IsSymplecticBallEmbedding σ r j) (i : unitInterval)
+      (hki : ∀ z ∈ U, k (i, z) = j z) (z : StdSpace (Fin n)) (hz : z ∈ W) :
+      mpullback 𝓘(ℝ, StdSpace (Fin n)) I (fun z ↦ k (i, z)) σ.val z =
+        (stdForm (Fin n)).constSmooth.val z := by
+    rw [Filter.EventuallyEq.mpullback_eq (Filter.eventuallyEq_of_mem (hUo.mem_nhds hz.1) hki)]
+    exact hj.mpullback_eq hz.2
+  -- Step 3: Moser's argument makes `k` a family of symplectic balls of a radius `r₁ > r₀`.
+  obtain ⟨r₁, hr₁, k', hk', hk'K, hk'₀, hk'₁⟩ :=
+    exists_isSymplecticBallFamily_eqOn_of_mpullback_eq hσ.isClosed hr₀ hWo hKW
+      (hk.mono (prod_mono subset_rfl inter_subset_left))
+      (fun t ↦ (he.isSymplecticBallEmbedding t).injOn.congr fun z hz ↦ (hke t z hz).symm) hkK
+      (hend hj₀ 0 hk₀) (hend hj₁ 1 hk₁)
+  -- Choose `ρ` with `B(ρ) ⊆ W` and `r₀ < ρ < min r₁ r`.
+  obtain ⟨ρ', hρ', hρ'W⟩ := exists_lt_closedBall_subset_of_closedBall_subset hWo hKW
+  obtain ⟨ρ, hr₀ρ, hρ⟩ := exists_between (lt_min (lt_min hρ' hr₁) hr₀r)
+  have hρW : closedBall (0 : StdSpace (Fin n)) ρ ⊆ W :=
+    (closedBall_subset_closedBall (hρ.le.trans ((min_le_left _ _).trans (min_le_left _ _)))).trans
+      hρ'W
+  -- Step 4: the Hamiltonian extension of `k'` on `B(ρ)`.
+  obtain ⟨Φ, F, K, hK, hΦ, hF, hFK, hΦK, happly⟩ :=
+    hk'.exists_hasHamiltonian_forall_apply_eq hσ hdim (hr₀.trans hr₀ρ.le)
+      (hρ.trans_le ((min_le_left _ _).trans (min_le_right _ _)))
+  have hj₀k' (z : StdSpace (Fin n)) (hz : z ∈ closedBall 0 ρ) : j₀ z = k' (0, z) := by
+    rw [hk'₀, hk₀ z (hρW hz).1]
+  refine ⟨ρ, hr₀ρ, hρ.trans_le (min_le_right _ _), Φ, F, K, hK, hΦ, hF, hFK, hΦK,
+    fun t z hz ↦ ?_, fun z hz ↦ ?_⟩
+  · have hzρ : z ∈ closedBall 0 ρ := closedBall_subset_closedBall hr₀ρ.le hz
+    rw [hj₀k' z hzρ, happly t z hzρ, hk'K t z hz, hke t z hz]
+  · rw [Diffeotopy.final_apply, hj₀k' z hz, happly 1 z hz, hk'₁, hk₁ z (hρW hz).1]
+
+/-- **Symplectic ball extension.** Let `σ` be a symplectic form on a Hausdorff, σ-compact,
+boundaryless manifold `M` of dimension `2n`, and let `B(r)` be the closed ball of radius `r` in
+`StdSpace (Fin n)`, with the standard form.
+
+1. For `0 < r₀`, every symplectic embedding `j` of `B(r₀)` agrees on `B(r₀)` with a symplectic
+   embedding `j'` of some `B(r)`, `r₀ < r`.
+2. For `0 ≤ r₀ < r`, symplectic embeddings `j₀`, `j₁` of `B(r)` and a smooth family `e` over
+   `[0, 1]` of symplectic embeddings of `B(r₀)` with `e_0 = j₀` and `e_1 = j₁` on `B(r₀)`, there
+   are `ρ` with `r₀ < ρ < r` and a compactly supported Hamiltonian diffeotopy `Φ` of `M`, with
+   Hamiltonian `F` and a compact set `K` off which `F` vanishes and every `Φ_t` is the identity,
+   such that `Φ_t (j₀ z) = e_t z` for every `t` and `z ∈ B(r₀)`, and `Φ_1 (j₀ z) = j₁ z` for
+   `z ∈ B(ρ)`.
+
+Milestone: *Symplectic ball extension*. -/
+theorem exists_ballEmbedding_extension_and_hasHamiltonian_extension [FiniteDimensional ℝ E]
+    [I.Boundaryless] [T2Space M] [SigmaCompactSpace M] (hσ : σ.IsSymplectic)
+    (hdim : Module.finrank ℝ E = 2 * n) :
+    (∀ r₀, 0 < r₀ → ∀ j : StdSpace (Fin n) → M, IsSymplecticBallEmbedding σ r₀ j →
+      ∃ r, r₀ < r ∧ ∃ j', IsSymplecticBallEmbedding σ r j' ∧ EqOn j' j (closedBall 0 r₀)) ∧
+    ∀ r₀ r, 0 ≤ r₀ → r₀ < r → ∀ (j₀ j₁ : StdSpace (Fin n) → M)
+      (e : unitInterval × StdSpace (Fin n) → M), IsSymplecticBallEmbedding σ r j₀ →
+      IsSymplecticBallEmbedding σ r j₁ → IsSymplecticBallFamily σ r₀ e →
+      (∀ z ∈ closedBall 0 r₀, e (0, z) = j₀ z) → (∀ z ∈ closedBall 0 r₀, e (1, z) = j₁ z) →
+      ∃ ρ, r₀ < ρ ∧ ρ < r ∧ ∃ (Φ : Diffeotopy I ∞ M) (F : M × unitInterval → ℝ) (K : Set M),
+        IsCompact K ∧ Φ.IsCompactlySupportedHamiltonian σ ∧ Φ.HasHamiltonian σ F ∧
+        (∀ p, p.1 ∉ K → F p = 0) ∧ (∀ t, ∀ y ∉ K, Φ (t, y) = y) ∧
+        (∀ t, ∀ z ∈ closedBall 0 r₀, Φ (t, j₀ z) = e (t, z)) ∧
+        ∀ z ∈ closedBall 0 ρ, Φ.final (j₀ z) = j₁ z :=
+  ⟨fun _ hr₀ _ hj ↦ hj.exists_lt_isSymplecticBallEmbedding_eqOn hσ.isClosed hr₀,
+    fun _ _ hr₀ hr₀r _ _ _ hj₀ hj₁ he he₀ he₁ ↦
+      he.exists_hasHamiltonian_extension hσ hdim hr₀ hr₀r hj₀ hj₁ he₀ he₁⟩
 
 end SymplecticGeometry
 
