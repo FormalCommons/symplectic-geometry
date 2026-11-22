@@ -11,6 +11,7 @@ public import SymplecticGeometry.LinearAlgebra.Matrix.Realify
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Matrix
 public import SymplecticGeometry.Topology.Algebra.Matrix.Realify
 public import SymplecticGeometry.Topology.Algebra.SymplecticGroup
+public import SymplecticGeometry.Topology.Circle.Loop
 public import SymplecticGeometry.Topology.Homotopy.Path
 public import TauCeti.Analysis.Complex.NormalizedDeterminant
 public import TauCeti.Topology.Homotopy.Path
@@ -249,16 +250,6 @@ theorem maslovIndex_cast {A B : GLSymplectic ι ℝ} (γ : Path B B) (h : A = B)
   rfl
 
 end TauCeti.GLSymplectic
-
-namespace TauCeti
-
-/-- The `k`-th power of the point `e^{2πit}` of the circle is `e^{2πikt}`. -/
-theorem unitToCircle_zpow (k : ℤ) (t : I) :
-    unitToCircle t ^ k = Circle.exp (2 * Real.pi * k * t) := by
-  rw [unitToCircle_apply, ← Circle.exp_zsmul, zsmul_eq_mul]
-  ring_nf
-
-end TauCeti
 
 namespace SymplecticGeometry
 
