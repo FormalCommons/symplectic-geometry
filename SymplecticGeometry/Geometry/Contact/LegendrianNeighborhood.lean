@@ -21,6 +21,7 @@ public import TauCeti.Geometry.Manifold.VectorBundle.ZeroSection
 public import TauCeti.Geometry.Symplectic.Lagrangian.Embedding.Normal
 import SymplecticGeometry.Geometry.Contact.Contactization
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Opens
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Regularity
 import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Basic
 import SymplecticGeometry.Geometry.Manifold.IsManifold.Basic
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Opens
@@ -789,9 +790,8 @@ private theorem exists_primitive [I.Boundaryless] [J.Boundaryless] [T2Space L]
     (subset_univ _)
   obtain ⟨b, hb, hdb, hb0, -⟩ := hprim (k := 0) (r := ⊤) le_top γ.isSmoothForm hγc hγ0
   have hbg : b = RoughForm.ofFunction _ (fun w ↦ b w 0) := RoughForm.eq_ofFunction b
-  have hgs : ContMDiff (J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)) 𝓘(ℝ) ∞ (fun w : W ↦ b w 0) := by
-    rw [← isSmoothForm_ofFunction_iff, ← hbg]
-    exact hb
+  have hgs : ContMDiff (J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)) 𝓘(ℝ) ∞ (fun w : W ↦ b w 0) :=
+    SmoothForm.contMDiff_apply_zero ⟨b, hb.mem_smoothBundleForms⟩
   have hfin : TauCeti.mpullback _ I (κ ∘ Subtype.val) α.val =
       TauCeti.mpullback _ _ ((Subtype.val : U → CotangentBundle J L) ∘ Subtype.val) lam.val +
       mextDeriv (RoughForm.ofFunction (J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)) fun w : W ↦ b w 0) := by
