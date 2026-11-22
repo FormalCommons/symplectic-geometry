@@ -18,6 +18,7 @@ public import TauCeti.Geometry.Symplectic.Prod.Basic
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.ComplexTangentBundle
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Topology
 public import TauCeti.Topology.VectorBundle.Complex.Structure
+import TauCeti.Geometry.Symplectic.Finrank
 
 /-!
 # Complex structures on a vector bundle
@@ -65,6 +66,8 @@ bundle, in `TauCeti/Geometry/Symplectic/Manifold/AlmostComplex/ContMDiff.lean` a
   depend on the covering frames.
 * `toContinuousComplexStructure_tangentEquiv`: on the tangent bundle, the underlying continuous
   complex structure is the one Tau Ceti attaches to an almost complex structure.
+* `TauCeti.SmoothAlmostComplexStructure.even_finrank`: a nonempty manifold with an almost
+  complex structure has even dimension.
 
 ## References
 
@@ -1041,6 +1044,15 @@ theorem pullbackComplexStructure_neg_apply (J : SmoothAlmostComplexStructure I M
     (hf : ContMDiff I' I ∞ f) (y : N) (v : ((f : N → M) *ᵖ (TangentSpace I)) y) :
     (-J).pullbackComplexStructure f hf y v = -J.pullbackComplexStructure f hf y v := by
   rw [pullbackComplexStructure_neg, ContMDiffComplexStructure.neg_apply, _root_.neg_apply]
+
+/-- A nonempty manifold with an almost complex structure has even dimension: given a point `x`,
+the model space `EB` of the tangent spaces has even real dimension, since `J x` is a complex
+structure on the tangent space at `x`. -/
+theorem even_finrank [FiniteDimensional ℝ EB] (J : SmoothAlmostComplexStructure I M) (x : M) :
+    Even (Module.finrank ℝ EB) :=
+  letI : FiniteDimensional ℝ (TangentSpace I x) :=
+    VectorBundle.finiteDimensional ℝ EB (TangentSpace I) x
+  (J.almostComplexStructureAt x).even_finrank_real
 
 end TauCeti.SmoothAlmostComplexStructure
 

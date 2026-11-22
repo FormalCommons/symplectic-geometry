@@ -12,14 +12,14 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.Wedge.Leibniz
 public import TauCeti.Geometry.Manifold.Riemannian.HodgeStar
 public import TauCeti.Geometry.Manifold.TwoForm.Basic
 public import SymplecticGeometry.Geometry.Manifold.Complex.Integrable
-public import TauCeti.Geometry.Manifold.Riemannian.Codifferential
+public import SymplecticGeometry.Geometry.Manifold.Riemannian.Codifferential
 public import TauCeti.Geometry.Manifold.DeRham.Harmonic
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.PartialDiffeomorph
 import SymplecticGeometry.Geometry.Manifold.Complex.KahlerCoordinates
 import SymplecticGeometry.Geometry.Manifold.DeRham.Hodge.Chart
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.AlmostComplexType
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Metric
-import TauCeti.Geometry.Symplectic.Finrank
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.ComplexStructure
 
 /-!
 # The Lefschetz operator on smooth forms, the Kähler identity, and `[Δ, 𝒥] = 0`
@@ -57,8 +57,9 @@ Kähler identity and `d^* d^* = 0` give `P d^* + d^* P = 0`, and the Hodge star 
 `Q d + d Q` to `P d^* + d^* P` in the complementary degree, since it commutes with `𝒥` and carries
 `d` to `d^*` up to signs that cancel. In degree zero `𝒥` vanishes. In the top degree and in
 dimension one only some of these terms occur; dimension one is excluded by `J`, which forces the
-dimension to be even. The four conjugation formulas `⋆ d^* d = d d^* ⋆`, `⋆ d d^* = d^* d ⋆`,
-and their versions with a derivation `𝒜` in the middle, follow the steps of the proof of
+dimension to be even. The conjugation formulas `⋆ d^* d = d d^* ⋆` and `⋆ d d^* = d^* d ⋆` are
+in `SymplecticGeometry.Geometry.Manifold.Riemannian.Codifferential`; their versions here, with a
+derivation `𝒜` in the middle, follow the steps of the proof of
 `TauCeti.SmoothForm.hodgeStar_hodgeLaplacian`.
 
 ## Main definitions
@@ -82,10 +83,9 @@ and their versions with a derivation `𝒜` in the middle, follow the steps of t
 * `TauCeti.SmoothForm.hodgeLaplacian_realAlternatingDerivation`: `Δ 𝒥 α = 𝒥 Δ α` under the
   hypotheses of the Kähler identity, and
   `TauCeti.SmoothForm.realAlternatingDerivation_mem_harmonicForms`: `𝒥` preserves harmonic forms.
-* `TauCeti.SmoothForm.hodgeStar_injective`: the Hodge star of smooth forms is injective.
-* `TauCeti.SmoothForm.hodgeStar_codifferential_mextDerivₗ`,
-  `TauCeti.SmoothForm.hodgeStar_mextDerivₗ_codifferential` and their versions with
-  `realAlternatingDerivation` between `d` and `d^*`: the Hodge star conjugates `d^* d` to `d d^*`.
+* `TauCeti.SmoothForm.hodgeStar_codifferential_realAlternatingDerivation_mextDerivₗ` and
+  `TauCeti.SmoothForm.hodgeStar_mextDerivₗ_realAlternatingDerivation_codifferential`: the Hodge
+  star conjugates `d^* 𝒜 d` to `d 𝒜 d^*` and back.
 
 ## References
 
@@ -173,31 +173,6 @@ theorem hodgeStar_realAlternatingDerivation (o : Manifold.Orientation I M (Fin m
     ContMDiffSection.coe_realAlternatingDerivation]
   exact (o.orientationAt x).formHodgeStar_fderivCompContinuousLinearMap _ (hA x) _
 
-/-- The Hodge star of smooth forms is injective, since `⋆⋆` is a sign. -/
-theorem hodgeStar_injective (o : Manifold.Orientation I M (Fin m)) (hkl : k + l = m) :
-    Function.Injective (hodgeStar o hkl) := fun α β h ↦ by
-  have := congrArg (hodgeStar o (show l + k = m by omega)) h
-  rwa [hodgeStar_hodgeStar, hodgeStar_hodgeStar,
-    smul_right_inj (pow_ne_zero _ (neg_ne_zero.2 one_ne_zero))] at this
-
-/-- The Hodge star carries `d*d` to `dd*`: `⋆ d* dβ = d d* ⋆β` for a `k`-form `β`. -/
-theorem hodgeStar_codifferential_mextDerivₗ (o : Manifold.Orientation I M (Fin m))
-    (hkl : k + 1 + l = m) (hkl' : k + (l + 1) = m) (hlk : l + 1 + k = m)
-    (β : SmoothForm I M ℝ k) :
-    hodgeStar o hkl' (codifferential o hkl (mextDerivₗ I k β)) =
-      mextDerivₗ I l (codifferential o hlk (hodgeStar o hkl' β)) := by
-  rw [hodgeStar_codifferential o hkl hkl', hodgeStar_mextDeriv o hkl' hlk hkl, map_smul,
-    smul_smul, ← mul_pow, neg_one_mul, neg_neg, one_pow, one_smul]
-
-/-- The Hodge star carries `dd*` to `d*d`: `⋆ d d*α = d* d ⋆α` for a `(k + 1)`-form `α`. -/
-theorem hodgeStar_mextDerivₗ_codifferential (o : Manifold.Orientation I M (Fin m))
-    (hkl : k + 1 + l = m) (hkl' : k + (l + 1) = m) (hlk : l + 1 + k = m)
-    (α : SmoothForm I M ℝ (k + 1)) :
-    hodgeStar o hkl (mextDerivₗ I k (codifferential o hkl α)) =
-      codifferential o hlk (mextDerivₗ I l (hodgeStar o hkl α)) := by
-  rw [hodgeStar_mextDeriv o hkl' hlk hkl, hodgeStar_codifferential o hkl hkl', map_smul,
-    smul_smul, ← mul_pow, neg_one_mul, neg_neg, one_pow, one_smul]
-
 /-- For the derivation `𝒜` of a skew-adjoint endomorphism field, the Hodge star carries `d* 𝒜 d`
 to `d 𝒜 d*`: `⋆ d* 𝒜 dβ = d 𝒜 d* ⋆β` for a `k`-form `β`. -/
 theorem hodgeStar_codifferential_realAlternatingDerivation_mextDerivₗ
@@ -214,13 +189,13 @@ theorem hodgeStar_codifferential_realAlternatingDerivation_mextDerivₗ
 /-- For the derivation `𝒜` of a skew-adjoint endomorphism field, the Hodge star carries `d 𝒜 d*`
 to `d* 𝒜 d`: `⋆ d 𝒜 d*α = d* 𝒜 d ⋆α` for a `(k + 1)`-form `α`. -/
 theorem hodgeStar_mextDerivₗ_realAlternatingDerivation_codifferential
-    (o : Manifold.Orientation I M (Fin m)) (hkl : k + 1 + l = m) (hkl' : k + (l + 1) = m)
-    (hlk : l + 1 + k = m)
+    (o : Manifold.Orientation I M (Fin m)) (hkl : k + 1 + l = m) (hlk : l + 1 + k = m)
     {A : ContMDiffSection I (E →L[ℝ] E) ∞ fun x : M ↦ TangentSpace I x →L[ℝ] TangentSpace I x}
     (hA : ∀ x (u w : TangentSpace I x), ⟪A x u, w⟫ = -⟪u, A x w⟫)
     (α : SmoothForm I M ℝ (k + 1)) :
     hodgeStar o hkl (mextDerivₗ I k (A.realAlternatingDerivation (codifferential o hkl α))) =
       codifferential o hlk (A.realAlternatingDerivation (mextDerivₗ I l (hodgeStar o hkl α))) := by
+  have hkl' : k + (l + 1) = m := by omega
   rw [hodgeStar_mextDeriv o hkl' hlk hkl, hodgeStar_realAlternatingDerivation o hkl' hA,
     hodgeStar_codifferential o hkl hkl', map_smul, map_smul, smul_smul, ← mul_pow, neg_one_mul,
     neg_neg, one_pow, one_smul]
@@ -411,16 +386,6 @@ theorem codifferential_lefschetz (o : Manifold.Orientation I M (Fin m))
 
 /-! ### The Hodge Laplacian commutes with `𝒥` -/
 
-omit [RiemannianBundle (fun x : M ↦ TangentSpace I x)]
-  [IsContMDiffRiemannianBundle I ∞ E (fun x : M ↦ TangentSpace I x)] in
-/-- A nonempty manifold of dimension `m` with an almost complex structure has `m` even. -/
-private theorem even_of_orientation (o : Manifold.Orientation I M (Fin m))
-    (J : SmoothAlmostComplexStructure I M) (x : M) : Even m := by
-  let _ : FiniteDimensional ℝ (TangentSpace I x) :=
-    VectorBundle.finiteDimensional ℝ E (TangentSpace I) x
-  rw [← (o.fact_finrank_tangentSpace x).out]
-  exact (J.almostComplexStructureAt x).even_finrank_real
-
 /-- The Kähler identity at `d^* α`: `𝒥 d d^* α - d 𝒥 d^* α = d^* L d^* α`, as `d^* d^* = 0`. -/
 private theorem realAlternatingDerivation_mextDerivₗ_codifferential_sub
     (o : Manifold.Orientation I M (Fin m)) (hJ : J.IsIntegrable) (hσ : σ.IsClosed)
@@ -483,8 +448,8 @@ private theorem commutator_mextDerivₗ_codifferential_of_top
         mextDerivₗ I k
           (J.toEndomorphism.realAlternatingDerivation (SmoothForm.codifferential o hkl α)) = 0 := by
   rcases k with _ | k
-  · refine Subtype.ext (funext fun x ↦ absurd (even_of_orientation o J x) ?_)
-    rw [← hkl]
+  · refine Subtype.ext (funext fun x ↦ absurd (J.even_finrank x) ?_)
+    rw [← o.card_eq, Fintype.card_fin, ← hkl]
     exact Nat.not_even_one
   · have := lefschetz_codifferential_of_lt o hJ hσ hg (l := 1) (by omega) (by omega)
       (SmoothForm.codifferential o hkl α)
@@ -502,8 +467,8 @@ private theorem codifferential_commutator_mextDerivₗ_of_fin_zero
   rw [ContMDiffSection.realAlternatingDerivation_fin_zero, _root_.map_zero, _root_.map_zero,
     sub_zero]
   rcases l with _ | l
-  · refine Subtype.ext (funext fun x ↦ absurd (even_of_orientation o J x) ?_)
-    rw [← hkl]
+  · refine Subtype.ext (funext fun x ↦ absurd (J.even_finrank x) ?_)
+    rw [← o.card_eq, Fintype.card_fin, ← hkl]
     exact Nat.not_even_one
   · rw [← codifferential_lefschetz o hJ hσ hg (l := l) (by omega) f]
     exact SmoothForm.codifferential_codifferential o hkl _ _
@@ -539,9 +504,9 @@ theorem hodgeLaplacian_realAlternatingDerivation (o : Manifold.Orientation I M (
         mextDerivₗ I k (codifferential o hkl (J.toEndomorphism.realAlternatingDerivation α)) =
           0 := by
       refine (injective_iff_map_eq_zero (hodgeStar o hkl)).1 (hodgeStar_injective o hkl) _ ?_
-      rw [map_sub, hodgeStar_mextDerivₗ_realAlternatingDerivation_codifferential o hkl (by omega)
-          (by omega) hA,
-        hodgeStar_mextDerivₗ_codifferential o hkl (by omega) (by omega),
+      rw [map_sub,
+        hodgeStar_mextDerivₗ_realAlternatingDerivation_codifferential o hkl (by omega) hA,
+        hodgeStar_mextDerivₗ_codifferential o hkl (by omega),
         hodgeStar_realAlternatingDerivation o hkl hA]
       exact codifferential_commutator_mextDerivₗ_of_fin_zero o hJ hσ hg _ _
     rw [hX, sub_eq_zero.1 hY]
@@ -560,9 +525,8 @@ theorem hodgeLaplacian_realAlternatingDerivation (o : Manifold.Orientation I M (
       rw [map_add, map_sub, map_sub, hodgeStar_realAlternatingDerivation o hkl hA,
         hodgeStar_codifferential_mextDerivₗ o _ hkl (by omega),
         hodgeStar_codifferential_realAlternatingDerivation_mextDerivₗ o _ hkl (by omega) hA,
-        hodgeStar_mextDerivₗ_realAlternatingDerivation_codifferential o hkl (by omega)
-          (by omega) hA,
-        hodgeStar_mextDerivₗ_codifferential o hkl (by omega) (by omega),
+        hodgeStar_mextDerivₗ_realAlternatingDerivation_codifferential o hkl (by omega) hA,
+        hodgeStar_mextDerivₗ_codifferential o hkl (by omega),
         hodgeStar_realAlternatingDerivation o hkl hA]
       exact commutator_mextDerivₗ_codifferential_add o hJ hσ hg _ (l' := k) (by omega) _
     have := congrArg₂ (· + ·) hX hY
