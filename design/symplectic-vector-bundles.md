@@ -1476,9 +1476,9 @@ on complex structures are in `ContMDiffComplexStructure` and in
 
 ### Pull-backs
 
-For a map `f : C^n⟮I', N; I, M⟯` (the argument of Mathlib's instance
-`ContMDiffVectorBundle.pullback`), with `N` a manifold over a model
-`I' : ModelWithCorners ℝ EN HN`:
+For a map `f : K` with `[FunLike K N M] [ContinuousMapClass K N M]` and
+`hf : ContMDiff I' I n f`, with `N` a manifold over a model
+`I' : ModelWithCorners ℝ EN HN`, unless an entry says otherwise:
 
 - `Geometry/Manifold/VectorBundle/Pullback.lean`, in the root namespace
   `Bundle.Pullback`, beside Tau Ceti's lemma of the same file name:
@@ -1506,8 +1506,9 @@ For a map `f : C^n⟮I', N; I, M⟯` (the argument of Mathlib's instance
   such as `ContMDiffVectorBundle.continuousAlternatingMap`, do, so a caller
   adds `[CharZero 𝕜]` only where it needs the alternating bundle to be a
   $C^n$ vector bundle.
-- `Symplectic/Pullback.lean`: `ContMDiffTwoForm.pullback ω f :
-  ContMDiffTwoForm I' n F (f *ᵖ V)`, with value `ω (f y)` at `y`. The
+- `Symplectic/Pullback.lean`: `ContMDiffTwoForm.pullback ω f hf :
+  ContMDiffTwoForm I' n F (f *ᵖ V)`, with value `ω (f y)` at `y`, for `f`
+  and `hf` as `ContMDiffComplexStructure.pullback` takes them. The
   argument order is that of Tau Ceti's `ContMDiffSection.pullback ω f`
   (`Section/Module.lean`), of which `ContMDiffTwoForm` is an `abbrev`: that
   is a section of the pull-back of the alternating bundle, and the lemma
@@ -1516,7 +1517,7 @@ For a map `f : C^n⟮I', N; I, M⟯` (the argument of Mathlib's instance
   `bilinFormAt_pullback`, and `@[simp] bilinFormAt_pullback_apply` for its
   value `ω (f y) ![v, w]` on `v w : V (f y)`; `pullback_zero`,
   `pullback_add`, `pullback_smul`, `@[simp] pullback_neg`,
-  `@[simp] pullback_sub` and the linear map `pullbackLinearMap I F V n f`,
+  `@[simp] pullback_sub` and the linear map `pullbackLinearMap I F V n f hf`,
   as Tau Ceti has them for sections; `IsNondegenerate.pullback`;
   `IsNondegenerate.symplecticFormAt_pullback` (the symplectic form of the
   pull-back at `y` is that of `ω` at `f y`), through
@@ -1573,9 +1574,9 @@ For a map `f : C^n⟮I', N; I, M⟯` (the argument of Mathlib's instance
 - `Symplectic/Pullback.lean`, the pairs: `Tames.pullback`,
   `Invariant.pullback` and `Compatible.pullback`, for a form and a complex
   structure of the same regularity `n`, from `ω.Tames J` to
-  `(ω.pullback f).Tames (J.pullback f f.contMDiff)`, pointwise.
-- Isomorphisms: `pullback_pushforward`, `(pushforward Φ hΦ ω).pullback f` is
-  `pushforward (fun y ↦ Φ (f y)) _ (ω.pullback f)`,
+  `(ω.pullback f hf).Tames (J.pullback f hf)`, pointwise.
+- Isomorphisms: `pullback_pushforward`, `(pushforward Φ hΦ ω).pullback f hf` is
+  `pushforward (fun y ↦ Φ (f y)) _ (ω.pullback f hf)`,
   the smoothness coming from Tau Ceti's `Bundle.Pullback.contMDiff_fiberwise`
   (so a symplectic isomorphism pulls back to one);
   `pushforward_pullback_id`, the pull-back along `ContMDiffMap.id`, moved to
@@ -1583,9 +1584,11 @@ For a map `f : C^n⟮I', N; I, M⟯` (the argument of Mathlib's instance
   `Bundle.Pullback.idDiffeomorph`), is `ω`; `pushforward_pullback_comp`, for
   `g : C^n⟮I', N; I, M⟯` and `f : C^n⟮I'', P; I', N⟯`, the pull-back along
   `g.comp f`, moved to `f *ᵖ (g *ᵖ V)` by the identity of each fibre (smooth
-  by `Bundle.Pullback.compDiffeomorph`), is `(ω.pullback g).pullback f`.
+  by `Bundle.Pullback.compDiffeomorph`), is
+  `(ω.pullback g g.contMDiff).pullback f f.contMDiff`. These two take
+  bundled maps, as `idDiffeomorph` and `compDiffeomorph` do.
 - Frames: `IsSymplecticFrameOn.pullback`, a frame `Φ` of `ω` over `U` gives
-  the frame `fun y ↦ Φ (f y)` of `ω.pullback f` over `f ⁻¹' U`; the
+  the frame `fun y ↦ Φ (f y)` of `ω.pullback f hf` over `f ⁻¹' U`; the
   transition maps of pulled-back frames are
   `@[simp] frameTransition_pullback`: `frameTransition (fun y ↦ Φ (f y))
   (fun y ↦ Φ' (f y)) y = frameTransition Φ Φ' (f y)`, for any map
