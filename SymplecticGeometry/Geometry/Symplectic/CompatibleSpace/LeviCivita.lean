@@ -32,7 +32,7 @@ with values in `V →L[ℝ] V`; and along a curve `J(t)`, for a field `W` along 
 
 The proof goes through the Gauss formula for the form `B(P, Q) = ½ tr(P Q)`, half the trace form
 of `V →L[ℝ] V` (`ContinuousLinearMap.traceForm`), for which the inclusion is isometric
-(`inner_compatibleSpace_eq_traceForm`,
+(`inner_compatibleSpace_eq_smul_traceForm`,
 `CovariantDerivative.IsLeviCivitaConnection.inner_apply_eq_bilin_mvfderiv`): the connection pairs
 with each tangent vector `w` as `B(D_X Ŷ, ŵ)`. The trace form is not positive definite on
 `V →L[ℝ] V`, so the remaining step is algebraic. Differentiating the relations `J Ŷ + Ŷ J = 0` and
@@ -297,11 +297,8 @@ theorem leviCivitaConnection_compatibleSpace_apply
   · -- The Gauss formula for the trace form.
     have h := (CovariantDerivative.isLeviCivitaConnection_leviCivitaConnection
       𝓘(ℝ, ω.compatibleModel) (M := 𝒥)).inner_apply_eq_bilin_mvfderiv hf
-      (B := (2⁻¹ : ℝ) • ContinuousLinearMap.traceForm ℝ V)
-      (fun P Q => by simp only [smul_apply, ContinuousLinearMap.traceForm_comm P Q])
-      (fun J a b => by
-        rw [smul_apply, smul_apply, smul_eq_mul]
-        exact inner_compatibleSpace_eq_traceForm J a b) (mdifferentiableAt_extend _ _ a) hY w
+      (ContinuousLinearMap.smul_traceForm_comm _) inner_compatibleSpace_eq_smul_traceForm
+      (mdifferentiableAt_extend _ _ a) hY w
     rwa [extend_apply_self, ← hgm, smul_apply, smul_apply,
       smul_eq_mul, ContinuousLinearMap.traceForm_apply, mvfderiv_apply_eq_mfderiv_apply] at h
 
@@ -366,11 +363,7 @@ theorem alongCurve_leviCivitaConnection_compatibleSpace {γ : ℝ → 𝒥}
   · -- The Gauss formula along a curve, for the trace form.
     have h := (CovariantDerivative.isLeviCivitaConnection_leviCivitaConnection
       𝓘(ℝ, ω.compatibleModel) (M := 𝒥)).inner_alongCurve_eq_bilin hf
-      (B := (2⁻¹ : ℝ) • ContinuousLinearMap.traceForm ℝ V)
-      (fun P Q => by simp only [smul_apply, ContinuousLinearMap.traceForm_comm P Q])
-      (fun J a b => by
-        rw [smul_apply, smul_apply, smul_eq_mul]
-        exact inner_compatibleSpace_eq_traceForm J a b) hγ
+      (ContinuousLinearMap.smul_traceForm_comm _) inner_compatibleSpace_eq_smul_traceForm hγ
       (differentiableAt_sectionCoord γ W hW (mem_baseSet_trivializationAt _ _ (γ t)))
       (hgm ▸ hgd) w
     rwa [smul_apply, smul_apply, smul_eq_mul,

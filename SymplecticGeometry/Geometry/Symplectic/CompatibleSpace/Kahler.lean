@@ -56,7 +56,8 @@ does for its model geometries (`TauCeti.Nil`).
 * `TauCeti.SymplecticForm.compatibleSpaceMetric`: the metric of the pair, the
   `RiemannianBundle` instance of `𝒥 ω`, with `inner_compatibleSpace_eq_eval₂`:
   `⟪a, b⟫ = Ω(a, j b)`, and `inner_compatibleSpace`: `⟪a, b⟫ = ½ tr(â b̂)`, half the pull-back of
-  the trace form `ContinuousLinearMap.traceForm` (`inner_compatibleSpace_eq_traceForm`).
+  the trace form `ContinuousLinearMap.traceForm` (`inner_compatibleSpace_eq_traceForm`,
+  and `inner_compatibleSpace_eq_smul_traceForm` for the form `2⁻¹ • traceForm`).
 * `TauCeti.SymplecticForm.mpullback_compatibleTransport_compatibleSpaceForm` and
   `TauCeti.SymplecticForm.compatibleTransportIsometry`: the transport by a linear
   symplectomorphism preserves `Ω` and is a Riemannian isometry; the isometry group acts
@@ -362,6 +363,16 @@ theorem inner_compatibleSpace_eq_traceForm (J : 𝒥)
       (mvfderiv 𝓘(ℝ, ω.compatibleModel) ω.compatibleCLM J b) := by
   rw [ContinuousLinearMap.traceForm_apply, mvfderiv_apply_eq_mfderiv_apply,
     mvfderiv_apply_eq_mfderiv_apply, inner_compatibleSpace]
+
+/-- The metric of the manifold of compatible complex structures is the pull-back by the
+inclusion of the bilinear form `½ B` of `V →L[ℝ] V`, where `B(P, Q) = tr (P Q)` is the trace
+form: `⟪a, b⟫ = (½ B)(â, b̂)`. -/
+theorem inner_compatibleSpace_eq_smul_traceForm (J : 𝒥)
+    (a b : TangentSpace 𝓘(ℝ, ω.compatibleModel) J) :
+    ⟪a, b⟫ = ((2⁻¹ : ℝ) • ContinuousLinearMap.traceForm ℝ V)
+      (mvfderiv 𝓘(ℝ, ω.compatibleModel) ω.compatibleCLM J a)
+      (mvfderiv 𝓘(ℝ, ω.compatibleModel) ω.compatibleCLM J b) := by
+  rw [smul_apply, smul_apply, smul_eq_mul, inner_compatibleSpace_eq_traceForm]
 
 /-! ### Invariance under linear symplectomorphisms -/
 
