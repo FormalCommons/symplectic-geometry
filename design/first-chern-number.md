@@ -1063,6 +1063,14 @@ issues, in an order where each issue's blockers come before it.
    `SymplecticGeometry.isCollared_discComplementBoundary`) and
    `ArgumentPrinciple.lean` imports. This is the half of the book's Lemma 2.7.3 needed for discs.
    Blocked by 5 and 7.
+   `AlgebraicTopology/Singular/DiscreteProd.lean`, for the boundary of the
+   complement, which is a product `ι × Circle`: for discrete `ι`, singular
+   homology in each degree sends `ι ⊗ X` to the coproduct of copies of that
+   of `X` along the fibre inclusions
+   (`TopCat.isColimitCofanSingularHomologyProd`), and for finite `ι`, in
+   positive degree, the maps induced by retracting onto one fibre and
+   including it again sum to the identity
+   (`TopCat.sum_singularHomologyFunctor_map_prodFiberRetraction_comp`).
 7. **Boundary degree and the argument principle on a surface with
    boundary.** The setting is that of `RelativeFundamentalClass.lean`: `X`
    compact Hausdorff, `ι : M → X` an open embedding of a surface with
