@@ -5,7 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Orientation
+public import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.TopForm
 public import TauCeti.Geometry.Symplectic.Manifold.Energy
 public import TauCeti.LinearAlgebra.BilinearMap.Multilinear
 public import TauCeti.LinearAlgebra.Complex.LinearPart
@@ -45,10 +45,9 @@ squared norm `|L|²` of `L` for the metrics `dvol (·, j ·)` and `ω (·, J ·)
   (`TauCeti.SmoothAlmostComplexStructure.topForm_ext`), where it is Tau Ceti's Wirtinger identity
   `TauCeti.SmoothTwoForm.Invariant.stdComplexLineEnergyDensity_sub_two_mul_twoForm`.
 
-The plane is given, as in Tau Ceti's `SmoothAlmostComplexStructure.complexFrame`, by an
-orientation `o : Manifold.Orientation I' C (Fin 2)`, which fixes the dimension of the tangent
-spaces. The comparison of top forms through their values on a basis follows the proof of Tau
-Ceti's `TauCeti.SmoothAlmostComplexStructure.apply_basis_nonneg_of_forall_nonneg`.
+The statements on a plane take only `Module.finrank ℝ E' = 2`, not an orientation of `C`; the
+comparison of top forms on frames `(e, j e)` is in
+`SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.TopForm`.
 
 ## References
 
@@ -68,34 +67,19 @@ noncomputable section
 
 namespace TauCeti
 
-namespace SmoothAlmostComplexStructure
+/-- The map `(a, s) ↦ a • v + s • w` sends `stdComplexLineReal = (1, 0)` to `v`. -/
+theorem _root_.LinearMap.coprod_toSpanSingleton_apply_stdComplexLineReal {V : Type*}
+    [AddCommGroup V] [Module ℝ V] (v w : V) :
+    (LinearMap.toSpanSingleton ℝ V v).coprod (LinearMap.toSpanSingleton ℝ V w)
+      stdComplexLineReal = v := by
+  simp [stdComplexLineReal_eq]
 
-variable {E' H' C : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [FiniteDimensional ℝ E']
-  [TopologicalSpace H'] {I' : ModelWithCorners ℝ E' H'} [TopologicalSpace C]
-  [ChartedSpace H' C] [IsManifold I' ∞ C] (j : SmoothAlmostComplexStructure I' C)
-  {c : C}
-
-/-- Two top forms on a tangent plane of an almost complex surface agree once they agree on one
-frame `(e, j e)`. -/
-theorem topForm_ext (o : Manifold.Orientation I' C (Fin 2)) {e : TangentSpace I' c}
-    (he : e ≠ 0) {η μ : TangentSpace I' c [⋀^Fin 2]→L[ℝ] ℝ} (h : η ![e, j c e] = μ ![e, j c e]) :
-    η = μ := by
-  rw [← sub_eq_zero, ← (η - μ).map_basis_eq_zero_iff (j.complexFrame o he), coe_complexFrame,
-    ContinuousAlternatingMap.sub_apply, h, sub_self]
-
-/-- On a tangent plane of an almost complex surface, the ratio of two top forms takes the same
-value on all frames `(e, j e)` with `e ≠ 0`. -/
-theorem topForm_apply_div_apply_eq (o : Manifold.Orientation I' C (Fin 2))
-    {e e' : TangentSpace I' c} (he : e ≠ 0) (he' : e' ≠ 0)
-    (η μ : TangentSpace I' c [⋀^Fin 2]→L[ℝ] ℝ) :
-    η ![e', j c e'] / μ ![e', j c e'] = η ![e, j c e] / μ ![e, j c e] := by
-  classical
-  rw [← j.coe_complexFrame o he, ← j.coe_complexFrame o he',
-    η.apply_eq_det_mul (j.complexFrame o he),
-    μ.apply_eq_det_mul (j.complexFrame o he)]
-  exact mul_div_mul_left _ _ ((j.complexFrame o he).isUnit_det _).ne_zero
-
-end SmoothAlmostComplexStructure
+/-- The map `(a, s) ↦ a • v + s • w` sends `stdComplexLineImag = (0, 1)` to `w`. -/
+theorem _root_.LinearMap.coprod_toSpanSingleton_apply_stdComplexLineImag {V : Type*}
+    [AddCommGroup V] [Module ℝ V] (v w : V) :
+    (LinearMap.toSpanSingleton ℝ V v).coprod (LinearMap.toSpanSingleton ℝ V w)
+      stdComplexLineImag = w := by
+  simp [stdComplexLineImag_eq]
 
 namespace SmoothTwoForm
 
@@ -181,9 +165,10 @@ theorem energyDensity_apply_complexFrame_eq_stdComplexLineEnergyDensity
     (L : TangentSpace I' c →ₗ[ℝ] TangentSpace I x) (e : TangentSpace I' c) :
     form.energyDensity J j L ![e, j c e] = 2⁻¹ * form.stdComplexLineEnergyDensity J x
       (L ∘ₗ (LinearMap.toSpanSingleton ℝ _ e).coprod (LinearMap.toSpanSingleton ℝ _ (j c e))) := by
-  rw [energyDensity_apply_complexFrame, stdComplexLineEnergyDensity_def]
-  simp [stdComplexLineReal_eq, stdComplexLineImag_eq]
-
+  rw [energyDensity_apply_complexFrame, stdComplexLineEnergyDensity_def, LinearMap.comp_apply,
+    LinearMap.comp_apply, LinearMap.coprod_toSpanSingleton_apply_stdComplexLineReal,
+    LinearMap.coprod_toSpanSingleton_apply_stdComplexLineImag, SmoothBundleForm.eval₂_apply,
+    SmoothBundleForm.eval₂_apply]
 /-- If `form` tames `J`, the energy density is nonnegative on every frame `(e, j e)`. -/
 theorem Tames.energyDensity_apply_complexFrame_nonneg {form : SmoothTwoForm I M}
     {J : SmoothAlmostComplexStructure I M} (h : form.Tames J)
@@ -220,9 +205,21 @@ def normSq (dvol : SmoothTwoForm I' C) (L : TangentSpace I' c →ₗ[ℝ] Tangen
       dvol.val c ![h.choose, j c h.choose]
   else 0
 
-/-- On a tangent plane, the squared norm of `L` is
+omit [FiniteDimensional ℝ E'] in
+open scoped Classical in
+/-- The squared norm by its definition. -/
+theorem normSq_def (dvol : SmoothTwoForm I' C) (L : TangentSpace I' c →ₗ[ℝ] TangentSpace I x) :
+    form.normSq J j dvol L =
+      if h : ∃ e : TangentSpace I' c, e ≠ 0 then
+        (form.val x ![L h.choose, J x (L h.choose)] +
+            form.val x ![L (j c h.choose), J x (L (j c h.choose))]) /
+          dvol.val c ![h.choose, j c h.choose]
+      else 0 :=
+  (rfl)
+
+/-- On a surface, the squared norm of `L` is
 `(form (L e, J (L e)) + form (L (j e), J (L (j e)))) / dvol (e, j e)` for every nonzero `e`. -/
-theorem normSq_eq (o : Manifold.Orientation I' C (Fin 2)) (dvol : SmoothTwoForm I' C)
+theorem normSq_eq (h2 : Module.finrank ℝ E' = 2) (dvol : SmoothTwoForm I' C)
     (L : TangentSpace I' c →ₗ[ℝ] TangentSpace I x) {e : TangentSpace I' c} (he : e ≠ 0) :
     form.normSq J j dvol L = (form.val x ![L e, J x (L e)] +
       form.val x ![L (j c e), J x (L (j c e))]) / dvol.val c ![e, j c e] := by
@@ -231,30 +228,30 @@ theorem normSq_eq (o : Manifold.Orientation I' C (Fin 2)) (dvol : SmoothTwoForm 
       form.val x ![L (j c e), J x (L (j c e))] = 2 * form.energyDensity J j L ![e, j c e] := by
     rw [energyDensity_apply_complexFrame]
     ring
-  simp only [normSq, h, ↓reduceDIte]
+  simp only [normSq_def, h, ↓reduceDIte]
   rw [key, key, mul_div_assoc, mul_div_assoc,
-    j.topForm_apply_div_apply_eq o he h.choose_spec]
+    j.topForm_apply_div_apply_eq h2 he h.choose_spec]
 
-/-- Where the area form `dvol` does not vanish, `|L|² dvol = 2 ε_L` as top forms. -/
-theorem normSq_smul_eq_two_smul_energyDensity (o : Manifold.Orientation I' C (Fin 2))
+/-- On a surface, where the area form `dvol` does not vanish, `|L|² dvol = 2 ε_L` as top
+forms. -/
+theorem normSq_smul_eq_two_smul_energyDensity (h2 : Module.finrank ℝ E' = 2)
     {dvol : SmoothTwoForm I' C} (hdvol : dvol.val c ≠ 0)
     (L : TangentSpace I' c →ₗ[ℝ] TangentSpace I x) :
     form.normSq J j dvol L • dvol.val c = (2 : ℝ) • form.energyDensity J j L := by
-  have : Nontrivial (TangentSpace I' c) :=
-    Module.nontrivial_of_finrank_pos (R := ℝ) (by rw [o.finrank_tangentSpace_eq c]; simp)
+  have := nontrivial_tangentSpace_of_finrank_pos (I := I') (h2 ▸ two_pos) c
   obtain ⟨e, he⟩ := exists_ne (0 : TangentSpace I' c)
-  have hd : dvol.val c ![e, j c e] ≠ 0 := by
-    rwa [← j.coe_complexFrame o he, (dvol.val c).map_basis_ne_zero_iff]
-  refine j.topForm_ext o he ?_
+  have hd : dvol.val c ![e, j c e] ≠ 0 := fun hd ↦
+    hdvol (j.topForm_ext h2 he (by rw [hd]; rfl))
+  refine j.topForm_ext h2 he ?_
   rw [ContinuousAlternatingMap.smul_apply, ContinuousAlternatingMap.smul_apply, smul_eq_mul,
-    smul_eq_mul, normSq_eq form J j o dvol L he, energyDensity_apply_complexFrame]
+    smul_eq_mul, normSq_eq form J j h2 dvol L he, energyDensity_apply_complexFrame]
   field_simp
 
 /-- If `form` tames `J` and `dvol` tames `j`, the squared norm is nonnegative. -/
 theorem normSq_nonneg {form : SmoothTwoForm I M} {J : SmoothAlmostComplexStructure I M}
     (hform : form.Tames J) {dvol : SmoothTwoForm I' C} (hdvol : dvol.Tames j)
     (L : TangentSpace I' c →ₗ[ℝ] TangentSpace I x) : 0 ≤ form.normSq J j dvol L := by
-  rw [normSq]
+  rw [normSq_def]
   split_ifs with h
   · refine div_nonneg ?_ (by simpa using (tames_iff.mp hdvol c _ h.choose_spec).le)
     have := hform.energyDensity_apply_complexFrame_nonneg j L h.choose
@@ -268,38 +265,53 @@ almost complex surface the energy density of `L` is twice that of its complex-an
 `ε_L = 2 ε_{∂̄L} + L^* form`. -/
 theorem Invariant.energyDensity_eq_two_smul_add {form : SmoothTwoForm I M}
     {J : SmoothAlmostComplexStructure I M} (hinv : form.Invariant J)
-    (o : Manifold.Orientation I' C (Fin 2)) (L : TangentSpace I' c →L[ℝ] TangentSpace I x) :
+    (h2 : Module.finrank ℝ E' = 2) (L : TangentSpace I' c →L[ℝ] TangentSpace I x) :
     form.energyDensity J j (L : TangentSpace I' c →ₗ[ℝ] TangentSpace I x) =
       (2 : ℝ) • form.energyDensity J j (complexAntilinearPart
         (j.toEndomorphism c : TangentSpace I' c →ₗ[ℝ] TangentSpace I' c)
         (J.toEndomorphism x : TangentSpace I x →ₗ[ℝ] TangentSpace I x) L) +
       (form.val x).compContinuousLinearMap L := by
-  have : Nontrivial (TangentSpace I' c) :=
-    Module.nontrivial_of_finrank_pos (R := ℝ) (by rw [o.finrank_tangentSpace_eq c]; simp)
+  have := nontrivial_tangentSpace_of_finrank_pos (I := I') (h2 ▸ two_pos) c
   obtain ⟨e, he⟩ := exists_ne (0 : TangentSpace I' c)
-  refine j.topForm_ext o he ?_
-  rw [ContinuousAlternatingMap.add_apply, ContinuousAlternatingMap.smul_apply, smul_eq_mul,
-    ContinuousAlternatingMap.compContinuousLinearMap_apply, energyDensity_apply_complexFrame,
-    energyDensity_apply_complexFrame]
+  refine j.topForm_ext h2 he ?_
+  set A := complexAntilinearPart
+    (j.toEndomorphism c : TangentSpace I' c →ₗ[ℝ] TangentSpace I' c)
+    (J.toEndomorphism x : TangentSpace I x →ₗ[ℝ] TangentSpace I x) L
+  -- `w = L e + J (L (j e))` is twice `∂̄L e`, and `∂̄L (j e) = - J (∂̄L e)`.
+  set w := L e + J x (L (j c e))
+  have hAe : A e = (2⁻¹ : ℝ) • w := by
+    rw [complexAntilinearPart_apply, ContinuousLinearMap.coe_coe, ContinuousLinearMap.coe_coe,
+      ContinuousLinearMap.coe_coe]
+  have hAje : A (j c e) = -J x (A e) := by
+    rw [hAe, complexAntilinearPart_apply, ContinuousLinearMap.coe_coe, ContinuousLinearMap.coe_coe,
+      ContinuousLinearMap.coe_coe]
+    simp only [w, j.apply_apply, J.apply_apply, map_neg, map_add, map_smul]
+    module
+  have hJA : form.val x ![A (j c e), J x (A (j c e))] = form.val x ![A e, J x (A e)] := by
+    simp only [hAje, map_neg, J.apply_apply, neg_neg]
+    rw [← SmoothBundleForm.eval₂_apply, ← SmoothBundleForm.eval₂_apply,
+      SmoothBundleForm.eval₂_neg_left,
+      SmoothBundleForm.eval₂_swap form x (J x (A e)), neg_neg]
+  have hAA : form.val x ![A e, J x (A e)] = 4⁻¹ * form.val x ![w, J x w] := by
+    simp only [hAe, map_smul]
+    rw [← SmoothBundleForm.eval₂_apply, ← SmoothBundleForm.eval₂_apply,
+      SmoothBundleForm.eval₂_smul_left, SmoothBundleForm.eval₂_smul_right, smul_eq_mul,
+      smul_eq_mul]
+    ring
   have hW := hinv.stdComplexLineEnergyDensity_sub_two_mul_twoForm x
     ((L : TangentSpace I' c →ₗ[ℝ] TangentSpace I x) ∘ₗ
       (LinearMap.toSpanSingleton ℝ _ e).coprod (LinearMap.toSpanSingleton ℝ _ (j c e)))
-  rw [stdComplexLineEnergyDensity_def] at hW
-  simp [stdComplexLineReal_eq, stdComplexLineImag_eq] at hW
+  rw [LinearMap.comp_apply, LinearMap.comp_apply,
+    LinearMap.coprod_toSpanSingleton_apply_stdComplexLineReal,
+    LinearMap.coprod_toSpanSingleton_apply_stdComplexLineImag, SmoothBundleForm.eval₂_apply,
+    SmoothBundleForm.eval₂_apply] at hW
+  simp only [ContinuousLinearMap.coe_coe] at hW
   have hL : ⇑L ∘ ![e, j c e] = ![L e, L (j c e)] := (FinVec.map_eq _ _).symm
-  simp only [hL, complexAntilinearPart_apply, ContinuousLinearMap.coe_coe, j.apply_apply,
-    map_add, map_smul, map_neg, ← SmoothBundleForm.eval₂_apply,
-    ← SmoothForm.bilinFormAt_apply] at hW ⊢
-  simp only [map_neg, LinearMap.add_apply, LinearMap.smul_apply, LinearMap.neg_apply,
-    smul_eq_mul, J.apply_apply] at hW ⊢
-  -- What remains is linear in the values of `B`, once `B` is known to be alternating.
-  set B := form.bilinFormAt x
-  set p := L e
-  set q := L (j c e)
-  have hB (a b : TangentSpace I x) : B b a = -B a b :=
-    (LinearMap.IsAlt.neg (form.isAlt_bilinFormAt x) a b).symm
-  linear_combination (1 / 2 : ℝ) * hW - (1 / 4 : ℝ) * hB p q + (1 / 4 : ℝ) * hB (J x q) (J x p) +
-    (1 / 4 : ℝ) * hB p (J x p) - (1 / 4 : ℝ) * hB (J x q) q
+  rw [energyDensity_apply_complexFrame_eq_stdComplexLineEnergyDensity,
+    ContinuousAlternatingMap.add_apply, ContinuousAlternatingMap.smul_apply, smul_eq_mul,
+    energyDensity_apply_complexFrame, hJA, hAA,
+    ContinuousAlternatingMap.compContinuousLinearMap_apply, hL]
+  linear_combination (2⁻¹ : ℝ) * hW
 
 end SmoothTwoForm
 

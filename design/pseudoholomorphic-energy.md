@@ -177,7 +177,9 @@ of Tau Ceti's roadmap that no one has started.
   `[FiniteDimensional ℝ E] [T2Space M] [SigmaCompactSpace M]` and `M : Type`.
 - **Surface.** `C` (the letter `Σ` is a token) with
   `I' : ModelWithCorners ℝ E' H'`, `[FiniteDimensional ℝ E']`,
-  `[IsManifold I' ∞ C]`, `j : SmoothAlmostComplexStructure I' C`,
+  `[IsManifold I' ∞ C]`, `j : SmoothAlmostComplexStructure I' C`. The pointwise
+  lemmas of `Density.lean` take only `h2 : finrank ℝ E' = 2`; where signs or
+  integration need it, statements take
   `o : Manifold.Orientation I' C (Fin 2)` (which fixes the dimension, by
   `o.finrank_tangentSpace_eq`) and, where signs matter, the hypothesis
   `ho : ∀ c (b : Basis (Fin 2) ℝ (TangentSpace I' c)), b 1 = j c (b 0) → b.orientation = o.orientationAt c`
@@ -198,6 +200,7 @@ of Tau Ceti's roadmap that no one has started.
 | File | Contents |
 |---|---|
 | `Geometry/Symplectic/JHolomorphic/Energy/Density.lean` | the pointwise density $\varepsilon_L$, the squared norm, the pointwise identity |
+| `Geometry/Symplectic/Manifold/AlmostComplex/TopForm.lean` | top forms on a tangent plane of an almost complex surface: equality and ratios read on one frame $(e,je)$, without an orientation |
 | `Geometry/Symplectic/JHolomorphic/Energy/Metric.lean` | the squared norm read in $g_J$ |
 | `Geometry/Symplectic/JHolomorphic/Energy/Surface.lean` | the energy form and its continuity, the energy, the integrated identity, the pseudoholomorphic case, positivity |
 | `Geometry/Manifold/SmoothSingular/SingularPeriod.lean` | the pairing of de Rham classes with integral singular homology |
@@ -215,7 +218,9 @@ and are placed by topic.
 ### `Energy/Density.lean`
 
 For `c : C`, `x : M` and `L : TangentSpace I' c →ₗ[ℝ] TangentSpace I x`
-(linear suffices, the source being finite-dimensional):
+(linear suffices, the source being finite-dimensional), using the lemmas
+`topForm_ext` and `topForm_apply_div_apply_eq` of
+`Manifold/AlmostComplex/TopForm.lean`, which it imports:
 
 - `TauCeti.SmoothTwoForm.energyDensity (ω : SmoothTwoForm I M) (J) (j) (L) :
   TangentSpace I' c [⋀^Fin 2]→L[ℝ] ℝ`, the form $\varepsilon_L$ of Decision 1.
@@ -243,8 +248,9 @@ For `c : C`, `x : M` and `L : TangentSpace I' c →ₗ[ℝ] TangentSpace I x`
   `ω.Invariant J`, `ω.energyDensity J j L = 2 • ω.energyDensity J j
   (complexAntilinearPart (j c) (J x) L) + (ω x).compContinuousLinearMap L`
   (for `L : TangentSpace I' c →L[ℝ] TangentSpace I x`, with the linear maps of
-  `j c`, `J x` and `L` coerced as needed). Proof on the
-  frame `j.complexFrame o he`, with Tau Ceti's Wirtinger identity, and
+  `j c`, `J x` and `L` coerced as needed). Proof on a
+  frame $(e,je)$, by `SmoothAlmostComplexStructure.topForm_ext` of
+  `Manifold/AlmostComplex/TopForm.lean`, with Tau Ceti's Wirtinger identity, and
   extensionality of top forms on a plane (a top form is its value on a basis
   times the determinant, `AlternatingMap.eq_smul_basis_det`).
 
@@ -432,7 +438,8 @@ later.
 
 Each is a few hundred lines; each is blocked by the issues it names.
 
-1. **Energy densities.** `Energy/Density.lean`, all of it. About 350
+1. **Energy densities.** `Energy/Density.lean`, all of it, with
+   `Manifold/AlmostComplex/TopForm.lean`, which it imports. About 350
    lines. No blockers.
 2. **Continuity of the energy form.** In `Energy/Surface.lean`:
    `energyForm` and `isSmoothForm_energyForm`. About 300 lines. Blocked by 1.
