@@ -282,11 +282,8 @@ theorem mfderiv_affineLift_apply (j : Fin (n + 1)) (w : Fin n → 𝕜)
   have hlift : Subtype.val ∘ affineLift 𝕜 j = fun w ↦ Pi.single j 1 + L w := by
     funext w k
     induction k using j.succAboveCases <;> simp [hL]
-  rw [← TauCeti.Manifold.mvfderiv_subtype_val_apply (affineLift 𝕜 j w)
-      (mfderiv 𝓘(ℝ, Fin n → 𝕜) 𝓘(ℝ, Fin (n + 1) → 𝕜) (affineLift 𝕜 j) w u),
-    ← mvfderiv_comp_apply _ ((contMDiff_subtypeVal _).mdifferentiableAt one_ne_zero)
-      ((contMDiff_affineLift 𝕜 j 1 w).mdifferentiableAt one_ne_zero), mvfderiv_eq_fderiv,
-    hlift, fderiv_const_add, ContinuousLinearMap.fderiv]
+  rw [← TauCeti.Manifold.mfderiv_subtype_val_comp_apply, mfderiv_eq_fderiv, hlift,
+    fderiv_const_add, ContinuousLinearMap.fderiv]
   exact hL u
 
 end AffineLift
