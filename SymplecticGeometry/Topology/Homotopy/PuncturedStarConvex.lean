@@ -254,16 +254,10 @@ theorem complRay_union_complRay_neg (p : sphere (0 : E) 1) :
 line through `p`. -/
 theorem mem_complRay_inter_complRay_neg_iff {p : sphere (0 : E) 1} {x : ({0}ᶜ : Set E)} :
     x ∈ complRay p ∩ complRay (-p) ↔ (x : E) ∉ ℝ ∙ (p : E) := by
-  rw [Set.mem_inter_iff, mem_complRay_iff, mem_complRay_iff, Submodule.mem_span_singleton]
-  simp only [coe_neg_sphere, smul_neg, ← neg_smul, not_exists]
-  constructor
-  · rintro ⟨h₁, h₂⟩ a ha
-    rcases lt_trichotomy a 0 with h | rfl | h
-    · exact h₂ (-a) (neg_pos.2 h) (by rw [neg_neg, ha])
-    · exact x.property (by rw [← ha, zero_smul, Set.mem_singleton_iff])
-    · exact h₁ a h ha
-  · intro h
-    exact ⟨fun t _ ↦ h t, fun t _ ↦ h (-t)⟩
+  have hx : ‖(x : E)‖⁻¹ ≠ 0 := inv_ne_zero (norm_ne_zero_iff.2 x.property)
+  rw [complRay_def, complRay_def, ← Set.preimage_inter, Set.mem_preimage,
+    compl_singleton_inter_compl_singleton_neg_eq, Set.mem_ofPred_eq,
+    coe_complSingletonHomotopyEquivSphere_apply, sub_zero, Submodule.smul_mem_iff _ hx]
 
 end ComplRay
 
