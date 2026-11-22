@@ -2318,7 +2318,7 @@ has either; Tau Ceti's extension across a boundary,
   `TauCeti.Beltrami.exists_isothermal_chart_of_contDiffAt` read through the
   charts of the surface and made smooth by
   `TauCeti.Beltrami.contDiffOn_infty_of_fderiv_comp`; hence every almost
-  complex structure on a manifold of real dimension two, over any
+  complex structure on a boundaryless manifold of real dimension two, over any
   two-dimensional model, is `IsIntegrable`; and isothermal coordinates for
   a Riemannian metric on an oriented surface, through the structure of
   rotation by a right angle that the metric and the orientation give,
