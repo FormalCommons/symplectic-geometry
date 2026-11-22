@@ -6,7 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orientation.Smooth
-public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.OrientedChart
+public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orientation.Linear
 public import SymplecticGeometry.Topology.VectorBundle.Complex.FirstChernClass
 public import SymplecticGeometry.Topology.VectorBundle.Complex.Structure
 public import TauCeti.Geometry.Manifold.MFDeriv.Chart.Basic
@@ -44,8 +44,9 @@ Jacobian of the section read in a chart of `M` with values in `ℂ` and in a tri
 model with `ℂ` that matches the orientations, so that it selects the local orientation of `M` at
 `z`, by
 `TauCeti.Manifold.Orientation.toHomologicalOrientation_apply_eq_localOrientationOfOrientedChart`,
-and `OpenPartialHomeomorph.localHomologyMap_sub_localOrientationOfOrientedChart` carries it to the
-local orientation of `ℂ`. The
+and the chart translated so that `z` goes to the origin carries it to the local orientation of
+`ℂ`, by `OpenPartialHomeomorph.localHomologyMap_chart_localOrientationOfOrientedChart` for the
+identity of `ℂ`. The
 trivialization of `J.Fiber` is that of `V` followed by a family of linear maps that is only
 continuous; since the section vanishes at `z`, the Jacobian is still the linearization of `s`
 followed by the value of that family at `z` (`TauCeti.mvfderiv_eq_comp_of_eventuallyEq_clm_apply`).
@@ -346,8 +347,26 @@ private theorem sectionIndex_eq_ite {s : ∀ x, V x}
     simp only [extChartAt, OpenPartialHomeomorph.extend, modelWithCornersSelf_partialEquiv,
       PartialEquiv.trans_refl, OpenPartialHomeomorph.toFun_eq_coe] at h
     simpa [φ] using h
-  have hφl := φ.localHomologyMap_sub_localOrientationOfOrientedChart hzφ ω
-    Complex.finrank_real_complex
+  -- The centred chart is the case `L = id` of the chart map of
+  -- `OpenPartialHomeomorph.localHomologyMap_chart_localOrientationOfOrientedChart`.
+  have hσ : (⟨fun x : φ.source ↦ φ x - φ z,
+      φ.continuousOn.domRestrict.sub continuous_const⟩ : C(φ.source, ℂ)) =
+      ((ContinuousLinearEquiv.refl ℝ ℂ : ℂ →L[ℝ] ℂ) : C(ℂ, ℂ)).comp
+        ((⟨fun y ↦ y - φ z, by fun_prop⟩ : C(ℂ, ℂ)).comp φ.sourceRestrict) :=
+    ContinuousMap.ext fun x ↦ by
+      -- The topologies on `ℂ` in the type of `φ` and in `C(φ.source, ℂ)` agree only up to
+      -- unfolding instances, so `rw` does not match `ContinuousMap.coe_mk`.
+      erw [ContinuousMap.coe_mk]
+      simp
+  have hφl := φ.localHomologyMap_chart_localOrientationOfOrientedChart hzφ
+    (ContinuousLinearEquiv.refl ℝ ℂ) ω Complex.finrank_real_complex Complex.finrank_real_complex
+    (by
+      rw [← hσ]
+      exact fun x hx ↦ Subtype.ext (φ.injOn x.property hzφ (sub_eq_zero.1 hx)))
+  have hrefl : (ContinuousLinearEquiv.refl ℝ ℂ).toLinearEquiv = LinearEquiv.refl ℝ ℂ := by
+    ext x
+    simp
+  simp only [← hσ, hrefl, Orientation.map_refl, Equiv.refl_apply] at hφl
   rw [← hoM] at hφl
   -- An open neighbourhood `U` of `z` in which `z` is the only zero of `s`.
   set U := e.baseSet ∩ φ.source ∩ ({x | s x = 0} \ {z})ᶜ
