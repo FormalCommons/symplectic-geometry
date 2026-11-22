@@ -352,6 +352,15 @@ time. The steps:
    `TauCeti.isCompleteVectorField_timeDependentSuspensionField`), is `Φ`.
    Uniqueness of integral curves gives `Φ (t, f₀ x) = F (t, x)`.
 
+The file also has `TauCeti.SmoothIsotopy.exists_contMDiff_comp_eventuallyEq`,
+for `F` between manifolds of the same dimension and `h` smooth on
+`unitInterval × P`: a smooth `G` on `N × unitInterval`, vanishing off a
+compact set, with `G (F (t, y), t) = h (t, y)` for `y` near `A` (step 2 of
+`Flow.lean`). For it, `Extension.lean` imports *Smooth families*'
+`Geometry/Manifold/LocalDiffeomorph/Basic.lean`, for
+`IsLocalDiffeomorphAt.contMDiffAt_invFun`, and *Hamiltonian flows*'
+`Geometry/Diffeomorphism/Diffeotopy/Basic.lean`.
+
 Expected size: 450 lines. The proof adapts Tau Ceti's
 `TauCeti.SmoothIsotopy.exists_diffeotopy_apply_eq`, which the module docstring
 credits.
@@ -448,21 +457,26 @@ compact set: the first with `β = 0`, the second with that set `univ`. Its route
    $f_0(K')$, set $G_t=(\chi\cdot h_t\circ f_0^{-1})\circ\Psi_t^{-1}$, and $0$
    off the image of $f_0$. It is smooth on `M × unitInterval`, because `Ψ⁻¹` is
    jointly smooth and $f_0$ is a local diffeomorphism, and $G_t\circ k_t=h_t$
-   near `K` (`TauCeti.SmoothIsotopy.exists_contMDiff_comp_eventuallyEq`).
-3. Extend the forms $\beta_t+dG_t$ past both ends with
-   `DifferentialForm/TimeExtension.lean`, and let
-   $X_t$ solve $\iota_{X_t}\omega=\beta_t+dG_t$. It is smooth
+   near `K` (`TauCeti.SmoothIsotopy.exists_contMDiff_comp_eventuallyEq`, in
+   `Extension.lean`).
+3. `Φ` comes from `TauCeti.Diffeotopy.exists_interior_velocity_eq`, which
+   this part adds to *Hamiltonian flows*' `Flux/CompactSupport.lean`, for the
+   form $\beta+dG$ on `unitInterval × M`. There the forms $\beta_t+dG_t$
+   are extended past both ends with
+   `DifferentialForm/TimeExtension.lean`, and
+   $X_t$ solves $\iota_{X_t}\omega=\beta_t+dG_t$. It is smooth
    by `TauCeti.SmoothTwoForm.contMDiff_interiorEquiv_symm_mpullback_prodMk`,
    and complete because it vanishes off a compact set. Its
    flow `timeDependentFlowDiffeotopy` is `Φ`.
 4. On $k_t(K)$ the field $X_t$ is the velocity of $k$. Pulled back by $k_t$,
    both contractions are $k_t^*\beta_t+dh_t$, and $dk_t$ is
-   onto. Uniqueness of solutions on `[0, 1]`
+   onto (`TauCeti.SmoothIsotopy.eq_mfderiv_of_forall_eq_mpullback_prodMk_velocityForm`,
+   in `Velocity.lean`). Uniqueness of solutions on `[0, 1]`
    (`TauCeti.timeDependentFlowDiffeotopy_apply_eq_of_mfderiv_eq`, which this
    part adds to `Geometry/Manifold/Flow/TimeDependent.lean` of *Smooth
    families*, with `TauCeti.timeDependentFlowOf_eq_of_hasMFDerivWithinAt`)
    gives `Φ (t, f₀ x) = k (t, x)`.
-5. The slices preserve `ω` by *Hamiltonian flows*'
+5. The slices preserve `ω`, in `exists_interior_velocity_eq`, by
    `TauCeti.Diffeotopy.forall_timeSlice_mem_diffeomorphStabilizer_iff`, since
    $\beta_t+dG_t$ is closed for $t\in[0,1]$; the time extension need not be
    closed past the ends. In the Hamiltonian case `G` generates `Φ`
@@ -471,10 +485,8 @@ compact set: the first with `β = 0`, the second with that set `univ`. Its route
    `Φ.HasHamiltonian ω (fun p ↦ G (Φ.cylinderMap p, p.2))` by
    `TauCeti.Diffeotopy.hasHamiltonian_comp_iff`.
 
-`Flow.lean` imports, from *Hamiltonian flows*, `Diffeotopy/Basic.lean`,
-`Diffeotopy/Velocity.lean`, `Hamiltonian/SymplecticIsotopy.lean` and
-`Flux/CompactSupport.lean`, and from *Smooth families*
-`Flow/TimeDependent.lean` and `DifferentialForm/TimeExtension.lean`.
+`Flow.lean` imports, from *Hamiltonian flows*, `Diffeotopy/Velocity.lean` and
+`Flux/CompactSupport.lean`.
 
 Expected size: 450 lines.
 
@@ -857,7 +869,8 @@ this design already follows. `Ball/Isotopy.lean` cites
   `Geometry/Manifold/ContMDiff/TimeExtension.lean` (used by `Extension.lean`)
   and of forms on `unitInterval × M` in
   `Geometry/Manifold/DifferentialForm/TimeExtension.lean` (used by
-  `Flow.lean` and `Moser/Family.lean`); the reparametrization of time
+  `Moser/Family.lean`, and by `Flow.lean` through *Hamiltonian flows*'
+  `Flux/CompactSupport.lean`); the reparametrization of time
   `exists_contDiff_eqOn_id_Icc_mem_Ioo` in
   `Analysis/SpecialFunctions/SmoothTransition.lean` (used by
   `Extension.lean`); the parametric radial primitives
@@ -889,7 +902,8 @@ this design already follows. `Ball/Isotopy.lean` cites
   `Flux/CompactSupport.lean`, through
   `isCompactlySupportedHamiltonian_iff_isGeneratedBy` (step 5 of `Flow.lean`),
   and states the compact support of `exists_hasHamiltonian_forall_apply_eq`
-  with it.
+  with it; and the flow `TauCeti.Diffeotopy.exists_interior_velocity_eq`,
+  which this part adds to that file (step 3 of `Flow.lean`).
   `IsotopyExtension/Velocity.lean` also imports three files of that part:
   `Geometry/Diffeomorphism/Diffeotopy/Velocity.lean`, for the derivatives
   of the motion of a diffeotopy; `Geometry/Manifold/Instances/Icc.lean`,

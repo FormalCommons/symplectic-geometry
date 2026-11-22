@@ -8,16 +8,8 @@ module
 public import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Velocity
 public import SymplecticGeometry.Geometry.Symplectic.Flux.CompactSupport
 public import SymplecticGeometry.Geometry.Symplectic.IsotopyExtension.Velocity
-import Mathlib.Geometry.Manifold.Algebra.Structures
-import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Basic
-import SymplecticGeometry.Geometry.Manifold.DifferentialForm.TimeExtension
-import SymplecticGeometry.Geometry.Manifold.Flow.TimeDependent
 import SymplecticGeometry.Geometry.Manifold.SmoothIsotopy.Extension
-import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.SymplecticIsotopy
 import TauCeti.Geometry.Manifold.DifferentialForm.Squared
-import TauCeti.Geometry.Manifold.Immersion.LocalDiffeomorph
-import TauCeti.Geometry.Manifold.PartitionOfUnity.Compact
-import TauCeti.Geometry.Symplectic.Manifold.Family
 
 /-!
 # Extension of isotopies by symplectic and Hamiltonian flows
@@ -35,37 +27,23 @@ family of symplectic embeddings with suitable velocity forms is moved by an ambi
 
 The construction (`TauCeti.SmoothIsotopy.exists_diffeotopy_interior_velocity_eq_forall_apply_eq`):
 
-1. Isotopy extension at every time (`TauCeti.SmoothIsotopy.exists_diffeotopy_forall_apply_eq`)
-   gives a diffeotopy `Ψ` of `M` with `Ψ_t ∘ k_0 = k_t` on a compact neighbourhood `K'` of `K`.
-   With a cutoff `χ` on `M` that is `1` near `k_0 (K)` and supported in `k_0 (K')`, the function
-   `G_t = (χ · h_t ∘ k_0⁻¹) ∘ Ψ_t⁻¹` is smooth, vanishes off a compact set, and satisfies
-   `G_t ∘ k_t = h_t` near `K` (`TauCeti.SmoothIsotopy.exists_contMDiff_comp_eventuallyEq`).
-   Here `k_0⁻¹` is smooth on the image of `k_0` because `k_0` is a local diffeomorphism.
-2. The forms `β_t + dG_t` extend past both ends of `[0, 1]` by Seeley's operator
-   (`TauCeti.SmoothForm.timeExtend`), and `X_t = (σ♭)⁻¹ (β_t + dG_t)` is a smooth time-dependent
-   field (`TauCeti.SmoothTwoForm.contMDiff_interiorEquiv_symm_mpullback_prodMk`). It vanishes off a
-   compact set, so its flow is a diffeotopy `φ_t` (`TauCeti.timeDependentFlowDiffeotopy`).
+1. A function `G` on `M × [0, 1]` vanishing off a compact set with `G_t ∘ k_t = h_t` near `K`
+   (`TauCeti.SmoothIsotopy.exists_contMDiff_comp_eventuallyEq`, in
+   `SymplecticGeometry.Geometry.Manifold.SmoothIsotopy.Extension`).
+2. The diffeotopy `φ_t` whose velocity `X_t` satisfies `ι_{X_t} σ = β_t + dG_t`, which preserves
+   `σ` and fixes every point off a compact set (`TauCeti.Diffeotopy.exists_interior_velocity_eq`,
+   in `SymplecticGeometry.Geometry.Symplectic.Flux.CompactSupport`).
 3. At `k_t x`, `x ∈ K`, the vectors `X_t` and `∂ₜ k` have the same contraction with `σ` on the
-   image of `dk_t`: pulled back by `k_t`, both are `k_t^* β_t + dh_t`. Since `dk_t` is onto, they
-   agree, and uniqueness of solutions on `[0, 1]`
-   (`TauCeti.timeDependentFlowDiffeotopy_apply_eq_of_mfderiv_eq`) gives
-   `φ_t (k_0 x) = k_t x`.
-4. For `t ∈ [0, 1]`, the velocity `X_t` of `φ_t` has `d (ι_{X_t} σ) = d (β_t + dG_t) = 0`, so
-   `φ_t` preserves `σ` (`TauCeti.Diffeotopy.forall_timeSlice_mem_diffeomorphStabilizer_iff`).
-   Past the ends of `[0, 1]` the extended forms need not be closed, and they are not needed there.
+   image of `dk_t`: pulled back by `k_t`, both are `k_t^* β_t + dh_t`. So they agree
+   (`TauCeti.SmoothIsotopy.eq_mfderiv_of_forall_eq_mpullback_prodMk_velocityForm`), and
+   uniqueness of solutions on `[0, 1]` gives `φ_t (k_0 x) = k_t x`.
 
 When `β = 0`, `X_t` is the Hamiltonian vector field of `G_t`, so `G` generates `φ_t`
 (`TauCeti.Diffeotopy.IsGeneratedBy`), and `φ_t` is a compactly supported Hamiltonian diffeotopy
 (`TauCeti.Diffeotopy.IsCompactlySupportedHamiltonian`).
 
-The construction of the flow from a time extension follows the proof of
-`TauCeti.Diffeotopy.exists_isCompactlySupportedHamiltonian`.
-
 ## Main results
 
-* `TauCeti.SmoothIsotopy.exists_contMDiff_comp_eventuallyEq`: a smooth family of functions on `P`
-  is, near a compact set, the composite with `k_t` of a smooth family of functions on `M` vanishing
-  off a compact set.
 * `TauCeti.SmoothIsotopy.exists_diffeotopy_interior_velocity_eq_forall_apply_eq`: the extension
   for velocity forms `k_t^* β_t + dh_t`, with `β_t` closed and vanishing off a compact set.
 * `TauCeti.SmoothIsotopy.exists_hasHamiltonian_forall_apply_eq`: if the velocity forms are exact,
@@ -87,8 +65,6 @@ hypothesis arises. The form on `M` is called `σ` and not `ω`, which is a token
 
 * [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017], §3.3,
   proof of Theorem 3.3.2.
-* R. T. Seeley, *Extension of $C^\infty$ functions defined in a half space*,
-  Proc. Amer. Math. Soc. 15 (1964), 625–626.
 -/
 
 public noncomputable section
@@ -106,65 +82,9 @@ variable {E H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensi
   [TopologicalSpace P] [ChartedSpace H' P] [IsManifold J ∞ P]
   {f₀ f₁ : C^∞⟮J, P; I, M⟯}
 
-/-- **Transport of functions along an isotopy.** Let `k` be a smooth isotopy of embeddings of `P`
-into a manifold `M` of the same dimension, `K ⊆ P` compact, and `h` a smooth function on
-`[0, 1] × P`. There is a smooth function `G` on `M × [0, 1]` that vanishes off a compact set and
-satisfies `G (k (t, y), t) = h (t, y)` for every `t` and every `y` near `K`. -/
-theorem exists_contMDiff_comp_eventuallyEq (k : SmoothIsotopy f₀ f₁)
-    (hd : Module.finrank ℝ E' = Module.finrank ℝ E) {K : Set P} (hK : IsCompact K)
-    {h : unitInterval × P → ℝ} (hh : ContMDiff ((𝓡∂ 1).prod J) 𝓘(ℝ) ∞ h) :
-    ∃ (G : M × unitInterval → ℝ) (C : Set M), ContMDiff (I.prod (𝓡∂ 1)) 𝓘(ℝ) ∞ G ∧
-      IsCompact C ∧ (∀ p, p.1 ∉ C → G p = 0) ∧
-      ∀ t, ∀ x ∈ K, (fun y ↦ G (k (t, y), t)) =ᶠ[𝓝 x] fun y ↦ h (t, y) := by
-  rcases isEmpty_or_nonempty P with hP | hP
-  · exact ⟨0, ∅, contMDiff_const, isCompact_empty, fun _ _ ↦ rfl, fun _ x ↦ isEmptyElim x⟩
-  have := Manifold.locallyCompact_of_finiteDimensional J (M := P)
-  obtain ⟨K', hK', hKK'⟩ := exists_compact_superset hK
-  obtain ⟨Ψ, -, -, -, hΨ⟩ := k.exists_diffeotopy_forall_apply_eq hK'
-  have hf₀ : IsLocalDiffeomorph J I ∞ f₀ :=
-    k.isSmoothEmbedding_left.isImmersion.isLocalDiffeomorph hd (by simp)
-  have hinj : Function.Injective f₀ := k.isSmoothEmbedding_left.isEmbedding.injective
-  obtain ⟨χ, hχ, hχ1, hχc, hχW, -⟩ :=
-    (hK.image f₀.contMDiff.continuous).exists_contMDiff_one_nhds_tsupport_subset
-    I (hf₀.isOpenMap _ isOpen_interior) (image_mono hKK')
-  set g : unitInterval × M → ℝ := fun q ↦ χ q.2 * h (q.1, Function.invFun f₀ q.2)
-  have hg : ContMDiff ((𝓡∂ 1).prod I) 𝓘(ℝ) ∞ g := by
-    rintro ⟨t, y⟩
-    by_cases hy : y ∈ tsupport χ
-    · obtain ⟨p, -, rfl⟩ := hχW hy
-      have hp := hf₀ p
-      have hinv : Function.invFun f₀ =ᶠ[𝓝 (f₀ p)] hp.localInverse := by
-        filter_upwards [hp.localInverse_eventuallyEq_right] with z hz
-        have hz' : f₀ (hp.localInverse z) = z := hz
-        calc Function.invFun f₀ z = Function.invFun f₀ (f₀ (hp.localInverse z)) := by rw [hz']
-          _ = hp.localInverse z := Function.leftInverse_invFun hinj _
-      refine ContMDiffAt.congr_of_eventuallyEq (f := fun q : unitInterval × M ↦
-        χ q.2 * h (q.1, hp.localInverse q.2)) ?_ ((continuous_snd.tendsto (t, f₀ p)).eventually
-        hinv |>.mono fun q hq ↦ by simp only [g, hq])
-      exact (hχ.contMDiffAt.comp _ contMDiffAt_snd).mul (hh.contMDiffAt.comp _
-        (contMDiffAt_fst.prodMk
-          (ContMDiffAt.comp (t, f₀ p) hp.contMDiffAt_localInverse contMDiffAt_snd)))
-    · refine contMDiffAt_const (c := (0 : ℝ)).congr_of_eventuallyEq ?_
-      filter_upwards [(continuous_snd.tendsto (t, y)).eventually
-        (notMem_tsupport_iff_eventuallyEq.1 hy)] with q hq
-      simp only [g, show χ q.2 = 0 from hq, zero_mul]
-  refine ⟨fun p ↦ g (p.2, Ψ.symm (p.2, p.1)), Ψ.cylinderMap '' (tsupport χ ×ˢ univ),
-    hg.comp (contMDiff_snd.prodMk (Ψ.symm.contMDiff.comp (contMDiff_snd.prodMk contMDiff_fst))),
-    (hχc.isCompact.prod isCompact_univ).image Ψ.contMDiff_cylinderMap.continuous,
-    fun p hp ↦ ?_, fun t x hx ↦ ?_⟩
-  · have : Ψ.symm (p.2, p.1) ∉ tsupport χ := fun h ↦ hp ⟨(_, p.2), ⟨h, mem_univ _⟩, by
-      rw [Diffeotopy.cylinderMap_apply, Diffeotopy.apply_mk_symm_apply]⟩
-    simp only [g, image_eq_zero_of_notMem_tsupport this, zero_mul]
-  · filter_upwards [isOpen_interior.mem_nhds (hKK' hx),
-      (f₀.contMDiff.continuous.tendsto x).eventually
-        (hχ1.filter_mono (nhds_le_nhdsSet (mem_image_of_mem f₀ hx)))]
-      with y hy hy1
-    simp only [g, ← hΨ t y (interior_subset hy), Diffeotopy.symm_apply_mk_apply, hy1, one_mul,
-      Function.leftInverse_invFun hinj y]
-
 variable {σ : SmoothTwoForm I M}
 
-omit [I.Boundaryless] [T2Space M] [SigmaCompactSpace M] [FiniteDimensional ℝ E'] in
+omit [T2Space M] [SigmaCompactSpace M] in
 /-- Along an isotopy `k` of embeddings between manifolds of the same dimension whose velocity form
 at time `t` is `k_t^* β_t + dh_t`, a field `Y` with `ι_Y σ = β_t + dG_t`, where `σ` is
 nondegenerate and `G_t ∘ k_t = h_t` near `x`, is the velocity of `k` at `k_t x`. -/
@@ -183,20 +103,13 @@ private theorem apply_eq_mfderiv_of_interior_eq (hσ : σ.IsNondegenerate) (k : 
       (SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) β).val +
         mextDeriv (RoughForm.ofFunction I fun y ↦ G (y, t))) :
     Y (k (t, x)) = mfderiv (𝓡∂ 1) I (fun s ↦ k (s, x)) t 1 := by
-  have hloc : IsLocalDiffeomorph J I ∞ (fun y ↦ k (t, y)) :=
-    (k.isSmoothEmbedding t).isImmersion.isLocalDiffeomorph hd (by simp)
-  have hsurj : Function.Surjective (mfderiv J I (fun y ↦ k (t, y)) x) :=
-    ((hloc x).isInvertible_mfderiv (by simp)).surjective
+  refine k.eq_mfderiv_of_forall_eq_mpullback_prodMk_velocityForm hσ hd
+    -- `v` is taken in `TangentSpace J x`, the form in which `hcomp` below applies `mfderiv`.
+    fun (v : TangentSpace J x) ↦ ?_
   have hkt : MDifferentiableAt J I (fun y ↦ k (t, y)) x :=
     (k.contMDiff.comp (contMDiff_const.prodMk contMDiff_id)).mdifferentiableAt (by simp)
   have hGt : MDifferentiableAt I 𝓘(ℝ) (fun z ↦ G (z, t)) (k (t, x)) :=
     (hG.comp (contMDiff_id.prodMk contMDiff_const)).mdifferentiableAt (by simp)
-  -- Both vectors contract with `σ` to the same covector on the image of `dk_t`, which is onto.
-  refine (hσ.isInvertible_flat _).injective (ContinuousLinearMap.ext fun w ↦ ?_)
-  obtain ⟨v, rfl⟩ := hsurj w
-  rw [SmoothTwoForm.flat_apply, SmoothTwoForm.flat_apply, SmoothBundleForm.eval₂_apply,
-    SmoothBundleForm.eval₂_apply]
-  refine Eq.trans ?_ (mpullback_prodMk_velocityForm σ k t x v)
   have hcomp : mfderiv J 𝓘(ℝ) (fun y ↦ G (k (t, y), t)) x v =
       mfderiv I 𝓘(ℝ) (fun z ↦ G (z, t)) (k (t, x)) (mfderiv J I (fun y ↦ k (t, y)) x v) :=
     mfderiv_comp_apply x hGt hkt v
@@ -266,69 +179,30 @@ theorem exists_diffeotopy_interior_velocity_eq_forall_apply_eq (hσ : σ.IsSympl
     rw [← mextDerivₗ_apply, hΩ, map_add, Submodule.coe_add, mextDerivₗ_apply, hβ t,
       ← LinearMap.comp_apply, mextDerivₗ_comp_mextDerivₗ]
     simp
-  -- The time extension `α` of `Ω`, and the constant family `σ'` of `σ` on `ℝ × M`.
-  set α := SmoothForm.timeExtend Ω
-  set σ' : SmoothTwoForm (𝓘(ℝ, ℝ).prod I) (ℝ × M) :=
-    SmoothForm.mpullback Prod.snd contMDiff_snd σ
-  have hσ' (u : ℝ) : SmoothForm.mpullback (Prod.mk u) (contMDiff_const.prodMk contMDiff_id) σ' =
-      σ := by
-    rw [SmoothForm.mpullback_mpullback]
-    exact LinearMap.congr_fun SmoothForm.mpullback_id σ
-  have hnd (u : ℝ) : SmoothTwoForm.IsNondegenerate
-      (SmoothForm.mpullback (Prod.mk u) (contMDiff_const.prodMk contMDiff_id) σ') :=
-    (hσ' u).symm ▸ hσ.isNondegenerate
-  -- The field `X_u = (σ♭)⁻¹ α_u`.
-  set X : ℝ → (y : M) → TangentSpace I y := fun u ↦ hσ.isNondegenerate.interiorEquiv.symm
-    (SmoothForm.mpullback (Prod.mk u) (contMDiff_const.prodMk contMDiff_id) α) with hXdef
-  have hX : ContMDiff (𝓘(ℝ, ℝ).prod I) I.tangent ∞
-      (fun p : ℝ × M ↦ (⟨p.2, X p.1 p.2⟩ : TangentBundle I M)) :=
-    (SmoothTwoForm.contMDiff_interiorEquiv_symm_mpullback_prodMk σ' hnd α).congr fun p ↦ by
-      simp only [hXdef, SmoothTwoForm.IsNondegenerate.interiorEquiv_symm_apply, hσ']
-  -- On `[0, 1]`, `ι_{X_t} σ = β_t + dG_t`.
-  have hint (t : unitInterval) : RoughForm.interior (X t) σ.val =
-      (SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) β).val +
-        mextDeriv (RoughForm.ofFunction I fun y ↦ G (y, t)) := by
-    rw [hXdef, SmoothTwoForm.IsNondegenerate.interior_interiorEquiv_symm,
-      SmoothForm.mpullback_prodMk_timeExtend, hΩval]
-  -- `X` vanishes off `L ∪ C`, so its suspension is complete.
-  have hXL (u : ℝ) (y : M) (hy : y ∉ L ∪ C) : X u y = 0 := by
-    rw [hXdef, SmoothTwoForm.IsNondegenerate.interiorEquiv_symm_apply_eq_zero_iff,
-      SmoothForm.mpullback_prodMk_timeExtend_eq_timeExtendSlice, SmoothForm.coe_timeExtendSlice]
-    refine SymplecticGeometry.timeExtend_eq_zero (F := E [⋀^Fin 1]→L[ℝ] ℝ) (fun s ↦ ?_) u
+  -- The slices of `Ω` vanish off `L ∪ C`.
+  have hΩL (t : unitInterval) (y : M) (hy : y ∉ L ∪ C) :
+      (SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) Ω).val y = 0 := by
     rw [mem_union, not_or] at hy
-    have hGy : (fun z ↦ G (z, s)) =ᶠ[𝓝 y] fun _ ↦ 0 := by
+    have hGy : (fun z ↦ G (z, t)) =ᶠ[𝓝 y] fun _ ↦ 0 := by
       filter_upwards [hC.isClosed.isOpen_compl.mem_nhds hy.2] with z hz
-      exact hGC (z, s) hz
-    rw [hΩval, Pi.add_apply, hβL s y hy.1, zero_add]
+      exact hGC (z, t) hz
+    rw [hΩval, Pi.add_apply, hβL t y hy.1, zero_add]
     exact mextDeriv_ofFunction_apply_eq_zero_iff.2 (by
       rw [hGy.mfderiv_eq, mfderiv_const, ContinuousLinearMap.comp_zero])
-  have hc := isCompleteVectorField_timeDependentSuspensionField (hX.of_le (by simp)) (hL.union hC)
-    hXL
-  set Φ := timeDependentFlowDiffeotopy le_top hX hc
-  have hvel (t : unitInterval) : ⇑(Φ.velocity t) = X t :=
-    Diffeotopy.velocity_timeDependentFlowDiffeotopy hX hc t
-  -- Along `k`, the field `X` is the velocity of `k` at the points of `K`.
-  have hcurve (t : unitInterval) (x : P) (hx : x ∈ K) :
-      X t (k (t, x)) = mfderiv (𝓡∂ 1) I (fun s ↦ k (s, x)) t 1 :=
-    apply_eq_mfderiv_of_interior_eq hσ.isNondegenerate k hd (hα t) hG (hGk t x hx) (hint t)
-  -- The slices of `Φ` preserve `σ`: `d (ι_{X_u} σ) = d (β_u + dG_u) = 0` for `u ∈ [0, 1]`.
-  have hpres : ∀ t, Φ.timeSlice t ∈ SmoothForm.diffeomorphStabilizer σ :=
-    (Diffeotopy.forall_timeSlice_mem_diffeomorphStabilizer_iff Φ hσ.isClosed).2 fun t ↦
-      SmoothTwoForm.mem_symplecticVectorFields_iff.2 (by
-        rw [hvel, hXdef, SmoothTwoForm.IsNondegenerate.interior_interiorEquiv_symm,
-          SmoothForm.mpullback_prodMk_timeExtend]
-        exact hΩd t)
-  -- Uniqueness of solutions gives `Φ (t, f₀ x) = k (t, x)` on `K`.
-  have happly (t : unitInterval) (x : P) (hx : x ∈ K) : Φ (t, f₀ x) = k (t, x) := by
-    rw [← k.apply_zero x]
-    exact timeDependentFlowDiffeotopy_apply_eq_of_mfderiv_eq hX hc
-      (γ := fun s ↦ k (s, x))
-      ((k.contMDiff.comp (contMDiff_id.prodMk contMDiff_const)).mdifferentiable (by simp))
-      (fun s ↦ (hcurve s x hx).symm) t
-  exact ⟨Φ, G, L ∪ C, hL.union hC, hG, fun p hp ↦ hGC p fun h ↦ hp (Or.inr h),
-    fun t ↦ by rw [hvel, hint], hpres, fun t y hy ↦
-      timeDependentFlowDiffeotopy_apply_of_forall_eq_zero le_top hX hc (fun u ↦ hXL u y hy) t,
-    happly⟩
+  obtain ⟨Φ, hint, hpres, hfix, htraj⟩ :=
+    Diffeotopy.exists_interior_velocity_eq hσ hΩd (hL.union hC) hΩL
+  have hint' (t : unitInterval) : RoughForm.interior (Φ.velocity t) σ.val =
+      (SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) β).val +
+        mextDeriv (RoughForm.ofFunction I fun y ↦ G (y, t)) :=
+    (hint t).trans (hΩval t)
+  refine ⟨Φ, G, L ∪ C, hL.union hC, hG, fun p hp ↦ hGC p fun h ↦ hp (Or.inr h), hint', hpres,
+    hfix, fun t x hx ↦ ?_⟩
+  -- Along `k`, the velocity of `Φ` is that of `k` on `K`, and uniqueness of solutions applies.
+  rw [← k.apply_zero x]
+  exact htraj (fun s ↦ k (s, x))
+    ((k.contMDiff.comp (contMDiff_id.prodMk contMDiff_const)).mdifferentiable (by simp))
+    (fun s ↦ (apply_eq_mfderiv_of_interior_eq hσ.isNondegenerate k hd (hα s) hG (hGk s x hx)
+      (hint' s)).symm) t
 
 /-- **Extension by a Hamiltonian flow.** Let `σ` be a symplectic form on `M`, `k` a smooth
 isotopy of embeddings of `P` into `M` of the same dimension, and `K ⊆ P` compact. If the velocity

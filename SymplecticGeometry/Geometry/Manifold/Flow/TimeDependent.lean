@@ -13,7 +13,7 @@ import Mathlib.Geometry.Manifold.Instances.Icc
 import TauCeti.Geometry.Manifold.IntegralCurve.Interval
 
 /-!
-# Time-dependent flows: joint smoothness, uniqueness on closed intervals, open subsets
+# Time-dependent flows: joint smoothness, uniqueness on intervals, open subsets
 
 Let `X` be a `C^n` time-dependent vector field, `1 ≤ n`, on a finite-dimensional boundaryless
 manifold `M`, whose suspension on `ℝ × M` is complete. Tau Ceti's
@@ -38,11 +38,11 @@ of Tau Ceti does not have.
 
 Tau Ceti proves that solutions of the time-dependent equation are unique on open intervals
 (`TauCeti.timeDependentFlowOf_eq_of_hasMFDerivAt`).
-`TauCeti.timeDependentFlowOf_eq_of_hasMFDerivWithinAt` is the same statement on a closed interval,
-with one-sided derivatives at its ends. Its proof follows Tau Ceti's: both curves are lifted
-through their clocks to integral curves of the suspension, and these agree by Tau Ceti's uniqueness
-theorem for integral curves on intervals with endpoints,
-`IsMIntegralCurveOn.eqOn_of_isPreconnected`.
+`TauCeti.timeDependentFlowOf_eq_of_hasMFDerivWithinAt` is the same statement on any
+preconnected set of times, such as a closed interval, with derivatives within that set. Its proof
+follows Tau Ceti's: both curves are lifted through their clocks to integral curves of the
+suspension, and these agree by Tau Ceti's uniqueness theorem for integral curves on preconnected
+sets, `IsMIntegralCurveOn.eqOn_of_isPreconnected`.
 So the curves of the diffeotopy `TauCeti.timeDependentFlowDiffeotopy` of `X` are the solutions on
 `[0, 1]` (`TauCeti.timeDependentFlowDiffeotopy_apply_eq_of_mfderiv_eq`).
 
@@ -55,6 +55,10 @@ So the curves of the diffeotopy `TauCeti.timeDependentFlowDiffeotopy` of `X` are
   only where the flow of `X` is, and agrees with it there.
 * `TauCeti.tangentSpaceOpenEquiv_mfderiv_timeDependentFlowOf_restrict`: so do their differentials,
   the tangent spaces of `U` and `M` being identified.
+* `TauCeti.timeDependentFlowOf_eq_of_hasMFDerivWithinAt`: uniqueness of solutions on a
+  preconnected set of times.
+* `TauCeti.timeDependentFlowDiffeotopy_apply_eq_of_mfderiv_eq`: a curve on `[0, 1]` whose
+  velocity is `X` is a trajectory of `TauCeti.timeDependentFlowDiffeotopy`.
 -/
 
 public section
@@ -80,7 +84,7 @@ theorem contMDiff_timeDependentFlowDiffeomorph [FiniteDimensional ℝ E] [T2Spac
     ((contMDiff_const.prodMk contMDiff_fst).prodMk contMDiff_snd) |>.congr fun p ↦
       timeDependentFlowDiffeomorph_apply hc hn hX s p.1 p.2
 
-/-! ### Uniqueness of solutions on closed intervals -/
+/-! ### Uniqueness of solutions on preconnected sets of times -/
 
 section Icc
 
@@ -89,17 +93,18 @@ open Set
 variable [T2Space M] [IsManifold I 1 M] [BoundarylessManifold I M]
   {X : ℝ → (x : M) → TangentSpace I x} {s t : ℝ}
 
-/-- **Uniqueness of solutions on a closed interval.** Let `X` be a `C¹` time-dependent vector field
-whose suspension is complete. A curve `γ` that solves `γ' u = X u (γ u)` on `[a, b]`, with
-one-sided derivatives at the ends, is the curve of the time-dependent flow through `γ s` at time
-`s`, for all `s, t ∈ [a, b]`. -/
+/-- **Uniqueness of solutions on a preconnected set of times.** Let `X` be a `C¹` time-dependent
+vector field whose suspension is complete. A curve `γ` that solves `γ' u = X u (γ u)` on a
+preconnected `S ⊆ ℝ`, with derivatives within `S`, such as one-sided derivatives at the ends of a
+closed interval, is the curve of the time-dependent flow through `γ s` at time `s`, for all
+`s, t ∈ S`. -/
 theorem timeDependentFlowOf_eq_of_hasMFDerivWithinAt
     (hX : ContMDiff (𝓘(ℝ, ℝ).prod I) I.tangent 1
       (fun p : ℝ × M ↦ (⟨p.2, X p.1 p.2⟩ : TangentBundle I M)))
-    (hc : IsCompleteVectorField (timeDependentSuspensionField X)) {γ : ℝ → M} {a b : ℝ}
-    (hγ : ∀ u ∈ Icc a b, HasMFDerivWithinAt 𝓘(ℝ, ℝ) I γ (Icc a b) u
-      ((1 : ℝ →L[ℝ] ℝ).smulRight (X u (γ u))))
-    (hs : s ∈ Icc a b) (ht : t ∈ Icc a b) :
+    (hc : IsCompleteVectorField (timeDependentSuspensionField X)) {γ : ℝ → M} {S : Set ℝ}
+    (hS : IsPreconnected S)
+    (hγ : ∀ u ∈ S, HasMFDerivWithinAt 𝓘(ℝ, ℝ) I γ S u ((1 : ℝ →L[ℝ] ℝ).smulRight (X u (γ u))))
+    (hs : s ∈ S) (ht : t ∈ S) :
     timeDependentFlowOf X s t (γ s) = γ t := by
   -- A solution, lifted through its clock, is an integral curve of the suspension.
   have hlift {c : ℝ → M} {u : ℝ} {S : Set ℝ}
@@ -113,13 +118,13 @@ theorem timeDependentFlowOf_eq_of_hasMFDerivWithinAt
     -- `r • 1 = r * 1`.
     exact ((hasMFDerivWithinAt_id S u).prodMk h).congr_mfderiv
       (ContinuousLinearMap.ext fun r ↦ Prod.ext (mul_one (M := ℝ) r).symm rfl)
-  have h₁ : IsMIntegralCurveOn (fun r ↦ (r, γ r)) (timeDependentSuspensionField X) (Icc a b) :=
+  have h₁ : IsMIntegralCurveOn (fun r ↦ (r, γ r)) (timeDependentSuspensionField X) S :=
     fun u hu ↦ hlift (hγ u hu)
   have h₂ : IsMIntegralCurveOn (fun r ↦ (r, timeDependentFlowOf X s r (γ s)))
-      (timeDependentSuspensionField X) (Icc a b) := fun u _ ↦
+      (timeDependentSuspensionField X) S := fun u _ ↦
     hlift (hasMFDerivAt_timeDependentFlowOf hX
       ((timeDependentFlowDomain_eq_univ hc).symm ▸ mem_univ _)).hasMFDerivWithinAt
-  have heq := h₂.eqOn_of_isPreconnected h₁ isPreconnected_Icc hs
+  have heq := h₂.eqOn_of_isPreconnected h₁ hS hs
     (fun _ _ ↦ BoundarylessManifold.isInteriorPoint)
     (fun _ _ ↦ (contMDiff_timeDependentSuspensionField hX).contMDiffAt)
     (by simp [timeDependentFlowOf_self]) ht
@@ -146,8 +151,8 @@ theorem timeDependentFlowDiffeotopy_apply_eq_of_mfderiv_eq [FiniteDimensional �
     refine (mfderivWithin_comp_projIcc_one (w := w)).trans ?_
     rw [Function.comp_apply, hw, hγX w]
     exact (one_smul ℝ _).symm
-  have h := timeDependentFlowOf_eq_of_hasMFDerivWithinAt (hX.of_le (by simp)) hc hsol
-    (s := 0) ⟨le_rfl, zero_le_one⟩ t.property
+  have h := timeDependentFlowOf_eq_of_hasMFDerivWithinAt (hX.of_le (by simp)) hc
+    isPreconnected_Icc hsol (s := 0) ⟨le_rfl, zero_le_one⟩ t.property
   have h0 : projIcc (0 : ℝ) 1 zero_le_one 0 = 0 := projIcc_left _
   rw [Function.comp_apply, Function.comp_apply, h0, projIcc_val] at h
   rw [timeDependentFlowDiffeotopy_apply]
