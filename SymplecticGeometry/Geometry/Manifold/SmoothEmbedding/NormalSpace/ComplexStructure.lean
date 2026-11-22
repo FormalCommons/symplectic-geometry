@@ -146,17 +146,13 @@ private theorem contMDiff_normalAlmostComplexStructureAt (f : SmoothEmbedding I'
   let := f.normalSpaceFiberBundle hn hdim
   have : IsManifold I' ((∞ : ℕ∞ω) + 1) M := .of_le (n := ∞) (by simp)
   have : IsManifold I ((∞ : ℕ∞ω) + 1) X := .of_le (n := ∞) (by simp)
-  let fc : C^∞⟮I', M; I, X⟯ := ⟨f, f.contMDiff⟩
   -- `J` along `f`, on the pulled-back tangent bundle, is smooth on total spaces.
   have hJf : ContMDiff (I'.prod 𝓘(ℝ, E)) (I'.prod 𝓘(ℝ, E)) ∞
       (fun p : TotalSpace E ((f : M → X) *ᵖ (TangentSpace I)) ↦
         TotalSpace.mk' E (E := (f : M → X) *ᵖ (TangentSpace I)) p.proj (J (f p.proj) p.snd)) := by
     have h := (TauCeti.contMDiff_hom_bundle_iff _).1
-      ((ContMDiffComplexStructure.tangentEquiv.symm (J.toContMDiff ⊤)).pullback
-        fc).toEndomorphism.contMDiff
-    simp only [ContMDiffComplexStructure.pullback_toEndomorphism,
-      ContMDiffComplexStructure.tangentEquiv_symm_toEndomorphism,
-      SmoothAlmostComplexStructure.toContMDiff_toEndomorphism_apply] at h
+      (J.pullbackComplexStructure f f.contMDiff).toEndomorphism.contMDiff
+    simp only [SmoothAlmostComplexStructure.pullbackComplexStructure_toEndomorphism] at h
     exact h
   refine (f.contMDiff_normalBundle_iff hn (by simp) hdim _).2 ?_
   refine ((f.contMDiff_normalQuotientMap hn (m := ∞) (by simp) hdim).comp hJf).congr fun ⟨x, v⟩ ↦ ?_
