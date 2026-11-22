@@ -398,15 +398,25 @@ complexification:
 - `TauCeti.finrank_complexDeRhamCohomology`: its complex dimension is the
   real dimension of `deRhamCohomology I M k`.
 
-### `Analysis/Normed/Module/Alternating/RealDerivation.lean`
+### `Analysis/Normed/Module/Alternating/Derivation.lean`
 
-- `ContinuousLinearMap.realAlternatingDerivation A`, the derivation of an
-  endomorphism `A` on real-valued forms `V [⋀^ι]→L[ℝ] ℝ`. Tau Ceti's
-  pointwise `alternatingDerivation` needs complex coefficients, so this one
-  is read through the complexification, as Tau Ceti's smooth
-  `realAlternatingDerivation` is. With `realAlternatingDerivation_apply`,
-  `realAlternatingDerivation_apply_comp_equiv` and the Leibniz rule
-  `realAlternatingDerivation_wedge`.
+- Facts about Mathlib's `ContinuousAlternatingMap.fderivCompContinuousLinearMap`
+  at the identity in the direction `A`, which is the derivation of an
+  endomorphism `A` on forms:
+  `fderivCompContinuousLinearMap_id_apply`,
+  `fderivCompContinuousLinearMap_ofSubsingleton`,
+  `fderivCompContinuousLinearMap_apply_comp_equiv` and the Leibniz rule
+  `fderivCompContinuousLinearMap_wedge` for real-valued forms.
+
+### `Analysis/InnerProductSpace/HodgeStar/AlternatingForm.lean`
+
+- `TauCeti.alternatingFormEquiv_lieMap`: for a skew-adjoint `A`, `lieMap A`
+  on $\Lambda^k V$ is minus the derivation of `A` on forms.
+- `TauCeti.alternatingFormEquiv_wedgeLeft`: the form of `u ∧ x` is
+  `alternatizeUncurryFin` of `(innerSL ℝ u).smulRight`.
+- `Orientation.smul_formHodgeStar_alternatizeUncurryFin_formHodgeStar`: the
+  symbol of $d^*$ with Tau Ceti's sign,
+  $\delta_u=\pm\star\varepsilon_u\star=-\iota_u$.
 
 ### `Analysis/InnerProductSpace/HodgeStar/Kahler/Lefschetz.lean`
 
@@ -419,8 +429,8 @@ on the fibres `V [⋀^Fin k]→L[ℝ] ℝ` of the form bundle, beside Tau Ceti's
   →L[ℝ] (V [⋀^Fin (k + 2)]→L[ℝ] ℝ)`, wedge with $\omega$, with
   `lefschetz_apply`. Its use is the theorem below; the smooth version is in
   `Kahler/Identities.lean`.
-- `Orientation.formHodgeStar_realAlternatingDerivation`: the star commutes
-  with `realAlternatingDerivation` of a skew-adjoint `A`, such as `J`, from
+- `Orientation.formHodgeStar_fderivCompContinuousLinearMap`: the star commutes
+  with the derivation of a skew-adjoint `A`, such as `J`, from
   Tau Ceti's `Orientation.hodgeStar_lieMap` through `alternatingFormEquiv`.
 - `TauCeti.AlmostComplexStructure.lefschetz_curryLeft_sub`: for every
   vector $u$, with $\varepsilon_u$ the wedge with $\langle u,\cdot\rangle$
@@ -429,7 +439,8 @@ on the fibres `V [⋀^Fin k]→L[ℝ] ℝ` of the form bundle, beside Tau Ceti's
   $L\iota_u-\iota_u L=\mathcal J\varepsilon_u-\varepsilon_u\mathcal J$.
   The symbol of $d^*$ with Tau Ceti's sign is
   $\delta_u=\pm\star\varepsilon_u\star=-\iota_u$
-  (`Orientation.smul_formHodgeStar_alternatizeUncurryFin_formHodgeStar`), so
+  (`Orientation.smul_formHodgeStar_alternatizeUncurryFin_formHodgeStar` of
+  `HodgeStar/AlternatingForm.lean`), so
   this is
   $L\delta_u-\delta_u L=-(\mathcal J\varepsilon_u-\varepsilon_u\mathcal J)$,
   the constant-coefficient Kähler identity. It is proved from the Leibniz
@@ -600,7 +611,7 @@ sub-issues of #874, *Build the part Hodge theory*. Sizes are estimates.
 | 7 | The Hodge $H^1$ space and compactness of its inclusion in $L^2$ | `DeRham/Hodge/Sobolev.lean` | 6 | 400 |
 | 8 | The Hodge theorem on a closed oriented Riemannian manifold | `DeRham/Hodge/Basic.lean` | 7 | 300 |
 | 9 | Complex harmonic forms | `DeRham/Hodge/Complex.lean` | 8 | 300 |
-| 10 | The Lefschetz operator and the linear Kähler identity | `Analysis/InnerProductSpace/HodgeStar/Kahler/Lefschetz.lean`, `Analysis/Normed/Module/Alternating/RealDerivation.lean` | — | 350 |
+| 10 | The Lefschetz operator and the linear Kähler identity | `Analysis/InnerProductSpace/HodgeStar/Kahler/Lefschetz.lean`, `Analysis/InnerProductSpace/HodgeStar/AlternatingForm.lean`, `Analysis/Normed/Module/Alternating/Derivation.lean` | — | 350 |
 | 11 | Osculating holomorphic charts of a Kähler manifold | `Geometry/Manifold/Complex/KahlerCoordinates.lean` | 3; #862 | 400 |
 | 12 | The Kähler identity and $[\Delta,\mathcal J]=0$ | `DeRham/Kahler/Identities.lean` | 3, 10, 11 | 400 |
 | 13 | Conjugation on complex de Rham cohomology, and the Hodge decomposition | `Geometry/Manifold/DeRham/ComplexCoefficients.lean`, `DeRham/Kahler/Decomposition.lean` | 9, 12 | 400 |

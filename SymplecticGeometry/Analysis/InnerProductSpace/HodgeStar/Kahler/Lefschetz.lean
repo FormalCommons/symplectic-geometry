@@ -5,10 +5,9 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import Mathlib.Analysis.Normed.Module.Alternating.Uncurry.Fin
-public import SymplecticGeometry.Analysis.Normed.Module.Alternating.RealDerivation
-public import TauCeti.Analysis.InnerProductSpace.HodgeStar.AlternatingForm
+public import SymplecticGeometry.Analysis.InnerProductSpace.HodgeStar.AlternatingForm
 public import TauCeti.Analysis.InnerProductSpace.HodgeStar.Kahler.Basic
+public import TauCeti.Analysis.Normed.Module.Alternating.Wedge.ContinuousLinearMap
 import TauCeti.Analysis.Normed.Module.Alternating.Wedge.Uncurry
 
 /-!
@@ -21,18 +20,18 @@ Lefschetz operator `L α = α ∧ ω` and proves the constant-coefficient Kähle
 
 For a vector `u`, write `ε_u α = ⟪u, ·⟫ ∧ α`, as `alternatizeUncurryFin` of `⟪u, ·⟫ • α` (the
 symbol of the exterior derivative at the covector `⟪u, ·⟫`), `ι_u` for the interior product
-`ContinuousAlternatingMap.curryLeft` by `u`, and `𝒥` for the derivation of `J` on forms. The
+`ContinuousAlternatingMap.curryLeft` by `u`, and `𝒥` for the derivation of `J` on forms, Mathlib's
+`ContinuousAlternatingMap.fderivCompContinuousLinearMap` at the identity in the direction `J`. The
 identity is `L ι_u - ι_u L = 𝒥 ε_u - ε_u 𝒥`. The symbol of the codifferential `d*` at
-`⟪u, ·⟫` is `δ_u = -ι_u`: by `Orientation.smul_formHodgeStar_alternatizeUncurryFin_formHodgeStar`
-it is `(-1) ^ (m (k + 2) + 1) ⋆ ε_u ⋆` on `(k + 1)`-forms of an `m`-dimensional oriented space,
-the formula by which Tau Ceti defines `codifferential`. So the identity reads
-`L δ_u - δ_u L = -(𝒥 ε_u - ε_u 𝒥)`, the pointwise form of `[L, d*] = -[𝒥, d]`.
+`⟪u, ·⟫` is `δ_u = -ι_u`, by `Orientation.smul_formHodgeStar_alternatizeUncurryFin_formHodgeStar`.
+So the identity reads `L δ_u - δ_u L = -(𝒥 ε_u - ε_u 𝒥)`, the pointwise form of
+`[L, d*] = -[𝒥, d]`.
 
 Both sides are computed directly: `ι_u` is an antiderivation and `ι_u ω = ⟪J u, ·⟫`, while `𝒥`
 is a derivation and `𝒥 ⟪u, ·⟫ = -⟪J u, ·⟫`, so both sides are `-(⟪J u, ·⟫ ∧ α)`.
 
 The Hodge star commutes with the derivation of every skew-adjoint endomorphism, in particular
-with `𝒥` (`Orientation.formHodgeStar_realAlternatingDerivation`); this is Tau Ceti's
+with `𝒥` (`Orientation.formHodgeStar_fderivCompContinuousLinearMap`); this is Tau Ceti's
 `Orientation.hodgeStar_lieMap` read on forms.
 
 ## Main definitions
@@ -41,10 +40,8 @@ with `𝒥` (`Orientation.formHodgeStar_realAlternatingDerivation`); this is Tau
 
 ## Main results
 
-* `TauCeti.alternatingFormEquiv_lieMap`: the derivation action of a skew-adjoint endomorphism on
-  `⋀ᵏ V` is minus its derivation on forms.
-* `Orientation.formHodgeStar_realAlternatingDerivation`: `⋆ D_A = D_A ⋆` for skew-adjoint `A`.
-* `Orientation.smul_formHodgeStar_alternatizeUncurryFin_formHodgeStar`: the symbol of `d*`.
+* `Orientation.formHodgeStar_fderivCompContinuousLinearMap`: `⋆ D_A = D_A ⋆` for skew-adjoint
+  `A`.
 * `TauCeti.AlmostComplexStructure.lefschetz_curryLeft_sub`: the linear Kähler identity
   `L ι_u - ι_u L = 𝒥 ε_u - ε_u 𝒥`.
 
@@ -64,32 +61,6 @@ open scoped RealInnerProductSpace
 
 variable {V : Type*} [NormedAddCommGroup V] [InnerProductSpace ℝ V] [FiniteDimensional ℝ V]
 
-namespace TauCeti
-
-/-- **The two derivations agree up to sign**: for a skew-adjoint `A`, the form of `D_A x`, the
-derivation action of `A` on `x ∈ ⋀ᵏ V`, is minus the derivation of `A` on the form of `x`. -/
-theorem alternatingFormEquiv_lieMap {k : ℕ} {A : V →L[ℝ] V}
-    (hA : ∀ u w, ⟪A u, w⟫ = -⟪u, A w⟫) (x : ⋀[ℝ]^k V) :
-    alternatingFormEquiv V k (lieMap k (A : V →ₗ[ℝ] V) x) =
-      -A.realAlternatingDerivation (alternatingFormEquiv V k x) := by
-  have hA' : ∀ u w, ⟪(A : V →ₗ[ℝ] V) u, w⟫ = -⟪u, (A : V →ₗ[ℝ] V) w⟫ := by
-    simpa only [ContinuousLinearMap.coe_coe] using hA
-  ext v
-  rw [alternatingFormEquiv_apply, inner_lieMap_left hA',
-    lieMap_apply_ιMulti, inner_sum, ContinuousAlternatingMap.neg_apply,
-    ContinuousLinearMap.realAlternatingDerivation_apply]
-  simp [alternatingFormEquiv_apply]
-
-/-- **Exterior multiplication is the symbol of `d`**: the form of `u ∧ x` for `x ∈ ⋀ᵏ V` is
-`alternatizeUncurryFin` of `⟪u, ·⟫ • α`, with `α` the form of `x`. -/
-theorem alternatingFormEquiv_wedgeLeft (u : V) {k : ℕ} (x : ⋀[ℝ]^k V) :
-    alternatingFormEquiv V (k + 1) (ExteriorAlgebra.wedgeLeft u k x) =
-      alternatizeUncurryFin ((innerSL ℝ u).smulRight (alternatingFormEquiv V k x)) := by
-  ext v
-  rw [alternatingFormEquiv_wedgeLeft_apply, alternatizeUncurryFin_smulRight_apply_eq_wedge]
-
-end TauCeti
-
 namespace Orientation
 
 open TauCeti
@@ -98,53 +69,18 @@ variable {n : ℕ} [Fact (finrank ℝ V = n)] (o : Orientation ℝ V (Fin n))
 
 /-- **The Hodge star commutes with skew-adjoint derivations**: for a skew-adjoint endomorphism
 `A` of `V`, `⋆ (D_A α) = D_A (⋆ α)` for the derivation `D_A` of `A` on forms. -/
-theorem formHodgeStar_realAlternatingDerivation {k l : ℕ} (hkl : k + l = finrank ℝ V)
+theorem formHodgeStar_fderivCompContinuousLinearMap {k l : ℕ} (hkl : k + l = finrank ℝ V)
     {A : V →L[ℝ] V} (hA : ∀ u w, ⟪A u, w⟫ = -⟪u, A w⟫) (α : V [⋀^Fin k]→L[ℝ] ℝ) :
-    o.formHodgeStar hkl (A.realAlternatingDerivation α) =
-      A.realAlternatingDerivation (o.formHodgeStar hkl α) := by
+    o.formHodgeStar hkl (α.fderivCompContinuousLinearMap (.id ℝ V) A) =
+      (o.formHodgeStar hkl α).fderivCompContinuousLinearMap (.id ℝ V) A := by
   obtain ⟨x, rfl⟩ := (alternatingFormEquiv V k).surjective α
   have hA' : ∀ u w, ⟪(A : V →ₗ[ℝ] V) u, w⟫ = -⟪u, (A : V →ₗ[ℝ] V) w⟫ := by
     simpa only [ContinuousLinearMap.coe_coe] using hA
-  rw [← neg_neg (A.realAlternatingDerivation _), ← alternatingFormEquiv_lieMap hA, map_neg,
+  rw [← neg_neg (fderivCompContinuousLinearMap _ _ A), ← alternatingFormEquiv_lieMap hA, map_neg,
     formHodgeStar_alternatingFormEquiv, o.hodgeStar_lieMap hkl hA', alternatingFormEquiv_lieMap hA,
     neg_neg, formHodgeStar_alternatingFormEquiv]
 
-/-- **The symbol of the codifferential**: on `(k + 1)`-forms of an `m`-dimensional oriented space,
-`(-1) ^ (m (k + 2) + 1) ⋆ ε_u ⋆ = -ι_u`, where `ε_u` is `alternatizeUncurryFin` of `⟪u, ·⟫ • ·`
-and `ι_u` the interior product by `u`. The sign is that of Tau Ceti's `codifferential`; by Tau
-Ceti's `coe_codifferential_funSMulₗ`, `-ι_u β` is `d* (f β) - f d* β` where `f` has gradient
-`u`. -/
-theorem smul_formHodgeStar_alternatizeUncurryFin_formHodgeStar (u : V) {k l : ℕ}
-    (hkl : k + 1 + l = finrank ℝ V) (hlk : l + 1 + k = finrank ℝ V)
-    (β : V [⋀^Fin (k + 1)]→L[ℝ] ℝ) :
-    (-1 : ℝ) ^ (finrank ℝ V * (k + 2) + 1) • o.formHodgeStar hlk
-        (alternatizeUncurryFin ((innerSL ℝ u).smulRight (o.formHodgeStar hkl β))) =
-      -β.curryLeft u := by
-  obtain ⟨x, rfl⟩ := (alternatingFormEquiv V (k + 1)).surjective β
-  rw [formHodgeStar_alternatingFormEquiv, ← alternatingFormEquiv_wedgeLeft,
-    formHodgeStar_alternatingFormEquiv, ← alternatingFormEquiv_koszulDifferential,
-    o.koszulDifferential_eq_smul_hodgeStar_wedgeLeft_hodgeStar u hkl hlk, map_smul,
-    ← neg_smul]
-  congr 1
-  rw [pow_succ, mul_neg_one, neg_inj, mul_add, pow_add,
-    Even.neg_one_pow (⟨finrank ℝ V, by ring⟩ : Even (finrank ℝ V * 2)), mul_one]
-
 end Orientation
-
-namespace ContinuousLinearMap
-
-omit [FiniteDimensional ℝ V] in
-/-- For a skew-adjoint `A`, the derivation of `A` on the covector `⟪u, ·⟫` is `-⟪A u, ·⟫`. -/
-theorem realAlternatingDerivation_ofSubsingleton_innerSL {A : V →L[ℝ] V}
-    (hA : ∀ u w, ⟪A u, w⟫ = -⟪u, A w⟫) (u : V) :
-    A.realAlternatingDerivation (ofSubsingleton ℝ V ℝ (0 : Fin 1) (innerSL ℝ u)) =
-      -ofSubsingleton ℝ V ℝ (0 : Fin 1) (innerSL ℝ (A u)) := by
-  ext v
-  have hv : v = ![v 0] := by ext i; fin_cases i; rfl
-  rw [hv, realAlternatingDerivation_apply_vecCons_fin_one]
-  simp [hA]
-
-end ContinuousLinearMap
 
 namespace TauCeti.AlmostComplexStructure
 
@@ -154,15 +90,12 @@ variable (J : AlmostComplexStructure V)
 `α ↦ α ∧ ω` with the Kähler form `ω`, the form of the Kähler two-vector `J.kahlerForm`. As `ω`
 has even degree, this is also `ω ∧ α` (`lefschetz_apply_apply`). -/
 def lefschetz {k : ℕ} : (V [⋀^Fin k]→L[ℝ] ℝ) →L[ℝ] V [⋀^Fin (k + 2)]→L[ℝ] ℝ :=
-  LinearMap.toContinuousLinearMap
-    { toFun α := α.wedge (alternatingFormEquiv V 2 J.kahlerForm)
-      map_add' α β := wedge_add_left α β _
-      map_smul' c α := wedge_smul_left c α _ }
+  (pairedWedgeCLM (ContinuousLinearMap.mul ℝ ℝ)).flip (alternatingFormEquiv V 2 J.kahlerForm)
 
 /-- The Lefschetz operator is the wedge with the Kähler form. -/
 theorem lefschetz_apply {k : ℕ} (α : V [⋀^Fin k]→L[ℝ] ℝ) :
-    J.lefschetz α = α.wedge (alternatingFormEquiv V 2 J.kahlerForm) :=
-  (rfl)
+    J.lefschetz α = α.wedge (alternatingFormEquiv V 2 J.kahlerForm) := by
+  simp [lefschetz, wedge_def]
 
 /-- The Lefschetz operator is the wedge with the Kähler form on the left, up to the identification
 of the degrees `2 + k` and `k + 2`. -/
@@ -193,10 +126,10 @@ the symbol of `d*` is `-ι_u`
 constant-coefficient form of `[L, d*] = -[𝒥, d]`. -/
 theorem lefschetz_curryLeft_sub {k : ℕ} (u : V) (α : V [⋀^Fin (k + 1)]→L[ℝ] ℝ) :
     J.lefschetz (α.curryLeft u) - (J.lefschetz α).curryLeft u =
-      J.toLinearMap.toContinuousLinearMap.realAlternatingDerivation
-          (alternatizeUncurryFin ((innerSL ℝ u).smulRight α)) -
+      (alternatizeUncurryFin ((innerSL ℝ u).smulRight α)).fderivCompContinuousLinearMap
+          (.id ℝ V) J.toLinearMap.toContinuousLinearMap -
         alternatizeUncurryFin ((innerSL ℝ u).smulRight
-          (J.toLinearMap.toContinuousLinearMap.realAlternatingDerivation α)) := by
+          (α.fderivCompContinuousLinearMap (.id ℝ V) J.toLinearMap.toContinuousLinearMap)) := by
   set A := J.toLinearMap.toContinuousLinearMap
   set ω := alternatingFormEquiv V 2 J.kahlerForm
   set θJ := ofSubsingleton ℝ V ℝ (0 : Fin 1) (innerSL ℝ (J u))
@@ -215,12 +148,17 @@ theorem lefschetz_curryLeft_sub {k : ℕ} (u : V) (α : V [⋀^Fin (k + 1)]→L[
     simp only [Function.comp_def, finCongr_apply]
   have hA : ∀ v w, ⟪A v, w⟫ = -⟪v, A w⟫ := by
     simpa only [A, LinearMap.coe_toContinuousLinearMap'] using inner_apply_left hJ
-  have hθ : A.realAlternatingDerivation (ofSubsingleton ℝ V ℝ (0 : Fin 1) (innerSL ℝ u)) = -θJ :=
-    ContinuousLinearMap.realAlternatingDerivation_ofSubsingleton_innerSL hA u
+  have hθ : (ofSubsingleton ℝ V ℝ (0 : Fin 1) (innerSL ℝ u)).fderivCompContinuousLinearMap
+      (.id ℝ V) A = -θJ := by
+    ext w
+    simp only [fderivCompContinuousLinearMap_ofSubsingleton, θJ, ContinuousAlternatingMap.neg_apply,
+      ofSubsingleton_apply_apply, ContinuousLinearMap.comp_apply, innerSL_apply_apply]
+    rw [← neg_eq_iff_eq_neg, ← hA]
+    simp [A]
   rw [curryLeft_alternatingFormEquiv_kahlerForm hJ u] at hL
   rw [ContinuousAlternatingMap.sub_apply, ContinuousAlternatingMap.sub_apply, hL,
-    A.realAlternatingDerivation_apply_comp_equiv (finCongr hc) (hR α), hR,
-    ContinuousLinearMap.realAlternatingDerivation_wedge, hθ, wedge_comm α θJ,
+    fderivCompContinuousLinearMap_apply_comp_equiv (finCongr hc) (hR α), hR,
+    fderivCompContinuousLinearMap_wedge, hθ, wedge_comm α θJ,
     ContinuousAlternatingMap.add_apply, ← neg_one_smul ℝ θJ, wedge_smul_left]
   simp only [ContinuousAlternatingMap.smul_apply, Function.comp_def, finCongr_apply, smul_eq_mul]
   have hs : (-1 : ℝ) ^ (k + 1) * (-1) ^ ((k + 1) * 1) = 1 := by
