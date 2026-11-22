@@ -9,6 +9,7 @@ public import Mathlib.Analysis.SpecialFunctions.Complex.Circle
 public import TauCeti.Geometry.Manifold.Instances.AddCircle
 import Mathlib.Analysis.SpecialFunctions.ExpDeriv
 import Mathlib.LinearAlgebra.Complex.FiniteDimensional
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Prod.Basic
@@ -28,6 +29,7 @@ with Tau Ceti's inverse function theorem `TauCeti.isLocalDiffeomorphAt_of_eqOn_c
 
 * `AddCircle.isLocalDiffeomorphAt_ofReal_mul_toCircle`: polar coordinates are a local
   diffeomorphism away from the radius `0`.
+* `AddCircle.contMDiff_toCircle`: the map `toCircle : AddCircle p → ℂ` is smooth.
 -/
 
 public section
@@ -79,7 +81,7 @@ theorem isLocalDiffeomorphAt_ofReal_mul_toCircle {θ : AddCircle p} {r : ℝ} (h
       (Prod.map ((↑) : ℝ → AddCircle p) id) (u, r) := by
     rw [modelWithCornersSelf_prod, ← chartedSpaceSelf_prod]
     exact (isLocalDiffeomorph_coe p ω u).prodMap
-      ((Diffeomorph.refl 𝓘(ℝ) ℝ ω).isLocalDiffeomorph r)
+      (isLocalDiffeomorph_id r)
   refine TauCeti.isLocalDiffeomorphAt_of_eqOn_comp (s := univ) (x := (u, r)) isOpen_univ trivial
     BoundarylessManifold.isInteriorPoint le_top
     (κ := fun q : ℝ × ℝ ↦ (q.2 : ℂ) * exp ((2 * π / p * q.1 : ℝ) * I)) ?_ ?_ ?_ ?_ hΨ
@@ -92,5 +94,17 @@ theorem isLocalDiffeomorphAt_ofReal_mul_toCircle {θ : AddCircle p} {r : ℝ} (h
   · rw [mfderiv_eq_fderiv]
     exact injective_fderiv_polarLift hr
   · simp [finrank_real_complex]
+
+/-- The map `AddCircle p → ℂ`, `[t] ↦ exp (2π i t / p)`, given by `AddCircle.toCircle`, is smooth
+of every order. -/
+theorem contMDiff_toCircle (r : ℕ∞ω) :
+    ContMDiff 𝓘(ℝ) 𝓘(ℝ, ℂ) r fun x : AddCircle p ↦ (toCircle x : ℂ) := by
+  rw [← (isLocalDiffeomorph_coe p r).contMDiff_comp_iff QuotientAddGroup.mk_surjective le_rfl]
+  have h : (fun x : AddCircle p ↦ (toCircle x : ℂ)) ∘ ((↑) : ℝ → AddCircle p) =
+      fun t ↦ Complex.exp (((2 * π / p * t : ℝ) : ℂ) * Complex.I) :=
+    funext fun t ↦ by rw [comp_apply, toCircle_apply_mk, Circle.coe_exp]
+  rw [h]
+  exact ContDiff.contMDiff (Complex.contDiff_exp.comp
+    ((Complex.ofRealCLM.contDiff.comp (contDiff_const.mul contDiff_id)).mul contDiff_const))
 
 end AddCircle

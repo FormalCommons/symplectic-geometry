@@ -6,14 +6,19 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Analysis.InnerProductSpace.Completion
+public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.PartialDiffeomorph
 public import TauCeti.Analysis.InnerProductSpace.AlternatingForm
 public import TauCeti.Geometry.Manifold.DifferentialForm.Integration.TopForm
+public import TauCeti.Geometry.Manifold.Riemannian.VolumeDensity.ChangeOfVariables
 public import TauCeti.Geometry.Manifold.Riemannian.VolumeDensity.Volume
 public import TauCeti.Geometry.Manifold.Riemannian.VolumeForm
+import SymplecticGeometry.Geometry.Manifold.Riemannian.PartialDiffeomorph
+import TauCeti.Analysis.InnerProductSpace.Comass
 import TauCeti.Geometry.Manifold.Riemannian.Codifferential
 import TauCeti.Geometry.Manifold.Riemannian.FormMetric
 import TauCeti.Geometry.Manifold.Riemannian.VolumeDensity.Support
 import TauCeti.Geometry.Manifold.Riemannian.VolumeForm.Measure
+import TauCeti.MeasureTheory.Function.LpSeminorm.Lintegral
 import TauCeti.MeasureTheory.Integral.ContinuousMap
 
 /-!
@@ -34,6 +39,20 @@ this inner product. The smooth forms embed in it injectively and densely
 Mathlib's `L.extendOfNorm L2Form.ofSmooth` (`LinearMap.extendOfNorm`), whose lemmas take
 `L2Form.denseRange_ofSmooth`.
 
+A chart `ψ : M → E` onto an open subset of `E` and a smooth cutoff `χ` supported in its source
+turn a smooth form `α` into a function on `E`, `y ↦ χ (ψ⁻¹ y) • (ψ⁻¹)^* α (y)` on `ψ.target` and
+`0` elsewhere (`TauCeti.SmoothForm.localize`, defined with its continuity and support in
+`SymplecticGeometry.Geometry.Manifold.DifferentialForm.PartialDiffeomorph`). It is continuous
+with compact support, so in `L²` for the Haar measure `volume` of `E`. Its `L²` norm is at most
+a constant times that of `α`: on the compact set `ψ '' tsupport χ` the differential of `ψ.symm`
+is bounded above and its Riemannian Jacobian below
+(`PartialDiffeomorph.exists_mul_norm_le_norm_mfderiv_symm_le`,
+`PartialDiffeomorph.exists_le_riemannianJacobian_symm_le`), the comass norm of a form is at most
+its Hilbert norm (Tau Ceti's `ContinuousAlternatingMap.norm_le_sqrt_alternatingFormInner_self`),
+and the change of variables `PartialDiffeomorph.setLIntegral_riemannianVolume_eq` along
+`ψ.symm` compares the integrals (`L2Form.exists_lintegral_enorm_localize_sq_le`). So the
+localization extends to `L2Form o k` (`SymplecticGeometry.L2Form.localize`).
+
 ## Main definitions and results
 
 * `TauCeti.SmoothForm.l2Inner`: the `L²` inner product of smooth forms, symmetric
@@ -42,6 +61,13 @@ Mathlib's `L.extendOfNorm L2Form.ofSmooth` (`LinearMap.extendOfNorm`), whose lem
 * `SymplecticGeometry.L2Form o k`: the Hilbert space of `L²` `k`-forms, with
   `L2Form.ofSmooth`, `L2Form.inner_ofSmooth`, `L2Form.norm_ofSmooth_sq`,
   `L2Form.ofSmooth_injective`, `L2Form.denseRange_ofSmooth` and `L2Form.induction_on`.
+* `TauCeti.SmoothForm.memLp_localize`: the localization of a smooth form to a chart is in every
+  `Lᵖ`, with the pointwise bounds `norm_localize_apply_le` and
+  `exists_norm_localize_apply_sq_le`, and `TauCeti.SmoothForm.localizeLp`, the linear map to
+  `L²`.
+* `SymplecticGeometry.L2Form.localize ψ χ hχ`: the extension of `localizeLp` to `L2Form o k`, a
+  continuous linear map to `Lp (E [⋀^Fin k]→L[ℝ] ℝ) 2 volume`, bounded by
+  `L2Form.exists_norm_localizeLp_le`, with `L2Form.localize_ofSmooth`.
 
 ## Implementation notes
 
@@ -79,6 +105,14 @@ noncomputable section
 variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
   [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M]
   {m k : ℕ}
+
+/-- The Riemannian volume measure, and the bounds for a chart on a compact set, need only a
+continuous metric. -/
+local instance [IsManifold I ∞ M] [RiemannianBundle (fun x : M ↦ TangentSpace I x)]
+    [IsContMDiffRiemannianBundle I ∞ E (fun x : M ↦ TangentSpace I x)] :
+    IsContinuousRiemannianBundle E (fun x : M ↦ TangentSpace I x) :=
+  IsContMDiffRiemannianBundle.toIsContinuousRiemannianBundle
+    (IB := I) (n := ∞) (F := E) (V := fun x : M ↦ TangentSpace I x)
 
 namespace TauCeti.SmoothForm
 
@@ -160,11 +194,6 @@ theorem l2Inner_neg_right (o : Manifold.Orientation I M (Fin m)) (α β : Smooth
 
 variable [CompactSpace M]
 
-/-- The Riemannian volume measure needs only a continuous metric. -/
-local instance : IsContinuousRiemannianBundle E (fun x : M ↦ TangentSpace I x) :=
-  IsContMDiffRiemannianBundle.toIsContinuousRiemannianBundle
-    (IB := I) (n := ∞) (F := E) (V := fun x : M ↦ TangentSpace I x)
-
 /-- On a compact manifold, the `L²` inner product of smooth forms is the integral of their
 pointwise inner product against the Riemannian volume measure, in every dimension. -/
 theorem l2Inner_eq_integral [MeasurableSpace M] [BorelSpace M]
@@ -218,6 +247,117 @@ theorem l2Inner_self_eq_zero_iff (o : Manifold.Orientation I M (Fin m))
   subst h
   funext x
   exact LinearMap.map_zero₂ _ _
+
+end TauCeti.SmoothForm
+
+/-! ### Localization of a smooth form to a chart, in `L²` -/
+
+namespace TauCeti.SmoothForm
+
+section Localize
+
+variable [IsManifold I ∞ M] (ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞) {χ : M → ℝ}
+  (α : SmoothForm I M ℝ k)
+
+omit [FiniteDimensional ℝ E] in
+/-- If the differential of `ψ.symm` at `y` has norm at most `C`, for the Riemannian norm on
+the tangent spaces of `M`, the localization at `y` has norm at most
+`‖χ (ψ⁻¹ y)‖ * ‖α (ψ⁻¹ y)‖ * C ^ k`. -/
+theorem norm_localize_apply_le [RiemannianBundle (fun x : M ↦ TangentSpace I x)] {y : E}
+    {C : ℝ} (hC : 0 ≤ C) (h : ∀ v : E, ‖mfderiv 𝓘(ℝ, E) I ψ.symm y v‖ ≤ C * ‖v‖) :
+    ‖α.localize ψ χ y‖ ≤ ‖χ (ψ.symm y)‖ * ‖α.val (ψ.symm y)‖ * C ^ k := by
+  by_cases hy : y ∈ ψ.target
+  · refine (α.localize ψ χ y).opNorm_le_bound (by positivity) fun v ↦ ?_
+    rw [localize_apply_of_mem _ _ _ hy, norm_smul]
+    calc ‖χ (ψ.symm y)‖ * ‖α.val (ψ.symm y) (fun i ↦ mfderiv 𝓘(ℝ, E) I ψ.symm y (v i))‖
+        ≤ ‖χ (ψ.symm y)‖ *
+            (‖α.val (ψ.symm y)‖ * ∏ i, ‖mfderiv 𝓘(ℝ, E) I ψ.symm y (v i)‖) := by
+          gcongr
+          exact (α.val (ψ.symm y)).le_opNorm _
+      _ ≤ ‖χ (ψ.symm y)‖ * (‖α.val (ψ.symm y)‖ * ∏ i, (C * ‖v i‖)) := by
+          gcongr with i
+          exact h (v i)
+      _ = _ := by
+          rw [Finset.prod_mul_distrib, Finset.prod_const, Finset.card_univ, Fintype.card_fin]
+          ring
+  · rw [localize_apply_of_notMem _ _ _ hy, norm_zero]
+    positivity
+
+/-- For a continuous cutoff with compact support in the source of the chart, the square of the
+norm of the localization of `α` at `y` is at most a constant `B`, independent of `α`, times the
+Riemannian Jacobian of `ψ.symm` at `y` for a basis `b` of `E` and the pointwise inner product
+`⟨α, α⟩` at `ψ.symm y`. -/
+theorem exists_norm_localize_apply_sq_le [RiemannianBundle (fun x : M ↦ TangentSpace I x)]
+    [IsContMDiffRiemannianBundle I ∞ E (fun x : M ↦ TangentSpace I x)]
+    {ι : Type*} [Fintype ι] [DecidableEq ι] (b : Module.Basis ι ℝ E) (hχc : Continuous χ)
+    (hK : IsCompact (tsupport χ)) (hχ : tsupport χ ⊆ ψ.source) :
+    ∃ B, 0 ≤ B ∧ ∀ (α : SmoothForm I M ℝ k) (y : E), ‖α.localize ψ χ y‖ ^ 2 ≤
+      riemannianJacobian (I := I) b ψ.symm y *
+        (B * alternatingFormInner (TangentSpace I (ψ.symm y)) k (α.val (ψ.symm y))
+          (α.val (ψ.symm y))) := by
+  have hKψ : IsCompact (ψ '' tsupport χ) :=
+    hK.image_of_continuousOn (ψ.contMDiffOn.continuousOn.mono hχ)
+  have hKt : ψ '' tsupport χ ⊆ ψ.target := (ψ.mapsTo.mono_left hχ).image_subset
+  have hn : (∞ : ℕ∞ω) ≠ 0 := by simp
+  -- The differential of `ψ.symm` is bounded above, and its Jacobian below, on `ψ '' tsupport χ`.
+  obtain ⟨c₁, C₁, -, hC₁⟩ := ψ.exists_mul_norm_le_norm_mfderiv_symm_le hn hKψ hKt
+  obtain ⟨c, CJ, hc, hJ⟩ := ψ.exists_le_riemannianJacobian_symm_le hn b hKψ hKt
+  obtain ⟨Cχ, hCχ⟩ := hχc.bounded_above_of_compact_support hK
+  set D := max C₁ 0
+  refine ⟨(Cχ * D ^ k) ^ 2 / c, by positivity, fun α y ↦ ?_⟩
+  set a := alternatingFormInner (TangentSpace I (ψ.symm y)) k (α.val (ψ.symm y))
+    (α.val (ψ.symm y))
+  have ha : 0 ≤ a := alternatingFormInner_self_nonneg _
+  by_cases hyK : y ∈ ψ '' tsupport χ
+  · have hCχ0 : 0 ≤ Cχ := (norm_nonneg _).trans (hCχ (ψ.symm y))
+    have h1 : ‖α.localize ψ χ y‖ ≤ Cχ * √a * D ^ k := by
+      refine (α.norm_localize_apply_le ψ (le_max_right _ _) fun v ↦
+        (hC₁ y hyK v).2.trans (by gcongr; exact le_max_left _ _)).trans ?_
+      gcongr
+      · exact hCχ _
+      · exact ContinuousAlternatingMap.norm_le_sqrt_alternatingFormInner_self _
+    calc ‖α.localize ψ χ y‖ ^ 2 ≤ (Cχ * √a * D ^ k) ^ 2 := by gcongr
+      _ = (Cχ * D ^ k) ^ 2 * a := by rw [mul_pow, mul_pow, Real.sq_sqrt ha]; ring
+      _ ≤ riemannianJacobian (I := I) b ψ.symm y / c * ((Cχ * D ^ k) ^ 2 * a) :=
+        le_mul_of_one_le_left (by positivity) ((one_le_div hc).2 (hJ y hyK).1)
+      _ = _ := by ring
+  · rw [localize_apply_eq_zero_of_notMem _ _ _ hyK, norm_zero, sq, zero_mul]
+    exact mul_nonneg (riemannianJacobian_nonneg _ _ _) (by positivity)
+
+omit [FiniteDimensional ℝ E]
+
+variable [MeasureSpace E] [BorelSpace E] [(volume : Measure E).IsAddHaarMeasure]
+
+/-- The localization of a smooth form with a continuous cutoff whose support is compact and lies
+in the source of the chart is in `Lᵖ` for the Haar measure of `E`, for every `p`. -/
+theorem memLp_localize (hχc : Continuous χ) (hK : IsCompact (tsupport χ))
+    (hχ : tsupport χ ⊆ ψ.source) (p : ENNReal) : MemLp (α.localize ψ χ) p volume :=
+  (α.continuous_localize ψ hχc hK hχ).memLp_of_hasCompactSupport
+    (α.hasCompactSupport_localize ψ hK hχ)
+
+variable [CompactSpace M]
+
+/-- The localization to a chart with a smooth cutoff supported in its source, as a linear map
+from the smooth `k`-forms on a compact manifold to the `L²` classes of functions on `E` with
+values in `E [⋀^Fin k]→L[ℝ] ℝ`. -/
+def localizeLp (χ : C^∞⟮I, M; ℝ⟯) (hχ : tsupport χ ⊆ ψ.source) :
+    SmoothForm I M ℝ k →ₗ[ℝ] Lp (E [⋀^Fin k]→L[ℝ] ℝ) 2 (volume : Measure E) where
+  toFun α :=
+    (α.memLp_localize ψ χ.contMDiff.continuous (isClosed_tsupport _).isCompact hχ 2).toLp
+  map_add' α β := by
+    simp_rw [localize_add]
+    exact MemLp.toLp_add _ _
+  map_smul' c α := by
+    simp_rw [localize_smul]
+    exact MemLp.toLp_const_smul _ _
+
+/-- `localizeLp ψ χ hχ α` is the class of the localization of `α`. -/
+theorem localizeLp_apply (χ : C^∞⟮I, M; ℝ⟯) (hχ : tsupport χ ⊆ ψ.source) :
+    localizeLp ψ χ hχ α =
+      (α.memLp_localize ψ χ.contMDiff.continuous (isClosed_tsupport _).isCompact hχ 2).toLp :=
+  (rfl)
+
+end Localize
 
 end TauCeti.SmoothForm
 
@@ -331,6 +471,109 @@ all smooth forms holds everywhere. -/
 theorem induction_on {p : L2Form o k → Prop} (u : L2Form o k) (hp : IsClosed {u | p u})
     (h : ∀ α : SmoothForm I M ℝ k, p (ofSmooth α)) : p u :=
   denseRange_ofSmooth.induction_on u hp h
+
+section Localize
+
+variable [MeasureSpace E] [BorelSpace E] (ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞)
+
+/-- The step of `exists_lintegral_enorm_localize_sq_le` for the Haar measure of a basis `b`:
+a pointwise bound on the localization of `α` by the Riemannian Jacobian of `ψ.symm` and the
+pointwise inner product `⟨α, α⟩` integrates, by the change of variables along `ψ.symm`, to a bound
+by the `L²` norm of `α`. -/
+private theorem lintegral_enorm_localize_sq_le_addHaar (o : Manifold.Orientation I M (Fin m))
+    {ι : Type*} [Fintype ι] [DecidableEq ι] (b : Module.Basis ι ℝ E) {χ : M → ℝ} {B : ℝ}
+    (hB : 0 ≤ B) (α : SmoothForm I M ℝ k)
+    (hpt : ∀ y, ‖α.localize ψ χ y‖ ^ 2 ≤ riemannianJacobian (I := I) b ψ.symm y *
+      (B * alternatingFormInner (TangentSpace I (ψ.symm y)) k (α.val (ψ.symm y))
+        (α.val (ψ.symm y)))) :
+    ∫⁻ y, ‖α.localize ψ χ y‖ₑ ^ (2 : ℝ) ∂b.addHaar ≤
+      ENNReal.ofReal (B * ‖(ofSmooth α : L2Form o k)‖ ^ 2) := by
+  borelize M
+  have hn : (∞ : ℕ∞ω) ≠ 0 := by simp
+  set a : M → ℝ := fun x ↦ alternatingFormInner (TangentSpace I x) k (α.val x) (α.val x)
+  set J : E → ℝ := riemannianJacobian (I := I) b ψ.symm
+  calc ∫⁻ y, ‖α.localize ψ χ y‖ₑ ^ (2 : ℝ) ∂b.addHaar
+      ≤ ∫⁻ y, ψ.target.indicator
+          (fun y ↦ ENNReal.ofReal (J y) * ENNReal.ofReal (B * a (ψ.symm y))) y ∂b.addHaar := by
+        refine lintegral_mono fun y ↦ ?_
+        by_cases hy : y ∈ ψ.target
+        · rw [Set.indicator_of_mem hy, ← ENNReal.ofReal_mul (riemannianJacobian_nonneg _ _ _),
+            ← ofReal_norm, ENNReal.ofReal_rpow_of_nonneg (norm_nonneg _) zero_le_two]
+          exact ENNReal.ofReal_le_ofReal ((Real.rpow_two _).trans_le (hpt y))
+        · rw [localize_apply_of_notMem _ _ _ hy, Set.indicator_of_notMem hy, ← ofReal_norm,
+            norm_zero, ENNReal.ofReal_zero, ENNReal.zero_rpow_of_pos two_pos]
+    _ = ∫⁻ x in ψ.source, ENNReal.ofReal (B * a x) ∂riemannianVolume I M := by
+        rw [lintegral_indicator ψ.open_target.measurableSet]
+        simpa [J] using
+          (ψ.symm.setLIntegral_riemannianVolume_eq hn b fun x ↦ ENNReal.ofReal (B * a x)).symm
+    _ ≤ ∫⁻ x, ENNReal.ofReal (B * a x) ∂riemannianVolume I M := setLIntegral_le_lintegral _ _
+    _ = ENNReal.ofReal (B * ‖(ofSmooth α : L2Form o k)‖ ^ 2) := by
+        rw [← ofReal_integral_eq_lintegral_ofReal, integral_const_mul, norm_ofSmooth_sq,
+          l2Inner_eq_integral]
+        · exact ((continuous_alternatingFormInner α α).integrable_of_compactSpace).const_mul B
+        · exact Filter.Eventually.of_forall fun x ↦
+            mul_nonneg hB (alternatingFormInner_self_nonneg _)
+
+/-- For a continuous cutoff `χ` with compact support in the source of the chart `ψ` and an
+additive Haar measure `μ` on `E`, the integral of `‖α.localize ψ χ‖ ^ 2` against `μ` is at most a
+constant `B`, independent of the smooth form `α`, times the square of the `L²` norm of `α`. -/
+theorem exists_lintegral_enorm_localize_sq_le (o : Manifold.Orientation I M (Fin m))
+    {χ : M → ℝ} (hχc : Continuous χ) (hK : IsCompact (tsupport χ)) (hχ : tsupport χ ⊆ ψ.source)
+    (μ : Measure E) [μ.IsAddHaarMeasure] :
+    ∃ B, 0 ≤ B ∧ ∀ α : SmoothForm I M ℝ k,
+      ∫⁻ y, ‖α.localize ψ χ y‖ₑ ^ (2 : ℝ) ∂μ ≤
+        ENNReal.ofReal (B * ‖(ofSmooth α : L2Form o k)‖ ^ 2) := by
+  let b := Module.finBasis ℝ E
+  obtain ⟨B, hB, hpt⟩ := exists_norm_localize_apply_sq_le (k := k) ψ b hχc hK hχ
+  set s := μ.addHaarScalarFactor b.addHaar
+  refine ⟨s * B, by positivity, fun α ↦ ?_⟩
+  rw [Measure.isAddLeftInvariant_eq_smul μ b.addHaar, lintegral_smul_measure, ENNReal.smul_def,
+    smul_eq_mul, mul_assoc, ENNReal.ofReal_mul (by positivity), ENNReal.ofReal_coe_nnreal]
+  gcongr
+  exact lintegral_enorm_localize_sq_le_addHaar ψ o b hB α (hpt α)
+
+variable [(volume : Measure E).IsAddHaarMeasure] (χ : C^∞⟮I, M; ℝ⟯) (hχ : tsupport χ ⊆ ψ.source)
+
+/-- The localization of smooth forms to a chart `ψ` with a cutoff `χ` supported in its source is
+bounded for the `L²` norms: `‖localizeLp ψ χ hχ α‖ ≤ C * ‖ofSmooth α‖` for some `C` and every
+smooth `k`-form `α`. -/
+theorem exists_norm_localizeLp_le (o : Manifold.Orientation I M (Fin m)) :
+    ∃ C, ∀ α : SmoothForm I M ℝ k, ‖localizeLp ψ χ hχ α‖ ≤ C * ‖(ofSmooth α : L2Form o k)‖ := by
+  obtain ⟨B, hB, hint⟩ := exists_lintegral_enorm_localize_sq_le (k := k) ψ o
+    χ.contMDiff.continuous (isClosed_tsupport _).isCompact hχ volume
+  refine ⟨√B, fun α ↦ ?_⟩
+  rw [localizeLp_apply, Lp.norm_toLp]
+  refine ENNReal.toReal_le_of_le_ofReal (by positivity) (eLpNorm_le_of_lintegral_rpow_le
+    two_ne_zero ENNReal.ofNat_ne_top
+    (α.memLp_localize ψ χ.contMDiff.continuous (isClosed_tsupport _).isCompact hχ
+      2).aestronglyMeasurable ?_)
+  rw [ENNReal.toReal_ofNat, ENNReal.ofReal_rpow_of_nonneg (by positivity) zero_le_two,
+    Real.rpow_two, mul_pow, Real.sq_sqrt hB]
+  exact hint α
+
+variable {o : Manifold.Orientation I M (Fin m)}
+
+/-- The **localization of `L²` forms to a chart** `ψ` with a smooth cutoff `χ` supported in its
+source: the continuous linear map from `L2Form o k` to the `L²` functions on `E` with values in
+`E [⋀^Fin k]→L[ℝ] ℝ` that extends `TauCeti.SmoothForm.localize ψ χ` from the smooth forms, which
+it may since that map is bounded (`exists_norm_localizeLp_le`). -/
+def localize : L2Form o k →L[ℝ] Lp (E [⋀^Fin k]→L[ℝ] ℝ) 2 (volume : Measure E) :=
+  (localizeLp ψ χ hχ).extendOfNorm ofSmooth
+
+/-- On a smooth form, `localize` is the class of its localization. -/
+@[simp]
+theorem localize_ofSmooth_eq_localizeLp (α : SmoothForm I M ℝ k) :
+    localize ψ χ hχ (ofSmooth α : L2Form o k) = localizeLp ψ χ hχ α :=
+  LinearMap.extendOfNorm_eq denseRange_ofSmooth (exists_norm_localizeLp_le ψ χ hχ o) α
+
+/-- On a smooth form `α`, `localize ψ χ hχ` is almost everywhere the function
+`y ↦ χ (ψ⁻¹ y) • (ψ⁻¹)^* α (y)` on `ψ.target`, extended by `0`. -/
+theorem localize_ofSmooth (α : SmoothForm I M ℝ k) :
+    localize ψ χ hχ (ofSmooth α : L2Form o k) =ᵐ[volume] α.localize ψ χ := by
+  rw [localize_ofSmooth_eq_localizeLp, localizeLp_apply]
+  exact MemLp.coeFn_toLp _
+
+end Localize
 
 end L2Form
 
