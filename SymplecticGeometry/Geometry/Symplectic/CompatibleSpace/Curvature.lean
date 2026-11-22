@@ -168,8 +168,7 @@ ambient readings in `V →L[ℝ] V`, for the curvature tensor of the Levi-Civita
 convention `R(X, Y) Z = ∇_X ∇_Y Z - ∇_Y ∇_X Z - ∇_[X,Y] Z`. -/
 theorem curvatureTensor_leviCivitaConnection_compatibleSpace (J : 𝒥)
     (a b c : TangentSpace 𝓘(ℝ, ω.compatibleModel) J) :
-    mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM J
-        ((leviCivitaConnection 𝓘(ℝ, ω.compatibleModel) 𝒥).curvatureTensor J a b c) =
+    dι J ((leviCivitaConnection 𝓘(ℝ, ω.compatibleModel) 𝒥).curvatureTensor J a b c) =
       -(4⁻¹ : ℝ) • ⁅⁅dι J a, dι J b⁆, dι J c⁆ := by
   obtain ⟨X, hX, rfl⟩ :=
     FiberBundle.exists_contMDiff_section_eq 𝓘(ℝ, ω.compatibleModel) ω.compatibleModel ∞ a
@@ -180,7 +179,7 @@ theorem curvatureTensor_leviCivitaConnection_compatibleSpace (J : 𝒥)
   have hXd := fun J' => (hX J').mdifferentiableAt (n := ∞) (by simp)
   have hYd := fun J' => (hY J').mdifferentiableAt (n := ∞) (by simp)
   have hZd := fun J' => (hZ J').mdifferentiableAt (n := ∞) (by simp)
-  rw [← mvfderiv_apply_eq_mfderiv_apply, curvatureTensor_apply _ J hX hY hZ,
+  rw [curvatureTensor_apply _ J hX hY hZ,
     curvatureOperator_apply, map_sub, map_sub,
     leviCivitaConnection_compatibleSpace_apply
       (((leviCivitaConnection _ _).contMDiff_apply hY hZ J).mdifferentiableAt (by simp)),
@@ -205,8 +204,7 @@ theorem inner_curvatureTensor_compatibleSpace (J : 𝒥)
     (u v : TangentSpace 𝓘(ℝ, ω.compatibleModel) J) :
     ⟪(leviCivitaConnection 𝓘(ℝ, ω.compatibleModel) 𝒥).curvatureTensor J u v v, u⟫ =
       8⁻¹ * LinearMap.trace ℝ V ↑(⁅dι J u, dι J v⁆ * ⁅dι J u, dι J v⁆) := by
-  rw [inner_compatibleSpace, curvatureTensor_leviCivitaConnection_compatibleSpace,
-    ← mvfderiv_apply_eq_mfderiv_apply, ← ContinuousLinearMap.mul_def]
+  rw [inner_compatibleSpace, curvatureTensor_leviCivitaConnection_compatibleSpace]
   generalize dι J u = U
   generalize dι J v = W
   simp only [Ring.lie_def, ContinuousLinearMap.toLinearMap_mul,

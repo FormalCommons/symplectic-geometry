@@ -5,8 +5,10 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.AlgebraicTopology.Cohomology.IntegralCohomologyULift
 public import SymplecticGeometry.AlgebraicTopology.Cohomology.LerayHirsch.Bundle
 public import SymplecticGeometry.AlgebraicTopology.Singular.Nullhomotopic
+public import SymplecticGeometry.Topology.Category.TopCat.Monoidal
 public import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.ProjectiveSpace
 
 /-!
@@ -23,6 +25,9 @@ class (`Projectivization.hyperplaneClass`), and `X` a path-connected space. This
 * `Projectivization.eq_zero_of_singularCohomologyMap_eq_zero`: for points `x₀ : X` and
   `y₀ : ℙ ℂ V`, a class of `H²(X × ℙ ℂ V; ℤ)` whose pull-backs along `x ↦ (x, y₀)` and
   `y ↦ (x₀, y)` both vanish is zero.
+* `Projectivization.eq_zero_of_singularCohomologyMap_prodMk_eq_zero`: the same criterion for the
+  product `TopCat.of (X × ℙ ℂ V)` of types and coefficients in `ULift ℤ`, through
+  `TopCat.tensorObjIsoProd` and `TopCat.uliftIntegralCohomologyIso`.
 
 ## Proof
 
@@ -135,5 +140,42 @@ theorem eq_zero_of_singularCohomologyMap_eq_zero (hV : finrank ℂ V = n + 1) {X
   rw [map_zsmul, ← ConcreteCategory.comp_apply, ← TopCat.singularCohomologyMap_comp,
     TopCat.prodFiberInclusion_snd, TopCat.singularCohomologyMap_id, ConcreteCategory.id_apply] at h₂
   rw [← map_zsmul, h₂, map_zero]
+
+
+/-- **The vanishing criterion for a product of spaces, with coefficients in `ULift ℤ`.** For
+`finrank ℂ V = n + 1`, a path-connected space `X` and points `x₀ : X`, `y₀ : ℙ ℂ V`, a class of
+`H²(X × ℙ ℂ V; ULift ℤ)`, for the product `TopCat.of (X × ℙ ℂ V)` of types, whose pull-backs along
+`x ↦ (x, y₀)` and along `y ↦ (x₀, y)` both vanish is zero. -/
+theorem eq_zero_of_singularCohomologyMap_prodMk_eq_zero (hV : finrank ℂ V = n + 1) {X : Type}
+    [TopologicalSpace X] [PathConnectedSpace X] (x₀ : X) (y₀ : ℙ ℂ V)
+    {c : (TopCat.of (X × ℙ ℂ V)).singularCohomology (ModuleCat.of ℤ (ULift.{0} ℤ)) ℤ
+      (ModuleCat.of ℤ (ULift.{0} ℤ)) 2}
+    (h₁ : TopCat.singularCohomologyMap (TopCat.ofHom (.prodMk (.id _) (.const _ y₀))) 2 c = 0)
+    (h₂ : TopCat.singularCohomologyMap (TopCat.ofHom (.prodMk (.const _ x₀) (.id _))) 2 c = 0) :
+    c = 0 := by
+  let e := TopCat.tensorObjIsoProd X (ℙ ℂ V)
+  have he : e.hom = 𝟙 (TopCat.of (X × ℙ ℂ V)) := TopCat.tensorObjIsoProd_hom_eq_id X (ℙ ℂ V)
+  have he₁ : lift (𝟙 (TopCat.of X)) (TopCat.const (X := TopCat.of X) (y₀ : TopCat.of (ℙ ℂ V))) ≫
+      e.hom = TopCat.ofHom (.prodMk (.id _) (.const _ y₀)) := by
+    rw [he]
+    exact TopCat.ext fun _ ↦ rfl
+  have he₂ : TopCat.prodFiberInclusion (TopCat.of X) (TopCat.of (ℙ ℂ V)) x₀ ≫ e.hom =
+      TopCat.ofHom (.prodMk (.const _ x₀) (.id _)) := by
+    rw [he, TopCat.prodFiberInclusion_def]
+    exact TopCat.ext fun _ ↦ rfl
+  let I := (TopCat.of X ⊗ TopCat.of (ℙ ℂ V)).uliftIntegralCohomologyIso 2
+  have hc : I.hom (TopCat.singularCohomologyMap e.hom 2 c) = 0 := by
+    refine eq_zero_of_singularCohomologyMap_eq_zero hV x₀ y₀ ?_ ?_ <;>
+    rw [← ConcreteCategory.comp_apply, ← TopCat.uliftIntegralCohomologyIso_naturality,
+      ConcreteCategory.comp_apply,
+      ← ConcreteCategory.comp_apply (TopCat.singularCohomologyMap e.hom 2),
+      ← TopCat.singularCohomologyMap_comp]
+    · rw [he₁, h₁, map_zero]
+    · rw [he₂, h₂, map_zero]
+  have hce : c = TopCat.singularCohomologyMap e.inv 2 (TopCat.singularCohomologyMap e.hom 2 c) := by
+    rw [← ConcreteCategory.comp_apply, ← TopCat.singularCohomologyMap_comp, e.inv_hom_id,
+      TopCat.singularCohomologyMap_id, ConcreteCategory.id_apply]
+  rw [hce, ← Iso.hom_inv_id_apply I (TopCat.singularCohomologyMap e.hom 2 c), hc, map_zero,
+    map_zero]
 
 end Projectivization
