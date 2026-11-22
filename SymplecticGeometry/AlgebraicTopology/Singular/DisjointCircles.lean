@@ -148,6 +148,7 @@ theorem sum_singularHomologyFunctor_map_prodRetraction_prodInclusion [Fintype ι
   have h := TopCat.sum_singularHomologyFunctor_map_prodFiberRetraction_comp
     (ModuleCat.of ℤ (ULift.{0} ℤ)) (TopCat.of ι) (1 : TopCat.of Circle) one_ne_zero
   simp only [← ofHom_prodRetraction, ← ofHom_prodInclusion] at h
+  -- `h` is the goal, with `TopCat.of ι ⊗ TopCat.of Circle` for `TopCat.of (ι × Circle)`
   exact h
 
 /-- On the generator `g` of `H₁(Circle)`, the image under `prodRetraction i` of the class of the
