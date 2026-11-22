@@ -982,6 +982,11 @@ theorem equivComplex_symm_apply (z : ℂ) :
     (equivComplex ι).symm z = complexToRealEuclidean ι fun _ ↦ z :=
   (equivComplex ι).symm_apply_eq.2 (by simp)
 
+/-- The inverse of `equivComplex ι` sends `1` to the first basis vector `(1, 0)`. -/
+theorem equivComplex_symm_one [DecidableEq ι] :
+    (equivComplex ι).symm 1 = EuclideanSpace.single (Sum.inl default) 1 := by
+  ext k <;> simp [x_apply, y_apply, complexToRealEuclidean_apply, Subsingleton.elim k default]
+
 /-- The real part of `equivComplex ι z` is the `x`-coordinate of `z`. -/
 @[simp]
 theorem re_equivComplex (z : StdSpace ι) : (equivComplex ι z).re = z.x default := by
