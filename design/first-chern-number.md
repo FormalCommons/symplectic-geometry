@@ -1235,7 +1235,12 @@ issues, in an order where each issue's blockers come before it.
    surface sits in it as an open subset) and the data
    `SymplecticGeometry.capDiscs.coordinateDisc`, the caps as coordinate
    discs. Blocked by the issue of *Symplectic vector bundles*
-   that fixes that representation, and by 5. The gluing uses polar
+   that fixes that representation, and by 5. The tangent orientation of
+   a restricted orientation `TauCeti.Manifold.Orientation.restrict` at a
+   point of an open subset is that of the ambient orientation there
+   (`TauCeti.Manifold.Orientation.orientationAt_restrict`), in
+   `Geometry/Manifold/Orientation/OpenSubset.lean`, the library's
+   counterpart of Tau Ceti's file of that name. The gluing uses polar
    coordinates on the circle,
    `AddCircle.isLocalDiffeomorphAt_ofReal_mul_toCircle`, in
    `Geometry/Manifold/Instances/AddCircle.lean`, which imports
