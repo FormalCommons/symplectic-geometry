@@ -176,6 +176,7 @@ this file.
 
 | File | Contents | Issue |
 |---|---|---|
+| `Analysis/Calculus/ContDiff/Holder.lean` | a map of class `C^{k+1}` at a point has a Hölder `k`-th derivative near it | 2 |
 | `Analysis/Calculus/ContinuousLinearMapInverse.lean` | taken from Tau Ceti: invertible strict derivatives of `y ↦ y + f y` | 1 |
 | `Analysis/Calculus/IteratedFDeriv/Basic.lean` | taken from Tau Ceti: iterated derivatives of a continuous linear map plus a function | 1 |
 | `Analysis/Complex/Beltrami/CkHolder.lean` | charts of class `C^{k+1}` for small coefficients | 1 |
@@ -256,12 +257,23 @@ past that commit deletes them.
 - `Analysis/Normed/Operator/Basic.lean`:
   `ContinuousLinearMap.exists_add_apply_eq_of_norm_lt_one`.
 
+### `Analysis/Calculus/ContDiff/Holder.lean`
+
+Imports Tau Ceti's `ContDiff/Bounds.lean` and `Holder/JetBounds.lean`.
+
+- `ContDiffAt.exists_ball_holderOnWith_iteratedFDeriv {f : E → F} {x : E} {k : ℕ}
+  (hf : ContDiffAt ℝ (k + 1) f x) {α : ℝ≥0} (hα : α ≤ 1) :
+  ∃ ρ > 0, ∃ H : ℝ≥0, ContDiffOn ℝ (k + 1) f (ball x ρ) ∧
+    HolderOnWith H α (iteratedFDeriv ℝ k f) (ball x ρ)`, from
+  `ContDiffAt.exists_ball_bound_iteratedFDeriv` and
+  `ContDiffOn.holderOnWith_iteratedFDeriv_of_lt`.
+
 ### `Analysis/Complex/Beltrami/Regularity.lean`
 
-Imports `CkHolder.lean`, Tau Ceti's `Beltrami/Isothermal.lean`,
+Imports `Calculus/ContDiff/Holder.lean`, `CkHolder.lean`,
+Tau Ceti's `Beltrami/Isothermal.lean`,
 `Beltrami/Transition.lean`, `Holder/Rescaling.lean` and
 `Symplectic/Cayley/Smooth.lean`, and, for its proofs only, Tau Ceti's
-`Holder/JetBounds.lean`, `ContDiff/Bounds.lean` and
 `Conformal/PseudoHyperbolic.lean`. Write `toCLM J z` for
 `LinearMap.toContinuousLinearMap (J z).toLinearMap`.
 
@@ -275,8 +287,8 @@ Imports `CkHolder.lean`, Tau Ceti's `Beltrami/Isothermal.lean`,
   With `k = m - 1`: the coefficient is `C^m` at `c` (`Tames.contMDiffAt_cayley`);
   normalized by `L = linearEquiv (μ c)` and read at `c + L⁻¹ x`, it is
   `C^m` at `0`, vanishes there, and its `k`-th derivative is Lipschitz,
-  hence `α`-Hölder, on a ball (`ContDiffAt.exists_ball_bound_iteratedFDeriv`,
-  `ContDiffOn.holderOnWith_iteratedFDeriv_of_lt`); rescaled and cut off by
+  hence `α`-Hölder, on a ball
+  (`ContDiffAt.exists_ball_holderOnWith_iteratedFDeriv`); rescaled and cut off by
   `eventually_exists_ckHolderSpace_cutoff_rescale` it falls below
   the `δ` of `exists_isComplexLinear_contDiff_chart`, which is applied to
   the structure whose coefficient is the rescaled one at every point
@@ -374,11 +386,11 @@ About 300 lines.
   `CkHolder.lean` follows `TauCeti.Beltrami.exists_isComplexLinear_chart`
   (`Beltrami/Chart.lean`), and `Regularity.lean` the proof of
   `TauCeti.Beltrami.exists_isothermal_chart`; their docstrings credit them.
-  `Regularity.lean` also uses Tau Ceti's
+  `Calculus/ContDiff/Holder.lean` uses Tau Ceti's
   `ContDiffOn.holderOnWith_iteratedFDeriv_of_lt` (`Analysis/Holder/JetBounds.lean`,
   which goes through `LipschitzOnWith.holderOnWith_of_norm_le`),
   `ContDiffAt.exists_ball_bound_iteratedFDeriv`
-  (`Analysis/Calculus/ContDiff/Bounds.lean`) and
+  (`Analysis/Calculus/ContDiff/Bounds.lean`), and `Regularity.lean`
   `one_sub_conj_mul_ne_zero_of_norm_le_one_of_norm_lt_one`
   (`Analysis/Complex/Conformal/PseudoHyperbolic.lean`).
 - Mathlib: `HasStrictFDerivAt.toOpenPartialHomeomorph`,
@@ -398,7 +410,7 @@ estimates.
 | # | Issue | Files | Blocked by | Size |
 |---|---|---|---|---|
 | 1 | Planar charts of class `C^{k+1}` for a small $C^{k,\alpha}$ coefficient | `Analysis/Complex/Beltrami/CkHolder.lean`, and the files under *Files taken from Tau Ceti* | — | 1000 |
-| 2 | Planar isothermal charts of class `C^m`, and smooth ones | `Analysis/Complex/Beltrami/Regularity.lean` | 1 | 350 |
+| 2 | Planar isothermal charts of class `C^m`, and smooth ones | `Analysis/Calculus/ContDiff/Holder.lean`, `Analysis/Complex/Beltrami/Regularity.lean` | 1 | 350 |
 | 3 | Smooth isothermal charts on surfaces | `Geometry/Manifold/Complex/Isothermal.lean` | 2 | 250 |
 | 4 | Integrability in dimension two, isothermal coordinates of a metric, and the milestone | `Geometry/Manifold/Complex/Isothermal.lean` | 3; #862 | 300 |
 

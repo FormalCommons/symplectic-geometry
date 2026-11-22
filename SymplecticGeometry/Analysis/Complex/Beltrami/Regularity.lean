@@ -5,14 +5,13 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.Analysis.Calculus.ContDiff.Holder
 public import SymplecticGeometry.Analysis.Complex.Beltrami.CkHolder
 public import TauCeti.Analysis.Complex.Beltrami.Isothermal
 public import TauCeti.Analysis.Complex.Beltrami.Transition
 public import TauCeti.Analysis.Holder.Rescaling
 public import TauCeti.Geometry.Symplectic.Cayley.Smooth
-import TauCeti.Analysis.Calculus.ContDiff.Bounds
 import TauCeti.Analysis.Complex.Conformal.PseudoHyperbolic
-import TauCeti.Analysis.Holder.JetBounds
 
 /-!
 # Planar isothermal charts of class `C^m`, and smooth ones
@@ -29,15 +28,20 @@ multiplication by `i`: `de_z (J z v) = i · de_z v`.
 
 The first result follows the proof of Tau Ceti's `TauCeti.Beltrami.exists_isothermal_chart`,
 with the space `C^{k,α}` in place of the Hölder space `C^{0,α}`, where `m = k + 1`. The scalar
-Beltrami coefficient `μ` of `J` is `C^m` at `c`. Normalized at `c` by the real-linear map
-`L = TauCeti.Beltrami.linearEquiv (μ c)` and read at `c + L⁻¹ x`, it becomes a coefficient `ν`
-that vanishes at `0` and whose `k`-th derivative is Lipschitz, hence Hölder, near `0`
-(`ContDiffAt.exists_ball_holderOnWith_iteratedFDeriv`). Cut off and rescaled, `ν` has a small
-`C^{k,α}` norm (`TauCeti.eventually_exists_ckHolderSpace_cutoff_rescale`), so the structure of the
-rescaled coefficient has a chart of class `C^{k+1}`
-(`TauCeti.Beltrami.exists_isComplexLinear_contDiff_chart`). That chart, read through
-`z ↦ ε⁻¹ L (z - c)` on the unit disc, is the isothermal chart; its equation follows from
-`TauCeti.Beltrami.isComplexLinear_comp_linearMap_iff`. The private steps
+Beltrami coefficient `μ` of `J` is `C^m` at `c`, and is that of `J` near `c`; this opening step
+follows that of Tau Ceti's `TauCeti.Beltrami.exists_isothermal_chart_of_contDiffAt`. Normalized
+at `c` by the real-linear map `L = TauCeti.Beltrami.linearEquiv (μ c)` and read at `c + L⁻¹ x`,
+it becomes a coefficient `ν` that vanishes at `0` and whose `k`-th derivative is Lipschitz, hence
+Hölder, near `0` (`ContDiffAt.exists_ball_holderOnWith_iteratedFDeriv`). Cut off and rescaled,
+`ν` has a small `C^{k,α}` norm (`TauCeti.eventually_exists_ckHolderSpace_cutoff_rescale`), so the
+structure of the rescaled coefficient has a chart of class `C^{k+1}`
+(`TauCeti.Beltrami.exists_isComplexLinear_contDiff_chart`); that structure is built from the
+coefficient by `coefficientEquiv.symm`, as in Tau Ceti's
+`TauCeti.Beltrami.exists_chart_of_norm_lt`. That chart, read through `z ↦ ε⁻¹ L (z - c)` on the
+unit disc, is the isothermal chart. Its equation follows from
+`TauCeti.Beltrami.comp_smul_linearEquiv_apply_eq_I_mul`, which carries the equation back through
+`ε⁻¹ L` by `TauCeti.Beltrami.isComplexLinear_comp_linearMap_iff`, as the last step of
+`TauCeti.Beltrami.exists_isothermal_chart` does. The private steps
 `exists_rescaled_coefficient_of_contDiffAt` and `exists_chart_comp_affine_of_contDiffOn` are the
 analogues, of class `C^m`, of the private steps `exists_rescaled_coefficient` and
 `exists_chart_comp_affine` of Tau Ceti's `TauCeti.Beltrami.exists_isothermal_chart`.
@@ -49,8 +53,9 @@ smooth (`TauCeti.Beltrami.contDiffOn_infty_of_fderiv_comp`).
 
 ## Main results
 
-* `ContDiffAt.exists_ball_holderOnWith_iteratedFDeriv`: a map of class `C^{k+1}` at `x` is
-  `C^{k+1}` on a ball around `x`, with a Hölder `k`-th derivative there.
+* `TauCeti.Beltrami.comp_smul_linearEquiv_apply_eq_I_mul`: a map complex linear for the
+  structure of the normalized coefficient, composed with `ε⁻¹ L`, carries `J` to
+  multiplication by `i`.
 * `TauCeti.Beltrami.exists_contDiffOn_isothermal_chart_of_contDiffAt`: isothermal charts of class
   `C^m` for a field of structures of class `C^m` at a point.
 * `TauCeti.Beltrami.exists_smooth_isothermal_chart_of_contDiffOn`: smooth isothermal charts for a
@@ -68,26 +73,6 @@ public section
 
 open Complex Metric Set Filter
 open scoped ComplexConjugate NNReal Topology ContDiff
-
-/-- Let `α ≤ 1`. A map of class `C^{k+1}` at `x` is of class `C^{k+1}` on some ball around `x`
-on which its `k`-th derivative is `α`-Hölder. -/
-theorem ContDiffAt.exists_ball_holderOnWith_iteratedFDeriv {E F : Type*}
-    [NormedAddCommGroup E] [NormedSpace ℝ E] [NormedAddCommGroup F] [NormedSpace ℝ F]
-    {f : E → F} {x : E} {k : ℕ} (hf : ContDiffAt ℝ (k + 1) f x) {α : ℝ≥0} (hα : α ≤ 1) :
-    ∃ ρ > 0, ∃ H : ℝ≥0, ContDiffOn ℝ (k + 1) f (ball x ρ) ∧
-      HolderOnWith H α (iteratedFDeriv ℝ k f) (ball x ρ) := by
-  obtain ⟨r, hr, A, hA⟩ := (show ContDiffAt ℝ (k + 1 : ℕ) f x by exact_mod_cast hf
-    ).exists_ball_bound_iteratedFDeriv
-  obtain ⟨r', hr', hr'f⟩ := Metric.eventually_nhds_iff_ball.mp (hf.eventually (by simp))
-  have hρ : 0 < min r r' := lt_min hr hr'
-  have hC : ContDiffOn ℝ (k + 1) f (ball x (min r r')) := fun y hy ↦
-    (hr'f y (ball_subset_ball (min_le_right _ _) hy)).contDiffWithinAt
-  have hb (i : ℕ) (hi : i ≤ k + 1) (y) (hy : y ∈ ball x (min r r')) :
-      ‖iteratedFDeriv ℝ i f y‖ ≤ A.toNNReal :=
-    (hA i hi y (ball_subset_ball (min_le_left _ _) hy)).trans (Real.le_coe_toNNReal A)
-  exact ⟨_, hρ, _, hC, ContDiffOn.holderOnWith_iteratedFDeriv_of_lt (k := k + 1) (j := k)
-    (by exact_mod_cast hC) isOpen_ball (convex_ball _ _) (by omega) hα
-    (hb k (by omega)) (hb (k + 1) le_rfl)⟩
 
 namespace TauCeti.Beltrami
 
@@ -179,6 +164,30 @@ private theorem exists_chart_comp_affine_of_contDiffOn {n : WithTop ℕ∞} (hn 
   · rw [hdE z hz]
     exact (hinv _ ((hEs z).mp hz).1).comp hTinv
 
+/-- **Carrying the isothermal equation back through `t • L`.** Let `J` and `J'` be tame
+structures on the plane whose coefficients `μ` and `ν` satisfy `ν (1 - conj a μ) = μ - a`, where
+`|a|² ≠ 1`, and let `L = linearEquiv a`. If a real-linear map `A` is complex linear from `J'` to
+multiplication by `i`, then for every real `t` the map `A ∘ (t • L)` carries `J` to
+multiplication by `i`. -/
+theorem comp_smul_linearEquiv_apply_eq_I_mul (J J' : AlmostComplexStructure ℂ)
+    (hJ : stdComplexSymplecticForm.Tames J) (hJ' : stdComplexSymplecticForm.Tames J') {a : ℂ}
+    (ha : Complex.normSq a ≠ 1)
+    (h : (coefficientEquiv ⟨J', hJ'⟩).val * (1 - conj a * (coefficientEquiv ⟨J, hJ⟩).val) =
+      (coefficientEquiv ⟨J, hJ⟩).val - a) {A : ℂ →L[ℝ] ℂ}
+    (hA : IsComplexLinear J'.toLinearMap (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap
+      A.toLinearMap) (t : ℝ) (v : ℂ) :
+    A.comp (t • (linearEquiv a ha : ℂ →L[ℝ] ℂ)) (J v) =
+      I * A.comp (t • (linearEquiv a ha : ℂ →L[ℝ] ℂ)) v := by
+  have hkey := ((isComplexLinear_comp_linearMap_iff J J' hJ hJ' h A).mpr hA).apply v
+  have hkey' : A (linearMap a (J v)) = I * A (linearMap a v) := by
+    simpa only [ContinuousLinearMap.coe_coe, ContinuousLinearMap.coe_comp, Function.comp_apply,
+      LinearMap.coe_comp, AlmostComplexStructure.ofComplexModule_apply, smul_eq_mul] using hkey
+  simp only [ContinuousLinearMap.coe_comp, Function.comp_apply, FunLike.coe_smul,
+    Pi.smul_apply, ContinuousLinearMap.map_smul_of_tower, ContinuousLinearEquiv.coe_coe,
+    linearEquiv_apply, linearMap_apply] at hkey' ⊢
+  rw [hkey', Complex.real_smul, Complex.real_smul]
+  ring
+
 /-- **Isothermal charts of class `C^m`.** Let `1 ≤ m` and let `J` be a field of almost complex
 structures on the plane that is of class `C^m` at `c` in the operator norm and tame at `c`. Then
 `c` has an isothermal chart of class `C^m`: an open partial homeomorphism `e` whose source
@@ -251,16 +260,8 @@ theorem exists_contDiffOn_isothermal_chart_of_contDiffAt {m : ℕ} (hm : 1 ≤ m
     have hJfw : (coefficientEquiv ⟨Jf w, hJf w⟩).val = f w := by simp [Jf]
     rw [hJfw, hfz, ← hμJ z hzρ]
     exact div_mul_cancel₀ _ (one_sub_conj_mul_ne_zero_of_norm_le_one_of_norm_lt_one hμz ha)
-  have hkey := ((isComplexLinear_comp_linearMap_iff (J z) (Jf w) (hρJ z hzρ) (hJf w) hcoef
-    (fderiv ℝ e w)).mpr hlin).apply v
-  have hkey' : fderiv ℝ e w (linearMap a (J z v)) = I * fderiv ℝ e w (linearMap a v) := by
-    simpa only [ContinuousLinearMap.coe_coe, ContinuousLinearMap.coe_comp, Function.comp_apply,
-      LinearMap.coe_comp, AlmostComplexStructure.ofComplexModule_apply, smul_eq_mul] using hkey
-  simp only [ContinuousLinearMap.coe_comp, Function.comp_apply, FunLike.coe_smul,
-    Pi.smul_apply, ContinuousLinearMap.map_smul_of_tower, ContinuousLinearEquiv.coe_coe, L,
-    linearEquiv_apply, linearMap_apply] at hkey' ⊢
-  rw [hkey', Complex.real_smul, Complex.real_smul]
-  ring
+  exact comp_smul_linearEquiv_apply_eq_I_mul (J z) (Jf w) (hρJ z hzρ) (hJf w) ha' hcoef hlin
+    _ v
 
 /-- **Smooth isothermal charts.** Let `J` be a field of almost complex structures on the plane
 that is smooth on an open set `U` in the operator norm and tame at every point of `U`. Then every
