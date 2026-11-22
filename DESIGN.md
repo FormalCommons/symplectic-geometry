@@ -2388,7 +2388,7 @@ has either; Tau Ceti's extension across a boundary,
   Nijenhuis tensor of the restriction).
 - **Builds on:** *Nijenhuis tensor* (`Nijenhuis.lean` for naturality along
   embeddings, `Integrable.lean`); *Linear complex structures*
-  (`LinearAlgebra/ComplexStructure/Action.lean`, for complex linear left
+  (`LinearAlgebra/ComplexStructure/Hom.lean`, for complex linear left
   inverses); Tau Ceti.
 - **Milestones:** *Complex submanifolds of Kähler manifolds*, except its
   last sentence, on $\mathbb CP^n$, which *Complex projective space* proves.
