@@ -5,9 +5,14 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.Analysis.Matrix.LDL
 public import SymplecticGeometry.Geometry.Manifold.Instances.OnePoint
+public import SymplecticGeometry.Geometry.Manifold.Orientation.Preserving.FromTauCeti
 public import SymplecticGeometry.Geometry.Manifold.Orientation.Sphere
 public import SymplecticGeometry.Geometry.Manifold.Projectivization.FubiniStudy.Basic
+public import SymplecticGeometry.Geometry.Manifold.Projectivization.FubiniStudy.Kahler
+public import TauCeti.Geometry.Manifold.DifferentialForm.Integration.ChangeOfVariables
+public import TauCeti.Geometry.Manifold.DifferentialForm.Integration.UnitSphere
 public import TauCeti.Geometry.Manifold.Instances.OnePoint.FubiniStudy
 public import TauCeti.Geometry.Manifold.Instances.OnePoint.Projectivization
 public import TauCeti.Geometry.Manifold.Instances.OnePoint.Sphere
@@ -15,7 +20,7 @@ public import TauCeti.Geometry.Manifold.Orientation.Sphere
 public import TauCeti.Geometry.Manifold.Projectivization.ProjectiveLine
 
 /-!
-# The Fubini–Study form of `ℂP¹`: affine formula and stereographic coordinates
+# The Fubini–Study form of `ℂP¹`: affine formula, stereographic coordinates, area of lines
 
 This file compares the Fubini–Study form `ω_FS = fubiniStudyForm 1` of
 `ℂP¹ = ℙ ℂ (Fin 2 → ℂ)`, normalized as in McDuff–Salamon, with Tau Ceti's models of the Riemann
@@ -25,7 +30,8 @@ coordinate `x 0` in Lean.
 * `SymplecticGeometry.eval₂_fubiniStudyForm_affineParam`: in either affine coordinate
   `TauCeti.ProjectiveLine.affineParam i` (`t ↦ [1 : t]` or `t ↦ [t : 1]`), the form reads
   `Im (conj v * w) / (1 + |t|²)²`, that is `dx ∧ dy / (1 + x² + y²)²`. It is computed upstairs,
-  on the lift `t ↦ (1, t)` of the coordinate to `ℂ² ∖ 0`, from the value of `ρ`.
+  on the lift `t ↦ (1, t)` of the coordinate to `ℂ² ∖ 0` (the section
+  `Projectivization.affineLift ℂ i` of the Hopf projection, read on `ℂ`), from the value of `ρ`.
 * `SymplecticGeometry.mpullback_equivProjectivization_fubiniStudyForm`: along Mathlib's
   identification `OnePoint.equivProjectivization` of `OnePoint ℂ` with `ℂP¹`, the map underlying
   Tau Ceti's biholomorphism `OnePoint.diffeomorphProjectivization`, `ω_FS` pulls back to `π` times
@@ -42,6 +48,15 @@ coordinate `x 0` in Lean.
   `SymplecticGeometry.mpullback_diffeomorphSphere_symm_fubiniStudyForm`, and
   `sphereToProjectiveLine` preserves the outward-normal orientation of the sphere and the complex
   orientation of `ℂP¹` (`isOrientationPreservingAt_sphereToProjectiveLine`).
+* `SymplecticGeometry.integralTopForm_fubiniStudyForm_one`: `ω_FS` integrates to `π` over `ℂP¹`
+  with its canonical orientation as a complex manifold, by change of variables along
+  `sphereToProjectiveLine` and the area `4π` of the round sphere.
+* `SymplecticGeometry.integralTopForm_mpullback_map_fubiniStudyForm`: every line of `ℂPⁿ`, the
+  image of `Projectivization.map f hf` for an injective linear `f : ℂ² → ℂⁿ⁺¹`, has area `π`.
+  With `F` the matrix of `f` and `P` an upper triangular matrix such that `F P` has orthonormal
+  columns (`Matrix.exists_isUpperTriangular_conjTranspose_mul_mul_self_eq_one`), `f ∘ P` pulls
+  `ω_FS` back to the form of `ℂP¹` (`mpullback_map_fubiniStudyForm`), and the biholomorphism of
+  `ℂP¹` induced by `P` preserves the canonical orientation and hence the integral.
 
 The comparison at the finite points through `TauCeti.SmoothBundleForm.eq_of_forall_mem_dense`
 follows the proof of Tau Ceti's
@@ -60,6 +75,7 @@ public section
 
 open Metric TauCeti Projectivization ComplexConjugate
 open scoped Manifold ContDiff LinearAlgebra.Projectivization TauCeti.ComplexManifold
+open scoped Matrix ComplexOrder
 
 local notation "ℝ³" => EuclideanSpace ℝ (Fin 3)
 
@@ -73,42 +89,6 @@ namespace SymplecticGeometry
 
 /-! ### The affine formula -/
 
-/-- The lift `t ↦ (1, t)` (for `i = 0`) or `t ↦ (t, 1)` (for `i = 1`) of the affine coordinate
-`i` of `ℂP¹` to `ℂ² ∖ 0`. -/
-private noncomputable def affineLift (i : Fin 2) (t : ℂ) : puncturedSpace (Fin 2 → ℂ) :=
-  ⟨Fin.insertNth i 1 fun _ ↦ t, mem_puncturedSpace.2 (Fin.insertNth_one_ne_zero i _)⟩
-
-private theorem coe_affineLift_apply (i : Fin 2) (t : ℂ) :
-    (affineLift i t : Fin 2 → ℂ) = Fin.insertNth i 1 fun _ ↦ t :=
-  (rfl)
-
-private theorem coe_affineLift (i : Fin 2) :
-    (fun t ↦ (affineLift i t : Fin 2 → ℂ)) =
-      fun t ↦ Fin.insertNth i 1 0 + t • Fin.insertNth i 0 fun _ ↦ 1 := by
-  funext t
-  rw [coe_affineLift_apply]
-  fin_cases i <;> ext k <;> fin_cases k <;> simp
-
-private theorem hasFDerivAt_coe_affineLift (i : Fin 2) (t : ℂ) :
-    HasFDerivAt (fun t ↦ (affineLift i t : Fin 2 → ℂ))
-      ((ContinuousLinearMap.id ℝ ℂ).smulRight (Fin.insertNth i 0 fun _ ↦ (1 : ℂ))) t := by
-  rw [coe_affineLift]
-  exact ((hasFDerivAt_id t).smul_const _).const_add _
-
-private theorem contMDiff_affineLift (i : Fin 2) :
-    ContMDiff 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin 2 → ℂ) ∞ (affineLift i) := by
-  rw [← TauCeti.ContMDiff.subtypeVal_comp_iff]
-  refine ContDiff.contMDiff ?_
-  rw [show Subtype.val ∘ affineLift i = fun t ↦ (affineLift i t : Fin 2 → ℂ) from rfl,
-    coe_affineLift]
-  fun_prop
-
-private theorem mkNonzero_comp_affineLift (i : Fin 2) :
-    mkNonzero ℂ 1 ∘ affineLift i = ProjectiveLine.affineParam i := by
-  funext t
-  simp only [Function.comp_apply, ProjectiveLine.affineParam_eq, mkNonzero_apply,
-    coe_affineLift_apply]
-
 /-- **The Fubini–Study form of `ℂP¹` in an affine coordinate.** Along either affine coordinate
 `ProjectiveLine.affineParam i` of `ℂP¹` (`t ↦ [1 : t]` for `i = 0`, `t ↦ [t : 1]` for `i = 1`),
 the Fubini–Study form pulls back to `Im (conj v * w) / (1 + |t|²)²` at `t`, that is, to
@@ -117,30 +97,35 @@ theorem eval₂_fubiniStudyForm_affineParam (i : Fin 2) (t v w : ℂ) :
     (SmoothForm.mpullback (ProjectiveLine.affineParam i)
         (ProjectiveLine.contMDiff_affineParam_real i) (fubiniStudyForm 1)).eval₂ t v w =
       (conj v * w).im / (1 + ‖t‖ ^ 2) ^ 2 := by
+  -- The affine coordinate lifts to `ℂ² ∖ 0` along `t ↦ Fin.insertNth i 1 (fun _ ↦ t)`: the lift
+  -- `affineLift ℂ i` of the chart after the inclusion `c` of `ℂ` as `Fin 1 → ℂ`.
+  let c : ℂ →L[ℝ] Fin 1 → ℂ := ContinuousLinearMap.pi fun _ ↦ ContinuousLinearMap.id ℝ ℂ
+  have hc : mkNonzero ℂ 1 ∘ affineLift ℂ i ∘ c = ProjectiveLine.affineParam i := by
+    rw [← Function.comp_assoc, mkNonzero_comp_affineLift]
+    funext t
+    simp [ProjectiveLine.affineParam_eq, affineChart_symm_apply, c]
+  have hmd : MDifferentiableAt 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin 2 → ℂ) (affineLift ℂ i ∘ c) t :=
+    ((contMDiff_affineLift ℂ i 1).comp c.contMDiff t).mdifferentiableAt one_ne_zero
   have hd (u : TangentSpace 𝓘(ℝ, ℂ) t) :
-      (mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin 2 → ℂ) (affineLift i) t u : Fin 2 → ℂ) =
-        (show ℂ from u) • Fin.insertNth (α := fun _ ↦ ℂ) i 0 fun _ ↦ 1 := by
-    rw [← TauCeti.Manifold.mvfderiv_subtype_val_apply (affineLift i t)
-        (mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin 2 → ℂ) (affineLift i) t u),
-      ← mvfderiv_comp_apply _ ((contMDiff_subtypeVal _).mdifferentiableAt one_ne_zero)
-        ((contMDiff_affineLift i t).mdifferentiableAt (by simp)), mvfderiv_eq_fderiv_apply]
-    exact congrFun (congrArg DFunLike.coe (hasFDerivAt_coe_affineLift i t).fderiv) u
+      mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin 2 → ℂ) (affineLift ℂ i ∘ c) t u =
+        Fin.insertNth (α := fun _ ↦ ℂ) i 0 (c u) := by
+    rw [mfderiv_comp_apply t ((contMDiff_affineLift ℂ i 1 _).mdifferentiableAt one_ne_zero)
+      c.mdifferentiableAt, ContinuousLinearMap.mfderiv_eq]
+    -- `c u` is read in the tangent space at `c t`, which is the model space `Fin 1 → ℂ`.
+    exact mfderiv_affineLift_apply i (c t) (c u)
   -- Read `v` and `w` as tangent vectors at `t`, so that the chain rule applies to them.
   revert v w
   intro (v : TangentSpace 𝓘(ℝ, ℂ) t) (w : TangentSpace 𝓘(ℝ, ℂ) t)
   refine (SmoothForm.eval₂_mpullback _ _ _ _ v w).trans ?_
-  rw [← mkNonzero_comp_affineLift, mfderiv_comp t
-    ((contMDiff_mkNonzero ℂ 1 1 _).mdifferentiableAt one_ne_zero)
-    ((contMDiff_affineLift i t).mdifferentiableAt (by simp))]
+  rw [← hc, mfderiv_comp t ((contMDiff_mkNonzero ℂ 1 1 _).mdifferentiableAt one_ne_zero) hmd]
   simp only [ContinuousLinearMap.comp_apply, Function.comp_apply]
-  rw [eval₂_fubiniStudyForm_mfderiv_mkNonzero, fubiniStudyLift_apply, hd, hd,
-    coe_affineLift_apply]
-  clear hd
+  rw [eval₂_fubiniStudyForm_mfderiv_mkNonzero, fubiniStudyLift_apply, hd, hd, coe_affineLift]
+  clear hd hmd hc
   -- Read `v` and `w` as complex numbers again, for the computation.
   revert v w
   intro (v : ℂ) (w : ℂ)
   fin_cases i <;>
-    simp [Fin.sum_univ_two, stdComplexSymplecticForm_apply, dotProduct, Complex.sq_norm,
+    simp [c, Fin.sum_univ_two, stdComplexSymplecticForm_apply, dotProduct, Complex.sq_norm,
       Complex.normSq_apply] <;>
     field_simp <;> ring
 
@@ -292,6 +277,57 @@ theorem isOrientationPreservingAt_sphereToProjectiveLine (p : sphere (0 : ℝ³)
   rw [Orientation.sphereOrientation_eq_ofTopForm, ← OnePoint.ofTopForm_fubiniStudyForm]
   exact Manifold.Orientation.isOrientationPreservingAt_ofTopForm_of_mpullback_eq_smul _ _ _ _ _ _
     (by positivity) h
+
+/-! ### The area of a line -/
+
+/-- **The area of `ℂP¹`.** The Fubini–Study form of `ℂP¹ = ℙ ℂ (Fin 2 → ℂ)` integrates to `π`
+over `ℂP¹` with its canonical orientation as a complex manifold. -/
+theorem integralTopForm_fubiniStudyForm_one :
+    integralTopForm projectiveLineOrientation (fubiniStudyForm 1).val = Real.pi := by
+  have he : Topology.IsOpenEmbedding sphereToProjectiveLine := by
+    simpa using sphereToProjectiveLine.toHomeomorph.isOpenEmbedding
+  rw [← he.integralTopForm_mpullback_of_isOrientationPreservingAt
+      isOrientationPreservingAt_sphereToProjectiveLine (by simp),
+    ← SmoothForm.coe_mpullback _ (sphereToProjectiveLine.contMDiff.of_le le_top),
+    mpullback_sphereToProjectiveLine_fubiniStudyForm, Submodule.coe_smul, integralTopForm_smul,
+    Orientation.integralTopForm_sphereOrientation_sphereVolumeForm]
+  ring
+
+/-- **Every complex line in `ℂPⁿ` has area `π`.** For every injective complex-linear map
+`f : ℂ² → ℂⁿ⁺¹`, the pull-back of the Fubini–Study form of `ℂPⁿ` along the induced embedding
+`ℂP¹ → ℂPⁿ`, `[z] ↦ [f z]`, onto the line `ℙ(range f)`, integrates to `π` over `ℂP¹` with its
+canonical orientation as a complex manifold. -/
+theorem integralTopForm_mpullback_map_fubiniStudyForm {n : ℕ}
+    (f : (Fin 2 → ℂ) →ₗ[ℂ] Fin (n + 1) → ℂ) (hf : Function.Injective f) :
+    integralTopForm projectiveLineOrientation
+      (SmoothForm.mpullback (map f hf) (contMDiff_map_restrictScalars f hf ∞)
+        (fubiniStudyForm n)).val = Real.pi := by
+  classical
+  -- Write `f ∘ g = A` with `A` of orthonormal columns and `g` invertible: `A = F P` for the
+  -- matrix `F` of `f` and an upper triangular `P`, the matrix of `g`.
+  set F := LinearMap.toMatrix' f
+  have hF : Function.Injective F.mulVec := fun x y h ↦
+    hf (by simpa only [F, LinearMap.toMatrix'_mulVec] using h)
+  obtain ⟨P, -, hPi, hA⟩ := F.exists_isUpperTriangular_conjTranspose_mul_mul_self_eq_one hF
+  replace hPi : Function.Injective (Matrix.toLin' P) := by
+    rwa [Matrix.toLin'_apply', Matrix.coe_mulVecLin]
+  set Φ := mapDiffeomorph (LinearEquiv.ofInjectiveEndo (Matrix.toLin' P) hPi) ω
+  have hAi : Function.Injective (Matrix.toLin' (F * P)) := by
+    rw [Matrix.toLin'_apply', Matrix.coe_mulVecLin]
+    exact Matrix.mulVec_injective_of_mul_eq_one hA
+  have hcomp : map f hf ∘ Φ = map (Matrix.toLin' (F * P)) hAi := by
+    funext x
+    induction x using ind with
+    | h v hv => simp [Φ, map_mk, F, Matrix.toLin'_mul]
+  have hΦ : Topology.IsOpenEmbedding Φ := by simpa using Φ.toHomeomorph.isOpenEmbedding
+  -- `Φ` is a biholomorphism of `ℂP¹`, so it preserves the canonical orientation.
+  rw [projectiveLineOrientation_def, ← hΦ.integralTopForm_mpullback_of_isOrientationPreservingAt
+      (fun x ↦ (Φ.isOrientationPreservingAt_complexManifoldOrientation ω x).reindex _) (by simp),
+    ← SmoothForm.coe_mpullback _ (by simpa [Φ] using contMDiff_map_restrictScalars _ _ ∞),
+    SmoothForm.mpullback_mpullback]
+  simp only [hcomp, mpullback_map_fubiniStudyForm (F * P) hA]
+  rw [← projectiveLineOrientation_def]
+  exact integralTopForm_fubiniStudyForm_one
 
 end SymplecticGeometry
 
