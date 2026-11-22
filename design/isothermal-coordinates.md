@@ -231,8 +231,11 @@ Imports `CkHolder.lean`, Tau Ceti's `Beltrami/Isothermal.lean`,
   hence `α`-Hölder, on a ball (`ContDiffAt.exists_lipschitzOnWith`,
   `LipschitzOnWith.holderOnWith_of_norm_le`); rescaled and cut off by
   `exists_pos_cutoff_rescale_mem_supportedCkHolderSubmodule` it falls below
-  the `δ` of `exists_isComplexLinear_contDiff_chart`; the chart of the
-  rescaled structure, composed with `z ↦ ε⁻¹ L (z - c)`, is the chart, its
+  the `δ` of `exists_isComplexLinear_contDiff_chart`, which is applied to
+  the structure whose coefficient is the rescaled one at every point
+  (`coefficientEquiv.symm`, as Tau Ceti's `exists_chart_of_norm_lt` does);
+  that chart, restricted to the unit disc, where the cutoff is one, and
+  composed with `z ↦ ε⁻¹ L (z - c)`, is the chart, its
   equation transported by `isComplexLinear_comp_linearMap_iff`. These are
   the steps of Tau Ceti's `exists_isothermal_chart` with `C^m` in place of
   Hölder; the docstring credits it and its private
