@@ -6,7 +6,6 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.AlgebraicTopology.Cohomology.CompactSupport.Euclidean.Duality
-public import SymplecticGeometry.AlgebraicTopology.Cohomology.CompactSupport.Manifold
 
 /-!
 # Poincaré duality for manifolds
@@ -29,12 +28,9 @@ open sets of `M` lying in one chart in place of those with convex image, as the 
 Such open sets are closed under intersection
 (`TopologicalSpace.Opens.infClosed_setOf_subset_chartAt_source`), and each embeds openly into `E`
 through its chart (`OpenPartialHomeomorph.isOpenEmbedding_comp`), so that duality holds for them
-by `TauCeti.HomologicalOrientation.bijective_dualityMap_of_isOpenEmbedding`. Their finite unions
-cover `M` (`TopologicalSpace.Opens.iSup_finset_sup_subset_chartAt_source_eq_top`), and
-`Hⁿ⁺¹_c(W) = 0` for every open set `W` of `M`, by
-`TopCat.isZero_compactSupportCohomology_of_chartedSpace` applied to the manifold `W`, so duality
-holds on `M` by the Mayer–Vietoris induction
-`TauCeti.HomologicalOrientation.bijective_dualityMap_of_infClosed`.
+by `TauCeti.HomologicalOrientation.bijective_dualityMap_of_isOpenEmbedding`. They cover `M`
+(`TopologicalSpace.Opens.sSup_setOf_subset_chartAt_source_eq_top`), so duality holds on `M` by
+the Mayer–Vietoris induction `TauCeti.HomologicalOrientation.bijective_dualityMap_of_infClosed`.
 
 ## Main results
 
@@ -42,13 +38,6 @@ holds on `M` by the Mayer–Vietoris induction
   manifold.
 * `TauCeti.HomologicalOrientation.bijective_singularCap_fundamentalClass`: Poincaré duality for a
   compact oriented manifold, as capping with the fundamental class.
-
-## Implementation notes
-
-The duality maps are stated with the `ℤ`-linear structure of `ModuleCat ℤ` as a preadditive
-category, while the vanishing theorem is proved for the structure of a category of modules; the
-two agree since a `ℤ`-module structure is unique (`CategoryTheory.Linear.subsingletonInt`), as in
-`TauCeti.HomologicalOrientation.bijective_dualityMap_of_isOpenEmbedding`.
 
 ## References
 
@@ -78,16 +67,10 @@ group `L`. -/
 theorem bijective_dualityMap {p q : ℕ} (h : p + q = n) :
     Function.Bijective (o.dualityMap hn L p q h) := by
   refine o.bijective_dualityMap_of_infClosed hn L (Opens.infClosed_setOf_subset_chartAt_source E)
-    (Opens.iSup_finset_sup_subset_chartAt_source_eq_top E) ?_ (fun W ↦ ?_) h
-  · rintro W ⟨x, hx⟩ p q h
-    exact (o.comap W.isOpenEmbedding').bijective_dualityMap_of_isOpenEmbedding hn L
-      ((chartAt E x).isOpenEmbedding_comp W.isOpenEmbedding' (by rwa [Subtype.range_coe])) h
-  · -- `TopCat.isZero_compactSupportCohomology_of_chartedSpace` uses the `ℤ`-linear structure
-    -- of `ModuleCat ℤ` as a category of modules; it agrees with the one of a preadditive
-    -- category used here, as a `ℤ`-module structure is unique.
-    have := Linear.subsingletonInt (ModuleCat.{0} ℤ)
-    convert TopCat.isZero_compactSupportCohomology_of_chartedSpace
-      (ModuleCat.of ℤ (ULift ℤ : Type)) L (F := E) (M := W) (show finrank ℝ E < n + 1 by omega)
+    (Opens.sSup_setOf_subset_chartAt_source_eq_top E) ?_ h
+  rintro W ⟨x, hx⟩ p q h
+  exact (o.comap W.isOpenEmbedding').bijective_dualityMap_of_isOpenEmbedding hn L
+    ((chartAt E x).isOpenEmbedding_comp W.isOpenEmbedding' (by rwa [Subtype.range_coe])) h
 
 /-- **Poincaré duality for a compact manifold.** For a compact homologically oriented
 `n`-manifold `M` without boundary, capping with the fundamental class,

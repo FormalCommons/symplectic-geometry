@@ -13,7 +13,7 @@ public import TauCeti.Geometry.Symplectic.Manifold.Nijenhuis
 import Mathlib.Geometry.Manifold.MFDeriv.Tangent
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Chart
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
-import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.MFDeriv
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 import TauCeti.Geometry.Manifold.MFDeriv.RestrictScalars
 import TauCeti.Geometry.Symplectic.Finrank
 import TauCeti.Geometry.Manifold.VectorField.LieBracket
@@ -40,6 +40,11 @@ On a real surface, a structure is integrable exactly when isothermal charts of t
 atlas cover the surface; in particular integrable structures have isothermal charts in the sense of
 Tau Ceti's `SmoothAlmostComplexStructure.HasIsothermalCharts`.
 
+A linear complex structure `J₀` of the model with which all tangent coordinate changes commute
+defines a constant almost complex structure, `ofTangentCoordChange`; its construction follows Tau
+Ceti's `SmoothAlmostComplexStructure.ofTangentCoordChangeISMul`, the case of multiplication by
+`i`. On a manifold modelled on the vector space itself it is integrable.
+
 ## Main declarations
 
 * `TauCeti.SmoothAlmostComplexStructure.IsIntegrable`: integrability of a smooth almost complex
@@ -48,6 +53,10 @@ Tau Ceti's `SmoothAlmostComplexStructure.HasIsothermalCharts`.
   that is a local diffeomorphism at the point.
 * `TauCeti.SmoothAlmostComplexStructure.isIntegrable_ofComplexManifold`: the almost complex
   structure of a complex manifold is integrable.
+* `TauCeti.SmoothAlmostComplexStructure.ofTangentCoordChange` and
+  `TauCeti.SmoothAlmostComplexStructure.isIntegrable_ofTangentCoordChange`: the constant structure
+  of a complex structure of the model that commutes with the changes of coordinates, and its
+  integrability.
 * `TauCeti.SmoothAlmostComplexStructure.IsIntegrable.pullback`: integrability is invariant under
   pullback along a diffeomorphism.
 * `TauCeti.SmoothAlmostComplexStructure.IsIntegrable.nijenhuis_eq_zero`: the Nijenhuis tensor of
@@ -167,29 +176,6 @@ theorem IsIntegrable.nijenhuis_eq_zero [FiniteDimensional ℝ E]
   rw [hsurj, hsurj] at h
   simpa using h
 
-/-- Following a smooth chart `ψ` into `G` whose derivative carries `J` to `J₀` by a continuous
-linear equivalence `L : G ≃L[ℝ] G'` gives a chart whose derivative carries `J` to the transport of
-`J₀` along `L`, at every point of its source. -/
-theorem mfderiv_trans_toDiffeomorph_apply_eq_transport {G G' : Type*} [NormedAddCommGroup G]
-    [NormedSpace ℝ G] [NormedAddCommGroup G'] [NormedSpace ℝ G']
-    {ψ : PartialDiffeomorph I 𝓘(ℝ, G) M G ∞} {J₀ : AlmostComplexStructure G}
-    (hψ : ∀ y ∈ ψ.source, ∀ v : TangentSpace I y,
-      mfderiv I 𝓘(ℝ, G) ψ y (J y v) = J₀ (mfderiv I 𝓘(ℝ, G) ψ y v)) (L : G ≃L[ℝ] G') :
-    ∀ y ∈ (ψ.trans L.toDiffeomorph.toPartialDiffeomorph).source, ∀ v : TangentSpace I y,
-      mfderiv I 𝓘(ℝ, G') (ψ.trans L.toDiffeomorph.toPartialDiffeomorph) y (J y v) =
-        J₀.transport L.toLinearEquiv
-          (mfderiv I 𝓘(ℝ, G') (ψ.trans L.toDiffeomorph.toPartialDiffeomorph) y v) := by
-  intro y hy v
-  have hy' : y ∈ ψ.source := by simpa using hy
-  have hd (u : TangentSpace I y) :
-      mfderiv I 𝓘(ℝ, G') (ψ.trans L.toDiffeomorph.toPartialDiffeomorph) y u =
-        L (mfderiv I 𝓘(ℝ, G) ψ y u) := by
-    rw [← mvfderiv_apply_eq_mfderiv_apply, ← mvfderiv_apply_eq_mfderiv_apply,
-      ψ.mvfderiv_trans_toDiffeomorph L hy', ContinuousLinearMap.comp_apply,
-      ContinuousLinearEquiv.coe_coe]
-  rw [hd, hd, hψ y hy' v, AlmostComplexStructure.transport_apply]
-  exact congrArg (fun z : G ↦ L (J₀ z)) (L.symm_apply_apply _).symm
-
 /-- Following a smooth chart `ψ` into `G` whose derivative carries `J` to `J₀` by a partial
 diffeomorphism `Θ` from `G` to `G'` whose derivative carries `J₀` to `J₁` at every point of its
 source gives a chart whose derivative carries `J` to `J₁` at every point of its source. -/
@@ -214,6 +200,21 @@ theorem mfderiv_trans_apply_eq_of_fderiv_apply_eq {G G' : Type*} [NormedAddCommG
     rfl
   rw [hd, hd, hψ y hy.1 v]
   exact hΘ _ hy.2 _
+
+/-- Following a smooth chart `ψ` into `G` whose derivative carries `J` to `J₀` by a continuous
+linear equivalence `L : G ≃L[ℝ] G'` gives a chart whose derivative carries `J` to the transport of
+`J₀` along `L`, at every point of its source. -/
+theorem mfderiv_trans_toDiffeomorph_apply_eq_transport {G G' : Type*} [NormedAddCommGroup G]
+    [NormedSpace ℝ G] [NormedAddCommGroup G'] [NormedSpace ℝ G']
+    {ψ : PartialDiffeomorph I 𝓘(ℝ, G) M G ∞} {J₀ : AlmostComplexStructure G}
+    (hψ : ∀ y ∈ ψ.source, ∀ v : TangentSpace I y,
+      mfderiv I 𝓘(ℝ, G) ψ y (J y v) = J₀ (mfderiv I 𝓘(ℝ, G) ψ y v)) (L : G ≃L[ℝ] G') :
+    ∀ y ∈ (ψ.trans L.toDiffeomorph.toPartialDiffeomorph).source, ∀ v : TangentSpace I y,
+      mfderiv I 𝓘(ℝ, G') (ψ.trans L.toDiffeomorph.toPartialDiffeomorph) y (J y v) =
+        J₀.transport L.toLinearEquiv
+          (mfderiv I 𝓘(ℝ, G') (ψ.trans L.toDiffeomorph.toPartialDiffeomorph) y v) :=
+  J.mfderiv_trans_apply_eq_of_fderiv_apply_eq hψ fun _ _ w ↦ by
+    simp [ContinuousLinearEquiv.fderiv]
 
 /-- **Integrability is invariant under pullback.** The pullback of an integrable almost complex
 structure along a diffeomorphism is integrable. -/
@@ -265,6 +266,88 @@ theorem isIntegrable_of_forall_mem_maximalAtlas {J : SmoothAlmostComplexStructur
       hJ⟩
 
 end ModelSpace
+
+section Constant
+
+variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
+  (I : ModelWithCorners ℝ E H) [TopologicalSpace M] [ChartedSpace H M] [IsManifold I ∞ M]
+  (J₀ : E →L[ℝ] E)
+
+/-- In the tangent coordinates of the chart at `x₀`, the constant section `J₀` is `J₀` on the
+whole chart domain, when the tangent coordinate changes commute with `J₀`. -/
+private theorem inTangentCoordinates_const
+    (h : ∀ {x y z : M}, z ∈ (chartAt H x).source ∩ (chartAt H y).source → ∀ v : E,
+      tangentCoordChange I x y z (J₀ v) = J₀ (tangentCoordChange I x y z v))
+    {x₀ x : M} (hx : x ∈ (chartAt H x₀).source) :
+    inTangentCoordinates I I id id
+        (fun x : M ↦ (J₀ : TangentSpace I x →L[ℝ] TangentSpace I x)) x₀ x = J₀ := by
+  refine (inTangentCoordinates_eq (I := I) (I' := I) id id _ hx hx).trans
+    (ContinuousLinearMap.ext fun v ↦ ?_)
+  have hx' : x ∈ (extChartAt I x₀).source ∩ (extChartAt I x).source ∩
+      (extChartAt I x₀).source := by
+    simp [hx]
+  simp only [ContinuousLinearMap.comp_apply]
+  exact (h ⟨mem_chart_source H x, hx⟩ _).trans
+    (congrArg J₀ ((tangentCoordChange_comp hx').trans (tangentCoordChange_self (by simp [hx]))))
+
+/-- The constant section `J₀` of the tangent bundle, for a linear complex structure `J₀` of the
+model space with which all tangent coordinate changes commute, as a smooth almost complex
+structure. -/
+def ofTangentCoordChange (hJ₀ : ∀ v, J₀ (J₀ v) = -v)
+    (h : ∀ {x y z : M}, z ∈ (chartAt H x).source ∩ (chartAt H y).source → ∀ v : E,
+      tangentCoordChange I x y z (J₀ v) = J₀ (tangentCoordChange I x y z v)) :
+    SmoothAlmostComplexStructure I M where
+  toEndomorphism :=
+    ⟨fun _ ↦ J₀, fun x₀ ↦ by
+      -- In the tangent coordinates at `x₀`, the section is constantly `J₀` near `x₀`.
+      rw [contMDiffAt_hom_bundle]
+      refine ⟨contMDiffAt_id, (contMDiffAt_const (c := J₀)).congr_of_eventuallyEq ?_⟩
+      filter_upwards [(chartAt H x₀).open_source.mem_nhds (mem_chart_source H x₀)] with x hx
+      exact inTangentCoordinates_const I J₀ h hx⟩
+  square_neg _ := ContinuousLinearMap.ext hJ₀
+
+variable {I J₀}
+
+theorem ofTangentCoordChange_apply {hJ₀ : ∀ v, J₀ (J₀ v) = -v}
+    {h : ∀ {x y z : M}, z ∈ (chartAt H x).source ∩ (chartAt H y).source → ∀ v : E,
+      tangentCoordChange I x y z (J₀ v) = J₀ (tangentCoordChange I x y z v)} (x : M)
+    (v : TangentSpace I x) :
+    ofTangentCoordChange I J₀ hJ₀ h x v = J₀ v :=
+  (rfl)
+
+/-- The almost complex structure `ofTangentCoordChange` is `J₀` on every tangent space, as an
+endomorphism. -/
+theorem toEndomorphism_ofTangentCoordChange {hJ₀ : ∀ v, J₀ (J₀ v) = -v}
+    {h : ∀ {x y z : M}, z ∈ (chartAt H x).source ∩ (chartAt H y).source → ∀ v : E,
+      tangentCoordChange I x y z (J₀ v) = J₀ (tangentCoordChange I x y z v)} (x : M) :
+    (ofTangentCoordChange I J₀ hJ₀ h).toEndomorphism x =
+      (J₀ : TangentSpace I x →L[ℝ] TangentSpace I x) :=
+  ContinuousLinearMap.ext fun v ↦ ofTangentCoordChange_apply x v
+
+/-- In the tangent coordinates of the chart at any point `x₀`, the almost complex structure
+`ofTangentCoordChange` is `J₀` on the whole chart domain. -/
+theorem inTangentCoordinates_ofTangentCoordChange {hJ₀ : ∀ v, J₀ (J₀ v) = -v}
+    {h : ∀ {x y z : M}, z ∈ (chartAt H x).source ∩ (chartAt H y).source → ∀ v : E,
+      tangentCoordChange I x y z (J₀ v) = J₀ (tangentCoordChange I x y z v)} {x₀ x : M}
+    (hx : x ∈ (chartAt H x₀).source) :
+    inTangentCoordinates I I id id
+        (fun x ↦ (ofTangentCoordChange I J₀ hJ₀ h).toEndomorphism x) x₀ x = J₀ :=
+  inTangentCoordinates_const I J₀ h hx
+
+/-- On a manifold modelled on `E` itself, the constant structure `J₀` is integrable: in every
+chart it is `J₀`. -/
+theorem isIntegrable_ofTangentCoordChange [ChartedSpace E M] [IsManifold 𝓘(ℝ, E) ∞ M]
+    (hJ₀ : ∀ v, J₀ (J₀ v) = -v)
+    (h : ∀ {x y z : M}, z ∈ (chartAt E x).source ∩ (chartAt E y).source → ∀ v : E,
+      tangentCoordChange 𝓘(ℝ, E) x y z (J₀ v) = J₀ (tangentCoordChange 𝓘(ℝ, E) x y z v)) :
+    (ofTangentCoordChange 𝓘(ℝ, E) J₀ hJ₀ h).IsIntegrable :=
+  isIntegrable_of_forall_mem_maximalAtlas fun x ↦
+    ⟨chartAt E x, IsManifold.chart_mem_maximalAtlas x, mem_chart_source E x,
+      ⟨J₀.toLinearMap, LinearMap.ext hJ₀⟩, fun y hy v ↦ by
+        rw [mfderiv_chartAt_eq_tangentCoordChange hy, ofTangentCoordChange_apply]
+        exact h ⟨mem_chart_source E y, hy⟩ v⟩
+
+end Constant
 
 section ComplexManifold
 

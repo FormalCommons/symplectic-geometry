@@ -35,8 +35,8 @@ besides duality itself, in the induction over convex open sets of Hatcher's Lemm
 induction, run for vanishing alone, gives `Hⁿ_c(U) = 0` for `n > finrank ℝ F` and every `U` that
 embeds openly in `F` (`TopCat.isZero_compactSupportCohomology_of_isOpenEmbedding`): it holds for
 the open sets of `U` with convex image, which are closed under intersection
-(`TopologicalSpace.Opens.infClosed_setOf_convex_image`) and whose finite unions cover `U`
-(`Topology.IsOpenEmbedding.iSup_finset_sup_convex_image_eq_top`), so it holds on `U` by
+(`TopologicalSpace.Opens.infClosed_setOf_convex_image`) and which cover `U`
+(`Topology.IsOpenEmbedding.sSup_setOf_convex_image_eq_top`), so it holds on `U` by
 `TopCat.isZero_compactSupportCohomology_of_infClosed`.
 
 ## Main results
@@ -130,7 +130,7 @@ theorem isZero_compactSupportCohomology_of_isOpenEmbedding {j : U → F} (hj : I
     IsZero ((of U).compactSupportCohomology R k N n) := by
   have := hj.isEmbedding.t2Space
   refine isZero_compactSupportCohomology_of_infClosed R k N
-    (Opens.infClosed_setOf_convex_image hj.injective) hj.iSup_finset_sup_convex_image_eq_top
+    (Opens.infClosed_setOf_convex_image hj.injective) hj.sSup_setOf_convex_image_eq_top
     (fun W _ m hm ↦ ?_) hn
   refine isZero_compactSupportCohomology_of_convex R N (hj.comp W.isOpenEmbedding') ?_ (by omega)
   rwa [range_comp, Subtype.range_coe]
