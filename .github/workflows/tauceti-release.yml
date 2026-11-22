@@ -47,7 +47,8 @@ jobs:
           fi
           # What the audited commit has and the pinned one does not: behind_by
           # counts the commits of the pinned one's history that the audited
-          # one's lacks, and there are none while the pin is an audited commit.
+          # one's lacks, and there are none while the pin is an audited commit
+          # (CI's setup check sees to that when the pin moves).
           gh api "repos/TauCetiProject/TauCeti/compare/$pinned...$audited" >"$RUNNER_TEMP/compare.json"
           [ "$(jq '.behind_by' "$RUNNER_TEMP/compare.json")" = 0 ] ||
             { echo "::error::the pinned commit $pinned is not at or behind Tau Ceti's security-audit, $audited"; exit 1; }
@@ -56,7 +57,7 @@ jobs:
           # A move is for a change to what the library builds on. The
           # comparison lists at most 300 files, so a full list counts as one.
           listed=$(jq '.files | length' "$RUNNER_TEMP/compare.json")
-          used=$(jq '[.files[].filename | select(test("^(TauCeti/|TauCeti\\.lean$|lean-toolchain$|lake-manifest\\.json$)"))] | length' "$RUNNER_TEMP/compare.json")
+          used=$(jq '[.files[] | .filename, (.previous_filename // empty) | select(test("^(TauCeti/|TauCeti\\.lean$|lean-toolchain$|lake-manifest\\.json$|lakefile\\.(toml|lean)$)"))] | length' "$RUNNER_TEMP/compare.json")
           if [ "$used" = 0 ] && [ "$listed" -lt 300 ]; then
             echo "Tau Ceti's audit is at $audited, $ahead commits on, with no change to its library, toolchain or dependencies"
             exit 0
@@ -64,13 +65,14 @@ jobs:
           short=${audited:0:12}
           # Only this workflow's issues count: anyone can open and close an
           # issue in a public repository, but only the project can close the
-          # workflow's.
+          # workflow's. --author keeps the limit for them alone; in the
+          # answer the author's login is app/github-actions.
           ours='.[] | select(.author.login == "app/github-actions") | .title'
-          if gh issue list --state open --limit 1000 --json author,title --jq "$ours" | grep -q '^Move Tau Ceti to '; then
+          if gh issue list --author "github-actions[bot]" --state open --limit 1000 --json author,title --jq "$ours" | grep -q '^Move Tau Ceti to '; then
             echo "a move of Tau Ceti is open already"
             exit 0
           fi
-          if gh issue list --state closed --limit 1000 --json author,title --jq "$ours" | grep -qxF "Move Tau Ceti to $short"; then
+          if gh issue list --author "github-actions[bot]" --state closed --limit 1000 --json author,title --jq "$ours" | grep -qxF "Move Tau Ceti to $short"; then
             echo "the move to $short was closed, which skips it"
             exit 0
           fi
@@ -83,10 +85,12 @@ jobs:
           1. In \`lakefile.toml\`, set Tau Ceti's \`rev\` to \`$audited\`, with no comment after it. Change nothing else in the file.
           2. Set \`lean-toolchain\` to \`$toolchain\`, Tau Ceti's at that commit.
           3. Run \`lake update TauCeti\`. \`lake-manifest.json\` then pins Tau Ceti at that commit, and every other package as Tau Ceti's own manifest does; CI checks this.
-          4. Build, and fix what breaks in the library, in the same pull request, however large: main must build at every commit, so a move is never split. Tau Ceti keeps no deprecated names, so the library follows renamed and removed declarations. Where Tau Ceti now has a declaration under the name of one of the library's, remove the library's if Tau Ceti's says the same, and rename the library's if not.
-          5. Delete each \`FromTauCeti.lean\` whose declarations Tau Ceti has at this commit, and import Tau Ceti's file where the library imported it.
+          4. Build, and fix what breaks in the library, in the same pull request, however large: main must build at every commit, so a move is never split. Tau Ceti keeps no deprecated names, so the library follows renamed and removed declarations. Where Tau Ceti now has a declaration under the name of one of the library's own, remove the library's if Tau Ceti's says the same, and rename the library's if not.
+          5. The files taken from Tau Ceti have Tau Ceti's header, not the library's: a copy at Tau Ceti's path, or a sibling \`FromTauCeti.lean\` (\`AGENTS.md\`, *Files*). Delete each of them all of whose declarations Tau Ceti has at this commit, whether or not it breaks the build, and import Tau Ceti's file where the library imported the copy. Leave the others as they are, names included.
 
           Move to this commit even if Tau Ceti's audit moves on meanwhile: this workflow opens the next move once this issue is closed. Closing this issue without a move skips this commit.
+
+          The audit says nothing of whether Tau Ceti builds. If the Tau Ceti modules that the library imports do not build at this commit, open no pull request: comment here what fails, label this issue \`needs-human\`, and stop. A maintainer then closes it.
 
           Opened by the tauceti-release workflow.
           EOF

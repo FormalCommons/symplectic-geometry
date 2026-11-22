@@ -313,7 +313,7 @@ code, by the rules above:
   counterexample that shows it is needed.
 - A change to `lakefile.toml`, `lake-manifest.json` or `lean-toolchain`
   belongs to a move of Tau Ceti or to a maintainer's issue. A move changes
-  only Tau Ceti's `rev` and its comment, the toolchain and the
+  only the line of Tau Ceti's `rev`, the toolchain and the
   manifest, as CI's setup check enforces, and fixes the library in the same
   pull request.
 - A pull request that only adds an unresolved entry to `ERRATA.md`, and is

@@ -18,29 +18,48 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       # The setup follows Tau Ceti. lakefile.toml must be .github/lakefile.toml
-      # but for Tau Ceti's rev, which must be a commit that Tau Ceti's security
-      # audit has passed: one at or behind its branch security-audit, which
-      # only moves forward along its main branch (docs/security-audit.md
-      # there). lean-toolchain, and every other package in
+      # but for Tau Ceti's rev; lean-toolchain, and every other package in
       # lake-manifest.json, must be as Tau Ceti has them at that commit. So a
-      # move of Tau Ceti can change only that. This reads files and runs
-      # nothing from them.
+      # move of Tau Ceti can change only that. A move goes forward to a commit
+      # that Tau Ceti's security audit has inspected: its branch
+      # security-audit marks how far along the first-parent history of its
+      # main branch the audit has come (docs/security-audit.md there), and the
+      # new rev must be on that history, after the base branch's rev and at or
+      # behind the branch. This reads files and runs nothing from them.
       - name: check the setup
         env:
           GH_TOKEN: ${{ github.token }}
+          BASE: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha }}
         run: |
           set -euo pipefail
           # Lake would read a lakefile.lean instead of lakefile.toml.
           [ ! -e lakefile.lean ] || { echo "::error::the setup is lakefile.toml; remove lakefile.lean"; exit 1; }
-          tauceti() { sed -E 's/^rev = "[0-9a-f]{40}"( # tag v[0-9]+\.[0-9]+\.[0-9]+(-rc[0-9]+)?(\+patch[0-9]+)?)?$/rev = (Tau Ceti)/' "$1"; }
+          # A rev has no comment after it, but for the one that was a version
+          # tag's, which keeps its own until the first move.
+          tauceti() { sed -E 's/^rev = "([0-9a-f]{40}"|e0e414ce57522ba17560057ad0d7f2edab91bf0c" # tag v4\.37\.0-rc1)$/rev = (Tau Ceti)/' "$1"; }
           diff <(tauceti .github/lakefile.toml) <(tauceti lakefile.toml) ||
             { echo "::error::lakefile.toml differs from .github/lakefile.toml in more than Tau Ceti's rev"; exit 1; }
           pin=$(sed -nE 's/^rev = "([0-9a-f]{40})".*/\1/p' lakefile.toml)
-          # behind_by counts the commits of the pin's history that
-          # security-audit's lacks. A commit GitHub does not know gives no
-          # number, and fails too.
-          [ "$(gh api "repos/TauCetiProject/TauCeti/compare/$pin...security-audit" --jq '.behind_by' || true)" = 0 ] ||
-            { echo "::error::Tau Ceti's rev $pin is not at or behind Tau Ceti's branch security-audit"; exit 1; }
+          # The base branch's rev passed this check when it was set, so only
+          # a pull request that changes it, a move, is checked further.
+          was=$(gh api "repos/$GITHUB_REPOSITORY/contents/lakefile.toml?ref=$BASE" -H "Accept: application/vnd.github.raw" |
+            sed -nE 's/^rev = "([0-9a-f]{40})".*/\1/p' || true)
+          [[ -n $BASE && $was =~ ^[0-9a-f]{40}$ ]] || { echo "::error::no rev of Tau Ceti's in the base branch's lakefile.toml"; exit 1; }
+          if [ "$pin" != "$was" ]; then
+            # The commits of security-audit's history that are no older than
+            # the base branch's rev, without their files. Those along the
+            # first parents, down to that rev, are the audited commits a move
+            # can go to: not a commit of a branch that main merged, which the
+            # audit did not inspect as it is, and not an earlier commit.
+            since=$(gh api "repos/TauCetiProject/TauCeti/commits/$was" --jq '.commit.committer.date')
+            git init -q --bare "$RUNNER_TEMP/tauceti.git"
+            git -C "$RUNNER_TEMP/tauceti.git" fetch -q --filter=tree:0 --shallow-since="$since" \
+              https://github.com/TauCetiProject/TauCeti security-audit ||
+              { echo "::error::could not fetch Tau Ceti's branch security-audit since $since, the date of the base branch's rev $was"; exit 1; }
+            git -C "$RUNNER_TEMP/tauceti.git" rev-list --first-parent FETCH_HEAD |
+              awk -v pin="$pin" -v was="$was" '$0 == pin { p = NR } $0 == was { w = NR } END { exit !(p && w && p < w) }' ||
+              { echo "::error::Tau Ceti's rev $pin is not on the first-parent history of Tau Ceti's branch security-audit after the base branch's rev $was"; exit 1; }
+          fi
           upstream() { gh api "repos/TauCetiProject/TauCeti/contents/$1?ref=$pin" -H "Accept: application/vnd.github.raw"; }
           [ "$(cat lean-toolchain)" = "$(upstream lean-toolchain)" ] ||
             { echo "::error::lean-toolchain differs from Tau Ceti's at $pin"; exit 1; }
