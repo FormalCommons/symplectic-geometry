@@ -24,7 +24,8 @@ of the line `x` is its coordinate `w i`, and these coordinates change from chart
   of `𝒪(-1)` at `x`, which sends `w` to its coordinate `w c` for the preferred chart `c` of
   `𝒪(-1)` at `x`.
 * `Projectivization.twistCore_localTriv_tautologicalTwistCoreEquiv`: in the chart `i` of `𝒪(-1)`,
-  over `U_i`, it sends `w` to `w i`.
+  at every point, it sends `w` to `w i`; `simp` proves it through its form in the coordinate
+  changes, `twistCore_coordChange_indexAt_tautologicalTwistCoreEquiv`.
 * `Projectivization.continuous_tautologicalTwistCoreEquiv` and
   `Projectivization.continuous_tautologicalTwistCoreEquiv_symm`: it is continuous on total spaces
   in both directions.
@@ -87,17 +88,26 @@ def tautologicalTwistCoreEquiv (x : ℙ 𝕜 (Fin (n + 1) → 𝕜)) :
     refine Continuous.subtype_mk ?_ _
     fun_prop
 
-@[simp]
 theorem tautologicalTwistCoreEquiv_apply (x : ℙ 𝕜 (Fin (n + 1) → 𝕜))
     (w : Tautological 𝕜 (Fin (n + 1) → 𝕜) x) :
     tautologicalTwistCoreEquiv x w = (w : Fin (n + 1) → 𝕜) ((twistCore (-1)).indexAt x) := by
   rfl
 
-@[simp]
 theorem coe_tautologicalTwistCoreEquiv_symm_apply (x : ℙ 𝕜 (Fin (n + 1) → 𝕜)) (a : 𝕜) :
     ((tautologicalTwistCoreEquiv x).symm a : Fin (n + 1) → 𝕜) =
       a • normalizedRep (LinearMap.proj ((twistCore (𝕜 := 𝕜) (-1)).indexAt x)) x := by
   rfl
+
+/-- The coordinate change of `𝒪(-1)` from its preferred chart at `x` to the chart `i` sends
+the image of a vector `w` of the line under `tautologicalTwistCoreEquiv` to its coordinate
+`w i`. This is the simp normal form of `twistCore_localTriv_tautologicalTwistCoreEquiv`. -/
+@[simp]
+theorem twistCore_coordChange_indexAt_tautologicalTwistCoreEquiv (i : Fin (n + 1))
+    {x : ℙ 𝕜 (Fin (n + 1) → 𝕜)} (w : Tautological 𝕜 (Fin (n + 1) → 𝕜) x) :
+    (twistCore (-1)).coordChange ((twistCore (-1)).indexAt x) i x
+        (tautologicalTwistCoreEquiv x w) = (w : Fin (n + 1) → 𝕜) i := by
+  simp only [twistCore_coordChange_apply, tautologicalTwistCoreEquiv_apply]
+  exact twistTransition_neg_one_mul i (mem_affineOpen_twistCore_indexAt (-1) x) w.property
 
 /-- **`tautologicalTwistCoreEquiv` in the standard charts.** Read through the chart `i` of
 `𝒪(-1)`, `tautologicalTwistCoreEquiv` sends a vector `w` of the line to its coordinate `w i`. -/
@@ -105,9 +115,7 @@ theorem twistCore_localTriv_tautologicalTwistCoreEquiv (i : Fin (n + 1))
     {x : ℙ 𝕜 (Fin (n + 1) → 𝕜)} (w : Tautological 𝕜 (Fin (n + 1) → 𝕜) x) :
     ((twistCore (-1)).localTriv i ⟨x, tautologicalTwistCoreEquiv x w⟩).2 =
       (w : Fin (n + 1) → 𝕜) i := by
-  simp only [VectorBundleCore.localTriv_apply, twistCore_coordChange_apply,
-    tautologicalTwistCoreEquiv_apply]
-  exact twistTransition_neg_one_mul i (mem_affineOpen_twistCore_indexAt (-1) x) w.property
+  simp
 
 /-- Over the standard affine open `U_i`, the inverse of `tautologicalTwistCoreEquiv` sends a
 vector of `𝒪(-1)` to its coordinate in the chart `i` times the representative of the line whose
