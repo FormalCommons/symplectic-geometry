@@ -7,6 +7,7 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Hermitian.CircleBundle
 public import SymplecticGeometry.Analysis.Complex.NormalizedDeterminant
+import SymplecticGeometry.GroupTheory.GroupAction.Hom
 
 /-!
 # Frames of a Hermitian line bundle from sections of its circle bundle
@@ -70,7 +71,7 @@ theorem unitFrame_apply {x : B} (φ : Fiber ℂ F E ℂ x) (v : F) :
 /-- The frame `unitFrame e φ` sends `v` to `e v • φ 1`. -/
 theorem unitFrame_apply_eq_smul {x : B} (φ : Fiber ℂ F E ℂ x) (v : F) :
     unitFrame e φ v = e v • φ.frame 1 := by
-  rw [unitFrame_apply, ← map_smul, smul_eq_mul, mul_one]
+  rw [unitFrame_apply, map_eq_smul_map_one]
 
 /-- The inverse of `unitFrame e φ` sends `w` to `e⁻¹ (φ⁻¹ w)`. -/
 @[simp]
