@@ -1077,6 +1077,13 @@ issues, in an order where each issue's blockers come before it.
    (`Circle.singularHomologyOne_prod_ext`). It imports
    `DiscreteProd.lean` and derives this from its sum decomposition, with
    `X = Circle`, degree 1 and coefficients `ULift ℤ`.
+   `AlgebraicTopology/Singular/LocalHomology/DiscComplement/BoundaryDegree.lean`,
+   beside `DiscComplement/Basic.lean`, which it imports with
+   `HolomorphicZero.lean` and `DisjointCircles.lean`, for the signs of the
+   boundary circles:
+   `SymplecticGeometry.boundaryDegree_prodRetraction_comp_discComplementBoundaryHomeomorph_symm`,
+   the map `∂X → Circle` that is `Circle.prodRetraction i` read through
+   `discComplementBoundaryHomeomorph` has boundary degree $-1$.
    `AlgebraicTopology/Singular/Nullhomotopic.lean`, for the homology of
    the boundary circles: a nullhomotopic map induces zero on singular
    homology in positive degree
