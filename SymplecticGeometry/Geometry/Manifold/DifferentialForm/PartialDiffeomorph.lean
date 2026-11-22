@@ -61,10 +61,11 @@ which is meaningful on `ψ.target`.
   `TauCeti.SmoothForm.extendByZeroAlong`. Both versions are linear in `a`
   (`extendByZeroAlong_zero`, `_add`, `_smul`, `_neg` and `_sub`).
 * `PartialDiffeomorph.tsupport_indicator_comp_symm_subset`,
-  `PartialDiffeomorph.hasCompactSupport_indicator_comp_symm` and
-  `PartialDiffeomorph.continuous_indicator_comp_symm`: a cutoff `χ` on `M` whose support is
+  `PartialDiffeomorph.hasCompactSupport_indicator_comp_symm`,
+  `PartialDiffeomorph.continuous_indicator_comp_symm` and
+  `PartialDiffeomorph.contDiff_indicator_comp_symm`: a cutoff `χ` on `M` whose support is
   compact and lies in `ψ.source`, read in `ψ` and extended by `0` off `ψ.target`, is supported in
-  `ψ '' tsupport χ`, so has compact support, and is continuous when `χ` is.
+  `ψ '' tsupport χ`, so has compact support, and is continuous, or `C^n`, when `χ` is.
 * `TauCeti.SmoothForm.localize ψ χ α`: in the other direction, the flat form on `E` that is the
   reading of a smooth form `α` in `ψ`, scaled by `χ ∘ ψ.symm` for a cutoff `χ` on `M`, on
   `ψ.target`, and zero elsewhere. It is continuous with compact support when `χ` is continuous
@@ -575,6 +576,17 @@ theorem _root_.PartialDiffeomorph.continuous_indicator_comp_symm (hχc : Continu
     ((hχc.comp_continuousOn ψ.symm.contMDiffOn.continuousOn).congr
       fun _ hy ↦ Set.indicator_of_mem hy _) ψ.open_target
     ((ψ.tsupport_indicator_comp_symm_subset hK hχ).trans (ψ.mapsTo.mono_left hχ).image_subset)
+
+/-- If `χ` is `C^n` and its support is compact and lies in the source of `ψ`, the cutoff `χ` read
+in the chart and extended by `0` off `ψ.target` is `C^n`. -/
+theorem _root_.PartialDiffeomorph.contDiff_indicator_comp_symm (hχc : ContMDiff I 𝓘(ℝ) n χ)
+    (hK : IsCompact (tsupport χ)) (hχ : tsupport χ ⊆ ψ.source) :
+    ContDiff ℝ n (ψ.target.indicator fun y ↦ χ (ψ.symm y)) := by
+  refine contMDiff_iff_contDiff.1 (contMDiff_of_tsupport fun y hy ↦ ?_)
+  have hyt : y ∈ ψ.target := (ψ.mapsTo.mono_left hχ).image_subset
+    (ψ.tsupport_indicator_comp_symm_subset hK hχ hy)
+  exact ((hχc.comp_contMDiffOn ψ.symm.contMDiffOn).congr fun y hy ↦ Set.indicator_of_mem hy _)
+    |>.contMDiffAt (ψ.open_target.mem_nhds hyt)
 
 end Cutoff
 

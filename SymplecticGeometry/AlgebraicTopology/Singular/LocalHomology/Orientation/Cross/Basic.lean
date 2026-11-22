@@ -11,6 +11,7 @@ public import TauCeti.Algebra.Category.ModuleCat.Monoidal.Unit
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Prod
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.OpenEmbedding
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.Prod
+import SymplecticGeometry.AlgebraicTopology.Singular.Kunneth.Assoc
 import TauCeti.AlgebraicTopology.Singular.LocalHomology.FundamentalClass
 import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.Smooth
 import TauCeti.AlgebraicTopology.Sphere.SimplyConnected
@@ -67,9 +68,14 @@ here.
 * `TauCeti.isLocalOrientation_localHomologyCross`: the cross product of local orientations of
   vector spaces is a local orientation.
 * `TauCeti.LocalOrientation.cross_map_complZeroPairIso`: naturality.
-* `TauCeti.LocalOrientation.coe_cross_eq_crossSign_smul`,
-  `TauCeti.LocalOrientation.coe_cross_localOrientation`: the cross product is `crossSign m n`
+* `TauCeti.LocalOrientation.coe_cross_eq_crossSign_smul`: the cross product is `crossSign m n`
   times the ordered product, for all spaces of dimensions `m + 1` and `n + 1`.
+* `TauCeti.localHomologyCross_assoc`, `TauCeti.LocalOrientation.map_prodAssoc_cross`:
+  associativity of the cross product of local homology classes and of local orientations, the
+  latter stated as Tau Ceti's `TauCeti.LocalOrientation.map_prodAssoc_prod` is for the ordered
+  product.
+* `TauCeti.LocalOrientation.zsmul_left_injective`: a local orientation has infinite order. Its
+  statement and proof adapt Tau Ceti's `TauCeti.HomologicalOrientation.zsmul_left_injective`.
 
 ## References
 
@@ -128,6 +134,19 @@ theorem localHomologyCross_def (x : X) (y : Y) (p q n : ℕ) (h : p + q = n) :
       HomologicalComplex.homologyMap (((SSetPair.chainComplexFunctor (ModuleCat.{0} ℤ)).map
         (ModuleCat.uliftTensorSelfIso ℤ).hom).app _) n :=
   (rfl)
+
+/-- The local homology cross product is the cross product of pairs, then the multiplication of
+coefficients, then the map of pairs given by the identity of `X × Y`: the two maps after the cross
+product of pairs in `TauCeti.localHomologyCross_def` commute. -/
+theorem localHomologyCross_eq (x : X) (y : Y) (p q n : ℕ) (h : p + q = n) :
+    localHomologyCross x y p q n h =
+      TopCat.singularHomologyCrossRelPair (TopCat.of X) (TopCat.of Y) {x}ᶜ {y}ᶜ
+        (ModuleCat.of ℤ (ULift.{0} ℤ)) (ModuleCat.of ℤ (ULift.{0} ℤ)) p q n h ≫
+      HomologicalComplex.homologyMap (((SSetPair.chainComplexFunctor (ModuleCat.{0} ℤ)).map
+        (ModuleCat.uliftTensorSelfIso ℤ).hom).app _) n ≫
+      TopPair.singularHomologyMap
+        (TopPair.ofSubsetMap _ (mapsTo_preimage_fst_compl_union_preimage_snd_compl x y)) _ n := by
+  rw [localHomologyCross_def, TopPair.singularHomologyMap_coefficient_naturality]
 
 /-- **The cross product of local homology classes on absolute classes.** For `a ∈ Hₚ(X; ℤ)` and
 `b ∈ H_q(Y; ℤ)`, the cross product of their images in the local homology at `x` and `y` is the
@@ -355,6 +374,75 @@ theorem forall_isLocalOrientation_localHomologyCross_iff_of_openPartialHomeomorp
 
 end Cross
 
+section Assoc
+
+variable {X Y Z : Type} [TopologicalSpace X] [TopologicalSpace Y] [TopologicalSpace Z]
+
+/-- **Associativity of the cross product of local homology classes.** The map of local homology
+induced by the associator `(X × Y) × Z ≃ₜ X × (Y × Z)` sends `(a × b) × c` to `a × (b × c)`. -/
+theorem localHomologyCross_assoc (x : X) (y : Y) (z : Z) (p q r pq qr n : ℕ) (hpq : p + q = pq)
+    (hqr : q + r = qr) (hn : pq + r = n) (hn' : p + qr = n) :
+    (localHomologyCross x y p q pq hpq ▷
+        localHomology (A := ModuleCat.{0} ℤ) (ModuleCat.of ℤ (ULift.{0} ℤ)) ({z} : Set Z) r) ≫
+      localHomologyCross (x, y) z pq r n hn ≫
+        localHomologyMap (ModuleCat.of ℤ (ULift.{0} ℤ))
+          ((Homeomorph.prodAssoc X Y Z : (X × Y) × Z ≃ₜ X × Y × Z) : C((X × Y) × Z, X × Y × Z))
+          (by rintro ⟨⟨a, b⟩, c⟩ h; simpa [Homeomorph.prodAssoc, and_assoc] using h) n =
+      (α_ _ _ _).hom ≫
+        (localHomology (A := ModuleCat.{0} ℤ) (ModuleCat.of ℤ (ULift.{0} ℤ)) ({x} : Set X) p ◁
+          localHomologyCross y z q r qr hqr) ≫
+        localHomologyCross x (y, z) p qr n hn' := by
+  -- The two ambient maps from `(X ⊗ Y) ⊗ Z` to `X × (Y × Z)` agree.
+  have hK₁ : ((TopCat.tensorObjIsoProd X Y).hom ⊗ₘ 𝟙 (TopCat.of Z)) ≫
+      (TopCat.tensorObjIsoProd (X × Y) Z).hom ≫
+        TopCat.ofHom ((Homeomorph.prodAssoc X Y Z : (X × Y) × Z ≃ₜ X × Y × Z) :
+          C((X × Y) × Z, X × Y × Z)) =
+      (α_ (TopCat.of X) (TopCat.of Y) (TopCat.of Z)).hom ≫
+        (𝟙 (TopCat.of X) ⊗ₘ (TopCat.tensorObjIsoProd Y Z).hom) ≫
+          (TopCat.tensorObjIsoProd X (Y × Z)).hom := by
+    simp only [TopCat.tensorObjIsoProd_hom_eq_id]
+    -- Both sides are now `((a, b), c) ↦ (a, (b, c))`: the associator of `TopCat` is that of the
+    -- product, and no lemma states it as `Homeomorph.prodAssoc`.
+    rfl
+  -- The cross products of pairs are natural in the maps that identify the subspaces with the
+  -- complements of points, the identity on the other factor.
+  -- `hZ` and `hX` are stated for `𝟙`, not `id`, so that `TopPair.ofSubsetMap_id` applies below.
+  have hZ : MapsTo (𝟙 (TopCat.of Z)) ({z}ᶜ : Set (TopCat.of Z)) {z}ᶜ := fun _ h ↦ h
+  have hX : MapsTo (𝟙 (TopCat.of X)) ({x}ᶜ : Set (TopCat.of X)) {x}ᶜ := fun _ h ↦ h
+  have hnatL := TopCat.singularHomologyCrossRelPair_naturality (TopCat.of X ⊗ TopCat.of Y)
+    (TopCat.of Z) _ ({z}ᶜ : Set (TopCat.of Z)) (ModuleCat.of ℤ (ULift.{0} ℤ))
+    (ModuleCat.of ℤ (ULift.{0} ℤ)) pq r n hn (TopCat.tensorObjIsoProd X Y).hom
+    (mapsTo_preimage_fst_compl_union_preimage_snd_compl x y) (𝟙 _) hZ
+  have hnatR := TopCat.singularHomologyCrossRelPair_naturality (TopCat.of X)
+    (TopCat.of Y ⊗ TopCat.of Z) ({x}ᶜ : Set (TopCat.of X)) _ (ModuleCat.of ℤ (ULift.{0} ℤ))
+    (ModuleCat.of ℤ (ULift.{0} ℤ)) p qr n hn' (𝟙 _) hX
+    (TopCat.tensorObjIsoProd Y Z).hom (mapsTo_preimage_fst_compl_union_preimage_snd_compl y z)
+  simp only [TopPair.ofSubsetMap_id, TopPair.singularHomologyMap_id, tensorHom_id] at hnatL
+  simp only [TopPair.ofSubsetMap_id, TopPair.singularHomologyMap_id, id_tensorHom] at hnatR
+  have hA := TopCat.singularHomologyCrossRelPair_uliftTensorSelfIso_assoc (TopCat.of X)
+    (TopCat.of Y) (TopCat.of Z) {x}ᶜ {y}ᶜ {z}ᶜ p q r pq qr n hpq hqr hn hn'
+  simp only [comp_whiskerRight, whiskerLeft_comp, Category.assoc] at hA
+  -- Write each local cross product as a cross product of pairs, then the coefficient map, then the
+  -- map of pairs, and move the maps of pairs to the end of both sides.
+  rw [localHomologyCross_eq, localHomologyCross_eq, localHomologyCross_eq, localHomologyCross_eq]
+  simp only [comp_whiskerRight, whiskerLeft_comp, Category.assoc]
+  rw [reassoc_of% hnatL, reassoc_of% hnatR]
+  rw [← reassoc_of% (TopPair.singularHomologyMap_coefficient_naturality _
+      (ModuleCat.uliftTensorSelfIso ℤ).hom n),
+    ← reassoc_of% (TopPair.singularHomologyMap_coefficient_naturality _
+      (ModuleCat.uliftTensorSelfIso ℤ).hom n)]
+  simp only [localHomologyMap_def]
+  -- Both sides now start with the two sides of `hA`; the maps of pairs that follow agree.
+  rw [← reassoc_of% hA, ← TopPair.singularHomologyMap_comp,
+    ← TopPair.singularHomologyMap_comp, ← TopPair.singularHomologyMap_comp,
+    ← TopPair.singularHomologyMap_comp]
+  refine congrArg (fun φ ↦ _ ≫ _ ≫ _ ≫ _ ≫ TopPair.singularHomologyMap φ _ n) ?_
+  refine TopPair.hom_ext_of_fst _ ?_
+  simp only [TopPair.Hom.fst_comp, TopPair.ofSubsetMap_fst]
+  exact hK₁
+
+end Assoc
+
 open Metric in
 /-- In every positive dimension `k + 1` there is a compact connected manifold with an integral
 fundamental class: the circle `AddCircle 1` for `k = 0`, and the sphere `Sᵏ⁺¹`, which is simply
@@ -448,6 +536,14 @@ theorem eq_or_eq_neg (hE : finrank ℝ E = m + 1) (z z' : LocalOrientation E 0 (
   · exact Or.inl rfl
   · exact Or.inr (Orientation.localOrientation_neg _ _)
 
+/-- A local orientation of a real vector space of positive dimension has infinite order: its
+integral multiples with distinct coefficients are distinct. -/
+theorem zsmul_left_injective (hE : finrank ℝ E = m + 1) (w : LocalOrientation E 0 (m + 1)) :
+    Function.Injective fun c : ℤ ↦ c • w.val := by
+  intro c c' (h : c • w.val = c' • w.val)
+  rw [← sub_eq_zero, ← w.property.zsmul_eq_zero_iff (singularHomologyComplSingletonIsoOfFinrankEq _
+    (OpenPartialHomeomorph.refl _) (Set.mem_univ 0) hE), sub_zsmul, h, add_neg_cancel]
+
 /-- **The cross product of local orientations.** For local orientations `z` of `E` and `z'` of
 `F` at the origin, their cross product `z × z'` is a local orientation of `E × F` at the origin
 (`TauCeti.isLocalOrientation_localHomologyCross`). Its degree is written `d + 1` with
@@ -508,6 +604,42 @@ theorem cross_map_complZeroPairIso (hE : finrank ℝ E = m + 1) (hF : finrank �
   refine hn.trans ?_
   -- The product map `f × g` appears as `ContinuousMap.prodMap` and as `f.prodCongr g`.
   congr 3
+
+section Assoc
+
+variable {G : Type} [NormedAddCommGroup G] [NormedSpace ℝ G] {p : ℕ}
+
+/-- **Associativity of the cross product of local orientations.** Transport along
+`(E × F) × G ≃ E × (F × G)` carries `(z × z') × z''` to `z × (z' × z'')`. -/
+theorem map_prodAssoc_cross {e f : ℕ} (hE : finrank ℝ E = m + 1) (hF : finrank ℝ F = n + 1)
+    (hG : finrank ℝ G = p + 1) (he : m + 1 + (n + 1) = e + 1) (hf : n + 1 + (p + 1) = f + 1)
+    (hd : e + 1 + (p + 1) = d + 1) (he' : m + 1 + (f + 1) = d + 1)
+    (z : LocalOrientation E 0 (m + 1)) (z' : LocalOrientation F 0 (n + 1))
+    (z'' : LocalOrientation G 0 (p + 1)) :
+    (cross (finrank_prod_eq_succ hE hF he) hG hd (cross hE hF he z z') z'').map
+        (ContinuousLinearEquiv.prodAssoc ℝ E F G).complZeroPairIso =
+      cross hE (finrank_prod_eq_succ hF hG hf) he' z (cross hF hG hf z' z'') := by
+  refine Subtype.ext ?_
+  rw [coe_map, coe_cross, coe_cross, coe_cross, coe_cross,
+    ContinuousLinearEquiv.singularHomologyMap_complZeroPairIso_hom]
+  -- Apply associativity to `(z ⊗ z') ⊗ z''`, with `z ⊗ z'` typed as an element of the tensor
+  -- product in `ModuleCat`, whose module structure the outer tensor product uses.
+  have h (w : ↑(localHomology (A := ModuleCat.{0} ℤ) (ModuleCat.of ℤ (ULift.{0} ℤ)) ({0} : Set E)
+      (m + 1) ⊗ localHomology (A := ModuleCat.{0} ℤ) (ModuleCat.of ℤ (ULift.{0} ℤ)) ({0} : Set F)
+        (n + 1))) := ConcreteCategory.congr_hom (localHomologyCross_assoc (0 : E) (0 : F) (0 : G)
+    (m + 1) (n + 1) (p + 1) (e + 1) (f + 1) (d + 1) he hf hd he') (w ⊗ₜ z''.val)
+  specialize h (z.val ⊗ₜ z'.val)
+  simp only [ModuleCat.hom_comp, LinearMap.comp_apply,
+    ModuleCat.MonoidalCategory.whiskerRight_apply,
+    ModuleCat.MonoidalCategory.associator_hom_apply] at h
+  rw [localHomologyMap_congr _ (j₁ := ((Homeomorph.prodAssoc E F G : (E × F) × G ≃ₜ E × F × G) :
+    C((E × F) × G, E × F × G))) (j₂ := ((ContinuousLinearEquiv.prodAssoc ℝ E F G :
+    (E × F) × G →L[ℝ] E × F × G) : C((E × F) × G, E × F × G))) (ContinuousMap.ext fun _ ↦ rfl),
+    ModuleCat.MonoidalCategory.whiskerLeft_apply] at h
+  simp only [Prod.mk_zero_zero] at h
+  exact h
+
+end Assoc
 
 open Classical in
 /-- **The sign of the cross product of local orientations**, `±1`: the sign comparing the cross
@@ -597,17 +729,5 @@ theorem coe_cross_eq_crossSign_smul (hE : finrank ℝ E = m + 1) (hF : finrank �
   rcases eq_or_eq_neg hF (s'.map g.complZeroPairIso) z' with rfl | rfl <;>
   simp only [cross_neg_left, cross_neg_right, prod_neg_left, prod_neg_right, coe_neg, zsmul_neg,
     key]
-
-/-- The cross product of the local orientations selected by orientations `ω` and `ω'` is
-`crossSign m n` times the local orientation selected by their product orientation. -/
-theorem coe_cross_localOrientation (hE : finrank ℝ E = m + 1) (hF : finrank ℝ F = n + 1)
-    (hd : m + 1 + (n + 1) = d + 1) (ω : Orientation ℝ E (Fin (m + 1)))
-    (ω' : Orientation ℝ F (Fin (n + 1))) :
-    (cross hE hF hd (ω.localOrientation hE) (ω'.localOrientation hF)).val =
-      haveI := FiniteDimensional.of_finrank_eq_succ hE
-      haveI := FiniteDimensional.of_finrank_eq_succ hF
-      (crossSign m n : ℤ) • ((Orientation.reindex ℝ (E × F) (finCongr hd)
-        (ω.prod ω' hE hF)).localOrientation (finrank_prod_eq_succ hE hF hd)).val := by
-  rw [coe_cross_eq_crossSign_smul, prod_localOrientation]
 
 end TauCeti.LocalOrientation

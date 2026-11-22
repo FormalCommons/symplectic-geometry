@@ -57,11 +57,16 @@ A frame of `E` along a continuous map `f : X → B`, in the sense of Tau Ceti's
 from `X × G` to the total space of `E`. It trivializes the pull-back of the determinant line
 (`detCoreFrameIso`), and so gives the section `detCoreFrameSection f Φ hΦ` of that pull-back, the
 top wedge of the frame. This section is continuous on total spaces
-(`continuous_detCoreFrameSection`) and vanishes nowhere (`detCoreFrameSection_ne_zero`). For a
-second frame `Ψ`, the section of `Ψ` at `y` is that of `Φ` times the determinant of
-`Ψ y ∘ (Φ y)⁻¹` (`detCoreFrameSection_eq_det_smul`). This change-of-frame rule follows Tau
-Ceti's `TauCeti.clutchingFunction_eq_mul_normalizedDet_inv`, which compares the clutching
-functions of two frames through the automorphism `(φ y)⁻¹ ∘ ψ y` of the model fibre.
+(`continuous_detCoreFrameSection`), also when read in the determinant line of `E` itself
+(`continuous_totalSpaceMk_detCoreFrameSection`), and vanishes nowhere
+(`detCoreFrameSection_ne_zero`). For a second frame `Ψ`, the section of `Ψ` at `y` is that of `Φ`
+times the determinant of `Ψ y ∘ (Φ y)⁻¹` (`detCoreFrameSection_eq_det_smul`). This change-of-frame
+rule follows Tau Ceti's `TauCeti.clutchingFunction_eq_mul_normalizedDet_inv`, which compares the
+clutching functions of two frames through the automorphism `(φ y)⁻¹ ∘ ψ y` of the model fibre.
+The same factor is the determinant of `(Φ y)⁻¹ ∘ Ψ y` on the model `G`
+(`ContinuousLinearEquiv.det_trans_symm`), and it depends continuously on `y`
+(`continuous_det_trans_symm`), since it is the coordinate of the change of trivialization
+`detCoreFrameIso f Ψ hΨ ≪≫ (detCoreFrameIso f Φ hΦ).symm` of the trivial line.
 
 In coordinates, the value of the section at `y` is the top compound matrix of `Φ y` read in the
 preferred trivialization of `E` at `f y` (`detCoreFrameSection_apply`); each of its coordinates
@@ -473,6 +478,14 @@ theorem continuous_detCoreFrameSection :
       (E := ((detCore 𝕜 G E).pullback f).core.Fiber) y (detCoreFrameSection f Φ hΦ y) :=
   continuous_isoFiberEquiv_const (detCoreFrameIso f Φ hΦ) _
 
+/-- The determinant section of a frame along `f`, read in the determinant line of `E` itself: the
+map `y ↦ (f y, detCoreFrameSection f Φ hΦ y)` to the total space of `Λ^top E` is continuous. -/
+theorem continuous_totalSpaceMk_detCoreFrameSection :
+    Continuous fun y ↦ TotalSpace.mk' (Fin (detCore 𝕜 G E).rank → 𝕜)
+      (E := (detCore 𝕜 G E).core.Fiber) (f y) (detCoreFrameSection f Φ hΦ y) :=
+  ((continuous_core_pullback_iff _ f).1 (continuous_detCoreFrameSection f hΦ)).2.congr fun y ↦
+    pullbackLift_mk _ f y _
+
 /-- The determinant section of a frame vanishes nowhere. -/
 theorem detCoreFrameSection_ne_zero (y : X) : detCoreFrameSection f Φ hΦ y ≠ 0 := by
   intro h
@@ -502,6 +515,20 @@ theorem detCoreFrameSection_eq_det_smul (y : X) :
       LinearMap.det ((Φ y).symm.trans (Ψ y) : E (f y) →ₗ[𝕜] E (f y)) •
         detCoreFrameSection f Φ hΦ y :=
   isoFiberEquiv_apply_eq_smul _ _ (fiberMap_detCoreFrameIso_trans_symm_hom f hΦ hΨ y) _
+
+include hΦ hΨ in
+/-- The determinant of the change of frame `(Φ y)⁻¹ ∘ Ψ y` between two frames along `f`, an
+automorphism of the model `G`, depends continuously on `y`. -/
+theorem continuous_det_trans_symm :
+    Continuous fun y ↦ LinearMap.det (((Ψ y).trans (Φ y).symm).toLinearEquiv : G →ₗ[𝕜] G) := by
+  -- The determinant is the coordinate of the change of trivialization of the determinant line.
+  have h : Continuous fun y ↦
+      isoFiberEquiv (detCoreFrameIso f Ψ hΨ ≪≫ (detCoreFrameIso f Φ hΦ).symm) y fun _ ↦ 1 :=
+    (continuous_trivial_iff.1 (continuous_isoFiberEquiv_const _ _)).2
+  refine ((continuous_apply (⟨0, by simp⟩ : Fin (trivial 𝕜 X 1).rank)).comp h).congr fun y ↦ ?_
+  rw [Function.comp_apply, isoFiberEquiv_apply, fiberMap_detCoreFrameIso_trans_symm_hom,
+    ← ContinuousLinearEquiv.det_trans_symm]
+  simp
 
 /-- **The determinant section of a frame in coordinates.** The value at `y` of the determinant
 section of a frame `Φ` along `f` is the top compound matrix of the automorphism of
