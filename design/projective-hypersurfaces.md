@@ -270,6 +270,7 @@ The list is in the order of the paths.
 
 | File | Contents | Issue |
 |---|---|---|
+| `Algebra/Module/LinearMap/Polynomial.lean` | evaluating and differentiating pullbacks along `Matrix.toMvPolynomial` | 9 |
 | `AlgebraicTopology/Cohomology/Cap/RationalCoefficients.lean` (addition) | Poincaré duality for rational Betti numbers | 13 |
 | `Geometry/Manifold/Complex/EulerCharacteristic.lean` | real and complex tangent bundles of a complex manifold; $\chi=\langle c_{top},[M]\rangle$ | 7 |
 | `Geometry/Manifold/Projectivization/ChernClass.lean` | $c(\mathcal O(k))$, $c(\mathcal O(k)^{\oplus r})$, $c(T\mathbb CP^m)$ | 6 |
