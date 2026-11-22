@@ -98,8 +98,8 @@ variable {EN HN : Type*} [NormedAddCommGroup EN] [NormedSpace ℝ EN] [CompleteS
 
 /-- **Lie derivatives of a form with constant slices.** Let `β` be a form on `N × P` whose slices
 `ι_s^* β`, `ι_s : y ↦ (s, y)`, do not depend on `s ∈ N`, and let `X` be a vector field on `N`,
-lifted horizontally to `(X, 0)` on `N × P`. Then every slice of the Lie derivative `L_{(X, 0)} β`
-vanishes, wherever `β` and `X` are differentiable. -/
+lifted horizontally to `(X, 0)` on `N × P`. Then the slice at time `t` of the Lie derivative
+`L_{(X, 0)} β` vanishes at every `x` such that `β` is differentiable at `(t, x)` and `X` at `t`. -/
 theorem mpullback_prodMk_mlieDerivForm_prodVectorField_zero_eq_zero
     {β : RoughForm (K.prod J) (N × P) F k} {X : Π s : N, TangentSpace K s} {t : N} {x : P}
     (hβ : MDifferentiableAt (K.prod J) ((K.prod J).prod 𝓘(ℝ, (EN × E') [⋀^Fin k]→L[ℝ] F))
