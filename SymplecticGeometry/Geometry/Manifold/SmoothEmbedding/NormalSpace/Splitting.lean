@@ -15,6 +15,7 @@ import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.VectorBundle.Basic
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.Exact
 import TauCeti.Topology.VectorBundle.Hom
 import TauCeti.Topology.VectorBundle.Section
+import SymplecticGeometry.Topology.FiberBundle.Pullback
 import SymplecticGeometry.Topology.VectorBundle.Section
 
 /-!
@@ -234,8 +235,7 @@ private theorem exists_local_rightInverse_normalClass (x₀ : M) :
       TotalSpace.mk' V (E := (f : M → N) *ᵖ (TangentSpace J)) w.proj (e.symm (f w.proj)
         (Q.subtypeL ((inTangentCoordinates I J _root_.id (f : M → N) (mfderiv I J (f : M → N)) x₀
           w.proj).quotientRangeCoordinate Q.subtypeL (e (Pullback.lift f w)).2)))) v := by
-    rw [(inducing_pullbackTotalSpaceEmbedding V (TangentSpace J) (f : M → N)).continuousAt_iff]
-    exact hproj.prodMk hsymm
+    exact Pullback.continuousAt_iff.2 ⟨hproj, hsymm⟩
   refine hg.congr ?_
   filter_upwards [hproj.preimage_mem_nhds (hU.mem_nhds hv)] with w hw
   exact congrArg (TotalSpace.mk w.proj) (hs hw w.snd).symm
