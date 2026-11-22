@@ -206,6 +206,7 @@ Further choices of this design:
 | `Geometry/Symplectic/Moser/Family.lean` | Moser's argument near a compact set along a family, and with a parameter; parametric radial primitives |
 | `Geometry/Manifold/TubularNeighborhood/OneFormCorrection.lean` | the correction lemma: a function whose slices have differential `γ_t` along a compact submanifold where `f^* γ_t` vanishes |
 | `Geometry/Manifold/DifferentialForm/VectorBundlePoincare.lean` | the relative Poincaré operator at the zero section of a vector bundle, and its fibre-scaling primitives for a family of one-forms |
+| `Analysis/Calculus/DifferentialForm/Poincare.lean` | a closed form on a star-convex open set, vanishing on a compact star-convex subset, has a global primitive near it that vanishes on it (named like Tau Ceti's file) |
 | `Geometry/Symplectic/IsotopyExtension/Ball/Basic.lean` | `IsSymplecticBallEmbedding`, `IsSymplecticBallFamily`, enlarging a symplectic ball |
 | `Geometry/Symplectic/IsotopyExtension/Ball/Isotopy.lean` | the Hamiltonian ball extension and the milestone *Symplectic ball extension* |
 | `Geometry/Symplectic/IsotopyExtension/Cohomological/Primitive.lean` | ambient closed forms with prescribed periods, and primitives on one neighbourhood for all times |
@@ -220,7 +221,7 @@ the linear segment between two forms, and the submanifold theorem here needs
 a general family. Both parts use one cut-off Moser field, *Moser isotopy*'s
 `moserField` (`Moser/Field.lean`), generalized to a family of two-forms
 by #551 (see *What the part uses*). Where a Tau Ceti file has the same
-name (`Extension.lean`, `Connected.lean`), the two merge upstream, as
+name (`Extension.lean`, `Connected.lean`, `Poincare.lean`), the two merge upstream, as
 `DESIGN.md`'s *Principles* allow. No folder of this part has the name of a
 Tau Ceti file.
 
@@ -590,7 +591,9 @@ theorem `exists_diffeomorph_fix_eventually_mpullback_eq_of_mextDeriv_eq_sub`,
 on `StdSpace (Fin n)`, with that primitive cut off away from $B(\lambda)$ and
 $K=B(\lambda)$, gives `Φ` fixing
 $B(\lambda)$ with `Φ^* j^* ω = ω₀` near it. The map `j' = j ∘ Φ` is injective near
-$B(\lambda)$ (`SmoothEmbedding/Neighborhood.lean`), which gives `r`. Expected
+$B(\lambda)$ (`SmoothEmbedding/Neighborhood.lean`), which gives `r`. The cut-off
+primitive is `StarConvex.exists_contDiff_eqOn_zero_eventually_extDeriv_eq`, from
+`Analysis/Calculus/DifferentialForm/Poincare.lean`, which this file imports. Expected
 size: 350 lines, with the API.
 
 ### `Geometry/Symplectic/IsotopyExtension/Ball/Isotopy.lean`
@@ -863,7 +866,11 @@ this design already follows. `Ball/Isotopy.lean` cites
   `Geometry/Symplectic/Manifold/TwoForm.lean`, for
   `TauCeti.SmoothTwoForm.injective_mfderiv_of_mpullback_apply_eq` (a map
   pulling a form back to a nondegenerate one is an immersion), which the
-  pull request of `Ball/Basic.lean` adds there.
+  pull request of `Ball/Basic.lean` adds there, and
+  `Geometry/Symplectic/Manifold/Family.lean`, for
+  `TauCeti.SmoothTwoForm.nondegenerate_bilinFormAt_add_smul_sub_of_eq` (the
+  segment between two forms that agree at a point is constant there), which
+  that pull request also adds.
 - Tau Ceti, besides the declarations named above:
   `TauCeti.SmoothIsotopy` with `timeSlice`, `ContMDiffMap.smoothIsotopyRefl`;
   `TauCeti.Diffeotopy` with `timeSlice`, `final`, `trans`, `symm`,

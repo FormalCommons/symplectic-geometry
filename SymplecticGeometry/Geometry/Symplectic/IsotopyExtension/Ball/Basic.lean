@@ -8,10 +8,10 @@ module
 public import Mathlib.Geometry.Manifold.Instances.Real
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
 public import TauCeti.Geometry.Symplectic.Manifold.TwoForm
+import SymplecticGeometry.Analysis.Calculus.DifferentialForm.Poincare
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Neighborhood
+import SymplecticGeometry.Geometry.Symplectic.Manifold.Family
 import SymplecticGeometry.Geometry.Symplectic.Manifold.TwoForm
-import TauCeti.Analysis.Calculus.BumpFunction.Cutoff
-import TauCeti.Analysis.Calculus.DifferentialForm.Poincare
 import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.ModelSpace
 import TauCeti.Geometry.Symplectic.Manifold.RelativeMoser
 
@@ -32,11 +32,10 @@ The main result enlarges a symplectic ball
 is closed and `0 < r₀`, a symplectic embedding `j` of `B(r₀)` agrees on `B(r₀)` with a symplectic
 embedding of a strictly larger ball. This is the first half of McDuff–Salamon, Theorem 3.3.1. The
 proof follows theirs. On a ball `B` about `B(r₀)` where `j` is smooth, the form `j^* σ - ω₀` is
-closed and vanishes on `B(r₀)`. Its radial primitive `β₀` (Tau Ceti's `TauCeti.poincareHomotopy`
-with centre `0`) vanishes on `B(r₀)` as well, since every segment from `0` to a point of `B(r₀)`
-stays in `B(r₀)`. A bump function equal to `1` near `B(r₀)` and supported in `B` turns `β₀` into a
-one-form `β` on all of `StdSpace (Fin n)`, and `ω₀ + dβ` agrees with `j^* σ` near `B(r₀)`. Tau
-Ceti's relative Moser theorem
+closed and vanishes on `B(r₀)`. So it has a primitive `β` near `B(r₀)`, defined on all of
+`StdSpace (Fin n)` and vanishing on `B(r₀)`
+(`StarConvex.exists_contDiff_eqOn_zero_eventually_extDeriv_eq`, a cut-off radial primitive), and
+`ω₀ + dβ` agrees with `j^* σ` near `B(r₀)`. Tau Ceti's relative Moser theorem
 (`TauCeti.SmoothTwoForm.exists_diffeomorph_fix_eventually_mpullback_eq_of_mextDeriv_eq_sub`, with
 the primitive `β` and the compact set `B(r₀)`) gives a diffeomorphism `Φ` fixing `B(r₀)` and
 pulling `ω₀ + dβ` back to `ω₀` near `B(r₀)`. Then `j ∘ Φ` pulls `σ` back to `ω₀` near `B(r₀)`, and
@@ -53,6 +52,9 @@ larger closed ball (`SymplecticGeometry.exists_lt_isSymplecticBallEmbedding_of_i
 
 ## Main results
 
+* `SymplecticGeometry.IsSymplecticBallEmbedding.exists_contMDiffOn`, `.injOn`, `.mpullback_eq`,
+  `SymplecticGeometry.IsSymplecticBallFamily.exists_contMDiffOn`,
+  `.isSymplecticBallEmbedding`: the components of the two definitions.
 * `SymplecticGeometry.IsSymplecticBallEmbedding.mpullback_eq_of_mem_closedBall`: for `0 < r`, a
   symplectic embedding of `B(r)` pulls `σ` back to `ω₀` on all of `B(r)`.
 * `SymplecticGeometry.IsSymplecticBallEmbedding.injective_mfderiv`: for `0 < r`, it is an
@@ -69,9 +71,7 @@ larger closed ball (`SymplecticGeometry.exists_lt_isSymplecticBallEmbedding_of_i
 
 ## Implementation notes
 
-The form on `M` is called `σ`, since `ω` is a token once the scope `ContDiff` is open. Along
-`B(r₀)` the segment from `ω₀` to `ω₀ + dβ` is constantly `ω₀`; this is shown as in Tau Ceti's
-private `bilinFormAt_add_smul_sub_of_eq` of `Geometry/Symplectic/Manifold/RelativeMoser.lean`.
+The form on `M` is called `σ`, since `ω` is a token once the scope `ContDiff` is open.
 
 ## References
 
@@ -131,6 +131,21 @@ namespace IsSymplecticBallEmbedding
 
 variable {r r' : ℝ} {j : StdSpace (Fin n) → M}
 
+/-- A symplectic embedding of `B(r)` is smooth on an open neighbourhood of `B(r)`. -/
+theorem exists_contMDiffOn (hj : IsSymplecticBallEmbedding σ r j) :
+    ∃ U, IsOpen U ∧ closedBall 0 r ⊆ U ∧ ContMDiffOn 𝓘(ℝ, StdSpace (Fin n)) I ∞ j U :=
+  hj.1
+
+/-- A symplectic embedding of `B(r)` is injective on `B(r)`. -/
+theorem injOn (hj : IsSymplecticBallEmbedding σ r j) : InjOn j (closedBall 0 r) :=
+  hj.2.1
+
+/-- A symplectic embedding of `B(r)` pulls `σ` back to `ω₀` on the open ball. -/
+theorem mpullback_eq (hj : IsSymplecticBallEmbedding σ r j) {z : StdSpace (Fin n)}
+    (hz : z ∈ ball 0 r) :
+    mpullback 𝓘(ℝ, StdSpace (Fin n)) I j σ.val z = (stdForm (Fin n)).constSmooth.val z :=
+  hj.2.2 z hz
+
 /-- A symplectic embedding of `B(r)` restricts to a symplectic embedding of any smaller ball. -/
 theorem mono (hj : IsSymplecticBallEmbedding σ r j) (h : r' ≤ r) :
     IsSymplecticBallEmbedding σ r' j := by
@@ -143,10 +158,10 @@ continuity. -/
 theorem mpullback_eq_of_mem_closedBall (hj : IsSymplecticBallEmbedding σ r j) (hr : 0 < r)
     {z : StdSpace (Fin n)} (hz : z ∈ closedBall 0 r) :
     mpullback 𝓘(ℝ, StdSpace (Fin n)) I j σ.val z = (stdForm (Fin n)).constSmooth.val z := by
-  obtain ⟨⟨U, hUo, hU, hjU⟩, -, hpull⟩ := hj
+  obtain ⟨U, hUo, hU, hjU⟩ := hj.exists_contMDiffOn
   have hω₀ :=
     (isSmoothForm_modelSpace_iff.1 (stdForm (Fin n)).constSmooth.isSmoothForm).continuous
-  exact EqOn.of_subset_closure (fun z hz ↦ hpull z hz)
+  exact EqOn.of_subset_closure (fun y hy ↦ hj.mpullback_eq (z := y) hy)
     ((σ.contDiffOn_mpullback hUo hjU).continuousOn.mono hU) hω₀.continuousOn
     ball_subset_closedBall (closure_ball 0 hr.ne').ge hz
 
@@ -160,6 +175,25 @@ theorem injective_mfderiv (hj : IsSymplecticBallEmbedding σ r j) (hr : 0 < r)
 
 end IsSymplecticBallEmbedding
 
+namespace IsSymplecticBallFamily
+
+variable {r : ℝ} {e : unitInterval × StdSpace (Fin n) → M}
+
+/-- A smooth family of symplectic embeddings of `B(r)` is jointly smooth on `[0, 1] × U` for an
+open neighbourhood `U` of `B(r)`. -/
+theorem exists_contMDiffOn (he : IsSymplecticBallFamily σ r e) :
+    ∃ U, IsOpen U ∧ closedBall 0 r ⊆ U ∧
+      ContMDiffOn ((𝓡∂ 1).prod 𝓘(ℝ, StdSpace (Fin n))) I ∞ e (univ ×ˢ U) :=
+  he.1
+
+/-- Each slice of a smooth family of symplectic embeddings of `B(r)` is a symplectic embedding
+of `B(r)`. -/
+theorem isSymplecticBallEmbedding (he : IsSymplecticBallFamily σ r e) (t : unitInterval) :
+    IsSymplecticBallEmbedding σ r (fun z ↦ e (t, z)) :=
+  he.2 t
+
+end IsSymplecticBallFamily
+
 /-- The identity is a symplectic embedding of every ball into `StdSpace (Fin n)` with `ω₀`. -/
 theorem isSymplecticBallEmbedding_id (r : ℝ) :
     IsSymplecticBallEmbedding (stdForm (Fin n)).constSmooth r id :=
@@ -169,7 +203,7 @@ theorem isSymplecticBallEmbedding_id (r : ℝ) :
 /-- The constant family at a symplectic embedding of `B(r)`. -/
 theorem isSymplecticBallFamily_const {r : ℝ} {j : StdSpace (Fin n) → M}
     (hj : IsSymplecticBallEmbedding σ r j) : IsSymplecticBallFamily σ r (fun p ↦ j p.2) := by
-  obtain ⟨⟨U, hUo, hU, hjU⟩, -⟩ := id hj
+  obtain ⟨U, hUo, hU, hjU⟩ := hj.exists_contMDiffOn
   exact ⟨⟨U, hUo, hU, hjU.comp contMDiffOn_snd fun _ hp ↦ hp.2⟩, fun _ ↦ hj⟩
 
 /-- A smooth path of centres `c` is a family of symplectic embeddings of `B(0)`. -/
@@ -211,7 +245,7 @@ theorem exists_lt_isSymplecticBallEmbedding_of_injOn [FiniteDimensional ℝ E] [
 
 /-- The first step of enlarging a symplectic ball: a one-form `β` on `StdSpace (Fin n)` that
 vanishes on `B(r₀)` and such that `ω₀ + dβ` is `j^* σ` on an open `O ⊇ B(r₀)` where `j` is
-smooth. It is the radial primitive of `j^* σ - ω₀`, cut off away from `B(r₀)`. -/
+smooth. It is a primitive of `j^* σ - ω₀` near `B(r₀)` that vanishes on `B(r₀)`. -/
 private theorem IsSymplecticBallEmbedding.exists_smoothForm_add_mextDeriv_eq_mpullback
     [FiniteDimensional ℝ E] (hσ : σ.IsClosed) {r₀ : ℝ} (hr₀ : 0 < r₀)
     {j : StdSpace (Fin n) → M} (hj : IsSymplecticBallEmbedding σ r₀ j) :
@@ -220,20 +254,17 @@ private theorem IsSymplecticBallEmbedding.exists_smoothForm_add_mextDeriv_eq_mpu
       ∃ O, IsOpen O ∧ closedBall 0 r₀ ⊆ O ∧ ContMDiffOn 𝓘(ℝ, StdSpace (Fin n)) I ∞ j O ∧
         ∀ z ∈ O, ((stdForm (Fin n)).constSmooth + mextDerivₗ 𝓘(ℝ, StdSpace (Fin n)) 1 β).val z =
           mpullback 𝓘(ℝ, StdSpace (Fin n)) I j σ.val z := by
-  set K := closedBall (0 : StdSpace (Fin n)) r₀
   set ω₀ := (stdForm (Fin n)).constSmooth
-  obtain ⟨⟨U, hUo, hKU, hjU⟩, -⟩ := id hj
+  obtain ⟨U, hUo, hKU, hjU⟩ := hj.exists_contMDiffOn
   -- A ball `ball 0 (δ + r₀)` on which `j` is smooth.
   obtain ⟨δ, hδ, hδU⟩ := (isCompact_closedBall 0 r₀).exists_thickening_subset_open hUo hKU
   rw [thickening_closedBall hδ hr₀.le] at hδU
-  -- The flat closed form `j^* σ - ω₀` on that ball, vanishing on `K`.
+  -- The flat closed form `j^* σ - ω₀` on that ball, vanishing on `B(r₀)`.
   set γ : StdSpace (Fin n) → StdSpace (Fin n) [⋀^Fin 2]→L[ℝ] ℝ :=
     mpullback 𝓘(ℝ, StdSpace (Fin n)) I j σ.val
   set γ₀ : StdSpace (Fin n) → StdSpace (Fin n) [⋀^Fin 2]→L[ℝ] ℝ := ω₀.val
   have hγ₀c : ContDiff ℝ ∞ γ₀ := isSmoothForm_modelSpace_iff.1 ω₀.isSmoothForm
   have hγc : ContDiffOn ℝ ∞ γ U := σ.contDiffOn_mpullback hUo hjU
-  have hηc : ContDiffOn ℝ (⊤ : ℕ∞) (γ - γ₀) (ball 0 (δ + r₀)) :=
-    (hγc.mono hδU).sub hγ₀c.contDiffOn
   have hηd (z : StdSpace (Fin n)) (hz : z ∈ ball 0 (δ + r₀)) : extDeriv (γ - γ₀) z = 0 := by
     have hzU : U ∈ 𝓝 z := hUo.mem_nhds (hδU hz)
     have h₁ : extDeriv γ z = 0 :=
@@ -244,41 +275,21 @@ private theorem IsSymplecticBallEmbedding.exists_smoothForm_add_mextDeriv_eq_mpu
         (SymplecticForm.isClosed_constSmooth (stdForm (Fin n))) (contMDiffAt_id (x := z))
     rw [extDeriv_sub ((hγc.differentiableOn (by simp)).differentiableAt hzU)
       (hγ₀c.differentiable (by simp)).differentiableAt, h₁, h₀, sub_zero]
-  have hηK (z : StdSpace (Fin n)) (hz : z ∈ K) : (γ - γ₀) z = 0 :=
-    sub_eq_zero.2 (hj.mpullback_eq_of_mem_closedBall hr₀ hz)
-  -- Its radial primitive `β₀` on the ball vanishes on `K`.
-  have hs : StarConvex ℝ 0 (ball (0 : StdSpace (Fin n)) (δ + r₀)) :=
-    (convex_ball 0 _).starConvex (mem_ball_self (by positivity))
-  set β₀ := poincareHomotopy (0 : StdSpace (Fin n)) (γ - γ₀) with hβ₀
-  have hβ₀c : ContDiffOn ℝ (⊤ : ℕ∞) β₀ (ball 0 (δ + r₀)) :=
-    hs.contDiffOn_poincareHomotopy isOpen_ball hηc
-  have hβ₀K (z : StdSpace (Fin n)) (hz : z ∈ K) : β₀ z = 0 := by
-    rw [hβ₀, poincareHomotopy_congr (ω₂ := 0) fun y hy ↦ hηK y
-      ((convex_closedBall 0 r₀).segment_subset (mem_closedBall_self hr₀.le) hz hy),
-      poincareHomotopy_zero, Pi.zero_apply]
-  -- Cut `β₀` off by a bump function equal to `1` on `ball 0 (r₀ + δ / 3)`.
-  let χ : ContDiffBump (0 : StdSpace (Fin n)) :=
-    ⟨r₀ + δ / 3, r₀ + 2 * δ / 3, by positivity, by linarith⟩
-  set β : StdSpace (Fin n) → StdSpace (Fin n) [⋀^Fin 1]→L[ℝ] ℝ := fun z ↦ χ z • β₀ z with hβ
-  have hβc : ContDiff ℝ ∞ β :=
-    hβ₀c.contDiff_smul_of_tsupport_subset isOpen_ball χ.contDiff.contDiffOn (by
-      rw [χ.tsupport_eq]
-      exact closedBall_subset_ball (by simp [χ]; linarith))
-  have hβK (z : StdSpace (Fin n)) (hz : z ∈ K) : β z = 0 := by simp [hβ, hβ₀K z hz]
+  -- Its cut-off radial primitive.
+  obtain ⟨β, hβc, hβK, hβd⟩ :=
+    ((convex_ball (0 : StdSpace (Fin n)) _).starConvex (mem_ball_self (by positivity))
+      ).exists_contDiff_eqOn_zero_eventually_extDeriv_eq isOpen_ball
+      (isCompact_closedBall 0 r₀) (closedBall_subset_ball (by linarith))
+      ((convex_closedBall 0 r₀).starConvex (mem_closedBall_self hr₀.le)) (r := ⊤) le_top
+      ((hγc.mono hδU).sub hγ₀c.contDiffOn) hηd
+      fun z hz ↦ sub_eq_zero.2 (hj.mpullback_eq_of_mem_closedBall hr₀ hz)
+  obtain ⟨O, hOo, hKO, hO⟩ := eventually_nhdsSet_iff_exists.1 hβd
   let βs : SmoothForm 𝓘(ℝ, StdSpace (Fin n)) (StdSpace (Fin n)) ℝ 1 :=
     ⟨β, (isSmoothForm_modelSpace_iff.2 hβc).mem_smoothBundleForms⟩
-  refine ⟨βs, hβK, ball 0 (r₀ + δ / 3), isOpen_ball, closedBall_subset_ball (by linarith),
-    hjU.mono ((ball_subset_ball (by linarith)).trans hδU), fun z hz ↦ ?_⟩
-  -- Near `z`, `β = β₀`, whose exterior derivative is `j^* σ - ω₀`.
-  have hββ₀ : β =ᶠ[𝓝 z] β₀ := by
-    filter_upwards [isOpen_ball.mem_nhds hz] with y hy
-    simp [hβ, χ.one_of_mem_closedBall (ball_subset_closedBall hy)]
-  have hd : mextDeriv βs.val z = extDeriv β₀ z := by
-    rw [mextDeriv_eq_extDeriv, ← extDerivWithin_univ, ← extDerivWithin_univ]
-    exact hββ₀.extDerivWithin_eq_nhds
-  have hzρ : z ∈ ball (0 : StdSpace (Fin n)) (δ + r₀) := ball_subset_ball (by linarith) hz
-  rw [AddMemClass.coe_add, Pi.add_apply, mextDerivₗ_apply, hd,
-    hs.extDeriv_poincareHomotopy isOpen_ball (hηc.of_le (by simp)) hηd hzρ, Pi.sub_apply]
+  refine ⟨βs, hβK, O ∩ ball 0 (δ + r₀), hOo.inter isOpen_ball,
+    subset_inter hKO (closedBall_subset_ball (by linarith)), hjU.mono fun z hz ↦ hδU hz.2,
+    fun z hz ↦ ?_⟩
+  rw [AddMemClass.coe_add, Pi.add_apply, mextDerivₗ_apply, mextDeriv_eq_extDeriv, hO z hz.1]
   exact add_sub_cancel _ _
 
 /-- **Enlarging a symplectic ball.** For a closed two-form `σ` and `0 < r₀`, a symplectic
@@ -297,14 +308,9 @@ theorem IsSymplecticBallEmbedding.exists_lt_isSymplecticBallEmbedding_eqOn [Fini
       sub_eq_zero.2 (hj.mpullback_eq_of_mem_closedBall hr₀ hz)]
   -- Along `K` the segment from `ω₀` to `σ₁` is constantly `ω₀`, so it stays nondegenerate.
   have hnd (z : StdSpace (Fin n)) (hz : z ∈ K) (s : ℝ) (_ : s ∈ Icc (0 : ℝ) 1) :
-      ((ω₀ + s • (σ₁ - ω₀)).bilinFormAt z).Nondegenerate := by
-    have h : (ω₀ + s • (σ₁ - ω₀)).bilinFormAt z = ω₀.bilinFormAt z := by
-      ext v w
-      simp only [SmoothForm.bilinFormAt_apply, SmoothBundleForm.eval₂_apply,
-        SmoothForm.add_toRoughForm, Pi.add_apply, SetLike.val_smul, Pi.smul_apply, hσ₁K z hz,
-        smul_zero, add_zero]
-    rw [h]
-    exact (SymplecticForm.isNondegenerate_constSmooth _).nondegenerate_bilinFormAt z
+      ((ω₀ + s • (σ₁ - ω₀)).bilinFormAt z).Nondegenerate :=
+    SmoothTwoForm.nondegenerate_bilinFormAt_add_smul_sub_of_eq (hσ₁K z hz)
+      ((SymplecticForm.isNondegenerate_constSmooth _).nondegenerate_bilinFormAt z) s
   -- Relative Moser: `Φ` fixes `K` and pulls `σ₁` back to `ω₀` on an open `N ⊇ K`.
   obtain ⟨Φ, hΦK, -, hΦ, -⟩ :=
     SmoothTwoForm.exists_diffeomorph_fix_eventually_mpullback_eq_of_mextDeriv_eq_sub
@@ -326,7 +332,7 @@ theorem IsSymplecticBallEmbedding.exists_lt_isSymplecticBallEmbedding_eqOn [Fini
   obtain ⟨r, hr, hjΦ⟩ := exists_lt_isSymplecticBallEmbedding_of_injOn
     ((Φ.continuous.isOpen_preimage _ hOo).inter hNo) hKW
     (hjO.comp Φ.contMDiff.contMDiffOn fun z hz ↦ hz.1)
-    (fun x hx y hy h ↦ hj.2.1 hx hy (by simpa [hΦK x hx, hΦK y hy] using h)) hpull
+    (fun x hx y hy h ↦ hj.injOn hx hy (by simpa [hΦK x hx, hΦK y hy] using h)) hpull
   exact ⟨r, hr, j ∘ Φ, hjΦ, fun z hz ↦ by simp [hΦK z hz]⟩
 
 end SymplecticGeometry
