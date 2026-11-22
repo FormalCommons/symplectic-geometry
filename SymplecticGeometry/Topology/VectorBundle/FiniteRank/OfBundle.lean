@@ -7,6 +7,7 @@ module
 
 public import Mathlib.Topology.Algebra.Module.FiniteDimension
 public import SymplecticGeometry.Topology.VectorBundle.Core.Basic
+public import SymplecticGeometry.Topology.VectorBundle.Pullback
 public import TauCeti.Topology.FiberBundle.Prod
 public import TauCeti.Topology.FiberBundle.Pullback
 public import TauCeti.Topology.VectorBundle.Core.Congr
@@ -44,10 +45,10 @@ along `ContinuousLinearEquiv.ofFinrankEq` (`VectorBundleCore.congrModel`).
 
 The constructions follow Tau Ceti's `ofBundle` and `ofBundleIso`, and the use of `congrModel` in
 `TauCeti.FiniteRankAtlas.whitneyStratumCore`; the proof of `pullback_ofBundleOfFinrankEq`
-adapts that of Tau Ceti's `pullback_ofBundle`, and that of
-`TauCeti.pointIndexedCoreFiberEquiv_pullback_symm_apply` adapts that of Tau Ceti's private
-`pointIndexedCoreFiberEquiv_toInfinite_pullback_symm_apply`, for the stages of the infinite
-Grassmannian.
+adapts that of Tau Ceti's `pullback_ofBundle`. The lemma
+`TauCeti.pointIndexedCoreFiberEquiv_pullback_symm_apply`, the general form of Tau Ceti's private
+`pointIndexedCoreFiberEquiv_toInfinite_pullback_symm_apply` for the stages of the infinite
+Grassmannian, is read off `VectorBundle.continuousLinearEquivAt_pullback`.
 -/
 
 public section
@@ -72,10 +73,12 @@ theorem pointIndexedCoreFiberEquiv_pullback_symm_apply (f : C(X, B)) (y : X)
     (w : ((⇑f) *ᵖ E) y) :
     (pointIndexedCoreFiberEquiv 𝕜 G ((⇑f) *ᵖ E) y).symm w =
       (pointIndexedCoreFiberEquiv 𝕜 G E (f y)).symm w := by
-  refine (pointIndexedCoreFiberEquiv_symm_apply 𝕜 G _ y w).trans ?_
-  refine Eq.trans ?_ (pointIndexedCoreFiberEquiv_symm_apply 𝕜 G E (f y) w).symm
-  rw [trivializationAt, FiberBundle.pullback_trivializationAt']
-  rfl
+  have h := DFunLike.congr_fun
+    (VectorBundle.continuousLinearEquivAt_pullback (𝕜 := 𝕜) (F := G) E f y) w
+  simp only [VectorBundle.continuousLinearEquivAt,
+    Trivialization.continuousLinearEquivAt_apply] at h
+  exact (pointIndexedCoreFiberEquiv_symm_apply 𝕜 G _ y w).trans
+    (h.trans (pointIndexedCoreFiberEquiv_symm_apply 𝕜 G E (f y) w).symm)
 
 end PointIndexed
 
