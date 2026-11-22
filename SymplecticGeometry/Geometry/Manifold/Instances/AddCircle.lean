@@ -12,7 +12,6 @@ import Mathlib.LinearAlgebra.Complex.FiniteDimensional
 import TauCeti.Geometry.Manifold.Instances.AddCircle.Cover
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
-import TauCeti.Geometry.Manifold.LocalDiffeomorph.Prod.Basic
 
 /-!
 # Polar coordinates on the circle `AddCircle p`
@@ -35,6 +34,8 @@ lift gives the smoothness of polar coordinates and, by the chain rule, their der
   diffeomorphism away from the radius `0`.
 * `AddCircle.contMDiff_ofReal_mul_toCircle`: polar coordinates are smooth.
 * `AddCircle.mfderiv_ofReal_mul_toCircle_apply`: the derivative of polar coordinates.
+* `AddCircle.not_isInvertible_mfderiv_ofReal_mul_toCircle_zero`: that derivative is not invertible
+  at the radius `0`.
 -/
 
 public section
@@ -128,6 +129,16 @@ theorem mfderiv_ofReal_mul_toCircle_apply (θ : AddCircle p) (r a b : ℝ) :
     ContinuousLinearMap.coe_snd', real_smul, toCircle_apply_mk, Circle.coe_exp]
   push_cast
   ring
+
+/-- At the radius `0`, the derivative of polar coordinates is not invertible: it sends the angular
+direction `(1, 0)` to `0`. -/
+theorem not_isInvertible_mfderiv_ofReal_mul_toCircle_zero (θ : AddCircle p) :
+    ¬ (mfderiv (𝓘(ℝ).prod 𝓘(ℝ)) 𝓘(ℝ, ℂ)
+        (fun q : AddCircle p × ℝ ↦ (q.2 : ℂ) * (toCircle q.1 : ℂ)) (θ, 0)).IsInvertible := by
+  rintro ⟨e, he⟩
+  have h := (DFunLike.congr_fun he (1, 0)).trans (mfderiv_ofReal_mul_toCircle_apply θ 0 1 0)
+  simp only [mul_zero, zero_mul, ofReal_zero, add_zero] at h
+  exact one_ne_zero (congrArg Prod.fst (e.map_eq_zero_iff.1 h))
 
 /-- **Polar coordinates.** For a positive period `p`, the map `(θ, r) ↦ r · toCircle θ` from
 `AddCircle p × ℝ` to `ℂ` is a `C^n` local diffeomorphism at every point with `r ≠ 0`. -/

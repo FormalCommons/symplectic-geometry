@@ -117,20 +117,6 @@ private theorem exists_basis_mfderiv_ofReal_mul_toCircle (θ : AddCircle p) {r :
   rw [hdet, neg_pos]
   exact ⟨fun h ↦ neg_of_mul_neg_right h hk.le, fun h ↦ mul_neg_of_pos_of_neg hk h⟩
 
-/-- At the radius `0`, the derivative of polar coordinates is not an equivalence: it kills the
-angular direction `(1, 0)`. -/
-private theorem coe_ne_mfderiv_ofReal_mul_toCircle_zero (θ : AddCircle p)
-    (e : TangentSpace (𝓘(ℝ).prod 𝓘(ℝ)) (θ, (0 : ℝ)) ≃L[ℝ]
-      TangentSpace 𝓘(ℝ, ℂ) ((0 : ℝ) * (toCircle θ : ℂ))) :
-    (e : TangentSpace (𝓘(ℝ).prod 𝓘(ℝ)) (θ, (0 : ℝ)) →L[ℝ]
-      TangentSpace 𝓘(ℝ, ℂ) ((0 : ℝ) * (toCircle θ : ℂ))) ≠
-      mfderiv (𝓘(ℝ).prod 𝓘(ℝ)) 𝓘(ℝ, ℂ)
-        (fun q : AddCircle p × ℝ ↦ (q.2 : ℂ) * (toCircle q.1 : ℂ)) (θ, 0) := by
-  intro he
-  have h := (DFunLike.congr_fun he (1, 0)).trans (mfderiv_ofReal_mul_toCircle_apply θ 0 1 0)
-  simp only [mul_zero, zero_mul, ofReal_zero, add_zero] at h
-  exact one_ne_zero (congrArg Prod.fst (e.map_eq_zero_iff.1 h))
-
 /-- Polar coordinates `(θ, r) ↦ r · toCircle θ`, from `AddCircle p × ℝ` with the product of the
 positive orientation of the circle and the standard orientation of `ℝ` to `ℂ` with its standard
 orientation, preserve orientation at `(θ, r)` exactly when `r < 0`. -/
@@ -141,8 +127,7 @@ theorem isOrientationPreservingAt_ofReal_mul_toCircle_iff (θ : AddCircle p) (r 
       r < 0 := by
   rcases eq_or_ne r 0 with rfl | hr
   · refine iff_of_false (fun h ↦ ?_) (lt_irrefl 0)
-    obtain ⟨e, he, -⟩ := (isOrientationPreservingAt_iff _ _ _ _).1 h
-    exact coe_ne_mfderiv_ofReal_mul_toCircle_zero θ e he
+    exact not_isInvertible_mfderiv_ofReal_mul_toCircle_zero θ h.isInvertible_mfderiv
   obtain ⟨b, hb, hbo⟩ := exists_basis_mfderiv_ofReal_mul_toCircle θ hr
   refine (isOrientationPreservingAt_iff_of_basis _ b hb).trans
     ((iff_true_left (orientationAt_orientation_prod_real p _).symm).trans ?_)
@@ -159,8 +144,7 @@ theorem isOrientationReversingAt_ofReal_mul_toCircle_iff (θ : AddCircle p) (r :
       0 < r := by
   rcases eq_or_ne r 0 with rfl | hr
   · refine iff_of_false (fun h ↦ ?_) (lt_irrefl 0)
-    obtain ⟨e, he, -⟩ := (isOrientationReversingAt_iff _ _ _ _).1 h
-    exact coe_ne_mfderiv_ofReal_mul_toCircle_zero θ e he
+    exact not_isInvertible_mfderiv_ofReal_mul_toCircle_zero θ h.isInvertible_mfderiv
   obtain ⟨b, hb, hbo⟩ := exists_basis_mfderiv_ofReal_mul_toCircle θ hr
   refine (isOrientationReversingAt_iff_of_basis _ b hb).trans
     ((iff_true_left (orientationAt_orientation_prod_real p _).symm).trans ?_)

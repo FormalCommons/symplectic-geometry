@@ -7,7 +7,6 @@ module
 
 public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orientation.StdSimplex
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.FundamentalClass
-public import TauCeti.Geometry.Manifold.Degree.Homological
 public import TauCeti.Geometry.Manifold.Orientation.OpenSubset
 public import TauCeti.Geometry.Manifold.SmoothSingular.Basic
 
@@ -35,26 +34,17 @@ By `TauCeti.HomologicalOrientation.eq_fundamentalClassOn`, it suffices to compar
 whose images under `g` and under the inclusion `ι : U → ℝ²` are `σ` and the standard simplex.
 Both maps preserve orientation, from the restriction to `U` of the standard orientation, so they
 carry its local orientation at `p` to that of `o` at `x` and of `ℝ²` at `p`
-(`TauCeti.Manifold.Orientation.localHomologyMap_toHomologicalOrientation`, from Tau Ceti's
-`TauCeti.Manifold.Orientation.localIndex_toHomologicalOrientation`). The map `ι` is an isomorphism
+(`TauCeti.Manifold.Orientation.localHomologyMap_toHomologicalOrientation`, in
+`LocalHomology/Orientation/Smooth.lean`). The map `ι` is an isomorphism
 of local homology, and carries `[σ_U]` to the class of the standard simplex, which is minus the
 local orientation of `ℝ²` at `p`. So `[σ_U]` is minus the local orientation of `U` at `p`, and its
 image `[σ]` under `g` is minus that of `o` at `x`.
 
 ## Main results
 
-* `TauCeti.Manifold.Orientation.localHomologyMap_toHomologicalOrientation`: a map preserving
-  orientation at a point alone in its fibre carries the local orientation there to the local
-  orientation at its image.
 * `TauCeti.SmoothSimplex.range_toSSetObjEquiv_δ_subset_compl`: the faces of the simplex avoid `K`.
 * `TauCeti.SmoothSimplex.relativeClass_eq_fundamentalClassOn`: the class of the simplex in
   `H₂(C, C ∖ K; ℤ)` is the fundamental class along `K` of the homological orientation of `-o`.
-
-## Implementation notes
-
-The proof of `TauCeti.Manifold.Orientation.localHomologyMap_toHomologicalOrientation` passes from
-the map restricted to `univ`, which Tau Ceti's local index speaks of, to the map itself as the
-proof of Tau Ceti's `OpenPartialHomeomorph.localHomologyMap_localOrientationOfOrientedChart` does.
 
 ## References
 
@@ -69,40 +59,6 @@ noncomputable section
 
 open CategoryTheory TauCeti Module Set Topology TopologicalSpace Simplicial
 open scoped Manifold
-
-namespace TauCeti.Manifold.Orientation
-
-variable {M N E F : Type} {H H' : Type*}
-  [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
-  [NormedAddCommGroup F] [NormedSpace ℝ F] [FiniteDimensional ℝ F]
-  [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [I.Boundaryless]
-  [TopologicalSpace H'] {J : ModelWithCorners ℝ F H'} [J.Boundaryless]
-  [TopologicalSpace M] [ChartedSpace H M] [ChartedSpace E M] [T2Space M] [IsManifold I 1 M]
-  [TopologicalSpace N] [ChartedSpace H' N] [ChartedSpace F N] [T2Space N] [IsManifold J 1 N]
-  {n : ℕ} (hE : finrank ℝ E = n + 1) (hF : finrank ℝ F = n + 1)
-  {o : Manifold.Orientation I M (Fin (n + 1))} {o' : Manifold.Orientation J N (Fin (n + 1))}
-
-/-- **Orientation-preserving maps carry local orientations to local orientations.** Let
-`f : M → N` be continuous and preserve the orientations `o` and `o'` at `x`, the only point of
-its fibre through `x`. Then the map of local homology `Hₙ₊₁(M, M ∖ {x}) ⟶ Hₙ₊₁(N, N ∖ {f x})`
-induced by `f` carries the local orientation of `o` at `x` to that of `o'` at `f x`. -/
-theorem localHomologyMap_toHomologicalOrientation (f : C(M, N)) {x : M}
-    (hfx : f ⁻¹' {f x} ⊆ {x}) (hf : IsOrientationPreservingAt o o' f x) :
-    localHomologyMap (ModuleCat.of ℤ (ULift.{0} ℤ)) f hfx (n + 1)
-        (o.toHomologicalOrientation hE x).val =
-      (o'.toHomologicalOrientation hF (f x)).val := by
-  have hi := localIndex_toHomologicalOrientation hE hF o o' f hf.isInvertible_mfderiv
-  rw [orientationSign_of_isOrientationPreservingAt hf] at hi
-  have key := (HomologicalOrientation.localIndex_eq_iff _ _ hF f rfl isOpen_univ (mem_univ x)
-    (fun _ _ hz ↦ hfx hz)).1 hi
-  rw [one_smul] at key
-  -- The restriction of `f` to `univ` is `f` after the inclusion of `univ`.
-  have h' := isOpen_univ.isOpenEmbedding_subtypeVal.localHomologyMap_localOrientationEquiv_symm
-    ⟨x, mem_univ x⟩ (o.toHomologicalOrientation hE x) fun _ hz ↦ Subtype.ext hz
-  rw [← h', ← ConcreteCategory.comp_apply]
-  exact (ConcreteCategory.congr_hom (localHomologyMap_comp _ _ f _ hfx (n + 1)) _).trans key
-
-end TauCeti.Manifold.Orientation
 
 namespace TauCeti.SmoothSimplex
 

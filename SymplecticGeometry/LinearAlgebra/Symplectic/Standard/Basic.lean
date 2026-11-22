@@ -15,6 +15,7 @@ public import TauCeti.Geometry.Symplectic.Prod.Basic
 public import TauCeti.Geometry.Symplectic.StandardCompatible
 public import TauCeti.Geometry.Symplectic.SymplecticTransport
 public import TauCeti.Geometry.Symplectic.Transport
+import TauCeti.Geometry.Symplectic.Complex.InnerProductSpace
 
 /-!
 # The standard model `(ℝ²ⁿ, ω₀, J₀)`
@@ -46,8 +47,10 @@ The main facts fixing the conventions are `stdForm_apply`
 `stdForm_apply_eq_inner` (`ω₀(z, w) = ⟪J₀ z, w⟫`), `stdForm_toBilinForm`
 (`ω₀ = -Matrix.toBilin' (Matrix.J ι ℝ)` in coordinates), and `stdForm_compatible`, with the
 Cauchy–Schwarz inequality `abs_stdForm_apply_le` (`|ω₀(z, w)| ≤ ‖z‖ ‖w‖`). The rotation
-`stdRotation ι t`, `z ↦ cos t • z + sin t • J₀ z`, is a linear isometry that preserves `ω₀`
-(`stdForm_stdRotation`).
+`stdRotation ι t`, `z ↦ cos t • z + sin t • J₀ z`, is a linear isometry, since `J₀` is orthogonal
+(`inner_stdComplexStructure_stdComplexStructure`), that preserves `ω₀` (`stdForm_stdRotation`);
+through `complexToRealEuclidean ι` it is multiplication by `exp (t I)`
+(`complexToRealEuclidean_exp_mul_I_smul`).
 Finally, `isSymplectomorphism_sumEquivProd` and `stdComplexStructure_transport_sumEquivProd`
 compare the model with Tau Ceti's product model `TauCeti.stdSymplecticForm` and
 `TauCeti.AlmostComplexStructure.product` on `EuclideanSpace ℝ ι × EuclideanSpace ℝ ι`
@@ -371,16 +374,6 @@ theorem stdComplexStructure_complexToRealEuclidean (v : ι → ℂ) :
   rw [stdComplexStructure_def, AlmostComplexStructure.transport_apply]
   simp [AlmostComplexStructure.ofComplexModule_apply]
 
-/-- `complexToRealEuclidean ι` carries multiplication by `exp (t I)` on `ι → ℂ` to the rotation
-`z ↦ cos t • z + sin t • J₀ z`. -/
-theorem complexToRealEuclidean_exp_mul_I_smul (t : ℝ) (v : ι → ℂ) :
-    complexToRealEuclidean ι (Complex.exp (t * Complex.I) • v) =
-      Real.cos t • complexToRealEuclidean ι v +
-        Real.sin t • stdComplexStructure ι (complexToRealEuclidean ι v) := by
-  rw [stdComplexStructure_complexToRealEuclidean, ← map_smul, ← map_smul, ← map_add,
-    Complex.exp_mul_I, add_smul, ← Complex.ofReal_cos, ← Complex.ofReal_sin, mul_smul,
-    Complex.coe_smul, Complex.coe_smul]
-
 /-- `complexToRealEuclidean ι` is compatible with the norms: scaling by `a : ℂ` scales the norm
 of the image by `‖a‖`. -/
 theorem norm_complexToRealEuclidean_smul (a : ℂ) (v : ι → ℂ) :
@@ -400,6 +393,22 @@ theorem norm_sq_complexToRealEuclidean (u : ι → ℂ) :
   rw [← real_inner_self_eq_norm_sq, inner_complexToRealEuclidean, dotProduct, Complex.re_sum]
   refine Finset.sum_congr rfl fun i _ ↦ ?_
   rw [Pi.star_apply, Complex.star_def, Complex.conj_mul', ← Complex.ofReal_pow, Complex.ofReal_re]
+
+/-- The real part of the Hermitian square of a complex vector is its squared Euclidean norm:
+`Re (star z ⬝ᵥ z) = ∑ᵢ ‖zᵢ‖²`. -/
+theorem _root_.Matrix.re_star_dotProduct_self (z : ι → ℂ) :
+    (star z ⬝ᵥ z).re = ∑ i, ‖z i‖ ^ 2 := by
+  rw [← inner_complexToRealEuclidean, real_inner_self_eq_norm_sq, norm_sq_complexToRealEuclidean]
+
+/-- The standard symplectic form of `ι → ℂ` is the imaginary part of the Hermitian product:
+`ω₀(z, w) = Im (star z ⬝ᵥ w)`. -/
+theorem _root_.TauCeti.stdComplexPiSymplecticForm_apply_eq_im (z w : ι → ℂ) :
+    stdComplexPiSymplecticForm ι z w = (star z ⬝ᵥ w).im := by
+  simp only [stdComplexPiSymplecticForm_apply, stdComplexSymplecticForm_apply, dotProduct,
+    Complex.im_sum]
+  refine Finset.sum_congr rfl fun i _ ↦ ?_
+  simp only [Pi.star_apply, Complex.star_def, Complex.mul_im, Complex.conj_re, Complex.conj_im]
+  ring
 
 /-- `J₀` is the linear map of the matrix `Matrix.J ι ℝ = !![0, -1; 1, 0]`. -/
 theorem stdComplexStructure_eq_toEuclideanLin_J [DecidableEq ι] :
@@ -422,6 +431,11 @@ theorem stdForm_apply_eq_inner (z w : StdSpace ι) :
     stdForm ι z w = inner ℝ (stdComplexStructure ι z) w :=
   (SymplecticForm.inner_apply_left_eq_of_apply_apply_eq_inner
     stdForm_apply_stdComplexStructure z w).symm
+
+/-- `J₀` is orthogonal: `⟪J₀ z, J₀ w⟫ = ⟪z, w⟫`. -/
+theorem inner_stdComplexStructure_stdComplexStructure (z w : StdSpace ι) :
+    inner ℝ (stdComplexStructure ι z) (stdComplexStructure ι w) = inner ℝ z w := by
+  rw [← stdForm_apply_eq_inner, stdForm_apply_stdComplexStructure]
 
 /-- `ω₀(z, w) = (⟪J₀ z, w⟫ - ⟪z, J₀ w⟫) / 2`: the form of the Euclidean inner product and `J₀`
 is `ω₀`. -/
@@ -468,16 +482,28 @@ noncomputable def stdRotation (t : ℝ) : StdSpace ι ≃ₗᵢ[ℝ] StdSpace ι
   LinearIsometry.toLinearIsometryEquiv
     { toLinearMap := Real.cos t • LinearMap.id + Real.sin t • (stdComplexStructure ι).toLinearMap
       norm_map' := fun z ↦ by
-        have h := complexToRealEuclidean_exp_mul_I_smul t ((complexToRealEuclidean ι).symm z)
-        rw [ContinuousLinearEquiv.apply_symm_apply] at h
+        have hJ := inner_stdComplexStructure_stdComplexStructure (ι := ι)
         simp only [LinearMap.add_apply, LinearMap.smul_apply, LinearMap.id_apply]
-        rw [← h, norm_complexToRealEuclidean_smul, Complex.norm_exp_ofReal_mul_I, one_mul,
-          ContinuousLinearEquiv.apply_symm_apply] }
+        rw [← sq_eq_sq₀ (norm_nonneg _) (norm_nonneg _), norm_add_sq_real, inner_smul_left,
+          inner_smul_right, real_inner_comm, AlmostComplexStructure.inner_apply_self hJ,
+          norm_smul, norm_smul, AlmostComplexStructure.norm_apply hJ, Real.norm_eq_abs,
+          Real.norm_eq_abs]
+        simp only [mul_zero, mul_pow, sq_abs]
+        linear_combination ‖z‖ ^ 2 * Real.cos_sq_add_sin_sq t }
     rfl
 
 theorem stdRotation_apply (t : ℝ) (z : StdSpace ι) :
     stdRotation ι t z = Real.cos t • z + Real.sin t • stdComplexStructure ι z :=
   (rfl)
+
+/-- `complexToRealEuclidean ι` carries multiplication by `exp (t I)` on `ι → ℂ` to the rotation
+`stdRotation ι t`. -/
+theorem complexToRealEuclidean_exp_mul_I_smul (t : ℝ) (v : ι → ℂ) :
+    complexToRealEuclidean ι (Complex.exp (t * Complex.I) • v) =
+      stdRotation ι t (complexToRealEuclidean ι v) := by
+  rw [stdRotation_apply, stdComplexStructure_complexToRealEuclidean, ← map_smul, ← map_smul,
+    ← map_add, Complex.exp_mul_I, add_smul, ← Complex.ofReal_cos, ← Complex.ofReal_sin, mul_smul,
+    Complex.coe_smul, Complex.coe_smul]
 
 /-- The rotation `stdRotation ι t` preserves `ω₀`. -/
 theorem stdForm_stdRotation (t : ℝ) (z w : StdSpace ι) :
