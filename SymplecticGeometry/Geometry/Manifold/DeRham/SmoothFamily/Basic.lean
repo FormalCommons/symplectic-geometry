@@ -42,7 +42,9 @@ smooth in `t` (`SmoothCohomologySplitting.contMDiff_repr_mk`).
 ## Main results
 
 * `SmoothCohomologySplitting.mk_proj`: `p z` has the class of `z`.
-* `SmoothCohomologySplitting.proj_eq_zero_iff`: `p z = 0` exactly when `z` is exact.
+* `SmoothCohomologySplitting.proj_eq_zero_iff`: `p z = 0` exactly when `z` is exact, and
+  `SmoothCohomologySplitting.proj_eq_of_sub_mem_exactForms`: `p z` is the form of `S^k` that
+  differs from `z` by an exact form.
 * `SmoothCohomologySplitting.finiteDimensional_deRhamCohomology`.
 * `SmoothCohomologySplitting.mextDerivₗ_exactPrimitive` and
   `SmoothCohomologySplitting.preservesSmoothFamilies_exactPrimitive`.
@@ -183,6 +185,30 @@ theorem proj_eq_self_of_mem {k : ℕ} {z : closedForms I M k}
     exact congrArg _ (Subtype.ext (Submodule.coe_inclusion (σ.space_le_closedForms k) ⟨z, hz⟩).symm)
   rw [← coe_projSpace, h]
 
+/-- The projection of a closed `(k + 1)`-form is the form minus the exterior derivative of its
+primitive. -/
+theorem proj_eq_sub_mextDerivₗ_primitive {k : ℕ} (z : closedForms I M (k + 1)) :
+    σ.proj (k + 1) z = z - mextDerivₗ I k (σ.primitive k z) := by
+  rw [σ.mextDerivₗ_primitive, sub_sub_cancel]
+
+/-- A closed form differs from its projection by an exact form. -/
+theorem sub_proj_mem_exactForms {k : ℕ} (z : closedForms I M k) :
+    (z : SmoothForm I M ℝ k) - σ.proj k z ∈ exactForms I M k := by
+  cases k with
+  | zero => simp
+  | succ k =>
+    rw [exactForms_succ, ← σ.mextDerivₗ_primitive]
+    exact LinearMap.mem_range_self _ _
+
+/-- The projection of a closed form `z` is the form `s` of the space of the splitting that
+differs from `z` by an exact form. -/
+theorem proj_eq_of_sub_mem_exactForms {k : ℕ} {z : closedForms I M k} {s : SmoothForm I M ℝ k}
+    (hs : s ∈ σ.space k) (h : (z : SmoothForm I M ℝ k) - s ∈ exactForms I M k) :
+    σ.proj k z = s := by
+  rw [← sub_eq_zero]
+  refine σ.eq_zero_of_mem_exactForms k (sub_mem (σ.proj_mem k z) hs) ?_
+  simpa only [sub_sub_sub_cancel_left] using sub_mem h (σ.sub_proj_mem_exactForms z)
+
 /-- The projection of a splitting vanishes on a closed form exactly when the form is exact. -/
 theorem proj_eq_zero_iff {k : ℕ} (z : closedForms I M k) :
     σ.proj k z = 0 ↔ (z : SmoothForm I M ℝ k) ∈ exactForms I M k := by
@@ -219,6 +245,13 @@ theorem preservesSmoothFamilies_exactPrimitive (k : ℕ) :
     PreservesSmoothFamilies (σ.exactPrimitive k) :=
   (σ.preservesSmoothFamilies_primitive k).comp preservesSmoothFamilies_subtype _
 
+/-- The projection of a splitting, as a map into its space of closed forms followed by the
+inclusion of that space, takes smooth families to smooth families. -/
+theorem preservesSmoothFamilies_subtype_comp_projSpace (k : ℕ) :
+    PreservesSmoothFamilies ((σ.space k).subtype ∘ₗ σ.projSpace k) := by
+  rw [projSpace, LinearMap.subtype_comp_codRestrict]
+  exact σ.preservesSmoothFamilies_proj k
+
 include σ in
 /-- **The classes of a smooth family of closed forms depend smoothly on the parameter.** For a
 basis `b` of the de Rham cohomology in degree `k` and a smooth family `z` of closed `k`-forms
@@ -227,10 +260,8 @@ theorem contMDiff_repr_mk {k : ℕ} {ι : Type*} (b : Module.Basis ι ℝ (deRha
     {z : unitInterval → closedForms I M k}
     (hz : IsSmoothFamily (𝓡∂ 1) (fun t ↦ (z t : SmoothForm I M ℝ k))) (i : ι) :
     ContMDiff (𝓡∂ 1) 𝓘(ℝ) ∞ (fun t ↦ b.repr (deRhamCohomology.mk I k (z t)) i) := by
-  have hT : PreservesSmoothFamilies ((σ.space k).subtype ∘ₗ σ.projSpace k) := by
-    rw [projSpace, LinearMap.subtype_comp_codRestrict]
-    exact σ.preservesSmoothFamilies_proj k
-  simpa using hT.contMDiff_dual_apply hz (b.coord i ∘ₗ (σ.spaceEquiv k).toLinearMap)
+  simpa using (σ.preservesSmoothFamilies_subtype_comp_projSpace k).contMDiff_dual_apply hz
+    (b.coord i ∘ₗ (σ.spaceEquiv k).toLinearMap)
 
 end SmoothCohomologySplitting
 
