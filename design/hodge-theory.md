@@ -251,19 +251,24 @@ gives its linearity (`mpullback_add`, `mpullback_smul`), smoothness on
 compatibility with $d$ (`mpullback_mextDeriv_on`) and with the wedge product
 (`mpullback_wedge`). This file adds, in Tau Ceti's namespace:
 
-- `mpullback_symm_eq_inChartAt`: for the atlas chart, the expression agrees
-  with `inChartAt`.
+- `mpullback_symm_eq_inChartAt`: for the atlas chart
+  `extChartPartialDiffeomorph I n x`, the expression agrees with `inChartAt`
+  on its target.
 - `mpullback_symm_realAlternatingDerivation`: the expression of
   $\mathcal J\varphi$ is the derivation of `chartPushforward` of $J$.
-- `SmoothForm.ofInChart`: the smooth form on $M$, zero outside `ψ.source`,
-  whose expression is a given smooth function with compact support in
-  `ψ.target`, with `mpullback_symm_ofInChart`. It is built from
-  `mpullback I 𝓘(ℝ, E) ψ` and Tau Ceti's `RoughForm.extendByZero`
-  (`DifferentialForm/Opens.lean`). The regularity issue glues local
-  smooth representatives with it.
+- `SmoothForm.extendByZeroAlong`: the smooth form on $M$, zero outside
+  `ψ.source`, whose expression is a given smooth function with compact
+  support in `ψ.target`, with `mpullback_symm_extendByZeroAlong`. It is
+  `RoughForm.extendByZeroAlong`, defined piecewise from
+  `mpullback I 𝓘(ℝ, E) ψ` on `ψ.source`, not through Tau Ceti's
+  `RoughForm.extendByZero` between `Opens`. The regularity issue glues
+  local smooth representatives with it.
+
+### `Geometry/Manifold/LocalDiffeomorph/ChartCover.lean`
+
 - `exists_finite_partialDiffeomorph_cover`: on a compact boundaryless
-  manifold, finitely many such charts with a subordinate smooth partition
-  of unity.
+  manifold, finitely many charts `extChartPartialDiffeomorph I ∞ x` with a
+  subordinate smooth partition of unity.
 
 ### `Geometry/Manifold/DeRham/Hodge/Chart.lean`
 
@@ -398,6 +403,26 @@ complexification:
 - `TauCeti.finrank_complexDeRhamCohomology`: its complex dimension is the
   real dimension of `deRhamCohomology I M k`.
 
+### `Analysis/Normed/Module/Alternating/Derivation.lean`
+
+- Facts about Mathlib's `ContinuousAlternatingMap.fderivCompContinuousLinearMap`
+  at the identity in the direction `A`, which is the derivation of an
+  endomorphism `A` on forms:
+  `fderivCompContinuousLinearMap_id_apply`,
+  `fderivCompContinuousLinearMap_ofSubsingleton`,
+  `fderivCompContinuousLinearMap_apply_comp_equiv` and the Leibniz rule
+  `fderivCompContinuousLinearMap_wedge` for real-valued forms.
+
+### `Analysis/InnerProductSpace/HodgeStar/AlternatingForm.lean`
+
+- `TauCeti.alternatingFormEquiv_lieMap`: for a skew-adjoint `A`, `lieMap A`
+  on $\Lambda^k V$ is minus the derivation of `A` on forms.
+- `TauCeti.alternatingFormEquiv_wedgeLeft`: the form of `u ∧ x` is
+  `alternatizeUncurryFin` of `(innerSL ℝ u).smulRight`.
+- `Orientation.smul_formHodgeStar_alternatizeUncurryFin_formHodgeStar`: the
+  symbol of $d^*$ with Tau Ceti's sign,
+  $\delta_u=\pm\star\varepsilon_u\star=-\iota_u$.
+
 ### `Analysis/InnerProductSpace/HodgeStar/Kahler/Lefschetz.lean`
 
 Linear algebra for `V` a real inner product space of finite dimension, with
@@ -409,17 +434,22 @@ on the fibres `V [⋀^Fin k]→L[ℝ] ℝ` of the form bundle, beside Tau Ceti's
   →L[ℝ] (V [⋀^Fin (k + 2)]→L[ℝ] ℝ)`, wedge with $\omega$, with
   `lefschetz_apply`. Its use is the theorem below; the smooth version is in
   `Kahler/Identities.lean`.
-- `Orientation.formHodgeStar_alternatingDerivation`: the star commutes with
-  the derivation of `J`, from Tau Ceti's `Orientation.hodgeStar_lieMap`
-  through `alternatingFormEquiv`.
-- `TauCeti.AlmostComplexStructure.lefschetz_codiffSymbol_sub`: for every
-  covector $\xi$, with $\varepsilon_\xi$ the wedge with $\xi$ and
-  $\delta_\xi=\pm\star\varepsilon_\xi\star$ the symbol of $d^*$ with Tau
-  Ceti's sign,
-  $L\delta_\xi-\delta_\xi L=-(\mathcal J\varepsilon_\xi-\varepsilon_\xi\mathcal J)$.
-  This is the constant-coefficient Kähler identity. It is checked on
-  functions against `coe_codifferential_funSMulₗ` and proved in a unitary
-  basis.
+- `Orientation.formHodgeStar_fderivCompContinuousLinearMap`: the star commutes
+  with the derivation of a skew-adjoint `A`, such as `J`, from
+  Tau Ceti's `Orientation.hodgeStar_lieMap` through `alternatingFormEquiv`.
+- `TauCeti.AlmostComplexStructure.lefschetz_curryLeft_sub`: for every
+  vector $u$, with $\varepsilon_u$ the wedge with $\langle u,\cdot\rangle$
+  (`alternatizeUncurryFin` of `(innerSL ℝ u).smulRight`) and $\iota_u$ the
+  interior product `curryLeft`,
+  $L\iota_u-\iota_u L=\mathcal J\varepsilon_u-\varepsilon_u\mathcal J$.
+  The symbol of $d^*$ with Tau Ceti's sign is
+  $\delta_u=\pm\star\varepsilon_u\star=-\iota_u$
+  (`Orientation.smul_formHodgeStar_alternatizeUncurryFin_formHodgeStar` of
+  `HodgeStar/AlternatingForm.lean`), so
+  this is
+  $L\delta_u-\delta_u L=-(\mathcal J\varepsilon_u-\varepsilon_u\mathcal J)$,
+  the constant-coefficient Kähler identity. It is proved from the Leibniz
+  rules of $\iota_u$ and $\mathcal J$, without a unitary basis.
 
 ### `Geometry/Manifold/Complex/KahlerCoordinates.lean`
 
@@ -578,7 +608,7 @@ sub-issues of #874, *Build the part Hodge theory*. Sizes are estimates.
 | # | Issue | Files | Blocked by | Size |
 |---|---|---|---|---|
 | 1 | Interior regularity of elliptic systems with a scalar principal part | `Analysis/Distribution/EllipticSystem.lean` | — | 300 |
-| 2 | Forms along partial diffeomorphisms: agreement with `inChartAt`, $\mathcal J$, extension by zero, finite covers | `Geometry/Manifold/DifferentialForm/PartialDiffeomorph.lean` | — | 250 |
+| 2 | Forms along partial diffeomorphisms: agreement with `inChartAt`, $\mathcal J$, extension by zero, finite covers | `Geometry/Manifold/DifferentialForm/PartialDiffeomorph.lean`, `Geometry/Manifold/LocalDiffeomorph/ChartCover.lean` | — | 250 |
 | 3 | The metric, the Hodge star and the codifferential in a chart | `DeRham/Hodge/Chart.lean` | 2 | 350 |
 | 4 | The Hodge Laplacian in a chart has a scalar principal part | `DeRham/Hodge/LocalLaplacian.lean` | 3 | 350 |
 | 5 | The Hilbert space of $L^2$ forms and its localizations | `DeRham/Hodge/L2.lean` | 2 | 400 |
@@ -586,7 +616,7 @@ sub-issues of #874, *Build the part Hodge theory*. Sizes are estimates.
 | 7 | The Hodge $H^1$ space and compactness of its inclusion in $L^2$ | `DeRham/Hodge/Sobolev.lean` | 6 | 400 |
 | 8 | The Hodge theorem on a closed oriented Riemannian manifold | `DeRham/Hodge/Basic.lean` | 7 | 300 |
 | 9 | Complex harmonic forms | `DeRham/Hodge/Complex.lean` | 8 | 300 |
-| 10 | The Lefschetz operator and the linear Kähler identity | `Analysis/InnerProductSpace/HodgeStar/Kahler/Lefschetz.lean` | — | 350 |
+| 10 | The Lefschetz operator and the linear Kähler identity | `Analysis/InnerProductSpace/HodgeStar/Kahler/Lefschetz.lean`, `Analysis/InnerProductSpace/HodgeStar/AlternatingForm.lean`, `Analysis/Normed/Module/Alternating/Derivation.lean` | — | 350 |
 | 11 | Osculating holomorphic charts of a Kähler manifold | `Geometry/Manifold/Complex/KahlerCoordinates.lean` | 3; #862 | 400 |
 | 12 | The Kähler identity and $[\Delta,\mathcal J]=0$ | `DeRham/Kahler/Identities.lean` | 3, 10, 11 | 400 |
 | 13 | Conjugation on complex de Rham cohomology, and the Hodge decomposition | `Geometry/Manifold/DeRham/ComplexCoefficients.lean`, `DeRham/Kahler/Decomposition.lean` | 9, 12 | 400 |

@@ -389,6 +389,13 @@ Smooth families of forms over a parameter manifold `N` (model
   `TauCeti.SmoothForm.mpullback_prodMk_mpullback_prodComm`, that the slice
   at `t` of the pullback of `Ω : SmoothForm (I.prod J) (M × N) F k` along
   `Diffeomorph.prodComm` is the pullback of `Ω` along `(·, t)`.
+- `SymplecticGeometry.isSmoothFamily_interiorₗ`: for a two-form `σ` and a
+  family `X_t` of vector fields that is jointly smooth on `N × M`, the
+  family `t ↦ σ.interiorₗ (X t)` is smooth. It was first in
+  `Flux/Hamiltonian.lean` of *Hamiltonian flows*; it is here because it is
+  about smooth families only, and `SymplecticIsotopy.lean` of that part uses
+  it too. For it this file imports Tau Ceti's
+  `Geometry/Symplectic/Manifold/Flat.lean`.
 
 ### `Geometry/Manifold/DifferentialForm/SmoothFamily/Map.lean`
 
@@ -730,8 +737,8 @@ Below, `∂ₜ` at `(x, t)` is the tangent vector
   ⟨Real.smoothTransition u, _, _⟩ : unitInterval`, with
   `Real.coe_smoothTransitionUnit`, `Real.smoothTransitionUnit_of_nonpos`,
   `Real.smoothTransitionUnit_of_one_le`, `Real.contMDiff_smoothTransitionUnit` and
-  `Real.mfderiv_smoothTransitionUnit_one` (all in `Geometry/Manifold/SmoothTransition.lean`, which imports nothing
-  of the library),
+  `Real.mfderiv_smoothTransitionUnit_one` (all in `Geometry/Manifold/SmoothTransition.lean`, which imports, of
+  the library, only `Geometry/Manifold/Instances/Icc.lean` of *Hamiltonian flows*),
   `smoothTransitionFamily (Φ : Diffeotopy I ∞ M)
   (t : ℝ) : M ≃ₘ⟮I, I⟯ M := Φ.timeSlice (s t)`,
   with `smoothTransitionFamily_def`, `smoothTransitionFamily_apply`,
@@ -784,7 +791,11 @@ In `TauCeti.Diffeotopy`, for `[FiniteDimensional ℝ E] [IsManifold I ∞ M]
   0 of `DESIGN.md`'s build order and stays there. Also `Geometry/Manifold/IsManifold/Basic.lean` of
   *Symplectic neighbourhoods*, whose instance giving `C^(m + 1)` structures
   from `C^∞` ones the merged `DifferentialForm/HomotopyOperator.lean` uses; it
-  imports only Mathlib, so the level does not change.
+  imports only Mathlib, so the level does not change. And
+  `Geometry/Manifold/Instances/Icc.lean` of *Hamiltonian flows*, which
+  `SmoothTransition.lean` and `Diffeotopy/Real.lean` import for
+  `mdifferentiableAt_subtypeVal_Icc`; it imports only Mathlib, so the level
+  does not change.
 - What later parts take: *Hamiltonian flows* uses `Diffeotopy/Real.lean` (for
   `SymplecticIsotopy.lean`) and `ContMDiff/TimeExtension.lean` with
   `timeExtend_eq_zero` (for `Flux/CompactSupport.lean`); *Moser isotopy* uses

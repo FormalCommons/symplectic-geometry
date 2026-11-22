@@ -23,6 +23,7 @@ import TauCeti.Geometry.Symplectic.Manifold.Opens
 import TauCeti.LinearAlgebra.Alternating.Conormal
 import TauCeti.LinearAlgebra.Alternating.Curry
 import SymplecticGeometry.Geometry.Manifold.IsManifold.Basic
+import SymplecticGeometry.Geometry.Manifold.MFDeriv.Opens
 
 /-!
 # Characteristic foliations and local symplectic quotients
@@ -610,8 +611,6 @@ theorem exists_partialDiffeomorph_eval₂_eq_stdForm (σ : SmoothForm I M ℝ 2)
     exact c.map_source hcx
   refine ⟨c, hcx, hcx₀.trans hc₀0, ?_⟩
   -- The form computation: on `U`, `σ` is `p^* τ`, and `d` pulls `stdForm (Fin r)` back to `τ`.
-  have hval (u : U) : MDifferentiableAt I I (Subtype.val : U → M) u :=
-    (contMDiff_subtypeVal (n := ∞)).mdifferentiableAt (by simp)
   have hgp (u : U) (v w : TangentSpace I u) :
       SmoothBundleForm.eval₂ σ (Subtype.val u) (mfderiv I I Subtype.val u v)
         (mfderiv I I Subtype.val u w) =
@@ -631,7 +630,7 @@ theorem exists_partialDiffeomorph_eval₂_eq_stdForm (σ : SmoothForm I M ℝ 2)
     Filter.eventually_of_mem (c.open_target.mem_nhds hs) fun z hz ↦ hcs z hz
   rw [heq.mfderiv_eq, ContinuousLinearMap.comp_apply, ContinuousLinearMap.comp_apply]
   refine (hcast _ _ (hcs s hs).symm _ _).trans ?_
-  refine (eval₂_mfderiv_comp_symm_eq_of_darbouxChart hval
+  refine (eval₂_mfderiv_comp_symm_eq_of_darbouxChart mdifferentiable_subtypeVal
     (fun u ↦ hp.isSubmersion.contMDiff.mdifferentiableAt (by simp)) hgp hd
     (fun u hu ↦ (hc₀s u).1 hu) hdp (hct hs) a b).trans ?_
   exact congrArg₂ (stdForm (Fin r) · ·) (hρ a) (hρ b)
