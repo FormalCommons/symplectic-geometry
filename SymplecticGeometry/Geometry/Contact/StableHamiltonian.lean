@@ -886,10 +886,9 @@ theorem exists_mpullback_eq_stableHamiltonianModel [FiniteDimensional ℝ E] [Co
   let j (p : symmStrip M (min δ ε)) : U₀ := ⟨⟨p.val, symmStrip_mono hle p.property⟩, hU₀ p⟩
   have hj : Continuous j := (continuous_subtypeVal.subtype_mk _).subtype_mk _
   have hjval : (Subtype.val ∘ Subtype.val) ∘ j = Subtype.val := rfl
-  have hjd : IsLocalDiffeomorph (𝓘(ℝ).prod I) (𝓘(ℝ).prod I) ∞ j := fun p ↦
-    IsLocalDiffeomorphAt.of_comp_left (hjval ▸ TauCeti.isLocalDiffeomorph_subtype_val p)
-      ((TauCeti.isLocalDiffeomorph_subtype_val (j p)).comp
-        (hg := TauCeti.isLocalDiffeomorph_subtype_val _)) hj.continuousAt
+  have hjd : IsLocalDiffeomorph (𝓘(ℝ).prod I) (𝓘(ℝ).prod I) ∞ j :=
+    (TauCeti.isLocalDiffeomorph_subtypeVal_comp_iff hj).1
+      (TauCeti.isLocalDiffeomorph_inclusion (symmStrip_mono hle))
   have hΦ : IsLocalDiffeomorph (𝓘(ℝ).prod I) (𝓘(ℝ).prod I) ∞ ((Subtype.val ∘ φ) ∘ j) := fun p ↦
     (hjd p).comp (hg := (φ.isLocalDiffeomorph (j p)).comp
       (hg := TauCeti.isLocalDiffeomorph_subtype_val _))
