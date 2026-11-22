@@ -102,6 +102,16 @@ theorem isClosed_discComplement : IsClosed (discComplement φ) :=
 instance [CompactSpace M] : CompactSpace (discComplement φ) :=
   isCompact_iff_compactSpace.1 (isClosed_discComplement φ).isCompact
 
+/-- If the closed discs are pairwise disjoint, the boundary circle of each disc lies in the
+complement of the open discs. -/
+theorem boundaryCircle_mem_discComplement (hφ : Pairwise (Disjoint on fun i ↦ (φ i).disc))
+    (i : ι) (ζ : Circle) : (φ i).boundaryCircle ζ ∈ discComplement φ :=
+  (mem_discComplement_iff φ).2 fun j hj ↦ by
+    by_cases hij : j = i
+    · exact (φ i).boundaryCircle_notMem_openDisc ζ (hij ▸ hj)
+    · exact (hφ hij).notMem_of_mem_left ((φ j).openDisc_subset_disc hj)
+        ((φ i).boundaryCircle_mem_disc ζ)
+
 section Boundary
 
 variable [TopologicalSpace ι] [DiscreteTopology ι]
@@ -110,11 +120,7 @@ variable [TopologicalSpace ι] [DiscreteTopology ι]
 `ι × S¹` to the complement of the open discs. -/
 def discComplementBoundary (hφ : Pairwise (Disjoint on fun i ↦ (φ i).disc)) :
     C(ι × Circle, discComplement φ) where
-  toFun p := ⟨(φ p.1).boundaryCircle p.2, (mem_discComplement_iff φ).2 fun j hj ↦ by
-    by_cases hij : j = p.1
-    · exact (φ p.1).boundaryCircle_notMem_openDisc p.2 (hij ▸ hj)
-    · exact (hφ hij).notMem_of_mem_left ((φ j).openDisc_subset_disc hj)
-        ((φ p.1).boundaryCircle_mem_disc p.2)⟩
+  toFun p := ⟨(φ p.1).boundaryCircle p.2, boundaryCircle_mem_discComplement φ hφ p.1 p.2⟩
   continuous_toFun := (continuous_prod_of_discrete_left.2 fun i ↦
     (φ i).boundaryCircle.continuous).subtype_mk _
 
