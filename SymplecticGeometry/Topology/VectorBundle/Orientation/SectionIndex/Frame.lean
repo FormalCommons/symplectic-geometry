@@ -6,13 +6,11 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.CoordinateDisc
-public import SymplecticGeometry.Topology.VectorBundle.LineBundle
+public import SymplecticGeometry.Topology.VectorBundle.Orientation.Complex.LineBundle
 public import SymplecticGeometry.Topology.VectorBundle.Orientation.SectionIndex.FiberwiseEquiv
 public import SymplecticGeometry.Topology.VectorBundle.Orientation.SectionIndex.Trivial
+public import SymplecticGeometry.Topology.VectorBundle.Section
 public import TauCeti.Geometry.Manifold.ModelTransport.Finrank
-public import TauCeti.Topology.Algebra.Module.Equiv.RestrictScalars
-public import TauCeti.Topology.VectorBundle.Orientation.Complex.Basic
-public import TauCeti.Topology.VectorBundle.Smul
 
 /-!
 # Local indices of sections of a complex line bundle read in a frame over a coordinate disc
@@ -34,8 +32,8 @@ definition, so this lets a frame along it be given as one along `φ ∘ f`.
 The frame gives at each point `w` of the ball the complex-linear equivalence `c ↦ c • σ w` from
 `ℂ` onto the fibre of `L` at `ψ w` (`VectorBundle.toSpanSingletonEquiv`), so an isomorphism of
 the trivial bundle `ball × ℂ` with the pull-back of `L` along `ψ` that carries the orientation of
-`ℂ` to the complex orientation of `L` (`TauCeti.VectorBundleOrientation.map_complex`) and the
-section `g` to `s`. The two sections have the same local index
+`ℂ` to the complex orientation of `L` (`TauCeti.VectorBundleOrientation.map_toSpanSingletonEquiv`)
+and the section `g` to `s`. The two sections have the same local index
 (`TauCeti.VectorBundleOrientation.sectionIndex_comap_eq_of_fiberwise`), with the ball charted on
 the model of `M` through `ChartedSpace.ofFinrankEq`, and in the trivial bundle the local index of
 `g` is its local index as a map
@@ -104,22 +102,14 @@ theorem sectionIndex_eq_localIndex_of_eq_smul (hn : finrank ℝ E = 2) (hG : fin
   have hΦc : Continuous fun v : TotalSpace ℂ (Bundle.Trivial ball ℂ) ↦
       TotalSpace.mk' G (ψ v.proj) (Φ v.proj v.snd) := by
     simp only [hΦ]
-    exact Continuous.smul_totalSpace (c := fun v : TotalSpace ℂ (Bundle.Trivial ball ℂ) ↦ v.snd)
-      (continuous_snd.comp (Bundle.Trivial.isInducing_toProd ball ℂ).continuous)
-      (hσ.comp (FiberBundle.continuous_proj ℂ _))
+    exact hσ.smul_totalSpace_trivial
   have ho : ∀ w, Orientation.map (Fin 2) (Φ w).toLinearEquiv
       (VectorBundleOrientation.trivial ball Complex.orientation w) =
       VectorBundleOrientation.reindex (finCongr (by rw [hG]))
         (VectorBundleOrientation.complex G L) (ψ w) := by
     intro w
-    -- `Φ w` is complex-linear, so it carries the canonical orientation of `ℂ` to that of `L`.
-    have h := VectorBundleOrientation.map_complex (F := G) (E := L) (F' := ℂ)
-      (E' := Bundle.Trivial ball ℂ) (b' := w) (b := ψ w)
-      (VectorBundle.toSpanSingletonEquiv G hG (σ w) (hσ0 w)).toLinearEquiv
-    rw [VectorBundleOrientation.complex_trivial, VectorBundleOrientation.trivial_apply] at h
-    rw [VectorBundleOrientation.trivial_apply, ← reindex_complexOrientation_complex,
-      ContinuousLinearEquiv.restrictScalars'_toLinearEquiv, Orientation.map_reindex, h,
-      VectorBundleOrientation.reindex_apply, Orientation.reindex_finCongr_reindex_finCongr]
+    rw [VectorBundleOrientation.trivial_apply]
+    exact VectorBundleOrientation.map_toSpanSingletonEquiv hG (σ w) (hσ0 w)
   have hs₁ : Continuous fun w ↦ TotalSpace.mk' ℂ (E := Bundle.Trivial ball ℂ) w (g w) :=
     (Bundle.Trivial.isInducing_toProd ball ℂ).continuous_iff.2 (continuous_id.prodMk g.continuous)
   have h1 := VectorBundleOrientation.sectionIndex_comap_eq_of_fiberwise
