@@ -585,9 +585,11 @@ continuous bilinear form `B`, which need not be positive.
 
 For `ι` finite with decidable equality, `V = StdSpace ι`, `ω = stdForm ι`:
 
-- `SiegelUpperHalfSpace.hasFDerivAt_complexStructureMatrix`: the derivative of
+- from the Siegel part's
+  `Analysis/Complex/SiegelUpperHalfSpace/ComplexStructure.lean`, it uses
+  `SiegelUpperHalfSpace.hasFDerivAt_complexStructureMatrix`: the derivative of
   the block formula `complexStructureMatrix` at a matrix with invertible
-  imaginary part, in the Siegel part's namespace;
+  imaginary part;
 - `SiegelUpperHalfSpace.compatibleDiffeomorph ι : SiegelUpperHalfSpace ι ≃ₘ⟮𝓘(ℝ,
   selfAdjointMatricesSubmodule (1 : Matrix ι ι ℂ)),
   𝓘(ℝ, (stdForm ι).compatibleModel)⟯
