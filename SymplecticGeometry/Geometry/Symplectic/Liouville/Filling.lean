@@ -6,14 +6,19 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Contact.Basic
+public import TauCeti.Geometry.Contact.Symplectization.Basic
 public import TauCeti.Geometry.Symplectic.Liouville.ContactType
 public import TauCeti.Geometry.Symplectic.Manifold.Flat
 public import SymplecticGeometry.Geometry.Manifold.Boundary.Charts
+public import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Flow.Basic
 import Mathlib.Geometry.Manifold.PartitionOfUnity
+import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Local
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Continuity
 import SymplecticGeometry.Geometry.Symplectic.Liouville.ContactType
+import SymplecticGeometry.Geometry.Symplectic.Liouville.Scaling
 
 /-!
-# Strong fillings and their boundary contact form
+# Strong fillings, their boundary contact form and their Liouville collar
 
 A strong symplectic filling, in McDuff–Salamon's sense, is a compact symplectic manifold with
 boundary `(W, σ)` with a Liouville vector field `Y`, `L_Y σ = σ`, defined near the boundary and
@@ -26,6 +31,20 @@ its boundary `∂W` is a manifold over `EuclideanSpace ℝ (Fin n)` and outward 
 The boundary of a strong filling is of contact type, and it carries the contact form
 `α = -ι^*(ι_Y σ)`, where `ι : ∂W → W` is the inclusion, with `dα = -ι^*σ`. These are the signs of
 McDuff–Salamon: the Liouville primitive is `λ = -ι_Y σ`, with `dλ = -σ`, and `α = ι^*λ`.
+
+Near its boundary a strong filling is a piece of the symplectization of its boundary
+(`SymplecticGeometry.IsStrongFilling.exists_liouvilleCollar`). The backward integral curves of `Y`
+from the boundary points form a smooth collar
+(`TauCeti.SmoothCollar.exists_eq_of_isOutwardPointing_of_subset`), and the map `Φ`, sending
+`(s, x)` to the point at time `s` of the curve that ends at `x`, pulls `λ` back to `e^s α` and
+`σ` back to `-d(e^s α)` on `(-ε, 0) × ∂W`. At negative times the curves run in the interior, where
+Liouville scaling
+(`TauCeti.mpullback_interiorₗ_apply_eq_symplectization_of_isMIntegralCurveOn`) relates `Φ^*λ` at
+time `s` to its restriction to a slice `Φ (t₀, ·)` pushed into the interior. Since the collar is
+smooth up to the boundary, these restrictions depend continuously on `t₀` up to `t₀ = 0`
+(`TauCeti.IsSmoothForm.continuous_mpullback_prodMk_apply`), where the slice is the boundary
+itself; letting `t₀ → 0` identifies the restriction with `α`. The identity for `σ` follows from
+`σ = d(ι_Y σ)` on `U` (Cartan's formula) and the naturality of `d`.
 
 ## Main definitions
 
@@ -46,11 +65,14 @@ McDuff–Salamon: the Liouville primitive is `λ = -ι_Y σ`, with `dλ = -σ`, 
   `SymplecticGeometry.IsStrongFilling.mextDerivₗ_fillingContactForm`: `α` is a contact form with
   `dα = -ι^*σ`, from the general case of a hypersurface,
   `TauCeti.SmoothEmbedding.exists_isContactForm_eq_neg_mpullback_interior`.
+* `SymplecticGeometry.IsStrongFilling.exists_liouvilleCollar`: the Liouville collar of a strong
+  filling, `Φ^*λ = e^s α` and `Φ^*σ = -d(e^s α)` along the integral curves of `Y` that end on the
+  boundary.
 
 ## References
 
 * [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017],
-  Definition 3.5.38.
+  Definition 3.5.38 and the completion on p. 148.
 -/
 
 public section
@@ -221,6 +243,231 @@ theorem mextDerivₗ_fillingContactForm (h : IsStrongFilling σ U Y) :
   exact hd
 
 end IsStrongFilling
+
+section Collar
+
+open _root_.TauCeti.EuclideanHalfSpace Filter Topology
+
+variable [T2Space W]
+
+/-- The depth `min (-t / ε) a` in `[0, 1)`, for `a < 1`, of the collar slice at time `t`. -/
+private noncomputable def collarDepth (ε a : ℝ) (ha : a < 1) (t : ℝ) : normalIioOpens 1 :=
+  ⟨normalRay (min (-t / ε) a), by
+    rw [mem_normalIioOpens, normalRay_coe_apply]
+    exact max_lt ((min_le_right _ _).trans_lt ha) one_pos⟩
+
+private theorem continuous_collarDepth (ε a : ℝ) (ha : a < 1) :
+    Continuous (collarDepth ε a ha) :=
+  (continuous_normalRay.comp ((continuous_neg.div_const ε).min continuous_const)).subtype_mk _
+
+private theorem contMDiffAt_collarDepth {ε a : ℝ} (hε : 0 < ε) (ha : a < 1) {t : ℝ}
+    (ht : t < 0) (hta : -t / ε < a) :
+    ContMDiffAt 𝓘(ℝ) (𝓡∂ 1) ∞ (collarDepth ε a ha) t := by
+  refine (ContMDiffAt.subtypeVal_comp_iff _ _ _).1 ?_
+  have hpos : 0 < -t / ε := div_pos (neg_pos.2 ht) hε
+  have hr : ContMDiffAt 𝓘(ℝ) (𝓡∂ 1) ∞ (fun s : ℝ ↦ normalRay (-s / ε)) t :=
+    (contMDiffOn_normalRay.contMDiffAt (Ici_mem_nhds hpos)).comp t
+      ((contDiff_id.neg.div_const ε).contMDiff.contMDiffAt)
+  refine hr.congr_of_eventuallyEq ?_
+  filter_upwards [((continuous_neg.div_const ε).tendsto t).eventually (gt_mem_nhds hta)]
+    with s hs
+  simp only [Function.comp_apply, collarDepth, min_eq_left hs.le]
+
+omit [IsManifold (𝓡∂ (n + 1)) ∞ W] [T2Space W] in
+/-- On `(-a ε, 0]`, the line of `Φ` at time `t` is the collar at depth `collarDepth ε a ha t`. -/
+private theorem eq_collarDepth {ε : ℝ} (hε : 0 < ε) {Φ : ℝ × (𝓡∂ (n + 1)).boundary W → W}
+    {c : SmoothCollar n ∞ W} (hc : ∀ q, c q = Φ (-ε * (q.2 : EuclideanHalfSpace 1).val 0, q.1))
+    {a : ℝ} (ha : a < 1) {t : ℝ} (ht : -t / ε < a) (ht0 : t ≤ 0) (x) :
+    Φ (t, x) = c (x, collarDepth ε a ha t) := by
+  rw [hc]
+  simp only [collarDepth, normalRay_coe_apply, min_eq_left ht.le,
+    max_eq_left (div_nonneg (neg_nonneg.2 ht0) hε.le)]
+  congr 2
+  field_simp
+
+private theorem exists_depth {ε t : ℝ} (hε : 0 < ε) (ht : t ∈ Ioo (-ε) 0) :
+    ∃ a, ∃ _ : a < 1, -t / ε < a := by
+  obtain ⟨a, h₁, h₂⟩ := exists_between (show -t / ε < 1 by
+    rw [div_lt_one hε]; linarith [ht.1])
+  exact ⟨a, h₂, h₁⟩
+
+omit [IsManifold (𝓡∂ (n + 1)) ∞ W] [T2Space W] in
+/-- `Φ` is smooth at the points of `(-ε, 0) × ∂W`, where it is the collar at a smooth depth. -/
+private theorem contMDiffAt_of_eq_collar {ε : ℝ} (hε : 0 < ε)
+    {Φ : ℝ × (𝓡∂ (n + 1)).boundary W → W} {c : SmoothCollar n ∞ W}
+    (hc : ∀ q, c q = Φ (-ε * (q.2 : EuclideanHalfSpace 1).val 0, q.1)) {t : ℝ}
+    (ht : t ∈ Ioo (-ε) 0) (x : (𝓡∂ (n + 1)).boundary W) :
+    ContMDiffAt (𝓘(ℝ).prod (𝓡 n)) (𝓡∂ (n + 1)) ∞ Φ (t, x) := by
+  obtain ⟨a, ha, hta⟩ := exists_depth hε ht
+  have hta' : -(a * ε) < t := by
+    rw [div_lt_iff₀ hε] at hta; linarith
+  refine ((c.contMDiff _).comp _ (contMDiffAt_snd.prodMk
+    ((contMDiffAt_collarDepth hε ha ht.2 hta).comp _ contMDiffAt_fst))).congr_of_eventuallyEq ?_
+  filter_upwards [(isOpen_Ioo.preimage continuous_fst).mem_nhds
+    (show (t, x).1 ∈ Ioo (-(a * ε)) 0 from ⟨hta', ht.2⟩)] with q hq
+  refine eq_collarDepth hε hc ha ?_ hq.2.le q.2
+  rw [div_lt_iff₀ hε]; linarith [hq.1]
+
+omit [T2Space W] in
+/-- At negative times the lines of `Φ` lie in `U` and in the interior of `W`. -/
+private theorem IsStrongFilling.mem_inter_interior_of_eq_collar (h : IsStrongFilling σ U Y)
+    {ε : ℝ} (hε : 0 < ε) {Φ : ℝ × (𝓡∂ (n + 1)).boundary W → W} {c : SmoothCollar n ∞ W}
+    (hΦY : ∀ x, IsMIntegralCurveOn (fun s ↦ Φ (s, x)) Y (Ioc (-ε) 0))
+    (hc : ∀ q, c q = Φ (-ε * (q.2 : EuclideanHalfSpace 1).val 0, q.1)) (hcU : range c ⊆ U)
+    {t : ℝ} (ht : t ∈ Ioo (-ε) 0) (x : (𝓡∂ (n + 1)).boundary W) :
+    Φ (t, x) ∈ U ∩ (𝓡∂ (n + 1)).interior W := by
+  obtain ⟨a, ha, hta⟩ := exists_depth hε ht
+  refine ⟨?_, (hΦY x).mem_interior_of_isOutwardPointing
+    (fun y hy ↦ h.isOutwardPointingField.isOutwardPointing hy)
+    (mem_of_superset (Ioo_mem_nhds ht.1 ht.2) Ioo_subset_Ioc_self)⟩
+  rw [eq_collarDepth hε hc ha hta ht.2.le]
+  exact hcU (mem_range_self _)
+
+/-- The pullback of `ι_Y σ` along `Φ`, at `(t, x)` with `t ∈ (-ε, 0)`, is `e^t` times its pullback
+to the boundary. By Liouville scaling, it is `e^(t - t₀)` times the pullback to the slice
+`Φ (t₀, ·)` for every `t₀ ∈ (-ε, 0)`; that pullback depends continuously on `t₀` up to `t₀ = 0`,
+where the slice is the boundary. -/
+private theorem IsStrongFilling.mpullback_interiorₗ_apply_of_eq_collar
+    (h : IsStrongFilling σ U Y) {ε : ℝ} (hε : 0 < ε) {Φ : ℝ × (𝓡∂ (n + 1)).boundary W → W}
+    {c : SmoothCollar n ∞ W} (hΦY : ∀ x, IsMIntegralCurveOn (fun s ↦ Φ (s, x)) Y (Ioc (-ε) 0))
+    (hc : ∀ q, c q = Φ (-ε * (q.2 : EuclideanHalfSpace 1).val 0, q.1)) (hcU : range c ⊆ U)
+    {t : ℝ} (ht : t ∈ Ioo (-ε) 0) (x : (𝓡∂ (n + 1)).boundary W)
+    (w : TangentSpace (𝓘(ℝ).prod (𝓡 n)) (t, x)) :
+    mpullback (𝓘(ℝ).prod (𝓡 n)) (𝓡∂ (n + 1)) Φ
+        (σ.interiorₗ ⟨Y, h.isOutwardPointingField.contMDiff⟩).val (t, x) ![w] =
+      Real.exp t * mpullback (𝓡 n) (𝓡∂ (n + 1)) Subtype.val
+        (σ.interiorₗ ⟨Y, h.isOutwardPointingField.contMDiff⟩).val x
+          ![(Manifold.tangentSpaceProdEquiv (t, x) w).2] := by
+  set hY := h.isOutwardPointingField.contMDiff
+  set β := σ.interiorₗ ⟨Y, hY⟩
+  set L := mpullback (𝓘(ℝ).prod (𝓡 n)) (𝓡∂ (n + 1)) Φ β.val (t, x) ![w]
+  set w₂ := (Manifold.tangentSpaceProdEquiv (t, x) w).2
+  -- The pullback to the collar slice at depth `r`, evaluated on `w₂`, is continuous in `r`.
+  let G : normalIioOpens 1 → ℝ := fun r ↦
+    mpullback (𝓡 n) (𝓡∂ (n + 1)) (fun y ↦ c (y, r)) β.val x ![w₂]
+  have hG : Continuous G :=
+    (β.isSmoothForm.of_le (by simp)).continuous_mpullback_prodMk_apply
+      (c.contMDiff.of_le (by simp)) x ![w₂]
+  let ρ := collarDepth ε (1 / 2) (by norm_num)
+  have hG0 : G (ρ 0) = mpullback (𝓡 n) (𝓡∂ (n + 1)) Subtype.val β.val x ![w₂] := by
+    have hρ0 : ρ 0 = normalIioOpensZero one_pos := Subtype.ext (by
+      simp [ρ, collarDepth, coe_normalIioOpensZero])
+    simp only [G, hρ0, c.apply_zero]
+  -- By Liouville scaling, the slice at `t₀` determines `L`.
+  have hscale : ∀ t₀ ∈ Ioo (-(ε / 2)) 0, G (ρ t₀) = Real.exp (t₀ - t) * L := by
+    intro t₀ ht₀
+    have hta : -t₀ / ε < 1 / 2 := by
+      rw [div_lt_iff₀ hε]; linarith [ht₀.1]
+    have hΦt₀ : (fun y ↦ Φ (t₀, y)) = fun y ↦ c (y, ρ t₀) :=
+      funext (eq_collarDepth hε hc (by norm_num) hta ht₀.2.le)
+    have hΦ₀ : ContMDiff (𝓡 n) (𝓡∂ (n + 1)) ∞ fun y ↦ Φ (t₀, y) :=
+      hΦt₀ ▸ c.contMDiff.comp (contMDiff_id.prodMk contMDiff_const)
+    have hsc := mpullback_interiorₗ_apply_eq_symplectization_of_isMIntegralCurveOn
+      h.isSymplectic.isClosed hY
+      ((𝓡∂ (n + 1)).isOpen_interior one_ne_zero |> h.isOpen.inter) inter_subset_right
+      (fun y hy ↦ h.mlieDerivForm_eq y hy.1)
+      (fun t ht x ↦ h.mem_inter_interior_of_eq_collar hε hΦY hc hcU ht x)
+      (fun x ↦ (hΦY x).mono Ioo_subset_Ioc_self) (a := -ε) (b := 0)
+      ⟨by linarith [ht₀.1], ht₀.2⟩ hΦ₀ ht x
+    have hL : L = Real.exp (t - t₀) * G (ρ t₀) := by
+      change (mpullback (𝓘(ℝ).prod (𝓡 n)) (𝓡∂ (n + 1)) Φ β.val (t, x)) ![w] = _
+      rw [hsc]
+      refine (SmoothForm.symplectization_apply _ (t - t₀, x) w).trans ?_
+      rw [SmoothForm.coe_mpullback]
+      simp only [G, ← hΦt₀, w₂]
+      rw [Manifold.tangentSpaceProdEquiv_apply (t - t₀, x) w,
+        Manifold.tangentSpaceProdEquiv_apply]
+    rw [hL, ← mul_assoc, ← Real.exp_add, sub_add_sub_cancel, sub_self, Real.exp_zero, one_mul]
+  -- Letting `t₀ → 0` identifies the slice with the boundary.
+  have hlim₁ : Tendsto (fun t₀ ↦ G (ρ t₀)) (𝓝[<] 0) (𝓝 (G (ρ 0))) :=
+    ((hG.comp (continuous_collarDepth _ _ _)).tendsto 0).mono_left nhdsWithin_le_nhds
+  have hlim₂ : Tendsto (fun t₀ ↦ Real.exp (t₀ - t) * L) (𝓝[<] 0) (𝓝 (Real.exp (0 - t) * L)) :=
+    (((Real.continuous_exp.comp (continuous_sub_right t)).mul continuous_const).tendsto
+      0).mono_left nhdsWithin_le_nhds
+  have heq := tendsto_nhds_unique hlim₁ (hlim₂.congr' (eventually_of_mem
+    (Ioo_mem_nhdsLT (neg_lt_zero.2 (half_pos hε))) fun t₀ ht₀ ↦ (hscale t₀ ht₀).symm))
+  rw [hG0, zero_sub] at heq
+  change L = Real.exp t * mpullback (𝓡 n) (𝓡∂ (n + 1)) Subtype.val β.val x ![w₂]
+  rw [heq, ← mul_assoc, ← Real.exp_add, add_neg_cancel, Real.exp_zero, one_mul]
+
+/-- The pullback of `ι_Y σ` along `Φ` is the symplectization form `e^s (-α)` on
+`(-ε, 0) × ∂W`. -/
+private theorem IsStrongFilling.mpullback_interiorₗ_eq_of_eq_collar
+    (h : IsStrongFilling σ U Y) {ε : ℝ} (hε : 0 < ε) {Φ : ℝ × (𝓡∂ (n + 1)).boundary W → W}
+    {c : SmoothCollar n ∞ W} (hΦY : ∀ x, IsMIntegralCurveOn (fun s ↦ Φ (s, x)) Y (Ioc (-ε) 0))
+    (hc : ∀ q, c q = Φ (-ε * (q.2 : EuclideanHalfSpace 1).val 0, q.1)) (hcU : range c ⊆ U) :
+    ∀ p ∈ Ioo (-ε) 0 ×ˢ (univ : Set ((𝓡∂ (n + 1)).boundary W)),
+      mpullback (𝓘(ℝ).prod (𝓡 n)) (𝓡∂ (n + 1)) Φ
+          (σ.interiorₗ ⟨Y, h.isOutwardPointingField.contMDiff⟩).val p =
+        (-fillingContactForm σ ⟨Y, h.isOutwardPointingField.contMDiff⟩).symplectization.val p := by
+  rintro ⟨t, x⟩ ⟨ht, -⟩
+  ext v
+  obtain ⟨w, rfl⟩ : ∃ w, v = ![w] := ⟨v 0, by ext i; fin_cases i; rfl⟩
+  rw [h.mpullback_interiorₗ_apply_of_eq_collar hε hΦY hc hcU ht x w,
+    SmoothForm.symplectization_apply, NegMemClass.coe_neg, coe_fillingContactForm,
+    SmoothTwoForm.coe_interiorₗ]
+  simp
+
+/-- **The Liouville collar of a strong filling.** Let `(W, σ, U, Y)` be a strong filling with
+compact boundary, `λ = -ι_Y σ` its Liouville primitive near `∂W` and
+`α = fillingContactForm σ Y`, `-ι^*(ι_Y σ)`, the contact form of its boundary. There are `ε > 0`,
+a map `Φ : ℝ × ∂W → W` whose lines `s ↦ Φ (s, x)` are the integral curves of `Y` on `(-ε, 0]`
+ending at the boundary points, and a smooth collar `c` with image in `U` whose normal lines are
+these curves, `c (x, t) = Φ (-ε t, x)`, such that on `(-ε, 0) × ∂W` the map `Φ` pulls `λ` back to
+`e^s α` and `σ` back to `-d(e^s α)`.
+
+The two identities are stated on the open set `(-ε, 0) × ∂W`, where `Φ` is smooth; at `s = 0`
+the map `Φ` need not be differentiable as a map on `ℝ × ∂W`, and the collar `c` covers the
+boundary itself. -/
+theorem IsStrongFilling.exists_liouvilleCollar [CompactSpace ((𝓡∂ (n + 1)).boundary W)]
+    (h : IsStrongFilling σ U Y) :
+    ∃ (ε : ℝ) (Φ : ℝ × (𝓡∂ (n + 1)).boundary W → W) (c : SmoothCollar n ∞ W), 0 < ε ∧
+      (∀ x, Φ (0, x) = x) ∧ (∀ x, IsMIntegralCurveOn (fun s ↦ Φ (s, x)) Y (Ioc (-ε) 0)) ∧
+      (∀ q, c q = Φ (-ε * (q.2 : EuclideanHalfSpace 1).val 0, q.1)) ∧ range c ⊆ U ∧
+      (∀ p ∈ Ioo (-ε) 0 ×ˢ univ, mpullback (𝓘(ℝ).prod (𝓡 n)) (𝓡∂ (n + 1)) Φ
+          (-σ.interiorₗ ⟨Y, h.isOutwardPointingField.contMDiff⟩).val p =
+        (fillingContactForm σ ⟨Y, h.isOutwardPointingField.contMDiff⟩).symplectization.val p) ∧
+      ∀ p ∈ Ioo (-ε) 0 ×ˢ univ, mpullback (𝓘(ℝ).prod (𝓡 n)) (𝓡∂ (n + 1)) Φ σ.val p =
+        (mextDerivₗ (𝓘(ℝ).prod (𝓡 n)) 1
+          (-fillingContactForm σ ⟨Y, h.isOutwardPointingField.contMDiff⟩).symplectization).val
+            p := by
+  obtain ⟨ε, Φ, c, hε, hΦ0, hΦY, hc, hcU⟩ :=
+    SmoothCollar.exists_eq_of_isOutwardPointing_of_subset h.isOutwardPointingField h.isOpen
+      h.boundary_subset
+  set hY := h.isOutwardPointingField.contMDiff
+  set β := σ.interiorₗ ⟨Y, hY⟩
+  have hβα := h.mpullback_interiorₗ_eq_of_eq_collar hε hΦY hc hcU
+  refine ⟨ε, Φ, c, hε, hΦ0, hΦY, hc, hcU, fun p hp ↦ ?_, fun p hp ↦ ?_⟩
+  · ext v
+    obtain ⟨w, rfl⟩ : ∃ w, v = ![w] := ⟨v 0, by ext i; fin_cases i; rfl⟩
+    have hw := congrArg (fun φ ↦ φ ![w]) (hβα p hp)
+    simp only [SmoothForm.symplectization_apply, NegMemClass.coe_neg] at hw ⊢
+    simp only [mpullback_apply, Pi.neg_apply, ContinuousAlternatingMap.neg_apply] at hw ⊢
+    rw [hw]
+    simp
+  · obtain ⟨t, x⟩ := p
+    have ht : t ∈ Ioo (-ε) 0 := hp.1
+    have hΦU : Φ (t, x) ∈ U := (h.mem_inter_interior_of_eq_collar hε hΦY hc hcU ht x).1
+    -- Cartan's formula: `σ = L_Y σ = d(ι_Y σ)` on `U`.
+    have hcart : σ.val (Φ (t, x)) = mextDeriv β.val (Φ (t, x)) := by
+      rw [← h.mlieDerivForm_eq _ hΦU, mlieDerivForm_eq_mextDeriv_interior_apply
+        ((σ.contMDiff _).mdifferentiableAt (n := ∞) (by simp))
+        ((hY _).mdifferentiableAt (by simp))
+        (congrFun ((SmoothForm.isClosed_def σ).1 h.isSymplectic.isClosed) _),
+        SmoothTwoForm.coe_interiorₗ, ContMDiffSection.coeFn_mk]
+    calc mpullback (𝓘(ℝ).prod (𝓡 n)) (𝓡∂ (n + 1)) Φ σ.val (t, x)
+        = mpullback (𝓘(ℝ).prod (𝓡 n)) (𝓡∂ (n + 1)) Φ (mextDeriv β.val) (t, x) := by
+          ext v
+          rw [mpullback_apply, mpullback_apply, hcart]
+      _ = mextDeriv (mpullback (𝓘(ℝ).prod (𝓡 n)) (𝓡∂ (n + 1)) Φ β.val) (t, x) :=
+          mpullback_mextDeriv_at ((contMDiffAt_of_eq_collar hε hc ht x).of_le (by simp))
+            ((β.isSmoothForm.contMDiff (Φ (t, x))).of_le (by simp))
+      _ = mextDeriv (-fillingContactForm σ ⟨Y, hY⟩).symplectization.val (t, x) :=
+          mextDeriv_congr_of_eventuallyEq
+            (eventually_of_mem ((isOpen_Ioo.prod isOpen_univ).mem_nhds hp) hβα)
+      _ = _ := by rw [mextDerivₗ_apply]
+
+end Collar
 
 end SymplecticGeometry
 
