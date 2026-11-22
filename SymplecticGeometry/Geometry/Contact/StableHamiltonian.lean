@@ -550,10 +550,7 @@ theorem mpullback_subtypeVal_stableHamiltonianModel_neg_mextDerivₗ (α : Smoot
       (1 + ContMDiffMap.fst : C^∞⟮𝓘(ℝ).prod I, ℝ × M; ℝ⟯).comp
         ⟨Subtype.val, contMDiff_subtypeVal⟩ := by
     ext p
-    refine (ContMDiffMap.comp_apply _ _ p).trans (Eq.trans ?_ (ContMDiffMap.comp_apply _ _ p).symm)
-    simp only [ContMDiffMap.coeFn_mk, he_apply, ContMDiffMap.coe_add, ContMDiffMap.coe_one,
-      Pi.add_apply, Pi.one_apply, ContMDiffMap.fst_apply]
-    exact Real.exp_log (by linarith [hU p.val p.property])
+    simp [he_apply, Real.exp_log (by linarith [hU p.val p.property] : (0 : ℝ) < 1 + p.val.1)]
   rw [symplectization_eq_funSMulₗ (-α) he_apply,
     mpullback_funSMulₗ, mpullback_funSMulₗ, hβ, map_neg, hcomp]
 
@@ -892,12 +889,10 @@ theorem exists_mpullback_eq_stableHamiltonianModel [FiniteDimensional ℝ E] [Co
     obtain ⟨q, hq, hqp⟩ := hδU (symmStrip_mono (min_le_left δ ε) p.property)
     rwa [show q = ⟨p.val, symmStrip_mono hle p.property⟩ from Subtype.ext hqp] at hq
   let j (p : symmStrip M (min δ ε)) : U₀ := ⟨⟨p.val, symmStrip_mono hle p.property⟩, hU₀ p⟩
-  have hj : Continuous j := (continuous_subtypeVal.subtype_mk _).subtype_mk _
   have hjval : (Subtype.val ∘ Subtype.val) ∘ j = Subtype.val := rfl
-  have hjd : IsLocalDiffeomorph (𝓘(ℝ).prod I) (𝓘(ℝ).prod I) ∞ j := fun p ↦
-    IsLocalDiffeomorphAt.of_comp_left (hjval ▸ TauCeti.isLocalDiffeomorph_subtype_val p)
-      ((TauCeti.isLocalDiffeomorph_subtype_val (j p)).comp
-        (hg := TauCeti.isLocalDiffeomorph_subtype_val _)) hj.continuousAt
+  have hjd : IsLocalDiffeomorph (𝓘(ℝ).prod I) (𝓘(ℝ).prod I) ∞ j :=
+    TauCeti.isLocalDiffeomorph_subtypeVal_comp_iff.1
+      (TauCeti.isLocalDiffeomorph_inclusion (symmStrip_mono hle))
   have hΦ : IsLocalDiffeomorph (𝓘(ℝ).prod I) (𝓘(ℝ).prod I) ∞ ((Subtype.val ∘ φ) ∘ j) := fun p ↦
     (hjd p).comp (hg := (φ.isLocalDiffeomorph (j p)).comp
       (hg := TauCeti.isLocalDiffeomorph_subtype_val _))
