@@ -23,8 +23,6 @@ symmetric ones. They form a module of `finrank` `n (n + 1) / 2`.
 * `Matrix.finrank_selfAdjoint`: `Module.finrank R (selfAdjoint (Matrix ι ι R)) =
   Fintype.card ι * (Fintype.card ι + 1) / 2` for a nontrivial commutative ring `R` with trivial
   star.
-* `Matrix.finite_selfAdjoint`: `Module.Finite R (selfAdjoint (Matrix κ κ R))` for finite `κ`
-  and a Noetherian ring `R`.
 
 The count is Tau Ceti's `LinearMap.BilinForm.finrank_symmSubmodule` for the symmetric bilinear
 forms on `ι → R`, carried over by `symmSubmoduleEquivSelfAdjoint`.
@@ -67,13 +65,6 @@ theorem coe_symmSubmoduleEquivSelfAdjoint_symm_apply [DecidableEq ι]
     (symmSubmoduleEquivSelfAdjoint.symm S : LinearMap.BilinForm R (ι → R)) =
       Matrix.toBilin' (S : Matrix ι ι R) :=
   (rfl)
-
-/-- The self-adjoint matrices over a Noetherian commutative ring with trivial star form a finite
-module. -/
-instance finite_selfAdjoint {κ : Type*} [Finite κ] [IsNoetherianRing R] :
-    Module.Finite R (selfAdjoint (Matrix κ κ R)) :=
-  -- `selfAdjoint` is only an additive subgroup; its carrier is that of `selfAdjoint.submodule`.
-  inferInstanceAs (Module.Finite R (selfAdjoint.submodule R (Matrix κ κ R)))
 
 variable [Nontrivial R]
 
