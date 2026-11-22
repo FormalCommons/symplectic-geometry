@@ -24,6 +24,11 @@ same base, and `Φ x : V₁ x ≃ V₂ x` real-linear equivalences of the fibres
 When `Φ` is continuous on total spaces, so are these equivalences, for any complex models of the
 two complex bundles.
 
+The trivialization of `J.Fiber` at `b₀` is read in that of `V` at `b₀`
+(`TauCeti.Bundle.ContinuousComplexStructure.trivializationAt_fiberEquiv_symm_apply_snd`): over
+`J.unitSet b₀`, a coordinate in `V` is sent to the inverse of `J.complexLinearPart b₀ b` applied to
+it, followed by `J.modelEquiv G b₀`.
+
 ## References
 
 * J. W. Milnor and J. D. Stasheff, *Characteristic Classes*, Annals of Mathematics Studies 76,
@@ -135,5 +140,39 @@ theorem continuous_fiberEquivConjOfAnticommute
     ConjugateBundle.toConjHomeomorph_apply, fiberEquivConjOfAnticommute_apply]
 
 end Anticommute
+
+/-! ### The trivializations of `J.Fiber` -/
+
+section Trivialization
+
+variable {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F]
+  {V : B → Type*} [∀ b, AddCommGroup (V b)] [∀ b, Module ℝ (V b)] [∀ b, TopologicalSpace (V b)]
+  [∀ b, IsTopologicalAddGroup (V b)] [∀ b, ContinuousSMul ℝ (V b)]
+  [TopologicalSpace (TotalSpace F V)] [FiberBundle F V] [VectorBundle ℝ F V]
+  (J : ContinuousComplexStructure F V)
+  (G : Type*) [NormedAddCommGroup G] [NormedSpace ℂ G] [FiniteDimensional ℂ G]
+  [FiniteDimensional ℝ F] [Fact (finrank ℝ F = 2 * finrank ℂ G)]
+
+/-- **The trivialization of `J.Fiber` at `b₀`, in the trivialization of `V`.** Over the open set
+`J.unitSet b₀`, the coordinate of a vector in the trivialization of `J.Fiber` at `b₀` is obtained
+from its coordinate in the trivialization of `V` at `b₀` by the inverse of
+`J.complexLinearPart b₀ b`, followed by the identification `J.modelEquiv G b₀` of `F` with `G`. -/
+theorem trivializationAt_fiberEquiv_symm_apply_snd {b₀ b : B} (hb : b ∈ J.unitSet b₀)
+    (v : V b) :
+    (trivializationAt G J.Fiber b₀ ⟨b, (J.fiberEquiv b).symm v⟩).2 =
+      (J.modelEquiv G b₀).symm (Ring.inverse (J.complexLinearPart b₀ b)
+        (trivializationAt F V b₀ ⟨b, v⟩).2) := by
+  have hb' : b ∈ (trivializationAt F V b₀).baseSet := J.unitSet_subset b₀ hb
+  have hbe : b ∈ (trivializationAt G J.Fiber b₀).baseSet := by
+    rwa [baseSet_trivializationAt]
+  set w := (trivializationAt G J.Fiber b₀ ⟨b, (J.fiberEquiv b).symm v⟩).2
+  have h₁ : (trivializationAt G J.Fiber b₀).symm b w = (J.fiberEquiv b).symm v :=
+    (trivializationAt G J.Fiber b₀).symm_apply_apply_mk hbe _
+  have h₂ := J.trivializationAt_symm_apply G hb w
+  rw [h₁, ContinuousLinearEquiv.apply_symm_apply] at h₂
+  rw [h₂, (trivializationAt F V b₀).apply_mk_symm hb',
+    J.inverse_complexLinearPart_complexLinearPart_apply hb, ContinuousLinearEquiv.symm_apply_apply]
+
+end Trivialization
 
 end TauCeti.Bundle.ContinuousComplexStructure

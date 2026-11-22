@@ -214,8 +214,8 @@ and two rows of its milestone table.
   place in that order: pull requests that each add a file then change
   different lines.
   - `Geometry/Manifold/Diffeomorph/Basic.lean`: the diffeomorphism between
-    empty manifolds on two models, which `MFDeriv.lean`, `Tubular.lean` and
-    `Neighborhood/Basic.lean` use.
+    empty manifolds on two models, which `MFDeriv.lean` and `Tubular.lean`
+    use.
   - `Geometry/Manifold/Distribution/FlatChart.lean`: the step of
     `CharacteristicFoliation.lean` that uses nothing symplectic.
   - `Geometry/Manifold/IsManifold/Basic.lean`: three instances for smooth
@@ -491,9 +491,8 @@ symplectic, so it sits with the manifold topic, beside Tau Ceti's
 
 ### `Geometry/Manifold/Diffeomorph/Basic.lean`
 
-The case of an empty `Q` in `MFDeriv.lean`, `Tubular.lean` and
-`Neighborhood/Basic.lean`. Namespace
-`Diffeomorph`.
+The case of an empty `Q` in `MFDeriv.lean` and `Tubular.lean`. Namespace
+`Diffeomorph`; the `IsEmpty` instance of `⊥ : Opens M` is in `TopologicalSpace.Opens`.
 
 - `Diffeomorph.ofIsEmpty : M ≃ₘ^n⟮I, I'⟯ M'` for `[IsEmpty M] [IsEmpty M']`,
   Mathlib's `Diffeomorph.empty` with two models, and the `Unique` instance
@@ -677,6 +676,8 @@ four theorems share.
 - From *Moser isotopy*: `Relative.lean`, `Geometry/Manifold/DifferentialForm/Opens.lean` and
   `Geometry/Symplectic/Manifold/TwoForm.lean`, only in `Tubular.lean`, and `Opens.lean`
   also in `Symplectic.lean`.
+- From *Liouville structures*: `Geometry/Manifold/MFDeriv/Opens.lean`
+  (`mdifferentiable_subtypeVal`), in `CharacteristicFoliation.lean`.
 - From *Symplectic vector bundles*:
   `Geometry/Manifold/VectorBundle/Pullback.lean` (merged), in
   `Geometry/Manifold/VectorBundle/Adjoint.lean`, for the derivative of an
