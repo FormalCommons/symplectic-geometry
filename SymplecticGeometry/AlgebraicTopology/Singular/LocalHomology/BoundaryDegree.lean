@@ -7,6 +7,7 @@ module
 
 public import SymplecticGeometry.AlgebraicTopology.Singular.CircleMap
 public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.BoundaryClass
+public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Complex
 public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.DiscBoundaryClass
 
 /-!

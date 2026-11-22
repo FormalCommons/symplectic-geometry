@@ -1010,7 +1010,7 @@ issues, in an order where each issue's blockers come before it.
      `ContinuousMap.singularHomologyMap`
      (`AlgebraicTopology.singularHomologyFunctor_obj_map_ofHom_hom`).
    - `AlgebraicTopology/Singular/Circle.lean`, used by
-     `DiscBoundaryClass.lean`:
+     `Complex.lean`:
      `Circle.singularHomologyOneIso_inv_eq_complexOrientation`, the
      generator of `Circle.singularHomologyOneIso` is the one of the unit
      circle of `ℂ` selected by `Complex.orientation`.
@@ -1020,7 +1020,7 @@ issues, in an order where each issue's blockers come before it.
      coefficients the boundary of `TauCeti.TopCat.transSimplex γ δ` is
      `γ + δ - γ.trans δ` (`TauCeti.TopCat.ιChainComplex_transSimplex_d`).
    - `Analysis/Complex/RadialProjection.lean`, used by
-     `DiscBoundaryClass.lean` and `BoundaryDegree.lean`:
+     `Complex.lean` and `BoundaryDegree.lean`:
      `Circle.radialProjection : C(ℂ ∖ {0}, Circle)`, `z ↦ z / |z|`, Tau
      Ceti's `complSingletonHomotopyEquivSphere 0` read in `Circle`.
    - `Analysis/Normed/Module/Ball/Collar.lean`, used by
@@ -1030,7 +1030,7 @@ issues, in an order where each issue's blockers come before it.
      open ball is the complement of the sphere in the closed ball
      (`Metric.range_inclusion_ball_eq_compl`).
    - `AlgebraicTopology/Singular/LocalHomology/OrientedChart.lean`, used by
-     `DiscBoundaryClass.lean`:
+     `Complex.lean`:
      `OpenPartialHomeomorph.map_reducedSingularHomologyδ_localOrientationOfOrientedChart_refl`,
      the local orientation of the identity chart of an oriented inner
      product space, through the connecting morphism and radial projection,
@@ -1041,7 +1041,7 @@ issues, in an order where each issue's blockers come before it.
      `LinearIsometryEquiv.snd_ofSubsetMap_comp_complSingletonHomotopyEquivSphere`,
      linear isometries commute with radial projection.
    - `AlgebraicTopology/Singular/LocalHomology/Orientation/Linear.lean`, used
-     by `DiscBoundaryClass.lean`: from Tau Ceti's main branch,
+     by `Complex.lean`: from Tau Ceti's main branch,
      `Orientation.localOrientation_eq_localOrientationOfOrientedChart_refl`,
      on an inner product space the local orientation that an orientation
      selects is the one of the identity chart.
@@ -1051,14 +1051,18 @@ issues, in an order where each issue's blockers come before it.
      `fundamentalClassRel` in `Hₙ(∂X; ℤ)` under the connecting morphism, with
      `boundaryClass_neg` and `map_subtypeVal_boundaryClass` (it vanishes in
      `Hₙ(X; ℤ)`).
+   - `AlgebraicTopology/Singular/LocalHomology/Complex.lean`, used by
+     `DiscBoundaryClass.lean` and `BoundaryDegree.lean`: the local
+     orientation of `ℂ` at `0` is the one selected by `Complex.orientation`
+     (`TauCeti.complexHomologicalOrientation_apply_zero`), and radial
+     projection sends it to the generator of `H₁(Circle)`
+     (`SymplecticGeometry.singularHomologyOneIso_singularHomologyδ_localOrientation_complexOrientation`).
    - `AlgebraicTopology/Singular/LocalHomology/DiscBoundaryClass.lean`, a
      prerequisite of `BoundaryDegree.lean`:
      the closed unit disc of `ℂ` in
      this setting, by `Collar.lean`; its fundamental class is sent to the
      local orientation of `ℂ` at `0`
-     (`SymplecticGeometry.localHomologyMap_fundamentalClassRel_closedBall`),
-     which radial projection sends to the generator of `H₁(Circle)`
-     (`SymplecticGeometry.singularHomologyOneIso_singularHomologyδ_localOrientation_complexOrientation`).
+     (`SymplecticGeometry.localHomologyMap_fundamentalClassRel_closedBall`).
    - `AlgebraicTopology/Singular/LocalHomology/BoundaryDegree.lean`, which
      imports `BoundaryClass.lean`: the definition `TauCeti.HomologicalOrientation.boundaryDegree o hn hι hιf hf
      (u : C(∂X, Circle)) : ℤ`, the image of the boundary class
