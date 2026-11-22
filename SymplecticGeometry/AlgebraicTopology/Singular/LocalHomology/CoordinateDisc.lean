@@ -137,6 +137,10 @@ def ball : TopologicalSpace.Opens ℂ :=
 theorem coe_ball : (ball : Set ℂ) = Metric.ball 0 2 :=
   (rfl)
 
+/-- The ball of radius `2` of `ℂ` is connected. -/
+instance : ConnectedSpace ball :=
+  Subtype.connectedSpace (by simpa [coe_ball] using Metric.isConnected_ball (by norm_num))
+
 @[simp]
 theorem mem_ball_iff {z : ℂ} : z ∈ ball ↔ ‖z‖ < 2 := by
   rw [← SetLike.mem_coe, coe_ball, mem_ball_zero_iff]
@@ -701,8 +705,6 @@ theorem exists_coe_eq_or_exists_coe_eq (hE : finrank ℝ E = 2) {f : ball → M}
   have h : finrank ℝ E = finrank ℝ ℂ := hE.trans Complex.finrank_real_complex.symm
   -- Chart `M` on `ℂ` through a linear equivalence, to read `o` with the model `ℂ`.
   let : ChartedSpace ℂ M := ChartedSpace.ofFinrankEq (𝕜 := ℝ) M h
-  have : ConnectedSpace ball :=
-    Subtype.connectedSpace (by simpa [coe_ball] using Metric.isConnected_ball (by norm_num))
   -- A coordinate disc for `o.changeModel ℂ h` is one for `o`: the two have the same local
   -- orientations.
   have key (o' : HomologicalOrientation M E 2)

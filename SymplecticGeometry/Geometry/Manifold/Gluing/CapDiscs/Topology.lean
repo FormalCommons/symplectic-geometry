@@ -24,7 +24,7 @@ surface when `S` is a compact surface whose boundary the loops `γ i` parametriz
   and the capped surface is covered by the closed discs of radius `3 / 2` and the image of the
   compact set of points of `S` outside the collar points of depth less than `1 / 2`.
 * It is connected when `S` is: the interior of `S` is connected
-  (`ModelWithCorners.isConnected_interior`) and every disc is connected and meets it.
+  (`ModelWithCorners.connectedSpace_interiorOpens`) and every disc is connected and meets it.
 
 ## Main results
 
@@ -32,8 +32,6 @@ surface when `S` is a compact surface whose boundary the loops `γ i` parametriz
 * `SymplecticGeometry.capDiscs.compactSpace`: it is compact when `S` is compact and the loops
   cover the boundary of `S`; `finite_of_compactSpace`: there are then finitely many loops.
 * `SymplecticGeometry.capDiscs.instConnectedSpace`: it is connected when `S` is.
-* `SymplecticGeometry.capDiscs.exists_inr_eq_inl`: every collar point `c (γ i θ, t)` with
-  `0 < t` is the point `(1 + t) · toCircle θ` of the `i`-th disc.
 
 ## References
 
@@ -42,7 +40,8 @@ surface when `S` is a compact surface whose boundary the loops `γ i` parametriz
 * M. W. Hirsch, *Differential Topology*, Springer GTM 33, 1976, Chapter 8, §2 (gluing manifolds
   along boundaries by collars).
 * John M. Lee, *Introduction to Smooth Manifolds*, second edition, Springer GTM 218, 2013,
-  Chapter 1 (the smooth manifold chart lemma, whose Hausdorff condition is checked here).
+  Chapter 1 (the Hausdorff condition on a space glued from charts, as in the smooth manifold
+  chart lemma; here it is proved directly for the glued surface).
 -/
 
 public section
@@ -66,41 +65,6 @@ namespace capDiscs
 variable (c : SmoothCollar 1 ∞ S) {ι : Type} (γ : ι → AddCircle (1 : ℝ) → (𝓡∂ 2).boundary S)
   (hγ : ∀ i, IsLocalDiffeomorph 𝓘(ℝ) (𝓡 1) ∞ (γ i))
   (hinj : Function.Injective fun p : ι × AddCircle (1 : ℝ) ↦ γ p.1 p.2)
-
-/-- The collar point `c (γ i θ, t)` with `0 < t` is the point `z = (1 + t) · toCircle θ` of the
-`i`-th disc, with `‖z‖ = 1 + t`. -/
-theorem exists_inr_eq_inl (i : ι) (θ : AddCircle (1 : ℝ)) (t : normalIioOpens 1)
-    (h : c (γ i θ, t) ∈ (𝓡∂ 2).interiorOpens S) :
-    ∃ z : ball, ‖(z : ℂ)‖ = 1 + (t : EuclideanHalfSpace 1).val 0 ∧
-      inr c γ hγ hinj i z = inl c γ hγ hinj ⟨c (γ i θ, t), h⟩ := by
-  set τ := (t : EuclideanHalfSpace 1).val 0
-  have hτ0 : 0 < τ := by
-    rwa [← SetLike.mem_coe, ModelWithCorners.coe_interiorOpens, c.apply_mem_interior_iff_pos] at h
-  have hτ1 : τ < 1 := mem_normalIioOpens.1 t.property
-  have hnorm : ‖((1 + τ : ℝ) : ℂ) * (toCircle θ : ℂ)‖ = 1 + τ := by
-    rw [norm_mul, Circle.norm_coe, mul_one, Complex.norm_real, Real.norm_eq_abs,
-      abs_of_pos (by linarith)]
-  let z : ball := ⟨((1 + τ : ℝ) : ℂ) * (toCircle θ : ℂ), by
-    rw [mem_ball_iff, hnorm]
-    linarith⟩
-  have hz : ‖(z : ℂ)‖ = 1 + τ := hnorm
-  have hcoord : gluingCoord γ i z = (γ i θ, t) := by
-    refine Prod.ext ?_ (Subtype.ext ?_)
-    · rw [gluingCoord_fst]
-      congr 1
-      refine injective_toCircle one_ne_zero (Circle.ext ?_)
-      obtain ⟨x, rfl⟩ := QuotientAddGroup.mk_surjective θ
-      have harg : arg (z : ℂ) = arg (toCircle (x : AddCircle (1 : ℝ)) : ℂ) :=
-        arg_ofReal_mul (by linarith) _
-      rw [toCircle_apply_mk, Circle.coe_exp, harg]
-      conv_rhs => rw [← norm_mul_exp_arg_mul_I (toCircle (x : AddCircle (1 : ℝ)) : ℂ),
-        Circle.norm_coe, ofReal_one, one_mul]
-      congr 1
-      push_cast
-      field_simp
-    · rw [coe_gluingCoord_snd, hz, add_sub_cancel_left, normalRay_normalCoord]
-  refine ⟨z, hz, (inr_eq_inl c γ hγ hinj (by rw [hz]; linarith)).trans ?_⟩
-  simp_rw [hcoord]
 
 section T2
 
@@ -245,10 +209,10 @@ theorem compactSpace [CompactSpace S]
     obtain ⟨⟨b, t⟩, ht, hpt⟩ := not_not.1 hp
     obtain ⟨⟨i, θ⟩, rfl⟩ := hsurj b
     have h : c (γ i θ, t) ∈ (𝓡∂ 2).interiorOpens S := hpt ▸ p.property
-    obtain ⟨z, hz, hzp⟩ := exists_inr_eq_inl c γ hγ hinj i θ t h
-    refine Or.inr (mem_iUnion.2 ⟨i, z, ?_, hzp.trans (congrArg _ (Subtype.ext hpt))⟩)
+    refine Or.inr (mem_iUnion.2 ⟨i, _, ?_, (inr_ofReal_mul_toCircle_eq_inl c γ hγ hinj h).trans
+      (congrArg _ (Subtype.ext hpt))⟩)
     have ht : (t : EuclideanHalfSpace 1).val 0 < 1 / 2 := ht
-    rw [mem_preimage, mem_closedBall_zero_iff, hz]
+    rw [mem_preimage, mem_closedBall_zero_iff, norm_ofReal_one_add_mul_toCircle]
     linarith
   refine ⟨(eq_univ_of_univ_subset fun x _ ↦ ?_) ▸ hT⟩
   have hx : x ∈ range (inl c γ hγ hinj) ∪ ⋃ i, range (inr c γ hγ hinj i) :=
@@ -266,13 +230,6 @@ end Compact
 /-- The capped surface is connected when `S` is: the interior of `S` is connected, and every disc
 is connected and meets it. -/
 instance instConnectedSpace [ConnectedSpace S] : ConnectedSpace (capDiscs c γ hγ hinj) := by
-  have : ConnectedSpace ((𝓡∂ 2).interiorOpens S) :=
-    isConnected_iff_connectedSpace.1 (by
-      rw [ModelWithCorners.coe_interiorOpens]
-      exact (𝓡∂ 2).isConnected_interior (M := S) (n := ∞) (by simp))
-  have : ConnectedSpace ball := isConnected_iff_connectedSpace.1 (by
-    rw [coe_ball]
-    exact (convex_ball 0 2).isConnected (Metric.nonempty_ball.2 two_pos))
   have hint := isConnected_range (isOpenEmbedding_capDiscs_inl c γ hγ hinj).continuous
   have hdisc (i : ι) := isConnected_range (isOpenEmbedding_capDiscs_inr c γ hγ hinj i).continuous
   -- The point `3 / 2` of each disc lies in the interior of `S`.
