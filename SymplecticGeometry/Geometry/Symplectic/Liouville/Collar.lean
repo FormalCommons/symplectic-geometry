@@ -91,7 +91,7 @@ signs, with the primitive `λ = -ι_Y σ`, these say `Φ^*σ = -d(eˢ α)` and `
 structure IsLiouvilleCollar (σ : SmoothTwoForm I M) (Y : (x : M) → TangentSpace I x)
     (i : Q → M) (α : SmoothForm J Q ℝ 1) {D : Opens (ℝ × Q)} {V : Opens M}
     (Φ : D ≃ₘ⟮𝓘(ℝ).prod J, I⟯ V) (φ : ℝ × Q → M) : Prop where
-  /-- The image of `V` contains the hypersurface. -/
+  /-- The open set `V` contains the image of `i`. -/
   range_subset : range i ⊆ V
   /-- On `D`, the collar is given by `φ`. -/
   coe_apply : ∀ p, (Φ p : M) = φ p
