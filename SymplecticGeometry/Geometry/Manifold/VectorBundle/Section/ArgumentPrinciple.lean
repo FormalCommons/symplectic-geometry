@@ -39,6 +39,11 @@ frame is `τ x = (c ↦ c • σ x)⁻¹`, continuous by `Continuous.smul_totalS
 carries the orientation of `L` to that of `ℂ` since it is complex-linear
 (`TauCeti.VectorBundleOrientation.map_toSpanSingletonEquiv`).
 
+For the trivial line bundle, whose Euler class vanishes (`TauCeti.complexEulerClass_trivial`), with
+the section `1` over `Σ₁`, this says that a circle map on `C` that extends continuously over `Σ₂`
+has boundary degree `0` on `Σ₁`
+(`TauCeti.HomologicalOrientation.boundaryDegree_eq_zero_of_extend_Ici`).
+
 ## Proof
 
 Read in the frame, `s` is a nowhere-zero map `C → ℂ`. Extend it to `M` by Tietze's theorem, and
@@ -66,6 +71,8 @@ local indices of `t` restricted to `{g < 0}` with the boundary degree, and the l
   number is the boundary degree of the section over `Σ₂` read in the frame over `Σ₁`.
 * `TauCeti.VectorBundleOrientation.evalFundamentalClass_complexEulerClass_eq_boundaryDegree`: for a
   complex line bundle, the same with a nowhere-zero section over `Σ₁` in place of the frame.
+* `TauCeti.HomologicalOrientation.boundaryDegree_eq_zero_of_extend_Ici`: a circle map on `C` that
+  extends continuously over `Σ₂` has boundary degree `0` on `Σ₁`.
 
 ## References
 
@@ -330,5 +337,49 @@ theorem evalFundamentalClass_complexEulerClass_eq_boundaryDegree (hG : finrank �
 end Complex
 
 end TauCeti.VectorBundleOrientation
+
+namespace TauCeti.HomologicalOrientation
+
+variable {E : Type} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
+  {M : Type} [TopologicalSpace M] [ChartedSpace E M] [T2Space M] [CompactSpace M]
+  [IsManifold 𝓘(ℝ, E) ∞ M] {g : M → ℝ}
+
+/-- **Circle maps defined on the other side have boundary degree `0`.** Let `M` be a closed
+smooth surface oriented by `oM`, and `g : M → ℝ` smooth with regular value `0`, splitting `M` into
+`Σ₁ = {g ≤ 0}` and `Σ₂ = {g ≥ 0}`. A continuous `u` from the boundary of `Σ₁` to the circle that
+is the restriction of a continuous map `v : Σ₂ → S¹` has boundary degree `0` on `Σ₁`, whose
+interior `{g < 0}` carries the orientation restricted from `oM`. -/
+theorem boundaryDegree_eq_zero_of_extend_Ici (oM : HomologicalOrientation M E 2)
+    (hn : finrank ℝ E = 2) (hg : ContMDiff 𝓘(ℝ, E) 𝓘(ℝ) ∞ g)
+    (h0 : IsRegularValue 𝓘(ℝ, E) 𝓘(ℝ) g 0) (v : C(g ⁻¹' Ici 0, Circle))
+    {u : C(↥(SymplecticGeometry.sublevelBoundary hg.continuous), Circle)}
+    (hu : ∀ z, u z =
+      v ⟨_, SymplecticGeometry.mem_preimage_Ici_of_mem_sublevelBoundary z.property⟩) :
+    haveI : CompactSpace (g ⁻¹' Iic 0) :=
+      isCompact_iff_compactSpace.1 (isClosed_Iic.preimage hg.continuous).isCompact
+    (oM.comap (TopologicalSpace.Opens.isOpenEmbedding' _)).boundaryDegree hn
+        (IsOpenEmbedding.inclusion _
+          ((isOpen_Iio.preimage hg.continuous).preimage continuous_subtypeVal))
+        ((range_inclusion _).trans (SymplecticGeometry.isCollared_inclusion_levelSet hg h0).2.symm)
+        (SymplecticGeometry.isCollared_inclusion_levelSet hg h0).1 u = 0 := by
+  -- The argument principle for the trivial line bundle, with the section `1` over `{g ≤ 0}` and
+  -- the section `v` over `{g ≥ 0}`; the Euler class of the trivial bundle vanishes.
+  have h := VectorBundleOrientation.evalFundamentalClass_complexEulerClass_eq_boundaryDegree
+    (G := ℂ) (L := Bundle.Trivial M ℂ) (by simp) oM hn hg h0
+    (σ := fun _ ↦ (1 : ℂ))
+    ((Bundle.Trivial.homeomorphProd M ℂ).symm.continuous.comp
+      (continuous_subtypeVal.prodMk continuous_const)) (fun _ ↦ one_ne_zero)
+    (s := fun x ↦ (v x : ℂ))
+    ((Bundle.Trivial.homeomorphProd M ℂ).symm.continuous.comp
+      (continuous_subtypeVal.prodMk (continuous_subtypeVal.comp v.continuous)))
+    (fun x ↦ Circle.coe_ne_zero _)
+    (c := fun z ↦
+      (v ⟨_, SymplecticGeometry.mem_preimage_Ici_of_mem_sublevelBoundary z.property⟩ : ℂ))
+    (fun z hz ↦ by simp) (u := u) fun z ↦ by
+      rw [Circle.norm_coe, Complex.ofReal_one, div_one, hu z]
+  rw [complexEulerClass_trivial, map_zero] at h
+  exact h.symm
+
+end TauCeti.HomologicalOrientation
 
 end

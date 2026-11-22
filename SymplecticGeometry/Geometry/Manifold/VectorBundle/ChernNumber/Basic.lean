@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.Classification
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.FirstChernClass
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.Pullback
+public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
 public import SymplecticGeometry.Topology.VectorBundle.Complex.FirstChernClass
 public import TauCeti.Geometry.Manifold.Degree.Homological
 
@@ -25,6 +26,9 @@ data:
 * `symplecticChernNumber_eq_chernNumber`: every complex structure tamed by `ω`, in particular
   every compatible one, gives the same number;
 * `symplecticChernNumber_congr_model`: the number does not depend on the complex model `G`;
+* `exists_compatible_symplecticChernNumber_eq_chernNumber`: if every fibre carries a symplectic
+  frame from `StdSpace κ`, the number is that of `(V, J)` with model `κ → ℂ`, for some `J`
+  compatible with `ω`;
 * `symplecticChernNumber_neg`: `(V, -ω)` has the opposite number;
 * `symplecticChernNumber_pullback` and `symplecticChernNumber_congr`: behaviour under pull-backs
   and invariance under isomorphisms of symplectic bundles.
@@ -220,6 +224,34 @@ theorem symplecticChernNumber_pullback [PreconnectedSpace M]
     ← chernNumber_pullback o hn G J.toContinuousComplexStructure.Fiber o' hn' f,
     chernNumber_def, chernNumber_def, J.firstChernClass_pullback G f hf,
     SymplecticGeometry.Bundle.firstChernClass_pullback]
+
+/-- **Symplectic frames on every fibre.** Over a nonempty base, suppose that every fibre of `V`
+carries a symplectic frame from the standard space: a linear isomorphism
+`Θ : StdSpace κ ≃ V x` with `ω(Θ v, Θ w) = ω₀(v, w)` for `ω₀ = stdForm κ`. Then `ω` is
+compatible with some complex structure `J`, the real rank of `V` is twice the cardinality of `κ`,
+and the first Chern number of `(V, ω)` is that of the complex bundle `(V, J)` with model
+`κ → ℂ`. -/
+theorem exists_compatible_symplecticChernNumber_eq_chernNumber [Nonempty M]
+    {κ : Type*} [Fintype κ] {ω : ContMDiffTwoForm 𝓘(ℝ, EM) n F V}
+    (h : ∀ x, ∃ Θ : StdSpace κ ≃L[ℝ] V x, ∀ v w, ω.bilinFormAt x (Θ v) (Θ w) = stdForm κ v w) :
+    ∃ (J : ContMDiffComplexStructure 𝓘(ℝ, EM) n F V)
+      (_ : Fact (finrank ℝ F = 2 * finrank ℂ (κ → ℂ))), ω.Compatible J ∧
+        symplecticChernNumber o hn G ω =
+          chernNumber o hn (κ → ℂ) J.toContinuousComplexStructure.Fiber := by
+  obtain ⟨J, hJ⟩ := (ContMDiffTwoForm.isNondegenerate_of_forall_exists (stdForm κ)
+    fun x ↦ (h x).elim fun Θ hΘ ↦ ⟨Θ.toLinearEquiv, hΘ⟩).exists_compatible
+  obtain ⟨x₀⟩ := ‹Nonempty M›
+  obtain ⟨Θ, -⟩ := h x₀
+  have : Fact (finrank ℝ F = 2 * finrank ℂ (κ → ℂ)) := by
+    refine ⟨?_⟩
+    rw [← ((trivializationAt F V x₀).continuousLinearEquivAt ℝ x₀
+        (FiberBundle.mem_baseSet_trivializationAt' x₀)).toLinearEquiv.finrank_eq,
+      ← Θ.toLinearEquiv.finrank_eq, finrank_euclideanSpace, Fintype.card_sum,
+      Module.finrank_fintype_fun_eq_card]
+    ring
+  refine ⟨J, this, hJ, ?_⟩
+  rw [← symplecticChernNumber_congr_model o hn G (κ → ℂ) ω,
+    symplecticChernNumber_eq_chernNumber o hn (κ → ℂ) hJ.tames]
 
 end Symplectic
 

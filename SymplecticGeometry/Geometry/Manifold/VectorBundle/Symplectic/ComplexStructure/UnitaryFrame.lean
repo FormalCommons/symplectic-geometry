@@ -6,7 +6,9 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Analysis.Matrix.SymplecticGroup.ComplexStructure
+public import SymplecticGeometry.Analysis.Matrix.SymplecticGroup.Maslov
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.ComplexStructure.Basic
+public import SymplecticGeometry.Topology.VectorBundle.Complex.Structure
 
 /-!
 # Unitary symplectic frames
@@ -23,11 +25,24 @@ with `ω₀`, and its pairings `ω₀(v, ·)` are those of `ω` with sections of
 continuously on `x`. The change of frame is then
 `SymplecticGeometry.exists_continuous_GLSymplectic_smul_stdComplexStructure_eq`.
 
+Read on `ι → ℂ` through real and imaginary parts (`TauCeti.complexToRealEuclidean`), the unitary
+frame `Ψ ∘ P` carries multiplication by `i` to `J`, so it is a continuous frame of the complex
+bundle `(V, J)` (`TauCeti.Bundle.ContinuousComplexStructure.frameOfCommute`). If two such frames
+come from real frames `Ψ₁`, `Ψ₂` of one fibre with `Ψ₂ = Ψ₁ ∘ A`, by changes of frame `P₁` and
+`P₂`, the complex transition between them is `P₁⁻¹ A P₂`, which is complex-linear, so its
+normalized complex determinant is its Maslov phase `ρ(P₁⁻¹ A P₂)`
+(`TauCeti.GLSymplectic.maslovPhase_eq_normalizedDet`).
+
 ## Main results
 
 * `SymplecticGeometry.Bundle.ContMDiffTwoForm.Compatible.exists_continuous_GLSymplectic_unitary`:
   a symplectic frame of `ω` along `f` becomes unitary for a compatible `J` after a continuous
   change of frame in the symplectic group.
+* `Compatible.exists_continuous_GLSymplectic_complexFrame`, in the same namespace: the same change
+  of frame gives a continuous frame of the complex bundle `(V, J)`.
+* `TauCeti.Bundle.ContinuousComplexStructure.maslovPhase_inv_mul_mul_eq_normalizedDet`: the
+  Maslov phase of the transition `P₁⁻¹ A P₂` is the normalized determinant of the complex
+  transition.
 
 ## References
 
@@ -104,6 +119,83 @@ theorem Compatible.exists_continuous_GLSymplectic_unitary (hJ : ω.Compatible J)
   rw [← toEuclideanCLE_apply _ hP0 v, ← toEuclideanCLE_symm_apply _ hP0,
     ContinuousLinearEquiv.symm_apply_apply]
 
+
+/-- **Complex frames from symplectic frames.** Let `J` be a complex structure compatible with the
+two-form `ω`, and `Ψ` a symplectic frame of `ω` along `f : X → M`, as in
+`Compatible.exists_continuous_GLSymplectic_unitary`. Then there are a continuous map `P` from `X`
+to the symplectic group and a frame `Θ` of the complex bundle `(V, J)` along `f`, by
+complex-linear isomorphisms `Θ x : (ι → ℂ) ≃ (V, J)_{f x}` continuous as maps to its total space,
+such that `Θ x v = Ψ x (P x (Re v, Im v))` in `V (f x)`. -/
+theorem Compatible.exists_continuous_GLSymplectic_complexFrame [FiniteDimensional ℝ F]
+    [Fact (Module.finrank ℝ F = 2 * Module.finrank ℂ (ι → ℂ))] (hJ : ω.Compatible J)
+    (hΨ : Continuous fun p : X × StdSpace ι ↦ TotalSpace.mk' F (f p.1) (Ψ p.1 p.2))
+    (hΨω : ∀ x v w, ω.bilinFormAt (f x) (Ψ x v) (Ψ x w) = stdForm ι v w) :
+    ∃ (P : X → TauCeti.GLSymplectic ι ℝ)
+      (Θ : ∀ x, (ι → ℂ) ≃L[ℂ] J.toContinuousComplexStructure.Fiber (f x)), Continuous P ∧
+      (Continuous fun p : X × (ι → ℂ) ↦
+        TotalSpace.mk' (ι → ℂ) (E := J.toContinuousComplexStructure.Fiber) (f p.1) (Θ p.1 p.2)) ∧
+      ∀ x v, J.toContinuousComplexStructure.fiberEquiv (f x) (Θ x v) =
+        Ψ x (toEuclideanLin ((P x : GL (ι ⊕ ι) ℝ) : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ)
+          (TauCeti.complexToRealEuclidean ι v)) := by
+  obtain ⟨P, hP, hPJ⟩ := hJ.exists_continuous_GLSymplectic_unitary hΨ hΨω
+  -- The unitary frame `Ψ ∘ P`, read on `ι → ℂ` through real and imaginary parts.
+  let Φ : ∀ x, (ι → ℂ) ≃L[ℝ] V (f x) := fun x ↦ (TauCeti.complexToRealEuclidean ι).trans
+    ((toEuclideanCLE _ (P x : GL (ι ⊕ ι) ℝ).det_ne_zero).trans (Ψ x))
+  have hΦ (x : X) (v : ι → ℂ) : Φ x v =
+      Ψ x (toEuclideanLin ((P x : GL (ι ⊕ ι) ℝ) : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ)
+        (TauCeti.complexToRealEuclidean ι v)) := by
+    rw [ContinuousLinearEquiv.trans_apply, ContinuousLinearEquiv.trans_apply,
+      toEuclideanCLE_apply]
+  have hΦI (x : X) (v : ι → ℂ) :
+      Φ x (Complex.I • v) = J.toContinuousComplexStructure (f x) (Φ x v) := by
+    rw [hΦ, hΦ, ContMDiffComplexStructure.toContinuousComplexStructure_apply, hPJ,
+      stdComplexStructure_complexToRealEuclidean]
+  have hPc : Continuous fun q : X × StdSpace ι ↦
+      toEuclideanLin ((P q.1 : GL (ι ⊕ ι) ℝ) : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ) q.2 :=
+    (((continuous_toEuclideanCLM.comp (Units.continuous_val.comp
+      (continuous_subtypeVal.comp hP))).comp continuous_fst).clm_apply continuous_snd).congr
+        fun q ↦ toEuclideanCLM_apply _ _
+  refine ⟨P, J.toContinuousComplexStructure.frameOfCommute Φ hΦI, hP,
+    J.toContinuousComplexStructure.continuous_frameOfCommute Φ hΦI (ι → ℂ) ?_, fun x v ↦ ?_⟩
+  · exact (hΨ.comp (continuous_fst.prodMk (hPc.comp (continuous_fst.prodMk
+      ((TauCeti.complexToRealEuclidean ι).continuous.comp continuous_snd))))).congr fun q ↦ by
+        simp only [Function.comp_apply, hΦ]
+  · rw [TauCeti.Bundle.ContinuousComplexStructure.fiberEquiv_frameOfCommute, hΦ]
+
 end SymplecticGeometry.Bundle.ContMDiffTwoForm
+
+namespace TauCeti.Bundle.ContinuousComplexStructure
+
+open SymplecticGeometry
+
+variable {B : Type*} [TopologicalSpace B] {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F]
+  {V : B → Type*} [∀ b, AddCommGroup (V b)] [∀ b, Module ℝ (V b)] [∀ b, TopologicalSpace (V b)]
+  [∀ b, IsTopologicalAddGroup (V b)] [∀ b, ContinuousSMul ℝ (V b)]
+  [TopologicalSpace (TotalSpace F V)] [FiberBundle F V] [VectorBundle ℝ F V]
+  (J : ContinuousComplexStructure F V) {ι : Type*} [Fintype ι] [DecidableEq ι]
+
+/-- **The Maslov phase of a transition of unitary frames.** Let `Ψ₁` and `Ψ₂` be real frames of
+the fibre `V b`, with `Ψ₂ = Ψ₁ ∘ A` for a symplectic matrix `A`, and `Θ₁`, `Θ₂` frames of the
+fibre of the complex bundle `(V, J)` at `b` that are `Ψ₁ ∘ P₁` and `Ψ₂ ∘ P₂` for symplectic
+matrices `P₁`, `P₂`, read on `ι → ℂ` through real and imaginary parts. Then `ρ(P₁⁻¹ A P₂)` is the
+normalized complex determinant of the complex transition `Θ₁⁻¹ ∘ Θ₂`. -/
+theorem maslovPhase_inv_mul_mul_eq_normalizedDet {b : B} {Ψ₁ Ψ₂ : StdSpace ι ≃L[ℝ] V b}
+    {Θ₁ Θ₂ : (ι → ℂ) ≃L[ℂ] J.Fiber b} {P₁ A P₂ : GLSymplectic ι ℝ}
+    (h₁ : ∀ v, J.fiberEquiv b (Θ₁ v) =
+      Ψ₁ (toEuclideanLin ((P₁ : GL (ι ⊕ ι) ℝ) : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ)
+        (complexToRealEuclidean ι v)))
+    (h₂ : ∀ v, J.fiberEquiv b (Θ₂ v) =
+      Ψ₂ (toEuclideanLin ((P₂ : GL (ι ⊕ ι) ℝ) : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ)
+        (complexToRealEuclidean ι v)))
+    (hA : ∀ v, Ψ₂ v = Ψ₁ (toEuclideanLin ((A : GL (ι ⊕ ι) ℝ) : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ) v)) :
+    GLSymplectic.maslovPhase (P₁⁻¹ * A * P₂) = (Θ₂.trans Θ₁.symm).normalizedDet := by
+  refine GLSymplectic.maslovPhase_eq_normalizedDet _ fun v ↦
+    ((toEuclideanCLE _ (P₁ : GL (ι ⊕ ι) ℝ).det_ne_zero).trans Ψ₁).injective ?_
+  simp only [ContinuousLinearEquiv.trans_apply, toEuclideanCLE_apply]
+  rw [← h₁, ContinuousLinearEquiv.apply_symm_apply, h₂, hA, GLSymplectic.toEuclideanLin_mul_apply,
+    GLSymplectic.toEuclideanLin_mul_apply,
+    GLSymplectic.toEuclideanLin_apply_toEuclideanLin_inv_apply]
+
+end TauCeti.Bundle.ContinuousComplexStructure
 
 end

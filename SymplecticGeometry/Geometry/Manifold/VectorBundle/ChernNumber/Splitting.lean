@@ -8,7 +8,9 @@ module
 public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.BoundaryDegree
 public import SymplecticGeometry.Analysis.Matrix.SymplecticGroup.Maslov
 public import SymplecticGeometry.Geometry.Manifold.ModelTransport.InteriorModel
+public import SymplecticGeometry.Geometry.Manifold.VectorBundle.ChernNumber.Basic
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Section.ArgumentPrinciple
+public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.ComplexStructure.UnitaryFrame
 public import SymplecticGeometry.Topology.VectorBundle.Complex.FirstChernClass
 public import SymplecticGeometry.Topology.VectorBundle.Determinant
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.Smooth
@@ -58,6 +60,21 @@ gives the formula. The step on `g⁻¹(0)` follows the proof of the private lemm
 `outSection_boundaryCircle` of `ChernNumber/Clutching.lean`, which does the same on the boundary
 circles of coordinate discs.
 
+For a two-form `σ` on a vector bundle `V`, with symplectic frames `Φ₁` over `Σ₁` and `Φ₂` over
+`Σ₂` and a map `Ψ` from `g⁻¹(0)` to `Sp(2n)` with `Φ₂ = Φ₁ ∘ Ψ`, the first Chern number of
+`(V, σ)` is the boundary Maslov index of `Ψ` on `Σ₁`
+(`SymplecticGeometry.Bundle.symplecticChernNumber_eq_boundaryMaslovIndex`). The proof is that of
+`SymplecticGeometry.Bundle.symplecticChernNumber_eq_sum_maslovIndex_clutching` in
+`ChernNumber/Clutching.lean`, with the complex splitting formula in place of the clutching one.
+The frames give a complex structure `J` compatible with `σ`, and changes of frame `P` over `Σ₁` and
+`P'` over `Σ₂`, with values in `Sp(2n)`, turn them into complex frames of `(V, J)`, whose
+transition on `g⁻¹(0)` has `ρ(P⁻¹ Ψ P')` as normalized determinant. By the product formula the
+index of `P⁻¹ Ψ P'` is the sum of those of `P⁻¹`, `Ψ` and `P'`. The first vanishes as `P⁻¹` is
+defined on all of `Σ₁`, and the last as `P'` is defined on all of `Σ₂`
+(`TauCeti.HomologicalOrientation.boundaryMaslovIndex_eq_zero_of_extend_Ici`, from the argument
+principle for the trivial line bundle,
+`TauCeti.HomologicalOrientation.boundaryDegree_eq_zero_of_extend_Ici`).
+
 ## Main definitions
 
 * `TauCeti.HomologicalOrientation.boundaryMaslovIndex`: the boundary degree of `ρ ∘ Ψ` for
@@ -80,9 +97,15 @@ circles of coordinate discs.
   `TauCeti.Manifold.Orientation.boundaryMaslovIndex_eq_zero_of_extend`,
   `TauCeti.Manifold.Orientation.boundaryMaslovIndex_eq_of_homotopy`: the same properties for a
   compact surface with boundary.
+* `TauCeti.HomologicalOrientation.boundaryMaslovIndex_eq_zero_of_extend_Ici`: on a split closed
+  surface, a map on `g⁻¹(0)` that extends continuously over `Σ₂` has boundary Maslov index `0` on
+  `Σ₁`.
 * `SymplecticGeometry.Bundle.chernNumber_eq_boundaryDegree_normalizedDet`: the first Chern number
   of a complex bundle with frames over the two sides of a splitting is the boundary degree of the
   normalized determinant of the transition.
+* `SymplecticGeometry.Bundle.symplecticChernNumber_eq_boundaryMaslovIndex`: the first Chern number
+  of a symplectic bundle with symplectic frames over the two sides of a splitting is the boundary
+  Maslov index of the transition.
 
 ## References
 
@@ -256,6 +279,39 @@ theorem boundaryMaslovIndex_inv (Ψ : C((𝓡∂ 2).boundary S, GLSymplectic n �
 
 end TauCeti.Manifold.Orientation
 
+/-! ### Split surfaces -/
+
+namespace TauCeti.HomologicalOrientation
+
+open SymplecticGeometry
+
+variable {EM : Type} [NormedAddCommGroup EM] [NormedSpace ℝ EM] [FiniteDimensional ℝ EM]
+  {M : Type} [TopologicalSpace M] [ChartedSpace EM M] [T2Space M] [CompactSpace M]
+  [IsManifold 𝓘(ℝ, EM) ∞ M] {g : M → ℝ} {n : Type*} [Fintype n] [DecidableEq n]
+
+/-- Let `M` be a closed smooth surface oriented by `oM`, and `g : M → ℝ` smooth with regular
+value `0`, splitting `M` into `Σ₁ = {g ≤ 0}` and `Σ₂ = {g ≥ 0}`. A map `Ψ` from the boundary of
+`Σ₁` to `Sp(2n)` that is the restriction of a continuous map `Φ : Σ₂ → Sp(2n)` has boundary
+Maslov index `0` on `Σ₁`, whose interior `{g < 0}` carries the orientation restricted from
+`oM`. -/
+theorem boundaryMaslovIndex_eq_zero_of_extend_Ici (oM : HomologicalOrientation M EM 2)
+    (hn : Module.finrank ℝ EM = 2) (hg : ContMDiff 𝓘(ℝ, EM) 𝓘(ℝ) ∞ g)
+    (h0 : IsRegularValue 𝓘(ℝ, EM) 𝓘(ℝ) g 0)
+    {Ψ : C(↥(sublevelBoundary hg.continuous), GLSymplectic n ℝ)}
+    (Φ : C(g ⁻¹' Ici 0, GLSymplectic n ℝ))
+    (hΦ : ∀ z, Φ ⟨_, mem_preimage_Ici_of_mem_sublevelBoundary z.property⟩ = Ψ z) :
+    haveI : CompactSpace (g ⁻¹' Iic 0) :=
+      isCompact_iff_compactSpace.1 (isClosed_Iic.preimage hg.continuous).isCompact
+    (oM.comap (TopologicalSpace.Opens.isOpenEmbedding' _)).boundaryMaslovIndex hn
+        (IsOpenEmbedding.inclusion _
+          ((isOpen_Iio.preimage hg.continuous).preimage continuous_subtypeVal))
+        ((range_inclusion _).trans (isCollared_inclusion_levelSet hg h0).2.symm)
+        (isCollared_inclusion_levelSet hg h0).1 Ψ = 0 :=
+  oM.boundaryDegree_eq_zero_of_extend_Ici hn hg h0 (maslovPhaseMap.comp Φ) fun z ↦ by
+    rw [ContinuousMap.comp_apply, ContinuousMap.comp_apply, hΦ]
+
+end TauCeti.HomologicalOrientation
+
 /-! ### The splitting formula for complex frames -/
 
 namespace SymplecticGeometry.Bundle
@@ -333,6 +389,109 @@ theorem chernNumber_eq_boundaryDegree_normalizedDet
   rw [hu z (mem_preimage_Ici_of_mem_sublevelBoundary z.property),
     ContinuousLinearEquiv.coe_normalizedDet, ← ContinuousLinearEquiv.det_coe_trans_symm]
   simp only [j₁, j₂, ContinuousMap.coe_mk]
+
+/-! ### The splitting formula for symplectic frames -/
+
+section Symplectic
+
+open Matrix
+
+variable {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] [FiniteDimensional ℝ F]
+  {V : M → Type*} [∀ x, AddCommGroup (V x)] [∀ x, Module ℝ (V x)]
+  [∀ x, TopologicalSpace (V x)] [∀ x, IsTopologicalAddGroup (V x)]
+  [∀ x, ContinuousSMul ℝ (V x)] [TopologicalSpace (TotalSpace F V)]
+  [FiberBundle F V] [VectorBundle ℝ F V] {n : ℕ∞}
+  [ContMDiffVectorBundle n F V 𝓘(ℝ, EM)] {σ : ContMDiffTwoForm 𝓘(ℝ, EM) n F V}
+  {κ : Type*} [Fintype κ] [DecidableEq κ]
+
+variable (G) in
+/-- **The splitting formula for symplectic frames.** Let `M` be a closed smooth surface oriented
+by `oM`, and `g : M → ℝ` smooth with regular value `0`, splitting `M` into `Σ₁ = {g ≤ 0}` and
+`Σ₂ = {g ≥ 0}`. Let `σ` be a two-form on a smooth vector bundle `V` over `M`, and `Φ₁`, `Φ₂`
+symplectic frames of `V` over `Σ₁` and over `Σ₂`: linear isomorphisms `StdSpace κ ≃ V x`,
+continuous as maps to the total space, with `σ(Φ v, Φ w) = σ₀(v, w)` for the standard form
+`σ₀ = stdForm κ`. Let `Ψ` be a continuous map from the boundary of `Σ₁` to the symplectic group
+with `Φ₂ = Φ₁ ∘ Ψ` there. Then the first Chern number of `(V, σ)` is the boundary Maslov index
+of `Ψ` on `Σ₁`, whose interior `{g < 0}` carries the orientation restricted from `oM`.
+
+Milestone: *First Chern number of symplectic vector bundles over surfaces*. -/
+theorem symplecticChernNumber_eq_boundaryMaslovIndex
+    [Fact (finrank ℝ F = 2 * finrank ℂ G)]
+    (oM : HomologicalOrientation M EM 2) (hn : finrank ℝ EM = 2)
+    (hg : ContMDiff 𝓘(ℝ, EM) 𝓘(ℝ) ∞ g) (h0 : IsRegularValue 𝓘(ℝ, EM) 𝓘(ℝ) g 0)
+    {Φ₁ : ∀ x : g ⁻¹' Iic 0, StdSpace κ ≃L[ℝ] V x}
+    (hΦ₁ : Continuous fun q : g ⁻¹' Iic 0 × StdSpace κ ↦
+      TotalSpace.mk' F (q.1 : M) (Φ₁ q.1 q.2))
+    (hΦ₁σ : ∀ (x : g ⁻¹' Iic 0) v w, σ.bilinFormAt x (Φ₁ x v) (Φ₁ x w) = stdForm κ v w)
+    {Φ₂ : ∀ x : g ⁻¹' Ici 0, StdSpace κ ≃L[ℝ] V x}
+    (hΦ₂ : Continuous fun q : g ⁻¹' Ici 0 × StdSpace κ ↦
+      TotalSpace.mk' F (q.1 : M) (Φ₂ q.1 q.2))
+    (hΦ₂σ : ∀ (x : g ⁻¹' Ici 0) v w, σ.bilinFormAt x (Φ₂ x v) (Φ₂ x w) = stdForm κ v w)
+    (Ψ : C(↥(sublevelBoundary hg.continuous), GLSymplectic κ ℝ))
+    (hΨ : ∀ (z : ↥(sublevelBoundary hg.continuous)) v,
+      Φ₂ ⟨_, mem_preimage_Ici_of_mem_sublevelBoundary z.property⟩ v =
+      Φ₁ z (toEuclideanLin (Ψ z : GL (κ ⊕ κ) ℝ) v)) :
+    haveI : CompactSpace (g ⁻¹' Iic 0) :=
+      isCompact_iff_compactSpace.1 (isClosed_Iic.preimage hg.continuous).isCompact
+    symplecticChernNumber oM hn G σ =
+      (oM.comap (TopologicalSpace.Opens.isOpenEmbedding' _)).boundaryMaslovIndex hn
+        (IsOpenEmbedding.inclusion _
+          ((isOpen_Iio.preimage hg.continuous).preimage continuous_subtypeVal))
+        ((range_inclusion _).trans (SymplecticGeometry.isCollared_inclusion_levelSet hg h0).2.symm)
+        (SymplecticGeometry.isCollared_inclusion_levelSet hg h0).1 Ψ := by
+  have : CompactSpace (g ⁻¹' Iic 0) :=
+    isCompact_iff_compactSpace.1 (isClosed_Iic.preimage hg.continuous).isCompact
+  -- Every fibre carries one of the symplectic frames.
+  have hframe (x : M) : ∃ Θ : StdSpace κ ≃L[ℝ] V x,
+      ∀ v w, σ.bilinFormAt x (Θ v) (Θ w) = stdForm κ v w := by
+    by_cases hx : g x ≤ 0
+    · exact ⟨Φ₁ ⟨x, hx⟩, hΦ₁σ ⟨x, hx⟩⟩
+    · exact ⟨Φ₂ ⟨x, (not_le.1 hx).le⟩, hΦ₂σ ⟨x, (not_le.1 hx).le⟩⟩
+  rcases isEmpty_or_nonempty M with hM | hM
+  · -- Over the empty surface any frames will do.
+    obtain ⟨J, hJ⟩ := (ContMDiffTwoForm.isNondegenerate_of_forall_exists (stdForm κ)
+      fun x ↦ (hframe x).elim fun Θ hΘ ↦ ⟨Θ.toLinearEquiv, hΘ⟩).exists_compatible
+    rw [HomologicalOrientation.boundaryMaslovIndex_def,
+      symplecticChernNumber_eq_chernNumber oM hn G hJ.tames]
+    exact chernNumber_eq_boundaryDegree_normalizedDet oM hn hg h0
+      (Φ₁ := fun x ↦ isEmptyElim (x : M)) (Φ₂ := fun x ↦ isEmptyElim (x : M))
+      continuous_of_discreteTopology continuous_of_discreteTopology
+      fun z ↦ isEmptyElim ((z : g ⁻¹' Iic 0) : M)
+  -- Otherwise `σ` is compatible with some `J`, and `κ → ℂ` is a complex model of `(V, J)`.
+  obtain ⟨J, _, hJ, hJσ⟩ := exists_compatible_symplecticChernNumber_eq_chernNumber oM hn G hframe
+  -- Complex frames of `(V, J)` from the symplectic frames, by changes of frame `P` and `P'`.
+  obtain ⟨P, Θ₁, hP, hΘ₁, hΘ₁Φ⟩ :=
+    hJ.exists_continuous_GLSymplectic_complexFrame (f := ((↑) : g ⁻¹' Iic 0 → M)) hΦ₁ hΦ₁σ
+  obtain ⟨P', Θ₂, hP', hΘ₂, hΘ₂Φ⟩ :=
+    hJ.exists_continuous_GLSymplectic_complexFrame (f := ((↑) : g ⁻¹' Ici 0 → M)) hΦ₂ hΦ₂σ
+  -- On the boundary the new transition is `P⁻¹ Ψ P'`.
+  let Pinv : C(↥(sublevelBoundary hg.continuous), GLSymplectic κ ℝ) :=
+    ((⟨P, hP⟩ : C(g ⁻¹' Iic 0, GLSymplectic κ ℝ))⁻¹).comp
+      ⟨Subtype.val, continuous_subtypeVal⟩
+  let Pout : C(↥(sublevelBoundary hg.continuous), GLSymplectic κ ℝ) :=
+    (⟨P', hP'⟩ : C(g ⁻¹' Ici 0, GLSymplectic κ ℝ)).comp
+      ⟨fun z ↦ ⟨_, mem_preimage_Ici_of_mem_sublevelBoundary z.property⟩,
+        (continuous_subtypeVal.comp continuous_subtypeVal).subtype_mk _⟩
+  -- By the complex formula, the number is the boundary Maslov index of `P⁻¹ Ψ P'`. The term of
+  -- `P⁻¹` vanishes since `P⁻¹` is defined on all of `Σ₁`, and that of `P'` since `P'` is defined
+  -- on all of `Σ₂`.
+  rw [hJσ, chernNumber_eq_boundaryDegree_normalizedDet oM hn hg h0 hΘ₁ hΘ₂
+      (u := maslovPhaseMap.comp (Pinv * Ψ * Pout)) fun z hz ↦ ?_,
+    ← HomologicalOrientation.boundaryMaslovIndex_def,
+    HomologicalOrientation.boundaryMaslovIndex_mul, HomologicalOrientation.boundaryMaslovIndex_mul,
+    HomologicalOrientation.boundaryMaslovIndex_eq_zero_of_extend _ _ _ _ _
+      ((⟨P, hP⟩ : C(g ⁻¹' Iic 0, GLSymplectic κ ℝ))⁻¹) fun _ ↦ by
+        simp only [Pinv, ContinuousMap.comp_apply, ContinuousMap.coe_mk],
+    oM.boundaryMaslovIndex_eq_zero_of_extend_Ici hn hg h0 (Ψ := Pout) ⟨P', hP'⟩ fun _ ↦ by
+      simp only [Pout, ContinuousMap.comp_apply, ContinuousMap.coe_mk],
+    zero_add, add_zero]
+  -- The Maslov phase of the transition is the normalized determinant of the complex transition.
+  simp only [Pinv, Pout, ContinuousMap.comp_apply, maslovPhaseMap_apply, ContinuousMap.mul_apply,
+    ContinuousMap.inv_apply, ContinuousMap.coe_mk]
+  exact J.toContinuousComplexStructure.maslovPhase_inv_mul_mul_eq_normalizedDet (hΘ₁Φ z)
+    (hΘ₂Φ ⟨_, hz⟩) (hΨ z)
+
+end Symplectic
 
 end SymplecticGeometry.Bundle
 
