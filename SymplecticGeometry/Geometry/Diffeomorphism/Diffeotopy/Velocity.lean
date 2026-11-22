@@ -35,7 +35,9 @@ sense of McDuff–Salamon, §3.1, and the time derivative that Tau Ceti's
 * `TauCeti.Diffeotopy.mfderiv_cylinderMap_time`, `TauCeti.Diffeotopy.mfderiv_cylinderMap_space`:
   the motion sends `∂ₜ` at `(x, t)` to the velocity of the trajectory `s ↦ φ_s x`, and a spatial
   vector `(v, 0)` to `dφ_t v`.
-* `TauCeti.Diffeotopy.contMDiff_velocity`: `X_t` is jointly smooth in `(t, y)`, up to both ends.
+* `TauCeti.Diffeotopy.forall_velocity_mem_iff`: the velocity lies in a family of subspaces `D_t`
+  everywhere if and only if the time derivative of the motion at `(x, t)` lies in `D_t (φ_t x)`.
+* `TauCeti.Diffeotopy.contMDiff_velocity`:`X_t` is jointly smooth in `(t, y)`, up to both ends.
 * `TauCeti.Diffeotopy.velocity_refl`: the constant diffeotopy has velocity zero.
 * `TauCeti.Diffeotopy.velocity_globalFlowDiffeotopy`: the flow of a complete field `v`, run for
   duration `a`, has velocity `a • v`.
@@ -172,6 +174,16 @@ theorem velocity_apply_apply (t : unitInterval) (x : M) :
     Φ.velocity t (Φ (t, x)) = mfderiv (J.prod (𝓡∂ 1)) J Φ.cylinderMap (x, t)
       ((0 : E), (1 : TangentSpace (𝓡∂ 1) t)) := by
   rw [velocity_apply, symm_apply_mk_apply]
+
+/-- The velocity of a diffeotopy lies in a family of subspaces `D_t` everywhere if and only if,
+for every `x` and `t`, the time derivative of the motion at `(x, t)` lies in `D_t` at `φ_t x`. -/
+theorem forall_velocity_mem_iff (D : unitInterval → (y : M) → Submodule ℝ (TangentSpace J y)) :
+    (∀ t y, Φ.velocity t y ∈ D t y) ↔ ∀ (t : unitInterval) (x : M),
+      mfderiv (J.prod (𝓡∂ 1)) J Φ.cylinderMap (x, t)
+        ((0 : E), (1 : TangentSpace (𝓡∂ 1) t)) ∈ D t (Φ (t, x)) := by
+  refine ⟨fun h t x ↦ Φ.velocity_apply_apply t x ▸ h t (Φ (t, x)), fun h t y ↦ ?_⟩
+  obtain ⟨x, rfl⟩ : ∃ x, Φ (t, x) = y := ⟨_, Φ.apply_mk_symm_apply t y⟩
+  exact Φ.velocity_apply_apply t x ▸ h t x
 
 /-- The velocity of a diffeotopy is jointly smooth in time and space, up to both ends of the
 time interval. -/

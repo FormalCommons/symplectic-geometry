@@ -873,20 +873,13 @@ theorem eq_grayDiffeotopy_of_transports (hξ : IsContactFamily ξ) {Φ : Diffeot
       ((0 : E), (1 : TangentSpace (𝓡∂ 1) t)) ∈ ξ t (Φ (t, x))) :
     Φ = hξ.grayDiffeotopy := by
   obtain ⟨Y, -, -, hgray⟩ := hξ.exists_grayField
-  -- Read along the motion, the normalization says that the velocity lies in `ξ`.
-  have hvel {Ψ : Diffeotopy I ∞ M} (h : ∀ (t : unitInterval) (x : M),
-      mfderiv (I.prod (𝓡∂ 1)) I Ψ.cylinderMap (x, t)
-        ((0 : E), (1 : TangentSpace (𝓡∂ 1) t)) ∈ ξ t (Ψ (t, x))) (t : unitInterval) (y : M) :
-      Ψ.velocity t y ∈ ξ t y := by
-    obtain ⟨x, rfl⟩ : ∃ x, Ψ (t, x) = y := ⟨_, Ψ.apply_mk_symm_apply t y⟩
-    rw [Diffeotopy.velocity_apply_apply]
-    exact h t x
   refine Diffeotopy.ext fun p ↦ ?_
   obtain ⟨u, hu⟩ := Real.smoothTransitionUnit_surjective p.1
   rw [← Prod.mk.eta (p := p), ← hu,
-    apply_smoothTransitionUnit_eq_timeDependentFlowOf hξ hgray hΦ (hvel hv),
+    apply_smoothTransitionUnit_eq_timeDependentFlowOf hξ hgray hΦ
+      ((Φ.forall_velocity_mem_iff ξ).2 hv),
     apply_smoothTransitionUnit_eq_timeDependentFlowOf hξ hgray hξ.transports_grayDiffeotopy
-      (hvel hξ.velocity_grayDiffeotopy_mem)]
+      ((hξ.grayDiffeotopy.forall_velocity_mem_iff ξ).2 hξ.velocity_grayDiffeotopy_mem)]
 
 /-- **Gray stability.** Let `M` be a compact Hausdorff manifold without boundary and `ξ` a
 smooth family of contact structures over `[0, 1]`, not necessarily coorientable. There is a unique
