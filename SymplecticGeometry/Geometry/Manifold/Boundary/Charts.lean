@@ -6,6 +6,9 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Manifold.Boundary.Charts
+public import TauCeti.Geometry.Manifold.Boundary.Orientation
+public import TauCeti.Geometry.Manifold.VectorField.Transverse
+import TauCeti.Geometry.Manifold.Boundary.Derivative
 
 /-!
 # Boundary points in the extended charts of the half-space model
@@ -23,12 +26,16 @@ vanishes. This complements Tau Ceti's `TauCeti.ModelWithCorners.mem_boundary_euc
   read as an interior point.
 * `TauCeti.extChartAt_self_apply_zero`: the extended chart at a boundary point sends it to the
   hyperplane where the zeroth coordinate vanishes.
+* `TauCeti.IsOutwardPointing.notMem_range_mfderiv_subtypeVal`: an outward vector at a boundary
+  point is not tangent to the boundary.
+* `TauCeti.IsOutwardPointingField.isTransverseAlong_subtypeVal`: an outward field is transverse to
+  the boundary.
 -/
 
 public section
 
 open Set Function
-open scoped Manifold
+open scoped Manifold ContDiff
 
 namespace TauCeti
 
@@ -61,6 +68,25 @@ theorem extChartAt_self_apply_zero {q : W} (hq : q ∈ (𝓡∂ (n + 1)).boundar
     (mem_extChartAt_target (I := 𝓡∂ (n + 1)) q)).1
   rw [extChartAt_to_inv] at h
   exact h hq
+
+/-- An outward vector at a boundary point is not tangent to the boundary: it is not in the range
+of the differential of the boundary inclusion. -/
+theorem IsOutwardPointing.notMem_range_mfderiv_subtypeVal [IsManifold (𝓡∂ (n + 1)) 1 W]
+    {x : (𝓡∂ (n + 1)).boundary W}
+    {v : TangentSpace (𝓡∂ (n + 1)) (x : W)} (hv : IsOutwardPointing (x : W) v) :
+    v ∉ (mfderiv (𝓡 n) (𝓡∂ (n + 1)) (Subtype.val : (𝓡∂ (n + 1)).boundary W → W) x).range := by
+  rintro ⟨w, rfl⟩
+  have h := hv.coordinate_deriv_neg
+  rw [mfderiv_extChartAt_self, mfderiv_subtypeVal_boundary] at h
+  -- The tangent space of the model is the model space, and `fromTangentSpace` is the identity.
+  change euclideanHalfSpaceBoundaryParam n w 0 < 0 at h
+  linarith [euclideanHalfSpaceBoundaryParam_apply_zero w]
+
+/-- An outward field is transverse to the boundary. -/
+theorem IsOutwardPointingField.isTransverseAlong_subtypeVal [IsManifold (𝓡∂ (n + 1)) ∞ W]
+    {Y : (x : W) → TangentSpace (𝓡∂ (n + 1)) x} (hY : IsOutwardPointingField Y) :
+    IsTransverseAlong (𝓡 n) Y (Subtype.val : (𝓡∂ (n + 1)).boundary W → W) :=
+  isTransverseAlong_iff.2 fun x ↦ (hY.isOutwardPointing x.property).notMem_range_mfderiv_subtypeVal
 
 end TauCeti
 
