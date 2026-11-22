@@ -268,6 +268,7 @@ of Tau Ceti's roadmap that no one has started.
 |---|---|
 | `Geometry/Symplectic/JHolomorphic/Energy/Density.lean` | the pointwise density $\varepsilon_L$, the squared norm, the pointwise identity |
 | `LinearAlgebra/Complex/EnergyDensity.lean` | the same for a linear map between vector spaces, from which `Density.lean` reads its statements |
+| `LinearAlgebra/Complex/StdComplexLine.lean` | the images of `stdComplexLineReal` and `stdComplexLineImag` under `(a, s) ↦ a • v + s • w`, used by `Density.lean` |
 | `Geometry/Symplectic/Manifold/AlmostComplex/TopForm.lean` | top forms on a tangent plane of an almost complex surface: equality and ratios read on one frame $(e,je)$, without an orientation |
 | `LinearAlgebra/Complex/TopForm.lean` | the same on a real plane with a complex structure |
 | `Geometry/Symplectic/JHolomorphic/Energy/Metric.lean` | the squared norm read in $g_J$ |

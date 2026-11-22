@@ -10,6 +10,7 @@ public import SymplecticGeometry.Geometry.Manifold.Complex.Integrable
 public import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Covariant
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Eigenbundle.Involutive
 public import TauCeti.Geometry.Symplectic.Manifold.Surface
+import TauCeti.Geometry.Manifold.VectorField.Related
 
 /-!
 # The Nijenhuis tensor: naturality and the formula through a connection
@@ -23,6 +24,11 @@ of a smooth almost complex structure `J`, which with Mathlib's bracket `mlieBrac
   the pullback `h^* J` is the pullback of the Nijenhuis tensor of `J`. Lie brackets commute with
   pullbacks along diffeomorphisms (Mathlib's `VectorField.mpullback_mlieBracket`), and `h^* J`
   maps pullbacks of vector fields to pullbacks;
+* naturality for related vector fields: if a `C²` map `f : M → N` intertwines `J` with `K` near
+  `x`, `df ∘ J = K ∘ df`, and the fields `X, Y` on `M` are `f`-related near `x` to fields `V, W`
+  on `N`, then `df_x (N_J(X, Y) x) = N_K(V, W) (f x)`. The differential of `f` need not be
+  invertible: each bracket is handled by Tau Ceti's
+  `TauCeti.mfderiv_mlieBracket_of_eventually_related`;
 * for a covariant derivative `∇` on `TM` whose torsion vanishes at `x`,
   `N_J(v, w) = (∇_{Jv} J) w - (∇_{Jw} J) v + (∇_v J) (J w) - (∇_w J) (J v)` at `x`, where
   `∇J` is the induced connection `CovariantDerivative.hom` applied to `J`. The brackets are
@@ -38,6 +44,8 @@ of a smooth almost complex structure `J`, which with Mathlib's bracket `mlieBrac
   diffeomorphism, on tangent vectors.
 * `TauCeti.SmoothAlmostComplexStructure.nijenhuis_mpullback`: the same on vector fields,
   `N_{h^* J}(h^* X, h^* Y) = h^* N_J(X, Y)`.
+* `TauCeti.SmoothAlmostComplexStructure.mfderiv_nijenhuis_of_eventually_related`: naturality for
+  related vector fields along any `C²` map intertwining two structures.
 * `TauCeti.SmoothAlmostComplexStructure.nijenhuis_eq_hom_toEndomorphism`: the formula of `N_J`
   through a torsion-free covariant derivative.
 * `TauCeti.SmoothAlmostComplexStructure.nijenhuis_tensor`: the properties of the Nijenhuis
@@ -51,8 +59,8 @@ of a smooth almost complex structure `J`, which with Mathlib's bracket `mlieBrac
 
 public section
 
-open Bundle FiberBundle VectorField Module.End
-open scoped Manifold ContDiff
+open Bundle FiberBundle VectorField Module.End Filter
+open scoped Manifold ContDiff Topology
 
 namespace TauCeti
 
@@ -134,6 +142,42 @@ theorem nijenhuis_mpullback (h : M ≃ₘ⟮I, I'⟯ N) (J : SmoothAlmostComplex
   have hinv := h.isInvertible_mfderiv (by simp) (x := x)
   simp only [nijenhuis_pullback, VectorField.mpullback_apply]
   rw [hinv.self_apply_inverse, hinv.self_apply_inverse]
+
+/-- **Naturality of the Nijenhuis tensor for related vector fields.** Let `f : M → N` be `C²` at
+`x` and intertwine `J` on `M` with `K` on `N` near `x`, `df_z ∘ J_z = K_{f z} ∘ df_z`. If the vector
+fields `X, Y` on `M`, differentiable at `x`, are `f`-related near `x` to vector fields `V, W` on
+`N`, differentiable at `f x`, then `df_x (N_J(X, Y) x) = N_K(V, W) (f x)`. The differential of `f`
+need not be invertible. -/
+theorem mfderiv_nijenhuis_of_eventually_related (K : SmoothAlmostComplexStructure I' N) {f : M → N}
+    {x : M} (hf : ContMDiffAt I I' 2 f x)
+    (hJK : ∀ᶠ z in 𝓝 x, ∀ v : TangentSpace I z,
+      mfderiv I I' f z (J z v) = K (f z) (mfderiv I I' f z v))
+    {X Y : Π z : M, TangentSpace I z} {V W : Π y : N, TangentSpace I' y}
+    (hX : MDiffAt (T% X) x) (hY : MDiffAt (T% Y) x) (hV : MDiffAt (T% V) (f x))
+    (hW : MDiffAt (T% W) (f x)) (hXV : ∀ᶠ z in 𝓝 x, mfderiv I I' f z (X z) = V (f z))
+    (hYW : ∀ᶠ z in 𝓝 x, mfderiv I I' f z (Y z) = W (f z)) :
+    mfderiv I I' f x (J.nijenhuis x (X x) (Y x)) = K.nijenhuis (f x) (V (f x)) (W (f x)) := by
+  have : IsManifold I (minSmoothness ℝ 2) M := .of_le (n := ∞) (by simp)
+  have : IsManifold I' (minSmoothness ℝ 2) N := .of_le (n := ∞) (by simp)
+  -- `J X` is related to `K V` near `x`, and likewise for `Y` and `W`.
+  have hJ {A : Π z : M, TangentSpace I z} {B : Π y : N, TangentSpace I' y}
+      (hAB : ∀ᶠ z in 𝓝 x, mfderiv I I' f z (A z) = B (f z)) :
+      ∀ᶠ z in 𝓝 x, mfderiv I I' f z (J z (A z)) = K (f z) (B (f z)) := by
+    filter_upwards [hJK, hAB] with z hz hzAB
+    rw [hz, hzAB]
+  have hbr {A B : Π z : M, TangentSpace I z} {A' B' : Π y : N, TangentSpace I' y}
+      (hA : MDiffAt (T% A) x) (hB : MDiffAt (T% B) x) (hA' : MDiffAt (T% A') (f x))
+      (hB' : MDiffAt (T% B') (f x)) (hAA' : ∀ᶠ z in 𝓝 x, mfderiv I I' f z (A z) = A' (f z))
+      (hBB' : ∀ᶠ z in 𝓝 x, mfderiv I I' f z (B z) = B' (f z)) :
+      mfderiv I I' f x (mlieBracket I A B x) = mlieBracket I' A' B' (f x) :=
+    TauCeti.mfderiv_mlieBracket_of_eventually_related hf (by simp) hA hB hA' hB' hAA' hBB'
+  have hJX := J.mdifferentiableAt_apply hX
+  have hJY := J.mdifferentiableAt_apply hY
+  have hKV := K.mdifferentiableAt_apply hV
+  have hKW := K.mdifferentiableAt_apply hW
+  rw [J.nijenhuis_apply hX hY, K.nijenhuis_apply hV hW, map_sub, map_sub, map_sub,
+    hJK.self_of_nhds, hJK.self_of_nhds, hbr hJX hJY hKV hKW (hJ hXV) (hJ hYW),
+    hbr hX hY hV hW hXV hYW, hbr hJX hY hKV hW (hJ hXV) hYW, hbr hX hJY hV hKW hXV (hJ hYW)]
 
 end Pullback
 
