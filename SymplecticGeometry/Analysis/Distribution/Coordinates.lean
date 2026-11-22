@@ -8,7 +8,6 @@ module
 public import SymplecticGeometry.Analysis.Distribution.LinearEquiv
 public import SymplecticGeometry.Analysis.Distribution.OfFun
 public import TauCeti.Analysis.Distribution.SingularSupport
-import Mathlib.MeasureTheory.Measure.Haar.Disintegration
 import TauCeti.MeasureTheory.Function.LocalRepresentative
 
 /-!
@@ -47,8 +46,8 @@ the interior regularity of elliptic systems applies.
 
 For the last result, near each point the singular support hypothesis gives a function, smooth near
 the image of the point, that represents the coordinate distribution for the volume of `E'`.
-Changing variables along `e`, as in the proof of Tau Ceti's
-`Distribution.compCLMOfContinuousLinearEquiv_ofFun`, turns it into a smooth local representative
+Changing variables along `e` (`Distribution.transportCLM_ofFun` and
+`Distribution.transportCLM_ofFun_of_isAddHaarMeasure`) turns it into a smooth local representative
 of the coordinate of `w` for `μ`, up to the constant factor relating the image of the volume to
 `μ`; Mathlib's `Distribution.ofFun_injective` identifies the two, and Tau Ceti's
 `TauCeti.exists_contDiffOn_ae_eq_of_locally` glues the local representatives. The same change of
@@ -235,43 +234,41 @@ private theorem exists_contDiffOn_ae_eq_repr (hw : LocallyIntegrableOn w U μ) (
     ∃ N ∈ 𝓝 x, ∃ g : E → ℂ, ContDiffOn ℝ ∞ g N ∧
       (fun x ↦ (b.repr (w x) i : ℂ)) =ᵐ[μ.restrict N] g := by
   obtain ⟨V, hV, hxV, f, hf, hT⟩ := (notMem_singularSupport_iff hx).1 hsing
-  -- The image of the volume of `E'` under `e⁻¹` is a multiple of `μ`.
-  obtain ⟨κ, -, hκ⟩ := (e.symm : E' →ₗ[ℝ] E).exists_map_addHaar_eq_smul_addHaar volume μ
-    e.symm.surjective
-  set O : Opens E := ⟨e ⁻¹' (V ∩ Ω), (hV.inter Ω.isOpen).preimage e.continuous⟩
-  have hO : ∀ {z}, z ∈ O → e z ∈ V ∧ e z ∈ Ω := fun hz ↦ by simpa [O] using hz
-  have hOU : (O : Set E) ⊆ U := fun z hz ↦ by simpa using hΩ (hO hz).2
-  have hOΩ : MapsTo e O Ω := fun z hz ↦ (hO hz).2
-  have hfe : ContDiffOn ℝ ∞ (fun z ↦ (κ.toReal : ℂ) • f (e z)) O :=
-    (hf.comp e.contDiff.contDiffOn fun z hz ↦ (hO hz).1).const_smul _
+  have hwi := hw.ofReal_basis_repr b i
+  set W : Opens E' := ⟨V ∩ Ω, hV.inter Ω.isOpen⟩
+  set O : Opens E := ⟨e ⁻¹' W, W.isOpen.preimage e.continuous⟩
+  have hOU : MapsTo (e.trans e.symm) O U := fun z hz ↦ by simpa using hΩ hz.2
+  have hOW : MapsTo e O W := fun _ hz ↦ hz
+  have hO : ∀ {z}, z ∈ O → e z ∈ V ∧ e z ∈ Ω := fun hz ↦ by simpa [O, W] using hz
+  have hOΩ : MapsTo e O Ω := fun _ hz ↦ (hO hz).2
+  have hfW : LocallyIntegrableOn f W :=
+    (hf.mono inter_subset_left).continuousOn.locallyIntegrableOn W.isOpen.measurableSet
+  -- The factor relating the image of the volume of `E'` under `e⁻¹` to `μ`.
+  set κ : ℝ := (((volume : Measure E').map e.symm).addHaarScalarFactor μ : ℝ)
+  have hfe : ContDiffOn ℝ ∞ (fun z ↦ κ • f (e z)) O :=
+    (hf.comp e.contDiff.contDiffOn fun _ hz ↦ (hO hz).1).const_smul _
   refine ⟨O, O.isOpen.mem_nhds ⟨hxV, hx⟩, _, hfe, ofFun_injective (n := ⊤)
-    ((hw.ofReal_basis_repr b i).mono_set hOU)
+    (hwi.mono_set fun z hz ↦ by simpa using hOU hz)
     (hfe.continuousOn.locallyIntegrableOn O.isOpen.measurableSet) ?_⟩
+  -- Both sides are transports along `e`: the left one of the coordinate distribution, the right
+  -- one of the distribution of `f` on `W`.
+  have h₁ : ofFun O (fun x ↦ (b.repr (w x) i : ℂ)) μ ⊤ =
+      transportCLM e hOΩ (coordOfFun e hΩ b w μ i) := by
+    rw [coordOfFun_def, ← transportCLM_trans e e.symm hOΩ hΩ hOU, transportCLM_ofFun _ _ hwi]
+    simp
+  have h₂ : ofFun O (fun z ↦ κ • f (e z)) μ ⊤ = transportCLM e hOW (ofFun W f volume ⊤) := by
+    rw [transportCLM_ofFun_of_isAddHaarMeasure e hOW volume μ hfW, ← ofFun_smul, Pi.smul_def]
+  rw [h₁, h₂]
   ext ψ
-  -- Pair the singular support hypothesis with the transport of `ψ` to `Ω`.
-  set φ : 𝓓(Ω, ℝ) := e.transportTestFunction hOΩ ψ
-  have hφ : ⇑φ = ψ ∘ e.symm := funext fun y ↦ by simp [φ]
-  have hφV : tsupport φ ⊆ V := by
+  -- Both test functions on `E'` are `ψ ∘ e⁻¹`.
+  have hφ : ∀ (W' : Opens E') (h : MapsTo e O W'),
+      ⇑(e.transportTestFunction h ψ) = ψ ∘ e.symm :=
+    fun _ _ ↦ funext fun y ↦ by simp
+  have hψ : tsupport (e.transportTestFunction hOΩ ψ) ⊆ V := by
     rw [hφ]
     refine (tsupport_comp_subset_preimage _ e.symm.continuous).trans fun y hy ↦ ?_
-    simpa using (ψ.tsupport_subset hy).1
-  have h₁ := hT φ hφV
-  rw [coordOfFun_apply e hΩ b hw] at h₁
-  rw [ofFun_apply ((hw.ofReal_basis_repr b i).mono_set hOU),
-    ofFun_apply (hfe.continuousOn.locallyIntegrableOn O.isOpen.measurableSet)]
-  simp only [φ, ContinuousLinearEquiv.transportTestFunction_apply,
-    ContinuousLinearEquiv.symm_apply_apply] at h₁
-  rw [h₁]
-  -- Change variables `y = e z` on the right.
-  have hcov := integral_map_equiv (μ := (volume : Measure E'))
-    e.symm.toHomeomorph.toMeasurableEquiv fun z ↦ ψ z • f (e z)
-  simp only [Homeomorph.toMeasurableEquiv_coe, ContinuousLinearEquiv.coe_toHomeomorph,
-    ContinuousLinearEquiv.apply_symm_apply] at hcov
-  rw [← hcov]
-  simp only [ContinuousLinearEquiv.toLinearEquiv_symm, LinearEquiv.coe_coe,
-    ContinuousLinearEquiv.coe_symm_toLinearEquiv] at hκ
-  rw [hκ, integral_smul_measure, ← integral_smul]
-  simp only [Complex.real_smul, smul_eq_mul, mul_left_comm]
+    simpa using (hO (ψ.tsupport_subset hy)).1
+  rw [transportCLM_apply, transportCLM_apply, hT _ hψ, ofFun_apply hfW, hφ, hφ]
 
 /-- **Smooth representatives from coordinate distributions.** If `e` maps `U` into `Ω` and every
 coordinate distribution of `w`, locally integrable on `U` for an additive Haar measure, has empty
