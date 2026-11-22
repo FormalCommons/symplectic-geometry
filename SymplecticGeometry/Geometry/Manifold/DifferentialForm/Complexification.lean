@@ -34,8 +34,11 @@ It also records that a complex form is determined by its real and imaginary part
   `TauCeti.SmoothForm.mapCoeff_imCLM_complexifyₗ`: its real and imaginary parts.
 * `TauCeti.SmoothForm.complexifyₗ_mapCoeff_ofRealCLM`: on real forms it is `f`.
 * `TauCeti.SmoothForm.complexifyₗ_id` and `TauCeti.SmoothForm.complexifyₗ_comp`.
-* `TauCeti.SmoothForm.eq_zero_iff_realPart_imaginaryPart`: a complex form vanishes exactly when
-  its real and imaginary parts do.
+* `TauCeti.SmoothForm.eq_complexifyₗ_iff`: a complex-linear map is `complexifyₗ f` exactly when
+  it agrees with `f` on real forms.
+* `TauCeti.SmoothForm.ext_iff_realPart_imaginaryPart`: a complex form is determined by its real
+  and imaginary parts; `TauCeti.SmoothForm.eq_zero_iff_realPart_imaginaryPart` is the case of
+  zero.
 -/
 
 public section
@@ -64,12 +67,18 @@ theorem mapCoeff_imCLM_mapCoeff_ofRealCLM (α : SmoothForm I M ℝ k) :
     mapCoeff Complex.imCLM (mapCoeff Complex.ofRealCLM α) = 0 := by
   simpa using imaginaryPart_ofReal_add_I_smul_ofReal α 0
 
+/-- A complex form is determined by its real and imaginary parts. -/
+theorem ext_iff_realPart_imaginaryPart (φ ψ : SmoothForm I M ℂ k) :
+    φ = ψ ↔ mapCoeff Complex.reCLM φ = mapCoeff Complex.reCLM ψ ∧
+      mapCoeff Complex.imCLM φ = mapCoeff Complex.imCLM ψ := by
+  refine ⟨fun h ↦ by simp [h], fun ⟨hre, him⟩ ↦ ?_⟩
+  rw [← ofReal_realPart_add_I_smul_ofReal_imaginaryPart φ,
+    ← ofReal_realPart_add_I_smul_ofReal_imaginaryPart ψ, hre, him]
+
 /-- A complex form vanishes exactly when its real and imaginary parts vanish. -/
 theorem eq_zero_iff_realPart_imaginaryPart (ω : SmoothForm I M ℂ k) :
     ω = 0 ↔ mapCoeff Complex.reCLM ω = 0 ∧ mapCoeff Complex.imCLM ω = 0 := by
-  refine ⟨fun h ↦ by simp [h], fun ⟨hre, him⟩ ↦ ?_⟩
-  rw [← ofReal_realPart_add_I_smul_ofReal_imaginaryPart ω, hre, him, map_zero, smul_zero,
-    add_zero]
+  rw [ext_iff_realPart_imaginaryPart, map_zero, map_zero]
 
 /-! ### The complexification of a real-linear map -/
 
@@ -77,21 +86,18 @@ theorem eq_zero_iff_realPart_imaginaryPart (ω : SmoothForm I M ℂ k) :
 complex forms that is the base change of `f` to `ℂ`, read through `complexificationEquiv`. -/
 def complexifyₗ (f : SmoothForm I M ℝ k →ₗ[ℝ] SmoothForm I M ℝ l) :
     SmoothForm I M ℂ k →ₗ[ℂ] SmoothForm I M ℂ l :=
-  complexificationEquiv.toLinearMap ∘ₗ f.baseChange ℂ ∘ₗ complexificationEquiv.symm.toLinearMap
+  complexificationEquiv.arrowCongr complexificationEquiv (f.baseChange ℂ)
 
 /-- The complexification of `f` is its base change, read through `complexificationEquiv`. -/
 theorem complexifyₗ_def (f : SmoothForm I M ℝ k →ₗ[ℝ] SmoothForm I M ℝ l) :
-    complexifyₗ f =
-      complexificationEquiv.toLinearMap ∘ₗ f.baseChange ℂ ∘ₗ
-        complexificationEquiv.symm.toLinearMap :=
+    complexifyₗ f = complexificationEquiv.arrowCongr complexificationEquiv (f.baseChange ℂ) :=
   (rfl)
 
 /-- Read through `complexificationEquiv`, the complexification of `f` is the base change of `f`. -/
 theorem complexifyₗ_complexificationEquiv (f : SmoothForm I M ℝ k →ₗ[ℝ] SmoothForm I M ℝ l)
     (u : ℂ ⊗[ℝ] SmoothForm I M ℝ k) :
     complexifyₗ f (complexificationEquiv u) = complexificationEquiv (f.baseChange ℂ u) := by
-  rw [complexifyₗ_def, LinearMap.comp_apply, LinearMap.comp_apply, LinearEquiv.coe_coe,
-    LinearEquiv.coe_coe, LinearEquiv.symm_apply_apply]
+  simp [complexifyₗ_def]
 
 /-- The complexification of `f` sends `φ` to `f (Re φ) + i f (Im φ)`. -/
 theorem complexifyₗ_apply (f : SmoothForm I M ℝ k →ₗ[ℝ] SmoothForm I M ℝ l)
@@ -127,16 +133,25 @@ theorem complexifyₗ_mapCoeff_ofRealCLM (f : SmoothForm I M ℝ k →ₗ[ℝ] S
 @[simp]
 theorem complexifyₗ_id : complexifyₗ (LinearMap.id : SmoothForm I M ℝ k →ₗ[ℝ] _) =
     LinearMap.id :=
-  LinearMap.ext fun φ ↦ by simp [complexifyₗ_apply]
+  LinearMap.ext fun φ ↦ by simp [complexifyₗ_def, LinearMap.baseChange_id]
 
 /-- Complexification respects composition. -/
 theorem complexifyₗ_comp (g : SmoothForm I M ℝ l →ₗ[ℝ] SmoothForm I M ℝ n)
     (f : SmoothForm I M ℝ k →ₗ[ℝ] SmoothForm I M ℝ l) :
     complexifyₗ (g ∘ₗ f) = complexifyₗ g ∘ₗ complexifyₗ f := by
-  refine LinearMap.ext fun φ ↦ ?_
-  rw [LinearMap.comp_apply, complexifyₗ_apply (g ∘ₗ f), complexifyₗ_apply g,
-    mapCoeff_reCLM_complexifyₗ, mapCoeff_imCLM_complexifyₗ, LinearMap.comp_apply,
-    LinearMap.comp_apply]
+  simp only [complexifyₗ_def]
+  rw [LinearMap.baseChange_comp,
+    LinearEquiv.arrowCongr_comp _ complexificationEquiv]
+
+/-- The universal property of the complexification: a complex-linear map of complex forms is the
+complexification of `f` exactly when it agrees with `f` on real forms. -/
+theorem eq_complexifyₗ_iff (f : SmoothForm I M ℝ k →ₗ[ℝ] SmoothForm I M ℝ l)
+    (g : SmoothForm I M ℂ k →ₗ[ℂ] SmoothForm I M ℂ l) :
+    g = complexifyₗ f ↔
+      ∀ α, g (mapCoeff Complex.ofRealCLM α) = mapCoeff Complex.ofRealCLM (f α) := by
+  refine ⟨fun h α ↦ by simp [h], fun h ↦ LinearMap.ext fun φ ↦ ?_⟩
+  rw [← ofReal_realPart_add_I_smul_ofReal_imaginaryPart φ, map_add, map_smul, h, h, map_add,
+    map_smul, complexifyₗ_mapCoeff_ofRealCLM, complexifyₗ_mapCoeff_ofRealCLM]
 
 end TauCeti.SmoothForm
 
