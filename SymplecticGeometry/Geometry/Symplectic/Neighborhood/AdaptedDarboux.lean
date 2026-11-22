@@ -61,7 +61,7 @@ Darboux chart of `f^* σ`
 for an isotropic one both forms vanish along `Q`, and any chart with `c q₀ = 0` will do. For a
 coisotropic `Q`, `c` is a chart in which the presymplectic form `f^* σ`, closed and of constant
 rank, is pulled back from `stdForm` along a linear projection
-(`TauCeti.SmoothForm.exists_partialDiffeomorph_eval₂_eq_stdForm`). Since
+(`IsCoisotropicMap.exists_partialDiffeomorph_eval₂_eq_stdForm`). Since
 `e` pulls `ω₀` back to `σ` and its derivative carries each tangent space of `Q` onto `S`, it
 carries their symplectic orthogonals onto the `ω₀`-orthogonal of `S`
 (`TauCeti.SymplecticForm.IsSymplectomorphism.map_orthogonal`), which
@@ -507,16 +507,13 @@ private theorem IsCoisotropicMap.exists_chart_eval₂_eq {hσ : σ.IsNondegenera
       ∀ᶠ s in 𝓝 (0 : E'), ∀ a b : TangentSpace 𝓘(ℝ, E') s,
         σ.eval₂ (f (c.symm s)) (mfderiv 𝓘(ℝ, E') I (f ∘ c.symm) s a)
           (mfderiv 𝓘(ℝ, E') I (f ∘ c.symm) s b) = stdForm (Fin r) (L a).2 (L b).2 := by
-  have hk : finrank ℝ E' = k + 2 * r := by
-    rw [L.toLinearEquiv.finrank_eq, Module.finrank_prod, finrank_euclideanSpace, finrank_stdSpace]
+  have hk : finrank ℝ E' + k = finrank ℝ E := by
+    rw [hn, L.toLinearEquiv.finrank_eq, Module.finrank_prod, finrank_euclideanSpace,
+      finrank_stdSpace]
     simp
-  have hker (x : Q) :
-      finrank ℝ (LinearMap.ker ((SmoothForm.mpullback f f.contMDiff σ).bilinFormAt x)) = k := by
-    have := h.finrank_ker_bilinFormAt_mpullback f.isImmersion f.contMDiff x
-    omega
+    ring
   obtain ⟨c, hcq, hc0, hc⟩ :=
-    (SmoothForm.mpullback f f.contMDiff σ).exists_partialDiffeomorph_eval₂_eq_stdForm
-      (hcl.mpullback f f.contMDiff) hker L q₀
+    h.exists_partialDiffeomorph_eval₂_eq_stdForm f.isImmersion f.contMDiff hcl hk L q₀
   refine ⟨c, hcq, hc0, ?_⟩
   filter_upwards [c.open_target.mem_nhds (hc0 ▸ c.map_source hcq), hc] with s hs hcs a b
   have hcd : MDifferentiableAt 𝓘(ℝ, E') J c.symm s :=
