@@ -145,7 +145,7 @@ private theorem mvfderiv_ambient_leviCivita
       mvfderiv 𝓘(ℝ, ω.compatibleModel) Zh J' (Y J') -
         (2⁻¹ : ℝ) • (P J' * (Zh J' * Yh J' + Yh J' * Zh J')) := by
     funext J'
-    exact mvfderiv_leviCivitaConnection_compatibleSpace_apply
+    exact leviCivitaConnection_compatibleSpace_apply
       ((hZ J').mdifferentiableAt (by simp)) (Y J')
   have hS : MDifferentiableAt 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V)
       (fun J' ↦ Zh J' * Yh J' + Yh J' * Zh J') J :=
@@ -182,23 +182,21 @@ theorem curvatureTensor_leviCivitaConnection_compatibleSpace (J : 𝒥)
   have hZd := fun J' => (hZ J').mdifferentiableAt (n := ∞) (by simp)
   rw [← mvfderiv_apply_eq_mfderiv_apply, curvatureTensor_apply _ J hX hY hZ,
     curvatureOperator_apply, map_sub, map_sub,
-    mvfderiv_leviCivitaConnection_compatibleSpace_apply
+    leviCivitaConnection_compatibleSpace_apply
       (((leviCivitaConnection _ _).contMDiff_apply hY hZ J).mdifferentiableAt (by simp)),
-    mvfderiv_leviCivitaConnection_compatibleSpace_apply
+    leviCivitaConnection_compatibleSpace_apply
       (((leviCivitaConnection _ _).contMDiff_apply hX hZ J).mdifferentiableAt (by simp)),
     mvfderiv_ambient_leviCivita hY hZ,
     mvfderiv_ambient_leviCivita hX hZ]
-  simp only [mvfderiv_leviCivitaConnection_compatibleSpace_apply (hZd J)]
+  simp only [leviCivitaConnection_compatibleSpace_apply (hZd J)]
   have hL := mvfderiv_mlieBracket (contMDiff_compatibleCLM (ω := ω) (n := ∞)).contMDiffAt
     (by simp) (hXd J) (hYd J)
   have hZL := mvfderiv_mlieBracket (contMDiff_mvfderiv_compatibleCLM_apply hZ).contMDiffAt
     (by simp) (hXd J) (hYd J)
   rw [hL, hZL]
   have anti (v : TangentSpace 𝓘(ℝ, ω.compatibleModel) J) :
-      ω.compatibleCLM J * dι J v = -(dι J v * ω.compatibleCLM J) := by
-    rw [ContinuousLinearMap.mul_def, ContinuousLinearMap.mul_def, mvfderiv_apply_eq_mfderiv_apply]
-    exact eq_neg_of_add_eq_zero_left
-      (compatibleCLM_comp_mfderiv_add_mfderiv_comp_compatibleCLM J v)
+      ω.compatibleCLM J * dι J v = -(dι J v * ω.compatibleCLM J) :=
+    eq_neg_of_add_eq_zero_left (compatibleCLM_mul_mvfderiv_add_mvfderiv_mul_compatibleCLM J v)
   exact curvature_algebra (compatibleCLM_mul_self J) (anti (X J)) (anti (Y J)) (anti (Z J))
 
 /-- For tangent vectors `u v` at `J`, `⟪R(u, v) v, u⟫ = ⅛ tr([û, v̂]²)`, the trace of the square of

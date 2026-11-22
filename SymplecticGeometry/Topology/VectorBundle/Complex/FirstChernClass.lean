@@ -5,12 +5,13 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.AlgebraicTopology.Cohomology.Empty
 public import SymplecticGeometry.Topology.ContinuousMap.Defs
 public import SymplecticGeometry.Topology.VectorBundle.Complex.Structure
 public import SymplecticGeometry.Topology.VectorBundle.Determinant
 public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.EulerClass
+public import SymplecticGeometry.Topology.VectorBundle.ModelEquiv
 public import TauCeti.AlgebraicTopology.Cohomology.FundamentalClass
-public import TauCeti.AlgebraicTopology.Cohomology.Point
 public import TauCeti.Topology.VectorBundle.Orientation.Complex.FiberwiseEquiv
 
 /-!
@@ -93,17 +94,10 @@ theorem firstChernClass_congr
     [∀ x, TopologicalSpace (E' x)] [TopologicalSpace (TotalSpace G' E')]
     [FiberBundle G' E'] [VectorBundle ℂ G' E'] (Φ : ∀ x, E x ≃L[ℂ] E' x)
     (hΦ : Continuous fun p : TotalSpace G E ↦ TotalSpace.mk' G' (E := E') p.proj (Φ p.proj p.snd)) :
-    firstChernClass G' E' = firstChernClass G E := by
+    firstChernClass G E = firstChernClass G' E' := by
   rcases isEmpty_or_nonempty B with hB | hB
-  · exact (ModuleCat.isZero_iff_subsingleton.1
-      (isZero_singularCohomology_of_isEmpty (R := ModuleCat.of ℤ (ULift ℤ)) (k := ℤ)
-        (M := ModuleCat.of ℤ (ULift ℤ)) (TopCat.of B) 2)).elim _ _
-  have hG : finrank ℂ G' = finrank ℂ G :=
-    (((trivializationAt G E (Classical.arbitrary B)).continuousLinearEquivAt ℂ _
-      (mem_baseSet_trivializationAt G E _)).symm.trans ((Φ _).trans
-      ((trivializationAt G' E' (Classical.arbitrary B)).continuousLinearEquivAt ℂ _
-      (mem_baseSet_trivializationAt G' E' _)))).toLinearEquiv.finrank_eq.symm
-  exact (complexEulerClass_eq_of_iso (detCoreMap hG Φ hΦ) _ _).symm
+  · exact Subsingleton.elim _ _
+  exact complexEulerClass_eq_of_iso (detCoreMap (VectorBundle.finrank_model_eq Φ) Φ hΦ) _ _
 
 /-- **Naturality of the first Chern class**: `c₁(f* E) = f* c₁(E)` for a continuous map
 `f : X → B`, of any type `K` with `[ContinuousMapClass K X B]`. -/
@@ -113,7 +107,7 @@ theorem firstChernClass_pullback {X : Type} [TopologicalSpace X] {K : Type*} [Fu
       TopCat.singularCohomologyMap (TopCat.ofHom (f : C(X, B))) 2 (firstChernClass G E) := by
   -- The instances on `f *ᵖ E` depend on the type of `f`: pass to `(f : C(X, B))` through the
   -- identity of each fibre.
-  rw [firstChernClass_congr (E := ⇑(f : C(X, B)) *ᵖ E) (E' := (⇑f) *ᵖ E)
+  rw [← firstChernClass_congr (E := ⇑(f : C(X, B)) *ᵖ E) (E' := (⇑f) *ᵖ E)
     (fun _ ↦ ContinuousLinearEquiv.refl ℂ _)
     (continuous_id.congr fun _ ↦ rfl), firstChernClass_def, firstChernClass_def,
     ← complexEulerClass_pullback (detCore ℂ G E) (f : C(X, B)) (finrank_detCore ℂ G E)]
@@ -135,8 +129,8 @@ theorem _root_.TauCeti.Bundle.ContinuousComplexStructure.firstChernClass_congr_m
   -- The identity of `V` intertwines `J` with itself.
   have hc : ∀ x v, ContinuousLinearEquiv.refl ℝ (V x) (J x v) =
       J x (ContinuousLinearEquiv.refl ℝ (V x) v) := fun _ _ ↦ rfl
-  exact firstChernClass_congr (J.fiberEquivOfCommute J _ hc)
-    (J.continuous_fiberEquivOfCommute J _ hc (continuous_id.congr fun _ ↦ rfl))
+  exact (firstChernClass_congr (J.fiberEquivOfCommute J _ hc)
+    (J.continuous_fiberEquivOfCommute J _ hc (continuous_id.congr fun _ ↦ rfl))).symm
 
 variable (B) in
 /-- **The trivial bundle has first Chern class zero.** -/
@@ -214,7 +208,7 @@ theorem chernNumber_congr
     [∀ x, TopologicalSpace (E' x)] [TopologicalSpace (TotalSpace G' E')]
     [FiberBundle G' E'] [VectorBundle ℂ G' E'] (Φ : ∀ x, E x ≃L[ℂ] E' x)
     (hΦ : Continuous fun p : TotalSpace G E ↦ TotalSpace.mk' G' (E := E') p.proj (Φ p.proj p.snd)) :
-    chernNumber o hn G' E' = chernNumber o hn G E := by
+    chernNumber o hn G E = chernNumber o hn G' E' := by
   rw [chernNumber_def, chernNumber_def, firstChernClass_congr Φ hΦ]
 
 /-- **The trivial bundle has first Chern number zero.** -/
