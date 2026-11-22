@@ -133,15 +133,12 @@ variable {XM HM M : Type*} [NormedAddCommGroup XM] [NormedSpace ℝ XM]
   {ι : Type*} [LinearOrder ι] [LocallyFiniteOrderBot ι] {b : M → B} {v : ι → ∀ m, V (b m)}
   {s : Set M}
 
-attribute [local instance] IsWellOrder.toHasWellFounded
-
 /-- For a smooth Hermitian metric `(g, hI)`, Gram–Schmidt with respect to the Hermitian products
 `g.complexInnerProductSpace hI` keeps smoothness on a set: if the sections `v i` along a smooth
 map `b` are `C^n` on `s` for `i ≤ j`, and the vectors `v i m` with `i < j` are complex linearly
 independent at every point `m` of `s`, then the `j`-th Gram–Schmidt vector is `C^n` on `s`.
 
-This is the complex counterpart of Tau Ceti's `ContMDiffWithinAt.gramSchmidt_bundle`, with the
-same induction; the Hermitian products are smooth by `contMDiffOn_hermitianPairing`. -/
+This is the complex counterpart of Tau Ceti's `ContMDiffWithinAt.gramSchmidt_bundle`. -/
 theorem contMDiffOn_gramSchmidt (g : ContMDiffRiemannianMetric IB n F V)
     (hI : ∀ x (v w : V x), g.inner x (Complex.I • v) (Complex.I • w) = g.inner x v w) (j : ι)
     (hv : ∀ i ≤ j, ContMDiffOn IM (IB.prod 𝓘(ℝ, F)) n
@@ -273,15 +270,13 @@ theorem exists_unitary_trivialization_of_orthonormal
       ht.trivialization_complexDoubledFrame_apply_frame hU b hx]
   simpa [e.coe_linearMapAt_of_mem hxe] using LinearMap.congr_fun key v
 
-
 /-- For a smooth Hermitian metric `(g, hI)` on a smooth complex vector bundle, and a complex
 linear trivialization `e` in the maximal atlas of `C^n` trivializations, each vector of the local
 unitary frame `e.orthonormalFrameAt c b` is a `C^n` section over the base set of `e`: for every
 `w`, the section `y ↦ e.orthonormalFrameAt c b y w` is `C^n` on `e.baseSet`.
 
 This is the complex counterpart of Tau Ceti's
-`Bundle.Trivialization.contMDiffOn_orthonormalBasis_of_mem_maximalAtlas`, with the same proof:
-over `e.baseSet` the frame is made of Gram–Schmidt vectors of the smooth frame `e.symm y (c j)`. -/
+`Bundle.Trivialization.contMDiffOn_orthonormalBasis_of_mem_maximalAtlas`. -/
 theorem _root_.Bundle.Trivialization.contMDiffOn_orthonormalFrameAt
     (g : ContMDiffRiemannianMetric IB n F V)
     (hI : ∀ x (v w : V x), g.inner x (Complex.I • v) (Complex.I • w) = g.inner x v w)
@@ -312,6 +307,5 @@ theorem _root_.Bundle.Trivialization.contMDiffOn_orthonormalFrameAt
     fun i _ ↦ contMDiffOn_const.smul_totalSpace (hσ i)).congr fun y hy ↦ ?_
   rw [e.orthonormalFrameAt_of_mem c b hy, e.orthonormalFrame_apply]
   simp only [e.orthonormalBasis_apply, e.symmL_apply (R := ℂ) hy]
-
 
 end Bundle.ContMDiffRiemannianMetric
