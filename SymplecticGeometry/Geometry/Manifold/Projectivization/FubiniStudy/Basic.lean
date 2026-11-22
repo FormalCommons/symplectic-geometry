@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Dolbeault.Potential
 public import SymplecticGeometry.Geometry.Manifold.Projectivization.Hopf
 public import TauCeti.Geometry.Contact.Sphere
+public import TauCeti.Geometry.Diffeomorphism.Sphere
 public import TauCeti.Geometry.Manifold.Complex.AlmostComplexStructure
 public import TauCeti.Geometry.Manifold.DifferentialForm.Closed
 public import TauCeti.Geometry.Symplectic.Manifold.Descent
@@ -295,67 +296,6 @@ theorem fubiniStudyLift_apply (z : puncturedSpace (Fin (n + 1) → ℂ))
 
 /-! ### The Fubini–Study form as a descended form -/
 
-/-- The rotation `x ↦ cos t • x + sin t • J₀ x` of `StdSpace (Fin (n + 1))`, the action of
-`exp (i t)` read through `complexToRealEuclidean`. -/
-private noncomputable def stdRotation (t : ℝ) :
-    StdSpace (Fin (n + 1)) →L[ℝ] StdSpace (Fin (n + 1)) :=
-  Real.cos t • ContinuousLinearMap.id ℝ _ +
-    Real.sin t • LinearMap.toContinuousLinearMap (stdComplexStructure (Fin (n + 1))).toLinearMap
-
-variable {n} in
-private theorem stdRotation_apply (t : ℝ) (x : StdSpace (Fin (n + 1))) :
-    stdRotation n t x = Real.cos t • x + Real.sin t • stdComplexStructure (Fin (n + 1)) x := by
-  simp [stdRotation]
-
-variable {n} in
-private theorem norm_stdRotation (t : ℝ) (x : StdSpace (Fin (n + 1))) :
-    ‖stdRotation n t x‖ = ‖x‖ := by
-  have h := complexToRealEuclidean_exp_mul_I_smul t ((complexToRealEuclidean (Fin (n + 1))).symm x)
-  rw [ContinuousLinearEquiv.apply_symm_apply] at h
-  rw [stdRotation_apply, ← h, norm_complexToRealEuclidean_smul, Complex.norm_exp_ofReal_mul_I,
-    one_mul, ContinuousLinearEquiv.apply_symm_apply]
-
-variable {n} in
-private theorem stdForm_stdRotation (t : ℝ) (u w : StdSpace (Fin (n + 1))) :
-    stdForm (Fin (n + 1)) (stdRotation n t u) (stdRotation n t w) = stdForm (Fin (n + 1)) u w := by
-  have h₁ := stdForm_apply_stdComplexStructure u w
-  have h₂ : stdForm (Fin (n + 1)) (stdComplexStructure (Fin (n + 1)) u) w = -inner ℝ u w := by
-    rw [stdForm_apply_eq_inner, AlmostComplexStructure.apply_apply, inner_neg_left]
-  have h₃ : stdForm (Fin (n + 1)) (stdComplexStructure (Fin (n + 1)) u)
-      (stdComplexStructure (Fin (n + 1)) w) = stdForm (Fin (n + 1)) u w := by
-    rw [stdForm_apply_stdComplexStructure, stdForm_apply_eq_inner]
-  simp only [stdRotation_apply, map_add, map_smul, LinearMap.add_apply, LinearMap.smul_apply,
-    smul_eq_mul, h₁, h₂, h₃]
-  linear_combination stdForm (Fin (n + 1)) u w * Real.cos_sq_add_sin_sq t
-
-/-- The circle action `x ↦ cos t • x + sin t • J₀ x` on the unit sphere, whose orbits are the
-fibres of the Hopf map. -/
-private noncomputable def sphereRotation (t : ℝ) :
-    sphere (0 : StdSpace (Fin (n + 1))) 1 → sphere (0 : StdSpace (Fin (n + 1))) 1 :=
-  Set.codRestrict (stdRotation n t ∘ (↑)) _ fun x ↦ by
-    rw [Function.comp_apply, mem_sphere_zero_iff_norm, norm_stdRotation, norm_eq_of_mem_sphere]
-
-private theorem contMDiff_sphereRotation (t : ℝ) :
-    ContMDiff (𝓡 (2 * n + 1)) (𝓡 (2 * n + 1)) ∞ (sphereRotation n t) :=
-  ((stdRotation n t).contMDiff.comp contMDiff_coe_sphere).codRestrict_sphere _
-
-variable {n} in
-private theorem mvfderiv_sphereRotation (t : ℝ) (x : sphere (0 : StdSpace (Fin (n + 1))) 1)
-    (v : TangentSpace (𝓡 (2 * n + 1)) x) :
-    mvfderiv (𝓡 (2 * n + 1))
-        ((↑) : sphere (0 : StdSpace (Fin (n + 1))) 1 → StdSpace (Fin (n + 1)))
-        (sphereRotation n t x)
-        (mfderiv (𝓡 (2 * n + 1)) (𝓡 (2 * n + 1)) (sphereRotation n t) x v) =
-      stdRotation n t (mvfderiv (𝓡 (2 * n + 1))
-        ((↑) : sphere (0 : StdSpace (Fin (n + 1))) 1 → StdSpace (Fin (n + 1))) x v) := by
-  rw [← mvfderiv_comp_apply _ ((contMDiff_coe_sphere _).mdifferentiableAt one_ne_zero)
-      ((contMDiff_sphereRotation n t x).mdifferentiableAt (by simp)),
-    show ((↑) : sphere (0 : StdSpace (Fin (n + 1))) 1 → StdSpace (Fin (n + 1))) ∘
-      sphereRotation n t = stdRotation n t ∘ (↑) from
-        funext fun _ ↦ Set.val_codRestrict_apply _ _ _ _,
-    mvfderiv_comp_apply_of_differentiableAt (stdRotation n t).differentiableAt
-      ((contMDiff_coe_sphere x).mdifferentiableAt one_ne_zero), (stdRotation n t).fderiv]
-
 /-- The kernel of `σ` at every point of the sphere is the kernel of the derivative of the Hopf
 map there: read in `StdSpace (Fin (n + 1))`, both are the line `ℝ ∙ J₀ x`. -/
 theorem ker_sphereStdForm (x : sphere (0 : StdSpace (Fin (n + 1))) 1) :
@@ -391,13 +331,17 @@ circle action `x ↦ cos t • x + sin t • J₀ x`, whose orbits are the fibre
 vertical vectors by `ker_sphereStdForm`. -/
 theorem isBasic_sphereStdForm :
     RoughForm.IsBasic (V := ℝ) 𝓘(ℝ, Fin n → ℂ) (sphereHopf n) (sphereStdForm n).val := by
-  refine RoughForm.isBasic_of_mpullback_eq (σ := sphereRotation n)
+  refine RoughForm.isBasic_of_mpullback_eq
+    (σ := fun t ↦ (stdRotation (Fin (n + 1)) t).unitSphereEquiv)
     ((contMDiff_sphereHopf n 1).mdifferentiable one_ne_zero)
-    (fun t ↦ (contMDiff_sphereRotation n t).mdifferentiable (by simp))
-    (fun t ↦ funext fun x ↦ ((sphereHopf_eq_sphereHopf_iff n x _).2 ⟨t, rfl⟩).symm)
+    (fun t ↦ ((stdRotation (Fin (n + 1)) t).contMDiff_unitSphereEquiv (n := 2 * n + 1)
+      (k := 2 * n + 1)).mdifferentiable one_ne_zero)
+    (fun t ↦ funext fun x ↦ ((sphereHopf_eq_sphereHopf_iff n x _).2
+      ⟨t, by rw [LinearIsometryEquiv.coe_unitSphereEquiv_apply, stdRotation_apply]⟩).symm)
     (fun x y h ↦ .inr <|
       let ⟨t, ht⟩ := (sphereHopf_eq_sphereHopf_iff n x y).1 h
-      ⟨t, Subtype.ext ht.symm⟩)
+      ⟨t, Subtype.ext <| by
+        rw [LinearIsometryEquiv.coe_unitSphereEquiv_apply, stdRotation_apply, ht]⟩)
     (fun x v j hj ↦ ?_) fun t ↦ ?_
   · have hv : v = ![v 0, v 1] := (FinVec.etaExpand_eq v).symm
     have hj' := (ker_sphereStdForm n x).ge hj
@@ -405,10 +349,12 @@ theorem isBasic_sphereStdForm :
     fin_cases j
     · exact LinearMap.congr_fun hj' (v 1)
     · exact (SmoothForm.isAlt_bilinFormAt _ x).isRefl _ _ (LinearMap.congr_fun hj' (v 0))
-  · rw [← SmoothForm.coe_mpullback _ (contMDiff_sphereRotation n t)]
+  · rw [← SmoothForm.coe_mpullback _
+      ((stdRotation (Fin (n + 1)) t).contMDiff_unitSphereEquiv (n := 2 * n + 1) (k := 2 * n + 1))]
     refine congrArg Subtype.val (SmoothBundleForm.ext_eval₂ fun x v w ↦ ?_)
     rw [SmoothForm.eval₂_mpullback, sphereStdForm_apply, sphereStdForm_apply,
-      mvfderiv_sphereRotation, mvfderiv_sphereRotation, stdForm_stdRotation]
+      LinearIsometryEquiv.mvfderiv_coe_sphere_unitSphereEquiv,
+      LinearIsometryEquiv.mvfderiv_coe_sphere_unitSphereEquiv, stdForm_stdRotation]
 
 /-- The Fubini–Study form `ω_FS` of `ℂPⁿ = ℙ ℂ (Fin (n + 1) → ℂ)`: the descent of the restriction
 `σ` of `ω₀` to the unit sphere along the Hopf map, that is, the unique two-form whose pull-back
