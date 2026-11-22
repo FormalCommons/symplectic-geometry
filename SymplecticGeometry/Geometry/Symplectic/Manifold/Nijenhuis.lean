@@ -35,7 +35,9 @@ of a smooth almost complex structure `J`, which with Mathlib's bracket `mlieBrac
 
 * `TauCeti.SmoothAlmostComplexStructure.nijenhuis_self_apply`: `N_J(v, Jv) = 0`.
 * `TauCeti.SmoothAlmostComplexStructure.nijenhuis_pullback`: naturality under pullback along a
-  diffeomorphism.
+  diffeomorphism, on tangent vectors.
+* `TauCeti.SmoothAlmostComplexStructure.nijenhuis_mpullback`: the same on vector fields,
+  `N_{h^* J}(h^* X, h^* Y) = h^* N_J(X, Y)`.
 * `TauCeti.SmoothAlmostComplexStructure.nijenhuis_eq_hom_toEndomorphism`: the formula of `N_J`
   through a torsion-free covariant derivative.
 * `TauCeti.SmoothAlmostComplexStructure.nijenhuis_tensor`: the properties of the Nijenhuis
@@ -120,6 +122,18 @@ theorem nijenhuis_pullback (h : M ≃ₘ⟮I, I'⟯ N) (J : SmoothAlmostComplexS
     hbr hX' hJY', hJinv, hJinv]
   conv_rhs => rw [← hX'x, ← hY'x, J.nijenhuis_apply hX' hY']
   simp only [map_sub]
+
+/-- **Naturality of the Nijenhuis tensor on vector fields.** For a diffeomorphism `h : M → N`, a
+smooth almost complex structure `J` on `N` and vector fields `X`, `Y` on `N`,
+`N_{h^* J}(h^* X, h^* Y) = h^* N_J(X, Y)`. -/
+theorem nijenhuis_mpullback (h : M ≃ₘ⟮I, I'⟯ N) (J : SmoothAlmostComplexStructure I' N)
+    (X Y : Π z : N, TangentSpace I' z) (x : M) :
+    (pullback h J).nijenhuis x (VectorField.mpullback I I' h X x)
+        (VectorField.mpullback I I' h Y x) =
+      VectorField.mpullback I I' h (fun y ↦ J.nijenhuis y (X y) (Y y)) x := by
+  have hinv := h.isInvertible_mfderiv (by simp) (x := x)
+  simp only [nijenhuis_pullback, VectorField.mpullback_apply]
+  rw [hinv.self_apply_inverse, hinv.self_apply_inverse]
 
 end Pullback
 
@@ -208,15 +222,13 @@ theorem nijenhuis_tensor :
     (IsInvolutiveComplexDistribution I
         (fun x ↦ eigenspace ((J.almostComplexStructureAt x).toLinearMap.baseChange ℂ) Complex.I) ↔
       J.nijenhuis = 0) := by
-  refine ⟨fun hX hY ↦ J.nijenhuis_apply hX hY, fun x ↦ J.nijenhuis_antisymm,
+  exact ⟨fun hX hY ↦ J.nijenhuis_apply hX hY, fun x ↦ J.nijenhuis_antisymm,
     fun x v w ↦ ⟨J.nijenhuis_self_apply v, J.nijenhuis_apply_left v w,
       J.nijenhuis_apply_right v w⟩, J.nijenhuis_eq_zero_of_finrank_eq_two,
-    fun φ X Y x ↦ ?_, fun J₀ ↦ J₀.nijenhuis_constSmooth, IsIntegrable.nijenhuis_eq_zero,
+    fun φ X Y x ↦ nijenhuis_mpullback φ J X Y x, fun J₀ ↦ J₀.nijenhuis_constSmooth,
+    IsIntegrable.nijenhuis_eq_zero,
     fun cov hcov x ↦ J.nijenhuis_eq_hom_toEndomorphism cov (congrFun hcov x),
     J.isInvolutiveComplexDistribution_eigenspace_I_iff⟩
-  have hinv := φ.isInvertible_mfderiv (by simp) (x := x)
-  simp only [nijenhuis_pullback, VectorField.mpullback_apply]
-  rw [hinv.self_apply_inverse, hinv.self_apply_inverse]
 
 end SmoothAlmostComplexStructure
 

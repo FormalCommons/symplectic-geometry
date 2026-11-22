@@ -7,6 +7,7 @@ module
 
 public import TauCeti.Geometry.Manifold.VectorBundle.CovariantDerivative.Composition
 import TauCeti.Geometry.Manifold.VectorBundle.CovariantDerivative.Basic
+import TauCeti.Geometry.Manifold.VectorBundle.Hom
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Basic
 
 /-!
@@ -73,10 +74,9 @@ theorem hom_toEndomorphism_comp_add_comp_hom (x : M) (v : TangentSpace I x) :
     funext J.square_neg
   have hid : MDiffAt (fun y ↦ TotalSpace.mk' (E →L[ℝ] E)
       (E := fun z : M ↦ TangentSpace I z →L[ℝ] TangentSpace I z) y
-        (ContinuousLinearMap.id ℝ (TangentSpace I y))) x := by
-    have h := mdifferentiableAt_neg_section (hJ.clm_bundle_comp hJ)
-    rw [hsq] at h
-    simpa using h
+        (ContinuousLinearMap.id ℝ (TangentSpace I y))) x :=
+    (contMDiff_id_endomorphism (n := ∞) (I := I) (F₁ := E)
+      (V := (TangentSpace I : M → Type _)) x).mdifferentiableAt (by simp)
   rw [hsq, (cov.hom cov).isCovariantDerivativeOnUniv.neg hid, cov.hom_id, neg_zero, zero_apply]
 
 /-- The covariant derivative `∇_v J` anticommutes with `J`, pointwise:
