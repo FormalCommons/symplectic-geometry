@@ -363,9 +363,11 @@ a compact `K ⊆ ψ.target`, used to show that `L2Form.localize` is bounded:
   elsewhere (`localize_ofSmooth`). It is bounded
   (`exists_norm_localizeLp_le`), since the differential of `ψ.symm` is
   bounded above and its Jacobian below on `ψ '' tsupport χ`.
-- `L2Form.eq_ofSmooth_of_localize`: if, for a finite cover with a
-  partition of unity, every localization of `u` is a.e. a smooth function
-  with compact support, then `u = ofSmooth α` for a smooth form $\alpha$.
+- `L2Form.eq_ofSmooth_of_localize`: for finitely many charts `ψ i` and a
+  smooth partition of unity `ρ` subordinate to their sources, taken as the
+  cutoffs, if every `localize (ψ i) (ρ i) _ u` is a.e. a smooth `f i` with
+  compact support in `(ψ i).target`, then
+  `u = ofSmooth (∑ i, SmoothForm.extendByZeroAlong (ψ i) (f i) …)`.
 
 ### `Geometry/Manifold/DeRham/Hodge/Regularity.lean`
 
@@ -454,6 +456,12 @@ complexification:
   `fderivCompContinuousLinearMap_apply_comp_equiv` and the Leibniz rule
   `fderivCompContinuousLinearMap_wedge` for real-valued forms.
 
+### `Analysis/Normed/Module/Alternating/Uncurry/Fin.lean`
+
+- `ContinuousAlternatingMap.alternatizeUncurryFin_eq_sum_coord_smulRight`:
+  for a basis `b`, `alternatizeUncurryFin f` is the sum of the
+  alternatizations of `b.coord i • f (b i)`.
+
 ### `Analysis/InnerProductSpace/HodgeStar/AlternatingForm.lean`
 
 - `TauCeti.alternatingFormEquiv_lieMap`: for a skew-adjoint `A`, `lieMap A`
@@ -525,17 +533,26 @@ Beside *Nijenhuis tensor*'s `Integrable.lean`:
   characteristic zero.
   It imports only Mathlib.
 
+### `Geometry/Manifold/DifferentialForm/AlmostComplexType.lean`
+
+- `ContMDiffSection.coe_realAlternatingDerivation`: at each point, Tau
+  Ceti's `realAlternatingDerivation` of an endomorphism field `A` is
+  `fderivCompContinuousLinearMap` at the identity in the direction `A x`,
+  for `hodgeStar_realAlternatingDerivation` below. It imports
+  `Analysis/Normed/Module/Alternating/Derivation.lean`.
+
 ### `Geometry/Manifold/DeRham/Kahler/Identities.lean`
 
 On an oriented manifold with a metric instance satisfying `hg`,
 `ω.IsKahler J` and `J.IsIntegrable`:
 
 - `lefschetz ω : SmoothForm I M ℝ k →ₗ[ℝ] SmoothForm I M ℝ (k + 2)`,
-  $\alpha\mapsto\omega\wedge\alpha$, with `lefschetz_apply`, and
-  `mextDeriv_lefschetz`: $d(L\alpha)=L\,d\alpha$, from $d\omega=0$.
-- `hodgeStar_realAlternatingDerivation`: $\star\mathcal J=\mathcal J\star$
-  on smooth real forms, pointwise from the linear file, since `hg` makes
-  $J$ orthogonal.
+  $\alpha\mapsto\alpha\wedge\omega$, with `lefschetz_apply`, and
+  `mextDerivₗ_lefschetz`: $d(L\alpha)=L\,d\alpha$, from $d\omega=0$.
+- `hodgeStar_realAlternatingDerivation`: $\star\mathcal A=\mathcal A\star$
+  on smooth real forms for the derivation of any fibrewise skew-adjoint
+  endomorphism field, pointwise from the linear file. This gives
+  $\star\mathcal J=\mathcal J\star$, since `hg` makes $J$ orthogonal.
 - `lefschetz_codifferential_sub`: the Kähler identity
   $L\,d^*\alpha-d^*L\alpha=-(\mathcal J\,d\alpha-d\,\mathcal J\alpha)$, at
   each point in the chart of `KahlerCoordinates.lean`, from
@@ -635,9 +652,10 @@ was found, so `ERRATA.md` needs no entry.
   `KahlerCoordinates.lean` and the milestone, and
   `mfderiv_trans_apply_eq_of_fderiv_apply_eq`, which this part adds there.
 - *Almost complex manifolds*, `Geometry/Symplectic/Manifold/AlmostComplex/Metric.lean`
-  (#860): `TauCeti.SmoothTwoForm.Compatible.metric` and `metric_inner`, only
-  in the proof of the milestone. This dependency is new; `DESIGN.md` records
-  it.
+  (#860): `TauCeti.SmoothTwoForm.Compatible.metric` and `metric_inner`, in
+  the proof of the milestone, and `val_eq_alternatingFormEquiv_kahlerForm`,
+  which this part adds there, in `Kahler/Identities.lean`. This dependency
+  is new; `DESIGN.md` records it.
 - *Moser isotopy*, `Geometry/Manifold/LocalDiffeomorph/MFDeriv.lean`
   (merged): `PartialDiffeomorph.mfderivSymmEquiv`, which this part adds
   there, only in the proofs of `DeRham/Hodge/Chart.lean` and
@@ -686,9 +704,9 @@ sub-issues of #874, *Build the part Hodge theory*. Sizes are estimates.
 | 7 | The Hodge $H^1$ space and compactness of its inclusion in $L^2$ | `DeRham/Hodge/Sobolev.lean` | 6 | 400 |
 | 8 | The Hodge theorem on a closed oriented Riemannian manifold | `DeRham/Hodge/Basic.lean` | 7 | 300 |
 | 9 | Complex harmonic forms | `DeRham/Hodge/Complex.lean` | 8 | 300 |
-| 10 | The Lefschetz operator and the linear Kähler identity | `Analysis/InnerProductSpace/HodgeStar/Kahler/Lefschetz.lean`, `Analysis/InnerProductSpace/HodgeStar/AlternatingForm.lean`, `Analysis/Normed/Module/Alternating/Derivation.lean` | — | 350 |
+| 10 | The Lefschetz operator and the linear Kähler identity | `Analysis/InnerProductSpace/HodgeStar/Kahler/Lefschetz.lean`, `Analysis/InnerProductSpace/HodgeStar/AlternatingForm.lean`, `Analysis/Normed/Module/Alternating/Derivation.lean`, `Analysis/Normed/Module/Alternating/Uncurry/Fin.lean` | — | 350 |
 | 11 | Osculating holomorphic charts of a Kähler manifold | `Geometry/Manifold/Complex/KahlerCoordinates.lean`, `LinearAlgebra/ComplexStructure/SymmetricBilinear.lean` | 3; #862 | 400 |
-| 12 | The Kähler identity and $[\Delta,\mathcal J]=0$ | `DeRham/Kahler/Identities.lean` | 3, 10, 11 | 400 |
+| 12 | The Kähler identity and $[\Delta,\mathcal J]=0$ | `DeRham/Kahler/Identities.lean`, `Geometry/Manifold/DifferentialForm/AlmostComplexType.lean` | 3, 10, 11 | 400 |
 | 13 | Conjugation on complex de Rham cohomology, and the Hodge decomposition | `Geometry/Manifold/DeRham/ComplexCoefficients.lean`, `DeRham/Kahler/Decomposition.lean` | 9, 12 | 400 |
 | 14 | Hodge numbers, Betti numbers, and the milestone | `DeRham/Kahler/HodgeNumbers.lean` | 13; #860 | 300 |
 
