@@ -38,7 +38,9 @@ which is meaningful on `ψ.target`.
 
 The proof of `TauCeti.mpullback_symm_eq_inChartAt` is the pointwise form of the argument of Tau
 Ceti's `TauCeti.RoughForm.inChartAt_ae_eq_mpullback`, which proves the same equality almost
-everywhere on the target of the extended chart.
+everywhere on the target of the extended chart. The statements and docstrings of
+`TauCeti.RoughForm.extendByZeroAlong_zero`, `_add` and `_smul` follow those of Tau Ceti's
+`TauCeti.RoughForm.extendByZero_zero`, `extendByZero_add` and `extendByZero_smul`.
 
 ## References
 
@@ -101,7 +103,7 @@ theorem mpullback_symm_realAlternatingDerivation [IsManifold I ∞ M]
     rw [← J.toContMDiff_chartPushforward ⊤,
       ContMDiffAlmostComplexStructure.chartPushforward_apply,
       SmoothAlmostComplexStructure.toContMDiff_apply]
-    rw [ψ.coe_toOpenPartialHomeomorph_symm]
+    rw [ψ.coe_toOpenPartialHomeomorph_symm, ψ.toFun'_toOpenPartialHomeomorph]
     exact h
   simp only [mpullback_apply, ContMDiffSection.realAlternatingDerivation_apply]
   refine Finset.sum_congr rfl fun i _ ↦ congrArg (φ.val (ψ.symm y)) (funext fun j ↦ ?_)
@@ -147,37 +149,31 @@ theorem extendByZeroAlong_apply_of_notMem (hx : x ∉ ψ.source) :
 @[simp]
 theorem extendByZeroAlong_zero :
     extendByZeroAlong ψ (0 : E → E [⋀^Fin k]→L[ℝ] F) = (0 : RoughForm I M F k) := by
-  funext x
-  by_cases hx : x ∈ ψ.source
-  · rw [extendByZeroAlong_apply_of_mem _ hx]
-    exact congrFun (mpullback_zero (I := I) (I' := 𝓘(ℝ, E)) (F := F) (k := k) ψ) x
-  · exact extendByZeroAlong_apply_of_notMem _ hx
+  classical
+  rw [extendByZeroAlong_def]
+  exact (congrArg (ψ.source.piecewise · (0 : RoughForm I M F k))
+    (mpullback_zero (I := I) (I' := 𝓘(ℝ, E)) (F := F) (k := k) ψ)).trans
+    (Set.piecewise_same ψ.source (0 : RoughForm I M F k))
 
 /-- Extension by zero along `ψ` is additive. -/
 @[simp]
 theorem extendByZeroAlong_add (b : E → E [⋀^Fin k]→L[ℝ] F) :
     extendByZeroAlong ψ (a + b) =
       (extendByZeroAlong ψ a + extendByZeroAlong ψ b : RoughForm I M F k) := by
-  funext x
-  by_cases hx : x ∈ ψ.source
-  · rw [Pi.add_apply, extendByZeroAlong_apply_of_mem _ hx, extendByZeroAlong_apply_of_mem _ hx,
-      extendByZeroAlong_apply_of_mem _ hx]
-    exact congrFun (mpullback_add (I := I) (I' := 𝓘(ℝ, E)) ψ
-      (a : RoughForm 𝓘(ℝ, E) E F k) b) x
-  · rw [Pi.add_apply, extendByZeroAlong_apply_of_notMem _ hx,
-      extendByZeroAlong_apply_of_notMem _ hx, extendByZeroAlong_apply_of_notMem _ hx, add_zero]
+  classical
+  rw [extendByZeroAlong_def, extendByZeroAlong_def, extendByZeroAlong_def,
+    ← Set.piecewise_add, add_zero]
+  exact congrArg (ψ.source.piecewise · (0 : RoughForm I M F k))
+    (mpullback_add (I := I) (I' := 𝓘(ℝ, E)) ψ (a : RoughForm 𝓘(ℝ, E) E F k) b)
 
 /-- Extension by zero along `ψ` commutes with multiplication by a real constant. -/
 @[simp]
 theorem extendByZeroAlong_smul (c : ℝ) :
     extendByZeroAlong ψ (c • a) = (c • extendByZeroAlong ψ a : RoughForm I M F k) := by
-  funext x
-  by_cases hx : x ∈ ψ.source
-  · rw [Pi.smul_apply, extendByZeroAlong_apply_of_mem _ hx, extendByZeroAlong_apply_of_mem _ hx]
-    exact congrFun (mpullback_smul (I := I) (I' := 𝓘(ℝ, E)) ψ c
-      (a : RoughForm 𝓘(ℝ, E) E F k)) x
-  · rw [Pi.smul_apply, extendByZeroAlong_apply_of_notMem _ hx,
-      extendByZeroAlong_apply_of_notMem _ hx, smul_zero]
+  classical
+  rw [extendByZeroAlong_def, extendByZeroAlong_def, ← Set.piecewise_smul, smul_zero]
+  exact congrArg (ψ.source.piecewise · (0 : RoughForm I M F k))
+    (mpullback_smul (I := I) (I' := 𝓘(ℝ, E)) ψ c (a : RoughForm 𝓘(ℝ, E) E F k))
 
 /-- The extension by zero of `a` along `ψ` vanishes outside the image under `ψ.symm` of the
 support of `a`. -/
