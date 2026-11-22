@@ -108,10 +108,7 @@ theorem smul_hodgeStarInChart_alternatizeUncurryFin_hodgeStarInChart (hkl : k + 
       (c.compContinuousLinearMap A).compContinuousLinearMap P = c :=
     e.continuousAlternatingMapCongrLeftEquiv.right_inv c
   -- `u` is the vector dual to `ξ` for `ψ.gramInChart y`, whose Gram matrix in `b` is invertible.
-  have hM : LinearMap.BilinForm.toMatrix b (ψ.gramInChart y).toLinearMap₁₂ =
-      Matrix.of fun i j ↦ ψ.gramInChart y (b i) (b j) := by
-    ext
-    simp [LinearMap.BilinForm.toMatrix_apply]
+  have hM := LinearMap.BilinForm.toMatrix_toLinearMap₁₂ (ψ.gramInChart y) b
   have hdual (v : E) : ψ.gramInChart y u v = ξ v := by
     have h := LinearMap.congr_fun (LinearMap.BilinForm.apply_sum_inv_toMatrix_smul
       (ψ.gramInChart y).toLinearMap₁₂ b

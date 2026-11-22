@@ -52,6 +52,9 @@ move.
 
 * `TauCeti.GLSymplectic.maslovPhase_reindex`, `TauCeti.GLSymplectic.maslovIndex_reindex`:
   reindexing keeps `ρ` and the Maslov index.
+* `TauCeti.GLSymplectic.maslovPhase_mul_homotopic`: the maps `(A, B) ↦ ρ(A B)` and
+  `(A, B) ↦ ρ(A) ρ(B)` are homotopic. The proof runs the polar homotopy on both factors at once,
+  as Tau Ceti's proof of `TauCeti.GLSymplectic.maslovIndex_mul` does along loops.
 * `TauCeti.GLSymplectic.maslovIndex_eq_iff_homotopic`,
   `TauCeti.GLSymplectic.homotopicWith_iff_maslovIndex_eq`: the Maslov index classifies loops up
   to homotopy with fixed ends and up to free homotopy.
@@ -101,6 +104,29 @@ theorem maslovIndex_reindex (e : ι ≃ κ) {A : GLSymplectic ι ℝ} (γ : Path
     maslovIndex (γ.map (continuous_reindex (R := ℝ) e)) = maslovIndex γ := by
   rw [maslovIndex_def, maslovIndex_def]
   exact Circle.degree_congr _ _ fun t ↦ by simp
+
+/-! ### Products -/
+
+/-- **`ρ` is multiplicative up to homotopy.** On pairs of symplectic matrices, the maps
+`(A, B) ↦ ρ(A B)` and `(A, B) ↦ ρ(A) ρ(B)` to the circle are homotopic. -/
+theorem maslovPhase_mul_homotopic :
+    (⟨fun p ↦ maslovPhase (p.1 * p.2), continuous_maslovPhase.comp continuous_mul⟩ :
+      C(GLSymplectic ι ℝ × GLSymplectic ι ℝ, Circle)).Homotopic
+      ⟨fun p ↦ maslovPhase p.1 * maslovPhase p.2,
+        (continuous_maslovPhase.comp continuous_fst).mul
+          (continuous_maslovPhase.comp continuous_snd)⟩ := by
+  -- Contract the positive polar factors of both matrices at once, through symplectic matrices;
+  -- at the end both are orthogonal, where `ρ` is multiplicative.
+  have h := (ContinuousMap.Homotopic.refl (⟨fun p ↦ maslovPhase (p.1 * p.2),
+      continuous_maslovPhase.comp continuous_mul⟩ :
+        C(GLSymplectic ι ℝ × GLSymplectic ι ℝ, Circle))).comp
+    (ContinuousMap.Homotopic.prodMap ⟨polarHomotopy (n := ι)⟩ ⟨polarHomotopy (n := ι)⟩)
+  convert h using 1 <;> ext p
+  · simp
+  · simp only [ContinuousMap.coe_mk, ContinuousMap.comp_apply, ContinuousMap.prodMap_apply,
+      Prod.map_fst, Prod.map_snd]
+    rw [maslovPhase_inclusion_mul, maslovPhase_inclusion_polarUnitary,
+      maslovPhase_inclusion_polarUnitary]
 
 /-! ### Classification of loops -/
 

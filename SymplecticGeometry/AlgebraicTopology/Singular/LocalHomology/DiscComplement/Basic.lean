@@ -109,6 +109,12 @@ theorem eq_of_mem_openDisc_of_mem_disc (hφ : Pairwise (Disjoint on fun i ↦ (�
   by_contra h
   exact (hφ h).notMem_of_mem_left ((φ i).openDisc_subset_disc hi) hj
 
+/-- If the closed discs are pairwise disjoint, distinct discs have distinct centres. -/
+theorem injective_apply_zero_of_pairwise_disjoint
+    (hφ : Pairwise (Disjoint on fun i ↦ (φ i).disc)) : Injective fun i ↦ φ i 0 :=
+  fun i j (hij : φ i 0 = φ j 0) ↦ eq_of_mem_openDisc_of_mem_disc φ hφ
+    (φ i).apply_zero_mem_openDisc (hij ▸ (φ j).openDisc_subset_disc (φ j).apply_zero_mem_openDisc)
+
 /-- If the closed discs are pairwise disjoint, the boundary circle of each disc lies in the
 complement of the open discs. -/
 theorem boundaryCircle_mem_discComplement (hφ : Pairwise (Disjoint on fun i ↦ (φ i).disc))

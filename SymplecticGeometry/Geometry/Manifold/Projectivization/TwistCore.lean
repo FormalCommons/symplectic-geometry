@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Geometry.Manifold.Algebra.SMul
+public import Mathlib.Topology.Algebra.Module.Equiv.Pi
 public import Mathlib.Topology.VectorBundle.Constructions
 public import SymplecticGeometry.Topology.Algebra.Module.Equiv.Pi
 public import TauCeti.Geometry.Manifold.Projectivization.LineBundle
@@ -38,6 +39,9 @@ polynomials that express sections of `𝒪(d)` in the standard charts.
   `𝒪(k) ⊗ 𝕜^{Option ι} ≅ 𝒪(k) ⊕ (𝒪(k) ⊗ 𝕜^ι)` into Mathlib's direct sum `×ᵇ` of bundles,
   continuous on total spaces in both directions, so that, by induction on `r`, `𝒪(k)^{⊕ r}` is
   an iterated direct sum (for the Whitney formula).
+* `Projectivization.twistPiCoreCongr k ι e x`: the isomorphism `𝒪(k) ⊗ 𝕜^ι ≅ 𝒪(k) ⊗ 𝕜^ι'` that
+  reindexes the coordinates along `e : ι ≃ ι'`, continuous on total spaces, so that
+  `Option (Fin r)` above can be read as `Fin (r + 1)`.
 * `Projectivization.twistPiCoreTrivializationOfIsEmpty`: for empty `ι`, `𝒪(k) ⊗ 𝕜^ι` has rank
   zero and is trivial.
 * `Projectivization.twistCoreTensorEquiv k l x`: the isomorphism `𝒪(k + l) ≅ 𝒪(k) ⊗ 𝒪(l)` onto
@@ -357,6 +361,46 @@ theorem twistPiCoreTrivializationOfIsEmpty_apply [IsEmpty ι]
 /-- The trivialization `twistPiCoreTrivializationOfIsEmpty` is linear on fibres. -/
 instance [IsEmpty ι] : (twistPiCoreTrivializationOfIsEmpty (𝕜 := 𝕜) (n := n) k ι).IsLinear 𝕜 :=
   VectorBundleCore.globalTrivializationOfCoordChangeEqId_isLinear _ _
+
+/-- The fibrewise isomorphism `𝒪(k) ⊗ 𝕜^ι ≅ 𝒪(k) ⊗ 𝕜^ι'` induced by a bijection `e : ι ≃ ι'`,
+which moves the coordinate at `a` to `e a`. It is continuous on total spaces
+(`continuous_twistPiCoreCongr`). -/
+def twistPiCoreCongr {ι' : Type*} [Fintype ι'] (e : ι ≃ ι') (x : ℙ 𝕜 (Fin (n + 1) → 𝕜)) :
+    (twistPiCore k ι).Fiber x ≃L[𝕜] (twistPiCore k ι').Fiber x :=
+  ContinuousLinearEquiv.piCongrLeft 𝕜 (fun _ ↦ 𝕜) e
+
+/-- `twistPiCoreCongr k ι e` moves the coordinate at `a` to `e a`. -/
+@[simp]
+theorem twistPiCoreCongr_apply {ι' : Type*} [Fintype ι'] (e : ι ≃ ι')
+    (x : ℙ 𝕜 (Fin (n + 1) → 𝕜)) (v : (twistPiCore k ι).Fiber x) (a : ι) :
+    twistPiCoreCongr k ι e x v (e a) = v a :=
+  Equiv.piCongrLeft_apply_apply (fun _ ↦ 𝕜) e v a
+
+/-- `twistPiCoreCongr` is continuous on total spaces: in every standard chart it is the constant
+map `ContinuousLinearEquiv.piCongrLeft`, which commutes with the scalar coordinate changes. -/
+theorem continuous_twistPiCoreCongr {ι' : Type*} [Fintype ι'] (e : ι ≃ ι') :
+    Continuous fun p : TotalSpace (ι → 𝕜) (twistPiCore (𝕜 := 𝕜) (n := n) k ι).Fiber ↦
+      TotalSpace.mk' (ι' → 𝕜) (E := (twistPiCore k ι').Fiber) p.proj
+        (twistPiCoreCongr k ι e p.proj p.snd) := by
+  refine continuous_iff_continuousAt.2 fun p₀ ↦ ?_
+  rw [FiberBundle.continuousAt_totalSpace]
+  refine ⟨(FiberBundle.continuous_proj _ _).continuousAt, ?_⟩
+  set i := (twistCore (𝕜 := 𝕜) (n := n) k).indexAt p₀.proj
+  simp only [VectorBundleCore.trivializationAt, ← VectorBundleCore.localTrivAt_def,
+    twistPiCore_indexAt]
+  have h (p : TotalSpace (ι → 𝕜) (twistPiCore (𝕜 := 𝕜) (n := n) k ι).Fiber) :
+      ((twistPiCore k ι').localTriv i
+          (TotalSpace.mk' (ι' → 𝕜) (E := (twistPiCore k ι').Fiber) p.proj
+            (twistPiCoreCongr k ι e p.proj p.snd))).2 =
+        ContinuousLinearEquiv.piCongrLeft 𝕜 (fun _ ↦ 𝕜) e ((twistPiCore k ι).localTriv i p).2 := by
+    rw [twistPiCore_localTriv_apply, twistPiCore_localTriv_apply]
+    exact (map_smul (ContinuousLinearEquiv.piCongrLeft 𝕜 (fun _ ↦ 𝕜) e) _ p.snd).symm
+  refine ContinuousAt.congr ?_ (Filter.Eventually.of_forall fun p ↦ (h p).symm)
+  exact (ContinuousLinearEquiv.continuous _).continuousAt.comp
+    (continuous_snd.continuousAt.comp
+      (((twistPiCore k ι).localTriv i).continuousAt
+        (((twistPiCore k ι).mem_localTriv_source (i := i) p₀).2
+          (mem_affineOpen_twistCore_indexAt k p₀.proj))))
 
 end Pi
 

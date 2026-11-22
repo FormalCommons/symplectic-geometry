@@ -387,14 +387,14 @@ Namespace `Projectivization`, on `ℙ ℂ (Fin (m + 1) → ℂ)`.
 
 Namespace `Projectivization`, with `h := hyperplaneClass (Fin (m + 1) → ℂ)`.
 
-- `chernClass_one_twistCore (k : ℕ)`: $c_1(\mathcal O(k))=k\,h$, by induction
+- `chernClass_one_twistCore (k : ℤ)`: $c_1(\mathcal O(k))=k\,h$, by induction
   with `twistCoreTensorEquiv`, `TauCeti.complexEulerClass_tensorProduct`
   and `complexEulerClass_twistCore_one` (#1040), read through
   `chernClass_one_eq_complexEulerClass`; `totalChernClass_twistCore`:
   $c(\mathcal O(k))=1+k\,h$.
-- `totalChernClass_twistPiCore (k : ℕ) (r : ℕ)`: $c(\mathcal O(k)^{\oplus
+- `totalChernClass_twistPiCore (k : ℤ) (r : ℕ)`: $c(\mathcal O(k)^{\oplus
   r})=(1+k\,h)^r$, for `ι = Fin r`, by induction with
-  `twistPiCoreOptionEquiv`, `totalChernClass_prod` and `chernClass_congr`.
+  `twistPiCoreOptionEquiv`, `totalChernClass_prod` and `totalChernClass_congr`.
 - **Milestone, part 1** `totalChernClass_tangentSpace`:
   `totalChernClass _ (TangentSpace 𝓘(ℂ, Fin m → ℂ)) = (1 + h) ^ (m + 1)` in
   `EvenIntegralCohomology`, from `eulerSequenceEquiv`, `totalChernClass_prod`
