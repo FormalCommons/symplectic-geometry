@@ -13,6 +13,7 @@ import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
 import TauCeti.Geometry.Manifold.DifferentialForm.Opens
 import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import TauCeti.Geometry.Contact.Flat
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Opens
 import SymplecticGeometry.Geometry.Manifold.TubularNeighborhood.RelativePoincare
 import SymplecticGeometry.Geometry.Symplectic.Manifold.Flat
 
@@ -317,13 +318,12 @@ theorem mextDeriv_mpullback_subtypeVal_interior {U : Opens M} {σ : SmoothTwoFor
       mpullback I I Subtype.val σ.val := by
   funext x
   have hZx := hZ.contMDiffAt (U.isOpen.mem_nhds x.property)
-  rw [mextDeriv_mpullback_subtype_val_apply
-    ((RoughForm.contMDiffAt_interior hZx (σ.contMDiff x)).of_le (by simp)),
-    mpullback_subtype_val_apply,
+  rw [← mpullback_subtype_val_mextDeriv, mpullback_subtype_val_apply,
     ← mlieDerivForm_eq_mextDeriv_interior_apply
       (σ.isSmoothForm.contMDiff.mdifferentiable (by simp) x)
       (hZx.mdifferentiableAt (by simp))
-      (congrFun ((SmoothForm.isClosed_def σ).1 hσ) x), hZσ x x.property]
+      (congrFun ((SmoothForm.isClosed_def σ).1 hσ) x), hZσ x x.property,
+    mpullback_subtype_val_apply]
 
 /-- **The restriction of a local Liouville field.** If `σ` is closed and the field `Z`, smooth on
 an open set `U`, has `L_Z σ = σ` on `U`, then its restriction `Z'` to `U` is a Liouville field of

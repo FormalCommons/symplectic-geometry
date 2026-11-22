@@ -643,6 +643,9 @@ Expected size: 300 lines.
   merged, which issue 1 extends by
   `SmoothEmbedding.exists_mextDeriv_eq_and_mpullback_eq`, only in
   `ContactType.lean`.
+- *Moser isotopy*: `Geometry/Manifold/DifferentialForm/Opens.lean`
+  (`TauCeti.mpullback_subtype_val_mextDeriv`), merged, only in
+  `ContactType.lean`.
 - *Moser isotopy*: `Geometry/Symplectic/Manifold/Flat.lean`
   (`SmoothTwoForm.IsNondegenerate.interior_flat_inverse_ofSubsingleton`,
   `SmoothTwoForm.contMDiffAt_flat_inverse_apply`), merged, only in
