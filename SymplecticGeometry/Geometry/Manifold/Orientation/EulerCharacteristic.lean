@@ -56,8 +56,8 @@ composed with a linear identification of `E` with a Euclidean space, carried bac
 `SymplecticGeometry.Bundle.chernNumber_eq_sum_sign_of_transverse`.
 
 For the Euler number, take a Morse function `f` (`TauCeti.exists_isMorse`) and a `C¹` Riemannian
-metric (`TauCeti.nonempty_contMDiffRiemannianMetric`). The Euler number is the sum of the local
-indices of the gradient of `f`
+metric (`TauCeti.nonempty_contMDiffRiemannianMetric`). Adding up the local indices of the
+gradient of `f` over its zeros gives the Euler number
 (`TauCeti.VectorBundleOrientation.evalFundamentalClass_eulerClass_eq_sum_sectionIndex`), each is the
 sign of the determinant of its chart derivative by the first theorem, and Tau Ceti's Poincaré–Hopf
 theorem for gradients of Morse functions
