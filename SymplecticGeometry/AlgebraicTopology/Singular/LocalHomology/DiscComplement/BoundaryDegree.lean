@@ -18,10 +18,11 @@ Let `φ i`, `i : ι`, be coordinate discs of a compact homologically oriented su
 pairwise disjoint closed discs, and `X = discComplement φ` the complement of their open discs,
 with interior `discComplementInterior φ` oriented by the restriction of `o`. Its boundary is
 `ι × S¹` (`SymplecticGeometry.discComplementBoundaryHomeomorph`). The map `∂X → S¹` that reads
-the circle of `φ i` in its chart and sends the other circles to `1` (`Circle.prodRetraction i`)
-has boundary degree `-1`
-(`SymplecticGeometry.boundaryDegree_prodRetraction_comp_discComplementBoundaryHomeomorph_symm`):
-the boundary of `X` runs clockwise in each chart.
+the circle of `φ i` in its chart and sends the other circles to `1`
+(`TopCat.prodFiberRetraction (TopCat.of ι) (1 : Circle) i`, read on `ι × S¹` through
+`TopCat.prodHomeomorphTensorObj`) has boundary degree `-1`; this is
+`SymplecticGeometry.boundaryDegree_prodFiberRetraction_comp_discComplementBoundaryHomeomorph_symm`.
+The boundary of `X` runs clockwise in each chart.
 
 ## Proof
 
@@ -40,8 +41,8 @@ On `∂X`, `G / |G|` is homotopic to the inverse map above, through the normaliz
 
 ## Main results
 
-* `SymplecticGeometry.boundaryDegree_prodRetraction_comp_discComplementBoundaryHomeomorph_symm`:
-  the boundary degree of the angle of one disc is `-1`.
+* `SymplecticGeometry.boundaryDegree_prodFiberRetraction_comp_discComplementBoundaryHomeomorph_symm`
+  says that the boundary degree of the angle of one disc is `-1`.
 
 ## References
 
@@ -395,13 +396,16 @@ surface `M` with pairwise disjoint closed discs, and `X` the complement of their
 interior oriented by the restriction of `o`. The map `∂X → S¹` that sends the point
 `(φ i).boundaryCircle z` to `z` and the other boundary circles to `1` has boundary degree `-1`:
 the boundary of `X` runs clockwise in the chart of each disc. -/
-theorem boundaryDegree_prodRetraction_comp_discComplementBoundaryHomeomorph_symm [CompactSpace M]
-    [Finite ι] [TopologicalSpace ι] [DiscreteTopology ι] [DecidableEq ι]
+theorem boundaryDegree_prodFiberRetraction_comp_discComplementBoundaryHomeomorph_symm
+    [CompactSpace M] [Finite ι] [TopologicalSpace ι] [DiscreteTopology ι]
     (hn : finrank ℝ E = 2) (hφ : Pairwise (Disjoint on fun i ↦ (φ i).disc)) (i : ι) :
     (o.comap (discComplementInterior φ).isOpenEmbedding').boundaryDegree hn
       (isOpenEmbedding_inclusion_discComplementInterior φ)
       (range_inclusion_discComplementInterior φ hφ) (isCollared_discComplementBoundary φ hφ)
-      ((Circle.prodRetraction i).comp (discComplementBoundaryHomeomorph φ hφ).symm) = -1 := by
+      ((TopCat.prodFiberRetraction (TopCat.of ι) (X := TopCat.of Circle) 1 i).hom.comp
+        ((discComplementBoundaryHomeomorph φ hφ).symm.trans
+          (TopCat.prodHomeomorphTensorObj ι Circle) : C(_, _))) = -1 := by
+  classical
   obtain ⟨ε, hε, hd⟩ := exists_pairwise_disjoint_image_ball φ hφ
   have hc : (1 + ε i / 4)⁻¹ ∈ Ioo (0 : ℝ) 1 :=
     ⟨inv_pos.2 (by linarith [(hε i).1]), inv_lt_one_of_one_lt₀ (by linarith [(hε i).1])⟩
@@ -422,14 +426,22 @@ theorem boundaryDegree_prodRetraction_comp_discComplementBoundaryHomeomorph_symm
   have hK (t : unitInterval) (p : ι × Circle) :
       K (t, discComplementBoundaryHomeomorph φ hφ p) = homotopyFun i hc (t, p) := by
     simp only [K, ContinuousMap.comp_apply, ContinuousMap.coe_mk, Homeomorph.symm_apply_apply]
+  have hr (p : ι × Circle) :
+      (TopCat.prodFiberRetraction (TopCat.of ι) (X := TopCat.of Circle) 1 i).hom.comp
+        ((discComplementBoundaryHomeomorph φ hφ).symm.trans
+          (TopCat.prodHomeomorphTensorObj ι Circle) : C(_, _))
+        (discComplementBoundaryHomeomorph φ hφ p) = if p.1 = i then p.2 else 1 := by
+    rw [ContinuousMap.comp_apply, ContinuousMap.coe_ofClass, Homeomorph.trans_apply,
+      Homeomorph.symm_apply_apply, TopCat.prodFiberRetraction_prodHomeomorphTensorObj]
   let F : ContinuousMap.Homotopy
-      ((Circle.prodRetraction i).comp (discComplementBoundaryHomeomorph φ hφ).symm)⁻¹ u :=
+      ((TopCat.prodFiberRetraction (TopCat.of ι) (X := TopCat.of Circle) 1 i).hom.comp
+        ((discComplementBoundaryHomeomorph φ hφ).symm.trans
+          (TopCat.prodHomeomorphTensorObj ι Circle) : C(_, _)))⁻¹ u :=
     { toContinuousMap := K
       map_zero_left x := by
         obtain ⟨p, rfl⟩ := (discComplementBoundaryHomeomorph φ hφ).surjective x
         rw [ContinuousMap.toFun_eq_coe, hK, homotopyFun_apply]
-        simp only [ContinuousMap.inv_apply, ContinuousMap.comp_apply, ContinuousMap.coe_ofClass,
-          Homeomorph.symm_apply_apply, Circle.prodRetraction_apply]
+        rw [ContinuousMap.inv_apply, hr]
         split_ifs
         · ext
           simp
