@@ -1,7 +1,7 @@
 /-
-Copyright (c) 2026 The FormalCommons contributors. All rights reserved.
+Copyright (c) 2026 The Tau Ceti contributors. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: The FormalCommons contributors
+Authors: The Tau Ceti contributors
 -/
 module
 
@@ -20,6 +20,8 @@ These lemmas are from Tau Ceti's main branch
 (`TauCeti/AlgebraicTopology/SimplicialSet/Homology/Basic.lean`, same names), as of the commit
 `e48a7f81a81426270765022681d165be592a3231`, not yet in the pinned release; they are stated here
 under their Tau Ceti names, so that moving Tau Ceti past them deletes this file without renames.
+The proofs are Tau Ceti's. One statement differs: `SSet.chainComplexMap_f_comp_eq_zero_iff` binds
+`X` itself, which in Tau Ceti's file is a variable of its section.
 -/
 
 public section

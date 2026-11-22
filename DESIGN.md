@@ -2292,15 +2292,16 @@ has either; Tau Ceti's extension across a boundary,
   section `toEndomorphism`, and $(\nabla_vJ)J+J(\nabla_vJ)=0$ for every
   covariant derivative, the derivative of $J^2=-1$; *Almost Kähler
   geometry* uses both) and `Geometry/Manifold/Complex/Integrable.lean`
-  (`TauCeti.SmoothAlmostComplexStructure.IsIntegrable J`: there is a linear
-  structure `J₀ : TauCeti.AlmostComplexStructure E` such that every point
-  lies in the source of a chart `ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞`
-  on whose target Tau Ceti's `chartPushforward` of `J` is `J₀`; on a
+  (`TauCeti.SmoothAlmostComplexStructure.IsIntegrable J`: every point lies
+  in the source of a chart `ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞` on
+  whose target Tau Ceti's `chartPushforward` of `J` is a linear structure
+  `J₀ : TauCeti.AlmostComplexStructure E`, one for each chart; on a
   manifold with boundary no boundary point has such a chart; with
   `isIntegrable_ofComplexManifold`, from Tau Ceti's
-  `inTangentCoordinates_ofComplexManifold`, invariance under `pullback`, and
-  `IsIntegrable.nijenhuis_eq_zero`, from naturality and Tau Ceti's
-  `SmoothAlmostComplexStructure.nijenhuis_model_eq_zero_iff`; on surfaces modelled on `𝓘(ℝ, ℂ)`, the
+  `tangentCoordChange_smul`, invariance under `pullback`, and
+  `IsIntegrable.nijenhuis_eq_zero`, from Mathlib's
+  `VectorField.mpullback_mlieBracket` for constant fields pulled back along a
+  chart; on surfaces modelled on `𝓘(ℝ, ℂ)`, the
   comparison with Tau Ceti's class
   `SmoothAlmostComplexStructure.HasIsothermalCharts`).
 - **Builds on:** Mathlib (`mlieBracket`, `CovariantDerivative.torsion`) and
@@ -2403,10 +2404,13 @@ has either; Tau Ceti's extension across a boundary,
 
 ### 27. Complex projective space (needs `design/complex-projective-space.md`)
 
-- **Files:** in `Geometry/Manifold/Projectivization/FubiniStudy/`, beside
-  Tau Ceti's files on projective space: `Hopf.lean`
+- **Files:** `Geometry/Manifold/DifferentialForm/Dolbeault/Potential.lean`
+  ($\tfrac i2\partial\bar\partial f$ as a real two-form), and
+  `Geometry/Manifold/Projectivization/Hopf.lean`
   (the projection from $\mathbb C^{n+1}\setminus0$, and from the unit
-  sphere, to $\mathbb CP^n$ as smooth submersions), `Basic.lean`
+  sphere, to $\mathbb CP^n$ as smooth submersions); in
+  `Geometry/Manifold/Projectivization/FubiniStudy/`, beside
+  Tau Ceti's files on projective space: `Basic.lean`
   ($\rho_{\mathrm{FS}}$ and $\alpha_{\mathrm{FS}}$ on $\mathbb C^{n+1}\setminus0$, their
   relation to $\omega_0$ through the radial projection, and the descended
   form $\omega_{\mathrm{FS}}$, by Tau Ceti's
