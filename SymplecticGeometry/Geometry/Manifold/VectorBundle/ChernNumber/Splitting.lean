@@ -102,8 +102,10 @@ argument principle for the trivial line bundle,
   `TauCeti.Manifold.Orientation.boundaryMaslovIndex_eq_of_homotopy`: the same properties for a
   compact surface with boundary.
 * `TauCeti.HomologicalOrientation.sublevelBoundaryMaslovIndex_mul`,
+  `TauCeti.HomologicalOrientation.sublevelBoundaryMaslovIndex_eq_of_homotopy`,
   `TauCeti.HomologicalOrientation.sublevelBoundaryMaslovIndex_eq_zero_of_extend_Iic`: the product
-  formula and the vanishing for maps that extend over `Σ₁`, on a split closed surface.
+  formula, homotopy invariance and the vanishing for maps that extend over `Σ₁`, on a split closed
+  surface.
 * `TauCeti.HomologicalOrientation.sublevelBoundaryMaslovIndex_eq_zero_of_extend_Ici`: on a split
   closed surface, a map on `g⁻¹(0)` that extends continuously over `Σ₂` has boundary Maslov index
   `0` on `Σ₁`.
@@ -337,6 +339,15 @@ theorem sublevelBoundaryMaslovIndex_mul
   have := compactSpace_preimage_Iic hg.continuous
   simp only [sublevelBoundaryMaslovIndex_def, boundaryMaslovIndex_mul]
 
+/-- Homotopic maps from the boundary of `{g ≤ 0}` to `Sp(2n)` have the same boundary Maslov
+index on `{g ≤ 0}`. -/
+theorem sublevelBoundaryMaslovIndex_eq_of_homotopy
+    {Ψ Ψ' : C(↥(sublevelBoundary hg.continuous), GLSymplectic n ℝ)} (F : Ψ.Homotopy Ψ') :
+    oM.sublevelBoundaryMaslovIndex hn hg h0 Ψ = oM.sublevelBoundaryMaslovIndex hn hg h0 Ψ' := by
+  have := compactSpace_preimage_Iic hg.continuous
+  rw [sublevelBoundaryMaslovIndex_def, sublevelBoundaryMaslovIndex_def]
+  exact boundaryMaslovIndex_eq_of_homotopy _ _ _ _ _ F
+
 /-- A map from the boundary of `{g ≤ 0}` to `Sp(2n)` that is the restriction of a continuous map
 `Φ : {g ≤ 0} → Sp(2n)` has boundary Maslov index `0` on `{g ≤ 0}`. -/
 theorem sublevelBoundaryMaslovIndex_eq_zero_of_extend_Iic
@@ -344,9 +355,9 @@ theorem sublevelBoundaryMaslovIndex_eq_zero_of_extend_Iic
     (Φ : C(g ⁻¹' Iic 0, GLSymplectic n ℝ))
     (hΦ : ∀ z : ↥(sublevelBoundary hg.continuous), Φ z = Ψ z) :
     oM.sublevelBoundaryMaslovIndex hn hg h0 Ψ = 0 := by
-  have := compactSpace_preimage_Iic hg.continuous
-  rw [sublevelBoundaryMaslovIndex_def]
-  exact boundaryMaslovIndex_eq_zero_of_extend _ _ _ _ _ Φ hΦ
+  rw [sublevelBoundaryMaslovIndex_eq_sublevelBoundaryDegree]
+  exact oM.sublevelBoundaryDegree_eq_zero_of_extend_Iic hn hg h0 (maslovPhaseMap.comp Φ)
+    fun z ↦ by rw [ContinuousMap.comp_apply, ContinuousMap.comp_apply, hΦ]
 
 /-- Let `M` be a closed smooth surface oriented by `oM`, and `g : M → ℝ` smooth with regular
 value `0`, splitting `M` into `Σ₁ = {g ≤ 0}` and `Σ₂ = {g ≥ 0}`. A map `Ψ` from the boundary of

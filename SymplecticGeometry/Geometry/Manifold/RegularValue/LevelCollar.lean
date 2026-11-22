@@ -32,7 +32,8 @@ complement of the image of `g⁻¹(0)` (`SymplecticGeometry.range_inclusion_prei
 With the collar, on a closed surface `M` oriented by `oM` and for a smooth `g`, they give the
 boundary degree of a circle-valued map on `sublevelBoundary`, taken on the surface `{g ≤ 0}`
 whose interior `{g < 0}` is oriented by the restriction of `oM`
-(`TauCeti.HomologicalOrientation.sublevelBoundaryDegree`).
+(`TauCeti.HomologicalOrientation.sublevelBoundaryDegree`), with its product formula, its homotopy
+invariance and its vanishing for maps that extend over `{g ≤ 0}`.
 
 The proof builds no new flow. Since `0` is a regular value and `M` is compact, some band
 `g⁻¹[-ε, 0]` with `ε > 0` has no critical point
@@ -185,29 +186,55 @@ variable {E : Type} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensiona
   {M : Type} [TopologicalSpace M] [ChartedSpace E M] [T2Space M] [CompactSpace M]
   [IsManifold 𝓘(ℝ, E) ∞ M] {g : M → ℝ}
 
+variable (oM : HomologicalOrientation M E 2) (hn : Module.finrank ℝ E = 2)
+  (hg : ContMDiff 𝓘(ℝ, E) 𝓘(ℝ) ∞ g) (h0 : IsRegularValue 𝓘(ℝ, E) 𝓘(ℝ) g 0)
+
 /-- **The boundary degree on a sublevel set.** Let `M` be a closed smooth surface oriented by
 `oM`, and `g : M → ℝ` smooth with regular value `0`. For a continuous `u` from the boundary
 `sublevelBoundary` of `{g ≤ 0}` to the circle, this is the boundary degree of `u` on the compact
 surface `{g ≤ 0}`, whose interior `{g < 0}` carries the orientation restricted from `oM` and
 whose boundary is collared by `SymplecticGeometry.isCollared_inclusion_levelSet`. -/
-noncomputable def sublevelBoundaryDegree (oM : HomologicalOrientation M E 2)
-    (hn : Module.finrank ℝ E = 2) (hg : ContMDiff 𝓘(ℝ, E) 𝓘(ℝ) ∞ g)
-    (h0 : IsRegularValue 𝓘(ℝ, E) 𝓘(ℝ) g 0) (u : C(↥(sublevelBoundary hg.continuous), Circle)) :
+noncomputable def sublevelBoundaryDegree (u : C(↥(sublevelBoundary hg.continuous), Circle)) :
     ℤ :=
   haveI := compactSpace_preimage_Iic hg.continuous
   (oM.comap (TopologicalSpace.Opens.isOpenEmbedding' _)).boundaryDegree hn
     (isOpenEmbedding_inclusion_preimage_Iio hg.continuous)
     (range_inclusion_preimage_Iio hg.continuous) (isCollared_inclusion_levelSet hg h0) u
 
-theorem sublevelBoundaryDegree_def (oM : HomologicalOrientation M E 2)
-    (hn : Module.finrank ℝ E = 2) (hg : ContMDiff 𝓘(ℝ, E) 𝓘(ℝ) ∞ g)
-    (h0 : IsRegularValue 𝓘(ℝ, E) 𝓘(ℝ) g 0) (u : C(↥(sublevelBoundary hg.continuous), Circle)) :
+theorem sublevelBoundaryDegree_def (u : C(↥(sublevelBoundary hg.continuous), Circle)) :
     haveI := compactSpace_preimage_Iic hg.continuous
     oM.sublevelBoundaryDegree hn hg h0 u =
       (oM.comap (TopologicalSpace.Opens.isOpenEmbedding' _)).boundaryDegree hn
         (isOpenEmbedding_inclusion_preimage_Iio hg.continuous)
         (range_inclusion_preimage_Iio hg.continuous) (isCollared_inclusion_levelSet hg h0) u :=
   (rfl)
+
+/-- The pointwise product of two circle maps on the boundary of `{g ≤ 0}` has the sum of their
+boundary degrees on `{g ≤ 0}`. -/
+theorem sublevelBoundaryDegree_mul (u v : C(↥(sublevelBoundary hg.continuous), Circle)) :
+    oM.sublevelBoundaryDegree hn hg h0 (u * v) =
+      oM.sublevelBoundaryDegree hn hg h0 u + oM.sublevelBoundaryDegree hn hg h0 v := by
+  have := compactSpace_preimage_Iic hg.continuous
+  simp only [sublevelBoundaryDegree_def, boundaryDegree_mul]
+
+/-- Homotopic circle maps on the boundary of `{g ≤ 0}` have the same boundary degree on
+`{g ≤ 0}`. -/
+theorem sublevelBoundaryDegree_eq_of_homotopy
+    {u v : C(↥(sublevelBoundary hg.continuous), Circle)} (F : u.Homotopy v) :
+    oM.sublevelBoundaryDegree hn hg h0 u = oM.sublevelBoundaryDegree hn hg h0 v := by
+  have := compactSpace_preimage_Iic hg.continuous
+  rw [sublevelBoundaryDegree_def, sublevelBoundaryDegree_def]
+  exact boundaryDegree_eq_of_homotopy _ _ _ _ _ F
+
+/-- A circle map on the boundary of `{g ≤ 0}` that is the restriction of a continuous map
+`v : {g ≤ 0} → S¹` has boundary degree `0` on `{g ≤ 0}`. -/
+theorem sublevelBoundaryDegree_eq_zero_of_extend_Iic
+    {u : C(↥(sublevelBoundary hg.continuous), Circle)} (v : C(g ⁻¹' Iic 0, Circle))
+    (hv : ∀ z : ↥(sublevelBoundary hg.continuous), v z = u z) :
+    oM.sublevelBoundaryDegree hn hg h0 u = 0 := by
+  have := compactSpace_preimage_Iic hg.continuous
+  rw [sublevelBoundaryDegree_def]
+  exact boundaryDegree_eq_zero_of_extend _ _ _ _ _ v hv
 
 end TauCeti.HomologicalOrientation
 
