@@ -286,8 +286,8 @@ private theorem shuffleAssocHomotopy_hom_comp_singularChainComplexπ_eq_zero {X'
   -- statement of the naturality, so the composites are rewritten by hand
   exact (shuffleAssocHomotopy_hom_naturality_assoc R S T f g h i j _).trans <|
     (congrArg (_ ≫ ·) ((comp_f _ _ j).symm.trans ((congrArg (fun φ ↦ φ.f j)
-      (TopPair.chainComplexMap_comp_singularChainComplexπ_eq_zero_of_range_subset hfgh
-        (R ⊗ (S ⊗ T)))).trans
+      (TopPair.chainComplexMap_comp_singularChainComplexπ_eq_zero_of_range_subset
+        (R ⊗ (S ⊗ T)) hfgh)).trans
         (zero_f _ _ j)))).trans comp_zero
 
 /-- The first iterated shuffle map of the three pairs, followed by the coefficient associator and
@@ -371,20 +371,26 @@ private theorem shortExact_shortComplex₃ :
 omit [∀ (T : C) (J : Type w), PreservesColimitsOfShape (Discrete J) (tensorLeft T)]
   [∀ (T : C) (J : Type w), PreservesColimitsOfShape (Discrete J) (tensorRight T)] in
 /-- The three projections of the descent compose to the projection
-`(C(X) ⊗ C(Y)) ⊗ C(Z) ⟶ (C(X, A) ⊗ C(Y, B)) ⊗ C(Z, D)`. -/
-private theorem shortComplex₁_g_comp_shortComplex₂_g_comp_shortComplex₃_g :
+`(C(X) ⊗ C(Y)) ⊗ C(Z) ⟶ (C(X, A) ⊗ C(Y, B)) ⊗ C(Z, D)`, followed by any map `k` out of
+`(C(X, A) ⊗ C(Y, B)) ⊗ C(Z, D)`. -/
+private theorem shortComplex₁_g_comp_shortComplex₂_g_comp_shortComplex₃_g_comp
+    {K : ChainComplex C ℕ} (k : ((TopPair.ofSubset A).singularChainComplex R ⊗
+      (TopPair.ofSubset B).singularChainComplex S) ⊗ (TopPair.ofSubset D).singularChainComplex T ⟶
+        K) :
     (shortComplex₁ X Z A R S T Y).g ≫ (shortComplex₂ X Y A B R S T Z).g ≫
-        (shortComplex₃ X Y Z A B D R S T).g =
-      ((TopPair.ofSubset A).singularChainComplexπ R ⊗ₘ
-        (TopPair.ofSubset B).singularChainComplexπ S) ⊗ₘ
-          (TopPair.ofSubset D).singularChainComplexπ T := by
-  have h {K₁ K₂ K₃ L₁ L₂ L₃ : ChainComplex C ℕ} (f₁ : K₁ ⟶ L₁) (f₂ : K₂ ⟶ L₂) (f₃ : K₃ ⟶ L₃) :
-      ((f₁ ⊗ₘ 𝟙 K₂) ⊗ₘ 𝟙 K₃) ≫ ((𝟙 L₁ ⊗ₘ f₂) ⊗ₘ 𝟙 K₃) ≫ (𝟙 (L₁ ⊗ L₂) ⊗ₘ f₃) =
-        (f₁ ⊗ₘ f₂) ⊗ₘ f₃ := by
-    simp only [tensorHom_comp_tensorHom, Category.id_comp, Category.comp_id]
+        (shortComplex₃ X Y Z A B D R S T).g ≫ k =
+      ((TopPair.singularChainComplexπOfSubset R A ⊗ₘ TopPair.singularChainComplexπOfSubset S B) ⊗ₘ
+        TopPair.singularChainComplexπOfSubset T D) ≫ k := by
+  have h {K₁ K₂ K₃ L₁ L₂ L₃ : ChainComplex C ℕ} (f₁ : K₁ ⟶ L₁) (f₂ : K₂ ⟶ L₂) (f₃ : K₃ ⟶ L₃)
+      (l : (L₁ ⊗ L₂) ⊗ L₃ ⟶ K) :
+      ((f₁ ⊗ₘ 𝟙 K₂) ⊗ₘ 𝟙 K₃) ≫ ((𝟙 L₁ ⊗ₘ f₂) ⊗ₘ 𝟙 K₃) ≫ (𝟙 (L₁ ⊗ L₂) ⊗ₘ f₃) ≫ l =
+        ((f₁ ⊗ₘ f₂) ⊗ₘ f₃) ≫ l := by
+    simp only [tensorHom_comp_tensorHom_assoc, tensorHom_comp_tensorHom, Category.id_comp,
+      Category.comp_id]
   -- the ambient chains of a pair are the chains of its space only up to unfolding, so the
   -- identity is applied to the three projections rather than rewritten
-  exact h _ _ _
+  exact h _ _ _ k
+
 /-- The first step of the descent of `TopCat.shuffleAssocHomotopy`: to
 `(C(X, A) ⊗ C(Y)) ⊗ C(Z)`, along the projection in the first factor. -/
 private def shufflePairAssocHomotopy₁ :
@@ -404,14 +410,10 @@ private def shufflePairAssocHomotopy₁ :
         (TopPair.ofSubset A).map (𝟙 Y) (𝟙 Z) (by rintro _ ⟨x, rfl⟩; exact Or.inl x.1.property) i j
       simp only [CategoryTheory.Functor.map_id] at h
       exact h)
-    ((Category.assoc _ _ _).symm.trans <| (Category.assoc _ _ _).symm.trans <|
-      (congrArg (· ≫ shufflePairAssocLeft X Y Z A B D R S T) ((Category.assoc _ _ _).trans
-        (shortComplex₁_g_comp_shortComplex₂_g_comp_shortComplex₃_g X Y Z A B D R S T))).trans
-          (singularChainComplexπ_tensorHom_shufflePair_assoc_left X Y Z A B D R S T))
-    ((Category.assoc _ _ _).symm.trans <| (Category.assoc _ _ _).symm.trans <|
-      (congrArg (· ≫ shufflePairAssocRight X Y Z A B D R S T) ((Category.assoc _ _ _).trans
-        (shortComplex₁_g_comp_shortComplex₂_g_comp_shortComplex₃_g X Y Z A B D R S T))).trans
-          (singularChainComplexπ_tensorHom_shufflePair_assoc_right X Y Z A B D R S T))
+    ((shortComplex₁_g_comp_shortComplex₂_g_comp_shortComplex₃_g_comp X Y Z A B D R S T _).trans
+      (singularChainComplexπ_tensorHom_shufflePair_assoc_left X Y Z A B D R S T))
+    ((shortComplex₁_g_comp_shortComplex₂_g_comp_shortComplex₃_g_comp X Y Z A B D R S T _).trans
+      (singularChainComplexπ_tensorHom_shufflePair_assoc_right X Y Z A B D R S T))
 
 /-- The homotopy `shufflePairAssocHomotopy₁` is the homotopy `TopCat.shuffleAssocHomotopy`,
 descended. -/

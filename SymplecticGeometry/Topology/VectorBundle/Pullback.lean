@@ -24,6 +24,10 @@ the identity over both bases.
 This is the counterpart for alternating maps of Tau Ceti's
 `ContinuousLinearMap.inCoordinates_pullback_of_mem`, and its proof follows that one.
 
+`Bundle.Trivialization.linearMapAt_pullback` says that a pulled-back linear trivialization reads
+a vector over `x` as the original one reads it over `f x`: the `linearMapAt` form of Tau Ceti's
+`Bundle.Trivialization.linearEquivAt_pullback`.
+
 The file also has `simp` lemmas for vectors of the fibre `(f *ᵖ V) y`, which is `V (f y)` by
 definition, with the group and module structures of `V (f y)` under another name (Tau Ceti's
 `Bundle.Pullback.instAddCommGroup`, Mathlib's module structure). Since `Bundle.Pullback` is not
@@ -98,6 +102,26 @@ theorem inCoordinates_pullback_trivial_of_mem (f : K) (x₀ x : X)
 end ContinuousAlternatingMap
 
 end Coordinates
+
+namespace Bundle.Trivialization
+
+variable {𝕜 B B' F : Type*} [NontriviallyNormedField 𝕜] [TopologicalSpace B] [TopologicalSpace B']
+  [NormedAddCommGroup F] [NormedSpace 𝕜 F] {E : B → Type*} [∀ b, AddCommGroup (E b)]
+  [∀ b, Module 𝕜 (E b)] [TopologicalSpace (TotalSpace F E)]
+  {K : Type*} [FunLike K B' B] [ContinuousMapClass K B' B]
+
+/-- A pulled-back linear trivialization reads a vector of the fibre over `x` as the original
+trivialization reads it over `f x`. This is the counterpart for `linearMapAt` of Tau Ceti's
+`Bundle.Trivialization.linearEquivAt_pullback`. -/
+@[simp]
+theorem linearMapAt_pullback (e : Trivialization F (π F E)) [e.IsLinear 𝕜] (f : K) (x : B')
+    (v : ((f : B' → B) *ᵖ E) x) : (e.pullback f).linearMapAt 𝕜 x v = e.linearMapAt 𝕜 (f x) v := by
+  rw [linearMapAt_apply (e.pullback f), linearMapAt_apply e (b := f x) (y := (v : E (f x)))]
+  -- `x ∈ f ⁻¹' e.baseSet` is `f x ∈ e.baseSet` and `Pullback.lift f ⟨x, v⟩` is `⟨f x, v⟩`, by
+  -- definition; the fibre types differ by the synonym `*ᵖ`, so `simp` does not rewrite them.
+  rfl
+
+end Bundle.Trivialization
 
 namespace Bundle.Pullback
 

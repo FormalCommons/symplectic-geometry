@@ -5,15 +5,22 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import Mathlib.Algebra.Module.Equiv.Defs
 public import Mathlib.Data.Matrix.Block
 import TauCeti.Data.Matrix.Block
 
 /-!
-# Blocks of a square root of `-1`
+# Block matrices
 
-For a block matrix `M = !![M₁₁, M₁₂; M₂₁, M₂₂]` over a non-associative ring
-with `M * M = -1`, the first block column of `M * M` gives two identities between the blocks of
-`M`.
+This file identifies block matrices linearly with their four blocks, and gives the identities
+between the blocks of a square root of `-1`: for a block matrix `M = !![M₁₁, M₁₂; M₂₁, M₂₂]` over
+a non-associative ring with `M * M = -1`, the first block column of `M * M` gives two identities
+between the blocks of `M`.
+
+## Main definitions
+
+* `Matrix.fromBlocksLinearEquiv`: `((A, B), (C, D)) ↦ fromBlocks A B C D` as a linear
+  equivalence, whose inverse takes the four blocks.
 
 ## Main results
 
@@ -24,6 +31,40 @@ with `M * M = -1`, the first block column of `M * M` gives two identities betwee
 public section
 
 namespace Matrix
+
+section LinearMap
+
+variable {l m n o R α : Type*} [Semiring R] [AddCommMonoid α] [Module R α]
+
+variable (R) in
+/-- The block matrix `fromBlocks A B C D` as a linear equivalence in the four blocks
+`((A, B), (C, D))`. Its inverse sends a matrix `M` to its four blocks
+`((M.toBlocks₁₁, M.toBlocks₁₂), (M.toBlocks₂₁, M.toBlocks₂₂))`. -/
+def fromBlocksLinearEquiv :
+    ((Matrix n l α × Matrix n m α) × (Matrix o l α × Matrix o m α)) ≃ₗ[R]
+      Matrix (n ⊕ o) (l ⊕ m) α where
+  toFun p := fromBlocks p.1.1 p.1.2 p.2.1 p.2.2
+  invFun M := ((M.toBlocks₁₁, M.toBlocks₁₂), (M.toBlocks₂₁, M.toBlocks₂₂))
+  map_add' _ _ := (fromBlocks_add ..).symm
+  map_smul' _ _ := (fromBlocks_smul ..).symm
+  left_inv _ := by
+    simp only [toBlocks_fromBlocks₁₁, toBlocks_fromBlocks₁₂, toBlocks_fromBlocks₂₁,
+      toBlocks_fromBlocks₂₂]
+  right_inv := fromBlocks_toBlocks
+
+@[simp]
+theorem fromBlocksLinearEquiv_apply
+    (p : (Matrix n l α × Matrix n m α) × (Matrix o l α × Matrix o m α)) :
+    fromBlocksLinearEquiv R p = fromBlocks p.1.1 p.1.2 p.2.1 p.2.2 :=
+  (rfl)
+
+@[simp]
+theorem fromBlocksLinearEquiv_symm_apply (M : Matrix (n ⊕ o) (l ⊕ m) α) :
+    (fromBlocksLinearEquiv R).symm M =
+      ((M.toBlocks₁₁, M.toBlocks₁₂), (M.toBlocks₂₁, M.toBlocks₂₂)) :=
+  (rfl)
+
+end LinearMap
 
 variable {m n R : Type*} [Fintype m] [Fintype n] [DecidableEq m] [DecidableEq n]
   [NonAssocRing R]

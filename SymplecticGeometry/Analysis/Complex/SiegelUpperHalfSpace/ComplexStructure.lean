@@ -10,6 +10,7 @@ public import SymplecticGeometry.Analysis.Complex.SiegelUpperHalfSpace.Action
 public import SymplecticGeometry.LinearAlgebra.ComplexStructure.Action
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Matrix
 public import TauCeti.Analysis.Matrix.EuclideanLin
+public import TauCeti.Analysis.Matrix.Normed
 public import TauCeti.LinearAlgebra.Matrix.GeneralLinearGroup.Symplectic.Basic
 import TauCeti.Analysis.Calculus.ContinuousLinearMapInverse
 import TauCeti.Analysis.Matrix.Sqrt
@@ -38,6 +39,8 @@ To a point `Z = X + iY` of the Siegel upper half space this file attaches the re
 * `SiegelUpperHalfSpace.complexStructure`: the complex structure of `J(Z)` on `StdSpace ι`.
 * `SiegelUpperHalfSpace.compatibleEquiv`: the bijection `Z ↦ J(Z)` onto the `ω₀`-compatible
   complex structures, with inverse given by `ofComplexStructureMatrix`.
+* `SiegelUpperHalfSpace.complexStructureMatrixDeriv Z`: the derivative `Ẑ ↦ K J(Z) - J(Z) K` of
+  `J` at `Z`, described below.
 
 ## Main results
 
@@ -54,6 +57,11 @@ To a point `Z = X + iY` of the Siegel upper half space this file attaches the re
 * `SiegelUpperHalfSpace.contDiffOn_complexStructureMatrix` and
   `SiegelUpperHalfSpace.contDiffOn_ofComplexStructureMatrix`: both formulas are smooth on open
   sets of matrices containing the Siegel upper half space and the compatible complex structures.
+* `SiegelUpperHalfSpace.hasFDerivAt_complexStructureMatrix`: the derivative of `J(Z)` at every
+  complex matrix with invertible imaginary part; and
+  `SiegelUpperHalfSpace.complexStructureMatrixDeriv_I_smul` and
+  `SiegelUpperHalfSpace.trace_complexStructureMatrixDeriv_mul_self`: it is complex linear, and
+  half the trace of its square is Siegel's metric.
 * `SiegelUpperHalfSpace.complexStructure_single_inl`: for one index, `J(x + iy)` sends `(1, 0)` to
   `(x + i) / y`; and
   `SiegelUpperHalfSpace.stdComplexSymplecticForm_tames_transport_complexStructure`: moved to `ℂ`,
@@ -79,9 +87,20 @@ matrices with invertible imaginary part, which contains the Siegel upper half sp
 block, which contains the matrices of the compatible complex structures. Matrices carry the
 `L^∞` operator norm (`Matrix.Norms.Operator`); any other norm gives the same smooth maps.
 
+For the derivative, write `P = !![Y, X; 0, 1]`. Then `J(Z) = P J₀ P⁻¹`
+(`complexStructureMatrix_eq_mul_J_mul`), so the derivative of `J` at `Z` is the commutator
+`Ẑ ↦ K J(Z) - J(Z) K` with `K = Ṗ P⁻¹` and `Ṗ = !![Ẏ, Ẋ; 0, 0]` (`imReBlocks`). Since
+`Ṗ(iẐ) = Ṗ(Ẑ) J₀`, this gives `K(iẐ) = K(Ẑ) J(Z)`, and with `J(Z)² = -1` the derivative is complex
+linear: `dJ(iẐ) = -J(Z) dJ(Ẑ)`. Its square has half trace `tr((Y⁻¹ Ẋ)² + (Y⁻¹ Ẏ)²)`, Siegel's
+metric, by a computation of block traces. Both identities are proved at a general `Z`, without
+reduction to `Z = i𝟙`.
+
 ## References
 
-* [D. McDuff, D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017], §2.5
+* [D. McDuff, D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017], §2.5,
+  Example 4.3.6 and Exercise 4.3.7.
+* C. L. Siegel, *Symplectic geometry*, Amer. J. Math. 65 (1943), 1–86, for the metric on the
+  Siegel upper half space.
 -/
 
 public section
@@ -397,17 +416,49 @@ section Smooth
 
 open scoped Matrix.Norms.Operator ContDiff
 
+/-- The formula `M ↦ M₁₁ M₂₁⁻¹ + i M₂₁⁻¹` of the inverse is smooth on the open set of real
+matrices with invertible lower left block, which contains the matrices of the `ω₀`-compatible
+complex structures (`isUnit_det_toBlocks₂₁_of_compatible`). -/
+theorem contDiffOn_ofComplexStructureMatrix :
+    ContDiffOn ℝ ∞ (ofComplexStructureMatrix : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ → Matrix ι ι ℂ)
+      {M : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ | IsUnit M.toBlocks₂₁.det} := by
+  intro M hM
+  have hofReal : ContDiff ℝ ∞ fun Y : Matrix ι ι ℝ ↦ Y.map ofReal :=
+    (LinearMap.toContinuousLinearMap
+      (Complex.ofRealCLM.toLinearMap.mapMatrix : Matrix ι ι ℝ →ₗ[ℝ] Matrix ι ι ℂ)).contDiff
+  /- The four blocks, as the inverse of `fromBlocksLinearEquiv`. Its smoothness goes through
+  `IsBoundedLinearMap`, so that it stays in the operator norm's topology: the coercion lemma of
+  `LinearMap.toContinuousLinearMap` would ask for the product topology on matrices instead. -/
+  let blocks : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ →ₗ[ℝ]
+      (Matrix ι ι ℝ × Matrix ι ι ℝ) × (Matrix ι ι ℝ × Matrix ι ι ℝ) :=
+    (fromBlocksLinearEquiv ℝ).symm.toLinearMap
+  have hblocks : ContDiff ℝ ∞ blocks :=
+    ((IsBoundedLinearMap.isLinearMap_and_continuous_iff_isBoundedLinearMap blocks).1
+      ⟨blocks.isLinear, blocks.continuous_of_finiteDimensional⟩).contDiff
+  have h₁₁ : ContDiff ℝ ∞ fun N : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ ↦ N.toBlocks₁₁ := by
+    simpa only [blocks, LinearEquiv.coe_coe, fromBlocksLinearEquiv_symm_apply] using
+      hblocks.fst.fst
+  have h₂₁ : ContDiff ℝ ∞ fun N : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ ↦ N.toBlocks₂₁ := by
+    simpa only [blocks, LinearEquiv.coe_coe, fromBlocksLinearEquiv_symm_apply] using
+      hblocks.snd.fst
+  have hinv : ContDiffAt ℝ ∞ (fun N : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ ↦ N.toBlocks₂₁⁻¹) M := by
+    simpa only [nonsing_inv_eq_ringInverse] using
+      h₂₁.contDiffAt.inverse ((isUnit_iff_isUnit_det _).2 hM)
+  exact ((hofReal.contDiffAt.comp M (h₁₁.contDiffAt.mul hinv)).add
+    ((hofReal.contDiffAt.comp M hinv).const_smul Complex.I)).contDiffWithinAt
+
+section LinftyOp
+
+/- Matrices carry the topology of the operator norm here, so that the linear maps below are
+continuous linear maps between normed spaces. -/
+attribute [local instance] Matrix.linftyOpTopologicalSpace
+
 /-- The formula `J(Z)` is smooth on the open set of complex matrices with invertible imaginary
 part, which contains the Siegel upper half space (`isUnit_det_map_im`). -/
 theorem contDiffOn_complexStructureMatrix :
     ContDiffOn ℝ ∞ (complexStructureMatrix : Matrix ι ι ℂ → Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ)
       {Z : Matrix ι ι ℂ | IsUnit (Z.map Complex.im).det} := by
   intro Z hZ
-  let blocks : (Matrix ι ι ℝ × Matrix ι ι ℝ) × (Matrix ι ι ℝ × Matrix ι ι ℝ) →ₗ[ℝ]
-      Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ :=
-    { toFun p := fromBlocks p.1.1 p.1.2 p.2.1 p.2.2
-      map_add' p q := (fromBlocks_add ..).symm
-      map_smul' c p := (fromBlocks_smul ..).symm }
   have hre : ContDiff ℝ ∞ fun Z : Matrix ι ι ℂ ↦ Z.map Complex.re :=
     (LinearMap.toContinuousLinearMap
       (Complex.reLm.mapMatrix : Matrix ι ι ℂ →ₗ[ℝ] Matrix ι ι ℝ)).contDiff
@@ -418,32 +469,173 @@ theorem contDiffOn_complexStructureMatrix :
     simpa only [nonsing_inv_eq_ringInverse] using
       him.contDiffAt.inverse ((isUnit_iff_isUnit_det _).2 hZ)
   have hXYinv := hre.contDiffAt.mul hinv
-  exact ((LinearMap.toContinuousLinearMap blocks).contDiff.contDiffAt.comp Z
+  refine ContDiffAt.contDiffWithinAt ?_
+  convert (LinearMap.toContinuousLinearMap
+    ((fromBlocksLinearEquiv ℝ).toLinearMap :
+      _ →ₗ[ℝ] Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ)).contDiff.contDiffAt.comp Z
     ((hXYinv.prodMk ((him.contDiffAt.neg).sub (hXYinv.mul hre.contDiffAt))).prodMk
-      (hinv.prodMk (hinv.mul hre.contDiffAt).neg))).contDiffWithinAt
+      (hinv.prodMk (hinv.mul hre.contDiffAt).neg)) using 1
+  funext W
+  simp only [Function.comp_apply, LinearMap.coe_toContinuousLinearMap', LinearEquiv.coe_coe,
+    fromBlocksLinearEquiv_apply, complexStructureMatrix_def]
 
-/-- The formula `M ↦ M₁₁ M₂₁⁻¹ + i M₂₁⁻¹` of the inverse is smooth on the open set of real
-matrices with invertible lower left block, which contains the matrices of the `ω₀`-compatible
-complex structures (`isUnit_det_toBlocks₂₁_of_compatible`). -/
-theorem contDiffOn_ofComplexStructureMatrix :
-    ContDiffOn ℝ ∞ (ofComplexStructureMatrix : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ → Matrix ι ι ℂ)
-      {M : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ | IsUnit M.toBlocks₂₁.det} := by
-  intro M hM
-  let b₁₁ : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ →ₗ[ℝ] Matrix ι ι ℝ :=
-    { toFun := toBlocks₁₁, map_add' _ _ := rfl, map_smul' _ _ := rfl }
-  let b₂₁ : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ →ₗ[ℝ] Matrix ι ι ℝ :=
-    { toFun := toBlocks₂₁, map_add' _ _ := rfl, map_smul' _ _ := rfl }
-  have hofReal : ContDiff ℝ ∞ fun Y : Matrix ι ι ℝ ↦ Y.map ofReal :=
-    (LinearMap.toContinuousLinearMap
-      (Complex.ofRealCLM.toLinearMap.mapMatrix : Matrix ι ι ℝ →ₗ[ℝ] Matrix ι ι ℂ)).contDiff
-  have h₂₁ : ContDiff ℝ ∞ fun N : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ ↦ N.toBlocks₂₁ :=
-    (LinearMap.toContinuousLinearMap b₂₁).contDiff
-  have hinv : ContDiffAt ℝ ∞ (fun N : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ ↦ N.toBlocks₂₁⁻¹) M := by
-    simpa only [nonsing_inv_eq_ringInverse] using
-      h₂₁.contDiffAt.inverse ((isUnit_iff_isUnit_det _).2 hM)
-  exact ((hofReal.contDiffAt.comp M
-      ((LinearMap.toContinuousLinearMap b₁₁).contDiff.contDiffAt.mul hinv)).add
-    ((hofReal.contDiffAt.comp M hinv).const_smul Complex.I)).contDiffWithinAt
+/-! ### The derivative of `J(Z)` -/
+
+/-- The real linear map `dZ ↦ !![Ẏ, Ẋ; 0, 0]` from complex matrices `dZ = Ẋ + iẎ` to real block
+matrices: the derivative of `Z ↦ !![Y, X; 0, 1]`. -/
+def imReBlocks : Matrix ι ι ℂ →L[ℝ] Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ :=
+  LinearMap.toContinuousLinearMap <| (fromBlocksLinearEquiv ℝ).toLinearMap ∘ₗ
+    (((Complex.imLm.mapMatrix : Matrix ι ι ℂ →ₗ[ℝ] Matrix ι ι ℝ).prod
+      Complex.reLm.mapMatrix).prod 0)
+
+/-- The value of `imReBlocks`: `!![Im W, Re W; 0, 0]`. -/
+theorem imReBlocks_apply (W : Matrix ι ι ℂ) :
+    imReBlocks W = fromBlocks (W.map Complex.im) (W.map Complex.re) 0 0 := by
+  simp [imReBlocks]
+
+/-- With `P = !![Y, X; 0, 1]` and `Y` invertible, `J(Z) = P J₀ P⁻¹`. -/
+theorem complexStructureMatrix_eq_mul_J_mul {Z : Matrix ι ι ℂ}
+    (hZ : IsUnit (Z.map Complex.im).det) :
+    complexStructureMatrix Z =
+      fromBlocks (Z.map Complex.im) (Z.map Complex.re) 0 1 * J ι ℝ *
+        (fromBlocks (Z.map Complex.im) (Z.map Complex.re) 0 1)⁻¹ := by
+  rw [inv_fromBlocks_zero₂₁_of_isUnit_iff _ _ _ (by simp [isUnit_iff_isUnit_det, hZ.ne_zero]),
+    complexStructureMatrix_def, J, fromBlocks_multiply, fromBlocks_multiply]
+  simp [Matrix.mul_assoc]
+  abel
+
+/-- The derivative of `J` at `Z = X + iY`: `dZ ↦ K J(Z) - J(Z) K` with `K = Ṗ P⁻¹`, where
+`P = !![Y, X; 0, 1]` and `Ṗ = !![Ẏ, Ẋ; 0, 0]` (`complexStructureMatrixDeriv_apply`). It is the
+derivative when `Y` is invertible (`hasFDerivAt_complexStructureMatrix`). -/
+def complexStructureMatrixDeriv (Z : Matrix ι ι ℂ) :
+    Matrix ι ι ℂ →L[ℝ] Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ :=
+  ((ContinuousLinearMap.mul ℝ _).flip (complexStructureMatrix Z) -
+      ContinuousLinearMap.mul ℝ _ (complexStructureMatrix Z)) ∘L
+    (ContinuousLinearMap.mul ℝ _).flip
+      (fromBlocks (Z.map Complex.im) (Z.map Complex.re) 0 1)⁻¹ ∘L
+    imReBlocks
+
+/-- The value of `complexStructureMatrixDeriv Z` at `dZ`: the commutator of `K = Ṗ P⁻¹` with
+`J(Z)`. -/
+theorem complexStructureMatrixDeriv_apply (Z dZ : Matrix ι ι ℂ) :
+    complexStructureMatrixDeriv Z dZ =
+      imReBlocks dZ * (fromBlocks (Z.map Complex.im) (Z.map Complex.re) 0 1)⁻¹ *
+          complexStructureMatrix Z -
+        complexStructureMatrix Z *
+          (imReBlocks dZ * (fromBlocks (Z.map Complex.im) (Z.map Complex.re) 0 1)⁻¹) :=
+  (rfl)
+
+/-- The block formula `J(Z)` has derivative `complexStructureMatrixDeriv Z` at every complex
+matrix `Z` with invertible imaginary part. -/
+theorem hasFDerivAt_complexStructureMatrix {Z : Matrix ι ι ℂ}
+    (hZ : IsUnit (Z.map Complex.im).det) :
+    HasFDerivAt complexStructureMatrix (complexStructureMatrixDeriv Z) Z := by
+  set P := fromBlocks (Z.map Complex.im) (Z.map Complex.re) 0 (1 : Matrix ι ι ℝ) with hP_def
+  have hP : HasFDerivAt (fun W : Matrix ι ι ℂ ↦
+      fromBlocks (W.map Complex.im) (W.map Complex.re) 0 (1 : Matrix ι ι ℝ)) imReBlocks Z := by
+    have : (fun W : Matrix ι ι ℂ ↦
+        fromBlocks (W.map Complex.im) (W.map Complex.re) 0 (1 : Matrix ι ι ℝ)) =
+        fun W ↦ imReBlocks W + fromBlocks 0 0 0 1 := by
+      funext W; rw [imReBlocks_apply, fromBlocks_add]; simp
+    rw [this]
+    exact imReBlocks.hasFDerivAt.add_const _
+  have hPu : IsUnit P := by simp [hP_def, isUnit_iff_isUnit_det, hZ.ne_zero]
+  have hR := (hasFDerivAt_ringInverse (𝕜 := ℝ) hPu.unit).comp Z hP
+  have h := (hP.mul_const' (J ι ℝ)).mul' hR
+  refine (h.congr_of_eventuallyEq ?_).congr_fderiv ?_
+  · filter_upwards [Matrix.isOpen_setOf_isUnit_det_map_im.mem_nhds hZ] with W hW
+    simp only [Pi.mul_apply, Function.comp_apply, ← nonsing_inv_eq_ringInverse]
+    exact complexStructureMatrix_eq_mul_J_mul hW
+  · ext1 dZ
+    have hu : ((hPu.unit⁻¹ : (Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ)ˣ) : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ) = P⁻¹ := by
+      rw [← Ring.inverse_unit, IsUnit.unit_spec, nonsing_inv_eq_ringInverse]
+    simp only [add_apply, smul_apply, ContinuousLinearMap.comp_apply, neg_apply,
+      ContinuousLinearMap.mulLeftRight_apply, complexStructureMatrixDeriv_apply,
+      Function.comp_apply, hu, ← nonsing_inv_eq_ringInverse, MulOpposite.smul_eq_mul_unop,
+      MulOpposite.unop_op, smul_eq_mul]
+    rw [complexStructureMatrix_eq_mul_J_mul hZ, ← hP_def]
+    rw [Matrix.mul_assoc _ P⁻¹, ← Matrix.mul_assoc P⁻¹, ← Matrix.mul_assoc P⁻¹,
+      nonsing_inv_mul _ ((isUnit_iff_isUnit_det P).1 hPu), Matrix.one_mul]
+    simp only [Matrix.mul_assoc, Matrix.mul_neg]
+    abel
+
+/-- Multiplication by `i` on `Ẑ` is multiplication of `Ṗ` by `J₀` on the right:
+`Ṗ(iẐ) = Ṗ(Ẑ) J₀`. -/
+theorem imReBlocks_I_smul (dZ : Matrix ι ι ℂ) :
+    imReBlocks (Complex.I • dZ) = imReBlocks dZ * J ι ℝ := by
+  rw [imReBlocks_apply, imReBlocks_apply, J, fromBlocks_multiply]
+  congr 1 <;> ext <;> simp
+
+/-- `Ṗ P⁻¹ J(Z) = Ṗ J₀ P⁻¹`, in the notation of `complexStructureMatrixDeriv`. -/
+theorem imReBlocks_mul_inv_mul_complexStructureMatrix {Z : Matrix ι ι ℂ}
+    (hZ : IsUnit (Z.map Complex.im).det) (dZ : Matrix ι ι ℂ) :
+    imReBlocks dZ * (fromBlocks (Z.map Complex.im) (Z.map Complex.re) 0 1)⁻¹ *
+        complexStructureMatrix Z =
+      imReBlocks dZ * J ι ℝ * (fromBlocks (Z.map Complex.im) (Z.map Complex.re) 0 1)⁻¹ := by
+  have hP : IsUnit (fromBlocks (Z.map Complex.im) (Z.map Complex.re) 0 (1 : Matrix ι ι ℝ)).det := by
+    simp [hZ.ne_zero]
+  rw [complexStructureMatrix_eq_mul_J_mul hZ, Matrix.mul_assoc (imReBlocks dZ),
+    ← Matrix.mul_assoc _ (fromBlocks _ _ _ _ * _), ← Matrix.mul_assoc _ (fromBlocks _ _ _ _),
+    nonsing_inv_mul _ hP, Matrix.one_mul, Matrix.mul_assoc]
+
+/-- The derivative of `J` is complex linear for the structure `-J(Z)` on the target:
+`dJ(i Ẑ) = -J(Z) dJ(Ẑ)`. -/
+theorem complexStructureMatrixDeriv_I_smul {Z : Matrix ι ι ℂ}
+    (hZ : IsUnit (Z.map Complex.im).det) (dZ : Matrix ι ι ℂ) :
+    complexStructureMatrixDeriv Z (Complex.I • dZ) =
+      -(complexStructureMatrix Z * complexStructureMatrixDeriv Z dZ) := by
+  have hJ := complexStructureMatrix_mul_self hZ
+  have hK := imReBlocks_mul_inv_mul_complexStructureMatrix hZ dZ
+  rw [complexStructureMatrixDeriv_apply, complexStructureMatrixDeriv_apply, imReBlocks_I_smul,
+    ← hK]
+  simp only [Matrix.mul_sub, Matrix.mul_assoc, hJ, ← Matrix.mul_assoc (complexStructureMatrix Z)
+    (complexStructureMatrix Z)]
+  simp only [← Matrix.mul_assoc, neg_mul, mul_neg, mul_one, one_mul, neg_sub]
+
+/-- Siegel's formula: half the trace of the square of `dJ(Ẑ)` at `Z = X + iY` is
+`tr((Y⁻¹ Ẋ)² + (Y⁻¹ Ẏ)²)`. -/
+theorem trace_complexStructureMatrixDeriv_mul_self {Z : Matrix ι ι ℂ}
+    (hZ : IsUnit (Z.map Complex.im).det) (dZ : Matrix ι ι ℂ) :
+    2⁻¹ * trace (complexStructureMatrixDeriv Z dZ * complexStructureMatrixDeriv Z dZ) =
+      trace (((Z.map Complex.im)⁻¹ * dZ.map Complex.re) ^ 2 +
+        ((Z.map Complex.im)⁻¹ * dZ.map Complex.im) ^ 2) := by
+  have hJ := complexStructureMatrix_mul_self hZ
+  have hKM := imReBlocks_mul_inv_mul_complexStructureMatrix hZ dZ
+  have hQP : (fromBlocks (Z.map Complex.im) (Z.map Complex.re) 0 (1 : Matrix ι ι ℝ))⁻¹ *
+      imReBlocks dZ =
+      fromBlocks ((Z.map Complex.im)⁻¹ * dZ.map Complex.im)
+        ((Z.map Complex.im)⁻¹ * dZ.map Complex.re) 0 0 := by
+    rw [inv_fromBlocks_zero₂₁_of_isUnit_iff _ _ _ (by simp [isUnit_iff_isUnit_det, hZ.ne_zero]),
+      imReBlocks_apply, fromBlocks_multiply]
+    simp
+  rw [complexStructureMatrixDeriv_apply]
+  generalize complexStructureMatrix Z = M at hJ hKM ⊢
+  generalize (fromBlocks (Z.map Complex.im) (Z.map Complex.re) 0 (1 : Matrix ι ι ℝ))⁻¹ = Q
+    at hQP hKM ⊢
+  generalize imReBlocks dZ = P at hQP hKM ⊢
+  -- `tr((K M - M K)²) = 2 tr((K M)²) + 2 tr(K²)` for `K = P Q`, since `M² = -1`.
+  have h₁ : ∀ K : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ, trace ((K * M - M * K) * (K * M - M * K)) =
+      2 * trace (K * M * (K * M)) + 2 * trace (K * K) := by
+    intro K
+    have e₁ : trace (K * M * (M * K)) = -trace (K * K) := by
+      rw [← Matrix.mul_assoc, Matrix.mul_assoc K, hJ]; simp
+    have e₂ : trace (M * K * (K * M)) = -trace (K * K) := by
+      rw [trace_mul_comm, ← Matrix.mul_assoc, Matrix.mul_assoc K, hJ]; simp
+    have e₃ : trace (M * K * (M * K)) = trace (K * M * (K * M)) := by
+      rw [Matrix.mul_assoc, trace_mul_comm]; simp only [Matrix.mul_assoc]
+    rw [Matrix.sub_mul, Matrix.mul_sub, Matrix.mul_sub, trace_sub, trace_sub, trace_sub, e₁, e₂,
+      e₃]
+    ring
+  -- `tr((A Q)²) = tr((Q A)²)`.
+  have h₂ : ∀ A : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ, trace (A * Q * (A * Q)) = trace (Q * A * (Q * A)) := by
+    intro A
+    rw [Matrix.mul_assoc, trace_mul_comm]; simp only [Matrix.mul_assoc]
+  rw [h₁, hKM, h₂, h₂, ← Matrix.mul_assoc Q P (J ι ℝ), hQP, J]
+  simp only [fromBlocks_multiply, trace_fromBlocks]
+  simp [sq, trace_add]
+  ring
+
+end LinftyOp
 
 /-- **The Siegel upper half space.** The symplectic group acts on the Siegel upper half space by
 `Ψ • Z = (AZ + B)(CZ + D)⁻¹`, transitively, and holomorphically on an open set containing the

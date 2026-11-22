@@ -91,55 +91,46 @@ commute with the maps `C(X, A; R) ⊗ C(B; S) ⟶ C(X, A; R) ⊗ C(Y; S)` and
 @[reassoc]
 theorem id_tensorHom_chainComplexMap_shuffleRel :
     (𝟙 ((TopPair.ofSubset A).singularChainComplex R) ⊗ₘ
-        (SSet.chainComplexMap (toSSet.map (TopPair.ofSubset B).map) S :
-          (toSSet.obj (TopPair.ofSubset B).snd).chainComplex S ⟶ (toSSet.obj Y).chainComplex S)) ≫
+        SSet.chainComplexMap (toSSet.map (TopPair.ιOfSubset B)) S) ≫
         shuffleRel X Y A R S =
       (shuffleRel X (TopPair.ofSubset B).snd A R S ≫
         TopPair.singularChainComplexMap (TopPair.prodExcisionFst A B) (R ⊗ S)) ≫
           TopPair.singularChainComplexMap
             (TauCeti.TopTriple.innerToTotal.app (TopPair.prodUnionTripleFst A B)) (R ⊗ S) := by
-  have := (shortExact_tensorRightShortComplex_singularChainComplexShortComplex X
-    (TopPair.ofSubset B).snd A R S).epi_g
-  refine (cancel_epi ((TopPair.ofSubset A).singularChainComplexπ R ⊗ₘ
+  have : Epi (TopPair.singularChainComplexπOfSubset R A ⊗ₘ
+      𝟙 ((toSSet.obj (TopPair.ofSubset B).snd).chainComplex S)) :=
+    (shortExact_tensorRightShortComplex_singularChainComplexShortComplex X
+      (TopPair.ofSubset B).snd A R S).epi_g
+  refine (cancel_epi (TopPair.singularChainComplexπOfSubset R A ⊗ₘ
       𝟙 ((toSSet.obj (TopPair.ofSubset B).snd).chainComplex S))).1 ?_
   have hfst : TopPair.Hom.fst (TopPair.prodExcisionFst A B ≫
         TauCeti.TopTriple.innerToTotal.app (TopPair.prodUnionTripleFst A B)) =
-      𝟙 X ⊗ₘ ((TopPair.ofSubset B).map : (TopPair.ofSubset B).snd ⟶ Y) := by
+      𝟙 X ⊗ₘ TopPair.ιOfSubset B := by
     rw [TopPair.Hom.fst_comp, TopPair.prodExcisionFst_fst, TauCeti.TopTriple.innerToTotal_app_fst]
     -- both maps send `(x, y)` to `(x, y)`, read in `X × Y`
     ext; rfl
-  have hx : ((TopPair.ofSubset A).singularChainComplexπ R ⊗ₘ
-        𝟙 ((toSSet.obj (TopPair.ofSubset B).snd).chainComplex S)) ≫
-      (𝟙 ((TopPair.ofSubset A).singularChainComplex R) ⊗ₘ
-        (SSet.chainComplexMap (toSSet.map (TopPair.ofSubset B).map) S :
-          (toSSet.obj (TopPair.ofSubset B).snd).chainComplex S ⟶ (toSSet.obj Y).chainComplex S)) =
-    (𝟙 ((toSSet.obj X).chainComplex R) ⊗ₘ
-        (SSet.chainComplexMap (toSSet.map (TopPair.ofSubset B).map) S :
-          (toSSet.obj (TopPair.ofSubset B).snd).chainComplex S ⟶ (toSSet.obj Y).chainComplex S)) ≫
-      ((TopPair.ofSubset A).singularChainComplexπ R ⊗ₘ 𝟙 ((toSSet.obj Y).chainComplex S)) :=
-    (mapBifunctorMap_comp _ _ _ _ _ _).symm.trans <|
-      (congrArg₂ (fun f g ↦ mapBifunctorMap f g (curriedTensor C) (ComplexShape.down ℕ))
-        ((Category.comp_id _).trans (Category.id_comp _).symm)
-        ((Category.id_comp _).trans (Category.comp_id _).symm)).trans
-          (mapBifunctorMap_comp _ _ _ _ _ _)
-  have hs := shuffle_naturality (𝟙 X) ((TopPair.ofSubset B).map : (TopPair.ofSubset B).snd ⟶ Y)
-    R S
+  have hs := shuffle_naturality (𝟙 X) (TopPair.ιOfSubset B) R S
   simp only [CategoryTheory.Functor.map_id] at hs
-  have h₁ := singularChainComplexπ_tensorHom_id_shuffleRel X Y A R S
-  have h₂ := singularChainComplexπ_tensorHom_id_shuffleRel X (TopPair.ofSubset B).snd A R S
-  have h₃ := TopPair.singularChainComplexπ_pair_naturality (TopPair.prodExcisionFst A B ≫
+  -- the naturality of the quotient maps along the map of pairs, with their sources written as the
+  -- chains of `X × B` and `X × Y`
+  have hπ : SSet.chainComplexMap (toSSet.map (𝟙 X ⊗ₘ TopPair.ιOfSubset B)) (R ⊗ S) ≫
+        TopPair.singularChainComplexπOfSubset (R ⊗ S) (fst X Y ⁻¹' A) =
+      TopPair.singularChainComplexπOfSubset (R ⊗ S) (fst X (TopPair.ofSubset B).snd ⁻¹' A) ≫
+        TopPair.singularChainComplexMap (TopPair.prodExcisionFst A B) (R ⊗ S) ≫
+          TopPair.singularChainComplexMap
+            (TauCeti.TopTriple.innerToTotal.app (TopPair.prodUnionTripleFst A B)) (R ⊗ S) := by
+    have h := TopPair.singularChainComplexπ_pair_naturality (TopPair.prodExcisionFst A B ≫
       TauCeti.TopTriple.innerToTotal.app (TopPair.prodUnionTripleFst A B)) (R ⊗ S)
-  rw [hfst, TopPair.singularChainComplexMap_comp] at h₃
+    rw [hfst, TopPair.singularChainComplexMap_comp] at h
+    exact h
   -- Both sides are the shuffle map of `X` and `B`, followed by the map induced by `X × B ⟶ X × Y`
-  -- and the projection to the relative chains of `(X × Y, A × Y)`. The chain complexes appear in
-  -- several forms that agree only up to unfolding, so the composites are reassociated by hand.
-  exact (Category.assoc _ _ _).symm.trans <| (congrArg (· ≫ _) hx).trans <|
-    (Category.assoc _ _ _).trans <| (congrArg (_ ≫ ·) h₁).trans <|
-    (Category.assoc _ _ _).symm.trans <| (congrArg (· ≫ _) hs).trans <|
-    (Category.assoc _ _ _).trans <| (congrArg (_ ≫ ·) h₃).trans <|
-    (Category.assoc _ _ _).symm.trans <| (congrArg (· ≫ _) h₂.symm).trans <|
-    (Category.assoc _ _ _).trans <|
-    congrArg (_ ≫ ·) (Category.assoc _ _ _).symm
+  -- and the projection to the relative chains of `(X × Y, A × Y)`.
+  rw [singularChainComplexπ_tensorHom_id_comp_id_tensorHom_chainComplexMap_assoc,
+    singularChainComplexπOfSubset_tensorHom_id_shuffleRel, reassoc_of% hs, hπ, Category.assoc]
+  -- `exact`, not `rw`: the relative chains of `(X × Y, A × Y)` are written as those of the total
+  -- pair of the triple on the right and as those of `TopPair.ofSubset` on the left, which agree
+  -- only up to unfolding
+  exact (singularChainComplexπOfSubset_tensorHom_id_shuffleRel_assoc X _ A R S _).symm
 
 /-- The shuffle maps, as a morphism of short complexes of chain complexes. Its source is
 `C(X, A; R)` tensored on the left with the sequence `C(B; S) ⟶ C(Y; S) ⟶ C(Y, B; S)` of `(Y, B)`,
@@ -238,9 +229,11 @@ theorem singularHomologyCrossRelPair_comp_singularHomologyδ_comp_singularHomolo
           homologyMap (shuffleRel X (TopPair.ofSubset B).snd A R S ≫
             TopPair.singularChainComplexMap (TopPair.prodExcisionFst A B) (R ⊗ S)) n') =
       singularHomologyCrossRel X (TopPair.ofSubset B).snd A R S p q' n' h' ≫
-        TopPair.singularHomologyMap (TopPair.prodExcisionFst A B) (R ⊗ S) n' :=
-    (congrArg (_ ≫ ·) (homologyMap_comp _ _ n')).trans <| (Category.assoc _ _ _).symm.trans <|
-      congrArg (· ≫ _) (singularHomologyCrossRel_def X _ A R S p q' n' h').symm
+        TopPair.singularHomologyMap (TopPair.prodExcisionFst A B) (R ⊗ S) n' := by
+    -- `singularHomologyCrossRel` writes the homology of `B` as `singularHomologyFunctor`, which is
+    -- that of its singular chains only up to unfolding
+    dsimp only [TauCeti.singularHomologyFunctor_obj_obj_eq_toSSet_homology]
+    rw [homologyMap_comp, singularHomologyCrossRel_def, Category.assoc]
   refine (congrArg (_ ≫ ·)
     ((TopPair.prodUnionTripleFst A B).singularHomologyδ_eq_comp_singularHomologyπ (R ⊗ S) n n'
       (by omega)).symm).trans <| (congrArg (_ ≫ ·)

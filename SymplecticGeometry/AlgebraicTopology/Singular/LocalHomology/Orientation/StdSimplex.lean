@@ -9,6 +9,7 @@ public import SymplecticGeometry.AlgebraicTopology.Singular.RelativeClass
 public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orientation.Plane
 public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orientation.Smooth
 public import SymplecticGeometry.LinearAlgebra.Complex.Orientation
+public import SymplecticGeometry.Topology.Algebra.Module.Equiv.Basic
 public import TauCeti.Analysis.SpecialFunctions.Complex.Arg
 public import TauCeti.Geometry.Convex.FullSimplex
 public import TauCeti.Geometry.Manifold.Orientation.Euclidean
@@ -509,9 +510,7 @@ theorem relClass_fullSimplex_eq_neg_toHomologicalOrientation
       (OpenPartialHomeomorph.refl (EuclideanSpace ℝ (Fin 2))) (by simp)
       (ContinuousLinearEquiv.refl ℝ _) ?_ ?_]
   · simpa using hasFDerivAt_id (𝕜 := ℝ) p
-  · rw [show ((ContinuousLinearEquiv.refl ℝ (EuclideanSpace ℝ (Fin 2)) :
-        EuclideanSpace ℝ (Fin 2) ≃ₗ[ℝ] EuclideanSpace ℝ (Fin 2))) = LinearEquiv.refl ℝ _ from
-        LinearEquiv.ext fun _ ↦ rfl, Orientation.map_refl]
+  · rw [ContinuousLinearEquiv.toLinearEquiv_refl, Orientation.map_refl]
     exact Manifold.Orientation.orientationAt_euclideanSpace 2 p
 
 end TopPair

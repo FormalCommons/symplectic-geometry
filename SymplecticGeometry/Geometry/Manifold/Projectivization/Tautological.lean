@@ -31,6 +31,9 @@ of the line `x` is its coordinate `w i`, and these coordinates change from chart
   in both directions.
 * `Projectivization.complexEulerClass_twistCore_neg_one`: over `ℂ`, the Euler class of `𝒪(-1)`,
   read in integral cohomology, is minus the hyperplane class.
+* `Projectivization.complexEulerClass_twistCore_zero`: over `ℂ`, the Euler class of the trivial
+  bundle `𝒪(0)` is zero, through the global section `1` of
+  `Projectivization.twistCoreZeroTrivialization`.
 
 ## Implementation notes
 
@@ -173,6 +176,22 @@ end Equiv
 /-! ### The Euler class of `𝒪(-1)` -/
 
 variable {n : ℕ}
+
+/-- **The Euler class of `𝒪(0)` vanishes.** On `ℙ ℂ (Fin (n + 1) → ℂ)`, Tau Ceti's
+`twistCore 0` is trivial, so its Euler class is zero. -/
+theorem complexEulerClass_twistCore_zero :
+    complexEulerClass (r := 0) ℂ (twistCore (𝕜 := ℂ) (n := n) 0).Fiber (finrank_self ℂ) = 0 := by
+  refine complexEulerClass_eq_zero_of_forall_ne_zero ℂ _ (finrank_self ℂ)
+    (s := fun _ ↦ ((1 : ℂ) : (twistCore (𝕜 := ℂ) (n := n) 0).Fiber _)) ?_
+    fun _ ↦ one_ne_zero (α := ℂ)
+  -- The section `1` read through the global trivialization of `𝒪(0)`.
+  refine (continuousOn_univ.1 <| by
+    simpa using (twistCoreZeroTrivialization (𝕜 := ℂ) (n := n)).continuousOn_symm_prodMk_left
+      (v := (1 : ℂ))).congr fun b ↦ ?_
+  have h := (twistCoreZeroTrivialization (𝕜 := ℂ) (n := n)).symm_apply_apply
+    (x := TotalSpace.mk' ℂ b (1 : ℂ)) (by simp [Trivialization.mem_source])
+  rw [twistCoreZeroTrivialization_apply] at h
+  exact h
 
 /-- **The Euler class of `𝒪(-1)`.** On `ℙ ℂ (Fin (n + 1) → ℂ)`, the Euler class of Tau Ceti's
 `twistCore (-1)`, read in integral cohomology through `TopCat.uliftIntegralCohomologyIso`, is minus
