@@ -33,6 +33,9 @@ The change of variables is Tau Ceti's
 to any orientation-preserving open embedding, so no comparison with the charts of the atlas of
 `M` is needed.
 
+For a chart in the maximal `C^n` atlas, the formula of `φ` is `C^n` on the ball of radius `2`
+(`SymplecticGeometry.CoordinateDisc.contMDiffOn_symm_add_smul_orthonormalBasisOneI_repr`).
+
 ## Main results
 
 * `SymplecticGeometry.CoordinateDisc.isOrientationPreservingAt_ofChart`: the coordinate disc of an
@@ -41,6 +44,8 @@ to any orientation-preserving open embedding, so no comparison with the charts o
   for a top form `f` supported in the image of `φ`.
 * `SymplecticGeometry.CoordinateDisc.integralTopForm_eq_of_mpullback_ofChart_eq`: a form that
   reads `k • d(β(‖z‖) dθ)` in the disc and vanishes outside it integrates to `2πk`.
+* `SymplecticGeometry.CoordinateDisc.contMDiffOn_symm_add_smul_orthonormalBasisOneI_repr`: the
+  coordinate disc of a smooth chart extends smoothly to the ball of radius `2`.
 
 ## References
 
@@ -129,6 +134,22 @@ theorem integralTopForm_eq_of_mpullback_ofChart_eq
   rw [← integralTopForm_mpullback_ofChart e hr hc he he' hf, hfk, integralTopForm_smul,
     integralTopForm_mpullback_subtypeVal _ ball hsupp,
     integralTopForm_mextDeriv_radialAngularForm hβ ha hβa hβb, mul_comm]
+
+/-! ### Smoothness of the coordinate disc of a chart -/
+
+omit [T2Space M] [IsManifold (𝓡 2) 1 M] in
+include hr hc in
+/-- For a chart `e` of the maximal `C^n` atlas of `M` and a ball `B(c, r)` in its target, the map
+`z ↦ e.symm (c + (r / 2) (re z, im z))` is `C^n` on the ball of radius `2` of `ℂ`. On that ball
+it is the coordinate disc `ofChart e hr hc he` (`ofChart_apply`). -/
+theorem contMDiffOn_symm_add_smul_orthonormalBasisOneI_repr {n : ℕ∞ω} [IsManifold (𝓡 2) n M]
+    (he' : e ∈ IsManifold.maximalAtlas (𝓡 2) n M) :
+    ContMDiffOn 𝓘(ℝ, ℂ) (𝓡 2) n
+      (fun z : ℂ ↦ e.symm (c + (r / 2) • Complex.orthonormalBasisOneI.repr z)) (ball : Set ℂ) :=
+  (contMDiffOn_symm_of_mem_maximalAtlas he').comp
+    (contDiff_const.add (Complex.orthonormalBasisOneI.repr.contDiff.const_smul
+      (r / 2))).contMDiff.contMDiffOn
+    fun z hz ↦ hc (add_smul_orthonormalBasisOneI_repr_mem_ball c hr ⟨z, hz⟩)
 
 end CoordinateDisc
 
