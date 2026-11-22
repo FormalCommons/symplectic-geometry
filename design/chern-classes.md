@@ -360,6 +360,27 @@ The instance `FiberBundle.compactSpace_totalSpace`, compactness of the total
 space of a fibre bundle with compact fibre over a compact base, is in a file
 of its own, `Topology/FiberBundle/Compact.lean`, which this file imports.
 
+### `LinearAlgebra/Projectivization/Basic.lean`
+
+`Projectivization.normalizedRep φ x`, the representative of a point `x` of
+`ℙ K V` on which a linear form `φ` is `1`, with its algebraic lemmas, and
+`Projectivization.mk_eq_of_mem_submodule`. The path is that of Tau Ceti's
+file with `linearProjectionDomain`, which it imports.
+
+### `Topology/Algebra/Projectivization.lean`
+
+`Projectivization.continuousOn_normalizedRep`: for a continuous `φ`, the
+normalized representative is continuous on `linearProjectionDomain φ`. The
+path is that of Tau Ceti's file with `isOpen_linearProjectionDomain`.
+
+### `Topology/Algebra/Module/Equiv/Submodule.lean`
+
+`ContinuousLinearMap.equivMapOfLeftInverse`: a continuous linear map with a
+continuous left inverse restricts to a continuous linear equivalence of a
+submodule onto its image, the continuous form of Mathlib's
+`Submodule.equivMapOfInjective`. The path is that of Mathlib's file with
+`ContinuousLinearEquiv.ofSubmodules`.
+
 ### `Topology/VectorBundle/ProjectiveBundle/Tautological.lean`
 
 - `Projectivization.Tautological 𝕜 V : ℙ 𝕜 V → Type`, `ℓ ↦ ℓ.submodule`, the
@@ -379,6 +400,10 @@ of its own, `Topology/FiberBundle/Compact.lean`, which this file imports.
   `b` is `Projectivization.Tautological 𝕜 (E b)`; its pull-backs along
   `ProjectiveBundle.map`, `pullbackMap`, `inl` and `inr` are the tautological
   lines of the source, by fibrewise isomorphisms continuous on total spaces.
+
+The topology of the second line is Tau Ceti's `TauCeti.subbundleTopology`
+(`Topology/VectorBundle/Subbundle.lean`), for the lines as subspaces of the
+fibres of that pull-back. The file imports the three files above.
 
 ### `Topology/VectorBundle/Complex/ChernClass/ProjectiveSpace.lean`
 

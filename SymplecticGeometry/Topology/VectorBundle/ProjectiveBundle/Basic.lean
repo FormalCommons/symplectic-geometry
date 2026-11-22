@@ -310,6 +310,31 @@ theorem trivializationAt_symm_apply {b b' : B} (hb' : b' ∈ (trivializationAt G
         x⟩ :=
   pretrivialization_symm_apply _ hb' x
 
+/-- Read in the trivialization of `E` at `b₀`, the inverse of the trivialization maps the line
+`p`, read in the trivialization of the projective bundle at `b₀`, into `p`. -/
+theorem symmL_mem_submodule {b₀ : B} {p : ProjectiveBundle 𝕜 G E} {w : G}
+    (hw : w ∈ (trivializationAt (ℙ 𝕜 G) (fun b ↦ ℙ 𝕜 (E b)) b₀ p).2.submodule) :
+    (trivializationAt G E b₀).symmL 𝕜 p.proj w ∈ p.snd.submodule := by
+  by_cases hp : p.proj ∈ (trivializationAt G E b₀).baseSet
+  · rw [trivializationAt_apply _ hp, ContinuousLinearEquiv.coe_mapProjectivization,
+      Projectivization.submodule_map] at hw
+    obtain ⟨u, hu, rfl⟩ := hw
+    rw [← Trivialization.symm_continuousLinearEquivAt_eq' _ hp, ContinuousLinearEquiv.coe_coe]
+    simpa [Trivialization.symm_apply_apply_mk _ hp] using hu
+  · rw [Trivialization.symmL_apply_of_notMem _ hp]
+    exact zero_mem _
+
+/-- On the base set, a vector of the line `p` is sent by the trivialization of `E` at `b₀` into
+the line `p` read in the trivialization of the projective bundle at `b₀`. -/
+theorem trivializationAt_mem_submodule {b₀ : B} {p : ProjectiveBundle 𝕜 G E}
+    (hp : p.proj ∈ (trivializationAt G E b₀).baseSet) {v : E p.proj} (hv : v ∈ p.snd.submodule) :
+    (trivializationAt G E b₀ ⟨p.proj, v⟩).2 ∈
+      (trivializationAt (ℙ 𝕜 G) (fun b ↦ ℙ 𝕜 (E b)) b₀ p).2.submodule := by
+  rw [trivializationAt_apply _ hp, ContinuousLinearEquiv.coe_mapProjectivization,
+    Projectivization.submodule_map,
+    (trivializationAt G E b₀).apply_eq_prod_continuousLinearEquivAt 𝕜 _ hp]
+  exact Submodule.mem_map_of_mem hv
+
 /-- Read in the trivialization of `E` at `b`, the line spanned by a nonzero vector `v` over the base
 set is the line spanned by the coordinates of `v`. -/
 theorem trivializationAt_mk {b : B} (v : TotalSpace G E) (hv : v.snd ≠ 0)

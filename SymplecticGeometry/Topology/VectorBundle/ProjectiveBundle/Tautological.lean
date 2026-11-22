@@ -5,7 +5,9 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import Mathlib.Topology.Algebra.Module.Equiv.Submodule
+public import TauCeti.Topology.VectorBundle.Subbundle
+public import SymplecticGeometry.Topology.Algebra.Module.Equiv.Submodule
+public import SymplecticGeometry.Topology.Algebra.Projectivization
 public import SymplecticGeometry.Topology.VectorBundle.ProjectiveBundle.Basic
 
 /-!
@@ -23,8 +25,7 @@ vectors of `V` (`Projectivization.tautologicalComplZeroHomeomorph`).
 
 For a vector bundle `E → B` with model fibre `G`, the tautological line
 `SymplecticGeometry.Bundle.ProjectiveBundle.Tautological 𝕜 G E` over the projective bundle has the
-line `p ⊆ E b` itself as its fibre over `p`. Its total space is a subspace of the product of the
-projective bundle with the total space of `E`, so that it is a subspace of the pull-back of `E`
+line `p ⊆ E b` itself as its fibre over `p`. Its total space is a subspace of the pull-back of `E`
 along the projection (`ProjectiveBundle.isEmbedding_tautologicalInclusion`). It is trivialized in
 the same way, a trivialization `e` of `E` reading the line `p` as a line of `G`. Its restriction to
 the fibre over `b` is the tautological line of `ℙ 𝕜 (E b)`, and its pull-backs along
@@ -41,17 +42,20 @@ lines of `Fin N → 𝕜`, with model fibre `Fin 1 → 𝕜` and for `RCLike �
 `ℙ 𝕜 (E b)` of a projective bundle need `ℙ 𝕜 V` for every `V`. On `ℙ 𝕜 (Fin (n + 1) → 𝕜)` both
 are isomorphic to `Projectivization.Tautological`; this file does not use or prove that.
 
+The topology of the tautological line over the projective bundle is Tau Ceti's
+`TauCeti.subbundleTopology` of the family of lines in the fibres of the pull-back of `E`, and its
+embedding and the topology of its fibres come from `TauCeti.isEmbedding_totalSpace_subbundle` and
+`TauCeti.isInducing_totalSpaceMk_subbundle`. Its trivializations are built here, since Tau Ceti's
+`TauCeti.HasLocalSubbundleFrames.vectorBundle` is stated for `IsRCLikeNormedField 𝕜`, with model
+fibre `ι → 𝕜` rather than `𝕜`.
+
 ## Main definitions
 
-* `Projectivization.normalizedRep φ x`: the representative of `x` on which the linear form `φ` is
-  `1`.
 * `Projectivization.Tautological 𝕜 V`: the tautological line over `ℙ 𝕜 V`, with its trivializations
   `Projectivization.tautologicalTrivialization` and its `FiberBundle` and `VectorBundle`
   instances.
 * `Projectivization.tautologicalComplZeroHomeomorph`: the complement of the zero section is
   homeomorphic to the nonzero vectors of `V`.
-* `ContinuousLinearMap.equivMapOfLeftInverse`: a continuous linear map with a continuous left
-  inverse restricts to an isomorphism of a submodule onto its image.
 * `SymplecticGeometry.Bundle.ProjectiveBundle.Tautological 𝕜 G E`: the tautological line over the
   projective bundle, with its trivializations `ProjectiveBundle.tautologicalTrivialization` and
   its `FiberBundle` and `VectorBundle` instances.
@@ -64,8 +68,6 @@ are isomorphic to `Projectivization.Tautological`; this file does not use or pro
 
 ## Main results
 
-* `Projectivization.continuousOn_normalizedRep`: the normalized representative is continuous where
-  the linear form does not vanish.
 * `ProjectiveBundle.isEmbedding_tautologicalInclusion`: the tautological line is a subspace of the
   pull-back of `E`.
 * `ProjectiveBundle.continuous_tautologicalMapEquiv`,
@@ -79,10 +81,14 @@ Both tautological lines carry the subspace topology, so that a map into their to
 continuous as soon as its base point and its vector are
 (`Projectivization.continuous_totalSpace_tautological_iff`,
 `ProjectiveBundle.continuous_totalSpace_tautological_iff`). The scalars are any nontrivially normed
-field, and the `FiberBundle` instances assume `SeparatingDual 𝕜 V` or `SeparatingDual 𝕜 G`, which
-holds over `ℝ` and `ℂ`. The pull-backs along `ProjectiveBundle.map`, `ProjectiveBundle.inl` and
+field, and the `FiberBundle` instances assume `SeparatingDual 𝕜 V` or `SeparatingDual 𝕜 G`. Mathlib
+has this instance for normed spaces over `RCLike 𝕜`, which covers `G` over `ℝ` and `ℂ`, and for
+locally convex T1 spaces over `ℝ`. For a fibre `E b` of a vector bundle, which has no norm, it must
+be supplied. The pull-backs along `ProjectiveBundle.map`, `ProjectiveBundle.inl` and
 `ProjectiveBundle.inr` have the lines of the target as fibres by definition, which is why these
-maps, `ProjectiveBundle.projection` and `ProjectiveBundle.pullbackMap` are `@[expose]`.
+maps, `ProjectiveBundle.projection` and `ProjectiveBundle.pullbackMap` are `@[expose]`, and the
+fibrewise isomorphisms along `inl` and `inr` are computed through
+`ContinuousLinearMap.equivMapOfLeftInverse`, which is `@[expose]` for the same reason.
 
 ## References
 
@@ -100,80 +106,6 @@ open Bundle Set Topology
 open scoped LinearAlgebra.Projectivization
 
 namespace Projectivization
-
-/-! ### The representative normalized by a linear form -/
-
-section NormalizedRep
-
-variable {K V : Type*} [Field K] [AddCommGroup V] [Module K V]
-
-/-- The representative of a point `x` of `ℙ K V` on which the linear form `φ` takes the value
-`1`, if `φ` does not vanish on `x`; it is `0` otherwise. -/
-def normalizedRep (φ : V →ₗ[K] K) (x : ℙ K V) : V :=
-  (φ x.rep)⁻¹ • x.rep
-
-theorem normalizedRep_def (φ : V →ₗ[K] K) (x : ℙ K V) : normalizedRep φ x = (φ x.rep)⁻¹ • x.rep :=
-  (rfl)
-
-@[simp]
-theorem normalizedRep_mk (φ : V →ₗ[K] K) {v : V} (hv : v ≠ 0) :
-    normalizedRep φ (mk K v hv) = (φ v)⁻¹ • v := by
-  obtain ⟨a, ha⟩ := exists_smul_eq_mk_rep K v hv
-  rw [normalizedRep_def, ← ha, Units.smul_def, map_smul, smul_eq_mul, smul_smul, mul_inv]
-  congr 1
-  field_simp
-
-theorem normalizedRep_mem_submodule (φ : V →ₗ[K] K) (x : ℙ K V) :
-    normalizedRep φ x ∈ x.submodule := by
-  rw [normalizedRep_def, submodule_eq]
-  exact Submodule.smul_mem _ _ (Submodule.mem_span_singleton_self _)
-
-theorem apply_normalizedRep {φ : V →ₗ[K] K} {x : ℙ K V} (hx : x ∈ linearProjectionDomain φ) :
-    φ (normalizedRep φ x) = 1 := by
-  rw [mem_linearProjectionDomain_iff] at hx
-  rw [normalizedRep_def, map_smul, smul_eq_mul, inv_mul_cancel₀ hx]
-
-/-- A vector of the line `x` is the multiple of the normalized representative by its value
-under `φ`. -/
-theorem apply_smul_normalizedRep {φ : V →ₗ[K] K} {x : ℙ K V} (hx : x ∈ linearProjectionDomain φ)
-    {u : V} (hu : u ∈ x.submodule) : φ u • normalizedRep φ x = u := by
-  rw [submodule_eq, Submodule.mem_span_singleton] at hu
-  obtain ⟨c, rfl⟩ := hu
-  rw [mem_linearProjectionDomain_iff] at hx
-  rw [normalizedRep_def, smul_smul, map_smul, smul_eq_mul, mul_assoc, mul_inv_cancel₀ hx,
-    mul_one]
-
-theorem mem_submodule_mk {v : V} (hv : v ≠ 0) : v ∈ (mk K v hv).submodule := by
-  rw [submodule_mk]
-  exact Submodule.mem_span_singleton_self v
-
-/-- A nonzero vector of a line spans it. -/
-theorem mk_eq_of_mem_submodule {x : ℙ K V} {v : V} (hv : v ≠ 0) (hx : v ∈ x.submodule) :
-    mk K v hv = x := by
-  rw [submodule_eq, Submodule.mem_span_singleton] at hx
-  obtain ⟨c, rfl⟩ := hx
-  conv_rhs => rw [← mk_rep x]
-  exact (mk_eq_mk_iff' K _ _ hv x.rep_ne_zero).2 ⟨c, rfl⟩
-
-variable [TopologicalSpace K] [IsTopologicalDivisionRing K] [TopologicalSpace V]
-  [ContinuousSMul K V]
-
-/-- The normalized representative depends continuously on the point, where `φ` does not vanish. -/
-theorem continuousOn_normalizedRep {φ : V →ₗ[K] K} (hφ : Continuous φ) :
-    ContinuousOn (normalizedRep φ) (linearProjectionDomain φ) := by
-  intro x hx
-  refine ContinuousAt.continuousWithinAt ?_
-  obtain ⟨v, rfl⟩ := isOpenQuotientMap_mk'.surjective x
-  rw [← isOpenQuotientMap_mk'.continuousAt_comp_iff]
-  have hv : φ v ≠ 0 := by simpa [mk'_eq_mk] using hx
-  have h : normalizedRep φ ∘ mk' K = fun w : {w : V // w ≠ 0} ↦ (φ w)⁻¹ • (w : V) := by
-    ext w
-    simp [mk'_eq_mk]
-  rw [h]
-  exact ((hφ.comp continuous_subtypeVal).continuousAt.inv₀ hv).smul
-    continuous_subtypeVal.continuousAt
-
-end NormalizedRep
 
 /-! ### The tautological line over a projective space -/
 
@@ -379,43 +311,6 @@ end Tautological
 
 end Projectivization
 
-/-! ### Restricting a continuous linear map with a left inverse to a submodule -/
-
-namespace ContinuousLinearMap
-
-variable {R M M₂ : Type*} [Semiring R] [AddCommMonoid M] [Module R M] [TopologicalSpace M]
-  [AddCommMonoid M₂] [Module R M₂] [TopologicalSpace M₂]
-
-/-- A continuous linear map `f` with a continuous left inverse `g` restricts to a continuous
-linear equivalence of a submodule `p` onto its image; the inverse is the restriction of `g`. -/
-def equivMapOfLeftInverse (f : M →L[R] M₂) (g : M₂ →L[R] M) (h : Function.LeftInverse g f)
-    (p : Submodule R M) : p ≃L[R] p.map (f : M →ₗ[R] M₂) where
-  toFun v := ⟨f v, Submodule.mem_map_of_mem v.property⟩
-  invFun w := ⟨g w, (Submodule.mem_map.1 w.property).elim fun u ⟨hu, hw⟩ ↦ by
-    rwa [← hw, coe_coe, h u]⟩
-  map_add' v w := by ext; simp
-  map_smul' c v := by ext; simp
-  left_inv v := Subtype.ext (h v)
-  right_inv := by
-    rintro ⟨_, u, -, rfl⟩
-    exact Subtype.ext (congrArg f (h u))
-  continuous_toFun := (f.continuous.comp continuous_subtypeVal).subtype_mk _
-  continuous_invFun := (g.continuous.comp continuous_subtypeVal).subtype_mk _
-
-@[simp]
-theorem coe_equivMapOfLeftInverse_apply (f : M →L[R] M₂) (g : M₂ →L[R] M)
-    (h : Function.LeftInverse g f) (p : Submodule R M) (v : p) :
-    (f.equivMapOfLeftInverse g h p v : M₂) = f v :=
-  (rfl)
-
-@[simp]
-theorem coe_equivMapOfLeftInverse_symm_apply (f : M →L[R] M₂) (g : M₂ →L[R] M)
-    (h : Function.LeftInverse g f) (p : Submodule R M) (w : p.map (f : M →ₗ[R] M₂)) :
-    ((f.equivMapOfLeftInverse g h p).symm w : M) = g w :=
-  (rfl)
-
-end ContinuousLinearMap
-
 /-! ### The tautological line over a projective bundle -/
 
 namespace SymplecticGeometry.Bundle
@@ -433,33 +328,35 @@ variable (𝕜 G E) in
 the line `p` itself, as a subspace of `E b`. -/
 abbrev Tautological : ProjectiveBundle 𝕜 G E → Type _ := fun p ↦ p.snd.submodule
 
-variable (𝕜 G E) in
-/-- A vector of the tautological line over the projective bundle, as a pair of its base point
-and a vector of `E`. -/
-def tautologicalToProd (v : TotalSpace 𝕜 (Tautological 𝕜 G E)) :
-    ProjectiveBundle 𝕜 G E × TotalSpace G E :=
-  (v.proj, ⟨v.proj.proj, v.snd⟩)
-
-@[simp]
-theorem tautologicalToProd_apply (v : TotalSpace 𝕜 (Tautological 𝕜 G E)) :
-    tautologicalToProd 𝕜 G E v = (v.proj, ⟨v.proj.proj, v.snd⟩) :=
-  (rfl)
-
 variable [TopologicalSpace B] [TopologicalSpace (TotalSpace G E)] [∀ b, TopologicalSpace (E b)]
   [FiberBundle G E] [VectorBundle 𝕜 G E]
 
-/-- The total space of the tautological line carries the topology of a subspace of the product
-of the projective bundle with the total space of `E`. -/
+/-- The total space of the tautological line carries the topology of a subspace of the pull-back
+of `E` along the projection of the projective bundle, Tau Ceti's `TauCeti.subbundleTopology` of
+the family of lines `p ↦ p.snd.submodule` of the fibres of that pull-back. -/
 instance : TopologicalSpace (TotalSpace 𝕜 (Tautological 𝕜 G E)) :=
-  .induced (tautologicalToProd 𝕜 G E) inferInstance
+  TauCeti.subbundleTopology G (E := projection 𝕜 G E *ᵖ E) (F' := 𝕜) fun p ↦ p.snd.submodule
 
 variable (𝕜 G E) in
-theorem isEmbedding_tautologicalToProd : IsEmbedding (tautologicalToProd 𝕜 G E) := by
-  refine ⟨⟨rfl⟩, ?_⟩
-  rintro ⟨p, v⟩ ⟨p', v'⟩ h
-  simp only [tautologicalToProd_apply, Prod.mk.injEq] at h
-  obtain ⟨rfl, h⟩ := h
-  exact congrArg (TotalSpace.mk p) (Subtype.ext (TotalSpace.mk_inj.1 h))
+/-- The inclusion of the tautological line into the pull-back of `E` along the projection of the
+projective bundle: a vector `v` of the line `p` goes to `v`, as a vector of `E` over `p`. -/
+def tautologicalInclusion :
+    C(TotalSpace 𝕜 (Tautological 𝕜 G E), TotalSpace G (projection 𝕜 G E *ᵖ E)) where
+  toFun v := ⟨v.proj, (v.snd : E v.proj.proj)⟩
+  continuous_toFun := IsEmbedding.continuous (X := TotalSpace 𝕜 (Tautological 𝕜 G E))
+    (TauCeti.isEmbedding_totalSpace_subbundle G 𝕜 (E := projection 𝕜 G E *ᵖ E)
+      fun p ↦ p.snd.submodule)
+
+@[simp]
+theorem tautologicalInclusion_apply (v : TotalSpace 𝕜 (Tautological 𝕜 G E)) :
+    tautologicalInclusion 𝕜 G E v = ⟨v.proj, (v.snd : E v.proj.proj)⟩ :=
+  (rfl)
+
+variable (𝕜 G E) in
+/-- The tautological line is a subspace of the pull-back of `E` to the projective bundle. -/
+theorem isEmbedding_tautologicalInclusion : IsEmbedding (tautologicalInclusion 𝕜 G E) :=
+  TauCeti.isEmbedding_totalSpace_subbundle G 𝕜 (E := projection 𝕜 G E *ᵖ E)
+    fun p ↦ p.snd.submodule
 
 /-- A map into the total space of the tautological line over the projective bundle is continuous
 if and only if its base point and its vector, as a vector of `E`, are. -/
@@ -467,7 +364,16 @@ theorem continuous_totalSpace_tautological_iff {X : Type*} [TopologicalSpace X]
     {g : X → TotalSpace 𝕜 (Tautological 𝕜 G E)} :
     Continuous g ↔ Continuous (fun x ↦ (g x).proj) ∧
       Continuous (fun x ↦ (⟨(g x).proj.proj, (g x).snd⟩ : TotalSpace G E)) :=
-  (isEmbedding_tautologicalToProd 𝕜 G E).isInducing.continuous_iff.trans continuous_prodMk
+  (isEmbedding_tautologicalInclusion 𝕜 G E).isInducing.continuous_iff.trans Pullback.continuous_iff
+
+/-- A map into the total space of the tautological line over the projective bundle is continuous
+on a set if and only if its base point and its vector, as a vector of `E`, are. -/
+theorem continuousOn_totalSpace_tautological_iff {X : Type*} [TopologicalSpace X]
+    {g : X → TotalSpace 𝕜 (Tautological 𝕜 G E)} {s : Set X} :
+    ContinuousOn g s ↔ ContinuousOn (fun x ↦ (g x).proj) s ∧
+      ContinuousOn (fun x ↦ (⟨(g x).proj.proj, (g x).snd⟩ : TotalSpace G E)) s := by
+  simp only [continuousOn_iff_continuous_domRestrict]
+  exact continuous_totalSpace_tautological_iff
 
 variable (𝕜 G E) in
 theorem continuous_proj_tautological : Continuous (π 𝕜 (Tautological 𝕜 G E)) :=
@@ -478,21 +384,6 @@ theorem continuous_toTotalSpace_tautological :
     Continuous fun v : TotalSpace 𝕜 (Tautological 𝕜 G E) ↦
       (⟨v.proj.proj, v.snd⟩ : TotalSpace G E) :=
   (continuous_totalSpace_tautological_iff.1 continuous_id).2
-
-
-/-- Read in the trivialization of `E` at `b₀`, the inverse of the trivialization maps the line
-`p`, read in the trivialization of the projective bundle at `b₀`, into `p`. -/
-theorem symmL_mem_submodule {b₀ : B} {p : ProjectiveBundle 𝕜 G E} {w : G}
-    (hw : w ∈ (trivializationAt (ℙ 𝕜 G) (fun b ↦ ℙ 𝕜 (E b)) b₀ p).2.submodule) :
-    (trivializationAt G E b₀).symmL 𝕜 p.proj w ∈ p.snd.submodule := by
-  by_cases hp : p.proj ∈ (trivializationAt G E b₀).baseSet
-  · rw [trivializationAt_apply _ hp, ContinuousLinearEquiv.coe_mapProjectivization,
-      submodule_map] at hw
-    obtain ⟨u, hu, rfl⟩ := hw
-    rw [← Trivialization.symm_continuousLinearEquivAt_eq' _ hp, ContinuousLinearEquiv.coe_coe]
-    simpa [Trivialization.symm_apply_apply_mk _ hp] using hu
-  · rw [Trivialization.symmL_apply_of_notMem _ hp]
-    exact zero_mem _
 
 variable (𝕜 G E) in
 /-- The lines `p` over the base set of the trivialization `e` of `E` at `b₀` whose image `e p`
@@ -514,16 +405,6 @@ theorem isOpen_tautologicalBaseSet (b₀ : B) (φ : G →L[𝕜] 𝕜) :
     (isOpen_univ.prod (isOpen_linearProjectionDomain φ.continuous)) using 1
   ext p
   simp [mem_tautologicalBaseSet_iff, Trivialization.mem_source, trivializationAt_baseSet]
-
-/-- On the base set, a vector of the line `p` is sent by the trivialization of `E` at `b₀` into
-the line `p` read in the trivialization of the projective bundle at `b₀`. -/
-theorem trivializationAt_mem_submodule {b₀ : B} {p : ProjectiveBundle 𝕜 G E}
-    (hp : p.proj ∈ (trivializationAt G E b₀).baseSet) {v : E p.proj} (hv : v ∈ p.snd.submodule) :
-    (trivializationAt G E b₀ ⟨p.proj, v⟩).2 ∈
-      (trivializationAt (ℙ 𝕜 G) (fun b ↦ ℙ 𝕜 (E b)) b₀ p).2.submodule := by
-  rw [trivializationAt_apply _ hp, ContinuousLinearEquiv.coe_mapProjectivization, submodule_map,
-    (trivializationAt G E b₀).apply_eq_prod_continuousLinearEquivAt 𝕜 _ hp]
-  exact Submodule.mem_map_of_mem hv
 
 theorem continuousOn_normalizedRep_trivializationAt (b₀ : B) (φ : G →L[𝕜] 𝕜) :
     ContinuousOn (fun p : ProjectiveBundle 𝕜 G E ↦ normalizedRep (φ : G →ₗ[𝕜] 𝕜)
@@ -570,17 +451,11 @@ def tautologicalTrivialization (b₀ : B) (φ : G →L[𝕜] 𝕜) :
         (continuous_toTotalSpace_tautological 𝕜 G E).continuousOn fun v hv ↦ ?_))
     exact (trivializationAt G E b₀).mem_source.2 hv.1
   continuousOn_invFun := by
-    rw [(isEmbedding_tautologicalToProd 𝕜 G E).isInducing.continuousOn_iff]
-    refine continuousOn_fst.prodMk ?_
-    have hN : ContinuousOn (fun p : ProjectiveBundle 𝕜 G E ↦ normalizedRep (φ : G →ₗ[𝕜] 𝕜)
-        (trivializationAt (ℙ 𝕜 G) (fun b ↦ ℙ 𝕜 (E b)) b₀ p).2) (tautologicalBaseSet 𝕜 G E b₀ φ) :=
-      (continuousOn_normalizedRep φ.continuous).comp (continuous_snd.comp_continuousOn
-        ((trivializationAt (ℙ 𝕜 G) (fun b ↦ ℙ 𝕜 (E b)) b₀).continuousOn.mono fun p hp ↦
-          by rw [Trivialization.mem_source, trivializationAt_baseSet]; exact hp.1))
-        fun p hp ↦ hp.2
+    refine continuousOn_totalSpace_tautological_iff.2 ⟨continuousOn_fst, ?_⟩
     refine ((trivializationAt G E b₀).continuousOn_symm.comp
       (((FiberBundle.continuous_proj _ _).comp continuous_fst).continuousOn.prodMk
-        (continuousOn_snd.smul (hN.comp continuousOn_fst mapsTo_fst_prod)))
+        (continuousOn_snd.smul ((continuousOn_normalizedRep_trivializationAt b₀ φ).comp
+          continuousOn_fst mapsTo_fst_prod)))
       fun q hq ↦ ⟨hq.1.1, mem_univ _⟩).congr fun q hq ↦ ?_
     simp only [Function.comp_apply, Pi.smul_apply', Trivialization.symmL_apply _ hq.1.1]
   baseSet := tautologicalBaseSet 𝕜 G E b₀ φ
@@ -609,6 +484,20 @@ theorem tautologicalTrivialization_symm_apply (b₀ : B) (φ : G →L[𝕜] 𝕜
       symmL_mem_submodule (Submodule.smul_mem _ _ (normalizedRep_mem_submodule _ _))⟩⟩ :=
   (rfl)
 
+/-- The inverse of the trivialization `tautologicalTrivialization 𝕜 G E b₀ φ` on the fibre over a
+line `p` of its base set sends `t` to the vector of `E` over `p` whose coordinates in the
+trivialization of `E` at `b₀` are `t` times the representative, normalized by `φ`, of the line `p`
+read in that trivialization. -/
+theorem coe_tautologicalTrivialization_symm (b₀ : B) (φ : G →L[𝕜] 𝕜)
+    {p : ProjectiveBundle 𝕜 G E} (hp : p ∈ tautologicalBaseSet 𝕜 G E b₀ φ) (t : 𝕜) :
+    ((tautologicalTrivialization 𝕜 G E b₀ φ).symm p t : E p.proj) =
+      (trivializationAt G E b₀).symm p.proj (t • normalizedRep (φ : G →ₗ[𝕜] 𝕜)
+        (trivializationAt (ℙ 𝕜 G) (fun b ↦ ℙ 𝕜 (E b)) b₀ p).2) := by
+  have h := (tautologicalTrivialization 𝕜 G E b₀ φ).mk_symm hp t
+  rw [tautologicalTrivialization_symm_apply] at h
+  rw [← Trivialization.symmL_apply (R := 𝕜) _ hp.1]
+  exact congrArg Subtype.val (eq_of_heq (TotalSpace.mk.inj h).2)
+
 instance (b₀ : B) (φ : G →L[𝕜] 𝕜) : (tautologicalTrivialization 𝕜 G E b₀ φ).IsLinear 𝕜 where
   linear _ hp :=
     { map_add := fun v w ↦ by
@@ -623,9 +512,8 @@ variable [SeparatingDual 𝕜 G]
 /-- The tautological line over the projective bundle is a fibre bundle with model fibre `𝕜`. -/
 instance : FiberBundle 𝕜 (Tautological 𝕜 G E) where
   totalSpaceMk_isInducing' p := by
-    rw [← (isEmbedding_tautologicalToProd 𝕜 G E).isInducing.of_comp_iff]
-    exact isInducing_const_prod.2
-      ((FiberBundle.totalSpaceMk_isInducing G E p.proj).comp IsInducing.subtypeVal)
+    exact TauCeti.isInducing_totalSpaceMk_subbundle G 𝕜 (E := projection 𝕜 G E *ᵖ E)
+      (fun p ↦ p.snd.submodule) p
   trivializationAtlas' := range fun q : B × (G →L[𝕜] 𝕜) ↦ tautologicalTrivialization 𝕜 G E q.1 q.2
   trivializationAt' p := tautologicalTrivialization 𝕜 G E p.proj
     (tautologicalForm 𝕜 (trivializationAt (ℙ 𝕜 G) (fun b ↦ ℙ 𝕜 (E b)) p.proj p).2)
@@ -673,27 +561,7 @@ instance : VectorBundle 𝕜 𝕜 (Tautological 𝕜 G E) where
 
 end FiberBundle
 
-/-! ### The inclusion into the pull-back of `E`, and the restriction to a fibre -/
-
-variable (𝕜 G E) in
-/-- The inclusion of the tautological line into the pull-back of `E` along the projection of the
-projective bundle: a vector `v` of the line `p` goes to `v`, as a vector of `E` over `p`. -/
-def tautologicalInclusion :
-    C(TotalSpace 𝕜 (Tautological 𝕜 G E), TotalSpace G (projection 𝕜 G E *ᵖ E)) where
-  toFun v := ⟨v.proj, (v.snd : E v.proj.proj)⟩
-  continuous_toFun := Pullback.continuous_iff.2
-    ⟨continuous_proj_tautological 𝕜 G E, continuous_toTotalSpace_tautological 𝕜 G E⟩
-
-@[simp]
-theorem tautologicalInclusion_apply (v : TotalSpace 𝕜 (Tautological 𝕜 G E)) :
-    tautologicalInclusion 𝕜 G E v = ⟨v.proj, (v.snd : E v.proj.proj)⟩ :=
-  (rfl)
-
-variable (𝕜 G E) in
-/-- The tautological line is a subspace of the pull-back of `E` to the projective bundle. -/
-theorem isEmbedding_tautologicalInclusion : IsEmbedding (tautologicalInclusion 𝕜 G E) :=
-  .of_comp (tautologicalInclusion 𝕜 G E).continuous
-    (inducing_pullbackTotalSpaceEmbedding G E _).continuous (isEmbedding_tautologicalToProd 𝕜 G E)
+/-! ### The restriction to a fibre -/
 
 variable (𝕜 G E) in
 /-- The restriction of the tautological line to the fibre of the projective bundle over `b` is
