@@ -129,8 +129,7 @@ theorem singularCohomologyMap_fiberInclusion_projectiveBundleClass (b : B) :
     (E' := Projectivization.Tautological ℂ G)
     (φ := Projectivization.tautologicalMapEquiv (L : G →ₗ[ℂ] E b) L.injective) ?_
   · rw [hg, projectiveBundleClass_def, Projectivization.hyperplaneClass_def, map_neg, h]
-    exact congrArg _ (ConcreteCategory.congr_hom
-      (TopCat.uliftIntegralCohomologyIso_naturality _ 2) _).symm
+    exact congrArg _ (TopCat.uliftIntegralCohomologyIso_naturality_apply _ 2 _).symm
   · refine ProjectiveBundle.continuous_totalSpace_tautological_iff.2
       ⟨hcont.comp (Projectivization.continuous_proj_tautological ℂ G), ?_⟩
     have hs := e.continuousOn_symm.comp_continuous
@@ -521,7 +520,7 @@ theorem chernClass_one_eq_complexEulerClass (hG : finrank ℂ G = 1) :
   rw [← map_neg] at h1
   apply injective_projectiveBundle_proj G E (by omega) 2
   rw [DirectSum.of_injective 1 h1, projectiveBundleClass_def, neg_neg, hS]
-  exact ConcreteCategory.congr_hom (TopCat.uliftIntegralCohomologyIso_naturality _ 2) _
+  exact TopCat.uliftIntegralCohomologyIso_naturality_apply _ 2 _
 
 end SymplecticGeometry.Bundle
 

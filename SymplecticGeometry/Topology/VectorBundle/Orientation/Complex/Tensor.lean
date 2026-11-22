@@ -231,9 +231,8 @@ theorem uliftIntegralCohomologyIso_complexEulerClass_tensorProduct_tautological
         TopCat.singularCohomologyMap (TopCat.ofHom ContinuousMap.snd) 2 (hyperplaneClass W)) := by
   rw [complexEulerClass_tensorProduct_tautological, map_add, hyperplaneClass_def,
     hyperplaneClass_def, map_neg, map_neg, neg_add, neg_neg, neg_neg]
-  exact congrArg₂ (· + ·)
-    (ConcreteCategory.congr_hom (TopCat.uliftIntegralCohomologyIso_naturality _ 2) _)
-    (ConcreteCategory.congr_hom (TopCat.uliftIntegralCohomologyIso_naturality _ 2) _)
+  rw [TopCat.uliftIntegralCohomologyIso_naturality_apply,
+    TopCat.uliftIntegralCohomologyIso_naturality_apply]
 
 end Projectivization
 
