@@ -7,6 +7,7 @@ module
 
 public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Flow
 public import TauCeti.Geometry.Manifold.Flow.TimeDependent
+import TauCeti.Geometry.Manifold.Flow.Parametric
 public import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Tangent.Opens
 import Mathlib.Geometry.Manifold.Instances.Icc
@@ -20,6 +21,15 @@ manifold `M`, whose suspension on `ℝ × M` is complete. Tau Ceti's
 `TauCeti.timeDependentFlowDiffeomorph hc hn hX s t` is the flow of `X` from time `s` to time `t`,
 as a `C^n` diffeomorphism of `M`. For a fixed initial time `s`, these diffeomorphisms form a
 jointly `C^n` family in `(t, x)`.
+
+For a family `X a` of time-dependent fields indexed by the points of a boundaryless manifold `N`,
+jointly `C^n` in `(a, t, x)` and with complete suspensions, the flows are `C^n` in the parameter
+`a` as well. The flow of `X a` from `s` to `t` is read off the flow of its suspension for time
+`t - s`, and the suspensions form a jointly `C^n` family of autonomous fields on `ℝ × M`, whose
+flows Tau Ceti's `TauCeti.contMDiffAt_flowOf_param` shows to be smooth in the parameter.
+The proof of `TauCeti.contMDiff_timeDependentFlowOf_param` adapts that of Tau Ceti's
+`TauCeti.contMDiffOn_timeDependentFlowOf` (`TauCeti/Geometry/Manifold/Flow/TimeDependent.lean`),
+with `TauCeti.contMDiffAt_flowOf_param` in place of `TauCeti.contMDiffOn_flowOf`.
 
 The restriction of a `C¹` time-dependent field `X` to an open subset `U` has, as its flow, the flow
 of `X`, wherever the flow of the restriction is defined: a trajectory of the restriction is a
@@ -51,6 +61,9 @@ So the curves of the diffeotopy `TauCeti.timeDependentFlowDiffeotopy` of `X` are
 * `TauCeti.contMDiff_timeDependentFlowDiffeomorph`: the map
   `(t, x) ↦ timeDependentFlowDiffeomorph hc hn hX s t x` is `C^n` on `ℝ × M`. It is Tau Ceti's
   `TauCeti.contMDiff_timeDependentFlowOf` restricted to a fixed initial time.
+* `TauCeti.contMDiff_timeDependentFlowOf_param`: the time-dependent flows of a jointly `C^n`
+  family of fields with complete suspensions are `C^n` in the parameter, both times and the
+  initial point.
 * `TauCeti.timeDependentFlowOf_restrict_eq`: the flow of the restriction of `X` to `U` is defined
   only where the flow of `X` is, and agrees with it there.
 * `TauCeti.tangentSpaceOpenEquiv_mfderiv_timeDependentFlowOf_restrict`: so do their differentials,
@@ -83,6 +96,58 @@ theorem contMDiff_timeDependentFlowDiffeomorph [FiniteDimensional ℝ E] [T2Spac
   (contMDiff_timeDependentFlowOf hc hn hX).comp
     ((contMDiff_const.prodMk contMDiff_fst).prodMk contMDiff_snd) |>.congr fun p ↦
       timeDependentFlowDiffeomorph_apply hc hn hX s p.1 p.2
+
+/-! ### Families of time-dependent fields -/
+
+section Param
+
+variable {EN HN N : Type*} [NormedAddCommGroup EN] [NormedSpace ℝ EN] [CompleteSpace EN]
+  [TopologicalSpace HN] {J : ModelWithCorners ℝ EN HN} [TopologicalSpace N] [ChartedSpace HN N]
+  [T2Space N] [BoundarylessManifold J N]
+
+/-- **The time-dependent flow of a family is smooth in the parameter.** Let `X a` be a family of
+time-dependent vector fields on a finite-dimensional boundaryless manifold `M`, indexed by the
+points `a` of a Hausdorff boundaryless manifold `N` modelled on a complete normed space, and
+jointly `C^n` in `(a, t, x)`, `1 ≤ n`, such that the suspension of every `X a` is complete. Then
+`(a, s, t, x) ↦ timeDependentFlowOf (X a) s t x` is `C^n`. -/
+theorem contMDiff_timeDependentFlowOf_param [FiniteDimensional ℝ E] [T2Space M]
+    [BoundarylessManifold I M] [IsManifold I 1 M] [IsManifold J 1 N] {n : ℕ∞} (hn : 1 ≤ n)
+    [IsManifold I n M] [IsManifold J n N] {X : N → ℝ → (x : M) → TangentSpace I x}
+    (hX : ContMDiff ((J.prod 𝓘(ℝ, ℝ)).prod I) I.tangent n
+      (fun p : (N × ℝ) × M ↦ (⟨p.2, X p.1.1 p.1.2 p.2⟩ : TangentBundle I M)))
+    (hc : ∀ a, IsCompleteVectorField (timeDependentSuspensionField (X a))) :
+    ContMDiff ((J.prod (𝓘(ℝ, ℝ).prod 𝓘(ℝ, ℝ))).prod I) I n
+      (fun p : (N × ℝ × ℝ) × M ↦ timeDependentFlowOf (X p.1.1) p.1.2.1 p.1.2.2 p.2) := by
+  -- The suspensions `(t, x) ↦ (1, X a t x)` form a jointly `C^n` family over `N`.
+  have hclock : ContMDiff 𝓘(ℝ, ℝ) 𝓘(ℝ, ℝ).tangent n
+      (fun s : ℝ ↦ (⟨s, (1 : ℝ)⟩ : TangentBundle 𝓘(ℝ, ℝ) ℝ)) :=
+    contMDiff_vectorSpace_iff_contDiff.2 contDiff_const
+  have hS (z : N × ℝ × M) :
+      timeDependentSuspensionField (X z.1) z.2 = ((1 : ℝ), X z.1 z.2.1 z.2.2) :=
+    Prod.ext (timeDependentSuspensionField_fst _ _) (timeDependentSuspensionField_snd _ _)
+  have hv : ContMDiff (J.prod (𝓘(ℝ, ℝ).prod I)) (𝓘(ℝ, ℝ).prod I).tangent n
+      (fun z : N × ℝ × M ↦ (⟨z.2, timeDependentSuspensionField (X z.1) z.2⟩ :
+        TangentBundle (𝓘(ℝ, ℝ).prod I) (ℝ × M))) := by
+    simp only [hS]
+    exact (contMDiff_equivTangentBundleProd_symm (I := 𝓘(ℝ, ℝ)) (M := ℝ) (I' := I)
+      (M' := M)).comp ((hclock.comp contMDiff_snd.fst).prodMk
+        (hX.comp ((contMDiff_fst.prodMk contMDiff_snd.fst).prodMk contMDiff_snd.snd)))
+  have hmap : ContMDiff ((J.prod (𝓘(ℝ, ℝ).prod 𝓘(ℝ, ℝ))).prod I)
+      (J.prod (𝓘(ℝ, ℝ).prod (𝓘(ℝ, ℝ).prod I))) n
+      (fun p : (N × ℝ × ℝ) × M ↦ (p.1.1, p.1.2.2 - p.1.2.1, (p.1.2.1, p.2))) :=
+    contMDiff_fst.fst.prodMk ((contMDiff_fst.snd.snd.sub contMDiff_fst.snd.fst).prodMk
+      (contMDiff_fst.snd.fst.prodMk contMDiff_snd))
+  intro p
+  -- The flow from `s` to `t` is read off the flow of the suspension for time `t - s`.
+  refine (contMDiffAt_snd.comp _ ((contMDiffAt_flowOf_param
+    (v := fun a ↦ timeDependentSuspensionField (X a)) hn hv
+    ((hc p.1.1).mem_flowDomain (p.1.2.2 - p.1.2.1) (p.1.2.1, p.2))).comp p
+      (hmap p))).congr_of_eventuallyEq (Filter.Eventually.of_forall fun q ↦ ?_)
+  simp only [Function.comp_apply]
+  rw [flowOf_timeDependentSuspensionField
+    ((timeDependentFlowDomain_eq_univ (hc q.1.1)).symm ▸ Set.mem_univ _)]
+
+end Param
 
 /-! ### Uniqueness of solutions on preconnected sets of times -/
 
