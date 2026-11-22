@@ -203,8 +203,10 @@ omit [SigmaCompactSpace M] in
 /-- **De Rham cohomology of a compact manifold is finite-dimensional.** On a compact Hausdorff
 boundaryless manifold, modelled on a finite-dimensional space, the de Rham cohomology is
 finite-dimensional in every degree. -/
-instance finiteDimensional_deRhamCohomology [CompactSpace M] [BoundarylessManifold I M]
+theorem finiteDimensional_deRhamCohomology [CompactSpace M] [BoundarylessManifold I M]
     {k : ℕ} : FiniteDimensional ℝ (deRhamCohomology I M k) :=
   finiteDimensional_deRhamCohomology_of_hasFiniteGoodCover hasFiniteGoodCover_of_compactSpace k
+
+attribute [instance] finiteDimensional_deRhamCohomology
 
 end SymplecticGeometry
