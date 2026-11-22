@@ -462,7 +462,9 @@ and `Geometry/Manifold/MFDeriv/Constancy.lean`, and defines nothing.
   own). By `eq_fundamentalClassOn` it suffices to
   compute the local image at each point of `K`. There `g`, read on `U`, and
   the inclusion of `U` into $\mathbb R^2$ preserve orientation, so they carry
-  local orientations to local orientations (Tau Ceti's
+  local orientations to local orientations
+  (`TauCeti.Manifold.Orientation.localHomologyMap_toHomologicalOrientation`,
+  in `Orientation/Smooth.lean` of part *First Chern number*, from Tau Ceti's
   `localIndex_toHomologicalOrientation`), and this reduces to the standard
   simplex of `StdSimplex.lean`, which fixes the sign $s$.
 - The issue records $s$ in this file and in this section, and from then on
