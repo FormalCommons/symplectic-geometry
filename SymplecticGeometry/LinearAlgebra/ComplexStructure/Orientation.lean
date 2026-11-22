@@ -5,7 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import TauCeti.Geometry.Symplectic.Complex.Module.Hom
+public import SymplecticGeometry.LinearAlgebra.ComplexStructure.Hom
 public import TauCeti.Geometry.Symplectic.Prod.Basic
 public import TauCeti.LinearAlgebra.Complex.Orientation
 public import TauCeti.LinearAlgebra.Exact
@@ -168,12 +168,6 @@ theorem orientation_eq_of_apply_one_eq (J : AlmostComplexStructure V) (hV : finr
   -- Both sides reindex the same orientation along equal equivalences of index types.
   rfl
 
-omit [FiniteDimensional ℝ V] in
-/-- The inclusion of a `J`-invariant subspace is complex linear for the restriction of `J`. -/
-theorem isComplexLinearMap_subtype (J : AlmostComplexStructure V) (W : Submodule ℝ V)
-    (hW : ∀ v ∈ W, J v ∈ W) : IsComplexLinearMap (J.restrict W hW) J W.subtype :=
-  (isComplexLinearMap_iff_apply _ _ _).2 fun w ↦ J.coe_restrict_apply W hW w
-
 /-- Let `0 → U → V → W → 0` be a short exact sequence whose maps are complex linear for almost
 complex structures `J₁` on `U`, `J` on `V` and `J₂` on `W`. Then the orientation it induces from
 the orientations of `J₁` and `J₂`, with `U` first, is the orientation of `J`. -/
@@ -185,18 +179,8 @@ theorem shortExact_orientation {U W : Type*} [AddCommGroup U] [Module ℝ U] [Fi
     (hJg : IsComplexLinearMap J J₂ g) :
     Orientation.shortExact hf hfg hg J₁.orientation J₂.orientation rfl rfl =
       Orientation.reindex ℝ V (finCongr (hfg.finrank_eq_add hf hg)) J.orientation := by
-  let := J.complexModule
-  let := J₂.complexModule
-  have := J.complexModule_isScalarTower
-  have := J₂.complexModule_isScalarTower
   -- A complex-linear section `s` of `g`.
-  obtain ⟨sc, hsc⟩ := hJg.toComplexLinearMap.exists_rightInverse_of_surjective
-    (LinearMap.range_eq_top.2 fun w ↦ (hg w).imp fun v hv ↦ by
-      rwa [IsComplexLinearMap.toComplexLinearMap_apply])
-  set s := sc.restrictScalars ℝ
-  have hs : g ∘ₗ s = LinearMap.id := LinearMap.ext fun w ↦ by
-    simpa [s, IsComplexLinearMap.toComplexLinearMap_apply] using LinearMap.congr_fun hsc w
-  have hJs : IsComplexLinearMap J₂ J s := isComplexLinearMap_restrictScalars J₂ J sc
+  obtain ⟨s, hJs, hs⟩ := hJg.exists_rightInverse_of_surjective hg
   rw [Orientation.shortExact_eq_map_prod _ _ _ _ _ _ _ s hs]
   set e := (hfg.splitSurjectiveEquiv hf ⟨s, hs⟩).val.symm
   have he₁ (u : U) (w : W) : e (u, w) = f u + s w := by
