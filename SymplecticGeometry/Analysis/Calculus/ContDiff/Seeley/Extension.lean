@@ -19,7 +19,8 @@ Seeley's operator extends a function on `[0, ∞)` to `ℝ`: for `t < 0` it take
 cutoff equal to `1` on `(-∞, 1/2]` and to `0` on `[3/4, ∞)`. For each `t < 0` only finitely many
 terms are nonzero, and only values of `f` on `(0, 3/4)` enter, so the operator is linear and
 commutes with every linear map. Applying it at both ends of `[0, 1]`, the second time after the
-reflection `t ↦ 1 - t`, extends functions on `[0, 1]`.
+reflection `t ↦ 1 - t`, extends functions on `[0, 1]`. Both operators are bundled as `ℝ`-linear
+maps on `ℝ → F`, `seeleyExtendLinearMap` and `seeleyIccExtendLinearMap`.
 
 The main results say that the extension of a family `f (·, x)` that is smooth on
 `Ici 0 ×ˢ U` (respectively `Icc 0 1 ×ˢ U`), for `U` open in a normed space, is smooth on
@@ -46,6 +47,8 @@ two series glue across `t = 0` by `HasFTaylorSeriesUpToOn.union`. The uniform co
 
 * `SymplecticGeometry.contDiffOn_seeleyExtend`, `SymplecticGeometry.contDiffOn_seeleyIccExtend`:
   the extensions of smooth families are smooth.
+* `SymplecticGeometry.exists_contDiffOn_eqOn_Icc_prod`: a family smooth on `Icc a b ×ˢ U` agrees
+  there with one smooth on `univ ×ˢ U`.
 
 ## References
 
@@ -163,6 +166,20 @@ theorem seeleyExtend_smul (c : ℝ) (f : ℝ → F) :
   · obtain ⟨N, hN⟩ := exists_seeleyCutoff_eq_zero ht
     simp only [Pi.smul_apply, seeleyExtend_eq_sum _ ht hN, Finset.smul_sum, smul_comm c]
 
+variable (F) in
+/-- Seeley's extension `seeleyExtend`, as an `ℝ`-linear map on functions `ℝ → F`. -/
+noncomputable def seeleyExtendLinearMap : (ℝ → F) →ₗ[ℝ] (ℝ → F) where
+  toFun := seeleyExtend
+  map_add' := seeleyExtend_add
+  map_smul' := seeleyExtend_smul
+
+@[simp]
+theorem coe_seeleyExtendLinearMap : ⇑(seeleyExtendLinearMap F) = seeleyExtend := (rfl)
+
+@[simp]
+theorem seeleyExtend_zero : seeleyExtend (0 : ℝ → F) = 0 := by
+  rw [← coe_seeleyExtendLinearMap, map_zero]
+
 /-- Seeley's extension commutes with linear maps. -/
 theorem _root_.LinearMap.map_seeleyExtend (L : F →ₗ[ℝ] G) (f : ℝ → F) (t : ℝ) :
     L (seeleyExtend f t) = seeleyExtend (L ∘ f) t := by
@@ -235,6 +252,21 @@ theorem seeleyIccExtend_smul (c : ℝ) (f : ℝ → F) :
   split_ifs
   · exact congrFun (seeleyExtend_smul c f) t
   · exact congrFun (seeleyExtend_smul c (fun s ↦ f (1 - s))) (1 - t)
+
+variable (F) in
+/-- Seeley's extension from `[0, 1]`, `seeleyIccExtend`, as an `ℝ`-linear map on functions
+`ℝ → F`. -/
+noncomputable def seeleyIccExtendLinearMap : (ℝ → F) →ₗ[ℝ] (ℝ → F) where
+  toFun := seeleyIccExtend
+  map_add' := seeleyIccExtend_add
+  map_smul' := seeleyIccExtend_smul
+
+@[simp]
+theorem coe_seeleyIccExtendLinearMap : ⇑(seeleyIccExtendLinearMap F) = seeleyIccExtend := (rfl)
+
+@[simp]
+theorem seeleyIccExtend_zero : seeleyIccExtend (0 : ℝ → F) = 0 := by
+  rw [← coe_seeleyIccExtendLinearMap, map_zero]
 
 /-- Seeley's extension from `[0, 1]` commutes with linear maps. -/
 theorem _root_.LinearMap.map_seeleyIccExtend (L : F →ₗ[ℝ] G) (f : ℝ → F) (t : ℝ) :
@@ -529,6 +561,25 @@ theorem contDiffOn_seeleyIccExtend {f : ℝ × E → F} {U : Set E} (hU : IsOpen
       fun y (hy : y ∈ univ ×ˢ U ∩ Ioi 0 ×ˢ univ) ↦
         ⟨show 1 - y.1 < 1 by linarith [mem_Ioi.mp hy.2.1], hy.1.2⟩).congr fun y hy ↦ ?_
     exact seeleyIccExtend_of_pos _ hy.2.1
+
+/-- Seeley's extension on an interval `[a, b]`, `a < b`, with parameters: a function smooth on
+`Icc a b ×ˢ U`, for an open `U`, agrees on `Icc a b ×ˢ U` with a function smooth on
+`univ ×ˢ U`. -/
+theorem exists_contDiffOn_eqOn_Icc_prod {f : ℝ × E → F} {U : Set E} {a b : ℝ} (hab : a < b)
+    (hU : IsOpen U) (hf : ContDiffOn ℝ ∞ f (Icc a b ×ˢ U)) :
+    ∃ g : ℝ × E → F, ContDiffOn ℝ ∞ g (univ ×ˢ U) ∧ EqOn g f (Icc a b ×ˢ U) := by
+  have hc : 0 < b - a := sub_pos.2 hab
+  have hf' : ContDiffOn ℝ ∞ (fun q : ℝ × E ↦ f (a + (b - a) * q.1, q.2)) (Icc 0 1 ×ˢ U) :=
+    hf.comp ((contDiff_const.add (contDiff_const.mul contDiff_fst)).prodMk contDiff_snd).contDiffOn
+      fun q hq ↦ ⟨⟨by nlinarith [hq.1.1], by nlinarith [hq.1.2]⟩, hq.2⟩
+  refine ⟨fun p ↦ seeleyIccExtend (fun s ↦ f (a + (b - a) * s, p.2)) ((p.1 - a) / (b - a)),
+    (contDiffOn_seeleyIccExtend hU hf').comp
+      (((contDiff_fst.sub contDiff_const).div_const _).prodMk contDiff_snd).contDiffOn
+      fun p hp ↦ ⟨trivial, hp.2⟩, fun p hp ↦ ?_⟩
+  have hmem : (p.1 - a) / (b - a) ∈ Icc 0 1 :=
+    ⟨div_nonneg (by linarith [hp.1.1]) hc.le, (div_le_one hc).2 (by linarith [hp.1.2])⟩
+  simp only [seeleyIccExtend_of_mem _ hmem]
+  rw [mul_div_cancel₀ _ hc.ne', add_sub_cancel]
 
 end Smooth
 
