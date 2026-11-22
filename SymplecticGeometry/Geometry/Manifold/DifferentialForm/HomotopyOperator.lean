@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
+public import SymplecticGeometry.Geometry.Manifold.IsManifold.Basic
 public import TauCeti.Geometry.Manifold.DifferentialForm.HomotopyOperator
 public import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
@@ -67,8 +68,6 @@ on the cylinder `M × [0, 1]` to the smooth `k`-form `x ↦ ∫₀¹ φ(x, t)(�
 def homotopyOperator :
     SmoothForm (I.prod (𝓡∂ 1)) (M × Icc (0 : ℝ) 1) F (k + 1) →ₗ[ℝ] SmoothForm I M F k where
   toFun φ := ⟨TauCeti.homotopyOperator φ.val,
-    -- `IsSmoothForm.homotopyOperator` at `r = ⊤` is stated for a `C^(⊤ + 1)` manifold.
-    haveI : IsManifold I ((⊤ : ℕ∞) + 1 : WithTop ℕ∞) M := IsManifold.of_le (n := ∞) (by simp)
     (IsSmoothForm.homotopyOperator φ.isSmoothForm).mem_smoothBundleForms⟩
   map_add' φ ψ := Subtype.ext <| TauCeti.homotopyOperator_add
     (φ.isSmoothForm.of_le (by simp)) (ψ.isSmoothForm.of_le (by simp))
