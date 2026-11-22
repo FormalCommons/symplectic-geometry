@@ -1529,12 +1529,13 @@ it into issues; the overview fixes its folders and its dependencies.
     `y` is `ω (f y)`, from Tau Ceti's `ContMDiffSection.pullback_apply`),
     `IsNondegenerate.pullback`, and `symplecticFormAt` of the pull-back at
     `y` is that of `ω` at `f y`. For complex structures,
-    `ContMDiffComplexStructure.pullback J f` (`ComplexStructure.lean`,
-    `J.pullback f`, in the same order) is
+    `ContMDiffComplexStructure.pullback J f hf` (`ComplexStructure.lean`,
+    `J.pullback f hf`, in the same order, for any `ContinuousMapClass` map
+    `f` with `hf : ContMDiff I' I n f`) is
     `ContMDiffSection.pullback` of the endomorphism section, smooth by
     `Bundle.Pullback.contMDiff_hom_section_iff` itself, which `simp`
-    evaluates through `@[simp] pullback_apply` and
-    `@[simp] apply_eq_pullback_apply`; `Pullback.lean` adds that
+    evaluates through `@[simp] pullback_apply` and, given `hf`,
+    `apply_eq_pullback_apply`; `Pullback.lean` adds that
     tame and compatible pairs pull back to tame and compatible pairs. Isomorphisms: a
     symplectic isomorphism of bundles pulls back to one (Tau Ceti's
     `Bundle.Pullback.contMDiff_fiberwise`), a symplectic frame over `U`

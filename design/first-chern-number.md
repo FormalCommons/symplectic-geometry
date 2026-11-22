@@ -773,7 +773,7 @@ issues, in an order where each issue's blockers come before it.
 2. **Evenness of the first Betti number of a closed orientable surface.**
    `AlgebraicTopology/Singular/SurfaceGenus.lean` (the name of Tau Ceti's
    file, so that the two merge): `TauCeti.HomologicalOrientation.even_finrank_singularHomology_one`,
-   for a compact connected homologically oriented surface, `finrank ℚ
+   for a compact homologically oriented surface (connected or not), `finrank ℚ
    H₁(M; ℚ)` is even. Only this is new; the step from evenness to
    `χ = 2 - 2 * surfaceGenus` is already Tau Ceti's
    `eulerChar_eq_two_sub_two_mul_genus_iff_even_finrank` with
