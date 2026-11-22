@@ -1524,7 +1524,7 @@ For a map `f : K` with `[FunLike K N M] [ContinuousMapClass K N M]` and
   `IsNondegenerate.symplecticFormAt_pullback` (the symplectic form of the
   pull-back at `y` is that of `ω` at `f y`), through
   `IsNondegenerate.toBilinForm_symplecticFormAt` in `Symplectic/Basic.lean`,
-  and `@[simp high] IsNondegenerate.symplecticFormAt_pullback_apply`, its value
+  and `@[simp↓] IsNondegenerate.symplecticFormAt_pullback_apply`, its value
   on `v w : V (f y)`, for any proof that the pull-back is nondegenerate, which
   fires before `@[simp] IsNondegenerate.symplecticFormAt_apply_pullback`.
   `bilinFormAt_pullback` and `symplecticFormAt_pullback` are not `@[simp]`,
