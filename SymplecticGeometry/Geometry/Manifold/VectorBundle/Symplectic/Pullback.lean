@@ -53,7 +53,8 @@ that it is compatible with the rest of the structure that `Symplectic/Basic.lean
   `IsNondegenerate.symplecticFormAt_pullback_pullback_pullback_apply`,
   `IsNondegenerate.symplecticFormAt_pullback_comp_apply_pullback` and
   `IsNondegenerate.symplecticFormAt_pullback_comp_pullback_apply` evaluate the symplectic form
-  in the last three of these cases, so that `simp` does so also for a sum.
+  of three pull-backs, of a pull-back along `g.comp f`, and of that pull-back pulled back along
+  `e`, so that `simp` does so also for a sum, a difference, a negative or a multiple.
 * `IsSymplecticFrameOn.pullback` and `frameTransition_pullback`: a symplectic frame `Φ` over `U`
   pulls back to the symplectic frame `y ↦ Φ (f y)` over `f ⁻¹' U`, with transition maps those of
   `Φ` at `f y`.
@@ -113,11 +114,15 @@ one, two or three pull-backs, a pull-back along a composite `g.comp f`, and that
 pulled back once more. So `IsNondegenerate.symplecticFormAt_pullback_apply`, which states the
 value for one pull-back, is not `@[simp]`. In other cases, such as four pull-backs or a pull-back
 along `(g.comp f).comp e`, `simp` leaves the bilinear form unevaluated. For a sum, a difference,
-a negative or a multiple, this route fails beyond one pull-back: `simp` rewrites the form with
-`pullback_add` and its partners and splits its bilinear form with `bilinFormAt_add` before a lemma
-on the whole application can fire, and `Pi.add_apply` does not apply to vectors typed in a
-fibre of `V`. So the symplectic form of two or three pull-backs, of a pull-back along a
-composite, and of that pull-back pulled back once more, has a `simp↓` lemma of its own, such as
+a negative or a multiple, `simp` rewrites the form with `pullback_add` and its partners and
+splits its bilinear form with `bilinFormAt_add` before a lemma on the whole application can fire.
+After one pull-back along a map `f`, the route still works: `Bundle.Pullback.add_apply_pullback`
+and its partners (`SymplecticGeometry/Data/Bundle.lean`) evaluate the split form on vectors of
+`V (f y)`. After two or more pull-backs, or after a pull-back along a composite `g.comp f`, it
+fails: no such lemma matches vectors typed behind two or more pull-backs, or behind the point
+`(g.comp f) z`, and `Pi.add_apply` does not apply to vectors typed in a fibre of `V`. So the
+symplectic form of two or three pull-backs, of a pull-back along a composite, and of that
+pull-back pulled back once more, has a `simp↓` lemma of its own, such as
 `IsNondegenerate.symplecticFormAt_pullback_pullback_apply`, which `simp` applies to the whole
 application first. A single such lemma for every two-form `σ`, rewriting `h.symplecticFormAt x v w`
 to `σ.bilinFormAt x v w`, does not help: its vectors are typed in the fibre of the bundle of `σ`,
