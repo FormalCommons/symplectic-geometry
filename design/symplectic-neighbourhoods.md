@@ -613,10 +613,11 @@ Route, for all four. A chart `c` of `Q` at `q₀` onto an open set of the
 linear space `S` is chosen so that `c` carries `f^*ω` to the restriction of
 `stdForm` to `S`. For a symplectic `Q`, `c` is a Darboux chart of `f^*ω`
 (Tau Ceti's). For an isotropic or Lagrangian `Q`, any chart will do, since
-both restricted forms are `0`. For a coisotropic `Q`, `c` combines the leaf
-coordinates of `exists_isCharacteristicSubmersion` with a Darboux chart of
-the descended form on the ball
-(`IsCoisotropicMap.exists_partialDiffeomorph_eval₂_eq_stdForm`). The lemma `exists_localDiffeomorph_extend`,
+both restricted forms are `0`. For a coisotropic `Q`, `c` is a chart of `Q`
+in which the closed form `f^*ω`, of constant rank, is the pull-back of
+`stdForm (Fin r)` along a linear projection
+(`IsCoisotropicMap.exists_partialDiffeomorph_eval₂_eq_stdForm`).
+The lemma `exists_localDiffeomorph_extend`,
 public in `Geometry/Manifold/LocalDiffeomorph/Extend.lean` (with the centred charts
 `exists_partialDiffeomorph_apply_eq_zero` that the isotropic case uses),
 extends `f ∘ c⁻¹` in the directions
