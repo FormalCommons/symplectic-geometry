@@ -218,6 +218,7 @@ Further choices of this design:
 | `Geometry/Manifold/DifferentialForm/VectorBundlePoincare.lean` | the relative Poincaré operator at the zero section of a vector bundle, and its fibre-scaling primitives for a family of one-forms |
 | `Analysis/Calculus/DifferentialForm/Poincare.lean` | a closed form on a star-convex open set, vanishing on a compact star-convex subset, has a global primitive near it that vanishes on it (named like Tau Ceti's file) |
 | `Geometry/Symplectic/IsotopyExtension/Ball/Basic.lean` | `IsSymplecticBallEmbedding`, `IsSymplecticBallFamily`, enlarging a symplectic ball |
+| `Geometry/Symplectic/IsotopyExtension/Ball/Interpolation.lean` | a family that agrees with `e` along `B(λ)` and pulls the form back to `ω₀` there, with prescribed ends (steps 1 and 2 of `Ball/Isotopy.lean`) |
 | `Geometry/Symplectic/IsotopyExtension/Ball/Isotopy.lean` | the Hamiltonian ball extension and the milestone *Symplectic ball extension* |
 | `Geometry/Manifold/DeRham/HomologyPeriod.lean` | periods of a smooth family of closed one-forms depend smoothly on the parameter |
 | `Geometry/Symplectic/IsotopyExtension/Cohomological/Primitive.lean` | ambient closed forms with prescribed periods, and primitives on one neighbourhood for all times |
@@ -691,6 +692,11 @@ The route keeps the times of `e` exactly:
    family $k_t=k'_t\circ g_t$ is still right along $B(\lambda)$, and
    $k_0=j_0$, $k_1=j_1$ near $B(\lambda)$. For $\lambda>0$ this is the
    source's Theorem A.2.1(iii) step, which keeps both ends.
+   Steps 1 and 2 are
+   `IsSymplecticBallFamily.exists_contMDiffOn_eqOn_mpullback_eq`, in
+   `Ball/Interpolation.lean`, which needs `ω` only nondegenerate. For
+   $\lambda>0$ it takes $k'=e$, whose ends agree with $j_0$ and $j_1$ to first
+   order on $B(\lambda)$, so that case needs no `Ψ`.
 3. *Make it symplectic.* `Moser/Family.lean`, with $\beta_t$ the
    parametric radial primitive of $k_t^*\omega-\omega_0$ and
    $K=B(\lambda)$, gives $\chi_t$. Here $\beta_0=\beta_1=0$ because $j_0$ and
@@ -894,7 +900,7 @@ this design already follows. `Ball/Isotopy.lean` cites
   `Flux/CompactSupport.lean`); the reparametrization of time
   `exists_contDiff_eqOn_id_Icc_mem_Ioo` in
   `Analysis/SpecialFunctions/SmoothTransition.lean` (used by
-  `Extension.lean`); the parametric radial primitives
+  `Extension.lean` and `Ball/Interpolation.lean`); the parametric radial primitives
   `exists_isSmoothFamily_mextDerivₗ_eq_of_starConvex` in
   `Geometry/Manifold/DifferentialForm/SmoothFamily/Poincare.lean`
   (used by `Ball/Isotopy.lean`); the homotopy operator on smooth families

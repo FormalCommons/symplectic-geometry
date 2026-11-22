@@ -81,6 +81,11 @@ Steps 2 and 3 adapt the proof of Tau Ceti's `TauCeti.SmoothIsotopy.exists_diffeo
   extension at every time and `χ` a cutoff; `f₀⁻¹` is smooth on the image of `f₀` because
   `f₀` is an injective local diffeomorphism (Tau Ceti's `IsImmersion.isLocalDiffeomorph` and
   `IsLocalDiffeomorphOn.contMDiffOn_invFunOn`).
+* `ContMDiff.exists_diffeotopy_forall_apply_eq`: a smooth path is the track of its starting point
+  under a compactly supported diffeotopy. The path is a smooth isotopy of a point, the
+  zero-dimensional space `EuclideanSpace ℝ (Fin 0)`; that its slices are smooth embeddings is
+  shown as in Tau Ceti's `Topology.IsEmbedding.isSmoothEmbedding_of_subsingleton`, which treats a
+  target that is a normed space.
 
 ## References
 
@@ -293,6 +298,30 @@ theorem exists_contMDiff_comp_eventuallyEq [SigmaCompactSpace N] [FiniteDimensio
       hinj.injOn.leftInvOn_invFunOn (mem_univ y)]
 
 end SmoothIsotopy
+
+/-- **Pushing a point along a path.** A smooth path `c` in a finite-dimensional, Hausdorff,
+σ-compact boundaryless manifold is the track of its starting point under a smooth diffeotopy `Ψ`
+fixing every point outside a compact set: `Ψ (t, c 0) = c t` for every time `t`. -/
+theorem _root_.ContMDiff.exists_diffeotopy_forall_apply_eq [SigmaCompactSpace N]
+    {c : unitInterval → N} (hc : ContMDiff (𝓡∂ 1) I ∞ c) :
+    ∃ Ψ : Diffeotopy I ∞ N, ∃ K : Set N, IsCompact K ∧ (∀ t, ∀ y ∉ K, Ψ (t, y) = y) ∧
+      ∀ t, Ψ (t, c 0) = c t := by
+  -- `c` is a smooth isotopy of the point `EuclideanSpace ℝ (Fin 0)`.
+  let Q := EuclideanSpace ℝ (Fin 0)
+  have hemb (t : unitInterval) : IsSmoothEmbedding 𝓘(ℝ, Q) I ∞ (fun _ : Q ↦ c t) := by
+    refine ⟨contMDiff_const.isImmersion_of_injective_mfderiv (by simp) fun x ↦ ?_,
+      Topology.IsEmbedding.of_subsingleton _⟩
+    -- TangentSpace is a type synonym for the model; its subsingleton instance is not inferred.
+    have : Subsingleton (TangentSpace 𝓘(ℝ, Q) x) := inferInstanceAs (Subsingleton Q)
+    exact injective_of_subsingleton _
+  let F : SmoothIsotopy (⟨fun _ ↦ c 0, contMDiff_const⟩ : C^∞⟮𝓘(ℝ, Q), Q; I, N⟯)
+      ⟨fun _ ↦ c 1, contMDiff_const⟩ :=
+    { toContMDiffMap := ⟨fun p ↦ c p.1, hc.comp contMDiff_fst⟩
+      map_zero_left := fun _ ↦ rfl
+      map_one_left := fun _ ↦ rfl
+      isSmoothEmbedding := hemb }
+  obtain ⟨Ψ, K, hK, hΨK, hΨ⟩ := F.exists_diffeotopy_forall_apply_eq (isCompact_singleton (x := 0))
+  exact ⟨Ψ, K, hK, hΨK, fun t ↦ hΨ t 0 rfl⟩
 
 end TauCeti
 
