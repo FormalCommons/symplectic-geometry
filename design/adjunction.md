@@ -260,7 +260,8 @@ with `hω : ω.Tames Jf`, and `hω : ω.Compatible Jf` where invariance is used.
   classes of vectors of $W^\omega$) and `compatible_normalForm`: it is
   compatible with `normalComplexStructure`.
 - `normalSplitting f hJ ω hω x : (f *ᵖ TangentSpace I) x ≃L[ℝ]
-  (TangentSpace I' ×ᵇ NormalSpace) x`, with `normalSplitting_symm_apply`,
+  (TangentSpace I' ×ᵇ NormalSpace) x`, the inverse of `tangentNormalEquiv` for the
+  representatives in $W^\omega$, with `normalSplitting_symm_apply`,
   `snd_normalSplitting_apply` and `mfderiv_fst_normalSplitting_apply`, the
   smoothness of its map of total spaces (`contMDiff_normalSplitting`), and
   `pushforward_normalSplitting`: it carries `ω` to
@@ -392,6 +393,8 @@ Namespace `TauCeti.AlmostComplexStructure`, for an almost complex structure
 - The library's merged `Geometry/Manifold/VectorBundle/Pullback.lean`
   (`Bundle.Pullback.hasLocalContMDiffSubbundleFrames_range_mfderiv`,
   `contMDiff_totalSpace_mfderiv`) and `Geometry/Manifold/VectorBundle/Orthogonal.lean`.
+- *Projective hypersurfaces*: `Geometry/Manifold/SmoothEmbedding/NormalSpace/Splitting.lean`
+  (`tangentNormalEquiv`, whose inverse is `normalSplitting`).
 - *First Chern number*: `Topology/VectorBundle/Complex/FirstChernClass.lean`
   and `ChernNumber/Basic.lean` (#784: `firstChernClass`,
   `firstChernClass_pullback`, `firstChernClass_congr`,
