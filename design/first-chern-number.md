@@ -887,8 +887,8 @@ issues, in an order where each issue's blockers come before it.
    principal bundle, an invariant form that vanishes on vertical vectors is
    basic), and `Geometry/Manifold/DifferentialForm/PartitionOfUnity.lean`
    (`SmoothPartitionOfUnity.IsSubordinate.isSmoothForm_finsum_smul_comp`: a
-   locally finite sum of local forms weighted by a smooth partition of unity
-   is smooth), the case of the bundle of forms of
+   locally finite sum of `C^n` local forms weighted by a smooth partition of
+   unity is `C^n`), the case of the bundle of forms of
    `Geometry/Manifold/PartitionOfUnity.lean`
    (`SmoothPartitionOfUnity.IsSubordinate.contMDiff_finsum_smul_comp_section`,
    the same for sections of any vector bundle). The example on the circle bundle imports
