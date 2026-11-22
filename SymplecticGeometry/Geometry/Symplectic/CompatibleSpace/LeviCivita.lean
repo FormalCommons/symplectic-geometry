@@ -52,8 +52,6 @@ and the metric is nondegenerate, which gives the formula.
   reading of a field along a map into `𝒥 ω` satisfies those relations.
 * `TauCeti.SymplecticForm.leviCivitaConnection_compatibleSpace_apply`: the Levi-Civita connection
   of `𝒥 ω` on vector fields.
-* `TauCeti.SymplecticForm.mvfderiv_leviCivitaConnection_compatibleSpace_apply`: the same formula,
-  with ambient readings through `mvfderiv` and products in `V →L[ℝ] V`.
 * `TauCeti.SymplecticForm.alongCurve_leviCivitaConnection_compatibleSpace`: the covariant
   derivative along a curve.
 
@@ -238,8 +236,8 @@ theorem compatibleCLM_comp_mvfderiv_mfderiv_add {p : N → 𝒥}
   have h0 : (fun y ↦ (ω.compatibleCLM ∘ p) y * g y + g y * (ω.compatibleCLM ∘ p) y) =
       fun _ ↦ 0 := by
     funext y
-    simpa only [Function.comp_apply, ContinuousLinearMap.mul_def] using
-      compatibleCLM_comp_mfderiv_add_mfderiv_comp_compatibleCLM (p y) (Y y)
+    simpa only [Function.comp_apply, mvfderiv_apply_eq_mfderiv_apply] using
+      compatibleCLM_mul_mvfderiv_add_mvfderiv_mul_compatibleCLM (p y) (Y y)
   have hv := congrArg (fun f ↦ mvfderiv I f x v) h0
   have hcg : MDifferentiableAt I 𝓘(ℝ, V →L[ℝ] V) (fun y ↦ (ω.compatibleCLM ∘ p) y * g y) x :=
     hc.mul hY
@@ -255,25 +253,26 @@ end Along
 
 /-! ### The Levi-Civita connection -/
 
-/-- **The Levi-Civita connection, in ambient terms.** For a vector
-field `Y` differentiable at `J` and a tangent vector `a` at `J`, the ambient reading of `∇_a Y` is
+/-- **The Levi-Civita connection, in ambient terms.** For a vector field `Y` differentiable at
+`J` and a tangent vector `a` at `J`, the ambient reading of `∇_a Y` is
 `D_a Ŷ - ½ J (Ŷ â + â Ŷ)`, where `Ŷ` is the ambient reading of `Y`, a function on the space with
-values in `V →L[ℝ] V`, and `D_a Ŷ` its derivative along `a`. -/
+values in `V →L[ℝ] V`, and `D_a Ŷ` its derivative along `a`. The ambient readings are written
+through `mvfderiv`, as elements of `V →L[ℝ] V`, and the products are taken in that ring. -/
 theorem leviCivitaConnection_compatibleSpace_apply
     {Y : Π J : 𝒥, TangentSpace 𝓘(ℝ, ω.compatibleModel) J} {J : 𝒥}
     (hY : MDifferentiableAt 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, ω.compatibleModel).tangent
       (fun J' ↦ TotalSpace.mk' ω.compatibleModel J' (Y J')) J)
     (a : TangentSpace 𝓘(ℝ, ω.compatibleModel) J) :
-    mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM J
+    mvfderiv 𝓘(ℝ, ω.compatibleModel) ω.compatibleCLM J
         (leviCivitaConnection 𝓘(ℝ, ω.compatibleModel) 𝒥 Y J a) =
-      mvfderiv 𝓘(ℝ, ω.compatibleModel) (fun J' : 𝒥 ↦
-          (mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM J' (Y J') :
-            V →L[ℝ] V)) J a -
-        (2⁻¹ : ℝ) • (ω.compatibleCLM J ∘L
-          (mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM J (Y J) ∘L
-              mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM J a +
-            mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM J a ∘L
-              mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM J (Y J))) := by
+      mvfderiv 𝓘(ℝ, ω.compatibleModel)
+          (fun J' : 𝒥 ↦ mvfderiv 𝓘(ℝ, ω.compatibleModel) ω.compatibleCLM J' (Y J')) J a -
+        (2⁻¹ : ℝ) • (ω.compatibleCLM J *
+          (mvfderiv 𝓘(ℝ, ω.compatibleModel) ω.compatibleCLM J (Y J) *
+              mvfderiv 𝓘(ℝ, ω.compatibleModel) ω.compatibleCLM J a +
+            mvfderiv 𝓘(ℝ, ω.compatibleModel) ω.compatibleCLM J a *
+              mvfderiv 𝓘(ℝ, ω.compatibleModel) ω.compatibleCLM J (Y J))) := by
+  simp only [mvfderiv_apply_eq_mfderiv_apply (f := ω.compatibleCLM), ContinuousLinearMap.mul_def]
   have hf : ContMDiffAt 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) 2 ω.compatibleCLM J :=
     contMDiff_compatibleCLM.contMDiffAt
   -- The ambient reading of `Y`, a function with values in `V →L[ℝ] V`.
@@ -296,29 +295,6 @@ theorem leviCivitaConnection_compatibleSpace_apply
       (mdifferentiableAt_extend _ _ a) hY w
     rwa [extend_apply_self, ← hgm, smul_apply, smul_apply,
       smul_eq_mul, ContinuousLinearMap.traceForm_apply, mvfderiv_apply_eq_mfderiv_apply] at h
-
-/-- The Levi-Civita connection in ambient terms, with the ambient readings written through
-`mvfderiv`, as elements of `V →L[ℝ] V`, and the products as multiplication there: for a vector
-field `Y` differentiable at `J` and a tangent vector `a` at `J`, the ambient reading of `∇_a Y` is
-`D_a Ŷ - ½ J (Ŷ â + â Ŷ)`. -/
-theorem mvfderiv_leviCivitaConnection_compatibleSpace_apply
-    {Y : Π J : 𝒥, TangentSpace 𝓘(ℝ, ω.compatibleModel) J} {J : 𝒥}
-    (hY : MDifferentiableAt 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, ω.compatibleModel).tangent
-      (fun J' ↦ TotalSpace.mk' ω.compatibleModel J' (Y J')) J)
-    (a : TangentSpace 𝓘(ℝ, ω.compatibleModel) J) :
-    mvfderiv 𝓘(ℝ, ω.compatibleModel) ω.compatibleCLM J
-        (leviCivitaConnection 𝓘(ℝ, ω.compatibleModel) 𝒥 Y J a) =
-      mvfderiv 𝓘(ℝ, ω.compatibleModel)
-          (fun J' : 𝒥 ↦ mvfderiv 𝓘(ℝ, ω.compatibleModel) ω.compatibleCLM J' (Y J')) J a -
-        (2⁻¹ : ℝ) • (ω.compatibleCLM J *
-          (mvfderiv 𝓘(ℝ, ω.compatibleModel) ω.compatibleCLM J (Y J) *
-              mvfderiv 𝓘(ℝ, ω.compatibleModel) ω.compatibleCLM J a +
-            mvfderiv 𝓘(ℝ, ω.compatibleModel) ω.compatibleCLM J a *
-              mvfderiv 𝓘(ℝ, ω.compatibleModel) ω.compatibleCLM J (Y J))) := by
-  have h := leviCivitaConnection_compatibleSpace_apply hY a
-  simp only [← mvfderiv_apply_eq_mfderiv_apply] at h
-  rw [h]
-  simp only [ContinuousLinearMap.mul_def]
 
 /-- **The covariant derivative along a curve in the space of compatible complex structures.** For
 a curve `γ` and a field `W` along it, differentiable at `t` as a curve in the tangent bundle, the
