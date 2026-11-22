@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Algebra.BigOperators.Group.Finset.Basic
+public import Mathlib.Topology.FiberBundle.Constructions
 public import TauCeti.Topology.VectorBundle.Section
 public import TauCeti.Topology.VectorBundle.Smul
 
@@ -27,6 +28,9 @@ fibrewise operations on maps `X → TotalSpace F E` preserve continuity at a poi
   `ContinuousAt.sum_section`, generalised from sections over the base itself to maps over a base
   map `b`: the same induction on the finite set, with the zero section along `b` in the empty
   case and Tau Ceti's `ContinuousAt.add_totalSpace` in the insert case.
+* `Continuous.smul_totalSpace_trivial`: for a map `σ` into the bundle along a base map,
+  continuous on total spaces, the map `(x, c) ↦ c • σ x` from the trivial line bundle `X × 𝕜` is
+  continuous; when `σ` is nowhere zero, this is the frame that it defines.
 -/
 
 public section
@@ -70,3 +74,14 @@ theorem ContinuousAt.sum_totalSpace {ι : Type*} (T : Finset ι) {b : X → B}
     simp only [Finset.sum_insert hi]
     exact (hs i (Finset.mem_insert_self i T)).add_totalSpace 𝕜
       (ih fun j hj ↦ hs j (Finset.mem_insert_of_mem hj))
+
+/-- Let `σ` be a map along `f : X → B` into a vector bundle, continuous on total spaces. Then
+the map `(x, c) ↦ c • σ x` from the trivial line bundle `X × 𝕜` to the total space, over `f`, is
+continuous. -/
+theorem Continuous.smul_totalSpace_trivial {f : X → B} {σ : ∀ x, E (f x)}
+    (hσ : Continuous fun x ↦ TotalSpace.mk' F (f x) (σ x)) :
+    Continuous fun v : TotalSpace 𝕜 (Bundle.Trivial X 𝕜) ↦
+      TotalSpace.mk' F (f v.proj) (v.snd • σ v.proj) :=
+  Continuous.smul_totalSpace (c := fun v : TotalSpace 𝕜 (Bundle.Trivial X 𝕜) ↦ v.snd)
+    (continuous_snd.comp (Bundle.Trivial.isInducing_toProd X 𝕜).continuous)
+    (hσ.comp (FiberBundle.continuous_proj 𝕜 _))
