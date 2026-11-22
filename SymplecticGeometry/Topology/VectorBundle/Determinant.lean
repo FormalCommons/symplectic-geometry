@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Basic
 public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Conjugate
 public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.ConjugateExteriorPower
 public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.OfBundle
@@ -67,6 +68,11 @@ theorem detCore_def : detCore 𝕜 G E = (ofBundleOfFinrankEq 𝕜 G E rfl).det 
 /-- The determinant line is a line bundle. -/
 @[simp] theorem rank_detCore : (detCore 𝕜 G E).rank = 1 :=
   rank_det _
+
+/-- The model of the determinant line has dimension `0 + 1`, the form in which Tau Ceti's Euler
+classes take the rank. -/
+theorem finrank_detCore : finrank 𝕜 (Fin (detCore 𝕜 G E).rank → 𝕜) = 0 + 1 := by
+  simp
 
 /-- The determinant line is the exterior power of `E` in the degree of its rank. -/
 theorem detCore_eq_exteriorPower :
@@ -206,15 +212,13 @@ conjugation of the coordinate. -/
 noncomputable def detCoreConjugateFiberwise (x : B) :
     (detCore ℂ (Conjugate G) (ConjugateBundle E)).core.Fiber x ≃L⋆[ℂ]
       (detCore ℂ G E).core.Fiber x :=
-  (ContinuousLinearEquiv.ofContinuousLinearMap ((detCoreConjugateIso E).hom.fiberMap x)
-      ((detCoreConjugateIso E).inv.fiberMap x)
-      (by rw [← fiberMap_comp, Iso.inv_hom_id, fiberMap_id])
-      (by rw [← fiberMap_comp, Iso.hom_inv_id, fiberMap_id])).trans
+  (isoFiberEquiv (detCoreConjugateIso E) x).trans
     (starL ℂ : (Fin (detCore ℂ G E).rank → ℂ) ≃L⋆[ℂ] (Fin (detCore ℂ G E).rank → ℂ))
 
 @[simp] theorem detCoreConjugateFiberwise_apply (x : B)
     (v : (detCore ℂ (Conjugate G) (ConjugateBundle E)).core.Fiber x) :
-    detCoreConjugateFiberwise E x v = star ((detCoreConjugateIso E).hom.fiberMap x v) := (rfl)
+    detCoreConjugateFiberwise E x v = star ((detCoreConjugateIso E).hom.fiberMap x v) := by
+  exact congrArg star (isoFiberEquiv_apply (detCoreConjugateIso E) x v)
 
 /-- The conjugate-linear isomorphism `detCoreConjugateFiberwise` is continuous on total spaces. -/
 theorem continuous_detCoreConjugateFiberwise :
@@ -223,9 +227,14 @@ theorem continuous_detCoreConjugateFiberwise :
       TotalSpace.mk' (Fin (detCore ℂ G E).rank → ℂ) (E := (detCore ℂ G E).core.Fiber) p.proj
         (detCoreConjugateFiberwise E p.proj p.snd) :=
   ((continuous_star_conjugate (detCore ℂ G E)).comp
-    (detCoreConjugateIso E).hom.continuous_totalSpaceMap).congr fun p ↦ by
-      rw [Function.comp_apply, VectorBundleCore.CoordinateHom.totalSpaceMap_mk]
-      rfl
+    (continuous_isoFiberEquiv (detCoreConjugateIso E))).congr fun p ↦ by
+      rw [detCoreConjugateFiberwise_apply]
+      -- The two sides agree up to the projections of `TotalSpace.mk'`, the coercion of `starL`,
+      -- and the definitional equality of the ranks of `detCore` and of its conjugate.
+      exact congrArg (fun v : Fin (detCore ℂ G E).rank → ℂ ↦
+        TotalSpace.mk' (Fin (detCore ℂ G E).rank → ℂ) (E := (detCore ℂ G E).core.Fiber) p.proj
+          (star v : Fin (detCore ℂ G E).rank → ℂ))
+        (isoFiberEquiv_apply (detCoreConjugateIso E) p.proj p.snd)
 
 end Conjugate
 
