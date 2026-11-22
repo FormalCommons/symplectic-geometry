@@ -381,7 +381,8 @@ $\omega_0=$ `stdComplexPiSymplecticForm (Fin (n + 1))`:
 - `mpullback_affineChart_symm_fubiniStudyForm (j : Fin (n + 1))`: along the
   inverse affine chart $w\mapsto[\texttt{Fin.insertNth } j\ 1\ w]$, the
   pull-back is `(4 : ℝ)⁻¹ • d (J.covectorComplexStructure (d f_j))` with
-  $f_j(w)=\log(1+\sum_k\lVert w_k\rVert^2)$, which is
+  $f_j(w)=\log(1+\sum_k\lVert w_k\rVert^2)$ (`fubiniStudyAffinePotential n`,
+  the same for every $j$), which is
   $\log(\lvert z\rvert^2/\lvert z_j\rvert^2)$ in homogeneous coordinates;
   and `mpullback_affineChart_symm_fubiniStudyForm_eq_del_delBar`, its
   $\tfrac i2\partial\bar\partial f_j$ form (part 3, local potentials).

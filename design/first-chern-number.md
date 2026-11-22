@@ -1015,7 +1015,14 @@ issues, in an order where each issue's blockers come before it.
    Tau Ceti's `System.lean`, for `exists_coordinateDisc`: local homology
    transport does not depend on the model, so a homological orientation
    can be read with the model `ℂ`
-   (`TauCeti.HomologicalOrientation.changeModel`). Done when this API is proved.
+   (`TauCeti.HomologicalOrientation.changeModel`).
+   `Orientation/Smooth.lean` also holds
+   `TauCeti.Manifold.Orientation.localHomologyMap_toHomologicalOrientation`,
+   which part *Pseudoholomorphic energy*'s `Orientation/Simplex.lean` uses,
+   and for it imports
+   `AlgebraicTopology/Singular/LocalHomology/LocalIndex.lean`, a copy of
+   `TauCeti.HomologicalOrientation.localIndex_eq_iff_of_preimage_subset`
+   from Tau Ceti's main branch. Done when this API is proved.
 6. **Argument principle for discs.**
    `AlgebraicTopology/Singular/LocalHomology/ArgumentPrinciple.lean`:
    `SymplecticGeometry.sum_degree_boundary_eq_zero`. Let `φ i`, `i : ι`
@@ -1232,10 +1239,15 @@ issues, in an order where each issue's blockers come before it.
    that fixes that representation, and by 5. The gluing uses polar
    coordinates on the circle,
    `AddCircle.isLocalDiffeomorphAt_ofReal_mul_toCircle`, in
-   `Geometry/Manifold/Instances/AddCircle.lean`. That the loops are
+   `Geometry/Manifold/Instances/AddCircle.lean`, which imports
+   `Geometry/Manifold/LocalDiffeomorph/Basic.lean` of *Smooth families*,
+   merged, for `isLocalDiffeomorph_id`. That the loops are
    finitely many uses `finite_of_compactSpace_of_pairwise_disjoint`, a
    disjoint open cover of a compact space has finite index, in
-   `Topology/Compactness/LocallyFinite.lean`.
+   `Topology/Compactness/LocallyFinite.lean`. The orientation of the
+   capped surface is glued from the interior and the discs by
+   `TauCeti.Manifold.Orientation.iGlue`, Tau Ceti's `glue` for a family
+   of pieces, in `Geometry/Manifold/Orientation/Glue.lean`.
 9. **A map of degree one onto the sphere.**
    `Geometry/Manifold/Degree/Collapse.lean`:
    `SymplecticGeometry.exists_contMDiff_degree_eq_one`, every compact

@@ -9,6 +9,7 @@ public import Mathlib.Analysis.SpecialFunctions.Complex.Circle
 public import TauCeti.Geometry.Manifold.Instances.AddCircle
 import Mathlib.Analysis.SpecialFunctions.ExpDeriv
 import Mathlib.LinearAlgebra.Complex.FiniteDimensional
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Prod.Basic
@@ -79,7 +80,7 @@ theorem isLocalDiffeomorphAt_ofReal_mul_toCircle {θ : AddCircle p} {r : ℝ} (h
       (Prod.map ((↑) : ℝ → AddCircle p) id) (u, r) := by
     rw [modelWithCornersSelf_prod, ← chartedSpaceSelf_prod]
     exact (isLocalDiffeomorph_coe p ω u).prodMap
-      ((Diffeomorph.refl 𝓘(ℝ) ℝ ω).isLocalDiffeomorph r)
+      (isLocalDiffeomorph_id r)
   refine TauCeti.isLocalDiffeomorphAt_of_eqOn_comp (s := univ) (x := (u, r)) isOpen_univ trivial
     BoundarylessManifold.isInteriorPoint le_top
     (κ := fun q : ℝ × ℝ ↦ (q.2 : ℂ) * exp ((2 * π / p * q.1 : ℝ) * I)) ?_ ?_ ?_ ?_ hΨ
