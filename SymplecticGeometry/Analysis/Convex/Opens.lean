@@ -15,8 +15,8 @@ public import Mathlib.Topology.Sets.Opens
 For a map `j : X → E` into a module, the open sets `W` of `X` whose image `j '' W` is convex are
 closed under intersection when `j` is injective
 (`TopologicalSpace.Opens.infClosed_setOf_convex_image`). For an open embedding `j` into a real
-normed space they cover `X`, and so do their finite unions
-(`Topology.IsOpenEmbedding.iSup_finset_sup_convex_image_eq_top`): every point has such a
+normed space they cover `X`
+(`Topology.IsOpenEmbedding.sSup_setOf_convex_image_eq_top`): every point has such a
 neighbourhood, the preimage of a ball contained in the image of `j`.
 
 These are the cover of an open subset of a normed space by convex open sets over which
@@ -48,17 +48,16 @@ end TopologicalSpace.Opens
 
 namespace Topology.IsOpenEmbedding
 
-/-- For an open embedding `j` of `X` into a real normed space, the finite unions of open sets of
-`X` with convex image under `j` cover `X`. -/
-theorem iSup_finset_sup_convex_image_eq_top {E : Type*} [SeminormedAddCommGroup E]
+/-- For an open embedding `j` of `X` into a real normed space, the open sets of `X` with convex
+image under `j` cover `X`. -/
+theorem sSup_setOf_convex_image_eq_top {E : Type*} [SeminormedAddCommGroup E]
     [NormedSpace ℝ E] {j : X → E} (hj : IsOpenEmbedding j) :
-    ⨆ s : Finset {W : Opens X | Convex ℝ (j '' W)}, s.sup Subtype.val = ⊤ := by
+    sSup {W : Opens X | Convex ℝ (j '' W)} = ⊤ := by
   refine eq_top_iff.2 fun x _ ↦ ?_
   obtain ⟨r, hr, hball⟩ := Metric.isOpen_iff.1 hj.isOpen_range (j x) ⟨x, rfl⟩
   let W : Opens X := ⟨j ⁻¹' Metric.ball (j x) r, Metric.isOpen_ball.preimage hj.continuous⟩
   have hW : j '' W = Metric.ball (j x) r := image_preimage_eq_of_subset hball
-  refine Opens.mem_iSup.2 ⟨{⟨W, by simpa [hW] using convex_ball (j x) r⟩}, ?_⟩
-  simpa [W] using hr
+  exact Opens.mem_sSup.2 ⟨W, by simpa [hW] using convex_ball (j x) r, by simpa [W] using hr⟩
 
 end Topology.IsOpenEmbedding
 

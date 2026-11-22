@@ -6,9 +6,11 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Algebra.FiveLemma
+public import TauCeti.CategoryTheory.Linear.Int
 public import SymplecticGeometry.Algebra.Category.ModuleCat.Basic
 public import SymplecticGeometry.AlgebraicTopology.Cohomology.Cap.MayerVietoris.Basic
 public import SymplecticGeometry.AlgebraicTopology.Cohomology.CompactSupport.Duality.MayerVietoris
+public import SymplecticGeometry.AlgebraicTopology.Cohomology.CompactSupport.Manifold
 public import SymplecticGeometry.AlgebraicTopology.Cohomology.CompactSupport.Vanishing
 public import SymplecticGeometry.Topology.Sets.Opens.Comap
 
@@ -23,9 +25,10 @@ Poincaré duality: if the duality maps `D : Hᵖ_c(-; L) ⟶ H_q(-; L)`, `p + q 
 
 Run over the finite unions of the members of a family of open sets that is closed under
 intersection (`InfClosed.finset_sup_induction`), this step carries duality from the members to
-every such union, and on to `M` when these unions cover it
-(`TauCeti.HomologicalOrientation.bijective_dualityMap_of_iSup_eq_top`), given
-`Hⁿ⁺¹_c(W; L) = 0` for every open set `W` of `M`.
+every such union, and on to `M` when the family covers it
+(`TauCeti.HomologicalOrientation.bijective_dualityMap_of_iSup_eq_top`). There the vanishing of
+`Hⁿ⁺¹_c(W; L)` for the open sets `W` of `M` holds by
+`TopCat.isZero_compactSupportCohomology_of_chartedSpace`, in `CompactSupport/Manifold.lean`.
 
 The proof is the five lemma on the ladder formed by the two Mayer–Vietoris sequences,
 
@@ -43,7 +46,7 @@ In the top degree `p = n` the homology row stops at `H₀(M)`: surjectivity of `
 from the surjectivity of `H₀(U) ⊞ H₀(V) ⟶ H₀(M)`, but injectivity needs the group
 `Hⁿ⁺¹_c(U ∩ V; L)` to vanish. That vanishing is part of the inductive hypothesis of Hatcher's
 argument, where `D` is defined in all degrees with `H_q = 0` for `q < 0`. It is a hypothesis of
-the theorems here, and `TopCat.isZero_compactSupportCohomology_of_sup_eq_top` and
+the two steps here, and `TopCat.isZero_compactSupportCohomology_of_sup_eq_top` and
 `TopCat.isZero_compactSupportCohomology_sup`, in `CompactSupport/Vanishing.lean`, carry it from `U`,
 `V` and `U ∩ V` to `U ∪ V`. Mathlib's five lemmas give both cases:
 `AddMonoidHom.bijective_of_surjective_of_bijective_of_bijective_of_injective` below the top degree,
@@ -56,10 +59,16 @@ and `AddMonoidHom.bijective_of_surjective_of_bijective_of_right_exact` in it.
 * `TauCeti.HomologicalOrientation.bijective_dualityMap_comap_sup`: for any open sets `U` and `V`
   of `M`, the step from `U`, `V` and `U ∩ V` to `U ∪ V`.
 * `TauCeti.HomologicalOrientation.bijective_dualityMap_of_infClosed`: the induction of Hatcher's
-  Lemma 3.36, from the members of a family of open sets closed under intersection whose finite
-  unions cover `M`, to `M`.
+  Lemma 3.36, from the members of a family of open sets closed under intersection that covers
+  `M`, to `M`.
 
 ## Implementation notes
+
+The duality maps are stated with the `ℤ`-linear structure of `ModuleCat ℤ` as a preadditive
+category, while the vanishing theorem `TopCat.isZero_compactSupportCohomology_of_chartedSpace` is
+proved for the structure of a category of modules; the two agree since a `ℤ`-module structure is
+unique (`CategoryTheory.Linear.subsingletonInt`), as in Tau Ceti's
+`TauCeti.HomologicalOrientation.bijective_singularCap_fundamentalClassOn_of_starConvex`.
 
 The theorems are stated for `Opens M` and the embeddings `Opens.isOpenEmbedding'`, as Tau Ceti's
 disjoint case `TauCeti.HomologicalOrientation.bijective_dualityMap_of_disjoint` is, while the steps
@@ -289,15 +298,22 @@ theorem bijective_dualityMap_comap_sup {U V : Opens M}
     exact (TopCat.isZero_compactSupportCohomology_comap_iff _ _ _ hle _).2 hW₀
 
 /-- **Poincaré duality over an inf-closed family of open sets.** Let `S` be a family of open sets
-of `M`, closed under intersection, whose finite unions cover `M`. If the duality map of every
-member of `S`, with the orientation restricted from `M`, is bijective in every degree, and
-`Hⁿ⁺¹_c(W; L) = 0` for every open set `W` of `M`, then the duality map of `M` is bijective. -/
+of `M`, closed under intersection, that covers `M`. If the duality map of every member of `S`,
+with the orientation restricted from `M`, is bijective in every degree, then the duality map of
+`M` is bijective. -/
 theorem bijective_dualityMap_of_infClosed {S : Set (Opens M)} (hS : InfClosed S)
-    (hcover : ⨆ s : Finset S, s.sup Subtype.val = ⊤)
+    (hcover : sSup S = ⊤)
     (hbase : ∀ W ∈ S, ∀ p q (h : p + q = n),
       Function.Bijective ((o.comap W.isOpenEmbedding').dualityMap hn L p q h))
-    (hvanish : ∀ W : Opens M, IsZero ((TopCat.of W).compactSupportCohomology ℤₘ ℤ L (n + 1)))
     {p q : ℕ} (h : p + q = n) : Function.Bijective (o.dualityMap hn L p q h) := by
+  -- `TopCat.isZero_compactSupportCohomology_of_chartedSpace` uses the `ℤ`-linear structure of
+  -- `ModuleCat ℤ` as a category of modules; it agrees with the one of a preadditive category
+  -- used here, as a `ℤ`-module structure is unique.
+  have hvanish (W : Opens M) :
+      IsZero ((TopCat.of W).compactSupportCohomology ℤₘ ℤ L (n + 1)) := by
+    have := Linear.subsingletonInt (ModuleCat.{0} ℤ)
+    convert TopCat.isZero_compactSupportCohomology_of_chartedSpace ℤₘ L (F := E) (M := W)
+      (show Module.finrank ℝ E < n + 1 by omega)
   -- Duality in every degree passes to the finite unions of members of `S`, by Mayer–Vietoris.
   have hT (s : Finset S) : ∀ p q (h : p + q = n), Function.Bijective
       ((o.comap (s.sup Subtype.val).isOpenEmbedding').dualityMap hn L p q h) := by
@@ -306,8 +322,8 @@ theorem bijective_dualityMap_of_infClosed {S : Set (Opens M)} (hS : InfClosed S)
       (fun V W hV hW hVW _ _ ↦ o.bijective_dualityMap_comap_sup hn L hV hW hVW (hvanish _)) s
     exact (o.comap _).bijective_dualityMap_of_isEmpty hn L h
   -- They form a directed family covering `M`.
-  exact o.bijective_dualityMap_of_iSup_eq_top hn L h (fun _ _ hst ↦ Finset.sup_mono hst) hcover
-    fun s ↦ hT s p q h
+  exact o.bijective_dualityMap_of_iSup_eq_top hn L h (fun _ _ hst ↦ Finset.sup_mono hst)
+    (by rw [iSup_finset_sup_eq_iSup, ← sSup_eq_iSup', hcover]) fun s ↦ hT s p q h
 
 end HomologicalOrientation
 
