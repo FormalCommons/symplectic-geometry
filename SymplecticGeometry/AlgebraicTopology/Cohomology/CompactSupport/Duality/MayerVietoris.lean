@@ -56,8 +56,8 @@ simplicial sets, which are those of singular homology (`TopCat.mayerVietoris_exa
 
 ## References
 
-* A. Hatcher, *Algebraic Topology*, Cambridge University Press, 2002, Section 3.3, the diagram of
-  Mayer–Vietoris sequences in the proof of Lemma 3.36.
+* A. Hatcher, [*Algebraic Topology*](https://pi.math.cornell.edu/~hatcher/AT/AT.pdf),
+  Section 3.3, the diagram of Mayer–Vietoris sequences in the proof of Lemma 3.36.
 -/
 
 public section

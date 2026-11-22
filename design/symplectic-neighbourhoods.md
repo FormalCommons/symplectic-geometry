@@ -217,10 +217,11 @@ and two rows of its milestone table.
     `Neighborhood/Basic.lean` use.
   - `Geometry/Manifold/Distribution/FlatChart.lean`: the step of
     `CharacteristicFoliation.lean` that uses nothing symplectic.
-  - `Geometry/Manifold/IsManifold/Basic.lean`: two instances for smooth
+  - `Geometry/Manifold/IsManifold/Basic.lean`: three instances for smooth
     steps, here and in other parts: `C^(m + 1)` structures from `C^∞` ones,
-    and `IsNormableSpace` on tangent spaces, which `Adjoint.lean` needs when
-    its fibres are tangent spaces.
+    `IsNormableSpace` on tangent spaces, which `Adjoint.lean` needs when
+    its fibres are tangent spaces, and `Nontrivial` on tangent spaces, which
+    `Energy/Density.lean` of *Pseudoholomorphic energy* uses.
   - `Geometry/Manifold/TubularNeighborhood/MFDeriv.lean`: the step of
     `Tubular.lean` that uses nothing symplectic.
   - `Geometry/Manifold/VectorBundle/Adjoint.lean`: a step of

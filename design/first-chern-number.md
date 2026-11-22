@@ -797,6 +797,9 @@ issues, in an order where each issue's blockers come before it.
    Tau Ceti's caps of chains supported in an open subspace, and their
    relative forms, come in the same way, in
    `AlgebraicTopology/Cohomology/Cap/Support.lean`.
+   Tau Ceti's connecting square of the duality maps and the Mayer–Vietoris
+   connecting maps comes in the same way, in
+   `AlgebraicTopology/Cohomology/Cap/MayerVietoris/{Local,Basic}.lean`.
 3. **The unit circle bundle of a Hermitian line bundle.**
    `Geometry/Manifold/VectorBundle/Hermitian/CircleBundle.lean`, the file
    of *Symplectic vector bundles* (its section *The circle bundle of a
@@ -867,7 +870,9 @@ issues, in an order where each issue's blockers come before it.
    total space, invariant under the action and equal to $1$ on the
    fundamental vector field of $1$ (`TauCeti.rightFundamentalVectorField` of
    `SymplecticGeometry.circleLieGenerator`, the velocity of `Circle.exp` at
-   $0$, defined in this file). Its curvature `IsCircleConnectionForm.curvature
+   $0$, defined in `Geometry/Lie/Exponential/Circle.lean`, at the place of the
+   Tau Ceti file of the same name, with the lemma that Tau Ceti's
+   `circleExpGenerator` corresponds to it). Its curvature `IsCircleConnectionForm.curvature
    (hα : IsCircleConnectionForm α)`, the 2-form on `M` whose pull-back is `d α`,
    exists and is unique by descent of basic forms (`TauCeti.RoughForm.IsBasic`,
    `Manifold.IsSubmersion.exists_smoothForm_mpullback_eq_iff`).
@@ -888,8 +893,11 @@ issues, in an order where each issue's blockers come before it.
    principal bundle, an invariant form that vanishes on vertical vectors is
    basic), and `Geometry/Manifold/DifferentialForm/PartitionOfUnity.lean`
    (`SmoothPartitionOfUnity.IsSubordinate.isSmoothForm_finsum_smul_comp`: a
-   locally finite sum of local forms weighted by a smooth partition of unity
-   is smooth). The example on the circle bundle imports
+   locally finite sum of `C^n` local forms weighted by a smooth partition of
+   unity is `C^n`), the case of the bundle of forms of
+   `Geometry/Manifold/PartitionOfUnity.lean`
+   (`SmoothPartitionOfUnity.IsSubordinate.contMDiff_finsum_smul_comp_section`,
+   the same for sections of any vector bundle). The example on the circle bundle imports
    `Geometry/Manifold/VectorBundle/Hermitian/CircleBundle.lean` of *Symplectic
    vector bundles*. Blocked by 3 only for its example; the definitions are for
    any `P`.
