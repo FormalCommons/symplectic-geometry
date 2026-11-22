@@ -143,7 +143,11 @@ lemma excisionMap_fst : Hom.fst (excisionMap A B) = TopCat.ofHom (ContinuousMap.
 
 end Subsets
 
-variable {C : Type u} [Category.{v} C] [HasCoproducts.{w} C] [Abelian C] (R : C)
+variable {C : Type u} [Category.{v} C] [HasCoproducts.{w} C] (R : C)
+
+section Preadditive
+
+variable [Preadditive C]
 
 section Fst
 
@@ -182,44 +186,6 @@ lemma singularChainComplexπFst_naturality {Q : TopPair.{w}} (f : P ⟶ Q) :
     SSet.chainComplexMap (TopCat.toSSet.map (Hom.fst f)) R ≫ Q.singularChainComplexπFst R =
       P.singularChainComplexπFst R ≫ singularChainComplexMap f R :=
   singularChainComplexπ_pair_naturality f R
-
-/-- The map from the singular homology of the ambient space `P.fst` of a pair to the relative
-singular homology of the pair: `TopPair.singularHomologyπ`, with its source written as the
-homology of `P.fst`, as in `TopPair.singularChainComplexπFst`. -/
-noncomputable abbrev singularHomologyπFst (n : ℕ) :
-    (TopCat.toSSet.obj P.fst).homology R n ⟶ P.singularHomology R n :=
-  P.singularHomologyπ R n
-
-lemma singularHomologyπFst_eq (n : ℕ) :
-    P.singularHomologyπFst R n = P.singularHomologyπ R n :=
-  (rfl)
-
-/-- The map from the zeroth singular homology of `P.fst` to the zeroth relative singular homology
-of `P` is an epimorphism. -/
-instance epi_singularHomologyπFst_zero : Epi (P.singularHomologyπFst R 0) :=
-  inferInstanceAs (Epi (P.singularHomologyπ R 0))
-
-/-- The singular homology of the subspace of a pair vanishes in its relative singular homology. -/
-@[reassoc]
-lemma homologyMap_comp_singularHomologyπFst (n : ℕ) :
-    SSet.homologyMap (TopCat.toSSet.map P.map) R n ≫ P.singularHomologyπFst R n = 0 :=
-  homologyMap_comp_singularHomologyπ P R n
-
-variable {P} in
-/-- The map from the singular homology of the ambient space to the relative singular homology is
-natural in maps of pairs. -/
-@[reassoc]
-lemma singularHomologyπFst_naturality {Q : TopPair.{w}} (f : P ⟶ Q) (n : ℕ) :
-    SSet.homologyMap (TopCat.toSSet.map (Hom.fst f)) R n ≫ Q.singularHomologyπFst R n =
-      P.singularHomologyπFst R n ≫ TopPair.singularHomologyMap f R n :=
-  singularHomologyπ_naturality f R n
-
-/-- The map induced on homology by `TopPair.singularChainComplexπFst` is
-`TopPair.singularHomologyπFst`. -/
-lemma homologyMap_singularChainComplexπFst (n : ℕ) :
-    HomologicalComplex.homologyMap (P.singularChainComplexπFst R) n =
-      P.singularHomologyπFst R n :=
-  (rfl)
 
 end Fst
 
@@ -264,6 +230,54 @@ lemma chainComplexMap_comp_singularChainComplexπ_of_fac (P : TopPair.{w}) {Y : 
     SSet.chainComplexMap (TopCat.toSSet.map k) R ≫ P.singularChainComplexπFst R = 0 := by
   subst hg
   simp
+
+end Preadditive
+
+variable [Abelian C]
+
+section Fst
+
+variable (P : TopPair.{w})
+
+/-- The map from the singular homology of the ambient space `P.fst` of a pair to the relative
+singular homology of the pair: `TopPair.singularHomologyπ`, with its source written as the
+homology of `P.fst`, as in `TopPair.singularChainComplexπFst`. -/
+noncomputable abbrev singularHomologyπFst (n : ℕ) :
+    (TopCat.toSSet.obj P.fst).homology R n ⟶ P.singularHomology R n :=
+  P.singularHomologyπ R n
+
+lemma singularHomologyπFst_eq (n : ℕ) :
+    P.singularHomologyπFst R n = P.singularHomologyπ R n :=
+  (rfl)
+
+/-- The map from the zeroth singular homology of `P.fst` to the zeroth relative singular homology
+of `P` is an epimorphism. -/
+instance epi_singularHomologyπFst_zero : Epi (P.singularHomologyπFst R 0) :=
+  inferInstanceAs (Epi (P.singularHomologyπ R 0))
+
+/-- The singular homology of the subspace of a pair vanishes in its relative singular homology. -/
+@[reassoc]
+lemma homologyMap_comp_singularHomologyπFst (n : ℕ) :
+    SSet.homologyMap (TopCat.toSSet.map P.map) R n ≫ P.singularHomologyπFst R n = 0 :=
+  homologyMap_comp_singularHomologyπ P R n
+
+variable {P} in
+/-- The map from the singular homology of the ambient space to the relative singular homology is
+natural in maps of pairs. -/
+@[reassoc]
+lemma singularHomologyπFst_naturality {Q : TopPair.{w}} (f : P ⟶ Q) (n : ℕ) :
+    SSet.homologyMap (TopCat.toSSet.map (Hom.fst f)) R n ≫ Q.singularHomologyπFst R n =
+      P.singularHomologyπFst R n ≫ TopPair.singularHomologyMap f R n :=
+  singularHomologyπ_naturality f R n
+
+/-- The map induced on homology by `TopPair.singularChainComplexπFst` is
+`TopPair.singularHomologyπFst`. -/
+lemma homologyMap_singularChainComplexπFst (n : ℕ) :
+    HomologicalComplex.homologyMap (P.singularChainComplexπFst R) n =
+      P.singularHomologyπFst R n :=
+  (rfl)
+
+end Fst
 
 /-- Let `e : P ⟶ Q` be a map of pairs that induces an isomorphism in degree `n`, and `g` a chain
 map from the chains of `K` to the relative chains of `P` that `e` sends to the image of the chains
