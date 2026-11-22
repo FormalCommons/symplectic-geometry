@@ -74,6 +74,8 @@ here.
   associativity of the cross product of local homology classes and of local orientations, the
   latter stated as Tau Ceti's `TauCeti.LocalOrientation.map_prodAssoc_prod` is for the ordered
   product.
+* `TauCeti.LocalOrientation.zsmul_left_injective`: a local orientation has infinite order. Its
+  statement and proof adapt Tau Ceti's `TauCeti.HomologicalOrientation.zsmul_left_injective`.
 
 ## References
 
@@ -404,16 +406,9 @@ theorem localHomologyCross_assoc (x : X) (y : Y) (z : Z) (p q r pq qr n : ℕ) (
     rfl
   -- The cross products of pairs are natural in the maps that identify the subspaces with the
   -- complements of points, the identity on the other factor.
+  -- `hZ` and `hX` are stated for `𝟙`, not `id`, so that `TopPair.ofSubsetMap_id` applies below.
   have hZ : MapsTo (𝟙 (TopCat.of Z)) ({z}ᶜ : Set (TopCat.of Z)) {z}ᶜ := fun _ h ↦ h
   have hX : MapsTo (𝟙 (TopCat.of X)) ({x}ᶜ : Set (TopCat.of X)) {x}ᶜ := fun _ h ↦ h
-  have hid : TopPair.singularHomologyMap (TopPair.ofSubsetMap (𝟙 (TopCat.of Z))
-      hZ) (ModuleCat.of ℤ (ULift.{0} ℤ)) r = 𝟙 _ :=
-    (congrArg (TopPair.singularHomologyMap · _ r) (TopPair.ofSubsetMap_id _)).trans
-      (TopPair.singularHomologyMap_id _ _ _)
-  have hid' : TopPair.singularHomologyMap (TopPair.ofSubsetMap (𝟙 (TopCat.of X))
-      hX) (ModuleCat.of ℤ (ULift.{0} ℤ)) p = 𝟙 _ :=
-    (congrArg (TopPair.singularHomologyMap · _ p) (TopPair.ofSubsetMap_id _)).trans
-      (TopPair.singularHomologyMap_id _ _ _)
   have hnatL := TopCat.singularHomologyCrossRelPair_naturality (TopCat.of X ⊗ TopCat.of Y)
     (TopCat.of Z) _ ({z}ᶜ : Set (TopCat.of Z)) (ModuleCat.of ℤ (ULift.{0} ℤ))
     (ModuleCat.of ℤ (ULift.{0} ℤ)) pq r n hn (TopCat.tensorObjIsoProd X Y).hom
@@ -422,8 +417,8 @@ theorem localHomologyCross_assoc (x : X) (y : Y) (z : Z) (p q r pq qr n : ℕ) (
     (TopCat.of Y ⊗ TopCat.of Z) ({x}ᶜ : Set (TopCat.of X)) _ (ModuleCat.of ℤ (ULift.{0} ℤ))
     (ModuleCat.of ℤ (ULift.{0} ℤ)) p qr n hn' (𝟙 _) hX
     (TopCat.tensorObjIsoProd Y Z).hom (mapsTo_preimage_fst_compl_union_preimage_snd_compl y z)
-  rw [hid, tensorHom_id] at hnatL
-  rw [hid', id_tensorHom] at hnatR
+  simp only [TopPair.ofSubsetMap_id, TopPair.singularHomologyMap_id, tensorHom_id] at hnatL
+  simp only [TopPair.ofSubsetMap_id, TopPair.singularHomologyMap_id, id_tensorHom] at hnatR
   have hA := TopCat.singularHomologyCrossRelPair_uliftTensorSelfIso_assoc (TopCat.of X)
     (TopCat.of Y) (TopCat.of Z) {x}ᶜ {y}ᶜ {z}ᶜ p q r pq qr n hpq hqr hn hn'
   simp only [comp_whiskerRight, whiskerLeft_comp, Category.assoc] at hA

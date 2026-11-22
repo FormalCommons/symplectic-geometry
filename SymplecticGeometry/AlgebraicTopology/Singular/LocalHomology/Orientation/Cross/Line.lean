@@ -41,8 +41,8 @@ map to the homology of `(F × ℝ) ∖ {0}` relative to `(F ∖ {0}) × ℝ`, wh
   relative cross product with the class of a point `t` is the map induced by `jₜ`
   (`TopCat.singularHomology₀Section_singularHomologyCrossRel`).
 
-A local orientation of `F × ℝ` has infinite order (`TauCeti.IsLocalOrientation.zsmul_eq_zero_iff`),
-so the sign is `(-1) ^ (m + 1)`.
+A local orientation of `F × ℝ` has infinite order
+(`TauCeti.LocalOrientation.zsmul_left_injective`), so the sign is `(-1) ^ (m + 1)`.
 
 ## Main results
 
