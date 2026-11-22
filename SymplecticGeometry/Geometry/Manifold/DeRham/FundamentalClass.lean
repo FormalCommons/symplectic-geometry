@@ -64,6 +64,8 @@ The proof is local.
 * `TauCeti.Manifold.Orientation.intIntegrationCochain_iCycles_eq_integralTopForm`: the local
   statement, for a form supported inside one positively oriented simplex.
 * `TauCeti.Manifold.Orientation.integralTopForm_eq_singularHomologyPeriod`: `∫_C φ = ⟨[φ], [C]⟩`.
+* `TauCeti.Manifold.Orientation.integralTopForm_mpullback_eq_singularHomologyPeriod`: for a closed
+  two-form `φ` on a manifold `M` and a smooth `u : C → M`, `∫_C u^* φ = ⟨[φ], u_* [C]⟩`.
 
 ## References
 
@@ -294,6 +296,25 @@ theorem integralTopForm_eq_singularHomologyPeriod (hE' : finrank ℝ E' = 2)
     intIntegrationCochain_sum_apply _ _ fun i _ ↦ (hψ i).of_le (by simp)]
   exact Finset.sum_congr rfl fun i _ ↦ (intIntegrationCochain_iCycles_eq_integralTopForm hE' o z
     hz' (hU i) (hgs i) (hg i) (ho i) (hψ i) (hsupp i)).symm
+
+/-- **Integration of a pulled back closed two-form over a surface.** For a closed surface `C`,
+oriented by `o`, a closed two-form `φ` on a manifold `M` and a smooth map `u : C → M`, the integral
+of `u^* φ` over `C` is the period of `[φ]` on the image under `u` of the fundamental class of the
+homological orientation of `-o`: `∫_C u^* φ = ⟨[φ], u_* [C]⟩`. -/
+theorem integralTopForm_mpullback_eq_singularHomologyPeriod {E H : Type*}
+    [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E] [TopologicalSpace H]
+    {I : ModelWithCorners ℝ E H} {M : Type} [TopologicalSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [T2Space M] [SigmaCompactSpace M] (hE' : finrank ℝ E' = 2)
+    (o : Manifold.Orientation 𝓘(ℝ, E') C (Fin 2)) (φ : closedForms I M 2) {u : C → M}
+    (hu : ContMDiff 𝓘(ℝ, E') I ∞ u) :
+    integralTopForm o (mpullback 𝓘(ℝ, E') I u φ.val.val) =
+      deRhamCohomology.singularHomologyPeriod (deRhamCohomology.mk I 2 φ)
+        (((-o).toHomologicalOrientation hE').mapFundamentalClass hE' ⟨u, hu.continuous⟩) := by
+  have h := deRhamCohomology.singularHomologyPeriod_map hu (deRhamCohomology.mk I 2 φ)
+    (((-o).toHomologicalOrientation hE').fundamentalClass hE')
+  rw [deRhamCohomology.map_mk, ← o.integralTopForm_eq_singularHomologyPeriod hE',
+    closedForms.coe_mpullback, SmoothForm.coe_mpullback] at h
+  rw [h, HomologicalOrientation.mapFundamentalClass_def]
 
 end TauCeti.Manifold.Orientation
 
