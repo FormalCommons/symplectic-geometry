@@ -301,7 +301,8 @@ Namespace `SymplecticGeometry`.
   `isClosed_complexProjectiveZeroLocus`) and `T2Space`.
 - `X.surjective_jacobiMatrixAt`, the cone-Jacobian form of `smooth`;
   `X.embedding`, Tau Ceti's `complexProjectiveZeroLocusEmbedding` for
-  regularity `ω`, with `coe_embedding : ⇑X.embedding = Subtype.val`;
+  regularity `ω`, `@[expose]` so that Tau Ceti's lemmas about that embedding apply
+  to it, with `coe_embedding : ⇑X.embedding = Subtype.val`;
   `finrank_model : finrank ℂ (Fin (n + 1 - Fintype.card Unit) → ℂ) = n`.
 - `X.poly_ne_zero`, and `X.nonempty` for `d ≠ 0` (a homogeneous polynomial
   of positive degree in at least two variables has a nonzero zero over `ℂ`).
