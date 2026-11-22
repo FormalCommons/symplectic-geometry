@@ -22,6 +22,7 @@ import TauCeti.Geometry.Symplectic.Manifold.Darboux
 import TauCeti.Geometry.Symplectic.Manifold.Opens
 import TauCeti.LinearAlgebra.Alternating.Conormal
 import TauCeti.LinearAlgebra.Alternating.Curry
+import SymplecticGeometry.Geometry.Manifold.IsManifold.Basic
 
 /-!
 # Characteristic foliations and local symplectic quotients
@@ -432,7 +433,6 @@ theorem exists_isCharacteristicSubmersion (σ : SmoothForm I M ℝ 2) (hσ : σ.
         (SmoothForm.mpullback (Subtype.val : U → M) contMDiff_subtypeVal σ)
         (fun u ↦ (⟨(Ψ u : EuclideanSpace ℝ (Fin k) × StdSpace (Fin r)).2, (Ψ u).property.2⟩ :
           (⟨Metric.ball 0 1, Metric.isOpen_ball⟩ : Opens (StdSpace (Fin r))))) := by
-  have : IsManifold I (∞ + 1) M := IsManifold.of_le (n := ∞) (by simp)
   obtain ⟨Φ, hx, h0, hball, hker⟩ :=
     (isInvolutiveDistribution_ker_bilinFormAt σ hσ).exists_flatPartialDiffeomorph
       (F₁ := EuclideanSpace ℝ (Fin k)) (F₂ := StdSpace (Fin r))
