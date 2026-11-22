@@ -194,7 +194,8 @@ theorem maslovPhase_inv_mul_mul_eq_normalizedDet {b : B} {Ψ₁ Ψ₂ : StdSpace
   simp only [ContinuousLinearEquiv.trans_apply, toEuclideanCLE_apply]
   rw [← h₁, ContinuousLinearEquiv.apply_symm_apply, h₂, hA]
   simp only [Subgroup.coe_mul, Units.val_mul, toLpLin_mul_same, LinearMap.comp_apply,
-    Subgroup.coe_inv, GeneralLinearGroup.toEuclideanLin_apply_toEuclideanLin_inv_apply]
+    Subgroup.coe_inv, coe_units_inv,
+    GeneralLinearGroup.toEuclideanLin_apply_toEuclideanLin_inv_apply]
 
 end TauCeti.Bundle.ContinuousComplexStructure
 

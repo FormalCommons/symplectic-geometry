@@ -60,8 +60,9 @@ variable {𝕜 ι}
 /-- On `EuclideanSpace 𝕜 ι`, an invertible matrix undoes the action of its inverse. -/
 @[simp]
 theorem toEuclideanLin_apply_toEuclideanLin_inv_apply (A : GL ι 𝕜) (v : EuclideanSpace 𝕜 ι) :
-    toEuclideanLin (A : Matrix ι ι 𝕜) (toEuclideanLin ((A⁻¹ : GL ι 𝕜) : Matrix ι ι 𝕜) v) = v := by
-  rw [← LinearMap.comp_apply, ← toLpLin_mul_same, Units.mul_inv, toLpLin_one, LinearMap.id_apply]
+    toEuclideanLin (A : Matrix ι ι 𝕜) (toEuclideanLin (A : Matrix ι ι 𝕜)⁻¹ v) = v := by
+  rw [← coe_units_inv, ← LinearMap.comp_apply, ← toLpLin_mul_same, Units.mul_inv, toLpLin_one,
+    LinearMap.id_apply]
 
 end Matrix.GeneralLinearGroup
 
