@@ -31,6 +31,18 @@ a local instance, as Tau Ceti's `Geometry/Symplectic/Manifold/Flat.lean` does.
 The proof composes Tau Ceti's `ContMDiffWithinAt.clm_bundle_flip`, `ContMDiffAt.clm_bundle_comp`
 and `ContMDiffAt.clm_bundle_inverse`, as Tau Ceti's
 `TauCeti.SmoothTwoForm.IsNondegenerate.skewPart` does for the tangent bundle.
+
+## Left inverses of derivatives of immersions
+
+As an application, `Manifold.IsImmersion.exists_contMDiff_leftInverse_mfderiv` gives a smooth
+left inverse of the derivative of a smooth immersion `f : Q → M`, with `Q` of finite dimension,
+as a section of the bundle of linear maps from the pull-back `f *ᵖ TM` to `TQ`. Given a smooth
+field `β` of bilinear forms on `TM`, definite at the points of the image, the left inverse at
+`q` is the adjoint of `df_q` for `β` at `f q` and for its pull-back `β(df_q ·, df_q ·)`, which
+is definite since `df_q` is injective. The pull-back is smooth by Tau Ceti's
+`Bundle.contMDiffAt_bilinearForm_pullback`, and the pull-back bundle `f *ᵖ TM` with its smooth
+sections comes from `SymplecticGeometry/Geometry/Manifold/VectorBundle/Pullback.lean`; only this
+application uses these two imports.
 -/
 
 public section

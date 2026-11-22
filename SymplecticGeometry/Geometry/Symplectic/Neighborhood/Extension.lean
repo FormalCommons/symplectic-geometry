@@ -47,7 +47,7 @@ steps, each smooth in `q`:
   inverses `Sⱼ` of the derivatives (`TauCeti.SmoothEmbedding.exists_contMDiff_leftInverse_mfderiv`,
   which is `Manifold.IsImmersion.exists_contMDiff_leftInverse_mfderiv` of
   `SymplecticGeometry/Geometry/Manifold/VectorBundle/Adjoint.lean` for the form `σ(J ·, ·)`,
-  definite by `TauCeti.SmoothTwoForm.Compatible.flatComp_apply_self_eq_zero_iff`);
+  definite by `TauCeti.SmoothTwoForm.Tames.flatComp_apply_self_eq_zero_iff`);
 * the adjoint `(ω₁^♭)⁻¹ ∘ T^* ∘ ω₀^♭` of `T = b⁻¹ ∘ (projection onto W₁)`, smooth by
   `ContMDiff.clm_bundle_bilinAdjoint`.
 
@@ -80,23 +80,6 @@ Tau Ceti's `Geometry/Symplectic/Manifold/Flat.lean`); transposing bilinear forms
 local instance (x : M) : IsNormableSpace ℝ (TangentSpace I x) :=
   instIsNormableSpaceTangentSpace I x
 
-/-- For a compatible almost complex structure `J`, the form `σ(J ·, ·)` vanishes on the diagonal
-only at `0`: `σ(J u, u) = -g(u, u)` for the metric `g = σ(·, J ·)`. -/
-theorem _root_.TauCeti.SmoothTwoForm.Compatible.flatComp_apply_self_eq_zero_iff
-    (hc : σ.Compatible Jc) {x : M} {u : TangentSpace I x} :
-    σ.flatComp Jc.toEndomorphism x u u = 0 ↔ u = 0 := by
-  refine ⟨fun hu ↦ ?_, fun hu ↦ by simp [hu]⟩
-  by_contra hne
-  have hp := (hc.compatibleAt x).positive u hne
-  rw [LinearMap.BilinMap.toQuadraticMap_apply, SymplecticForm.associatedBilinForm_apply] at hp
-  simp only [SmoothTwoForm.flatComp_apply, ContinuousLinearMap.comp_apply,
-    SmoothTwoForm.flat_apply] at hu
-  rw [← SmoothTwoForm.IsNondegenerate.symplecticFormAt_apply hc.isNondegenerate,
-    ← SymplecticForm.neg_eq, neg_eq_zero] at hu
-  simp only [SmoothAlmostComplexStructure.almostComplexStructureAt_toLinearMap,
-    ContinuousLinearMap.coe_coe] at hp
-  exact hp.ne' hu
-
 /-- **A smooth left inverse of the derivative.** For a smooth embedding `f` into a manifold with
 a two-form `σ` and a compatible almost complex structure `J`, there is a smooth section `S` of
 the bundle of linear maps from the pull-back `f *ᵖ TM` to `TQ` with `S_q ∘ df_q = id` at every
@@ -107,7 +90,7 @@ theorem exists_contMDiff_leftInverse_mfderiv (hc : σ.Compatible Jc) :
         (E := fun q ↦ ((f : Q → M) *ᵖ (TangentSpace I)) q →L[ℝ] TangentSpace J q) q (S q)) ∧
       ∀ q, Function.LeftInverse (S q) (mfderiv J I f q) :=
   f.isImmersion.exists_contMDiff_leftInverse_mfderiv (σ.flatComp Jc.toEndomorphism).contMDiff
-    fun _ _ ↦ hc.flatComp_apply_self_eq_zero_iff.1
+    fun _ _ ↦ hc.tames.flatComp_apply_self_eq_zero_iff.1
 
 variable [FiniteDimensional ℝ E]
 
