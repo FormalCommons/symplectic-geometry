@@ -14,9 +14,8 @@ public import Mathlib.Topology.Sets.Opens
 
 For a charted space `M` modelled on `H`, the open sets of `M` contained in the source of some
 chart are closed under intersection
-(`TopologicalSpace.Opens.infClosed_setOf_subset_chartAt_source`), and their finite unions form a
-directed family covering `M`
-(`TopologicalSpace.Opens.iSup_finset_sup_subset_chartAt_source_eq_top`).
+(`TopologicalSpace.Opens.infClosed_setOf_subset_chartAt_source`), and they cover `M`
+(`TopologicalSpace.Opens.sSup_setOf_subset_chartAt_source_eq_top`).
 Each of them embeds openly into the model through its chart (Tau Ceti's
 `OpenPartialHomeomorph.isOpenEmbedding_comp`). Over this family, a Mayer–Vietoris induction
 carries a statement about open subsets of the model to the whole manifold, as in the proof of
@@ -43,13 +42,10 @@ theorem infClosed_setOf_subset_chartAt_source :
   rintro V ⟨x, hx⟩ W -
   exact ⟨x, inter_subset_left.trans hx⟩
 
-/-- The finite unions of open sets of a charted space that lie in the source of some chart cover
-the space. -/
-theorem iSup_finset_sup_subset_chartAt_source_eq_top :
-    ⨆ s : Finset {W : Opens M | ∃ x, (W : Set M) ⊆ (chartAt H x).source},
-      s.sup Subtype.val = ⊤ := by
-  refine eq_top_iff.2 fun x _ ↦ Opens.mem_iSup.2
-    ⟨{⟨⟨(chartAt H x).source, (chartAt H x).open_source⟩, x, subset_rfl⟩}, ?_⟩
-  simp
+/-- The open sets of a charted space that lie in the source of some chart cover the space. -/
+theorem sSup_setOf_subset_chartAt_source_eq_top :
+    sSup {W : Opens M | ∃ x, (W : Set M) ⊆ (chartAt H x).source} = ⊤ :=
+  eq_top_iff.2 fun x _ ↦ Opens.mem_sSup.2
+    ⟨⟨(chartAt H x).source, (chartAt H x).open_source⟩, ⟨x, subset_rfl⟩, mem_chart_source H x⟩
 
 end TopologicalSpace.Opens

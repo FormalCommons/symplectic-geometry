@@ -23,9 +23,8 @@ open sets of `M` lying in one chart in place of those with convex image. Such op
 closed under intersection (`TopologicalSpace.Opens.infClosed_setOf_subset_chartAt_source`), and
 each embeds openly into `F` through its chart (`OpenPartialHomeomorph.isOpenEmbedding_comp`), so
 that the vanishing holds for them by `TopCat.isZero_compactSupportCohomology_of_isOpenEmbedding`.
-Their finite unions cover `M`
-(`TopologicalSpace.Opens.iSup_finset_sup_subset_chartAt_source_eq_top`), so the vanishing holds
-on `M` by `TopCat.isZero_compactSupportCohomology_of_infClosed`.
+They cover `M` (`TopologicalSpace.Opens.sSup_setOf_subset_chartAt_source_eq_top`), so the
+vanishing holds on `M` by `TopCat.isZero_compactSupportCohomology_of_infClosed`.
 
 ## Main results
 
@@ -58,7 +57,7 @@ theorem isZero_compactSupportCohomology_of_chartedSpace {m : ℕ} (hm : finrank 
     IsZero ((of M).compactSupportCohomology R k N m) := by
   refine isZero_compactSupportCohomology_of_infClosed R k N
     (Opens.infClosed_setOf_subset_chartAt_source F)
-    (Opens.iSup_finset_sup_subset_chartAt_source_eq_top F) ?_ hm
+    (Opens.sSup_setOf_subset_chartAt_source_eq_top F) ?_ hm
   rintro W ⟨x, hx⟩ m hm
   exact isZero_compactSupportCohomology_of_isOpenEmbedding R N
     ((chartAt F x).isOpenEmbedding_comp W.isOpenEmbedding' (by rwa [Subtype.range_coe])) hm
