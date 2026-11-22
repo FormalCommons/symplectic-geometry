@@ -51,7 +51,8 @@ Changing variables along `e` (`Distribution.transportCLM_ofFun` and
 of the coordinate of `w` for `μ`, up to the constant factor relating the image of the volume to
 `μ`; Mathlib's `Distribution.ofFun_injective` identifies the two, and Tau Ceti's
 `TauCeti.exists_contDiffOn_ae_eq_of_locally` glues the local representatives. The same change of
-variables shows that the coordinate distributions of a smooth function are smooth functions on `Ω`
+variables, with Tau Ceti's `Distribution.singularSupport_ofFun_eq_empty`, shows that the
+coordinate distributions of a smooth function have empty singular support
 (`Distribution.singularSupport_coordOfFun_eq_empty`).
 
 ## References
@@ -294,27 +295,15 @@ theorem exists_contDiffOn_ae_eq_of_singularSupport_coordOfFun_eq_empty
 /-- The coordinate distributions of a function smooth on `U` have empty singular support. -/
 theorem singularSupport_coordOfFun_eq_empty (hw : ContDiffOn ℝ ∞ w U) (i : ι) :
     (coordOfFun e hΩ b w μ i).singularSupport = ∅ := by
-  -- The image of the volume of `E'` under `e⁻¹` is a positive multiple `κ` of `μ`.
-  set κ := Measure.addHaarScalarFactor ((volume : Measure E').map e.symm) μ
-  have hκ : (volume : Measure E').map e.symm = κ • μ := Measure.isAddLeftInvariant_eq_smul _ μ
-  have hκ0 : (κ : ℝ) ≠ 0 :=
-    NNReal.coe_ne_zero.2 (Measure.addHaarScalarFactor_pos_of_isAddHaarMeasure _ _).ne'
   have hc : ContDiffOn ℝ ∞ (fun z ↦ (b.repr (w (e.symm z)) i : ℂ)) Ω :=
     (Complex.ofRealCLM.comp (b.coord i).toContinuousLinearMap).contDiff.comp_contDiffOn
       (hw.comp e.symm.contDiff.contDiffOn fun z hz ↦ hΩ hz)
-  refine Set.eq_empty_iff_forall_notMem.2 fun y hy ↦ (mem_singularSupport_iff.1 hy).2
-    ⟨Ω, Ω.isOpen, (mem_singularSupport_iff.1 hy).1, _,
-    hc.const_smul ((κ : ℝ)⁻¹ : ℂ), fun φ _ ↦ ?_⟩
-  rw [coordOfFun_apply e hΩ b (hw.continuousOn.locallyIntegrableOn U.isOpen.measurableSet)]
-  -- Change variables `x = e⁻¹ z`.
-  have hcov := integral_map_equiv (μ := (volume : Measure E'))
-    e.symm.toHomeomorph.toMeasurableEquiv fun x ↦ φ (e x) • (b.repr (w x) i : ℂ)
-  simp only [Homeomorph.toMeasurableEquiv_coe, ContinuousLinearEquiv.coe_toHomeomorph,
-    ContinuousLinearEquiv.apply_symm_apply] at hcov
-  simp_rw [smul_comm (φ _) ((κ : ℝ)⁻¹ : ℂ)]
-  rw [integral_smul, ← hcov, hκ, integral_smul_nnreal_measure, NNReal.smul_def,
-    Complex.real_smul, smul_eq_mul, ← mul_assoc]
-  simp [hκ0]
+  -- After the change of variables `x = e⁻¹ z`, it is a multiple of the distribution of a function
+  -- smooth on `Ω`.
+  rw [coordOfFun_def, transportCLM_ofFun_of_isAddHaarMeasure e.symm hΩ μ volume
+    ((hw.continuousOn.locallyIntegrableOn U.isOpen.measurableSet).ofReal_basis_repr b i)]
+  exact subset_empty_iff.1 ((singularSupport_smul_subset _ _).trans
+    (singularSupport_ofFun_eq_empty hc).subset)
 
 end InnerProductSpace
 

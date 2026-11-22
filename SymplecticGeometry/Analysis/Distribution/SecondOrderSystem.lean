@@ -47,7 +47,6 @@ are glued by Tau Ceti's `TauCeti.exists_contDiffOn_ae_eq_of_locally`.
 
 ## Main results
 
-* `TestFunction.fderiv_comp_smul_const_apply`: the derivative of `z ↦ ψ (L z) • v`.
 * `Distribution.singularSupport_eq_empty_of_secondOrderSystem`.
 * `SymplecticGeometry.exists_contDiffOn_ae_eq_of_forall_integral_apply_eq`.
 
@@ -63,22 +62,6 @@ public section
 
 open TopologicalSpace TauCeti
 open scoped ContDiff Distributions LineDeriv InnerProductSpace
-
-namespace TestFunction
-
-/-- The derivative along `u` of `z ↦ ψ (L z) • v`, for a real test function `ψ` and a continuous
-linear map `L`, is `(∂_{L u} ψ) (L y) • v`. -/
-theorem fderiv_comp_smul_const_apply {E E' F : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
-    [NormedAddCommGroup E'] [NormedSpace ℝ E'] [NormedAddCommGroup F] [NormedSpace ℝ F]
-    {Ω : Opens E'} (L : E →L[ℝ] E') (ψ : 𝓓(Ω, ℝ)) (v : F) (y u : E) :
-    fderiv ℝ (fun z ↦ ψ (L z) • v) y u = ∂_{L u} ψ (L y) • v := by
-  have hψ : DifferentiableAt ℝ ψ (L y) := ψ.contDiff.differentiable (by simp) _
-  have hd : HasFDerivAt (fun z ↦ ψ (L z) • v) _ y :=
-    (hψ.hasFDerivAt.comp y L.hasFDerivAt).smul_const v
-  rw [hd.fderiv, lineDerivOp_apply_eq_fderiv]
-  simp
-
-end TestFunction
 
 namespace Distribution
 
@@ -120,11 +103,11 @@ theorem singularSupport_eq_empty_of_secondOrderSystem (v : ι → CoordinateSpac
       (Sum.elim (fun _ ↦ if b = a then 1 else 0) fun _ ↦ 1)
   have hh : ∀ a b j, ContDiff ℝ ∞ (h a b j) := by
     rintro a b ((⟨i, j, _ | _⟩ | i) | (⟨i, j⟩ | i | _))
-    · exact (hg i j).fderiv_apply_const _
-    · exact (hg i j).fderiv_apply_const _
+    · exact (hg i j).fderiv_apply_const le_rfl _
+    · exact (hg i j).fderiv_apply_const le_rfl _
     · exact hβ a b i
-    · exact ((hg i j).fderiv_apply_const _).fderiv_apply_const _
-    · exact (hβ a b i).fderiv_apply_const _
+    · exact ((hg i j).fderiv_apply_const le_rfl _).fderiv_apply_const le_rfl _
+    · exact (hβ a b i).fderiv_apply_const le_rfl _
     · exact hγ a b
   refine singularSupport_eq_empty_of_ellipticSystem (t := Finset.univ) (c := fun _ ↦ 1)
     (g := fun p : ι × ι ↦ g p.1 p.2) (k := fun _ ↦ 2) (m := fun p ↦ ![v p.1, v p.2])
