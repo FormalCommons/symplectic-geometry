@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Velocity
+public import SymplecticGeometry.Geometry.Manifold.DeRham.FamilyPrimitive
 public import TauCeti.Geometry.Symplectic.Flux.Hamiltonian
 public import TauCeti.Geometry.Symplectic.Hamiltonian.Manifold
 import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Basic
@@ -13,6 +14,7 @@ import TauCeti.Geometry.Diffeomorphism.Group
 import TauCeti.Geometry.Manifold.Diffeomorph.Basic
 import TauCeti.Geometry.Manifold.MFDeriv.Constancy
 import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
+import TauCeti.Geometry.Symplectic.Hamiltonian.SymplecticVectorField
 
 /-!
 # Hamiltonians of a diffeotopy on the manifold
@@ -22,7 +24,8 @@ velocity `X_t` (`TauCeti.Diffeotopy.velocity`). In McDuff–Salamon, §3.1, `φ_
 time-dependent Hamiltonian `H : M × [0, 1] → ℝ` when `ι_{X_t} σ = dH_t` for every `t`
 (`TauCeti.Diffeotopy.IsGeneratedBy`). Tau Ceti's `TauCeti.Diffeotopy.HasHamiltonian` reads the
 same Hamiltonian along the motion, as `F_t = H_t ∘ φ_t`. This file relates the two readings and
-transports Tau Ceti's rules for composites, inverses and conjugates to the reading on `M`.
+transports Tau Ceti's rules for composites, inverses and conjugates to the reading on `M`. It
+also shows that a diffeotopy has a Hamiltonian as soon as every `ι_{X_t} σ` is exact.
 
 ## Main definitions
 
@@ -43,6 +46,12 @@ transports Tau Ceti's rules for composites, inverses and conjugates to the readi
 * `TauCeti.Diffeotopy.HasHamiltonian.exists_sub_eq`,
   `TauCeti.Diffeotopy.IsGeneratedBy.exists_sub_eq`: two Hamiltonians of the same diffeotopy, in
   either reading, differ on every connected component of `M` by a smooth function of `t` alone.
+* `TauCeti.Diffeotopy.isHamiltonian_iff_forall_interiorₗ_velocity_mem_exactForms`: a diffeotopy
+  whose slices preserve `σ` is Hamiltonian exactly when every `ι_{X_t} σ` is exact. The
+  Hamiltonian is built by `TauCeti.Diffeotopy.exists_hasHamiltonian_of_forall_mem_exactForms`
+  from the jointly smooth primitives of
+  `SymplecticGeometry.exists_contMDiff_mextDeriv_eq_of_forall_mem_exactForms`, applied to the
+  family `t ↦ ι_{X_t} σ`, which is smooth by `SymplecticGeometry.isSmoothFamily_interiorₗ`.
 
 ## Implementation notes
 
@@ -54,6 +63,7 @@ In Lean the composite `φ_t ∘ ψ_t` is `Ψ.trans Φ`, and the conjugate `χ⁻
 ## References
 
 * [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017], §3.1,
+  Definition 3.1.13 (Hamiltonian isotopies),
   Exercise 3.1.14 and Remark 3.1.15.
 -/
 
@@ -61,6 +71,33 @@ public noncomputable section
 
 open Set
 open scoped Manifold ContDiff
+
+namespace SymplecticGeometry
+
+open TauCeti
+
+variable {E H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
+  {J : ModelWithCorners ℝ E H} {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
+  [IsManifold J ∞ M]
+  {EN HN : Type*} [NormedAddCommGroup EN] [NormedSpace ℝ EN] [TopologicalSpace HN]
+  {K : ModelWithCorners ℝ EN HN} {N : Type*} [TopologicalSpace N] [ChartedSpace HN N]
+  [IsManifold K 1 N]
+
+/-- For a jointly smooth family `X_t`, `t ∈ N`, of vector fields, the contractions `ι_{X_t} σ` of
+a two-form `σ` form a smooth family of one-forms. -/
+theorem isSmoothFamily_interiorₗ (σ : SmoothTwoForm J M)
+    {X : N → Cₛ^∞⟮J; E, TangentSpace J (M := M)⟯}
+    (hX : ContMDiff (K.prod J) J.tangent ∞
+      fun p : N × M ↦ (⟨p.2, X p.1 p.2⟩ : TangentBundle J M)) :
+    IsSmoothFamily K fun t ↦ σ.interiorₗ (X t) := by
+  rw [isSmoothFamily_iff_contMDiff]
+  intro p
+  rw [← SmoothForm.contMDiffAt_sectionAlong_degreeOneEquiv_iff (b := Prod.snd)
+    (α := fun q : N × M ↦ σ.interiorₗ (X q.1))]
+  simp only [SmoothTwoForm.degreeOneEquiv_interiorₗ]
+  exact ((σ.contMDiff_flat.comp contMDiff_snd).clm_bundle_apply hX) p
+
+end SymplecticGeometry
 
 namespace TauCeti.Diffeotopy
 
@@ -247,6 +284,38 @@ theorem HasHamiltonian.exists_sub_eq (hF : Φ.HasHamiltonian σ F) (hG : Φ.HasH
   rw [← congrFun (hback F) p, ← congrFun (hback G) p, hFG, cylinderMap_apply,
     ConnectedComponents.coe_eq_coe.2 (Φ.connectedComponent_apply (p.2, p.1))]
 
+
+/-! ### Hamiltonians from exactness -/
+
+/-- **A diffeotopy has a Hamiltonian when its velocity forms are exact.** If, for every `t`, the
+contraction `ι_{X_t} σ` of `σ` with the velocity of `φ_t` is exact, then `φ_t` has a
+Hamiltonian, read along the motion. Neither closedness nor nondegeneracy of `σ` is needed. -/
+theorem exists_hasHamiltonian_of_forall_mem_exactForms
+    (h : ∀ t, σ.interiorₗ (Φ.velocity t) ∈ exactForms J M 1) : ∃ F, Φ.HasHamiltonian σ F := by
+  obtain ⟨f, hf, hdf⟩ := SymplecticGeometry.exists_contMDiff_mextDeriv_eq_of_forall_mem_exactForms
+    (SymplecticGeometry.isSmoothFamily_interiorₗ σ Φ.contMDiff_velocity) h
+  refine ⟨fun p ↦ f (p.2, Φ.cylinderMap p),
+    (hasHamiltonian_comp_iff (G := fun q ↦ f (q.2, q.1))).2
+      ⟨hf.comp (contMDiff_snd.prodMk contMDiff_fst), fun t ↦ ?_⟩⟩
+  rw [SmoothTwoForm.isHamiltonianVectorField_iff_interior_eq, ← SmoothTwoForm.coe_interiorₗ]
+  exact (hdf t).symm
+
+/-- **Hamiltonian diffeotopies and exactness.** A diffeotopy `φ_t` all of whose slices preserve
+`σ` is Hamiltonian exactly when, for every `t`, the contraction `ι_{X_t} σ` of `σ` with its
+velocity is exact. -/
+theorem isHamiltonian_iff_forall_interiorₗ_velocity_mem_exactForms
+    (hΦ : ∀ t, Φ.timeSlice t ∈ SmoothForm.diffeomorphStabilizer σ) :
+    Φ.IsHamiltonian σ ↔ ∀ t, σ.interiorₗ (Φ.velocity t) ∈ exactForms J M 1 := by
+  refine ⟨fun h t ↦ ?_, fun h ↦
+    isHamiltonian_iff.2 ⟨hΦ, exists_hasHamiltonian_of_forall_mem_exactForms h⟩⟩
+  obtain ⟨F, hF⟩ := h.exists_hasHamiltonian
+  obtain ⟨hFs, hX⟩ := hasHamiltonian_iff_isHamiltonianVectorField_velocity.1 hF
+  have hs : ContMDiff J 𝓘(ℝ) ∞ fun y ↦ F (Φ.symm (t, y), t) :=
+    hFs.comp ((Φ.symm.contMDiff.comp (contMDiff_const.prodMk contMDiff_id)).prodMk
+      contMDiff_const)
+  rw [exactForms_succ]
+  exact ⟨⟨_, (isSmoothForm_ofFunction_iff.2 hs).mem_smoothBundleForms⟩,
+    (SmoothTwoForm.isHamiltonianVectorField_iff_interiorₗ_eq.1 (by simpa using hX t)).symm⟩
 end TauCeti.Diffeotopy
 
 end

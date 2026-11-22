@@ -435,7 +435,6 @@ statements assume `[FiniteDimensional ℝ V]`.
   ω.IsDarbouxBasis b ↔ ∀ x y, ω (b x) (J (b y)) = if x = y then 1 else 0`:
   a basis adapted to `J` is a Darboux basis exactly when it is orthonormal
   for $g_J$. The forward direction is `IsDarbouxBasis.apply_apply_eq_ite`.
-  *Symplectic vector bundles* uses the converse for its local Darboux frames.
 - `invariant_of_isSymm_associatedBilinForm : (ω.associatedBilinForm J).IsSymm →
   ω.Invariant J`. Symmetry of $g_J$ already forces invariance: put $Jw$ for
   $w$. With Tau Ceti's `Invariant.associatedBilinForm_isSymm` this gives
