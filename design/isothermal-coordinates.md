@@ -149,7 +149,8 @@ this file.
    #862 about empty manifolds does not arise here.
 7. **Isothermal coordinates for a metric** are stated as conformality of the
    differential of a smooth chart `M → ℂ`: at each point of its source
-   there is `λ > 0` with `⟪dψ v, dψ w⟫ = λ ⟪v, w⟫`. They are the isothermal
+   `IsConformalMap (mvfderiv I ψ y)`, which Mathlib's `isConformalMap_iff`
+   turns into `⟪dψ v, dψ w⟫ = c ⟪v, w⟫` for some `c > 0`. They are the isothermal
    charts of the rotation structure of the metric and the orientation; the
    rotation structure is built from `contMDiff_rightAngleRotation` with
    `contMDiff_hom_iff`, which needs `[T2Space M]`.
@@ -186,6 +187,7 @@ this file.
 | `Analysis/Complex/Wirtinger/Basic.lean` | taken from Tau Ceti: Wirtinger derivatives of `z + f z` | 1 |
 | `Analysis/Holder/Iterated.lean` | taken from Tau Ceti: Hölder continuity of $C^{k,\alpha}$ maps, the supported subspace is closed | 1 |
 | `Analysis/Holder/Normed.lean` | taken from Tau Ceti: Hölder bounds on a subset | 1 |
+| `Analysis/InnerProductSpace/TwoDim.lean` | a nonzero linear map of an oriented Euclidean plane carrying the rotation to `i` is conformal | 4 |
 | `Analysis/Normed/Operator/Basic.lean` | taken from Tau Ceti: the Neumann series for `v + A x = x` | 1 |
 | `Geometry/Manifold/Complex/Isothermal.lean` | smooth isothermal charts on surfaces (issue 3); `IsIntegrable` in dimension two, the rotation structure, isothermal coordinates, the milestone (issue 4) | 3, 4 |
 
@@ -355,7 +357,9 @@ About 250 lines.
 
 **Issue 4** adds, importing `Geometry/Manifold/Complex/Integrable.lean` of
 *Nijenhuis tensor* (#862) and Tau Ceti's
-`Riemannian/Orientation/Rotation.lean` and `VectorBundle/Hom.lean`:
+`Riemannian/Orientation/Rotation.lean` and `VectorBundle/Hom.lean`, and, for
+its proofs only, `Analysis/InnerProductSpace/TwoDim.lean` (below) and
+`Geometry/Manifold/LocalDiffeomorph/MFDeriv.lean` of *Moser isotopy*:
 
 - `TauCeti.SmoothAlmostComplexStructure.isIntegrable_of_finrank_eq_two
   (J : SmoothAlmostComplexStructure I M) (hE : Module.finrank ℝ E = 2) :
@@ -375,19 +379,19 @@ About 250 lines.
 - `TauCeti.Manifold.Orientation.exists_isothermal_coordinates
   (o : Manifold.Orientation I M (Fin 2)) (x : M) :
   ∃ ψ : PartialDiffeomorph I 𝓘(ℝ, ℂ) M ℂ ∞, x ∈ ψ.source ∧
-  ∀ y ∈ ψ.source, ∃ λ : ℝ, 0 < λ ∧ ∀ v w : TangentSpace I y,
-    ⟪mfderiv I 𝓘(ℝ, ℂ) ψ y v, mfderiv I 𝓘(ℝ, ℂ) ψ y w⟫_ℝ = λ * ⟪v, w⟫_ℝ`,
-  with the instances above. The finrank of `E` comes from `o` and `x`
+  ∀ y ∈ ψ.source, IsConformalMap (mvfderiv I ψ y)`,
+  with the instances above and `[I.Boundaryless]`, and Mathlib's `mvfderiv`
+  as in issue 3. The finrank of `E` comes from `o` and `x`
   (`fact_finrank_tangentSpace`). The chart is that of
   `exists_isothermal_partialDiffeomorph` for `o.rightAngleRotationStructure`;
   at each point its differential, read through an orientation-preserving
   isometry of the tangent plane with `ℂ`
   (`Orientation.rightAngleRotation_map_complex`), is complex linear and
   nonzero, hence conformal (`isConformalMap_complex_linear`). The pointwise
-  step, that a real-linear map from an oriented Euclidean plane to `ℂ`
-  carrying the rotation to `i` multiplies inner products by a positive
-  constant, is a public lemma in Mathlib's namespace `Orientation` unless
-  Mathlib has it. The docstring ends with the milestone line.
+  step is `Orientation.isConformalMap_of_map_rightAngleRotation`, in
+  `Analysis/InnerProductSpace/TwoDim.lean`: a nonzero real-linear map from an
+  oriented Euclidean plane to a complex normed space carrying the rotation to
+  `i` is conformal. The docstring ends with the milestone line.
 
 About 300 lines.
 
@@ -425,7 +429,7 @@ estimates.
 | 1 | Planar charts of class `C^{k+1}` for a small $C^{k,\alpha}$ coefficient | `Analysis/Complex/Beltrami/CkHolder.lean`, and the files under *Files taken from Tau Ceti* | — | 1000 |
 | 2 | Planar isothermal charts of class `C^m`, and smooth ones | `Analysis/Calculus/ContDiff/Holder.lean`, `Analysis/Complex/Beltrami/Regularity.lean` | 1 | 350 |
 | 3 | Smooth isothermal charts on surfaces | `Geometry/Manifold/Complex/Isothermal.lean` | 2; #862 | 250 |
-| 4 | Integrability in dimension two, isothermal coordinates of a metric, and the milestone | `Geometry/Manifold/Complex/Isothermal.lean` | 3; #862 | 300 |
+| 4 | Integrability in dimension two, isothermal coordinates of a metric, and the milestone | `Geometry/Manifold/Complex/Isothermal.lean`, `Analysis/InnerProductSpace/TwoDim.lean` | 3; #862 | 300 |
 
 Issue 1 can start at once. The milestone *Integrability of almost complex
 structures on surfaces* is proved in issue 4.
