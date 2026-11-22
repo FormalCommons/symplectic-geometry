@@ -205,7 +205,7 @@ Further choices of this design:
 | `Geometry/Manifold/SmoothIsotopy/Extension.lean` | time extension of an isotopy past its ends, and isotopy extension at every time (named like Tau Ceti's file) |
 | `Geometry/Symplectic/IsotopyExtension/Velocity.lean` | `SmoothIsotopy.IsSymplectic`, velocity forms, their closedness, the link with `HasHamiltonian` |
 | `Geometry/Symplectic/IsotopyExtension/Flow.lean` | extension of a family of symplectic embeddings by an ambient symplectic or Hamiltonian flow |
-| `Geometry/Symplectic/Moser/Family.lean` | Moser's argument near a compact set along a family, and with a parameter; parametric radial primitives |
+| `Geometry/Symplectic/Moser/Family.lean` | Moser's argument near a compact set along a family, and with a parameter |
 | `Geometry/Manifold/TubularNeighborhood/OneFormCorrection.lean` | the correction lemma: a function whose slices have differential `γ_t` along a compact submanifold where `f^* γ_t` vanishes |
 | `Geometry/Manifold/DifferentialForm/VectorBundlePoincare.lean` | the relative Poincaré operator at the zero section of a vector bundle, and its fibre-scaling primitives for a family of one-forms |
 | `Geometry/Symplectic/IsotopyExtension/Ball/Basic.lean` | `IsSymplecticBallEmbedding`, `IsSymplecticBallFamily`, enlarging a symplectic ball |
@@ -537,18 +537,12 @@ smooth in `t`, `s` and the point, by the argument of
 extends `β` in `t` past both ends and runs
 the flow of the vertical field $(0,X_{s,t})$ on the manifold `ℝ × N`. Its
 first component is constant, so by uniqueness its slices are the flows of the
-$X_{\cdot,t}$. The same file gives the parametric radial primitives on a
-star-shaped open set of a normed space,
-`SymplecticGeometry.exists_isSmoothFamily_mextDerivₗ_eq_of_starConvex`: for a smooth family of
-closed $k$-forms ($k\ge1$) on an open set star-shaped about `0`, over any
-parameter manifold, a smooth family of
-primitives that vanishes at every point where the forms vanish along the
-segment to `0`, and is `0` when the form is. It is the homotopy operator
-after pullback along the radial contraction $(x,s)\mapsto s\,x$, slice by
-slice (`IsSmoothFamily.homotopyOperator` and
-`SmoothForm.mextDerivₗ_homotopyOperator_mpullback_of_contraction`), which
-works on an open set where Tau Ceti's `vectorBundlePoincareHomotopy` needs
-the whole bundle. Expected size: 500 lines.
+$X_{\cdot,t}$. The ball extension applies this theorem to parametric radial
+primitives, which are not in this file: they are
+`SymplecticGeometry.exists_isSmoothFamily_mextDerivₗ_eq_of_starConvex` of
+*Smooth families*' `Geometry/Manifold/DifferentialForm/SmoothFamily/Poincare.lean`,
+for an open set star-convex about any centre `c` (here `0`), with the
+segment from `c`. Expected size: 500 lines.
 
 ### `Geometry/Symplectic/IsotopyExtension/Ball/Basic.lean`
 
@@ -818,10 +812,10 @@ this design already follows. `Ball/Isotopy.lean` cites
   `Geometry/Manifold/ContMDiff/TimeExtension.lean` (used by `Extension.lean`
   and `Flow.lean`) and of forms on `unitInterval × M` in
   `Geometry/Manifold/DifferentialForm/TimeExtension.lean` (used by
-  `Flow.lean` and `Moser/Family.lean`); the homotopy operator on smooth
-  families in
-  `Geometry/Manifold/DifferentialForm/SmoothFamily/HomotopyOperator.lean`
-  (used by `Moser/Family.lean` for the parametric radial primitives); and the
+  `Flow.lean` and `Moser/Family.lean`); the parametric radial primitives
+  `exists_isSmoothFamily_mextDerivₗ_eq_of_starConvex` in
+  `Geometry/Manifold/DifferentialForm/SmoothFamily/Poincare.lean`
+  (used by `Ball/Isotopy.lean`); and the
   instance
   `FiniteDimensional ℝ (deRhamCohomology I M k)` for a compact boundaryless
   `M`, which `Geometry/Manifold/DeRham/SmoothFamily/GoodCover.lean` derives

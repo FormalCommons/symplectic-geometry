@@ -180,7 +180,8 @@ These settle the questions that `DESIGN.md` leaves to this file.
    of `ContMDiff/TimeExtension.lean` states it as `timeExtend_eq_zero`.
    `PoissonAlgebra.lean` takes nothing from *Smooth families*, and
    `Flux/Hamiltonian.lean` only the merged `DeRham/GoodCover/Basic.lean` and
-   `DifferentialForm/SmoothFamily/HomotopyOperator.lean`, through
+   `DifferentialForm/SmoothFamily/HomotopyOperator.lean`, and
+   `DifferentialForm/SmoothFamily/Poincare.lean` built on them, through
    `DeRham/FamilyPrimitive.lean`.
 4. **Hamiltonians from exactness** are built directly, not from the
    smooth-primitive map of `DeRham/SmoothFamily/GoodCover.lean`, which needs a compact
@@ -291,8 +292,7 @@ Imports between the files: `Velocity.lean` imports `Instances/Icc.lean`,
 imports `DifferentialForm/SmoothFamily/Basic.lean` of *Smooth families*, for
 `isSmoothFamily_interiorₗ`; `Flux/Hamiltonian.lean`
 imports `Diffeotopy/Basic.lean` and `DeRham/FamilyPrimitive.lean`, which
-imports `DeRham/GoodCover/Basic.lean` and
-`DifferentialForm/SmoothFamily/HomotopyOperator.lean` of *Smooth families*;
+imports `DifferentialForm/SmoothFamily/Poincare.lean` of *Smooth families*;
 `Flux/CompactSupport.lean` imports `Flux/Hamiltonian.lean`. `PoissonAlgebra.lean` imports Tau Ceti,
 among it `Hamiltonian/ExtendedPhaseSpace/Manifold.lean` for the energy
 identity, `Algebra/Lie/Quotient.lean` for the value of
@@ -599,7 +599,10 @@ identity, which Tau Ceti proves (`IsNondegenerate.poissonBracket_jacobi`).
   `DifferentialForm/SmoothFamily/HomotopyOperator.lean` (the homotopy operator
   on smooth families of forms, `IsSmoothFamily.homotopyOperator`, and through
   `DifferentialForm/HomotopyOperator.lean` the primitive of a closed form
-  given by a contraction) for `DeRham/FamilyPrimitive.lean`.
+  given by a contraction), through
+  `DifferentialForm/SmoothFamily/Poincare.lean` (the parametric Poincaré
+  lemma, `IsSmoothlyContractible.exists_isSmoothFamily_mextDerivₗ_eq`), for
+  `DeRham/FamilyPrimitive.lean`.
   `Velocity.lean` (with `Instances/Icc.lean`) uses only Mathlib and Tau Ceti.
 - From *Contact geometry*: `Geometry/Manifold/DifferentialForm/Flow/Family.lean`
   (the general flow lemma) for `PoissonAlgebra.lean`.
