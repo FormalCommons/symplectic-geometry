@@ -17,6 +17,8 @@ public import TauCeti.Geometry.Manifold.Boundary.Orientation
 public import TauCeti.Geometry.Manifold.IntegralCurve.Interval
 public import TauCeti.Geometry.Manifold.MFDeriv.Curve
 public import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
+public import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
+public import TauCeti.Geometry.Manifold.VectorField.Regularity
 
 /-!
 # The flow of an outward field near a boundary point
@@ -148,7 +150,7 @@ theorem exists_contDiff_eqOn_mpullbackWithin_extChartAt_symm (hY : CMDiff ∞ (T
     rw [← extChartAt_self_apply_zero hq, ← hNs, Prod.mk.eta, N.apply_symm_apply]
   obtain ⟨g, hg, V, hV, hqV, hgV⟩ := exists_contDiff_eqOn_of_contDiffOn_halfSpace
     (hU.preimage N.continuous) (f := f ∘ N)
-    ((hY.contDiffOn_mpullbackWithin_extChartAt_symm q).comp N.contDiff.contDiffOn
+    ((hY.contDiffOn_mpullbackWithin_extChartAt_symm (n := ∞) (by simp) q).comp N.contDiff.contDiffOn
       fun z (hz : z ∈ N ⁻¹' U ∩ {z | 0 ≤ z.1}) ↦
         hUt ⟨hz.1, show 0 ≤ N z 0 by rw [hN0]; exact hz.2⟩)
     (show N (0, (N.symm (φ q)).2) ∈ U by rw [hNq]; exact hqU)
@@ -394,7 +396,8 @@ theorem exists_isMIntegralCurveOn_of_isOutwardPointing (hY : IsOutwardPointingFi
     exists_contDiff_eqOn_mpullbackWithin_extChartAt_symm hYs p.property
   have hw₀ : w (φ p) 0 < 0 := by
     have h := (isOutwardPointing_iff.1 (hYb p p.property)).2
-    rwa [← mpullbackWithin_extChartAt_symm_apply_eq_mfderiv (mem_extChartAt_source (p : W)),
+    rw [mfderiv_extChartAt_self] at h
+    rwa [← mpullbackWithin_extChartAt_symm_self Y (p : W),
       ← hwv ⟨hpV, extChartAt_target_subset_range _ (mem_extChartAt_target _)⟩] at h
   obtain ⟨η₀, hη₀, r, hr, hbox⟩ := exists_flowOf_box (hw.of_le (by simp)) hV hpV hw₀
   -- At nonpositive times, trajectories from the boundary hyperplane stay where `w` is the
@@ -496,11 +499,8 @@ private theorem exists_eqOn_Icc_of_mem_boundary (hY : CMDiff ∞ (T% Y)) {γ δ 
     have he (y : EuclideanSpace ℝ (Fin (n + 1))) (hy : y ∈ V ∩ T ∩ φ.target) :
         w y = tangentCoordChange (𝓡∂ (n + 1)) (φ.symm y) (γ 0) (φ.symm y) (Y (φ.symm y)) := by
       have hs : φ.symm y ∈ φ.source := φ.map_target hy.2
-      have hs' : φ.symm y ∈ (chartAt (EuclideanHalfSpace (n + 1)) (γ 0)).source := by
-        rwa [← extChartAt_source (I := 𝓡∂ (n + 1))]
-      have h := mpullbackWithin_extChartAt_symm_apply_eq_mfderiv (V := Y) hs
-      rw [φ.right_inv hy.2, (hasMFDerivAt_extChartAt hs').mfderiv,
-        mfderiv_chartAt_eq_tangentCoordChange hs'] at h
+      have h := mpullbackWithin_extChartAt_symm_apply Y hs
+      rw [φ.right_inv hy.2, TangentBundle.trivializationAt_apply_tangentCoordChange] at h
       rw [hwv ⟨hy.1.1, extChartAt_target_subset_range _ hy.2⟩]
       exact h
     intro a ha b hb

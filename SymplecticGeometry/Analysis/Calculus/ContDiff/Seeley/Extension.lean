@@ -588,7 +588,7 @@ theorem exists_contDiffOn_eqOn_Icc_prod {f : ℝ × E → F} {U : Set E} {a b : 
 /-- **Seeley's extension near a boundary point of the half-space `0 ≤ t` of `ℝ × E`.** A function
 smooth on the part of an open set `U` where `0 ≤ t` agrees, near a point `(0, x₀)` of `U` and on
 that part, with a function smooth on all of `ℝ × E`. -/
-theorem exists_contDiff_eqOn_of_contDiffOn_halfSpace [HasContDiffBump (ℝ × E)] {f : ℝ × E → F}
+theorem exists_contDiff_eqOn_of_contDiffOn_halfSpace [HasContDiffBump E] {f : ℝ × E → F}
     {U : Set (ℝ × E)} (hU : IsOpen U) (hf : ContDiffOn ℝ ∞ f (U ∩ {z | 0 ≤ z.1})) {x₀ : E}
     (hx₀ : (0, x₀) ∈ U) :
     ∃ g : ℝ × E → F, ContDiff ℝ ∞ g ∧
@@ -603,24 +603,24 @@ theorem exists_contDiff_eqOn_of_contDiffOn_halfSpace [HasContDiffBump (ℝ × E)
     ⟨huB ⟨hau (by rw [Real.ball_eq_Ioo]; constructor <;> linarith [hz.1.1, hz.1.2]),
       hBB' hz.2⟩, hz.1.1⟩
   obtain ⟨g₀, hg₀, hg₀f⟩ := exists_contDiffOn_eqOn_Icc_prod (half_pos ha) hB (hf.mono hsub)
-  -- A bump function around `(0, x₀)`, supported where `g₀` is smooth.
-  obtain ⟨r, hr, hrB⟩ := Metric.isOpen_iff.1 (isOpen_univ.prod hB : IsOpen ((univ : Set ℝ) ×ˢ B))
-    ((0 : ℝ), x₀) (show ((0 : ℝ), x₀) ∈ (univ : Set ℝ) ×ˢ B from ⟨mem_univ _, hx₀B⟩)
-  let ρ : ContDiffBump ((0 : ℝ), x₀) := ⟨r / 4, r / 2, by positivity, by linarith⟩
-  refine ⟨fun z ↦ ρ z • g₀ z, ?_, Metric.ball (0, x₀) (r / 4) ∩ {z | z.1 < a / 2},
-    Metric.isOpen_ball.inter (isOpen_lt continuous_fst continuous_const),
-    ⟨Metric.mem_ball_self (by positivity), half_pos ha⟩, ?_⟩
+  -- `g₀` is already smooth on `univ ×ˢ B`, so a cut-off in the `E` direction suffices.
+  obtain ⟨r, hr, hrB⟩ := Metric.isOpen_iff.1 hB x₀ hx₀B
+  let ρ : ContDiffBump x₀ := ⟨r / 4, r / 2, by positivity, by linarith⟩
+  refine ⟨fun z ↦ ρ z.2 • g₀ z, ?_, Prod.fst ⁻¹' Iio (a / 2) ∩ Prod.snd ⁻¹' Metric.ball x₀ (r / 4),
+    (isOpen_Iio.preimage continuous_fst).inter (Metric.isOpen_ball.preimage continuous_snd),
+    ⟨half_pos ha, Metric.mem_ball_self (by positivity)⟩, ?_⟩
   · refine contDiff_iff_contDiffAt.2 fun z ↦ ?_
-    by_cases hz : z ∈ Metric.ball (0, x₀) r
-    · exact ρ.contDiff.contDiffAt.smul
-        (hg₀.contDiffAt ((isOpen_univ.prod hB).mem_nhds (hrB hz)))
+    by_cases hz : z.2 ∈ Metric.ball x₀ r
+    · exact (ρ.contDiff.comp contDiff_snd).contDiffAt.smul
+        (hg₀.contDiffAt ((isOpen_univ.prod hB).mem_nhds ⟨mem_univ _, hrB hz⟩))
     · refine contDiffAt_const (c := (0 : F)).congr_of_eventuallyEq ?_
-      have hz' : z ∈ (Metric.closedBall ((0 : ℝ), x₀) (r / 2))ᶜ := fun h ↦
+      have hz' : z.2 ∈ (Metric.closedBall x₀ (r / 2))ᶜ := fun h ↦
         hz (Metric.closedBall_subset_ball (by linarith) h)
-      filter_upwards [Metric.isClosed_closedBall.isOpen_compl.mem_nhds hz'] with z' hz''
+      filter_upwards [continuous_snd.continuousAt.preimage_mem_nhds
+        (Metric.isClosed_closedBall.isOpen_compl.mem_nhds hz')] with z' hz''
       rw [ρ.zero_of_le_dist (le_of_lt (by simpa using hz'')), zero_smul]
-  · rintro z ⟨⟨hzb, hza⟩, hz0⟩
-    have hzB : z.2 ∈ B := (hrB (Metric.ball_subset_ball (by linarith) hzb)).2
+  · rintro z ⟨⟨hza, hzb⟩, hz0⟩
+    have hzB : z.2 ∈ B := hrB (Metric.ball_subset_ball (by linarith) hzb)
     simp only
     rw [ρ.one_of_mem_closedBall (Metric.ball_subset_closedBall hzb), one_smul]
     exact hg₀f ⟨⟨hz0, le_of_lt hza⟩, hzB⟩
