@@ -84,7 +84,7 @@ variable {M : Type} [TopologicalSpace M] [T2Space M] {EM : Type} [NormedAddCommG
   {G : Type*} [NormedAddCommGroup G] [NormedSpace ℂ G]
   {E : M → Type*} [∀ x, AddCommGroup (E x)] [∀ x, Module ℂ (E x)] [∀ x, TopologicalSpace (E x)]
 
-section Transition
+section Clutching
 
 variable (Φ : ∀ i, ∀ x : (φ i).disc, G ≃L[ℂ] E x) (Φout : ∀ x : discComplement φ, G ≃L[ℂ] E x)
 
@@ -405,7 +405,7 @@ theorem exists_detCore_section_clutching [Finite ι] (hn : finrank ℝ EM = 2) :
     Set.ext fun _ ↦ clutchingSection_eq_zero_iff hφ hΦ hΦout,
     fun i ↦ sectionIndex_clutchingSection hφ hΦ hΦout hn i _⟩
 
-end Transition
+end Clutching
 
 end Bundle
 
