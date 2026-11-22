@@ -102,6 +102,7 @@ theorem projectiveLineOrientation_def :
 
 /-- At every point of `ℂP¹`, `projectiveLineOrientation` is the complex orientation of the model
 space `Fin 1 → ℂ`, indexed by `Fin 2`. -/
+@[simp]
 theorem orientationAt_projectiveLineOrientation (x : ℙ ℂ (Fin 2 → ℂ)) :
     projectiveLineOrientation.orientationAt x =
       Orientation.reindex ℝ (TangentSpace 𝓘(ℝ, Fin 1 → ℂ) x) (finCongr (by simp))
