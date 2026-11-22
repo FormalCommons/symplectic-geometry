@@ -27,14 +27,15 @@ import TauCeti.Geometry.Manifold.Riemannian.FormMetric
 # The Hodge star, the codifferential and the inner product of forms in a chart
 
 Let `M` be an oriented Riemannian manifold of dimension `m` modelled on `E`, and let
-`ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞` be a chart with values in `E`. A form `φ` on `M` is read
+`ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E n` be a chart with values in `E`. A form `φ` on `M` is read
 in `ψ` as the flat form `mpullback 𝓘(ℝ, E) I ψ.symm φ` on `E`. This file gives the coordinate
 expressions, on `ψ.target`, of the inner product of forms, of the Hodge star and of the
 codifferential, in terms of the metric in the chart `PartialDiffeomorph.gramInChart ψ`
-(`SymplecticGeometry.Geometry.Manifold.Riemannian.PartialDiffeomorph`). The inner product of
-forms in a chart and its pointwise lemmas hold for a chart of any regularity `n`, with `n ≠ 0`
-wherever the differentials of `ψ` and `ψ.symm` must be inverse to each other; only its
-smoothness needs `n = ∞`.
+(`SymplecticGeometry.Geometry.Manifold.Riemannian.PartialDiffeomorph`). The Hodge star in a
+chart (on a `C¹` manifold) and the inner product of forms in a chart, with their pointwise lemmas,
+hold for a chart of any regularity `n`, with `n ≠ 0` wherever the differentials of `ψ` and
+`ψ.symm` must be inverse to each other; only their smoothness, and the codifferential in a chart,
+need a smooth manifold and `n = ∞`.
 
 ## Main definitions
 
@@ -127,8 +128,8 @@ section HodgeStar
 
 open Bundle
 
-variable [FiniteDimensional ℝ E] [IsManifold I ∞ M] (o : Manifold.Orientation I M (Fin m))
-  (ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞)
+variable [FiniteDimensional ℝ E] [IsManifold I 1 M] (o : Manifold.Orientation I M (Fin m))
+  {n : WithTop ℕ∞} (ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E n)
 
 /-- The Hodge star in the chart `ψ`: at `y`, the Hodge star of the tangent space at `ψ.symm y`
 for the orientation `o`, transported to forms on `E` through the differential of `ψ.symm`. On
@@ -159,7 +160,7 @@ theorem hodgeStarInChart_apply (hkl : k + l = m) (y : E)
 
 /-- On the target of the chart, the Hodge star of a form, read in the chart, is the star in the
 chart applied to the form read in the chart. -/
-theorem mpullback_symm_hodgeStar (hkl : k + l = m)
+theorem mpullback_symm_hodgeStar (hn : n ≠ 0) (hkl : k + l = m)
     (φ : RoughForm I M ℝ k) {y : E} (hy : y ∈ ψ.target) :
     (mpullback 𝓘(ℝ, E) I ψ.symm (RoughForm.hodgeStar o hkl φ) y : E [⋀^Fin l]→L[ℝ] ℝ) =
       hodgeStarInChart o ψ hkl y (mpullback 𝓘(ℝ, E) I ψ.symm φ y) := by
@@ -168,14 +169,14 @@ theorem mpullback_symm_hodgeStar (hkl : k + l = m)
   rw [RoughForm.hodgeStar_eq_formHodgeStarCLM]
   exact (congrArg (fun a ↦ formHodgeStarCLM o hkl (ψ.symm y) a
     fun i ↦ mfderiv 𝓘(ℝ, E) I ψ.symm y (w i))
-    (mpullback_symm_compContinuousLinearMap_mfderiv ψ (by simp) φ hy)).symm
+    (mpullback_symm_compContinuousLinearMap_mfderiv ψ hn φ hy)).symm
 
 /-- **The Hodge star in a chart, in a basis.** On the target of the chart, for a basis `b` of `E`
 with Gram matrix `G` for `gramInChart ψ y`, `(S a)(w)` is the volume of `b` (read in the chart)
 times the sum over the increasing `k`-tuples `i₁ < ⋯ < iₖ` of `a(b_{i₁}, …, b_{iₖ})` times the
 `b`-determinant of `(∑ⱼ (G⁻¹)_{i₁ j} bⱼ, …, ∑ⱼ (G⁻¹)_{iₖ j} bⱼ, w₁, …, wₗ)`. This is
 `Orientation.formHodgeStar_apply_eq_volumeForm_mul_sum` for the inner product `gramInChart ψ y`. -/
-theorem hodgeStarInChart_apply_eq_sum (hkl : k + l = m)
+theorem hodgeStarInChart_apply_eq_sum (hn : n ≠ 0) (hkl : k + l = m)
     (b : Basis (Fin m) ℝ E) {y : E} (hy : y ∈ ψ.target) (a : E [⋀^Fin k]→L[ℝ] ℝ)
     (w : Fin l → E) :
     hodgeStarInChart o ψ hkl y a w =
@@ -188,7 +189,7 @@ theorem hodgeStarInChart_apply_eq_sum (hkl : k + l = m)
   let := o.fact_finrank_tangentSpace x
   -- The differential of `ψ.symm` at `y` is a linear equivalence `A`, with inverse the differential
   -- of `ψ` at `x`; the frame `B = A ∘ b` is a basis of the tangent space at `x`.
-  let A : E ≃L[ℝ] TangentSpace I x := ψ.mfderivSymmEquiv (by simp) hy
+  let A : E ≃L[ℝ] TangentSpace I x := ψ.mfderivSymmEquiv hn hy
   let B : Basis (Fin m) ℝ (TangentSpace I x) := b.map A.toLinearEquiv
   have hA (v : E) : A v = mfderiv 𝓘(ℝ, E) I ψ.symm y v :=
     congrFun (ψ.coe_mfderivSymmEquiv _ hy) v
@@ -221,21 +222,9 @@ theorem hodgeStarInChart_apply_eq_sum (hkl : k + l = m)
     simp only [Fin.append_right]
     exact (congrArg _ (hA _).symm).trans (A.toLinearEquiv.symm_apply_apply _)
 
-/-- The Riemannian volume form read in the chart, evaluated on a fixed family `v` of vectors of
-`E`, is smooth on the target of the chart. -/
-theorem contDiffOn_mpullback_riemannianVolumeForm
-    [IsContMDiffRiemannianBundle I ∞ E (fun x : M ↦ TangentSpace I x)] (v : Fin m → E) :
-    ContDiffOn ℝ ∞ (fun y ↦ mpullback 𝓘(ℝ, E) I ψ.symm (riemannianVolumeForm o) y v)
-      ψ.target := by
-  have : IsManifold I (∞ + 1) M := by simpa using ‹IsManifold I ∞ M›
-  exact (ContinuousAlternatingMap.apply ℝ E ℝ v).contDiff.comp_contDiffOn
-    (SmoothForm.contDiffOn_mpullback (⟨riemannianVolumeForm o,
-      (isSmoothForm_riemannianVolumeForm o).mem_smoothBundleForms⟩ : SmoothForm I M ℝ m)
-      ψ.open_target ψ.symm.contMDiffOn)
-
 /-- On the target of the chart, the square of the volume of a basis `b` of `E`, read in the
 chart, is the determinant of the Gram matrix of `b` for the metric in the chart. -/
-theorem mpullback_riemannianVolumeForm_mul_self (b : Basis (Fin m) ℝ E) {y : E}
+theorem mpullback_riemannianVolumeForm_mul_self (hn : n ≠ 0) (b : Basis (Fin m) ℝ E) {y : E}
     (hy : y ∈ ψ.target) :
     mpullback 𝓘(ℝ, E) I ψ.symm (riemannianVolumeForm o) y b *
         mpullback 𝓘(ℝ, E) I ψ.symm (riemannianVolumeForm o) y b =
@@ -250,13 +239,13 @@ theorem mpullback_riemannianVolumeForm_mul_self (b : Basis (Fin m) ℝ E) {y : E
       (o.orientationAt x).volumeForm (fun i ↦ mfderiv 𝓘(ℝ, E) I ψ.symm y (b i)) :=
     (mpullback_apply _ _ y _).trans (riemannianVolumeForm_apply _ _ _)
   rw [hv, ← abs_mul_abs_self, (o.orientationAt x).abs_volumeForm_apply_eq_sqrt_det_gram, hgram,
-    Real.mul_self_sqrt (ψ.posDef_gramInChart (by simp) b hy).det_pos.le]
+    Real.mul_self_sqrt (ψ.posDef_gramInChart hn b hy).det_pos.le]
 
 open scoped Matrix.Norms.Operator in
 /-- On the target of the chart, the value of the star in the chart on `a` and `w` is a function
 of the volume of a basis `b` of `E` read in the chart and of the Gram matrix of `b` for the metric
 in the chart, smooth wherever the determinant of the Gram matrix does not vanish. -/
-theorem exists_hodgeStarInChart_apply_eq (hkl : k + l = m) (b : Basis (Fin m) ℝ E)
+theorem exists_hodgeStarInChart_apply_eq (hn : n ≠ 0) (hkl : k + l = m) (b : Basis (Fin m) ℝ E)
     (a : E [⋀^Fin k]→L[ℝ] ℝ) (w : Fin l → E) :
     ∃ F : ℝ × (Fin m → Fin m → ℝ) → ℝ,
       (∀ (c : ℝ) (g : Fin m → Fin m → ℝ), (Matrix.of g).det ≠ 0 → ContDiffAt ℝ ∞ F (c, g)) ∧
@@ -306,8 +295,45 @@ theorem exists_hodgeStarInChart_apply_eq (hkl : k + l = m) (b : Basis (Fin m) �
     exact hF₀.contDiffAt.comp (c, g) (contDiffAt_fst.prodMk
       (ContDiffAt.comp (g := fun g : Fin m → Fin m → ℝ ↦ Matrix.of.symm (Matrix.of g)⁻¹)
         (f := Prod.snd) (c, g) hinv contDiffAt_snd))
-  · rw [hodgeStarInChart_apply_eq_sum o ψ hkl b hy a w]
+  · rw [hodgeStarInChart_apply_eq_sum o ψ hn hkl b hy a w]
     simp only [F₀, Matrix.of_symm_apply]
+
+/-- Pulled back to the tangent space along the differential of `ψ`, the star in the chart is the
+Hodge star of the tangent space, applied to the pulled-back form. -/
+theorem compContinuousLinearMap_hodgeStarInChart (hn : n ≠ 0) (hkl : k + l = m) {y : E}
+    (hy : y ∈ ψ.target)
+    (a : E [⋀^Fin k]→L[ℝ] ℝ) :
+    (hodgeStarInChart o ψ hkl y a).compContinuousLinearMap
+        (mfderiv I 𝓘(ℝ, E) ψ (ψ.symm y) : TangentSpace I (ψ.symm y) →L[ℝ] E) =
+      formHodgeStarCLM o hkl (ψ.symm y)
+        (a.compContinuousLinearMap
+          (mfderiv I 𝓘(ℝ, E) ψ (ψ.symm y) : TangentSpace I (ψ.symm y) →L[ℝ] E)) := by
+  ext w
+  exact (hodgeStarInChart_apply o ψ hkl y a _).trans (congrArg _ (funext fun i ↦
+    ψ.mfderiv_symm_apply_mfderiv_apply_of_mem_target hn hy (w i)))
+
+end HodgeStar
+
+/-! ### Smoothness of the Hodge star in a chart, and the codifferential in a chart -/
+
+section HodgeStarSmooth
+
+open Bundle
+
+variable [FiniteDimensional ℝ E] [IsManifold I ∞ M] (o : Manifold.Orientation I M (Fin m))
+  (ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞)
+
+/-- The Riemannian volume form read in the chart, evaluated on a fixed family `v` of vectors of
+`E`, is smooth on the target of the chart. -/
+theorem contDiffOn_mpullback_riemannianVolumeForm
+    [IsContMDiffRiemannianBundle I ∞ E (fun x : M ↦ TangentSpace I x)] (v : Fin m → E) :
+    ContDiffOn ℝ ∞ (fun y ↦ mpullback 𝓘(ℝ, E) I ψ.symm (riemannianVolumeForm o) y v)
+      ψ.target := by
+  have : IsManifold I (∞ + 1) M := by simpa using ‹IsManifold I ∞ M›
+  exact (ContinuousAlternatingMap.apply ℝ E ℝ v).contDiff.comp_contDiffOn
+    (SmoothForm.contDiffOn_mpullback (⟨riemannianVolumeForm o,
+      (isSmoothForm_riemannianVolumeForm o).mem_smoothBundleForms⟩ : SmoothForm I M ℝ m)
+      ψ.open_target ψ.symm.contMDiffOn)
 
 /-- The star in a chart is smooth on the target of the chart. -/
 theorem contDiffOn_hodgeStarInChart
@@ -325,7 +351,7 @@ theorem contDiffOn_hodgeStarInChart
   rw [← contMDiffWithinAt_iff_contDiffWithinAt]
   refine contMDiffWithinAt_continuousAlternatingMap_apply.2 fun w ↦ ?_
   rw [contMDiffWithinAt_iff_contDiffWithinAt]
-  obtain ⟨F, hF, hSF⟩ := exists_hodgeStarInChart_apply_eq o ψ hkl b a w
+  obtain ⟨F, hF, hSF⟩ := exists_hodgeStarInChart_apply_eq o ψ (by simp) hkl b a w
   refine ((hF _ _ ?_).comp_contDiffWithinAt y (hP y hy)).congr (fun z hz ↦ hSF z hz) (hSF y hy)
   exact (ψ.posDef_gramInChart (by simp) b hy).det_pos.ne'
 
@@ -366,10 +392,11 @@ theorem fderiv_hodgeStarInChart_eq_zero
   have hf : DifferentiableAt ℝ f y :=
     ((contDiffOn_mpullback_riemannianVolumeForm o ψ b).contDiffAt hT).differentiableAt (by simp)
   have hfy : f y ≠ 0 := fun h0 ↦ hpos.ne' (by
-    rw [← mpullback_riemannianVolumeForm_mul_self o ψ b hy]
+    rw [← mpullback_riemannianVolumeForm_mul_self o ψ (by simp) b hy]
     exact mul_self_eq_zero.2 h0)
   have hf2 := (hf.hasFDerivAt.mul hf.hasFDerivAt).congr_of_eventuallyEq
-    (Filter.eventually_of_mem hT fun z hz ↦ (mpullback_riemannianVolumeForm_mul_self o ψ b hz).symm)
+    (Filter.eventually_of_mem hT fun z hz ↦
+      (mpullback_riemannianVolumeForm_mul_self o ψ (by simp) b hz).symm)
   have hf0 : fderiv ℝ f y = 0 := by
     have h2 : (f y + f y) • fderiv ℝ f y = 0 := by
       rw [add_smul]
@@ -385,7 +412,7 @@ theorem fderiv_hodgeStarInChart_eq_zero
   have hS : DifferentiableAt ℝ (hodgeStarInChart o ψ hkl) y :=
     ((contDiffOn_hodgeStarInChart o ψ hkl).contDiffAt hT).differentiableAt (by simp)
   ext v a w
-  obtain ⟨F, hF, hSF⟩ := exists_hodgeStarInChart_apply_eq o ψ hkl b a w
+  obtain ⟨F, hF, hSF⟩ := exists_hodgeStarInChart_apply_eq o ψ (by simp) hkl b a w
   have hc := (((hF _ _ hpos.ne').differentiableAt (by simp)).hasFDerivAt.comp y
     hP).congr_of_eventuallyEq (Filter.eventually_of_mem hT fun z hz ↦ hSF z hz)
   have hd := (ContinuousAlternatingMap.apply ℝ E ℝ w).hasFDerivAt.comp y
@@ -416,26 +443,13 @@ theorem mpullback_symm_codifferential
       fun z ↦ hodgeStarInChart o ψ hkl z (mpullback 𝓘(ℝ, E) I ψ.symm β.val z) :=
     Filter.eventually_of_mem (ψ.open_target.mem_nhds hy) fun z hz ↦
       (congrArg (mpullback 𝓘(ℝ, E) I ψ.symm · z) (SmoothForm.coe_hodgeStar o hkl β)).trans
-        (mpullback_symm_hodgeStar o ψ hkl _ hz)
+        (mpullback_symm_hodgeStar o ψ (by simp) hkl _ hz)
   rw [SmoothForm.codifferential_apply o hkl hlk, Submodule.coe_smul, mpullback_smul,
-    Pi.smul_apply, SmoothForm.coe_hodgeStar, mpullback_symm_hodgeStar o ψ hlk _ hy,
+    Pi.smul_apply, SmoothForm.coe_hodgeStar, mpullback_symm_hodgeStar o ψ (by simp) hlk _ hy,
     mextDerivₗ_apply, hd, mextDeriv_eq_extDeriv, hev.extDeriv_eq]
   -- The two sides differ only in the type in which the scalar multiplication is taken: the fibre
   -- `TangentSpace 𝓘(ℝ, E) y [⋀^Fin k]→L[ℝ] Trivial E ℝ y` of the pullback, or `E [⋀^Fin k]→L[ℝ] ℝ`.
   rfl
-
-/-- Pulled back to the tangent space along the differential of `ψ`, the star in the chart is the
-Hodge star of the tangent space, applied to the pulled-back form. -/
-theorem compContinuousLinearMap_hodgeStarInChart (hkl : k + l = m) {y : E} (hy : y ∈ ψ.target)
-    (a : E [⋀^Fin k]→L[ℝ] ℝ) :
-    (hodgeStarInChart o ψ hkl y a).compContinuousLinearMap
-        (mfderiv I 𝓘(ℝ, E) ψ (ψ.symm y) : TangentSpace I (ψ.symm y) →L[ℝ] E) =
-      formHodgeStarCLM o hkl (ψ.symm y)
-        (a.compContinuousLinearMap
-          (mfderiv I 𝓘(ℝ, E) ψ (ψ.symm y) : TangentSpace I (ψ.symm y) →L[ℝ] E)) := by
-  ext w
-  exact (hodgeStarInChart_apply o ψ hkl y a _).trans (congrArg _ (funext fun i ↦
-    ψ.mfderiv_symm_apply_mfderiv_apply_of_mem_target (by simp) hy (w i)))
 
 /-- At a point of the target where the metric in the chart has derivative zero, the
 codifferential read in the chart is `± S (Alt (S ∘ Db))`, with `S` the star in the chart at that
@@ -499,9 +513,9 @@ theorem val_codifferential_symm_of_fderiv_gramInChart_eq_zero
       (SmoothForm.codifferential o hkl β).val hy,
     mpullback_symm_codifferential_of_fderiv_gramInChart_eq_zero o ψ hkl hlk β hy h,
     symbolInChart_def]
-  exact key _ (fun hii' a ↦ compContinuousLinearMap_hodgeStarInChart o ψ hii' hy a) _
+  exact key _ (fun hii' a ↦ compContinuousLinearMap_hodgeStarInChart o ψ (by simp) hii' hy a) _
 
-end HodgeStar
+end HodgeStarSmooth
 
 /-! ### The inner product of forms in a chart -/
 
