@@ -32,6 +32,11 @@ middle, commutes with the connecting morphisms (`SSet.mayerVietorisδ_comp_homol
 In positive degrees the same holds for the reduced connecting morphism
 `TopCat.reducedMayerVietorisδ` (`TopCat.reducedMayerVietorisδ_succ_eq_singularHomologyδ_left`).
 
+The proof of `TopPair.chainComplexMap_comp_singularChainComplexπ_of_fac` adapts that of Tau Ceti's
+`TopPair.singularChainComplexMap_eq_zero_of_fac`, in
+`TauCeti/AlgebraicTopology/Singular/Relative.lean`, to a map into the ambient space that need not
+come from a map of pairs.
+
 ## Main definitions
 
 * `TopPair.interPairSndHomeomorph A B`: the homeomorphism from the subspace of
