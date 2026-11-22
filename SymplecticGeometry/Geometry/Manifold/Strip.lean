@@ -27,7 +27,6 @@ strip along the slice map at `r` is `σ` at `(r, x)` restricted to vectors `(0, 
 
 public section
 
-open Bundle
 open scoped ContDiff Manifold
 
 variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
