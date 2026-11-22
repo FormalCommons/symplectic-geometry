@@ -438,13 +438,10 @@ theorem IsSymplecticFrameOn.of_pullback_subtypeVal {W : Type*} [NormedAddCommGro
     -- `Ψ`, read on `S × W` as a map to the total space of `V`, is `C^n`.
     have hG := (Pullback.contMDiff_lift _ hι).comp
       (contMDiffOn_univ.1 (by simpa only [Set.univ_prod_univ] using hΨ.contMDiffOn))
-    have h := ContMDiff.contMDiffOn_prod_opens_of_eq (U := U)
-      (f := fun q : W × M ↦ TotalSpace.mk' F q.2 (Φ q.2 q.1))
-      (hG.comp ((hU.comp contMDiff_snd).prodMk contMDiff_fst)) fun w x hx ↦ by
+    exact ContMDiff.contMDiffOn_opens_prod_of_eq (U := U)
+      (hG.comp ((hU.comp contMDiff_fst).prodMk contMDiff_snd)) fun x hx w ↦ by
         rw [hΦ x hx]
         exact (Pullback.lift_mk (E := V) _ _ _).symm
-    exact h.comp (contMDiff_snd.prodMk contMDiff_fst).contMDiffOn
-      fun p (hp : p ∈ (U : Set M) ×ˢ Set.univ) ↦ ⟨Set.mem_univ _, hp.1⟩
   map_bilinFormAt x hx v w := by
     rw [hΦ x hx]
     have := hΨ.map_bilinFormAt ⟨x, hUS hx⟩ (Set.mem_univ _) v w

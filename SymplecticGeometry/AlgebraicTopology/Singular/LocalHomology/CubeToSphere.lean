@@ -223,6 +223,17 @@ theorem cubeToSphere_apply (z : ball) :
   rw [cubeToSphere_apply_eq, openSquareToSphere_def,
     ← squareCenterOffset_openSquareHomeomorph_ballToOpenSquare, squareOfOffset_squareCenterOffset]
 
+/-- The coordinate disc `cubeToSphere` sends `z` to the image under the collapse of the point of
+the square whose offset from the centre is `z / 5`. -/
+theorem cubeToSphere_eq_of_squareCenterOffset_eq (z : ball) {y : I^(Fin 2)}
+    (hy : squareCenterOffset y = ((1 / 5 : ℝ) : ℂ) * z) :
+    cubeToSphere z = TauCeti.cubeToSphere 2 y := by
+  have h : (z : ℂ) / 5 = squareCenterOffset y := by
+    rw [hy]
+    push_cast
+    ring
+  rw [cubeToSphere_apply, h, squareOfOffset_squareCenterOffset]
+
 /-- The images under `cubeToSphere` of the points of the ball cut out by a condition `p` on the
 norm are the images under the collapse of the points `y` of the square cut out by the same
 condition on the norm of `5 * squareCenterOffset y`. -/
