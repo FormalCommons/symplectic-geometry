@@ -146,11 +146,10 @@ theorem gramInChart_trans_apply (Θ : PartialDiffeomorph 𝓘(ℝ, E) 𝓘(ℝ, 
     have ha : fderiv ℝ Θ (Θ.symm w) a = mfderiv 𝓘(ℝ, E) 𝓘(ℝ, E) Θ (Θ.symm w) a := by
       -- `NormedSpace.fromTangentSpace` is the identity of `E`, which Mathlib states by no lemma.
       rw [mfderiv_eq_fderiv]; rfl
-    have h1 := (Θ.mfderivSymmEquiv hn hw).apply_symm_apply a
-    rw [Θ.coe_mfderivSymmEquiv, Θ.coe_mfderivSymmEquiv_symm] at h1
     rw [ha, PartialDiffeomorph.coe_trans_symm, mfderiv_comp w
       (ψ.symm.mdifferentiableAt hn hψ) (Θ.symm.mdifferentiableAt hn hw)]
-    exact congrArg (mfderiv 𝓘(ℝ, E) I ψ.symm (Θ.symm w)) h1
+    exact congrArg (mfderiv 𝓘(ℝ, E) I ψ.symm (Θ.symm w))
+      (Θ.mfderiv_symm_apply_mfderiv_apply_of_mem_target hn hw a)
   rw [gramInChart_apply, gramInChart_apply, key, key]
   -- The two inner products are taken in the tangent spaces at `(ψ.trans Θ).symm w` and at
   -- `ψ.symm (Θ.symm w)`, which are the same point by definition.
@@ -243,8 +242,7 @@ theorem mpullback_symm_hodgeStar (hkl : k + l = m)
     ext v
     refine (ContinuousAlternatingMap.compContinuousLinearMap_apply _ _ v).trans
       ((mpullback_apply _ φ y _).trans (congrArg (φ (ψ.symm y)) (funext fun i ↦ ?_)))
-    have h := (ψ.mfderivSymmEquiv (by simp) hy).apply_symm_apply (v i)
-    rwa [ψ.coe_mfderivSymmEquiv, ψ.coe_mfderivSymmEquiv_symm] at h
+    exact ψ.mfderiv_symm_apply_mfderiv_apply_of_mem_target (by simp) hy (v i)
   ext w
   refine ((mpullback_apply _ _ y w).trans ?_).trans (hodgeStarInChart_apply o ψ hkl y _ w).symm
   rw [RoughForm.hodgeStar_eq_formHodgeStarCLM]
