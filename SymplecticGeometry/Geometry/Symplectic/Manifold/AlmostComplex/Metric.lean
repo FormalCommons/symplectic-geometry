@@ -35,6 +35,8 @@ identifications `SymplecticGeometry.Bundle.ContMDiffTwoForm.tangentEquiv` of two
 ## Main results
 
 * `TauCeti.SmoothTwoForm.Compatible.metric_inner`: `g_J(u, v) = σ(u, J v)`.
+* `TauCeti.SmoothTwoForm.Compatible.inner_eq_eval₂`: with `g_J` installed as the
+  `RiemannianBundle` metric of `TM`, `⟪u, v⟫ = σ(u, J v)`.
 * `TauCeti.SmoothTwoForm.Compatible.metric_inner_apply_apply`: `g_J` is invariant under `J`.
 * `TauCeti.SmoothAlmostComplexStructure.compatibleFormEquiv_apply_apply` (or `_apply_eval₂`) and
   `TauCeti.SmoothAlmostComplexStructure.compatibleFormEquiv_symm_apply_inner`: the two
@@ -84,6 +86,14 @@ theorem Compatible.metric_def (hc : σ.Compatible J) :
 theorem Compatible.metric_inner (hc : σ.Compatible J) (x : M) (u v : TangentSpace I x) :
     hc.metric.inner x u v = σ.eval₂ x u (J x v) := by
   simp [Compatible.metric_def, ContMDiffTwoForm.bilinFormAt_apply]
+
+/-- For a smooth two-form `σ` compatible with a smooth almost complex structure `J`, the inner
+product of the metric `g_J` of the pair, installed as the Riemannian metric of `TM`, is
+`⟪u, v⟫ = σ(u, J v)`. -/
+theorem Compatible.inner_eq_eval₂ (hJ : σ.Compatible J) :
+    letI : RiemannianBundle (fun x : M ↦ TangentSpace I x) := ⟨hJ.metric.toRiemannianMetric⟩
+    ∀ x (u v : TangentSpace I x), ⟪u, v⟫ = σ.eval₂ x u (J x v) := fun x u v ↦ by
+  rw [hJ.metric.inner_eq, Compatible.metric_inner]
 
 /-- The metric of a compatible pair `(σ, J)` is invariant under `J`: `g_J(J u, J v) = g_J(u, v)`. -/
 theorem Compatible.metric_inner_apply_apply (hc : σ.Compatible J) (x : M)
