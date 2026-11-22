@@ -20,16 +20,25 @@ All three come from one statement, `chernClass_eq_singularCohomologyMap_of_proje
 map `g : P(E') → P(E)` of projective bundles over a map `h : B' → B` of bases, between bundles
 of the same rank, that pulls the tautological class of `E` back to that of `E'`, carries the
 defining relation of the Chern classes of `E` to a relation of the same form on `P(E')`, whose
-coefficients are the pull-backs along `h`; by uniqueness these are the Chern classes of `E'`. The
+coefficients are the pull-backs along `h`
+(`evenIntegralCohomologyMap_sum_mul_projectiveBundleClass_pow`, for bundles of any ranks); by
+uniqueness these are the Chern classes of `E'`. The
 tautological class is pulled back to the tautological class whenever the tautological lines are
 (`singularCohomologyMap_projectiveBundleClass_of_fiberwise`, from the naturality of the Euler
 class `TauCeti.complexEulerClass_eq_singularCohomologyMap_of_fiberwise`), which holds for
-`ProjectiveBundle.pullbackMap f` and for `ProjectiveBundle.map φ hφ`. The trivial bundle over
-`B` is the pull-back of the trivial bundle over a point, whose cohomology vanishes in positive
-degree.
+`ProjectiveBundle.pullbackMap f`, for `ProjectiveBundle.map φ hφ`, and for the embeddings
+`ProjectiveBundle.inl` and `ProjectiveBundle.inr` of the summands of a direct sum. The trivial
+bundle over `B` is the pull-back of the trivial bundle over a point, whose cohomology vanishes in
+positive degree.
 
 ## Main results
 
+* `singularCohomologyMap_inl_projectiveBundleClass`,
+  `singularCohomologyMap_inr_projectiveBundleClass`: `inl` and `inr` pull the tautological class
+  of `E₁ ⊕ E₂` back to those of `E₁` and `E₂`.
+* `evenIntegralCohomologyMap_sum_mul_projectiveBundleClass_pow`: a map of projective bundles
+  that preserves the tautological class carries a relation of the form of the defining relation
+  of the Chern classes to one of the same form, with coefficients pulled back to the new base.
 * `chernClass_pullback`, `totalChernClass_pullback`: `c_k(f *ᵖ E) = f^* c_k(E)` and
   `c(f *ᵖ E) = f^* c(E)`, for `f : C(B', B)` between compact spaces.
 * `chernClass_congr`: a complex-linear fibrewise isomorphism, continuous
@@ -113,7 +122,77 @@ theorem singularCohomologyMap_map_projectiveBundleClass [FiniteDimensional ℂ G
     (φ := ProjectiveBundle.tautologicalMapEquiv hφ)
     ((Pullback.continuous_lift _ _ _).comp (ProjectiveBundle.continuous_tautologicalMapEquiv hφ))
 
+section Sum
+
+variable {G₁ : Type} [NormedAddCommGroup G₁] [NormedSpace ℂ G₁]
+  {E₁ : B → Type} [∀ b, AddCommGroup (E₁ b)] [∀ b, Module ℂ (E₁ b)] [∀ b, Module ℝ (E₁ b)]
+  [∀ b, IsScalarTower ℝ ℂ (E₁ b)] [∀ b, TopologicalSpace (E₁ b)]
+  [TopologicalSpace (TotalSpace G₁ E₁)] [FiberBundle G₁ E₁] [VectorBundle ℂ G₁ E₁]
+  {G₂ : Type} [NormedAddCommGroup G₂] [NormedSpace ℂ G₂]
+  {E₂ : B → Type} [∀ b, AddCommGroup (E₂ b)] [∀ b, Module ℂ (E₂ b)] [∀ b, Module ℝ (E₂ b)]
+  [∀ b, IsScalarTower ℝ ℂ (E₂ b)] [∀ b, TopologicalSpace (E₂ b)]
+  [TopologicalSpace (TotalSpace G₂ E₂)] [FiberBundle G₂ E₂] [VectorBundle ℂ G₂ E₂]
+
+/-- The embedding `inl : P(E₁) → P(E₁ ⊕ E₂)` pulls the tautological class of `E₁ ⊕ E₂` back to
+that of `E₁`. -/
+theorem singularCohomologyMap_inl_projectiveBundleClass :
+    TopCat.singularCohomologyMap
+        (TopCat.ofHom (ProjectiveBundle.inl G₂ E₂ : C(ProjectiveBundle ℂ G₁ E₁, _))) 2
+        (projectiveBundleClass (G₁ × G₂) (E₁ ×ᵇ E₂)) = projectiveBundleClass G₁ E₁ :=
+  singularCohomologyMap_projectiveBundleClass_of_fiberwise
+    (φ := ProjectiveBundle.tautologicalInlEquiv G₂ E₂)
+    ((Pullback.continuous_lift _ _ _).comp ProjectiveBundle.continuous_tautologicalInlEquiv)
+
+/-- The embedding `inr : P(E₂) → P(E₁ ⊕ E₂)` pulls the tautological class of `E₁ ⊕ E₂` back to
+that of `E₂`. -/
+theorem singularCohomologyMap_inr_projectiveBundleClass :
+    TopCat.singularCohomologyMap
+        (TopCat.ofHom (ProjectiveBundle.inr G₁ E₁ : C(ProjectiveBundle ℂ G₂ E₂, _))) 2
+        (projectiveBundleClass (G₁ × G₂) (E₁ ×ᵇ E₂)) = projectiveBundleClass G₂ E₂ :=
+  singularCohomologyMap_projectiveBundleClass_of_fiberwise
+    (φ := ProjectiveBundle.tautologicalInrEquiv G₁ E₁)
+    ((Pullback.continuous_lift _ _ _).comp ProjectiveBundle.continuous_tautologicalInrEquiv)
+
+end Sum
+
 /-! ### Chern classes under maps of projective bundles -/
+
+/-- Let `g : P(E') → P(E)` be a map of projective bundles over `h : B' → B` that pulls the
+tautological class `x` of `E` back to the tautological class `x'` of `E'`. For classes `aᵢ` of
+degree `2i` on `B`, the ring map of `g` sends `∑_{i ≤ n} π^* aᵢ x^{n-i}` to
+`∑_{i ≤ n} π'^* (h^* aᵢ) x'^{n-i}`. -/
+theorem evenIntegralCohomologyMap_sum_mul_projectiveBundleClass_pow (h : C(B', B))
+    (g : C(ProjectiveBundle ℂ G' E', ProjectiveBundle ℂ G E))
+    (hπ : (ProjectiveBundle.projection ℂ G E).comp g =
+      h.comp (ProjectiveBundle.projection ℂ G' E'))
+    (hx : TopCat.singularCohomologyMap (TopCat.ofHom g) 2 (projectiveBundleClass G E) =
+      projectiveBundleClass G' E')
+    (a : ∀ k : ℕ, (TopCat.of B).integralCohomology (2 * k)) (n : ℕ) :
+    TopCat.evenIntegralCohomologyMap (TopCat.ofHom g)
+        (∑ i ∈ Finset.range (n + 1),
+          TopCat.evenIntegralCohomologyMap (TopCat.ofHom (ProjectiveBundle.projection ℂ G E))
+            ((TopCat.of B).evenIntegralCohomologyOf i (a i)) *
+          (TopCat.of (ProjectiveBundle ℂ G E)).evenIntegralCohomologyOf 1
+            (projectiveBundleClass G E) ^ (n - i)) =
+      ∑ i ∈ Finset.range (n + 1),
+        TopCat.evenIntegralCohomologyMap (TopCat.ofHom (ProjectiveBundle.projection ℂ G' E'))
+          ((TopCat.of B').evenIntegralCohomologyOf i
+            (TopCat.singularCohomologyMap (TopCat.ofHom h) (2 * i) (a i))) *
+        (TopCat.of (ProjectiveBundle ℂ G' E')).evenIntegralCohomologyOf 1
+          (projectiveBundleClass G' E') ^ (n - i) := by
+  have hx' : TopCat.evenIntegralCohomologyMap (TopCat.ofHom g)
+      ((TopCat.of (ProjectiveBundle ℂ G E)).evenIntegralCohomologyOf 1
+        (projectiveBundleClass G E)) =
+      (TopCat.of (ProjectiveBundle ℂ G' E')).evenIntegralCohomologyOf 1
+        (projectiveBundleClass G' E') := by
+    rw [TopCat.evenIntegralCohomologyMap_of]
+    -- `evenIntegralCohomologyMap_of` pulls back in degree `2 * 1`, which `hx` writes `2`.
+    exact congrArg _ hx
+  rw [map_sum]
+  refine Finset.sum_congr rfl fun i _ ↦ ?_
+  rw [map_mul, map_pow, hx', ← RingHom.comp_apply, ← TopCat.evenIntegralCohomologyMap_comp,
+    ← TopCat.ofHom_comp, hπ, TopCat.ofHom_comp, TopCat.evenIntegralCohomologyMap_comp,
+    RingHom.comp_apply, TopCat.evenIntegralCohomologyMap_of (TopCat.ofHom h)]
 
 variable [FiniteDimensional ℂ G] [CompactSpace B] [FiniteDimensional ℂ G'] [CompactSpace B']
 
@@ -138,20 +217,8 @@ theorem chernClass_eq_singularCohomologyMap_of_projectiveBundle
     (by simp) ?_ hk).symm
   have hrel := congrArg (TopCat.evenIntegralCohomologyMap (TopCat.ofHom g))
     (sum_chernClass_mul_projectiveBundleClass_pow G E)
-  rw [map_sum, map_zero] at hrel
-  rw [hG, ← hrel]
-  have hx' : TopCat.evenIntegralCohomologyMap (TopCat.ofHom g)
-      ((TopCat.of (ProjectiveBundle ℂ G E)).evenIntegralCohomologyOf 1
-        (projectiveBundleClass G E)) =
-      (TopCat.of (ProjectiveBundle ℂ G' E')).evenIntegralCohomologyOf 1
-        (projectiveBundleClass G' E') := by
-    rw [TopCat.evenIntegralCohomologyMap_of]
-    -- `evenIntegralCohomologyMap_of` pulls back in degree `2 * 1`, which `hx` writes `2`.
-    exact congrArg _ hx
-  refine Finset.sum_congr rfl fun i _ ↦ ?_
-  rw [map_mul, map_pow, hx', ← RingHom.comp_apply, ← TopCat.evenIntegralCohomologyMap_comp,
-    ← TopCat.ofHom_comp, hπ, TopCat.ofHom_comp, TopCat.evenIntegralCohomologyMap_comp,
-    RingHom.comp_apply, TopCat.evenIntegralCohomologyMap_of (TopCat.ofHom h)]
+  rw [evenIntegralCohomologyMap_sum_mul_projectiveBundleClass_pow h g hπ hx, map_zero] at hrel
+  rwa [hG]
 
 /-! ### Pull-backs -/
 
