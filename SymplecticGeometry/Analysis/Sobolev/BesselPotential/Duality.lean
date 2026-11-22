@@ -7,26 +7,29 @@ module
 
 public import TauCeti.Analysis.Sobolev.BesselPotential.Duality
 import Mathlib.Analysis.Normed.Operator.Extend
+import TauCeti.Analysis.Sobolev.BesselPotential.Postcomp
 
 /-!
 # Tempered distributions that are bounded functionals on `H^s`
 
 Let `E` be a finite-dimensional real inner product space and `s` a real number. A scalar tempered
-distribution `u` that satisfies `‖u ψ‖ ≤ C ‖ψ‖_{H^s}` for every Schwartz function `ψ` lies in
-`H^{-s}`, with `‖u‖_{H^{-s}} ≤ C`. Schwartz functions are dense in `H^s`, so `u` extends to a
-continuous functional on `H^s`. Tau Ceti's duality `BesselPotentialSpace.dualEquiv` represents
-this functional by an element of `H^{-s}(E, ℂ⋆)`. Evaluating at `1` turns it into an element of
-`H^{-s}(E)`, which is `u` as a distribution.
+distribution `u` that satisfies `‖u ψ‖ ≤ C ‖ψ‖_{H^s}` for every Schwartz function `ψ`, with
+`0 ≤ C`, is an element of `H^{-s}` with `‖u‖_{H^{-s}} ≤ C`. Schwartz functions are dense in
+`H^s`, so `u` extends to a continuous functional on `H^s`. Tau Ceti's duality
+`BesselPotentialSpace.dualEquiv` represents this functional by an element of `H^{-s}(E, ℂ⋆)`.
+Evaluating at `1` (`BesselPotentialSpace.postcomp`) turns it into an element of `H^{-s}(E)`, which
+is `u` as a distribution, and whose norm is no larger.
 
-The extension follows the proof of Tau Ceti's
-`BesselPotentialSpace.exists_inclusion_eq_and_norm_le`, the analogous criterion for an element
-already known to lie in some `H^m`.
+That `u` lies in `H^{-s}` is Tau Ceti's `TemperedDistribution.memSobolev_neg_of_norm_le`, from
+Tau Ceti's main branch (commit `149af18a4e`), copied into
+`SymplecticGeometry.Analysis.Sobolev.BesselPotential.Duality.FromTauCeti`. The proof here adapts
+that proof and adds the norm bound, which it bounds as the proof of Tau Ceti's
+`BesselPotentialSpace.exists_inclusion_eq_and_norm_le` bounds the norm of its extension.
 
 ## Main results
 
 * `BesselPotentialSpace.exists_toDistr_eq_and_norm_le`: for `0 ≤ C`, such a `u` is the
   distribution of an element of `H^{-s}(E)` of norm at most `C`.
-* `TemperedDistribution.memSobolev_neg_of_norm_le`: such a `u` satisfies `u.MemSobolev (-s) 2`.
 
 ## References
 
@@ -61,34 +64,19 @@ theorem exists_toDistr_eq_and_norm_le {s C : ℝ} (hC : 0 ≤ C) {u : 𝓢'(E, �
   -- Represent `Λ` in `H^{-s}(E, ℂ⋆)`, and evaluate pointwise at `1`.
   set w := (dualEquiv (E := E) (F := ℂ) s).symm Λ
   let T : StrongDual ℂ ℂ →L[ℂ] ℂ := ContinuousLinearMap.apply ℂ ℂ 1
-  refine ⟨ofLp (-s) (T.compLp w.toLp), ?_, ?_⟩
+  refine ⟨postcomp E (-s) 2 T w, ?_, ?_⟩
   · ext ψ
     rw [toDistr_apply_eq_besselPotentialPairing 2,
       ContinuousLinearMap.besselPotentialPairing_apply, ← hΛ,
-      ← (dualEquiv s).apply_symm_apply Λ, dualEquiv_apply_eq_integral, neg_neg]
+      ← (dualEquiv s).apply_symm_apply Λ, dualEquiv_apply_eq_integral, neg_neg, toLp_postcomp]
     refine integral_congr_ae ?_
     filter_upwards [T.coeFn_compLp w.toLp] with x hx
-    simp [toLp_ofLp, hx, T, w]
+    simp [hx, T, w]
   · have hT : ‖T‖ ≤ 1 := T.opNorm_le_bound zero_le_one fun f ↦ by simpa [T] using f.le_opNorm 1
-    rw [← norm_toLp_eq, toLp_ofLp]
+    rw [← norm_toLp_eq, toLp_postcomp]
     refine (T.norm_compLp_le w.toLp).trans ?_
     rw [norm_toLp_eq, LinearIsometryEquiv.norm_map]
     exact (mul_le_of_le_one_left (norm_nonneg _) hT).trans
       (LinearMap.opNorm_extendOfNorm_le hdense hC hu)
 
 end BesselPotentialSpace
-
-namespace TemperedDistribution
-
-open SchwartzMap
-
-/-- A scalar tempered distribution `u` with `‖u ψ‖ ≤ C ‖ψ‖_{H^s}` for every Schwartz function `ψ`
-lies in the Bessel-potential space `H^{-s}`. -/
-theorem memSobolev_neg_of_norm_le {s C : ℝ} {u : 𝓢'(E, ℂ)}
-    (hu : ∀ ψ : 𝓢(E, ℂ), ‖u ψ‖ ≤ C * ‖toBesselPotentialSpaceCLM s 2 ψ‖) :
-    u.MemSobolev (-s) 2 := by
-  obtain ⟨v, hv, -⟩ := BesselPotentialSpace.exists_toDistr_eq_and_norm_le (le_max_right C 0)
-    fun ψ ↦ (hu ψ).trans (by gcongr; exact le_max_left C 0)
-  exact hv ▸ v.memSobolev_toDistr
-
-end TemperedDistribution
