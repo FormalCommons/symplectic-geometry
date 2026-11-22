@@ -101,8 +101,7 @@ theorem pathMaslovIndex_graph_eq_crossing_sum {Λ Λ' : ℒ ι} (γ : Path Λ Λ
     rw [continuousOn_iff_continuous_domRestrict]
     exact continuous_of_coe_eq_graph γ.continuous hγ
   have hA (t : ℝ) (ht : t ∈ Icc (0 : ℝ) 1) : (A t).IsHermitian :=
-    isHermitian_iff_isSymm.2 ((isLagrangian_graph_iff _).1
-      (hγ ⟨t, ht⟩ ▸ (γ ⟨t, ht⟩).isLagrangian))
+    isHermitian_of_coe_eq_graph (hγ ⟨t, ht⟩)
   obtain ⟨_, _, δ, hδ, h⟩ := exists_souriau_eq_cayley_and_pathMaslovIndex_eq_maslovIndex γ
     (A := fun t : I ↦ A t) hγ
   rw [h]
@@ -155,14 +154,11 @@ private theorem crossing_sum_of_isCompl_vertical {Λ Λ' : ℒ ι} (γ : Path Λ
   -- Where `A t` is singular, `γ t` meets `{y = 0}`.
   have hcross (t : I) (h : (A t).det = 0) :
       (γ t : Submodule ℝ (StdSpace ι)) ⊓ horizontal ι ≠ ⊥ := by
-    have hL : (stdForm ι).IsLagrangian
-        (LinearMap.range (toEuclideanLin (fromRows (1 : Matrix ι ι ℝ) (A t)))) := by
-      rw [StdSpace.range_toEuclideanLin_fromRows_one_eq_graph, ← hγA]; exact (γ t).isLagrangian
-    rw [coe_horizontal, ne_eq, ← disjoint_iff, hγA,
-      ← StdSpace.range_toEuclideanLin_fromRows_one_eq_graph,
-      StdSpace.disjoint_range_toEuclideanLin_fromRows_ker_y_iff_of_isLagrangian hL,
-      isUnit_iff_isUnit_det, h]
-    exact not_isUnit_zero
+    have h' := (mem_graphYChart_source_iff_isUnit
+      ((hγA t).trans (StdSpace.range_toEuclideanLin_fromRows_one_eq_graph _).symm)).not
+    rw [graphYChart_source, mem_ofPred_eq, isCompl_iff_disjoint, disjoint_iff,
+      isUnit_iff_isUnit_det, h] at h'
+    exact h'.2 not_isUnit_zero
   have hdA (t : ℝ) (ht : t ∈ Icc (0 : ℝ) 1) (h : (A t).det = 0) :
       HasDerivWithinAt A (A' t) (Icc 0 1) t := by
     have hZd := hd ⟨t, ht⟩ (hcross ⟨t, ht⟩ h)
