@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.AlgebraicTopology.Singular.Kunneth.RelativePair
+public import SymplecticGeometry.AlgebraicTopology.Singular.Triple
 
 /-!
 # The connecting morphism on the cross product of two pairs
@@ -26,7 +27,7 @@ The relative shuffle maps and the shuffle map of the pairs form a morphism from
 morphism of the tensored sequence is computed by Tau Ceti's
 `HomologicalComplex.homologyCross_comp_δ`, and that of the triple is the connecting morphism of
 the pair followed by the map to relative homology
-(`TauCeti.TopTriple.singularHomologyδ_eq_comp_singularHomologyπ`).
+(`TauCeti.TopTriple.singularHomologyδOfSubset_eq_comp_singularHomologyπ`).
 
 ## Main definitions
 
@@ -142,7 +143,8 @@ shuffle map of `(X, A)` and `Y`, and its third `TopCat.shufflePair`. -/
 def shufflePairShortComplexMap :
     tensorLeftShortComplex ((TopPair.ofSubset A).singularChainComplex R)
         ((TopPair.ofSubset B).singularChainComplexShortComplex S) ⟶
-      (TopPair.prodUnionTripleFst A B).singularChainComplexShortComplex (R ⊗ S) where
+      TauCeti.TopTriple.singularChainComplexShortComplexOfSubset (R ⊗ S)
+        (Set.subset_union_left : fst X Y ⁻¹' A ⊆ fst X Y ⁻¹' A ∪ snd X Y ⁻¹' B) where
   τ₁ := shuffleRel X (TopPair.ofSubset B).snd A R S ≫
     TopPair.singularChainComplexMap (TopPair.prodExcisionFst A B) (R ⊗ S)
   τ₂ := shuffleRel X Y A R S
@@ -200,7 +202,8 @@ theorem singularHomologyCrossRelPair_comp_singularHomologyδ_comp_singularHomolo
           TopPair.singularHomologyMap (TopPair.prodExcisionFst A B) (R ⊗ S) n') := by
   have hS := (TopPair.ofSubset B).shortExact_singularChainComplexShortComplex S
   have hKS := shortExact_tensorLeftShortComplex_singularChainComplexShortComplex X Y A B R S
-  have hT := (TopPair.prodUnionTripleFst A B).shortExact_singularChainComplexShortComplex (R ⊗ S)
+  have hT := TauCeti.TopTriple.shortExact_singularChainComplexShortComplexOfSubset (R ⊗ S)
+    (Set.subset_union_left : fst X Y ⁻¹' A ⊆ fst X Y ⁻¹' A ∪ snd X Y ⁻¹' B)
   have hrel : (ComplexShape.down ℕ).Rel q q' := by simp [hq]
   have hδ := HomologySequence.δ_naturality (shufflePairShortComplexMap X Y A B R S) hKS hT n n'
     (by simp; omega)
@@ -217,14 +220,8 @@ theorem singularHomologyCrossRelPair_comp_singularHomologyδ_comp_singularHomolo
       (tensorRight (((toSSet.obj (TopPair.ofSubset B).snd).chainComplex S).X
         ((ComplexShape.down ℕ).prev q')))›
   have hc := homologyCross_comp_δ ((TopPair.ofSubset A).singularChainComplex R) hS hKS hrel h h'
-  -- `hδ`, with the components of `shufflePairShortComplexMap` written out
-  have key : homologyMap (shufflePair X Y A B R S) n ≫
-      hT.δ n n' (by simp; omega) =
-        hKS.δ n n' (by simp; omega) ≫ homologyMap (shuffleRel X (TopPair.ofSubset B).snd A R S ≫
-          TopPair.singularChainComplexMap (TopPair.prodExcisionFst A B) (R ⊗ S)) n' := by
-    simp only [shufflePairShortComplexMap_τ₁, shufflePairShortComplexMap_τ₃] at hδ
-    exact hδ.symm
-  have e : (homologyCross ((TopPair.ofSubset A).singularChainComplex R)
+  simp only [shufflePairShortComplexMap_τ₃] at hδ
+  have e₀ : (homologyCross ((TopPair.ofSubset A).singularChainComplex R)
         ((toSSet.obj (TopPair.ofSubset B).snd).chainComplex S) p q' n' h' ≫
           homologyMap (shuffleRel X (TopPair.ofSubset B).snd A R S ≫
             TopPair.singularChainComplexMap (TopPair.prodExcisionFst A B) (R ⊗ S)) n') =
@@ -234,18 +231,26 @@ theorem singularHomologyCrossRelPair_comp_singularHomologyδ_comp_singularHomolo
     -- that of its singular chains only up to unfolding
     dsimp only [TauCeti.singularHomologyFunctor_obj_obj_eq_toSSet_homology]
     rw [homologyMap_comp, singularHomologyCrossRel_def, Category.assoc]
-  refine (congrArg (_ ≫ ·)
-    ((TopPair.prodUnionTripleFst A B).singularHomologyδ_eq_comp_singularHomologyπ (R ⊗ S) n n'
-      (by omega)).symm).trans <| (congrArg (_ ≫ ·)
-    ((TopPair.prodUnionTripleFst A B).singularHomologyδ_def (R ⊗ S) n n' (by omega))).trans ?_
-  -- the objects here are the singular complexes, which agree with the terms of the short exact
-  -- sequences only up to unfolding, so the composites are reassociated by hand
-  refine (congrArg (· ≫ _) (singularHomologyCrossRelPair_def X Y A B R S p q n h)).trans <|
-    (Category.assoc _ _ _).trans <| (congrArg (_ ≫ ·) key).trans <|
-    (Category.assoc _ _ _).symm.trans <| (congrArg (· ≫ _) hc).trans <|
-    (Preadditive.zsmul_comp _ _ _).trans ?_
-  rw [ComplexShape.ε_down_ℕ]
+  -- `e₀`, with the chains of `B` written as the first term of the short complex of `(Y, B)` and the
+  -- first component of `shufflePairShortComplexMap` kept, as in the image of `hc`; the two
+  -- statements differ only in how these terms are written
+  have e : (homologyCross ((TopPair.ofSubset A).singularChainComplex R)
+        ((TopPair.ofSubset B).singularChainComplexShortComplex S).X₁ p q' n' h' ≫
+          homologyMap (shufflePairShortComplexMap X Y A B R S).τ₁ n') =
+      singularHomologyCrossRel X (TopPair.ofSubset B).snd A R S p q' n' h' ≫
+        TopPair.singularHomologyMap (TopPair.prodExcisionFst A B) (R ⊗ S) n' :=
+    e₀
+  rw [← TauCeti.TopTriple.singularHomologyδOfSubset_eq_comp_singularHomologyπ (R ⊗ S)
+      (Set.subset_union_left : fst X Y ⁻¹' A ⊆ fst X Y ⁻¹' A ∪ snd X Y ⁻¹' B),
+    TauCeti.TopTriple.singularHomologyδOfSubset_def, singularHomologyCrossRelPair_def,
+    Category.assoc, ← hδ, ← Category.assoc, hc, Preadditive.zsmul_comp, ComplexShape.ε_down_ℕ,
+    Category.assoc, e]
   push_cast
-  exact congrArg (_ • ·) ((Category.assoc _ _ _).trans (congrArg (_ ≫ ·) e))
+  unfold TopPair.singularHomologyδ
+  rw [SSetPair.homologyδ]
+  -- the short exact sequence `hS` of `TopPair.ofSubset B` is the one of its underlying `SSetPair`,
+  -- `(toSSetPair.obj (TopPair.ofSubset B)).shortExact_chainComplexShortComplex`, only by the
+  -- definitions of `TopPair.singularChainComplexShortComplex` and its exactness lemma
+  rfl
 
 end TopCat
