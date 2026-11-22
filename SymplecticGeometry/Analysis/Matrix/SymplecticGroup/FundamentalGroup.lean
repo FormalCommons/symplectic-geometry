@@ -29,6 +29,10 @@ square gives the statement for `ρ`.
 For an empty index type `Sp(0)` is a point, so its fundamental group is trivial and `ρ` is not
 surjective on `π₁`: the hypothesis `Nonempty ι` cannot be dropped.
 
+## Main definitions
+
+* `TauCeti.GLSymplectic.maslovPhaseMap`: `ρ` as a bundled continuous map `Sp(2n) → S¹`.
+
 ## Main results
 
 * `TauCeti.GLSymplectic.bijective_fundamentalGroupMap_maslovPhase`: for nonempty `ι`, `ρ` induces
@@ -57,11 +61,22 @@ namespace TauCeti.GLSymplectic
 
 variable {ι : Type*} [Fintype ι] [DecidableEq ι]
 
+/-- The phase `ρ = maslovPhase : Sp(2n) → S¹`, the complex determinant of the unitary polar
+factor, as a bundled continuous map. -/
+@[expose] noncomputable def maslovPhaseMap : C(GLSymplectic ι ℝ, Circle) :=
+  ⟨maslovPhase, continuous_maslovPhase⟩
+
+@[simp]
+theorem coe_maslovPhaseMap : ⇑(maslovPhaseMap : C(GLSymplectic ι ℝ, Circle)) = maslovPhase :=
+  (rfl)
+
+theorem maslovPhaseMap_apply (A : GLSymplectic ι ℝ) : maslovPhaseMap A = maslovPhase A :=
+  (rfl)
+
 /-- The square `id ∘ detCircle = maslovPhase ∘ ofUnitary`. -/
 private theorem comp_detCircle_eq :
     (ContinuousMap.id Circle).comp ⟨detCircle, continuous_detCircle⟩ =
-      (⟨maslovPhase, continuous_maslovPhase⟩ : C(GLSymplectic ι ℝ, Circle)).comp
-        (ofUnitaryHomotopyEquiv (n := ι)).toFun := by
+      maslovPhaseMap.comp (ofUnitaryHomotopyEquiv (n := ι)).toFun := by
   ext U
   simp
 
@@ -72,8 +87,7 @@ variable [Nonempty ι]
 /-- For a nonempty index type, `maslovPhase : Sp(2n) → S¹` induces a bijection on the first
 homotopy group `π_ 1` at every base point. -/
 theorem bijective_homotopyGroupMap_maslovPhase (A : GLSymplectic ι ℝ) :
-    Function.Bijective (HomotopyGroup.map (N := Fin 1)
-      (⟨maslovPhase, continuous_maslovPhase⟩ : C(GLSymplectic ι ℝ, Circle))
+    Function.Bijective (HomotopyGroup.map (N := Fin 1) maslovPhaseMap
       (rfl : maslovPhase A = maslovPhase A)) := by
   have hf := (ofUnitaryHomotopyEquiv (n := ι)).isWeakHomotopyEquivalence
   have hg := ContinuousMap.IsWeakHomotopyEquivalence.id (X := Circle)
@@ -85,9 +99,10 @@ theorem bijective_homotopyGroupMap_maslovPhase (A : GLSymplectic ι ℝ) :
 /-- For a nonempty index type, `maslovPhase : Sp(2n) → S¹` induces a bijection of fundamental
 groups `π₁(Sp(2n), A) → π₁(S¹, maslovPhase A)` at every base point. -/
 theorem bijective_fundamentalGroupMap_maslovPhase (A : GLSymplectic ι ℝ) :
-    Function.Bijective (FundamentalGroup.map
-      (⟨maslovPhase, continuous_maslovPhase⟩ : C(GLSymplectic ι ℝ, Circle)) A) := by
-  simpa using (HomotopyGroup.bijective_map_iff_bijective_mapOfEq _ _).1
+    Function.Bijective (FundamentalGroup.map maslovPhaseMap A) := by
+  -- `maslovPhaseMap A` is `maslovPhase A` by definition, so `mapOfEq` along `rfl` is `map`.
+  rw [← FundamentalGroup.mapOfEq_rfl]
+  exact (HomotopyGroup.bijective_map_iff_bijective_mapOfEq _ _).1
     (bijective_homotopyGroupMap_maslovPhase A)
 
 variable (ι) in
@@ -100,8 +115,7 @@ noncomputable def fundamentalGroupMulEquivCircle (A : GLSymplectic ι ℝ) :
 @[simp]
 theorem fundamentalGroupMulEquivCircle_apply (A : GLSymplectic ι ℝ)
     (p : FundamentalGroup (GLSymplectic ι ℝ) A) :
-    fundamentalGroupMulEquivCircle ι A p = FundamentalGroup.map
-      (⟨maslovPhase, continuous_maslovPhase⟩ : C(GLSymplectic ι ℝ, Circle)) A p :=
+    fundamentalGroupMulEquivCircle ι A p = FundamentalGroup.map maslovPhaseMap A p :=
   (rfl)
 
 variable (ι) in
@@ -115,8 +129,7 @@ noncomputable def fundamentalGroupMulEquiv (A : GLSymplectic ι ℝ) :
 theorem fundamentalGroupMulEquiv_apply (A : GLSymplectic ι ℝ)
     (p : FundamentalGroup (GLSymplectic ι ℝ) A) :
     fundamentalGroupMulEquiv ι A p = Circle.fundamentalGroupMulEquiv _
-      (FundamentalGroup.map
-        (⟨maslovPhase, continuous_maslovPhase⟩ : C(GLSymplectic ι ℝ, Circle)) A p) :=
+      (FundamentalGroup.map maslovPhaseMap A p) :=
   (rfl)
 
 /-- The isomorphism `fundamentalGroupMulEquiv` sends the class of a loop `γ` in `Sp(2n)` to its
@@ -127,6 +140,7 @@ theorem fundamentalGroupMulEquiv_fromPath {A : GLSymplectic ι ℝ} (γ : Path A
       Multiplicative.ofAdd (maslovIndex γ) := by
   rw [fundamentalGroupMulEquiv_apply, FundamentalGroup.map_fromPath,
     Circle.fundamentalGroupMulEquiv_fromPath, maslovIndex_def]
+  exact congrArg _ (Circle.degree_congr _ _ fun _ ↦ maslovPhaseMap_apply _)
 
 /-- **The fundamental group of the symplectic group.** For a nonempty finite index type `ι` (that
 is, `Sp(2n)` with `n ≥ 1`), the fundamental group of the real symplectic group is isomorphic to
@@ -151,8 +165,7 @@ variable [IsEmpty ι]
 empty index type `Sp(0)` is a point, so its trivial fundamental group cannot map onto
 `π₁(S¹) ≅ ℤ`. -/
 theorem not_bijective_fundamentalGroupMap_maslovPhase_of_isEmpty (A : GLSymplectic ι ℝ) :
-    ¬ Function.Bijective (FundamentalGroup.map
-      (⟨maslovPhase, continuous_maslovPhase⟩ : C(GLSymplectic ι ℝ, Circle)) A) :=
+    ¬ Function.Bijective (FundamentalGroup.map maslovPhaseMap A) :=
   fun h ↦ FundamentalGroup.not_surjective_map_circle_of_subsingleton A _ h.2
 
 end IsEmpty
