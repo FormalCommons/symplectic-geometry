@@ -286,12 +286,16 @@ homology projective in every degree and finitely generated in degrees
   through the trivialization; the finite cover is handled by induction with
   the previous file.
 - `TopCat.lerayHirschEquiv`, the linear equivalence, with its value on
-  summands; and `TopCat.lerayHirsch_injective_pullback`, the injectivity of
+  summands; and `TopCat.singularCohomologyMap_injective_of_lerayHirsch_injective`,
+  the injectivity of
   `π^*` (the summand of the unit class, when `c 0` is the unit), the form
   the splitting principle uses.
 - The integral form, for `TopCat.integralCohomology` and `integralCup`,
   through `TopCat.integralCup_singularCohomologyChainCoefficientMap`; the
-  Chern classes use only this form.
+  Chern classes use only this form. Its map `TopCat.integralLerayHirsch` is
+  additive, with `TopCat.integralLerayHirsch_bijective`, the additive
+  equivalence `TopCat.integralLerayHirschEquiv` and
+  `TopCat.singularCohomologyMap_injective_of_integralLerayHirsch_injective`.
 
 ### `Topology/VectorBundle/ProjectiveBundle/Basic.lean`
 
@@ -375,7 +379,7 @@ In the namespace `SymplecticGeometry.Bundle`, for a complex vector bundle
   `complexEulerClass` under `uliftIntegralCohomologyIso`, negated; its
   restriction to each fibre is `hyperplaneClass (E b)`.
 - `chernClass G E k : (TopCat.of B).integralCohomology (2 * k)`, defined
-  from `TopCat.lerayHirschEquiv` for the classes $x^i$, $i<n$, applied to
+  from `TopCat.integralLerayHirschEquiv` for the classes $x^i$, $i<n$, applied to
   $-x^n$ when the Leray–Hirsch map is bijective, `1` for `k = 0`, and `0`
   for `k > n` and where the map is not bijective; with `chernClass_def`.
 - `totalChernClass G E : TopCat.EvenIntegralCohomology (TopCat.of B)`, the
