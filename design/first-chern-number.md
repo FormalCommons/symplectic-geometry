@@ -342,9 +342,10 @@ The disc clutching formula, for the coordinate discs of prerequisite 5.
 - `symplecticChernNumber_eq_sum_maslovIndex_clutching`: the same with
   symplectic frames (fibrewise symplectic isomorphisms with `stdForm (Fin
   n)`), with the sum of `TauCeti.GLSymplectic.maslovIndex` of the transition
-  loops. Proof: make both frames unitary for a compatible `J` by complex
-  Gram–Schmidt applied to the Lagrangian half of each frame, using Tau Ceti's
-  `Topology/VectorBundle/GramSchmidt.lean`. The change of frame is a map `P`
+  loops. Proof: make both frames unitary for a compatible `J` by a continuous
+  change of frame into $\mathrm{Sp}(2n)$: the inverse square root of the Gram
+  matrix of $\omega(\cdot,J\cdot)$ in the frame, taken with Tau Ceti's
+  `TauCeti.GLSymplectic.polarHomotopy`. The change of frame is a map `P`
   into $\mathrm{Sp}(2n)$ on the disc and `P'` on the complement. The new loop
   is $P^{-1}\Psi P'$. By `maslovIndex_mul`, its index is the old index plus
   those of $P^{-1}$ and $P'$ on the circles. The first is $0$ because `P` is
