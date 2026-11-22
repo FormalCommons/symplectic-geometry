@@ -105,13 +105,12 @@ by `coe_interiorₗ`. For a strong filling `h`, `hY` is
   there are `ε > 0` and a `TauCeti.SmoothCollar` whose normal lines, run at
   speed `ε`, are the integral curves of `Y` through the boundary points, for
   times in $(-\varepsilon,0]$ (`TauCeti.SmoothCollar.exists_eq_of_isOutwardPointing`,
-  in `Geometry/Manifold/Boundary/Collar/Flow/`). It is proved in Tau Ceti's
-  local product collars (`TauCeti.IsProductCollarChart.diffeomorphProd`),
-  where the field is extended across the boundary by Seeley's extension in
-  the normal coordinate, from *Smooth families*'
-  `Geometry/Manifold/ContMDiff/TimeExtension.lean`; the extended field has a
-  flow (Tau Ceti's, on a boundaryless chart domain), whose backward lines
-  from the boundary enter the interior and are there the integral curves of
+  in `Geometry/Manifold/Boundary/Collar/Flow/`). It is proved in the extended
+  chart at a boundary point, where the field is extended across the boundary
+  by Seeley's extension in the normal coordinate, from *Smooth families*'
+  `contDiffOn_seeleyExtend` (`Analysis/Calculus/ContDiff/Seeley/Extension.lean`);
+  the extended field has a flow (Tau Ceti's, on the boundaryless `ℝⁿ⁺¹`),
+  whose backward lines from the boundary enter the interior and are there the integral curves of
   `Y`, so the local collars agree and patch. For a strong filling the
   collar formulas $\Phi^*\lambda=e^s\alpha$ and $\Phi^*\omega=-d(e^s\alpha)$
   then follow from Tau Ceti's on the interior (see `Filling.lean`).
@@ -381,25 +380,30 @@ In `TauCeti`, for `W` as in *Decisions* (no compactness), a field `Y` with
 `hY : IsOutwardPointingField Y` (Tau Ceti's smooth field that points outward
 along the boundary), and a boundary point `p`:
 
-- In a product collar chart at `p`
-  (`TauCeti.exists_isProductCollarChart_of_mem_boundary`,
-  `IsProductCollarChart.diffeomorphProd`), the field read in the product
-  `V × [0, δ)` extends to a smooth field on `V × (-δ, δ)`: Seeley's
-  extension in the normal coordinate, from *Smooth families*'
-  `TimeExtension.lean` after a cut-off in the normal coordinate.
+- In the extended chart at `p`, the coordinate expression of the field,
+  smooth on a relatively open part of the half-space, agrees near `p` with a
+  smooth field on `ℝⁿ⁺¹` (`exists_contDiff_eqOn_mpullbackWithin_extChartAt_symm`,
+  from `SymplecticGeometry.exists_contDiff_eqOn_of_contDiffOn_halfSpace`):
+  Seeley's extension in the normal coordinate, from *Smooth families*'
+  `contDiffOn_seeleyExtend`, after a cut-off in the normal coordinate.
 - `exists_isMIntegralCurveOn_of_isOutwardPointing`: there are an open
-  `B ∋ p` of `∂W`, `η > 0` and a map `γ : ℝ × ∂W → W`, smooth on
-  `Ioo (-η) η ×ˢ B` read through the extension, such that for `x ∈ B` the
-  curve `s ↦ γ (s, x)` starts at `x`, lies in the interior of `W` for
+  `B ∋ p` of `∂W`, `η > 0` and a map `γ : ℝ × ∂W → W` such that for `x ∈ B`
+  the curve `s ↦ γ (s, x)` starts at `x`, lies in the interior of `W` for
   `s ∈ (-η, 0)` and is an integral curve of `Y` on `Ioc (-η) 0`
-  (`IsMIntegralCurveOn`), and `(s, x) ↦ γ (s, x)` is a local diffeomorphism
-  from `Ioc (-η) 0 ×ˢ B`, read as a manifold with boundary, at `(0, p)`.
-  Its derivative there is invertible since `Y p` is outward
-  (`Boundary/Derivative.lean`: the boundary inclusion is the zero-insertion
-  in charts).
-- `IsMIntegralCurveOn.eqOn_of_isOutwardPointing`: two integral curves of `Y`
-  on `Ioc (-η) 0` that start at the same boundary point agree, by
-  uniqueness for the extended field in the chart while they stay there.
+  (`IsMIntegralCurveOn`), and `(x, t) ↦ γ (-t.val 0, x)` is a local
+  diffeomorphism (`IsLocalDiffeomorphOn ((𝓡 n).prod (𝓡∂ 1)) (𝓡∂ (n + 1)) ∞`)
+  on `B ×ˢ EuclideanHalfSpace.normalIio η`. In charts it is the flow of the
+  extended field from the boundary hyperplane, a local diffeomorphism of
+  boundaryless spaces since `Y p` is transverse to the boundary, restricted
+  to the half-spaces
+  (`PartialDiffeomorph.isLocalDiffeomorphAt_symm_comp_comp_model`, in
+  *Smooth families*' `Geometry/Manifold/LocalDiffeomorph/Basic.lean`).
+- `IsMIntegralCurveOn.eqOn_of_isOutwardPointing` (with `[T2Space W]`): two
+  integral curves of `Y` on `Ioc (-η) 0` that agree at time `0` agree; at
+  negative times both are in the interior
+  (`IsMIntegralCurveOn.mem_interior_of_isOutwardPointing`), and from a
+  boundary point they first agree near `0` by uniqueness for the extended
+  field in the chart.
 
 Expected size: 500 lines.
 
@@ -592,12 +596,17 @@ Expected size: 300 lines.
 
 ## What the part uses
 
-- *Smooth families*: Seeley's extension in the time variable,
-  `Geometry/Manifold/ContMDiff/TimeExtension.lean`, only in
+- *Smooth families*: Seeley's extension,
+  `Analysis/Calculus/ContDiff/Seeley/Extension.lean`, and
+  `Geometry/Manifold/LocalDiffeomorph/Basic.lean`, only in
   `Collar/Flow/Local.lean`; and
   `Geometry/Manifold/DifferentialForm/SmoothFamily/Basic.lean`
   (`TauCeti.SmoothForm.mpullback_prodMk_mpullback_snd`), merged, in
   `StableHamiltonian.lean`.
+- *Cotangent bundles*: `Geometry/Manifold/Flow/Basic.lean`, merged, which this
+  part extends by the flow of a smooth field on a normed space
+  (`TauCeti.contDiffOn_flowOf_uncurry`, `TauCeti.hasDerivAt_flowOf`,
+  `TauCeti.hasFDerivAt_flowOf_uncurry_zero`), in `Collar/Flow/Local.lean`.
 - *Moser isotopy*: `Geometry/Symplectic/Manifold/Family.lean`
   (`SmoothTwoForm.isOpen_setOf_nondegenerate_bilinFormAt`), merged, in
   `StableHamiltonian.lean`.
