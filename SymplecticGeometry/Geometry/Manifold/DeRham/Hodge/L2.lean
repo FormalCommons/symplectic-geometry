@@ -29,30 +29,29 @@ symmetric bilinear form in every dimension, including dimension zero.
 
 The Hilbert space `SymplecticGeometry.L2Form o k` is the completion of the smooth `k`-forms for
 this inner product. The smooth forms embed in it injectively and densely
-(`SymplecticGeometry.L2Form.ofSmooth`), and a bounded linear map on smooth forms extends
-uniquely to a continuous linear map on `L2Form o k` (`SymplecticGeometry.L2Form.liftSmooth`).
+(`SymplecticGeometry.L2Form.ofSmooth`). A linear map `L` on smooth forms that is bounded in the
+`L²` norm therefore extends uniquely to a continuous linear map on `L2Form o k`: this is
+Mathlib's `L.extendOfNorm L2Form.ofSmooth` (`LinearMap.extendOfNorm`), whose lemmas take
+`L2Form.denseRange_ofSmooth`.
 
 ## Main definitions and results
 
 * `TauCeti.SmoothForm.l2Inner`: the `L²` inner product of smooth forms, symmetric
-  (`l2Inner_comm`), bilinear (`l2Inner_add_left`, `l2Inner_smul_left`, …), with
-  `l2Inner_self_nonneg` and `l2Inner_self_eq_zero_iff`.
+  (`l2Inner_comm`), bilinear (`l2Inner_add_left`, `l2Inner_smul_left`, `l2Inner_neg_left`,
+  `l2Inner_sub_left`, …), with `l2Inner_self_nonneg` and `l2Inner_self_eq_zero_iff`.
 * `SymplecticGeometry.L2Form o k`: the Hilbert space of `L²` `k`-forms, with
   `L2Form.ofSmooth`, `L2Form.inner_ofSmooth`, `L2Form.norm_ofSmooth_sq`,
   `L2Form.ofSmooth_injective`, `L2Form.denseRange_ofSmooth` and `L2Form.induction_on`.
-* `SymplecticGeometry.L2Form.liftSmooth`: the extension of a bounded linear map from smooth
-  forms, with `liftSmooth_ofSmooth`, `liftSmooth_unique` and the bounds
-  `norm_liftSmooth_apply_le` and `norm_liftSmooth_le`.
 
 ## Implementation notes
 
 The construction of `L2Form`, through the type synonym `SymplecticGeometry.PreL2Form` of the
 smooth forms carrying the inner product, and the names and proofs of `ofSmooth`,
-`inner_ofSmooth`, `norm_ofSmooth_sq`, `denseRange_ofSmooth`, `induction_on`, `liftSmooth`,
-`liftSmooth_ofSmooth`, `liftSmooth_unique`, `norm_liftSmooth_apply_le` and
-`norm_liftSmooth_le`, adapt those of Tau Ceti's `TauCeti.Manifold.SobolevH1`
-(`TauCeti/Geometry/Manifold/Riemannian/Sobolev/H1.lean`), with smooth forms and their `L²`
-inner product in place of smooth functions and the `H¹` inner product. Since the `L²` inner
+`inner_ofSmooth`, `norm_ofSmooth_sq`, `denseRange_ofSmooth` and `induction_on`, adapt those of
+Tau Ceti's `TauCeti.Manifold.SobolevH1`
+(`TauCeti/Geometry/Manifold/Riemannian/Sobolev/H1.lean`, itself after Mathlib's `PreGNS`), with
+smooth forms and their `L²` inner product in place of smooth functions and the `H¹` inner
+product. Since the `L²` inner
 product is definite, the type synonym carries an `InnerProductSpace.Core` rather than a
 `PreInnerProductSpace.Core`, so it is a normed space and its map to the completion is
 injective.
@@ -131,6 +130,34 @@ theorem l2Inner_smul_right (o : Manifold.Orientation I M (Fin m)) (c : ℝ)
     l2Inner o α (c • β) = c * l2Inner o α β := by
   rw [l2Inner_comm, l2Inner_smul_left, l2Inner_comm]
 
+omit [IsContMDiffRiemannianBundle I ∞ E (fun x : M ↦ TangentSpace I x)] in
+/-- The `L²` inner product vanishes when its first argument is zero. -/
+@[simp]
+theorem l2Inner_zero_left (o : Manifold.Orientation I M (Fin m)) (β : SmoothForm I M ℝ k) :
+    l2Inner o 0 β = 0 := by
+  simpa using l2Inner_smul_left o 0 0 β
+
+omit [IsContMDiffRiemannianBundle I ∞ E (fun x : M ↦ TangentSpace I x)] in
+/-- The `L²` inner product vanishes when its second argument is zero. -/
+@[simp]
+theorem l2Inner_zero_right (o : Manifold.Orientation I M (Fin m)) (α : SmoothForm I M ℝ k) :
+    l2Inner o α 0 = 0 := by
+  rw [l2Inner_comm, l2Inner_zero_left]
+
+omit [IsContMDiffRiemannianBundle I ∞ E (fun x : M ↦ TangentSpace I x)] in
+/-- The `L²` inner product changes sign with its first argument. -/
+@[simp]
+theorem l2Inner_neg_left (o : Manifold.Orientation I M (Fin m)) (α β : SmoothForm I M ℝ k) :
+    l2Inner o (-α) β = -l2Inner o α β := by
+  rw [← neg_one_smul ℝ α, l2Inner_smul_left, neg_one_mul]
+
+omit [IsContMDiffRiemannianBundle I ∞ E (fun x : M ↦ TangentSpace I x)] in
+/-- The `L²` inner product changes sign with its second argument. -/
+@[simp]
+theorem l2Inner_neg_right (o : Manifold.Orientation I M (Fin m)) (α β : SmoothForm I M ℝ k) :
+    l2Inner o α (-β) = -l2Inner o α β := by
+  rw [l2Inner_comm, l2Inner_neg_left, l2Inner_comm]
+
 variable [CompactSpace M]
 
 /-- The Riemannian volume measure needs only a continuous metric. -/
@@ -159,6 +186,16 @@ theorem l2Inner_add_left (o : Manifold.Orientation I M (Fin m)) (α β γ : Smoo
 theorem l2Inner_add_right (o : Manifold.Orientation I M (Fin m)) (α β γ : SmoothForm I M ℝ k) :
     l2Inner o α (β + γ) = l2Inner o α β + l2Inner o α γ := by
   rw [l2Inner_comm, l2Inner_add_left, l2Inner_comm _ β, l2Inner_comm _ γ]
+
+/-- The `L²` inner product respects subtraction in its first argument. -/
+theorem l2Inner_sub_left (o : Manifold.Orientation I M (Fin m)) (α β γ : SmoothForm I M ℝ k) :
+    l2Inner o (α - β) γ = l2Inner o α γ - l2Inner o β γ := by
+  rw [sub_eq_add_neg, l2Inner_add_left, l2Inner_neg_left, sub_eq_add_neg]
+
+/-- The `L²` inner product respects subtraction in its second argument. -/
+theorem l2Inner_sub_right (o : Manifold.Orientation I M (Fin m)) (α β γ : SmoothForm I M ℝ k) :
+    l2Inner o α (β - γ) = l2Inner o α β - l2Inner o α γ := by
+  rw [l2Inner_comm, l2Inner_sub_left, l2Inner_comm _ β, l2Inner_comm _ γ]
 
 /-- The `L²` inner product of a smooth form with itself is nonnegative. -/
 theorem l2Inner_self_nonneg (o : Manifold.Orientation I M (Fin m)) (α : SmoothForm I M ℝ k) :
@@ -294,71 +331,6 @@ all smooth forms holds everywhere. -/
 theorem induction_on {p : L2Form o k → Prop} (u : L2Form o k) (hp : IsClosed {u | p u})
     (h : ∀ α : SmoothForm I M ℝ k, p (ofSmooth α)) : p u :=
   denseRange_ofSmooth.induction_on u hp h
-
-/-! ### Extending bounded linear maps from smooth forms -/
-
-section LiftSmooth
-
-variable {F : Type*} [SeminormedAddCommGroup F] [Module ℝ F] [UniformContinuousConstSMul ℝ F]
-  [T0Space F] [CompleteSpace F]
-
-/-- **Extension of a bounded linear map from smooth forms.** An `ℝ`-linear map
-`L : SmoothForm I M ℝ k →ₗ[ℝ] F` into a complete separated seminormed space that is bounded in
-the `L²` norm extends uniquely (`SymplecticGeometry.L2Form.liftSmooth_unique`) to a continuous
-linear map `L2Form o k →L[ℝ] F` that agrees with `L` on smooth forms
-(`SymplecticGeometry.L2Form.liftSmooth_ofSmooth`). -/
-def liftSmooth (L : SmoothForm I M ℝ k →ₗ[ℝ] F)
-    (hL : ∃ C : ℝ, ∀ α : SmoothForm I M ℝ k, ‖L α‖ ≤ C * ‖(ofSmooth α : L2Form o k)‖) :
-    L2Form o k →L[ℝ] F :=
-  (LinearMap.mkContinuousOfExistsBound (L.comp ofPreL2Form.toLinearMap) <|
-    hL.imp fun C hC u ↦ by
-      obtain ⟨α, rfl⟩ := toPreL2Form.surjective u
-      have h := hC α
-      rw [ofSmooth_apply, UniformSpace.Completion.norm_coe] at h
-      simpa only [LinearMap.coe_comp, LinearEquiv.coe_coe, Function.comp_apply,
-        ofPreL2Form_toPreL2Form] using h).fromCompletion
-
-/-- On a smooth form `α`, `liftSmooth L hL` agrees with `L α`. -/
-@[simp]
-theorem liftSmooth_ofSmooth (L : SmoothForm I M ℝ k →ₗ[ℝ] F)
-    (hL : ∃ C : ℝ, ∀ α : SmoothForm I M ℝ k, ‖L α‖ ≤ C * ‖(ofSmooth α : L2Form o k)‖)
-    (α : SmoothForm I M ℝ k) :
-    liftSmooth L hL (ofSmooth α) = L α := by
-  rw [liftSmooth, ofSmooth_apply, ContinuousLinearMap.fromCompletion_apply_coe,
-    LinearMap.mkContinuousOfExistsBound_apply]
-  simp
-
-/-- Uniqueness of `liftSmooth`: a continuous linear map on `L2Form o k` that agrees with `L` on
-smooth forms is `liftSmooth L hL`. -/
-theorem liftSmooth_unique (L : SmoothForm I M ℝ k →ₗ[ℝ] F)
-    (hL : ∃ C : ℝ, ∀ α : SmoothForm I M ℝ k, ‖L α‖ ≤ C * ‖(ofSmooth α : L2Form o k)‖)
-    {T : L2Form o k →L[ℝ] F} (hT : ∀ α : SmoothForm I M ℝ k, T (ofSmooth α) = L α) :
-    T = liftSmooth L hL := by
-  ext1 u
-  refine induction_on u (isClosed_eq T.continuous (liftSmooth L hL).continuous) fun α ↦ ?_
-  rw [hT α, liftSmooth_ofSmooth]
-
-/-- A norm bound of `L` on smooth forms holds for `liftSmooth L hL` on all of `L2Form o k`. -/
-theorem norm_liftSmooth_apply_le (L : SmoothForm I M ℝ k →ₗ[ℝ] F)
-    (hL : ∃ C : ℝ, ∀ α : SmoothForm I M ℝ k, ‖L α‖ ≤ C * ‖(ofSmooth α : L2Form o k)‖)
-    {C : ℝ} (hC : ∀ α : SmoothForm I M ℝ k, ‖L α‖ ≤ C * ‖(ofSmooth α : L2Form o k)‖)
-    (u : L2Form o k) :
-    ‖liftSmooth L hL u‖ ≤ C * ‖u‖ := by
-  induction u using induction_on with
-  | hp => exact isClosed_le (liftSmooth L hL).continuous.norm (continuous_const.mul continuous_norm)
-  | h α => simpa only [liftSmooth_ofSmooth] using hC α
-
-end LiftSmooth
-
-/-- The operator norm of `liftSmooth L hL` is at most any nonnegative bound of `L` on smooth
-forms. -/
-theorem norm_liftSmooth_le {F : Type*} [SeminormedAddCommGroup F] [NormedSpace ℝ F] [T0Space F]
-    [CompleteSpace F] (L : SmoothForm I M ℝ k →ₗ[ℝ] F)
-    (hL : ∃ C : ℝ, ∀ α : SmoothForm I M ℝ k, ‖L α‖ ≤ C * ‖(ofSmooth α : L2Form o k)‖)
-    {C : ℝ} (hC0 : 0 ≤ C)
-    (hC : ∀ α : SmoothForm I M ℝ k, ‖L α‖ ≤ C * ‖(ofSmooth α : L2Form o k)‖) :
-    ‖liftSmooth L hL‖ ≤ C :=
-  ContinuousLinearMap.opNorm_le_bound _ hC0 (norm_liftSmooth_apply_le L hL hC)
 
 end L2Form
 
