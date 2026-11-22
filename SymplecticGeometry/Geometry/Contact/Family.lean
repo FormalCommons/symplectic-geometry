@@ -40,6 +40,11 @@ the pinned version of Tau Ceti does not have) for a family indexed by `[0, 1]` r
 `ℝ`: Tau Ceti's predicate asks the kernels to be those of the family at all real times near a
 given time, which a family over `[0, 1]` does not prescribe near `0` and `1`.
 
+A local defining family restricts to smaller open sets
+(`SymplecticGeometry.IsLocalDefiningFamily.mpullback_inclusion`). The proof is that of Tau Ceti's
+`TauCeti.IsLocalContactFormFamily.mpullback_inclusion`, in the same Tau Ceti file at commit
+034344347f0ca1144bf5ae35c82e3edaf848fca5.
+
 On a manifold without boundary, a family over `[0, 1]` has local defining families over `ℝ` near
 every point (`SymplecticGeometry.IsContactFamily.exists_local_extension`). Near a point
 `(t₀, x₀)`, a local defining form on the cylinder is extended in time by Seeley's operator
@@ -78,6 +83,8 @@ of the same fact for Tau Ceti's contact-Moser vector field, in
   contact structures is a smooth contact structure.
 * `SymplecticGeometry.IsContactFamily.exists_local_extension`: near each point of the cylinder, a
   smooth family of contact structures has a local defining family over `ℝ`.
+* `SymplecticGeometry.IsLocalDefiningFamily.mpullback_inclusion`: a local defining family
+  restricts to smaller open sets.
 * `TauCeti.SmoothForm.isOpen_setOf_isContactFormAt_mpullback_prodMk`: the points of `N × M` at
   which the slices of a one-form are contact form an open set.
 * `TauCeti.SmoothForm.isContactFormAt_mpullback_subtype_val_iff`,
@@ -329,6 +336,23 @@ theorem mem_kerDistribution_iff (hα : IsLocalDefiningFamily ξ U α a b) {t : �
       Manifold.tangentSpaceOpenEquiv x v ∈ ξ ⟨t, ht.2⟩ x := by
   rw [hα.2 t ht x, Submodule.mem_map_equiv, ContinuousLinearEquiv.coe_symm_toLinearEquiv,
     ContinuousLinearEquiv.symm_apply_apply]
+
+/-- **Local defining families restrict to smaller open sets.** The restriction of a local defining
+family `α` of `ξ` on `U` and `(a, b)` to `ℝ × V`, for an open `V ⊆ U`, is a local defining family
+of `ξ` on `V` and `(a, b)`. -/
+theorem mpullback_inclusion (hα : IsLocalDefiningFamily ξ U α a b) {V : Opens M} (hV : V ≤ U) :
+    IsLocalDefiningFamily ξ V (mpullback (Prod.map id (Opens.inclusion hV))
+      (contMDiff_id.prodMap (contMDiff_inclusion hV)) α) a b := by
+  refine ⟨fun t ↦ ?_, fun t ht x ↦ ?_⟩
+  · rw [mpullback_prodMk_mpullback_prodMap]
+    exact (hα.isContactForm t).mpullback _ (contMDiff_inclusion hV) fun y ↦
+      ((isLocalDiffeomorph_inclusion (n := ∞) hV y).isInvertible_mfderiv (by simp)).bijective
+  · ext v
+    rw [Submodule.mem_map_equiv, ContinuousLinearEquiv.coe_symm_toLinearEquiv,
+      mpullback_prodMk_mpullback_prodMap _ (contMDiff_inclusion hV), kerDistribution_mpullback,
+      Submodule.mem_comap, ContinuousLinearMap.coe_coe, hα.mem_kerDistribution_iff ht,
+      Manifold.tangentSpaceOpenEquiv_mfderiv_apply (f := Opens.inclusion hV) (A := id) rfl,
+      mfderiv_id, ContinuousLinearMap.id_apply, ContinuousLinearEquiv.apply_symm_apply]
 
 end IsLocalDefiningFamily
 
