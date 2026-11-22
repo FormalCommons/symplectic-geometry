@@ -508,12 +508,12 @@ The second half of the common step of `DESIGN.md`. Namespace
 The comparison theorem. Namespace `TauCeti.SmoothEmbedding`.
 
 - `exists_symplectomorphism_opens_of_mpullback_eq`. Hypotheses: `f₀`, `f₁`
-  as above, with `IsClosed (Set.range f₀)`; symplectic `ω₀`, `ω₁`; equal
+  as above (no closed image is needed); symplectic `ω₀`, `ω₁`; equal
   restricted forms of constant rank `k`; `finrank ℝ E₀ = finrank ℝ E₁`; and
   `L` as in `Extension.lean`. Conclusion: `U₀`, `U₁` and a symplectomorphism
-  `ψ : U₀ ≃ₘ⟮I₀, I₁⟯ U₁` with, for every `q`, `ψ ⟨f₀ q, _⟩ = ⟨f₁ q, _⟩`,
-  `mfderiv ψ` after `mfderiv f₀` equal to `mfderiv f₁`, and
-  `mfderiv ψ v - L q v ∈ LinearMap.range (mfderiv J I₁ f₁ q)` for
+  `ψ : U₀ ≃ₘ⟮I₀, I₁⟯ U₁` with, for every `q`, `(ψ ⟨f₀ q, _⟩ : M₁) = f₁ q`,
+  `mfderiv ψ` after `mfderiv f₀` equal to `mfderiv f₁` (applied to each `v`),
+  and `mfderiv ψ v = L q v + mfderiv J I₁ f₁ q u` for some `u`, for
   `v ∈ ω₀`-orthogonal of the tangent range. Route: Tau Ceti's
   `TauCeti.SmoothTwoForm.IsNondegenerate.exists_compatible` gives compatible
   `J₀`, `J₁`, read pointwise by `Compatible.compatibleAt`. Then `smoothExtendAlong` is an `A` for
