@@ -22,17 +22,19 @@ complex de Rham cohomology.
 ## Main definitions
 
 * `TauCeti.SmoothForm.complexHodgeLaplacian`: the complex-linear Hodge Laplacian of complex
-  `k`-forms, with `mapCoeff_reCLM_complexHodgeLaplacian` and
-  `mapCoeff_imCLM_complexHodgeLaplacian`.
+  `k`-forms, `TauCeti.SmoothForm.complexifyₗ` of the real one.
 * `TauCeti.SmoothForm.complexHodgeStar`: the complex-linear (not conjugate-linear) Hodge star
-  from complex `k`-forms to complex `l`-forms, with `mapCoeff_reCLM_complexHodgeStar` and
-  `mapCoeff_imCLM_complexHodgeStar`.
+  from complex `k`-forms to complex `l`-forms, `TauCeti.SmoothForm.complexifyₗ` of the real one.
 * `TauCeti.complexHarmonicForms`: the kernel of `complexHodgeLaplacian`, equivalently the complex
   forms whose real and imaginary parts are harmonic.
 * `TauCeti.complexHarmonicForms.toComplexDeRhamCohomology`: the complex de Rham class of a
   complex harmonic form.
 * `TauCeti.complexHarmonicForms.complexDeRhamCohomologyEquiv`: the complex Hodge isomorphism
   between complex harmonic forms and complex de Rham cohomology.
+
+The `@[simp]` lemmas `complexHodgeLaplacian_def` and `complexHodgeStar_def` rewrite both
+operators to `TauCeti.SmoothForm.complexifyₗ` of the real ones, so that `simp` computes their
+real parts, imaginary parts and values on real forms with the lemmas of `complexifyₗ`.
 
 ## Main results
 
@@ -74,106 +76,34 @@ variable [FiniteDimensional ℝ E] [IsManifold I ∞ M]
   [IsContMDiffRiemannianBundle I ∞ E (fun x : M ↦ TangentSpace I x)]
   {m k l : ℕ}
 
-/-! ### The complex Hodge Laplacian -/
+/-! ### The complex Hodge Laplacian and Hodge star -/
 
 /-- The Hodge Laplacian of complex-valued `k`-forms on an oriented Riemannian manifold of
-dimension `m = k + l`: the base change to `ℂ` of the real Hodge Laplacian, read through
-`complexificationEquiv`. It is the real Laplacian on real and imaginary parts. -/
+dimension `m = k + l`: the complexification of the real Hodge Laplacian. It is the real
+Laplacian on real and imaginary parts. -/
 def complexHodgeLaplacian (o : Manifold.Orientation I M (Fin m)) (hkl : k + l = m) :
     SmoothForm I M ℂ k →ₗ[ℂ] SmoothForm I M ℂ k :=
-  complexificationEquiv.toLinearMap ∘ₗ (hodgeLaplacian o hkl).baseChange ℂ ∘ₗ
-    complexificationEquiv.symm.toLinearMap
+  complexifyₗ (hodgeLaplacian o hkl)
 
-/-- The complex Hodge Laplacian is the base change of the real one. -/
+/-- The complex Hodge Laplacian is the complexification of the real one. -/
+@[simp]
 theorem complexHodgeLaplacian_def (o : Manifold.Orientation I M (Fin m)) (hkl : k + l = m) :
-    complexHodgeLaplacian (I := I) o hkl =
-      complexificationEquiv.toLinearMap ∘ₗ (hodgeLaplacian o hkl).baseChange ℂ ∘ₗ
-        complexificationEquiv.symm.toLinearMap :=
+    complexHodgeLaplacian (I := I) o hkl = complexifyₗ (hodgeLaplacian o hkl) :=
   (rfl)
-
-/-- The complex Hodge Laplacian of `φ` is `Δ (Re φ) + i Δ (Im φ)`. -/
-theorem complexHodgeLaplacian_apply (o : Manifold.Orientation I M (Fin m)) (hkl : k + l = m)
-    (φ : SmoothForm I M ℂ k) :
-    complexHodgeLaplacian o hkl φ =
-      mapCoeff Complex.ofRealCLM (hodgeLaplacian o hkl (mapCoeff Complex.reCLM φ)) +
-        Complex.I •
-          mapCoeff Complex.ofRealCLM (hodgeLaplacian o hkl (mapCoeff Complex.imCLM φ)) :=
-  complexificationEquiv_baseChange_complexificationEquiv_symm _ φ
-
-/-- The real part of the complex Hodge Laplacian is the Hodge Laplacian of the real part. -/
-@[simp]
-theorem mapCoeff_reCLM_complexHodgeLaplacian (o : Manifold.Orientation I M (Fin m))
-    (hkl : k + l = m) (φ : SmoothForm I M ℂ k) :
-    mapCoeff Complex.reCLM (complexHodgeLaplacian o hkl φ) =
-      hodgeLaplacian o hkl (mapCoeff Complex.reCLM φ) :=
-  mapCoeff_reCLM_complexificationEquiv_baseChange _ φ
-
-/-- The imaginary part of the complex Hodge Laplacian is the Hodge Laplacian of the imaginary
-part. -/
-@[simp]
-theorem mapCoeff_imCLM_complexHodgeLaplacian (o : Manifold.Orientation I M (Fin m))
-    (hkl : k + l = m) (φ : SmoothForm I M ℂ k) :
-    mapCoeff Complex.imCLM (complexHodgeLaplacian o hkl φ) =
-      hodgeLaplacian o hkl (mapCoeff Complex.imCLM φ) :=
-  mapCoeff_imCLM_complexificationEquiv_baseChange _ φ
-
-/-- On real forms, the complex Hodge Laplacian is the real Hodge Laplacian. -/
-@[simp]
-theorem complexHodgeLaplacian_mapCoeff_ofRealCLM (o : Manifold.Orientation I M (Fin m))
-    (hkl : k + l = m) (α : SmoothForm I M ℝ k) :
-    complexHodgeLaplacian o hkl (mapCoeff Complex.ofRealCLM α) =
-      mapCoeff Complex.ofRealCLM (hodgeLaplacian o hkl α) :=
-  complexificationEquiv_baseChange_symm_mapCoeff_ofRealCLM _ α
-
-/-! ### The complex Hodge star -/
 
 /-- The Hodge star of complex-valued forms on an oriented Riemannian manifold of dimension
-`m = k + l`: the complex-linear extension of the real Hodge star, the base change to `ℂ` of
-`hodgeStar` read through `complexificationEquiv`. It is the real Hodge star on real and imaginary
-parts, and involves no complex conjugation. -/
+`m = k + l`: the complexification of the real Hodge star, from complex `k`-forms to complex
+`l`-forms. It is the real Hodge star on real and imaginary parts, and involves no complex
+conjugation. -/
 def complexHodgeStar (o : Manifold.Orientation I M (Fin m)) (hkl : k + l = m) :
     SmoothForm I M ℂ k →ₗ[ℂ] SmoothForm I M ℂ l :=
-  complexificationEquiv.toLinearMap ∘ₗ (hodgeStar o hkl).baseChange ℂ ∘ₗ
-    complexificationEquiv.symm.toLinearMap
+  complexifyₗ (hodgeStar o hkl)
 
-/-- The complex Hodge star is the base change of the real one. -/
+/-- The complex Hodge star is the complexification of the real one. -/
+@[simp]
 theorem complexHodgeStar_def (o : Manifold.Orientation I M (Fin m)) (hkl : k + l = m) :
-    complexHodgeStar (I := I) o hkl =
-      complexificationEquiv.toLinearMap ∘ₗ (hodgeStar o hkl).baseChange ℂ ∘ₗ
-        complexificationEquiv.symm.toLinearMap :=
+    complexHodgeStar (I := I) o hkl = complexifyₗ (hodgeStar o hkl) :=
   (rfl)
-
-/-- The complex Hodge star of `φ` is `⋆(Re φ) + i ⋆(Im φ)`. -/
-theorem complexHodgeStar_apply (o : Manifold.Orientation I M (Fin m)) (hkl : k + l = m)
-    (φ : SmoothForm I M ℂ k) :
-    complexHodgeStar o hkl φ =
-      mapCoeff Complex.ofRealCLM (hodgeStar o hkl (mapCoeff Complex.reCLM φ)) +
-        Complex.I • mapCoeff Complex.ofRealCLM (hodgeStar o hkl (mapCoeff Complex.imCLM φ)) :=
-  complexificationEquiv_baseChange_complexificationEquiv_symm _ φ
-
-/-- The real part of the complex Hodge star is the Hodge star of the real part. -/
-@[simp]
-theorem mapCoeff_reCLM_complexHodgeStar (o : Manifold.Orientation I M (Fin m))
-    (hkl : k + l = m) (φ : SmoothForm I M ℂ k) :
-    mapCoeff Complex.reCLM (complexHodgeStar o hkl φ) =
-      hodgeStar o hkl (mapCoeff Complex.reCLM φ) :=
-  mapCoeff_reCLM_complexificationEquiv_baseChange _ φ
-
-/-- The imaginary part of the complex Hodge star is the Hodge star of the imaginary part. -/
-@[simp]
-theorem mapCoeff_imCLM_complexHodgeStar (o : Manifold.Orientation I M (Fin m))
-    (hkl : k + l = m) (φ : SmoothForm I M ℂ k) :
-    mapCoeff Complex.imCLM (complexHodgeStar o hkl φ) =
-      hodgeStar o hkl (mapCoeff Complex.imCLM φ) :=
-  mapCoeff_imCLM_complexificationEquiv_baseChange _ φ
-
-/-- On real forms, the complex Hodge star is the real Hodge star. -/
-@[simp]
-theorem complexHodgeStar_mapCoeff_ofRealCLM (o : Manifold.Orientation I M (Fin m))
-    (hkl : k + l = m) (α : SmoothForm I M ℝ k) :
-    complexHodgeStar o hkl (mapCoeff Complex.ofRealCLM α) =
-      mapCoeff Complex.ofRealCLM (hodgeStar o hkl α) :=
-  complexificationEquiv_baseChange_symm_mapCoeff_ofRealCLM _ α
 
 end SmoothForm
 
@@ -204,14 +134,8 @@ theorem mem_complexHarmonicForms_iff_realPart_imaginaryPart
     φ ∈ complexHarmonicForms o hkl ↔
       SmoothForm.mapCoeff Complex.reCLM φ ∈ harmonicForms o hkl ∧
         SmoothForm.mapCoeff Complex.imCLM φ ∈ harmonicForms o hkl := by
-  rw [mem_complexHarmonicForms_iff, mem_harmonicForms, mem_harmonicForms,
-    SmoothForm.complexHodgeLaplacian_apply]
-  refine ⟨fun h ↦ ?_, fun ⟨hre, him⟩ ↦ by simp [hre, him]⟩
-  have hre := congrArg (SmoothForm.mapCoeff Complex.reCLM) h
-  have him := congrArg (SmoothForm.mapCoeff Complex.imCLM) h
-  rw [SmoothForm.realPart_ofReal_add_I_smul_ofReal, map_zero] at hre
-  rw [SmoothForm.imaginaryPart_ofReal_add_I_smul_ofReal, map_zero] at him
-  exact ⟨hre, him⟩
+  rw [mem_complexHarmonicForms_iff, SmoothForm.eq_zero_iff_realPart_imaginaryPart]
+  simp
 
 /-- The complex form `α + i β` is harmonic when the real forms `α` and `β` are. -/
 theorem ofReal_add_I_smul_ofReal_mem_complexHarmonicForms (o : Manifold.Orientation I M (Fin m))
@@ -228,9 +152,9 @@ theorem complexHodgeStar_mem_complexHarmonicForms_iff (o : Manifold.Orientation 
     (hkl : k + l = m) (hlk : l + k = m) (φ : SmoothForm I M ℂ k) :
     SmoothForm.complexHodgeStar o hkl φ ∈ complexHarmonicForms o hlk ↔
       φ ∈ complexHarmonicForms o hkl := by
-  simp only [mem_complexHarmonicForms_iff_realPart_imaginaryPart,
-    SmoothForm.mapCoeff_reCLM_complexHodgeStar, SmoothForm.mapCoeff_imCLM_complexHodgeStar,
-    hodgeStar_mem_harmonicForms_iff]
+  rw [mem_complexHarmonicForms_iff_realPart_imaginaryPart,
+    mem_complexHarmonicForms_iff_realPart_imaginaryPart]
+  simp [-mem_harmonicForms, hodgeStar_mem_harmonicForms_iff]
 
 section Compact
 
@@ -289,9 +213,9 @@ theorem complexHarmonicForms.toComplexDeRhamCohomology_bijective
       (sub_mem φ.property ψ.property)
     have hre := Submodule.disjoint_def.1 (disjoint_harmonicForms_exactForms o hkl) _ hharm.1 h.1
     have him := Submodule.disjoint_def.1 (disjoint_harmonicForms_exactForms o hkl) _ hharm.2 h.2
-    rw [Subtype.ext_iff, ← sub_eq_zero,
-      ← SmoothForm.ofReal_realPart_add_I_smul_ofReal_imaginaryPart (φ.val - ψ.val), hre, him,
-      map_zero, smul_zero, add_zero]
+    rw [Subtype.ext_iff, SmoothForm.ext_iff_realPart_imaginaryPart]
+    simp only [map_sub, sub_eq_zero] at hre him
+    exact ⟨hre, him⟩
   · -- Take harmonic representatives of the real and imaginary parts.
     obtain ⟨ψ, rfl⟩ := complexDeRhamCohomology.mk_surjective I k c
     obtain ⟨hre, hhre, hre'⟩ := exists_mem_harmonicForms_sub_mem_exactForms o hkl
@@ -335,10 +259,8 @@ theorem exists_mem_complexHarmonicForms_add_complexHodgeLaplacian
     SmoothForm.mapCoeff Complex.ofRealCLM γre +
       Complex.I • SmoothForm.mapCoeff Complex.ofRealCLM γim, ?_⟩
   conv_lhs => rw [← SmoothForm.ofReal_realPart_add_I_smul_ofReal_imaginaryPart φ, hγre, hγim]
-  rw [map_add (SmoothForm.complexHodgeLaplacian o hkl),
-    map_smul (SmoothForm.complexHodgeLaplacian o hkl),
-    SmoothForm.complexHodgeLaplacian_mapCoeff_ofRealCLM,
-    SmoothForm.complexHodgeLaplacian_mapCoeff_ofRealCLM, map_add, map_add, smul_add]
+  simp only [SmoothForm.complexHodgeLaplacian_def, map_add, map_smul,
+    SmoothForm.complexifyₗ_mapCoeff_ofRealCLM, smul_add]
   abel
 
 end Compact
