@@ -21,9 +21,9 @@ public import TauCeti.Topology.VectorBundle.Orientation.Complex.EulerClass
 Let `M` be a closed smooth surface with a homological orientation `oM`, and let `g : M → ℝ` be a
 smooth function with regular value `0`. It splits `M` into `Σ₁ = {g ≤ 0}` and `Σ₂ = {g ≥ 0}`,
 which meet along the level set `C = g⁻¹(0)`. By `SymplecticGeometry.isCollared_inclusion_levelSet`,
-`Σ₁` is a compact surface whose boundary `C` is collared and whose interior is the open set
-`{g < 0}`, oriented by the restriction of `oM`: this is the setting of the boundary degree
-(`TauCeti.HomologicalOrientation.boundaryDegree`).
+`Σ₁` is a compact surface whose boundary `C` is collared, and its interior is the open set
+`{g < 0}` (`SymplecticGeometry.range_inclusion_preimage_Iio`), oriented by the restriction of
+`oM`: this is the setting of the boundary degree (`TauCeti.HomologicalOrientation.boundaryDegree`).
 
 Let `L` be an oriented real plane bundle over `M`, `τ` a frame of `L` over `Σ₁` (linear
 isomorphisms `τ x : L_x ≃ ℂ`, continuous on the total space, carrying the orientation of `L` to
@@ -214,7 +214,7 @@ theorem evalFundamentalClass_eulerClass_eq_boundaryDegree
       (oM.comap (TopologicalSpace.Opens.isOpenEmbedding' _)).boundaryDegree hn
         (SymplecticGeometry.isOpenEmbedding_inclusion_preimage_Iio hg.continuous)
         (SymplecticGeometry.range_inclusion_preimage_Iio hg.continuous)
-        (SymplecticGeometry.isCollared_inclusion_levelSet hg h0).1 u := by
+        (SymplecticGeometry.isCollared_inclusion_levelSet hg h0) u := by
   have := SymplecticGeometry.compactSpace_preimage_Iic hg.continuous
   have : FiniteDimensional ℝ F := Module.finite_of_finrank_eq_succ hF
   let i₁ : C(g ⁻¹' Iic 0, M) := ⟨Subtype.val, continuous_subtypeVal⟩
@@ -235,7 +235,7 @@ theorem evalFundamentalClass_eulerClass_eq_boundaryDegree
     (oM.comap (TopologicalSpace.Opens.isOpenEmbedding' _)) hn
     (SymplecticGeometry.isOpenEmbedding_inclusion_preimage_Iio hg.continuous)
     (SymplecticGeometry.range_inclusion_preimage_Iio hg.continuous)
-    (SymplecticGeometry.isCollared_inclusion_levelSet hg h0).1 hτ hτo'
+    (SymplecticGeometry.isCollared_inclusion_levelSet hg h0) hτ hτo'
     (t := fun x ↦ t x) ht' (hZ.preimage Subtype.val_injective.injOn)
     (fun x hx ↦ ⟨⟨x, hZneg x hx⟩, rfl⟩) (u := u)
     (fun z ↦ by
@@ -296,7 +296,7 @@ theorem evalFundamentalClass_complexEulerClass_eq_boundaryDegree (hG : finrank �
       (oM.comap (TopologicalSpace.Opens.isOpenEmbedding' _)).boundaryDegree hn
         (SymplecticGeometry.isOpenEmbedding_inclusion_preimage_Iio hg.continuous)
         (SymplecticGeometry.range_inclusion_preimage_Iio hg.continuous)
-        (SymplecticGeometry.isCollared_inclusion_levelSet hg h0).1 u := by
+        (SymplecticGeometry.isCollared_inclusion_levelSet hg h0) u := by
   have hG1 : finrank ℂ G = 1 := hG
   let i₁ : C(g ⁻¹' Iic 0, M) := ⟨Subtype.val, continuous_subtypeVal⟩
   have hσ₁ : Continuous fun x : g ⁻¹' Iic 0 ↦ TotalSpace.mk' G (E := (⇑i₁) *ᵖ L) x (σ x) :=

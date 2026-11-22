@@ -45,7 +45,8 @@ homological orientation comes from a smooth orientation of the interior
 index is defined for maps on the boundary `(𝓡∂ 2).boundary S` itself.
 
 A smooth `g : M → ℝ` with regular value `0` on a closed oriented surface `M` gives an instance of
-this setting: `X = Σ₁ = {g ≤ 0}`, with interior `{g < 0}` and boundary the level set `g⁻¹(0)`
+this setting: `X = Σ₁ = {g ≤ 0}`, with interior `{g < 0}`
+(`SymplecticGeometry.range_inclusion_preimage_Iio`) and collared boundary the level set `g⁻¹(0)`
 (`SymplecticGeometry.isCollared_inclusion_levelSet`). For a complex vector bundle `E` over `M`
 with a frame `Φ₁` over `Σ₁` and a frame `Φ₂` over `Σ₂ = {g ≥ 0}`, the first Chern number of `E`
 is the boundary degree on `Σ₁` of the normalized complex determinant of the transition
@@ -350,7 +351,7 @@ theorem chernNumber_eq_boundaryDegree_normalizedDet
       (oM.comap (TopologicalSpace.Opens.isOpenEmbedding' _)).boundaryDegree hn
         (isOpenEmbedding_inclusion_preimage_Iio hg.continuous)
         (range_inclusion_preimage_Iio hg.continuous)
-        (SymplecticGeometry.isCollared_inclusion_levelSet hg h0).1 u := by
+        (SymplecticGeometry.isCollared_inclusion_levelSet hg h0) u := by
   let i₁ : C(g ⁻¹' Iic 0, M) := ⟨Subtype.val, continuous_subtypeVal⟩
   let i₂ : C(g ⁻¹' Ici 0, M) := ⟨Subtype.val, continuous_subtypeVal⟩
   let j₁ : C(↥(sublevelBoundary hg.continuous), g ⁻¹' Iic 0) :=
