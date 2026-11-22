@@ -45,6 +45,15 @@ images `df_q(T_q Q)` have `C^∞` local frames in `f *ᵖ TM`
 (`Bundle.Pullback.hasLocalContMDiffSubbundleFrames_range_mfderiv`), by Tau Ceti's constant-rank
 criterion `TauCeti.hasLocalContMDiffSubbundleFrames_of_contMDiff_totalSpace_range`.
 
+The file also gives, as continuous linear equivalences, the identity of the fibres of the
+pull-backs along the identity and along a composite: `Bundle.Pullback.idFiberEquiv` from the fibre
+of `id *ᵖ E` at `x` to `E x`, and `Bundle.Pullback.compFiberEquiv` from the fibre of
+`(g ∘ f) *ᵖ E` at `z` to that of `f *ᵖ (g *ᵖ E)`. They are the maps that Tau Ceti's
+`Bundle.Pullback.idDiffeomorph` and `Bundle.Pullback.compDiffeomorph` induce on the fibres, and
+their types name both fibres as they are written, which `ContinuousLinearEquiv.refl` of one of
+them does not: since `Bundle.Pullback` is not reducible, the lemmas about `refl` do not apply to it
+when it is used as a map between the two.
+
 ## References
 
 * [D. McDuff, D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017], §2.6
@@ -162,6 +171,71 @@ theorem contMDiff_bilinear_section_iff (f : K) (hf : ContMDiff IX IB n f)
 end Bundle.Pullback
 
 end Bilinear
+
+section FiberEquiv
+
+/-! ### The identity of the fibres of pull-backs along the identity and along a composite -/
+
+variable {𝕜 EM HM B EM' HM' B' EM'' HM'' B'' : Type*} [NontriviallyNormedField 𝕜]
+  [NormedAddCommGroup EM] [NormedSpace 𝕜 EM] [TopologicalSpace HM]
+  {I : ModelWithCorners 𝕜 EM HM} [TopologicalSpace B] [ChartedSpace HM B]
+  [NormedAddCommGroup EM'] [NormedSpace 𝕜 EM'] [TopologicalSpace HM']
+  {I' : ModelWithCorners 𝕜 EM' HM'} [TopologicalSpace B'] [ChartedSpace HM' B']
+  [NormedAddCommGroup EM''] [NormedSpace 𝕜 EM''] [TopologicalSpace HM'']
+  {I'' : ModelWithCorners 𝕜 EM'' HM''} [TopologicalSpace B''] [ChartedSpace HM'' B'']
+  {m : WithTop ℕ∞} {R : Type*} [Semiring R] (E : B → Type*) [∀ b, AddCommMonoid (E b)]
+  [∀ b, Module R (E b)] [∀ b, TopologicalSpace (E b)]
+
+namespace Bundle.Pullback
+
+variable (I m R) in
+/-- The fibre at `x` of the pull-back of `E` along the identity is `E x`: the identity of `E x`,
+as a continuous linear equivalence from that fibre to `E x`. This is the map that Tau Ceti's
+`Bundle.Pullback.idDiffeomorph` induces on the fibre at `x`. -/
+def idFiberEquiv (x : B) : ((ContMDiffMap.id : C^m⟮I, B; I, B⟯) *ᵖ E) x ≃L[R] E x :=
+  ContinuousLinearEquiv.refl R (E x)
+
+/-- `idFiberEquiv` sends a vector to itself.
+
+This is not `@[simp]`: the right-hand side is a vector of the pull-back fibre, so the lemmas
+that evaluate a form or a map on `E x` no longer match it once it replaces
+`idFiberEquiv I m R E x v`. -/
+theorem idFiberEquiv_apply {x : B} (v : ((ContMDiffMap.id : C^m⟮I, B; I, B⟯) *ᵖ E) x) :
+    idFiberEquiv I m R E x v = (v : E x) :=
+  (rfl)
+
+/-- The inverse of `idFiberEquiv` sends a vector to itself. It is not `@[simp]`, for the reason
+given at `idFiberEquiv_apply`. -/
+theorem idFiberEquiv_symm_apply {x : B} (v : E x) :
+    (idFiberEquiv I m R E x).symm v = (v : ((ContMDiffMap.id : C^m⟮I, B; I, B⟯) *ᵖ E) x) :=
+  (rfl)
+
+variable (R) in
+/-- The fibre at `z` of the pull-back of `E` along `g ∘ f` is that of the pull-back along `g` and
+then along `f`: the identity of `E (g (f z))`, as a continuous linear equivalence between the two
+fibres. This is the map that Tau Ceti's `Bundle.Pullback.compDiffeomorph` induces on the fibre
+at `z`. -/
+def compFiberEquiv (g : C^m⟮I', B'; I, B⟯) (f : C^m⟮I'', B''; I', B'⟯) (z : B'') :
+    ((g.comp f : B'' → B) *ᵖ E) z ≃L[R] ((f : B'' → B') *ᵖ ((g : B' → B) *ᵖ E)) z :=
+  ContinuousLinearEquiv.refl R (E (g (f z)))
+
+/-- `compFiberEquiv` sends a vector to itself. It is not `@[simp]`, for the reason given at
+`idFiberEquiv_apply`. -/
+theorem compFiberEquiv_apply (g : C^m⟮I', B'; I, B⟯) (f : C^m⟮I'', B''; I', B'⟯) {z : B''}
+    (v : ((g.comp f : B'' → B) *ᵖ E) z) :
+    compFiberEquiv R E g f z v = (v : ((f : B'' → B') *ᵖ ((g : B' → B) *ᵖ E)) z) :=
+  (rfl)
+
+/-- The inverse of `compFiberEquiv` sends a vector to itself. It is not `@[simp]`, for the reason
+given at `idFiberEquiv_apply`. -/
+theorem compFiberEquiv_symm_apply (g : C^m⟮I', B'; I, B⟯) (f : C^m⟮I'', B''; I', B'⟯) {z : B''}
+    (v : ((f : B'' → B') *ᵖ ((g : B' → B) *ᵖ E)) z) :
+    (compFiberEquiv R E g f z).symm v = (v : ((g.comp f : B'' → B) *ᵖ E) z) :=
+  (rfl)
+
+end Bundle.Pullback
+
+end FiberEquiv
 
 section MFDeriv
 

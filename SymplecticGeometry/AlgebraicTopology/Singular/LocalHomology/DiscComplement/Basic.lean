@@ -42,6 +42,8 @@ different discs are glued with `isOpenMap_prod_of_discrete_left`.
 * `SymplecticGeometry.discComplementInterior φ`: the complement of the closed discs, an open set.
 * `SymplecticGeometry.discComplementBoundary φ hφ`: the boundary circles, as a map
   `ι × Circle → discComplement φ`.
+* `SymplecticGeometry.discComplementBoundaryHomeomorph φ hφ`: the same map, as a homeomorphism
+  of `ι × Circle` onto the boundary.
 
 ## Main results
 
@@ -52,6 +54,9 @@ different discs are glued with `isOpenMap_prod_of_discrete_left`.
 * `SymplecticGeometry.range_inclusion_discComplementInterior`: its range is the complement of the
   boundary.
 * `SymplecticGeometry.isCollared_discComplementBoundary`: the boundary is collared.
+* `SymplecticGeometry.exists_pairwise_disjoint_image_ball`: the widths of the collars, with
+  `SymplecticGeometry.disjoint_image_ball_disc` and
+  `SymplecticGeometry.image_ball_inter_discComplement`, which say where the enlarged discs lie.
 
 ## References
 
@@ -202,9 +207,10 @@ private lemma range_annulusPoint {δ : ℝ} (hδ : δ ∈ Ioo (0 : ℝ) 1) :
       simpa [annulusPoint] using congrArg Subtype.val hp)⟩
 
 omit [TopologicalSpace ι] [DiscreteTopology ι] in
-/-- Widths `δ i ∈ (0, 1)` such that the images under the coordinate discs of the balls of radius
-`1 + δ i` are pairwise disjoint. -/
-private lemma exists_radius (hφ : Pairwise (Disjoint on fun i ↦ (φ i).disc)) :
+/-- Finitely many coordinate discs with pairwise disjoint closed discs have widths `δ i ∈ (0, 1)`
+such that the images under the coordinate discs of the balls of radius `1 + δ i` are pairwise
+disjoint. -/
+theorem exists_pairwise_disjoint_image_ball (hφ : Pairwise (Disjoint on fun i ↦ (φ i).disc)) :
     ∃ δ : ι → ℝ, (∀ i, δ i ∈ Ioo (0 : ℝ) 1) ∧
       Pairwise (Disjoint on fun i ↦ φ i '' {z | ‖(z : ℂ)‖ < 1 + δ i}) := by
   obtain ⟨U, hU, hUd⟩ := Pairwise.exists_mem_filter_basis_of_disjoint
@@ -228,22 +234,47 @@ private lemma exists_radius (hφ : Pairwise (Disjoint on fun i ↦ (φ i).disc))
   · rintro _ ⟨z, hz, rfl⟩
     exact hεU _ z (hz.trans_le (by simp))
 
+omit [Finite ι] [TopologicalSpace ι] [DiscreteTopology ι] in
+/-- If the images of the balls of radius `1 + δ i`, `δ i > 0`, are pairwise disjoint, the image
+for `i` misses the closed disc of every other `φ j`. -/
+theorem disjoint_image_ball_disc {δ : ι → ℝ} (hδ : ∀ i, 0 < δ i)
+    (hd : Pairwise (Disjoint on fun i ↦ φ i '' {z | ‖(z : ℂ)‖ < 1 + δ i})) {i j : ι}
+    (hij : i ≠ j) : Disjoint (φ i '' {z | ‖(z : ℂ)‖ < 1 + δ i}) (φ j).disc :=
+  (hd hij).mono_right ((φ j).disc_def ▸ image_mono fun _ hz ↦
+    lt_of_le_of_lt hz (lt_add_of_pos_right 1 (hδ j)))
+
+omit [Finite ι] [TopologicalSpace ι] [DiscreteTopology ι] in
+/-- If the images of the balls of radius `1 + δ i`, `δ i > 0`, are pairwise disjoint, the part
+of the image for `i` in the complement of the open discs is the image of the annulus
+`1 ≤ ‖z‖ < 1 + δ i`. -/
+theorem image_ball_inter_discComplement {δ : ι → ℝ} (hδ : ∀ i, 0 < δ i)
+    (hd : Pairwise (Disjoint on fun i ↦ φ i '' {z | ‖(z : ℂ)‖ < 1 + δ i})) (i : ι) :
+    φ i '' {z | ‖(z : ℂ)‖ < 1 + δ i} ∩ discComplement φ =
+      φ i '' {z | 1 ≤ ‖(z : ℂ)‖ ∧ ‖(z : ℂ)‖ < 1 + δ i} := by
+  ext x
+  constructor
+  · rintro ⟨⟨w, hw, rfl⟩, hx⟩
+    exact ⟨w, ⟨not_lt.1 fun h ↦
+      (mem_discComplement_iff φ).1 hx i ((φ i).apply_mem_openDisc_iff.2 h), hw⟩, rfl⟩
+  · rintro ⟨w, ⟨h1, hw⟩, rfl⟩
+    refine ⟨mem_image_of_mem _ hw, (mem_discComplement_iff φ).2 fun j hj ↦ ?_⟩
+    obtain rfl | hij := eq_or_ne j i
+    · exact ((φ j).apply_mem_openDisc_iff.1 hj).not_ge h1
+    · exact (disjoint_image_ball_disc φ hδ hd hij.symm).notMem_of_mem_left
+        (mem_image_of_mem _ hw) ((φ j).openDisc_subset_disc hj)
+
 /-- **The boundary circles of disjoint coordinate discs are collared** in the complement of the
 open discs. The collar of the circle of `φ i` is a thin annulus `1 ≤ |z| < 1 + δᵢ` of the chart. -/
 theorem isCollared_discComplementBoundary (hφ : Pairwise (Disjoint on fun i ↦ (φ i).disc)) :
     IsCollared (discComplementBoundary φ hφ) := by
-  obtain ⟨δ, hδ, hd⟩ := exists_radius φ hφ
+  obtain ⟨δ, hδ, hd⟩ := exists_pairwise_disjoint_image_ball φ hφ
   have hsub (i : ι) (q : Circle × Ico (0 : ℝ) 1) :
       φ i (annulusPoint (hδ i) q) ∈ φ i '' {z | ‖(z : ℂ)‖ < 1 + δ i} :=
     mem_image_of_mem _ (range_annulusPoint (hδ i) ▸ mem_range_self q).2
   have hX (i : ι) (q : Circle × Ico (0 : ℝ) 1) :
-      φ i (annulusPoint (hδ i) q) ∈ discComplement φ := by
-    have h1 := (range_annulusPoint (hδ i) ▸ mem_range_self q).1
-    refine (mem_discComplement_iff φ).2 fun j hj ↦ ?_
-    obtain rfl | hij := eq_or_ne j i
-    · exact ((φ j).apply_mem_openDisc_iff.1 hj).not_ge h1
-    · exact (hd hij).notMem_of_mem_right (hsub i q) (image_mono (ofPred_subset_ofPred.2 fun z hz ↦
-        hz.trans_le (by linarith [(hδ j).1])) ((φ j).openDisc_def ▸ hj))
+      φ i (annulusPoint (hδ i) q) ∈ discComplement φ :=
+    (image_ball_inter_discComplement φ (fun j ↦ (hδ j).1) hd i ▸
+      mem_image_of_mem _ (range_annulusPoint (hδ i) ▸ mem_range_self q)).2
   let c : ι × (Circle × Ico (0 : ℝ) 1) → discComplement φ := fun p ↦
     ⟨φ p.1 (annulusPoint (hδ p.1) p.2), hX p.1 p.2⟩
   have hci (i : ι) : IsOpenEmbedding fun q ↦ c (i, q) := by
@@ -277,5 +308,45 @@ theorem isCollared_discComplementBoundary (hφ : Pairwise (Disjoint on fun i ↦
   congr 1
   ext
   simp [coe_annulusPoint]
+
+/-! ### The boundary as `ι × S¹` -/
+
+/-- The boundary circles of disjoint coordinate discs, as a homeomorphism of `ι × S¹` onto the
+boundary of the complement of the open discs: the complement there of the image of
+`discComplementInterior φ`. -/
+def discComplementBoundaryHomeomorph (hφ : Pairwise (Disjoint on fun i ↦ (φ i).disc)) :
+    ι × Circle ≃ₜ ↥(range (inclusion (discComplementInterior_subset φ)))ᶜ :=
+  (isCollared_discComplementBoundary φ hφ).isEmbedding.toHomeomorph.trans
+    (.setCongr (by rw [range_inclusion_discComplementInterior φ hφ, compl_compl]))
+
+/- The codomain is written here with `↥(discComplementInterior φ)` in place of
+`↥↑(discComplementInterior φ)`: `simp` puts it in that form by `SetLike.coe_sort_coe` before it
+tries this lemma, which would not match the definition's form. The explicit `DFunLike.coe` and
+`range` arguments are needed because a type ascription leaves the term unchanged. -/
+@[simp]
+theorem coe_discComplementBoundaryHomeomorph_apply
+    (hφ : Pairwise (Disjoint on fun i ↦ (φ i).disc)) (p : ι × Circle) :
+    (@DFunLike.coe (ι × Circle ≃ₜ ↥(@range _ (discComplementInterior φ)
+        (inclusion (discComplementInterior_subset φ)))ᶜ) _ _ _
+        (discComplementBoundaryHomeomorph φ hφ) p : discComplement φ) =
+      discComplementBoundary φ hφ p :=
+  (rfl)
+
+theorem coe_coe_discComplementBoundaryHomeomorph_apply
+    (hφ : Pairwise (Disjoint on fun i ↦ (φ i).disc)) (p : ι × Circle) :
+    ((discComplementBoundaryHomeomorph φ hφ p : discComplement φ) : M) =
+      (φ p.1).boundaryCircle p.2 := by
+  simp
+
+/-- The inverse of `discComplementBoundaryHomeomorph φ hφ` sends the point
+`(φ i).boundaryCircle z` of the boundary to `(i, z)`. -/
+theorem discComplementBoundaryHomeomorph_symm_apply_eq
+    (hφ : Pairwise (Disjoint on fun i ↦ (φ i).disc))
+    {x : ↥(range (inclusion (discComplementInterior_subset φ)))ᶜ} {i : ι} {z : Circle}
+    (hx : ((x : discComplement φ) : M) = (φ i).boundaryCircle z) :
+    (discComplementBoundaryHomeomorph φ hφ).symm x = (i, z) := by
+  rw [Homeomorph.symm_apply_eq]
+  ext
+  rw [hx, coe_coe_discComplementBoundaryHomeomorph_apply]
 
 end SymplecticGeometry
