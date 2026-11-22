@@ -76,11 +76,6 @@ variable {E E' H H' M Q : Type*}
   [IsManifold J ∞ Q]
   (f : SmoothEmbedding J I ∞ Q M) {σ : SmoothTwoForm I M} {Jc : SmoothAlmostComplexStructure I M}
 
-/-- Mathlib's `IsNormableSpace` instance on tangent spaces is not found by instance search (see
-Tau Ceti's `Geometry/Symplectic/Manifold/Flat.lean`); transposing bilinear forms needs it. -/
-local instance (x : M) : IsNormableSpace ℝ (TangentSpace I x) :=
-  instIsNormableSpaceTangentSpace I x
-
 /-- **A smooth left inverse of the derivative.** For a smooth embedding `f` into a manifold with
 a two-form `σ` and an almost complex structure `J` tamed by `σ`, there is a smooth section `S` of
 the bundle of linear maps from the pull-back `f *ᵖ TM` to `TQ` with `S_q ∘ df_q = id` at every
@@ -193,12 +188,6 @@ variable {E₀ E₁ E' H₀ H₁ H' M₀ M₁ Q : Type*}
   {f₀ : SmoothEmbedding J I₀ ∞ Q M₀} {f₁ : SmoothEmbedding J I₁ ∞ Q M₁}
   {σ₀ : SmoothTwoForm I₀ M₀} {σ₁ : SmoothTwoForm I₁ M₁}
   {Jc₀ : SmoothAlmostComplexStructure I₀ M₀} {Jc₁ : SmoothAlmostComplexStructure I₁ M₁}
-
-local instance (x : M₀) : IsNormableSpace ℝ (TangentSpace I₀ x) :=
-  instIsNormableSpaceTangentSpace I₀ x
-
-local instance (x : M₁) : IsNormableSpace ℝ (TangentSpace I₁ x) :=
-  instIsNormableSpaceTangentSpace I₁ x
 
 variable (f₀ f₁) in
 /-- The isomorphism `df₁ ∘ df₀⁻¹` from the tangent image of the immersion `f₀` at `q` to that of
@@ -431,9 +420,6 @@ private theorem contMDiff_extendFormula {k : ℕ}
     ContMDiff J (J.prod 𝓘(ℝ, E₀ →L[ℝ] E₁)) ∞ (fun q ↦ TotalSpace.mk' (E₀ →L[ℝ] E₁)
       (E := fun q ↦ ((f₀ : Q → M₀) *ᵖ (TangentSpace I₀)) q →L[ℝ]
         ((f₁ : Q → M₁) *ᵖ (TangentSpace I₁)) q) q (extendFormula hc₀ hc₁ L S₀ S₁ q)) := by
-  have : IsManifold I₀ (∞ + 1) M₀ := by simpa using (inferInstance : IsManifold I₀ ∞ M₀)
-  have : IsManifold I₁ (∞ + 1) M₁ := by simpa using (inferInstance : IsManifold I₁ ∞ M₁)
-  have : IsManifold J (∞ + 1) Q := by simpa using (inferInstance : IsManifold J ∞ Q)
   have : ContMDiffVectorBundle ∞ E₀ ((f₀ : Q → M₀) *ᵖ (TangentSpace I₀)) J :=
     Bundle.Pullback.contMDiffVectorBundle (E := TangentSpace I₀) f₀.contMDiff
   have : ContMDiffVectorBundle ∞ E₁ ((f₁ : Q → M₁) *ᵖ (TangentSpace I₁)) J :=
