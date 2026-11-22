@@ -19,7 +19,8 @@ pairwise disjoint closed discs, and `X = discComplement φ` the complement of th
 with interior `discComplementInterior φ` oriented by the restriction of `o`. Its boundary is
 `ι × S¹` (`SymplecticGeometry.discComplementBoundaryHomeomorph`). The map `∂X → S¹` that reads
 the circle of `φ i` in its chart and sends the other circles to `1`
-(`TopCat.prodFiberRetraction (TopCat.of ι) (1 : Circle) i`) has boundary degree `-1`; this is
+(`TopCat.prodFiberRetraction (TopCat.of ι) (1 : Circle) i`, read on `ι × S¹` through
+`TopCat.prodHomeomorphTensorObj`) has boundary degree `-1`; this is
 `SymplecticGeometry.boundaryDegree_prodFiberRetraction_comp_discComplementBoundaryHomeomorph_symm`.
 The boundary of `X` runs clockwise in each chart.
 
@@ -402,7 +403,8 @@ theorem boundaryDegree_prodFiberRetraction_comp_discComplementBoundaryHomeomorph
       (isOpenEmbedding_inclusion_discComplementInterior φ)
       (range_inclusion_discComplementInterior φ hφ) (isCollared_discComplementBoundary φ hφ)
       ((TopCat.prodFiberRetraction (TopCat.of ι) (X := TopCat.of Circle) 1 i).hom.comp
-        ((discComplementBoundaryHomeomorph φ hφ).symm : C(_, ι × Circle))) = -1 := by
+        ((discComplementBoundaryHomeomorph φ hφ).symm.trans
+          (TopCat.prodHomeomorphTensorObj ι Circle) : C(_, _))) = -1 := by
   classical
   obtain ⟨ε, hε, hd⟩ := exists_pairwise_disjoint_image_ball φ hφ
   have hc : (1 + ε i / 4)⁻¹ ∈ Ioo (0 : ℝ) 1 :=
@@ -424,19 +426,17 @@ theorem boundaryDegree_prodFiberRetraction_comp_discComplementBoundaryHomeomorph
   have hK (t : unitInterval) (p : ι × Circle) :
       K (t, discComplementBoundaryHomeomorph φ hφ p) = homotopyFun i hc (t, p) := by
     simp only [K, ContinuousMap.comp_apply, ContinuousMap.coe_mk, Homeomorph.symm_apply_apply]
-  -- The retraction is a map out of `TopCat.of ι ⊗ TopCat.of Circle`, while the homeomorphism
-  -- lands in `ι × Circle`. The two types agree only by definition, so `rw` finds no match for
-  -- `ContinuousMap.comp_apply`, and the composite is evaluated by `Eq.trans` instead.
   have hr (p : ι × Circle) :
       (TopCat.prodFiberRetraction (TopCat.of ι) (X := TopCat.of Circle) 1 i).hom.comp
-        ((discComplementBoundaryHomeomorph φ hφ).symm : C(_, ι × Circle))
-        (discComplementBoundaryHomeomorph φ hφ p) = if p.1 = i then p.2 else 1 :=
-    (ContinuousMap.comp_apply _ _ _).trans <|
-      (congrArg _ (Homeomorph.symm_apply_apply _ p)).trans
-      (TopCat.prodFiberRetraction_apply (TopCat.of ι) (X := TopCat.of Circle) 1 i p)
+        ((discComplementBoundaryHomeomorph φ hφ).symm.trans
+          (TopCat.prodHomeomorphTensorObj ι Circle) : C(_, _))
+        (discComplementBoundaryHomeomorph φ hφ p) = if p.1 = i then p.2 else 1 := by
+    rw [ContinuousMap.comp_apply, ContinuousMap.coe_ofClass, Homeomorph.trans_apply,
+      Homeomorph.symm_apply_apply, TopCat.prodFiberRetraction_prodHomeomorphTensorObj]
   let F : ContinuousMap.Homotopy
       ((TopCat.prodFiberRetraction (TopCat.of ι) (X := TopCat.of Circle) 1 i).hom.comp
-        ((discComplementBoundaryHomeomorph φ hφ).symm : C(_, ι × Circle)))⁻¹ u :=
+        ((discComplementBoundaryHomeomorph φ hφ).symm.trans
+          (TopCat.prodHomeomorphTensorObj ι Circle) : C(_, _)))⁻¹ u :=
     { toContinuousMap := K
       map_zero_left x := by
         obtain ⟨p, rfl⟩ := (discComplementBoundaryHomeomorph φ hφ).surjective x

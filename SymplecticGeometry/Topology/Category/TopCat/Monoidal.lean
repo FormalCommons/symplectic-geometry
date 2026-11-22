@@ -16,6 +16,12 @@ every other fibre to `x₀`. It is a left inverse of Tau Ceti's fibre inclusion
 `TopCat.prodFiberInclusion ι X i` (`TopCat.prodFiberInclusion_comp_prodFiberRetraction`), and
 composed with the inclusion of any other fibre it is the constant map at `x₀`
 (`TopCat.prodFiberInclusion_comp_prodFiberRetraction_of_ne`).
+
+For spaces `X` and `Y`, `TopCat.prodHomeomorphTensorObj X Y` is the identity of `X × Y`, read as
+a homeomorphism onto the carrier of `TopCat.of X ⊗ TopCat.of Y`. The two types agree only after
+unfolding, so a map into `X × Y` composed with a morphism out of `TopCat.of X ⊗ TopCat.of Y`
+goes through it, and `TopCat.prodFiberRetraction_prodHomeomorphTensorObj` evaluates the
+retraction there.
 -/
 
 public section
@@ -69,6 +75,37 @@ lemma prodFiberInclusion_comp_prodFiberRetraction_of_ne (x₀ : X) {i j : ι} (h
     prodFiberInclusion ι X j ≫ prodFiberRetraction ι x₀ i = TopCat.const x₀ := by
   ext x
   simp [h]
+
+/-- For spaces `X` and `Y`, the identity of `X × Y` as a homeomorphism onto the carrier of the
+monoidal product `TopCat.of X ⊗ TopCat.of Y`. -/
+def prodHomeomorphTensorObj (X Y : Type w) [TopologicalSpace X] [TopologicalSpace Y] :
+    X × Y ≃ₜ ↑(TopCat.of X ⊗ TopCat.of Y) :=
+  Homeomorph.refl _
+
+@[simp]
+lemma fst_prodHomeomorphTensorObj (X Y : Type w) [TopologicalSpace X] [TopologicalSpace Y]
+    (p : X × Y) : (prodHomeomorphTensorObj X Y p).1 = p.1 :=
+  (rfl)
+
+@[simp]
+lemma snd_prodHomeomorphTensorObj (X Y : Type w) [TopologicalSpace X] [TopologicalSpace Y]
+    (p : X × Y) : (prodHomeomorphTensorObj X Y p).2 = p.2 :=
+  (rfl)
+
+@[simp]
+lemma prodHomeomorphTensorObj_symm_apply (X Y : Type w) [TopologicalSpace X]
+    [TopologicalSpace Y] (p : ↑(TopCat.of X ⊗ TopCat.of Y)) :
+    (prodHomeomorphTensorObj X Y).symm p = (p.1, p.2) :=
+  (rfl)
+
+/-- The retraction onto the fibre over `i`, evaluated at a point of `ι × X`. -/
+@[simp]
+lemma prodFiberRetraction_prodHomeomorphTensorObj (ι : Type w) [TopologicalSpace ι]
+    [DiscreteTopology ι] [DecidableEq ι] {X : Type w} [TopologicalSpace X] (x₀ : X) (i : ι)
+    (p : ι × X) :
+    prodFiberRetraction (TopCat.of ι) (X := TopCat.of X) x₀ i (prodHomeomorphTensorObj ι X p) =
+      if p.1 = i then p.2 else x₀ := by
+  rw [prodFiberRetraction_apply, fst_prodHomeomorphTensorObj, snd_prodHomeomorphTensorObj]
 
 end TopCat
 

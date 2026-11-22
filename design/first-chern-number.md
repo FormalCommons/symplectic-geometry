@@ -1088,7 +1088,8 @@ issues, in an order where each issue's blockers come before it.
    `SymplecticGeometry.boundaryDegree_prodFiberRetraction_comp_discComplementBoundaryHomeomorph_symm`,
    the map `∂X → Circle` that is
    `TopCat.prodFiberRetraction (TopCat.of ι) (1 : Circle) i` read through
-   `discComplementBoundaryHomeomorph` has boundary degree $-1$.
+   `discComplementBoundaryHomeomorph` and `TopCat.prodHomeomorphTensorObj` has boundary
+   degree $-1$.
    `AlgebraicTopology/Singular/Nullhomotopic.lean`, for the homology of
    the boundary circles: a nullhomotopic map induces zero on singular
    homology in positive degree
