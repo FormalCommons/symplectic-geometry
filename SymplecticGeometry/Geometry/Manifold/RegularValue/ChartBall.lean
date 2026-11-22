@@ -7,18 +7,19 @@ module
 
 public import Mathlib.Analysis.InnerProductSpace.Calculus
 public import TauCeti.Geometry.Manifold.RegularValue
+import Mathlib.Analysis.Calculus.BumpFunction.InnerProduct
 import Mathlib.Analysis.Normed.Module.Connected
+import Mathlib.Geometry.Manifold.Algebra.LieGroup
+import SymplecticGeometry.Geometry.Manifold.ContMDiff.Indicator
 import SymplecticGeometry.Topology.OpenPartialHomeomorph.Compact
-import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 import TauCeti.Geometry.Manifold.Morse.CriticalPoints
-import TauCeti.Geometry.Manifold.RegularValue.Scalar.DefiningFunction
 import TauCeti.Topology.ConnectedComponents
 import TauCeti.Topology.OpenPartialHomeomorph.Basic
 
 /-!
 # Balls in a chart as regular sublevel sets
 
-Let `M` be a smooth Hausdorff, σ-compact manifold with model `𝓘(ℝ, E)`, where `E` is a real
+Let `M` be a smooth Hausdorff manifold with model `𝓘(ℝ, E)`, where `E` is a real
 inner product space of finite dimension, and let `e` be a chart of its smooth maximal atlas
 whose target contains the closed ball of radius `ρ > 0` about `c`. Then `e.symm '' closedBall c ρ`
 is the sublevel set `{f ≤ 0}` of a smooth function `f : M → ℝ` with regular value `0`, and the
@@ -26,11 +27,15 @@ complement of `e.symm '' ball c ρ` is the sublevel set of `-f`. These are the s
 Tau Ceti's `TauCeti.isManifold_scalarRegularSublevel` and `TauCeti.boundary_scalarRegularSublevel`
 give the structure of a manifold with boundary, the level set being the boundary.
 
-The function `f` is the one that Tau Ceti's
-`PartialDiffeomorph.exists_contMDiffMap_regular_definingFunction` gives for `y ↦ ‖y - c‖² - ρ²`
-and the inverse of `e`, seen as a partial diffeomorphism. The identification of the three sign
-sets of `y ↦ ‖y - c‖² - ρ²` with the closed ball, the open ball and the sphere follows the proof
-of Tau Ceti's `PartialDiffeomorph.exists_contMDiffMap_regular_definingFunction_norm_le`.
+The function `f` is `1 + β · (h - 1)` read through `e` on its source and `1` off it, where
+`h y = ‖y - c‖² - ρ²` and `β` is a smooth bump function on `E` equal to `1` on a ball slightly
+larger than the closed ball and supported in the target of `e`. This adapts the gluing of a
+local defining function with the constant `1` in Tau Ceti's
+`TauCeti.exists_contMDiffMap_definingFunction`, whose cutoff comes from Mathlib's smooth Urysohn
+lemma and so needs `M` to be σ-compact; here the cutoff is built in the chart, and `M` need only
+be Hausdorff. The identification of the three sign sets of `y ↦ ‖y - c‖² - ρ²` with the closed
+ball, the open ball and the sphere follows the proof of Tau Ceti's
+`PartialDiffeomorph.exists_contMDiffMap_regular_definingFunction_norm_le`.
 
 ## Main results
 
@@ -111,51 +116,122 @@ variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [FiniteDim
   {c : E} {ρ : ℝ} {M : Type*} [TopologicalSpace M] [ChartedSpace E M] [T2Space M]
   (e : OpenPartialHomeomorph M E)
 
+/-- The function `y ↦ ‖y - c‖² - ρ²` on `E`, modified away from the closed ball: it agrees with
+`‖y - c‖² - ρ²` on a larger ball, is positive outside the closed ball, and differs from `1` only
+on a compact subset of the open set `U`. -/
+private theorem exists_contDiff_eq_norm_sub_sq_sub {U : Set E} (hU : IsOpen U)
+    (hc : closedBall c ρ ⊆ U) (hρ : 0 < ρ) :
+    ∃ φ : E → ℝ, ∃ ρ' > ρ, ContDiff ℝ ∞ φ ∧
+      (∀ y, ‖y - c‖ < ρ' → φ y = ‖y - c‖ ^ 2 - ρ ^ 2) ∧ (∀ y, ρ < ‖y - c‖ → 0 < φ y) ∧
+      HasCompactSupport (fun y ↦ φ y - 1) ∧ tsupport (fun y ↦ φ y - 1) ⊆ U := by
+  obtain ⟨δ, hδ, hδc⟩ := (isCompact_closedBall c ρ).exists_cthickening_subset_open hU hc
+  rw [cthickening_closedBall hδ.le hρ.le] at hδc
+  let β : ContDiffBump c := ⟨ρ + δ / 2, δ + ρ, by positivity, by linarith⟩
+  have hpos {y : E} (hy : ρ < ‖y - c‖) : 0 < ‖y - c‖ ^ 2 - ρ ^ 2 :=
+    sub_pos.2 (pow_lt_pow_left₀ hy hρ.le two_ne_zero)
+  refine ⟨fun y ↦ 1 + β y * (‖y - c‖ ^ 2 - ρ ^ 2 - 1), ρ + δ / 2, by linarith,
+    contDiff_const.add (β.contDiff.mul ((((contDiff_id.sub contDiff_const).norm_sq ℝ).sub
+      contDiff_const).sub contDiff_const)), fun y hy ↦ ?_, fun y hy ↦ ?_, ?_, ?_⟩
+  · beta_reduce
+    rw [β.one_of_mem_closedBall (by rw [mem_closedBall, dist_eq_norm]; exact hy.le)]
+    ring
+  · beta_reduce
+    have h0 := mul_nonneg (β.nonneg (x := y)) (hpos hy).le
+    rcases (β.le_one (x := y)).lt_or_eq with h1 | h1
+    · linarith
+    · rw [h1]
+      linarith [hpos hy]
+  · simp_rw [add_sub_cancel_left]
+    exact β.hasCompactSupport.mul_right
+  · simp_rw [add_sub_cancel_left]
+    exact tsupport_mul_subset_left.trans (β.tsupport_eq ▸ hδc)
+
 /-- **A closed ball in a chart is a regular sublevel set.** Let `e` be a chart of the smooth
-maximal atlas of a Hausdorff, σ-compact manifold modelled on a finite-dimensional inner product
-space `E`, and let the closed ball of radius `ρ > 0` about `c` lie in its target. There is a smooth
-function `f : M → ℝ` with regular value `0` whose sublevel set `{f ≤ 0}`, strict sublevel set
-`{f < 0}` and level set `{f = 0}` are the images under `e.symm` of the closed ball, the open ball
-and the sphere of radius `ρ` about `c`. -/
-theorem exists_isRegularValue_image_closedBall [SigmaCompactSpace M] [IsManifold 𝓘(ℝ, E) ∞ M]
+maximal atlas of a Hausdorff manifold modelled on a finite-dimensional inner product space `E`,
+and let the closed ball of radius `ρ > 0` about `c` lie in its target. There is a smooth function
+`f : M → ℝ` with regular value `0` whose sublevel set `{f ≤ 0}`, strict sublevel set `{f < 0}`
+and level set `{f = 0}` are the images under `e.symm` of the closed ball, the open ball and the
+sphere of radius `ρ` about `c`. -/
+theorem exists_isRegularValue_image_closedBall [IsManifold 𝓘(ℝ, E) ∞ M]
     (he : e ∈ IsManifold.maximalAtlas 𝓘(ℝ, E) ∞ M) (hc : closedBall c ρ ⊆ e.target)
     (hρ : 0 < ρ) :
     ∃ f : M → ℝ, ContMDiff 𝓘(ℝ, E) 𝓘(ℝ) ∞ f ∧ IsRegularValue 𝓘(ℝ, E) 𝓘(ℝ) f 0 ∧
       {x | f x ≤ 0} = e.symm '' closedBall c ρ ∧ {x | f x < 0} = e.symm '' ball c ρ ∧
       {x | f x = 0} = e.symm '' sphere c ρ := by
-  set Φ := (e.toPartialDiffeomorphOfMemMaximalAtlas he).symm
-  have hΦ (s : Set E) : Φ '' s = e.symm '' s := by
-    congr 1
-    funext v
-    simp [Φ, PartialDiffeomorph.symm_toPartialEquiv]
-  have hsource : Φ.source = e.target := by simp [Φ]
-  set h : E → ℝ := fun y ↦ ‖y - c‖ ^ 2 - ρ ^ 2
-  have hle : {y | h y ≤ 0} = closedBall c ρ := by
-    ext y
-    rw [mem_ofPred_eq, mem_closedBall, dist_eq_norm, sub_nonpos, sq_le_sq₀ (norm_nonneg _) hρ.le]
-  have hlt : {y | h y < 0} = ball c ρ := by
-    ext y
-    rw [mem_ofPred_eq, mem_ball, dist_eq_norm, sub_neg, sq_lt_sq₀ (norm_nonneg _) hρ.le]
-  have heq : {y | h y = 0} = sphere c ρ := by
-    ext y
-    rw [mem_ofPred_eq, mem_sphere, dist_eq_norm, sub_eq_zero, sq_eq_sq₀ (norm_nonneg _) hρ.le]
-  have hreg (y : E) (hy : h y = 0) : IsRegularPoint 𝓘(ℝ, E) 𝓘(ℝ) h y := by
-    refine SymplecticGeometry.isRegularPoint_norm_sub_sq_sub (fun hyc ↦ hρ.ne' ?_) _
-    have hy' : y ∈ sphere c ρ := heq ▸ hy
-    rwa [hyc, mem_sphere, dist_self, eq_comm] at hy'
-  obtain ⟨g, hg, -, hgle, hglt, hgeq⟩ := Φ.exists_contMDiffMap_regular_definingFunction (f := h)
-    (((contDiff_id.sub contDiff_const).norm_sq ℝ).sub contDiff_const).contMDiff.contMDiffOn
-    (hle ▸ hsource ▸ hc)
-    (by rw [hle, hΦ]; exact e.isClosed_image_symm_of_isCompact (isCompact_closedBall c ρ) hc)
-    hreg
-  exact ⟨g, g.contMDiff, hg, by rw [hgle, hle, hΦ], by rw [hglt, hlt, hΦ], by rw [hgeq, heq, hΦ]⟩
+  obtain ⟨φ, ρ', hρ', hφ, hφeq, hφpos, hφc, hφs⟩ :=
+    exists_contDiff_eq_norm_sub_sq_sub e.open_target hc hρ
+  set f : M → ℝ := 1 + e.source.indicator ((fun y ↦ φ y - 1) ∘ e)
+  have hfs (x : M) (hx : x ∈ e.source) : f x = φ (e x) := by
+    simp [f, indicator_of_mem hx]
+  have hfpos (x : M) (hx : x ∉ e.source ∨ ρ < ‖e x - c‖) : 0 < f x := by
+    by_cases hxs : x ∈ e.source
+    · rw [hfs x hxs]
+      exact hφpos _ (hx.resolve_left (not_not.2 hxs))
+    · simp [f, indicator_of_notMem hxs]
+  -- Each of the three sets is cut out on the closed ball by a condition on
+  -- `‖y - c‖ ^ 2 - ρ ^ 2` that forces it to be nonpositive.
+  have hset (P : ℝ → Prop) (hP : ∀ t, P t → t ≤ 0) (T : Set E) (hT : T ⊆ closedBall c ρ)
+      (hTP : ∀ y ∈ closedBall c ρ, y ∈ T ↔ P (‖y - c‖ ^ 2 - ρ ^ 2)) :
+      {x | P (f x)} = e.symm '' T := by
+    rw [e.symm_image_eq_source_inter_preimage (hT.trans hc)]
+    ext x
+    simp only [mem_ofPred_eq, mem_preimage, mem_inter_iff]
+    by_cases hx : x ∈ e.source ∧ ‖e x - c‖ ≤ ρ
+    · rw [hfs x hx.1, hφeq _ (hx.2.trans_lt hρ'),
+        hTP _ (by rw [mem_closedBall, dist_eq_norm]; exact hx.2)]
+      exact ⟨fun h' ↦ ⟨hx.1, h'⟩, fun h' ↦ h'.2⟩
+    · rw [not_and_or, not_le] at hx
+      refine iff_of_false (fun h' ↦ (hfpos x hx).not_ge (hP _ h')) fun h' ↦ ?_
+      have := hT h'.2
+      rw [mem_closedBall, dist_eq_norm] at this
+      exact hx.elim (· h'.1) this.not_gt
+  have hle : {x | f x ≤ 0} = e.symm '' closedBall c ρ := by
+    refine hset (· ≤ 0) (fun _ ↦ id) _ subset_rfl fun y hy ↦ iff_of_true hy ?_
+    rw [sub_nonpos]
+    rw [mem_closedBall, dist_eq_norm] at hy
+    exact pow_le_pow_left₀ (norm_nonneg _) hy 2
+  have hlt : {x | f x < 0} = e.symm '' ball c ρ := by
+    refine hset (· < 0) (fun _ ↦ le_of_lt) _ ball_subset_closedBall fun y _ ↦ ?_
+    rw [mem_ball, dist_eq_norm, sub_neg, sq_lt_sq₀ (norm_nonneg _) hρ.le]
+  have heq : {x | f x = 0} = e.symm '' sphere c ρ := by
+    refine hset (· = 0) (fun _ ↦ le_of_eq) _ sphere_subset_closedBall fun y _ ↦ ?_
+    rw [mem_sphere, dist_eq_norm, sub_eq_zero, sq_eq_sq₀ (norm_nonneg _) hρ.le]
+  refine ⟨f, contMDiff_const.add (e.contMDiff_indicator_comp he
+    (hφ.sub contDiff_const).contMDiff.contMDiffOn hφc hφs), ?_, hle, hlt, heq⟩
+  rw [isRegularValue_iff]
+  intro x hx
+  have hx' : x ∈ e.source ∩ e ⁻¹' sphere c ρ := by
+    rw [← e.symm_image_eq_source_inter_preimage (sphere_subset_closedBall.trans hc), ← heq]
+    exact hx
+  have hxc : ‖e x - c‖ = ρ := by
+    have := hx'.2
+    rwa [mem_preimage, mem_sphere, dist_eq_norm] at this
+  -- Near `x`, `f` is `‖e · - c‖ ^ 2 - ρ ^ 2`, which is regular at `x` since `e` is a local
+  -- diffeomorphism and `e x ≠ c`.
+  have hev : f =ᶠ[𝓝 x] (fun y ↦ ‖y - c‖ ^ 2 - ρ ^ 2) ∘ e := by
+    filter_upwards [(e.continuousOn.isOpen_inter_preimage e.open_source isOpen_ball).mem_nhds
+      (show x ∈ e.source ∩ e ⁻¹' ball c ρ' by
+        rw [mem_inter_iff, mem_preimage, mem_ball, dist_eq_norm, hxc]
+        exact ⟨hx'.1, hρ'⟩)] with z hz
+    have hz2 := hz.2
+    rw [mem_preimage, mem_ball, dist_eq_norm] at hz2
+    rw [hfs z hz.1, Function.comp_apply, hφeq _ hz2]
+  have he' : IsRegularPoint 𝓘(ℝ, E) 𝓘(ℝ, E) e x := by
+    have := isInvertible_mfderiv_extend
+      (IsManifold.maximalAtlas_subset_of_le (by simp) he) hx'.1
+    rw [e.extend_coe, modelWithCornersSelf_coe, id_comp] at this
+    exact isRegularPoint_iff.2 this.surjective
+  have hreg := (SymplecticGeometry.isRegularPoint_norm_sub_sq_sub (c := c) (y := e x)
+    (fun h0 ↦ by rw [h0, sub_self, norm_zero] at hxc; exact hρ.ne' hxc.symm) (ρ ^ 2)).comp he'
+  rw [isRegularPoint_iff, hev.mfderiv_eq]
+  exact isRegularPoint_iff.1 hreg
 
 /-- **The complement of a ball in a chart is a regular sublevel set.** Under the hypotheses of
 `exists_isRegularValue_image_closedBall`, there is a smooth function `g : M → ℝ` with regular
 value `0` whose sublevel set `{g ≤ 0}` is the complement of `e.symm '' ball c ρ`, whose strict
 sublevel set `{g < 0}` is the complement of `e.symm '' closedBall c ρ`, and whose level set
 `{g = 0}` is `e.symm '' sphere c ρ`. -/
-theorem exists_isRegularValue_compl_image_ball [SigmaCompactSpace M] [IsManifold 𝓘(ℝ, E) ∞ M]
+theorem exists_isRegularValue_compl_image_ball [IsManifold 𝓘(ℝ, E) ∞ M]
     (he : e ∈ IsManifold.maximalAtlas 𝓘(ℝ, E) ∞ M) (hc : closedBall c ρ ⊆ e.target)
     (hρ : 0 < ρ) :
     ∃ g : M → ℝ, ContMDiff 𝓘(ℝ, E) 𝓘(ℝ) ∞ g ∧ IsRegularValue 𝓘(ℝ, E) 𝓘(ℝ) g 0 ∧

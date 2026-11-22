@@ -14,7 +14,7 @@ import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.Sublevel
 # Symplectic frames over a coordinate disc and over its complement
 
 Let `ω` be a nondegenerate smooth two-form on a smooth real vector bundle `V` of rank `2 |κ|`
-over a Hausdorff, σ-compact smooth surface `M`, and let `φ = CoordinateDisc.ofChart e hr hc he`
+over a Hausdorff smooth surface `M`, and let `φ = CoordinateDisc.ofChart e hr hc he`
 be the coordinate disc given by a chart `e` of the smooth maximal atlas. This file gives smooth
 symplectic frames of `ω` for `stdForm κ` over an open neighbourhood of the closed disc of `φ`,
 and, when `M` is closed and connected, over an open neighbourhood of the complement
@@ -66,11 +66,11 @@ variable {M : Type} [TopologicalSpace M] [ChartedSpace (EuclideanSpace ℝ (Fin 
   {ω : ContMDiffTwoForm (𝓡 2) ⊤ F V} {κ : Type*} [Fintype κ]
 
 /-- **Symplectic frames near a coordinate disc.** Let `ω` be a nondegenerate smooth two-form on a
-smooth real vector bundle `V` of rank `2 |κ|` over a Hausdorff, σ-compact smooth surface `M`, and
+smooth real vector bundle `V` of rank `2 |κ|` over a Hausdorff smooth surface `M`, and
 let `CoordinateDisc.ofChart e hr hc he` be the coordinate disc of a chart `e` of the smooth
 maximal atlas. Then `ω` has a smooth symplectic frame for `stdForm κ` over an open set that
 contains the closed disc. -/
-theorem IsNondegenerate.exists_isSymplecticFrameOn_disc_ofChart [SigmaCompactSpace M]
+theorem IsNondegenerate.exists_isSymplecticFrameOn_disc_ofChart
     (hω : ω.IsNondegenerate)
     (hea : e ∈ IsManifold.maximalAtlas (𝓡 2) ((⊤ : ℕ∞) : WithTop ℕ∞) M) (hr : 0 < r)
     (hc : Metric.ball c r ⊆ e.target)
