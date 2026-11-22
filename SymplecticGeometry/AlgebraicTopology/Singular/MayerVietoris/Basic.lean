@@ -29,8 +29,7 @@ deletes this file without renames. The statements and proofs are those of the co
 
 ## References
 
-* A. Hatcher, *Algebraic Topology*, Cambridge University Press, 2002, Section 2.2, the
-  Mayer–Vietoris sequence.
+* A. Hatcher, *Algebraic Topology*, Section 2.2, the Mayer–Vietoris sequences.
 -/
 
 public section

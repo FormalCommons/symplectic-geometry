@@ -19,6 +19,12 @@ This lemma is from Tau Ceti's main branch
 (`TauCeti/AlgebraicTopology/Cohomology/CompactSupport/DirectedUnion.lean`, same name), as of the
 commit `b9a3084bbb4cc2ac2c5a0b3ae0323198b47a34b8`, not yet in the pinned release; it is stated here
 under its Tau Ceti name, so that moving Tau Ceti past it deletes this file without renames.
+
+## References
+
+* A. Hatcher, [*Algebraic Topology*](https://pi.math.cornell.edu/~hatcher/AT/AT.pdf),
+  Section 3.3, step (3) of the proof of Lemma 3.36 (compactly supported cohomology of an
+  increasing union of open sets is the direct limit).
 -/
 
 public section

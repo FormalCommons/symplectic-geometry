@@ -797,6 +797,9 @@ issues, in an order where each issue's blockers come before it.
    Tau Ceti's caps of chains supported in an open subspace, and their
    relative forms, come in the same way, in
    `AlgebraicTopology/Cohomology/Cap/Support.lean`.
+   Tau Ceti's connecting square of the duality maps and the Mayer–Vietoris
+   connecting maps comes in the same way, in
+   `AlgebraicTopology/Cohomology/Cap/MayerVietoris/{Local,Basic}.lean`.
 3. **The unit circle bundle of a Hermitian line bundle.**
    `Geometry/Manifold/VectorBundle/Hermitian/CircleBundle.lean`, the file
    of *Symplectic vector bundles* (its section *The circle bundle of a
@@ -867,7 +870,9 @@ issues, in an order where each issue's blockers come before it.
    total space, invariant under the action and equal to $1$ on the
    fundamental vector field of $1$ (`TauCeti.rightFundamentalVectorField` of
    `SymplecticGeometry.circleLieGenerator`, the velocity of `Circle.exp` at
-   $0$, defined in this file). Its curvature `IsCircleConnectionForm.curvature
+   $0$, defined in `Geometry/Lie/Exponential/Circle.lean`, at the place of the
+   Tau Ceti file of the same name, with the lemma that Tau Ceti's
+   `circleExpGenerator` corresponds to it). Its curvature `IsCircleConnectionForm.curvature
    (hα : IsCircleConnectionForm α)`, the 2-form on `M` whose pull-back is `d α`,
    exists and is unique by descent of basic forms (`TauCeti.RoughForm.IsBasic`,
    `Manifold.IsSubmersion.exists_smoothForm_mpullback_eq_iff`).
@@ -888,8 +893,11 @@ issues, in an order where each issue's blockers come before it.
    principal bundle, an invariant form that vanishes on vertical vectors is
    basic), and `Geometry/Manifold/DifferentialForm/PartitionOfUnity.lean`
    (`SmoothPartitionOfUnity.IsSubordinate.isSmoothForm_finsum_smul_comp`: a
-   locally finite sum of local forms weighted by a smooth partition of unity
-   is smooth). The example on the circle bundle imports
+   locally finite sum of `C^n` local forms weighted by a smooth partition of
+   unity is `C^n`), the case of the bundle of forms of
+   `Geometry/Manifold/PartitionOfUnity.lean`
+   (`SmoothPartitionOfUnity.IsSubordinate.contMDiff_finsum_smul_comp_section`,
+   the same for sections of any vector bundle). The example on the circle bundle imports
    `Geometry/Manifold/VectorBundle/Hermitian/CircleBundle.lean` of *Symplectic
    vector bundles*. Blocked by 3 only for its example; the definitions are for
    any `P`.
@@ -910,14 +918,20 @@ issues, in an order where each issue's blockers come before it.
    orientation (precomposition with conjugation), the constructor
    `CoordinateDisc.ofChart` from an orientation-preserving smooth chart of a
    smoothly oriented surface (through `o.toHomologicalOrientation`), and
-   `exists_coordinateDisc` (one centred at any point, and finitely many with
-   disjoint closed discs at distinct points). `CoordinateDisc.lean` imports
+   `exists_coordinateDisc` (one centred at any point) and
+   `exists_coordinateDisc_pairwise_disjoint` (finitely many at distinct
+   points, with disjoint images). `CoordinateDisc.lean` imports
    supporting files of this part, each beside the Mathlib or Tau Ceti
    file it adds to: `LinearAlgebra/Complex/Orientation.lean`,
    `AlgebraicTopology/Singular/LocalHomology/Orientation/Smooth.lean`, and
    `Geometry/Manifold/Complex/FundamentalClass.lean`, for the reversal of
    `TauCeti.complexHomologicalOrientation` by conjugation that
-   `CoordinateDisc.reverse` uses. Done when this API is proved.
+   `CoordinateDisc.reverse` uses, and
+   `AlgebraicTopology/Singular/LocalHomology/ChangeOfModel.lean`, beside
+   Tau Ceti's `System.lean`, for `exists_coordinateDisc`: local homology
+   transport does not depend on the model, so a homological orientation
+   can be read with the model `ℂ`
+   (`TauCeti.HomologicalOrientation.changeModel`). Done when this API is proved.
 6. **Argument principle for discs.**
    `AlgebraicTopology/Singular/LocalHomology/ArgumentPrinciple.lean`:
    `SymplecticGeometry.sum_degree_boundary_eq_zero`. Let `φ i`, `i : ι`
@@ -980,6 +994,16 @@ issues, in an order where each issue's blockers come before it.
      the local orientation of the identity chart of an oriented inner
      product space, through the connecting morphism and radial projection,
      is the oriented generator of the unit sphere.
+   - `AlgebraicTopology/Singular/LocalHomology/Orientation/Chart.lean`, used
+     by `Orientation/Linear.lean`: from Tau Ceti's main branch, which the
+     pinned version lags,
+     `LinearIsometryEquiv.snd_ofSubsetMap_comp_complSingletonHomotopyEquivSphere`,
+     linear isometries commute with radial projection.
+   - `AlgebraicTopology/Singular/LocalHomology/Orientation/Linear.lean`, used
+     by `DiscBoundaryClass.lean`: from Tau Ceti's main branch,
+     `Orientation.localOrientation_eq_localOrientationOfOrientedChart_refl`,
+     on an inner product space the local orientation that an orientation
+     selects is the one of the identity chart.
    - `AlgebraicTopology/Singular/LocalHomology/BoundaryClass.lean`, imported
      by `DiscBoundaryClass.lean` and `BoundaryDegree.lean`: in any dimension `n + 1`,
      `TauCeti.HomologicalOrientation.boundaryClass`, the image of
@@ -1012,18 +1036,23 @@ issues, in an order where each issue's blockers come before it.
      (when the components of `∂X` are parametrized by loops whose classes add
      up to the boundary class, it is the sum of `Circle.degree` of `u` along
      them).
+   - `Topology/VectorBundle/Orientation/SectionIndex/FiberwiseEquiv.lean`,
+     used by `ArgumentPrinciple.lean`, beside Tau Ceti's `SectionIndex`
+     files: `TauCeti.VectorBundleOrientation.sectionIndex_eq_of_fiberwise`,
+     orientation-preserving fibrewise isomorphisms preserve local indices.
    - `Topology/VectorBundle/Orientation/ArgumentPrinciple.lean`, beside Tau
      Ceti's `SectionIndex` files. The boundary term needs a trivialization
      over the whole of `X`: with one only over `∂X` the statement is false
      (on the disc, twisting the boundary trivialization by $e^{i\theta}$
      changes the degree but not the zeros). So: let `L` be a real plane
-     bundle over `X` with a frame `τ` over all of `X` (a continuous family of
-     linear isomorphisms `ℂ ≃L[ℝ] L x`), oriented by `τ`, and `t` a
+     bundle over `X` with a frame `τ` over all of `X` (linear isomorphisms
+     `τ x : L x ≃L[ℝ] ℂ`, continuous on the total space), oriented so that
+     `τ` carries its orientation to `Complex.orientation`, and `t` a
      continuous section whose zeros are finitely many and lie in `ι(M)`.
      Then `TauCeti.VectorBundleOrientation.sum_sectionIndex_eq_boundaryDegree`:
      the sum over those zeros of the `sectionIndex` of `t` restricted along
      `ι` equals `o.boundaryDegree … u`, with `u` the normalization of
-     `τ⁻¹ t` on `∂X`. Route: by excision both sides are local homology
+     `τ t` on `∂X`. Route: by excision both sides are local homology
      computations near the zeros and near `∂X`, joined by the connecting
      morphism of `(X, ∂X)`.
    - `Geometry/Manifold/VectorBundle/Section/ArgumentPrinciple.lean`, beside
