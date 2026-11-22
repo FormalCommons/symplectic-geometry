@@ -276,6 +276,15 @@ own milestone line.
 
 ## Files and declarations
 
+### `Analysis/Matrix/LDL.lean`
+
+In namespace `Matrix`: `exists_isUpperTriangular_conjTranspose_mul_mul_self_eq_one`,
+a rectangular matrix `F` with injective `mulVec` becomes one with
+orthonormal columns, `F * P`, for an upper triangular `P` with injective
+`mulVec`; from Tau Ceti's
+`Matrix.PosDef.exists_isUpperTriangular_conjTranspose_mul_mul_eq_one`.
+`Normalization.lean` imports it.
+
 ### `Geometry/Manifold/DifferentialForm/Dolbeault/Potential.lean`
 
 In namespace `TauCeti.SmoothAlmostComplexStructure`, for a manifold with a
@@ -311,6 +320,14 @@ orientations on both sides). In namespace `SymplecticGeometry`: `northPole`,
 back to `(4 * Real.pi) • OnePoint.fubiniStudyForm`) with its `_symm_` form.
 `Normalization.lean` imports it.
 
+### `Geometry/Manifold/Orientation/Preserving/FromTauCeti.lean`
+
+Taken from Tau Ceti's main branch, with Tau Ceti's header, as *Files* in
+`AGENTS.md` says, in the sibling `FromTauCeti.lean` of the library's own
+`Orientation/Preserving.lean`: `TauCeti.Manifold.Orientation.IsOrientationPreservingAt.reindex`,
+which the pinned version lacks, for the reindexed orientation `oCP1`.
+`Normalization.lean` imports it.
+
 ### `Geometry/Manifold/Orientation/Sphere.lean`
 
 In namespace `Orientation`: `sphereOrientation_eq_ofTopForm`, Tau Ceti's
@@ -334,6 +351,13 @@ the real structures of Tau Ceti (`instIsManifoldReal`):
 - `ker_mfderiv_mkNonzero`: the kernel at $v$ is the real subspace
   `(𝕜 ∙ (v : _)).restrictScalars ℝ`, by invariance under scalars and
   dimension.
+- `affineLift 𝕜 j : (Fin n → 𝕜) → TauCeti.puncturedSpace (Fin (n + 1) → 𝕜)`,
+  $w\mapsto$ `Fin.insertNth j 1 w`, the section of `mkNonzero` over the
+  affine chart of `j`, with `coe_affineLift`, `mkNonzero_comp_affineLift`
+  (`mkNonzero 𝕜 n ∘ affineLift 𝕜 j = (affineChart j).symm`),
+  `contMDiff_affineLift_self`, `contMDiff_affineLift` and
+  `mfderiv_affineLift_apply` ($u\mapsto$ `Fin.insertNth j 0 u`).
+  `Kahler.lean` and `Normalization.lean` compute upstairs along it.
 
 In namespace `SymplecticGeometry`:
 
@@ -488,7 +512,7 @@ Manifolds*, 2nd ed., Chapters 15–16, as Tau Ceti's `UnitSphere.lean` cites.
   `fubiniStudyDarbouxChart_mk` ($[v]\mapsto\hat{}\bigl(\tfrac{\lvert v_j\rvert}{\lvert v\rvert}\,(v_{j.\mathrm{succAbove}\,k}/v_j)_k\bigr)$,
   through `complexToRealEuclidean (Fin n)`) and
   `fubiniStudyDarbouxChart_symm_apply`
-  ($\zeta\mapsto[\texttt{Fin.insertNth } j\ \sqrt{1-\lVert\zeta\rVert^2}\ \check\zeta]$).
+  (for $\zeta$ in the ball, $\zeta\mapsto[\texttt{Fin.insertNth } j\ \sqrt{1-\lVert\zeta\rVert^2}\ \check\zeta]$).
   The inverse is `sphereHopf n` after the section
   $\zeta\mapsto(\check\zeta,\sqrt{1-\lVert\zeta\rVert^2})$ of the sphere,
   whose last coordinate is real, so it pulls `sphereStdForm` back to
@@ -499,7 +523,8 @@ Manifolds*, 2nd ed., Chapters 15–16, as Tau Ceti's `UnitSphere.lean` cites.
   (part 5).
 - `exists_darbouxChart_compl_hyperplane (ℓ : Module.Dual ℂ (Fin (n + 1) → ℂ))
   (hℓ : ℓ ≠ 0)`: a chart of the same kind with source
-  `{x | ℓ x.rep ≠ 0}` and target the unit ball, from the case of
+  `{x | ℓ x.rep ≠ 0}`, so that `mk ℂ v hv` is in it exactly when `ℓ v ≠ 0`,
+  and target the unit ball, from the case of
   coordinate hyperplanes and `mpullback_unitary_fubiniStudyForm` (part 5,
   last sentence).
 
