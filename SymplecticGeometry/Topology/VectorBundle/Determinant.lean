@@ -9,6 +9,7 @@ public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Basic
 public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Conjugate
 public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.ConjugateExteriorPower
 public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.OfBundle
+public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Tensor
 public import TauCeti.LinearAlgebra.Complex.Finrank
 
 /-!
@@ -31,7 +32,13 @@ of rank one: Tau Ceti's `TauCeti.FiniteRankBundleCore.det` of the core
 * `detCoreConjugateFiberwise` and `continuous_detCoreConjugateFiberwise`: the resulting
   conjugate-linear fibrewise isomorphism between the two determinant lines, continuous on total
   spaces, in the form taken by
-  `TauCeti.complexEulerClass_eq_neg_of_finrank_eq_one_of_conjugateFiberwise`.
+  `TauCeti.complexEulerClass_eq_neg_of_finrank_eq_one_of_conjugateFiberwise`;
+* `detCoreProdIso`: the determinant line of the direct sum `E₁ ×ᵇ E₂` is the tensor product
+  `TauCeti.FiniteRankBundleCore.tensor` of the determinant lines of `E₁` and `E₂`;
+* `detCoreProdFiberEquiv` and `continuous_detCoreProdFiberEquiv`: the resulting linear isomorphism
+  from the fibres of the determinant line of `E₁ ×ᵇ E₂` to the tensor products of the fibres of the
+  determinant lines, continuous from its total space to that of Tau Ceti's tensor product bundle,
+  in the form taken by `TauCeti.complexEulerClass_eq_of_fiberwise`.
 
 ## References
 
@@ -43,6 +50,7 @@ of rank one: Tau Ceti's `TauCeti.FiniteRankBundleCore.det` of the core
 public section
 
 open Bundle CategoryTheory Module TauCeti TauCeti.FiniteRankBundleCore TauCeti.Conjugate
+open scoped TensorProduct
 
 namespace SymplecticGeometry
 
@@ -237,6 +245,69 @@ theorem continuous_detCoreConjugateFiberwise :
         (isoFiberEquiv_apply (detCoreConjugateIso E) p.proj p.snd)
 
 end Conjugate
+
+section Prod
+
+variable {G₁ : Type*} [NormedAddCommGroup G₁] [NormedSpace 𝕜 G₁] [FiniteDimensional 𝕜 G₁]
+  (E₁ : B → Type*) [∀ x, AddCommMonoid (E₁ x)] [∀ x, Module 𝕜 (E₁ x)]
+  [∀ x, TopologicalSpace (E₁ x)] [TopologicalSpace (TotalSpace G₁ E₁)]
+  [FiberBundle G₁ E₁] [VectorBundle 𝕜 G₁ E₁]
+  {G₂ : Type*} [NormedAddCommGroup G₂] [NormedSpace 𝕜 G₂] [FiniteDimensional 𝕜 G₂]
+  (E₂ : B → Type*) [∀ x, AddCommMonoid (E₂ x)] [∀ x, Module 𝕜 (E₂ x)]
+  [∀ x, TopologicalSpace (E₂ x)] [TopologicalSpace (TotalSpace G₂ E₂)]
+  [FiberBundle G₂ E₂] [VectorBundle 𝕜 G₂ E₂]
+
+/-- The determinant line of a direct sum is the tensor product of the determinant lines,
+`Λ^top (E₁ ⊕ E₂) ≅ Λ^top E₁ ⊗ Λ^top E₂`: the top exterior power of the identification of the
+core of `E₁ ×ᵇ E₂` with the Whitney sum of the cores (`ofBundleOfFinrankEqProdIso`), followed by
+`TauCeti.FiniteRankBundleCore.detWhitneySumIso`. -/
+noncomputable def detCoreProdIso :
+    detCore 𝕜 (G₁ × G₂) (E₁ ×ᵇ E₂) ≅ tensor (detCore 𝕜 G₁ E₁) (detCore 𝕜 G₂ E₂) :=
+  eqToIso (detCore_eq_exteriorPower_of_finrank_eq 𝕜 _ _
+      (finrank_prod (R := 𝕜) (M := G₁) (M' := G₂))) ≪≫
+    (exteriorPower 𝕜 B _).mapIso (ofBundleOfFinrankEqProdIso E₁ E₂ rfl rfl _) ≪≫
+    eqToIso (det_def _).symm ≪≫ detWhitneySumIso _ _ ≪≫
+    eqToIso (by rw [detCore_def, detCore_def])
+
+theorem detCoreProdIso_def :
+    detCoreProdIso 𝕜 E₁ E₂ =
+      eqToIso (detCore_eq_exteriorPower_of_finrank_eq 𝕜 _ _
+          (finrank_prod (R := 𝕜) (M := G₁) (M' := G₂))) ≪≫
+        (exteriorPower 𝕜 B _).mapIso (ofBundleOfFinrankEqProdIso E₁ E₂ rfl rfl _) ≪≫
+        eqToIso (det_def _).symm ≪≫ detWhitneySumIso _ _ ≪≫
+        eqToIso (by rw [detCore_def, detCore_def]) := (rfl)
+
+variable
+  [∀ x, TopologicalSpace ((detCore 𝕜 G₁ E₁).core.Fiber x ⊗[𝕜] (detCore 𝕜 G₂ E₂).core.Fiber x)]
+  [∀ x, IsModuleTopology 𝕜 ((detCore 𝕜 G₁ E₁).core.Fiber x ⊗[𝕜] (detCore 𝕜 G₂ E₂).core.Fiber x)]
+
+/-- `detCoreProdIso` read on fibres: the linear isomorphism from the fibre of the determinant line
+of `E₁ ×ᵇ E₂` to the tensor product of the fibres of the determinant lines of `E₁` and `E₂`. -/
+noncomputable def detCoreProdFiberEquiv (x : B) :
+    (detCore 𝕜 (G₁ × G₂) (E₁ ×ᵇ E₂)).core.Fiber x ≃L[𝕜]
+      (detCore 𝕜 G₁ E₁).core.Fiber x ⊗[𝕜] (detCore 𝕜 G₂ E₂).core.Fiber x :=
+  (isoFiberEquiv (detCoreProdIso 𝕜 E₁ E₂) x).trans (tensorFiberEquiv _ _ x)
+
+@[simp] theorem detCoreProdFiberEquiv_apply (x : B)
+    (v : (detCore 𝕜 (G₁ × G₂) (E₁ ×ᵇ E₂)).core.Fiber x) :
+    detCoreProdFiberEquiv 𝕜 E₁ E₂ x v =
+      tensorFiberEquiv _ _ x ((detCoreProdIso 𝕜 E₁ E₂).hom.fiberMap x v) := by
+  -- The fibres of the cores are their coordinate spaces by definition, which `exact` sees.
+  exact (ContinuousLinearEquiv.trans_apply _ _ v).trans (congrArg _ (isoFiberEquiv_apply _ x v))
+
+/-- The fibrewise isomorphism `detCoreProdFiberEquiv` is continuous from the total space of the
+determinant line of `E₁ ×ᵇ E₂` to that of Tau Ceti's tensor product of the determinant lines of
+`E₁` and `E₂`. Over `ℂ`, this is the form taken by `TauCeti.complexEulerClass_eq_of_fiberwise`. -/
+theorem continuous_detCoreProdFiberEquiv :
+    Continuous fun p : TotalSpace (Fin (detCore 𝕜 (G₁ × G₂) (E₁ ×ᵇ E₂)).rank → 𝕜)
+        (detCore 𝕜 (G₁ × G₂) (E₁ ×ᵇ E₂)).core.Fiber ↦
+      TotalSpace.mk'
+        (ProjectiveTensor 𝕜 (Fin (detCore 𝕜 G₁ E₁).rank → 𝕜) (Fin (detCore 𝕜 G₂ E₂).rank → 𝕜))
+        (E := fun x ↦ (detCore 𝕜 G₁ E₁).core.Fiber x ⊗[𝕜] (detCore 𝕜 G₂ E₂).core.Fiber x)
+        p.proj (detCoreProdFiberEquiv 𝕜 E₁ E₂ p.proj p.snd) :=
+  (continuous_tensorFiberEquiv _ _).comp (continuous_isoFiberEquiv (detCoreProdIso 𝕜 E₁ E₂))
+
+end Prod
 
 end Bundle
 

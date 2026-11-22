@@ -511,6 +511,20 @@ model fibres:
   and `twistCore 1 ⊗ twistCore (-1)` is trivial (`twistTransition_add`).
   *Projective hypersurfaces* uses this to read the page's $h$.
 
+### `Topology/VectorBundle/FiniteRank/Tensor.lean`
+
+Beside Tau Ceti's `FiniteRank/Tensor.lean`, in Tau Ceti's terms only;
+`Determinant.lean` imports it.
+
+- `TauCeti.FiniteRankBundleCore.tensorFiberEquiv` and
+  `continuous_tensorFiberEquiv`: the fibres of `FiniteRankBundleCore.tensor A D`
+  are the tensor products of the fibres of `A` and `D`, through
+  `TauCeti.piTensorEquiv`, continuously into Tau Ceti's tensor product
+  bundle.
+- `TauCeti.FiniteRankBundleCore.detWhitneySumIso`: the determinant line of
+  `whitneySum A D` is `tensor A.det D.det`, by a constant change of
+  coordinates (`det_coordChange_whitneySum`).
+
 ### `Topology/VectorBundle/Determinant.lean` (addition)
 
 - `SymplecticGeometry.Bundle.detCoreProdIso`: the determinant line of
@@ -629,7 +643,8 @@ come before it. Issues 1, 2, 3, 5, 13 and 16 can start at once.
     `Topology/VectorBundle/Orientation/Complex/Tensor.lean`. Waits for 2
     and 7.
 13. **Determinant of a direct sum.** Addition to
-    `Topology/VectorBundle/Determinant.lean`.
+    `Topology/VectorBundle/Determinant.lean`, with
+    `Topology/VectorBundle/FiniteRank/Tensor.lean`.
 14. **Splitting principle.** `ChernClass/Splitting.lean`. Waits for 8.
 15. **Top class and first class.** `ChernClass/EulerClass.lean` and
     `ChernClass/FirstChernClass.lean`. Waits for 2, 10, 11, 12, 13, 14 and
