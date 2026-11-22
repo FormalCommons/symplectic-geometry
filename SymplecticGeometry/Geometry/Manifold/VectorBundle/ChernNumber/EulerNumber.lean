@@ -60,6 +60,15 @@ stated directly, as `1` or `-1` according as a continuous linear equivalence equ
 linearization carries the orientation `o.orientationAt z` to the canonical orientation of the
 fibre (`TauCeti.VectorBundleOrientation.complex`), with no new definition.
 
+This form of the sign, and the case split on it in the private `sign_det_eq_ite` (an orientation
+of a plane is the given one or its negative), follow Tau Ceti's
+`TauCeti.VectorBundleOrientation.sectionIndex_toHomologicalOrientation_eq_ite` and
+`TauCeti.VectorBundleOrientation.evalFundamentalClass_eulerClass_eq_sum_sign`, in
+`TauCeti/Geometry/Manifold/VectorBundle/Section/EulerNumber.lean` of Tau Ceti's main branch at
+commit 55525ca, which the pinned version of Tau Ceti does not have. Those state the sign for an
+oriented real bundle and a chart with values in an inner product space; here the bundle is
+`J.Fiber` with its complex orientation, and the chart takes values in `ℂ`.
+
 ## References
 
 * [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017], §2.7,
@@ -269,8 +278,7 @@ private theorem sign_det_eq_ite {s : ∀ x, V x} {z : M}
   · have hLe : Orientation.map (Fin 2) Leq (o.orientationAt z) = -oE z := by
       refine ((Orientation.map (Fin 2) Leq (o.orientationAt z)).eq_or_eq_neg (oE z)
         (by rw [← hrank]; simp [hn])).resolve_left fun h ↦ hP ?_
-      have : T2Space (J.Fiber z) :=
-        (e.continuousLinearEquivAt ℝ z hze).toHomeomorph.isEmbedding.t2Space
+      have : T2Space (J.Fiber z) := FiberBundle.t2Space ℂ J.Fiber z
       exact ⟨Leq.toContinuousLinearEquiv, by ext v; rfl, h⟩
     have hneg : A.det < 0 := by
       rw [hdetA, ← Orientation.map_eq_neg_iff_det_neg ω Aeq hcard, hωA, hLe,
@@ -380,8 +388,7 @@ theorem chernNumber_eq_sum_sign_of_transverse {s : ∀ x, V x}
                   (VectorBundleOrientation.complex ℂ J.Fiber) z
           then 1 else -1 := by
   have hF : finrank ℝ F = 2 := (Fact.out : finrank ℝ F = 2 * finrank ℂ ℂ).trans (by simp)
-  have : ∀ x, T2Space (V x) := fun x ↦ ((trivializationAt F V x).continuousLinearEquivAt ℝ x
-    (mem_baseSet_trivializationAt F V x)).toHomeomorph.isEmbedding.t2Space
+  have : ∀ x, T2Space (V x) := FiberBundle.t2Space F V
   have : ∀ x, FiniteDimensional ℝ (V x) := fun x ↦ VectorBundle.finiteDimensional ℝ F V x
   have hZ : {z | s z = 0}.Finite :=
     finite_sectionZero_of_contMDiff (b := id) one_ne_zero hs
