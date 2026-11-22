@@ -47,8 +47,8 @@ inverse is the identity of `E`, as the map
 
 * J. W. Milnor, J. D. Stasheff, *Characteristic Classes*, Annals of Mathematics Studies 76,
   Princeton (1974), §11 (the Euler class of the tangent bundle evaluated on the fundamental class
-  is the Euler characteristic) and §14 (the canonical orientation of a complex vector bundle, and
-  the top Chern class as its Euler class).
+  is the Euler characteristic) and §14 (complex bundles are oriented as real bundles, and
+  their top Chern class is their Euler class).
 * [R. Bott and L. W. Tu, *Differential Forms in Algebraic Topology*][BottTu1982], §11 and §20.
 -/
 
