@@ -8,6 +8,7 @@ module
 public import Mathlib.AlgebraicTopology.SimplicialSet.Homology.MapHomologicalComplex
 public import SymplecticGeometry.Algebra.Homology.ShortComplex.PreservesHomology
 public import SymplecticGeometry.AlgebraicTopology.Cohomology.Cap.Basic
+public import SymplecticGeometry.AlgebraicTopology.SimplicialSet.Homology.RestrictScalars
 public import TauCeti.Algebra.Category.ModuleCat.RestrictScalars
 public import TauCeti.AlgebraicTopology.Cohomology.CompactSupport.Duality
 public import TauCeti.AlgebraicTopology.Cohomology.IntegralComparison
@@ -26,7 +27,8 @@ abelian group.
 * `TopCat.singularChainComplexRestrictScalarsRatIso`: the rational chains, read as abelian groups,
   are the chains with coefficients in the abelian group `ℚ`.
 * `TopCat.singularChainComplexIntToRat`: the chain map `C(X; ℤ) ⟶ F (C(X; ℚ))` induced by the
-  inclusion `ℤ → ℚ` of coefficients (`TauCeti.intToRatCoeff`), and the induced map on homology
+  inclusion `ℤ → ℚ` of coefficients (`TauCeti.intToRatCoeff`), an instance of the change of
+  coefficients `SSet.restrictScalarsChainMap`, and the induced map on homology
   `TopCat.singularHomologyIntToRat : Hₙ(X; ℤ) ⟶ F (Hₙ(X; ℚ))`. For an oriented compact
   manifold, it sends the integral fundamental class to a rational one. For a connected
   manifold Tau Ceti also has `TauCeti.HomologicalOrientation.rationalFundamentalClass`, built
@@ -144,29 +146,16 @@ theorem map_ιChainComplex_singularChainComplexRestrictScalarsRatIso_hom_f {n : 
   erw [Iso.trans_hom, HomologicalComplex.comp_f, reassoc_of% h]
   exact SSet.ιChainComplex_chainComplexFunctor_map_app_f _ _
 
-/-- The inverse identification of chains with coefficients in the abelian group `ℚ` with rational
-chains keeps each singular simplex. -/
-@[reassoc (attr := simp)]
-theorem ιChainComplex_singularChainComplexRestrictScalarsRatIso_inv_f {n : ℕ}
-    (σ : (toSSet.obj X) _⦋n⦌) :
-    (toSSet.obj X).ιChainComplex σ ≫ X.singularChainComplexRestrictScalarsRatIso.inv.f n =
-      (ModuleCat.restrictScalarsAlgebraMapIso (R := ℤ) (S := ℚ) ℚ).inv ≫
-        (ModuleCat.restrictScalars.{0} (algebraMap ℤ ℚ)).map
-          ((toSSet.obj X).ιChainComplex (R := 𝟙_ (ModuleCat.{0} ℚ)) σ) := by
-  rw [← cancel_mono (X.singularChainComplexRestrictScalarsRatIso.hom.f n)]
-  simp only [Category.assoc]
-  rw [map_ιChainComplex_singularChainComplexRestrictScalarsRatIso_hom_f,
-    Iso.inv_hom_id_assoc, ← HomologicalComplex.comp_f, Iso.inv_hom_id, HomologicalComplex.id_f,
-    Category.comp_id]
-
 /-- The chain map from integral to rational singular chains, read as abelian groups, induced by
-the inclusion `ℤ → ℚ` of coefficients. -/
+the inclusion `ℤ → ℚ` of coefficients: the change of coefficients `SSet.restrictScalarsChainMap`
+along `TauCeti.intToRatCoeff`, with `ℚ` read as a restricted `ℚ`-module. -/
 def singularChainComplexIntToRat :
     (toSSet.obj X).chainComplex (ModuleCat.of ℤ (ULift.{0} ℤ)) ⟶
       ((ModuleCat.restrictScalars.{0} (algebraMap ℤ ℚ)).mapHomologicalComplex _).obj
         ((toSSet.obj X).chainComplex (𝟙_ (ModuleCat.{0} ℚ))) :=
-  ((SSet.chainComplexFunctor _).map intToRatCoeff).app (toSSet.obj X) ≫
-    X.singularChainComplexRestrictScalarsRatIso.inv
+  SSet.restrictScalarsChainMap (algebraMap ℤ ℚ) (N := 𝟙_ (ModuleCat.{0} ℚ))
+    (intToRatCoeff ≫ (ModuleCat.restrictScalarsAlgebraMapIso (R := ℤ) (S := ℚ) ℚ).inv)
+    (toSSet.obj X)
 
 /-- The chain map from integral to rational chains keeps each singular simplex and casts its
 coefficient to `ℚ`. -/
@@ -176,9 +165,8 @@ theorem ιChainComplex_singularChainComplexIntToRat_f {n : ℕ} (σ : (toSSet.ob
       intToRatCoeff ≫ (ModuleCat.restrictScalarsAlgebraMapIso (R := ℤ) (S := ℚ) ℚ).inv ≫
         (ModuleCat.restrictScalars.{0} (algebraMap ℤ ℚ)).map
           ((toSSet.obj X).ιChainComplex (R := 𝟙_ (ModuleCat.{0} ℚ)) σ) := by
-  rw [singularChainComplexIntToRat, HomologicalComplex.comp_f,
-    SSet.ιChainComplex_chainComplexFunctor_map_app_f_assoc,
-    ιChainComplex_singularChainComplexRestrictScalarsRatIso_inv_f]
+  rw [singularChainComplexIntToRat, SSet.ιChainComplex_restrictScalarsChainMap_f,
+    Category.assoc]
 
 /-! ### Cochains -/
 
