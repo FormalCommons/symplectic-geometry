@@ -10,6 +10,7 @@ public import Mathlib.Geometry.Manifold.LocalDiffeomorph
 public import Mathlib.Geometry.Manifold.VectorField.Pullback
 import TauCeti.Geometry.Manifold.IntegralCurve.Basic
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
+import SymplecticGeometry.Geometry.Manifold.MFDeriv.Opens
 
 /-!
 # Pulling back vector fields along local diffeomorphisms
@@ -106,9 +107,7 @@ theorem isMIntegralCurveOn_mpullback_subtypeVal_iff {U : Opens M}
     {V : Π x : M, TangentSpace I x} {γ : ℝ → U} {s : Set ℝ} :
     IsMIntegralCurveOn γ (VectorField.mpullback I I Subtype.val V) s ↔
       IsMIntegralCurveOn (Subtype.val ∘ γ) V s := by
-  have hval (y : U) : MDifferentiableAt I I (Subtype.val : U → M) y :=
-    (contMDiff_subtypeVal (n := 1) y).mdifferentiableAt one_ne_zero
-  refine ⟨fun h ↦ h.map_of_mfderiv_eq (fun _ _ ↦ hval _)
+  refine ⟨fun h ↦ h.map_of_mfderiv_eq (fun _ _ ↦ mdifferentiableAt_subtypeVal)
     (fun t _ ↦ mfderiv_subtypeVal_mpullback_subtypeVal V (γ t)), fun h ↦ ?_⟩
   -- The inverse of the inclusion, a partial diffeomorphism defined on `U`.
   let g := (PartialDiffeomorph.subtypeVal I 1 U ⟨γ 0⟩).symm
@@ -116,7 +115,8 @@ theorem isMIntegralCurveOn_mpullback_subtypeVal_iff {U : Opens M}
   have hgd (y : U) : MDifferentiableAt I I g y :=
     g.mdifferentiableAt one_ne_zero (by simp [g])
   have hgV (y : U) : mfderiv I I g y (V y) = VectorField.mpullback I I Subtype.val V y := by
-    have := mfderiv_comp_apply y (hgd y) (hval y) (VectorField.mpullback I I Subtype.val V y)
+    have := mfderiv_comp_apply y (hgd y) mdifferentiableAt_subtypeVal
+      (VectorField.mpullback I I Subtype.val V y)
     rw [show g ∘ Subtype.val = id from funext hg, mfderiv_id, ContinuousLinearMap.id_apply,
       mfderiv_subtypeVal_mpullback_subtypeVal V y] at this
     exact this.symm
