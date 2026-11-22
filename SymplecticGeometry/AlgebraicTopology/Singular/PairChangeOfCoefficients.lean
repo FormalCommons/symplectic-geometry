@@ -17,6 +17,10 @@ pairs (`TopPair.singularHomologyMap_coefficient_naturality`). It is the homology
 `TopPair.singularCohomologyChainCoefficientMap_naturality`
 (`SymplecticGeometry/AlgebraicTopology/Cohomology/PairChangeOfCoefficients.lean`), and its proof
 is that of the cohomology statement, without the dual.
+
+In an abelian category the change of coefficients is a morphism of the short exact sequences of
+singular chains of a pair, so it also commutes with the connecting morphism
+(`TopPair.singularHomologyδ_coefficient_naturality`).
 -/
 
 public section
@@ -42,6 +46,43 @@ theorem singularHomologyMap_coefficient_naturality {P P' : TopPair.{w}} (f : P �
   (homologyMap_comp _ _ n).symm.trans <| (congrArg (homologyMap · n)
     (((SSetPair.chainComplexFunctor C).map φ).naturality (toSSetPair.map f)).symm).trans
       (homologyMap_comp _ _ n)
+
+section Abelian
+
+variable {C : Type u} [Category.{v} C] [Abelian C] [HasCoproducts.{w} C]
+
+/-- The change of coefficients along `φ : R ⟶ R'`, as a morphism from the short exact sequence
+`C(A; R) ⟶ C(X; R) ⟶ C(X, A; R)` of singular chains of a pair `(X, A)` to the one with
+coefficients `R'`. -/
+private noncomputable def singularChainComplexShortComplexCoefficientMap (P : TopPair.{w})
+    {R R' : C} (φ : R ⟶ R') :
+    P.singularChainComplexShortComplex R ⟶ P.singularChainComplexShortComplex R' where
+  τ₁ := ((SSet.chainComplexFunctor C).map φ).app (toSSetPair.obj P).left
+  τ₂ := ((SSet.chainComplexFunctor C).map φ).app (toSSetPair.obj P).right
+  τ₃ := ((SSetPair.chainComplexFunctor C).map φ).app (toSSetPair.obj P)
+  comm₁₂ := (((SSet.chainComplexFunctor C).map φ).naturality (toSSetPair.obj P).hom).symm
+  comm₂₃ := by
+    have h := P.singularChainComplexπ_coefficient_naturality φ
+    rw [TauCeti.singularChainComplexFunctor_map_app] at h
+    exact h
+
+/-- The change of coefficients along `φ : R ⟶ R'` commutes with the connecting morphism
+`Hₙ(X, A) ⟶ Hₘ(A)` of a pair. -/
+@[reassoc]
+theorem singularHomologyδ_coefficient_naturality (P : TopPair.{w}) {R R' : C} (φ : R ⟶ R')
+    (n m : ℕ) (h : m + 1 = n := by lia) :
+    P.singularHomologyδ R n m h ≫
+        homologyMap (((SSet.chainComplexFunctor C).map φ).app (toSSetPair.obj P).left) m =
+      homologyMap (((SSetPair.chainComplexFunctor C).map φ).app (toSSetPair.obj P)) n ≫
+        P.singularHomologyδ R' n m h := by
+  rw [TopPair.singularHomologyδ, TopPair.singularHomologyδ, SSetPair.homologyδ.eq_1,
+    SSetPair.homologyδ.eq_1]
+  exact HomologicalComplex.HomologySequence.δ_naturality
+    (singularChainComplexShortComplexCoefficientMap P φ)
+    (P.shortExact_singularChainComplexShortComplex R)
+    (P.shortExact_singularChainComplexShortComplex R') n m (by simpa)
+
+end Abelian
 
 end TopPair
 

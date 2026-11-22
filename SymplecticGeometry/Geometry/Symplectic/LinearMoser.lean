@@ -16,6 +16,7 @@ public import SymplecticGeometry.Analysis.Calculus.Deriv.ContinuousLinearMap
 import TauCeti.Analysis.Calculus.FDeriv.Prod
 import SymplecticGeometry.Analysis.Calculus.Deriv.Mul
 import TauCeti.Analysis.ODE.Regularity
+import SymplecticGeometry.Analysis.Normed.Operator.BoundedSMul
 
 /-!
 # The linear Moser lemma
@@ -275,8 +276,6 @@ form an open set. -/
 theorem isOpen_invertibleSegments : IsOpen (invertibleSegments V) := by
   refine isOpen_iff_eventually.2 fun p hp ↦
     isCompact_Icc.eventually_forall_of_forall_eventually fun s hs ↦ ?_
-  -- Instance search does not find this one on the space of bilinear maps by itself.
-  have : IsBoundedSMul ℝ (V →L[ℝ] V →L[ℝ] ℝ) := ContinuousLinearMap.toNormedSpace.toIsBoundedSMul
   have hc : ContDiff ℝ 0 fun q : ((V →L[ℝ] V →L[ℝ] ℝ) × (V →L[ℝ] V →L[ℝ] ℝ)) × ℝ ↦
       (1 - q.2) • q.1.1 + q.2 • q.1.2 :=
     ((contDiff_const.sub contDiff_snd).smul contDiff_fst.fst).add
@@ -303,7 +302,6 @@ omit [CompleteSpace V] in
 /-- The smooth path from `a` to `b` along which `segmentMoserFlow` is taken is smooth. -/
 private theorem contDiff_segmentPath :
     ContDiff ℝ (⊤ : ℕ∞) fun t : ℝ ↦ (1 - t.smoothTransition) • a + t.smoothTransition • b :=
-  have : IsBoundedSMul ℝ (V →L[ℝ] V →L[ℝ] ℝ) := ContinuousLinearMap.toNormedSpace.toIsBoundedSMul
   ((contDiff_const.sub Real.smoothTransition.contDiff).smul contDiff_const).add
     (Real.smoothTransition.contDiff.smul contDiff_const)
 
@@ -336,8 +334,6 @@ is smooth. -/
 private theorem contDiff_segmentFamily :
     ContDiff ℝ (⊤ : ℕ∞) (Function.uncurry fun (p : (V →L[ℝ] V →L[ℝ] ℝ) × (V →L[ℝ] V →L[ℝ] ℝ))
       (t : ℝ) ↦ (1 - t.smoothTransition) • p.1 + t.smoothTransition • p.2) := by
-  -- Instance search does not find this one on the space of bilinear maps by itself.
-  have : IsBoundedSMul ℝ (V →L[ℝ] V →L[ℝ] ℝ) := ContinuousLinearMap.toNormedSpace.toIsBoundedSMul
   have hβ : ContDiff ℝ (⊤ : ℕ∞) fun q : ((V →L[ℝ] V →L[ℝ] ℝ) × (V →L[ℝ] V →L[ℝ] ℝ)) × ℝ ↦
       q.2.smoothTransition := Real.smoothTransition.contDiff.comp contDiff_snd
   exact ((contDiff_const.sub hβ).smul contDiff_fst.fst).add (hβ.smul contDiff_fst.snd)
