@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.AlgebraicTopology.Singular.Circle
 public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.BoundaryClass
 public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.OrientedChart
+public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orientation.Linear
 public import SymplecticGeometry.Analysis.Normed.Module.Ball.Collar
 public import TauCeti.Geometry.Manifold.Complex.FundamentalClass
 
@@ -58,6 +59,11 @@ the map is the inclusion of the disc.
 
 * `SymplecticGeometry.singularHomologyOneIso_map_boundaryClass_closedBall`:
   the boundary class of the closed unit disc is `1` in `H₁(Circle; ℤ) ≅ ℤ`.
+* `TauCeti.complexHomologicalOrientation_apply_zero`: the local orientation of `ℂ` at the origin is
+  the one selected by `Complex.orientation`.
+* `SymplecticGeometry.singularHomologyOneIso_singularHomologyδ_localOrientation_complexOrientation`:
+  the connecting morphism of `(ℂ, ℂ ∖ {0})`, followed by radial projection onto `Circle`, sends the
+  local orientation selected by `Complex.orientation` to `1` in `H₁(Circle; ℤ) ≅ ℤ`.
 
 ## References
 
@@ -253,5 +259,55 @@ theorem singularHomologyOneIso_map_boundaryClass_closedBall :
   exact (congrArg _ key).trans ((Circle.singularHomologyOneIso R).inv_hom_id_apply 1)
 
 end Disc
+
+/-- The local orientation of `ℂ`, as a complex manifold, at the origin is the one selected by
+`Complex.orientation`. -/
+theorem _root_.TauCeti.complexHomologicalOrientation_apply_zero :
+    complexHomologicalOrientation ℂ 0 =
+      Complex.orientation.localOrientation Complex.finrank_real_complex := by
+  have h0 : (0 : ℂ) ∈ (OpenPartialHomeomorph.refl ℂ).source := by simp
+  -- The preferred chart of `ℂ` is the identity.
+  have hrefl :
+      OpenPartialHomeomorph.refl ℂ ∈ IsManifold.maximalAtlas (modelWithCornersSelf ℂ ℂ) 1 ℂ := by
+    simpa using IsManifold.chart_mem_maximalAtlas (I := modelWithCornersSelf ℂ ℂ) (n := 1) (0 : ℂ)
+  rw [complexHomologicalOrientation_apply_of_mem_maximalAtlas hrefl h0,
+    Orientation.localOrientation_eq_localOrientationOfOrientedChart_refl]
+
+/-- **The local orientation of `ℂ` generates `H₁(S¹)`.** The connecting morphism of the pair
+`(ℂ, ℂ ∖ {0})`, followed by radial projection `z ↦ z / |z|` onto `Circle`, sends the local
+orientation of `ℂ` at the origin selected by `Complex.orientation` to the class that is `1` in
+`H₁(Circle; ℤ) ≅ ℤ` (`Circle.singularHomologyOneIso`). -/
+theorem singularHomologyOneIso_singularHomologyδ_localOrientation_complexOrientation :
+    (Circle.singularHomologyOneIso (ModuleCat.of ℤ (ULift.{0} ℤ))).hom
+      (((singularHomologyFunctor (ModuleCat.{0} ℤ) 1).obj (ModuleCat.of ℤ (ULift.{0} ℤ))).map
+        (TopCat.ofHom (complSingletonHomotopyEquivSphere (0 : ℂ)).toFun ≫
+          TopCat.ofHom (Circle.homeomorphSphere.symm : C(sphere (0 : ℂ) 1, Circle)))
+        ((TopPair.ofSubset ({0}ᶜ : Set (TopCat.of ℂ))).singularHomologyδ
+          (ModuleCat.of ℤ (ULift.{0} ℤ)) 2 1 rfl
+          (Complex.orientation.localOrientation Complex.finrank_real_complex).val)) = 1 := by
+  set R := ModuleCat.of ℤ (ULift.{0} ℤ)
+  set Q := TopPair.ofSubset ({0}ᶜ : Set (TopCat.of ℂ))
+  set H := (singularHomologyFunctor (ModuleCat.{0} ℤ) 1).obj R
+  set e := TopCat.ofHom (Circle.homeomorphSphere.symm : C(sphere (0 : ℂ) 1, Circle))
+  set c := TopCat.ofHom (complSingletonHomotopyEquivSphere (0 : ℂ)).toFun
+  set x := (complexHomologicalOrientation ℂ 0).val
+  have key : H.map (c ≫ e) (Q.singularHomologyδ R 2 1 rfl x) =
+      (Circle.singularHomologyOneIso R).inv 1 := calc
+    _ = H.map e (H.map c ((reducedSingularHomologyι R 1).app _
+          (Q.reducedSingularHomologyδ R 1 x))) :=
+        (ConcreteCategory.congr_hom (H.map_comp c e) _).trans
+          ((ConcreteCategory.comp_apply _ _ _).trans (congrArg _ (congrArg _
+            (ConcreteCategory.congr_hom (TopPair.reducedSingularHomologyδ_comp_ι Q R 1) x).symm)))
+    _ = H.map e ((reducedSingularHomologyι R 1).app _
+          ((reducedSingularHomologyFunctor R 1).map c (Q.reducedSingularHomologyδ R 1 x))) :=
+        congrArg _ (ConcreteCategory.congr_hom ((reducedSingularHomologyι R 1).naturality c) _).symm
+    _ = H.map e ((reducedSingularHomologyι R 1).app _
+          ((reducedSingularHomologySphereIsoOfOrientation R Complex.orientation
+            Complex.finrank_real_complex).inv 1)) := by
+        rw [reducedSingularHomologyδ_complexHomologicalOrientation]
+    _ = (Circle.singularHomologyOneIso R).inv 1 := by
+        rw [Circle.singularHomologyOneIso_inv_eq_complexOrientation, ConcreteCategory.comp_apply,
+          ConcreteCategory.comp_apply]
+  rw [← complexHomologicalOrientation_apply_zero, key, Iso.inv_hom_id_apply]
 
 end SymplecticGeometry
