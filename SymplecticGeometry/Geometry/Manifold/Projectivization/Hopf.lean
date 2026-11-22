@@ -11,6 +11,7 @@ public import TauCeti.Geometry.Manifold.Instances.Projectivization
 public import TauCeti.Geometry.Manifold.Submersion.Split
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
 import Mathlib.Analysis.Calculus.Deriv.Inv
+import TauCeti.Analysis.Calculus.ContDiff.FinInsertNth
 import TauCeti.Analysis.InnerProductSpace.RadialRescale
 import TauCeti.Geometry.Manifold.ContMDiff.RestrictScalars
 import TauCeti.Geometry.Manifold.ContMDiff.Subtype
@@ -32,6 +33,11 @@ underlying real manifolds, using Tau Ceti's affine charts of `ℙ 𝕜 (Fin (n +
   of a coordinate `j` with `v j ≠ 0` it has the local section `z ↦ v j • Fin.insertNth j 1 z` in
   the chart. The kernel of its derivative at `v` is the line `𝕜 ∙ v` (`ker_mfderiv_mkNonzero`),
   since `mkNonzero` is constant along that line and the dimensions agree.
+* `Projectivization.affineLift 𝕜 j` is the section `w ↦ Fin.insertNth j 1 w` of `mkNonzero` over
+  the affine chart of `j`: `mkNonzero 𝕜 n ∘ affineLift 𝕜 j = (affineChart j).symm`
+  (`mkNonzero_comp_affineLift`). It is holomorphic over `𝕜` (`contMDiff_affineLift_self`), smooth
+  for the real structures (`contMDiff_affineLift`), and its real derivative sends `u` to
+  `Fin.insertNth j 0 u` (`mfderiv_affineLift_apply`).
 * `SymplecticGeometry.sphereHopf n` is the Hopf map `S²ⁿ⁺¹ → ℂPⁿ` from the unit sphere of
   `StdSpace (Fin (n + 1))`, sending `x` to the complex line through
   `(TauCeti.complexToRealEuclidean _)⁻¹ x`. It is `mkNonzero ℂ n` after the inclusion
@@ -218,6 +224,72 @@ theorem ker_mfderiv_mkNonzero [FiniteDimensional ℝ 𝕜]
     linarith
 
 end MkNonzero
+
+section AffineLift
+
+variable (𝕜 : Type*) [NontriviallyNormedField 𝕜] {n : ℕ}
+
+/-- The section `w ↦ Fin.insertNth j 1 w` of the projection `mkNonzero` over the affine chart of
+`j`: it lifts the inverse `(affineChart j).symm` of the chart to the nonzero vectors of `𝕜ⁿ⁺¹`
+(`mkNonzero_comp_affineLift`). -/
+noncomputable def affineLift (j : Fin (n + 1)) (w : Fin n → 𝕜) :
+    TauCeti.puncturedSpace (Fin (n + 1) → 𝕜) :=
+  ⟨Fin.insertNth (α := fun _ ↦ 𝕜) j 1 w,
+    TauCeti.mem_puncturedSpace.2 (Fin.insertNth_one_ne_zero j w)⟩
+
+variable {𝕜}
+
+/-- `affineLift 𝕜 j w` is the vector `Fin.insertNth j 1 w`. -/
+@[simp]
+theorem coe_affineLift (j : Fin (n + 1)) (w : Fin n → 𝕜) :
+    (affineLift 𝕜 j w : Fin (n + 1) → 𝕜) = Fin.insertNth (α := fun _ ↦ 𝕜) j 1 w :=
+  (rfl)
+
+variable (𝕜) in
+/-- The lift is a section of `mkNonzero` over the affine chart of `j`: its projection is the
+inverse of that chart. -/
+theorem mkNonzero_comp_affineLift (j : Fin (n + 1)) :
+    mkNonzero 𝕜 n ∘ affineLift 𝕜 j = (affineChart (K := 𝕜) j).symm :=
+  funext fun w ↦ by
+    simp only [comp_apply, mkNonzero_apply, affineChart_symm_apply, coe_affineLift]
+
+variable (𝕜) in
+/-- Over `𝕜` itself, the lift is `C^r` for every `r`; over `ℂ` it is holomorphic. -/
+theorem contMDiff_affineLift_self (j : Fin (n + 1)) (r : ℕ∞ω) :
+    ContMDiff 𝓘(𝕜, Fin n → 𝕜) 𝓘(𝕜, Fin (n + 1) → 𝕜) r (affineLift 𝕜 j) :=
+  (TauCeti.ContMDiff.subtypeVal_comp_iff _ _).1
+    (ContDiff.finInsertNth (F := fun _ ↦ 𝕜) j contDiff_const contDiff_id).contMDiff
+
+variable [NormedAlgebra ℝ 𝕜]
+
+variable (𝕜) in
+/-- The lift is `C^r` for the underlying real manifold structures, for every `r`. -/
+theorem contMDiff_affineLift (j : Fin (n + 1)) (r : ℕ∞ω) :
+    ContMDiff 𝓘(ℝ, Fin n → 𝕜) 𝓘(ℝ, Fin (n + 1) → 𝕜) r (affineLift 𝕜 j) := by
+  simpa using (contMDiff_affineLift_self 𝕜 j r).restrictScalars ℝ
+
+/-- The real derivative of the lift at any point sends `u` to `Fin.insertNth j 0 u`. -/
+theorem mfderiv_affineLift_apply (j : Fin (n + 1)) (w : Fin n → 𝕜)
+    (u : TangentSpace 𝓘(ℝ, Fin n → 𝕜) w) :
+    mfderiv 𝓘(ℝ, Fin n → 𝕜) 𝓘(ℝ, Fin (n + 1) → 𝕜) (affineLift 𝕜 j) w u =
+      Fin.insertNth (α := fun _ ↦ 𝕜) j 0 (u : Fin n → 𝕜) := by
+  -- The linear map `u ↦ Fin.insertNth j 0 u`; the lift is its translate by `Pi.single j 1`.
+  let L : (Fin n → 𝕜) →L[ℝ] Fin (n + 1) → 𝕜 :=
+    ContinuousLinearMap.pi (Fin.insertNth j 0 fun k ↦ ContinuousLinearMap.proj k)
+  have hL (u : Fin n → 𝕜) : L u = Fin.insertNth (α := fun _ ↦ 𝕜) j 0 u := by
+    funext k
+    induction k using j.succAboveCases <;> simp [L]
+  have hlift : Subtype.val ∘ affineLift 𝕜 j = fun w ↦ Pi.single j 1 + L w := by
+    funext w k
+    induction k using j.succAboveCases <;> simp [hL]
+  rw [← TauCeti.Manifold.mvfderiv_subtype_val_apply (affineLift 𝕜 j w)
+      (mfderiv 𝓘(ℝ, Fin n → 𝕜) 𝓘(ℝ, Fin (n + 1) → 𝕜) (affineLift 𝕜 j) w u),
+    ← mvfderiv_comp_apply _ ((contMDiff_subtypeVal _).mdifferentiableAt one_ne_zero)
+      ((contMDiff_affineLift 𝕜 j 1 w).mdifferentiableAt one_ne_zero), mvfderiv_eq_fderiv,
+    hlift, fderiv_const_add, ContinuousLinearMap.fderiv]
+  exact hL u
+
+end AffineLift
 
 end Projectivization
 

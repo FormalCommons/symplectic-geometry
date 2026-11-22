@@ -26,7 +26,8 @@ coordinate `x 0` in Lean.
 * `SymplecticGeometry.eval₂_fubiniStudyForm_affineParam`: in either affine coordinate
   `TauCeti.ProjectiveLine.affineParam i` (`t ↦ [1 : t]` or `t ↦ [t : 1]`), the form reads
   `Im (conj v * w) / (1 + |t|²)²`, that is `dx ∧ dy / (1 + x² + y²)²`. It is computed upstairs,
-  on the lift `t ↦ (1, t)` of the coordinate to `ℂ² ∖ 0`, from the value of `ρ`.
+  on the lift `t ↦ (1, t)` of the coordinate to `ℂ² ∖ 0` (the section
+  `Projectivization.affineLift ℂ i` of the Hopf projection, read on `ℂ`), from the value of `ρ`.
 * `SymplecticGeometry.mpullback_equivProjectivization_fubiniStudyForm`: along Mathlib's
   identification `OnePoint.equivProjectivization` of `OnePoint ℂ` with `ℂP¹`, the map underlying
   Tau Ceti's biholomorphism `OnePoint.diffeomorphProjectivization`, `ω_FS` pulls back to `π` times
@@ -78,42 +79,6 @@ namespace SymplecticGeometry
 
 /-! ### The affine formula -/
 
-/-- The lift `t ↦ (1, t)` (for `i = 0`) or `t ↦ (t, 1)` (for `i = 1`) of the affine coordinate
-`i` of `ℂP¹` to `ℂ² ∖ 0`. -/
-private noncomputable def affineLift (i : Fin 2) (t : ℂ) : puncturedSpace (Fin 2 → ℂ) :=
-  ⟨Fin.insertNth i 1 fun _ ↦ t, mem_puncturedSpace.2 (Fin.insertNth_one_ne_zero i _)⟩
-
-private theorem coe_affineLift_apply (i : Fin 2) (t : ℂ) :
-    (affineLift i t : Fin 2 → ℂ) = Fin.insertNth i 1 fun _ ↦ t :=
-  (rfl)
-
-private theorem coe_affineLift (i : Fin 2) :
-    (fun t ↦ (affineLift i t : Fin 2 → ℂ)) =
-      fun t ↦ Fin.insertNth i 1 0 + t • Fin.insertNth i 0 fun _ ↦ 1 := by
-  funext t
-  rw [coe_affineLift_apply]
-  fin_cases i <;> ext k <;> fin_cases k <;> simp
-
-private theorem hasFDerivAt_coe_affineLift (i : Fin 2) (t : ℂ) :
-    HasFDerivAt (fun t ↦ (affineLift i t : Fin 2 → ℂ))
-      ((ContinuousLinearMap.id ℝ ℂ).smulRight (Fin.insertNth i 0 fun _ ↦ (1 : ℂ))) t := by
-  rw [coe_affineLift]
-  exact ((hasFDerivAt_id t).smul_const _).const_add _
-
-private theorem contMDiff_affineLift (i : Fin 2) :
-    ContMDiff 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin 2 → ℂ) ∞ (affineLift i) := by
-  rw [← TauCeti.ContMDiff.subtypeVal_comp_iff]
-  refine ContDiff.contMDiff ?_
-  rw [show Subtype.val ∘ affineLift i = fun t ↦ (affineLift i t : Fin 2 → ℂ) from rfl,
-    coe_affineLift]
-  fun_prop
-
-private theorem mkNonzero_comp_affineLift (i : Fin 2) :
-    mkNonzero ℂ 1 ∘ affineLift i = ProjectiveLine.affineParam i := by
-  funext t
-  simp only [Function.comp_apply, ProjectiveLine.affineParam_eq, mkNonzero_apply,
-    coe_affineLift_apply]
-
 /-- **The Fubini–Study form of `ℂP¹` in an affine coordinate.** Along either affine coordinate
 `ProjectiveLine.affineParam i` of `ℂP¹` (`t ↦ [1 : t]` for `i = 0`, `t ↦ [t : 1]` for `i = 1`),
 the Fubini–Study form pulls back to `Im (conj v * w) / (1 + |t|²)²` at `t`, that is, to
@@ -122,30 +87,35 @@ theorem eval₂_fubiniStudyForm_affineParam (i : Fin 2) (t v w : ℂ) :
     (SmoothForm.mpullback (ProjectiveLine.affineParam i)
         (ProjectiveLine.contMDiff_affineParam_real i) (fubiniStudyForm 1)).eval₂ t v w =
       (conj v * w).im / (1 + ‖t‖ ^ 2) ^ 2 := by
+  -- The affine coordinate lifts to `ℂ² ∖ 0` along `t ↦ Fin.insertNth i 1 (fun _ ↦ t)`: the lift
+  -- `affineLift ℂ i` of the chart after the inclusion `c` of `ℂ` as `Fin 1 → ℂ`.
+  let c : ℂ →L[ℝ] Fin 1 → ℂ := ContinuousLinearMap.pi fun _ ↦ ContinuousLinearMap.id ℝ ℂ
+  have hc : mkNonzero ℂ 1 ∘ affineLift ℂ i ∘ c = ProjectiveLine.affineParam i := by
+    rw [← Function.comp_assoc, mkNonzero_comp_affineLift]
+    funext t
+    simp [ProjectiveLine.affineParam_eq, affineChart_symm_apply, c]
+  have hmd : MDifferentiableAt 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin 2 → ℂ) (affineLift ℂ i ∘ c) t :=
+    ((contMDiff_affineLift ℂ i 1).comp c.contMDiff t).mdifferentiableAt one_ne_zero
   have hd (u : TangentSpace 𝓘(ℝ, ℂ) t) :
-      (mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin 2 → ℂ) (affineLift i) t u : Fin 2 → ℂ) =
-        (show ℂ from u) • Fin.insertNth (α := fun _ ↦ ℂ) i 0 fun _ ↦ 1 := by
-    rw [← TauCeti.Manifold.mvfderiv_subtype_val_apply (affineLift i t)
-        (mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin 2 → ℂ) (affineLift i) t u),
-      ← mvfderiv_comp_apply _ ((contMDiff_subtypeVal _).mdifferentiableAt one_ne_zero)
-        ((contMDiff_affineLift i t).mdifferentiableAt (by simp)), mvfderiv_eq_fderiv_apply]
-    exact congrFun (congrArg DFunLike.coe (hasFDerivAt_coe_affineLift i t).fderiv) u
+      mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin 2 → ℂ) (affineLift ℂ i ∘ c) t u =
+        Fin.insertNth (α := fun _ ↦ ℂ) i 0 (c u) := by
+    rw [mfderiv_comp_apply t ((contMDiff_affineLift ℂ i 1 _).mdifferentiableAt one_ne_zero)
+      c.mdifferentiableAt, ContinuousLinearMap.mfderiv_eq]
+    -- `c u` is read in the tangent space at `c t`, which is the model space `Fin 1 → ℂ`.
+    exact mfderiv_affineLift_apply i (c t) (c u)
   -- Read `v` and `w` as tangent vectors at `t`, so that the chain rule applies to them.
   revert v w
   intro (v : TangentSpace 𝓘(ℝ, ℂ) t) (w : TangentSpace 𝓘(ℝ, ℂ) t)
   refine (SmoothForm.eval₂_mpullback _ _ _ _ v w).trans ?_
-  rw [← mkNonzero_comp_affineLift, mfderiv_comp t
-    ((contMDiff_mkNonzero ℂ 1 1 _).mdifferentiableAt one_ne_zero)
-    ((contMDiff_affineLift i t).mdifferentiableAt (by simp))]
+  rw [← hc, mfderiv_comp t ((contMDiff_mkNonzero ℂ 1 1 _).mdifferentiableAt one_ne_zero) hmd]
   simp only [ContinuousLinearMap.comp_apply, Function.comp_apply]
-  rw [eval₂_fubiniStudyForm_mfderiv_mkNonzero, fubiniStudyLift_apply, hd, hd,
-    coe_affineLift_apply]
-  clear hd
+  rw [eval₂_fubiniStudyForm_mfderiv_mkNonzero, fubiniStudyLift_apply, hd, hd, coe_affineLift]
+  clear hd hmd hc
   -- Read `v` and `w` as complex numbers again, for the computation.
   revert v w
   intro (v : ℂ) (w : ℂ)
   fin_cases i <;>
-    simp [Fin.sum_univ_two, stdComplexSymplecticForm_apply, dotProduct, Complex.sq_norm,
+    simp [c, Fin.sum_univ_two, stdComplexSymplecticForm_apply, dotProduct, Complex.sq_norm,
       Complex.normSq_apply] <;>
     field_simp <;> ring
 
