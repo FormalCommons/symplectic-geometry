@@ -48,7 +48,9 @@ type synonym `SymplecticGeometry.InteriorModel I M` carries that atlas as an ins
 * `SymplecticGeometry.InteriorModel.isOpenEmbedding_val`,
   `SymplecticGeometry.InteriorModel.isLocalDiffeomorph_val`: the map `InteriorModel I U → M` is an
   open embedding and a local diffeomorphism; `InteriorModel.val_mem_interior`: for the interior
-  of `M`, it takes values in the interior.
+  of `M`, it takes values in the interior, and `InteriorModel.range_val_interiorOpens`: its range
+  is the complement of the boundary (`InteriorModel.compl_range_val_interiorOpens`: the
+  complement of its range is the boundary).
 * `SymplecticGeometry.InteriorModel.continuous_mk`: a continuous map with values in the interior
   of `M` is continuous into the copy of the interior.
 
@@ -190,6 +192,17 @@ variable {I M} [ChartedSpace H M] [IsManifold I 1 M]
 /-- A point of the copy of the interior of `M` lies in the interior of `M`. -/
 theorem val_mem_interior (q : InteriorModel I (I.interiorOpens M)) : q.val ∈ I.interior M :=
   I.mem_interiorOpens.1 q.val_mem
+
+/-- The copy of the interior of `M` sits in `M` as the complement of the boundary. -/
+theorem range_val_interiorOpens :
+    Set.range (val (I := I) (U := I.interiorOpens M)) =
+      (Set.range ((↑) : I.boundary M → M))ᶜ := by
+  rw [range_val, I.coe_interiorOpens, Subtype.range_coe, I.compl_boundary]
+
+/-- The complement in `M` of the copy of the interior of `M` is the boundary. -/
+theorem compl_range_val_interiorOpens :
+    (Set.range (val (I := I) (U := I.interiorOpens M)))ᶜ = I.boundary M := by
+  rw [range_val, I.coe_interiorOpens, I.compl_interior]
 
 variable (I) in
 /-- The point of the copy `InteriorModel I (I.interiorOpens M)` of the interior of `M` at an

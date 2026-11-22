@@ -81,7 +81,9 @@ carries this convergence back to `L2Form o k`.
 
 * `TauCeti.SmoothForm.l2Inner`: the `L²` inner product of smooth forms, symmetric
   (`l2Inner_comm`), bilinear (`l2Inner_add_left`, `l2Inner_smul_left`, `l2Inner_neg_left`,
-  `l2Inner_sub_left`, …), with `l2Inner_self_nonneg` and `l2Inner_self_eq_zero_iff`.
+  `l2Inner_sub_left`, …), with `l2Inner_self_nonneg` and `l2Inner_self_eq_zero_iff`. On a closed
+  manifold the Hodge Laplacian is symmetric and nonnegative for it
+  (`l2Inner_hodgeLaplacian_eq_l2Inner_hodgeLaplacian`, `l2Inner_hodgeLaplacian_self_nonneg`).
 * `SymplecticGeometry.L2Form o k`: the Hilbert space of `L²` `k`-forms, with
   `L2Form.ofSmooth`, `L2Form.inner_ofSmooth`, `L2Form.norm_ofSmooth_sq`,
   `L2Form.ofSmooth_injective`, `L2Form.denseRange_ofSmooth` and `L2Form.induction_on`.
@@ -293,6 +295,30 @@ theorem l2Inner_self_eq_zero_iff (o : Manifold.Orientation I M (Fin m))
   subst h
   funext x
   exact LinearMap.map_zero₂ _ _
+
+section Laplacian
+
+variable [BoundarylessManifold I M] [T2Space M] {l : ℕ}
+
+/-- On a closed oriented Riemannian manifold, the Hodge Laplacian is symmetric for the `L²` inner
+product: `⟪Δα, β⟫ = ⟪α, Δβ⟫`. -/
+theorem l2Inner_hodgeLaplacian_eq_l2Inner_hodgeLaplacian (o : Manifold.Orientation I M (Fin m))
+    (hkl : k + l = m) (α β : SmoothForm I M ℝ k) :
+    l2Inner o (hodgeLaplacian o hkl α) β = l2Inner o α (hodgeLaplacian o hkl β) := by
+  simp only [l2Inner_def]
+  exact integralTopForm_inner_hodgeLaplacian_eq_inner_hodgeLaplacian o hkl α β
+    (Or.inl (by simp [compactlySupportedForms_eq_top]))
+
+/-- On a closed oriented Riemannian manifold, the Hodge Laplacian is nonnegative for the `L²`
+inner product: `0 ≤ ⟪Δα, α⟫`. -/
+theorem l2Inner_hodgeLaplacian_self_nonneg (o : Manifold.Orientation I M (Fin m))
+    (hkl : k + l = m) (α : SmoothForm I M ℝ k) :
+    0 ≤ l2Inner o (hodgeLaplacian o hkl α) α := by
+  rw [l2Inner_def]
+  exact integralTopForm_inner_hodgeLaplacian_self_nonneg o hkl
+    (by simp [compactlySupportedForms_eq_top])
+
+end Laplacian
 
 end TauCeti.SmoothForm
 
