@@ -133,12 +133,10 @@ pull-back bundle `f *ᵖ TangentSpace I` over the compact surface, and with a
 symplectic form instead of a metric, so that *First Chern number*'s
 additivity, which is stated for symplectic bundles, applies to it directly:
 
-1. A bundle metric `g` on `f *ᵖ TangentSpace I` exists over `M` (Tau Ceti's
-   `nonempty_contMDiffRiemannianMetric`, `M` being compact Hausdorff, hence
-   σ-compact). Let `Jf` be the pull-back of $J$ (*Symplectic vector
-   bundles*' `ContMDiffComplexStructure.tangentEquiv` and `pullback`) and
-   `ω := compatibleForm g Jf`, compatible with `Jf` by
-   `compatible_compatibleForm` (`Symplectic/ComplexStructure/Basic.lean`).
+1. Let `Jf` be `f.pullbackComplexStructure J`, the pull-back of $J$ to
+   `f *ᵖ TangentSpace I`, and `ω` a two-form compatible with `Jf`, given by
+   the library's `ContMDiffComplexStructure.exists_compatible`
+   (`Symplectic/ComplexStructure/Basic.lean`).
 2. The tangent image $W$ (frames
    `Bundle.Pullback.hasLocalContMDiffSubbundleFrames_range_mfderiv`) is
    `Jf`-invariant, so `ω`, which tames `Jf`, is nondegenerate on it, and
@@ -172,8 +170,9 @@ Chern number* need. *Almost complex manifolds*' `Metric.lean` is not used.
 
 ## Files
 
-The first file is general (any dimensions, no compactness) and sits beside
-Tau Ceti's normal bundle files, as the review of #838 advised; the others
+The files under `Geometry/Manifold/SmoothEmbedding/NormalSpace/` are general
+(any dimensions, no compactness) and sit beside Tau Ceti's normal bundle
+files, as the review of #838 advised; the others
 are in `Geometry/Symplectic/Manifold/AlmostComplex/`, beside Tau Ceti's folder of
 that name (none of Tau Ceti's files there has their names). The overview first
 named the single file `Geometry/Manifold/Complex/Adjunction.lean`; this
@@ -184,6 +183,7 @@ is updated to match. The list is in the order of the paths.
 | File | Contents | Issue |
 |---|---|---|
 | `Geometry/Manifold/SmoothEmbedding/NormalSpace/ComplexStructure.lean` | the complex structure that $J$ induces on the normal spaces and on the normal bundle | 1 |
+| `Geometry/Manifold/SmoothEmbedding/NormalSpace/Representative.lean` | the representative of a normal class in a complement, as a projection | 2 |
 | `Geometry/Symplectic/Manifold/AlmostComplex/AdjunctionFormula.lean` | the Chern number of the pulled-back tangent bundle, the milestone | 4 |
 | `Geometry/Symplectic/Manifold/AlmostComplex/NormalSplitting.lean` | the forms on the tangent and normal bundles and the symplectic splitting of the pulled-back tangent bundle | 2 |
 | `Geometry/Symplectic/Manifold/AlmostComplex/SelfIntersection.lean` | the self-intersection number, its Chern number, the orientation lemma | 3 |
@@ -211,39 +211,51 @@ take an embedding of any regularity `n` with `hn : n ≠ 0`.
   `@[simp] almostComplexStructureAt_normalComplexStructure`). Smoothness as in
   *Decisions*.
 
+### `Geometry/Manifold/SmoothEmbedding/NormalSpace/Representative.lean`
+
+Namespace `TauCeti.SmoothEmbedding`, for an embedding of any regularity.
+
+- `complementRepresentative_normalClass`: for a topological complement `W`
+  of the tangent image, Tau Ceti's `complementRepresentative` of the class of
+  `v` is the projection of `v` onto `W` along the tangent image.
+
 ### `Geometry/Symplectic/Manifold/AlmostComplex/NormalSplitting.lean`
 
-Namespace `TauCeti.SmoothEmbedding`, for `f`, `J`, `hJ` as above and
-`[T2Space M] [SigmaCompactSpace M]` (for the existence of a metric), with
-`Jf` the pull-back of $J$ to `f *ᵖ TangentSpace I`. The statements take a
-form `ω : ContMDiffTwoForm I' ∞ E (f *ᵖ TangentSpace I)` with
-`hω : ω.Compatible Jf`; only the last one chooses it.
+Namespace `TauCeti.SmoothEmbedding`, for `f`, `J`, `hJ` as above, with
+`Jf = f.pullbackComplexStructure J`, the pull-back of $J$ to
+`f *ᵖ TangentSpace I` (`pullbackComplexStructure_apply`). No hypothesis on
+`M` is needed: a form compatible with `Jf` comes from the library's
+`ContMDiffComplexStructure.exists_compatible` where it is used. The
+statements take a form `ω : ContMDiffTwoForm I' ⊤ E (f *ᵖ TangentSpace I)`
+with `hω : ω.Tames Jf`, and `hω : ω.Compatible Jf` where invariance is used.
 
-- `isCompl_tangentRange_orthogonal`: at each point the tangent image and its
-  `ω`-orthogonal are complements, and the orthogonal is `Jf`-invariant. The
-  form is nondegenerate on the tangent image, since $\omega(w,Jw)>0$ for
-  $w\neq0$ and $Jw$ is tangent, so Mathlib's
-  `LinearMap.BilinForm.isCompl_orthogonal_of_restrict_nondegenerate`
-  applies.
-- `tangentForm f ω hω : ContMDiffTwoForm I' ∞ E' (TangentSpace I')`, the form
+- `orthogonalTangentRange f ω x hn`, the `ω`-orthogonal of the tangent image
+  as a subspace of `TangentSpace I (f x)`, with
+  `mem_orthogonalTangentRange_iff`.
+- `isCompl_tangentRange_orthogonal` and `isTopCompl_tangentRange_orthogonal`:
+  at each point the tangent image and its `ω`-orthogonal are complements, by Tau Ceti's
+  `SymplecticForm.Tames.isSymplectic_of_mem_invtSubmodule`; and
+  `pullbackComplexStructure_mem_orthogonal`: for `ω` invariant under `Jf`,
+  the orthogonal is `Jf`-invariant.
+- `tangentForm f ω : ContMDiffTwoForm I' ⊤ E' (TangentSpace I')`, the form
   $\sigma(u,v)=\omega(df\,u,df\,v)$, with `tangentForm_apply`,
-  `IsNondegenerate` of it, and `tangentForm_pos`: $\sigma(u,v)>0$ when
+  `isNondegenerate_tangentForm`, and `tangentForm_pos`: $\sigma(u,v)>0$ when
   $u\neq0$ and $df\,v=J\,df\,u$.
-- `normalForm f hdim ω hω : ContMDiffTwoForm I' ∞ P (NormalSpace)`, the form
-  $\omega_\nu(a,b)=\omega(r\,a, r\,b)$ with $r$ the complement representative
-  for $W^\omega$, with `normalForm_normalClass` (its value on classes of
-  vectors of $W^\omega$) and `compatible_normalForm`: it is compatible with
-  `normalComplexStructure`.
-- `normalSplitting f hdim ω hω x : (f *ᵖ TangentSpace I) x ≃L[ℝ]
-  (TangentSpace I' ×ᵇ NormalSpace) x`, with `normalSplitting_apply`, the
+- `normalForm f hdim hJ ω hω : ContMDiffTwoForm I' ⊤ P (NormalSpace)`, the
+  form $\omega_\nu(a,b)=\omega(r\,a, r\,b)$ with $r$ the complement
+  representative for $W^\omega$, with `normalForm_normalClass` (its value on
+  classes of vectors of $W^\omega$) and `compatible_normalForm`: it is
+  compatible with `normalComplexStructure`.
+- `normalSplitting f hJ ω hω x : (f *ᵖ TangentSpace I) x ≃L[ℝ]
+  (TangentSpace I' ×ᵇ NormalSpace) x`, with `normalSplitting_symm_apply`,
+  `snd_normalSplitting_apply` and `mfderiv_fst_normalSplitting_apply`, the
   smoothness of its map of total spaces (`contMDiff_normalSplitting`), and
   `pushforward_normalSplitting`: it carries `ω` to
-  `(tangentForm f ω hω).prod (normalForm f hdim ω hω)`.
-- `exists_compatible_pullback`: some `ω` is compatible with `Jf`, from a
-  bundle metric and `compatibleForm` (step 1 of *Decisions*).
+  `(tangentForm f ω).prod (normalForm f hdim hJ ω hω)`.
 
-If the file grows past a few hundred lines, the orthogonal subbundle and the
-form `normalForm` go first, in an issue of their own.
+The orthogonal and `normalForm` stay in this file, with the splitting: they
+share the complement and the smoothness of its representatives, and the file
+stays under the limit for a new file.
 
 ### `Geometry/Symplectic/Manifold/AlmostComplex/SelfIntersection.lean`
 
@@ -302,7 +314,8 @@ Namespace `TauCeti.SmoothEmbedding`, for a surface `M` in `X` with
   Its docstring ends with the line Milestone: *Adjunction formula*. The page's
   second form, $K\cdot\Sigma+\Sigma\cdot\Sigma=2g-2$ with $K=-c_1(TX,J)$, is
   the same equation, and is not stated again. Proof: choose `ω` by
-  `exists_compatible_pullback`. Then
+  `ContMDiffComplexStructure.exists_compatible` for
+  `f.pullbackComplexStructure J`. Then
 
   - $\langle c_1(TX,J),[\Sigma]\rangle$ is `chernNumber` of `Jf` by
     `chernNumber_pullback_complexStructure`, which is
@@ -372,7 +385,7 @@ sub-issues of #879, *Build the part Adjunction*. Sizes are estimates.
 | # | Issue | Files | Blocked by | Size |
 |---|---|---|---|---|
 | 1 | The complex structure on the normal bundle | `Geometry/Manifold/SmoothEmbedding/NormalSpace/ComplexStructure.lean` | — | 200 |
-| 2 | The symplectic splitting of the tangent bundle along a $J$-invariant submanifold | `AlmostComplex/NormalSplitting.lean` | 1 | 400 |
+| 2 | The symplectic splitting of the tangent bundle along a $J$-invariant submanifold | `AlmostComplex/NormalSplitting.lean`, `NormalSpace/Representative.lean` | 1 | 400 |
 | 3 | The self-intersection number | `AlmostComplex/SelfIntersection.lean` | 1; #784 | 250 |
 | 4 | The adjunction formula | `AlmostComplex/AdjunctionFormula.lean` | 2, 3; #784, #788 | 200 |
 
