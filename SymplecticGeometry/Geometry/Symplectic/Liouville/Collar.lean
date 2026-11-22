@@ -11,8 +11,8 @@ public import SymplecticGeometry.Topology.Sets.Strip
 import Mathlib.Geometry.Manifold.Metrizable
 import TauCeti.Geometry.Manifold.DifferentialForm.Opens
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Injective
-import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Opens
 import SymplecticGeometry.Geometry.Manifold.VectorField.Pullback
+import SymplecticGeometry.Geometry.Manifold.MFDeriv.Opens
 
 /-!
 # Liouville collars of hypersurfaces
@@ -39,7 +39,8 @@ The field `Y` is Liouville only on `U`, while Tau Ceti's collar theorems
 `TauCeti.mpullback_flowOf_comp_apply_eq_symplectization`) ask for a field and a primitive on the
 whole manifold. They are therefore applied on the open submanifold `U`, to the restriction of `Y`
 (Mathlib's pullback `VectorField.mpullback` along the inclusion) and of `ι_Y σ`, which is
-Liouville there by `TauCeti.interior_mextDeriv_mpullback_subtypeVal_interior`, and the
+Liouville there by `TauCeti.SmoothTwoForm.interior_mextDeriv_restrictInterior` (the restricted
+primitive is `TauCeti.SmoothTwoForm.restrictInterior`), and the
 resulting injective local diffeomorphism is made a diffeomorphism onto its image with Tau Ceti's
 `IsLocalDiffeomorph.diffeomorphOfInjective`.
 
@@ -176,14 +177,14 @@ private theorem liouvilleCollar_of_injOn {U' : Opens M}
       mpullback (𝓘(ℝ).prod J) I g γ = mpullback (𝓘(ℝ).prod J) (𝓘(ℝ).prod J)
         (Subtype.val : D → ℝ × Q) (mpullback (𝓘(ℝ).prod J) I Ψ γ) := by
     funext p
-    exact mpullback_comp_at ((contMDiff_subtypeVal p).mdifferentiableAt one_ne_zero)
+    exact mpullback_comp_at mdifferentiableAt_subtypeVal
       ((hloc ⟨p.val, p.property⟩).mdifferentiableAt (by simp)) γ
   -- Pulling back along `Φ` into `M` is pulling back along `g`, then along the inclusion of `U'`.
   have hΦpb {k : ℕ} (γ : RoughForm I M ℝ k) (p : D) :
       mpullback (𝓘(ℝ).prod J) I (fun p ↦ (hf.diffeomorphOfInjective hfinj p : M)) γ p =
         mpullback (𝓘(ℝ).prod J) I g (mpullback I I (Subtype.val : U' → M) γ) p := by
     rw [hΦ, mpullback_comp_at (hg.contMDiff.mdifferentiableAt (by simp))
-      ((contMDiff_subtypeVal _).mdifferentiableAt one_ne_zero)]
+      mdifferentiableAt_subtypeVal]
   have hpb {k : ℕ} (γ : RoughForm (𝓘(ℝ).prod J) (ℝ × Q) ℝ k) (p : D) :
       mpullback (𝓘(ℝ).prod J) (𝓘(ℝ).prod J) (Subtype.val : D → ℝ × Q) γ p = γ p.val :=
     mpullback_subtype_val_apply γ p
@@ -194,7 +195,7 @@ private theorem liouvilleCollar_of_injOn {U' : Opens M}
   · simp [Ψ, hιi]
   · exact ((isMIntegralCurveOn_flowOf (hZ.of_le (by simp)) (ι q)).mono
       fun t ht ↦ hDZ ht).map_of_mfderiv_eq
-      (fun _ _ ↦ (contMDiff_subtypeVal _).mdifferentiableAt one_ne_zero) (fun _ _ ↦ hZY _)
+      (fun _ _ ↦ mdifferentiableAt_subtypeVal) (fun _ _ ↦ hZY _)
   · funext p
     rw [hΦpb, ← hdβ, hgpb, hpb, hpb, mpullback_flowOf_comp_mextDeriv_apply hZ hι hZβ
       (hDZ p.property), hια, mextDerivₗ_apply]
@@ -224,17 +225,13 @@ theorem SmoothEmbedding.exists_pos_forall_liouvilleCollar [SecondCountableTopolo
   -- The field `Y` and the primitive `ι_Y σ`, restricted to `U'`.
   let Z : (x : U') → TangentSpace I x := VectorField.mpullback I I Subtype.val Y
   have hZ : ContMDiff I I.tangent ∞ (T% Z) := VectorField.contMDiff_mpullback_subtypeVal hY
-  let β : SmoothForm I U' ℝ 1 :=
-    ⟨_, (isSmoothForm_mpullback_subtypeVal_interior (U := U')
-      σ.isSmoothForm.contMDiff.contMDiffOn
-      hY).mem_smoothBundleForms⟩
-  have hβ : β.val = mpullback I I Subtype.val (RoughForm.interior Y σ.val) := rfl
-  have hdβ : mextDeriv β.val = mpullback I I Subtype.val σ.val := by
-    rw [hβ]
-    exact mextDeriv_mpullback_subtypeVal_interior hσ.isClosed hY hYσ
-  have hZβ : (mextDeriv β.val).interior Z = β.val := by
-    rw [hβ]
-    exact interior_mextDeriv_mpullback_subtypeVal_interior hσ.isClosed hY hYσ
+  let β : SmoothForm I U' ℝ 1 := σ.restrictInterior (U := U') hY
+  have hβ : β.val = mpullback I I Subtype.val (RoughForm.interior Y σ.val) :=
+    SmoothTwoForm.coe_restrictInterior σ hY
+  have hdβ : mextDeriv β.val = mpullback I I Subtype.val σ.val :=
+    SmoothTwoForm.mextDeriv_restrictInterior hσ.isClosed hY hYσ
+  have hZβ : (mextDeriv β.val).interior Z = β.val :=
+    SmoothTwoForm.interior_mextDeriv_restrictInterior hσ.isClosed hY hYσ
   -- The hypersurface, as a map into `U'`.
   let ι : Q → U' := fun q ↦ ⟨i q, hiU (mem_range_self q)⟩
   have hι : ContMDiff J I ∞ ι := (ContMDiff.subtypeVal_comp_iff _ ι).1 i.contMDiff
@@ -243,7 +240,7 @@ theorem SmoothEmbedding.exists_pos_forall_liouvilleCollar [SecondCountableTopolo
     refine Subtype.ext (funext fun q ↦ ?_)
     rw [SmoothForm.coe_mpullback, SmoothForm.neg_toRoughForm, Pi.neg_apply, hα, Pi.neg_apply,
       neg_neg, hβ, ← mpullback_comp_at ((hι q).mdifferentiableAt (by simp))
-        ((contMDiff_subtypeVal _).mdifferentiableAt one_ne_zero), hιi]
+        mdifferentiableAt_subtypeVal, hιi]
   have hcontact : (SmoothForm.mpullback ι hι β).IsContactForm := by
     obtain ⟨α₀, hα₀, hα₀c, -⟩ :=
       i.exists_isContactForm_eq_neg_mpullback_interior hσ hdim hU hiU hY hYσ hYi

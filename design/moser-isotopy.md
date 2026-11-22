@@ -665,6 +665,8 @@ and pullbacks commute with `d`. That theorem gives
 - *Contact geometry*, merged: `Geometry/Manifold/DifferentialForm/Flow/Family.lean`,
   for `SmoothForm.mpullback_prodMk_timeDeriv_lineMapFamily` in `Relative.lean`
   and `Isotopy.lean`.
+- *Liouville structures*: `Geometry/Manifold/MFDeriv/Opens.lean`
+  (`mdifferentiableAt_subtypeVal`), in `DifferentialForm/Opens.lean`.
 - *Standard model*, merged, only for the plan's case `F = StdSpace (Fin n)`
   of `Darboux.lean`. The general statement does not mention it.
 

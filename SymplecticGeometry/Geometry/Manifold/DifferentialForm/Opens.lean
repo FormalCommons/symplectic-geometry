@@ -9,6 +9,7 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.Interior
 public import TauCeti.Geometry.Manifold.DifferentialForm.Opens
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffeomorph
+import SymplecticGeometry.Geometry.Manifold.MFDeriv.Opens
 
 /-!
 # Differential forms restricted to open subsets
@@ -132,7 +133,7 @@ theorem RoughForm.inChartAt_mpullback_subtype_val_eventuallyEq {U : Opens M}
   have hmf : mfderivWithin 𝓘(ℝ, E) I (Subtype.val ∘ (extChartAt I x).symm) (range I) z =
       mfderivWithin 𝓘(ℝ, E) I (extChartAt I (x : M)).symm (range I) z :=
     hev.symm.mfderivWithin_eq h0
-  rw [inChartAt_mpullback γ _ x hz (contMDiff_subtypeVal.mdifferentiableAt one_ne_zero), hmf,
+  rw [inChartAt_mpullback γ _ x hz mdifferentiableAt_subtypeVal, hmf,
     ← Function.comp_apply (f := Subtype.val), h0]
   ext v
   exact (inChartAt_apply γ (x : M) z v).symm
@@ -182,12 +183,10 @@ theorem mpullback_toDiffeomorphSourceTarget_liftOpens {U : Opens M} {V : Opens M
     Φ.liftOpens_source hU hV ▸ z.property
   have hφz : MDifferentiableAt I I' φ z := φ.contMDiff.mdifferentiableAt (by simp)
   have hΨz : MDifferentiableAt I I' Ψ z := Ψ.mdifferentiableAt (by simp) z.property
-  have hval {N : Opens M'} (x : N) : MDifferentiableAt I' I' (Subtype.val : N → M') x :=
-    (contMDiff_subtypeVal (n := 1)).mdifferentiableAt one_ne_zero
   rw [TauCeti.SmoothForm.coe_mpullback_subtype_val_apply τ z, TauCeti.SmoothForm.coe_mpullback,
-    TauCeti.SmoothForm.coe_mpullback, ← TauCeti.mpullback_comp_at hφz (hval _), hφΨ,
-    TauCeti.mpullback_comp_at ((contMDiff_subtypeVal (n := 1)).mdifferentiableAt one_ne_zero)
-      hΨz, TauCeti.mpullback_subtype_val_apply, ← hyz,
+    TauCeti.SmoothForm.coe_mpullback, ← TauCeti.mpullback_comp_at hφz mdifferentiableAt_subtypeVal,
+    hφΨ, TauCeti.mpullback_comp_at mdifferentiableAt_subtypeVal hΨz,
+    TauCeti.mpullback_subtype_val_apply, ← hyz,
     TauCeti.mpullback_liftOpens_apply_coe Φ (by simp) hU hV _ hy, h y hy]
 
 end PartialDiffeomorph

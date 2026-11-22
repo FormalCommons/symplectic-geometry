@@ -663,6 +663,8 @@ four theorems share.
 
 - From *Moser isotopy*: `Relative.lean`, `Geometry/Manifold/DifferentialForm/Opens.lean` and
   `Geometry/Symplectic/Manifold/TwoForm.lean`, only in `Tubular.lean`.
+- From *Liouville structures*: `Geometry/Manifold/MFDeriv/Opens.lean`
+  (`mdifferentiable_subtypeVal`), in `CharacteristicFoliation.lean`.
 - From *Symplectic vector bundles*:
   `Geometry/Manifold/VectorBundle/Pullback.lean` (merged), in
   `Geometry/Manifold/VectorBundle/Adjoint.lean`, for the derivative of an

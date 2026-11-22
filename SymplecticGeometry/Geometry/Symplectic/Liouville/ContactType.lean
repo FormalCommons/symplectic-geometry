@@ -70,7 +70,10 @@ builds such a field from a prescribed contact form.
   `VectorField.mpullback I I Subtype.val Z` is Liouville for `β` in Tau Ceti's sense. The last
   is Tau Ceti's naturality of the interior product, `TauCeti.mpullback_interior`, after Cartan's
   formula on `U`, with the restricted field related to `Z` by
-  `VectorField.mfderiv_subtypeVal_mpullback_subtypeVal`.
+  `VectorField.mfderiv_subtypeVal_mpullback_subtypeVal`. The restriction `β`, a smooth one-form
+  on `U`, is `TauCeti.SmoothTwoForm.restrictInterior`, and the two statements for it are
+  `TauCeti.SmoothTwoForm.mextDeriv_restrictInterior` and
+  `TauCeti.SmoothTwoForm.interior_mextDeriv_restrictInterior`.
 
 ## References
 
@@ -305,6 +308,38 @@ theorem interior_mextDeriv_mpullback_subtypeVal_interior {U : Opens M} {σ : Smo
       mpullback I I Subtype.val (RoughForm.interior Z σ.val) := by
   rw [mextDeriv_mpullback_subtypeVal_interior hσ hZ hZσ,
     ← mpullback_interior _ _ Z σ.val (VectorField.mfderiv_subtypeVal_mpullback_subtypeVal Z)]
+
+/-- For a field `Z` smooth on an open set `U`, the restriction to `U` of the one-form `ι_Z σ`, as
+a smooth one-form on `U`. It is smooth although `Z` need not be smooth outside `U`. -/
+noncomputable def SmoothTwoForm.restrictInterior (σ : SmoothTwoForm I M) {U : Opens M}
+    (hZ : ContMDiffOn I I.tangent ∞ (T% Z) U) : SmoothForm I U ℝ 1 :=
+  ⟨mpullback I I Subtype.val (RoughForm.interior Z σ.val),
+    (isSmoothForm_mpullback_subtypeVal_interior σ.isSmoothForm.contMDiff.contMDiffOn
+      hZ).mem_smoothBundleForms⟩
+
+@[simp]
+theorem SmoothTwoForm.coe_restrictInterior (σ : SmoothTwoForm I M) {U : Opens M}
+    (hZ : ContMDiffOn I I.tangent ∞ (T% Z) U) :
+    (σ.restrictInterior hZ : RoughForm I U ℝ 1) =
+      mpullback I I Subtype.val (RoughForm.interior Z σ.val) :=
+  (rfl)
+
+/-- If `σ` is closed and `L_Z σ = σ` on `U`, the restriction of `ι_Z σ` to `U` is a primitive
+of the restriction of `σ`. -/
+theorem SmoothTwoForm.mextDeriv_restrictInterior {U : Opens M} {σ : SmoothTwoForm I M}
+    (hσ : σ.IsClosed) (hZ : ContMDiffOn I I.tangent ∞ (T% Z) U)
+    (hZσ : ∀ x ∈ U, mlieDerivForm Z σ.val x = σ.val x) :
+    mextDeriv (σ.restrictInterior hZ).val = mpullback I I Subtype.val σ.val :=
+  mextDeriv_mpullback_subtypeVal_interior hσ hZ hZσ
+
+/-- If `σ` is closed and `L_Z σ = σ` on `U`, the restriction of `Z` to `U` is a Liouville field
+of the restriction `β` of `ι_Z σ` in Tau Ceti's sense: `ι_Z dβ = β` on `U`. -/
+theorem SmoothTwoForm.interior_mextDeriv_restrictInterior {U : Opens M} {σ : SmoothTwoForm I M}
+    (hσ : σ.IsClosed) (hZ : ContMDiffOn I I.tangent ∞ (T% Z) U)
+    (hZσ : ∀ x ∈ U, mlieDerivForm Z σ.val x = σ.val x) :
+    (mextDeriv (σ.restrictInterior hZ).val).interior (VectorField.mpullback I I Subtype.val Z) =
+      (σ.restrictInterior hZ).val :=
+  interior_mextDeriv_mpullback_subtypeVal_interior hσ hZ hZσ
 
 end Restrict
 

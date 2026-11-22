@@ -2091,7 +2091,10 @@ it, its design adds it.
   *Symplectic neighbourhoods* for the instance of
   `Geometry/Manifold/IsManifold/Basic.lean` giving `C^(m + 1)` structures
   from `C^∞` ones, in
-  `Geometry/Manifold/VectorBundle/Pullback.lean`. The
+  `Geometry/Manifold/VectorBundle/Pullback.lean`. *Liouville structures* for
+  `Geometry/Manifold/ModelTransport/Opens.lean` (the interior re-modelled over
+  `E`, `TopologicalSpace.Opens.InteriorModel`), in
+  `Section/Nonvanishing.lean`. The
   part uses nothing from *Compatible complex structures* (part 9) beyond what
   Tau Ceti already has: the fibrewise constructions it needs (the Cayley path,
   $J_{g,\omega}$, $\omega_{g,J}$, the complex-linear part) are Tau Ceti's
