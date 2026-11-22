@@ -43,6 +43,8 @@ target of `Λ`, not only at `x`.
   diffeomorphism between their model spaces.
 * `TauCeti.EuclideanHalfSpace.isLocalDiffeomorph_of_val_eq_smul`: multiplication by a positive
   constant is a local diffeomorphism of the half-space.
+* `ModelWithCorners.isLocalDiffeomorphAt_coe`: a model with corners is a local diffeomorphism at
+  every point that it sends into the interior of its range.
 -/
 
 public section
@@ -171,5 +173,13 @@ theorem TauCeti.EuclideanHalfSpace.isLocalDiffeomorph_of_val_eq_smul {m : ℕ} [
   rw [← (𝓡∂ m).left_inv (f s)]
   congr 1
   rw [modelWithCornersEuclideanHalfSpace_apply, modelWithCornersEuclideanHalfSpace_apply, hf]
+
+/-- A model with corners `I` is a `C^n` local diffeomorphism from its model space to the model
+vector space at every point that it sends into the interior of its range. -/
+theorem ModelWithCorners.isLocalDiffeomorphAt_coe {x : H} (hx : I x ∈ interior (range I)) :
+    IsLocalDiffeomorphAt I 𝓘(𝕜, E) n I x := by
+  have h := TauCeti.isLocalDiffeomorphAt_extChartAt (I := I) (n := n) (mem_extChartAt_source x)
+    (by simpa [extChartAt_self_eq] using hx)
+  simpa [extChartAt_self_eq] using h
 
 end
