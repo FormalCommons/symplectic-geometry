@@ -95,40 +95,6 @@ theorem mpullback_prodMk_velocityForm_restrict_eq_add (φ : SmoothIsotopy f₀ f
   rw [hdh, mpullback_prodMk_velocityForm_restrict, map_sub, Submodule.coe_sub, hψ, hc,
     add_sub_cancel]
 
-omit [FiniteDimensional ℝ E] [I.Boundaryless] [T2Space M] in
-/-- The slices of the velocity form of a smooth isotopy `F` from `P` to `M` form a smooth family of
-one-forms on `P`. -/
-theorem isSmoothFamily_mpullback_prodMk_velocityForm {E' H' : Type*} [NormedAddCommGroup E']
-    [NormedSpace ℝ E'] [TopologicalSpace H'] {J : ModelWithCorners ℝ E' H'} {P : Type*}
-    [TopologicalSpace P] [ChartedSpace H' P] [IsManifold J ∞ P] {g₀ g₁ : C^∞⟮J, P; I, M⟯}
-    (σ : SmoothTwoForm I M) (F : SmoothIsotopy g₀ g₁) :
-    SymplecticGeometry.IsSmoothFamily (𝓡∂ 1) fun t ↦ SmoothForm.mpullback (Prod.mk t)
-      (contMDiff_const.prodMk contMDiff_id) (F.velocityForm σ) :=
-  SymplecticGeometry.isSmoothFamily_def.2 ⟨_, fun _ ↦ rfl⟩
-
-omit [I.Boundaryless] [IsManifold I ∞ M] [T2Space M] in
-/-- **From compact sets to a neighbourhood.** Let `φ` be a smooth isotopy of an open `U ⊆ M`, `Q`
-compact, and `ψ` an isotopy of an open `V` with `Q ⊆ V ⊆ U` that starts at the inclusion and agrees
-with `φ` on `V`. If on every compact `K ⊆ V` the isotopy `ψ` is the restriction of a diffeotopy of
-`M` with a property `R`, then there are an open `N` with `Q ⊆ N ⊆ U` and a diffeotopy `Ψ` of `M`
-with property `R` such that `Ψ_t x = φ_t x` for every `t` and every `x ∈ N`. -/
-theorem exists_opens_forall_apply_eq_of_forall_isCompact {Q : Set M} (hQ : IsCompact Q)
-    {V : Opens M} (hQV : Q ⊆ V) (hVU : V ≤ U) (φ : SmoothIsotopy f₀ f₁)
-    {g₀ g₁ : C^∞⟮I, V; I, M⟯}
-    (ψ : SmoothIsotopy g₀ g₁) (hg₀ : ∀ x, g₀ x = x)
-    (hψ : ∀ p, ψ p = φ (p.1, Opens.inclusion hVU p.2)) {R : Diffeotopy I ∞ M → Prop}
-    (hext : ∀ K : Set V, IsCompact K → ∃ Ψ, R Ψ ∧ ∀ t, ∀ x ∈ K, Ψ (t, g₀ x) = ψ (t, x)) :
-    ∃ N : Opens M, Q ⊆ N ∧ N ≤ U ∧ ∃ Ψ, R Ψ ∧ ∀ t, ∀ x : U, (x : M) ∈ N → Ψ (t, x) = φ (t, x) := by
-  have := Manifold.locallyCompact_of_finiteDimensional (M := M) I
-  obtain ⟨L, hL, hQL, hLV⟩ := exists_compact_between hQ V.isOpen hQV
-  obtain ⟨Ψ, hR, happly⟩ := hext _
-    (Topology.IsInducing.subtypeVal.isCompact_preimage' hL (by rwa [Subtype.range_coe]))
-  refine ⟨⟨interior L, isOpen_interior⟩, hQL, fun x hx ↦ hVU (hLV (interior_subset hx)), Ψ, hR,
-    fun t x hx ↦ ?_⟩
-  have := happly t ⟨x, hLV (interior_subset hx)⟩ (mem_preimage.2 (interior_subset hx))
-  rw [hψ, hg₀] at this
-  exact this
-
 /-- **Symplectic isotopy extension.** Let `σ` be a symplectic form on a compact manifold `M`, and
 `Q ⊆ M` a compact set with NDR data such that every additive map `H₁(Q; ℤ) → ℝ` is the restriction
 of the periods of a de Rham class of `M`. Let `φ` be a smooth isotopy of an open `U ⊇ Q` into `M`,
@@ -146,18 +112,17 @@ theorem exists_diffeotopy_mem_diffeomorphStabilizer_eqOn [CompactSpace M] (hσ :
     ∃ N : Opens M, Q ⊆ N ∧ N ≤ U ∧ ∃ Ψ : Diffeotopy I ∞ M,
       (∀ t, Ψ.timeSlice t ∈ SmoothForm.diffeomorphStabilizer σ) ∧
       ∀ t, ∀ x : U, (x : M) ∈ N → Ψ (t, x) = φ (t, x) := by
-  have hα := isSmoothFamily_mpullback_prodMk_velocityForm σ φ
+  have hα := SymplecticGeometry.isSmoothFamily_mpullback_prodMk (φ.velocityForm σ)
   have hαcl (t : unitInterval) := (mem_closedForms I _).2
     (hφ.mextDeriv_mpullback_prodMk_velocityForm hσ.isClosed t)
   obtain ⟨β, hβ, hβcl, hper⟩ := SymplecticGeometry.exists_closedForms_periods_eq hQU hsurj hα hαcl
   obtain ⟨V, hQV, hVU, h, hh, hdh⟩ := SymplecticGeometry.exists_contMDiff_primitive_of_periods
     hQr.some hQU φ hf₀ hα hαcl hβ hβcl hper
   obtain ⟨Ω, hΩ⟩ := SymplecticGeometry.isSmoothFamily_def.1 hβ
-  exact exists_opens_forall_apply_eq_of_forall_isCompact hQ hQV hVU φ (φ.restrict hVU)
-    (fun _ ↦ hf₀ _) (restrict_apply φ hVU) fun K hK ↦
-      (φ.restrict hVU).exists_diffeotopy_mem_diffeomorphStabilizer_forall_apply_eq hσ rfl hK
-        (β := Ω) (fun t ↦ by rw [hΩ]; exact (mem_closedForms I _).1 (hβcl t)) hh
-        fun t ↦ mpullback_prodMk_velocityForm_restrict_eq_add φ hVU Ω t (by rw [hdh, hΩ])
+  exact φ.exists_opens_forall_apply_eq_of_forall_isCompact hf₀ hVU hQ hQV fun K hK ↦
+    (φ.restrict hVU).exists_diffeotopy_mem_diffeomorphStabilizer_forall_apply_eq hσ rfl hK
+      (β := Ω) (fun t ↦ by rw [hΩ]; exact (mem_closedForms I _).1 (hβcl t)) hh
+      fun t ↦ mpullback_prodMk_velocityForm_restrict_eq_add φ hVU Ω t (by rw [hdh, hΩ])
 
 /-- **Hamiltonian isotopy extension.** Let `σ` be a symplectic form on a Hausdorff σ-compact
 manifold `M`, and `Q ⊆ M` a compact set with NDR data such that `H₁(Q; ℤ)` has no nonzero
@@ -175,7 +140,7 @@ theorem exists_hasHamiltonian_eqOn [SigmaCompactSpace M] (hσ : σ.IsSymplectic)
       (K : Set M), IsCompact K ∧ Ψ.IsCompactlySupportedHamiltonian σ ∧ Ψ.HasHamiltonian σ F ∧
       (∀ p, p.1 ∉ K → F p = 0) ∧ (∀ t, ∀ y ∉ K, Ψ (t, y) = y) ∧
       ∀ t, ∀ x : U, (x : M) ∈ N → Ψ (t, x) = φ (t, x) := by
-  have hα := isSmoothFamily_mpullback_prodMk_velocityForm σ φ
+  have hα := SymplecticGeometry.isSmoothFamily_mpullback_prodMk (φ.velocityForm σ)
   have hαcl (t : unitInterval) := (mem_closedForms I _).2
     (hφ.mextDeriv_mpullback_prodMk_velocityForm hσ.isClosed t)
   obtain ⟨V, hQV, hVU, h, hh, hdh⟩ := SymplecticGeometry.exists_contMDiff_primitive_of_periods
@@ -185,8 +150,8 @@ theorem exists_hasHamiltonian_eqOn [SigmaCompactSpace M] (hσ : σ.IsSymplectic)
       (contMDiff_const.prodMk contMDiff_id) (0 : SmoothForm ((𝓡∂ 1).prod I) (unitInterval × M) ℝ 1)
       = 0 := map_zero _
   obtain ⟨N, hQN, hNU, Ψ, ⟨F, K, hK, hΨ, hF, hFK, hΨK⟩, happly⟩ :=
-    exists_opens_forall_apply_eq_of_forall_isCompact hQ hQV hVU φ (φ.restrict hVU)
-      (fun _ ↦ hf₀ _) (restrict_apply φ hVU) (R := fun Ψ ↦ ∃ (F : M × unitInterval → ℝ) (K : Set M),
+    φ.exists_opens_forall_apply_eq_of_forall_isCompact hf₀ hVU hQ hQV
+      (R := fun Ψ ↦ ∃ (F : M × unitInterval → ℝ) (K : Set M),
         IsCompact K ∧ Ψ.IsCompactlySupportedHamiltonian σ ∧ Ψ.HasHamiltonian σ F ∧
         (∀ p, p.1 ∉ K → F p = 0) ∧ ∀ t, ∀ y ∉ K, Ψ (t, y) = y) fun L hL ↦ by
       obtain ⟨Ψ, F, K, hK, hΨ, hF, hFK, hΨK, happly⟩ :=

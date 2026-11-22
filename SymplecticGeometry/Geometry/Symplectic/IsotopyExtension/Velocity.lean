@@ -71,6 +71,9 @@ diffeotopies and the cylinder `[0, 1] × M` of isotopies.
   smooth functions whose slices are primitives of the slices of its velocity form.
 * `TauCeti.SmoothIsotopy.mpullback_prodMk_velocityForm_restrict`: the slices of the velocity form
   of a restriction are the restrictions of the slices.
+* `TauCeti.SmoothIsotopy.exists_opens_forall_apply_eq_of_forall_isCompact`: if the restriction
+  of an isotopy to an open `V ⊇ Q` agrees on each compact subset of `V` with a diffeotopy of a
+  given kind, the isotopy agrees with one on an open neighbourhood of `Q`.
 
 ## Implementation notes
 
@@ -347,6 +350,26 @@ theorem mpullback_prodMk_velocityForm_restrict (σ : SmoothTwoForm I M) (G : Smo
   have h₂ : (fun y ↦ G.restrict h (t, y)) = fun y ↦ G (t, Opens.inclusion h y) :=
     funext fun y ↦ restrict_apply G h (t, y)
   rw [restrict_apply, h₁, h₂, hcomp]
+
+/-- **From compact sets to a neighbourhood.** Let `φ` be a smooth isotopy of an open `U ⊆ M` that
+starts at the inclusion, `V ⊆ U` open and `Q ⊆ V` compact. If on every compact `K ⊆ V` the
+restriction of `φ` to `V` agrees with a diffeotopy of `M` with a property `R`, then there are an
+open `N` with `Q ⊆ N ⊆ U` and a diffeotopy `Ψ` of `M` with property `R` such that
+`Ψ_t x = φ_t x` for every `t` and every `x ∈ N`. -/
+theorem exists_opens_forall_apply_eq_of_forall_isCompact [FiniteDimensional ℝ E]
+    {U V : Opens M} {f₀ f₁ : C^∞⟮I, U; I, M⟯} (φ : SmoothIsotopy f₀ f₁) (hf₀ : ∀ x, f₀ x = x)
+    (hVU : V ≤ U) {Q : Set M} (hQ : IsCompact Q) (hQV : Q ⊆ V) {R : Diffeotopy I ∞ M → Prop}
+    (hext : ∀ K : Set V, IsCompact K →
+      ∃ Ψ, R Ψ ∧ ∀ t, ∀ x ∈ K, Ψ (t, f₀ (Opens.inclusion hVU x)) = φ.restrict hVU (t, x)) :
+    ∃ N : Opens M, Q ⊆ N ∧ N ≤ U ∧ ∃ Ψ, R Ψ ∧ ∀ t, ∀ x : U, (x : M) ∈ N → Ψ (t, x) = φ (t, x) := by
+  have := Manifold.locallyCompact_of_finiteDimensional (M := M) I
+  obtain ⟨L, hL, hQL, hLV⟩ := exists_compact_between hQ V.isOpen hQV
+  obtain ⟨Ψ, hR, happly⟩ := hext _
+    (Topology.IsInducing.subtypeVal.isCompact_preimage' hL (by rwa [Subtype.range_coe]))
+  refine ⟨⟨interior L, isOpen_interior⟩, hQL, fun x hx ↦ hVU (hLV (interior_subset hx)), Ψ, hR,
+    fun t x hx ↦ ?_⟩
+  have := happly t ⟨x, hLV (interior_subset hx)⟩ (mem_preimage.2 (interior_subset hx))
+  rwa [restrict_apply, hf₀] at this
 
 end Restrict
 
