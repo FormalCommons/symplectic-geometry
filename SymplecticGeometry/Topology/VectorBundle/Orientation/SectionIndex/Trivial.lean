@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Complex
+public import SymplecticGeometry.Topology.VectorBundle.Orientation.Basic
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.LocalIndex
 public import TauCeti.Topology.VectorBundle.Orientation.SectionIndex.Degree
 
@@ -23,7 +24,8 @@ possibly with different models, that agree at `z`.
 Both indices are the factor by which `g`, on a neighbourhood isolating `z`, multiplies the local
 orientation at `z`: for the section index by
 `TauCeti.VectorBundleOrientation.localHomologyMap_eq_sectionIndex_smul`, in the identity
-trivialization of `M × ℂ`, and for the local index by
+trivialization of `M × ℂ`, which reads the orientation of every fibre as itself
+(`Bundle.Trivial.mapOrientation_trivialization`), and for the local index by
 `TauCeti.HomologicalOrientation.localIndex_eq_iff`. The local orientation of `ℂ` at the origin
 selected by `Complex.orientation` is that of its canonical orientation
 (`TauCeti.complexHomologicalOrientation_apply_zero`). The computation in the identity
@@ -54,23 +56,6 @@ variable {M E E' : Type} [TopologicalSpace M] [T2Space M] [NormedAddCommGroup E]
   [NormedSpace ℝ E] [FiniteDimensional ℝ E] [ChartedSpace E M] [NormedAddCommGroup E']
   [NormedSpace ℝ E'] [FiniteDimensional ℝ E'] [ChartedSpace E' M]
 
-section Trivialization
-
-variable {B : Type*} [TopologicalSpace B] {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F]
-  {ι : Type*}
-
-/-- The identity trivialization of `B × F` reads the constant orientation `ω` of every fibre as
-`ω`. -/
-theorem mapOrientation_trivialization_trivial (ω : Orientation ℝ F ι) (x : B) :
-    (Bundle.Trivial.trivialization B F).mapOrientation ι (by simp) ((trivial B ω) x) = ω := by
-  rw [Trivialization.mapOrientation_apply, trivial_apply]
-  have hrefl : Trivialization.linearEquivAt ℝ (Bundle.Trivial.trivialization B F) x
-      (by simp) = LinearEquiv.refl ℝ F :=
-    LinearEquiv.ext fun v ↦ by simp [Trivialization.linearEquivAt_apply]
-  rw [hrefl, Orientation.map_refl, Equiv.refl_apply]
-
-end Trivialization
-
 /-- **Local indices of sections of `M × ℂ`.** Let `g : M → ℂ` be continuous, read as a section of
 the trivial bundle `M × ℂ` oriented by `Complex.orientation`, and let `z` be a zero of `g` with an
 open neighbourhood `U` containing no other zero. Let `oM` and `oM'` be homological orientations of
@@ -84,7 +69,7 @@ theorem sectionIndex_trivial_eq_localIndex (oM : HomologicalOrientation M E 2)
       oM'.localIndex (complexHomologicalOrientation ℂ) g z := by
   have h := localHomologyMap_eq_sectionIndex_smul (trivial M Complex.orientation)
     Complex.finrank_real_complex oM hs (Bundle.Trivial.trivialization M ℂ) hU hzU hUz
-    (fun _ _ ↦ by simp) (fun x _ ↦ mapOrientation_trivialization_trivial _ x) (g.restrict U)
+    (fun _ _ ↦ by simp) (ω := Complex.orientation) (fun _ _ ↦ by simp) (g.restrict U)
     (fun x ↦ by simp) (fun x hx ↦ Subtype.ext (hUz x x.property (by simpa using hx)))
   rw [hoz, ← complexHomologicalOrientation_apply_zero] at h
   exact (((oM'.localIndex_eq_iff (complexHomologicalOrientation ℂ) Complex.finrank_real_complex g
