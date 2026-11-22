@@ -283,8 +283,8 @@ theorem TauCeti.exists_isOpen_forall_isSmoothEmbedding_of_injOn
 Its corollary without the parameter is `TauCeti.exists_isOpen_isSmoothEmbedding_of_injOn`.
 The constructor `TauCeti.SmoothIsotopy.ofForallIsSmoothEmbedding`
 (`V : Opens P`, `G` jointly smooth on `unitInterval × V` with embedding
-slices) gives the `SmoothIsotopy` from the slice at `0` to the slice at `1`,
-with an `_apply` lemma. Immersions are locally injective, and a locally
+slices) gives the `SmoothIsotopy f₀ f₁` for any smooth `f₀`, `f₁` on `V`
+equal to the slices at `0` and `1`, with an `_apply` lemma. Immersions are locally injective, and a locally
 injective map, injective on a compact set, is injective on a neighbourhood
 of it. With the parameter this is uniform, by compactness of
 `unitInterval × K`. The issue first looks for the topological step stated in
