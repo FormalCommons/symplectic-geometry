@@ -28,9 +28,10 @@ injective differential are injective on one neighbourhood of `x₀`, for all `q`
 charts at `x₀` and at `G (q₀, x₀)`, the partial derivatives in the space variable are close to
 the one at `(q₀, x₀)`, which is injective. By the mean value inequality each slice differs from
 that derivative by a map of small Lipschitz constant on a ball, so it is injective there
-(`AntilipschitzWith.add_sub_lipschitzWith`). Only the derivative in the space variable is used, so the parameter manifold may
-have boundary, as `unitInterval` does. Then the map `(q, x) ↦ (q, G (q, x))` is injective on
-`T ×ˢ K` and locally injective there, so it is injective near `T ×ˢ K`
+(`AntilipschitzWith.add_sub_lipschitzWith`). Only the derivative in the space variable is used,
+so the parameter manifold may have boundary, as `unitInterval` does. Then the map
+`(q, x) ↦ (q, G (q, x))` is injective on `T ×ˢ K` and locally injective there, so it is injective
+near `T ×ˢ K`
 (`Set.InjOn.exists_isOpen_superset`), and injective differentials persist near `T ×ˢ K`
 (Tau Ceti's `ContMDiffAt.eventually_injective_mfderiv`). The tube lemma makes these
 neighbourhoods products. On an open `V ⊇ K` with compact closure inside them, every slice is an
