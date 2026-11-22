@@ -1002,6 +1002,11 @@ issues, in an order where each issue's blockers come before it.
      `Circle.singularHomologyOneIso_inv_eq_complexOrientation`, the
      generator of `Circle.singularHomologyOneIso` is the one of the unit
      circle of `ℂ` selected by `Complex.orientation`.
+   - `AlgebraicTopology/Singular/Path.lean`, used by `Circle.lean`: the
+     singular `1`-simplex of a closed path has equal faces
+     (`TauCeti.TopCat.δ_zero_simplex₁_eq_δ_one_simplex₁`), and with any
+     coefficients the boundary of `TauCeti.TopCat.transSimplex γ δ` is
+     `γ + δ - γ.trans δ` (`TauCeti.TopCat.ιChainComplex_transSimplex_d`).
    - `Analysis/Complex/RadialProjection.lean`, used by
      `DiscBoundaryClass.lean` and `BoundaryDegree.lean`:
      `Circle.radialProjection : C(ℂ ∖ {0}, Circle)`, `z ↦ z / |z|`, Tau
