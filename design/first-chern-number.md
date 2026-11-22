@@ -721,6 +721,14 @@ issues, in an order where each issue's blockers come before it.
      coordinates is continuous from the conjugate core to the core) and
      `TauCeti.FiniteRankBundleCore.ofBundleOfFinrankEqConjugateIso` (the
      core of `ConjugateBundle E` is the conjugate of the core of `E`);
+   - a shared step, added after this issue, in
+     `Topology/VectorBundle/FiniteRank/Basic.lean` beside Tau Ceti's file of
+     that name, importing only it:
+     `TauCeti.FiniteRankBundleCore.isoFiberEquiv e x`, the fibrewise
+     continuous linear equivalence on coordinates of an isomorphism
+     `e : A ≅ D` of cores, the converse of Tau Ceti's `isoOfContinuousEquiv`,
+     with `isoFiberEquiv_apply` and `continuous_isoFiberEquiv` (continuity on
+     total spaces); `detCoreConjugateFiberwise` is built from it;
    - back in `Topology/VectorBundle/Determinant.lean`, since it is about this
      library's `detCore`: `SymplecticGeometry.Bundle.detCoreConjugateFiberwise`,
      a conjugate-linear fibrewise isomorphism between `detCore ℂ` of the
@@ -785,6 +793,9 @@ issues, in an order where each issue's blockers come before it.
    `AlgebraicTopology/Singular/{Relative,Subspace}.lean`,
    `AlgebraicTopology/Singular/Subdivision/Small/{Chains,Relative}.lean` and
    `Topology/Sets/Compacts.lean`.
+   Tau Ceti's caps of chains supported in an open subspace, and their
+   relative forms, come in the same way, in
+   `AlgebraicTopology/Cohomology/Cap/Support.lean`.
 3. **The unit circle bundle of a Hermitian line bundle.**
    `Geometry/Manifold/VectorBundle/Hermitian/CircleBundle.lean`, the file
    of *Symplectic vector bundles* (its section *The circle bundle of a

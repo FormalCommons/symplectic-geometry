@@ -78,13 +78,17 @@ the time derivative of `σ`.
 * `TauCeti.mpullback_timeDependentFlowOf_apply_of_mextDeriv_interior_eq_zero`: a closed smooth
   form whose contractions with every `X u` are closed satisfies `(φ_{s,t}^* β)ₓ = βₓ` wherever
   the flow is defined.
-* `TauCeti.SmoothForm.mpullback_prodMk_mpullback_prodMap`: `ι_t^* (id × f)^* α = f^* ι_t^* α`.
+* `TauCeti.SmoothForm.mpullback_prodMk_mpullback_prodMap'`: `ι_t^* (c × f)^* α = f^* ι_{c t}^* α`
+  for a reparametrization `c` of time, and `TauCeti.SmoothForm.mpullback_prodMk_mpullback_prodMap`
+  its case `c = id`.
 * `TauCeti.SmoothForm.mpullback_prodMk_timeDeriv_mpullback_prodMap`: the same for the time
   derivative, `ι_t^* ∂_t ((id × f)^* α) = f^* ι_t^* ∂_t α`.
 * `TauCeti.SmoothForm.mpullback_prodMk_timeDeriv_lineMapFamily`: the velocity of the segment
   `α₀ + c(t) (α₁ - α₀)` at time `t` is `c'(t) (α₁ - α₀)`.
 * `TauCeti.SmoothForm.timeInterior`: the contraction `ι_{∂_t} σ` with the time field.
 * `TauCeti.SmoothForm.mextDerivₗ_timeInterior`: `d (ι_{∂_t} σ) = ∂_t σ` for closed `σ`.
+* `TauCeti.SmoothForm.IsClosed.exists_timeDeriv_eq_mextDerivₗ`: the time derivative of a closed
+  form on `ℝ × M` is exact, `∂_t σ = d (ι_{∂_t} σ)`.
 
 ## References
 
@@ -233,17 +237,27 @@ variable {E H M E' H' N F : Type*}
   [TopologicalSpace N] [ChartedSpace H' N] [IsManifold J ∞ N]
   [NormedAddCommGroup F] [NormedSpace ℝ F] {k : ℕ}
 
+/-- The slice at time `t` of the pullback of a form `α` on `ℝ × N` along `c × f`, for a smooth
+reparametrization `c : ℝ → ℝ` of time, is the pullback along `f` of the slice of `α` at time
+`c t`: `ι_t^* (c × f)^* α = f^* ι_{c t}^* α`. -/
+theorem mpullback_prodMk_mpullback_prodMap' {c : ℝ → ℝ} (hc : ContMDiff 𝓘(ℝ) 𝓘(ℝ) ∞ c)
+    (f : M → N) (hf : ContMDiff I J ∞ f) (α : SmoothForm (𝓘(ℝ, ℝ).prod J) (ℝ × N) F k) (t : ℝ) :
+    mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id)
+        (mpullback (Prod.map c f) (hc.prodMap hf) α) =
+      mpullback f hf (mpullback (Prod.mk (c t)) (contMDiff_const.prodMk contMDiff_id) α) := by
+  rw [← LinearMap.comp_apply, ← mpullback_comp, ← LinearMap.comp_apply, ← mpullback_comp]
+  have h : Prod.map c f ∘ Prod.mk t = Prod.mk (c t) ∘ f := by
+    ext x <;> simp
+  simp only [h]
+
 /-- The slice at time `t` of the pullback of a form `α` on `ℝ × N` along `id × f` is the pullback
 along `f` of the slice of `α` at time `t`: `ι_t^* (id × f)^* α = f^* ι_t^* α`. -/
 theorem mpullback_prodMk_mpullback_prodMap (f : M → N) (hf : ContMDiff I J ∞ f)
     (α : SmoothForm (𝓘(ℝ, ℝ).prod J) (ℝ × N) F k) (t : ℝ) :
     mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id)
         (mpullback (Prod.map id f) (contMDiff_id.prodMap hf) α) =
-      mpullback f hf (mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) α) := by
-  rw [← LinearMap.comp_apply, ← mpullback_comp, ← LinearMap.comp_apply, ← mpullback_comp]
-  have h : Prod.map id f ∘ Prod.mk t = Prod.mk t ∘ f := by
-    ext x <;> simp
-  simp only [h]
+      mpullback f hf (mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) α) :=
+  mpullback_prodMk_mpullback_prodMap' contMDiff_id f hf α t
 
 /-! ### The contraction with the time field -/
 
@@ -346,6 +360,18 @@ theorem mpullback_prodMk_timeDeriv_lineMapFamily (α₀ α₁ : SmoothForm I M F
   have hct : HasDerivAt c (deriv c t) t :=
     ((hc.of_le (by simp) : ContDiff ℝ 1 c).differentiable one_ne_zero t).hasDerivAt
   exact (hct.smul_const _).const_add _
+
+/-! ### The time derivative of a closed form -/
+
+omit [I.Boundaryless] in
+/-- **The time derivative of a closed form is exact.** For a closed form `σ` on `ℝ × M`, Cartan's
+formula gives `∂_t σ = L_{∂_t} σ = d (ι_{∂_t} σ)`, so the time derivative of `σ` is the exterior
+derivative of a smooth form on `ℝ × M`. -/
+theorem IsClosed.exists_timeDeriv_eq_mextDerivₗ
+    {σ : SmoothForm (𝓘(ℝ, ℝ).prod I) (ℝ × M) F (k + 1)} (hσ : σ.IsClosed) :
+    ∃ α : SmoothForm (𝓘(ℝ, ℝ).prod I) (ℝ × M) F k,
+      σ.timeDeriv = mextDerivₗ (𝓘(ℝ, ℝ).prod I) k α :=
+  ⟨σ.timeInterior, (mextDerivₗ_timeInterior hσ).symm⟩
 
 end TauCeti.SmoothForm
 
