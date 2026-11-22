@@ -286,9 +286,13 @@ page's conventions through them.
   `SmoothAlmostComplexStructure` $j$, oriented by $j$; by the milestone on
   surfaces this loses nothing.
 - **Characteristic classes and Betti numbers.** Chern classes are integral
-  singular cohomology classes (`TauCeti` singular cohomology with
+  singular cohomology classes (`TauCeti` singular cohomology with chain
   coefficients `ULift ℤ`), $c_1$ being *First Chern number*'s
-  `SymplecticGeometry.Bundle.firstChernClass`. The fundamental class and
+  `SymplecticGeometry.Bundle.firstChernClass`, with values in `ULift ℤ`.
+  *Chern classes* takes values in `ℤ` (`TopCat.integralCohomology`, whose
+  cup product has the ring laws) and compares with classes valued in
+  `ULift ℤ` through an isomorphism, as `design/chern-classes.md` says.
+  The fundamental class and
   the evaluation $\langle c,[M]\rangle$ are Tau Ceti's
   `TauCeti.HomologicalOrientation.fundamentalClass` and
   `evalFundamentalClass`. A complex manifold, or a manifold with an almost
@@ -2528,12 +2532,18 @@ has either; Tau Ceti's extension across a boundary,
   the class of every compatible and every taming $J$, since two structures
   taming one form give isomorphic complex bundles, by the merged
   classification of *Symplectic vector bundles*; and it is constant along a
-  smooth family $\omega_t$ over $[0,1]$, by pulling the tangent bundle back
-  to $M\times[0,1]$ with the structures $J_{g,\omega_t}$, whose classes at
-  the two ends agree since the two inclusions are homotopic).
+  smooth family $\omega_t$ over $[0,1]$, the slices of a two-form on
+  $\mathbb R\times M$, by pulling the tangent bundle back to
+  $\mathbb R\times M$ with a structure compatible with the slices, whose
+  classes at the two ends agree since the two inclusions are homotopic),
+  and `Geometry/Manifold/VectorBundle/Symplectic/FirstChernClass.lean` (the
+  classes of pull-backs and transports of complex structures on a vector
+  bundle, and of two structures tamed by one form).
 - **Builds on:** *First Chern number* (only
   `Topology/VectorBundle/Complex/FirstChernClass.lean`, #784); the merged
-  `Symplectic/Classification.lean` and `Symplectic/ComplexStructure/Basic.lean`
+  `Symplectic/Classification.lean`, `Symplectic/ComplexStructure/Basic.lean`
+  and `Symplectic/Pullback.lean`, and
+  `Geometry/Manifold/VectorBundle/Pullback.lean`,
   of *Symplectic vector bundles*.
 - **Milestones:** *First Chern class of a nondegenerate two-form*, on a
   Hausdorff σ-compact manifold (for the existence of a compatible $J$). The
@@ -2575,16 +2585,22 @@ has either; Tau Ceti's extension across a boundary,
   files (`AlgebraicTopology/Cohomology/LerayHirsch/`), with $c_1$ equal to
   *First Chern number*'s `firstChernClass`; naturality, the Whitney sum
   formula, the top class as Tau Ceti's `TauCeti.complexEulerClass`; the
-  cohomology ring of $\mathbb CP^n$, which Tau Ceti has only additively;
-  and the evaluation of the Euler class of the tangent bundle of a closed
-  oriented manifold on its fundamental class as its Euler characteristic.
-- **Builds on:** *First Chern number* (`FirstChernClass.lean`, #784, and its
-  Poincaré duality prerequisites, #806–#810); Tau Ceti's Euler and Thom
-  classes, cup products and Leray–Hirsch files.
+  cohomology ring of $\mathbb CP^n$, which Tau Ceti has only additively.
+  The evaluation of the Euler class of the tangent bundle of a closed
+  oriented manifold on its fundamental class as its Euler characteristic,
+  and the general infrastructure (the ring of even integral classes,
+  Leray–Hirsch for bundles, projective bundles), are in files outside that
+  folder, which `design/chern-classes.md` lists.
+- **Builds on:** *First Chern number* (`FirstChernClass.lean`, #784, only
+  for the comparison of $c_1$); Tau Ceti's Euler and Thom classes, cup
+  products, Leray–Hirsch files and Poincaré–Hopf theorem for gradients of
+  Morse functions. No Poincaré duality is needed.
 - **Milestones:** none by itself; it provides what *Projective
-  hypersurfaces* needs. The design file chooses the construction (the
-  projective bundle or a splitting principle) and the proof of the Euler
-  characteristic formula, and may split the part.
+  hypersurfaces* needs. `design/chern-classes.md` gives the construction
+  (the projective bundle, with Hatcher's proof of the Whitney formula and a
+  one-step splitting principle), the proof of the Euler characteristic
+  formula (Poincaré–Hopf for the gradient of a Morse function) and the
+  issues.
 
 ### 34. Projective hypersurfaces (needs `design/projective-hypersurfaces.md`)
 
@@ -2656,7 +2672,7 @@ that file, and the notes here may fall behind it.
 | 3 | *Contact geometry* | *Smooth families* (only `Family.lean` and `Gray.lean`, through `ContMDiff/TimeExtension.lean`, `DifferentialForm/TimeExtension.lean` and `Diffeotopy/Real.lean`); *Symplectic neighbourhoods* (only `LegendrianNeighborhood.lean`, through `Lagrangian.lean`); *Moser isotopy* (only `Darboux/Strict.lean`, through `LocalDiffeomorph/MFDeriv.lean`, merged); the other files of the part can start at once |
 | 4 | *First Chern class of nondegenerate forms* | *First Chern number* (only `FirstChernClass.lean`, #784); merged files of *Symplectic vector bundles* |
 | 4 | *Adjunction* | *First Chern number* (only `FirstChernClass.lean`, `ChernNumber/Basic.lean` and `ChernNumber/Axioms.lean`); `NormalSpace/ComplexStructure.lean` and `NormalSplitting.lean` can start at once |
-| 4 | *Chern classes* | *First Chern number* (only `FirstChernClass.lean` and the Poincaré duality prerequisites); the cohomology ring of $\mathbb CP^n$ can start at once |
+| 4 | *Chern classes* | *First Chern number* (only `FirstChernClass.lean`, for the comparison of $c_1$); the other issues of its design file can start at once |
 | 5 | *Projective hypersurfaces* | *Chern classes*, *First Chern number* (only `ChernNumber/EulerNumber.lean`); the bundle isomorphisms on $\mathbb CP^{n+1}$ can start at once |
 
 The design issues of the parts marked as needing one can start at once, in

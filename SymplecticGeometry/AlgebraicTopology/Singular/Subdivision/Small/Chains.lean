@@ -22,6 +22,10 @@ This lemma is from Tau Ceti's main branch
 under its Tau Ceti name, so that moving Tau Ceti past it deletes this file without renames. (On
 that branch it replaces `TopCat.chainComplexMap_f_toSmallSingularSubcomplex_comp`, which the
 pinned release has, and which is its composite with a cochain.)
+
+## References
+
+* A. Hatcher, *Algebraic Topology*, Section 2.1, proof of Proposition 2.21, step (4).
 -/
 
 public section

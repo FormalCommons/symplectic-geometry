@@ -7,6 +7,7 @@ module
 
 public import TauCeti.Topology.VectorBundle.FiniteRank.Pullback
 public import TauCeti.Topology.VectorBundle.Orientation.Complex.FiberwiseEquiv
+public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Basic
 
 /-!
 # The Euler class of a complex finite-rank core
@@ -20,7 +21,8 @@ core `A : TauCeti.FiniteRankBundleCore ℂ B`:
   core `A.pullback f` is the pull-back of the Euler class of `A`.
 
 Both follow from Tau Ceti's `TauCeti.complexEulerClass_eq_of_fiberwise` and
-`TauCeti.complexEulerClass_eq_singularCohomologyMap_of_fiberwise`.
+`TauCeti.complexEulerClass_eq_singularCohomologyMap_of_fiberwise`; the first is applied to the
+fibrewise equivalences `TauCeti.FiniteRankBundleCore.isoFiberEquiv` of the isomorphism.
 
 ## References
 
@@ -30,7 +32,7 @@ Both follow from Tau Ceti's `TauCeti.complexEulerClass_eq_of_fiberwise` and
 
 public section
 
-open Bundle CategoryTheory Module TauCeti
+open CategoryTheory Module TauCeti
 
 namespace TauCeti.FiniteRankBundleCore
 
@@ -40,17 +42,8 @@ variable {B : Type} [TopologicalSpace B] {r : ℕ}
 theorem complexEulerClass_eq_of_iso {A D : FiniteRankBundleCore ℂ B} (e : A ≅ D)
     (hA : finrank ℂ (Fin A.rank → ℂ) = r + 1) (hD : finrank ℂ (Fin D.rank → ℂ) = r + 1) :
     complexEulerClass (Fin A.rank → ℂ) A.core.Fiber hA =
-      complexEulerClass (Fin D.rank → ℂ) D.core.Fiber hD := by
-  -- The fibre maps of `e`, between the coordinate spaces, which are the fibres of the cores.
-  let φ (x : B) : (Fin A.rank → ℂ) ≃L[ℂ] (Fin D.rank → ℂ) :=
-    ContinuousLinearEquiv.ofContinuousLinearMap (e.hom.fiberMap x) (e.inv.fiberMap x)
-      (by rw [← fiberMap_comp, Iso.inv_hom_id, fiberMap_id])
-      (by rw [← fiberMap_comp, Iso.hom_inv_id, fiberMap_id])
-  refine complexEulerClass_eq_of_fiberwise hD hA (φ := φ) ?_
-  refine e.hom.continuous_totalSpaceMap.congr fun p ↦ ?_
-  rw [VectorBundleCore.CoordinateHom.totalSpaceMap_mk]
-  -- `φ p.proj` applies `e.hom.fiberMap p.proj`, by its construction above.
-  rfl
+      complexEulerClass (Fin D.rank → ℂ) D.core.Fiber hD :=
+  complexEulerClass_eq_of_fiberwise hD hA (continuous_isoFiberEquiv e)
 
 /-- **Naturality of the Euler class of a complex finite-rank core**: the Euler class of the
 pull-back core `A.pullback f` is the pull-back of the Euler class of `A`. -/

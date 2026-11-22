@@ -5,11 +5,12 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import Mathlib.Geometry.Manifold.Algebra.LieGroup
 public import TauCeti.Geometry.Manifold.ContMDiff.Prod
 public import TauCeti.Geometry.Manifold.Flow.Basic
 
 /-!
-# Differentials of the time maps of a maximal flow
+# Maximal flows: differentials of the time maps, and integral curves
 
 Let `v` be a `C¹` vector field on a Hausdorff boundaryless manifold modelled on a complete space,
 with maximal flow `φ` (`TauCeti.flowOf`). If time `t` is defined at `x`, the differentials
@@ -28,11 +29,22 @@ Ceti's chain rule for the time maps, `TauCeti.mfderiv_flowOf_add_apply`, and
   field, `1 ≤ n`, on a complete normed space, the flow is `C^n` on its domain, and for a `C¹`
   field its derivative at time zero is `(r, u) ↦ r • v y + u`. They read Tau Ceti's
   `TauCeti.contMDiffOn_flowOf` and `TauCeti.mfderiv_flowOf_zero_apply` in the model space.
+* `IsMIntegralCurveOn.comp_add_Ioo`, `IsMIntegralCurveOn.sub_mem_flowDomain`,
+  `IsMIntegralCurveOn.flowOf_sub_eq`: an integral curve `γ` on `(a, b)` shifted in time stays an
+  integral curve, and for `t₀, t ∈ (a, b)` the maximal flow takes `γ t₀` to `γ t` in time
+  `t - t₀`, from Tau Ceti's `IsMIntegralCurveOn.subset_maximalIntegralCurveInterval` and
+  `IsMIntegralCurveOn.eqOn_maximalIntegralCurve`.
+* `TauCeti.eventuallyEq_flowOf_sub_of_isMIntegralCurveOn`,
+  `TauCeti.contMDiffAt_of_isMIntegralCurveOn`: if the lines `t ↦ Φ (t, s)` of `Φ : ℝ × S → M`
+  are integral curves on `(a, b)`, then near each point of `(a, b) × S` the map `Φ` is the flow
+  out of its slice at some `t₀ ∈ (a, b)`, run for time `t - t₀`; so `Φ` is `C^n` there when the
+  field and that slice are, by Tau Ceti's `TauCeti.contMDiffAt_flowOf_comp`.
 -/
 
 public section
 
-open scoped Manifold
+open Set Filter
+open scoped Manifold Topology
 
 namespace TauCeti
 
@@ -104,6 +116,66 @@ theorem hasFDerivAt_flowOf_uncurry_zero (hv : ContDiff ℝ 1 v) (y : E) :
     (a, u) = a • v y + u by simp).symm
 
 end NormedSpace
+
+section IntegralCurve
+
+variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
+  {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M]
+  {v : (x : M) → TangentSpace I x} {γ : ℝ → M} {a b t₀ t : ℝ}
+
+/-- Shifting time by `dt` turns an integral curve on `(a, b)` into one on `(a - dt, b - dt)`. -/
+theorem _root_.IsMIntegralCurveOn.comp_add_Ioo (hγ : IsMIntegralCurveOn γ v (Ioo a b)) (dt : ℝ) :
+    IsMIntegralCurveOn (γ ∘ (· + dt)) v (Ioo (a - dt) (b - dt)) := by
+  rw [← preimage_add_const_Ioo]
+  exact hγ.comp_add dt
+
+/-- If `γ` is an integral curve of `v` on `(a, b)` and `t₀, t ∈ (a, b)`, the maximal flow of `v`
+from `γ t₀` is defined at time `t - t₀`. -/
+theorem _root_.IsMIntegralCurveOn.sub_mem_flowDomain (hγ : IsMIntegralCurveOn γ v (Ioo a b))
+    (ht₀ : t₀ ∈ Ioo a b) (ht : t ∈ Ioo a b) : (t - t₀, γ t₀) ∈ flowDomain v :=
+  mem_flowDomain.2 ((hγ.comp_add_Ioo t₀).subset_maximalIntegralCurveInterval
+    ⟨by linarith [ht₀.1], by linarith [ht₀.2]⟩ (by simp) ⟨by linarith [ht.1], by linarith [ht.2]⟩)
+
+/-- **An integral curve is a trajectory of the flow.** On a Hausdorff boundaryless manifold, if
+`γ` is an integral curve of the `C¹` vector field `v` on `(a, b)` and `t₀, t ∈ (a, b)`, the
+maximal flow of `v` takes `γ t₀` to `γ t` in time `t - t₀`. -/
+theorem _root_.IsMIntegralCurveOn.flowOf_sub_eq [T2Space M] [IsManifold I 1 M]
+    [BoundarylessManifold I M]
+    (hv : ContMDiff I I.tangent 1 (fun y ↦ (⟨y, v y⟩ : TangentBundle I M)))
+    (hγ : IsMIntegralCurveOn γ v (Ioo a b)) (ht₀ : t₀ ∈ Ioo a b) (ht : t ∈ Ioo a b) :
+    flowOf v (t - t₀) (γ t₀) = γ t := by
+  rw [flowOf_apply, (hγ.comp_add_Ioo t₀).eqOn_maximalIntegralCurve hv
+    ⟨by linarith [ht₀.1], by linarith [ht₀.2]⟩ (by simp) ⟨by linarith [ht.1], by linarith [ht.2]⟩]
+  simp
+
+/-- If the lines `t ↦ Φ (t, s)` of `Φ : ℝ × S → M` are integral curves of the `C¹` field `v` on
+`(a, b)` and `t₀, t ∈ (a, b)`, then near `(t, s)` the map `Φ` is the maximal flow of `v` out of the
+slice at `t₀`, run for time `q.1 - t₀`. -/
+theorem eventuallyEq_flowOf_sub_of_isMIntegralCurveOn [CompleteSpace E] [T2Space M]
+    [IsManifold I 1 M] [BoundarylessManifold I M] {S : Type*} [TopologicalSpace S]
+    {Φ : ℝ × S → M} (hv : ContMDiff I I.tangent 1 (fun y ↦ (⟨y, v y⟩ : TangentBundle I M)))
+    (hΦ : ∀ s, IsMIntegralCurveOn (fun t ↦ Φ (t, s)) v (Ioo a b)) (ht₀ : t₀ ∈ Ioo a b)
+    (ht : t ∈ Ioo a b) (s : S) :
+    Φ =ᶠ[𝓝 (t, s)] fun q ↦ flowOf v (q.1 - t₀) (Φ (t₀, q.2)) := by
+  filter_upwards [(isOpen_Ioo.prod isOpen_univ).mem_nhds (mk_mem_prod ht (mem_univ s))] with p hp
+  exact ((hΦ p.2).flowOf_sub_eq hv ht₀ hp.1).symm
+
+/-- If the lines `t ↦ Φ (t, s)` of `Φ : ℝ × S → M` are integral curves of the `C^n` field `v`,
+`1 ≤ n`, on `(a, b)` and the slice `Φ (t₀, ·)` at some `t₀ ∈ (a, b)` is `C^n`, then `Φ` is `C^n`
+at every point of `(a, b) × S`. -/
+theorem contMDiffAt_of_isMIntegralCurveOn [CompleteSpace E] [T2Space M] [IsManifold I 1 M]
+    [BoundarylessManifold I M] {n : ℕ∞} (hn : 1 ≤ n) [IsManifold I n M]
+    {E' H' S : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [TopologicalSpace H']
+    {J : ModelWithCorners ℝ E' H'} [TopologicalSpace S] [ChartedSpace H' S] {Φ : ℝ × S → M}
+    (hv : ContMDiff I I.tangent n (fun y ↦ (⟨y, v y⟩ : TangentBundle I M)))
+    (hΦ : ∀ s, IsMIntegralCurveOn (fun t ↦ Φ (t, s)) v (Ioo a b)) (ht₀ : t₀ ∈ Ioo a b)
+    (hΦ₀ : ContMDiff J I n fun s ↦ Φ (t₀, s)) (ht : t ∈ Ioo a b) (s : S) :
+    ContMDiffAt (𝓘(ℝ).prod J) I n Φ (t, s) :=
+  (contMDiffAt_flowOf_comp hn hv (contMDiffAt_fst.sub contMDiffAt_const)
+    (hΦ₀.comp contMDiff_snd).contMDiffAt ((hΦ s).sub_mem_flowDomain ht₀ ht)).congr_of_eventuallyEq
+    (eventuallyEq_flowOf_sub_of_isMIntegralCurveOn (hv.of_le (mod_cast hn)) hΦ ht₀ ht s)
+
+end IntegralCurve
 
 end TauCeti
 

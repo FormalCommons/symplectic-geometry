@@ -165,9 +165,10 @@ These settle the questions that `DESIGN.md` leaves to this file.
    `TauCeti.forall_mpullback_eq_iff_forall_mextDeriv_interior_eulerianField_eq_zero`),
    and its Eulerian field, stated pointwise along the motion as
    $X^{\mathbb R}_u(\phi_{s(u)}x)=s'(u)\,\partial_t\phi_t x|_{t=s(u)}$ with
-   the time derivative written through `Φ.cylinderMap`, so that
-   `Diffeotopy/Real.lean` does not depend on `velocity`: of this part it
-   imports only `Velocity.lean`, for `mfderiv_cylinderMap_time`. It also uses that
+   the time derivative written through `Φ.cylinderMap`, and its form as vector
+   fields, `eulerianField_smoothTransitionFamily`, through `velocity`: of this
+   part it imports only `Velocity.lean`, for `mfderiv_cylinderMap_time` and
+   `velocity`. It also uses that
    `Real.smoothTransition` has positive derivative on $(0,1)$, which the
    review of #420 asks *Smooth families* to plan as a public lemma; if that
    part does not add it, the issue of `SymplecticIsotopy.lean` adds it
@@ -286,7 +287,8 @@ Tau Ceti unchanged.
 Imports between the files: `Velocity.lean` imports `Instances/Icc.lean`,
 `MFDeriv/Prod.lean` and `Diffeotopy/Basic.lean`;
 `SymplecticIsotopy.lean` and
-`Flux/Hamiltonian.lean` import `Velocity.lean`; `Flux/Hamiltonian.lean`
+`Flux/Hamiltonian.lean` import `Velocity.lean`; `SymplecticIsotopy.lean`
+imports `Flux/Hamiltonian.lean`, for `isSmoothFamily_interiorₗ`; `Flux/Hamiltonian.lean`
 imports `Diffeotopy/Basic.lean` and `DeRham/FamilyPrimitive.lean`, which
 imports `DeRham/GoodCover/Basic.lean` and
 `DifferentialForm/SmoothFamily/HomotopyOperator.lean` of *Smooth families*;
@@ -296,7 +298,8 @@ identity, `Algebra/Lie/Quotient.lean` for the value of
 `LieHom.quotKerEquivRange` on a class, and
 `Geometry/Manifold/DifferentialForm/Flow/Family.lean` of
 *Contact geometry* for the general flow lemma. `Diffeotopy/Real.lean` of
-*Smooth families* imports `Velocity.lean`, for `mfderiv_cylinderMap_time`.
+*Smooth families* imports `Velocity.lean`, for `mfderiv_cylinderMap_time` and
+`velocity`.
 
 ## Definitions and their API
 
@@ -411,11 +414,15 @@ For symplectic `σ` (`hσ : σ.IsSymplectic`):
 - `TauCeti.Diffeotopy.forall_timeSlice_mem_diffeomorphStabilizer_iff`, for
   closed `σ`: `(∀ t, Φ.timeSlice t ∈ SmoothForm.diffeomorphStabilizer σ) ↔
   ∀ t, Φ.velocity t ∈ σ.symplecticVectorFields`. Proof as in Decision 2,
-  with a private lemma for the endpoint step. Only `[IsManifold J ∞ M]` is
-  needed, as for Tau Ceti's Eulerian theorem.
-- The lemma $X^{\mathbb R}_u=s'(u)\,X_{s(u)}$ as vector fields, from the
-  pointwise form of Decision 3 and `velocity_apply_apply`; private unless
-  another file needs it.
+  with the endpoint step by `SymplecticGeometry.IsSmoothFamily.ext_on`
+  (added to `DifferentialForm/SmoothFamily/Basic.lean`: smooth families
+  agreeing on a dense set of parameters agree), applied to the exterior
+  derivatives of `SymplecticGeometry.isSmoothFamily_interiorₗ`. It assumes
+  `[J.Boundaryless]`, as Tau Ceti's Eulerian theorem does.
+- `TauCeti.Diffeotopy.eulerianField_smoothTransitionFamily`, the lemma
+  $X^{\mathbb R}_u=s'(u)\,X_{s(u)}$ as vector fields, from the
+  pointwise form of Decision 3 and `velocity_apply_apply`; public, in
+  `Diffeotopy/Real.lean` of *Smooth families*, after its pointwise form.
 
 ### `Geometry/Symplectic/Flux/Hamiltonian.lean`
 

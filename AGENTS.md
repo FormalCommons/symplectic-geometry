@@ -125,7 +125,11 @@ end
     `SymplecticGeometry/` in place of `TauCeti/`, under Tau Ceti's names and
     namespaces. A move of Tau Ceti past them then deletes the file. Add no
     declaration of your own to such a file, and copy none into a file with
-    the header above.
+    the header above. If the library's own file already has that path, the
+    copy goes in the sibling `FromTauCeti.lean`: for Tau Ceti's
+    `TauCeti/A/B.lean`, the file `SymplecticGeometry/A/B/FromTauCeti.lean`.
+    The library's file keeps its path and its header, and the rest of these
+    points hold for the sibling.
   - The header is that of Tau Ceti's file as it is: every line before
     `module`, with its copyright line and its `Authors:` line, which may
     name people. CI's check allows any holder and any authors in a header
@@ -136,11 +140,19 @@ end
     change the check.
   - The module docstring names Tau Ceti's file and each commit you copied
     from, says that the file is a part of it, and says each change you made
-    to a statement or a proof. Keep what Tau Ceti's file says of where a
+    to Tau Ceti's code or text. Keep what Tau Ceti's file says of where a
     declaration you take comes from, in its module docstring or in a
-    comment ("Adapted from …", "Ported from …", its references).
-  - Take only what the library needs, and change only what the pinned
-    version requires.
+    comment ("Adapted from …", "Ported from …", its references). Copy
+    every entry of its `## References` section as it is, even one that
+    cites a source for the whole file rather than for what you take.
+  - Take only what the library needs, and keep Tau Ceti's text as well as
+    its code. Apart from the module docstring, change nothing, docstrings
+    and comments included, beyond what the pinned version requires and the
+    correction of an error in Tau Ceti's text.
+  - Only copied declarations take Tau Ceti's header. A proof written anew
+    that follows a proof of Tau Ceti, or of Mathlib, in another setting
+    stays in a file with the header above, and its module docstring credits
+    the declaration it adapts by name.
 - A module can import only modules, so every file starts with `module`.
   Import with `public import`, so that files that import yours see the
   declarations your statements use. Import the specific modules you need,
