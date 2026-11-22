@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.Classification
+public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.FirstChernClass
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.Pullback
 public import SymplecticGeometry.Topology.VectorBundle.Complex.FirstChernClass
 public import SymplecticGeometry.Topology.VectorBundle.Complex.Structure
@@ -126,19 +127,7 @@ theorem ContMDiffTwoForm.Tames.chernNumber_eq {m' : ℕ∞}
     {J' : ContMDiffComplexStructure 𝓘(ℝ, EM) m' F V} (h : ω.Tames J) (h' : ω.Tames J') :
     chernNumber o hn G J'.toContinuousComplexStructure.Fiber =
       chernNumber o hn G J.toContinuousComplexStructure.Fiber := by
-  -- At regularity `0`, a fibrewise equivalence, continuous on total spaces, intertwines them.
-  rw [← J.toContinuousComplexStructure_ofLE zero_le,
-    ← J'.toContinuousComplexStructure_ofLE zero_le]
-  -- `ContMDiffComplexStructure` counts regularity in `ℕ∞`, bundles in `WithTop ℕ∞`.
-  have : ContMDiffVectorBundle ((0 : ℕ∞) : WithTop ℕ∞) F V 𝓘(ℝ, EM) :=
-    WithTop.coe_zero (α := ℕ∞) ▸ inferInstance
-  obtain ⟨Ψ, hΨ, hJ⟩ := ((ContMDiffTwoForm.tames_ofLE_iff zero_le).2 h).exists_complex_bundleEquiv
-    ((ContMDiffTwoForm.tames_ofLE_iff zero_le).2 h')
-  have hc : ∀ x v, Ψ x ((J.ofLE zero_le).toContinuousComplexStructure x v) =
-      (J'.ofLE zero_le).toContinuousComplexStructure x (Ψ x v) := fun x v ↦ by
-    simpa only [ContMDiffComplexStructure.toContinuousComplexStructure_apply] using hJ x v
-  exact chernNumber_congr o hn (fiberEquivOfCommute _ _ Ψ hc)
-    (continuous_fiberEquivOfCommute _ _ Ψ hc hΨ.continuous)
+  rw [chernNumber_def, chernNumber_def, h.firstChernClass_eq G h']
 
 /-- **The first Chern number of a symplectic bundle is that of any tamed complex structure.** If
 `ω` tames a complex structure `J`, of any regularity, then the first Chern number of `(V, ω)` is
@@ -161,12 +150,8 @@ theorem symplecticChernNumber_congr_model
   by_cases hex : ∃ J : ContMDiffComplexStructure 𝓘(ℝ, EM) 0 F V, ω.Tames J
   · obtain ⟨J, hJ⟩ := hex
     rw [symplecticChernNumber_eq_chernNumber o hn G hJ,
-      symplecticChernNumber_eq_chernNumber o hn G' hJ]
-    -- The identity of `V` intertwines `J` with itself.
-    have hc : ∀ x v, ContinuousLinearEquiv.refl ℝ (V x) (J.toContinuousComplexStructure x v) =
-        J.toContinuousComplexStructure x (ContinuousLinearEquiv.refl ℝ (V x) v) := fun _ _ ↦ rfl
-    exact chernNumber_congr o hn (fiberEquivOfCommute _ _ _ hc)
-      (continuous_fiberEquivOfCommute _ _ _ hc (continuous_id.congr fun _ ↦ rfl))
+      symplecticChernNumber_eq_chernNumber o hn G' hJ, chernNumber_def, chernNumber_def,
+      J.toContinuousComplexStructure.firstChernClass_congr_model G G']
   · rw [symplecticChernNumber_def, symplecticChernNumber_def,
       dite_eq_right_of_eq_false (eq_false hex), dite_eq_right_of_eq_false (eq_false hex)]
 
@@ -224,12 +209,8 @@ theorem symplecticChernNumber_congr
   have ht : ω₂.Tames (J.pushforward Φ hΦ) :=
     (ContMDiffTwoForm.pushforward_eq_iff Φ hΦ).2 hΦω ▸ hJ.tames.pushforward Φ hΦ hΦ
   rw [symplecticChernNumber_eq_chernNumber o hn G₂ ht,
-    symplecticChernNumber_eq_chernNumber o hn G hJ.tames]
-  have hc : ∀ x v, Φ x (J.toContinuousComplexStructure x v) =
-      (J.pushforward Φ hΦ).toContinuousComplexStructure x (Φ x v) := fun x v ↦ by
-    simp [ContMDiffComplexStructure.pushforward_apply]
-  exact chernNumber_congr o hn (fiberEquivOfCommute _ _ Φ hc)
-    (continuous_fiberEquivOfCommute _ _ Φ hc hΦ.continuous)
+    symplecticChernNumber_eq_chernNumber o hn G hJ.tames, chernNumber_def, chernNumber_def,
+    J.firstChernClass_pushforward G G₂ Φ hΦ]
 
 /-- **The first Chern number of a pull-back.** For a nondegenerate form `ω` on `V` over a
 connected closed surface `M` and a `Cⁿ` map `f : M' → M` from a compact oriented surface, the
@@ -246,9 +227,9 @@ theorem symplecticChernNumber_pullback [PreconnectedSpace M]
   obtain ⟨J, hJ⟩ := hω.exists_compatible
   rw [symplecticChernNumber_eq_chernNumber o' hn' G (hJ.tames.pullback f),
     symplecticChernNumber_eq_chernNumber o hn G hJ.tames,
-    ← chernNumber_pullback o hn G J.toContinuousComplexStructure.Fiber o' hn' (f : C(M', M))]
-  exact (chernNumber_congr o' hn' (J.pullbackFiberEquiv f)
-    (ContMDiffComplexStructure.continuous_pullbackFiberEquiv G J f)).symm
+    ← chernNumber_pullback o hn G J.toContinuousComplexStructure.Fiber o' hn' (f : C(M', M)),
+    chernNumber_def, chernNumber_def, J.firstChernClass_pullback G f,
+    SymplecticGeometry.Bundle.firstChernClass_pullback]
 
 end Symplectic
 

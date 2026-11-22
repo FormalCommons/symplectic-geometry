@@ -2324,8 +2324,8 @@ has either; Tau Ceti's extension across a boundary,
 
 - **Files:** `Geometry/Manifold/Complex/Isothermal.lean` (named like Tau
   Ceti's file: every smooth almost complex structure on a surface modelled
-  on `𝓘(ℝ, ℂ)` has isothermal charts, an instance of Tau Ceti's
-  `HasIsothermalCharts`, from Tau Ceti's planar
+  on `𝓘(ℝ, ℂ)` has smooth isothermal charts, with no instance of Tau
+  Ceti's `HasIsothermalCharts`, from Tau Ceti's planar
   `TauCeti.Beltrami.exists_isothermal_chart_of_contDiffAt` read through the
   charts of the surface and made smooth by
   `TauCeti.Beltrami.contDiffOn_infty_of_fderiv_comp` with the regularity
@@ -2789,7 +2789,7 @@ manifolds and characteristic classes*).
 | *Levi-Civita derivative of a compatible almost complex structure* | *Almost Kähler geometry*. Existing inputs: Mathlib's `CovariantDerivative.leviCivitaConnection`, Tau Ceti's `CovariantDerivative.hom` and `TauCeti.SmoothForm.mextDeriv_apply_two`. |
 | *Nijenhuis tensor* | *Nijenhuis tensor*. Existing parts: `TauCeti.SmoothAlmostComplexStructure.nijenhuis`, `nijenhuis_apply`, `nijenhuis_antisymm`, `nijenhuis_self`, `nijenhuis_apply_left`, `nijenhuis_apply_right`, `nijenhuis_eq_zero_of_finrank_eq_two`, `nijenhuis_const`, `isInvolutiveComplexDistribution_eigenspace_I_iff`. |
 | *Parallel almost complex structures and the Kähler condition* | *Almost Kähler geometry*, with $N_J=0$ in condition 2, as the page asks. |
-| *Integrability of almost complex structures on surfaces* | *Isothermal coordinates*. Existing inputs: `TauCeti.Beltrami.exists_isothermal_chart_of_contDiffAt` ($C^1$ charts only), `TauCeti.Beltrami.contDiffOn_infty_of_fderiv_comp` (which assumes $C^m$ charts for every $m$), `TauCeti.SmoothAlmostComplexStructure.HasIsothermalCharts`. Missing: isothermal charts of class $C^m$ for smooth $J$, built by the part. |
+| *Integrability of almost complex structures on surfaces* | *Isothermal coordinates*. Existing inputs: `TauCeti.Beltrami.exists_isothermal_chart_of_contDiffAt` ($C^1$ charts only), `TauCeti.Beltrami.contDiffOn_infty_of_fderiv_comp` (which assumes $C^m$ charts for every $m$). Missing: isothermal charts of class $C^m$ for smooth $J$, built by the part. |
 | *Fubini–Study form on complex projective space* | *Complex projective space*. Existing inputs: Tau Ceti's complex manifold `ℙ ℂ (Fin (n + 1) → ℂ)`, `TauCeti.SmoothTwoForm.existsUnique_isSymplectic_mpullback_eq`, `OnePoint.fubiniStudyForm`. |
 | *Complex submanifolds of Kähler manifolds* | *Complex submanifolds*; its last sentence *Complex projective space*. Existing input: the linear `TauCeti.SymplecticForm.Compatible.restrict`. |
 | *Kähler structure on the space of compatible linear complex structures* | *Space of compatible complex structures*. Existing inputs: `TauCeti.SymplecticForm.compatibleTangentSpace`, `TauCeti.SymplecticForm.Compatible.compatibleCayleyEquiv`, and the bijection with $\mathcal S_n$ of *Siegel upper half space*. |
