@@ -423,20 +423,28 @@ theorem contDiffOn_ofComplexStructureMatrix :
     ContDiffOn ℝ ∞ (ofComplexStructureMatrix : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ → Matrix ι ι ℂ)
       {M : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ | IsUnit M.toBlocks₂₁.det} := by
   intro M hM
-  let b₁₁ : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ →ₗ[ℝ] Matrix ι ι ℝ :=
-    { toFun := toBlocks₁₁, map_add' _ _ := rfl, map_smul' _ _ := rfl }
-  let b₂₁ : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ →ₗ[ℝ] Matrix ι ι ℝ :=
-    { toFun := toBlocks₂₁, map_add' _ _ := rfl, map_smul' _ _ := rfl }
   have hofReal : ContDiff ℝ ∞ fun Y : Matrix ι ι ℝ ↦ Y.map ofReal :=
     (LinearMap.toContinuousLinearMap
       (Complex.ofRealCLM.toLinearMap.mapMatrix : Matrix ι ι ℝ →ₗ[ℝ] Matrix ι ι ℂ)).contDiff
-  have h₂₁ : ContDiff ℝ ∞ fun N : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ ↦ N.toBlocks₂₁ :=
-    (LinearMap.toContinuousLinearMap b₂₁).contDiff
+  /- The four blocks, as the inverse of `fromBlocksLinearEquiv`. Its smoothness goes through
+  `IsBoundedLinearMap`, so that it stays in the operator norm's topology: the coercion lemma of
+  `LinearMap.toContinuousLinearMap` would ask for the product topology on matrices instead. -/
+  let blocks : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ →ₗ[ℝ]
+      (Matrix ι ι ℝ × Matrix ι ι ℝ) × (Matrix ι ι ℝ × Matrix ι ι ℝ) :=
+    (fromBlocksLinearEquiv ℝ).symm.toLinearMap
+  have hblocks : ContDiff ℝ ∞ blocks :=
+    ((IsBoundedLinearMap.isLinearMap_and_continuous_iff_isBoundedLinearMap blocks).1
+      ⟨blocks.isLinear, blocks.continuous_of_finiteDimensional⟩).contDiff
+  have h₁₁ : ContDiff ℝ ∞ fun N : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ ↦ N.toBlocks₁₁ := by
+    simpa only [blocks, LinearEquiv.coe_coe, fromBlocksLinearEquiv_symm_apply] using
+      hblocks.fst.fst
+  have h₂₁ : ContDiff ℝ ∞ fun N : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ ↦ N.toBlocks₂₁ := by
+    simpa only [blocks, LinearEquiv.coe_coe, fromBlocksLinearEquiv_symm_apply] using
+      hblocks.snd.fst
   have hinv : ContDiffAt ℝ ∞ (fun N : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ ↦ N.toBlocks₂₁⁻¹) M := by
     simpa only [nonsing_inv_eq_ringInverse] using
       h₂₁.contDiffAt.inverse ((isUnit_iff_isUnit_det _).2 hM)
-  exact ((hofReal.contDiffAt.comp M
-      ((LinearMap.toContinuousLinearMap b₁₁).contDiff.contDiffAt.mul hinv)).add
+  exact ((hofReal.contDiffAt.comp M (h₁₁.contDiffAt.mul hinv)).add
     ((hofReal.contDiffAt.comp M hinv).const_smul Complex.I)).contDiffWithinAt
 
 section LinftyOp
@@ -463,19 +471,20 @@ theorem contDiffOn_complexStructureMatrix :
   have hXYinv := hre.contDiffAt.mul hinv
   refine ContDiffAt.contDiffWithinAt ?_
   convert (LinearMap.toContinuousLinearMap
-    (fromBlocksLinearMap ℝ : _ →ₗ[ℝ] Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ)).contDiff.contDiffAt.comp Z
+    ((fromBlocksLinearEquiv ℝ).toLinearMap :
+      _ →ₗ[ℝ] Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ)).contDiff.contDiffAt.comp Z
     ((hXYinv.prodMk ((him.contDiffAt.neg).sub (hXYinv.mul hre.contDiffAt))).prodMk
       (hinv.prodMk (hinv.mul hre.contDiffAt).neg)) using 1
   funext W
-  simp only [Function.comp_apply, LinearMap.coe_toContinuousLinearMap', fromBlocksLinearMap_apply,
-    complexStructureMatrix_def]
+  simp only [Function.comp_apply, LinearMap.coe_toContinuousLinearMap', LinearEquiv.coe_coe,
+    fromBlocksLinearEquiv_apply, complexStructureMatrix_def]
 
 /-! ### The derivative of `J(Z)` -/
 
 /-- The real linear map `dZ ↦ !![Ẏ, Ẋ; 0, 0]` from complex matrices `dZ = Ẋ + iẎ` to real block
 matrices: the derivative of `Z ↦ !![Y, X; 0, 1]`. -/
 def imReBlocks : Matrix ι ι ℂ →L[ℝ] Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ :=
-  LinearMap.toContinuousLinearMap <| fromBlocksLinearMap ℝ ∘ₗ
+  LinearMap.toContinuousLinearMap <| (fromBlocksLinearEquiv ℝ).toLinearMap ∘ₗ
     (((Complex.imLm.mapMatrix : Matrix ι ι ℂ →ₗ[ℝ] Matrix ι ι ℝ).prod
       Complex.reLm.mapMatrix).prod 0)
 
