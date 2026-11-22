@@ -9,6 +9,7 @@ public import SymplecticGeometry.Geometry.Manifold.DeRham.GoodCover.Basic
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.HomotopyOperator
 public import TauCeti.Geometry.Manifold.DeRham.Basic
 import TauCeti.Geometry.Manifold.DeRham.Map
+import SymplecticGeometry.Geometry.Manifold.MFDeriv.Opens
 
 /-!
 # Smooth primitives of smooth families of one-forms
@@ -142,7 +143,7 @@ private theorem exists_contMDiff_sub_eq_of_mextDeriv_eq {α : N → SmoothForm I
   have hd : mextDeriv (RoughForm.ofFunction I fun z : U ↦ g t z) =
       mextDeriv (RoughForm.ofFunction I fun z : U ↦ P (t, z)) := by
     rw [hdP t, SmoothForm.coe_mpullback, ← hdg t, mpullback_mextDeriv_ofFunction
-      ((contMDiff_subtypeVal (n := 1)).mdifferentiable one_ne_zero)
+      mdifferentiable_subtypeVal
       ((hg t).mdifferentiable (by simp))]
     -- Both sides are the `0`-form of `z ↦ g t z`, written with and without `∘`.
     rfl

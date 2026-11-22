@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.Topology.VectorBundle.Complex.Structure
 public import SymplecticGeometry.Topology.VectorBundle.Determinant
 public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.EulerClass
 public import TauCeti.AlgebraicTopology.Cohomology.FundamentalClass
@@ -26,6 +27,8 @@ is the integer `⟨c₁(E), [M]⟩`.
 * `firstChernClass G E`: the first Chern class of a complex vector bundle;
 * `firstChernClass_pullback`: it is natural under pull-back along continuous maps;
 * `firstChernClass_congr`: isomorphic bundles have the same class;
+* `TauCeti.Bundle.ContinuousComplexStructure.firstChernClass_congr_model`: the class of the
+  complex bundle of a continuous complex structure does not depend on the complex model;
 * `firstChernClass_trivial`: the trivial bundle has class zero;
 * `firstChernClass_eq_complexEulerClass`: for a line bundle it is the Euler class of the bundle;
 * `firstChernClass_conj`: the conjugate bundle has the opposite class;
@@ -110,6 +113,25 @@ theorem firstChernClass_congr
       ((trivializationAt G' E' (Classical.arbitrary B)).continuousLinearEquivAt ℂ _
       (mem_baseSet_trivializationAt G' E' _)))).toLinearEquiv.finrank_eq.symm
   exact (complexEulerClass_eq_of_iso (detCoreMap hG Φ hΦ) _ _).symm
+
+/-- **The first Chern class of a complex structure does not depend on the complex model.** For a
+continuous complex structure `J` on a real vector bundle `V`, the complex bundle `J.Fiber` has the
+same first Chern class with the complex model `G` as with the complex model `G'`. -/
+theorem _root_.TauCeti.Bundle.ContinuousComplexStructure.firstChernClass_congr_model
+    {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] [FiniteDimensional ℝ F]
+    {V : B → Type*} [∀ x, AddCommGroup (V x)] [∀ x, Module ℝ (V x)]
+    [∀ x, TopologicalSpace (V x)] [∀ x, IsTopologicalAddGroup (V x)]
+    [∀ x, ContinuousSMul ℝ (V x)] [TopologicalSpace (TotalSpace F V)]
+    [FiberBundle F V] [VectorBundle ℝ F V] (J : TauCeti.Bundle.ContinuousComplexStructure F V)
+    [Fact (finrank ℝ F = 2 * finrank ℂ G)]
+    (G' : Type*) [NormedAddCommGroup G'] [NormedSpace ℂ G'] [FiniteDimensional ℂ G']
+    [Fact (finrank ℝ F = 2 * finrank ℂ G')] :
+    firstChernClass G' J.Fiber = firstChernClass G J.Fiber := by
+  -- The identity of `V` intertwines `J` with itself.
+  have hc : ∀ x v, ContinuousLinearEquiv.refl ℝ (V x) (J x v) =
+      J x (ContinuousLinearEquiv.refl ℝ (V x) v) := fun _ _ ↦ rfl
+  exact firstChernClass_congr (J.fiberEquivOfCommute J _ hc)
+    (J.continuous_fiberEquivOfCommute J _ hc (continuous_id.congr fun _ ↦ rfl))
 
 variable (B) in
 /-- **The trivial bundle has first Chern class zero.** -/

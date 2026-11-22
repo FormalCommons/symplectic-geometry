@@ -6,13 +6,13 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.IsManifold.InteriorBoundary
+public import SymplecticGeometry.Geometry.Manifold.ModelTransport.InteriorModel
 public import TauCeti.Geometry.Manifold.Boundary.Collar.Smooth
 public import TauCeti.Geometry.Manifold.Gluing.GlueData
 public import TauCeti.Geometry.Manifold.Immersion.Interior
 public import TauCeti.Geometry.Manifold.Immersion.LocalDiffeomorph
 public import TauCeti.Geometry.Manifold.Immersion.ModelChange
 public import TauCeti.Geometry.Manifold.ModelTransport.Diffeomorph
-public import TauCeti.Geometry.Manifold.ModelTransport.Interior
 public import TauCeti.Topology.Category.TopCat.GlueData
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 
@@ -21,8 +21,8 @@ import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 
 For a manifold `W` with boundary, modelled on the half-space, and a smooth collar `c` of its
 boundary, `c.WithEnd` is `W` with the half-cylinder `[0, ∞) × ∂W` attached along `∂W`. It is the
-open gluing (`TopCat.GlueData`) of two pieces over `ℝⁿ⁺¹`: the interior of `W`, re-modelled by Tau
-Ceti's `BoundarylessModel`, and `(-1, ∞) × ∂W`, re-modelled along a linear equivalence
+open gluing (`TopCat.GlueData`) of two pieces over `ℝⁿ⁺¹`: the interior of `W`, re-modelled as
+`SymplecticGeometry.InteriorModel`, and `(-1, ∞) × ∂W`, re-modelled along a linear equivalence
 (`Diffeomorph.isManifold_chartedSpaceComp`), glued by `(s, x) ↦ c (x, -s)` for `s ∈ (-1, 0)`. It
 is a boundaryless smooth manifold, Hausdorff when `W` is; no compactness is assumed.
 
@@ -54,7 +54,7 @@ The retraction descends through `Multicoequalizer.desc` as in Tau Ceti's
 
 public section
 
-open Set Function Topology Manifold TopologicalSpace CategoryTheory
+open Set Function Topology Manifold TopologicalSpace CategoryTheory SymplecticGeometry
 open scoped Manifold ContDiff
 
 noncomputable section
@@ -170,24 +170,8 @@ local instance : IsManifold (𝓡 n) ∞ ((𝓡∂ (n + 1)).boundary W) := isMan
 
 variable (n W) in
 /-- The interior of `W`, as a boundaryless manifold over `ℝⁿ⁺¹`. -/
-private def InteriorPiece : Type u :=
-  BoundarylessModel (𝓡∂ (n + 1)) ((𝓡∂ (n + 1)).interiorOpens W)
-
-private instance : TopologicalSpace (InteriorPiece n W) :=
-  inferInstanceAs
-    (TopologicalSpace (BoundarylessModel (𝓡∂ (n + 1)) ((𝓡∂ (n + 1)).interiorOpens W)))
-
-private instance : ChartedSpace (EuclideanSpace ℝ (Fin (n + 1))) (InteriorPiece n W) :=
-  BoundarylessModel.interiorChartedSpace (𝓡∂ (n + 1)) (M := (𝓡∂ (n + 1)).interiorOpens W)
-
-private instance : IsManifold (𝓡 (n + 1)) ∞ (InteriorPiece n W) :=
-  BoundarylessModel.instIsManifoldInteriorChartedSpace (𝓡∂ (n + 1))
-    (M := (𝓡∂ (n + 1)).interiorOpens W)
-
-/-- The interior of `W`, as an open subset, is diffeomorphic to the interior piece. -/
-private def interiorPieceDiffeomorph :
-    (𝓡∂ (n + 1)).interiorOpens W ≃ₘ^∞⟮𝓡∂ (n + 1), 𝓡 (n + 1)⟯ InteriorPiece n W :=
-  BoundarylessModel.interiorDiffeomorph (𝓡∂ (n + 1)) (M := (𝓡∂ (n + 1)).interiorOpens W) ∞
+private abbrev InteriorPiece : Type u :=
+  InteriorModel (𝓡∂ (n + 1)) ((𝓡∂ (n + 1)).interiorOpens W)
 
 variable (n W) in
 /-- The end piece `(-1, ∞) × ∂W`. -/
@@ -217,40 +201,44 @@ private def endPieceDiffeomorph :
       (X := EndPiece n W) (M := endInterval × (𝓡∂ (n + 1)).boundary W)
       (f := (id : EndPiece n W → endInterval × (𝓡∂ (n + 1)).boundary W))).1 contMDiff_id
 
-/-- The identification of the interior of `W` with the interior piece. -/
-private def ofInterior : (𝓡∂ (n + 1)).interiorOpens W ≃ₜ InteriorPiece n W :=
-  BoundarylessModel.homeomorph _ _
-
 /-- The point of `W` underlying a point of the interior piece. -/
-private def InteriorPiece.val (q : InteriorPiece n W) : W := (ofInterior.symm q : W)
+private def InteriorPiece.val (q : InteriorPiece n W) : W :=
+  ((interiorModelHomeomorph (𝓡∂ (n + 1)) ((𝓡∂ (n + 1)).interiorOpens W)).symm q : W)
 
 private theorem continuous_interiorPieceVal : Continuous (InteriorPiece.val (n := n) (W := W)) :=
-  continuous_subtypeVal.comp ofInterior.symm.continuous
+  continuous_subtypeVal.comp
+    (interiorModelHomeomorph (𝓡∂ (n + 1)) ((𝓡∂ (n + 1)).interiorOpens W)).symm.continuous
 
-@[simp] private theorem InteriorPiece.val_ofInterior (p : (𝓡∂ (n + 1)).interiorOpens W) :
-    (ofInterior p).val = p := by
+@[simp] private theorem InteriorPiece.val_interiorModelHomeomorph
+    (p : (𝓡∂ (n + 1)).interiorOpens W) :
+    InteriorPiece.val
+      (interiorModelHomeomorph (𝓡∂ (n + 1)) ((𝓡∂ (n + 1)).interiorOpens W) p) = p := by
   simp [InteriorPiece.val]
 
 private theorem InteriorPiece.val_mem (q : InteriorPiece n W) :
     q.val ∈ (𝓡∂ (n + 1)).interior W :=
   ModelWithCorners.coe_interiorOpens (I := 𝓡∂ (n + 1)) (M := W) ▸
-    SetLike.mem_coe.2 (ofInterior.symm q).property
+    SetLike.mem_coe.2
+      ((interiorModelHomeomorph (𝓡∂ (n + 1)) ((𝓡∂ (n + 1)).interiorOpens W)).symm q).property
 
 private theorem InteriorPiece.val_injective :
     Injective (InteriorPiece.val (n := n) (W := W)) :=
-  Subtype.val_injective.comp ofInterior.symm.injective
+  Subtype.val_injective.comp
+    (interiorModelHomeomorph (𝓡∂ (n + 1)) ((𝓡∂ (n + 1)).interiorOpens W)).symm.injective
 
 /-- The point of the interior piece at an interior point of `W`. -/
 private def InteriorPiece.mk (p : W) (hp : p ∈ (𝓡∂ (n + 1)).interior W) : InteriorPiece n W :=
-  ofInterior ⟨p, SetLike.mem_coe.1
-    (ModelWithCorners.coe_interiorOpens (I := 𝓡∂ (n + 1)) (M := W) ▸ hp)⟩
+  interiorModelHomeomorph (𝓡∂ (n + 1)) ((𝓡∂ (n + 1)).interiorOpens W)
+    ⟨p, SetLike.mem_coe.1 (ModelWithCorners.coe_interiorOpens (I := 𝓡∂ (n + 1)) (M := W) ▸ hp)⟩
 
 @[simp] private theorem InteriorPiece.val_mk (p : W) (hp : p ∈ (𝓡∂ (n + 1)).interior W) :
     (InteriorPiece.mk p hp).val = p := by
   simp [InteriorPiece.mk]
 
 @[simp] private theorem InteriorPiece.mk_coe (p : (𝓡∂ (n + 1)).interiorOpens W)
-    (hp : (p : W) ∈ (𝓡∂ (n + 1)).interior W) : InteriorPiece.mk (p : W) hp = ofInterior p := rfl
+    (hp : (p : W) ∈ (𝓡∂ (n + 1)).interior W) :
+    InteriorPiece.mk (p : W) hp =
+      interiorModelHomeomorph (𝓡∂ (n + 1)) ((𝓡∂ (n + 1)).interiorOpens W) p := rfl
 
 @[simp] private theorem InteriorPiece.mk_val (q : InteriorPiece n W) :
     InteriorPiece.mk q.val q.val_mem = q := by
@@ -321,7 +309,8 @@ private theorem mem_interiorOverlap {q : InteriorPiece n W} :
 
 /-- The point of the interior piece glued to a point of the end overlap. -/
 private def endToInteriorPt (q : endOverlap (n := n) (W := W)) : InteriorPiece n W :=
-  ofInterior ⟨c.endRetract q.val, by
+  interiorModelHomeomorph (𝓡∂ (n + 1)) ((𝓡∂ (n + 1)).interiorOpens W)
+    ⟨c.endRetract q.val, by
     rw [← SetLike.mem_coe, ModelWithCorners.coe_interiorOpens, endRetract_def,
       apply_mem_interior_iff]
     intro h
@@ -337,8 +326,9 @@ private theorem endToInteriorPt_val (q : endOverlap (n := n) (W := W)) :
 private def endToInterior : C(endOverlap (n := n) (W := W), c.interiorOverlap) where
   toFun q := ⟨c.endToInteriorPt q, c.mem_interiorOverlap.2
     ⟨_, ((c.endToInteriorPt_val q).trans (c.endRetract_def q.val)).symm⟩⟩
-  continuous_toFun := Continuous.subtype_mk (ofInterior.continuous.comp
-    ((c.continuous_endRetract.comp continuous_subtypeVal).subtype_mk _)) _
+  continuous_toFun := Continuous.subtype_mk
+    ((interiorModelHomeomorph (𝓡∂ (n + 1)) ((𝓡∂ (n + 1)).interiorOpens W)).continuous.comp
+      ((c.continuous_endRetract.comp continuous_subtypeVal).subtype_mk _)) _
 
 private theorem endToInterior_val (q : endOverlap (n := n) (W := W)) :
     (c.endToInterior q).val.val = c.endRetract q.val :=
@@ -476,21 +466,14 @@ private instance (p : c.glueData.J × c.glueData.J) :
   letI := instChartedSpacePiece (n := n) (W := W) p.1
   (c.overlap p.1 p.2).instChartedSpace
 
-private theorem coe_interiorPieceDiffeomorph :
-    ⇑(interiorPieceDiffeomorph (n := n) (W := W)) = ofInterior :=
-  BoundarylessModel.coe_interiorDiffeomorph _ _
-
-private theorem coe_interiorPieceDiffeomorph_symm :
-    ⇑(interiorPieceDiffeomorph (n := n) (W := W)).symm = ofInterior.symm :=
-  BoundarylessModel.coe_interiorDiffeomorph_symm _ _
-
 /-- `InteriorPiece.val` is a local diffeomorphism. -/
 private theorem isLocalDiffeomorph_interiorPieceVal :
     IsLocalDiffeomorph (𝓡 (n + 1)) (𝓡∂ (n + 1)) ∞ (InteriorPiece.val (n := n) (W := W)) := by
   intro q
-  have h := (interiorPieceDiffeomorph (n := n) (W := W)).symm.isLocalDiffeomorph q |>.comp
+  have h := Diffeomorph.isLocalDiffeomorph
+    (interiorModelDiffeomorph (𝓡∂ (n + 1)) ((𝓡∂ (n + 1)).interiorOpens W) ∞).symm q |>.comp
     (hg := isLocalDiffeomorph_subtype_val _)
-  rwa [coe_interiorPieceDiffeomorph_symm] at h
+  rwa [SymplecticGeometry.coe_interiorModelDiffeomorph_symm] at h
 
 private theorem isLocalDiffeomorph_collarCoord :
     IsLocalDiffeomorph (𝓡 (n + 1)) ((𝓡 n).prod (𝓡∂ 1)) ∞ c.collarCoord := by
@@ -753,17 +736,19 @@ private theorem inclusion_comp_collar :
   funext (inclusion_apply_collar c)
 
 private theorem inclusion_comp_subtypeVal :
-    inclusion c ∘ Subtype.val = c.interiorIncl ∘ interiorPieceDiffeomorph := by
+    inclusion c ∘ Subtype.val =
+      c.interiorIncl ∘ interiorModelDiffeomorph (𝓡∂ (n + 1)) ((𝓡∂ (n + 1)).interiorOpens W) ∞ := by
   funext q
   rw [comp_apply, inclusion_apply_of_mem_interior c
     (ModelWithCorners.coe_interiorOpens (I := 𝓡∂ (n + 1)) (M := W) ▸ SetLike.mem_coe.2 q.property),
-    InteriorPiece.mk_coe, comp_apply, congr_fun coe_interiorPieceDiffeomorph q]
+    InteriorPiece.mk_coe, comp_apply, congr_fun (coe_interiorModelDiffeomorph _ _ ∞) q]
 
 /-- On the interior of `W`, the inclusion is an open embedding. -/
 theorem isOpenEmbedding_inclusion_comp_subtypeVal :
     IsOpenEmbedding (inclusion c ∘ ((↑) : (𝓡∂ (n + 1)).interiorOpens W → W)) := by
   rw [inclusion_comp_subtypeVal]
-  exact c.isOpenEmbedding_interiorIncl.comp interiorPieceDiffeomorph.toHomeomorph.isOpenEmbedding
+  exact c.isOpenEmbedding_interiorIncl.comp (Diffeomorph.toHomeomorph
+    (interiorModelDiffeomorph (𝓡∂ (n + 1)) ((𝓡∂ (n + 1)).interiorOpens W) ∞)).isOpenEmbedding
 
 /-- The inclusion is a local diffeomorphism at interior points. -/
 theorem isLocalDiffeomorphAt_inclusion {p : W} (hp : p ∈ (𝓡∂ (n + 1)).interior W) :
@@ -772,7 +757,8 @@ theorem isLocalDiffeomorphAt_inclusion {p : W} (hp : p ∈ (𝓡∂ (n + 1)).int
       (⟨p, SetLike.mem_coe.1 (ModelWithCorners.coe_interiorOpens (I := 𝓡∂ (n + 1)) (M := W) ▸ hp)⟩ :
         (𝓡∂ (n + 1)).interiorOpens W) := by
     rw [inclusion_comp_subtypeVal]
-    exact (interiorPieceDiffeomorph.isLocalDiffeomorph _).comp
+    exact (Diffeomorph.isLocalDiffeomorph
+      (interiorModelDiffeomorph (𝓡∂ (n + 1)) ((𝓡∂ (n + 1)).interiorOpens W) ∞) _).comp
       (hg := c.isLocalDiffeomorph_interiorIncl _)
   exact h.of_comp_right (isLocalDiffeomorph_subtype_val _)
 
