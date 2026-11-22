@@ -147,13 +147,14 @@ private lemma norm_zeroPt_add_le (hδ : δ ∈ Ioo (0 : ℝ) 1) :
 
 /-- The small disc `z ↦ 1 + δ/4 + (δ/16) z` around the zero, in the chart of `φ i`. -/
 private abbrev smallBall (hδ : δ ∈ Ioo (0 : ℝ) 1) : CoordinateDisc.ball → CoordinateDisc.ball :=
-  CoordinateDisc.affineBall _ (by linarith [hδ.1] : (0 : ℝ) < δ / 16) (norm_zeroPt_add_le hδ)
+  CoordinateDisc.affineBall _
+    (CoordinateDisc.add_mul_mem_ball (by linarith [hδ.1]) (norm_zeroPt_add_le hδ))
 
 private lemma norm_smallBall (hδ : δ ∈ Ioo (0 : ℝ) 1) (z : CoordinateDisc.ball) :
     1 + δ / 8 < ‖(smallBall hδ z : ℂ)‖ ∧ ‖(smallBall hδ z : ℂ)‖ < 1 + 3 * δ / 8 := by
   have hz := CoordinateDisc.mem_ball_iff.1 z.property
   have hw : (smallBall hδ z : ℂ) = ((1 + δ / 4 : ℝ) : ℂ) + ((δ / 16 : ℝ) : ℂ) * z :=
-    CoordinateDisc.coe_affineBall_apply _ _ _ _
+    CoordinateDisc.coe_affineBall_apply _ _ _
   have h := abs_norm_sub_norm_le (smallBall hδ z : ℂ) ((1 + δ / 4 : ℝ) : ℂ)
   rw [hw, add_sub_cancel_left, norm_mul, Complex.norm_real, Complex.norm_real,
     Real.norm_of_nonneg (by linarith [hδ.1] : (0 : ℝ) ≤ δ / 16),
@@ -317,8 +318,10 @@ variable [Finite ι] (hd : Pairwise (Disjoint on fun j ↦ φ j '' {z | ‖(z : 
 
 /-- The small coordinate disc of the interior around the zero of the test map. -/
 private def smallDisc : CoordinateDisc (o.comap (discComplementInterior φ).isOpenEmbedding') :=
-  ((φ i).comp (smallBall (hε i)) (CoordinateDisc.isOpenEmbedding_affineBall _ _ _)
-    (CoordinateDisc.comap_affineBall_complexHomologicalOrientation _ _ _)).restrict
+  ((φ i).comp (smallBall (hε i))
+    (CoordinateDisc.isOpenEmbedding_affineBall _ _ (div_pos (hε i).1 (by norm_num)).ne')
+    (CoordinateDisc.comap_affineBall_complexHomologicalOrientation _ _
+      (div_pos (hε i).1 (by norm_num)).ne')).restrict
     (discComplementInterior φ) (by
       rintro _ ⟨z, rfl⟩
       rw [CoordinateDisc.comp_apply]
