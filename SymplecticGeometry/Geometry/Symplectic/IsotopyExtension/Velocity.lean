@@ -47,6 +47,8 @@ diffeotopies and the cylinder `[0, 1] × M` of isotopies.
 
 * `TauCeti.SmoothIsotopy.IsSymplectic τ σ F`: every slice of `F` pulls `σ` back to `τ`.
 * `TauCeti.SmoothIsotopy.velocityForm σ F`: the one-form `ι_{∂ₜ} F^* σ` on `[0, 1] × P`.
+* `TauCeti.SmoothIsotopy.restrict G h`: the restriction of an isotopy `G` of an open `W ⊆ P` to
+  an open `V ⊆ W`.
 
 ## Main results
 
@@ -67,6 +69,8 @@ diffeotopies and the cylinder `[0, 1] × M` of isotopies.
   source, is symplectic.
 * `TauCeti.Diffeotopy.hasHamiltonian_iff_velocityForm`: Hamiltonians of a diffeotopy are the
   smooth functions whose slices are primitives of the slices of its velocity form.
+* `TauCeti.SmoothIsotopy.mpullback_prodMk_velocityForm_restrict`: the slices of the velocity form
+  of a restriction are the restrictions of the slices.
 
 ## Implementation notes
 
