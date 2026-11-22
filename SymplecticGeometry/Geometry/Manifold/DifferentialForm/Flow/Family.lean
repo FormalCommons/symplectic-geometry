@@ -10,7 +10,7 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Family
 import TauCeti.Analysis.ODE.ScalarLinear
 
 /-!
-# Moser's principle along trajectories of local time-dependent flows
+# Moser's principle along local flows, and slices of families of forms
 
 Let `X` be a jointly `C²` time-dependent vector field on a finite-dimensional manifold `M`
 without boundary, with time-dependent flow `φ_{s,t}` (`TauCeti.timeDependentFlowOf`), and let `α`
@@ -297,14 +297,10 @@ theorem mpullback_prodMk_timeDeriv_lineMapFamily (α₀ α₁ : SmoothForm I M F
   have h := (lineMapFamily α₀ α₁ hc).hasDerivAt_mpullback_prodMk_timeDeriv t x
   simp only [mpullback_prodMk_lineMapFamily] at h
   refine h.unique ?_
+  simp only [Submodule.coe_add, Submodule.coe_smul, Pi.add_apply, Pi.smul_apply]
   have hct : HasDerivAt c (deriv c t) t :=
     ((hc.of_le (by simp) : ContDiff ℝ 1 c).differentiable one_ne_zero t).hasDerivAt
-  -- The values of the slices are read in the model fibre `E [⋀^Fin k]→L[ℝ] F`.
-  have h2 : HasDerivAt (F := E [⋀^Fin k]→L[ℝ] F)
-      (fun u ↦ (α₀.val x : E [⋀^Fin k]→L[ℝ] F) + c u • ((α₁ - α₀).val x : E [⋀^Fin k]→L[ℝ] F))
-      (deriv c t • ((α₁ - α₀).val x : E [⋀^Fin k]→L[ℝ] F)) t :=
-    (hct.smul_const _).const_add _
-  exact h2
+  exact (hct.smul_const _).const_add _
 
 end TauCeti.SmoothForm
 
