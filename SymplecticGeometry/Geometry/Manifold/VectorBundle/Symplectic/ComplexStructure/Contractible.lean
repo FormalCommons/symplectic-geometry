@@ -44,6 +44,12 @@ structure; so it gives complex structures
 * `SymplecticGeometry.Bundle.ContMDiffComplexStructure.contractibleSpace_tames`,
   `SymplecticGeometry.Bundle.ContMDiffComplexStructure.contractibleSpace_compatible`: the
   two-forms that tame, or are compatible with, a complex structure form contractible spaces.
+* `SymplecticGeometry.Bundle.ContMDiffTwoForm.continuous_polarComplexStructure`,
+  `SymplecticGeometry.Bundle.ContMDiffComplexStructure.continuous_compatibleForm`: for a bundle
+  metric `g`, the maps `ω ↦ J_{g,ω}` and `J ↦ ω_{g,J}` are continuous for the frame topologies.
+  Both are `ContMDiffSection.fiberwiseMap`s without parameter, of the polar formula at the flat
+  map `Bundle.flatAt` and of the alternating map `Bundle.alternatingMapOfBilin` of
+  `compatibleBilinAt`.
 
 The construction of `Compatible.cayleyPath` adapts Tau Ceti's
 `TauCeti.SmoothTwoForm.Compatible.cayleyPath`, for the tangent bundle and smooth structures, to
@@ -316,6 +322,113 @@ theorem contractibleSpace_compatible (J : ContMDiffComplexStructure I n F V) :
   exact (ContMDiffTwoForm.convex_setOf_compatible J).contractibleSpace ⟨ω, hω⟩
 
 end ContMDiffComplexStructure
+
+/-! ### Continuity of `ω ↦ J_{g,ω}` and `J ↦ ω_{g,J}` -/
+
+section Continuity
+
+variable [IsManifold I n M] [ContMDiffVectorBundle n F V I] [LocallyCompactSpace EB]
+  {ι κ : Type*}
+  (e : ι → Trivialization (F →L[ℝ] F) (π (F →L[ℝ] F) (fun x ↦ V x →L[ℝ] V x)))
+  [∀ i, MemTrivializationAtlas (e i)]
+  (U : ι → Opens M) (hU : ∀ i, (U i : Set M) ⊆ (e i).baseSet)
+  (e' : κ → Trivialization (F [⋀^Fin 2]→L[ℝ] ℝ)
+    (π (F [⋀^Fin 2]→L[ℝ] ℝ) (fun x ↦ V x [⋀^Fin 2]→L[ℝ] Trivial M ℝ x)))
+  [∀ j, MemTrivializationAtlas (e' j)]
+  (U' : κ → Opens M) (hU' : ∀ j, (U' j : Set M) ⊆ (e' j).baseSet)
+
+/-- For a bundle metric `g`, the complex structure `J_{g,ω}` depends continuously on the
+nondegenerate two-form `ω`, for the frame topologies of a covering frame system of the bundle of
+alternating forms and of any frame system of the endomorphism bundle. -/
+theorem ContMDiffTwoForm.continuous_polarComplexStructure
+    (g : ContMDiffRiemannianMetric I n F V) (hcover' : ∀ x, ∃ j, x ∈ U' j) :
+    letI := ContMDiffSection.frameTopology (I := I) (n := n) e' U' hU'
+    letI := ContMDiffComplexStructure.frameTopology (I := I) (n := n) e U hU
+    Continuous fun ω : {ω : ContMDiffTwoForm I n F V // ω.IsNondegenerate} ↦
+      ω.property.polarComplexStructure g := by
+  let _ := ContMDiffSection.frameTopology (I := I) (n := n) e' U' hU'
+  let _ := ContMDiffSection.frameTopology (I := I) (n := n) e U hU
+  let _ := ContMDiffComplexStructure.frameTopology (I := I) (n := n) e U hU
+  -- The fibrewise nondegenerate alternating maps.
+  let O := {q : TotalSpace (F [⋀^Fin 2]→L[ℝ] ℝ) (fun x ↦ V x [⋀^Fin 2]→L[ℝ] Trivial M ℝ x) |
+    LinearMap.BilinForm.Nondegenerate (MultilinearMap.toBilinMap q.snd.toMultilinearMap)}
+  have hO : IsOpen O := isOpen_setOf_nondegenerate
+  -- The flat map on the bundle of alternating maps, and the polar formula at it, on `O`.
+  have hflat : ContMDiff (I.prod 𝓘(ℝ, F [⋀^Fin 2]→L[ℝ] ℝ)) (I.prod 𝓘(ℝ, F →L[ℝ] F →L[ℝ] ℝ)) n
+      fun q : TotalSpace (F [⋀^Fin 2]→L[ℝ] ℝ) (fun x ↦ V x [⋀^Fin 2]→L[ℝ] Trivial M ℝ x) ↦
+        TotalSpace.mk' (F →L[ℝ] F →L[ℝ] ℝ) (E := fun x ↦ V x →L[ℝ] V x →L[ℝ] ℝ) q.proj
+          (_root_.Bundle.flatAt F q.snd) :=
+    fun q ↦ contMDiffAt_sectionAlong_flatAt (IN := I.prod 𝓘(ℝ, F [⋀^Fin 2]→L[ℝ] ℝ))
+      (b := TotalSpace.proj) (α := fun q ↦ q.snd) (y₀ := q) (n := n) contMDiffAt_id
+  have hΦ : ContMDiffOn (𝓘(ℝ, Unit).prod (I.prod 𝓘(ℝ, F [⋀^Fin 2]→L[ℝ] ℝ)))
+      (I.prod 𝓘(ℝ, F →L[ℝ] F)) n
+      (fun q : Unit × TotalSpace (F [⋀^Fin 2]→L[ℝ] ℝ)
+          (fun x ↦ V x [⋀^Fin 2]→L[ℝ] Trivial M ℝ x) ↦
+        TotalSpace.mk' (F →L[ℝ] F) (E := fun x ↦ V x →L[ℝ] V x) q.2.proj
+          (g.polarFormulaAt q.2.proj (_root_.Bundle.flatAt F q.2.snd)))
+      (univ ×ˢ O) :=
+    (g.contMDiffOn_polarFormulaAt.comp (hflat.contMDiffOn (s := O))
+      fun _ hq ↦ _root_.Bundle.mk_flatAt_mem_polarFormulaDomain hq).comp
+      contMDiff_snd.contMDiffOn fun _ hq ↦ hq.2
+  have hs : Continuous fun ω : {ω : ContMDiffTwoForm I n F V // ω.IsNondegenerate} ↦
+      (⟨ω.val, fun x ↦ by
+        simpa only [O, Set.mem_ofPred_eq, ← bilinFormAt_def] using
+          ω.property.nondegenerate_bilinFormAt x⟩ :
+        {s : ContMDiffTwoForm I n F V // ∀ x, ⟨x, s x⟩ ∈ O}) :=
+    continuous_subtypeVal.subtype_mk _
+  refine (ContMDiffComplexStructure.continuous_frameTopology_iff e U hU).2 ?_
+  convert (ContMDiffSection.continuous_fiberwiseMap
+    (fun (_ : Unit) x α ↦ g.polarFormulaAt x (_root_.Bundle.flatAt F α)) hΦ e' U' hU' e U hU hO
+    hcover').comp ((continuous_const (y := ())).prodMk hs) using 1
+  funext ω
+  refine ContMDiffSection.ext fun x ↦ ?_
+  simp only [Function.comp_apply, ContMDiffSection.fiberwiseMap_apply]
+  rw [← flat_def]
+  exact ω.property.polarComplexStructure_eq_polarFormulaAt x
+
+/-- For a bundle metric `g`, the two-form `ω_{g,J}` depends continuously on the complex
+structure `J`, for the frame topologies of a covering frame system of the endomorphism bundle and
+of any frame system of the bundle of alternating forms. -/
+theorem ContMDiffComplexStructure.continuous_compatibleForm
+    (g : ContMDiffRiemannianMetric I n F V) (hcover : ∀ x, ∃ i, x ∈ U i) :
+    letI := ContMDiffComplexStructure.frameTopology (I := I) (n := n) e U hU
+    letI := ContMDiffSection.frameTopology (I := I) (n := n) e' U' hU'
+    Continuous
+      (compatibleForm g : ContMDiffComplexStructure I n F V → ContMDiffTwoForm I n F V) := by
+  let _ := ContMDiffSection.frameTopology (I := I) (n := n) e U hU
+  let _ := ContMDiffComplexStructure.frameTopology (I := I) (n := n) e U hU
+  let _ := ContMDiffSection.frameTopology (I := I) (n := n) e' U' hU'
+  have hα (x : M) (B : V x →L[ℝ] V x) (v : V x) : g.compatibleBilinAt x B v v = 0 := by
+    simpa using g.isAlt_compatibleBilinAt x B v
+  -- The alternating map of `compatibleBilinAt`, on the whole endomorphism bundle.
+  have hΦ : ContMDiffOn (𝓘(ℝ, Unit).prod (I.prod 𝓘(ℝ, F →L[ℝ] F)))
+      (I.prod 𝓘(ℝ, F [⋀^Fin 2]→L[ℝ] ℝ)) n
+      (fun q : Unit × TotalSpace (F →L[ℝ] F) (fun x ↦ V x →L[ℝ] V x) ↦
+        TotalSpace.mk' (F [⋀^Fin 2]→L[ℝ] ℝ) (E := fun x ↦ V x [⋀^Fin 2]→L[ℝ] Trivial M ℝ x)
+          q.2.proj (_root_.Bundle.alternatingMapOfBilin F (g.compatibleBilinAt q.2.proj q.2.snd)
+            (hα q.2.proj q.2.snd)))
+      (univ ×ˢ univ) := fun q _ ↦
+    (contMDiffAt_sectionAlong_continuousAlternatingMap_of_bilinear (F₁ := F) (V₁ := V)
+      (G := ℝ) (W := Trivial M ℝ) (IN := 𝓘(ℝ, Unit).prod (I.prod 𝓘(ℝ, F →L[ℝ] F))) (n := n)
+      (y₀ := q)
+      (b := fun q : Unit × TotalSpace (F →L[ℝ] F) (fun x ↦ V x →L[ℝ] V x) ↦ q.2.proj)
+      (β := fun q ↦ g.compatibleBilinAt q.2.proj q.2.snd)
+      (g.contMDiff_compatibleBilinAt.comp contMDiff_snd).contMDiffAt
+      fun _ v ↦ _root_.Bundle.alternatingMapOfBilin_apply _ _ v).contMDiffWithinAt
+  have hs : Continuous fun J : ContMDiffComplexStructure I n F V ↦
+      (⟨J.toEndomorphism, fun _ ↦ mem_univ _⟩ :
+        {s : Cₛ^n⟮I; F →L[ℝ] F, fun x ↦ V x →L[ℝ] V x⟯ //
+          ∀ x, (⟨x, s x⟩ : TotalSpace (F →L[ℝ] F) fun x ↦ V x →L[ℝ] V x) ∈ univ}) :=
+    (isEmbedding_toEndomorphism_frameTopology e U hU).continuous.subtype_mk _
+  convert (ContMDiffSection.continuous_fiberwiseMap
+    (fun (_ : Unit) x B ↦ _root_.Bundle.alternatingMapOfBilin F (g.compatibleBilinAt x B) (hα x B))
+    hΦ e U hU e' U' hU' isOpen_univ hcover).comp ((continuous_const (y := ())).prodMk hs) using 1
+  funext J
+  refine ContMDiffSection.ext fun x ↦ ?_
+  simp only [Function.comp_apply, ContMDiffSection.fiberwiseMap_apply]
+  exact compatibleForm_eq_alternatingMapOfBilin g J x
+
+end Continuity
 
 end SymplecticGeometry.Bundle
 

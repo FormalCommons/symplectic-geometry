@@ -648,7 +648,7 @@ theorem pathMaslovIndex_eq_crossing_sum_and_properties :
       (γ : Path Λ₀ Λ₁) (γ' : Path Λ₀' Λ₁') (V : ℒ ι) (V' : ℒ κ),
       pathMaslovIndex ((γ.prod γ').map continuous_sum) (sum (V, V')) =
         pathMaslovIndex γ V + pathMaslovIndex γ' V') ∧
-    (∀ {Λ Λ' : ℒ ι} (γ : Path Λ Λ') {A : I → Matrix ι ι ℝ}, Continuous A →
+    (∀ {Λ Λ' : ℒ ι} (γ : Path Λ Λ') {A : I → Matrix ι ι ℝ},
       (∀ t, (γ t : Submodule ℝ (StdSpace ι)) = StdSpace.graph (A t)) →
       pathMaslovIndex γ (horizontal ι) = ((A 1).signature - (A 0).signature : ℝ) / 2) ∧
     (∀ {Λ Λ' : ℒ ι} {γ γ' : Path Λ Λ'} (V : ℒ ι),

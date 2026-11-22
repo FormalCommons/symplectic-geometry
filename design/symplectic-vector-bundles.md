@@ -1068,7 +1068,9 @@ $[0,1]$ is never fed to the lemma with `P = ℝ` directly.
   `Geometry/Manifold/VectorBundle/ContinuousAlternatingMap.lean`, beside
   `contMDiff_compContinuousLinearMap_totalSpace`, over the file's field `𝕜`,
   with values in a normed space `G` (the two-forms of this part are the case
-  `𝕜 = G = ℝ`) and a manifold `N` with model `IN`:
+  `𝕜 = G = ℝ`), `alternatingMapOfBilin` with values in the file's
+  coefficient bundle `W` (it uses no trivialization), and a manifold `N`
+  with model `IN`:
 
   ```lean
   def Bundle.flatAt (F) {x : M} (α : V x [⋀^Fin 2]→L[𝕜] Trivial M G x) :
@@ -1087,9 +1089,9 @@ $[0,1]$ is never fed to the lemma with `P = ℝ` directly.
           (E := fun x ↦ V x →L[𝕜] V x →L[𝕜] G) (b y) (flatAt F (α y))) y₀
 
   def Bundle.alternatingMapOfBilin (F) [CompleteSpace 𝕜] [FiniteDimensional 𝕜 F] {x : M}
-      (β : V x →L[𝕜] V x →L[𝕜] G) (hβ : ∀ v, β v v = 0) : V x [⋀^Fin 2]→L[𝕜] Trivial M G x
+      (β : V x →L[𝕜] V x →L[𝕜] W x) (hβ : ∀ v, β v v = 0) : V x [⋀^Fin 2]→L[𝕜] W x
 
-  @[simp] theorem Bundle.alternatingMapOfBilin_apply (β : V x →L[𝕜] V x →L[𝕜] G)
+  @[simp] theorem Bundle.alternatingMapOfBilin_apply (β : V x →L[𝕜] V x →L[𝕜] W x)
       (hβ : ∀ v, β v v = 0) (v : Fin 2 → V x) :
       alternatingMapOfBilin F β hβ v = β (v 0) (v 1)
 
