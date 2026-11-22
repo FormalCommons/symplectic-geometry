@@ -10,6 +10,7 @@ import SymplecticGeometry.Geometry.Manifold.ContMDiff.Opens
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Poincare
 import SymplecticGeometry.Geometry.Symplectic.Manifold.Family
 import SymplecticGeometry.Geometry.Symplectic.Moser.Family
+import SymplecticGeometry.Topology.MetricSpace.ProperSpace.Lemmas
 import TauCeti.Geometry.Manifold.DifferentialForm.Opens
 import TauCeti.Geometry.Symplectic.Manifold.Opens
 
@@ -214,11 +215,10 @@ theorem exists_isSymplecticBallFamily_eqOn_of_mpullback_eq
       (∀ z, k' (0, z) = k (0, z)) ∧ ∀ z, k' (1, z) = k (1, z) := by
   set ω₀ := (stdForm (Fin n)).constSmooth
   -- An open ball `B ⊇ B(r₀)` inside `U`.
-  obtain ⟨δ, hδ, hδU⟩ := (isCompact_closedBall 0 r₀).exists_thickening_subset_open hU hKU
-  rw [thickening_closedBall hδ hr₀] at hδU
-  set B : Opens (StdSpace (Fin n)) := ⟨ball 0 (δ + r₀), isOpen_ball⟩
-  have hBU : (B : Set (StdSpace (Fin n))) ⊆ U := hδU
-  have hKB : closedBall (0 : StdSpace (Fin n)) r₀ ⊆ B := closedBall_subset_ball (by linarith)
+  obtain ⟨ρ, hρ, hρU⟩ := exists_lt_ball_subset_of_closedBall_subset hU hKU
+  set B : Opens (StdSpace (Fin n)) := ⟨ball 0 ρ, isOpen_ball⟩
+  have hBU : (B : Set (StdSpace (Fin n))) ⊆ U := hρU
+  have hKB : closedBall (0 : StdSpace (Fin n)) r₀ ⊆ B := closedBall_subset_ball hρ
   -- The family `k` on `[0, 1] × B`.
   set κ : unitInterval × B → M := fun p ↦ k (p.1, p.2)
   have hκ : ContMDiff ((𝓡∂ 1).prod 𝓘(ℝ, StdSpace (Fin n))) I ∞ κ :=
@@ -237,7 +237,7 @@ theorem exists_isSymplecticBallFamily_eqOn_of_mpullback_eq
     exact h
   -- The primitives `β_t` of `κ_t^* σ - ω₀`.
   obtain ⟨β, hβ, hβ₀, hβ₁, hβK⟩ := exists_mextDeriv_eq_mpullback_sub hσ hr₀
-    ((convex_ball 0 _).starConvex (mem_ball_self (by positivity))) hκ
+    ((convex_ball 0 _).starConvex (mem_ball_self (hr₀.trans_lt hρ))) hκ
     (fun t x hx ↦ hκt t (hK t x hx)) (fun x ↦ hκt 0 (h₀ x (hBU x.property)))
     fun x ↦ hκt 1 (h₁ x (hBU x.property))
   set K : Set B := Subtype.val ⁻¹' closedBall 0 r₀ with hK_def
