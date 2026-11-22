@@ -33,7 +33,7 @@ is Lagrangian (Tau Ceti's `TauCeti.CotangentBundle.isLagrangianMap_zeroSection`)
 pull their symplectic forms back to `0`, and `T^*L` and `M` have the same dimension, twice that of
 `L`. The symplectic complement of a Lagrangian tangent space is the tangent space itself, so the
 comparison theorem `TauCeti.SmoothEmbedding.exists_symplectomorphism_opens_of_mpullback_eq` applies
-to the zero section and `f` with `L = 0`.
+to the zero section and `f`, with the zero map as the prescribed linear map.
 
 ## Main results
 
@@ -114,8 +114,8 @@ theorem IsLagrangianMap.exists_symplectomorphism_cotangent {σ : SmoothTwoForm I
   have hdim : finrank ℝ (EL × (EL →L[ℝ] ℝ)) = finrank ℝ E := by
     rw [finrank_prod, ContinuousLinearMap.dual_finrank_eq, ← two_mul]
     exact hf.two_mul_finrank (f.isImmersion.mfderiv_injective (by simp) q₀)
-  -- With `L = 0`: the symplectic complement of a Lagrangian tangent space is itself, on which
-  -- the form vanishes.
+  -- With the zero map as the prescribed linear map: the symplectic complement of a Lagrangian
+  -- tangent space is itself, on which the form vanishes.
   have hLω (q : L) : ∀ v ∈ (hω₀.isNondegenerate.symplecticFormAt (f₀ q)).orthogonal
       (mfderiv J (J.prod 𝓘(ℝ, EL →L[ℝ] ℝ)) f₀ q).range,
       ∀ w ∈ (hω₀.isNondegenerate.symplecticFormAt (f₀ q)).orthogonal

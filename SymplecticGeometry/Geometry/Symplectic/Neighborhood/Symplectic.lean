@@ -196,15 +196,10 @@ theorem HasSymplecticTangentImages.exists_symplectomorphism_opens {hσ₀ : σ�
   set g := f₁.compDiffeomorph φ
   have hdg (q : Q₀) (v : TangentSpace J q) :
       mfderiv J I₁ g q v = mfderiv J I₁ f₁ (φ q) (mfderiv J J φ q v) := by
-    rw [f₁.coe_compDiffeomorph φ, mfderiv_comp_apply q
-      (f₁.contMDiff.mdifferentiableAt (by simp)) (φ.contMDiff.mdifferentiableAt (by simp))]
+    rw [f₁.coe_compDiffeomorph φ, φ.mfderiv_comp_diffeomorph hn, ContinuousLinearMap.comp_apply]
   have hrange (q : Q₀) : (mfderiv J I₁ g q).range = (mfderiv J I₁ f₁ (φ q)).range := by
-    have h : (mfderiv J I₁ g q).toLinearMap =
-        (mfderiv J I₁ f₁ (φ q)).toLinearMap ∘ₗ (mfderiv J J φ q).toLinearMap :=
-      LinearMap.ext (hdg q)
-    rw [h]
-    exact LinearMap.range_comp_of_range_eq_top _
-      (LinearMap.range_eq_top.2 (φ.isInvertible_mfderiv hn).surjective)
+    rw [f₁.coe_compDiffeomorph φ]
+    exact φ.range_mfderiv_comp_diffeomorph hn f₁ q
   have hσ : SmoothForm.mpullback g g.contMDiff σ₁ = SmoothForm.mpullback f₀ f₀.contMDiff σ₀ := by
     rw [← hφ, ← LinearMap.comp_apply, ← SmoothForm.mpullback_comp]
     congr 2
