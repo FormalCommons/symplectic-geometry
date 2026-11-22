@@ -57,8 +57,10 @@ In the other direction, extending a smooth flat form `a` supported in a compact 
 by zero along `ψ` is bounded in `L²` (`L2Form.exists_norm_ofSmooth_extendByZeroAlong_le`): by
 the same change of variables, now with the Jacobian of `ψ.symm` bounded above and the
 differential of `ψ` bounded on `ψ.symm '' K`
-(`PartialDiffeomorph.exists_norm_mvfderiv_le_mul_norm`), and with the Hilbert norm of a form at
-most `√(n choose k)` times its comass norm (Tau Ceti's
+(`PartialDiffeomorph.exists_norm_mvfderiv_le_mul_norm`), which with Mathlib's
+`ContinuousAlternatingMap.norm_compContinuousLinearMap_le` bounds the comass norm of the extension
+(`TauCeti.RoughForm.norm_extendByZeroAlong_apply_le`), and with the Hilbert norm of a
+form at most `√(n choose k)` times its comass norm (Tau Ceti's
 `ContinuousAlternatingMap.sqrt_alternatingFormInner_self_le`). This gives the gluing
 `L2Form.eq_ofSmooth_of_localize`: for finitely many charts with a subordinate smooth partition of
 unity `ρ`, an `L²` form all of whose localizations with the cutoffs `ρ i` are smooth with compact
@@ -84,7 +86,9 @@ carries this convergence back to `L2Form o k`.
   `L2Form.exists_norm_localizeLp_le`, with `L2Form.localize_ofSmooth`.
 * `SymplecticGeometry.L2Form.exists_norm_ofSmooth_extendByZeroAlong_le`: extension by zero along
   a chart, of smooth flat forms supported in a fixed compact subset of its target, is bounded for
-  the `L²` norms.
+  the `L²` norms, from the pointwise bounds
+  `TauCeti.RoughForm.norm_extendByZeroAlong_apply_le` and
+  `TauCeti.RoughForm.exists_riemannianJacobian_mul_alternatingFormInner_extendByZeroAlong_le`.
 * `SymplecticGeometry.L2Form.eq_ofSmooth_of_localize`: an `L²` form whose localizations to a
   finite cover, with a subordinate partition of unity as cutoffs, are smooth with compact support
   is smooth.
@@ -381,6 +385,87 @@ end Localize
 
 end TauCeti.SmoothForm
 
+/-! ### Pointwise bounds for the extension by zero along a chart -/
+
+namespace TauCeti.RoughForm
+
+variable [RiemannianBundle (fun x : M ↦ TangentSpace I x)]
+
+omit [FiniteDimensional ℝ E] in
+/-- If the differential of `ψ` at `x` has norm at most `C`, for the Riemannian norm on the
+tangent spaces of `M`, the extension by zero along `ψ` of a flat form `a` has norm at most
+`‖a (ψ x)‖ * C ^ k` at `x`. -/
+theorem norm_extendByZeroAlong_apply_le {n : WithTop ℕ∞}
+    (ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E n) (a : E → E [⋀^Fin k]→L[ℝ] ℝ) {x : M} {C : ℝ}
+    (hC : 0 ≤ C) (h : ∀ v : TangentSpace I x, @norm E _ (mfderiv I 𝓘(ℝ, E) ψ x v) ≤ C * ‖v‖) :
+    ‖extendByZeroAlong ψ a x‖ ≤ ‖a (ψ x)‖ * C ^ k := by
+  by_cases hx : x ∈ ψ.source
+  · have hpb : mpullback I 𝓘(ℝ, E) ψ (a : RoughForm 𝓘(ℝ, E) E ℝ k) x =
+        (a (ψ x)).compContinuousLinearMap (mfderiv I 𝓘(ℝ, E) ψ x) :=
+      ContinuousAlternatingMap.ext fun v ↦ mpullback_apply _ _ _ v
+    rw [extendByZeroAlong_apply_of_mem _ hx, hpb]
+    refine (ContinuousAlternatingMap.norm_compContinuousLinearMap_le _ _).trans ?_
+    rw [Fintype.card_fin]
+    exact mul_le_mul_of_nonneg_left
+      (pow_le_pow_left₀ (norm_nonneg _) (ContinuousLinearMap.opNorm_le_bound _ hC h) _)
+      (norm_nonneg _)
+  · rw [extendByZeroAlong_apply_of_notMem _ hx,
+      norm_zero (E := TangentSpace I x [⋀^Fin k]→L[ℝ] Trivial M ℝ x)]
+    positivity
+
+/-- For a compact set `K` in the target of the chart, the Riemannian Jacobian of `ψ.symm` for a
+basis `b` of `E`, times the pointwise inner product `⟨γ, γ⟩` at `ψ.symm y` of the extension by
+zero `γ` along `ψ` of a flat form `a` supported in `K`, is at most a constant `B`, independent of
+`a`, times `‖a y‖ ^ 2`, at every `y` in the target. -/
+theorem exists_riemannianJacobian_mul_alternatingFormInner_extendByZeroAlong_le
+    [IsManifold I ∞ M] [IsContMDiffRiemannianBundle I ∞ E (fun x : M ↦ TangentSpace I x)]
+    {ι : Type*} [Fintype ι] [DecidableEq ι] (b : Module.Basis ι ℝ E)
+    (ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞) {K : Set E} (hK : IsCompact K)
+    (hKψ : K ⊆ ψ.target) :
+    ∃ B, 0 ≤ B ∧ ∀ a : E → E [⋀^Fin k]→L[ℝ] ℝ, tsupport a ⊆ K → ∀ y ∈ ψ.target,
+      riemannianJacobian (I := I) b ψ.symm y *
+          alternatingFormInner (TangentSpace I (ψ.symm y)) k
+            (extendByZeroAlong ψ a (ψ.symm y)) (extendByZeroAlong ψ a (ψ.symm y)) ≤
+        B * ‖a y‖ ^ 2 := by
+  have hn : (∞ : ℕ∞ω) ≠ 0 := by simp
+  obtain ⟨Cd, hCd⟩ := ψ.exists_norm_mvfderiv_le_mul_norm hn hK hKψ
+  obtain ⟨c₀, CJ, -, hJ⟩ := ψ.exists_le_riemannianJacobian_symm_le hn b hK hKψ
+  set D := max Cd 0
+  set c : ℝ := ((Module.finrank ℝ E).choose k : ℝ)
+  refine ⟨max CJ 0 * (c * D ^ (2 * k)), by positivity, fun a haK y hy ↦ ?_⟩
+  have hyy : ψ (ψ.symm y) = y := ψ.right_inv hy
+  by_cases hyK : y ∈ K
+  · have hnorm := norm_extendByZeroAlong_apply_le ψ a (x := ψ.symm y) (le_max_right Cd 0)
+      fun v ↦ (hCd _ ⟨y, hyK, rfl⟩ v).trans
+        (mul_le_mul_of_nonneg_right (le_max_left _ _) (norm_nonneg _))
+    rw [hyy] at hnorm
+    set γ := extendByZeroAlong ψ a (ψ.symm y)
+    have hg0 : 0 ≤ alternatingFormInner (TangentSpace I (ψ.symm y)) k γ γ :=
+      alternatingFormInner_self_nonneg _
+    have hg : alternatingFormInner (TangentSpace I (ψ.symm y)) k γ γ ≤ c * ‖γ‖ ^ 2 := by
+      calc alternatingFormInner (TangentSpace I (ψ.symm y)) k γ γ
+          = √(alternatingFormInner (TangentSpace I (ψ.symm y)) k γ γ) ^ 2 :=
+            (Real.sq_sqrt hg0).symm
+        _ ≤ (√c * ‖γ‖) ^ 2 := by
+            gcongr; exact ContinuousAlternatingMap.sqrt_alternatingFormInner_self_le γ
+        _ = c * ‖γ‖ ^ 2 := by rw [mul_pow, Real.sq_sqrt (by positivity)]
+    calc riemannianJacobian (I := I) b ψ.symm y *
+          alternatingFormInner (TangentSpace I (ψ.symm y)) k γ γ
+        ≤ max CJ 0 * (c * (‖a y‖ * D ^ k) ^ 2) := by
+          gcongr
+          · exact (hJ y hyK).2.trans (le_max_left _ _)
+          · exact hg.trans (by gcongr)
+      _ = max CJ 0 * (c * D ^ (2 * k)) * ‖a y‖ ^ 2 := by ring
+  · have ha0 : a y = 0 := image_eq_zero_of_notMem_tsupport fun h ↦ hyK (haK h)
+    have hγ0 : extendByZeroAlong ψ a (ψ.symm y) = 0 := by
+      have hx : ψ.symm y ∈ ψ.source := ψ.map_target hy
+      rw [extendByZeroAlong_apply_of_mem _ hx]
+      exact mpullback_apply_eq_zero (by rw [hyy]; exact ha0)
+    rw [hγ0, map_zero, mul_zero]
+    positivity
+
+end TauCeti.RoughForm
+
 namespace SymplecticGeometry
 
 open TauCeti TauCeti.SmoothForm
@@ -615,60 +700,17 @@ private theorem exists_ofReal_norm_ofSmooth_extendByZeroAlong_sq_le
   borelize M
   have hn : (∞ : ℕ∞ω) ≠ 0 := by simp
   let b := Module.finBasis ℝ E
-  obtain ⟨Cd, hCd⟩ := ψ.exists_norm_mvfderiv_le_mul_norm hn hK hKψ
-  obtain ⟨c₀, CJ, -, hJ⟩ := ψ.exists_le_riemannianJacobian_symm_le hn b hK hKψ
-  set D := max Cd 0
-  set c : ℝ := ((Module.finrank ℝ E).choose k : ℝ)
+  obtain ⟨B', hB', hB⟩ :=
+    RoughForm.exists_riemannianJacobian_mul_alternatingFormInner_extendByZeroAlong_le
+      (k := k) b ψ hK hKψ
   set s := b.addHaar.addHaarScalarFactor volume
-  set B' := max CJ 0 * (c * D ^ (2 * k))
-  have hB' : 0 ≤ B' := by positivity
   refine ⟨s * B', by positivity, fun a ha hc hs haK ↦ ?_⟩
   set γ := SmoothForm.extendByZeroAlong ψ a ha hc hs
   set g : M → ℝ := fun x ↦ alternatingFormInner (TangentSpace I x) k (γ.val x) (γ.val x)
   set J : E → ℝ := riemannianJacobian (I := I) b ψ.symm
   -- The integrand in the chart is bounded by a multiple of `‖a‖ ^ 2`.
-  have hpt : ∀ y ∈ ψ.target, J y * g (ψ.symm y) ≤ B' * ‖a y‖ ^ 2 := by
-    intro y hy
-    have hx : ψ.symm y ∈ ψ.source := ψ.map_target hy
-    have hyy : ψ (ψ.symm y) = y := ψ.right_inv hy
-    have hγ : γ.val (ψ.symm y) =
-        mpullback I 𝓘(ℝ, E) ψ (a : RoughForm 𝓘(ℝ, E) E ℝ k) (ψ.symm y) := by
-      rw [SmoothForm.coe_extendByZeroAlong, RoughForm.extendByZeroAlong_apply_of_mem _ hx]
-    by_cases hyK : y ∈ K
-    · have hnorm : ‖γ.val (ψ.symm y)‖ ≤ ‖a y‖ * D ^ k := by
-        rw [hγ]
-        refine ContinuousAlternatingMap.opNorm_le_bound _ (by positivity) fun v ↦ ?_
-        refine (congrArg norm (TauCeti.mpullback_apply (I := I) (I' := 𝓘(ℝ, E)) _
-          (a : RoughForm 𝓘(ℝ, E) E ℝ k) _ v)).trans_le ?_
-        calc ‖a (ψ (ψ.symm y)) (fun i ↦ mfderiv I 𝓘(ℝ, E) ψ (ψ.symm y) (v i))‖
-            ≤ ‖a (ψ (ψ.symm y))‖ * ∏ i, @norm E _ (mfderiv I 𝓘(ℝ, E) ψ (ψ.symm y) (v i)) :=
-              (a (ψ (ψ.symm y))).le_opNorm _
-          _ ≤ ‖a (ψ (ψ.symm y))‖ * ∏ i, (D * ‖v i‖) := by
-              refine mul_le_mul_of_nonneg_left (Finset.prod_le_prod₀ (fun i _ ↦ norm_nonneg _)
-                fun i _ ↦ ?_) (norm_nonneg _)
-              exact (hCd _ ⟨y, hyK, rfl⟩ (v i)).trans (by gcongr; exact le_max_left _ _)
-          _ = ‖a y‖ * D ^ k * ∏ i, ‖v i‖ := by
-              rw [Finset.prod_mul_distrib, Finset.prod_const, Finset.card_univ, Fintype.card_fin,
-                hyy]
-              ring
-      have hg : g (ψ.symm y) ≤ c * ‖γ.val (ψ.symm y)‖ ^ 2 := by
-        have h := ContinuousAlternatingMap.sqrt_alternatingFormInner_self_le (γ.val (ψ.symm y))
-        calc g (ψ.symm y) = √(g (ψ.symm y)) ^ 2 :=
-              (Real.sq_sqrt (alternatingFormInner_self_nonneg _)).symm
-          _ ≤ (√c * ‖γ.val (ψ.symm y)‖) ^ 2 := by gcongr; exact h
-          _ = c * ‖γ.val (ψ.symm y)‖ ^ 2 := by rw [mul_pow, Real.sq_sqrt (by positivity)]
-      calc J y * g (ψ.symm y) ≤ max CJ 0 * (c * (‖a y‖ * D ^ k) ^ 2) := by
-            gcongr
-            · exact alternatingFormInner_self_nonneg _
-            · exact (hJ y hyK).2.trans (le_max_left _ _)
-            · exact hg.trans (by gcongr)
-        _ = B' * ‖a y‖ ^ 2 := by ring
-    · have ha0 : a y = 0 := image_eq_zero_of_notMem_tsupport fun h ↦ hyK (haK h)
-      have hγ0 : γ.val (ψ.symm y) = 0 := by
-        rw [hγ]
-        exact mpullback_apply_eq_zero (by rw [hyy]; exact ha0)
-      rw [show g (ψ.symm y) = 0 by simp only [g, hγ0, map_zero], mul_zero]
-      positivity
+  have hpt : ∀ y ∈ ψ.target, J y * g (ψ.symm y) ≤ B' * ‖a y‖ ^ 2 := fun y hy ↦ by
+    simpa only [g, γ, SmoothForm.coe_extendByZeroAlong] using hB a haK y hy
   calc ENNReal.ofReal (‖(ofSmooth γ : L2Form o k)‖ ^ 2)
       = ∫⁻ x, ENNReal.ofReal (g x) ∂riemannianVolume I M := by
         rw [norm_ofSmooth_sq, l2Inner_eq_integral, ofReal_integral_eq_lintegral_ofReal]
