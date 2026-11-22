@@ -54,6 +54,8 @@ invertible (`TauCeti.Manifold.Orientation.eventually_orientationSign_eq`) and ea
 * `TauCeti.SmoothCollar.isOrientationPreservingAt_of_odd`,
   `TauCeti.SmoothCollar.isOrientationReversingAt_of_even`: a collar preserves orientation when
   `n` is odd and reverses it when `n` is even.
+* `TauCeti.EuclideanHalfSpace.isOrientationPreservingAt_normalIioOpens_val_zero`: the coordinate
+  `t ↦ t 0` of `[0, ε)` preserves orientation, to the standard orientation of `ℝ`.
 
 ## References
 
@@ -100,6 +102,40 @@ theorem orientationAt_normalIioOpensOrientation {ε : ℝ} (t : normalIioOpens �
     (Manifold.Orientation.isOrientationPreservingAt_restrict _ _ t)
   rw [normalIioOpensOrientation_def, Manifold.Orientation.orientationAt_model] at h
   exact (h.2 rfl).symm
+
+/-- The coordinate `t ↦ t 0` of `[0, ε)` preserves orientation at every point, from the standard
+orientation of `[0, ε)` to the standard orientation of `ℝ`. -/
+theorem isOrientationPreservingAt_normalIioOpens_val_zero {ε : ℝ} (t : normalIioOpens ε) :
+    Manifold.Orientation.IsOrientationPreservingAt (normalIioOpensOrientation ε)
+      Manifold.Orientation.real (fun s : normalIioOpens ε ↦ (s : EuclideanHalfSpace 1).val 0)
+      t := by
+  have hf : (EuclideanSpace.proj (0 : Fin 1) ∘ (𝓡∂ 1)) ∘ Subtype.val =
+      (fun s : normalIioOpens ε ↦ (s : EuclideanHalfSpace 1).val 0) := by
+    funext s
+    simp [modelWithCornersEuclideanHalfSpace_apply]
+  have hp := (EuclideanSpace.proj (0 : Fin 1) : EuclideanSpace ℝ (Fin 1) →L[ℝ] ℝ).mdifferentiableAt
+    (x := (𝓡∂ 1) t)
+  have hm : mfderiv (𝓡∂ 1) 𝓘(ℝ) (EuclideanSpace.proj (0 : Fin 1) ∘ (𝓡∂ 1))
+      (t : EuclideanHalfSpace 1) = EuclideanSpace.proj 0 := by
+    rw [mfderiv_comp _ hp (𝓡∂ 1).hasMFDerivAt.mdifferentiableAt, (𝓡∂ 1).hasMFDerivAt.mfderiv,
+      ContinuousLinearMap.mfderiv_eq]
+    exact ContinuousLinearMap.comp_id _
+  rw [← hf]
+  refine (Manifold.Orientation.isOrientationPreservingAt_iff_of_basis
+    (EuclideanSpace.basisFun (Fin 1) ℝ).toBasis (Module.Basis.singleton (Fin 1) ℝ)
+    (fun i ↦ ?_)).2 (iff_of_true ?_ ?_)
+  · rw [mfderiv_comp_apply t (hp.comp _ (𝓡∂ 1).hasMFDerivAt.mdifferentiableAt)
+      ((contMDiff_subtypeVal (n := 1)).mdifferentiableAt one_ne_zero),
+      Manifold.mfderiv_subtype_val, ContinuousLinearEquiv.coe_coe,
+      Manifold.tangentSpaceOpenEquiv_apply, hm]
+    fin_cases i
+    have h : EuclideanSpace.proj (0 : Fin 1) ((EuclideanSpace.basisFun (Fin 1) ℝ).toBasis 0) =
+        Module.Basis.singleton (Fin 1) ℝ 0 := by
+      simp
+    -- This is `h`, with the tangent spaces read as `EuclideanSpace ℝ (Fin 1)` and `ℝ`.
+    exact h
+  · exact (orientationAt_normalIioOpensOrientation t).symm
+  · exact (Manifold.Orientation.orientationAt_real _).symm
 
 end EuclideanHalfSpace
 

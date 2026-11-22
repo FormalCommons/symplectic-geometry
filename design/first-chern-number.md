@@ -1241,16 +1241,20 @@ issues, in an order where each issue's blockers come before it.
    `Geometry/Manifold/Gluing/CapDiscs/`, a folder of its own beside Tau
    Ceti's `Geometry/Manifold/Gluing/`, whose gluing it uses, with the
    glued smooth surface in `Basic.lean` and its point-set topology
-   (Hausdorff, compact, connected) in `Topology.lean`: a compact
-   oriented surface with boundary, in the representation of *Symplectic
-   vector bundles*, with its boundary circles parametrized by
+   (Hausdorff, compact, connected) in `Topology.lean`, and its
+   orientation and the caps as coordinate discs in `Orientation.lean`: a
+   compact oriented surface with boundary, in the representation of
+   *Symplectic vector bundles*, with its boundary circles parametrized by
    orientation-reversing loops, glued to discs along them, is a closed
    oriented surface. The main definition is `SymplecticGeometry.capDiscs`,
-   the closed surface with its orientation, with
+   the closed surface, with its orientation
+   `SymplecticGeometry.capDiscs.orientation` (for loops `γ i` that reverse
+   orientation from `AddCircle.orientation 1` to
+   `TauCeti.boundaryOrientation o`), with
    `SymplecticGeometry.isOpenEmbedding_capDiscs_inl` (the interior of the
    surface sits in it as an open subset) and the data
    `SymplecticGeometry.capDiscs.coordinateDisc`, the caps as coordinate
-   discs. Blocked by the issue of *Symplectic vector bundles*
+   discs, whose map is `capDiscs.inr i`. Blocked by the issue of *Symplectic vector bundles*
    that fixes that representation, and by 5. The gluing uses polar
    coordinates on the circle,
    `AddCircle.isLocalDiffeomorphAt_ofReal_mul_toCircle`, in
