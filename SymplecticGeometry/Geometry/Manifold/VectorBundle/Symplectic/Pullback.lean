@@ -61,8 +61,10 @@ isomorphism of bundles is smooth by `Bundle.Pullback.contMDiff_fiberwise`. The A
 `bilinFormAt_pullback` and `IsNondegenerate.symplecticFormAt_pullback` are not `@[simp]`: the
 form they give lives on `V (f y)`, but the instances around it still name the fibre
 `(f *ᵖ V) y`, so the lemmas that evaluate it no longer apply. `simp` evaluates the pulled-back
-form on vectors with `bilinFormAt_apply_pullback` and `pullback_apply`, and its symplectic form
-with `IsNondegenerate.symplecticFormAt_pullback_apply`.
+form on vectors with `bilinFormAt_pullback_apply`, and its symplectic form with
+`IsNondegenerate.symplecticFormAt_pullback_apply`. The first is `@[simp high]`: if
+`bilinFormAt_apply_pullback` and `pullback_apply` rewrite first, the two sides still differ in
+hidden arguments that name the fibre `(f *ᵖ V) y`, and `simp` cannot close the goal.
 
 `bilinFormAt_apply` does not fire on vectors typed in `V (f y)` for a form on `f *ᵖ V`: Mathlib's
 `Bundle.Pullback` is a plain definition, so at the transparency `simp` uses, such a term is not
@@ -151,15 +153,19 @@ theorem bilinFormAt_apply_pullback {K : Type*} [FunLike K N M] [ContinuousMapCla
 
 This is not `@[simp]`: after it rewrites, the instances around the form still name the fibre
 `(f *ᵖ V) y`, and `bilinFormAt_apply` no longer applies. On vectors, `simp` uses
-`bilinFormAt_apply_pullback` and `pullback_apply` instead. -/
+`bilinFormAt_pullback_apply` instead. -/
 theorem bilinFormAt_pullback (ω : ContMDiffTwoForm I n F V) (f : C^n⟮I', N; I, M⟯) (y : N) :
     (ω.pullback f).bilinFormAt y = ω.bilinFormAt (f y) := by
   rw [bilinFormAt_def, bilinFormAt_def, pullback_apply]
   -- The two sides differ only in the fibre type, `(f *ᵖ V) y` against `V (f y)`.
   rfl
 
-/-- The bilinear form of the pull-back at `y` evaluates as `ω (f y)`. This is not `@[simp]`:
-`simp` proves it with `bilinFormAt_apply_pullback` and `pullback_apply`. -/
+/-- The bilinear form of the pull-back at `y` evaluates on `v w : V (f y)` as `ω (f y) ![v, w]`.
+
+It has priority `high`, so that `simp` uses it before `bilinFormAt_apply_pullback` on
+`ω.pullback f`: after that lemma and `pullback_apply`, hidden arguments that name the fibre
+`(f *ᵖ V) y` remain, and `simp` cannot close the goal. -/
+@[simp high]
 theorem bilinFormAt_pullback_apply (ω : ContMDiffTwoForm I n F V) (f : C^n⟮I', N; I, M⟯) (y : N)
     (v w : V (f y)) : (ω.pullback f).bilinFormAt y v w = ω (f y) ![v, w] :=
   ((ω.pullback f).bilinFormAt_apply y v w).trans (congrArg (· ![v, w]) (pullback_apply ω f y))
