@@ -314,8 +314,7 @@ def shuffleSmallPairFst :
       ((X ⊗ Y).smallSingularSubcomplex ![fst X Y ⁻¹' A, snd X Y ⁻¹' B]).pair.chainComplex
         (R ⊗ S) :=
   have hS := shortExact_tensorRightShortComplex_singularChainComplexShortComplex X Y A R S
-  have := hS.epi_g
-  hS.exact.gIsCokernel.desc
+  hS.gIsCokernel.desc
     (CokernelCofork.ofπ _ (shuffle_cokernel_condition_small_fst X Y A B R S))
 
 /-- On `C(X; R) ⊗ C(Y; S)`, the map `shuffleSmallPairFst` is the shuffle map followed by the
@@ -327,8 +326,7 @@ theorem singularChainComplexπ_tensorHom_id_shuffleSmallPairFst :
         ((X ⊗ Y).smallSingularSubcomplex ![fst X Y ⁻¹' A, snd X Y ⁻¹' B]).pair.chainComplexπ
           (R ⊗ S) :=
   have hS := shortExact_tensorRightShortComplex_singularChainComplexShortComplex X Y A R S
-  have := hS.epi_g
-  hS.exact.gIsCokernel.fac _ WalkingParallelPair.one
+  hS.gIsCokernel.fac _ WalkingParallelPair.one
 
 /-- The shuffle map carries `C(X; R) ⊗ C(B; S)` into the small chains of `X × B`. -/
 private theorem shuffle_cokernel_condition_small_snd :
@@ -365,8 +363,7 @@ def shuffleSmallPair :
       ((X ⊗ Y).smallSingularSubcomplex ![fst X Y ⁻¹' A, snd X Y ⁻¹' B]).pair.chainComplex
         (R ⊗ S) :=
   have hS := shortExact_tensorLeftShortComplex_singularChainComplexShortComplex X Y A B R S
-  have := hS.epi_g
-  hS.exact.gIsCokernel.desc
+  hS.gIsCokernel.desc
     (CokernelCofork.ofπ _ (shuffleSmallPairFst_cokernel_condition X Y A B R S))
 
 /-- On `C(X, A; R) ⊗ C(Y; S)`, the small-chain shuffle map of the pairs is
@@ -376,8 +373,7 @@ theorem id_tensorHom_singularChainComplexπ_shuffleSmallPair :
         (TopPair.ofSubset B).singularChainComplexπ S) ≫ shuffleSmallPair X Y A B R S =
       shuffleSmallPairFst X Y A B R S :=
   have hS := shortExact_tensorLeftShortComplex_singularChainComplexShortComplex X Y A B R S
-  have := hS.epi_g
-  hS.exact.gIsCokernel.fac _ WalkingParallelPair.one
+  hS.gIsCokernel.fac _ WalkingParallelPair.one
 
 /-- On `C(X; R) ⊗ C(Y; S)`, the small-chain shuffle map of the pairs is the shuffle map followed by
 the projection to the small chains. -/
@@ -420,8 +416,7 @@ def shuffleAlexanderWhitneyPairFst :
     (TopPair.ofSubset A).singularChainComplex R ⊗ (toSSet.obj Y).chainComplex S ⟶
       (TopPair.ofSubset A).singularChainComplex R ⊗ (toSSet.obj Y).chainComplex S :=
   have hS := shortExact_tensorRightShortComplex_singularChainComplexShortComplex X Y A R S
-  have := hS.epi_g
-  hS.exact.gIsCokernel.desc (CokernelCofork.ofπ
+  hS.gIsCokernel.desc (CokernelCofork.ofπ
     (shuffle X Y R S ≫ alexanderWhitney X Y R S ≫
       ((TopPair.ofSubset A).singularChainComplexπ R ⊗ₘ 𝟙 ((toSSet.obj Y).chainComplex S))) (by
     have h₁ := shuffle_naturality (TopPair.ofSubset A).map (𝟙 Y) R S
@@ -442,8 +437,7 @@ theorem singularChainComplexπ_tensorHom_id_shuffleAlexanderWhitneyPairFst :
       shuffle X Y R S ≫ alexanderWhitney X Y R S ≫
         ((TopPair.ofSubset A).singularChainComplexπ R ⊗ₘ 𝟙 ((toSSet.obj Y).chainComplex S)) :=
   have hS := shortExact_tensorRightShortComplex_singularChainComplexShortComplex X Y A R S
-  have := hS.epi_g
-  hS.exact.gIsCokernel.fac _ WalkingParallelPair.one
+  hS.gIsCokernel.fac _ WalkingParallelPair.one
 
 /-- The Eilenberg–Zilber homotopy `AW ∘ shuffle ≃ id`, descended to `C(X, A; R) ⊗ C(Y; S)`: it is
 natural, so it preserves `C(A; R) ⊗ C(Y; S)`. -/
@@ -458,9 +452,7 @@ def shuffleAlexanderWhitneyPairFstHomotopy :
       ((TopPair.ofSubset A).singularChainComplexShortComplex R)).g
     (tensorRightShortComplex ((toSSet.obj Y).chainComplex S)
       ((TopPair.ofSubset A).singularChainComplexShortComplex R)).g _
-    (fun i ↦ have hSi := hS.map_of_exact (HomologicalComplex.eval C _ i)
-      have := hSi.epi_g
-      hSi.exact.gIsCokernel)
+    (fun i ↦ (hS.map_of_exact (HomologicalComplex.eval C _ i)).gIsCokernel)
     (fun i j ↦ by
       have h := SSet.shuffleAlexanderWhitneyHomotopy_hom_naturality R S
         (toSSet.map (TopPair.ofSubset A).map) (𝟙 (toSSet.obj Y)) i j
@@ -572,9 +564,7 @@ relative Alexander–Whitney map of the pairs after the small-chain shuffle map 
 identity. -/
 def shuffleAlexanderWhitneyPairHomotopy :
     _root_.Homotopy (shuffleAlexanderWhitneyPair X Y A B R S) (𝟙 _) :=
-  have hS₁ := shortExact_tensorRightShortComplex_singularChainComplexShortComplex X Y A R S
   have hS₂ := shortExact_tensorLeftShortComplex_singularChainComplexShortComplex X Y A B R S
-  have := hS₁.epi_g
   _root_.Homotopy.descCokernel (shuffleAlexanderWhitneyPairFstHomotopy X Y A R S)
     (tensorLeftShortComplex ((TopPair.ofSubset A).singularChainComplex R)
       ((TopPair.ofSubset B).singularChainComplexShortComplex S)).f
@@ -582,9 +572,7 @@ def shuffleAlexanderWhitneyPairHomotopy :
       ((TopPair.ofSubset B).singularChainComplexShortComplex S)).g
     (tensorLeftShortComplex ((TopPair.ofSubset A).singularChainComplex R)
       ((TopPair.ofSubset B).singularChainComplexShortComplex S)).g _
-    (fun i ↦ have hSi := hS₂.map_of_exact (HomologicalComplex.eval C _ i)
-      have := hSi.epi_g
-      hSi.exact.gIsCokernel)
+    (fun i ↦ (hS₂.map_of_exact (HomologicalComplex.eval C _ i)).gIsCokernel)
     (fun i j ↦ by
       -- After the epimorphism `C(X; R) ⊗ C(B; S) ⟶ C(X, A; R) ⊗ C(B; S)`, this is the naturality of
       -- the Eilenberg–Zilber homotopy along the inclusion of `B`.

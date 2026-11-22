@@ -261,8 +261,7 @@ def shufflePair :
     (TopPair.ofSubset A).singularChainComplex R ⊗ (TopPair.ofSubset B).singularChainComplex S ⟶
       (TopPair.ofSubset (fst X Y ⁻¹' A ∪ snd X Y ⁻¹' B)).singularChainComplex (R ⊗ S) :=
   have hS := shortExact_tensorLeftShortComplex_singularChainComplexShortComplex X Y A B R S
-  have := hS.epi_g
-  hS.exact.gIsCokernel.desc (CokernelCofork.ofπ _ (shuffleRel_cokernel_condition X Y A B R S))
+  hS.gIsCokernel.desc (CokernelCofork.ofπ _ (shuffleRel_cokernel_condition X Y A B R S))
 
 /-- The comparison maps commute with the maps of the sequences on the last two terms. -/
 private theorem shufflePair_comm₂₃ :
@@ -271,8 +270,7 @@ private theorem shufflePair_comm₂₃ :
       shufflePairτ₂ X Y A B R S ≫ TopPair.singularChainComplexMap
         (TauCeti.TopTriple.totalToOuter.app (TopPair.prodUnionTripleFst A B)) (R ⊗ S) :=
   have hS := shortExact_tensorLeftShortComplex_singularChainComplexShortComplex X Y A B R S
-  have := hS.epi_g
-  hS.exact.gIsCokernel.fac _ WalkingParallelPair.one
+  hS.gIsCokernel.fac _ WalkingParallelPair.one
 
 /-- On `C(X, A; R) ⊗ C(Y; S)` the shuffle map of the product of pairs is the relative shuffle map
 of `(X, A)` and `Y`, followed by the quotient modulo the chains of `A × Y ∪ X × B`. -/
