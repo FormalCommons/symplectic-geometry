@@ -5,8 +5,8 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.AlgebraicTopology.Singular.Circle
 public import SymplecticGeometry.AlgebraicTopology.Singular.RelativeClass
+public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orientation.Plane
 public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orientation.Smooth
 public import SymplecticGeometry.LinearAlgebra.Complex.Orientation
 public import TauCeti.Analysis.SpecialFunctions.Complex.Arg
@@ -30,11 +30,11 @@ orientation of the homological orientation of the smooth standard orientation
 ## Proof
 
 The oriented local homology isomorphism of the identity chart at `p`, which sends the local
-orientation to `1`, is the connecting morphism of `(ℝ², ℝ² ∖ {p})`, followed by radial projection
-about `p` and the generator of the unit circle selected by the orientation. Through the linear
-isometry `(x, y) ↦ x + iy` of `ℝ²` with `ℂ`, which preserves orientations, and
-`Circle.singularHomologyOneIso_inv_eq_complexOrientation`, it is the connecting morphism followed by
-the direction map `ℝ² ∖ {p} → Circle` and `Circle.singularHomologyOneIso`.
+orientation to `1`, is the connecting morphism of `(ℝ², ℝ² ∖ {p})`, followed by the direction map
+`ℝ² ∖ {p} → Circle` and `Circle.singularHomologyOneIso`
+(`TauCeti.singularHomologyComplSingletonIsoOfOrientation_refl_hom_eq_radialProjection`, for the
+linear isometry `(x, y) ↦ x + iy` of `ℝ²` with `ℂ`, which preserves orientations). The direction
+map is `Circle.radialProjectionAt` of that isometry and `p`.
 
 The connecting morphism sends `[σ]` to the class of the edge cycle `t₀ - t₁ + t₂`
 (`TopPair.relClass_singularHomologyδ_two`), whose edges are the segments from `e₀` to `e₁`, from
@@ -114,7 +114,7 @@ private lemma coe_exp_segmentLift {A B : ℂ} (hA : A ≠ 0) (hζ : (B / A).im �
     Complex.exp_arg_mul_I hw, hAw, norm_mul, Complex.ofReal_mul]
   field_simp
 
-/-! ### The local homology of the plane read in `Circle` -/
+/-! ### The direction about a point of the plane -/
 
 /-- The integer coefficients of Tau Ceti's local homology. -/
 private abbrev R : ModuleCat.{0} ℤ := ModuleCat.of ℤ (ULift.{0} ℤ)
@@ -123,78 +123,11 @@ private abbrev R : ModuleCat.{0} ℤ := ModuleCat.of ℤ (ULift.{0} ℤ)
 private abbrev toComplex : EuclideanSpace ℝ (Fin 2) ≃ₗᵢ[ℝ] ℂ :=
   Complex.orthonormalBasisOneI.repr.symm
 
-/-- The direction about `p` of a point of `ℝ² ∖ {p}`, in `Circle`: radial projection about `p`
-onto the unit sphere, followed by `toComplex`. -/
-private def directionMap (p : EuclideanSpace ℝ (Fin 2)) :
-    C(({p}ᶜ : Set (EuclideanSpace ℝ (Fin 2))), Circle) :=
-  (Circle.homeomorphSphere.symm : C(sphere (0 : ℂ) 1, Circle)).comp
-    ((⟨toComplex.toLinearIsometry.unitSphereMap,
-      toComplex.toLinearIsometry.continuous_unitSphereMap⟩ :
-        C(sphere (0 : EuclideanSpace ℝ (Fin 2)) 1, sphere (0 : ℂ) 1)).comp
-      (complSingletonHomotopyEquivSphere p).toFun)
-
-/-- The direction about `p`, as a map out of the subspace of the pair `(ℝ², ℝ² ∖ {p})`. -/
+/-- The direction about `p` of a point of `ℝ² ∖ {p}`, in `Circle`: `Circle.radialProjectionAt`
+of `toComplex` and `p`, as a map out of the subspace of the pair `(ℝ², ℝ² ∖ {p})`. -/
 private abbrev direction (p : EuclideanSpace ℝ (Fin 2)) :
     (ofSubset ({p}ᶜ : Set (TopCat.of (EuclideanSpace ℝ (Fin 2))))).snd ⟶ TopCat.of Circle :=
-  TopCat.ofHom (directionMap p)
-
-private lemma direction_def (p : EuclideanSpace ℝ (Fin 2)) :
-    direction p = TopCat.ofHom (complSingletonHomotopyEquivSphere p).toFun ≫
-      TopCat.ofHom ⟨toComplex.toLinearIsometry.unitSphereMap,
-        toComplex.toLinearIsometry.continuous_unitSphereMap⟩ ≫
-      TopCat.ofHom (Circle.homeomorphSphere.symm : C(sphere (0 : ℂ) 1, Circle)) :=
-  rfl
-
-/-- The direction about `p` of a point of `ℝ² ∖ {p}`, as a complex number. -/
-private lemma coe_directionMap_apply (p : EuclideanSpace ℝ (Fin 2))
-    (y : ({p}ᶜ : Set (EuclideanSpace ℝ (Fin 2)))) :
-    (directionMap p y : ℂ) = toComplex ((y : EuclideanSpace ℝ (Fin 2)) - p) /
-      ‖toComplex ((y : EuclideanSpace ℝ (Fin 2)) - p)‖ := by
-  simp only [directionMap, ContinuousMap.comp_apply, ContinuousMap.coe_mk,
-    Circle.coe_homeomorphSphere_symm_apply, LinearIsometry.coe_unitSphereMap_apply,
-    coe_complSingletonHomotopyEquivSphere_apply, LinearIsometryEquiv.coe_toLinearIsometry,
-    map_smul, LinearIsometryEquiv.norm_map, Complex.real_smul, Complex.ofReal_inv, div_eq_inv_mul]
-
-/-- The oriented local homology isomorphism of the identity chart of `ℝ²` at `p` is the connecting
-morphism of `(ℝ², ℝ² ∖ {p})`, followed by the direction about `p` and
-`Circle.singularHomologyOneIso`. -/
-private lemma singularHomologyComplSingletonIsoOfOrientation_refl_hom_eq
-    (p : EuclideanSpace ℝ (Fin 2)) :
-    (singularHomologyComplSingletonIsoOfOrientation R
-        (OpenPartialHomeomorph.refl (EuclideanSpace ℝ (Fin 2))) (x := p) (by simp) (n := 1)
-        (EuclideanSpace.basisFun (Fin 2) ℝ).toBasis.orientation finrank_euclideanSpace_fin).hom =
-      (ofSubset ({p}ᶜ : Set (TopCat.of (EuclideanSpace ℝ (Fin 2))))).singularHomologyδ
-          R 2 1 rfl ≫
-        ((AlgebraicTopology.singularHomologyFunctor (ModuleCat.{0} ℤ) 1).obj R).map (direction p) ≫
-        (Circle.singularHomologyOneIso R).hom := by
-  set H := (AlgebraicTopology.singularHomologyFunctor (ModuleCat.{0} ℤ) 1).obj R
-  set H' := reducedSingularHomologyFunctor R 1
-  set sC := reducedSingularHomologySphereIsoOfOrientation R Complex.orientation
-    Complex.finrank_real_complex
-  set h := TopCat.ofHom (Circle.homeomorphSphere.symm : C(sphere (0 : ℂ) 1, Circle))
-  -- The oriented generator of the unit circle of `ℂ`, read in `Circle`.
-  have hC : sC.hom = (reducedSingularHomologyι R 1).app _ ≫ H.map h ≫
-      (Circle.singularHomologyOneIso R).hom := by
-    rw [← cancel_epi sC.inv, Iso.inv_hom_id, ← Category.assoc, ← Category.assoc,
-      Category.assoc sC.inv, ← Circle.singularHomologyOneIso_inv_eq_complexOrientation,
-      Iso.inv_hom_id]
-  have hnat := reducedSingularHomologySphereIsoOfOrientation_hom_naturality R
-    (EuclideanSpace.basisFun (Fin 2) ℝ).toBasis.orientation Complex.orientation
-    toComplex (by
-      rw [← Complex.orientation_map_orthonormalBasisOneI_repr,
-        LinearIsometryEquiv.toLinearEquiv_symm, ← Orientation.map_symm, Equiv.symm_apply_apply])
-    (finrank_euclideanSpace_fin (n := 2))
-  dsimp only at hnat
-  refine (singularHomologyComplSingletonIsoOfOrientation_refl_hom _ _ _ _).trans ?_
-  rw [direction_def]
-  -- The subspace of the pair is `{p}ᶜ` only after unfolding `TopPair.ofSubset`.
-  erw [Functor.map_comp, Functor.map_comp]
-  rw [← hnat, hC, ← TopPair.reducedSingularHomologyδ_comp_ι]
-  erw [(reducedSingularHomologyι R 1).naturality_assoc,
-    (reducedSingularHomologyι R 1).naturality_assoc]
-  -- The two sides differ by associativity, which `simp` cannot apply since the source of the
-  -- radial projection is the subspace of the pair only after unfolding `TopPair.ofSubset`.
-  rfl
+  TopCat.ofHom (Circle.radialProjectionAt toComplex p)
 
 /-! ### The faces of the standard simplex -/
 
@@ -366,7 +299,11 @@ private lemma toSSet_map_app_simplex₁_segmentCompl_direction {a b p : Euclidea
   ext t
   rw [ContinuousMap.comp_apply, ContinuousMap.comp_apply, coe_exp_segmentLift hA hζ hc,
     ← toComplex_segment_sub]
-  exact coe_directionMap_apply p _
+  -- `segmentCompl` is `Path.segment a b`, with values in the subspace of the pair, which is
+  -- `{p}ᶜ` only after unfolding `TopPair.ofSubset`, so the last step is by definition.
+  refine (Circle.coe_radialProjectionAt_apply _ _ _).trans ?_
+  rw [Complex.real_smul, Complex.ofReal_inv, div_eq_inv_mul]
+  rfl
 
 /-- The three edges of the standard simplex, as singular `1`-simplices of `ℝ² ∖ {p}`: from `e₀`
 to `e₁`, from `0` to `e₁` and from `0` to `e₀`, the faces `δ₀`, `δ₁`, `δ₂`. -/
@@ -534,7 +471,10 @@ theorem relClass_fullSimplex_eq_neg_localOrientationOfOrientedChart
         (OpenPartialHomeomorph.refl (EuclideanSpace ℝ (Fin 2))) (x := p) (by simp) (n := 1)
         (EuclideanSpace.basisFun (Fin 2) ℝ).toBasis.orientation finrank_euclideanSpace_fin).hom,
       Preadditive.neg_comp, Iso.inv_hom_id,
-      singularHomologyComplSingletonIsoOfOrientation_refl_hom_eq p]
+      singularHomologyComplSingletonIsoOfOrientation_refl_hom_eq_radialProjection R _ _ p toComplex
+        (by rw [← Complex.orientation_map_orthonormalBasisOneI_repr,
+          LinearIsometryEquiv.toLinearEquiv_symm, ← Orientation.map_symm,
+          Equiv.symm_apply_apply])]
     have h := relClass_stdTri_singularHomologyδ_direction hp hσ
     have h' := congrArg (· ≫ (Circle.singularHomologyOneIso R).hom) h
     simp only [Category.assoc, Preadditive.neg_comp, Iso.inv_hom_id] at h'
