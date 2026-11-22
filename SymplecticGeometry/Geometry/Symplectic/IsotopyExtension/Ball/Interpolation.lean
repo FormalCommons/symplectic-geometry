@@ -14,6 +14,7 @@ import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.RightInverse
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.UniqueDifferential
 import SymplecticGeometry.Geometry.Manifold.SmoothIsotopy.Extension
 import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Frame
+import TauCeti.Geometry.Manifold.Diffeomorph.Basic
 import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.ModelSpace
 import TauCeti.Topology.Algebra.Module.Alternating.Basic
 
@@ -216,14 +217,8 @@ private theorem exists_contMDiffOn_mpullback_eq_of_path [FiniteDimensional ℝ E
       (hj₀U.comp contDiff_snd.contMDiff.contMDiffOn fun p (hp : p ∈ univ ×ˢ U₀) ↦ hp.2))
   -- The slices `ψ s ∘ j₀` are immersions at `0`, since `ψ s` is a diffeomorphism.
   have hAinj (s : ℝ) :
-      Injective (mfderiv 𝓘(ℝ, StdSpace (Fin n)) I (fun z ↦ ψ s (j₀ z)) 0) := by
-    have hj₀d : MDifferentiableAt 𝓘(ℝ, StdSpace (Fin n)) I j₀ 0 :=
-      (hj₀U.contMDiffAt (hU₀.mem_nhds h0U₀)).mdifferentiableAt (by simp)
-    rw [show (fun z ↦ ψ s (j₀ z)) = ψ s ∘ j₀ from rfl,
-      mfderiv_comp 0 (((ψ s).contMDiff.contMDiffAt).mdifferentiableAt (by simp)) hj₀d,
-      ContinuousLinearMap.coe_comp, ← (ψ s).mfderivToContinuousLinearEquiv_coe (by simp)]
-    exact ((ψ s).mfderivToContinuousLinearEquiv (by simp) _).injective.comp
-      (hj₀.injective_mfderiv hr h0r)
+      Injective (mfderiv 𝓘(ℝ, StdSpace (Fin n)) I (fun z ↦ ψ s (j₀ z)) 0) :=
+    ((ψ s).mfderiv_diffeomorph_comp_injective_iff (by simp)).2 (hj₀.injective_mfderiv hr h0r)
   -- The end frame `B = (d (ψ 1 ∘ j₀)_0)⁻¹ ∘ d (j₁)_0`.
   set A₁ := mfderiv 𝓘(ℝ, StdSpace (Fin n)) I (fun z ↦ ψ 1 (j₀ z)) 0
   have hfin : Module.finrank ℝ (StdSpace (Fin n)) = Module.finrank ℝ E := by
