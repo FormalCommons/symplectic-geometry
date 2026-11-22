@@ -870,6 +870,20 @@ issues, in an order where each issue's blockers come before it.
    induction is `InfClosed.finset_sup_induction`, in `Order/SupClosed.lean`,
    Tau Ceti's `TauCeti.finset_sup_of_inf_closed` for a finite set of members
    of the family.
+   Duality for a manifold is the library's
+   `AlgebraicTopology/Cohomology/CompactSupport/Duality/Manifold.lean`:
+   `TauCeti.HomologicalOrientation.bijective_dualityMap`, for every
+   homologically oriented manifold, compact or not, and for compact `M` its
+   form for capping with the fundamental class,
+   `bijective_singularCap_fundamentalClass`. It imports
+   `AlgebraicTopology/Cohomology/CompactSupport/Manifold.lean`, which proves
+   `TopCat.isZero_compactSupportCohomology_of_chartedSpace`, `Hᵐ_c(M) = 0`
+   above the dimension, which the Mayer–Vietoris step needs for the
+   intersections. Both run the induction above over the open sets lying in
+   one chart instead of those with convex image; that family comes from
+   `Geometry/Manifold/ChartedSpace.lean`:
+   `TopologicalSpace.Opens.infClosed_setOf_subset_chartAt_source` and
+   `TopologicalSpace.Opens.iSup_finset_sup_subset_chartAt_source_eq_top`.
 3. **The unit circle bundle of a Hermitian line bundle.**
    `Geometry/Manifold/VectorBundle/Hermitian/CircleBundle.lean`, the file
    of *Symplectic vector bundles* (its section *The circle bundle of a
@@ -1073,13 +1087,23 @@ issues, in an order where each issue's blockers come before it.
      the local orientation of the identity chart of an oriented inner
      product space, through the connecting morphism and radial projection,
      is the oriented generator of the unit sphere.
+   - `Topology/OpenPartialHomeomorph/Basic.lean`, used by
+     `LocalHomology/System.lean` and `Orientation/Chart.lean`: from Tau
+     Ceti's main branch, `OpenPartialHomeomorph.sourceRestrict`, an open
+     partial homeomorphism restricted to its source, and
+     `OpenPartialHomeomorph.mem_refl_source`.
+   - `AlgebraicTopology/Singular/LocalHomology/System.lean`, used by
+     `Orientation/Chart.lean`: from Tau Ceti's main branch,
+     `TauCeti.localHomologyMap_subtypeVal_comp_singularHomologyComplSingletonIsoOfChart_hom`,
+     the local homology isomorphism of a chart is the map induced by its
+     source restriction.
    - `AlgebraicTopology/Singular/LocalHomology/Orientation/Chart.lean`, used
      by `Orientation/Linear.lean`: from Tau Ceti's main branch, which the
      pinned version lags,
      `LinearIsometryEquiv.snd_ofSubsetMap_comp_complSingletonHomotopyEquivSphere`,
      linear isometries commute with radial projection.
    - `AlgebraicTopology/Singular/LocalHomology/Orientation/Linear.lean`, used
-     by `Complex.lean`: from Tau Ceti's main branch,
+     by `Complex.lean` and `EulerNumber.lean`: from Tau Ceti's main branch,
      `Orientation.localOrientation_eq_localOrientationOfOrientedChart_refl`,
      on an inner product space the local orientation that an orientation
      selects is the one of the identity chart.
