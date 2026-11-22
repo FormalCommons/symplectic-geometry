@@ -300,6 +300,7 @@ complex ones that `chernNumber_congr` takes.
   nondegenerate, so that a compatible complex structure exists.
 - The file imports `Geometry/Manifold/VectorBundle/Symplectic/FirstChernClass.lean`
   of *First Chern class of nondegenerate forms*; `Tames.chernNumber_eq`,
+  `symplecticChernNumber_neg`,
   `symplecticChernNumber_congr` and `symplecticChernNumber_pullback` follow
   from the first-Chern-class lemmas there.
 
@@ -819,7 +820,14 @@ issues, in an order where each issue's blockers come before it.
    `U ∩ V`, both assume `Hⁿ⁺¹_c(U ∩ V; L) = 0`, which injectivity needs in
    the top degree; `TopCat.isZero_compactSupportCohomology_sup`, in the
    library's `AlgebraicTopology/Cohomology/CompactSupport/Vanishing.lean`,
-   passes that vanishing on to `U ∪ V`. The step uses
+   passes that vanishing on to `U ∪ V`, and
+   `TopCat.isZero_compactSupportCohomology_of_iSup_eq_top`, in the same
+   file, to a directed union of open sets. The vanishing starts from
+   `AlgebraicTopology/Cohomology/CompactSupport/Euclidean/Basic.lean`,
+   `TopCat.isZero_compactSupportCohomology_of_starConvex` and
+   `isZero_compactSupportCohomology_of_convex`: `Hᵏ_c(U) = 0` for
+   `k ≠ dim F` when `U` embeds openly in `F` with star-convex or convex
+   image. The step uses
    `Topology/Sets/Opens/Comap.lean`,
    `TopologicalSpace.Opens.range_val_comp_val_comap`, to read an open set of
    `M` as one of `U ∪ V`, and `Algebra/Category/ModuleCat/Basic.lean`,
@@ -1100,12 +1108,21 @@ issues, in an order where each issue's blockers come before it.
      compatible with the orientation, and a nowhere-zero section `s` over
      $\Sigma_2$, the Euler number of `L` is the boundary degree on
      $\Sigma_1$ of the normalization of
-     `τ⁻¹ s` on `C`. Proof: extend `τ⁻¹ s` from `C` to a smooth map
-     $\Sigma_1\to\mathbb{C}$ transverse to $0$ (Tietze, smoothing and a
-     generic perturbation as in `Section/Generic.lean`), so that `s` extends
-     to a section with finitely many zeros, and combine
+     `τ s` on `C`. Proof: extend `τ s` from `C` to a map
+     $M\to\mathbb{C}$ with finitely many zeros, none on `C` (Tietze, then
+     `exists_eq_on_levelSet_finite_zeros` of `RegularValue/FiniteZeros.lean`),
+     so that `s` extends to a section with finitely many zeros, and combine
      `sum_sectionIndex_eq_boundaryDegree` with
      `evalFundamentalClass_eulerClass_eq_sum_sectionIndex`.
+   - `Geometry/Manifold/RegularValue/FiniteZeros.lean`, used by the smooth
+     form above: `SymplecticGeometry.exists_eq_on_levelSet_finite_zeros`, on a
+     compact manifold modelled on `E`, a continuous map to a space of the
+     dimension of `E` that does not vanish on a level set of a continuous
+     `g` agrees there with a continuous map with finitely many zeros, none on
+     that level set. Route: smoothing, then subtracting a small regular value
+     given by Sard's theorem (`TauCeti.dense_isRegularValue`), whose fibre
+     is finite, and interpolating in `|g|` back to the original map near the
+     level set.
    - `Geometry/Manifold/RegularValue/LevelCollar.lean`:
      `SymplecticGeometry.isCollared_inclusion_levelSet`, for a smooth
      `g : M → ℝ` on a compact manifold without boundary with regular value
