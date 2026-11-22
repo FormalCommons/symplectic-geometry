@@ -264,6 +264,10 @@ own milestone line.
   `Lagrangian.lean`). It goes, in namespace `Projectivization`, to
   `Geometry/Manifold/Projectivization/BaseChange.lean`; Tau Ceti has no file
   of that name in that folder.
+- `TauCeti.SmoothTwoForm.IsNondegenerate.isIsotropicMap_of_comp` does not
+  involve $\mathbb CP^n$ (issue #1340). It goes to
+  `Geometry/Symplectic/Lagrangian/Submersion.lean`, at the path of the Tau
+  Ceti file whose `isLagrangianMap_comp_submersion_iff` it complements.
 
 ## Files and declarations
 
@@ -462,6 +466,13 @@ In namespace `Projectivization`:
   `mkNonzero ℝ n`, since the kernels of the derivatives of `mkNonzero` over
   `ℝ` and `ℂ` are the lines through the point (`ker_mfderiv_mkNonzero`), and
   a closed embedding since $\mathbb RP^n$ is compact.
+
+### `Geometry/Symplectic/Lagrangian/Submersion.lean`
+
+- `TauCeti.SmoothTwoForm.IsNondegenerate.isIsotropicMap_of_comp`, in Tau
+  Ceti's namespace: a differentiable map `f` is isotropic when `f ∘ q` is,
+  for a surjective differentiable `q` with surjective derivatives. Both
+  Lagrangian examples below check isotropy upstairs with it.
 
 ### `Geometry/Manifold/Projectivization/FubiniStudy/Lagrangian.lean`
 

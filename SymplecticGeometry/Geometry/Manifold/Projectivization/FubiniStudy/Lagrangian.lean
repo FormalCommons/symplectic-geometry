@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.Geometry.Manifold.Projectivization.BaseChange
 public import SymplecticGeometry.Geometry.Manifold.Projectivization.FubiniStudy.Basic
 public import SymplecticGeometry.Geometry.Manifold.Instances.AddCircle
+public import SymplecticGeometry.Geometry.Symplectic.Lagrangian.Submersion
 public import TauCeti.Geometry.Manifold.Instances.AddCircle.Torus
 public import TauCeti.Geometry.Symplectic.Lagrangian.Embedding.Basic
 import Mathlib.Analysis.SpecialFunctions.ExpDeriv
@@ -22,9 +23,9 @@ submanifolds of `(ℂPⁿ, ω_FS)`.
 
 * `SymplecticGeometry.isIsotropicMap_mkNonzero_comp_iff`: a map `x ↦ [G x]` into `ℂPⁿ`, for a
   differentiable map `G` into `ℂⁿ⁺¹ ∖ 0`, is isotropic exactly when `ρ` vanishes on the image of
-  the derivative of `G`. With `TauCeti.SmoothTwoForm.IsNondegenerate.isIsotropicMap_of_comp`,
-  which checks isotropy after a surjective map with surjective derivatives, this reduces both
-  examples to a computation upstairs.
+  the derivative of `G`. With `TauCeti.SmoothTwoForm.IsNondegenerate.isIsotropicMap_of_comp`
+  (`Geometry/Symplectic/Lagrangian/Submersion.lean`), which checks isotropy after a surjective
+  map with surjective derivatives, this reduces both examples to a computation upstairs.
 * `SymplecticGeometry.isLagrangianEmbedding_mapProjective_ofReal`: real projective space
   `ℝPⁿ`, embedded by the change of field `Complex.ofRealHom.mapProjective`
   (`Projectivization.isSmoothEmbedding_mapProjective_ofReal`), is a Lagrangian embedding. At a
@@ -50,33 +51,6 @@ public section
 
 open Function Manifold TauCeti Projectivization AddCircle
 open scoped Manifold ContDiff Real LinearAlgebra.Projectivization
-
-namespace TauCeti.SmoothTwoForm.IsNondegenerate
-
-variable {E H M F H' N G H'' P : Type*}
-  [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
-  {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M] [IsManifold I ∞ M]
-  [NormedAddCommGroup F] [NormedSpace ℝ F] [TopologicalSpace H']
-  {J : ModelWithCorners ℝ F H'} [TopologicalSpace N] [ChartedSpace H' N]
-  [NormedAddCommGroup G] [NormedSpace ℝ G] [TopologicalSpace H'']
-  {K : ModelWithCorners ℝ G H''} [TopologicalSpace P] [ChartedSpace H'' P]
-  {σ : SmoothTwoForm I M} {hσ : σ.IsNondegenerate} {f : N → M} {q : P → N}
-
-/-- A differentiable map `f` is isotropic when `f ∘ q` is, for a surjective differentiable map `q`
-whose derivatives are all surjective: every tangent vector of the source of `f` is then the image
-of one under the derivative of `q`. -/
-theorem isIsotropicMap_of_comp (hq : Surjective q) (hdq : ∀ x, Surjective (mfderiv K J q x))
-    (hf : MDifferentiable J I f) (hq' : MDifferentiable K J q)
-    (h : hσ.IsIsotropicMap K (f ∘ q)) : hσ.IsIsotropicMap J f := by
-  rw [isIsotropicMap_iff] at h ⊢
-  intro y v w
-  obtain ⟨x, rfl⟩ := hq y
-  obtain ⟨v, rfl⟩ := hdq x v
-  obtain ⟨w, rfl⟩ := hdq x w
-  have h' := h x v w
-  rwa [mfderiv_comp x (hf _) (hq' x)] at h'
-
-end TauCeti.SmoothTwoForm.IsNondegenerate
 
 namespace SymplecticGeometry
 
