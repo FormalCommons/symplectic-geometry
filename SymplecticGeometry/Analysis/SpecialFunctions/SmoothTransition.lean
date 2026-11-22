@@ -33,7 +33,9 @@ takes its values in the open interval `(a - ε, b + ε)`
 the midpoint `m` of `[a, b]` and a smooth bump `f` centred at `m`, equal to `1` on `[a, b]` and
 supported in `(a - ε, b + ε)`. The construction adapts Tau Ceti's
 `TauCeti.exists_contDiff_eventuallyEq_id_forall_mem_ball` to a prescribed interval on which the
-map is the identity, including the degenerate case `a = b`.
+map is the identity, including the degenerate case `a = b`. Since an open set containing `[a, b]`
+contains some `(a - ε, b + ε)`, the values can also be kept in any such open set
+(`SymplecticGeometry.exists_contDiff_eqOn_id_Icc_mem_of_isOpen`).
 -/
 
 public section
@@ -121,6 +123,25 @@ theorem exists_contDiff_eqOn_id_Icc_mem_Ioo {a b ε : ℝ} (hab : a ≤ b) (hε 
       exact (mul_le_of_le_one_left dist_nonneg f.le_one).trans_lt ht
     · rw [f.zero_of_le_dist ht, zero_mul, abs_zero]
       exact f.rOut_pos
+
+/-- A smooth map `ℝ → ℝ` that is the identity on the closed interval `[a, b]` and takes its
+values in a given open set `U ⊇ [a, b]`, for any `a ≤ b`. -/
+theorem exists_contDiff_eqOn_id_Icc_mem_of_isOpen {a b : ℝ} {U : Set ℝ} (hab : a ≤ b)
+    (hU : IsOpen U) (hIU : Set.Icc a b ⊆ U) :
+    ∃ c : ℝ → ℝ, ContDiff ℝ ∞ c ∧ Set.EqOn c id (Set.Icc a b) ∧ ∀ t, c t ∈ U := by
+  obtain ⟨ε₀, hε₀, h₀⟩ := Metric.isOpen_iff.mp hU a (hIU ⟨le_rfl, hab⟩)
+  obtain ⟨ε₁, hε₁, h₁⟩ := Metric.isOpen_iff.mp hU b (hIU ⟨hab, le_rfl⟩)
+  obtain ⟨c, hc, hcI, hcU⟩ := exists_contDiff_eqOn_id_Icc_mem_Ioo hab (lt_min hε₀ hε₁)
+  refine ⟨c, hc, hcI, fun t ↦ ?_⟩
+  -- The value `c t` lies in `[a, b]` or within `min ε₀ ε₁` of one of its ends.
+  obtain ⟨ht₀, ht₁⟩ := hcU t
+  have := min_le_left ε₀ ε₁
+  have := min_le_right ε₀ ε₁
+  rcases lt_or_ge (c t) a with ha | ha
+  · exact h₀ (by rw [Metric.mem_ball, Real.dist_eq, abs_lt]; constructor <;> linarith)
+  rcases le_or_gt (c t) b with hb | hb
+  · exact hIU ⟨ha, hb⟩
+  · exact h₁ (by rw [Metric.mem_ball, Real.dist_eq, abs_lt]; constructor <;> linarith)
 
 end SymplecticGeometry
 
