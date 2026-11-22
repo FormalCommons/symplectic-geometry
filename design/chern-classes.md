@@ -306,6 +306,14 @@ each class. It uses these copies of Tau Ceti's files of the same commit:
 - `AlgebraicTopology/Cohomology/MayerVietoris/Module.lean`: the
   Mayer–Vietoris sequence with product middle term and `Function.Exact`.
 
+### `AlgebraicTopology/Singular/MayerVietoris/Swap.lean`
+
+The sign of Tau Ceti's Mayer–Vietoris connecting morphism when the two
+pieces are exchanged: `SSet.mayerVietorisδ_flip`, the morphism of
+`sq.flip` is the negative of that of `sq`, and `TopCat.mayerVietorisδ_swap`,
+the morphism of the open cover `(V, U)` is the negative of that of `(U, V)`
+followed by the map of `U ∩ V ⊆ V ∩ U`.
+
 ### `AlgebraicTopology/Cohomology/LerayHirsch/Bundle.lean`
 
 The Leray–Hirsch theorem for a fibre bundle `[FiberBundle F Z]` over `Y`
@@ -701,6 +709,23 @@ the naturality `cross_map_complZeroPairIso`, and the sign
 `TauCeti.LocalOrientation.crossSign m n` comparing it with
 `TauCeti.LocalOrientation.prod` (`coe_cross_eq_crossSign_smul`), whose value
 is not computed there.
+
+### `AlgebraicTopology/Singular/MayerVietoris/Connecting.lean`
+
+Tau Ceti's Mayer–Vietoris connecting morphism read through the pair of
+one piece, for computing `crossSign m 0` through the sphere generator:
+`TopCat.mayerVietorisδ_eq_singularHomologyδ_left`, the composite of
+`Hₙ(X) ⟶ Hₙ(X, V)`, the inverse of the excision map of
+`TopPair.excisionMap U V` and the connecting morphism of
+`TopPair.interPair U V`, with sign `1`, ending with the map induced by
+`TopPair.interPairSndIso U V`, the homeomorphism
+`TopPair.interPairSndHomeomorph U V` from the subspace of
+`TopPair.interPair U V` onto `U ∩ V`, which this file defines;
+`TopCat.mayerVietorisδ_eq_neg_singularHomologyδ_right`, the same through
+`(V, U ∩ V)` with sign `-1`; and
+`TopCat.reducedMayerVietorisδ_succ_eq_singularHomologyδ_left` for the
+reduced morphism in positive degrees. They come from the simplicial-set
+statements `SSet.mayerVietorisδ_comp_homologyMap_of_fst` and `_of_snd`.
 
 ### `Topology/VectorBundle/Orientation/Complex/Whitney.lean`
 

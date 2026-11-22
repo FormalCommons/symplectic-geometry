@@ -7,8 +7,8 @@ module
 
 public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.CoordinateDisc
 public import TauCeti.Geometry.Manifold.Boundary.Collar.Global
-import Mathlib.Topology.MetricSpace.Thickening
 import SymplecticGeometry.Analysis.Normed.Module.Ball.Collar
+import SymplecticGeometry.Topology.MetricSpace.ProperSpace.Lemmas
 import TauCeti.Analysis.Complex.Circle
 
 /-!
@@ -89,6 +89,12 @@ theorem discComplement_def : discComplement φ = (⋃ i, (φ i).openDisc)ᶜ :=
 @[simp]
 theorem mem_discComplement_iff {x : M} : x ∈ discComplement φ ↔ ∀ i, x ∉ (φ i).openDisc := by
   simp [discComplement_def]
+
+/-- A point `φ i w` of the complement of the open discs lies outside the open unit disc of the
+chart: `1 ≤ ‖w‖`. -/
+theorem one_le_norm_of_mem_discComplement {i : ι} {w : CoordinateDisc.ball}
+    (hw : φ i w ∈ discComplement φ) : 1 ≤ ‖(w : ℂ)‖ :=
+  not_lt.1 fun h ↦ (mem_discComplement_iff φ).1 hw i ((φ i).apply_mem_openDisc_iff.2 h)
 
 theorem isClosed_discComplement : IsClosed (discComplement φ) :=
   (isOpen_iUnion fun i ↦ (φ i).isOpen_openDisc).isClosed_compl
@@ -221,12 +227,11 @@ theorem exists_pairwise_disjoint_image_ball (hφ : Pairwise (Disjoint on fun i �
     intro i
     have ho : IsOpen (Subtype.val '' (φ i ⁻¹' U i) : Set ℂ) :=
       CoordinateDisc.ball.isOpen.isOpenMap_subtypeVal _ ((hU i).1.preimage (φ i).continuous)
-    obtain ⟨ε, hε, hεU⟩ := (isCompact_closedBall (0 : ℂ) 1).exists_thickening_subset_open ho
-      fun z hz ↦ ⟨⟨z, CoordinateDisc.mem_ball_of_norm_le_one (mem_closedBall_zero_iff.1 hz)⟩,
+    obtain ⟨r, hr, hrU⟩ := exists_lt_ball_subset_of_closedBall_subset ho
+      fun (z : ℂ) hz ↦ ⟨⟨z, CoordinateDisc.mem_ball_of_norm_le_one (mem_closedBall_zero_iff.1 hz)⟩,
         (hU i).2 ((φ i).apply_mem_disc_iff.2 (mem_closedBall_zero_iff.1 hz)), rfl⟩
-    refine ⟨ε, hε, fun z hz ↦ ?_⟩
-    rw [thickening_closedBall hε zero_le_one] at hεU
-    obtain ⟨w, hw, hwz⟩ := hεU (mem_ball_zero_iff.2 (by linarith))
+    refine ⟨r - 1, by linarith, fun z hz ↦ ?_⟩
+    obtain ⟨w, hw, hwz⟩ := hrU (mem_ball_zero_iff.2 (by linarith))
     rwa [Subtype.ext hwz] at hw
   choose ε hε hεU using key
   refine ⟨fun i ↦ min (ε i) (1 / 2), fun i ↦ ⟨lt_min (hε i) one_half_pos,
@@ -254,8 +259,7 @@ theorem image_ball_inter_discComplement {δ : ι → ℝ} (hδ : ∀ i, 0 < δ i
   ext x
   constructor
   · rintro ⟨⟨w, hw, rfl⟩, hx⟩
-    exact ⟨w, ⟨not_lt.1 fun h ↦
-      (mem_discComplement_iff φ).1 hx i ((φ i).apply_mem_openDisc_iff.2 h), hw⟩, rfl⟩
+    exact ⟨w, ⟨one_le_norm_of_mem_discComplement φ hx, hw⟩, rfl⟩
   · rintro ⟨w, ⟨h1, hw⟩, rfl⟩
     refine ⟨mem_image_of_mem _ hw, (mem_discComplement_iff φ).2 fun j hj ↦ ?_⟩
     obtain rfl | hij := eq_or_ne j i
@@ -288,8 +292,7 @@ theorem isCollared_discComplementBoundary (hφ : Pairwise (Disjoint on fun i ↦
     · rintro ⟨q, rfl⟩
       exact hsub i q
     · rintro ⟨w, hw, hwx⟩
-      have h1 : 1 ≤ ‖(w : ℂ)‖ := not_lt.1 fun h ↦
-        (mem_discComplement_iff φ).1 x.property i (hwx ▸ (φ i).apply_mem_openDisc_iff.2 h)
+      have h1 : 1 ≤ ‖(w : ℂ)‖ := one_le_norm_of_mem_discComplement φ (hwx ▸ x.property)
       obtain ⟨q, hq⟩ : w ∈ range (annulusPoint (hδ i)) := range_annulusPoint (hδ i) ▸ ⟨h1, hw⟩
       exact ⟨q, Subtype.ext (by simp [c, hq, hwx])⟩
   have hc : IsOpenEmbedding c := by

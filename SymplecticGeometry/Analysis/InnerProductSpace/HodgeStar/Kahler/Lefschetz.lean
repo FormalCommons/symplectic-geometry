@@ -239,9 +239,9 @@ theorem lefschetz_smul_formHodgeStar_alternatizeUncurryFin_sub {k l l' : ℕ}
   rw [ContinuousLinearMap.comp_apply, ← neg_sub, lefschetz_curryLeft_sub hJ]
   simp
 
-/-- **The constant-coefficient Kähler identity above the middle degrees**: if `m < k + 3`, the
-Lefschetz operator sends the `(k + 1)`-forms to zero, and
-`lefschetz_smul_formHodgeStar_alternatizeUncurryFin_sub` becomes
+/-- **The constant-coefficient Kähler identity in the top two degrees**: if `m < k + 3`, that is
+if the `(k + 1)`-forms have degree `m - 1` or `m`, then the Lefschetz operator sends them to
+zero, and `lefschetz_smul_formHodgeStar_alternatizeUncurryFin_sub` becomes
 `L (δ B) = -(𝒥 (Alt B) - Alt (𝒥 ∘ B))` for `B` from `V` to the `(k + 1)`-forms. -/
 theorem lefschetz_smul_formHodgeStar_alternatizeUncurryFin_of_lt {k l : ℕ}
     (hkl : k + 1 + l = finrank ℝ V) (hlk : l + 1 + k = finrank ℝ V) (hk : finrank ℝ V < k + 3)

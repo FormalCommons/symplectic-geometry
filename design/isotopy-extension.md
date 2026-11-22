@@ -217,8 +217,9 @@ Further choices of this design:
 | `Geometry/Manifold/TubularNeighborhood/OneFormCorrection.lean` | the correction lemma: a function whose slices have differential `γ_t` along a compact submanifold where `f^* γ_t` vanishes |
 | `Geometry/Manifold/DifferentialForm/VectorBundlePoincare.lean` | the relative Poincaré operator at the zero section of a vector bundle, and its fibre-scaling primitives for a family of one-forms |
 | `Analysis/Calculus/DifferentialForm/Poincare.lean` | a closed form on a star-convex open set, vanishing on a compact star-convex subset, has a global primitive near it that vanishes on it (named like Tau Ceti's file) |
+| `Topology/MetricSpace/ProperSpace/Lemmas.lean` | in a proper pseudometric space, an open set containing a closed ball contains a larger ball, open or closed (used by `Ball/Basic.lean`, `Ball/Moser.lean` and *First Chern number*'s `DiscComplement/Basic.lean`; named like Mathlib's file) |
 | `Geometry/Symplectic/IsotopyExtension/Ball/Basic.lean` | `IsSymplecticBallEmbedding`, `IsSymplecticBallFamily`, enlarging a symplectic ball |
-| `Geometry/Manifold/ContMDiff/Opens.lean` | a map composed, on an open subset, with a smooth map of that subset over a parameter space is smooth there (used by `Ball/Moser.lean`) |
+| `Geometry/Manifold/ContMDiff/Opens.lean` | a map that agrees, on a parameter space times an open subset, with a smooth map there is smooth there, and a map composed there with a smooth map of that subset over the parameter space is smooth there (used by `Ball/Moser.lean`, and the first by `DeRham/FamilyPrimitive.lean` and `VectorBundle/Tangent/Opens.lean`) |
 | `Geometry/Symplectic/IsotopyExtension/Ball/Moser.lean` | Moser's correction of a family of balls with a parameter (step 3 of `Ball/Isotopy.lean`) |
 | `Geometry/Symplectic/IsotopyExtension/Ball/Isotopy.lean` | the Hamiltonian ball extension and the milestone *Symplectic ball extension* |
 | `Geometry/Manifold/DeRham/HomologyPeriod.lean` | periods of a smooth family of closed one-forms depend smoothly on the parameter |
@@ -706,7 +707,9 @@ The route keeps the times of `e` exactly:
 4. *Hamiltonian.* The velocity forms of $\hat k$ are closed on a ball, and
    their parametric radial primitives $h_t$ are smooth in $(t,z)$. `Flow.lean`
    (`exists_hasHamiltonian_forall_apply_eq`, with $K=B(\rho)$ for
-   $\lambda<\rho<\rho_2$) concludes.
+   $\lambda<\rho<\rho_2$) concludes. This step is the theorem
+   `IsSymplecticBallFamily.exists_hasHamiltonian_forall_apply_eq`, for any
+   `IsSymplecticBallFamily` and `0 ≤ ρ < r`.
 
 The milestone is the conjunction of the two halves:
 
@@ -901,7 +904,8 @@ this design already follows. `Ball/Isotopy.lean` cites
   `Extension.lean`); the parametric radial primitives
   `exists_isSmoothFamily_mextDerivₗ_eq_of_starConvex` in
   `Geometry/Manifold/DifferentialForm/SmoothFamily/Poincare.lean`
-  (used by `Ball/Isotopy.lean`); the homotopy operator on smooth families
+  (used by `Ball/Isotopy.lean`, through *Hamiltonian flows*'
+  `DeRham/FamilyPrimitive.lean`); the homotopy operator on smooth families
   `SymplecticGeometry.IsSmoothFamily.homotopyOperator` in
   `Geometry/Manifold/DifferentialForm/SmoothFamily/HomotopyOperator.lean`
   (used by `DifferentialForm/VectorBundlePoincare.lean`); and the
@@ -938,6 +942,9 @@ this design already follows. `Ball/Isotopy.lean` cites
   `TauCeti.Diffeotopy.exists_interior_velocity_eq_add_mextDeriv`, built on
   `exists_interior_velocity_eq`,
   which this part adds to that file (step 3 of `Flow.lean`).
+  `Ball/Isotopy.lean` imports `DeRham/FamilyPrimitive.lean`, for
+  `IsSmoothlyContractible.exists_contMDiff_mextDeriv_eq_of_forall_mem_closedForms`
+  (step 4 of that file).
   `IsotopyExtension/Velocity.lean` also imports three files of that part:
   `Geometry/Diffeomorphism/Diffeotopy/Velocity.lean`, for the derivatives
   of the motion of a diffeotopy; `Geometry/Manifold/Instances/Icc.lean`,
