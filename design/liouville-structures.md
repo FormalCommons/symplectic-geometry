@@ -491,8 +491,8 @@ For `W` as in *Decisions*:
 - `IsStrongFilling` (above), with `isStrongFilling_iff`,
   `IsStrongFilling.mono` (shrinking `U` to an open set that still contains
   `∂W`), `IsStrongFilling.of_contMDiffOn` (from a field smooth only on `U`,
-  by a bump function from Mathlib's
-  `exists_contMDiffMap_zero_one_nhds_of_isClosed`, with `∂W` closed by
+  by a bump function from
+  `IsClosed.exists_contMDiffMap_tsupport_subset_eventually_eq_one`, with `∂W` closed by
   Mathlib's `ModelWithCorners.isClosed_boundary`), and
   `IsStrongFilling.isContactType`: the boundary inclusion is of contact type
   for `ω` with primitive `ω.interiorₗ ⟨Y, hY⟩`, as Tau Ceti's `IsContactType` (it

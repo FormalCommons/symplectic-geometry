@@ -15,7 +15,8 @@ public import TauCeti.Analysis.Normed.Module.Alternating.Uncurry.Fin
 For a covector `ξ : E →L[𝕜] 𝕜`, the exterior product `ε_ξ` on forms is
 `alternatizeUncurryFin (ξ.smulRight ·)`, and for a vector `v` the interior product `ι_v` is
 `curryLeft · v`. This file gives the anticommutation identity `ι_v ε_ξ + ε_ξ ι_v = ξ(v)`, its
-degree-`0` form `ι_v ε_ξ = ξ(v)`, and the expansion of `alternatizeUncurryFin f` over a basis.
+degree-`0` form `ι_v ε_ξ = ξ(v)`, the expansion of `alternatizeUncurryFin f` over a basis, and
+the exterior product `ε_ξ` as a continuous linear map on forms.
 
 ## Main results
 
@@ -29,6 +30,10 @@ degree-`0` form `ι_v ε_ξ = ξ(v)`, and the expansion of `alternatizeUncurryFi
   `alternatizeUncurryFin f` is the sum of the alternatizations of `b.coord i • f (b i)`, by
   `Module.Basis.sum_coord_smulRight`.
 * `ContinuousAlternatingMap.curryLeft_sum`: the interior product of a finite sum.
+* `ContinuousAlternatingMap.extProdCLM`: the exterior product `ε_ξ` with a covector `ξ`, from
+  `n`-forms to `(n + 1)`-forms, as a continuous linear map.
+* `ContinuousAlternatingMap.sum_curryLeft_alternatizeUncurryFin_coord_smulRight_add`: for a
+  basis `b` and a family of forms `u`, `∑ᵢ (ι_{b_j} ε_{b^*_i} + ε_{b^*_i} ι_{b_j}) (u i) = u j`.
 -/
 
 public section
@@ -72,6 +77,18 @@ theorem curryLeft_alternatizeUncurryFin_smulRight_zero (ξ : E →L[𝕜] 𝕜)
   simp [alternatizeUncurryFin_apply, curryLeft_apply_apply, Subsingleton.elim u Fin.elim0,
     Matrix.vecCons]
 
+variable (n) in
+/-- The exterior product `ε_ξ w = alternatizeUncurryFin (ξ.smulRight w)` with a covector `ξ`,
+from `n`-forms to `(n + 1)`-forms, as a continuous linear map. -/
+noncomputable def extProdCLM (ξ : E →L[𝕜] 𝕜) :
+    (E [⋀^Fin n]→L[𝕜] F) →L[𝕜] E [⋀^Fin (n + 1)]→L[𝕜] F :=
+  alternatizeUncurryFinCLM 𝕜 E F ∘L ContinuousLinearMap.smulRightL 𝕜 𝕜 𝕜 E _ ξ
+
+@[simp]
+theorem extProdCLM_apply (ξ : E →L[𝕜] 𝕜) (w : E [⋀^Fin n]→L[𝕜] F) :
+    extProdCLM n ξ w = alternatizeUncurryFin (ξ.smulRight w) := by
+  simp [extProdCLM]
+
 end
 
 variable {𝕜 E F ι : Type*} [NontriviallyNormedField 𝕜] [CompleteSpace 𝕜]
@@ -87,6 +104,20 @@ theorem alternatizeUncurryFin_eq_sum_coord_smulRight (b : Module.Basis ι 𝕜 E
   conv_lhs => rw [← b.sum_coord_smulRight f]
   rw [← alternatizeUncurryFinCLM_apply, _root_.map_sum]
   simp only [alternatizeUncurryFinCLM_apply]
+
+/-- For a basis `b`, a family `u` of forms of positive degree and an index `j`,
+`∑ᵢ (ι_{b_j} ε_{b^*_i} + ε_{b^*_i} ι_{b_j}) (u i) = u j`, where `b^*_i = b.coord i`, `ε` is the
+exterior product and `ι` the interior product. This is
+`curryLeft_alternatizeUncurryFin_smulRight_add` summed over the dual basis. -/
+theorem sum_curryLeft_alternatizeUncurryFin_coord_smulRight_add (b : Module.Basis ι 𝕜 E)
+    {n : ℕ} (u : ι → E [⋀^Fin (n + 1)]→L[𝕜] F) (j : ι) :
+    ∑ i, ((alternatizeUncurryFin
+        ((LinearMap.toContinuousLinearMap (b.coord i)).smulRight (u i))).curryLeft (b j) +
+      alternatizeUncurryFin
+        ((LinearMap.toContinuousLinearMap (b.coord i)).smulRight ((u i).curryLeft (b j)))) =
+      u j := by
+  classical
+  simp [curryLeft_alternatizeUncurryFin_smulRight_add, Finsupp.single_apply, ite_smul]
 
 end ContinuousAlternatingMap
 

@@ -200,11 +200,7 @@ variable {C : Type u} [Category.{v} C] [Abelian C] [MonoidalCategory C] [Monoida
   [∀ (T : C) (J : Type w), PreservesColimitsOfShape (Discrete J) (tensorLeft T)]
   [∀ (T : C) (J : Type w), PreservesColimitsOfShape (Discrete J) (tensorRight T)]
 
--- Instance search does not find the monoidal structure on chain complexes when `C` is abelian,
--- although its hypotheses hold; it is given here, so that the lemmas of monoidal categories apply
--- to the tensor products of chain complexes below.
-noncomputable local instance : MonoidalCategory (ChainComplex C ℕ) :=
-  HomologicalComplex.monoidalCategory C (ComplexShape.down ℕ)
+open scoped ChainComplex
 
 variable (X Y Z : TopCat.{w}) (A : Set X) (B : Set Y) (D : Set Z)
 
