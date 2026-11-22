@@ -7,6 +7,7 @@ module
 
 public import SymplecticGeometry.Analysis.InnerProductSpace.HodgeStar.AlternatingForm
 public import SymplecticGeometry.Geometry.Manifold.DeRham.Hodge.Chart
+import SymplecticGeometry.LinearAlgebra.BilinearForm.Gram
 import TauCeti.Analysis.Normed.Module.Alternating.Uncurry.Fin
 import TauCeti.Topology.Algebra.Module.Alternating.Basic
 
@@ -22,11 +23,10 @@ for a smooth `(k + 1)`-form `β` read in the chart as `a`,
 
 ## Main results
 
-* `SymplecticGeometry.gramInChart_sum_inv_smul`: in the basis `b`, the vector
-  `∑ᵢⱼ G⁻¹ᵢⱼ ξ(bᵢ) bⱼ` is the vector dual to the covector `ξ` for `gramInChart ψ y`.
 * `SymplecticGeometry.smul_hodgeStarInChart_alternatizeUncurryFin_hodgeStarInChart`: the symbol of
-  the codifferential in the chart: `± S' ε_ξ S a = -ι_u a`, with `u` the vector dual to `ξ`. This
-  is `Orientation.smul_formHodgeStar_alternatizeUncurryFin_formHodgeStar` in the tangent space at
+  the codifferential in the chart: `± S' ε_ξ S a = -ι_u a`, with `u = ∑ᵢⱼ G⁻¹ᵢⱼ ξ(bᵢ) bⱼ` the
+  vector dual to `ξ` (`LinearMap.BilinForm.apply_sum_inv_toMatrix_smul`). This is
+  `Orientation.smul_formHodgeStar_alternatizeUncurryFin_formHodgeStar` in the tangent space at
   `ψ.symm y`, read through the differential of `ψ.symm`.
 * `SymplecticGeometry.exists_mpullback_symm_codifferential_eq`: the codifferential in the chart is
   a first-order operator with principal part `-∑ᵢⱼ G⁻¹ᵢⱼ ι_{b_j} ∂_{b_i}`.
@@ -50,24 +50,6 @@ namespace SymplecticGeometry
 variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
   {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M]
   [RiemannianBundle (fun x : M ↦ TangentSpace I x)] {m k l : ℕ}
-
-/-- **The vector dual to a covector, in a basis.** On the target of the chart, for a basis `b` of
-`E` with Gram matrix `G` for the metric in the chart, the vector `u = ∑ᵢⱼ G⁻¹ᵢⱼ ξ(bᵢ) bⱼ` satisfies
-`gramInChart ψ y u = ξ`. -/
-theorem gramInChart_sum_inv_smul (ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞)
-    (b : Basis (Fin m) ℝ E) {y : E} (hy : y ∈ ψ.target) (ξ : E →L[ℝ] ℝ) :
-    gramInChart ψ y (∑ i, ∑ j,
-      (Matrix.of fun i j ↦ gramInChart ψ y (b i) (b j))⁻¹ i j • ξ (b i) • b j) = ξ := by
-  set G := Matrix.of fun i j ↦ gramInChart ψ y (b i) (b j)
-  have hG : G⁻¹ * G = 1 :=
-    Matrix.nonsing_inv_mul _ (posDef_gramInChart ψ b hy).det_pos.ne'.isUnit
-  refine ContinuousLinearMap.coe_injective (b.ext fun c ↦ ?_)
-  have h (i : Fin m) : ∑ j, G⁻¹ i j * gramInChart ψ y (b j) (b c) = (1 : Matrix _ _ ℝ) i c := by
-    simp only [← hG, Matrix.mul_apply, G, Matrix.of_apply]
-  simp only [ContinuousLinearMap.coe_coe, _root_.map_sum, map_smul, _root_.sum_apply,
-    _root_.smul_apply, smul_eq_mul]
-  simp_rw [mul_left_comm (G⁻¹ _ _), ← Finset.mul_sum, h, Matrix.one_apply, mul_ite, mul_one,
-    mul_zero, Finset.sum_ite_eq', Finset.mem_univ, ite_true]
 
 variable [FiniteDimensional ℝ E] [IsManifold I ∞ M] (o : Manifold.Orientation I M (Fin m))
   (ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞)
@@ -107,18 +89,28 @@ theorem smul_hodgeStarInChart_alternatizeUncurryFin_hodgeStarInChart (hkl : k + 
     -- The two sides differ only in the types `TangentSpace I (ψ.symm y)` and
     -- `TangentSpace 𝓘(ℝ, E) y` of the vectors.
     rfl
+  -- `u` is the vector dual to `ξ` for `gramInChart ψ y`, whose Gram matrix in `b` is invertible.
+  have hM : LinearMap.BilinForm.toMatrix b (gramInChart ψ y).toLinearMap₁₂ =
+      Matrix.of fun i j ↦ gramInChart ψ y (b i) (b j) := by
+    ext
+    simp [LinearMap.BilinForm.toMatrix_apply]
+  have hdual (v : E) : gramInChart ψ y u v = ξ v := by
+    have h := LinearMap.congr_fun (LinearMap.BilinForm.apply_sum_inv_toMatrix_smul
+      (gramInChart ψ y).toLinearMap₁₂ b (hM ▸ (posDef_gramInChart ψ b hy).det_pos.ne'.isUnit)
+      ξ.toLinearMap) v
+    simpa [hM, u] using h
   have hS {j j' : ℕ} (h : j + j' = m) (c : E [⋀^Fin j]→L[ℝ] ℝ) :
       hodgeStarInChart o ψ h y c =
         (formHodgeStarCLM o h (ψ.symm y) (c.compContinuousLinearMap P)).compContinuousLinearMap
-          A := by
-    ext w
-    exact hodgeStarInChart_apply o ψ h y c w
+          A :=
+    -- `hodgeStarInChart_def`, applied to `c`; the composites differ from the right side only
+    -- in the types `E` and `TangentSpace 𝓘(ℝ, E) _` of the vectors.
+    DFunLike.congr_fun (hodgeStarInChart_def o ψ h y) c
   have hξ : ξ.comp P = innerSL ℝ (E := TangentSpace I (ψ.symm y)) (A u) := by
     ext v
     have h := DFunLike.congr_fun hAP v
     rw [ContinuousLinearMap.comp_apply] at h
-    rw [ContinuousLinearMap.comp_apply, innerSL_apply_apply, ← gramInChart_sum_inv_smul ψ b hy ξ,
-      gramInChart_apply]
+    rw [ContinuousLinearMap.comp_apply, innerSL_apply_apply, ← hdual, gramInChart_apply]
     exact congrArg (fun z ↦ ⟪A u, z⟫) h
   have hinner : compContinuousLinearMapCLM P ∘L ξ.smulRight
       ((formHodgeStarCLM o hkl (ψ.symm y) (a.compContinuousLinearMap P)).compContinuousLinearMap
@@ -154,12 +146,12 @@ theorem exists_mpullback_symm_codifferential_eq
     ∃ C₀ : E → (E [⋀^Fin (k + 1)]→L[ℝ] ℝ) →L[ℝ] E [⋀^Fin k]→L[ℝ] ℝ,
       ContDiffOn ℝ ∞ C₀ ψ.target ∧
       ∀ (β : SmoothForm I M ℝ (k + 1)), ∀ y ∈ ψ.target,
-        @Eq (E [⋀^Fin k]→L[ℝ] ℝ)
-          (mpullback 𝓘(ℝ, E) I ψ.symm (SmoothForm.codifferential o hkl β).val y)
-          (-∑ i, ∑ j, (Matrix.of fun i j ↦ gramInChart ψ y (b i) (b j))⁻¹ i j •
+        (mpullback 𝓘(ℝ, E) I ψ.symm (SmoothForm.codifferential o hkl β).val y :
+            E [⋀^Fin k]→L[ℝ] ℝ) =
+          -∑ i, ∑ j, (Matrix.of fun i j ↦ gramInChart ψ y (b i) (b j))⁻¹ i j •
               (fderiv ℝ (F := E [⋀^Fin (k + 1)]→L[ℝ] ℝ) (mpullback 𝓘(ℝ, E) I ψ.symm β.val) y
                 (b i)).curryLeft (b j) +
-            C₀ y (mpullback 𝓘(ℝ, E) I ψ.symm β.val y)) := by
+            C₀ y (mpullback 𝓘(ℝ, E) I ψ.symm β.val y) := by
   refine ⟨fun z ↦ (-1 : ℝ) ^ (m * (k + 2) + 1) • (hodgeStarInChart o ψ hlk z ∘L
       alternatizeUncurryFinCLM ℝ E ℝ ∘L (fderiv ℝ (hodgeStarInChart o ψ hkl) z).flip), ?_, ?_⟩
   · refine contDiffOn_clm_apply.2 fun α ↦ ?_
@@ -172,7 +164,6 @@ theorem exists_mpullback_symm_codifferential_eq
         ((contDiffOn_hodgeStarInChart o ψ hkl).fderiv_of_isOpen ψ.open_target
           (by simp))))).const_smul ((-1 : ℝ) ^ (m * (k + 2) + 1))
   intro β y hy
-  have : IsManifold I (∞ + 1) M := by simpa using ‹IsManifold I ∞ M›
   have hT := ψ.open_target.mem_nhds hy
   set a : E → E [⋀^Fin (k + 1)]→L[ℝ] ℝ := mpullback 𝓘(ℝ, E) I ψ.symm β.val
   have ha : DifferentiableAt ℝ a y :=
