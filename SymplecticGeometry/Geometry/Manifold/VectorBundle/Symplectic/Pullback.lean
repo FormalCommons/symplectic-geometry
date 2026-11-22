@@ -50,6 +50,10 @@ that it is compatible with the rest of the structure that `Symplectic/Basic.lean
   `g.comp f` on vectors of `V (g (f z))`, `bilinFormAt_pullback_comp_pullback_apply` that
   pull-back pulled back again along `e` on vectors of `V (g (f (e q)))`, and
   `pullback_apply_apply_fiber` evaluates a pull-back on a pair formed in the pull-back fibre.
+  `IsNondegenerate.symplecticFormAt_pullback_pullback_pullback_apply`,
+  `IsNondegenerate.symplecticFormAt_pullback_comp_apply_pullback` and
+  `IsNondegenerate.symplecticFormAt_pullback_comp_pullback_apply` evaluate the symplectic form
+  in the last three of these cases, so that `simp` does so also for a sum.
 * `IsSymplecticFrameOn.pullback` and `frameTransition_pullback`: a symplectic frame `Φ` over `U`
   pulls back to the symplectic frame `y ↦ Φ (f y)` over `f ⁻¹' U`, with transition maps those of
   `Φ` at `f y`.
@@ -109,10 +113,16 @@ one, two or three pull-backs, a pull-back along a composite `g.comp f`, and that
 pulled back once more. So `IsNondegenerate.symplecticFormAt_pullback_apply`, which states the
 value for one pull-back, is not `@[simp]`. In other cases, such as four pull-backs or a pull-back
 along `(g.comp f).comp e`, `simp` leaves the bilinear form unevaluated. For a sum, a difference,
-a negative or a multiple, `simp` evaluates the symplectic form only after one or two pull-backs,
-and two need `IsNondegenerate.symplecticFormAt_pullback_pullback_apply`, whose docstring says
-why. After three pull-backs, or a pull-back along a composite, of such a form, `simp` leaves the
-symplectic form split into unevaluated bilinear forms.
+a negative or a multiple, this route fails beyond one pull-back: `simp` rewrites the form with
+`pullback_add` and its partners and splits its bilinear form with `bilinFormAt_add` before a lemma
+on the whole application can fire, and `Pi.add_apply` does not apply to vectors typed in a
+fibre of `V`. So the symplectic form of two or three pull-backs, of a pull-back along a
+composite, and of that pull-back pulled back once more, has a `simp↓` lemma of its own, such as
+`IsNondegenerate.symplecticFormAt_pullback_pullback_apply`, which `simp` applies to the whole
+application first. A single such lemma for every two-form `σ`, rewriting `h.symplecticFormAt x v w`
+to `σ.bilinFormAt x v w`, does not help: its vectors are typed in the fibre of the bundle of `σ`,
+and `simp` cannot match vectors typed in a fibre of `V` against them. In the cases that no lemma
+covers, `simp` leaves the symplectic form of such a form split into unevaluated bilinear forms.
 
 In `pushforward_pullback_id` and `pushforward_pullback_comp`, the identity of each fibre is
 `Bundle.Pullback.idFiberEquiv` or `Bundle.Pullback.compFiberEquiv`
@@ -523,9 +533,10 @@ sum, a difference, a negative or a multiple, `simp` first rewrites the form name
 `h` with `pullback_add` and its partners, and then splits the bilinear form that
 `IsNondegenerate.toBilinForm_symplecticFormAt` gives, before a lemma on the whole application can
 fire. So this lemma is applied before the subterms are simplified (`simp↓`), as
-`bilinFormAt_pullback_pullback_apply` is. The same splitting happens at other depths, which no
-such lemma covers: for a sum, a difference, a negative or a multiple pulled back three times, or
-along a composite, `simp` does not evaluate the symplectic form. -/
+`bilinFormAt_pullback_pullback_apply` is. The same splitting happens at other depths, where
+`IsNondegenerate.symplecticFormAt_pullback_pullback_pullback_apply`,
+`IsNondegenerate.symplecticFormAt_pullback_comp_apply_pullback` and
+`IsNondegenerate.symplecticFormAt_pullback_comp_pullback_apply` play the same part. -/
 @[simp↓]
 theorem IsNondegenerate.symplecticFormAt_pullback_pullback_apply {K' : Type*} [FunLike K' P N]
     [ContinuousMapClass K' P N] {g : K} {hg : ContMDiff I' I n g} {f : K'}
@@ -562,6 +573,49 @@ theorem bilinFormAt_pullback_comp_pullback_apply (ω : ContMDiffTwoForm I n F V)
   -- As in `bilinFormAt_pullback_comp_apply_pullback`, the point `(g.comp f) (e q)` given by
   -- `bilinFormAt_pullback_apply` agrees with `g (f (e q))` by definition only.
   (ω.pullback (g.comp f) hgf).bilinFormAt_pullback_apply e he q v w
+
+/-- The symplectic form of the pull-back of `ω` along `g`, then `f`, then `e` at `z` evaluates on
+`v w : V (g (f (e z)))` as `ω (g (f (e z))) ![v, w]`, for any proof of the nondegeneracy of the
+iterated pull-back. It is `IsNondegenerate.symplecticFormAt_pullback_pullback_apply` one level
+deeper, and is applied before the subterms are simplified (`simp↓`) for the same reason: so that
+`simp` also evaluates it when `ω` is a sum, a difference, a negative or a multiple. -/
+@[simp↓]
+theorem IsNondegenerate.symplecticFormAt_pullback_pullback_pullback_apply {K' K'' : Type*}
+    [FunLike K' P N] [ContinuousMapClass K' P N] [FunLike K'' Q P] [ContinuousMapClass K'' Q P]
+    {g : K} {hg : ContMDiff I' I n g} {f : K'} {hf : ContMDiff I'' I' n f} {e : K''}
+    {he : ContMDiff I''' I'' n e}
+    (h : (((ω.pullback g hg).pullback f hf).pullback e he).IsNondegenerate) (z : Q)
+    (v w : V (g (f (e z)))) : h.symplecticFormAt z v w = ω (g (f (e z))) ![v, w] :=
+  IsNondegenerate.symplecticFormAt_pullback_apply (ω := (ω.pullback g hg).pullback f hf) h z v w
+
+/-- The symplectic form of the pull-back of `ω` along a composite `g.comp f` at `z` evaluates on
+`v w : V (g (f z))` as `ω (g (f z)) ![v, w]`, for any proofs that the composite is `C^n` and that
+the pull-back is nondegenerate. It is applied before the subterms are simplified (`simp↓`), as
+`IsNondegenerate.symplecticFormAt_pullback_pullback_apply` is, so that `simp` also evaluates it
+when `ω` is a sum, a difference, a negative or a multiple. -/
+@[simp↓]
+theorem IsNondegenerate.symplecticFormAt_pullback_comp_apply_pullback {g : C^n⟮I', N; I, M⟯}
+    {f : C^n⟮I'', P; I', N⟯} {hgf : ContMDiff I'' I n (g.comp f)}
+    (h : (ω.pullback (g.comp f) hgf).IsNondegenerate) (z : P) (v w : V (g (f z))) :
+    h.symplecticFormAt z v w = ω (g (f z)) ![v, w] :=
+  -- As in `bilinFormAt_pullback_comp_apply_pullback`, the point `(g.comp f) z` agrees with
+  -- `g (f z)` by definition only.
+  h.symplecticFormAt_pullback_apply z v w
+
+/-- The symplectic form of the pull-back of `ω` along a composite `g.comp f`, pulled back again
+along `e`, at `q` evaluates on `v w : V (g (f (e q)))` as `ω (g (f (e q))) ![v, w]`, for any
+proofs that the composite is `C^n` and that the pull-back is nondegenerate. It is applied before
+the subterms are simplified (`simp↓`), as
+`IsNondegenerate.symplecticFormAt_pullback_pullback_apply` is, so that `simp` also evaluates it
+when `ω` is a sum, a difference, a negative or a multiple. -/
+@[simp↓]
+theorem IsNondegenerate.symplecticFormAt_pullback_comp_pullback_apply {g : C^n⟮I', N; I, M⟯}
+    {f : C^n⟮I'', P; I', N⟯} {hgf : ContMDiff I'' I n (g.comp f)} {K'' : Type*}
+    [FunLike K'' Q P] [ContinuousMapClass K'' Q P] {e : K''} {he : ContMDiff I''' I'' n e}
+    (h : ((ω.pullback (g.comp f) hgf).pullback e he).IsNondegenerate) (q : Q)
+    (v w : V (g (f (e q)))) : h.symplecticFormAt q v w = ω (g (f (e q))) ![v, w] :=
+  -- The point `(g.comp f) (e q)` agrees with `g (f (e q))` by definition only.
+  IsNondegenerate.symplecticFormAt_pullback_apply (ω := ω.pullback (g.comp f) hgf) h q v w
 
 /-- `simp` evaluates the iterated pull-back of a form, and its symplectic form, on vectors of the
 fibre of `V`, also when the form is a sum. -/
@@ -621,6 +675,20 @@ example (ω ω' : ContMDiffTwoForm I n F V) (g : C^n⟮I', N; I, M⟯) (f : C^n�
         c * ω (g (f z)) ![v, w] ∧
       (((ω + ω').pullback (g.comp f) (g.comp f).contMDiff).pullback e e.contMDiff).bilinFormAt q
         v₃ w₃ = ω (g (f (e q))) ![v₃, w₃] + ω' (g (f (e q))) ![v₃, w₃] := by
+  simp
+
+/-- `simp` evaluates the symplectic form of three iterated pull-backs, of a pull-back along a
+composite, and of that pull-back pulled back again, of a sum, on vectors of the fibre of `V`. -/
+example (ω ω' : ContMDiffTwoForm I n F V) (g : C^n⟮I', N; I, M⟯) (f : C^n⟮I'', P; I', N⟯)
+    (e : C^n⟮I''', Q; I'', P⟯) (hgf : ContMDiff I'' I n (g.comp f)) (q : Q)
+    (v₃ w₃ : V (g (f (e q)))) (z : P) (v w : V (g (f z)))
+    (h₃ : ((((ω + ω').pullback g g.contMDiff).pullback f f.contMDiff).pullback e
+      e.contMDiff).IsNondegenerate)
+    (h : ((ω + ω').pullback (g.comp f) hgf).IsNondegenerate)
+    (h' : (((ω + ω').pullback (g.comp f) hgf).pullback e e.contMDiff).IsNondegenerate) :
+    h₃.symplecticFormAt q v₃ w₃ = ω (g (f (e q))) ![v₃, w₃] + ω' (g (f (e q))) ![v₃, w₃] ∧
+      h.symplecticFormAt z v w = ω (g (f z)) ![v, w] + ω' (g (f z)) ![v, w] ∧
+      h'.symplecticFormAt q v₃ w₃ = ω (g (f (e q))) ![v₃, w₃] + ω' (g (f (e q))) ![v₃, w₃] := by
   simp
 
 variable [FiniteDimensional ℝ F]
