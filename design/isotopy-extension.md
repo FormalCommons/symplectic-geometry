@@ -921,6 +921,9 @@ this design already follows. `Ball/Isotopy.lean` cites
   `TauCeti.SmoothTwoForm.nondegenerate_bilinFormAt_add_smul_sub_of_eq` (the
   segment between two forms that agree at a point is constant there), which
   that pull request also adds.
+- *Liouville structures*: `Geometry/Manifold/VectorField/Prod.lean`, which
+  imports only Tau Ceti, for `TauCeti.Manifold.prodVectorField_apply` (the
+  value of the unit time field in `IsotopyExtension/Velocity.lean`).
 - Tau Ceti, besides the declarations named above:
   `TauCeti.SmoothIsotopy` with `timeSlice`, `ContMDiffMap.smoothIsotopyRefl`;
   `TauCeti.Diffeotopy` with `timeSlice`, `final`, `trans`, `symm`,

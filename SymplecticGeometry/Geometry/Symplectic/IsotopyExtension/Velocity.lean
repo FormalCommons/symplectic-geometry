@@ -13,6 +13,7 @@ import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Velocity
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.LieDeriv
 import SymplecticGeometry.Geometry.Manifold.Instances.Icc
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
+import SymplecticGeometry.Geometry.Manifold.VectorField.Prod
 import TauCeti.Geometry.Manifold.ContMDiffMap.Basic
 
 /-!
@@ -157,7 +158,7 @@ theorem velocityForm_apply (t : unitInterval) (x : P) (v : E') :
   have hF := F.contMDiff.mdifferentiableAt (x := (t, x)) (by simp)
   have hT : Manifold.prodVectorField (fun s : unitInterval ↦ (1 : TangentSpace (𝓡∂ 1) s))
       (0 : Π y : P, TangentSpace J y) (t, x) = ((1 : TangentSpace (𝓡∂ 1) t), (0 : E')) :=
-    Prod.ext (Manifold.prodVectorField_fst _ _ _) (Manifold.prodVectorField_snd _ _ _)
+    Manifold.prodVectorField_apply _ _ _
   rw [velocityForm_def, RoughForm.interior_apply, mpullback_apply, hT]
   congr 1
   funext i
