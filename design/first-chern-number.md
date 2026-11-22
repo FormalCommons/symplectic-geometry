@@ -723,6 +723,14 @@ issues, in an order where each issue's blockers come before it.
    `AlgebraicTopology/Singular/{DirectedUnion,MayerVietoris/Basic}.lean`,
    `AlgebraicTopology/Singular/LocalHomology/Orientation/OpenEmbedding.lean`,
    `Geometry/Manifold/Opens.lean` and `Topology/Sets/Opens.lean`.
+   The chain and cohomology lemmas that Tau Ceti uses for the connecting
+   square of Poincaré duality and Mayer–Vietoris go, in the same way, in
+   `Algebra/Homology/ModuleCat/Basic.lean`,
+   `AlgebraicTopology/Cohomology/{Cap/Relative,MayerVietoris/Compl}.lean`,
+   `AlgebraicTopology/SimplicialSet/Homology/{Basic,MayerVietoris}.lean`,
+   `AlgebraicTopology/Singular/{Relative,Subspace}.lean`,
+   `AlgebraicTopology/Singular/Subdivision/Small/{Chains,Relative}.lean` and
+   `Topology/Sets/Compacts.lean`.
 3. **The unit circle bundle of a Hermitian line bundle.**
    `Geometry/Manifold/VectorBundle/Hermitian/CircleBundle.lean`, the file
    of *Symplectic vector bundles* (its section *The circle bundle of a
