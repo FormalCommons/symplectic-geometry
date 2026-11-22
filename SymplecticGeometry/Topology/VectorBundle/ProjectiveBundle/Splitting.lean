@@ -59,7 +59,7 @@ spaces.
   continuously on the line.
 * `ProjectiveBundle.finrank_range_tautologicalComplementProjection`: the complement has rank
   `finrank 𝕜 G - 1`.
-* `ProjectiveBundle.pullbackEquivTautologicalProdComplement_apply_coe`: the splitting is the
+* `ProjectiveBundle.pullbackEquivTautologicalProdComplement_apply_of_mem`: the splitting is the
   identity on the tautological line.
 * `ProjectiveBundle.continuous_pullbackEquivTautologicalProdComplement`: the splitting is
   continuous on total spaces.
@@ -328,11 +328,13 @@ def pullbackEquivTautologicalProdComplement (p : ProjectiveBundle 𝕜 G E) :
     (finrank_eq_finrank_prod p)).toContinuousLinearEquiv
 
 private theorem pullbackEquivTautologicalProdComplement_apply (p : ProjectiveBundle 𝕜 G E)
-    (v : E p.proj) : pullbackEquivTautologicalProdComplement 𝕜 G E p v = splitting p v :=
+    (v : (projection 𝕜 G E *ᵖ E) p) :
+    pullbackEquivTautologicalProdComplement 𝕜 G E p v = splitting p v :=
   (rfl)
 
 private theorem coe_pullbackEquivTautologicalProdComplement_fst (p : ProjectiveBundle 𝕜 G E)
-    (v : E p.proj) : ((pullbackEquivTautologicalProdComplement 𝕜 G E p v).1 : E p.proj) =
+    (v : (projection 𝕜 G E *ᵖ E) p) :
+    ((pullbackEquivTautologicalProdComplement 𝕜 G E p v).1 : E p.proj) =
       leftInverse p
         ((p.snd.submodule.map (trivialEmbedding 𝕜 G E p.proj).toLinearMap).starProjection
           (trivialEmbedding 𝕜 G E p.proj v)) :=
@@ -342,7 +344,7 @@ private theorem coe_pullbackEquivTautologicalProdComplement_fst (p : ProjectiveB
 whose image is the projection of the image of `v` onto the image of `p`. -/
 @[simp]
 theorem trivialEmbedding_pullbackEquivTautologicalProdComplement_fst (p : ProjectiveBundle 𝕜 G E)
-    (v : E p.proj) :
+    (v : (projection 𝕜 G E *ᵖ E) p) :
     trivialEmbedding 𝕜 G E p.proj (pullbackEquivTautologicalProdComplement 𝕜 G E p v).1 =
       (p.snd.submodule.map (trivialEmbedding 𝕜 G E p.proj).toLinearMap).starProjection
         (trivialEmbedding 𝕜 G E p.proj v) := by
@@ -353,7 +355,7 @@ theorem trivialEmbedding_pullbackEquivTautologicalProdComplement_fst (p : Projec
 image of `v` onto the complement of the line. -/
 @[simp]
 theorem coe_pullbackEquivTautologicalProdComplement_snd (p : ProjectiveBundle 𝕜 G E)
-    (v : E p.proj) :
+    (v : (projection 𝕜 G E *ᵖ E) p) :
     ((pullbackEquivTautologicalProdComplement 𝕜 G E p v).2 :
         EuclideanSpace 𝕜 (Fin (trivialEmbeddingDim 𝕜 G E))) =
       tautologicalComplementProjection 𝕜 G E p (trivialEmbedding 𝕜 G E p.proj v) :=
@@ -377,20 +379,22 @@ theorem trivialEmbedding_pullbackEquivTautologicalProdComplement_symm (p : Proje
 /-- On the line `p` itself, `pullbackEquivTautologicalProdComplement` is the inclusion of the
 first summand. -/
 @[simp]
-theorem pullbackEquivTautologicalProdComplement_apply_coe (p : ProjectiveBundle 𝕜 G E)
-    (v : p.snd.submodule) :
-    pullbackEquivTautologicalProdComplement 𝕜 G E p (v : E p.proj) = (v, 0) := by
-  have hv : trivialEmbedding 𝕜 G E p.proj v ∈
+theorem pullbackEquivTautologicalProdComplement_apply_of_mem (p : ProjectiveBundle 𝕜 G E)
+    (v : (projection 𝕜 G E *ᵖ E) p) (hv : v ∈ p.snd.submodule) :
+    pullbackEquivTautologicalProdComplement 𝕜 G E p v = (⟨v, hv⟩, 0) := by
+  have hmap : ∀ w ∈ p.snd.submodule, trivialEmbedding 𝕜 G E p.proj w ∈
       p.snd.submodule.map (trivialEmbedding 𝕜 G E p.proj).toLinearMap :=
-    Submodule.mem_map_of_mem v.property
-  have h₀ : tautologicalComplementProjection 𝕜 G E p (trivialEmbedding 𝕜 G E p.proj v) = 0 := by
+    fun w hw ↦ Submodule.mem_map_of_mem hw
+  have h₀ : ∀ w ∈ p.snd.submodule,
+      tautologicalComplementProjection 𝕜 G E p (trivialEmbedding 𝕜 G E p.proj w) = 0 := by
+    intro w hw
     rw [tautologicalComplementProjection_def, sub_apply,
-      Submodule.starProjection_eq_self_iff.2 hv, ContinuousLinearMap.starProjection_range_apply,
-      sub_self]
+      Submodule.starProjection_eq_self_iff.2 (hmap w hw),
+      ContinuousLinearMap.starProjection_range_apply, sub_self]
   refine Prod.ext (Subtype.ext (injective_trivialEmbedding 𝕜 G E p.proj ?_))
-    (Subtype.ext ((coe_pullbackEquivTautologicalProdComplement_snd p v).trans h₀))
-  rw [trivialEmbedding_pullbackEquivTautologicalProdComplement_fst,
-    Submodule.starProjection_eq_self_iff.2 hv]
+    (Subtype.ext ((coe_pullbackEquivTautologicalProdComplement_snd p v).trans (h₀ v hv)))
+  rw [trivialEmbedding_pullbackEquivTautologicalProdComplement_fst]
+  exact Submodule.starProjection_eq_self_iff.2 (hmap v hv)
 
 /-- The splitting `pullbackEquivTautologicalProdComplement` is continuous on total spaces. -/
 theorem continuous_pullbackEquivTautologicalProdComplement :
