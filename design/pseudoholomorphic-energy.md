@@ -237,12 +237,13 @@ For `c : C`, `x : M` and `L : TangentSpace I' c →ₗ[ℝ] TangentSpace I x`
   formula for *every* nonzero `e`, on a plane; it holds because numerator and
   denominator are values of the top forms $2\varepsilon_L$ and
   $\mathrm{dvol}$ on the same frame), `normSq_smul_eq_two_smul_energyDensity`
-  (`normSq • dvol c = 2 • energyDensity L` when `dvol` is nonzero on frames
-  at `c`), `normSq_nonneg` under tameness of both forms.
+  (`normSq • dvol c = 2 • energyDensity L` when `dvol c ≠ 0`, which on
+  a plane is being nonzero on frames), `normSq_nonneg` under tameness of both forms.
 - `Invariant.energyDensity_eq_two_smul_add` (Decision 2): for
   `ω.Invariant J`, `ω.energyDensity J j L = 2 • ω.energyDensity J j
   (complexAntilinearPart (j c) (J x) L) + (ω x).compContinuousLinearMap L`
-  (the linear maps of `j c`, `J x` and `L` coerced as needed). Proof on the
+  (for `L : TangentSpace I' c →L[ℝ] TangentSpace I x`, with the linear maps of
+  `j c`, `J x` and `L` coerced as needed). Proof on the
   frame `j.complexFrame o he`, with Tau Ceti's Wirtinger identity, and
   extensionality of top forms on a plane (a top form is its value on a basis
   times the determinant, `AlternatingMap.eq_smul_basis_det`).
