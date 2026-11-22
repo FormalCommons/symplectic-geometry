@@ -16,33 +16,34 @@ public import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.Representati
 # The self-intersection number of a `J`-invariant surface
 
 Let `X` be a manifold of real dimension four with an almost complex structure `J`, and let
-`f : M → X` embed a compact oriented surface `M` so that its tangent planes are `J`-invariant.
-Then `J` descends to a complex structure on the normal bundle `ν` of `f`
+`f : M → X` embed a compact surface `M`, oriented by `o`, so that its tangent planes are
+`J`-invariant. Then `J` descends to a complex structure on the normal bundle `ν` of `f`
 (`TauCeti.SmoothEmbedding.normalComplexStructure`), which makes `ν` a complex line bundle `ν_J`
-with model fibre `ℂ`. Its **self-intersection number** `M · M` is the Euler number of `ν`, oriented
-by its complex structure: the evaluation on the fundamental class of `M` of Tau Ceti's Euler class
-`TauCeti.complexEulerClass ℂ ν_J`.
+with model fibre `ℂ`. The number `TauCeti.SmoothEmbedding.selfIntersectionNumber` is the
+evaluation on the fundamental class of `(M, o)` of Tau Ceti's Euler class
+`TauCeti.complexEulerClass ℂ ν_J`: the Euler number of `ν` oriented by its complex structure.
 
-The orientation of `ν` is the one the splitting `T_{f c} X = df (T_c M) ⊕ W` along a `J`-invariant
-complement `W` asks for: the isomorphism `T_c M × ν_c ≃ T_{f c} X`, `(u, a) ↦ df u + r a` with
-`r a` the representative of `a` in `W`, carries the product of the orientation of `M` and the
-complex orientation of `ν_c` to the complex orientation of `T_{f c} X`, when `M` is oriented by `J`
-(`TauCeti.SmoothEmbedding.orientation_prod_normalSpace`). Its linear algebra is
-`TauCeti.AlmostComplexStructure.map_prodEquivOfIsCompl_orientation`.
+When `o` is the orientation of `M` given by `J`, this is the **self-intersection number** `M · M`.
+Then the orientations of `M` and of `ν` together give that of `X`: the short exact sequence
+`0 → T_c M → T_{f c} X → ν_c → 0` induces, from `o` and the complex orientation of `ν_c`, the
+complex orientation of `T_{f c} X` (`TauCeti.SmoothEmbedding.shortExact_orientationAt_normalSpace`).
+Its linear algebra is `TauCeti.AlmostComplexStructure.shortExact_orientation`. For the opposite
+orientation of `M` the number is `-(M · M)`, since `M · M` itself does not depend on the
+orientation of `M`.
 
 ## Main definitions
 
 * `TauCeti.SmoothEmbedding.selfIntersectionNumber`: the Euler number of the normal bundle with its
-  complex orientation.
+  complex orientation, on the fundamental class of `(M, o)`.
 
 ## Main results
 
 * `TauCeti.SmoothEmbedding.selfIntersectionNumber_eq_chernNumber`: it is the first Chern number of
   the complex line bundle `ν_J`.
 * `TauCeti.SmoothEmbedding.selfIntersectionNumber_neg_orientation`: reversing the orientation of
-  `M` negates it.
-* `TauCeti.SmoothEmbedding.orientation_prod_normalSpace`: the complex orientation of the normal
-  spaces is the one induced by the orientations of `X` and `M`.
+  `M` negates the number.
+* `TauCeti.SmoothEmbedding.shortExact_orientationAt_normalSpace`: for the orientation of `M` given
+  by `J`, the orientations of `M` and of the normal spaces induce that of `J`.
 
 ## References
 
@@ -62,13 +63,36 @@ open scoped Manifold ContDiff
 /-- The real dimension of the normal spaces of a surface in a manifold of real dimension four is
 that of `ℂ`: this is the dimension hypothesis of Tau Ceti's normal bundle with model fibre `ℂ`. -/
 theorem SymplecticGeometry.finrank_real_complex_eq_sub_of_finrank_eq_four {E : Type*}
-    [NormedAddCommGroup E] [NormedSpace ℝ E] (hE : finrank ℝ E = 4) :
+    [AddCommGroup E] [Module ℝ E] (hE : finrank ℝ E = 4) :
     finrank ℝ ℂ = finrank ℝ E - finrank ℝ (EuclideanSpace ℝ (Fin 2)) := by
   rw [Complex.finrank_real_complex, hE, finrank_euclideanSpace_fin]
+
+/-- The real dimension of `ℂ` is twice its complex dimension: the dimension convention of
+complex structures on vector bundles with model fibre `ℂ`, as a `Fact` to enable locally as an
+instance. -/
+theorem Complex.finrank_real_complex_eq_two_mul_finrank_fact :
+    Fact (finrank ℝ ℂ = 2 * finrank ℂ ℂ) :=
+  ⟨by simp⟩
 
 namespace TauCeti.SmoothEmbedding
 
 open SymplecticGeometry SymplecticGeometry.Bundle
+
+section Exact
+
+variable {𝕜 : Type*} [NontriviallyNormedField 𝕜] {E' F' H' G' M' N' : Type*}
+  [NormedAddCommGroup E'] [NormedSpace 𝕜 E'] [NormedAddCommGroup F'] [NormedSpace 𝕜 F']
+  [TopologicalSpace H'] [TopologicalSpace G'] {I' : ModelWithCorners 𝕜 E' H'}
+  {J' : ModelWithCorners 𝕜 F' G'} [TopologicalSpace M'] [ChartedSpace H' M']
+  [TopologicalSpace N'] [ChartedSpace G' N'] {n : ℕ∞ω}
+
+/-- The differential of a smooth embedding at `x` and its normal class map form an exact
+sequence `T_x M → T_{f x} N → ν_x`. -/
+theorem exact_mfderiv_normalClass (f : SmoothEmbedding I' J' n M' N') (x : M') (hn : n ≠ 0) :
+    Function.Exact (mfderiv I' J' f x).toLinearMap (f.normalClass x hn) :=
+  LinearMap.exact_iff.2 (f.normalClass_ker x hn)
+
+end Exact
 
 variable {E : Type} {H X : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
   [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [TopologicalSpace X] [ChartedSpace H X]
@@ -78,16 +102,20 @@ variable {E : Type} {H X : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [Fi
 
 section Number
 
--- The complex line bundle of the normal complex structure has model fibre `ℂ`.
-local instance : Fact (finrank ℝ ℂ = 2 * finrank ℂ ℂ) := ⟨by simp⟩
+attribute [local instance] Complex.finrank_real_complex_eq_two_mul_finrank_fact
 
 variable [T2Space M] [CompactSpace M]
 
-/-- The **self-intersection number** of a compact surface `M`, oriented by `o`, embedded by `f` in
-a four-dimensional manifold `X` with an almost complex structure `J` that preserves its tangent
-planes: the Euler number of the normal bundle oriented by its complex structure, that is, the
-evaluation on the fundamental class of `M` of the Euler class of the complex line bundle
-`(f.normalComplexStructure _ J hJ).toContinuousComplexStructure.Fiber`. -/
+/-- The **self-intersection number** of a compact surface `M` embedded by `f` in a four-dimensional
+manifold `X` with an almost complex structure `J` that preserves its tangent planes. It is the
+evaluation `⟨e(ν_J), [M, o]⟩` of the Euler class of the complex line bundle
+`ν_J = (f.normalComplexStructure _ J hJ).toContinuousComplexStructure.Fiber`, the normal bundle
+oriented by its complex structure, on the fundamental class of `M` for the orientation `o`.
+
+This is the self-intersection number `M · M` when `o` is the orientation of `M` given by `J`,
+for which the frames `(u, J u)` are positive. For the opposite orientation it is `-(M · M)`
+(`selfIntersectionNumber_neg_orientation`), whereas `M · M` does not depend on how `M` is
+oriented. -/
 def selfIntersectionNumber (f : SmoothEmbedding (𝓡 2) I ∞ M X) (hE : finrank ℝ E = 4)
     (J : SmoothAlmostComplexStructure I X)
     (hJ : ∀ x, ∀ v ∈ f.tangentRange x hn, J (f x) v ∈ f.tangentRange x hn)
@@ -131,7 +159,7 @@ theorem selfIntersectionNumber_eq_chernNumber (f : SmoothEmbedding (𝓡 2) I �
           J hJ).toContinuousComplexStructure.Fiber := by
   rw [selfIntersectionNumber_def, chernNumber_def, firstChernClass_eq_complexEulerClass]
 
-/-- Reversing the orientation of the surface negates its self-intersection number. -/
+/-- Reversing the orientation `o` of the surface negates the number. -/
 @[simp]
 theorem selfIntersectionNumber_neg_orientation (f : SmoothEmbedding (𝓡 2) I ∞ M X)
     (hE : finrank ℝ E = 4) (J : SmoothAlmostComplexStructure I X)
@@ -145,76 +173,58 @@ end Number
 
 /-- **The complex orientation of the normal spaces is induced by the orientations of `X` and `M`.**
 Let `M` be oriented by `o` so that the frames `(u, j u)` of `T_c M`, with `j` the restriction of `J`
-read through `df`, are positive. For a `J`-invariant complement `W` of the tangent image at `c`, the
-isomorphism `e : T_c M × ν_c ≃ T_{f c} X`, `(u, a) ↦ df u + r a` with `r a` the representative of
-`a` in `W`, carries the ordered product of `o` at `c` and the orientation of the structure that `J`
-induces on `ν_c` to the orientation of `J` at `f c`. -/
-theorem orientation_prod_normalSpace (f : SmoothEmbedding (𝓡 2) I ∞ M X)
+read through `df`, are positive. Then the orientation that the short exact sequence
+`0 → T_c M → T_{f c} X → ν_c → 0`, of the differential and the normal class map, induces from `o` at
+`c` and the orientation of the structure that `J` induces on `ν_c`, with `T_c M` first, is the
+orientation of `J` at `f c`. -/
+theorem shortExact_orientationAt_normalSpace (f : SmoothEmbedding (𝓡 2) I ∞ M X)
     (J : SmoothAlmostComplexStructure I X)
     (hJ : ∀ x, ∀ v ∈ f.tangentRange x hn, J (f x) v ∈ f.tangentRange x hn)
     {o : Manifold.Orientation (𝓡 2) M (Fin 2)} {c : M}
     (ho : ∀ b : Basis (Fin 2) ℝ (TangentSpace (𝓡 2) c),
       mfderiv (𝓡 2) I f c (b 1) = J (f c) (mfderiv (𝓡 2) I f c (b 0)) →
-        b.orientation = o.orientationAt c)
-    {W : Submodule ℝ (TangentSpace I (f c))} (hW : ∀ v ∈ W, J (f c) v ∈ W)
-    (hc : (f.tangentRange c hn).IsTopCompl W)
-    (e : (TangentSpace (𝓡 2) c × f.NormalSpace c hn) ≃ₗ[ℝ] TangentSpace I (f c))
-    (he : ∀ u a, e (u, a) = mfderiv (𝓡 2) I f c u + f.complementRepresentative c hn hc a) :
-    Orientation.map _ e ((o.orientationAt c).prod
-        (f.normalAlmostComplexStructureAt J hJ c).orientation finrank_euclideanSpace_fin rfl) =
+        b.orientation = o.orientationAt c) :
+    Orientation.shortExact (f.isSmoothEmbedding_toFun.isImmersion.mfderiv_injective hn c)
+        (f.exact_mfderiv_normalClass c hn) (f.normalClass_surjective c hn) (o.orientationAt c)
+        (f.normalAlmostComplexStructureAt J hJ c).orientation finrank_euclideanSpace_fin rfl =
       Orientation.reindex ℝ _ (finCongr (by
-        rw [← e.finrank_eq, finrank_prod]; exact congrArg (· + _) finrank_euclideanSpace_fin))
+        have h2 : finrank ℝ (TangentSpace (𝓡 2) c) = 2 := finrank_euclideanSpace_fin
+        have := f.finrank_normalSpace_add_finrank c hn
+        omega))
         (J.almostComplexStructureAt (f c)).orientation := by
   set K := J.almostComplexStructureAt (f c)
   set T := f.tangentRange c hn
   have hT : ∀ v ∈ T, K v ∈ T := fun v hv ↦ by
     rw [SmoothAlmostComplexStructure.almostComplexStructureAt_apply]
     exact hJ c v hv
-  have hW' : ∀ v ∈ W, K v ∈ W := fun v hv ↦ by
-    rw [SmoothAlmostComplexStructure.almostComplexStructureAt_apply]
-    exact hW v hv
-  have h := hc.isCompl
   -- The differential, as an isomorphism onto the tangent image.
   let d : TangentSpace (𝓡 2) c ≃ₗ[ℝ] T := LinearEquiv.ofInjective
     (mfderiv (𝓡 2) I f c).toLinearMap (f.isSmoothEmbedding_toFun.isImmersion.mfderiv_injective hn c)
   have hd (u : TangentSpace (𝓡 2) c) : (d u : TangentSpace I (f c)) = mfderiv (𝓡 2) I f c u :=
     LinearEquiv.ofInjective_apply _ _
-  have he' : e = (d.prodCongr (LinearEquiv.refl ℝ (f.NormalSpace c hn))).trans
-      (((LinearEquiv.refl ℝ T).prodCongr (T.quotientEquivOfIsCompl W h)).trans
-        (T.prodEquivOfIsCompl W h)) := by
-    refine LinearEquiv.ext fun ⟨u, a⟩ ↦ ?_
-    rw [he, (f.complementRepresentative_eq_iff c hn hc a _).2
-      ⟨(T.quotientEquivOfIsCompl W h a).property, ?_⟩]
-    · -- `f.NormalSpace c hn` is by definition the quotient by the tangent image, and both sides
-      -- are `df u` plus the representative of `a` in `W`.
-      rfl
-    · rw [normalClass_def]
-      exact T.mk_quotientEquivOfIsCompl_apply h a
+  have hTexact : Function.Exact T.subtype (f.normalClass c hn) := by
+    rw [LinearMap.exact_iff, normalClass_ker, Submodule.range_subtype]
   have hT2 : finrank ℝ T = 2 := d.finrank_eq.symm.trans finrank_euclideanSpace_fin
-  -- The differential carries `o` to the orientation of the restriction of `J`, by `ho` applied to
-  -- the pull-back of a frame `(w, J w)` of the tangent image.
+  -- The differential carries `o` to the orientation of the restriction of `J`, by `ho`.
   have hdo : Orientation.map _ d (o.orientationAt c) =
-      Orientation.reindex ℝ T (finCongr hT2) (K.restrict T hT).orientation := by
-    have : Nontrivial T := Module.nontrivial_of_finrank_pos (R := ℝ) (by omega)
-    obtain ⟨w, hw⟩ := exists_ne (0 : T)
-    let b : Basis (Fin 2) ℝ T := basisOfLinearIndependentOfCardEqFinrank
-      ((K.restrict T hT).linearIndependent_pair hw) (by simp [hT2])
-    have hb : ⇑b = ![w, K.restrict T hT w] := coe_basisOfLinearIndependentOfCardEqFinrank _ _
-    have hbo := ho (b.map d.symm) (by
-      simp only [Basis.map_apply, ← hd, LinearEquiv.apply_symm_apply, hb]
-      simp [K])
-    rw [← hbo, ← Basis.orientation_map,
-      show (b.map d.symm).map d = b from Basis.eq_of_apply_eq fun i ↦ by simp]
-    exact (K.restrict T hT).orientation_eq_of_apply_one_eq hT2 b (by simp [hb])
-  rw [he']
-  refine (Orientation.map_trans _ _ _).trans ?_
-  refine (congrArg _ (Orientation.map_prod _ _ _ _ _ _)).trans ?_
-  rw [Orientation.map_refl, Equiv.refl_apply, hdo,
-    Orientation.prod_reindex_finCongr_left]
-  refine (Orientation.map_reindex _ _ _).trans ?_
-  rw [normalAlmostComplexStructureAt_def]
-  refine (congrArg _ (K.map_prodEquivOfIsCompl_orientation hT hW' h)).trans ?_
-  exact (Orientation.reindex_trans _ _ _).symm
+      Orientation.reindex ℝ T (finCongr hT2) (K.restrict T hT).orientation :=
+    (K.restrict T hT).map_eq_orientation_of_apply_one_eq hT2 d fun b hb ↦ ho b (by
+      simpa [← hd, K] using congrArg Subtype.val hb)
+  -- The sequence of `f` at `c` is isomorphic, through `d`, to that of the tangent image.
+  have h := Orientation.map_shortExact
+    (f.isSmoothEmbedding_toFun.isImmersion.mfderiv_injective hn c)
+    (f.exact_mfderiv_normalClass c hn) (f.normalClass_surjective c hn)
+    finrank_euclideanSpace_fin rfl T.injective_subtype hTexact (f.normalClass_surjective c hn) d
+    (LinearEquiv.refl ℝ _) (LinearEquiv.refl ℝ (f.NormalSpace c hn))
+    (LinearMap.ext fun u ↦ hd u) (LinearMap.ext fun v ↦ by simp) (o.orientationAt c)
+    (f.normalAlmostComplexStructureAt J hJ c).orientation
+  rw [Orientation.map_refl, Orientation.map_refl, Equiv.refl_apply, Equiv.refl_apply, hdo,
+    Orientation.shortExact_reindex_finCongr_left,
+    AlmostComplexStructure.shortExact_orientation _ _ _ (K.isComplexLinearMap_subtype T hT)
+      (f.isComplexLinearMap_normalClass J hJ c)] at h
+  rw [h, ← Orientation.reindex_trans]
+  -- Both sides reindex the orientation of `K` along casts between the same index types.
+  exact congrArg (Orientation.reindex ℝ _ · K.orientation) (Equiv.ext fun _ ↦ rfl)
 
 end TauCeti.SmoothEmbedding
 

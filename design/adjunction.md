@@ -51,10 +51,10 @@ pinned versions, as for `DESIGN.md`. Tau Ceti paths are relative to
   orient the normal bundle, so that $T\Sigma\oplus\nu$ and $TX|_\Sigma$
   agree. The normal bundle is oriented directly by its complex structure,
   Tau Ceti's `TauCeti.VectorBundleOrientation.complex`, as `DESIGN.md`
-  decided. `orientation_prod_normalSpace` (in `SelfIntersection.lean`)
+  decided. `shortExact_orientationAt_normalSpace` (in `SelfIntersection.lean`)
   shows that this is the orientation the page means: with $X$ and $\Sigma$
-  oriented by $J$, the splitting carries the product orientation to that
-  of $X$.
+  oriented by $J$, the orientations of $\Sigma$ and $\nu$ induce that of
+  $X$ through the short exact sequence of the normal bundle.
 - **Characteristic numbers.** $c_1(TX,J)$ is *First Chern number*'s
   `SymplecticGeometry.Bundle.firstChernClass G` of the complex tangent bundle
   `(J.toContMDiff ⊤).toContinuousComplexStructure.Fiber` (Tau Ceti's
@@ -115,8 +115,8 @@ of the normal bundle). `complexEulerClass` is by definition the Euler class
 `VectorBundleOrientation.eulerClass` of `VectorBundleOrientation.complex`,
 reindexed, so this is the page's Euler number with no further translation.
 That the complex orientation is the one induced by the orientations of $X$
-and $\Sigma$ is the pointwise lemma `orientation_prod_normalSpace`, from Tau
-Ceti's `TauCeti.prod_complexOrientation` and
+and $\Sigma$ is the pointwise lemma `shortExact_orientationAt_normalSpace`, from Tau
+Ceti's `Orientation.shortExact`, `TauCeti.prod_complexOrientation` and
 `LinearEquiv.map_complexOrientation`. No
 Poincaré duality is used, and the equality with $Q_X([\Sigma],[\Sigma])$ for
 closed $X$ is not part of the milestone, as `DESIGN.md` says.
@@ -173,7 +173,7 @@ Chern number* need. *Almost complex manifolds*' `Metric.lean` is not used.
 
 The first file is general (any dimensions, no compactness) and sits beside
 Tau Ceti's normal bundle files, as the review of #838 advised; the others,
-except the linear algebra of `orientation_prod_normalSpace`
+except the linear algebra of `shortExact_orientationAt_normalSpace`
 (`LinearAlgebra/ComplexStructure/Orientation.lean`),
 are in `Geometry/Symplectic/Manifold/AlmostComplex/`, beside Tau Ceti's folder of
 that name (none of Tau Ceti's files there has their names). The overview first
@@ -188,7 +188,7 @@ is updated to match. The list is in the order of the paths.
 | `Geometry/Symplectic/Manifold/AlmostComplex/AdjunctionFormula.lean` | the Chern number of the pulled-back tangent bundle, the milestone | 4 |
 | `Geometry/Symplectic/Manifold/AlmostComplex/NormalSplitting.lean` | the forms on the tangent and normal bundles and the symplectic splitting of the pulled-back tangent bundle | 2 |
 | `Geometry/Symplectic/Manifold/AlmostComplex/SelfIntersection.lean` | the self-intersection number, its Chern number, the orientation lemma | 3 |
-| `LinearAlgebra/ComplexStructure/Orientation.lean` | the orientation induced by an almost complex structure, and the splitting along an invariant subspace | 3 |
+| `LinearAlgebra/ComplexStructure/Orientation.lean` | the orientation induced by an almost complex structure, and short exact sequences of complex-linear maps | 3 |
 
 ### `Geometry/Manifold/SmoothEmbedding/NormalSpace/ComplexStructure.lean`
 
@@ -258,25 +258,25 @@ Namespace `TauCeti.SmoothEmbedding`, for a surface `M` in `X` with
   of `TauCeti.complexEulerClass ℂ ν_J _`, with `ν_J` the complex line bundle
   `(f.normalComplexStructure _ J hJ).toContinuousComplexStructure.Fiber` of
   model `ℂ`; with `selfIntersectionNumber_def` by `(rfl)`. Its docstring
-  says that this is the Euler number of the normal bundle oriented by its
-  complex structure.
+  says that this is $\langle e(\nu_J), [M, o]\rangle$, the Euler number of the
+  normal bundle oriented by its complex structure, and that it is the
+  self-intersection number when `o` is the orientation given by $J$ (`ho`).
 - `selfIntersectionNumber_eq_chernNumber`: it equals *First Chern number*'s
   `Bundle.chernNumber oₕ ℂ ν_J`, by `firstChernClass_eq_complexEulerClass`.
-- `selfIntersectionNumber_neg_orientation`: reversing `o` negates it, from
+- `selfIntersectionNumber_neg_orientation`: reversing `o` negates the number, from
   `chernNumber_neg_orientation`.
-- `orientation_prod_normalSpace`: under `ho` at a point `c`, for any
-  `J`-invariant topological complement $W'$ of the tangent image, an
-  isomorphism $T_c\Sigma\times\nu_c\to T_{f c}X$ given by
-  $(u,a)\mapsto df\,u+r_{W'}a$ (Tau Ceti's `complementRepresentative`) carries
-  the product of `o.orientationAt c` and the complex orientation of
-  $(\nu_c, J_\nu)$ to the complex orientation of $(T_{f c}X, J)$. The complex
+- `shortExact_orientationAt_normalSpace`: under `ho` at a point `c`, Tau
+  Ceti's `Orientation.shortExact` of the sequence
+  $0\to T_c\Sigma\to T_{f c}X\to\nu_c\to 0$ (the differential and
+  `normalClass`, exact by `exact_mfderiv_normalClass`) sends
+  `o.orientationAt c` and the complex orientation of $(\nu_c, J_\nu)$ to the
+  complex orientation of $(T_{f c}X, J)$. No splitting is chosen. The complex
   orientations are `AlmostComplexStructure.orientation` of
   `LinearAlgebra/ComplexStructure/Orientation.lean` (below); its
-  `map_prodEquivOfIsCompl_orientation` is the statement on the tangent image
-  and the quotient, and `ho` says, through `orientation_eq_of_apply_one_eq`,
-  that $df$ carries `o.orientationAt c` to the orientation of the
-  restriction of $J$ to the tangent image (Tau Ceti's
-  `AlmostComplexStructure.restrict`).
+  `shortExact_orientation` is the statement for the tangent image, and `ho`
+  says, through `map_eq_orientation_of_apply_one_eq`, that $df$ carries
+  `o.orientationAt c` to the orientation of the restriction of $J$ to the
+  tangent image (Tau Ceti's `AlmostComplexStructure.restrict`).
 
 ### `LinearAlgebra/ComplexStructure/Orientation.lean`
 
@@ -290,10 +290,11 @@ Namespace `TauCeti.AlmostComplexStructure`, for an almost complex structure
   the other), `orientation_prod` (the orientation of `J₁.prod J₂` is the
   product orientation) and `orientation_eq_of_apply_one_eq` (in real
   dimension two, a basis $(e, Je)$ gives the orientation of `J`).
-- `map_prodEquivOfIsCompl_orientation`: for a `J`-invariant subspace `W`
-  with a `J`-invariant complement `W'`, the isomorphism
-  `W × V ⧸ W ≃ V`, $(w, a)\mapsto w + r_{W'}a$, carries the product of the
-  orientations of `J.restrict W` and `J.quotient W` to that of `J`.
+- `shortExact_orientation`: for a short exact sequence
+  $0\to U\to V\to W\to 0$ whose maps are complex linear for `J₁`, `J`
+  and `J₂`, `Orientation.shortExact` sends the orientations of `J₁` and
+  `J₂` to that of `J`. The proof splits the sequence along a complex-linear
+  section, so no invariant complement appears in the statement.
 
 ### `Geometry/Symplectic/Manifold/AlmostComplex/AdjunctionFormula.lean`
 

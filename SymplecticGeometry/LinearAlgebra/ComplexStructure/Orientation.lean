@@ -5,10 +5,11 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import TauCeti.Geometry.Symplectic.AlmostComplex.Quotient
 public import TauCeti.Geometry.Symplectic.Complex.Module.Hom
 public import TauCeti.Geometry.Symplectic.Prod.Basic
 public import TauCeti.LinearAlgebra.Complex.Orientation
+public import TauCeti.LinearAlgebra.Exact
+public import TauCeti.LinearAlgebra.Orientation.ShortExact
 
 /-!
 # The orientation induced by an almost complex structure
@@ -18,7 +19,7 @@ makes it a complex vector space (Tau Ceti's `TauCeti.AlmostComplexStructure.comp
 which carries Tau Ceti's canonical real orientation `TauCeti.complexOrientation`: the orientation of
 `(v₁, J v₁, …, vₙ, J vₙ)` for any complex basis `(v₁, …, vₙ)`. This file names it
 `TauCeti.AlmostComplexStructure.orientation`, indexed by `Fin (finrank ℝ V)`, and shows how it
-meets complex-linear isomorphisms, direct sums, and quotients by invariant subspaces.
+meets complex-linear isomorphisms, direct sums, and short exact sequences of complex-linear maps.
 
 ## Main definitions
 
@@ -32,10 +33,12 @@ meets complex-linear isomorphisms, direct sums, and quotients by invariant subsp
   is the product of the orientations of `J₁` and `J₂`.
 * `TauCeti.AlmostComplexStructure.orientation_eq_of_apply_one_eq`: in real dimension two, a
   basis `(e, J e)` induces the orientation of `J`.
-* `TauCeti.AlmostComplexStructure.map_prodEquivOfIsCompl_orientation`: for a `J`-invariant
-  subspace `W` with a `J`-invariant complement `W'`, the isomorphism `W × V ⧸ W ≃ V`,
-  `(w, a) ↦ w + r a` with `r a` the representative of `a` in `W'`, carries the product of the
-  orientations of the restricted and the quotient structures to the orientation of `J`.
+* `TauCeti.AlmostComplexStructure.map_eq_orientation_of_apply_one_eq`: a real isomorphism `d`
+  onto a plane with an almost complex structure `J` carries to the orientation of `J` the
+  orientation of the bases `(b₀, b₁)` with `d b₁ = J (d b₀)`.
+* `TauCeti.AlmostComplexStructure.shortExact_orientation`: for a short exact sequence of
+  complex-linear maps, Tau Ceti's `Orientation.shortExact` induces the orientation of the middle
+  structure from those of the outer ones.
 
 ## References
 
@@ -168,33 +171,66 @@ theorem orientation_eq_of_apply_one_eq (J : AlmostComplexStructure V) (hV : finr
   -- Both sides reindex the same orientation along equal equivalences of index types.
   rfl
 
-/-- Let `W` be a `J`-invariant subspace with a `J`-invariant complement `W'`. The isomorphism
-`W × V ⧸ W ≃ V`, `(w, a) ↦ w + r a` with `r a` the representative of `a` in `W'`, carries the
-ordered product of the orientations of the restriction of `J` to `W` and of the structure `J`
-induces on `V ⧸ W` to the orientation of `J`. -/
-theorem map_prodEquivOfIsCompl_orientation (J : AlmostComplexStructure V)
-    {W W' : Submodule ℝ V} (hW : ∀ v ∈ W, J v ∈ W) (hW' : ∀ v ∈ W', J v ∈ W')
-    (h : IsCompl W W') :
-    Orientation.map _ (((LinearEquiv.refl ℝ W).prodCongr (W.quotientEquivOfIsCompl W' h)).trans
-        (W.prodEquivOfIsCompl W' h))
-      ((J.restrict W hW).orientation.prod (J.quotient W hW).orientation rfl rfl) =
-      Orientation.reindex ℝ V (finCongr (by rw [← W.finrank_quotient_add_finrank, add_comm]))
-        J.orientation := by
-  set e := ((LinearEquiv.refl ℝ W).prodCongr (W.quotientEquivOfIsCompl W' h)).trans
-    (W.prodEquivOfIsCompl W' h)
-  -- The representative in `W'` of the class of `J v` is `J` of the representative of `v`.
-  have hr (a : V ⧸ W) : (W.quotientEquivOfIsCompl W' h (J.quotient W hW a) : V) =
-      J (W.quotientEquivOfIsCompl W' h a) := by
-    conv_lhs => rw [← W.mk_quotientEquivOfIsCompl_apply h a, quotient_mk]
-    exact congrArg Subtype.val (W.quotientEquivOfIsCompl_apply_mk_right h
-      ⟨_, hW' _ (W.quotientEquivOfIsCompl W' h a).property⟩)
-  have he : IsComplexLinearMap ((J.restrict W hW).prod (J.quotient W hW)) J e.toLinearMap := by
+/-- Let `d : U ≃ V` be a real isomorphism onto a plane `V` with an almost complex structure `J`,
+and `x` an orientation of `U` that every basis `(b₀, b₁)` with `d b₁ = J (d b₀)` induces. Then `d`
+carries `x` to the orientation of `J`. -/
+theorem map_eq_orientation_of_apply_one_eq {U : Type*} [AddCommGroup U] [Module ℝ U]
+    (J : AlmostComplexStructure V) (hV : finrank ℝ V = 2) (d : U ≃ₗ[ℝ] V)
+    {x : Orientation ℝ U (Fin 2)}
+    (hx : ∀ b : Basis (Fin 2) ℝ U, d (b 1) = J (d (b 0)) → b.orientation = x) :
+    Orientation.map _ d x = Orientation.reindex ℝ V (finCongr hV) J.orientation := by
+  have : Nontrivial V := Module.nontrivial_of_finrank_pos (R := ℝ) (by omega)
+  obtain ⟨w, hw⟩ := exists_ne (0 : V)
+  let b : Basis (Fin 2) ℝ V := basisOfLinearIndependentOfCardEqFinrank
+    (J.linearIndependent_pair hw) (by simp [hV])
+  have hb : ⇑b = ![w, J w] := coe_basisOfLinearIndependentOfCardEqFinrank _ _
+  rw [← hx (b.map d.symm) (by simp [hb]), ← Basis.orientation_map,
+    show (b.map d.symm).map d = b from Basis.eq_of_apply_eq fun i ↦ by simp]
+  exact J.orientation_eq_of_apply_one_eq hV b (by simp [hb])
+
+omit [FiniteDimensional ℝ V] in
+/-- The inclusion of a `J`-invariant subspace is complex linear for the restriction of `J`. -/
+theorem isComplexLinearMap_subtype (J : AlmostComplexStructure V) (W : Submodule ℝ V)
+    (hW : ∀ v ∈ W, J v ∈ W) : IsComplexLinearMap (J.restrict W hW) J W.subtype :=
+  (isComplexLinearMap_iff_apply _ _ _).2 fun w ↦ J.coe_restrict_apply W hW w
+
+/-- Let `0 → U → V → W → 0` be a short exact sequence whose maps are complex linear for almost
+complex structures `J₁` on `U`, `J` on `V` and `J₂` on `W`. Then the orientation it induces from
+the orientations of `J₁` and `J₂`, with `U` first, is the orientation of `J`. -/
+theorem shortExact_orientation {U W : Type*} [AddCommGroup U] [Module ℝ U] [FiniteDimensional ℝ U]
+    [AddCommGroup W] [Module ℝ W] [FiniteDimensional ℝ W] {J₁ : AlmostComplexStructure U}
+    {J : AlmostComplexStructure V} {J₂ : AlmostComplexStructure W} {f : U →ₗ[ℝ] V}
+    {g : V →ₗ[ℝ] W} (hf : Function.Injective f) (hfg : Function.Exact f g)
+    (hg : Function.Surjective g) (hJf : IsComplexLinearMap J₁ J f)
+    (hJg : IsComplexLinearMap J J₂ g) :
+    Orientation.shortExact hf hfg hg J₁.orientation J₂.orientation rfl rfl =
+      Orientation.reindex ℝ V (finCongr (hfg.finrank_eq_add hf hg)) J.orientation := by
+  let := J.complexModule
+  let := J₂.complexModule
+  have := J.complexModule_isScalarTower
+  have := J₂.complexModule_isScalarTower
+  -- A complex-linear section `s` of `g`.
+  obtain ⟨sc, hsc⟩ := hJg.toComplexLinearMap.exists_rightInverse_of_surjective
+    (LinearMap.range_eq_top.2 fun w ↦ (hg w).imp fun v hv ↦ by
+      rwa [IsComplexLinearMap.toComplexLinearMap_apply])
+  set s := sc.restrictScalars ℝ
+  have hs : g ∘ₗ s = LinearMap.id := LinearMap.ext fun w ↦ by
+    simpa [s, IsComplexLinearMap.toComplexLinearMap_apply] using LinearMap.congr_fun hsc w
+  have hJs : IsComplexLinearMap J₂ J s := isComplexLinearMap_restrictScalars J₂ J sc
+  rw [Orientation.shortExact_eq_map_prod _ _ _ _ _ _ _ s hs]
+  set e := (hfg.splitSurjectiveEquiv hf ⟨s, hs⟩).val.symm
+  have he₁ (u : U) (w : W) : e (u, w) = f u + s w := by
+    -- Mathlib has no application lemma for `splitSurjectiveEquiv`: unfold it to the
+    -- `LinearEquiv.ofBijective` it is built from, and use that constructor's `apply` lemma.
+    simp only [e, Function.Exact.splitSurjectiveEquiv, Equiv.coe_fn_mk, LinearEquiv.symm_symm]
+    exact (LinearEquiv.ofBijective_apply _ _).trans (by simp)
+  have he : IsComplexLinearMap (J₁.prod J₂) J e.toLinearMap := by
     rw [isComplexLinearMap_iff_apply]
-    rintro ⟨w, a⟩
-    simp [e, hr]
-  have hp : (J.restrict W hW).orientation.prod (J.quotient W hW).orientation rfl rfl =
-      Orientation.reindex ℝ _ (finCongr finrank_prod)
-        ((J.restrict W hW).prod (J.quotient W hW)).orientation := by
+    rintro ⟨u, w⟩
+    simp [he₁, (isComplexLinearMap_iff_apply _ _ _).1 hJf,
+      (isComplexLinearMap_iff_apply _ _ _).1 hJs]
+  have hp : J₁.orientation.prod J₂.orientation rfl rfl =
+      Orientation.reindex ℝ _ (finCongr finrank_prod) (J₁.prod J₂).orientation := by
     rw [orientation_prod, ← Orientation.reindex_trans,
       show (finCongr finrank_prod.symm).trans (finCongr finrank_prod) = Equiv.refl _ from
         Equiv.ext fun _ ↦ rfl, Orientation.reindex_refl, Equiv.refl_apply]
