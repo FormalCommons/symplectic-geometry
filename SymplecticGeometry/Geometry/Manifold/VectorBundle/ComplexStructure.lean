@@ -54,6 +54,8 @@ bundle, in `TauCeti/Geometry/Symplectic/Manifold/AlmostComplex/ContMDiff.lean` a
 * `SymplecticGeometry.Bundle.ContMDiffComplexStructure.tangentHomeomorph`: for `n = ⊤`, the same
   identification with `TauCeti.SmoothAlmostComplexStructure`, as a homeomorphism of frame
   topologies.
+* `TauCeti.SmoothAlmostComplexStructure.pullbackComplexStructure`: the pull-back of a smooth
+  almost complex structure along a smooth map `f`, a smooth complex structure on `f *ᵖ TM`.
 
 ## Main results
 
@@ -884,5 +886,58 @@ end Tangent
 end ContMDiffComplexStructure
 
 end SymplecticGeometry.Bundle
+
+/-! ### Pull-back of an almost complex structure along a smooth map -/
+
+namespace TauCeti.SmoothAlmostComplexStructure
+
+open SymplecticGeometry.Bundle
+
+variable {EB HB M : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB]
+  [TopologicalSpace HB] {I : ModelWithCorners ℝ EB HB}
+  [TopologicalSpace M] [ChartedSpace HB M] [IsManifold I ∞ M]
+  {EN HN N : Type*} [NormedAddCommGroup EN] [NormedSpace ℝ EN] [TopologicalSpace HN]
+  {I' : ModelWithCorners ℝ EN HN} [TopologicalSpace N] [ChartedSpace HN N]
+  {K : Type*} [FunLike K N M] [ContinuousMapClass K N M]
+
+/-- The pull-back of a smooth almost complex structure `J` on `M` along a smooth map
+`f : N → M`: the smooth complex structure on the pull-back bundle `f *ᵖ TM` over `N` whose value
+at `y` is `J (f y)`. The map `f` is an element of any type of continuous maps, such as a
+bundled smooth map or a smooth embedding, and the pull-back bundle carries that type's
+structure. -/
+def pullbackComplexStructure (J : SmoothAlmostComplexStructure I M) (f : K)
+    (hf : ContMDiff I' I ∞ f) :
+    ContMDiffComplexStructure I' ⊤ EB ((f : N → M) *ᵖ (TangentSpace I)) :=
+  (ContMDiffComplexStructure.tangentEquiv.symm (J.toContMDiff ⊤)).pullback ⟨f, hf⟩
+
+theorem pullbackComplexStructure_def (J : SmoothAlmostComplexStructure I M) (f : K)
+    (hf : ContMDiff I' I ∞ f) :
+    J.pullbackComplexStructure f hf =
+      (ContMDiffComplexStructure.tangentEquiv.symm (J.toContMDiff ⊤)).pullback ⟨f, hf⟩ :=
+  (rfl)
+
+/-- The endomorphism section of the pull-back of `J` along `f` is `J` at `f y`. -/
+theorem pullbackComplexStructure_toEndomorphism (J : SmoothAlmostComplexStructure I M) (f : K)
+    (hf : ContMDiff I' I ∞ f) (y : N) :
+    (J.pullbackComplexStructure f hf).toEndomorphism y = J.toEndomorphism (f y) := by
+  rw [pullbackComplexStructure_def]
+  -- `rw` cannot use `pullback_toEndomorphism` here: its statement carries the bundle structure of
+  -- `C^∞⟮I', N; I, M⟯`, while the goal carries that of `K`.
+  exact (ContMDiffComplexStructure.pullback_toEndomorphism _ ⟨f, hf⟩ y).trans
+    ((congrFun (congrArg DFunLike.coe
+      (ContMDiffComplexStructure.tangentEquiv_symm_toEndomorphism (J.toContMDiff ⊤))) (f y)).trans
+      (J.toContMDiff_toEndomorphism_apply ⊤ (f y)))
+
+/-- The pull-back of `J` along `f` acts at `y` as `J (f y)`. -/
+@[simp]
+theorem pullbackComplexStructure_apply (J : SmoothAlmostComplexStructure I M) (f : K)
+    (hf : ContMDiff I' I ∞ f) (y : N) (v : TangentSpace I (f y)) :
+    J.pullbackComplexStructure f hf y v = J (f y) v := by
+  rw [pullbackComplexStructure_def]
+  exact (ContMDiffComplexStructure.pullback_apply _ ⟨f, hf⟩ y v).trans
+    ((ContMDiffComplexStructure.tangentEquiv_symm_apply _ (f y) v).trans
+      (J.toContMDiff_apply ⊤ (f y) v))
+
+end TauCeti.SmoothAlmostComplexStructure
 
 end

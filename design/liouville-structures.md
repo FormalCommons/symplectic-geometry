@@ -180,7 +180,7 @@ Further choices:
 | `Geometry/Symplectic/Liouville/Filling.lean` | `IsStrongFilling`, its contact form, its Liouville collar | 7 |
 | `Geometry/Symplectic/Liouville/Scaling.lean` | Liouville scaling along integral curves, on a boundaryless manifold and in the interior of a manifold with boundary, for the collar of `Filling.lean` | 7 |
 | `Geometry/Manifold/DifferentialForm/Continuity.lean` | continuity in the parameter of the pullbacks of a form along the slices of a `C¹` map on a product, for the collar of `Filling.lean`, beside Tau Ceti's file of that path | 7 |
-| `Geometry/Manifold/Boundary/Collar/Local.lean` | smoothness of Tau Ceti's normal ray of the half-line on `[0, ∞)`, and the ray on `(-∞, 1)` as a depth map into `normalIioOpens 1`, for the collars of `Flow/Basic.lean` and `Filling.lean`, beside Tau Ceti's file of that path | 7 |
+| `Geometry/Manifold/Boundary/Collar/Local.lean` | smoothness of Tau Ceti's normal ray of the half-line on `[0, ∞)`, and the ray on `(-∞, 1)` as a depth map into `normalIioOpens 1`, for the collars of `Flow/Basic.lean` and `Filling.lean` and the end of `End.lean`, beside Tau Ceti's file of that path | 7 |
 | `Geometry/Manifold/ModelTransport/InteriorModel.lean` | a manifold without boundary points, modelled on the model vector space (`SymplecticGeometry.InteriorModel`), and its diffeomorphism with the manifold; used in `Scaling.lean` and `End.lean` | — |
 | `Geometry/Manifold/Boundary/Collar/End.lean` | attaching the end `[0, ∞) × ∂W` along a smooth collar | 8 |
 | `Geometry/Symplectic/Liouville/Completion.lean` | $\widehat\omega$, $\widehat Y$, $\widehat\lambda$; third milestone | 9, 10 |

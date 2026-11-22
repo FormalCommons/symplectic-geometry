@@ -12,6 +12,7 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.Regularity
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Chart
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffeomorph
 
 /-!
 # Differential forms read through a partial diffeomorphism onto a normed space
@@ -216,17 +217,12 @@ theorem mpullback_symm_extendByZeroAlong (hn : n ≠ 0) {y : E} (hy : y ∈ ψ.t
     (mpullback 𝓘(ℝ, E) I ψ.symm (RoughForm.extendByZeroAlong ψ a) y :
       E [⋀^Fin k]→L[ℝ] F) = a y := by
   have hx : ψ.symm y ∈ ψ.source := ψ.map_target hy
-  have hd : MDifferentiableAt I 𝓘(ℝ, E) ψ (ψ.symm y) := ψ.mdifferentiableAt hn hx
-  have hds : MDifferentiableAt 𝓘(ℝ, E) I ψ.symm y := ψ.symm.mdifferentiableAt hn hy
-  have hid : ψ ∘ ψ.symm =ᶠ[𝓝 y] id :=
-    eventually_of_mem (ψ.open_target.mem_nhds hy) fun z hz ↦ ψ.right_inv hz
   have h : mpullback 𝓘(ℝ, E) I ψ.symm (RoughForm.extendByZeroAlong ψ a) y =
       mpullback 𝓘(ℝ, E) I ψ.symm (mpullback I 𝓘(ℝ, E) ψ (a : RoughForm 𝓘(ℝ, E) E F k)) y := by
     ext v
     simp only [mpullback_apply, RoughForm.extendByZeroAlong_apply_of_mem a hx]
   rw [h]
-  exact (mpullback_comp_at hds hd (a : RoughForm 𝓘(ℝ, E) E F k)).symm.trans
-    ((hid.mpullback_eq _).trans (congrFun (mpullback_id _) y))
+  exact ψ.mpullback_symm_mpullback_apply hn _ hy
 
 /-- On a Hausdorff manifold, the extension by zero along a smooth chart `ψ` of a smooth flat form
 with compact support in the target of `ψ` is smooth. -/

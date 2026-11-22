@@ -121,9 +121,10 @@ This part adds them.
 
 The page's advice is followed: the form is built on the sphere and descends.
 
-1. On $\mathbb C^{n+1}\setminus0$, $\alpha_{\mathrm{FS}}$ is defined by its
-   value $\alpha_z(v)=\omega_0(z,v)/(2\lvert z\rvert^2)$, which is
-   $\lvert z\rvert^{-2}$ times the radial primitive, and
+1. On $\mathbb C^{n+1}\setminus0$, $\alpha_{\mathrm{FS}}$ is defined as the
+   pull-back of Tau Ceti's `sphereContactForm` along the radial projection
+   $\varphi$, with the value $\alpha_z(v)=\omega_0(z,v)/(2\lvert z\rvert^2)$ as a
+   lemma, and
    $\rho_{\mathrm{FS}}:=d\alpha_{\mathrm{FS}}$. So part 1's first identity
    holds by definition, and the others are theorems: the explicit value of
    $\rho_{\mathrm{FS}}$, the potential identity
@@ -323,8 +324,10 @@ $\omega_0=$ `stdComplexPiSymplecticForm (Fin (n + 1))`:
 
 - `fubiniStudyPrimitive n : TauCeti.SmoothForm 𝓘(ℝ, Fin (n + 1) → ℂ) Z ℝ 1`,
   with `fubiniStudyPrimitive_apply`: $\alpha_z(v)=\omega_0(z,v)/(2\lvert z\rvert^2)$.
+- `fubiniStudyPotential n : TauCeti.SmoothForm 𝓘(ℝ, Fin (n + 1) → ℂ) Z ℝ 0`, the
+  function $f=\log\lvert z\rvert^2$, with `fubiniStudyPotential_apply`.
 - `fubiniStudyPrimitive_eq`: $\alpha_{\mathrm{FS}}=\tfrac14\,J_Z^*\,d\log\lvert z\rvert^2$
-  (`(4 : ℝ)⁻¹ • J_Z.covectorComplexStructure (d f)`).
+  (`(4 : ℝ)⁻¹ • J_Z.covectorComplexStructure (d f)`, `f = fubiniStudyPotential n`).
 - `fubiniStudyLift n : TauCeti.SmoothTwoForm 𝓘(ℝ, Fin (n + 1) → ℂ) Z`, $d$
   of `fubiniStudyPrimitive n`, with `fubiniStudyLift_def` and
   `fubiniStudyLift_apply`:
