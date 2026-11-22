@@ -164,8 +164,8 @@ theorem nijenhuis_eq_hom_toEndomorphism {x : M} (hcov : cov.torsion x = 0)
 
 end Connection
 
-/-- **The Nijenhuis tensor.** Let `J` be a smooth almost complex structure on `M`, and write
-`N_J(X, Y) = [JX, JY] - [X, Y] - J[JX, Y] - J[X, JY]` with Mathlib's bracket `mlieBracket`.
+/-- **The Nijenhuis tensor.** Let `J` be a smooth almost complex structure on `M`. Brackets are
+Mathlib's `mlieBracket`, and `N_J(X, Y) = [JX, JY] - [X, Y] - J[JX, Y] - J[X, JY]`.
 
 1. `N_J` is a tensor, a continuous bilinear map on each tangent space, whose value on vector fields
    differentiable at a point is the expression above, and it is skew-symmetric.
