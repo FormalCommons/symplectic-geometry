@@ -5,10 +5,10 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.Geometry.Contact.Symplectization.Basic
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 public import TauCeti.Geometry.Contact.Flat
 public import TauCeti.Geometry.Contact.StableHamiltonian
-public import TauCeti.Geometry.Contact.Symplectization.Basic
 public import TauCeti.Geometry.Contact.Volume
 public import TauCeti.Geometry.Manifold.DifferentialForm.Flow
 public import SymplecticGeometry.Geometry.Manifold.Strip
@@ -320,7 +320,7 @@ def stableHamiltonianModel (α : SmoothForm I M ℝ 1) (σ : SmoothForm I M ℝ 
     SmoothTwoForm (𝓘(ℝ).prod I) (ℝ × M) :=
   mpullback Prod.snd contMDiff_snd σ -
     mextDerivₗ (𝓘(ℝ).prod I) 1
-      (funSMulₗ (⟨Prod.fst, contMDiff_fst⟩ : C^∞⟮𝓘(ℝ).prod I, ℝ × M; ℝ⟯)
+      (funSMulₗ (ContMDiffMap.fst : C^∞⟮𝓘(ℝ).prod I, ℝ × M; ℝ⟯)
         (mpullback Prod.snd contMDiff_snd α))
 
 /-- The stable Hamiltonian model is `σ - d(r α)`, with `σ` and `α` pulled back along the
@@ -329,7 +329,7 @@ theorem stableHamiltonianModel_def (α : SmoothForm I M ℝ 1) (σ : SmoothForm 
     stableHamiltonianModel α σ =
       mpullback Prod.snd contMDiff_snd σ -
         mextDerivₗ (𝓘(ℝ).prod I) 1
-          (funSMulₗ (⟨Prod.fst, contMDiff_fst⟩ : C^∞⟮𝓘(ℝ).prod I, ℝ × M; ℝ⟯)
+          (funSMulₗ (ContMDiffMap.fst : C^∞⟮𝓘(ℝ).prod I, ℝ × M; ℝ⟯)
             (mpullback Prod.snd contMDiff_snd α)) :=
   (rfl)
 
@@ -346,7 +346,7 @@ theorem stableHamiltonianModel_apply (α : SmoothForm I M ℝ 1) (σ : SmoothFor
           NormedSpace.fromTangentSpace p.1 (Manifold.tangentSpaceProdEquiv p w).1 *
             α.val p.2 ![(Manifold.tangentSpaceProdEquiv p v).2]) := by
   set β : SmoothForm (𝓘(ℝ).prod I) (ℝ × M) ℝ 1 := mpullback Prod.snd contMDiff_snd α
-  set g : C^∞⟮𝓘(ℝ).prod I, ℝ × M; ℝ⟯ := ⟨Prod.fst, contMDiff_fst⟩
+  set g : C^∞⟮𝓘(ℝ).prod I, ℝ × M; ℝ⟯ := ContMDiffMap.fst
   have hβ (u : TangentSpace (𝓘(ℝ).prod I) p) :
       β.val p ![u] = α.val p.2 ![(Manifold.tangentSpaceProdEquiv p u).2] := by
     simp only [β, mpullback_snd_apply, Matrix.vec_single_eq_const]
@@ -368,7 +368,7 @@ theorem stableHamiltonianModel_apply (α : SmoothForm I M ℝ 1) (σ : SmoothFor
     mextDerivₗ_apply, coe_funSMulₗ g β,
     mextDeriv_fun_smul_apply ((g.contMDiff p).mdifferentiableAt (by simp))
       (β.mdifferentiableAt p), hg, hg, hβ, hβ, hdβ]
-  simp only [g, ContMDiffMap.coeFn_mk]
+  simp only [g, ContMDiffMap.fst_apply]
   ring
 
 /-- **The slices of the stable Hamiltonian model.** The pullback of the model along
@@ -378,7 +378,7 @@ theorem mpullback_prodMk_stableHamiltonianModel (α : SmoothForm I M ℝ 1)
     (σ : SmoothForm I M ℝ 2) (r : ℝ) :
     mpullback (Prod.mk r) (contMDiff_const.prodMk contMDiff_id) (stableHamiltonianModel α σ) =
       σ - r • mextDerivₗ I 1 α := by
-  set g : C^∞⟮𝓘(ℝ).prod I, ℝ × M; ℝ⟯ := ⟨Prod.fst, contMDiff_fst⟩
+  set g : C^∞⟮𝓘(ℝ).prod I, ℝ × M; ℝ⟯ := ContMDiffMap.fst
   have hsmul : mpullback (Prod.mk r) (contMDiff_const.prodMk contMDiff_id)
       (funSMulₗ g (mpullback Prod.snd contMDiff_snd α)) = r • α := by
     -- Both sides send `x` to `r`.
@@ -489,16 +489,9 @@ end IsStableHamiltonian
 theorem stableHamiltonianModel_neg_mextDerivₗ (α : SmoothForm I M ℝ 1) :
     stableHamiltonianModel α (-mextDerivₗ I 1 α) =
       -mextDerivₗ (𝓘(ℝ).prod I) 1
-        (funSMulₗ (⟨fun p ↦ 1 + p.1, contMDiff_const.add contMDiff_fst⟩ :
-            C^∞⟮𝓘(ℝ).prod I, ℝ × M; ℝ⟯)
-          (mpullback Prod.snd contMDiff_snd α)) := by
-  set g : C^∞⟮𝓘(ℝ).prod I, ℝ × M; ℝ⟯ := ⟨fun p ↦ 1 + p.1, contMDiff_const.add contMDiff_fst⟩
-  set r : C^∞⟮𝓘(ℝ).prod I, ℝ × M; ℝ⟯ := ⟨Prod.fst, contMDiff_fst⟩
-  set β : SmoothForm (𝓘(ℝ).prod I) (ℝ × M) ℝ 1 := mpullback Prod.snd contMDiff_snd α
-  have hsmul : funSMulₗ g β = β + funSMulₗ r β := by
-    rw [show g = 1 + r from ContMDiffMap.ext fun _ ↦ rfl, funSMulₗ_add, funSMulₗ_one]
-  rw [stableHamiltonianModel_def, map_neg, ← mextDerivₗ_mpullback, hsmul, map_add, neg_add,
-    sub_eq_add_neg]
+        (funSMulₗ (1 + ContMDiffMap.fst) (mpullback Prod.snd contMDiff_snd α)) := by
+  rw [stableHamiltonianModel_def, map_neg, ← mextDerivₗ_mpullback, funSMulₗ_add,
+    funSMulₗ_one, map_add, neg_add, sub_eq_add_neg]
 
 /-- **The model of the contact pair is a symplectization form.** On an open set `U` of `ℝ × M`
 where `r > -1`, the stable Hamiltonian model of `(α, -dα)` is the pullback of the exterior
@@ -513,7 +506,6 @@ theorem mpullback_subtypeVal_stableHamiltonianModel_neg_mextDerivₗ (α : Smoot
           fun p ↦ (by linarith [hU p.val p.property] : (0 : ℝ) < 1 + p.val.1).ne').prodMk
           (contMDiff_snd.comp contMDiff_subtypeVal))
         (mextDerivₗ (𝓘(ℝ).prod I) 1 (-α).symplectization) := by
-  set g : C^∞⟮𝓘(ℝ).prod I, ℝ × M; ℝ⟯ := ⟨fun p ↦ 1 + p.1, contMDiff_const.add contMDiff_fst⟩
   rw [stableHamiltonianModel_neg_mextDerivₗ, map_neg, ← mextDerivₗ_mpullback,
     ← mextDerivₗ_mpullback, ← map_neg]
   congr 1
@@ -528,14 +520,19 @@ theorem mpullback_subtypeVal_stableHamiltonianModel_neg_mextDerivₗ (α : Smoot
     rw [mpullback_mpullback_of_comp_eq hΨ contMDiff_snd contMDiff_subtypeVal contMDiff_snd rfl,
       map_neg, map_neg]
   -- The pullback of `eˢ (-α)` is `-(1 + r) α`, since `exp (log (1 + r)) = 1 + r`.
-  apply Subtype.ext
-  rw [coe_mpullback, coe_symplectization, TauCeti.mpullback_fun_smul, ← coe_mpullback _ hΨ, hβ,
-    neg_toRoughForm, neg_toRoughForm, coe_mpullback, coe_mpullback, coe_funSMulₗ g,
-    TauCeti.mpullback_fun_smul]
-  funext p
-  rw [Real.exp_log (by linarith [hU p.val p.property])]
-  simp only [g, ContMDiffMap.coeFn_mk, Pi.neg_apply]
-  exact (smul_neg _ _).symm
+  set e : C^∞⟮𝓘(ℝ).prod I, ℝ × M; ℝ⟯ :=
+    ⟨fun p ↦ Real.exp p.1, Real.contDiff_exp.contMDiff.comp contMDiff_fst⟩ with he
+  have he_apply : ∀ p, e p = Real.exp p.1 := fun p ↦ by rw [he, ContMDiffMap.coeFn_mk]
+  have hcomp : e.comp ⟨_, hΨ⟩ =
+      (1 + ContMDiffMap.fst : C^∞⟮𝓘(ℝ).prod I, ℝ × M; ℝ⟯).comp
+        ⟨Subtype.val, contMDiff_subtypeVal⟩ := by
+    ext p
+    refine (ContMDiffMap.comp_apply _ _ p).trans (Eq.trans ?_ (ContMDiffMap.comp_apply _ _ p).symm)
+    simp only [ContMDiffMap.coeFn_mk, he_apply, ContMDiffMap.coe_add, ContMDiffMap.coe_one,
+      Pi.add_apply, Pi.one_apply, ContMDiffMap.fst_apply]
+    exact Real.exp_log (by linarith [hU p.val p.property])
+  rw [symplectization_eq_funSMulₗ (-α) he_apply,
+    mpullback_funSMulₗ, mpullback_funSMulₗ, hβ, map_neg, hcomp]
 
 end Model
 
