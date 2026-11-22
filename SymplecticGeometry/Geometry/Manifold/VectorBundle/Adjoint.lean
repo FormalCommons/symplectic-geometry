@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.Geometry.Manifold.IsManifold.Basic
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Pullback
 public import SymplecticGeometry.Topology.Algebra.Module.BilinearForm
 public import TauCeti.Geometry.Manifold.Riemannian.Pullback.Basic
@@ -26,7 +27,7 @@ fibre of finite dimension, a nondegenerate form is invertible
 (`ContinuousLinearMap.isInvertible_iff_nondegenerate_toBilinForm` of Tau Ceti). The fibres carry
 `IsNormableSpace` instances, which transposing the forms needs. On tangent spaces, instance search
 finds them through `TangentSpace.instIsNormableSpace` of
-`SymplecticGeometry/Geometry/Manifold/IsManifold/Basic.lean`, which a user imports.
+`SymplecticGeometry/Geometry/Manifold/IsManifold/Basic.lean`, which this file imports.
 
 The proof composes Tau Ceti's `ContMDiffWithinAt.clm_bundle_flip`, `ContMDiffAt.clm_bundle_comp`
 and `ContMDiffAt.clm_bundle_inverse`, as Tau Ceti's
@@ -136,14 +137,6 @@ variable {E E' H H' M Q K : Type*}
   [IsManifold J ∞ Q]
   [FunLike K Q M] [ContinuousMapClass K Q M]
 
-/-- Mathlib's `IsNormableSpace` instance on tangent spaces is not found by instance search;
-transposing bilinear forms needs it. -/
-local instance (x : M) : IsNormableSpace ℝ (TangentSpace I x) :=
-  instIsNormableSpaceTangentSpace I x
-
-local instance (x : Q) : IsNormableSpace ℝ (TangentSpace J x) :=
-  instIsNormableSpaceTangentSpace J x
-
 /-- **A smooth left inverse of the derivative of an immersion.** Let `f : Q → M` be a smooth
 immersion, with `Q` of finite dimension, and `β` a smooth field of bilinear forms on `TM` such that
 `β u u = 0` only for `u = 0` at the points `f q`. Then there is a smooth section `S` of the bundle
@@ -158,8 +151,6 @@ theorem Manifold.IsImmersion.exists_contMDiff_leftInverse_mfderiv {f : K}
       ContMDiff J (J.prod 𝓘(ℝ, E →L[ℝ] E')) ∞ (fun q ↦ TotalSpace.mk' (E →L[ℝ] E')
         (E := fun q ↦ ((f : Q → M) *ᵖ (TangentSpace I)) q →L[ℝ] TangentSpace J q) q (S q)) ∧
       ∀ q, Function.LeftInverse (S q) (mfderiv J I f q) := by
-  have : IsManifold I (∞ + 1) M := by simpa using (inferInstance : IsManifold I ∞ M)
-  have : IsManifold J (∞ + 1) Q := by simpa using (inferInstance : IsManifold J ∞ Q)
   have : ContMDiffVectorBundle ∞ E ((f : Q → M) *ᵖ (TangentSpace I)) J :=
     Bundle.Pullback.contMDiffVectorBundle (E := TangentSpace I) hf.contMDiff
   -- `S` is the adjoint of `df` for `β` along `f` and its pull-back `h = β(df ·, df ·)` to `TQ`.

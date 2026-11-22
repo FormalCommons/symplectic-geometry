@@ -6,11 +6,16 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Geometry.Manifold.Instances.Real
+public import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition
 public import SymplecticGeometry.Geometry.Contact.Levi
 public import SymplecticGeometry.Geometry.Contact.Moser
+public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Flow.Family
+public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.TimeExtension
 public import SymplecticGeometry.Geometry.Manifold.IsManifold.Basic
 public import TauCeti.Geometry.Contact.Distribution
+public import TauCeti.Geometry.Contact.Flat
 public import TauCeti.Geometry.Contact.Gray
+public import TauCeti.Topology.VectorBundle.Hom
 
 /-!
 # Smooth families of contact structures
@@ -26,6 +31,19 @@ by one form on `[0, 1] × U` for an open `U ⊆ M`.
 Each member `ξ t` of such a family is a smooth contact structure in Tau Ceti's sense,
 `TauCeti.IsContactDistribution I ∞ (ξ t)`, and a one-form on the cylinder all of whose slices are
 contact forms defines one.
+
+On a manifold without boundary, a family over `[0, 1]` has local defining forms over all real
+times (`SymplecticGeometry.IsContactFamily.exists_local_extension`). Near a point `(t₀, x₀)`, a
+local defining form on the cylinder is extended in time by Seeley's operator
+(`TauCeti.SmoothForm.timeExtend`). Its slices are contact on an open subset of `ℝ × M`
+(`TauCeti.SmoothForm.isOpen_setOf_isContactFormAt_mpullback_prodMk`, read off the invertibility
+of the contact flat map, as in the proof of Tau Ceti's
+`TauCeti.SmoothForm.exists_isOpen_forall_isContactFormAt_add_smul_sub`), hence on a product of
+an interval around `t₀` and an open `U ∋ x₀`.
+Composing in time with a smooth map into that interval which is the identity near `t₀` in
+`[0, 1]` (`SymplecticGeometry.exists_contDiff_eqOn_id_Icc_mem_Ioo`) and restricting to `U` gives
+a form on `ℝ × U` all of whose slices are contact, and whose kernels are those of `ξ` at the
+times near `t₀` in `[0, 1]`. No compactness of `M` is needed.
 
 Let `α` and `α'` be one-forms on `ℝ × M` whose slices at `t` are contact forms. If their slices
 satisfy `α'_u = f(u, ·) α_u` near `(t, x)`, for times `u` in a set `s ∋ t` such as `[0, 1]` and a
@@ -48,6 +66,14 @@ of the same fact for Tau Ceti's contact-Moser vector field, in
   contact forms defines a smooth family of contact structures by its kernels.
 * `SymplecticGeometry.IsContactFamily.isContactDistribution`: each member of a smooth family of
   contact structures is a smooth contact structure.
+* `SymplecticGeometry.IsContactFamily.exists_local_extension`: near each point of the cylinder, a
+  smooth family of contact structures is defined by a one-form on `ℝ × U` whose slices are all
+  contact.
+* `TauCeti.SmoothForm.isOpen_setOf_isContactFormAt_mpullback_prodMk`: the points of `N × M` at
+  which the slices of a one-form are contact form an open set.
+* `TauCeti.SmoothForm.isContactFormAt_mpullback_subtype_val_iff`,
+  `TauCeti.SmoothForm.map_kerDistribution_mpullback_subtype_val`: restricting a one-form to an open
+  subset keeps its contact points and its kernels.
 * `TauCeti.SmoothForm.grayVectorField_eq_of_eventuallyEq_smul`: the Gray vector at `(t, x)` of a
   family whose slice at `t` is a contact form is unchanged when the slices at times of `s` are
   multiplied, near `(t, x)`, by a function nonzero at `(t, x)`.
@@ -194,6 +220,130 @@ theorem grayVectorField_eq_of_eventuallyEq_smul [I.Boundaryless]
   rw [grayVectorField_def, grayVectorField_def]
   exact hc.contactMoserVectorField_apply_of_eventuallyEq_smul hc' hfy hf₀ hy hβ
 
+/-- **The contact condition is open in families.** For a one-form `α` on a product `N × M`, the
+points `(t, y)` at which the slice `α_t = ι_t^* α` is a contact form form an open set. Near a
+contact point the model space is odd-dimensional, and there contactness of `α_t` at `y` is the
+invertibility of its contact flat map, which depends continuously on `(t, y)`. -/
+theorem isOpen_setOf_isContactFormAt_mpullback_prodMk {EN HN N : Type*} [NormedAddCommGroup EN]
+    [NormedSpace ℝ EN] [TopologicalSpace HN] {J : ModelWithCorners ℝ EN HN} [TopologicalSpace N]
+    [ChartedSpace HN N] [IsManifold J ∞ N] (α : SmoothForm (J.prod I) (N × M) ℝ 1) :
+    IsOpen {q : N × M | IsContactFormAt
+      (mpullback (Prod.mk q.1) (contMDiff_const.prodMk contMDiff_id) α).val q.2} := by
+  refine isOpen_iff_mem_nhds.2 fun q₀ hq₀ ↦ ?_
+  have hodd : Odd (finrank ℝ E) :=
+    (isContactFormAt_iff_isContact.1 hq₀).odd_finrank (isAlt_bilinFormAt _ q₀.2)
+  -- The contact flat maps of the slices are invertible on an open set. The bundles and the base
+  -- map are given explicitly: unification would otherwise read the section along the identity.
+  have hO : IsOpen {q : N × M | ((mpullback (Prod.mk q.1) (contMDiff_const.prodMk contMDiff_id)
+      α).contactFlat q.2).IsInvertible} :=
+    Continuous.isOpen_setOf_clm_bundle_isInvertible (𝕜 := ℝ) (F₁ := E)
+      (F₂ := E →L[ℝ] ℝ) (E₁ := TangentSpace I) (E₂ := fun x : M ↦ TangentSpace I x →L[ℝ] ℝ)
+      (b := Prod.snd) (ϕ := fun q : N × M ↦ (mpullback (Prod.mk q.1)
+        (contMDiff_const.prodMk contMDiff_id) α).contactFlat q.2)
+      (ContMDiff.continuous (n := ∞) fun q ↦ contMDiffAt_sectionAlong_contactFlat (b := Prod.snd)
+        (α := fun q : N × M ↦ mpullback (Prod.mk q.1) (contMDiff_const.prodMk contMDiff_id) α)
+        (contMDiff_mpullback_prodMk α q) (contMDiff_mextDeriv_mpullback_prodMk α q))
+  filter_upwards [hO.mem_nhds (isInvertible_contactFlat_of_isContactFormAt hq₀)] with q hq
+  exact isContactFormAt_of_isInvertible_contactFlat hodd hq
+
+omit [FiniteDimensional ℝ E] in
+/-- **Contactness restricts to open subsets.** The restriction of a one-form `α` to an open subset
+`U ⊆ M` is contact at `x ∈ U` if and only if `α` is contact at `x`. -/
+theorem isContactFormAt_mpullback_subtype_val_iff {U : TopologicalSpace.Opens M}
+    (α : SmoothForm I M ℝ 1) (x : U) :
+    IsContactFormAt (mpullback (Subtype.val : U → M) contMDiff_subtypeVal α).val x ↔
+      IsContactFormAt α.val x := by
+  rw [coe_mpullback, isContactFormAt_mpullback_iff contMDiff_subtypeVal.contMDiffAt
+    (((SmoothForm.contMDiff _) _).of_le (mod_cast le_top))
+    (Manifold.mfderiv_subtype_val (I := I) x ▸ (Manifold.tangentSpaceOpenEquiv x).bijective)]
+
+omit [FiniteDimensional ℝ E] in
+/-- **Kernels restrict to open subsets.** Under the canonical identification of tangent spaces,
+the kernel at `x ∈ U` of the restriction of a one-form `α` to an open subset `U ⊆ M` is the kernel
+of `α` at `x`. -/
+theorem map_kerDistribution_mpullback_subtype_val {U : TopologicalSpace.Opens M}
+    (α : SmoothForm I M ℝ 1) (x : U) :
+    ((mpullback (Subtype.val : U → M) contMDiff_subtypeVal α).kerDistribution x).map
+      (Manifold.tangentSpaceOpenEquiv (I := I) x).toLinearEquiv.toLinearMap =
+      α.kerDistribution x := by
+  rw [kerDistribution_mpullback, Manifold.mfderiv_subtype_val]
+  exact Submodule.map_comap_eq_of_surjective (Manifold.tangentSpaceOpenEquiv x).surjective _
+
 end TauCeti.SmoothForm
+
+namespace SymplecticGeometry.IsContactFamily
+
+open TauCeti TauCeti.SmoothForm TopologicalSpace
+
+variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
+  [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M]
+  [IsManifold I ∞ M] [BoundarylessManifold I M]
+  {ξ : unitInterval → Π x : M, Submodule ℝ (TangentSpace I x)}
+
+/-- **Local defining families over `ℝ`.** Let `ξ` be a smooth family of contact structures over
+`[0, 1]` on a manifold without boundary. Near every point `(t₀, x₀)` of the cylinder there are an
+open interval `(a, b) ∋ t₀`, an open set `U ∋ x₀` and a one-form `α` on `ℝ × U` such that every
+slice `α_t`, for all real `t`, is a contact form on `U`, and for `t ∈ (a, b) ∩ [0, 1]` its kernel
+at each `x ∈ U` is `ξ t x`, under the identification of the tangent spaces of `U` with those of
+`M`. -/
+theorem exists_local_extension (hξ : IsContactFamily ξ) (p : unitInterval × M) :
+    ∃ a b : ℝ, (p.1 : ℝ) ∈ Ioo a b ∧ ∃ U : Opens M, p.2 ∈ U ∧
+      ∃ α : SmoothForm (𝓘(ℝ, ℝ).prod I) (ℝ × U) ℝ 1,
+        (∀ t : ℝ, (mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) α).IsContactForm) ∧
+        ∀ (t : ℝ) (ht : t ∈ Ioo a b ∩ unitInterval) (x : U),
+          ξ ⟨t, ht.2⟩ x = ((mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id)
+            α).kerDistribution x).map
+            (Manifold.tangentSpaceOpenEquiv (I := I) x).toLinearEquiv.toLinearMap := by
+  obtain ⟨α, hα⟩ := hξ p
+  -- Extend `α` past the ends of `[0, 1]`; its slices are contact on an open set `C ∋ p`.
+  set β := SmoothForm.timeExtend α
+  have hC := isOpen_setOf_isContactFormAt_mpullback_prodMk β
+  have hp : ((p.1 : ℝ), p.2) ∈ {q : ℝ × M | IsContactFormAt
+      (mpullback (Prod.mk q.1) (contMDiff_const.prodMk contMDiff_id) β).val q.2} := by
+    simpa only [mem_ofPred_eq, β, SmoothForm.mpullback_prodMk_timeExtend] using
+      hα.self_of_nhds.1
+  -- Read the neighbourhood of `p` in the cylinder as one in `ℝ × M`.
+  rw [(Topology.IsInducing.subtypeVal.prodMap Topology.IsInducing.id).nhds_eq_comap,
+    eventually_comap] at hα
+  have hW := hα.and (hC.mem_nhds hp)
+  rw [Prod.map_apply, id, nhds_prod_eq] at hW
+  obtain ⟨pa, hpa, pb, hpb, hab⟩ := eventually_prod_iff.1 hW
+  obtain ⟨δ, hδ, hδa⟩ := Metric.eventually_nhds_iff.1 hpa
+  obtain ⟨U, hUb, hU, hxU⟩ := eventually_nhds_iff.1 hpb
+  -- Reparametrize time by a map into `(t₀ - δ, t₀ + δ)`, equal to the identity near `t₀` in
+  -- `[0, 1]`.
+  have ht₀ := p.1.property
+  obtain ⟨c, hc, hcid, hcmem⟩ := exists_contDiff_eqOn_id_Icc_mem_Ioo
+    (a := max 0 ((p.1 : ℝ) - δ / 2)) (b := min 1 ((p.1 : ℝ) + δ / 2))
+    (le_min (max_le zero_le_one (by linarith [ht₀.2]))
+      (max_le (by linarith [ht₀.1]) (by linarith)))
+    (half_pos hδ)
+  refine ⟨p.1 - δ / 2, p.1 + δ / 2, ⟨by linarith, by linarith⟩, ⟨U, hU⟩, hxU,
+    mpullback (Prod.map c Subtype.val) (hc.contMDiff.prodMap contMDiff_subtypeVal) β,
+    fun t ↦ ?_, fun t ht x ↦ ?_⟩
+  · rw [mpullback_prodMk_mpullback_prodMap' hc.contMDiff Subtype.val contMDiff_subtypeVal,
+      isContactForm_iff_forall_isContactFormAt]
+    intro x
+    have hct : dist (c t) p.1 < δ := by
+      have h₁ := hcmem t
+      have h₂ := le_max_right 0 ((p.1 : ℝ) - δ / 2)
+      have h₃ := min_le_right 1 ((p.1 : ℝ) + δ / 2)
+      rw [Real.dist_eq, abs_lt]
+      constructor <;> linarith [h₁.1, h₁.2]
+    exact (isContactFormAt_mpullback_subtype_val_iff _ x).2 (hab (hδa hct) (hUb x x.property)).2
+  · have hct : c t = t := hcid ⟨max_le ht.2.1 (by linarith [ht.1.1]),
+      le_min ht.2.2 (by linarith [ht.1.2])⟩
+    have htδ : dist t p.1 < δ := by
+      rw [Real.dist_eq, abs_lt]
+      constructor <;> linarith [ht.1.1, ht.1.2]
+    have hx := ((hab (hδa htδ) (hUb x x.property)).1 (⟨t, ht.2⟩, x) rfl).2
+    rw [mpullback_prodMk_mpullback_prodMap' hc.contMDiff Subtype.val contMDiff_subtypeVal, hct,
+      map_kerDistribution_mpullback_subtype_val, hx]
+    have hβ : mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) β =
+        mpullback (Prod.mk (⟨t, ht.2⟩ : unitInterval)) (contMDiff_const.prodMk contMDiff_id) α :=
+      SmoothForm.mpullback_prodMk_timeExtend α ⟨t, ht.2⟩
+    rw [hβ]
+
+end SymplecticGeometry.IsContactFamily
 
 end
