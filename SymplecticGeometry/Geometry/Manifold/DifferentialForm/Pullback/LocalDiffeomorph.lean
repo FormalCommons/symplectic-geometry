@@ -11,7 +11,7 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.Interior
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Basic
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 public import TauCeti.Geometry.Manifold.DifferentialForm.LieDeriv
-public import TauCeti.Geometry.Symplectic.Manifold.Flat
+public import TauCeti.Geometry.Manifold.TwoForm.Basic
 import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
 import TauCeti.Geometry.Manifold.IsManifold.Basic
 
@@ -48,7 +48,7 @@ identities between a form `ω` at `f x` and its pullback at `x`: `dφ = ψ`
 (`IsLocalDiffeomorphAt.mextDeriv_apply_eq_iff`), `ι_Z ω = ψ` for fields related by the
 differential (`IsLocalDiffeomorphAt.interior_apply_eq_iff`), nondegeneracy of a two-form
 (`IsLocalDiffeomorphAt.nondegenerate_bilinFormAt_iff`), and, for a two-form closed at `f x`, the
-Liouville equation `L_Z ω = ω` (`IsLocalDiffeomorphAt.mlieDerivForm_apply_eq_iff`, through the
+identity `L_Z ω = ψ` (`IsLocalDiffeomorphAt.mlieDerivForm_apply_eq_iff`, through the
 pointwise Cartan formula `TauCeti.mlieDerivForm_eq_mextDeriv_interior_apply`). They are the
 pointwise forms, for a map that is a local diffeomorphism only near `x`, of Tau Ceti's
 `IsLocalDiffeomorph.isClosed_mpullback_iff` and `IsLocalDiffeomorph.isNondegenerate_mpullback_iff`.
@@ -151,11 +151,10 @@ theorem interior_apply_eq_iff (hf : IsLocalDiffeomorphAt I I' n f x) (hn : n ≠
   rw [← mpullback_interior_at f X Z ω hXZ,
     mpullback_apply_eq_mpullback_apply_iff (hf.isInvertible_mfderiv hn).surjective]
 
-variable [IsManifold I 2 M] [IsManifold I' 2 M']
-
 /-- Let `f` be a `C^n` local diffeomorphism at `x`, `n ≠ 0`, pulling the two-form `ω` back to
 `η` at `x`. Then `ω` is nondegenerate at `f x` exactly when `η` is nondegenerate at `x`. -/
-theorem nondegenerate_bilinFormAt_iff (hf : IsLocalDiffeomorphAt I I' n f x) (hn : n ≠ 0)
+theorem nondegenerate_bilinFormAt_iff [IsManifold I 1 M] [IsManifold I' 1 M']
+    (hf : IsLocalDiffeomorphAt I I' n f x) (hn : n ≠ 0)
     {ω : SmoothForm I' M' ℝ 2} {η : SmoothForm I M ℝ 2} (h : mpullback I I' f ω.val x = η.val x) :
     (ω.bilinFormAt (f x)).Nondegenerate ↔ (η.bilinFormAt x).Nondegenerate := by
   obtain ⟨e, he⟩ := hf.isInvertible_mfderiv hn
@@ -171,6 +170,10 @@ theorem nondegenerate_bilinFormAt_iff (hf : IsLocalDiffeomorphAt I I' n f x) (hn
     fin_cases i <;> simp [← he]
   rw [hη, LinearMap.BilinForm.nondegenerate_congr_iff]
 
+section
+
+variable [IsManifold I 2 M] [IsManifold I' 2 M']
+
 /-- Let `f` be a `C^n` local diffeomorphism at `x`, `2 ≤ n`, and `φ` a form that is `C¹` at
 `f x`. Then `dφ` agrees with `ψ` at `f x` exactly when `d(f^* φ)` agrees with `f^* ψ` at `x`. -/
 theorem mextDeriv_apply_eq_iff (hf : IsLocalDiffeomorphAt I I' n f x) (hn : 2 ≤ n)
@@ -184,18 +187,21 @@ theorem mextDeriv_apply_eq_iff (hf : IsLocalDiffeomorphAt I I' n f x) (hn : 2 �
     mpullback_apply_eq_mpullback_apply_iff
       (hf.isInvertible_mfderiv (lt_of_lt_of_le (by simp) hn).ne').surjective]
 
+end
+
 open scoped ContDiff in
 /-- Let `f` be a smooth local diffeomorphism at `x` that pulls the two-form `σ` back to `η` near
-`x`, and whose differential sends the smooth field `X` to the smooth field `Z` near `x`. If `σ`
-is closed at `f x`, then `L_Z σ = σ` holds at `f x` exactly when `L_X η = η` holds at `x`. -/
+`x`, and whose differential sends the field `X`, `C¹` at `x`, to the field `Z`, `C¹` at `f x`,
+near `x`. If `σ` is closed at `f x`, then `L_Z σ` agrees with a two-form `ψ` at `f x` exactly
+when `L_X η` agrees with `f^* ψ` at `x`. -/
 theorem mlieDerivForm_apply_eq_iff [IsManifold I ∞ M] [IsManifold I' ∞ M']
     (hf : IsLocalDiffeomorphAt I I' ∞ f x) {σ : SmoothTwoForm I' M'} {η : SmoothTwoForm I M}
     (hση : ∀ᶠ y in 𝓝 x, mpullback I I' f σ.val y = η.val y)
     {X : (x : M) → TangentSpace I x} {Z : (y : M') → TangentSpace I' y}
-    (hX : ContMDiff I I.tangent ∞ (T% X)) (hZ : ContMDiff I' I'.tangent ∞ (T% Z))
+    (hX : ContMDiffAt I I.tangent 1 (T% X) x) (hZ : ContMDiffAt I' I'.tangent 1 (T% Z) (f x))
     (hXZ : ∀ᶠ y in 𝓝 x, mfderiv I I' f y (X y) = Z (f y))
-    (hdσ : mextDeriv σ.val (f x) = 0) :
-    mlieDerivForm Z σ.val (f x) = σ.val (f x) ↔ mlieDerivForm X η.val x = η.val x := by
+    (hdσ : mextDeriv σ.val (f x) = 0) {ψ : RoughForm I' M' ℝ 2} :
+    mlieDerivForm Z σ.val (f x) = ψ (f x) ↔ mlieDerivForm X η.val x = mpullback I I' f ψ x := by
   have hdη : mextDeriv η.val x = 0 := by
     have := (hf.mextDeriv_apply_eq_iff (by simp) ((σ.contMDiff (f x)).of_le (by simp))
       (ψ := 0)).1 hdσ
@@ -206,15 +212,13 @@ theorem mlieDerivForm_apply_eq_iff [IsManifold I ∞ M] [IsManifold I' ∞ M']
     ext v
     rw [mpullback_interior_at f X Z σ.val h₂, RoughForm.interior_apply, RoughForm.interior_apply,
       h₁]
-  have hιφ := (σ.interiorₗ ⟨Z, hZ⟩).contMDiff (f x)
-  rw [SmoothTwoForm.coe_interiorₗ, ContMDiffSection.coeFn_mk] at hιφ
+  have hιφ := RoughForm.contMDiffAt_interior hZ ((σ.contMDiff (f x)).of_le (by simp))
   rw [mlieDerivForm_eq_mextDeriv_interior_apply (σ.mdifferentiableAt (f x))
-      ((hZ (f x)).mdifferentiableAt (by simp)) hdσ,
+      (hZ.mdifferentiableAt (by simp)) hdσ,
     mlieDerivForm_eq_mextDeriv_interior_apply (η.mdifferentiableAt x)
-      ((hX x).mdifferentiableAt (by simp)) hdη,
-    hf.mextDeriv_apply_eq_iff (by simp) (hιφ.of_le (by simp)),
-    mextDeriv_congr_of_eventuallyEq hι,
-    hση.self_of_nhds]
+      (hX.mdifferentiableAt (by simp)) hdη,
+    hf.mextDeriv_apply_eq_iff (by simp) hιφ,
+    mextDeriv_congr_of_eventuallyEq hι]
 
 end IsLocalDiffeomorphAt
 

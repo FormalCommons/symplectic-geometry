@@ -12,6 +12,7 @@ public import TauCeti.Geometry.Manifold.VectorField.ModelChart
 public import TauCeti.Geometry.Manifold.VectorField.Prod
 import TauCeti.Geometry.Manifold.IsManifold.Basic
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffeomorph
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
 import SymplecticGeometry.Geometry.Manifold.VectorField.Pullback
 import TauCeti.Topology.FiberBundle.Separation
@@ -81,8 +82,8 @@ Ceti's results on the symplectization
 * `contMDiff_completionField`, `mfderiv_toCompletion_apply`, `mfderiv_completionEnd_apply`: `Ŷ`
   is smooth, and is the image of `Y` under the inclusion and of `∂_s` under the end map.
 * `isSymplectic_completionForm`: `ω̂` is symplectic.
-* `isLiouvilleVectorField_completionField_of_mem`: `Ŷ` is a Liouville field of `ω̂` on the image
-  of `U` and on the end; `interior_completionField_completionForm`: `ι_Ŷ ω̂ = -λ̂`.
+* `mlieDerivForm_completionField_of_mem`: `L_Ŷ ω̂ = ω̂` at each point of the image of `U` and
+  of the end; `interior_completionField_completionForm`: `ι_Ŷ ω̂ = -λ̂`.
 * `mextDerivₗ_completionPrimitive`, `isLiouvilleVectorField_completionField`: for a Liouville
   domain, `dλ̂ = -ω̂` and `Ŷ` is a Liouville field of `ω̂` everywhere.
 * `isSymplectic_completionForm_and_extends`: the completion of a strong filling, collected in one
@@ -470,10 +471,11 @@ private theorem mpullback_toCompletion_glue_of_mem_interior
       ((h.isLocalDiffeomorphAt_toCompletion hp).isInvertible_mfderiv (by simp))
       (h.glue_toCompletion αW αE hz)
 
-/-- A point of the completion off the end `(-ε, ∞) × ∂W` is an interior point of `W`. -/
-private theorem exists_mem_interior_of_notMem {z : h.Completion}
-    (hz : ¬∃ q ∈ Ioi (-h.collarWidth) ×ˢ univ, h.completionEnd q = z) :
-    ∃ p ∈ (𝓡∂ (n + 1)).interior W, h.toCompletion p = z := by
+/-- Every point of the completion is on the end `(-ε, ∞) × ∂W` or is an interior point of `W`. -/
+theorem exists_completionEnd_or_toCompletion (z : h.Completion) :
+    (∃ q ∈ Ioi (-h.collarWidth) ×ˢ univ, h.completionEnd q = z) ∨
+      ∃ p ∈ (𝓡∂ (n + 1)).interior W, h.toCompletion p = z := by
+  refine or_iff_not_imp_left.2 fun hz ↦ ?_
   have hε := h.collarWidth_pos
   rcases (h.range_toCompletion_union ▸ mem_univ z :
       z ∈ range h.toCompletion ∪ h.completionEnd '' (Ioi 0 ×ˢ univ)) with ⟨p, rfl⟩ | ⟨q, hq, rfl⟩
@@ -496,7 +498,7 @@ private theorem isSmoothForm_glue (hW : IsSmoothForm (𝓡∂ (n + 1)) ∞ αW)
       (by simp)).1 ((hE.contMDiff q).congr_of_eventuallyEq ?_)
     filter_upwards [(isOpen_Ioi.prod isOpen_univ).mem_nhds hq] with r hr
     rw [h.mpullback_completionEnd_glue αW αE hr]
-  · obtain ⟨p, hp, rfl⟩ := h.exists_mem_interior_of_notMem hz
+  · obtain ⟨p, hp, rfl⟩ := (h.exists_completionEnd_or_toCompletion _).resolve_left hz
     refine ((h.isLocalDiffeomorphAt_toCompletion hp).contMDiffAt_mpullback_form_iff
       (by simp)).1 ((hW.contMDiff p).congr_of_eventuallyEq ?_)
     filter_upwards [((𝓡∂ (n + 1)).isOpen_interior one_ne_zero).mem_nhds hp] with r hr
@@ -651,7 +653,7 @@ theorem contMDiff_completionField :
         (Bundle.contMDiff_zeroSection ℝ (TangentSpace (𝓡 n))) q)
       (Filter.eventually_of_mem ((isOpen_Ioi.prod isOpen_univ).mem_nhds hq) fun r hr ↦
         h.mfderiv_completionEnd_apply hr)
-  · obtain ⟨p, hp, rfl⟩ := h.exists_mem_interior_of_notMem hz
+  · obtain ⟨p, hp, rfl⟩ := (h.exists_completionEnd_or_toCompletion _).resolve_left hz
     exact (h.isLocalDiffeomorphAt_toCompletion hp).contMDiffAt_of_eventually_mfderiv_apply_eq
       (by simp) (h.isOutwardPointingField.contMDiff p)
       (Filter.eventually_of_mem (((𝓡∂ (n + 1)).isOpen_interior one_ne_zero).mem_nhds hp)
@@ -674,14 +676,6 @@ theorem mfderiv_toCompletion_apply (p : W) :
   exact Bundle.TotalSpace.mk_inj.1 (congrFun heq p)
 
 /-! ### Symplecticity and the Liouville property -/
-
-/-- Every point of the completion is on the end `(-ε, ∞) × ∂W` or is an interior point of `W`. -/
-theorem exists_completionEnd_or_toCompletion (z : h.Completion) :
-    (∃ q ∈ Ioi (-h.collarWidth) ×ˢ univ, h.completionEnd q = z) ∨
-      ∃ p ∈ (𝓡∂ (n + 1)).interior W, h.toCompletion p = z := by
-  by_cases hz : ∃ q ∈ Ioi (-h.collarWidth) ×ˢ univ, h.completionEnd q = z
-  · exact Or.inl hz
-  · exact Or.inr (h.exists_mem_interior_of_notMem hz)
 
 /-- Near each point of the end `(-ε, ∞) × ∂W`, the form of the completion is `-d(e^s α)`. -/
 theorem eventually_mpullback_completionEnd_completionForm
@@ -709,6 +703,24 @@ theorem mpullback_toCompletion_completionForm_apply (p : W) :
   rw [← SmoothForm.coe_mpullback _ h.contMDiff_toCompletion,
     h.mpullback_toCompletion_completionForm]
 
+/-- Near each point of the end `(-ε, ∞) × ∂W`, the primitive of the completion is `e^s α`. -/
+theorem eventually_mpullback_completionEnd_completionPrimitive
+    {q : ℝ × (𝓡∂ (n + 1)).boundary W} (hq : q ∈ Ioi (-h.collarWidth) ×ˢ univ) :
+    ∀ᶠ r in 𝓝 q,
+      mpullback (𝓘(ℝ).prod (𝓡 n)) (𝓡 (n + 1)) h.completionEnd h.completionPrimitive.val r =
+        (fillingContactForm σ ⟨Y, h.isOutwardPointingField.contMDiff⟩).symplectization.val r :=
+  Filter.eventually_of_mem ((isOpen_Ioi.prod isOpen_univ).mem_nhds hq)
+    h.mpullback_completionEnd_completionPrimitive
+
+/-- At each point of `W`, the primitive of the completion restricts to `-ι_Y σ`. -/
+theorem mpullback_toCompletion_completionPrimitive_apply (p : W) :
+    mpullback (𝓡∂ (n + 1)) (𝓡 (n + 1)) h.toCompletion h.completionPrimitive.val p =
+      -RoughForm.interior Y σ.val p := by
+  have := congrArg (fun φ : SmoothForm (𝓡∂ (n + 1)) W ℝ 1 ↦ φ.val p)
+    h.mpullback_toCompletion_completionPrimitive
+  simpa only [SmoothForm.coe_mpullback, NegMemClass.coe_neg, SmoothTwoForm.coe_interiorₗ,
+    ContMDiffSection.coeFn_mk, Pi.neg_apply] using this
+
 private theorem isClosed_completionForm : h.completionForm.IsClosed := by
   rw [SmoothForm.isClosed_def]
   funext z
@@ -725,8 +737,10 @@ private theorem isClosed_completionForm : h.completionForm.IsClosed := by
           mpullback_zero]
         exact congrFun ((SmoothForm.isClosed_def _).1 h.isSymplectic.isClosed) p)
 
-private theorem nondegenerate_bilinFormAt_completionForm (z : h.Completion) :
-    (h.completionForm.bilinFormAt z).Nondegenerate := by
+private theorem isNondegenerate_completionForm : h.completionForm.IsNondegenerate := by
+  refine SmoothTwoForm.isNondegenerate_iff_forall_ker_bilinFormAt_eq_bot.2 fun z ↦ ?_
+  suffices hz : (h.completionForm.bilinFormAt z).Nondegenerate from
+    LinearMap.separatingLeft_iff_ker_eq_bot.1 hz.1
   rcases h.exists_completionEnd_or_toCompletion z with ⟨q, hq, rfl⟩ | ⟨p, hp, rfl⟩
   · exact ((h.isLocalDiffeomorphOn_completionEnd ⟨q, hq⟩).nondegenerate_bilinFormAt_iff (by simp)
       (h.mpullback_completionEnd_completionForm q hq)).2
@@ -738,10 +752,7 @@ private theorem nondegenerate_bilinFormAt_completionForm (z : h.Completion) :
 
 /-- The form `ω̂` of the completion is symplectic. -/
 theorem isSymplectic_completionForm : h.completionForm.IsSymplectic :=
-  ⟨h.isClosed_completionForm, SmoothTwoForm.isNondegenerate_iff_separatingLeft.2 fun z v hv ↦
-    (h.nondegenerate_bilinFormAt_completionForm z).1 v fun w ↦ by
-      rw [SmoothForm.bilinFormAt_apply]
-      exact hv w⟩
+  ⟨h.isClosed_completionForm, h.isNondegenerate_completionForm⟩
 
 /-- On the end `(-ε, ∞) × ∂W`, the field `Ŷ` is a Liouville field of `ω̂`. -/
 theorem mlieDerivForm_completionField_completionEnd {q : ℝ × (𝓡∂ (n + 1)).boundary W}
@@ -755,13 +766,14 @@ theorem mlieDerivForm_completionField_completionEnd {q : ℝ × (𝓡∂ (n + 1)
   exact ((h.isLocalDiffeomorphOn_completionEnd ⟨q, hq⟩).mlieDerivForm_apply_eq_iff
     (h.eventually_mpullback_completionEnd_completionForm hq)
     (Manifold.contMDiff_prodVectorField (contMDiff_constVectorField 1)
-      (Bundle.contMDiff_zeroSection ℝ (TangentSpace (𝓡 n))))
-    h.contMDiff_completionField (h.eventually_mfderiv_completionEnd_apply hq)
-    (congrFun ((SmoothForm.isClosed_def _).1 h.isSymplectic_completionForm.isClosed) _)).2 hL
+      (Bundle.contMDiff_zeroSection ℝ (TangentSpace (𝓡 n))) q)
+    ((h.contMDiff_completionField _).of_le (by simp)) (h.eventually_mfderiv_completionEnd_apply hq)
+    (congrFun ((SmoothForm.isClosed_def _).1 h.isSymplectic_completionForm.isClosed) _)).2
+    (by rw [h.mpullback_completionEnd_completionForm q hq]; exact hL)
 
-/-- The field `Ŷ` of the completion is a Liouville field of `ω̂` on the image of the set `U` on
-which `Y` is Liouville and on the end `(0, ∞) × ∂W`. -/
-theorem isLiouvilleVectorField_completionField_of_mem {z : h.Completion}
+/-- The field `Ŷ` of the completion satisfies `L_Ŷ ω̂ = ω̂` at each point of the image of the set
+`U` on which `Y` is Liouville and of the end `(0, ∞) × ∂W`. -/
+theorem mlieDerivForm_completionField_of_mem {z : h.Completion}
     (hz : z ∈ h.toCompletion '' U ∪ h.completionEnd '' (Ioi 0 ×ˢ univ)) :
     mlieDerivForm h.completionField h.completionForm.val z = h.completionForm.val z := by
   rcases h.exists_completionEnd_or_toCompletion z with ⟨q, hq, rfl⟩ | ⟨p, hp, rfl⟩
@@ -770,10 +782,11 @@ theorem isLiouvilleVectorField_completionField_of_mem {z : h.Completion}
   · rw [h.injective_toCompletion hpp'] at hp'
     exact ((h.isLocalDiffeomorphAt_toCompletion hp).mlieDerivForm_apply_eq_iff
       (Filter.Eventually.of_forall h.mpullback_toCompletion_completionForm_apply)
-      h.isOutwardPointingField.contMDiff h.contMDiff_completionField
+      ((h.isOutwardPointingField.contMDiff p).of_le (by simp))
+      ((h.contMDiff_completionField _).of_le (by simp))
       (Filter.Eventually.of_forall h.mfderiv_toCompletion_apply)
       (congrFun ((SmoothForm.isClosed_def _).1 h.isSymplectic_completionForm.isClosed) _)).2
-      (h.mlieDerivForm_eq p hp')
+      (by rw [h.mpullback_toCompletion_completionForm_apply]; exact h.mlieDerivForm_eq p hp')
   · exact absurd hpE (Set.disjoint_left.1 h.disjoint_range_toCompletion_completionEnd_image
       ⟨p, rfl⟩)
 
@@ -788,20 +801,16 @@ theorem interior_completionField_completionForm :
       (-fillingContactForm σ ⟨Y, h.isOutwardPointingField.contMDiff⟩)) q
     ext v
     rw [RoughForm.interior_apply, h.mpullback_completionEnd_completionForm q hq,
-      mextDerivₗ_apply, ← RoughForm.interior_apply, hι, NegMemClass.coe_neg,
-      ← neg_one_smul ℝ h.completionPrimitive.val, mpullback_smul, Pi.smul_apply,
-      h.mpullback_completionEnd_completionPrimitive q hq, SmoothForm.symplectization_neg]
+      mextDerivₗ_apply, ← RoughForm.interior_apply, hι, NegMemClass.coe_neg, mpullback_neg,
+      Pi.neg_apply, h.mpullback_completionEnd_completionPrimitive q hq,
+      SmoothForm.symplectization_neg]
     simp
   · rw [(h.isLocalDiffeomorphAt_toCompletion hp).interior_apply_eq_iff (by simp)
       (h.mfderiv_toCompletion_apply p)]
-    have hprim := congrArg (fun φ : SmoothForm (𝓡∂ (n + 1)) W ℝ 1 ↦ φ.val p)
-      (h.mpullback_toCompletion_completionPrimitive)
-    simp only [SmoothForm.coe_mpullback, NegMemClass.coe_neg, SmoothTwoForm.coe_interiorₗ]
-      at hprim
     ext v
     rw [RoughForm.interior_apply, h.mpullback_toCompletion_completionForm_apply,
-      NegMemClass.coe_neg, ← neg_one_smul ℝ h.completionPrimitive.val, mpullback_smul,
-      Pi.smul_apply, hprim]
+      NegMemClass.coe_neg, mpullback_neg, Pi.neg_apply,
+      h.mpullback_toCompletion_completionPrimitive_apply]
     simp [RoughForm.interior_apply]
 
 /-! ### The completion of a Liouville domain -/
@@ -815,20 +824,16 @@ theorem mextDerivₗ_completionPrimitive (h : IsStrongFilling σ univ Y) :
   rcases h.exists_completionEnd_or_toCompletion z with ⟨q, hq, rfl⟩ | ⟨p, hp, rfl⟩
   · rw [(h.isLocalDiffeomorphOn_completionEnd ⟨q, hq⟩).mextDeriv_apply_eq_iff (by simp)
       ((h.completionPrimitive.contMDiff _).of_le (by simp)),
-      ← neg_one_smul ℝ h.completionForm.val, mpullback_smul, Pi.smul_apply, neg_one_smul,
-      mextDeriv_congr_of_eventuallyEq (Filter.eventually_of_mem
-        ((isOpen_Ioi.prod isOpen_univ).mem_nhds hq) h.mpullback_completionEnd_completionPrimitive),
+      mpullback_neg, Pi.neg_apply,
+      mextDeriv_congr_of_eventuallyEq (h.eventually_mpullback_completionEnd_completionPrimitive hq),
       h.mpullback_completionEnd_completionForm q hq, mextDerivₗ_apply,
       SmoothForm.symplectization_neg, NegMemClass.coe_neg, mextDeriv_neg, Pi.neg_apply, neg_neg]
   · have hprim : mpullback (𝓡∂ (n + 1)) (𝓡 (n + 1)) h.toCompletion h.completionPrimitive.val =
-        -RoughForm.interior Y σ.val := by
-      have := congrArg Subtype.val h.mpullback_toCompletion_completionPrimitive
-      simpa only [SmoothForm.coe_mpullback, NegMemClass.coe_neg, SmoothTwoForm.coe_interiorₗ,
-        ContMDiffSection.coeFn_mk] using this
+        -RoughForm.interior Y σ.val :=
+      funext h.mpullback_toCompletion_completionPrimitive_apply
     rw [(h.isLocalDiffeomorphAt_toCompletion hp).mextDeriv_apply_eq_iff (by simp)
       ((h.completionPrimitive.contMDiff _).of_le (by simp)),
-      ← neg_one_smul ℝ h.completionForm.val, mpullback_smul, Pi.smul_apply, neg_one_smul, hprim,
-      mextDeriv_neg,
+      mpullback_neg, Pi.neg_apply, hprim, mextDeriv_neg,
       Pi.neg_apply, h.mpullback_toCompletion_completionForm_apply,
       ← mlieDerivForm_eq_mextDeriv_interior_apply (σ.mdifferentiableAt p)
         ((h.isOutwardPointingField.contMDiff p).mdifferentiableAt (by simp))
@@ -839,7 +844,7 @@ theorem mextDerivₗ_completionPrimitive (h : IsStrongFilling σ univ Y) :
 theorem isLiouvilleVectorField_completionField (h : IsStrongFilling σ univ Y) :
     IsLiouvilleVectorField h.completionForm.val h.completionField :=
   isLiouvilleVectorField_iff.2 <| funext fun z ↦
-    h.isLiouvilleVectorField_completionField_of_mem (by
+    h.mlieDerivForm_completionField_of_mem (by
       rw [image_univ, h.range_toCompletion_union]
       exact mem_univ z)
 
@@ -857,8 +862,9 @@ with the boundary contact form `α`, has the following properties.
   `-d(e^s α)` on `(-ε, 0) × ∂W`.
 * On the end `[0, ∞) × ∂W`, the field `Ŷ` is the image of `∂_s` and is a Liouville field of
   `ω̂`.
+* The field `Ŷ` and the primitive `λ̂` satisfy `ι_Ŷ ω̂ = -λ̂` on all of `Ŵ`.
 * If `U` is all of `W` (a Liouville domain), the primitive `λ̂` restricts to `λ = -ι_Y σ` on `W`
-  and is `e^s α` on the end, `dλ̂ = -ω̂`, and `ι_Ŷ ω̂ = -λ̂`.
+  and is `e^s α` on the end, and `dλ̂ = -ω̂`.
 
 Milestone: *Completion of a strong filling*. -/
 theorem isSymplectic_completionForm_and_extends :
@@ -888,6 +894,7 @@ theorem isSymplectic_completionForm_and_extends :
           h.completionField (h.completionEnd q) ∧
         mlieDerivForm h.completionField h.completionForm.val (h.completionEnd q) =
           h.completionForm.val (h.completionEnd q)) ∧
+      RoughForm.interior h.completionField h.completionForm.val = (-h.completionPrimitive).val ∧
       (U = univ →
         SmoothForm.mpullback h.toCompletion h.contMDiff_toCompletion h.completionPrimitive =
             -σ.interiorₗ ⟨Y, h.isOutwardPointingField.contMDiff⟩ ∧
@@ -895,9 +902,7 @@ theorem isSymplectic_completionForm_and_extends :
             mpullback (𝓘(ℝ).prod (𝓡 n)) (𝓡 (n + 1)) h.completionEnd h.completionPrimitive.val p =
               (fillingContactForm σ ⟨Y, h.isOutwardPointingField.contMDiff⟩).symplectization.val
                 p) ∧
-          mextDerivₗ (𝓡 (n + 1)) 1 h.completionPrimitive = -h.completionForm ∧
-          RoughForm.interior h.completionField h.completionForm.val =
-            (-h.completionPrimitive).val) := by
+          mextDerivₗ (𝓡 (n + 1)) 1 h.completionPrimitive = -h.completionForm) := by
   have hend {p : ℝ × (𝓡∂ (n + 1)).boundary W} (hp : p ∈ Ici 0 ×ˢ univ) :
       p ∈ Ioi (-h.collarWidth) ×ˢ univ :=
     ⟨lt_of_lt_of_le (neg_lt_zero.2 h.collarWidth_pos) hp.1, trivial⟩
@@ -907,11 +912,12 @@ theorem isSymplectic_completionForm_and_extends :
     h.isMIntegralCurveOn_collarFlow, h.collarFlow_zero,
     fun s hs x ↦ h.completionEnd_eq_toCompletion hs x, h.mpullback_collarFlow,
     fun q hq ↦ ⟨h.mfderiv_completionEnd_apply (hend hq),
-      h.mlieDerivForm_completionField_completionEnd (hend hq)⟩, fun hU ↦ ?_⟩
+      h.mlieDerivForm_completionField_completionEnd (hend hq)⟩,
+    h.interior_completionField_completionForm, fun hU ↦ ?_⟩
   subst hU
   exact ⟨h.mpullback_toCompletion_completionPrimitive,
     fun p hp ↦ h.mpullback_completionEnd_completionPrimitive p (hend hp),
-    h.mextDerivₗ_completionPrimitive, h.interior_completionField_completionForm⟩
+    h.mextDerivₗ_completionPrimitive⟩
 
 end IsStrongFilling
 
