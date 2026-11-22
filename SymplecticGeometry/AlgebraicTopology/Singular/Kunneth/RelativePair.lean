@@ -30,9 +30,9 @@ with the coproducts that the singular chains use, as for Tau Ceti's relative cro
 ## Main results
 
 * `TopCat.singularHomologyCrossRelPair_naturality`: naturality in maps of pairs on both sides.
-* `TopCat.singularHomologyCrossRel_comp_singularHomologyCrossRelPair`: on the relative cross
-  product `Hₚ(X, A) ⊗ H_q(Y) ⟶ Hₙ(X × Y, A × Y)`, the cross product of the pairs is the map of
-  pairs `(X × Y, A × Y) ⟶ (X × Y, A × Y ∪ X × B)` applied after it.
+* `TopCat.whiskerLeft_singularHomologyπ_comp_singularHomologyCrossRelPair`: on the relative
+  cross product `Hₚ(X, A) ⊗ H_q(Y) ⟶ Hₙ(X × Y, A × Y)`, the cross product of the pairs is the
+  map of pairs `(X × Y, A × Y) ⟶ (X × Y, A × Y ∪ X × B)` applied after it.
 * `TopCat.singularHomologyCross_comp_singularHomologyπ_eq_singularHomologyCrossRelPair`: on
   absolute classes, the cross product of the pairs is the absolute cross product followed by the
   map to relative homology.
@@ -129,7 +129,7 @@ theorem singularHomologyCrossRelPair_naturality {X' Y' : TopCat.{w}} {A' : Set X
 mapped to `Hₙ(X × Y, A × Y ∪ X × B)`, is the cross product of `a` with the image of `b` in
 `H_q(Y, B; S)`. -/
 @[reassoc]
-theorem singularHomologyCrossRel_comp_singularHomologyCrossRelPair
+theorem whiskerLeft_singularHomologyπ_comp_singularHomologyCrossRelPair
     [PreservesColimitsOfShape WalkingParallelPair
       (tensorRight (((toSSet.obj Y).chainComplex S).cycles q))]
     [PreservesColimitsOfShape WalkingParallelPair

@@ -6,7 +6,7 @@ Authors: The Tau Ceti contributors
 module
 
 public import SymplecticGeometry.AlgebraicTopology.Singular.Excision
-public import SymplecticGeometry.AlgebraicTopology.Singular.Relative.FromTauCeti
+public import SymplecticGeometry.AlgebraicTopology.Singular.Relative
 public import TauCeti.AlgebraicTopology.Singular.Kunneth.Relative
 
 /-!
@@ -40,7 +40,8 @@ variants) is not copied, since it needs the excision theorem
 of `TopCat.shufflePair` still names it. The import of Tau Ceti's
 `TauCeti.AlgebraicTopology.Singular.Excision` is replaced by the copies of the declarations of
 that file and of `TauCeti/AlgebraicTopology/Singular/Relative.lean`, of the same commit, that the
-construction uses. The rest of Tau Ceti's module docstring is shortened accordingly.
+construction uses; the latter is a lemma added to the library's existing copy of that file. The
+rest of Tau Ceti's module docstring is shortened accordingly.
 
 Tau Ceti's file says the following about the chain model. The map lives on simplicial singular
 chains, the chain model of the shuffle and Alexander–Whitney maps (`TopCat.shuffle`,

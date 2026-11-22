@@ -513,7 +513,7 @@ The homology cross product of two pairs, for the Whitney file below:
 from Tau Ceti's shuffle map `TopCat.shufflePair`, with `_def`,
 `singularHomologyCrossRelPair_naturality`, and its compatibility with
 `TopCat.singularHomologyCrossRel`
-(`singularHomologyCrossRel_comp_singularHomologyCrossRelPair`) and with
+(`whiskerLeft_singularHomologyπ_comp_singularHomologyCrossRelPair`) and with
 `TopCat.singularHomologyCross`
 (`singularHomologyCross_comp_singularHomologyπ_eq_singularHomologyCrossRelPair`).
 It uses these copies of Tau Ceti's files of the commit `c9d170eed5`:
@@ -523,8 +523,9 @@ It uses these copies of Tau Ceti's files of the commit `c9d170eed5`:
   results.
 - `AlgebraicTopology/Singular/Excision.lean`: `TopPair.prodUnionTripleFst`
   and `TopPair.prodExcisionFst`.
-- `AlgebraicTopology/Singular/Relative/FromTauCeti.lean`:
-  `TopPair.singularChainComplexπ_comp_singularChainComplexMap_of_fst_eq_id`.
+- `AlgebraicTopology/Singular/Relative.lean`, the existing copy, to which
+  `TopPair.singularChainComplexπ_comp_singularChainComplexMap_of_fst_eq_id`
+  is added.
 
 ### `Topology/VectorBundle/Orientation/Complex/Whitney.lean`
 
