@@ -14,12 +14,14 @@ name: cache
 # the files that import them, directly or through other files. Lake takes a
 # file's build from a save only if the hash of the file's source, of its
 # imports' builds, of the toolchain and of the options is the one recorded
-# with that build; it does not go by the files' times. The job itself starts
-# from the latest save of the current hour. The first run of each hour finds
-# none and builds every file from its source, so main is built in full about
-# once an hour while pull requests merge, and no save descends from a save
-# of an earlier hour. If that build fails, nothing is saved, and each later
-# run builds in full again. So a run of this workflow that fails at the
+# with that build; it does not go by the files' times. The job itself reads
+# the hour from the clock when it names its save, which is after any wait
+# for an earlier run and after the first job, and starts from the latest
+# save of that hour. The first run to name a save in an hour finds none and
+# builds every file from its source, so main is built in full about once an
+# hour while pull requests merge, and no save descends from a save of an
+# earlier hour. If that build fails, nothing is saved, and each later run
+# builds in full again. So a run of this workflow that fails at the
 # library's build step says that main does not build from its source.
 on:
   push:
@@ -109,14 +111,15 @@ jobs:
       - name: fetch Mathlib's build cache
         if: steps.restore.outputs.cache-matched-key == ''
         run: lake exe cache get
-      # A save's name has the number of the hour in which its run began, then
-      # the commit and the run. lakefile.toml is in the hash because Lake's
-      # record of a build does not cover everything a lakefile can set.
+      # A save's name has the number of the hour, read from the clock at this
+      # step and not when the run began, then the commit and the run.
+      # lakefile.toml is in the hash because Lake's record of a build does
+      # not cover everything a lakefile can set.
       - name: name the save
         id: name
         run: echo "hour=lake-build-${{ hashFiles('lean-toolchain', 'lake-manifest.json', 'lakefile.toml') }}-$(( $(date +%s) / 3600 ))-" >> "$GITHUB_OUTPUT"
-      # Only saves of this hour, so the first run of each hour restores
-      # nothing. A run started by hand restores nothing either.
+      # Only saves of that hour, so the first run to name a save in an hour
+      # restores nothing. A run started by hand restores nothing either.
       - name: restore the latest build of the library
         if: github.event_name == 'push'
         uses: actions/cache/restore@v6
