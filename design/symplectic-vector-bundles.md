@@ -1210,7 +1210,8 @@ $[0,1]$ is never fed to the lemma with `P = ℝ` directly.
 - **The homotopy equivalence.** `exists_homotopyEquiv_polarComplexStructure`:
   for a metric `g`,
   `∃ e : {ω // ω.IsNondegenerate} ≃ₕ ContMDiffComplexStructure I n F V,
-  ∀ ω, e.toFun ω = ω.2.polarComplexStructure g`, a theorem for each pair of
+  (∀ ω, e.toFun ω = ω.2.polarComplexStructure g) ∧
+  ∀ J, (e.invFun J).1 = compatibleForm g J`, a theorem for each pair of
   covering frame systems. The map is continuous by
   `continuous_polarComplexStructure`, and the inverse is
   $J\mapsto\omega_{g,J}$, continuous into the subtype by
@@ -1219,8 +1220,8 @@ $[0,1]$ is never fed to the lemma with `P = ℝ` directly.
   forms, $\omega$ and $\omega_{g,J_{g,\omega}}$ both tame $J_{g,\omega}$, and
   the straight line `AffineMap.lineMap` between them, for $t$ in
   `unitInterval`, stays nondegenerate by `tames_lineMap_compatibleForm`.
-  It is continuous in $(t,\omega)$: by `AffineMap.lineMap_apply_module` it
-  is $(1-t)\omega+t\,\omega_{g,J_{g,\omega}}$, the second end is
+  It is continuous in $(t,\omega)$ by Mathlib's
+  `ContinuousMap.Homotopy.affine`: the second end is
   continuous in $\omega$ as the composite of the two continuity lemmas above,
   and the frame topology is a topological vector space
   (`isTopologicalAddGroup_frameTopology`, `continuousSMul_frameTopology`).
@@ -1263,12 +1264,15 @@ $[0,1]$ is never fed to the lemma with `P = ℝ` directly.
   `x`, whose map is `A ⟨x, J x⟩`, and the one of `J x`; both are compatible
   with that form (`compatible_polarComplexStructure`,
   `compatible_compatibleForm`), and the second is therefore tame for it, by
-  Tau Ceti's `Compatible.tames`. In `Contractible.lean` these are
-  `ContMDiffComplexStructure.contMDiffOn_cayleyPathFormula_polarFormulaAt`,
-  `mk_mem_polarEndDomain_inter_cayleyPathDomain`, the path
-  `polarCayleyPath g₀ g₁ J t` with `polarCayleyPath_apply`,
-  `polarCayleyPath_of_nonpos`, `polarCayleyPath_of_one_le` and
-  `continuous_polarCayleyPath`, and the homotopy
+  Tau Ceti's `Compatible.tames`. The structures on the path are
+  `Compatible.cayleyPath` for $\omega_{g_0,J}$ and the reference
+  $J_{g_1,\omega_{g_0,J}}$. In `Contractible.lean` the smoothness and the
+  continuity for a reference `A` that is `Cⁿ` on an open set `W` are
+  `contMDiffOn_cayleyPathFormula_of_contMDiffOn` and
+  `continuous_fiberwiseMap_cayleyPathFormula`, which give, with `W = univ`,
+  `contMDiffOn_cayleyPathFormula` and `Compatible.continuous_cayleyPath`
+  too. Then come `mk_mem_polarEndDomain_inter_cayleyPathDomain`,
+  `continuous_cayleyPath_polarComplexStructure` and the homotopy
   `homotopic_polarComplexStructure_compatibleForm` from
   $J\mapsto J_{g_1,\omega_{g_0,J}}$ to the identity.
   `polarComplexStructure_homotopic`: for two metrics the two maps
