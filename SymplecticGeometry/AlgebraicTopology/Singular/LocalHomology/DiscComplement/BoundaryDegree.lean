@@ -72,28 +72,21 @@ namespace DiscComplementBoundaryDegree
 
 variable (i : ι) (δ c : ℝ)
 
-/-- The inverse of the chart of `φ i`, on its range. -/
-private def chartInv : M → CoordinateDisc.ball :=
-  ((φ i).isOpenEmbedding.toOpenPartialHomeomorph _).symm
-
-private lemma chartInv_apply (w : CoordinateDisc.ball) : chartInv φ i (φ i w) = w :=
-  (φ i).isOpenEmbedding.toOpenPartialHomeomorph_left_inv _
-
 open scoped Classical in
 /-- The test map: `λ(|w|) w⁻¹ - c` at `φ i w`, and `-c` off the range of `φ i`, where the
 cut-off `λ s = smoothTransition (4/δ (1 + 3δ/4 - s))` is `1` up to `1 + δ/2` and `0` from
 `1 + 3δ/4` on. -/
 private def testFun (x : discComplement φ) : ℂ :=
   if (x : M) ∈ range (φ i) then
-    (Real.smoothTransition (4 / δ * (1 + 3 * δ / 4 - ‖(chartInv φ i x : ℂ)‖)) : ℂ) *
-      (chartInv φ i x : ℂ)⁻¹ - c
+    (Real.smoothTransition (4 / δ * (1 + 3 * δ / 4 - ‖(φ i).coord x‖)) : ℂ) *
+      ((φ i).coord x)⁻¹ - c
   else -c
 
 private lemma testFun_of_eq {x : discComplement φ} {w : CoordinateDisc.ball}
     (hx : (x : M) = φ i w) :
     testFun φ i δ c x =
       (Real.smoothTransition (4 / δ * (1 + 3 * δ / 4 - ‖(w : ℂ)‖)) : ℂ) * (w : ℂ)⁻¹ - c := by
-  rw [testFun, ite_eq_left ⟨w, hx.symm⟩, hx, chartInv_apply]
+  rw [testFun, ite_eq_left ⟨w, hx.symm⟩, hx, CoordinateDisc.coord_apply]
 
 private lemma testFun_of_notMem {x : discComplement φ} (hx : (x : M) ∉ range (φ i)) :
     testFun φ i δ c x = -c := by
@@ -103,23 +96,19 @@ variable {δ} in
 private lemma continuous_testFun (hδ : δ ∈ Ioo (0 : ℝ) 1) : Continuous (testFun φ i δ c) := by
   set s : Set (discComplement φ) := Subtype.val ⁻¹' range (φ i)
   have hs : IsOpen s := (φ i).isOpenEmbedding.isOpen_range.preimage continuous_subtypeVal
-  have hsymm : ContinuousOn (chartInv φ i) (range (φ i)) :=
-    ((φ i).isOpenEmbedding.toOpenPartialHomeomorph _).continuousOn_symm.mono (by
-      simp [IsOpenEmbedding.toOpenPartialHomeomorph_target])
-  have hinv : ContinuousOn (fun x : discComplement φ ↦ (chartInv φ i x : ℂ)) s :=
-    continuous_subtypeVal.comp_continuousOn
-      (hsymm.comp continuous_subtypeVal.continuousOn fun x hx ↦ hx)
+  have hinv : ContinuousOn (fun x : discComplement φ ↦ (φ i).coord x) s :=
+    (φ i).continuousOn_coord.comp continuous_subtypeVal.continuousOn fun x hx ↦ hx
   have hF : Continuous fun x ↦ testFun φ i δ c x + c := by
     refine ContinuousOn.continuous_of_tsupport_subset (s := s) ?_ hs ?_
     · refine ContinuousOn.congr (f := fun x : discComplement φ ↦
-        (Real.smoothTransition (4 / δ * (1 + 3 * δ / 4 - ‖(chartInv φ i x : ℂ)‖)) : ℂ) *
-          (chartInv φ i x : ℂ)⁻¹) ?_ fun x hx ↦ ?_
+        (Real.smoothTransition (4 / δ * (1 + 3 * δ / 4 - ‖(φ i).coord x‖)) : ℂ) *
+          ((φ i).coord x)⁻¹) ?_ fun x hx ↦ ?_
       · refine (Complex.continuous_ofReal.comp_continuousOn
           (Real.smoothTransition.continuous.comp_continuousOn
             ((continuous_const.mul (continuous_const.sub continuous_id)).comp_continuousOn
               hinv.norm))).mul (hinv.inv₀ fun x hx ↦ ?_)
         obtain ⟨w, hw⟩ := hx
-        rw [← hw, chartInv_apply]
+        rw [← hw, CoordinateDisc.coord_apply]
         exact norm_pos_iff.1 (zero_lt_one.trans_le
           (one_le_norm_of_mem_discComplement φ (hw ▸ x.property)))
       · rw [testFun, ite_eq_left (show (x : M) ∈ range (φ i) from hx), sub_add_cancel]
