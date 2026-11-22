@@ -28,8 +28,10 @@ Tau Ceti's `TauCeti.complexHomologicalOrientation` (in
 
 ## References
 
-* Otto Forster, *Lectures on Riemann Surfaces*, Graduate Texts in Mathematics 81, Springer, 1981,
-  §1.5.
+* [R. Bott, L. W. Tu, *Differential Forms in Algebraic Topology*][BottTu1982], §1 (orienting a
+  manifold by an atlas whose transition maps have positive Jacobian determinant).
+* D. Huybrechts, *Complex Geometry: An Introduction*, §1.2 (a complex vector space is oriented
+  as a real vector space, and complex linear isomorphisms preserve that orientation).
 -/
 
 public section
