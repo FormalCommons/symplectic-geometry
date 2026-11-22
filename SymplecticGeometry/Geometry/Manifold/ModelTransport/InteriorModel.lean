@@ -49,6 +49,8 @@ type synonym `SymplecticGeometry.InteriorModel I M` carries that atlas as an ins
   `SymplecticGeometry.InteriorModel.isLocalDiffeomorph_val`: the map `InteriorModel I U → M` is an
   open embedding and a local diffeomorphism; `InteriorModel.val_mem_interior`: for the interior
   of `M`, it takes values in the interior.
+* `SymplecticGeometry.InteriorModel.continuous_mk`: a continuous map with values in the interior
+  of `M` is continuous into the copy of the interior.
 
 ## References
 
@@ -167,6 +169,10 @@ theorem range_val : Set.range (val (I := I) (U := U)) = U := by
 variable [ChartedSpace H M] {n : ℕ∞ω} [IsManifold I 1 M]
   [BoundarylessManifold I U]
 
+/-- The diffeomorphism sends each point of `U` to the copy of the same point. -/
+theorem val_interiorModelDiffeomorph (p : U) : (interiorModelDiffeomorph I U n p).val = p := by
+  rw [coe_interiorModelDiffeomorph, val_interiorModelHomeomorph]
+
 /-- The map from `InteriorModel I U`, modelled on `E`, to `M`, modelled on `I`, is a `C^n` local
 diffeomorphism. -/
 theorem isLocalDiffeomorph_val : IsLocalDiffeomorph 𝓘(𝕜, E) I n (val (I := I) (U := U)) := by
@@ -203,6 +209,13 @@ theorem val_mk (p : M) (hp : p ∈ I.interior M) : (mk I p hp).val = p := by
 @[simp]
 theorem mk_val (q : InteriorModel I (I.interiorOpens M)) : mk I q.val q.val_mem_interior = q :=
   val_injective (val_mk _ _)
+
+/-- A continuous map with values in the interior of `M` is continuous as a map into the copy
+`InteriorModel I (I.interiorOpens M)` of the interior; this is the analogue of
+`Continuous.subtype_mk`. -/
+theorem continuous_mk {X : Type*} [TopologicalSpace X] {f : X → M} (hf : Continuous f)
+    (hint : ∀ x, f x ∈ I.interior M) : Continuous fun x ↦ mk I (f x) (hint x) :=
+  isOpenEmbedding_val.isInducing.continuous_iff.2 (by simpa only [Function.comp_def, val_mk])
 
 end Interior
 
