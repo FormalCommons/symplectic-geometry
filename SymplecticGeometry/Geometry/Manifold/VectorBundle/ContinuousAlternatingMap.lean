@@ -192,8 +192,7 @@ theorem alternatingMapOfBilin_flatAt {x : M} (α : V x [⋀^Fin 2]→L[𝕜] Tri
   ext v
   rw [alternatingMapOfBilin_apply, flatAt_apply]
   congr 1
-  ext i
-  fin_cases i <;> simp
+  exact FinVec.etaExpand_eq _
 
 end Bundle
 
