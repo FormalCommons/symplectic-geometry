@@ -32,10 +32,11 @@ so it is the only orientation for which the collapse preserves orientation, even
 of the open square.
 
 The map `z ↦ (1 + i) / 2 + z / 5` sends the ball of radius `2` of `ℂ` into the open square and is
-holomorphic, so composing it with the collapse gives a coordinate disc
-`SymplecticGeometry.CoordinateDisc.cubeToSphere` of `S²` for this orientation. In the coordinates
-of the square, it sends `z` to the image of the point at offset `z / 5` from the centre
-(`TauCeti.squareOfOffset`), its closed disc is the image of the points `y` whose offset
+holomorphic (`SymplecticGeometry.CoordinateDisc.affineBall`), so composing it with the collapse
+gives a coordinate disc `SymplecticGeometry.CoordinateDisc.cubeToSphere` of `S²` for this
+orientation (`SymplecticGeometry.CoordinateDisc.ofComp`). In the coordinates of the square, it
+sends `z` to the image of the point at offset `z / 5` from the centre (`TauCeti.squareOfOffset`),
+its closed disc is the image of the points `y` whose offset
 `TauCeti.squareCenterOffset y` from the centre has norm at most `1/5`, and its open disc that of
 the points where it is less than `1/5`.
 
@@ -43,8 +44,6 @@ the points where it is less than `1/5`.
 
 * `SymplecticGeometry.cubeToSphereOrientation`: the orientation of `S²` for which the collapse of
   the square preserves orientation on the open square.
-* `SymplecticGeometry.ballToOpenSquare`: the map `z ↦ (1 + i) / 2 + z / 5` of the ball of radius
-  `2` into the open square.
 * `SymplecticGeometry.CoordinateDisc.cubeToSphere`: the coordinate disc
   `z ↦ cubeToSphere 2 (1/2 + re z / 5, 1/2 + im z / 5)` of `S²`.
 
@@ -151,77 +150,48 @@ theorem squareCenterOffset_openSquareHomeomorph (w : openSquare) :
 
 /-! ### A coordinate disc in the open square -/
 
-/-- A point at distance less than `2 / 5` from the centre `(1 + i) / 2` lies in the open square. -/
-private theorem add_div_five_mem_openSquare {z : ℂ} (hz : ‖z‖ < 2) :
-    ((1 + Complex.I) / 2 + z / 5) ∈ openSquare := by
-  have hre := abs_le.1 ((abs_re_le_norm z).trans hz.le)
-  have him := abs_le.1 ((abs_im_le_norm z).trans hz.le)
+/-- The point `(1 + i) / 2 + z / 5`, for `z` in the ball of radius `2` of `ℂ`, lies in the open
+square. -/
+theorem add_mul_mem_openSquare (z : CoordinateDisc.ball) :
+    (1 + Complex.I) / 2 + ((1 / 5 : ℝ) : ℂ) * z ∈ openSquare := by
+  have hz := CoordinateDisc.mem_ball_iff.1 z.prop
+  have hre := abs_le.1 ((abs_re_le_norm (z : ℂ)).trans hz.le)
+  have him := abs_le.1 ((abs_im_le_norm (z : ℂ)).trans hz.le)
   simp only [mem_openSquare_iff, add_re, add_im, div_re, div_im, one_re, one_im, Complex.I_re,
-    Complex.I_im]
+    Complex.I_im, re_ofReal_mul, im_ofReal_mul]
   norm_num
   refine ⟨⟨?_, ?_⟩, ?_, ?_⟩ <;> linarith
-
-/-- The map `z ↦ (1 + i) / 2 + z / 5` of the ball of radius `2` of `ℂ` into the open square. -/
-def ballToOpenSquare (z : CoordinateDisc.ball) : openSquare :=
-  ⟨(1 + Complex.I) / 2 + z / 5, add_div_five_mem_openSquare (CoordinateDisc.mem_ball_iff.1 z.prop)⟩
-
-@[simp]
-theorem coe_ballToOpenSquare_apply (z : CoordinateDisc.ball) :
-    (ballToOpenSquare z : ℂ) = (1 + Complex.I) / 2 + z / 5 :=
-  (rfl)
-
-/-- The point of the square that `ballToOpenSquare` sends `z` to has offset `z / 5` from the
-centre of the square. -/
-theorem squareCenterOffset_openSquareHomeomorph_ballToOpenSquare (z : CoordinateDisc.ball) :
-    squareCenterOffset (openSquareHomeomorph (ballToOpenSquare z) : I^(Fin 2)) = (z : ℂ) / 5 := by
-  rw [squareCenterOffset_openSquareHomeomorph, coe_ballToOpenSquare_apply, add_sub_cancel_left]
-
-private theorem subtypeVal_comp_ballToOpenSquare :
-    Subtype.val ∘ ballToOpenSquare =
-      Diffeomorph.smulAdd 1 (5⁻¹ : ℂ) ((1 + Complex.I) / 2) (by norm_num) ∘ Subtype.val := by
-  ext z
-  simp [div_eq_inv_mul, add_comm]
-
-theorem isOpenEmbedding_ballToOpenSquare : IsOpenEmbedding ballToOpenSquare :=
-  (IsOpenEmbedding.of_comp_iff _ openSquare.isOpenEmbedding').1 <| by
-    rw [subtypeVal_comp_ballToOpenSquare]
-    exact (Diffeomorph.smulAdd 1 (5⁻¹ : ℂ) ((1 + Complex.I) / 2)
-      (by norm_num)).toHomeomorph.isOpenEmbedding.comp CoordinateDisc.ball.isOpenEmbedding'
-
-/-- The map `z ↦ (1 + i) / 2 + z / 5` pulls the canonical orientation of the open square back to
-that of the ball. -/
-theorem comap_ballToOpenSquare_complexHomologicalOrientation :
-    (complexHomologicalOrientation openSquare).comap isOpenEmbedding_ballToOpenSquare =
-      complexHomologicalOrientation CoordinateDisc.ball :=
-  let T := Diffeomorph.smulAdd 1 (5⁻¹ : ℂ) ((1 + Complex.I) / 2) (by norm_num)
-  comap_complexHomologicalOrientation_of_comp_eq _ T.toHomeomorph.isOpenEmbedding
-    T.isLocalDiffeomorph subtypeVal_comp_ballToOpenSquare
 
 namespace CoordinateDisc
 
 /-- The coordinate disc `z ↦ cubeToSphere 2 (1/2 + re z / 5, 1/2 + im z / 5)` of `S²`, for the
-orientation `cubeToSphereOrientation` from the collapsed square. -/
-def cubeToSphere : CoordinateDisc cubeToSphereOrientation where
-  toFun z := openSquareToSphere (ballToOpenSquare z)
-  isOpenEmbedding' := isOpenEmbedding_openSquareToSphere.comp isOpenEmbedding_ballToOpenSquare
-  localOrientationEquiv_apply' z := by
-    have h := HomologicalOrientation.localOrientationEquiv_comap_apply
-      (complexHomologicalOrientation openSquare) isOpenEmbedding_ballToOpenSquare z
-    rw [comap_ballToOpenSquare_complexHomologicalOrientation] at h
-    rw [← IsOpenEmbedding.localOrientationEquiv_trans isOpenEmbedding_ballToOpenSquare
-      isOpenEmbedding_openSquareToSphere, Equiv.trans_apply, h,
-      localOrientationEquiv_openSquareToSphere]
+orientation `cubeToSphereOrientation` from the collapsed square: the collapse precomposed with the
+map `z ↦ (1 + i) / 2 + z / 5` of the ball into the open square. -/
+def cubeToSphere : CoordinateDisc cubeToSphereOrientation :=
+  ofComp openSquareToSphere isOpenEmbedding_openSquareToSphere
+    localOrientationEquiv_openSquareToSphere
+    (affineBall _ add_mul_mem_openSquare) (isOpenEmbedding_affineBall _ _ (by norm_num))
+    (comap_affineBall_complexHomologicalOrientation _ _ (by norm_num))
 
 theorem cubeToSphere_apply_eq (z : ball) :
-    cubeToSphere z = openSquareToSphere (ballToOpenSquare z) :=
-  (rfl)
+    cubeToSphere z = openSquareToSphere (affineBall _ add_mul_mem_openSquare z) :=
+  ofComp_apply _ _ _ _ _ _ z
+
+/-- The point of the square that corresponds to the point `(1 + i) / 2 + z / 5` of the open square
+has offset `z / 5` from the centre of the square. -/
+theorem squareCenterOffset_openSquareHomeomorph_affineBall (z : ball) :
+    squareCenterOffset (openSquareHomeomorph (affineBall _ add_mul_mem_openSquare z) : I^(Fin 2)) =
+      (z : ℂ) / 5 := by
+  rw [squareCenterOffset_openSquareHomeomorph, coe_affineBall_apply, add_sub_cancel_left]
+  push_cast
+  ring
 
 /-- The coordinate disc `cubeToSphere` sends `z` to the image under the collapse of the point of
 the square at offset `z / 5` from the centre. -/
 theorem cubeToSphere_apply (z : ball) :
     cubeToSphere z = TauCeti.cubeToSphere 2 (squareOfOffset ((z : ℂ) / 5)) := by
   rw [cubeToSphere_apply_eq, openSquareToSphere_def,
-    ← squareCenterOffset_openSquareHomeomorph_ballToOpenSquare, squareOfOffset_squareCenterOffset]
+    ← squareCenterOffset_openSquareHomeomorph_affineBall, squareOfOffset_squareCenterOffset]
 
 /-- The coordinate disc `cubeToSphere` sends `z` to the image under the collapse of the point of
 the square whose offset from the centre is `z / 5`. -/
@@ -243,9 +213,9 @@ private theorem image_cubeToSphere_eq {p : ℝ → Prop} (hp : ∀ t, p t → t 
   ext x
   constructor
   · rintro ⟨z, hz, rfl⟩
-    refine ⟨openSquareHomeomorph (ballToOpenSquare z), ?_,
+    refine ⟨openSquareHomeomorph (affineBall _ add_mul_mem_openSquare z), ?_,
       ((cubeToSphere_apply_eq z).trans (openSquareToSphere_def _)).symm⟩
-    rwa [Set.mem_ofPred_eq, squareCenterOffset_openSquareHomeomorph_ballToOpenSquare,
+    rwa [Set.mem_ofPred_eq, squareCenterOffset_openSquareHomeomorph_affineBall,
       mul_div_cancel₀ _ (by norm_num : (5 : ℂ) ≠ 0)]
   · rintro ⟨y, hy, rfl⟩
     refine ⟨⟨5 * squareCenterOffset y, mem_ball_iff.2 (hp _ hy)⟩, hy, ?_⟩
