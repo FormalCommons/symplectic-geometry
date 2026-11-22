@@ -20,6 +20,8 @@ import SymplecticGeometry.Analysis.Normed.Operator.Compact
 import TauCeti.Analysis.Distribution.SchwartzSpace.Cutoff
 import TauCeti.Analysis.Sobolev.BesselPotential.Inclusion
 import TauCeti.Analysis.Sobolev.BesselPotential.Rellich
+import TauCeti.MeasureTheory.Function.Lp.FiniteDimensional
+import TauCeti.MeasureTheory.Measure.Haar.Unique
 
 /-!
 # The Hodge `H¹` space of differential forms
@@ -516,7 +518,7 @@ theorem L2Form.coeFn_localizeCoord (u : L2Form o k) :
     L2Form.localizeCoord ψ χ hχ bΛ p e u =ᵐ[volume]
       fun x ↦ (bΛ.repr (L2Form.localize ψ χ hχ u (e.symm x)) p : ℂ) := by
   have hq : QuasiMeasurePreserving e.symm volume volume :=
-    ⟨e.symm.continuous.aemeasurable, Measure.absolutelyContinuous_isAddHaarMeasure _ _⟩
+    e.symm.toContinuousAddEquiv.quasiMeasurePreserving_addHaar _ _
   rw [L2Form.localizeCoord, ContinuousLinearMap.comp_apply, ContinuousLinearMap.comp_apply]
   refine (Lp.coeFn_compOfMapLeSmul _ _ _ _).trans ?_
   filter_upwards [hq.ae
@@ -531,7 +533,7 @@ of the image under `ψ` of the support of `χ`. -/
 theorem L2Form.localizeCoord_ae_eq_zero_of_notMem (u : L2Form o k) :
     ∀ᵐ x ∂volume, x ∉ e '' (ψ '' tsupport χ) → L2Form.localizeCoord ψ χ hχ bΛ p e u x = 0 := by
   have hq : QuasiMeasurePreserving e.symm volume volume :=
-    ⟨e.symm.continuous.aemeasurable, Measure.absolutelyContinuous_isAddHaarMeasure _ _⟩
+    e.symm.toContinuousAddEquiv.quasiMeasurePreserving_addHaar _ _
   filter_upwards [L2Form.coeFn_localizeCoord ψ χ hχ bΛ p e u,
     hq.ae (L2Form.localize_ae_eq_zero_of_notMem ψ χ hχ u)] with x h₁ h₂ hx
   rw [h₁, h₂ fun h ↦ hx ⟨_, h, e.apply_symm_apply x⟩]
@@ -544,35 +546,35 @@ the `L²` norms of its coordinates `L2Form.localizeCoord ψ χ hχ bΛ p e u`. -
 theorem L2Form.exists_norm_localize_le_mul_sum_norm_localizeCoord [Fintype κ] :
     ∃ C, ∀ u : L2Form o k, ‖L2Form.localize ψ χ hχ u‖ ≤
       C * ∑ p, ‖L2Form.localizeCoord ψ χ hχ bΛ p e u‖ := by
-  -- Reading a coordinate back through `e` and multiplying it by the basis vector `bΛ q`.
+  -- Reading a coordinate back through `e` and taking its real part.
   have hmap : (volume : Measure E).map e ≤
       ((((volume : Measure E).map e).addHaarScalarFactor volume : NNReal) : ENNReal) • volume := by
     rw [← ENNReal.smul_def, ← Measure.isAddLeftInvariant_eq_smul]
   have hq : QuasiMeasurePreserving e volume volume :=
-    ⟨e.continuous.aemeasurable, Measure.absolutelyContinuous_isAddHaarMeasure _ _⟩
-  let Q : κ → Lp ℂ 2 (volume : Measure (CoordinateSpace n)) →L[ℝ]
-      Lp (E [⋀^Fin k]→L[ℝ] ℝ) 2 (volume : Measure E) := fun q ↦
-    ((Complex.reCLM : ℂ →L[ℝ] ℝ).smulRight (bΛ q)).compLpL 2 volume ∘L
+    e.toContinuousAddEquiv.quasiMeasurePreserving_addHaar _ _
+  let R : Lp ℂ 2 (volume : Measure (CoordinateSpace n)) →L[ℝ] Lp ℝ 2 (volume : Measure E) :=
+    (Complex.reCLM : ℂ →L[ℝ] ℝ).compLpL 2 volume ∘L
       Lp.compOfMapLeSmul ℝ e.continuous.measurable ENNReal.coe_ne_top hmap
-  have hQ (u : L2Form o k) :
-      L2Form.localize ψ χ hχ u = ∑ q, Q q (L2Form.localizeCoord ψ χ hχ bΛ q e u) := by
-    have h (q : κ) : Q q (L2Form.localizeCoord ψ χ hχ bΛ q e u) =ᵐ[volume]
-        fun y ↦ bΛ.repr (L2Form.localize ψ χ hχ u y) q • bΛ q := by
-      filter_upwards [((Complex.reCLM : ℂ →L[ℝ] ℝ).smulRight (bΛ q)).coeFn_compLpL (p := 2)
-        (μ := volume)
+  have hR (q : κ) (u : L2Form o k) : R (L2Form.localizeCoord ψ χ hχ bΛ q e u) =
+      (bΛ.coord q).toContinuousLinearMap.compLpL 2 volume (L2Form.localize ψ χ hχ u) := by
+    refine Lp.ext ?_
+    filter_upwards [(Complex.reCLM : ℂ →L[ℝ] ℝ).coeFn_compLpL (p := 2) (μ := volume)
         (Lp.compOfMapLeSmul ℝ e.continuous.measurable ENNReal.coe_ne_top hmap
           (L2Form.localizeCoord ψ χ hχ bΛ q e u)),
-        Lp.coeFn_compOfMapLeSmul (𝕜 := ℝ) e.continuous.measurable ENNReal.coe_ne_top hmap
-          (L2Form.localizeCoord ψ χ hχ bΛ q e u),
-        hq.ae (L2Form.coeFn_localizeCoord ψ χ hχ bΛ q e u)] with y h₁ h₂ h₃
-      rw [ContinuousLinearMap.comp_apply, h₁, h₂, Function.comp_apply, h₃]
-      simp
-    refine Lp.ext ?_
-    filter_upwards [Lp.coeFn_finsetSum Finset.univ
-      (fun q ↦ Q q (L2Form.localizeCoord ψ χ hχ bΛ q e u)), ae_all_iff.2 h] with y h₁ h₂
-    rw [h₁, Finset.sum_apply]
-    simp only [h₂]
-    exact (bΛ.sum_repr _).symm
+      Lp.coeFn_compOfMapLeSmul (𝕜 := ℝ) e.continuous.measurable ENNReal.coe_ne_top hmap
+        (L2Form.localizeCoord ψ χ hχ bΛ q e u),
+      hq.ae (L2Form.coeFn_localizeCoord ψ χ hχ bΛ q e u),
+      (bΛ.coord q).toContinuousLinearMap.coeFn_compLpL (p := 2) (μ := volume)
+        (L2Form.localize ψ χ hχ u)] with y h₁ h₂ h₃ h₄
+    rw [ContinuousLinearMap.comp_apply, h₁, h₂, Function.comp_apply, h₃, h₄]
+    simp
+  let Q : κ → Lp ℂ 2 (volume : Measure (CoordinateSpace n)) →L[ℝ]
+      Lp (E [⋀^Fin k]→L[ℝ] ℝ) 2 (volume : Measure E) := fun q ↦
+    (ContinuousLinearMap.toSpanSingleton ℝ (bΛ q)).compLpL 2 volume ∘L R
+  have hQ (u : L2Form o k) :
+      L2Form.localize ψ χ hχ u = ∑ q, Q q (L2Form.localizeCoord ψ χ hχ bΛ q e u) := by
+    conv_lhs => rw [TauCeti.eq_sum_basis_compLpL bΛ (L2Form.localize ψ χ hχ u)]
+    simp only [Q, ContinuousLinearMap.comp_apply, hR]
   refine ⟨∑ q, ‖Q q‖, fun u ↦ ?_⟩
   rw [hQ u, Finset.mul_sum]
   refine (norm_sum_le _ _).trans (Finset.sum_le_sum fun q _ ↦ ?_)
