@@ -529,11 +529,12 @@ On an oriented manifold with a metric instance satisfying `hg`,
 `ω.IsKahler J` and `J.IsIntegrable`:
 
 - `lefschetz ω : SmoothForm I M ℝ k →ₗ[ℝ] SmoothForm I M ℝ (k + 2)`,
-  $\alpha\mapsto\omega\wedge\alpha$, with `lefschetz_apply`, and
-  `mextDeriv_lefschetz`: $d(L\alpha)=L\,d\alpha$, from $d\omega=0$.
-- `hodgeStar_realAlternatingDerivation`: $\star\mathcal J=\mathcal J\star$
-  on smooth real forms, pointwise from the linear file, since `hg` makes
-  $J$ orthogonal.
+  $\alpha\mapsto\alpha\wedge\omega$, with `lefschetz_apply`, and
+  `mextDerivₗ_lefschetz`: $d(L\alpha)=L\,d\alpha$, from $d\omega=0$.
+- `hodgeStar_realAlternatingDerivation`: $\star\mathcal A=\mathcal A\star$
+  on smooth real forms for the derivation of any fibrewise skew-adjoint
+  endomorphism field, pointwise from the linear file. This gives
+  $\star\mathcal J=\mathcal J\star$, since `hg` makes $J$ orthogonal.
 - `lefschetz_codifferential_sub`: the Kähler identity
   $L\,d^*\alpha-d^*L\alpha=-(\mathcal J\,d\alpha-d\,\mathcal J\alpha)$, at
   each point in the chart of `KahlerCoordinates.lean`, from
