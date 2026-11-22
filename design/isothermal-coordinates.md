@@ -71,7 +71,11 @@ for the higher orders.
   `TauCeti.SmoothAlmostComplexStructure.HasIsothermalCharts` and the complex
   curve `TauCeti.IsothermalSurface` (`Geometry/Manifold/Complex/Isothermal.lean`),
   with the instance only for complex curves. An isothermal chart there needs
-  only to lie in the `C¹` maximal atlas.
+  only to lie in the `C¹` maximal atlas. Tau Ceti's main branch (commit
+  `659fa713d6`) removes the class and proves instead
+  `TauCeti.SmoothAlmostComplexStructure.exists_isIsothermalChart`: every
+  smooth structure on a surface modelled on `𝓘(ℝ, ℂ)` has isothermal charts,
+  of class `C¹` (Decision 8).
 - **Charts and structures.** `SmoothAlmostComplexStructure.chartPushforward`,
   `mfderiv_comp_toEndomorphism`, `chartPushforward_apply_chartPushforward_apply`
   and `SmoothAlmostComplexStructure.contDiffOn_chartPushforward`
@@ -89,7 +93,7 @@ for the higher orders.
 
 Missing, and built here: the fixed point in $C^{k,\alpha}$, the planar charts
 of class `C^m` and the smooth planar charts built from it, the same charts
-read on a surface, the instance `HasIsothermalCharts`, `IsIntegrable` in real
+read on a surface, `IsIntegrable` in real
 dimension two, the rotation structure of an oriented Riemannian surface, and
 its isothermal coordinates.
 
@@ -138,9 +142,7 @@ this file.
    `Module.finrank ℝ E = 2`, using a real isomorphism `E ≃L[ℝ] ℂ`
    (`ContinuousLinearEquiv.ofFinrankEq`). If the pushed-forward structure is
    not tame at the point, the chart is first composed with conjugation
-   (`stdComplexSymplecticForm_tames_or_tames_transport_conj`). The instance
-   `HasIsothermalCharts` is the case of the model `𝓘(ℝ, ℂ)`; a smooth
-   chart with smooth inverse lies in the `C¹` maximal atlas.
+   (`stdComplexSymplecticForm_tames_or_tames_transport_conj`).
 6. **`IsIntegrable` uses one linear structure**, the transport of
    multiplication by `i` along `E ≃L[ℝ] ℂ` (`TauCeti.AlmostComplexStructure.transport`),
    whatever conjugation the chart needed at each point. So the remark in
@@ -151,6 +153,24 @@ this file.
    charts of the rotation structure of the metric and the orientation; the
    rotation structure is built from `contMDiff_rightAngleRotation` with
    `contMDiff_hom_iff`, which needs `[T2Space M]`.
+8. **No instance `HasIsothermalCharts`, and no copy of
+   `exists_isIsothermalChart`.** Tau Ceti's main branch proves the existence
+   of `C¹` isothermal charts for every structure
+   (`SmoothAlmostComplexStructure.exists_isIsothermalChart`) and removes the
+   class, so an instance here would repeat that theorem and break at the
+   move of Tau Ceti past it. Neither issue 3 nor issue 4 uses that theorem:
+   `IsIntegrable` asks for smooth charts, which come from the planar charts of
+   issue 2, while Tau Ceti's charts are only `C¹`. So the part neither copies
+   it nor waits for it; it reaches the library with the move. On the model
+   `𝓘(ℝ, ℂ)`, smooth isothermal charts of the smooth maximal atlas follow
+   from issue 4 through `isIntegrable_iff_forall_exists_isIsothermalChart`
+   (#862). The theorem `IsIntegrable.hasIsothermalCharts` of
+   `Geometry/Manifold/Complex/Integrable.lean` (#862) concludes the class,
+   and nothing in the library uses it. It stays until the move; the pull
+   request of that move deletes it, with no replacement, since
+   `exists_isIsothermalChart` gives its conclusion with no hypothesis, and
+   takes the class out of that file's module docstring and of part 23 of
+   `DESIGN.md`. `isIntegrable_iff_forall_exists_isIsothermalChart` stays.
 
 ## Files and their contents
 
@@ -166,7 +186,7 @@ this file.
 | `Analysis/Holder/Iterated.lean` | taken from Tau Ceti: Hölder continuity of $C^{k,\alpha}$ maps, the supported subspace is closed | 1 |
 | `Analysis/Holder/Normed.lean` | taken from Tau Ceti: Hölder bounds on a subset | 1 |
 | `Analysis/Normed/Operator/Basic.lean` | taken from Tau Ceti: the Neumann series for `v + A x = x` | 1 |
-| `Geometry/Manifold/Complex/Isothermal.lean` | smooth isothermal charts on surfaces, `HasIsothermalCharts` (issue 3); `IsIntegrable` in dimension two, the rotation structure, isothermal coordinates, the milestone (issue 4) | 3, 4 |
+| `Geometry/Manifold/Complex/Isothermal.lean` | smooth isothermal charts on surfaces (issue 3); `IsIntegrable` in dimension two, the rotation structure, isothermal coordinates, the milestone (issue 4) | 3, 4 |
 
 `CkHolder.lean` and `Regularity.lean` avoid the names of Tau Ceti's `Beltrami/` files
 (`Chart`, `Holder`, `Isothermal`, `Linear`, `Transition`). The surface file
@@ -284,7 +304,6 @@ About 350 lines.
 ### `Geometry/Manifold/Complex/Isothermal.lean`
 
 **Issue 3** imports `Regularity.lean`, Tau Ceti's
-`Geometry/Manifold/Complex/Isothermal.lean`,
 `Symplectic/Manifold/AlmostComplex/Chart.lean` and
 `Symplectic/Complex/Line.lean`. Throughout,
 `I : ModelWithCorners ℝ E H` with `[FiniteDimensional ℝ E]`,
@@ -305,16 +324,10 @@ About 350 lines.
   equation from `mfderiv_comp_toEndomorphism`. The conversion between
   `OpenPartialHomeomorph` with smoothness and `PartialDiffeomorph` is a
   step of this proof unless Mathlib or #862 already gives it.
-- `instance TauCeti.SmoothAlmostComplexStructure.hasIsothermalCharts
-  [ChartedSpace ℂ M] [IsManifold 𝓘(ℝ, ℂ) ∞ M]
-  (j : SmoothAlmostComplexStructure 𝓘(ℝ, ℂ) M) : j.HasIsothermalCharts`,
-  from the previous theorem: a smooth chart with smooth inverse lies in the
-  `C¹` maximal atlas (`IsManifold.mem_maximalAtlas_iff_forall_isLocalDiffeomorphAt`
-  or Mathlib's `mem_maximalAtlas_iff`), and the equation is
-  `IsPseudoholomorphicAt j (ofComplexManifold ℂ ℂ) ψ y`. With it every
-  `TauCeti.IsothermalSurface j` is a complex curve, with no hypothesis.
 
-About 300 lines.
+No instance `HasIsothermalCharts` (Decision 8).
+
+About 250 lines.
 
 **Issue 4** adds, importing `Geometry/Manifold/Complex/Integrable.lean` of
 *Nijenhuis tensor* (#862) and Tau Ceti's
@@ -386,7 +399,7 @@ estimates.
 |---|---|---|---|---|
 | 1 | Planar charts of class `C^{k+1}` for a small $C^{k,\alpha}$ coefficient | `Analysis/Complex/Beltrami/CkHolder.lean`, and the files under *Files taken from Tau Ceti* | — | 1000 |
 | 2 | Planar isothermal charts of class `C^m`, and smooth ones | `Analysis/Complex/Beltrami/Regularity.lean` | 1 | 350 |
-| 3 | Smooth isothermal charts on surfaces, and `HasIsothermalCharts` | `Geometry/Manifold/Complex/Isothermal.lean` | 2 | 300 |
+| 3 | Smooth isothermal charts on surfaces | `Geometry/Manifold/Complex/Isothermal.lean` | 2 | 250 |
 | 4 | Integrability in dimension two, isothermal coordinates of a metric, and the milestone | `Geometry/Manifold/Complex/Isothermal.lean` | 3; #862 | 300 |
 
 Issue 1 can start at once. The milestone *Integrability of almost complex

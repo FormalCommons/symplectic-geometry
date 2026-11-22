@@ -72,33 +72,6 @@ public noncomputable section
 open Set
 open scoped Manifold ContDiff
 
-namespace SymplecticGeometry
-
-open TauCeti
-
-variable {E H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
-  {J : ModelWithCorners ℝ E H} {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
-  [IsManifold J ∞ M]
-  {EN HN : Type*} [NormedAddCommGroup EN] [NormedSpace ℝ EN] [TopologicalSpace HN]
-  {K : ModelWithCorners ℝ EN HN} {N : Type*} [TopologicalSpace N] [ChartedSpace HN N]
-  [IsManifold K 1 N]
-
-/-- For a jointly smooth family `X_t`, `t ∈ N`, of vector fields, the contractions `ι_{X_t} σ` of
-a two-form `σ` form a smooth family of one-forms. -/
-theorem isSmoothFamily_interiorₗ (σ : SmoothTwoForm J M)
-    {X : N → Cₛ^∞⟮J; E, TangentSpace J (M := M)⟯}
-    (hX : ContMDiff (K.prod J) J.tangent ∞
-      fun p : N × M ↦ (⟨p.2, X p.1 p.2⟩ : TangentBundle J M)) :
-    IsSmoothFamily K fun t ↦ σ.interiorₗ (X t) := by
-  rw [isSmoothFamily_iff_contMDiff]
-  intro p
-  rw [← SmoothForm.contMDiffAt_sectionAlong_degreeOneEquiv_iff (b := Prod.snd)
-    (α := fun q : N × M ↦ σ.interiorₗ (X q.1))]
-  simp only [SmoothTwoForm.degreeOneEquiv_interiorₗ]
-  exact ((σ.contMDiff_flat.comp contMDiff_snd).clm_bundle_apply hX) p
-
-end SymplecticGeometry
-
 namespace TauCeti.Diffeotopy
 
 variable {E H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]

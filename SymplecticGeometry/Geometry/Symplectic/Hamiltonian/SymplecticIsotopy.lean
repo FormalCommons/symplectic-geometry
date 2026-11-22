@@ -10,7 +10,7 @@ public import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Velocity
 public import TauCeti.Geometry.Manifold.DifferentialForm.Flow
 public import TauCeti.Geometry.Symplectic.Hamiltonian.SymplecticVectorField
 import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition
-import SymplecticGeometry.Geometry.Symplectic.Flux.Hamiltonian
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Basic
 import TauCeti.Geometry.Manifold.DifferentialForm.Flow.Eulerian
 import TauCeti.Geometry.Symplectic.Hamiltonian.Bracket
 

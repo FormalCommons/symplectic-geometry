@@ -7,6 +7,7 @@ module
 
 public import Mathlib.Analysis.SpecialFunctions.SmoothTransition
 public import Mathlib.Geometry.Manifold.Instances.Icc
+import SymplecticGeometry.Geometry.Manifold.Instances.Icc
 import TauCeti.Geometry.Manifold.Instances.Icc
 
 /-!
@@ -75,7 +76,7 @@ theorem mfderiv_smoothTransitionUnit_one (u : ℝ) :
     (contMDiff_smoothTransitionUnit le_rfl).mdifferentiableAt (by simp)
   have hval : MDifferentiableAt (𝓡∂ 1) 𝓘(ℝ) (Subtype.val : unitInterval → ℝ)
       (smoothTransitionUnit u) :=
-    (contMDiff_subtypeVal_Icc (n := 1)).mdifferentiableAt one_ne_zero
+    mdifferentiableAt_subtypeVal_Icc _
   -- The inclusion of the interval has injective derivative, and sends both sides to `s'(u)`.
   refine (TauCeti.isInvertible_mfderiv_subtypeVal_Icc (smoothTransitionUnit u)).injective ?_
   rw [map_smul, mfderiv_subtypeVal_Icc_one, ← mfderiv_comp_apply u hval hσu]
