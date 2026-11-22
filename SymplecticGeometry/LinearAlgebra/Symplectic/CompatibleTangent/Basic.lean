@@ -29,6 +29,8 @@ It also describes Tau Ceti's compatible Cayley ball at `J` inside the compatible
 
 * `TauCeti.AlmostComplexStructure.trace_mul_eq_zero_of_mem_tangentSpace`: a tangent vector `Y`
   at `J` has `trace (Y * Z) = 0` for every `Z` commuting with `J`.
+* `TauCeti.AlmostComplexStructure.commute_mul_of_mem_tangentSpace`: the product of two tangent
+  vectors at `J` commutes with `J`.
 * `TauCeti.AlmostComplexStructure.trace_mul_mul_eq_neg_of_mem_tangentSpace`:
   `trace (Y * J * Z) = -trace (Z * J * Y)` for a tangent vector `Y` at `J`, so that the trace
   of `Y * J * Z` is alternating in `Y` and `Z`.
@@ -70,6 +72,13 @@ theorem trace_mul_eq_zero_of_mem_tangentSpace (hY : Y ∈ J.tangentSpace) {Z : M
     rw [mul_assoc, mul_assoc, LinearMap.trace_mul_comm, mul_assoc, ← hZ.eq, ← mul_assoc,
       ← mul_assoc, mul_assoc (Y * Z), toLinearMap_mul_self, mul_neg_one, map_neg]
   linarith
+
+/-- The product of two tangent vectors at `J` commutes with `J`, since each of them anticommutes
+with it. -/
+theorem commute_mul_of_mem_tangentSpace (hY : Y ∈ J.tangentSpace) {Z : Module.End ℝ V}
+    (hZ : Z ∈ J.tangentSpace) : Commute (Y * Z) J.toLinearMap := by
+  rw [commute_iff_eq, mul_assoc, eq_neg_of_add_eq_zero_left (mem_tangentSpace.1 hZ), mul_neg,
+    ← mul_assoc, eq_neg_of_add_eq_zero_left (mem_tangentSpace.1 hY), neg_mul, neg_neg, mul_assoc]
 
 /-- For a tangent vector `Y` at `J` and any endomorphism `Z`,
 `trace (Y * J * Z) = -trace (Z * J * Y)`. -/
