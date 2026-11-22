@@ -42,7 +42,10 @@ The proof is local.
   `g : ℝ² → C` that is, on a neighbourhood of `Δ²`, a smooth open embedding preserving orientation
   (`TauCeti.Manifold.Orientation.exists_isOpenEmbedding_isOrientationPreservingAt_fullSimplex`):
   a chart, a linear equivalence of `ℝ²` with `E'` matching the orientations at the point, and a
-  small copy of `Δ²` around it.
+  small copy of `Δ²` around it. As in the proof of Tau Ceti's
+  `exists_isOpenEmbedding_isLocalDiffeomorph_isOrientationPreservingAt` (namespace
+  `TauCeti.Manifold.Orientation`), a linear equivalence that reverses orientation is
+  precomposed with a reflection.
 * Let `z` be a smooth integral cycle representing the fundamental class (smoothing), and `ψ` a
   form supported in a compact `K ⊆ g(interior Δ²)`. The image of `z` in `H₂(C, C ∖ K)` is the
   fundamental class along `K`, and so is the class of the simplex `σ` given by `g`
