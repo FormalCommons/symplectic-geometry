@@ -55,6 +55,8 @@ rank to be even (for finite rank, a nondegenerate form forces it), and rank zero
   of vector bundles, as a linear equivalence that preserves nondegeneracy. It is Tau Ceti's
   `ContMDiffSection.mapEquiv`, with smoothness on total spaces from
   `contMDiff_compContinuousLinearMap_totalSpace` and `contMDiff_hom_bundle_symm`.
+* `ContMDiffTwoForm.compContinuousLinearMap`: the pull-back `ω ↦ ω(L ·, L ·)` along a `C^n`
+  family of linear maps `L` between bundles, which need not be invertible.
 * `ContMDiffTwoForm.tangentEquiv`: on the tangent bundle, smooth two-forms are Tau Ceti's
   `TauCeti.SmoothTwoForm`, with the same nondegenerate ones.
 * `ContMDiffTwoForm.pushforward_eq_iff`: an isomorphism `Φ` of bundles transports `ω₁` to `ω₂`
@@ -514,6 +516,45 @@ theorem pushforward_trans [FiniteDimensional ℝ F₂] (Ψ : ∀ x, V₂ x ≃L[
   simp [Function.comp_def]
 
 end Pushforward
+
+/-! ### Pulling back along linear bundle maps -/
+
+section CompContinuousLinearMap
+
+variable {F₂ : Type*} [NormedAddCommGroup F₂] [NormedSpace ℝ F₂] {V₂ : M → Type*}
+  [∀ x, AddCommGroup (V₂ x)] [∀ x, Module ℝ (V₂ x)]
+  [∀ x, TopologicalSpace (V₂ x)] [∀ x, IsTopologicalAddGroup (V₂ x)]
+  [∀ x, ContinuousSMul ℝ (V₂ x)] [TopologicalSpace (TotalSpace F₂ V₂)]
+  [FiberBundle F₂ V₂] [VectorBundle ℝ F₂ V₂]
+  (L : ∀ x, V₂ x →L[ℝ] V x)
+  (hL : ContMDiff I (I.prod 𝓘(ℝ, F₂ →L[ℝ] F)) n
+    (fun x ↦ TotalSpace.mk' (F₂ →L[ℝ] F) (E := fun x ↦ V₂ x →L[ℝ] V x) x (L x)))
+
+/-- The pull-back `ω ↦ ω(L ·, L ·)` of two-forms along a `C^n` family of linear maps
+`L x : V₂ x → V x` between the fibres of two bundles over the same base. Unlike `pushforward`,
+it does not need the maps `L x` to be invertible. -/
+def compContinuousLinearMap : ContMDiffTwoForm I n F V →ₗ[ℝ] ContMDiffTwoForm I n F₂ V₂ :=
+  ContMDiffSection.mapLinearMap
+    (fun x ↦ ContinuousAlternatingMap.compContinuousLinearMapₗ (L x))
+    (contMDiff_compContinuousLinearMap_totalSpace _ hL)
+
+/-- The pulled-back form at `x` is `ω_x(L_x ·, L_x ·)`. -/
+@[simp]
+theorem compContinuousLinearMap_apply (ω : ContMDiffTwoForm I n F V) (x : M) :
+    compContinuousLinearMap L hL ω x = (ω x).compContinuousLinearMap (L x) :=
+  ContMDiffSection.mapLinearMap_apply _ _ ω x
+
+/-- The pulled-back form takes on `u`, `v` the value of `ω` on `L_x u`, `L_x v`. -/
+theorem bilinFormAt_compContinuousLinearMap (ω : ContMDiffTwoForm I n F V) (x : M)
+    (u v : V₂ x) :
+    (compContinuousLinearMap L hL ω).bilinFormAt x u v = ω.bilinFormAt x (L x u) (L x v) := by
+  simp only [bilinFormAt_apply, compContinuousLinearMap_apply,
+    ContinuousAlternatingMap.compContinuousLinearMap_apply]
+  congr 1
+  ext i
+  fin_cases i <;> rfl
+
+end CompContinuousLinearMap
 
 /-! ### Two-forms on the tangent bundle -/
 
