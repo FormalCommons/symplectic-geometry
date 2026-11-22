@@ -208,8 +208,8 @@ theorem chernNumber_congr
     [∀ x, TopologicalSpace (E' x)] [TopologicalSpace (TotalSpace G' E')]
     [FiberBundle G' E'] [VectorBundle ℂ G' E'] (Φ : ∀ x, E x ≃L[ℂ] E' x)
     (hΦ : Continuous fun p : TotalSpace G E ↦ TotalSpace.mk' G' (E := E') p.proj (Φ p.proj p.snd)) :
-    chernNumber o hn G' E' = chernNumber o hn G E := by
-  rw [chernNumber_def, chernNumber_def, ← firstChernClass_congr Φ hΦ]
+    chernNumber o hn G E = chernNumber o hn G' E' := by
+  rw [chernNumber_def, chernNumber_def, firstChernClass_congr Φ hΦ]
 
 /-- **The trivial bundle has first Chern number zero.** -/
 @[simp] theorem chernNumber_trivial : chernNumber o hn G (Bundle.Trivial M G) = 0 := by

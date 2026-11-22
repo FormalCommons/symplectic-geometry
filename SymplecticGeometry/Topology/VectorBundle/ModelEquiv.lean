@@ -14,8 +14,8 @@ public import Mathlib.Topology.VectorBundle.Basic
 The model fibre of a vector bundle is equivalent to each of its fibres, through Mathlib's
 `VectorBundle.continuousLinearEquivAt`. So a continuous linear equivalence `E b ≃L[R] E' b` of the
 fibres over one point `b` of two vector bundles, with models `F` and `F'`, gives one of the models,
-`VectorBundle.modelEquiv b φ : F ≃L[R] F'`. In particular two vector bundles over a nonempty base
-whose fibres are equivalent have models of the same dimension: `VectorBundle.finrank_model_eq`.
+`VectorBundle.modelEquiv F F' b φ : F ≃L[R] F'`. In particular two vector bundles over a nonempty
+base whose fibres are equivalent have models of the same dimension: `VectorBundle.finrank_model_eq`.
 
 ## References
 
@@ -30,11 +30,11 @@ open Bundle Module
 namespace VectorBundle
 
 variable {R : Type*} [NontriviallyNormedField R] {B : Type*} [TopologicalSpace B]
-  {F : Type*} [NormedAddCommGroup F] [NormedSpace R F]
+  (F : Type*) [NormedAddCommGroup F] [NormedSpace R F]
   {E : B → Type*} [∀ x, AddCommMonoid (E x)] [∀ x, Module R (E x)]
   [∀ x, TopologicalSpace (E x)] [TopologicalSpace (TotalSpace F E)]
   [FiberBundle F E] [VectorBundle R F E]
-  {F' : Type*} [NormedAddCommGroup F'] [NormedSpace R F']
+  (F' : Type*) [NormedAddCommGroup F'] [NormedSpace R F']
   {E' : B → Type*} [∀ x, AddCommMonoid (E' x)] [∀ x, Module R (E' x)]
   [∀ x, TopologicalSpace (E' x)] [TopologicalSpace (TotalSpace F' E')]
   [FiberBundle F' E'] [VectorBundle R F' E']
@@ -45,22 +45,30 @@ composite `F ≃ E b ≃ E' b ≃ F'`, through the preferred trivializations at 
 noncomputable def modelEquiv (b : B) (φ : E b ≃L[R] E' b) : F ≃L[R] F' :=
   (continuousLinearEquivAt R F E b).symm.trans (φ.trans (continuousLinearEquivAt R F' E' b))
 
+variable {F F'}
+
 theorem modelEquiv_def (b : B) (φ : E b ≃L[R] E' b) :
-    modelEquiv b φ =
+    modelEquiv F F' b φ =
       (continuousLinearEquivAt R F E b).symm.trans (φ.trans (continuousLinearEquivAt R F' E' b)) :=
   (rfl)
 
 @[simp]
 theorem modelEquiv_apply (b : B) (φ : E b ≃L[R] E' b) (v : F) :
-    modelEquiv b φ v =
-      continuousLinearEquivAt R F' E' b (φ ((continuousLinearEquivAt R F E b).symm v)) := by
-  rw [modelEquiv_def, ContinuousLinearEquiv.trans_apply, ContinuousLinearEquiv.trans_apply]
+    modelEquiv F F' b φ v =
+      continuousLinearEquivAt R F' E' b (φ ((continuousLinearEquivAt R F E b).symm v)) :=
+  (rfl)
+
+/-- The inverse of the equivalence of models given by `φ` is the one given by `φ.symm`. -/
+@[simp]
+theorem modelEquiv_symm (b : B) (φ : E b ≃L[R] E' b) :
+    (modelEquiv F F' b φ).symm = modelEquiv F' F b φ.symm :=
+  (rfl)
 
 /-- Two vector bundles over a nonempty base whose fibres are equivalent, by continuous linear
 equivalences `E b ≃L[R] E' b`, have models of the same dimension. -/
 theorem finrank_model_eq [Nonempty B] (φ : ∀ b, E b ≃L[R] E' b) :
     finrank R F' = finrank R F :=
-  (modelEquiv (F := F) (F' := F') _ (φ (Classical.arbitrary B))).toLinearEquiv.finrank_eq.symm
+  (modelEquiv F F' _ (φ (Classical.arbitrary B))).toLinearEquiv.finrank_eq.symm
 
 end VectorBundle
 
