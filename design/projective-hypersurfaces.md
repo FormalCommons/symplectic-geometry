@@ -301,7 +301,7 @@ Namespace `SymplecticGeometry`.
   `finrank_model : finrank ℂ (Fin (n + 1 - Fintype.card Unit) → ℂ) = n`.
 - `X.poly_ne_zero`, and `X.nonempty` for `d ≠ 0` (a homogeneous polynomial
   of positive degree in at least two variables has a nonzero zero over `ℂ`).
-- `fermat n d (hd : d ≠ 0)`, the hypersurface $\sum_j z_j^d=0$ of the book,
+- `fermat n d`, the hypersurface $\sum_j z_j^d=0$ of the book,
   with `fermat_poly`: its partial derivatives are $d z_j^{d-1}$, and some
   coordinate of a point is nonzero. It is the example the structure needs.
 

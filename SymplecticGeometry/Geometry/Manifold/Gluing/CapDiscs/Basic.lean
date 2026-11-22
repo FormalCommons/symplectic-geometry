@@ -51,7 +51,8 @@ glued space a smooth manifold. The construction follows the gluing of
   are smooth local diffeomorphisms.
 * `SymplecticGeometry.isOpenEmbedding_capDiscs_inl`, `isOpenEmbedding_capDiscs_inr`: they are open
   embeddings.
-* `SymplecticGeometry.capDiscs.inr_eq_inl`: the gluing formula on the annuli.
+* `SymplecticGeometry.capDiscs.inr_eq_inl`: the gluing formula on the annuli;
+  `inr_ofReal_mul_toCircle_eq_inl`: its converse, from a collar point to the disc.
 * `SymplecticGeometry.capDiscs.range_inl_union_iUnion_range_inr`: the interior and the discs cover
   the capped surface; `disjoint_range_inr`: distinct discs are disjoint;
   `inr_mem_range_inl_iff`: a point of a disc lies in the interior exactly on the annulus.
@@ -288,15 +289,29 @@ private theorem apply_angle_collarCoord {i : ι} (q : interiorOverlap c γ hγ i
 
 /-! ### The gluing map from the interior to the annuli -/
 
+/-- The point `(1 + t) · toCircle θ` of the plane, for a depth `t ∈ [0, 1)`, has norm `1 + t`. -/
+theorem norm_ofReal_one_add_mul_toCircle (t : normalIioOpens 1) (θ : AddCircle (1 : ℝ)) :
+    ‖((1 + (t : EuclideanHalfSpace 1).val 0 : ℝ) : ℂ) * (toCircle θ : ℂ)‖ =
+      1 + (t : EuclideanHalfSpace 1).val 0 := by
+  have h : 0 ≤ (t : EuclideanHalfSpace 1).val 0 := (t : EuclideanHalfSpace 1).property
+  rw [norm_mul, Circle.norm_coe, mul_one, Complex.norm_real, Real.norm_eq_abs,
+    abs_of_pos (by linarith)]
+
+/-- The point `(1 + t) · toCircle θ` of the plane, for a depth `t ∈ [0, 1)`, lies in the ball of
+radius `2`. -/
+theorem ofReal_one_add_mul_toCircle_mem_ball (t : normalIioOpens 1) (θ : AddCircle (1 : ℝ)) :
+    ((1 + (t : EuclideanHalfSpace 1).val 0 : ℝ) : ℂ) * (toCircle θ : ℂ) ∈ ball := by
+  rw [mem_ball_iff, norm_ofReal_one_add_mul_toCircle]
+  linarith [mem_normalIioOpens.1 t.property]
+
 /-- The point `(1 + t) · toCircle θ` of the plane, for a point `c (γ i θ, t)` of the interior. -/
 private def polarPoint {i : ι} (q : interiorOverlap c γ hγ i) : ℂ :=
   ((1 + depth (collarCoord hγ q).2 : ℝ) : ℂ) * (toCircle (angle γ i (collarCoord hγ q).1) : ℂ)
 
 private theorem norm_polarPoint {i : ι} (q : interiorOverlap c γ hγ i) :
     ‖polarPoint hγ q‖ = 1 + depth (collarCoord hγ q).2 := by
-  have := depth_nonneg (collarCoord hγ q).2
-  rw [polarPoint, norm_mul, Circle.norm_coe, mul_one, Complex.norm_real, Real.norm_eq_abs,
-    abs_of_pos (by linarith)]
+  rw [polarPoint, depth_def]
+  exact norm_ofReal_one_add_mul_toCircle _ _
 
 private theorem one_lt_norm_polarPoint {i : ι} (q : interiorOverlap c γ hγ i) :
     1 < ‖polarPoint hγ q‖ := by
@@ -305,12 +320,16 @@ private theorem one_lt_norm_polarPoint {i : ι} (q : interiorOverlap c γ hγ i)
 
 private theorem polarPoint_mem_ball {i : ι} (q : interiorOverlap c γ hγ i) :
     polarPoint hγ q ∈ ball := by
-  rw [mem_ball_iff, norm_polarPoint]
-  linarith [depth_lt_one (collarCoord hγ q).2]
+  rw [polarPoint, depth_def]
+  exact ofReal_one_add_mul_toCircle_mem_ball _ _
 
 /-- The point of the ball glued to a point of the interior. -/
 private def toBall {i : ι} (q : interiorOverlap c γ hγ i) : ball :=
   ⟨polarPoint hγ q, polarPoint_mem_ball hγ q⟩
+
+private theorem coe_toBall {i : ι} (q : interiorOverlap c γ hγ i) :
+    (toBall hγ q : ℂ) = polarPoint hγ q :=
+  rfl
 
 /-- The gluing map from the part of the interior covered by the collar over `γ i` to the
 annulus of the `i`-th disc. -/
@@ -674,6 +693,24 @@ theorem inr_eq_inl {i : ι} {z : ball} (hz : 1 < ‖(z : ℂ)‖) :
   refine ((glueData c γ hγ hinj).ι_eq_iff_rel (some i) none _ _).2 ⟨⟨_, hw⟩, rfl, ?_⟩
   exact (congrArg Subtype.val (annulusDiffeomorph_symm_apply hγ hinj i hz)).trans
     (val_gluingPoint hγ i hz)
+
+/-- A collar point `c (γ i θ, t)` of the interior of `S` is the point `(1 + t) · toCircle θ` of
+the `i`-th disc. -/
+theorem inr_ofReal_mul_toCircle_eq_inl {i : ι} {θ : AddCircle (1 : ℝ)} {t : normalIioOpens 1}
+    (h : c (γ i θ, t) ∈ (𝓡∂ 2).interiorOpens S) :
+    inr c γ hγ hinj i ⟨_, ofReal_one_add_mul_toCircle_mem_ball t θ⟩ =
+      inl c γ hγ hinj ⟨c (γ i θ, t), h⟩ := by
+  let q : interiorOverlap c γ hγ i :=
+    ⟨interiorModelDiffeomorph (𝓡∂ 2) ((𝓡∂ 2).interiorOpens S) ∞ ⟨c (γ i θ, t), h⟩,
+      (mem_interiorOverlap hγ).2 ⟨θ, t, by rw [InteriorPiece.val_interiorModelDiffeomorph]⟩⟩
+  have hq : collarCoord hγ q = (γ i θ, t) :=
+    collarCoord_eq hγ (by rw [InteriorPiece.val_interiorModelDiffeomorph])
+  have hz : toBall hγ q = ⟨_, ofReal_one_add_mul_toCircle_mem_ball t θ⟩ :=
+    Subtype.ext (by rw [coe_toBall, polarPoint, hq, angle_apply hinj, depth_def])
+  -- As in `inr_eq_inl`, the maps `f i j` of the glue data are the inclusions of the overlaps.
+  refine (((glueData c γ hγ hinj).ι_eq_iff_rel none (some i) _ _).2 ⟨q, rfl, ?_⟩).symm
+  exact (congrArg Subtype.val (congrFun (coe_annulusDiffeomorph hγ hinj i) q)).trans
+    ((val_toAnnulus hγ q).trans (congrArg discPieceDiffeomorph hz))
 
 /-- The interior of `S` and the discs cover the capped surface. -/
 theorem range_inl_union_iUnion_range_inr :
