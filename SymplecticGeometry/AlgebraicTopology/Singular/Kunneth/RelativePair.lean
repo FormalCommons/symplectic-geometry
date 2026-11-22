@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.AlgebraicTopology.Singular.Kunneth.Pair
+public import SymplecticGeometry.AlgebraicTopology.Singular.PairMap
 public import TauCeti.AlgebraicTopology.Singular.CrossProduct
 public import TauCeti.Algebra.Homology.Homotopy
 public import TauCeti.AlgebraicTopology.SimplicialSet.EilenbergZilber
@@ -120,23 +121,10 @@ theorem chainComplexMap_comp_chainComplexπ_smallSingularSubcomplex {X Z : TopCa
 `X` relative to `A`. -/
 theorem _root_.TopPair.chainComplexMap_comp_singularChainComplexπ_eq_zero_of_range_subset
     {X Z : TopCat.{w}} {A : Set X} {f : Z ⟶ X} (hf : Set.range f ⊆ A) (R : C) :
-    SSet.chainComplexMap (toSSet.map f) R ≫ (TopPair.ofSubset A).singularChainComplexπ R = 0 := by
-  let g : Z ⟶ (TopPair.ofSubset A).snd :=
-    ofHom ⟨Set.codRestrict f A fun z ↦ hf ⟨z, rfl⟩, by fun_prop⟩
-  have hfac : g ≫ (TopPair.ofSubset A).map = f := by
-    rw [TopPair.ofSubset_map]
-    rfl
-  have h : SSet.chainComplexMap (toSSet.map f) R =
-      SSet.chainComplexMap (toSSet.map g) R ≫
-        SSet.chainComplexMap (toSSet.map (TopPair.ofSubset A).map) R := by
-    rw [← hfac]
-    exact (congrArg (SSet.chainComplexMap · R) (Functor.map_comp _ _ _)).trans
-      (Functor.map_comp _ _ _)
-  rw [h]
-  -- the ambient chains of the pair `(X, A)` are those of `X` only up to unfolding, so the
-  -- composite is reassociated by hand
-  exact (Category.assoc _ _ _).trans ((congrArg (_ ≫ ·)
-    (TopPair.chainComplexMap_comp_singularChainComplexπ (TopPair.ofSubset A) R)).trans comp_zero)
+    SSet.chainComplexMap (toSSet.map f) R ≫ (TopPair.ofSubset A).singularChainComplexπ R = 0 :=
+  TopPair.chainComplexMap_comp_singularChainComplexπ_of_fac R (TopPair.ofSubset A) f
+    (ofHom ⟨Set.codRestrict f A fun z ↦ hf ⟨z, rfl⟩, by fun_prop⟩)
+    (by rw [TopPair.ofSubset_map]; rfl)
 
 end Small
 

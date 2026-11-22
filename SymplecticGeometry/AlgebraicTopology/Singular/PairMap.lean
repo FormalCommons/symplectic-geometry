@@ -126,7 +126,11 @@ lemma excisionMap_fst : Hom.fst (excisionMap A B) = TopCat.ofHom (ContinuousMap.
 
 end Subsets
 
-variable {C : Type u} [Category.{v} C] [HasCoproducts.{w} C] [Abelian C] (R : C)
+variable {C : Type u} [Category.{v} C] [HasCoproducts.{w} C] (R : C)
+
+section Preadditive
+
+variable [Preadditive C]
 
 /-- A map into the ambient space of a pair that factors through its subspace sends singular chains
 to zero in the relative chains of the pair. -/
@@ -139,6 +143,10 @@ lemma chainComplexMap_comp_singularChainComplexπ_of_fac (P : TopPair.{w}) {Y : 
   -- `(TopCat.toSSet.obj P.fst).chainComplex R` and as `(toSSetPair.obj P).right.chainComplex R`.
   exact (Functor.map_comp _ _ _ =≫ _).trans ((Category.assoc _ _ _).trans
     ((congrArg (_ ≫ ·) (chainComplexMap_comp_singularChainComplexπ P R)).trans comp_zero))
+
+end Preadditive
+
+variable [Abelian C]
 
 /-- Let `e : P ⟶ Q` be a map of pairs that induces an isomorphism in degree `n`, and `g` a chain
 map from the chains of `K` to the relative chains of `P` that `e` sends to the image of the chains
