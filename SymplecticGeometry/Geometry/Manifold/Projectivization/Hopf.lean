@@ -10,6 +10,7 @@ public import TauCeti.Geometry.Manifold.Instances.Cylinder
 public import TauCeti.Geometry.Manifold.Instances.Projectivization
 public import TauCeti.Geometry.Manifold.Submersion.Split
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
+import SymplecticGeometry.Analysis.InnerProductSpace.Calculus
 import TauCeti.Geometry.Manifold.ContMDiff.RestrictScalars
 import TauCeti.Geometry.Manifold.ContMDiff.Subtype
 import TauCeti.Geometry.Manifold.Instances.Sphere
@@ -38,7 +39,9 @@ underlying real manifolds, using Tau Ceti's affine charts of `ℙ 𝕜 (Fin (n +
   the sphere, the sphere component of Tau Ceti's polar coordinates
   `TauCeti.sphereProdRealDiffeomorph`. Since `sphereHopf n ∘ radialProjection n = mkNonzero ℂ n`
   (`sphereHopf_comp_radialProjection`), the Hopf map is surjective (`surjective_sphereHopf`) and
-  a submersion (`isSubmersion_sphereHopf`).
+  a submersion (`isSubmersion_sphereHopf`). Read in `StdSpace (Fin (n + 1))`, the derivative of
+  the radial projection at `z` sends `v` to `v̂ / ‖ẑ‖ - (⟪ẑ, v̂⟫ / ‖ẑ‖ ^ 3) ẑ`
+  (`mvfderiv_radialProjection`).
 * Two points of the sphere have the same image exactly when they lie on one orbit of the circle
   action `x ↦ cos t • x + sin t • J₀ x` (`sphereHopf_eq_sphereHopf_iff`), and the kernel of the
   derivative of the Hopf map at `x`, read in `StdSpace (Fin (n + 1))`, is the tangent line
@@ -57,7 +60,7 @@ Mathlib's charts on the sphere need its dimension in the form
 public section
 
 open Set Function Module TopologicalSpace Manifold
-open scoped Manifold ContDiff LinearAlgebra.Projectivization Topology
+open scoped Manifold ContDiff LinearAlgebra.Projectivization Topology InnerProductSpace
 
 namespace Projectivization
 
@@ -307,6 +310,39 @@ theorem contMDiff_radialProjection (r : ℕ∞ω) :
     funext fun z ↦ Subtype.ext (by simp [g, NormedSpace.normalize])
   rw [hr]
   exact contMDiff_normalize_sphere.comp hg
+
+variable {n} in
+/-- The derivative of the radial projection at `z`, read in `StdSpace (Fin (n + 1))` through the
+inclusion of the sphere, sends `v` to `v̂ / ‖ẑ‖ - (⟪ẑ, v̂⟫ / ‖ẑ‖ ^ 3) ẑ`, where `ẑ` and `v̂` are the
+images of `z` and `v` under `complexToRealEuclidean`. -/
+theorem mvfderiv_radialProjection (z : puncturedSpace (Fin (n + 1) → ℂ))
+    (v : TangentSpace 𝓘(ℝ, Fin (n + 1) → ℂ) z) :
+    mvfderiv (𝓡 (2 * n + 1))
+        ((↑) : sphere (0 : StdSpace (Fin (n + 1))) 1 → StdSpace (Fin (n + 1)))
+        (radialProjection n z)
+        (mfderiv 𝓘(ℝ, Fin (n + 1) → ℂ) (𝓡 (2 * n + 1)) (radialProjection n) z v) =
+      ‖complexToRealEuclidean (Fin (n + 1)) z‖⁻¹ • complexToRealEuclidean (Fin (n + 1)) v -
+        (⟪complexToRealEuclidean (Fin (n + 1)) z, complexToRealEuclidean (Fin (n + 1)) v⟫_ℝ /
+          ‖complexToRealEuclidean (Fin (n + 1)) z‖ ^ 3) •
+          complexToRealEuclidean (Fin (n + 1)) z := by
+  have hz : complexToRealEuclidean (Fin (n + 1)) z ≠ 0 := by
+    simpa using mem_puncturedSpace.1 z.property
+  have hd := (hasFDerivAt_norm_inv_smul hz).comp (z : Fin (n + 1) → ℂ)
+    (complexToRealEuclidean (Fin (n + 1))).hasFDerivAt
+  have hfun : ((↑) : sphere (0 : StdSpace (Fin (n + 1))) 1 → StdSpace (Fin (n + 1))) ∘
+      radialProjection n =
+        ((fun y : StdSpace (Fin (n + 1)) ↦ ‖y‖⁻¹ • y) ∘ complexToRealEuclidean (Fin (n + 1))) ∘
+          Subtype.val :=
+    funext radialProjection_apply
+  rw [← mvfderiv_comp_apply _ ((contMDiff_coe_sphere _).mdifferentiableAt one_ne_zero)
+      ((contMDiff_radialProjection n 1 z).mdifferentiableAt one_ne_zero), hfun,
+    mvfderiv_comp_apply_of_differentiableAt hd.differentiableAt
+      ((contMDiff_subtypeVal z).mdifferentiableAt one_ne_zero),
+    TauCeti.Manifold.mvfderiv_subtype_val_apply, hd.fderiv]
+  simp [div_eq_inv_mul, mul_smul]
+  -- The difference is applied to `v : TangentSpace _ z`, not to a vector of `Fin (n + 1) → ℂ`,
+  -- which blocks `Pi.sub_apply`; the two sides agree once `TangentSpace` is unfolded.
+  rfl
 
 /-- The radial projection is a left inverse of the inclusion of the sphere. -/
 @[simp]

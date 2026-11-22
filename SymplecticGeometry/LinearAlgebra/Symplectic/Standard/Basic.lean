@@ -305,6 +305,12 @@ theorem stdForm_apply (z w : StdSpace ι) :
     stdForm ι z w = ∑ i, (z.x i * w.y i - z.y i * w.x i) := by
   simp [stdForm_def, stdComplexSymplecticForm_apply]
 
+/-- `complexToRealEuclidean ι` carries `stdComplexPiSymplecticForm ι` to `ω₀`. -/
+theorem stdForm_complexToRealEuclidean (u v : ι → ℂ) :
+    stdForm ι (complexToRealEuclidean ι u) (complexToRealEuclidean ι v) =
+      stdComplexPiSymplecticForm ι u v :=
+  SymplecticForm.transport_apply_apply _ _ u v
+
 /-- The coordinate swap `(x, y) ↦ (y, x)` reverses the sign of the standard form:
 `ω₀(swap z, swap w) = -ω₀(z, w)`. -/
 theorem stdForm_swap (z w : StdSpace ι) : stdForm ι (swap ι z) (swap ι w) = -stdForm ι z w := by
@@ -385,6 +391,13 @@ theorem norm_complexToRealEuclidean_smul (a : ℂ) (v : ι → ℂ) :
       dotProduct_smul, smul_eq_mul, smul_eq_mul, Complex.star_def, ← mul_assoc,
       Complex.conj_mul', ← Complex.ofReal_pow, Complex.re_ofReal_mul]
   exact (pow_left_inj₀ (norm_nonneg _) (by positivity) two_ne_zero).1 h
+
+/-- The squared norm of `complexToRealEuclidean ι u` is `∑ᵢ ‖uᵢ‖²`. -/
+theorem norm_sq_complexToRealEuclidean (u : ι → ℂ) :
+    ‖complexToRealEuclidean ι u‖ ^ 2 = ∑ i, ‖u i‖ ^ 2 := by
+  rw [← real_inner_self_eq_norm_sq, inner_complexToRealEuclidean, dotProduct, Complex.re_sum]
+  refine Finset.sum_congr rfl fun i _ ↦ ?_
+  rw [Pi.star_apply, Complex.star_def, Complex.conj_mul', ← Complex.ofReal_pow, Complex.ofReal_re]
 
 /-- `J₀` is the linear map of the matrix `Matrix.J ι ℝ = !![0, -1; 1, 0]`. -/
 theorem stdComplexStructure_eq_toEuclideanLin_J [DecidableEq ι] :
