@@ -11,6 +11,7 @@ public import TauCeti.Geometry.Symplectic.Liouville.ContactType
 public import TauCeti.Geometry.Symplectic.Manifold.Flat
 public import SymplecticGeometry.Geometry.Manifold.Boundary.Charts
 public import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Flow.Basic
+public import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
 import Mathlib.Geometry.Manifold.PartitionOfUnity
 import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Local
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Continuity
@@ -349,8 +350,7 @@ private theorem IsStrongFilling.mpullback_interiorₗ_eq_of_eq_collar
           (σ.interiorₗ ⟨Y, h.isOutwardPointingField.contMDiff⟩).val p =
         (-fillingContactForm σ ⟨Y, h.isOutwardPointingField.contMDiff⟩).symplectization.val p := by
   rintro ⟨t, x⟩ ⟨ht, -⟩
-  ext v
-  obtain ⟨w, rfl⟩ : ∃ w, v = ![w] := ⟨v 0, (FinVec.etaExpand_eq _).symm⟩
+  ext w
   rw [h.mpullback_interiorₗ_apply_of_eq_collar hε hΦY hc hcU ht x w,
     SmoothForm.symplectization_apply, NegMemClass.coe_neg, coe_fillingContactForm,
     SmoothTwoForm.coe_interiorₗ]
@@ -386,8 +386,7 @@ theorem IsStrongFilling.exists_liouvilleCollar [CompactSpace ((𝓡∂ (n + 1)).
   set β := σ.interiorₗ ⟨Y, hY⟩
   have hβα := h.mpullback_interiorₗ_eq_of_eq_collar hε hΦY hc hcU
   refine ⟨ε, Φ, c, hε, hΦ0, hΦY, hc, hcU, fun p hp ↦ ?_, fun p hp ↦ ?_⟩
-  · ext v
-    obtain ⟨w, rfl⟩ : ∃ w, v = ![w] := ⟨v 0, (FinVec.etaExpand_eq _).symm⟩
+  · ext w
     have hw := congrArg (fun φ ↦ φ ![w]) (hβα p hp)
     simp only [SmoothForm.symplectization_apply, NegMemClass.coe_neg] at hw ⊢
     simp only [mpullback_apply, Pi.neg_apply, ContinuousAlternatingMap.neg_apply] at hw ⊢

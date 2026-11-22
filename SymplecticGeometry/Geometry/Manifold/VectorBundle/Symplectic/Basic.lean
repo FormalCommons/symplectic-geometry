@@ -281,13 +281,20 @@ def IsNondegenerate.symplecticFormAt (h : ω.IsNondegenerate) (x : M) :
   isAlt := ω.isAlt_bilinFormAt x
   nondegenerate := h x
 
-/-- The symplectic form on a fibre evaluates as the two-form. -/
-@[simp]
+/-- The symplectic form on a fibre evaluates as the two-form.
+
+This is not `@[simp]`: `simp` proves it with `IsNondegenerate.toBilinForm_symplecticFormAt` and
+`bilinFormAt_apply`. -/
 theorem IsNondegenerate.symplecticFormAt_apply (h : ω.IsNondegenerate) (x : M) (v w : V x) :
     h.symplecticFormAt x v w = ω x ![v, w] :=
   ω.bilinFormAt_apply x v w
 
-/-- The bilinear form of the symplectic form on a fibre is that of the two-form. -/
+/-- The bilinear form of the symplectic form on a fibre is that of the two-form.
+
+`simp` evaluates the symplectic form through this lemma: a `TauCeti.SymplecticForm` applies to
+vectors through its bilinear form, so `simp` turns `h.symplecticFormAt x v w` into
+`ω.bilinFormAt x v w`, which the lemmas on `bilinFormAt` then evaluate. -/
+@[simp]
 theorem IsNondegenerate.toBilinForm_symplecticFormAt (h : ω.IsNondegenerate) (x : M) :
     (h.symplecticFormAt x).toBilinForm = ω.bilinFormAt x :=
   (rfl)
