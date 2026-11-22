@@ -172,9 +172,8 @@ theorem boundaryDegree_closedBallComplToCircle :
       Complex.finrank_real_complex (.inclusion _ (isOpen_ball.preimage continuous_subtypeVal))
       (range_inclusion_ball_eq_compl 0 1) isCollared_inclusion_sphere_closedBall
       closedBallComplToCircle = 1 := by
-  rw [TauCeti.HomologicalOrientation.boundaryDegree_def,
-    TauCeti.HomologicalOrientation.boundaryClass_def]
-  exact congrArg ULift.down singularHomologyOneIso_singularHomologyδ_fundamentalClassRel_closedBall
+  rw [TauCeti.HomologicalOrientation.boundaryDegree_def]
+  exact congrArg ULift.down singularHomologyOneIso_map_boundaryClass_closedBall
 
 end SymplecticGeometry
 
