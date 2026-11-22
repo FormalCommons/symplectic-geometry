@@ -13,9 +13,6 @@ public import Mathlib.Topology.Sets.Opens
 The bottom element `⊥ : Opens X` of the open sets of a topological space has no points
 (`TopologicalSpace.Opens.isEmpty_bot`). As an instance, it lets the empty open set serve as an
 empty space, for instance as an empty open submanifold, without an inline proof each time.
-
-The sibling `Topology/Sets/Opens.lean` holds declarations from Tau Ceti's main branch, under
-Tau Ceti's header; this file holds the library's own declarations about open sets.
 -/
 
 public section

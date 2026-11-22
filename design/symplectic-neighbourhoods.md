@@ -496,7 +496,7 @@ symplectic, so it sits with the manifold topic, beside Tau Ceti's
 
 ### `Geometry/Manifold/Diffeomorph/Basic.lean`
 
-The case of an empty `Q` in `MFDeriv.lean` and `Tubular.lean`. Namespace
+The case of an empty `Q` in `MFDeriv.lean`. Namespace
 `Diffeomorph`; the `IsEmpty` instance of `⊥ : Opens M`
 (`TopologicalSpace.Opens.isEmpty_bot`) is in `Topology/Sets/Opens/Basic.lean`.
 `DifferentialForm/Opens.lean` of *Moser isotopy* uses both for
