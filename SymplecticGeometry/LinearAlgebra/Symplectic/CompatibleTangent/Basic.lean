@@ -129,14 +129,11 @@ the commutator `⁅Y, Z⁆` has nonpositive trace: `⁅Y, Z⁆` is skew-adjoint 
 `ω(·, J ·)`. -/
 theorem Compatible.trace_commutator_sq_nonpos (hJ : ω.Compatible J)
     (hY : Y ∈ ω.compatibleTangentSpace J) (hZ : Z ∈ ω.compatibleTangentSpace J) :
-    LinearMap.trace ℝ V (⁅Y, Z⁆ * ⁅Y, Z⁆) ≤ 0 := by
-  refine LinearMap.BilinForm.trace_mul_self_nonpos_of_posDef _
-    hJ.associatedBilinForm_isSymm hJ.positive _ ?_
-  have hY' := isSelfAdjoint_of_mem_compatibleTangentSpace hY
-  have hZ' := isSelfAdjoint_of_mem_compatibleTangentSpace hZ
-  rw [LinearMap.mem_skewAdjointSubmodule, LinearMap.IsSkewAdjoint, Ring.lie_def]
-  intro x y
-  simpa using ((hY'.mul hZ').sub (hZ'.mul hY')) x y
+    LinearMap.trace ℝ V (⁅Y, Z⁆ * ⁅Y, Z⁆) ≤ 0 :=
+  LinearMap.BilinForm.trace_mul_self_nonpos_of_posDef _ hJ.associatedBilinForm_isSymm
+    hJ.positive _ (LinearMap.BilinForm.isSkewAdjoint_bracket_of_isSelfAdjoint
+      (isSelfAdjoint_of_mem_compatibleTangentSpace hY)
+      (isSelfAdjoint_of_mem_compatibleTangentSpace hZ))
 
 end SymplecticForm
 

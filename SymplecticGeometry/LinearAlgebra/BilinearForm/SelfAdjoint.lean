@@ -5,30 +5,34 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import Mathlib.Algebra.Lie.OfAssociative
 public import Mathlib.LinearAlgebra.BilinearForm.Properties
 public import Mathlib.LinearAlgebra.QuadraticForm.Basic
 public import Mathlib.LinearAlgebra.Trace
-import Mathlib.LinearAlgebra.BilinearForm.Orthogonal
-import Mathlib.LinearAlgebra.Matrix.BilinearForm
-import Mathlib.Tactic.LinearCombination
+import Mathlib.LinearAlgebra.QuadraticForm.Prod
+import TauCeti.LinearAlgebra.BilinearForm.SkewAdjoint
 
 /-!
-# Trace of squares of self-adjoint endomorphisms
+# Self-adjoint endomorphisms of a bilinear form
 
-Let `B` be a symmetric positive-definite bilinear form on a finite-dimensional vector space over
-an ordered field. An endomorphism that is self-adjoint for `B` has nonnegative trace of its
-square, and positive trace of its square unless it is zero. In a `B`-orthogonal basis the
-`(i, j)` and `(j, i)` matrix entries of such an endomorphism have the same sign, so the trace of
-its square is a sum of nonnegative terms.
+The commutator of two endomorphisms that are self-adjoint for a bilinear form `B` is
+skew-adjoint for `B`.
 
-This is the self-adjoint counterpart of Tau Ceti's
-`LinearMap.BilinForm.trace_mul_self_nonpos_of_posDef` for skew-adjoint endomorphisms. The proof
-adapts that of Tau Ceti's private lemmas `LinearMap.BilinForm.exists_positive_basis_skew` and
-`LinearMap.BilinForm.exists_matrix_trace_mul_self_of_isSelfAdjoint`
-(`TauCeti/LinearAlgebra/BilinearForm/SkewAdjoint.lean`), with the sign of the adjoint changed.
+Let `B` be moreover symmetric and positive definite, on a finite-dimensional vector space over
+an ordered field. An endomorphism `A` that is self-adjoint for `B` has nonnegative trace of its
+square, and positive trace of its square unless it is zero.
+
+These trace results follow from Tau Ceti's public lemmas
+`LinearMap.BilinForm.trace_mul_self_nonpos_of_posDef` and
+`LinearMap.BilinForm.trace_mul_self_eq_zero_iff_of_posDef` for skew-adjoint endomorphisms
+(`TauCeti/LinearAlgebra/BilinearForm/SkewAdjoint.lean`), applied on `V × V` to the form
+`B ⊕ B` and the endomorphism `(x, y) ↦ (-A y, A x)`, which is skew-adjoint for it and whose
+square is `-(A * A)` on each factor.
 
 ## Main results
 
+* `LinearMap.BilinForm.isSkewAdjoint_bracket_of_isSelfAdjoint`: the commutator of two
+  self-adjoint endomorphisms is skew-adjoint.
 * `LinearMap.BilinForm.trace_mul_self_nonneg_of_posDef`: the trace of the square of a
   self-adjoint endomorphism is nonnegative.
 * `LinearMap.BilinForm.trace_mul_self_pos_of_posDef`: it is positive unless the endomorphism is
@@ -46,89 +50,67 @@ open Module
 
 namespace LinearMap.BilinForm
 
+/-- The commutator of two endomorphisms that are self-adjoint for a bilinear form `B` is
+skew-adjoint for `B`. -/
+theorem isSkewAdjoint_bracket_of_isSelfAdjoint {R M : Type*} [CommRing R] [AddCommGroup M]
+    [Module R M] {B : LinearMap.BilinForm R M} {f g : Module.End R M}
+    (hf : B.IsSelfAdjoint f) (hg : B.IsSelfAdjoint g) : ⁅f, g⁆ ∈ B.skewAdjointSubmodule := by
+  rw [LinearMap.mem_skewAdjointSubmodule, LinearMap.IsSkewAdjoint, Ring.lie_def,
+    ← LinearMap.coe_neg, neg_sub]
+  exact (hf.mul hg).sub (hg.mul hf)
+
 variable {F V : Type*} [Field F] [LinearOrder F] [IsStrictOrderedRing F]
   [AddCommGroup V] [Module F V] [FiniteDimensional F V]
-
-private theorem exists_positive_basis_of_isSelfAdjoint (B : LinearMap.BilinForm F V)
-    (hsymm : B.IsSymm) (hpos : B.toQuadraticMap.PosDef) {A : Module.End F V}
-    (hA : B.IsSelfAdjoint A) :
-    ∃ b : Basis (Fin (finrank F V)) F V,
-      (∀ i, 0 < B (b i) (b i)) ∧
-        ∀ i j, LinearMap.toMatrix b b A j i * B (b j) (b j) =
-          B (b i) (b i) * LinearMap.toMatrix b b A i j := by
-  classical
-  let _ : Invertible (2 : F) := invertibleOfNonzero two_ne_zero
-  obtain ⟨b, hb⟩ := exists_orthogonal_basis (isSymm_iff.mp hsymm)
-  let d := fun i ↦ B (b i) (b i)
-  let M := LinearMap.toMatrix b b A
-  have hd (i) : 0 < d i := by
-    simpa only [d, LinearMap.BilinMap.toQuadraticMap_apply] using hpos (b i) (b.ne_zero i)
-  have hdiag : LinearMap.toMatrix₂ b b B = Matrix.diagonal d := by
-    ext i j
-    by_cases hij : i = j
-    · subst j
-      simp only [LinearMap.toMatrix₂_apply, Matrix.diagonal_apply_eq, d]
-    · simp only [LinearMap.toMatrix₂_apply, Matrix.diagonal_apply_ne _ hij]
-      exact (LinearMap.BilinForm.iIsOrtho_def.mp hb) i j hij
-  have hB : Matrix.toLinearMap₂ b b (Matrix.diagonal d) = B := by
-    rw [← hdiag]
-    exact Matrix.toLinearMap₂_toMatrix₂ b b B
-  have hself : Matrix.IsAdjointPair (Matrix.diagonal d) (Matrix.diagonal d) M M := by
-    apply (isAdjointPair_toLinearMap₂
-      (b₁ := b) (b₂ := b) (J := Matrix.diagonal d) (J' := Matrix.diagonal d)
-      (A := M) (A' := M)).mp
-    -- `B.IsSelfAdjoint A` is `IsAdjointPair B B A A` by definition.
-    have hA' : IsAdjointPair B B A A := hA
-    simpa only [hB, M, Matrix.toLin_toMatrix] using hA'
-  rw [Matrix.IsAdjointPair] at hself
-  refine ⟨b, hd, fun i j ↦ ?_⟩
-  simpa only [Matrix.mul_diagonal, Matrix.transpose_apply, Matrix.diagonal_mul] using
-    congrFun (congrFun hself i) j
-
-private theorem exists_matrix_of_isSelfAdjoint (B : LinearMap.BilinForm F V)
-    (hsymm : B.IsSymm) (hpos : B.toQuadraticMap.PosDef) {A : Module.End F V}
-    (hA : B.IsSelfAdjoint A) :
-    ∃ M : Matrix (Fin (finrank F V)) (Fin (finrank F V)) F,
-      LinearMap.trace F V (A * A) = ∑ i, ∑ j, M i j * M j i ∧
-      (∀ i j, 0 ≤ M i j * M j i ∧ (M i j ≠ 0 → 0 < M i j * M j i)) ∧ (M = 0 → A = 0) := by
-  classical
-  obtain ⟨b, hd, hentry⟩ := exists_positive_basis_of_isSelfAdjoint B hsymm hpos hA
-  let M := LinearMap.toMatrix b b A
-  refine ⟨M, ?_, fun i j ↦ ?_, ?_⟩
-  · rw [LinearMap.trace_eq_matrix_trace F b (A * A), LinearMap.toMatrix_mul]
-    simp only [Matrix.trace, Matrix.diag, Matrix.mul_apply, M]
-  · -- `d j * (M i j * M j i) = d i * (M i j) ^ 2`
-    have hw : B (b j) (b j) * (M i j * M j i) = B (b i) (b i) * M i j ^ 2 := by
-      linear_combination M i j * hentry i j
-    refine ⟨nonneg_of_mul_nonneg_right ?_ (hd j), fun h ↦ pos_of_mul_pos_right ?_ (hd j).le⟩
-    · rw [hw]
-      exact mul_nonneg (hd i).le (sq_nonneg _)
-    · rw [hw]
-      exact mul_pos (hd i) (sq_pos_of_ne_zero h)
-  · exact (LinearMap.toMatrix b b).map_eq_zero_iff.1
-
-/-- An endomorphism that is self-adjoint for a symmetric positive-definite bilinear form has
-nonnegative trace of its square. -/
-theorem trace_mul_self_nonneg_of_posDef (B : LinearMap.BilinForm F V)
-    (hsymm : B.IsSymm) (hpos : B.toQuadraticMap.PosDef) {A : Module.End F V}
-    (hA : B.IsSelfAdjoint A) : 0 ≤ LinearMap.trace F V (A * A) := by
-  obtain ⟨M, htrace, hterm, _⟩ := exists_matrix_of_isSelfAdjoint B hsymm hpos hA
-  rw [htrace]
-  exact Finset.sum_nonneg fun i _ ↦ Finset.sum_nonneg fun j _ ↦ (hterm i j).1
 
 /-- A nonzero endomorphism that is self-adjoint for a symmetric positive-definite bilinear form
 has positive trace of its square. -/
 theorem trace_mul_self_pos_of_posDef (B : LinearMap.BilinForm F V)
     (hsymm : B.IsSymm) (hpos : B.toQuadraticMap.PosDef) {A : Module.End F V}
     (hA : B.IsSelfAdjoint A) (h0 : A ≠ 0) : 0 < LinearMap.trace F V (A * A) := by
-  obtain ⟨M, htrace, hterm, hzero⟩ := exists_matrix_of_isSelfAdjoint B hsymm hpos hA
-  obtain ⟨i, j, hij⟩ : ∃ i j, M i j ≠ 0 := by
-    by_contra! h
-    exact h0 (hzero (Matrix.ext h))
-  rw [htrace]
-  exact Finset.sum_pos' (fun i _ ↦ Finset.sum_nonneg fun j _ ↦ (hterm i j).1)
-    ⟨i, Finset.mem_univ _, Finset.sum_pos' (fun j _ ↦ (hterm i j).1)
-      ⟨j, Finset.mem_univ _, (hterm i j).2 hij⟩⟩
+  -- The form `B ⊕ B` on `V × V`, and the endomorphism `(x, y) ↦ (-A y, A x)`.
+  let B' : LinearMap.BilinForm F (V × V) :=
+    B.compl₁₂ (fst F V V) (fst F V V) + B.compl₁₂ (snd F V V) (snd F V V)
+  let X : Module.End F (V × V) := (-(A ∘ₗ snd F V V)).prod (A ∘ₗ fst F V V)
+  have hsymm' : B'.IsSymm := by
+    refine isSymm_def.mpr fun x y ↦ ?_
+    simp [B', hsymm.eq x.1 y.1, hsymm.eq x.2 y.2]
+  have hpos' : B'.toQuadraticMap.PosDef := by
+    have h : B'.toQuadraticMap = B.toQuadraticMap.prod B.toQuadraticMap := by
+      ext x
+      simp [B']
+    rw [h]
+    exact hpos.prod hpos
+  have hX : X ∈ B'.skewAdjointSubmodule := by
+    rw [LinearMap.mem_skewAdjointSubmodule]
+    intro x y
+    simp only [B', X, add_apply, compl₁₂_apply, prod_apply, Function.prod, fst_apply,
+      snd_apply, LinearMap.comp_apply, map_neg, Pi.neg_apply, LinearMap.neg_apply, neg_add_rev]
+    rw [hA x.1 y.2, hA x.2 y.1]
+    abel
+  have hXX : X * X = (-(A * A)).prodMap (-(A * A)) := by
+    ext x <;> simp [X]
+  have htr : LinearMap.trace F (V × V) (X * X) = -(2 * LinearMap.trace F V (A * A)) := by
+    rw [hXX, LinearMap.trace_prodMap']
+    rw [map_neg]
+    ring
+  have hX0 : X ≠ 0 := by
+    intro h
+    apply h0
+    ext v
+    simpa [X] using congrArg (fun f ↦ (f (v, 0)).2) h
+  have hle := trace_mul_self_nonpos_of_posDef B' hsymm' hpos' X hX
+  have hne := (trace_mul_self_eq_zero_iff_of_posDef B' hsymm' hpos' X hX).not.mpr hX0
+  rw [htr] at hle hne
+  exact lt_of_le_of_ne (by linarith) fun h ↦ hne (by rw [← h]; ring)
+
+/-- An endomorphism that is self-adjoint for a symmetric positive-definite bilinear form has
+nonnegative trace of its square. -/
+theorem trace_mul_self_nonneg_of_posDef (B : LinearMap.BilinForm F V)
+    (hsymm : B.IsSymm) (hpos : B.toQuadraticMap.PosDef) {A : Module.End F V}
+    (hA : B.IsSelfAdjoint A) : 0 ≤ LinearMap.trace F V (A * A) := by
+  obtain rfl | h0 := eq_or_ne A 0
+  · simp
+  · exact (trace_mul_self_pos_of_posDef B hsymm hpos hA h0).le
 
 end LinearMap.BilinForm
 
