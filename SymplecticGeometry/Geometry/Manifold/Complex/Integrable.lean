@@ -357,7 +357,6 @@ def ofTangentCoordChange (hJ₀ : ∀ v, J₀ (J₀ v) = -v)
 
 variable {I J₀}
 
-@[simp]
 theorem ofTangentCoordChange_apply {hJ₀ : ∀ v, J₀ (J₀ v) = -v}
     {h : ∀ {x y z : M}, z ∈ (chartAt H x).source ∩ (chartAt H y).source → ∀ v : E,
       tangentCoordChange I x y z (J₀ v) = J₀ (tangentCoordChange I x y z v)} (x : M)
