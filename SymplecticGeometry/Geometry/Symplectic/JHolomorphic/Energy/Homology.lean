@@ -18,7 +18,8 @@ positive, and let `M` carry a two-form `ω` (`form` in the code) and an almost c
 homological orientation of `o` has the opposite sign to the classes of positively oriented
 simplices; see `TauCeti.Manifold.Orientation.integralTopForm_eq_singularHomologyPeriod`).
 
-For closed `ω` the integral `∫_C u^* ω` depends only on `A`: it is the period `⟨[ω], A⟩`. Since the
+For closed `ω` the integral `∫_C u^* ω` depends only on `A`: it is the period `⟨[ω], A⟩`
+(`TauCeti.Manifold.Orientation.integralTopForm_mpullback_eq_singularHomologyPeriod`). Since the
 energy of a pseudoholomorphic map is `∫_C u^* ω`, it follows that such maps have energy
 `⟨[ω], A⟩`; for a compatible pair they minimize the energy among smooth maps representing `A`
 (by the Wirtinger inequality `∫_C v^* ω ≤ E(v)`), and under tameness `⟨[ω], A⟩ > 0` unless `u` is
@@ -26,8 +27,6 @@ locally constant.
 
 ## Main results
 
-* `TauCeti.SmoothTwoForm.integralTopForm_mpullback_eq_singularHomologyPeriod`: for closed `ω` and
-  `u` representing `A`, `∫_C u^* ω = ⟨[ω], A⟩`.
 * `TauCeti.SmoothTwoForm.energy_eq_singularHomologyPeriod`: a pseudoholomorphic `u` representing
   `A` has energy `⟨[ω], A⟩`.
 * `TauCeti.SmoothTwoForm.Compatible.energy_le_energy`: for a compatible pair, a pseudoholomorphic
@@ -69,21 +68,6 @@ variable {E H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensi
   {A : ((singularHomologyFunctor (ModuleCat.{0} ℤ) 2).obj
     (ModuleCat.of ℤ (ULift.{0} ℤ))).obj (TopCat.of M)}
 
-/-- **Topological invariance of `∫ u^* ω`.** For a closed two-form `ω` on `M` and a smooth map
-`u` from a closed surface `C`, oriented by `o`, that represents `A ∈ H₂(M; ℤ)` (the image of the
-fundamental class of the homological orientation of `-o`), `∫_C u^* ω = ⟨[ω], A⟩`. -/
-theorem integralTopForm_mpullback_eq_singularHomologyPeriod (hform : form ∈ closedForms I M 2)
-    (hu : ContMDiff 𝓘(ℝ, E') I ∞ u)
-    (hA : ((-o).toHomologicalOrientation hE').mapFundamentalClass hE' ⟨u, hu.continuous⟩ = A) :
-    integralTopForm o (mpullback 𝓘(ℝ, E') I u form.val) =
-      deRhamCohomology.singularHomologyPeriod (deRhamCohomology.mk I 2 ⟨form, hform⟩) A := by
-  have h := deRhamCohomology.singularHomologyPeriod_map hu
-    (deRhamCohomology.mk I 2 ⟨form, hform⟩)
-    (((-o).toHomologicalOrientation hE').fundamentalClass hE')
-  rw [deRhamCohomology.map_mk, ← o.integralTopForm_eq_singularHomologyPeriod hE',
-    closedForms.coe_mpullback, SmoothForm.coe_mpullback] at h
-  rw [h, ← hA, HomologicalOrientation.mapFundamentalClass_def]
-
 /-- **The energy of a pseudoholomorphic curve is topological.** For a closed two-form `ω` and a
 smooth pseudoholomorphic map `u` from a closed surface `C`, oriented by `o`, that represents
 `A ∈ H₂(M; ℤ)`, the energy of `u` is `⟨[ω], A⟩`. -/
@@ -93,8 +77,8 @@ theorem energy_eq_singularHomologyPeriod (hform : form ∈ closedForms I M 2)
     (hhol : ∀ c, IsPseudoholomorphicAt j J u c) :
     form.energy J j o u =
       deRhamCohomology.singularHomologyPeriod (deRhamCohomology.mk I 2 ⟨form, hform⟩) A := by
-  rw [energy_eq_integralTopForm_mpullback hhol,
-    integralTopForm_mpullback_eq_singularHomologyPeriod hE' hform hu hA]
+  rw [energy_eq_integralTopForm_mpullback hhol, ← hA]
+  exact o.integralTopForm_mpullback_eq_singularHomologyPeriod hE' ⟨form, hform⟩ hu
 
 /-- **Pseudoholomorphic curves minimize the energy in their class.** Let `ω` be closed and
 compatible with `J`, and orient the closed surface `C` by `o` so that the frames `(e, j e)` are
@@ -109,7 +93,7 @@ theorem Compatible.energy_le_energy (hc : form.Compatible J) (hform : form ∈ c
     (hvA : ((-o).toHomologicalOrientation hE').mapFundamentalClass hE' ⟨v, hv.continuous⟩ = A) :
     form.energy J j o u ≤ form.energy J j o v := by
   rw [energy_eq_singularHomologyPeriod hE' hform hu hA hhol,
-    ← integralTopForm_mpullback_eq_singularHomologyPeriod hE' hform hv hvA]
+    ← hvA, ← o.integralTopForm_mpullback_eq_singularHomologyPeriod hE' ⟨form, hform⟩ hv]
   exact hc.integralTopForm_mpullback_le_energy ho (hv.of_le (by simp))
 
 /-- **Positivity of the class of a nonconstant pseudoholomorphic curve.** Let `ω` be closed and
