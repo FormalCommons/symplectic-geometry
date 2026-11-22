@@ -7,6 +7,8 @@ module
 
 public import SymplecticGeometry.Geometry.Symplectic.Flux.Hamiltonian
 import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Basic
+import SymplecticGeometry.Geometry.Manifold.ContMDiff.TimeExtension
+import TauCeti.Geometry.Symplectic.Hamiltonian.CommutingFlow
 
 /-!
 # Compactly supported Hamiltonian diffeomorphisms
@@ -46,6 +48,13 @@ these diffeotopies form the group `Ham_c(M, σ)`
   `Ham_c(M, σ)` is normal in the group of diffeomorphisms preserving `σ`.
 * `TauCeti.SmoothForm.compactlySupportedHamiltonianGroup_eq_hamiltonianGroup`: on a compact
   manifold, `Ham_c(M, σ) = Ham(M, σ)`.
+* `TauCeti.Diffeotopy.exists_isCompactlySupportedHamiltonian`: for a symplectic `σ`, every smooth
+  function on `M × [0, 1]` that vanishes off a compact set `K ⊆ M` generates a compactly
+  supported Hamiltonian diffeotopy, which fixes every point outside `K`.
+* `TauCeti.SmoothTwoForm.IsSymplectic.isHamiltonian_iff_and_normal_hamiltonianGroup`: the
+  characterizations of Hamiltonian diffeotopies, uniqueness of their generating functions, the
+  rules for composites, inverses and conjugates, and the normality of `Ham(M, σ)` and
+  `Ham_c(M, σ)` in the group of diffeomorphisms preserving `σ`, together.
 
 ## Implementation notes
 
@@ -62,10 +71,18 @@ The subgroup and its API follow Tau Ceti's `TauCeti.SmoothForm.hamiltonianGroup`
 the predicate add compact sets to Tau Ceti's `TauCeti.Diffeotopy.IsHamiltonian.trans`,
 `TauCeti.Diffeotopy.IsHamiltonian.symm` and `TauCeti.Diffeotopy.IsHamiltonian.transDiffeomorph`.
 
+The diffeotopy of `TauCeti.Diffeotopy.exists_isCompactlySupportedHamiltonian` is Tau Ceti's
+`TauCeti.timeDependentFlowDiffeotopy` of the Hamiltonian vector fields of the extension
+`SymplecticGeometry.timeExtend` of the function to `ℝ × M`, by Seeley's operator. The extension
+still vanishes off `K`, so the fields vanish off `K` and their suspension is complete
+(`TauCeti.isCompleteVectorField_timeDependentSuspensionField`).
+
 ## References
 
 * [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017], §3.1,
-  Definition 3.1.13 and Exercise 3.1.14.
+  Definition 3.1.13, Exercise 3.1.14 and Remark 3.1.15.
+* R. T. Seeley, *Extension of $C^\infty$ functions defined in a half space*,
+  Proc. Amer. Math. Soc. 15 (1964), 625–626.
 -/
 
 public noncomputable section
@@ -170,6 +187,63 @@ theorem isCompactlySupportedHamiltonian_of_compactSpace [CompactSpace M]
   obtain ⟨hΦσ, F, hF⟩ := isHamiltonian_iff.1 hΦ
   exact ⟨hΦσ, F, hF, univ, isCompact_univ, fun _ hp ↦ (hp (mem_univ _)).elim⟩
 
+/-! ### The flow of a compactly supported Hamiltonian -/
+
+section Flow
+
+variable [FiniteDimensional ℝ E] [J.Boundaryless] [T2Space M]
+
+/-- **The flow of a compactly supported Hamiltonian.** For a symplectic form `σ`, a smooth function
+`G` on `M × [0, 1]` that vanishes at `(x, t)` whenever `x` lies outside a compact set `K`
+generates a diffeotopy `φ_t`, which is a compactly supported Hamiltonian diffeotopy and fixes
+every point outside `K` at every time. -/
+theorem exists_isCompactlySupportedHamiltonian (hσ : SmoothTwoForm.IsSymplectic σ)
+    {G : M × unitInterval → ℝ} (hG : ContMDiff (J.prod (𝓡∂ 1)) 𝓘(ℝ) ∞ G) {K : Set M}
+    (hK : IsCompact K) (hGK : ∀ p : M × unitInterval, p.1 ∉ K → G p = 0) :
+    ∃ Φ : Diffeotopy J ∞ M, Φ.IsGeneratedBy σ G ∧ Φ.IsCompactlySupportedHamiltonian σ ∧
+      ∀ t, ∀ x ∉ K, Φ (t, x) = x := by
+  -- The extension `g` of `G` to `ℝ × M`, and its Hamiltonian vector fields `X`.
+  set g : ℝ × M → ℝ := SymplecticGeometry.timeExtend fun q : unitInterval × M ↦ G (q.2, q.1)
+  have hg : ContMDiff (𝓘(ℝ, ℝ).prod J) 𝓘(ℝ) ∞ g :=
+    (hG.comp (contMDiff_snd.prodMk contMDiff_fst)).timeExtend
+  have hgK (u : ℝ) (y : M) (hy : y ∉ K) : g (u, y) = 0 :=
+    SymplecticGeometry.timeExtend_eq_zero (fun s ↦ hGK (y, s) hy) u
+  set X : ℝ → (x : M) → TangentSpace J x :=
+    fun u ↦ SmoothTwoForm.hamiltonianVectorField σ fun y ↦ g (u, y)
+  have hX : ContMDiff (𝓘(ℝ, ℝ).prod J) J.tangent ∞
+      (fun p : ℝ × M ↦ (⟨p.2, X p.1 p.2⟩ : TangentBundle J M)) :=
+    hσ.isNondegenerate.contMDiff_hamiltonianVectorField_uncurry le_rfl
+      (show ContMDiff (𝓘(ℝ, ℝ).prod J) 𝓘(ℝ) (∞ + 1) (Function.uncurry fun u y ↦ g (u, y)) by
+        simpa only [Function.uncurry_def, ENat.coe_top_add_one, Prod.mk.eta] using hg)
+  have hXK (u : ℝ) (y : M) (hy : y ∉ K) : X u y = 0 :=
+    SmoothTwoForm.hamiltonianVectorField_eq_zero_of_eventuallyEq (c := 0) <|
+      Filter.mem_of_superset (hK.isClosed.isOpen_compl.mem_nhds hy) fun z hz ↦ hgK u z hz
+  have hc := isCompleteVectorField_timeDependentSuspensionField (hX.of_le (by simp)) hK hXK
+  set Φ := timeDependentFlowDiffeotopy le_top hX hc
+  have hgen : Φ.IsGeneratedBy σ G := by
+    refine isGeneratedBy_iff.2 ⟨hG, fun t ↦ ?_⟩
+    rw [velocity_timeDependentFlowDiffeotopy]
+    convert hσ.isNondegenerate.isHamiltonianVectorField_hamiltonianVectorField
+      (fun y ↦ g (t, y)) using 2 with y
+    exact (SymplecticGeometry.timeExtend_apply_coe (fun q : unitInterval × M ↦ G (q.2, q.1)) t
+      y).symm
+  have hslice (t : unitInterval) : Φ.timeSlice t ∈ SmoothForm.diffeomorphStabilizer σ := by
+    have h : ⇑(Φ.timeSlice t) = timeDependentFlowOf X 0 t :=
+      funext fun x ↦ (timeSlice_apply Φ t x).trans
+        (timeDependentFlowDiffeotopy_apply le_top hX hc (t, x))
+    have hpull := SmoothTwoForm.mpullback_timeDependentFlowOf_of_isHamiltonianVectorField (X := X)
+      (fun u ↦ hσ.isNondegenerate.isHamiltonianVectorField_hamiltonianVectorField
+        (fun y ↦ g (u, y))) hσ.isClosed
+      (fun u ↦ (hg.comp (contMDiff_const.prodMk contMDiff_id)).of_le (by simp)) hc
+      (hX.of_le (by simp)) 0 t
+    refine SmoothForm.mem_diffeomorphStabilizer_iff_forall.2 fun x ↦ ?_
+    rw [h, hpull]
+  exact ⟨Φ, hgen, isCompactlySupportedHamiltonian_iff_isGeneratedBy.2 ⟨hslice, G, hgen, K, hK,
+    hGK⟩, fun t x hx ↦ timeDependentFlowDiffeotopy_apply_of_forall_eq_zero _ _ _
+      (fun u ↦ hXK u x hx) t⟩
+
+end Flow
+
 end Diffeotopy
 
 namespace SmoothForm
@@ -239,6 +313,86 @@ theorem compactlySupportedHamiltonianGroup_eq_hamiltonianGroup [CompactSpace M] 
     (Diffeotopy.isCompactlySupportedHamiltonian_of_compactSpace hΦ)
 
 end SmoothForm
+
+/-! ### The milestone -/
+
+namespace SmoothTwoForm.IsSymplectic
+
+variable {E H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
+  {J : ModelWithCorners ℝ E H} {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
+  [IsManifold J ∞ M] [FiniteDimensional ℝ E] [J.Boundaryless] [T2Space M]
+  {σ : SmoothTwoForm J M}
+
+/-- **Hamiltonian isotopies and their composition.** Let `σ` be a symplectic form on a
+finite-dimensional Hausdorff manifold `M` without boundary, and write `X_t` for the velocity
+`TauCeti.Diffeotopy.velocity` of a diffeotopy `φ_t`.
+
+* A diffeotopy `φ_t` all of whose slices preserve `σ` is Hamiltonian exactly when every
+  `ι_{X_t} σ` is exact, and exactly when some smooth `H` on `M × [0, 1]` has `ι_{X_t} σ = dH_t`
+  for every `t` (`H` generates `φ_t`, `TauCeti.Diffeotopy.IsGeneratedBy`).
+* Two functions generating the same diffeotopy differ, on each connected component of `M`, by a
+  smooth function of time.
+* If `F` generates `φ_t` and `G` generates `ψ_t`, and the slices of `φ_t` preserve `σ`, then
+  `F_t + G_t ∘ φ_t⁻¹` generates `φ_t ∘ ψ_t` (`Ψ.trans Φ`) and `-F_t ∘ φ_t` generates `φ_t⁻¹`; for
+  `χ` preserving `σ`, `F_t ∘ χ` generates `χ⁻¹ ∘ φ_t ∘ χ` (`Φ.transDiffeomorph χ.symm`).
+* The group `Ham(M, σ)` of final maps of Hamiltonian diffeotopies lies in the group
+  `Symp(M, σ)` of diffeomorphisms preserving `σ`, and is normal there.
+* A diffeotopy is a compactly supported Hamiltonian diffeotopy exactly when its slices preserve
+  `σ` and it is generated by a function that vanishes off a compact subset of `M` at every time.
+  Every smooth function on `M × [0, 1]` that vanishes off a compact set `K` generates such a
+  diffeotopy, which fixes every point outside `K`.
+* The group `Ham_c(M, σ)` of final maps of compactly supported Hamiltonian diffeotopies lies in
+  `Ham(M, σ)`, is normal in `Symp(M, σ)`, and equals `Ham(M, σ)` when `M` is compact.
+
+Milestone: *Hamiltonian isotopies and their composition*. -/
+theorem isHamiltonian_iff_and_normal_hamiltonianGroup (hσ : σ.IsSymplectic) :
+    (∀ Φ : Diffeotopy J ∞ M, (∀ t, Φ.timeSlice t ∈ SmoothForm.diffeomorphStabilizer σ) →
+      (Φ.IsHamiltonian σ ↔ ∀ t, σ.interiorₗ (Φ.velocity t) ∈ exactForms J M 1) ∧
+        (Φ.IsHamiltonian σ ↔ ∃ G, Φ.IsGeneratedBy σ G)) ∧
+    (∀ (Φ : Diffeotopy J ∞ M) (F G : M × unitInterval → ℝ), Φ.IsGeneratedBy σ F →
+      Φ.IsGeneratedBy σ G → ∃ c : ConnectedComponents M → unitInterval → ℝ,
+        (∀ i, ContMDiff (𝓡∂ 1) 𝓘(ℝ) ∞ (c i)) ∧
+          ∀ p, F p - G p = c (ConnectedComponents.mk p.1) p.2) ∧
+    (∀ (Φ Ψ : Diffeotopy J ∞ M) (F G : M × unitInterval → ℝ), Φ.IsGeneratedBy σ F →
+      Ψ.IsGeneratedBy σ G → (∀ t, Φ.timeSlice t ∈ SmoothForm.diffeomorphStabilizer σ) →
+      (Ψ.trans Φ).IsGeneratedBy σ (fun p ↦ F p + G (Φ.symm (p.2, p.1), p.2))) ∧
+    (∀ (Φ : Diffeotopy J ∞ M) (F : M × unitInterval → ℝ), Φ.IsGeneratedBy σ F →
+      (∀ t, Φ.timeSlice t ∈ SmoothForm.diffeomorphStabilizer σ) →
+      Φ.symm.IsGeneratedBy σ (fun p ↦ -F (Φ.cylinderMap p, p.2))) ∧
+    (∀ (Φ : Diffeotopy J ∞ M) (F : M × unitInterval → ℝ) (χ : M ≃ₘ⟮J, J⟯ M),
+      χ ∈ SmoothForm.diffeomorphStabilizer σ → Φ.IsGeneratedBy σ F →
+      (Φ.transDiffeomorph χ.symm).IsGeneratedBy σ (fun p ↦ F (χ p.1, p.2))) ∧
+    SmoothForm.hamiltonianGroup σ ≤ SmoothForm.diffeomorphStabilizer σ ∧
+    ((SmoothForm.hamiltonianGroup σ).subgroupOf (SmoothForm.diffeomorphStabilizer σ)).Normal ∧
+    (∀ Φ : Diffeotopy J ∞ M, Φ.IsCompactlySupportedHamiltonian σ ↔
+      (∀ t, Φ.timeSlice t ∈ SmoothForm.diffeomorphStabilizer σ) ∧
+        ∃ G, Φ.IsGeneratedBy σ G ∧ ∃ K : Set M, IsCompact K ∧
+          ∀ p : M × unitInterval, p.1 ∉ K → G p = 0) ∧
+    (∀ (G : M × unitInterval → ℝ) (K : Set M), ContMDiff (J.prod (𝓡∂ 1)) 𝓘(ℝ) ∞ G →
+      IsCompact K → (∀ p : M × unitInterval, p.1 ∉ K → G p = 0) →
+      ∃ Φ : Diffeotopy J ∞ M, Φ.IsGeneratedBy σ G ∧ Φ.IsCompactlySupportedHamiltonian σ ∧
+        ∀ t, ∀ x ∉ K, Φ (t, x) = x) ∧
+    SmoothForm.compactlySupportedHamiltonianGroup σ ≤ SmoothForm.hamiltonianGroup σ ∧
+    ((SmoothForm.compactlySupportedHamiltonianGroup σ).subgroupOf
+      (SmoothForm.diffeomorphStabilizer σ)).Normal ∧
+    (CompactSpace M →
+      SmoothForm.compactlySupportedHamiltonianGroup σ = SmoothForm.hamiltonianGroup σ) :=
+  ⟨fun _ hΦ ↦ ⟨Diffeotopy.isHamiltonian_iff_forall_interiorₗ_velocity_mem_exactForms hΦ,
+      Diffeotopy.isHamiltonian_iff_exists_isGeneratedBy.trans (and_iff_right hΦ)⟩,
+    fun _ _ _ hF hG ↦ hF.exists_sub_eq hG,
+    fun _ _ _ _ hF hG hΦ ↦ hF.trans hG hΦ,
+    fun _ _ hF hΦ ↦ hF.symm hΦ,
+    fun _ _ _ hχ hF ↦ hF.transDiffeomorph hχ,
+    SmoothForm.hamiltonianGroup_le_isotopyStabilizer.trans
+      SmoothForm.isotopyStabilizer_le_diffeomorphStabilizer,
+    inferInstance,
+    fun _ ↦ Diffeotopy.isCompactlySupportedHamiltonian_iff_isGeneratedBy,
+    fun _ _ hG hK hGK ↦ Diffeotopy.exists_isCompactlySupportedHamiltonian hσ hG hK hGK,
+    SmoothForm.compactlySupportedHamiltonianGroup_le_hamiltonianGroup,
+    inferInstance,
+    fun _ ↦ SmoothForm.compactlySupportedHamiltonianGroup_eq_hamiltonianGroup⟩
+
+end SmoothTwoForm.IsSymplectic
 
 end TauCeti
 

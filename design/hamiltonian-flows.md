@@ -559,8 +559,11 @@ compositions is as in Decision 1.
   slices preserve `σ`, `Φ.IsHamiltonian σ ↔ ∀ t, σ.interiorₗ (Φ.velocity t) ∈
   exactForms J M 1` and `Φ.IsHamiltonian σ ↔ ∃ G` generating `Φ`; two
   generating functions differ by a function of time on each component; the
-  three rules; `((hamiltonianGroup σ).subgroupOf (diffeomorphStabilizer σ)).Normal`;
+  three rules; `hamiltonianGroup σ ≤ diffeomorphStabilizer σ` and
+  `((hamiltonianGroup σ).subgroupOf (diffeomorphStabilizer σ)).Normal`;
+  `isCompactlySupportedHamiltonian_iff_isGeneratedBy` and
   `exists_isCompactlySupportedHamiltonian`;
+  `compactlySupportedHamiltonianGroup_le_hamiltonianGroup`,
   `((compactlySupportedHamiltonianGroup σ).subgroupOf
   (diffeomorphStabilizer σ)).Normal`; and, for `[CompactSpace M]`,
   `compactlySupportedHamiltonianGroup σ = hamiltonianGroup σ`. Milestone:
