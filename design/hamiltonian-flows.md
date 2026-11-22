@@ -624,6 +624,9 @@ identity, which Tau Ceti proves (`IsNondegenerate.poissonBracket_jacobi`).
   (the general flow lemma) for `PoissonAlgebra.lean`.
 - From *Liouville structures*: `Geometry/Manifold/MFDeriv/Opens.lean`
   (`mdifferentiable_subtypeVal`) for `DeRham/FamilyPrimitive.lean`.
+- From *Isotopy extension*: `Geometry/Manifold/ContMDiff/Opens.lean`
+  (`ContMDiff.contMDiffOn_prod_opens_of_eq`), which imports only Mathlib
+  and is merged, for `DeRham/FamilyPrimitive.lean`.
 - From Tau Ceti: the declarations of *What there is*.
 - From Mathlib: `VectorField.mlieBracket`, `ContMDiff.contMDiff_tangentMap`,
   `LieHom.quotKerEquivRange`, `LieEquiv.ofEq`,
