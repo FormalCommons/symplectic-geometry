@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.Algebra.Homology.Monoidal.Abelian
 public import SymplecticGeometry.AlgebraicTopology.Singular.Kunneth.Pair
 public import SymplecticGeometry.AlgebraicTopology.Singular.PairMap
 public import TauCeti.AlgebraicTopology.Singular.CrossProduct
@@ -295,11 +296,7 @@ theorem singularHomologyCrossRelPair_naturality {X' Y' : TopCat.{w}} {A' : Set X
 
 section Coefficients
 
--- Instance search does not find the monoidal structure on chain complexes when `C` is abelian,
--- although its hypotheses hold; it is given here, so that the lemmas of monoidal categories apply
--- to the tensor products of chain complexes below.
-noncomputable local instance : MonoidalCategory (ChainComplex C ℕ) :=
-  HomologicalComplex.monoidalCategory C (ComplexShape.down ℕ)
+open scoped ChainComplex
 
 variable {X Y A B R S} {R' S' : C} (φ : R ⟶ R') (ψ : S ⟶ S')
 
