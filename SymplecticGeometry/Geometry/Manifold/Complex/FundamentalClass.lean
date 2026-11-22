@@ -23,6 +23,11 @@ orientations these charts select differ by the sign of `det conjCLE`, that is by
 carries the one selected by the conjugation chart at `x` to the one selected by `refl` at
 `conj x`.
 
+The proof follows Tau Ceti's `TauCeti.comap_complexHomologicalOrientation`, the statement for a
+holomorphic map, with its sign step taken from
+`TauCeti.complexHomologicalOrientation_apply_of_mem_maximalAtlas`; here the determinant is `-1`
+where those have a positive one.
+
 ## Main results
 
 * `TauCeti.comap_conjCLE_complexHomologicalOrientation`: pulling the canonical orientation of `ℂ`
