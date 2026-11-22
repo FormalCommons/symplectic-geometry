@@ -353,14 +353,15 @@ theorem L2Form.IsWeakSolution.exists_contDiffOn_ae_eq_localize {u : L2Form o k}
     simp only [Matrix.mulVec, dotProduct]
     refine ContDiffOn.sum fun q _ ↦ ContDiffOn.mul ?_ ?_
     · exact (ContDiffOn.matrix_inv_apply (fun p q ↦ (ψ.contDiffOn_formInnerInChart_apply (e p)
-        (e q)).mono hVt) (fun y hy ↦ (ψ.posDef_formInnerInChart e (hVt hy)).det_pos.ne') p q)
+        (e q)).mono hVt)
+        (fun y hy ↦ (ψ.posDef_formInnerInChart (by simp) e (hVt hy)).det_pos.ne') p q)
     · exact (hg'.clm_apply contDiffOn_const).div (hD.mono hVt) fun y hy ↦ (hDpos y (hVt hy)).ne'
   · filter_upwards [hwg, ae_restrict_mem hV.measurableSet] with y hy hyV
     have hz : (fun q ↦ g' y (e q) / D y) = fun q ↦ ψ.formInnerInChart y (U y) (e q) := by
       ext q
       rw [← hy, hw, mul_div_cancel_left₀ _ (hDpos y (hVt hyV)).ne']
     rw [hz]
-    exact ψ.eq_sum_inv_mulVec_formInnerInChart e (hVt hyV) (U y)
+    exact ψ.eq_sum_inv_mulVec_formInnerInChart (by simp) e (hVt hyV) (U y)
 
 /-- The localization of a weak solution of `Δu = f`, with `f` smooth, to a chart `ψ` with a smooth
 cutoff `ρ` supported in its source, is almost everywhere a smooth flat form with compact support
