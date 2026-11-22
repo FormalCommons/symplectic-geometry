@@ -14,9 +14,9 @@ public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.Compl
 Let `(V, ω)` be a vector bundle with a two-form, `J` a complex structure on `V` compatible with
 `ω`, and `Ψ` a symplectic frame of `V` along a map `f : X → M`: linear isomorphisms
 `Ψ x : StdSpace ι ≃L[ℝ] V (f x)` that carry `ω₀ = stdForm ι` to `ω` and depend continuously on
-`x` as maps into the total space. This file shows that `Ψ` can be made unitary by a continuous change of frame in the symplectic
-group: there is a continuous `P : X → Sp(2n)` such that `Ψ x ∘ P x` carries the standard complex
-structure `J₀` to `J`.
+`x` as maps into the total space. This file shows that `Ψ` can be made unitary by a continuous
+change of frame in the symplectic group: there is a continuous `P : X → Sp(2n)` such that
+`Ψ x ∘ P x` carries the standard complex structure `J₀` to `J`.
 
 Read through `Ψ x`, the structure `J (f x)` becomes a complex structure on `StdSpace ι` compatible
 with `ω₀`, and its pairings `ω₀(v, ·)` are those of `ω` with sections of `V`, so they depend
