@@ -171,11 +171,11 @@ theorem isZero_compactSupportCohomology_sup [T2Space X] {U V : Opens X} {m : ℕ
       (inf_le_left.trans le_sup_left) (m + 1)).2 hW
 
 /-- **Vanishing of cohomology with compact supports over an inf-closed family of open sets.** Let
-`S` be a family of open sets of a Hausdorff space `X`, closed under intersection, whose finite
-unions cover `X`. If `Hᵐ_c(W) = 0` for every `W ∈ S` and every `m > d`, then `Hᵐ_c(X) = 0` for
+`S` be a family of open sets of a Hausdorff space `X`, closed under intersection, that covers
+`X`. If `Hᵐ_c(W) = 0` for every `W ∈ S` and every `m > d`, then `Hᵐ_c(X) = 0` for
 every `m > d`. -/
 theorem isZero_compactSupportCohomology_of_infClosed [T2Space X] {S : Set (Opens X)}
-    (hS : InfClosed S) (hcover : ⨆ s : Finset S, s.sup Subtype.val = ⊤) {d : ℕ}
+    (hS : InfClosed S) (hcover : sSup S = ⊤) {d : ℕ}
     (hbase : ∀ W ∈ S, ∀ m, d < m → IsZero ((of W).compactSupportCohomology R k N m))
     {m : ℕ} (hm : d < m) : IsZero ((of X).compactSupportCohomology R k N m) := by
   -- Vanishing passes to the finite unions of members of `S`, by Mayer–Vietoris.
@@ -190,7 +190,7 @@ theorem isZero_compactSupportCohomology_of_infClosed [T2Space X] {S : Set (Opens
   -- They form a directed family covering `X`; `(Opens.toTopCat (of X)).obj W` is `of W` by
   -- definition.
   exact isZero_compactSupportCohomology_of_iSup_eq_top R k N (X := of X)
-    (U := fun s : Finset S ↦ s.sup Subtype.val) (fun _ _ hst ↦ Finset.sup_mono hst) hcover
-    fun s ↦ hT s m hm
+    (U := fun s : Finset S ↦ s.sup Subtype.val) (fun _ _ hst ↦ Finset.sup_mono hst)
+    (by rw [iSup_finset_sup_eq_iSup, ← sSup_eq_iSup', hcover]) fun s ↦ hT s m hm
 
 end TopCat
