@@ -483,7 +483,8 @@ and `Geometry/Manifold/MFDeriv/Constancy.lean`, and defines nothing.
   the identity chart), in `LocalHomology/Orientation/StdSimplex.lean`. So the
   correctly signed homological orientation is
   `(-o).toHomologicalOrientation hE'`. `StdSimplex.lean` imports
-  `LinearAlgebra/Complex/Orientation.lean` and
+  `LinearAlgebra/Complex/Orientation.lean`,
+  `AlgebraicTopology/Singular/LocalHomology/Orientation/Plane.lean` and
   `AlgebraicTopology/Singular/LocalHomology/Orientation/Smooth.lean` of part
   *First Chern number*.
 
