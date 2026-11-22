@@ -448,8 +448,7 @@ theorem bilinFormAt_compContinuousLinearMap (ω : ContMDiffTwoForm I n F V) (x :
   simp only [bilinFormAt_apply, compContinuousLinearMap_apply,
     ContinuousAlternatingMap.compContinuousLinearMap_apply]
   congr 1
-  ext i
-  fin_cases i <;> rfl
+  exact (FinVec.etaExpand_eq _).symm
 
 end CompContinuousLinearMap
 

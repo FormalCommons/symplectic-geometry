@@ -94,8 +94,8 @@ theorem gramInChart_apply_eq_mpullback_symm_apply {J : SmoothAlmostComplexStruct
   rw [gramInChart_apply, hg, SmoothBundleForm.eval₂_apply, hJ]
   refine Eq.trans ?_ (TauCeti.mpullback_apply _ _ _ _).symm
   congr 1
-  ext i
-  fin_cases i <;> rfl
+  -- The outer `Eq.symm` makes Lean read the vector off the goal's right side.
+  exact Eq.symm (FinVec.etaExpand_eq _).symm
 
 end Metric
 
