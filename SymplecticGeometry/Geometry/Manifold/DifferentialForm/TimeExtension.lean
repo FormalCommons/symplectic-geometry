@@ -73,8 +73,7 @@ private theorem contMDiff_timeExtend_slice (Ω : SmoothForm ((𝓡∂ 1).prod I)
   have hS : ContMDiff ((𝓡∂ 1).prod I) (I.prod 𝓘(ℝ, E [⋀^Fin k]→L[ℝ] F)) ∞
       (fun q : unitInterval × M ↦ TotalSpace.mk' (E [⋀^Fin k]→L[ℝ] F)
         (E := fun y : M ↦ TangentSpace I y [⋀^Fin k]→L[ℝ] Trivial M F y) q.2 (g q)) :=
-    SymplecticGeometry.isSmoothFamily_iff_contMDiff.mp
-      (SymplecticGeometry.isSmoothFamily_def.mpr ⟨Ω, fun _ ↦ rfl⟩)
+    contMDiff_mpullback_prodMk Ω
   intro p₀
   set e := trivializationAt (E [⋀^Fin k]→L[ℝ] F)
     (fun y : M ↦ TangentSpace I y [⋀^Fin k]→L[ℝ] Trivial M F y) p₀.2
@@ -125,6 +124,7 @@ theorem timeExtendSlice_coe (t : unitInterval) :
     exact SymplecticGeometry.timeExtend_apply_coe (F := E [⋀^Fin k]→L[ℝ] F) _ t x
 
 /-- The slices of the time extension are additive in the form. -/
+@[simp]
 theorem timeExtendSlice_add (s : ℝ) :
     timeExtendSlice (Ω + Θ) s = timeExtendSlice Ω s + timeExtendSlice Θ s := by
   refine Subtype.ext <| funext fun x ↦ ?_
@@ -140,6 +140,7 @@ theorem timeExtendSlice_add (s : ℝ) :
   exact congrFun (SymplecticGeometry.timeExtend_add (F := E [⋀^Fin k]→L[ℝ] F) _ _) (s, x)
 
 /-- The slices of the time extension commute with multiplication by a scalar. -/
+@[simp]
 theorem timeExtendSlice_smul (c : ℝ) (s : ℝ) :
     timeExtendSlice (c • Ω) s = c • timeExtendSlice Ω s := by
   refine Subtype.ext <| funext fun x ↦ ?_
@@ -191,6 +192,23 @@ theorem mpullback_prodMk_timeExtend_eq_timeExtendSlice (s : ℝ) :
     mpullback (Prod.mk s) (contMDiff_const.prodMk contMDiff_id) (timeExtend Ω) =
       timeExtendSlice Ω s := by
   rw [timeExtend_def, mpullback_prodMk_ofSlices]
+
+/-- The slices of the time extension of the zero form vanish. -/
+@[simp]
+theorem timeExtendSlice_zero (s : ℝ) :
+    timeExtendSlice (0 : SmoothForm ((𝓡∂ 1).prod I) (unitInterval × M) F k) s = 0 := by
+  simp only [← mpullback_prodMk_timeExtend_eq_timeExtendSlice, map_zero]
+
+/-- The slices of the time extension commute with negation of the form. -/
+@[simp]
+theorem timeExtendSlice_neg (s : ℝ) : timeExtendSlice (-Ω) s = -timeExtendSlice Ω s := by
+  simp only [← mpullback_prodMk_timeExtend_eq_timeExtendSlice, map_neg]
+
+/-- The slices of the time extension commute with subtraction of forms. -/
+@[simp]
+theorem timeExtendSlice_sub (s : ℝ) :
+    timeExtendSlice (Ω - Θ) s = timeExtendSlice Ω s - timeExtendSlice Θ s := by
+  simp only [← mpullback_prodMk_timeExtend_eq_timeExtendSlice, map_sub]
 
 /-- At a time `t ∈ [0, 1]`, the slice of the time extension `TauCeti.SmoothForm.timeExtend Ω` is
 the slice of `Ω`. -/
