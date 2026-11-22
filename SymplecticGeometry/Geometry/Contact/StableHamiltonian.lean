@@ -380,11 +380,10 @@ theorem mpullback_prodMk_stableHamiltonianModel (α : SmoothForm I M ℝ 1)
   set g : C^∞⟮𝓘(ℝ).prod I, ℝ × M; ℝ⟯ := ⟨Prod.fst, contMDiff_fst⟩
   have hsmul : mpullback (Prod.mk r) (contMDiff_const.prodMk contMDiff_id)
       (funSMulₗ g (mpullback Prod.snd contMDiff_snd α)) = r • α := by
-    apply Subtype.ext
-    rw [coe_mpullback, coe_funSMulₗ g, TauCeti.mpullback_fun_smul,
-      ← coe_mpullback (Prod.mk r) (contMDiff_const.prodMk contMDiff_id),
-      mpullback_prodMk_mpullback_snd, smul_toRoughForm]
-    simp only [g, ContMDiffMap.coeFn_mk, Pi.smul_def]
+    -- Both sides send `x` to `r`.
+    have hg : g.comp ⟨Prod.mk r, contMDiff_const.prodMk contMDiff_id⟩ = ContMDiffMap.const r :=
+      ContMDiffMap.ext fun _ ↦ rfl
+    rw [mpullback_funSMulₗ, mpullback_prodMk_mpullback_snd, hg, funSMulₗ_const]
   rw [stableHamiltonianModel_def, map_sub, mpullback_prodMk_mpullback_snd, ← mextDerivₗ_mpullback,
     hsmul, map_smul]
 
@@ -496,10 +495,7 @@ theorem stableHamiltonianModel_neg_mextDerivₗ (α : SmoothForm I M ℝ 1) :
   set r : C^∞⟮𝓘(ℝ).prod I, ℝ × M; ℝ⟯ := ⟨Prod.fst, contMDiff_fst⟩
   set β : SmoothForm (𝓘(ℝ).prod I) (ℝ × M) ℝ 1 := mpullback Prod.snd contMDiff_snd α
   have hsmul : funSMulₗ g β = β + funSMulₗ r β := by
-    apply Subtype.ext
-    rw [add_toRoughForm, coe_funSMulₗ g, coe_funSMulₗ r]
-    funext p
-    simp only [g, r, ContMDiffMap.coeFn_mk, Pi.add_apply, add_smul, one_smul]
+    rw [show g = 1 + r from ContMDiffMap.ext fun _ ↦ rfl, funSMulₗ_add, funSMulₗ_one]
   rw [stableHamiltonianModel_def, map_neg, ← mextDerivₗ_mpullback, hsmul, map_add, neg_add,
     sub_eq_add_neg]
 

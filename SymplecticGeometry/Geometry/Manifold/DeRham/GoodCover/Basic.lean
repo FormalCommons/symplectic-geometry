@@ -30,6 +30,9 @@ has one.
   `SymplecticGeometry.IsSmoothlyContractible.of_starConvex_image_extChartAt`: its cases for an
   open set of the model space with star-convex image, a nonempty open convex set of a normed
   space, and an open set inside a chart with star-convex image.
+* `SymplecticGeometry.exists_mem_isSmoothlyContractible`: every point has a smoothly contractible
+  open neighbourhood, and `SymplecticGeometry.IsSmoothlyContractible.connectedSpace`: a smoothly
+  contractible manifold is connected.
 * `SymplecticGeometry.IsFiniteGoodCover.hasFiniteGoodCover` and
   `SymplecticGeometry.IsSmoothlyContractible.hasFiniteGoodCover`.
 
@@ -75,6 +78,16 @@ variable {N : Type*} [TopologicalSpace N] [ChartedSpace H N]
 theorem IsSmoothlyContractible.nonempty (h : IsSmoothlyContractible I N) : Nonempty N :=
   let ⟨c, _⟩ := h
   ⟨c⟩
+
+/-- A smoothly contractible manifold is connected: the contraction joins every point to the
+centre. -/
+theorem IsSmoothlyContractible.connectedSpace (h : IsSmoothlyContractible I N) :
+    ConnectedSpace N := by
+  obtain ⟨c, F, hF, h₀, h₁⟩ := h
+  have : PreconnectedSpace N := ⟨isPreconnected_of_forall c fun y _ ↦
+    ⟨range fun s ↦ F (y, s), subset_univ _, ⟨0, h₀ y⟩, ⟨1, h₁ y⟩,
+      isPreconnected_range (hF.continuous.comp (continuous_const.prodMk continuous_id))⟩⟩
+  exact ⟨⟨c⟩⟩
 
 /-- Smooth contractibility is invariant under diffeomorphisms. -/
 theorem IsSmoothlyContractible.of_diffeomorph {E' H' : Type*} [NormedAddCommGroup E']
@@ -129,6 +142,26 @@ theorem IsSmoothlyContractible.of_starConvex_image_extChartAt [IsManifold I ∞ 
   .of_starConvex_image (contMDiffOn_extChartAt.mono (extChartAt_source I x ▸ hU))
     ((contMDiffOn_extChartAt_symm x).mono ((extChartAt I x).mapsTo.mono_left hU).image_subset)
     (fun _ hy ↦ (extChartAt I x).left_inv (hU hy)) hc hne
+
+/-- Every point of a manifold has a smoothly contractible open neighbourhood. -/
+theorem exists_mem_isSmoothlyContractible [IsManifold I ∞ M] (x : M) :
+    ∃ U : Opens M, x ∈ U ∧ IsSmoothlyContractible I U := by
+  set e := extChartAt I x
+  obtain ⟨ε, hε, hsub⟩ := Metric.mem_nhdsWithin_iff.1 (extChartAt_target_mem_nhdsWithin (I := I) x)
+  let U : Opens M := ⟨e.source ∩ e ⁻¹' Metric.ball (e x) ε,
+    isOpen_extChartAt_preimage' x Metric.isOpen_ball⟩
+  have hxU : x ∈ U := ⟨mem_extChartAt_source x, Metric.mem_ball_self hε⟩
+  have himage : e '' U = Metric.ball (e x) ε ∩ range I := by
+    refine Subset.antisymm ?_ fun z hz ↦ ?_
+    · rintro _ ⟨y, hy, rfl⟩
+      exact ⟨hy.2, extChartAt_target_subset_range x (e.map_source hy.1)⟩
+    · have hz' := hsub hz
+      refine ⟨e.symm z, ⟨e.map_target hz', ?_⟩, e.right_inv hz'⟩
+      simpa only [mem_preimage, e.right_inv hz'] using hz.1
+  refine ⟨U, hxU, .of_starConvex_image_extChartAt (fun y hy ↦ hy.1) (c := e x) ?_ ⟨x, hxU⟩⟩
+  rw [himage]
+  exact ((convex_ball _ _).inter I.convex_range).starConvex
+    ⟨Metric.mem_ball_self hε, mem_range_self _⟩
 
 end Contractible
 

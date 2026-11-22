@@ -11,6 +11,7 @@ public import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
 public import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
 public import TauCeti.Geometry.Manifold.VectorBundle.Pullback
+import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Basic
 
 /-!
 # Diffeomorphisms of neighbourhoods with a prescribed derivative
@@ -388,9 +389,7 @@ theorem exists_diffeomorph_opens_mfderiv_eq [SecondCountableTopology M₀]
   | inl hQ =>
     have : IsEmpty (⊥ : Opens M₀) := ⟨fun x ↦ x.property⟩
     have : IsEmpty (⊥ : Opens M₁) := ⟨fun x ↦ x.property⟩
-    exact ⟨⊥, ⊥, { Equiv.equivOfIsEmpty _ _ with
-      contMDiff_toFun := fun x ↦ (IsEmpty.false x).elim
-      contMDiff_invFun := fun y ↦ (IsEmpty.false y).elim }, fun q ↦ (hQ.false q).elim⟩
+    exact ⟨⊥, ⊥, Diffeomorph.ofIsEmpty, fun q ↦ (hQ.false q).elim⟩
   | inr hQ =>
     have : LocallyCompactSpace H₀ := I₀.locallyCompactSpace
     have : LocallyCompactSpace M₀ := ChartedSpace.locallyCompactSpace H₀ M₀

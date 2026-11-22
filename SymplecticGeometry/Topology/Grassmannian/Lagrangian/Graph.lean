@@ -310,8 +310,7 @@ theorem continuous_of_coe_eq_graph {X : Type*} [TopologicalSpace X] {γ : X → 
     (hγc : Continuous γ) {A : X → Matrix ι ι ℝ}
     (hγ : ∀ t, (γ t : Submodule ℝ (StdSpace ι)) = StdSpace.graph (A t)) : Continuous A := by
   classical
-  have hg (t : X) : γ t = graph ⟨A t, isHermitian_iff_isSymm.2
-      ((isLagrangian_graph_iff _).1 (hγ t ▸ (γ t).isLagrangian))⟩ :=
+  have hg (t : X) : γ t = graph ⟨A t, isHermitian_of_coe_eq_graph (hγ t)⟩ :=
     toSubmodule_injective (by rw [coe_graph]; exact hγ t)
   have hs (t : X) :
       γ t ∈ (graphChart : OpenPartialHomeomorph (ℒ ι) (selfAdjoint (Matrix ι ι ℝ))).source := by

@@ -7,11 +7,9 @@ module
 
 public import Mathlib.Geometry.Manifold.VectorBundle.ContinuousAlternatingMap
 public import Mathlib.Geometry.Manifold.VectorBundle.ContMDiffSection
-public import Mathlib.Topology.VectorBundle.FiniteDimensional
 public import SymplecticGeometry.Topology.FiberBundle.Basic
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.ContinuousAlternatingMap
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Hom
-public import TauCeti.Analysis.Normed.Module.Alternating.Curry
 public import TauCeti.Geometry.Manifold.VectorBundle.Bilinear.Section
 public import TauCeti.Geometry.Manifold.VectorBundle.ContinuousAlternatingMap
 public import TauCeti.Geometry.Manifold.VectorBundle.Section.Map
@@ -76,9 +74,11 @@ rank to be even (for finite rank, a nondegenerate form forces it), and rank zero
 ## Implementation notes
 
 This file carries Tau Ceti's two-forms on the tangent bundle over to an arbitrary vector bundle.
-The proof of `contMDiff_flat` adapts that of `TauCeti.SmoothTwoForm.contMDiffAt_sectionAlong_flatL`
-(`TauCeti/Geometry/Symplectic/Manifold/Flat.lean`), and the nondegeneracy API adapts Tau Ceti's
-for `TauCeti.SmoothTwoForm.IsNondegenerate` (`TauCeti/Geometry/Symplectic/Manifold/TwoForm.lean`).
+At each point, the flat map and the two-form of a bilinear section are the maps
+`Bundle.flatAt` and `Bundle.alternatingMapOfBilin` of
+`Geometry/Manifold/VectorBundle/ContinuousAlternatingMap.lean`, and their smoothness is the case
+`b = id` of the lemmas there. The nondegeneracy API adapts Tau Ceti's for
+`TauCeti.SmoothTwoForm.IsNondegenerate` (`TauCeti/Geometry/Symplectic/Manifold/TwoForm.lean`).
 The rank-two criterion `isNondegenerate_iff_forall_ne_zero_of_finrank_eq_two` takes over the
 fibrewise step of `TauCeti.SmoothTwoForm.isNondegenerate_iff_forall_ne_zero_of_finrank_eq_two`
 (`TauCeti/Geometry/Symplectic/Manifold/Surface.lean`).
@@ -197,27 +197,18 @@ theorem bilinFormAt_eq_zero_iff (x : M) : ω.bilinFormAt x = 0 ↔ ω x = 0 := b
 /-! ### The flat map -/
 
 /-- The flat map `v ↦ ω(v, ·)` of a two-form on the fibre over `x`, a point of the bundle of
-continuous bilinear forms on `V`. The fibre carries no norm, so this is Tau Ceti's
-`ContinuousAlternatingMap.flatL` read through the fibre coordinates of
-`trivializationAt F V x`; `flat_apply` shows that the choice does not matter. -/
+continuous bilinear forms on `V`: the flat map `Bundle.flatAt` of the value of `ω` at `x`. -/
 def flat (x : M) : V x →L[ℝ] V x →L[ℝ] ℝ :=
-  let e := (trivializationAt F V x).continuousLinearEquivAt ℝ x
-    (FiberBundle.mem_baseSet_trivializationAt F V x)
-  (e.arrowCongr (e.arrowCongr (ContinuousLinearEquiv.refl ℝ ℝ))).symm
-    (ContinuousAlternatingMap.flatL ℝ F ℝ ((ω x).compContinuousLinearMap e.symm))
+  _root_.Bundle.flatAt F (ω x)
+
+/-- The flat map of `ω` at `x` is the flat map of the value of `ω` at `x`. -/
+theorem flat_def (x : M) : ω.flat x = _root_.Bundle.flatAt F (ω x) :=
+  (rfl)
 
 /-- The flat map evaluates as the form: `ω♭_x v w = ω_x(v, w)`. -/
 @[simp]
 theorem flat_apply (x : M) (v w : V x) : ω.flat x v w = ω x ![v, w] := by
-  simp only [flat, ContinuousLinearEquiv.arrowCongr, ContinuousLinearEquiv.arrowCongrSL_symm_apply,
-    ContinuousLinearMap.comp_apply, ContinuousLinearEquiv.coe_coe,
-    ContinuousAlternatingMap.flatL_apply_apply,
-    ContinuousAlternatingMap.compContinuousLinearMap_apply, ContinuousLinearEquiv.refl_symm,
-    ContinuousLinearEquiv.coe_refl, ContinuousLinearMap.id_apply]
-  congr 1
-  ext i
-  fin_cases i <;> simp [Trivialization.symm_apply_apply_mk _
-    (FiberBundle.mem_baseSet_trivializationAt F V x)]
+  rw [flat_def, _root_.Bundle.flatAt_apply]
 
 /-- The flat map at `x` is the continuous form of the bilinear form at `x`. -/
 theorem toBilinForm_flat (x : M) : (ω.flat x).toBilinForm = ω.bilinFormAt x := by
@@ -229,25 +220,9 @@ forms on `V`. -/
 theorem contMDiff_flat :
     ContMDiff I (I.prod 𝓘(ℝ, F →L[ℝ] F →L[ℝ] ℝ)) n
       (fun x ↦ TotalSpace.mk' (F →L[ℝ] F →L[ℝ] ℝ)
-        (E := fun x ↦ V x →L[ℝ] V x →L[ℝ] ℝ) x (ω.flat x)) := by
-  intro x₀
-  rw [contMDiffAt_hom_bundle]
-  have hω := (contMDiffAt_continuousAlternatingMap_bundle _).1 (ω.contMDiff x₀)
-  refine ⟨contMDiffAt_id, ?_⟩
-  refine ((ContinuousAlternatingMap.flatL ℝ F ℝ).contDiff.comp_contMDiffAt
-    hω.2).congr_of_eventuallyEq ?_
-  filter_upwards [(trivializationAt F V x₀).open_baseSet.mem_nhds
-    (FiberBundle.mem_baseSet_trivializationAt F V x₀)] with x hx
-  ext v w
-  rw [inCoordinates_apply_eq₂ (E₃ := Trivial M ℝ) hx hx (Set.mem_univ _), Function.comp_apply,
-    ContinuousAlternatingMap.flatL_apply_apply, flat_apply]
-  simp only [Trivial.fiberBundle_trivializationAt', Trivial.linearMapAt_trivialization,
-    Trivial.continuousLinearMapAt_trivialization, ContinuousAlternatingMap.inCoordinates,
-    ContinuousLinearMap.id_compContinuousAlternatingMap,
-    ContinuousAlternatingMap.compContinuousLinearMap_apply, LinearMap.id_coe, id_eq]
-  congr 1
-  ext i
-  fin_cases i <;> exact (Trivialization.symmL_apply _ hx _).symm
+        (E := fun x ↦ V x →L[ℝ] V x →L[ℝ] ℝ) x (ω.flat x)) :=
+  fun x₀ ↦ by
+    simpa only [id_eq, ← flat_def] using contMDiffAt_sectionAlong_flatAt (b := id) (ω.contMDiff x₀)
 
 /-- Pairing two sections that are `C^n` on a set `s` with a `C^n` two-form gives a function that
 is `C^n` on `s`: `y ↦ ω_y(u y, v y)`. -/
@@ -352,36 +327,21 @@ section OfBilinearSection
 
 variable [FiniteDimensional ℝ F]
 
-/-- The alternating map on the fibre over `x` of a bilinear section that vanishes on the
-diagonal. -/
-private def ofBilinearSectionAt (β : TauCeti.Manifold.BilinearSection I F V ℝ n)
-    (hβ : ∀ x (v : V x), β x v v = 0) (x : M) : V x [⋀^Fin 2]→L[ℝ] ℝ :=
-  haveI := VectorBundle.finiteDimensional (R := ℝ) (F := F) (E := V) x
-  haveI := FiberBundle.t2Space (E := V) F x
-  AlternatingMap.toContinuousAlternatingMap
-    (LinearMap.IsAlt.toAlternatingMap (ω := (β x).toBilinForm) (hβ x))
-
-private theorem ofBilinearSectionAt_apply (β : TauCeti.Manifold.BilinearSection I F V ℝ n)
-    (hβ : ∀ x (v : V x), β x v v = 0) (x : M) (v : Fin 2 → V x) :
-    ofBilinearSectionAt β hβ x v = β x (v 0) (v 1) := by
-  simp only [ofBilinearSectionAt, AlternatingMap.coe_toContinuousAlternatingMap]
-  exact LinearMap.IsAlt.toAlternatingMap_apply _ v
-
 /-- On a bundle of finite rank, the two-form `(v, w) ↦ β(v, w)` of a `C^n` bilinear section `β`
 that vanishes on the diagonal, `β(v, v) = 0`. -/
 def ofBilinearSection (β : TauCeti.Manifold.BilinearSection I F V ℝ n)
     (hβ : ∀ x (v : V x), β x v v = 0) : ContMDiffTwoForm I n F V where
-  toFun := ofBilinearSectionAt β hβ
+  toFun x := _root_.Bundle.alternatingMapOfBilin F (β x) (hβ x)
   contMDiff_toFun x :=
-    TauCeti.contMDiffAt_continuousAlternatingMap_bundle_of_bilinear (β.contMDiff x)
-      fun _ v ↦ ofBilinearSectionAt_apply β hβ _ v
+    contMDiffAt_sectionAlong_continuousAlternatingMap_of_bilinear (b := id) (β.contMDiff x)
+      fun _ v ↦ _root_.Bundle.alternatingMapOfBilin_apply _ _ v
 
 /-- The two-form of a bilinear section `β` takes the value `β(v 0, v 1)` on `v`. -/
 @[simp]
 theorem ofBilinearSection_apply (β : TauCeti.Manifold.BilinearSection I F V ℝ n)
     (hβ : ∀ x (v : V x), β x v v = 0) (x : M) (v : Fin 2 → V x) :
     ofBilinearSection β hβ x v = β x (v 0) (v 1) :=
-  ofBilinearSectionAt_apply β hβ x v
+  _root_.Bundle.alternatingMapOfBilin_apply _ _ v
 
 /-- The bilinear form on the fibre over `x` of the two-form of a bilinear section `β` is `β x`. -/
 @[simp]
