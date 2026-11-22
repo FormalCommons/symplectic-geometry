@@ -7,11 +7,11 @@ module
 
 public import Mathlib.Geometry.Manifold.LocalDiffeomorph
 public import TauCeti.Geometry.Manifold.Complex.Isothermal
+public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Pullback
 public import TauCeti.Geometry.Symplectic.Manifold.Nijenhuis
 import Mathlib.Geometry.Manifold.MFDeriv.Tangent
-import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
-import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 import TauCeti.Geometry.Manifold.MFDeriv.RestrictScalars
 import TauCeti.Geometry.Symplectic.Finrank
 import TauCeti.Geometry.Manifold.VectorField.LieBracket
@@ -34,9 +34,9 @@ is preserved by pulling back along diffeomorphisms, and it forces the Nijenhuis 
 the pullbacks along a chart of the constant vector fields of `E` span every tangent space, `J`
 carries them to one another, and their Lie brackets vanish, as in Tau Ceti's
 `SmoothAlmostComplexStructure.nijenhuis_const`, by Mathlib's `VectorField.mpullback_mlieBracket`.
-On a real surface, integrable structures have isothermal charts in the sense of Tau Ceti's
-`SmoothAlmostComplexStructure.HasIsothermalCharts`, and smooth isothermal charts make a structure
-integrable.
+On a real surface, a structure is integrable exactly when isothermal charts of the smooth maximal
+atlas cover the surface; in particular integrable structures have isothermal charts in the sense of
+Tau Ceti's `SmoothAlmostComplexStructure.HasIsothermalCharts`.
 
 ## Main declarations
 
@@ -48,10 +48,10 @@ integrable.
   pullback along a diffeomorphism.
 * `TauCeti.SmoothAlmostComplexStructure.IsIntegrable.nijenhuis_eq_zero`: the Nijenhuis tensor of
   an integrable structure vanishes.
-* `TauCeti.SmoothAlmostComplexStructure.IsIntegrable.hasIsothermalCharts` and
-  `TauCeti.SmoothAlmostComplexStructure.isIntegrable_of_forall_isIsothermalChart`: on a surface,
-  integrable structures have isothermal charts, and smooth isothermal charts covering the surface
-  make the structure integrable.
+* `TauCeti.SmoothAlmostComplexStructure.isIntegrable_iff_forall_exists_isIsothermalChart` and
+  `TauCeti.SmoothAlmostComplexStructure.IsIntegrable.hasIsothermalCharts`: on a surface,
+  integrability is the existence of smooth isothermal charts around every point, and integrable
+  structures have isothermal charts.
 
 ## References
 
@@ -161,6 +161,29 @@ theorem IsIntegrable.nijenhuis_eq_zero [FiniteDimensional ℝ E]
   rw [hsurj, hsurj] at h
   simpa using h
 
+/-- Following a smooth chart `ψ` into `G` whose derivative carries `J` to `J₀` by a continuous
+linear equivalence `L : G ≃L[ℝ] G'` gives a chart whose derivative carries `J` to the transport of
+`J₀` along `L`, at every point of its source. -/
+theorem mfderiv_trans_toDiffeomorph_apply_eq_transport {G G' : Type*} [NormedAddCommGroup G]
+    [NormedSpace ℝ G] [NormedAddCommGroup G'] [NormedSpace ℝ G']
+    {ψ : PartialDiffeomorph I 𝓘(ℝ, G) M G ∞} {J₀ : AlmostComplexStructure G}
+    (hψ : ∀ y ∈ ψ.source, ∀ v : TangentSpace I y,
+      mfderiv I 𝓘(ℝ, G) ψ y (J y v) = J₀ (mfderiv I 𝓘(ℝ, G) ψ y v)) (L : G ≃L[ℝ] G') :
+    ∀ y ∈ (ψ.trans L.toDiffeomorph.toPartialDiffeomorph).source, ∀ v : TangentSpace I y,
+      mfderiv I 𝓘(ℝ, G') (ψ.trans L.toDiffeomorph.toPartialDiffeomorph) y (J y v) =
+        J₀.transport L.toLinearEquiv
+          (mfderiv I 𝓘(ℝ, G') (ψ.trans L.toDiffeomorph.toPartialDiffeomorph) y v) := by
+  intro y hy v
+  have hy' : y ∈ ψ.source := by simpa using hy
+  have hd (u : TangentSpace I y) :
+      mfderiv I 𝓘(ℝ, G') (ψ.trans L.toDiffeomorph.toPartialDiffeomorph) y u =
+        L (mfderiv I 𝓘(ℝ, G) ψ y u) := by
+    rw [← mvfderiv_apply_eq_mfderiv_apply, ← mvfderiv_apply_eq_mfderiv_apply,
+      ψ.mvfderiv_trans_toDiffeomorph L hy', ContinuousLinearMap.comp_apply,
+      ContinuousLinearEquiv.coe_coe]
+  rw [hd, hd, hψ y hy' v, AlmostComplexStructure.transport_apply]
+  exact congrArg (fun z : G ↦ L (J₀ z)) (L.symm_apply_apply _).symm
+
 /-- **Integrability is invariant under pullback.** The pullback of an integrable almost complex
 structure along a diffeomorphism is integrable. -/
 theorem IsIntegrable.pullback [FiniteDimensional ℝ E] {E' H' N : Type*} [NormedAddCommGroup E']
@@ -172,28 +195,23 @@ theorem IsIntegrable.pullback [FiniteDimensional ℝ E] {E' H' N : Type*} [Norme
   intro x
   obtain ⟨ψ, J₀, hx, hψ⟩ := hJ (h x)
   have hn : (∞ : WithTop ℕ∞) ≠ 0 := by simp
-  -- A chart of `N` read through `h` takes values in `E'`; a linear isomorphism `E' ≃ E` brings
-  -- it back to the model of `M`.
+  -- The chart `ψ` read through `h` takes values in `E'`, and carries `pullback h J` to `J₀`.
+  let Ψ : PartialDiffeomorph I 𝓘(ℝ, E') M E' ∞ := h.toPartialDiffeomorph.trans ψ
+  have hc : (Ψ : M → E') = ψ ∘ h := by
+    ext z
+    simp [Ψ]
+  have hΨ : ∀ y ∈ Ψ.source, ∀ v : TangentSpace I y,
+      mfderiv I 𝓘(ℝ, E') Ψ y (SmoothAlmostComplexStructure.pullback h J y v) =
+        J₀ (mfderiv I 𝓘(ℝ, E') Ψ y v) := by
+    intro y hy v
+    have hy' : h y ∈ ψ.source := by simpa [Ψ] using hy
+    rw [hc, mfderiv_comp_apply y (ψ.mdifferentiableAt hn hy') (h.mdifferentiable hn y),
+      mfderiv_comp_apply y (ψ.mdifferentiableAt hn hy') (h.mdifferentiable hn y),
+      mfderiv_pullback_apply, hψ _ hy']
+  -- A linear isomorphism `E' ≃ E` brings it back to the model of `M`.
   let L : E' ≃L[ℝ] E := (h.mfderivToContinuousLinearEquiv hn x).symm
-  let Φ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞ :=
-    (h.toPartialDiffeomorph.trans ψ).trans L.toPartialDiffeomorph
-  have hΦ : (Φ : M → E) = L ∘ ψ ∘ h := by
-    ext y
-    simp [Φ]
-  have hsource : Φ.source = h ⁻¹' ψ.source := by
-    ext y
-    simp [Φ]
-  refine ⟨Φ, J₀.transport L.toLinearEquiv, hsource ▸ hx, fun y hy v ↦ ?_⟩
-  rw [hsource] at hy
-  have hψy := ψ.mdifferentiableAt hn hy
-  have hd (u : TangentSpace I y) : mfderiv I 𝓘(ℝ, E) Φ y u =
-      L (mfderiv I' 𝓘(ℝ, E') ψ (h y) (mfderiv I I' h y u)) := by
-    rw [hΦ, mfderiv_comp_apply y L.mdifferentiableAt (hψy.comp y (h.mdifferentiable hn y)),
-      mfderiv_comp_apply y hψy (h.mdifferentiable hn y), L.mfderiv_eq]
-    -- `L` as a continuous linear map, applied on a tangent space of `E'`, which is `E'`.
-    rfl
-  rw [hd, hd, mfderiv_pullback_apply, hψ _ hy, AlmostComplexStructure.transport_apply]
-  exact congrArg (fun z : E' ↦ L (J₀ z)) (L.symm_apply_apply _).symm
+  exact ⟨Ψ.trans L.toDiffeomorph.toPartialDiffeomorph, J₀.transport L.toLinearEquiv,
+    by simpa [Ψ] using hx, mfderiv_trans_toDiffeomorph_apply_eq_transport _ hΨ L⟩
 
 end Chart
 
@@ -213,14 +231,12 @@ theorem isIntegrable_of_forall_mem_maximalAtlas {J : SmoothAlmostComplexStructur
   rw [isIntegrable_iff_mfderiv]
   intro x
   obtain ⟨e, he, hx, J₀, hJ⟩ := h x
-  -- A chart of the smooth maximal atlas is a smooth partial diffeomorphism to the model space.
-  let ψ : PartialDiffeomorph 𝓘(ℝ, E) 𝓘(ℝ, E) M E ∞ :=
-    { toPartialEquiv := e.toPartialEquiv
-      open_source := e.open_source
-      open_target := e.open_target
-      contMDiffOn_toFun := contMDiffOn_of_mem_maximalAtlas he
-      contMDiffOn_invFun := contMDiffOn_symm_of_mem_maximalAtlas he }
-  exact ⟨ψ, J₀, hx, hJ⟩
+  -- A chart of the smooth maximal atlas, as a smooth partial diffeomorphism to the model space.
+  have hc : ⇑(e.toPartialDiffeomorphOfMemMaximalAtlas he).toPartialEquiv = e := by
+    rw [OpenPartialHomeomorph.coe_toPartialDiffeomorphOfMemMaximalAtlas, modelWithCornersSelf_coe,
+      Function.id_comp]
+  exact ⟨e.toPartialDiffeomorphOfMemMaximalAtlas he, J₀, by simpa using hx,
+    fun y hy v ↦ by rw [hc]; exact hJ y (by simpa using hy) v⟩
 
 end ModelSpace
 
@@ -250,14 +266,34 @@ section Surface
 variable {M : Type*} [TopologicalSpace M] [ChartedSpace ℂ M] [IsManifold 𝓘(ℝ, ℂ) ∞ M]
   {j : SmoothAlmostComplexStructure 𝓘(ℝ, ℂ) M}
 
-/-- An almost complex structure on a real surface is integrable when every point lies in the
-source of an isothermal chart of the smooth maximal atlas. -/
-theorem isIntegrable_of_forall_isIsothermalChart
-    (h : ∀ x : M, ∃ e ∈ IsManifold.maximalAtlas 𝓘(ℝ, ℂ) ∞ M,
-      IsIsothermalChart j e ∧ x ∈ e.source) :
-    j.IsIntegrable :=
-  isIntegrable_of_forall_mem_maximalAtlas fun x ↦ by
-    obtain ⟨e, he, hj, hx⟩ := h x
+/-- An almost complex structure on a real surface is integrable exactly when every point lies in
+the source of an isothermal chart of the smooth maximal atlas. -/
+theorem isIntegrable_iff_forall_exists_isIsothermalChart :
+    j.IsIntegrable ↔ ∀ x : M, ∃ e ∈ IsManifold.maximalAtlas 𝓘(ℝ, ℂ) ∞ M,
+      IsIsothermalChart j e ∧ x ∈ e.source := by
+  refine ⟨fun hj x ↦ ?_, fun h ↦ isIntegrable_of_forall_mem_maximalAtlas fun x ↦ ?_⟩
+  · rw [isIntegrable_iff_mfderiv] at hj
+    obtain ⟨ψ, J₀, hx, hψ⟩ := hj x
+    -- A real-linear automorphism `L` of `ℂ` carrying `J₀` to multiplication by `i`.
+    obtain ⟨φ, hφ⟩ := J₀.exists_linearEquiv_I_smul (G := ℂ) (by simp)
+    let L : ℂ ≃L[ℝ] ℂ := φ.symm.toContinuousLinearEquiv
+    have hL (w : ℂ) : J₀.transport L.toLinearEquiv w = Complex.I • w := by
+      apply φ.injective
+      simpa [L] using (hφ w).symm
+    let Φ : PartialDiffeomorph 𝓘(ℝ, ℂ) 𝓘(ℝ, ℂ) M ℂ ∞ :=
+      ψ.trans L.toDiffeomorph.toPartialDiffeomorph
+    have hΦ := mfderiv_trans_toDiffeomorph_apply_eq_transport _ hψ L
+    have hn : (∞ : WithTop ℕ∞) ≠ 0 := by simp
+    have hmem : Φ.toOpenPartialHomeomorph ∈ IsManifold.maximalAtlas 𝓘(ℝ, ℂ) ∞ M := by
+      rw [IsManifold.mem_maximalAtlas_iff_contMDiffOn]
+      exact ⟨Φ.contMDiffOn, Φ.symm.contMDiffOn⟩
+    refine ⟨Φ.toOpenPartialHomeomorph, hmem,
+      ⟨IsManifold.maximalAtlas_subset_of_le (by simp) hmem, fun y hy ↦ ?_⟩,
+      by simpa [Φ] using hx⟩
+    refine isPseudoholomorphicAt_iff_mfderiv.2 ⟨Φ.mdifferentiableAt hn hy, fun w ↦ ?_⟩
+    simp only [PartialDiffeomorph.toFun'_toOpenPartialHomeomorph]
+    exact (hΦ y hy w).trans ((hL _).trans (ofComplexManifold_apply (E := ℂ) _ _).symm)
+  · obtain ⟨e, he, hj, hx⟩ := h x
     exact ⟨e, he, hx, AlmostComplexStructure.ofComplexModule ℂ, fun y hy v ↦
       (hj.mfderiv_apply_commute hy v).trans ((ofComplexManifold_apply _ _).trans
         (AlmostComplexStructure.ofComplexModule_apply (V := ℂ) _).symm)⟩
@@ -265,38 +301,8 @@ theorem isIntegrable_of_forall_isIsothermalChart
 /-- **An integrable structure on a real surface has isothermal charts.** -/
 theorem IsIntegrable.hasIsothermalCharts (hj : j.IsIntegrable) : j.HasIsothermalCharts where
   exists_isIsothermalChart x := by
-    rw [isIntegrable_iff_mfderiv] at hj
-    obtain ⟨ψ, J₀, hx, hψ⟩ := hj x
-    -- A real-linear automorphism `L` of `ℂ` carrying `J₀` to multiplication by `i`.
-    obtain ⟨φ, hφ⟩ := J₀.exists_linearEquiv_I_smul (G := ℂ) (by simp)
-    let L : ℂ ≃L[ℝ] ℂ := φ.symm.toContinuousLinearEquiv
-    have hL (w : ℂ) : L (J₀ w) = Complex.I • L w := by
-      apply φ.injective
-      simp only [L, LinearEquiv.coe_toContinuousLinearEquiv', LinearEquiv.apply_symm_apply]
-      rw [hφ, LinearEquiv.apply_symm_apply]
-    let Φ : PartialDiffeomorph 𝓘(ℝ, ℂ) 𝓘(ℝ, ℂ) M ℂ ∞ := ψ.trans L.toPartialDiffeomorph
-    have hΦ : (Φ : M → ℂ) = L ∘ ψ := by
-      ext y
-      simp [Φ]
-    have hsource : Φ.source = ψ.source := by
-      ext y
-      simp [Φ]
-    have hn : (∞ : WithTop ℕ∞) ≠ 0 := by simp
-    refine ⟨Φ.toOpenPartialHomeomorph, ⟨?_, fun y hy ↦ ?_⟩, hsource ▸ hx⟩
-    · rw [IsManifold.mem_maximalAtlas_iff_contMDiffOn]
-      exact ⟨Φ.contMDiffOn.of_le (by simp), Φ.symm.contMDiffOn.of_le (by simp)⟩
-    · have hy' : y ∈ ψ.source := hsource ▸ hy
-      refine isPseudoholomorphicAt_iff_mfderiv.2 ⟨Φ.mdifferentiableAt hn hy, fun w ↦ ?_⟩
-      have hd (u : TangentSpace 𝓘(ℝ, ℂ) y) :
-          mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, ℂ) Φ y u = L (mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, ℂ) ψ y u) := by
-        rw [hΦ, mfderiv_comp_apply y L.mdifferentiableAt (ψ.mdifferentiableAt hn hy'),
-          L.mfderiv_eq]
-        -- `L` as a continuous linear map, applied on a tangent space of `ℂ`, which is `ℂ`.
-        rfl
-      simp only [PartialDiffeomorph.toFun'_toOpenPartialHomeomorph]
-      exact (hd _).trans ((congrArg L (hψ y hy' w)).trans ((hL _).trans
-        ((congrArg (fun z : ℂ ↦ Complex.I • z) (hd w).symm).trans
-          (ofComplexManifold_apply (E := ℂ) _ _).symm)))
+    obtain ⟨e, -, he, hx⟩ := isIntegrable_iff_forall_exists_isIsothermalChart.1 hj x
+    exact ⟨e, he, hx⟩
 
 end Surface
 
