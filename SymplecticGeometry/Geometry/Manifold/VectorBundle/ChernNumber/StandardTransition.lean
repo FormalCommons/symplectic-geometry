@@ -7,12 +7,10 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.ChernNumber.UnitSection
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Hermitian.CircleBundle
-import Mathlib.Analysis.Calculus.BumpFunction.InnerProduct
 import SymplecticGeometry.Analysis.SpecialFunctions.Complex.CircleLog
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Integration.CoordinateDisc
+import SymplecticGeometry.Geometry.Manifold.FiberBundle.Basic
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Section.Generic
-import SymplecticGeometry.Topology.Circle.FreeLoop
-import TauCeti.Analysis.SpecialFunctions.Complex.Arg
-import TauCeti.Geometry.Manifold.Algebra.LieGroup
 import TauCeti.Geometry.Manifold.VectorBundle.Section.FiniteSpan
 
 /-!
@@ -38,25 +36,21 @@ The construction:
 * disjoint oriented coordinate discs `φ i` about the zeros, each inside the domain of a smooth
   local unit section `σ i`
   (`SymplecticGeometry.CoordinateDisc.exists_ofChart_pairwise_disjoint`,
-  `SymplecticGeometry.Bundle.exists_contMDiffOn_circleFiber`);
+  `SymplecticGeometry.Bundle.exists_contMDiffOn_circleFiber`), with smooth extensions to the
+  ball of radius `2` and smooth left inverses
+  (`SymplecticGeometry.CoordinateDisc.contMDiffOn_symm_add_smul_orthonormalBasisOneI_repr`,
+  `SymplecticGeometry.CoordinateDisc.contMDiffOn_smul_orthonormalBasisOneI_repr_symm_sub`);
 * off the zeros, the unit section `ν = s / ‖s‖`
   (`SymplecticGeometry.Bundle.contMDiffOn_normalizedFrame`), which on the punctured `i`-th disc is
   `σ i` acted on by a smooth map `w i` to the circle (Tau Ceti's `ContMDiffOn.division`);
-* the normal form of `w i` (`Circle.exists_contMDiffOn_mul_eq_exp_arg_zpow`): with `k i` the
-  degree of `w i` on the unit circle, `w i * (z / ‖z‖) ^ (-k i)` has degree `0`, so it is
-  `exp (i h)` for a smooth real `h` (`Circle.exists_contDiffOn_exp_eq_of_circleDegree_eq_zero`),
-  and multiplying `w i` by `c i = exp (-i χ h)`, for a radial cut-off `χ` equal to `1` on the unit
-  disc and to `0` from radius `3 / 2` on, makes it `(z / ‖z‖) ^ k i` on the punctured unit disc
-  without changing it near the edge of the disc;
+* the normal form of `w i` (`Circle.exists_contMDiffOn_mul_eq_exp_arg_zpow`, in
+  `Analysis/SpecialFunctions/Complex/CircleLog.lean`): with `k i` the degree of `w i` on the unit
+  circle, a correction `c i`, smooth on the punctured disc and equal to `1` from radius `3 / 2`
+  on, makes `w i * c i = (z / ‖z‖) ^ k i` on the punctured unit disc;
 * `σout = ν • ∏ i, c i`, with `c i` read through the inverse of `φ i` and extended by `1`.
 
 ## Main results
 
-* `Circle.contMDiffOn_exp_arg`: the direction `z ↦ z / ‖z‖ = exp (i arg z)` is smooth on
-  `ℂ \ {0}`.
-* `Circle.exists_contMDiffOn_mul_eq_exp_arg_zpow`: a smooth circle-valued map on a punctured
-  disc agrees with `(z / ‖z‖) ^ k` near the centre after multiplication by a smooth map that is
-  `1` near the edge.
 * `SymplecticGeometry.Bundle.exists_coordinateDisc_unitSection_eq_exp_arg_zpow_smul`: unit
   sections over coordinate discs and off their centres with transitions `(z / ‖z‖) ^ k i`, whose
   sum is the first Chern number.
@@ -76,106 +70,14 @@ open Bundle Complex Function Module MulOpposite Set TauCeti TauCeti.OrthonormalF
   TauCeti.PrincipalBundle
 open scoped Manifold ContDiff
 
-namespace Circle
-
-attribute [local instance] finrank_real_complex_fact'
-
-/-- The direction `z / ‖z‖ = exp (i arg z)` is a smooth map from `ℂ \ {0}` to the circle. -/
-theorem contMDiffOn_exp_arg {n : ℕ∞ω} :
-    ContMDiffOn 𝓘(ℝ, ℂ) (𝓡 1) n (fun z : ℂ ↦ exp (arg z)) {0}ᶜ := by
-  refine ContMDiffOn.of_coe_sphere (E := ℂ) (contMDiffOn_iff_contDiffOn.2 ?_)
-  refine (contDiffOn_div_norm_pow 1).congr fun z hz ↦ ?_
-  simp [coe_exp, exp_arg_mul_I (show z ≠ 0 from hz)]
-
-/-- **Normal form of a smooth circle-valued map on a punctured disc.** Let `0 < r₁ < r₂` and
-`r₁ < b`, and let `w : ℂ → S¹` be smooth on the punctured disc `0 < ‖z‖ < b`. Then there are an
-integer `k` and a map `c : ℂ → S¹`, smooth on the punctured disc and equal to `1` where
-`r₂ ≤ ‖z‖`, such that `w z * c z = (z / ‖z‖) ^ k` (written `exp (i arg z) ^ k`) whenever
-`0 < ‖z‖ ≤ r₁`. -/
-theorem exists_contMDiffOn_mul_eq_exp_arg_zpow {r₁ r₂ b : ℝ} (h₁ : 0 < r₁) (h₁₂ : r₁ < r₂)
-    (h₁b : r₁ < b) {w : ℂ → Circle}
-    (hw : ContMDiffOn 𝓘(ℝ, ℂ) (𝓡 1) ∞ w {z | 0 < ‖z‖ ∧ ‖z‖ < b}) :
-    ∃ (k : ℤ) (c : ℂ → Circle), ContMDiffOn 𝓘(ℝ, ℂ) (𝓡 1) ∞ c {z | 0 < ‖z‖ ∧ ‖z‖ < b} ∧
-      (∀ z, r₂ ≤ ‖z‖ → c z = 1) ∧
-      ∀ z, 0 < ‖z‖ → ‖z‖ ≤ r₁ → w z * c z = exp (arg z) ^ k := by
-  have hmem (ζ : Circle) : ((r₁ : ℂ) * ζ) ∈ {z : ℂ | 0 < ‖z‖ ∧ ‖z‖ < b} := by
-    simp [abs_of_pos h₁, h₁.ne', h₁b]
-  -- the loop of `w` on the circle of radius `r₁`, and its degree `k`
-  let f : C(Circle, Circle) := ⟨fun ζ ↦ w (r₁ * ζ), hw.continuousOn.comp_continuous
-    (continuous_const.mul continuous_subtypeVal) hmem⟩
-  set k := f.circleDegree
-  -- `v = w / (z / ‖z‖) ^ k` has degree `0`, so it has a smooth logarithm `h`
-  let v : ℂ → Circle := fun z ↦ w z * (exp (arg z) ^ k)⁻¹
-  have hv : ContMDiffOn 𝓘(ℝ, ℂ) (𝓡 1) ∞ v {z | 0 < ‖z‖ ∧ ‖z‖ < b} :=
-    hw.mul (((TauCeti.contMDiff_zpow k).comp_contMDiffOn
-      (contMDiffOn_exp_arg.mono (t := {z : ℂ | 0 < ‖z‖ ∧ ‖z‖ < b})
-        fun z hz ↦ norm_pos_iff.1 hz.1)).inv)
-  let g : C(Circle, Circle) := f * (⟨(· ^ k), continuous_zpow k⟩ : C(Circle, Circle))⁻¹
-  have hg (ζ : Circle) : g ζ = v (r₁ * ζ) := by
-    simp [g, v, f, arg_ofReal_mul h₁, exp_arg]
-  obtain ⟨h, hh, hvh⟩ := exists_contDiffOn_exp_eq_of_circleDegree_eq_zero le_rfl h₁ h₁b hv g hg
-    (by simp [g, k])
-  -- `c = exp (-i χ h)` for a radial cut-off `χ`, equal to `1` on `‖z‖ ≤ r₁` and `0` on `r₂ ≤ ‖z‖`
-  let χ : ContDiffBump (0 : ℂ) := ⟨r₁, r₂, h₁, h₁₂⟩
-  refine ⟨k, fun z ↦ exp (-(χ z * h z)), contMDiff_circleExp.comp_contMDiffOn
-    ((χ.contDiff.contDiffOn.mul hh).neg).contMDiffOn, fun z hz ↦ ?_, fun z hz hz₁ ↦ ?_⟩
-  · simp [χ.zero_of_le_dist (by simpa using hz)]
-  · dsimp only
-    rw [χ.one_of_mem_closedBall (by simpa using hz₁), one_mul, exp_neg, ← hvh z hz
-      (hz₁.trans_lt h₁b)]
-    simp [v]
-
-end Circle
-
 namespace SymplecticGeometry
 
 namespace Bundle
 
 section Disc
 
-variable {M : Type} [TopologicalSpace M] [ChartedSpace (EuclideanSpace ℝ (Fin 2)) M]
-  [IsManifold (𝓡 2) ∞ M] [T2Space M]
+variable {M : Type} [TopologicalSpace M] [ChartedSpace (EuclideanSpace ℝ (Fin 2)) M] [T2Space M]
 
-/-- The coordinate disc of a chart `e` of the maximal smooth atlas is the restriction to the ball
-of a map `ψ : ℂ → M` that is smooth on the ball of radius `2`, and it has an inverse `B` that is
-smooth on the source of `e`. -/
-private theorem exists_contMDiffOn_ofChart {o : Manifold.Orientation (𝓡 2) M (Fin 2)}
-    {e : OpenPartialHomeomorph M (EuclideanSpace ℝ (Fin 2))}
-    (hatlas : e ∈ IsManifold.maximalAtlas (𝓡 2) ∞ M) {r : ℝ} (hr : 0 < r)
-    (hc : Metric.ball 0 r ⊆ e.target)
-    (he : ∀ y ∈ e.source,
-      o.IsOrientationPreservingAt (Manifold.Orientation.euclideanSpace 2) e y) :
-    ∃ (ψ : ℂ → M) (B : M → ℂ), ContMDiffOn 𝓘(ℝ, ℂ) (𝓡 2) ∞ ψ (Metric.ball 0 2) ∧
-      ContMDiffOn (𝓡 2) 𝓘(ℝ, ℂ) ∞ B e.source ∧
-      ∀ z : CoordinateDisc.ball, CoordinateDisc.ofChart e hr hc he z = ψ z ∧
-        B (CoordinateDisc.ofChart e hr hc he z) = z := by
-  -- `ψ = e.symm ∘ A` and `B = D ∘ e`, for the linear maps `A z = (r / 2) (re z, im z)` and
-  -- `D = A⁻¹`
-  let A : ℂ →L[ℝ] EuclideanSpace ℝ (Fin 2) :=
-    (r / 2) • (Complex.orthonormalBasisOneI.repr.toContinuousLinearEquiv :
-      ℂ →L[ℝ] EuclideanSpace ℝ (Fin 2))
-  let D : EuclideanSpace ℝ (Fin 2) →L[ℝ] ℂ :=
-    (r / 2)⁻¹ • (Complex.orthonormalBasisOneI.repr.symm.toContinuousLinearEquiv :
-      EuclideanSpace ℝ (Fin 2) →L[ℝ] ℂ)
-  have hDA (z : ℂ) : D (A z) = z := by
-    have hr' : (r : ℂ) ≠ 0 := by exact_mod_cast hr.ne'
-    simp [D, A]
-    field_simp
-  have hA {z : ℂ} (hz : ‖z‖ < 2) : A z ∈ e.target := by
-    simpa [A] using hc (CoordinateDisc.add_smul_orthonormalBasisOneI_repr_mem_ball 0 hr
-      ⟨z, CoordinateDisc.mem_ball_iff.2 hz⟩)
-  have hψ (z : CoordinateDisc.ball) : CoordinateDisc.ofChart e hr hc he z = e.symm (A z) := by
-    simp [A]
-  refine ⟨fun z ↦ e.symm (A z), fun x ↦ D (e x),
-    (contMDiffOn_symm_of_mem_maximalAtlas hatlas).comp A.contMDiff.contMDiffOn
-      fun z hz ↦ hA (by simpa using hz),
-    D.contMDiff.comp_contMDiffOn (contMDiffOn_of_mem_maximalAtlas hatlas),
-    fun z ↦ ⟨hψ z, ?_⟩⟩
-  rw [hψ]
-  dsimp only
-  rw [e.right_inv (hA (CoordinateDisc.mem_ball_iff.1 z.property)), hDA]
-
-omit [IsManifold (𝓡 2) ∞ M] in
 open scoped Classical in
 /-- Let `φ` be a coordinate disc, `B` a smooth inverse of `φ` on its image, and `c : ℂ → S¹`
 smooth on the punctured ball `0 < ‖z‖ < 2` and equal to `1` from radius `3 / 2` on. Then the
@@ -297,7 +199,18 @@ theorem exists_coordinateDisc_unitSection_eq_exp_arg_zpow_smul
     CoordinateDisc.exists_ofChart_pairwise_disjoint o (x := fun i : ι ↦ (i : M))
       Subtype.val_injective (U := fun i ↦ U i) fun i ↦ (hUo i).mem_nhds (hxU i)
   set φ := fun i ↦ CoordinateDisc.ofChart (e i) (hr i) (hc i) (he i)
-  choose ψ B hψs hBs hψB using fun i ↦ exists_contMDiffOn_ofChart (hatlas i) (hr i) (hc i) (he i)
+  -- `φ i` extends to `ψ i`, smooth on the ball of radius `2`, with a smooth left inverse `B i`
+  let ψ (i : ι) (z : ℂ) : M := (e i).symm (0 + (r i / 2) • Complex.orthonormalBasisOneI.repr z)
+  let B (i : ι) (x : M) : ℂ :=
+    (r i / 2)⁻¹ • Complex.orthonormalBasisOneI.repr.symm (e i x - 0)
+  have hψs (i : ι) : ContMDiffOn 𝓘(ℝ, ℂ) (𝓡 2) ∞ (ψ i) (CoordinateDisc.ball : Set ℂ) :=
+    CoordinateDisc.contMDiffOn_symm_add_smul_orthonormalBasisOneI_repr (e i) (hr i) (hc i)
+      (hatlas i)
+  have hBs (i : ι) : ContMDiffOn (𝓡 2) 𝓘(ℝ, ℂ) ∞ (B i) (e i).source :=
+    CoordinateDisc.contMDiffOn_smul_orthonormalBasisOneI_repr_symm_sub (e i) (hatlas i)
+  have hψB (i : ι) (z : CoordinateDisc.ball) : φ i z = ψ i z ∧ B i (φ i z) = z :=
+    ⟨CoordinateDisc.ofChart_apply (e i) (hr i) (hc i) (he i) z,
+      CoordinateDisc.smul_orthonormalBasisOneI_repr_symm_sub_ofChart (e i) (hr i) (hc i) (he i) z⟩
   -- the unit section `ν = s / ‖s‖`, smooth off the zeros
   set ν : ∀ x, Fiber ℂ F V ℂ x := fun x ↦ normalizedFrame (F := F) (s x)
   have hν : ContMDiffOn (𝓡 2) ((𝓡 2).prod (𝓡 1)) ∞
@@ -349,18 +262,15 @@ theorem exists_coordinateDisc_unitSection_eq_exp_arg_zpow_smul
       simp only [w]
       rw [(hψB i z).1]
     rw [← hck i z hz hz1.le, ← hdiv, ← hprod, op_mul, mul_smul, smul_division]
-  have hcont {S : Set M} {σ : ∀ x, Fiber ℂ F V ℂ x} (h : ContMDiffOn (𝓡 2) ((𝓡 2).prod (𝓡 1)) ∞
-      (fun x ↦ ManifoldTotalSpace.homeomorph Circle (Fiber ℂ F V ℂ) ⟨x, σ x⟩) S) :
-      ContinuousOn (fun x ↦ TotalSpace.mk' Circle x (σ x)) S :=
-    ((ManifoldTotalSpace.homeomorph Circle (Fiber ℂ F V ℂ)).symm.continuous.comp_continuousOn
-      h.continuousOn).congr fun x _ ↦ by simp
   refine ⟨ι, inferInstance, e, r, hr, hc, he, φ, fun i ↦ rfl, hatlas, hrdisj, k,
     fun i ↦ τ i, σout, fun i ↦ (hτ i).mono (hrU i),
     hσout.mono fun x hx h ↦ hx ⟨x, h⟩ (hzero h), hrel, ?_⟩
   refine (chernNumber_eq_sum_of_collar_eq_zpow_smul finrank_euclideanSpace_fin
     (fun i j h ↦ (hrdisj h).mono (φ i).disc_subset_range (φ j).disc_subset_range)
-    zero_lt_one (fun i ↦ hcont ((hτ i).mono ((φ i).disc_subset_range.trans (hrU i))))
-    (hcont (hσout.mono fun x hx h ↦ hx ?_)) k hrel).symm
+    zero_lt_one (fun i ↦ ManifoldTotalSpace.continuousOn_of_contMDiffOn_homeomorph
+      ((hτ i).mono ((φ i).disc_subset_range.trans (hrU i))))
+    (ManifoldTotalSpace.continuousOn_of_contMDiffOn_homeomorph
+      (hσout.mono fun x hx h ↦ hx ?_)) k hrel).symm
   exact mem_iUnion.2 ⟨⟨x, h⟩, 0, by simp, (hzero h).symm⟩
 
 end Surface
