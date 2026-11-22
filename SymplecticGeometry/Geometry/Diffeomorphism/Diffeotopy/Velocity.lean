@@ -39,6 +39,8 @@ sense of McDuff–Salamon, §3.1, and the time derivative that Tau Ceti's
 * `TauCeti.Diffeotopy.velocity_refl`: the constant diffeotopy has velocity zero.
 * `TauCeti.Diffeotopy.velocity_globalFlowDiffeotopy`: the flow of a complete field `v`, run for
   duration `a`, has velocity `a • v`.
+* `TauCeti.Diffeotopy.timeSlice_timeDependentFlowDiffeotopy`: the slice at time `t` of the
+  diffeotopy of a time-dependent field `X` is its flow from time `0` to time `t`.
 * `TauCeti.Diffeotopy.velocity_timeDependentFlowDiffeotopy`: the diffeotopy of a time-dependent
   field `X` has velocity `X t` at time `t`.
 * `TauCeti.Diffeotopy.mpullback_timeSlice_interior_velocity_apply`: `φ_t^* (ι_{X_t} σ)` on a
@@ -104,6 +106,24 @@ theorem mfderiv_cylinderMap_space (hn : 1 ≤ n) (p : M × unitInterval) (v : E)
   exact (hd.mfderiv_curry_left_apply v).trans (congrArg (fun f ↦ mfderiv J J f p.1 v) h)
 
 end Derivative
+
+section TimeDependentFlow
+
+variable [FiniteDimensional ℝ E] [T2Space M] [BoundarylessManifold J M] {n : ℕ∞}
+  [IsManifold J n M] [IsManifold J 1 M]
+
+/-- The slice at time `t` of the diffeotopy of a time-dependent field `X` is the time-dependent
+flow of `X` from time `0` to time `t`. -/
+@[simp]
+theorem timeSlice_timeDependentFlowDiffeotopy {X : ℝ → (x : M) → TangentSpace J x} (hn : 1 ≤ n)
+    (hX : ContMDiff (𝓘(ℝ, ℝ).prod J) J.tangent n
+      (fun p : ℝ × M ↦ (⟨p.2, X p.1 p.2⟩ : TangentBundle J M)))
+    (hc : IsCompleteVectorField (timeDependentSuspensionField X)) (t : unitInterval) :
+    ⇑((timeDependentFlowDiffeotopy hn hX hc).timeSlice t) = timeDependentFlowOf X 0 t := by
+  funext x
+  rw [timeSlice_apply, timeDependentFlowDiffeotopy_apply]
+
+end TimeDependentFlow
 
 variable [IsManifold J ∞ M] (Φ : Diffeotopy J ∞ M)
 

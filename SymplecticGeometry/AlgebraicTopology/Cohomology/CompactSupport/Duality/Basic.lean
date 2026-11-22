@@ -89,8 +89,6 @@ variable {M E : Type} [TopologicalSpace M] [T2Space M]
 
 section OpenSubset
 
-/-! ### Naturality along inclusions of open subsets -/
-
 /-- **Naturality of the duality map for an open subset**: for an open `W ⊆ M`, oriented by the
 restriction of `o`, extending compactly supported classes from `W` to `M` and then applying the
 duality map of `M` is applying the duality map of `W` and then pushing forward along the
