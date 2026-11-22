@@ -363,9 +363,10 @@ of its own, `Topology/FiberBundle/Compact.lean`, which this file imports.
 ### `Topology/VectorBundle/ProjectiveBundle/Tautological.lean`
 
 - `Projectivization.Tautological 𝕜 V : ℙ 𝕜 V → Type`, `ℓ ↦ ℓ.submodule`, the
-  tautological line over the projective space of a finite-dimensional normed
-  space `V`, a vector bundle with model `𝕜`, trivialized over the affine
-  open set of a nonzero functional `φ` by `v ↦ φ v`. And
+  tautological line over the projective space of a topological vector space
+  `V` (not only a normed one, since the fibres `E b` are not normed), a vector
+  bundle with model `𝕜` under `[SeparatingDual 𝕜 V]`, trivialized over the affine
+  open set of a nonzero continuous functional `φ` by `v ↦ φ v`. And
   `Projectivization.tautologicalComplZeroHomeomorph`: the complement of its
   zero section is homeomorphic to `{v : V // v ≠ 0}` by `v ↦ ([v], v)`.
   Tau Ceti's `finiteGrassmannian.Tautological 𝕜 1 N` lives on a

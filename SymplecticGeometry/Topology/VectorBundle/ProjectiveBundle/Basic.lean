@@ -411,7 +411,7 @@ theorem continuous_mk {X : Type*} [TopologicalSpace X] {g : X → TotalSpace G E
 
 variable (𝕜 G E) in
 /-- The projection of the projective bundle to the base, as a continuous map. -/
-def projection : C(ProjectiveBundle 𝕜 G E, B) :=
+@[expose] def projection : C(ProjectiveBundle 𝕜 G E, B) :=
   ⟨TotalSpace.proj, FiberBundle.continuous_proj _ _⟩
 
 @[simp]
@@ -443,7 +443,7 @@ theorem continuous_mapProjectivization_of_continuous {φ : ∀ b, E b ≃L[𝕜]
 /-- The homeomorphism of projective bundles over `B` induced by a fibrewise continuous linear
 equivalence `φ b : E b ≃L[𝕜] E' b` that is continuous on total spaces: it sends a line `ℓ ⊆ E b`
 to its image `φ b ℓ`. The inverse is continuous since `G` is finite-dimensional. -/
-def map [CompleteSpace 𝕜] [FiniteDimensional 𝕜 G] (φ : ∀ b, E b ≃L[𝕜] E' b)
+@[expose] def map [CompleteSpace 𝕜] [FiniteDimensional 𝕜 G] (φ : ∀ b, E b ≃L[𝕜] E' b)
     (hφ : Continuous fun v : TotalSpace G E ↦ TotalSpace.mk' G' v.proj (φ v.proj v.snd)) :
     ProjectiveBundle 𝕜 G E ≃ₜ ProjectiveBundle 𝕜 G' E' where
   toFun p := ⟨p.proj, (φ p.proj).mapProjectivization p.snd⟩
@@ -488,7 +488,7 @@ variable {B' : Type*} [TopologicalSpace B'] (f : C(B', B))
 variable (𝕜 G E) in
 /-- The map from the projective bundle of the pull-back `f *ᵖ E` to that of `E`, over `f`: a line
 in the fibre `E (f b')` over `b'` goes to the same line over `f b'`. -/
-def pullbackMap : C(ProjectiveBundle 𝕜 G (f *ᵖ E), ProjectiveBundle 𝕜 G E) where
+@[expose] def pullbackMap : C(ProjectiveBundle 𝕜 G (f *ᵖ E), ProjectiveBundle 𝕜 G E) where
   toFun p := ⟨f p.proj, p.snd⟩
   continuous_toFun := by
     rw [continuous_iff]
@@ -565,7 +565,7 @@ variable {G₁ : Type*} [NormedAddCommGroup G₁] [NormedSpace 𝕜 G₁] {E₁ 
 variable (G₂ E₂) in
 /-- The embedding of the projective bundle of `E₁` into that of the direct sum `E₁ ×ᵇ E₂`: a line
 `ℓ ⊆ E₁ b` goes to the line `ℓ × 0`. -/
-def inl : C(ProjectiveBundle 𝕜 G₁ E₁, ProjectiveBundle 𝕜 (G₁ × G₂) (E₁ ×ᵇ E₂)) where
+@[expose] def inl : C(ProjectiveBundle 𝕜 G₁ E₁, ProjectiveBundle 𝕜 (G₁ × G₂) (E₁ ×ᵇ E₂)) where
   toFun p := ⟨p.proj, Projectivization.map (LinearMap.inl 𝕜 (E₁ p.proj) (E₂ p.proj))
     LinearMap.inl_injective p.snd⟩
   continuous_toFun := by
@@ -582,7 +582,7 @@ def inl : C(ProjectiveBundle 𝕜 G₁ E₁, ProjectiveBundle 𝕜 (G₁ × G₂
 variable (G₁ E₁) in
 /-- The embedding of the projective bundle of `E₂` into that of the direct sum `E₁ ×ᵇ E₂`: a line
 `ℓ ⊆ E₂ b` goes to the line `0 × ℓ`. -/
-def inr : C(ProjectiveBundle 𝕜 G₂ E₂, ProjectiveBundle 𝕜 (G₁ × G₂) (E₁ ×ᵇ E₂)) where
+@[expose] def inr : C(ProjectiveBundle 𝕜 G₂ E₂, ProjectiveBundle 𝕜 (G₁ × G₂) (E₁ ×ᵇ E₂)) where
   toFun p := ⟨p.proj, Projectivization.map (LinearMap.inr 𝕜 (E₁ p.proj) (E₂ p.proj))
     LinearMap.inr_injective p.snd⟩
   continuous_toFun := by
