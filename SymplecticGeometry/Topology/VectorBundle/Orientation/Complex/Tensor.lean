@@ -7,6 +7,7 @@ module
 
 public import TauCeti.Topology.VectorBundle.Orientation.Complex.FiberwiseEquiv
 public import SymplecticGeometry.AlgebraicTopology.Cohomology.LerayHirsch.ProjectiveSpace
+public import SymplecticGeometry.Analysis.Normed.Module.TensorProduct.ProjectiveSeminorm
 public import SymplecticGeometry.Topology.VectorBundle.TensorProduct.External
 
 /-!
@@ -50,6 +51,9 @@ with `w ↦ v₀ ⊗ w`.
   underlying real bundle, and the top Chern class as its Euler class).
 * [R. Bott, L. W. Tu, *Differential Forms in Algebraic Topology*][BottTu1982], §20 (the
   tautological line of a projective space and the class `x = -e(S)`).
+* A. Hatcher, *Vector Bundles and K-Theory*, §3.1 (the proof of Proposition 3.10: the first
+  Chern class of a tensor product of line bundles, through the external tensor product of the
+  tautological lines of two projective spaces and the restriction to the two axes).
 -/
 
 public section
@@ -76,7 +80,7 @@ private theorem complexEulerClass_tensorProduct_tautological_left (y₀ : ℙ �
     complexEulerClass (r := 0) ℂ (Tautological ℂ V) (finrank_self ℂ) =
       TopCat.singularCohomologyMap (TopCat.ofHom (.prodMk (.id _) (.const _ y₀))) 2
         (complexEulerClass (r := 0) (ProjectiveTensor ℂ ℂ ℂ) TT
-          ((ProjectiveTensor.finrank_eq_mul ℂ ℂ ℂ).trans (by simp))) := by
+          (by simp)) := by
   -- `c ↦ c • y₀.rep`, from `ℂ` to the line `y₀`.
   let e : ℂ ≃ₗ[ℂ] Tautological ℂ W y₀ :=
     LinearEquiv.toSpanNonzeroSingleton ℂ W y₀.rep y₀.rep_ne_zero ≪≫ₗ
@@ -111,7 +115,7 @@ private theorem complexEulerClass_tensorProduct_tautological_right (x₀ : ℙ �
     complexEulerClass (r := 0) ℂ (Tautological ℂ W) (finrank_self ℂ) =
       TopCat.singularCohomologyMap (TopCat.ofHom (.prodMk (.const _ x₀) (.id _))) 2
         (complexEulerClass (r := 0) (ProjectiveTensor ℂ ℂ ℂ) TT
-          ((ProjectiveTensor.finrank_eq_mul ℂ ℂ ℂ).trans (by simp))) := by
+          (by simp)) := by
   -- `c ↦ c • x₀.rep`, from `ℂ` to the line `x₀`.
   let e : ℂ ≃ₗ[ℂ] Tautological ℂ V x₀ :=
     LinearEquiv.toSpanNonzeroSingleton ℂ V x₀.rep x₀.rep_ne_zero ≪≫ₗ
@@ -139,52 +143,13 @@ private theorem complexEulerClass_tensorProduct_tautological_right (x₀ : ℙ �
   convert hc using 3 with p
   exacts [by simp, heq_of_eq (hφ _ _)]
 
-/-- The vanishing criterion `eq_zero_of_singularCohomologyMap_eq_zero` for classes with values in
-`ULift ℤ` on the product `ℙ ℂ V × ℙ ℂ W` of types: a class of `H²(ℙ ℂ V × ℙ ℂ W; ULift ℤ)` whose
-pull-backs along `x ↦ (x, y₀)` and `y ↦ (x₀, y)` vanish is zero. -/
-private theorem eq_zero_of_singularCohomologyMap_prodMk_eq_zero [FiniteDimensional ℂ W] {m : ℕ}
-    (hW : finrank ℂ W = m + 1) [PathConnectedSpace (ℙ ℂ V)] (x₀ : ℙ ℂ V) (y₀ : ℙ ℂ W)
-    {c : (TopCat.of (ℙ ℂ V × ℙ ℂ W)).singularCohomology (ModuleCat.of ℤ (ULift.{0} ℤ)) ℤ
-      (ModuleCat.of ℤ (ULift.{0} ℤ)) 2}
-    (h₁ : TopCat.singularCohomologyMap (TopCat.ofHom (.prodMk (.id _) (.const _ y₀))) 2 c = 0)
-    (h₂ : TopCat.singularCohomologyMap (TopCat.ofHom (.prodMk (.const _ x₀) (.id _))) 2 c = 0) :
-    c = 0 := by
-  -- The cartesian product `X ⊗ Y` of `TopCat` is `ℙ ℂ V × ℙ ℂ W` itself: `e` and `e'` are the
-  -- identity map, and the equalities of morphisms below hold pointwise by `rfl`.
-  let X := TopCat.of (ℙ ℂ V)
-  let Y := TopCat.of (ℙ ℂ W)
-  let e : MonoidalCategoryStruct.tensorObj X Y ⟶ TopCat.of (ℙ ℂ V × ℙ ℂ W) :=
-    TopCat.ofHom (ContinuousMap.id _)
-  let e' : TopCat.of (ℙ ℂ V × ℙ ℂ W) ⟶ MonoidalCategoryStruct.tensorObj X Y :=
-    TopCat.ofHom (ContinuousMap.id _)
-  have he : e' ≫ e = 𝟙 _ := TopCat.ext fun _ ↦ rfl
-  have he₁ : lift (𝟙 X) (TopCat.const (X := X) (Y := Y) y₀) ≫ e =
-      TopCat.ofHom (.prodMk (.id _) (.const _ y₀)) :=
-    TopCat.ext fun _ ↦ rfl
-  have he₂ : TopCat.prodFiberInclusion X Y x₀ ≫ e =
-      TopCat.ofHom (.prodMk (.const _ x₀) (.id _)) := by
-    rw [TopCat.prodFiberInclusion_def]
-    exact TopCat.ext fun _ ↦ rfl
-  let I := (MonoidalCategoryStruct.tensorObj X Y).uliftIntegralCohomologyIso 2
-  have hc : I.hom (TopCat.singularCohomologyMap e 2 c) = 0 := by
-    refine eq_zero_of_singularCohomologyMap_eq_zero hW x₀ y₀ ?_ ?_ <;>
-    rw [← ConcreteCategory.comp_apply, ← TopCat.uliftIntegralCohomologyIso_naturality,
-      ConcreteCategory.comp_apply, ← ConcreteCategory.comp_apply (TopCat.singularCohomologyMap e 2),
-      ← TopCat.singularCohomologyMap_comp]
-    · rw [he₁, h₁, map_zero]
-    · rw [he₂, h₂, map_zero]
-  have hce : c = TopCat.singularCohomologyMap e' 2 (TopCat.singularCohomologyMap e 2 c) := by
-    rw [← ConcreteCategory.comp_apply, ← TopCat.singularCohomologyMap_comp, he,
-      TopCat.singularCohomologyMap_id, ConcreteCategory.id_apply]
-  rw [hce, ← Iso.hom_inv_id_apply I (TopCat.singularCohomologyMap e 2 c), hc, map_zero, map_zero]
-
 /-- **The Euler class of the external tensor product of two tautological lines.** Let `T` and
 `T'` be the tautological lines of the complex projective spaces `ℙ ℂ V` and `ℙ ℂ W`, with `W`
 finite-dimensional. The Euler class of the tensor product of their pull-backs to
 `ℙ ℂ V × ℙ ℂ W` along the two projections is `pr₁^* e(T) + pr₂^* e(T')`. -/
 theorem complexEulerClass_tensorProduct_tautological [FiniteDimensional ℂ W] :
     complexEulerClass (r := 0) (ProjectiveTensor ℂ ℂ ℂ) TT
-        ((ProjectiveTensor.finrank_eq_mul ℂ ℂ ℂ).trans (by simp)) =
+        (by simp) =
       TopCat.singularCohomologyMap (TopCat.ofHom ContinuousMap.fst) 2
           (complexEulerClass (r := 0) ℂ (Tautological ℂ V) (finrank_self ℂ)) +
         TopCat.singularCohomologyMap (TopCat.ofHom ContinuousMap.snd) 2
@@ -232,7 +197,7 @@ theorem uliftIntegralCohomologyIso_complexEulerClass_tensorProduct_tautological
     [FiniteDimensional ℂ W] :
     ((TopCat.of (ℙ ℂ V × ℙ ℂ W)).uliftIntegralCohomologyIso 2).hom
         (complexEulerClass (r := 0) (ProjectiveTensor ℂ ℂ ℂ) TT
-          ((ProjectiveTensor.finrank_eq_mul ℂ ℂ ℂ).trans (by simp))) =
+          (by simp)) =
       -(TopCat.singularCohomologyMap (TopCat.ofHom ContinuousMap.fst) 2 (hyperplaneClass V) +
         TopCat.singularCohomologyMap (TopCat.ofHom ContinuousMap.snd) 2 (hyperplaneClass W)) := by
   rw [complexEulerClass_tensorProduct_tautological, map_add, hyperplaneClass_def,

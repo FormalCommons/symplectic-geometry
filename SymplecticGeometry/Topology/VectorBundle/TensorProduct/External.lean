@@ -26,8 +26,6 @@ the tautological lines of two projective spaces: the instance term, which contai
 search. The instances here take those of `E₁` and `E₂` themselves, so the terms stay small. Each
 is Tau Ceti's instance, so nothing is changed up to definitional equality.
 
-The rank of the model fibre is the product of the ranks (`TauCeti.ProjectiveTensor.finrank_eq_mul`).
-
 As in Tau Ceti's file, the fibres `E₁ x ⊗[𝕜] E₂ y` are assumed to carry the `𝕜`-module topology;
 opening `TauCeti.ModuleTopology` provides it.
 -/
@@ -38,13 +36,6 @@ noncomputable section
 
 open Bundle Module
 open scoped TensorProduct
-
-/-- The projective tensor product `E ⊗ F` of two normed spaces has rank `finrank 𝕜 E * finrank 𝕜 F`,
-as the algebraic one does. -/
-theorem TauCeti.ProjectiveTensor.finrank_eq_mul (𝕜 E F : Type*) [NormedField 𝕜]
-    [SeminormedAddCommGroup E] [NormedSpace 𝕜 E] [SeminormedAddCommGroup F] [NormedSpace 𝕜 F] :
-    finrank 𝕜 (TauCeti.ProjectiveTensor 𝕜 E F) = finrank 𝕜 E * finrank 𝕜 F := by
-  rw [(TauCeti.ProjectiveTensor.linearEquiv 𝕜 E F).finrank_eq, finrank_tensorProduct]
 
 namespace Bundle.TensorProduct
 
