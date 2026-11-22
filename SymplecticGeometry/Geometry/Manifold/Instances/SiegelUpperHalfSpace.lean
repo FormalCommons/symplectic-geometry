@@ -12,8 +12,8 @@ public import TauCeti.Analysis.Matrix.Normed
 public import SymplecticGeometry.Analysis.Complex.SiegelUpperHalfSpace.Basic
 public import SymplecticGeometry.LinearAlgebra.Matrix.Symmetric
 import Mathlib.Analysis.LocallyConvex.HahnBanach
+import TauCeti.Geometry.Manifold.MFDeriv.Chart.Basic
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.Submodule
-import SymplecticGeometry.Geometry.Manifold.MFDeriv.Singleton
 
 /-!
 # The Siegel upper half space as a complex manifold
@@ -128,9 +128,7 @@ theorem hasMFDerivAt_coe (Z : SiegelUpperHalfSpace ι) :
       ((Submodule.subtypeL (𝒮 ι)).restrictScalars 𝕜) := by
   have hchart : HasMFDerivAt 𝓘(𝕜, 𝒮 ι) 𝓘(𝕜, 𝒮 ι) (chartAt (𝒮 ι) Z) Z
       (ContinuousLinearMap.id 𝕜 (𝒮 ι)) := by
-    have h := (mdifferentiableAt_atlas (I := 𝓘(𝕜, 𝒮 ι)) (chart_mem_atlas (𝒮 ι) Z)
-      (mem_chart_source (𝒮 ι) Z)).hasMFDerivAt
-    rwa [mfderiv_chartAt_of_chartAt_eq rfl] at h
+    simpa using TauCeti.hasMFDerivAt_extChartAt_self (I := 𝓘(𝕜, 𝒮 ι)) Z
   have hfun : ((↑) : SiegelUpperHalfSpace ι → Matrix ι ι ℂ) =
       (Submodule.subtypeL (𝒮 ι)).restrictScalars 𝕜 ∘ chartAt (𝒮 ι) Z :=
     funext fun W ↦ (coe_chartAt_apply Z W).symm
