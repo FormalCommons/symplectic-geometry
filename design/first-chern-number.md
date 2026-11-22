@@ -1015,7 +1015,14 @@ issues, in an order where each issue's blockers come before it.
    Tau Ceti's `System.lean`, for `exists_coordinateDisc`: local homology
    transport does not depend on the model, so a homological orientation
    can be read with the model `ℂ`
-   (`TauCeti.HomologicalOrientation.changeModel`). Done when this API is proved.
+   (`TauCeti.HomologicalOrientation.changeModel`).
+   `Orientation/Smooth.lean` also holds
+   `TauCeti.Manifold.Orientation.localHomologyMap_toHomologicalOrientation`,
+   which part *Pseudoholomorphic energy*'s `Orientation/Simplex.lean` uses,
+   and for it imports
+   `AlgebraicTopology/Singular/LocalHomology/LocalIndex.lean`, a copy of
+   `TauCeti.HomologicalOrientation.localIndex_eq_iff_of_preimage_subset`
+   from Tau Ceti's main branch. Done when this API is proved.
 6. **Argument principle for discs.**
    `AlgebraicTopology/Singular/LocalHomology/ArgumentPrinciple.lean`:
    `SymplecticGeometry.sum_degree_boundary_eq_zero`. Let `φ i`, `i : ι`
