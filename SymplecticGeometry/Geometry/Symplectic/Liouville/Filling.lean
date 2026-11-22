@@ -12,8 +12,8 @@ public import TauCeti.Geometry.Symplectic.Manifold.Flat
 public import SymplecticGeometry.Geometry.Manifold.Boundary.Charts
 public import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Flow.Basic
 public import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
-import Mathlib.Geometry.Manifold.PartitionOfUnity
 import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Local
+import SymplecticGeometry.Geometry.Manifold.PartitionOfUnity
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Continuity
 import SymplecticGeometry.Geometry.Symplectic.Liouville.ContactType
 import SymplecticGeometry.Geometry.Symplectic.Liouville.Scaling
@@ -138,15 +138,10 @@ theorem of_contMDiffOn [T2Space W] [SigmaCompactSpace W] (hσ : σ.IsSymplectic)
     ∃ (V : Set W) (Y' : (x : W) → TangentSpace (𝓡∂ (n + 1)) x),
       V ⊆ U ∧ EqOn Y' Y V ∧ IsStrongFilling σ V Y' := by
   have hb : IsClosed ((𝓡∂ (n + 1)).boundary W) := (𝓡∂ (n + 1)).isClosed_boundary one_ne_zero
-  have : LocallyCompactSpace W := Manifold.locallyCompact_of_finiteDimensional (𝓡∂ (n + 1))
-  -- A smooth cutoff `g`, zero on an open `O ⊇ Uᶜ` and one on an open `V₀ ⊇ ∂W`.
-  obtain ⟨g, hg0, hg1, -⟩ := exists_contMDiffMap_zero_one_nhds_of_isClosed (𝓡∂ (n + 1))
-    (n := (⊤ : ℕ∞)) hU.isClosed_compl hb (disjoint_compl_left_iff_subset.2 hbU)
-  obtain ⟨O, hO, hUO, hgO⟩ := mem_nhdsSet_iff_exists.1 hg0
+  -- A smooth cutoff `g` with support in `U`, equal to one on an open `V₀ ⊇ ∂W`.
+  obtain ⟨g, htsupp, hg1, -⟩ :=
+    hb.exists_contMDiffMap_tsupport_subset_eventually_eq_one (𝓡∂ (n + 1)) hU hbU
   obtain ⟨V₀, hV₀, hbV₀, hgV₀⟩ := mem_nhdsSet_iff_exists.1 hg1
-  have hgO' : tsupport g ⊆ Oᶜ :=
-    closure_minimal (fun y (hy : g y ≠ 0) hyO ↦ hy (hgO hyO)) hO.isClosed_compl
-  have htsupp : tsupport g ⊆ U := fun x hx ↦ by_contra fun h ↦ hgO' hx (hUO h)
   set V := V₀ ∩ U
   have hVo : IsOpen V := hV₀.inter hU
   have hVU : V ⊆ U := inter_subset_right

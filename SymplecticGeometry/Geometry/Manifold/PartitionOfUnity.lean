@@ -8,7 +8,7 @@ module
 public import Mathlib.Geometry.Manifold.PartitionOfUnity
 
 /-!
-# Gluing sections of a vector bundle with a smooth partition of unity
+# Smooth partitions of unity: gluing sections, and cutoff functions
 
 Let `ρ` be a smooth partition of unity on a manifold `N`, subordinate to an open cover `U`, let
 `p : M → N` be a `C^n` map, and let `V` be a vector bundle on `M`. If each section `t i` of `V`
@@ -24,11 +24,18 @@ projection of a bundle it glues sections defined over the preimages of open sets
   `ContMDiff.finsum_section_of_locallyFinite`), with the weights pulled back along `p`.
   For functions into a normed space and `p` the identity, it is Mathlib's
   `SmoothPartitionOfUnity.IsSubordinate.contMDiff_finsum_smul`.
+* `IsClosed.exists_contMDiffMap_tsupport_subset_eventually_eq_one`: a closed set `A` inside an
+  open set `U` of a Hausdorff σ-compact manifold modelled on a finite-dimensional space has a
+  smooth cutoff equal to `1` on a neighbourhood of `A` with topological support in `U`. It is
+  Mathlib's smooth Urysohn lemma `exists_contMDiffMap_zero_one_nhds_of_isClosed`, applied to `Uᶜ`
+  and `A`; Mathlib's `exists_contMDiffMap_one_nhds_of_subset_interior` bounds only the support,
+  and Tau Ceti's `IsClosed.exists_contMDiff_tsupport_subset_eq_one_iff` gives the value `1` only
+  on `A`.
 -/
 
 public section
 
-open Bundle Set
+open Bundle Set Topology
 open scoped Manifold ContDiff
 
 namespace SmoothPartitionOfUnity
@@ -61,3 +68,27 @@ theorem IsSubordinate.contMDiff_finsum_smul_comp_section {s : Set N}
     ((tsupport_comp_subset_preimage _ hp.continuous).trans (preimage_mono (hρ i))) (ht i)
 
 end SmoothPartitionOfUnity
+
+section Cutoff
+
+variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
+  [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M]
+  [IsManifold I ∞ M] [T2Space M] [SigmaCompactSpace M]
+
+variable (I) in
+/-- **A smooth cutoff near a closed set.** If `A` is a closed subset of an open set `U` of a
+Hausdorff σ-compact manifold modelled on a finite-dimensional real space, there is a smooth
+function `θ : M → [0, 1]` with topological support in `U` that equals `1` on a neighbourhood
+of `A`. -/
+theorem IsClosed.exists_contMDiffMap_tsupport_subset_eventually_eq_one {A U : Set M}
+    (hA : IsClosed A) (hU : IsOpen U) (hAU : A ⊆ U) :
+    ∃ θ : C^∞⟮I, M; 𝓘(ℝ), ℝ⟯, tsupport θ ⊆ U ∧ (∀ᶠ x in 𝓝ˢ A, θ x = 1) ∧
+      ∀ x, θ x ∈ Icc 0 1 := by
+  have : LocallyCompactSpace M := Manifold.locallyCompact_of_finiteDimensional I
+  obtain ⟨θ, hθ0, hθ1, hθ⟩ := exists_contMDiffMap_zero_one_nhds_of_isClosed I (n := ⊤)
+    hU.isClosed_compl hA (disjoint_compl_left_iff_subset.2 hAU)
+  obtain ⟨O, hO, hUO, hθO⟩ := eventually_nhdsSet_iff_exists.1 hθ0
+  have hsupp : Function.support θ ⊆ Oᶜ := fun x hx hxO ↦ hx (hθO x hxO)
+  exact ⟨θ, (closure_minimal hsupp hO.isClosed_compl).trans (compl_subset_comm.1 hUO), hθ1, hθ⟩
+
+end Cutoff
