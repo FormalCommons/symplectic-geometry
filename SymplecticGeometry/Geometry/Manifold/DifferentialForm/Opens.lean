@@ -31,6 +31,9 @@ and the pull-back of restricted forms along a partial diffeomorphism of open sub
 * For a form `γ` and a vector field `Z` that are both `C^n` on `U`, the restriction of `ι_Z γ`
   to `U` is a `C^n` form (`TauCeti.isSmoothForm_mpullback_subtypeVal_interior`), although
   `ι_Z γ` need not be smooth on all of `M`.
+* A smooth map `ψ` between open subsets that pulls the restriction of a two-form `σ'` back to the
+  restriction of a two-form `σ` preserves the forms on tangent vectors at each point
+  (`TauCeti.SmoothForm.eval₂_mfderiv_eq_of_mpullback_subtype_val_eq`).
 * Restriction commutes with the exterior derivative, with no regularity assumption
   (`TauCeti.mpullback_subtype_val_mextDeriv`), since near every point of `U` the coordinate
   expressions of a form and of its restriction agree
@@ -147,6 +150,27 @@ theorem mpullback_subtype_val_mextDeriv {U : Opens M} (γ : RoughForm I M F k) :
   rw [mpullback_subtype_val_apply, mextDeriv_def, mextDeriv_def,
     ← Opens.extChartAt_apply U x x]
   exact (heq.extDerivWithin_eq (heq.self_of_nhdsWithin (mem_range_self _))).symm
+
+section TwoForm
+
+variable {E' H' M' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [TopologicalSpace H']
+  {I' : ModelWithCorners ℝ E' H'} [TopologicalSpace M'] [ChartedSpace H' M'] [IsManifold I' 1 M']
+
+/-- Let `ψ : U → V` be a smooth map between open subsets of `M` and `M'` that pulls the restriction
+of a two-form `σ'` on `M'` back to the restriction of a two-form `σ` on `M`. Then at each point
+`x` of `U`, `σ'` at `ψ x` takes the same values on `dψ a` and `dψ b` as `σ` at `x` on `a` and
+`b`. -/
+theorem SmoothForm.eval₂_mfderiv_eq_of_mpullback_subtype_val_eq {U : Opens M} {V : Opens M'}
+    {ψ : U → V} (hψ : ContMDiff I I' ∞ ψ) {σ : SmoothForm I M F 2} {σ' : SmoothForm I' M' F 2}
+    (h : SmoothForm.mpullback ψ hψ (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ') =
+      SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ) (x : U) (a b : TangentSpace I x) :
+    SmoothBundleForm.eval₂ σ' (ψ x : M') (mfderiv I I' ψ x a) (mfderiv I I' ψ x b) =
+      SmoothBundleForm.eval₂ σ (x : M) a b := by
+  have := congrArg (fun s ↦ SmoothBundleForm.eval₂ s x a b) h
+  simpa only [SmoothForm.eval₂_mpullback, Manifold.mfderiv_subtype_val,
+    ContinuousLinearEquiv.coe_coe, Manifold.tangentSpaceOpenEquiv_apply] using this
+
+end TwoForm
 
 end TauCeti
 
