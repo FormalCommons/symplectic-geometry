@@ -475,6 +475,23 @@ Named like Tau Ceti's file; in `TauCeti`.
   `IsSmoothFamily.mpullback`. The
   file imports `SmoothFamily/Map.lean` and `DifferentialForm/HomotopyOperator.lean`.
 
+### `Geometry/Manifold/DifferentialForm/SmoothFamily/Poincare.lean`
+
+- `SymplecticGeometry.isSmoothFamily_homotopyOperator_mpullback_and_mextDerivₗ_eq`:
+  for a smooth contraction `Φ : M × unitInterval → M` of `M` to `c` and a
+  smooth family $\alpha_t$ of closed `(k + 1)`-forms with a complete
+  coefficient space, over any parameter manifold, $t\mapsto h(\Phi^*\alpha_t)$
+  is a smooth family and $d\,h(\Phi^*\alpha_t)=\alpha_t$, by
+  `IsSmoothFamily.homotopyOperator` and
+  `SmoothForm.mextDerivₗ_homotopyOperator_mpullback_of_contraction`; with the
+  corollary `IsSmoothlyContractible.exists_isSmoothFamily_mextDerivₗ_eq`.
+- `SymplecticGeometry.exists_isSmoothFamily_mextDerivₗ_eq_of_starConvex`, the
+  parametric radial primitives, through `StarConvex.lineContraction` of
+  `DeRham/GoodCover/Basic.lean`: they also vanish at each point where the
+  form vanishes along the segment from the centre, and are `0` where the form
+  is. *Isotopy extension* uses them for the ball extension. The file imports
+  `SmoothFamily/HomotopyOperator.lean` and `DeRham/GoodCover/Basic.lean`.
+
 ### `Geometry/Manifold/DifferentialForm/TimeExtension.lean`
 
 - `TauCeti.SmoothForm.timeExtend : SmoothForm ((𝓡∂ 1).prod I)
