@@ -12,6 +12,7 @@ public import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Neighborhood
 public import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Radial
 public import TauCeti.Geometry.Manifold.VectorBundle.ZeroSection
 import SymplecticGeometry.Geometry.Manifold.IsManifold.Basic
+import SymplecticGeometry.GroupTheory.GroupAction.Hom
 
 /-!
 # A smooth injective map of the whole normal bundle
@@ -160,11 +161,14 @@ theorem exists_contMDiff_injective_normalBundle (f : SmoothEmbedding I J ∞ M N
   have h3 := mfderiv_comp_apply_of_eq (0 : ℝ)
     ((Ψ.contMDiffOn.contMDiffAt (Ψ.open_source.mem_nhds (hzero x))).mdifferentiableAt
       (by simp)) (hl.mdifferentiableAt one_ne_zero) hl0 (1 : ℝ)
+  -- `hs1` and `hlin` are stated here, not used by `rw` directly: the argument of these
+  -- derivatives lives in `TangentSpace 𝓘(ℝ) 0`, which is `ℝ` only up to unfolding, so `rw` does
+  -- not find the patterns of `toSpanSingleton_apply_one` and `map_eq_smul_map_one`.
   have hs1 : mfderiv 𝓘(ℝ) 𝓘(ℝ) s 0 (1 : ℝ) = r x := by
     rw [hs.hasFDerivAt.hasMFDerivAt.mfderiv]
-    exact (ContinuousLinearMap.toSpanSingleton_apply ℝ (r x) 1).trans (one_smul ℝ _)
-  have hlin : mfderiv 𝓘(ℝ) J (Ψ ∘ line) 0 (r x) = r x • mfderiv 𝓘(ℝ) J (Ψ ∘ line) 0 (1 : ℝ) := by
-    exact (congrArg _ (mul_one (r x)).symm).trans (map_smul _ (r x) (1 : ℝ))
+    exact ContinuousLinearMap.toSpanSingleton_apply_one ℝ (r x)
+  have hlin : mfderiv 𝓘(ℝ) J (Ψ ∘ line) 0 (r x) = r x • mfderiv 𝓘(ℝ) J (Ψ ∘ line) 0 (1 : ℝ) :=
+    map_eq_smul_map_one _ (r x)
   have key : mfderiv 𝓘(ℝ) J (Ψ ∘ line) 0 (1 : ℝ) = f.normalRepresentative x hn v := by
     rw [h3, hΨ, ← Bundle.zeroSectionTangentEquiv_symm_inr,
       f.mfderiv_normalExp_zeroSection_apply hn (by simp) hdim, map_zero, zero_add]
