@@ -775,6 +775,10 @@ issues, in an order where each issue's blockers come before it.
    of a simplex along the unitors, and
    `Algebra/Homology/ShortComplex/PreservesHomology.lean`,
    `CategoryTheory.ShortComplex.map_homologyπ_comp_mapHomologyIso_inv`.
+   Its chain map from integral to rational chains is the change of
+   coefficients `SSet.restrictScalarsChainMap` of
+   `AlgebraicTopology/SimplicialSet/Homology/RestrictScalars.lean`
+   (`design/pseudoholomorphic-energy.md`), which it imports.
    That injectivity is the degree-one case of Poincaré duality, which
    Tau Ceti prepares in `AlgebraicTopology/Cohomology/CompactSupport/`
    (`HomologicalOrientation.dualityMap` and its criterion in `Duality.lean`)
@@ -1018,6 +1022,11 @@ issues, in an order where each issue's blockers come before it.
      `Circle.singularHomologyOneIso_inv_eq_complexOrientation`, the
      generator of `Circle.singularHomologyOneIso` is the one of the unit
      circle of `ℂ` selected by `Complex.orientation`.
+   - `AlgebraicTopology/Singular/Path.lean`, used by `Circle.lean`: the
+     singular `1`-simplex of a closed path has equal faces
+     (`TauCeti.TopCat.δ_zero_simplex₁_eq_δ_one_simplex₁`), and with any
+     coefficients the boundary of `TauCeti.TopCat.transSimplex γ δ` is
+     `γ + δ - γ.trans δ` (`TauCeti.TopCat.ιChainComplex_transSimplex_d`).
    - `Analysis/Complex/RadialProjection.lean`, used by
      `DiscBoundaryClass.lean` and `BoundaryDegree.lean`:
      `Circle.radialProjection : C(ℂ ∖ {0}, Circle)`, `z ↦ z / |z|`, Tau
@@ -1132,8 +1141,9 @@ issues, in an order where each issue's blockers come before it.
 
    Done when these are proved. It can start at once.
 8. **Capping a surface with boundary.**
-   `Geometry/Manifold/Gluing/CapDiscs.lean`, a file of its own beside Tau
-   Ceti's `Geometry/Manifold/Gluing/`, whose gluing it uses: a compact
+   `Geometry/Manifold/Gluing/CapDiscs/`, a folder of its own beside Tau
+   Ceti's `Geometry/Manifold/Gluing/`, whose gluing it uses, with the
+   glued smooth surface in `Basic.lean`: a compact
    oriented surface with boundary, in the representation of *Symplectic
    vector bundles*, with its boundary circles parametrized by
    orientation-reversing loops, glued to discs along them, is a closed
@@ -1143,7 +1153,10 @@ issues, in an order where each issue's blockers come before it.
    surface sits in it as an open subset) and the data
    `SymplecticGeometry.capDiscs.coordinateDisc`, the caps as coordinate
    discs. Blocked by the issue of *Symplectic vector bundles*
-   that fixes that representation, and by 5.
+   that fixes that representation, and by 5. The gluing uses polar
+   coordinates on the circle,
+   `AddCircle.isLocalDiffeomorphAt_ofReal_mul_toCircle`, in
+   `Geometry/Manifold/Instances/AddCircle.lean`.
 9. **A map of degree one onto the sphere.**
    `Geometry/Manifold/Degree/Collapse.lean`:
    `SymplecticGeometry.exists_contMDiff_degree_eq_one`, every compact

@@ -33,6 +33,13 @@ These declarations are from Tau Ceti's main branch
 `e48a7f81a81426270765022681d165be592a3231`, not yet in the pinned release; they are stated here
 under their Tau Ceti names, so that moving Tau Ceti past them deletes this file without renames.
 
+Tau Ceti's file closes its module docstring with the following note on the source of its
+relative-chain construction, which the declarations above extend; it is kept here unchanged:
+
+The construction follows the quotient-chain presentation in Eilenberg--Steenrod, *Foundations of
+Algebraic Topology*, Chapters I--III, and is implemented using Mathlib's `SSetPair` relative-chain
+functor.
+
 Tau Ceti's file has no References section; this module docstring adds the one below.
 
 ## References
