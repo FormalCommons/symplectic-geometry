@@ -6,11 +6,9 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Analysis.Complex.Tietze
-public import Mathlib.Geometry.Manifold.PartitionOfUnity
+public import SymplecticGeometry.Geometry.Manifold.RegularValue.FiniteZeros
 public import SymplecticGeometry.Geometry.Manifold.RegularValue.LevelCollar
 public import SymplecticGeometry.Topology.VectorBundle.Orientation.ArgumentPrinciple
-public import TauCeti.Geometry.Manifold.RegularValue.Fibre
-public import TauCeti.Geometry.Manifold.Sard.EqualDimension
 public import TauCeti.Topology.VectorBundle.Hom
 
 /-!
@@ -32,11 +30,10 @@ number of `L` is the boundary degree on `Σ₁` of `τ s / |τ s|` on `C`
 ## Proof
 
 Read in the frame, `s` is a nowhere-zero map `C → ℂ`. Extend it to `M` by Tietze's theorem, and
-modify the extension away from `C` so that it has finitely many zeros in `Σ₁`, none of them on `C`
-(`SymplecticGeometry.exists_eq_on_levelSet_finite_zeros`): take a smooth approximation, subtract a
-small regular value of it (Sard's theorem, `TauCeti.dense_isRegularValue`), whose fibre is finite
-(`TauCeti.IsRegularValue.finite_preimage`), and interpolate back to the extension in a band
-`{-c < g ≤ 0}` where the extension stays away from `0`. Pulled back through the frame and glued
+modify the extension away from `C` so that it has finitely many zeros, none of them on `C`
+(`SymplecticGeometry.exists_eq_on_levelSet_finite_zeros`, in
+`SymplecticGeometry/Geometry/Manifold/RegularValue/FiniteZeros.lean`: a smooth approximation minus
+a small regular value given by Sard's theorem). Pulled back through the frame over `Σ₁` and glued
 with `s` along `C`, this gives a continuous section `t` of `L` over `M` with finitely many zeros,
 all in `{g < 0}` (`SymplecticGeometry.exists_section_eq_finite_setOf_eq_zero`).
 
@@ -50,12 +47,9 @@ local indices of `t` restricted to `{g < 0}` with the boundary degree, and the l
 
 ## Main results
 
-* `SymplecticGeometry.exists_eq_on_levelSet_finite_zeros`: a continuous map on a compact manifold,
-  nonzero on a level set of `g`, can be changed off that level set so that it has finitely many
-  zeros in `{g ≤ 0}`, all in `{g < 0}`.
-* `SymplecticGeometry.exists_section_eq_finite_setOf_eq_zero`: a nowhere-zero section over `Σ₂`
-  extends, through a frame over `Σ₁`, to a section over `M` with finitely many zeros, all in
-  `{g < 0}`.
+* `SymplecticGeometry.exists_section_eq_finite_setOf_eq_zero`: on a compact manifold, a
+  nowhere-zero section over `{g ≥ 0}` of a vector bundle of rank the dimension of the base extends,
+  through a frame over `{g ≤ 0}`, to a section over `M` with finitely many zeros, all in `{g < 0}`.
 * `TauCeti.VectorBundleOrientation.evalFundamentalClass_eulerClass_eq_boundaryDegree`: the Euler
   number is the boundary degree of the section over `Σ₂` read in the frame over `Σ₁`.
 
@@ -66,100 +60,14 @@ local indices of `t` restricted to `{g < 0}` with the boundary degree, and the l
   a splitting.
 * J. W. Milnor, J. D. Stasheff, *Characteristic Classes*, Annals of Mathematics Studies 76,
   Princeton (1974), §11: the Euler class evaluated through the zeros of a section.
-* J. M. Lee, *Introduction to Smooth Manifolds*, 2nd ed., Graduate Texts in Mathematics 218,
-  Springer, 2013, Theorem 6.10 (Sard's theorem) and Theorem 6.21 (smooth approximation).
 -/
 
 public section
 
-open Bundle Metric Module Set Topology
+open Bundle Module Set Topology
 open scoped Manifold ContDiff
 
 namespace SymplecticGeometry
-
-section Extension
-
-variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
-  {M : Type*} [TopologicalSpace M] [ChartedSpace E M] [T2Space M] [CompactSpace M]
-  [IsManifold 𝓘(ℝ, E) ∞ M]
-  {V : Type*} [NormedAddCommGroup V] [NormedSpace ℝ V] [FiniteDimensional ℝ V]
-
-/-- On a compact smooth boundaryless manifold modelled on `E`, let `g : M → ℝ` be continuous and
-`h₀ : M → V` continuous and nonzero on the level set `g⁻¹(0)`, where `dim V = dim E`. Then some
-continuous `h : M → V` agrees with `h₀` on `g⁻¹(0)` and has finitely many zeros in `{g ≤ 0}`, all
-in `{g < 0}`. -/
-theorem exists_eq_on_levelSet_finite_zeros (hdim : finrank ℝ E = finrank ℝ V) {g : M → ℝ}
-    (hg : Continuous g) (h₀ : C(M, V)) (hh₀ : ∀ x, g x = 0 → h₀ x ≠ 0) :
-    ∃ h : C(M, V), (∀ x, g x = 0 → h x = h₀ x) ∧ {x | g x ≤ 0 ∧ h x = 0}.Finite ∧
-      ∀ x, g x ≤ 0 → h x = 0 → g x < 0 := by
-  -- A margin `c > 0` such that `‖h₀‖ ≥ c` wherever `|g| < c`.
-  obtain ⟨c, hc, hcg⟩ : ∃ c > 0, ∀ x, |g x| < c → c ≤ ‖h₀ x‖ := by
-    rcases isEmpty_or_nonempty M with hM | hM
-    · exact ⟨1, one_pos, fun x ↦ isEmptyElim x⟩
-    have hψ : Continuous fun x ↦ max ‖h₀ x‖ |g x| := (continuous_norm.comp h₀.continuous).max
-      hg.abs
-    obtain ⟨x₀, -, hx₀⟩ := isCompact_univ.exists_isMinOn univ_nonempty hψ.continuousOn
-    refine ⟨max ‖h₀ x₀‖ |g x₀|, ?_, fun x hx ↦ ?_⟩
-    · by_contra hle
-      have h1 : ‖h₀ x₀‖ = 0 := le_antisymm ((le_max_left _ _).trans (not_lt.1 hle)) (norm_nonneg _)
-      have h2 : g x₀ = 0 := abs_eq_zero.1 (le_antisymm ((le_max_right _ _).trans (not_lt.1 hle))
-        (abs_nonneg _))
-      exact hh₀ x₀ h2 (norm_eq_zero.1 h1)
-    · have := hx₀ (mem_univ x)
-      simp only [mem_ofPred_eq] at this
-      rcases le_max_iff.1 this with h | h
-      · exact h
-      · exact absurd (h.trans_lt hx) (lt_irrefl _)
-  -- A smooth approximation `h₁` within `c / 2` of `h₀`.
-  obtain ⟨h₁, hh₁⟩ := exists_contMDiffMap_forall_mem_convex_of_local_const 𝓘(ℝ, E) (n := ⊤)
-    (t := fun x ↦ ball (h₀ x) (c / 2)) (fun x ↦ convex_ball _ _) fun x ↦
-      ⟨h₀ x, (h₀.continuous.tendsto x).eventually (ball_mem_nhds (h₀ x) (half_pos hc)) |>.mono
-        fun y hy ↦ mem_ball_comm.1 hy⟩
-  -- A regular value `w` of `h₁` of norm less than `c / 2`, by Sard's theorem.
-  obtain ⟨w, hwreg, hw⟩ := (TauCeti.dense_isRegularValue (I := 𝓘(ℝ, E)) (J := 𝓘(ℝ, V)) hdim
-    (h₁.contMDiff.mdifferentiable (by simp))).exists_mem_open isOpen_ball
-    ⟨0, mem_ball_self (half_pos hc)⟩
-  have hfin : (h₁ ⁻¹' {w}).Finite :=
-    TauCeti.IsRegularValue.finite_preimage (hy := hwreg) hdim h₁.contMDiff.continuous
-  -- Interpolate between `h₀` near the level set and `h₁ - w` away from it.
-  let lam : M → ℝ := fun x ↦ max 0 (min 1 (-g x / c))
-  have hlam : Continuous lam :=
-    continuous_const.max (continuous_const.min (hg.neg.div_const c))
-  refine ⟨⟨fun x ↦ h₀ x + lam x • ((h₁ x - w) - h₀ x), h₀.continuous.add
-    (hlam.smul ((h₁.contMDiff.continuous.sub continuous_const).sub h₀.continuous))⟩,
-    fun x hx ↦ ?_, ?_⟩
-  · simp [lam, hx]
-  -- A zero with `g ≤ 0` lies where `g ≤ -c`, and is a zero of `h₁ - w` there.
-  have key : ∀ x, g x ≤ 0 → h₀ x + lam x • ((h₁ x - w) - h₀ x) = 0 → g x ≤ -c ∧ h₁ x = w := by
-    intro x hx h0
-    by_cases hxc : g x ≤ -c
-    · have hl : lam x = 1 := by
-        have : 1 ≤ -g x / c := by rw [le_div_iff₀ hc]; linarith
-        simp [lam, min_eq_left this]
-      rw [hl, one_smul, add_sub_cancel, sub_eq_zero] at h0
-      exact ⟨hxc, h0⟩
-    · exfalso
-      have habs : |g x| < c := by rw [abs_of_nonpos hx]; linarith
-      have hl0 : 0 ≤ lam x := le_max_left _ _
-      have hl1 : lam x ≤ 1 := max_le zero_le_one (min_le_left _ _)
-      have hd : ‖(h₁ x - w) - h₀ x‖ < c := by
-        have h1 : ‖h₁ x - h₀ x‖ < c / 2 := by simpa [dist_eq_norm] using hh₁ x
-        have h2 : ‖w‖ < c / 2 := by simpa using hw
-        calc ‖(h₁ x - w) - h₀ x‖ = ‖(h₁ x - h₀ x) - w‖ := by abel_nf
-          _ ≤ ‖h₁ x - h₀ x‖ + ‖w‖ := norm_sub_le _ _
-          _ < c := by linarith
-      have : ‖h₀ x‖ < c := by
-        have := congrArg norm (eq_neg_of_add_eq_zero_left h0)
-        rw [norm_neg, norm_smul, Real.norm_of_nonneg hl0] at this
-        rw [this]
-        calc lam x * ‖(h₁ x - w) - h₀ x‖ ≤ 1 * ‖(h₁ x - w) - h₀ x‖ :=
-              mul_le_mul_of_nonneg_right hl1 (norm_nonneg _)
-          _ < c := by linarith
-      exact absurd (hcg x habs) (not_le.2 this)
-  refine ⟨hfin.subset fun x hx ↦ (key x hx.1 hx.2).2, fun x hx h0 ↦ ?_⟩
-  linarith [(key x hx h0).1]
-
-end Extension
 
 section Section
 
@@ -170,12 +78,14 @@ variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimension
   [TopologicalSpace (TotalSpace F L)] [∀ x, AddCommGroup (L x)] [∀ x, Module ℝ (L x)]
   [∀ x, TopologicalSpace (L x)] [FiberBundle F L] [VectorBundle ℝ F L] {g : M → ℝ}
 
-/-- On a compact boundaryless surface, let `g : M → ℝ` be continuous, `τ` a frame of a real plane
-bundle `L` over `{g ≤ 0}` (linear isomorphisms `τ x : L_x ≃ ℂ`, continuous on the total space of
-the restriction of `L`), and `s` a nowhere-zero continuous section of `L` over `{g ≥ 0}`. Then `s`
-extends to a continuous section of `L` over `M` with finitely many zeros, all in `{g < 0}`. -/
-theorem exists_section_eq_finite_setOf_eq_zero (hn : finrank ℝ E = 2) (hg : Continuous g)
-    {τ : ∀ x : g ⁻¹' Iic 0, L x ≃L[ℝ] ℂ}
+/-- On a compact smooth boundaryless manifold modelled on `E`, let `g : M → ℝ` be continuous, `τ`
+a frame of a real vector bundle `L` over `{g ≤ 0}` (linear isomorphisms `τ x : L_x ≃ V`, where
+`dim V = dim E`, continuous on the total space of the restriction of `L`), and `s` a nowhere-zero
+continuous section of `L` over `{g ≥ 0}`. Then `s` extends to a continuous section of `L` over `M`
+with finitely many zeros, all in `{g < 0}`. -/
+theorem exists_section_eq_finite_setOf_eq_zero {V : Type*} [NormedAddCommGroup V]
+    [NormedSpace ℝ V] [FiniteDimensional ℝ V] (hn : finrank ℝ E = finrank ℝ V) (hg : Continuous g)
+    {τ : ∀ x : g ⁻¹' Iic 0, L x ≃L[ℝ] V}
     (hτ : Continuous fun v : TotalSpace F
       ((⇑(⟨Subtype.val, continuous_subtypeVal⟩ : C(g ⁻¹' Iic 0, M))) *ᵖ L) ↦ τ v.proj v.snd)
     {s : ∀ x : g ⁻¹' Ici 0, L x}
@@ -188,14 +98,12 @@ theorem exists_section_eq_finite_setOf_eq_zero (hn : finrank ℝ E = 2) (hg : Co
       (⟨y, (y.property : g y = 0).le⟩ : g ⁻¹' Iic 0) (s ⟨y, (y.property : g y = 0).ge⟩) :=
     Pullback.continuous_iff.2 ⟨continuous_subtypeVal.subtype_mk _,
       hs.comp (continuous_subtypeVal.subtype_mk _)⟩
-  -- Extend it to `M` (Tietze), then change it off the level set to have finitely many zeros in
-  -- `{g ≤ 0}`.
-  obtain ⟨h₀, hh₀⟩ := (⟨_, hτ.comp hc₀⟩ : C(g ⁻¹' {0}, ℂ)).exists_extension'
+  -- Extend it to `M` (Tietze), then change it off the level set to have finitely many zeros.
+  obtain ⟨h₀, hh₀⟩ := (⟨_, hτ.comp hc₀⟩ : C(g ⁻¹' {0}, V)).exists_extension'
     (isClosed_singleton.preimage hg).isClosedEmbedding_subtypeVal
   have hh₀C (x : M) (hx : g x = 0) : h₀ x = τ ⟨x, hx.le⟩ (s ⟨x, hx.ge⟩) :=
     congrFun hh₀ ⟨x, hx⟩
-  obtain ⟨h, hhC, hhfin, hhneg⟩ := exists_eq_on_levelSet_finite_zeros
-    (by rw [hn, Complex.finrank_real_complex]) hg h₀ fun x hx ↦ by
+  obtain ⟨h, hhC, hhfin, hhne⟩ := exists_eq_on_levelSet_finite_zeros hn hg h₀ fun x hx ↦ by
       rw [hh₀C x hx]
       exact fun h ↦ hs0 _ ((τ _).map_eq_zero_iff.1 h)
   -- The section: `τ⁻¹ h` on `{g ≤ 0}` and `s` on `{g > 0}`.
@@ -214,21 +122,21 @@ theorem exists_section_eq_finite_setOf_eq_zero (hn : finrank ℝ E = 2) (hg : Co
       exact ⟨fun h0 ↦ ⟨hx, h0⟩, And.right⟩
     · rw [ht₂ ⟨x, (not_le.1 hx).le⟩]
       exact ⟨fun h0 ↦ absurd h0 (hs0 _), fun h0 ↦ absurd h0.1 hx⟩
-  refine ⟨t, ?_, ht₂, hhfin.subset fun x hx ↦ (hZt x).1 hx, fun x hx ↦
-    hhneg x ((hZt x).1 hx).1 ((hZt x).1 hx).2⟩
+  refine ⟨t, ?_, ht₂, hhfin.subset fun x hx ↦ ((hZt x).1 hx).2, fun x hx ↦
+    lt_of_le_of_ne ((hZt x).1 hx).1 (hhne x ((hZt x).1 hx).2)⟩
   -- `τ⁻¹ h` is continuous on `{g ≤ 0}`, as the inverse of a frame is continuous.
   have hτ' : Continuous fun v : TotalSpace F ((⇑i₁) *ᵖ L) ↦
-      TotalSpace.mk' ℂ (E := Bundle.Trivial (g ⁻¹' Iic 0) ℂ) v.proj (τ v.proj v.snd) :=
-    (Bundle.Trivial.isInducing_toProd _ ℂ).continuous_iff.2
+      TotalSpace.mk' V (E := Bundle.Trivial (g ⁻¹' Iic 0) V) v.proj (τ v.proj v.snd) :=
+    (Bundle.Trivial.isInducing_toProd _ V).continuous_iff.2
       ((Pullback.continuous_proj F L i₁).prodMk hτ)
   have hh : Continuous fun x : g ⁻¹' Iic 0 ↦
-      TotalSpace.mk' ℂ (E := Bundle.Trivial (g ⁻¹' Iic 0) ℂ) x (h x) :=
-    (Bundle.Trivial.isInducing_toProd _ ℂ).continuous_iff.2
+      TotalSpace.mk' V (E := Bundle.Trivial (g ⁻¹' Iic 0) V) x (h x) :=
+    (Bundle.Trivial.isInducing_toProd _ V).continuous_iff.2
       (continuous_id.prodMk (h.continuous.comp continuous_subtypeVal))
   have hτs : Continuous fun x : g ⁻¹' Iic 0 ↦
       TotalSpace.mk' F (E := (⇑i₁) *ᵖ L) x ((τ x).symm (h x)) :=
-    (TauCeti.continuous_bundle_symm (F₁ := F) (E₁ := (⇑i₁) *ᵖ L) (F₂ := ℂ)
-      (E₂ := Bundle.Trivial (g ⁻¹' Iic 0) ℂ) τ hτ').comp hh
+    (TauCeti.continuous_bundle_symm (F₁ := F) (E₁ := (⇑i₁) *ᵖ L) (F₂ := V)
+      (E₂ := Bundle.Trivial (g ⁻¹' Iic 0) V) τ hτ').comp hh
   -- The section is continuous on the closed sets `{g ≤ 0}` and `{g ≥ 0}`, which cover `M`.
   refine continuousOn_univ.1 ?_
   rw [← show g ⁻¹' Iic 0 ∪ g ⁻¹' Ici 0 = univ from
@@ -292,7 +200,8 @@ theorem evalFundamentalClass_eulerClass_eq_boundaryDegree
   let i₁ : C(g ⁻¹' Iic 0, M) := ⟨Subtype.val, continuous_subtypeVal⟩
   -- A section `t` extending `s`, with finitely many zeros, all in `{g < 0}`.
   obtain ⟨t, ht, ht₂, hZ, hZneg⟩ :=
-    SymplecticGeometry.exists_section_eq_finite_setOf_eq_zero hn hg.continuous hτ hs hs0
+    SymplecticGeometry.exists_section_eq_finite_setOf_eq_zero
+      (hn.trans Complex.finrank_real_complex.symm) hg.continuous hτ hs hs0
   -- Adding up the local indices of `t` at its zeros gives the Euler number.
   rw [evalFundamentalClass_eulerClass_eq_sum_sectionIndex oL hF oM ht hn hZ]
   -- The argument principle on `{g ≤ 0}`, for the frame `τ` and the restriction of `t`.

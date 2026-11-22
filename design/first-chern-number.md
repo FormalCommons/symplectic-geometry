@@ -1063,12 +1063,21 @@ issues, in an order where each issue's blockers come before it.
      compatible with the orientation, and a nowhere-zero section `s` over
      $\Sigma_2$, the Euler number of `L` is the boundary degree on
      $\Sigma_1$ of the normalization of
-     `τ⁻¹ s` on `C`. Proof: extend `τ⁻¹ s` from `C` to a smooth map
-     $\Sigma_1\to\mathbb{C}$ transverse to $0$ (Tietze, smoothing and a
-     generic perturbation as in `Section/Generic.lean`), so that `s` extends
-     to a section with finitely many zeros, and combine
+     `τ s` on `C`. Proof: extend `τ s` from `C` to a map
+     $M\to\mathbb{C}$ with finitely many zeros, none on `C` (Tietze, then
+     `exists_eq_on_levelSet_finite_zeros` of `RegularValue/FiniteZeros.lean`),
+     so that `s` extends to a section with finitely many zeros, and combine
      `sum_sectionIndex_eq_boundaryDegree` with
      `evalFundamentalClass_eulerClass_eq_sum_sectionIndex`.
+   - `Geometry/Manifold/RegularValue/FiniteZeros.lean`, used by the smooth
+     form above: `SymplecticGeometry.exists_eq_on_levelSet_finite_zeros`, on a
+     compact manifold modelled on `E`, a continuous map to a space of the
+     dimension of `E` that does not vanish on a level set of a continuous
+     `g` agrees there with a continuous map with finitely many zeros, none on
+     that level set. Route: smoothing, then subtracting a small regular value
+     given by Sard's theorem (`TauCeti.dense_isRegularValue`), whose fibre
+     is finite, and interpolating in `|g|` back to the original map near the
+     level set.
    - `Geometry/Manifold/RegularValue/LevelCollar.lean`:
      `SymplecticGeometry.isCollared_inclusion_levelSet`, for a smooth
      `g : M → ℝ` on a compact manifold without boundary with regular value
