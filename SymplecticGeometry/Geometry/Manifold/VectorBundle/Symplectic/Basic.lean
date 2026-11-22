@@ -553,6 +553,13 @@ theorem isNondegenerate_tangentEquiv_iff {ω : ContMDiffTwoForm I ⊤ EB (Tangen
   simp [TauCeti.SmoothTwoForm.isNondegenerate_iff_separatingLeft,
     isNondegenerate_iff_separatingLeft, TauCeti.SmoothBundleForm.eval₂_apply]
 
+/-- The two-form on the tangent bundle of a Tau Ceti smooth two-form is nondegenerate exactly when
+that form is. -/
+@[simp]
+theorem isNondegenerate_tangentEquiv_symm_iff {φ : TauCeti.SmoothTwoForm I M} :
+    (tangentEquiv.symm φ).IsNondegenerate ↔ φ.IsNondegenerate := by
+  rw [← isNondegenerate_tangentEquiv_iff, LinearEquiv.apply_symm_apply]
+
 end Tangent
 
 /-! ### Forms of rank two -/
