@@ -57,7 +57,9 @@ move.
   reindexing keeps `ρ` and the Maslov index.
 * `TauCeti.GLSymplectic.maslovPhase_mul_homotopic`: the maps `(A, B) ↦ ρ(A B)` and
   `(A, B) ↦ ρ(A) ρ(B)` are homotopic. The proof runs the polar homotopy on both factors at once,
-  as Tau Ceti's proof of `TauCeti.GLSymplectic.maslovIndex_mul` does along loops.
+  as Tau Ceti's proof of `TauCeti.GLSymplectic.maslovIndex_mul` does along loops;
+  `TauCeti.GLSymplectic.maslovPhaseMap_comp_mul_homotopic` is the same for pointwise products
+  of maps `Y → Sp(2n)`, with `TauCeti.GLSymplectic.maslovPhaseMap` the bundled `ρ`.
 * `TauCeti.GLSymplectic.maslovIndex_toBasedLoop_mul`: the product axiom for loops given as maps
   from the circle.
 * `TauCeti.GLSymplectic.maslovPhase_eq_normalizedDet`: `ρ` of a symplectic matrix that acts on
@@ -117,23 +119,30 @@ theorem maslovIndex_reindex (e : ι ≃ κ) {A : GLSymplectic ι ℝ} (γ : Path
 /-- **`ρ` is multiplicative up to homotopy.** On pairs of symplectic matrices, the maps
 `(A, B) ↦ ρ(A B)` and `(A, B) ↦ ρ(A) ρ(B)` to the circle are homotopic. -/
 theorem maslovPhase_mul_homotopic :
-    (⟨fun p ↦ maslovPhase (p.1 * p.2), continuous_maslovPhase.comp continuous_mul⟩ :
+    (maslovPhaseMap.comp (ContinuousMap.fst * ContinuousMap.snd) :
       C(GLSymplectic ι ℝ × GLSymplectic ι ℝ, Circle)).Homotopic
-      ⟨fun p ↦ maslovPhase p.1 * maslovPhase p.2,
-        (continuous_maslovPhase.comp continuous_fst).mul
-          (continuous_maslovPhase.comp continuous_snd)⟩ := by
+      (maslovPhaseMap.comp ContinuousMap.fst * maslovPhaseMap.comp ContinuousMap.snd) := by
   -- Contract the positive polar factors of both matrices at once, through symplectic matrices;
   -- at the end both are orthogonal, where `ρ` is multiplicative.
-  have h := (ContinuousMap.Homotopic.refl (⟨fun p ↦ maslovPhase (p.1 * p.2),
-      continuous_maslovPhase.comp continuous_mul⟩ :
+  have h := (ContinuousMap.Homotopic.refl (maslovPhaseMap.comp
+      (ContinuousMap.fst * ContinuousMap.snd) :
         C(GLSymplectic ι ℝ × GLSymplectic ι ℝ, Circle))).comp
     (ContinuousMap.Homotopic.prodMap ⟨polarHomotopy (n := ι)⟩ ⟨polarHomotopy (n := ι)⟩)
   convert h using 1 <;> ext p
   · simp
-  · simp only [ContinuousMap.coe_mk, ContinuousMap.comp_apply, ContinuousMap.prodMap_apply,
-      Prod.map_fst, Prod.map_snd]
+  · simp only [ContinuousMap.mul_apply, ContinuousMap.comp_apply, ContinuousMap.fst_apply,
+      ContinuousMap.snd_apply, ContinuousMap.prodMap_apply, Prod.map_fst, Prod.map_snd,
+      ContinuousMap.coe_mk, coe_maslovPhaseMap]
     rw [maslovPhase_inclusion_mul, maslovPhase_inclusion_polarUnitary,
       maslovPhase_inclusion_polarUnitary]
+
+/-- **`ρ` is multiplicative up to homotopy, along maps.** For continuous maps `Ψ Ψ'` from a space
+`Y` to the symplectic matrices, the maps `y ↦ ρ(Ψ y Ψ' y)` and `y ↦ ρ(Ψ y) ρ(Ψ' y)` to the circle
+are homotopic. -/
+theorem maslovPhaseMap_comp_mul_homotopic {Y : Type*} [TopologicalSpace Y]
+    (Ψ Ψ' : C(Y, GLSymplectic ι ℝ)) :
+    (maslovPhaseMap.comp (Ψ * Ψ')).Homotopic (maslovPhaseMap.comp Ψ * maslovPhaseMap.comp Ψ') :=
+  maslovPhase_mul_homotopic.comp (ContinuousMap.Homotopic.refl (Ψ.prodMk Ψ'))
 
 /-- **The product axiom for loops on the circle.** For maps `f g` from the circle to the
 symplectic group, the Maslov index of the based loop of the pointwise product `f * g` adds up

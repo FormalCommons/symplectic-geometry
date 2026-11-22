@@ -87,23 +87,20 @@ variable (o : HomologicalOrientation M E 2) (hn : Module.finrank ℝ E = 2) (hι
 
 /-- **The boundary Maslov index.** For a compact surface `X` with collared boundary `∂X`, the
 complement of `ι(M)`, and a continuous map `Ψ : ∂X → Sp(2n)`: the boundary degree of the circle
-map `ρ ∘ Ψ`, where `ρ = TauCeti.GLSymplectic.maslovPhase`. -/
+map `ρ ∘ Ψ`, where `ρ = TauCeti.GLSymplectic.maslovPhaseMap`. -/
 def boundaryMaslovIndex (Ψ : C(↥((range ι)ᶜ : Set X), GLSymplectic n ℝ)) : ℤ :=
-  o.boundaryDegree hn hι hιf hf
-    ((⟨maslovPhase, continuous_maslovPhase⟩ : C(GLSymplectic n ℝ, Circle)).comp Ψ)
+  o.boundaryDegree hn hι hιf hf (maslovPhaseMap.comp Ψ)
 
 theorem boundaryMaslovIndex_def (Ψ : C(↥((range ι)ᶜ : Set X), GLSymplectic n ℝ)) :
     o.boundaryMaslovIndex hn hι hιf hf Ψ =
-      o.boundaryDegree hn hι hιf hf
-        ((⟨maslovPhase, continuous_maslovPhase⟩ : C(GLSymplectic n ℝ, Circle)).comp Ψ) :=
+      o.boundaryDegree hn hι hιf hf (maslovPhaseMap.comp Ψ) :=
   (rfl)
 
 /-- Homotopic maps `∂X → Sp(2n)` have the same boundary Maslov index. -/
 theorem boundaryMaslovIndex_eq_of_homotopy {Ψ Ψ' : C(↥((range ι)ᶜ : Set X), GLSymplectic n ℝ)}
     (F : Ψ.Homotopy Ψ') :
     o.boundaryMaslovIndex hn hι hιf hf Ψ = o.boundaryMaslovIndex hn hι hιf hf Ψ' := by
-  obtain ⟨G⟩ := (ContinuousMap.Homotopic.refl
-    (⟨maslovPhase, continuous_maslovPhase⟩ : C(GLSymplectic n ℝ, Circle))).comp ⟨F⟩
+  obtain ⟨G⟩ := (ContinuousMap.Homotopic.refl maslovPhaseMap).comp ⟨F⟩
   rw [boundaryMaslovIndex_def, boundaryMaslovIndex_def]
   exact o.boundaryDegree_eq_of_homotopy hn hι hιf hf G
 
@@ -135,31 +132,16 @@ boundary Maslov indices. -/
 theorem boundaryMaslovIndex_mul (Ψ Ψ' : C(↥((range ι)ᶜ : Set X), GLSymplectic n ℝ)) :
     o.boundaryMaslovIndex hn hι hιf hf (Ψ * Ψ') =
       o.boundaryMaslovIndex hn hι hιf hf Ψ + o.boundaryMaslovIndex hn hι hιf hf Ψ' := by
-  -- Compose the homotopy from `ρ(A B)` to `ρ(A) ρ(B)` with `x ↦ (Ψ x, Ψ' x)`.
-  obtain ⟨F⟩ := maslovPhase_mul_homotopic.comp (ContinuousMap.Homotopic.refl (Ψ.prodMk Ψ'))
-  have h₀ : (⟨maslovPhase, continuous_maslovPhase⟩ : C(GLSymplectic n ℝ, Circle)).comp
-      (Ψ * Ψ') = (⟨fun p ↦ maslovPhase (p.1 * p.2), continuous_maslovPhase.comp continuous_mul⟩ :
-        C(GLSymplectic n ℝ × GLSymplectic n ℝ, Circle)).comp (Ψ.prodMk Ψ') := by
-    ext z
-    simp
-  have h₁ : ((⟨maslovPhase, continuous_maslovPhase⟩ : C(GLSymplectic n ℝ, Circle)).comp Ψ *
-      (⟨maslovPhase, continuous_maslovPhase⟩ : C(GLSymplectic n ℝ, Circle)).comp Ψ') =
-      (⟨fun p ↦ maslovPhase p.1 * maslovPhase p.2,
-        (continuous_maslovPhase.comp continuous_fst).mul
-          (continuous_maslovPhase.comp continuous_snd)⟩ :
-        C(GLSymplectic n ℝ × GLSymplectic n ℝ, Circle)).comp (Ψ.prodMk Ψ') := by
-    ext z
-    simp
   rw [boundaryMaslovIndex_def, boundaryMaslovIndex_def, boundaryMaslovIndex_def,
-    ← o.boundaryDegree_mul, h₀, h₁]
+    ← o.boundaryDegree_mul]
+  obtain ⟨F⟩ := maslovPhaseMap_comp_mul_homotopic Ψ Ψ'
   exact o.boundaryDegree_eq_of_homotopy hn hι hιf hf F
 
 /-- A map `∂X → Sp(2n)` that extends continuously over `X` has boundary Maslov index `0`. -/
 theorem boundaryMaslovIndex_eq_zero_of_extend {Ψ : C(↥((range ι)ᶜ : Set X), GLSymplectic n ℝ)}
     (Φ : C(X, GLSymplectic n ℝ)) (hΦ : ∀ z : ↥((range ι)ᶜ : Set X), Φ z = Ψ z) :
     o.boundaryMaslovIndex hn hι hιf hf Ψ = 0 :=
-  o.boundaryDegree_eq_zero_of_extend hn hι hιf hf
-    ((⟨maslovPhase, continuous_maslovPhase⟩ : C(GLSymplectic n ℝ, Circle)).comp Φ)
+  o.boundaryDegree_eq_zero_of_extend hn hι hιf hf (maslovPhaseMap.comp Φ)
     fun z ↦ by simp [hΦ z]
 
 /-- The constant map `1 : ∂X → Sp(2n)` has boundary Maslov index `0`. -/
