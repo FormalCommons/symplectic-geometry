@@ -126,12 +126,8 @@ private theorem exists_contMDiffSection_isDiscrete_interior [SecondCountableTopo
     ∃ σ : ContMDiffSection I F ∞ V, IsDiscrete {x : I.interiorOpens M | σ x = 0} := by
   let U := I.interiorOpens M
   let N := InteriorModel I U
-  -- A point of `N` is a point of `U` (`coe_interiorModelHomeomorph_symm`).
-  have hj : ContMDiff 𝓘(ℝ, E) I ∞ (fun y : N ↦ ((show U from y) : M)) := by
-    have := contMDiff_subtypeVal.comp (interiorModelDiffeomorph I U ∞).symm.contMDiff
-    rwa [coe_interiorModelDiffeomorph_symm,
-      coe_interiorModelHomeomorph_symm] at this
-  let j : C^∞⟮𝓘(ℝ, E), N; I, M⟯ := ⟨fun y : N ↦ ((show U from y) : M), hj⟩
+  let j : C^∞⟮𝓘(ℝ, E), N; I, M⟯ :=
+    ⟨InteriorModel.val, InteriorModel.isLocalDiffeomorph_val.contMDiff⟩
   have : ContMDiffVectorBundle ∞ F ((j : C(N, M)) *ᵖ V) 𝓘(ℝ, E) :=
     ContMDiffVectorBundle.pullback F V 𝓘(ℝ, E) j
   obtain ⟨k, s, hspan⟩ := exists_fin_spanning_contMDiffSection (I := I) (F := F) (V := V)
@@ -150,7 +146,15 @@ private theorem exists_contMDiffSection_isDiscrete_interior [SecondCountableTopo
     · exact mem_residual_setOf_isDiscrete_zero_affineFamily h 0 t hspan'
   obtain ⟨a, ha⟩ := (dense_of_mem_residual hres).nonempty
   simp only [mem_ofPred_eq, key] at ha
-  exact ⟨affineFamily 0 s a, ha⟩
+  refine ⟨affineFamily 0 s a, ?_⟩
+  convert ha.image (interiorModelHomeomorph I U).symm.isInducing using 1
+  ext x
+  rw [(interiorModelHomeomorph I U).symm.image_eq_preimage_symm, Homeomorph.symm_symm,
+    Set.mem_preimage, Set.mem_ofPred_eq, Set.mem_ofPred_eq]
+  simp only [j, ContMDiffMap.coeFn_mk]
+  have hz {p q : M} (h : p = q) : affineFamily 0 s a p = 0 ↔ affineFamily 0 s a q = 0 := by
+    subst h; rfl
+  exact hz (InteriorModel.val_interiorModelHomeomorph x).symm
 
 omit [CompactSpace M] [FiniteDimensional ℝ F] [ContMDiffVectorBundle ∞ F V I] in
 /-- In the interior of a connected manifold of dimension at least two, let `σ` be a section whose

@@ -270,6 +270,7 @@ The list is in the order of the paths.
 
 | File | Contents | Issue |
 |---|---|---|
+| `Algebra/Module/LinearMap/Polynomial.lean` | evaluating and differentiating pullbacks along `Matrix.toMvPolynomial` | 9 |
 | `AlgebraicTopology/Cohomology/Cap/RationalCoefficients.lean` (addition) | Poincaré duality for rational Betti numbers | 13 |
 | `Geometry/Manifold/Complex/EulerCharacteristic.lean` | real and complex tangent bundles of a complex manifold; $\chi=\langle c_{top},[M]\rangle$ | 7 |
 | `Geometry/Manifold/Projectivization/ChernClass.lean` | $c(\mathcal O(k))$, $c(\mathcal O(k)^{\oplus r})$, $c(T\mathbb CP^m)$ | 6 |
@@ -341,6 +342,13 @@ the tensor products on total spaces.
   and `twistCoreZeroTrivialization`, the trivialization of `twistCore 0`
   (`twistTransition_zero`). #1040 uses the case `k = 1`, `l = -1`; if it
   has merged a general form by then, this item is not added again.
+- `eval_affineChart_dehomogenize_eq_twistTransition_mul`,
+  `HasMFDerivAt.eval_affineChart_dehomogenize` and
+  `contMDiffOn_eval_affineChart`: on `U_i ∩ U_j` the dehomogenizations of
+  a homogeneous polynomial of degree `d`, read in the charts, differ by
+  `twistTransition d i j`, and so do their differentials at a zero; a
+  polynomial read in the chart at `i` is `C^r` on `U_i`. They are used by
+  `Hypersurface/NormalBundle.lean`, which imports this file.
 
 ### `Geometry/Manifold/Projectivization/EulerSequence.lean`
 
@@ -541,9 +549,11 @@ For `d ≠ 0`, with the inclusion `X → ℙ ℂ (Fin (n + 2) → ℂ)`.
 In the namespace `TauCeti.HomologicalOrientation`, beside
 `injective_singularCapLinearMap_of_injective_dualityMap`:
 
-- `bijective_singularCapLinearMap_of_bijective_dualityMap`, its bijective
-  form, by the same proof;
-- `bettiNumber_eq_of_add_eq`: for a compact homologically oriented
+- `bijective_singularCapLinearMap_fundamentalClass`: for a compact
+  homologically oriented `m`-manifold and `p + q = m`, capping with the image
+  of the fundamental class is a bijection `Hᵖ(M; ℚ) → H_q(M; ℚ)`, with no
+  hypothesis on the duality map, by #810's bijectivity of the duality map;
+- `bettiNumber_eq_bettiNumber`: for a compact homologically oriented
   `m`-manifold and `p + q = m`, `bettiNumber ℚ M q = bettiNumber ℚ M p`, from
   #810's bijectivity of the duality map and Tau Ceti's
   `TopCat.finrank_singularHomology_eq_of_bijective_singularCapLinearMap`.
@@ -555,7 +565,7 @@ For `d ≠ 0` and `n ≠ 0`.
 - `bettiNumber_of_ne`: for `k ≠ n`, `bettiNumber ℚ X k` is `1` if `k` is even
   and `k ≤ 2 * n`, and `0` otherwise; below `n` by
   `isIso_homologyMap_subtypeVal` and the homology of $\mathbb CP^{n+1}$,
-  above by `bettiNumber_eq_of_add_eq`, and above `2 * n` by Tau Ceti's
+  above by `bettiNumber_eq_bettiNumber`, and above `2 * n` by Tau Ceti's
   vanishing of homology above the dimension of a manifold.
 - `bettiNumber_middle`: $(-1)^n b_n=\chi(X)-(n+1)+[n\text{ even}]$, from
   the alternating sum of #1045 (`evalFundamentalClass_eulerClass_eq_sum_finrank_singularHomology`)
@@ -644,7 +654,7 @@ waits for another part.
 | 2 | Sums and tensor products of the bundles $\mathcal O(k)$ | `Projectivization/TwistCore.lean` | — | 300 |
 | 3 | The Euler sequence | `Projectivization/EulerSequence.lean` | 2 | 400 |
 | 4 | Splitting the tangent bundle along an embedding | `NormalSpace/Splitting.lean` | — | 300 |
-| 5 | The normal bundle of a hypersurface | `Hypersurface/NormalBundle.lean` | 1 | 350 |
+| 5 | The normal bundle of a hypersurface | `Hypersurface/NormalBundle.lean` | 1, 2 | 350 |
 | 6 | Chern classes on projective space (part 1) | `Projectivization/ChernClass.lean` | 2, 3; #1037, #1038, #1040, #1043 | 250 |
 | 7 | The Euler characteristic of a compact complex manifold | `Complex/EulerCharacteristic.lean` | #1043, #1045 | 250 |
 | 8 | Chern classes of a hypersurface (parts 2 and 3) | `Hypersurface/ChernClass.lean` | 4, 5, 6 | 250 |

@@ -11,6 +11,7 @@ public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Pullback
 public import TauCeti.Geometry.Symplectic.Manifold.Nijenhuis
 import Mathlib.Geometry.Manifold.MFDeriv.Tangent
+import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Chart
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 import TauCeti.Geometry.Manifold.MFDeriv.RestrictScalars
@@ -45,9 +46,6 @@ Tau Ceti's `SmoothAlmostComplexStructure.HasIsothermalCharts`.
   structure; `isIntegrable_iff_mfderiv` states it through derivatives of charts, and
   `isIntegrable_of_forall_exists_isLocalDiffeomorphAt` accepts, in place of a chart, any map
   that is a local diffeomorphism at the point.
-* `TauCeti.SmoothAlmostComplexStructure.mfderiv_apply_eq_chartPushforward_apply` and
-  `TauCeti.SmoothAlmostComplexStructure.chartPushforward_apply_chartPushforward_apply`: the
-  derivative of a smooth chart intertwines `J` with its pushforward, which squares to `-1`.
 * `TauCeti.SmoothAlmostComplexStructure.isIntegrable_ofComplexManifold`: the almost complex
   structure of a complex manifold is integrable.
 * `TauCeti.SmoothAlmostComplexStructure.IsIntegrable.pullback`: integrability is invariant under
@@ -97,46 +95,6 @@ theorem isIntegrable_def : J.IsIntegrable ↔
         ∀ p ∈ ψ.target, ∀ w : E, J.chartPushforward ψ.toOpenPartialHomeomorph p w = J₀ w :=
   Iff.rfl
 
-/-- The derivative of a smooth chart `ψ` into a normed space intertwines `J` with its pushforward
-along `ψ`: `dψ_y (J v) = (ψ_* J)_{ψ y} (dψ_y v)` at every point `y` of the source of `ψ`. -/
-theorem mfderiv_apply_eq_chartPushforward_apply {G : Type*} [NormedAddCommGroup G]
-    [NormedSpace ℝ G] (ψ : PartialDiffeomorph I 𝓘(ℝ, G) M G ∞) {y : M} (hy : y ∈ ψ.source)
-    (v : TangentSpace I y) :
-    mfderiv I 𝓘(ℝ, G) ψ y (J y v) =
-      J.chartPushforward ψ.toOpenPartialHomeomorph (ψ y) (mfderiv I 𝓘(ℝ, G) ψ y v) := by
-  have h := DFunLike.congr_fun ((J.toContMDiff ⊤).mfderiv_comp_toEndomorphism
-    ψ.toOpenPartialHomeomorph hy (ψ.mdifferentiableAt (by simp) hy)
-    (ψ.symm.mdifferentiableAt (by simp) (ψ.map_source hy))) v
-  simp only [toContMDiff_chartPushforward, toContMDiff_toEndomorphism_apply,
-    ψ.toFun'_toOpenPartialHomeomorph] at h
-  exact h
-
-/-- The pushforward of `J` along a smooth chart `ψ` into a normed space squares to `-1` at every
-point of the target of `ψ`. -/
-theorem chartPushforward_apply_chartPushforward_apply {G : Type*} [NormedAddCommGroup G]
-    [NormedSpace ℝ G] (ψ : PartialDiffeomorph I 𝓘(ℝ, G) M G ∞) {p : G} (hp : p ∈ ψ.target)
-    (w : G) :
-    J.chartPushforward ψ.toOpenPartialHomeomorph p
-      (J.chartPushforward ψ.toOpenPartialHomeomorph p w) = -w := by
-  have h := (J.toContMDiff ⊤).chartPushforward_apply_chartPushforward_apply
-    ψ.toOpenPartialHomeomorph hp (ψ.mdifferentiableAt (by simp) (ψ.map_target hp))
-    (ψ.symm.mdifferentiableAt (by simp) hp) w
-  rwa [toContMDiff_chartPushforward] at h
-
-/-- A smooth chart `ψ` into a normed space carries `J` to a fixed map `J₀` on its target exactly
-when its derivative intertwines `J` with `J₀` at every point of its source. -/
-theorem forall_chartPushforward_apply_eq_iff {G : Type*} [NormedAddCommGroup G]
-    [NormedSpace ℝ G] (ψ : PartialDiffeomorph I 𝓘(ℝ, G) M G ∞) (J₀ : G → G) :
-    (∀ p ∈ ψ.target, ∀ w : G, J.chartPushforward ψ.toOpenPartialHomeomorph p w = J₀ w) ↔
-      ∀ y ∈ ψ.source, ∀ v : TangentSpace I y,
-        mfderiv I 𝓘(ℝ, G) ψ y (J y v) = J₀ (mfderiv I 𝓘(ℝ, G) ψ y v) := by
-  refine ⟨fun h y hy v ↦ ?_, fun h p hp w ↦ ?_⟩
-  · exact (J.mfderiv_apply_eq_chartPushforward_apply ψ hy v).trans (h _ (ψ.map_source hy) _)
-  · rw [← toContMDiff_chartPushforward J ⊤, ContMDiffAlmostComplexStructure.chartPushforward_apply,
-      toContMDiff_apply]
-    exact (h _ (ψ.map_target hp) _).trans
-      (congrArg J₀ (ψ.mfderiv_apply_mfderiv_symm_apply (by simp) hp w))
-
 /-- `J` is integrable exactly when every point of `M` lies in the source of a smooth chart whose
 derivative carries `J` to a fixed linear complex structure of `E` at every point of its
 source. -/
@@ -146,20 +104,20 @@ theorem isIntegrable_iff_mfderiv : J.IsIntegrable ↔
         mfderiv I 𝓘(ℝ, E) ψ y (J y v) = J₀ (mfderiv I 𝓘(ℝ, E) ψ y v) := by
   simp only [isIntegrable_def, forall_chartPushforward_apply_eq_iff]
 
-/-- `J` is integrable when around every point `x` there are an open set `s ∋ x` and a map
+/-- `J` is integrable when around every point `x` there are a neighbourhood `s` of `x` and a map
 `φ : M → E` that is a smooth local diffeomorphism at `x` and whose derivative carries `J` to a
 fixed linear complex structure of `E` at every point of `s`. -/
 theorem isIntegrable_of_forall_exists_isLocalDiffeomorphAt
     (h : ∀ x : M, ∃ (φ : M → E) (s : Set M) (J₀ : AlmostComplexStructure E),
-      IsOpen s ∧ x ∈ s ∧ IsLocalDiffeomorphAt I 𝓘(ℝ, E) ∞ φ x ∧
+      s ∈ nhds x ∧ IsLocalDiffeomorphAt I 𝓘(ℝ, E) ∞ φ x ∧
         ∀ y ∈ s, ∀ v : TangentSpace I y,
           mfderiv I 𝓘(ℝ, E) φ y (J y v) = J₀ (mfderiv I 𝓘(ℝ, E) φ y v)) :
     J.IsIntegrable := by
   rw [isIntegrable_iff_mfderiv]
   intro x
-  obtain ⟨φ, s, J₀, hs, hxs, hφ, hJ⟩ := h x
+  obtain ⟨φ, s, J₀, hs, hφ, hJ⟩ := h x
   -- A partial diffeomorphism that agrees with `φ` on its source, inside `s`, is the chart.
-  obtain ⟨Φ, hxΦ, hΦs, hφΦ⟩ := hφ.exists_partialDiffeomorph_source_subset (hs.mem_nhds hxs)
+  obtain ⟨Φ, hxΦ, hΦs, hφΦ⟩ := hφ.exists_partialDiffeomorph_source_subset hs
   refine ⟨Φ, J₀, hxΦ, fun y hy v ↦ ?_⟩
   have hd : mfderiv I 𝓘(ℝ, E) Φ y = mfderiv I 𝓘(ℝ, E) φ y :=
     Filter.EventuallyEq.mfderiv_eq <|
@@ -303,7 +261,8 @@ theorem isIntegrable_of_forall_mem_maximalAtlas {J : SmoothAlmostComplexStructur
     J.IsIntegrable :=
   isIntegrable_of_forall_exists_isLocalDiffeomorphAt J fun x ↦
     let ⟨e, he, hx, J₀, hJ⟩ := h x
-    ⟨e, e.source, J₀, e.open_source, hx, e.isLocalDiffeomorphAt_of_mem_maximalAtlas he hx, hJ⟩
+    ⟨e, e.source, J₀, e.open_source.mem_nhds hx, e.isLocalDiffeomorphAt_of_mem_maximalAtlas he hx,
+      hJ⟩
 
 end ModelSpace
 

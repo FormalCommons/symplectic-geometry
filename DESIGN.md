@@ -2308,7 +2308,11 @@ has either; Tau Ceti's extension across a boundary,
   `VectorField.mpullback_mlieBracket` for constant fields pulled back along a
   chart; on surfaces modelled on `𝓘(ℝ, ℂ)`, the
   comparison with Tau Ceti's class
-  `SmoothAlmostComplexStructure.HasIsothermalCharts`).
+  `SmoothAlmostComplexStructure.HasIsothermalCharts`); the lemmas on Tau
+  Ceti's `chartPushforward` of a smooth `J` along a smooth chart that
+  `Integrable.lean` uses are in
+  `Geometry/Symplectic/Manifold/AlmostComplex/Chart.lean`, which imports no
+  Nijenhuis material.
 - **Builds on:** Mathlib (`mlieBracket`, `CovariantDerivative.torsion`) and
   Tau Ceti (`nijenhuis` and its lemmas, `pullback`, `CovariantDerivative.hom`,
   the eigenbundles of `J`); *Smooth families* (only
@@ -2558,7 +2562,8 @@ has either; Tau Ceti's extension across a boundary,
   `Symplectic/Classification.lean`, `Symplectic/ComplexStructure/Basic.lean`
   and `Symplectic/Pullback.lean`, and
   `Geometry/Manifold/VectorBundle/Pullback.lean`,
-  of *Symplectic vector bundles*.
+  of *Symplectic vector bundles*; the merged
+  `Geometry/Manifold/DifferentialForm/Flow/Family.lean` of *Contact geometry*.
 - **Milestones:** *First Chern class of a nondegenerate two-form*, on a
   Hausdorff σ-compact manifold (for the existence of a compatible $J$). The
   integral class is *First Chern number*'s, the Euler class of the
@@ -2689,7 +2694,7 @@ that file, and the notes here may fall behind it.
 | 2 | *Complex projective space* | *Complex submanifolds* (only for the corollary in `Kahler.lean`; the other files can start at once) |
 | 3 | *First Chern number* | *Symplectic vector bundles*, the symplectic-loop issues of *Maslov index* |
 | 3 | *Contact geometry* | *Smooth families* (only `Family.lean` and `Gray.lean`, through `ContMDiff/TimeExtension.lean`, `DifferentialForm/TimeExtension.lean` and `Diffeotopy/Real.lean`); *Symplectic neighbourhoods* (only `LegendrianNeighborhood.lean`, through `Lagrangian.lean`); *Moser isotopy* (only `Darboux/Strict.lean`, through `LocalDiffeomorph/MFDeriv.lean`, merged); the other files of the part can start at once |
-| 4 | *First Chern class of nondegenerate forms* | *First Chern number* (only `FirstChernClass.lean`, #784); merged files of *Symplectic vector bundles* |
+| 4 | *First Chern class of nondegenerate forms* | *First Chern number* (only `FirstChernClass.lean`, #784); merged files of *Symplectic vector bundles*; `Geometry/Manifold/DifferentialForm/Flow/Family.lean` of *Contact geometry*, which is merged |
 | 4 | *Adjunction* | *First Chern number* (only `FirstChernClass.lean`, `ChernNumber/Basic.lean` and `ChernNumber/Axioms.lean`); `NormalSpace/ComplexStructure.lean` and `NormalSplitting.lean` can start at once |
 | 4 | *Chern classes* | *First Chern number* (only `FirstChernClass.lean`, for the comparison of $c_1$); the other issues of its design file can start at once |
 | 5 | *Projective hypersurfaces* | *Chern classes*, *First Chern number* (only Poincaré duality, #810); the bundle isomorphisms on $\mathbb CP^{n+1}$, the normal bundle and the Lefschetz theorems can start at once |
