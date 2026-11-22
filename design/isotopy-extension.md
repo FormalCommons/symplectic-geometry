@@ -669,7 +669,8 @@ theorem IsSymplecticBallFamily.exists_hasHamiltonian_extension
     (he₀ : ∀ z ∈ Metric.closedBall 0 r₀, e (0, z) = j₀ z)
     (he₁ : ∀ z ∈ Metric.closedBall 0 r₀, e (1, z) = j₁ z) :
     ∃ ρ, r₀ < ρ ∧ ρ < r ∧ ∃ (Φ : TauCeti.Diffeotopy I ∞ M) (F : M × unitInterval → ℝ)
-      (K : Set M), IsCompact K ∧ Φ.HasHamiltonian ω F ∧ (∀ p, p.1 ∉ K → F p = 0) ∧
+      (K : Set M), IsCompact K ∧ Φ.IsCompactlySupportedHamiltonian ω ∧ Φ.HasHamiltonian ω F ∧
+      (∀ p, p.1 ∉ K → F p = 0) ∧
       (∀ t, ∀ y ∉ K, Φ (t, y) = y) ∧
       (∀ t, ∀ z ∈ Metric.closedBall 0 r₀, Φ (t, j₀ z) = e (t, z)) ∧
       ∀ z ∈ Metric.closedBall 0 ρ, Φ.final (j₀ z) = j₁ z
