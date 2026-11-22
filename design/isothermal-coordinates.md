@@ -1,0 +1,368 @@
+# Isothermal coordinates
+
+This is the detailed design of part 24 of `DESIGN.md`, *Isothermal
+coordinates*. It proves the milestone *Integrability of almost complex
+structures on surfaces* of `atlas/almost-complex-structures.md` by the
+Beltrami route (see *Departures*, *Surfaces*, in `DESIGN.md`), following
+McDuff–Salamon [McDuffSalamon2017], Theorem 4.2.6, for the reduction to the
+Beltrami equation, and the Hölder theory of the Cauchy and Beurling transforms
+of McDuff–Salamon [McDuffSalamon2012], Appendix B, and Ahlfors, *Lectures on
+Quasiconformal Mappings*, Chapter V, for the solution and its regularity.
+
+Paths of new files are under `SymplecticGeometry/`. Tau Ceti paths are
+relative to `.lake/packages/TauCeti/TauCeti/`. All Tau Ceti declarations named
+below were checked against the pinned version. The planar statements are in
+the namespace `TauCeti.Beltrami`, beside Tau Ceti's; the statements on
+manifolds are in the namespaces of the Tau Ceti types they are about
+(`TauCeti.SmoothAlmostComplexStructure`, `TauCeti.Manifold.Orientation`), as
+`AGENTS.md` asks for declarations about Tau Ceti notions.
+
+## What there is, and what is missing
+
+Tau Ceti has the $C^1$ half of the Beltrami route and most of the analysis
+for the higher orders.
+
+- **Planar charts of class $C^1$.**
+  `TauCeti.Beltrami.exists_isothermal_chart` and
+  `exists_isothermal_chart_of_contDiffAt` (`Analysis/Complex/Beltrami/Isothermal.lean`):
+  a field `J : ℂ → AlmostComplexStructure ℂ`, tame for
+  `stdComplexSymplecticForm` near `c` with Hölder coefficient (or $C^1$ at
+  `c` and tame at `c`), has an open partial homeomorphism `e` with
+  `c ∈ e.source`, `C¹` on its source with Hölder and invertible derivative,
+  and `fderiv ℝ e z (J z v) = I * fderiv ℝ e z v`. The proof normalizes the
+  coefficient at `c` with `TauCeti.Beltrami.linearEquiv` and
+  `isComplexLinear_comp_linearMap_iff`, rescales it with
+  `TauCeti.eventually_exists_holderSpace_cutoff_rescale`, and solves
+  $h=\mu(1+Bh)$ by a contraction in $C^{0,\alpha}$
+  (`TauCeti.exists_conjWirtingerDeriv_eq_mul_wirtingerDeriv`,
+  `Analysis/Complex/Beltrami/Holder.lean`; `exists_isComplexLinear_chart`,
+  `Chart.lean`). Its steps `exists_rescaled_coefficient`,
+  `exists_chart_of_norm_lt` and `exists_chart_comp_affine` are `private`.
+- **The bootstrap.** `TauCeti.Beltrami.contDiffOn_infty_of_fderiv_comp`
+  (`Analysis/Complex/Beltrami/Transition.lean`): an isothermal chart `e` is
+  smooth on its source if around each point of the source there is, for
+  every `m : ℕ`, an isothermal chart of class `C^m` with invertible
+  derivative. `contDiffOn_inter_of_fderiv_comp` is the step behind it.
+- **Higher Hölder spaces.** `TauCeti.CkHolderSpace k α E F` and
+  `supportedCkHolderSubmodule` (`Analysis/Holder/Iterated.lean`), with
+  `CkHolderSpace.ofContDiff`, `norm_eq` and completeness; products
+  `ContinuousLinearMap.compCkHolder₂` with `norm_compCkHolder₂_le`
+  (`Analysis/Holder/Product.lean`); globalization by a cutoff,
+  `CkHolderSpace.cutoff` with `norm_cutoff_le` and `cutoff_mem_supported`
+  (`Analysis/Holder/Localization.lean`); rescaling to small norm,
+  `eventually_exists_ckHolderSpace_cutoff_rescale` and
+  `exists_pos_cutoff_rescale_mem_supportedCkHolderSubmodule`
+  (`Analysis/Holder/Rescaling.lean`).
+- **The operators of order $k$.** `TauCeti.cauchyTransformCkCLM` with
+  `cauchyTransformCkCLM_apply_fst`, `_apply_snd`, and
+  `HasCompactSupport.contDiff_cauchyTransform_of_holderWith_iteratedFDeriv`
+  (`Analysis/Complex/Pompeiu/Holder/Higher.lean`): $T$ maps $C^{k,\alpha}$
+  data supported in `closedBall c r` boundedly to the fields of orders
+  $\le k+1$ on `closedBall c R`, and the transform is globally `C^{k+1}`;
+  `TauCeti.beurlingCkCLM` with `beurlingCkCLM_apply_fst`, `_apply_snd` and
+  `norm_beurlingCkCLM_apply_le`, and
+  `HasCompactSupport.contDiff_wirtingerDeriv_cauchyTransform_of_holderWith`
+  (`Analysis/Complex/Pompeiu/Holder/Beurling.lean`): the same for $B=\partial T$
+  at order $k$. `HasCompactSupport.conjWirtingerDeriv_cauchyTransform`
+  (`Analysis/Complex/Pompeiu/Basic.lean`, `C¹` data) and
+  `conjWirtingerDeriv_cauchyTransform_of_mem_supportedHolderSubmodule`
+  (`Pompeiu/Holder/Operator.lean`, Hölder data) give $\bar\partial T h=h$.
+- **Surfaces.** `TauCeti.IsIsothermalChart`, the class
+  `TauCeti.SmoothAlmostComplexStructure.HasIsothermalCharts` and the complex
+  curve `TauCeti.IsothermalSurface` (`Geometry/Manifold/Complex/Isothermal.lean`),
+  with the instance only for complex curves. An isothermal chart there needs
+  only to lie in the `C¹` maximal atlas.
+- **Charts and structures.** `SmoothAlmostComplexStructure.chartPushforward`,
+  `mfderiv_comp_toEndomorphism`, `chartPushforward_apply_chartPushforward_apply`
+  and `SmoothAlmostComplexStructure.contDiffOn_chartPushforward`
+  (`Geometry/Symplectic/Manifold/AlmostComplex/Chart.lean`);
+  `TauCeti.stdComplexSymplecticForm_tames_or_tames_transport_conj` and
+  `stdComplexSymplecticForm_tames_iff_im_pos`
+  (`Geometry/Symplectic/Complex/Line.lean`); `SymplecticForm.Tames.contMDiffAt_cayley`
+  (`Geometry/Symplectic/Cayley/Smooth.lean`), for any order.
+- **Rotation.** `TauCeti.Manifold.Orientation.contMDiff_rightAngleRotation`
+  (`Geometry/Manifold/Riemannian/Orientation/Rotation.lean`) and
+  `TauCeti.Manifold.contMDiff_hom_iff` (`Geometry/Manifold/VectorBundle/Hom.lean`);
+  Mathlib's `Orientation.rightAngleRotation`,
+  `Orientation.rightAngleRotation_map_complex` and
+  `isConformalMap_complex_linear`.
+
+Missing, and built here: the fixed point in $C^{k,\alpha}$, the planar charts
+of class `C^m` and the smooth planar charts built from it, the same charts
+read on a surface, the instance `HasIsothermalCharts`, `IsIntegrable` in real
+dimension two, the rotation structure of an oriented Riemannian surface, and
+its isothermal coordinates.
+
+## Decisions
+
+`DESIGN.md` leaves the route to `C^m` charts, and its split into issues, to
+this file.
+
+1. **Route: the contraction in $C^{k,\alpha}$, not interior elliptic
+   regularity.** Everything the contraction needs at order $k$ is in Tau
+   Ceti except the operator $h\mapsto\mu\,Bh$ on supported $C^{k,\alpha}$
+   data and the fixed point. The elliptic route
+   (`Analysis/Pseudodifferential/InteriorRegularity.lean`) would also need
+   the identification of the localized operator with
+   $\bar\partial-\mu\partial$ on a $C^1$ chart, and a Sobolev embedding into
+   `C^m`, neither of which exists in a usable form. The contraction runs
+   separately for each $k$: a fresh rescaling, small in $C^{k,\alpha}$, and
+   a fresh fixed point, giving a chart of class `C^{k+1}`. Charts of
+   different orders need not agree; `contDiffOn_infty_of_fderiv_comp` takes
+   one chart for each order.
+2. **The normalization at the centre comes before the rescaling.** The
+   coefficient is first made zero at the centre by the linear change
+   `TauCeti.Beltrami.linearEquiv (μ c)`, as in Tau Ceti; only then do the
+   rescaled $C^{k,\alpha}$ norms tend to zero
+   (`exists_pos_cutoff_rescale_mem_supportedCkHolderSubmodule` assumes
+   `μ 0 = 0`).
+3. **The operator.** $B h$ is known with bounds only on a closed disc
+   (`beurlingCkCLM` takes values in fields on `closedBall c R`). It is made a
+   global element of `CkHolderSpace` by a fixed smooth bump `χ`, equal to one
+   on `closedBall c r` and with `tsupport χ ⊆ ball c (r + 1)`, through
+   `CkHolderSpace.cutoff` on `ball c (r + 1)`, and then multiplied by `μ` with
+   `compCkHolder₂` of complex multiplication. Since `μ` vanishes off
+   `closedBall c r`, where `χ = 1`, the product is $\mu\,Bh$ everywhere. The
+   operator is bilinear in `(μ, h)`, so its norm bound in `μ` is the norm of
+   one bilinear map.
+4. **Statements of finite order are for `J` of class `C^m` at a point, tame
+   there**, as in `exists_isothermal_chart_of_contDiffAt`, with `1 ≤ m`; the
+   chart is of class `C^m`. This is the natural generality of the route
+   ($J\in C^m$ gives $\mu\in C^{m-1,\alpha}$ near the centre, since the
+   $(m-1)$-st derivative is `C¹` there, hence Lipschitz and Hölder on a
+   ball), and the conclusion has exactly the shape of the hypothesis of
+   `contDiffOn_infty_of_fderiv_comp` (applied with `max m 1`).
+5. **Surfaces over any two-dimensional model.** The chart on a surface is
+   proved over a boundaryless model `I : ModelWithCorners ℝ E H` with
+   `Module.finrank ℝ E = 2`, using a real isomorphism `E ≃L[ℝ] ℂ`
+   (`ContinuousLinearEquiv.ofFinrankEq`). If the pushed-forward structure is
+   not tame at the point, the chart is first composed with conjugation
+   (`stdComplexSymplecticForm_tames_or_tames_transport_conj`). The instance
+   `HasIsothermalCharts` is the case of the model `𝓘(ℝ, ℂ)`; a smooth
+   chart with smooth inverse lies in the `C¹` maximal atlas.
+6. **`IsIntegrable` uses one linear structure**, the transport of
+   multiplication by `i` along `E ≃L[ℝ] ℂ` (`TauCeti.AlmostComplexStructure.transport`),
+   whatever conjugation the chart needed at each point. So the remark in
+   #862 about empty manifolds does not arise here.
+7. **Isothermal coordinates for a metric** are stated as conformality of the
+   differential of a smooth chart `M → ℂ`: at each point of its source
+   there is `λ > 0` with `⟪dψ v, dψ w⟫ = λ ⟪v, w⟫`. They are the isothermal
+   charts of the rotation structure of the metric and the orientation; the
+   rotation structure is built from `contMDiff_rightAngleRotation` with
+   `contMDiff_hom_iff`, which needs `[T2Space M]`.
+
+## Files and their contents
+
+| File | Contents | Issue |
+|---|---|---|
+| `Analysis/Complex/Beltrami/CkHolder.lean` | the Beltrami operator on supported $C^{k,\alpha}$ data, the fixed point, charts of class `C^{k+1}` for small coefficients | 1 |
+| `Analysis/Complex/Beltrami/Regularity.lean` | planar isothermal charts of class `C^m`, smooth planar isothermal charts | 2 |
+| `Geometry/Manifold/Complex/Isothermal.lean` | smooth isothermal charts on surfaces, `HasIsothermalCharts` (issue 3); `IsIntegrable` in dimension two, the rotation structure, isothermal coordinates, the milestone (issue 4) | 3, 4 |
+
+The two planar files avoid the names of Tau Ceti's `Beltrami/` files
+(`Chart`, `Holder`, `Isothermal`, `Linear`, `Transition`). The surface file
+is named like Tau Ceti's, as `DESIGN.md` says.
+
+### `Analysis/Complex/Beltrami/CkHolder.lean`
+
+Imports Tau Ceti's `Pompeiu/Holder/Beurling.lean`, `Holder/Product.lean`,
+`Holder/Localization.lean`, `Beltrami/Chart.lean` and `Beltrami/Linear.lean`.
+Write `S k α c r` for
+`supportedCkHolderSubmodule (E := ℂ) (F := ℂ) k α (closedBall c r)`.
+
+- `beltramiCkCLM (k : ℕ) (hα : 0 < α) (hα1 : α < 1) (hr : 0 ≤ r) :
+  S k α c r →L[ℝ] S k α c r →L[ℝ] S k α c r`, the bilinear map
+  $(\mu,h)\mapsto\mu\,\partial(Th)$ of Decision 3, built with
+  `LinearMap.mkContinuous₂` from the bounds of `beurlingCkCLM` (with
+  `R = r + 1`), `norm_cutoff_le` and `norm_compCkHolder₂_le`.
+- `beltramiCkCLM_apply (μ h : S k α c r) (z : ℂ) :
+  (beltramiCkCLM k hα hα1 hr μ h : CkHolderSpace k α ℂ ℂ) z =
+  μ z * wirtingerDeriv (cauchyTransform (h : CkHolderSpace k α ℂ ℂ)) z 1`,
+  for every `z`.
+- `exists_contDiff_conjWirtingerDeriv_eq_mul_wirtingerDeriv (k : ℕ)
+  (hα : 0 < α) (hα1 : α < 1) (c : ℂ) (hr : 0 ≤ r) :
+  ∃ δ > 0, ∃ C : ℝ, ∀ μ ∈ S k α c r, ‖μ‖ < δ → ∃ h ∈ S k α c r,
+  ‖h‖ ≤ 2 * ‖μ‖ ∧ ContDiff ℝ (k + 1) (cauchySolution h) ∧
+  (∀ z, conjWirtingerDeriv (cauchySolution h) z 1 =
+    μ z * wirtingerDeriv (cauchySolution h) z 1) ∧
+  ∀ z ∈ closedBall c r,
+    ‖fderiv ℝ (cauchySolution h) z - ContinuousLinearMap.id ℝ ℂ‖ ≤ C * ‖μ‖`
+  (sets and functions coerced as in Tau Ceti). The fixed point of
+  `k ↦ μ + beltramiCkCLM μ k` by `ContractingWith.fixedPoint`, as in Tau
+  Ceti's `exists_add_beltramiOperator_eq`, which the docstring credits.
+  Smoothness from `contDiff_cauchyTransform_of_holderWith_iteratedFDeriv`;
+  $\bar\partial T h=h$ from `HasCompactSupport.conjWirtingerDeriv_cauchyTransform`
+  for `k ≥ 1` and through the Hölder version for `k = 0`; the bound on the
+  derivative from the field of order one of `cauchyTransformCkCLM`. The
+  equation holds on all of `ℂ`, since `h` and `μ` vanish off the disc.
+- `exists_isComplexLinear_contDiff_chart (k : ℕ) (hα : 0 < α) (hα1 : α < 1)
+  (c : ℂ) (hr : 0 < r) : ∃ δ > 0, ∀ (J : ℂ → AlmostComplexStructure ℂ)
+  (hJ : ∀ z ∈ closedBall c r, stdComplexSymplecticForm.Tames (J z)),
+  ∀ μ ∈ S k α c r, (∀ z (hz : z ∈ closedBall c r),
+    μ z = (coefficientEquiv ⟨J z, hJ z hz⟩).val) → ‖μ‖ < δ →
+  ∃ e : OpenPartialHomeomorph ℂ ℂ, c ∈ e.source ∧ e.source ⊆ ball c r ∧
+    ContDiffOn ℝ (k + 1) e e.source ∧
+    (∀ z ∈ e.source, (fderiv ℝ e z).IsInvertible) ∧
+    ∀ z ∈ e.source, ∀ v, fderiv ℝ e z (J z v) = I * fderiv ℝ e z v`.
+  The chart is the solution itself near `c`, by the inverse function theorem
+  (`HasStrictFDerivAt.toOpenPartialHomeomorph`) restricted to `ball c r`; the
+  pointwise equation is `isComplexLinear_iff_conjWirtingerDeriv_eq`. No
+  normalization `normalizedChart` is needed for this conclusion.
+
+About 350 lines.
+
+### `Analysis/Complex/Beltrami/Regularity.lean`
+
+Imports `CkHolder.lean`, Tau Ceti's `Beltrami/Isothermal.lean`,
+`Beltrami/Transition.lean`, `Holder/Rescaling.lean` and
+`Symplectic/Cayley/Smooth.lean`. Write `toCLM J z` for
+`LinearMap.toContinuousLinearMap (J z).toLinearMap`.
+
+- `exists_contDiffOn_isothermal_chart_of_contDiffAt {m : ℕ} (hm : 1 ≤ m)
+  {J : ℂ → AlmostComplexStructure ℂ} {c : ℂ}
+  (hJ : ContDiffAt ℝ m (fun z ↦ toCLM J z) c)
+  (hJc : stdComplexSymplecticForm.Tames (J c)) :
+  ∃ e : OpenPartialHomeomorph ℂ ℂ, c ∈ e.source ∧ ContDiffOn ℝ m e e.source ∧
+    (∀ z ∈ e.source, (fderiv ℝ e z).IsInvertible) ∧
+    ∀ z ∈ e.source, ∀ v, fderiv ℝ e z (J z v) = I * fderiv ℝ e z v`.
+  With `k = m - 1`: the coefficient is `C^m` at `c` (`Tames.contMDiffAt_cayley`);
+  normalized by `L = linearEquiv (μ c)` and read at `c + L⁻¹ x`, it is
+  `C^m` at `0`, vanishes there, and its `k`-th derivative is Lipschitz,
+  hence `α`-Hölder, on a ball (`ContDiffAt.exists_lipschitzOnWith`,
+  `LipschitzOnWith.holderOnWith_of_norm_le`); rescaled and cut off by
+  `exists_pos_cutoff_rescale_mem_supportedCkHolderSubmodule` it falls below
+  the `δ` of `exists_isComplexLinear_contDiff_chart`; the chart of the
+  rescaled structure, composed with `z ↦ ε⁻¹ L (z - c)`, is the chart, its
+  equation transported by `isComplexLinear_comp_linearMap_iff`. These are
+  the steps of Tau Ceti's `exists_isothermal_chart` with `C^m` in place of
+  Hölder; the docstring credits it and its private
+  `exists_rescaled_coefficient` and `exists_chart_comp_affine`, whose
+  `C^m` analogues are steps here (private, or public in Tau Ceti's
+  namespaces if another proof uses them).
+- `exists_smooth_isothermal_chart_of_contDiffOn {J : ℂ → AlmostComplexStructure ℂ}
+  {U : Set ℂ} (hU : IsOpen U) (hJ : ContDiffOn ℝ ∞ (fun z ↦ toCLM J z) U)
+  (hJU : ∀ z ∈ U, stdComplexSymplecticForm.Tames (J z)) {c : ℂ} (hc : c ∈ U) :
+  ∃ e : OpenPartialHomeomorph ℂ ℂ, c ∈ e.source ∧ e.source ⊆ U ∧
+    ContDiffOn ℝ ∞ e e.source ∧ (∀ z ∈ e.source, (fderiv ℝ e z).IsInvertible) ∧
+    ∀ z ∈ e.source, ∀ v, fderiv ℝ e z (J z v) = I * fderiv ℝ e z v`.
+  Tau Ceti's `C¹` chart, restricted to `U` (`restrOpen`), made smooth by
+  `contDiffOn_infty_of_fderiv_comp` with the previous theorem at each point
+  of `U`.
+
+About 350 lines.
+
+### `Geometry/Manifold/Complex/Isothermal.lean`
+
+**Issue 3** imports `Regularity.lean`, Tau Ceti's
+`Geometry/Manifold/Complex/Isothermal.lean`,
+`Symplectic/Manifold/AlmostComplex/Chart.lean` and
+`Symplectic/Complex/Line.lean`. Throughout,
+`I : ModelWithCorners ℝ E H` with `[FiniteDimensional ℝ E]`,
+`[I.Boundaryless]` and `[IsManifold I ∞ M]`.
+
+- `TauCeti.SmoothAlmostComplexStructure.exists_isothermal_partialDiffeomorph
+  (J : SmoothAlmostComplexStructure I M) (hE : Module.finrank ℝ E = 2)
+  (x : M) : ∃ ψ : PartialDiffeomorph I 𝓘(ℝ, ℂ) M ℂ ∞, x ∈ ψ.source ∧
+  ∀ y ∈ ψ.source, ∀ v : TangentSpace I y,
+    mfderiv I 𝓘(ℝ, ℂ) ψ y (J y v) = Complex.I * mfderiv I 𝓘(ℝ, ℂ) ψ y v`.
+  The chart at `x` followed by `I` and `E ≃L[ℝ] ℂ`, and by conjugation if
+  needed (Decision 5), pushes `J` forward to a smooth field on its target
+  (`contDiffOn_chartPushforward`, squaring to `-1` by
+  `chartPushforward_apply_chartPushforward_apply`), tame near the image of
+  `x` (`SymplecticForm.Tames.eventually_of_continuousAt`); the smooth planar
+  chart of `exists_smooth_isothermal_chart_of_contDiffOn` composed with it
+  is `ψ`, its inverse smooth by `OpenPartialHomeomorph.contDiffAt_symm`, its
+  equation from `mfderiv_comp_toEndomorphism`. The conversion between
+  `OpenPartialHomeomorph` with smoothness and `PartialDiffeomorph` is a
+  step of this proof unless Mathlib or #862 already gives it.
+- `instance TauCeti.SmoothAlmostComplexStructure.hasIsothermalCharts
+  [ChartedSpace ℂ M] [IsManifold 𝓘(ℝ, ℂ) ∞ M]
+  (j : SmoothAlmostComplexStructure 𝓘(ℝ, ℂ) M) : j.HasIsothermalCharts`,
+  from the previous theorem: a smooth chart with smooth inverse lies in the
+  `C¹` maximal atlas (`IsManifold.mem_maximalAtlas_iff_forall_isLocalDiffeomorphAt`
+  or Mathlib's `mem_maximalAtlas_iff`), and the equation is
+  `IsPseudoholomorphicAt j (ofComplexManifold ℂ ℂ) ψ y`. With it every
+  `TauCeti.IsothermalSurface j` is a complex curve, with no hypothesis.
+
+About 300 lines.
+
+**Issue 4** adds, importing `Geometry/Manifold/Complex/Integrable.lean` of
+*Nijenhuis tensor* (#862) and Tau Ceti's
+`Riemannian/Orientation/Rotation.lean` and `VectorBundle/Hom.lean`:
+
+- `TauCeti.SmoothAlmostComplexStructure.isIntegrable_of_finrank_eq_two
+  (J : SmoothAlmostComplexStructure I M) (hE : Module.finrank ℝ E = 2) :
+  J.IsIntegrable`, with the linear structure of Decision 6: the charts are
+  those of `exists_isothermal_partialDiffeomorph` followed by `ℂ ≃L[ℝ] E`.
+  The docstring ends with the milestone line.
+- `TauCeti.Manifold.Orientation.rightAngleRotationStructure
+  (o : Manifold.Orientation I M (Fin 2)) : SmoothAlmostComplexStructure I M`,
+  for `[T2Space M]`, `[RiemannianBundle (fun x : M ↦ TangentSpace I x)]` and
+  `[IsContMDiffRiemannianBundle I ∞ E (fun x : M ↦ TangentSpace I x)]`:
+  rotation by a right angle in each tangent plane, smooth by
+  `contMDiff_hom_iff` and `contMDiff_rightAngleRotation`, of square `-1` by
+  `Orientation.rightAngleRotation_rightAngleRotation`; with
+  `rightAngleRotationStructure_apply` (the value at `x` on `v` is
+  `(o.orientationAt x).rightAngleRotation v`, under the
+  `fact_finrank_tangentSpace` instance), proved by `(rfl)`.
+- `TauCeti.Manifold.Orientation.exists_isothermal_coordinates
+  (o : Manifold.Orientation I M (Fin 2)) (x : M) :
+  ∃ ψ : PartialDiffeomorph I 𝓘(ℝ, ℂ) M ℂ ∞, x ∈ ψ.source ∧
+  ∀ y ∈ ψ.source, ∃ λ : ℝ, 0 < λ ∧ ∀ v w : TangentSpace I y,
+    ⟪mfderiv I 𝓘(ℝ, ℂ) ψ y v, mfderiv I 𝓘(ℝ, ℂ) ψ y w⟫_ℝ = λ * ⟪v, w⟫_ℝ`,
+  with the instances above. The finrank of `E` comes from `o` and `x`
+  (`fact_finrank_tangentSpace`). The chart is that of
+  `exists_isothermal_partialDiffeomorph` for `o.rightAngleRotationStructure`;
+  at each point its differential, read through an orientation-preserving
+  isometry of the tangent plane with `ℂ`
+  (`Orientation.rightAngleRotation_map_complex`), is complex linear and
+  nonzero, hence conformal (`isConformalMap_complex_linear`). The pointwise
+  step, that a real-linear map from an oriented Euclidean plane to `ℂ`
+  carrying the rotation to `i` multiplies inner products by a positive
+  constant, is a public lemma in Mathlib's namespace `Orientation` unless
+  Mathlib has it. The docstring ends with the milestone line.
+
+About 300 lines.
+
+## What the part uses
+
+- Tau Ceti, as listed under *What there is*. The contraction of
+  `CkHolder.lean` adapts the proof of `TauCeti.exists_conjWirtingerDeriv_eq_mul_wirtingerDeriv`
+  (`Beltrami/Holder.lean`), and `Regularity.lean` that of
+  `TauCeti.Beltrami.exists_isothermal_chart`; their docstrings credit them.
+- Mathlib: `ContractingWith.fixedPoint`, `HasStrictFDerivAt.toOpenPartialHomeomorph`,
+  `OpenPartialHomeomorph.contDiffAt_symm`, `ContDiffBump`,
+  `ContinuousLinearEquiv.ofFinrankEq`, `PartialDiffeomorph`,
+  `Orientation.rightAngleRotation`, `Orientation.rightAngleRotation_map_complex`,
+  `isConformalMap_complex_linear`.
+- *Nijenhuis tensor*: only `Geometry/Manifold/Complex/Integrable.lean`
+  (#862), for `IsIntegrable` in issue 4.
+
+## Building issues
+
+In this order. Each issue is blocked by the ones listed, and all are
+sub-issues of #866, *Build the part Isothermal coordinates*. Sizes are
+estimates.
+
+| # | Issue | Files | Blocked by | Size |
+|---|---|---|---|---|
+| 1 | The Beltrami equation with small $C^{k,\alpha}$ coefficient | `Analysis/Complex/Beltrami/CkHolder.lean` | — | 350 |
+| 2 | Planar isothermal charts of class `C^m`, and smooth ones | `Analysis/Complex/Beltrami/Regularity.lean` | 1 | 350 |
+| 3 | Smooth isothermal charts on surfaces, and `HasIsothermalCharts` | `Geometry/Manifold/Complex/Isothermal.lean` | 2 | 300 |
+| 4 | Integrability in dimension two, isothermal coordinates of a metric, and the milestone | `Geometry/Manifold/Complex/Isothermal.lean` | 3; #862 | 300 |
+
+Issue 1 can start at once. The milestone *Integrability of almost complex
+structures on surfaces* is proved in issue 4.
+
+## References
+
+* [D. McDuff, D. Salamon, *Introduction to Symplectic Topology*, 3rd ed.][McDuffSalamon2017],
+  Theorem 4.2.6 and Exercise 4.2.8.
+* [D. McDuff, D. Salamon, *J-holomorphic Curves and Symplectic Topology*,
+  2nd ed.][McDuffSalamon2012], Appendix B (Hölder estimates for the Cauchy
+  and Beurling transforms) and Appendix E.
+* L. V. Ahlfors, *Lectures on Quasiconformal Mappings*, 2nd ed., AMS
+  University Lecture Series 38, 2006, Chapter V. The plan's bibliography has
+  no key for it.
+* [S.-S. Chern, *An elementary proof of the existence of isothermal
+  parameters on a surface*][Chern1955].
