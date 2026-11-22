@@ -1,0 +1,55 @@
+name: set up Lean
+description: >-
+  Names the saves that the cache workflow makes and CI restores, installs
+  elan, and restores the built dependencies.
+
+# The steps and the names of the saves that the jobs of ci.yml and cache.yml
+# share, written once, so that the jobs cannot come to differ. A job that
+# restores under another name than the one the saves have fails nothing: it
+# finds no save and builds everything.
+inputs:
+  names-only:
+    description: With 'true', only names the saves, and installs and restores nothing.
+    default: 'false'
+outputs:
+  # A save of `.lake/packages` has this name, then a hash of the list of Tau
+  # Ceti modules that the library imports.
+  packages:
+    description: The start of the name of the saves of the built dependencies.
+    value: ${{ steps.names.outputs.packages }}
+  # A save of `.lake/build` has this name, then the number of its hour, the
+  # commit and the run. lakefile.toml is in the hash because Lake's record
+  # of a build does not cover everything a lakefile can set.
+  build:
+    description: The start of the name of the saves of the library's build.
+    value: ${{ steps.names.outputs.build }}
+runs:
+  using: composite
+  steps:
+    - name: name the saves
+      id: names
+      shell: bash
+      run: |
+        echo "packages=lake-packages-${{ hashFiles('lean-toolchain', 'lake-manifest.json') }}" >> "$GITHUB_OUTPUT"
+        echo "build=lake-build-${{ hashFiles('lean-toolchain', 'lake-manifest.json', 'lakefile.toml') }}" >> "$GITHUB_OUTPUT"
+    - name: install elan
+      if: inputs.names-only != 'true'
+      shell: bash
+      run: |
+        curl -sSfL https://raw.githubusercontent.com/leanprover/elan/v4.2.4/elan-init.sh \
+          | sh -s -- -y --no-modify-path --default-toolchain none
+        echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+    # The latest save for this lean-toolchain and lake-manifest.json; see the
+    # cache workflow.
+    - name: restore the built dependencies
+      id: restore
+      if: inputs.names-only != 'true'
+      uses: actions/cache/restore@v6
+      with:
+        path: .lake/packages
+        key: ${{ steps.names.outputs.packages }}
+        restore-keys: ${{ steps.names.outputs.packages }}-
+    - name: fetch Mathlib's build cache
+      if: inputs.names-only != 'true' && steps.restore.outputs.cache-matched-key == ''
+      shell: bash
+      run: lake exe cache get

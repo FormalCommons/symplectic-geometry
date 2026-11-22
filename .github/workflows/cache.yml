@@ -43,6 +43,11 @@ jobs:
     timeout-minutes: 180
     steps:
       - uses: actions/checkout@v7
+      - name: name the saves
+        id: names
+        uses: ./.github/actions/setup-lean
+        with:
+          names-only: true
       # Read from the files' text; the key of the save names the list.
       - name: list the imported Tau Ceti modules
         id: deps
@@ -51,7 +56,7 @@ jobs:
             | xargs -r sed -nE 's/^\s*(public\s+)?import\s+(TauCeti\.[A-Za-z0-9_.]+).*/\2/p' \
             | sort -u > "$RUNNER_TEMP/tauceti-imports.txt"
           sum=$(sha256sum "$RUNNER_TEMP/tauceti-imports.txt" | cut -c1-16)
-          echo "key=lake-packages-${{ hashFiles('lean-toolchain', 'lake-manifest.json') }}-$sum" >> "$GITHUB_OUTPUT"
+          echo "key=${{ steps.names.outputs.packages }}-$sum" >> "$GITHUB_OUTPUT"
       - name: look for a save with these modules
         id: look
         uses: actions/cache/restore@v6
@@ -59,23 +64,10 @@ jobs:
           path: .lake/packages
           key: ${{ steps.deps.outputs.key }}
           lookup-only: true
-      - name: install elan
+      # elan, then the latest save, or Mathlib's build cache without one.
+      - name: set up Lean and restore the latest save
         if: steps.look.outputs.cache-hit != 'true'
-        run: |
-          curl -sSfL https://raw.githubusercontent.com/leanprover/elan/v4.2.4/elan-init.sh \
-            | sh -s -- -y --no-modify-path --default-toolchain none
-          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
-      - name: restore the latest save
-        id: restore
-        if: steps.look.outputs.cache-hit != 'true'
-        uses: actions/cache/restore@v6
-        with:
-          path: .lake/packages
-          key: lake-packages-${{ hashFiles('lean-toolchain', 'lake-manifest.json') }}
-          restore-keys: lake-packages-${{ hashFiles('lean-toolchain', 'lake-manifest.json') }}-
-      - name: fetch Mathlib's build cache
-        if: steps.look.outputs.cache-hit != 'true' && steps.restore.outputs.cache-matched-key == ''
-        run: lake exe cache get
+        uses: ./.github/actions/setup-lean
       - name: build the imported Tau Ceti modules
         if: steps.look.outputs.cache-hit != 'true'
         run: |
@@ -96,28 +88,14 @@ jobs:
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v7
-      - name: install elan
-        run: |
-          curl -sSfL https://raw.githubusercontent.com/leanprover/elan/v4.2.4/elan-init.sh \
-            | sh -s -- -y --no-modify-path --default-toolchain none
-          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
-      - name: restore the built dependencies
-        id: restore
-        uses: actions/cache/restore@v6
-        with:
-          path: .lake/packages
-          key: lake-packages-${{ hashFiles('lean-toolchain', 'lake-manifest.json') }}
-          restore-keys: lake-packages-${{ hashFiles('lean-toolchain', 'lake-manifest.json') }}-
-      - name: fetch Mathlib's build cache
-        if: steps.restore.outputs.cache-matched-key == ''
-        run: lake exe cache get
+      - name: set up Lean and restore the built dependencies
+        id: setup
+        uses: ./.github/actions/setup-lean
       # A save's name has the number of the hour, read from the clock at this
       # step and not when the run began, then the commit and the run.
-      # lakefile.toml is in the hash because Lake's record of a build does
-      # not cover everything a lakefile can set.
       - name: name the save
         id: name
-        run: echo "hour=lake-build-${{ hashFiles('lean-toolchain', 'lake-manifest.json', 'lakefile.toml') }}-$(( $(date +%s) / 3600 ))-" >> "$GITHUB_OUTPUT"
+        run: echo "hour=${{ steps.setup.outputs.build }}-$(( $(date +%s) / 3600 ))-" >> "$GITHUB_OUTPUT"
       # Only saves of that hour, so the first run to name a save in an hour
       # restores nothing. A run started by hand restores nothing either.
       - name: restore the latest build of the library
