@@ -471,9 +471,11 @@ and a field `Y` with `hY : IsOutwardPointingField Y`:
   a given open `U ⊇ ∂W`.
 
 This is a smooth collar theorem for manifolds with an outward field; such a
-field always exists (Tau Ceti's `exists_isOutwardPointingField`), so with it
-this gives smooth collars of compact boundaries, which Tau Ceti lacks. That
-corollary is not needed here and is left to a later issue.
+field exists on a σ-compact manifold (Tau Ceti's `exists_isOutwardPointingField`),
+so with it this gives smooth collars of compact boundaries, which Tau Ceti lacks.
+The same file states that corollary, for `[SigmaCompactSpace W]`:
+`exists_range_subset` (a smooth collar with `range c` inside a given open
+`U ⊇ ∂W`) and the instance `instNonempty : Nonempty (SmoothCollar n ∞ W)`.
 
 Expected size: 400 lines.
 

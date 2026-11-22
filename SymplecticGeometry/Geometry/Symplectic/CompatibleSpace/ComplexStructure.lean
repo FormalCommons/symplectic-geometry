@@ -9,6 +9,7 @@ public import SymplecticGeometry.Geometry.Manifold.Complex.Integrable
 public import SymplecticGeometry.Geometry.Manifold.Instances.CompatibleComplexStructures
 public import TauCeti.Geometry.Symplectic.Manifold.JHolomorphic
 import Mathlib.Tactic.NoncommRing
+import SymplecticGeometry.Geometry.Manifold.MFDeriv.Singleton
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Chart
 
 /-!
@@ -22,7 +23,7 @@ almost complex structure, whose value at `J` on a tangent vector with ambient re
 
 The structure is defined as the constant structure `C ↦ -J₀ C` of the model, read in the global
 chart. Since the chart is the only one, the changes of coordinates of the tangent bundle are the
-identity, so this constant section is smooth
+identity (`tangentCoordChange_of_chartAt_eq`), so this constant section is smooth
 (`SmoothAlmostComplexStructure.ofTangentCoordChange`).
 In Cayley coordinates `J = J₀ (1 + C) (1 - C)⁻¹` the differential of the inclusion
 into `V →L[ℝ] V` is `Ċ ↦ 2 J₀ (1 - C)⁻¹ Ċ (1 - C)⁻¹`, and because `C` anticommutes with `J₀`
@@ -110,16 +111,18 @@ noncomputable def compatibleSpaceComplexStructure :
   SmoothAlmostComplexStructure.ofTangentCoordChange 𝓘(ℝ, ω.compatibleModel)
     { toLinearMap := ω.compatibleModelComplexStructure.toLinearMap
       cont := ω.compatibleModelComplexStructure.toLinearMap.continuous_of_finiteDimensional }
-    ω.compatibleModelComplexStructure.apply_apply fun _ v => by
-      rw [tangentCoordChange_apply, tangentCoordChange_apply]
+    ω.compatibleModelComplexStructure.apply_apply fun {x y _} hz _ => by
+      simp only [tangentCoordChange_of_chartAt_eq (x := x) (y := y) rfl hz.1,
+        ContinuousLinearMap.id_apply]
 
 theorem compatibleSpaceComplexStructure_def :
     ω.compatibleSpaceComplexStructure =
       SmoothAlmostComplexStructure.ofTangentCoordChange 𝓘(ℝ, ω.compatibleModel)
         { toLinearMap := ω.compatibleModelComplexStructure.toLinearMap
           cont := ω.compatibleModelComplexStructure.toLinearMap.continuous_of_finiteDimensional }
-        ω.compatibleModelComplexStructure.apply_apply fun _ v => by
-          rw [tangentCoordChange_apply, tangentCoordChange_apply] :=
+        ω.compatibleModelComplexStructure.apply_apply fun {x y _} hz _ => by
+          simp only [tangentCoordChange_of_chartAt_eq (x := x) (y := y) rfl hz.1,
+            ContinuousLinearMap.id_apply] :=
   (rfl)
 
 /-- The almost complex structure at every point is the complex structure `C ↦ -J₀ C` of the
@@ -184,10 +187,13 @@ theorem chartPushforward_compatibleSpaceComplexStructure {J : 𝒥} {p : ω.comp
     ω.compatibleSpaceComplexStructure.chartPushforward (chartAt ω.compatibleModel J) p w =
       ω.compatibleModelComplexStructure w := by
   rw [SmoothAlmostComplexStructure.chartPushforward_apply]
-  -- The tangent spaces are the model, and the differentials of the chart and of its inverse are
-  -- the identity.
-  exact (mfderiv_chartAt_apply J _ _).trans ((compatibleSpaceComplexStructure_apply _ _).trans
-    (congrArg ω.compatibleModelComplexStructure (mfderiv_chartAt_symm_apply hp w)))
+  -- The differentials of the chart and of its inverse are the identity. The tangent spaces are
+  -- the model, but `rw` does not rewrite under them, so the equalities of maps are applied.
+  have h₁ := mfderiv_chartAt_of_chartAt_eq (I := 𝓘(ℝ, ω.compatibleModel))
+    (x := (chartAt ω.compatibleModel J).symm p) (y := J) rfl
+  have h₂ := mfderiv_chartAt_symm_of_chartAt_eq (I := 𝓘(ℝ, ω.compatibleModel)) hp rfl
+  exact (DFunLike.congr_fun h₁ _).trans ((compatibleSpaceComplexStructure_apply _ _).trans
+    (congrArg ω.compatibleModelComplexStructure (DFunLike.congr_fun h₂ w)))
 
 /-- **The structure is integrable**: the global chart is a chart in which it is constant. -/
 theorem isIntegrable_compatibleSpaceComplexStructure :

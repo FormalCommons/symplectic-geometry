@@ -302,6 +302,8 @@ theorem mextDerivₗ_timeInterior {σ : SmoothForm (𝓘(ℝ, ℝ).prod I) (ℝ 
   exact (mlieDerivForm_eq_mextDeriv_interior (contMDiff_timeField.mdifferentiable (by simp))
     hσ).symm
 
+/-! ### Time derivatives of pullbacks along `c × f` -/
+
 variable [I.Boundaryless] [J.Boundaryless]
 
 /-- The time derivative of a family reparametrized in time: for a smooth `c : ℝ → ℝ`, the slice at
