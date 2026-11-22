@@ -550,10 +550,7 @@ theorem mpullback_subtypeVal_stableHamiltonianModel_neg_mextDerivₗ (α : Smoot
       (1 + ContMDiffMap.fst : C^∞⟮𝓘(ℝ).prod I, ℝ × M; ℝ⟯).comp
         ⟨Subtype.val, contMDiff_subtypeVal⟩ := by
     ext p
-    refine (ContMDiffMap.comp_apply _ _ p).trans (Eq.trans ?_ (ContMDiffMap.comp_apply _ _ p).symm)
-    simp only [ContMDiffMap.coeFn_mk, he_apply, ContMDiffMap.coe_add, ContMDiffMap.coe_one,
-      Pi.add_apply, Pi.one_apply, ContMDiffMap.fst_apply]
-    exact Real.exp_log (by linarith [hU p.val p.property])
+    simp [he_apply, Real.exp_log (by linarith [hU p.val p.property] : (0 : ℝ) < 1 + p.val.1)]
   rw [symplectization_eq_funSMulₗ (-α) he_apply,
     mpullback_funSMulₗ, mpullback_funSMulₗ, hβ, map_neg, hcomp]
 
