@@ -356,7 +356,7 @@ normed space:
   `compatibleCayleyEquiv_symm_apply_toContinuousLinearMap`) and
   `Compatible.isOpenEmbedding_cayleyCoord`, from continuity of both
   directions (`AlmostComplexStructure.toContinuousLinearMap_cayley`,
-  `contDiff_compatibleCayleyEquiv_symm`).
+  `contMDiffAt_cayleyFormula_of_isUnit`, `contMDiffAt_mul_one_add_ringInverse`).
 - `TauCeti.SymplecticForm.compatibleBase ω : 𝒥 ω`, chosen from
   `ω.exists_compatible`, and `TauCeti.SymplecticForm.compatibleModel ω :=
   ω.compatibleTangentSpaceCLM (ω.compatibleBase : AlmostComplexStructure V)`,
@@ -684,7 +684,7 @@ the integrability statement uses `IsIntegrable` from *Nijenhuis tensor*'s
 ## References
 
 * [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*, third
-  edition][McDuffSalamon2017], §2.5 (the Cayley transform, Lemma 2.5.12),
+  edition][McDuffSalamon2017], §2.5 (the Cayley transform, Sévennec's proof of Proposition 2.5.13),
   Example 4.3.6 and Exercise 4.3.7.
 * J. M. Lee, *Introduction to Riemannian Manifolds*, 2nd ed., Springer GTM
   176, 2018, Chapters 5 and 7, for the conventions of the connection and the

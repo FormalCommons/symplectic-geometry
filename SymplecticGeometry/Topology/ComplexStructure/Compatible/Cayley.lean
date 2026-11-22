@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.LinearAlgebra.Symplectic.CompatibleTangent.Basic
 public import TauCeti.Geometry.Symplectic.Cayley.Smooth
 public import TauCeti.Geometry.Symplectic.ExistsCompatible
 public import TauCeti.Topology.Algebra.Module.BilinearForm
@@ -22,9 +23,6 @@ base point and the model space of the global Cayley chart on the compatible stru
 
 ## Main definitions and results
 
-* `TauCeti.SymplecticForm.mem_compatibleCayleyBall_iff_mem_compatibleTangentSpace`: the compatible
-  Cayley ball of `J₀` consists of the elements of the compatible tangent space at `J₀` that
-  strictly contract `v ↦ ω(v, J₀ v)`.
 * `TauCeti.SymplecticForm.compatibleTangentSpaceCLM`: Tau Ceti's compatible tangent space at `J`,
   read in the continuous endomorphisms `V →L[ℝ] V`.
 * `TauCeti.SymplecticForm.isOpen_setOf_strictContraction`: the continuous endomorphisms that
@@ -39,36 +37,15 @@ base point and the model space of the global Cayley chart on the compatible stru
 
 ## References
 
-* [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017],
-  Lemma 2.5.12.
+* [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*, third
+  edition][McDuffSalamon2017], Proposition 2.5.13 (the Cayley transform proof of Sévennec).
 -/
 
 public section
 
+open scoped Manifold
+
 namespace TauCeti.SymplecticForm
-
-section Algebra
-
-variable {V : Type*} [AddCommGroup V] [Module ℝ V] {ω : SymplecticForm V}
-  {J₀ : AlmostComplexStructure V}
-
-/-- The compatible Cayley ball of `J₀` is the set of elements of the compatible tangent space at
-`J₀` that strictly contract the quadratic form `v ↦ ω(v, J₀ v)`: for an endomorphism
-anticommuting with `J₀`, self-adjointness for `ω(·, J₀ ·)` is skew-adjointness for `ω`. -/
-theorem mem_compatibleCayleyBall_iff_mem_compatibleTangentSpace {C : Module.End ℝ V} :
-    C ∈ ω.compatibleCayleyBall J₀ ↔
-      C ∈ ω.compatibleTangentSpace J₀ ∧ ∀ v, v ≠ 0 → ω (C v) (J₀ (C v)) < ω v (J₀ v) := by
-  have hT : C ∈ J₀.tangentSpace ↔ C * J₀.toLinearMap = -(J₀.toLinearMap * C) := by
-    rw [AlmostComplexStructure.mem_tangentSpace, add_eq_zero_iff_eq_neg]
-  rw [mem_compatibleCayleyBall, mem_cayleyBall]
-  constructor
-  · rintro ⟨⟨hA, hc⟩, hS⟩
-    exact ⟨(mem_compatibleTangentSpace_iff_isSelfAdjoint (hT.2 hA)).2 hS, hc⟩
-  · rintro ⟨hY, hc⟩
-    have hA := hT.1 (compatibleTangentSpace_le_tangentSpace hY)
-    exact ⟨⟨hA, hc⟩, (mem_compatibleTangentSpace_iff_isSelfAdjoint (hT.2 hA)).1 hY⟩
-
-end Algebra
 
 variable {V : Type*} [NormedAddCommGroup V] [NormedSpace ℝ V]
   {ω : SymplecticForm V} {J₀ : AlmostComplexStructure V}
@@ -187,22 +164,17 @@ theorem Compatible.continuous_cayleyCoord (h₀ : ω.Compatible J₀) :
   set B : 𝒥 → V →L[ℝ] V := fun J => LinearMap.toContinuousLinearMap J.val.toLinearMap
   have hB : Continuous B :=
     AlmostComplexStructure.continuous_iff.1 continuous_subtypeVal
-  have hf : ∀ J, (h₀.cayleyCoord J : V →L[ℝ] V) = -((1 + A * B J) * Ring.inverse (1 - A * B J)) :=
-    fun J => by
-      rw [coe_cayleyCoord, AlmostComplexStructure.toContinuousLinearMap_cayley J₀ J.val
-        (LinearMap.coe_toContinuousLinearMap _) (LinearMap.coe_toContinuousLinearMap _),
-        cayleyFormula_def]
+  have hf : ∀ J, (h₀.cayleyCoord J : V →L[ℝ] V) = cayleyFormula A (B J) := fun J => by
+    rw [coe_cayleyCoord, AlmostComplexStructure.toContinuousLinearMap_cayley J₀ J.val
+      (LinearMap.coe_toContinuousLinearMap _) (LinearMap.coe_toContinuousLinearMap _)]
   rw [Topology.IsInducing.subtypeVal.continuous_iff]
-  refine Continuous.congr (f := fun J => -((1 + A * B J) * Ring.inverse (1 - A * B J)))
+  refine Continuous.congr (f := fun J => cayleyFormula A (B J))
     (continuous_iff_continuousAt.2 fun J => ?_) fun J => (hf J).symm
-  have hu : IsUnit (1 - A * B J) := by
-    rw [ContinuousLinearMap.isUnit_iff_isUnit_toLinearMap]
-    simpa [A, B] using h₀.tames.isUnit_one_sub_mul J.property.tames
-  have hAB : Continuous fun J => A * B J := continuous_const.mul hB
-  refine ((continuous_const.add hAB).continuousAt.mul ?_).neg
-  have hinv : ContinuousAt Ring.inverse (1 - A * B J) :=
-    hu.unit_spec ▸ NormedRing.inverse_continuousAt hu.unit
-  exact hinv.comp (f := fun J => 1 - A * B J) (x := J) (continuous_const.sub hAB).continuousAt
+  have hu : IsUnit (1 - A * B J) :=
+    h₀.tames.isUnit_one_sub_mul_of_toLinearMap J.property.tames
+      (LinearMap.coe_toContinuousLinearMap _) (LinearMap.coe_toContinuousLinearMap _)
+  exact (contMDiffAt_cayleyFormula_of_isUnit (I := 𝓘(ℝ, V →L[ℝ] V)) (n := 0)
+    contMDiffAt_const contMDiffAt_id hu).continuousAt.comp (f := B) hB.continuousAt
 
 /-- The Cayley coordinates at an `ω`-compatible `J₀` are an open embedding of the
 `ω`-compatible complex structures into the compatible tangent space at `J₀`. -/
@@ -213,18 +185,12 @@ theorem Compatible.isOpenEmbedding_cayleyCoord (h₀ : ω.Compatible J₀) :
   -- `F` inverts the coordinates and is continuous on their range, so they are inducing.
   have hF : Continuous fun C : Set.range h₀.cayleyCoord => F C.val.val := by
     refine continuous_iff_continuousAt.2 fun ⟨C, J, hJ⟩ => ?_
-    have hu : IsUnit (1 - C.val) := by
-      rw [ContinuousLinearMap.isUnit_iff_isUnit_toLinearMap]
-      refine isUnit_one_sub_of_mem_cayleyBall (ω := ω) (J₀ := J₀)
-        (compatibleCayleyBall_subset_cayleyBall ?_)
-      exact hJ ▸ h₀.cayleyCoord_mem_compatibleCayleyBall J
-    have hval : Continuous fun C : Set.range h₀.cayleyCoord => C.val.val :=
-      continuous_subtypeVal.comp continuous_subtypeVal
-    refine ((continuous_const.mul (continuous_const.add hval)).continuousAt.mul ?_)
-    have hinv : ContinuousAt Ring.inverse (1 - C.val) :=
-      hu.unit_spec ▸ NormedRing.inverse_continuousAt hu.unit
-    exact hinv.comp (f := fun C : Set.range h₀.cayleyCoord => 1 - C.val.val) (x := ⟨C, J, hJ⟩)
-      (continuous_const.sub hval).continuousAt
+    have hu : IsUnit (1 - C.val) := isUnit_one_sub_of_toLinearMap_mem_cayleyBall
+      (compatibleCayleyBall_subset_cayleyBall (hJ ▸ h₀.cayleyCoord_mem_compatibleCayleyBall J))
+    exact (contMDiffAt_mul_one_add_ringInverse (I := 𝓘(ℝ, V →L[ℝ] V)) (n := 0)
+      (contMDiffAt_const (c := A)) contMDiffAt_id hu).continuousAt.comp
+        (f := fun C : Set.range h₀.cayleyCoord => C.val.val) (x := ⟨C, J, hJ⟩)
+        (continuous_subtypeVal.comp continuous_subtypeVal).continuousAt
   have hcomp : (fun C : Set.range h₀.cayleyCoord => F C.val.val) ∘
       Set.rangeFactorization h₀.cayleyCoord =
         (fun J => LinearMap.toContinuousLinearMap J.toLinearMap) ∘ (Subtype.val : 𝒥 → _) :=
