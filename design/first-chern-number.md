@@ -1102,6 +1102,13 @@ issues, in an order where each issue's blockers come before it.
    `TopCat.prodFiberRetraction (TopCat.of ι) (1 : Circle) i` read through
    `discComplementBoundaryHomeomorph` and `TopCat.prodHomeomorphTensorObj` has boundary
    degree $-1$.
+   `AlgebraicTopology/Singular/LocalHomology/DiscComplement/BoundaryClass.lean`,
+   beside `DiscComplement/BoundaryDegree.lean`, which it imports: the
+   reversed boundary loop of one disc, read in `∂X`
+   (`SymplecticGeometry.discComplementBoundaryLoop`), and
+   `SymplecticGeometry.sum_map_toCircle_discComplementBoundaryLoop_eq_boundaryClass`,
+   the classes of these loops add up to the boundary class, the hypothesis
+   `hγ` of `boundaryDegree_eq_sum_degree`.
    `AlgebraicTopology/Singular/Nullhomotopic.lean`, for the homology of
    the boundary circles: a nullhomotopic map induces zero on singular
    homology in positive degree
