@@ -16,7 +16,8 @@ the pinned version of Tau Ceti does not have yet. It contains one declaration,
 `TauCeti.SmoothForm.contMDiff_apply_zero`: the function underlying a smooth `0`-form is smooth.
 
 Changes from Tau Ceti's text: apart from this module docstring, the variables are only those the
-declaration needs.
+declaration needs, and the file opens only the scopes `ContDiff` and `Manifold`, not Tau Ceti's
+`open Set Filter Bundle` nor the scope `Topology`. No statement or proof is changed.
 
 ## References
 

@@ -383,8 +383,9 @@ theorem sobolevH1Equiv_ofSmooth (α : SmoothForm I M ℝ 0) :
 @[simp]
 theorem sobolevH1Equiv_symm_ofSmooth (f : C^∞⟮I, M; ℝ⟯) :
     (sobolevH1Equiv o hl).symm (Manifold.SobolevH1.ofSmooth f) =
-      ofSmooth (SmoothForm.ofFunctionEquiv f) := by
-  rw [LinearIsometryEquiv.symm_apply_eq, sobolevH1Equiv_ofSmooth, LinearEquiv.symm_apply_apply]
+      ofSmooth (SmoothForm.ofFunction f) := by
+  rw [LinearIsometryEquiv.symm_apply_eq, sobolevH1Equiv_ofSmooth,
+    SmoothForm.ofFunctionEquiv_symm_ofFunction]
 
 /-- `sobolevH1Equiv` carries the Dirichlet form of `H1Form o hl` to Tau Ceti's Dirichlet form
 `TauCeti.Manifold.SobolevH1.dirichletForm`. -/

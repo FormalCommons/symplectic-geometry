@@ -155,6 +155,18 @@ noncomputable def ofFunctionEquiv : C^∞⟮I, M; 𝓘(ℝ, F), F⟯ ≃ₗ[ℝ]
 theorem ofFunctionEquiv_apply (f : C^∞⟮I, M; 𝓘(ℝ, F), F⟯) : ofFunctionEquiv f = ofFunction f :=
   (rfl)
 
+/-- Reading the `0`-form of a smooth function `f` back as a function gives `f`. -/
+@[simp]
+theorem ofFunctionEquiv_symm_ofFunction (f : C^∞⟮I, M; 𝓘(ℝ, F), F⟯) :
+    ofFunctionEquiv.symm (ofFunction f) = f :=
+  ofFunctionEquiv.symm_apply_apply f
+
+/-- The `0`-form of the function of a smooth `0`-form `α` is `α`. -/
+@[simp]
+theorem ofFunction_ofFunctionEquiv_symm (α : SmoothForm I M F 0) :
+    ofFunction (ofFunctionEquiv.symm α) = α :=
+  ofFunctionEquiv.apply_symm_apply α
+
 /-- The function of a smooth `0`-form `α` is `x ↦ α x 0`, the value of `α x` on the empty
 tuple. -/
 @[simp]
