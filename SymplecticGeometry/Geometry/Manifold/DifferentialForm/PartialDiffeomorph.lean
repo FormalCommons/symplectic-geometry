@@ -53,6 +53,9 @@ which is meaningful on `ψ.target`.
   other up to the cutoff (`TauCeti.SmoothForm.extendByZeroAlong_localize_apply`), so a smooth form
   is the sum of the extensions by zero of its localizations to finitely many charts, with a smooth
   partition of unity subordinate to their sources as cutoffs.
+* `TauCeti.SmoothForm.contDiffAt_mpullback_symm` and
+  `TauCeti.SmoothForm.differentiableAt_mpullback_symm`: the reading of a smooth form in `ψ` is
+  smooth, hence differentiable, at each point of `ψ.target`.
 * `TauCeti.SmoothForm.contDiffOn_fderiv_mpullback_symm_apply`: the partial derivatives of the
   reading of a smooth form in `ψ` are smooth on `ψ.target`.
 
@@ -525,6 +528,23 @@ theorem sum_extendByZeroAlong_localize [T2Space M] {ι : Type*} [Fintype ι]
 end Localize
 
 /-! ### Partial derivatives in a chart -/
+
+/-- The reading `(ψ.symm)^* α` of a smooth form in a chart `ψ` is smooth at every point of the
+target of the chart. -/
+theorem contDiffAt_mpullback_symm [IsManifold I ∞ M] (α : SmoothForm I M F k)
+    (ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞) {y : E} (hy : y ∈ ψ.target) :
+    ContDiffAt ℝ (E := E) (F := E [⋀^Fin k]→L[ℝ] F) ∞
+      (TauCeti.mpullback 𝓘(ℝ, E) I ψ.symm α.val) y :=
+  (α.contDiffOn_mpullback ψ.open_target ψ.symm.contMDiffOn).contDiffAt
+    (ψ.open_target.mem_nhds hy)
+
+/-- The reading `(ψ.symm)^* α` of a smooth form in a chart `ψ` is differentiable at every point
+of the target of the chart. -/
+theorem differentiableAt_mpullback_symm [IsManifold I ∞ M] (α : SmoothForm I M F k)
+    (ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞) {y : E} (hy : y ∈ ψ.target) :
+    DifferentiableAt ℝ (E := E) (F := E [⋀^Fin k]→L[ℝ] F)
+      (TauCeti.mpullback 𝓘(ℝ, E) I ψ.symm α.val) y :=
+  (α.contDiffAt_mpullback_symm ψ hy).differentiableAt (by simp)
 
 /-- The partial derivative `∂_v` of the reading `(ψ.symm)^* α` of a smooth form in a chart `ψ` is
 smooth on the target of the chart. -/
