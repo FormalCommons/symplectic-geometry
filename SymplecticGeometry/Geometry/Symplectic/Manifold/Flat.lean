@@ -244,7 +244,7 @@ theorem Compatible.orthogonal_flatComp (hc : σ.Compatible Jc) (x : M)
   simp only [SymplecticForm.associatedBilinForm_apply, ContinuousLinearMap.toLinearMap₁₂_apply,
     flatComp_apply]
   rw [← h, neg_eq_zero]
-  simp [IsNondegenerate.toBilinForm_symplecticFormAt]
+  simp
 
 /-- If `σ` tames `J`, the bilinear form `σ(J ·, ·)` vanishes on the diagonal only at `0`, since
 `σ(J u, u) = -σ(u, J u)`. -/
