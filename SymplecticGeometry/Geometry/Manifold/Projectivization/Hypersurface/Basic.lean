@@ -10,6 +10,7 @@ public import TauCeti.Topology.Algebra.Projectivization
 public import TauCeti.Topology.Algebra.Projectivization.ZeroLocus
 import Mathlib.Analysis.Complex.Polynomial.Basic
 import TauCeti.RingTheory.MvPolynomial.CommonZero
+import TauCeti.RingTheory.MvPolynomial.Symmetric.PowerSum.Basic
 
 /-!
 # Smooth projective hypersurfaces
@@ -84,6 +85,14 @@ theorem mem_carrier_iff {L : ℙ ℂ (Fin (n + 2) → ℂ)} : L ∈ X.carrier �
   rw [carrier_def, mem_complexProjectiveZeroLocus_iff_eval_rep (fun _ ↦ X.isHomogeneous)]
   simp
 
+/-- The point of projective space spanned by a nonzero vector `v` lies on the hypersurface exactly
+when the polynomial vanishes at `v`. -/
+@[simp]
+theorem mem_carrier_mk_iff {v : Fin (n + 2) → ℂ} (hv : v ≠ 0) :
+    Projectivization.mk ℂ v hv ∈ X.carrier ↔ eval v X.poly = 0 := by
+  rw [carrier_def, complexProjectiveZeroLocus_mk_iff (fun _ ↦ X.isHomogeneous)]
+  simp
+
 instance : CoeSort (SmoothProjectiveHypersurface n d) Type where
   coe X := X.carrier
 
@@ -110,9 +119,9 @@ instance instIsManifold : IsManifold 𝓘(ℂ, Fin (n + 1 - Fintype.card Unit) �
   isManifold_complexProjectiveZeroLocus (fun _ ↦ X.isHomogeneous) isOpen_univ
     X.carrier_eq_inter_univ X.surjective_jacobiMatrixAt ω
 
-/-- A smooth projective hypersurface is compact: it is closed in projective space. -/
+/-- A smooth projective hypersurface is compact, as every zero locus in projective space is. -/
 instance instCompactSpace : CompactSpace X :=
-  isCompact_iff_compactSpace.1 (isClosed_complexProjectiveZeroLocus _).isCompact
+  inferInstanceAs (CompactSpace (complexProjectiveZeroLocus _))
 
 /-- A smooth projective hypersurface is Hausdorff, as projective space is. -/
 instance instT2Space : T2Space X :=
@@ -137,8 +146,8 @@ theorem coe_embedding : ⇑X.embedding = Subtype.val :=
 /-- The polynomial of a smooth projective hypersurface is not zero. -/
 theorem poly_ne_zero : X.poly ≠ 0 := by
   intro h
-  let L : ℙ ℂ (Fin (n + 2) → ℂ) := Projectivization.mk ℂ (Pi.single 0 1) (by simp)
-  obtain ⟨i, hi⟩ := X.smooth L (X.mem_carrier_iff.2 (by simp [h]))
+  have hv : (Pi.single 0 1 : Fin (n + 2) → ℂ) ≠ 0 := by simp
+  obtain ⟨i, hi⟩ := X.smooth _ ((X.mem_carrier_mk_iff hv).2 (by simp [h]))
   simp [h] at hi
 
 /-- A smooth projective hypersurface of positive degree is nonempty. -/
@@ -146,29 +155,29 @@ theorem nonempty (hd : d ≠ 0) : Nonempty X := by
   have h0 : X.poly.coeff 0 = 0 := X.isHomogeneous.coeff_eq_zero (by simpa using hd.symm)
   obtain ⟨v, hv, hvp⟩ := exists_ne_zero_forall_aeval_eq_zero (K := ℂ) (σ := Fin (n + 2))
     (s := {X.poly}) (by simp) (by simpa [constantCoeff_eq] using h0)
-  refine ⟨⟨Projectivization.mk ℂ v hv, ?_⟩⟩
-  rw [carrier_def, complexProjectiveZeroLocus_mk_iff (fun _ ↦ X.isHomogeneous)]
-  simpa using hvp X.poly (by simp)
+  exact ⟨⟨Projectivization.mk ℂ v hv, (X.mem_carrier_mk_iff hv).2 <| by
+    simpa using hvp X.poly (by simp)⟩⟩
 
 /-- The **Fermat hypersurface** `∑ⱼ zⱼ ^ d = 0` of degree `d` in `ℂℙⁿ⁺¹`. It is smooth in every
-degree; for `d = 0` its polynomial is the nonzero constant `n + 2` and it is empty. -/
+degree; for `d = 0` its polynomial is the nonzero constant `n + 2` and it is empty. Its
+polynomial is Mathlib's power sum `MvPolynomial.psum`. -/
 noncomputable def fermat (n d : ℕ) : SmoothProjectiveHypersurface n d where
-  poly := ∑ j, MvPolynomial.X j ^ d
-  isHomogeneous := IsHomogeneous.sum _ _ _ fun j _ ↦ isHomogeneous_X_pow j d
+  poly := psum (Fin (n + 2)) ℂ d
+  isHomogeneous := TauCeti.isHomogeneous_psum ℂ d
   smooth L hL := by
-    rw [mem_complexProjectiveZeroLocus_iff_eval_rep
-      (fun _ ↦ IsHomogeneous.sum _ _ _ fun j _ ↦ isHomogeneous_X_pow j d)] at hL
+    rw [mem_complexProjectiveZeroLocus_iff_eval_rep (fun _ ↦ TauCeti.isHomogeneous_psum ℂ d)] at hL
     obtain ⟨i, hi⟩ := Function.ne_iff.1 L.rep_ne_zero
     rcases eq_or_ne d 0 with rfl | hd
     · have h := hL ()
+      rw [psum_zero] at h
       norm_num at h
       norm_cast at h
     · rw [Pi.zero_apply] at hi
-      exact ⟨i, by simp [pderiv_X, Pi.single_apply, hd, hi]⟩
+      exact ⟨i, by simp [psum, pderiv_X, Pi.single_apply, hd, hi]⟩
 
 @[simp]
-theorem fermat_poly (n d : ℕ) : (fermat n d).poly = ∑ j, MvPolynomial.X j ^ d :=
-  (rfl)
+theorem fermat_poly (n d : ℕ) : (fermat n d).poly = ∑ j, MvPolynomial.X j ^ d := by
+  simp only [fermat, psum]
 
 end SmoothProjectiveHypersurface
 
