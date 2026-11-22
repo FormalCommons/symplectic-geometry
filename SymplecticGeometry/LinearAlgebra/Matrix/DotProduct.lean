@@ -29,6 +29,7 @@ namespace Fin
 
 /-- The star of a tuple with an entry inserted at `j` is the star of the tuple with the star of
 the entry inserted at `j`. -/
+@[simp]
 theorem star_insertNth {R : Type*} [Star R] {m : ℕ} (j : Fin (m + 1)) (c : R) (x : Fin m → R) :
     star (Fin.insertNth (α := fun _ ↦ R) j c x) =
       Fin.insertNth (α := fun _ ↦ R) j (star c) (star x) := by
@@ -52,6 +53,7 @@ theorem star_mulVec_dotProduct_mulVec [Semiring R] [StarRing R] [DecidableEq m]
 
 /-- The dot product of two vectors with an entry inserted at the same position `j` is the
 product of these entries plus the dot product of the remaining vectors. -/
+@[simp]
 theorem insertNth_dotProduct_insertNth [AddCommMonoid R] [Mul R] {n : ℕ}
     (j : Fin (n + 1)) (a b : R) (x y : Fin n → R) :
     Fin.insertNth (α := fun _ ↦ R) j a x ⬝ᵥ Fin.insertNth (α := fun _ ↦ R) j b y =
