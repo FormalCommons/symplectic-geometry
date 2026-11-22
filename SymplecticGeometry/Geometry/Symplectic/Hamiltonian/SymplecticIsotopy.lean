@@ -21,8 +21,9 @@ Let `σ` be a closed two-form on a manifold `M`. A smooth vector field `X` is sy
 contraction `ι_X σ` is closed (`TauCeti.SmoothTwoForm.symplecticVectorFields`). This file shows
 that this holds exactly when the local flow of `X` preserves `σ` wherever it is defined, that a
 diffeotopy `φ_t` consists of maps preserving `σ` exactly when its velocity `X_t` is symplectic for
-every `t`, and that the bracket of two symplectic vector fields is Hamiltonian. Together with Tau
-Ceti's `TauCeti.SmoothTwoForm.mem_symplecticVectorFields_iff_mlieDerivForm_eq_zero` this is
+every `t`, and that symplectic fields `X`, `Y` have a Hamiltonian bracket, with Hamiltonian
+`σ(X, Y)`. Together with Tau Ceti's
+`TauCeti.SmoothTwoForm.mem_symplecticVectorFields_iff_mlieDerivForm_eq_zero` this is
 McDuff–Salamon, Proposition 3.1.5 and Remark 3.1.6, without compactness, since the isotopy is
 given.
 
