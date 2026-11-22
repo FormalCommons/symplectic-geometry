@@ -110,6 +110,9 @@ for `o`. Finitely many distinct points have pairwise disjoint open neighbourhood
 * `SymplecticGeometry.CoordinateDisc.disc_ofChart`,
   `SymplecticGeometry.CoordinateDisc.openDisc_ofChart`: the closed and the open disc of `ofChart`
   are the images under `e.symm` of the closed and the open ball of radius `r / 2` about `c`.
+* `TauCeti.HomologicalOrientation.forall_localOrientationEquiv_eq_or_forall_eq_neg`: an open
+  embedding of a connected open set of `ℂ` carries its canonical orientation to `o` at every point
+  or to `-o` at every point.
 * `SymplecticGeometry.CoordinateDisc.exists_coe_eq_or_exists_coe_eq`: an open embedding of the
   ball is a coordinate disc for `o` or for `-o`.
 * `SymplecticGeometry.exists_coordinateDisc`: a coordinate disc centred at any point, inside any
@@ -844,29 +847,42 @@ namespace CoordinateDisc
 variable {M : Type} [TopologicalSpace M] [T2Space M] {E : Type} [NormedAddCommGroup E]
   [NormedSpace ℝ E] [FiniteDimensional ℝ E] [ChartedSpace E M] {o : HomologicalOrientation M E 2}
 
+/-- **Open embeddings of connected open sets of `ℂ` preserve or reverse orientation.** On a
+surface `M` with a homological orientation `o`, an open embedding `f` of a connected open set `U`
+of `ℂ` carries the canonical local orientation of `U` at `z`
+(`TauCeti.complexHomologicalOrientation`) either to `o (f z)` at every `z`, or to `-o (f z)` at
+every `z`: `o` read on `U` agrees with the canonical orientation of `U` or with the opposite
+one. -/
+theorem _root_.TauCeti.HomologicalOrientation.forall_localOrientationEquiv_eq_or_forall_eq_neg
+    (hE : finrank ℝ E = 2) (o : HomologicalOrientation M E 2) {U : TopologicalSpace.Opens ℂ}
+    [ConnectedSpace U] {f : U → M} (hf : IsOpenEmbedding f) :
+    (∀ z, hf.localOrientationEquiv z 2 (complexHomologicalOrientation U z) = o (f z)) ∨
+      ∀ z, hf.localOrientationEquiv z 2 (complexHomologicalOrientation U z) = -o (f z) := by
+  have h : finrank ℝ E = finrank ℝ ℂ := hE.trans Complex.finrank_real_complex.symm
+  -- Chart `M` on `ℂ` through a linear equivalence, to read `o` with the model `ℂ`.
+  let : ChartedSpace ℂ M := ChartedSpace.ofFinrankEq (𝕜 := ℝ) M h
+  -- If `o'`, read with the model `ℂ`, pulls back to the canonical orientation of `U`, then `f`
+  -- carries the canonical orientation to `o'`: the two readings have the same local orientations.
+  have key (o' : HomologicalOrientation M E 2)
+      (ho : (o'.changeModel ℂ h).comap hf = complexHomologicalOrientation U) (z : U) :
+      hf.localOrientationEquiv z 2 (complexHomologicalOrientation U z) = o' (f z) := by
+    rw [← ho, HomologicalOrientation.localOrientationEquiv_comap_apply,
+      HomologicalOrientation.changeModel_apply]
+  rcases HomologicalOrientation.eq_or_eq_neg Complex.finrank_real_complex
+    (complexHomologicalOrientation U) ((o.changeModel ℂ h).comap hf) with ho | ho
+  · exact Or.inl (key o ho)
+  · refine Or.inr (key (-o) ?_)
+    rw [HomologicalOrientation.changeModel_neg, HomologicalOrientation.comap_neg, ho, neg_neg]
+
 /-- **Open embeddings of the ball are coordinate discs up to orientation.** On a surface `M`
 with a homological orientation `o`, an open embedding `f` of the ball of radius `2` of `ℂ` is a
 coordinate disc either for `o` or for `-o`: the ball is connected, so `o` read on it agrees with
 its canonical orientation or with the opposite one. -/
 theorem exists_coe_eq_or_exists_coe_eq (hE : finrank ℝ E = 2) {f : ball → M}
     (hf : IsOpenEmbedding f) :
-    (∃ φ : CoordinateDisc o, ⇑φ = f) ∨ ∃ φ : CoordinateDisc (-o), ⇑φ = f := by
-  have h : finrank ℝ E = finrank ℝ ℂ := hE.trans Complex.finrank_real_complex.symm
-  -- Chart `M` on `ℂ` through a linear equivalence, to read `o` with the model `ℂ`.
-  let : ChartedSpace ℂ M := ChartedSpace.ofFinrankEq (𝕜 := ℝ) M h
-  -- A coordinate disc for `o.changeModel ℂ h` is one for `o`: the two have the same local
-  -- orientations.
-  have key (o' : HomologicalOrientation M E 2)
-      (ho : (o'.changeModel ℂ h).comap hf = complexHomologicalOrientation ball) :
-      ∃ φ : CoordinateDisc o', ⇑φ = f :=
-    let ψ := ofComapEq f hf ho
-    ⟨⟨f, hf, fun z ↦ (ψ.localOrientationEquiv_apply z).trans
-      (HomologicalOrientation.changeModel_apply o' h (f z))⟩, rfl⟩
-  rcases HomologicalOrientation.eq_or_eq_neg Complex.finrank_real_complex
-    (complexHomologicalOrientation ball) ((o.changeModel ℂ h).comap hf) with ho | ho
-  · exact Or.inl (key o ho)
-  · refine Or.inr (key (-o) ?_)
-    rw [HomologicalOrientation.changeModel_neg, HomologicalOrientation.comap_neg, ho, neg_neg]
+    (∃ φ : CoordinateDisc o, ⇑φ = f) ∨ ∃ φ : CoordinateDisc (-o), ⇑φ = f :=
+  (o.forall_localOrientationEquiv_eq_or_forall_eq_neg hE hf).imp (fun h ↦ ⟨⟨f, hf, h⟩, rfl⟩)
+    fun h ↦ ⟨⟨f, hf, h⟩, rfl⟩
 
 omit [T2Space M] in
 /-- An open embedding of the ball sending `0` to `x`, inside a neighbourhood `U` of `x`: Tau
