@@ -343,11 +343,14 @@ a compact `K ⊆ ψ.target`, used to show that `L2Form.localize` is bounded:
 - `L2Form o k`, the Hilbert space completion described above, with
   `L2Form.ofSmooth : SmoothForm I M ℝ k →ₗ[ℝ] L2Form o k`,
   `inner_ofSmooth`, `ofSmooth_injective` and `denseRange_ofSmooth`.
-- `L2Form.localize ψ χ : L2Form o k →L[ℝ] Lp (fun _ ↦ Λ) 2 volume` for a
-  chart `ψ` and a smooth cutoff `χ` with compact support in `ψ.source`. It
-  extends $\alpha\mapsto(\chi\circ\psi^{-1})\,\alpha_\psi$. It is bounded,
-  since the Gram matrix and the volume density are bounded above and below
-  on the support of $\chi$.
+- `L2Form.localize ψ χ hχ : L2Form o k →L[ℝ] Lp Λ 2 volume`, with
+  `Λ = E [⋀^Fin k]→L[ℝ] ℝ` and `volume` an additive Haar measure on `E`, for
+  a chart `ψ` and a smooth cutoff `χ` with `hχ : tsupport χ ⊆ ψ.source`. It
+  extends `TauCeti.SmoothForm.localize ψ χ`,
+  $\alpha\mapsto(\chi\circ\psi^{-1})\,\alpha_\psi$ on `ψ.target` and `0`
+  elsewhere (`localize_ofSmooth`). It is bounded
+  (`exists_norm_localizeLp_le`), since the differential of `ψ.symm` is
+  bounded above and its Jacobian below on `ψ '' tsupport χ`.
 - `L2Form.eq_ofSmooth_of_localize`: if, for a finite cover with a
   partition of unity, every localization of `u` is a.e. a smooth function
   with compact support, then `u = ofSmooth α` for a smooth form $\alpha$.
