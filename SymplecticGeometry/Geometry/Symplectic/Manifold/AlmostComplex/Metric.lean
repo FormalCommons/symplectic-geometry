@@ -44,6 +44,10 @@ identifications `SymplecticGeometry.Bundle.ContMDiffTwoForm.tangentEquiv` of two
 * `TauCeti.SmoothAlmostComplexStructure.kahlerTwoForm_eq_compatibleFormEquiv`: Tau Ceti's Kähler
   form `TauCeti.SmoothAlmostComplexStructure.kahlerTwoForm` of the ambient `RiemannianBundle`
   metric is the form under the bijection of a compatible metric `g` that agrees with it.
+* `TauCeti.SmoothAlmostComplexStructure.inner_apply_apply_of_inner_eq` and
+  `TauCeti.SmoothTwoForm.val_eq_alternatingFormEquiv_kahlerForm`: if the `RiemannianBundle`
+  metric is `⟪u, v⟫ = σ(u, J v)`, then `J` is orthogonal, and at each point `σ` is the Kähler
+  form `TauCeti.AlmostComplexStructure.kahlerForm` of `J`, read as an alternating form.
 
 ## References
 
@@ -193,6 +197,46 @@ theorem kahlerTwoForm_eq_compatibleFormEquiv [RiemannianBundle (fun x : M ↦ Ta
   rw [compatibleFormEquiv_apply_eval₂, SmoothBundleForm.eval₂_apply, kahlerTwoForm_apply_two, hg]
 
 end SmoothAlmostComplexStructure
+
+/-! ### A metric with `⟪u, v⟫ = σ(u, J v)` -/
+
+variable [RiemannianBundle (fun x : M ↦ TangentSpace I x)] {σ : SmoothTwoForm I M}
+  {J : SmoothAlmostComplexStructure I M}
+
+omit [FiniteDimensional ℝ E] in
+/-- If the metric is `⟪v, w⟫ = σ(v, J w)`, then `J` is orthogonal. -/
+theorem SmoothAlmostComplexStructure.inner_apply_apply_of_inner_eq
+    (hg : ∀ x (v w : TangentSpace I x), ⟪v, w⟫ = σ.val x ![v, J x w])
+    (x : M) (u w : TangentSpace I x) : ⟪J x u, J x w⟫ = ⟪u, w⟫ := by
+  -- `σ(J u, w) = -⟪J u, J w⟫` from `J (-J w) = w`, and `σ(J u, w) = -σ(w, J u) = -⟪w, u⟫`.
+  have h₁ := hg x (J x u) (-(J x w))
+  simp only [map_neg, J.apply_apply, _root_.neg_neg, inner_neg_right] at h₁
+  have h₂ : σ.val x ![J x u, w] + σ.val x ![w, J x u] = 0 := by
+    simpa using (σ.val x).map_swap_add ![w, J x u] (i := 0) (j := 1) (by decide)
+  rw [← h₁, ← hg] at h₂
+  linarith [real_inner_comm u w]
+
+/-- If the metric is `⟪v, w⟫ = σ(v, J w)`, then at each point `σ` is the Kähler form
+`σ(v, w) = ⟪J v, w⟫` of `J x`, the form of the Kähler two-vector
+`TauCeti.AlmostComplexStructure.kahlerForm`. -/
+theorem SmoothTwoForm.val_eq_alternatingFormEquiv_kahlerForm
+    (hg : ∀ x (v w : TangentSpace I x), ⟪v, w⟫ = σ.val x ![v, J x w]) (x : M) :
+    σ.val x =
+      (letI : FiniteDimensional ℝ (TangentSpace I x) :=
+        VectorBundle.finiteDimensional ℝ E (TangentSpace I) x
+       alternatingFormEquiv (TangentSpace I x) 2 (J.almostComplexStructureAt x).kahlerForm) := by
+  let _ : FiniteDimensional ℝ (TangentSpace I x) :=
+    VectorBundle.finiteDimensional ℝ E (TangentSpace I) x
+  have hJ : ∀ u w : TangentSpace I x,
+      ⟪J.almostComplexStructureAt x u, J.almostComplexStructureAt x w⟫ = ⟪u, w⟫ := by
+    simpa only [SmoothAlmostComplexStructure.almostComplexStructureAt_apply] using
+      J.inner_apply_apply_of_inner_eq hg x
+  ext v
+  have hv : v = ![v 0, v 1] := by ext i; fin_cases i <;> rfl
+  rw [hv, alternatingFormEquiv_apply, AlmostComplexStructure.inner_kahlerForm_ιMulti hJ,
+    AlmostComplexStructure.inner_apply_left hJ, ← inner_neg_right, hg,
+    SmoothAlmostComplexStructure.almostComplexStructureAt_apply]
+  simp
 
 end TauCeti
 

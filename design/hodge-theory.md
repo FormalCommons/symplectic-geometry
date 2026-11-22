@@ -523,6 +523,14 @@ Beside *Nijenhuis tensor*'s `Integrable.lean`:
   characteristic zero.
   It imports only Mathlib.
 
+### `Geometry/Manifold/DifferentialForm/AlmostComplexType.lean`
+
+- `ContMDiffSection.coe_realAlternatingDerivation`: at each point, Tau
+  Ceti's `realAlternatingDerivation` of an endomorphism field `A` is
+  `fderivCompContinuousLinearMap` at the identity in the direction `A x`,
+  for `hodgeStar_realAlternatingDerivation` below. It imports
+  `Analysis/Normed/Module/Alternating/Derivation.lean`.
+
 ### `Geometry/Manifold/DeRham/Kahler/Identities.lean`
 
 On an oriented manifold with a metric instance satisfying `hg`,
@@ -634,9 +642,10 @@ was found, so `ERRATA.md` needs no entry.
   `KahlerCoordinates.lean` and the milestone, and
   `mfderiv_trans_apply_eq_of_fderiv_apply_eq`, which this part adds there.
 - *Almost complex manifolds*, `Geometry/Symplectic/Manifold/AlmostComplex/Metric.lean`
-  (#860): `TauCeti.SmoothTwoForm.Compatible.metric` and `metric_inner`, only
-  in the proof of the milestone. This dependency is new; `DESIGN.md` records
-  it.
+  (#860): `TauCeti.SmoothTwoForm.Compatible.metric` and `metric_inner`, in
+  the proof of the milestone, and `val_eq_alternatingFormEquiv_kahlerForm`,
+  which this part adds there, in `Kahler/Identities.lean`. This dependency
+  is new; `DESIGN.md` records it.
 - *Symplectic neighbourhoods*,
   `Geometry/Manifold/DifferentialForm/Pullback/LocalDiffeomorph.lean`
   (merged): `PartialDiffeomorph.mpullback_symm_mpullback_apply`, only in
@@ -678,7 +687,7 @@ sub-issues of #874, *Build the part Hodge theory*. Sizes are estimates.
 | 9 | Complex harmonic forms | `DeRham/Hodge/Complex.lean` | 8 | 300 |
 | 10 | The Lefschetz operator and the linear Kähler identity | `Analysis/InnerProductSpace/HodgeStar/Kahler/Lefschetz.lean`, `Analysis/InnerProductSpace/HodgeStar/AlternatingForm.lean`, `Analysis/Normed/Module/Alternating/Derivation.lean` | — | 350 |
 | 11 | Osculating holomorphic charts of a Kähler manifold | `Geometry/Manifold/Complex/KahlerCoordinates.lean`, `LinearAlgebra/ComplexStructure/SymmetricBilinear.lean` | 3; #862 | 400 |
-| 12 | The Kähler identity and $[\Delta,\mathcal J]=0$ | `DeRham/Kahler/Identities.lean` | 3, 10, 11 | 400 |
+| 12 | The Kähler identity and $[\Delta,\mathcal J]=0$ | `DeRham/Kahler/Identities.lean`, `Geometry/Manifold/DifferentialForm/AlmostComplexType.lean` | 3, 10, 11 | 400 |
 | 13 | Conjugation on complex de Rham cohomology, and the Hodge decomposition | `Geometry/Manifold/DeRham/ComplexCoefficients.lean`, `DeRham/Kahler/Decomposition.lean` | 9, 12 | 400 |
 | 14 | Hodge numbers, Betti numbers, and the milestone | `DeRham/Kahler/HodgeNumbers.lean` | 13; #860 | 300 |
 
