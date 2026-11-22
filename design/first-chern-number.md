@@ -674,7 +674,10 @@ issues, in an order where each issue's blockers come before it.
      steps above, in the
      form that
      `complexEulerClass_eq_neg_of_finrank_eq_one_of_conjugateFiberwise`
-     takes. So the Tau Ceti-namespaced file imports nothing of this library.
+     takes. So the Tau Ceti-namespaced files under `FiniteRank/` import, of
+     this library, only each other and the two supporting files, which are
+     stated in Mathlib's and Tau Ceti's terms, so that they can move
+     upstream together.
 
    Done when these are proved and build.
 2. **Evenness of the first Betti number of a closed orientable surface.**
