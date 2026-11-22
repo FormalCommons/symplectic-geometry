@@ -281,6 +281,7 @@ the order of the paths.
 | `Geometry/Manifold/Projectivization/Hypersurface/Veronese.lean` | $X$ as a hyperplane section of the Veronese image | 12 |
 | `Geometry/Manifold/Projectivization/TwistCore.lean` | sums and tensor products of the bundles $\mathcal O(k)$ | 2 |
 | `Geometry/Manifold/SmoothEmbedding/NormalSpace/Splitting.lean` | $TM\oplus\nu\cong f^*TN$ | 4 |
+| `Topology/Algebra/Module/Equiv/Pi.lean` | `ContinuousLinearEquiv.piOptionEquivProd` | 2 |
 
 ### `Geometry/Manifold/Projectivization/Hypersurface/Basic.lean`
 
@@ -308,7 +309,8 @@ Namespace `SymplecticGeometry`.
 ### `Geometry/Manifold/Projectivization/TwistCore.lean`
 
 Namespace `Projectivization`, over a field `𝕜` as Tau Ceti's `twistCore`
-where nothing else is needed, and over `ℂ` for the tensor products.
+where nothing else is needed, and over a complete one for the continuity of
+the tensor products on total spaces.
 
 - `twistPiCore k ι`, the vector bundle core of $\mathcal O(k)\otimes\mathbb
   C^\iota$, with model `ι → 𝕜` and coordinate change
@@ -316,16 +318,18 @@ where nothing else is needed, and over `ℂ` for the tensor products.
   its `IsContMDiff` instance, as for `twistCore`.
 - `twistPiCoreOptionEquiv k ι x`: the fibrewise linear equivalence
   `(twistPiCore k (Option ι)).Fiber x ≃L[𝕜] ((twistCore k).Fiber ×ᵇ
-  (twistPiCore k ι).Fiber) x` (by `Equiv.piOptionEquivProd`), continuous on
-  total spaces in both directions; and, for `IsEmpty ι`, that
-  `twistPiCore k ι` has rank zero. These make $\mathcal O(k)^{\oplus r}$ an
+  (twistPiCore k ι).Fiber) x` (by `ContinuousLinearEquiv.piOptionEquivProd`
+  of `Topology/Algebra/Module/Equiv/Pi.lean`), continuous on
+  total spaces in both directions; and, for `IsEmpty ι`,
+  `twistPiCoreTrivializationOfIsEmpty`, a global trivialization of the
+  rank-zero `twistPiCore k ι`. These make $\mathcal O(k)^{\oplus r}$ an
   iterated direct sum for the Whitney formula.
 - `twistCoreTensorEquiv k l x`: the fibrewise equivalence
-  `(twistCore (k + l)).Fiber x ≃L[ℂ] (twistCore k).Fiber x ⊗[ℂ]
+  `(twistCore (k + l)).Fiber x ≃L[𝕜] (twistCore k).Fiber x ⊗[𝕜]
   (twistCore l).Fiber x`, `a ↦ a ⊗ 1` in each chart, compatible with the
   transitions by `twistTransition_add`, continuous on total spaces for Tau
   Ceti's tensor product bundle (`Topology/VectorBundle/TensorProduct/Basic.lean`);
-  and `twistCoreZeroEquiv`, the trivialization of `twistCore 0`
+  and `twistCoreZeroTrivialization`, the trivialization of `twistCore 0`
   (`twistTransition_zero`). #1040 uses the case `k = 1`, `l = -1`; if it
   has merged a general form by then, this item is not added again.
 

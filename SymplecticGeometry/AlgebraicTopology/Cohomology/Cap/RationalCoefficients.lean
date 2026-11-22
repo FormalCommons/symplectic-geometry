@@ -5,7 +5,6 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import Mathlib.AlgebraicTopology.SimplicialSet.Homology.MapHomologicalComplex
 public import SymplecticGeometry.Algebra.Homology.ShortComplex.PreservesHomology
 public import SymplecticGeometry.AlgebraicTopology.Cohomology.Cap.Basic
 public import SymplecticGeometry.AlgebraicTopology.SimplicialSet.Homology.RestrictScalars
@@ -25,7 +24,8 @@ restriction of scalars along `ℤ → ℚ`, through which an object of `ModuleCa
 abelian group.
 
 * `TopCat.singularChainComplexRestrictScalarsRatIso`: the rational chains, read as abelian groups,
-  are the chains with coefficients in the abelian group `ℚ`.
+  are the chains with coefficients in the abelian group `ℚ`: the inverse of the change of
+  coefficients `SSet.restrictScalarsChainIso` along `ModuleCat.restrictScalarsAlgebraMapIso`.
 * `TopCat.singularChainComplexIntToRat`: the chain map `C(X; ℤ) ⟶ F (C(X; ℚ))` induced by the
   inclusion `ℤ → ℚ` of coefficients (`TauCeti.intToRatCoeff`), an instance of the change of
   coefficients `SSet.restrictScalarsChainMap`, and the induced map on homology
@@ -64,14 +64,14 @@ is the hypothesis of Tau Ceti's evenness criterion
 `TauCeti.intToRealCoeff` and `TauCeti.intToRealCoeff_apply` with `ℚ` in place of `ℝ`.
 
 The comparisons of chains and of homologies follow the steps of Tau Ceti's
-`SSet.homologyExtendScalarsIso`, for restriction instead of extension of scalars: Mathlib's
-`SSet.chainComplexFunctorObjCompMapIso`, then the identification of the coefficients, then
-`CategoryTheory.ShortComplex.mapHomologyIso`. Tau Ceti's
-`CategoryTheory.Functor.singularHomologyFunctorObjCompIso`, used by
+`SSet.homologyExtendScalarsIso`, for restriction instead of extension of scalars: the change of
+coefficients `SSet.restrictScalarsChainIso`, built on Mathlib's
+`SSet.chainComplexFunctorObjCompMapIso`, then `CategoryTheory.ShortComplex.mapHomologyIso`.
+Tau Ceti's `CategoryTheory.Functor.singularHomologyFunctorObjCompIso`, used by
 `TopCat.singularHomologyModTwoIso`, gives the same comparison of homologies, but its chain-level
 part `CategoryTheory.Functor.singularChainComplexFunctorObjCompMapIso` is not exposed and has no
-formula on simplices, which the cap product computation needs; the simplicial isomorphism has one
-(`SSet.map_ιChainComplex_chainComplexFunctorObjCompMapIso_hom_app_f`).
+formula on simplices, which the cap product computation needs; the change of coefficients has
+one (`SSet.map_ιChainComplex_restrictScalarsChainIso_inv_f`).
 As in Tau Ceti's `Duality.lean`, `CategoryTheory.MonoidalPreadditive.monoidalLinearInt` is a
 local instance, so that the integral cap product is the one of the duality map.
 
@@ -122,10 +122,17 @@ def singularChainComplexRestrictScalarsRatIso :
     ((ModuleCat.restrictScalars.{0} (algebraMap ℤ ℚ)).mapHomologicalComplex _).obj
         ((toSSet.obj X).chainComplex (𝟙_ (ModuleCat.{0} ℚ))) ≅
       (toSSet.obj X).chainComplex (ModuleCat.of ℤ ℚ) :=
-  (SSet.chainComplexFunctorObjCompMapIso
-      (ModuleCat.restrictScalars.{0} (algebraMap ℤ ℚ)) (𝟙_ (ModuleCat.{0} ℚ))).app (toSSet.obj X) ≪≫
-    ((SSet.chainComplexFunctor _).mapIso
-      (ModuleCat.restrictScalarsAlgebraMapIso (R := ℤ) (S := ℚ) ℚ)).app (toSSet.obj X)
+  (SSet.restrictScalarsChainIso (algebraMap ℤ ℚ) (N := 𝟙_ (ModuleCat.{0} ℚ))
+    (ModuleCat.restrictScalarsAlgebraMapIso (R := ℤ) (S := ℚ) ℚ).symm (toSSet.obj X)).symm
+
+/-- The identification of rational chains with chains with coefficients in the abelian group `ℚ`
+is the inverse of the change of coefficients along the identification of the abelian group `ℚ`
+with the restricted `ℚ`-module `ℚ`. -/
+theorem singularChainComplexRestrictScalarsRatIso_def :
+    X.singularChainComplexRestrictScalarsRatIso =
+      (SSet.restrictScalarsChainIso (algebraMap ℤ ℚ) (N := 𝟙_ (ModuleCat.{0} ℚ))
+        (ModuleCat.restrictScalarsAlgebraMapIso (R := ℤ) (S := ℚ) ℚ).symm (toSSet.obj X)).symm :=
+  (rfl)
 
 /-- The identification of rational chains with chains with coefficients in the abelian group `ℚ`
 keeps each singular simplex. -/
@@ -137,14 +144,8 @@ theorem map_ιChainComplex_singularChainComplexRestrictScalarsRatIso_hom_f {n : 
       X.singularChainComplexRestrictScalarsRatIso.hom.f n =
     (ModuleCat.restrictScalarsAlgebraMapIso (R := ℤ) (S := ℚ) ℚ).hom ≫
       (toSSet.obj X).ιChainComplex σ := by
-  have h := SSet.map_ιChainComplex_chainComplexFunctorObjCompMapIso_hom_app_f
-    (ModuleCat.restrictScalars.{0} (algebraMap ℤ ℚ)) (R := 𝟙_ (ModuleCat.{0} ℚ))
-    (X := toSSet.obj X) σ
-  rw [singularChainComplexRestrictScalarsRatIso]
-  -- The composite is stated with the image under a composite functor, which `Iso.trans_hom`
-  -- sees as the image complex only after unfolding `Functor.comp`.
-  erw [Iso.trans_hom, HomologicalComplex.comp_f, reassoc_of% h]
-  exact SSet.ιChainComplex_chainComplexFunctor_map_app_f _ _
+  rw [singularChainComplexRestrictScalarsRatIso_def, Iso.symm_hom,
+    SSet.map_ιChainComplex_restrictScalarsChainIso_inv_f, Iso.symm_inv]
 
 /-- The chain map from integral to rational singular chains, read as abelian groups, induced by
 the inclusion `ℤ → ℚ` of coefficients: the change of coefficients `SSet.restrictScalarsChainMap`
@@ -348,6 +349,16 @@ def singularHomologyIntToRat (n : ℕ) :
     ((((toSSet.obj X).chainComplex (𝟙_ (ModuleCat.{0} ℚ))).sc n).mapHomologyIso
       (ModuleCat.restrictScalars.{0} (algebraMap ℤ ℚ))).hom
 
+/-- The map from integral to rational homology is the map induced on homology by the chain map
+from integral to rational chains, followed by the comparison of the homology of the restricted
+complex with the restricted homology. -/
+theorem singularHomologyIntToRat_def (n : ℕ) :
+    X.singularHomologyIntToRat n =
+      HomologicalComplex.homologyMap X.singularChainComplexIntToRat n ≫
+        ((((toSSet.obj X).chainComplex (𝟙_ (ModuleCat.{0} ℚ))).sc n).mapHomologyIso
+          (ModuleCat.restrictScalars.{0} (algebraMap ℤ ℚ))).hom :=
+  (rfl)
+
 /-- The comparison of cohomologies on the class of a rational cocycle `φ` is the class of the
 restriction of `φ` to integral chains. -/
 @[reassoc]
@@ -381,7 +392,7 @@ theorem homologyπ_singularHomologyIntToRat (n : ℕ) :
           (ModuleCat.restrictScalars.{0} (algebraMap ℤ ℚ))).hom ≫
         (ModuleCat.restrictScalars.{0} (algebraMap ℤ ℚ)).map
           (((toSSet.obj X).chainComplex (𝟙_ (ModuleCat.{0} ℚ))).homologyπ n) := by
-  rw [singularHomologyIntToRat]
+  rw [singularHomologyIntToRat_def]
   refine ((reassoc_of% (HomologicalComplex.homologyπ_naturality
     X.singularChainComplexIntToRat n)) _).trans ?_
   exact congrArg (_ ≫ ·) (ShortComplex.homologyπ_comp_mapHomologyIso_hom

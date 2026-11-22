@@ -328,9 +328,9 @@ Proof, in four steps.
    input is `h₁.sub h₀`. The pullback `f^*(σ₁ - σ₀)` vanishes by `heq`.
 2. *Nondegeneracy region.* `N := W ∩ {x | ∀ s ∈ Icc 0 1, …}` is open by
    `isOpen_setOf_forall_mem_Icc_nondegenerate`. It contains `range f`,
-   because along `f(Q)` every point of the segment is `σ₀`. (Tau Ceti
-   proves this pointwise fact in its private
-   `bilinFormAt_add_smul_sub_of_eq`; restate it here as a step.) Work on the
+   because along `f(Q)` every point of the segment is `σ₀`
+   (`nondegenerate_bilinFormAt_add_smul_sub_of_eq`, in
+   `Manifold/Family.lean`). Work on the
    open submanifold `N`, with the forms restricted along `Subtype.val`.
 3. *Moser flow.* With `c = Real.smoothTransition`, let
    `σ := SmoothForm.lineMapFamily σ₀ σ₁ c.contDiff` on `ℝ × N`. Its slices
@@ -411,7 +411,7 @@ API, in the order the proofs need it. `hinv` stands for
   `mpullback_timeDependentFlowOf_mpullback_prodMk_apply_eq_of_forall_mem_uIcc`.
   Both conditions on the forms are asked only at `y`, so that `β` need be
   a primitive only near a set.
-- No completeness lemma: when `tsupport ρ` is compact, `Isotopy.lean`
+- No completeness lemma: when `tsupport ρ` is compact, `Moser/Family.lean`
   applies Tau Ceti's `isCompleteVectorField_timeDependentSuspensionField`
   directly, to the compact projection of `tsupport ρ` to `M` and
   `moserField_eq_zero_of_notMem_tsupport`.
@@ -443,48 +443,23 @@ theorem exists_diffeotopy_fix_eventually_mpullback_eq (f : SmoothEmbedding J I �
 The neighbourhood of `range f` on which the identity holds is the same for
 every `t`, as the order of the quantifiers says.
 
-Proof. It goes through a version for a compact set `K` and a global
-primitive, in the namespace `TauCeti.SmoothTwoForm`:
-
-```lean
-theorem exists_diffeotopy_fix_eventually_mpullback_eq_of_mextDeriv_eq_sub
-    {σ₀ σ₁ : SmoothTwoForm I M} (h₀ : σ₀.IsClosed) {β : SmoothForm I M ℝ 1}
-    (hβ : mextDeriv β.val = (σ₁ - σ₀).val)
-    {K : Set M} (hK : IsCompact K) (hβK : ∀ x ∈ K, β.val x = 0)
-    (hnd : ∀ x ∈ K, ∀ s ∈ Icc (0 : ℝ) 1, ((σ₀ + s • (σ₁ - σ₀)).bilinFormAt x).Nondegenerate) :
-    ∃ Ψ : Diffeotopy I ∞ M, (∃ C, IsCompact C ∧ ∀ t, ∀ x ∉ C, Ψ (t, x) = x) ∧
-      (∀ t, ∀ x ∈ K, Ψ (t, x) = x) ∧
-      ∀ᶠ x in 𝓝ˢ K, ∀ t : unitInterval,
-        (SmoothForm.mpullback (Ψ.timeSlice t) (Ψ.timeSlice t).contMDiff
-          (σ₀ + (t : ℝ) • (σ₁ - σ₀))).val x = σ₀.val x
-```
-
-It is the diffeotopy form of Tau Ceti's
-`exists_diffeomorph_fix_eventually_mpullback_eq_of_mextDeriv_eq_sub`. The
-points `(t, x)` at which `σ₀ + t • (σ₁ - σ₀)` is nondegenerate form an open
-set, by `isOpen_setOf_isInvertible_flat_add_smul_sub σ₀ σ₁` of
-`Manifold/Family.lean`. By `hnd` it contains the
-compact set `Icc 0 1 ×ˢ K`. Take a cutoff `ρ : ℝ × M → ℝ`
-(`IsCompact.exists_contMDiff_one_nhds_tsupport_subset` on `ℝ × M`) that is
-`1` near `Icc 0 1 ×ˢ K`, with compact support in this open set. The field
-`moserField (SmoothForm.lineMapFamily σ₀ σ₁ contDiff_id)
-(SmoothForm.mpullback Prod.snd contMDiff_snd β) ρ` is smooth, and its suspension is complete, so
-`Ψ := timeDependentFlowDiffeotopy` exists. It is compactly supported, and it
-fixes `K` because the field vanishes there. Trajectories starting near `K`
-stay, up to time one, where `ρ = 1`; this follows from
-`generalized_tube_lemma`. Moser's principle along trajectories then gives the
-identity on that neighbourhood.
-
-For the embedding, take the tube `W` and the primitive `β` of
+Proof. Take the tube `W` and the primitive `β` of
 `exists_isSmoothForm_relative_primitive`. It vanishes along `f(Q)`, since
-`f^*(σ₁ - σ₀) = 0` by `hf`. Apply the previous theorem on the open
-submanifold `W`, to the restricted forms and `K = f(Q)`, and extend the
+`f^*(σ₁ - σ₀) = 0` by `hf`. On the open submanifold `W`, apply *Isotopy
+extension*'s Moser argument along a family fixing a submanifold,
+`TauCeti.SmoothEmbedding.exists_diffeotopy_fix_eventually_mpullback_eq_of_timeDeriv`
+(`Moser/Family.lean`), to `f.codRestrict W`, the family
+`SmoothForm.lineMapFamily` of the restricted forms with `contDiff_id`, and
+`SmoothForm.mpullback Prod.snd contMDiff_snd β`. Then extend the
 diffeotopy of `W` by the identity with Tau Ceti's
 `Diffeotopy.exists_extend_of_isCompact`, as Tau Ceti's
 `exists_diffeomorph_fix_embedding_eventually_mpullback_eq` does for one
 diffeomorphism. This replaces cutting `β` off and extending it by zero: on
 `M` itself, `RoughForm.extendByZero` gives a form on the open set `⊤`, not on
-`M`.
+`M`. The trajectory argument, the diffeotopy form of Tau Ceti's
+`exists_diffeomorph_fix_eventually_mpullback_eq_of_mextDeriv_eq_sub`, is
+that of `Moser/Family.lean`, for a compact set
+(`TauCeti.SmoothForm.exists_diffeotopy_fix_eventually_mpullback_eq_of_timeDeriv`).
 
 The milestone, in the plan's form, with the isotopy of embeddings of `U`
 starting at the inclusion `ι U := (SmoothEmbedding.ofOpens U).toContMDiffMap`.
@@ -519,14 +494,11 @@ applies to them with `M` replaced by `O` and `f` by `f.codRestrict O`.
 `SmoothIsotopy.timeSlice t` is Tau Ceti's slice at `t`, as a `SmoothEmbedding`.
 
 The module docstring credits Tau Ceti's
-`exists_diffeomorph_fix_eventually_mpullback_eq_of_mextDeriv_eq_sub`, whose
-trajectory argument this proof follows for every time,
 `exists_diffeomorph_fix_embedding_eventually_mpullback_eq` and
 `exists_diffeomorph_opens_of_eq_along`.
 
-The file imports `Geometry/Diffeomorphism/Diffeotopy/Velocity.lean` of
-*Hamiltonian flows*, which is merged, for the slices of `Ψ`
-(`TauCeti.Diffeotopy.timeSlice_timeDependentFlowDiffeotopy`).
+The file imports `Geometry/Symplectic/Moser/Family.lean` of *Isotopy
+extension*, for Moser's argument along a family.
 
 ### `Geometry/Symplectic/Manifold/Darboux.lean`
 
