@@ -13,7 +13,8 @@ public import Mathlib.Algebra.Module.Submodule.Equiv
 Two injective linear maps `i : M →ₗ[R] N₁` and `j : M →ₗ[R] N₂` identify their ranges with `M`,
 through `LinearEquiv.ofInjective`, and so with each other. This file defines that linear
 equivalence `LinearEquiv.ofInjectiveRange i j hi hj : range i ≃ₗ[R] range j`, which sends `i x`
-to `j x` (`LinearEquiv.ofInjectiveRange_apply`), and shows that its inverse is
+to `j x` (`LinearEquiv.ofInjectiveRange_apply`), gives its value on a general element of
+`range i` (`LinearEquiv.coe_ofInjectiveRange_apply`), and shows that its inverse is
 `LinearEquiv.ofInjectiveRange j i hj hi` and how such equivalences compose.
 -/
 
@@ -56,6 +57,21 @@ theorem ofInjectiveRange_apply (x : M) (h : i x ∈ range i) :
   rw [hx, ofInjectiveRange_ofInjective]
   exact Subtype.ext (ofInjective_apply j (h := hj) x)
 
+/-- `ofInjectiveRange i j` sends `y` in the range of `i` to `j x`, where `x` is the unique
+preimage of `y` under `i`. -/
+theorem coe_ofInjectiveRange_apply (y : range i) :
+    (ofInjectiveRange i j hi hj y : N₂) = j ((ofInjective i hi).symm y) := by
+  rw [ofInjectiveRange_def, trans_apply, ofInjective_apply]
+
+/-- `ofInjectiveRange i j` sends `i x`, as `i.rangeRestrict x`, to `j.rangeRestrict x`. -/
+@[simp]
+theorem ofInjectiveRange_rangeRestrict (x : M) :
+    ofInjectiveRange i j hi hj (i.rangeRestrict x) = j.rangeRestrict x := by
+  have hx : i.rangeRestrict x = ofInjective i hi x :=
+    Subtype.ext ((codRestrict_apply _ i x).trans (ofInjective_apply i x).symm)
+  rw [hx, ofInjectiveRange_ofInjective]
+  exact Subtype.ext ((ofInjective_apply j x).trans (codRestrict_apply _ j x).symm)
+
 /-- The inverse of `ofInjectiveRange i j` is `ofInjectiveRange j i`. -/
 @[simp]
 theorem ofInjectiveRange_symm : (ofInjectiveRange i j hi hj).symm = ofInjectiveRange j i hj hi := by
@@ -66,9 +82,7 @@ theorem ofInjectiveRange_symm : (ofInjectiveRange i j hi hj).symm = ofInjectiveR
 /-- `ofInjectiveRange i i` is the identity of `range i`. -/
 @[simp]
 theorem ofInjectiveRange_self : ofInjectiveRange i i hi hi = refl R (range i) := by
-  refine LinearEquiv.ext fun y ↦ ?_
-  obtain ⟨x, rfl⟩ := (ofInjective i hi).surjective y
-  rw [ofInjectiveRange_ofInjective, refl_apply]
+  rw [ofInjectiveRange_def, symm_trans_self]
 
 /-- `ofInjectiveRange j k ∘ ofInjectiveRange i j = ofInjectiveRange i k`. -/
 @[simp]
