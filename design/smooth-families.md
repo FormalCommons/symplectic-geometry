@@ -624,6 +624,7 @@ vector space) and `ContDiffOn.strictConvexOn_norm_sub_sq` (the squared distance
 - `TauCeti.SmoothForm.mpullback_mem_closedForms (f : M → M') (hf : ContMDiff I I' ∞ f)
   (hφ : φ ∈ closedForms I' M' k) : SmoothForm.mpullback f hf φ ∈ closedForms I M k`,
   the membership form of Tau Ceti's `closedForms.mpullback`. `SmoothFamily/Basic.lean`,
+  `SmoothFamily/MayerVietoris.lean`,
   *Hamiltonian flows*' `DeRham/FamilyPrimitive.lean` and *Isotopy extension*'s
   `Cohomological/Primitive.lean` import it.
 
