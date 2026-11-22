@@ -203,6 +203,7 @@ Further choices of this design:
 | `AlgebraicTopology/Singular/NDRPair.lean` | the homological shrinking lemma for the subset of an NDR pair |
 | `Analysis/CStarAlgebra/Exponential.lean` | smoothness of `t ↦ selfAdjoint.expUnitary (t • a)` (named like Mathlib's file) |
 | `Analysis/Matrix/SymplecticGroup/Connected.lean` | smooth paths in `Matrix.symplecticGroup` (named like Tau Ceti's file) |
+| `LinearAlgebra/Symplectic/Standard/Frame.lean` | smooth paths of frames trivializing a path of forms on `StdSpace ι`, from the identity to a given frame (step 1 of `Ball/Isotopy.lean` for radius `0`) |
 | `Analysis/Matrix/L2OpNorm.lean` | `ContDiff` of matrix-valued maps under the ℓ² operator norm, entrywise and against the entrywise norm (named like Tau Ceti's `Analysis/Matrix/L2OpNorm.lean`) |
 | `Analysis/SpecialFunctions/ContinuousFunctionalCalculus/ExpLog.lean` | smoothness of `t ↦ a ^ t` for strictly positive `a` (named like Tau Ceti's file) |
 | `Geometry/Manifold/SmoothEmbedding/Neighborhood.lean` | embeddings near a compact set, uniformly in a compact parameter |
@@ -231,6 +232,10 @@ by #551 (see *What the part uses*). Where a Tau Ceti file has the same
 name (`Extension.lean`, `Connected.lean`, `Poincare.lean`), the two merge upstream, as
 `DESIGN.md`'s *Principles* allow. No folder of this part has the name of a
 Tau Ceti file.
+
+`Standard/Frame.lean` is a file of this part in the folder of *Standard
+model*: its statement is linear algebra on `StdSpace` with `stdForm`, and it
+sits beside the matrix dictionary `Standard/Matrix.lean` that its proof uses.
 
 ### `AlgebraicTopology/Singular/NDRPair.lean`
 
@@ -866,9 +871,11 @@ this design already follows. `Ball/Isotopy.lean` cites
 ## What the part uses
 
 - *Standard model* (merged): `StdSpace`, `stdForm`, the Euclidean norm of
-  `StdSpace` for the balls.
+  `StdSpace` for the balls; the matrix dictionary
+  `LinearAlgebra/Symplectic/Standard/Matrix.lean`, which
+  `Standard/Frame.lean` imports.
 - *Linear Moser* (merged): `Geometry/Symplectic/LinearMoser.lean`, for the
-  frames along a path of centres.
+  frames along a path of centres (`Standard/Frame.lean`).
 - *Smooth families* (`design/smooth-families.md`, merged): Seeley's
   extension in the time variable, of maps in
   `Geometry/Manifold/ContMDiff/TimeExtension.lean` (used by `Extension.lean`)
