@@ -301,19 +301,14 @@ private theorem exists_partialDiffeomorph_flowOf_boundaryParam (hw : ContDiff �
       (∀ q ∈ Θ.source, Θ q = flowOf (I := 𝓘(ℝ, EuclideanSpace ℝ (Fin (n + 1)))) w (-q.2 0)
         (euclideanHalfSpaceBoundaryParam n q.1)) ∧
       ∀ q ∈ Θ.source, Θ q ∈ range (𝓡∂ (n + 1)) ↔ q ∈ range ((𝓡 n).prod (𝓡∂ 1)) := by
-  obtain ⟨Θ, hΘ0, hGΘ⟩ := IsLocalDiffeomorphAt.exists_partialDiffeomorph
-    (isLocalDiffeomorphAt_flowOf_euclideanHalfSpaceBoundaryParam hw z₀ hw₀)
-  have hsrc : (Θ.restrOpen R hR).source = Θ.source ∩ R := PartialDiffeomorph.restrOpen_source _ hR
-  have hG : ∀ q ∈ (Θ.restrOpen R hR).source, Θ.restrOpen R hR q =
-      flowOf (I := 𝓘(ℝ, EuclideanSpace ℝ (Fin (n + 1)))) w (-q.2 0)
-        (euclideanHalfSpaceBoundaryParam n q.1) := fun q hq ↦ by
-    rw [PartialDiffeomorph.coe_restrOpen, ← hGΘ (hsrc ▸ hq).1]
-  refine ⟨Θ.restrOpen R hR, hsrc ▸ ⟨hΘ0, hz₀R⟩, hsrc ▸ inter_subset_right, hG, ?_⟩
+  obtain ⟨Θ, hΘ0, hΘR, hGΘ⟩ := IsLocalDiffeomorphAt.exists_partialDiffeomorph_source_subset
+    (isLocalDiffeomorphAt_flowOf_euclideanHalfSpaceBoundaryParam hw z₀ hw₀) (hR.mem_nhds hz₀R)
+  refine ⟨Θ, hΘ0, hΘR, fun q hq ↦ (hGΘ hq).symm, ?_⟩
   rintro ⟨z, τ⟩ hq
-  rw [hG _ hq, ModelWithCorners.range_prod, range_modelWithCornersEuclideanHalfSpace,
+  rw [← hGΘ hq, ModelWithCorners.range_prod, range_modelWithCornersEuclideanHalfSpace,
     range_modelWithCornersEuclideanHalfSpace]
   simp only [mem_ofPred_eq, mem_prod, modelWithCornersSelf_coe, range_id, mem_univ, true_and]
-  exact hsign _ (hsrc ▸ hq).2
+  exact hsign _ (hΘR hq)
 
 end Box
 

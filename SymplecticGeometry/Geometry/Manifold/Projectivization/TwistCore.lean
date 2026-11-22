@@ -13,14 +13,23 @@ public import TauCeti.Topology.VectorBundle.Core.Trivial
 public import TauCeti.Topology.VectorBundle.Hom
 public import TauCeti.Topology.VectorBundle.TensorProduct.Basic
 
+import Mathlib.Analysis.Analytic.Polynomial
+
 /-!
 # Sums and tensor products of the line bundles `𝒪(k)`
 
 On projective space `ℙ 𝕜 (Fin (n + 1) → 𝕜)`, Tau Ceti's `Projectivization.twistCore k` is the
 line bundle `𝒪(k)`, glued from trivial lines over the standard affine opens along the transition
 functions `twistTransition k`. This file adds the bundles built from it that the computation of
-Chern classes of projective space uses.
+Chern classes of projective space uses, and the chart-change rules for dehomogenized
+polynomials that express sections of `𝒪(d)` in the standard charts.
 
+* `Projectivization.eval_affineChart_dehomogenize_eq_twistTransition_mul`: the dehomogenizations
+  of a homogeneous polynomial of degree `d` at two charts, read in those charts, differ on the
+  overlap by the transition function of `𝒪(d)`; `HasMFDerivAt.eval_affineChart_dehomogenize`:
+  at a zero of the polynomial, so do their differentials;
+  `Projectivization.contMDiffOn_eval_affineChart`: a polynomial read in the chart at `i` is
+  `C^r` on the affine open `U_i`.
 * `Projectivization.twistPiCore k ι`: the bundle `𝒪(k) ⊗ 𝕜^ι`, the direct sum of `ι` copies of
   `𝒪(k)`, as a vector bundle core with model fibre `ι → 𝕜`, with the charts of `𝒪(k)` and
   transitions `twistTransition k i j • id`. It is analytic
@@ -41,6 +50,10 @@ Chern classes of projective space uses.
   `VectorBundleCore.globalTrivializationOfCoordChangeEqId`.
 
 ## Implementation notes
+
+The proof of `HasMFDerivAt.eval_affineChart_dehomogenize` adapts that of Tau Ceti's
+`TauCeti.fderiv_eval_dehomogenize_transition` from Fréchet derivatives on `Fin n → 𝕜` to
+`mfderiv` on projective space.
 
 The core `twistPiCore`, its base sets and its smoothness instance follow Tau Ceti's
 `Projectivization.twistCore` and `Projectivization.isContMDiff_twistCore`, with the scalar
@@ -87,6 +100,62 @@ variable {𝕜 : Type*} [NontriviallyNormedField 𝕜] {n : ℕ}
 theorem mem_affineOpen_twistCore_indexAt (k : ℤ) (x : ℙ 𝕜 (Fin (n + 1) → 𝕜)) :
     x ∈ affineOpen ((twistCore k).indexAt x) :=
   twistCore_baseSet (𝕜 := 𝕜) k _ ▸ (twistCore k).mem_baseSet_at x
+
+/-! ### Dehomogenized polynomials in the standard charts -/
+
+section Dehomogenize
+
+open MvPolynomial TauCeti
+
+variable {d : ℕ}
+
+/-- The dehomogenizations at `i` and at `j` of a polynomial `P`, homogeneous of degree `d`, read
+in the affine charts, differ on `U_i ∩ U_j` by the transition function of `𝒪(d)`. -/
+theorem eval_affineChart_dehomogenize_eq_twistTransition_mul
+    {P : MvPolynomial (Fin (n + 1)) 𝕜} (hP : P.IsHomogeneous d) {i j : Fin (n + 1)}
+    {x : ℙ 𝕜 (Fin (n + 1) → 𝕜)} (hi : x ∈ affineOpen i) (hj : x ∈ affineOpen j) :
+    eval (affineChart j x) (dehomogenize j P) =
+      twistTransition (d : ℤ) i j x * eval (affineChart i x) (dehomogenize i P) := by
+  rw [← homogeneousSection_coord hP hi, ← homogeneousSection_coord hP hj, ← mul_assoc,
+    twistTransition_mul_twistTransition _ _ _ hi]
+
+/-- At a zero `x` of a polynomial `P`, homogeneous of degree `d`, in `U_i ∩ U_j`: if the
+dehomogenization of `P` at `i`, read in the affine chart at `i`, has the derivative `L` at `x`,
+then the dehomogenization at `j`, read in the chart at `j`, has the derivative `L` multiplied by
+the transition function `twistTransition d i j x` of `𝒪(d)`. -/
+theorem _root_.HasMFDerivAt.eval_affineChart_dehomogenize {P : MvPolynomial (Fin (n + 1)) 𝕜}
+    (hP : P.IsHomogeneous d) {i j : Fin (n + 1)} {x : ℙ 𝕜 (Fin (n + 1) → 𝕜)}
+    (hi : x ∈ affineOpen i) (hj : x ∈ affineOpen j)
+    (hx : eval (affineChart i x) (dehomogenize i P) = 0)
+    {L : TangentSpace 𝓘(𝕜, Fin n → 𝕜) x →L[𝕜] 𝕜}
+    (hL : HasMFDerivAt 𝓘(𝕜, Fin n → 𝕜) 𝓘(𝕜)
+      (fun y ↦ eval (affineChart i y) (dehomogenize i P)) x L) :
+    HasMFDerivAt 𝓘(𝕜, Fin n → 𝕜) 𝓘(𝕜) (fun y ↦ eval (affineChart j y) (dehomogenize j P)) x
+      (twistTransition (d : ℤ) i j x • L) := by
+  have hU : affineOpen i ∩ affineOpen j ∈ 𝓝 x :=
+    ((isOpen_affineOpen i).inter (isOpen_affineOpen j)).mem_nhds ⟨hi, hj⟩
+  obtain ⟨T, hT⟩ : ∃ T : TangentSpace 𝓘(𝕜, Fin n → 𝕜) x →L[𝕜] 𝕜,
+      HasMFDerivAt 𝓘(𝕜, Fin n → 𝕜) 𝓘(𝕜) (twistTransition (d : ℤ) i j) x T :=
+    ⟨_, (((contMDiffOn_twistTransition (d : ℤ) i j 1).contMDiffAt hU).mdifferentiableAt
+      one_ne_zero).hasMFDerivAt⟩
+  -- The product rule; the second term vanishes since `x` is a zero of `P`.
+  have heq : (twistTransition (d : ℤ) i j x • L +
+      eval (affineChart i x) (dehomogenize i P) • T : TangentSpace 𝓘(𝕜, Fin n → 𝕜) x →L[𝕜] 𝕜) =
+      twistTransition (d : ℤ) i j x • L := by
+    ext v
+    simp [hx]
+  refine ((hT.mul hL).congr_mfderiv heq).congr_of_eventuallyEq_abuse ?_
+  filter_upwards [hU] with y hy
+  exact eval_affineChart_dehomogenize_eq_twistTransition_mul hP hy.1 hy.2
+
+/-- A polynomial read in the affine chart at `i` is `C^r` on the affine open `U_i`. -/
+theorem contMDiffOn_eval_affineChart (P : MvPolynomial (Fin n) 𝕜) (i : Fin (n + 1))
+    (r : ℕ∞ω) :
+    ContMDiffOn 𝓘(𝕜, Fin n → 𝕜) 𝓘(𝕜) r (fun x ↦ eval (affineChart i x) P) (affineOpen i) :=
+  (AnalyticOnNhd.eval_continuousLinearMap (ContinuousLinearMap.id 𝕜 (Fin n → 𝕜))
+    P).contDiff.contMDiff.comp_contMDiffOn (contMDiffOn_affineChart i r)
+
+end Dehomogenize
 
 /-! ### The bundles `𝒪(k) ⊗ 𝕜^ι` -/
 

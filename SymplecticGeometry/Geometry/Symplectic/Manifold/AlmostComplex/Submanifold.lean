@@ -249,7 +249,7 @@ theorem IsIntegrable.restrict [FiniteDimensional ℝ E] [BoundarylessManifold I'
     exact congrFun (LinearMap.coe_toContinuousLinearMap' G) _
   -- Its differential at `x` is `G ∘ A = id`, so by the inverse function theorem it is a local
   -- diffeomorphism at `x`; on `s` its differential carries the restricted structure to `K`.
-  refine ⟨φ, s, K, hs, hxs, ?_, fun y hy v ↦ ?_⟩
+  refine ⟨φ, s, K, hs.mem_nhds hxs, ?_, fun y hy v ↦ ?_⟩
   · refine isLocalDiffeomorphAt_of_mfderiv_eq hφ hs hxs BoundarylessManifold.isInteriorPoint
       (by simp) (e := ContinuousLinearEquiv.refl ℝ E') ?_
     ext v
