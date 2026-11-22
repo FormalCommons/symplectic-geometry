@@ -19,7 +19,7 @@ of a collared map.
 The *boundary Maslov index* of a continuous map `Ψ : ∂X → Sp(2n)` is the boundary degree of
 `ρ ∘ Ψ`, where `ρ = TauCeti.GLSymplectic.maslovPhase` is the complex determinant of the unitary
 polar factor. When the components of `∂X` are parametrized by loops that represent the boundary
-class, it is the sum of the Maslov indices of `Ψ` along these loops. It is additive under
+class, it adds up the Maslov indices of `Ψ` along these loops. It is additive under
 pointwise products, although `ρ` is not multiplicative on `Sp(2n)`, because `ρ(A B)` and
 `ρ(A) ρ(B)` are homotopic as functions of `(A, B)`
 (`TauCeti.GLSymplectic.maslovPhase_mul_homotopic`). It vanishes on maps that extend continuously
@@ -79,7 +79,7 @@ theorem boundaryMaslovIndex_def (Ψ : C(↥((range ι)ᶜ : Set X), GLSymplectic
 /-- **The boundary Maslov index along loops.** Suppose that loops `γ i` in `∂X` represent the
 boundary class: the sum of their classes in `H₁(∂X; ℤ)`, the push-forwards along
 `(γ i).toCircle` of the generator of `Circle.singularHomologyOneIso`, is `∂[X, ∂X]`. Then the
-boundary Maslov index of `Ψ` is the sum of the Maslov indices of the loops `Ψ ∘ γ i`. -/
+boundary Maslov index of `Ψ` adds up the Maslov indices of the loops `Ψ ∘ γ i`. -/
 theorem boundaryMaslovIndex_eq_sum {κ : Type*} [Fintype κ] {x : κ → ↥((range ι)ᶜ : Set X)}
     (γ : ∀ i, Path (x i) (x i))
     (hγ : ∑ i, (((AlgebraicTopology.singularHomologyFunctor (ModuleCat.{0} ℤ) 1).obj
