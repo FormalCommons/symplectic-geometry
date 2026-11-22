@@ -437,7 +437,8 @@ Bundles from clutching data, and isomorphisms from homotopies.
 
 - `chernNumber_eq_sum_sectionIndex`: let `L` be a complex line bundle over a
   compact homologically oriented surface, and `s` a continuous section with
-  finitely many zeros. Then `chernNumber o hn ℂ L` is the sum over the zeros of
+  finitely many zeros. Then `chernNumber o hn G L`, for a model `G` of complex
+  dimension one, is the sum over the zeros of
   `TauCeti.VectorBundleOrientation.sectionIndex` for the canonical
   orientation `TauCeti.VectorBundleOrientation.complex`. The proof is
   `firstChernClass_eq_complexEulerClass` followed by
@@ -445,12 +446,14 @@ Bundles from clutching data, and isomorphisms from homotopies.
   be connected. The clutching proofs use this general form.
 - **Milestone** `chernNumber_eq_sum_sign_of_transverse`, the corollary in the
   plan's form: for a smooth complex line bundle over a closed oriented surface
-  (a smooth real rank-2 bundle with a complex structure, in the
-  representation of *Symplectic vector bundles*), and `s` a smooth section
+  (a `C¹` real rank-2 bundle with a continuous complex structure
+  `TauCeti.Bundle.ContinuousComplexStructure`, which the complex structures
+  of *Symplectic vector bundles* give), and `s` a `C¹` section
   transverse to the zero section in Tau Ceti's sense
   (`TauCeti.sectionLinearization` surjective at every zero), the zero set is
-  finite and the Chern number is the sum over the zeros of the signs $\pm1$
-  of the Jacobians in oriented charts
+  finite and the Chern number is the sum over the zeros of $\pm1$, according as
+  the linearization preserves the orientations or not; in oriented charts, the
+  sign of the Jacobian
   (`sectionIndex_eq_sign_det_of_hasFDerivAt`), the book's intersection
   indices. Finiteness is Tau Ceti's `TauCeti.finite_sectionZero_of_contMDiff`
   (`Geometry/Manifold/VectorBundle/Section/SmoothZero.lean`), its Fredholm
