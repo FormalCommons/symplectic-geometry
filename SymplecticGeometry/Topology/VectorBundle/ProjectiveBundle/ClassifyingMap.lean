@@ -97,12 +97,8 @@ theorem exists_fiberwise_tautological_of_injective (hF : finrank 𝕜 F = 1)
   have hg₀ : ∀ x (w : E x) (hw : w ≠ 0),
       g₀ x = mk 𝕜 (j x w) ((map_ne_zero_iff _ (hj x)).2 hw) := by
     intro x w hw
-    have := Module.finite_of_finrank_eq_succ (hrange x)
-    refine submodule_injective ?_
-    rw [submodule_mk'', submodule_mk]
-    exact (Submodule.eq_of_le_of_finrank_eq
-      (Submodule.span_le.2 (singleton_subset_iff.2 (LinearMap.mem_range_self _ _)))
-      ((finrank_span_singleton ((map_ne_zero_iff _ (hj x)).2 hw)).trans (hrange x).symm)).symm
+    exact (mk_eq_of_mem_submodule _
+      (by rw [submodule_mk'']; exact LinearMap.mem_range_self _ _)).symm
   have : Nontrivial F := Module.nontrivial_of_finrank_eq_succ hF
   obtain ⟨c, hc⟩ := exists_ne (0 : F)
   have hg₀c : Continuous g₀ := by
