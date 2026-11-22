@@ -342,15 +342,16 @@ normed space:
   the comap of `compatibleTangentSpace ω J` along
   `ContinuousLinearMap.coeLM ℝ`, with `mem_compatibleTangentSpaceCLM`
   (`@[simp]`).
-- `TauCeti.SymplecticForm.Tames.isOpen_setOf_strictContraction (h₀ : ω.Tames J₀) :
-  IsOpen {C : V →L[ℝ] V | ∀ v, v ≠ 0 → ω (C v) (J₀ (C v)) < ω v (J₀ v)}`:
-  for the norm of $g_{J_0}$ the condition is an operator norm below one,
-  attained on the compact unit sphere.
+- `TauCeti.SymplecticForm.isOpen_setOf_strictContraction ω J₀ :
+  IsOpen {C : V →L[ℝ] V | ∀ v, v ≠ 0 → ω (C v) (J₀ (C v)) < ω v (J₀ v)}`,
+  with no tameness hypothesis: the condition is positivity on the diagonal of
+  the form $\omega(v,J_0w)-\omega(Cv,J_0Cw)$, which depends continuously on
+  `C` (Tau Ceti's `isOpen_setOf_forall_bilinear_apply_self_pos`).
 - `TauCeti.SymplecticForm.Compatible.cayleyCoord (h₀ : ω.Compatible J₀) :
   𝒥 ω → ω.compatibleTangentSpaceCLM J₀`, `J ↦ J₀.cayley J` read as a
   continuous map, with `coe_cayleyCoord`, `cayleyCoord_self` (`J₀ ↦ 0`),
   `range_cayleyCoord` (the strict contractions of the model, an open set),
-  `cayleyCoord_symm_formula`
+  `toContinuousLinearMap_eq_of_cayleyCoord_eq`
   (the inverse is `C ↦ J₀ (1 + C) (1 - C)⁻¹`, from
   `compatibleCayleyEquiv_symm_apply_toContinuousLinearMap`) and
   `Compatible.isOpenEmbedding_cayleyCoord`, from continuity of both
