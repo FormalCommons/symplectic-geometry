@@ -9,6 +9,7 @@ public import Mathlib.Geometry.Manifold.Diffeomorph
 public import Mathlib.Geometry.Manifold.Immersion
 public import Mathlib.Geometry.Manifold.MFDeriv.FDeriv
 public import SymplecticGeometry.Analysis.Calculus.FDeriv.Cayley
+public import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Basic.FromTauCeti
 public import SymplecticGeometry.LinearAlgebra.Symplectic.CompatibleTangent.Finrank
 public import SymplecticGeometry.Topology.ComplexStructure.Basic
 public import SymplecticGeometry.Topology.ComplexStructure.Compatible.Cayley
@@ -39,8 +40,6 @@ dimension `n (n + 1)` when `V` has dimension `2 n`. So `𝒥 ω` is a smooth sub
 continuous linear map, so the action is by diffeomorphisms, and it is transitive.
 
 The layout follows `SymplecticGeometry/Geometry/Manifold/Instances/LagrangianGrassmannian.lean`.
-The pointwise criterion `contMDiffAt_compatibleCLM_comp_iff` follows Tau Ceti's
-`Manifold.IsSmoothEmbedding.contMDiff_iff_comp`, at a point.
 
 ## Main definitions and results
 
@@ -414,11 +413,8 @@ theorem contMDiff_compatibleCLM_comp_iff {n : WithTop ℕ∞} {f : M → 𝒥} :
 as a map into the continuous endomorphisms. -/
 theorem contMDiffAt_compatibleCLM_comp_iff {n : WithTop ℕ∞} {f : M → 𝒥} {x : M} :
     ContMDiffAt I 𝓘(ℝ, ω.compatibleModel) n f x ↔
-      ContMDiffAt I 𝓘(ℝ, V →L[ℝ] V) n (ω.compatibleCLM ∘ f) x := by
-  rw [ContMDiffAt.iff_comp_isImmersionAt
-    (isSmoothEmbedding_compatibleCLM.isImmersion.isImmersionAt (f x)),
-    ω.isEmbedding_compatibleCLM.isInducing.continuousAt_iff]
-  exact ⟨And.right, fun h => ⟨h.continuousAt, h⟩⟩
+      ContMDiffAt I 𝓘(ℝ, V →L[ℝ] V) n (ω.compatibleCLM ∘ f) x :=
+  isSmoothEmbedding_compatibleCLM.contMDiffAt_iff_comp
 
 end Comp
 

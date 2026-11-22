@@ -35,7 +35,7 @@ Tau Ceti already has:
   (`Projectivization.map`, `contMDiff_map`, `mapDiffeomorph`,
   `isSmoothEmbedding_map`, in `Geometry/Manifold/Projectivization/Map.lean`),
   the affine coordinates of $\mathbb CP^1$ (`TauCeti.ProjectiveLine.affineParam`),
-  and change of field `Projectivization.mapProjective`
+  and change of field `RingHom.mapProjective`
   (`LinearAlgebra/Projectivization/BaseChange.lean`);
 - `SmoothAlmostComplexStructure.ofComplexManifold` with
   `nijenhuis_ofComplexManifold`, and the Dolbeault operators `del`,
@@ -230,7 +230,7 @@ as the form of $\mathbb CP^1$.
   Ceti's Darboux theorems, with the pull-back stated pointwise through
   `mvfderiv`, as `exists_darbouxChart_mvfderiv_eq_of_isInteriorPoint` does.
 - $\mathbb RP^n\subset\mathbb CP^n$ is the image of Tau Ceti's
-  `Projectivization.mapProjective Complex.ofRealHom` on
+  `Complex.ofRealHom.mapProjective` on
   `ℙ ℝ (Fin (n + 1) → ℝ)` with its real charts. The Clifford torus is the
   image of $\theta\mapsto[1:e^{i\theta_1}:\dots:e^{i\theta_n}]$ on
   `Fin n → AddCircle (2 * π)`, through `AddCircle.toCircle`; its range is
@@ -259,6 +259,11 @@ own milestone line.
 - The other files stay in `Geometry/Manifold/Projectivization/FubiniStudy/`,
   as `DESIGN.md` says. Tau Ceti has no `FubiniStudy.lean` in that folder.
 - `DESIGN.md`'s list of the part's files is updated for both changes.
+- `isSmoothEmbedding_mapProjective_ofReal` does not involve the
+  Fubini–Study form (the approving review of #894 asked for it to leave
+  `Lagrangian.lean`). It goes, in namespace `Projectivization`, to
+  `Geometry/Manifold/Projectivization/BaseChange.lean`; Tau Ceti has no file
+  of that name in that folder.
 
 ## Files and declarations
 
@@ -305,7 +310,7 @@ In namespace `SymplecticGeometry`:
   $x\mapsto[(\texttt{complexToRealEuclidean})^{-1}x]$, with
   `sphereHopf_apply`, `contMDiff_sphereHopf`, `surjective_sphereHopf`,
   `isSubmersion_sphereHopf`, `sphereHopf_eq_sphereHopf_iff` (two points have
-  the same image exactly when $y=\cos t\,x+\sin t\,J_0x$ for some $t$), and
+  the same image exactly when `y = stdRotation _ t x` for some $t$), and
   `ker_mfderiv_sphereHopf`: read in `StdSpace` through the derivative of the
   inclusion, the kernel at $x$ is `ℝ ∙ stdComplexStructure _ x`.
 - `radialProjection n : TauCeti.puncturedSpace (Fin (n + 1) → ℂ) → sphere (0 :
@@ -446,14 +451,26 @@ Manifolds*, 2nd ed., Chapters 15–16, as Tau Ceti's `UnitSphere.lean` cites.
   coordinate hyperplanes and `mpullback_unitary_fubiniStudyForm` (part 5,
   last sentence).
 
+### `Geometry/Manifold/Projectivization/BaseChange.lean`
+
+In namespace `Projectivization`:
+
+- `isSmoothEmbedding_mapProjective_ofReal`: `Complex.ofRealHom.mapProjective`
+  is a smooth embedding
+  `IsSmoothEmbedding 𝓘(ℝ, Fin n → ℝ) 𝓘(ℝ, Fin n → ℂ) ∞`; an immersion by
+  `Manifold.IsSubmersion.isImmersion_iff_ker_mfderiv_comp` through
+  `mkNonzero ℝ n`, since the kernels of the derivatives of `mkNonzero` over
+  `ℝ` and `ℂ` are the lines through the point (`ker_mfderiv_mkNonzero`), and
+  a closed embedding since $\mathbb RP^n$ is compact.
+
 ### `Geometry/Manifold/Projectivization/FubiniStudy/Lagrangian.lean`
 
-- `isLagrangianEmbedding_mapProjective_ofReal`: `mapProjective
-  Complex.ofRealHom : ℙ ℝ (Fin (n + 1) → ℝ) → ℙ ℂ (Fin (n + 1) → ℂ)` is a
+- `isLagrangianEmbedding_mapProjective_ofReal`: `Complex.ofRealHom.mapProjective :
+  ℙ ℝ (Fin (n + 1) → ℝ) → ℙ ℂ (Fin (n + 1) → ℂ)` is a
   Lagrangian embedding for `fubiniStudyForm n`, with the model
-  `𝓘(ℝ, Fin n → ℝ)`; its smoothness and immersion property
-  (`isSmoothEmbedding_mapProjective_ofReal`) read it in the affine charts as
-  the inclusion of the real points, and it is isotropic because $\rho$
+  `𝓘(ℝ, Fin n → ℝ)`; it is a smooth embedding by
+  `Projectivization.isSmoothEmbedding_mapProjective_ofReal`
+  (`BaseChange.lean`), and it is isotropic because $\rho$
   vanishes on real $z,v,w$ (`mkNonzero` over `ℝ` is a submersion by
   `Hopf.lean`).
 - `cliffordTorus n : (Fin n → AddCircle (2 * Real.pi)) → ℙ ℂ (Fin (n + 1) → ℂ)`,
@@ -461,7 +478,9 @@ Manifolds*, 2nd ed., Chapters 15–16, as Tau Ceti's `UnitSphere.lean` cites.
   representatives of equal moduli), `isSmoothEmbedding_cliffordTorus` and
   `isLagrangianEmbedding_cliffordTorus` (part 6). Isotropy holds upstairs:
   at $z=(1,e^{i\theta})$ the tangent vectors $(0,ia_ke^{i\theta_k})_k$ have
-  $\omega_0=0$ and $\langle z,\cdot\rangle=0$.
+  $\omega_0=0$ and $\langle z,\cdot\rangle=0$. The smoothness of
+  `AddCircle.toCircle`, `AddCircle.contMDiff_toCircle`, comes from
+  `Geometry/Manifold/Instances/AddCircle.lean` of *First Chern number*.
 - `fubiniStudyForm_spec`: the conjunction of parts 1–6, with the milestone
   line.
 
@@ -475,6 +494,9 @@ Manifolds*, 2nd ed., Chapters 15–16, as Tau Ceti's `UnitSphere.lean` cites.
 - *Complex submanifolds* (issue #864, `Geometry/Symplectic/Manifold/AlmostComplex/Submanifold.lean`):
   only for `isKahler_mpullback_fubiniStudyForm`, through its restricted
   structure and its transfer of `IsKahler` and symplecticity.
+- *First Chern number* (`Geometry/Manifold/Instances/AddCircle.lean`):
+  only `AddCircle.contMDiff_toCircle`, for the Clifford torus in
+  `FubiniStudy/Lagrangian.lean`.
 
 Mathlib and Tau Ceti were searched, at the pinned versions, for a smooth or
 submersive Hopf map, a Fubini–Study form on $\mathbb CP^n$ for $n\ge2$, a
@@ -501,7 +523,7 @@ In this order; each is blocked by the ones listed, and all are sub-issues of
 | N1 | The affine formula, the comparison with `OnePoint.fubiniStudyForm`, and the stereographic map as a composite of Tau Ceti's diffeomorphisms, with its two formulas and its pull-back of the form | `FubiniStudy/Normalization.lean` (up to `mpullback_sphereToProjectiveLine_fubiniStudyForm`) | B2 | 300 |
 | N2 | The area of a line | `FubiniStudy/Normalization.lean` (the two integrals) | N1, K1 | 250 |
 | D | The Darboux charts | `FubiniStudy/Darboux.lean` | B2, K1 | 300 |
-| L | Lagrangian embeddings of real projective space and of the Clifford torus | `FubiniStudy/Lagrangian.lean` (all but `fubiniStudyForm_spec`) | B2 | 300 |
+| L | Lagrangian embeddings of real projective space and of the Clifford torus | `Geometry/Manifold/Projectivization/BaseChange.lean`, `FubiniStudy/Lagrangian.lean` (all but `fubiniStudyForm_spec`) | B2 | 300 |
 | S | The milestone as one theorem | `FubiniStudy/Lagrangian.lean` (`fubiniStudyForm_spec`) | K1, N2, D, L | 60 |
 
 P and H can start at once. K2 waits for *Complex submanifolds* (#864). The
