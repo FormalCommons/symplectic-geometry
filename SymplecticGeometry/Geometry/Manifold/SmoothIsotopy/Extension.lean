@@ -7,7 +7,7 @@ module
 
 public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Basic
 public import TauCeti.Geometry.Manifold.SmoothIsotopy.Basic
-import Mathlib.Analysis.SpecialFunctions.SmoothTransition
+import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.TimeExtension
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Neighborhood
 import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Flow
@@ -21,8 +21,8 @@ import TauCeti.Geometry.Manifold.TubularNeighborhood.Existence
 # Isotopy extension at every time
 
 Let `F` be a smooth isotopy from `f₀` to `f₁`, a smooth motion of a boundaryless manifold `P`
-through smooth embeddings into a boundaryless manifold `N`, both finite-dimensional, `N`
-Hausdorff and σ-compact. On a compact `A ⊆ P` the motion is the restriction of a compactly
+through smooth embeddings into a finite-dimensional, Hausdorff, σ-compact boundaryless manifold
+`N`. On a compact `A ⊆ P` the motion is the restriction of a compactly
 supported diffeotopy `Φ` of `N` at every time: `Φ (t, f₀ x) = F (t, x)` for all `t` and all
 `x ∈ A` (`TauCeti.SmoothIsotopy.exists_diffeotopy_forall_apply_eq`). Tau Ceti's
 `TauCeti.SmoothIsotopy.exists_diffeotopy_apply_eq` gives this only for the motion run at the time
@@ -43,7 +43,8 @@ The proof has three steps.
    retraction, is the extension. Its slices are embeddings near `A` for times near `[0, 1]`
    (`TauCeti.exists_pos_forall_isSmoothEmbedding_of_injOn`).
 2. Composed with a smooth `c : ℝ → (-δ, 1 + δ)` that is the identity on `[0, 1]` and constant
-   outside `(-δ / 2, 1 + δ / 2)` (`Real.exists_contDiff_eqOn_id_Icc`), the extension becomes a
+   outside `(-δ / 2, 1 + δ / 2)` (*Smooth families*'
+   `SymplecticGeometry.exists_contDiff_eqOn_id_Icc_mem_Ioo`), the extension becomes a
    motion over `ℝ` through embeddings, stationary outside a bounded interval and equal to `F` on
    `[0, 1]`.
 3. Tau Ceti's `TauCeti.exists_ambientVelocityField` extends its velocity to a compactly
@@ -57,8 +58,6 @@ Steps 2 and 3 adapt the proof of Tau Ceti's `TauCeti.SmoothIsotopy.exists_diffeo
 
 ## Main results
 
-* `Real.exists_contDiff_eqOn_id_Icc`: a smooth function that is the identity on `[0, 1]`, takes
-  values near `[0, 1]`, and is constant outside a neighbourhood of `[0, 1]`.
 * `TauCeti.SmoothIsotopy.exists_contMDiff_extend`: a smooth isotopy extends near a compact set to
   times in an open interval around `[0, 1]`, with embedding slices.
 * `TauCeti.SmoothIsotopy.exists_diffeotopy_forall_apply_eq`: isotopy extension at every time.
@@ -78,57 +77,11 @@ noncomputable section
 open Set Function Manifold
 open scoped Manifold ContDiff
 
-namespace Real
-
-/-- For `ε > 0` there is a smooth `c : ℝ → ℝ` that is the identity on `[0, 1]`, takes its values
-in `[-ε, 1 + ε]`, and is `0` on `(-∞, -ε]` and `1` on `[1 + ε, ∞)`. -/
-theorem exists_contDiff_eqOn_id_Icc {ε : ℝ} (hε : 0 < ε) :
-    ∃ c : ℝ → ℝ, ContDiff ℝ ∞ c ∧ EqOn c id (Icc 0 1) ∧ (∀ t, c t ∈ Icc (-ε) (1 + ε)) ∧
-      (∀ t ≤ -ε, c t = 0) ∧ ∀ t, 1 + ε ≤ t → c t = 1 := by
-  -- `c` is a convex combination of the identity and `smoothTransition`, with a weight `ρ` equal
-  -- to `1` on `[0, 1]` and to `0` outside `(-ε, 1 + ε)`.
-  let ρ : ℝ → ℝ := fun t ↦ smoothTransition (t / ε + 1) * smoothTransition ((1 - t) / ε + 1)
-  let c : ℝ → ℝ := fun t ↦ ρ t * t + (1 - ρ t) * smoothTransition t
-  have hρ (t : ℝ) : ρ t ∈ Icc (0 : ℝ) 1 := by
-    have := smoothTransition.nonneg (t / ε + 1)
-    have := smoothTransition.le_one (t / ε + 1)
-    have := smoothTransition.nonneg ((1 - t) / ε + 1)
-    have := smoothTransition.le_one ((1 - t) / ε + 1)
-    constructor <;> simp only [ρ] <;> nlinarith
-  have hlo (t : ℝ) (ht : t ≤ -ε) : c t = 0 := by
-    have h : t / ε + 1 ≤ 0 := by rw [← le_neg_iff_add_nonpos_right, div_le_iff₀ hε]; linarith
-    simp only [c, ρ, smoothTransition.zero_of_nonpos h,
-      smoothTransition.zero_of_nonpos (by linarith : t ≤ 0)]
-    ring
-  have hhi (t : ℝ) (ht : 1 + ε ≤ t) : c t = 1 := by
-    have h : (1 - t) / ε + 1 ≤ 0 := by
-      rw [← le_neg_iff_add_nonpos_right, div_le_iff₀ hε]; linarith
-    simp only [c, ρ, smoothTransition.zero_of_nonpos h,
-      smoothTransition.one_of_one_le (by linarith : 1 ≤ t)]
-    ring
-  refine ⟨c, by simp only [c, ρ]; fun_prop, fun t ht ↦ ?_, fun t ↦ ?_, hlo, hhi⟩
-  · have h₁ : 1 ≤ t / ε + 1 := le_add_of_nonneg_left (div_nonneg ht.1 hε.le)
-    have h₂ : 1 ≤ (1 - t) / ε + 1 :=
-      le_add_of_nonneg_left (div_nonneg (by linarith [ht.2]) hε.le)
-    simp only [c, ρ, smoothTransition.one_of_one_le h₁, smoothTransition.one_of_one_le h₂, id]
-    ring
-  rcases le_or_gt t (-ε) with ht | ht
-  · rw [hlo t ht]; constructor <;> linarith
-  rcases le_or_gt (1 + ε) t with ht' | ht'
-  · rw [hhi t ht']; constructor <;> linarith
-  -- Otherwise `c t` is a convex combination of `t` and `smoothTransition t ∈ [0, 1]`.
-  obtain ⟨h0, h1⟩ := hρ t
-  have := smoothTransition.nonneg t
-  have := smoothTransition.le_one t
-  constructor <;> nlinarith
-
-end Real
-
 namespace TauCeti
 
 variable {E E' H H' P N : Type*}
   [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
-  [NormedAddCommGroup E'] [NormedSpace ℝ E'] [FiniteDimensional ℝ E']
+  [NormedAddCommGroup E'] [NormedSpace ℝ E']
   [TopologicalSpace H] [TopologicalSpace H']
   {I : ModelWithCorners ℝ E H} {J : ModelWithCorners ℝ E' H'}
   [TopologicalSpace P] [ChartedSpace H' P] [TopologicalSpace N] [ChartedSpace H N]
@@ -137,7 +90,7 @@ variable {E E' H H' P N : Type*}
 namespace SmoothIsotopy
 
 /-- **Time extension of an isotopy near a compact set.** A smooth isotopy `F` of a boundaryless
-manifold into a Hausdorff boundaryless manifold, both finite-dimensional, extends near a compact
+manifold into a finite-dimensional, Hausdorff boundaryless manifold extends near a compact
 set `A` past both ends of `[0, 1]`: there are `δ > 0`, an open `V ⊇ A` and a map `G`, smooth on
 `(-δ, 1 + δ) ×ˢ V`, with `G (t, x) = F (t, x)` for `t ∈ [0, 1]` and `x ∈ V`, whose slices at
 times in `(-δ, 1 + δ)` are smooth embeddings of `V`. -/
@@ -153,6 +106,10 @@ theorem exists_contMDiff_extend {f₀ f₁ : C^∞⟮J, P; I, N⟯} (F : SmoothI
     refine ⟨1, one_pos, ⊥, empty_subset _, fun p ↦ f₀ p.2,
       (f₀.contMDiff.comp contMDiff_snd).contMDiffOn, fun _ x hx ↦ hx.elim, fun _ _ ↦ ?_⟩
     exact F.isSmoothEmbedding_left.comp_subtypeVal ⊥
+  -- The source model is finite-dimensional, since `f₀` is an immersion into `N`.
+  have : FiniteDimensional ℝ E' := FiniteDimensional.of_injective
+    (mfderiv J I f₀ x₀ : E' →L[ℝ] E).toLinearMap
+    (F.isSmoothEmbedding_left.isImmersion.mfderiv_injective (by simp) x₀)
   -- A neighbourhood `W` of the compact track `T` of `A` embeds into a Euclidean space by `e`,
   -- and `r` retracts a neighbourhood `O` of the image of `e`.
   have hT : IsCompact ((fun p : unitInterval × P ↦ F p) '' (univ ×ˢ A)) :=
@@ -204,8 +161,8 @@ theorem exists_contMDiff_extend {f₀ f₁ : C^∞⟮J, P; I, N⟯} (F : SmoothI
   exact ⟨δ, hδ, V, hAV, G, hG.mono hVS, fun t x hx ↦ hGF t x (hVU hx), hV⟩
 
 /-- **Isotopy extension at every time.** A smooth isotopy `F` of a boundaryless manifold through
-smooth embeddings into a Hausdorff, σ-compact boundaryless manifold `N`, both finite-dimensional,
-is on any compact subset `A` of the source the restriction of a smooth diffeotopy `Φ` of `N`
+smooth embeddings into a finite-dimensional, Hausdorff, σ-compact boundaryless manifold `N` is
+on any compact subset `A` of the source the restriction of a smooth diffeotopy `Φ` of `N`
 fixing every point outside a compact set: `Φ (t, f₀ x) = F (t, x)` for every time `t` and every
 `x ∈ A`. The source need not be compact. -/
 theorem exists_diffeotopy_forall_apply_eq [SigmaCompactSpace N] {f₀ f₁ : C^∞⟮J, P; I, N⟯}
@@ -213,9 +170,14 @@ theorem exists_diffeotopy_forall_apply_eq [SigmaCompactSpace N] {f₀ f₁ : C^�
     ∃ Φ : Diffeotopy I ∞ N, ∃ K : Set N, IsCompact K ∧ (∀ t, ∀ y ∉ K, Φ (t, y) = y) ∧
       ∀ t, ∀ x ∈ A, Φ (t, f₀ x) = F (t, x) := by
   obtain ⟨δ, hδ, V, hAV, G, hG, hGF, hemb⟩ := F.exists_contMDiff_extend hA
-  obtain ⟨c, hc, hc_id, hc_mem, hc_lo, hc_hi⟩ := Real.exists_contDiff_eqOn_id_Icc (half_pos hδ)
+  obtain ⟨c, hc, hc_id, hc_mem, hc_out⟩ :=
+    SymplecticGeometry.exists_contDiff_eqOn_id_Icc_mem_Ioo zero_le_one (half_pos hδ)
   have hc_mem' (t : ℝ) : c t ∈ Ioo (-δ) (1 + δ) :=
     ⟨by linarith [(hc_mem t).1], by linarith [(hc_mem t).2]⟩
+  have hc_lo (t : ℝ) (ht : t ≤ -(δ / 2)) : c t = (0 + 1) / 2 :=
+    hc_out t fun h ↦ by linarith [h.1]
+  have hc_hi (t : ℝ) (ht : 1 + δ / 2 ≤ t) : c t = (0 + 1) / 2 :=
+    hc_out t fun h ↦ by linarith [h.2]
   -- The motion `G'` of `V` over `ℝ`.
   let G' : ℝ × V → N := fun q ↦ G (c q.1, q.2)
   have hG' : ContMDiff (𝓘(ℝ, ℝ).prod J) I (⊤ : ℕ∞) G' :=

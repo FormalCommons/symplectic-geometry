@@ -364,7 +364,7 @@ theorem exists_local_extension (hξ : IsContactFamily ξ) (p : unitInterval × M
   -- Reparametrize time by a map into `(t₀ - δ, t₀ + δ)`, equal to the identity near `t₀` in
   -- `[0, 1]`.
   have ht₀ := p.1.property
-  obtain ⟨c, hc, hcid, hcmem⟩ := exists_contDiff_eqOn_id_Icc_mem_Ioo
+  obtain ⟨c, hc, hcid, hcmem, -⟩ := exists_contDiff_eqOn_id_Icc_mem_Ioo
     (a := max 0 ((p.1 : ℝ) - δ / 2)) (b := min 1 ((p.1 : ℝ) + δ / 2))
     (le_min (max_le zero_le_one (by linarith [ht₀.2]))
       (max_le (by linarith [ht₀.1]) (by linarith)))

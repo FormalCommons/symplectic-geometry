@@ -808,7 +808,10 @@ this design already follows. `Ball/Isotopy.lean` cites
   `Geometry/Manifold/ContMDiff/TimeExtension.lean` (used by `Extension.lean`
   and `Flow.lean`) and of forms on `unitInterval × M` in
   `Geometry/Manifold/DifferentialForm/TimeExtension.lean` (used by
-  `Flow.lean` and `Moser/Family.lean`); the homotopy operator on smooth
+  `Flow.lean` and `Moser/Family.lean`); the reparametrization of time
+  `exists_contDiff_eqOn_id_Icc_mem_Ioo` in
+  `Analysis/SpecialFunctions/SmoothTransition.lean` (used by
+  `Extension.lean`); the homotopy operator on smooth
   families in
   `Geometry/Manifold/DifferentialForm/SmoothFamily/HomotopyOperator.lean`
   (used by `Moser/Family.lean` for the parametric radial primitives); and the
