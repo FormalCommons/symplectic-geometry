@@ -15,9 +15,9 @@ is functorial. So when `f` is an isomorphism, extension along `f` is an isomorph
 the extension along `inv f` (`TopCat.isIso_compactSupportCohomologyExtend`).
 
 This lemma is from Tau Ceti's main branch
-(`TauCeti/AlgebraicTopology/Cohomology/CompactSupport/Extension.lean`, same name), not yet in the
-pinned release; it is stated here under its Tau Ceti name, so that moving Tau Ceti past it deletes
-this file without renames.
+(`TauCeti/AlgebraicTopology/Cohomology/CompactSupport/Extension.lean`, same name), as of the commit
+`020be269104296e16423165eccaf4c5bf7d05ede`, not yet in the pinned release; it is stated here under
+its Tau Ceti name, so that moving Tau Ceti past it deletes this file without renames.
 -/
 
 public section

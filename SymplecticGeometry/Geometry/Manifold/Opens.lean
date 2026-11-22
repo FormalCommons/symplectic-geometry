@@ -18,9 +18,10 @@ An open set `W` of a charted space `X` carries the restricted atlas
 sequences indexed by `Opens X`. Instance search does not see through `Opens.toTopCat`, so the
 instance is needed.
 
-This instance is from Tau Ceti's main branch (`TauCeti/Geometry/Manifold/Opens.lean`, same name),
-not yet in the pinned release; it is stated here under its Tau Ceti name, so that moving Tau Ceti
-past it deletes this file without renames.
+This instance is from Tau Ceti's main branch (`TauCeti/Geometry/Manifold/Opens.lean`, same name), as
+of the commit `a2b27244398126b7be07d28c3ce0d849e4ca2458` (TauCetiProject/TauCeti#42569), not yet in
+the pinned release; it is stated here under its Tau Ceti name, so that moving Tau Ceti past it
+deletes this file without renames.
 -/
 
 public section

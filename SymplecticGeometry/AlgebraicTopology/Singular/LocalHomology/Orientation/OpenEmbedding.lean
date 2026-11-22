@@ -18,9 +18,10 @@ and then along the inclusion `V ⟶ W` of `Opens (TopCat.of N)` is restricting i
 `TauCeti.HomologicalOrientation.comap_comap_of_comp_eq`.
 
 This lemma is from Tau Ceti's main branch
-(`TauCeti/AlgebraicTopology/Singular/LocalHomology/Orientation/OpenEmbedding.lean`, same name),
-not yet in the pinned release; it is stated here under its Tau Ceti name, so that moving Tau Ceti
-past it deletes this file without renames.
+(`TauCeti/AlgebraicTopology/Singular/LocalHomology/Orientation/OpenEmbedding.lean`, same name), as
+of the commit `a2b27244398126b7be07d28c3ce0d849e4ca2458` (TauCetiProject/TauCeti#42569), not yet in
+the pinned release; it is stated here under its Tau Ceti name, so that moving Tau Ceti past it
+deletes this file without renames.
 -/
 
 public section

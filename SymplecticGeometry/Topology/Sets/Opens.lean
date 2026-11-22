@@ -13,9 +13,9 @@ public import Mathlib.Topology.Sets.Opens
 If the supremum of a family of open sets of `X` is `⊤` and the family is empty, then `X` is
 empty (`TopologicalSpace.Opens.isEmpty_of_iSup_eq_top`).
 
-This is a lemma of Tau Ceti's main branch (`TauCeti/Topology/Sets/Opens.lean`, same name), not yet
-in the pinned release; it is stated here under its Tau Ceti name, so that moving Tau Ceti past it
-deletes this file without renames.
+This is a lemma of Tau Ceti's main branch (`TauCeti/Topology/Sets/Opens.lean`, same name), as of the
+commit `b9a3084bbb4cc2ac2c5a0b3ae0323198b47a34b8`, not yet in the pinned release; it is stated here
+under its Tau Ceti name, so that moving Tau Ceti past it deletes this file without renames.
 -/
 
 public section

@@ -31,9 +31,10 @@ that vanishes in `X` already vanishes in some larger `U j`
   `TauCeti.exists_singularHomologyMap_toTopCat_map_eq_zero_of_iSup_eq_top`: the elementwise
   description of that colimit.
 
-These are from Tau Ceti's main branch (`TauCeti/AlgebraicTopology/Singular/DirectedUnion.lean`,
-same names), not yet in the pinned release; they are stated here under their Tau Ceti names, so
-that moving Tau Ceti past them deletes this file without renames.
+These are from Tau Ceti's main branch (`TauCeti/AlgebraicTopology/Singular/DirectedUnion.lean`, same
+names), as of the commit `b9a3084bbb4cc2ac2c5a0b3ae0323198b47a34b8`, not yet in the pinned release;
+they are stated here under their Tau Ceti names, so that moving Tau Ceti past them deletes this file
+without renames.
 
 ## References
 

@@ -16,9 +16,9 @@ the naturality of the cocone `TopCat.compactSupportCohomologyOpensCocone`, state
 extensions themselves.
 
 This lemma is from Tau Ceti's main branch
-(`TauCeti/AlgebraicTopology/Cohomology/CompactSupport/DirectedUnion.lean`, same name), not yet in
-the pinned release; it is stated here under its Tau Ceti name, so that moving Tau Ceti past it
-deletes this file without renames.
+(`TauCeti/AlgebraicTopology/Cohomology/CompactSupport/DirectedUnion.lean`, same name), as of the
+commit `b9a3084bbb4cc2ac2c5a0b3ae0323198b47a34b8`, not yet in the pinned release; it is stated here
+under its Tau Ceti name, so that moving Tau Ceti past it deletes this file without renames.
 -/
 
 public section
