@@ -20,6 +20,10 @@ General facts about real-linear maps that intertwine two linear complex structur
   complex linear.
 * `TauCeti.IsComplexLinearMap.exists_leftInverse_of_injective`: an injective complex linear map
   has a complex linear left inverse.
+* `TauCeti.IsComplexLinearMap.exists_rightInverse_of_surjective`: a surjective complex linear map
+  has a complex linear right inverse.
+* `TauCeti.AlmostComplexStructure.isComplexLinearMap_subtype`: the inclusion of a `J`-invariant
+  subspace is complex linear for the restriction of `J`.
 * `TauCeti.AlmostComplexStructure.isComplexLinearMap_self_iff_commute`: an endomorphism is complex
   linear for `J` exactly when it commutes with `J`.
 -/
@@ -53,6 +57,28 @@ theorem IsComplexLinearMap.exists_leftInverse_of_injective {J : AlmostComplexStr
     (LinearMap.ker_eq_bot.2 hinj)
   exact ⟨G.restrictScalars ℝ, isComplexLinearMap_restrictScalars J' J G,
     LinearMap.ext fun v ↦ LinearMap.congr_fun hG v⟩
+
+/-- A surjective real-linear map that is complex linear from `J` to `J'` has a right inverse
+that is complex linear from `J'` to `J`. -/
+theorem IsComplexLinearMap.exists_rightInverse_of_surjective {J : AlmostComplexStructure V}
+    {J' : AlmostComplexStructure W} {F : V →ₗ[ℝ] W} (hF : IsComplexLinearMap J J' F)
+    (hsurj : Function.Surjective F) :
+    ∃ G : W →ₗ[ℝ] V, IsComplexLinearMap J' J G ∧ F ∘ₗ G = LinearMap.id := by
+  let := J.complexModule
+  let := J'.complexModule
+  let := J.complexModule_isScalarTower
+  let := J'.complexModule_isScalarTower
+  -- A `ℂ`-linear right inverse of `F`, for the complex module structures of `J` and `J'`.
+  obtain ⟨G, hG⟩ := hF.toComplexLinearMap.exists_rightInverse_of_surjective
+    (LinearMap.range_eq_top.2 hsurj)
+  exact ⟨G.restrictScalars ℝ, isComplexLinearMap_restrictScalars J' J G,
+    LinearMap.ext fun w ↦ LinearMap.congr_fun hG w⟩
+
+/-- The inclusion of a `J`-invariant subspace is complex linear for the restriction of `J`. -/
+theorem AlmostComplexStructure.isComplexLinearMap_subtype (J : AlmostComplexStructure V)
+    (W : Submodule ℝ V) (hW : ∀ v ∈ W, J v ∈ W) :
+    IsComplexLinearMap (J.restrict W hW) J W.subtype :=
+  (isComplexLinearMap_iff_apply _ _ _).2 fun w ↦ J.coe_restrict_apply W hW w
 
 /-- An endomorphism of `V` is complex linear for `J` exactly when it commutes with `J`. -/
 theorem AlmostComplexStructure.isComplexLinearMap_self_iff_commute (J : AlmostComplexStructure V)
