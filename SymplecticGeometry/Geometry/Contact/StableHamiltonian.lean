@@ -43,7 +43,11 @@ Tau Ceti's `TauCeti.Geometry.Contact.StableHamiltonian` with the following.
   (`TauCeti.SmoothForm.contMDiff_characteristicVectorField`). Pointwise, `v ↦ ι_v σ + α(v) α` is
   an invertible map to the cotangent space, and `R` is the preimage of `α`.
 * **Invariance.** `L_R σ = 0` and `L_R α = 0`, by Cartan's formula, and so the maximal flow of `R`
-  pulls `σ` and `α` back to themselves wherever it is defined.
+  pulls `σ` and `α` back to themselves wherever it is defined. On a compact boundaryless
+  manifold `R` is complete
+  (`TauCeti.SmoothForm.IsStableHamiltonian.isCompleteVectorField_characteristicVectorField`), and
+  when `R` is complete each time-`t` map of its flow, as Tau Ceti's diffeomorphism
+  `TauCeti.globalFlowDiffeomorph`, pulls `σ` and `α` back to themselves.
 * **The contact case, in the book's signs.** For a contact form `α`, the pair `(α, -dα)` is a
   stable Hamiltonian structure, and its characteristic field is the Reeb field of `α`. Both
   follow from the general facts that multiplying `σ` by a nonzero constant changes neither the
@@ -77,8 +81,7 @@ Tau Ceti's `TauCeti.Geometry.Contact.StableHamiltonian` with the following.
   (`TauCeti.SmoothForm.IsStableHamiltonian.characteristicVectorField_and_stableHamiltonianModel`)
   collects these results for a stable Hamiltonian structure on a compact boundaryless manifold of
   dimension `2 m + 1`, together with Tau Ceti's characterization of the characteristic field
-  (`TauCeti.SmoothForm.eq_characteristicVectorField_iff`) and its completeness
-  (`TauCeti.isCompleteVectorField_of_compactSpace`), which makes its flow global.
+  (`TauCeti.SmoothForm.eq_characteristicVectorField_iff`).
 
 The proof of `contMDiff_characteristicVectorField` adapts Tau Ceti's proof of
 `TauCeti.SmoothForm.IsContactForm.contMDiff_reebVectorField`, through the inverse of the contact
@@ -103,6 +106,10 @@ along `(r, x) ↦ ((2 ε / π) arctan r, x)`.
   `TauCeti.SmoothForm.IsStableHamiltonian.mlieDerivForm_characteristicVectorField_oneForm`
 * `TauCeti.SmoothForm.IsStableHamiltonian.mpullback_flowOf_characteristicVectorField_twoForm`,
   `TauCeti.SmoothForm.IsStableHamiltonian.mpullback_flowOf_characteristicVectorField_oneForm`
+* `TauCeti.SmoothForm.IsStableHamiltonian.isCompleteVectorField_characteristicVectorField`
+* in the namespace `TauCeti.SmoothForm.IsStableHamiltonian`:
+  `mpullback_globalFlowDiffeomorph_characteristicVectorField_twoForm`,
+  `mpullback_globalFlowDiffeomorph_characteristicVectorField_oneForm`
 * `TauCeti.SmoothForm.IsContactForm.isStableHamiltonian_neg`,
   `TauCeti.SmoothForm.characteristicVectorField_neg_mextDerivₗ`
 * `TauCeti.SmoothForm.stableHamiltonianModel_apply`,
@@ -121,7 +128,7 @@ along `(r, x) ↦ ((2 ε / π) arctan r, x)`.
 ## References
 
 * [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017],
-  Definition 3.5.32 and Exercise 3.5.37
+  Exercise 3.5.37
 -/
 
 public section
@@ -197,10 +204,11 @@ theorem characteristicVectorField_neg_mextDerivₗ (α : SmoothForm I M ℝ 1) :
 
 /-- At a point, `α_x` is contact for `σ_x` exactly when `α ∧ σ ^ m` does not vanish there, on a
 manifold of dimension `2 m + 1`. -/
-theorem isContact_iff_wedge_wedgePow_apply_ne_zero [FiniteDimensional ℝ E] {m : ℕ}
+theorem isContact_iff_wedge_wedgePow_apply_ne_zero {m : ℕ}
     (hm : finrank ℝ E = 2 * m + 1) (α : SmoothForm I M ℝ 1) (σ : SmoothForm I M ℝ 2) (x : M) :
     Module.Dual.IsContact (degreeOneEquiv α x : TangentSpace I x →ₗ[ℝ] ℝ) (σ.bilinFormAt x) ↔
       (wedge α (σ.wedgePow m)).val x ≠ 0 := by
+  have : FiniteDimensional ℝ E := Module.finite_of_finrank_eq_succ hm
   have key := ContinuousAlternatingMap.pairedWedge_wedgePow_ne_zero_iff hm (α.val x) (σ.val x)
   rw [coe_wedge, RoughForm.wedge_def, RoughForm.wedgeWith_apply', wedgePow_apply,
     Module.Dual.isContact_iff_of_isRefl (isAlt_bilinFormAt _ x).isRefl]
@@ -213,7 +221,7 @@ theorem isContact_iff_wedge_wedgePow_apply_ne_zero [FiniteDimensional ℝ E] {m 
 /-- **The wedge criterion.** On a manifold of dimension `2 m + 1`, `(α, σ)` is a stable
 Hamiltonian structure exactly when `σ` is closed, `α ∧ σ ^ m` vanishes nowhere, and the kernel of
 `σ` lies in the kernel of `dα` at every point. -/
-theorem isStableHamiltonian_iff_wedge_wedgePow_apply_ne_zero [FiniteDimensional ℝ E] {m : ℕ}
+theorem isStableHamiltonian_iff_wedge_wedgePow_apply_ne_zero {m : ℕ}
     (hm : finrank ℝ E = 2 * m + 1) :
     α.IsStableHamiltonian σ ↔
       σ.IsClosed ∧ (∀ x, (wedge α (σ.wedgePow m)).val x ≠ 0) ∧
@@ -322,6 +330,37 @@ theorem mpullback_flowOf_characteristicVectorField_oneForm {t : ℝ} {x : M}
     ((contMDiff_characteristicVectorField h.isContact).of_le (by simp))
     (fun y ↦ apply_characteristicVectorField (h.isContact y))
     h.interior_mextDeriv_characteristicVectorField hx
+
+/-- On a compact boundaryless manifold, the characteristic vector field of a stable Hamiltonian
+structure is complete. -/
+theorem isCompleteVectorField_characteristicVectorField [CompactSpace M] :
+    IsCompleteVectorField (α.characteristicVectorField σ) :=
+  isCompleteVectorField_of_compactSpace
+    ((contMDiff_characteristicVectorField h.isContact).of_le (by simp))
+
+/-- **The global flow of the characteristic vector field preserves the two-form.** If the
+characteristic vector field of a stable Hamiltonian structure `(α, σ)` is complete, the
+diffeomorphism `φₜ` given by its flow at any time `t` satisfies `φₜ^* σ = σ`. -/
+theorem mpullback_globalFlowDiffeomorph_characteristicVectorField_twoForm
+    (hc : IsCompleteVectorField (α.characteristicVectorField σ)) (t : ℝ) :
+    mpullback (globalFlowDiffeomorph hc le_top (contMDiff_characteristicVectorField h.isContact) t)
+      (globalFlowDiffeomorph hc le_top
+        (contMDiff_characteristicVectorField h.isContact) t).contMDiff σ = σ := by
+  refine Subtype.ext (funext fun x ↦ ?_)
+  rw [coe_mpullback, coe_globalFlowDiffeomorph, ← flowOf_eq_globalFlow]
+  exact h.mpullback_flowOf_characteristicVectorField_twoForm (hc.mem_flowDomain t x)
+
+/-- **The global flow of the characteristic vector field preserves the one-form.** If the
+characteristic vector field of a stable Hamiltonian structure `(α, σ)` is complete, the
+diffeomorphism `φₜ` given by its flow at any time `t` satisfies `φₜ^* α = α`. -/
+theorem mpullback_globalFlowDiffeomorph_characteristicVectorField_oneForm
+    (hc : IsCompleteVectorField (α.characteristicVectorField σ)) (t : ℝ) :
+    mpullback (globalFlowDiffeomorph hc le_top (contMDiff_characteristicVectorField h.isContact) t)
+      (globalFlowDiffeomorph hc le_top
+        (contMDiff_characteristicVectorField h.isContact) t).contMDiff α = α := by
+  refine Subtype.ext (funext fun x ↦ ?_)
+  rw [coe_mpullback, coe_globalFlowDiffeomorph, ← flowOf_eq_globalFlow]
+  exact h.mpullback_flowOf_characteristicVectorField_oneForm (hc.mem_flowDomain t x)
 
 end IsStableHamiltonian
 
@@ -915,8 +954,8 @@ section Milestone
 
 open SymplecticGeometry
 
-variable [IsManifold I ∞ M] [FiniteDimensional ℝ E] [I.Boundaryless] [CompactSpace M]
-  [T2Space M] [SecondCountableTopology M]
+variable [IsManifold I ∞ M] [I.Boundaryless] [CompactSpace M] [T2Space M]
+  [SecondCountableTopology M]
 
 /-- **Stable Hamiltonian structures and their model on a strip.** Let `M` be a compact
 boundaryless manifold of dimension `2 m + 1`. Then:
@@ -989,16 +1028,22 @@ theorem IsStableHamiltonian.characteristicVectorField_and_stableHamiltonianModel
             mpullback Subtype.val contMDiff_subtypeVal (stableHamiltonianModel
               (zeroSliceOneForm hε σ')
               (mpullback (symmStripMk (abs_zero.trans_lt hε)) (contMDiff_symmStripMk _) σ')) := by
-  have hcomplete : IsCompleteVectorField (α.characteristicVectorField σ) :=
-    isCompleteVectorField_of_compactSpace
-      ((contMDiff_characteristicVectorField h.isContact).of_le (by simp))
+  have : FiniteDimensional ℝ E := Module.finite_of_finrank_eq_succ hm
+  have hcomplete := h.isCompleteVectorField_characteristicVectorField
+  have hR := contMDiff_characteristicVectorField h.isContact
+  -- The time-`t` map of the maximal flow is the diffeomorphism given by the global flow.
+  have hflow (t : ℝ) : flowOf (α.characteristicVectorField σ) t =
+      globalFlowDiffeomorph hcomplete le_top hR t := by
+    rw [coe_globalFlowDiffeomorph, ← flowOf_eq_globalFlow]
   obtain ⟨ε, hε, hsymp⟩ := h.exists_isSymplectic_stableHamiltonianModel
   refine ⟨fun _ _ ↦ isStableHamiltonian_iff_wedge_wedgePow_apply_ne_zero hm,
     fun x _ ↦ eq_characteristicVectorField_iff (h.isContact x), hcomplete,
-    fun t ↦ ⟨funext fun x ↦ h.mpullback_flowOf_characteristicVectorField_twoForm
-        (hcomplete.mem_flowDomain t x),
-      funext fun x ↦ h.mpullback_flowOf_characteristicVectorField_oneForm
-        (hcomplete.mem_flowDomain t x)⟩,
+    fun t ↦ ⟨by
+        rw [hflow, ← coe_mpullback _ (globalFlowDiffeomorph hcomplete le_top hR t).contMDiff,
+          h.mpullback_globalFlowDiffeomorph_characteristicVectorField_twoForm],
+      by
+        rw [hflow, ← coe_mpullback _ (globalFlowDiffeomorph hcomplete le_top hR t).contMDiff,
+          h.mpullback_globalFlowDiffeomorph_characteristicVectorField_oneForm]⟩,
     ⟨ε, hε, hsymp, fun r hr x ↦ h.ker_mpullback_prodMk_stableHamiltonianModel ?_⟩,
     fun β hβ ↦ ⟨hβ.isStableHamiltonian_neg, characteristicVectorField_neg_mextDerivₗ β,
       stableHamiltonianModel_neg_mextDerivₗ β,
