@@ -172,7 +172,9 @@ Chern number* need. *Almost complex manifolds*' `Metric.lean` is not used.
 ## Files
 
 The first file is general (any dimensions, no compactness) and sits beside
-Tau Ceti's normal bundle files, as the review of #838 advised; the others
+Tau Ceti's normal bundle files, as the review of #838 advised; the others,
+except the linear algebra of `orientation_prod_normalSpace`
+(`LinearAlgebra/ComplexStructure/Orientation.lean`),
 are in `Geometry/Symplectic/Manifold/AlmostComplex/`, beside Tau Ceti's folder of
 that name (none of Tau Ceti's files there has their names). The overview first
 named the single file `Geometry/Manifold/Complex/Adjunction.lean`; this
@@ -186,6 +188,7 @@ is updated to match. The list is in the order of the paths.
 | `Geometry/Symplectic/Manifold/AlmostComplex/AdjunctionFormula.lean` | the Chern number of the pulled-back tangent bundle, the milestone | 4 |
 | `Geometry/Symplectic/Manifold/AlmostComplex/NormalSplitting.lean` | the forms on the tangent and normal bundles and the symplectic splitting of the pulled-back tangent bundle | 2 |
 | `Geometry/Symplectic/Manifold/AlmostComplex/SelfIntersection.lean` | the self-intersection number, its Chern number, the orientation lemma | 3 |
+| `LinearAlgebra/ComplexStructure/Orientation.lean` | the orientation induced by an almost complex structure, and the splitting along an invariant subspace | 3 |
 
 ### `Geometry/Manifold/SmoothEmbedding/NormalSpace/ComplexStructure.lean`
 
@@ -261,16 +264,36 @@ Namespace `TauCeti.SmoothEmbedding`, for a surface `M` in `X` with
   `Bundle.chernNumber oₕ ℂ ν_J`, by `firstChernClass_eq_complexEulerClass`.
 - `selfIntersectionNumber_neg_orientation`: reversing `o` negates it, from
   `chernNumber_neg_orientation`.
-- `orientation_prod_normalSpace`: under `ho`, at each point `c`, for any
-  `J`-invariant complement $W'$ of the tangent image, the isomorphism
-  $T_c\Sigma\times\nu_c\to T_{f c}X$, $(u,a)\mapsto df\,u+r_{W'}a$, carries
+- `orientation_prod_normalSpace`: under `ho` at a point `c`, for any
+  `J`-invariant topological complement $W'$ of the tangent image, an
+  isomorphism $T_c\Sigma\times\nu_c\to T_{f c}X$ given by
+  $(u,a)\mapsto df\,u+r_{W'}a$ (Tau Ceti's `complementRepresentative`) carries
   the product of `o.orientationAt c` and the complex orientation of
-  $(\nu_c, J_\nu)$ to the complex orientation of $(T_{f c}X, J)$. The map is
-  complex linear for the restriction of $J$, the descended structure and
-  $J$, so `LinearEquiv.map_complexOrientation` and
-  `prod_complexOrientation` apply, and `ho` says that the complex
-  orientation of $(T_c\Sigma, j)$ is `o.orientationAt c`, with $j$ read on
-  the tangent image through Tau Ceti's `AlmostComplexStructure.restrict`.
+  $(\nu_c, J_\nu)$ to the complex orientation of $(T_{f c}X, J)$. The complex
+  orientations are `AlmostComplexStructure.orientation` of
+  `LinearAlgebra/ComplexStructure/Orientation.lean` (below); its
+  `map_prodEquivOfIsCompl_orientation` is the statement on the tangent image
+  and the quotient, and `ho` says, through `orientation_eq_of_apply_one_eq`,
+  that $df$ carries `o.orientationAt c` to the orientation of the
+  restriction of $J$ to the tangent image (Tau Ceti's
+  `AlmostComplexStructure.restrict`).
+
+### `LinearAlgebra/ComplexStructure/Orientation.lean`
+
+Namespace `TauCeti.AlmostComplexStructure`, for an almost complex structure
+`J` on a finite-dimensional real vector space `V`.
+
+- `orientation J`, indexed by `Fin (finrank ℝ V)`: Tau Ceti's
+  `complexOrientation` of `V` with the complex structure `J.complexModule`,
+  with `orientation_def`.
+- `map_orientation` (complex-linear isomorphisms carry one orientation to
+  the other), `orientation_prod` (the orientation of `J₁.prod J₂` is the
+  product orientation) and `orientation_eq_of_apply_one_eq` (in real
+  dimension two, a basis $(e, Je)$ gives the orientation of `J`).
+- `map_prodEquivOfIsCompl_orientation`: for a `J`-invariant subspace `W`
+  with a `J`-invariant complement `W'`, the isomorphism
+  `W × V ⧸ W ≃ V`, $(w, a)\mapsto w + r_{W'}a$, carries the product of the
+  orientations of `J.restrict W` and `J.quotient W` to that of `J`.
 
 ### `Geometry/Symplectic/Manifold/AlmostComplex/AdjunctionFormula.lean`
 
@@ -372,7 +395,7 @@ sub-issues of #879, *Build the part Adjunction*. Sizes are estimates.
 |---|---|---|---|---|
 | 1 | The complex structure on the normal bundle | `Geometry/Manifold/SmoothEmbedding/NormalSpace/ComplexStructure.lean` | — | 200 |
 | 2 | The symplectic splitting of the tangent bundle along a $J$-invariant submanifold | `AlmostComplex/NormalSplitting.lean` | 1 | 400 |
-| 3 | The self-intersection number | `AlmostComplex/SelfIntersection.lean` | 1; #784 | 250 |
+| 3 | The self-intersection number | `AlmostComplex/SelfIntersection.lean`, `LinearAlgebra/ComplexStructure/Orientation.lean` | 1; #784 | 250 |
 | 4 | The adjunction formula | `AlmostComplex/AdjunctionFormula.lean` | 2, 3; #784, #788 | 200 |
 
 Issue 1 can start once this design is merged, and issue 2 after it; both
