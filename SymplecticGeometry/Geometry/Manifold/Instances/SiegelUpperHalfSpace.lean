@@ -7,11 +7,13 @@ module
 
 public import Mathlib.Geometry.Manifold.ContMDiff.Basic
 public import Mathlib.Geometry.Manifold.ContMDiff.NormedSpace
+public import Mathlib.Geometry.Manifold.MFDeriv.SpecificFunctions
 public import TauCeti.Analysis.Matrix.Normed
 public import SymplecticGeometry.Analysis.Complex.SiegelUpperHalfSpace.Basic
 public import SymplecticGeometry.LinearAlgebra.Matrix.Symmetric
 import Mathlib.Analysis.LocallyConvex.HahnBanach
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.Submodule
+import SymplecticGeometry.Geometry.Manifold.MFDeriv.Singleton
 
 /-!
 # The Siegel upper half space as a complex manifold
@@ -42,7 +44,8 @@ space a real and a complex manifold, smooth and analytic.
   instance, whose single chart sends `Z` to the matrix `Z` (`chartAt_eq`, `coe_chartAt_apply`),
   and the instance `IsManifold 𝓘(𝕜, selfAdjointMatricesSubmodule (1 : Matrix ι ι ℂ)) n _`, for
   `𝕜 = ℂ` and `𝕜 = ℝ` alike and every order `n`.
-* `SiegelUpperHalfSpace.contMDiff_coe`: the inclusion into the matrices is smooth.
+* `SiegelUpperHalfSpace.contMDiff_coe`: the inclusion into the matrices is smooth, and
+  `SiegelUpperHalfSpace.hasMFDerivAt_coe`: its differential is the inclusion of the model.
 * `SiegelUpperHalfSpace.contMDiff_iff_coe_comp`: a map into the Siegel upper half space is smooth
   exactly when its matrix is.
 
@@ -117,6 +120,22 @@ theorem contMDiff_coe {n : ℕ∞ω} :
     using 1
   funext Z
   simp
+
+/-- The inclusion of the Siegel upper half space into the matrices has, at every point, the
+inclusion of the symmetric matrices as its differential. -/
+theorem hasMFDerivAt_coe (Z : SiegelUpperHalfSpace ι) :
+    HasMFDerivAt 𝓘(𝕜, 𝒮 ι) 𝓘(𝕜, Matrix ι ι ℂ) ((↑) : SiegelUpperHalfSpace ι → Matrix ι ι ℂ) Z
+      ((Submodule.subtypeL (𝒮 ι)).restrictScalars 𝕜) := by
+  have hchart : HasMFDerivAt 𝓘(𝕜, 𝒮 ι) 𝓘(𝕜, 𝒮 ι) (chartAt (𝒮 ι) Z) Z
+      (ContinuousLinearMap.id 𝕜 (𝒮 ι)) := by
+    have h := (mdifferentiableAt_atlas (I := 𝓘(𝕜, 𝒮 ι)) (chart_mem_atlas (𝒮 ι) Z)
+      (mem_chart_source (𝒮 ι) Z)).hasMFDerivAt
+    rwa [mfderiv_chartAt_of_chartAt_eq rfl] at h
+  have hfun : ((↑) : SiegelUpperHalfSpace ι → Matrix ι ι ℂ) =
+      (Submodule.subtypeL (𝒮 ι)).restrictScalars 𝕜 ∘ chartAt (𝒮 ι) Z :=
+    funext fun W ↦ (coe_chartAt_apply Z W).symm
+  rw [hfun]
+  exact ((Submodule.subtypeL (𝒮 ι)).restrictScalars 𝕜).hasMFDerivAt.comp Z hchart
 
 variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace 𝕜 E] [TopologicalSpace H]
   {I : ModelWithCorners 𝕜 E H} [TopologicalSpace M] [ChartedSpace H M] {n : ℕ∞ω}

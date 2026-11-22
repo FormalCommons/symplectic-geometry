@@ -597,9 +597,13 @@ For `ι` finite with decidable equality, `V = StdSpace ι`, `ω = stdForm ι`:
 - `isPseudoholomorphic_compatibleDiffeomorph`, with Tau Ceti's
   `ofComplexManifold` on the source;
 - `inner_mfderiv_compatibleDiffeomorph`: the pulled-back metric is
-  `trace ((Z.im⁻¹ * Ẑ.re) ^ 2 + (Z.im⁻¹ * Ẑ.im) ^ 2)`, with `Ẑ.re` and
-  `Ẑ.im` the real and imaginary parts of the symmetric matrix `Ẑ`;
-- the milestone, `TauCeti.SymplecticForm.compatibleSpace_properties`, below.
+  `trace ((Z.im⁻¹ * (Subtype.val Ẑ).map Complex.re) ^ 2 +
+  (Z.im⁻¹ * (Subtype.val Ẑ).map Complex.im) ^ 2)`, as the inner product of
+  the image of `Ẑ` with itself for the global instance, with the real and imaginary parts
+  taken entrywise;
+- the milestone,
+  `TauCeti.SymplecticForm.isKahler_compatibleSpaceForm_and_compatibleDiffeomorph`,
+  below.
 
 ## The milestone
 
@@ -609,7 +613,7 @@ One theorem in `Siegel.lean`, where its last ingredient is. Writing `d J` for
 `∇` for `leviCivitaConnection 𝓘 (𝒥 ω)` (local notations of the file):
 
 ```lean
-theorem compatibleSpace_properties (ω : SymplecticForm V) {n : ℕ}
+theorem isKahler_compatibleSpaceForm_and_compatibleDiffeomorph (ω : SymplecticForm V) {n : ℕ}
     (hn : Module.finrank ℝ V = 2 * n) :
     Manifold.IsSmoothEmbedding 𝓘 𝓘(ℝ, V →L[ℝ] V) ∞ ω.compatibleCLM ∧
     Module.finrank ℝ ω.compatibleModel = n * (n + 1) ∧
@@ -621,7 +625,8 @@ theorem compatibleSpace_properties (ω : SymplecticForm V) {n : ℕ}
     Ω.IsKahler j ∧ j.IsIntegrable ∧
     (∀ (Ψ : V ≃L[ℝ] V) (hΨ : ω.IsSymplectomorphism ω Ψ.toLinearEquiv),
       IsPseudoholomorphic j j (ω.compatibleTransport hΨ) ∧
-      Ω.mpullback (ω.compatibleTransport hΨ) _ = Ω ∧
+      SmoothForm.mpullback (ω.compatibleTransport hΨ)
+        (ω.compatibleTransport hΨ).contMDiff Ω = Ω ∧
       ∀ J (a b : TangentSpace 𝓘 J),
         ⟪mfderiv 𝓘 𝓘 (ω.compatibleTransport hΨ) J a,
           mfderiv 𝓘 𝓘 (ω.compatibleTransport hΨ) J b⟫_ℝ = ⟪a, b⟫_ℝ) ∧
@@ -640,20 +645,22 @@ theorem compatibleSpace_properties (ω : SymplecticForm V) {n : ℕ}
     (∀ J a b c, d J (∇.curvatureTensor J a b c) = -(4⁻¹ : ℝ) •
       ⁅⁅mvfderiv 𝓘 ω.compatibleCLM J a, mvfderiv 𝓘 ω.compatibleCLM J b⁆,
         mvfderiv 𝓘 ω.compatibleCLM J c⁆) ∧
-    (∀ J u v, ∇.sectionalCurvature _ J u v ≤ 0) ∧
+    (∀ hcov J u v, ∇.sectionalCurvature hcov J u v ≤ 0) ∧
     ∀ (ι : Type) [Fintype ι] [DecidableEq ι],
       (∀ Z, SiegelUpperHalfSpace.compatibleDiffeomorph ι Z =
         SiegelUpperHalfSpace.compatibleEquiv Z) ∧
       IsPseudoholomorphic (SmoothAlmostComplexStructure.ofComplexManifold _ _)
         (stdForm ι).compatibleSpaceComplexStructure
         (SiegelUpperHalfSpace.compatibleDiffeomorph ι) ∧
-      ∀ Z Ẑ, ‖mfderiv _ _ (SiegelUpperHalfSpace.compatibleDiffeomorph ι) Z Ẑ‖ ^ 2 =
-        Matrix.trace ((Z.im⁻¹ * Ẑ.re) ^ 2 + (Z.im⁻¹ * Ẑ.im) ^ 2)
+      ∀ Z Ẑ, ⟪mfderiv _ _ (SiegelUpperHalfSpace.compatibleDiffeomorph ι) Z Ẑ,
+          mfderiv _ _ (SiegelUpperHalfSpace.compatibleDiffeomorph ι) Z Ẑ⟫ =
+        Matrix.trace ((Z.im⁻¹ * (Subtype.val Ẑ).map Complex.re) ^ 2 +
+          (Z.im⁻¹ * (Subtype.val Ẑ).map Complex.im) ^ 2)
 ```
 
 The `…` in the connection conjunct is the differentiability of `W` at `t` as
 a curve in the tangent bundle, the hypothesis of
-`alongCurve_leviCivitaConnection_compatibleSpace`. The squared norm in the last line is that of the global
+`alongCurve_leviCivitaConnection_compatibleSpace`. The inner product in the last line is that of the global
 instance of `Kahler.lean`. The docstring ends with "Milestone: *Kähler
 structure on the space of compatible linear complex structures*."
 
