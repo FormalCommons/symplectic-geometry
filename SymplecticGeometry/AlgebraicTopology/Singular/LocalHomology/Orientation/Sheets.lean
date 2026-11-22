@@ -5,9 +5,11 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import Mathlib.Analysis.Convex.Contractible
 public import SymplecticGeometry.AlgebraicTopology.Singular.Contractible
 public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orientation.Suspension
 public import SymplecticGeometry.AlgebraicTopology.Singular.MayerVietoris.Connecting
+public import SymplecticGeometry.AlgebraicTopology.Singular.Nullhomotopic
 public import SymplecticGeometry.Analysis.InnerProductSpace.Orthogonal
 public import SymplecticGeometry.Analysis.InnerProductSpace.OrthogonalLast
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.Prod
@@ -52,6 +54,11 @@ the Euclidean space `EuclideanSpace ℝ (Fin (m + 2))` that carries `F × {0}` o
 complement of the last basis vector and `(0, 1)` to it, built from a basis of `F` with the
 orientation of `z` (`OrthonormalBasis.prodEquivOfBasis`).
 
+In positive degree this reading map is injective
+(`TauCeti.injective_singularHomologyπ_singularHomologyδ_prod`), since `F × ℝ` is contractible
+and the inclusion of `(F ∖ {0}) × ℝ` into `(F × ℝ) ∖ {0}` is nullhomotopic
+(`TauCeti.nullhomotopic_map_prodComplZeroPair`).
+
 ## Main definitions
 
 * `TauCeti.orthogonalSheetPairMap`: the sheet `x ↦ x + t • p` on `(ℝ ∙ p)ᗮ`, as a map of pairs.
@@ -64,6 +71,8 @@ orientation of `z` (`OrthonormalBasis.prodEquivOfBasis`).
   product space.
 * `TauCeti.LocalOrientation.singularHomologyπ_singularHomologyδ_prod`: the product local
   orientation of `F × ℝ` read on the sheets `F × {±1}`.
+* `TauCeti.nullhomotopic_map_prodComplZeroPair` and
+  `TauCeti.injective_singularHomologyπ_singularHomologyδ_prod`: the reading map is injective.
 
 ## References
 
@@ -607,6 +616,45 @@ theorem LocalOrientation.singularHomologyπ_singularHomologyδ_prod {m : ℕ}
     (b.prodEquivOfBasis_apply e) _ _ ?_
   rw [hwE, hzG]
   exact singularHomologyπ_singularHomologyδ_localOrientation b
+
+/-- The inclusion of `(F ∖ {0}) × ℝ` into `(F × ℝ) ∖ {0}` is nullhomotopic: it contracts onto
+`(0, 1)` along `s ↦ ((1 - s) x, (1 - s) t + s)`. -/
+theorem nullhomotopic_map_prodComplZeroPair :
+    (TopPair.ofSubset (X := TopCat.of ({0}ᶜ : Set (F × ℝ)))
+      {x | (x : F × ℝ).1 ≠ 0}).map.hom.Nullhomotopic := by
+  refine ⟨⟨(0, 1), by simp⟩, ⟨{
+    toFun := fun q ↦ ⟨((1 - (q.1 : ℝ)) • (q.2.val : F × ℝ).1,
+      (1 - (q.1 : ℝ)) * (q.2.val : F × ℝ).2 + q.1), fun h ↦ ?_⟩
+    continuous_toFun := by fun_prop
+    map_zero_left := fun x ↦ Subtype.ext (Prod.ext (by simp; rfl) (by simp; rfl))
+    map_one_left := fun x ↦ Subtype.ext (Prod.ext (by simp; rfl) (by simp; rfl)) }⟩⟩
+  have h1 := congrArg Prod.fst h
+  have h2 := congrArg Prod.snd h
+  simp only [Prod.fst_zero, Prod.snd_zero, smul_eq_zero, sub_eq_zero] at h1 h2
+  rcases h1 with h1 | h1
+  · rw [← h1, sub_self, zero_mul, zero_add] at h2
+    exact one_ne_zero h2
+  · exact q.2.property h1
+
+/-- The connecting morphism of `(F × ℝ, (F × ℝ) ∖ {0})` in positive degree, followed by the map
+`Hₘ₊₁((F × ℝ) ∖ {0}) ⟶ Hₘ₊₁((F × ℝ) ∖ {0}, (F ∖ {0}) × ℝ)`, is injective: `F × ℝ` is
+contractible, and the inclusion of `(F ∖ {0}) × ℝ` into `(F × ℝ) ∖ {0}` is nullhomotopic. -/
+theorem injective_singularHomologyπ_singularHomologyδ_prod (m : ℕ) :
+    Function.Injective fun x ↦
+      (TopPair.ofSubset (X := TopCat.of ({0}ᶜ : Set (F × ℝ)))
+        {x | (x : F × ℝ).1 ≠ 0}).singularHomologyπ (ModuleCat.of ℤ (ULift.{0} ℤ)) (m + 1)
+      ((TopPair.ofSubset ({0}ᶜ : Set (TopCat.of (F × ℝ)))).singularHomologyδ
+        (ModuleCat.of ℤ (ULift.{0} ℤ)) (m + 2) (m + 1) rfl x) := by
+  have hπ : Mono ((TopPair.ofSubset (X := TopCat.of ({0}ᶜ : Set (F × ℝ)))
+      {x | (x : F × ℝ).1 ≠ 0}).singularHomologyπ (ModuleCat.of ℤ (ULift.{0} ℤ)) (m + 1)) :=
+    ((TopPair.ofSubset (X := TopCat.of ({0}ᶜ : Set (F × ℝ)))
+      {x | (x : F × ℝ).1 ≠ 0}).singularHomology_exact_space _ (m + 1)).mono_g
+      (TopCat.singularHomologyFunctor_map_eq_zero_of_nullhomotopic _
+        nullhomotopic_map_prodComplZeroPair m.succ_ne_zero)
+  have : ContractibleSpace (TopPair.ofSubset ({0}ᶜ : Set (TopCat.of (F × ℝ)))).fst :=
+    inferInstanceAs (ContractibleSpace (F × ℝ))
+  exact ((ModuleCat.mono_iff_injective _).1 hπ).comp ((ModuleCat.mono_iff_injective _).1
+    (TopPair.mono_singularHomologyδ_of_contractibleSpace _ _ (m + 1)))
 
 end Prod
 

@@ -19,9 +19,7 @@ pairs (`TopPair.singularHomologyMap_coefficient_naturality`). It is the homology
 is that of the cohomology statement, without the dual.
 
 In an abelian category the change of coefficients is a morphism of the short exact sequences of
-singular chains of a pair (`TopPair.singularChainComplexShortComplexCoefficientMap`), so it also
-commutes with the map from absolute to relative homology
-(`TopPair.singularHomologyπ_coefficient_naturality`) and with the connecting morphism
+singular chains of a pair, so it also commutes with the connecting morphism
 (`TopPair.singularHomologyδ_coefficient_naturality`).
 -/
 
@@ -56,8 +54,8 @@ variable {C : Type u} [Category.{v} C] [Abelian C] [HasCoproducts.{w} C]
 /-- The change of coefficients along `φ : R ⟶ R'`, as a morphism from the short exact sequence
 `C(A; R) ⟶ C(X; R) ⟶ C(X, A; R)` of singular chains of a pair `(X, A)` to the one with
 coefficients `R'`. -/
-noncomputable def singularChainComplexShortComplexCoefficientMap (P : TopPair.{w}) {R R' : C}
-    (φ : R ⟶ R') :
+private noncomputable def singularChainComplexShortComplexCoefficientMap (P : TopPair.{w})
+    {R R' : C} (φ : R ⟶ R') :
     P.singularChainComplexShortComplex R ⟶ P.singularChainComplexShortComplex R' where
   τ₁ := ((SSet.chainComplexFunctor C).map φ).app (toSSetPair.obj P).left
   τ₂ := ((SSet.chainComplexFunctor C).map φ).app (toSSetPair.obj P).right
@@ -83,19 +81,6 @@ theorem singularHomologyδ_coefficient_naturality (P : TopPair.{w}) {R R' : C} (
     (singularChainComplexShortComplexCoefficientMap P φ)
     (P.shortExact_singularChainComplexShortComplex R)
     (P.shortExact_singularChainComplexShortComplex R') n m (by simpa)
-
-/-- The change of coefficients along `φ : R ⟶ R'` commutes with the map `Hₙ(X) ⟶ Hₙ(X, A)` from
-absolute to relative homology. -/
-@[reassoc]
-theorem singularHomologyπ_coefficient_naturality (P : TopPair.{w}) {R R' : C} (φ : R ⟶ R')
-    (n : ℕ) :
-    homologyMap (((SSet.chainComplexFunctor C).map φ).app (toSSetPair.obj P).right) n ≫
-        P.singularHomologyπ R' n =
-      P.singularHomologyπ R n ≫
-        homologyMap (((SSetPair.chainComplexFunctor C).map φ).app (toSSetPair.obj P)) n :=
-  (homologyMap_comp _ _ n).symm.trans <| (congrArg (homologyMap · n)
-    (congrArg (fun η ↦ η.app (toSSetPair.obj P))
-      ((SSetPair.chainComplexFunctorπ C).naturality φ))).trans (homologyMap_comp _ _ n)
 
 end Abelian
 

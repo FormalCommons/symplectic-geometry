@@ -5,7 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.AlgebraicTopology.Singular.Shuffle
+public import SymplecticGeometry.AlgebraicTopology.Singular.CrossProduct
 public import TauCeti.AlgebraicTopology.Singular.Kunneth.Relative
 public import TauCeti.AlgebraicTopology.Singular.Reduced
 
@@ -19,12 +19,12 @@ under the coefficient map `R ≅ R ⊗ 𝟙_ C ⟶ R ⊗ S`, `r ↦ r ⊗ t`, fo
 `(X, B) ⟶ (X × Y, B × Y)`, `x ↦ (x, y)`
 (`TopCat.singularHomology₀Section_singularHomologyCrossRel`).
 
-On chains, the shuffle product of a singular simplex with a singular vertex projects back onto
-the simplex (`TopCat.ιChainComplex_tensorHom_ιChainComplex_shuffle_f_fst`, from Tau Ceti's main
-branch); the relative shuffle map is induced by the shuffle map, so the same holds for relative
-chains. The proofs adapt those of `TopCat.singularHomology₀Section_singularHomologyCross` and of
-the private lemmas `TopCat.rightUnitor_inv_whiskerLeft_shuffle_f_fst` (made public here) and
-`TopCat.singularHomology₀Section_singularHomologyCross_map_fst` (Tau Ceti's main branch,
+On chains, the shuffle product with a singular vertex, followed by the projection to the first
+factor, is a change of coefficients (`TopCat.rightUnitor_inv_whiskerLeft_shuffle_f_fst`, copied
+from Tau Ceti's main branch into `SymplecticGeometry/AlgebraicTopology/Singular/CrossProduct.lean`);
+the relative shuffle map is induced by the shuffle map, so the same holds for relative chains. The
+proofs adapt that of `TopCat.singularHomology₀Section_singularHomologyCross` and of its private
+step `TopCat.singularHomology₀Section_singularHomologyCross_map_fst` (Tau Ceti's main branch,
 `TauCeti/AlgebraicTopology/Singular/CrossProduct.lean`, commit `ef2c0780f7`), which treat the
 absolute cross product, to the relative one.
 
@@ -59,23 +59,7 @@ variable {C : Type u} [Category.{v} C] [Abelian C] [MonoidalCategory C] [Monoida
   [∀ (T : C) (J : Type w), PreservesColimitsOfShape (Discrete J) (tensorRight T)]
   (X Y : TopCat.{w}) (B : Set X) (R S : C)
 
-/-- On chains, the shuffle product with a vertex `y`, weighted by `t : 𝟙_ C ⟶ S`, followed by the
-projection to the first factor is the coefficient map `r ↦ r ⊗ t`. -/
-@[reassoc]
-theorem rightUnitor_inv_whiskerLeft_shuffle_f_fst (p : ℕ) (y : Y) (t : 𝟙_ C ⟶ S) :
-    (ρ_ (((toSSet.obj X).chainComplex R).X p)).inv ≫
-        (((toSSet.obj X).chainComplex R).X p ◁
-          (t ≫ (toSSet.obj Y).ιChainComplex (toSSetObj₀Equiv.symm y))) ≫
-        ιTensorObj ((toSSet.obj X).chainComplex R) ((toSSet.obj Y).chainComplex S) p 0 p
-          (add_zero p) ≫ (shuffle X Y R S).f p ≫
-          (SSet.chainComplexMap (toSSet.map (fst X Y)) (R ⊗ S)).f p =
-      (((SSet.chainComplexFunctor C).map ((ρ_ R).inv ≫ R ◁ t)).app (toSSet.obj X)).f p := by
-  ext x
-  rw [← rightUnitor_inv_comp_tensorHom_assoc, ← whiskerLeft_comp_tensorHom_assoc,
-    ιChainComplex_tensorHom_ιChainComplex_shuffle_f_fst,
-    SSet.ιChainComplex_chainComplexFunctor_map_app_f, Category.assoc]
-
-/-- The same on relative chains: the relative shuffle product with a vertex `y`, weighted by `t`,
+/-- On relative chains, the relative shuffle product with a vertex `y`, weighted by `t`,
 followed by the projection `(X × Y, B × Y) ⟶ (X, B)` is the coefficient map `r ↦ r ⊗ t`. -/
 private theorem rightUnitor_inv_whiskerLeft_shuffleRel_f_fst (p : ℕ) (y : Y) (t : 𝟙_ C ⟶ S) :
     (ρ_ (((TopPair.ofSubset B).singularChainComplex R).X p)).inv ≫

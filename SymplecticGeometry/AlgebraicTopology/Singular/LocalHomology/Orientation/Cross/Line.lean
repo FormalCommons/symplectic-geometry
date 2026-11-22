@@ -5,14 +5,12 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import Mathlib.Analysis.Convex.Contractible
-public import SymplecticGeometry.AlgebraicTopology.Singular.Contractible
 public import SymplecticGeometry.AlgebraicTopology.Singular.Kunneth.Connecting
 public import SymplecticGeometry.AlgebraicTopology.Singular.Kunneth.RelativePoint
 public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orientation.Cross.Basic
 public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orientation.Sheets
-public import SymplecticGeometry.AlgebraicTopology.Singular.Nullhomotopic
 public import SymplecticGeometry.AlgebraicTopology.Singular.PairChangeOfCoefficients
+public import SymplecticGeometry.AlgebraicTopology.SimplicialSet.Homology.Relative.Basic
 public import SymplecticGeometry.Algebra.Category.ModuleCat.ULiftTensor
 
 /-!
@@ -27,9 +25,8 @@ This file shows that this sign is `(-1) ^ (m + 1)`
 
 Both classes are read through the connecting morphism of `(F × ℝ, (F × ℝ) ∖ {0})` followed by the
 map to the homology of `(F × ℝ) ∖ {0}` relative to `(F ∖ {0}) × ℝ`, which is injective
-(`TauCeti.injective_singularHomologyπ_singularHomologyδ_prod`): `F × ℝ` is contractible and the
-inclusion of `(F ∖ {0}) × ℝ` into `(F × ℝ) ∖ {0}` is nullhomotopic. For `t ≠ 0` let `jₜ` be the
-sheet `x ↦ (x, t)` (`TauCeti.prodSheetPairMap`).
+(`TauCeti.injective_singularHomologyπ_singularHomologyδ_prod`, in `Orientation/Sheets.lean`). For
+`t ≠ 0` let `jₜ` be the sheet `x ↦ (x, t)` (`TauCeti.prodSheetPairMap`).
 
 * The ordered product goes to `j₋₁ z - j₁ z`
   (`TauCeti.LocalOrientation.singularHomologyπ_singularHomologyδ_prod`, from the suspension that
@@ -44,14 +41,13 @@ sheet `x ↦ (x, t)` (`TauCeti.prodSheetPairMap`).
   relative cross product with the class of a point `t` is the map induced by `jₜ`
   (`TopCat.singularHomology₀Section_singularHomologyCrossRel`).
 
-The two classes are local orientations of `F × ℝ`, which are not their own reversals, so the
-sign is `(-1) ^ (m + 1)`.
+A local orientation of `F × ℝ` has infinite order (`TauCeti.IsLocalOrientation.zsmul_eq_zero_iff`),
+so the sign is `(-1) ^ (m + 1)`.
 
 ## Main results
 
 * `TauCeti.singularHomologyComplSingletonIsoOfOrientation_inv_singularHomologyδ_real` and
   `TauCeti.singularHomologyδ_localOrientation_real`: the boundary of the local orientation of `ℝ`.
-* `TauCeti.injective_singularHomologyπ_singularHomologyδ_prod`: the reading map is injective.
 * `TauCeti.LocalOrientation.singularHomologyπ_singularHomologyδ_cross`: the cross product read on
   the sheets.
 * `TauCeti.LocalOrientation.crossSign_zero_right`: `crossSign m 0 = (-1) ^ (m + 1)`.
@@ -272,45 +268,6 @@ private theorem homologyMap_singularHomologyCrossRel_singularHomology₀Section
   -- the identity applied to `a`
   rfl
 
-/-- The inclusion of `(F ∖ {0}) × ℝ` into `(F × ℝ) ∖ {0}` is nullhomotopic: it contracts onto
-`(0, 1)` along `s ↦ ((1 - s) x, (1 - s) t + s)`. -/
-theorem nullhomotopic_map_prodComplZeroPair :
-    (TopPair.ofSubset (X := TopCat.of ({0}ᶜ : Set (F × ℝ)))
-      {x | (x : F × ℝ).1 ≠ 0}).map.hom.Nullhomotopic := by
-  refine ⟨⟨(0, 1), by simp⟩, ⟨{
-    toFun := fun q ↦ ⟨((1 - (q.1 : ℝ)) • (q.2.val : F × ℝ).1,
-      (1 - (q.1 : ℝ)) * (q.2.val : F × ℝ).2 + q.1), fun h ↦ ?_⟩
-    continuous_toFun := by fun_prop
-    map_zero_left := fun x ↦ Subtype.ext (Prod.ext (by simp; rfl) (by simp; rfl))
-    map_one_left := fun x ↦ Subtype.ext (Prod.ext (by simp; rfl) (by simp; rfl)) }⟩⟩
-  have h1 := congrArg Prod.fst h
-  have h2 := congrArg Prod.snd h
-  simp only [Prod.fst_zero, Prod.snd_zero, smul_eq_zero, sub_eq_zero] at h1 h2
-  rcases h1 with h1 | h1
-  · rw [← h1, sub_self, zero_mul, zero_add] at h2
-    exact one_ne_zero h2
-  · exact q.2.property h1
-
-/-- The connecting morphism of `(F × ℝ, (F × ℝ) ∖ {0})` in positive degree, followed by the map
-`Hₘ₊₁((F × ℝ) ∖ {0}) ⟶ Hₘ₊₁((F × ℝ) ∖ {0}, (F ∖ {0}) × ℝ)`, is injective: `F × ℝ` is
-contractible, and the inclusion of `(F ∖ {0}) × ℝ` into `(F × ℝ) ∖ {0}` is nullhomotopic. -/
-theorem injective_singularHomologyπ_singularHomologyδ_prod (m : ℕ) :
-    Function.Injective fun x ↦
-      (TopPair.ofSubset (X := TopCat.of ({0}ᶜ : Set (F × ℝ)))
-        {x | (x : F × ℝ).1 ≠ 0}).singularHomologyπ (ModuleCat.of ℤ (ULift.{0} ℤ)) (m + 1)
-      ((TopPair.ofSubset ({0}ᶜ : Set (TopCat.of (F × ℝ)))).singularHomologyδ
-        (ModuleCat.of ℤ (ULift.{0} ℤ)) (m + 2) (m + 1) rfl x) := by
-  have hπ : Mono ((TopPair.ofSubset (X := TopCat.of ({0}ᶜ : Set (F × ℝ)))
-      {x | (x : F × ℝ).1 ≠ 0}).singularHomologyπ (ModuleCat.of ℤ (ULift.{0} ℤ)) (m + 1)) :=
-    ((TopPair.ofSubset (X := TopCat.of ({0}ᶜ : Set (F × ℝ)))
-      {x | (x : F × ℝ).1 ≠ 0}).singularHomology_exact_space _ (m + 1)).mono_g
-      (TopCat.singularHomologyFunctor_map_eq_zero_of_nullhomotopic _
-        nullhomotopic_map_prodComplZeroPair m.succ_ne_zero)
-  have : ContractibleSpace (TopPair.ofSubset ({0}ᶜ : Set (TopCat.of (F × ℝ)))).fst :=
-    inferInstanceAs (ContractibleSpace (F × ℝ))
-  exact ((ModuleCat.mono_iff_injective _).1 hπ).comp ((ModuleCat.mono_iff_injective _).1
-    (TopPair.mono_singularHomologyδ_of_contractibleSpace _ _ (m + 1)))
-
 omit [NormedSpace ℝ F] in
 /-- The first steps of `TauCeti.LocalOrientation.singularHomologyπ_singularHomologyδ_cross`: the
 coefficient change `ULift ℤ ⊗ ULift ℤ ⟶ ULift ℤ` and the identification of `F × ℝ` with the
@@ -351,8 +308,8 @@ private theorem singularHomologyπ_singularHomologyδ_localHomologyCross {m : �
   simp only [ConcreteCategory.comp_apply] at h₁
   rw [← h₁]
   have h₂ := ConcreteCategory.congr_hom
-    (TopPair.singularHomologyπ_coefficient_naturality
-      (TopPair.ofSubset (X := TopCat.of ({0}ᶜ : Set (F × ℝ))) {x | (x : F × ℝ).1 ≠ 0})
+    (SSetPair.homologyπ_coefficient_naturality (TopPair.toSSetPair.obj
+      (TopPair.ofSubset (X := TopCat.of ({0}ᶜ : Set (F × ℝ))) {x | (x : F × ℝ).1 ≠ 0}))
       (ModuleCat.uliftTensorSelfIso ℤ).hom (m + 1))
   simp only [ConcreteCategory.comp_apply] at h₂
   -- The homology of `(F × ℝ) ∖ {0}` is that of the subspace of `(F × ℝ, (F × ℝ) ∖ {0})` and that
@@ -441,6 +398,7 @@ theorem LocalOrientation.singularHomologyπ_singularHomologyδ_cross {m : ℕ}
 product of a local orientation of a real vector space of dimension `m + 1` with a local
 orientation of `ℝ` differs from their ordered product `TauCeti.LocalOrientation.prod`
 (`TauCeti.LocalOrientation.coe_cross_eq_crossSign_smul`), is `(-1) ^ (m + 1)`. -/
+@[simp]
 theorem LocalOrientation.crossSign_zero_right (m : ℕ) :
     LocalOrientation.crossSign m 0 = (-1) ^ (m + 1) := by
   have hF : finrank ℝ (Fin (m + 1) → ℝ) = m + 1 := Module.finrank_fin_fun ℝ
@@ -459,23 +417,13 @@ theorem LocalOrientation.crossSign_zero_right (m : ℕ) :
           (ModuleCat.of ℤ (ULift.{0} ℤ)) (m + 1)).hom
     refine injective_singularHomologyπ_singularHomologyδ_prod m ?_
     exact (congrArg Φ hc.symm).trans ((h₁.trans (congrArg _ h₂.symm)).trans (map_zsmul Φ _ _).symm)
-  -- A local orientation of `F × ℝ` is not its own reversal.
-  have hw : w.val ≠ -w.val := by
-    have hFR : finrank ℝ ((Fin (m + 1) → ℝ) × ℝ) = m + 1 + 1 := by simp
-    have := FiniteDimensional.of_finrank_eq_succ hFR
-    obtain ⟨ω, hω⟩ := Orientation.localOrientation_surjective hFR w
-    replace hω : ω.localOrientation hFR = w := hω
-    intro h
-    have h' : ω.localOrientation hFR = (-ω).localOrientation hFR := by
-      rw [Orientation.localOrientation_neg]
-      exact Subtype.ext (by rw [hω, LocalOrientation.coe_neg]; exact h)
-    exact Module.Ray.ne_neg_self ω (Orientation.localOrientation_injective hFR h')
-  refine Units.ext ?_
-  rw [Units.val_pow_eq_pow_val, Units.val_neg, Units.val_one]
-  rcases Int.units_eq_one_or (LocalOrientation.crossSign m 0) with h | h <;>
-  rcases neg_one_pow_eq_or ℤ (m + 1) with h' | h' <;>
-  simp only [h, h', Units.val_one, Units.val_neg, one_zsmul, neg_one_zsmul] at key ⊢
-  all_goals exact absurd (by first | exact key | exact key.symm) hw
+  -- A local orientation of `F × ℝ` has infinite order, so the two signs agree.
+  have hFR : finrank ℝ ((Fin (m + 1) → ℝ) × ℝ) = m + 1 + 1 := by simp
+  have h := (w.property.zsmul_eq_zero_iff (singularHomologyComplSingletonIsoOfFinrankEq _
+    (OpenPartialHomeomorph.refl _) (Set.mem_univ 0) hFR)
+      (c := (LocalOrientation.crossSign m 0 : ℤ) - (-1) ^ (m + 1))).1
+    (by rw [sub_zsmul, key, add_neg_cancel])
+  exact Units.ext (by simpa [sub_eq_zero] using h)
 
 end Prod
 
