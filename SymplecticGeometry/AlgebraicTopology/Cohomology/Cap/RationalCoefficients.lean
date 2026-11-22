@@ -157,6 +157,16 @@ def singularChainComplexIntToRat :
     (intToRatCoeff ≫ (ModuleCat.restrictScalarsAlgebraMapIso (R := ℤ) (S := ℚ) ℚ).inv)
     (toSSet.obj X)
 
+/-- The chain map from integral to rational chains is the change of coefficients
+`SSet.restrictScalarsChainMap` along `TauCeti.intToRatCoeff`, followed by the identification of
+the abelian group `ℚ` with the restricted `ℚ`-module `ℚ`. -/
+theorem singularChainComplexIntToRat_def :
+    X.singularChainComplexIntToRat =
+      SSet.restrictScalarsChainMap (algebraMap ℤ ℚ) (N := 𝟙_ (ModuleCat.{0} ℚ))
+        (intToRatCoeff ≫ (ModuleCat.restrictScalarsAlgebraMapIso (R := ℤ) (S := ℚ) ℚ).inv)
+        (toSSet.obj X) :=
+  (rfl)
+
 /-- The chain map from integral to rational chains keeps each singular simplex and casts its
 coefficient to `ℚ`. -/
 @[reassoc (attr := simp)]
@@ -165,7 +175,7 @@ theorem ιChainComplex_singularChainComplexIntToRat_f {n : ℕ} (σ : (toSSet.ob
       intToRatCoeff ≫ (ModuleCat.restrictScalarsAlgebraMapIso (R := ℤ) (S := ℚ) ℚ).inv ≫
         (ModuleCat.restrictScalars.{0} (algebraMap ℤ ℚ)).map
           ((toSSet.obj X).ιChainComplex (R := 𝟙_ (ModuleCat.{0} ℚ)) σ) := by
-  rw [singularChainComplexIntToRat, SSet.ιChainComplex_restrictScalarsChainMap_f,
+  rw [singularChainComplexIntToRat_def, SSet.ιChainComplex_restrictScalarsChainMap_f,
     Category.assoc]
 
 /-! ### Cochains -/
