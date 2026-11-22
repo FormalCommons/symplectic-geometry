@@ -207,29 +207,32 @@ following choices.
 `DESIGN.md` is updated with this file, in its part 19, its dependency row
 and two rows of its milestone table.
 
-- Eleven files are added: `LinearAlgebra/Symplectic/Extension.lean`,
-  `Neighborhood/Extension.lean`, `Neighborhood/Frames.lean`,
-  `Neighborhood/Basic.lean`,
-  `Geometry/Manifold/VectorBundle/ZeroSection.lean`,
-  `Geometry/Manifold/VectorBundle/Adjoint.lean`,
-  `Geometry/Manifold/TubularNeighborhood/MFDeriv.lean`,
-  `Geometry/Manifold/VectorBundle/Orthogonal.lean`,
-  `Geometry/Manifold/VectorBundle/Subbundle.lean`,
-  `LinearAlgebra/BilinearForm/Orthogonal.lean` and
-  `Geometry/Manifold/Distribution/FlatChart.lean`. Each neighbourhood
-  theorem would otherwise repeat the linear extension and its smoothness;
-  `Neighborhood/Frames.lean` holds the smooth frames of the pieces of the
-  splitting along `Q`, a step of `Neighborhood/Extension.lean`;
-  `Adjoint.lean`, `VectorBundle/Orthogonal.lean` and
-  `VectorBundle/Subbundle.lean` hold steps of
-  `Neighborhood/Extension.lean`, `MFDeriv.lean` the step of
-  `Tubular.lean`, and `FlatChart.lean` the step of
-  `CharacteristicFoliation.lean`, that use nothing symplectic; the
-  linear-algebra lemma of `VectorBundle/Orthogonal.lean` is in
-  `LinearAlgebra/BilinearForm/Orthogonal.lean`.
-- `Geometry/Manifold/Diffeomorph/Basic.lean` is added for the
-  diffeomorphism between empty manifolds on two models, which `MFDeriv.lean`
-  and `Tubular.lean` both use.
+- These files are added. Each neighbourhood theorem would otherwise repeat
+  the linear extension and its smoothness. The list has one file to a line,
+  in the order of the paths as written here, and a new file goes in at its
+  place in that order: pull requests that each add a file then change
+  different lines.
+  - `Geometry/Manifold/Diffeomorph/Basic.lean`: the diffeomorphism between
+    empty manifolds on two models, which `MFDeriv.lean` and `Tubular.lean`
+    both use.
+  - `Geometry/Manifold/Distribution/FlatChart.lean`: the step of
+    `CharacteristicFoliation.lean` that uses nothing symplectic.
+  - `Geometry/Manifold/TubularNeighborhood/MFDeriv.lean`: the step of
+    `Tubular.lean` that uses nothing symplectic.
+  - `Geometry/Manifold/VectorBundle/Adjoint.lean`: a step of
+    `Neighborhood/Extension.lean` that uses nothing symplectic.
+  - `Geometry/Manifold/VectorBundle/Orthogonal.lean`: a step of
+    `Neighborhood/Extension.lean` that uses nothing symplectic.
+  - `Geometry/Manifold/VectorBundle/Subbundle.lean`: a step of
+    `Neighborhood/Extension.lean` that uses nothing symplectic.
+  - `Geometry/Manifold/VectorBundle/ZeroSection.lean`.
+  - `LinearAlgebra/BilinearForm/Orthogonal.lean`: the linear-algebra lemma
+    of `VectorBundle/Orthogonal.lean`.
+  - `LinearAlgebra/Symplectic/Extension.lean`.
+  - `Neighborhood/Basic.lean`.
+  - `Neighborhood/Extension.lean`.
+  - `Neighborhood/Frames.lean`: the smooth frames of the pieces of the
+    splitting along `Q`, a step of `Neighborhood/Extension.lean`.
 - `Lagrangian.lean` no longer uses *Cotangent bundles* or
   `normalBundleDiffeomorphOfIsLagrangianMap`, since the comparison theorem
   needs only that the zero section is Lagrangian. The part therefore no
