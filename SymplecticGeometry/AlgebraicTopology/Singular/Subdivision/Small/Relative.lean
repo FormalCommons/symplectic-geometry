@@ -23,7 +23,7 @@ here under its Tau Ceti name, so that moving Tau Ceti past it deletes this file 
 
 ## References
 
-* A. Hatcher, *Algebraic Topology*, Cambridge University Press, 2002, Proposition 2.21.
+* A. Hatcher, *Algebraic Topology*, Section 2.1, Proposition 2.21.
 -/
 
 public section
