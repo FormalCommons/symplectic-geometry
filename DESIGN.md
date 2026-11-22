@@ -2371,14 +2371,17 @@ has either; Tau Ceti's extension across a boundary,
   symplectic submanifold in the sense of Tau Ceti's
   `IsSymplecticSubmanifoldEmbedding`; the Nijenhuis tensor of the
   restriction is the restriction of $N_J$, so `IsKahler` passes to $N$; and
-  if $J$ is integrable, so is the restriction, since $N$ is locally a graph
-  whose differential is complex linear, hence holomorphic by Tau Ceti's
-  `mdifferentiableAt_iff_mvfderiv_ofComplexManifold_apply`) and
+  if $J$ is integrable and $N$ has no boundary, so is the restriction,
+  since a complex linear left inverse of the differential of a chart of
+  $M$ in which $J$ is constant, composed with that chart and $f$, is a chart
+  of $N$ by the inverse function theorem) and
   `Geometry/Manifold/Immersion/TangentEndomorphism.lean` (an endomorphism
   field of $TN$ that $df$ relates to a smooth one along $f$ is smooth, when
   $df$ has left inverses; it gives the restriction its smoothness).
 - **Builds on:** *Nijenhuis tensor* (`Nijenhuis.lean` for naturality along
-  embeddings, `Integrable.lean`); Tau Ceti.
+  embeddings, `Integrable.lean`); *Linear complex structures*
+  (`LinearAlgebra/ComplexStructure/Action.lean`, for complex linear left
+  inverses); Tau Ceti.
 - **Milestones:** *Complex submanifolds of Kähler manifolds*, except its
   last sentence, on $\mathbb CP^n$, which *Complex projective space* proves.
   No design file is needed.

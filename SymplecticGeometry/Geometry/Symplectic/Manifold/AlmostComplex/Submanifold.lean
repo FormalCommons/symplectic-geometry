@@ -10,6 +10,11 @@ public import SymplecticGeometry.Geometry.Manifold.Immersion.TangentEndomorphism
 public import TauCeti.Geometry.Manifold.DifferentialForm.Closed
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.Basic
 public import TauCeti.Geometry.Symplectic.Lagrangian.Embedding.Symplectic.Basic
+public import SymplecticGeometry.Geometry.Manifold.Complex.Integrable
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
+import SymplecticGeometry.LinearAlgebra.ComplexStructure.Action
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 
 /-!
 # Complex submanifolds of almost complex manifolds
@@ -40,6 +45,15 @@ The API of the restriction and the three form lemmas adapt Tau Ceti's
 `TauCeti/Geometry/Symplectic/Manifold/AlmostComplex/Pullback.lean`, from diffeomorphisms to
 embeddings.
 
+If `J` is integrable and `N` has no boundary, the restriction is integrable
+(`IsIntegrable.restrict`). Around `x : N`, take a chart `ψ` of `M` at `f x` in which `J` is a
+constant `J₀`. The differential `A` of `ψ ∘ f` at `x` is injective and complex linear, so it has
+a complex linear left inverse `G` (`TauCeti.IsComplexLinearMap.exists_leftInverse`). The
+differential of `G ∘ ψ ∘ f` at `x` is the identity, so by the inverse function theorem (Tau Ceti's
+`isLocalDiffeomorphAt_of_mfderiv_eq`) it is a chart of `N` near `x`, and in it the restricted
+structure is the constant structure that it has at `x`. The hypothesis on the boundary is needed,
+since integrability asks for charts onto open subsets of the model space.
+
 Nothing here assumes `N` nonempty or of positive dimension.
 
 ## Main definitions
@@ -60,6 +74,8 @@ Nothing here assumes `N` nonempty or of positive dimension.
   submanifold is a symplectic submanifold embedding for a taming form.
 * `TauCeti.SmoothTwoForm.Tames.isSymplectic_mpullback`: a symplectic form taming `J` pulls back to
   a symplectic form.
+* `TauCeti.SmoothAlmostComplexStructure.IsIntegrable.restrict`: integrability passes to the
+  restriction on a boundaryless submanifold.
 
 ## References
 
@@ -72,7 +88,7 @@ public section
 noncomputable section
 
 open Bundle Function ContinuousLinearMap
-open scoped Manifold ContDiff
+open scoped Manifold ContDiff Topology
 
 namespace TauCeti
 
@@ -169,6 +185,73 @@ theorem eq_restrict_iff {K : SmoothAlmostComplexStructure I' N} :
   refine ⟨fun h x v ↦ h ▸ mfderiv_restrict_apply hJ x v, fun h ↦ ext fun x v ↦ ?_⟩
   exact f.isImmersion.mfderiv_injective (by simp) x
     ((h x v).trans (mfderiv_restrict_apply hJ x v).symm)
+
+/-- **Integrability passes to complex submanifolds.** If `J` is integrable, then so is its
+restriction to a boundaryless submanifold with `J`-invariant tangent spaces.
+
+The hypothesis that `N` has no boundary cannot be dropped: integrability asks for charts onto
+open subsets of the model space around every point, which a boundary point does not have. For
+instance, a closed half-disc in a complex line of `ℂ²` has `J`-invariant tangent spaces, but its
+restricted structure is not integrable. -/
+theorem IsIntegrable.restrict [FiniteDimensional ℝ E] [BoundarylessManifold I' N]
+    (hint : J.IsIntegrable) : (J.restrict f hJ).IsIntegrable := by
+  rw [isIntegrable_iff_mfderiv] at hint ⊢
+  intro x
+  obtain ⟨ψ, J₀, hx, hψ⟩ := hint (f x)
+  have hinf : (∞ : WithTop ℕ∞) ≠ 0 := by simp
+  have hfd (y : N) : MDifferentiableAt I' I f y := f.contMDiff.mdifferentiable hinf y
+  -- The differential `A = dψ ∘ df` of `ψ ∘ f` at `x` is injective and complex linear from the
+  -- restricted structure `K` at `x` to `J₀`, so it has a complex linear left inverse `G`.
+  let K : AlmostComplexStructure E' := (J.restrict f hJ).almostComplexStructureAt x
+  have hψc : IsComplexLinearMap (J.almostComplexStructureAt (f x)) J₀
+      (mfderiv I 𝓘(ℝ, E) ψ (f x)).toLinearMap :=
+    (isComplexLinearMap_iff_apply _ _ _).2 fun v ↦
+      (congrArg (mfderiv I 𝓘(ℝ, E) ψ (f x)) (almostComplexStructureAt_apply J (f x) v)).trans
+        (hψ _ hx v)
+  have hA : IsComplexLinearMap K J₀
+      ((mfderiv I 𝓘(ℝ, E) ψ (f x)).toLinearMap ∘ₗ (mfderiv I' I f x).toLinearMap) :=
+    hψc.comp (isComplexLinearMap_mfderiv hJ x)
+  have hAinj : Injective
+      ((mfderiv I 𝓘(ℝ, E) ψ (f x)).toLinearMap ∘ₗ (mfderiv I' I f x).toLinearMap) :=
+    (ψ.isInvertible_mfderiv hinf hx).injective.comp (f.isImmersion.mfderiv_injective (by simp) x)
+  obtain ⟨G, hGJ, hGA⟩ := hA.exists_leftInverse hAinj
+  let Gc : E →L[ℝ] E' := LinearMap.toContinuousLinearMap G
+  -- The map `φ = G ∘ ψ ∘ f` is smooth on the open set `s = f⁻¹(ψ.source)`.
+  let φ : N → E' := Gc ∘ ψ ∘ f
+  let s : Set N := f ⁻¹' ψ.source
+  have hs : IsOpen s := ψ.open_source.preimage f.contMDiff.continuous
+  have hxs : x ∈ s := hx
+  have hφ : ContMDiffOn I' 𝓘(ℝ, E') ∞ φ s :=
+    Gc.contMDiff.comp_contMDiffOn (ψ.contMDiffOn.comp f.contMDiff.contMDiffOn fun _ h ↦ h)
+  have hdφ (y : N) (hy : y ∈ s) (v : TangentSpace I' y) :
+      mfderiv I' 𝓘(ℝ, E') φ y v = G (mfderiv I 𝓘(ℝ, E) ψ (f y) (mfderiv I' I f y v)) := by
+    have hψy : MDifferentiableAt I 𝓘(ℝ, E) ψ (f y) := ψ.mdifferentiableAt hinf hy
+    rw [mfderiv_comp_apply y Gc.mdifferentiableAt (hψy.comp y (hfd y)),
+      mfderiv_comp_apply y hψy (hfd y), Gc.mfderiv_eq]
+    exact congrFun (LinearMap.coe_toContinuousLinearMap' G) _
+  -- Its differential at `x` is `G ∘ A = id`, so by the inverse function theorem it is a local
+  -- diffeomorphism at `x`.
+  have hφx : IsLocalDiffeomorphAt I' 𝓘(ℝ, E') ∞ φ x := by
+    refine isLocalDiffeomorphAt_of_mfderiv_eq hφ hs hxs BoundarylessManifold.isInteriorPoint
+      (by simp) (e := ContinuousLinearEquiv.refl ℝ E') ?_
+    ext v
+    rw [hdφ x hxs v]
+    exact (LinearMap.congr_fun hGA v).symm
+  -- Restricted to `s`, it is a chart in which the restricted structure is the constant `K`.
+  obtain ⟨Φ, hxΦ, hφΦ⟩ := hφx.exists_partialDiffeomorph
+  refine ⟨Φ.restrOpen s hs, K, by simpa using ⟨hxΦ, hxs⟩, fun y hy v ↦ ?_⟩
+  have hy' : y ∈ Φ.source ∩ s := by simpa using hy
+  have heq : (Φ.restrOpen s hs : N → E') =ᶠ[𝓝 y] φ := by
+    filter_upwards [(Φ.restrOpen s hs).open_source.mem_nhds hy] with z hz
+    rw [PartialDiffeomorph.restrOpen_source] at hz
+    simpa using (hφΦ hz.1).symm
+  have hd : mfderiv I' 𝓘(ℝ, E') (Φ.restrOpen s hs) y = mfderiv I' 𝓘(ℝ, E') φ y :=
+    ((hφ.contMDiffAt (hs.mem_nhds hy'.2)).mdifferentiableAt hinf).hasMFDerivAt
+      |>.congr_of_eventuallyEq heq |>.mfderiv
+  refine (DFunLike.congr_fun hd _).trans ((hdφ y hy'.2 _).trans ?_)
+  rw [mfderiv_restrict_apply, hψ _ hy'.2]
+  refine ((isComplexLinearMap_iff_apply _ _ _).1 hGJ _).trans ?_
+  exact congrArg K ((hdφ y hy'.2 v).symm.trans (DFunLike.congr_fun hd v).symm)
 
 end SmoothAlmostComplexStructure
 
