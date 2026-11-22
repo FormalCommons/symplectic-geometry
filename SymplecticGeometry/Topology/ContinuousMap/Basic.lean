@@ -22,6 +22,8 @@ A complement to Mathlib's `Mathlib/Topology/ContinuousMap/Basic.lean`.
 
 * `ContinuousMap.subtypeVal_comp_codRestrict`: followed by the inclusion of `s`, the
   corestriction of `f` is `f`.
+* `ContinuousMap.comp_codRestrict`: precomposing a corestriction with `g` gives the
+  corestriction of `f.comp g`.
 
 This follows Mathlib's corestrictions of other bundled maps, such as
 `BoundedContinuousFunction.codRestrict` and `ContinuousLinearMap.codRestrict`.
@@ -54,6 +56,12 @@ theorem coe_codRestrict_apply (x : α) : (f.codRestrict s h x : β) = f x :=
 /-- Followed by the inclusion of `s`, the corestriction of `f` to `s` is `f`. -/
 @[simp]
 theorem subtypeVal_comp_codRestrict : (subtypeVal s).comp (f.codRestrict s h) = f :=
+  (rfl)
+
+/-- Precomposing the corestriction of `f` with `g` gives the corestriction of `f.comp g`. -/
+@[simp]
+theorem comp_codRestrict {γ : Type*} [TopologicalSpace γ] (g : C(γ, α)) :
+    (f.codRestrict s h).comp g = (f.comp g).codRestrict s (fun x ↦ h (g x)) :=
   (rfl)
 
 end ContinuousMap
