@@ -113,7 +113,7 @@ lemma range_toSSetObjEquiv_δ_toSSet_map_app_subset {P' : TopPair.{w}} (f : P �
     (P.toSSet_map_app_liftSimplex _ (hσ i)).symm).symm
 
 /-- **Naturality of the class of a singular simplex** in maps of pairs. -/
-@[reassoc]
+@[reassoc (attr := simp)]
 lemma relClass_singularHomologyMap {P' : TopPair.{w}} (f : P ⟶ P') :
     P.relClass R σ hσ ≫ TopPair.singularHomologyMap f R (n + 1) =
       P'.relClass R ((TopCat.toSSet.map (Hom.fst f)).app _ σ)
@@ -137,6 +137,7 @@ variable (P) (σ : (TopCat.toSSet.obj P.fst) _⦋n + 1⦌)
 /-- **The connecting morphism on the class of a singular simplex** is the class of the cycle
 `∑ i, (-1) ^ i • t i` of the subspace, for singular simplices `t i` of the subspace that the
 inclusion carries to the faces of `σ`. -/
+@[reassoc]
 lemma relClass_singularHomologyδ (k : ℕ) (hk : (ComplexShape.down ℕ).next n = k) :
     P.relClass R σ hσ ≫ P.singularHomologyδ R (n + 1) n =
       ((TopCat.toSSet.obj P.snd).chainComplex R).liftCycles
@@ -149,6 +150,7 @@ lemma relClass_singularHomologyδ (k : ℕ) (hk : (ComplexShape.down ℕ).next n
 /-- **The connecting morphism on the class of a singular `2`-simplex** is the class of the cycle
 `t 0 - t 1 + t 2` of the subspace, for singular `1`-simplices `t i` of the subspace that the
 inclusion carries to the three edges of `σ`. -/
+@[reassoc]
 lemma relClass_singularHomologyδ_two (σ : (TopCat.toSSet.obj P.fst) _⦋2⦌)
     (hσ : ∀ i, Set.range (P.fst.toSSetObjEquiv _ ((TopCat.toSSet.obj P.fst).δ i σ)) ⊆
       Set.range P.map)
@@ -177,6 +179,7 @@ lemma range_map_ofSubset_compl_subset {M : Type w} [TopologicalSpace M] {S T : S
 /-- **The class of a singular simplex in local homology** is compatible with the restriction
 `Hₙ₊₁(M, M ∖ T) ⟶ Hₙ₊₁(M, M ∖ S)` for `S ⊆ T`: a simplex whose faces avoid `T` has faces
 avoiding `S`. -/
+@[reassoc (attr := simp)]
 lemma relClass_localHomologyRestriction {M : Type w} [TopologicalSpace M] {S T : Set M}
     (h : S ⊆ T) (σ : (TopCat.toSSet.obj (TopCat.of M)) _⦋n + 1⦌)
     (hσ : ∀ i, Set.range ((TopCat.of M).toSSetObjEquiv _ ((TopCat.toSSet.obj _).δ i σ)) ⊆
