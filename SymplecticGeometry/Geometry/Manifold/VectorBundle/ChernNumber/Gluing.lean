@@ -8,7 +8,7 @@ module
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.ChernNumber.Clutching
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Hermitian.Basic
 import Mathlib.Analysis.Complex.Isometry
-import TauCeti.Analysis.Calculus.ContDiffZPow
+import TauCeti.Geometry.Manifold.Algebra.LieGroup
 import TauCeti.Topology.VectorBundle.RestrictScalars
 import SymplecticGeometry.Analysis.Matrix.SymplecticGroup.Maslov
 
@@ -137,12 +137,11 @@ private theorem contMDiffOn_clutchingScalar {n : WithTop ℕ∞}
     (hφ : ContMDiffOn 𝓘(ℝ, EM) 𝓘(ℝ, ℂ) n φ.coord (range φ)) (i j : Bool) :
     ContMDiffOn 𝓘(ℝ, EM) 𝓘(ℝ, ℂ) n (fun x ↦ (clutchingScalar φ k i j x : ℂ))
       (φ.openDisc ∩ (φ '' {z | ‖(z : ℂ)‖ ≤ 1 / 2})ᶜ) := by
-  intro x hx
-  simp only [clutchingScalar_def, Circle.coe_zpow]
-  have hs := (contDiffAt_id (𝕜 := ℝ) (n := n) (x := (φ.phase x : ℂ))).zpow
-    (m := k * ((j.toNat : ℤ) - i.toNat)) (Or.inl (Circle.coe_ne_zero _))
-  refine hs.comp_contMDiffWithinAt (f := fun y ↦ (φ.phase y : ℂ)) ?_
-  exact (φ.contMDiffOn_coe_phase hφ).mono (inter_subset_coord_ne_zero φ) x hx
+  simp only [clutchingScalar_def]
+  have := finrank_real_complex_fact'
+  refine (contMDiff_coe_sphere (E := ℂ) (n := 1)).comp_contMDiffOn ?_
+  exact ((TauCeti.contMDiff_zpow _).comp_contMDiffOn (φ.contMDiffOn_phase hφ)).mono
+    (inter_subset_coord_ne_zero φ)
 
 private theorem continuousOn_clutchingScalar (i j : Bool) :
     ContinuousOn (fun x ↦ (clutchingScalar φ k i j x : ℂ))
