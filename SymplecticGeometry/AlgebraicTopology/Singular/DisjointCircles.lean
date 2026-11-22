@@ -29,9 +29,6 @@ determined by these images.
 
 ## Main results
 
-* `Circle.singularHomologyFunctor_map_prodFiberRetraction_map_prodFiberInclusion`: the image under
-  the `i`-th retraction of the class of the `j`-th circle is the generator of `H₁(Circle)` if
-  `j = i` and `0` otherwise.
 * `Circle.eq_sum_zsmul_singularHomologyFunctor_map_prodFiberInclusion`: every class of
   `H₁(ι ⊗ Circle)` is `∑ i, nᵢ • (σᵢ)_* g`, for `σᵢ` the inclusion of the `i`-th circle and `g`
   the generator of `H₁(Circle)`.
@@ -53,22 +50,6 @@ open CategoryTheory MonoidalCategory AlgebraicTopology
 namespace Circle
 
 variable {ι : Type} [TopologicalSpace ι] [DiscreteTopology ι]
-
-/-- On the generator `g` of `H₁(Circle)`, the image under the retraction onto the `i`-th circle of
-the class of the `j`-th circle is `g` if `j = i` and `0` otherwise. -/
-theorem singularHomologyFunctor_map_prodFiberRetraction_map_prodFiberInclusion [DecidableEq ι]
-    (i j : ι) :
-    (((singularHomologyFunctor (ModuleCat.{0} ℤ) 1).obj (ModuleCat.of ℤ (ULift.{0} ℤ))).map
-        (TopCat.prodFiberRetraction (TopCat.of ι) (1 : Circle) i)).hom
-      ((((singularHomologyFunctor (ModuleCat.{0} ℤ) 1).obj (ModuleCat.of ℤ (ULift.{0} ℤ))).map
-        (TopCat.prodFiberInclusion (TopCat.of ι) (TopCat.of Circle) j)).hom
-        ((singularHomologyOneIso (ModuleCat.of ℤ (ULift.{0} ℤ))).inv.hom (ULift.up 1))) =
-      if j = i then (singularHomologyOneIso (ModuleCat.of ℤ (ULift.{0} ℤ))).inv.hom (ULift.up 1)
-      else 0 := by
-  rw [← LinearMap.comp_apply, ← ModuleCat.hom_comp,
-    TopCat.singularHomologyFunctor_map_prodFiberInclusion_comp_prodFiberRetraction _ _ _
-      one_ne_zero]
-  split_ifs <;> simp
 
 /-- **Classes of `H₁(ι ⊗ Circle)` in terms of the circles.** Every class `y` is the sum over `i` of
 `nᵢ` times the class of the `i`-th circle, the push-forward along the fibre inclusion of the

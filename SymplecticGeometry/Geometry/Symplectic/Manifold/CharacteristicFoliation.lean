@@ -158,8 +158,7 @@ theorem apply_eq_of_mfderiv_eq (hp : IsCharacteristicSubmersion IB σ p) {x : M}
   rw [hp.ker_mfderiv x, mem_ker_bilinFormAt_iff] at hj
   refine AlternatingMap.map_eq_zero_of_curryLeft_eq_zero (x := m j) ?_ rfl
   ext u
-  have e : Matrix.vecCons (m j) u = ![m j, u 0] := by
-    funext i; fin_cases i <;> rfl
+  have e : Matrix.vecCons (m j) u = ![m j, u 0] := (FinVec.etaExpand_eq _).symm
   simpa [AlternatingMap.curryLeft_apply_apply, e] using hj (u 0)
 
 /-- The form `σ` read on `T_{p y} B` at a point `y`, through a (non-canonical) right inverse of
