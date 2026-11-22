@@ -277,7 +277,8 @@ with `hω : ω.Tames Jf`, and `hω : ω.Compatible Jf` where invariance is used.
   classes of vectors of $W^\omega$) and `compatible_normalForm`: it is
   compatible with `normalComplexStructure`.
 - `normalSplitting f hJ ω hω x : (f *ᵖ TangentSpace I) x ≃L[ℝ]
-  (TangentSpace I' ×ᵇ NormalSpace) x`, with `normalSplitting_symm_apply`,
+  (TangentSpace I' ×ᵇ NormalSpace) x`, the inverse of `tangentNormalEquiv` for the
+  representatives in $W^\omega$, with `normalSplitting_symm_apply`,
   `snd_normalSplitting_apply` and `mfderiv_fst_normalSplitting_apply`, the
   smoothness of its map of total spaces (`contMDiff_normalSplitting`), and
   `pushforward_normalSplitting`: it carries `ω` to
@@ -337,7 +338,9 @@ Namespace `TauCeti.AlmostComplexStructure`, for an almost complex structure
   $0\to U\to V\to W\to 0$ whose maps are complex linear for `J₁`, `J`
   and `J₂`, `Orientation.shortExact` sends the orientations of `J₁` and
   `J₂` to that of `J`. The proof splits the sequence along a complex-linear
-  section, so no invariant complement appears in the statement.
+  section, `IsComplexLinearMap.exists_rightInverse_of_surjective` of
+  *Linear complex structures*, so no invariant complement appears in the
+  statement.
 
 ### `Geometry/Symplectic/Manifold/AlmostComplex/AdjunctionFormula.lean`
 
@@ -408,9 +411,14 @@ Namespace `TauCeti.AlmostComplexStructure`, for an almost complex structure
   `tangentEquiv`, `pullback` and `toContinuousComplexStructure`;
   `ContMDiffTwoForm` with `prod`, `pushforward`, `compMFDeriv`,
   `compatibleForm` and `compatible_compatibleForm`.
+- *Linear complex structures*, merged: `LinearAlgebra/ComplexStructure/Hom.lean`,
+  which `Orientation.lean` imports for
+  `IsComplexLinearMap.exists_rightInverse_of_surjective`.
 - The library's merged `Geometry/Manifold/VectorBundle/Pullback.lean`
   (`Bundle.Pullback.hasLocalContMDiffSubbundleFrames_range_mfderiv`,
   `contMDiff_totalSpace_mfderiv`) and `Geometry/Manifold/VectorBundle/Orthogonal.lean`.
+- *Projective hypersurfaces*: `Geometry/Manifold/SmoothEmbedding/NormalSpace/Splitting.lean`
+  (`tangentNormalEquiv`, whose inverse is `normalSplitting`).
 - *First Chern number*: `Topology/VectorBundle/Complex/FirstChernClass.lean`
   and `ChernNumber/Basic.lean` (#784: `firstChernClass`,
   `firstChernClass_pullback`, `firstChernClass_congr`,

@@ -399,6 +399,15 @@ Smooth families of forms over a parameter manifold `N` (model
   it too. For it this file imports Tau Ceti's
   `Geometry/Symplectic/Manifold/Flat.lean`.
 
+### `Geometry/Manifold/ContMDiff/Dual.lean`
+
+- `contMDiff_dual_apply_of_span_eq_top`: for a family `x : N → X` and a set
+  `s` of functionals spanning `Module.Dual 𝕜 X`, if `t ↦ g (x t)` is `C^n`
+  for each `g ∈ s`, then so is `t ↦ f (x t)` for every functional `f`.
+  `contMDiff_dual_apply_of_separating`: the same for a finite-dimensional
+  `X`, with `∀ z ≠ 0, ∃ g ∈ s, g z ≠ 0` in place of the span. Imports only
+  Mathlib; `SmoothFamily/Map.lean` imports it.
+
 ### `Geometry/Manifold/DifferentialForm/SmoothFamily/Map.lean`
 
 - `SymplecticGeometry.PreservesSmoothFamilies
@@ -504,6 +513,14 @@ Named like Tau Ceti's file; in `TauCeti`.
   `timeExtend Ω` at `(t : ℝ)` is the slice of `Ω` at `t`.
 - `IsSmoothFamily.exists_extend`: every smooth family over `unitInterval` is
   the restriction of one over `ℝ`.
+
+### `Geometry/Manifold/ContMDiff/LineMap.lean`
+
+- `ContMDiff.lineMap`: for `C^n` maps `f₁ f₂ : M → V` into a normed space
+  over a nontrivially normed field `𝕜` and a `C^n` map `g : M → 𝕜`,
+  `x ↦ AffineMap.lineMap (f₁ x) (f₂ x) (g x)` is `C^n`; the manifold form
+  of Mathlib's `ContDiff.lineMap`. `DeRham/GoodCover/Basic.lean` imports it
+  for its straight-line contractions.
 
 ### `Geometry/Manifold/DeRham/GoodCover/Basic.lean`
 
@@ -624,6 +641,7 @@ vector space) and `ContDiffOn.strictConvexOn_norm_sub_sq` (the squared distance
 - `TauCeti.SmoothForm.mpullback_mem_closedForms (f : M → M') (hf : ContMDiff I I' ∞ f)
   (hφ : φ ∈ closedForms I' M' k) : SmoothForm.mpullback f hf φ ∈ closedForms I M k`,
   the membership form of Tau Ceti's `closedForms.mpullback`. `SmoothFamily/Basic.lean`,
+  `SmoothFamily/MayerVietoris.lean`,
   *Hamiltonian flows*' `DeRham/FamilyPrimitive.lean` and *Isotopy extension*'s
   `Cohomological/Primitive.lean` import it.
 

@@ -773,7 +773,7 @@ issues, in an order where each issue's blockers come before it.
 2. **Evenness of the first Betti number of a closed orientable surface.**
    `AlgebraicTopology/Singular/SurfaceGenus.lean` (the name of Tau Ceti's
    file, so that the two merge): `TauCeti.HomologicalOrientation.even_finrank_singularHomology_one`,
-   for a compact connected homologically oriented surface, `finrank ℚ
+   for a compact homologically oriented surface (connected or not), `finrank ℚ
    H₁(M; ℚ)` is even. Only this is new; the step from evenness to
    `χ = 2 - 2 * surfaceGenus` is already Tau Ceti's
    `eulerChar_eq_two_sub_two_mul_genus_iff_even_finrank` with
@@ -1015,7 +1015,14 @@ issues, in an order where each issue's blockers come before it.
    Tau Ceti's `System.lean`, for `exists_coordinateDisc`: local homology
    transport does not depend on the model, so a homological orientation
    can be read with the model `ℂ`
-   (`TauCeti.HomologicalOrientation.changeModel`). Done when this API is proved.
+   (`TauCeti.HomologicalOrientation.changeModel`).
+   `Orientation/Smooth.lean` also holds
+   `TauCeti.Manifold.Orientation.localHomologyMap_toHomologicalOrientation`,
+   which part *Pseudoholomorphic energy*'s `Orientation/Simplex.lean` uses,
+   and for it imports
+   `AlgebraicTopology/Singular/LocalHomology/LocalIndex.lean`, a copy of
+   `TauCeti.HomologicalOrientation.localIndex_eq_iff_of_preimage_subset`
+   from Tau Ceti's main branch. Done when this API is proved.
 6. **Argument principle for discs.**
    `AlgebraicTopology/Singular/LocalHomology/ArgumentPrinciple.lean`:
    `SymplecticGeometry.sum_degree_boundary_eq_zero`. Let `φ i`, `i : ι`
@@ -1027,10 +1034,10 @@ issues, in an order where each issue's blockers come before it.
    minus the open discs is an instance of the setting of 7: it is compact,
    its interior is the surface minus the closed discs, and its boundary
    circles are collared by thin annuli $1\le|z|<1+\delta$ of the coordinate
-   discs. The issue picks $\delta\in(0,1)$ such that the images of the
-   closed balls of radius $1+\delta$ are pairwise disjoint; one exists
+   discs. The issue picks widths $\delta_i\in(0,1)$ such that the images
+   of the balls of radius $1+\delta_i$ are pairwise disjoint; they exist
    because the closed discs are finitely many disjoint compact sets, so
-   they have pairwise disjoint open neighbourhoods, and for small $\delta$
+   they have pairwise disjoint open neighbourhoods, and for small $\delta_i$
    each enlarged closed disc lies in its neighbourhood. Then the collars
    are disjoint and miss the other closed discs, and together they give
    the open embedding that `TauCeti.IsCollar` requires. The wider annuli
@@ -1040,7 +1047,12 @@ issues, in an order where each issue's blockers come before it.
    orientation of this surface, so `boundaryDegree_eq_sum_degree` is
    applied to their reversals (`Path.symm`); it gives minus the sum of the
    degrees along the boundary loops, which is therefore $0$. The work of
-   the issue is that instance. This is the half of the book's Lemma 2.7.3 needed for discs.
+   the issue is that instance, which
+   `AlgebraicTopology/Singular/LocalHomology/DiscComplement/Basic.lean`
+   proves (`SymplecticGeometry.isOpenEmbedding_inclusion_discComplementInterior`,
+   `SymplecticGeometry.range_inclusion_discComplementInterior`,
+   `SymplecticGeometry.isCollared_discComplementBoundary`) and
+   `ArgumentPrinciple.lean` imports. This is the half of the book's Lemma 2.7.3 needed for discs.
    Blocked by 5 and 7.
 7. **Boundary degree and the argument principle on a surface with
    boundary.** The setting is that of `RelativeFundamentalClass.lean`: `X`
@@ -1076,7 +1088,8 @@ issues, in an order where each issue's blockers come before it.
      `Circle.radialProjection : C(ℂ ∖ {0}, Circle)`, `z ↦ z / |z|`, Tau
      Ceti's `complSingletonHomotopyEquivSphere 0` read in `Circle`.
    - `Analysis/Normed/Module/Ball/Collar.lean`, used by
-     `DiscBoundaryClass.lean`: in a real normed space the unit sphere is
+     `DiscBoundaryClass.lean` and `DiscComplement/Basic.lean`: in a real
+     normed space the unit sphere is
      collared in the closed unit ball
      (`Metric.isCollared_inclusion_sphere_closedBall`), and the
      open ball is the complement of the sphere in the closed ball
@@ -1231,10 +1244,15 @@ issues, in an order where each issue's blockers come before it.
    that fixes that representation, and by 5. The gluing uses polar
    coordinates on the circle,
    `AddCircle.isLocalDiffeomorphAt_ofReal_mul_toCircle`, in
-   `Geometry/Manifold/Instances/AddCircle.lean`. That the loops are
+   `Geometry/Manifold/Instances/AddCircle.lean`, which imports
+   `Geometry/Manifold/LocalDiffeomorph/Basic.lean` of *Smooth families*,
+   merged, for `isLocalDiffeomorph_id`. That the loops are
    finitely many uses `finite_of_compactSpace_of_pairwise_disjoint`, a
    disjoint open cover of a compact space has finite index, in
-   `Topology/Compactness/LocallyFinite.lean`.
+   `Topology/Compactness/LocallyFinite.lean`. The orientation of the
+   capped surface is glued from the interior and the discs by
+   `TauCeti.Manifold.Orientation.iGlue`, Tau Ceti's `glue` for a family
+   of pieces, in `Geometry/Manifold/Orientation/Glue.lean`.
 9. **A map of degree one onto the sphere.**
    `Geometry/Manifold/Degree/Collapse.lean`:
    `SymplecticGeometry.exists_contMDiff_degree_eq_one`, every compact
