@@ -39,7 +39,7 @@ import TauCeti.Topology.FiberBundle.Separation
 
 Let `α` be a contact form on `M` and `f : L → M` a Legendrian embedding, so that
 `dim M = 2 n + 1` and `dim L = n`. This file proves that a neighbourhood of `f(L)` is strictly
-contactomorphic to a neighbourhood of the zero section of `T^* L × ℝ` with the form
+contactomorphic to an open set around the zero section of `T^* L × ℝ`, with the form
 `λ_can - dz`, by a diffeomorphism that is `f` on the zero section
 (`TauCeti.IsLegendrianEmbedding.exists_diffeomorph_opens_mpullback_eq_neg_contactization`). It
 follows the route through a hypersurface of McDuff–Salamon, Exercise 3.5.22(i). Neither
@@ -86,7 +86,7 @@ the zero section is Lagrangian for it, since `f^* α = 0`. Then:
 
 * the Lagrangian neighbourhood theorem
   `TauCeti.SmoothTwoForm.IsNondegenerate.IsLagrangianMap.exists_symplectomorphism_cotangent`,
-  applied on `N`, gives a map `κ` from a neighbourhood of the zero section of `T^* L` into `M`,
+  applied on `N`, gives a map `κ` from an open set around the zero section of `T^* L` into `M`,
   equal to `f` on the zero section, with `d(κ^* α) = dλ_can`;
 * the closed form `κ^* α - λ_can` vanishes along the zero section, so the relative Poincaré lemma
   `TauCeti.SmoothEmbedding.exists_isSmoothForm_relative_primitive` writes it as `dg` near the zero
@@ -620,8 +620,8 @@ private theorem exists_mextDerivₗ_eq_of_isSymplectic [I.Boundaryless] [J.Bound
       CotangentBundle.symplecticForm_eq_neg_mextDerivₗ, map_neg, neg_neg,
       SmoothForm.mextDerivₗ_mpullback]
 
-/-- Steps 1 and 2 of the proof: a map `κ` from an open neighbourhood of the zero section of
-`T^* L` into `M`, equal to `f` on the zero section, with `d(κ^* α) = dλ`. -/
+/-- Steps 1 and 2 of the proof: a map `κ` from an open set of `T^* L` containing its zero
+section into `M`, equal to `f` on the zero section, with `d(κ^* α) = dλ`. -/
 private theorem exists_slice_mextDerivₗ_eq [I.Boundaryless] [J.Boundaryless] [T2Space M]
     [SecondCountableTopology M] {f : L → M} (hα : α.IsContactForm)
     (hf : IsLegendrianEmbedding J α.kerDistribution f) :
@@ -965,8 +965,8 @@ private theorem exists_diffeomorph_of_primitive [I.Boundaryless] [J.Boundaryless
 
 
 /-- **The Legendrian neighbourhood theorem.** Let `f : L → M` be a Legendrian embedding for a
-contact form `α`, between boundaryless manifolds, `M` Hausdorff and second countable. Then a
-neighbourhood of the zero section of `T^* L × ℝ` is diffeomorphic to a neighbourhood of `f (L)`
+contact form `α`, between boundaryless manifolds, `M` Hausdorff and second countable. Then an
+open set around the zero section of `T^* L × ℝ` is diffeomorphic to an open set around `f (L)`
 by a map `Φ` with `Φ (0_q, 0) = f q` that pulls `α` back to `λ_can - dz`, minus the
 contactization form `dz - λ_can` of the Liouville form. Neither compactness of `L` nor closedness
 of `f (L)` is assumed.
