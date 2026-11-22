@@ -8,6 +8,7 @@ module
 public import TauCeti.AlgebraicTopology.Cohomology.CompactSupport.DirectedUnion
 public import TauCeti.AlgebraicTopology.Cohomology.CompactSupport.MayerVietoris
 public import TauCeti.AlgebraicTopology.Cohomology.Point
+public import SymplecticGeometry.Order.SupClosed
 public import SymplecticGeometry.Topology.Sets.Opens
 public import SymplecticGeometry.Topology.Sets.Opens.Comap
 
@@ -19,6 +20,9 @@ the proper maps `e` and `e.symm`. The Mayer–Vietoris sequence of an open cover
 that `Hᵐ_c(X)` vanishes once `Hᵐ_c(U)`, `Hᵐ_c(V)` and `Hᵐ⁺¹_c(U ∩ V)` do, and the same holds for
 the union of two open sets of a Hausdorff space. Since every class of `Hᵐ_c(X)` is extended from a
 member of a directed open cover, `Hᵐ_c(X)` also vanishes once it vanishes on every member.
+Together, these carry vanishing above a degree from the members of a family of open sets closed
+under intersection to all finite unions of them, and on to `X` when those unions cover it: the
+induction of Hatcher's Lemma 3.36, for vanishing alone.
 
 ## Main results
 
@@ -31,6 +35,9 @@ member of a directed open cover, `Hᵐ_c(X)` also vanishes once it vanishes on e
   `U ∩ V` to `U ∪ V`.
 * `TopCat.isZero_compactSupportCohomology_of_iSup_eq_top`: vanishing of `Hᵐ_c` passes from the
   members of a directed open cover to the whole space.
+* `TopCat.isZero_compactSupportCohomology_of_infClosed`: vanishing of `Hᵐ_c` above a degree
+  passes from the members of an inf-closed family of open sets whose finite unions cover the
+  space to the whole space.
 
 ## Implementation notes
 
@@ -43,7 +50,8 @@ sets of `U ⊔ V`, is `TopologicalSpace.Opens.comap_val_sup_comap_val_eq_top`.
 
 * A. Hatcher, *Algebraic Topology*, Cambridge University Press, 2002, Section 3.3, the
   Mayer–Vietoris sequence for cohomology with compact supports in the proof of Lemma 3.36, and
-  step (B) of the proof of Theorem 3.35 (increasing unions of open sets).
+  step (B) of the proof of Theorem 3.35 (increasing unions of open sets), and the induction over
+  finite unions in the proof of Lemma 3.36.
 -/
 
 public section
@@ -160,5 +168,29 @@ theorem isZero_compactSupportCohomology_sup [T2Space X] {U V : Opens X} {m : ℕ
   · rw [← map_inf]
     exact (isZero_compactSupportCohomology_comap_iff R k N
       (inf_le_left.trans le_sup_left) (m + 1)).2 hW
+
+/-- **Vanishing of cohomology with compact supports over an inf-closed family of open sets.** Let
+`S` be a family of open sets of a Hausdorff space `X`, closed under intersection, whose finite
+unions cover `X`. If `Hᵐ_c(W) = 0` for every `W ∈ S` and every `m > d`, then `Hᵐ_c(X) = 0` for
+every `m > d`. -/
+theorem isZero_compactSupportCohomology_of_infClosed [T2Space X] {S : Set (Opens X)}
+    (hS : InfClosed S) (hcover : ⨆ s : Finset S, s.sup Subtype.val = ⊤) {d : ℕ}
+    (hbase : ∀ W ∈ S, ∀ m, d < m → IsZero ((of W).compactSupportCohomology R k N m))
+    {m : ℕ} (hm : d < m) : IsZero ((of X).compactSupportCohomology R k N m) := by
+  -- Vanishing passes to the finite unions of members of `S`, by Mayer–Vietoris.
+  have hT (s : Finset S) : ∀ m, d < m →
+      IsZero ((of ↥(s.sup Subtype.val)).compactSupportCohomology R k N m) := by
+    refine hS.finset_sup_induction
+      (fun W : Opens X ↦ ∀ m, d < m → IsZero ((of W).compactSupportCohomology R k N m))
+      (fun m _ ↦ ?_) hbase (fun V W hV hW hVW m hm ↦ ?_) s
+    · have : IsEmpty ↥(⊥ : Opens X) := ⟨fun x ↦ x.property⟩
+      exact isZero_compactSupportCohomology_of_isEmpty R k N _ m
+    · exact isZero_compactSupportCohomology_sup R k N (hV m hm) (hW m hm)
+        (hVW (m + 1) (by omega))
+  -- They form a directed family covering `X`; `(Opens.toTopCat (of X)).obj W` is `of W` by
+  -- definition.
+  exact isZero_compactSupportCohomology_of_iSup_eq_top R k N (X := of X)
+    (U := fun s : Finset S ↦ s.sup Subtype.val) (fun _ _ hst ↦ Finset.sup_mono hst) hcover
+    fun s ↦ hT s m hm
 
 end TopCat
