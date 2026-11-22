@@ -507,9 +507,8 @@ The Hodge theorem on a closed oriented Riemannian manifold, in Tau
 Ceti's namespace, beside its `Harmonic.lean`:
 
 - `TauCeti.finiteDimensional_harmonicForms` (an instance): from
-  `finiteDimensional_ker_of_garding`, since the kernel of `dirichlet`
-  consists of the images of harmonic forms, by
-  `exists_eq_ofSmooth_of_isWeakSolution`.
+  `finiteDimensional_ker_of_garding`, since `H1Form.ofSmooth` embeds the
+  harmonic forms into the kernel of `dirichlet`.
 - `TauCeti.exists_mem_harmonicForms_add_hodgeLaplacian`: every smooth form
   is $h+\Delta\gamma$ with $h$ harmonic and $\gamma$ smooth. Subtract the
   $L^2$-orthogonal projection onto the finite-dimensional harmonic forms.
@@ -523,7 +522,10 @@ Ceti's namespace, beside its `Harmonic.lean`:
 - `TauCeti.harmonicForms.toDeRhamCohomology_bijective`, in every degree
   (Tau Ceti has degree zero and top), and the equivalence
   `TauCeti.harmonicForms.deRhamCohomologyEquiv`.
-- `TauCeti.finiteDimensional_deRhamCohomology`.
+- Finite dimensionality of de Rham cohomology is not proved here: the
+  library has it as the instance
+  `SymplecticGeometry.finiteDimensional_deRhamCohomology`
+  (`DeRham/SmoothFamily/GoodCover.lean`).
 
 ### `Geometry/Manifold/DeRham/Hodge/Complex.lean`
 
