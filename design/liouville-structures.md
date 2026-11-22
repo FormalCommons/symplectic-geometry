@@ -289,9 +289,7 @@ a two-form on `M` (the book's $(\Omega,\lambda)$ is `IsStableHamiltonian α ω`
 with `α = λ`, `ω = Ω`). It imports
 `Geometry/Manifold/DifferentialForm/Smooth.lean` of *Moser isotopy* for
 `SmoothForm.bilinFormAt_smul`, `_neg`, `SmoothForm.mpullback_funSMulₗ`,
-`funSMulₗ_const`, `funSMulₗ_add` and `funSMulₗ_one`,
-`Geometry/Manifold/ContMDiffMap/Basic.lean` of *Moser isotopy* for
-`ContMDiffMap.comp_mk_apply`, and
+`funSMulₗ_const`, `funSMulₗ_add` and `funSMulₗ_one`, and
 `Geometry/Contact/Symplectization/Basic.lean` for
 `symplectization_eq_funSMulₗ`. Issue 3:
 
