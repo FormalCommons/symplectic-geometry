@@ -36,13 +36,17 @@ open sets on which the Moser fields of Moser's argument are defined
   points at which a two-form is nondegenerate is open.
 * `TauCeti.SmoothTwoForm.isOpen_setOf_forall_mem_Icc_nondegenerate`: in finite dimensions, the
   set of points at which the whole segment from `σ₀` to `σ₁` is nondegenerate is open.
+* `TauCeti.SmoothTwoForm.bilinFormAt_add_smul_sub_of_eq`,
+  `TauCeti.SmoothTwoForm.nondegenerate_bilinFormAt_add_smul_sub_of_eq`: at a point where `σ₀` and
+  `σ₁` agree, every form `σ₀ + s (σ₁ - σ₀)` has the bilinear form of `σ₀`.
 
 The proofs of `isOpen_setOf_isInvertible_flat_mpullback_prodMk` and
 `isOpen_setOf_forall_mem_Icc_nondegenerate` follow Tau Ceti's private
 `exists_isOpen_isInvertible_flat`
 (`TauCeti/Geometry/Symplectic/Manifold/RelativeMoser.lean`): the flat maps form a continuous
 section along a projection, the invertible ones form an open set, and the tube lemma passes to
-the compact parameter interval.
+the compact parameter interval. `bilinFormAt_add_smul_sub_of_eq` is Tau Ceti's private lemma of
+the same name in that file, with the same proof.
 
 ## References
 
@@ -145,6 +149,24 @@ theorem isOpen_setOf_forall_mem_Icc_nondegenerate [FiniteDimensional ℝ E]
     generalized_tube_lemma isCompact_Icc isCompact_singleton hO hsub
   exact ⟨V, fun y hy s hs ↦ isInvertible_flat_iff.1 (huV (mk_mem_prod (hu hs) hy)), hV,
     hxV rfl⟩
+
+/-- At a point where `σ₀` and `σ₁` agree, every form `σ₀ + s (σ₁ - σ₀)` of the line through them
+has the bilinear form of `σ₀`. -/
+theorem bilinFormAt_add_smul_sub_of_eq {σ₀ σ₁ : SmoothTwoForm I M} {x : M}
+    (h : (σ₁ - σ₀).val x = 0) (s : ℝ) :
+    (σ₀ + s • (σ₁ - σ₀)).bilinFormAt x = σ₀.bilinFormAt x := by
+  ext v w
+  simp only [SmoothForm.bilinFormAt_apply, SmoothBundleForm.eval₂_apply,
+    SmoothForm.add_toRoughForm, Pi.add_apply, SetLike.val_smul, Pi.smul_apply, h, smul_zero,
+    add_zero]
+
+/-- At a point where `σ₀` and `σ₁` agree and `σ₀` is nondegenerate, every form
+`σ₀ + s (σ₁ - σ₀)` of the line through them is nondegenerate. -/
+theorem nondegenerate_bilinFormAt_add_smul_sub_of_eq {σ₀ σ₁ : SmoothTwoForm I M} {x : M}
+    (h : (σ₁ - σ₀).val x = 0) (hσ₀ : (σ₀.bilinFormAt x).Nondegenerate) (s : ℝ) :
+    ((σ₀ + s • (σ₁ - σ₀)).bilinFormAt x).Nondegenerate := by
+  rw [bilinFormAt_add_smul_sub_of_eq h s]
+  exact hσ₀
 
 end SmoothTwoForm
 
