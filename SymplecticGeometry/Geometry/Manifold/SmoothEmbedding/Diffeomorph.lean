@@ -1,0 +1,116 @@
+/-
+Copyright (c) 2026 The FormalCommons contributors. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: The FormalCommons contributors
+-/
+module
+
+public import TauCeti.Geometry.Manifold.Immersion.Differential
+import TauCeti.Geometry.Manifold.Diffeomorph.Basic
+public import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
+
+/-!
+# Reparametrising immersions and smooth embeddings across two models
+
+Tau Ceti's `TauCeti.isImmersion_comp_diffeomorph`, `TauCeti.isSmoothEmbedding_comp_diffeomorph`
+and `TauCeti.SmoothEmbedding.compDiffeomorph` reparametrise an immersion or a smooth embedding
+`f : M → N` by a diffeomorphism `e : M' ≃ M` for which `M'` and `M` have the same model with
+corners. This file allows `M'` and `M` to be modelled on different spaces, when the source `M'`
+and the target `N` have no boundary and `N` has a finite-dimensional model: then being an
+immersion is a condition on the differential alone, and the differential of `f ∘ e` is that of
+`f` after the linear isomorphism `de`.
+
+The proof of `TauCeti.isImmersion_comp_diffeomorph_of_boundaryless` follows that of Tau Ceti's
+`Diffeomorph.isImmersion_comp`, which composes on the other side, with Tau Ceti's
+`Diffeomorph.mfderiv_comp_diffeomorph_injective_iff` in place of the chain rule.
+
+## Main results
+
+* `TauCeti.isImmersion_comp_diffeomorph_of_boundaryless`: precomposing an immersion with a
+  diffeomorphism from a manifold on another model gives an immersion.
+* `TauCeti.isSmoothEmbedding_comp_diffeomorph_of_boundaryless`: the same for smooth embeddings.
+
+## Main definitions
+
+* `TauCeti.SmoothEmbedding.compDiffeomorphOfBoundaryless`: a bundled smooth embedding
+  reparametrised by a diffeomorphism from a manifold on another model.
+
+## References
+
+* M. Hirsch, *Differential Topology*, Springer GTM 33 (1976), Chapter 1, for immersions and
+  embeddings and their behaviour under composition.
+-/
+
+public section
+
+noncomputable section
+
+namespace TauCeti
+
+open _root_.Manifold Set
+open scoped _root_.Manifold ContDiff
+
+variable {𝕜 : Type*} [RCLike 𝕜]
+  {E E' E'' H H' G M M' N : Type*}
+  [NormedAddCommGroup E] [NormedSpace 𝕜 E] [NormedAddCommGroup E'] [NormedSpace 𝕜 E']
+  [NormedAddCommGroup E''] [NormedSpace 𝕜 E''] [FiniteDimensional 𝕜 E'']
+  [TopologicalSpace H] [TopologicalSpace H'] [TopologicalSpace G]
+  {I : ModelWithCorners 𝕜 E H} {I' : ModelWithCorners 𝕜 E' H'} {J : ModelWithCorners 𝕜 E'' G}
+  [I'.Boundaryless] [J.Boundaryless]
+  [TopologicalSpace M] [ChartedSpace H M] [TopologicalSpace M'] [ChartedSpace H' M']
+  [TopologicalSpace N] [ChartedSpace G N]
+  {n : ℕ∞ω} [IsManifold I' n M'] [IsManifold J n N] {f : M → N}
+
+/-- Reparametrising a `C^n` immersion `f : M → N`, `1 ≤ n`, by a diffeomorphism `e : M' ≃ M`
+gives an immersion `f ∘ e`, also when `M'` has a different model from `M`, provided `M'` and `N`
+have no boundary and `N` has a finite-dimensional model. -/
+theorem isImmersion_comp_diffeomorph_of_boundaryless (e : M' ≃ₘ^n⟮I', I⟯ M) (hn : 1 ≤ n)
+    (h : IsImmersion I J n f) : IsImmersion I' J n (f ∘ e) := by
+  have hn0 : n ≠ 0 := by rintro rfl; simp at hn
+  exact (h.contMDiff.comp e.contMDiff).isImmersion_of_injective_mfderiv hn fun x ↦
+    (e.mfderiv_comp_diffeomorph_injective_iff hn0).2 (h.mfderiv_injective hn0 (e x))
+
+/-- Reparametrising a `C^n` smooth embedding `f : M → N`, `1 ≤ n`, by a diffeomorphism
+`e : M' ≃ M` gives a smooth embedding `f ∘ e`, also when `M'` has a different model from `M`,
+provided `M'` and `N` have no boundary and `N` has a finite-dimensional model. -/
+theorem isSmoothEmbedding_comp_diffeomorph_of_boundaryless (e : M' ≃ₘ^n⟮I', I⟯ M) (hn : 1 ≤ n)
+    (h : IsSmoothEmbedding I J n f) : IsSmoothEmbedding I' J n (f ∘ e) :=
+  ⟨isImmersion_comp_diffeomorph_of_boundaryless e hn h.isImmersion,
+    h.isEmbedding.comp e.toHomeomorph.isEmbedding⟩
+
+namespace SmoothEmbedding
+
+/-- **Reparametrisation across two models.** A `C^n` diffeomorphism `e : M' ≃ M`, `1 ≤ n`, turns
+a bundled smooth embedding `f : M → N` into the bundled smooth embedding `f ∘ e : M' → N`, for a
+boundaryless `M'` whose model may differ from that of `M`, and a boundaryless `N` with a
+finite-dimensional model. -/
+def compDiffeomorphOfBoundaryless (f : SmoothEmbedding I J n M N) (e : M' ≃ₘ^n⟮I', I⟯ M)
+    (hn : 1 ≤ n) : SmoothEmbedding I' J n M' N :=
+  SmoothEmbedding.ofIsSmoothEmbedding (f ∘ e)
+    (isSmoothEmbedding_comp_diffeomorph_of_boundaryless e hn f.isSmoothEmbedding)
+
+@[simp]
+theorem compDiffeomorphOfBoundaryless_apply (f : SmoothEmbedding I J n M N)
+    (e : M' ≃ₘ^n⟮I', I⟯ M) (hn : 1 ≤ n) (x : M') :
+    f.compDiffeomorphOfBoundaryless e hn x = f (e x) := by
+  simp only [compDiffeomorphOfBoundaryless, ofIsSmoothEmbedding_apply, Function.comp_apply]
+
+@[simp]
+theorem coe_compDiffeomorphOfBoundaryless (f : SmoothEmbedding I J n M N)
+    (e : M' ≃ₘ^n⟮I', I⟯ M) (hn : 1 ≤ n) :
+    ⇑(f.compDiffeomorphOfBoundaryless e hn) = f ∘ e :=
+  funext (compDiffeomorphOfBoundaryless_apply f e hn)
+
+/-- Reparametrisation does not move the image of an embedding. Not a `simp` lemma:
+`coe_compDiffeomorphOfBoundaryless` rewrites its left-hand side. -/
+theorem range_compDiffeomorphOfBoundaryless (f : SmoothEmbedding I J n M N)
+    (e : M' ≃ₘ^n⟮I', I⟯ M) (hn : 1 ≤ n) :
+    range (f.compDiffeomorphOfBoundaryless e hn) = range f := by
+  rw [coe_compDiffeomorphOfBoundaryless]
+  exact (EquivLike.surjective e).range_comp _
+
+end SmoothEmbedding
+
+end TauCeti
+
+end
