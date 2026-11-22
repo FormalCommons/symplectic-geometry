@@ -5,7 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Topology.FiberBundle.Basic
+public import SymplecticGeometry.Topology.FiberBundle.Pullback
 public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Basic
 public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Conjugate
 public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.ConjugateExteriorPower
@@ -53,7 +53,9 @@ from `X × G` to the total space of `E`. It trivializes the pull-back of the det
 top wedge of the frame. This section is continuous on total spaces
 (`continuous_detCoreFrameSection`) and vanishes nowhere (`detCoreFrameSection_ne_zero`). For a
 second frame `Ψ`, the section of `Ψ` at `y` is that of `Φ` times the determinant of
-`Ψ y ∘ (Φ y)⁻¹` (`detCoreFrameSection_eq_det_smul`).
+`Ψ y ∘ (Φ y)⁻¹` (`detCoreFrameSection_eq_det_smul`). This change-of-frame rule follows Tau
+Ceti's `TauCeti.clutchingFunction_eq_mul_normalizedDet_inv`, which compares the clutching
+functions of two frames through the automorphism `(φ y)⁻¹ ∘ ψ y` of the model fibre.
 
 ## References
 
@@ -418,13 +420,21 @@ theorem detCoreFrameSection_ne_zero (y : X) : detCoreFrameSection f Φ hΦ y ≠
   exact one_ne_zero (congrFun ((isoFiberEquiv _ y).map_eq_zero_iff.1 h) ⟨0, Nat.one_pos⟩)
 
 /-- The trivializations of the determinant line given by two frames `Φ` and `Ψ` along `f`
-differ over `y` by the determinant of `(Φ y)⁻¹ ∘ Ψ y`. -/
+differ over `y` by the determinant of the automorphism `Ψ y ∘ (Φ y)⁻¹` of `E (f y)`. -/
 theorem fiberMap_detCoreFrameIso_trans_symm_hom (y : X) :
     (detCoreFrameIso f Ψ hΨ ≪≫ (detCoreFrameIso f Φ hΦ).symm).hom.fiberMap y =
-      LinearMap.det (((Ψ y : Trivial X G y ≃L[𝕜] ((⇑f) *ᵖ E) y).trans
-        (Φ y : Trivial X G y ≃L[𝕜] ((⇑f) *ᵖ E) y).symm : Trivial X G y →ₗ[𝕜] Trivial X G y)) •
+      LinearMap.det ((Φ y).symm.trans (Ψ y) : E (f y) →ₗ[𝕜] E (f y)) •
         ContinuousLinearMap.id 𝕜 _ := by
-  rw [detCoreFrameIso_def, detCoreFrameIso_def]
+  -- `detCoreMap` reads `Φ y` and `Ψ y` as maps from the fibre of `Trivial X G` to that of
+  -- `f *ᵖ E`, so its factor is the determinant of `(Φ y)⁻¹ ∘ Ψ y` on `G`; conjugate by `Φ y`.
+  have hc : LinearMap.det (((Ψ y : Trivial X G y ≃L[𝕜] ((⇑f) *ᵖ E) y).trans
+        (Φ y : Trivial X G y ≃L[𝕜] ((⇑f) *ᵖ E) y).symm : Trivial X G y →ₗ[𝕜] Trivial X G y)) =
+      LinearMap.det ((Φ y).symm.trans (Ψ y) : E (f y) →ₗ[𝕜] E (f y)) := by
+    rw [← LinearMap.det_conj _ (Φ y : G ≃L[𝕜] E (f y)).toLinearEquiv]
+    congr 1
+    ext v
+    simp
+  rw [detCoreFrameIso_def, detCoreFrameIso_def, ← hc]
   exact fiberMap_trans_trans_symm_hom _ _ _ _
     (fiberMap_detCoreMap_trans_symm_hom (E := Trivial X G) (E₁ := (⇑f) *ᵖ E) Φ Ψ _ _ y)
 
@@ -433,16 +443,8 @@ theorem fiberMap_detCoreFrameIso_trans_symm_hom (y : X) :
 theorem detCoreFrameSection_eq_det_smul (y : X) :
     detCoreFrameSection f Ψ hΨ y =
       LinearMap.det ((Φ y).symm.trans (Ψ y) : E (f y) →ₗ[𝕜] E (f y)) •
-        detCoreFrameSection f Φ hΦ y := by
-  have hc : LinearMap.det (((Ψ y : Trivial X G y ≃L[𝕜] ((⇑f) *ᵖ E) y).trans
-        (Φ y : Trivial X G y ≃L[𝕜] ((⇑f) *ᵖ E) y).symm : Trivial X G y →ₗ[𝕜] Trivial X G y)) =
-      LinearMap.det ((Φ y).symm.trans (Ψ y) : E (f y) →ₗ[𝕜] E (f y)) := by
-    rw [← LinearMap.det_conj _ (Φ y : G ≃L[𝕜] E (f y)).toLinearEquiv]
-    congr 1
-    ext v
-    simp
-  rw [detCoreFrameSection_def, detCoreFrameSection_def, ← hc]
-  exact isoFiberEquiv_apply_eq_smul _ _ (fiberMap_detCoreFrameIso_trans_symm_hom f hΦ hΨ y) _
+        detCoreFrameSection f Φ hΦ y :=
+  isoFiberEquiv_apply_eq_smul _ _ (fiberMap_detCoreFrameIso_trans_symm_hom f hΦ hΨ y) _
 
 end Frame
 
