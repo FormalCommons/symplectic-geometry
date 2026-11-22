@@ -473,7 +473,7 @@ theorem contMDiffFiberBundle_circleFiber [IsManifold I n B] :
   simp only [Trivialization.baseSet_changeModelFiber,
     Trivialization.baseSet_orthonormalFrameBundleFiber,
     Trivialization.baseSet_orthonormalFrameBundle]
-  refine ContMDiffOn.of_coe_sphere (E := ℂ) (e₁.open_baseSet.inter e₂.open_baseSet) ?_
+  refine ContMDiffOn.of_coe_sphere (E := ℂ) ?_
   exact (g.contMDiffOn_hermitianPairing hI (b := id)
     ((e₂.contMDiffOn_orthonormalFrameAt_one g hI c₂ b₂).mono Set.inter_subset_right)
     ((e₁.contMDiffOn_orthonormalFrameAt_one g hI c₁ b₁).mono Set.inter_subset_left)).congr
@@ -573,10 +573,10 @@ private theorem contMDiff_circleBundleHomeomorph_symm (hn : 1 ≤ n) :
   have hp₀ : p₀.val.proj ∈ e.baseSet :=
     hb ▸ mem_baseSet_trivializationAt Circle (Fiber ℂ F V ℂ) p₀.val.proj
   -- Over the base set of `e`, the fibre coordinate of the frame of `v` is `⟪σ 1, v⟫`.
-  refine (ContMDiffOn.of_coe_sphere (E := ℂ) hW ((g.contMDiffOn_hermitianPairing hI
+  refine ContMDiffAt.of_coe_sphere (E := ℂ) (((g.contMDiffOn_hermitianPairing hI
     (b := fun p : {p : TotalSpace F V // ‖p.snd‖ = 1} ↦ p.val.proj)
     ((e.contMDiffOn_orthonormalFrameAt_one g hI c b).comp hproj.contMDiffOn fun p hp ↦ hp)
-    hval.contMDiffOn).congr fun p hp ↦ ?_)).contMDiffAt (hW.mem_nhds hp₀)
+    hval.contMDiffOn).congr fun p hp ↦ ?_).contMDiffAt (hW.mem_nhds hp₀))
   have key := e.coe_snd_changeModelFiber_orthonormalFrameBundleFiber c b
     (⟨(circleBundleHomeomorph.symm p).proj, (circleBundleHomeomorph.symm p).snd⟩ :
           TotalSpace Circle (Fiber ℂ F V ℂ)) hp

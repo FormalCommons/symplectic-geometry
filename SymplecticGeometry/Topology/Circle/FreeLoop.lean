@@ -42,12 +42,6 @@ theorem circleDegree_mul (f g : C(Circle, Circle)) :
   rw [← degree_toBasedLoop, ← degree_toBasedLoop, ← degree_toBasedLoop, ← degree_mul]
   exact degree_congr _ _ fun t ↦ by rw [toBasedLoop_apply]; simp [toBasedLoop_apply]
 
-/-- The degree of the pointwise inverse of a circle map is the negated degree. -/
-@[simp]
-theorem circleDegree_inv (f : C(Circle, Circle)) : f⁻¹.circleDegree = -f.circleDegree := by
-  rw [← degree_toBasedLoop, ← degree_toBasedLoop, ← degree_inv]
-  exact degree_congr _ _ fun t ↦ by rw [toBasedLoop_apply]; simp [toBasedLoop_apply]
-
 /-- The degree of circle maps as a group hom from the pointwise product of circle maps to the
 integers, written multiplicatively. -/
 noncomputable def circleDegreeHom : C(Circle, Circle) →* Multiplicative ℤ where
@@ -65,6 +59,11 @@ theorem circleDegreeHom_apply (f : C(Circle, Circle)) :
 @[simp]
 theorem circleDegree_one : (1 : C(Circle, Circle)).circleDegree = 0 := by
   simpa using map_one circleDegreeHom
+
+/-- The degree of the pointwise inverse of a circle map is the negated degree. -/
+@[simp]
+theorem circleDegree_inv (f : C(Circle, Circle)) : f⁻¹.circleDegree = -f.circleDegree := by
+  simpa [← ofAdd_neg] using map_inv circleDegreeHom f
 
 /-- The degree of a pointwise quotient of circle maps is the difference of their degrees. -/
 @[simp]
