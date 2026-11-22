@@ -27,8 +27,8 @@ The proof cuts `T` off by a test function `χ` supported in `V` with `χ x = 1`.
 function `ψ`, the cut-off distribution `χ T` takes at `ψ` the value of `T` at `χ ψ`
 (`Distribution.cutoffTempered_def`), which splits into `T` at the real and imaginary parts of
 `χ ψ`. Their `L²` norms and those of their derivatives are at most those of `χ ψ`, which are bounded
-by `‖χ ψ‖_{H¹}` (Tau Ceti's `BesselPotentialSpace.norm_inclusionLp_apply_le`, and
-`SchwartzMap.norm_toBesselPotentialSpaceCLM_lineDerivOp_le`). Multiplication by the Schwartz
+by `‖χ ψ‖_{H¹}` (`SchwartzMap.eLpNorm_toReal_le_norm_toBesselPotentialSpaceCLM` and
+`SchwartzMap.eLpNorm_lineDerivOp_toReal_le`). Multiplication by the Schwartz
 function `χ` is bounded on `H¹` (Tau Ceti's
 `SchwartzMap.norm_toLp_fourierMultiplierCLM_smulLeftCLM_le`), so `χ T` is a bounded functional on
 `H¹`, hence in `H^{-1}` (`TemperedDistribution.memSobolev_neg_of_norm_le`), and
@@ -104,15 +104,13 @@ theorem exists_norm_cutoffTempered_le_of_norm_le {T : 𝓓'(Ω, ℂ)} {ι : Type
       (mul_le_mul_of_nonneg_left ?_ hC')
     rw [add_mul, one_mul, Finset.sum_mul]
     refine add_le_add ((hle g).trans ?_) (Finset.sum_le_sum fun i _ ↦ ?_)
-    · rw [hgf, ← SchwartzMap.norm_toLp,
-        ← BesselPotentialSpace.inclusionLp_toBesselPotentialSpaceCLM zero_le_one]
-      exact BesselPotentialSpace.norm_inclusionLp_apply_le zero_le_one _
+    · rw [hgf]
+      exact SchwartzMap.eLpNorm_toReal_le_norm_toBesselPotentialSpaceCLM zero_le_one f
     · rw [TestFunction.lineDerivOp_eq_lineDerivCLM ℝ, lineDerivCLM_postcompCLM,
         ← TestFunction.lineDerivOp_eq_lineDerivCLM ℝ]
       refine (hle _).trans ?_
       rw [toSchwartzMapCLM_lineDerivOp, hgf]
-      have h := SchwartzMap.norm_toBesselPotentialSpaceCLM_lineDerivOp_le 0 (v i) f
-      rwa [zero_add, SchwartzMap.norm_toBesselPotentialSpaceCLM_zero] at h
+      exact SchwartzMap.eLpNorm_lineDerivOp_toReal_le (v i) f
   -- Multiplication by `χ` is bounded on `H¹`.
   have hf : ‖SchwartzMap.toBesselPotentialSpaceCLM 1 2 f‖ ≤
       M * ‖SchwartzMap.toBesselPotentialSpaceCLM 1 2 ψ‖ := by

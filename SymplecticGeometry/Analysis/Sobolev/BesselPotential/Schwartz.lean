@@ -7,9 +7,10 @@ module
 
 public import TauCeti.Analysis.Sobolev.BesselPotential.Schwartz
 import TauCeti.Analysis.Distribution.SchwartzSpace.Fourier
+import TauCeti.Analysis.Sobolev.BesselPotential.Inclusion
 
 /-!
-# The `H^s` norm of a directional derivative of a Schwartz function
+# `L²` and `H^s` bounds for Schwartz functions and their directional derivatives
 
 For a Schwartz function `u` with values in a complex Hilbert space and a vector `v`,
 `‖∂_v u‖_{H^s} ≤ 2π ‖v‖ ‖u‖_{H^{s+1}}`: a directional derivative costs one order of regularity,
@@ -21,11 +22,15 @@ the Fourier transform of `∂_v u` is `2πi ⟪ξ, v⟫ 𝓕 u` (Tau Ceti's
 `u ∈ H^{s+1}`, without the norm.
 
 With `s = 0` (Tau Ceti's `SchwartzMap.norm_toBesselPotentialSpaceCLM_zero`), this bounds the `L²`
-norm of each first derivative of `u` by its `H¹` norm.
+norm of each first derivative of `u` by its `H¹` norm. For `0 ≤ s`, the `L²` norm of `u` is at
+most its `H^s` norm (Tau Ceti's `BesselPotentialSpace.norm_inclusionLp_apply_le`).
 
 ## Main results
 
 * `SchwartzMap.norm_toBesselPotentialSpaceCLM_lineDerivOp_le`: the bound for `∂_v u`.
+* `SchwartzMap.eLpNorm_toReal_le_norm_toBesselPotentialSpaceCLM`: `‖u‖_{L²} ≤ ‖u‖_{H^s}` for
+  `0 ≤ s`.
+* `SchwartzMap.eLpNorm_lineDerivOp_toReal_le`: `‖∂_v u‖_{L²} ≤ 2π ‖v‖ ‖u‖_{H¹}`.
 
 ## References
 
@@ -79,5 +84,19 @@ theorem norm_toBesselPotentialSpaceCLM_lineDerivOp_le (s : ℝ) (v : E) (u : �
           (2 * π * (‖v‖ * (1 + ‖ξ‖ ^ 2) ^ ((1 : ℝ) / 2)) * ‖𝓕 u ξ‖) := by gcongr
     _ = 2 * π * ‖v‖ * ((1 + ‖ξ‖ ^ 2) ^ (s / 2) * (1 + ‖ξ‖ ^ 2) ^ ((1 : ℝ) / 2) * ‖𝓕 u ξ‖) := by
         ring
+
+/-- For `0 ≤ s`, the `L²` norm of a Schwartz function is at most its `H^s` norm. -/
+theorem eLpNorm_toReal_le_norm_toBesselPotentialSpaceCLM {s : ℝ} (hs : 0 ≤ s) (u : 𝓢(E, F)) :
+    (eLpNorm (u : E → F) 2 volume).toReal ≤ ‖toBesselPotentialSpaceCLM s 2 u‖ := by
+  rw [← norm_toLp, ← BesselPotentialSpace.inclusionLp_toBesselPotentialSpaceCLM hs]
+  exact BesselPotentialSpace.norm_inclusionLp_apply_le hs _
+
+/-- The `L²` norm of a directional derivative of a Schwartz function `u` is at most
+`2π ‖v‖ ‖u‖_{H¹}`. -/
+theorem eLpNorm_lineDerivOp_toReal_le (v : E) (u : 𝓢(E, F)) :
+    (eLpNorm ((∂_{v} u : 𝓢(E, F)) : E → F) 2 volume).toReal ≤
+      2 * π * ‖v‖ * ‖toBesselPotentialSpaceCLM 1 2 u‖ := by
+  have h := norm_toBesselPotentialSpaceCLM_lineDerivOp_le 0 v u
+  rwa [zero_add, norm_toBesselPotentialSpaceCLM_zero] at h
 
 end SchwartzMap
