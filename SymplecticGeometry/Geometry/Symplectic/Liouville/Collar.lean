@@ -225,7 +225,8 @@ theorem SmoothEmbedding.exists_pos_forall_liouvilleCollar [SecondCountableTopolo
   let Z : (x : U') → TangentSpace I x := VectorField.mpullback I I Subtype.val Y
   have hZ : ContMDiff I I.tangent ∞ (T% Z) := VectorField.contMDiff_mpullback_subtypeVal hY
   let β : SmoothForm I U' ℝ 1 :=
-    ⟨_, (isSmoothForm_mpullback_subtypeVal_interior (U := U') σ.isSmoothForm
+    ⟨_, (isSmoothForm_mpullback_subtypeVal_interior (U := U')
+      σ.isSmoothForm.contMDiff.contMDiffOn
       hY).mem_smoothBundleForms⟩
   have hβ : β.val = mpullback I I Subtype.val (RoughForm.interior Y σ.val) := rfl
   have hdβ : mextDeriv β.val = mpullback I I Subtype.val σ.val := by
