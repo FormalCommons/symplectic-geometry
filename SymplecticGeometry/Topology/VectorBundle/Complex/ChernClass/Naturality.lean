@@ -191,10 +191,8 @@ theorem chernClass_congr
         (M := ModuleCat.of ℤ ℤ) (TopCat.of B) (2 * k))).elim _ _
   -- The fibres over any point identify the two models.
   let e : G ≃ₗ[ℂ] G' :=
-    (((trivializationAt G E (Classical.arbitrary B)).continuousLinearEquivAt ℂ _
-      (mem_baseSet_trivializationAt G E _)).symm.trans ((φ _).trans
-      ((trivializationAt G' E' (Classical.arbitrary B)).continuousLinearEquivAt ℂ _
-      (mem_baseSet_trivializationAt G' E' _)))).toLinearEquiv
+    ((VectorBundle.continuousLinearEquivAt ℂ G E (Classical.arbitrary B)).symm.trans
+      ((φ _).trans (VectorBundle.continuousLinearEquivAt ℂ G' E' _))).toLinearEquiv
   have : FiniteDimensional ℂ G' := e.finiteDimensional
   have hx := singularCohomologyMap_map_projectiveBundleClass (E := E) (E' := E') hφ
   have h := chernClass_eq_singularCohomologyMap_of_projectiveBundle (G := G') (E := E') (G' := G)
@@ -207,6 +205,7 @@ variable (B G) in
 /-- **The Chern classes of a trivial bundle vanish in positive degree.** Over a compact base, the
 trivial bundle `Bundle.Trivial B G` is the pull-back of the trivial bundle over a point, whose
 cohomology vanishes in positive degree. -/
+@[simp]
 theorem chernClass_trivial {k : ℕ} (hk : k ≠ 0) : chernClass G (Bundle.Trivial B G) k = 0 := by
   let c : C(B, Unit) := ContinuousMap.const B ()
   have hc : Continuous fun v : TotalSpace G (Bundle.Trivial B G) ↦
