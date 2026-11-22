@@ -240,6 +240,54 @@ The coefficients are real smooth functions on the whole of
 `CoordinateSpace n`, as Tau Ceti's theorem asks. Callers extend chart
 coefficients by cutoffs.
 
+### `Analysis/Distribution/LinearEquiv.lean`
+
+Named like Tau Ceti's file. Tau Ceti's `Distribution.transportCLM` along
+`e : E' ≃L[ℝ] E` commutes with the operations of `EllipticSystem.lean`:
+
+- `ContinuousLinearEquiv.transportTestFunction_lineDerivOp`,
+  `Distribution.lineDerivOp_transportCLM` and
+  `Distribution.iteratedLineDerivOp_transportCLM`: `∂^{m}` of the transport
+  is the transport of `∂^{e ∘ m}`.
+- `Distribution.smulLeftCLM_transportCLM`: multiplication by `g` becomes
+  multiplication by `g ∘ e⁻¹`.
+
+### `Analysis/Distribution/OfFun.lean`
+
+- `Distribution.lineDerivOp_ofFun`: for an additive Haar measure, the
+  derivative along `v` of the distribution of a function `C¹` on `Ω` is the
+  distribution of `x ↦ fderiv ℝ f x v`, by Tau Ceti's
+  `ContDiffOn.hasWeakFDerivOn_fderiv`.
+- `Distribution.smulLeftCLM_ofFun`: multiplication by a smooth `g` is the
+  distribution of `g • f`.
+
+### `Analysis/Distribution/Coordinates.lean`
+
+`Coordinates.lean` imports `Analysis/Distribution/LinearEquiv.lean` and
+`Analysis/Distribution/OfFun.lean`.
+
+The passage between `E`-valued data and the scalar systems of
+`EllipticSystem.lean`, through `e : E ≃L[ℝ] E'` (in the application
+`E' = CoordinateSpace n`, as *Models* says) and a basis `b` of a
+finite-dimensional `F`:
+
+- `Distribution.coordOfFun e hΩ b w μ i : 𝓓'(Ω, ℂ)`, for `w : E → F`, an
+  open `U ⊆ E` and `hΩ : MapsTo e.symm Ω U`: the transport along `e⁻¹` of
+  `ofFun U (fun x ↦ (b.repr (w x) i : ℂ)) μ ⊤`, with `coordOfFun_apply`
+  (the integral `∫ x, φ (e x) • b.repr (w x) i ∂μ`), `coordOfFun_add`,
+  `coordOfFun_smul` and `coordOfFun_congr_ae`.
+- `Distribution.lineDerivOp_coordOfFun` and
+  `Distribution.iteratedLineDerivOp_coordOfFun`: for `w` of class `C^k` on
+  `U`, `∂^{m}` along `m : Fin k → E'` of the coordinate distributions are
+  those of `x ↦ iteratedFDeriv ℝ k w x (e.symm ∘ m)`; and
+  `Distribution.smulLeftCLM_coordOfFun`: multiplication by `g` multiplies
+  `w` by `g ∘ e`.
+- `Distribution.exists_contDiffOn_ae_eq_of_singularSupport_coordOfFun_eq_empty`:
+  if also `MapsTo e U Ω` and every coordinate distribution has empty
+  singular support, then `w` is a.e. on `U` a function smooth on `U`. The
+  local representatives are glued by Tau Ceti's
+  `TauCeti.exists_contDiffOn_ae_eq_of_locally`.
+
 ### `Geometry/Manifold/DifferentialForm/PartialDiffeomorph.lean`
 
 The coordinate expression of a form along a chart `ψ` that is a partial
@@ -410,6 +458,8 @@ Named like Tau Ceti's file; used by `L2.lean`.
   `u = ofSmooth (∑ i, SmoothForm.extendByZeroAlong (ψ i) (f i) …)`.
 
 ### `Geometry/Manifold/DeRham/Hodge/Regularity.lean`
+
+`Regularity.lean` imports `Analysis/Distribution/Coordinates.lean`.
 
 - `L2Form.IsWeakSolution o hkl u f`: for every smooth `k`-form $\varphi$,
   `⟪u, ofSmooth (Δ φ)⟫ = ⟪f, ofSmooth φ⟫`. It is a predicate on

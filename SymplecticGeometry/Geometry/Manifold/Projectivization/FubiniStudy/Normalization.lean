@@ -267,7 +267,7 @@ unit sphere of `ℝ³`, for the standard orientation of `ℝ³`, to the canonica
 `ℂP¹` as a complex manifold. -/
 theorem isOrientationPreservingAt_sphereToProjectiveLine (p : sphere (0 : ℝ³) 1) :
     Manifold.Orientation.IsOrientationPreservingAt (Orientation.sphereOrientation o₃)
-      projectiveLineOrientation sphereToProjectiveLine p := by
+      (complexCurveOrientation (Fin 1 → ℂ) (ℙ ℂ (Fin 2 → ℂ))) sphereToProjectiveLine p := by
   rw [coe_sphereToProjectiveLine]
   refine (OnePoint.isOrientationPreservingAt_equivProjectivization _).comp ?_
   have h := congrArg (fun φ : SmoothForm (𝓡 2) (sphere (0 : ℝ³) 1) ℝ 2 ↦ φ.val p)
@@ -282,7 +282,8 @@ theorem isOrientationPreservingAt_sphereToProjectiveLine (p : sphere (0 : ℝ³)
 /-- **The area of `ℂP¹`.** The Fubini–Study form of `ℂP¹ = ℙ ℂ (Fin 2 → ℂ)` integrates to `π`
 over `ℂP¹` with its canonical orientation as a complex manifold. -/
 theorem integralTopForm_fubiniStudyForm_one :
-    integralTopForm projectiveLineOrientation (fubiniStudyForm 1).val = Real.pi := by
+    integralTopForm (complexCurveOrientation (Fin 1 → ℂ) (ℙ ℂ (Fin 2 → ℂ)))
+      (fubiniStudyForm 1).val = Real.pi := by
   have he : Topology.IsOpenEmbedding sphereToProjectiveLine := by
     simpa using sphereToProjectiveLine.toHomeomorph.isOpenEmbedding
   rw [← he.integralTopForm_mpullback_of_isOrientationPreservingAt
@@ -298,7 +299,7 @@ theorem integralTopForm_fubiniStudyForm_one :
 canonical orientation as a complex manifold. -/
 theorem integralTopForm_mpullback_map_fubiniStudyForm {n : ℕ}
     (f : (Fin 2 → ℂ) →ₗ[ℂ] Fin (n + 1) → ℂ) (hf : Function.Injective f) :
-    integralTopForm projectiveLineOrientation
+    integralTopForm (complexCurveOrientation (Fin 1 → ℂ) (ℙ ℂ (Fin 2 → ℂ)))
       (SmoothForm.mpullback (map f hf) (contMDiff_map_restrictScalars f hf ∞)
         (fubiniStudyForm n)).val = Real.pi := by
   classical
@@ -321,7 +322,7 @@ theorem integralTopForm_mpullback_map_fubiniStudyForm {n : ℕ}
   have hΦ : Topology.IsOpenEmbedding Φ := by simpa using Φ.toHomeomorph.isOpenEmbedding
   -- `Φ` is a biholomorphism of `ℂP¹`, so it preserves the canonical orientation.
   rw [← hΦ.integralTopForm_mpullback_of_isOrientationPreservingAt
-      (Φ.isOrientationPreservingAt_projectiveLineOrientation ω) (by simp),
+      (Φ.isOrientationPreservingAt_complexCurveOrientation (by simp) ω) (by simp),
     ← SmoothForm.coe_mpullback _ (by simpa [Φ] using contMDiff_map_restrictScalars _ _ ∞),
     SmoothForm.mpullback_mpullback]
   simp only [hcomp, mpullback_map_fubiniStudyForm (F * P) hA]
