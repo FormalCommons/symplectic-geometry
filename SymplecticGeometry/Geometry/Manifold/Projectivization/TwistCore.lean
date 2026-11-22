@@ -33,8 +33,9 @@ Chern classes of projective space uses.
   zero and is trivial.
 * `Projectivization.twistCoreTensorEquiv k l x`: the isomorphism `𝒪(k + l) ≅ 𝒪(k) ⊗ 𝒪(l)` onto
   Tau Ceti's tensor product bundle, `a ↦ a ⊗ 1` in every standard chart
-  (`Projectivization.tensorProduct_localTriv_twistCoreTensorEquiv`), continuous on total spaces in
-  both directions. It rests on `Projectivization.twistTransition_add`.
+  (`Projectivization.tensorProduct_localTriv_twistCoreTensorEquiv_self`, a case of
+  `Projectivization.tensorProduct_localTriv_twistCoreTensorEquiv` for two charts), continuous on
+  total spaces in both directions. It rests on `Projectivization.twistTransition_add`.
 * `Projectivization.twistCoreZeroTrivialization`: `𝒪(0)` is trivial, by
   `Projectivization.twistTransition_zero` and Tau Ceti's
   `VectorBundleCore.globalTrivializationOfCoordChangeEqId`.
@@ -351,8 +352,8 @@ private theorem twistCoreTensorEquivModel_apply (x : ℙ 𝕜 (Fin (n + 1) → �
   ring
 
 /-- The fibrewise isomorphism `𝒪(k + l) ≅ 𝒪(k) ⊗ 𝒪(l)`, which is `a ↦ a ⊗ 1` in every standard
-chart (`tensorProduct_localTriv_twistCoreTensorEquiv`). It is continuous on total spaces in both
-directions (`continuous_twistCoreTensorEquiv` and `continuous_twistCoreTensorEquiv_symm`). -/
+chart (`tensorProduct_localTriv_twistCoreTensorEquiv_self`). It is continuous on total spaces in
+both directions (`continuous_twistCoreTensorEquiv` and `continuous_twistCoreTensorEquiv_symm`). -/
 def twistCoreTensorEquiv (x : ℙ 𝕜 (Fin (n + 1) → 𝕜)) :
     (twistCore (k + l)).Fiber x ≃L[𝕜] (twistCore k).Fiber x ⊗[𝕜] (twistCore l).Fiber x :=
   -- The fibres of `twistCore` are `𝕜`, and their tensor product is `𝕜 ⊗[𝕜] 𝕜`.
@@ -360,8 +361,9 @@ def twistCoreTensorEquiv (x : ℙ 𝕜 (Fin (n + 1) → 𝕜)) :
 
 /-- In preferred coordinates at `x`, `twistCoreTensorEquiv` sends `v` to `(g * v) ⊗ h`, where
 `g` and `h` are the transitions of `𝒪(k)` and `𝒪(l)` from the preferred chart of `𝒪(k + l)` to
-their own preferred charts. In a standard chart common to the three bundles, it is `a ↦ a ⊗ 1`
-(`tensorProduct_localTriv_twistCoreTensorEquiv`). -/
+their own preferred charts. In standard charts it is `a ↦ a ⊗ twistTransition l i j x`
+(`tensorProduct_localTriv_twistCoreTensorEquiv`), and `a ↦ a ⊗ 1` in a chart common to the three
+bundles (`tensorProduct_localTriv_twistCoreTensorEquiv_self`). -/
 theorem twistCoreTensorEquiv_apply (x : ℙ 𝕜 (Fin (n + 1) → 𝕜)) (v : 𝕜) :
     twistCoreTensorEquiv k l x v =
       TensorProduct.tmul 𝕜 (M := (twistCore k).Fiber x) (N := (twistCore l).Fiber x)
@@ -393,37 +395,47 @@ theorem twistCoreTensorEquiv_symm_apply (x : ℙ 𝕜 (Fin (n + 1) → 𝕜)) (a
           (a * b) :=
   twistCoreTensorEquivModel_symm_apply k l x a b
 
-/-- **`twistCoreTensorEquiv` in a standard chart.** Over the standard affine open `U_i`, read
-through the charts `i` of `𝒪(k + l)`, `𝒪(k)` and `𝒪(l)`, `twistCoreTensorEquiv` is
-`a ↦ a ⊗ 1`. -/
-theorem tensorProduct_localTriv_twistCoreTensorEquiv (i : Fin (n + 1))
-    {x : ℙ 𝕜 (Fin (n + 1) → 𝕜)} (hx : x ∈ affineOpen i) (v : 𝕜) :
-    (Pretrivialization.tensorProduct 𝕜 ((twistCore k).localTriv i) ((twistCore l).localTriv i)
+/-- **`twistCoreTensorEquiv` in standard charts.** Over `U_i ∩ U_j`, read through the chart `i`
+of `𝒪(k + l)` and `𝒪(k)` and the chart `j` of `𝒪(l)`, `twistCoreTensorEquiv` is
+`a ↦ a ⊗ twistTransition l i j x`. -/
+theorem tensorProduct_localTriv_twistCoreTensorEquiv (i j : Fin (n + 1))
+    {x : ℙ 𝕜 (Fin (n + 1) → 𝕜)} (hi : x ∈ affineOpen i) (hj : x ∈ affineOpen j) (v : 𝕜) :
+    (Pretrivialization.tensorProduct 𝕜 ((twistCore k).localTriv i) ((twistCore l).localTriv j)
         ⟨x, twistCoreTensorEquiv k l x v⟩).2 =
-      TauCeti.ProjectiveTensor.tmulL 𝕜 𝕜 𝕜 ((twistCore (k + l)).localTriv i ⟨x, v⟩).2 1 := by
+      TauCeti.ProjectiveTensor.tmulL 𝕜 𝕜 𝕜 ((twistCore (k + l)).localTriv i ⟨x, v⟩).2
+        (twistTransition l i j x) := by
   have hk : x ∈ ((twistCore (𝕜 := 𝕜) (n := n) k).localTriv i).baseSet := by
-    simpa [twistCore_baseSet] using hx
-  have hl : x ∈ ((twistCore (𝕜 := 𝕜) (n := n) l).localTriv i).baseSet := by
-    simpa [twistCore_baseSet] using hx
-  -- `twistCoreTensorEquiv_apply` is used through `congrArg`, since its factors are elements of
-  -- `𝕜` read as elements of the fibres, which `rw` does not accept.
-  refine (congrArg (fun w ↦ (Pretrivialization.tensorProduct 𝕜 ((twistCore k).localTriv i)
-    ((twistCore l).localTriv i) ⟨x, w⟩).2) (twistCoreTensorEquiv_apply k l x v)).trans ?_
-  rw [Pretrivialization.tensorProduct_apply]
+    simpa [twistCore_baseSet] using hi
+  have hl : x ∈ ((twistCore (𝕜 := 𝕜) (n := n) l).localTriv j).baseSet := by
+    simpa [twistCore_baseSet] using hj
+  rw [twistCoreTensorEquiv_apply, Pretrivialization.tensorProduct_apply]
   dsimp only
+  -- The factors of the pure tensor are elements of `𝕜` read as elements of the fibres, so `rw`
+  -- does not match `TensorProduct.map_tmul` against them.
   refine (congrArg (fun t ↦ ({ toTensorProduct := t } : TauCeti.ProjectiveTensor 𝕜 𝕜 𝕜))
     (TensorProduct.map_tmul _ _ _ _)).trans ?_
   rw [Trivialization.coe_linearMapAt_of_mem _ hk, Trivialization.coe_linearMapAt_of_mem _ hl]
   simp only [VectorBundleCore.localTriv_apply, twistCore_coordChange_apply,
     TauCeti.ProjectiveTensor.tmulL_apply]
   have hb := mem_affineOpen_twistCore_indexAt (k + l) x
-  rw [twistTransition_add k l hb hx, ← mul_assoc,
+  rw [twistTransition_add k l hb hi, ← mul_assoc,
     twistTransition_mul_twistTransition k _ _ (mem_affineOpen_twistCore_indexAt k x),
-    twistTransition_mul_twistTransition l _ _ (mem_affineOpen_twistCore_indexAt l x)]
+    twistTransition_mul_twistTransition l _ _ (mem_affineOpen_twistCore_indexAt l x),
+    ← twistTransition_mul_twistTransition l _ j hi]
   congr 1
   apply (TensorProduct.lid 𝕜 𝕜).injective
   simp only [TensorProduct.lid_tmul, smul_eq_mul]
   ring
+
+/-- **`twistCoreTensorEquiv` in a standard chart.** Over the standard affine open `U_i`, read
+through the charts `i` of `𝒪(k + l)`, `𝒪(k)` and `𝒪(l)`, `twistCoreTensorEquiv` is
+`a ↦ a ⊗ 1`. -/
+theorem tensorProduct_localTriv_twistCoreTensorEquiv_self (i : Fin (n + 1))
+    {x : ℙ 𝕜 (Fin (n + 1) → 𝕜)} (hx : x ∈ affineOpen i) (v : 𝕜) :
+    (Pretrivialization.tensorProduct 𝕜 ((twistCore k).localTriv i) ((twistCore l).localTriv i)
+        ⟨x, twistCoreTensorEquiv k l x v⟩).2 =
+      TauCeti.ProjectiveTensor.tmulL 𝕜 𝕜 𝕜 ((twistCore (k + l)).localTriv i ⟨x, v⟩).2 1 := by
+  rw [tensorProduct_localTriv_twistCoreTensorEquiv k l i i hx hx, twistTransition_self l hx]
 
 variable [CompleteSpace 𝕜]
 
@@ -439,34 +451,10 @@ private theorem trivializationAt_twistCoreTensorEquiv (x₀ : ℙ 𝕜 (Fin (n +
       TauCeti.ProjectiveTensor.tmulL 𝕜 𝕜 𝕜
         ((twistCore (k + l)).localTriv ((twistCore k).indexAt x₀) ⟨x, v⟩).2
         (twistTransition l ((twistCore k).indexAt x₀) ((twistCore l).indexAt x₀) x) := by
-  have hb' : x ∈ (trivializationAt 𝕜 (twistCore (𝕜 := 𝕜) (n := n) k).Fiber x₀).baseSet := by
-    simpa [VectorBundleCore.trivializationAt, ← VectorBundleCore.localTrivAt_def] using hb
-  have hc' : x ∈ (trivializationAt 𝕜 (twistCore (𝕜 := 𝕜) (n := n) l).Fiber x₀).baseSet := by
-    simpa [VectorBundleCore.trivializationAt, ← VectorBundleCore.localTrivAt_def] using hc
-  rw [TauCeti.tensorProduct_trivializationAt, twistCoreTensorEquiv_apply]
-  -- The factors of the pure tensor are elements of `𝕜`, read as elements of the fibres.
-  refine (congrArg Prod.snd (Bundle.Trivialization.tensorProduct_apply_mk_tmul ⟨hb', hc'⟩
-    (twistTransition k ((twistCore (k + l)).indexAt x) ((twistCore k).indexAt x) x * v)
-    (twistTransition (𝕜 := 𝕜) l ((twistCore (k + l)).indexAt x) ((twistCore l).indexAt x) x))).trans
-    ?_
-  simp only [VectorBundleCore.trivializationAt, ← VectorBundleCore.localTrivAt_def,
-    VectorBundleCore.localTriv_apply, twistCore_coordChange_apply,
-    TauCeti.ProjectiveTensor.tmulL_apply]
-  have h₁ := twistTransition_mul_twistTransition k ((twistCore (k + l)).indexAt x)
-    ((twistCore k).indexAt x₀) (mem_affineOpen_twistCore_indexAt k x)
-  have h₂ := twistTransition_mul_twistTransition l ((twistCore (k + l)).indexAt x)
-    ((twistCore l).indexAt x₀) (mem_affineOpen_twistCore_indexAt l x)
-  have h₃ := twistTransition_mul_twistTransition l ((twistCore (k + l)).indexAt x)
-    ((twistCore l).indexAt x₀) hb
-  rw [twistTransition_add k l (mem_affineOpen_twistCore_indexAt (k + l) x) hb]
-  congr 1
-  apply (TensorProduct.lid 𝕜 𝕜).injective
-  simp only [TensorProduct.lid_tmul, smul_eq_mul]
-  linear_combination
-    (v * (twistTransition l ((twistCore l).indexAt x) ((twistCore l).indexAt x₀) x *
-      twistTransition l ((twistCore (k + l)).indexAt x) ((twistCore l).indexAt x) x)) * h₁ +
-    (twistTransition k ((twistCore (k + l)).indexAt x) ((twistCore k).indexAt x₀) x * v) * h₂ -
-    (twistTransition k ((twistCore (k + l)).indexAt x) ((twistCore k).indexAt x₀) x * v) * h₃
+  rw [TauCeti.tensorProduct_trivializationAt, Bundle.Trivialization.tensorProduct_apply,
+    ← tensorProduct_localTriv_twistCoreTensorEquiv k l _ _ hb hc v,
+    Pretrivialization.tensorProduct_apply]
+  simp only [VectorBundleCore.trivializationAt, VectorBundleCore.localTrivAt_def]
 
 /-- `twistCoreTensorEquiv` is continuous on total spaces. -/
 theorem continuous_twistCoreTensorEquiv :
