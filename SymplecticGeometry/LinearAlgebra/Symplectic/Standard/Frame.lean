@@ -24,8 +24,8 @@ The linear Moser lemma `exists_contDiff_isUnit_apply_eq` gives a `Cⁿ⁺¹` pat
 `Ψ 0 = 1` and `(Ψ t)^* (ω t) = ω₀`. The map `(Ψ 1)⁻¹ B` preserves `ω₀`, so its matrix is symplectic
 (`mem_symplecticGroup_iff_forall_stdForm`), and `Matrix.exists_contDiff_path_symplecticGroup`
 joins `1` to it by a smooth path `S` of symplectic matrices. Then `P t = Ψ t ∘ S t`. This is the
-linear algebra of the frames along a path of centres in the proof of McDuff–Salamon,
-Theorem 3.3.1.
+linear algebra of the frames along a path of centres, for the case of radius zero of
+McDuff–Salamon, Theorem 3.3.1.
 
 ## References
 
@@ -66,17 +66,15 @@ theorem exists_contDiff_path_apply_eq_stdForm {n : ℕ∞}
   have hS : ContDiff ℝ (⊤ : ℕ∞) fun t ↦ Matrix.toEuclideanCLM (n := ι ⊕ ι) (𝕜 := ℝ) (γ t) :=
     (LinearMap.toContinuousLinearMap
       (Matrix.toEuclideanCLM (n := ι ⊕ ι) (𝕜 := ℝ)).toAlgEquiv.toLinearMap).contDiff.comp hγ
-  have hcoe (A : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ) (v : StdSpace ι) :
-      Matrix.toEuclideanCLM (n := ι ⊕ ι) (𝕜 := ℝ) A v = Matrix.toEuclideanLin A v :=
-    LinearMap.congr_fun (Matrix.coe_toEuclideanCLM_eq_toEuclideanLin A) v
   refine ⟨fun t ↦ Ψ t * Matrix.toEuclideanCLM (n := ι ⊕ ι) (𝕜 := ℝ) (γ t),
     hΨ.mul (hS.of_le (mod_cast le_top)), ?_, ?_, fun t v w ↦ ?_⟩
   · dsimp only
     rw [hΨ0, hγ0, map_one, one_mul]
   · ext1 v
-    rw [mul_apply_eq_comp, hγ1, hcoe, LinearEquiv.apply_symm_apply, ContinuousLinearMap.coe_coe,
-      hΨL]
-  · rw [mul_apply_eq_comp, mul_apply_eq_comp, hΨω, h₀, hcoe, hcoe]
+    rw [mul_apply_eq_comp, hγ1, Matrix.toEuclideanCLM_apply, LinearEquiv.apply_symm_apply,
+      ContinuousLinearMap.coe_coe, hΨL]
+  · rw [mul_apply_eq_comp, mul_apply_eq_comp, hΨω, h₀, Matrix.toEuclideanCLM_apply,
+      Matrix.toEuclideanCLM_apply]
     exact (mem_symplecticGroup_iff_forall_stdForm.1 (hγs t)) v w
 
 end SymplecticGeometry
