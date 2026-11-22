@@ -468,22 +468,27 @@ theorem ker_mpullback_prodMk_stableHamiltonianModel [FiniteDimensional ℝ E] {r
 
 end IsStableHamiltonian
 
+/-- The symplectization form `eᵗ α` is the pullback of `α` along the projection to `M`,
+multiplied by any smooth function `g` with `g (t, x) = eᵗ`. -/
+theorem symplectization_eq_funSMulₗ (α : SmoothForm I M ℝ 1) {g : C^∞⟮𝓘(ℝ).prod I, ℝ × M; ℝ⟯}
+    (hg : ∀ p, g p = Real.exp p.1) :
+    α.symplectization = funSMulₗ g (mpullback Prod.snd contMDiff_snd α) := by
+  apply Subtype.ext
+  rw [coe_symplectization, coe_funSMulₗ]
+  funext p
+  rw [hg]
+
 /-- **The model of the contact pair.** For a one-form `α`, the stable Hamiltonian model of
 `(α, -dα)` is `-d((1 + r) α)` on `ℝ × M`, with `α` pulled back along the projection to `M` and
 `r` the real coordinate. -/
 theorem stableHamiltonianModel_neg_mextDerivₗ (α : SmoothForm I M ℝ 1) :
     stableHamiltonianModel α (-mextDerivₗ I 1 α) =
       -mextDerivₗ (𝓘(ℝ).prod I) 1
-        (funSMulₗ (⟨fun p ↦ 1 + p.1, contMDiff_const.add contMDiff_fst⟩ :
-            C^∞⟮𝓘(ℝ).prod I, ℝ × M; ℝ⟯)
-          (mpullback Prod.snd contMDiff_snd α)) := by
-  set g : C^∞⟮𝓘(ℝ).prod I, ℝ × M; ℝ⟯ := ⟨fun p ↦ 1 + p.1, contMDiff_const.add contMDiff_fst⟩
-  set r : C^∞⟮𝓘(ℝ).prod I, ℝ × M; ℝ⟯ := ⟨Prod.fst, contMDiff_fst⟩
-  set β : SmoothForm (𝓘(ℝ).prod I) (ℝ × M) ℝ 1 := mpullback Prod.snd contMDiff_snd α
-  have hsmul : funSMulₗ g β = β + funSMulₗ r β := by
-    rw [show g = 1 + r from ContMDiffMap.ext fun _ ↦ rfl, funSMulₗ_add, funSMulₗ_one]
-  rw [stableHamiltonianModel_def, map_neg, ← mextDerivₗ_mpullback, hsmul, map_add, neg_add,
-    sub_eq_add_neg]
+        (funSMulₗ (1 + ContMDiffMap.fst) (mpullback Prod.snd contMDiff_snd α)) := by
+  have hr : (⟨Prod.fst, contMDiff_fst⟩ : C^∞⟮𝓘(ℝ).prod I, ℝ × M; ℝ⟯) = ContMDiffMap.fst :=
+    ContMDiffMap.ext fun p ↦ (ContMDiffMap.fst_apply p).symm
+  rw [stableHamiltonianModel_def, hr, map_neg, ← mextDerivₗ_mpullback, funSMulₗ_add,
+    funSMulₗ_one, map_add, neg_add, sub_eq_add_neg]
 
 /-- **The model of the contact pair is a symplectization form.** On an open set `U` of `ℝ × M`
 where `r > -1`, the stable Hamiltonian model of `(α, -dα)` is the pullback of the exterior
@@ -498,7 +503,6 @@ theorem mpullback_subtypeVal_stableHamiltonianModel_neg_mextDerivₗ (α : Smoot
           fun p ↦ (by linarith [hU p.val p.property] : (0 : ℝ) < 1 + p.val.1).ne').prodMk
           (contMDiff_snd.comp contMDiff_subtypeVal))
         (mextDerivₗ (𝓘(ℝ).prod I) 1 (-α).symplectization) := by
-  set g : C^∞⟮𝓘(ℝ).prod I, ℝ × M; ℝ⟯ := ⟨fun p ↦ 1 + p.1, contMDiff_const.add contMDiff_fst⟩
   rw [stableHamiltonianModel_neg_mextDerivₗ, map_neg, ← mextDerivₗ_mpullback,
     ← mextDerivₗ_mpullback, ← map_neg]
   congr 1
@@ -513,14 +517,19 @@ theorem mpullback_subtypeVal_stableHamiltonianModel_neg_mextDerivₗ (α : Smoot
     rw [mpullback_mpullback_of_comp_eq hΨ contMDiff_snd contMDiff_subtypeVal contMDiff_snd rfl,
       map_neg, map_neg]
   -- The pullback of `eˢ (-α)` is `-(1 + r) α`, since `exp (log (1 + r)) = 1 + r`.
-  apply Subtype.ext
-  rw [coe_mpullback, coe_symplectization, TauCeti.mpullback_fun_smul, ← coe_mpullback _ hΨ, hβ,
-    neg_toRoughForm, neg_toRoughForm, coe_mpullback, coe_mpullback, coe_funSMulₗ g,
-    TauCeti.mpullback_fun_smul]
-  funext p
-  rw [Real.exp_log (by linarith [hU p.val p.property])]
-  simp only [g, ContMDiffMap.coeFn_mk, Pi.neg_apply]
-  exact (smul_neg _ _).symm
+  set e : C^∞⟮𝓘(ℝ).prod I, ℝ × M; ℝ⟯ :=
+    ⟨fun p ↦ Real.exp p.1, Real.contDiff_exp.contMDiff.comp contMDiff_fst⟩ with he
+  have he_apply : ∀ p, e p = Real.exp p.1 := fun p ↦ by rw [he, ContMDiffMap.coeFn_mk]
+  have hcomp : e.comp ⟨_, hΨ⟩ =
+      (1 + ContMDiffMap.fst : C^∞⟮𝓘(ℝ).prod I, ℝ × M; ℝ⟯).comp
+        ⟨Subtype.val, contMDiff_subtypeVal⟩ := by
+    ext p
+    refine (ContMDiffMap.comp_apply _ _ p).trans (Eq.trans ?_ (ContMDiffMap.comp_apply _ _ p).symm)
+    simp only [ContMDiffMap.coeFn_mk, he_apply, ContMDiffMap.coe_add, ContMDiffMap.coe_one,
+      Pi.add_apply, Pi.one_apply, ContMDiffMap.fst_apply]
+    exact Real.exp_log (by linarith [hU p.val p.property])
+  rw [symplectization_eq_funSMulₗ (-α) he_apply,
+    mpullback_funSMulₗ, mpullback_funSMulₗ, hβ, map_neg, hcomp]
 
 end Model
 
