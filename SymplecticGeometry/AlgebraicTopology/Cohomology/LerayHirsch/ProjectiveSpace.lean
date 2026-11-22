@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.AlgebraicTopology.Cohomology.LerayHirsch.Bundle
+public import SymplecticGeometry.AlgebraicTopology.Singular.Nullhomotopic
 public import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.ProjectiveSpace
 
 /-!
@@ -27,20 +28,21 @@ class (`Projectivization.hyperplaneClass`), and `X` a path-connected space. This
 
 The integral cohomology of `ℙ ℂ V` is free in every degree
 (`Projectivization.free_integralCohomology`) and its homology is projective and finitely
-generated (`Projectivization.projective_singularHomology`,
-`Projectivization.finite_singularHomology`), so the integral Leray–Hirsch theorem for a product,
-`TopCat.integralLerayHirsch_fst_bijective`, applies to `X × ℙ ℂ V` with any bases of the
+generated (`Projectivization.projective_singularHomology`, and Tau Ceti's
+`TauCeti.finite_singularHomology_of_finiteCWType` for the finite CW structure
+`TauCeti.finiteCWType_projectivization_complex`), so the integral Leray–Hirsch theorem for a
+product, `TopCat.integralLerayHirsch_fst_bijective`, applies to `X × ℙ ℂ V` with any bases of the
 cohomology of the fibre. In degree two only the fibre degrees `0`, `1` and `2` contribute. In
 degree `0` every class of the fibre is a multiple of the unit, so its summand gives the classes
 `pr₁^* a`; degree `1` is zero (`Projectivization.isZero_integralCohomology_of_odd`); in degree
 `2` every class of the fibre is a multiple of `h`
-(`Projectivization.bijective_zsmul_hyperplaneClass_pow`, or `H²(ℙ ℂ V; ℤ) = 0` when `n = 0`),
+(`Projectivization.exists_eq_zsmul_hyperplaneClass`),
 and the coefficient in `H⁰(X; ℤ)` is a multiple of the unit as `X` is path-connected
 (`TopCat.bijective_zsmul_integralCohomologyOne`).
 
 For the vanishing criterion, restriction to `X × {y₀}` gives back `a`, since `h` pulls back to
-zero through a point; restriction to `{x₀} × ℙ ℂ V` then gives `m • h`, which vanishes only for
-`m = 0` or `h = 0`.
+zero through a point (`TopCat.singularCohomologyMap_const_eq_zero`); restriction to
+`{x₀} × ℙ ℂ V` then gives `m • h`, so `m • h = 0` and `m • pr₂^* h = pr₂^* (m • h)` vanishes.
 
 ## References
 
@@ -72,21 +74,14 @@ theorem exists_eq_add_zsmul_hyperplaneClass (hV : finrank ℂ V = n + 1) (X : To
   have : Module.Projective ℤ (𝟙_ (ModuleCat.{0} ℤ)) := inferInstanceAs (Module.Projective ℤ ℤ)
   have : Module.Finite ℤ (𝟙_ (ModuleCat.{0} ℤ)) := inferInstanceAs (Module.Finite ℤ ℤ)
   have := fun d ↦ projective_singularHomology (𝟙_ (ModuleCat.{0} ℤ)) hV d
+  have : FiniteDimensional ℂ V := Module.finite_of_finrank_eq_succ hV
   classical
   let b (d : ℕ) := Module.Free.chooseBasis ℤ ((TopCat.of (ℙ ℂ V)).integralCohomology d)
   obtain ⟨g, rfl⟩ := (TopCat.integralLerayHirsch_fst_bijective (n := 2) X (TopCat.of (ℙ ℂ V)) b
-    fun d _ ↦ finite_singularHomology _ hV d).2 c
+    fun d _ ↦ finite_singularHomology_of_finiteCWType _ _ d).2 c
   have h0 {Y : TopCat.{0}} [PathConnectedSpace Y] (y : Y.integralCohomology 0) :
       ∃ m : ℤ, y = m • Y.integralCohomologyOne :=
     ((TopCat.bijective_zsmul_integralCohomologyOne Y).2 y).imp fun _ h ↦ h.symm
-  have h2 (y : (TopCat.of (ℙ ℂ V)).integralCohomology 2) : ∃ m : ℤ, y = m • hyperplaneClass V := by
-    rcases Nat.eq_zero_or_pos n with rfl | hn
-    · have := ModuleCat.subsingleton_of_isZero (isZero_integralCohomology_of_lt hV (m := 2)
-        (by omega))
-      exact ⟨0, Subsingleton.elim _ _⟩
-    · obtain ⟨m, hm⟩ := (bijective_zsmul_hyperplaneClass_pow hV (k := 1) hn).2 y
-      refine ⟨m, ?_⟩
-      rw [← hm, pow_one, DirectSum.of_eq_same]
   induction g using DirectSum.induction_on with
   | zero => exact ⟨0, 0, by simp⟩
   | add g g' hg hg' =>
@@ -110,16 +105,12 @@ theorem exists_eq_add_zsmul_hyperplaneClass (hV : finrank ℂ V = n + 1) (X : To
       simp
     · obtain rfl : q = 0 := by simp only at hpq; omega
       obtain ⟨m, rfl⟩ := h0 β
-      obtain ⟨m', hm'⟩ := h2 (b 2 i)
+      obtain ⟨m', hm'⟩ := exists_eq_zsmul_hyperplaneClass hV (b 2 i)
       refine ⟨0, m * m', ?_⟩
       rw [hm', map_zsmul (TopCat.singularCohomologyMap (fst X _) 0).hom,
         map_zsmul (TopCat.singularCohomologyMap (snd X _) 2).hom,
-        TopCat.singularCohomologyMap_integralCohomologyOne, map_zero, zero_add, mul_zsmul]
-      -- `a ↦ a ⌣ y` as an additive map, since the bilinear map has no `flip` over `ℤ` here.
-      refine (map_zsmul (AddMonoidHom.mk' (fun a ↦ (X ⊗ TopCat.of (ℙ ℂ V)).integralCup 0 2 2
-        (by omega) a (m' • TopCat.singularCohomologyMap (snd X _) 2 (hyperplaneClass V)))
-        fun a b ↦ by rw [map_add, LinearMap.add_apply]) m _).trans ?_
-      rw [AddMonoidHom.mk'_apply, TopCat.integralCup_integralCohomologyOne]
+        TopCat.singularCohomologyMap_integralCohomologyOne, map_zero, zero_add, mul_zsmul,
+        TopCat.integralCup_zsmul_left, TopCat.integralCup_integralCohomologyOne]
 
 /-- **A vanishing criterion in degree two of the integral cohomology of `X × ℙ ℂ V`.** For
 `finrank ℂ V = n + 1`, `X` path-connected and points `x₀ : X`, `y₀ : ℙ ℂ V`, a class
@@ -133,30 +124,16 @@ theorem eq_zero_of_singularCohomologyMap_eq_zero (hV : finrank ℂ V = n + 1) {X
     (h₂ : TopCat.singularCohomologyMap (TopCat.prodFiberInclusion X _ x₀) 2 c = 0) :
     c = 0 := by
   obtain ⟨a, m, rfl⟩ := exists_eq_add_zsmul_hyperplaneClass hV X c
-  -- In positive degrees a constant map induces zero.
-  have hconst {Y Z : TopCat.{0}} (z : Z) :
-      TopCat.singularCohomologyMap (R := ModuleCat.of ℤ (ULift.{0} ℤ)) (k := ℤ)
-        (M := ModuleCat.of ℤ ℤ) (TopCat.const (X := Y) z) 2 = 0 :=
-    TopCat.singularCohomologyMap_eq_zero_of_nullhomotopic (by
-      rw [show (TopCat.const (X := Y) z).hom = ContinuousMap.const Y z from
-        ContinuousMap.ext fun _ ↦ TopCat.const_apply _ _]
-      exact ContinuousMap.nullhomotopic_of_constant z) two_ne_zero
   rw [map_add, map_zsmul, ← ConcreteCategory.comp_apply, ← TopCat.singularCohomologyMap_comp,
     lift_fst, TopCat.singularCohomologyMap_id, ← ConcreteCategory.comp_apply,
-    ← TopCat.singularCohomologyMap_comp, lift_snd, hconst] at h₁
+    ← TopCat.singularCohomologyMap_comp, lift_snd,
+    TopCat.singularCohomologyMap_const_eq_zero _ two_ne_zero] at h₁
   simp only [ConcreteCategory.id_apply, ModuleCat.hom_zero, LinearMap.zero_apply, zsmul_zero,
     add_zero] at h₁
   subst h₁
   rw [map_zero, zero_add] at h₂ ⊢
   rw [map_zsmul, ← ConcreteCategory.comp_apply, ← TopCat.singularCohomologyMap_comp,
     TopCat.prodFiberInclusion_snd, TopCat.singularCohomologyMap_id, ConcreteCategory.id_apply] at h₂
-  rcases Nat.eq_zero_or_pos n with rfl | hn
-  · have := ModuleCat.subsingleton_of_isZero (isZero_integralCohomology_of_lt hV (m := 2)
-      (by omega))
-    rw [Subsingleton.elim (hyperplaneClass V) 0, map_zero, zsmul_zero]
-  · obtain rfl : m = 0 := (bijective_zsmul_hyperplaneClass_pow hV (k := 1) hn).1 (by
-      simp only [pow_one, DirectSum.of_eq_same]
-      rw [h₂, zero_smul])
-    rw [zero_zsmul]
+  rw [← map_zsmul, h₂, map_zero]
 
 end Projectivization

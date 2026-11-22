@@ -38,7 +38,8 @@ The integral form, for `TopCat.integralCohomology` and the integral cup product
 `TopCat.integralLerayHirsch` is an additive map, which over `ℤ` is the same as a linear one.
 For a product `X × F` and the pull-backs `pr₂^* b` of bases `b` of the integral cohomology of
 `F`, its bijectivity is `TopCat.integralLerayHirsch_fst_bijective`, from Tau Ceti's
-`TopCat.lerayHirschProd_bijective`.
+`TopCat.lerayHirschProd_bijective`. Both bijectivity results reduce to coefficients `ℤ` by
+`TopCat.integralLerayHirsch_bijective_iff`.
 
 ## Proof
 
@@ -461,6 +462,29 @@ theorem integralLerayHirsch_integralCohomologyLinearEquiv
       integralLerayHirsch_of, ← DirectSum.lof_eq_of ℤ, lerayHirsch_lof,
       integralCohomologyLinearEquiv_singularCup, integralCohomologyLinearEquiv_naturality]
 
+/-- The integral Leray–Hirsch map of classes `c` with coefficients `ℤ`, read through
+`TopCat.integralCohomologyLinearEquiv`, is bijective exactly when the Leray–Hirsch map with
+coefficients `ℤ` of `c` is. -/
+theorem integralLerayHirsch_bijective_iff
+    (c : ∀ d, ι d → E.singularCohomology (𝟙_ (ModuleCat.{0} ℤ)) ℤ (𝟙_ (ModuleCat.{0} ℤ)) d) :
+    Function.Bijective
+        (integralLerayHirsch p n fun d i ↦ E.integralCohomologyLinearEquiv d (c d i)) ↔
+      Function.Bijective (lerayHirsch p n c) := by
+  have hmap : Function.Bijective (DirectSum.map
+      fun j : Σ pq : {pq : ℕ × ℕ // pq.1 + pq.2 = n}, ι pq.val.1 ↦
+        (B.integralCohomologyLinearEquiv j.1.val.2).toLinearMap.toAddMonoidHom) :=
+    ⟨(DirectSum.map_injective _).2 fun j ↦ (integralCohomologyLinearEquiv _ _).injective,
+      (DirectSum.map_surjective _).2 fun j ↦ (integralCohomologyLinearEquiv _ _).surjective⟩
+  have hcomp : ⇑(integralLerayHirsch p n fun d i ↦ E.integralCohomologyLinearEquiv d (c d i)) ∘
+      ⇑(DirectSum.map fun j : Σ pq : {pq : ℕ × ℕ // pq.1 + pq.2 = n}, ι pq.val.1 ↦
+        (B.integralCohomologyLinearEquiv j.1.val.2).toLinearMap.toAddMonoidHom) =
+      ⇑(E.integralCohomologyLinearEquiv n) ∘ ⇑(lerayHirsch p n c) := by
+    funext x
+    rw [Function.comp_apply, Function.comp_apply,
+      integralLerayHirsch_integralCohomologyLinearEquiv]
+  rw [← Function.Bijective.of_comp_iff _ hmap, hcomp,
+    Function.Bijective.of_comp_iff' (integralCohomologyLinearEquiv _ n).bijective]
+
 end LinearEquiv
 
 /-- **The integral Leray–Hirsch theorem for a product.** Suppose that the homology `H_d(F; ℤ)` is
@@ -490,26 +514,8 @@ theorem integralLerayHirsch_fst_bijective (X F : TopCat.{0}) {ι : ℕ → Type}
     funext d i
     rw [integralCohomologyLinearEquiv_naturality, Module.Basis.map_apply,
       LinearEquiv.apply_symm_apply]
-  have hprod : lerayHirsch (fst X F) n c' = lerayHirschProd X F n b' := by
-    refine DirectSum.linearMap_ext ℤ fun ⟨⟨⟨d, q⟩, h⟩, i⟩ ↦ LinearMap.ext fun a ↦ ?_
-    simp only [LinearMap.comp_apply]
-    rw [lerayHirsch_lof, lerayHirschProd_lof]
-  have hmap : Function.Bijective (DirectSum.map
-      fun j : Σ pq : {pq : ℕ × ℕ // pq.1 + pq.2 = n}, ι pq.val.1 ↦
-        (X.integralCohomologyLinearEquiv j.1.val.2).toLinearMap.toAddMonoidHom) :=
-    ⟨(DirectSum.map_injective _).2 fun j ↦ (integralCohomologyLinearEquiv _ _).injective,
-      (DirectSum.map_surjective _).2 fun j ↦ (integralCohomologyLinearEquiv _ _).surjective⟩
-  rw [← Function.Bijective.of_comp_iff _ hmap]
-  have hcomp : ⇑(integralLerayHirsch (fst X F) n
-      fun d i ↦ TopCat.singularCohomologyMap (snd X F) d (b d i)) ∘
-      ⇑(DirectSum.map fun j : Σ pq : {pq : ℕ × ℕ // pq.1 + pq.2 = n}, ι pq.val.1 ↦
-        (X.integralCohomologyLinearEquiv j.1.val.2).toLinearMap.toAddMonoidHom) =
-      ⇑((X ⊗ F).integralCohomologyLinearEquiv n) ∘ ⇑(lerayHirschProd X F n b') := by
-    funext x
-    rw [Function.comp_apply, Function.comp_apply, ← hprod,
-      ← integralLerayHirsch_integralCohomologyLinearEquiv, ← hbb']
-  rw [hcomp]
-  exact (integralCohomologyLinearEquiv _ n).bijective.comp (lerayHirschProd_bijective X b' hF)
+  rw [hbb', integralLerayHirsch_bijective_iff, lerayHirsch_fst, lerayHirschProdOfClasses_snd]
+  exact lerayHirschProd_bijective X b' hF
 
 end Integral
 
@@ -562,23 +568,8 @@ theorem integralLerayHirsch_bijective (s : Finset Y)
       rw [Module.Basis.map_apply, Module.Basis.mk_apply, LinearEquiv.symm_apply_eq,
         integralCohomologyLinearEquiv_naturality, LinearEquiv.apply_symm_apply]
     exact hb ▸ And.intro (b.map _).linearIndependent (b.map _).span_eq.ge
-  have hmap : Function.Bijective (DirectSum.map
-      fun j : Σ pq : {pq : ℕ × ℕ // pq.1 + pq.2 = n}, ι pq.val.1 ↦
-        ((of Y).integralCohomologyLinearEquiv j.1.val.2).toLinearMap.toAddMonoidHom) :=
-    ⟨(DirectSum.map_injective _).2 fun j ↦ (integralCohomologyLinearEquiv _ _).injective,
-      (DirectSum.map_surjective _).2 fun j ↦ (integralCohomologyLinearEquiv _ _).surjective⟩
-  rw [← Function.Bijective.of_comp_iff _ hmap]
-  have hcomp : ⇑(integralLerayHirsch (ofHom ⟨π F Z, FiberBundle.continuous_proj F Z⟩) n c) ∘
-      ⇑(DirectSum.map fun j : Σ pq : {pq : ℕ × ℕ // pq.1 + pq.2 = n}, ι pq.val.1 ↦
-        ((of Y).integralCohomologyLinearEquiv j.1.val.2).toLinearMap.toAddMonoidHom) =
-      ⇑((of (TotalSpace F Z)).integralCohomologyLinearEquiv n) ∘
-        ⇑(lerayHirsch (ofHom ⟨π F Z, FiberBundle.continuous_proj F Z⟩) n c') := by
-    funext x
-    rw [Function.comp_apply, Function.comp_apply,
-      ← integralLerayHirsch_integralCohomologyLinearEquiv, ← hcc']
-  rw [hcomp]
-  exact (integralCohomologyLinearEquiv _ n).bijective.comp
-    (lerayHirsch_bijective (k := ℤ) s hs n c' hι hF hc')
+  rw [hcc', integralLerayHirsch_bijective_iff]
+  exact lerayHirsch_bijective (k := ℤ) s hs n c' hι hF hc'
 
 /-- **The integral Leray–Hirsch isomorphism** of a fibre bundle with a finite trivializing cover,
 `⨁_{d + q = n} ⨁_{i : ι d} H^q(Y; ℤ) ≃ Hⁿ(Z; ℤ)`, the additive equivalence given by the integral

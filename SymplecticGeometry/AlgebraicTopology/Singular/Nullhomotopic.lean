@@ -7,9 +7,10 @@ module
 
 public import Mathlib.AlgebraicTopology.SingularHomology.HomotopyInvariance
 public import Mathlib.Topology.Homotopy.Contractible
+public import TauCeti.AlgebraicTopology.Cohomology.Point
 
 /-!
-# Nullhomotopic maps on singular homology
+# Nullhomotopic maps on singular homology and cohomology
 
 A nullhomotopic map `f : X ⟶ Y` in `TopCat` induces the zero map on singular homology
 `Hₙ(-; R)` in every positive degree `n`
@@ -18,7 +19,9 @@ A nullhomotopic map `f : X ⟶ Y` in `TopCat` induces the zero map on singular h
 constant map, which factors through a point, and the positive-degree homology of a point vanishes
 (`AlgebraicTopology.isZero_singularHomologyFunctor_of_totallyDisconnectedSpace`). In
 particular, a constant map induces zero in positive degree
-(`TopCat.singularHomologyFunctor_map_const_eq_zero`).
+(`TopCat.singularHomologyFunctor_map_const_eq_zero`), and likewise in singular cohomology
+(`TopCat.singularCohomologyMap_const_eq_zero`, from Tau Ceti's
+`TopCat.singularCohomologyMap_eq_zero_of_nullhomotopic`).
 
 ## Sources
 
@@ -68,6 +71,17 @@ lemma singularHomologyFunctor_map_const_eq_zero {X Y : TopCat.{w}} (x₀ : X) {n
     (hn : n ≠ 0) :
     ((singularHomologyFunctor C n).obj R).map (TopCat.const x₀ : Y ⟶ X) = 0 := by
   refine singularHomologyFunctor_map_eq_zero_of_nullhomotopic R ?_ hn
+  have h : (TopCat.const x₀ : Y ⟶ X).hom = ContinuousMap.const Y x₀ := by
+    ext
+    simp
+  exact h ▸ ContinuousMap.nullhomotopic_of_constant x₀
+
+/-- In positive degree, singular cohomology sends a constant map to zero. -/
+lemma singularCohomologyMap_const_eq_zero {C : Type u} [Category.{v} C] [HasCoproducts.{w} C]
+    [Abelian C] {R : C} {k : Type*} [Ring k] [Linear k C] {M : C} {X Y : TopCat.{w}} (x₀ : X)
+    {n : ℕ} (hn : n ≠ 0) :
+    TopCat.singularCohomologyMap (R := R) (k := k) (M := M) (TopCat.const x₀ : Y ⟶ X) n = 0 := by
+  refine singularCohomologyMap_eq_zero_of_nullhomotopic ?_ hn
   have h : (TopCat.const x₀ : Y ⟶ X).hom = ContinuousMap.const Y x₀ := by
     ext
     simp

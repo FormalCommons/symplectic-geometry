@@ -37,7 +37,8 @@ the direct sum `⨁ k, H^{2k}(X; ℤ)` is a commutative ring. This file builds i
 
 The ring map preserves the unit by `TopCat.singularCohomologyMap_integralCohomologyOne`, the
 pull-back of the unit class, which Tau Ceti does not state; its proof reads the definition of
-`TopCat.integralCohomologyOne` through `import all`.
+`TopCat.integralCohomologyOne` through `import all`. The file also takes an integer multiple out
+of the left factor of the cup product (`TopCat.integralCup_zsmul_left`).
 
 The graded structures and the lemmas on the inclusions follow Tau Ceti's
 `TauCeti.NormalizedCubicalChain.gRing` and `TauCeti.cubicalChainLof_mul`,
@@ -67,6 +68,14 @@ theorem integralCup_heq {p q n n' : ℕ} (h : p + q = n) (h' : p + q = n')
     X.integralCup p q n h a b ≍ X.integralCup p q n' h' a b := by
   subst h h'
   rfl
+
+/-- An integer multiple can be taken out of the left factor of the integral cup product. -/
+theorem integralCup_zsmul_left {p q n : ℕ} (h : p + q = n) (m : ℤ) (a : X.integralCohomology p)
+    (b : X.integralCohomology q) :
+    X.integralCup p q n h (m • a) b = m • X.integralCup p q n h a b := by
+  -- Evaluation at `b` is linear, so it commutes with the integer multiple.
+  rw [map_zsmul, ← LinearMap.applyₗ_apply_apply (R := ℤ), map_zsmul,
+    LinearMap.applyₗ_apply_apply]
 
 namespace EvenIntegralCohomology
 
