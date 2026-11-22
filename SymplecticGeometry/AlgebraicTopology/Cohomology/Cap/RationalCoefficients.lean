@@ -367,7 +367,7 @@ theorem singularHomologyIntToRat_def (n : ℕ) :
 
 /-- The comparison of cohomologies on the class of a rational cocycle `φ` is the class of the
 restriction of `φ` to integral chains. -/
-@[reassoc]
+@[reassoc, elementwise]
 theorem map_homologyπ_singularCohomologyRatIso_hom (p : ℕ) :
     (ModuleCat.restrictScalars.{0} (algebraMap ℤ ℚ)).map
         ((X.singularCochainComplex (𝟙_ (ModuleCat.{0} ℚ)) ℚ (𝟙_ (ModuleCat.{0} ℚ))).homologyπ p) ≫
@@ -427,7 +427,7 @@ theorem map_homologyπ_singularHomologyRatIso_hom (q : ℕ) :
 
 /-- On cocycles, restricting a rational cocycle to integral chains is restricting the underlying
 cochain. -/
-@[reassoc]
+@[reassoc, elementwise]
 theorem mapCyclesIso_inv_cyclesMap_singularCochainComplexRatIso_hom_iCycles (p : ℕ) :
     (((X.singularCochainComplex (𝟙_ (ModuleCat.{0} ℚ)) ℚ (𝟙_ (ModuleCat.{0} ℚ))).sc
         p).mapCyclesIso (ModuleCat.restrictScalars.{0} (algebraMap ℤ ℚ))).inv ≫
@@ -448,6 +448,7 @@ theorem mapCyclesIso_inv_cyclesMap_singularCochainComplexRatIso_hom_iCycles (p :
 /-- **Capping with the restriction of a cocycle**, on cycles: capping integral cycles with the
 restriction of a rational cocycle `φ` is making them rational, capping with `φ`, and reading the
 result with coefficients in the abelian group `ℚ`. -/
+@[elementwise]
 theorem capCycles_cyclesMap_singularCochainComplexRatIso_hom {p q n : ℕ} (h : p + q = n)
     (φ : (X.singularCochainComplex (𝟙_ (ModuleCat.{0} ℚ)) ℚ (𝟙_ (ModuleCat.{0} ℚ))).cycles p) :
     ChainComplex.capCycles ℤ (X.alexanderWhitneyDiagonal (ρ_ _).inv)
@@ -474,8 +475,7 @@ theorem capCycles_cyclesMap_singularCochainComplexRatIso_hom {p q n : ℕ} (h : 
       X.singularCochainComplexRatIso.hom.f p
         ((X.singularCochainComplex (𝟙_ (ModuleCat.{0} ℚ)) ℚ
           (𝟙_ (ModuleCat.{0} ℚ))).iCycles p φ) :=
-    ConcreteCategory.congr_hom
-      (X.mapCyclesIso_inv_cyclesMap_singularCochainComplexRatIso_hom_iCycles p) φ
+    X.mapCyclesIso_inv_cyclesMap_singularCochainComplexRatIso_hom_iCycles_apply p φ
   have e₁ := (((toSSet.obj X).chainComplex (𝟙_ (ModuleCat.{0} ℚ))).sc
     q).mapCyclesIso_inv_comp_iCycles (ModuleCat.restrictScalars.{0} (algebraMap ℤ ℚ))
   have e₂ := (((toSSet.obj X).chainComplex (𝟙_ (ModuleCat.{0} ℚ))).sc
@@ -518,7 +518,7 @@ theorem singularCap_singularCohomologyRatIso_hom {p q n : ℕ} (h : p + q = n)
         (HomologicalComplex.cyclesMap X.singularCochainComplexRatIso.hom p
           ((((X.singularCochainComplex (𝟙_ (ModuleCat.{0} ℚ)) ℚ (𝟙_ (ModuleCat.{0} ℚ))).sc
             p).mapCyclesIso (ModuleCat.restrictScalars.{0} (algebraMap ℤ ℚ))).inv φ)) :=
-    ConcreteCategory.congr_hom (X.map_homologyπ_singularCohomologyRatIso_hom p) φ
+    X.map_homologyπ_singularCohomologyRatIso_hom_apply p φ
   have hρ : X.singularHomologyIntToRat n
       (((toSSet.obj X).chainComplex (ModuleCat.of ℤ (ULift.{0} ℤ))).homologyπ n z) =
       ((toSSet.obj X).chainComplex (𝟙_ (ModuleCat.{0} ℚ))).homologyπ n
@@ -555,7 +555,7 @@ theorem singularCap_singularCohomologyRatIso_hom {p q n : ℕ} (h : p + q = n)
           (𝟙_ (ModuleCat.{0} ℚ))).homologyπ p φ))) hρ).trans
         ((congrArg (X.singularHomologyRatIso q).hom (hcap _)).trans (hr _))).symm)
   exact congrArg (((toSSet.obj X).chainComplex (ModuleCat.of ℤ ℚ)).homologyπ q)
-    (ConcreteCategory.congr_hom (X.capCycles_cyclesMap_singularCochainComplexRatIso_hom h φ) z)
+    (X.capCycles_cyclesMap_singularCochainComplexRatIso_hom_apply h φ z)
 
 end TopCat
 
