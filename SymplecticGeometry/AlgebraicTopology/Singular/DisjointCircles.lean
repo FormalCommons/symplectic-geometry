@@ -134,9 +134,11 @@ theorem singularHomologyFunctor_map_prodRetraction_comp_prodInclusion (i j : ι)
   split_ifs with h
   · subst h
     rw [prodRetraction_comp_prodInclusion_self, TopCat.ofHom_id, CategoryTheory.Functor.map_id]
-  · rw [prodRetraction_comp_prodInclusion_of_ne h,
-      ContinuousMap.singularHomologyFunctor_map_eq_circleDegree_smul,
-      ContinuousMap.circleDegree_const, zero_smul]
+  · rw [prodRetraction_comp_prodInclusion_of_ne h]
+    -- `TopCat.ofHom (ContinuousMap.const _ 1)` is `TopCat.const 1` by definition, so the general
+    -- vanishing of constant maps on positive-degree homology applies directly
+    exact TopCat.singularHomologyFunctor_map_const_eq_zero (ModuleCat.of ℤ (ULift.{0} ℤ))
+      (1 : TopCat.of Circle) (Y := TopCat.of Circle) one_ne_zero
 
 /-- **The first homology of `ι × Circle` splits along the circles.** The composites of
 `prodRetraction i` and `prodInclusion i` on `H₁` add up to the identity of `H₁(ι × Circle)`. -/
