@@ -86,9 +86,7 @@ has this instance for normed spaces over `RCLike 𝕜`, which covers `G` over `�
 locally convex T1 spaces over `ℝ`. For a fibre `E b` of a vector bundle, which has no norm, it must
 be supplied. The pull-backs along `ProjectiveBundle.map`, `ProjectiveBundle.inl` and
 `ProjectiveBundle.inr` have the lines of the target as fibres by definition, which is why these
-maps, `ProjectiveBundle.projection` and `ProjectiveBundle.pullbackMap` are `@[expose]`, and the
-fibrewise isomorphisms along `inl` and `inr` are computed through
-`ContinuousLinearMap.equivMapOfLeftInverse`, which is `@[expose]` for the same reason.
+maps, `ProjectiveBundle.projection` and `ProjectiveBundle.pullbackMap` are `@[expose]`.
 
 ## References
 
@@ -693,7 +691,8 @@ def tautologicalInlEquiv (p : ProjectiveBundle 𝕜 G₁ E₁) :
 theorem coe_tautologicalInlEquiv_apply (p : ProjectiveBundle 𝕜 G₁ E₁)
     (v : Tautological 𝕜 G₁ E₁ p) :
     (tautologicalInlEquiv G₂ E₂ p v).val = ((v : E₁ p.proj), 0) :=
-  (rfl)
+  ContinuousLinearMap.coe_equivMapOfLeftInverse_apply (ContinuousLinearMap.inl 𝕜 _ _)
+    (ContinuousLinearMap.fst 𝕜 (E₁ p.proj) (E₂ p.proj)) (fun _ ↦ rfl) p.snd.submodule v
 
 theorem continuous_tautologicalInlEquiv :
     Continuous fun v : TotalSpace 𝕜 (Tautological 𝕜 G₁ E₁) ↦
@@ -702,11 +701,13 @@ theorem continuous_tautologicalInlEquiv :
   Pullback.continuous_iff.2 ⟨continuous_proj_tautological 𝕜 G₁ E₁,
     continuous_totalSpace_tautological_iff.2 ⟨(inl G₂ E₂).continuous.comp
       (continuous_proj_tautological 𝕜 G₁ E₁),
-      (FiberBundle.Prod.isInducing_diag G₁ E₁ G₂ E₂).continuous_iff.2
+      (FiberBundle.Prod.isInducing_diag G₁ E₁ G₂ E₂).continuous_iff.2 <|
         ((continuous_toTotalSpace_tautological 𝕜 G₁ E₁).prodMk
-          ((Trivialization.continuous_zeroSection 𝕜).comp
+          ((Trivialization.continuous_zeroSection 𝕜 (F := G₂) (E := E₂)).comp
             ((FiberBundle.continuous_proj G₁ E₁).comp
-              (continuous_toTotalSpace_tautological 𝕜 G₁ E₁))))⟩⟩
+              (continuous_toTotalSpace_tautological 𝕜 G₁ E₁)))).congr fun v ↦ by
+          -- `simp` leaves `HEq` goals whose types agree only by unfolding `inl` or `inr`.
+          ext <;> simp [Pullback.lift, zeroSection] <;> rfl⟩⟩
 
 variable (G₁ E₁) in
 /-- The pull-back of the tautological line of `E₁ ×ᵇ E₂` along `ProjectiveBundle.inr` is the
@@ -722,7 +723,8 @@ def tautologicalInrEquiv (p : ProjectiveBundle 𝕜 G₂ E₂) :
 theorem coe_tautologicalInrEquiv_apply (p : ProjectiveBundle 𝕜 G₂ E₂)
     (v : Tautological 𝕜 G₂ E₂ p) :
     (tautologicalInrEquiv G₁ E₁ p v).val = (0, (v : E₂ p.proj)) :=
-  (rfl)
+  ContinuousLinearMap.coe_equivMapOfLeftInverse_apply (ContinuousLinearMap.inr 𝕜 _ _)
+    (ContinuousLinearMap.snd 𝕜 (E₁ p.proj) (E₂ p.proj)) (fun _ ↦ rfl) p.snd.submodule v
 
 theorem continuous_tautologicalInrEquiv :
     Continuous fun v : TotalSpace 𝕜 (Tautological 𝕜 G₂ E₂) ↦
@@ -731,11 +733,13 @@ theorem continuous_tautologicalInrEquiv :
   Pullback.continuous_iff.2 ⟨continuous_proj_tautological 𝕜 G₂ E₂,
     continuous_totalSpace_tautological_iff.2 ⟨(inr G₁ E₁).continuous.comp
       (continuous_proj_tautological 𝕜 G₂ E₂),
-      (FiberBundle.Prod.isInducing_diag G₁ E₁ G₂ E₂).continuous_iff.2
-        (((Trivialization.continuous_zeroSection 𝕜).comp
+      (FiberBundle.Prod.isInducing_diag G₁ E₁ G₂ E₂).continuous_iff.2 <|
+        (((Trivialization.continuous_zeroSection 𝕜 (F := G₁) (E := E₁)).comp
             ((FiberBundle.continuous_proj G₂ E₂).comp
               (continuous_toTotalSpace_tautological 𝕜 G₂ E₂))).prodMk
-          (continuous_toTotalSpace_tautological 𝕜 G₂ E₂))⟩⟩
+          (continuous_toTotalSpace_tautological 𝕜 G₂ E₂)).congr fun v ↦ by
+          -- `simp` leaves `HEq` goals whose types agree only by unfolding `inl` or `inr`.
+          ext <;> simp [Pullback.lift, zeroSection] <;> rfl⟩⟩
 
 end Prod
 

@@ -19,12 +19,6 @@ inverse is what the left inverse provides.
 ## Main definitions
 
 * `ContinuousLinearMap.equivMapOfLeftInverse f g h p : p ≃L[R] p.map f`.
-
-## Implementation notes
-
-The definition is `@[expose]`, so that other files can compute with it by `rfl`: the fibrewise
-isomorphisms of tautological lines along `SymplecticGeometry.Bundle.ProjectiveBundle.inl` and
-`inr` land in fibres that are only definitionally the image of a line.
 -/
 
 public section
@@ -36,7 +30,6 @@ variable {R M M₂ : Type*} [Semiring R] [AddCommMonoid M] [Module R M] [Topolog
 
 /-- A continuous linear map `f` with a continuous left inverse `g` restricts to a continuous
 linear equivalence of a submodule `p` onto its image; the inverse is the restriction of `g`. -/
-@[expose]
 def equivMapOfLeftInverse (f : M →L[R] M₂) (g : M₂ →L[R] M) (h : Function.LeftInverse g f)
     (p : Submodule R M) : p ≃L[R] p.map (f : M →ₗ[R] M₂) where
   toFun v := ⟨f v, Submodule.mem_map_of_mem v.property⟩
