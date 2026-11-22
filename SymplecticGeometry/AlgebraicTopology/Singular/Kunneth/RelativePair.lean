@@ -267,17 +267,12 @@ theorem singularHomologyCrossRelPair_naturality {X' Y' : TopCat.{w}} {A' : Set X
         TopPair.singularHomologyMap (TopPair.ofSubsetMap g hg) S q) ≫
           singularHomologyCrossRelPair X' Y' A' B' R S p q n h =
       singularHomologyCrossRelPair X Y A B R S p q n h ≫ TopPair.singularHomologyMap
-        (TopPair.ofSubsetMap (f ⊗ₘ g) (mapsTo_tensorHom_preimage_union f g hf hg)) (R ⊗ S) n :=
-  -- The relative singular homology maps are by definition the maps induced on the homology of
-  -- the relative singular chain complexes, so the algebraic naturality applies; the composites
-  -- are reassociated by hand, as in `TopCat.singularHomologyCrossRel_naturality`.
-  (Category.assoc _ _ _).symm.trans <|
-    (congrArg (· ≫ homologyMap (shufflePair X' Y' A' B' R S) n)
-      (homologyCross_naturality (TopPair.singularChainComplexMap (TopPair.ofSubsetMap f hf) R)
-        (TopPair.singularChainComplexMap (TopPair.ofSubsetMap g hg) S) p q n h)).trans <|
-    (Category.assoc _ _ _).trans <| (congrArg (_ ≫ ·) ((homologyMap_comp _ _ n).symm.trans
-      ((congrArg (homologyMap · n) (shufflePair_naturality X Y A B R S f hf g hg)).trans
-        (homologyMap_comp _ _ n)))).trans (Category.assoc _ _ _).symm
+        (TopPair.ofSubsetMap (f ⊗ₘ g) (mapsTo_tensorHom_preimage_union f g hf hg)) (R ⊗ S) n := by
+  rw [singularHomologyCrossRelPair_def, singularHomologyCrossRelPair_def, Category.assoc,
+    TopPair.singularHomologyMap, ← homologyMap_comp, ← shufflePair_naturality, homologyMap_comp]
+  -- `homologyCross_naturality` writes the tensor product of chain maps as
+  -- `HomologicalComplex.tensorHom`, which is `⊗ₘ` only up to unfolding the monoidal structure
+  exact homologyCross_naturality_assoc _ _ p q n h _
 
 section Coefficients
 
