@@ -47,8 +47,6 @@ noncomputable section
 
 open TauCeti Module
 
-universe w
-
 namespace TauCeti.Manifold.Orientation
 
 open Bundle
