@@ -194,7 +194,8 @@ following choices.
   for a smooth embedding (`is…Embedding_iff_of_isSmoothEmbedding`).
   *Properly embedded* is `IsClosed (Set.range f)`. `Tubular.lean` does not
   need it, since the relative Moser theorem of *Moser isotopy* assumes no
-  closed image; the theorems never assume it of $f_1$.
+  closed image; the theorems never assume it of $f_1$, and the symplectic and
+  Lagrangian theorems not of $f_0$ either.
 - **The relative Moser theorem that the part uses.** `Tubular.lean` needs
   the milestone *Relative Moser theorem with prescribed first derivative*
   in the form of Tau Ceti's `exists_diffeomorph_opens_of_eq_along`, without
@@ -217,10 +218,11 @@ and two rows of its milestone table.
     `Neighborhood/Basic.lean` use.
   - `Geometry/Manifold/Distribution/FlatChart.lean`: the step of
     `CharacteristicFoliation.lean` that uses nothing symplectic.
-  - `Geometry/Manifold/IsManifold/Basic.lean`: two instances for smooth
+  - `Geometry/Manifold/IsManifold/Basic.lean`: three instances for smooth
     steps, here and in other parts: `C^(m + 1)` structures from `C^∞` ones,
-    and `IsNormableSpace` on tangent spaces, which `Adjoint.lean` needs when
-    its fibres are tangent spaces.
+    `IsNormableSpace` on tangent spaces, which `Adjoint.lean` needs when
+    its fibres are tangent spaces, and `Nontrivial` on tangent spaces, which
+    `Energy/Density.lean` of *Pseudoholomorphic energy* uses.
   - `Geometry/Manifold/TubularNeighborhood/MFDeriv.lean`: the step of
     `Tubular.lean` that uses nothing symplectic.
   - `Geometry/Manifold/VectorBundle/Adjoint.lean`: a step of
@@ -533,8 +535,8 @@ The comparison theorem. Namespace `TauCeti.SmoothEmbedding`.
 
 `TauCeti.SmoothTwoForm.IsNondegenerate.HasSymplecticTangentImages.exists_symplectomorphism_opens`,
 the milestone. Two symplectic manifolds with symplectic submanifolds
-`f₀ : SmoothEmbedding J₀ I₀ ∞ Q₀ M₀` (closed image) and
-`f₁ : SmoothEmbedding J₁ I₁ ∞ Q₁ M₁`, a diffeomorphism `φ : Q₀ ≃ₘ⟮J₀, J₁⟯ Q₁`
+`f₀ : SmoothEmbedding J I₀ ∞ Q₀ M₀` and
+`f₁ : SmoothEmbedding J I₁ ∞ Q₁ M₁`, a diffeomorphism `φ : Q₀ ≃ₘ⟮J, J⟯ Q₁`
 pulling `f₁^*ω₁` back to `f₀^*ω₀`, and `Φ : ∀ q, f₀.NormalSpace q hn ≃L[ℝ]
 f₁.NormalSpace (φ q) hn`, smooth on total spaces under the bundle
 structures `normalSpaceFiberBundle`, that preserves `symplecticNormalForm`.
@@ -563,8 +565,8 @@ the projection. API: `coe_zeroSectionEmbedding` (it is `zeroSection F V`),
 ### `Geometry/Symplectic/Neighborhood/Lagrangian.lean`
 
 `TauCeti.SmoothTwoForm.IsNondegenerate.IsLagrangianMap.exists_symplectomorphism_cotangent`,
-the milestone. For a Lagrangian `f : SmoothEmbedding J I ∞ L M` with closed
-image: `U : Opens (CotangentBundle J L)`, `V : Opens M`, and
+the milestone. For a Lagrangian `f : SmoothEmbedding J I ∞ L M`:
+`U : Opens (CotangentBundle J L)`, `V : Opens M`, and
 `ψ : U ≃ₘ V` with `ψ ⟨zeroSection _ _ q, _⟩ = ⟨f q, _⟩` and `ψ` pulling the
 restriction of `ω` back to the restriction of
 `TauCeti.CotangentBundle.symplecticForm J L`, which is
@@ -572,7 +574,7 @@ $-d\lambda_{\mathrm{can}}$, the page's sign. Route: the comparison theorem
 for `f₀ = zeroSectionEmbedding` (Lagrangian by Tau Ceti's
 `TauCeti.CotangentBundle.isLagrangianMap_zeroSection`) and `f₁ = f`, with `L = 0`. Both restricted
 forms are `0`. The dimensions agree by Tau Ceti's
-`finrank_continuousLinearMap_eq_sub_of_isLagrangianMap`. Milestone:
+`IsLagrangianMap.two_mul_finrank`. Milestone:
 *Lagrangian neighbourhood theorem*.
 
 ### `Geometry/Symplectic/Neighborhood/Isotropic.lean`
@@ -673,7 +675,8 @@ four theorems share.
 ## What the part uses
 
 - From *Moser isotopy*: `Relative.lean`, `Geometry/Manifold/DifferentialForm/Opens.lean` and
-  `Geometry/Symplectic/Manifold/TwoForm.lean`, only in `Tubular.lean`.
+  `Geometry/Symplectic/Manifold/TwoForm.lean`, only in `Tubular.lean`, and `Opens.lean`
+  also in `Symplectic.lean`.
 - From *Symplectic vector bundles*:
   `Geometry/Manifold/VectorBundle/Pullback.lean` (merged), in
   `Geometry/Manifold/VectorBundle/Adjoint.lean`, for the derivative of an

@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Geometry.Manifold.Instances.Sphere
+public import SymplecticGeometry.Geometry.Lie.Exponential.Circle
 public import TauCeti.Geometry.Manifold.DeRham.Circle
 public import TauCeti.Geometry.Manifold.DifferentialForm.LieDeriv
 public import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
@@ -16,8 +17,6 @@ import SymplecticGeometry.Geometry.Manifold.DeRham.Circle
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.PartitionOfUnity
 import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.BasicForm
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Hermitian.CircleBundle
-import TauCeti.Geometry.Manifold.DifferentialForm.Flow
-import TauCeti.Geometry.Manifold.Instances.Sphere
 
 /-!
 # Connection forms on principal circle bundles
@@ -40,15 +39,14 @@ section `σ`, a connection form is `θ^* dθ + π^* (σ^* α)`.
 
 ## Main definitions
 
-* `SymplecticGeometry.circleLieGenerator`: the generator of the Lie algebra of `Circle`, the
-  velocity of `Circle.exp` at `0`.
 * `SymplecticGeometry.IsCircleConnectionForm α`: `α` is a connection form.
 * `SymplecticGeometry.IsCircleConnectionForm.curvature`: the curvature of a connection form.
 
 ## Main results
 
 * `SymplecticGeometry.mlieDerivForm_rightFundamentalVectorField_circleLieGenerator_eq_zero`: an
-  invariant form has vanishing Lie derivative along the fundamental vector field of `1`.
+  invariant form has vanishing Lie derivative along the fundamental vector field of `1`, the
+  case `G = Circle` of `TauCeti.PrincipalBundle.mlieDerivForm_rightFundamentalVectorField_eq_zero`.
 * `SymplecticGeometry.IsCircleConnectionForm.mpullback_curvature`,
   `SymplecticGeometry.IsCircleConnectionForm.curvature_eq_iff`: the curvature is the unique form on
   the base whose pull-back is `d α`.
@@ -65,10 +63,9 @@ section `σ`, a connection form is `θ^* dθ + π^* (σ^* α)`.
 
 ## Implementation notes
 
-The invariance of `α` gives `L_ξ α = 0` along the fundamental vector field `ξ` of `1`, through the
-flow `x ↦ x • exp t` (Tau Ceti's `TauCeti.hasDerivAt_mpullback_of_eq_id`), as in Tau Ceti's
-`TauCeti.mlieDerivForm_fundamentalVectorField_eq_zero` for left actions. Cartan's formula then
-gives `ι_ξ d α = 0`.
+The invariance of `α` gives `L_ξ α = 0` along the fundamental vector field `ξ` of `1`
+(`TauCeti.PrincipalBundle.mlieDerivForm_rightFundamentalVectorField_eq_zero`). Cartan's formula
+then gives `ι_ξ d α = 0`.
 
 ## References
 
@@ -88,31 +85,6 @@ open Bundle Manifold MulOpposite TauCeti
 open scoped Manifold ContDiff Topology
 
 namespace SymplecticGeometry
-
-/-! ### The generator of the Lie algebra of the circle -/
-
-/-- The generator of the Lie algebra of `Circle` that corresponds to `1 ∈ ℝ` under `Circle.exp`:
-the velocity of `Circle.exp` at `0`. -/
-def circleLieGenerator : GroupLieAlgebra (𝓡 1) Circle :=
-  mfderiv 𝓘(ℝ) (𝓡 1) Circle.exp 0 1
-
-theorem circleLieGenerator_def : circleLieGenerator = mfderiv 𝓘(ℝ) (𝓡 1) Circle.exp 0 1 :=
-  (rfl)
-
-/-- The generator of the Lie algebra of `Circle` is nonzero. -/
-theorem circleLieGenerator_ne_zero : circleLieGenerator ≠ 0 := fun h ↦
-  one_ne_zero (α := ℝ) <| injective_mfderiv_circleExp 0 (h.trans (map_zero _).symm)
-
-/-- The angular form of the circle takes the value `1` on the generator of its Lie algebra. -/
-@[simp]
-theorem circleAngularForm_one_circleLieGenerator :
-    circleAngularForm 1 ![circleLieGenerator] = 1 := by
-  have h := circleAngularForm_apply_curveVelocity_circleExp 0
-  rw [Manifold.curveVelocity_apply, Circle.exp_zero] at h
-  convert h using 2
-  funext i
-  fin_cases i
-  rfl
 
 variable {EB HB B : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB] [TopologicalSpace HB]
   {IB : ModelWithCorners ℝ EB HB} [TopologicalSpace B] [ChartedSpace HB B] [IsManifold IB ∞ B]
@@ -164,45 +136,16 @@ section Curvature
 variable [IB.Boundaryless]
 
 /-- A form on the total space of a principal `Circle`-bundle that is invariant under the action
-has vanishing Lie derivative along the fundamental vector field of `1`. -/
+has vanishing Lie derivative along the fundamental vector field of `1`: the case of `Circle` and
+`circleLieGenerator` of `TauCeti.PrincipalBundle.mlieDerivForm_rightFundamentalVectorField_eq_zero`.
+-/
 theorem mlieDerivForm_rightFundamentalVectorField_circleLieGenerator_eq_zero {k : ℕ}
     {β : SmoothForm (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) ℝ k}
     (hβ : ∀ z : Circle, SmoothForm.mpullback (fun x : ManifoldTotalSpace Circle P ↦ op z • x)
       (contMDiff_const_smul (op z)) β = β) :
     mlieDerivForm (rightFundamentalVectorField (IB.prod (𝓡 1)) circleLieGenerator) β.val =
-      0 := by
-  funext x
-  -- The flow of the field is `x ↦ x • exp t`, along which `β` is constant.
-  have hψ : ContMDiff (𝓘(ℝ).prod (IB.prod (𝓡 1))) (IB.prod (𝓡 1)) ∞
-      (fun p : ℝ × ManifoldTotalSpace Circle P ↦ op (Circle.exp p.1) • p.2) :=
-    PrincipalBundle.contMDiff_op_smul.comp
-      (contMDiff_snd.prodMk (contMDiff_circleExp.comp contMDiff_fst))
-  have h := hasDerivAt_mpullback_of_eq_id (α := β.val)
-    (V := rightFundamentalVectorField (IB.prod (𝓡 1)) circleLieGenerator)
-    (ψ := fun t (y : ManifoldTotalSpace Circle P) ↦ op (Circle.exp t) • y) (t := 0) x
-    (.of_forall fun y ↦ by simp) ((hψ (0, x)).of_le (by simp)) (.of_forall fun y ↦ ?_)
-    (β.mdifferentiable x)
-  · have hconst : (fun t ↦ TauCeti.mpullback (IB.prod (𝓡 1)) (IB.prod (𝓡 1))
-        (fun y : ManifoldTotalSpace Circle P ↦ op (Circle.exp t) • y) β.val x) =
-          fun _ ↦ β.val x := by
-      funext t
-      rw [← SmoothForm.coe_mpullback _ (contMDiff_const_smul (op (Circle.exp t))), hβ]
-    rw [hconst] at h
-    exact h.unique (hasDerivAt_const 0 _)
-  · -- The velocity of `t ↦ y • exp t` at `0` is the fundamental vector field at `y`.
-    have hy : op (Circle.exp 0) • y = y := by rw [Circle.exp_zero, op_one, one_smul]
-    rw [hy]
-    have horb := PrincipalBundle.mdifferentiableAt_orbit (IB := IB) (IG := 𝓡 1) (n := ∞)
-      (by simp) y 1
-    have hexp := (contMDiff_circleExp (m := 1) (0 : ℝ)).mdifferentiableAt one_ne_zero
-    refine (horb.comp_of_eq (0 : ℝ) hexp Circle.exp_zero).hasMFDerivAt.congr_mfderiv
-      (ContinuousLinearMap.ext_ring ?_)
-    -- The tangent spaces of `ℝ` are `ℝ` only up to unfolding `TangentSpace`.
-    erw [mfderiv_comp_of_eq horb hexp Circle.exp_zero, ContinuousLinearMap.smulRight_apply,
-      one_apply_eq_self]
-    rw [one_smul]
-    exact (congrArg (fun g ↦ mfderiv (𝓡 1) (IB.prod (𝓡 1)) (fun h : Circle ↦ op h • y) g
-      circleLieGenerator) Circle.exp_zero).trans (rightFundamentalVectorField_apply _ _).symm
+      0 :=
+  PrincipalBundle.mlieDerivForm_rightFundamentalVectorField_eq_zero hβ circleLieGenerator
 
 /-- **Cartan's formula for a connection form.** The exterior derivative of a connection form
 vanishes when its first argument is the fundamental vector field of `1`. -/
