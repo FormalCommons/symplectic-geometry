@@ -1525,8 +1525,9 @@ For a map `f : C^n⟮I', N; I, M⟯` (the argument of Mathlib's instance
   `IsNondegenerate.symplecticFormAt_pullback` (the symplectic form of the
   pull-back at `y` is that of `ω` at `f y`), through
   `IsNondegenerate.toBilinForm_symplecticFormAt` in `Symplectic/Basic.lean`,
-  and `@[simp] IsNondegenerate.symplecticFormAt_pullback_apply`, its value
-  on `v w : V (f y)`, for any proof that the pull-back is nondegenerate.
+  and `@[simp high] IsNondegenerate.symplecticFormAt_pullback_apply`, its value
+  on `v w : V (f y)`, for any proof that the pull-back is nondegenerate, which
+  fires before `@[simp] IsNondegenerate.symplecticFormAt_apply_pullback`.
   `bilinFormAt_pullback` and `symplecticFormAt_pullback` are not `@[simp]`,
   for the reason given below for `pullback_toEndomorphism`.
 - `ComplexStructure.lean`: `ContMDiffComplexStructure.pullback J f hf :
@@ -1583,11 +1584,14 @@ For a map `f : C^n⟮I', N; I, M⟯` (the argument of Mathlib's instance
   the smoothness coming from Tau Ceti's `Bundle.Pullback.contMDiff_fiberwise`
   (so a symplectic isomorphism pulls back to one);
   `pushforward_pullback_id`, the pull-back along `ContMDiffMap.id`, moved to
-  `V` by the identity of each fibre (smooth by Tau Ceti's
-  `Bundle.Pullback.idDiffeomorph`), is `ω`; `pushforward_pullback_comp`, for
+  `V` by the identity of each fibre, `Bundle.Pullback.idFiberEquiv` (smooth by
+  Tau Ceti's `Bundle.Pullback.idDiffeomorph`), is `ω`;
+  `pushforward_pullback_comp`, for
   `g : C^n⟮I', N; I, M⟯` and `f : C^n⟮I'', P; I', N⟯`, the pull-back along
-  `g.comp f`, moved to `f *ᵖ (g *ᵖ V)` by the identity of each fibre (smooth
-  by `Bundle.Pullback.compDiffeomorph`), is `(ω.pullback g).pullback f`.
+  `g.comp f`, moved to `f *ᵖ (g *ᵖ V)` by the identity of each fibre,
+  `Bundle.Pullback.compFiberEquiv` (smooth by
+  `Bundle.Pullback.compDiffeomorph`), is `(ω.pullback g).pullback f`. The two
+  equivalences are in `Geometry/Manifold/VectorBundle/Pullback.lean`.
 - Frames: `IsSymplecticFrameOn.pullback`, a frame `Φ` of `ω` over `U` gives
   the frame `fun y ↦ Φ (f y)` of `ω.pullback f` over `f ⁻¹' U`; the
   transition maps of pulled-back frames are

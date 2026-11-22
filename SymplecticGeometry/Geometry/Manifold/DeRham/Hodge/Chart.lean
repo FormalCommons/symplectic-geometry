@@ -15,6 +15,7 @@ public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 public import TauCeti.Geometry.Manifold.Riemannian.Codifferential
 public import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.ChartGram
+import SymplecticGeometry.Analysis.Calculus.ContDiff.Matrix
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 
 /-!
@@ -34,7 +35,9 @@ expressions, on `ψ.target`, of the metric, of the Hodge star and of the codiffe
 
 ## Main results
 
-* `SymplecticGeometry.contDiffOn_gramInChart`: the metric in the chart is smooth on `ψ.target`.
+* `SymplecticGeometry.contDiffOn_gramInChart`: the metric in the chart is smooth on `ψ.target`,
+  and so are the entries of the inverse of its Gram matrix in a basis
+  (`SymplecticGeometry.contDiffOn_inv_gramInChart_apply`).
 * `SymplecticGeometry.gramInChart_apply_self_pos`: on `ψ.target`, the metric in the chart is
   positive on nonzero vectors.
 * `SymplecticGeometry.gramInChart_trans_apply`: how the metric in the chart changes when the chart
@@ -169,6 +172,17 @@ theorem contDiffOn_gramInChart
     (by simp)
   exact (contMDiffAt_iff_contDiffAt.1 (ContMDiffAt.inner_bundle (F := E)
     (E := fun x : M ↦ TangentSpace I x) (b := ψ.symm) (hs v) (hs w))).contDiffWithinAt
+
+/-- The entries of the inverse of the Gram matrix of a basis `b` of `E` for the metric in a chart
+are smooth on the target of the chart. -/
+theorem contDiffOn_inv_gramInChart_apply
+    [IsContMDiffRiemannianBundle I ∞ E (fun x : M ↦ TangentSpace I x)] {ι : Type*} [Fintype ι]
+    [DecidableEq ι] (b : Basis ι ℝ E) (i j : ι) :
+    ContDiffOn ℝ ∞ (fun y ↦ (Matrix.of fun i j ↦ gramInChart ψ y (b i) (b j))⁻¹ i j)
+      ψ.target :=
+  ContDiffOn.matrix_inv_apply (fun i j ↦
+      contDiffOn_clm_apply.1 (contDiffOn_clm_apply.1 (contDiffOn_gramInChart ψ) (b i)) (b j))
+    (fun _ hy ↦ (posDef_gramInChart ψ b hy).det_pos.ne') i j
 
 end Metric
 
