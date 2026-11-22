@@ -44,7 +44,7 @@ and `σ` is closed. Both sides are compared at each point `x₀`, in an osculati
 `ψ` (`IsIntegrable.exists_partialDiffeomorph_fderiv_gramInChart_eq_zero`, in the namespace
 `TauCeti.SmoothAlmostComplexStructure`), in which `J` is a constant `J₀` and the metric has
 derivative zero at `ψ x₀`. Then the Hodge star in the chart
-(`SymplecticGeometry.fderiv_hodgeStarInChart_eq_zero`) and `σ` read in the chart have derivative
+(`PartialDiffeomorph.fderiv_hodgeStarInChart_eq_zero`) and `σ` read in the chart have derivative
 zero at `ψ x₀` too, so at `x₀` every term is a constant-coefficient operator applied to the
 derivative there of `α` read in the chart. That derivative, carried to the tangent space at `x₀`
 along the differential of `ψ`, is a linear map `B` from the tangent space to forms, and the
@@ -260,7 +260,7 @@ private theorem eq_of_forall_osculating
     {α β : SmoothForm I M ℝ j}
     (h : ∀ (ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞) (J₀ : AlmostComplexStructure E),
       (∀ p ∈ ψ.target, ∀ w : E, J.chartPushforward ψ.toOpenPartialHomeomorph p w = J₀ w) →
-      ∀ y ∈ ψ.target, fderiv ℝ (gramInChart ψ) y = 0 → α.val (ψ.symm y) = β.val (ψ.symm y)) :
+      ∀ y ∈ ψ.target, fderiv ℝ ψ.gramInChart y = 0 → α.val (ψ.symm y) = β.val (ψ.symm y)) :
     α = β := by
   refine Subtype.ext (funext fun x₀ ↦ ?_)
   obtain ⟨ψ, J₀, hx₀, hψ, hgr⟩ :=
@@ -292,9 +292,9 @@ theorem lefschetz_codifferential_sub (o : Manifold.Orientation I M (Fin m))
     VectorBundle.finiteDimensional ℝ E (TangentSpace I) (ψ.symm y)
   have hm := (o.fact_finrank_tangentSpace (ψ.symm y)).out
   simp only [Submodule.coe_sub, Submodule.coe_neg, Pi.sub_apply, Pi.neg_apply]
-  rw [val_lefschetz hg, val_codifferential_symm_of_fderiv_gramInChart_eq_zero o ψ hkl (by omega)
+  rw [val_lefschetz hg, ψ.val_codifferential_symm_of_fderiv_gramInChart_eq_zero o hkl (by omega)
       α hy hgr,
-    val_codifferential_symm_of_fderiv_gramInChart_eq_zero o ψ hkl' (by omega) (σ.lefschetz α) hy
+    ψ.val_codifferential_symm_of_fderiv_gramInChart_eq_zero o hkl' (by omega) (σ.lefschetz α) hy
       hgr,
     ContMDiffSection.coe_realAlternatingDerivation]
   beta_reduce
@@ -334,7 +334,7 @@ theorem lefschetz_codifferential_of_lt (o : Manifold.Orientation I M (Fin m))
     VectorBundle.finiteDimensional ℝ E (TangentSpace I) (ψ.symm y)
   have hm := (o.fact_finrank_tangentSpace (ψ.symm y)).out
   simp only [Submodule.coe_sub, Submodule.coe_neg, Pi.sub_apply, Pi.neg_apply]
-  rw [val_lefschetz hg, val_codifferential_symm_of_fderiv_gramInChart_eq_zero o ψ hkl (by omega)
+  rw [val_lefschetz hg, ψ.val_codifferential_symm_of_fderiv_gramInChart_eq_zero o hkl (by omega)
       α hy hgr,
     ContMDiffSection.coe_realAlternatingDerivation]
   beta_reduce
@@ -368,7 +368,7 @@ theorem codifferential_lefschetz (o : Manifold.Orientation I M (Fin m))
   let _ : FiniteDimensional ℝ (TangentSpace I (ψ.symm y)) :=
     VectorBundle.finiteDimensional ℝ E (TangentSpace I) (ψ.symm y)
   have hm := (o.fact_finrank_tangentSpace (ψ.symm y)).out
-  rw [val_codifferential_symm_of_fderiv_gramInChart_eq_zero o ψ hkl (by omega) (σ.lefschetz f) hy
+  rw [ψ.val_codifferential_symm_of_fderiv_gramInChart_eq_zero o hkl (by omega) (σ.lefschetz f) hy
       hgr,
     ContMDiffSection.coe_realAlternatingDerivation]
   beta_reduce

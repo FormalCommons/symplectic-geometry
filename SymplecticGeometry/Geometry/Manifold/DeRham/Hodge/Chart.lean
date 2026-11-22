@@ -29,41 +29,41 @@ Let `M` be an oriented Riemannian manifold of dimension `m` modelled on `E`, and
 `ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞` be a chart with values in `E`. A form `φ` on `M` is read
 in `ψ` as the flat form `mpullback 𝓘(ℝ, E) I ψ.symm φ` on `E`. This file gives the coordinate
 expressions, on `ψ.target`, of the inner product of forms, of the Hodge star and of the
-codifferential, in terms of the metric in the chart `SymplecticGeometry.gramInChart ψ`
+codifferential, in terms of the metric in the chart `PartialDiffeomorph.gramInChart ψ`
 (`SymplecticGeometry.Geometry.Manifold.Riemannian.PartialDiffeomorph`).
 
 ## Main definitions
 
-* `SymplecticGeometry.hodgeStarInChart o ψ hkl y`: the Hodge star of the tangent space at
+* `PartialDiffeomorph.hodgeStarInChart o ψ hkl y`: the Hodge star of the tangent space at
   `ψ.symm y`, transported to forms on `E` through the differential of `ψ.symm`.
-* `SymplecticGeometry.formInnerInChart ψ y`: the inner product of `k`-forms of the tangent space
+* `PartialDiffeomorph.formInnerInChart ψ y`: the inner product of `k`-forms of the tangent space
   at `ψ.symm y`, read on the forms on `E` through the differential of `ψ`.
 
 ## Main results
 
-* `SymplecticGeometry.mpullback_symm_hodgeStar`: the Hodge star of a form, read in the chart, is
+* `PartialDiffeomorph.mpullback_symm_hodgeStar`: the Hodge star of a form, read in the chart, is
   `hodgeStarInChart` applied to the form read in the chart.
-* `SymplecticGeometry.hodgeStarInChart_apply_eq_sum`: in a basis `b` of `E`, the star in the chart
+* `PartialDiffeomorph.hodgeStarInChart_apply_eq_sum`: in a basis `b` of `E`, the star in the chart
   is the star of `E` for the inner product `gramInChart ψ y`: it is given by the volume of `b` and
   the inverse of the Gram matrix of `b`, as in
   `Orientation.formHodgeStar_apply_eq_volumeForm_mul_sum`.
-* `SymplecticGeometry.contDiffOn_mpullback_riemannianVolumeForm`: the volume form read in the
+* `PartialDiffeomorph.contDiffOn_mpullback_riemannianVolumeForm`: the volume form read in the
   chart, evaluated on fixed vectors, is smooth on `ψ.target`.
-* `SymplecticGeometry.contDiffOn_hodgeStarInChart`: the star in the chart is smooth on `ψ.target`.
-* `SymplecticGeometry.fderiv_hodgeStarInChart_eq_zero`: at a point of `ψ.target` where the
+* `PartialDiffeomorph.contDiffOn_hodgeStarInChart`: the star in the chart is smooth on `ψ.target`.
+* `PartialDiffeomorph.fderiv_hodgeStarInChart_eq_zero`: at a point of `ψ.target` where the
   derivative of `gramInChart ψ` vanishes, so does the derivative of `hodgeStarInChart o ψ hkl`.
-* `SymplecticGeometry.mpullback_symm_codifferential`: the codifferential `d^* β` read in the chart
+* `PartialDiffeomorph.mpullback_symm_codifferential`: the codifferential `d^* β` read in the chart
   is `± S (d (S b))`, with `S` the star in the chart, `b` the form `β` read in the chart, `d` the
   flat exterior derivative, and the sign of Tau Ceti's `TauCeti.SmoothForm.codifferential`.
-* `SymplecticGeometry.compContinuousLinearMap_hodgeStarInChart`: pulled back to the tangent
+* `PartialDiffeomorph.compContinuousLinearMap_hodgeStarInChart`: pulled back to the tangent
   space, the star in the chart is the Hodge star of the tangent space.
-* `SymplecticGeometry.mpullback_symm_codifferential_of_fderiv_gramInChart_eq_zero`: where the
+* `PartialDiffeomorph.mpullback_symm_codifferential_of_fderiv_gramInChart_eq_zero`: where the
   metric in the chart has derivative zero, the codifferential read in the chart is
   `± S (Alt (S ∘ Db))`, with `Db` the derivative of the form read in the chart.
-* `SymplecticGeometry.val_codifferential_symm_of_fderiv_gramInChart_eq_zero`: the same at the
+* `PartialDiffeomorph.val_codifferential_symm_of_fderiv_gramInChart_eq_zero`: the same at the
   point `ψ.symm y` of `M`, as `± ⋆ Alt (⋆ ∘ B)` with `⋆` the Hodge star of the tangent space and
   `B` the derivative of the form read in the chart, carried there by `TauCeti.symbolInChart`.
-* `SymplecticGeometry.alternatingFormInner_eq_formInnerInChart`: the pointwise inner product of
+* `PartialDiffeomorph.alternatingFormInner_eq_formInnerInChart`: the pointwise inner product of
   two forms, read in the chart, is `formInnerInChart`; it is positive definite on `ψ.target`
   (`formInnerInChart_self_pos`) and smooth there (`contDiffOn_formInnerInChart`), and the Gram
   matrix of a basis is positive definite (`posDef_formInnerInChart`), so that a form is recovered
@@ -93,22 +93,18 @@ open Set Module TauCeti
 open Bundle (TotalSpace RiemannianBundle)
 open scoped Manifold Topology ContDiff RealInnerProductSpace
 
-namespace SymplecticGeometry
-
 variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
   {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M]
   [RiemannianBundle (fun x : M ↦ TangentSpace I x)] {m k l : ℕ}
 
-/-! ### The Hodge star in a chart -/
-
-section HodgeStar
+section
 
 open Bundle
 
 /-- The fibrewise Hodge star `formHodgeStarCLM` at `x` is the Hodge star
 `Orientation.formHodgeStar` of the tangent space at `x`, for the orientation that `o` gives it,
 as a continuous linear map. -/
-theorem _root_.TauCeti.formHodgeStarCLM_def [IsManifold I 1 M] [FiniteDimensional ℝ E]
+theorem TauCeti.formHodgeStarCLM_def [IsManifold I 1 M] [FiniteDimensional ℝ E]
     (o : Manifold.Orientation I M (Fin m)) (hkl : k + l = m) (x : M) :
     formHodgeStarCLM o hkl x =
       (letI := o.fact_finrank_tangentSpace x
@@ -116,6 +112,16 @@ theorem _root_.TauCeti.formHodgeStarCLM_def [IsManifold I 1 M] [FiniteDimensiona
          ).toContinuousLinearEquiv.toContinuousLinearMap) :=
   -- Tau Ceti does not expose the body of `formHodgeStarCLM`, so this is not `rfl` here.
   ContinuousLinearMap.ext fun a ↦ formHodgeStarCLM_apply o hkl x a
+
+end
+
+namespace PartialDiffeomorph
+
+/-! ### The Hodge star in a chart -/
+
+section HodgeStar
+
+open Bundle
 
 variable [FiniteDimensional ℝ E] [IsManifold I ∞ M] (o : Manifold.Orientation I M (Fin m))
   (ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞)
@@ -240,7 +246,7 @@ theorem mpullback_riemannianVolumeForm_mul_self (b : Basis (Fin m) ℝ E) {y : E
       (o.orientationAt x).volumeForm (fun i ↦ mfderiv 𝓘(ℝ, E) I ψ.symm y (b i)) :=
     (mpullback_apply _ _ y _).trans (riemannianVolumeForm_apply _ _ _)
   rw [hv, ← abs_mul_abs_self, (o.orientationAt x).abs_volumeForm_apply_eq_sqrt_det_gram, hgram,
-    Real.mul_self_sqrt (posDef_gramInChart ψ b hy).det_pos.le]
+    Real.mul_self_sqrt (ψ.posDef_gramInChart (by simp) b hy).det_pos.le]
 
 open scoped Matrix.Norms.Operator in
 /-- On the target of the chart, the value of the star in the chart on `a` and `w` is a function
@@ -317,7 +323,7 @@ theorem contDiffOn_hodgeStarInChart
   rw [contMDiffWithinAt_iff_contDiffWithinAt]
   obtain ⟨F, hF, hSF⟩ := exists_hodgeStarInChart_apply_eq o ψ hkl b a w
   refine ((hF _ _ ?_).comp_contDiffWithinAt y (hP y hy)).congr (fun z hz ↦ hSF z hz) (hSF y hy)
-  exact (posDef_gramInChart ψ b hy).det_pos.ne'
+  exact (ψ.posDef_gramInChart (by simp) b hy).det_pos.ne'
 
 open scoped Matrix.Norms.Operator in
 /-- **The star in a chart where the metric is flat to first order.** At a point of the target of
@@ -330,7 +336,7 @@ theorem fderiv_hodgeStarInChart_eq_zero
   have hm : finrank ℝ E = m := by simpa using o.card_eq.symm
   let b : Basis (Fin m) ℝ E := (finBasis ℝ E).reindex (finCongr hm)
   have hT := ψ.open_target.mem_nhds hy
-  have hpos := (posDef_gramInChart ψ b hy).det_pos
+  have hpos := (ψ.posDef_gramInChart (by simp) b hy).det_pos
   -- The entries of the Gram matrix of `b` have derivative zero at `y`.
   have hG : HasFDerivAt (𝕜 := ℝ) (fun z i j ↦ gramInChart ψ z (b i) (b j)) 0 y := by
     have hg := (((contDiffOn_gramInChart ψ).contDiffAt hT).differentiableAt
@@ -651,4 +657,4 @@ theorem eq_sum_inv_mulVec_formInnerInChart {κ : Type*} [Fintype κ] [DecidableE
 
 end FormInner
 
-end SymplecticGeometry
+end PartialDiffeomorph

@@ -26,7 +26,7 @@ smooth right side `f` is a smooth form `α` with `Δα = f`
 
 The argument is local. In a chart `ψ` with a cutoff `χ` supported in its source, the `L²` inner
 product of `u` with a smooth form `β` supported where `χ = 1` is the integral over `E` of the
-inner product in the chart (`SymplecticGeometry.formInnerInChart`) of the localizations of `u`
+inner product in the chart (`PartialDiffeomorph.formInnerInChart`) of the localizations of `u`
 and `β`, weighted by the density of the Riemannian volume read in the chart
 (`SymplecticGeometry.L2Form.inner_ofSmooth_eq_integral_localize`, in
 `SymplecticGeometry.Geometry.Manifold.DeRham.Hodge.L2`). Taking for `β` the Hodge Laplacian of
@@ -168,7 +168,7 @@ private theorem localize_hodgeLaplacian_extendByZeroAlong (o : Manifold.Orientat
     (hΔ : ∀ (α : SmoothForm I M ℝ k), ∀ y ∈ ψ.target,
         (mpullback 𝓘(ℝ, E) I ψ.symm (SmoothForm.hodgeLaplacian o hkl α).val y :
             E [⋀^Fin k]→L[ℝ] ℝ) =
-          -∑ i, ∑ j, (Matrix.of fun i j ↦ gramInChart ψ y (b i) (b j))⁻¹ i j •
+          -∑ i, ∑ j, (Matrix.of fun i j ↦ ψ.gramInChart y (b i) (b j))⁻¹ i j •
               fderiv ℝ (F := E [⋀^Fin k]→L[ℝ] ℝ) (fun z ↦ fderiv ℝ
                 (mpullback 𝓘(ℝ, E) I ψ.symm α.val : E → E [⋀^Fin k]→L[ℝ] ℝ) z (b i)) y (b j) +
             ∑ i, B i y (fderiv ℝ (mpullback 𝓘(ℝ, E) I ψ.symm α.val : E → E [⋀^Fin k]→L[ℝ] ℝ) y
@@ -177,13 +177,13 @@ private theorem localize_hodgeLaplacian_extendByZeroAlong (o : Manifold.Orientat
     {χ : M → ℝ} {a : E → E [⋀^Fin k]→L[ℝ] ℝ} (ha : ContDiff ℝ ∞ a) (hac : HasCompactSupport a)
     (hat : tsupport a ⊆ ψ.target) (haχ : ∀ y ∈ tsupport a, χ (ψ.symm y) = 1) (y : E) :
     (SmoothForm.hodgeLaplacian o hkl (SmoothForm.extendByZeroAlong ψ a ha hac hat)).localize ψ χ y
-      = -∑ i, ∑ j, (Matrix.of fun i j ↦ gramInChart ψ y (b i) (b j))⁻¹ i j •
+      = -∑ i, ∑ j, (Matrix.of fun i j ↦ ψ.gramInChart y (b i) (b j))⁻¹ i j •
           fderiv ℝ (fun z ↦ fderiv ℝ a z (b i)) y (b j) +
         ∑ i, B i y (fderiv ℝ a y (b i)) + C y (a y) := by
   have hn : (∞ : WithTop ℕ∞) ≠ 0 := by simp
   set φ := SmoothForm.extendByZeroAlong ψ a ha hac hat
   let P : E → E [⋀^Fin k]→L[ℝ] ℝ := fun y ↦
-    -∑ i, ∑ j, (Matrix.of fun i j ↦ gramInChart ψ y (b i) (b j))⁻¹ i j •
+    -∑ i, ∑ j, (Matrix.of fun i j ↦ ψ.gramInChart y (b i) (b j))⁻¹ i j •
       fderiv ℝ (fun z ↦ fderiv ℝ a z (b i)) y (b j) + ∑ i, B i y (fderiv ℝ a y (b i)) + C y (a y)
   -- Off the support of `a`, the operator vanishes.
   have hP : Function.support P ⊆ tsupport a := fun y hPy ↦ by
@@ -227,7 +227,7 @@ theorem L2Form.inner_ofSmooth_hodgeLaplacian_extendByZeroAlong_eq_integral
     (hΔ : ∀ (α : SmoothForm I M ℝ k), ∀ y ∈ ψ.target,
         (mpullback 𝓘(ℝ, E) I ψ.symm (SmoothForm.hodgeLaplacian o hkl α).val y :
             E [⋀^Fin k]→L[ℝ] ℝ) =
-          -∑ i, ∑ j, (Matrix.of fun i j ↦ gramInChart ψ y (b i) (b j))⁻¹ i j •
+          -∑ i, ∑ j, (Matrix.of fun i j ↦ ψ.gramInChart y (b i) (b j))⁻¹ i j •
               fderiv ℝ (F := E [⋀^Fin k]→L[ℝ] ℝ) (fun z ↦ fderiv ℝ
                 (mpullback 𝓘(ℝ, E) I ψ.symm α.val : E → E [⋀^Fin k]→L[ℝ] ℝ) z (b i)) y (b j) +
             ∑ i, B i y (fderiv ℝ (mpullback 𝓘(ℝ, E) I ψ.symm α.val : E → E [⋀^Fin k]→L[ℝ] ℝ) y
@@ -239,8 +239,8 @@ theorem L2Form.inner_ofSmooth_hodgeLaplacian_extendByZeroAlong_eq_integral
     ⟪u, ofSmooth (SmoothForm.hodgeLaplacian o hkl
       (SmoothForm.extendByZeroAlong ψ a ha hac hat))⟫_ℝ =
       ∫ y, (b.addHaar.addHaarScalarFactor volume : ℝ) * riemannianJacobian (I := I) b ψ.symm y *
-        formInnerInChart ψ y (L2Form.localize ψ χ hχ u y)
-          (-∑ i, ∑ j, (Matrix.of fun i j ↦ gramInChart ψ y (b i) (b j))⁻¹ i j •
+        ψ.formInnerInChart y (L2Form.localize ψ χ hχ u y)
+          (-∑ i, ∑ j, (Matrix.of fun i j ↦ ψ.gramInChart y (b i) (b j))⁻¹ i j •
               fderiv ℝ (fun z ↦ fderiv ℝ a z (b i)) y (b j) +
             ∑ i, B i y (fderiv ℝ a y (b i)) + C y (a y)) := by
   -- `χ = 1` on the support of the Hodge Laplacian of the extension by zero of `a`.
@@ -285,20 +285,20 @@ theorem L2Form.IsWeakSolution.exists_contDiffOn_ae_eq_localize {u : L2Form o k}
   let e := Module.finBasis ℝ (E [⋀^Fin k]→L[ℝ] ℝ)
   let L (p : Fin (Module.finrank ℝ (E [⋀^Fin k]→L[ℝ] ℝ))) :
       (E [⋀^Fin k]→L[ℝ] ℝ) →L[ℝ] ℝ := LinearMap.toContinuousLinearMap (e.coord p)
-  -- The unknown `w = D • formInnerInChart ψ · U`, written in the basis `e`, and the right side.
+  -- The unknown `w = D • ψ.formInnerInChart · U`, written in the basis `e`, and the right side.
   let w : E → (E [⋀^Fin k]→L[ℝ] ℝ) →L[ℝ] ℝ := fun y ↦
-    ∑ p, L p (U y) • (D y • formInnerInChart ψ y (e p))
-  have hw (y : E) (γ : E [⋀^Fin k]→L[ℝ] ℝ) : w y γ = D y * formInnerInChart ψ y (U y) γ := by
+    ∑ p, L p (U y) • (D y • ψ.formInnerInChart y (e p))
+  have hw (y : E) (γ : E [⋀^Fin k]→L[ℝ] ℝ) : w y γ = D y * ψ.formInnerInChart y (U y) γ := by
     conv_rhs => rw [← e.sum_repr (U y)]
     simp only [w, L, map_sum, map_smul, _root_.sum_apply, _root_.smul_apply, smul_eq_mul,
       LinearMap.coe_toContinuousLinearMap', Module.Basis.coord_apply, Finset.mul_sum]
     exact Finset.sum_congr rfl fun p _ ↦ by ring
   let h : E → (E [⋀^Fin k]→L[ℝ] ℝ) →L[ℝ] ℝ := fun y ↦
-    D y • formInnerInChart ψ y (mpullback 𝓘(ℝ, E) I ψ.symm f.val y)
+    D y • ψ.formInnerInChart y (mpullback 𝓘(ℝ, E) I ψ.symm f.val y)
   -- The principal symbol `∑ i j, G⁻¹ i j ξ i ξ j` is positive definite.
   have hell (y : E) (hy : y ∈ V) (ξ : Fin m → ℝ) (hξ : ξ ≠ 0) :
-      ∑ i, ∑ j, (Matrix.of fun i j ↦ gramInChart ψ y (b i) (b j))⁻¹ i j * ξ i * ξ j ≠ 0 := by
-    have := (posDef_gramInChart ψ b (hVt hy)).inv.dotProduct_mulVec_pos hξ
+      ∑ i, ∑ j, (Matrix.of fun i j ↦ ψ.gramInChart y (b i) (b j))⁻¹ i j * ξ i * ξ j ≠ 0 := by
+    have := (ψ.posDef_gramInChart (by simp) b (hVt hy)).inv.dotProduct_mulVec_pos hξ
     refine ne_of_gt ?_
     convert this using 1
     simp only [dotProduct, Matrix.mulVec, star_trivial, Finset.mul_sum]
@@ -306,7 +306,7 @@ theorem L2Form.IsWeakSolution.exists_contDiffOn_ae_eq_localize {u : L2Form o k}
   -- The weak equation in the chart.
   have hweak (a : E → E [⋀^Fin k]→L[ℝ] ℝ) (ha : ContDiff ℝ ∞ a) (hac : HasCompactSupport a)
       (haV : tsupport a ⊆ V) :
-      ∫ y, w y (-∑ i, ∑ j, (Matrix.of fun i j ↦ gramInChart ψ y (b i) (b j))⁻¹ i j •
+      ∫ y, w y (-∑ i, ∑ j, (Matrix.of fun i j ↦ ψ.gramInChart y (b i) (b j))⁻¹ i j •
           fderiv ℝ (fun z ↦ fderiv ℝ a z (b i)) y (b j) +
         ∑ i, B i y (fderiv ℝ a y (b i)) + C y (a y)) = ∫ y, h y (a y) := by
     have hat : tsupport a ⊆ ψ.target := haV.trans hVt
@@ -332,34 +332,34 @@ theorem L2Form.IsWeakSolution.exists_contDiffOn_ae_eq_localize {u : L2Form o k}
         rw [e, haχ y hya, one_smul]
       · simp [image_eq_zero_of_notMem_tsupport hya]
   obtain ⟨g', hg', hwg⟩ := exists_contDiffOn_ae_eq_of_forall_integral_apply_eq (μ := volume) hV b
-    (A := fun i j y ↦ (Matrix.of fun i j ↦ gramInChart ψ y (b i) (b j))⁻¹ i j) (B := B) (C := C)
-    (fun i j ↦ (contDiffOn_inv_gramInChart_apply ψ b i j).mono hVt) (fun i ↦ (hB i).mono hVt)
+    (A := fun i j y ↦ (Matrix.of fun i j ↦ ψ.gramInChart y (b i) (b j))⁻¹ i j) (B := B) (C := C)
+    (fun i j ↦ (ψ.contDiffOn_inv_gramInChart_apply b i j).mono hVt) (fun i ↦ (hB i).mono hVt)
     (hC.mono hVt) hell (w := w) (h := h)
     (locallyIntegrableOn_finsetSum _ fun p _ ↦
       ((((L p).comp_memLp' (Lp.memLp (L2Form.localize ψ χ hχ u))).locallyIntegrable
         one_le_two |>.locallyIntegrableOn V).smul_continuousOn hV.isLocallyClosed
-          (continuousOn_clm_apply.2 fun γ ↦ ((hD.mul (contDiffOn_formInnerInChart ψ subset_rfl
+          (continuousOn_clm_apply.2 fun γ ↦ ((hD.mul (ψ.contDiffOn_formInnerInChart subset_rfl
             contDiffOn_const contDiffOn_const)).mono hVt).continuousOn.congr fun y _ ↦ rfl)))
-    (contDiffOn_clm_apply.2 fun γ ↦ ((hD.mul (contDiffOn_formInnerInChart ψ subset_rfl
+    (contDiffOn_clm_apply.2 fun γ ↦ ((hD.mul (ψ.contDiffOn_formInnerInChart subset_rfl
       (fun y hy ↦ (f.contDiffAt_mpullback_symm ψ hy).contDiffWithinAt)
       contDiffOn_const)).mono hVt).congr fun y _ ↦ rfl) hweak
   -- Recover the localization from `g' / D`, through the inverse Gram matrix of `e`.
-  set G : E → Matrix _ _ ℝ := fun y ↦ Matrix.of fun p q ↦ formInnerInChart ψ y (e p) (e q)
+  set G : E → Matrix _ _ ℝ := fun y ↦ Matrix.of fun p q ↦ ψ.formInnerInChart y (e p) (e q)
   refine ⟨fun y ↦ ∑ p, ((G y)⁻¹ *ᵥ fun q ↦ g' y (e q) / D y) p • e p, ?_, ?_⟩
   · refine ContDiffOn.sum fun p _ ↦ ?_
     refine ContDiffOn.smul (f := fun y ↦ ((G y)⁻¹ *ᵥ fun q ↦ g' y (e q) / D y) p) ?_
       contDiffOn_const
     simp only [Matrix.mulVec, dotProduct]
     refine ContDiffOn.sum fun q _ ↦ ContDiffOn.mul ?_ ?_
-    · exact (ContDiffOn.matrix_inv_apply (fun p q ↦ (contDiffOn_formInnerInChart_apply ψ (e p)
-        (e q)).mono hVt) (fun y hy ↦ (posDef_formInnerInChart ψ e (hVt hy)).det_pos.ne') p q)
+    · exact (ContDiffOn.matrix_inv_apply (fun p q ↦ (ψ.contDiffOn_formInnerInChart_apply (e p)
+        (e q)).mono hVt) (fun y hy ↦ (ψ.posDef_formInnerInChart e (hVt hy)).det_pos.ne') p q)
     · exact (hg'.clm_apply contDiffOn_const).div (hD.mono hVt) fun y hy ↦ (hDpos y (hVt hy)).ne'
   · filter_upwards [hwg, ae_restrict_mem hV.measurableSet] with y hy hyV
-    have hz : (fun q ↦ g' y (e q) / D y) = fun q ↦ formInnerInChart ψ y (U y) (e q) := by
+    have hz : (fun q ↦ g' y (e q) / D y) = fun q ↦ ψ.formInnerInChart y (U y) (e q) := by
       ext q
       rw [← hy, hw, mul_div_cancel_left₀ _ (hDpos y (hVt hyV)).ne']
     rw [hz]
-    exact eq_sum_inv_mulVec_formInnerInChart ψ e (hVt hyV) (U y)
+    exact ψ.eq_sum_inv_mulVec_formInnerInChart e (hVt hyV) (U y)
 
 /-- The localization of a weak solution of `Δu = f`, with `f` smooth, to a chart `ψ` with a smooth
 cutoff `ρ` supported in its source, is almost everywhere a smooth flat form with compact support

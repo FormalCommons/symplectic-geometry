@@ -21,7 +21,7 @@ import TauCeti.Topology.Algebra.Module.Alternating.TopDegree
 
 Let `ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞` be a chart of an oriented Riemannian manifold `M` of
 dimension `m`, and `b` a basis of `E`, with Gram matrix `G(y)` for the metric in the chart
-`gramInChart ψ y`. This file shows that the codifferential, read in the chart, is a first-order
+`ψ.gramInChart y`. This file shows that the codifferential, read in the chart, is a first-order
 operator whose principal part is minus the contraction with the metric dual of the derivative:
 for a smooth `(k + 1)`-form `β` read in the chart as `a`,
 `(d^* β)_ψ(y) = -∑ᵢⱼ G⁻¹ᵢⱼ(y) ι_{b_j} (∂_{b_i} a)(y) + C₀(y) a(y)`, with `C₀` smooth. It follows
@@ -85,11 +85,11 @@ being its Gram matrix in the basis `b`. -/
 theorem smul_hodgeStarInChart_alternatizeUncurryFin_hodgeStarInChart (hkl : k + 1 + l = m)
     (hlk : l + 1 + k = m) (b : Basis (Fin m) ℝ E) {y : E} (hy : y ∈ ψ.target) (ξ : E →L[ℝ] ℝ)
     (a : E [⋀^Fin (k + 1)]→L[ℝ] ℝ) :
-    (-1 : ℝ) ^ (m * (k + 2) + 1) • hodgeStarInChart o ψ hlk y
-        (alternatizeUncurryFin (ξ.smulRight (hodgeStarInChart o ψ hkl y a))) =
+    (-1 : ℝ) ^ (m * (k + 2) + 1) • ψ.hodgeStarInChart o hlk y
+        (alternatizeUncurryFin (ξ.smulRight (ψ.hodgeStarInChart o hkl y a))) =
       -a.curryLeft (∑ i, ∑ j,
-        (Matrix.of fun i j ↦ gramInChart ψ y (b i) (b j))⁻¹ i j • ξ (b i) • b j) := by
-  set u := ∑ i, ∑ j, (Matrix.of fun i j ↦ gramInChart ψ y (b i) (b j))⁻¹ i j • ξ (b i) • b j
+        (Matrix.of fun i j ↦ ψ.gramInChart y (b i) (b j))⁻¹ i j • ξ (b i) • b j) := by
+  set u := ∑ i, ∑ j, (Matrix.of fun i j ↦ ψ.gramInChart y (b i) (b j))⁻¹ i j • ξ (b i) • b j
   let := o.fact_finrank_tangentSpace (ψ.symm y)
   -- `A` is the differential of `ψ.symm` at `y`, and `P` its inverse, the differential of `ψ`.
   set e : E ≃L[ℝ] TangentSpace I (ψ.symm y) := ψ.mfderivSymmEquiv (by simp) hy
@@ -106,27 +106,29 @@ theorem smul_hodgeStarInChart_alternatizeUncurryFin_hodgeStarInChart (hkl : k + 
   have hcomp' {j : ℕ} (c : TangentSpace I (ψ.symm y) [⋀^Fin j]→L[ℝ] ℝ) :
       (c.compContinuousLinearMap A).compContinuousLinearMap P = c :=
     e.continuousAlternatingMapCongrLeftEquiv.right_inv c
-  -- `u` is the vector dual to `ξ` for `gramInChart ψ y`, whose Gram matrix in `b` is invertible.
-  have hM : LinearMap.BilinForm.toMatrix b (gramInChart ψ y).toLinearMap₁₂ =
-      Matrix.of fun i j ↦ gramInChart ψ y (b i) (b j) := by
+  -- `u` is the vector dual to `ξ` for `ψ.gramInChart y`, whose Gram matrix in `b` is invertible.
+  have hM : LinearMap.BilinForm.toMatrix b (ψ.gramInChart y).toLinearMap₁₂ =
+      Matrix.of fun i j ↦ ψ.gramInChart y (b i) (b j) := by
     ext
     simp [LinearMap.BilinForm.toMatrix_apply]
-  have hdual (v : E) : gramInChart ψ y u v = ξ v := by
+  have hdual (v : E) : ψ.gramInChart y u v = ξ v := by
     have h := LinearMap.congr_fun (LinearMap.BilinForm.apply_sum_inv_toMatrix_smul
-      (gramInChart ψ y).toLinearMap₁₂ b (hM ▸ (posDef_gramInChart ψ b hy).det_pos.ne'.isUnit)
+      (ψ.gramInChart y).toLinearMap₁₂ b
+      (hM ▸ (ψ.posDef_gramInChart (by simp) b hy).det_pos.ne'.isUnit)
       ξ.toLinearMap) v
     simpa [hM, u] using h
   have hS {j j' : ℕ} (h : j + j' = m) (c : E [⋀^Fin j]→L[ℝ] ℝ) :
-      hodgeStarInChart o ψ h y c =
+      ψ.hodgeStarInChart o h y c =
         (formHodgeStarCLM o h (ψ.symm y) (c.compContinuousLinearMap P)).compContinuousLinearMap
           A := by
     rw [hA, hP]
     -- `hodgeStarInChart_def`, applied to `c`; the composites differ from the right side only
     -- in the types `E` and `TangentSpace 𝓘(ℝ, E) _` of the vectors.
-    exact DFunLike.congr_fun (hodgeStarInChart_def o ψ h y) c
+    exact DFunLike.congr_fun (ψ.hodgeStarInChart_def o h y) c
   have hξ : ξ.comp P = innerSL ℝ (E := TangentSpace I (ψ.symm y)) (A u) := by
     ext v
-    rw [ContinuousLinearMap.comp_apply, innerSL_apply_apply, ← hdual, gramInChart_apply, ← hA]
+    rw [ContinuousLinearMap.comp_apply, innerSL_apply_apply, ← hdual,
+      PartialDiffeomorph.gramInChart_apply, ← hA]
     exact congrArg (fun z ↦ ⟪A u, z⟫) (e.apply_symm_apply v)
   have hinner : compContinuousLinearMapCLM P ∘L ξ.smulRight
       ((formHodgeStarCLM o hkl (ψ.symm y) (a.compContinuousLinearMap P)).compContinuousLinearMap
@@ -164,28 +166,28 @@ theorem exists_mpullback_symm_codifferential_eq
       ∀ (β : SmoothForm I M ℝ (k + 1)), ∀ y ∈ ψ.target,
         (mpullback 𝓘(ℝ, E) I ψ.symm (SmoothForm.codifferential o hkl β).val y :
             E [⋀^Fin k]→L[ℝ] ℝ) =
-          -∑ i, ∑ j, (Matrix.of fun i j ↦ gramInChart ψ y (b i) (b j))⁻¹ i j •
+          -∑ i, ∑ j, (Matrix.of fun i j ↦ ψ.gramInChart y (b i) (b j))⁻¹ i j •
               (fderiv ℝ (F := E [⋀^Fin (k + 1)]→L[ℝ] ℝ) (mpullback 𝓘(ℝ, E) I ψ.symm β.val) y
                 (b i)).curryLeft (b j) +
             C₀ y (mpullback 𝓘(ℝ, E) I ψ.symm β.val y) := by
-  refine ⟨fun z ↦ (-1 : ℝ) ^ (m * (k + 2) + 1) • (hodgeStarInChart o ψ hlk z ∘L
-      alternatizeUncurryFinCLM ℝ E ℝ ∘L (fderiv ℝ (hodgeStarInChart o ψ hkl) z).flip), ?_, ?_⟩
+  refine ⟨fun z ↦ (-1 : ℝ) ^ (m * (k + 2) + 1) • (ψ.hodgeStarInChart o hlk z ∘L
+      alternatizeUncurryFinCLM ℝ E ℝ ∘L (fderiv ℝ (ψ.hodgeStarInChart o hkl) z).flip), ?_, ?_⟩
   · refine contDiffOn_clm_apply.2 fun α ↦ ?_
-    have hflip (z : E) : (fderiv ℝ (hodgeStarInChart o ψ hkl) z).flip α =
-        (ContinuousLinearMap.apply ℝ _ α).comp (fderiv ℝ (hodgeStarInChart o ψ hkl) z) :=
+    have hflip (z : E) : (fderiv ℝ (ψ.hodgeStarInChart o hkl) z).flip α =
+        (ContinuousLinearMap.apply ℝ _ α).comp (fderiv ℝ (ψ.hodgeStarInChart o hkl) z) :=
       ContinuousLinearMap.ext fun _ ↦ rfl
     simp only [_root_.smul_apply, ContinuousLinearMap.comp_apply, hflip]
-    exact ((contDiffOn_hodgeStarInChart o ψ hlk).clm_apply
+    exact ((ψ.contDiffOn_hodgeStarInChart o hlk).clm_apply
       ((alternatizeUncurryFinCLM ℝ E ℝ).contDiff.comp_contDiffOn (contDiffOn_const.clm_comp
-        ((contDiffOn_hodgeStarInChart o ψ hkl).fderiv_of_isOpen ψ.open_target
+        ((ψ.contDiffOn_hodgeStarInChart o hkl).fderiv_of_isOpen ψ.open_target
           (by simp))))).const_smul ((-1 : ℝ) ^ (m * (k + 2) + 1))
   intro β y hy
   have hT := ψ.open_target.mem_nhds hy
   set a : E → E [⋀^Fin (k + 1)]→L[ℝ] ℝ := mpullback 𝓘(ℝ, E) I ψ.symm β.val
   have ha : DifferentiableAt ℝ a y := β.differentiableAt_mpullback_symm ψ hy
-  have hS : DifferentiableAt ℝ (hodgeStarInChart o ψ hkl) y :=
-    ((contDiffOn_hodgeStarInChart o ψ hkl).contDiffAt hT).differentiableAt (by simp)
-  rw [mpullback_symm_codifferential o ψ hkl hlk β hy, extDeriv, fderiv_clm_apply hS ha,
+  have hS : DifferentiableAt ℝ (ψ.hodgeStarInChart o hkl) y :=
+    ((ψ.contDiffOn_hodgeStarInChart o hkl).contDiffAt hT).differentiableAt (by simp)
+  rw [ψ.mpullback_symm_codifferential o hkl hlk β hy, extDeriv, fderiv_clm_apply hS ha,
     alternatizeUncurryFin_add, map_add, smul_add]
   refine congrArg₂ (· + ·) ?_ ?_
   swap
@@ -227,7 +229,7 @@ private theorem exists_mpullback_symm_codifferential_mextDeriv_eq
         (mpullback 𝓘(ℝ, E) I ψ.symm
             (SmoothForm.codifferential o hkl (mextDerivₗ I k α)).val y :
             E [⋀^Fin k]→L[ℝ] ℝ) =
-          -∑ j, ∑ l, (Matrix.of fun i j ↦ gramInChart ψ y (b i) (b j))⁻¹ j l •
+          -∑ j, ∑ l, (Matrix.of fun i j ↦ ψ.gramInChart y (b i) (b j))⁻¹ j l •
               ∑ i, (alternatizeUncurryFin ((LinearMap.toContinuousLinearMap (b.coord i)).smulRight
                 (fderiv ℝ (fun z ↦ fderiv ℝ
                   (mpullback 𝓘(ℝ, E) I ψ.symm α.val : E → E [⋀^Fin k]→L[ℝ] ℝ) z (b i)) y
@@ -266,7 +268,7 @@ private theorem exists_mpullback_symm_mextDeriv_codifferential_eq
         (mpullback 𝓘(ℝ, E) I ψ.symm
             (mextDerivₗ I k (SmoothForm.codifferential o hkl α)).val y :
             E [⋀^Fin (k + 1)]→L[ℝ] ℝ) =
-          -∑ j, ∑ l, (Matrix.of fun i j ↦ gramInChart ψ y (b i) (b j))⁻¹ j l •
+          -∑ j, ∑ l, (Matrix.of fun i j ↦ ψ.gramInChart y (b i) (b j))⁻¹ j l •
               ∑ i, alternatizeUncurryFin ((LinearMap.toContinuousLinearMap (b.coord i)).smulRight
                 (curryLeft (fderiv ℝ (fun z ↦ fderiv ℝ
                   (mpullback 𝓘(ℝ, E) I ψ.symm α.val : E → E [⋀^Fin (k + 1)]→L[ℝ] ℝ) z (b j)) y
@@ -280,9 +282,9 @@ private theorem exists_mpullback_symm_mextDeriv_codifferential_eq
     (curryLeftLI (𝕜 := ℝ) (E := E) (F := ℝ) (n := k)).toContinuousLinearMap.flip (b l)
   have hκ (l : Fin m) (w : E [⋀^Fin (k + 1)]→L[ℝ] ℝ) : κ l w = w.curryLeft (b l) := rfl
   set g : E → Matrix (Fin m) (Fin m) ℝ := fun z ↦
-    (Matrix.of fun i j ↦ gramInChart ψ z (b i) (b j))⁻¹
+    (Matrix.of fun i j ↦ ψ.gramInChart z (b i) (b j))⁻¹
   have hgs (j l : Fin m) : ContDiffOn ℝ ∞ (fun z ↦ g z j l) ψ.target :=
-    contDiffOn_inv_gramInChart_apply ψ b j l
+    ψ.contDiffOn_inv_gramInChart_apply b j l
   have hdg (j l : Fin m) : ContDiffOn ℝ ∞ (fun z ↦ fderiv ℝ (fun z ↦ g z j l) z) ψ.target :=
     (hgs j l).fderiv_of_isOpen ψ.open_target (m := ∞) (by simp)
   -- The partial derivatives of `C₀` are smooth.
@@ -367,7 +369,7 @@ theorem exists_mpullback_symm_hodgeLaplacian_eq
       ∀ (α : SmoothForm I M ℝ k), ∀ y ∈ ψ.target,
         (mpullback 𝓘(ℝ, E) I ψ.symm (SmoothForm.hodgeLaplacian o hkl α).val y :
             E [⋀^Fin k]→L[ℝ] ℝ) =
-          -∑ i, ∑ j, (Matrix.of fun i j ↦ gramInChart ψ y (b i) (b j))⁻¹ i j •
+          -∑ i, ∑ j, (Matrix.of fun i j ↦ ψ.gramInChart y (b i) (b j))⁻¹ i j •
               fderiv ℝ (F := E [⋀^Fin k]→L[ℝ] ℝ) (fun z ↦ fderiv ℝ
                 (mpullback 𝓘(ℝ, E) I ψ.symm α.val : E → E [⋀^Fin k]→L[ℝ] ℝ) z (b i)) y (b j) +
             ∑ i, B i y (fderiv ℝ (mpullback 𝓘(ℝ, E) I ψ.symm α.val : E → E [⋀^Fin k]→L[ℝ] ℝ) y
@@ -424,7 +426,7 @@ theorem exists_mpullback_symm_hodgeLaplacian_eq
     refine ⟨fun i z ↦ B₁ i z + B₂ i z, C, fun i ↦ (hB₁ i).add (hB₂ i), hC, fun α y hy ↦ ?_⟩
     rw [SmoothForm.hodgeLaplacian_add_one_add_one o hkl (by omega), Submodule.coe_add,
       mpullback_add, Pi.add_apply, h₁ α y hy, h₂ α y hy]
-    have hP := principal_add b (Matrix.of fun i j ↦ gramInChart ψ y (b i) (b j))⁻¹
+    have hP := principal_add b (Matrix.of fun i j ↦ ψ.gramInChart y (b i) (b j))⁻¹
       (fun i j ↦ fderiv ℝ (F := E [⋀^Fin (k + 1)]→L[ℝ] ℝ) (fun z ↦ fderiv ℝ
         (mpullback 𝓘(ℝ, E) I ψ.symm α.val : E → E [⋀^Fin (k + 1)]→L[ℝ] ℝ) z (b i)) y (b j))
       fun i j ↦ hsymm α hy _ _
@@ -457,7 +459,7 @@ theorem exists_mpullback_symm_hodgeLaplacian_transpose_eq
       (∀ (α : SmoothForm I M ℝ k), ∀ y ∈ ψ.target,
         (mpullback 𝓘(ℝ, E) I ψ.symm (SmoothForm.hodgeLaplacian o hkl α).val y :
             E [⋀^Fin k]→L[ℝ] ℝ) =
-          -∑ i, ∑ j, (Matrix.of fun i j ↦ gramInChart ψ y (b i) (b j))⁻¹ i j •
+          -∑ i, ∑ j, (Matrix.of fun i j ↦ ψ.gramInChart y (b i) (b j))⁻¹ i j •
               fderiv ℝ (F := E [⋀^Fin k]→L[ℝ] ℝ) (fun z ↦ fderiv ℝ
                 (mpullback 𝓘(ℝ, E) I ψ.symm α.val : E → E [⋀^Fin k]→L[ℝ] ℝ) z (b i)) y (b j) +
             ∑ i, B i y (fderiv ℝ (mpullback 𝓘(ℝ, E) I ψ.symm α.val : E → E [⋀^Fin k]→L[ℝ] ℝ) y
@@ -466,17 +468,17 @@ theorem exists_mpullback_symm_hodgeLaplacian_transpose_eq
       ∀ (w : E → (E [⋀^Fin k]→L[ℝ] ℝ) →L[ℝ] ℝ) (a : E → E [⋀^Fin k]→L[ℝ] ℝ),
         ContDiffOn ℝ 2 w ψ.target → ContDiff ℝ 2 a → HasCompactSupport a →
         tsupport a ⊆ ψ.target →
-        ∫ y, w y (-∑ i, ∑ j, (Matrix.of fun i j ↦ gramInChart ψ y (b i) (b j))⁻¹ i j •
+        ∫ y, w y (-∑ i, ∑ j, (Matrix.of fun i j ↦ ψ.gramInChart y (b i) (b j))⁻¹ i j •
               fderiv ℝ (fun z ↦ fderiv ℝ a z (b i)) y (b j) +
             ∑ i, B i y (fderiv ℝ a y (b i)) + C y (a y)) ∂μ =
-          ∫ y, (-∑ i, ∑ j, (Matrix.of fun i j ↦ gramInChart ψ y (b i) (b j))⁻¹ i j •
+          ∫ y, (-∑ i, ∑ j, (Matrix.of fun i j ↦ ψ.gramInChart y (b i) (b j))⁻¹ i j •
               fderiv ℝ (fun z ↦ fderiv ℝ w z (b i)) y (b j) +
             ∑ i, (fderiv ℝ w y (b i)).comp (B' i y) + (w y).comp (C' y)) (a y) ∂μ := by
   obtain ⟨B, C, hB, hC, hΔ⟩ := exists_mpullback_symm_hodgeLaplacian_eq o ψ hkl b
   obtain ⟨B', C', hB', hC', h⟩ := exists_integral_apply_eq_integral_transpose_apply (μ := μ)
     ψ.open_target (fun i ↦ b i)
-    (fun i j y ↦ -((Matrix.of fun i j ↦ gramInChart ψ y (b i) (b j))⁻¹ i j)) B C
-    (fun i j ↦ (contDiffOn_inv_gramInChart_apply ψ b i j).neg) hB hC
+    (fun i j y ↦ -((Matrix.of fun i j ↦ ψ.gramInChart y (b i) (b j))⁻¹ i j)) B C
+    (fun i j ↦ (ψ.contDiffOn_inv_gramInChart_apply b i j).neg) hB hC
   refine ⟨B, C, B', C', hB, hC, hB', hC', hΔ, fun w a hw ha hac haU ↦ ?_⟩
   convert h w a hw ha hac haU using 4
   · simp only [neg_smul, Finset.sum_neg_distrib]
