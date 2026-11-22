@@ -62,6 +62,11 @@ The proof combines Tau Ceti's `TauCeti.mpullback_liftOpens_apply_coe` with the f
 pull-backs at a point (`TauCeti.mpullback_comp_at`). The relative Moser theorem
 `TauCeti.SmoothEmbedding.exists_diffeomorph_opens_of_eq_along` uses it.
 
+For a partial diffeomorphism `Φ` from `M` to `M'` itself, read as a diffeomorphism between its
+source and its target, the same holds with no lift
+(`PartialDiffeomorph.mpullback_toDiffeomorphSourceTarget`), by the same proof; the Legendrian
+neighbourhood theorem uses it.
+
 ## References
 
 * J. M. Lee, *Introduction to Smooth Manifolds*, 2nd ed., Springer, 2013, Chapter 14.
@@ -181,6 +186,30 @@ variable {E H M E' H' M' F : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
   [IsManifold I ∞ M] [NormedAddCommGroup E'] [NormedSpace ℝ E'] [TopologicalSpace H']
   {I' : ModelWithCorners ℝ E' H'} [TopologicalSpace M'] [ChartedSpace H' M'] [IsManifold I' ∞ M']
   [NormedAddCommGroup F] [NormedSpace ℝ F] {k : ℕ}
+
+/-- Let `Φ` be a partial diffeomorphism from `M` to `M'`, read as a diffeomorphism `φ` between its
+source and its target. If, at every point of the source, `Φ` pulls a form `σ` on `M'` back to the
+value of a form `τ` on `M`, then `φ` pulls the restriction of `σ` to the target back to the
+restriction of `τ` to the source. -/
+theorem mpullback_toDiffeomorphSourceTarget (Φ : PartialDiffeomorph I I' M M' ∞)
+    {σ : TauCeti.SmoothForm I' M' F k} {τ : TauCeti.SmoothForm I M F k}
+    (h : ∀ x ∈ Φ.source, TauCeti.mpullback I I' Φ σ.val x = τ.val x) :
+    TauCeti.SmoothForm.mpullback Φ.toDiffeomorphSourceTarget
+        Φ.toDiffeomorphSourceTarget.contMDiff
+        (TauCeti.SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ) =
+      TauCeti.SmoothForm.mpullback Subtype.val contMDiff_subtypeVal τ := by
+  set φ := Φ.toDiffeomorphSourceTarget
+  have hφΦ : Subtype.val ∘ ⇑φ = ⇑Φ ∘ Subtype.val := funext Φ.toDiffeomorphSourceTarget_apply_coe
+  apply Subtype.ext
+  funext z
+  have hval {N : Opens M'} (x : N) : MDifferentiableAt I' I' (Subtype.val : N → M') x :=
+    (contMDiff_subtypeVal (n := 1)).mdifferentiableAt one_ne_zero
+  rw [TauCeti.SmoothForm.coe_mpullback_subtype_val_apply τ z, TauCeti.SmoothForm.coe_mpullback,
+    TauCeti.SmoothForm.coe_mpullback,
+    ← TauCeti.mpullback_comp_at (φ.contMDiff.mdifferentiableAt (by simp)) (hval _), hφΦ,
+    TauCeti.mpullback_comp_at ((contMDiff_subtypeVal (n := 1)).mdifferentiableAt one_ne_zero)
+      (Φ.mdifferentiableAt (by simp) z.property), TauCeti.mpullback_subtype_val_apply,
+    h z z.property]
 
 /-- Let `Φ` be a partial diffeomorphism from an open subset `U` of `M` to an open subset `V` of
 `M'`, and let `φ` be its reading in the ambient manifolds as a diffeomorphism between its source
