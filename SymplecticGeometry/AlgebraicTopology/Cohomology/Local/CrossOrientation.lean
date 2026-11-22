@@ -101,8 +101,9 @@ theorem complZeroPairCross_localCohomologyClass (hF₁ : finrank ℝ F₁ = m + 
     (ω₂.localCohomologyClass hF₂) (ω₁.localOrientation hF₁).val (ω₂.localOrientation hF₂).val
     (LocalOrientation.cross hF₁ hF₂ h (ω₁.localOrientation hF₁) (ω₂.localOrientation hF₂)).val (by
       rw [integralCoeffComul_eq_uliftTensorSelfIso_inv, LocalOrientation.coe_cross]
-      exact localHomologyCross_comp_homologyMap_uliftTensorSelfIso_inv_apply (0 : F₁) (0 : F₂)
-        _ _ _ h _)
+      -- The composite of linear maps is applied one after the other.
+      exact ConcreteCategory.congr_hom
+        (localHomologyCross_comp_homologyMap_uliftTensorSelfIso_inv (0 : F₁) (0 : F₂) _ _ _ h) _)
   have h1 := (eq_localCohomologyClass_iff _ (finrank_prod_eq_succ hF₁ hF₂ h)
     ((-1 : ℤ) ^ ((m + 1) * (n + 1)) • complZeroPairCross ℤ F₁ F₂ integralCoeffComul
       (ModuleCat.uliftTensorSelfIso ℤ).hom (m + 1) (n + 1) (d + 1) h
