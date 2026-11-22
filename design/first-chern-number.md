@@ -830,7 +830,9 @@ issues, in an order where each issue's blockers come before it.
    image. The step uses
    `Topology/Sets/Opens/Comap.lean`,
    `TopologicalSpace.Opens.range_val_comp_val_comap`, to read an open set of
-   `M` as one of `U ∪ V`, and `Algebra/Category/ModuleCat/Basic.lean`,
+   `M` as one of `U ∪ V`, and `comap_val_sup_comap_val_eq_top`, for the
+   cover of `U ∪ V` by `U` and `V` so read, and
+   `Algebra/Category/ModuleCat/Basic.lean`,
    `ModuleCat.bijective_zsmul_iff`, for the sign of the connecting square.
 3. **The unit circle bundle of a Hermitian line bundle.**
    `Geometry/Manifold/VectorBundle/Hermitian/CircleBundle.lean`, the file
