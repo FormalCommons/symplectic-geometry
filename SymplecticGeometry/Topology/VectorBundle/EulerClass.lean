@@ -20,6 +20,10 @@ version, which this file imports. The changes are these:
   `TauCeti.zeroSectionComplProjHom` lie in one universe `w`, as in the rest of the pinned file, so
   their section takes `B : Type w` and `E : B → Type w`; the declarations are otherwise those of
   Tau Ceti's section `ThomClass`.
+* The pinned version does not expose the body of `TauCeti.thomPairProj`, so
+  `TauCeti.zeroSectionComplProjHom_def`, proved by `rfl` in Tau Ceti, is proved pointwise from
+  `TauCeti.thomPairProj_apply`, and `TauCeti.zeroSectionComplProjHom_apply`, proved from
+  `TauCeti.thomPairProj_apply` in Tau Ceti, is proved by `rfl`.
 * `TauCeti.VectorBundle.totalSpaceHomotopyEquiv` comes from
   `SymplecticGeometry.Topology.VectorBundle.Smul`, the copy of Tau Ceti's main branch.
 

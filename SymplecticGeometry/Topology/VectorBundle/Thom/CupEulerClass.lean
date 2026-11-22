@@ -19,10 +19,9 @@ sequence
 
 `Hᵐ⁻¹(E₀; M) ⟶ Hᵖ(B; M) ⟶ Hᵐ(B; M) ⟶ Hᵐ(E₀; M)`,
 
-so it is injective when `Hᵐ⁻¹(E₀; M)` vanishes and surjective when `Hᵐ(E₀; M)` vanishes. This is
-the step of the computation of the cohomology ring of `ℂPⁿ` from the tautological line in
-Milnor–Stasheff, §12 (there with the Gysin sequence of the sphere bundle), whose complement of the
-zero section is `ℂⁿ⁺¹ ∖ {0}`.
+so it is injective when `Hᵐ⁻¹(E₀; M)` vanishes and surjective when `Hᵐ(E₀; M)` vanishes. Applied
+to the tautological line over `ℂPⁿ`, whose complement of the zero section is `ℂⁿ⁺¹ ∖ {0}`, this
+is the inductive step for the powers of the hyperplane class.
 
 ## Main results
 
@@ -33,13 +32,10 @@ zero section is `ℂⁿ⁺¹ ∖ {0}`.
 ## References
 
 * J. W. Milnor, J. D. Stasheff, *Characteristic Classes*, Annals of Mathematics Studies 76,
-  Princeton (1974), §12, Theorem 12.2 (the Gysin sequence) and the computation of the cohomology
-  of `ℂPⁿ` that follows it.
+  Princeton (1974), §12, Theorem 12.2 (the Gysin sequence).
 -/
 
 public section
-
-noncomputable section
 
 open Bundle CategoryTheory Limits MonoidalCategory
 
