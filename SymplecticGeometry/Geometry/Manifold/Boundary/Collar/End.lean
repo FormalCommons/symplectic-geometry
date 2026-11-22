@@ -649,7 +649,8 @@ private theorem inclusion_apply_of_mem_interior {p : W} (hp : p ∈ (𝓡∂ (n 
     refine lt_of_le_of_ne (q.2 : EuclideanHalfSpace 1).property fun h0 ↦ ?_
     rw [apply_mem_interior_iff] at hp
     refine hp (Subtype.ext ?_)
-    rw [coe_normalIioOpensZero, ← normalRay_normalCoord (q.2 : _), ← h0, normalRay_zero]
+    rw [coe_normalIioOpensZero]
+    exact EuclideanHalfSpace.eq_zero_iff.2 h0.symm
   · simp only [inclusion, h, ↓reduceDIte]
 
 /-- The point `(s, x)` of `(-1, ∞) × ∂W` in `c.WithEnd`; its values for `s ≤ -1` are junk. -/
