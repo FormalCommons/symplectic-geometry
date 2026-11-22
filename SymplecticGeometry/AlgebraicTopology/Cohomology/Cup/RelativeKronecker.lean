@@ -315,7 +315,7 @@ variable {R S T M N L : ModuleCat.{0} ℤ} (V₁ V₂ : Type) [TopologicalSpace 
 statement uses, `ModuleCat ℤ` has the one of every preadditive category
 (`CategoryTheory.Linear.preadditiveIntLinear`), which integral cohomology uses; the two are equal
 (`CategoryTheory.Linear.subsingletonInt`) but not by definition. -/
-theorem singularKronecker_complZeroPairCross_int (iL : Linear ℤ (ModuleCat.{0} ℤ))
+theorem singularKronecker_complZeroPairCross_int {iL : Linear ℤ (ModuleCat.{0} ℤ)}
     [MonoidalLinear ℤ (ModuleCat.{0} ℤ)] (u : T ⟶ R ⊗ S) (μ : M ⊗ N ⟶ L) {p q n : ℕ}
     (h : p + q = n)
     (g₁ : (TopPair.ofSubset (X := TopCat.of V₁) ({0}ᶜ : Set V₁)).singularCohomology R ℤ M p)
