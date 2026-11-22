@@ -41,6 +41,9 @@ structures.
   the sign of `ω₀` (`stdForm_swap`).
 * `SymplecticGeometry.StdSpace.finSumIsometry n` relabels the coordinates of `StdSpace (Fin n)`
   along `finSumFinEquiv`, a linear isometry onto `EuclideanSpace ℝ (Fin (n + n))`.
+* `SymplecticGeometry.StdSpace.equivComplex ι`, for a one-element `ι`, identifies the standard
+  plane with `ℂ` by `(x, y) ↦ x + i y`; read on `ℂ`, `ω₀(v, w) = ⟪i v, w⟫`
+  (`stdForm_apply_eq_inner_equivComplex`).
 
 The main facts fixing the conventions are `stdForm_apply`
 (`ω₀(z, w) = ∑ᵢ (xᵢ(z) yᵢ(w) - yᵢ(z) xᵢ(w))`), `stdComplexStructure_eq_toEuclideanLin_J`,
@@ -943,6 +946,58 @@ theorem isComplexLinearMap_sumEquivProd :
       (EuclideanSpace.sumEquivProd (𝕜 := ℝ) (ι := ι) (κ := ι)).toLinearEquiv.toLinearMap := by
   rw [← stdComplexStructure_transport_sumEquivProd]
   exact AlmostComplexStructure.isComplexLinearMap_transport _ _
+
+/-! ### The standard plane as `ℂ` -/
+
+section Plane
+
+variable [Unique ι]
+
+namespace StdSpace
+
+variable (ι) in
+/-- For a one-element index type `ι`, the identification `(x, y) ↦ x + i y` of the standard
+plane `StdSpace ι` with `ℂ`. -/
+noncomputable def equivComplex : StdSpace ι ≃L[ℝ] ℂ :=
+  (complexToRealEuclidean ι).symm.trans (ContinuousLinearEquiv.funUnique ι ℝ ℂ)
+
+variable (ι) in
+theorem equivComplex_def :
+    equivComplex ι =
+      (complexToRealEuclidean ι).symm.trans (ContinuousLinearEquiv.funUnique ι ℝ ℂ) :=
+  (rfl)
+
+@[simp]
+theorem equivComplex_complexToRealEuclidean (u : ι → ℂ) :
+    equivComplex ι (complexToRealEuclidean ι u) = u default := by
+  simp [equivComplex_def]
+
+/-- The real part of `equivComplex ι z` is the `x`-coordinate of `z`. -/
+@[simp]
+theorem re_equivComplex (z : StdSpace ι) : (equivComplex ι z).re = z.x default := by
+  obtain ⟨u, rfl⟩ := (complexToRealEuclidean ι).surjective z
+  simp
+
+/-- The imaginary part of `equivComplex ι z` is the `y`-coordinate of `z`. -/
+@[simp]
+theorem im_equivComplex (z : StdSpace ι) : (equivComplex ι z).im = z.y default := by
+  obtain ⟨u, rfl⟩ := (complexToRealEuclidean ι).surjective z
+  simp
+
+end StdSpace
+
+open StdSpace in
+/-- Read on `ℂ` through `(x, y) ↦ x + i y`, the standard form of the plane is
+`ω₀(v, w) = ⟪i v, w⟫`. -/
+theorem stdForm_apply_eq_inner_equivComplex (v w : StdSpace ι) :
+    stdForm ι v w = inner ℝ (Complex.I * equivComplex ι v) (equivComplex ι w) := by
+  obtain ⟨v, rfl⟩ := (complexToRealEuclidean ι).surjective v
+  obtain ⟨w, rfl⟩ := (complexToRealEuclidean ι).surjective w
+  rw [stdForm_apply_eq_inner, stdComplexStructure_complexToRealEuclidean,
+    inner_complexToRealEuclidean]
+  simp [Complex.inner, dotProduct, mul_comm]
+
+end Plane
 
 end SymplecticGeometry
 

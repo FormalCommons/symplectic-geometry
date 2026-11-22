@@ -80,6 +80,8 @@ for `o`. Finitely many distinct points have pairwise disjoint open neighbourhood
   `(s, t) ↦ φ((1 - s) e^{2πit})` of the boundary loop inside the closed disc.
 * `SymplecticGeometry.CoordinateDisc.coord`: the inverse of a coordinate disc on its range, as a
   map to `ℂ`.
+* `SymplecticGeometry.CoordinateDisc.phase`: the angular coordinate `w / ‖w‖` of a coordinate
+  disc, as a map to `Circle`.
 * `SymplecticGeometry.CoordinateDisc.reverse`: the coordinate disc `φ ∘ conj` for `-o`.
 * `SymplecticGeometry.CoordinateDisc.affineBall`: the map `z ↦ a + r z` of the ball into itself.
 * `SymplecticGeometry.CoordinateDisc.comp`: a coordinate disc precomposed with an
@@ -344,6 +346,22 @@ theorem continuousOn_coord : ContinuousOn φ.coord (Set.range φ) :=
   continuous_subtypeVal.comp_continuousOn
     ((φ.isOpenEmbedding.toOpenPartialHomeomorph φ).continuousOn_symm.mono
       (by simp [IsOpenEmbedding.toOpenPartialHomeomorph_target]))
+
+/-- The angular coordinate of a coordinate disc, as a point of the circle: `e^{iθ}` at
+`φ (r e^{iθ})`, that is `w / ‖w‖` for `w = φ.coord x` when `w ≠ 0` (`coe_phase`). -/
+def phase (x : M) : Circle :=
+  Circle.exp (Complex.arg (φ.coord x))
+
+theorem phase_def (x : M) : φ.phase x = Circle.exp (Complex.arg (φ.coord x)) :=
+  (rfl)
+
+theorem coe_phase {x : M} (hx : φ.coord x ≠ 0) : (φ.phase x : ℂ) = φ.coord x / ‖φ.coord x‖ := by
+  rw [phase_def, Circle.coe_exp, eq_div_iff (by simpa using hx), mul_comm,
+    Complex.norm_mul_exp_arg_mul_I]
+
+/-- At `φ z`, the angular coordinate is `z / ‖z‖`. -/
+theorem coe_phase_apply {z : ball} (hz : (z : ℂ) ≠ 0) : (φ.phase (φ z) : ℂ) = z / ‖(z : ℂ)‖ := by
+  rw [coe_phase φ (by rwa [coord_apply]), coord_apply]
 
 /-! ### The boundary circle -/
 
