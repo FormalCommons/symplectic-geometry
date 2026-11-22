@@ -5,13 +5,11 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import Mathlib.Geometry.Manifold.PartitionOfUnity
 public import TauCeti.Geometry.Contact.Basic
-public import TauCeti.Geometry.Manifold.Boundary.Orientation
 public import TauCeti.Geometry.Symplectic.Liouville.ContactType
 public import TauCeti.Geometry.Symplectic.Manifold.Flat
-import TauCeti.Geometry.Manifold.Boundary.Derivative
-import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
+public import SymplecticGeometry.Geometry.Manifold.Boundary.Charts
+import Mathlib.Geometry.Manifold.PartitionOfUnity
 import SymplecticGeometry.Geometry.Symplectic.Liouville.ContactType
 
 /-!
@@ -38,8 +36,6 @@ McDuff–Salamon: the Liouville primitive is `λ = -ι_Y σ`, with `dλ = -σ`, 
 
 ## Main results
 
-* `TauCeti.IsOutwardPointingField.isTransverseAlong_subtypeVal`: an outward field is transverse to
-  the boundary.
 * `SymplecticGeometry.IsStrongFilling.mono`: the open set may be shrunk to any smaller open
   neighbourhood of the boundary.
 * `SymplecticGeometry.IsStrongFilling.of_contMDiffOn`: a field that is smooth only on `U` agrees,
@@ -48,7 +44,8 @@ McDuff–Salamon: the Liouville primitive is `λ = -ι_Y σ`, with `dλ = -σ`, 
   in Tau Ceti's sense, with primitive `ι_Y σ`.
 * `SymplecticGeometry.IsStrongFilling.isContactForm_fillingContactForm` and
   `SymplecticGeometry.IsStrongFilling.mextDerivₗ_fillingContactForm`: `α` is a contact form with
-  `dα = -ι^*σ`.
+  `dα = -ι^*σ`, from the general case of a hypersurface,
+  `TauCeti.SmoothEmbedding.exists_isContactForm_eq_neg_mpullback_interior`.
 
 ## References
 
@@ -60,31 +57,6 @@ public section
 
 open Bundle Set TauCeti
 open scoped Manifold ContDiff
-
-namespace TauCeti
-
-variable {n : ℕ} {W : Type*} [TopologicalSpace W] [ChartedSpace (EuclideanHalfSpace (n + 1)) W]
-
-/-- An outward vector at a boundary point is not tangent to the boundary: it is not in the range
-of the differential of the boundary inclusion. -/
-theorem IsOutwardPointing.notMem_range_mfderiv_subtypeVal [IsManifold (𝓡∂ (n + 1)) 1 W]
-    {x : (𝓡∂ (n + 1)).boundary W}
-    {v : TangentSpace (𝓡∂ (n + 1)) (x : W)} (hv : IsOutwardPointing (x : W) v) :
-    v ∉ (mfderiv (𝓡 n) (𝓡∂ (n + 1)) (Subtype.val : (𝓡∂ (n + 1)).boundary W → W) x).range := by
-  rintro ⟨w, rfl⟩
-  have h := hv.coordinate_deriv_neg
-  rw [mfderiv_extChartAt_self, mfderiv_subtypeVal_boundary] at h
-  -- The tangent space of the model is the model space, and `fromTangentSpace` is the identity.
-  change euclideanHalfSpaceBoundaryParam n w 0 < 0 at h
-  linarith [euclideanHalfSpaceBoundaryParam_apply_zero w]
-
-/-- An outward field is transverse to the boundary. -/
-theorem IsOutwardPointingField.isTransverseAlong_subtypeVal [IsManifold (𝓡∂ (n + 1)) ∞ W]
-    {Y : (x : W) → TangentSpace (𝓡∂ (n + 1)) x} (hY : IsOutwardPointingField Y) :
-    IsTransverseAlong (𝓡 n) Y (Subtype.val : (𝓡∂ (n + 1)).boundary W → W) :=
-  isTransverseAlong_iff.2 fun x ↦ (hY.isOutwardPointing x.property).notMem_range_mfderiv_subtypeVal
-
-end TauCeti
 
 namespace SymplecticGeometry
 
@@ -141,36 +113,24 @@ theorem of_contMDiffOn [T2Space W] [SigmaCompactSpace W] (hσ : σ.IsSymplectic)
     ∃ (V : Set W) (Y' : (x : W) → TangentSpace (𝓡∂ (n + 1)) x),
       V ⊆ U ∧ EqOn Y' Y V ∧ IsStrongFilling σ V Y' := by
   have hb : IsClosed ((𝓡∂ (n + 1)).boundary W) := (𝓡∂ (n + 1)).isClosed_boundary one_ne_zero
-  -- A smooth function `f` with `f = 0` exactly off `U` and `f = 1` exactly on `∂W`.
-  obtain ⟨f, hf, -, hf0, hf1⟩ := exists_contMDiff_zero_iff_one_iff_of_isClosed (𝓡∂ (n + 1))
+  have : LocallyCompactSpace W := Manifold.locallyCompact_of_finiteDimensional (𝓡∂ (n + 1))
+  -- A smooth cutoff `g`, zero on an open `O ⊇ Uᶜ` and one on an open `V₀ ⊇ ∂W`.
+  obtain ⟨g, hg0, hg1, -⟩ := exists_contMDiffMap_zero_one_nhds_of_isClosed (𝓡∂ (n + 1))
     (n := (⊤ : ℕ∞)) hU.isClosed_compl hb (disjoint_compl_left_iff_subset.2 hbU)
-  -- A smooth cutoff `g`, zero where `f ≤ 1/2` and one where `3/4 ≤ f`.
-  obtain ⟨g, hg, -, hg0, hg1⟩ := exists_contMDiff_zero_iff_one_iff_of_isClosed (𝓡∂ (n + 1))
-    (n := (⊤ : ℕ∞)) (isClosed_le hf.continuous continuous_const)
-    (isClosed_le continuous_const hf.continuous)
-    (disjoint_left.2 fun x (h₁ : f x ≤ 1 / 2) (h₂ : 3 / 4 ≤ f x) ↦ by linarith)
-  have hfU {x : W} (hx : 1 / 2 ≤ f x) : x ∈ U := by
-    by_contra h
-    have := (hf0 x).1 h
-    linarith
-  have htsupp : tsupport g ⊆ U := by
-    refine (closure_minimal (fun x hx ↦ ?_) (isClosed_le continuous_const hf.continuous)).trans
-      fun x hx ↦ hfU hx
-    by_contra h
-    exact hx ((hg0 x).1 (not_le.1 h).le)
-  set V : Set W := {x | 3 / 4 < f x}
-  have hVo : IsOpen V := isOpen_lt continuous_const hf.continuous
-  have hVU : V ⊆ U := fun x (hx : 3 / 4 < f x) ↦ hfU (by linarith)
-  have hgV : ∀ x ∈ V, g x = 1 := fun x (hx : 3 / 4 < f x) ↦ (hg1 x).1 hx.le
-  have hbV : (𝓡∂ (n + 1)).boundary W ⊆ V := fun x hx ↦ by
-    change 3 / 4 < f x
-    rw [(hf1 x).1 hx]
-    norm_num
-  have hYV : EqOn (g • Y) Y V := fun x hx ↦ by
-    rw [Pi.smul_apply', hgV x hx, one_smul]
-  have hY' : ContMDiff (𝓡∂ (n + 1)) (𝓡∂ (n + 1)).tangent ∞ (T% (g • Y)) :=
-    hg.contMDiffOn.smul_section_of_tsupport hU htsupp hY
-  refine ⟨V, g • Y, hVU, hYV, hσ, hVo, hbV,
+  obtain ⟨O, hO, hUO, hgO⟩ := mem_nhdsSet_iff_exists.1 hg0
+  obtain ⟨V₀, hV₀, hbV₀, hgV₀⟩ := mem_nhdsSet_iff_exists.1 hg1
+  have hgO' : tsupport g ⊆ Oᶜ :=
+    closure_minimal (fun y (hy : g y ≠ 0) hyO ↦ hy (hgO hyO)) hO.isClosed_compl
+  have htsupp : tsupport g ⊆ U := fun x hx ↦ by_contra fun h ↦ hgO' hx (hUO h)
+  set V := V₀ ∩ U
+  have hVo : IsOpen V := hV₀.inter hU
+  have hVU : V ⊆ U := inter_subset_right
+  have hbV : (𝓡∂ (n + 1)).boundary W ⊆ V := subset_inter hbV₀ hbU
+  have hYV : EqOn (⇑g • Y) Y V := fun x hx ↦ by
+    rw [Pi.smul_apply', hgV₀ hx.1, one_smul]
+  have hY' : ContMDiff (𝓡∂ (n + 1)) (𝓡∂ (n + 1)).tangent ∞ (T% (⇑g • Y)) :=
+    g.contMDiff.contMDiffOn.smul_section_of_tsupport hU htsupp hY
+  refine ⟨V, ⇑g • Y, hVU, hYV, hσ, hVo, hbV,
     .intro hY' fun x hx ↦ by rw [hYV (hbV hx)]; exact hout x hx, fun x hx ↦ ?_⟩
   have hYx : MDifferentiableAt (𝓡∂ (n + 1)) (𝓡∂ (n + 1)).tangent (T% Y) x :=
       ((hY.contMDiffAt (hU.mem_nhds (hVU hx))).mdifferentiableAt (by simp))
@@ -227,28 +187,38 @@ theorem coe_fillingContactForm (σ : SmoothTwoForm (𝓡∂ (n + 1)) W)
 
 namespace IsStrongFilling
 
+/-- The contact form of `TauCeti.SmoothEmbedding.exists_isContactForm_eq_neg_mpullback_interior`,
+for the boundary inclusion and the field of a strong filling, is `fillingContactForm σ ⟨Y, _⟩`. -/
+private theorem exists_eq_fillingContactForm (h : IsStrongFilling σ U Y) :
+    ∃ α : SmoothForm (𝓡 n) ((𝓡∂ (n + 1)).boundary W) ℝ 1,
+      α = fillingContactForm σ ⟨Y, h.isOutwardPointingField.contMDiff⟩ ∧ α.IsContactForm ∧
+        mextDerivₗ (𝓡 n) 1 α =
+          -SmoothForm.mpullback Subtype.val (isSmoothEmbedding_subtypeVal_boundary W).contMDiff
+            σ := by
+  have hι := SmoothEmbedding.coe_ofIsSmoothEmbedding (I := 𝓡 n) (J := 𝓡∂ (n + 1)) (n := ∞) _
+    (isSmoothEmbedding_subtypeVal_boundary W)
+  obtain ⟨α, hα, hc, hd⟩ := SmoothEmbedding.exists_isContactForm_eq_neg_mpullback_interior
+    h.isSymplectic (.ofIsSmoothEmbedding _ (isSmoothEmbedding_subtypeVal_boundary W)) (by simp)
+    h.isOpen (by simpa [hι] using h.boundary_subset) h.isOutwardPointingField.contMDiff.contMDiffOn
+    h.mlieDerivForm_eq (by rw [hι]; exact h.isOutwardPointingField.isTransverseAlong_subtypeVal)
+  refine ⟨α, Subtype.ext ?_, hc, hd.trans (congrArg _ (Subtype.ext ?_))⟩
+  · rw [coe_fillingContactForm, hα, hι, ContMDiffSection.coeFn_mk]
+  · rw [SmoothForm.coe_mpullback, SmoothForm.coe_mpullback, hι]
+
 /-- **The contact form of a strong filling.** For a strong filling, `-ι^*(ι_Y σ)` is a contact
 form on the boundary. -/
 theorem isContactForm_fillingContactForm (h : IsStrongFilling σ U Y) :
     (fillingContactForm σ ⟨Y, h.isOutwardPointingField.contMDiff⟩).IsContactForm := by
-  rw [fillingContactForm_def, SmoothForm.isContactForm_neg_iff]
-  exact h.isContactType.isContactForm_mpullback h.isSymplectic.isNondegenerate
-    (isSmoothEmbedding_subtypeVal_boundary W).contMDiff
-    ((isSmoothEmbedding_subtypeVal_boundary (k := ∞) W).isImmersion.mfderiv_injective (by simp))
-    (by simp)
+  obtain ⟨α, rfl, hc, -⟩ := h.exists_eq_fillingContactForm
+  exact hc
 
 /-- For a strong filling, the contact form `α = -ι^*(ι_Y σ)` of the boundary has
 `dα = -ι^*σ`. -/
 theorem mextDerivₗ_fillingContactForm (h : IsStrongFilling σ U Y) :
     mextDerivₗ (𝓡 n) 1 (fillingContactForm σ ⟨Y, h.isOutwardPointingField.contMDiff⟩) =
       -SmoothForm.mpullback Subtype.val (isSmoothEmbedding_subtypeVal_boundary W).contMDiff σ := by
-  obtain ⟨V, -, hbV, hdα, -⟩ := isContactType_iff.1 h.isContactType
-  rw [fillingContactForm_def, map_neg, SmoothForm.mextDerivₗ_mpullback]
-  congr 1
-  refine Subtype.ext (funext fun x ↦ ?_)
-  ext v
-  rw [SmoothForm.coe_mpullback, SmoothForm.coe_mpullback, mpullback_apply, mpullback_apply,
-    mextDerivₗ_apply, hdα _ (hbV (mem_range_self x))]
+  obtain ⟨α, rfl, -, hd⟩ := h.exists_eq_fillingContactForm
+  exact hd
 
 end IsStrongFilling
 

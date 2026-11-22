@@ -173,7 +173,7 @@ Further choices:
 | `Topology/Sets/Strip.lean` | the open strip `(-ε, ε) × X` of `ℝ × X` and the tube lemma for it | 4 |
 | `Geometry/Manifold/Strip.lean` | the slice maps of the strip as smooth maps, their differential, and slices of two-forms | 4 |
 | `Geometry/Manifold/SmoothEmbedding/Basic.lean` | the right slice `x ↦ (c, x)` of a product as a smooth embedding, beside Tau Ceti's file of that path | 4 |
-| `Geometry/Manifold/Boundary/Charts.lean` | boundary points in the extended charts of the half-space model | 5 |
+| `Geometry/Manifold/Boundary/Charts.lean` | boundary points in the extended charts of the half-space model; outward vectors are not tangent to the boundary | 5 |
 | `Geometry/Manifold/Boundary/Collar/Flow/Local.lean` | near one boundary point: the extended field and its flow from the boundary | 5 |
 | `Geometry/Manifold/Boundary/Collar/Flow/Basic.lean` | the collar of a compact boundary along an outward field | 6 |
 | `Geometry/Symplectic/Liouville/Filling.lean` | `IsStrongFilling`, its contact form, its Liouville collar | 7 |
@@ -475,7 +475,7 @@ For `W` as in *Decisions*:
   `IsStrongFilling.mono` (shrinking `U` to an open set that still contains
   `∂W`), `IsStrongFilling.of_contMDiffOn` (from a field smooth only on `U`,
   by a bump function from Mathlib's
-  `exists_contMDiff_zero_iff_one_iff_of_isClosed`, with `∂W` closed by
+  `exists_contMDiffMap_zero_one_nhds_of_isClosed`, with `∂W` closed by
   Mathlib's `ModelWithCorners.isClosed_boundary`), and
   `IsStrongFilling.isContactType`: the boundary inclusion is of contact type
   for `ω` with primitive `ω.interiorₗ ⟨Y, hY⟩`, as Tau Ceti's `IsContactType` (it
@@ -484,10 +484,11 @@ For `W` as in *Decisions*:
   $-\iota^*(\iota_Y\omega)$ along the boundary inclusion, defined for any
   smooth section `⟨Y, hY⟩` (so that it needs no junk value), with
   `fillingContactForm_def` and
-  `IsStrongFilling.isContactForm_fillingContactForm`, from
-  `IsContactType.isContactForm_mpullback` (which needs no boundaryless
-  model) and `SmoothForm.isContactForm_neg_iff`; and
-  `IsStrongFilling.mextDerivₗ_fillingContactForm`, $d\alpha=-\iota^*\omega$.
+  `IsStrongFilling.isContactForm_fillingContactForm` and
+  `IsStrongFilling.mextDerivₗ_fillingContactForm`, $d\alpha=-\iota^*\omega$,
+  both from
+  `TauCeti.SmoothEmbedding.exists_isContactForm_eq_neg_mpullback_interior`
+  (`Liouville/ContactType.lean`), applied to the boundary inclusion.
 - `IsStrongFilling.exists_liouvilleCollar`: there are `ε > 0`,
   `Φ : ℝ × ∂W → W` and `c : SmoothCollar n ∞ W` as in
   `SmoothCollar.exists_eq_of_isOutwardPointing`, with `range c ⊆ U`, such
