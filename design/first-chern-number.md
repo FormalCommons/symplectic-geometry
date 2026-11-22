@@ -1074,6 +1074,10 @@ issues, in an order where each issue's blockers come before it.
    discrete, is determined by its images under the maps
    `Circle.prodRetraction i` that keep the `i`-th circle and send the
    others to `1` (`Circle.singularHomologyOne_prod_ext`).
+   `AlgebraicTopology/Singular/Nullhomotopic.lean`, for the homology of
+   the boundary circles: a nullhomotopic map induces zero on singular
+   homology in positive degree
+   (`TopCat.singularHomologyFunctor_map_eq_zero_of_nullhomotopic`).
    Blocked by 5 and 7.
    `AlgebraicTopology/Singular/DiscreteProd.lean`, for the boundary of the
    complement, which is a product `ι × Circle`: for discrete `ι`, singular
