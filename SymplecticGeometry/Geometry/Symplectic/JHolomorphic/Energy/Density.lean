@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.Geometry.Manifold.IsManifold.Basic
 public import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.TopForm
 public import TauCeti.Geometry.Symplectic.Manifold.Energy
 public import TauCeti.LinearAlgebra.BilinearMap.Multilinear
@@ -238,7 +239,7 @@ theorem normSq_smul_eq_two_smul_energyDensity (h2 : Module.finrank ℝ E' = 2)
     {dvol : SmoothTwoForm I' C} (hdvol : dvol.val c ≠ 0)
     (L : TangentSpace I' c →ₗ[ℝ] TangentSpace I x) :
     form.normSq J j dvol L • dvol.val c = (2 : ℝ) • form.energyDensity J j L := by
-  have := nontrivial_tangentSpace_of_finrank_pos (I := I') (h2 ▸ two_pos) c
+  have : Nontrivial E' := Module.nontrivial_of_finrank_pos (R := ℝ) (h2 ▸ two_pos)
   obtain ⟨e, he⟩ := exists_ne (0 : TangentSpace I' c)
   have hd : dvol.val c ![e, j c e] ≠ 0 := fun hd ↦
     hdvol (j.topForm_ext h2 he (by rw [hd]; rfl))
@@ -271,7 +272,7 @@ theorem Invariant.energyDensity_eq_two_smul_add {form : SmoothTwoForm I M}
         (j.toEndomorphism c : TangentSpace I' c →ₗ[ℝ] TangentSpace I' c)
         (J.toEndomorphism x : TangentSpace I x →ₗ[ℝ] TangentSpace I x) L) +
       (form.val x).compContinuousLinearMap L := by
-  have := nontrivial_tangentSpace_of_finrank_pos (I := I') (h2 ▸ two_pos) c
+  have : Nontrivial E' := Module.nontrivial_of_finrank_pos (R := ℝ) (h2 ▸ two_pos)
   obtain ⟨e, he⟩ := exists_ne (0 : TangentSpace I' c)
   refine j.topForm_ext h2 he ?_
   set A := complexAntilinearPart
@@ -283,10 +284,10 @@ theorem Invariant.energyDensity_eq_two_smul_add {form : SmoothTwoForm I M}
     rw [complexAntilinearPart_apply, ContinuousLinearMap.coe_coe, ContinuousLinearMap.coe_coe,
       ContinuousLinearMap.coe_coe]
   have hAje : A (j c e) = -J x (A e) := by
-    rw [hAe, complexAntilinearPart_apply, ContinuousLinearMap.coe_coe, ContinuousLinearMap.coe_coe,
-      ContinuousLinearMap.coe_coe]
-    simp only [w, j.apply_apply, J.apply_apply, map_neg, map_add, map_smul]
-    module
+    simpa only [SmoothAlmostComplexStructure.almostComplexStructureAt_toLinearMap,
+      ContinuousLinearMap.coe_coe] using
+      (isComplexAntilinear_complexAntilinearPart (j.almostComplexStructureAt c).square_neg
+        (J.almostComplexStructureAt x).square_neg (L : _ →ₗ[ℝ] _)).apply e
   have hJA : form.val x ![A (j c e), J x (A (j c e))] = form.val x ![A e, J x (A e)] := by
     simp only [hAje, map_neg, J.apply_apply, neg_neg]
     rw [← SmoothBundleForm.eval₂_apply, ← SmoothBundleForm.eval₂_apply,

@@ -220,7 +220,9 @@ and are placed by topic.
 For `c : C`, `x : M` and `L : TangentSpace I' c →ₗ[ℝ] TangentSpace I x`
 (linear suffices, the source being finite-dimensional), using the lemmas
 `topForm_ext` and `topForm_apply_div_apply_eq` of
-`Manifold/AlmostComplex/TopForm.lean`, which it imports:
+`Manifold/AlmostComplex/TopForm.lean`, which it imports, and the instance
+`TangentSpace.instNontrivial` of `Geometry/Manifold/IsManifold/Basic.lean`
+(part *Symplectic neighbourhoods*), which it also imports:
 
 - `TauCeti.SmoothTwoForm.energyDensity (ω : SmoothTwoForm I M) (J) (j) (L) :
   TangentSpace I' c [⋀^Fin 2]→L[ℝ] ℝ`, the form $\varepsilon_L$ of Decision 1.

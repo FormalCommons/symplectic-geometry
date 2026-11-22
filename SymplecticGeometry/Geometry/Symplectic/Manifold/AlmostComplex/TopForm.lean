@@ -40,14 +40,6 @@ noncomputable section
 
 namespace TauCeti
 
-/-- The tangent spaces of a manifold modelled on a vector space of positive dimension are
-nontrivial. -/
-theorem nontrivial_tangentSpace_of_finrank_pos {𝕜 : Type*} [NontriviallyNormedField 𝕜]
-    {E : Type*} [NormedAddCommGroup E] [NormedSpace 𝕜 E] {H : Type*} [TopologicalSpace H]
-    {I : ModelWithCorners 𝕜 E H} {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
-    (h : 0 < finrank 𝕜 E) (x : M) : Nontrivial (TangentSpace I x) :=
-  Module.nontrivial_of_finrank_pos (R := 𝕜) (by rwa [finrank_tangentSpace])
-
 namespace SmoothAlmostComplexStructure
 
 variable {E H C : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
