@@ -7,6 +7,9 @@ module
 
 public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.BoundaryDegree
 public import SymplecticGeometry.Analysis.Matrix.SymplecticGroup.Maslov
+public import SymplecticGeometry.Geometry.Manifold.ModelTransport.InteriorModel
+public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.Smooth
+public import TauCeti.Geometry.Manifold.Boundary.Collar.Topological
 
 /-!
 # The first Chern number through a splitting of the surface
@@ -25,10 +28,22 @@ pointwise products, although `ρ` is not multiplicative on `Sp(2n)`, because `ρ
 (`TauCeti.GLSymplectic.maslovPhase_mul_homotopic`). It vanishes on maps that extend continuously
 over `X`, since the boundary class vanishes in the homology of `X`.
 
+A compact surface `S` with boundary, modelled on the half-plane `EuclideanHalfSpace 2`, is a case
+of this setting: `X = S`, `M` is the interior of `S` re-modelled on `ℝ²`
+(`SymplecticGeometry.InteriorModel`), `ι` is its inclusion
+(`SymplecticGeometry.InteriorModel.isOpenEmbedding_val`), whose range is the complement of the
+boundary (`SymplecticGeometry.InteriorModel.range_val_interiorOpens`), the collared map is the
+inclusion of the boundary (`TauCeti.isCollared_subtypeVal_boundary_of_compactSpace`), and the
+homological orientation comes from a smooth orientation of the interior
+(`TauCeti.Manifold.Orientation.toHomologicalOrientation`). In this case the boundary Maslov
+index is defined for maps on the boundary `(𝓡∂ 2).boundary S` itself.
+
 ## Main definitions
 
 * `TauCeti.HomologicalOrientation.boundaryMaslovIndex`: the boundary degree of `ρ ∘ Ψ` for
   `Ψ : ∂X → Sp(2n)`.
+* `TauCeti.Manifold.Orientation.boundaryMaslovIndex`: the boundary Maslov index of a map
+  `Ψ : ∂S → Sp(2n)` on a compact surface `S` with boundary, for an orientation of its interior.
 
 ## Main results
 
@@ -41,6 +56,10 @@ over `X`, since the boundary class vanishes in the homology of `X`.
   continuously over `X` has boundary Maslov index `0`.
 * `TauCeti.HomologicalOrientation.boundaryMaslovIndex_eq_of_homotopy`: homotopic maps have the
   same boundary Maslov index.
+* `TauCeti.Manifold.Orientation.boundaryMaslovIndex_mul`,
+  `TauCeti.Manifold.Orientation.boundaryMaslovIndex_eq_zero_of_extend`,
+  `TauCeti.Manifold.Orientation.boundaryMaslovIndex_eq_of_homotopy`: the same properties for a
+  compact surface with boundary.
 
 ## References
 
@@ -54,6 +73,7 @@ public section
 noncomputable section
 
 open Set Topology TauCeti.GLSymplectic
+open scoped Manifold ContDiff
 
 namespace TauCeti.HomologicalOrientation
 
@@ -157,5 +177,76 @@ theorem boundaryMaslovIndex_inv (Ψ : C(↥((range ι)ᶜ : Set X), GLSymplectic
   lia
 
 end TauCeti.HomologicalOrientation
+
+/-! ### Compact surfaces with boundary -/
+
+namespace TauCeti.Manifold.Orientation
+
+open SymplecticGeometry
+
+variable {S : Type} [TopologicalSpace S] [ChartedSpace (EuclideanHalfSpace 2) S]
+  [IsManifold (𝓡∂ 2) 1 S] [T2Space S] [CompactSpace S] {n : Type*} [Fintype n] [DecidableEq n]
+  (o : Manifold.Orientation (𝓡 2) (InteriorModel (𝓡∂ 2) ((𝓡∂ 2).interiorOpens S)) (Fin 2))
+
+/-- **The boundary Maslov index on a compact surface with boundary.** Let `S` be a compact surface
+with boundary, modelled on the half-plane, and `o` an orientation of its interior, re-modelled on
+`ℝ²`. For a continuous map `Ψ : ∂S → Sp(2n)`, this is the boundary Maslov index of `Ψ` in the
+setting where `X = S`, `ι` is the inclusion of the interior, oriented by `o`, and the boundary is
+collared by `TauCeti.isCollared_subtypeVal_boundary_of_compactSpace`. -/
+def boundaryMaslovIndex (Ψ : C((𝓡∂ 2).boundary S, GLSymplectic n ℝ)) : ℤ :=
+  (o.toHomologicalOrientation finrank_euclideanSpace_fin).boundaryMaslovIndex
+    finrank_euclideanSpace_fin InteriorModel.isOpenEmbedding_val
+    InteriorModel.range_val_interiorOpens isCollared_subtypeVal_boundary_of_compactSpace
+    (Ψ.comp (.inclusion InteriorModel.compl_range_val_interiorOpens.subset))
+
+theorem boundaryMaslovIndex_def (Ψ : C((𝓡∂ 2).boundary S, GLSymplectic n ℝ)) :
+    o.boundaryMaslovIndex Ψ =
+      (o.toHomologicalOrientation finrank_euclideanSpace_fin).boundaryMaslovIndex
+        finrank_euclideanSpace_fin InteriorModel.isOpenEmbedding_val
+        InteriorModel.range_val_interiorOpens isCollared_subtypeVal_boundary_of_compactSpace
+        (Ψ.comp (.inclusion InteriorModel.compl_range_val_interiorOpens.subset)) :=
+  (rfl)
+
+/-- Homotopic maps `∂S → Sp(2n)` have the same boundary Maslov index. -/
+theorem boundaryMaslovIndex_eq_of_homotopy {Ψ Ψ' : C((𝓡∂ 2).boundary S, GLSymplectic n ℝ)}
+    (F : Ψ.Homotopy Ψ') : o.boundaryMaslovIndex Ψ = o.boundaryMaslovIndex Ψ' := by
+  rw [boundaryMaslovIndex_def, boundaryMaslovIndex_def]
+  exact HomologicalOrientation.boundaryMaslovIndex_eq_of_homotopy _ _ _ _ _
+    (F.compContinuousMap _)
+
+/-- Reversing the orientation negates the boundary Maslov index. -/
+@[simp]
+theorem boundaryMaslovIndex_neg_orientation (Ψ : C((𝓡∂ 2).boundary S, GLSymplectic n ℝ)) :
+    (-o).boundaryMaslovIndex Ψ = -o.boundaryMaslovIndex Ψ := by
+  simp [boundaryMaslovIndex_def]
+
+/-- **The product formula on a surface with boundary.** The pointwise product of two maps
+`∂S → Sp(2n)` has the sum of their boundary Maslov indices. -/
+theorem boundaryMaslovIndex_mul (Ψ Ψ' : C((𝓡∂ 2).boundary S, GLSymplectic n ℝ)) :
+    o.boundaryMaslovIndex (Ψ * Ψ') = o.boundaryMaslovIndex Ψ + o.boundaryMaslovIndex Ψ' := by
+  simp only [boundaryMaslovIndex_def, ContinuousMap.mul_comp,
+    HomologicalOrientation.boundaryMaslovIndex_mul]
+
+/-- A map `∂S → Sp(2n)` that extends continuously over `S` has boundary Maslov index `0`. -/
+theorem boundaryMaslovIndex_eq_zero_of_extend {Ψ : C((𝓡∂ 2).boundary S, GLSymplectic n ℝ)}
+    (Φ : C(S, GLSymplectic n ℝ)) (hΦ : ∀ z : (𝓡∂ 2).boundary S, Φ z = Ψ z) :
+    o.boundaryMaslovIndex Ψ = 0 :=
+  HomologicalOrientation.boundaryMaslovIndex_eq_zero_of_extend _ _ _ _ _ Φ fun z ↦ by
+    simpa using hΦ (ContinuousMap.inclusion InteriorModel.compl_range_val_interiorOpens.subset z)
+
+/-- The constant map `1 : ∂S → Sp(2n)` has boundary Maslov index `0`. -/
+@[simp]
+theorem boundaryMaslovIndex_one :
+    o.boundaryMaslovIndex (1 : C((𝓡∂ 2).boundary S, GLSymplectic n ℝ)) = 0 := by
+  simp [boundaryMaslovIndex_def]
+
+/-- The pointwise inverse of a map `∂S → Sp(2n)` has the negative of its boundary Maslov
+index. -/
+theorem boundaryMaslovIndex_inv (Ψ : C((𝓡∂ 2).boundary S, GLSymplectic n ℝ)) :
+    o.boundaryMaslovIndex Ψ⁻¹ = -o.boundaryMaslovIndex Ψ := by
+  simp only [boundaryMaslovIndex_def, ContinuousMap.inv_comp,
+    HomologicalOrientation.boundaryMaslovIndex_inv]
+
+end TauCeti.Manifold.Orientation
 
 end
