@@ -234,9 +234,11 @@ These settle the questions that `DESIGN.md` leaves to this file.
    guarantees a flow becomes
    `exists_isCompactlySupportedHamiltonian`: a smooth $H$ on
    `M × unitInterval` vanishing off a compact $K$ generates a diffeotopy,
-   which fixes every point off $K$. It is built from
-   `TauCeti.timeDependentFlowDiffeotopy` of the Hamiltonian fields of an
-   extension of $H$ to `ℝ × M`, which is complete by
+   which fixes every point off $K$. It applies
+   `exists_interior_velocity_eq` to the form $dH$ on `unitInterval × M`;
+   that lemma takes `TauCeti.timeDependentFlowDiffeotopy` of the fields
+   $(\sigma^\flat)^{-1}\alpha_u$, for an extension $\alpha$ of the form to
+   `ℝ × M`, which is complete by
    `isCompleteVectorField_timeDependentSuspensionField`.
 7. **The Poisson algebra.** Neither Mathlib nor Tau Ceti has a class of
    Poisson algebras, and `PoissonLieAlgebra` is a type synonym that does
@@ -517,15 +519,20 @@ In `TauCeti.Diffeotopy`, for any two-form `σ` unless said:
   `mul_mul_inv_mem_compactlySupportedHamiltonianGroup`, the instance
   `normal_compactlySupportedHamiltonianGroup_subgroupOf_diffeomorphStabilizer`,
   and `compactlySupportedHamiltonianGroup_eq_hamiltonianGroup [CompactSpace M]`.
+- `TauCeti.Diffeotopy.exists_interior_velocity_eq`, under the same instances
+  and `hσ`, added by *Isotopy extension*: for a smooth one-form `Ω` on
+  `unitInterval × M` whose slices `Ω_t` are closed and vanish off a compact
+  `L`, there is `Φ` with `ι_{Φ.velocity t} σ = Ω_t`, every slice in
+  `diffeomorphStabilizer σ`, `Φ (t, y) = y` for `y ∉ L`, and which moves
+  the start of every curve whose derivative is `Φ.velocity` along it.
 - `TauCeti.Diffeotopy.exists_isCompactlySupportedHamiltonian`, under
   `[FiniteDimensional ℝ E] [J.Boundaryless] [T2Space M]` and
   `hσ : σ.IsSymplectic`: for `G : M × I → ℝ` smooth and `K` compact with
   `G p = 0` whenever `p.1 ∉ K`, there is `Φ` such that `G` generates `Φ`,
   `Φ.IsCompactlySupportedHamiltonian σ`, and `Φ (t, x) = x` for `x ∉ K`.
-  Proof as in Decision 6, with `velocity_timeDependentFlowDiffeotopy`,
-  `contMDiff_hamiltonianVectorField_uncurry` and
-  `mpullback_timeDependentFlowOf_of_isHamiltonianVectorField`. It is also
-  the example of the new predicate.
+  Proof as in Decision 6: `exists_interior_velocity_eq` for `Ω = dG`, and
+  `isHamiltonianVectorField_iff_interior_eq`. It is also the example of the
+  new predicate.
 
 ## Main results
 
