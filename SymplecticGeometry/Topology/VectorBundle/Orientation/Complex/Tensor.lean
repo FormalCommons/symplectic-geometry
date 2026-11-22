@@ -29,8 +29,8 @@ so `-(pr₁^* h + pr₂^* h')` in integral cohomology, `h` and `h'` being the hy
 Two consequences follow.
 
 * `TauCeti.complexEulerClass_tensorProduct`: for complex line bundles `L` and `L'` over a compact
-  Hausdorff base, the Euler class of Tau Ceti's tensor product bundle `L ⊗ L'` is
-  `e(L) + e(L')`.
+  normal base, such as a compact Hausdorff one, the Euler class of Tau Ceti's tensor product
+  bundle `L ⊗ L'` is `e(L) + e(L')`.
 * `Projectivization.complexEulerClass_twistCore_one`: on `ℙ ℂ (Fin (n + 1) → ℂ)`, the Euler class
   of Tau Ceti's `twistCore 1`, the bundle `𝒪(1)`, read in integral cohomology, is the hyperplane
   class.
@@ -55,7 +55,7 @@ isomorphism `v ↦ v ⊗ w₀` from `T` to `T ⊠ T'`, continuous on total space
 `e(T)`; the class `pr₂^* e(T')` pulls back through a point, so to zero. The second axis is the same,
 with `w ↦ v₀ ⊗ w`.
 
-For line bundles `L` and `L'` over a compact Hausdorff base `B`, the classifying maps
+For line bundles `L` and `L'` over a compact normal base `B`, the classifying maps
 `g : B → ℙ ℂ (Fin N → ℂ)` and `g' : B → ℙ ℂ (Fin M → ℂ)` of
 `SymplecticGeometry.Bundle.exists_fiberwise_tautological_fin` come with fibrewise isomorphisms
 `L b ≃ T (g b)` and `L' b ≃ T' (g' b)`. Their tensor product (Tau Ceti's
@@ -65,10 +65,10 @@ For line bundles `L` and `L'` over a compact Hausdorff base `B`, the classifying
 continuous on total spaces. Naturality then gives `e(L ⊗ L') = (g, g')^* e(T ⊠ T')`, which is
 `g^* e(T) + g'^* e(T') = e(L) + e(L')`.
 
-For `𝒪(1)`: Tau Ceti's `twistCore 0` has a global trivialization
-(`Projectivization.twistCoreZeroTrivialization`), so a nonvanishing section, and its Euler class
-is zero. Through `Projectivization.twistCoreTensorEquiv 1 (-1)`, `twistCore 1 ⊗ twistCore (-1)`
-is isomorphic to it, so `e(𝒪(1)) = -e(𝒪(-1))`, which is the hyperplane class by
+For `𝒪(1)`: the Euler class of Tau Ceti's `twistCore 0` is zero
+(`Projectivization.complexEulerClass_twistCore_zero`). Through
+`Projectivization.twistCoreTensorEquiv 1 (-1)`, `twistCore 1 ⊗ twistCore (-1)` is isomorphic to it,
+so `e(𝒪(1)) = -e(𝒪(-1))`, which is the hyperplane class by
 `Projectivization.complexEulerClass_twistCore_neg_one`.
 
 ## References
@@ -243,7 +243,7 @@ namespace TauCeti
 
 open Projectivization
 
-variable {B : Type} [TopologicalSpace B] [CompactSpace B] [T2Space B]
+variable {B : Type} [TopologicalSpace B] [CompactSpace B] [NormalSpace B]
   {G : Type} [NormedAddCommGroup G] [NormedSpace ℂ G] [FiniteDimensional ℂ G]
   {L : B → Type} [TopologicalSpace (TotalSpace G L)] [∀ b, AddCommGroup (L b)]
   [∀ b, Module ℝ (L b)] [∀ b, Module ℂ (L b)] [∀ b, IsScalarTower ℝ ℂ (L b)]
@@ -254,8 +254,8 @@ variable {B : Type} [TopologicalSpace B] [CompactSpace B] [T2Space B]
   [∀ b, TopologicalSpace (L' b)] [FiberBundle G' L'] [VectorBundle ℂ G' L']
 
 /-- **The Euler class of a tensor product of complex line bundles.** For complex line bundles `L`
-and `L'` over a compact Hausdorff base, the Euler class of Tau Ceti's tensor product bundle
-`L ⊗ L'` is the sum of the Euler classes of `L` and `L'`. -/
+and `L'` over a compact normal base, such as a compact Hausdorff one, the Euler class of Tau
+Ceti's tensor product bundle `L ⊗ L'` is the sum of the Euler classes of `L` and `L'`. -/
 theorem complexEulerClass_tensorProduct (hG : finrank ℂ G = 1)
     (hG' : finrank ℂ G' = 1) :
     complexEulerClass (r := 0) (ProjectiveTensor ℂ G G') (fun b ↦ L b ⊗[ℂ] L' b)
@@ -327,20 +327,11 @@ theorem complexEulerClass_twistCore_one :
         (complexEulerClass (r := 0) ℂ (twistCore (𝕜 := ℂ) (n := n) 1).Fiber
           (finrank_self ℂ)) =
       hyperplaneClass (Fin (n + 1) → ℂ) := by
-  -- `𝒪(1 + (-1)) = 𝒪(0)` is trivial, so its Euler class vanishes.
+  -- `𝒪(1 + (-1))` is `𝒪(0)`, whose Euler class vanishes.
   have h₀ : complexEulerClass (r := 0) ℂ (twistCore (𝕜 := ℂ) (n := n) (1 + -1)).Fiber
       (finrank_self ℂ) = 0 := by
     rw [show (1 : ℤ) + -1 = 0 by norm_num]
-    refine complexEulerClass_eq_zero_of_forall_ne_zero ℂ _ (finrank_self ℂ)
-      (s := fun _ ↦ ((1 : ℂ) : (twistCore (𝕜 := ℂ) (n := n) 0).Fiber _)) ?_
-      fun _ ↦ one_ne_zero (α := ℂ)
-    -- The section `1` read through the global trivialization of `𝒪(0)`.
-    refine ((twistCoreZeroTrivialization (𝕜 := ℂ) (n := n)).continuousOn_symm.comp_continuous
-      (continuous_id.prodMk (continuous_const (y := (1 : ℂ)))) fun b ↦ by simp).congr fun b ↦ ?_
-    have h := (twistCoreZeroTrivialization (𝕜 := ℂ) (n := n)).symm_apply_apply_mk (b := b)
-      (y := (1 : ℂ)) (by simp)
-    rw [twistCoreZeroTrivialization_apply] at h
-    exact congrArg (TotalSpace.mk' ℂ b) h
+    exact complexEulerClass_twistCore_zero
   have h := complexEulerClass_eq_of_fiberwise (by simp) (finrank_self ℂ)
     (φ := twistCoreTensorEquiv (𝕜 := ℂ) (n := n) 1 (-1))
     (continuous_twistCoreTensorEquiv (𝕜 := ℂ) (n := n) 1 (-1))
