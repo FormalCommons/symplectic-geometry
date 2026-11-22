@@ -60,14 +60,16 @@ noncomputable section
 open MeasureTheory
 open scoped ContDiff Topology
 
-namespace MeasureTheory
+namespace SymplecticGeometry
 
-variable {α ι G : Type*} [MeasurableSpace α] {μ : Measure α} [Fintype ι] [NormedAddCommGroup G]
-  [NormedSpace ℝ G]
+variable {E F : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [NormedAddCommGroup F]
+  [NormedSpace ℝ F]
 
 /-- The integral of `∑ᵢⱼ f₂ᵢⱼ + ∑ᵢ f₁ᵢ + f₀` is the sum of the integrals of its terms, when all of
 them are integrable. -/
-theorem integral_sum_sum_add_sum_add (f₂ : ι → ι → α → G) (f₁ : ι → α → G) (f₀ : α → G)
+private theorem integral_sum_sum_add_sum_add {α ι G : Type*} [MeasurableSpace α]
+    {μ : Measure α} [Fintype ι] [NormedAddCommGroup G] [NormedSpace ℝ G]
+    (f₂ : ι → ι → α → G) (f₁ : ι → α → G) (f₀ : α → G)
     (h₂ : ∀ i j, Integrable (f₂ i j) μ) (h₁ : ∀ i, Integrable (f₁ i) μ) (h₀ : Integrable f₀ μ) :
     ∫ y, (∑ i, ∑ j, f₂ i j y + ∑ i, f₁ i y + f₀ y) ∂μ =
       ∑ i, ∑ j, ∫ y, f₂ i j y ∂μ + ∑ i, ∫ y, f₁ i y ∂μ + ∫ y, f₀ y ∂μ := by
@@ -78,13 +80,6 @@ theorem integral_sum_sum_add_sum_add (f₂ : ι → ι → α → G) (f₁ : ι 
     integral_add hs₂ hs₁, integral_finsetSum _ fun i _ ↦ integrable_finsetSum _ fun j _ ↦ h₂ i j,
     integral_finsetSum _ fun i _ ↦ h₁ i]
   simp_rw [integral_finsetSum _ fun j _ ↦ h₂ _ j]
-
-end MeasureTheory
-
-namespace SymplecticGeometry
-
-variable {E F : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [NormedAddCommGroup F]
-  [NormedSpace ℝ F]
 
 /-- The pointwise identity behind `integral_apply_eq_integral_transpose_apply`: the terms that
 integration by parts produces add up to `P' w`, at a point where `w` and the `Aᵢⱼ` are `C²`. -/
