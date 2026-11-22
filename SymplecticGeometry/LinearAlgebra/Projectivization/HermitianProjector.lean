@@ -17,6 +17,8 @@ coordinates `[1 : z]` of `x` in a standard affine chart, and records that it fix
 
 ## Main results
 
+* `Projectivization.hermitianProjector_eq_rankOneHermitianProjector_of_mem_submodule`: the
+  Hermitian projector of a line is the rank-one Hermitian projector of any nonzero vector of it.
 * `Projectivization.hermitianProjector_eq_rankOneHermitianProjector_insertNth`: on the standard
   affine open `U_i`, the Hermitian projector of a point is the rank-one Hermitian projector of its
   homogeneous coordinates `[1 : z]`.
@@ -38,15 +40,21 @@ section Field
 
 variable {n : ℕ} {K : Type*} [Field K] [StarRing K]
 
+/-- The Hermitian projector of a line is the rank-one Hermitian projector of any nonzero vector
+of the line. -/
+theorem hermitianProjector_eq_rankOneHermitianProjector_of_mem_submodule {ι : Type*} [Fintype ι]
+    {x : ℙ K (ι → K)} {v : ι → K} (hv : v ≠ 0) (hx : v ∈ x.submodule) :
+    hermitianProjector x = TauCeti.rankOneHermitianProjector v := by
+  rw [← mk_eq_of_mem_submodule hv hx, hermitianProjector_mk]
+
 /-- On the standard affine open `U_i`, the Hermitian projector of a point is the rank-one
 Hermitian projector of its homogeneous coordinates `[1 : z]`, with `1` in position `i`. -/
 theorem hermitianProjector_eq_rankOneHermitianProjector_insertNth (i : Fin (n + 1))
     {x : ℙ K (Fin (n + 1) → K)} (hx : x ∈ affineOpen i) :
     hermitianProjector x =
-      TauCeti.rankOneHermitianProjector (Fin.insertNth (α := fun _ ↦ K) i 1 (affineChart i x)) := by
-  rw [insertNth_one_affineChart_eq_normalizedRep i hx, normalizedRep_def, LinearMap.proj_apply,
-    TauCeti.rankOneHermitianProjector_smul (inv_ne_zero ((mem_affineOpen_iff i x).1 hx)),
-    ← hermitianProjector_mk x.rep x.rep_ne_zero, mk_rep]
+      TauCeti.rankOneHermitianProjector (Fin.insertNth (α := fun _ ↦ K) i 1 (affineChart i x)) :=
+  hermitianProjector_eq_rankOneHermitianProjector_of_mem_submodule (Fin.insertNth_one_ne_zero i _)
+    (insertNth_one_affineChart_eq_normalizedRep i hx ▸ normalizedRep_mem_submodule _ x)
 
 /-- On the standard affine open `U_i`, `1 - hermitianProjector x` subtracts from a vector `u` its
 orthogonal projection `((v* u) / (v* v)) • v` onto the line spanned by the homogeneous
@@ -72,9 +80,8 @@ theorem hermitianProjector_mulVec_of_mem_submodule {x : ℙ 𝕜 (ι → 𝕜)} 
     (hv : v ∈ x.submodule) : hermitianProjector x *ᵥ v = v := by
   rw [submodule_eq, Submodule.mem_span_singleton] at hv
   obtain ⟨c, rfl⟩ := hv
-  have h : hermitianProjector x = TauCeti.rankOneHermitianProjector x.rep := by
-    rw [← hermitianProjector_mk x.rep x.rep_ne_zero, mk_rep]
-  rw [h, mulVec_smul,
+  rw [hermitianProjector_eq_rankOneHermitianProjector_of_mem_submodule x.rep_ne_zero
+      (x.submodule_eq ▸ Submodule.mem_span_singleton_self _), mulVec_smul,
     TauCeti.rankOneHermitianProjector_mulVec_self
       (dotProduct_star_self_eq_zero.not.2 x.rep_ne_zero)]
 

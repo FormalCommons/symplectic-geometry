@@ -5,7 +5,6 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.LinearAlgebra.Projectivization.Basic
 public import TauCeti.Geometry.Manifold.Instances.Projectivization
 
 import Mathlib.Analysis.Calculus.Deriv.Add
@@ -13,6 +12,7 @@ import Mathlib.Analysis.Calculus.Deriv.Comp
 import Mathlib.Analysis.Calculus.Deriv.Inv
 import Mathlib.Analysis.Calculus.Deriv.Mul
 import Mathlib.Analysis.Calculus.Deriv.Prod
+import SymplecticGeometry.LinearAlgebra.Projectivization.Basic
 
 /-!
 # The derivatives of the transition maps of projective space
