@@ -12,7 +12,6 @@ import Mathlib.Analysis.Normed.Module.Connected
 import Mathlib.Geometry.Manifold.Algebra.LieGroup
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.Indicator
 import SymplecticGeometry.Topology.OpenPartialHomeomorph.Compact
-import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 import TauCeti.Geometry.Manifold.Morse.CriticalPoints
 import TauCeti.Topology.ConnectedComponents
 import TauCeti.Topology.OpenPartialHomeomorph.Basic
@@ -42,8 +41,6 @@ ball, the open ball and the sphere follows the proof of Tau Ceti's
 
 * `SymplecticGeometry.isRegularPoint_norm_sub_sq_sub`: every point other than `c` is a regular
   point of `z ↦ ‖z - c‖² - t` on `E`.
-* `OpenPartialHomeomorph.isRegularPoint_of_mem_maximalAtlas`: a chart of the maximal atlas is
-  regular at every point of its source.
 * `OpenPartialHomeomorph.exists_isRegularValue_image_closedBall`: a smooth `f` with regular value
   `0` such that `{f ≤ 0}`, `{f < 0}` and `{f = 0}` are the images under `e.symm` of the closed
   ball, the open ball and the sphere.
@@ -114,27 +111,6 @@ theorem isPreconnected_compl_symm_image_ball [PreconnectedSpace M] (hE : 1 < Mod
     (e.continuousOn_symm.mono (sphere_subset_closedBall.trans hc))
 
 end Topology
-
-section Chart
-
-variable {𝕜 : Type*} [NontriviallyNormedField 𝕜] {E : Type*} [NormedAddCommGroup E]
-  [NormedSpace 𝕜 E] {M : Type*} [TopologicalSpace M] [ChartedSpace E M] {n : WithTop ℕ∞}
-
-/-- A chart `e` of the `C^n` maximal atlas of a manifold modelled on `𝓘(𝕜, E)`, with `n ≠ 0`,
-is regular at every point of its source: its derivative there is invertible. -/
-theorem isRegularPoint_of_mem_maximalAtlas [IsManifold 𝓘(𝕜, E) n M]
-    (e : OpenPartialHomeomorph M E) (hn : n ≠ 0) (he : e ∈ IsManifold.maximalAtlas 𝓘(𝕜, E) n M)
-    {x : M} (hx : x ∈ e.source) : IsRegularPoint 𝓘(𝕜, E) 𝓘(𝕜, E) e x := by
-  set Φ := e.toPartialDiffeomorphOfMemMaximalAtlas he
-  have hΦ : ⇑Φ = e := by
-    funext z
-    simp [Φ]
-  have hinv := (PartialDiffeomorph.isLocalDiffeomorphAt _ _ _ Φ
-    (by simpa [Φ] using hx)).isInvertible_mfderiv hn
-  rw [hΦ] at hinv
-  exact isRegularPoint_iff.2 hinv.surjective
-
-end Chart
 
 variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [FiniteDimensional ℝ E]
   {c : E} {ρ : ℝ} {M : Type*} [TopologicalSpace M] [ChartedSpace E M] [T2Space M]
@@ -240,9 +216,13 @@ theorem exists_isRegularValue_image_closedBall [IsManifold 𝓘(ℝ, E) ∞ M]
     have hz2 := hz.2
     rw [mem_preimage, mem_ball, dist_eq_norm] at hz2
     rw [hfs z hz.1, Function.comp_apply, hφeq _ hz2]
+  have he' : IsRegularPoint 𝓘(ℝ, E) 𝓘(ℝ, E) e x := by
+    have := isInvertible_mfderiv_extend
+      (IsManifold.maximalAtlas_subset_of_le (by simp) he) hx'.1
+    rw [e.extend_coe, modelWithCornersSelf_coe, id_comp] at this
+    exact isRegularPoint_iff.2 this.surjective
   have hreg := (SymplecticGeometry.isRegularPoint_norm_sub_sq_sub (c := c) (y := e x)
-    (fun h0 ↦ by rw [h0, sub_self, norm_zero] at hxc; exact hρ.ne' hxc.symm) (ρ ^ 2)).comp
-    (e.isRegularPoint_of_mem_maximalAtlas (by simp) he hx'.1)
+    (fun h0 ↦ by rw [h0, sub_self, norm_zero] at hxc; exact hρ.ne' hxc.symm) (ρ ^ 2)).comp he'
   rw [isRegularPoint_iff, hev.mfderiv_eq]
   exact isRegularPoint_iff.1 hreg
 
