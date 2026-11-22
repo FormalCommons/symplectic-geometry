@@ -112,9 +112,7 @@ theorem energyDensity_apply_complexFrame (L : W →ₗ[ℝ] V) (e : W) :
 @[simp]
 theorem energyDensity_zero : ω.energyDensity J j (0 : W →ₗ[ℝ] V) = 0 := by
   ext v
-  have hv : v = ![v 0, v 1] := by
-    funext i
-    fin_cases i <;> simp
+  have hv : v = ![v 0, v 1] := (FinVec.etaExpand_eq _).symm
   rw [hv, energyDensity_apply]
   have h0 (w : V) : ω ![0, w] = 0 := ω.map_coord_zero 0 rfl
   simp only [LinearMap.zero_apply, h0, add_zero, sub_zero, mul_zero, zero_apply]
