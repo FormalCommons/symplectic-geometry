@@ -7,6 +7,7 @@ module
 
 public import SymplecticGeometry.AlgebraicTopology.UniversalCover.Circle.FreeLoop.Basic
 public import SymplecticGeometry.Topology.Circle.Degree.Square.FromTauCeti
+public import TauCeti.Topology.Homotopy.Cube.Radius
 
 /-!
 # The degree around the boundary of the square and around an inner circle
@@ -20,7 +21,7 @@ the square.
 * `TauCeti.abs_re_squareCenterOffset_le`, `TauCeti.abs_im_squareCenterOffset_le`,
   `TauCeti.one_half_le_norm_squareCenterOffset_of_mem`: the offset of a point of the square from
   the centre has coordinates of absolute value at most `1/2`, and norm at least `1/2` on the
-  boundary.
+  boundary; the centre itself has offset `0` (`TauCeti.squareCenterOffset_cubeCenter`).
 * `TauCeti.squareOfOffset`: the point of the square with a given offset from the centre, clamped
   to the square, which inverts `TauCeti.squareCenterOffset`
   (`TauCeti.squareOfOffset_squareCenterOffset`, `TauCeti.squareCenterOffset_squareOfOffset`).
@@ -79,6 +80,12 @@ theorem abs_im_squareCenterOffset_le (y : Fin 2 → I) :
     |(squareCenterOffset y).im| ≤ 1 / 2 := by
   rw [im_squareCenterOffset, abs_le]
   constructor <;> linarith [unitInterval.nonneg (y 1), unitInterval.le_one (y 1)]
+
+/-- The centre of the square has offset `0` from the centre. -/
+@[simp]
+theorem squareCenterOffset_cubeCenter : squareCenterOffset (cubeCenter : Fin 2 → I) = 0 :=
+  Complex.ext (by simp [re_squareCenterOffset, cubeCenter_apply])
+    (by simp [im_squareCenterOffset, cubeCenter_apply])
 
 /-- The points of the boundary of the square are at distance at least `1/2` from the centre. -/
 theorem one_half_le_norm_squareCenterOffset_of_mem {y : Fin 2 → I}
