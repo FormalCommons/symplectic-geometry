@@ -1196,11 +1196,10 @@ it into issues; the overview fixes its folders and its dependencies.
   orthogonal `J`, Mathlib's Gram–Schmidt turns `u₀, J u₀, u₁, J u₁, …` into
   `e₀, J e₀, e₁, J e₁, …`,
   in Mathlib's namespace `InnerProductSpace`; the file has the name of the
-  Mathlib file that defines `gramSchmidt`, and the local Darboux frames use
-  it),
+  Mathlib file that defines `gramSchmidt`),
   `Topology/VectorBundle/LinearIndependent.lean` (sections continuous and
   linearly independent at a point stay independent near it, in Mathlib's
-  namespace `Bundle.Trivialization`; the local Darboux frames use it),
+  namespace `Bundle.Trivialization`),
   `Analysis/Normed/Operator/SpanSingleton.lean`
   (`LinearIsometryEquiv.toSpanSingleton`, a unit vector of a line as a
   linear isometry from the scalars),
@@ -1252,11 +1251,9 @@ it into issues; the overview fixes its folders and its dependencies.
   endomorphism bundle, `polarEndAt` on the open set `polarEndDomain`; it
   mentions no symplectic form on the bundle, so it sits apart from the
   symplectic files),
-  `.../Symplectic/Trivialization.lean` (local Darboux frames, by Tau Ceti's
-  smooth Gram–Schmidt applied with $J_{g,\omega}$, local symplectic
-  trivializations and the reduction of the structure group to
-  $\mathrm{Sp}(F,\sigma)$; after `ComplexStructure/Basic.lean`, whose
-  $J_{g,\omega}$ it uses),
+  `.../Symplectic/Trivialization.lean` (local Darboux frames, by a
+  symplectic Gram–Schmidt on sections, local symplectic trivializations and
+  the reduction of the structure group to $\mathrm{Sp}(F,\sigma)$),
   `.../Symplectic/Classification.lean` (two symplectic bundles
   with tame complex structures are isomorphic as symplectic bundles if and
   only if they are as complex bundles),

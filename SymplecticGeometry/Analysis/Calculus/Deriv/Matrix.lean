@@ -11,6 +11,7 @@ public import Mathlib.Analysis.Calculus.Deriv.Prod
 public import Mathlib.LinearAlgebra.Matrix.NonsingularInverse
 public import Mathlib.Topology.Instances.Matrix
 import Mathlib.Analysis.Calculus.Deriv.Comp
+import Mathlib.Analysis.Calculus.Deriv.Shift
 import Mathlib.Analysis.Calculus.FDeriv.Mul
 import Mathlib.Analysis.Matrix.Normed
 import Mathlib.Topology.Algebra.Module.FiniteDimension
@@ -24,7 +25,10 @@ Through the entries, the two notions agree as they do for normed spaces
 (`hasDerivWithinAt_matrix_univ`, `HasDerivAt.matrix_hasDerivWithinAt`). From this we get the
 derivatives of a constant (`hasDerivWithinAt_matrix_const`) and of a transpose
 (`HasDerivWithinAt.matrix_transpose`), and the product rule for products of possibly
-rectangular matrices with entries in a normed `𝕜`-algebra (`HasDerivWithinAt.matrix_mul`). For
+rectangular matrices with entries in a normed `𝕜`-algebra (`HasDerivWithinAt.matrix_mul`, and
+`HasDerivAt.matrix_mul_const` for a constant right factor). A function that a shift of the
+variable multiplies by a constant matrix, `Z (r + a) = Z r * g`, has derivative `Z' * g` at
+`t + a` if it has derivative `Z'` at `t` (`HasDerivAt.matrix_of_forall_add_eq_mul`). For
 square matrices over a complete field, the derivative of the inverse at an invertible value is
 `-X⁻¹ X' X⁻¹` (`HasDerivWithinAt.matrix_inv`), from Mathlib's `hasFDerivAt_ringInverse`.
 
@@ -101,6 +105,26 @@ theorem HasDerivWithinAt.matrix_mul {𝔸 : Type*} [NormedRing 𝔸] [NormedAlge
   simpa only [Matrix.mul_apply, Matrix.add_apply, ← Finset.sum_add_distrib] using
     HasDerivWithinAt.fun_sum (u := Finset.univ) fun k _ ↦
       (hA.matrix_elem i k).fun_mul (hB.matrix_elem k j)
+
+/-- **Product rule** with a constant right factor, for matrix-valued functions with entries in a
+normed `𝕜`-algebra: `(A C)' = A' C`. -/
+theorem HasDerivAt.matrix_mul_const {𝔸 : Type*} [NormedRing 𝔸] [NormedAlgebra 𝕜 𝔸] [Fintype m]
+    {A : 𝕜 → Matrix l m 𝔸} {A' : Matrix l m 𝔸} (hA : HasDerivAt A A' t) (C : Matrix m n 𝔸) :
+    HasDerivAt (fun r ↦ A r * C) (A' * C) t := by
+  have h := (hasDerivWithinAt_matrix_univ.2 hA).matrix_mul (hasDerivWithinAt_matrix_const C _ t)
+  rwa [Matrix.mul_zero, add_zero, hasDerivWithinAt_matrix_univ] at h
+
+/-- If a shift of the variable multiplies a matrix-valued function by a constant matrix,
+`Z (r + a) = Z r * g` for all `r`, and `Z` has derivative `Z'` at `t`, then `Z` has derivative
+`Z' * g` at `t + a`. -/
+theorem HasDerivAt.matrix_of_forall_add_eq_mul {𝔸 : Type*} [NormedRing 𝔸] [NormedAlgebra 𝕜 𝔸]
+    [Fintype m] {Z : 𝕜 → Matrix l m 𝔸} {Z' : Matrix l m 𝔸} {g : Matrix m m 𝔸} {a : 𝕜}
+    (hg : ∀ r, Z (r + a) = Z r * g) (hZ : HasDerivAt Z Z' t) : HasDerivAt Z (Z' * g) (t + a) := by
+  have hs : HasDerivAt (fun r ↦ Z (r - a)) Z' (t + a) := hasDerivAt_matrix.2 fun i j ↦
+    HasDerivAt.comp_sub_const (f := fun r ↦ Z r i j) (t + a) a
+      (by simpa using hasDerivAt_matrix.1 hZ i j)
+  convert hs.matrix_mul_const g using 1
+  exact funext fun r ↦ by rw [← hg, sub_add_cancel]
 
 /-- **Derivative of the inverse** of a matrix-valued function, at a point where the value is
 invertible: `(X⁻¹)' = -X⁻¹ X' X⁻¹`. -/

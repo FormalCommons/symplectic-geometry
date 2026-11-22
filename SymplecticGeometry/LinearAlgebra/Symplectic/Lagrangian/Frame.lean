@@ -60,7 +60,8 @@ A *frame* is a real `2n × n` matrix `Z = fromRows X Y`, whose columns span the 
   Lagrangian frame for symmetric `A`.
 * `SymplecticGeometry.LagrangianGrassmannian.finrank_eq_card`: a Lagrangian subspace of
   `StdSpace ι` has dimension `Fintype.card ι`; `injective_toEuclideanLin_of_range_eq`: so a
-  real matrix whose columns span a Lagrangian subspace is injective.
+  real matrix whose columns span a Lagrangian subspace is injective, and
+  `isUnit_of_range_mul_eq`: if `Z * g` is such a matrix, then `g` is invertible.
 * `SymplecticGeometry.det_ne_zero_of_isLagrangian_range_fromRows`: the complex frame `X + i Y` of
   a Lagrangian frame is invertible.
 * `SymplecticGeometry.exists_eq_graph_of_isCompl`, `exists_eq_graphY_of_isCompl`: a Lagrangian
@@ -333,6 +334,16 @@ theorem LagrangianGrassmannian.injective_toEuclideanLin_of_range_eq
   have h := LinearMap.finrank_range_add_finrank_ker (toEuclideanLin Z)
   rw [hZ, finrank_eq_card, finrank_euclideanSpace] at h
   exact LinearMap.ker_eq_bot.1 (Submodule.finrank_eq_zero.1 (by omega))
+
+/-- A change of frame `g` that keeps `Z * g` a frame of a Lagrangian subspace is invertible. -/
+theorem LagrangianGrassmannian.isUnit_of_range_mul_eq {Λ : LagrangianGrassmannian (stdForm ι)}
+    {Z : Matrix (ι ⊕ ι) ι ℝ} {g : Matrix ι ι ℝ}
+    (h : LinearMap.range (toEuclideanLin (Z * g)) = Λ) : IsUnit g := by
+  have hinj := injective_toEuclideanLin_of_range_eq h
+  rw [toLpLin_mul_same, LinearMap.coe_comp] at hinj
+  refine mulVec_injective_iff_isUnit.1 fun u v huv ↦ ?_
+  simpa using hinj.of_comp (a₁ := WithLp.toLp 2 u) (a₂ := WithLp.toLp 2 v)
+    (by simp [toLpLin_apply, huv])
 
 /-- The `x`-coordinates of `fromRows X Y` applied to `u` are `X u`. -/
 @[simp]

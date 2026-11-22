@@ -553,8 +553,9 @@ The Robbin–Salamon index of paths, relative to a Lagrangian `V`.
   constant, moved to `V₀` by `ℒ.finrank_inf_unitaryFrame` of
   `Lagrangian/Transverse.lean` and `ℒ.finrank_unitaryFrame_inf_horizontal` of
   `Lagrangian/Action.lean`), `ℒ.pathMaslovIndex_graph` (localization: for `V = V₀`
-  and a path of Lagrangians that are the graphs $\{(x,A(t)x)\}$ of a continuous path of real
-  matrices, with no symmetry hypothesis since each graph is Lagrangian, half the change of
+  and a path of Lagrangians that are the graphs $\{(x,A(t)x)\}$ of real matrices, with no
+  continuity hypothesis, since `ℒ.continuous_of_coe_eq_graph` derives it, and no symmetry
+  hypothesis, since each graph is Lagrangian, half the change of
   `Matrix.signature`, from `maslovIndex_eq_signature_sub_of_souriau_eq_cayley`,
   whose frames $\mathbb{1}+iA$ span exactly these graphs).
 - `ℒ.pathMaslovIndex_eq_transverseMaslovIndex`: for a path of frames `δ` whose
@@ -746,11 +747,14 @@ the part adds no signature function.
 ### `LinearAlgebra/Symplectic/Lagrangian/Maslov/Crossing/Loop.lean`
 
 - `ℒ.maslovIndex_eq_crossing_sum`: let `γ : Path Λ Λ` be a loop and
-  `Z = (X; Y) : ℝ → Matrix (ι ⊕ ι) ι ℝ` a continuous frame of it (each `Z t`
-  injective, with image `γ t` for `t ∈ [0, 1]`) that closes up to a constant
-  change of frame: `Z (t + 1) = Z t * g` for all `t`, for a fixed invertible
-  real matrix `g`. Assume that `Z` has a derivative `Z' t` (`HasDerivAt`) at
-  each crossing with `V₁` ($\det X(t)=0$), where the forms
+  `Z = (X; Y) : ℝ → Matrix (ι ⊕ ι) ι ℝ` a frame of it (image `γ t` for
+  `t ∈ [0, 1]`) that closes up to a constant change of frame:
+  `Z (t + 1) = Z t * g` for all `t`, for a fixed real matrix `g`. Continuity
+  of `Z`, injectivity of `Z t` and invertibility of `g` are not assumed: the
+  path formula needs none of the first two, and `g` is invertible because
+  `Z 1 = Z 0 * g` spans a Lagrangian. Assume that `Z` has a derivative `Z' t`
+  (`HasDerivAt`) at each crossing `t ∈ [0, 1)` with `V₁` ($\det X(t)=0$),
+  where the forms
   $-\langle Yu,X'u\rangle$ on $\ker X(t)$ are nondegenerate. Then the index of
   `γ` is the `∑ᶠ t ∈ Ico 0 1` of their signatures. Proof:
   `ℒ.pathMaslovIndex_eq_crossing_sum` with `V = V₁` and
@@ -766,10 +770,10 @@ the part adds no signature function.
   `U 1 = U 0 * O` with `O` real orthogonal, and its real frame satisfies the
   hypothesis with `g = O` once extended by `U (t + 1) = U t * O`.
 - `TauCeti.GLSymplectic.maslovIndex_eq_half_crossing_sum`: for a 1-periodic
-  continuous `Ψ : ℝ → Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ` of symplectic matrices with
+  `Ψ : ℝ → Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ` of symplectic matrices with
   blocks $A,B,C,D$ (`Matrix.toBlocks₁₂` is $B$, `toBlocks₂₂` is $D$), and a
   loop `γ` in `GLSymplectic ι ℝ` with `γ t = Ψ t`, if `Ψ` has a derivative at
-  each `t` with $\det B(t)=0$ and the forms $-\langle B'y,Dy\rangle$ on
+  each `t ∈ [0, 1)` with $\det B(t)=0$ and the forms $-\langle B'y,Dy\rangle$ on
   $\ker B(t)$ are nondegenerate, then `maslovIndex γ` is half the
   `∑ᶠ t ∈ Ico 0 1` of their signatures. Proof: the loop
   $t\mapsto\Psi(t)V_1$ is framed by $\binom{B}{D}$, periodic since `Ψ` is (the

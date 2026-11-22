@@ -136,14 +136,16 @@ theorem bilinearComp_mem {g : V →L[ℝ] V →L[ℝ] ℝ} (hg : g ∈ innerProd
 linear equivalence `e : V ≃L[ℝ] W`: it pushes an inner product forward along `e`, sending `g` to
 `(w, w') ↦ g (e.symm w) (e.symm w')`. -/
 noncomputable def transport (e : V ≃L[ℝ] W) : innerProducts V ≃ₜ innerProducts W where
-  toFun g := ⟨e.bilinearCongr g, (e.bilinearCongr_apply_eq_bilinearComp _).symm ▸
+  toFun g := ⟨e.bilinearCongr g.val, (e.bilinearCongr_apply_eq_bilinearComp g.val).symm ▸
     bilinearComp_mem g.property _ e.symm.injective⟩
-  invFun g := ⟨e.symm.bilinearCongr g, (e.symm.bilinearCongr_apply_eq_bilinearComp _).symm ▸
+  invFun g := ⟨e.symm.bilinearCongr g.val, (e.symm.bilinearCongr_apply_eq_bilinearComp g.val).symm ▸
     bilinearComp_mem g.property _ e.injective⟩
   left_inv g := by ext; simp
   right_inv g := by ext; simp
-  continuous_toFun := e.bilinearCongr.continuous.comp continuous_subtypeVal |>.subtype_mk _
-  continuous_invFun := e.symm.bilinearCongr.continuous.comp continuous_subtypeVal |>.subtype_mk _
+  continuous_toFun := (e.bilinearCongr (G := ℝ)).continuous.comp continuous_subtypeVal
+    |>.subtype_mk _
+  continuous_invFun := (e.symm.bilinearCongr (G := ℝ)).continuous.comp continuous_subtypeVal
+    |>.subtype_mk _
 
 @[simp]
 theorem transport_apply (e : V ≃L[ℝ] W) (g : innerProducts V) (w w' : W) :
