@@ -14,6 +14,7 @@ public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Chart
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffeomorph
+import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Chart
 import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.ModelSpace
 
@@ -30,6 +31,8 @@ which is meaningful on `ψ.target`.
   `TauCeti.extChartPartialDiffeomorph I n x`, this reading is Tau Ceti's coordinate expression
   `RoughForm.inChartAt` at `x`, at every point of the target, with no assumption on the boundary
   of the model: that target lies in the interior of `range I`.
+* `TauCeti.mpullback_symm_mextDerivₗ`: on the target, the reading of `dφ` is the flat exterior
+  derivative `extDeriv` of the reading of `φ`.
 * `TauCeti.mpullback_symm_realAlternatingDerivation`: the reading of the real derivation
   `J.toEndomorphism.realAlternatingDerivation φ` of a smooth form along an almost complex
   structure `J` is the derivation of the reading of `φ` along the pushed-forward structure
@@ -38,7 +41,8 @@ which is meaningful on `ψ.target`.
   flat form `a` on the source of `ψ`, and zero elsewhere; `TauCeti.mpullback_symm_extendByZeroAlong`
   recovers `a` on `ψ.target`. When `a` is smooth with compact support in `ψ.target`, the
   extension is smooth (`TauCeti.IsSmoothForm.extendByZeroAlong`), and bundled as
-  `TauCeti.SmoothForm.extendByZeroAlong`.
+  `TauCeti.SmoothForm.extendByZeroAlong`. Both versions are linear in `a`
+  (`extendByZeroAlong_zero`, `_add`, `_smul`, `_neg` and `_sub`).
 * `TauCeti.SmoothForm.localize ψ χ α`: in the other direction, the flat form on `E` that is the
   reading of a smooth form `α` in `ψ`, scaled by `χ ∘ ψ.symm` for a cutoff `χ` on `M`, on
   `ψ.target`, and zero elsewhere. It is continuous with compact support when `χ` is continuous
@@ -49,6 +53,8 @@ which is meaningful on `ψ.target`.
   other up to the cutoff (`TauCeti.SmoothForm.extendByZeroAlong_localize_apply`), so a smooth form
   is the sum of the extensions by zero of its localizations to finitely many charts, with a smooth
   partition of unity subordinate to their sources as cutoffs.
+* `TauCeti.SmoothForm.contDiffOn_fderiv_mpullback_symm_apply`: the partial derivatives of the
+  reading of a smooth form in `ψ` are smooth on `ψ.target`.
 
 The proof of `TauCeti.mpullback_symm_eq_inChartAt` is the pointwise form of the argument of Tau
 Ceti's `TauCeti.RoughForm.inChartAt_ae_eq_mpullback`, which proves the same equality almost
@@ -94,6 +100,18 @@ theorem mpullback_symm_eq_inChartAt {n : WithTop ℕ∞} [IsManifold I n M] (φ 
   exact (mpullback_apply _ φ y v).trans ((congrArg (fun L : TangentSpace 𝓘(ℝ, E) y →L[ℝ]
     TangentSpace I ((extChartAt I x).symm y) ↦ φ _ fun i ↦ L (v i)) hd.symm).trans
       (RoughForm.inChartAt_apply φ x y v).symm)
+
+/-! ### The exterior derivative -/
+
+/-- On the target of a partial diffeomorphism `ψ` onto an open subset of `E`, the exterior
+derivative of a smooth form, read through `ψ`, is the flat exterior derivative of its reading. -/
+theorem mpullback_symm_mextDerivₗ [IsManifold I ∞ M] (ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞)
+    (φ : SmoothForm I M F k) {y : E} (hy : y ∈ ψ.target) :
+    (mpullback 𝓘(ℝ, E) I ψ.symm (mextDerivₗ I k φ).val y : E [⋀^Fin (k + 1)]→L[ℝ] F) =
+      extDeriv (mpullback 𝓘(ℝ, E) I ψ.symm φ.val : E → E [⋀^Fin k]→L[ℝ] F) y := by
+  rw [mextDerivₗ_apply, mpullback_mextDeriv_at
+    ((ψ.symm.contMDiffOn.contMDiffAt (ψ.open_target.mem_nhds hy)).of_le (by simp))
+    ((φ.contMDiff _).of_le (by simp)), mextDeriv_eq_extDeriv]
 
 /-! ### The derivation along an almost complex structure -/
 
@@ -286,6 +304,14 @@ section SmoothForm
 variable [T2Space M] [IsManifold I ∞ M] {ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞}
   {a b : E → E [⋀^Fin k]→L[ℝ] F}
 
+/-- The extension by zero along `ψ` of the zero flat form is the zero smooth form. -/
+@[simp]
+theorem SmoothForm.extendByZeroAlong_zero (h : ContDiff ℝ ∞ (0 : E → E [⋀^Fin k]→L[ℝ] F))
+    (hc : HasCompactSupport (0 : E → E [⋀^Fin k]→L[ℝ] F))
+    (hs : tsupport (0 : E → E [⋀^Fin k]→L[ℝ] F) ⊆ ψ.target) :
+    SmoothForm.extendByZeroAlong ψ 0 h hc hs = 0 :=
+  Subtype.ext RoughForm.extendByZeroAlong_zero
+
 /-- Extension by zero along `ψ` of smooth forms is additive. -/
 theorem SmoothForm.extendByZeroAlong_add (ha : ContDiff ℝ ∞ a) (hac : HasCompactSupport a)
     (has : tsupport a ⊆ ψ.target) (hb : ContDiff ℝ ∞ b) (hbc : HasCompactSupport b)
@@ -294,6 +320,22 @@ theorem SmoothForm.extendByZeroAlong_add (ha : ContDiff ℝ ∞ a) (hac : HasCom
     SmoothForm.extendByZeroAlong ψ (a + b) hab habc habs =
       SmoothForm.extendByZeroAlong ψ a ha hac has + SmoothForm.extendByZeroAlong ψ b hb hbc hbs :=
   Subtype.ext (RoughForm.extendByZeroAlong_add a b)
+
+/-- Extension by zero along `ψ` of smooth forms commutes with multiplication by a real constant. -/
+theorem SmoothForm.extendByZeroAlong_smul (c : ℝ) (ha : ContDiff ℝ ∞ a)
+    (hac : HasCompactSupport a) (has : tsupport a ⊆ ψ.target) (hca : ContDiff ℝ ∞ (c • a))
+    (hcac : HasCompactSupport (c • a)) (hcas : tsupport (c • a) ⊆ ψ.target) :
+    SmoothForm.extendByZeroAlong ψ (c • a) hca hcac hcas =
+      c • SmoothForm.extendByZeroAlong ψ a ha hac has :=
+  Subtype.ext (RoughForm.extendByZeroAlong_smul a c)
+
+/-- Extension by zero along `ψ` of smooth forms commutes with negation. -/
+theorem SmoothForm.extendByZeroAlong_neg (ha : ContDiff ℝ ∞ a) (hac : HasCompactSupport a)
+    (has : tsupport a ⊆ ψ.target) (hna : ContDiff ℝ ∞ (-a)) (hnac : HasCompactSupport (-a))
+    (hnas : tsupport (-a) ⊆ ψ.target) :
+    SmoothForm.extendByZeroAlong ψ (-a) hna hnac hnas =
+      -SmoothForm.extendByZeroAlong ψ a ha hac has :=
+  Subtype.ext (RoughForm.extendByZeroAlong_neg a)
 
 /-- Extension by zero along `ψ` of smooth forms commutes with subtraction. -/
 theorem SmoothForm.extendByZeroAlong_sub (ha : ContDiff ℝ ∞ a) (hac : HasCompactSupport a)
@@ -347,6 +389,18 @@ theorem localize_apply_of_mem {y : E} (hy : y ∈ ψ.target) (v : Fin k → E) :
   refine (ContinuousAlternatingMap.smul_apply (R' := ℝ)
     (TauCeti.mpullback (F := F) 𝓘(ℝ, E) I ψ.symm α.val y) _ v).trans ?_
   exact congrArg _ (TauCeti.mpullback_apply _ _ _ v)
+
+/-- On the target of the chart, the localization of `α` at `y` is `χ (ψ⁻¹ y)` times `α` at
+`ψ⁻¹ y` composed with the differential of `ψ.symm` at `y`, as a form on `E`. -/
+theorem localize_of_mem_eq_smul_compContinuousLinearMap {y : E} (hy : y ∈ ψ.target) :
+    α.localize ψ χ y = χ (ψ.symm y) • (show E [⋀^Fin k]→L[ℝ] F from
+      (α.val (ψ.symm y)).compContinuousLinearMap (mfderiv 𝓘(ℝ, E) I ψ.symm y)) := by
+  -- The `show` reads the composite, whose domain is `TangentSpace 𝓘(ℝ, E) y`, in
+  -- `E [⋀^Fin k]→L[ℝ] F`, so that the smul and the norm are those of forms on `E`. The closing
+  -- `rfl` unfolds `TangentSpace 𝓘(ℝ, E) y` to `E`, which no lemma rewrites.
+  ext v
+  rw [localize_apply_of_mem _ _ _ hy]
+  rfl
 
 /-- Off the target of the chart, the localization vanishes. -/
 theorem localize_apply_of_notMem {y : E} (hy : y ∉ ψ.target) : α.localize ψ χ y = 0 := by
@@ -469,6 +523,17 @@ theorem sum_extendByZeroAlong_localize [T2Space M] {ι : Type*} [Fintype ι]
     ← Finset.sum_smul, ← finsum_eq_sum_of_fintype, ρ.sum_eq_one (mem_univ x), one_smul]
 
 end Localize
+
+/-! ### Partial derivatives in a chart -/
+
+/-- The partial derivative `∂_v` of the reading `(ψ.symm)^* α` of a smooth form in a chart `ψ` is
+smooth on the target of the chart. -/
+theorem contDiffOn_fderiv_mpullback_symm_apply [IsManifold I ∞ M]
+    (α : SmoothForm I M F k) (ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞) (v : E) :
+    ContDiffOn ℝ ∞ (fun z ↦ fderiv ℝ (F := E [⋀^Fin k]→L[ℝ] F)
+      (TauCeti.mpullback 𝓘(ℝ, E) I ψ.symm α.val) z v) ψ.target :=
+  ((α.contDiffOn_mpullback ψ.open_target ψ.symm.contMDiffOn).fderiv_of_isOpen ψ.open_target
+    (m := ∞) (by simp)).clm_apply contDiffOn_const
 
 end SmoothForm
 
