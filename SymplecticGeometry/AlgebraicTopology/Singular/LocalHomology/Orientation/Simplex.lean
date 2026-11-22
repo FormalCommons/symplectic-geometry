@@ -155,7 +155,9 @@ theorem range_toSSetObjEquiv_δ_subset_compl {K : Set C}
   refine hw (Set.mem_singleton_iff.2 ?_)
   have hinj := hg.injective (a₁ := ⟨p, hU (interior_subset hp)⟩)
     (a₂ := (TopCat.of U).toSSetObjEquiv _ ((TopCat.toSSet.obj _).δ i (simplexOn hU)) z) hpz
-  exact (show w = _ from hwz).trans (congrArg Subtype.val hinj).symm
+  -- The inclusion of `ℝ² ∖ {p}` is `ContinuousMap.subtypeVal`, so `hwz` says that `w` is the point.
+  rw [TopPair.ofSubset_map] at hwz
+  exact hwz.trans (congrArg Subtype.val hinj).symm
 
 include hU hgσ hg in
 /-- **The class of a positively oriented simplex in local homology.** Let `σ` be a smooth
@@ -196,12 +198,12 @@ theorem relativeClass_eq_fundamentalClassOn [FiniteDimensional ℝ E'] [T2Space 
     have hU' := (Manifold.Orientation.euclideanSpace 2).isOrientationPreservingAt_restrict U p'
     apply ((ConcreteCategory.isIso_iff_bijective _).1 hiso).1
     rw [map_neg, Manifold.Orientation.localHomologyMap_toHomologicalOrientation hE2 hE2 ι hι hU',
-      ← ConcreteCategory.comp_apply,
-      TopPair.relClass_localHomologyMap R ι hι _ hσU hstd (toSSet_map_app_simplexOn_subtypeVal hU),
+      TopPair.relClass_localHomologyMap_apply R ι hι _ hσU hstd
+        (toSSet_map_app_simplexOn_subtypeVal hU),
       TopPair.relClass_fullSimplex_eq_neg_toHomologicalOrientation hp hstd]
     -- `ι p'` is `p`, and the two proofs of `finrank ℝ ℝ² = 2` agree.
     rfl
-  have hmap := TopPair.relClass_localHomologyMap R f (T := {g p}) hf (simplexOn hU) hσU
+  have hmap := TopPair.relClass_localHomologyMap_apply R f (T := {g p}) hf (simplexOn hU) hσU
     (τ := σ.val) (fun i ↦ (range_toSSetObjEquiv_δ_subset_compl σ hU hgσ hg hKg i).trans
       (TopPair.range_map_ofSubset_compl_subset (singleton_subset_iff.2 hx)))
     (toSSet_map_app_simplexOn σ hU hgσ hg)
@@ -209,8 +211,8 @@ theorem relativeClass_eq_fundamentalClassOn [FiniteDimensional ℝ E'] [T2Space 
   have hfo : Manifold.Orientation.IsOrientationPreservingAt oU o f p' :=
     (ho p p'.prop).comp (f := Subtype.val)
       ((Manifold.Orientation.euclideanSpace 2).isOrientationPreservingAt_restrict U p')
-  rw [← ConcreteCategory.comp_apply, TopPair.relClass_localHomologyRestriction, ← hmap,
-    ConcreteCategory.comp_apply, hclass, map_neg,
+  rw [← ConcreteCategory.comp_apply, TopPair.relClass_localHomologyRestriction, ← hmap, hclass,
+    map_neg,
     Manifold.Orientation.localHomologyMap_toHomologicalOrientation hE2 hE' f hf hfo,
     Manifold.Orientation.toHomologicalOrientation_neg, HomologicalOrientation.neg_apply,
     LocalOrientation.coe_neg]

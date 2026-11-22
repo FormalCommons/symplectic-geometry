@@ -219,6 +219,7 @@ lemma range_toSSetObjEquiv_δ_subset_of_toSSet_map_app {M N : Type w} [Topologic
 /-- **The class of a singular simplex in local homology is natural**: for a continuous map
 `j : M → N` with `j ⁻¹' T ⊆ S`, the map `Hₙ₊₁(M, M ∖ S) ⟶ Hₙ₊₁(N, N ∖ T)` induced by `j` carries
 the class of a simplex `σ` whose faces avoid `S` to the class of its image `τ`. -/
+@[reassoc, elementwise]
 lemma relClass_localHomologyMap {M N : Type w} [TopologicalSpace M] [TopologicalSpace N]
     (j : C(M, N)) {S : Set M} {T : Set N} (h : j ⁻¹' T ⊆ S)
     (σ : (TopCat.toSSet.obj (TopCat.of M)) _⦋n + 1⦌)
