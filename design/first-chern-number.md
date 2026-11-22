@@ -1117,12 +1117,15 @@ issues, in an order where each issue's blockers come before it.
    that fixes that representation, and by 5.
 9. **A map of degree one onto the sphere.**
    `Geometry/Manifold/Degree/Collapse.lean`:
-   `SymplecticGeometry.exists_contMDiff_degree_eq_one`, every closed
-   connected oriented surface has a smooth map to $S^2$ of degree one, by
-   collapsing the complement of a coordinate disc through a cut-off, with
-   `TauCeti.degree` computed at the image of the centre. The sphere is
-   `sphere (0 : EuclideanSpace ℝ (Fin 3)) 1` with Tau Ceti's outward-normal
-   orientation `o.sphereOrientation`
+   `SymplecticGeometry.exists_contMDiff_degree_eq_one`, every compact
+   nonempty oriented manifold of dimension $n\ge1$ modelled on
+   `EuclideanSpace ℝ (Fin n)` (a closed oriented surface when $n=2$) has a
+   smooth map of degree one to the unit sphere of any oriented real inner
+   product space of dimension $n+1$, by collapsing the complement of a
+   coordinate ball of a chart through a cut-off, with
+   `TauCeti.degree` computed at the image of the centre. For surfaces the
+   sphere is `sphere (0 : EuclideanSpace ℝ (Fin 3)) 1` with Tau Ceti's
+   outward-normal orientation `o.sphereOrientation`
    (`Geometry/Manifold/Orientation/Sphere.lean`) for an orientation `o` of
    `EuclideanSpace ℝ (Fin 3)`, as in `orientable_sphere`; no new orientation
    is defined. The area form that uniqueness needs is `o.sphereVolumeForm`:
@@ -1142,9 +1145,13 @@ issues, in an order where each issue's blockers come before it.
      first, in `Geometry/Manifold/DifferentialForm/Wedge/Smooth/Pow.lean`;
    - `TauCeti.SmoothTwoForm.IsNondegenerate.volumeOrientation_eq_ofTopForm`
      (on a surface, the orientation of a nondegenerate `σ` is `ofTopForm`
-     of `σ`), in `Geometry/Symplectic/Manifold/Volume.lean`.
+     of `σ`), in `Geometry/Symplectic/Manifold/Volume.lean`;
+   - `TauCeti.degree_eq_orientationSign_of_preimage_eq_singleton` (the
+     degree of a proper smooth map whose fibre over a point is one point
+     with invertible derivative is the orientation sign there), in
+     `Geometry/Manifold/Degree/Global.lean`.
 
-   With the last one the induced orientation is `o.sphereOrientation`,
+   With `volumeOrientation_eq_ofTopForm` the induced orientation is `o.sphereOrientation`,
    which is defined by `ofTopForm`. The genus of
    the sphere is `TauCeti.surfaceGenus_sphere` of prerequisite 2. Blocked by
    5. Done when these are proved.
