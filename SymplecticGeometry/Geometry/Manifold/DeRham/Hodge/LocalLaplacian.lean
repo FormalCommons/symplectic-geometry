@@ -177,9 +177,7 @@ theorem exists_mpullback_symm_codifferential_eq
   intro β y hy
   have hT := ψ.open_target.mem_nhds hy
   set a : E → E [⋀^Fin (k + 1)]→L[ℝ] ℝ := mpullback 𝓘(ℝ, E) I ψ.symm β.val
-  have ha : DifferentiableAt ℝ a y :=
-    ((SmoothForm.contDiffOn_mpullback β ψ.open_target ψ.symm.contMDiffOn).contDiffAt
-      hT).differentiableAt (by simp)
+  have ha : DifferentiableAt ℝ a y := β.differentiableAt_mpullback_symm ψ hy
   have hS : DifferentiableAt ℝ (hodgeStarInChart o ψ hkl) y :=
     ((contDiffOn_hodgeStarInChart o ψ hkl).contDiffAt hT).differentiableAt (by simp)
   rw [mpullback_symm_codifferential o ψ hkl hlk β hy, extDeriv, fderiv_clm_apply hS ha,
@@ -297,8 +295,6 @@ private theorem exists_mpullback_symm_mextDeriv_codifferential_eq
   · exact ContDiffOn.sum fun i _ ↦ contDiffOn_const.clm_comp (hdC₀ i)
   set a : E → E [⋀^Fin (k + 1)]→L[ℝ] ℝ := mpullback 𝓘(ℝ, E) I ψ.symm α.val
   have hT := ψ.open_target.mem_nhds hy
-  have ha : ContDiffOn ℝ ∞ a ψ.target :=
-    SmoothForm.contDiffOn_mpullback α ψ.open_target ψ.symm.contMDiffOn
   -- `d^* α` read in the chart, near `y`.
   set F : E → E [⋀^Fin k]→L[ℝ] ℝ := fun z ↦
     -∑ j, ∑ l, g z j l • κ l (fderiv ℝ a z (b j)) + C₀ z (a z)
@@ -315,7 +311,7 @@ private theorem exists_mpullback_symm_mextDeriv_codifferential_eq
           (((α.contDiffOn_fderiv_mpullback_symm_apply ψ (b j)).contDiffAt
             (ψ.open_target.mem_nhds hy)).differentiableAt (by simp)).hasFDerivAt)
     · exact ((hC₀.contDiffAt hT).differentiableAt (by simp)).hasFDerivAt.clm_apply
-        ((ha.contDiffAt hT).differentiableAt (by simp)).hasFDerivAt
+        (α.differentiableAt_mpullback_symm ψ hy).hasFDerivAt
   rw [mpullback_symm_mextDerivₗ ψ _ hy, hev.extDeriv_eq, extDeriv_eq_sum_coordExtProd b, hF.fderiv]
   simp only [← coordExtProd_apply, ← hκ, map_add, map_neg, _root_.map_sum, map_smul,
     Finset.sum_add_distrib, Finset.sum_neg_distrib, Finset.smul_sum, _root_.add_apply,
@@ -374,8 +370,7 @@ theorem exists_mpullback_symm_hodgeLaplacian_eq
             C y (mpullback 𝓘(ℝ, E) I ψ.symm α.val y : E [⋀^Fin k]→L[ℝ] ℝ) := by
   -- The second derivatives of a form read in the chart are symmetric.
   have hsymm (α : SmoothForm I M ℝ k) {y : E} (hy : y ∈ ψ.target) :=
-    fderiv_fderiv_apply_comm ((SmoothForm.contDiffOn_mpullback α ψ.open_target
-      ψ.symm.contMDiffOn).contDiffAt (ψ.open_target.mem_nhds hy)) (n := ∞) (by simp)
+    fderiv_fderiv_apply_comm (α.contDiffAt_mpullback_symm ψ hy) (n := ∞) (by simp)
   rcases k with _ | k <;> rcases l with _ | l
   · -- On a zero-dimensional manifold both sides vanish.
     subst hkl

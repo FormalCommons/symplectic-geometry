@@ -9,6 +9,7 @@ public import SymplecticGeometry.Geometry.Manifold.Complex.Integrable
 public import SymplecticGeometry.Geometry.Manifold.DeRham.Hodge.Chart
 public import TauCeti.Analysis.Calculus.InverseFunctionTheorem
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.PartialDiffeomorph
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Chart
 import SymplecticGeometry.LinearAlgebra.ComplexStructure.SymmetricBilinear
 
@@ -146,9 +147,7 @@ private theorem fderiv_gramInChart_symmetries {form : SmoothTwoForm I M} (hform 
       (eventually_of_mem (φ.open_target.mem_nhds hz₀) fun z hz ↦ hGJ z hz u v) h
     simpa using this
   · -- The closedness of `form`, read in the chart, as a cyclic identity for `A`.
-    have hΩd : DifferentiableAt ℝ Ω z₀ :=
-      ((SmoothForm.contDiffOn_mpullback form φ.open_target φ.symm.contMDiffOn).contDiffAt
-        (φ.open_target.mem_nhds hz₀)).differentiableAt (by simp)
+    have hΩd : DifferentiableAt ℝ Ω z₀ := form.differentiableAt_mpullback_symm φ hz₀
     have hcl : extDeriv Ω z₀ = 0 := SmoothForm.IsClosed.extDeriv_mpullback_eq_zero hform
       ((φ.symm.contMDiffOn.contMDiffAt (φ.open_target.mem_nhds hz₀)).of_le (by simp))
     have hΩe (a b k : E) : fderiv ℝ (fun z ↦ Ω z ![a, b]) z₀ k = - A k a (J₀ b) := by
