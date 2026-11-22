@@ -2521,24 +2521,24 @@ has either; Tau Ceti's extension across a boundary,
 
 ### 32. Adjunction (needs `design/adjunction.md`)
 
-- **Files:** `Geometry/Manifold/Complex/Adjunction.lean` (for a compact
-  connected surface $\Sigma$ embedded in an almost complex four-manifold
-  with $J$-invariant tangent planes: the normal bundle is Tau Ceti's
-  intrinsic normal bundle of the embedding,
-  `TauCeti.SmoothEmbedding.NormalSpace` with its vector bundle structure,
-  and since $T\Sigma$ is $J$-invariant, $J$ descends to its fibres and makes
-  it a complex line bundle, with no metric; the self-intersection
-  number as the Euler number of that normal bundle, with the orientation of
-  its complex structure; the splitting of $TX|_\Sigma$ as a direct sum of
-  complex bundles, through Tau Ceti's orthogonal representatives
-  (`NormalSpace/VectorBundle/Riemannian.lean`) for a $J$-invariant metric;
-  and the formula, with Tau Ceti's `TauCeti.surfaceGenus`).
-- **Builds on:** *First Chern number* (`ChernNumber/Axioms.lean` for
-  additivity, #788, and `ChernNumber/EulerNumber.lean` for $c_1(T\Sigma)$,
-  #785); *Almost complex manifolds* (only `Metric.lean`, for a
-  $J$-invariant metric in the splitting); *Symplectic vector bundles*
-  (direct sums and pull-backs, merged); Tau Ceti's normal bundles of smooth
-  embeddings (`Geometry/Manifold/SmoothEmbedding/NormalSpace/`).
+- **Files:** `Geometry/Manifold/SmoothEmbedding/NormalSpace/ComplexStructure.lean`
+  (since $T\Sigma$ is $J$-invariant, $J$ descends to the fibres of Tau
+  Ceti's intrinsic normal bundle `TauCeti.SmoothEmbedding.NormalSpace` and
+  makes it a smooth complex bundle, with no metric), and in
+  `Geometry/Symplectic/Manifold/AlmostComplex/`: `NormalSplitting.lean`
+  (the splitting of $TX|_\Sigma$ as a direct sum of symplectic bundles, over
+  the surface, through a compatible form on the pulled-back tangent bundle
+  and its symplectic complement of $T\Sigma$), `SelfIntersection.lean` (the
+  self-intersection number as the Euler number of the normal bundle, with
+  the orientation of its complex structure) and `AdjunctionFormula.lean`
+  (the formula, with Tau Ceti's `TauCeti.surfaceGenus`).
+  `design/adjunction.md` gives the details.
+- **Builds on:** *First Chern number* (`FirstChernClass.lean` and
+  `ChernNumber/Basic.lean`, #784, and `ChernNumber/Axioms.lean` for
+  additivity and $c_1(T\Sigma)$, #788); *Symplectic vector bundles*
+  (complex structures, direct sums and pull-backs, merged); Tau Ceti's
+  normal bundles of smooth embeddings
+  (`Geometry/Manifold/SmoothEmbedding/NormalSpace/`).
 - **Milestones:** *Adjunction formula*, with the self-intersection number
   defined as the page defines it, so that no Poincaré duality is needed;
   the equality with $Q_X([\Sigma],[\Sigma])$ for closed $X$ is not part of
@@ -2639,7 +2639,7 @@ that file, and the notes here may fall behind it.
 | 3 | *First Chern number* | *Symplectic vector bundles*, the symplectic-loop issues of *Maslov index* |
 | 3 | *Contact geometry* | *Smooth families* (only `Family.lean` and `Gray.lean`, through `ContMDiff/TimeExtension.lean`, `DifferentialForm/TimeExtension.lean` and `Diffeotopy/Real.lean`); *Symplectic neighbourhoods* (only `LegendrianNeighborhood.lean`, through `Lagrangian.lean`); *Moser isotopy* (only `Darboux/Strict.lean`, through `LocalDiffeomorph/MFDeriv.lean`, merged); the other files of the part can start at once |
 | 4 | *First Chern class of nondegenerate forms* | *First Chern number* (only `FirstChernClass.lean`, #784); merged files of *Symplectic vector bundles* |
-| 4 | *Adjunction* | *First Chern number* (only `ChernNumber/Axioms.lean` and `ChernNumber/EulerNumber.lean`), *Almost complex manifolds* (only `Metric.lean`) |
+| 4 | *Adjunction* | *First Chern number* (only `FirstChernClass.lean`, `ChernNumber/Basic.lean` and `ChernNumber/Axioms.lean`); `NormalSpace/ComplexStructure.lean` and `NormalSplitting.lean` can start at once |
 | 4 | *Chern classes* | *First Chern number* (only `FirstChernClass.lean`, for the comparison of $c_1$); the other issues of its design file can start at once |
 | 5 | *Projective hypersurfaces* | *Chern classes*, *First Chern number* (only `ChernNumber/EulerNumber.lean`); the bundle isomorphisms on $\mathbb CP^{n+1}$ can start at once |
 

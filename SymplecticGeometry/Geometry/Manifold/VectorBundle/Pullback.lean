@@ -11,6 +11,7 @@ public import Mathlib.Geometry.Manifold.VectorBundle.ContinuousAlternatingMap
 public import TauCeti.Geometry.Manifold.VectorBundle.Pullback
 public import TauCeti.Geometry.Manifold.VectorBundle.Subbundle
 public import SymplecticGeometry.Topology.VectorBundle.Pullback
+import SymplecticGeometry.Geometry.Manifold.IsManifold.Basic
 
 /-!
 # Sections of the alternating and bilinear bundles of a pull-back
@@ -191,7 +192,6 @@ theorem hasLocalContMDiffSubbundleFrames_range_mfderiv [FiniteDimensional ℝ E]
     (hi : Manifold.IsImmersion J I ∞ f) :
     HasLocalContMDiffSubbundleFrames J ∞ E (Fin (finrank ℝ E'))
       (E := (f : Q → M) *ᵖ (TangentSpace I)) fun q ↦ (mfderiv J I f q).range := by
-  have : IsManifold J (∞ + 1) Q := by simpa using (inferInstance : IsManifold J ∞ Q)
   have : ContMDiffVectorBundle ∞ E' (TangentSpace J : Q → Type _) J :=
     TangentBundle.contMDiffVectorBundle
   refine hasLocalContMDiffSubbundleFrames_of_contMDiff_totalSpace_range

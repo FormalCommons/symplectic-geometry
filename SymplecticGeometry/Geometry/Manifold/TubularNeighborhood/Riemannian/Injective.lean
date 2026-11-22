@@ -11,6 +11,7 @@ public import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Existence
 public import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Neighborhood
 public import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Radial
 public import TauCeti.Geometry.Manifold.VectorBundle.ZeroSection
+import SymplecticGeometry.Geometry.Manifold.IsManifold.Basic
 
 /-!
 # A smooth injective map of the whole normal bundle
@@ -76,8 +77,6 @@ theorem exists_contMDiff_injective_normalBundle (f : SmoothEmbedding I J ∞ M N
             ((Bundle.zeroSectionTangentEquiv (I := I) x).symm (0, v))) = c x • v := by
   have hn : (∞ : ℕ∞ω) ≠ 0 := by simp
   let := f.normalSpaceFiberBundle hn hdim
-  have : IsManifold I (∞ + 1) M := by simpa using (inferInstance : IsManifold I ∞ M)
-  have : IsManifold J (∞ + 1) N := by simpa using (inferInstance : IsManifold J ∞ N)
   let := f.normalSpaceVectorBundle hn hdim
   have := f.normalSpaceContMDiffVectorBundle (m := ∞) hn (by simp) hdim
   let ν : M → Type _ := fun x ↦ f.NormalSpace x hn
@@ -168,7 +167,6 @@ theorem exists_contMDiff_injective_normalBundle (f : SmoothEmbedding I J ∞ M N
     exact (ContinuousLinearMap.toSpanSingleton_apply ℝ (r x) 1).trans (one_smul ℝ _)
   have hlin : mfderiv 𝓘(ℝ) J (Ψ ∘ line) 0 (r x) = r x • mfderiv 𝓘(ℝ) J (Ψ ∘ line) 0 (1 : ℝ) := by
     exact (congrArg _ (mul_one (r x)).symm).trans (map_smul _ (r x) (1 : ℝ))
-  have : IsManifold I (1 + 1) M := .of_le (n := ∞) (by norm_cast)
   have key : mfderiv 𝓘(ℝ) J (Ψ ∘ line) 0 (1 : ℝ) = f.normalRepresentative x hn v := by
     rw [h3, hΨ, ← Bundle.zeroSectionTangentEquiv_symm_inr,
       f.mfderiv_normalExp_zeroSection_apply hn (by simp) hdim, map_zero, zero_add]
