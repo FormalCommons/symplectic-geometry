@@ -465,7 +465,8 @@ theorem L2Form.IsWeakSolution.exists_contDiffOn_ae_eq_localize {u : L2Form o k}
     simp only [Matrix.mulVec, dotProduct]
     refine ContDiffOn.sum fun q _ ↦ ContDiffOn.mul ?_ ?_
     · exact (ContDiffOn.matrix_inv_apply (fun p q ↦ (ψ.contDiffOn_formInnerInChart_apply (e p)
-        (e q)).mono hVt) (fun y hy ↦ (ψ.posDef_formInnerInChart e (hVt hy)).det_pos.ne') p q)
+        (e q)).mono hVt)
+        (fun y hy ↦ (ψ.posDef_formInnerInChart (by simp) e (hVt hy)).det_pos.ne') p q)
     · exact (hg'.clm_apply contDiffOn_const).div (hD.mono hVt) fun y hy ↦
         (volumeDensity_pos ψ b (hVt hy)).ne'
   · filter_upwards [hwg, ae_restrict_mem hV.measurableSet] with y hy hyV
@@ -473,7 +474,7 @@ theorem L2Form.IsWeakSolution.exists_contDiffOn_ae_eq_localize {u : L2Form o k}
       ext q
       rw [← hy, hw, mul_div_cancel_left₀ _ (volumeDensity_pos ψ b (hVt hyV)).ne']
     rw [hz]
-    exact ψ.eq_sum_inv_mulVec_formInnerInChart e (hVt hyV) (U y)
+    exact ψ.eq_sum_inv_mulVec_formInnerInChart (by simp) e (hVt hyV) (U y)
 
 /-- The localization of a weak solution of `Δu = f`, with `f` smooth, to a chart `ψ` with a smooth
 cutoff `ρ` supported in its source, is almost everywhere a smooth flat form with compact support
@@ -670,7 +671,8 @@ private theorem isLocallySobolevAt_one_coordOfFun_localize_of_coordOfFun {u : L2
   set G : E → Matrix κ κ ℝ := fun y ↦ Matrix.of fun p q ↦ ψ.formInnerInChart y (bΛ p) (bΛ q)
   have hG (q : κ) : ContDiffOn ℝ ∞ (fun y ↦ (G y)⁻¹ p q / D y) V :=
     (ContDiffOn.matrix_inv_apply (fun p q ↦ (ψ.contDiffOn_formInnerInChart_apply (bΛ p)
-      (bΛ q)).mono hVt) (fun y hy ↦ (ψ.posDef_formInnerInChart bΛ (hVt hy)).det_pos.ne') p
+      (bΛ q)).mono hVt)
+      (fun y hy ↦ (ψ.posDef_formInnerInChart (by simp) bΛ (hVt hy)).det_pos.ne') p
         q).div hD fun y hy ↦ (hDpos y hy).ne'
   have hc (q : κ) : ContDiff ℝ ∞ fun x : CoordinateSpace n ↦
       β (e.symm x) • ((G (e.symm x))⁻¹ p q / D (e.symm x)) :=
@@ -689,7 +691,7 @@ private theorem isLocallySobolevAt_one_coordOfFun_localize_of_coordOfFun {u : L2
   have hyt : y ∈ ψ.target := hVt (hNV hy)
   have hβ1 : β y = 1 := β.one_of_mem_closedBall (Metric.ball_subset_closedBall hy)
   simp only [ContinuousLinearEquiv.symm_apply_apply, hβ1, one_smul, hbD, hw]
-  conv_lhs => rw [ψ.eq_sum_inv_mulVec_formInnerInChart bΛ hyt (U y)]
+  conv_lhs => rw [ψ.eq_sum_inv_mulVec_formInnerInChart (by simp) bΛ hyt (U y)]
   rw [bΛ.repr_sum_self]
   simp only [Matrix.mulVec, dotProduct]
   refine Finset.sum_congr rfl fun q _ ↦ ?_
