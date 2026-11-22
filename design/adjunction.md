@@ -190,22 +190,24 @@ is updated to match. The list is in the order of the paths.
 ### `Geometry/Manifold/SmoothEmbedding/NormalSpace/ComplexStructure.lean`
 
 Namespace `TauCeti.SmoothEmbedding`, for `f : SmoothEmbedding I' I ∞ M X`,
-`J : SmoothAlmostComplexStructure I X` and `hJ` as above.
+`J : SmoothAlmostComplexStructure I X` and `hJ` as above; the first two items
+take an embedding of any regularity `n` with `hn : n ≠ 0`.
 
 - `normalAlmostComplexStructureAt f J hJ x : TauCeti.AlmostComplexStructure
   (f.NormalSpace x hn)`, defined as
-  `(J.almostComplexStructureAt (f x)).quotient (f.tangentRange x hn) (hJ x)`,
+  `(J.almostComplexStructureAt (f x)).quotient (f.tangentRange x hn) _`, whose
+  invariance proof is `hJ x` after a rewrite by `almostComplexStructureAt_apply`,
   with `normalAlmostComplexStructureAt_def` by `(rfl)`.
 - `@[simp] normalAlmostComplexStructureAt_normalClass`: on
   `f.normalClass x hn v` it gives `f.normalClass x hn (J (f x) v)`, from
-  `quotient_mk`; and `isComplexLinearMap_normalClass`, from
+  `quotient_mk`; and `@[simp] isComplexLinearMap_normalClass`, from
   `isComplexLinearMap_mkQ`.
 - `normalComplexStructure f hdim J hJ`, of type
-  `ContMDiffComplexStructure I' ∞ P (fun x ↦ f.NormalSpace x hn)` under the
-  `letI`s of Tau Ceti's three bundle instances, as Tau Ceti states
-  `normalSpaceContMDiffVectorBundle`; its value at `x` is
+  `ContMDiffComplexStructure I' ⊤ P (fun x ↦ f.NormalSpace x hn)` under the
+  `letI`s of Tau Ceti's `normalSpaceFiberBundle` and `normalSpaceVectorBundle`,
+  the two that the type needs; its value at `x` is
   `normalAlmostComplexStructureAt` (`normalComplexStructure_apply`,
-  `almostComplexStructureAt_normalComplexStructure`). Smoothness as in
+  `@[simp] almostComplexStructureAt_normalComplexStructure`). Smoothness as in
   *Decisions*.
 
 ### `Geometry/Symplectic/Manifold/AlmostComplex/NormalSplitting.lean`
