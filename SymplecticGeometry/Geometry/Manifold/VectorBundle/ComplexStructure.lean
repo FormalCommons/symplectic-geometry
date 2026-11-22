@@ -118,7 +118,7 @@ theorem toEndomorphism_injective : Function.Injective
 
 /-- A complex structure is applied as `J x v`. -/
 instance : CoeFun (ContMDiffComplexStructure I n F V) fun _ ↦ ∀ x, V x →L[ℝ] V x :=
-  ⟨fun J x ↦ J.toEndomorphism x⟩
+  ⟨fun J ↦ J.toEndomorphism⟩
 
 /-- Two complex structures agree when they agree on every vector of every fibre. -/
 @[ext]
@@ -1000,10 +1000,8 @@ theorem almostComplexStructureAt_pullbackComplexStructure (J : SmoothAlmostCompl
   refine AlmostComplexStructure.toLinearMap_injective ?_
   rw [ContMDiffComplexStructure.almostComplexStructureAt_toLinearMap,
     almostComplexStructureAt_toLinearMap,
-    ContMDiffComplexStructure.tangentEquiv_symm_toEndomorphism]
-  -- The coercion of `tangentEquiv.symm _` to a function leaves a `fun x ↦ _` applied to `f y`.
-  beta_reduce
-  rw [toContMDiff_toEndomorphism_apply]
+    ContMDiffComplexStructure.tangentEquiv_symm_toEndomorphism,
+    toContMDiff_toEndomorphism_apply]
 
 /-- The almost complex structure of the pull-back of `J` along `f` at `y` acts as `J (f y)`; see
 `coe_pullbackComplexStructure`. -/
