@@ -85,14 +85,9 @@ theorem deriv_collaredSmoothTransition_pos {s : ℝ}
     lt_of_not_ge fun h ↦ h₀ (Real.smoothTransition.zero_of_nonpos h)
   have hs₁ : 2 * s - 1 / 2 < 1 :=
     lt_of_not_ge fun h ↦ h₁ (Real.smoothTransition.one_of_one_le h)
-  have hd : HasDerivAt collaredSmoothTransition
-      (deriv Real.smoothTransition (2 * s - 1 / 2) * 2) s := by
-    have := ((Real.smoothTransition.contDiff (n := 1)).differentiable one_ne_zero
-      (2 * s - 1 / 2)).hasDerivAt.comp s (((hasDerivAt_id' s).const_mul 2).sub_const (1 / 2))
-    rw [mul_one] at this
-    exact this.congr_of_eventuallyEq
-      (Eventually.of_forall fun r ↦ collaredSmoothTransition_def r)
-  rw [hd.deriv]
+  have hd := (((hasDerivAt_id' s).const_mul 2).sub_const (1 / 2)).smoothTransition
+    |>.congr_of_eventuallyEq (Eventually.of_forall fun r ↦ collaredSmoothTransition_def r)
+  rw [hd.deriv, mul_one]
   exact mul_pos (Real.smoothTransition.deriv_pos hs₀ hs₁) two_pos
 
 end TauCeti
