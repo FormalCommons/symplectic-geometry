@@ -414,6 +414,14 @@ The topology of the second line is Tau Ceti's `TauCeti.subbundleTopology`
 (`Topology/VectorBundle/Subbundle.lean`), for the lines as subspaces of the
 fibres of that pull-back. The file imports the three files above.
 
+### `AlgebraicTopology/Cohomology/ComplSingleton.lean`
+
+- `TauCeti.isZero_singularCohomology_complSingleton_subtype_of_ne`: for a
+  real normed space `F` of finite dimension `d` and `x : F`,
+  `Hᵐ(F ∖ {x}; R, N) = 0` for `m ≠ 0` and `m + 1 ≠ d`, for projective `R`.
+  It serves `ChernClass/ProjectiveSpace.lean`, where the deleted tautological
+  line is `{v : V // v ≠ 0}`.
+
 ### `Topology/VectorBundle/Complex/ChernClass/ProjectiveSpace.lean`
 
 For a complex vector space `V` with `finrank ℂ V = n + 1`:
