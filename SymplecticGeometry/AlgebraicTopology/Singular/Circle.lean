@@ -10,6 +10,7 @@ public import Mathlib.LinearAlgebra.Complex.Orientation
 public import SymplecticGeometry.AlgebraicTopology.SimplicialSet.Homology.MayerVietoris
 public import SymplecticGeometry.AlgebraicTopology.SimplicialSet.Homology.One
 public import SymplecticGeometry.AlgebraicTopology.Singular.Path
+public import SymplecticGeometry.Topology.ContinuousMap.Basic
 public import TauCeti.AlgebraicTopology.Homotopy.Hurewicz.One.Comparison
 public import TauCeti.AlgebraicTopology.Singular.Circle
 public import TauCeti.AlgebraicTopology.Singular.Contractible
@@ -267,11 +268,11 @@ private lemma halfTurn_zero_mem : halfTurn 0 ∈ ({p}ᶜ ∩ {-p}ᶜ : Set (sphe
 
 /-- The lower half-circle, a singular `1`-simplex of the complement of `p`. -/
 private def lowerArc : (toSSet.obj (of ↥({p}ᶜ : Set (sphere (0 : ℂ) 1)))) _⦋1⦌ :=
-  simplex₁ ⟨Set.codRestrict (arc 1 1) _ (arc_one_one_mem p hp), (arc 1 1).continuous.codRestrict _⟩
+  simplex₁ ((arc 1 1).codRestrict _ (arc_one_one_mem p hp))
 
 /-- The upper half-circle, a singular `1`-simplex of the complement of `-p`. -/
 private def upperArc : (toSSet.obj (of ↥({-p}ᶜ : Set (sphere (0 : ℂ) 1)))) _⦋1⦌ :=
-  simplex₁ ⟨Set.codRestrict (arc 0 1) _ (arc_zero_one_mem p hp), (arc 0 1).continuous.codRestrict _⟩
+  simplex₁ ((arc 0 1).codRestrict _ (arc_zero_one_mem p hp))
 
 /-- The point `1` of `S ∖ {p, -p}`. -/
 private abbrev pointOne : ↥({p}ᶜ ∩ {-p}ᶜ : Set (sphere (0 : ℂ) 1)) :=
@@ -312,14 +313,14 @@ private lemma lowerArc_d :
     (toSSet.obj _).ιChainComplex (lowerArc p hp) ≫ ((toSSet.obj _).chainComplex A).d 1 0 =
       vertexCycle A p hp ≫ HomologicalComplex.iCycles _ 0 ≫ (SSet.chainComplexMap (toSSet.map
         (ofHom (ContinuousMap.inclusion (Set.inter_subset_left (t := {-p}ᶜ))))) A).f 0 := by
-  have e₁ : Set.codRestrict (arc 1 1) _ (arc_one_one_mem p hp) 1 =
+  have e₁ : (arc 1 1).codRestrict _ (arc_one_one_mem p hp) 1 =
       Set.inclusion Set.inter_subset_left (pointOne p hp) :=
     Subtype.ext (by norm_num [arc_apply, halfTurn_two])
-  have e₀ : Set.codRestrict (arc 1 1) _ (arc_one_one_mem p hp) 0 =
+  have e₀ : (arc 1 1).codRestrict _ (arc_one_one_mem p hp) 0 =
       Set.inclusion Set.inter_subset_left (pointNegOne p hp) :=
     Subtype.ext (by norm_num [arc_apply, halfTurn_one])
   simp only [vertexCycle, HomologicalComplex.liftCycles_i_assoc, Preadditive.sub_comp,
-    SSet.ι_chainComplexMap_f, lowerArc, ιChainComplex_simplex₁_d, ContinuousMap.coe_mk]
+    SSet.ι_chainComplexMap_f, lowerArc, ιChainComplex_simplex₁_d]
   rw [e₁, e₀]
   -- The vertices on the right are images of vertices, which are the vertices of the images by
   -- `toSSet_map_app_toSSetObj₀Equiv_symm`, a definitional equality.
@@ -330,15 +331,15 @@ private lemma upperArc_d :
     (-(toSSet.obj _).ιChainComplex (upperArc p hp)) ≫ ((toSSet.obj _).chainComplex A).d 1 0 =
       vertexCycle A p hp ≫ HomologicalComplex.iCycles _ 0 ≫ (SSet.chainComplexMap (toSSet.map
         (ofHom (ContinuousMap.inclusion (Set.inter_subset_right (s := {p}ᶜ))))) A).f 0 := by
-  have e₁ : Set.codRestrict (arc 0 1) _ (arc_zero_one_mem p hp) 1 =
+  have e₁ : (arc 0 1).codRestrict _ (arc_zero_one_mem p hp) 1 =
       Set.inclusion Set.inter_subset_right (pointNegOne p hp) :=
     Subtype.ext (by norm_num [arc_apply, halfTurn_one])
-  have e₀ : Set.codRestrict (arc 0 1) _ (arc_zero_one_mem p hp) 0 =
+  have e₀ : (arc 0 1).codRestrict _ (arc_zero_one_mem p hp) 0 =
       Set.inclusion Set.inter_subset_right (pointOne p hp) :=
     Subtype.ext (by norm_num [arc_apply])
   simp only [vertexCycle, HomologicalComplex.liftCycles_i_assoc, Preadditive.sub_comp,
     SSet.ι_chainComplexMap_f, Preadditive.neg_comp, upperArc, ιChainComplex_simplex₁_d,
-    ContinuousMap.coe_mk, neg_sub]
+    neg_sub]
   rw [e₁, e₀]
   -- As in `lowerArc_d`, by `toSSet_map_app_toSSetObj₀Equiv_symm`.
   rfl
@@ -362,16 +363,19 @@ private lemma ιHomology₁_arc_eq
       ((toSmallSingularSubcomplex ![({p}ᶜ : Set Sph), {-p}ᶜ]
         (Matrix.cons_val_zero _ _).superset).app _
         (lowerArc p hp)) = simplex₁ lowerPath.toContinuousMap := by
-    rw [← NatTrans.comp_app_apply, toSmallSingularSubcomplex_ι]
-    -- The inclusion of the complement composed with the corestricted arc is the arc itself.
-    exact toSSet_map_app_simplex₁ _ _
+    -- The inclusion of the complement composed with the corestricted arc is the arc itself,
+    -- the underlying map of `lowerPath` by its definition.
+    rw [← NatTrans.comp_app_apply, toSmallSingularSubcomplex_ι, lowerArc, toSSet_map_app_simplex₁,
+      ConcreteCategory.hom_ofHom, ContinuousMap.subtypeVal_comp_codRestrict]
+    rfl
   have hu : (Sph.smallSingularSubcomplex ![({p}ᶜ : Set Sph), {-p}ᶜ]).ι.app _
       ((toSmallSingularSubcomplex ![({p}ᶜ : Set Sph), {-p}ᶜ]
         ((Matrix.cons_val_one _ _).trans (Matrix.cons_val_zero _ _)).superset).app _
         (upperArc p hp)) = simplex₁ upperPath.toContinuousMap := by
-    rw [← NatTrans.comp_app_apply, toSmallSingularSubcomplex_ι]
     -- As for the lower half-circle.
-    exact toSSet_map_app_simplex₁ _ _
+    rw [← NatTrans.comp_app_apply, toSmallSingularSubcomplex_ι, upperArc, toSSet_map_app_simplex₁,
+      ConcreteCategory.hom_ofHom, ContinuousMap.subtypeVal_comp_codRestrict]
+    rfl
   rw [SSet.ιHomology₁_def, HomologicalComplex.homologyπ_naturality, ← Category.assoc,
     ← sub_eq_zero, ← Preadditive.sub_comp]
   -- The loop differs from the sum of the two half-circles by a boundary.
