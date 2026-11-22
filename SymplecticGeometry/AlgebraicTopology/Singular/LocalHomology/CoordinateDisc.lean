@@ -294,6 +294,10 @@ theorem apply_mem_disc_iff {z : ball} : φ z ∈ φ.disc ↔ ‖(z : ℂ)‖ ≤
 theorem apply_mem_openDisc_iff {z : ball} : φ z ∈ φ.openDisc ↔ ‖(z : ℂ)‖ < 1 :=
   φ.injective.mem_set_image
 
+/-- The centre of a coordinate disc lies in its open disc. -/
+theorem apply_zero_mem_openDisc : φ 0 ∈ φ.openDisc :=
+  φ.apply_mem_openDisc_iff.2 (by simp [coe_zero])
+
 /-- The image of a closed ball of radius `ρ < 2` about the centre is compact. -/
 theorem isCompact_image_closedBall {ρ : ℝ} (hρ : ρ < 2) :
     IsCompact (φ '' {z | ‖(z : ℂ)‖ ≤ ρ}) := by
