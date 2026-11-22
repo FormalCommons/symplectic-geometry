@@ -318,13 +318,9 @@ private lemma lowerArc_d :
   have e₀ : Set.codRestrict (arc 1 1) _ (arc_one_one_mem p hp) 0 =
       Set.inclusion Set.inter_subset_left (pointNegOne p hp) :=
     Subtype.ext (by norm_num [arc_apply, halfTurn_one])
-  simp only [vertexCycle, HomologicalComplex.liftCycles_i_assoc, SSet.ιChainComplex_d,
-    Preadditive.sub_comp, SSet.ι_chainComplexMap_f]
-  rw [Fin.sum_univ_two]
-  simp only [lowerArc, Int.reduceNeg, Nat.reduceAdd, Fin.isValue, Fin.coe_ofNat_eq_mod,
-    Nat.zero_mod, pow_zero, one_smul, Nat.mod_succ, pow_one, neg_smul, δ_zero_simplex₁,
-    δ_one_simplex₁, ContinuousMap.coe_mk]
-  rw [e₁, e₀, sub_eq_add_neg]
+  simp only [vertexCycle, HomologicalComplex.liftCycles_i_assoc, Preadditive.sub_comp,
+    SSet.ι_chainComplexMap_f, lowerArc, ιChainComplex_simplex₁_d, ContinuousMap.coe_mk]
+  rw [e₁, e₀]
   -- The vertices on the right are images of vertices, which are the vertices of the images by
   -- `toSSet_map_app_toSSetObj₀Equiv_symm`, a definitional equality.
   rfl
@@ -340,13 +336,10 @@ private lemma upperArc_d :
   have e₀ : Set.codRestrict (arc 0 1) _ (arc_zero_one_mem p hp) 0 =
       Set.inclusion Set.inter_subset_right (pointOne p hp) :=
     Subtype.ext (by norm_num [arc_apply])
-  simp only [vertexCycle, HomologicalComplex.liftCycles_i_assoc, SSet.ιChainComplex_d,
-    Preadditive.sub_comp, SSet.ι_chainComplexMap_f, Preadditive.neg_comp]
-  rw [Fin.sum_univ_two]
-  simp only [upperArc, Int.reduceNeg, Nat.reduceAdd, Fin.isValue, Fin.coe_ofNat_eq_mod,
-    Nat.zero_mod, pow_zero, one_smul, Nat.mod_succ, pow_one, neg_smul, neg_add_rev, neg_neg,
-    δ_zero_simplex₁, δ_one_simplex₁, ContinuousMap.coe_mk]
-  rw [e₁, e₀, sub_eq_add_neg]
+  simp only [vertexCycle, HomologicalComplex.liftCycles_i_assoc, Preadditive.sub_comp,
+    SSet.ι_chainComplexMap_f, Preadditive.neg_comp, upperArc, ιChainComplex_simplex₁_d,
+    ContinuousMap.coe_mk, neg_sub]
+  rw [e₁, e₀]
   -- As in `lowerArc_d`, by `toSSet_map_app_toSSetObj₀Equiv_symm`.
   rfl
 
@@ -384,7 +377,7 @@ private lemma ιHomology₁_arc_eq
   -- The loop differs from the sum of the two half-circles by a boundary.
   have hb : HomologicalComplex.liftCycles _
         ((toSSet.obj Sph).ιChainComplex (simplex₁ (arc 0 2))) 0 (by simp)
-        (by rw [SSet.ιChainComplex_d, Fin.sum_univ_two, δ_zero_simplex₁_arc_eq_δ_one]; simp) -
+        (by rw [ιChainComplex_simplex₁_d]; simp [arc_apply, halfTurn_two]) -
       z ≫ HomologicalComplex.cyclesMap (SSet.chainComplexMap
         (Sph.smallSingularSubcomplex ![({p}ᶜ : Set Sph), {-p}ᶜ]).ι A) 1 =
       HomologicalComplex.liftCycles _
@@ -577,9 +570,8 @@ open scoped unitInterval
 homotopic to the identity. -/
 theorem ιHomology₁_simplex₁_exp_comp_add_two_pi_mul (x : ℝ) :
     SSet.ιHomology₁ A (TopCat.toSSet.obj (TopCat.of Circle))
-        (TopCat.simplex₁ (exp.comp ⟨fun t ↦ x + 2 * π * t, by fun_prop⟩)) (by
-          rw [TopCat.δ_zero_simplex₁, TopCat.δ_one_simplex₁]
-          simp [exp_add]) =
+        (TopCat.simplex₁ (exp.comp ⟨fun t ↦ x + 2 * π * t, by fun_prop⟩))
+        (TopCat.δ_zero_simplex₁_eq_δ_one_simplex₁ (by simp [exp_add])) =
       -(singularHomologyOneIso A).inv := by
   let r : C(Circle, Circle) := ⟨fun z ↦ exp x * z, by fun_prop⟩
   -- The rotation `r` is homotopic to the identity, through the rotations by `exp(i(1 - s)x)`.
@@ -624,14 +616,10 @@ theorem liftCycles_simplex₁_exp_comp_homologyπ (θ₀ θ₁ θ₂ : C(I, ℝ)
           (by simp [h₂₁]) (by simp [h₂₀]) (by simp [h₀₁, exp_add])) ≫
         ((TopCat.toSSet.obj (TopCat.of Circle)).chainComplex A).homologyπ 1 =
       -(singularHomologyOneIso A).inv := by
-  have hc := TopCat.ιChainComplex_simplex₁_sub_add_d A (X := TopCat.of Circle)
-    (g₀ := exp.comp θ₀) (g₁ := exp.comp θ₁) (g₂ := exp.comp θ₂) (by simp [h₂₁]) (by simp [h₂₀])
-    (by simp [h₀₁, exp_add])
   let μ : C(I, ℝ) := ⟨fun t ↦ θ₁ 1 + 2 * π * t, by fun_prop⟩
   have hμ : (TopCat.toSSet.obj (TopCat.of Circle)).δ 0 (TopCat.simplex₁ (exp.comp μ)) =
-      (TopCat.toSSet.obj (TopCat.of Circle)).δ 1 (TopCat.simplex₁ (exp.comp μ)) := by
-    rw [TopCat.δ_zero_simplex₁, TopCat.δ_one_simplex₁]
-    simp [μ, exp_add]
+      (TopCat.toSSet.obj (TopCat.of Circle)).δ 1 (TopCat.simplex₁ (exp.comp μ)) :=
+    TopCat.δ_zero_simplex₁_eq_δ_one_simplex₁ (by simp [μ, exp_add])
   -- In `ℝ`, the three paths and the segment `μ` form a cycle `z`.
   let z := (TopCat.toSSet.obj (TopCat.of ℝ)).ιChainComplex (R := A) (TopCat.simplex₁ θ₀) -
     (TopCat.toSSet.obj (TopCat.of ℝ)).ιChainComplex (TopCat.simplex₁ θ₁) +
@@ -650,24 +638,13 @@ theorem liftCycles_simplex₁_exp_comp_homologyπ (θ₀ θ₁ θ₂ : C(I, ℝ)
   have hmap := congrArg (· ≫ SSet.homologyMap (TopCat.toSSet.map (TopCat.ofHom exp)) A 1) h0
   simp only [Category.assoc, HomologicalComplex.homologyπ_naturality, zero_comp] at hmap
   rw [← Category.assoc, HomologicalComplex.liftCycles_comp_cyclesMap] at hmap
-  have hμc : (TopCat.toSSet.obj (TopCat.of Circle)).ιChainComplex (R := A)
-      (TopCat.simplex₁ (exp.comp μ)) ≫
-        ((TopCat.toSSet.obj (TopCat.of Circle)).chainComplex A).d 1 0 = 0 := by
-    rw [SSet.ιChainComplex_d, Fin.sum_univ_two, hμ]
-    simp
-  have hsplit : ((TopCat.toSSet.obj (TopCat.of Circle)).chainComplex A).liftCycles
-      (z ≫ (SSet.chainComplexMap (TopCat.toSSet.map (TopCat.ofHom exp)) A).f 1) 0
-        (by simp) (by rw [Category.assoc, HomologicalComplex.Hom.comm, ← Category.assoc, hz,
-          zero_comp]) =
-      ((TopCat.toSSet.obj (TopCat.of Circle)).chainComplex A).liftCycles _ 0 (by simp) hc -
-        ((TopCat.toSSet.obj (TopCat.of Circle)).chainComplex A).liftCycles _ 0 (by simp) hμc := by
-    rw [← cancel_mono (((TopCat.toSSet.obj (TopCat.of Circle)).chainComplex A).iCycles 1)]
-    simp only [z, Preadditive.sub_comp, Preadditive.add_comp, HomologicalComplex.liftCycles_i,
-      SSet.ι_chainComplexMap_f, TopCat.toSSet_map_app_simplex₁]
-    rfl
-  rw [hsplit, Preadditive.sub_comp, sub_eq_zero] at hmap
-  rw [hmap, ← SSet.ιHomology₁_def A _ _ hμ]
-  exact ιHomology₁_simplex₁_exp_comp_add_two_pi_mul A (θ₁ 1)
+  rw [← ιHomology₁_simplex₁_exp_comp_add_two_pi_mul A (θ₁ 1), SSet.ιHomology₁_def A _ _ hμ,
+    ← sub_eq_zero, ← Preadditive.sub_comp]
+  convert hmap using 2
+  rw [← cancel_mono (((TopCat.toSSet.obj (TopCat.of Circle)).chainComplex A).iCycles 1)]
+  simp only [z, Preadditive.sub_comp, Preadditive.add_comp, HomologicalComplex.liftCycles_i,
+    SSet.ι_chainComplexMap_f, TopCat.toSSet_map_app_simplex₁]
+  rfl
 
 end Lift
 

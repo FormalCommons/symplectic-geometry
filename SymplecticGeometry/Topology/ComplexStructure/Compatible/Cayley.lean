@@ -80,6 +80,17 @@ theorem isOpen_setOf_strictContraction [FiniteDimensional ℝ V] :
 
 variable [FiniteDimensional ℝ V]
 
+variable (ω) in
+/-- In finite dimension, reading the compatible tangent space in the continuous endomorphisms does
+not change its dimension. -/
+theorem finrank_compatibleTangentSpaceCLM (J : AlmostComplexStructure V) :
+    Module.finrank ℝ (ω.compatibleTangentSpaceCLM J) =
+      Module.finrank ℝ (ω.compatibleTangentSpace J) := by
+  have h : ContinuousLinearMap.coeLM (R := ℝ) ℝ (M := V) (N₃ := V) =
+      (LinearMap.toContinuousLinearMap : (V →ₗ[ℝ] V) ≃ₗ[ℝ] V →L[ℝ] V).symm.toLinearMap := rfl
+  rw [compatibleTangentSpaceCLM, h, Submodule.comap_equiv_eq_map_symm, LinearEquiv.symm_symm,
+    LinearEquiv.finrank_map_eq]
+
 local notation "𝒥" => {J : AlmostComplexStructure V // ω.Compatible J}
 
 /-- The **Cayley coordinates** at an `ω`-compatible `J₀`: the Cayley transform
