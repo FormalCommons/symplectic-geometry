@@ -79,13 +79,16 @@ only at the centre (`TauCeti.sphereCone_eq_zero_iff`). The local index is
 `SymplecticGeometry.CoordinateDisc.sectionIndex_eq_degree_sphereCone`.
 
 For symplectic frames, the frames show that `ω` is nondegenerate, so it is compatible with a
-complex structure `J`. Continuous changes of frame `P i` on the discs and `P'` on the complement,
-with values in the symplectic group, make the frames unitary for `J`
-(`SymplecticGeometry.Bundle.ContMDiffTwoForm.Compatible.exists_continuous_GLSymplectic_unitary`).
-Read on `κ → ℂ` through `TauCeti.complexToRealEuclidean`, the unitary frames are complex frames of
-`(V, J)` (`TauCeti.Bundle.ContinuousComplexStructure.frameOfCommute`). Their transitions are the
-loops `(P i)⁻¹ Ψ i P'`, which act complex-linearly on `κ → ℂ`, so that `ρ` of them is their
-normalized complex determinant (`TauCeti.GLSymplectic.maslovPhase_eq_normalizedDet`), and the
+complex structure `J`
+(`SymplecticGeometry.Bundle.exists_compatible_symplecticChernNumber_eq_chernNumber`). Continuous
+changes of frame `P i` on the discs and `P'` on the complement, with values in the symplectic
+group, make the frames unitary for `J`, and read on `κ → ℂ` through
+`TauCeti.complexToRealEuclidean` they become complex frames of `(V, J)`
+(`ContMDiffTwoForm.Compatible.exists_continuous_GLSymplectic_complexFrame`, in the namespace
+`SymplecticGeometry.Bundle`).
+Their transitions are the loops `(P i)⁻¹ Ψ i P'`, which act complex-linearly on `κ → ℂ`, so that
+`ρ` of them is their normalized complex determinant
+(`TauCeti.Bundle.ContinuousComplexStructure.maslovPhase_inv_mul_mul_eq_normalizedDet`), and the
 complex formula gives the sum of their Maslov indices. By the product axiom
 (`TauCeti.GLSymplectic.maslovIndex_toBasedLoop_mul`) each is the sum of the indices of the loops
 of `(P i)⁻¹`, of `Ψ i` and of `P'`. The loop of `(P i)⁻¹` contracts radially in the disc, so
@@ -574,56 +577,6 @@ variable {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] [FiniteDimension
   (hΦout : Continuous fun q : discComplement φ × StdSpace κ ↦
     TotalSpace.mk' F (q.1 : M) (Φout q.1 q.2))
 
-include hφ hΦ hΦout in
-/-- The disc clutching formula for frames that are unitary for a complex structure `J`, that is,
-that carry the standard complex structure `J₀` to `J`: the first Chern number of `(V, J)` adds up
-the Maslov indices of the transition loops. -/
-private theorem chernNumber_eq_sum_maslovIndex_of_unitary [CompactSpace M]
-    (hn : finrank ℝ EM = 2) [Fact (finrank ℝ F = 2 * finrank ℂ (κ → ℂ))]
-    {J : TauCeti.Bundle.ContinuousComplexStructure F V}
-    (hΦJ : ∀ i (x : (φ i).disc) v, J x (Φ i x v) = Φ i x (stdComplexStructure κ v))
-    (hΦoutJ : ∀ (x : discComplement φ) v, J x (Φout x v) = Φout x (stdComplexStructure κ v))
-    (W : ι → C(Circle, GLSymplectic κ ℝ))
-    (hW : ∀ i ζ v, Φout ⟨(φ i).boundaryCircle ζ, boundaryCircle_mem_discComplement φ hφ i ζ⟩ v =
-      Φ i ⟨(φ i).boundaryCircle ζ, (φ i).boundaryCircle_mem_disc ζ⟩
-        (toEuclideanLin (W i ζ : GL (κ ⊕ κ) ℝ) v)) :
-    chernNumber o hn (κ → ℂ) J.Fiber = ∑ i, maslovIndex (W i).toBasedLoop := by
-  -- The complex frames `v ↦ Φ (Re v, Im v)` of `J.Fiber`.
-  have hI {X : Type} {f : X → M} {Θ : ∀ x, StdSpace κ ≃L[ℝ] V (f x)}
-      (hΘ : ∀ x v, J (f x) (Θ x v) = Θ x (stdComplexStructure κ v)) (x : X)
-      (v : κ → ℂ) :
-      ((complexToRealEuclidean κ).trans (Θ x)) (Complex.I • v) =
-        J (f x) (((complexToRealEuclidean κ).trans (Θ x)) v) := by
-    rw [ContinuousLinearEquiv.trans_apply, ContinuousLinearEquiv.trans_apply, hΘ,
-      stdComplexStructure_complexToRealEuclidean]
-  have hc {X : Type} [TopologicalSpace X] {f : X → M}
-      {Θ : ∀ x, StdSpace κ ≃L[ℝ] V (f x)}
-      (hΘ : Continuous fun q : X × StdSpace κ ↦ TotalSpace.mk' F (f q.1) (Θ q.1 q.2)) :
-      Continuous fun q : X × (κ → ℂ) ↦ TotalSpace.mk' F (f q.1)
-        (((complexToRealEuclidean κ).trans (Θ q.1)) q.2) :=
-    hΘ.comp (continuous_fst.prodMk ((complexToRealEuclidean κ).continuous.comp
-      continuous_snd))
-  rw [chernNumber_eq_sum_degree_clutching hφ
-    (fun i ↦ J.continuous_frameOfCommute (f := ((↑) : (φ i).disc → M)) _ (hI (hΦJ i))
-      (κ → ℂ) (hc (hΦ i)))
-    (J.continuous_frameOfCommute (f := ((↑) : discComplement φ → M)) _ (hI hΦoutJ) (κ → ℂ)
-      (hc hΦout)) hn]
-  refine Finset.sum_congr rfl fun i _ ↦ ?_
-  rw [maslovIndex_def]
-  refine Circle.degree_congr _ _ fun t ↦ ?_
-  rw [ContinuousMap.toBasedLoop_apply, Path.map_coe, Function.comp_apply,
-    ContinuousMap.toBasedLoop_apply, ContinuousMap.coe_mk]
-  refine (maslovPhase_eq_normalizedDet _ fun v ↦ ?_).symm
-  refine (Φ i ⟨_, (φ i).boundaryCircle_mem_disc (unitToCircle t)⟩).injective ?_
-  rw [← hW, clutchingTransition_def, ContinuousLinearEquiv.trans_apply]
-  have h := J.fiberEquiv_frameOfCommute (fun x ↦ (complexToRealEuclidean κ).trans (Φ i x))
-    (hI (hΦJ i)) ⟨_, (φ i).boundaryCircle_mem_disc (unitToCircle t)⟩
-  simp only [ContinuousLinearEquiv.trans_apply] at h
-  have h' := J.fiberEquiv_frameOfCommute (fun x ↦ (complexToRealEuclidean κ).trans (Φout x))
-    (hI hΦoutJ) ⟨_, boundaryCircle_mem_discComplement φ hφ i (unitToCircle t)⟩
-  simp only [ContinuousLinearEquiv.trans_apply] at h'
-  rw [← h, ContinuousLinearEquiv.apply_symm_apply, h']
-
 variable [CompactSpace M] [IsManifold 𝓘(ℝ, EM) ((⊤ : ℕ∞) : WithTop ℕ∞) M] {n : ℕ∞}
   [ContMDiffVectorBundle n F V 𝓘(ℝ, EM)] {ω : ContMDiffTwoForm 𝓘(ℝ, EM) n F V}
   (G : Type*) [NormedAddCommGroup G] [NormedSpace ℂ G] [FiniteDimensional ℂ G]
@@ -655,61 +608,23 @@ theorem symplecticChernNumber_eq_sum_maslovIndex_clutching (hn : finrank ℝ EM 
     · exact ⟨Φout ⟨x, hx⟩, hΦoutω ⟨x, hx⟩⟩
     · obtain ⟨i, hi⟩ : ∃ i, x ∈ (φ i).openDisc := by simpa using hx
       exact ⟨Φ i ⟨x, (φ i).openDisc_subset_disc hi⟩, hΦω i ⟨x, (φ i).openDisc_subset_disc hi⟩⟩
-  obtain ⟨J, hJ⟩ := (ContMDiffTwoForm.isNondegenerate_of_forall_exists (stdForm κ)
-    fun x ↦ (hframe x).elim fun Θ hΘ ↦ ⟨Θ.toLinearEquiv, hΘ⟩).exists_compatible
-  rcases isEmpty_or_nonempty M with hM | ⟨⟨x₀⟩⟩
+  rcases isEmpty_or_nonempty M with hM | hM
   · -- Over the empty surface there are no discs, and both sides vanish.
     have : IsEmpty ι := ⟨fun i ↦ hM.elim (φ i 0)⟩
+    obtain ⟨J, hJ⟩ := (ContMDiffTwoForm.isNondegenerate_of_forall_exists (stdForm κ)
+      fun x ↦ (hframe x).elim fun Θ hΘ ↦ ⟨Θ.toLinearEquiv, hΘ⟩).exists_compatible
     rw [symplecticChernNumber_eq_chernNumber o hn G hJ.tames, Finset.univ_eq_empty,
       Finset.sum_empty, chernNumber_eq_sum_degree_clutching hφ (Φ := fun i ↦ isEmptyElim i)
         (Φout := fun x ↦ isEmptyElim (x : M)) (fun i ↦ isEmptyElim i)
         (continuous_of_discreteTopology) hn, Finset.univ_eq_empty, Finset.sum_empty]
-  -- Otherwise the rank of `V` is twice the cardinality of `κ`, and `κ → ℂ` is a complex model
-  -- of `(V, J)`.
-  have : Fact (finrank ℝ F = 2 * finrank ℂ (κ → ℂ)) := by
-    obtain ⟨Θ, -⟩ := hframe x₀
-    refine ⟨?_⟩
-    rw [← ((trivializationAt F V x₀).continuousLinearEquivAt ℝ x₀
-        (FiberBundle.mem_baseSet_trivializationAt' x₀)).toLinearEquiv.finrank_eq,
-      ← Θ.toLinearEquiv.finrank_eq, finrank_euclideanSpace, Fintype.card_sum,
-      Module.finrank_fintype_fun_eq_card]
-    ring
-  rw [← symplecticChernNumber_congr_model o hn G (κ → ℂ) ω,
-    symplecticChernNumber_eq_chernNumber o hn (κ → ℂ) hJ.tames]
-  -- Make the frames unitary for `J` by continuous changes of frame `P i` and `P'`.
-  choose P hP hPJ using fun i ↦
-    hJ.exists_continuous_GLSymplectic_unitary (f := ((↑) : (φ i).disc → M)) (hΦ i) (hΦω i)
-  obtain ⟨P', hP', hP'J⟩ :=
-    hJ.exists_continuous_GLSymplectic_unitary (f := ((↑) : discComplement φ → M)) hΦout hΦoutω
-  -- The products of matrices act by composition.
-  have hmul (A B : GLSymplectic κ ℝ) (v : StdSpace κ) :
-      toEuclideanLin ((A * B : GLSymplectic κ ℝ) : GL (κ ⊕ κ) ℝ) v =
-        toEuclideanLin ((A : GL (κ ⊕ κ) ℝ) : Matrix (κ ⊕ κ) (κ ⊕ κ) ℝ)
-          (toEuclideanLin ((B : GL (κ ⊕ κ) ℝ) :
-            Matrix (κ ⊕ κ) (κ ⊕ κ) ℝ) v) := by
-    rw [Subgroup.coe_mul, Units.val_mul, toLpLin_mul_same, LinearMap.comp_apply]
-  have hinv (A : GLSymplectic κ ℝ) (v : StdSpace κ) :
-      toEuclideanLin ((A : GL (κ ⊕ κ) ℝ) : Matrix (κ ⊕ κ) (κ ⊕ κ) ℝ)
-        (toEuclideanLin (((A⁻¹ : GLSymplectic κ ℝ) : GL (κ ⊕ κ) ℝ) :
-          Matrix (κ ⊕ κ) (κ ⊕ κ) ℝ) v) = v := by
-    rw [← hmul, mul_inv_cancel, Subgroup.coe_one, Units.val_one, toLpLin_one, LinearMap.id_apply]
-  have hcont {X : Type} [TopologicalSpace X] {Q : X → GLSymplectic κ ℝ} (hQ : Continuous Q) :
-      Continuous fun q : X × StdSpace κ ↦
-        toEuclideanLin (Q q.1 : GL (κ ⊕ κ) ℝ) q.2 :=
-    (((continuous_toEuclideanCLM.comp (Units.continuous_val.comp
-      (continuous_subtypeVal.comp hQ))).comp continuous_fst).clm_apply continuous_snd).congr
-        fun q ↦ toEuclideanCLM_apply _ _
-  -- The unitary frames `Φ i ∘ P i` and `Φout ∘ P'`.
-  let Φu : ∀ i, ∀ x : (φ i).disc, StdSpace κ ≃L[ℝ] V x := fun i x ↦
-    (toEuclideanCLE _ (P i x : GL (κ ⊕ κ) ℝ).det_ne_zero).trans (Φ i x)
-  let Φoutu : ∀ x : discComplement φ, StdSpace κ ≃L[ℝ] V x := fun x ↦
-    (toEuclideanCLE _ (P' x : GL (κ ⊕ κ) ℝ).det_ne_zero).trans (Φout x)
-  have hΦu (i) (x : (φ i).disc) (v : StdSpace κ) :
-      Φu i x v = Φ i x (toEuclideanLin (P i x : GL (κ ⊕ κ) ℝ) v) := by
-    rw [ContinuousLinearEquiv.trans_apply, toEuclideanCLE_apply]
-  have hΦoutu (x : discComplement φ) (v : StdSpace κ) :
-      Φoutu x v = Φout x (toEuclideanLin (P' x : GL (κ ⊕ κ) ℝ) v) := by
-    rw [ContinuousLinearEquiv.trans_apply, toEuclideanCLE_apply]
+  -- Otherwise `ω` is compatible with some `J`, and `κ → ℂ` is a complex model of `(V, J)`.
+  obtain ⟨J, _, hJ, hJω⟩ := exists_compatible_symplecticChernNumber_eq_chernNumber o hn G hframe
+  -- Complex frames of `(V, J)` from the symplectic frames, by changes of frame `P i` and `P'`.
+  choose P Θ hP hΘ hΘΦ using fun i ↦
+    hJ.exists_continuous_GLSymplectic_complexFrame (f := ((↑) : (φ i).disc → M)) (hΦ i) (hΦω i)
+  obtain ⟨P', Θout, hP', hΘout, hΘoutΦ⟩ :=
+    hJ.exists_continuous_GLSymplectic_complexFrame (f := ((↑) : discComplement φ → M)) hΦout
+      hΦoutω
   -- The new transition loops `(P i)⁻¹ Ψ i P'`.
   let Pinv (i : ι) : C(Circle, GLSymplectic κ ℝ) :=
     ContinuousMap.mk (fun ζ ↦ (fun x ↦ (P i x)⁻¹)
@@ -719,19 +634,20 @@ theorem symplecticChernNumber_eq_sum_maslovIndex_clutching (hn : finrank ℝ EM 
     ContinuousMap.mk (fun ζ ↦ P' ⟨(φ i).boundaryCircle ζ,
       boundaryCircle_mem_discComplement φ hφ i ζ⟩)
         (hP'.comp ((φ i).boundaryCircle.continuous.subtype_mk _))
-  rw [chernNumber_eq_sum_maslovIndex_of_unitary hφ (Φ := Φu) (Φout := Φoutu)
-      (fun i ↦ ((hΦ i).comp (continuous_fst.prodMk (hcont (hP i)))).congr fun q ↦ by
-        rw [Function.comp_apply, hΦu])
-      ((hΦout.comp (continuous_fst.prodMk (hcont hP'))).congr fun q ↦ by
-        rw [Function.comp_apply, hΦoutu])
-      hn (J := J.toContinuousComplexStructure)
-      (fun i x v ↦ by rw [hΦu, hΦu, ContMDiffComplexStructure.toContinuousComplexStructure_apply,
-        hPJ i x v])
-      (fun x v ↦ by rw [hΦoutu, hΦoutu,
-        ContMDiffComplexStructure.toContinuousComplexStructure_apply, hP'J x v])
-      (fun i ↦ Pinv i * Ψ i * Pout i) (fun i ζ v ↦ by
-        rw [hΦu, hΦoutu, hΨ, ContinuousMap.mul_apply, ContinuousMap.mul_apply, hmul, hmul]
-        simp only [Pinv, Pout, ContinuousMap.coe_mk, hinv])]
+  -- By the complex formula, the number adds up the Maslov indices of these loops.
+  have h : chernNumber o hn (κ → ℂ) J.toContinuousComplexStructure.Fiber =
+      ∑ i, maslovIndex (Pinv i * Ψ i * Pout i).toBasedLoop := by
+    rw [chernNumber_eq_sum_degree_clutching hφ hΘ hΘout hn]
+    refine Finset.sum_congr rfl fun i _ ↦ ?_
+    rw [maslovIndex_def]
+    refine Circle.degree_congr _ _ fun t ↦ ?_
+    rw [ContinuousMap.toBasedLoop_apply, Path.map_coe, Function.comp_apply,
+      ContinuousMap.toBasedLoop_apply, ContinuousMap.coe_mk, clutchingTransition_def,
+      ContinuousMap.mul_apply, ContinuousMap.mul_apply]
+    simp only [Pinv, Pout, ContinuousMap.coe_mk]
+    exact (J.toContinuousComplexStructure.maslovPhase_inv_mul_mul_eq_normalizedDet
+      (hΘΦ i _) (hΘoutΦ ⟨_, boundaryCircle_mem_discComplement φ hφ i _⟩) (hΨ i _)).symm
+  rw [hJω, h]
   simp only [maslovIndex_toBasedLoop_mul, Finset.sum_add_distrib, Pout,
     sum_maslovIndex_boundaryCircle_discComplement_eq_zero hφ hn hP', add_zero]
   rw [Finset.sum_eq_zero fun i _ ↦ (maslovIndex_boundaryCircle_disc_eq_zero i
