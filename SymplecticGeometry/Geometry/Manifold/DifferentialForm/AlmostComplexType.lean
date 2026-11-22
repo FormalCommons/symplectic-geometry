@@ -22,6 +22,7 @@ which a `RiemannianBundle` metric supplies.
 
 * `ContMDiffSection.coe_realAlternatingDerivation`: the value of `𝒜 φ` at `x` is
   `(φ x).fderivCompContinuousLinearMap (id) (A x)`.
+* `ContMDiffSection.realAlternatingDerivation_fin_zero`: the derivation vanishes on functions.
 -/
 
 public section
@@ -49,6 +50,16 @@ theorem coe_realAlternatingDerivation
   ext x v
   rw [realAlternatingDerivation_apply,
     ContinuousAlternatingMap.fderivCompContinuousLinearMap_id_apply]
+
+omit [RiemannianBundle (fun x : M ↦ TangentSpace I x)] in
+/-- The real derivation of smooth forms along an endomorphism field vanishes on smooth functions,
+the `0`-forms: at each point it is a sum over the arguments of the form, and there are none. -/
+@[simp]
+theorem realAlternatingDerivation_fin_zero
+    (A : ContMDiffSection I (E →L[ℝ] E) ∞ fun x : M ↦ TangentSpace I x →L[ℝ] TangentSpace I x)
+    (f : SmoothForm I M ℝ 0) : A.realAlternatingDerivation f = 0 := by
+  ext x v
+  simp
 
 end ContMDiffSection
 

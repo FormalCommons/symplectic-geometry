@@ -14,6 +14,7 @@ import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.RightInverse
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.UniqueDifferential
 import SymplecticGeometry.Geometry.Manifold.SmoothIsotopy.Extension
 import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Frame
+import TauCeti.Analysis.Normed.Module.Alternating.Curry
 import TauCeti.Geometry.Manifold.Diffeomorph.Basic
 import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.ModelSpace
 import TauCeti.Topology.Algebra.Module.Alternating.Basic
@@ -108,42 +109,21 @@ private theorem exists_contDiff_path_mpullback_eq [FiniteDimensional ℝ E]
   set Γ : ℝ × StdSpace (Fin n) → (ℝ × StdSpace (Fin n)) [⋀^Fin 2]→L[ℝ] ℝ :=
     mpullback 𝓘(ℝ, ℝ × StdSpace (Fin n)) I F σ.val
   have hΓ : ContDiffOn ℝ ∞ Γ (univ ×ˢ O) := σ.contDiffOn_mpullback (isOpen_univ.prod hO) hF
+  have hFd (s : ℝ) : MDifferentiableAt 𝓘(ℝ, ℝ × StdSpace (Fin n)) I F (s, 0) :=
+    (hF.contMDiffAt ((isOpen_univ.prod hO).mem_nhds ⟨mem_univ _, h0O⟩)).mdifferentiableAt
+      (by simp)
   have hslice (s : ℝ) (v w : StdSpace (Fin n)) :
       mpullback 𝓘(ℝ, StdSpace (Fin n)) I (fun z ↦ F (s, z)) σ.val 0 ![v, w] =
-        Γ (s, 0) ![(0, v), (0, w)] := by
-    have hι : HasFDerivAt (fun z : StdSpace (Fin n) ↦ (s, z))
-        ((0 : StdSpace (Fin n) →L[ℝ] ℝ).prod (ContinuousLinearMap.id ℝ _)) 0 :=
-      (hasFDerivAt_const s 0).prodMk (hasFDerivAt_id 0)
-    have hFd : MDifferentiableAt 𝓘(ℝ, ℝ × StdSpace (Fin n)) I F (s, 0) :=
-      (hF.contMDiffAt ((isOpen_univ.prod hO).mem_nhds ⟨mem_univ _, h0O⟩)).mdifferentiableAt
-        (by simp)
-    rw [show (fun z ↦ F (s, z)) = F ∘ fun z ↦ (s, z) from rfl,
-      mpullback_comp_at hι.differentiableAt.mdifferentiableAt hFd]
-    simp only [mpullback_apply, mfderiv_eq_fderiv, hι.fderiv]
-    refine Eq.trans ?_ (mpullback_apply F σ.val (s, 0) ![(0, v), (0, w)]).symm
-    congr 1
-    funext i
-    fin_cases i <;> rfl
+        Γ (s, 0) ![(0, v), (0, w)] :=
+    (mpullback_comp_prodMk_apply_modelSpace (hFd s) σ.val ![v, w]).trans
+      (congrArg (Γ (s, 0)) (FinVec.etaExpand_eq _).symm)
   -- The forms `κ s = (F s)^* σ` at `0`, as bilinear maps.
-  set L : (StdSpace (Fin n) [⋀^Fin 1]→L[ℝ] ℝ) →L[ℝ] StdSpace (Fin n) →L[ℝ] ℝ :=
-    (ContinuousAlternatingMap.ofSubsingletonLIE (𝕜 := ℝ) (E := StdSpace (Fin n)) (F := ℝ)
-      (0 : Fin 1)).symm.toContinuousLinearEquiv.toContinuousLinearMap
-  have hL (γ : StdSpace (Fin n) [⋀^Fin 2]→L[ℝ] ℝ) (v w : StdSpace (Fin n)) :
-      L.comp γ.curryLeft v w = γ ![v, w] := by
-    simp only [L, LinearIsometryEquiv.toContinuousLinearEquiv_symm, ContinuousLinearMap.comp_apply,
-      ContinuousLinearEquiv.coe_coe, LinearIsometryEquiv.coe_symm_toContinuousLinearEquiv,
-      ContinuousAlternatingMap.ofSubsingletonLIE_symm_apply,
-      ContinuousAlternatingMap.ofSubsingleton_symm_apply_apply,
-      ContinuousAlternatingMap.curryLeft_apply_apply]
-    congr 1
-    funext i
-    fin_cases i <;> rfl
   set κ : ℝ → StdSpace (Fin n) →L[ℝ] StdSpace (Fin n) →L[ℝ] ℝ := fun s ↦
-    L.comp (mpullback 𝓘(ℝ, StdSpace (Fin n)) I (fun z ↦ F (s, z)) σ.val 0 :
-      StdSpace (Fin n) [⋀^Fin 2]→L[ℝ] ℝ).curryLeft
+    ContinuousAlternatingMap.flatL ℝ (StdSpace (Fin n)) ℝ
+      (mpullback 𝓘(ℝ, StdSpace (Fin n)) I (fun z ↦ F (s, z)) σ.val 0)
   have hκ (s : ℝ) (v w : StdSpace (Fin n)) :
       κ s v w = mpullback 𝓘(ℝ, StdSpace (Fin n)) I (fun z ↦ F (s, z)) σ.val 0 ![v, w] :=
-    hL _ v w
+    ContinuousAlternatingMap.flatL_apply_apply _ v w
   have hκ' (s : ℝ) (v w : StdSpace (Fin n)) :
       κ s v w = σ.val (F (s, 0)) ![mfderiv 𝓘(ℝ, StdSpace (Fin n)) I (fun z ↦ F (s, z)) 0 v,
         mfderiv 𝓘(ℝ, StdSpace (Fin n)) I (fun z ↦ F (s, z)) 0 w] :=
@@ -258,12 +238,11 @@ private theorem exists_contMDiffOn_mpullback_eq_of_path [FiniteDimensional ℝ E
   · -- `(k t)^* σ = (P t)^* (ψ t ∘ j₀)^* σ = ω₀` at `0`.
     have hcomp : (fun z ↦ ψ t (j₀ (P t z))) = (fun z ↦ ψ t (j₀ z)) ∘ P t := rfl
     ext m
-    have hm : m = ![m 0, m 1] := by
-      funext i
-      fin_cases i <;> rfl
+    -- `FinVec.etaExpand m` is `![m 0, m 1]` by definition; `show` states that form, which
+    -- `mpullback_apply_pair` needs.
     rw [hcomp, mpullback_comp_at (P t).differentiableAt.mdifferentiableAt
-      (by rw [map_zero]; exact hψj t), hm, mpullback_apply_pair, mfderiv_eq_fderiv,
-      (P t).fderiv, map_zero]
+      (by rw [map_zero]; exact hψj t), show m = ![m 0, m 1] from (FinVec.etaExpand_eq m).symm,
+      mpullback_apply_pair, mfderiv_eq_fderiv, (P t).fderiv, map_zero]
     exact (hPF t (m 0) (m 1)).trans (hω₀ _ _).symm
   · -- `d (k 1)_0 = d (ψ 1 ∘ j₀)_0 ∘ B = d (j₁)_0`.
     have hcomp : (fun z ↦ ψ ((1 : unitInterval) : ℝ) (j₀ (P ((1 : unitInterval) : ℝ) z))) =
