@@ -26,11 +26,16 @@ This file adds to Tau Ceti's relative singular chains of a topological pair:
   compatibility with the quotient maps (`TopPair.chainComplexπ_restrictSubsetMap`), with the
   inclusions of the restricted chains
   (`TopPair.chainComplexMap_restrictSubsetMap_comp_restrictι`), and with composition
-  (`TopPair.chainComplexMap_restrictSubsetMap_comp`).
+  (`TopPair.chainComplexMap_restrictSubsetMap_comp`);
+* `TopPair.singularChainComplexπ_comp_singularChainComplexMap_of_fst_eq_id`: a map of pairs
+  `(X, A) ⟶ (X, B)` that is the identity of `X` carries the quotient map of `(X, A)` to that of
+  `(X, B)`.
 
 These declarations are from Tau Ceti's main branch
 (`TauCeti/AlgebraicTopology/Singular/Relative.lean`, same names), as of the commit
-`e48a7f81a81426270765022681d165be592a3231`, not yet in the pinned release; they are stated here
+`e48a7f81a81426270765022681d165be592a3231`, and, for
+`TopPair.singularChainComplexπ_comp_singularChainComplexMap_of_fst_eq_id`, as of the commit
+`c9d170eed5`, not yet in the pinned release; they are stated here
 under their Tau Ceti names, so that moving Tau Ceti past them deletes this file without renames.
 
 Tau Ceti's file closes its module docstring with the following note on the source of its
@@ -77,6 +82,18 @@ lemma ιChainComplex_comp_singularChainComplexπ_eq_zero {n : ℕ}
   -- The relative quotient source is the ambient singular chains after toSSetPair unfolds.
   erw [← hτ, ← SSet.ι_chainComplexMap_f, Category.assoc, ← HomologicalComplex.comp_f,
     chainComplexMap_comp_singularChainComplexπ, HomologicalComplex.zero_f, comp_zero]
+
+/-- A map of pairs `(X, A) ⟶ (X, B)` given by the identity of `X` carries the quotient map to the
+relative singular chains of `(X, A)` to the quotient map to those of `(X, B)`. -/
+@[reassoc]
+lemma singularChainComplexπ_comp_singularChainComplexMap_of_fst_eq_id {X A B : TopCat.{w}}
+    {i : A ⟶ X} {j : B ⟶ X} {hi : Topology.IsEmbedding i} {hj : Topology.IsEmbedding j}
+    (f : TopPair.of i hi ⟶ TopPair.of j hj) (hf : Hom.fst f = 𝟙 X) :
+    (TopPair.of i hi).singularChainComplexπ R ≫ singularChainComplexMap f R =
+      (TopPair.of j hj).singularChainComplexπ R := by
+  rw [← singularChainComplexπ_pair_naturality, hf]
+  exact (congrArg (· ≫ _) ((TopCat.toSSet ⋙ (SSet.chainComplexFunctor C).obj R).map_id X)).trans
+    (Category.id_comp _)
 
 section OpenSubspace
 
