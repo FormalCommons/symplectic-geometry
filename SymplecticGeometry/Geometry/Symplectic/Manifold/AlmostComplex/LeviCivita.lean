@@ -229,8 +229,7 @@ theorem Compatible.leviCivita_hom_comp_add_and_inner_add_and_mextDeriv_and_apply
           -(J.toEndomorphism x).comp ((CovariantDerivative.leviCivitaConnection I M).hom
             (CovariantDerivative.leviCivitaConnection I M) J.toEndomorphism x v)) := by
   let : RiemannianBundle (fun x : M ↦ TangentSpace I x) := ⟨hJ.metric.toRiemannianMetric⟩
-  have hg : ∀ x (u v : TangentSpace I x), ⟪u, v⟫ = σ.eval₂ x u (J x v) := fun x u v ↦ by
-    rw [hJ.metric.inner_eq, Compatible.metric_inner]
+  have hg := hJ.inner_eq_eval₂
   have hL := CovariantDerivative.isLeviCivitaConnection_leviCivitaConnection I (M := M)
   intro x u v w
   refine ⟨J.hom_toEndomorphism_comp_add_comp_hom _ x v, ?_,
