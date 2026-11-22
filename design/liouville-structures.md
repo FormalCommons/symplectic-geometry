@@ -51,7 +51,7 @@ Here `hY : ContMDiff I I.tangent ∞ (T% Y)` is the smoothness of `Y`, and
 `TauCeti.SmoothTwoForm.interiorₗ` (`Geometry/Symplectic/Manifold/Flat.lean`),
 applied to `Y` as a smooth section; its value is `RoughForm.interior Y ω.val`
 by `coe_interiorₗ`. For a strong filling `h`, `hY` is
-`h.isOutwardPointingField.1`. The part adds no interior product of its own.
+`h.isOutwardPointingField.contMDiff`. The part adds no interior product of its own.
 
 ## Decisions
 
@@ -89,7 +89,7 @@ by `coe_interiorₗ`. For a strong filling `h`, `hY` is
   such a field off by a smooth bump function that is `1` near `∂W`. A
   *Liouville domain* is the case `U = univ`; it gets no predicate of its
   own. The contact manifold that `W` fills is its own boundary, with the
-  form `fillingContactForm ω Y`, $-\iota^*(\iota_Y\omega)$, and the
+  form `fillingContactForm ω ⟨Y, hY⟩`, $-\iota^*(\iota_Y\omega)$, and the
   coorientation of that form. The book's filling of a given $(M,\xi)$ is
   this one transported by a diffeomorphism $\partial W\cong M$ carrying the
   form to a positive multiple of a defining form of $\xi$; no milestone
@@ -173,7 +173,7 @@ Further choices:
 | `Topology/Sets/Strip.lean` | the open strip `(-ε, ε) × X` of `ℝ × X` and the tube lemma for it | 4 |
 | `Geometry/Manifold/Strip.lean` | the slice maps of the strip as smooth maps, their differential, and slices of two-forms | 4 |
 | `Geometry/Manifold/SmoothEmbedding/Basic.lean` | the right slice `x ↦ (c, x)` of a product as a smooth embedding, beside Tau Ceti's file of that path | 4 |
-| `Geometry/Manifold/Boundary/Charts.lean` | boundary points in the extended charts of the half-space model | 5 |
+| `Geometry/Manifold/Boundary/Charts.lean` | boundary points in the extended charts of the half-space model; outward vectors are not tangent to the boundary | 5 |
 | `Geometry/Manifold/Boundary/Collar/Flow/Local.lean` | near one boundary point: the extended field and its flow from the boundary | 5 |
 | `Geometry/Manifold/Boundary/Collar/Flow/Basic.lean` | the collar of a compact boundary along an outward field | 6 |
 | `Geometry/Symplectic/Liouville/Filling.lean` | `IsStrongFilling`, its contact form, its Liouville collar | 7 |
@@ -475,24 +475,26 @@ For `W` as in *Decisions*:
   `IsStrongFilling.mono` (shrinking `U` to an open set that still contains
   `∂W`), `IsStrongFilling.of_contMDiffOn` (from a field smooth only on `U`,
   by a bump function from Mathlib's
-  `exists_contMDiff_zero_iff_one_iff_of_isClosed`, with `∂W` closed by
-  `ModelWithCorners.isClosed_boundary_of_finiteDimensional`), and
+  `exists_contMDiffMap_zero_one_nhds_of_isClosed`, with `∂W` closed by
+  Mathlib's `ModelWithCorners.isClosed_boundary`), and
   `IsStrongFilling.isContactType`: the boundary inclusion is of contact type
   for `ω` with primitive `ω.interiorₗ ⟨Y, hY⟩`, as Tau Ceti's `IsContactType` (it
   takes any model; transversality from outwardness).
-- `fillingContactForm ω Y : SmoothForm (𝓡 n) ∂W ℝ 1`, the form
-  $-\iota^*(\iota_Y\omega)$ along the boundary inclusion, with
+- `fillingContactForm ω ⟨Y, hY⟩ : SmoothForm (𝓡 n) ∂W ℝ 1`, the form
+  $-\iota^*(\iota_Y\omega)$ along the boundary inclusion, defined for any
+  smooth section `⟨Y, hY⟩` (so that it needs no junk value), with
   `fillingContactForm_def` and
-  `IsStrongFilling.isContactForm_fillingContactForm`, from
-  `IsContactType.isContactForm_mpullback` (which needs no boundaryless
-  model) and `SmoothForm.isContactForm_neg_iff`; and
-  `IsStrongFilling.mextDerivₗ_fillingContactForm`, $d\alpha=-\iota^*\omega$.
+  `IsStrongFilling.isContactForm_fillingContactForm` and
+  `IsStrongFilling.mextDerivₗ_fillingContactForm`, $d\alpha=-\iota^*\omega$,
+  both from
+  `TauCeti.SmoothEmbedding.exists_isContactForm_eq_neg_mpullback_interior`
+  (`Liouville/ContactType.lean`), applied to the boundary inclusion.
 - `IsStrongFilling.exists_liouvilleCollar`: there are `ε > 0`,
   `Φ : ℝ × ∂W → W` and `c : SmoothCollar n ∞ W` as in
   `SmoothCollar.exists_eq_of_isOutwardPointing`, with `range c ⊆ U`, such
   that on `Ioo (-ε) 0 ×ˢ univ`,
-  `mpullback Φ (-(ω.interiorₗ ⟨Y, hY⟩)) = symplectization (fillingContactForm ω Y)`
-  and `mpullback Φ ω = mextDerivₗ _ 1 (symplectization (-fillingContactForm ω Y))`,
+  `mpullback Φ (-(ω.interiorₗ ⟨Y, hY⟩)) = symplectization (fillingContactForm ω ⟨Y, hY⟩)`
+  and `mpullback Φ ω = mextDerivₗ _ 1 (symplectization (-fillingContactForm ω ⟨Y, hY⟩))`,
   $\Phi^*\lambda=e^s\alpha$ and $\Phi^*\omega=-d(e^s\alpha)$. Route: on the
   interior, re-modelled over `EuclideanSpace ℝ (Fin (n + 1))` by Tau Ceti's
   `TauCeti.BoundarylessModel` (`Geometry/Manifold/ModelTransport/`), with
@@ -551,7 +553,7 @@ Expected size: 600 lines.
 
 For `h : IsStrongFilling ω U Y`, with the collar `c`, `ε` and `Φ` of
 `h.exists_liouvilleCollar` chosen once (`Classical.choose`, through a
-private structure of the choices) and `α := fillingContactForm ω Y`.
+private structure of the choices) and `α := fillingContactForm ω ⟨Y, hY⟩`.
 Issue 9:
 
 - `IsStrongFilling.Completion h := c.WithEnd`, with the instances above,

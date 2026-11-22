@@ -399,6 +399,15 @@ the table of *Conventions*), and `W : Submodule ℝ V`.
   statement; this file gives a formula, so that the next file can prove it
   smooth.
 
+### `LinearAlgebra/Range.lean`
+
+The map `b` of the next file, for any two injective linear maps out of one
+space. Namespace `LinearEquiv`.
+
+- `LinearEquiv.ofInjectiveRange i j hi hj : range i ≃ₗ[R] range j`, sending
+  `i x` to `j x`, with its inverse `ofInjectiveRange j i hj hi`. Also used
+  by `LinearAlgebra/FiniteDimensional/Extension.lean`.
+
 ### `Geometry/Symplectic/Neighborhood/Extension.lean`
 
 The construction above along a submanifold, smoothly. Namespace

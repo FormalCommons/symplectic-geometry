@@ -517,6 +517,10 @@ trajectory argument this proof follows for every time,
 `exists_diffeomorph_fix_embedding_eventually_mpullback_eq` and
 `exists_diffeomorph_opens_of_eq_along`.
 
+The file imports `Geometry/Diffeomorphism/Diffeotopy/Velocity.lean` of
+*Hamiltonian flows*, which is merged, for the slices of `Ψ`
+(`TauCeti.Diffeotopy.timeSlice_timeDependentFlowDiffeotopy`).
+
 ### `Geometry/Symplectic/Manifold/Darboux.lean`
 
 The file has the name of Tau Ceti's file. It is in the namespace
@@ -583,20 +587,22 @@ back to `ω` at `x`, so `ω` needs no hypothesis.
 ### `Geometry/Symplectic/Moser/Stability.lean`
 
 In the namespace `TauCeti.SmoothTwoForm`, with `[CompactSpace M]`. Here
-`ω : SmoothForm ((𝓡∂ 1).prod I) (unitInterval × M) ℝ 2` is a family over
-$[0,1]$, as *Manifolds, families and signs* says.
+`σ : SmoothTwoForm ((𝓡∂ 1).prod I) (unitInterval × M)` is a family over
+$[0,1]$, as *Manifolds, families and signs* says. It is written with the
+abbreviation `SmoothTwoForm`, so that dot notation reaches this namespace, and
+named `σ`, since `ω` is a token under `open scoped ContDiff`.
 
 ```lean
 theorem exists_diffeotopy_mpullback_eq
-    (ω : SmoothForm ((𝓡∂ 1).prod I) (unitInterval × M) ℝ 2)
-    (hω : ∀ t, IsSymplectic (SmoothForm.mpullback (Prod.mk t)
-      (contMDiff_const.prodMk contMDiff_id) ω))
-    (hcoh : ∀ t, SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) ω -
-        SmoothForm.mpullback (Prod.mk 0) (contMDiff_const.prodMk contMDiff_id) ω ∈
+    (σ : SmoothTwoForm ((𝓡∂ 1).prod I) (unitInterval × M))
+    (hσ : ∀ t, IsSymplectic (SmoothForm.mpullback (Prod.mk t)
+      (contMDiff_const.prodMk contMDiff_id) σ))
+    (hcoh : ∀ t, SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) σ -
+        SmoothForm.mpullback (Prod.mk 0) (contMDiff_const.prodMk contMDiff_id) σ ∈
       exactForms I M 2) :
     ∃ Ψ : Diffeotopy I ∞ M, ∀ t, SmoothForm.mpullback (Ψ.timeSlice t) (Ψ.timeSlice t).contMDiff
-        (SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) ω) =
-      SmoothForm.mpullback (Prod.mk 0) (contMDiff_const.prodMk contMDiff_id) ω
+        (SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) σ) =
+      SmoothForm.mpullback (Prod.mk 0) (contMDiff_const.prodMk contMDiff_id) σ
 ```
 
 Milestone: *Moser stability*. `Diffeotopy` starts at the identity by
@@ -614,20 +620,24 @@ following; its design file, from #466, gives their names.
    `ε > 0`. *Manifolds, families and signs* names this step. It is
    `exists_contDiff_eqOn_id_Icc_mem_Ioo` of
    `Analysis/SpecialFunctions/SmoothTransition.lean`, with `a = 0` and
-   `b = 1`.
+   `b = 1`, through `exists_contDiff_eqOn_id_Icc_mem_of_isOpen` of the same
+   file, which keeps the values in an open set containing $[a,b]$.
 4. `Diffeotopy/Real.lean`: the restriction of an isotopy over `ℝ` to a
    `Diffeotopy`.
 
-Let `B' := (c × id)^* B`. Over `ℝ`, the forms are
-`σ := Prod.snd^* ω_0 + mextDeriv B'` and `α := L_{∂_t} B'`
-(`mlieDerivForm (fun _ ↦ (1, 0))`). The slices of `σ` are
-`ω_0 + d B'_t`, which are closed, and `ω_t` for `t ∈ [0, 1]`. Nondegeneracy
-is open, so it holds on `(-ε, 1 + ε) × M` for some `ε`, because `M` is
-compact (`isOpen_setOf_isInvertible_flat_mpullback_prodMk` and the tube
-lemma). Hence every slice of `σ` is symplectic. The velocity of `σ` is
-`L_{∂_t} d B' = d α`, so the hypothesis of
-`TauCeti.SmoothTwoForm.exists_isotopy_mpullback_eq` holds: Lie derivatives
-and pullbacks commute with `d`. That theorem gives
+Let `τ := Prod.snd^* ω_0 + mextDeriv B` on `ℝ × M`. It is closed, and its
+slices are `ω_0 + d B_s`, which are `ω_s` for `s ∈ [0, 1]`. Nondegeneracy
+is open and `M` is compact, so the parameters `s` at which `τ_s` is
+nondegenerate everywhere form an open set containing $[0,1]$
+(`isOpen_setOf_forall_isInvertible_flat_mpullback_prodMk` of
+`Manifold/Family.lean`, through the closed projection `ℝ × M → ℝ`). Take `c`
+with values in that set, and `σ' := (c × id)^* τ` over `ℝ`: it is closed,
+and every slice is symplectic. The time derivative of a closed form on
+`ℝ × M` is exact, `L_{∂_t} σ' = d (ι_{∂_t} σ')` by Cartan's formula
+(`SmoothForm.IsClosed.exists_timeDeriv_eq_mextDerivₗ`, in
+`DifferentialForm/Flow/Family.lean`), so `α := ι_{∂_t} σ'` satisfies the
+hypothesis of `TauCeti.SmoothTwoForm.exists_isotopy_mpullback_eq`, since
+pullbacks commute with `d`. That theorem gives
 `ψ : ℝ → M ≃ₘ⟮I, I⟯ M`, which `Diffeotopy/Real.lean` restricts to `Ψ`.
 
 ## What the part uses

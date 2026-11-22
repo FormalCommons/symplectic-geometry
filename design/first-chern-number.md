@@ -172,12 +172,19 @@ updated to match.
 ## Files
 
 All files are under `SymplecticGeometry/`. The part's own files are in
-`Geometry/Manifold/VectorBundle/ChernNumber/`, as in `DESIGN.md`. One extra
-file, the topological class and number, goes in
-`Topology/VectorBundle/Complex/`, because it uses no smooth structure (a
+`Geometry/Manifold/VectorBundle/ChernNumber/`, as in `DESIGN.md`. The
+topological class and number, and the complex-linear maps of complex
+bundles that `Basic.lean` needs, go in
+`Topology/VectorBundle/Complex/`, because they use no smooth structure (a
 folder here beside Tau Ceti's folder of the same name; no Tau Ceti file has
-the name `FirstChernClass.lean` at that place). The prerequisites have files
-of their own, listed with their issues.
+the name `FirstChernClass.lean` at that place, and `Structure.lean` is
+named after Tau Ceti's file there so that the two can merge). Two general
+lemmas on Euler classes of finite-rank cores go in
+`Topology/VectorBundle/FiniteRank/EulerClass.lean`, and the complex-linear
+equivalence of a real one that commutes with `I` in
+`Topology/Algebra/Module/ComplexSmulI.lean`, named after Tau Ceti's file
+where `ContinuousLinearMap.complexOfMapISmul` lives. The
+prerequisites have files of their own, listed with their issues.
 
 ### `Topology/VectorBundle/Complex/FirstChernClass.lean`
 
@@ -207,15 +214,15 @@ core of prerequisite 1:
   determinants, and
   `TauCeti.complexEulerClass_eq_neg_of_finrank_eq_one_of_conjugateFiberwise`
   applies.
-- `chernNumber o G E : ℤ`, for `o : TauCeti.HomologicalOrientation M E' 2`
-  of a compact topological surface `M` (with `hn : finrank ℝ E' = 2`): the
+- `chernNumber o hn G E : ℤ`, for `o : TauCeti.HomologicalOrientation M E' 2`
+  of a compact topological surface `M` and `hn : finrank ℝ E' = 2`: the
   integer under `o.evalFundamentalClass hn _ (ContinuousMap.id M)
   (firstChernClass G E)`; with `chernNumber_def`.
 - `chernNumber_neg_orientation`: reversing `o` negates it.
 - `chernNumber_congr`, `chernNumber_trivial`, `chernNumber_conj`, from the
   lemmas above.
 - `chernNumber_pullback (f : C(M', M))`, with `[PreconnectedSpace M]`:
-  `chernNumber o' G (f *ᵖ E) = o'.degree o hn f * chernNumber o G E`, from
+  `chernNumber o' hn' G (f *ᵖ E) = o'.degree o hn' f * chernNumber o hn G E`, from
   `firstChernClass_pullback` and
   `evalFundamentalClass_id_singularCohomologyMap_eq_degree_smul`, which needs
   the target compact and preconnected.
@@ -223,26 +230,73 @@ core of prerequisite 1:
 No Whitney sum formula is claimed over a general base; additivity is proved
 over surfaces only, from clutching.
 
+### `Topology/VectorBundle/FiniteRank/EulerClass.lean`
+
+In the namespace `TauCeti.FiniteRankBundleCore`, for complex finite-rank
+cores, used by `FirstChernClass.lean`:
+
+- `complexEulerClass_eq_of_iso`: isomorphic cores have the same
+  `TauCeti.complexEulerClass`, from
+  `TauCeti.complexEulerClass_eq_of_fiberwise`;
+- `complexEulerClass_pullback`: the class of `A.pullback f` is the
+  pull-back of the class of `A`, from
+  `TauCeti.complexEulerClass_eq_singularCohomologyMap_of_fiberwise`.
+
+### `Topology/VectorBundle/Complex/Structure.lean`
+
+In the namespace `TauCeti.Bundle.ContinuousComplexStructure`, for
+continuous complex structures `J₁`, `J₂` on real bundles `V₁`, `V₂` over
+one base and fibrewise real-linear equivalences `Φ`:
+
+- `fiberEquivOfCommute`: if `Φ` intertwines `J₁` with `J₂`, the
+  complex-linear equivalences `J₁.Fiber b ≃L[ℂ] J₂.Fiber b`, and
+  `continuous_fiberEquivOfCommute` (continuous on total spaces, for any
+  complex models, when `Φ` is);
+- `fiberEquivConjOfAnticommute`: if `Φ` intertwines `J₁` with `-J₂`, the
+  complex-linear equivalences from `J₁.Fiber b` to the conjugate
+  `ConjugateBundle J₂.Fiber b`, and
+  `continuous_fiberEquivConjOfAnticommute`.
+
+They turn the real isomorphisms of *Symplectic vector bundles* into the
+complex ones that `chernNumber_congr` takes.
+
+### `Topology/Algebra/Module/ComplexSmulI.lean`
+
+- `ContinuousLinearEquiv.complexOfMapISmul`: a continuous real-linear
+  equivalence of complex modules that commutes with multiplication by `I`,
+  as a continuous complex-linear one, from Tau Ceti's
+  `ContinuousLinearMap.complexOfMapISmul`. `Structure.lean` builds its
+  equivalences with it, and so does `pullbackFiberEquiv` in
+  `Geometry/Manifold/VectorBundle/ComplexStructure.lean` of *Symplectic
+  vector bundles*, which imports this file.
+
 ### `Geometry/Manifold/VectorBundle/ChernNumber/Basic.lean`
 
 - `chernNumber_pullback_eq_degree_mul`: for `φ : M' → M` smooth between
   closed oriented surfaces, `M` connected, the smooth form
-  `chernNumber o'ₕ G (φ *ᵖ E) = TauCeti.degree o' o φ * chernNumber oₕ G E`,
-  with `oₕ = o.toHomologicalOrientation`; from `chernNumber_pullback` and
-  `degree_toHomologicalOrientation_eq_degree`.
-- `symplecticChernNumber o ω : ℤ` for a symplectic vector bundle `(E, ω)` in
-  the representation of *Symplectic vector bundles*: the `chernNumber` of the
-  complex bundle of a compatible complex structure, chosen by the existence
-  theorem of that part. `symplecticChernNumber_eq_chernNumber` gives the same
-  value for every compatible or tame `J`. The proof: by that part's
-  classification theorem (`.../Symplectic/Classification.lean`), the identity
-  of `(E, ω)` is a symplectic isomorphism, so the two complex bundles are
-  isomorphic.
+  `chernNumber o'ₕ hn G (φ *ᵖ E) = TauCeti.degree o' o φ * chernNumber oₕ hn G E`,
+  with `oₕ = o.toHomologicalOrientation hn`, for `φ : C(M', M)` with
+  `ContMDiff 𝓘(ℝ, E') 𝓘(ℝ, E') 1 φ` and both surfaces modelled on `E'`; from
+  `chernNumber_pullback` and `degree_toHomologicalOrientation_eq_degree`.
+- `symplecticChernNumber o hn G ω : ℤ` for a symplectic vector bundle
+  `(E, ω)` in the representation of *Symplectic vector bundles*, with `o` a
+  homological orientation and `G` the complex model of the complex bundles
+  (`[Fact (finrank ℝ F = 2 * finrank ℂ G)]`): the `chernNumber` of the
+  complex bundle of a continuous complex structure tamed by `ω`, chosen by
+  `Classical.choose`, and `0` if there is none. Taking tame rather than
+  compatible structures, at regularity `0`, keeps the definition free of
+  hypotheses on the base; the existence theorem of that part gives one for
+  every nondegenerate form. `symplecticChernNumber_eq_chernNumber` gives the
+  same value for every compatible or tame `J`. The proof: two complex
+  structures tamed by one form are isomorphic
+  (`ContMDiffTwoForm.Tames.exists_complex_bundleEquiv` in
+  `.../Symplectic/Classification.lean`).
 - `symplecticChernNumber_neg`: `(E, -ω)` has the negated number, since `-J`
   is compatible with `-ω` and gives the conjugate bundle.
 - `symplecticChernNumber_pullback` and `symplecticChernNumber_congr`, from
   the complex statements and the pull-backs and isomorphisms of symplectic
-  bundles that *Symplectic vector bundles* gets from #57.
+  bundles that *Symplectic vector bundles* gets from #57. Both take the form
+  nondegenerate, so that a compatible complex structure exists.
 
 ### `Geometry/Manifold/VectorBundle/ChernNumber/Clutching.lean`
 
@@ -382,7 +436,7 @@ Bundles from clutching data, and isomorphisms from homotopies.
 
 - `chernNumber_eq_sum_sectionIndex`: let `L` be a complex line bundle over a
   compact homologically oriented surface, and `s` a continuous section with
-  finitely many zeros. Then `chernNumber o ℂ L` is the sum over the zeros of
+  finitely many zeros. Then `chernNumber o hn ℂ L` is the sum over the zeros of
   `TauCeti.VectorBundleOrientation.sectionIndex` for the canonical
   orientation `TauCeti.VectorBundleOrientation.complex`. The proof is
   `firstChernClass_eq_complexEulerClass` followed by
@@ -411,7 +465,7 @@ Bundles from clutching data, and isomorphisms from homotopies.
 - Uses the circle bundle `P` of a Hermitian line bundle and its connection
   forms from prerequisites 3 and 4.
 - `chernNumber_eq_integral_curvature`: for every connection form `α` on `P`
-  (`hα : IsCircleConnectionForm α`), `(chernNumber o.toHomologicalOrientation ℂ L :
+  (`hα : IsCircleConnectionForm α`), `(chernNumber (o.toHomologicalOrientation hn) hn ℂ L :
   ℝ) = -(2 * π)⁻¹ * TauCeti.integralTopForm o hα.curvature`. Proof: two connection forms
   differ by `π^* a`, so their curvatures differ by `d a`, whose integral is
   $0$ (`TauCeti.integralTopForm_mextDeriv_eq_zero`; no connectedness needed).
@@ -667,6 +721,14 @@ issues, in an order where each issue's blockers come before it.
      coordinates is continuous from the conjugate core to the core) and
      `TauCeti.FiniteRankBundleCore.ofBundleOfFinrankEqConjugateIso` (the
      core of `ConjugateBundle E` is the conjugate of the core of `E`);
+   - a shared step, added after this issue, in
+     `Topology/VectorBundle/FiniteRank/Basic.lean` beside Tau Ceti's file of
+     that name, importing only it:
+     `TauCeti.FiniteRankBundleCore.isoFiberEquiv e x`, the fibrewise
+     continuous linear equivalence on coordinates of an isomorphism
+     `e : A ≅ D` of cores, the converse of Tau Ceti's `isoOfContinuousEquiv`,
+     with `isoFiberEquiv_apply` and `continuous_isoFiberEquiv` (continuity on
+     total spaces); `detCoreConjugateFiberwise` is built from it;
    - back in `Topology/VectorBundle/Determinant.lean`, since it is about this
      library's `detCore`: `SymplecticGeometry.Bundle.detCoreConjugateFiberwise`,
      a conjugate-linear fibrewise isomorphism between `detCore ℂ` of the
@@ -731,6 +793,9 @@ issues, in an order where each issue's blockers come before it.
    `AlgebraicTopology/Singular/{Relative,Subspace}.lean`,
    `AlgebraicTopology/Singular/Subdivision/Small/{Chains,Relative}.lean` and
    `Topology/Sets/Compacts.lean`.
+   Tau Ceti's caps of chains supported in an open subspace, and their
+   relative forms, come in the same way, in
+   `AlgebraicTopology/Cohomology/Cap/Support.lean`.
 3. **The unit circle bundle of a Hermitian line bundle.**
    `Geometry/Manifold/VectorBundle/Hermitian/CircleBundle.lean`, the file
    of *Symplectic vector bundles* (its section *The circle bundle of a
@@ -799,8 +864,9 @@ issues, in an order where each issue's blockers come before it.
    smooth principal `Circle`-bundle `P` over `M`, the predicate
    `SymplecticGeometry.IsCircleConnectionForm α` for a smooth real 1-form on the
    total space, invariant under the action and equal to $1$ on the
-   fundamental vector field of $1$ (`TauCeti.rightFundamentalVectorField`
-   composed with `Circle.exp`). Its curvature `IsCircleConnectionForm.curvature
+   fundamental vector field of $1$ (`TauCeti.rightFundamentalVectorField` of
+   `SymplecticGeometry.circleLieGenerator`, the velocity of `Circle.exp` at
+   $0$, defined in this file). Its curvature `IsCircleConnectionForm.curvature
    (hα : IsCircleConnectionForm α)`, the 2-form on `M` whose pull-back is `d α`,
    exists and is unique by descent of basic forms (`TauCeti.RoughForm.IsBasic`,
    `Manifold.IsSubmersion.exists_smoothForm_mpullback_eq_iff`).
@@ -810,9 +876,22 @@ issues, in an order where each issue's blockers come before it.
    curvature); `α + π^* a` is a connection form for every 1-form `a` on `M`,
    any two differ by such an `a`, and `curvature (α + π^* a) = curvature α +
    d a`; existence of a connection form, by a partition of unity from the
-   `TauCeti.PrincipalBundle.trivializationOfSection` charts; and the local
-   form $d\theta+\pi^*s^*\alpha$ in the trivialization of a local section
-   `s`. Blocked by 3 only for its example; the definitions are for any `P`.
+   trivializations of the atlas; and the local form
+   $d\theta+\pi^*s^*\alpha$ in the trivialization of a local section `s`
+   (`TauCeti.PrincipalBundle.trivializationOfSection`). General lemmas that
+   the proofs use have files of their own:
+   `Geometry/Manifold/DeRham/Circle.lean` (the rotations of the circle preserve
+   `TauCeti.circleAngularForm`), at the place of the Tau Ceti file of the same
+   name, `Geometry/Manifold/FiberBundle/Principal/BasicForm.lean`
+   (`TauCeti.PrincipalBundle.isBasic_of_mpullback_op_smul`: on a smooth
+   principal bundle, an invariant form that vanishes on vertical vectors is
+   basic), and `Geometry/Manifold/DifferentialForm/PartitionOfUnity.lean`
+   (`SmoothPartitionOfUnity.IsSubordinate.isSmoothForm_finsum_smul_comp`: a
+   locally finite sum of local forms weighted by a smooth partition of unity
+   is smooth). The example on the circle bundle imports
+   `Geometry/Manifold/VectorBundle/Hermitian/CircleBundle.lean` of *Symplectic
+   vector bundles*. Blocked by 3 only for its example; the definitions are for
+   any `P`.
    Done when this API is proved and applied to the circle bundle of 3.
 5. **Coordinate discs.**
    `AlgebraicTopology/Singular/LocalHomology/CoordinateDisc.lean`, beside
@@ -901,16 +980,17 @@ issues, in an order where each issue's blockers come before it.
      product space, through the connecting morphism and radial projection,
      is the oriented generator of the unit sphere.
    - `AlgebraicTopology/Singular/LocalHomology/BoundaryClass.lean`, imported
-     by `BoundaryDegree.lean`: in any dimension `n + 1`,
+     by `DiscBoundaryClass.lean` and `BoundaryDegree.lean`: in any dimension `n + 1`,
      `TauCeti.HomologicalOrientation.boundaryClass`, the image of
      `fundamentalClassRel` in `Hₙ(∂X; ℤ)` under the connecting morphism, with
      `boundaryClass_neg` and `map_subtypeVal_boundaryClass` (it vanishes in
      `Hₙ(X; ℤ)`).
    - `AlgebraicTopology/Singular/LocalHomology/DiscBoundaryClass.lean`, a
-     prerequisite of `BoundaryDegree.lean`: the closed unit disc of `ℂ` in
+     prerequisite of `BoundaryDegree.lean`; it imports `BoundaryClass.lean`:
+     the closed unit disc of `ℂ` in
      this setting, by `Collar.lean`, and its boundary
      class,
-     `SymplecticGeometry.singularHomologyOneIso_singularHomologyδ_fundamentalClassRel_closedBall`:
+     `SymplecticGeometry.singularHomologyOneIso_map_boundaryClass_closedBall`:
      for the complex orientation of the open disc, the boundary class read
      in ℤ through `Circle.singularHomologyOneIso` is $+1$.
    - `AlgebraicTopology/Singular/LocalHomology/BoundaryDegree.lean`, which
@@ -1026,7 +1106,9 @@ issues, in an order where each issue's blockers come before it.
 
 ### The part's own issues
 
-10. **Chern classes and numbers.** `FirstChernClass.lean` and `Basic.lean`.
+10. **Chern classes and numbers.** `FirstChernClass.lean` and `Basic.lean`,
+    with `FiniteRank/EulerClass.lean`, `Complex/Structure.lean` and
+    `ComplexSmulI.lean`.
     Blocked by 1, by *Symplectic vector bundles*' issues for symplectic
     bundles and complex structures, by its classification issue for
     `symplecticChernNumber_eq_chernNumber`, and by the issues from #57 for
