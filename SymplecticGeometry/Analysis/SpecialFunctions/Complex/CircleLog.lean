@@ -56,10 +56,10 @@ public section
 open Complex Filter Set Topology
 open scoped Manifold ContDiff Real
 
-/-- If `G` is `2πi`-periodic and continuous on `exp ⁻¹' U`, for an open set `U` not
-containing `0`, then `z ↦ G (log z)` is continuous on `U`. -/
+/-- If `G` is `2πi`-periodic and continuous on `exp ⁻¹' U`, for a set `U` not containing `0`,
+then `z ↦ G (log z)` is continuous on `U`. -/
 theorem Function.Periodic.continuousOn_comp_log {α : Type*} [TopologicalSpace α] {G : ℂ → α}
-    {U : Set ℂ} (hper : Function.Periodic G (2 * π * I)) (hU : IsOpen U) (h0 : (0 : ℂ) ∉ U)
+    {U : Set ℂ} (hper : Function.Periodic G (2 * π * I)) (h0 : (0 : ℂ) ∉ U)
     (hG : ContinuousOn G (Complex.exp ⁻¹' U)) : ContinuousOn (fun z ↦ G (log z)) U := by
   intro z₀ hz₀
   have hz₀0 : z₀ ≠ 0 := ne_of_mem_of_not_mem hz₀ h0
@@ -70,16 +70,18 @@ theorem Function.Periodic.continuousOn_comp_log {α : Type*} [TopologicalSpace �
       continuousAt_const
     simp [hz₀0]
   have hLz₀ : L z₀ = log z₀ := by simp [L, hz₀0]
-  have hGL : ContinuousAt (G ∘ L) z₀ := by
-    refine ContinuousAt.comp ?_ hL
+  have hexpL {z : ℂ} (hz : z ≠ 0) : Complex.exp (L z) = z := by
+    simp [L, Complex.exp_add, exp_log, hz, hz₀0]
+  have hmaps : MapsTo L U (Complex.exp ⁻¹' U) := fun z hz ↦ by
+    simpa [hexpL (ne_of_mem_of_not_mem hz h0)] using hz
+  have hGL : ContinuousWithinAt (G ∘ L) U z₀ := by
+    refine ContinuousWithinAt.comp ?_ hL.continuousWithinAt hmaps
     rw [hLz₀]
-    exact hG.continuousAt ((hU.preimage Complex.continuous_exp).mem_nhds
-      (by simpa [exp_log hz₀0] using hz₀))
-  refine (hGL.congr ?_).continuousWithinAt
-  filter_upwards [isOpen_ne.mem_nhds hz₀0] with z hz
+    exact hG _ (by simpa [exp_log hz₀0] using hz₀)
+  refine hGL.congr_of_mem (fun z hz ↦ ?_) hz₀
   obtain ⟨k, hk⟩ := exp_eq_exp_iff_exists_int.1
     (show Complex.exp (log z) = Complex.exp (L z) by
-      simp [L, Complex.exp_add, exp_log, hz, hz₀0])
+      rw [hexpL (ne_of_mem_of_not_mem hz h0), exp_log (ne_of_mem_of_not_mem hz h0)])
   simp [hk, hper.int_mul k (L z)]
 
 namespace Circle
@@ -186,7 +188,7 @@ theorem exists_contDiffOn_exp_eq_of_circleDegree_eq_zero {n : WithTop ℕ∞} {a
     have hz0 : z ≠ 0 := ne_of_mem_of_not_mem hz hA0
     rw [hGx ⟨log z, by simpa [S, exp_log hz0] using hz⟩, hGF, exp_log hz0]
   refine ⟨fun z ↦ Gx (log z), ?_, fun z h₁ h₂ ↦ hexp ⟨h₁, h₂⟩⟩
-  exact contDiffOn_of_contMDiffOn_exp hA (hper.continuousOn_comp_log hA hA0 hGxc)
+  exact contDiffOn_of_contMDiffOn_exp hA (hper.continuousOn_comp_log hA0 hGxc)
     (hu.congr fun z hz ↦ (hexp hz).symm)
 
 end Circle
