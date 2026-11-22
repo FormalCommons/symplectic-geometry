@@ -315,27 +315,38 @@ About 350 lines.
 
 ### `Geometry/Manifold/Complex/Isothermal.lean`
 
-**Issue 3** imports `Regularity.lean`, Tau Ceti's
-`Symplectic/Manifold/AlmostComplex/Chart.lean` and
-`Symplectic/Complex/Line.lean`. Throughout,
-`I : ModelWithCorners ℝ E H` with `[FiniteDimensional ℝ E]`,
-`[I.Boundaryless]` and `[IsManifold I ∞ M]`.
+**Issue 3** imports Mathlib's `Geometry/Manifold/LocalDiffeomorph.lean` and
+Tau Ceti's `Symplectic/Manifold/AlmostComplex/Chart.lean`, and, for its
+proof only, `Regularity.lean` and Tau Ceti's
+`Calculus/InverseFunctionTheorem.lean`, `Manifold/Diffeomorph/Basic.lean`,
+`Manifold/LocalDiffeomorph/Basic.lean` and `Manifold/MFDeriv/NormedSpace.lean`. Throughout,
+`I : ModelWithCorners ℝ E H` with
+`[I.Boundaryless]` and `[IsManifold I ∞ M]`; `[FiniteDimensional ℝ E]`
+follows from `hE`.
 
 - `TauCeti.SmoothAlmostComplexStructure.exists_isothermal_partialDiffeomorph
   (J : SmoothAlmostComplexStructure I M) (hE : Module.finrank ℝ E = 2)
   (x : M) : ∃ ψ : PartialDiffeomorph I 𝓘(ℝ, ℂ) M ℂ ∞, x ∈ ψ.source ∧
   ∀ y ∈ ψ.source, ∀ v : TangentSpace I y,
-    mfderiv I 𝓘(ℝ, ℂ) ψ y (J y v) = Complex.I * mfderiv I 𝓘(ℝ, ℂ) ψ y v`.
-  The chart at `x` followed by `I` and `E ≃L[ℝ] ℂ`, and by conjugation if
-  needed (Decision 5), pushes `J` forward to a smooth field on its target
+    mvfderiv I ψ y (J y v) = Complex.I * mvfderiv I ψ y v`, with Mathlib's
+  `mvfderiv`, whose values lie in `ℂ` rather than in a tangent space of
+  `ℂ`, so that the product with `Complex.I` is defined.
+  The chart at `x` followed by `I` and `E ≃L[ℝ] ℂ` pushes `J` forward to
+  a smooth field on its target
   (`contDiffOn_chartPushforward`, squaring to `-1` by
-  `chartPushforward_apply_chartPushforward_apply`), tame near the image of
-  `x` (`SymplecticForm.Tames.eventually_of_continuousAt`); the smooth planar
-  chart of `exists_smooth_isothermal_chart_of_contDiffOn` composed with it
-  is `ψ`, its inverse smooth by `OpenPartialHomeomorph.contDiffAt_symm`, its
-  equation from `mfderiv_comp_toEndomorphism`. The conversion between
-  `OpenPartialHomeomorph` with smoothness and `PartialDiffeomorph` is a
-  step of this proof unless Mathlib or #862 already gives it.
+  `chartPushforward_apply_chartPushforward_apply`); the smooth planar
+  chart of `TauCeti.Beltrami.exists_smooth_isothermal_chart` composed with
+  it is `ψ`, its inverse smooth by
+  `OpenPartialHomeomorph.contDiffOn_symm_of_isInvertible_fderiv`, its
+  equation from `mfderiv_comp_toEndomorphism`. That planar theorem, in
+  `Regularity.lean`, drops the tameness hypothesis of
+  `exists_smooth_isothermal_chart_of_contDiffOn`: where the field is not
+  tame it composes with conjugation (Decision 5), and it restricts to where
+  the field is tame (`SymplecticForm.Tames.eventually_of_continuousAt`).
+  The conversions to `PartialDiffeomorph` are Tau Ceti's
+  `OpenPartialHomeomorph.toPartialDiffeomorphOfMemMaximalAtlas` and
+  `PartialDiffeomorph.ofOpenPartialHomeomorph`, with Mathlib's
+  `Diffeomorph.toPartialDiffeomorph` and `PartialDiffeomorph.trans`.
 
 No instance `HasIsothermalCharts` (Decision 8).
 
