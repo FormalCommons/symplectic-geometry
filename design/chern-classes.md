@@ -437,6 +437,39 @@ The topology of the second line is Tau Ceti's `TauCeti.subbundleTopology`
 (`Topology/VectorBundle/Subbundle.lean`), for the lines as subspaces of the
 fibres of that pull-back. The file imports the three files above.
 
+### `Topology/VectorBundle/Smul.lean`
+
+Copied from Tau Ceti's main branch (commit `aa1b4e9e2a`), under Tau Ceti's
+header: `TauCeti.VectorBundle.totalSpaceHomotopyEquiv`, the projection of a
+real vector bundle as a homotopy equivalence.
+
+### `Topology/VectorBundle/EulerClass.lean`
+
+Copied from Tau Ceti's main branch (commit `aa1b4e9e2a`), under Tau Ceti's
+header: `TauCeti.zeroSectionComplProjHom` and the exact sequence of the
+Thom pair with `Hᵐ(B)` in place of `Hᵐ(E)`. Imports `Smul.lean` above, and
+the pinned Tau Ceti's `Thom/Connectivity.lean` for `TauCeti.zeroSectionComplProj`.
+
+### `Topology/VectorBundle/Thom/Isomorphism.lean`
+
+Copied from Tau Ceti's main branch (commit `aa1b4e9e2a`), under Tau Ceti's
+header: `TauCeti.eulerClass_thomMap`. Imports `EulerClass.lean` above.
+
+### `Topology/VectorBundle/Thom/Gysin.lean`
+
+Copied from Tau Ceti's main branch (commit `aa1b4e9e2a`), under Tau Ceti's
+header: `TauCeti.exact_singularCup_eulerClass_singularCohomologyMap`, the
+exactness of the Gysin sequence at `Hᵐ(B)`. Imports `Thom/Isomorphism.lean` above.
+
+### `Topology/VectorBundle/Thom/CupEulerClass.lean`
+
+The Gysin step of the Thom argument above, for any real vector bundle and
+coefficients: `TauCeti.injective_singularCup_eulerClass`,
+`TauCeti.surjective_singularCup_eulerClass` and
+`TauCeti.bijective_singularCup_eulerClass`, cup product with `e(u)` when
+the Thom map of `u` is injective, surjective or bijective and the cohomology
+of `E₀` vanishes in the degree below the target, in the target, or both. Imports `Thom/Gysin.lean`.
+
 ### `AlgebraicTopology/Cohomology/ComplSingleton.lean`
 
 - `TauCeti.isZero_singularCohomology_complSingleton_subtype_of_ne`: for a
