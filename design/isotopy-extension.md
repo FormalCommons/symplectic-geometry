@@ -198,7 +198,9 @@ Further choices of this design:
 | File | Contents |
 |---|---|
 | `AlgebraicTopology/Singular/NDRPair.lean` | the homological shrinking lemma for the subset of an NDR pair |
+| `Analysis/CStarAlgebra/Exponential.lean` | smoothness of `t ↦ selfAdjoint.expUnitary (t • a)` (named like Mathlib's file) |
 | `Analysis/Matrix/SymplecticGroup/Connected.lean` | smooth paths in `Matrix.symplecticGroup` (named like Tau Ceti's file) |
+| `Analysis/SpecialFunctions/ContinuousFunctionalCalculus/ExpLog.lean` | smoothness of `t ↦ a ^ t` for strictly positive `a` (named like Tau Ceti's file) |
 | `Geometry/Manifold/SmoothEmbedding/Neighborhood.lean` | embeddings near a compact set, uniformly in a compact parameter |
 | `Geometry/Manifold/SmoothIsotopy/Extension.lean` | time extension of an isotopy past its ends, and isotopy extension at every time (named like Tau Ceti's file) |
 | `Geometry/Symplectic/IsotopyExtension/Velocity.lean` | `SmoothIsotopy.IsSymplectic`, velocity forms, their closedness, the link with `HasHamiltonian` |
@@ -268,6 +270,15 @@ functional calculus gives smoothness in `t`, for instance by writing `P ^ t`
 as `exp (t • log P)`. Smoothness is stated for the entrywise norm
 `Matrix.Norms.Elementwise`, as for the frames of *Maslov index*. Expected
 size: 150 lines.
+
+The general steps of the proof are public lemmas in files of their own
+topics: `CFC.contDiff_const_rpow`
+(`Analysis/SpecialFunctions/ContinuousFunctionalCalculus/ExpLog.lean`),
+`selfAdjoint.contDiff_expUnitary_smul` (`Analysis/CStarAlgebra/Exponential.lean`),
+both files of this part, and `Matrix.realifyCLM` and `SymplecticGroup.inv_mem`, which
+`Connected.lean` imports from `Topology/Algebra/Matrix/Realify.lean` of
+*Lagrangian Grassmannian* and `LinearAlgebra/Matrix/SymplecticGroup/Basic.lean` of
+*Symplectic group*. Both of those files are merged.
 
 ### `Geometry/Manifold/SmoothEmbedding/Neighborhood.lean`
 
