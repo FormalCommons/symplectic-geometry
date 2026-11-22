@@ -327,8 +327,10 @@ review of #420 raise four more.
 
 ### `Geometry/Manifold/DifferentialForm/Flow/Family.lean`
 
-Named like Tau Ceti's file, in the namespace `TauCeti`. Three theorems. The
-first is the rescaling form of Moser's principle along a single trajectory:
+Named like Tau Ceti's file, in the namespace `TauCeti`. Three theorems on
+local time-dependent flows, then the slice and velocity lemmas described at
+the end of this section. The first is the rescaling form of Moser's
+principle along a single trajectory:
 
 ```lean
 theorem mpullback_timeDependentFlowOf_mpullback_prodMk_apply_eq_exp_integral_smul_of_forall_mem_uIcc_of_mem
@@ -392,7 +394,11 @@ The file also has, in `TauCeti.SmoothForm`, the slices of a pullback along
 ($\iota_t^*(\mathrm{id}\times f)^*\alpha=f^*\iota_t^*\alpha$) and
 `mpullback_prodMk_timeDeriv_mpullback_prodMap` (the same for
 `timeDeriv`, by uniqueness of the derivative of $u\mapsto f^*\alpha_u$).
-`Gray.lean` uses them.
+`Gray.lean` uses them. The velocity of a reparametrized segment,
+`mpullback_prodMk_timeDeriv_lineMapFamily` (the slice at time `t` of the
+time derivative of `SmoothForm.lineMapFamily α₀ α₁ hc` is
+`deriv c t • (α₁ - α₀)`), follows them; *Moser isotopy* uses it in
+`Moser/Relative.lean` and `Moser/Isotopy.lean`.
 
 ### `Geometry/Manifold/DifferentialForm/LieDeriv.lean`
 
