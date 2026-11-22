@@ -69,10 +69,10 @@ Tau Ceti's `TauCeti.Geometry.Contact.StableHamiltonian` with the following.
   into the strip of width `ε` by an injective local diffeomorphism which fixes `{0} × M` and pulls
   `σ` back to the model of `(λ₀, Ω₀)`
   (`TauCeti.SmoothForm.exists_mpullback_eq_stableHamiltonianModel`). Since `σ` and the model
-  agree on the whole tangent space along the zero slice, Tau Ceti's relative Moser theorem
-  `TauCeti.SmoothTwoForm.exists_diffeomorph_opens_of_eq_along`, applied along the embedding
-  `x ↦ (0, x)`, gives a diffeomorphism between neighbourhoods of `{0} × M`, and the tube lemma
-  `SymplecticGeometry.exists_symmStrip_le` a strip inside the first.
+  agree on the whole tangent space along the zero slice, Tau Ceti's Moser theorem near a compact
+  submanifold, `TauCeti.SmoothTwoForm.exists_diffeomorph_opens_of_eq_along`, applied along the
+  embedding `x ↦ (0, x)`, gives a diffeomorphism between neighbourhoods of `{0} × M`, and the tube
+  lemma `SymplecticGeometry.exists_symmStrip_le` a strip inside the first.
 
 The proof of `contMDiff_characteristicVectorField` adapts Tau Ceti's proof of
 `TauCeti.SmoothForm.IsContactForm.contMDiff_reebVectorField`, through the inverse of the contact
