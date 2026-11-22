@@ -552,6 +552,8 @@ Beside *Nijenhuis tensor*'s `Integrable.lean`:
   `Integrable.lean`, for the constancy of $J$. It also imports *Nijenhuis
   tensor*'s `AlmostComplex/Chart.lean`, for
   `forall_chartPushforward_apply_eq_iff` in its proofs.
+  It imports `Geometry/Manifold/DifferentialForm/PartialDiffeomorph.lean`,
+  for `SmoothForm.differentiableAt_mpullback_symm` in its proofs.
 
 ### `LinearAlgebra/ComplexStructure/SymmetricBilinear.lean`
 

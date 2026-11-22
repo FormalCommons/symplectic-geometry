@@ -1071,7 +1071,9 @@ issues, in an order where each issue's blockers come before it.
    of the complement, shows that a class of `H₁(ι × Circle)`, `ι` finite and
    discrete, is determined by its images under the maps
    `Circle.prodRetraction i` that keep the `i`-th circle and send the
-   others to `1` (`Circle.singularHomologyOne_prod_ext`).
+   others to `1` (`Circle.singularHomologyOne_prod_ext`). It imports
+   `DiscreteProd.lean` and derives this from its sum decomposition, with
+   `X = Circle`, degree 1 and coefficients `ULift ℤ`.
    `AlgebraicTopology/Singular/LocalHomology/DiscComplement/BoundaryDegree.lean`,
    beside `DiscComplement/Basic.lean`, which it imports with
    `HolomorphicZero.lean` and `DisjointCircles.lean`, for the signs of the

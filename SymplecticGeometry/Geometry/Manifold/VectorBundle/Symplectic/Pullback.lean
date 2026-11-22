@@ -39,6 +39,10 @@ that it is compatible with the rest of the structure that `Symplectic/Basic.lean
   form itself, and the pull-back along `g ∘ f` is the pull-back along `g` and then along `f`, once
   the bundles are identified by the identity of each fibre; `bilinFormAt_pullback_id_apply` and
   `bilinFormAt_pullback_comp_apply` are the same facts on vectors, for `simp`.
+* `bilinFormAt_pullback_pullback_apply` and
+  `IsNondegenerate.symplecticFormAt_pullback_pullback_apply`: `simp` evaluates the form of an
+  iterated pull-back `(ω.pullback g).pullback f`, and its symplectic form, on vectors of
+  `V (g (f z))`.
 * `IsSymplecticFrameOn.pullback` and `frameTransition_pullback`: a symplectic frame `Φ` over `U`
   pulls back to the symplectic frame `y ↦ Φ (f y)` over `f ⁻¹' U`, with transition maps those of
   `Φ` at `f y`.
@@ -415,6 +419,35 @@ theorem bilinFormAt_pullback_comp_apply (ω : ContMDiffTwoForm I n F V) (g : C^n
   -- The sides are `ω ((g.comp f) z) ![v, w]` and `ω (g (f z)) ![v, w]`, with `![v, w]` formed
   -- in the two different pull-back fibres: equal by definition only.
   rfl
+
+/-- The bilinear form of the pull-back of `ω` along `g` and then along `f` at `z` evaluates on
+`v w : V (g (f z))` as `ω (g (f z)) ![v, w]`. It is `bilinFormAt_pullback_apply` for the form
+`ω.pullback g`, restated with the vectors typed in the fibre of `V` rather than in that of
+`g *ᵖ V`, since `simp` cannot match that lemma on such vectors. -/
+@[simp]
+theorem bilinFormAt_pullback_pullback_apply (ω : ContMDiffTwoForm I n F V)
+    (g : C^n⟮I', N; I, M⟯) (f : C^n⟮I'', P; I', N⟯) (z : P) (v w : V (g (f z))) :
+    ((ω.pullback g).pullback f).bilinFormAt z v w = ω (g (f z)) ![v, w] :=
+  (ω.pullback g).bilinFormAt_pullback_apply f z v w
+
+/-- The symplectic form of the pull-back of `ω` along `g` and then along `f` at `z` evaluates on
+`v w : V (g (f z))` as `ω (g (f z)) ![v, w]`, for any proof of the nondegeneracy of the iterated
+pull-back. It is `IsNondegenerate.symplecticFormAt_pullback_apply` for the form `ω.pullback g`,
+restated with the vectors typed in the fibre of `V`, since `simp` cannot match that lemma on
+such vectors. -/
+@[simp]
+theorem IsNondegenerate.symplecticFormAt_pullback_pullback_apply {g : C^n⟮I', N; I, M⟯}
+    {f : C^n⟮I'', P; I', N⟯} (h : ((ω.pullback g).pullback f).IsNondegenerate) (z : P)
+    (v w : V (g (f z))) : h.symplecticFormAt z v w = ω (g (f z)) ![v, w] :=
+  IsNondegenerate.symplecticFormAt_pullback_apply (ω := ω.pullback g) h z v w
+
+/-- `simp` evaluates the iterated pull-back of a form, and its symplectic form, on vectors of the
+fibre of `V`. -/
+example (ω : ContMDiffTwoForm I n F V) (g : C^n⟮I', N; I, M⟯) (f : C^n⟮I'', P; I', N⟯) (z : P)
+    (v w : V (g (f z))) (h : ((ω.pullback g).pullback f).IsNondegenerate) :
+    ((ω.pullback g).pullback f).bilinFormAt z v w = ω (g (f z)) ![v, w] ∧
+      h.symplecticFormAt z v w = ω (g (f z)) ![v, w] := by
+  simp
 
 variable [FiniteDimensional ℝ F]
 

@@ -218,6 +218,8 @@ Further choices of this design:
 | `Geometry/Manifold/DifferentialForm/VectorBundlePoincare.lean` | the relative Poincaré operator at the zero section of a vector bundle, and its fibre-scaling primitives for a family of one-forms |
 | `Analysis/Calculus/DifferentialForm/Poincare.lean` | a closed form on a star-convex open set, vanishing on a compact star-convex subset, has a global primitive near it that vanishes on it (named like Tau Ceti's file) |
 | `Geometry/Symplectic/IsotopyExtension/Ball/Basic.lean` | `IsSymplecticBallEmbedding`, `IsSymplecticBallFamily`, enlarging a symplectic ball |
+| `Geometry/Manifold/ContMDiff/Opens.lean` | a map composed, on an open subset, with a smooth map of that subset over a parameter space is smooth there (used by `Ball/Moser.lean`) |
+| `Geometry/Symplectic/IsotopyExtension/Ball/Moser.lean` | Moser's correction of a family of balls with a parameter (step 3 of `Ball/Isotopy.lean`) |
 | `Geometry/Symplectic/IsotopyExtension/Ball/Isotopy.lean` | the Hamiltonian ball extension and the milestone *Symplectic ball extension* |
 | `Geometry/Manifold/DeRham/HomologyPeriod.lean` | periods of a smooth family of closed one-forms depend smoothly on the parameter |
 | `Geometry/Symplectic/IsotopyExtension/Cohomological/Primitive.lean` | ambient closed forms with prescribed periods, and primitives on one neighbourhood for all times |
@@ -691,7 +693,9 @@ The route keeps the times of `e` exactly:
    family $k_t=k'_t\circ g_t$ is still right along $B(\lambda)$, and
    $k_0=j_0$, $k_1=j_1$ near $B(\lambda)$. For $\lambda>0$ this is the
    source's Theorem A.2.1(iii) step, which keeps both ends.
-3. *Make it symplectic.* `Moser/Family.lean`, with $\beta_t$ the
+3. *Make it symplectic.* This step is
+   `exists_isSymplecticBallFamily_eqOn_of_mpullback_eq`, in
+   `Ball/Moser.lean`. `Moser/Family.lean`, with $\beta_t$ the
    parametric radial primitive of $k_t^*\omega-\omega_0$ and
    $K=B(\lambda)$, gives $\chi_t$. Here $\beta_0=\beta_1=0$ because $j_0$ and
    $j_1$ are symplectic, so $\chi_0=\chi_1=\mathrm{id}$. The family
@@ -977,6 +981,12 @@ this design already follows. `Ball/Isotopy.lean` cites
   `TauCeti.SmoothTwoForm.nondegenerate_bilinFormAt_add_smul_sub_of_eq` (the
   segment between two forms that agree at a point is constant there), which
   that pull request also adds.
+  `IsotopyExtension/Ball/Moser.lean` imports `Ball/Basic.lean`,
+  `Moser/Family.lean`, `Geometry/Symplectic/Manifold/Family.lean`,
+  *Smooth families*' `DifferentialForm/SmoothFamily/Poincare.lean`, and
+  this part's `Geometry/Manifold/ContMDiff/Opens.lean`, for
+  `ContMDiffOn.dite_comp_of_opens` (a family composed with a diffeotopy of
+  an open subset is smooth there).
 - *Liouville structures*: `Geometry/Manifold/VectorField/Prod.lean`, which
   imports only Tau Ceti, for `TauCeti.Manifold.prodVectorField_apply` (the
   value of the unit time field in `IsotopyExtension/Velocity.lean`).
