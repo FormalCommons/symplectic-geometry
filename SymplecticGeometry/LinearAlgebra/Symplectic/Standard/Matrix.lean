@@ -46,6 +46,8 @@ conditions on that map.
   `SymplecticGeometry.compatible_stdForm_iff_posDef`: `J` preserves `ω₀`, is tamed by `ω₀`, or
   is `ω₀`-compatible exactly when `-J₀ M` is symmetric, has a positive definite quadratic form,
   or is a positive definite matrix (McDuff–Salamon, Lemma 2.5.5).
+* `SymplecticGeometry.neg_J_mul_mem_symplecticGroup_of_invariant`: if `J` preserves `ω₀`, then
+  `-J₀ M` is a symplectic matrix.
 * `TauCeti.conj_complexToRealEuclidean_toLin'`: conjugating the complex-linear map of
   a complex matrix `A` by `complexToRealEuclidean ι` gives the map of its realification
   `Matrix.realify A`. With `A = I • 1`, whose realification is `Matrix.J ι ℝ`
@@ -189,6 +191,15 @@ theorem invariant_stdForm_iff_isSymm {J : AlmostComplexStructure (StdSpace ι)} 
       (-Matrix.J ι ℝ * toEuclideanLin.symm J.toLinearMap).IsSymm := by
   rw [SymplecticForm.invariant_iff_isSymm_associatedBilinForm,
     ← toMatrix_associatedBilinForm_stdForm, LinearMap.BilinForm.isSymm_toMatrix_iff_isSymm]
+
+/-- For a complex structure `J` of `StdSpace ι` that preserves `ω₀`, with matrix `M`, the Gram
+matrix `-J₀ M` of `ω₀(·, J ·)` is symplectic. -/
+theorem neg_J_mul_mem_symplecticGroup_of_invariant {J : AlmostComplexStructure (StdSpace ι)}
+    (hJ : (stdForm ι).Invariant J) :
+    -Matrix.J ι ℝ * toEuclideanLin.symm J.toLinearMap ∈ symplecticGroup ι ℝ := by
+  refine Submonoid.mul_mem _ (SymplecticGroup.neg_mem (SymplecticGroup.J_mem ι ℝ)) ?_
+  rw [mem_symplecticGroup_iff_forall_stdForm, LinearEquiv.apply_symm_apply]
+  exact (TauCeti.SymplecticForm.invariant_iff _ _).1 hJ
 
 /-- `ω₀` tames a complex structure `J` of `StdSpace ι` exactly when `xᵀ (-J₀ M) x > 0` for every
 nonzero `x`, where `M` is the matrix of `J`. -/

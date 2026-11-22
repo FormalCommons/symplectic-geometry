@@ -5,9 +5,11 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.Analysis.Matrix.Polar.Deformation
 public import SymplecticGeometry.LinearAlgebra.ComplexStructure.Action
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Matrix
 public import TauCeti.Analysis.Matrix.Polar.GLSymplectic
+public import TauCeti.Topology.Algebra.SymplecticGroup
 
 /-!
 # Continuous families of compatible complex structures on the standard model
@@ -86,23 +88,11 @@ theorem exists_continuous_GLSymplectic_smul_stdComplexStructure_eq {X : Type*}
     (hcont : ∀ v w, Continuous fun x ↦ stdForm ι v (K x w)) :
     ∃ P : X → GLSymplectic ι ℝ, Continuous P ∧
       ∀ x, ((P x : GL (ι ⊕ ι) ℝ)) • stdComplexStructure ι = K x := by
-  set M : X → Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ := fun x ↦ toEuclideanLin.symm (K x).toLinearMap
-  set S : X → Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ := fun x ↦ -Matrix.J ι ℝ * M x
-  have hMtoLin (x : X) : toEuclideanLin (M x) = (K x).toLinearMap :=
-    LinearEquiv.apply_symm_apply _ _
-  have hMM (x : X) : M x * M x = -1 := by
-    apply toEuclideanLin.injective
-    rw [toLpLin_mul_same, hMtoLin, (K x).square_neg, map_neg, toLpLin_one]
-  have hMS (x : X) : M x = Matrix.J ι ℝ * S x := by
-    simp only [S, Matrix.mul_neg, ← Matrix.mul_assoc, J_squared, Matrix.neg_mul, Matrix.one_mul,
-      neg_neg]
+  set S : X → Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ :=
+    fun x ↦ -Matrix.J ι ℝ * toEuclideanLin.symm (K x).toLinearMap
   have hSpos (x : X) : (S x).PosDef := compatible_stdForm_iff_posDef.1 (hK x)
-  have hSsymp (x : X) : S x ∈ symplecticGroup ι ℝ := by
-    refine Submonoid.mul_mem _ (SymplecticGroup.neg_mem (SymplecticGroup.J_mem ι ℝ)) ?_
-    rw [mem_symplecticGroup_iff_forall_stdForm]
-    intro v w
-    rw [hMtoLin]
-    exact ((TauCeti.SymplecticForm.invariant_iff _ _).1 (hK x).invariant) v w
+  have hSsymp (x : X) : S x ∈ symplecticGroup ι ℝ :=
+    neg_J_mul_mem_symplecticGroup_of_invariant (hK x).invariant
   have hScont : Continuous S := by
     refine continuous_pi fun i ↦ continuous_pi fun j ↦ ?_
     have h (x : X) : S x i j = stdForm ι (EuclideanSpace.single i 1)
@@ -111,23 +101,13 @@ theorem exists_continuous_GLSymplectic_smul_stdComplexStructure_eq {X : Type*}
         LinearMap.BilinForm.toMatrix_apply, SymplecticForm.associatedBilinForm_apply]
       simp [PiLp.basisFun_apply]
     simpa only [h] using hcont _ _
-  -- `S` as a continuous map into `GL`, with inverse `-M J₀ = -J₀ S J₀`.
-  let Su : X → GL (ι ⊕ ι) ℝ := fun x ↦
-    ⟨S x, -M x * Matrix.J ι ℝ, by
-      simp only [S, Matrix.neg_mul, Matrix.mul_neg, neg_neg, Matrix.mul_assoc]
-      rw [← Matrix.mul_assoc (M x) (M x), hMM, Matrix.neg_mul, Matrix.one_mul, Matrix.mul_neg,
-        J_squared, neg_neg], by
-      simp only [S, Matrix.neg_mul, Matrix.mul_neg, neg_neg, Matrix.mul_assoc]
-      rw [← Matrix.mul_assoc (Matrix.J ι ℝ) (Matrix.J ι ℝ), J_squared, Matrix.neg_mul,
-        Matrix.one_mul, Matrix.mul_neg, hMM, neg_neg]⟩
-  have hSucont : Continuous Su := by
-    refine Units.continuous_iff.2 ⟨hScont, ?_⟩
-    have : Continuous M :=
-      ((continuous_const (y := Matrix.J ι ℝ)).matrix_mul hScont).congr fun x ↦ (hMS x).symm
-    exact (this.neg).matrix_mul continuous_const
+  -- `S` as a continuous map into `GLSymplectic`.
   let Ss : X → GLSymplectic ι ℝ := fun x ↦
-    ⟨Su x, GLSymplectic.mem_iff_mem_symplecticGroup.2 (hSsymp x)⟩
-  have hSscont : Continuous Ss := hSucont.subtype_mk _
+    GLSymplectic.symplecticGroupContinuousMulEquiv ι ℝ ⟨S x, hSsymp x⟩
+  have hSscont : Continuous Ss :=
+    (GLSymplectic.symplecticGroupContinuousMulEquiv ι ℝ).continuous.comp
+      (hScont.subtype_mk hSsymp)
+  have hval (x : X) : ((Ss x : GL (ι ⊕ ι) ℝ) : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ) = S x := by simp [Ss]
   let half : unitInterval := ⟨1 / 2, by norm_num, by norm_num⟩
   let Φ : X → GLSymplectic ι ℝ := fun x ↦ GLSymplectic.polarHomotopy (half, Ss x)
   refine ⟨fun x ↦ (Φ x)⁻¹,
@@ -135,14 +115,10 @@ theorem exists_continuous_GLSymplectic_smul_stdComplexStructure_eq {X : Type*}
       (continuous_const.prodMk hSscont)).inv, fun x ↦ ?_⟩
   -- The matrix `Φ x` is `S x ^ (1 / 2)`, which is symmetric with square `S x`.
   have hS0 : 0 ≤ S x := nonneg_iff_posSemidef.2 (hSpos x).posSemidef
-  have hSstar : star (S x) = S x := (hSpos x).isHermitian.eq
   have hΦ : ((Φ x : GL (ι ⊕ ι) ℝ) : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ) = CFC.sqrt (S x) := by
-    have hU : ((Ss x : GL (ι ⊕ ι) ℝ)).polarUnitary = 1 :=
-      Units.polarUnitary_eq_of_mul_eq _ hS0 (v := 1) (mul_one _)
-    -- `Ss x` is `S x` by construction.
-    have hval : ((Ss x : GL (ι ⊕ ι) ℝ) : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ) = S x := rfl
-    rw [GLSymplectic.coe_polarHomotopy_apply, Matrix.GeneralLinearGroup.coe_polarDeformation, hU,
-      hval, hSstar, CFC.sqrt_mul_self (S x) hS0, CFC.sqrt_eq_rpow]
+    rw [GLSymplectic.coe_polarHomotopy_apply,
+      Matrix.GeneralLinearGroup.coe_polarDeformation_of_nonneg (hval x ▸ hS0), hval,
+      CFC.sqrt_eq_rpow]
     norm_num
   have hΦsymm : ((Φ x : GL (ι ⊕ ι) ℝ) : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ).IsSymm := by
     rw [hΦ, ← isHermitian_iff_isSymm]
