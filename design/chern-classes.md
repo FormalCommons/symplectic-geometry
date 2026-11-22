@@ -718,7 +718,7 @@ one piece, for computing `crossSign m 0` through the sphere generator:
 `TopPair.interPair U V`, with sign `1`, ending with the map induced by
 `TopPair.interPairSndIso U V`, the homeomorphism
 `TopPair.interPairSndHomeomorph U V` from the subspace of
-`TopPair.interPair U V` onto `U ∩ V`, which this file defines;
+`TopPair.interPair U V` onto `U ∩ V`, which `Singular/PairMap.lean` defines;
 `TopCat.mayerVietorisδ_eq_neg_singularHomologyδ_right`, the same through
 `(V, U ∩ V)` with sign `-1`; and
 `TopCat.reducedMayerVietorisδ_succ_eq_singularHomologyδ_left` for the
