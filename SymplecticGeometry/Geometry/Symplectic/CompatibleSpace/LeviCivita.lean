@@ -242,8 +242,7 @@ theorem compatibleCLM_comp_mvfderiv_mfderiv_add {p : N → 𝒥}
       fun _ ↦ 0 := by
     funext y
     have h : ω.compatibleCLM (p y) ∘L g y + g y ∘L ω.compatibleCLM (p y) = 0 :=
-      compatibleCLM_comp_add_comp_compatibleCLM (p y)
-        (mfderiv_compatibleCLM_mem_tangentSpace (p y) (Y y))
+      compatibleCLM_comp_mfderiv_add_mfderiv_comp_compatibleCLM (p y) (Y y)
     simpa only [Pi.add_apply, Function.comp_apply, add_apply,
       ContinuousLinearMap.comp_apply, zero_apply] using DFunLike.congr_fun h w
   have hsum := mvfderiv_add (I := I) (x := x) (hc.clm_apply hgw) (hY.clm_apply hJw)
