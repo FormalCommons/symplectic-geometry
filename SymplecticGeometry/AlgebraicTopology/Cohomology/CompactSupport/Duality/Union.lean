@@ -13,13 +13,19 @@ public import SymplecticGeometry.AlgebraicTopology.Cohomology.CompactSupport.Van
 public import SymplecticGeometry.Topology.Sets.Opens.Comap
 
 /-!
-# Poincaré duality for a union of two open sets
+# Poincaré duality for unions of open sets
 
 Fix a boundaryless `n`-manifold `M` with a homological orientation `o`, an abelian group `L`, and
 give every open set of `M` the restricted orientation. This file proves the Mayer–Vietoris step of
 Poincaré duality: if the duality maps `D : Hᵖ_c(-; L) ⟶ H_q(-; L)`, `p + q = n`, of open sets `U`,
 `V` and `U ∩ V` are bijective in every degree, and `Hⁿ⁺¹_c(U ∩ V; L) = 0`, then the duality map of
 `U ∪ V` is bijective in every degree.
+
+Run over the finite unions of the members of a family of open sets that is closed under
+intersection (`InfClosed.finset_sup_induction`), this step carries duality from the members to
+every such union, and on to `M` when these unions cover it
+(`TauCeti.HomologicalOrientation.bijective_dualityMap_of_iSup_eq_top`), given
+`Hⁿ⁺¹_c(W; L) = 0` for every open set `W` of `M`.
 
 The proof is the five lemma on the ladder formed by the two Mayer–Vietoris sequences,
 
@@ -49,6 +55,9 @@ and `AddMonoidHom.bijective_of_surjective_of_bijective_of_right_exact` in it.
   covering `M`, the step from `U`, `V` and `U ∩ V` to `M`.
 * `TauCeti.HomologicalOrientation.bijective_dualityMap_comap_sup`: for any open sets `U` and `V`
   of `M`, the step from `U`, `V` and `U ∩ V` to `U ∪ V`.
+* `TauCeti.HomologicalOrientation.bijective_dualityMap_of_infClosed`: the induction of Hatcher's
+  Lemma 3.36, from the members of a family of open sets closed under intersection whose finite
+  unions cover `M`, to `M`.
 
 ## Implementation notes
 
@@ -70,7 +79,7 @@ form for a cover inside `U ∪ V`, the cover being
 ## References
 
 * A. Hatcher, *Algebraic Topology*, Cambridge University Press, 2002, Section 3.3, Lemma 3.36,
-  the step from `U`, `V` and `U ∩ V` to `U ∪ V`.
+  the step from `U`, `V` and `U ∩ V` to `U ∪ V` and the induction over finite unions.
 -/
 
 public section
@@ -278,6 +287,27 @@ theorem bijective_dualityMap_comap_sup {U V : Opens M}
       (by rw [Opens.range_val_comp_val_comap hle, Subtype.range_coe])).2 (hW p q h)
   · rw [← map_inf]
     exact (TopCat.isZero_compactSupportCohomology_comap_iff _ _ _ hle _).2 hW₀
+
+/-- **Poincaré duality over an inf-closed family of open sets.** Let `S` be a family of open sets
+of `M`, closed under intersection, whose finite unions cover `M`. If the duality map of every
+member of `S`, with the orientation restricted from `M`, is bijective in every degree, and
+`Hⁿ⁺¹_c(W; L) = 0` for every open set `W` of `M`, then the duality map of `M` is bijective. -/
+theorem bijective_dualityMap_of_infClosed {S : Set (Opens M)} (hS : InfClosed S)
+    (hcover : ⨆ s : Finset S, s.sup Subtype.val = ⊤)
+    (hbase : ∀ W ∈ S, ∀ p q (h : p + q = n),
+      Function.Bijective ((o.comap W.isOpenEmbedding').dualityMap hn L p q h))
+    (hvanish : ∀ W : Opens M, IsZero ((TopCat.of W).compactSupportCohomology ℤₘ ℤ L (n + 1)))
+    {p q : ℕ} (h : p + q = n) : Function.Bijective (o.dualityMap hn L p q h) := by
+  -- Duality in every degree passes to the finite unions of members of `S`, by Mayer–Vietoris.
+  have hT (s : Finset S) : ∀ p q (h : p + q = n), Function.Bijective
+      ((o.comap (s.sup Subtype.val).isOpenEmbedding').dualityMap hn L p q h) := by
+    refine hS.finset_sup_induction (fun W : Opens M ↦ ∀ p q (h : p + q = n), Function.Bijective
+        ((o.comap W.isOpenEmbedding').dualityMap hn L p q h)) (fun p q h ↦ ?_) hbase
+      (fun V W hV hW hVW _ _ ↦ o.bijective_dualityMap_comap_sup hn L hV hW hVW (hvanish _)) s
+    exact (o.comap _).bijective_dualityMap_of_isEmpty hn L h
+  -- They form a directed family covering `M`.
+  exact o.bijective_dualityMap_of_iSup_eq_top hn L h (fun _ _ hst ↦ Finset.sup_mono hst) hcover
+    fun s ↦ hT s p q h
 
 end HomologicalOrientation
 

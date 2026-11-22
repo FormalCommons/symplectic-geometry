@@ -513,7 +513,9 @@ Beside *Nijenhuis tensor*'s `Integrable.lean`:
   comes from Tau Ceti's `ContDiffOn.exists_openPartialHomeomorph`. The
   file imports `SymmetricBilinear.lean` below for $Q$, and uses
   `mfderiv_trans_apply_eq_of_fderiv_apply_eq`, which this part adds to
-  `Integrable.lean`, for the constancy of $J$.
+  `Integrable.lean`, for the constancy of $J$. It also imports *Nijenhuis
+  tensor*'s `AlmostComplex/Chart.lean`, for
+  `forall_chartPushforward_apply_eq_iff` in its proofs.
 
 ### `LinearAlgebra/ComplexStructure/SymmetricBilinear.lean`
 
@@ -636,10 +638,19 @@ was found, so `ERRATA.md` needs no entry.
   (#860): `TauCeti.SmoothTwoForm.Compatible.metric` and `metric_inner`, only
   in the proof of the milestone. This dependency is new; `DESIGN.md` records
   it.
+- *Moser isotopy*, `Geometry/Manifold/LocalDiffeomorph/MFDeriv.lean`
+  (merged): `PartialDiffeomorph.mfderivSymmEquiv`, which this part adds
+  there, only in the proofs of `DeRham/Hodge/Chart.lean` and
+  `DeRham/Hodge/LocalLaplacian.lean`.
 - *Symplectic neighbourhoods*,
   `Geometry/Manifold/DifferentialForm/Pullback/LocalDiffeomorph.lean`
   (merged): `PartialDiffeomorph.mpullback_symm_mpullback_apply`, only in
   the proof of `mpullback_symm_extendByZeroAlong`.
+- *Nijenhuis tensor*, `Geometry/Symplectic/Manifold/AlmostComplex/Chart.lean`
+  (#1295): `TauCeti.SmoothAlmostComplexStructure.mfderiv_symm_apply_chartPushforward_apply`,
+  only in the proof of `mpullback_symm_realAlternatingDerivation`, and
+  `TauCeti.SmoothAlmostComplexStructure.forall_chartPushforward_apply_eq_iff`,
+  only in the proofs of `KahlerCoordinates.lean`.
 - Tau Ceti: the declarations listed under *What exists*, and
   `SmoothForm.mapCoeff`, `exactForms`, `closedForms`,
   `deRhamCohomology.mk`, `riemannianVolumeForm`, `integralTopForm`,
