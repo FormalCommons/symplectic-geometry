@@ -5,6 +5,8 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import TauCeti.Analysis.Calculus.FDeriv.Det.Basic
+public import TauCeti.Analysis.Matrix.Normed
 public import TauCeti.Geometry.Manifold.ContMDiff.ContinuousAlternatingMap
 public import TauCeti.Geometry.Manifold.ContMDiff.MFDeriv
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.ModelSpace
@@ -32,7 +34,7 @@ expressions, on `ψ.target`, of the metric, of the Hodge star and of the codiffe
 
 * `SymplecticGeometry.contDiffOn_gramInChart`: the metric in the chart is smooth on `ψ.target`.
 * `SymplecticGeometry.gramInChart_extChartPartialDiffeomorph`: for the atlas chart at `x`, its
-  matrix in the standard basis of `E` is Tau Ceti's chart Gram matrix
+  matrix in the basis `finBasis ℝ E` is Tau Ceti's chart Gram matrix
   `Riemannian.Tensor.chartGramMatrix`.
 * `SymplecticGeometry.mpullback_symm_hodgeStar`: the Hodge star of a form, read in the chart, is
   `hodgeStarInChart` applied to the form read in the chart.
@@ -40,6 +42,8 @@ expressions, on `ψ.target`, of the metric, of the Hodge star and of the codiffe
   is the star of `E` for the inner product `gramInChart ψ y`: it is given by the volume of `b` and
   the inverse of the Gram matrix of `b`, as in
   `Orientation.formHodgeStar_apply_eq_volumeForm_mul_sum`.
+* `SymplecticGeometry.contDiffOn_mpullback_riemannianVolumeForm`: the volume form read in the
+  chart, evaluated on fixed vectors, is smooth on `ψ.target`.
 * `SymplecticGeometry.contDiffOn_hodgeStarInChart`: the star in the chart is smooth on `ψ.target`.
 * `SymplecticGeometry.fderiv_hodgeStarInChart_eq_zero`: at a point of `ψ.target` where the
   derivative of `gramInChart ψ` vanishes, so does the derivative of `hodgeStarInChart o ψ hkl`.
@@ -49,9 +53,11 @@ expressions, on `ψ.target`, of the metric, of the Hodge star and of the codiffe
 
 The proof of `hodgeStarInChart_apply_eq_sum` follows that of Tau Ceti's private lemma
 `TauCeti.hodgeStar_symmL_apply` (`Geometry/Manifold/Riemannian/HodgeStar.lean`), with the
-differential of `ψ.symm` in place of the inverse of a tangent trivialization. The smoothness of the
-entries of the inverse Gram matrix is proved through the adjugate, as in Tau Ceti's
-`Riemannian.Tensor.contMDiffOn_chartInvGramMatrix_entry`.
+differential of `ψ.symm` in place of the inverse of a tangent trivialization. The proofs of
+`exists_hodgeStarInChart_apply_eq` and `contDiffOn_hodgeStarInChart` adapt that of Tau Ceti's
+`TauCeti.RoughForm.contMDiffAt_hodgeStar`, with the chart in place of the trivialization: the star
+is evaluated on a fixed tuple, and its value is a smooth function of the volume and the Gram matrix
+of a fixed basis.
 
 ## References
 
@@ -129,8 +135,8 @@ theorem contDiffOn_gramInChart
 
 end Metric
 
-/-- For the atlas chart at `x`, the matrix of the metric in the chart in the standard basis of `E`
-is Tau Ceti's chart Gram matrix at `x`. -/
+/-- For the atlas chart at `x`, the matrix of the metric in the chart in the basis `finBasis ℝ E`
+of `E` is Tau Ceti's chart Gram matrix at `x`. -/
 theorem gramInChart_extChartPartialDiffeomorph [FiniteDimensional ℝ E] [IsManifold I ∞ M] (x : M)
     {y : E} (hy : y ∈ (extChartPartialDiffeomorph I ∞ x).target) (i j : Fin (finrank ℝ E)) :
     gramInChart (extChartPartialDiffeomorph I ∞ x) y (finBasis ℝ E i) (finBasis ℝ E j) =
@@ -260,6 +266,18 @@ theorem hodgeStarInChart_apply_eq_sum (hkl : k + l = m)
     simp only [Fin.append_right]
     exact (congrArg _ (hA _).symm).trans (A.toLinearEquiv.symm_apply_apply _)
 
+/-- The Riemannian volume form read in the chart, evaluated on a fixed family `v` of vectors of
+`E`, is smooth on the target of the chart. -/
+theorem contDiffOn_mpullback_riemannianVolumeForm
+    [IsContMDiffRiemannianBundle I ∞ E (fun x : M ↦ TangentSpace I x)] (v : Fin m → E) :
+    ContDiffOn ℝ ∞ (fun y ↦ mpullback 𝓘(ℝ, E) I ψ.symm (riemannianVolumeForm o) y v)
+      ψ.target := by
+  have : IsManifold I (∞ + 1) M := by simpa using ‹IsManifold I ∞ M›
+  exact (ContinuousAlternatingMap.apply ℝ E ℝ v).contDiff.comp_contDiffOn
+    (SmoothForm.contDiffOn_mpullback (⟨riemannianVolumeForm o,
+      (isSmoothForm_riemannianVolumeForm o).mem_smoothBundleForms⟩ : SmoothForm I M ℝ m)
+      ψ.open_target ψ.symm.contMDiffOn)
+
 /-- On the target of the chart, the square of the volume of a basis `b` of `E`, read in the
 chart, is the determinant of the Gram matrix of `b` for the metric in the chart. -/
 theorem mpullback_riemannianVolumeForm_mul_self (b : Basis (Fin m) ℝ E) {y : E}
@@ -279,6 +297,7 @@ theorem mpullback_riemannianVolumeForm_mul_self (b : Basis (Fin m) ℝ E) {y : E
   rw [hv, ← abs_mul_abs_self, (o.orientationAt x).abs_volumeForm_apply_eq_sqrt_det_gram, hgram,
     Real.mul_self_sqrt (posDef_gramInChart ψ b hy).det_pos.le]
 
+open scoped Matrix.Norms.Operator in
 /-- On the target of the chart, the value of the star in the chart on `a` and `w` is a function
 of the volume of a basis `b` of `E` read in the chart and of the Gram matrix of `b` for the metric
 in the chart, smooth wherever the determinant of the Gram matrix does not vanish. -/
@@ -316,21 +335,19 @@ theorem exists_hodgeStarInChart_apply_eq (hkl : k + l = m) (b : Basis (Fin m) �
       simpa [Function.comp_def] using
         (AlternatingMap.toContinuousAlternatingMap b.det).toContinuousMultilinearMap.contDiff.comp
           hW
-    -- The entries of the inverse matrix are smooth where the determinant does not vanish, by
-    -- `Matrix.inv_def`: they are the entries of the adjugate divided by the determinant.
+    -- The inverse matrix is smooth where the determinant does not vanish: for the operator norm
+    -- on matrices it is `Ring.inverse`, read through `Matrix.of`.
     have hinv : ContDiffAt ℝ ∞ (fun g : Fin m → Fin m → ℝ ↦ Matrix.of.symm (Matrix.of g)⁻¹) g := by
-      have hdet : ContDiff ℝ ∞ fun g : Fin m → Fin m → ℝ ↦ (Matrix.of g).det := by
-        simp only [Matrix.det_apply, Matrix.of_apply]
-        fun_prop
-      refine contDiffAt_pi.2 fun i ↦ contDiffAt_pi.2 fun j ↦ ?_
-      have hadj : ContDiff ℝ ∞ fun g : Fin m → Fin m → ℝ ↦ (Matrix.of g).adjugate i j := by
-        simp only [Matrix.adjugate_apply, Matrix.det_apply, Matrix.updateRow_apply,
-          Matrix.of_apply]
-        refine ContDiff.sum fun σ _ ↦ ContDiff.const_smul _ (contDiff_prod fun c _ ↦ ?_)
-        split_ifs <;> fun_prop
-      simp only [Matrix.of_symm_apply, Matrix.inv_def, Matrix.smul_apply, smul_eq_mul,
-        Ring.inverse_eq_inv']
-      exact (hdet.contDiffAt.inv hg).mul hadj.contDiffAt
+      have hu : IsUnit (Matrix.of g) := (Matrix.isUnit_iff_isUnit_det _).2 hg.isUnit
+      have hof : ContDiff ℝ ∞ (Matrix.of : (Fin m → Fin m → ℝ) → Matrix (Fin m) (Fin m) ℝ) := by
+        simpa using (Matrix.ofContinuousLinearEquiv ℝ :
+          (Fin m → Fin m → ℝ) ≃L[ℝ] Matrix (Fin m) (Fin m) ℝ).contDiff
+      have hof_symm : ContDiff ℝ ∞
+          (Matrix.of.symm : Matrix (Fin m) (Fin m) ℝ → Fin m → Fin m → ℝ) := by
+        simpa using (Matrix.ofContinuousLinearEquiv ℝ :
+          (Fin m → Fin m → ℝ) ≃L[ℝ] Matrix (Fin m) (Fin m) ℝ).symm.contDiff
+      simpa [Function.comp_def, Matrix.nonsing_inv_eq_ringInverse] using
+        hof_symm.contDiffAt.comp g ((contDiffAt_ringInverse ℝ hu.unit).comp g hof.contDiffAt)
     exact hF₀.contDiffAt.comp (c, g) (contDiffAt_fst.prodMk
       (ContDiffAt.comp (g := fun g : Fin m → Fin m → ℝ ↦ Matrix.of.symm (Matrix.of g)⁻¹)
         (f := Prod.snd) (c, g) hinv contDiffAt_snd))
@@ -343,17 +360,12 @@ theorem contDiffOn_hodgeStarInChart
     ContDiffOn ℝ ∞ (hodgeStarInChart o ψ hkl) ψ.target := by
   have hm : finrank ℝ E = m := by simpa using o.card_eq.symm
   let b : Basis (Fin m) ℝ E := (finBasis ℝ E).reindex (finCongr hm)
-  have : IsManifold I (∞ + 1) M := by simpa using ‹IsManifold I ∞ M›
   -- The volume of `b` and the Gram matrix of `b`, read in the chart, are smooth.
   have hP : ContDiffOn ℝ ∞ (fun y ↦ (mpullback 𝓘(ℝ, E) I ψ.symm (riemannianVolumeForm o) y b,
-      fun i j ↦ gramInChart ψ y (b i) (b j))) ψ.target := by
-    refine ContDiffOn.prodMk ?_ (contDiffOn_pi.2 fun i ↦ contDiffOn_pi.2 fun j ↦
-      contDiffOn_clm_apply.1 (contDiffOn_clm_apply.1
+      fun i j ↦ gramInChart ψ y (b i) (b j))) ψ.target :=
+    (contDiffOn_mpullback_riemannianVolumeForm o ψ b).prodMk (contDiffOn_pi.2 fun i ↦
+      contDiffOn_pi.2 fun j ↦ contDiffOn_clm_apply.1 (contDiffOn_clm_apply.1
         (contDiffOn_gramInChart ψ) (b i)) (b j))
-    exact (ContinuousAlternatingMap.apply ℝ E ℝ b).contDiff.comp_contDiffOn
-      (SmoothForm.contDiffOn_mpullback (⟨riemannianVolumeForm o,
-        (isSmoothForm_riemannianVolumeForm o).mem_smoothBundleForms⟩ : SmoothForm I M ℝ m)
-        ψ.open_target ψ.symm.contMDiffOn)
   refine contDiffOn_clm_apply.2 fun a y hy ↦ ?_
   rw [← contMDiffWithinAt_iff_contDiffWithinAt]
   refine contMDiffWithinAt_continuousAlternatingMap_apply.2 fun w ↦ ?_
@@ -362,6 +374,7 @@ theorem contDiffOn_hodgeStarInChart
   refine ((hF _ _ ?_).comp_contDiffWithinAt y (hP y hy)).congr (fun z hz ↦ hSF z hz) (hSF y hy)
   exact (posDef_gramInChart ψ b hy).det_pos.ne'
 
+open scoped Matrix.Norms.Operator in
 /-- **The star in a chart where the metric is flat to first order.** At a point of the target of
 the chart where the derivative of the metric in the chart vanishes, the derivative of the star in
 the chart vanishes too. -/
@@ -371,7 +384,6 @@ theorem fderiv_hodgeStarInChart_eq_zero
     (h : fderiv ℝ (gramInChart ψ) y = 0) : fderiv ℝ (hodgeStarInChart o ψ hkl) y = 0 := by
   have hm : finrank ℝ E = m := by simpa using o.card_eq.symm
   let b : Basis (Fin m) ℝ E := (finBasis ℝ E).reindex (finCongr hm)
-  have : IsManifold I (∞ + 1) M := by simpa using ‹IsManifold I ∞ M›
   have hT := ψ.open_target.mem_nhds hy
   have hpos := (posDef_gramInChart ψ b hy).det_pos
   -- The entries of the Gram matrix of `b` have derivative zero at `y`.
@@ -389,17 +401,15 @@ theorem fderiv_hodgeStarInChart_eq_zero
   have hdet : HasFDerivAt (𝕜 := ℝ)
       (fun z ↦ (Matrix.of fun i j ↦ gramInChart ψ z (b i) (b j)).det) 0 y := by
     have hd : ContDiff ℝ ∞ fun g : Fin m → Fin m → ℝ ↦ (Matrix.of g).det := by
-      simp only [Matrix.det_apply, Matrix.of_apply]
-      fun_prop
+      simpa [Function.comp_def] using
+        Matrix.contDiff_det.comp (Matrix.ofContinuousLinearEquiv ℝ :
+          (Fin m → Fin m → ℝ) ≃L[ℝ] Matrix (Fin m) (Fin m) ℝ).contDiff
     have h0 := ((hd.differentiable (by simp)) _).hasFDerivAt.comp y hG
     rw [ContinuousLinearMap.comp_zero] at h0
     exact h0
   set f := fun z ↦ mpullback 𝓘(ℝ, E) I ψ.symm (riemannianVolumeForm o) z b
   have hf : DifferentiableAt ℝ f y :=
-    (((ContinuousAlternatingMap.apply ℝ E ℝ b).contDiff.comp_contDiffOn
-      (SmoothForm.contDiffOn_mpullback (⟨riemannianVolumeForm o,
-        (isSmoothForm_riemannianVolumeForm o).mem_smoothBundleForms⟩ : SmoothForm I M ℝ m)
-        ψ.open_target ψ.symm.contMDiffOn)).contDiffAt hT).differentiableAt (by simp)
+    ((contDiffOn_mpullback_riemannianVolumeForm o ψ b).contDiffAt hT).differentiableAt (by simp)
   have hfy : f y ≠ 0 := fun h0 ↦ hpos.ne' (by
     rw [← mpullback_riemannianVolumeForm_mul_self o ψ b hy]
     exact mul_self_eq_zero.2 h0)
