@@ -41,8 +41,9 @@ identification transports classes, pull-backs and cup products along that equali
 
 * `TopCat.uliftIntegralCohomologyIso`: the isomorphism `Hⁿ(X; ULift ℤ) ≅ Hⁿ(X; ℤ)`.
 * `TopCat.integralCohomologyLinearEquiv`: the linear equivalence from cohomology with chain
-  coefficients and values `ℤ` to `TopCat.integralCohomology`; its value is given by
-  `TopCat.integralCohomologyLinearEquiv_apply`.
+  coefficients and values `ℤ` to `TopCat.integralCohomology`; its value and that of its inverse
+  are given by `TopCat.integralCohomologyLinearEquiv_apply` and
+  `TopCat.integralCohomologyLinearEquiv_symm_apply`.
 
 ## Main results
 
@@ -55,6 +56,8 @@ identification transports classes, pull-backs and cup products along that equali
 * `TopCat.integralCohomologyLinearEquiv_naturality` and
   `TopCat.integralCohomologyLinearEquiv_singularCup`: `TopCat.integralCohomologyLinearEquiv`
   commutes with pull-backs and carries cup products to `TopCat.integralCup`.
+* `TopCat.bijective_integralCup_integralCohomologyLinearEquiv_iff`: cup product with a class is
+  bijective in integral cohomology exactly when it is with coefficients `ℤ`.
 
 ## References
 
@@ -239,6 +242,22 @@ theorem integralCohomologyLinearEquiv_apply (X : TopCat.{0}) (n : ℕ)
           a) := by
   rw [integralCohomologyLinearEquiv_eq, toIntegral_apply]
 
+/-- The inverse of `TopCat.integralCohomologyLinearEquiv`: the change of chain coefficients
+`TopCat.singularCohomologyChainCoefficientMap` along the inverse of `TauCeti.integralCoeffIso`,
+followed by the change of linear structure `TopCat.singularCohomologyLinearCongr`, from
+`CategoryTheory.Linear.preadditiveIntLinear` to `ModuleCat.instLinear`. -/
+theorem integralCohomologyLinearEquiv_symm_apply (X : TopCat.{0}) (n : ℕ)
+    (y : X.integralCohomology n) :
+    (X.integralCohomologyLinearEquiv n).symm y =
+      singularCohomologyLinearCongr (Subsingleton.elim _ ModuleCat.instLinear) X (𝟙_ _) (𝟙_ _) n
+        (@TopCat.singularCohomologyChainCoefficientMap _ _ _ _ _ _ X ℤ _
+          Linear.preadditiveIntLinear (ModuleCat.of ℤ ℤ) integralCoeffIso.symm.hom n y) := by
+  rw [LinearEquiv.symm_apply_eq, integralCohomologyLinearEquiv_apply,
+    singularCohomologyLinearCongr_apply_apply, singularCohomologyLinearCongr_refl,
+    LinearEquiv.refl_apply, Iso.symm_hom, ← singularCohomologyChainCoefficientIso_inv,
+    ← singularCohomologyChainCoefficientIso_hom]
+  exact (Iso.inv_hom_id_apply _ y).symm
+
 /-- **Naturality of `TopCat.integralCohomologyLinearEquiv`**: it commutes with the maps induced by
 a continuous map `f : X ⟶ Y`. -/
 theorem integralCohomologyLinearEquiv_naturality {X Y : TopCat.{0}} (f : X ⟶ Y) (n : ℕ)
@@ -262,6 +281,27 @@ theorem integralCohomologyLinearEquiv_singularCup (X : TopCat.{0}) (p q n : ℕ)
   rw [integralCohomologyLinearEquiv_eq, integralCohomologyLinearEquiv_eq,
     integralCohomologyLinearEquiv_eq]
   exact toIntegral_singularCup X p q n h a b
+
+/-- Cup product with a class is bijective in integral cohomology exactly when it is in cohomology
+with chain coefficients and values `ℤ`: for `b` of degree `q`, `a ↦ a ⌣ b` is a bijection
+`Hᵖ(X; ℤ) → Hⁿ(X; ℤ)` of `TopCat.integralCohomology`, for the image of `b` under
+`TopCat.integralCohomologyLinearEquiv`, if and only if it is one for `b`. -/
+theorem bijective_integralCup_integralCohomologyLinearEquiv_iff (X : TopCat.{0}) (p q n : ℕ)
+    (h : p + q = n) (b : X.singularCohomology (𝟙_ (ModuleCat.{0} ℤ)) ℤ (𝟙_ (ModuleCat.{0} ℤ)) q) :
+    Function.Bijective (fun a : X.integralCohomology p ↦
+        X.integralCup p q n h a (X.integralCohomologyLinearEquiv q b)) ↔
+      Function.Bijective (fun a ↦ X.singularCup ℤ (λ_ _).inv (λ_ _).hom p q n h a b) := by
+  have hf : (fun a : X.integralCohomology p ↦
+      X.integralCup p q n h a (X.integralCohomologyLinearEquiv q b)) =
+      X.integralCohomologyLinearEquiv n ∘
+        (fun a ↦ X.singularCup ℤ (λ_ _).inv (λ_ _).hom p q n h a b) ∘
+        (X.integralCohomologyLinearEquiv p).symm := by
+    funext a
+    conv_lhs => rw [← LinearEquiv.apply_symm_apply (X.integralCohomologyLinearEquiv p) a]
+    rw [← integralCohomologyLinearEquiv_singularCup]
+    simp only [Function.comp_apply]
+  rw [hf, Function.Bijective.of_comp_iff' (LinearEquiv.bijective _),
+    Function.Bijective.of_comp_iff _ (LinearEquiv.bijective _)]
 
 end IntegerCoefficients
 
