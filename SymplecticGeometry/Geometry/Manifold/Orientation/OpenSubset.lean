@@ -11,16 +11,19 @@ public import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
 /-!
 # The tangent orientations of a restricted orientation
 
-The tangent space of an open subset `U` of a manifold `M` at a point `x` is the tangent space of
-`M` at `x`: both are the model space `E`, and the derivative of the inclusion `U → M` is the
-identity of `E` (`TauCeti.Manifold.mfderiv_subtype_val`). Tau Ceti's
+Tau Ceti identifies the tangent space of an open subset `U` of a manifold `M` at a point `x` with
+the tangent space of `M` at `x` through `TauCeti.Manifold.tangentSpaceOpenEquiv x`, which is the
+derivative of the inclusion `U → M` (`TauCeti.Manifold.mfderiv_subtype_val`). Tau Ceti's
 `TauCeti.Manifold.Orientation.restrict` pulls an orientation of `M` back to `U`. Here its
-orientation at each point is computed: it is that of the orientation of `M` at the same point.
+orientation at each point is computed: through that identification, it is the orientation of `M`
+at the same point.
 
 ## Main results
 
-* `TauCeti.Manifold.Orientation.orientationAt_restrict`: the restriction of `o` to `U` has, at
-  each point of `U`, the orientation that `o` has there.
+* `TauCeti.Manifold.Orientation.map_orientationAt_restrict`: `tangentSpaceOpenEquiv x` carries
+  the tangent orientation at `x` of the restriction of `o` to `U` to that of `o` at `x`.
+* `TauCeti.Manifold.Orientation.orientationAt_restrict`: the same equality without the transport,
+  which is possible since `tangentSpaceOpenEquiv x` is the identity.
 
 ## References
 
@@ -38,18 +41,28 @@ variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimen
   [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M]
   [IsManifold I 1 M] {ι : Type*} [Fintype ι]
 
-/-- At each point of an open subset `U`, the restriction of `o` to `U` has the orientation that
-`o` has at that point; both are orientations of the model space `E`. -/
+/-- At each point `x` of an open subset `U`, the identification
+`TauCeti.Manifold.tangentSpaceOpenEquiv x` of the tangent space of `U` at `x` with that of `M`
+carries the tangent orientation of the restriction of `o` to `U` to that of `o` at `x`. -/
 @[simp]
-theorem orientationAt_restrict (o : Orientation I M ι) (U : Opens M) (x : U) :
-    (o.restrict U).orientationAt x = o.orientationAt (x : M) := by
-  have h := (isOrientationPreservingAt_iff_of_coe_eq (o.restrict U) o Subtype.val x
+theorem map_orientationAt_restrict (o : Orientation I M ι) (U : Opens M) (x : U) :
+    _root_.Orientation.map ι (TauCeti.Manifold.tangentSpaceOpenEquiv x).toLinearEquiv
+      ((o.restrict U).orientationAt x) = o.orientationAt (x : M) :=
+  (isOrientationPreservingAt_iff_of_coe_eq (o.restrict U) o Subtype.val x
     (TauCeti.Manifold.tangentSpaceOpenEquiv x) (TauCeti.Manifold.mfderiv_subtype_val x).symm).1
     (o.isOrientationPreservingAt_restrict U x)
+
+/-- At each point `x` of an open subset `U`, the tangent orientation of the restriction of `o` to
+`U` is that of `o` at `x`, the two tangent spaces being identified through
+`TauCeti.Manifold.tangentSpaceOpenEquiv x`, which is the identity. The two sides have types that
+agree only after unfolding `TangentSpace`; `map_orientationAt_restrict` states the equality with
+the identification made explicit, and is the form for `simp`. -/
+theorem orientationAt_restrict (o : Orientation I M ι) (U : Opens M) (x : U) :
+    (o.restrict U).orientationAt x = o.orientationAt (x : M) := by
   have he : (TauCeti.Manifold.tangentSpaceOpenEquiv (I := I) x).toLinearEquiv =
       LinearEquiv.refl ℝ (TangentSpace I x) :=
     LinearEquiv.ext (TauCeti.Manifold.tangentSpaceOpenEquiv_apply x)
-  rw [← h, he]
+  rw [← map_orientationAt_restrict o U x, he]
   exact (Equiv.ext_iff.mp (_root_.Orientation.map_refl ι) _).symm
 
 end TauCeti.Manifold.Orientation
