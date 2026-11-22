@@ -118,26 +118,28 @@ The part owns the folder `Geometry/Symplectic/Moser/`, except
 `Moser/Family.lean`, a file of *Isotopy extension*
 (`design/isotopy-extension.md`). Tau Ceti has the
 files `Geometry/Symplectic/Manifold/Moser.lean` and `RelativeMoser.lean`, so
-this library may not have folders with those names. The ten files outside
+this library may not have folders with those names. The files outside
 that folder have the names of the Tau Ceti files they extend, so that they
-can join them.
+can join them. The table is in the order of the paths, and a new file's row
+goes in at its place in that order: pull requests that each add a file then
+change different lines.
 
 | File | Contents | Issue |
 |---|---|---|
-| `Geometry/Symplectic/Manifold/Family.lean` | openness of nondegeneracy for families and segments of two-forms | 1 |
-| `Geometry/Manifold/DifferentialForm/Pullback/Family.lean` | the slices of a reparametrized segment of forms (`SmoothForm.lineMapFamily`), for the underlying rough forms | — |
-| `Geometry/Symplectic/Manifold/Flat.lean` | the inverse flat map of a covector field with zero first jet | 1 |
-| `Geometry/Symplectic/Moser/Relative.lean` | the relative Moser theorem with prescribed first derivative, the milestone | 2 |
-| `Geometry/Symplectic/Moser/Field.lean` | `moserField`, the cut-off Moser field of a family of two-forms | 3 |
-| `Geometry/Symplectic/Moser/Isotopy.lean` | the Moser isotopy fixing a compact submanifold, the milestone | 4 |
-| `Geometry/Symplectic/Manifold/Darboux.lean` | Darboux charts with prescribed derivative, symplectic transitions, the milestone | 5 |
-| `Geometry/Manifold/LocalDiffeomorph/MFDeriv.lean` | the derivative of a transition between partial diffeomorphisms, composed with a differential; the differential of a partial diffeomorphism followed by a continuous linear equivalence (`PartialDiffeomorph.mvfderiv_trans_toDiffeomorph`) | 5 |
-| `Geometry/Symplectic/Moser/Stability.lean` | Moser stability, the milestone | 6 |
-| `Geometry/Manifold/DifferentialForm/Smooth.lean` | `TauCeti.SmoothForm.bilinFormAt` of sums, real multiples, zero, negatives and differences of two-forms; `TauCeti.SmoothForm.funSMulₗ` under sums and constants of functions and under pullback | — |
 | `Geometry/Manifold/ContMDiffMap/Basic.lean` | `ContMDiffMap.comp_mk_apply`, the `@[simp]` value of `g.comp ⟨f, hf⟩` at a point | — |
 | `Geometry/Manifold/DifferentialForm/Opens.lean` | restriction of forms along `Subtype.val` to an open subset: surjectivity, regularity, and the exterior derivative; the pull-back of restricted forms along a partial diffeomorphism of open subsets, read in the ambient manifolds as a diffeomorphism between its source and its target (`PartialDiffeomorph.mpullback_toDiffeomorphSourceTarget_liftOpens`) | — |
-| `Geometry/Symplectic/Manifold/TwoForm.lean` | a smooth map whose differential at a point is a linear symplectomorphism for two nondegenerate two-forms pulls the second back to the first at that point (`TauCeti.SmoothTwoForm.coe_mpullback_apply_eq_of_mfderiv_eq`) | — |
+| `Geometry/Manifold/DifferentialForm/Pullback/Family.lean` | the slices of a reparametrized segment of forms (`SmoothForm.lineMapFamily`), for the underlying rough forms | — |
+| `Geometry/Manifold/DifferentialForm/Smooth.lean` | `TauCeti.SmoothForm.bilinFormAt` of sums, real multiples, zero, negatives and differences of two-forms; `TauCeti.SmoothForm.funSMulₗ` under sums and constants of functions and under pullback | — |
+| `Geometry/Manifold/LocalDiffeomorph/MFDeriv.lean` | the derivative of a transition between partial diffeomorphisms, composed with a differential; the differential of a partial diffeomorphism followed by a continuous linear equivalence (`PartialDiffeomorph.mvfderiv_trans_toDiffeomorph`) | 5 |
 | `Geometry/Manifold/TubularNeighborhood/RelativePoincare.lean` | a primitive of the difference of two closed forms with the same pullback to `f(Q)`, as a smooth form on a tube around `f(Q)` | — |
+| `Geometry/Symplectic/Manifold/Darboux.lean` | Darboux charts with prescribed derivative, symplectic transitions, the milestone | 5 |
+| `Geometry/Symplectic/Manifold/Family.lean` | openness of nondegeneracy for families and segments of two-forms | 1 |
+| `Geometry/Symplectic/Manifold/Flat.lean` | the inverse flat map of a covector field with zero first jet | 1 |
+| `Geometry/Symplectic/Manifold/TwoForm.lean` | a smooth map whose differential at a point is a linear symplectomorphism for two nondegenerate two-forms pulls the second back to the first at that point (`TauCeti.SmoothTwoForm.coe_mpullback_apply_eq_of_mfderiv_eq`) | — |
+| `Geometry/Symplectic/Moser/Field.lean` | `moserField`, the cut-off Moser field of a family of two-forms | 3 |
+| `Geometry/Symplectic/Moser/Isotopy.lean` | the Moser isotopy fixing a compact submanifold, the milestone | 4 |
+| `Geometry/Symplectic/Moser/Relative.lean` | the relative Moser theorem with prescribed first derivative, the milestone | 2 |
+| `Geometry/Symplectic/Moser/Stability.lean` | Moser stability, the milestone | 6 |
 
 ### `Geometry/Symplectic/Manifold/Family.lean`
 
