@@ -55,9 +55,10 @@ For any `RiemannianBundle` metric on `TM` with `⟪u, v⟫ = σ(u, J v)`, the hy
 
 ## Implementation notes
 
-Both use `TauCeti.SmoothAlmostComplexStructure.inner_apply_apply_of_inner_eq` (`J` is orthogonal)
-and `TauCeti.SmoothAlmostComplexStructure.inner_apply_left_of_inner_eq` (`⟪J u, w⟫ = σ(u, w)`),
-which Tau Ceti's main branch has made public and which this file imports from its copy
+The skew-adjointness uses `TauCeti.SmoothAlmostComplexStructure.inner_apply_left_of_inner_eq`
+(`⟪J u, w⟫ = σ(u, w)`), which rests on
+`TauCeti.SmoothAlmostComplexStructure.inner_apply_apply_of_inner_eq` (`J` is orthogonal). Tau
+Ceti's main branch has made both public, and this file imports them from its copy
 `SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Metric.FromTauCeti`. The Kähler
 form of `J` as a smooth form, `TauCeti.SmoothAlmostComplexStructure.kahlerTwoForm_eq_of_inner_eq`,
 is in Tau Ceti's main branch too, and is not copied since nothing here uses it.
@@ -242,15 +243,11 @@ theorem val_eq_alternatingFormEquiv_kahlerForm (hJ : ∀ x u v, ⟪u, v⟫ = σ.
        alternatingFormEquiv (TangentSpace I x) 2 (J.almostComplexStructureAt x).kahlerForm) := by
   let _ : FiniteDimensional ℝ (TangentSpace I x) :=
     VectorBundle.finiteDimensional ℝ E (TangentSpace I) x
-  have hJx : ∀ u w : TangentSpace I x,
-      ⟪J.almostComplexStructureAt x u, J.almostComplexStructureAt x w⟫ = ⟪u, w⟫ := by
-    simpa only [SmoothAlmostComplexStructure.almostComplexStructureAt_apply] using
-      SmoothAlmostComplexStructure.inner_apply_apply_of_inner_eq hJ x
-  ext v
-  obtain ⟨u, w, rfl⟩ : ∃ u w, v = ![u, w] := ⟨v 0, v 1, by ext i; fin_cases i <;> rfl⟩
-  rw [alternatingFormEquiv_apply, AlmostComplexStructure.inner_kahlerForm_ιMulti hJx,
-    SmoothAlmostComplexStructure.almostComplexStructureAt_apply,
-    SmoothAlmostComplexStructure.inner_apply_left_of_inner_eq hJ, SmoothBundleForm.eval₂_apply]
+  rw [AlmostComplexStructure.kahlerForm_eq_of_inner_eq
+      (F := (alternatingFormEquiv _ 2).symm (σ.val x))
+      fun u v ↦ by rw [inner_alternatingFormEquiv_symm_ιMulti, hJ, SmoothBundleForm.eval₂_apply,
+        SmoothAlmostComplexStructure.almostComplexStructureAt_apply],
+    LinearEquiv.apply_symm_apply]
 
 end SmoothTwoForm
 

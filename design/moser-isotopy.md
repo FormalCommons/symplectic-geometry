@@ -128,7 +128,7 @@ change different lines.
 |---|---|---|
 | `Geometry/Manifold/ContMDiffMap/Basic.lean` | `ContMDiffMap.comp_mk_apply`, the `@[simp]` value of `g.comp ⟨f, hf⟩` at a point | — |
 | `Geometry/Manifold/DifferentialForm/Opens.lean` | restriction of forms along `Subtype.val` to an open subset: surjectivity, regularity, and the exterior derivative; the pull-back of restricted forms along a partial diffeomorphism of open subsets, read in the ambient manifolds as a diffeomorphism between its source and its target (`PartialDiffeomorph.mpullback_toDiffeomorphSourceTarget_liftOpens`) | — |
-| `Geometry/Manifold/DifferentialForm/Pullback/Family.lean` | the slices of a reparametrized segment of forms (`SmoothForm.lineMapFamily`), for the underlying rough forms | — |
+| `Geometry/Manifold/DifferentialForm/Pullback/Family.lean` | the slices of a reparametrized segment of forms (`SmoothForm.lineMapFamily`), for the underlying rough forms; the slices of a pullback along `Prod.map c f` | — |
 | `Geometry/Manifold/DifferentialForm/Smooth.lean` | `TauCeti.SmoothForm.bilinFormAt` of sums, real multiples, zero, negatives and differences of two-forms; `TauCeti.SmoothForm.funSMulₗ` under sums and constants of functions and under pullback | — |
 | `Geometry/Manifold/LocalDiffeomorph/MFDeriv.lean` | the derivative of a transition between partial diffeomorphisms, composed with a differential; the differential of a partial diffeomorphism followed by a continuous linear equivalence (`PartialDiffeomorph.mvfderiv_trans_toDiffeomorph`) | 5 |
 | `Geometry/Manifold/TubularNeighborhood/RelativePoincare.lean` | a primitive of the difference of two closed forms with the same pullback to `f(Q)`, as a smooth form on a tube around `f(Q)` | — |
@@ -174,6 +174,13 @@ The file has the name of Tau Ceti's file that defines
 - `coe_mpullback_prodMk_lineMapFamily` (`@[simp]`): the slices of
   `SmoothForm.lineMapFamily α₀ α₁ hc` for the underlying rough forms, the
   `.val` form of Tau Ceti's `mpullback_prodMk_lineMapFamily`.
+- `mpullback_prodMk_mpullback_prodMap'`: for smooth `c : ℝ → ℝ` and
+  `f : M → N`, the slice at time `t` of the pullback of a form on
+  `ℝ × N` along `Prod.map c f` is the pullback along `f` of its slice at
+  time `c t`; with its cases `mpullback_prodMk_mpullback_prodMap`
+  (`c = id`) and `mpullback_prodMk_mpullback_prodMap_id_right` (`f = id`).
+  They use only the functoriality of the pullback. *Contact geometry* uses
+  them in `Flow/Family.lean`, `Contact/Family.lean` and `Contact/Gray.lean`.
 
 The velocity of the same segment,
 `SmoothForm.mpullback_prodMk_timeDeriv_lineMapFamily` (the slice at time

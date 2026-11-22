@@ -6,7 +6,6 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.AlgebraicTopology.Cohomology.CompactSupport.Euclidean.Duality
-public import TauCeti.CategoryTheory.Linear.Int
 public import SymplecticGeometry.AlgebraicTopology.Cohomology.CompactSupport.Duality.Union
 public import SymplecticGeometry.AlgebraicTopology.Cohomology.CompactSupport.Euclidean.Basic
 
@@ -25,23 +24,14 @@ sets of `F`, since an orientation of a disconnected `U` need not be restricted f
 The open sets of `U` with convex image under `j` are closed under intersection
 (`TopologicalSpace.Opens.infClosed_setOf_convex_image`), and for each of them the duality map,
 for the orientation restricted from `U`, is bijective in every degree, by
-`TauCeti.HomologicalOrientation.bijective_dualityMap_of_convex` along `j ∘ Subtype.val`. Their
-finite unions cover `U` (`Topology.IsOpenEmbedding.iSup_finset_sup_convex_image_eq_top`), and
-`Hᵈ⁺¹_c(W) = 0` for every open set `W` of `U`
-(`TopCat.isZero_compactSupportCohomology_of_isOpenEmbedding`), so duality holds on `U` by the
-Mayer–Vietoris induction `TauCeti.HomologicalOrientation.bijective_dualityMap_of_infClosed`.
+`TauCeti.HomologicalOrientation.bijective_dualityMap_of_convex` along `j ∘ Subtype.val`. They
+cover `U` (`Topology.IsOpenEmbedding.sSup_setOf_convex_image_eq_top`), so duality holds on `U` by
+the Mayer–Vietoris induction `TauCeti.HomologicalOrientation.bijective_dualityMap_of_infClosed`.
 
 ## Main results
 
 * `TauCeti.HomologicalOrientation.bijective_dualityMap_of_isOpenEmbedding`: Poincaré duality for
   an open subset of a finite-dimensional real normed space.
-
-## Implementation notes
-
-The duality maps are stated with the `ℤ`-linear structure of `ModuleCat ℤ` as a preadditive
-category, while the vanishing theorem is proved for the structure of a category of modules; the
-two agree since a `ℤ`-module structure is unique (`CategoryTheory.Linear.subsingletonInt`), as in
-Tau Ceti's `TauCeti.HomologicalOrientation.bijective_singularCap_fundamentalClassOn_of_starConvex`.
 
 ## References
 
@@ -72,17 +62,10 @@ orientation of `U` is bijective. -/
 theorem bijective_dualityMap_of_isOpenEmbedding (hj : IsOpenEmbedding j) {p q : ℕ}
     (h : p + q = d) : Function.Bijective (oU.dualityMap hd L p q h) := by
   refine oU.bijective_dualityMap_of_infClosed hd L (Opens.infClosed_setOf_convex_image hj.injective)
-    hj.iSup_finset_sup_convex_image_eq_top (fun W _ p q h ↦ ?_) (fun W ↦ ?_) h
-  · refine (oU.comap W.isOpenEmbedding').bijective_dualityMap_of_convex hd L h
-      (hj.comp W.isOpenEmbedding') ?_
-    rwa [range_comp, Subtype.range_coe]
-  · -- `TopCat.isZero_compactSupportCohomology_of_isOpenEmbedding` uses the `ℤ`-linear structure
-    -- of `ModuleCat ℤ` as a category of modules; it agrees with the one of a preadditive
-    -- category used here, as a `ℤ`-module structure is unique.
-    have := Linear.subsingletonInt (ModuleCat.{0} ℤ)
-    convert TopCat.isZero_compactSupportCohomology_of_isOpenEmbedding
-      (ModuleCat.of ℤ (ULift ℤ : Type)) L (hj.comp W.isOpenEmbedding')
-      (show finrank ℝ F < d + 1 by omega)
+    hj.sSup_setOf_convex_image_eq_top (fun W _ p q h ↦ ?_) h
+  refine (oU.comap W.isOpenEmbedding').bijective_dualityMap_of_convex hd L h
+    (hj.comp W.isOpenEmbedding') ?_
+  rwa [range_comp, Subtype.range_coe]
 
 end HomologicalOrientation
 

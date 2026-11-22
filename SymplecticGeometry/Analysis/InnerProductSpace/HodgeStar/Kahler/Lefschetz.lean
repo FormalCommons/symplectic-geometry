@@ -30,6 +30,14 @@ So the identity reads `L δ_u - δ_u L = -(𝒥 ε_u - ε_u 𝒥)`, the pointwis
 Both sides are computed directly: `ι_u` is an antiderivation and `ι_u ω = ⟪J u, ·⟫`, while `𝒥`
 is a derivation and `𝒥 ⟪u, ·⟫ = -⟪J u, ·⟫`, so both sides are `-(⟪J u, ·⟫ ∧ α)`.
 
+A first-order term is more generally a linear map `B` from `V` to the `(k + 1)`-forms, the
+derivative of a form at a point. With `Alt` Mathlib's `alternatizeUncurryFin` and
+`δ B = ± ⋆ Alt (⋆ ∘ B)` with the sign of Tau Ceti's `codifferential`, the identity becomes
+`L (δ B) - δ (L ∘ B) = -(𝒥 (Alt B) - Alt (𝒥 ∘ B))`. It follows from the one for covectors by
+writing `B = ∑ i, ⟪e i, ·⟫ • B (e i)` in an orthonormal basis `e`. Two edge cases are stated
+apart: if `m = dim V < k + 3`, then `L ∘ B = 0` and only `L (δ B)` remains, and on `0`-forms
+`δ B` is not defined and `𝒥 ∘ B = 0`, so the identity reads `δ (L ∘ B) = 𝒥 (Alt B)`.
+
 The Hodge star commutes with the derivation of every skew-adjoint endomorphism, in particular
 with `𝒥` (`Orientation.formHodgeStar_fderivCompContinuousLinearMap`); this is Tau Ceti's
 `Orientation.hodgeStar_lieMap` read on forms.
@@ -44,6 +52,10 @@ with `𝒥` (`Orientation.formHodgeStar_fderivCompContinuousLinearMap`); this is
   `A`.
 * `TauCeti.AlmostComplexStructure.lefschetz_curryLeft_sub`: the linear Kähler identity
   `L ι_u - ι_u L = 𝒥 ε_u - ε_u 𝒥`.
+* `TauCeti.AlmostComplexStructure.lefschetz_smul_formHodgeStar_alternatizeUncurryFin_sub`: the
+  linear Kähler identity for a first-order symbol `B`, with its edge cases
+  `lefschetz_smul_formHodgeStar_alternatizeUncurryFin_of_lt` and
+  `smul_formHodgeStar_alternatizeUncurryFin_lefschetz_fin_zero`.
 
 ## References
 
@@ -103,6 +115,14 @@ theorem lefschetz_apply_apply {k : ℕ} (α : V [⋀^Fin k]→L[ℝ] ℝ) (v : F
     J.lefschetz α v =
       (alternatingFormEquiv V 2 J.kahlerForm).wedge α (v ∘ Fin.cast (Nat.add_comm 2 k)) := by
   rw [lefschetz_apply, wedge_comm, Even.neg_one_pow (⟨k, by ring⟩ : Even (k * 2)), one_smul]
+
+/-- On `0`-forms, the Lefschetz operator is multiplication of the Kähler form by the value of the
+form. -/
+theorem lefschetz_fin_zero (β : V [⋀^Fin 0]→L[ℝ] ℝ) :
+    J.lefschetz β = β 0 • alternatingFormEquiv V 2 J.kahlerForm := by
+  ext v
+  rw [lefschetz_apply, wedge_def, pairedWedge_apply_zero_left]
+  simp
 
 variable {J} (hJ : ∀ v w, ⟪J v, J w⟫ = ⟪v, w⟫)
 include hJ
@@ -164,5 +184,109 @@ theorem lefschetz_curryLeft_sub {k : ℕ} (u : V) (α : V [⋀^Fin (k + 1)]→L[
   have hs : (-1 : ℝ) ^ (k + 1) * (-1) ^ ((k + 1) * 1) = 1 := by
     rw [mul_one, ← pow_add, Even.neg_one_pow ⟨k + 1, rfl⟩]
   linear_combination (-(θJ.wedge α) fun x ↦ v (Fin.cast hc x)) * hs
+
+/-- **The linear Kähler identity on `0`-forms**: for an orthogonal almost complex structure `J`, a
+vector `u` and a `0`-form `β`, `ι_u L β = -𝒥 ε_u β`. This is `lefschetz_curryLeft_sub` one degree
+lower: there is no interior product of a `0`-form, and `𝒥 β = 0`. -/
+theorem curryLeft_lefschetz_fin_zero (u : V) (β : V [⋀^Fin 0]→L[ℝ] ℝ) :
+    (J.lefschetz β).curryLeft u =
+      -(alternatizeUncurryFin ((innerSL ℝ u).smulRight β)).fderivCompContinuousLinearMap
+          (.id ℝ V) J.toLinearMap.toContinuousLinearMap := by
+  have hA := inner_apply_left hJ
+  rw [lefschetz_fin_zero, curryLeft_smul, _root_.smul_apply,
+    curryLeft_alternatingFormEquiv_kahlerForm hJ u]
+  ext v
+  have hv : v = ![v 0] := by ext i; fin_cases i; rfl
+  rw [hv, ContinuousAlternatingMap.neg_apply, fderivCompContinuousLinearMap_apply_vecCons_fin_one]
+  simp [alternatizeUncurryFin_apply, hA, mul_comm]
+
+section Symbol
+
+variable {n : ℕ} [Fact (finrank ℝ V = n)] (o : Orientation ℝ V (Fin n))
+
+/-- **The constant-coefficient Kähler identity for a first-order symbol**: for an orthogonal
+almost complex structure `J` on an oriented space of dimension `m` and `B` from `V` to the
+`(k + 1)`-forms, `L (δ B) - δ (L ∘ B) = -(𝒥 (Alt B) - Alt (𝒥 ∘ B))`, where `Alt` is
+`alternatizeUncurryFin`, `L` the Lefschetz operator, `𝒥` the derivation of `J`, and
+`δ B = (-1) ^ (m (j + 2) + 1) ⋆ Alt (⋆ ∘ B)` on `B` with values in `(j + 1)`-forms. In a chart where
+the Hodge star operator has zero derivative at a point, `δ B` is the value there of Tau Ceti's
+`codifferential` of a form whose derivative there is `B`, and `Alt B` that of its exterior
+derivative. The hypotheses `hkl`, `hlk`, `hkl'` and `hlk'` are those of Tau Ceti's
+`codifferential_apply` in the degrees `k + 1` and `k + 3`. -/
+theorem lefschetz_smul_formHodgeStar_alternatizeUncurryFin_sub {k l l' : ℕ}
+    (hkl : k + 1 + l = finrank ℝ V) (hlk : l + 1 + k = finrank ℝ V)
+    (hkl' : k + 2 + 1 + l' = finrank ℝ V) (hlk' : l' + 1 + (k + 2) = finrank ℝ V)
+    (B : V →L[ℝ] V [⋀^Fin (k + 1)]→L[ℝ] ℝ) :
+    J.lefschetz ((-1 : ℝ) ^ (finrank ℝ V * (k + 2) + 1) • o.formHodgeStar hlk
+        (alternatizeUncurryFin
+          ((o.formHodgeStar hkl).toContinuousLinearEquiv.toContinuousLinearMap ∘L B))) -
+      (-1 : ℝ) ^ (finrank ℝ V * (k + 2 + 2) + 1) • o.formHodgeStar hlk'
+        (alternatizeUncurryFin
+          ((o.formHodgeStar hkl').toContinuousLinearEquiv.toContinuousLinearMap ∘L
+            J.lefschetz ∘L B)) =
+      -((alternatizeUncurryFin B).fderivCompContinuousLinearMap (.id ℝ V)
+          J.toLinearMap.toContinuousLinearMap -
+        alternatizeUncurryFin ((fderivCompContinuousLinearMapCLM ℝ (.id ℝ V)).flip
+          J.toLinearMap.toContinuousLinearMap ∘L B)) := by
+  set b := stdOrthonormalBasis ℝ V
+  rw [o.smul_formHodgeStar_alternatizeUncurryFin_comp_formHodgeStar b hkl hlk,
+    o.smul_formHodgeStar_alternatizeUncurryFin_comp_formHodgeStar b hkl' hlk',
+    alternatizeUncurryFin_eq_sum_innerSL_smulRight b B,
+    alternatizeUncurryFin_eq_sum_innerSL_smulRight b, ← fderivCompContinuousLinearMapCLM_apply,
+    _root_.map_sum, _root_.sum_apply, map_neg, _root_.map_sum, sub_neg_eq_add,
+    ← Finset.sum_sub_distrib, neg_add_eq_sub, ← Finset.sum_sub_distrib, ← Finset.sum_neg_distrib]
+  refine Finset.sum_congr rfl fun i _ ↦ ?_
+  rw [ContinuousLinearMap.comp_apply, ← neg_sub, lefschetz_curryLeft_sub hJ]
+  simp
+
+/-- **The constant-coefficient Kähler identity above the middle degrees**: if `m < k + 3`, the
+Lefschetz operator sends the `(k + 1)`-forms to zero, and
+`lefschetz_smul_formHodgeStar_alternatizeUncurryFin_sub` becomes
+`L (δ B) = -(𝒥 (Alt B) - Alt (𝒥 ∘ B))` for `B` from `V` to the `(k + 1)`-forms. -/
+theorem lefschetz_smul_formHodgeStar_alternatizeUncurryFin_of_lt {k l : ℕ}
+    (hkl : k + 1 + l = finrank ℝ V) (hlk : l + 1 + k = finrank ℝ V) (hk : finrank ℝ V < k + 3)
+    (B : V →L[ℝ] V [⋀^Fin (k + 1)]→L[ℝ] ℝ) :
+    J.lefschetz ((-1 : ℝ) ^ (finrank ℝ V * (k + 2) + 1) • o.formHodgeStar hlk
+        (alternatizeUncurryFin
+          ((o.formHodgeStar hkl).toContinuousLinearEquiv.toContinuousLinearMap ∘L B))) =
+      -((alternatizeUncurryFin B).fderivCompContinuousLinearMap (.id ℝ V)
+          J.toLinearMap.toContinuousLinearMap -
+        alternatizeUncurryFin ((fderivCompContinuousLinearMapCLM ℝ (.id ℝ V)).flip
+          J.toLinearMap.toContinuousLinearMap ∘L B)) := by
+  set b := stdOrthonormalBasis ℝ V
+  rw [o.smul_formHodgeStar_alternatizeUncurryFin_comp_formHodgeStar b hkl hlk,
+    alternatizeUncurryFin_eq_sum_innerSL_smulRight b B,
+    alternatizeUncurryFin_eq_sum_innerSL_smulRight b, ← fderivCompContinuousLinearMapCLM_apply,
+    _root_.map_sum, _root_.sum_apply, map_neg, _root_.map_sum, ← Finset.sum_sub_distrib]
+  congr 1
+  refine Finset.sum_congr rfl fun i _ ↦ ?_
+  have h := lefschetz_curryLeft_sub hJ (b i) (B (b i))
+  rw [ContinuousAlternatingMap.eq_zero_of_finrank_lt (J.lefschetz (B (b i)))
+      (by rw [Fintype.card_fin]; omega), curryLeft_zero, zero_apply, sub_zero] at h
+  simpa using h
+
+/-- **The constant-coefficient Kähler identity in degree zero**: for `B` from `V` to the
+`0`-forms, `δ (L ∘ B) = 𝒥 (Alt B)`, with `δ` and `Alt` as in
+`lefschetz_smul_formHodgeStar_alternatizeUncurryFin_sub`. This is that identity one degree lower,
+where `δ B` is not defined and `𝒥 ∘ B` vanishes, as `𝒥` is zero on `0`-forms. The hypotheses are
+those of Tau Ceti's `codifferential_apply` in degree `2`. -/
+theorem smul_formHodgeStar_alternatizeUncurryFin_lefschetz_fin_zero {l : ℕ}
+    (hkl : 1 + 1 + l = finrank ℝ V) (hlk : l + 1 + 1 = finrank ℝ V)
+    (B : V →L[ℝ] V [⋀^Fin 0]→L[ℝ] ℝ) :
+    (-1 : ℝ) ^ (finrank ℝ V * (1 + 2) + 1) • o.formHodgeStar hlk
+        (alternatizeUncurryFin
+          ((o.formHodgeStar hkl).toContinuousLinearEquiv.toContinuousLinearMap ∘L
+            J.lefschetz ∘L B)) =
+      (alternatizeUncurryFin B).fderivCompContinuousLinearMap (.id ℝ V)
+        J.toLinearMap.toContinuousLinearMap := by
+  set b := stdOrthonormalBasis ℝ V
+  rw [o.smul_formHodgeStar_alternatizeUncurryFin_comp_formHodgeStar b hkl hlk,
+    alternatizeUncurryFin_eq_sum_innerSL_smulRight b B, ← fderivCompContinuousLinearMapCLM_apply,
+    _root_.map_sum, _root_.sum_apply, ← Finset.sum_neg_distrib]
+  refine Finset.sum_congr rfl fun i _ ↦ ?_
+  rw [ContinuousLinearMap.comp_apply, curryLeft_lefschetz_fin_zero hJ, neg_neg,
+    fderivCompContinuousLinearMapCLM_apply]
+
+end Symbol
 
 end TauCeti.AlmostComplexStructure

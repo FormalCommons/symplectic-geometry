@@ -207,8 +207,8 @@ theorem exists_contMDiffSection_forall_ne_zero_of_boundary_nonempty
   obtain ⟨K, O, g, hK, hKi, -, hOi, hOK, hO, -, -, hgK, hg, -, -⟩ := hc.exists_homotopy_push
   -- Move the zeros of `σ` off `K`, inside the interior.
   let U := (𝓡∂ (n + 2)).interiorOpens M
-  have hU {x : M} (hx : x ∈ (𝓡∂ (n + 2)).interior M) : x ∈ U := by
-    rwa [← SetLike.mem_coe, ModelWithCorners.coe_interiorOpens]
+  have hU {x : M} (hx : x ∈ (𝓡∂ (n + 2)).interior M) : x ∈ U :=
+    ModelWithCorners.mem_interiorOpens_iff_mem_interior.2 hx
   have hKU : IsCompact ((↑) ⁻¹' K : Set U) :=
     ((U.isOpen.isOpenEmbedding_subtypeVal).isInducing.isCompact_preimage_iff
       (by simpa [U] using hKi)).2 hK

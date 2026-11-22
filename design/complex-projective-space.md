@@ -269,8 +269,21 @@ own milestone line.
   `Lagrangian.lean`). It goes, in namespace `Projectivization`, to
   `Geometry/Manifold/Projectivization/BaseChange.lean`; Tau Ceti has no file
   of that name in that folder.
+- `TauCeti.SmoothTwoForm.IsNondegenerate.isIsotropicMap_of_comp` does not
+  involve $\mathbb CP^n$ (issue #1340). It goes to
+  `Geometry/Symplectic/Lagrangian/Submersion.lean`, at the path of the Tau
+  Ceti file whose `isLagrangianMap_comp_submersion_iff` it complements.
 
 ## Files and declarations
+
+### `Analysis/Matrix/LDL.lean`
+
+In namespace `Matrix`: `exists_isUpperTriangular_conjTranspose_mul_mul_self_eq_one`,
+a rectangular matrix `F` with injective `mulVec` becomes one with
+orthonormal columns, `F * P`, for an upper triangular `P` with injective
+`mulVec`; from Tau Ceti's
+`Matrix.PosDef.exists_isUpperTriangular_conjTranspose_mul_mul_eq_one`.
+`Normalization.lean` imports it.
 
 ### `Geometry/Manifold/DifferentialForm/Dolbeault/Potential.lean`
 
@@ -305,6 +318,14 @@ orientations on both sides). In namespace `SymplecticGeometry`: `northPole`,
 `equatorIsometry` and their lemmas, and
 `mpullback_diffeomorphSphere_sphereVolumeForm` (the round area form pulls
 back to `(4 * Real.pi) • OnePoint.fubiniStudyForm`) with its `_symm_` form.
+`Normalization.lean` imports it.
+
+### `Geometry/Manifold/Orientation/Preserving/FromTauCeti.lean`
+
+Taken from Tau Ceti's main branch, with Tau Ceti's header, as *Files* in
+`AGENTS.md` says, in the sibling `FromTauCeti.lean` of the library's own
+`Orientation/Preserving.lean`: `TauCeti.Manifold.Orientation.IsOrientationPreservingAt.reindex`,
+which the pinned version lacks, for the reindexed orientation `oCP1`.
 `Normalization.lean` imports it.
 
 ### `Geometry/Manifold/Orientation/Sphere.lean`
@@ -399,6 +420,19 @@ $\omega_0=$ `stdComplexPiSymplecticForm (Fin (n + 1))`:
   `existsUnique_mpullback_mkNonzero_eq` and
   `existsUnique_mpullback_sphereHopf_eq` (part 2).
 
+### `Data/Matrix/Mul.lean`
+
+A general matrix fact that `Kahler.lean` uses, in namespace `Matrix`:
+`mulVec_injective_of_mul_eq_one` (a matrix with a left inverse acts
+injectively on vectors). The file mirrors Mathlib's `Data/Matrix/Mul.lean`,
+which has `Matrix.mulVec_injective_of_isUnit`.
+
+### `LinearAlgebra/Matrix/DotProduct.lean`
+
+A general matrix fact that `Kahler.lean` uses, in namespace `Matrix`:
+`star_mulVec_dotProduct_mulVec` (a matrix with `Aᴴ * A = 1` preserves
+`star z ⬝ᵥ v`).
+
 ### `Geometry/Manifold/Projectivization/FubiniStudy/Kahler.lean`
 
 - `mpullback_map_fubiniStudyForm (A : Matrix (Fin (n + 1)) (Fin (m + 1)) ℂ)
@@ -471,7 +505,7 @@ Manifolds*, 2nd ed., Chapters 15–16, as Tau Ceti's `UnitSphere.lean` cites.
   `fubiniStudyDarbouxChart_mk` ($[v]\mapsto\hat{}\bigl(\tfrac{\lvert v_j\rvert}{\lvert v\rvert}\,(v_{j.\mathrm{succAbove}\,k}/v_j)_k\bigr)$,
   through `complexToRealEuclidean (Fin n)`) and
   `fubiniStudyDarbouxChart_symm_apply`
-  ($\zeta\mapsto[\texttt{Fin.insertNth } j\ \sqrt{1-\lVert\zeta\rVert^2}\ \check\zeta]$).
+  (for $\zeta$ in the ball, $\zeta\mapsto[\texttt{Fin.insertNth } j\ \sqrt{1-\lVert\zeta\rVert^2}\ \check\zeta]$).
   The inverse is `sphereHopf n` after the section
   $\zeta\mapsto(\check\zeta,\sqrt{1-\lVert\zeta\rVert^2})$ of the sphere,
   whose last coordinate is real, so it pulls `sphereStdForm` back to
@@ -482,7 +516,8 @@ Manifolds*, 2nd ed., Chapters 15–16, as Tau Ceti's `UnitSphere.lean` cites.
   (part 5).
 - `exists_darbouxChart_compl_hyperplane (ℓ : Module.Dual ℂ (Fin (n + 1) → ℂ))
   (hℓ : ℓ ≠ 0)`: a chart of the same kind with source
-  `{x | ℓ x.rep ≠ 0}` and target the unit ball, from the case of
+  `{x | ℓ x.rep ≠ 0}`, so that `mk ℂ v hv` is in it exactly when `ℓ v ≠ 0`,
+  and target the unit ball, from the case of
   coordinate hyperplanes and `mpullback_unitary_fubiniStudyForm` (part 5,
   last sentence).
 
@@ -497,6 +532,13 @@ In namespace `Projectivization`:
   `mkNonzero ℝ n`, since the kernels of the derivatives of `mkNonzero` over
   `ℝ` and `ℂ` are the lines through the point (`ker_mfderiv_mkNonzero`), and
   a closed embedding since $\mathbb RP^n$ is compact.
+
+### `Geometry/Symplectic/Lagrangian/Submersion.lean`
+
+- `TauCeti.SmoothTwoForm.IsNondegenerate.isIsotropicMap_of_comp`, in Tau
+  Ceti's namespace: a differentiable map `f` is isotropic when `f ∘ q` is,
+  for a surjective differentiable `q` with surjective derivatives. Both
+  Lagrangian examples below check isotropy upstairs with it.
 
 ### `Geometry/Manifold/Projectivization/FubiniStudy/Lagrangian.lean`
 
