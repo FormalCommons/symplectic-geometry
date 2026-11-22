@@ -5,11 +5,16 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import Mathlib.Analysis.InnerProductSpace.GramSchmidtOrtho
 public import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Hermitian
 public import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.OrthogonalComplement
 public import TauCeti.Geometry.Manifold.VectorBundle.TotallyReal.Trivialization
+public import TauCeti.Topology.VectorBundle.OrthonormalFrame.Basic
 import Mathlib.Geometry.Manifold.Algebra.LieGroup
-import TauCeti.Geometry.Manifold.ContMDiff.Sqrt
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.Riemannian.Hermitian
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.Riemannian.Norm
+import TauCeti.Geometry.Manifold.VectorBundle.MaximalAtlas
+import TauCeti.Geometry.Manifold.VectorBundle.Translate
 import TauCeti.Geometry.Manifold.VectorBundle.Scalar
 
 /-!
@@ -17,8 +22,9 @@ import TauCeti.Geometry.Manifold.VectorBundle.Scalar
 
 Let `V` be a smooth complex vector bundle over a manifold `B`, with a smooth Hermitian metric: a
 smooth real bundle metric `g` that multiplication by `Complex.I` preserves, whose Hermitian
-products on the fibres are Tau Ceti's `g.complexInnerProductSpace hI`. This file gives two general
-facts about smooth families of sections that are orthonormal at every point.
+products on the fibres are Tau Ceti's `g.complexInnerProductSpace hI`. This file gives general
+facts about smooth families of sections that are orthonormal at every point, and ways to build
+them.
 
 * `Bundle.ContMDiffRiemannianMetric.contMDiff_and_orthonormal_vecCons_of_mem_orthogonalSpanFamily`:
   if `s` is a smooth pointwise orthonormal family and `u` a smooth nowhere-zero section of its
@@ -26,8 +32,8 @@ facts about smooth families of sections that are orthonormal at every point.
   `s` is again a smooth pointwise orthonormal family. This is the step of the induction that
   builds unitary frames. The lemma and its proof are adapted from the append step of Tau Ceti's
   proof of `Bundle.ContMDiffRiemannianMetric.exists_orthonormal_contMDiffSection_of_finrank_lt`
-  (`TauCeti/Geometry/Manifold/VectorBundle/Riemannian/LineSplitting.lean`); the normalization
-  here is rewritten with Tau Ceti's `ContMDiff.sqrt`.
+  (`TauCeti/Geometry/Manifold/VectorBundle/Riemannian/LineSplitting.lean`); the norm `‖u‖`
+  is made smooth by `ContMDiff.norm_bundle`.
 * `Bundle.ContMDiffRiemannianMetric.exists_unitary_trivialization_of_orthonormal`: a smooth
   family `s` that is a unitary basis of every fibre over an open set `U` gives, for any complex
   basis `b` of the model fibre, a trivialization over `U` in the smooth maximal atlas whose map on
@@ -36,6 +42,19 @@ facts about smooth families of sections that are orthonormal at every point.
   `TauCeti.complexDoubledFrame s`, which is complex-linear on fibres
   (`IsLocalFrameOn.isLinear_complex_trivialization_complexDoubledFrame`) and sends `s j x` to
   `b j` (`IsLocalFrameOn.trivialization_complexDoubledFrame_apply_frame`).
+* `Bundle.ContMDiffRiemannianMetric.contMDiffOn_gramSchmidt` and
+  `Bundle.ContMDiffRiemannianMetric.contMDiffOn_gramSchmidtNormed`: Gram–Schmidt with respect to
+  the Hermitian products, plain and normalized, keeps smoothness of sections along a map on a set
+  where they are complex linearly independent. They and their proofs are adapted from Tau Ceti's
+  real `ContMDiffWithinAt.gramSchmidt_bundle` and `ContMDiffWithinAt.gramSchmidtNormed_bundle`
+  (`TauCeti/Geometry/Manifold/VectorBundle/GramSchmidt.lean`), with the Hermitian products made
+  smooth by `Bundle.ContMDiffRiemannianMetric.contMDiffOn_hermitianPairing`.
+* `Bundle.Trivialization.contMDiffOn_orthonormalFrameAt`: for a complex linear trivialization `e`
+  in the smooth maximal atlas, every vector `y ↦ e.orthonormalFrameAt c b y w` of Tau Ceti's local
+  unitary frame of `e` is a smooth section over the base set of `e`, in any rank. It and its proof
+  are adapted from Tau Ceti's real
+  `Bundle.Trivialization.contMDiffOn_orthonormalBasis_of_mem_maximalAtlas`
+  (`TauCeti/Geometry/Manifold/VectorBundle/Riemannian/OrthonormalTrivialization.lean`).
 
 ## References
 
@@ -45,7 +64,7 @@ facts about smooth families of sections that are orthonormal at every point.
 
 public noncomputable section
 
-open Bundle Module Set TauCeti
+open Bundle InnerProductSpace Module Set TauCeti
 open scoped Manifold ContDiff InnerProductSpace
 
 variable {X H B F : Type*} [NormedAddCommGroup X] [NormedSpace ℝ X]
@@ -88,13 +107,9 @@ theorem contMDiff_and_orthonormal_vecCons_of_mem_orthogonalSpanFamily
       ∀ x, Orthonormal ℂ fun i ↦ Matrix.vecCons (fun x ↦ ((‖u x‖⁻¹ : ℝ) : ℂ) • u x) s i x := by
   let : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
   let : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
-  have hne (x : B) : Inner.inner ℝ (u x) (u x) ≠ 0 := inner_self_ne_zero.mpr (hu₀ x)
-  have hsqrt := (hu.inner_bundle hu).sqrt hne
-  have hc : ContMDiff IB 𝓘(ℝ, ℂ) n fun x ↦ ((‖u x‖⁻¹ : ℝ) : ℂ) := by
-    refine Complex.ofRealCLM.contMDiff.comp ((hsqrt.inv₀ fun x ↦ ?_).congr fun x ↦ ?_)
-    · exact Real.sqrt_ne_zero'.mpr (lt_of_le_of_ne real_inner_self_nonneg (hne x).symm)
-    · simp only [real_inner_self_eq_norm_sq, Real.sqrt_sq (norm_nonneg _)]
-      rfl
+  have hc : ContMDiff IB 𝓘(ℝ, ℂ) n fun x ↦ ((‖u x‖⁻¹ : ℝ) : ℂ) :=
+    Complex.ofRealCLM.contMDiff.comp
+      ((hu.norm_bundle hu₀).inv₀ fun x ↦ norm_ne_zero_iff.2 (hu₀ x))
   refine ⟨fun i ↦ ?_, fun x ↦ ?_⟩
   · induction i using Fin.cases with
     | zero => simpa using hc.smul_totalSpace hu
@@ -110,6 +125,96 @@ theorem contMDiff_and_orthonormal_vecCons_of_mem_orthogonalSpanFamily
       induction i using Fin.cases <;> simp
     rw [hs']
     exact orthonormal_vecCons_iff.mpr ⟨hnorm, fun i ↦ inner_eq_zero_symm.mp (horth i), hon x⟩
+
+section GramSchmidt
+
+variable {XM HM M : Type*} [NormedAddCommGroup XM] [NormedSpace ℝ XM]
+  [TopologicalSpace HM] {IM : ModelWithCorners ℝ XM HM} [TopologicalSpace M] [ChartedSpace HM M]
+  {ι : Type*} [LinearOrder ι] [LocallyFiniteOrderBot ι] {b : M → B} {v : ι → ∀ m, V (b m)}
+  {s : Set M}
+
+attribute [local instance] IsWellOrder.toHasWellFounded
+
+/-- For a smooth Hermitian metric `(g, hI)`, Gram–Schmidt with respect to the Hermitian products
+`g.complexInnerProductSpace hI` keeps smoothness on a set: if the sections `v i` along a smooth
+map `b` are `C^n` on `s` for `i ≤ j`, and the vectors `v i m` with `i < j` are complex linearly
+independent at every point `m` of `s`, then the `j`-th Gram–Schmidt vector is `C^n` on `s`.
+
+This is the complex counterpart of Tau Ceti's `ContMDiffWithinAt.gramSchmidt_bundle`, with the
+same induction; the Hermitian products are smooth by `contMDiffOn_hermitianPairing`. -/
+theorem contMDiffOn_gramSchmidt (g : ContMDiffRiemannianMetric IB n F V)
+    (hI : ∀ x (v w : V x), g.inner x (Complex.I • v) (Complex.I • w) = g.inner x v w) (j : ι)
+    (hv : ∀ i ≤ j, ContMDiffOn IM (IB.prod 𝓘(ℝ, F)) n
+      (fun m ↦ (⟨b m, v i m⟩ : TotalSpace F V)) s)
+    (hli : ∀ m ∈ s, LinearIndepOn ℂ (fun i ↦ v i m) (Iio j)) :
+    letI : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
+    letI : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
+    ContMDiffOn IM (IB.prod 𝓘(ℝ, F)) n
+      (fun m ↦ (⟨b m, gramSchmidt ℂ (fun i ↦ v i m) j⟩ : TotalSpace F V)) s := by
+  let : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
+  let : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
+  induction j using WellFoundedLT.induction with
+  | ind j ih =>
+    have hg (i : ι) (hi : i < j) :=
+      ih i hi (fun k hk ↦ hv k (hk.trans hi.le)) fun m hm ↦ (hli m hm).mono (Iio_subset_Iio hi.le)
+    -- The coefficient of `gramSchmidt ℂ v i` in the formula for `gramSchmidt ℂ v j`, written
+    -- with a real denominator.
+    have hc (i : ι) (hi : i < j) : ContMDiffOn IM 𝓘(ℝ, ℂ) n
+        (fun m ↦ (‖gramSchmidt ℂ (fun k ↦ v k m) i‖ ^ 2)⁻¹ •
+          ⟪gramSchmidt ℂ (fun k ↦ v k m) i, v j m⟫_ℂ) s := by
+      have hd : ContMDiffOn IM 𝓘(ℝ) n
+          (fun m ↦ (‖gramSchmidt ℂ (fun k ↦ v k m) i‖ ^ 2)⁻¹) s := by
+        refine (((hg i hi).inner_bundle (hg i hi)).congr fun m _ ↦ ?_).inv₀ fun m hm ↦ ?_
+        · exact (real_inner_self_eq_norm_sq _).symm
+        · exact pow_ne_zero 2 (norm_ne_zero_iff.2 (gramSchmidt_ne_zero_coe i
+            ((hli m hm).mono (Iic_subset_Iio.2 hi))))
+      exact hd.smul (g.contMDiffOn_hermitianPairing hI (hg i hi) (hv j le_rfl))
+    have hb : ContMDiffOn IM IB n b s :=
+      (contMDiff_proj V).comp_contMDiffOn (hv j le_rfl)
+    refine ((hv j le_rfl).sub_sectionAlong (ContMDiffOn.sum_sectionAlong (Finset.Iio j)
+      (fun i m ↦ ((‖gramSchmidt ℂ (fun k ↦ v k m) i‖ ^ 2)⁻¹ •
+        ⟪gramSchmidt ℂ (fun k ↦ v k m) i, v j m⟫_ℂ) • gramSchmidt ℂ (fun k ↦ v k m) i) hb
+      fun i hi ↦ (hc i (Finset.mem_Iio.1 hi)).smul_totalSpace (hg i (Finset.mem_Iio.1 hi)))).congr
+      fun m _ ↦ ?_
+    refine congrArg (TotalSpace.mk (b m)) (eq_sub_of_add_eq
+      (Eq.trans ?_ (gramSchmidt_def'' ℂ (fun i ↦ v i m) j).symm))
+    congr 1
+    refine Finset.sum_congr rfl fun i _ ↦ ?_
+    rw [Complex.real_smul, div_eq_inv_mul, Complex.ofReal_inv, Complex.ofReal_pow]
+    -- The two sides differ only in how scalar multiplication by `ℂ` is found: through the
+    -- bundle's `Module ℂ`, or through `g.complexInnerProductSpace hI`, which keeps that module
+    -- (`complexInnerProductSpace_toModule`, which holds by `rfl`).
+    rfl
+
+/-- For a smooth Hermitian metric `(g, hI)`, normalized Gram–Schmidt with respect to the
+Hermitian products `g.complexInnerProductSpace hI` keeps smoothness on a set: if the sections
+`v i` along a smooth map `b` are `C^n` on `s` for `i ≤ j`, and complex linearly independent for
+`i ≤ j` at every point of `s`, then the `j`-th normalized Gram–Schmidt vector is `C^n` on `s`.
+
+This is the complex counterpart of Tau Ceti's `ContMDiffWithinAt.gramSchmidtNormed_bundle`. -/
+theorem contMDiffOn_gramSchmidtNormed (g : ContMDiffRiemannianMetric IB n F V)
+    (hI : ∀ x (v w : V x), g.inner x (Complex.I • v) (Complex.I • w) = g.inner x v w) (j : ι)
+    (hv : ∀ i ≤ j, ContMDiffOn IM (IB.prod 𝓘(ℝ, F)) n
+      (fun m ↦ (⟨b m, v i m⟩ : TotalSpace F V)) s)
+    (hli : ∀ m ∈ s, LinearIndepOn ℂ (fun i ↦ v i m) (Iic j)) :
+    letI : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
+    letI : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
+    ContMDiffOn IM (IB.prod 𝓘(ℝ, F)) n
+      (fun m ↦ (⟨b m, gramSchmidtNormed ℂ (fun i ↦ v i m) j⟩ : TotalSpace F V)) s := by
+  let : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
+  let : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
+  have hg := g.contMDiffOn_gramSchmidt hI j hv fun m hm ↦ (hli m hm).mono Iio_subset_Iic_self
+  have hc : ContMDiffOn IM 𝓘(ℝ, ℂ) n
+      (fun m ↦ ((‖gramSchmidt ℂ (fun i ↦ v i m) j‖⁻¹ : ℝ) : ℂ)) s :=
+    Complex.ofRealCLM.contMDiff.comp_contMDiffOn ((hg.norm_bundle fun m hm ↦
+      gramSchmidt_ne_zero_coe j (hli m hm)).inv₀ fun m hm ↦
+        norm_ne_zero_iff.2 (gramSchmidt_ne_zero_coe j (hli m hm)))
+  refine (hc.smul_totalSpace hg).congr fun m _ ↦ ?_
+  rw [gramSchmidtNormed, Complex.ofReal_inv]
+  -- As in `contMDiffOn_gramSchmidt`, the two sides differ only in the path to `Module ℂ`.
+  rfl
+
+end GramSchmidt
 
 variable [ContMDiffVectorBundle n F V IB]
 
@@ -167,5 +272,46 @@ theorem exists_unitary_trivialization_of_orthonormal
     simp [e.coe_linearMapAt_of_mem hxe, e, hob, hrep, Finsupp.single_eq_pi_single,
       ht.trivialization_complexDoubledFrame_apply_frame hU b hx]
   simpa [e.coe_linearMapAt_of_mem hxe] using LinearMap.congr_fun key v
+
+
+/-- For a smooth Hermitian metric `(g, hI)` on a smooth complex vector bundle, and a complex
+linear trivialization `e` in the maximal atlas of `C^n` trivializations, each vector of the local
+unitary frame `e.orthonormalFrameAt c b` is a `C^n` section over the base set of `e`: for every
+`w`, the section `y ↦ e.orthonormalFrameAt c b y w` is `C^n` on `e.baseSet`.
+
+This is the complex counterpart of Tau Ceti's
+`Bundle.Trivialization.contMDiffOn_orthonormalBasis_of_mem_maximalAtlas`, with the same proof:
+over `e.baseSet` the frame is made of Gram–Schmidt vectors of the smooth frame `e.symm y (c j)`. -/
+theorem _root_.Bundle.Trivialization.contMDiffOn_orthonormalFrameAt
+    (g : ContMDiffRiemannianMetric IB n F V)
+    (hI : ∀ x (v w : V x), g.inner x (Complex.I • v) (Complex.I • w) = g.inner x v w)
+    (e : Trivialization F (π F V)) [e.IsLinear ℂ]
+    (he : e.toOpenPartialHomeomorph ∈
+      (contMDiffFiberwiseLinear B F IB n).maximalAtlas (TotalSpace F V))
+    {ι : Type*} [Fintype ι] [LinearOrder ι] [LocallyFiniteOrderBot ι] (c : Basis ι ℂ F)
+    {W : Type*} [NormedAddCommGroup W] [InnerProductSpace ℂ W] (b : OrthonormalBasis ι ℂ W)
+    (w : W) :
+    letI : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
+    letI : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
+    ContMDiffOn IB (IB.prod 𝓘(ℝ, F)) n
+      (fun y ↦ (⟨y, e.orthonormalFrameAt c b y w⟩ : TotalSpace F V)) e.baseSet := by
+  let : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
+  let : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
+  have hs (j : ι) : ContMDiffOn IB (IB.prod 𝓘(ℝ, F)) n
+      (fun y ↦ (⟨y, e.symm y (c j)⟩ : TotalSpace F V)) e.baseSet :=
+    (Trivialization.contMDiffOn_section_iff_of_mem_maximalAtlas he subset_rfl).2
+      (contMDiffOn_const.congr fun y hy ↦ by rw [e.apply_mk_symm hy])
+  have hli {y : B} (hy : y ∈ e.baseSet) : LinearIndependent ℂ fun j ↦ e.symm y (c j) := by
+    convert (c.map (e.linearEquivAt ℂ y hy).symm).linearIndependent with j
+    simp [e.linearEquivAt_symm_apply]
+  have hσ (i : ι) : ContMDiffOn IB (IB.prod 𝓘(ℝ, F)) n (fun y ↦ (⟨y,
+      gramSchmidtNormed ℂ (fun j ↦ e.symm y (c j)) i⟩ : TotalSpace F V)) e.baseSet :=
+    g.contMDiffOn_gramSchmidtNormed hI i (fun j _ ↦ hs j) fun y hy ↦ (hli hy).linearIndepOn _
+  refine (ContMDiffOn.sum_sectionAlong Finset.univ
+    (fun i y ↦ ⟪b i, w⟫_ℂ • gramSchmidtNormed ℂ (fun j ↦ e.symm y (c j)) i) contMDiffOn_id
+    fun i _ ↦ contMDiffOn_const.smul_totalSpace (hσ i)).congr fun y hy ↦ ?_
+  rw [e.orthonormalFrameAt_of_mem c b hy, e.orthonormalFrame_apply]
+  simp only [e.orthonormalBasis_apply, e.symmL_apply (R := ℂ) hy]
+
 
 end Bundle.ContMDiffRiemannianMetric
