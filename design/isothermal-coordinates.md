@@ -240,7 +240,9 @@ past that commit deletes them.
 
 Imports `CkHolder.lean`, Tau Ceti's `Beltrami/Isothermal.lean`,
 `Beltrami/Transition.lean`, `Holder/Rescaling.lean` and
-`Symplectic/Cayley/Smooth.lean`. Write `toCLM J z` for
+`Symplectic/Cayley/Smooth.lean`, and, for its proofs only, Tau Ceti's
+`Holder/JetBounds.lean`, `ContDiff/Bounds.lean` and
+`Conformal/PseudoHyperbolic.lean`. Write `toCLM J z` for
 `LinearMap.toContinuousLinearMap (J z).toLinearMap`.
 
 - `exists_contDiffOn_isothermal_chart_of_contDiffAt {m : ℕ} (hm : 1 ≤ m)
@@ -253,9 +255,9 @@ Imports `CkHolder.lean`, Tau Ceti's `Beltrami/Isothermal.lean`,
   With `k = m - 1`: the coefficient is `C^m` at `c` (`Tames.contMDiffAt_cayley`);
   normalized by `L = linearEquiv (μ c)` and read at `c + L⁻¹ x`, it is
   `C^m` at `0`, vanishes there, and its `k`-th derivative is Lipschitz,
-  hence `α`-Hölder, on a ball (`ContDiffAt.exists_lipschitzOnWith`,
-  `LipschitzOnWith.holderOnWith_of_norm_le`); rescaled and cut off by
-  `exists_pos_cutoff_rescale_mem_supportedCkHolderSubmodule` it falls below
+  hence `α`-Hölder, on a ball (`ContDiffAt.exists_ball_bound_iteratedFDeriv`,
+  `ContDiffOn.holderOnWith_iteratedFDeriv_of_lt`); rescaled and cut off by
+  `eventually_exists_ckHolderSpace_cutoff_rescale` it falls below
   the `δ` of `exists_isComplexLinear_contDiff_chart`, which is applied to
   the structure whose coefficient is the rescaled one at every point
   (`coefficientEquiv.symm`, as Tau Ceti's `exists_chart_of_norm_lt` does);
@@ -359,6 +361,13 @@ About 300 lines.
   `CkHolder.lean` follows `TauCeti.Beltrami.exists_isComplexLinear_chart`
   (`Beltrami/Chart.lean`), and `Regularity.lean` the proof of
   `TauCeti.Beltrami.exists_isothermal_chart`; their docstrings credit them.
+  `Regularity.lean` also uses Tau Ceti's
+  `ContDiffOn.holderOnWith_iteratedFDeriv_of_lt` (`Analysis/Holder/JetBounds.lean`,
+  which goes through `LipschitzOnWith.holderOnWith_of_norm_le`),
+  `ContDiffAt.exists_ball_bound_iteratedFDeriv`
+  (`Analysis/Calculus/ContDiff/Bounds.lean`) and
+  `one_sub_conj_mul_ne_zero_of_norm_le_one_of_norm_lt_one`
+  (`Analysis/Complex/Conformal/PseudoHyperbolic.lean`).
 - Mathlib: `HasStrictFDerivAt.toOpenPartialHomeomorph`,
   `OpenPartialHomeomorph.contDiffAt_symm`, `ContDiffBump`,
   `ContinuousLinearEquiv.ofFinrankEq`, `PartialDiffeomorph`,
