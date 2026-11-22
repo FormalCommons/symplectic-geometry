@@ -18,11 +18,12 @@ standard generator of the reduced homology of `TopCat.sphere 1`, which is define
 standard basis of the Euclidean model of the plane. This file reads that generator in `ℂ`: it is
 the generator of the reduced homology of the unit circle of `ℂ` selected by the standard
 orientation `Complex.orientation` (`TauCeti.reducedSingularHomologySphereIsoOfOrientation`),
-carried to `Circle` (`Circle.singularHomologyOneIso_inv_eq`). The identification of
-`TopCat.sphere 1` with `Circle` is induced by the linear isometry from the Euclidean model to `ℂ`
-that sends the standard basis to `1, I`, which carries the standard orientation of the model to
-`Complex.orientation`, and oriented sphere generators are natural under orientation-preserving
-linear isometries (`TauCeti.reducedSingularHomologySphereIsoOfOrientation_hom_naturality`).
+carried to `Circle` (`Circle.singularHomologyOneIso_inv_eq_complexOrientation`). The
+identification of `TopCat.sphere 1` with `Circle` is induced by the linear isometry from the
+Euclidean model to `ℂ` that sends the standard basis to `1, I`, which carries the standard
+orientation of the model to `Complex.orientation`, and oriented sphere generators are natural
+under orientation-preserving linear isometries
+(`TauCeti.reducedSingularHomologySphereIsoOfOrientation_hom_naturality`).
 
 So local orientations of `ℂ` (`OpenPartialHomeomorph.localOrientationOfOrientedChart`), which are
 read through the same oriented generator, can be compared with `Circle.singularHomologyOneIso`
@@ -30,8 +31,9 @@ without any sign.
 
 ## Main results
 
-* `Circle.singularHomologyOneIso_inv_eq`: the inverse of `Circle.singularHomologyOneIso` is the
-  generator of the unit circle of `ℂ` selected by `Complex.orientation`.
+* `Circle.singularHomologyOneIso_inv_eq_complexOrientation`: the inverse of
+  `Circle.singularHomologyOneIso` is the generator of the unit circle of `ℂ` selected by
+  `Complex.orientation`.
 
 ## References
 
@@ -97,7 +99,7 @@ private lemma sphereOneIsoCircleUnlifted_hom_eq :
 inverse of `Circle.singularHomologyOneIso` is the generator of the reduced homology of the unit
 circle of `ℂ` selected by the standard orientation `Complex.orientation`, read in unreduced
 homology and carried to `Circle`. -/
-theorem singularHomologyOneIso_inv_eq :
+theorem singularHomologyOneIso_inv_eq_complexOrientation :
     (singularHomologyOneIso A).inv =
       (reducedSingularHomologySphereIsoOfOrientation A Complex.orientation
           Complex.finrank_real_complex).inv ≫

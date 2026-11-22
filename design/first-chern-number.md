@@ -802,13 +802,25 @@ issues, in an order where each issue's blockers come before it.
    `∂X`, the complement of `ι(M)`. Its topological and smooth files are kept
    apart, so that no Topology file imports Geometry:
    - `AlgebraicTopology/Singular/Circle.lean`, used by
-     `DiscBoundaryClass.lean`: `Circle.singularHomologyOneIso_inv_eq`, the
+     `DiscBoundaryClass.lean`:
+     `Circle.singularHomologyOneIso_inv_eq_complexOrientation`, the
      generator of `Circle.singularHomologyOneIso` is the one of the unit
      circle of `ℂ` selected by `Complex.orientation`.
+   - `Analysis/Normed/Module/Ball/Collar.lean`, used by
+     `DiscBoundaryClass.lean`: in a real normed space the unit sphere is
+     collared in the closed unit ball
+     (`SymplecticGeometry.isCollared_inclusion_sphere_closedBall`), and the
+     open ball is the complement of the sphere in the closed ball
+     (`Metric.range_inclusion_ball_eq_compl`).
+   - `AlgebraicTopology/Singular/LocalHomology/OrientedChart.lean`, used by
+     `DiscBoundaryClass.lean`:
+     `OpenPartialHomeomorph.map_reducedSingularHomologyδ_localOrientationOfOrientedChart_refl`,
+     the local orientation of the identity chart of an oriented inner
+     product space, through the connecting morphism and radial projection,
+     is the oriented generator of the unit sphere.
    - `AlgebraicTopology/Singular/LocalHomology/DiscBoundaryClass.lean`, a
      prerequisite of `BoundaryDegree.lean`: the closed unit disc of `ℂ` in
-     this setting (`SymplecticGeometry.isCollared_inclusion_sphere_closedBall`,
-     `SymplecticGeometry.range_inclusion_ball_eq_compl`) and its boundary
+     this setting, by `Collar.lean`, and its boundary
      class,
      `SymplecticGeometry.singularHomologyOneIso_singularHomologyδ_fundamentalClassRel_closedBall`:
      for the complex orientation of the open disc, the boundary class read
