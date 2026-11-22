@@ -7,7 +7,7 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.Projectivization.EulerSequence
 public import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.Whitney
-public import SymplecticGeometry.Topology.VectorBundle.Orientation.Complex.Tensor
+public import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.Tensor
 
 /-!
 # Chern classes on complex projective space
@@ -19,7 +19,8 @@ class, this file computes the Chern classes of the line bundles `𝒪(k)` (Tau C
 ## Main results
 
 * `Projectivization.chernClass_one_twistCore_add`: `c₁(𝒪(k + l)) = c₁(𝒪(k)) + c₁(𝒪(l))`, from
-  the isomorphism `𝒪(k + l) ≅ 𝒪(k) ⊗ 𝒪(l)` and the Euler class of a tensor product of lines.
+  the isomorphism `𝒪(k + l) ≅ 𝒪(k) ⊗ 𝒪(l)` and
+  `SymplecticGeometry.Bundle.chernClass_one_tensorProduct`.
 * `Projectivization.chernClass_one_twistCore`: `c₁(𝒪(k)) = k h` for every `k : ℤ`, and
   `Projectivization.totalChernClass_twistCore`: `c(𝒪(k)) = 1 + k h`.
 * `Projectivization.totalChernClass_twistPiCore`: `c(𝒪(k)^{⊕ r}) = (1 + k h) ^ r`, by the Whitney
@@ -46,18 +47,14 @@ namespace Projectivization
 
 variable {m : ℕ}
 
-/-- **The first Chern class of a tensor product of the bundles `𝒪(k)`.** On `ℂℙᵐ`,
-`c₁(𝒪(k + l)) = c₁(𝒪(k)) + c₁(𝒪(l))`. -/
+/-- **The first Chern class of `𝒪(k)` is additive in `k`.** On `ℂℙᵐ`,
+`c₁(𝒪(k + l)) = c₁(𝒪(k)) + c₁(𝒪(l))`. It holds since `𝒪(k + l) ≅ 𝒪(k) ⊗ 𝒪(l)`. -/
 theorem chernClass_one_twistCore_add (k l : ℤ) :
     chernClass ℂ (twistCore (𝕜 := ℂ) (n := m) (k + l)).Fiber 1 =
       chernClass ℂ (twistCore (𝕜 := ℂ) (n := m) k).Fiber 1 +
         chernClass ℂ (twistCore (𝕜 := ℂ) (n := m) l).Fiber 1 := by
-  rw [chernClass_one_eq_complexEulerClass _ _ (finrank_self ℂ),
-    chernClass_one_eq_complexEulerClass _ _ (finrank_self ℂ),
-    chernClass_one_eq_complexEulerClass _ _ (finrank_self ℂ), ← map_add,
-    ← TauCeti.complexEulerClass_tensorProduct (finrank_self ℂ) (finrank_self ℂ)]
-  exact congrArg _ (TauCeti.complexEulerClass_eq_of_fiberwise _ _
-    (continuous_twistCoreTensorEquiv (𝕜 := ℂ) (n := m) k l))
+  rw [← chernClass_one_tensorProduct (finrank_self ℂ) (finrank_self ℂ)]
+  exact chernClass_congr _ (continuous_twistCoreTensorEquiv (𝕜 := ℂ) (n := m) k l) 1
 
 /-- **The first Chern class of `𝒪(k)`.** On `ℂℙᵐ`, `c₁(𝒪(k)) = k h`, where `h` is the hyperplane
 class. -/
