@@ -42,7 +42,12 @@ of rank one: Tau Ceti's `TauCeti.FiniteRankBundleCore.det` of the core
   in the form taken by `TauCeti.complexEulerClass_eq_of_fiberwise`;
 * `fiberMap_detCoreMap_trans_symm_hom`: for two fibrewise isomorphisms `Φ` and `Ψ` of bundles
   with the same model, `detCoreMap Ψ ≪≫ (detCoreMap Φ)⁻¹` acts on each fibre as multiplication by
-  the determinant of `Φ⁻¹ ∘ Ψ`.
+  the determinant of `Φ⁻¹ ∘ Ψ`;
+* `fiberMap_detCoreMap_hom_apply`: for bundles with the same model `G`, `detCoreMap Φ` acts on
+  each fibre as the compound matrix in degree `finrank 𝕜 G` of the fibre map of the induced
+  isomorphism of cores;
+* `fiberMap_detCoreTrivialIso_inv_const`: the inverse of `detCoreTrivialIso` preserves constant
+  sections.
 
 ## The determinant section of a frame
 
@@ -57,6 +62,11 @@ second frame `Ψ`, the section of `Ψ` at `y` is that of `Φ` times the determin
 Ceti's `TauCeti.clutchingFunction_eq_mul_normalizedDet_inv`, which compares the clutching
 functions of two frames through the automorphism `(φ y)⁻¹ ∘ ψ y` of the model fibre.
 
+In coordinates, the value of the section at `y` is the top compound matrix of `Φ y` read in the
+preferred trivialization of `E` at `f y` (`detCoreFrameSection_apply`). It depends only on `f y`
+and `Φ y`, so the section is natural under reparametrization of the frame
+(`detCoreFrameSection_comp`).
+
 ## References
 
 * J. W. Milnor, J. D. Stasheff, *Characteristic Classes*, Annals of Mathematics Studies 76,
@@ -68,6 +78,26 @@ public section
 
 open Bundle CategoryTheory Module TauCeti TauCeti.FiniteRankBundleCore TauCeti.Conjugate
 open scoped TensorProduct
+
+namespace TauCeti.CoordinateFunctor
+
+variable {𝕜 : Type*} [NontriviallyNormedField 𝕜] {𝕜' : Type*} [NontriviallyNormedField 𝕜']
+  (Φ : CoordinateFunctor 𝕜 𝕜') {B : Type*} [TopologicalSpace B]
+
+/-- The inverse of `mapCoreTrivialIso`, preceded by the identification of trivial cores of equal
+ranks `Φ.rank n = m`, acts on each fibre by reindexing the coordinates along that equality. -/
+theorem fiberMap_mapCoreTrivialIso_trans_eqToIso_inv_apply {n m : ℕ} (h : Φ.rank n = m) (x : B)
+    (v : Fin (FiniteRankBundleCore.trivial 𝕜' B m).rank → 𝕜') :
+    (Φ.mapCoreTrivialIso B n ≪≫
+      eqToIso (congrArg (FiniteRankBundleCore.trivial 𝕜' B) h)).inv.fiberMap x v =
+      fun i ↦ v (Fin.cast h i) := by
+  rw [Iso.trans_inv, FiniteRankBundleCore.fiberMap_comp, ContinuousLinearMap.comp_apply,
+    fiberMap_mapCoreTrivialIso_inv, eqToIso.inv]
+  funext i
+  exact FiniteRankBundleCore.fiberMap_eqToHom_apply
+    (congrArg (FiniteRankBundleCore.trivial 𝕜' B) h).symm x v i
+
+end TauCeti.CoordinateFunctor
 
 namespace SymplecticGeometry
 
@@ -177,6 +207,24 @@ theorem fiberMap_detCoreMap_trans_symm_hom (Φ Ψ : ∀ x, E x ≃L[𝕜] E₁ x
     ((ofBundleOfFinrankEqFiberEquiv 𝕜 G E₁ rfl x).apply_symm_apply
       (Ψ x (ofBundleOfFinrankEqFiberEquiv 𝕜 G E rfl x v)))
 
+/-- On each fibre, `detCoreMap` of a fibrewise isomorphism `Φ` of bundles with the same model `G`
+is the compound matrix, in degree `finrank 𝕜 G`, of the fibre map of the induced isomorphism of
+cores `ofBundleOfFinrankEqIso`, read through the identifications of the determinant lines with
+exterior powers (`detCore_eq_exteriorPower`). -/
+theorem fiberMap_detCoreMap_hom_apply (Φ : ∀ x, E x ≃L[𝕜] E₁ x)
+    (hΦ : Continuous fun p : TotalSpace G E ↦ TotalSpace.mk' G (E := E₁) p.proj (Φ p.proj p.snd))
+    (x : B) (v : Fin (detCore 𝕜 G E).rank → 𝕜) (i : Fin (detCore 𝕜 G E₁).rank) :
+    (detCoreMap rfl Φ hΦ).hom.fiberMap x v i =
+      ((ofBundleOfFinrankEqIso rfl rfl Φ hΦ).hom.fiberMap x).exteriorPowerCoords (finrank 𝕜 G)
+        (fun j ↦ v (Fin.cast (congrArg rank (detCore_eq_exteriorPower 𝕜 G E)).symm j))
+        (Fin.cast (congrArg rank (detCore_eq_exteriorPower 𝕜 G E₁)) i) := by
+  rw [detCoreMap_def, Iso.trans_hom, Iso.trans_hom, fiberMap_comp, fiberMap_comp,
+    ContinuousLinearMap.comp_apply, ContinuousLinearMap.comp_apply, Functor.mapIso_hom,
+    fiberMap_exteriorPower_map, eqToIso.hom, eqToIso.hom, fiberMap_eqToHom_apply]
+  exact congrArg (fun w ↦ ((ofBundleOfFinrankEqIso rfl rfl Φ hΦ).hom.fiberMap x).exteriorPowerCoords
+    (finrank 𝕜 G) w (Fin.cast (congrArg rank (detCore_eq_exteriorPower 𝕜 G E₁)) i))
+    (funext (fiberMap_eqToHom_apply _ x v))
+
 end SameModel
 
 section Pullback
@@ -213,6 +261,17 @@ theorem detCoreTrivialIso_def :
         (congrArg (exteriorPower 𝕜 B (finrank 𝕜 G)).obj (ofBundleOfFinrankEq_trivial B rfl))) ≪≫
       (CoordinateFunctor.exteriorPower 𝕜 (finrank 𝕜 G)).mapCoreTrivialIso B (finrank 𝕜 G) ≪≫
       eqToIso (congrArg (trivial 𝕜 B) (Nat.choose_self _)) := (rfl)
+
+/-- The inverse of `detCoreTrivialIso` carries a constant section of the trivial line to the same
+constant, read in the coordinates of the determinant line of `B × G`. -/
+theorem fiberMap_detCoreTrivialIso_inv_const (x : B) (c : 𝕜) :
+    (detCoreTrivialIso 𝕜 B G).inv.fiberMap x (fun _ ↦ c) = fun _ ↦ c := by
+  rw [detCoreTrivialIso_def]
+  simp only [Iso.trans_inv, fiberMap_comp, eqToIso.inv, ContinuousLinearMap.comp_apply]
+  funext i
+  rw [fiberMap_eqToHom_apply]
+  exact congrFun (CoordinateFunctor.fiberMap_mapCoreTrivialIso_trans_eqToIso_inv_apply _
+    (Nat.choose_self _) x _) _
 
 end Trivial
 
@@ -445,6 +504,57 @@ theorem detCoreFrameSection_eq_det_smul (y : X) :
       LinearMap.det ((Φ y).symm.trans (Ψ y) : E (f y) →ₗ[𝕜] E (f y)) •
         detCoreFrameSection f Φ hΦ y :=
   isoFiberEquiv_apply_eq_smul _ _ (fiberMap_detCoreFrameIso_trans_symm_hom f hΦ hΨ y) _
+
+/-- **The determinant section of a frame in coordinates.** The value at `y` of the determinant
+section of a frame `Φ` along `f` is the top compound matrix of the automorphism of
+`Fin (finrank 𝕜 G) → 𝕜` that reads `Φ y` in the preferred trivialization of `E` at `f y`,
+applied to the coordinate `1`. In particular it depends only on `f y` and `Φ y`. -/
+theorem detCoreFrameSection_apply (y : X) (i : Fin ((detCore 𝕜 G E).pullback f).rank) :
+    detCoreFrameSection f Φ hΦ y i =
+      (((ContinuousLinearEquiv.ofFinrankEq (finrank_fin_fun 𝕜).symm).symm.trans ((Φ y).trans
+        ((VectorBundle.continuousLinearEquivAt 𝕜 G E (f y)).trans
+          (ContinuousLinearEquiv.ofFinrankEq (finrank_fin_fun 𝕜).symm)))) :
+        (Fin (finrank 𝕜 G) → 𝕜) →L[𝕜] Fin (finrank 𝕜 G) → 𝕜).exteriorPowerCoords (finrank 𝕜 G)
+          (fun _ ↦ 1) (Fin.cast (by simp) i) := by
+  rw [detCoreFrameSection_def, detCoreFrameIso_def, isoFiberEquiv_apply, Iso.trans_hom,
+    Iso.trans_hom, fiberMap_comp, fiberMap_comp, Iso.symm_hom, ContinuousLinearMap.comp_apply,
+    ContinuousLinearMap.comp_apply, eqToIso.hom, fiberMap_eqToHom_apply,
+    fiberMap_detCoreMap_hom_apply (E := Trivial X G) (E₁ := (⇑f) *ᵖ E) Φ,
+    fiberMap_detCoreTrivialIso_inv_const]
+  -- The fibre map of the isomorphism of cores is `Φ y` read through the identifications of the
+  -- fibres of the cores, which are the preferred trivializations at `y` and at `f y`.
+  have hA : (ofBundleOfFinrankEqIso (E₀ := Trivial X G) (E₁ := (⇑f) *ᵖ E) rfl rfl Φ
+        (Pullback.continuous_totalSpaceMk_trivial (φ := fun y ↦ Φ y) hΦ)).hom.fiberMap y =
+      ((ContinuousLinearEquiv.ofFinrankEq (finrank_fin_fun 𝕜).symm).symm.trans ((Φ y).trans
+        ((VectorBundle.continuousLinearEquivAt 𝕜 G E (f y)).trans
+          (ContinuousLinearEquiv.ofFinrankEq (finrank_fin_fun 𝕜).symm))) :
+        (Fin (finrank 𝕜 G) → 𝕜) →L[𝕜] Fin (finrank 𝕜 G) → 𝕜) := by
+    rw [fiberMap_ofBundleOfFinrankEqIso_hom (E₀ := Trivial X G) (E₁ := (⇑f) *ᵖ E) rfl rfl Φ]
+    refine ContinuousLinearMap.ext fun v ↦ ?_
+    refine (ofBundleOfFinrankEqFiberEquiv_pullback_symm_apply E rfl f y
+      (Φ y (ofBundleOfFinrankEqFiberEquiv 𝕜 G (Trivial X G) rfl y v))).trans ?_
+    refine (congrArg (fun u ↦ (ofBundleOfFinrankEqFiberEquiv 𝕜 G E rfl (f y)).symm (Φ y u))
+      (ofBundleOfFinrankEqFiberEquiv_trivial_apply X rfl y v)).trans ?_
+    rw [ofBundleOfFinrankEqFiberEquiv_symm_apply, pointIndexedCoreFiberEquiv_symm_apply]
+    -- What remains is the preferred chart at `f y` applied to `Φ y`, which is how
+    -- `VectorBundle.continuousLinearEquivAt` acts; `v` is typed as a fibre of the core, so the
+    -- rewriting lemmas for compositions of equivalences do not apply.
+    rfl
+  rw [hA]
+  -- The two sides differ only in the proofs inside `Fin.cast`, and in how the rank of the
+  -- determinant line is written in its implicit arguments.
+  rfl
+
+/-- **Naturality of the determinant section of a frame.** Reparametrizing a frame `Φ` along `f`
+by a continuous map `g : Y → X` reparametrizes its determinant section by `g`. -/
+theorem detCoreFrameSection_comp {Y : Type*} [TopologicalSpace Y] (g : C(Y, X))
+    (hΦg : Continuous fun q : Y × G ↦ TotalSpace.mk' G (f (g q.1)) (Φ (g q.1) q.2)) (y : Y) :
+    detCoreFrameSection (f.comp g) (fun y ↦ Φ (g y)) hΦg y =
+      detCoreFrameSection f Φ hΦ (g y) := by
+  funext i
+  rw [detCoreFrameSection_apply, detCoreFrameSection_apply]
+  -- `(f.comp g) y` is `f (g y)` by definition, and the two casts of `i` have the same value.
+  rfl
 
 end Frame
 
