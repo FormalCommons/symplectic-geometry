@@ -230,6 +230,42 @@ private theorem fderiv_gramInChart_trans_eq_zero (φ : PartialDiffeomorph I 𝓘
     hG'z₀] at this ⊢
   linarith [hQ h u v]
 
+/-- In a chart `φ` in which the metric `G` is `(u, v) ↦ ω(u, J₀ v)` for a closed form `ω`, there is
+a symmetric bilinear map `Q` with `Q h (J₀ u) = J₀ (Q h u)` and
+`G z₀ (Q h u) v + G z₀ u (Q h v) = A h u v`, where `A` is the derivative of `G` at `z₀`. -/
+private theorem exists_symm_complexBilinear_fderiv_gramInChart {form : SmoothTwoForm I M}
+    (hform : form.IsClosed) (φ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞)
+    {J₀ : AlmostComplexStructure E} (hc : ContDiffOn ℝ ∞ (gramInChart φ) φ.target)
+    (hGΩ : ∀ z ∈ φ.target, ∀ u v : E,
+      gramInChart φ z u v = mpullback 𝓘(ℝ, E) I φ.symm form.val z ![u, J₀ v])
+    {z₀ : E} (hz₀ : z₀ ∈ φ.target) :
+    ∃ Q : E →L[ℝ] E →L[ℝ] E, (∀ h u, Q h u = Q u h) ∧ (∀ h u, Q h (J₀ u) = J₀ (Q h u)) ∧
+      ∀ h u v, gramInChart φ z₀ (Q h u) v + gramInChart φ z₀ u (Q h v) =
+        fderiv ℝ (gramInChart φ) z₀ h u v := by
+  obtain ⟨hGJ, hA, hAJ, hcyc⟩ := fderiv_gramInChart_symmetries hform φ hc hGΩ hz₀
+  -- The linear algebra of `LinearMap.BilinForm.exists_symm_complexBilinear_apply_add_apply_eq`,
+  -- applied to the metric at `z₀` and its derivative there.
+  let G₀ : LinearMap.BilinForm ℝ E := (gramInChart φ z₀).toLinearMap₁₂
+  have hG₀ (u v : E) : G₀ u v = gramInChart φ z₀ u v := by simp [G₀]
+  let A : E →ₗ[ℝ] E →ₗ[ℝ] E →ₗ[ℝ] ℝ :=
+    (fderiv ℝ (gramInChart φ) z₀).toLinearMap₁₂.compr₂ (ContinuousLinearMap.coeLM ℝ)
+  have hA₀ (h u v : E) : A h u v = fderiv ℝ (gramInChart φ) z₀ h u v := by simp [A]
+  have hsep : G₀.SeparatingLeft := fun v hv ↦ by
+    by_contra h0
+    exact (gramInChart_apply_self_pos φ hz₀ h0).ne' ((hG₀ v v).symm.trans (hv v))
+  have hsymm : G₀.IsSymm :=
+    LinearMap.BilinForm.isSymm_def.2 fun u v ↦ by simpa [hG₀] using gramInChart_comm φ z₀ u v
+  obtain ⟨Ql, hQs, hQJ, hQ⟩ :=
+    LinearMap.BilinForm.exists_symm_complexBilinear_apply_add_apply_eq J₀.square_neg hsep hsymm
+      (A := A) (fun u v ↦ by simpa [hG₀] using hGJ u v)
+      (fun h u v ↦ by simpa [hA₀] using hA h u v)
+      (fun h u v ↦ by simpa [hA₀] using hAJ h u v) (fun h u v ↦ by simpa [hA₀] using hcyc h u v)
+  let Q : E →L[ℝ] E →L[ℝ] E := LinearMap.toContinuousLinearMap
+    ((LinearMap.toContinuousLinearMap : (E →ₗ[ℝ] E) ≃ₗ[ℝ] (E →L[ℝ] E)).toLinearMap ∘ₗ Ql)
+  have hQl (h u : E) : Q h u = Ql h u := by simp [Q]
+  exact ⟨Q, fun h u ↦ by rw [hQl, hQl, hQs], fun h u ↦ by rw [hQl, hQl, hQJ],
+    fun h u v ↦ by simpa [hQl, hG₀, hA₀] using hQ h u v⟩
+
 /-- The construction of an osculating chart from a chart `φ` in which `J` is `J₀` and in which the
 metric is `(u, v) ↦ ω(u, J₀ v)` for a closed form `ω`. The smoothness of the metric in charts
 is a hypothesis, so that the proof runs without the scoped instances of `Bundle`. -/
@@ -245,30 +281,10 @@ private theorem exists_partialDiffeomorph_fderiv_gramInChart_eq_zero_aux
       x₀ ∈ ψ.source ∧
         (∀ p ∈ ψ.target, ∀ w : E, J.chartPushforward ψ.toOpenPartialHomeomorph p w = J₀ w) ∧
         fderiv ℝ (gramInChart ψ) (ψ x₀) = 0 := by
-  have hn : (∞ : WithTop ℕ∞) ≠ 0 := by simp
   set z₀ := φ x₀ with hz₀
   have hz₀t : z₀ ∈ φ.target := φ.map_source hx₀
-  obtain ⟨hGJ, hA, hAJ, hcyc⟩ := fderiv_gramInChart_symmetries hform φ (hc φ) hGΩ hz₀t
-  -- The linear algebra of `LinearMap.BilinForm.exists_symm_complexBilinear_apply_add_apply_eq`,
-  -- applied to the metric at `z₀` and its derivative there.
-  let G₀ : LinearMap.BilinForm ℝ E := (gramInChart φ z₀).toLinearMap₁₂
-  have hG₀ (u v : E) : G₀ u v = gramInChart φ z₀ u v := by simp [G₀]
-  let A : E →ₗ[ℝ] E →ₗ[ℝ] E →ₗ[ℝ] ℝ :=
-    (fderiv ℝ (gramInChart φ) z₀).toLinearMap₁₂.compr₂ (ContinuousLinearMap.coeLM ℝ)
-  have hA₀ (h u v : E) : A h u v = fderiv ℝ (gramInChart φ) z₀ h u v := by simp [A]
-  have hsep : G₀.SeparatingLeft := fun v hv ↦ by
-    by_contra h0
-    exact (gramInChart_apply_self_pos φ hz₀t h0).ne' ((hG₀ v v).symm.trans (hv v))
-  have hsymm : G₀.IsSymm :=
-    LinearMap.BilinForm.isSymm_def.2 fun u v ↦ by simpa [hG₀] using gramInChart_comm φ z₀ u v
-  obtain ⟨Ql, hQs, hQJ, hQ⟩ :=
-    LinearMap.BilinForm.exists_symm_complexBilinear_apply_add_apply_eq J₀.square_neg hsep hsymm
-      (A := A) (fun u v ↦ by simpa [hG₀] using hGJ u v)
-      (fun h u v ↦ by simpa [hA₀] using hA h u v)
-      (fun h u v ↦ by simpa [hA₀] using hAJ h u v) (fun h u v ↦ by simpa [hA₀] using hcyc h u v)
-  let Q : E →L[ℝ] E →L[ℝ] E := LinearMap.toContinuousLinearMap
-    ((LinearMap.toContinuousLinearMap : (E →ₗ[ℝ] E) ≃ₗ[ℝ] (E →L[ℝ] E)).toLinearMap ∘ₗ Ql)
-  have hQl (h u : E) : Q h u = Ql h u := rfl
+  obtain ⟨Q, hQs, hQJ, hQ⟩ :=
+    exists_symm_complexBilinear_fderiv_gramInChart hform φ (hc φ) hGΩ hz₀t
   -- The holomorphic quadratic change of coordinates, and its local inverse.
   set Φ : E → E := fun z ↦ z + (2⁻¹ : ℝ) • Q (z - z₀) (z - z₀) with hΦ
   have hΦd (z : E) : HasFDerivAt Φ (ContinuousLinearMap.id ℝ E + Q (z - z₀)) z := by
@@ -279,7 +295,7 @@ private theorem exists_partialDiffeomorph_fderiv_gramInChart_eq_zero_aux
     ext k
     simp only [add_apply, smul_apply, ContinuousLinearMap.comp_apply, Function.comp_apply,
       ContinuousLinearMap.flip_apply, ContinuousLinearMap.id_apply]
-    rw [hQl, hQl, hQs k]
+    rw [hQs k]
     module
   have hΦc : ContDiff ℝ ∞ Φ := contDiff_id.add
     (((Q.contDiff.comp (contDiff_id.sub contDiff_const)).clm_apply
@@ -308,13 +324,12 @@ private theorem exists_partialDiffeomorph_fderiv_gramInChart_eq_zero_aux
     rw [J.forall_chartPushforward_apply_eq_iff] at hφJ ⊢
     refine J.mfderiv_trans_apply_eq_of_fderiv_apply_eq hφJ fun z _ w ↦ ?_
     rw [(hΘdd z).fderiv, add_apply, add_apply, ContinuousLinearMap.id_apply,
-      ContinuousLinearMap.id_apply, hQl, hQl, hQJ, J₀.apply_add]
+      ContinuousLinearMap.id_apply, hQJ, J₀.apply_add]
   · rw [hψx₀]
-    refine fderiv_gramInChart_trans_eq_zero φ Θd Q hz₀t hz₀Θd (hΘdc ▸ hΦz₀) hΘdd
+    exact fderiv_gramInChart_trans_eq_zero φ Θd Q hz₀t hz₀Θd (hΘdc ▸ hΦz₀) hΘdd
       ((hc φ).contDiffAt (φ.open_target.mem_nhds hz₀t) |>.differentiableAt (by simp))
       ((hc _).contDiffAt ((φ.trans Θd).open_target.mem_nhds hz₀ψ) |>.differentiableAt (by simp))
-      fun h u v ↦ ?_
-    simpa [hQl, hG₀, hA₀] using hQ h u v
+      hQ
 
 end SymplecticGeometry
 
