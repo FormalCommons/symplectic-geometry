@@ -505,6 +505,14 @@ Named like Tau Ceti's file; in `TauCeti`.
 - `IsSmoothFamily.exists_extend`: every smooth family over `unitInterval` is
   the restriction of one over `ℝ`.
 
+### `Geometry/Manifold/ContMDiff/LineMap.lean`
+
+- `ContMDiff.lineMap`: for `C^n` maps `f₁ f₂ : M → V` into a normed space
+  over a nontrivially normed field `𝕜` and a `C^n` map `g : M → 𝕜`,
+  `x ↦ AffineMap.lineMap (f₁ x) (f₂ x) (g x)` is `C^n`; the manifold form
+  of Mathlib's `ContDiff.lineMap`. `DeRham/GoodCover/Basic.lean` imports it
+  for its straight-line contractions.
+
 ### `Geometry/Manifold/DeRham/GoodCover/Basic.lean`
 
 - `SymplecticGeometry.IsSmoothlyContractible (I) (N) : Prop := ∃ (c : N)
