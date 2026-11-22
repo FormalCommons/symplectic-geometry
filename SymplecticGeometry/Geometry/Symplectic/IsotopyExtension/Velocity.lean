@@ -14,6 +14,8 @@ import SymplecticGeometry.Geometry.Manifold.DifferentialForm.LieDeriv
 import SymplecticGeometry.Geometry.Manifold.Instances.Icc
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
 import TauCeti.Geometry.Manifold.ContMDiffMap.Basic
+import TauCeti.Geometry.Manifold.Immersion.LocalDiffeomorph
+import TauCeti.Geometry.Symplectic.Manifold.Flat
 
 /-!
 # Velocity forms of symplectic isotopies
@@ -49,6 +51,10 @@ diffeotopies and the cylinder `[0, 1] × M` of isotopies.
 
 * `TauCeti.SmoothIsotopy.velocityForm_apply`, `TauCeti.SmoothIsotopy.mpullback_prodMk_velocityForm`:
   the velocity form and its slices on a spatial vector `v` give `σ (∂ₜ F (t, x), dF_t v)`.
+* `TauCeti.SmoothIsotopy.eq_mfderiv_of_forall_eq_mpullback_prodMk_velocityForm`: for a
+  nondegenerate `σ` and manifolds of the same dimension, the velocity `∂ₜ F (t, x)` is the only
+  vector at `F (t, x)` whose contraction with `σ`, pulled back by `F_t`, is the slice of the
+  velocity form.
 * `TauCeti.SmoothIsotopy.IsSymplectic.mextDeriv_mpullback_prodMk_velocityForm`: for a closed `σ`,
   the slices of the velocity form of a symplectic isotopy are closed.
 * `TauCeti.SmoothIsotopy.IsSymplectic.refl`, `TauCeti.Diffeotopy.isSymplectic_smoothIsotopy`: the
@@ -178,6 +184,27 @@ theorem mpullback_prodMk_velocityForm (t : unitInterval) (x : P) (v : E') :
   rw [mfderiv_prod_right]
   -- `inr v` is `(0, v)` by definition.
   rfl
+
+variable {σ} in
+/-- **The velocity is determined by the velocity form.** Let `σ` be nondegenerate and let `P` and
+`M` have the same dimension. A vector `Y` at `F (t, x)` whose contraction with `σ`, pulled
+back by `F_t`, is the slice at `x` of the velocity form, is the velocity `∂ₜ F (t, x)`. -/
+theorem eq_mfderiv_of_forall_eq_mpullback_prodMk_velocityForm [FiniteDimensional ℝ E]
+    [FiniteDimensional ℝ E'] [I.Boundaryless] [J.Boundaryless] (hσ : σ.IsNondegenerate)
+    (hd : Module.finrank ℝ E' = Module.finrank ℝ E) {t : unitInterval} {x : P}
+    {Y : TangentSpace I (F (t, x))}
+    (hY : ∀ v : E', σ.val (F (t, x)) ![Y, mfderiv J I (fun y ↦ F (t, y)) x v] =
+      (SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id)
+        (F.velocityForm σ)).val x ![v]) :
+    Y = mfderiv (𝓡∂ 1) I (fun s ↦ F (s, x)) t 1 := by
+  have hloc : IsLocalDiffeomorph J I ∞ (fun y ↦ F (t, y)) :=
+    (F.isSmoothEmbedding t).isImmersion.isLocalDiffeomorph hd (by simp)
+  -- Both vectors contract with `σ` to the same covector on the image of `dF_t`, which is onto.
+  refine (hσ.isInvertible_flat _).injective (ContinuousLinearMap.ext fun w ↦ ?_)
+  obtain ⟨v, rfl⟩ := ((hloc x).isInvertible_mfderiv (by simp)).surjective w
+  rw [SmoothTwoForm.flat_apply, SmoothTwoForm.flat_apply, SmoothBundleForm.eval₂_apply,
+    SmoothBundleForm.eval₂_apply]
+  exact (hY v).trans (mpullback_prodMk_velocityForm σ F t x v)
 
 /-! ### Closedness of the velocity forms -/
 
