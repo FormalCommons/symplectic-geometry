@@ -429,9 +429,12 @@ which has `Matrix.mulVec_injective_of_isUnit`.
 
 ### `LinearAlgebra/Matrix/DotProduct.lean`
 
-A general matrix fact that `Kahler.lean` uses, in namespace `Matrix`:
+General dot-product facts, in namespace `Matrix` unless noted:
 `star_mulVec_dotProduct_mulVec` (a matrix with `Aᴴ * A = 1` preserves
-`star z ⬝ᵥ v`).
+`star z ⬝ᵥ v`), which `Kahler.lean` uses, and
+`insertNth_dotProduct_insertNth` with `Fin.star_insertNth` (an entry
+inserted by `Fin.insertNth` splits off the dot product), which
+`Darboux.lean` uses.
 
 ### `Geometry/Manifold/Projectivization/FubiniStudy/Kahler.lean`
 
