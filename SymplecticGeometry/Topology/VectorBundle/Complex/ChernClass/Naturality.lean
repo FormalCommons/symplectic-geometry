@@ -7,6 +7,7 @@ module
 
 public import TauCeti.AlgebraicTopology.Cohomology.Point
 public import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.Basic
+public import SymplecticGeometry.Topology.VectorBundle.ModelEquiv
 
 /-!
 # Naturality of the Chern classes
@@ -186,17 +187,14 @@ theorem chernClass_congr
     (hφ : Continuous fun v : TotalSpace G E ↦ TotalSpace.mk' G' v.proj (φ v.proj v.snd))
     (k : ℕ) : chernClass G E k = chernClass G' E' k := by
   rcases isEmpty_or_nonempty B with hB | hB
-  · exact (ModuleCat.isZero_iff_subsingleton.1
-      (isZero_singularCohomology_of_isEmpty (R := ModuleCat.of ℤ (ULift.{0} ℤ)) (k := ℤ)
-        (M := ModuleCat.of ℤ ℤ) (TopCat.of B) (2 * k))).elim _ _
+  · exact Subsingleton.elim _ _
   -- The fibres over any point identify the two models.
-  let e : G ≃ₗ[ℂ] G' :=
-    ((VectorBundle.continuousLinearEquivAt ℂ G E (Classical.arbitrary B)).symm.trans
-      ((φ _).trans (VectorBundle.continuousLinearEquivAt ℂ G' E' _))).toLinearEquiv
-  have : FiniteDimensional ℂ G' := e.finiteDimensional
+  have : FiniteDimensional ℂ G' :=
+    (VectorBundle.modelEquiv G G' (Classical.arbitrary B) (φ _)).toLinearEquiv.finiteDimensional
   have hx := singularCohomologyMap_map_projectiveBundleClass (E := E) (E' := E') hφ
   have h := chernClass_eq_singularCohomologyMap_of_projectiveBundle (G := G') (E := E') (G' := G)
-    (E' := E) e.finrank_eq (ContinuousMap.id B) _ (ContinuousMap.ext fun _ ↦ rfl) hx k
+    (E' := E) (VectorBundle.finrank_model_eq φ).symm (ContinuousMap.id B) _
+    (ContinuousMap.ext fun _ ↦ rfl) hx k
   rw [h, TopCat.ofHom_id, TopCat.singularCohomologyMap_id, ModuleCat.id_apply]
 
 /-! ### Trivial bundles -/
