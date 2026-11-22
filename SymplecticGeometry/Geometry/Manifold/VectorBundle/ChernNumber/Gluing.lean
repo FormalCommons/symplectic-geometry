@@ -346,12 +346,13 @@ open CoordinateDisc in
 /-- The coordinate disc `z ↦ φ (3 z / 4)`: its closed disc lies in the inner chart of the
 clutching line bundle, and the complement of its open disc in the outer chart. -/
 private def clutchingDisc : CoordinateDisc o :=
-  φ.comp (affineBall 0 (r := 3 / 4) (by norm_num) (by norm_num))
-    (isOpenEmbedding_affineBall _ _ _) (comap_affineBall_complexHomologicalOrientation _ _ _)
+  φ.comp (affineBall 0 (r := 3 / 4) (add_mul_mem_ball (by norm_num) (by norm_num)))
+    (isOpenEmbedding_affineBall _ _ (by norm_num))
+    (comap_affineBall_complexHomologicalOrientation _ _ (by norm_num))
 
 private theorem clutchingDisc_apply (z : CoordinateDisc.ball) :
-    clutchingDisc φ z = φ (CoordinateDisc.affineBall 0 (r := 3 / 4) (by norm_num)
-      (by norm_num) z) :=
+    clutchingDisc φ z = φ (CoordinateDisc.affineBall 0 (r := 3 / 4)
+      (CoordinateDisc.add_mul_mem_ball (by norm_num) (by norm_num)) z) :=
   φ.comp_apply _ _ _ z
 
 private theorem disc_clutchingDisc_subset :
