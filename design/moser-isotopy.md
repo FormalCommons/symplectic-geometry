@@ -118,7 +118,7 @@ The part owns the folder `Geometry/Symplectic/Moser/`, except
 `Moser/Family.lean`, a file of *Isotopy extension*
 (`design/isotopy-extension.md`). Tau Ceti has the
 files `Geometry/Symplectic/Manifold/Moser.lean` and `RelativeMoser.lean`, so
-this library may not have folders with those names. The seven files outside
+this library may not have folders with those names. The nine files outside
 that folder have the names of the Tau Ceti files they extend, so that they
 can join them.
 
@@ -134,6 +134,8 @@ can join them.
 | `Geometry/Manifold/LocalDiffeomorph/MFDeriv.lean` | the derivative of a transition between partial diffeomorphisms, composed with a differential; the differential of a partial diffeomorphism followed by a continuous linear equivalence (`PartialDiffeomorph.mvfderiv_trans_toDiffeomorph`) | 5 |
 | `Geometry/Symplectic/Moser/Stability.lean` | Moser stability, the milestone | 6 |
 | `Geometry/Manifold/DifferentialForm/Smooth.lean` | `TauCeti.SmoothForm.bilinFormAt` of sums, real multiples, zero, negatives and differences of two-forms; `TauCeti.SmoothForm.funSMulₗ` under sums and constants of functions and under pullback | — |
+| `Geometry/Manifold/ExtChartAt.lean` | the inverse extended chart of `M` at a point of an open subset, as the inverse chart of the subset followed by `Subtype.val` | — |
+| `Geometry/Manifold/DifferentialForm/Opens.lean` | restriction of forms along `Subtype.val` to an open subset: surjectivity, regularity, and the exterior derivative | — |
 | `Geometry/Manifold/TubularNeighborhood/RelativePoincare.lean` | a primitive of the difference of two closed forms with the same pullback to `f(Q)`, as a smooth form on a tube around `f(Q)` | — |
 
 ### `Geometry/Symplectic/Manifold/Family.lean`
@@ -190,12 +192,32 @@ two-forms. It also has the `@[simp]` lemmas `TauCeti.SmoothForm.funSMulₗ_add`,
 coefficient space. The file is about smooth forms in general, so any part may
 import it.
 
+### `Geometry/Manifold/ExtChartAt.lean`
+
+The file has the name of Tau Ceti's file with
+`extChartAt_inclusion_symm_eventuallyEq`. It has
+`TauCeti.extChartAt_subtype_val_symm_eventuallyEq`: for `x` in an open
+`U ⊆ M`, near `extChartAt I x x` the map `(extChartAt I (x : M)).symm` is
+`Subtype.val ∘ (extChartAt I x).symm`.
+
+### `Geometry/Manifold/DifferentialForm/Opens.lean`
+
+The file has the name of Tau Ceti's file on forms on nested open subsets, and
+gives the `Subtype.val` counterparts of its `Opens.inclusion` lemmas, in the
+namespace `TauCeti`: `mpullback_subtype_val_surjective`,
+`contMDiffAt_mpullback_subtype_val_iff`,
+`RoughForm.inChartAt_mpullback_subtype_val_eventuallyEq` and
+`mpullback_subtype_val_mextDeriv`, the last with no regularity hypothesis.
+`RelativePoincare.lean` uses them. The file is about forms in general, so any
+part may import it.
+
 ### `Geometry/Manifold/TubularNeighborhood/RelativePoincare.lean`
 
 The file has the name of Tau Ceti's file that proves
 `TauCeti.SmoothEmbedding.exists_isSmoothForm_relative_primitive`. Its theorems are in
-the namespace `TauCeti.SmoothEmbedding`; the lemmas that *Liouville structures*
-adds beside them for `exists_mextDeriv_eq_and_mpullback_eq` are in `TauCeti`.
+the namespace `TauCeti.SmoothEmbedding`. Its `exists_mextDeriv_eq_and_mpullback_eq`
+extends a primitive from an open subset with the lemmas of
+`Geometry/Manifold/DifferentialForm/Opens.lean`.
 
 - `exists_smoothForm_relative_primitive_sub`: for a smooth embedding `f`,
   closed `η₀ η₁ : SmoothForm I M F (k + 1)` with `f^* η₁ = f^* η₀`, and an
