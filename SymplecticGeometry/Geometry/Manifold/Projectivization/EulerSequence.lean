@@ -7,13 +7,9 @@ module
 
 public import Mathlib.Geometry.Manifold.VectorBundle.Tangent
 public import SymplecticGeometry.Geometry.Manifold.Projectivization.TwistCore
-public import TauCeti.LinearAlgebra.Projectivization.HermitianProjector
+public import SymplecticGeometry.LinearAlgebra.Projectivization.HermitianProjector
 
-import Mathlib.Analysis.Calculus.Deriv.Add
-import Mathlib.Analysis.Calculus.Deriv.Comp
-import Mathlib.Analysis.Calculus.Deriv.Inv
-import Mathlib.Analysis.Calculus.Deriv.Mul
-import Mathlib.Analysis.Calculus.Deriv.Prod
+import SymplecticGeometry.Geometry.Manifold.Instances.Projectivization
 
 /-!
 # The Euler sequence on complex projective space
@@ -37,10 +33,6 @@ splits the sequence, so that `TℂPᵐ ⊕ ℂ ≅ 𝒪(1)^{⊕(m+1)}`.
 * `Projectivization.continuous_eulerSequenceEquiv` and
   `Projectivization.continuous_eulerSequenceEquiv_symm`: it is continuous on total spaces in both
   directions.
-* `Projectivization.fderiv_affineChart_comp_affineChart_symm_apply` and
-  `Projectivization.insertNth_fderiv_affineChart_comp_affineChart_symm`: the derivatives of the
-  transition maps between the standard affine charts, over any nontrivially normed field, which
-  are the coordinate changes of the tangent bundle of projective space.
 
 ## Implementation notes
 
@@ -50,9 +42,10 @@ total spaces is checked in the preferred trivializations at a base point `x₀`:
 coordinate change of the tangent bundle is the derivative of a transition map, that of
 `𝒪(1)^{⊕(m+1)}` is multiplication by `twistTransition 1`, and the two are intertwined by the model
 maps, because the orthogonal projection kills the line. The continuity of the inverse is Tau Ceti's
-`TauCeti.continuous_bundle_symm`. The derivative of a transition map is computed along lines, by
-the one-variable quotient rule. The continuity of the Hermitian projector on a chart follows the
-proof of Tau Ceti's `Projectivization.continuous_hermitianProjector`.
+`TauCeti.continuous_bundle_symm`. The derivative of a transition map is
+`Projectivization.insertNth_fderiv_affineChart_comp_affineChart_symm`. The continuity of the
+Hermitian projector on a chart follows the proof of Tau Ceti's
+`Projectivization.continuous_hermitianProjector`.
 
 ## References
 
@@ -67,111 +60,6 @@ open Bundle Matrix Topology
 open scoped Manifold LinearAlgebra.Projectivization ComplexOrder
 
 namespace Projectivization
-
-/-! ### The transition maps of projective space and their derivatives -/
-
-section Transition
-
-variable {n : ℕ}
-
-section Field
-
-variable {K : Type*} [Field K]
-
-/-- On the standard affine open `U_i`, the homogeneous coordinates `[1 : z]` of a point, with `1`
-in position `i` and `z` its affine coordinates, are its chosen representative divided by its
-`i`-th entry. -/
-theorem insertNth_one_affineChart_eq_inv_smul_rep (i : Fin (n + 1)) {x : ℙ K (Fin (n + 1) → K)}
-    (hx : x ∈ affineOpen i) :
-    Fin.insertNth (α := fun _ ↦ K) i 1 (affineChart i x) = (x.rep i)⁻¹ • x.rep := by
-  ext l
-  rw [← rep_div_rep_eq_insertNth_affineChart l hx, Pi.smul_apply, smul_eq_mul, div_eq_inv_mul]
-
-/-- On the standard affine open `U_i`, the Hermitian projector of a point is that of its
-homogeneous coordinates `[1 : z]` normalized in the chart `i`. -/
-theorem hermitianProjector_eq_rankOneHermitianProjector_insertNth [StarRing K] (i : Fin (n + 1))
-    {x : ℙ K (Fin (n + 1) → K)} (hx : x ∈ affineOpen i) :
-    hermitianProjector x =
-      TauCeti.rankOneHermitianProjector (Fin.insertNth (α := fun _ ↦ K) i 1 (affineChart i x)) := by
-  rw [insertNth_one_affineChart_eq_inv_smul_rep i hx,
-    TauCeti.rankOneHermitianProjector_smul (inv_ne_zero ((mem_affineOpen_iff i x).1 hx)),
-    ← hermitianProjector_mk x.rep x.rep_ne_zero, mk_rep]
-
-end Field
-
-variable {𝕜 : Type*} [NontriviallyNormedField 𝕜]
-
-/-- **The derivative of a transition map of projective space.** Where `w = [1 : z]`, with `1` in
-position `i`, has nonzero `j`-th entry, the transition map from the chart `i` to the chart `j`,
-`z ↦ (w (j.succAbove k) / w j)_k`, has derivative `ζ ↦ ((u (j.succAbove k) w j -
-w (j.succAbove k) u j) / (w j)²)_k` at `z`, where `u = [0 : ζ]` has `0` in position `i`. -/
-theorem fderiv_affineChart_comp_affineChart_symm_apply (i j : Fin (n + 1)) {z : Fin n → 𝕜}
-    (hz : Fin.insertNth (α := fun _ ↦ 𝕜) i 1 z j ≠ 0) (ζ : Fin n → 𝕜) :
-    fderiv 𝕜 (affineChart j ∘ (affineChart i).symm) z ζ = fun k ↦
-      (Fin.insertNth (α := fun _ ↦ 𝕜) i 0 ζ (j.succAbove k) *
-          Fin.insertNth (α := fun _ ↦ 𝕜) i 1 z j -
-        Fin.insertNth (α := fun _ ↦ 𝕜) i 1 z (j.succAbove k) *
-          Fin.insertNth (α := fun _ ↦ 𝕜) i 0 ζ j) /
-        Fin.insertNth (α := fun _ ↦ 𝕜) i 1 z j ^ 2 := by
-  set V := Fin.insertNth (α := fun _ ↦ 𝕜) i 1 z
-  set U := Fin.insertNth (α := fun _ ↦ 𝕜) i 0 ζ
-  have hT : (affineChart j ∘ (affineChart i).symm : (Fin n → 𝕜) → Fin n → 𝕜) = fun z ↦ fun k ↦
-      Fin.insertNth (α := fun _ ↦ 𝕜) i 1 z (j.succAbove k) /
-        Fin.insertNth (α := fun _ ↦ 𝕜) i 1 z j := funext (affineChart_symm_trans_apply i j)
-  have hopen : IsOpen {z : Fin n → 𝕜 | Fin.insertNth (α := fun _ ↦ 𝕜) i 1 z j ≠ 0} :=
-    isOpen_ne_fun ((continuous_apply j).comp
-      ((continuous_const (y := (1 : 𝕜))).finInsertNth (A := fun _ ↦ 𝕜) i continuous_id))
-      continuous_const
-  have hd : DifferentiableAt 𝕜 (affineChart j ∘ (affineChart i).symm) z := by
-    rw [hT]
-    exact ((Fin.contDiffOn_insertNth_one_div (r := 1) i j).contDiffAt
-      (hopen.mem_nhds hz)).differentiableAt one_ne_zero
-  -- Both sides are the derivative at `0` of the transition map along the line `s ↦ z + s • ζ`.
-  have h₁ := hd.hasFDerivAt.comp_hasDerivAt_of_eq (x := (0 : 𝕜)) (f := fun s : 𝕜 ↦ z + s • ζ)
-    (((hasDerivAt_id (0 : 𝕜)).smul_const ζ).const_add z) (by simp)
-  have hline (s : 𝕜) : Fin.insertNth (α := fun _ ↦ 𝕜) i 1 (z + s • ζ) = V + s • U := by
-    ext l
-    induction l using i.succAboveCases <;> simp [V, U]
-  have h₂ : HasDerivAt ((affineChart j ∘ (affineChart i).symm) ∘ fun s : 𝕜 ↦ z + s • ζ)
-      (fun k ↦ (U (j.succAbove k) * V j - V (j.succAbove k) * U j) / V j ^ 2) 0 := by
-    rw [hT]
-    refine hasDerivAt_pi.2 fun k ↦ ?_
-    simp only [Function.comp_def, hline, Pi.add_apply, Pi.smul_apply, smul_eq_mul]
-    have := HasDerivAt.fun_div
-      (HasDerivAt.const_add (V (j.succAbove k))
-        ((hasDerivAt_id (0 : 𝕜)).mul_const (U (j.succAbove k))))
-      (HasDerivAt.const_add (V j) ((hasDerivAt_id (0 : 𝕜)).mul_const (U j))) (by simpa using hz)
-    simpa using this
-  simpa using h₁.unique h₂
-
-/-- **The derivative of a transition map in homogeneous coordinates.** At a point `x` of
-`U_i ∩ U_j`, the derivative of the transition map from the chart `i` to the chart `j` sends `ζ` to
-the vector whose homogeneous form `[0 : ·]`, with `0` in position `j`, is
-`twistTransition 1 i j x • (u - u j • v)`, where `u = [0 : ζ]` has `0` in position `i` and `v` is
-the representative of `x` with `v j = 1`. -/
-theorem insertNth_fderiv_affineChart_comp_affineChart_symm (i j : Fin (n + 1))
-    {x : ℙ 𝕜 (Fin (n + 1) → 𝕜)} (hi : x ∈ affineOpen i) (hj : x ∈ affineOpen j)
-    (ζ : Fin n → 𝕜) :
-    Fin.insertNth (α := fun _ ↦ 𝕜) j 0
-        (fderiv 𝕜 (affineChart j ∘ (affineChart i).symm) (affineChart i x) ζ) =
-      twistTransition 1 i j x • (Fin.insertNth (α := fun _ ↦ 𝕜) i 0 ζ -
-        Fin.insertNth (α := fun _ ↦ 𝕜) i 0 ζ j •
-          Fin.insertNth (α := fun _ ↦ 𝕜) j 1 (affineChart j x)) := by
-  have hi' := (mem_affineOpen_iff i x).1 hi
-  have hj' := (mem_affineOpen_iff j x).1 hj
-  have hV := insertNth_one_affineChart_eq_inv_smul_rep i hi
-  have hz : Fin.insertNth (α := fun _ ↦ 𝕜) i 1 (affineChart i x) j ≠ 0 := by
-    simp [hV, hi', hj']
-  rw [fderiv_affineChart_comp_affineChart_symm_apply i j hz, hV,
-    insertNth_one_affineChart_eq_inv_smul_rep j hj, twistTransition_def, zpow_one]
-  ext l
-  induction l using j.succAboveCases with
-  | x => simp [hj']
-  | p k =>
-    simp only [Fin.insertNth_apply_succAbove, Pi.smul_apply, smul_eq_mul, Pi.sub_apply]
-    field_simp
-
-end Transition
 
 /-! ### The splitting on model fibres -/
 
@@ -234,18 +122,6 @@ private theorem eulerModelInv_apply (i : Fin (m + 1)) (x : ℙ ℂ (Fin (m + 1) 
             Fin.insertNth (α := fun _ ↦ ℂ) i 1 (affineChart i x))) :=
   rfl
 
-/-- On `U_i`, `1 - P` subtracts from a vector its orthogonal projection onto the line spanned by
-the representative `v` of `x` with `v i = 1`. -/
-private theorem one_sub_hermitianProjector_mulVec (i : Fin (m + 1))
-    {x : ℙ ℂ (Fin (m + 1) → ℂ)} (hx : x ∈ affineOpen i) (u : Fin (m + 1) → ℂ) :
-    (1 - hermitianProjector x) *ᵥ u = u -
-      ((star (Fin.insertNth (α := fun _ ↦ ℂ) i 1 (affineChart i x)) ⬝ᵥ u) /
-        (star (Fin.insertNth (α := fun _ ↦ ℂ) i 1 (affineChart i x)) ⬝ᵥ
-          Fin.insertNth (α := fun _ ↦ ℂ) i 1 (affineChart i x))) •
-        Fin.insertNth (α := fun _ ↦ ℂ) i 1 (affineChart i x) := by
-  rw [sub_mulVec, one_mulVec, hermitianProjector_eq_rankOneHermitianProjector_insertNth i hx,
-    TauCeti.rankOneHermitianProjector_mulVec]
-
 private theorem eulerModelInv_eulerModel (i : Fin (m + 1)) {x : ℙ ℂ (Fin (m + 1) → ℂ)}
     (hx : x ∈ affineOpen i) (v : (Fin m → ℂ) × ℂ) :
     eulerModelInv i x (eulerModel i x v) = v := by
@@ -289,16 +165,17 @@ private theorem smul_eulerModel (i j : Fin (m + 1)) {x : ℙ ℂ (Fin (m + 1) �
         (fderiv ℂ (affineChart j ∘ (affineChart i).symm) (affineChart i x) v.1, v.2) := by
   have hvj : Fin.insertNth (α := fun _ ↦ ℂ) j 1 (affineChart j x) =
       twistTransition 1 i j x • Fin.insertNth (α := fun _ ↦ ℂ) i 1 (affineChart i x) := by
-    rw [insertNth_one_affineChart_eq_inv_smul_rep i hi,
-      insertNth_one_affineChart_eq_inv_smul_rep j hj, twistTransition_def, zpow_one, smul_smul,
+    rw [insertNth_one_affineChart_eq_normalizedRep i hi,
+      insertNth_one_affineChart_eq_normalizedRep j hj, normalizedRep_def, normalizedRep_def,
+      LinearMap.proj_apply, LinearMap.proj_apply, twistTransition_def, zpow_one, smul_smul,
       div_mul_eq_mul_div, mul_inv_cancel₀ ((mem_affineOpen_iff i x).1 hi), one_div]
   have hker :
-      (1 - hermitianProjector x) *ᵥ Fin.insertNth (α := fun _ ↦ ℂ) j 1 (affineChart j x) = 0 := by
-    rw [one_sub_hermitianProjector_mulVec j hj,
-      div_self (dotProduct_star_self_eq_zero.not.2 (Fin.insertNth_one_ne_zero j _)), one_smul,
-      sub_self]
+      (1 - hermitianProjector x) *ᵥ Fin.insertNth (α := fun _ ↦ ℂ) j 1 (affineChart j x) = 0 :=
+    one_sub_hermitianProjector_mulVec_of_mem_submodule
+      (insertNth_one_affineChart_eq_normalizedRep j hj ▸ normalizedRep_mem_submodule _ x)
   rw [eulerModel_apply, eulerModel_apply,
-    insertNth_fderiv_affineChart_comp_affineChart_symm i j hi hj, mulVec_smul, mulVec_sub,
+    insertNth_fderiv_affineChart_comp_affineChart_symm i j hi hj, ← zpow_one (_ / _),
+    ← twistTransition_def, mulVec_smul, mulVec_sub,
     mulVec_smul, hker, smul_zero, sub_zero, smul_add, hvj, smul_comm]
 
 private theorem continuousOn_eulerModel (i : Fin (m + 1)) :

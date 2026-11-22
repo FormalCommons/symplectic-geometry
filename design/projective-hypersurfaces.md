@@ -267,6 +267,7 @@ the order of the paths.
 |---|---|---|
 | `AlgebraicTopology/Cohomology/Cap/RationalCoefficients.lean` (addition) | Poincaré duality for rational Betti numbers | 13 |
 | `Geometry/Manifold/Complex/EulerCharacteristic.lean` | real and complex tangent bundles of a complex manifold; $\chi=\langle c_{top},[M]\rangle$ | 7 |
+| `Geometry/Manifold/Instances/Projectivization.lean` | the derivatives of the transition maps of projective space | 3 |
 | `Geometry/Manifold/Projectivization/ChernClass.lean` | $c(\mathcal O(k))$, $c(\mathcal O(k)^{\oplus r})$, $c(T\mathbb CP^m)$ | 6 |
 | `Geometry/Manifold/Projectivization/EulerSequence.lean` | $T\mathbb CP^m\oplus\mathbb C\cong\mathcal O(1)^{\oplus(m+1)}$ | 3 |
 | `Geometry/Manifold/Projectivization/Hypersurface/Basic.lean` | the structure, its manifold structure, the Fermat hypersurfaces | 1 |
@@ -284,6 +285,7 @@ the order of the paths.
 | `Geometry/Manifold/Projectivization/TwistCore.lean` | sums and tensor products of the bundles $\mathcal O(k)$ | 2 |
 | `Geometry/Manifold/SmoothEmbedding/NormalSpace/Splitting.lean` | $TM\oplus\nu\cong f^*TN$ | 4 |
 | `LinearAlgebra/Projectivization/BinaryForm.lean` | a binary form with simple zeros has `d` zeros on $\mathbb CP^1$ | 9 |
+| `LinearAlgebra/Projectivization/HermitianProjector.lean` | the Hermitian projector in the standard affine charts | 3 |
 | `Topology/Algebra/Module/Equiv/Pi.lean` | `ContinuousLinearEquiv.piOptionEquivProd` | 2 |
 
 ### `Geometry/Manifold/Projectivization/Hypersurface/Basic.lean`
@@ -354,6 +356,11 @@ Namespace `Projectivization`, on `ℙ ℂ (Fin (m + 1) → ℂ)`.
   spaces and of its inverse, checked in the charts of both bundles (the
   tangent charts are the affine charts that `twistCore` also uses,
   `chartAt_eq_affineOpenPartialHomeomorph_twistCore_indexAt`).
+- It uses the derivatives of the transition maps from
+  `Geometry/Manifold/Instances/Projectivization.lean`, the Hermitian
+  projector in the charts from
+  `LinearAlgebra/Projectivization/HermitianProjector.lean`, and
+  `normalizedRep` from `LinearAlgebra/Projectivization/Basic.lean`.
 
 ### `Geometry/Manifold/Projectivization/ChernClass.lean`
 
