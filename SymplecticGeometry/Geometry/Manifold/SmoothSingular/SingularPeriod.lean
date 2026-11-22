@@ -26,6 +26,7 @@ theorem. Exact forms integrate to zero on cycles, so the period depends only on 
 * `TauCeti.intIntegrationCochain φ`: the integral of a `p`-form over integral smooth singular
   `p`-chains, `∑ nᵢ σᵢ ↦ ∑ nᵢ ∫_{σᵢ} φ`: Tau Ceti's real `TauCeti.integrationCochain` after the
   change of coefficients.
+* `TauCeti.intIntegrationCochain_sum_apply`: additivity in finitely many continuous forms.
 * `TauCeti.d_comp_intIntegrationCochain`: Stokes' theorem for integral smooth chains.
 * `TauCeti.intIntegrationCochain_naturality`: naturality under smooth maps.
 * `TauCeti.deRhamCohomology.singularHomologyPeriod`: the pairing of `Hᵖ_dR(M)` with the integral
@@ -120,6 +121,22 @@ theorem intIntegrationCochain_add [IsManifold I 1 M] {φ ψ : RoughForm I M F p}
     intIntegrationCochain (φ + ψ) = intIntegrationCochain φ + intIntegrationCochain ψ := by
   rw [intIntegrationCochain, integrationCochain_add hφ hψ, Functor.map_add,
     Preadditive.comp_add, intIntegrationCochain, intIntegrationCochain]
+
+/-- The integral over an integral chain of a finite sum of continuous forms is the sum of their
+integrals. -/
+theorem intIntegrationCochain_sum_apply [IsManifold I 1 M] {ι : Type*} (s : Finset ι)
+    (φ : ι → RoughForm I M F p) (hφ : ∀ i ∈ s, IsSmoothForm I 0 (φ i))
+    (c : ((smoothSingularSubcomplex I M : SSet).chainComplex
+      (ModuleCat.of ℤ (ULift.{0} ℤ))).X p) :
+    (intIntegrationCochain (∑ i ∈ s, φ i)).hom c =
+      ∑ i ∈ s, ((intIntegrationCochain (φ i)).hom c : F) := by
+  classical
+  induction s using Finset.induction_on with
+  | empty => simp
+  | @insert i s hi ih =>
+    rw [Finset.sum_insert hi, intIntegrationCochain_add (hφ i (Finset.mem_insert_self i s))
+      (IsSmoothForm.sum _ _ fun j hj ↦ hφ j (Finset.mem_insert_of_mem hj)), ModuleCat.hom_add,
+      LinearMap.add_apply, ih fun j hj ↦ hφ j (Finset.mem_insert_of_mem hj), Finset.sum_insert hi]
 
 /-- The integral over integral chains is homogeneous in the form. -/
 theorem intIntegrationCochain_smul_apply (a : ℝ) (φ : RoughForm I M F p)

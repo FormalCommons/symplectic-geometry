@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.AlgebraicTopology.SimplicialSet.Homology.Relative.Class
+public import TauCeti.Algebra.Homology.ModuleCat.Basic
 
 /-!
 # Relative classes of simplices
@@ -31,6 +32,9 @@ The proofs adapt those of `SSetPair.relClass₁_cycle`, `SSetPair.relClass₁_ho
 * `SSetPair.relClass_homologyMap`: naturality in maps of pairs.
 * `SSetPair.relClass_homologyδ`: its image under the connecting morphism.
 * `SSetPair.relClass_zero`: in degree one it is `SSetPair.relClass₁`.
+* `SSetPair.exists_sub_sub_d_eq_of_homologyπ_eq`: with coefficients in a module, two ambient
+  chains whose images are relative cycles with the same relative homology class differ by an
+  ambient boundary and a chain of the subcomplex.
 
 ## References
 
@@ -184,6 +188,43 @@ lemma relClass_homologyδ_two (s : Q.right _⦋2⦌) (t : Fin 3 → Q.left _⦋1
   simp [Fin.sum_univ_three, sub_eq_add_neg]
 
 end Abelian
+
+end SSetPair
+
+namespace SSetPair
+
+section ModuleCat
+
+variable {k : Type v} [Ring k] {R : ModuleCat.{w} k} (Q : SSetPair.{w})
+
+/-- **Chains with the same relative class.** Let `x` and `y` be `n`-chains of the ambient
+simplicial set of a pair `Q`, with coefficients in a module, whose images in the relative chains
+are the relative cycles `a` and `b`. If `a` and `b` have the same class in relative homology, then
+`x - y - ∂ B` is the image of an `n`-chain `A` of the subcomplex, for some ambient
+`(n + 1)`-chain `B` (written in degree `p`, the degree before `n` in the complex shape of chain
+complexes). -/
+theorem exists_sub_sub_d_eq_of_homologyπ_eq {n p : ℕ} (hp : (ComplexShape.down ℕ).prev n = p)
+    {a b : (Q.chainComplex R).cycles n}
+    (hab : (Q.chainComplex R).homologyπ n a = (Q.chainComplex R).homologyπ n b)
+    {x y : (Q.right.chainComplex R).X n}
+    (hx : (Q.chainComplexπ R).f n x = (Q.chainComplex R).iCycles n a)
+    (hy : (Q.chainComplexπ R).f n y = (Q.chainComplex R).iCycles n b) :
+    ∃ (B : (Q.right.chainComplex R).X p) (A : (Q.left.chainComplex R).X n),
+      x - y - (Q.right.chainComplex R).d p n B = (SSet.chainComplexMap Q.hom R).f n A := by
+  obtain ⟨β, hβ⟩ := ((Q.chainComplex R).moduleCat_homologyπ_eq_iff hp a b).1 hab
+  obtain ⟨B, rfl⟩ := (ModuleCat.epi_iff_surjective ((Q.chainComplexπ R).f p)).1 inferInstance β
+  obtain ⟨A, hA⟩ := (ShortComplex.moduleCat_exact_iff _).1
+    (ShortComplex.exact_of_g_is_cokernel (ShortComplex.mk _ _ (Q.chainComplex_condition_f R n))
+      (Q.isColimitCokernelCoforkChainComplexX R n))
+    (x - y - (Q.right.chainComplex R).d p n B)
+    (by
+      -- The second map of the short complex is the quotient map to the relative chains.
+      change (Q.chainComplexπ R).f n _ = 0
+      rw [map_sub, map_sub, hx, hy, ← HomologicalComplex.Hom.comm_apply, hβ, sub_self])
+  -- The first map of the short complex is the inclusion of the chains of the subcomplex.
+  exact ⟨B, A, hA.symm⟩
+
+end ModuleCat
 
 end SSetPair
 
