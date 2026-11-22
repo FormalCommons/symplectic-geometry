@@ -274,7 +274,15 @@ compatibility with $d$ (`mpullback_mextDeriv_on`) and with the wedge product
   manifold, finitely many charts `extChartPartialDiffeomorph I ∞ x` with a
   subordinate smooth partition of unity.
 
+### `Analysis/Calculus/ContDiff/Matrix.lean`
+
+- `ContDiffOn.matrix_inv_apply`: a matrix-valued map with `C^n` entries on a
+  set, whose determinant does not vanish there, has an inverse with `C^n`
+  entries there.
+
 ### `Geometry/Manifold/DeRham/Hodge/Chart.lean`
+
+`Chart.lean` imports `Analysis/Calculus/ContDiff/Matrix.lean`.
 
 The coordinate expressions of the metric, the Hodge star and the
 codifferential in a chart `ψ`:
@@ -300,19 +308,21 @@ codifferential in a chart `ψ`:
 
 ### `Geometry/Manifold/DeRham/Hodge/LocalLaplacian.lean`
 
-`LocalLaplacian.lean` imports `LinearAlgebra/BilinearForm/Gram.lean`.
+`LocalLaplacian.lean` imports `LinearAlgebra/BilinearForm/Gram.lean`,
+`Geometry/Manifold/DifferentialForm/PartialDiffeomorph.lean` and
+`Analysis/Normed/Module/Alternating/Uncurry/Fin.lean`.
 
 - `exists_mpullback_symm_hodgeLaplacian_eq`: for a chart `ψ` and a basis `b` of
-  `E`, there are smooth `B : Fin n → E → Λ →L[ℝ] Λ` and `C : E → Λ →L[ℝ] Λ`,
+  `E`, there are smooth `B : Fin m → E → Λ →L[ℝ] Λ` and `C : E → Λ →L[ℝ] Λ`,
   with `Λ = E [⋀^Fin k]→L[ℝ] ℝ`, such that for every smooth `k`-form
   $\alpha$ with expression $a$ and every `y ∈ ψ.target`,
   $(\Delta\alpha)_\psi(y)=-\sum_{ij}G^{ij}(y)\,\partial_{b_i}\partial_{b_j}a(y)
   +\sum_iB_i(y)\,\partial_{b_i}a(y)+C(y)\,a(y)$,
   where $G^{ij}$ is the inverse Gram matrix of `gramInChart ψ y` in `b`.
   The second-order coefficient is computed from
-  `mpullback_symm_codifferential` and `mpullback_mextDeriv_on`, and identified with $G^{ij}$ times the identity
-  by Tau Ceti's `adjoint_wedgeLeft` and
-  `Orientation.koszulDifferential_eq_smul_hodgeStar_wedgeLeft_hodgeStar`.
+  `exists_mpullback_symm_codifferential_eq` and `mpullback_symm_mextDerivₗ`,
+  and identified with $G^{ij}$ times the identity
+  by Tau Ceti's `alternatizeUncurryFin_curryLeft_comp_add_curryLeft`.
 - `exists_mpullback_symm_hodgeLaplacian_transpose_eq`: the same shape for the
   formal transpose for Lebesgue measure of the operator conjugated by the
   fibre metric and the volume density. This is the operator that the weak
@@ -461,6 +471,10 @@ complexification:
 - `ContinuousAlternatingMap.alternatizeUncurryFin_eq_sum_coord_smulRight`:
   for a basis `b`, `alternatizeUncurryFin f` is the sum of the
   alternatizations of `b.coord i • f (b i)`.
+- `ContinuousAlternatingMap.curryLeft_alternatizeUncurryFin_smulRight_add`
+  and `curryLeft_alternatizeUncurryFin_smulRight_zero`: for a covector
+  $\xi$, $\iota_v\varepsilon_\xi+\varepsilon_\xi\iota_v=\xi(v)$ in positive
+  degree, and $\iota_v\varepsilon_\xi=\xi(v)$ in degree $0$.
 
 ### `Analysis/InnerProductSpace/HodgeStar/AlternatingForm.lean`
 
@@ -533,17 +547,26 @@ Beside *Nijenhuis tensor*'s `Integrable.lean`:
   characteristic zero.
   It imports only Mathlib.
 
+### `Geometry/Manifold/DifferentialForm/AlmostComplexType.lean`
+
+- `ContMDiffSection.coe_realAlternatingDerivation`: at each point, Tau
+  Ceti's `realAlternatingDerivation` of an endomorphism field `A` is
+  `fderivCompContinuousLinearMap` at the identity in the direction `A x`,
+  for `hodgeStar_realAlternatingDerivation` below. It imports
+  `Analysis/Normed/Module/Alternating/Derivation.lean`.
+
 ### `Geometry/Manifold/DeRham/Kahler/Identities.lean`
 
 On an oriented manifold with a metric instance satisfying `hg`,
 `ω.IsKahler J` and `J.IsIntegrable`:
 
 - `lefschetz ω : SmoothForm I M ℝ k →ₗ[ℝ] SmoothForm I M ℝ (k + 2)`,
-  $\alpha\mapsto\omega\wedge\alpha$, with `lefschetz_apply`, and
-  `mextDeriv_lefschetz`: $d(L\alpha)=L\,d\alpha$, from $d\omega=0$.
-- `hodgeStar_realAlternatingDerivation`: $\star\mathcal J=\mathcal J\star$
-  on smooth real forms, pointwise from the linear file, since `hg` makes
-  $J$ orthogonal.
+  $\alpha\mapsto\alpha\wedge\omega$, with `lefschetz_apply`, and
+  `mextDerivₗ_lefschetz`: $d(L\alpha)=L\,d\alpha$, from $d\omega=0$.
+- `hodgeStar_realAlternatingDerivation`: $\star\mathcal A=\mathcal A\star$
+  on smooth real forms for the derivation of any fibrewise skew-adjoint
+  endomorphism field, pointwise from the linear file. This gives
+  $\star\mathcal J=\mathcal J\star$, since `hg` makes $J$ orthogonal.
 - `lefschetz_codifferential_sub`: the Kähler identity
   $L\,d^*\alpha-d^*L\alpha=-(\mathcal J\,d\alpha-d\,\mathcal J\alpha)$, at
   each point in the chart of `KahlerCoordinates.lean`, from
@@ -643,9 +666,10 @@ was found, so `ERRATA.md` needs no entry.
   `KahlerCoordinates.lean` and the milestone, and
   `mfderiv_trans_apply_eq_of_fderiv_apply_eq`, which this part adds there.
 - *Almost complex manifolds*, `Geometry/Symplectic/Manifold/AlmostComplex/Metric.lean`
-  (#860): `TauCeti.SmoothTwoForm.Compatible.metric` and `metric_inner`, only
-  in the proof of the milestone. This dependency is new; `DESIGN.md` records
-  it.
+  (#860): `TauCeti.SmoothTwoForm.Compatible.metric` and `metric_inner`, in
+  the proof of the milestone, and `val_eq_alternatingFormEquiv_kahlerForm`,
+  which this part adds there, in `Kahler/Identities.lean`. This dependency
+  is new; `DESIGN.md` records it.
 - *Moser isotopy*, `Geometry/Manifold/LocalDiffeomorph/MFDeriv.lean`
   (merged): `PartialDiffeomorph.mfderivSymmEquiv`, which this part adds
   there, only in the proofs of `DeRham/Hodge/Chart.lean` and
@@ -696,7 +720,7 @@ sub-issues of #874, *Build the part Hodge theory*. Sizes are estimates.
 | 9 | Complex harmonic forms | `DeRham/Hodge/Complex.lean` | 8 | 300 |
 | 10 | The Lefschetz operator and the linear Kähler identity | `Analysis/InnerProductSpace/HodgeStar/Kahler/Lefschetz.lean`, `Analysis/InnerProductSpace/HodgeStar/AlternatingForm.lean`, `Analysis/Normed/Module/Alternating/Derivation.lean`, `Analysis/Normed/Module/Alternating/Uncurry/Fin.lean` | — | 350 |
 | 11 | Osculating holomorphic charts of a Kähler manifold | `Geometry/Manifold/Complex/KahlerCoordinates.lean`, `LinearAlgebra/ComplexStructure/SymmetricBilinear.lean` | 3; #862 | 400 |
-| 12 | The Kähler identity and $[\Delta,\mathcal J]=0$ | `DeRham/Kahler/Identities.lean` | 3, 10, 11 | 400 |
+| 12 | The Kähler identity and $[\Delta,\mathcal J]=0$ | `DeRham/Kahler/Identities.lean`, `Geometry/Manifold/DifferentialForm/AlmostComplexType.lean` | 3, 10, 11 | 400 |
 | 13 | Conjugation on complex de Rham cohomology, and the Hodge decomposition | `Geometry/Manifold/DeRham/ComplexCoefficients.lean`, `DeRham/Kahler/Decomposition.lean` | 9, 12 | 400 |
 | 14 | Hodge numbers, Betti numbers, and the milestone | `DeRham/Kahler/HodgeNumbers.lean` | 13; #860 | 300 |
 

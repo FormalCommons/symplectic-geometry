@@ -2317,7 +2317,9 @@ has either; Tau Ceti's extension across a boundary,
   Tau Ceti (`nijenhuis` and its lemmas, `pullback`, `CovariantDerivative.hom`,
   the eigenbundles of `J`); *Smooth families* (only
   `Geometry/Manifold/LocalDiffeomorph/Basic.lean`, which `Integrable.lean`
-  imports for the local inverse of a local diffeomorphism).
+  imports for the local inverse of a local diffeomorphism); *Moser isotopy*
+  (only `Geometry/Manifold/LocalDiffeomorph/MFDeriv.lean`, merged, which
+  `AlmostComplex/Chart.lean` imports for `PartialDiffeomorph.mfderivSymmEquiv`).
 - **Milestones:** *Nijenhuis tensor*. Existing parts: part 1 is
   `nijenhuis` (a tensor by construction), `nijenhuis_apply` and
   `nijenhuis_antisymm`; part 2 is `nijenhuis_self`, `nijenhuis_apply_left`,
@@ -2563,7 +2565,8 @@ has either; Tau Ceti's extension across a boundary,
   and `Symplectic/Pullback.lean`, and
   `Geometry/Manifold/VectorBundle/Pullback.lean`,
   of *Symplectic vector bundles*; the merged
-  `Geometry/Manifold/DifferentialForm/Flow/Family.lean` of *Contact geometry*.
+  `Geometry/Manifold/DifferentialForm/Pullback/Family.lean` of *Moser
+  isotopy*.
 - **Milestones:** *First Chern class of a nondegenerate two-form*, on a
   Hausdorff σ-compact manifold (for the existence of a compatible $J$). The
   integral class is *First Chern number*'s, the Euler class of the
@@ -2679,7 +2682,7 @@ that file, and the notes here may fall behind it.
 | 1 | *Linear complex structures* | *Standard model*; *Compatible complex structures* (only `LinearAlgebra/Symplectic/Compatible.lean`, which besides Mathlib and Tau Ceti imports only `LinearAlgebra/ComplexStructure/Action.lean` of this part, `Geometry/Symplectic/Darboux/EuclideanBasis.lean` of *Compatible complex structures* itself, which imports only Tau Ceti, `LinearAlgebra/Symplectic/Standard/Basic.lean` of *Standard model* and `LinearAlgebra/Symplectic/Subspace.lean` of *Symplectic vector spaces* (which in turn imports `LinearAlgebra/Matrix/SymplecticGroup/Basic.lean` of *Symplectic group*, which imports only Mathlib and Tau Ceti); all of them are merged. In turn, *Compatible complex structures* uses the merged `LinearAlgebra/ComplexStructure/Action.lean`, `Topology/ComplexStructure/Basic.lean`, `LinearAlgebra/ComplexStructure/Standard.lean` and `Topology/ComplexStructure/Orthogonal.lean` of this part, as its row lists) |
 | 1 | *Siegel upper half space* | *Standard model*; *Lagrangian Grassmannian* (only `LinearAlgebra/Matrix/OfReal.lean`, which imports only Mathlib and Tau Ceti and is merged); *Linear complex structures* (only `LinearAlgebra/ComplexStructure/Action.lean`, which imports only Mathlib and Tau Ceti, `LinearAlgebra/ComplexStructure/Standard.lean`, which besides it imports only *Standard model*, `LinearAlgebra/Symplectic/Compatible.lean` of *Compatible complex structures* (which in turn imports, besides Mathlib and Tau Ceti, only `Action.lean`, `Geometry/Symplectic/Darboux/EuclideanBasis.lean` of *Compatible complex structures*, which imports only Tau Ceti, `LinearAlgebra/Symplectic/Standard/Basic.lean` of *Standard model* and `LinearAlgebra/Symplectic/Subspace.lean` of *Symplectic vector spaces*) and the library's `Geometry/Symplectic/Orientation.lean`, and that file, which imports only Tau Ceti; all of them are merged); *Symplectic group* (only `LinearAlgebra/Matrix/SymplecticGroup/Basic.lean`, which imports only Mathlib and Tau Ceti and is merged) |
 | 1 | *Symplectic vector bundles* | *Standard model*, *Linear Moser*; its existence issue also the two `PolarComplexStructure/` issues of *Compatible complex structures*, its contractibility issue the Cayley domain issue of that part, and its homotopy-equivalence issue those three, none of which waits for another part |
-| 1 | *Hamiltonian flows* | *Smooth families* (only `Diffeotopy/Real.lean`, for `SymplecticIsotopy.lean`, and `ContMDiff/TimeExtension.lean`, for `Flux/CompactSupport.lean`; the other files can start at once); `PoissonAlgebra.lean` imports `Geometry/Manifold/DifferentialForm/Flow/Family.lean` of *Contact geometry*, which imports only Tau Ceti and is merged |
+| 1 | *Hamiltonian flows* | *Smooth families* (only `Diffeotopy/Real.lean`, for `SymplecticIsotopy.lean`, and `ContMDiff/TimeExtension.lean`, for `Flux/CompactSupport.lean`; the other files can start at once); `PoissonAlgebra.lean` imports `Geometry/Manifold/DifferentialForm/Flow/Family.lean` of *Contact geometry*, which besides Tau Ceti imports only `Geometry/Manifold/DifferentialForm/Pullback/Family.lean` of *Moser isotopy* and `Geometry/Manifold/DifferentialForm/SmoothFamily/Basic.lean` of *Smooth families*; all three are merged, so it can start at once |
 | 1 | *Moser isotopy* | *Smooth families* (only `Stability.lean`; the other files can start at once); `Isotopy.lean` derives its theorem from `Moser/Family.lean` of *Isotopy extension* |
 | 1 | *Isothermal coordinates* | *Nijenhuis tensor* (only `Integrable.lean`) |
 | 1 | *Complex submanifolds* | *Nijenhuis tensor* |
@@ -2694,7 +2697,7 @@ that file, and the notes here may fall behind it.
 | 2 | *Complex projective space* | *Complex submanifolds* (only for the corollary in `Kahler.lean`; the other files can start at once) |
 | 3 | *First Chern number* | *Symplectic vector bundles*, the symplectic-loop issues of *Maslov index* |
 | 3 | *Contact geometry* | *Smooth families* (only `Family.lean` and `Gray.lean`, through `ContMDiff/TimeExtension.lean`, `DifferentialForm/TimeExtension.lean` and `Diffeotopy/Real.lean`); *Symplectic neighbourhoods* (only `LegendrianNeighborhood.lean`, through `Lagrangian.lean`); *Moser isotopy* (only `Darboux/Strict.lean`, through `LocalDiffeomorph/MFDeriv.lean`, merged); the other files of the part can start at once |
-| 4 | *First Chern class of nondegenerate forms* | *First Chern number* (only `FirstChernClass.lean`, #784); merged files of *Symplectic vector bundles*; `Geometry/Manifold/DifferentialForm/Flow/Family.lean` of *Contact geometry*, which is merged |
+| 4 | *First Chern class of nondegenerate forms* | *First Chern number* (only `FirstChernClass.lean`, #784); merged files of *Symplectic vector bundles*; `Geometry/Manifold/DifferentialForm/Pullback/Family.lean` of *Moser isotopy*, which is merged |
 | 4 | *Adjunction* | *First Chern number* (only `FirstChernClass.lean`, `ChernNumber/Basic.lean` and `ChernNumber/Axioms.lean`); `NormalSpace/ComplexStructure.lean` and `NormalSplitting.lean` can start at once |
 | 4 | *Chern classes* | *First Chern number* (only `FirstChernClass.lean`, for the comparison of $c_1$); the other issues of its design file can start at once |
 | 5 | *Projective hypersurfaces* | *Chern classes*, *First Chern number* (only Poincaré duality, #810); the bundle isomorphisms on $\mathbb CP^{n+1}$, the normal bundle and the Lefschetz theorems can start at once |

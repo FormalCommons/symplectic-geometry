@@ -328,6 +328,8 @@ theorem timeInterior_mpullback_snd (β : SmoothForm I M F (k + 1)) :
   refine Subtype.ext ?_
   rw [coe_timeInterior, coe_mpullback, interior_mpullback_snd_eq_zero, ZeroMemClass.coe_zero]
 
+/-! ### Time derivatives of pullbacks along `c × f` -/
+
 variable [I.Boundaryless] [J.Boundaryless]
 
 /-- The time derivative of a family reparametrized in time: for a smooth `c : ℝ → ℝ`, the slice at
