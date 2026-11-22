@@ -27,10 +27,11 @@ overlapping pieces agree by uniqueness (`IsMIntegralCurveOn.eqOn_of_isOutwardPoi
 patched flow map is a local diffeomorphism on `∂W × [0, η)`. It is the inclusion on `∂W × {0}`,
 so it is injective on an open neighbourhood of `∂W × {0}`
 (`Set.InjOn.exists_isOpen_superset_isLocalDiffeomorphOn`), which by the tube lemma contains a
-product `∂W × [0, ε)`. Rescaling `[0, 1)` to `[0, ε)` gives the collar. This last part adapts the
-proof of Tau Ceti's `TauCeti.exists_pos_injOn_flowOf_comp`, the uniform width of the Liouville
-collar of a compact hypersurface, from the time interval `(-ε, ε)` of a boundaryless manifold to
-the half-open interval of a boundary.
+product `∂W × [0, ε)`. Rescaling `[0, 1)` to `[0, ε)` gives the collar. This last part uses no
+flow, and is stated on its own as `TauCeti.SmoothCollar.exists_eq_of_isLocalDiffeomorphOn`; it
+adapts the proof of Tau Ceti's `TauCeti.exists_pos_injOn_flowOf_comp`, the uniform width of the
+Liouville collar of a compact hypersurface, from the time interval `(-ε, ε)` of a boundaryless
+manifold to the half-open interval of a boundary.
 
 Since outward fields always exist (Tau Ceti's `TauCeti.exists_isOutwardPointingField`), this
 gives smooth collars of compact boundaries; that corollary is not stated here.
@@ -41,8 +42,8 @@ gives smooth collars of compact boundaries; that corollary is not stated here.
   run at speed `ε`, are the integral curves of an outward field through the boundary points.
 * `TauCeti.SmoothCollar.exists_eq_of_isOutwardPointing_of_subset`: the same, with the image of
   the collar inside a given open neighbourhood of the boundary.
-* `TauCeti.EuclideanHalfSpace.isLocalDiffeomorph_of_val_eq_smul`: multiplication by a positive
-  constant is a local diffeomorphism of the half-space.
+* `TauCeti.SmoothCollar.exists_eq_of_isLocalDiffeomorphOn`: a local diffeomorphism from
+  `∂W × [0, η)` that is the inclusion on `∂W × {0}` gives, after rescaling, a smooth collar.
 
 ## References
 
@@ -58,28 +59,6 @@ open scoped Manifold ContDiff
 namespace TauCeti
 
 open _root_.TauCeti.EuclideanHalfSpace
-
-/-- A map of the half-space `EuclideanHalfSpace m` to itself that multiplies every point by a
-fixed `ε > 0` is a `C^k` local diffeomorphism, for every `k`. -/
-theorem EuclideanHalfSpace.isLocalDiffeomorph_of_val_eq_smul {m : ℕ} [NeZero m] {k : WithTop ℕ∞}
-    {ε : ℝ} (hε : 0 < ε) {f : EuclideanHalfSpace m → EuclideanHalfSpace m}
-    (hf : ∀ t, (f t).val = ε • t.val) : IsLocalDiffeomorph (𝓡∂ m) (𝓡∂ m) k f := by
-  intro t
-  let Θ := ((LinearEquiv.smulOfNeZero ℝ (EuclideanSpace ℝ (Fin m)) ε
-    hε.ne').toContinuousLinearEquiv).toPartialDiffeomorph (n := k)
-  have hΘ : ∀ y : EuclideanSpace ℝ (Fin m), Θ y = ε • y := fun y ↦ by simp [Θ]
-  have h := Θ.isLocalDiffeomorphAt_symm_comp_comp_model (𝓡∂ m) (𝓡∂ m) (x := t)
-    (fun y _ ↦ by
-      simp only [hΘ, range_modelWithCornersEuclideanHalfSpace, mem_ofPred_eq, PiLp.smul_apply,
-        smul_eq_mul]
-      exact ⟨fun hy ↦ nonneg_of_mul_nonneg_right hy hε, fun hy ↦ mul_nonneg hε.le hy⟩)
-    (by simp [Θ])
-  convert h using 1
-  funext s
-  simp only [comp_apply, hΘ]
-  rw [← (𝓡∂ m).left_inv (f s)]
-  congr 1
-  rw [modelWithCornersEuclideanHalfSpace_apply, modelWithCornersEuclideanHalfSpace_apply, hf]
 
 namespace SmoothCollar
 
@@ -127,22 +106,23 @@ private theorem exists_isLocalDiffeomorphOn_of_isOutwardPointing
     mem_normalIio.2 ((mem_normalIio.1 hs).trans_le (hη₀le _ (hit x)))⟩).congr_of_eventuallyEq
     (eventually_of_mem hmem heq)
 
-/-- **A collar along an outward field, inside a given neighbourhood of the boundary.** Let `W` be
-a smooth Hausdorff manifold modelled on the half-space, with compact boundary `∂W`, `Y` a
-smooth vector field pointing outward along `∂W`, and `U` an open set containing `∂W`. There are
-`ε > 0`, a map `Φ : ℝ × ∂W → W` such that each `s ↦ Φ (s, x)` is an integral curve of `Y` on
-`(-ε, 0]` starting at `x`, and a smooth collar `c` with image in `U` whose normal lines are these
-curves run at speed `ε`: `c (x, t) = Φ (-ε t, x)`. -/
-theorem exists_eq_of_isOutwardPointing_of_subset [CompactSpace ↥((𝓡∂ (n + 1)).boundary W)]
-    (hY : IsOutwardPointingField Y) {U : Set W} (hU : IsOpen U)
+omit [IsManifold (𝓡∂ (n + 1)) ∞ W] in
+/-- **A collar from a local diffeomorphism that is the inclusion on the boundary.** Let `W` be a
+Hausdorff manifold modelled on the half-space, with compact boundary `∂W`, `U` an open set
+containing `∂W`, and `F : ∂W × EuclideanHalfSpace 1 → W` a smooth local diffeomorphism on
+`∂W × [0, η)`, for some `η > 0`, with `F (x, 0) = x`. Then for some `0 < ε ≤ η` the map
+`c (x, t) = F (x, normalRay (ε t))`, that is `F (x, ε t)`, on `∂W × [0, 1)` is a smooth collar
+with image in `U`.
+
+The proof adapts that of Tau Ceti's `TauCeti.exists_pos_injOn_flowOf_comp` from the interval
+`(-ε, ε)` to the half-open interval `[0, ε)`. -/
+theorem exists_eq_of_isLocalDiffeomorphOn [CompactSpace ↥((𝓡∂ (n + 1)).boundary W)] {η : ℝ}
+    (hη : 0 < η) {F : (𝓡∂ (n + 1)).boundary W × EuclideanHalfSpace 1 → W}
+    (hF : IsLocalDiffeomorphOn ((𝓡 n).prod (𝓡∂ 1)) (𝓡∂ (n + 1)) ∞ F (univ ×ˢ normalIio η))
+    (hF0 : ∀ x, F (x, 0) = x) {U : Set W} (hU : IsOpen U)
     (hbU : (𝓡∂ (n + 1)).boundary W ⊆ U) :
-    ∃ (ε : ℝ) (Φ : ℝ × (𝓡∂ (n + 1)).boundary W → W) (c : SmoothCollar n ∞ W), 0 < ε ∧
-      (∀ x, Φ (0, x) = x) ∧ (∀ x, IsMIntegralCurveOn (fun s ↦ Φ (s, x)) Y (Ioc (-ε) 0)) ∧
-      (∀ q, c q = Φ (-ε * (q.2 : EuclideanHalfSpace 1).val 0, q.1)) ∧ range c ⊆ U := by
-  obtain ⟨η, Φ, hη, hΦ0, hΦY, hloc⟩ := exists_isLocalDiffeomorphOn_of_isOutwardPointing hY
-  set F := fun q : (𝓡∂ (n + 1)).boundary W × EuclideanHalfSpace 1 ↦ Φ (-q.2.val 0, q.1)
-  have hF0 (x : (𝓡∂ (n + 1)).boundary W) : F (x, 0) = x := by
-    simp [F, val_zero_apply, hΦ0]
+    ∃ ε, 0 < ε ∧ ε ≤ η ∧ ∃ c : SmoothCollar n ∞ W,
+      (∀ q, c q = F (q.1, normalRay (ε * (q.2 : EuclideanHalfSpace 1).val 0))) ∧ range c ⊆ U := by
   -- On `∂W × {0}` the map `F` is the inclusion, so it is injective there, and hence injective
   -- and a local diffeomorphism on an open neighbourhood `O` of `∂W × {0}`.
   set K : Set ((𝓡∂ (n + 1)).boundary W × EuclideanHalfSpace 1) := univ ×ˢ {0}
@@ -154,7 +134,7 @@ theorem exists_eq_of_isOutwardPointing_of_subset [CompactSpace ↥((𝓡∂ (n +
       rintro ⟨a, _⟩ ⟨-, rfl⟩ ⟨b, _⟩ ⟨-, rfl⟩ h
       rw [hF0, hF0] at h
       rw [Subtype.ext h])
-    (isCompact_univ.prod isCompact_singleton) fun q hq ↦ hloc ⟨q, hKη hq⟩
+    (isCompact_univ.prod isCompact_singleton) fun q hq ↦ hF ⟨q, hKη hq⟩
   -- By the tube lemma, the open set `O ∩ F ⁻¹' U` contains a collar of uniform width.
   have hVo : IsOpen (O ∩ F ⁻¹' U) := hlocO.contMDiffOn.continuousOn.isOpen_inter_preimage hOo hU
   have hKV : K ⊆ O ∩ F ⁻¹' U := fun q hq ↦ ⟨hKO hq, by
@@ -185,22 +165,45 @@ theorem exists_eq_of_isOutwardPointing_of_subset [CompactSpace ↥((𝓡∂ (n +
         (EuclideanHalfSpace.isLocalDiffeomorph_of_val_eq_smul hε hσ _))
   have hψinj : Injective ψ := injective_id.prodMap fun s t h ↦
     Subtype.ext (Subtype.ext (smul_right_injective _ hε.ne' (congrArg Subtype.val h)))
-  have hFψ : ∀ p, F (ψ p) = Φ (-ε * (p.2 : EuclideanHalfSpace 1).val 0, p.1) := fun p ↦ by
-    simp [F, ψ, hσ, neg_mul]
+  have hFψ : ∀ p, F (ψ p) = F (p.1, normalRay (ε * (p.2 : EuclideanHalfSpace 1).val 0)) :=
+    fun ⟨x, t⟩ ↦ by
+      simp only [ψ, Prod.map_apply, id_eq, comp_apply]
+      rw [← normalRay_normalCoord (σ t), hσ, PiLp.smul_apply, smul_eq_mul]
   let c : SmoothCollar n ∞ W :=
     { toFun := F ∘ ψ
       isLocalDiffeomorph' := fun p ↦ (hψloc p).comp (hg := hlocO ⟨ψ p, (hsubV (hψ p)).1⟩)
       injective' := fun p q h ↦ hψinj (hinj (hsubV (hψ p)).1 (hsubV (hψ q)).1 h)
-      apply_zero' := fun x ↦ by simp [hFψ, coe_normalIioOpensZero, val_zero_apply, hΦ0] }
-  refine ⟨ε, Φ, c, hε, hΦ0, fun x ↦ (hΦY x).mono
-    (Ioc_subset_Ioc_left (neg_le_neg (min_le_right _ _))), hFψ, ?_⟩
+      apply_zero' := fun x ↦ by
+        rw [comp_apply, hFψ, coe_normalIioOpensZero, val_zero_apply, mul_zero, normalRay_zero,
+          hF0] }
+  refine ⟨ε, hε, min_le_right _ _, c, hFψ, ?_⟩
   rintro _ ⟨p, rfl⟩
   exact (hsubV (hψ p)).2
+
+/-- **A collar along an outward field, inside a given neighbourhood of the boundary.** Let `W` be
+a smooth Hausdorff manifold modelled on the half-space, with compact boundary `∂W`, `Y` a
+smooth vector field pointing outward along `∂W`, and `U` an open set containing `∂W`. There are
+`ε > 0`, a map `Φ : ℝ × ∂W → W` such that each `s ↦ Φ (s, x)` is an integral curve of `Y` on
+`(-ε, 0]` ending at `x`, and a smooth collar `c` with image in `U` whose normal lines are these
+curves run at speed `ε`: `c (x, t) = Φ (-ε t, x)`. -/
+theorem exists_eq_of_isOutwardPointing_of_subset [CompactSpace ↥((𝓡∂ (n + 1)).boundary W)]
+    (hY : IsOutwardPointingField Y) {U : Set W} (hU : IsOpen U)
+    (hbU : (𝓡∂ (n + 1)).boundary W ⊆ U) :
+    ∃ (ε : ℝ) (Φ : ℝ × (𝓡∂ (n + 1)).boundary W → W) (c : SmoothCollar n ∞ W), 0 < ε ∧
+      (∀ x, Φ (0, x) = x) ∧ (∀ x, IsMIntegralCurveOn (fun s ↦ Φ (s, x)) Y (Ioc (-ε) 0)) ∧
+      (∀ q, c q = Φ (-ε * (q.2 : EuclideanHalfSpace 1).val 0, q.1)) ∧ range c ⊆ U := by
+  obtain ⟨η, Φ, hη, hΦ0, hΦY, hloc⟩ := exists_isLocalDiffeomorphOn_of_isOutwardPointing hY
+  obtain ⟨ε, hε, hεη, c, hc, hcU⟩ := exists_eq_of_isLocalDiffeomorphOn hη hloc
+    (fun x ↦ by simp [val_zero_apply, hΦ0]) hU hbU
+  refine ⟨ε, Φ, c, hε, hΦ0, fun x ↦ (hΦY x).mono (Ioc_subset_Ioc_left (neg_le_neg hεη)),
+    fun q ↦ ?_, hcU⟩
+  rw [hc q, normalRay_coe_apply,
+    max_eq_left (mul_nonneg hε.le (q.2 : EuclideanHalfSpace 1).property), neg_mul]
 
 /-- **A collar along an outward field.** Let `W` be a smooth Hausdorff manifold modelled on
 the half-space, with compact boundary `∂W`, and `Y` a smooth vector field pointing outward
 along `∂W`. There are `ε > 0`, a map `Φ : ℝ × ∂W → W` such that each `s ↦ Φ (s, x)` is an
-integral curve of `Y` on `(-ε, 0]` starting at `x`, and a smooth collar `c` whose normal lines
+integral curve of `Y` on `(-ε, 0]` ending at `x`, and a smooth collar `c` whose normal lines
 are these curves run at speed `ε`: `c (x, t) = Φ (-ε t, x)`. -/
 theorem exists_eq_of_isOutwardPointing [CompactSpace ↥((𝓡∂ (n + 1)).boundary W)]
     (hY : IsOutwardPointingField Y) :
