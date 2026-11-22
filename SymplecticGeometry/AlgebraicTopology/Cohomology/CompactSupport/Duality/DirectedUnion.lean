@@ -46,8 +46,9 @@ namespace, so that moving Tau Ceti past them deletes this file without renames.
 
 ## References
 
-* A. Hatcher, *Algebraic Topology*, Cambridge University Press, 2002, Section 3.3, Lemma 3.36 and
-  the proof of Theorem 3.35, the passage to increasing unions of open sets.
+* A. Hatcher, [*Algebraic Topology*](https://pi.math.cornell.edu/~hatcher/AT/AT.pdf),
+  Section 3.3, Lemma 3.36 and the proof of Theorem 3.35: the duality map of an increasing union of
+  open sets is an isomorphism if the duality maps of the members are.
 -/
 
 public section

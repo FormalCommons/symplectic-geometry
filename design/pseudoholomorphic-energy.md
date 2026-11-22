@@ -165,9 +165,10 @@ of Tau Ceti's roadmap that no one has started.
    needs: if a smooth cycle $z$ and a smooth chain $\sigma$ with boundary in
    an open $U$ have the same class in the continuous relative homology
    $H_2(M,U)$, then $z-\sigma=\partial b+c$ with $b$ smooth and $c$ a smooth
-   chain in $U$. This follows by a diagram chase from the absolute smoothing
-   theorem for $M$ and for $U$ (both pinned), with no relative chain
-   complexes; it is one lemma.
+   chain in $U$. This follows from the absolute smoothing theorem for $M$
+   and for $U$ (both pinned): through the relative chains of the pairs of
+   simplicial sets of smooth and of continuous simplices, and Tau Ceti's
+   `SSetPair.quasiIso_chainComplexMap`; it is one lemma.
 
 ## Conventions
 
@@ -177,7 +178,9 @@ of Tau Ceti's roadmap that no one has started.
   `[FiniteDimensional ℝ E] [T2Space M] [SigmaCompactSpace M]` and `M : Type`.
 - **Surface.** `C` (the letter `Σ` is a token) with
   `I' : ModelWithCorners ℝ E' H'`, `[FiniteDimensional ℝ E']`,
-  `[IsManifold I' ∞ C]`, `j : SmoothAlmostComplexStructure I' C`,
+  `[IsManifold I' ∞ C]`, `j : SmoothAlmostComplexStructure I' C`. The pointwise
+  lemmas of `Density.lean` take only `h2 : finrank ℝ E' = 2`; where signs or
+  integration need it, statements take
   `o : Manifold.Orientation I' C (Fin 2)` (which fixes the dimension, by
   `o.finrank_tangentSpace_eq`) and, where signs matter, the hypothesis
   `ho : ∀ c (b : Basis (Fin 2) ℝ (TangentSpace I' c)), b 1 = j c (b 0) → b.orientation = o.orientationAt c`
@@ -198,10 +201,13 @@ of Tau Ceti's roadmap that no one has started.
 | File | Contents |
 |---|---|
 | `Geometry/Symplectic/JHolomorphic/Energy/Density.lean` | the pointwise density $\varepsilon_L$, the squared norm, the pointwise identity |
+| `Geometry/Symplectic/Manifold/AlmostComplex/TopForm.lean` | top forms on a tangent plane of an almost complex surface: equality and ratios read on one frame $(e,je)$, without an orientation |
 | `Geometry/Symplectic/JHolomorphic/Energy/Metric.lean` | the squared norm read in $g_J$ |
 | `Geometry/Symplectic/JHolomorphic/Energy/Surface.lean` | the energy form and its continuity, the energy, the integrated identity, the pseudoholomorphic case, positivity |
 | `Geometry/Manifold/SmoothSingular/SingularPeriod.lean` | the pairing of de Rham classes with integral singular homology |
 | `Geometry/Manifold/SmoothSingular/RelativeCycle.lean` | the relative step of Decision 7 |
+| `AlgebraicTopology/SimplicialSet/Homology/RelativeClass.lean` | the relative class of a simplex whose faces lie in the subcomplex of a pair of simplicial sets, `SSetPair.relClass` |
+| `AlgebraicTopology/Singular/RelativeClass.lean` | the relative class of a singular simplex whose faces lie in the subspace, `TopPair.relClass` |
 | `AlgebraicTopology/Singular/LocalHomology/Orientation/Simplex.lean` | the class of a positively oriented simplex in local homology, in dimension two |
 | `Geometry/Manifold/DeRham/FundamentalClass.lean` | $\int_\Sigma\varphi=\langle[\varphi],[\Sigma]\rangle$ on closed oriented surfaces |
 | `Geometry/Symplectic/JHolomorphic/Energy/Homology.lean` | topological invariance, minimality, the milestone |
@@ -215,7 +221,11 @@ and are placed by topic.
 ### `Energy/Density.lean`
 
 For `c : C`, `x : M` and `L : TangentSpace I' c →ₗ[ℝ] TangentSpace I x`
-(linear suffices, the source being finite-dimensional):
+(linear suffices, the source being finite-dimensional), using the lemmas
+`topForm_ext` and `topForm_apply_div_apply_eq` of
+`Manifold/AlmostComplex/TopForm.lean`, which it imports, and the instance
+`TangentSpace.instNontrivial` of `Geometry/Manifold/IsManifold/Basic.lean`
+(part *Symplectic neighbourhoods*), which it also imports:
 
 - `TauCeti.SmoothTwoForm.energyDensity (ω : SmoothTwoForm I M) (J) (j) (L) :
   TangentSpace I' c [⋀^Fin 2]→L[ℝ] ℝ`, the form $\varepsilon_L$ of Decision 1.
@@ -237,13 +247,15 @@ For `c : C`, `x : M` and `L : TangentSpace I' c →ₗ[ℝ] TangentSpace I x`
   formula for *every* nonzero `e`, on a plane; it holds because numerator and
   denominator are values of the top forms $2\varepsilon_L$ and
   $\mathrm{dvol}$ on the same frame), `normSq_smul_eq_two_smul_energyDensity`
-  (`normSq • dvol c = 2 • energyDensity L` when `dvol` is nonzero on frames
-  at `c`), `normSq_nonneg` under tameness of both forms.
+  (`normSq • dvol c = 2 • energyDensity L` when `dvol c ≠ 0`, which on
+  a plane is being nonzero on frames), `normSq_nonneg` under tameness of both forms.
 - `Invariant.energyDensity_eq_two_smul_add` (Decision 2): for
   `ω.Invariant J`, `ω.energyDensity J j L = 2 • ω.energyDensity J j
   (complexAntilinearPart (j c) (J x) L) + (ω x).compContinuousLinearMap L`
-  (the linear maps of `j c`, `J x` and `L` coerced as needed). Proof on the
-  frame `j.complexFrame o he`, with Tau Ceti's Wirtinger identity, and
+  (for `L : TangentSpace I' c →L[ℝ] TangentSpace I x`, with the linear maps of
+  `j c`, `J x` and `L` coerced as needed). Proof on a
+  frame $(e,je)$, by `SmoothAlmostComplexStructure.topForm_ext` of
+  `Manifold/AlmostComplex/TopForm.lean`, with Tau Ceti's Wirtinger identity, and
   extensionality of top forms on a plane (a top form is its value on a basis
   times the determinant, `AlternatingMap.eq_smul_basis_det`).
 
@@ -318,18 +330,21 @@ For `c : C`, `x : M` and `L : TangentSpace I' c →ₗ[ℝ] TangentSpace I x`
 ### `SmoothSingular/RelativeCycle.lean`
 
 - The lemma of Decision 7, for an open `U : Opens M` of a Hausdorff
-  σ-compact `M` and integral coefficients: a smooth chain `w` whose boundary
+  σ-compact `M`: a smooth chain `w` whose boundary
   is a smooth chain of `U`, and which is zero in the continuous relative
   homology of `(M, U)`, is `∂ b + c` with `b` a smooth chain of `M` and `c` a
-  smooth chain of `U`. Proposed name
-  `TauCeti.exists_smoothSingular_eq_d_add_of_relHomologous` (the issue may
-  adapt it to its neighbours and to how Tau Ceti writes relative chains,
-  `TopPair` in `AlgebraicTopology/Singular/Relative.lean`). Proof: the
-  boundary of `w` is a smooth cycle of `U` that bounds continuously in `U`,
-  so it bounds smoothly in `U`; correct `w` by that chain; the remaining
-  smooth cycle of `M` is continuously homologous to a cycle of `U`, hence
-  smoothly (smoothing for `U`), and the difference bounds smoothly in `M`
-  (smoothing for `M`).
+  smooth chain of `U`. Name `TauCeti.exists_smoothSingular_eq_d_add`. It is
+  stated on elements, for any coefficient module `R : ModuleCat.{u} k`: the
+  vanishing in relative homology is the hypothesis that, as a continuous
+  chain, `w = ∂ B + A` with `A` a chain of `U` (the chain-level meaning of
+  vanishing in the relative chains of `TopPair`), so issue 8 passes from
+  the classes it compares to such a decomposition. Proof: the inclusion of
+  smooth into continuous simplices is a morphism from the pair of smooth
+  simplices of `(M, U)` to that of continuous ones, a quasi-isomorphism on
+  relative chains by smoothing for `U` and for `M` and
+  `SSetPair.quasiIso_chainComplexMap`; the image of `w` in the smooth
+  relative chains is a cycle that bounds continuously, hence smoothly, and
+  lifting that bound gives `b`.
 
 ### `LocalHomology/Orientation/Simplex.lean`
 
@@ -340,9 +355,10 @@ For `c : C`, `x : M` and `L : TangentSpace I' c →ₗ[ℝ] TangentSpace I x`
   `g '' interior (fullSimplex 2)`: `σ` is a relative cycle of
   `(C, C ∖ K)`, and its class is the fundamental class along `K` of the
   correctly signed homological orientation (Decision 6):
-  `SmoothSimplex.relativeClass_eq_fundamentalClassOn`, with the class of a
-  relative cycle as the issue finds it in Tau Ceti or defines it
-  (`SmoothSimplex.relativeClass`). By `eq_fundamentalClassOn` it suffices to
+  `SmoothSimplex.relativeClass_eq_fundamentalClassOn`, the class being
+  `TopPair.relClass` of the underlying singular simplex, from
+  `AlgebraicTopology/Singular/RelativeClass.lean` (it defines no class of its
+  own). By `eq_fundamentalClassOn` it suffices to
   compute the local image at each point of `K`; by the change-of-chart sign
   rule (`OpenPartialHomeomorph.localHomologyMap_restrict_localOrientationOfOrientedChart`)
   and translation invariance this reduces to one affine simplex around `0`
@@ -431,7 +447,8 @@ later.
 
 Each is a few hundred lines; each is blocked by the issues it names.
 
-1. **Energy densities.** `Energy/Density.lean`, all of it. About 350
+1. **Energy densities.** `Energy/Density.lean`, all of it, with
+   `Manifold/AlmostComplex/TopForm.lean`, which it imports. About 350
    lines. No blockers.
 2. **Continuity of the energy form.** In `Energy/Surface.lean`:
    `energyForm` and `isSmoothForm_energyForm`. About 300 lines. Blocked by 1.

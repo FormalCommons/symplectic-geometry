@@ -177,11 +177,12 @@ Further choices:
 | `Geometry/Manifold/Boundary/Collar/Flow/Local.lean` | near one boundary point: the extended field and its flow from the boundary | 5 |
 | `Geometry/Manifold/Boundary/Collar/Flow/Basic.lean` | the collar of a compact boundary along an outward field | 6 |
 | `Geometry/Symplectic/Liouville/Filling.lean` | `IsStrongFilling`, its contact form, its Liouville collar | 7 |
+| `Geometry/Symplectic/Liouville/Scaling.lean` | Liouville scaling along integral curves, on a boundaryless manifold and in the interior of a manifold with boundary, for the collar of `Filling.lean` | 7 |
 | `Geometry/Manifold/Boundary/Collar/End.lean` | attaching the end `[0, ∞) × ∂W` along a smooth collar | 8 |
 | `Geometry/Symplectic/Liouville/Completion.lean` | $\widehat\omega$, $\widehat Y$, $\widehat\lambda$; third milestone | 9, 10 |
 | `Geometry/Symplectic/Liouville/Domain.lean` | the completion of a Liouville domain is a Tau Ceti completion | 11 |
 
-`ContactType.lean`, `Collar.lean`, `StableHamiltonian.lean`,
+`ContactType.lean`, `Collar.lean`, `Scaling.lean`, `StableHamiltonian.lean`,
 `Completion.lean` and `Domain.lean` have the paths of Tau Ceti files and
 extend them. No folder below has the name of a Tau Ceti file at its place:
 Tau Ceti's `Geometry/Manifold/Boundary/Collar/` is a folder with no
@@ -306,7 +307,9 @@ with `α = λ`, `ω = Ω`). It imports
 `SmoothForm.bilinFormAt_smul`, `_neg`, `SmoothForm.mpullback_funSMulₗ`,
 `funSMulₗ_const`, `funSMulₗ_add` and `funSMulₗ_one`, and
 `Geometry/Contact/Symplectization/Basic.lean` for
-`symplectization_eq_funSMulₗ`. Issue 3:
+`symplectization_eq_funSMulₗ`. It imports
+`Geometry/Manifold/DifferentialForm/Flow/Family.lean` of *Contact geometry*
+for `SmoothForm.timeInterior` and `SmoothForm.mextDerivₗ_timeInterior`. Issue 3:
 
 - `isStableHamiltonian_iff_wedge_wedgePow_apply_ne_zero`: for
   `finrank ℝ E = 2 * m + 1`, `IsStableHamiltonian α ω` if and only if `ω` is
@@ -651,7 +654,15 @@ Expected size: 300 lines.
 - *Cotangent bundles*: `Geometry/Manifold/Flow/Basic.lean`, merged, which this
   part extends by the flow of a vector field on a normed space
   (`TauCeti.contDiffOn_flowOf_uncurry`,
-  `TauCeti.hasFDerivAt_flowOf_uncurry_zero`), in `Collar/Flow/Local.lean`.
+  `TauCeti.hasFDerivAt_flowOf_uncurry_zero`), in `Collar/Flow/Local.lean`, and by integral
+  curves as trajectories of the flow (`IsMIntegralCurveOn.sub_mem_flowDomain`,
+  `IsMIntegralCurveOn.flowOf_sub_eq`, `TauCeti.eventuallyEq_flowOf_sub_of_isMIntegralCurveOn`,
+  `TauCeti.contMDiffAt_of_isMIntegralCurveOn`), in `Liouville/Scaling.lean`.
+- *Symplectic neighbourhoods*:
+  `Geometry/Manifold/DifferentialForm/Pullback/LocalDiffeomorph.lean`, merged,
+  which this part extends by
+  `IsLocalDiffeomorph.interior_mextDeriv_mpullback_of_interior_mextDeriv`, in
+  `Liouville/Scaling.lean`.
 - *Moser isotopy*: `Geometry/Symplectic/Manifold/Family.lean`
   (`SmoothTwoForm.isOpen_setOf_nondegenerate_bilinFormAt`), merged, in
   `StableHamiltonian.lean`.

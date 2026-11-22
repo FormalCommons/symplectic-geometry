@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.Geometry.Lie.Exponential.Circle
 public import TauCeti.Geometry.Manifold.DeRham.Circle
 
 /-!
@@ -14,7 +15,8 @@ The angular form `dθ` on the unit circle (`TauCeti.circleAngularForm`), the res
 `x dy - y dx`, is invariant under the rotations of the circle: for every `a : Circle`, the
 pull-back of `dθ` along `w ↦ a * w`, and along `w ↦ w * a`, is `dθ`. In the plane this is the
 invariance of `x dy - y dx = Im (conj z dz)` under multiplication by a complex number of modulus
-one.
+one. The form also takes the value `1` on the velocity of `Circle.exp` at `0`, the generator of
+the Lie algebra of the circle.
 
 ## Main results
 
@@ -22,6 +24,8 @@ one.
   preserves `x dy - y dx`.
 * `TauCeti.mpullback_mul_left_circleAngularForm`, `TauCeti.mpullback_mul_right_circleAngularForm`:
   the rotations of the circle preserve `dθ`.
+* `SymplecticGeometry.circleAngularForm_one_circleLieGenerator`: `dθ` takes the value `1` on the
+  generator `SymplecticGeometry.circleLieGenerator` of the Lie algebra of the circle.
 
 ## References
 
@@ -87,3 +91,20 @@ theorem mpullback_mul_right_circleAngularForm (a : Circle) :
   exact mpullback_mul_left_circleAngularForm a
 
 end TauCeti
+
+namespace SymplecticGeometry
+
+open TauCeti
+
+/-- The angular form of the circle takes the value `1` on the generator of its Lie algebra. -/
+@[simp]
+theorem circleAngularForm_one_circleLieGenerator :
+    circleAngularForm 1 ![circleLieGenerator] = 1 := by
+  have h := circleAngularForm_apply_curveVelocity_circleExp 0
+  rw [Manifold.curveVelocity_apply, Circle.exp_zero] at h
+  convert h using 2
+  funext i
+  fin_cases i
+  exact circleLieGenerator_def
+
+end SymplecticGeometry
