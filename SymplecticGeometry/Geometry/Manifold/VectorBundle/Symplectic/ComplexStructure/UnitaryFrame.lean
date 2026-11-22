@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.Analysis.Matrix.SymplecticGroup.ComplexStructure
 public import SymplecticGeometry.Analysis.Matrix.SymplecticGroup.Maslov
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.ComplexStructure.Basic
+public import SymplecticGeometry.Topology.Algebra.Matrix.GeneralLinearGroup
 public import SymplecticGeometry.Topology.VectorBundle.Complex.Structure
 
 /-!
@@ -152,9 +153,8 @@ theorem Compatible.exists_continuous_GLSymplectic_complexFrame [FiniteDimensiona
       stdComplexStructure_complexToRealEuclidean]
   have hPc : Continuous fun q : X × StdSpace ι ↦
       toEuclideanLin ((P q.1 : GL (ι ⊕ ι) ℝ) : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ) q.2 :=
-    (((continuous_toEuclideanCLM.comp (Units.continuous_val.comp
-      (continuous_subtypeVal.comp hP))).comp continuous_fst).clm_apply continuous_snd).congr
-        fun q ↦ toEuclideanCLM_apply _ _
+    ((((GeneralLinearGroup.continuous_contRep ℝ _).comp (continuous_subtypeVal.comp hP)).comp
+      continuous_fst).clm_apply continuous_snd).congr fun q ↦ by simp
   refine ⟨P, J.toContinuousComplexStructure.frameOfCommute Φ hΦI, hP,
     J.toContinuousComplexStructure.continuous_frameOfCommute Φ hΦI (ι → ℂ) ?_, fun x v ↦ ?_⟩
   · exact (hΨ.comp (continuous_fst.prodMk (hPc.comp (continuous_fst.prodMk
@@ -192,9 +192,9 @@ theorem maslovPhase_inv_mul_mul_eq_normalizedDet {b : B} {Ψ₁ Ψ₂ : StdSpace
   refine GLSymplectic.maslovPhase_eq_normalizedDet _ fun v ↦
     ((toEuclideanCLE _ (P₁ : GL (ι ⊕ ι) ℝ).det_ne_zero).trans Ψ₁).injective ?_
   simp only [ContinuousLinearEquiv.trans_apply, toEuclideanCLE_apply]
-  rw [← h₁, ContinuousLinearEquiv.apply_symm_apply, h₂, hA, GLSymplectic.toEuclideanLin_mul_apply,
-    GLSymplectic.toEuclideanLin_mul_apply,
-    GLSymplectic.toEuclideanLin_apply_toEuclideanLin_inv_apply]
+  rw [← h₁, ContinuousLinearEquiv.apply_symm_apply, h₂, hA]
+  simp only [Subgroup.coe_mul, Units.val_mul, toLpLin_mul_same, LinearMap.comp_apply,
+    Subgroup.coe_inv, GeneralLinearGroup.toEuclideanLin_apply_toEuclideanLin_inv_apply]
 
 end TauCeti.Bundle.ContinuousComplexStructure
 

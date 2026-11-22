@@ -25,6 +25,8 @@ and stated for the whole group.
 * `Matrix.GeneralLinearGroup.contRep`: the standard representation of `GL ι 𝕜` on
   `EuclideanSpace 𝕜 ι`, as a `ContRepresentation`.
 * `Matrix.GeneralLinearGroup.continuous_contRep`: it is continuous in the group element.
+* `Matrix.GeneralLinearGroup.toEuclideanLin_apply_toEuclideanLin_inv_apply`: on
+  `EuclideanSpace 𝕜 ι`, an invertible matrix undoes the action of its inverse.
 -/
 
 public section
@@ -52,6 +54,14 @@ variable (𝕜 ι)
 /-- The standard representation of `GL ι 𝕜` depends continuously on the matrix. -/
 theorem continuous_contRep : Continuous (contRep 𝕜 ι) :=
   continuous_toEuclideanCLM.comp Units.continuous_val
+
+variable {𝕜 ι}
+
+/-- On `EuclideanSpace 𝕜 ι`, an invertible matrix undoes the action of its inverse. -/
+@[simp]
+theorem toEuclideanLin_apply_toEuclideanLin_inv_apply (A : GL ι 𝕜) (v : EuclideanSpace 𝕜 ι) :
+    toEuclideanLin (A : Matrix ι ι 𝕜) (toEuclideanLin ((A⁻¹ : GL ι 𝕜) : Matrix ι ι 𝕜) v) = v := by
+  rw [← LinearMap.comp_apply, ← toLpLin_mul_same, Units.mul_inv, toLpLin_one, LinearMap.id_apply]
 
 end Matrix.GeneralLinearGroup
 

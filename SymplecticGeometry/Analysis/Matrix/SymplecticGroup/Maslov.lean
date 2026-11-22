@@ -62,8 +62,6 @@ move.
   of maps `Y → Sp(2n)`, with `TauCeti.GLSymplectic.maslovPhaseMap` the bundled `ρ`.
 * `TauCeti.GLSymplectic.maslovIndex_toBasedLoop_mul`: the product axiom for loops given as maps
   from the circle.
-* `TauCeti.GLSymplectic.toEuclideanLin_mul_apply`: a product of symplectic matrices acts on
-  `ℝ²ⁿ` as the composite of the actions of its factors.
 * `TauCeti.GLSymplectic.maslovPhase_eq_normalizedDet`: `ρ` of a symplectic matrix that acts on
   `ℝ²ⁿ = ℂⁿ` complex-linearly is its normalized complex determinant.
 * `TauCeti.GLSymplectic.maslovIndex_eq_iff_homotopic`,
@@ -156,25 +154,6 @@ theorem maslovIndex_toBasedLoop_mul (f g : C(Circle, GLSymplectic ι ℝ)) :
   rw [Path.map_coe, Function.comp_apply, ContinuousMap.toBasedLoop_apply, Path.map_coe,
     Function.comp_apply, Path.mul_apply, ContinuousMap.toBasedLoop_apply,
     ContinuousMap.toBasedLoop_apply, ContinuousMap.mul_apply]
-
-/-! ### The action on `StdSpace ι` -/
-
-/-- A product of symplectic matrices acts on `StdSpace ι` as the composite of the actions of its
-factors. -/
-theorem toEuclideanLin_mul_apply (A B : GLSymplectic ι ℝ) (v : SymplecticGeometry.StdSpace ι) :
-    toEuclideanLin (((A * B : GLSymplectic ι ℝ) : GL (ι ⊕ ι) ℝ) : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ) v =
-      toEuclideanLin ((A : GL (ι ⊕ ι) ℝ) : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ)
-        (toEuclideanLin ((B : GL (ι ⊕ ι) ℝ) : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ) v) := by
-  rw [Subgroup.coe_mul, Units.val_mul, toLpLin_mul_same, LinearMap.comp_apply]
-
-/-- A symplectic matrix undoes the action of its inverse on `StdSpace ι`. -/
-theorem toEuclideanLin_apply_toEuclideanLin_inv_apply (A : GLSymplectic ι ℝ)
-    (v : SymplecticGeometry.StdSpace ι) :
-    toEuclideanLin ((A : GL (ι ⊕ ι) ℝ) : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ)
-      (toEuclideanLin (((A⁻¹ : GLSymplectic ι ℝ) : GL (ι ⊕ ι) ℝ) :
-        Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ) v) = v := by
-  rw [← toEuclideanLin_mul_apply, mul_inv_cancel, Subgroup.coe_one, Units.val_one, toLpLin_one,
-    LinearMap.id_apply]
 
 /-! ### Complex-linear symplectic matrices -/
 
