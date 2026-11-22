@@ -282,9 +282,9 @@ private lemma ιTripleTensorChainComplex_comp_eq_model {n m : ℕ}
           m := by
   rw [ιTripleTensorChainComplex_eq_model, Category.assoc, hu]
 
-variable [∀ (X : C) (J : Type w), PreservesColimitsOfShape (Discrete J) (tensorLeft X)]
-  [∀ (X : C) (J : Type w), PreservesColimitsOfShape (Discrete J) (tensorRight X)]
-
+variable [∀ J : Type w, PreservesColimitsOfShape (Discrete J) (tensorLeft R)]
+  [∀ J : Type w, PreservesColimitsOfShape (Discrete J) (tensorLeft (R ⊗ S))]
+  [∀ (X : C) (J : Type w), PreservesColimitsOfShape (Discrete J) (tensorRight X)] in
 /-- Morphisms out of the chains of degree `n` of `(C(K; R) ⊗ C(L; S)) ⊗ C(M; T)` are equal if
 they agree on the summand `SSet.ιTripleTensorChainComplex` of each triple of simplices whose
 dimensions add up to `n`. -/
@@ -296,6 +296,9 @@ lemma tripleTensorChainComplex_X_hom_ext {K L M : SSet.{w}} {n : ℕ} {A : C}
   refine mapBifunctor₁₂.hom_ext fun p q r h ↦ tripleTensorChainComplexX_hom_ext fun x y z ↦ ?_
   rw [mapBifunctor₁₂.ι_eq_whiskerRight _ _ _ p q r (p + q) n rfl h]
   simpa only [ιTripleTensorChainComplex_def, Category.assoc] using H p q r h x y z
+
+variable [∀ (X : C) (J : Type w), PreservesColimitsOfShape (Discrete J) (tensorLeft X)]
+  [∀ (X : C) (J : Type w), PreservesColimitsOfShape (Discrete J) (tensorRight X)]
 
 /-- The natural extension of a family `c` of chains of `(Δ[p] ⊗ Δ[q]) ⊗ Δ[r]` of degree `n + 1`,
 indexed by `p + q + r = n`: the map raising degrees from `(C(K; R) ⊗ C(L; S)) ⊗ C(M; T)` to
