@@ -263,6 +263,10 @@ compatibility with $d$ (`mpullback_mextDeriv_on`) and with the wedge product
   `mpullback I 𝓘(ℝ, E) ψ` on `ψ.source`, not through Tau Ceti's
   `RoughForm.extendByZero` between `Opens`. The regularity issue glues
   local smooth representatives with it.
+- `SmoothForm.localize ψ χ α`: the expression of a smooth form along `ψ`,
+  scaled by `χ ∘ ψ.symm` on `ψ.target` and `0` elsewhere, with its value on
+  `ψ.target`, its support in `ψ '' tsupport χ` and its continuity.
+  `L2.lean` bounds it in `L²`.
 
 ### `Geometry/Manifold/LocalDiffeomorph/ChartCover.lean`
 
