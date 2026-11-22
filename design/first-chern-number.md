@@ -815,7 +815,14 @@ issues, in an order where each issue's blockers come before it.
    `U ∩ V`, both assume `Hⁿ⁺¹_c(U ∩ V; L) = 0`, which injectivity needs in
    the top degree; `TopCat.isZero_compactSupportCohomology_sup`, in the
    library's `AlgebraicTopology/Cohomology/CompactSupport/Vanishing.lean`,
-   passes that vanishing on to `U ∪ V`. The step uses
+   passes that vanishing on to `U ∪ V`, and
+   `TopCat.isZero_compactSupportCohomology_of_iSup_eq_top`, in the same
+   file, to a directed union of open sets. The vanishing starts from
+   `AlgebraicTopology/Cohomology/CompactSupport/Euclidean/Basic.lean`,
+   `TopCat.isZero_compactSupportCohomology_of_starConvex` and
+   `isZero_compactSupportCohomology_of_convex`: `Hᵏ_c(U) = 0` for
+   `k ≠ dim F` when `U` embeds openly in `F` with star-convex or convex
+   image. The step uses
    `Topology/Sets/Opens/Comap.lean`,
    `TopologicalSpace.Opens.range_val_comp_val_comap`, to read an open set of
    `M` as one of `U ∪ V`, and `Algebra/Category/ModuleCat/Basic.lean`,
