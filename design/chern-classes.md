@@ -591,6 +591,18 @@ It uses these copies of Tau Ceti's files of the commit `c9d170eed5`:
   `TopPair.singularChainComplexπ_comp_singularChainComplexMap_of_fst_eq_id`
   is added.
 
+### `AlgebraicTopology/SimplicialSet/TripleAcyclicModels.lean`
+
+Acyclic models for three factors of simplicial chains, which the
+associativity of the cross product of pairs needs:
+`SSet.tripleTensorChainComplexHomotopy`, a chain homotopy between two
+natural families of chain maps
+`(C(K; R) ⊗ C(L; S)) ⊗ C(M; T) ⟶ C((K ⊗ L) ⊗ M; U)` that agree in degree
+zero, and `SSet.tripleTensorChainComplexHomotopy_hom_naturality`. It adds
+the cone `SSet.stdSimplex.tripleProdConeChain` on the chains of
+`(Δ[a] ⊗ Δ[b]) ⊗ Δ[c]` and `SSet.tripleTensorChainComplexXDesc`, the maps
+out of a triple tensor product of chain groups.
+
 ### `AlgebraicTopology/Singular/LocalHomology/Orientation/Cross/Basic.lean`
 
 The cross product of local orientations, for the Whitney file below, in Tau
