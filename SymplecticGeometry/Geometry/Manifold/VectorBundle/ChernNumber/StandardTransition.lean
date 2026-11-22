@@ -20,12 +20,14 @@ Let `M` be a closed smooth surface with an orientation `o`, and `V` a smooth Her
 over `M`, with circle bundle `P = TauCeti.OrthonormalFrameBundle.Fiber ℂ F V ℂ` of unitary
 frames (`Geometry/Manifold/VectorBundle/Hermitian/CircleBundle.lean`). This file proves that `V`
 has unit sections whose transitions on coordinate discs are exactly `(z / ‖z‖) ^ k`
-(`SymplecticGeometry.Bundle.exists_coordinateDisc_unitSection_eq_exp_arg_zpow_smul`): there are
+(`SymplecticGeometry.Bundle.exists_coordinateDisc_unitSection_eq_phase_zpow_smul`): there are
 finitely many coordinate discs `φ i = CoordinateDisc.ofChart (e i) …`, from smooth charts that
 preserve orientation, with pairwise disjoint images, integers `k i`, sections `σ i` of `P` smooth
 on the image of `φ i`, and a section `σout` of `P` smooth off the centres `φ i 0`, such that
-`σout (φ i z) = σ i (φ i z) • (z / ‖z‖) ^ k i` for `0 < ‖z‖ < 1`. Then `∑ i, k i` is the first
-Chern number of `V`, by `SymplecticGeometry.Bundle.chernNumber_eq_sum_of_collar_eq_zpow_smul`.
+`σout (φ i z) = σ i (φ i z) • (φ i).phase (φ i z) ^ k i` for `0 < ‖z‖ < 1`, where the angular
+coordinate `(φ i).phase (φ i z)` (`CoordinateDisc.phase`) is `z / ‖z‖`. Then `∑ i, k i` is
+the first Chern number of `V`, by
+`SymplecticGeometry.Bundle.chernNumber_eq_sum_of_collar_eq_zpow_smul`.
 
 The construction:
 
@@ -51,7 +53,7 @@ The construction:
 
 ## Main results
 
-* `SymplecticGeometry.Bundle.exists_coordinateDisc_unitSection_eq_exp_arg_zpow_smul`: unit
+* `SymplecticGeometry.Bundle.exists_coordinateDisc_unitSection_eq_phase_zpow_smul`: unit
   sections over coordinate discs and off their centres with transitions `(z / ‖z‖) ^ k i`, whose
   sum is the first Chern number.
 
@@ -146,9 +148,10 @@ smooth Hermitian metric `g`. Then there are:
 * sections `σ i` of the circle bundle of unitary frames of `V`, smooth on the image of `φ i`;
 * a section `σout` of the circle bundle, smooth off the centres `φ i 0`,
 
-such that `σout (φ i z) = σ i (φ i z) • (z / ‖z‖) ^ k i` whenever `0 < ‖z‖ < 1`, where
-`z / ‖z‖` is written `Circle.exp (arg z)`, and `∑ i, k i` is the first Chern number of `V`. -/
-theorem exists_coordinateDisc_unitSection_eq_exp_arg_zpow_smul
+such that `σout (φ i z) = σ i (φ i z) • (φ i).phase (φ i z) ^ k i` whenever `0 < ‖z‖ < 1`, the
+angular coordinate `(φ i).phase (φ i z)` being `z / ‖z‖`, and `∑ i, k i` is the first Chern
+number of `V`. -/
+theorem exists_coordinateDisc_unitSection_eq_phase_zpow_smul
     (o : Manifold.Orientation (𝓡 2) M (Fin 2)) :
     letI : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
     letI : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
@@ -172,7 +175,7 @@ theorem exists_coordinateDisc_unitSection_eq_exp_arg_zpow_smul
           (fun x ↦ ManifoldTotalSpace.homeomorph Circle (Fiber ℂ F V ℂ) ⟨x, σout x⟩)
           {x | ∀ i, x ≠ φ i 0} ∧
         (∀ i (z : CoordinateDisc.ball), 0 < ‖(z : ℂ)‖ → ‖(z : ℂ)‖ < 1 →
-          σout (φ i z) = op (Circle.exp (arg z) ^ k i) • σ i (φ i z)) ∧
+          σout (φ i z) = op ((φ i).phase (φ i z) ^ k i) • σ i (φ i z)) ∧
         ∑ i, k i = chernNumber (o.toHomologicalOrientation finrank_euclideanSpace_fin)
           finrank_euclideanSpace_fin F V := by
   classical
@@ -252,12 +255,13 @@ theorem exists_coordinateDisc_unitSection_eq_exp_arg_zpow_smul
           hx (by rw [h, hφ0 i]; exact i.property)).contMDiffWithinAt
   -- on the punctured unit disc, `σout = τ i • (z / ‖z‖) ^ k i`
   have hrel (i : ι) (z : CoordinateDisc.ball) (hz : 0 < ‖(z : ℂ)‖) (hz1 : ‖(z : ℂ)‖ < 1) :
-      σout (φ i z) = op (Circle.exp (arg z) ^ k i) • τ i (φ i z) := by
+      σout (φ i z) = op ((φ i).phase (φ i z) ^ k i) • τ i (φ i z) := by
     have hprod : ∏ j, G j (φ i z) = c i z := by simp [hGφ]
     have hdiv : division Circle (τ i (φ i z)) (ν (φ i z)) = w i z := by
       simp only [w]
       rw [hψ i z]
-    rw [← hck i z hz hz1.le, ← hdiv, ← hprod, op_mul, mul_smul, smul_division]
+    rw [CoordinateDisc.phase_def, CoordinateDisc.coord_apply, ← hck i z hz hz1.le, ← hdiv,
+      ← hprod, op_mul, mul_smul, smul_division]
   refine ⟨ι, inferInstance, e, r, hr, hc, he, φ, fun i ↦ rfl, hatlas, hrdisj, k,
     fun i ↦ τ i, σout, fun i ↦ (hτ i).mono (hrU i),
     hσout.mono fun x hx h ↦ hx ⟨x, h⟩ (hzero h), hrel, ?_⟩
@@ -266,8 +270,7 @@ theorem exists_coordinateDisc_unitSection_eq_exp_arg_zpow_smul
     zero_lt_one (fun i ↦ ManifoldTotalSpace.continuousOn_of_contMDiffOn_homeomorph
       ((hτ i).mono ((φ i).disc_subset_range.trans (hrU i))))
     (ManifoldTotalSpace.continuousOn_of_contMDiffOn_homeomorph
-      (hσout.mono fun x hx h ↦ hx ?_)) k fun i z hz hz1 ↦ by
-        rw [CoordinateDisc.phase_def, CoordinateDisc.coord_apply]; exact hrel i z hz hz1).symm
+      (hσout.mono fun x hx h ↦ hx ?_)) k fun i z hz hz1 ↦ hrel i z hz hz1).symm
   exact mem_iUnion.2 ⟨⟨x, h⟩, 0, by simp, (hzero h).symm⟩
 
 end Surface
