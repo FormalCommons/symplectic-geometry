@@ -304,10 +304,9 @@ theorem boundaryMaslovIndex_eq_zero_of_extend_Ici (oM : HomologicalOrientation M
     haveI : CompactSpace (g ⁻¹' Iic 0) :=
       isCompact_iff_compactSpace.1 (isClosed_Iic.preimage hg.continuous).isCompact
     (oM.comap (TopologicalSpace.Opens.isOpenEmbedding' _)).boundaryMaslovIndex hn
-        (IsOpenEmbedding.inclusion _
-          ((isOpen_Iio.preimage hg.continuous).preimage continuous_subtypeVal))
-        ((range_inclusion _).trans (isCollared_inclusion_levelSet hg h0).2.symm)
-        (isCollared_inclusion_levelSet hg h0).1 Ψ = 0 :=
+        (SymplecticGeometry.isOpenEmbedding_inclusion_preimage_Iio hg.continuous)
+        (SymplecticGeometry.range_inclusion_preimage_Iio hg.continuous)
+        (SymplecticGeometry.isCollared_inclusion_levelSet hg h0) Ψ = 0 :=
   oM.boundaryDegree_eq_zero_of_extend_Ici hn hg h0 (maslovPhaseMap.comp Φ) fun z ↦ by
     rw [ContinuousMap.comp_apply, ContinuousMap.comp_apply, hΦ]
 
@@ -434,10 +433,9 @@ theorem symplecticChernNumber_eq_boundaryMaslovIndex
       isCompact_iff_compactSpace.1 (isClosed_Iic.preimage hg.continuous).isCompact
     symplecticChernNumber oM hn G σ =
       (oM.comap (TopologicalSpace.Opens.isOpenEmbedding' _)).boundaryMaslovIndex hn
-        (IsOpenEmbedding.inclusion _
-          ((isOpen_Iio.preimage hg.continuous).preimage continuous_subtypeVal))
-        ((range_inclusion _).trans (SymplecticGeometry.isCollared_inclusion_levelSet hg h0).2.symm)
-        (SymplecticGeometry.isCollared_inclusion_levelSet hg h0).1 Ψ := by
+        (SymplecticGeometry.isOpenEmbedding_inclusion_preimage_Iio hg.continuous)
+        (SymplecticGeometry.range_inclusion_preimage_Iio hg.continuous)
+        (SymplecticGeometry.isCollared_inclusion_levelSet hg h0) Ψ := by
   have : CompactSpace (g ⁻¹' Iic 0) :=
     isCompact_iff_compactSpace.1 (isClosed_Iic.preimage hg.continuous).isCompact
   -- Every fibre carries one of the symplectic frames.

@@ -352,10 +352,9 @@ theorem boundaryDegree_eq_zero_of_extend_Ici (oM : HomologicalOrientation M E 2)
     haveI : CompactSpace (g ⁻¹' Iic 0) :=
       isCompact_iff_compactSpace.1 (isClosed_Iic.preimage hg.continuous).isCompact
     (oM.comap (TopologicalSpace.Opens.isOpenEmbedding' _)).boundaryDegree hn
-        (IsOpenEmbedding.inclusion _
-          ((isOpen_Iio.preimage hg.continuous).preimage continuous_subtypeVal))
-        ((range_inclusion _).trans (SymplecticGeometry.isCollared_inclusion_levelSet hg h0).2.symm)
-        (SymplecticGeometry.isCollared_inclusion_levelSet hg h0).1 u = 0 := by
+        (SymplecticGeometry.isOpenEmbedding_inclusion_preimage_Iio hg.continuous)
+        (SymplecticGeometry.range_inclusion_preimage_Iio hg.continuous)
+        (SymplecticGeometry.isCollared_inclusion_levelSet hg h0) u = 0 := by
   -- The argument principle for the trivial line bundle, with the section `1` over `{g ≤ 0}` and
   -- the section `v` over `{g ≥ 0}`; the Euler class of the trivial bundle vanishes.
   have h := VectorBundleOrientation.evalFundamentalClass_complexEulerClass_eq_boundaryDegree
