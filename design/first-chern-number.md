@@ -1165,7 +1165,8 @@ issues, in an order where each issue's blockers come before it.
 8. **Capping a surface with boundary.**
    `Geometry/Manifold/Gluing/CapDiscs/`, a folder of its own beside Tau
    Ceti's `Geometry/Manifold/Gluing/`, whose gluing it uses, with the
-   glued smooth surface in `Basic.lean`: a compact
+   glued smooth surface in `Basic.lean` and its point-set topology
+   (Hausdorff, compact, connected) in `Topology.lean`: a compact
    oriented surface with boundary, in the representation of *Symplectic
    vector bundles*, with its boundary circles parametrized by
    orientation-reversing loops, glued to discs along them, is a closed
