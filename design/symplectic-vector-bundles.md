@@ -1328,9 +1328,10 @@ $[0,1]$ is never fed to the lemma with `P = ℝ` directly.
   on a normed space `W` with `[FiniteDimensional ℝ W]` and
   `finrank ℝ W = finrank ℝ F`, every point has an
   open neighbourhood `U` and a frame `Φ` with `ω.IsSymplecticFrameOn σ U Φ`:
-  choose a linear equivalence `e : W ≃L[ℝ] F`, apply the previous result to
-  the form `σ` moved to `F` along `e`, and compose `e` with the inverses of
-  the fibre maps of that trivialization. This is the form in which *First
+  the Darboux sections of the first item give a frame for `stdForm (Fin k)`
+  over `U` by `exists_isSymplecticFrameOn_of_darboux`, and
+  `IsSymplecticFrameOn.precomp` with a linear symplectomorphism from `σ`
+  to `stdForm (Fin k)` turns it into one for `σ`. This is the form in which *First
   Chern number* takes frames over discs.
 
 ## Classification
