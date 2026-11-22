@@ -219,7 +219,7 @@ Further choices of this design:
 | `Analysis/Calculus/DifferentialForm/Poincare.lean` | a closed form on a star-convex open set, vanishing on a compact star-convex subset, has a global primitive near it that vanishes on it (named like Tau Ceti's file) |
 | `Topology/MetricSpace/ProperSpace/Lemmas.lean` | in a proper pseudometric space, an open set containing a closed ball contains a larger ball, open or closed (used by `Ball/Basic.lean`, `Ball/Moser.lean` and *First Chern number*'s `DiscComplement/Basic.lean`; named like Mathlib's file) |
 | `Geometry/Symplectic/IsotopyExtension/Ball/Basic.lean` | `IsSymplecticBallEmbedding`, `IsSymplecticBallFamily`, enlarging a symplectic ball |
-| `Geometry/Manifold/ContMDiff/Opens.lean` | a map composed, on an open subset, with a smooth map of that subset over a parameter space is smooth there (used by `Ball/Moser.lean`) |
+| `Geometry/Manifold/ContMDiff/Opens.lean` | a map that agrees, on a parameter space times an open subset, with a smooth map there is smooth there, and a map composed there with a smooth map of that subset over the parameter space is smooth there (used by `Ball/Moser.lean`, and the first by `DeRham/FamilyPrimitive.lean` and `VectorBundle/Tangent/Opens.lean`) |
 | `Geometry/Symplectic/IsotopyExtension/Ball/Moser.lean` | Moser's correction of a family of balls with a parameter (step 3 of `Ball/Isotopy.lean`) |
 | `Geometry/Symplectic/IsotopyExtension/Ball/Isotopy.lean` | the Hamiltonian ball extension and the milestone *Symplectic ball extension* |
 | `Geometry/Manifold/DeRham/HomologyPeriod.lean` | periods of a smooth family of closed one-forms depend smoothly on the parameter |

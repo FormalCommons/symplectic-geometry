@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Geometry.Manifold.ContMDiffMFDeriv
+public import SymplecticGeometry.Geometry.Manifold.ContMDiff.Opens
 public import TauCeti.Geometry.Manifold.ContMDiff.Subtype
 public import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
 
@@ -32,7 +33,8 @@ The proof of `TauCeti.Manifold.contMDiffOn_tangentSpaceOpenEquiv_dite` adapts th
 `TauCeti/Geometry/Contact/Gray/Distribution.lean` at commit
 034344347f0ca1144bf5ae35c82e3edaf848fca5 (Tau Ceti pull request #773), which the pinned version
 of Tau Ceti does not have. Both proofs read the open subset of the product as a manifold, map it
-into `N × U` by `q ↦ (q.1, ⟨q.2, _⟩)`, and compose with the tangent map of the inclusion `U → M`.
+into `N × U` by `q ↦ (q.1, ⟨q.2, _⟩)`, and compose with the tangent map of the inclusion `U → M`;
+here the first two steps are those of `ContMDiff.contMDiffOn_prod_opens_of_eq`.
 -/
 
 public section
@@ -60,19 +62,10 @@ theorem contMDiffOn_tangentSpaceOpenEquiv_dite [IsManifold I ∞ M] {U : Opens M
       (fun p : N × M ↦ (⟨p.2, if h : p.2 ∈ U then
         tangentSpaceOpenEquiv (I := I) ⟨p.2, h⟩ (Y (p.1, ⟨p.2, h⟩)) else 0⟩ : TangentBundle I M))
       (Prod.snd ⁻¹' (U : Set M)) := by
-  set W : Opens (N × M) := ⟨Prod.snd ⁻¹' (U : Set M), U.isOpen.preimage continuous_snd⟩
-  -- The points of `W`, read in `N × U`.
-  set φ : W → N × U := fun q ↦ (q.val.1, ⟨q.val.2, q.property⟩)
-  have hφ : ContMDiff (J.prod I) (J.prod I) ∞ φ :=
-    (contMDiff_fst.comp contMDiff_subtypeVal).prodMk
-      ((ContMDiff.subtypeVal_comp_iff U _).1 (contMDiff_snd.comp contMDiff_subtypeVal))
-  have hcomp := (ContMDiff.contMDiff_tangentMap (m := ∞)
-    (contMDiff_subtypeVal (I := I) (U := U) (n := ∞)) (by simp)).comp (hY.comp hφ)
-  intro p hp
-  refine (contMDiffAt_subtype_iff (U := W) (x := ⟨p, hp⟩)).1
-    ((hcomp ⟨p, hp⟩).congr_of_eventuallyEq (.of_forall fun q ↦ ?_)) |>.contMDiffWithinAt
-  have hq : (q : N × M).2 ∈ U := q.property
-  simp only [Function.comp_apply, tangentMap_subtype_val, φ, hq, ↓reduceDIte]
+  rw [← univ_prod]
+  refine ContMDiff.contMDiffOn_prod_opens_of_eq ((ContMDiff.contMDiff_tangentMap (m := ∞)
+    (contMDiff_subtypeVal (I := I) (U := U) (n := ∞)) (by simp)).comp hY) fun t x hx ↦ ?_
+  simp only [Function.comp_apply, tangentMap_subtype_val, hx, ↓reduceDIte]
 
 /-- **A tangent vector field of `M`, read on an open subset.** Let `f : N → U` be a map into an
 open subset `U` of `M` and `V z ∈ T_{f z} M` a family of tangent vectors of `M` along it, smooth

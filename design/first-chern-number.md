@@ -197,10 +197,12 @@ core of prerequisite 1:
   `h : finrank ℂ (Fin D.rank → ℂ) = 0 + 1` comes from
   `FiniteRankBundleCore.rank_det` (`D.rank` is `1` only through that
   lemma, not by definition); and `firstChernClass_def` by `(rfl)`.
-- `firstChernClass_pullback (f : C(B', B))`: the class of `f *ᵖ E` is the
-  pull-back of the class of `E`, from the pull-back equality of
-  prerequisite 1 and
-  `TauCeti.complexEulerClass_eq_singularCohomologyMap_of_fiberwise`.
+- `firstChernClass_pullback (f : K)`, for any `[ContinuousMapClass K B' B]`:
+  the class of `f *ᵖ E` is the pull-back of the class of `E`, from the
+  pull-back equality of prerequisite 1 and
+  `TauCeti.complexEulerClass_eq_singularCohomologyMap_of_fiberwise`, and
+  `firstChernClass_congr` along the identity of each fibre, since the
+  instances on `f *ᵖ E` depend on the type of `f`.
 - `firstChernClass_congr`: a complex-linear fibrewise isomorphism, continuous
   on total spaces, preserves the class. Prerequisite 1 turns it into one of
   the determinants, and `TauCeti.complexEulerClass_eq_of_fiberwise` applies.
