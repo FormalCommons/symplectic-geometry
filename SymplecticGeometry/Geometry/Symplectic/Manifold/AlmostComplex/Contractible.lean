@@ -168,15 +168,22 @@ theorem contractibleSpace_compatible (J : SmoothAlmostComplexStructure I M) :
     ((Homeomorph.refl _).subtype fun ω ↦ ?_)
   rw [Homeomorph.refl_apply, id_eq, ← ContMDiffTwoForm.compatible_tangentEquiv_iff, hJ]
 
+/-- On a Hausdorff σ-compact manifold modelled on a finite-dimensional space, every smooth almost
+complex structure `J` is compatible with some smooth two-form. -/
+theorem exists_compatible (J : SmoothAlmostComplexStructure I M) :
+    ∃ σ : SmoothTwoForm I M, σ.Compatible J := by
+  obtain ⟨ω, hω⟩ :=
+    (ContMDiffComplexStructure.tangentEquiv.symm (J.toContMDiff ⊤)).exists_compatible
+  exact ⟨ContMDiffTwoForm.tangentEquiv ω,
+    by simpa using ContMDiffTwoForm.compatible_tangentEquiv_iff.2 hω⟩
+
 /-- On a Hausdorff σ-compact manifold modelled on a finite-dimensional space, there is a smooth
 almost complex structure exactly when there is a nondegenerate smooth two-form. -/
 theorem nonempty_iff_exists_isNondegenerate :
     Nonempty (SmoothAlmostComplexStructure I M) ↔ ∃ σ : SmoothTwoForm I M, σ.IsNondegenerate := by
   refine ⟨fun ⟨J⟩ ↦ ?_, fun ⟨σ, hσ⟩ ↦ ?_⟩
-  · obtain ⟨ω, hω⟩ :=
-      (ContMDiffComplexStructure.tangentEquiv.symm (J.toContMDiff ⊤)).exists_compatible
-    exact ⟨ContMDiffTwoForm.tangentEquiv ω,
-      ContMDiffTwoForm.isNondegenerate_tangentEquiv_iff.2 hω.isNondegenerate⟩
+  · obtain ⟨σ, hσ⟩ := J.exists_compatible
+    exact ⟨σ, hσ.tames.isNondegenerate⟩
   · obtain ⟨J, -⟩ := hσ.exists_compatible
     exact ⟨J⟩
 
