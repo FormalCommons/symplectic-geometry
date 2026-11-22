@@ -1513,8 +1513,10 @@ For a map `f : C^n⟮I', N; I, M⟯` (the argument of Mathlib's instance
   is a section of the pull-back of the alternating bundle, and the lemma
   above makes it a section of the alternating bundle of `f *ᵖ V`, since the
   two fibres at `y` are the same type. API: `@[simp] pullback_apply`;
-  `bilinFormAt_pullback`, and `@[simp] bilinFormAt_pullback_apply` for its
-  value `ω (f y) ![v, w]` on `v w : V (f y)`; `pullback_zero`,
+  `bilinFormAt_pullback`, and `bilinFormAt_pullback_apply` for its
+  value `ω (f y) ![v, w]` on `v w : V (f y)`, which `simp` proves with
+  `pullback_apply` and `@[simp] bilinFormAt_apply_pullback`, the value
+  `ω y ![v, w]` of any form `ω` on `f *ᵖ V` on `v w : V (f y)`; `pullback_zero`,
   `pullback_add`, `pullback_smul`, `@[simp] pullback_neg`,
   `@[simp] pullback_sub` and the linear map `pullbackLinearMap I F V n f`,
   as Tau Ceti has them for sections; `IsNondegenerate.pullback`;
