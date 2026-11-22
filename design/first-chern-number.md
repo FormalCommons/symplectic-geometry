@@ -622,11 +622,11 @@ docstrings end with the same milestone line.
   `boundaryMaslovIndex_eq_zero_of_extend`, as $P^{-1}$ is defined on all of
   $\Sigma_1$. The second needs no comparison of the boundary classes of
   $\Sigma_1$ and $\Sigma_2$: apply
-  `evalFundamentalClass_eulerClass_eq_boundaryDegree` (prerequisite 7) to
-  the trivial plane bundle, with the frame $1$ over $\Sigma_1$ and the
+  `evalFundamentalClass_complexEulerClass_eq_boundaryDegree` (prerequisite 7)
+  to the trivial line bundle, with the section $1$ over $\Sigma_1$ and the
   nowhere-zero section `maslovPhase ∘ P'` over $\Sigma_2$. The boundary
   degree of `maslovPhase ∘ P'` on `C` is then the Euler number of the
-  trivial bundle, which is $0$ by `TauCeti.eulerClass_trivial_eq_zero`. For
+  trivial bundle, which is $0$ by `TauCeti.complexEulerClass_trivial`. For
   the unitary transition the Maslov phase is the normalized complex
   determinant (`TauCeti.GLSymplectic.maslovPhase_ofUnitary`).
   Then the determinant of $\Phi_1$ is a
