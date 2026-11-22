@@ -26,7 +26,9 @@ that it is compatible with the rest of the structure that `Symplectic/Basic.lean
   typed in `V (f y)`, for `simp`.
 * `IsNondegenerate.pullback` and `IsNondegenerate.symplecticFormAt_pullback`: the pull-back of a
   symplectic structure is one, with the symplectic form of `ω` at `f y` on the fibre over `y`;
-  `IsNondegenerate.symplecticFormAt_pullback_apply` evaluates it on vectors.
+  `IsNondegenerate.symplecticFormAt_pullback_apply` evaluates it on vectors, and
+  `IsNondegenerate.symplecticFormAt_apply_pullback` evaluates the symplectic form of any
+  nondegenerate form on `f *ᵖ V` on vectors typed in `V (f y)`.
 * `Tames.pullback`, `Invariant.pullback`, `Compatible.pullback`: pulling back the form and the
   complex structure (`ContMDiffComplexStructure.pullback`) together keeps the pair tame,
   invariant or compatible.
@@ -35,7 +37,8 @@ that it is compatible with the rest of the structure that `Symplectic/Basic.lean
   isomorphism pulls back to one.
 * `pushforward_pullback_id`, `pushforward_pullback_comp`: the pull-back along the identity is the
   form itself, and the pull-back along `g ∘ f` is the pull-back along `g` and then along `f`, once
-  the bundles are identified by the identity of each fibre.
+  the bundles are identified by the identity of each fibre; `bilinFormAt_pullback_id_apply` and
+  `bilinFormAt_pullback_comp_apply` are the same facts on vectors, for `simp`.
 * `IsSymplecticFrameOn.pullback` and `frameTransition_pullback`: a symplectic frame `Φ` over `U`
   pulls back to the symplectic frame `y ↦ Φ (f y)` over `f ⁻¹' U`, with transition maps those of
   `Φ` at `f y`.
@@ -62,18 +65,25 @@ isomorphism of bundles is smooth by `Bundle.Pullback.contMDiff_fiberwise`. The A
 form they give lives on `V (f y)`, but the instances around it still name the fibre
 `(f *ᵖ V) y`, so the lemmas that evaluate it no longer apply. `simp` evaluates the pulled-back
 form on vectors with `bilinFormAt_pullback_apply`, and its symplectic form with
-`IsNondegenerate.symplecticFormAt_pullback_apply`. The first is `@[simp high]`: if
-`bilinFormAt_apply_pullback` and `pullback_apply` rewrite first, the two sides still differ in
-hidden arguments that name the fibre `(f *ᵖ V) y`, and `simp` cannot close the goal.
+`IsNondegenerate.symplecticFormAt_pullback_apply`. Both are `@[simp high]`: if
+`bilinFormAt_apply_pullback` (or `IsNondegenerate.symplecticFormAt_apply_pullback`) and
+`pullback_apply` rewrite first, the two sides still differ in hidden arguments that name the
+fibre `(f *ᵖ V) y`, and `simp` cannot close the goal.
 
 `bilinFormAt_apply` does not fire on vectors typed in `V (f y)` for a form on `f *ᵖ V`: Mathlib's
 `Bundle.Pullback` is a plain definition, so at the transparency `simp` uses, such a term is not
 type-correct. `bilinFormAt_apply_pullback` states the evaluation with the vectors typed in
-`V (f y)`, so that `simp` matches it as written. The same mismatch remains in
-`pushforward_pullback_id` and `pushforward_pullback_comp`, where the identity of each fibre is
-`ContinuousLinearEquiv.refl` of `V _` but is applied to vectors of a pull-back fibre, and no
-lemma about the forms removes it: `simp` evaluates the forms, with `ContMDiffMap.id_apply` and
-`ContMDiffMap.comp_apply` for the base points, and the identity is closed by `rfl`.
+`V (f y)`, so that `simp` matches it as written; `IsNondegenerate.symplecticFormAt_apply_pullback`
+does the same for the symplectic form of a nondegenerate form on `f *ᵖ V`.
+
+In `pushforward_pullback_id` and `pushforward_pullback_comp`, the identity of each fibre is
+`Bundle.Pullback.idFiberEquiv` or `Bundle.Pullback.compFiberEquiv`
+(`SymplecticGeometry/Geometry/Manifold/VectorBundle/Pullback.lean`), whose types name both
+fibres. The two sides of each statement are forms on different bundles, and evaluating each
+separately leaves values that differ in hidden arguments naming those bundles.
+`bilinFormAt_pullback_id_apply` and `bilinFormAt_pullback_comp_apply`, which are `@[simp high]`,
+instead write the left-hand form through the fibre equivalence in terms of the right-hand one, so
+that `simp` brings both sides to the same term.
 
 ## References
 
@@ -240,7 +250,7 @@ theorem IsNondegenerate.pullback (h : ω.IsNondegenerate) (f : C^n⟮I', N; I, M
 
 /-- The symplectic form of the pull-back on the fibre over `y` is that of `ω` over `f y`.
 
-This is not `@[simp]`, for the reason given at `bilinFormAt_pullback`. `simp` uses
+This is not `@[simp]`, for the reason given at `bilinFormAt_pullback`. On vectors, `simp` uses
 `IsNondegenerate.symplecticFormAt_pullback_apply` instead. -/
 theorem IsNondegenerate.symplecticFormAt_pullback (h : ω.IsNondegenerate) (f : C^n⟮I', N; I, M⟯)
     (y : N) : (h.pullback f).symplecticFormAt y = h.symplecticFormAt (f y) :=
@@ -249,14 +259,27 @@ theorem IsNondegenerate.symplecticFormAt_pullback (h : ω.IsNondegenerate) (f : 
       bilinFormAt_pullback]
 
 /-- The symplectic form of the pull-back on the fibre over `y` evaluates as `ω (f y)`. The
-hypothesis is the nondegeneracy of the pull-back, rather than of `ω`, so that `simp` can match
-it against any proof of it, such as `h.pullback f`. -/
-@[simp]
+hypothesis is the nondegeneracy of the pull-back, rather than of `ω`, so that the lemma applies
+to any proof of it, such as `h.pullback f`. It is `@[simp high]`, so that it fires
+before `IsNondegenerate.symplecticFormAt_apply_pullback`: after that lemma and `pullback_apply`,
+the two sides still differ in hidden arguments that name the fibre `(f *ᵖ V) y`. -/
+@[simp high]
 theorem IsNondegenerate.symplecticFormAt_pullback_apply {f : C^n⟮I', N; I, M⟯}
     (h : (ω.pullback f).IsNondegenerate) (y : N) (v w : V (f y)) :
     h.symplecticFormAt y v w = ω (f y) ![v, w] :=
   (h.symplecticFormAt_apply y v w).trans
     (congrArg (· ![v, w]) (pullback_apply ω f y))
+
+/-- The symplectic form of a nondegenerate two-form `ω` on a pull-back bundle `f *ᵖ V` evaluates
+on vectors `v w : V (f y)` as `ω y ![v, w]`. This is `IsNondegenerate.symplecticFormAt_apply` for
+vectors typed in `V (f y)` rather than in the fibre `(f *ᵖ V) y`, as `bilinFormAt_apply_pullback`
+is for `bilinFormAt_apply`. -/
+@[simp]
+theorem IsNondegenerate.symplecticFormAt_apply_pullback {K : Type*} [FunLike K N M]
+    [ContinuousMapClass K N M] {f : K} {ω : ContMDiffTwoForm I' n F ((f : N → M) *ᵖ V)}
+    (h : ω.IsNondegenerate) (y : N) (v w : V (f y)) :
+    h.symplecticFormAt y v w = ω y ![v, w] :=
+  h.symplecticFormAt_apply y v w
 
 /-! ### Tame and compatible pairs -/
 
@@ -332,25 +355,59 @@ theorem pullback_pushforward (ω : ContMDiffTwoForm I n F₁ V₁) (f : C^n⟮I'
 
 end Pushforward
 
+/-! ### Pull-backs along the identity and along a composite -/
+
+/-- The bilinear form of the pull-back of `ω` along the identity at `x` takes on `v` and `w` the
+value of the bilinear form of `ω` at `x` on their images under `Bundle.Pullback.idFiberEquiv`,
+the identity of the fibre read as a map to `V x`.
+
+It has priority `high`, so that `simp` uses it before `bilinFormAt_apply`: that lemma would
+evaluate the form on `![v, w]` formed in the pull-back fibre, which a value of `ω x` on vectors
+of `V x` does not match. -/
+@[simp high]
+theorem bilinFormAt_pullback_id_apply (ω : ContMDiffTwoForm I n F V) (x : M)
+    (v w : (((ContMDiffMap.id : C^n⟮I, M; I, M⟯) : M → M) *ᵖ V) x) :
+    (ω.pullback ContMDiffMap.id).bilinFormAt x v w =
+      ω.bilinFormAt x (Pullback.idFiberEquiv I n ℝ V x v) (Pullback.idFiberEquiv I n ℝ V x w) := by
+  rw [bilinFormAt_apply, bilinFormAt_apply, pullback_apply, Pullback.idFiberEquiv_apply,
+    Pullback.idFiberEquiv_apply]
+  -- The sides are `ω (ContMDiffMap.id x) ![v, w]` and `ω x ![v, w]`, with `![v, w]` formed in
+  -- the pull-back fibre on the left and in `V x` on the right: equal by definition only.
+  rfl
+
+variable {EP HP P : Type*} [NormedAddCommGroup EP] [NormedSpace ℝ EP] [TopologicalSpace HP]
+  {I'' : ModelWithCorners ℝ EP HP} [TopologicalSpace P] [ChartedSpace HP P]
+
+/-- The bilinear form of the pull-back of `ω` along a composite `g ∘ f` at `z` takes on `v` and
+`w` the value of the bilinear form of the pull-back along `g` and then along `f` on their images
+under `Bundle.Pullback.compFiberEquiv`, the identity of the fibre read as a map to the fibre of
+`f *ᵖ (g *ᵖ V)`.
+
+It has priority `high`, for the reason given at `bilinFormAt_pullback_id_apply`. -/
+@[simp high]
+theorem bilinFormAt_pullback_comp_apply (ω : ContMDiffTwoForm I n F V) (g : C^n⟮I', N; I, M⟯)
+    (f : C^n⟮I'', P; I', N⟯) (z : P)
+    (v w : (((g.comp f : C^n⟮I'', P; I, M⟯) : P → M) *ᵖ V) z) :
+    (ω.pullback (g.comp f)).bilinFormAt z v w =
+      ((ω.pullback g).pullback f).bilinFormAt z (Pullback.compFiberEquiv ℝ V g f z v)
+        (Pullback.compFiberEquiv ℝ V g f z w) := by
+  rw [bilinFormAt_apply, bilinFormAt_apply, pullback_apply, pullback_apply, pullback_apply,
+    Pullback.compFiberEquiv_apply, Pullback.compFiberEquiv_apply]
+  -- The sides are `ω ((g.comp f) z) ![v, w]` and `ω (g (f z)) ![v, w]`, with `![v, w]` formed
+  -- in the two different pull-back fibres: equal by definition only.
+  rfl
+
 variable [FiniteDimensional ℝ F]
 
 /-- The pull-back along the identity, moved to `V` by the identity of each fibre, is the form
 itself. -/
 theorem pushforward_pullback_id (ω : ContMDiffTwoForm I n F V) :
     pushforward (V₁ := ((ContMDiffMap.id : C^n⟮I, M; I, M⟯) : M → M) *ᵖ V) (V₂ := V)
-      (fun x ↦ ContinuousLinearEquiv.refl ℝ (V x))
+      (Pullback.idFiberEquiv I n ℝ V)
       ((Pullback.idDiffeomorph (F := F) (I := I) (m := n) (n := n) V).contMDiff.congr
-        fun p ↦ (Pullback.idDiffeomorph_apply p).symm)
-      (ω.pullback ContMDiffMap.id) = ω := by
-  refine (pushforward_eq_iff _ _).2 fun x v w ↦ ?_
-  simp only [bilinFormAt_apply, pullback_apply, ContMDiffMap.id_apply]
-  -- Only the identity of each fibre is left. It is stated as `ContinuousLinearEquiv.refl` of
-  -- `V _` but applied to vectors of a pull-back fibre, so `ContinuousLinearEquiv.coe_refl'`
-  -- does not match it.
-  rfl
-
-variable {EP HP P : Type*} [NormedAddCommGroup EP] [NormedSpace ℝ EP] [TopologicalSpace HP]
-  {I'' : ModelWithCorners ℝ EP HP} [TopologicalSpace P] [ChartedSpace HP P]
+        fun p ↦ by rw [Pullback.idDiffeomorph_apply, Pullback.idFiberEquiv_apply])
+      (ω.pullback ContMDiffMap.id) = ω :=
+  (pushforward_eq_iff _ _).2 fun x v w ↦ by simp
 
 /-- The pull-back along a composite `g ∘ f`, moved to `f *ᵖ (g *ᵖ V)` by the identity of each
 fibre, is the pull-back along `g` and then along `f`. -/
@@ -358,16 +415,11 @@ theorem pushforward_pullback_comp (ω : ContMDiffTwoForm I n F V) (g : C^n⟮I',
     (f : C^n⟮I'', P; I', N⟯) :
     pushforward (V₁ := ((g.comp f : C^n⟮I'', P; I, M⟯) : P → M) *ᵖ V)
       (V₂ := (f : P → N) *ᵖ ((g : N → M) *ᵖ V))
-      (fun z ↦ ContinuousLinearEquiv.refl ℝ (V (g (f z))))
+      (Pullback.compFiberEquiv ℝ V g f)
       ((Pullback.compDiffeomorph (F := F) (n := n) V g f).contMDiff.congr
-        fun p ↦ (Pullback.compDiffeomorph_apply g f p).symm)
-      (ω.pullback (g.comp f)) = (ω.pullback g).pullback f := by
-  refine (pushforward_eq_iff _ _).2 fun x v w ↦ ?_
-  simp only [bilinFormAt_apply, pullback_apply, ContMDiffMap.comp_apply]
-  -- Only the identity of each fibre is left. It is stated as `ContinuousLinearEquiv.refl` of
-  -- `V _` but applied to vectors of a pull-back fibre, so `ContinuousLinearEquiv.coe_refl'`
-  -- does not match it.
-  rfl
+        fun p ↦ by rw [Pullback.compDiffeomorph_apply, Pullback.compFiberEquiv_apply])
+      (ω.pullback (g.comp f)) = (ω.pullback g).pullback f :=
+  (pushforward_eq_iff _ _).2 fun x v w ↦ by simp
 
 /-! ### The form induced on the tangent bundle along a smooth map -/
 
