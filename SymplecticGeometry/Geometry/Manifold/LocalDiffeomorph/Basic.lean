@@ -45,6 +45,8 @@ target of `Λ`, not only at `x`.
   constant is a local diffeomorphism of the half-space.
 * `ModelWithCorners.isLocalDiffeomorphAt_coe`: a model with corners is a local diffeomorphism at
   every point that it sends into the interior of its range.
+* `TauCeti.EuclideanHalfSpace.isLocalDiffeomorphAt_val_zero`: the coordinate of the half-line is a
+  local diffeomorphism to `ℝ` where it is positive.
 -/
 
 public section
@@ -181,5 +183,21 @@ theorem ModelWithCorners.isLocalDiffeomorphAt_coe {x : H} (hx : I x ∈ interior
   have h := TauCeti.isLocalDiffeomorphAt_extChartAt (I := I) (n := n) (mem_extChartAt_source x)
     (by simpa [extChartAt_self_eq] using hx)
   simpa [extChartAt_self_eq] using h
+
+/-- The coordinate `t ↦ t 0` of the half-line `EuclideanHalfSpace 1` is a `C^n` local
+diffeomorphism to `ℝ` at every point where it is positive. -/
+theorem TauCeti.EuclideanHalfSpace.isLocalDiffeomorphAt_val_zero {t : EuclideanHalfSpace 1}
+    (ht : 0 < t.val 0) :
+    IsLocalDiffeomorphAt (𝓡∂ 1) 𝓘(ℝ) n (fun s : EuclideanHalfSpace 1 ↦ s.val 0) t := by
+  let e : EuclideanSpace ℝ (Fin 1) ≃L[ℝ] ℝ :=
+    (EuclideanSpace.equiv (Fin 1) ℝ).trans (ContinuousLinearEquiv.funUnique (Fin 1) ℝ ℝ)
+  have he : IsLocalDiffeomorphAt (𝓡 1) 𝓘(ℝ) n e ((𝓡∂ 1) t) :=
+    TauCeti.isLocalDiffeomorphAt_of_eqOn (Φ := e.toPartialDiffeomorph) (by simp)
+      fun _ _ ↦ by simp
+  have h := ((𝓡∂ 1).isLocalDiffeomorphAt_coe (n := n) (x := t) (by
+    rwa [interior_range_modelWithCornersEuclideanHalfSpace])).comp (hg := he)
+  convert h using 1
+  funext s
+  simp [e]
 
 end

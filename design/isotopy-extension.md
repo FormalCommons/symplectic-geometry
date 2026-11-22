@@ -40,7 +40,10 @@ primitives (`TauCeti.SmoothTwoForm.exists_isotopy_mpullback_eq_of_isCompact`,
 `Geometry/Symplectic/Manifold/Moser.lean`), the relative Moser theorem for one
 pair of forms
 (`TauCeti.SmoothTwoForm.exists_diffeomorph_fix_eventually_mpullback_eq_of_mextDeriv_eq_sub`,
-`RelativeMoser.lean`), tubular
+`RelativeMoser.lean`), the relative Poincaré operator of a vector bundle
+(`TauCeti.vectorBundlePoincareHomotopy`,
+`Geometry/Manifold/DifferentialForm/Relative/Basic.lean`, used by
+`DifferentialForm/VectorBundlePoincare.lean`), tubular
 neighbourhoods with their retractions and deformations
 (`TauCeti.SmoothEmbedding.exists_contMDiffOn_retraction`,
 `TauCeti.SmoothEmbedding.exists_deformation_subset`,
@@ -474,11 +477,12 @@ their families over `unitInterval` with
 `[CompactSpace Q]`:
 
 ```lean
-theorem TauCeti.SmoothEmbedding.exists_diffeotopy_mpullback_eq_of_timeDeriv
+theorem TauCeti.SmoothEmbedding.exists_diffeotopy_fix_eventually_mpullback_eq_of_timeDeriv
     [I.Boundaryless] [T2Space M] [SecondCountableTopology M] (f : SmoothEmbedding J I ∞ Q M)
-    (σ : SmoothForm (𝓘(ℝ, ℝ).prod I) (ℝ × M) ℝ 2) (hσ : ∀ t, (σ.slice t).IsClosed)
+    (σ : SmoothForm (𝓘(ℝ, ℝ).prod I) (ℝ × M) ℝ 2) (hσ : ∀ t ∈ Icc (0 : ℝ) 1, (σ.slice t).IsClosed)
     (γ : SmoothForm (𝓘(ℝ, ℝ).prod I) (ℝ × M) ℝ 1)
-    (hγ : ∀ t ∈ Icc (0 : ℝ) 1, (σ.timeDeriv.slice t).val = mextDeriv (γ.slice t).val)
+    (hγ : ∀ᶠ p in 𝓝ˢ (Icc (0 : ℝ) 1 ×ˢ range f),
+      (σ.timeDeriv.slice p.1).val p.2 = mextDeriv (γ.slice p.1).val p.2)
     (hγf : ∀ t ∈ Icc (0 : ℝ) 1, SmoothForm.mpullback f f.contMDiff (γ.slice t) = 0)
     (hnd : ∀ t ∈ Icc (0 : ℝ) 1, ∀ q, ((σ.slice t).bilinFormAt (f q)).Nondegenerate) :
     ∃ Ψ : Diffeotopy I ∞ M, (∃ C, IsCompact C ∧ ∀ t, ∀ x ∉ C, Ψ (t, x) = x) ∧
@@ -495,7 +499,7 @@ by $dF_t$, with $F$ the function of the correction lemma
 Poincaré operator of `γ_t` on a tubular neighbourhood, cut off near `Q`),
 makes it vanish as a full covector along `Q`. The cut-off
 Moser field then vanishes on `Q`, and Moser's principle along trajectories
-(`mpullback_timeDependentFlowOf_mpullback_prodMk_apply_eq_exp_integral_smul_of_mem`)
+(`mpullback_timeDependentFlowOf_mpullback_prodMk_apply_eq_of_forall_mem_uIcc`)
 gives the identity near `Q` for every $t\in[0,1]$. The field is
 `moserField σ γ' ρ` for the corrected primitive `γ'` and a cutoff `ρ` on
 `ℝ × M`. This is the argument of
@@ -834,15 +838,15 @@ this design already follows. `Ball/Isotopy.lean` cites
   `Extension.lean`); the parametric radial primitives
   `exists_isSmoothFamily_mextDerivₗ_eq_of_starConvex` in
   `Geometry/Manifold/DifferentialForm/SmoothFamily/Poincare.lean`
-  (used by `Ball/Isotopy.lean`); and the
+  (used by `Ball/Isotopy.lean`); the homotopy operator on smooth families
+  `SymplecticGeometry.IsSmoothFamily.homotopyOperator` in
+  `Geometry/Manifold/DifferentialForm/SmoothFamily/HomotopyOperator.lean`
+  (used by `DifferentialForm/VectorBundlePoincare.lean`); and the
   instance
   `FiniteDimensional ℝ (deRhamCohomology I M k)` for a compact boundaryless
   `M`, which `Geometry/Manifold/DeRham/SmoothFamily/GoodCover.lean` derives
   from `hasFiniteGoodCover_of_compactSpace` (used by
-  `Cohomological/Primitive.lean`). It also uses
-  `SymplecticGeometry.IsSmoothFamily.homotopyOperator`
-  (`Geometry/Manifold/DifferentialForm/SmoothFamily/HomotopyOperator.lean`,
-  used by `DifferentialForm/VectorBundlePoincare.lean`). The part uses neither the splittings and
+  `Cohomological/Primitive.lean`). The part uses neither the splittings and
   `contMDiff_repr_mk_of_hasFiniteGoodCover` nor the bridge
   `Diffeotopy/Real.lean`: the periods are smooth in `t` as line integrals,
   and its flows are Tau Ceti's `timeDependentFlowDiffeotopy`, already a
@@ -869,6 +873,8 @@ this design already follows. `Ball/Isotopy.lean` cites
   of the motion of a diffeotopy; `Geometry/Manifold/Instances/Icc.lean`,
   for the unit tangent vector of `unitInterval`; and
   `Geometry/Manifold/MFDeriv/Prod.lean`, for derivatives on products.
+  `Moser/Family.lean` imports `Geometry/Diffeomorphism/Diffeotopy/Velocity.lean`
+  too, for the slices of the Moser diffeotopy.
 - *Contact geometry*: only the merged
   `Geometry/Manifold/DifferentialForm/LieDeriv.lean`, whose
   `TauCeti.mpullback_prodMk_mlieDerivForm_prodVectorField_zero_eq_zero`
@@ -881,7 +887,11 @@ this design already follows. `Ball/Isotopy.lean` cites
   over a parameter manifold with a time-dependent primitive, the segment being the family
   `SmoothForm.lineMapFamily σ₀ σ₁ contDiff_id`, and this pull request records
   that choice in `design/moser-isotopy.md`. So the library adapts Tau Ceti's
-  private field of `RelativeMoser.lean` once.
+  private field of `RelativeMoser.lean` once. `Moser/Family.lean` also imports
+  `Geometry/Symplectic/Manifold/Family.lean`, for the openness of the set
+  where the slices of a family are nondegenerate, and `Moser/Isotopy.lean`
+  derives its theorem fixing a submanifold from the family theorem of
+  `Moser/Family.lean`.
   `IsotopyExtension/Ball/Basic.lean` also imports
   `Geometry/Symplectic/Manifold/TwoForm.lean`, for
   `TauCeti.SmoothTwoForm.injective_mfderiv_of_mpullback_apply_eq` (a map
