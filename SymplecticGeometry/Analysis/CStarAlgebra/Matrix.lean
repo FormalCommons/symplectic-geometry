@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Analysis.CStarAlgebra.Matrix
+public import Mathlib.Topology.Algebra.Module.FiniteDimension
 
 /-!
 # Matrices of continuous endomorphisms of a Euclidean space
@@ -13,7 +14,15 @@ public import Mathlib.Analysis.CStarAlgebra.Matrix
 Mathlib identifies the matrices over `𝕜` with the linear endomorphisms of
 `EuclideanSpace 𝕜 n` by `Matrix.toEuclideanLin`, and with its continuous endomorphisms by
 `Matrix.toEuclideanCLM`. This file shows that the two give the same matrix of a linear
-endomorphism, made continuous by `LinearMap.toContinuousLinearMap`.
+endomorphism, made continuous by `LinearMap.toContinuousLinearMap`. It also makes
+`Matrix.toEuclideanCLM` a continuous linear equivalence, so that its smoothness and its
+derivative are those of a continuous linear equivalence.
+
+## Main definitions
+
+* `Matrix.toEuclideanCLMContinuousLinearEquiv`: `Matrix.toEuclideanCLM` as a continuous linear
+  equivalence between the matrices, with their product topology, and the continuous linear
+  endomorphisms of `EuclideanSpace 𝕜 n`, with the operator norm topology.
 
 ## Main results
 
@@ -36,6 +45,24 @@ theorem toEuclideanCLM_symm_toContinuousLinearMap
       toEuclideanLin.symm f := by
   rw [LinearEquiv.eq_symm_apply, ← coe_toEuclideanCLM_eq_toEuclideanLin,
     StarAlgEquiv.apply_symm_apply, LinearMap.coe_toContinuousLinearMap]
+
+/-- `Matrix.toEuclideanCLM` as a continuous linear equivalence from the matrices, with their
+product topology, to the continuous linear endomorphisms of `EuclideanSpace 𝕜 n`. Both spaces are
+finite dimensional, so the linear equivalence is continuous in both directions. -/
+noncomputable def toEuclideanCLMContinuousLinearEquiv :
+    Matrix n n 𝕜 ≃L[𝕜] (EuclideanSpace 𝕜 n →L[𝕜] EuclideanSpace 𝕜 n) :=
+  (toEuclideanCLM (n := n) (𝕜 := 𝕜)).toAlgEquiv.toLinearEquiv.toContinuousLinearEquiv
+
+@[simp]
+theorem coe_toEuclideanCLMContinuousLinearEquiv :
+    ⇑(toEuclideanCLMContinuousLinearEquiv (n := n) (𝕜 := 𝕜)) = toEuclideanCLM (n := n) (𝕜 := 𝕜) :=
+  (rfl)
+
+@[simp]
+theorem coe_toEuclideanCLMContinuousLinearEquiv_symm :
+    ⇑(toEuclideanCLMContinuousLinearEquiv (n := n) (𝕜 := 𝕜)).symm =
+      (toEuclideanCLM (n := n) (𝕜 := 𝕜)).symm :=
+  (rfl)
 
 end Matrix
 
