@@ -6,12 +6,13 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.Complex.Integrable
-public import SymplecticGeometry.Geometry.Manifold.DeRham.Hodge.Chart
+public import SymplecticGeometry.Geometry.Manifold.Riemannian.PartialDiffeomorph
 public import TauCeti.Analysis.Calculus.InverseFunctionTheorem
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.PartialDiffeomorph
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Chart
 import SymplecticGeometry.LinearAlgebra.ComplexStructure.SymmetricBilinear
+import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.ModelSpace
 
 /-!
 # Osculating holomorphic charts of a Kähler manifold
