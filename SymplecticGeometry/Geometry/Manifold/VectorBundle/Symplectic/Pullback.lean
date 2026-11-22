@@ -402,25 +402,25 @@ theorem bilinFormAt_pullback_comp_apply (ω : ContMDiffTwoForm I n F V) (g : C^n
   rfl
 
 /-- The bilinear form of the pull-back of `ω` along `g` and then along `f` at `z` evaluates on
-`v w : V (g (f z))` as `ω (g (f z)) ![v, w]`. This is `bilinFormAt_pullback_apply` for an iterated
-pull-back, with the vectors typed in the fibre of `V` rather than in that of
-`f *ᵖ (g *ᵖ V)`, which `simp` does not identify with it. -/
+`v w : V (g (f z))` as `ω (g (f z)) ![v, w]`. It is `bilinFormAt_pullback_apply` for the form
+`ω.pullback g`, restated with the vectors typed in the fibre of `V` rather than in that of
+`g *ᵖ V`, since `simp` cannot match that lemma on such vectors. -/
 @[simp]
 theorem bilinFormAt_pullback_pullback_apply (ω : ContMDiffTwoForm I n F V)
     (g : C^n⟮I', N; I, M⟯) (f : C^n⟮I'', P; I', N⟯) (z : P) (v w : V (g (f z))) :
     ((ω.pullback g).pullback f).bilinFormAt z v w = ω (g (f z)) ![v, w] :=
-  (((ω.pullback g).pullback f).bilinFormAt_apply z v w).trans
-    (congrArg (· ![v, w]) ((pullback_apply _ f z).trans (pullback_apply ω g (f z))))
+  (ω.pullback g).bilinFormAt_pullback_apply f z v w
 
 /-- The symplectic form of the pull-back of `ω` along `g` and then along `f` at `z` evaluates on
 `v w : V (g (f z))` as `ω (g (f z)) ![v, w]`, for any proof of the nondegeneracy of the iterated
-pull-back. This is `IsNondegenerate.symplecticFormAt_pullback_apply` for an iterated pull-back. -/
+pull-back. It is `IsNondegenerate.symplecticFormAt_pullback_apply` for the form `ω.pullback g`,
+restated with the vectors typed in the fibre of `V`, since `simp` cannot match that lemma on
+such vectors. -/
 @[simp]
 theorem IsNondegenerate.symplecticFormAt_pullback_pullback_apply {g : C^n⟮I', N; I, M⟯}
     {f : C^n⟮I'', P; I', N⟯} (h : ((ω.pullback g).pullback f).IsNondegenerate) (z : P)
     (v w : V (g (f z))) : h.symplecticFormAt z v w = ω (g (f z)) ![v, w] :=
-  (h.symplecticFormAt_apply z v w).trans
-    (congrArg (· ![v, w]) ((pullback_apply _ f z).trans (pullback_apply ω g (f z))))
+  IsNondegenerate.symplecticFormAt_pullback_apply (ω := ω.pullback g) h z v w
 
 /-- `simp` evaluates the iterated pull-back of a form, and its symplectic form, on vectors of the
 fibre of `V`. -/
