@@ -46,7 +46,7 @@ operator times the identity, for distributions and in weak form.
   `w : E → F →L[ℝ] ℝ` is locally integrable on `U`, `h` is smooth on `U`, and
   `∫ w (P a) dμ = ∫ h a dμ` for every smooth `a` with compact support in `U`, for an additive
   Haar measure `μ`, then `w` agrees almost everywhere on `U` with a function smooth on `U`. This
-  is the operator of `SymplecticGeometry.exists_mpullback_symm_hodgeLaplacian_eq`, the Hodge
+  is the operator of `PartialDiffeomorph.exists_mpullback_symm_hodgeLaplacian_eq`, the Hodge
   Laplacian in a chart.
 * `SymplecticGeometry.isLocallySobolevAt_one_coordOfFun_of_abs_integral_le`: the `H^{-1}` case.
   If `w` is locally integrable on `U` and, for each compact `K ⊆ U`, `|∫ w (P a) dμ|` is at most

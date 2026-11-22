@@ -31,7 +31,7 @@ and `β`, weighted by the density of the Riemannian volume read in the chart
 (`SymplecticGeometry.L2Form.inner_ofSmooth_eq_integral_localize`, in
 `SymplecticGeometry.Geometry.Manifold.DeRham.Hodge.L2`). Taking for `β` the Hodge Laplacian of
 the extension by zero of a flat form `a`, which the chart reads as the operator `P a` of
-`SymplecticGeometry.exists_mpullback_symm_hodgeLaplacian_eq`
+`PartialDiffeomorph.exists_mpullback_symm_hodgeLaplacian_eq`
 (`SymplecticGeometry.L2Form.inner_ofSmooth_hodgeLaplacian_extendByZeroAlong_eq_integral`), the
 weak equation becomes `∫ w (P a) = ∫ h a`, with `w` the localization of `u` multiplied by the
 inner product in the chart and the density, and `h` the same for `f`. The principal part of `P`
@@ -160,7 +160,7 @@ omit [CompactSpace M] [MeasureSpace E] [BorelSpace E] [(volume : Measure E).IsAd
 /-- Read in a chart `ψ` with a cutoff `χ`, the Hodge Laplacian of the extension by zero of a flat
 form `a` supported where `χ ∘ ψ.symm = 1` is the second-order operator
 `P a = -∑ i j, G⁻¹ i j ∂_{b j} ∂_{b i} a + ∑ i, B i (∂_{b i} a) + C a` of
-`exists_mpullback_symm_hodgeLaplacian_eq`, at every point of `E`. -/
+`PartialDiffeomorph.exists_mpullback_symm_hodgeLaplacian_eq`, at every point of `E`. -/
 private theorem localize_hodgeLaplacian_extendByZeroAlong (o : Manifold.Orientation I M (Fin m))
     (hkl : k + l = m) (ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞) (b : Module.Basis (Fin m) ℝ E)
     {B : Fin m → E → (E [⋀^Fin k]→L[ℝ] ℝ) →L[ℝ] E [⋀^Fin k]→L[ℝ] ℝ}
@@ -218,8 +218,9 @@ private theorem localize_hodgeLaplacian_extendByZeroAlong (o : Manifold.Orientat
 its source, and `a` a smooth flat form with compact support in `ψ.target` on which
 `χ ∘ ψ.symm = 1`. For every `L²` form `u`, the inner product of `u` with the Hodge Laplacian of
 the extension by zero of `a` along `ψ` is the integral over `E` of the inner product in the chart
-of the localization of `u` with the operator `P a` of `exists_mpullback_symm_hodgeLaplacian_eq`,
-weighted by the density of the Riemannian volume read in the chart. -/
+of the localization of `u` with the operator `P a` of
+`PartialDiffeomorph.exists_mpullback_symm_hodgeLaplacian_eq`, weighted by the density of the
+Riemannian volume read in the chart. -/
 theorem L2Form.inner_ofSmooth_hodgeLaplacian_extendByZeroAlong_eq_integral
     (hkl : k + l = m) (ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞) (b : Module.Basis (Fin m) ℝ E)
     {B : Fin m → E → (E [⋀^Fin k]→L[ℝ] ℝ) →L[ℝ] E [⋀^Fin k]→L[ℝ] ℝ}
@@ -272,7 +273,7 @@ theorem L2Form.IsWeakSolution.exists_contDiffOn_ae_eq_localize {u : L2Form o k}
   have hn : (∞ : ℕ∞ω) ≠ 0 := by simp
   have hm := o.fact_finrank_tangentSpace (ψ.symm y₀)
   let b : Module.Basis (Fin m) ℝ E := Module.finBasisOfFinrankEq ℝ E hm.out
-  obtain ⟨B, C, hB, hC, hΔ⟩ := exists_mpullback_symm_hodgeLaplacian_eq o ψ hkl b
+  obtain ⟨B, C, hB, hC, hΔ⟩ := ψ.exists_mpullback_symm_hodgeLaplacian_eq o hkl b
   -- The density of the Riemannian volume read in the chart, for `volume`.
   set D : E → ℝ := fun y ↦ (b.addHaar.addHaarScalarFactor volume : ℝ) *
     riemannianJacobian (I := I) b ψ.symm y

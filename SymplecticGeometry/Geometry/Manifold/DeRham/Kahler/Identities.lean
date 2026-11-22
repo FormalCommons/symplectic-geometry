@@ -301,7 +301,7 @@ theorem lefschetz_codifferential_sub (o : Manifold.Orientation I M (Fin m))
   rw [val_mextDerivₗ_symm_eq_alternatizeUncurryFin_symbolInChart ψ α hy,
     val_mextDerivₗ_symm_eq_alternatizeUncurryFin_symbolInChart ψ _ hy,
     symbolInChart_lefschetz hg ψ α hy
-      (fderiv_mpullback_symm_eq_zero_of_fderiv_gramInChart_eq_zero hg ψ hψ hy hgr)]
+      (ψ.fderiv_mpullback_symm_eq_zero_of_fderiv_gramInChart_eq_zero hg hψ hy hgr)]
   convert AlmostComplexStructure.lefschetz_smul_formHodgeStar_alternatizeUncurryFin_sub
     (SmoothAlmostComplexStructure.inner_almostComplexStructureAt_apply_apply hg (ψ.symm y))
     (o.orientationAt (ψ.symm y))
@@ -374,7 +374,7 @@ theorem codifferential_lefschetz (o : Manifold.Orientation I M (Fin m))
   beta_reduce
   rw [val_mextDerivₗ_symm_eq_alternatizeUncurryFin_symbolInChart ψ f hy,
     symbolInChart_lefschetz hg ψ f hy
-      (fderiv_mpullback_symm_eq_zero_of_fderiv_gramInChart_eq_zero hg ψ hψ hy hgr)]
+      (ψ.fderiv_mpullback_symm_eq_zero_of_fderiv_gramInChart_eq_zero hg hψ hy hgr)]
   convert AlmostComplexStructure.smul_formHodgeStar_alternatizeUncurryFin_lefschetz_fin_zero
     (SmoothAlmostComplexStructure.inner_almostComplexStructureAt_apply_apply hg (ψ.symm y))
     (o.orientationAt (ψ.symm y))

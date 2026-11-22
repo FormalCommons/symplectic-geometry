@@ -374,7 +374,7 @@ chart `ψ`, in terms of the metric in the chart `ψ.gramInChart`
 `Analysis/Normed/Module/Alternating/Uncurry/Fin.lean` and
 `Analysis/Calculus/LineDeriv/Transpose.lean`.
 
-- `exists_mpullback_symm_hodgeLaplacian_eq`: for a chart `ψ` and a basis `b` of
+- `PartialDiffeomorph.exists_mpullback_symm_hodgeLaplacian_eq`: for a chart `ψ` and a basis `b` of
   `E`, there are smooth `B : Fin m → E → Λ →L[ℝ] Λ` and `C : E → Λ →L[ℝ] Λ`,
   with `Λ = E [⋀^Fin k]→L[ℝ] ℝ`, such that for every smooth `k`-form
   $\alpha$ with expression $a$ and every `y ∈ ψ.target`,
@@ -382,15 +382,15 @@ chart `ψ`, in terms of the metric in the chart `ψ.gramInChart`
   +\sum_iB_i(y)\,\partial_{b_i}a(y)+C(y)\,a(y)$,
   where $G^{ij}$ is the inverse Gram matrix of `ψ.gramInChart y` in `b`.
   The second-order coefficient is computed from
-  `exists_mpullback_symm_codifferential_eq` and `mpullback_symm_mextDerivₗ`,
+  `PartialDiffeomorph.exists_mpullback_symm_codifferential_eq` and `mpullback_symm_mextDerivₗ`,
   and identified with $G^{ij}$ times the identity
   by Tau Ceti's `alternatizeUncurryFin_curryLeft_comp_add_curryLeft`.
-- `exists_mpullback_symm_hodgeLaplacian_transpose_eq`: for an additive Haar
+- `PartialDiffeomorph.exists_mpullback_symm_hodgeLaplacian_transpose_eq`: for an additive Haar
   measure `μ` on `E`, there are `B`, `C` as above and `B'`, `C'`, smooth
   on `ψ.target` with values in `Λ →L[ℝ] Λ`, such that the operator
   $P'w=-\sum_{ij}G^{ij}\partial_{b_j}\partial_{b_i}w+\sum_i(\partial_{b_i}w)\circ B'_i+w\circ C'$
   on maps `w : E → Λ →L[ℝ] ℝ` is the formal transpose of the operator $P$
-  of `exists_mpullback_symm_hodgeLaplacian_eq`:
+  of `PartialDiffeomorph.exists_mpullback_symm_hodgeLaplacian_eq`:
   $\int w(Pa)\,d\mu=\int(P'w)\,a\,d\mu$ for `w` $C^2$ on `ψ.target` and `a`
   $C^2$ with compact support in `ψ.target`. The pairing is the plain one
   between `Λ` and its dual, so no inverse of the fibre metric is needed:
@@ -398,7 +398,7 @@ chart `ψ`, in terms of the metric in the chart `ψ.gramInChart`
   `u` multiplied by the fibre metric and the volume density, and the weak
   equation says that $P'w=Hf_\psi$ as distributions. It is
   `exists_integral_apply_eq_integral_transpose_apply` applied to the
-  operator of `exists_mpullback_symm_hodgeLaplacian_eq`.
+  operator of `PartialDiffeomorph.exists_mpullback_symm_hodgeLaplacian_eq`.
 
 ### `Geometry/Manifold/Riemannian/Basic.lean`
 

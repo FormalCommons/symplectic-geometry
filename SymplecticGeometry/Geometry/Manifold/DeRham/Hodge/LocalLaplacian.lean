@@ -39,17 +39,17 @@ since forms of degree `m + 1` vanish.
 
 ## Main results
 
-* `SymplecticGeometry.smul_hodgeStarInChart_alternatizeUncurryFin_hodgeStarInChart`: the symbol of
+* `PartialDiffeomorph.smul_hodgeStarInChart_alternatizeUncurryFin_hodgeStarInChart`: the symbol of
   the codifferential in the chart: `± S' ε_ξ S a = -ι_u a`, with `u = ∑ᵢⱼ G⁻¹ᵢⱼ ξ(bᵢ) bⱼ` the
   vector dual to `ξ` (`LinearMap.BilinForm.apply_sum_inv_toMatrix_smul`). This is
   `Orientation.smul_formHodgeStar_alternatizeUncurryFin_formHodgeStar` in the tangent space at
   `ψ.symm y`, read through the differential of `ψ.symm`.
-* `SymplecticGeometry.exists_mpullback_symm_codifferential_eq`: the codifferential in the chart is
+* `PartialDiffeomorph.exists_mpullback_symm_codifferential_eq`: the codifferential in the chart is
   a first-order operator with principal part `-∑ᵢⱼ G⁻¹ᵢⱼ ι_{b_j} ∂_{b_i}`.
-* `SymplecticGeometry.exists_mpullback_symm_hodgeLaplacian_eq`: the Hodge Laplacian in the chart
+* `PartialDiffeomorph.exists_mpullback_symm_hodgeLaplacian_eq`: the Hodge Laplacian in the chart
   is a second-order operator with principal part `-∑ᵢⱼ G⁻¹ᵢⱼ ∂_{b_i} ∂_{b_j}` and smooth
   lower-order coefficients.
-* `SymplecticGeometry.exists_mpullback_symm_hodgeLaplacian_transpose_eq`: its formal transpose for
+* `PartialDiffeomorph.exists_mpullback_symm_hodgeLaplacian_transpose_eq`: its formal transpose for
   an additive Haar measure on `E`, acting on maps into the dual of the forms, has the same
   principal part (`exists_integral_apply_eq_integral_transpose_apply`, in
   `Analysis/Calculus/LineDeriv/Transpose.lean`).
@@ -68,7 +68,7 @@ open Module TauCeti ContinuousAlternatingMap MeasureTheory
 open Bundle
 open scoped Manifold ContDiff RealInnerProductSpace Topology
 
-namespace SymplecticGeometry
+namespace PartialDiffeomorph
 
 variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
   {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M]
@@ -195,7 +195,7 @@ theorem exists_mpullback_symm_codifferential_eq
   -- The principal part: expand the derivative of `a` in the dual basis of `b`.
   rw [alternatizeUncurryFin_eq_sum_coord_smulRight b, _root_.map_sum, Finset.smul_sum]
   simp_rw [ContinuousLinearMap.comp_apply,
-    smul_hodgeStarInChart_alternatizeUncurryFin_hodgeStarInChart o ψ hkl hlk b hy]
+    ψ.smul_hodgeStarInChart_alternatizeUncurryFin_hodgeStarInChart o hkl hlk b hy]
   simp [Finset.sum_neg_distrib, Basis.coord_apply, Finsupp.single_apply, ite_smul]
 
 /-- The exterior product `ε_{b^*_i}` with the `i`-th coordinate covector of a basis `b`, from
@@ -236,7 +236,7 @@ private theorem exists_mpullback_symm_codifferential_mextDeriv_eq
                   (b j)))).curryLeft (b l) +
             ∑ i, B i y (fderiv ℝ (mpullback 𝓘(ℝ, E) I ψ.symm α.val : E → E [⋀^Fin k]→L[ℝ] ℝ) y
               (b i)) := by
-  obtain ⟨C₀, hC₀, hδ⟩ := exists_mpullback_symm_codifferential_eq o ψ hkl hlk b
+  obtain ⟨C₀, hC₀, hδ⟩ := ψ.exists_mpullback_symm_codifferential_eq o hkl hlk b
   refine ⟨fun i z ↦ C₀ z ∘L coordExtProd b k i, fun i ↦ hC₀.clm_comp contDiffOn_const,
     fun α y hy ↦ ?_⟩
   set a : E → E [⋀^Fin k]→L[ℝ] ℝ := mpullback 𝓘(ℝ, E) I ψ.symm α.val
@@ -276,7 +276,7 @@ private theorem exists_mpullback_symm_mextDeriv_codifferential_eq
             ∑ i, B i y (fderiv ℝ (mpullback 𝓘(ℝ, E) I ψ.symm α.val :
               E → E [⋀^Fin (k + 1)]→L[ℝ] ℝ) y (b i)) +
             C y (mpullback 𝓘(ℝ, E) I ψ.symm α.val y) := by
-  obtain ⟨C₀, hC₀, hδ⟩ := exists_mpullback_symm_codifferential_eq o ψ hkl hlk b
+  obtain ⟨C₀, hC₀, hδ⟩ := ψ.exists_mpullback_symm_codifferential_eq o hkl hlk b
   -- `κ l` is the interior product with `b l`.
   set κ : Fin m → (E [⋀^Fin (k + 1)]→L[ℝ] ℝ) →L[ℝ] E [⋀^Fin k]→L[ℝ] ℝ := fun l ↦
     (curryLeftLI (𝕜 := ℝ) (E := E) (F := ℝ) (n := k)).toContinuousLinearMap.flip (b l)
@@ -474,8 +474,9 @@ theorem exists_mpullback_symm_hodgeLaplacian_transpose_eq
           ∫ y, (-∑ i, ∑ j, (Matrix.of fun i j ↦ ψ.gramInChart y (b i) (b j))⁻¹ i j •
               fderiv ℝ (fun z ↦ fderiv ℝ w z (b i)) y (b j) +
             ∑ i, (fderiv ℝ w y (b i)).comp (B' i y) + (w y).comp (C' y)) (a y) ∂μ := by
-  obtain ⟨B, C, hB, hC, hΔ⟩ := exists_mpullback_symm_hodgeLaplacian_eq o ψ hkl b
-  obtain ⟨B', C', hB', hC', h⟩ := exists_integral_apply_eq_integral_transpose_apply (μ := μ)
+  obtain ⟨B, C, hB, hC, hΔ⟩ := ψ.exists_mpullback_symm_hodgeLaplacian_eq o hkl b
+  obtain ⟨B', C', hB', hC', h⟩ :=
+    SymplecticGeometry.exists_integral_apply_eq_integral_transpose_apply (μ := μ)
     ψ.open_target (fun i ↦ b i)
     (fun i j y ↦ -((Matrix.of fun i j ↦ ψ.gramInChart y (b i) (b j))⁻¹ i j)) B C
     (fun i j ↦ (ψ.contDiffOn_inv_gramInChart_apply b i j).neg) hB hC
@@ -486,4 +487,4 @@ theorem exists_mpullback_symm_hodgeLaplacian_transpose_eq
     ext
     simp [Finset.sum_neg_distrib]
 
-end SymplecticGeometry
+end PartialDiffeomorph
