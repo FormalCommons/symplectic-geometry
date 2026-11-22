@@ -22,6 +22,7 @@ import TauCeti.Geometry.Manifold.Riemannian.VolumeDensity.Support
 import TauCeti.Geometry.Manifold.Riemannian.VolumeForm.Measure
 import TauCeti.MeasureTheory.Function.LpSeminorm.Lintegral
 import TauCeti.MeasureTheory.Integral.ContinuousMap
+import Mathlib.MeasureTheory.Function.Holder
 
 /-!
 # The Hilbert space of `L²` differential forms
@@ -88,7 +89,9 @@ carries this convergence back to `L2Form o k`.
   `L²`.
 * `SymplecticGeometry.L2Form.localize ψ χ hχ`: the extension of `localizeLp` to `L2Form o k`, a
   continuous linear map to `Lp (E [⋀^Fin k]→L[ℝ] ℝ) 2 volume`, bounded by
-  `L2Form.exists_norm_localizeLp_le`, with `L2Form.localize_ofSmooth`.
+  `L2Form.exists_norm_localizeLp_le`, with `L2Form.localize_ofSmooth`, and
+  `L2Form.localize_ae_eq_indicator_smul_localize`, which compares the localizations with two
+  cutoffs, `χ₂ = 1` on the support of `χ₁`.
 * `SymplecticGeometry.L2Form.exists_norm_ofSmooth_extendByZeroAlong_le`: extension by zero along
   a chart, of smooth flat forms supported in a fixed compact subset of its target, is bounded for
   the `L²` norms, from the pointwise bounds
@@ -667,6 +670,55 @@ theorem localize_ofSmooth (α : SmoothForm I M ℝ k) :
   rw [localize_ofSmooth_eq_localizeLp, localizeLp_apply]
   exact MemLp.coeFn_toLp _
 
+
+/-- **Localizing with two cutoffs.** If `χ₂ = 1` on the support of `χ₁`, the localization of an
+`L²` form with the cutoff `χ₁` is almost everywhere that with the cutoff `χ₂` multiplied by
+`χ₁ ∘ ψ.symm`, extended by `0` outside `ψ.target`. -/
+theorem localize_ae_eq_indicator_smul_localize {χ₁ χ₂ : C^∞⟮I, M; ℝ⟯}
+    (h₁ : tsupport χ₁ ⊆ ψ.source) (h₂ : tsupport χ₂ ⊆ ψ.source)
+    (h : ∀ x ∈ tsupport χ₁, χ₂ x = 1) (u : L2Form o k) :
+    localize ψ χ₁ h₁ u =ᵐ[volume]
+      fun y ↦ ψ.target.indicator (fun y ↦ χ₁ (ψ.symm y)) y • localize ψ χ₂ h₂ u y := by
+  set r : E → ℝ := ψ.target.indicator fun y ↦ χ₁ (ψ.symm y)
+  -- `r` is continuous with compact support, so it multiplies `L²` boundedly.
+  have hK : IsCompact (ψ '' tsupport χ₁) := (isClosed_tsupport _).isCompact.image_of_continuousOn
+    (ψ.contMDiffOn.continuousOn.mono h₁)
+  have hrs : Function.support r ⊆ ψ '' tsupport χ₁ := fun y hy ↦ by
+    by_cases hyt : y ∈ ψ.target
+    · refine ⟨ψ.symm y, subset_tsupport _ fun h0 ↦ hy ?_, ψ.right_inv hyt⟩
+      exact (Set.indicator_of_mem hyt _).trans h0
+    · exact absurd (Set.indicator_of_notMem hyt _) hy
+  have hKt : ψ '' tsupport χ₁ ⊆ ψ.target := (ψ.mapsTo.mono_left h₁).image_subset
+  have hr : Continuous r := by
+    refine ContinuousOn.continuous_of_tsupport_subset ?_ ψ.open_target
+      ((closure_minimal hrs hK.isClosed).trans hKt)
+    exact (χ₁.contMDiff.continuous.comp_continuousOn ψ.contMDiffOn_invFun.continuousOn).congr
+      fun y hy ↦ Set.indicator_of_mem hy _
+  have hrm : MemLp r ⊤ volume := hr.memLp_of_hasCompactSupport
+    (hK.of_isClosed_subset (isClosed_tsupport _) (closure_minimal hrs hK.isClosed))
+  let B : ℝ →L[ℝ] (E [⋀^Fin k]→L[ℝ] ℝ) →L[ℝ] E [⋀^Fin k]→L[ℝ] ℝ := ContinuousLinearMap.lsmul ℝ ℝ
+  let T := B.holderL volume ⊤ 2 2 hrm.toLp
+  have hT (v : Lp (E [⋀^Fin k]→L[ℝ] ℝ) 2 volume) : T v =ᵐ[volume] fun y ↦ r y • v y := by
+    filter_upwards [B.coeFn_holder (r := 2) hrm.toLp v, hrm.coeFn_toLp] with y h1 h2
+    rw [ContinuousLinearMap.holderL_apply_apply, h1, h2, ContinuousLinearMap.lsmul_apply]
+  suffices hs : localize ψ χ₁ h₁ u = T (localize ψ χ₂ h₂ u) by
+    rw [hs]
+    exact hT _
+  refine induction_on u (isClosed_eq (localize ψ χ₁ h₁).continuous
+    (T.continuous.comp (localize ψ χ₂ h₂).continuous)) fun α ↦ Lp.ext ?_
+  filter_upwards [localize_ofSmooth ψ χ₁ h₁ α, hT (localize ψ χ₂ h₂ (ofSmooth α)),
+    localize_ofSmooth ψ χ₂ h₂ α] with y h1 h2 h3
+  rw [h1, h2, h3]
+  by_cases hy : y ∈ ψ.target
+  · simp only [r, Set.indicator_of_mem hy, SmoothForm.localize_of_mem _ _ _ hy]
+    by_cases hx : ψ.symm y ∈ tsupport χ₁
+    · -- The scalar multiplications are those of the forms read in the chart, so the identities
+      -- are applied by unification rather than rewriting.
+      rw [h _ hx]
+      exact congrArg _ (one_smul ℝ _).symm
+    · rw [image_eq_zero_of_notMem_tsupport hx]
+      exact (zero_smul ℝ _).trans (zero_smul ℝ _).symm
+  · simp [r, SmoothForm.localize_apply_of_notMem _ _ _ hy]
 end Localize
 
 /-! ### Extension by zero along a chart, and gluing -/
