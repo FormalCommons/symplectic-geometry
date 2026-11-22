@@ -236,11 +236,11 @@ theorem chernNumber_pullback [PreconnectedSpace M]
     {M' : Type} [TopologicalSpace M'] [T2Space M'] [CompactSpace M']
     {EM' : Type} [NormedAddCommGroup EM'] [NormedSpace ℝ EM'] [FiniteDimensional ℝ EM']
     [ChartedSpace EM' M'] (o' : HomologicalOrientation M' EM' 2) (hn' : finrank ℝ EM' = 2)
-    (f : C(M', M)) :
-    chernNumber o' hn' G ((⇑f) *ᵖ E) = o'.degree o hn' f * chernNumber o hn G E := by
+    {K : Type*} [FunLike K M' M] [ContinuousMapClass K M' M] (f : K) :
+    chernNumber o' hn' G ((⇑f) *ᵖ E) = o'.degree o hn' (f : C(M', M)) * chernNumber o hn G E := by
   rw [chernNumber_def, chernNumber_def, firstChernClass_pullback,
     HomologicalOrientation.evalFundamentalClass_id_singularCohomologyMap_eq_degree_smul o' hn' _
-      o hn f, ULift.smul_down, smul_eq_mul]
+      o hn (f : C(M', M)), ULift.smul_down, smul_eq_mul]
 
 end Number
 
