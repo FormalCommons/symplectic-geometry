@@ -427,6 +427,14 @@ The topology of the second line is Tau Ceti's `TauCeti.subbundleTopology`
 (`Topology/VectorBundle/Subbundle.lean`), for the lines as subspaces of the
 fibres of that pull-back. The file imports the three files above.
 
+### `AlgebraicTopology/Cohomology/ComplSingleton.lean`
+
+- `TauCeti.isZero_singularCohomology_complSingleton_subtype_of_ne`: for a
+  real normed space `F` of finite dimension `d` and `x : F`,
+  `Hᵐ(F ∖ {x}; R, N) = 0` for `m ≠ 0` and `m + 1 ≠ d`, for projective `R`.
+  It serves `ChernClass/ProjectiveSpace.lean`, where the deleted tautological
+  line is `{v : V // v ≠ 0}`.
+
 ### `Topology/VectorBundle/Complex/ChernClass/ProjectiveSpace.lean`
 
 For a complex vector space `V` with `finrank ℂ V = n + 1`:
@@ -517,6 +525,28 @@ For `E` of rank `n + 1` over a compact Hausdorff `B`:
 With `injective_projectiveBundle_proj` this is the splitting principle in the
 one-step form that the inductions below use; `P(E)` is again compact
 Hausdorff.
+
+### `AlgebraicTopology/Singular/Kunneth/RelativePair.lean`
+
+The homology cross product of two pairs, for the Whitney file below:
+`TopCat.singularHomologyCrossRelPair`,
+`Hₚ(X, A; R) ⊗ H_q(Y, B; S) ⟶ Hₙ(X × Y, fst⁻¹(A) ∪ snd⁻¹(B); R ⊗ S)`, built
+from Tau Ceti's shuffle map `TopCat.shufflePair`, with `_def`,
+`singularHomologyCrossRelPair_naturality`, and its compatibility with
+`TopCat.singularHomologyCrossRel`
+(`whiskerLeft_singularHomologyπ_comp_singularHomologyCrossRelPair`) and with
+`TopCat.singularHomologyCross`
+(`singularHomologyCross_comp_singularHomologyπ_eq_singularHomologyCrossRelPair`).
+It uses these copies of Tau Ceti's files of the commit `c9d170eed5`:
+
+- `AlgebraicTopology/Singular/Kunneth/Pair.lean`: `TopCat.shufflePair`
+  with its characterization and naturality, without the quasi-isomorphism
+  results.
+- `AlgebraicTopology/Singular/Excision.lean`: `TopPair.prodUnionTripleFst`
+  and `TopPair.prodExcisionFst`.
+- `AlgebraicTopology/Singular/Relative.lean`, the existing copy, to which
+  `TopPair.singularChainComplexπ_comp_singularChainComplexMap_of_fst_eq_id`
+  is added.
 
 ### `Topology/VectorBundle/Orientation/Complex/Whitney.lean`
 

@@ -785,11 +785,11 @@ issues, in an order where each issue's blockers come before it.
    for the evenness: Tau Ceti's
    `TopCat.even_finrank_singularHomology_of_injective_singularCapLinearMap`,
    given injectivity of the cap product with the fundamental class in degree
-   one. `AlgebraicTopology/Cohomology/Cap/RationalCoefficients.lean` reduces
+   one. `AlgebraicTopology/Cohomology/Cap/RationalCoefficients.lean` derives
    it, for the image of the fundamental class under
-   `TopCat.singularHomologyIntToRat`, to injectivity of the duality map with
+   `TopCat.singularHomologyIntToRat`, from bijectivity of the duality map with
    values in `ℚ`
-   (`TauCeti.HomologicalOrientation.injective_singularCapLinearMap_of_injective_dualityMap`).
+   (`TauCeti.HomologicalOrientation.bijective_singularCapLinearMap_fundamentalClass`).
    It uses two new general files:
    `AlgebraicTopology/Cohomology/Cap/Basic.lean`, the singular cap product
    of a simplex along the unitors, and
@@ -869,7 +869,16 @@ issues, in an order where each issue's blockers come before it.
    `Topology.IsOpenEmbedding.iSup_finset_sup_convex_image_eq_top`. The
    induction is `InfClosed.finset_sup_induction`, in `Order/SupClosed.lean`,
    Tau Ceti's `TauCeti.finset_sup_of_inf_closed` for a finite set of members
-   of the family.
+   of the family. It is run once for each theory, over any inf-closed
+   family of open sets whose finite unions cover the space:
+   `TopCat.isZero_compactSupportCohomology_of_infClosed`, in
+   `CompactSupport/Vanishing.lean`, and
+   `TauCeti.HomologicalOrientation.bijective_dualityMap_of_infClosed`, in
+   `CompactSupport/Duality/Union.lean`, which also assumes
+   `Hⁿ⁺¹_c(W; L) = 0` for every open set `W`. Their case of the empty
+   union uses the instance `TopologicalSpace.Opens.isEmpty_bot` of
+   `Topology/Sets/Opens/Basic.lean`, which `CompactSupport/Vanishing.lean`
+   imports.
    Duality for a manifold is the library's
    `AlgebraicTopology/Cohomology/CompactSupport/Duality/Manifold.lean`:
    `TauCeti.HomologicalOrientation.bijective_dualityMap`, for every
@@ -1094,11 +1103,12 @@ issues, in an order where each issue's blockers come before it.
      (`Metric.isCollared_inclusion_sphere_closedBall`), and the
      open ball is the complement of the sphere in the closed ball
      (`Metric.range_inclusion_ball_eq_compl`).
-   - `AlgebraicTopology/Singular/LocalHomology/OrientedChart.lean`:
-     `OpenPartialHomeomorph.map_reducedSingularHomologyδ_localOrientationOfOrientedChart_refl`,
-     the local orientation of the identity chart of an oriented inner
-     product space, through the connecting morphism and radial projection,
-     is the oriented generator of the unit sphere.
+   - `AlgebraicTopology/Singular/LocalHomology/OrientedChart.lean`, used
+     by *Chern classes*' `Orientation/EulerCharacteristic.lean`:
+     `TauCeti.Manifold.Orientation.localHomologyMap_sub_toHomologicalOrientation`,
+     the centred chart of an oriented manifold at `z` carries its local
+     orientation at `z` to that of the model at the origin selected by the
+     orientation of the fibre at `z`.
    - `Topology/OpenPartialHomeomorph/Basic.lean`, used by
      `LocalHomology/System.lean` and `Orientation/Chart.lean`: from Tau
      Ceti's main branch, `OpenPartialHomeomorph.sourceRestrict`, an open
@@ -1244,15 +1254,31 @@ issues, in an order where each issue's blockers come before it.
    that fixes that representation, and by 5. The gluing uses polar
    coordinates on the circle,
    `AddCircle.isLocalDiffeomorphAt_ofReal_mul_toCircle`, in
-   `Geometry/Manifold/Instances/AddCircle.lean`, which imports
-   `Geometry/Manifold/LocalDiffeomorph/Basic.lean` of *Smooth families*,
-   merged, for `isLocalDiffeomorph_id`. That the loops are
+   `Geometry/Manifold/Instances/AddCircle.lean`. The orientation of the
+   caps uses its orientation behaviour, in
+   `Geometry/Manifold/Orientation/AddCircle.lean`, this library's
+   counterpart of Tau Ceti's file of that name: for the product of
+   `AddCircle.orientation p` and the standard orientation of `ℝ`, and
+   the standard orientation of `ℂ`, polar coordinates reverse
+   orientation where `r > 0`
+   (`AddCircle.isOrientationReversingAt_ofReal_mul_toCircle`) and
+   preserve it where `r < 0`
+   (`AddCircle.isOrientationPreservingAt_ofReal_mul_toCircle`). That the loops are
    finitely many uses `finite_of_compactSpace_of_pairwise_disjoint`, a
    disjoint open cover of a compact space has finite index, in
    `Topology/Compactness/LocallyFinite.lean`. The orientation of the
    capped surface is glued from the interior and the discs by
    `TauCeti.Manifold.Orientation.iGlue`, Tau Ceti's `glue` for a family
    of pieces, in `Geometry/Manifold/Orientation/Glue.lean`.
+   On the annuli, the orientation of the caps is compared with that of
+   the surface through the collar, by
+   `TauCeti.SmoothCollar.orientationSign_eq_neg_one_pow` in
+   `Geometry/Manifold/Boundary/Collar/Orientation.lean`: with the
+   outward-first boundary orientation, the standard orientation
+   `TauCeti.EuclideanHalfSpace.normalIioOpensOrientation` of $[0,1)$ and
+   their product, a smooth collar of an $(n+1)$-manifold has orientation
+   sign $(-1)^{n+1}$, so on a surface it preserves orientation
+   (`TauCeti.SmoothCollar.isOrientationPreservingAt_of_odd`).
 9. **A map of degree one onto the sphere.**
    `Geometry/Manifold/Degree/Collapse.lean`:
    `SymplecticGeometry.exists_contMDiff_degree_eq_one`, every compact

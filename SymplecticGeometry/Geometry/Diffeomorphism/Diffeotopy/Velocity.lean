@@ -37,7 +37,7 @@ sense of McDuff–Salamon, §3.1, and the time derivative that Tau Ceti's
   vector `(v, 0)` to `dφ_t v`.
 * `TauCeti.Diffeotopy.forall_velocity_mem_iff`: the velocity lies in a family of subspaces `D_t`
   everywhere if and only if the time derivative of the motion at `(x, t)` lies in `D_t (φ_t x)`.
-* `TauCeti.Diffeotopy.contMDiff_velocity`:`X_t` is jointly smooth in `(t, y)`, up to both ends.
+* `TauCeti.Diffeotopy.contMDiff_velocity`: `X_t` is jointly smooth in `(t, y)`, up to both ends.
 * `TauCeti.Diffeotopy.velocity_refl`: the constant diffeotopy has velocity zero.
 * `TauCeti.Diffeotopy.velocity_globalFlowDiffeotopy`: the flow of a complete field `v`, run for
   duration `a`, has velocity `a • v`.

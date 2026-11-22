@@ -9,6 +9,7 @@ public import SymplecticGeometry.Geometry.Manifold.Complex.Integrable
 public import SymplecticGeometry.Geometry.Manifold.DeRham.Hodge.Chart
 public import TauCeti.Analysis.Calculus.InverseFunctionTheorem
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
+import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Chart
 import SymplecticGeometry.LinearAlgebra.ComplexStructure.SymmetricBilinear
 
 /-!

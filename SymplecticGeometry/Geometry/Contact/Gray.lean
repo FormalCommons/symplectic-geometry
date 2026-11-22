@@ -66,7 +66,9 @@ of `Flow/Family.lean`, the flow of that restriction, which is the flow of the Gr
 the cocycle property of the flow, the pullback of `ξ_t` by `ψ_t` at `x` is a locally constant
 function of `t`, equal to `ξ_0 x` at `t = 0`, and `[0, 1]` is connected.
 
-The Gray isotopy is the only diffeotopy that transports `ξ` and whose velocity lies in `ξ`
+On a σ-compact manifold, two diffeotopies that transport `ξ` and whose velocities lie in `ξ`
+are equal (`SymplecticGeometry.IsContactFamily.eq_of_transports`), so on a compact one the Gray
+isotopy is the only such diffeotopy
 (`SymplecticGeometry.IsContactFamily.eq_grayDiffeotopy_of_transports`). Such a diffeotopy `Φ` is
 read over `ℝ` as `u ↦ φ_{s(u)}`, `s = Real.smoothTransition`, the time-dependent flow of its
 Eulerian field `Z_u = s'(u) X_{s(u)}`. Near a point, take a local defining family `β` and its
@@ -80,7 +82,9 @@ of the same field, and agree, since `s` maps `ℝ` onto `[0, 1]`.
 When `ξ` is the family of kernels of contact forms `α_t`, every diffeotopy `φ_t` that transports
 `ξ` rescales them, `φ_t^* α_t = f_t α_0` with `f` smooth and positive and `f_0 = 1`
 (`TauCeti.Diffeotopy.Transports.exists_mpullback_eq_smul`): `f_t` is the value of `φ_t^* α_t` on
-the Reeb field of `α_0`, and it does not vanish on the connected interval. Together with the
+the Reeb field of `α_0`, and it does not vanish on the connected interval. So `φ_t` carries the
+coorientation given by `α_0` to the one given by `α_t`
+(`TauCeti.Diffeotopy.Transports.preservesCoorientation_timeSlice`). Together with the
 existence and uniqueness this is Gray stability
 (`SymplecticGeometry.IsContactFamily.existsUnique_transports`).
 
@@ -124,10 +128,14 @@ pinned Tau Ceti's `TauCeti/Geometry/Contact/Gray.lean`, with its proof.
   family.
 * `SymplecticGeometry.IsContactFamily.velocity_grayDiffeotopy_mem`: its velocity lies in the
   family.
-* `SymplecticGeometry.IsContactFamily.eq_grayDiffeotopy_of_transports`: it is the only
-  diffeotopy that transports the family with velocity in the family.
+* `SymplecticGeometry.IsContactFamily.eq_of_transports`: on a σ-compact manifold, two
+  diffeotopies that transport the family with velocity in the family are equal.
+* `SymplecticGeometry.IsContactFamily.eq_grayDiffeotopy_of_transports`: so the Gray isotopy is
+  the only diffeotopy that transports the family with velocity in the family.
 * `TauCeti.Diffeotopy.Transports.exists_mpullback_eq_smul`: a diffeotopy that transports the
   kernels of a family of contact forms rescales the forms by a smooth positive function.
+* `TauCeti.Diffeotopy.Transports.preservesCoorientation_timeSlice`: so each of its time slices
+  preserves the coorientations.
 * `SymplecticGeometry.IsContactFamily.existsUnique_transports`: Gray stability.
 
 ## References
@@ -372,6 +380,23 @@ theorem Transports.exists_mpullback_eq_smul {Φ : Diffeotopy I ∞ M}
     (hf.continuous.comp (continuous_id.prodMk continuous_const)).continuousOn
     ⟨not_lt.1 hneg, (h0 p.2).ge.trans' zero_le_one⟩
   exact hne s p.2 hs
+
+/-- **Transporting diffeotopies preserve the coorientations.** Let `α` be a one-form on
+`[0, 1] × M` all of whose slices `α_t` are contact forms, and let `Φ` be a diffeotopy that
+transports their kernels. Then each `φ_t` carries the coorientation given by `α_0` to the one
+given by `α_t`. -/
+theorem Transports.preservesCoorientation_timeSlice {Φ : Diffeotopy I ∞ M}
+    (α : SmoothForm ((𝓡∂ 1).prod I) (unitInterval × M) ℝ 1)
+    (hc : ∀ t, (SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id)
+      α).IsContactForm)
+    (hΦ : Φ.Transports fun t ↦
+      (SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) α).kerDistribution)
+    (t : unitInterval) :
+    (Φ.timeSlice t).PreservesCoorientation
+      (SmoothForm.mpullback (Prod.mk 0) (contMDiff_const.prodMk contMDiff_id) α)
+      (SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) α) := by
+  obtain ⟨f, -, hpos, -, hf⟩ := hΦ.exists_mpullback_eq_smul α hc
+  exact Diffeomorph.preservesCoorientation_def.2 fun x ↦ ⟨f (t, x), hpos _, hf t x⟩
 
 end TauCeti.Diffeotopy
 
@@ -779,6 +804,26 @@ private theorem apply_smoothTransitionUnit_eq_timeDependentFlowOf (hξ : IsConta
     Φ.smoothTransitionFamily_of_nonpos le_rfl, Φ.smoothTransitionFamily_apply]
   simp
 
+/-- **Uniqueness of normalized transporting diffeotopies.** On a σ-compact Hausdorff manifold
+without boundary, two diffeotopies that transport a smooth family `ξ` of contact structures over
+`[0, 1]` and whose velocities lie in `ξ` at every time and point are equal. -/
+theorem eq_of_transports [SigmaCompactSpace M] (hξ : IsContactFamily ξ) {Φ Ψ : Diffeotopy I ∞ M}
+    (hΦ : Φ.Transports ξ)
+    (hvΦ : ∀ (t : unitInterval) (x : M), mfderiv (I.prod (𝓡∂ 1)) I Φ.cylinderMap (x, t)
+      ((0 : E), (1 : TangentSpace (𝓡∂ 1) t)) ∈ ξ t (Φ (t, x)))
+    (hΨ : Ψ.Transports ξ)
+    (hvΨ : ∀ (t : unitInterval) (x : M), mfderiv (I.prod (𝓡∂ 1)) I Ψ.cylinderMap (x, t)
+      ((0 : E), (1 : TangentSpace (𝓡∂ 1) t)) ∈ ξ t (Ψ (t, x))) :
+    Φ = Ψ := by
+  obtain ⟨Y, -, -, hgray⟩ := hξ.exists_grayField
+  refine Diffeotopy.ext fun p ↦ ?_
+  obtain ⟨u, hu⟩ := Real.smoothTransitionUnit_surjective p.1
+  rw [← Prod.mk.eta (p := p), ← hu,
+    apply_smoothTransitionUnit_eq_timeDependentFlowOf hξ hgray hΦ
+      ((Φ.forall_velocity_mem_iff ξ).2 hvΦ),
+    apply_smoothTransitionUnit_eq_timeDependentFlowOf hξ hgray hΨ
+      ((Ψ.forall_velocity_mem_iff ξ).2 hvΨ)]
+
 variable [CompactSpace M]
 
 /-- **The Gray isotopy** of a smooth family `ξ` of contact structures over `[0, 1]` on a compact
@@ -871,15 +916,8 @@ theorem eq_grayDiffeotopy_of_transports (hξ : IsContactFamily ξ) {Φ : Diffeot
     (hΦ : Φ.Transports ξ)
     (hv : ∀ (t : unitInterval) (x : M), mfderiv (I.prod (𝓡∂ 1)) I Φ.cylinderMap (x, t)
       ((0 : E), (1 : TangentSpace (𝓡∂ 1) t)) ∈ ξ t (Φ (t, x))) :
-    Φ = hξ.grayDiffeotopy := by
-  obtain ⟨Y, -, -, hgray⟩ := hξ.exists_grayField
-  refine Diffeotopy.ext fun p ↦ ?_
-  obtain ⟨u, hu⟩ := Real.smoothTransitionUnit_surjective p.1
-  rw [← Prod.mk.eta (p := p), ← hu,
-    apply_smoothTransitionUnit_eq_timeDependentFlowOf hξ hgray hΦ
-      ((Φ.forall_velocity_mem_iff ξ).2 hv),
-    apply_smoothTransitionUnit_eq_timeDependentFlowOf hξ hgray hξ.transports_grayDiffeotopy
-      ((hξ.grayDiffeotopy.forall_velocity_mem_iff ξ).2 hξ.velocity_grayDiffeotopy_mem)]
+    Φ = hξ.grayDiffeotopy :=
+  hξ.eq_of_transports hΦ hv hξ.transports_grayDiffeotopy hξ.velocity_grayDiffeotopy_mem
 
 /-- **Gray stability.** Let `M` be a compact Hausdorff manifold without boundary and `ξ` a
 smooth family of contact structures over `[0, 1]`, not necessarily coorientable. There is a unique

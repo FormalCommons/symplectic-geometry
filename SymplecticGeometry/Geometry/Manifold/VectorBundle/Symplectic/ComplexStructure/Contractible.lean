@@ -240,7 +240,7 @@ theorem Compatible.exists_almostComplexStructureAt_cayleyPath (t : ℝ) (x : M) 
     (J₀.almostComplexStructureAt_toLinearMap x).symm
     (J.almostComplexStructureAt_toLinearMap x).symm t
   refine ⟨K, AlmostComplexStructure.toLinearMap_injective ?_, hT, fun hJ ↦ hC ?_⟩
-  · rw [ContMDiffComplexStructure.almostComplexStructureAt_toLinearMap, hK,
+  · simp only [ContMDiffComplexStructure.almostComplexStructureAt_toLinearMap, hK,
       h₀.cayleyPath_apply]
   · exact hJ.compatibleAt x
 
@@ -414,7 +414,7 @@ theorem mk_mem_polarEndDomain_inter_cayleyPathDomain (J : ContMDiffComplexStruct
   refine ⟨J.mk_mem_polarEndDomain g₀ x,
     ((hc.isNondegenerate.compatible_polarComplexStructure g₁).compatibleAt x).mem_cayleyPathDomain
       (hc.compatibleAt x).tames ?_ (J.almostComplexStructureAt_toLinearMap x).symm⟩
-  rw [almostComplexStructureAt_toLinearMap, ← polarFormulaAt_compatibleBilinAt]
+  simp only [almostComplexStructureAt_toLinearMap, ← polarFormulaAt_compatibleBilinAt]
 
 end ContMDiffComplexStructure
 
