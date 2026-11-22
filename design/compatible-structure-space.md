@@ -13,8 +13,8 @@ two questions that `DESIGN.md` leaves to it: the curvature convention
 
 Files are under `SymplecticGeometry/`. Paths of Tau Ceti files are relative to
 `.lake/packages/TauCeti/TauCeti/`. Every Tau Ceti and Mathlib name below was
-checked at the pinned versions. Throughout, `V` is a finite-dimensional real
-normed space (`[NormedAddCommGroup V] [NormedSpace ℝ V] [FiniteDimensional ℝ V]`,
+checked at the pinned versions. Throughout, `V` is a real normed space of finite
+dimension (`[NormedAddCommGroup V] [NormedSpace ℝ V] [FiniteDimensional ℝ V]`,
 the setting of Tau Ceti's topology on `AlmostComplexStructure V`), and
 `ω : TauCeti.SymplecticForm V`. In this document `𝒥 ω` abbreviates
 `{J : TauCeti.AlmostComplexStructure V // ω.Compatible J}`; a file may
@@ -181,7 +181,8 @@ diffeomorphism. No Mathlib or Tau Ceti notion is redefined.
 7. **The connection.** In the global chart the Levi-Civita connection is the
    flat derivative plus the symmetric Christoffel map
    $\Gamma_C(a,b)=aKb+bKa$ with $K=C(1-C^2)^{-1}$, which lies in the model
-   because $K$ anticommutes with $J_0$ and is $g_{J_0}$-self-adjoint. The
+   because $K$, like $C$, anticommutes with $J_0$ and is self-adjoint for
+   $g_{J_0}$. The
    connection is built as Mathlib's `CovariantDerivative.addOneForm` of the
    flat connection of the chart by $\Gamma$. It is torsion free because
    $\Gamma$ is symmetric, and metric because the extra term
