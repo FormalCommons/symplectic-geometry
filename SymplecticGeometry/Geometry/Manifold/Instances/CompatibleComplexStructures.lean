@@ -118,16 +118,8 @@ theorem isUnit_compatibleCLM (J : 𝒥) : IsUnit (ω.compatibleCLM J) := by
 /-- A complex structure squares to `-1` in the continuous endomorphisms. -/
 @[simp]
 theorem compatibleCLM_mul_self (J : 𝒥) : ω.compatibleCLM J * ω.compatibleCLM J = -1 := by
-  ext v
-  simp
-
-/-- Composing a compatible tangent vector at `J` with `J` on the left gives a compatible tangent
-vector at `J`, in the continuous endomorphisms. -/
-theorem compatibleCLM_mul_mem_compatibleTangentSpaceCLM (J : 𝒥) {C : V →L[ℝ] V}
-    (hC : C ∈ ω.compatibleTangentSpaceCLM J.val) :
-    ω.compatibleCLM J * C ∈ ω.compatibleTangentSpaceCLM J.val := by
-  rw [mem_compatibleTangentSpaceCLM] at hC ⊢
-  exact J.property.invariant.mul_mem_compatibleTangentSpace hC
+  rw [compatibleCLM_def]
+  exact J.val.toContinuousLinearMap_mul_self
 
 /-! ### The global Cayley chart -/
 
@@ -182,6 +174,15 @@ theorem compatibleCLM_chartAt_symm_apply {J : 𝒥} {C : ω.compatibleModel}
   refine ω.compatibleBase.property.toContinuousLinearMap_eq_of_cayleyCoord_eq ?_
   rw [← coe_cayleyChart, ← chartAt_eq J, (chartAt ω.compatibleModel J).right_inv hC]
 
+/-- In Cayley coordinates, `J` is `J₀ (1 + C) (1 - C)⁻¹` for its coordinate `C`, `J₀` being the
+base point. -/
+theorem compatibleCLM_eq_cayleyChart (J : 𝒥) :
+    ω.compatibleCLM J = ω.compatibleCLM ω.compatibleBase * (1 + (ω.cayleyChart J : V →L[ℝ] V)) *
+      Ring.inverse (1 - (ω.cayleyChart J : V →L[ℝ] V)) := by
+  rw [compatibleCLM_def, compatibleCLM_def]
+  exact ω.compatibleBase.property.toContinuousLinearMap_eq_of_cayleyCoord_eq
+    (coe_cayleyChart J).symm
+
 /-- **The compatible complex structures form a smooth manifold**, modelled on
 `ω.compatibleModel` through the global Cayley chart. -/
 instance {n : WithTop ℕ∞} : IsManifold 𝓘(ℝ, ω.compatibleModel) n 𝒥 :=
@@ -203,20 +204,11 @@ theorem contMDiff_compatibleCLM {n : WithTop ℕ∞} :
     ((ω.compatibleModel.subtypeL.contMDiff.comp contMDiff_cayleyChart).congr fun J => ?_)
   simp
 
-/-- All points have the same chart. -/
-theorem chartAt_eq_chartAt (J J' : 𝒥) :
-    chartAt ω.compatibleModel J = chartAt ω.compatibleModel J' :=
-  (OpenPartialHomeomorph.singletonChartedSpace_mem_atlas_eq _
-    (IsOpenEmbedding.toOpenPartialHomeomorph_source _ _) _ (chart_mem_atlas _ J)).trans
-    (OpenPartialHomeomorph.singletonChartedSpace_mem_atlas_eq _
-      (IsOpenEmbedding.toOpenPartialHomeomorph_source _ _) _ (chart_mem_atlas _ J')).symm
-
 /-- Since there is one chart, the changes of coordinates of the tangent bundle are the
 identity. -/
 theorem tangentCoordChange_apply (J J' J'' : 𝒥) (v : ω.compatibleModel) :
-    tangentCoordChange 𝓘(ℝ, ω.compatibleModel) J J' J'' v = v := by
-  rw [tangentCoordChange_def, extChartAt, extChartAt, chartAt_eq_chartAt J' J, ← extChartAt,
-    ← tangentCoordChange_def, tangentCoordChange_self (by simp)]
+    tangentCoordChange 𝓘(ℝ, ω.compatibleModel) J J' J'' v = v :=
+  tangentCoordChange_self (by simp)
 
 /-- The differential of the chart is the identity of the model. -/
 theorem mfderiv_chartAt_apply (J J' : 𝒥) (v : TangentSpace 𝓘(ℝ, ω.compatibleModel) J') :
@@ -231,17 +223,12 @@ theorem mfderiv_chartAt_symm_apply {J : 𝒥} {C : ω.compatibleModel}
     (hC : C ∈ (chartAt ω.compatibleModel J).target) (v : ω.compatibleModel) :
     mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, ω.compatibleModel) (chartAt ω.compatibleModel J).symm C v =
       v := by
-  let e := chartAt ω.compatibleModel J
-  have hid : e ∘ e.symm =ᶠ[𝓝 C] id := by
-    filter_upwards [e.open_target.mem_nhds hC] with C' hC' using e.right_inv hC'
-  have h := mfderiv_comp C
-    (mdifferentiableAt_atlas (I := 𝓘(ℝ, ω.compatibleModel)) (chart_mem_atlas _ J)
-    (e.map_target hC))
-    (mdifferentiableAt_atlas_symm (I := 𝓘(ℝ, ω.compatibleModel)) (chart_mem_atlas _ J) hC)
-  rw [hid.mfderiv_eq, mfderiv_id] at h
+  have h := mfderiv_extChartAt_comp_mfderivWithin_extChartAt_symm
+    (I := 𝓘(ℝ, ω.compatibleModel)) (x := J) (y := C) (by simpa using hC)
+  simp only [modelWithCornersSelf_coe, Set.range_id, mfderivWithin_univ] at h
   -- The tangent spaces of the model are the model itself, so `exact` sees through them.
-  have h' : v = _ := DFunLike.congr_fun h v
-  exact (mfderiv_chartAt_apply J _ _).symm.trans h'.symm
+  have h' : _ = v := DFunLike.congr_fun h v
+  exact (mfderiv_chartAt_apply J _ _).symm.trans h'
 
 /-! ### The differential of the inclusion -/
 

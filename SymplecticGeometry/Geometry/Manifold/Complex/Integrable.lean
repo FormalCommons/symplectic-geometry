@@ -349,6 +349,25 @@ theorem ofTangentCoordChange_apply {hJ₀ : ∀ v, J₀ (J₀ v) = -v}
     ofTangentCoordChange I J₀ hJ₀ h x v = J₀ v :=
   (rfl)
 
+/-- The almost complex structure `ofTangentCoordChange` is `J₀` on every tangent space, as an
+endomorphism. -/
+theorem toEndomorphism_ofTangentCoordChange {hJ₀ : ∀ v, J₀ (J₀ v) = -v}
+    {h : ∀ {x y z : M}, z ∈ (chartAt H x).source ∩ (chartAt H y).source → ∀ v : E,
+      tangentCoordChange I x y z (J₀ v) = J₀ (tangentCoordChange I x y z v)} (x : M) :
+    (ofTangentCoordChange I J₀ hJ₀ h).toEndomorphism x =
+      (J₀ : TangentSpace I x →L[ℝ] TangentSpace I x) :=
+  ContinuousLinearMap.ext fun v ↦ ofTangentCoordChange_apply x v
+
+/-- In the tangent coordinates of the chart at any point `x₀`, the almost complex structure
+`ofTangentCoordChange` is `J₀` on the whole chart domain. -/
+theorem inTangentCoordinates_ofTangentCoordChange {hJ₀ : ∀ v, J₀ (J₀ v) = -v}
+    {h : ∀ {x y z : M}, z ∈ (chartAt H x).source ∩ (chartAt H y).source → ∀ v : E,
+      tangentCoordChange I x y z (J₀ v) = J₀ (tangentCoordChange I x y z v)} {x₀ x : M}
+    (hx : x ∈ (chartAt H x₀).source) :
+    inTangentCoordinates I I id id
+        (fun x ↦ (ofTangentCoordChange I J₀ hJ₀ h).toEndomorphism x) x₀ x = J₀ :=
+  inTangentCoordinates_const I J₀ h hx
+
 /-- On a manifold modelled on `E` itself, the constant structure `J₀` is integrable: in every
 chart it is `J₀`. -/
 theorem isIntegrable_ofTangentCoordChange [ChartedSpace E M] [IsManifold 𝓘(ℝ, E) ∞ M]

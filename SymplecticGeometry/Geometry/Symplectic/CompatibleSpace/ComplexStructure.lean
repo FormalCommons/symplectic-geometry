@@ -67,20 +67,23 @@ local notation "𝒥" => {J : AlmostComplexStructure V // ω.Compatible J}
 
 /-! ### The complex structure of the model -/
 
-/-- Composing an element of the model with the base point on the left stays in the model. -/
-theorem compatibleCLM_compatibleBase_mul_mem {C : V →L[ℝ] V} (hC : C ∈ ω.compatibleModel) :
-    ω.compatibleCLM ω.compatibleBase * C ∈ ω.compatibleModel := by
-  rw [compatibleModel_def] at hC ⊢
-  exact compatibleCLM_mul_mem_compatibleTangentSpaceCLM _ hC
-
 variable (ω) in
 /-- The linear complex structure `C ↦ -J₀ C` of the model `ω.compatibleModel`, `J₀` being the base
 point `ω.compatibleBase`. -/
 noncomputable def compatibleModelComplexStructure :
     AlmostComplexStructure ω.compatibleModel where
   toLinearMap :=
-    { toFun C := ⟨-(ω.compatibleCLM ω.compatibleBase * C),
-        neg_mem (compatibleCLM_compatibleBase_mul_mem C.property)⟩
+    -- Composing with the base point on the left preserves the compatible tangent space there,
+    -- which is the model.
+    have hmem (C : ω.compatibleModel) :
+        ω.compatibleCLM ω.compatibleBase * (C : V →L[ℝ] V) ∈ ω.compatibleModel := by
+      obtain ⟨D, hD⟩ := C
+      rw [Subtype.coe_mk, compatibleModel_def, mem_compatibleTangentSpaceCLM]
+      rw [compatibleModel_def, mem_compatibleTangentSpaceCLM] at hD
+      rw [compatibleCLM_def, ContinuousLinearMap.toLinearMap_mul,
+        LinearMap.coe_toContinuousLinearMap]
+      exact ω.compatibleBase.property.invariant.mul_mem_compatibleTangentSpace hD
+    { toFun C := ⟨-(ω.compatibleCLM ω.compatibleBase * C), neg_mem (hmem C)⟩
       map_add' C D := Subtype.ext <| by simp [mul_add, add_comm]
       map_smul' c C := Subtype.ext <| by simp }
   square_neg := LinearMap.ext fun C => Subtype.ext <| by
@@ -120,20 +123,13 @@ theorem compatibleSpaceComplexStructure_def :
 
 /-- The almost complex structure at every point is the complex structure `C ↦ -J₀ C` of the
 model. -/
+@[simp]
 theorem compatibleSpaceComplexStructure_apply (J : 𝒥)
     (a : TangentSpace 𝓘(ℝ, ω.compatibleModel) J) :
     ω.compatibleSpaceComplexStructure J a = ω.compatibleModelComplexStructure a := by
   -- `ofTangentCoordChange_apply` does not find the hypotheses of the constructor by unification.
   rw [compatibleSpaceComplexStructure_def]
   exact SmoothAlmostComplexStructure.ofTangentCoordChange_apply J a
-
-/-- In Cayley coordinates, `J` is `J₀ (1 + C) (1 - C)⁻¹` for its coordinate `C`, `J₀` being the
-base point. -/
-theorem compatibleCLM_eq_cayleyChart (J : 𝒥) :
-    ω.compatibleCLM J = ω.compatibleCLM ω.compatibleBase * (1 + (ω.cayleyChart J : V →L[ℝ] V)) *
-      Ring.inverse (1 - (ω.cayleyChart J : V →L[ℝ] V)) := by
-  have h := compatibleCLM_chartAt_symm_apply (cayleyChart_mem_chartAt_target J J)
-  rwa [← chartAt_eq J, (chartAt ω.compatibleModel J).left_inv (by simp)] at h
 
 /-- **The complex structure in ambient readings.** At `J`, the almost complex structure sends a
 tangent vector with ambient reading `Ĵ` to the tangent vector with ambient reading `-J Ĵ`. -/
