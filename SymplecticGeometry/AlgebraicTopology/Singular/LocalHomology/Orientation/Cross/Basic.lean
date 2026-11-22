@@ -92,6 +92,8 @@ public section
 noncomputable section
 
 open CategoryTheory MonoidalCategory Set Topology Module
+open TopCat (mapsTo_preimage_fst_compl_union_preimage_snd_compl
+  mapsTo_compl_singleton_preimage_fst_compl_union_preimage_snd_compl)
 
 namespace TauCeti
 
@@ -99,18 +101,6 @@ section Cross
 
 variable {X Y X' Y' : Type} [TopologicalSpace X] [TopologicalSpace Y] [TopologicalSpace X']
   [TopologicalSpace Y']
-
-/-- The identity of `X × Y` carries `(X ∖ {x}) × Y ∪ X × (Y ∖ {y})` into the complement of
-`(x, y)`. -/
-theorem mapsTo_preimage_fst_compl_union_preimage_snd_compl (x : X) (y : Y) :
-    MapsTo (TopCat.tensorObjIsoProd X Y).hom
-      (CartesianMonoidalCategory.fst (TopCat.of X) (TopCat.of Y) ⁻¹' ({x}ᶜ : Set (TopCat.of X)) ∪
-        CartesianMonoidalCategory.snd (TopCat.of X) (TopCat.of Y) ⁻¹' ({y}ᶜ : Set (TopCat.of Y)))
-      ({(x, y)}ᶜ : Set (TopCat.of (X × Y))) := by
-  rintro p (hz | hz) h <;>
-    simp only [TopCat.tensorObjIsoProd_hom_apply, mem_singleton_iff, Prod.mk.injEq] at h
-  · exact hz h.1
-  · exact hz h.2
 
 /-- **The cross product of local homology classes**
 `Hₚ(X, X ∖ {x}; ℤ) ⊗ H_q(Y, Y ∖ {y}; ℤ) ⟶ Hₙ(X × Y, X × Y ∖ {(x, y)}; ℤ)` for `p + q = n`: the
@@ -150,21 +140,6 @@ theorem localHomologyCross_eq (x : X) (y : Y) (p q n : ℕ) (h : p + q = n) :
       TopPair.singularHomologyMap
         (TopPair.ofSubsetMap _ (mapsTo_preimage_fst_compl_union_preimage_snd_compl x y)) _ n := by
   rw [localHomologyCross_def, TopPair.singularHomologyMap_coefficient_naturality]
-
-/-- The inverse of `TopCat.tensorObjIsoProd X Y`, the identity of `X × Y`, carries the complement
-of `(x, y)` into `(X ∖ {x}) × Y ∪ X × (Y ∖ {y})`: the converse of
-`TauCeti.mapsTo_preimage_fst_compl_union_preimage_snd_compl`. -/
-theorem mapsTo_compl_singleton_preimage_fst_compl_union_preimage_snd_compl (x : X) (y : Y) :
-    MapsTo (TopCat.tensorObjIsoProd X Y).inv ({(x, y)}ᶜ : Set (TopCat.of (X × Y)))
-      (CartesianMonoidalCategory.fst (TopCat.of X) (TopCat.of Y) ⁻¹' ({x}ᶜ : Set (TopCat.of X)) ∪
-        CartesianMonoidalCategory.snd (TopCat.of X) (TopCat.of Y) ⁻¹'
-          ({y}ᶜ : Set (TopCat.of Y))) := by
-  intro p hv
-  by_contra hc
-  simp only [mem_union, mem_preimage, mem_compl_singleton_iff, not_or, not_not] at hc
-  refine hv ?_
-  rw [← Iso.inv_hom_id_apply (TopCat.tensorObjIsoProd X Y) p, TopCat.tensorObjIsoProd_hom_apply]
-  exact Prod.ext hc.1 hc.2
 
 /-- The local homology cross product, read back in the homology of `X × Y` relative to
 `(X ∖ {x}) × Y ∪ X × (Y ∖ {y})` with the coefficients split again by the inverse of

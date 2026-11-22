@@ -262,16 +262,6 @@ end TopCat
 
 namespace TauCeti
 
-/-- The inverse of `TopCat.tensorObjIsoProd V₁ V₂`, the identity of `V₁ × V₂`, carries the
-complement of `0` into `(V₁ ∖ {0}) × V₂ ∪ V₁ × (V₂ ∖ {0})`. -/
-theorem mapsTo_tensorObjIsoProd_inv_compl_zero (V₁ V₂ : Type w) [TopologicalSpace V₁] [Zero V₁]
-    [TopologicalSpace V₂] [Zero V₂] :
-    Set.MapsTo (TopCat.tensorObjIsoProd V₁ V₂).inv ({0}ᶜ : Set (TopCat.of (V₁ × V₂)))
-      (CartesianMonoidalCategory.fst (TopCat.of V₁) (TopCat.of V₂) ⁻¹' {0}ᶜ ∪
-        CartesianMonoidalCategory.snd (TopCat.of V₁) (TopCat.of V₂) ⁻¹' {0}ᶜ) := by
-  rw [TopCat.tensorObjIsoProd_inv_eq_id]
-  exact fun _ hv ↦ compl_zero_prod_subset V₁ V₂ hv
-
 variable {K : Type w} [CommRing K] {R S T M N L : ModuleCat.{w} K}
   (V₁ V₂ : Type w) [TopologicalSpace V₁] [Zero V₁] [T1Space V₁]
   [TopologicalSpace V₂] [Zero V₂] [T1Space V₂]
@@ -296,7 +286,8 @@ theorem singularKronecker_complZeroPairCross (u : T ⟶ R ⊗ S) (μ : M ⊗ N �
           (CartesianMonoidalCategory.fst (TopCat.of V₁) (TopCat.of V₂) ⁻¹' {0}ᶜ ∪
             CartesianMonoidalCategory.snd (TopCat.of V₁) (TopCat.of V₂) ⁻¹' {0}ᶜ))))
         n (TopPair.singularHomologyMap (TopPair.ofSubsetMap (TopCat.tensorObjIsoProd V₁ V₂).inv
-          (mapsTo_tensorObjIsoProd_inv_compl_zero V₁ V₂)) T n z) =
+          (TopCat.mapsTo_compl_singleton_preimage_fst_compl_union_preimage_snd_compl
+            (0 : V₁) (0 : V₂))) T n z) =
       TopCat.singularHomologyCrossRelPair (TopCat.of V₁) (TopCat.of V₂) {0}ᶜ {0}ᶜ R S p q n h
         (x ⊗ₜ y)) :
     (TopPair.ofSubset (X := TopCat.of (V₁ × V₂)) ({0}ᶜ : Set (V₁ × V₂))).singularKronecker K n
@@ -310,7 +301,8 @@ theorem singularKronecker_complZeroPairCross (u : T ⟶ R ⊗ S) (μ : M ⊗ N �
     (TopCat.of V₁) (TopCat.of V₂) μ isOpen_compl_singleton isOpen_compl_singleton p q n h
     g₁ g₂ (x ⊗ₜ y)
   have he : TopPair.ofSubsetMap (TopCat.tensorObjIsoProd V₁ V₂).inv
-      (mapsTo_tensorObjIsoProd_inv_compl_zero V₁ V₂) =
+      (TopCat.mapsTo_compl_singleton_preimage_fst_compl_union_preimage_snd_compl
+        (0 : V₁) (0 : V₂)) =
         TopPair.ofSubsetMap (𝟙 (TopCat.of V₁ ⊗ TopCat.of V₂))
           fun _ hv ↦ compl_zero_prod_subset V₁ V₂ hv := by
     simp only [TopCat.tensorObjIsoProd_inv_eq_id]
@@ -348,7 +340,8 @@ theorem singularKronecker_complZeroPairCross_int {iL : Linear ℤ (ModuleCat.{0}
           (CartesianMonoidalCategory.fst (TopCat.of V₁) (TopCat.of V₂) ⁻¹' {0}ᶜ ∪
             CartesianMonoidalCategory.snd (TopCat.of V₁) (TopCat.of V₂) ⁻¹' {0}ᶜ))))
         n (TopPair.singularHomologyMap (TopPair.ofSubsetMap (TopCat.tensorObjIsoProd V₁ V₂).inv
-          (mapsTo_tensorObjIsoProd_inv_compl_zero V₁ V₂)) T n z) =
+          (TopCat.mapsTo_compl_singleton_preimage_fst_compl_union_preimage_snd_compl
+            (0 : V₁) (0 : V₂))) T n z) =
       TopCat.singularHomologyCrossRelPair (TopCat.of V₁) (TopCat.of V₂) {0}ᶜ {0}ᶜ R S p q n h
         (x ⊗ₜ y)) :
     (TopPair.ofSubset (X := TopCat.of (V₁ × V₂)) ({0}ᶜ : Set (V₁ × V₂))).singularKronecker ℤ n
