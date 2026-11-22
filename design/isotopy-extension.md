@@ -219,6 +219,8 @@ Further choices of this design:
 | `Analysis/Calculus/DifferentialForm/Poincare.lean` | a closed form on a star-convex open set, vanishing on a compact star-convex subset, has a global primitive near it that vanishes on it (named like Tau Ceti's file) |
 | `Geometry/Symplectic/IsotopyExtension/Ball/Basic.lean` | `IsSymplecticBallEmbedding`, `IsSymplecticBallFamily`, enlarging a symplectic ball |
 | `Geometry/Symplectic/IsotopyExtension/Ball/Interpolation.lean` | a family that agrees with `e` along `B(λ)` and pulls the form back to `ω₀` there, with prescribed ends (steps 1 and 2 of `Ball/Isotopy.lean`) |
+| `Geometry/Manifold/ContMDiff/Opens.lean` | a map composed, on an open subset, with a smooth map of that subset over a parameter space is smooth there (used by `Ball/Moser.lean`) |
+| `Geometry/Symplectic/IsotopyExtension/Ball/Moser.lean` | Moser's correction of a family of balls with a parameter (step 3 of `Ball/Isotopy.lean`) |
 | `Geometry/Symplectic/IsotopyExtension/Ball/Isotopy.lean` | the Hamiltonian ball extension and the milestone *Symplectic ball extension* |
 | `Geometry/Manifold/DeRham/HomologyPeriod.lean` | periods of a smooth family of closed one-forms depend smoothly on the parameter |
 | `Geometry/Symplectic/IsotopyExtension/Cohomological/Primitive.lean` | ambient closed forms with prescribed periods, and primitives on one neighbourhood for all times |
@@ -483,9 +485,9 @@ compact set: the first with `β = 0`, the second with that set `univ`. Its route
    both contractions are $k_t^*\beta_t+dh_t$, and $dk_t$ is
    onto (`TauCeti.SmoothIsotopy.eq_mfderiv_of_forall_eq_mpullback_prodMk_velocityForm`,
    in `Velocity.lean`). Uniqueness of solutions on `[0, 1]`
-   (`TauCeti.timeDependentFlowDiffeotopy_apply_eq_of_mfderiv_eq`, which this
-   part adds to `Geometry/Manifold/Flow/TimeDependent.lean` of *Smooth
-   families*, with `TauCeti.timeDependentFlowOf_eq_of_hasMFDerivWithinAt`)
+   (`TauCeti.Diffeotopy.apply_eq_of_mfderiv_eq_velocity`, for every
+   diffeotopy, in `Geometry/Diffeomorphism/Diffeotopy/Velocity.lean` of
+   *Hamiltonian flows*)
    gives `Φ (t, f₀ x) = k (t, x)`.
 5. The slices preserve `ω`, in `exists_interior_velocity_eq`, by
    `TauCeti.Diffeotopy.forall_timeSlice_mem_diffeomorphStabilizer_iff`, since
@@ -697,7 +699,9 @@ The route keeps the times of `e` exactly:
    `Ball/Interpolation.lean`, which needs `ω` only nondegenerate. For
    $\lambda>0$ it takes $k'=e$, whose ends agree with $j_0$ and $j_1$ to first
    order on $B(\lambda)$, so that case needs no `Ψ`.
-3. *Make it symplectic.* `Moser/Family.lean`, with $\beta_t$ the
+3. *Make it symplectic.* This step is
+   `exists_isSymplecticBallFamily_eqOn_of_mpullback_eq`, in
+   `Ball/Moser.lean`. `Moser/Family.lean`, with $\beta_t$ the
    parametric radial primitive of $k_t^*\omega-\omega_0$ and
    $K=B(\lambda)$, gives $\chi_t$. Here $\beta_0=\beta_1=0$ because $j_0$ and
    $j_1$ are symplectic, so $\chi_0=\chi_1=\mathrm{id}$. The family
@@ -983,6 +987,12 @@ this design already follows. `Ball/Isotopy.lean` cites
   `TauCeti.SmoothTwoForm.nondegenerate_bilinFormAt_add_smul_sub_of_eq` (the
   segment between two forms that agree at a point is constant there), which
   that pull request also adds.
+  `IsotopyExtension/Ball/Moser.lean` imports `Ball/Basic.lean`,
+  `Moser/Family.lean`, `Geometry/Symplectic/Manifold/Family.lean`,
+  *Smooth families*' `DifferentialForm/SmoothFamily/Poincare.lean`, and
+  this part's `Geometry/Manifold/ContMDiff/Opens.lean`, for
+  `ContMDiffOn.dite_comp_of_opens` (a family composed with a diffeotopy of
+  an open subset is smooth there).
 - *Liouville structures*: `Geometry/Manifold/VectorField/Prod.lean`, which
   imports only Tau Ceti, for `TauCeti.Manifold.prodVectorField_apply` (the
   value of the unit time field in `IsotopyExtension/Velocity.lean`).
