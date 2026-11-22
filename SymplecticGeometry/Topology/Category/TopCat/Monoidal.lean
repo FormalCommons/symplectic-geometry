@@ -24,7 +24,11 @@ goes through it, and `TopCat.prodFiberRetraction_prodHomeomorphTensorObj` evalua
 retraction there. The same homeomorphism gives the isomorphism
 `TopCat.tensorObjIsoProd X Y : TopCat.of X ⊗ TopCat.of Y ≅ TopCat.of (X × Y)`, for maps of
 spaces between the two. It is natural: it turns `TopCat.ofHom f ⊗ₘ TopCat.ofHom g` into the
-product map `f.prodMap g` (`TopCat.tensorObjIsoProd_hom_comp_ofHom_prodMap`).
+product map `f.prodMap g` (`TopCat.tensorObjIsoProd_hom_comp_ofHom_prodMap`). For points
+`x : X` and `y : Y`, it carries `(X ∖ {x}) × Y ∪ X × (Y ∖ {y})` into the complement of `(x, y)`,
+and its inverse carries that complement back
+(`TopCat.mapsTo_preimage_fst_compl_union_preimage_snd_compl`,
+`TopCat.mapsTo_compl_singleton_preimage_fst_compl_union_preimage_snd_compl`).
 -/
 
 public section
@@ -134,6 +138,12 @@ lemma tensorObjIsoProd_hom_eq_id (X Y : Type w) [TopologicalSpace X] [Topologica
     (tensorObjIsoProd X Y).hom = 𝟙 (TopCat.of (X × Y)) :=
   (rfl)
 
+/-- The inverse of the isomorphism `TopCat.of X ⊗ TopCat.of Y ≅ TopCat.of (X × Y)` is the identity
+of `TopCat.of X ⊗ TopCat.of Y`, since `TopCat.of X ⊗ TopCat.of Y` unfolds to `TopCat.of (X × Y)`. -/
+lemma tensorObjIsoProd_inv_eq_id (X Y : Type w) [TopologicalSpace X] [TopologicalSpace Y] :
+    (tensorObjIsoProd X Y).inv = 𝟙 (TopCat.of X ⊗ TopCat.of Y) :=
+  (rfl)
+
 /-! The two evaluation lemmas below write out the coercion to a function so that they can write
 the carrier of `TopCat.of (X × Y)` as `X × Y`, the form `simp` reduces it to in goals, and mark
 the type of continuous maps with `no_index`. -/
@@ -153,6 +163,34 @@ lemma tensorObjIsoProd_inv_apply (X Y : Type w) [TopologicalSpace X] [Topologica
     DFunLike.coe (F := no_index C(X × Y, ↑(TopCat.of X ⊗ TopCat.of Y)))
       (tensorObjIsoProd X Y).inv.hom p = prodHomeomorphTensorObj X Y p := by
   simp [tensorObjIsoProd_def]
+
+/-- The isomorphism `TopCat.of X ⊗ TopCat.of Y ≅ TopCat.of (X × Y)` carries
+`(X ∖ {x}) × Y ∪ X × (Y ∖ {y})` into the complement of `(x, y)`. -/
+theorem mapsTo_preimage_fst_compl_union_preimage_snd_compl {X Y : Type w} [TopologicalSpace X]
+    [TopologicalSpace Y] (x : X) (y : Y) :
+    Set.MapsTo (tensorObjIsoProd X Y).hom
+      (fst (TopCat.of X) (TopCat.of Y) ⁻¹' ({x}ᶜ : Set (TopCat.of X)) ∪
+        snd (TopCat.of X) (TopCat.of Y) ⁻¹' ({y}ᶜ : Set (TopCat.of Y)))
+      ({(x, y)}ᶜ : Set (TopCat.of (X × Y))) := by
+  rintro p (hz | hz) h <;>
+    simp only [tensorObjIsoProd_hom_apply, Set.mem_singleton_iff, Prod.mk.injEq] at h
+  · exact hz h.1
+  · exact hz h.2
+
+/-- The inverse of `TopCat.tensorObjIsoProd X Y` carries the complement of `(x, y)` into
+`(X ∖ {x}) × Y ∪ X × (Y ∖ {y})`: the converse of
+`TopCat.mapsTo_preimage_fst_compl_union_preimage_snd_compl`. -/
+theorem mapsTo_compl_singleton_preimage_fst_compl_union_preimage_snd_compl {X Y : Type w}
+    [TopologicalSpace X] [TopologicalSpace Y] (x : X) (y : Y) :
+    Set.MapsTo (tensorObjIsoProd X Y).inv ({(x, y)}ᶜ : Set (TopCat.of (X × Y)))
+      (fst (TopCat.of X) (TopCat.of Y) ⁻¹' ({x}ᶜ : Set (TopCat.of X)) ∪
+        snd (TopCat.of X) (TopCat.of Y) ⁻¹' ({y}ᶜ : Set (TopCat.of Y))) := by
+  rw [tensorObjIsoProd_inv_eq_id]
+  rintro ⟨a, b⟩ hv
+  by_contra hc
+  simp only [Set.mem_union, Set.mem_preimage, Set.mem_compl_singleton_iff, not_or,
+    not_not] at hc
+  exact hv (Prod.ext hc.1 hc.2)
 
 /-- The isomorphism `TopCat.of X ⊗ TopCat.of Y ≅ TopCat.of (X × Y)` is natural: it turns the
 monoidal product `TopCat.ofHom f ⊗ₘ TopCat.ofHom g` into the product map `f.prodMap g`. -/

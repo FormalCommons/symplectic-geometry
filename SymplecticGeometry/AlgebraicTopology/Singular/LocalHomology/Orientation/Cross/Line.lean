@@ -67,6 +67,7 @@ noncomputable section
 
 open CategoryTheory MonoidalCategory CartesianMonoidalCategory Limits AlgebraicTopology Metric
   Module Set
+open TopCat (mapsTo_preimage_fst_compl_union_preimage_snd_compl)
 
 universe v u
 
