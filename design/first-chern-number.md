@@ -653,10 +653,15 @@ issues, in an order where each issue's blockers come before it.
      `TauCeti.FiniteRankBundleCore.detConjugateIso A :
      ((conjugate B).obj A).det ≅ (conjugate B).obj A.det`, using that
      conjugation keeps the rank (`rank_conjugate_obj`);
-   - two steps that the conjugate case also needs: in
-     `LinearAlgebra/Complex/Conjugate.lean`, `TauCeti.Conjugate.finrank_eq`
-     (the conjugate space has the same complex dimension); and in
-     `Topology/VectorBundle/FiniteRank/Conjugate.lean`,
+   - two supporting files: `Topology/VectorBundle/Core/Basic.lean`, with
+     `VectorBundleCore.ext`, which `FiniteRank/OfBundle.lean` imports; and
+     `Analysis/Normed/Operator/ExteriorPowerCoords.lean` beside Tau Ceti's
+     file of that name, with
+     `ContinuousLinearMap.exteriorPowerCoords_intrinsicStar` (compound
+     matrices commute with entrywise conjugation), which
+     `FiniteRank/ConjugateExteriorPower.lean` imports;
+   - two steps that the conjugate case also needs, in
+     `Topology/VectorBundle/FiniteRank/Conjugate.lean`:
      `TauCeti.FiniteRankBundleCore.continuous_star_conjugate` (conjugating
      coordinates is continuous from the conjugate core to the core) and
      `TauCeti.FiniteRankBundleCore.ofBundleOfFinrankEqConjugateIso` (the

@@ -5,10 +5,10 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.LinearAlgebra.Complex.Conjugate
 public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Conjugate
 public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.ConjugateExteriorPower
 public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.OfBundle
+public import TauCeti.LinearAlgebra.Complex.Finrank
 
 /-!
 # The determinant line of a vector bundle
@@ -73,33 +73,41 @@ theorem detCore_eq_exteriorPower :
     detCore 𝕜 G E = (exteriorPower 𝕜 B (finrank 𝕜 G)).obj (ofBundleOfFinrankEq 𝕜 G E rfl) :=
   det_def _
 
+/-- The determinant line is the exterior power of the core `ofBundleOfFinrankEq 𝕜 G E h` in
+degree `n`, for any proof `h` that `G` has dimension `n`. -/
+theorem detCore_eq_exteriorPower_of_finrank_eq {n : ℕ} (h : finrank 𝕜 G = n) :
+    detCore 𝕜 G E = (exteriorPower 𝕜 B n).obj (ofBundleOfFinrankEq 𝕜 G E h) := by
+  subst h
+  exact detCore_eq_exteriorPower 𝕜 G E
+
 end Basic
 
 section Map
 
-variable {G : Type*} [NormedAddCommGroup G] [NormedSpace 𝕜 G] [FiniteDimensional 𝕜 G]
+variable {G₀ : Type*} [NormedAddCommGroup G₀] [NormedSpace 𝕜 G₀] [FiniteDimensional 𝕜 G₀]
   {E₀ : B → Type*} [∀ x, AddCommMonoid (E₀ x)] [∀ x, Module 𝕜 (E₀ x)]
-  [∀ x, TopologicalSpace (E₀ x)] [TopologicalSpace (TotalSpace G E₀)]
-  [FiberBundle G E₀] [VectorBundle 𝕜 G E₀]
+  [∀ x, TopologicalSpace (E₀ x)] [TopologicalSpace (TotalSpace G₀ E₀)]
+  [FiberBundle G₀ E₀] [VectorBundle 𝕜 G₀ E₀]
+  {G₁ : Type*} [NormedAddCommGroup G₁] [NormedSpace 𝕜 G₁] [FiniteDimensional 𝕜 G₁]
   {E₁ : B → Type*} [∀ x, AddCommMonoid (E₁ x)] [∀ x, Module 𝕜 (E₁ x)]
-  [∀ x, TopologicalSpace (E₁ x)] [TopologicalSpace (TotalSpace G E₁)]
-  [FiberBundle G E₁] [VectorBundle 𝕜 G E₁]
-  (Φ : ∀ x, E₀ x ≃L[𝕜] E₁ x)
-  (hΦ : Continuous fun p : TotalSpace G E₀ ↦ TotalSpace.mk' G (E := E₁) p.proj (Φ p.proj p.snd))
+  [∀ x, TopologicalSpace (E₁ x)] [TopologicalSpace (TotalSpace G₁ E₁)]
+  [FiberBundle G₁ E₁] [VectorBundle 𝕜 G₁ E₁]
+  (hG : finrank 𝕜 G₁ = finrank 𝕜 G₀) (Φ : ∀ x, E₀ x ≃L[𝕜] E₁ x)
+  (hΦ : Continuous fun p : TotalSpace G₀ E₀ ↦ TotalSpace.mk' G₁ (E := E₁) p.proj (Φ p.proj p.snd))
 
 variable {𝕜} in
 /-- A fibrewise continuous linear equivalence of bundles, continuous on total spaces, induces an
 isomorphism of their determinant lines: the top exterior power of the induced isomorphism of
-cores. -/
-noncomputable def detCoreMap : detCore 𝕜 G E₀ ≅ detCore 𝕜 G E₁ :=
-  eqToIso (detCore_eq_exteriorPower 𝕜 G E₀) ≪≫
-    (exteriorPower 𝕜 B (finrank 𝕜 G)).mapIso (ofBundleOfFinrankEqIso rfl rfl Φ hΦ) ≪≫
-    eqToIso (detCore_eq_exteriorPower 𝕜 G E₁).symm
+cores. The two bundles may have different models `G₀` and `G₁`, of the same dimension. -/
+noncomputable def detCoreMap : detCore 𝕜 G₀ E₀ ≅ detCore 𝕜 G₁ E₁ :=
+  eqToIso (detCore_eq_exteriorPower 𝕜 G₀ E₀) ≪≫
+    (exteriorPower 𝕜 B (finrank 𝕜 G₀)).mapIso (ofBundleOfFinrankEqIso rfl hG Φ hΦ) ≪≫
+    eqToIso (detCore_eq_exteriorPower_of_finrank_eq 𝕜 G₁ E₁ hG).symm
 
 theorem detCoreMap_def :
-    detCoreMap Φ hΦ = eqToIso (detCore_eq_exteriorPower 𝕜 G E₀) ≪≫
-      (exteriorPower 𝕜 B (finrank 𝕜 G)).mapIso (ofBundleOfFinrankEqIso rfl rfl Φ hΦ) ≪≫
-      eqToIso (detCore_eq_exteriorPower 𝕜 G E₁).symm := (rfl)
+    detCoreMap hG Φ hΦ = eqToIso (detCore_eq_exteriorPower 𝕜 G₀ E₀) ≪≫
+      (exteriorPower 𝕜 B (finrank 𝕜 G₀)).mapIso (ofBundleOfFinrankEqIso rfl hG Φ hΦ) ≪≫
+      eqToIso (detCore_eq_exteriorPower_of_finrank_eq 𝕜 G₁ E₁ hG).symm := (rfl)
 
 end Map
 
@@ -175,7 +183,8 @@ noncomputable def detCoreConjugateIso :
     (exteriorPower ℂ B (finrank ℂ (Conjugate G))).mapIso
       (ofBundleOfFinrankEqConjugateIso E rfl rfl) ≪≫
     eqToIso ((congrArg (fun k ↦ (exteriorPower ℂ B k).obj
-      ((conjugate B).obj (ofBundleOfFinrankEq ℂ G E rfl))) finrank_eq).trans
+      ((conjugate B).obj (ofBundleOfFinrankEq ℂ G E rfl)))
+      (LinearEquiv.finrank_complex_eq (toConjₗ' (V := G))).symm).trans
         (det_def _).symm) ≪≫
     detConjugateIso _ ≪≫ eqToIso (congrArg (conjugate B).obj (detCore_def ℂ G E).symm)
 
@@ -185,7 +194,8 @@ theorem detCoreConjugateIso_def :
         (exteriorPower ℂ B (finrank ℂ (Conjugate G))).mapIso
           (ofBundleOfFinrankEqConjugateIso E rfl rfl) ≪≫
         eqToIso ((congrArg (fun k ↦ (exteriorPower ℂ B k).obj
-          ((conjugate B).obj (ofBundleOfFinrankEq ℂ G E rfl))) finrank_eq).trans
+          ((conjugate B).obj (ofBundleOfFinrankEq ℂ G E rfl)))
+      (LinearEquiv.finrank_complex_eq (toConjₗ' (V := G))).symm).trans
             (det_def _).symm) ≪≫
         detConjugateIso _ ≪≫ eqToIso (congrArg (conjugate B).obj (detCore_def ℂ G E).symm) :=
   (rfl)
@@ -202,7 +212,7 @@ noncomputable def detCoreConjugateFiberwise (x : B) :
       (by rw [← fiberMap_comp, Iso.hom_inv_id, fiberMap_id])).trans
     (starL ℂ : (Fin (detCore ℂ G E).rank → ℂ) ≃L⋆[ℂ] (Fin (detCore ℂ G E).rank → ℂ))
 
-theorem detCoreConjugateFiberwise_apply (x : B)
+@[simp] theorem detCoreConjugateFiberwise_apply (x : B)
     (v : (detCore ℂ (Conjugate G) (ConjugateBundle E)).core.Fiber x) :
     detCoreConjugateFiberwise E x v = star ((detCoreConjugateIso E).hom.fiberMap x v) := (rfl)
 

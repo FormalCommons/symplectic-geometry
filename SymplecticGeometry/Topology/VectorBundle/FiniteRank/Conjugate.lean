@@ -24,6 +24,10 @@ of `A` conjugated entrywise. This file relates it to `A` and to Tau Ceti's conju
   bundle `ConjugateBundle E` (with model `Conjugate G`) is isomorphic to the conjugate of the core
   of `E`, by a constant coordinate isomorphism.
 
+The proof of `continuous_star_conjugate` adapts that of Tau Ceti's
+`TauCeti.FiniteRankBundleCore.continuous_pullbackLift`, and `ofBundleOfFinrankEqConjugateIso` is
+built through `constIso` as Tau Ceti's `TauCeti.FiniteRankBundleCore.doubleConjugateIso` is.
+
 ## References
 
 * M. F. Atiyah, *K-Theory*, §1.2, conjugate bundles.
@@ -72,7 +76,7 @@ noncomputable def conjugateModelEquiv : (Fin n' → ℂ) ≃L[ℂ] (Fin n → �
     ((toConjL (V := G)).symm.trans
       (ContinuousLinearEquiv.ofFinrankEq (h.trans (finrank_fin_fun ℂ).symm)))).trans (starL ℂ)
 
-theorem conjugateModelEquiv_apply (v : Fin n' → ℂ) :
+@[simp] theorem conjugateModelEquiv_apply (v : Fin n' → ℂ) :
     conjugateModelEquiv h h' v =
       star (ContinuousLinearEquiv.ofFinrankEq (h.trans (finrank_fin_fun ℂ).symm)
         (ofConj ((ContinuousLinearEquiv.ofFinrankEq (h'.trans (finrank_fin_fun ℂ).symm)).symm

@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.Analysis.Normed.Operator.ExteriorPowerCoords
 public import TauCeti.Topology.VectorBundle.FiniteRank.Conjugate
 public import TauCeti.Topology.VectorBundle.FiniteRank.ExteriorPower
 
@@ -37,21 +38,6 @@ The statements and proofs follow Tau Ceti's `doubleConjugateIso`, `doubleConjuga
 public section
 
 open CategoryTheory WithConv
-
-/-- The compound matrix of the entrywise conjugate of an operator is the entrywise conjugate of its
-compound matrix. -/
-theorem ContinuousLinearMap.exteriorPowerCoords_intrinsicStar (j : ℕ) {m n : ℕ}
-    (g : (Fin m → ℂ) →L[ℂ] (Fin n → ℂ)) :
-    (star (toConv g)).ofConv.exteriorPowerCoords j =
-      (star (toConv (g.exteriorPowerCoords j))).ofConv := by
-  refine ContinuousLinearMap.coe_injective (LinearMap.pi_ext' fun t ↦ LinearMap.ext_ring ?_)
-  funext s
-  simp only [LinearMap.coe_comp, Function.comp_apply, LinearMap.coe_single,
-    ContinuousLinearMap.coe_coe, ContinuousLinearMap.exteriorPowerCoords_apply,
-    LinearMap.exteriorPowerCoords_single_apply, ContinuousLinearMap.intrinsicStar_apply,
-    Pi.star_single, star_one, Pi.star_apply]
-  rw [← starRingEnd_apply, RingHom.map_det, RingHom.mapMatrix_apply]
-  exact congrArg Matrix.det (Matrix.ext fun i k ↦ by simp)
 
 namespace TauCeti
 

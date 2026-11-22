@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Topology.Algebra.Module.FiniteDimension
+public import SymplecticGeometry.Topology.VectorBundle.Core.Basic
 public import TauCeti.Topology.FiberBundle.Pullback
 public import TauCeti.Topology.VectorBundle.Core.Congr
 public import TauCeti.Topology.VectorBundle.FiniteRank.Pullback
@@ -34,28 +35,14 @@ along `ContinuousLinearEquiv.ofFinrankEq` (`VectorBundleCore.congrModel`).
   analogue of `pullback_ofBundle`;
 * `ofBundleOfFinrankEq_trivial`: the core of the trivial bundle is the trivial core.
 
-`VectorBundleCore.ext` says that a coordinate core is determined by its chart domains, its
-preferred charts and its transitions.
-
 The constructions follow Tau Ceti's `ofBundle` and `ofBundleIso`, and the use of `congrModel` in
-`TauCeti.FiniteRankBundleCore.whitneySumAtlas`; the proof of `pullback_ofBundleOfFinrankEq`
+`TauCeti.FiniteRankAtlas.whitneyStratumCore`; the proof of `pullback_ofBundleOfFinrankEq`
 adapts that of Tau Ceti's `pullback_ofBundle`.
 -/
 
 public section
 
 open Bundle Module
-
-/-- A vector-bundle core is determined by its chart domains, its preferred charts and its
-transitions. -/
-theorem VectorBundleCore.ext {R B F ι : Type*} [NontriviallyNormedField R] [TopologicalSpace B]
-    [NormedAddCommGroup F] [NormedSpace R F] {Z Z' : VectorBundleCore R B F ι}
-    (hbase : Z.baseSet = Z'.baseSet) (hindex : Z.indexAt = Z'.indexAt)
-    (hcoord : Z.coordChange = Z'.coordChange) : Z = Z' := by
-  cases Z; cases Z'
-  simp only at hbase hindex hcoord
-  subst hbase hindex hcoord
-  rfl
 
 namespace TauCeti
 
@@ -111,11 +98,11 @@ noncomputable def ofBundleOfFinrankEqFiberEquiv (h : finrank 𝕜 G = n) (x : B)
   (ContinuousLinearEquiv.ofFinrankEq (h.trans (finrank_fin_fun 𝕜).symm)).symm.trans
     (pointIndexedCoreFiberEquiv 𝕜 G E x)
 
-theorem ofBundleOfFinrankEqFiberEquiv_apply (h : finrank 𝕜 G = n) (x : B) (v : Fin n → 𝕜) :
+@[simp] theorem ofBundleOfFinrankEqFiberEquiv_apply (h : finrank 𝕜 G = n) (x : B) (v : Fin n → 𝕜) :
     ofBundleOfFinrankEqFiberEquiv 𝕜 G E h x v = pointIndexedCoreFiberEquiv 𝕜 G E x
       ((ContinuousLinearEquiv.ofFinrankEq (h.trans (finrank_fin_fun 𝕜).symm)).symm v) := (rfl)
 
-theorem ofBundleOfFinrankEqFiberEquiv_symm_apply (h : finrank 𝕜 G = n) (x : B) (v : E x) :
+@[simp] theorem ofBundleOfFinrankEqFiberEquiv_symm_apply (h : finrank 𝕜 G = n) (x : B) (v : E x) :
     (ofBundleOfFinrankEqFiberEquiv 𝕜 G E h x).symm v =
       ContinuousLinearEquiv.ofFinrankEq (h.trans (finrank_fin_fun 𝕜).symm)
         ((pointIndexedCoreFiberEquiv 𝕜 G E x).symm v) := (rfl)
