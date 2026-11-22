@@ -52,8 +52,9 @@ variable {C : Type u} [Category.{v} C] [HasCoproducts.{v} C] [Abelian C] {R : C}
   {k : Type v} [Ring k] [Linear k C] {M : C} {X : TopCat.{v}} (U V : Opens X) [T2Space X]
 
 variable (R k M) in
-/-- If `Hⁿ_c(U ∩ V)` and `Hⁿ⁺¹_c(U ∩ V)` vanish, the middle map `Hⁿ_c(U) ⊞ Hⁿ_c(V) ⟶ Hⁿ_c(X)` of
-the Mayer–Vietoris sequence of an open cover `X = U ∪ V` is an isomorphism. -/
+/-- If `Hⁿ_c(U ∩ V)` and `Hⁿ⁺¹_c(U ∩ V)` vanish, for instance when `U` and `V` are disjoint, the
+middle map `Hⁿ_c(U) ⊞ Hⁿ_c(V) ⟶ Hⁿ_c(X)` of the Mayer–Vietoris sequence of an open cover
+`X = U ∪ V` is an isomorphism. -/
 lemma isIso_compactSupportCohomologyMayerVietorisFromBiprod_of_isZero (hUV : U ⊔ V = ⊤) (n : ℕ)
     (h₀ : IsZero (((Opens.toTopCat X).obj (U ⊓ V)).compactSupportCohomology R k M n))
     (h₁ : IsZero (((Opens.toTopCat X).obj (U ⊓ V)).compactSupportCohomology R k M (n + 1))) :
@@ -66,8 +67,9 @@ lemma isIso_compactSupportCohomologyMayerVietorisFromBiprod_of_isZero (hUV : U �
 
 variable (R k M) in
 /-- For a cover of `X` by two disjoint open sets `U` and `V`, the sum
-`Hⁿ_c(U) ⊞ Hⁿ_c(V) ⟶ Hⁿ_c(X)` of the extensions by zero along the subspace inclusions `↥U → X` and
-`↥V → X` is an isomorphism. -/
+`Hⁿ_c(U) ⊞ Hⁿ_c(V) ⟶ Hⁿ_c(X)` of the extensions along the subspace inclusions `↥U → X` and
+`↥V → X` is an isomorphism: it is the middle map of the Mayer–Vietoris sequence, and
+`Hᵐ_c(U ∩ V)` vanishes in every degree. -/
 lemma isIso_biprodDesc_compactSupportCohomologyExtend_of_disjoint (hUV : U ⊔ V = ⊤)
     (hd : Disjoint U V) (n : ℕ) :
     IsIso (biprod.desc
