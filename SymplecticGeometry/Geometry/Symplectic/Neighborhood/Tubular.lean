@@ -9,6 +9,8 @@ public import SymplecticGeometry.Geometry.Manifold.TubularNeighborhood.MFDeriv
 public import SymplecticGeometry.Geometry.Symplectic.Moser.Relative
 public import TauCeti.Geometry.Symplectic.SymplecticTransport
 import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Basic
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Opens
+import SymplecticGeometry.Geometry.Symplectic.Manifold.TwoForm
 import TauCeti.Geometry.Manifold.DifferentialForm.Opens
 import TauCeti.Geometry.Manifold.SmoothEmbedding.LocalDiffeomorph
 import TauCeti.Geometry.Symplectic.Manifold.Opens
@@ -32,13 +34,14 @@ derivative that the errata [McDuffSalamon2019Errata] add to the relative Moser l
 
 `TauCeti.SmoothEmbedding.exists_diffeomorph_opens_mfderiv_eq` gives a diffeomorphism
 `ψ' : U₀ ≃ U₁` with `ψ' ∘ f₀ = f₁` and derivative `A q` at `f₀ q`. Since each `A q` is
-symplectic, `ψ'^* ω₁` and `ω₀` agree on the whole tangent space of `U₀` at each point `f₀ q`.
+symplectic, `ψ'^* ω₁` and `ω₀` agree on the whole tangent space of `U₀` at each point `f₀ q`
+(`TauCeti.SmoothTwoForm.coe_mpullback_apply_eq_of_mfderiv_eq`).
 The relative Moser theorem `TauCeti.SmoothEmbedding.exists_diffeomorph_opens_of_eq_along`,
 applied on `U₀` along `f₀` with image restricted to `U₀`, gives a diffeomorphism `χ` between
 open subsets of `U₀` that pulls `ψ'^* ω₁` back to `ω₀`, fixes `f₀ (Q)` and has derivative the
 identity there. Then `ψ = ψ' ∘ χ`, read as a diffeomorphism between open subsets of `M₀` and
-`M₁`. The reading of partial diffeomorphisms between open subsets in the ambient manifolds
-follows the proof of `TauCeti.SmoothEmbedding.exists_diffeomorph_opens_of_eq_along`.
+`M₁`, and `PartialDiffeomorph.mpullback_toDiffeomorphSourceTarget_liftOpens` turns the
+equality of forms on the source of `ψ' ∘ χ` into the equality of restricted forms for `ψ`.
 
 ## Main results
 
@@ -69,32 +72,6 @@ variable {EQ E₀ E₁ HQ H₀ H₁ Q M₀ M₁ : Type*}
   [TopologicalSpace Q] [ChartedSpace HQ Q] [IsManifold J ∞ Q]
   [TopologicalSpace M₀] [ChartedSpace H₀ M₀] [IsManifold I₀ ∞ M₀] [T2Space M₀]
   [TopologicalSpace M₁] [ChartedSpace H₁ M₁] [IsManifold I₁ ∞ M₁] [T2Space M₁]
-
-omit [FiniteDimensional ℝ E₀] [FiniteDimensional ℝ E₁] [I₀.Boundaryless] [I₁.Boundaryless]
-  [T2Space M₀] [T2Space M₁] in
-/-- A diffeomorphism `ψ` of open subsets whose derivative at `x₀` is a linear symplectomorphism
-`T_{x₀} M₀ ≃ T_{x₁} M₁`, with `ψ x₀ = x₁`, pulls `ω₁` back to `ω₀` on the whole tangent space at
-`x₀`. -/
-private theorem mpullback_val_eq_of_mfderiv_eq {U₀ : Opens M₀} {U₁ : Opens M₁}
-    (ψ : U₀ ≃ₘ⟮I₀, I₁⟯ U₁) {ω₀ : SmoothTwoForm I₀ M₀} {ω₁ : SmoothTwoForm I₁ M₁}
-    (hω₀ : ω₀.IsNondegenerate) (hω₁ : ω₁.IsNondegenerate) {x₀ : M₀} {x₁ : M₁}
-    (A : TangentSpace I₀ x₀ ≃L[ℝ] TangentSpace I₁ x₁)
-    (hA : (hω₀.symplecticFormAt x₀).IsSymplectomorphism (hω₁.symplecticFormAt x₁) A.toLinearEquiv)
-    (hx : x₀ ∈ U₀) (hψx : (ψ ⟨x₀, hx⟩ : M₁) = x₁)
-    (hψA : mfderiv I₀ I₁ ψ ⟨x₀, hx⟩ = (A : TangentSpace I₀ x₀ →L[ℝ] TangentSpace I₁ x₁)) :
-    (SmoothForm.mpullback ψ ψ.contMDiff
-        (SmoothForm.mpullback (Subtype.val : U₁ → M₁) contMDiff_subtypeVal ω₁)).val ⟨x₀, hx⟩ =
-      (SmoothForm.mpullback (Subtype.val : U₀ → M₀) contMDiff_subtypeVal ω₀).val ⟨x₀, hx⟩ := by
-  have h (v w : TangentSpace I₀ x₀) :
-      SmoothBundleForm.eval₂ ω₁ x₁ (A v) (A w) = SmoothBundleForm.eval₂ ω₀ x₀ v w := by
-    simpa only [SmoothTwoForm.IsNondegenerate.symplecticFormAt_apply,
-      ContinuousLinearEquiv.coe_toLinearEquiv] using hA.apply v w
-  refine SmoothBundleForm.apply_eq_of_eval₂_eq fun v w ↦ ?_
-  rw [SmoothForm.eval₂_mpullback, SmoothForm.eval₂_mpullback, SmoothForm.eval₂_mpullback, hψA]
-  simp only [Manifold.mfderiv_subtype_val, ContinuousLinearEquiv.coe_coe,
-    Manifold.tangentSpaceOpenEquiv_apply]
-  rw [hψx, Manifold.tangentSpaceOpenEquiv_apply, Manifold.tangentSpaceOpenEquiv_apply]
-  exact h v w
 
 /-- **Symplectomorphisms of neighbourhoods with a prescribed derivative.** Let `f₀ : Q → M₀` and
 `f₁ : Q → M₁` be smooth embeddings into second countable Hausdorff manifolds without boundary,
@@ -136,8 +113,25 @@ theorem exists_symplectomorphism_opens_mfderiv_eq [SecondCountableTopology M₀]
   -- Since `A q` is symplectic, the two forms agree at `f₀ q`.
   have heq (q : Q) : σ₁.val (g q) = σ₀.val (g q) := by
     rw [hg q]
-    exact mpullback_val_eq_of_mfderiv_eq ψ' hω₀.isNondegenerate hω₁.isNondegenerate (A q) (hAω q)
-      (hfU q) (hψ'f q) (hψ'd q)
+    -- The tangent spaces of `U₀`, `U₁`, `M₀` and `M₁` are all model spaces, so `A q` is also a
+    -- linear map between the tangent spaces of the open subsets.
+    refine SmoothTwoForm.coe_mpullback_apply_eq_of_mfderiv_eq ψ'.contMDiff
+      (hω₀.isNondegenerate.mpullback_subtype_val U₀)
+      (hω₁.isNondegenerate.mpullback_subtype_val U₁) (A q) ?_ rfl (hψ'd q)
+    rw [SymplecticForm.isSymplectomorphism_iff]
+    intro v w
+    have h : SmoothBundleForm.eval₂ ω₁ (f₁ q) (A q v) (A q w) =
+        SmoothBundleForm.eval₂ ω₀ (f₀ q) v w := by
+      have h := (hAω q).apply v w
+      simp only [SmoothTwoForm.IsNondegenerate.toBilinForm_symplecticFormAt,
+        ContinuousLinearEquiv.coe_toLinearEquiv] at h
+      exact (SmoothForm.bilinFormAt_apply ω₁ (f₁ q) _ _).symm.trans
+        (h.trans (SmoothForm.bilinFormAt_apply ω₀ (f₀ q) v w))
+    simp only [SmoothTwoForm.IsNondegenerate.symplecticFormAt_apply, SmoothForm.eval₂_mpullback,
+      Manifold.mfderiv_subtype_val, ContinuousLinearEquiv.coe_coe]
+    rw [Manifold.tangentSpaceOpenEquiv_apply, Manifold.tangentSpaceOpenEquiv_apply,
+      Manifold.tangentSpaceOpenEquiv_apply, Manifold.tangentSpaceOpenEquiv_apply, hψ'f q]
+    exact h
   obtain ⟨V₀, V₁, χ, hχf, hχ⟩ := g.exists_diffeomorph_opens_of_eq_along
     (hω₀.isClosed.mpullback _ _) ((hω₁.isClosed.mpullback _ _).mpullback _ _)
     (fun q ↦ (SmoothTwoForm.nondegenerate_bilinFormAt_mpullback_subtype_val_iff _).2
@@ -210,26 +204,15 @@ theorem exists_symplectomorphism_opens_mfderiv_eq [SecondCountableTopology M₀]
       rfl
     rw [h₁, ← h₂ v, h₃]
     rfl
-  · -- At a point `z` of the source, `ψ^* ω₁` is `χ^* ψ'^* ω₁` at the point of `V₀` that `z` is.
-    apply Subtype.ext
-    funext z
-    obtain ⟨y, hy, hyz⟩ : (z : M₀) ∈ Subtype.val '' Θ'.source :=
-      Θ'.liftOpens_source hU₀ hU₁ ▸ z.property
+  · -- At a point `y` of the source of `Θ'`, `Θ'^* ω₁` is `χ^* ψ'^* ω₁` at the point of `V₀`
+    -- that `y` is.
+    refine Θ'.mpullback_toDiffeomorphSourceTarget_liftOpens hU₀ hU₁ fun y hy ↦ ?_
     have hyχ : y ∈ χ'.source := by simpa [Θ'] using hy
     obtain ⟨w, -, hwy⟩ : y ∈ Subtype.val '' χ.toPartialDiffeomorph.source :=
       χ.toPartialDiffeomorph.liftOpens_source hV₀ hV₁ ▸ hyχ
-    have hψz : MDifferentiableAt I₀ I₁ ψ z := ψ.contMDiff.mdifferentiableAt (by simp)
-    have hΘz : MDifferentiableAt I₀ I₁ Θ z := Θ.mdifferentiableAt (by simp) z.property
-    have hval {U : Opens M₁} (x : U) : MDifferentiableAt I₁ I₁ (Subtype.val : U → M₁) x :=
-      (contMDiff_subtypeVal (n := 1)).mdifferentiableAt one_ne_zero
     have h := congrFun (congrArg Subtype.val hχ) w
     rw [SmoothForm.coe_mpullback_subtype_val_apply, SmoothForm.coe_mpullback_subtype_val_apply] at h
-    rw [SmoothForm.coe_mpullback_subtype_val_apply ω₀ z, SmoothForm.coe_mpullback,
-      SmoothForm.coe_mpullback, ← mpullback_comp_at hψz (hval _), hψΘ,
-      mpullback_comp_at (contMDiff_subtypeVal.mdifferentiableAt one_ne_zero) hΘz,
-      TauCeti.mpullback_subtype_val_apply, ← hyz,
-      mpullback_liftOpens_apply_coe Θ' (by simp) hU₀ hU₁ _ hy, hΘ',
-      mpullback_comp_at (χ'.mdifferentiableAt (by simp) hyχ)
+    rw [hΘ', mpullback_comp_at (χ'.mdifferentiableAt (by simp) hyχ)
         (ψ'.contMDiff.mdifferentiableAt (by simp)), ← hwy,
       mpullback_liftOpens_apply_coe χ.toPartialDiffeomorph (by simp) hV₀ hV₁ _ (by simp)]
     have hc : ⇑χ.toPartialDiffeomorph = ⇑χ := by
