@@ -9,6 +9,8 @@ public import TauCeti.AlgebraicTopology.Singular.Circle
 public import TauCeti.AlgebraicTopology.Singular.Homotopy.Invariance
 public import TauCeti.AlgebraicTopology.Singular.Torus.FirstHomology
 public import TauCeti.AlgebraicTopology.UniversalCover.Circle.FreeLoop.Basic
+public import TauCeti.Topology.Homotopy.Homotopic.With
+public import SymplecticGeometry.AlgebraicTopology.Singular.ModuleChains
 
 /-!
 # Circle-valued maps on first singular homology
@@ -27,7 +29,9 @@ identity in the group `C(S¹, S¹)`.
 
 Both statements are also given for singular homology with coefficients
 `ModuleCat.of ℤ (ULift ℤ)`, those of Tau Ceti's fundamental classes, by transporting them along the
-isomorphism of coefficients `ULift ℤ ≅ ℤ`. In that form, reading `H₁(S¹)` in `ℤ` through
+isomorphism of coefficients `ULift ℤ ≅ ℤ` and comparing Mathlib's singular homology functor with
+Tau Ceti's induced maps (`AlgebraicTopology.singularHomologyFunctor_obj_map_ofHom_hom`). In that
+form, reading `H₁(S¹)` in `ℤ` through
 `Circle.singularHomologyOneIso`, the image under `u : Y → S¹` of the class of a free loop
 `ℓ : S¹ → Y` is the degree of `u ∘ ℓ`
 (`ContinuousMap.singularHomologyOneIso_hom_map_map_inv_one`).
@@ -40,15 +44,13 @@ isomorphism of coefficients `ULift ℤ ≅ ℤ`. In that form, reading `H₁(S¹
   `ContinuousMap.singularHomologyFunctor_map_eq_circleDegree_smul`,
   `ContinuousMap.singularHomologyOneIso_inv_map_hom`: a self-map of the circle acts on `H₁(S¹)` by
   its degree.
-* `AlgebraicTopology.singularHomologyFunctor_obj_map_ofHom_hom`: with coefficients `k`, the
-  singular homology functor induces `ContinuousMap.singularHomologyMap`.
 * `ContinuousMap.singularHomologyOneIso_hom_map_map_inv_one`: the image under `u` of the class of a
   free loop `ℓ` is the degree of `u ∘ ℓ`.
 
 ## References
 
 * A. Hatcher, *Algebraic Topology*, Cambridge University Press, 2002, §2.2 (degree of a map
-  of spheres, and its computation on `H₁(S¹)` through `π₁(S¹)`, Theorem 2A.1).
+  of spheres) and §2.A, Theorem 2A.1 (`H₁` as the abelianization of `π₁`).
 -/
 
 public section
@@ -56,8 +58,6 @@ public section
 noncomputable section
 
 open CategoryTheory AlgebraicTopology TauCeti TauCeti.HurewiczOne
-
-universe u
 
 namespace ContinuousMap
 
@@ -128,10 +128,11 @@ theorem singularHomologyMap_eq_circleDegree_smul (w : C(Circle, Circle)) :
       ext z
       simp
     rw [← hpow]
-    exact ⟨{ toFun := fun p ↦ γ p.1 p.2
-             continuous_toFun := by fun_prop
-             map_zero_left := fun x ↦ by simp
-             map_one_left := fun x ↦ by simp }⟩
+    -- A path in `C(S¹, S¹)` is a homotopy through maps subject to no condition.
+    obtain ⟨F⟩ := (homotopicWith_iff_joined (P := fun _ ↦ True) trivial trivial).2
+      (Joined.map ⟨γ⟩ (f := fun f ↦ (⟨f, trivial⟩ : Subtype fun _ : C(Circle, Circle) ↦ True))
+        (by fun_prop))
+    exact ⟨F.toHomotopy⟩
   have h := map_zsmul singularHomologyMapAddHom w.circleDegree
     (Additive.ofMul (ContinuousMap.id Circle))
   simp only [singularHomologyMapAddHom, AddMonoidHom.mk'_apply, ← ofMul_zpow, toMul_ofMul,
@@ -141,20 +142,6 @@ theorem singularHomologyMap_eq_circleDegree_smul (w : C(Circle, Circle)) :
 end ContinuousMap
 
 /-! ### Coefficients `ULift ℤ` -/
-
-namespace AlgebraicTopology
-
-/-- With coefficients `k`, the map induced by Mathlib's singular homology functor is Tau Ceti's
-`ContinuousMap.singularHomologyMap`. -/
-theorem singularHomologyFunctor_obj_map_ofHom_hom {k : Type u} [Ring k] (n : ℕ)
-    {Y Z : Type u} [TopologicalSpace Y] [TopologicalSpace Z] (g : C(Y, Z)) :
-    (((singularHomologyFunctor (ModuleCat.{u} k) n).obj (ModuleCat.of k k)).map
-      (TopCat.ofHom g)).hom = ContinuousMap.singularHomologyMap k n g :=
-  -- Both sides are the homology map of the chain map of `g`, by definition of
-  -- `TauCeti.singularChains`.
-  rfl
-
-end AlgebraicTopology
 
 namespace ContinuousMap
 
