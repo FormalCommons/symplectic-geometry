@@ -5,7 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import Mathlib.Analysis.Normed.Module.Alternating.Uncurry.Fin
+public import SymplecticGeometry.Analysis.Normed.Module.Alternating.Uncurry.Fin
 public import TauCeti.Algebra.Lie.ExteriorPower
 public import SymplecticGeometry.Analysis.Normed.Module.Alternating.Derivation
 public import TauCeti.Analysis.InnerProductSpace.HodgeStar.AlternatingForm
@@ -32,6 +32,9 @@ Hodge star on the forms. This file reads three operations of `⋀ V` on the form
   the one by which Tau Ceti defines `codifferential`, so `-ι_u` is the symbol of `d*`. This is the
   form-level reading of Tau Ceti's
   `Orientation.koszulDifferential_eq_smul_hodgeStar_wedgeLeft_hodgeStar`.
+* Summed over an orthonormal basis `b`, the same sign times `⋆ Alt (⋆ ∘ B)`, for `B` linear from
+  `V` to the `(k + 1)`-forms and `Alt` Mathlib's `alternatizeUncurryFin`, is
+  `-∑ i, ι_{b i} (B (b i))`: the symbol of `d*` at a general first-order term.
 
 ## Main results
 
@@ -39,6 +42,8 @@ Hodge star on the forms. This file reads three operations of `⋀ V` on the form
   skew-adjoint `A`.
 * `TauCeti.alternatingFormEquiv_wedgeLeft`: the form of `u ∧ x`.
 * `Orientation.smul_formHodgeStar_alternatizeUncurryFin_formHodgeStar`: the symbol of `d*`.
+* `Orientation.smul_formHodgeStar_alternatizeUncurryFin_comp_formHodgeStar`: the symbol of `d*`
+  at a linear map `B`.
 
 ## References
 
@@ -54,6 +59,25 @@ open Module exteriorPower ContinuousAlternatingMap
 open scoped RealInnerProductSpace
 
 variable {V : Type*} [NormedAddCommGroup V] [InnerProductSpace ℝ V] [FiniteDimensional ℝ V]
+
+namespace ContinuousAlternatingMap
+
+variable {𝕜 E F ι : Type*} [RCLike 𝕜] [NormedAddCommGroup E] [InnerProductSpace 𝕜 E]
+  [NormedAddCommGroup F] [NormedSpace 𝕜 F] [Fintype ι]
+
+/-- `alternatizeUncurryFin f` is the sum over an orthonormal basis `b` of the alternatizations of
+`⟪b i, ·⟫ • f (b i)`, as `f = ∑ i, ⟪b i, ·⟫ • f (b i)`. -/
+theorem alternatizeUncurryFin_eq_sum_innerSL_smulRight (b : OrthonormalBasis ι 𝕜 E) {n : ℕ}
+    (f : E →L[𝕜] E [⋀^Fin n]→L[𝕜] F) :
+    alternatizeUncurryFin f =
+      ∑ i, alternatizeUncurryFin ((innerSL 𝕜 (b i)).smulRight (f (b i))) := by
+  have : FiniteDimensional 𝕜 E := b.toBasis.finiteDimensional_of_finite
+  have hb (i : ι) : LinearMap.toContinuousLinearMap (b.toBasis.coord i) = innerSL 𝕜 (b i) := by
+    ext v
+    simp [OrthonormalBasis.coe_toBasis_repr_apply, OrthonormalBasis.repr_apply_apply]
+  simpa [hb] using alternatizeUncurryFin_eq_sum_coord_smulRight b.toBasis f
+
+end ContinuousAlternatingMap
 
 namespace TauCeti
 
@@ -105,5 +129,24 @@ theorem smul_formHodgeStar_alternatizeUncurryFin_formHodgeStar (u : V) {k l : �
   congr 1
   rw [pow_succ, mul_neg_one, neg_inj, mul_add, pow_add,
     Even.neg_one_pow (⟨finrank ℝ V, by ring⟩ : Even (finrank ℝ V * 2)), mul_one]
+
+/-- **The symbol of the codifferential at a linear map**: for `B` from `V` to the
+`(k + 1)`-forms and an orthonormal basis `b`, `(-1) ^ (m (k + 2) + 1) ⋆ Alt (⋆ ∘ B)` is
+`-∑ i, ι_{b i} (B (b i))`, where `Alt` is `alternatizeUncurryFin` and `ι` the interior product.
+In a chart where the Hodge star operator has zero derivative at a point, this is the value there of
+Tau Ceti's `codifferential` of a form whose derivative there is `B`. -/
+theorem smul_formHodgeStar_alternatizeUncurryFin_comp_formHodgeStar {ι : Type*} [Fintype ι]
+    (b : OrthonormalBasis ι ℝ V) {k l : ℕ} (hkl : k + 1 + l = finrank ℝ V)
+    (hlk : l + 1 + k = finrank ℝ V) (B : V →L[ℝ] V [⋀^Fin (k + 1)]→L[ℝ] ℝ) :
+    (-1 : ℝ) ^ (finrank ℝ V * (k + 2) + 1) • o.formHodgeStar hlk
+        (alternatizeUncurryFin
+          ((o.formHodgeStar hkl).toContinuousLinearEquiv.toContinuousLinearMap ∘L B)) =
+      -∑ i, (B (b i)).curryLeft (b i) := by
+  rw [alternatizeUncurryFin_eq_sum_innerSL_smulRight b, _root_.map_sum, Finset.smul_sum,
+    ← Finset.sum_neg_distrib]
+  refine Finset.sum_congr rfl fun i _ ↦ ?_
+  rw [← o.smul_formHodgeStar_alternatizeUncurryFin_formHodgeStar _ hkl hlk,
+    ContinuousLinearMap.comp_apply, ContinuousLinearEquiv.coe_coe,
+    LinearEquiv.coe_toContinuousLinearEquiv']
 
 end Orientation
