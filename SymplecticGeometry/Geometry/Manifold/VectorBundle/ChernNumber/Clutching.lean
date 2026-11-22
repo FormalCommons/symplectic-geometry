@@ -312,13 +312,11 @@ private theorem continuous_clutchingSection [Finite ι] :
 /-- The zeros of the clutching section are the centres of the discs. -/
 private theorem clutchingSection_eq_zero_iff {x : M} :
     clutchingSection hφ hΦ hΦout x = 0 ↔ ∃ i, φ i 0 = x := by
-  have h0 : ∀ i, φ i 0 ∈ (φ i).openDisc := fun i ↦
-    (φ i).apply_mem_openDisc_iff.2 (by simp [CoordinateDisc.coe_zero])
   by_cases hx : x ∈ discComplement φ
   · rw [clutchingSection_of_mem_discComplement hφ hΦ hΦout hx]
     refine iff_of_false (outSection_ne_zero hΦout _) ?_
     rintro ⟨i, rfl⟩
-    exact (mem_discComplement_iff φ).1 hx i (h0 i)
+    exact (mem_discComplement_iff φ).1 hx i (φ i).apply_zero_mem_openDisc
   obtain ⟨i, hi⟩ : ∃ i, x ∈ (φ i).openDisc := by simpa using hx
   obtain ⟨z, -, rfl⟩ := (φ i).mem_openDisc_iff.1 hi
   rw [clutchingSection_of_mem_openDisc hφ hΦ hΦout hi, smul_eq_zero,
@@ -329,7 +327,7 @@ private theorem clutchingSection_eq_zero_iff {x : M} :
   · intro hz
     exact ⟨i, congrArg (φ i) (Subtype.ext (CoordinateDisc.coe_zero.trans hz.symm))⟩
   · rintro ⟨j, hj⟩
-    obtain rfl := eq_of_mem_openDisc_of_mem_disc φ hφ (h0 j)
+    obtain rfl := eq_of_mem_openDisc_of_mem_disc φ hφ (φ j).apply_zero_mem_openDisc
       (hj ▸ (φ i).openDisc_subset_disc hi)
     rw [← (φ j).injective hj, CoordinateDisc.coe_zero]
 
@@ -415,14 +413,10 @@ theorem chernNumber_eq_sum_degree_clutching [Fintype ι] [CompactSpace M] (hn : 
       (continuous_normalizedDet_clutchingTransition hφ hΦ hΦout i)).toBasedLoop := by
   obtain ⟨s, hs, hZ, hind⟩ := exists_detCore_section_clutching hφ hΦ hΦout hn
   have hfin : {x | s x = 0}.Finite := hZ ▸ finite_range _
-  -- Distinct discs have distinct centres, since each centre lies in its own open disc.
-  have h0 : ∀ i, φ i 0 ∈ (φ i).openDisc := fun i ↦
-    (φ i).apply_mem_openDisc_iff.2 (by simp [CoordinateDisc.coe_zero])
-  have hinj : Injective fun i ↦ φ i 0 := fun i j (hij : φ i 0 = φ j 0) ↦
-    eq_of_mem_openDisc_of_mem_disc φ hφ (h0 i) (hij ▸ (φ j).openDisc_subset_disc (h0 j))
   rw [chernNumber_def, firstChernClass_def, complexEulerClass_def,
     VectorBundleOrientation.evalFundamentalClass_eulerClass_eq_sum_sectionIndex _ _ o hs hn hfin]
-  have hset : hfin.toFinset = Finset.univ.map ⟨_, hinj⟩ := by
+  have hset : hfin.toFinset =
+      Finset.univ.map ⟨_, injective_apply_zero_of_pairwise_disjoint φ hφ⟩ := by
     ext x
     simp [hZ]
   rw [hset, Finset.sum_map]
