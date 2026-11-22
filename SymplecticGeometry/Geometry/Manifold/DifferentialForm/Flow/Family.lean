@@ -6,7 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Manifold.DifferentialForm.Flow.Family
-public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Family
+public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Family
 import TauCeti.Analysis.ODE.ScalarLinear
 import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Product
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Basic
@@ -50,10 +50,12 @@ wherever it is defined, with no completeness. This is the local form of Tau Ceti
 `TauCeti.mpullback_timeDependentFlowOf_of_mextDeriv_interior_eq_zero`, and gives the
 preservation of a symplectic form by local time-dependent Hamiltonian flows.
 
-The file also records how slices behave under pullback along `id × f : ℝ × M → ℝ × N`, for a
-smooth `f : M → N`. The slice of `(id × f)^* α` at time `t` is `f^* α_t`, and the slice at time
-`t` of its time derivative (`TauCeti.SmoothForm.timeDeriv`) is the pullback along `f` of the
-slice of `∂_t α`: both are the velocity of `u ↦ f^* α_u`, by Tau Ceti's
+The file also records how time derivatives of slices behave under pullback along
+`id × f : ℝ × M → ℝ × N`, for a smooth `f : M → N`. The slice of `(id × f)^* α` at time `t` is
+`f^* α_t` (`TauCeti.SmoothForm.mpullback_prodMk_mpullback_prodMap`, in
+`SymplecticGeometry/Geometry/Manifold/DifferentialForm/Pullback/Family.lean`), and the slice at
+time `t` of its time derivative (`TauCeti.SmoothForm.timeDeriv`) is the pullback along `f` of
+the slice of `∂_t α`: both are the velocity of `u ↦ f^* α_u`, by Tau Ceti's
 `TauCeti.SmoothForm.hasDerivAt_mpullback_prodMk_timeDeriv`. The same lemma computes the velocity
 of the reparametrized segment `α₀ + c(t) (α₁ - α₀)` of forms
 (`TauCeti.SmoothForm.lineMapFamily`): its slice at time `t` is `c'(t) (α₁ - α₀)`. The
@@ -80,11 +82,7 @@ pullback along `id × f`, and it vanishes on forms pulled back from `M` along th
 * `TauCeti.mpullback_timeDependentFlowOf_apply_of_mextDeriv_interior_eq_zero`: a closed smooth
   form whose contractions with every `X u` are closed satisfies `(φ_{s,t}^* β)ₓ = βₓ` wherever
   the flow is defined.
-* `TauCeti.SmoothForm.mpullback_prodMk_mpullback_prodMap'`: `ι_t^* (c × f)^* α = f^* ι_{c t}^* α`
-  for a reparametrization `c` of time, with its cases `c = id`,
-  `TauCeti.SmoothForm.mpullback_prodMk_mpullback_prodMap`, and `f = id`,
-  `TauCeti.SmoothForm.mpullback_prodMk_mpullback_prodMap_id_right`.
-* `TauCeti.SmoothForm.mpullback_prodMk_timeDeriv_mpullback_prodMap`: the same for the time
+* `TauCeti.SmoothForm.mpullback_prodMk_timeDeriv_mpullback_prodMap`: the slices of the time
   derivative, `ι_t^* ∂_t ((id × f)^* α) = f^* ι_t^* ∂_t α`, and
   `TauCeti.SmoothForm.mpullback_prodMk_timeDeriv_mpullback_prodMap'` for a reparametrization `c`
   of time, `ι_t^* ∂_t ((c × f)^* α) = c'(t) f^* ι_{c t}^* ∂_t α`.
@@ -231,8 +229,6 @@ theorem mpullback_timeDependentFlowOf_apply_of_mextDeriv_interior_eq_zero
 
 end TauCeti
 
-/-! ### Slices of pullbacks along `id × f` -/
-
 namespace TauCeti.SmoothForm
 
 variable {E H M E' H' N F : Type*}
@@ -241,38 +237,6 @@ variable {E H M E' H' N F : Type*}
   [NormedAddCommGroup E'] [NormedSpace ℝ E'] [TopologicalSpace H'] {J : ModelWithCorners ℝ E' H'}
   [TopologicalSpace N] [ChartedSpace H' N] [IsManifold J ∞ N]
   [NormedAddCommGroup F] [NormedSpace ℝ F] {k : ℕ}
-
-/-- The slice at time `t` of the pullback of a form `α` on `ℝ × N` along `c × f`, for a smooth
-reparametrization `c : ℝ → ℝ` of time, is the pullback along `f` of the slice of `α` at time
-`c t`: `ι_t^* (c × f)^* α = f^* ι_{c t}^* α`. -/
-theorem mpullback_prodMk_mpullback_prodMap' {c : ℝ → ℝ} (hc : ContMDiff 𝓘(ℝ) 𝓘(ℝ) ∞ c)
-    (f : M → N) (hf : ContMDiff I J ∞ f) (α : SmoothForm (𝓘(ℝ, ℝ).prod J) (ℝ × N) F k) (t : ℝ) :
-    mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id)
-        (mpullback (Prod.map c f) (hc.prodMap hf) α) =
-      mpullback f hf (mpullback (Prod.mk (c t)) (contMDiff_const.prodMk contMDiff_id) α) := by
-  rw [← LinearMap.comp_apply, ← mpullback_comp, ← LinearMap.comp_apply, ← mpullback_comp]
-  have h : Prod.map c f ∘ Prod.mk t = Prod.mk (c t) ∘ f := by
-    ext x <;> simp
-  simp only [h]
-
-/-- The slice at time `t` of the pullback of a form `α` on `ℝ × N` along `id × f` is the pullback
-along `f` of the slice of `α` at time `t`: `ι_t^* (id × f)^* α = f^* ι_t^* α`. -/
-theorem mpullback_prodMk_mpullback_prodMap (f : M → N) (hf : ContMDiff I J ∞ f)
-    (α : SmoothForm (𝓘(ℝ, ℝ).prod J) (ℝ × N) F k) (t : ℝ) :
-    mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id)
-        (mpullback (Prod.map id f) (contMDiff_id.prodMap hf) α) =
-      mpullback f hf (mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) α) :=
-  mpullback_prodMk_mpullback_prodMap' contMDiff_id f hf α t
-
-/-- The slice at time `t` of the pullback of a form `α` on `ℝ × M` along `c × id`, for a smooth
-`c : ℝ → ℝ`, is the slice of `α` at time `c t`. -/
-theorem mpullback_prodMk_mpullback_prodMap_id_right {c : ℝ → ℝ}
-    (hc : ContMDiff 𝓘(ℝ) 𝓘(ℝ) ∞ c) (α : SmoothForm (𝓘(ℝ, ℝ).prod I) (ℝ × M) F k) (t : ℝ) :
-    mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id)
-        (mpullback (Prod.map c id) (hc.prodMap contMDiff_id) α) =
-      mpullback (Prod.mk (c t)) (contMDiff_const.prodMk contMDiff_id) α := by
-  rw [mpullback_prodMk_mpullback_prodMap' hc id contMDiff_id]
-  exact LinearMap.congr_fun SmoothForm.mpullback_id _
 
 /-! ### The contraction with the time field -/
 
