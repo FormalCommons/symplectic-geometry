@@ -102,6 +102,9 @@ source: the inverse of Tau Ceti's oriented coordinate ball, restricted to a smal
   `SymplecticGeometry.CoordinateDisc.openDisc_subset_disc`.
 * `SymplecticGeometry.CoordinateDisc.disc_diff_openDisc`: the closed disc minus the open disc is
   the boundary circle.
+* `SymplecticGeometry.CoordinateDisc.apply_boundaryCircle_eq_of_continuousOn`: a map continuous on
+  the image of `ρ < ‖z‖ ≤ 1` and constant on the points of `ρ < ‖z‖ < 1` with angular coordinate
+  `ζ` takes the same value at the point `ζ` of the boundary circle.
 * `SymplecticGeometry.CoordinateDisc.disc_reverse`,
   `SymplecticGeometry.CoordinateDisc.openDisc_reverse`,
   `SymplecticGeometry.CoordinateDisc.boundaryLoop_reverse`: reversal keeps the discs and reverses
@@ -368,6 +371,50 @@ theorem disc_diff_openDisc : φ.disc \ φ.openDisc = Set.range φ.boundaryCircle
     exact ⟨c, by rw [boundaryCircle_apply]; exact congrArg φ (Subtype.ext hc)⟩
   · rintro ⟨z, rfl⟩
     exact ⟨φ.boundaryCircle_mem_disc z, φ.boundaryCircle_notMem_openDisc z⟩
+
+/-- A map that is continuous on the image of the half-open annulus `ρ < ‖z‖ ≤ 1`, for `ρ < 1`,
+and constant on the points of the open annulus `ρ < ‖z‖ < 1` with angular coordinate `ζ`, takes
+the same value at the point `φ.boundaryCircle ζ` of the boundary circle: it is the limit along the
+ray through `ζ`. -/
+theorem apply_boundaryCircle_eq_of_continuousOn {X : Type*} [TopologicalSpace X] [T1Space X]
+    {ρ : ℝ} (hρ : ρ < 1) {f : M → X}
+    (hf : ContinuousOn f (φ '' {z | ρ < ‖(z : ℂ)‖ ∧ ‖(z : ℂ)‖ ≤ 1})) {ζ : Circle} {c : X}
+    (h : ∀ z : ball, ρ < ‖(z : ℂ)‖ → ‖(z : ℂ)‖ < 1 → Circle.exp (Complex.arg z) = ζ →
+      f (φ z) = c) :
+    f (φ.boundaryCircle ζ) = c := by
+  -- The ray through `ζ`, as a map from `[0, 1]` to the ball.
+  let γ : unitInterval → ball := fun t ↦
+    ⟨(t : ℝ) * ζ, mem_ball_of_norm_le_one (by simp [abs_le.2 ⟨by
+      linarith [unitInterval.nonneg t], unitInterval.le_one t⟩])⟩
+  have hnorm : ∀ t : unitInterval, ‖((γ t : ball) : ℂ)‖ = t := fun t ↦ by
+    simp [γ, abs_of_nonneg (unitInterval.nonneg t)]
+  have hγ1 : φ (γ 1) = φ.boundaryCircle ζ := by
+    rw [boundaryCircle_apply]
+    congr 1
+    ext
+    simp [γ]
+  -- The open part of the ray beyond `ρ`, which has `1` in its closure.
+  let T : Set unitInterval := {t | max ρ 0 < t ∧ (t : ℝ) < 1}
+  have hT : Subtype.val '' T = Set.Ioo (max ρ 0) 1 := by
+    ext x
+    refine ⟨fun ⟨_, ht, hx⟩ ↦ hx ▸ ht, fun hx ↦
+      ⟨⟨x, (le_max_right ρ 0).trans hx.1.le, hx.2.le⟩, hx, rfl⟩⟩
+  have hmem : (1 : unitInterval) ∈ closure T := by
+    rw [closure_subtype, hT, closure_Ioo (max_lt hρ one_pos).ne]
+    exact ⟨(max_lt hρ one_pos).le, le_rfl⟩
+  have hmaps : Set.MapsTo (φ ∘ γ) (insert 1 T) (φ '' {z | ρ < ‖(z : ℂ)‖ ∧ ‖(z : ℂ)‖ ≤ 1}) :=
+    fun t ht ↦ ⟨γ t, ⟨by
+      rw [hnorm]
+      rcases ht with rfl | ht
+      · exact hρ
+      · exact (le_max_left ρ 0).trans_lt ht.1, by rw [hnorm]; exact unitInterval.le_one t⟩, rfl⟩
+  have hcont : ContinuousWithinAt (f ∘ φ ∘ γ) T 1 :=
+    ((hf.comp (φ.continuous.comp (by fun_prop : Continuous γ)).continuousOn hmaps) 1
+      (Set.mem_insert _ _)).mono (Set.subset_insert _ _)
+  rw [← hγ1]
+  refine hcont.eq_const_of_mem_closure hmem fun t ht ↦ h (γ t)
+    (by rw [hnorm]; exact (le_max_left ρ 0).trans_lt ht.1) (by rw [hnorm]; exact ht.2) ?_
+  simp [γ, Complex.arg_ofReal_mul ((le_max_right ρ 0).trans_lt ht.1), Circle.exp_arg]
 
 /-- The boundary loop of a coordinate disc, `t ↦ φ(e^{2πit})`, based at `φ.boundaryCircle 1`.
 It runs counterclockwise in the chart, so it is oriented as the boundary of the closed disc. -/
