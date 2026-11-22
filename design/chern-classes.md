@@ -675,7 +675,10 @@ one piece, for computing `crossSign m 0` through the sphere generator:
 `TopCat.mayerVietorisδ_eq_singularHomologyδ_left`, the composite of
 `Hₙ(X) ⟶ Hₙ(X, V)`, the inverse of the excision map of
 `TopPair.excisionMap U V` and the connecting morphism of
-`TopPair.interPair U V`, with sign `1`;
+`TopPair.interPair U V`, with sign `1`, ending with the map induced by
+`TopPair.interPairSndIso U V`, the homeomorphism
+`TopPair.interPairSndHomeomorph U V` from the subspace of
+`TopPair.interPair U V` onto `U ∩ V`, which this file defines;
 `TopCat.mayerVietorisδ_eq_neg_singularHomologyδ_right`, the same through
 `(V, U ∩ V)` with sign `-1`; and
 `TopCat.reducedMayerVietorisδ_succ_eq_singularHomologyδ_left` for the
