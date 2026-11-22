@@ -15,6 +15,7 @@ public import SymplecticGeometry.Geometry.Manifold.Instances.Sphere
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Riemannian.Hermitian
 public import TauCeti.Geometry.Manifold.FiberBundle.Principal
 public import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Sphere
+import SymplecticGeometry.GroupTheory.GroupAction.Hom
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Hermitian.Frame
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Riemannian.Norm
 import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
@@ -180,12 +181,6 @@ variable {B F : Type*} [NormedAddCommGroup F] [NormedSpace ℂ F] [TopologicalSp
   [TopologicalSpace (TotalSpace F E)] [FiberBundle F E] [VectorBundle ℂ F E]
   [Fact (finrank ℂ F = 1)]
 
-omit [TopologicalSpace B] [TopologicalSpace (TotalSpace F E)] [FiberBundle F E]
-  [VectorBundle ℂ F E] [Fact (finrank ℂ F = 1)] in
-/-- A unitary frame `φ` of a fibre is multiplication by `φ 1`. -/
-private theorem frame_apply_eq_smul {x : B} (φ : ℂ ≃ₗᵢ[ℂ] E x) (z : ℂ) : φ z = z • φ 1 := by
-  rw [← map_smul, smul_eq_mul, mul_one]
-
 /-- The total space of the unitary frame bundle of a complex line bundle is homeomorphic to its
 unit vectors: a frame `φ : ℂ ≃ₗᵢ[ℂ] E x` goes to the unit vector `φ 1`. -/
 def circleBundleHomeomorph :
@@ -195,7 +190,7 @@ def circleBundleHomeomorph :
     ((VectorBundle.finrank_eq ℂ F E _).trans Fact.out) p.property)⟩
   left_inv φ := by
     refine TotalSpace.ext rfl (heq_of_eq (Fiber.ext (LinearIsometryEquiv.ext fun z ↦ ?_)))
-    rw [Fiber.frame_ofFrame, LinearIsometryEquiv.toSpanSingleton_apply, ← frame_apply_eq_smul]
+    rw [Fiber.frame_ofFrame, LinearIsometryEquiv.toSpanSingleton_apply, ← map_eq_smul_map_one]
   right_inv p := Subtype.ext <| congrArg (TotalSpace.mk p.val.proj) <| by
     rw [Fiber.frame_ofFrame, LinearIsometryEquiv.toSpanSingleton_one]
   continuous_toFun := by
@@ -274,7 +269,7 @@ theorem circleBundleHomeomorph_smul (u : unitary (ℂ →L[ℂ] ℂ)) {x : B} (�
       Unitary.continuousLinearMapCircleEquiv u • circleBundleHomeomorph ⟨x, φ⟩ := by
   rw [Subtype.ext_iff, circleBundle_smul_apply, circleBundleHomeomorph_apply,
     circleBundleHomeomorph_apply, Fiber.frame_smul_apply, unop_op,
-    Unitary.coe_continuousLinearMapCircleEquiv_apply, frame_apply_eq_smul]
+    Unitary.coe_continuousLinearMapCircleEquiv_apply, map_eq_smul_map_one]
 
 end Homeomorph
 
