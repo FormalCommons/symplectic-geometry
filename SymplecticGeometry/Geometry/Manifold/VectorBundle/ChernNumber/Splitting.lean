@@ -39,6 +39,8 @@ over `X`, since the boundary class vanishes in the homology of `X`.
   the sum of their boundary Maslov indices.
 * `TauCeti.HomologicalOrientation.boundaryMaslovIndex_eq_zero_of_extend`: a map that extends
   continuously over `X` has boundary Maslov index `0`.
+* `TauCeti.HomologicalOrientation.boundaryMaslovIndex_eq_of_homotopy`: homotopic maps have the
+  same boundary Maslov index.
 
 ## References
 
@@ -75,6 +77,21 @@ theorem boundaryMaslovIndex_def (Ψ : C(↥((range ι)ᶜ : Set X), GLSymplectic
       o.boundaryDegree hn hι hιf hf
         ((⟨maslovPhase, continuous_maslovPhase⟩ : C(GLSymplectic n ℝ, Circle)).comp Ψ) :=
   (rfl)
+
+/-- Homotopic maps `∂X → Sp(2n)` have the same boundary Maslov index. -/
+theorem boundaryMaslovIndex_eq_of_homotopy {Ψ Ψ' : C(↥((range ι)ᶜ : Set X), GLSymplectic n ℝ)}
+    (F : Ψ.Homotopy Ψ') :
+    o.boundaryMaslovIndex hn hι hιf hf Ψ = o.boundaryMaslovIndex hn hι hιf hf Ψ' := by
+  obtain ⟨G⟩ := (ContinuousMap.Homotopic.refl
+    (⟨maslovPhase, continuous_maslovPhase⟩ : C(GLSymplectic n ℝ, Circle))).comp ⟨F⟩
+  rw [boundaryMaslovIndex_def, boundaryMaslovIndex_def]
+  exact o.boundaryDegree_eq_of_homotopy hn hι hιf hf G
+
+/-- Reversing the orientation negates the boundary Maslov index. -/
+@[simp]
+theorem boundaryMaslovIndex_neg_orientation (Ψ : C(↥((range ι)ᶜ : Set X), GLSymplectic n ℝ)) :
+    (-o).boundaryMaslovIndex hn hι hιf hf Ψ = -o.boundaryMaslovIndex hn hι hιf hf Ψ := by
+  simp [boundaryMaslovIndex_def]
 
 /-- **The boundary Maslov index along loops.** Suppose that loops `γ i` in `∂X` represent the
 boundary class: the sum of their classes in `H₁(∂X; ℤ)`, the push-forwards along
@@ -124,6 +141,20 @@ theorem boundaryMaslovIndex_eq_zero_of_extend {Ψ : C(↥((range ι)ᶜ : Set X)
   o.boundaryDegree_eq_zero_of_extend hn hι hιf hf
     ((⟨maslovPhase, continuous_maslovPhase⟩ : C(GLSymplectic n ℝ, Circle)).comp Φ)
     fun z ↦ by simp [hΦ z]
+
+/-- The constant map `1 : ∂X → Sp(2n)` has boundary Maslov index `0`. -/
+@[simp]
+theorem boundaryMaslovIndex_one :
+    o.boundaryMaslovIndex hn hι hιf hf (1 : C(↥((range ι)ᶜ : Set X), GLSymplectic n ℝ)) = 0 :=
+  o.boundaryMaslovIndex_eq_zero_of_extend hn hι hιf hf 1 fun _ ↦ rfl
+
+/-- The pointwise inverse of a map `∂X → Sp(2n)` has the negative of its boundary Maslov
+index. -/
+theorem boundaryMaslovIndex_inv (Ψ : C(↥((range ι)ᶜ : Set X), GLSymplectic n ℝ)) :
+    o.boundaryMaslovIndex hn hι hιf hf Ψ⁻¹ = -o.boundaryMaslovIndex hn hι hιf hf Ψ := by
+  have h := o.boundaryMaslovIndex_mul hn hι hιf hf Ψ⁻¹ Ψ
+  rw [inv_mul_cancel, boundaryMaslovIndex_one] at h
+  lia
 
 end TauCeti.HomologicalOrientation
 
