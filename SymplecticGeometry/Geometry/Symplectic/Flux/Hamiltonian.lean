@@ -115,9 +115,7 @@ private theorem mpullback_cylinderMap_apply_eq_eval₂ (x : M) (t : unitInterval
   refine (Φ.mpullback_timeSlice_interior_velocity_apply σ.val t x v).symm.trans ?_
   simp only [SmoothBundleForm.eval₂_apply, TauCeti.mpullback_apply, RoughForm.interior_apply]
   congr 1
-  funext i
-  -- Both sides list the vectors `X_t (φ_t x)` and `dφ_t v`; `rfl` evaluates each entry.
-  fin_cases i <;> rfl
+  exact (FinVec.etaExpand_eq _).symm
 
 omit [IsManifold J ∞ M] in
 /-- The spatial derivative of a smooth `F` at `(x, t)`, on a vector `v`, is the derivative of

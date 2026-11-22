@@ -233,9 +233,7 @@ theorem energyDensity_eq_two_smul_add (hinv : ∀ v w, ω ![J v, J w] = ω ![v, 
     energyDensity_apply_complexFrame, hAje, hAe]
   have hinv' (v w : V) := hinv v w
   have hB := ω.isAlt_toBilinMap
-  have hL : (fun i ↦ L (![e, j e] i)) = ![L e, L (j e)] := by
-    funext i
-    fin_cases i <;> simp
+  have hL : (fun i ↦ L (![e, j e] i)) = ![L e, L (j e)] := (FinVec.etaExpand_eq _).symm
   rw [hL]
   have hω (v w : V) : ω ![v, w] = ω.toMultilinearMap.toBilinMap v w :=
     (MultilinearMap.toBilinMap_apply _ v w).symm
