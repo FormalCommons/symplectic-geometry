@@ -263,11 +263,10 @@ theorem contMDiff_compatibleEquiv :
       (fun Z : SiegelUpperHalfSpace ι ↦ complexStructureMatrix (Z : Matrix ι ι ℂ)) :=
     contDiffOn_complexStructureMatrix.contMDiffOn.comp_contMDiff contMDiff_coe
       fun Z ↦ isUnit_det_map_im Z
-  convert (LinearMap.toContinuousLinearMap
-    (Matrix.toEuclideanCLM (n := ι ⊕ ι) (𝕜 := ℝ)).toAlgEquiv.toLinearMap).contDiff.comp_contMDiff h
-    using 1
+  convert Matrix.toEuclideanCLMContinuousLinearEquiv.contDiff.comp_contMDiff h using 1
   funext Z
-  exact compatibleCLM_compatibleEquiv Z
+  exact (compatibleCLM_compatibleEquiv Z).trans
+    (congrFun Matrix.coe_toEuclideanCLMContinuousLinearEquiv _).symm
 
 /-- The inverse `J ↦ M₁₁ M₂₁⁻¹ + i M₂₁⁻¹` of `compatibleEquiv` is smooth. -/
 theorem contMDiff_compatibleEquiv_symm :
@@ -276,10 +275,11 @@ theorem contMDiff_compatibleEquiv_symm :
   rw [contMDiff_iff_coe_comp]
   have h : ContMDiff 𝓘(ℝ, (stdForm ι).compatibleModel) 𝓘(ℝ, Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ) ∞
       (fun J : 𝒥₀ ι ↦ (Matrix.toEuclideanCLM (n := ι ⊕ ι) (𝕜 := ℝ)).symm
-        ((stdForm ι).compatibleCLM J)) :=
-    (LinearMap.toContinuousLinearMap
-      (Matrix.toEuclideanCLM (n := ι ⊕ ι) (𝕜 := ℝ)).symm.toAlgEquiv.toLinearMap).contDiff
-      |>.comp_contMDiff SymplecticForm.contMDiff_compatibleCLM
+        ((stdForm ι).compatibleCLM J)) := by
+    convert (Matrix.toEuclideanCLMContinuousLinearEquiv (n := ι ⊕ ι) (𝕜 := ℝ)).symm.contDiff
+      |>.comp_contMDiff SymplecticForm.contMDiff_compatibleCLM using 1
+    funext J
+    exact (congrFun Matrix.coe_toEuclideanCLMContinuousLinearEquiv_symm _).symm
   convert contDiffOn_ofComplexStructureMatrix.contMDiffOn.comp_contMDiff h
     (fun J ↦ by
       simpa [SymplecticForm.compatibleCLM_def,
@@ -310,36 +310,34 @@ theorem coe_compatibleDiffeomorph_symm :
 
 /-- The differential of `compatibleDiffeomorph` at `Z`, read in the endomorphisms of
 `StdSpace ι`, is the derivative of the block formula: `Ẑ ↦ dJ_Z(Ẑ)`. -/
-theorem mfderiv_compatibleCLM_mfderiv_compatibleDiffeomorph (Z : SiegelUpperHalfSpace ι)
+theorem mvfderiv_compatibleCLM_mfderiv_compatibleDiffeomorph (Z : SiegelUpperHalfSpace ι)
     (dZ : TangentSpace 𝓘(ℝ, 𝒮 ι) Z) :
-    mfderiv 𝓘(ℝ, (stdForm ι).compatibleModel) 𝓘(ℝ, StdSpace ι →L[ℝ] StdSpace ι)
-        (stdForm ι).compatibleCLM (compatibleDiffeomorph ι Z)
+    mvfderiv 𝓘(ℝ, (stdForm ι).compatibleModel) (stdForm ι).compatibleCLM
+        (compatibleDiffeomorph ι Z)
         (mfderiv 𝓘(ℝ, 𝒮 ι) 𝓘(ℝ, (stdForm ι).compatibleModel) (compatibleDiffeomorph ι) Z dZ) =
       Matrix.toEuclideanCLM (n := ι ⊕ ι) (𝕜 := ℝ)
         (complexStructureMatrixDeriv (Z : Matrix ι ι ℂ) (Subtype.val dZ)) := by
   have hZ : IsUnit ((Z : Matrix ι ι ℂ).map Complex.im).det := isUnit_det_map_im Z
   have h : HasMFDerivAt 𝓘(ℝ, 𝒮 ι) 𝓘(ℝ, StdSpace ι →L[ℝ] StdSpace ι)
       ((stdForm ι).compatibleCLM ∘ compatibleDiffeomorph ι) Z
-      ((LinearMap.toContinuousLinearMap
-        (Matrix.toEuclideanCLM (n := ι ⊕ ι) (𝕜 := ℝ)).toAlgEquiv.toLinearMap) ∘L
+      ((Matrix.toEuclideanCLMContinuousLinearEquiv (n := ι ⊕ ι) (𝕜 := ℝ)).toContinuousLinearMap ∘L
         complexStructureMatrixDeriv (Z : Matrix ι ι ℂ) ∘L
         (Submodule.subtypeL (𝒮 ι)).restrictScalars ℝ) := by
     have hfun : (stdForm ι).compatibleCLM ∘ compatibleDiffeomorph ι =
-        (LinearMap.toContinuousLinearMap
-          (Matrix.toEuclideanCLM (n := ι ⊕ ι) (𝕜 := ℝ)).toAlgEquiv.toLinearMap) ∘
+        Matrix.toEuclideanCLMContinuousLinearEquiv (n := ι ⊕ ι) (𝕜 := ℝ) ∘
         complexStructureMatrix ∘ ((↑) : SiegelUpperHalfSpace ι → Matrix ι ι ℂ) :=
-      funext fun Z ↦ compatibleCLM_compatibleEquiv Z
+      funext fun Z ↦ (compatibleCLM_compatibleEquiv Z).trans
+        (congrFun Matrix.coe_toEuclideanCLMContinuousLinearEquiv _).symm
     rw [hfun]
-    exact (((LinearMap.toContinuousLinearMap
-      (Matrix.toEuclideanCLM (n := ι ⊕ ι) (𝕜 := ℝ)).toAlgEquiv.toLinearMap).hasFDerivAt.comp _
+    exact (((Matrix.toEuclideanCLMContinuousLinearEquiv (n := ι ⊕ ι) (𝕜 := ℝ)).hasFDerivAt.comp _
         (hasFDerivAt_complexStructureMatrix hZ)).hasMFDerivAt.comp Z (hasMFDerivAt_coe Z))
   have hc := (SymplecticForm.contMDiff_compatibleCLM («ω» := stdForm ι) (n := 1)
     (compatibleDiffeomorph ι Z)).mdifferentiableAt one_ne_zero
   have hf := ((compatibleDiffeomorph ι).contMDiff Z).mdifferentiableAt (by simp)
-  rw [← mfderiv_comp_apply Z hc hf, h.mfderiv]
+  rw [mvfderiv_apply_eq_mfderiv_apply, ← mfderiv_comp_apply Z hc hf, h.mfderiv]
   -- The tangent space at `Z` is the model `𝒮 ι` by definition; `simp` does not see
-  -- through it to apply `ContinuousLinearMap.comp_apply`, so the composite is unfolded.
-  rfl
+  -- through it to apply `ContinuousLinearMap.comp_apply`, so `exact` unfolds the composite.
+  exact congrFun Matrix.coe_toEuclideanCLMContinuousLinearEquiv _
 
 /-- The diffeomorphism `Z ↦ J(Z)` is holomorphic: it intertwines multiplication by `i` on the
 symmetric matrices, the complex structure of the Siegel upper half space, with the complex
@@ -355,9 +353,10 @@ theorem isPseudoholomorphic_compatibleDiffeomorph :
     (SmoothAlmostComplexStructure.ofComplexManifold_apply (E := 𝒮 ι) Z dZ) |>.trans
       (Submodule.coe_smul_of_tower Complex.I (show 𝒮 ι from dZ))
   apply SymplecticForm.injective_mfderiv_compatibleCLM
-  rw [SymplecticForm.mfderiv_compatibleCLM_compatibleSpaceComplexStructure,
-    mfderiv_compatibleCLM_mfderiv_compatibleDiffeomorph,
-    mfderiv_compatibleCLM_mfderiv_compatibleDiffeomorph, hI,
+  rw [← mvfderiv_apply_eq_mfderiv_apply, ← mvfderiv_apply_eq_mfderiv_apply,
+    SymplecticForm.mvfderiv_compatibleCLM_compatibleSpaceComplexStructure,
+    mvfderiv_compatibleCLM_mfderiv_compatibleDiffeomorph,
+    mvfderiv_compatibleCLM_mfderiv_compatibleDiffeomorph, hI,
     complexStructureMatrixDeriv_I_smul (isUnit_det_map_im Z), map_neg, map_mul,
     coe_compatibleDiffeomorph, compatibleCLM_compatibleEquiv, ContinuousLinearMap.mul_def]
 
@@ -370,8 +369,8 @@ theorem inner_mfderiv_compatibleDiffeomorph (Z : SiegelUpperHalfSpace ι)
       mfderiv 𝓘(ℝ, 𝒮 ι) 𝓘(ℝ, (stdForm ι).compatibleModel) (compatibleDiffeomorph ι) Z dZ⟫ =
       trace ((Z.im⁻¹ * (Subtype.val dZ).map Complex.re) ^ 2 +
         (Z.im⁻¹ * (Subtype.val dZ).map Complex.im) ^ 2) := by
-  rw [SymplecticForm.inner_compatibleSpace, mfderiv_compatibleCLM_mfderiv_compatibleDiffeomorph,
-    ← ContinuousLinearMap.mul_def, ← map_mul, Matrix.trace_toEuclideanCLM, im_def,
+  rw [SymplecticForm.inner_compatibleSpace, mvfderiv_compatibleCLM_mfderiv_compatibleDiffeomorph,
+    ← map_mul, Matrix.trace_toEuclideanCLM, im_def,
     trace_complexStructureMatrixDeriv_mul_self (isUnit_det_map_im Z)]
 
 end SiegelUpperHalfSpace
@@ -391,7 +390,7 @@ variable {V : Type*} [NormedAddCommGroup V] [NormedSpace ℝ V] [FiniteDimension
 local notation "𝒥" => {J : AlmostComplexStructure V // ω.Compatible J}
 
 /-- The ambient reading of tangent vectors: the differential of the inclusion `ω.compatibleCLM`. -/
-local notation "dι" => mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM
+local notation "dι" => mvfderiv 𝓘(ℝ, ω.compatibleModel) ω.compatibleCLM
 
 local notation "∇" => leviCivitaConnection 𝓘(ℝ, ω.compatibleModel) 𝒥
 
@@ -415,14 +414,16 @@ theorem isKahler_compatibleSpaceForm_and_compatibleDiffeomorph {n : ℕ}
     Manifold.IsSmoothEmbedding 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V)
       ((⊤ : ℕ∞) : WithTop ℕ∞) ω.compatibleCLM ∧
     Module.finrank ℝ ω.compatibleModel = n * (n + 1) ∧
-    (∀ J : 𝒥, LinearMap.range (dι J).toLinearMap = ω.compatibleTangentSpaceCLM J.val) ∧
+    (∀ J : 𝒥, LinearMap.range
+      (mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM J).toLinearMap =
+        ω.compatibleTangentSpaceCLM J.val) ∧
     (∀ (J : 𝒥) (a : TangentSpace 𝓘(ℝ, ω.compatibleModel) J),
-      dι J (ω.compatibleSpaceComplexStructure J a) = -(ω.compatibleCLM J ∘L dι J a)) ∧
+      dι J (ω.compatibleSpaceComplexStructure J a) = -(ω.compatibleCLM J * dι J a)) ∧
     (∀ (J : 𝒥) (a b : TangentSpace 𝓘(ℝ, ω.compatibleModel) J),
       ω.compatibleSpaceForm.bilinFormAt J a b =
-        2⁻¹ * LinearMap.trace ℝ V ↑(dι J a ∘L ω.compatibleCLM J ∘L dι J b)) ∧
+        2⁻¹ * LinearMap.trace ℝ V ↑(dι J a * ω.compatibleCLM J * dι J b)) ∧
     (∀ (J : 𝒥) (a b : TangentSpace 𝓘(ℝ, ω.compatibleModel) J),
-      ⟪a, b⟫ = 2⁻¹ * LinearMap.trace ℝ V ↑(dι J a ∘L dι J b)) ∧
+      ⟪a, b⟫ = 2⁻¹ * LinearMap.trace ℝ V ↑(dι J a * dι J b)) ∧
     ω.compatibleSpaceForm.IsKahler ω.compatibleSpaceComplexStructure ∧
     ω.compatibleSpaceComplexStructure.IsIntegrable ∧
     (∀ (Ψ : V ≃L[ℝ] V) (hΨ : ω.IsSymplectomorphism ω Ψ.toLinearEquiv),
@@ -438,14 +439,14 @@ theorem isKahler_compatibleSpaceForm_and_compatibleDiffeomorph {n : ℕ}
       MDifferentiableAt 𝓘(ℝ) 𝓘(ℝ, ω.compatibleModel).tangent
         (fun r ↦ TotalSpace.mk' ω.compatibleModel (γ r) (W r)) t →
       dι (γ t) (alongCurve ∇ γ W t) =
-        deriv (fun r ↦ (dι (γ r) (W r) : V →L[ℝ] V)) t -
-          (2⁻¹ : ℝ) • (ω.compatibleCLM (γ t) ∘L
-            (dι (γ t) (W t) ∘L deriv (ω.compatibleCLM ∘ γ) t +
-              deriv (ω.compatibleCLM ∘ γ) t ∘L dι (γ t) (W t)))) ∧
+        deriv (fun r ↦ dι (γ r) (W r)) t -
+          (2⁻¹ : ℝ) • (ω.compatibleCLM (γ t) *
+            (dι (γ t) (W t) * deriv (ω.compatibleCLM ∘ γ) t +
+              deriv (ω.compatibleCLM ∘ γ) t * dι (γ t) (W t)))) ∧
     (∀ (J : 𝒥) (a : TangentSpace 𝓘(ℝ, ω.compatibleModel) J),
       IsGeodesicCurveOnFrom 𝓘(ℝ, ω.compatibleModel) (ω.compatibleGeodesic J a) univ J a ∧
       ∀ t, ω.compatibleCLM (ω.compatibleGeodesic J a t) =
-        ω.compatibleCLM J * NormedSpace.exp (-(t • (ω.compatibleCLM J ∘L dι J a)))) ∧
+        ω.compatibleCLM J * NormedSpace.exp (-(t • (ω.compatibleCLM J * dι J a)))) ∧
     (∀ (J : 𝒥) (a : TangentSpace 𝓘(ℝ, ω.compatibleModel) J) (γ : ℝ → 𝒥) (s t : ℝ),
       IsGeodesicCurveOnFrom 𝓘(ℝ, ω.compatibleModel) γ (Ioo s t) J a →
         EqOn γ (ω.compatibleGeodesic J a) (Ioo s t)) ∧
@@ -453,9 +454,7 @@ theorem isKahler_compatibleSpaceForm_and_compatibleDiffeomorph {n : ℕ}
     (letI := EMetricSpace.ofRiemannianMetric 𝓘(ℝ, ω.compatibleModel) 𝒥; CompleteSpace 𝒥) ∧
     (∀ (J : 𝒥) (a b c : TangentSpace 𝓘(ℝ, ω.compatibleModel) J),
       dι J (∇.curvatureTensor J a b c) = -(4⁻¹ : ℝ) •
-        ⁅⁅mvfderiv 𝓘(ℝ, ω.compatibleModel) ω.compatibleCLM J a,
-          mvfderiv 𝓘(ℝ, ω.compatibleModel) ω.compatibleCLM J b⁆,
-          mvfderiv 𝓘(ℝ, ω.compatibleModel) ω.compatibleCLM J c⁆) ∧
+        ⁅⁅dι J a, dι J b⁆, dι J c⁆) ∧
     (∀ (hcov : IsMetricCompatible (V := fun J : 𝒥 ↦ TangentSpace 𝓘(ℝ, ω.compatibleModel) J) ∇)
       (J : 𝒥) (u v : TangentSpace 𝓘(ℝ, ω.compatibleModel) J), ∇.sectionalCurvature hcov J u v ≤ 0) ∧
     ∀ (ι : Type) [Fintype ι] [DecidableEq ι],
@@ -475,7 +474,7 @@ theorem isKahler_compatibleSpaceForm_and_compatibleDiffeomorph {n : ℕ}
           Matrix.trace ((Z.im⁻¹ * (Subtype.val dZ).map Complex.re) ^ 2 +
             (Z.im⁻¹ * (Subtype.val dZ).map Complex.im) ^ 2) :=
   ⟨isSmoothEmbedding_compatibleCLM, finrank_compatibleModel hn, range_mfderiv_compatibleCLM,
-    mfderiv_compatibleCLM_compatibleSpaceComplexStructure, compatibleSpaceForm_apply,
+    mvfderiv_compatibleCLM_compatibleSpaceComplexStructure, compatibleSpaceForm_apply,
     inner_compatibleSpace, isKahler_compatibleSpaceForm,
     isIntegrable_compatibleSpaceComplexStructure,
     fun _ hΨ ↦ ⟨isPseudoholomorphic_compatibleTransport hΨ,
