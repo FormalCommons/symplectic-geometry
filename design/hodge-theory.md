@@ -202,7 +202,7 @@ parametrix glued from charts.
   orientation (`harmonicForms_neg_orientation`), and the Kähler identities
   hold for both orientations. The results of the Kähler half that come
   before the milestone take any metric instance with
-  `hg : ∀ x (v w : TangentSpace I x), ⟪v, w⟫ = ω x ![v, J x w]`, the
+  `hg : ∀ x (v w : TangentSpace I x), ⟪v, w⟫ = ω.eval₂ x v (J x w)`, the
   convention of `DESIGN.md`, so that they do not depend on how the metric
   was built.
 - **Models.** Every statement is for a general boundaryless model `I`. The

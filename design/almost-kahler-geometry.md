@@ -175,7 +175,7 @@ follow.
 | File | Contents |
 |---|---|
 | `Geometry/Manifold/VectorBundle/CovariantDerivative/TwoForm.lean` | $d\sigma$ as the cyclic sum of $\nabla\sigma$ plus torsion terms, and without them for a torsion-free connection; namespace `CovariantDerivative` |
-| `Geometry/Symplectic/Manifold/AlmostComplex/LeviCivita.lean` | the two metric steps for `hJ`, the second, third and fourth identities, and the first milestone; namespace `TauCeti.SmoothAlmostComplexStructure`, the milestone in `TauCeti.SmoothTwoForm.Compatible` |
+| `Geometry/Symplectic/Manifold/AlmostComplex/LeviCivita.lean` | the second, third and fourth identities, and the first milestone; namespace `TauCeti.SmoothAlmostComplexStructure`, the milestone in `TauCeti.SmoothTwoForm.Compatible` |
 | `Geometry/Symplectic/Manifold/Kahler.lean` | the identity for $\langle N_J(u,v),w\rangle$, the equivalence of $\nabla J=0$ with $d\sigma=0$ and $N_J=0$, the Kähler form of it, and the second milestone; same namespaces |
 | `LinearAlgebra/ComplexStructure/Trilinear.lean` | the algebraic step of the fourth identity; namespace `LinearMap` |
 
@@ -244,10 +244,11 @@ Variables: `[RiemannianBundle (fun x : M ↦ TangentSpace I x)]`,
 `TauCeti.SmoothAlmostComplexStructure`:
 
 - `inner_apply_left_eq_eval₂ (hJ) x u w : ⟪J x u, w⟫ = σ.eval₂ x u w` and
-  `inner_apply_left_eq_neg (hJ) x u w : ⟪J x u, w⟫ = -⟪u, J x w⟫`: the
-  page's $\sigma(u,w)=\langle Ju,w\rangle$ and the skew-adjointness of $J$. Public
-  forms of steps that Tau Ceti's `AlmostComplex/Metric.lean` proves
-  privately (`inner_apply_left_of_inner_eq`).
+  `inner_apply_left_eq_neg (hJ) x u w : ⟪J x u, w⟫ = -⟪u, J x w⟫`, the
+  page's $\sigma(u,w)=\langle Ju,w\rangle$ and the skew-adjointness of $J$, are in
+  *Almost complex manifolds*' `Metric.lean`, with the other consequences of
+  `hJ`. Public forms of steps that Tau Ceti's `AlmostComplex/Metric.lean`
+  proves privately (`inner_apply_left_of_inner_eq`).
 - `inner_hom_apply_eq_neg (hJ) (hcov : cov.IsMetricCompatible) x u v w :
   ⟪D u v, w⟫ = -⟪v, D u w⟫`: the second identity, from
   `IsMetricCompatible.inner_hom_eq_neg` and `inner_apply_left_eq_neg`.
@@ -339,7 +340,8 @@ About 250 lines.
 
 - From *Almost complex manifolds*: `Metric.lean` (#860), for
   `Compatible.metric` and `metric_inner`, in the milestone of
-  `LeviCivita.lean`.
+  `LeviCivita.lean`, and for `inner_apply_left_eq_eval₂` and
+  `inner_apply_left_eq_neg`, in its identities.
 - From *Nijenhuis tensor*: `Covariant.lean`, for $\nabla J$ and the first
   identity, in `LeviCivita.lean`; `Nijenhuis.lean`, for the formula of $N_J$
   through a torsion-free connection, in `Kahler.lean` (both #863, or the

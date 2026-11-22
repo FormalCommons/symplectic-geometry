@@ -79,7 +79,7 @@ linear structure `J₀`. Then on the target of `φ` the metric in the chart is `
 with `ω` read in the chart. -/
 theorem gramInChart_apply_eq_mpullback_symm_apply {J : SmoothAlmostComplexStructure I M}
     {form : SmoothTwoForm I M}
-    (hg : ∀ x (v w : TangentSpace I x), ⟪v, w⟫ = form.val x ![v, J x w])
+    (hg : ∀ x (v w : TangentSpace I x), ⟪v, w⟫ = form.eval₂ x v (J x w))
     (φ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞) {J₀ : AlmostComplexStructure E}
     (hφ : ∀ p ∈ φ.target, ∀ w : E, J.chartPushforward φ.toOpenPartialHomeomorph p w = J₀ w)
     {z : E} (hz : z ∈ φ.target) (u v : E) :
@@ -98,7 +98,7 @@ theorem gramInChart_apply_eq_mpullback_symm_apply {J : SmoothAlmostComplexStruct
     rw [← h1]
     convert h2.symm using 2
     rw [hr]
-  rw [gramInChart_apply, hg, hJ]
+  rw [gramInChart_apply, hg, SmoothBundleForm.eval₂_apply, hJ]
   refine Eq.trans ?_ (TauCeti.mpullback_apply _ _ _ _).symm
   congr 1
   ext i
@@ -347,7 +347,8 @@ at `ψ x₀`. -/
 theorem IsIntegrable.exists_partialDiffeomorph_fderiv_gramInChart_eq_zero
     [IsContMDiffRiemannianBundle I ∞ E (fun x : M ↦ TangentSpace I x)]
     {J : SmoothAlmostComplexStructure I M} (hJ : J.IsIntegrable) {form : SmoothTwoForm I M}
-    (hform : form.IsClosed) (hg : ∀ x (v w : TangentSpace I x), ⟪v, w⟫ = form.val x ![v, J x w])
+    (hform : form.IsClosed)
+    (hg : ∀ x (v w : TangentSpace I x), ⟪v, w⟫ = form.eval₂ x v (J x w))
     (x₀ : M) :
     ∃ (ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞) (J₀ : AlmostComplexStructure E),
       x₀ ∈ ψ.source ∧

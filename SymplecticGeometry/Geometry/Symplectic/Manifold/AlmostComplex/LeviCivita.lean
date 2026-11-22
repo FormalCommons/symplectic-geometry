@@ -36,8 +36,6 @@ statement for a two-form `σ` compatible with `J` and the Levi-Civita connection
 In the namespace `TauCeti.SmoothAlmostComplexStructure`, for a metric with
 `⟪u, v⟫ = σ(u, J v)`:
 
-* `inner_apply_left_eq_eval₂` and `inner_apply_left_eq_neg`: `⟪J u, w⟫ = σ(u, w)` and
-  `⟪J u, w⟫ = -⟪u, J w⟫`.
 * `inner_hom_apply_apply_eq`: `⟪(∇_u J) (J v), w⟫ = ⟪(∇_u J) v, J w⟫`.
 * `inner_hom_apply_eq_neg`: `∇_u J` is skew-adjoint, for a metric connection.
 * `hom_hom_flat_apply_eq_inner`: `(∇_u σ)(v, w) = ⟪(∇_u J) v, w⟫`, for a metric connection.
@@ -60,10 +58,9 @@ comes from `CovariantDerivative.mextDeriv_smoothTwoForm_of_torsion_eq_zero`, and
 identity from the linear algebra of `LinearMap.apply_left_eq_apply_right_of_cyclic`, applied to
 the trilinear form `(u, v, w) ↦ ⟪(∇_u J) v, w⟫`.
 
-The proof of `inner_apply_left_eq_eval₂` uses the rewrites of Tau Ceti's private
-`TauCeti.inner_apply_apply_of_inner_eq` (in
-`TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Metric`), which makes the same use of
-`⟪u, v⟫ = σ(u, J v)`, `J² = -1` and the skew-symmetry of `σ`.
+The pointwise consequences of `⟪u, v⟫ = σ(u, J v)` that the proofs use, `⟪J u, w⟫ = σ(u, w)`
+and the skew-adjointness of `J`, are proved in
+`SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Metric`.
 
 ## References
 
@@ -90,22 +87,7 @@ namespace SmoothAlmostComplexStructure
 
 variable [RiemannianBundle (fun x : M ↦ TangentSpace I x)]
   {σ : SmoothTwoForm I M} {J : SmoothAlmostComplexStructure I M}
-
-omit [FiniteDimensional ℝ E] in
-/-- If `⟪u, v⟫ = σ(u, J v)`, then the metric represents `σ` through `J`: `⟪J u, w⟫ = σ(u, w)`. -/
-theorem inner_apply_left_eq_eval₂ (hJ : ∀ x u v, ⟪u, v⟫ = σ.eval₂ x u (J x v)) (x : M)
-    (u w : TangentSpace I x) : ⟪J x u, w⟫ = σ.eval₂ x u w := by
-  rw [real_inner_comm, hJ, apply_apply, SmoothBundleForm.eval₂_neg_right,
-    ← SmoothBundleForm.eval₂_swap]
-
-omit [FiniteDimensional ℝ E] in
-/-- If `⟪u, v⟫ = σ(u, J v)`, then `J` is skew-adjoint: `⟪J u, w⟫ = -⟪u, J w⟫`. -/
-theorem inner_apply_left_eq_neg (hJ : ∀ x u v, ⟪u, v⟫ = σ.eval₂ x u (J x v)) (x : M)
-    (u w : TangentSpace I x) : ⟪J x u, w⟫ = -⟪u, J x w⟫ := by
-  rw [inner_apply_left_eq_eval₂ hJ, hJ, apply_apply, SmoothBundleForm.eval₂_neg_right,
-    _root_.neg_neg]
-
-variable [IsContMDiffRiemannianBundle I 1 E (fun x : M ↦ TangentSpace I x)]
+  [IsContMDiffRiemannianBundle I 1 E (fun x : M ↦ TangentSpace I x)]
   {cov : CovariantDerivative I E (TangentSpace I : M → Type _)}
 
 omit [IsContMDiffRiemannianBundle I 1 E (fun x : M ↦ TangentSpace I x)] in
