@@ -84,8 +84,8 @@ theorem lefschetz_apply (α : SmoothForm I M ℝ k) : σ.lefschetz α = SmoothFo
 theorem mextDerivₗ_lefschetz (hσ : σ.IsClosed) (α : SmoothForm I M ℝ k) :
     mextDerivₗ I (k + 2) (σ.lefschetz α) = σ.lefschetz (mextDerivₗ I k α) := by
   rw [lefschetz_apply, lefschetz_apply, SmoothForm.mextDerivₗ_wedge,
-    (SmoothForm.isClosed_iff_mextDerivₗ_eq_zero σ).1 hσ, map_zero, map_zero, smul_zero, add_zero]
-  rfl
+    (SmoothForm.isClosed_iff_mextDerivₗ_eq_zero σ).1 hσ, map_zero, map_zero, smul_zero, add_zero,
+    LinearEquiv.cast_apply, cast_eq]
 
 variable [RiemannianBundle (fun x : M ↦ TangentSpace I x)] [FiniteDimensional ℝ E] {σ}
   {J : SmoothAlmostComplexStructure I M}
