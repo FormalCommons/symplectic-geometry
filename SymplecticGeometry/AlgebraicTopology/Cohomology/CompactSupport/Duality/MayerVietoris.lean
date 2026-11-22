@@ -42,8 +42,9 @@ square needs `U ∪ V = M`; that hypothesis is needed only for the exactness of 
 
 The statements and proofs are those of Tau Ceti's main branch, in
 `TauCeti/AlgebraicTopology/Cohomology/CompactSupport/Duality/MayerVietoris.lean`, under the same
-names; no tagged release has them yet. They are stated here under their Tau Ceti names and
-namespace, so that moving Tau Ceti past them deletes this file without renames.
+names, as of the commit `a2b27244398126b7be07d28c3ce0d849e4ca2458`
+(TauCetiProject/TauCeti#42569); no tagged release has them yet. They are stated here under their
+Tau Ceti names and namespace, so that moving Tau Ceti past them deletes this file without renames.
 
 ## Implementation notes
 

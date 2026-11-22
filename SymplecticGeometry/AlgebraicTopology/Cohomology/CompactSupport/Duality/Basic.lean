@@ -49,12 +49,12 @@ open embedding. This file adds:
 ## Provenance
 
 The statements and proofs are those of Tau Ceti's main branch, in
-`TauCeti/AlgebraicTopology/Cohomology/CompactSupport/Duality/Basic.lean`, under the same names;
-the pinned release has only the part of that file that is its `Duality.lean`. They are stated here
+`TauCeti/AlgebraicTopology/Cohomology/CompactSupport/Duality/Basic.lean`, under the same names, as
+of the commits `a2b27244398126b7be07d28c3ce0d849e4ca2458` (TauCetiProject/TauCeti#42569),
+`020be269104296e16423165eccaf4c5bf7d05ede` and `b9a3084bbb4cc2ac2c5a0b3ae0323198b47a34b8`; the
+pinned release has only the part of that file that is its `Duality.lean`. They are stated here
 under their Tau Ceti names and namespace, so that moving Tau Ceti past them deletes this file
-without renames. Only the proofs are adapted where the pinned release lacks a lemma that the main
-branch uses: `TauCeti.isZero_singularHomologyFunctor_of_isEmpty` replaces the main branch's
-`TauCeti.isZero_singularHomology_of_isEmpty`.
+without renames.
 
 ## Implementation notes
 

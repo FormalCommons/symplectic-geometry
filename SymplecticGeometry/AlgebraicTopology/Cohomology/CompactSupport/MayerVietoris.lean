@@ -22,7 +22,15 @@ sum of the extensions by zero is an isomorphism
 These two lemmas are from Tau Ceti's main branch
 (`TauCeti/AlgebraicTopology/Cohomology/CompactSupport/MayerVietoris.lean`, same names), not yet in
 the pinned release; they are stated here under their Tau Ceti names, so that moving Tau Ceti past
-them deletes this file without renames.
+them deletes this file without renames. The statements and proofs are those of the commit
+`020be269104296e16423165eccaf4c5bf7d05ede`, with one change. The main branch closes
+`TopCat.isIso_biprodDesc_compactSupportCohomologyExtend_of_disjoint` with a single `exact`, which
+works in the file that defines `TopCat.compactSupportCohomologyMayerVietorisFromBiprod` because
+there that map unfolds to the `biprod.desc` of the statement. Here the definition comes from
+another module, whose body this file does not see, so the proof identifies the two maps through
+`biprod.hom_ext'` and the component lemmas
+`TopCat.inl_compactSupportCohomologyMayerVietorisFromBiprod` and
+`TopCat.inr_compactSupportCohomologyMayerVietorisFromBiprod`.
 
 ## References
 

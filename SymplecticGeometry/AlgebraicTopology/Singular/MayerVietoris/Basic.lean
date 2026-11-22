@@ -21,7 +21,11 @@ vanishes in every degree, so the sum of the maps induced by the inclusions is an
 These two lemmas are from Tau Ceti's main branch
 (`TauCeti/AlgebraicTopology/Singular/MayerVietoris/Basic.lean`, same names), not yet in the
 pinned release; they are stated here under their Tau Ceti names, so that moving Tau Ceti past them
-deletes this file without renames.
+deletes this file without renames. The statements and proofs are those of the commit
+`020be269104296e16423165eccaf4c5bf7d05ede`, with one change: the proof of
+`TopCat.isIso_biprodDesc_singularHomologyFunctor_map_of_disjoint` uses the pinned
+`TauCeti.isZero_singularHomologyFunctor_of_isEmpty` where the main branch uses
+`TauCeti.isZero_singularHomology_of_isEmpty`, which the pinned release does not have.
 
 ## References
 

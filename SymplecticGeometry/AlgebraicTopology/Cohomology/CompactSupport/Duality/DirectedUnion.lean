@@ -40,7 +40,8 @@ whose duality map is bijective (`TauCeti.HomologicalOrientation.bijective_dualit
 
 The statements and proofs are those of Tau Ceti's main branch, in
 `TauCeti/AlgebraicTopology/Cohomology/CompactSupport/Duality/DirectedUnion.lean`, under the same
-names; no tagged release has them yet. They are stated here under their Tau Ceti names and
+names, as of the commit `b9a3084bbb4cc2ac2c5a0b3ae0323198b47a34b8`; no tagged release has them
+yet. They are stated here under their Tau Ceti names and
 namespace, so that moving Tau Ceti past them deletes this file without renames.
 
 ## References
