@@ -113,7 +113,7 @@ theorem hom_toEndomorphism_eq_zero_iff (hJ : ∀ x u v, ⟪u, v⟫ = σ.eval₂ 
   refine ⟨fun h ↦ ⟨?_, ?_⟩, fun ⟨hσ, hN⟩ ↦ ?_⟩
   · refine σ.isClosed_iff_forall_mextDeriv_apply_eq_zero.2 fun x ↦ ?_
     ext a
-    have ha : a = ![a 0, a 1, a 2] := by ext i; fin_cases i <;> simp
+    have ha : a = ![a 0, a 1, a 2] := (FinVec.etaExpand_eq _).symm
     rw [ha, mextDeriv_apply_eq_inner hJ hcov, h]
     simp
   · funext x

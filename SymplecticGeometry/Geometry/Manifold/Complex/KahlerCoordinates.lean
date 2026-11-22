@@ -339,7 +339,7 @@ theorem fderiv_mpullback_symm_eq_zero_of_fderiv_gramInChart_eq_zero
   have hG := (((contDiffOn_gramInChart φ).contDiffAt hT).differentiableAt (by simp)).hasFDerivAt
   rw [h] at hG
   ext v w
-  have hw : w = ![w 0, w 1] := by ext i; fin_cases i <;> rfl
+  have hw : w = ![w 0, w 1] := (FinVec.etaExpand_eq _).symm
   -- On the target, `ω(u, u') = g(u, -J₀ u')` in the chart, which has derivative zero at `z`.
   have hc : HasFDerivAt (fun p ↦ (mpullback 𝓘(ℝ, E) I φ.symm form.val p : E [⋀^Fin 2]→L[ℝ] ℝ)
       ![w 0, w 1]) (0 : E →L[ℝ] ℝ) z := by
