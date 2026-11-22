@@ -36,6 +36,9 @@ The integral form, for `TopCat.integralCohomology` and the integral cup product
 `TopCat.integralLerayHirschEquiv` and
 `TopCat.singularCohomologyMap_injective_of_integralLerayHirsch_injective`. Its Leray–Hirsch map
 `TopCat.integralLerayHirsch` is an additive map, which over `ℤ` is the same as a linear one.
+For a product `X × F` and the pull-backs `pr₂^* b` of bases `b` of the integral cohomology of
+`F`, its bijectivity is `TopCat.integralLerayHirsch_fst_bijective`, from Tau Ceti's
+`TopCat.lerayHirschProd_bijective`.
 
 ## Proof
 
@@ -459,6 +462,54 @@ theorem integralLerayHirsch_integralCohomologyLinearEquiv
       integralCohomologyLinearEquiv_singularCup, integralCohomologyLinearEquiv_naturality]
 
 end LinearEquiv
+
+/-- **The integral Leray–Hirsch theorem for a product.** Suppose that the homology `H_d(F; ℤ)` is
+projective in every degree and finitely generated in degrees `d ≤ n`, and that `b d` is a basis of
+`Hᵈ(F; ℤ)` for every `d`. Then the integral Leray–Hirsch map of the projection `X × F ⟶ X` with
+the classes `pr₂^* (b d i)`,
+`⨁_{d + q = n} ⨁_{i : ι d} H^q(X; ℤ) ⟶ Hⁿ(X × F; ℤ)`, `(a_{d,i}) ↦ ∑ pr₁^* a_{d,i} ⌣ pr₂^* b_{d,i}`,
+is bijective. -/
+theorem integralLerayHirsch_fst_bijective (X F : TopCat.{0}) {ι : ℕ → Type}
+    [∀ d, DecidableEq (ι d)]
+    [∀ d, Projective (((singularHomologyFunctor (ModuleCat.{0} ℤ) d).obj
+      (𝟙_ (ModuleCat.{0} ℤ))).obj F)]
+    (b : ∀ d, Module.Basis (ι d) ℤ (F.integralCohomology d))
+    (hF : ∀ d ≤ n, Module.Finite ℤ (((singularHomologyFunctor (ModuleCat.{0} ℤ) d).obj
+      (𝟙_ (ModuleCat.{0} ℤ))).obj F)) :
+    Function.Bijective (integralLerayHirsch (fst X F) n
+      fun d i ↦ TopCat.singularCohomologyMap (snd X F) d (b d i)) := by
+  -- The bases with coefficients `ℤ` that correspond to `b`.
+  let b' (d : ℕ) := (b d).map (F.integralCohomologyLinearEquiv d).symm
+  -- Their pull-backs, for the structure `ModuleCat.instLinear` that `TopCat.lerayHirsch` uses,
+  -- which instance search would not find here.
+  let c' (d : ℕ) (i : ι d) :=
+    @TopCat.singularCohomologyMap _ _ _ _ (𝟙_ (ModuleCat.{0} ℤ)) ℤ _ ModuleCat.instLinear
+      (𝟙_ (ModuleCat.{0} ℤ)) _ _ (snd X F) d (b' d i)
+  have hbb' : (fun d i ↦ TopCat.singularCohomologyMap (snd X F) d (b d i)) = fun d i ↦
+      (X ⊗ F).integralCohomologyLinearEquiv d (c' d i) := by
+    funext d i
+    rw [integralCohomologyLinearEquiv_naturality, Module.Basis.map_apply,
+      LinearEquiv.apply_symm_apply]
+  have hprod : lerayHirsch (fst X F) n c' = lerayHirschProd X F n b' := by
+    refine DirectSum.linearMap_ext ℤ fun ⟨⟨⟨d, q⟩, h⟩, i⟩ ↦ LinearMap.ext fun a ↦ ?_
+    simp only [LinearMap.comp_apply]
+    rw [lerayHirsch_lof, lerayHirschProd_lof]
+  have hmap : Function.Bijective (DirectSum.map
+      fun j : Σ pq : {pq : ℕ × ℕ // pq.1 + pq.2 = n}, ι pq.val.1 ↦
+        (X.integralCohomologyLinearEquiv j.1.val.2).toLinearMap.toAddMonoidHom) :=
+    ⟨(DirectSum.map_injective _).2 fun j ↦ (integralCohomologyLinearEquiv _ _).injective,
+      (DirectSum.map_surjective _).2 fun j ↦ (integralCohomologyLinearEquiv _ _).surjective⟩
+  rw [← Function.Bijective.of_comp_iff _ hmap]
+  have hcomp : ⇑(integralLerayHirsch (fst X F) n
+      fun d i ↦ TopCat.singularCohomologyMap (snd X F) d (b d i)) ∘
+      ⇑(DirectSum.map fun j : Σ pq : {pq : ℕ × ℕ // pq.1 + pq.2 = n}, ι pq.val.1 ↦
+        (X.integralCohomologyLinearEquiv j.1.val.2).toLinearMap.toAddMonoidHom) =
+      ⇑((X ⊗ F).integralCohomologyLinearEquiv n) ∘ ⇑(lerayHirschProd X F n b') := by
+    funext x
+    rw [Function.comp_apply, Function.comp_apply, ← hprod,
+      ← integralLerayHirsch_integralCohomologyLinearEquiv, ← hbb']
+  rw [hcomp]
+  exact (integralCohomologyLinearEquiv _ n).bijective.comp (lerayHirschProd_bijective X b' hF)
 
 end Integral
 
