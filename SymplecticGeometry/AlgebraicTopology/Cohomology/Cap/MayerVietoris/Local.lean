@@ -205,6 +205,7 @@ variable {S U V W A B C}
 /-- On native relative small cycles, cap with `α` followed by Mayer–Vietoris δ is
 `(-1)^(p+1)` times the cap with `ζ` in the original intersection, for lifts whose difference is `α`.
 -/
+@[elementwise]
 lemma capCycles_homologyπ_mayerVietorisδ (S : (TopCat.toSSet.obj X).Subcomplex)
     (U V A B C D : Opens X)
     (hUV : U ⊔ V = ⊤) (hCA : C ≤ A) (hCB : C ≤ B) (hAD : A ≤ D) (hBD : B ≤ D)
