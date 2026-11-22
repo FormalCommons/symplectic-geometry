@@ -162,8 +162,6 @@ theorem Manifold.IsImmersion.exists_contMDiff_leftInverse_mfderiv {f : K}
   have : IsManifold J (∞ + 1) Q := by simpa using (inferInstance : IsManifold J ∞ Q)
   have : ContMDiffVectorBundle ∞ E ((f : Q → M) *ᵖ (TangentSpace I)) J :=
     Bundle.Pullback.contMDiffVectorBundle (E := TangentSpace I) hf.contMDiff
-  have (q : Q) : IsNormableSpace ℝ (((f : Q → M) *ᵖ (TangentSpace I)) q) :=
-    instIsNormableSpaceTangentSpace I (f q)
   -- `S` is the adjoint of `df` for `β` along `f` and its pull-back `h = β(df ·, df ·)` to `TQ`.
   set T : ∀ q, TangentSpace J q →L[ℝ] TangentSpace I (f q) := fun q ↦ mfderiv J I f q
   set h : ∀ q, TangentSpace J q →L[ℝ] TangentSpace J q →L[ℝ] ℝ :=

@@ -1,0 +1,168 @@
+/-
+Copyright (c) 2026 The FormalCommons contributors. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: The FormalCommons contributors
+-/
+module
+
+public import Mathlib.Topology.Category.TopCat.Opens
+public import TauCeti.AlgebraicTopology.Singular.Relative
+public import SymplecticGeometry.AlgebraicTopology.SimplicialSet.Homology.Basic
+
+/-!
+# Relative singular chains: open subspaces and changes of the subset
+
+This file adds to Tau Ceti's relative singular chains of a topological pair:
+
+* `TopCat.mono_chainComplexMap_inclusion'_f`: the inclusion of an open set `U ⊆ X` induces a
+  monomorphism of singular chains in each degree;
+* `TopPair.ιChainComplex_comp_singularChainComplexπ_eq_zero`: a singular simplex of the ambient
+  space with image in the subspace vanishes in relative chains;
+* `TopPair.openSubspacePair U A`: for an open set `U` and a set `A` of `X`, the pair of `U` and the
+  preimage of `A` in `U`, with `TopPair.openSubspacePair_compl` for a complement, and its map
+  `TopPair.openSubspaceInclusion` into the pair `(X, A)`;
+* `TopPair.restrictSubsetMap`: for `A ⊆ B` and a subcomplex `S` of the singular simplicial set of
+  `X`, the map from the singular pair of `(X, A)` restricted to `S` to that of `(X, B)`, with its
+  compatibility with the quotient maps (`TopPair.chainComplexπ_restrictSubsetMap`), with the
+  inclusions of the restricted chains
+  (`TopPair.chainComplexMap_restrictSubsetMap_comp_restrictι`), and with composition
+  (`TopPair.chainComplexMap_restrictSubsetMap_comp`).
+
+These declarations are from Tau Ceti's main branch
+(`TauCeti/AlgebraicTopology/Singular/Relative.lean`, same names), as of the commit
+`e48a7f81a81426270765022681d165be592a3231`, not yet in the pinned release; they are stated here
+under their Tau Ceti names, so that moving Tau Ceti past them deletes this file without renames.
+
+## References
+
+* A. Hatcher, *Algebraic Topology*, Cambridge University Press, 2002, Section 2.1, relative
+  homology groups.
+-/
+
+public section
+
+noncomputable section
+
+open Simplicial CategoryTheory Limits TopologicalSpace
+
+universe w v u
+
+namespace TopPair
+
+variable {C : Type u} [Category.{v} C] [HasCoproducts.{w} C] [Preadditive C]
+  (P : TopPair.{w}) (R : C)
+
+/-- Open inclusions induce monomorphisms of singular chains in each degree. -/
+instance _root_.TopCat.mono_chainComplexMap_inclusion'_f {X : TopCat.{w}} (U : Opens X)
+    (R : C) (q : ℕ) :
+    Mono ((SSet.chainComplexMap (TopCat.toSSet.map (Opens.inclusion' U)) R).f q) :=
+  inferInstanceAs (Mono ((SSet.chainComplexMap
+    (TopPair.toSSetPair.obj (TopPair.ofSubset (U : Set X))).hom R).f q))
+
+/-- A simplex lying in the subspace of a pair vanishes in relative singular chains. -/
+lemma ιChainComplex_comp_singularChainComplexπ_eq_zero {n : ℕ}
+    (σ : (TopCat.toSSet.obj P.fst) _⦋n⦌)
+    (hσ : Set.range (P.fst.toSSetObjEquiv _ σ) ⊆ Set.range P.map) :
+    (TopCat.toSSet.obj P.fst).ιChainComplex σ ≫ (P.singularChainComplexπ R).f n = 0 := by
+  obtain ⟨τ, hτ⟩ := (P.isEmbedding_map.isInducing.mem_range_toSSet_map_app_iff _ σ).2 hσ
+  -- The relative quotient source is the ambient singular chains after toSSetPair unfolds.
+  erw [← hτ, ← SSet.ι_chainComplexMap_f, Category.assoc, ← HomologicalComplex.comp_f,
+    chainComplexMap_comp_singularChainComplexπ, HomologicalComplex.zero_f, comp_zero]
+
+section OpenSubspace
+
+open TopologicalSpace
+
+variable {R}
+
+variable {X : TopCat.{w}} (U : Opens X) (A : Set X)
+
+/-- The pair `(U, U ∩ A)` of an open set `U` of `X` and the preimage of `A` under the inclusion
+of `U` into `X`. -/
+abbrev openSubspacePair : TopPair.{w} :=
+  TopPair.ofSubset (Opens.inclusion' U ⁻¹' (A : Set X))
+
+/-- The pair of `U` and the preimage of a complement `Aᶜ` is the pair of `U` and the complement
+in `U` of the preimage of `A`. -/
+lemma openSubspacePair_compl :
+    openSubspacePair U Aᶜ = ofSubset (Opens.inclusion' U ⁻¹' A)ᶜ := rfl
+
+/-- The map of pairs `(U, U ∩ A) ⟶ (X, A)` given by the inclusion of `U` into `X`. -/
+def openSubspaceInclusion :
+    openSubspacePair U A ⟶ TopPair.ofSubset (A : Set X) :=
+  TopPair.ofSubsetMap (Opens.inclusion' U) (fun _ hx ↦ hx)
+
+/-- The map of spaces underlying `openSubspaceInclusion U A` is the inclusion of `U` into `X`. -/
+@[simp]
+lemma openSubspaceInclusion_fst :
+    TopPair.Hom.fst (openSubspaceInclusion U A) = Opens.inclusion' U := by
+  erw [openSubspaceInclusion, TopPair.ofSubsetMap_fst]
+
+variable (S : (TopCat.toSSet.obj X).Subcomplex)
+
+/-- For `A ⊆ B`, the map, given by the identity of `X`, from the singular simplicial pair of
+`(X, A)` restricted to the subcomplex `S` to that of `(X, B)` restricted to `S`. -/
+def restrictSubsetMap
+    {A B : Set X} (hAB : A ⊆ B) :
+    (TopPair.toSSetPair.obj (TopPair.ofSubset A)).restrict S ⟶
+      (TopPair.toSSetPair.obj (TopPair.ofSubset B)).restrict S :=
+  SSetPair.restrictMap (TopPair.toSSetPair.map (TopPair.ofSubsetMap (𝟙 X) hAB)) (by
+    erw [TopPair.toSSetPair_map_right, TopPair.ofSubsetMap_fst, CategoryTheory.Functor.map_id,
+      SSet.Subcomplex.preimage_id]
+    exact le_refl S)
+
+/-- On the subcomplex `S` itself, `restrictSubsetMap S hAB` is the identity. -/
+@[simp]
+lemma restrictSubsetMap_right
+    {A B : Set X} (hAB : A ⊆ B) : (restrictSubsetMap S hAB).right = 𝟙 S.toSSet := by
+  ext i σ
+  apply Subtype.ext
+  erw [restrictSubsetMap, SSetPair.restrictMap_right_app_coe]
+  erw [TopPair.toSSetPair_map_right, TopPair.ofSubsetMap_fst, CategoryTheory.Functor.map_id]
+  -- The identity natural transformation sends each simplex to itself.
+  rfl
+
+/-- The quotient map onto the relative chains of `(X, A)` restricted to `S`, followed by the chain
+map of `restrictSubsetMap S hAB`, is the quotient map for `(X, B)` restricted to `S`. -/
+@[reassoc]
+lemma chainComplexπ_restrictSubsetMap
+    {A B : Set X} (hAB : A ⊆ B) :
+    ((TopPair.toSSetPair.obj (TopPair.ofSubset A)).restrict S).chainComplexπ R ≫
+      SSetPair.chainComplexMap (restrictSubsetMap S hAB) R =
+      ((TopPair.toSSetPair.obj (TopPair.ofSubset B)).restrict S).chainComplexπ R := by
+  erw [← SSetPair.chainComplexπ_naturality, restrictSubsetMap_right]
+  erw [SSet.chainComplexMap_id, Category.id_comp]
+
+/-- The chain map of `restrictSubsetMap S hAB`, followed by the map from the relative chains of
+`(X, B)` restricted to `S` into those of `(X, B)`, equals the map for `(X, A)` followed by the
+chain map of the map of pairs `(X, A) ⟶ (X, B)`. -/
+lemma chainComplexMap_restrictSubsetMap_comp_restrictι
+    {A B : Set X} (hAB : A ⊆ B) :
+    SSetPair.chainComplexMap (restrictSubsetMap S hAB) R ≫
+      SSetPair.chainComplexMap ((TopPair.toSSetPair.obj (TopPair.ofSubset B)).restrictι S) R =
+    SSetPair.chainComplexMap ((TopPair.toSSetPair.obj (TopPair.ofSubset A)).restrictι S) R ≫
+      TopPair.singularChainComplexMap (TopPair.ofSubsetMap (𝟙 X) hAB) R := by
+  have hc : restrictSubsetMap S hAB ≫ (TopPair.toSSetPair.obj (TopPair.ofSubset B)).restrictι S =
+      (TopPair.toSSetPair.obj (TopPair.ofSubset A)).restrictι S ≫
+        TopPair.toSSetPair.map (TopPair.ofSubsetMap (𝟙 X) hAB) :=
+    SSetPair.restrictMap_comp_restrictι _ _
+  have h := congrArg (fun f ↦ SSetPair.chainComplexMap f R) hc
+  simpa only [CategoryTheory.Functor.map_comp] using h
+
+/-- For `A ⊆ B ⊆ C`, the chain maps of `restrictSubsetMap` for `A ⊆ B` and for `B ⊆ C` compose
+to that for `A ⊆ C`. -/
+@[reassoc (attr := simp)]
+lemma chainComplexMap_restrictSubsetMap_comp
+    {A B C : Set X} (hAB : A ⊆ B) (hBC : B ⊆ C) :
+    SSetPair.chainComplexMap (restrictSubsetMap S hAB) R ≫
+      SSetPair.chainComplexMap (restrictSubsetMap S hBC) R =
+      SSetPair.chainComplexMap (restrictSubsetMap S (hAB.trans hBC)) R := by
+  apply (cancel_epi (((toSSetPair.obj (ofSubset A)).restrict S).chainComplexπ R)).1
+  erw [chainComplexπ_restrictSubsetMap_assoc, chainComplexπ_restrictSubsetMap,
+    chainComplexπ_restrictSubsetMap]
+
+end OpenSubspace
+
+end TopPair
+
+end
