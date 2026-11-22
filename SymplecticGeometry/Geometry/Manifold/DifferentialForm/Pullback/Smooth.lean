@@ -16,6 +16,8 @@ statement is on the tangent spaces, so that Mathlib's bound
 `ContinuousAlternatingMap.norm_compContinuousLinearMap_le` applies with their norms, such as
 Riemannian ones. Tau Ceti's `TauCeti.mpullback_apply_eq_compContinuousLinearMapCLM` states the
 same equality on the model spaces.
+So two maps with the same value and the same differential at `x` pull every form back to the
+same value at `x` (`TauCeti.mpullback_apply_eq_of_mfderiv_eq`).
 
 Pulling a form back commutes with negation (`TauCeti.mpullback_neg`), as Tau Ceti's
 `TauCeti.mpullback_sub` says for subtraction.
@@ -27,6 +29,8 @@ along a constant map gives the zero form (`TauCeti.SmoothForm.mpullback_const`).
 
 * `TauCeti.mpullback_apply_eq_compContinuousLinearMap`: the pullback at `x` is
   `(φ (f x)).compContinuousLinearMap (mfderiv I I' f x)`.
+* `TauCeti.mpullback_apply_eq_of_mfderiv_eq`: the pullback at `x` depends only on the value and
+  the differential of the map at `x`.
 * `TauCeti.mpullback_neg`: the pullback of `-φ` is minus the pullback of `φ`.
 * `TauCeti.SmoothForm.mpullback_const`: the pullback of a smooth `(k + 1)`-form along a constant
   map is `0`.
@@ -51,6 +55,14 @@ theorem mpullback_apply_eq_compContinuousLinearMap (f : M → M') (φ : RoughFor
     (x : M) :
     mpullback I I' f φ x = (φ (f x)).compContinuousLinearMap (mfderiv I I' f x) :=
   ContinuousAlternatingMap.ext fun v ↦ mpullback_apply f φ x v
+
+/-- Two maps with the same value and the same differential at `x` pull a form back to the same
+value at `x`. -/
+theorem mpullback_apply_eq_of_mfderiv_eq {f g : M → M'} {x : M} (h : f x = g x)
+    (hd : mfderiv I I' f x = mfderiv I I' g x) (φ : RoughForm I' M' F k) :
+    mpullback I I' f φ x = mpullback I I' g φ x := by
+  rw [mpullback_apply_eq_compContinuousLinearMap, mpullback_apply_eq_compContinuousLinearMap, hd,
+    h]
 
 /-- Pullback commutes with negation. -/
 @[simp]

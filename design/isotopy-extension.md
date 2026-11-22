@@ -218,6 +218,8 @@ Further choices of this design:
 | `Geometry/Manifold/DifferentialForm/VectorBundlePoincare.lean` | the relative Poincaré operator at the zero section of a vector bundle, and its fibre-scaling primitives for a family of one-forms |
 | `Analysis/Calculus/DifferentialForm/Poincare.lean` | a closed form on a star-convex open set, vanishing on a compact star-convex subset, has a global primitive near it that vanishes on it (named like Tau Ceti's file) |
 | `Geometry/Symplectic/IsotopyExtension/Ball/Basic.lean` | `IsSymplecticBallEmbedding`, `IsSymplecticBallFamily`, enlarging a symplectic ball |
+| `Geometry/Manifold/LocalDiffeomorph/RightInverse.lean` | a first-order right inverse near a compact set, and the correction of the ends of a family of maps out of a normed space (used by `Ball/Interpolation.lean`) |
+| `Geometry/Manifold/MFDeriv/UniqueDifferential.lean` | maps that agree on a set of unique differentiability have the same differential there (used by `Ball/Interpolation.lean`) |
 | `Geometry/Symplectic/IsotopyExtension/Ball/Interpolation.lean` | a family that agrees with `e` along `B(λ)` and pulls the form back to `ω₀` there, with prescribed ends (steps 1 and 2 of `Ball/Isotopy.lean`) |
 | `Geometry/Manifold/ContMDiff/Opens.lean` | a map composed, on an open subset, with a smooth map of that subset over a parameter space is smooth there (used by `Ball/Moser.lean`) |
 | `Geometry/Symplectic/IsotopyExtension/Ball/Moser.lean` | Moser's correction of a family of balls with a parameter (step 3 of `Ball/Isotopy.lean`) |
@@ -699,6 +701,8 @@ The route keeps the times of `e` exactly:
    `Ball/Interpolation.lean`, which needs `ω` only nondegenerate. For
    $\lambda>0$ it takes $k'=e$, whose ends agree with $j_0$ and $j_1$ to first
    order on $B(\lambda)$, so that case needs no `Ψ`.
+   Step 2 is `exists_contMDiffOn_forall_eq_mfderiv_eq`, for maps out of any
+   finite-dimensional normed space, in `Geometry/Manifold/LocalDiffeomorph/RightInverse.lean`.
 3. *Make it symplectic.* This step is
    `exists_isSymplecticBallFamily_eqOn_of_mpullback_eq`, in
    `Ball/Moser.lean`. `Moser/Family.lean`, with $\beta_t$ the
@@ -928,6 +932,9 @@ this design already follows. `Ball/Isotopy.lean` cites
   `TauCeti.contMDiff_timeDependentFlowOf_param`, a lemma this part adds
   there. `Extension.lean` imports `Diffeotopy/Real.lean` too, to restrict
   its family over `ℝ` to a `Diffeotopy`.
+  `Ball/Interpolation.lean` imports its
+  `Geometry/Manifold/DifferentialForm/Pullback/Smooth.lean` for
+  `TauCeti.mpullback_apply_eq_of_mfderiv_eq`, a lemma this part adds there.
 - *Hamiltonian flows*: in `DeRham/FamilyPrimitive.lean`, the smooth primitive of a
   smooth family of exact one-forms over $[0,1]$, which that part's design
   (`design/hamiltonian-flows.md`, Decision 4) builds on chart balls and glues
