@@ -201,17 +201,14 @@ theorem evalFundamentalClass_eulerClass_eq_boundaryDegree
     (hs : Continuous fun x : g ⁻¹' Ici 0 ↦ TotalSpace.mk' F (x : M) (s x)) (hs0 : ∀ x, s x ≠ 0)
     {u : C(↥(SymplecticGeometry.sublevelBoundary hg.continuous), Circle)}
     (hu : ∀ z hz, (u z : ℂ) = ‖τ z (s ⟨z, hz⟩)‖⁻¹ • τ z (s ⟨z, hz⟩)) :
-    haveI : CompactSpace (g ⁻¹' Iic 0) :=
-      isCompact_iff_compactSpace.1 (isClosed_Iic.preimage hg.continuous).isCompact
+    haveI := SymplecticGeometry.compactSpace_preimage_Iic hg.continuous
     (oM.evalFundamentalClass hn (ModuleCat.of ℤ (ULift.{0} ℤ)) (ContinuousMap.id M)
       (oL.eulerClass hF)).down =
       (oM.comap (TopologicalSpace.Opens.isOpenEmbedding' _)).boundaryDegree hn
-        (IsOpenEmbedding.inclusion _
-          ((isOpen_Iio.preimage hg.continuous).preimage continuous_subtypeVal))
-        ((range_inclusion _).trans (SymplecticGeometry.isCollared_inclusion_levelSet hg h0).2.symm)
+        (SymplecticGeometry.isOpenEmbedding_inclusion_preimage_Iio hg.continuous)
+        (SymplecticGeometry.range_inclusion_preimage_Iio hg.continuous)
         (SymplecticGeometry.isCollared_inclusion_levelSet hg h0).1 u := by
-  have : CompactSpace (g ⁻¹' Iic 0) :=
-    isCompact_iff_compactSpace.1 (isClosed_Iic.preimage hg.continuous).isCompact
+  have := SymplecticGeometry.compactSpace_preimage_Iic hg.continuous
   have : FiniteDimensional ℝ F := Module.finite_of_finrank_eq_succ hF
   let i₁ : C(g ⁻¹' Iic 0, M) := ⟨Subtype.val, continuous_subtypeVal⟩
   -- A section `t` extending `s`, with finitely many zeros, all in `{g < 0}`.
@@ -229,9 +226,8 @@ theorem evalFundamentalClass_eulerClass_eq_boundaryDegree
     Pullback.continuous_iff.2 ⟨continuous_id, ht.comp continuous_subtypeVal⟩
   refine Eq.trans ?_ (sum_sectionIndex_eq_boundaryDegree (oL.pullback i₁) hF
     (oM.comap (TopologicalSpace.Opens.isOpenEmbedding' _)) hn
-    (IsOpenEmbedding.inclusion _
-      ((isOpen_Iio.preimage hg.continuous).preimage continuous_subtypeVal))
-    ((range_inclusion _).trans (SymplecticGeometry.isCollared_inclusion_levelSet hg h0).2.symm)
+    (SymplecticGeometry.isOpenEmbedding_inclusion_preimage_Iio hg.continuous)
+    (SymplecticGeometry.range_inclusion_preimage_Iio hg.continuous)
     (SymplecticGeometry.isCollared_inclusion_levelSet hg h0).1 hτ hτo'
     (t := fun x ↦ t x) ht' (hZ.preimage Subtype.val_injective.injOn)
     (fun x hx ↦ ⟨⟨x, hZneg x hx⟩, rfl⟩) (u := u)
@@ -287,14 +283,12 @@ theorem evalFundamentalClass_complexEulerClass_eq_boundaryDegree (hG : finrank �
       (hz : ((z : g ⁻¹' Iic 0) : M) ∈ g ⁻¹' Ici 0), s ⟨_, hz⟩ = c z • σ z)
     {u : C(↥(SymplecticGeometry.sublevelBoundary hg.continuous), Circle)}
     (hu : ∀ z, (u z : ℂ) = c z / ‖c z‖) :
-    haveI : CompactSpace (g ⁻¹' Iic 0) :=
-      isCompact_iff_compactSpace.1 (isClosed_Iic.preimage hg.continuous).isCompact
+    haveI := SymplecticGeometry.compactSpace_preimage_Iic hg.continuous
     (oM.evalFundamentalClass hn (ModuleCat.of ℤ (ULift.{0} ℤ)) (ContinuousMap.id M)
       (complexEulerClass (r := 0) G L hG)).down =
       (oM.comap (TopologicalSpace.Opens.isOpenEmbedding' _)).boundaryDegree hn
-        (IsOpenEmbedding.inclusion _
-          ((isOpen_Iio.preimage hg.continuous).preimage continuous_subtypeVal))
-        ((range_inclusion _).trans (SymplecticGeometry.isCollared_inclusion_levelSet hg h0).2.symm)
+        (SymplecticGeometry.isOpenEmbedding_inclusion_preimage_Iio hg.continuous)
+        (SymplecticGeometry.range_inclusion_preimage_Iio hg.continuous)
         (SymplecticGeometry.isCollared_inclusion_levelSet hg h0).1 u := by
   have hG1 : finrank ℂ G = 1 := hG
   let i₁ : C(g ⁻¹' Iic 0, M) := ⟨Subtype.val, continuous_subtypeVal⟩

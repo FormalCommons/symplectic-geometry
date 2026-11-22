@@ -289,13 +289,11 @@ theorem chernNumber_eq_boundaryDegree_normalizedDet
     (hu : ∀ (z : ↥(sublevelBoundary hg.continuous))
       (hz : ((z : g ⁻¹' Iic 0) : M) ∈ g ⁻¹' Ici 0),
       u z = ((Φ₂ ⟨_, hz⟩).trans (Φ₁ z).symm).normalizedDet) :
-    haveI : CompactSpace (g ⁻¹' Iic 0) :=
-      isCompact_iff_compactSpace.1 (isClosed_Iic.preimage hg.continuous).isCompact
+    haveI := compactSpace_preimage_Iic hg.continuous
     chernNumber oM hn G E =
       (oM.comap (TopologicalSpace.Opens.isOpenEmbedding' _)).boundaryDegree hn
-        (IsOpenEmbedding.inclusion _
-          ((isOpen_Iio.preimage hg.continuous).preimage continuous_subtypeVal))
-        ((range_inclusion _).trans (SymplecticGeometry.isCollared_inclusion_levelSet hg h0).2.symm)
+        (isOpenEmbedding_inclusion_preimage_Iio hg.continuous)
+        (range_inclusion_preimage_Iio hg.continuous)
         (SymplecticGeometry.isCollared_inclusion_levelSet hg h0).1 u := by
   let i₁ : C(g ⁻¹' Iic 0, M) := ⟨Subtype.val, continuous_subtypeVal⟩
   let i₂ : C(g ⁻¹' Ici 0, M) := ⟨Subtype.val, continuous_subtypeVal⟩
