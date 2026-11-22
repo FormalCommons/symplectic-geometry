@@ -13,7 +13,10 @@ import TauCeti.Geometry.Manifold.MFDeriv.ContinuousLinearMap
 
 Mathlib's `mvfderiv_mul` is the product rule for scalar functions on a manifold. This file gives
 the product rule for functions with values in a normed algebra that need not be commutative, such
-as the algebra `V →L[𝕜] V` of continuous endomorphisms: `mvfderiv_fun_mul_apply'`.
+as the algebra `V →L[𝕜] V` of continuous endomorphisms: `mvfderiv_fun_mul_apply'`. Mathlib states
+this rule for `HasMFDerivAt` as `HasMFDerivAt.mul'`
+(`Mathlib/Geometry/Manifold/MFDeriv/SpecificFunctions.lean`); the lemma here is its form for
+`mvfderiv`, applied to a tangent vector.
 
 The proof writes the product as the bilinear map `ContinuousLinearMap.mul` applied to the two
 factors, and uses Tau Ceti's product rule `TauCeti.mvfderiv_clm_apply` for the application of a
