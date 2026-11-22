@@ -33,9 +33,6 @@ meets complex-linear isomorphisms, direct sums, and short exact sequences of com
   is the product of the orientations of `J₁` and `J₂`.
 * `TauCeti.AlmostComplexStructure.orientation_eq_of_apply_one_eq`: in real dimension two, a
   basis `(e, J e)` induces the orientation of `J`.
-* `TauCeti.AlmostComplexStructure.map_eq_orientation_of_apply_one_eq`: a real isomorphism `d`
-  onto a plane with an almost complex structure `J` carries to the orientation of `J` the
-  orientation of the bases `(b₀, b₁)` with `d b₁ = J (d b₀)`.
 * `TauCeti.AlmostComplexStructure.shortExact_orientation`: for a short exact sequence of
   complex-linear maps, Tau Ceti's `Orientation.shortExact` induces the orientation of the middle
   structure from those of the outer ones.
@@ -170,23 +167,6 @@ theorem orientation_eq_of_apply_one_eq (J : AlmostComplexStructure V) (hV : finr
     c.complexOrientation_eq_reindex h1]
   -- Both sides reindex the same orientation along equal equivalences of index types.
   rfl
-
-/-- Let `d : U ≃ V` be a real isomorphism onto a plane `V` with an almost complex structure `J`,
-and `x` an orientation of `U` that every basis `(b₀, b₁)` with `d b₁ = J (d b₀)` induces. Then `d`
-carries `x` to the orientation of `J`. -/
-theorem map_eq_orientation_of_apply_one_eq {U : Type*} [AddCommGroup U] [Module ℝ U]
-    (J : AlmostComplexStructure V) (hV : finrank ℝ V = 2) (d : U ≃ₗ[ℝ] V)
-    {x : Orientation ℝ U (Fin 2)}
-    (hx : ∀ b : Basis (Fin 2) ℝ U, d (b 1) = J (d (b 0)) → b.orientation = x) :
-    Orientation.map _ d x = Orientation.reindex ℝ V (finCongr hV) J.orientation := by
-  have : Nontrivial V := Module.nontrivial_of_finrank_pos (R := ℝ) (by omega)
-  obtain ⟨w, hw⟩ := exists_ne (0 : V)
-  let b : Basis (Fin 2) ℝ V := basisOfLinearIndependentOfCardEqFinrank
-    (J.linearIndependent_pair hw) (by simp [hV])
-  have hb : ⇑b = ![w, J w] := coe_basisOfLinearIndependentOfCardEqFinrank _ _
-  rw [← hx (b.map d.symm) (by simp [hb]), ← Basis.orientation_map,
-    show (b.map d.symm).map d = b from Basis.eq_of_apply_eq fun i ↦ by simp]
-  exact J.orientation_eq_of_apply_one_eq hV b (by simp [hb])
 
 omit [FiniteDimensional ℝ V] in
 /-- The inclusion of a `J`-invariant subspace is complex linear for the restriction of `J`. -/
