@@ -14,9 +14,9 @@ public import TauCeti.Topology.Algebra.Matrix.Realify
 
 Realification `Matrix.realify` is `ℝ`-linear (Tau Ceti's `Matrix.realifyLinearMap`) between
 finite-dimensional real vector spaces, so it is a continuous linear map, `Matrix.realifyCLM`.
-Hence it is smooth, indeed analytic, for every choice of matrix norms whose topology is the
-entrywise one, such as `Matrix.Norms.Elementwise` and `Matrix.Norms.L2Operator`
-(`ContinuousLinearMap.contDiff`).
+Hence `ContinuousLinearMap.contDiff` makes realification smooth of every order, for the
+entrywise norms `Matrix.Norms.Elementwise` as well as the operator norms
+`Matrix.Norms.L2Operator`, since both induce the entrywise topology.
 
 Tau Ceti's `TauCeti.GLSymplectic.ofUnitary` sends a complex unitary matrix `U` to its
 realification, a symplectic matrix. This file shows that it turns the block-diagonal sum
@@ -48,10 +48,12 @@ noncomputable def realifyCLM : Matrix m n 𝕜 →L[ℝ] Matrix (m ⊕ m) (n ⊕
 
 variable {m n 𝕜}
 
+/-- `Matrix.realifyCLM` applied to `A` is the realification of `A`. -/
 @[simp]
 theorem realifyCLM_apply (A : Matrix m n 𝕜) : realifyCLM m n 𝕜 A = A.realify :=
   realifyLinearMap_apply A
 
+/-- As a function, `Matrix.realifyCLM` is `Matrix.realify`. -/
 theorem coe_realifyCLM : ⇑(realifyCLM m n 𝕜) = realify :=
   funext realifyCLM_apply
 
