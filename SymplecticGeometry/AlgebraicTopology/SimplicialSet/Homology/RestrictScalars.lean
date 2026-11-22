@@ -58,7 +58,7 @@ def restrictScalarsChainMap (X : SSet.{u}) :
 
 /-- The change of coefficients along `g` sends the summand of a simplex `x` to the summand
 of `x`, through `g` on coefficients. -/
-@[reassoc]
+@[reassoc (attr := simp)]
 theorem ιChainComplex_restrictScalarsChainMap_f (X : SSet.{u}) {n : ℕ} (x : X _⦋n⦌) :
     X.ιChainComplex x ≫ (restrictScalarsChainMap f g X).f n =
       g ≫ (ModuleCat.restrictScalars f).map (X.ιChainComplex x) := by
