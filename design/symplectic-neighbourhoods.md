@@ -225,7 +225,7 @@ and two rows of its milestone table.
     `Energy/Density.lean` of *Pseudoholomorphic energy* uses.
   - `Geometry/Manifold/SmoothEmbedding/Diffeomorph.lean`: reparametrising a
     smooth embedding by a diffeomorphism from a manifold on another model, which
-    `Isotropic.lean` and `Coisotropic.lean` use.
+    `Symplectic.lean`, `Isotropic.lean` and `Coisotropic.lean` use.
   - `Geometry/Manifold/TubularNeighborhood/MFDeriv.lean`: the step of
     `Tubular.lean` that uses nothing symplectic.
   - `Geometry/Manifold/VectorBundle/Adjoint.lean`: a step of
@@ -537,8 +537,8 @@ The comparison theorem. Namespace `TauCeti.SmoothEmbedding`.
 
 `TauCeti.SmoothTwoForm.IsNondegenerate.HasSymplecticTangentImages.exists_symplectomorphism_opens`,
 the milestone. Two symplectic manifolds with symplectic submanifolds
-`f₀ : SmoothEmbedding J I₀ ∞ Q₀ M₀` and
-`f₁ : SmoothEmbedding J I₁ ∞ Q₁ M₁`, a diffeomorphism `φ : Q₀ ≃ₘ⟮J, J⟯ Q₁`
+`f₀ : SmoothEmbedding J₀ I₀ ∞ Q₀ M₀` and
+`f₁ : SmoothEmbedding J₁ I₁ ∞ Q₁ M₁`, a diffeomorphism `φ : Q₀ ≃ₘ⟮J₀, J₁⟯ Q₁`
 pulling `f₁^*ω₁` back to `f₀^*ω₀`, and `Φ : ∀ q, f₀.NormalSpace q hn ≃L[ℝ]
 f₁.NormalSpace (φ q) hn`, smooth on total spaces under the bundle
 structures `normalSpaceFiberBundle`, that preserves `symplecticNormalForm`.
@@ -548,10 +548,11 @@ Conclusion: `U₀`, `U₁` and a symplectomorphism `ψ` with
 symplecticNormalRepresentative f₁ … (φ q) (Φ q v)`. Both sides are in
 $(TQ)^\omega$, so this is the milestone's condition on
 $d\psi|_{(TQ_0)^{\omega_0}}$ through `normalSpaceSymplecticComplementEquiv`.
-Route: `L` is $\mathrm{rep}_1\circ\Phi\circ$ `normalClass`, smooth by
-`contMDiff_symplecticNormalRepresentative`. Since $K=0$, the comparison
-theorem's conclusion is the equality. Milestone: *Symplectic neighbourhood
-theorem*.
+Route: the comparison theorem for `f₀` and
+`f₁.compDiffeomorphOfBoundaryless φ _`; `L` is $\mathrm{rep}_1\circ\Phi\circ$
+`normalClass`, smooth by `contMDiff_symplecticNormalRepresentative`. Since
+$K=0$, the comparison theorem's conclusion is the equality. Milestone:
+*Symplectic neighbourhood theorem*.
 
 ### `Geometry/Manifold/VectorBundle/ZeroSection.lean`
 

@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Flow.Local
+public import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Local
 public import TauCeti.Geometry.Manifold.Boundary.Collar.Smooth
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
 
@@ -44,6 +45,10 @@ gives smooth collars of compact boundaries; that corollary is not stated here.
   the collar inside a given open neighbourhood of the boundary.
 * `TauCeti.SmoothCollar.exists_eq_of_isLocalDiffeomorphOn`: a local diffeomorphism from
   `∂W × [0, η)` that is the inclusion on `∂W × {0}` gives, after rescaling, a smooth collar.
+* `TauCeti.SmoothCollar.apply_normalIioRay_eq` and
+  `TauCeti.SmoothCollar.contMDiffOn_of_forall_apply_eq`: when `c (x, t) = Φ (-ε t, x)`, the point
+  `Φ (s, x)` for `s ∈ (-ε, 0]` is the point of `c` at depth `-s / ε`, and `Φ` is smooth on
+  `(-ε, 0) × ∂W`.
 
 ## References
 
@@ -214,6 +219,45 @@ theorem exists_eq_of_isOutwardPointing [CompactSpace ↥((𝓡∂ (n + 1)).bound
   obtain ⟨ε, Φ, c, hε, hΦ0, hΦY, hc, -⟩ :=
     exists_eq_of_isOutwardPointing_of_subset hY isOpen_univ (subset_univ _)
   exact ⟨ε, Φ, c, hε, hΦ0, hΦY, hc⟩
+
+omit [IsManifold (𝓡∂ (n + 1)) ∞ W] [T2Space W] in
+/-- If the normal lines of a collar `c` are the lines of `Φ` run at speed `ε`,
+`c (x, t) = Φ (-ε t, x)`, then for `s ∈ (-ε, 0]` the point `Φ (s, x)` is the point of `c` at
+depth `-s / ε` over `x`. -/
+theorem apply_normalIioRay_eq {ε : ℝ} (hε : 0 < ε) {Φ : ℝ × (𝓡∂ (n + 1)).boundary W → W}
+    {c : SmoothCollar n ∞ W} (hc : ∀ q, c q = Φ (-ε * (q.2 : EuclideanHalfSpace 1).val 0, q.1))
+    {s : ℝ} (hs : s ∈ Ioc (-ε) 0) (x : (𝓡∂ (n + 1)).boundary W) :
+    c (x, normalIioRay ⟨-s / ε, by rw [mem_Iio, div_lt_one hε]; linarith [hs.1]⟩) = Φ (s, x) := by
+  rw [hc, normalIioRay_coe_apply, max_eq_left (div_nonneg (neg_nonneg.2 hs.2) hε.le)]
+  congr 2
+  field_simp
+
+omit [IsManifold (𝓡∂ (n + 1)) ∞ W] [T2Space W] in
+/-- If the normal lines of a collar `c` are the lines of `Φ` run at speed `ε`,
+`c (x, t) = Φ (-ε t, x)`, then `Φ` is smooth on `(-ε, 0) × ∂W`: near each of its points it is
+`c` composed with a smooth depth map. -/
+theorem contMDiffOn_of_forall_apply_eq {ε : ℝ} (hε : 0 < ε)
+    {Φ : ℝ × (𝓡∂ (n + 1)).boundary W → W} {c : SmoothCollar n ∞ W}
+    (hc : ∀ q, c q = Φ (-ε * (q.2 : EuclideanHalfSpace 1).val 0, q.1)) :
+    ContMDiffOn (𝓘(ℝ).prod (𝓡 n)) (𝓡∂ (n + 1)) ∞ Φ (Ioo (-ε) 0 ×ˢ univ) := by
+  rintro ⟨t, x⟩ ⟨ht, -⟩
+  refine ContMDiffAt.contMDiffWithinAt ?_
+  obtain ⟨a, hta, ha⟩ := exists_between (show -t / ε < 1 by rw [div_lt_one hε]; linarith [ht.1])
+  have hpos : 0 < -t / ε := div_pos (neg_pos.2 ht.2) hε
+  -- The depth `min (-s / ε) a`, which is `-s / ε` near `t`.
+  have hd : ContMDiffAt 𝓘(ℝ) 𝓘(ℝ) ∞ (fun s : ℝ ↦ min (-s / ε) a) t :=
+    (contDiff_id.neg.div_const ε).contMDiff.contMDiffAt.congr_of_eventuallyEq
+      ((((continuous_neg.div_const ε).tendsto t).eventually (gt_mem_nhds hta)).mono
+        fun s hs ↦ min_eq_left hs.le)
+  have hρ := hd.normalIioRay (fun s ↦ (min_le_right _ _).trans_lt ha) (lt_min hpos (hpos.trans hta))
+  refine ((c.contMDiff _).comp _ (contMDiffAt_snd.prodMk
+    (hρ.comp _ contMDiffAt_fst))).congr_of_eventuallyEq ?_
+  have hnhds : Ioo (-(a * ε)) 0 ∈ 𝓝 t :=
+    Ioo_mem_nhds (by rw [div_lt_iff₀ hε] at hta; linarith) ht.2
+  filter_upwards [continuous_fst.continuousAt.preimage_mem_nhds hnhds] with q hq
+  have hq1 : -q.1 / ε < a := by rw [div_lt_iff₀ hε]; linarith [hq.1]
+  rw [← apply_normalIioRay_eq hε hc ⟨by nlinarith [hq.1, ha], hq.2.le⟩ q.2]
+  simp only [Function.comp_apply, min_eq_left hq1.le]
 
 end SmoothCollar
 
