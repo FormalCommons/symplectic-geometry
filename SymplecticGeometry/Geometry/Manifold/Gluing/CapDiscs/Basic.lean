@@ -664,15 +664,17 @@ theorem inr_ofReal_mul_toCircle_eq_inl {i : ι} {θ : AddCircle (1 : ℝ)} {t : 
       inl c γ hγ hinj ⟨c (γ i θ, t), h⟩ := by
   let q : interiorOverlap c γ hγ i :=
     ⟨interiorModelDiffeomorph (𝓡∂ 2) ((𝓡∂ 2).interiorOpens S) ∞ ⟨c (γ i θ, t), h⟩,
-      (mem_interiorOverlap hγ).2 ⟨θ, t, by rw [InteriorPiece.val_interiorModelDiffeomorph]⟩⟩
+      (mem_interiorOverlap hγ).2 ⟨θ, t, by
+        rw [coe_interiorModelDiffeomorph, InteriorModel.val_interiorModelHomeomorph]⟩⟩
   have hq : collarCoord hγ q = (γ i θ, t) :=
-    collarCoord_eq hγ (by rw [InteriorPiece.val_interiorModelDiffeomorph])
+    collarCoord_eq hγ (by
+      simp only [q, coe_interiorModelDiffeomorph, InteriorModel.val_interiorModelHomeomorph])
   have hz : toBall hγ q = ⟨_, ofReal_one_add_mul_toCircle_mem_ball t θ⟩ :=
     Subtype.ext (by rw [coe_toBall, polarPoint, hq, angle_apply hinj, depth_def])
   -- As in `inr_eq_inl`, the maps `f i j` of the glue data are the inclusions of the overlaps.
   refine (((glueData c γ hγ hinj).ι_eq_iff_rel none (some i) _ _).2 ⟨q, rfl, ?_⟩).symm
   exact (congrArg Subtype.val (congrFun (coe_annulusDiffeomorph hγ hinj i) q)).trans
-    ((val_toAnnulus hγ q).trans (congrArg discPieceDiffeomorph hz))
+    ((val_toAnnulus hγ q).trans (congrArg (remodelDiffeomorph complexDiffeomorph ball) hz))
 
 /-- The interior of `S` and the discs cover the capped surface. -/
 theorem range_inl_union_iUnion_range_inr :
