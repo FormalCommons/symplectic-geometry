@@ -32,8 +32,6 @@ gives actions of the invertible matrices and of the special orthogonal matrices.
 
 * `TauCeti.AlmostComplexStructure.transport_eq_iff_isComplexLinearMap`: `J.transport e = J'`
   exactly when `e` is complex linear from `J` to `J'`.
-* `TauCeti.IsComplexLinearMap.symm_linearEquiv`: the inverse of a complex linear isomorphism is
-  complex linear.
 * `TauCeti.AlmostComplexStructure.exists_linearIsometryEquiv_transport_eq`: two norm-preserving
   complex structures on inner product spaces of the same finite dimension are conjugate by a
   linear isometry.
@@ -85,20 +83,6 @@ theorem transport_eq_iff_isComplexLinearMap {J : AlmostComplexStructure V}
   refine ⟨fun h v ↦ ?_, fun h w ↦ ?_⟩
   · simpa using h (e v)
   · simpa using h (e.symm w)
-
-/-- The inverse of a linear isomorphism that is complex linear from `J` to `J'` is complex
-linear from `J'` to `J`. -/
-theorem _root_.TauCeti.IsComplexLinearMap.symm_linearEquiv {J : AlmostComplexStructure V}
-    {J' : AlmostComplexStructure W} {e : V ≃ₗ[ℝ] W} (h : IsComplexLinearMap J J' e.toLinearMap) :
-    IsComplexLinearMap J' J e.symm.toLinearMap :=
-  (isComplexLinearMap_iff_isComplexLinear _ _ _).2
-    ((isComplexLinearMap_iff_isComplexLinear _ _ _).1 h).symm
-
-/-- An endomorphism of `V` is complex linear for `J` exactly when it commutes with `J`. -/
-theorem isComplexLinearMap_self_iff_commute (J : AlmostComplexStructure V) (f : Module.End ℝ V) :
-    IsComplexLinearMap J J f ↔ Commute f J.toLinearMap := by
-  rw [IsComplexLinearMap, Commute, SemiconjBy, Module.End.mul_eq_comp, Module.End.mul_eq_comp,
-    eq_comm]
 
 /-- Two linear isomorphisms `Φ Ψ : V ≃ W` transport `J` to the same structure exactly when
 `Ψ⁻¹ ∘ Φ` is an automorphism of `(V, J)`, that is, commutes with `J`. -/

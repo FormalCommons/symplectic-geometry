@@ -9,6 +9,7 @@ public import Mathlib.LinearAlgebra.Dual.Lemmas
 public import Mathlib.Tactic.TFAE
 public import SymplecticGeometry.Geometry.Symplectic.Darboux.EuclideanBasis
 public import SymplecticGeometry.LinearAlgebra.ComplexStructure.Action
+public import SymplecticGeometry.LinearAlgebra.ComplexStructure.Hom
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Subspace
 public import TauCeti.Geometry.Symplectic.Hermitian
@@ -47,7 +48,8 @@ converses.
   converse rests on `TauCeti.SymplecticForm.Tames.invariant_of_forall_isLagrangian_map`.
 * `SymplecticGeometry.compatible_iff_exists_isSymplectomorphism_stdForm`: in dimension `2 n`,
   `J` is compatible with `ω` exactly when some linear isomorphism `Ψ : ℝ²ⁿ ≃ V` has
-  `Ψ^* ω = ω₀` and `Ψ J₀ = J Ψ`.
+  `Ψ^* ω = ω₀` and `Ψ J₀ = J Ψ`. So two compatible structures are conjugate by a linear
+  symplectomorphism (`TauCeti.SymplecticForm.Compatible.exists_isSymplectomorphism_transport_eq`).
 * `SymplecticGeometry.compatible_tfae`: the six conditions above are equivalent.
 * `TauCeti.SymplecticForm.Tames.lineMap`: the form `(1 - t) ω₀ + t ω₁`, for `t ∈ [0, 1]` and
   two forms that tame one `J`; it tames `J` too (`TauCeti.SymplecticForm.Tames.tames_lineMap`).
@@ -388,6 +390,23 @@ theorem compatible_iff_exists_isSymplectomorphism_stdForm [FiniteDimensional ℝ
       (isSymplectomorphism_sumEquivProd.trans hb.isSymplectomorphism_darbouxBasisEquiv.symm), ?_⟩
   exact (hDs.comp isComplexLinearMap_sumEquivProd).comp
     (isComplexLinearMap_piLpCongrLeft_sumCongr σ)
+
+/-- In finite dimension, any two complex structures compatible with `ω` are conjugate by a linear
+symplectomorphism of `(V, ω)`: some `Ψ` with `Ψ^* ω = ω` has `Ψ J Ψ⁻¹ = J'`. -/
+theorem _root_.TauCeti.SymplecticForm.Compatible.exists_isSymplectomorphism_transport_eq
+    [FiniteDimensional ℝ V] {J' : AlmostComplexStructure V} (hJ : ω.Compatible J)
+    (hJ' : ω.Compatible J') :
+    ∃ Ψ : V ≃ₗ[ℝ] V, ω.IsSymplectomorphism ω Ψ ∧ J.transport Ψ = J' := by
+  obtain ⟨n, hn⟩ := J.even_finrank_real
+  have hι : finrank ℝ V = 2 * Fintype.card (Fin n) := by
+    rw [Fintype.card_fin]
+    omega
+  obtain ⟨Φ, hΦ, hΦJ⟩ := (compatible_iff_exists_isSymplectomorphism_stdForm hι).1 hJ
+  obtain ⟨Φ', hΦ', hΦJ'⟩ := (compatible_iff_exists_isSymplectomorphism_stdForm hι).1 hJ'
+  refine ⟨Φ.symm.trans Φ', hΦ.symm.trans hΦ', ?_⟩
+  rw [← (AlmostComplexStructure.transport_eq_iff_isComplexLinearMap Φ).2 hΦJ,
+    ← (AlmostComplexStructure.transport_eq_iff_isComplexLinearMap Φ').2 hΦJ',
+    ← AlmostComplexStructure.transport_trans, AlmostComplexStructure.transport_symm_transport]
 
 /-- **Characterizations of compatible complex structures.** Let `ω` be a symplectic form and `J`
 a complex structure on a real vector space `V` of dimension `2 n`, with `n` the cardinality of

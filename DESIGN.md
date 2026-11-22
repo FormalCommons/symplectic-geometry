@@ -1945,9 +1945,8 @@ has either; Tau Ceti's extension across a boundary,
   $\omega_0+t(\omega_1-\omega_0)$ among them), `Geometry/Symplectic/Moser/Isotopy.lean`
   (the isotopy of embeddings fixing a compact submanifold, with Tau Ceti's
   relative Poincaré primitive, which vanishes as a full covector, in place
-  of the correction by $dF$; the trajectory argument of Tau Ceti's
-  `TauCeti.SmoothTwoForm.exists_diffeomorph_fix_eventually_mpullback_eq_of_mextDeriv_eq_sub`
-  at every time, with the field of `Field.lean`), and
+  of the correction by $dF$; the trajectory argument is that of
+  `Moser/Family.lean` of *Isotopy extension*, for the segment), and
   `Geometry/Symplectic/Manifold/Darboux.lean` (named
   like Tau Ceti's file: Darboux charts with a prescribed derivative at the
   centre, for any linear symplectic form on the target, from Tau Ceti's
@@ -1965,7 +1964,8 @@ has either; Tau Ceti's extension across a boundary,
   Tau Ceti has the files `Geometry/Symplectic/Manifold/Moser.lean` and
   `RelativeMoser.lean`, beside which this library may not have folders of
   those names.
-- **Builds on:** *Smooth families* (only `Stability.lean`);
+- **Builds on:** *Smooth families* (only `Stability.lean`); *Isotopy extension*
+  (only `Isotopy.lean`, through `Moser/Family.lean`);
   Tau Ceti (Moser's theorem with given primitives, the compact relative
   theorem, tubular neighbourhoods and relative primitives, Darboux charts
   `TauCeti.SmoothTwoForm.IsSymplectic.exists_darbouxChart_of_symplecticForm`).
@@ -2310,7 +2310,9 @@ has either; Tau Ceti's extension across a boundary,
   `SmoothAlmostComplexStructure.HasIsothermalCharts`).
 - **Builds on:** Mathlib (`mlieBracket`, `CovariantDerivative.torsion`) and
   Tau Ceti (`nijenhuis` and its lemmas, `pullback`, `CovariantDerivative.hom`,
-  the eigenbundles of `J`).
+  the eigenbundles of `J`); *Smooth families* (only
+  `Geometry/Manifold/LocalDiffeomorph/Basic.lean`, which `Integrable.lean`
+  imports for the local inverse of a local diffeomorphism).
 - **Milestones:** *Nijenhuis tensor*. Existing parts: part 1 is
   `nijenhuis` (a tensor by construction), `nijenhuis_apply` and
   `nijenhuis_antisymm`; part 2 is `nijenhuis_self`, `nijenhuis_apply_left`,
@@ -2371,9 +2373,10 @@ has either; Tau Ceti's extension across a boundary,
   symplectic submanifold in the sense of Tau Ceti's
   `IsSymplecticSubmanifoldEmbedding`; the Nijenhuis tensor of the
   restriction is the restriction of $N_J$, so `IsKahler` passes to $N$; and
-  if $J$ is integrable, so is the restriction, since $N$ is locally a graph
-  whose differential is complex linear, hence holomorphic by Tau Ceti's
-  `mdifferentiableAt_iff_mvfderiv_ofComplexManifold_apply`) and
+  if $J$ is integrable and $N$ has no boundary, so is the restriction,
+  since a complex linear left inverse of the differential of a chart of
+  $M$ in which $J$ is constant, composed with that chart and $f$, is a chart
+  of $N$ by the inverse function theorem) and
   `Geometry/Manifold/Immersion/TangentEndomorphism.lean` (an endomorphism
   field of $TN$ that $df$ relates to a smooth one along $f$ is smooth, when
   $df$ has left inverses; it gives the restriction its smoothness),
@@ -2384,7 +2387,9 @@ has either; Tau Ceti's extension across a boundary,
   of a field related near it to a field on the target; it gives the
   Nijenhuis tensor of the restriction).
 - **Builds on:** *Nijenhuis tensor* (`Nijenhuis.lean` for naturality along
-  embeddings, `Integrable.lean`); Tau Ceti.
+  embeddings, `Integrable.lean`); *Linear complex structures*
+  (`LinearAlgebra/ComplexStructure/Hom.lean`, for complex linear left
+  inverses); Tau Ceti.
 - **Milestones:** *Complex submanifolds of Kähler manifolds*, except its
   last sentence, on $\mathbb CP^n$, which *Complex projective space* proves.
   No design file is needed.
@@ -2669,7 +2674,7 @@ that file, and the notes here may fall behind it.
 | 1 | *Siegel upper half space* | *Standard model*; *Lagrangian Grassmannian* (only `LinearAlgebra/Matrix/OfReal.lean`, which imports only Mathlib and Tau Ceti and is merged); *Linear complex structures* (only `LinearAlgebra/ComplexStructure/Action.lean`, which imports only Mathlib and Tau Ceti, `LinearAlgebra/ComplexStructure/Standard.lean`, which besides it imports only *Standard model*, `LinearAlgebra/Symplectic/Compatible.lean` of *Compatible complex structures* (which in turn imports, besides Mathlib and Tau Ceti, only `Action.lean`, `Geometry/Symplectic/Darboux/EuclideanBasis.lean` of *Compatible complex structures*, which imports only Tau Ceti, `LinearAlgebra/Symplectic/Standard/Basic.lean` of *Standard model* and `LinearAlgebra/Symplectic/Subspace.lean` of *Symplectic vector spaces*) and the library's `Geometry/Symplectic/Orientation.lean`, and that file, which imports only Tau Ceti; all of them are merged); *Symplectic group* (only `LinearAlgebra/Matrix/SymplecticGroup/Basic.lean`, which imports only Mathlib and Tau Ceti and is merged) |
 | 1 | *Symplectic vector bundles* | *Standard model*, *Linear Moser*; its existence issue also the two `PolarComplexStructure/` issues of *Compatible complex structures*, its contractibility issue the Cayley domain issue of that part, and its homotopy-equivalence issue those three, none of which waits for another part |
 | 1 | *Hamiltonian flows* | *Smooth families* (only `Diffeotopy/Real.lean`, for `SymplecticIsotopy.lean`, and `ContMDiff/TimeExtension.lean`, for `Flux/CompactSupport.lean`; the other files can start at once); `PoissonAlgebra.lean` imports `Geometry/Manifold/DifferentialForm/Flow/Family.lean` of *Contact geometry*, which imports only Tau Ceti and is merged |
-| 1 | *Moser isotopy* | *Smooth families* (only `Stability.lean`; the other files can start at once) |
+| 1 | *Moser isotopy* | *Smooth families* (only `Stability.lean`; the other files can start at once); `Isotopy.lean` derives its theorem from `Moser/Family.lean` of *Isotopy extension* |
 | 1 | *Isothermal coordinates* | *Nijenhuis tensor* (only `Integrable.lean`) |
 | 1 | *Complex submanifolds* | *Nijenhuis tensor* |
 | 1 | *Almost Kähler geometry* | *Almost complex manifolds* (only `Metric.lean`), *Nijenhuis tensor* (only `Covariant.lean` and `Nijenhuis.lean`); `TwoForm.lean` can start at once |
