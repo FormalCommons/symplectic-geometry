@@ -9,6 +9,7 @@ public import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.C
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.Prod
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.Representative
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.Pullback
+import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.Splitting
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.Representative
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Orthogonal
 import TauCeti.Geometry.Manifold.VectorBundle.Prod
@@ -45,7 +46,9 @@ Hausdorff σ-compact `M`, a form compatible with `Jf` exists by
 
 * `TauCeti.SmoothEmbedding.normalForm`: the two-form `ω_ν` on the normal bundle.
 * `TauCeti.SmoothEmbedding.normalSplitting`: the fibrewise isomorphism
-  `f *ᵖ TX ≃ TM ×ᵇ ν`.
+  `f *ᵖ TX ≃ TM ×ᵇ ν`, the inverse of `TauCeti.SmoothEmbedding.tangentNormalEquiv`
+  (`SymplecticGeometry/Geometry/Manifold/SmoothEmbedding/NormalSpace/Splitting.lean`) for the
+  representatives in `W^ω`.
 
 ## Main results
 
@@ -296,23 +299,16 @@ omit [FiniteDimensional ℝ E'] [IsManifold I' ((⊤ : ℕ∞) : WithTop ℕ∞)
 variable (f) in
 /-- The splitting of `f *ᵖ TX` at `x` along the tangent image and its `ω`-orthogonal: the
 isomorphism `v ↦ ((df)⁻¹ P v, [v])` onto `T_x M × ν_x`, with `P` the projection onto the tangent
-image along its `ω`-orthogonal. -/
+image along its `ω`-orthogonal. It is the inverse of
+`TauCeti.SmoothEmbedding.tangentNormalEquiv` for the representatives in the `ω`-orthogonal. -/
 def normalSplitting (hJ : ∀ x, ∀ v ∈ f.tangentRange x hn, J (f x) v ∈ f.tangentRange x hn)
     (ω : ContMDiffTwoForm I' ⊤ E ((f : M → X) *ᵖ (TangentSpace I)))
     (hω : ω.Tames (J.pullbackComplexStructure f f.contMDiff)) (x : M) :
     ((f : M → X) *ᵖ (TangentSpace I)) x ≃L[ℝ]
       (TangentSpace I' ×ᵇ fun x ↦ f.NormalSpace x hn) x :=
-  haveI : FiniteDimensional ℝ (((f : M → X) *ᵖ (TangentSpace I)) x) :=
-    inferInstanceAs (FiniteDimensional ℝ E)
-  haveI : T2Space (((f : M → X) *ᵖ (TangentSpace I)) x) := inferInstanceAs (T2Space E)
-  -- The inverse `(u, a) ↦ df u + r a`: `df` onto the tangent image, the complement equivalence
-  -- onto the `ω`-orthogonal, and the sum of the two complements.
-  LinearEquiv.toContinuousLinearEquiv
-    (((LinearEquiv.ofInjective (mfderiv I' I f x : TangentSpace I' x →ₗ[ℝ] TangentSpace I (f x))
-      (f.isImmersion.mfderiv_injective (by simp) x)).prodCongr
-        (f.normalSpaceComplementEquiv x hn
-          (isTopCompl_tangentRange_orthogonal hJ hω x)).toLinearEquiv).trans
-      (Submodule.prodEquivOfIsCompl _ _ (isCompl_tangentRange_orthogonal hJ hω x))).symm
+  (f.tangentNormalEquiv hn
+    (fun x ↦ f.complementRepresentative x hn (isTopCompl_tangentRange_orthogonal hJ hω x))
+    (fun x ↦ f.normalClass_complementRepresentative x hn _) x).symm
 
 omit [FiniteDimensional ℝ E'] [IsManifold I' ((⊤ : ℕ∞) : WithTop ℕ∞) M] in
 /-- The inverse of the splitting sends `(u, a)` to `df u + r a`, with `r a` the representative of
@@ -324,14 +320,7 @@ theorem normalSplitting_symm_apply
     (p : (TangentSpace I' ×ᵇ fun x ↦ f.NormalSpace x hn) x) :
     (f.normalSplitting hJ ω hω x).symm p = mfderiv I' I f x p.1 +
       f.complementRepresentative x hn (isTopCompl_tangentRange_orthogonal hJ hω x) p.2 := by
-  have : FiniteDimensional ℝ (((f : M → X) *ᵖ (TangentSpace I)) x) :=
-    inferInstanceAs (FiniteDimensional ℝ E)
-  have : T2Space (((f : M → X) *ᵖ (TangentSpace I)) x) := inferInstanceAs (T2Space E)
-  -- The splitting is stated on the fibre of the pull-back, `TangentSpace I (f x)` under another
-  -- name, so the rewrite needs `erw`.
-  erw [normalSplitting, LinearEquiv.coe_toContinuousLinearEquiv_symm', LinearEquiv.symm_symm,
-    LinearEquiv.trans_apply, Submodule.coe_prodEquivOfIsCompl', LinearEquiv.prodCongr_apply]
-  simp [complementRepresentative_apply]
+  rw [normalSplitting, ContinuousLinearEquiv.symm_symm, tangentNormalEquiv_apply]
 
 omit [FiniteDimensional ℝ E'] [IsManifold I' ((⊤ : ℕ∞) : WithTop ℕ∞) M] in
 /-- The normal component of the splitting is the normal class. -/
@@ -341,12 +330,7 @@ theorem snd_normalSplitting_apply
     (hω : ω.Tames (J.pullbackComplexStructure f f.contMDiff)) (x : M)
     (v : TangentSpace I (f x)) :
     (f.normalSplitting hJ ω hω x v).2 = f.normalClass x hn v := by
-  have h := normalSplitting_symm_apply hJ hω x (f.normalSplitting hJ ω hω x v)
-  -- `v` is a vector of `TangentSpace I (f x)`, the fibre of the pull-back under another name.
-  erw [ContinuousLinearEquiv.symm_apply_apply] at h
-  have h' := congrArg (f.normalClass x hn) h
-  rw [map_add, normalClass_mfderiv, zero_add, normalClass_complementRepresentative] at h'
-  exact h'.symm
+  rw [normalSplitting, snd_tangentNormalEquiv_symm_apply]
 
 omit [FiniteDimensional ℝ E'] [IsManifold I' ((⊤ : ℕ∞) : WithTop ℕ∞) M] in
 /-- The tangential component of the splitting is carried by `df` to the projection onto the
@@ -357,12 +341,10 @@ theorem mfderiv_fst_normalSplitting_apply
     (v : TangentSpace I (f x)) :
     mfderiv I' I f x (f.normalSplitting hJ ω hω x v).1 =
       (f.tangentRange x hn).projection _ (isCompl_tangentRange_orthogonal hJ hω x) v := by
-  have h := normalSplitting_symm_apply hJ hω x (f.normalSplitting hJ ω hω x v)
-  -- `v` is a vector of `TangentSpace I (f x)`, the fibre of the pull-back under another name.
-  erw [ContinuousLinearEquiv.symm_apply_apply] at h
-  rw [snd_normalSplitting_apply, complementRepresentative_normalClass,
-    Submodule.projection_eq_self_sub_projection (isCompl_tangentRange_orthogonal hJ hω x)] at h
-  exact (eq_sub_of_add_eq h.symm).trans (sub_sub_cancel _ _)
+  rw [normalSplitting, mfderiv_fst_tangentNormalEquiv_symm_apply,
+    complementRepresentative_normalClass,
+    Submodule.projection_eq_self_sub_projection (isCompl_tangentRange_orthogonal hJ hω x),
+    sub_sub_cancel]
 
 /-- The splitting is a smooth map from the total space of `f *ᵖ TX` to that of `TM ×ᵇ ν`. -/
 theorem contMDiff_normalSplitting (hdim : finrank ℝ P = finrank ℝ E - finrank ℝ E')

@@ -167,17 +167,14 @@ theorem isIntegrable_of_forall_exists_isLocalDiffeomorphAt
   rw [isIntegrable_iff_mfderiv]
   intro x
   obtain ⟨φ, s, J₀, hs, hxs, hφ, hJ⟩ := h x
-  -- A partial diffeomorphism that agrees with `φ` near `x`, shrunk to `s`, is the chart.
-  obtain ⟨Φ, hxΦ, hφΦ⟩ := hφ.exists_partialDiffeomorph
-  refine ⟨Φ.restrOpen s hs, J₀, by simpa using ⟨hxΦ, hxs⟩, fun y hy v ↦ ?_⟩
-  rw [PartialDiffeomorph.restrOpen_source] at hy
-  have hd : mfderiv I 𝓘(ℝ, E) (Φ.restrOpen s hs) y = mfderiv I 𝓘(ℝ, E) φ y := by
-    refine Filter.EventuallyEq.mfderiv_eq ?_
-    filter_upwards [(Φ.open_source.inter hs).mem_nhds hy] with z hz
-    rw [PartialDiffeomorph.coe_restrOpen]
-    exact (hφΦ hz.1).symm
+  -- A partial diffeomorphism that agrees with `φ` on its source, inside `s`, is the chart.
+  obtain ⟨Φ, hxΦ, hΦs, hφΦ⟩ := hφ.exists_partialDiffeomorph_source_subset (hs.mem_nhds hxs)
+  refine ⟨Φ, J₀, hxΦ, fun y hy v ↦ ?_⟩
+  have hd : mfderiv I 𝓘(ℝ, E) Φ y = mfderiv I 𝓘(ℝ, E) φ y :=
+    Filter.EventuallyEq.mfderiv_eq <|
+      Filter.eventually_of_mem (Φ.open_source.mem_nhds hy) fun z hz ↦ (hφΦ hz).symm
   rw [hd]
-  exact hJ y hy.2 v
+  exact hJ y (hΦs hy) v
 
 /-- **The Nijenhuis tensor of an integrable structure vanishes.** -/
 theorem IsIntegrable.nijenhuis_eq_zero [FiniteDimensional ℝ E]
@@ -244,6 +241,31 @@ theorem mfderiv_trans_toDiffeomorph_apply_eq_transport {G G' : Type*} [NormedAdd
   rw [hd, hd, hψ y hy' v, AlmostComplexStructure.transport_apply]
   exact congrArg (fun z : G ↦ L (J₀ z)) (L.symm_apply_apply _).symm
 
+/-- Following a smooth chart `ψ` into `G` whose derivative carries `J` to `J₀` by a partial
+diffeomorphism `Θ` from `G` to `G'` whose derivative carries `J₀` to `J₁` at every point of its
+source gives a chart whose derivative carries `J` to `J₁` at every point of its source. -/
+theorem mfderiv_trans_apply_eq_of_fderiv_apply_eq {G G' : Type*} [NormedAddCommGroup G]
+    [NormedSpace ℝ G] [NormedAddCommGroup G'] [NormedSpace ℝ G']
+    {ψ : PartialDiffeomorph I 𝓘(ℝ, G) M G ∞} {J₀ : G → G}
+    (hψ : ∀ y ∈ ψ.source, ∀ v : TangentSpace I y,
+      mfderiv I 𝓘(ℝ, G) ψ y (J y v) = J₀ (mfderiv I 𝓘(ℝ, G) ψ y v))
+    {Θ : PartialDiffeomorph 𝓘(ℝ, G) 𝓘(ℝ, G') G G' ∞} {J₁ : G' → G'}
+    (hΘ : ∀ z ∈ Θ.source, ∀ w : G, fderiv ℝ Θ z (J₀ w) = J₁ (fderiv ℝ Θ z w)) :
+    ∀ y ∈ (ψ.trans Θ).source, ∀ v : TangentSpace I y,
+      mfderiv I 𝓘(ℝ, G') (ψ.trans Θ) y (J y v) =
+        J₁ (mfderiv I 𝓘(ℝ, G') (ψ.trans Θ) y v) := by
+  intro y hy v
+  rw [PartialDiffeomorph.trans_source] at hy
+  have hd (u : TangentSpace I y) : mfderiv I 𝓘(ℝ, G') (ψ.trans Θ) y u =
+      fderiv ℝ Θ (ψ y) (mfderiv I 𝓘(ℝ, G) ψ y u) := by
+    rw [PartialDiffeomorph.coe_trans, mfderiv_comp_apply y (Θ.mdifferentiableAt (by simp) hy.2)
+      (ψ.mdifferentiableAt (by simp) hy.1), mfderiv_eq_fderiv]
+    -- `NormedSpace.fromTangentSpace` is the identity of `G` and of `G'`, which Mathlib states by
+    -- no lemma.
+    rfl
+  rw [hd, hd, hψ y hy.1 v]
+  exact hΘ _ hy.2 _
+
 /-- **Integrability is invariant under pullback.** The pullback of an integrable almost complex
 structure along a diffeomorphism is integrable. -/
 theorem IsIntegrable.pullback [FiniteDimensional ℝ E] {E' H' N : Type*} [NormedAddCommGroup E']
@@ -287,16 +309,10 @@ theorem isIntegrable_of_forall_mem_maximalAtlas {J : SmoothAlmostComplexStructur
     (h : ∀ x : M, ∃ e ∈ IsManifold.maximalAtlas 𝓘(ℝ, E) ∞ M, x ∈ e.source ∧
       ∃ J₀ : AlmostComplexStructure E, ∀ y ∈ e.source, ∀ v : TangentSpace 𝓘(ℝ, E) y,
         mfderiv 𝓘(ℝ, E) 𝓘(ℝ, E) e y (J y v) = J₀ (mfderiv 𝓘(ℝ, E) 𝓘(ℝ, E) e y v)) :
-    J.IsIntegrable := by
-  rw [isIntegrable_iff_mfderiv]
-  intro x
-  obtain ⟨e, he, hx, J₀, hJ⟩ := h x
-  -- A chart of the smooth maximal atlas, as a smooth partial diffeomorphism to the model space.
-  have hc : ⇑(e.toPartialDiffeomorphOfMemMaximalAtlas he).toPartialEquiv = e := by
-    rw [OpenPartialHomeomorph.coe_toPartialDiffeomorphOfMemMaximalAtlas, modelWithCornersSelf_coe,
-      Function.id_comp]
-  exact ⟨e.toPartialDiffeomorphOfMemMaximalAtlas he, J₀, by simpa using hx,
-    fun y hy v ↦ by rw [hc]; exact hJ y (by simpa using hy) v⟩
+    J.IsIntegrable :=
+  isIntegrable_of_forall_exists_isLocalDiffeomorphAt J fun x ↦
+    let ⟨e, he, hx, J₀, hJ⟩ := h x
+    ⟨e, e.source, J₀, e.open_source, hx, e.isLocalDiffeomorphAt_of_mem_maximalAtlas he hx, hJ⟩
 
 end ModelSpace
 
