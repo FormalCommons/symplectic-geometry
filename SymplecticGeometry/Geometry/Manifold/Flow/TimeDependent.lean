@@ -24,6 +24,9 @@ jointly `C^n` in `(a, t, x)` and with complete suspensions, the flows are `C^n` 
 `a` as well. The flow of `X a` from `s` to `t` is read off the flow of its suspension for time
 `t - s`, and the suspensions form a jointly `C^n` family of autonomous fields on `ℝ × M`, whose
 flows Tau Ceti's `TauCeti.contMDiffAt_flowOf_param` shows to be smooth in the parameter.
+The proof of `TauCeti.contMDiff_timeDependentFlowOf_param` adapts that of Tau Ceti's
+`TauCeti.contMDiffOn_timeDependentFlowOf` (`TauCeti/Geometry/Manifold/Flow/TimeDependent.lean`),
+with `TauCeti.contMDiffAt_flowOf_param` in place of `TauCeti.contMDiffOn_flowOf`.
 
 The restriction of a `C¹` time-dependent field `X` to an open subset `U` has, as its flow, the flow
 of `X`, wherever the flow of the restriction is defined: a trajectory of the restriction is a
@@ -87,9 +90,9 @@ variable {EN HN N : Type*} [NormedAddCommGroup EN] [NormedSpace ℝ EN] [Complet
 
 /-- **The time-dependent flow of a family is smooth in the parameter.** Let `X a` be a family of
 time-dependent vector fields on a finite-dimensional boundaryless manifold `M`, indexed by the
-points `a` of a boundaryless manifold `N` and jointly `C^n` in `(a, t, x)`, `1 ≤ n`, such that
-the suspension of every `X a` is complete. Then `(a, s, t, x) ↦ timeDependentFlowOf (X a) s t x`
-is `C^n`. -/
+points `a` of a Hausdorff boundaryless manifold `N` modelled on a complete normed space, and
+jointly `C^n` in `(a, t, x)`, `1 ≤ n`, such that the suspension of every `X a` is complete. Then
+`(a, s, t, x) ↦ timeDependentFlowOf (X a) s t x` is `C^n`. -/
 theorem contMDiff_timeDependentFlowOf_param [FiniteDimensional ℝ E] [T2Space M]
     [BoundarylessManifold I M] [IsManifold I 1 M] [IsManifold J 1 N] {n : ℕ∞} (hn : 1 ≤ n)
     [IsManifold I n M] [IsManifold J n N] {X : N → ℝ → (x : M) → TangentSpace I x}

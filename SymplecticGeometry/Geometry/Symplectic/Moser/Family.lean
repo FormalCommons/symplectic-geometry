@@ -362,12 +362,12 @@ theorem exists_diffeotopy_fix_eventually_mpullback_eq_of_mextDeriv_eq_sub
   -- Extend the slices `σ_t` and `β_t` to all real `t`.
   set σ' := SmoothForm.timeExtendSlice σ
   set β' := SmoothForm.timeExtendSlice β
-  have hσ' (t : unitInterval) :
-      σ' t = SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) σ :=
-    SmoothForm.timeExtendSlice_coe σ t
-  have hβ' (t : unitInterval) :
-      β' t = SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) β :=
-    SmoothForm.timeExtendSlice_coe β t
+  have hσ' {τ : ℝ} (hτ : τ ∈ Icc (0 : ℝ) 1) : σ' τ =
+      SmoothForm.mpullback (Prod.mk ⟨τ, hτ⟩) (contMDiff_const.prodMk contMDiff_id) σ :=
+    SmoothForm.timeExtendSlice_coe σ ⟨τ, hτ⟩
+  have hβ' {τ : ℝ} (hτ : τ ∈ Icc (0 : ℝ) 1) : β' τ =
+      SmoothForm.mpullback (Prod.mk ⟨τ, hτ⟩) (contMDiff_const.prodMk contMDiff_id) β :=
+    SmoothForm.timeExtendSlice_coe β ⟨τ, hτ⟩
   -- The forms `ω₀ + s (σ'_τ - ω₀)` and `β'_τ`, as families over the points `(τ, s)` of `ℝ × ℝ`.
   obtain ⟨Ω, hΩ⟩ := isSmoothFamily_def.mp <| show IsSmoothFamily (𝓘(ℝ, ℝ).prod 𝓘(ℝ, ℝ))
       (fun p : ℝ × ℝ ↦ ω₀ + p.2 • (σ' p.1 - ω₀)) from
@@ -384,8 +384,7 @@ theorem exists_diffeotopy_fix_eventually_mpullback_eq_of_mextDeriv_eq_sub
   have hKO : (Icc (0 : ℝ) 1 ×ˢ Icc (0 : ℝ) 1) ×ˢ K ⊆ O := by
     rintro ⟨⟨τ, s⟩, x⟩ ⟨⟨hτ, hs⟩, hx⟩
     simp only [O, mem_ofPred_eq, hΩ]
-    rw [SmoothTwoForm.isInvertible_flat_iff, show τ = ((⟨τ, hτ⟩ : unitInterval) : ℝ) from rfl,
-      hσ']
+    rw [SmoothTwoForm.isInvertible_flat_iff, hσ' hτ]
     exact hnd _ x hx s hs
   obtain ⟨ρ, hρ, hρ1, hρc, hρO, -⟩ :=
     ((isCompact_Icc.prod isCompact_Icc).prod hK).exists_contMDiff_one_nhds_tsupport_subset
@@ -418,14 +417,14 @@ theorem exists_diffeotopy_fix_eventually_mpullback_eq_of_mextDeriv_eq_sub
     rw [hψ]
     exact timeDependentFlowOf_eq_self_of_forall_eq_zero ((hYτ τ).of_le (by simp)) h 0 1
   have hψ₀ (x : N) : ψ 0 x = x := hψ0 0 x <| hY0 <| by
-    rw [show (0 : ℝ) = ((0 : unitInterval) : ℝ) from rfl, hβ', hβ₀, ZeroMemClass.coe_zero,
-      Pi.zero_apply]
+    rw [← Set.Icc.coe_zero, hβ' (0 : unitInterval).property, Subtype.coe_eta, hβ₀,
+      ZeroMemClass.coe_zero, Pi.zero_apply]
   let χ := Diffeotopy.ofReal ψ hψs hψ₀
   have hχ (t : unitInterval) (x : N) : χ (t, x) = ψ t x := Diffeotopy.ofReal_apply ψ hψs hψ₀ _
-  refine ⟨χ, fun t x hx ↦ (hχ t x).trans (hψ0 t x (hY0 (by rw [hβ']; exact hβK t x hx))),
+  refine ⟨χ, fun t x hx ↦ (hχ t x).trans (hψ0 t x (hY0 (by rw [hβ' t.property]; exact hβK t x hx))),
     ⟨C, hC, fun t x hx ↦ (hχ t x).trans (hψ0 t x fun s ↦ hYC t s x hx)⟩,
     fun t ht x ↦ (hχ t x).trans (hψ0 t x (hY0 (by
-      rw [hβ', ht, ZeroMemClass.coe_zero, Pi.zero_apply]))), ?_⟩
+      rw [hβ' t.property, ht, ZeroMemClass.coe_zero, Pi.zero_apply]))), ?_⟩
   -- `S`: the points near which `ρ = 1` and the forms of `Ω` are nondegenerate, where Moser's
   -- equation holds.
   set S := {p : (ℝ × ℝ) × N | ∀ᶠ q in 𝓝 p, ρ q = 1 ∧ q ∈ O}
@@ -442,7 +441,7 @@ theorem exists_diffeotopy_fix_eventually_mpullback_eq_of_mextDeriv_eq_sub
   obtain ⟨u, W, -, hW, hu, hKW, huW⟩ :=
     generalized_tube_lemma (isCompact_Icc.prod isCompact_Icc) hK hT fun p hp ↦ by
       have hp0 : ∀ s, Y p.1.1 s p.2 = 0 := hY0 (by
-        rw [show p.1.1 = ((⟨p.1.1, hp.1.1⟩ : unitInterval) : ℝ) from rfl, hβ']
+        rw [hβ' hp.1.1]
         exact hβK _ _ hp.2)
       rw [mem_ofPred_eq, timeDependentFlowOf_eq_self_of_forall_eq_zero
         ((hYτ _).of_le (by simp)) hp0 0 p.1.2]
@@ -459,9 +458,11 @@ theorem exists_diffeotopy_fix_eventually_mpullback_eq_of_mextDeriv_eq_sub
   have hYt' := hYτ t
   have hct := hc t
   rw [hYt] at hYt' hct
-  rw [SmoothForm.coe_mpullback, Diffeotopy.timeSlice_ofReal, funext (hψ t), ← hσ', hYt]
+  rw [SmoothForm.coe_mpullback, Diffeotopy.timeSlice_ofReal, funext (hψ t), ← hσ' t.property,
+    hYt]
   refine mpullback_timeDependentFlowOf_moserField_lineMapFamily_apply hω₀
-    (Subtype.ext (by rw [mextDerivₗ_apply, hσ', hβ', hβ t])) hYt' hct fun s hs ↦ ?_
+    (Subtype.ext (by rw [mextDerivₗ_apply, hσ' t.property, hβ' t.property, hβ t])) hYt' hct
+    fun s hs ↦ ?_
   -- The trajectory stays in `S`, where `ρ = 1` and the forms of `Ω` are nondegenerate.
   have hS : (((t : ℝ), s), timeDependentFlowOf (Y t) 0 s x) ∈ S :=
     huW (mk_mem_prod (hu (mk_mem_prod t.property hs)) hx)
