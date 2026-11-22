@@ -59,6 +59,13 @@ of the reparametrized segment `α₀ + c(t) (α₁ - α₀)` of forms
 computation is the one in the private `moserRate_eq_zero` of Tau Ceti's
 `TauCeti/Geometry/Symplectic/Manifold/RelativeMoser.lean`.
 
+Finally, the file contracts forms on `ℝ × M` with the time field `∂_t = (1, 0)`. The field is
+smooth by the argument that Tau Ceti writes inline in the definition of
+`TauCeti.SmoothForm.timeDeriv`, through `TauCeti.contMDiff_const_prod_field`, so the contraction
+`ι_{∂_t} σ` of a smooth form is smooth (`TauCeti.SmoothForm.timeInterior`). For closed `σ`,
+Cartan's formula `TauCeti.mlieDerivForm_eq_mextDeriv_interior` makes its exterior derivative
+the time derivative of `σ`.
+
 ## Main results
 
 * `TauCeti.mpullback_timeDependentFlowOf_mpullback_prodMk_…_smul_of_forall_mem_uIcc_of_mem`
@@ -76,6 +83,8 @@ computation is the one in the private `moserRate_eq_zero` of Tau Ceti's
   derivative, `ι_t^* ∂_t ((id × f)^* α) = f^* ι_t^* ∂_t α`.
 * `TauCeti.SmoothForm.mpullback_prodMk_timeDeriv_lineMapFamily`: the velocity of the segment
   `α₀ + c(t) (α₁ - α₀)` at time `t` is `c'(t) (α₁ - α₀)`.
+* `TauCeti.SmoothForm.timeInterior`: the contraction `ι_{∂_t} σ` with the time field.
+* `TauCeti.SmoothForm.mextDerivₗ_timeInterior`: `d (ι_{∂_t} σ) = ∂_t σ` for closed `σ`.
 
 ## References
 
@@ -233,6 +242,56 @@ theorem mpullback_prodMk_mpullback_prodMap (f : M → N) (hf : ContMDiff I J ∞
   have h : Prod.map id f ∘ Prod.mk t = Prod.mk t ∘ f := by
     ext x <;> simp
   simp only [h]
+
+/-! ### The contraction with the time field -/
+
+omit [IsManifold I ∞ M] in
+/-- The time field `∂_t = (1, 0)` on `ℝ × M` is a smooth section of the tangent bundle. -/
+theorem _root_.TauCeti.contMDiff_timeField [IsManifold I 1 M] :
+    ContMDiff (𝓘(ℝ, ℝ).prod I) (𝓘(ℝ, ℝ).prod I).tangent ∞
+      (fun p : ℝ × M ↦ (⟨p, ((1 : ℝ), (0 : E))⟩ : TangentBundle (𝓘(ℝ, ℝ).prod I) (ℝ × M))) :=
+  contMDiff_const_prod_field 1 (X := 0)
+    ((contMDiff_zeroSection ℝ (TangentSpace I)).comp contMDiff_snd)
+
+/-- The contraction `ι_{∂_t} σ` of a smooth form `σ` on `ℝ × M` with the time field
+`∂_t = (1, 0)`, as a smooth form of one degree less. -/
+def timeInterior (σ : SmoothForm (𝓘(ℝ, ℝ).prod I) (ℝ × M) F (k + 1)) :
+    SmoothForm (𝓘(ℝ, ℝ).prod I) (ℝ × M) F k :=
+  ⟨RoughForm.interior (I := 𝓘(ℝ, ℝ).prod I) (F := F) (k := k)
+    (fun _ ↦ ((1 : ℝ), (0 : E))) σ.val,
+    (σ.isSmoothForm.interior contMDiff_timeField).mem_smoothBundleForms⟩
+
+/-- The underlying form of `ι_{∂_t} σ` is the contraction of `σ` with `∂_t = (1, 0)`. -/
+@[simp]
+theorem coe_timeInterior (σ : SmoothForm (𝓘(ℝ, ℝ).prod I) (ℝ × M) F (k + 1)) :
+    σ.timeInterior.val = RoughForm.interior (I := 𝓘(ℝ, ℝ).prod I) (F := F) (k := k)
+      (fun _ ↦ ((1 : ℝ), (0 : E))) σ.val :=
+  (rfl)
+
+/-- The contraction with the time field is additive. -/
+@[simp]
+theorem timeInterior_add (σ τ : SmoothForm (𝓘(ℝ, ℝ).prod I) (ℝ × M) F (k + 1)) :
+    (σ + τ).timeInterior = σ.timeInterior + τ.timeInterior :=
+  -- The underlying forms of the contractions are those of `coe_timeInterior`, and the sums are
+  -- the sums of the underlying rough forms.
+  Subtype.ext (RoughForm.interior_add _ _ _)
+
+/-- The contraction with the time field commutes with multiplication by a constant. -/
+@[simp]
+theorem timeInterior_smul (c : ℝ) (σ : SmoothForm (𝓘(ℝ, ℝ).prod I) (ℝ × M) F (k + 1)) :
+    (c • σ).timeInterior = c • σ.timeInterior :=
+  -- As in `timeInterior_add`, with multiples in place of sums.
+  Subtype.ext (RoughForm.interior_smul _ _ _)
+
+/-- **Cartan's formula for the time field.** For a closed form `σ` on `ℝ × M`, the exterior
+derivative of `ι_{∂_t} σ` is the time derivative `∂_t σ = L_{∂_t} σ`. -/
+theorem mextDerivₗ_timeInterior {σ : SmoothForm (𝓘(ℝ, ℝ).prod I) (ℝ × M) F (k + 1)}
+    (hσ : σ.IsClosed) :
+    mextDerivₗ (𝓘(ℝ, ℝ).prod I) k σ.timeInterior = σ.timeDeriv := by
+  refine Subtype.ext ?_
+  rw [mextDerivₗ_apply, coe_timeDeriv, coe_timeInterior]
+  exact (mlieDerivForm_eq_mextDeriv_interior (contMDiff_timeField.mdifferentiable (by simp))
+    hσ).symm
 
 variable [I.Boundaryless] [J.Boundaryless]
 

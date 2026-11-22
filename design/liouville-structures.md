@@ -306,7 +306,9 @@ with `α = λ`, `ω = Ω`). It imports
 `SmoothForm.bilinFormAt_smul`, `_neg`, `SmoothForm.mpullback_funSMulₗ`,
 `funSMulₗ_const`, `funSMulₗ_add` and `funSMulₗ_one`, and
 `Geometry/Contact/Symplectization/Basic.lean` for
-`symplectization_eq_funSMulₗ`. Issue 3:
+`symplectization_eq_funSMulₗ`. It imports
+`Geometry/Manifold/DifferentialForm/Flow/Family.lean` of *Contact geometry*
+for `SmoothForm.timeInterior` and `SmoothForm.mextDerivₗ_timeInterior`. Issue 3:
 
 - `isStableHamiltonian_iff_wedge_wedgePow_apply_ne_zero`: for
   `finrank ℝ E = 2 * m + 1`, `IsStableHamiltonian α ω` if and only if `ω` is
