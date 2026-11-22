@@ -20,7 +20,7 @@ connection of that metric. Write `∇J` for Tau Ceti's induced connection
 Nijenhuis tensor `J.nijenhuis`.
 
 The sign of the formula below depends on two conventions. The Nijenhuis tensor is
-`N_J(X, Y) = [JX, JY] - [X, Y] - J[JX, Y] - J[X, JY]`, with Mathlib's bracket `mlieBracket` of
+`N_J(X, Y) = [JX, JY] - [X, Y] - J[JX, Y] - J[X, JY]`, where `[·, ·]` is Mathlib's `mlieBracket` of
 vector fields (the commutator of derivations); this is the `N_J` of [McDuffSalamon2017], and the
 negative of that of [Moroianu2007]. The exterior derivative `dσ` carries no normalising factor.
 This file proves
@@ -87,7 +87,7 @@ variable [RiemannianBundle (fun x : M ↦ TangentSpace I x)]
 /-- If `⟪u, v⟫ = σ(u, J v)` and `∇` is a Levi-Civita connection, the Nijenhuis tensor of `J` is
 related to `dσ` and `∇J` by
 `⟪N_J(u, v), w⟫ = dσ(J u, v, w) + dσ(u, J v, w) + 2 ⟪J ((∇_w J) u), v⟫`.
-Here `N_J(X, Y) = [JX, JY] - [X, Y] - J[JX, Y] - J[X, JY]` with Mathlib's bracket, and `dσ` has
+Here `N_J(X, Y) = [JX, JY] - [X, Y] - J[JX, Y] - J[X, JY]` for Mathlib's `mlieBracket`, and `dσ` has
 no normalising factor. -/
 theorem inner_nijenhuis_eq (hJ : ∀ x u v, ⟪u, v⟫ = σ.eval₂ x u (J x v))
     (hcov : cov.IsLeviCivitaConnection) (x : M) (u v w : TangentSpace I x) :
