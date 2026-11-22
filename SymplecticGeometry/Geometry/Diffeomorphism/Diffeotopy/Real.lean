@@ -258,8 +258,7 @@ theorem eulerianField_smoothTransitionFamily [IsManifold I ∞ M] (u : ℝ) :
 
 /-- The Eulerian field of the family `u ↦ φ_{s(u)}` over `ℝ` of a diffeotopy `Φ`,
 `s = Real.smoothTransition`, is jointly smooth in `(u, y)`. -/
-theorem contMDiff_eulerianField_smoothTransitionFamily [FiniteDimensional ℝ E] [IsManifold I ∞ M]
-    [BoundarylessManifold I M] :
+theorem contMDiff_eulerianField_smoothTransitionFamily [IsManifold I ∞ M] :
     ContMDiff (𝓘(ℝ, ℝ).prod I) I.tangent ∞ (fun p : ℝ × M ↦ (⟨p.2,
       eulerianField I (fun v ↦ (Φ.smoothTransitionFamily v).toEquiv) p.1 p.2⟩ :
         TangentBundle I M)) :=
@@ -269,7 +268,7 @@ theorem contMDiff_eulerianField_smoothTransitionFamily [FiniteDimensional ℝ E]
 /-- The family `u ↦ φ_{s(u)}` over `ℝ` of a diffeotopy `Φ`, `s = Real.smoothTransition`, is the
 time-dependent flow of its Eulerian field: the flow from time `u` to time `u'` is
 `φ_{s(u')} ∘ φ_{s(u)}⁻¹`. -/
-theorem timeDependentFlowOf_eulerianField_smoothTransitionFamily [FiniteDimensional ℝ E]
+theorem timeDependentFlowOf_eulerianField_smoothTransitionFamily
     [IsManifold I ∞ M] [T2Space M] [BoundarylessManifold I M] (u u' : ℝ) (y : M) :
     timeDependentFlowOf (eulerianField I (fun v ↦ (Φ.smoothTransitionFamily v).toEquiv)) u u' y =
       Φ.smoothTransitionFamily u' ((Φ.smoothTransitionFamily u).symm y) :=

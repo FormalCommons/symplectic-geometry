@@ -106,21 +106,14 @@ theorem Transports.mfderiv_timeSlice_comp_symm_mem (hn : 1 ≤ n) {Φ : Diffeoto
   set v : TangentSpace J x := mfderiv J J (Φ.timeSlice s).symm (Φ.timeSlice s x) w
   have hdv : mfderiv J J (Φ.timeSlice s) x v = w :=
     Diffeomorph.mfderiv_apply_mfderiv_symm_apply _ hn₀ x w
-  have hv : mfderiv J J (Φ.timeSlice t) x v ∈ ξ t (Φ.timeSlice t x) := by
-    -- Membership in a `comap` is membership of the image.
-    have h₁ : v ∈ (ξ s (Φ.timeSlice s x)).comap (mfderiv J J (Φ.timeSlice s) x).toLinearMap :=
-      (congrArg (· ∈ ξ s (Φ.timeSlice s x)) hdv).mpr hw
-    exact ht.le (hs.ge h₁)
-  have hF : MDifferentiableAt J J (fun y ↦ Φ.timeSlice t ((Φ.timeSlice s).symm y))
-      (Φ.timeSlice s x) :=
-    ((Φ.timeSlice t).mdifferentiable hn₀ _).comp _ ((Φ.timeSlice s).symm.mdifferentiable hn₀ _)
-  have hcomp : (fun y ↦ Φ.timeSlice t ((Φ.timeSlice s).symm y)) ∘ Φ.timeSlice s =
-      Φ.timeSlice t :=
-    funext fun y ↦ by rw [Function.comp_apply, Diffeomorph.symm_apply_apply]
-  have h := mfderiv_comp_apply x hF ((Φ.timeSlice s).mdifferentiable hn₀ x) v
-  rw [hcomp] at h
-  exact (congrArg (· ∈ ξ t (Φ.timeSlice t x))
-    ((congrArg (mfderiv J J _ (Φ.timeSlice s x)) hdv).symm.trans h.symm)).mpr hv
+  -- `φ_t ∘ φ_s⁻¹` is the composite of two diffeomorphisms, so its differential at `φ_s x` is
+  -- the composite of the differentials, and it sends `w` to the image of `v` under `φ_t`.
+  rw [show (fun y ↦ Φ.timeSlice t ((Φ.timeSlice s).symm y)) =
+      Φ.timeSlice t ∘ (Φ.timeSlice s).symm from rfl,
+    Diffeomorph.mfderiv_diffeomorph_comp _ hn₀, ContinuousLinearMap.comp_apply,
+    Diffeomorph.symm_apply_apply]
+  -- Membership in a `comap` is membership of the image.
+  exact ht.le (hs.ge ((congrArg (· ∈ ξ s _) hdv).mpr hw))
 
 end TauCeti.Diffeotopy
 
