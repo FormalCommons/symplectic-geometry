@@ -109,21 +109,6 @@ private theorem curvature_algebra {R : Type*} [Ring R] [Algebra ℝ R]
     hPA', hPB', hPC']
   module
 
-/-- The Levi-Civita connection in ambient terms, with products written as multiplication in
-`V →L[ℝ] V`. -/
-private theorem ambient_leviCivita {Y : Π J : 𝒥, TangentSpace 𝓘(ℝ, ω.compatibleModel) J}
-    {J : 𝒥}
-    (hY : MDifferentiableAt 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, ω.compatibleModel).tangent
-      (fun J' ↦ TotalSpace.mk' ω.compatibleModel J' (Y J')) J)
-    (a : TangentSpace 𝓘(ℝ, ω.compatibleModel) J) :
-    dι J (∇ Y J a) =
-      mvfderiv 𝓘(ℝ, ω.compatibleModel) (fun J' : 𝒥 ↦ dι J' (Y J')) J a -
-        (2⁻¹ : ℝ) • (ω.compatibleCLM J * (dι J (Y J) * dι J a + dι J a * dι J (Y J))) := by
-  have h := leviCivitaConnection_compatibleSpace_apply hY a
-  simp only [← mvfderiv_apply_eq_mfderiv_apply] at h
-  rw [h]
-  simp only [ContinuousLinearMap.mul_def]
-
 /-- The derivative of the ambient reading of `∇_Y Z` along a tangent vector `a`. -/
 private theorem mvfderiv_ambient_leviCivita
     {Y Z : Π J : 𝒥, TangentSpace 𝓘(ℝ, ω.compatibleModel) J}
@@ -160,7 +145,8 @@ private theorem mvfderiv_ambient_leviCivita
       mvfderiv 𝓘(ℝ, ω.compatibleModel) Zh J' (Y J') -
         (2⁻¹ : ℝ) • (P J' * (Zh J' * Yh J' + Yh J' * Zh J')) := by
     funext J'
-    exact ambient_leviCivita ((hZ J').mdifferentiableAt (by simp)) (Y J')
+    exact leviCivitaConnection_compatibleSpace_apply
+      ((hZ J').mdifferentiableAt (by simp)) (Y J')
   have hS : MDifferentiableAt 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V)
       (fun J' ↦ Zh J' * Yh J' + Yh J' * Zh J') J :=
     ((hZh J).mul (hYh J)).add ((hYh J).mul (hZh J))
@@ -196,25 +182,21 @@ theorem curvatureTensor_leviCivitaConnection_compatibleSpace (J : 𝒥)
   have hZd := fun J' => (hZ J').mdifferentiableAt (n := ∞) (by simp)
   rw [← mvfderiv_apply_eq_mfderiv_apply, curvatureTensor_apply _ J hX hY hZ,
     curvatureOperator_apply, map_sub, map_sub,
-    ambient_leviCivita (((leviCivitaConnection _ _).contMDiff_apply hY hZ J).mdifferentiableAt
-      (by simp)),
-    ambient_leviCivita (((leviCivitaConnection _ _).contMDiff_apply hX hZ J).mdifferentiableAt
-      (by simp)),
+    leviCivitaConnection_compatibleSpace_apply
+      (((leviCivitaConnection _ _).contMDiff_apply hY hZ J).mdifferentiableAt (by simp)),
+    leviCivitaConnection_compatibleSpace_apply
+      (((leviCivitaConnection _ _).contMDiff_apply hX hZ J).mdifferentiableAt (by simp)),
     mvfderiv_ambient_leviCivita hY hZ,
     mvfderiv_ambient_leviCivita hX hZ]
-  simp only [ambient_leviCivita (hZd J)]
+  simp only [leviCivitaConnection_compatibleSpace_apply (hZd J)]
   have hL := mvfderiv_mlieBracket (contMDiff_compatibleCLM (ω := ω) (n := ∞)).contMDiffAt
     (by simp) (hXd J) (hYd J)
   have hZL := mvfderiv_mlieBracket (contMDiff_mvfderiv_compatibleCLM_apply hZ).contMDiffAt
     (by simp) (hXd J) (hYd J)
   rw [hL, hZL]
-  have anti : ∀ v : TangentSpace 𝓘(ℝ, ω.compatibleModel) J,
-      ω.compatibleCLM J * dι J v = -(dι J v * ω.compatibleCLM J) := by
-    intro v
-    have h := compatibleCLM_comp_add_comp_compatibleCLM J
-      (mfderiv_compatibleCLM_mem_tangentSpace J v)
-    rw [mvfderiv_apply_eq_mfderiv_apply]
-    exact eq_neg_of_add_eq_zero_left h
+  have anti (v : TangentSpace 𝓘(ℝ, ω.compatibleModel) J) :
+      ω.compatibleCLM J * dι J v = -(dι J v * ω.compatibleCLM J) :=
+    eq_neg_of_add_eq_zero_left (compatibleCLM_mul_mvfderiv_add_mvfderiv_mul_compatibleCLM J v)
   exact curvature_algebra (compatibleCLM_mul_self J) (anti (X J)) (anti (Y J)) (anti (Z J))
 
 /-- For tangent vectors `u v` at `J`, `⟪R(u, v) v, u⟫ = ⅛ tr([û, v̂]²)`, the trace of the square of

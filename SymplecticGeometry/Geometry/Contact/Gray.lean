@@ -15,6 +15,7 @@ public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Flow.Family
 public import SymplecticGeometry.Geometry.Manifold.Flow.TimeDependent
 public import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Transports
 public import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Velocity
+public import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
 import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Basic
 import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Real
 
@@ -267,11 +268,8 @@ theorem mpullback_prodMk_mlieDerivForm_add_mlieDerivForm_grayVectorField_apply
       mlieDerivForm (α.grayVectorField t)
         (TauCeti.mpullback I (𝓘(ℝ, ℝ).prod I) (Prod.mk t) α.val)) y =
       α.grayRate (t, y) • TauCeti.mpullback I (𝓘(ℝ, ℝ).prod I) (Prod.mk t) α.val y := by
-  ext v
-  -- A one-form is determined by its value on the single vector `v 0`.
-  have hv : v = ![v 0] := (FinVec.etaExpand_eq _).symm
-  have h := mlieDerivForm_grayVectorField_add hc y (v 0)
-  rw [hv]
+  ext w
+  have h := mlieDerivForm_grayVectorField_add hc y w
   simp only [coe_mpullback, coe_timeDeriv, Pi.add_apply, ContinuousAlternatingMap.add_apply,
     ContinuousAlternatingMap.smul_apply, smul_eq_mul] at h ⊢
   rw [add_comm, h]
@@ -626,7 +624,7 @@ mpullback_timeDependentFlowOf_mpullback_prodMk_apply_eq_exp_integral_smul_of_for
     have hk := congrArg (fun A ↦ A ![v]) key
     have hv : (fun i ↦ mfderiv I I (timeDependentFlowOf XU t₀ t) y₀' (![v] i)) =
         ![mfderiv I I (timeDependentFlowOf XU t₀ t) y₀' v] :=
-      funext fun i ↦ by fin_cases i; rfl
+      (FinVec.etaExpand_eq _).symm
     simp only [TauCeti.mpullback_apply (f := timeDependentFlowOf XU t₀ t), hv,
       ContinuousAlternatingMap.smul_apply, smul_eq_mul] at hk
     rw [mem_kerDistribution, mem_kerDistribution, coe_mpullback, coe_mpullback, hk,
@@ -680,7 +678,7 @@ private theorem eventuallyEq_mpullback_timeDependentFlowOf_eulerianField_restric
   have hw' := tangentSpaceOpenEquiv_mfderiv_timeDependentFlowOf_restrict hZ₁ hdom' w
   have hvec : (fun i ↦ mfderiv I I (timeDependentFlowOf ZU u u') ⟨_, hxU⟩ (![w] i)) =
       ![mfderiv I I (timeDependentFlowOf ZU u u') ⟨_, hxU⟩ w] :=
-    funext fun i ↦ by fin_cases i; rfl
+    (FinVec.etaExpand_eq _).symm
   rw [TauCeti.mpullback_apply, hvec,
     ← coe_mpullback (Prod.mk u') (contMDiff_const.prodMk contMDiff_id),
     mpullback_prodMk_mpullback_prodMap_id_right Real.smoothTransition.contDiff.contMDiff,

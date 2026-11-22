@@ -13,6 +13,7 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Submersion
 public import TauCeti.Geometry.Manifold.FiberBundle.Principal.FundamentalVectorField
 public import TauCeti.Geometry.Manifold.FiberBundle.Submersion
+public import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
 import SymplecticGeometry.Geometry.Manifold.DeRham.Circle
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.PartitionOfUnity
 import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.BasicForm
@@ -172,9 +173,7 @@ private theorem IsCircleConnectionForm.mextDeriv_apply_eq_zero_of_vertical
     mextDeriv α.val x v = 0 := by
   set ξ := rightFundamentalVectorField (IB.prod (𝓡 1)) circleLieGenerator x
   obtain ⟨c, hc⟩ := exists_eq_smul_rightFundamentalVectorField_of_mfderiv_proj_eq_zero hv
-  have hv01 : v = ![v 0, v 1] := by
-    funext i
-    fin_cases i <;> rfl
+  have hv01 : v = ![v 0, v 1] := (FinVec.etaExpand_eq _).symm
   have hfirst (w : TangentSpace (IB.prod (𝓡 1)) x) : mextDeriv α.val x ![c • ξ, w] = 0 := by
     rw [ContinuousAlternatingMap.vecCons_smul, hα.mextDeriv_apply_rightFundamentalVectorField,
       smul_zero]
@@ -442,9 +441,8 @@ private theorem IsCircleConnectionForm.sub_apply_eq_of_mfderiv_proj_eq
     rw [mpullback_apply] at h
     refine Eq.trans ?_ h
     congr 1
-    funext i
-    fin_cases i
-    rfl
+    -- The outer `Eq.symm` makes Lean read the vector off the goal's right side.
+    exact Eq.symm (FinVec.etaExpand_eq _).symm
   rw [hvu, ContinuousAlternatingMap.vecCons_add, ContinuousAlternatingMap.vecCons_smul,
     ContinuousAlternatingMap.vecCons_add, ContinuousAlternatingMap.vecCons_smul, hαu, hℓu,
     hα.apply_rightFundamentalVectorField,
@@ -519,7 +517,7 @@ theorem exists_isCircleConnectionForm [FiniteDimensional ℝ EB] [T2Space B]
       congr 1
       exact (mpullback_apply _ _ _ _).symm.trans (DFunLike.congr_fun
         (mpullback_op_smul_mpullback_trivialization_snd
-          (fun x hx ↦ (hθd b x hx).mdifferentiableAt (by simp)) hxb z) v)
+          (fun x hx ↦ (hθd b x hx).mdifferentiableAt (by simp)) hxb z) ![v])
   · obtain ⟨s, hsmem, hs⟩ := hfin x
     have hterm (b : B) :
         t b x ![rightFundamentalVectorField (IB.prod (𝓡 1)) circleLieGenerator x] =
@@ -578,11 +576,10 @@ theorem IsCircleConnectionForm.apply_eq_mpullback_add_mpullback (hα : IsCircleC
   have hxU : p (s (p x)) ∈ e.baseSet := by
     rw [hps, PrincipalBundle.baseSet_trivializationOfSection]
     exact hx
-  ext v
-  have hv : v = ![v 0] := (FinVec.etaExpand_eq _).symm
-  set w := mfderiv IB (IB.prod (𝓡 1)) s (p x) (mfderiv (IB.prod (𝓡 1)) IB p x (v 0))
+  ext u
+  set w := mfderiv IB (IB.prod (𝓡 1)) s (p x) (mfderiv (IB.prod (𝓡 1)) IB p x u)
   -- The derivative of `p ∘ s = id` is the identity, and that of `θ ∘ s = 1` vanishes.
-  have hdps : mfderiv (IB.prod (𝓡 1)) IB p x (v 0) = mfderiv (IB.prod (𝓡 1)) IB p (s (p x)) w := by
+  have hdps : mfderiv (IB.prod (𝓡 1)) IB p x u = mfderiv (IB.prod (𝓡 1)) IB p (s (p x)) w := by
     have h := mfderiv_comp (p x) ((ManifoldTotalSpace.contMDiff_proj 1 Circle P IB (𝓡 1)
       (s (p x))).mdifferentiableAt one_ne_zero) hsd
     rw [show p ∘ s = id from funext hps, mfderiv_id] at h
@@ -591,19 +588,17 @@ theorem IsCircleConnectionForm.apply_eq_mpullback_add_mpullback (hα : IsCircleC
     have h := mfderiv_comp (p x) (hθd _ hxU) hsd
     rw [show θ ∘ s = fun _ ↦ (1 : Circle) from funext hθs, mfderiv_const] at h
     exact (DFunLike.congr_fun h _).symm
-  have hkey := hα.sub_apply_eq_of_mfderiv_proj_eq hθd hxU (hps (p x)).symm (v 0) w hdps
+  have hkey := hα.sub_apply_eq_of_mfderiv_proj_eq hθd hxU (hps (p x)).symm u w hdps
   have hℓ : TauCeti.mpullback (IB.prod (𝓡 1)) (𝓡 1) θ circleAngularForm (s (p x)) ![w] = 0 := by
     rw [mpullback_apply]
     exact (circleAngularForm (θ (s (p x)))).map_coord_zero (0 : Fin 1) hdθs
   have hpull : TauCeti.mpullback (IB.prod (𝓡 1)) IB p
-      (TauCeti.mpullback IB (IB.prod (𝓡 1)) s α.val) x ![v 0] = α.val (s (p x)) ![w] := by
+      (TauCeti.mpullback IB (IB.prod (𝓡 1)) s α.val) x ![u] = α.val (s (p x)) ![w] := by
     rw [mpullback_apply, mpullback_apply]
     congr 1
-    funext i
-    fin_cases i
-    rfl
+    exact (FinVec.etaExpand_eq _).symm
   rw [hℓ, sub_zero] at hkey
-  rw [ContinuousAlternatingMap.add_apply, hv, hpull, ← hkey]
+  rw [ContinuousAlternatingMap.add_apply, hpull, ← hkey]
   ring
 
 /-! ### The circle bundle of a Hermitian line bundle -/

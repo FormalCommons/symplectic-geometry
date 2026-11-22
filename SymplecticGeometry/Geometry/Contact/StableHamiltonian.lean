@@ -12,6 +12,7 @@ public import TauCeti.Geometry.Contact.StableHamiltonian
 public import TauCeti.Geometry.Contact.Volume
 public import TauCeti.Geometry.Manifold.DifferentialForm.Flow
 public import SymplecticGeometry.Geometry.Manifold.Strip
+public import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
 import TauCeti.Geometry.Manifold.DifferentialForm.Flow.Family
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Flow.Family
 import TauCeti.Geometry.Manifold.DifferentialForm.Wedge.Leibniz
@@ -302,8 +303,7 @@ theorem mlieDerivForm_characteristicVectorField_oneForm :
     mlieDerivForm (α.characteristicVectorField σ) α.val = 0 := by
   have hR := (contMDiff_characteristicVectorField h.isContact).mdifferentiable (by simp)
   funext y
-  refine ContinuousAlternatingMap.ext fun v ↦ ?_
-  obtain ⟨w, rfl⟩ : ∃ w, v = ![w] := ⟨v 0, (FinVec.etaExpand_eq _).symm⟩
+  refine ContinuousAlternatingMap.ext_fin_one fun w ↦ ?_
   rw [mlieDerivForm_apply_eq_mextDeriv_add (f := fun _ ↦ (1 : ℝ))
     (fun y ↦ apply_characteristicVectorField (h.isContact y)) (α.mdifferentiable y) (hR y),
     h.mextDeriv_characteristicVectorField_left]
@@ -737,8 +737,7 @@ theorem coe_zeroSliceOneForm (hε : 0 < ε) (σ : SmoothTwoForm (𝓘(ℝ).prod 
       -TauCeti.mpullback I (𝓘(ℝ).prod I) (symmStripMk (abs_zero.trans_lt hε))
         (RoughForm.interior (fun _ ↦ ((1 : ℝ), (0 : E))) σ.val) := by
   funext x
-  refine ContinuousAlternatingMap.ext fun v ↦ ?_
-  obtain ⟨w, rfl⟩ : ∃ w, v = ![w] := ⟨v 0, (FinVec.etaExpand_eq _).symm⟩
+  refine ContinuousAlternatingMap.ext_fin_one fun w ↦ ?_
   rw [zeroSliceOneForm_apply, Pi.neg_apply, ContinuousAlternatingMap.neg_apply,
     TauCeti.mpullback_apply]
   refine congrArg Neg.neg (((σ.bilinFormAt_apply _ _ _).trans
@@ -763,7 +762,7 @@ theorem val_symmStripMk_zero_eq_stableHamiltonianModel (hε : 0 < ε)
   rw [coe_mpullback_subtype_val_apply]
   refine ContinuousAlternatingMap.ext fun v ↦ ?_
   obtain ⟨a, b, rfl⟩ : ∃ a b, v = ![a, b] :=
-    ⟨v 0, v 1, funext fun i ↦ by fin_cases i <;> rfl⟩
+    ⟨v 0, v 1, (FinVec.etaExpand_eq _).symm⟩
   set B : LinearMap.BilinForm ℝ (ℝ × E) := σ.bilinFormAt z
   have halt : B.IsAlt := isAlt_bilinFormAt σ z
   have hsplit (c : ℝ × E) : c = c.1 • ((1 : ℝ), (0 : E)) + ((0 : ℝ), c.2) :=

@@ -8,6 +8,7 @@ module
 public import Mathlib.Geometry.Manifold.Diffeomorph
 public import Mathlib.Geometry.Manifold.Immersion
 public import Mathlib.Geometry.Manifold.MFDeriv.FDeriv
+public import Mathlib.Geometry.Manifold.MFDeriv.NormedSpace
 public import SymplecticGeometry.Analysis.Calculus.FDeriv.Cayley
 public import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Basic.FromTauCeti
 public import SymplecticGeometry.LinearAlgebra.Symplectic.CompatibleTangent.Finrank
@@ -17,6 +18,7 @@ public import TauCeti.Geometry.Manifold.Immersion.Differential
 public import TauCeti.Geometry.Manifold.MFDeriv.Chart.Basic
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
 public import TauCeti.Geometry.Symplectic.Cayley.Tangent
+import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
 
 /-!
 # The manifold of compatible complex structures
@@ -344,15 +346,14 @@ theorem compatibleCLM_comp_add_comp_compatibleCLM (J : 𝒥) {X : V →L[ℝ] V}
     ContinuousLinearMap.toLinearMap_mul, toLinearMap_compatibleCLM, add_comm, hX,
     ContinuousLinearMap.toLinearMap_zero]
 
-/-- The ambient reading `X` of a tangent vector at `J` anticommutes with `J`:
-`J ∘ X + X ∘ J = 0`. -/
-theorem compatibleCLM_comp_mfderiv_add_mfderiv_comp_compatibleCLM (J : 𝒥)
+/-- The ambient reading `X` of a tangent vector at `J`, read through `mvfderiv` as an element of
+`V →L[ℝ] V`, anticommutes with `J` in that ring: `J X + X J = 0`. -/
+theorem compatibleCLM_mul_mvfderiv_add_mvfderiv_mul_compatibleCLM (J : 𝒥)
     (a : TangentSpace 𝓘(ℝ, ω.compatibleModel) J) :
-    ω.compatibleCLM J ∘L
-        mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM J a +
-      mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM J a ∘L
-        ω.compatibleCLM J = 0 :=
-  compatibleCLM_comp_add_comp_compatibleCLM J (mfderiv_compatibleCLM_mem_tangentSpace J a)
+    ω.compatibleCLM J * mvfderiv 𝓘(ℝ, ω.compatibleModel) ω.compatibleCLM J a +
+      mvfderiv 𝓘(ℝ, ω.compatibleModel) ω.compatibleCLM J a * ω.compatibleCLM J = 0 := by
+  rw [ContinuousLinearMap.mul_def, ContinuousLinearMap.mul_def, mvfderiv_apply_eq_mfderiv_apply]
+  exact compatibleCLM_comp_add_comp_compatibleCLM J (mfderiv_compatibleCLM_mem_tangentSpace J a)
 
 /-- The model space has dimension `n (n + 1)` when `V` has dimension `2 n`. -/
 theorem finrank_compatibleModel {n : ℕ} (hn : Module.finrank ℝ V = 2 * n) :
