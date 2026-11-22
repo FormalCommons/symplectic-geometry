@@ -56,8 +56,9 @@ Write `G = τ t : X → ℂ` and `Z` for the zero set of `t ∘ ι`. Then `G` is
 
 ## Main results
 
-* `TauCeti.VectorBundleOrientation.sum_sectionIndex_eq_boundaryDegree`: the sum of the local
-  indices of a section at its zeros is the boundary degree of the section read in a frame.
+* `TauCeti.VectorBundleOrientation.sum_sectionIndex_eq_boundaryDegree`: for a framed plane bundle,
+  adding up the local indices of a section at its zeros gives the boundary degree of the section
+  read in the frame.
 
 ## References
 
