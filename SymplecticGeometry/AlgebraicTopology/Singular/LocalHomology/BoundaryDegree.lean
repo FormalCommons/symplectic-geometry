@@ -24,10 +24,21 @@ A map `u : ∂X → S¹` sends the boundary class to `H₁(S¹; ℤ) ≅ ℤ`
 (`Circle.singularHomologyOneIso`); the resulting integer is the *boundary degree* of `u`
 (`TauCeti.HomologicalOrientation.boundaryDegree`). Tau Ceti fixes no sign convention for its
 connecting morphisms, so we check the sign on the closed unit disc of `ℂ`: there the boundary
-class is the generator
-(`SymplecticGeometry.singularHomologyOneIso_map_boundaryClass_closedBall`),
-so the boundary circle, which runs counterclockwise, has boundary degree `1`
-(`SymplecticGeometry.boundaryDegree_closedBallComplToCircle`). No sign has to be inserted.
+circle, which runs counterclockwise, has boundary degree `1`
+(`SymplecticGeometry.boundaryDegree_closedBallComplToCircle`), so the boundary class is the
+generator (`SymplecticGeometry.singularHomologyOneIso_map_boundaryClass_closedBall`). No sign has
+to be inserted.
+
+For `u = G / |G|` with `G : X → ℂ` nonzero on `∂X`, the map `G` is a map of pairs
+`(X, ∂X) ⟶ (ℂ, ℂ ∖ {0})` that, followed by radial projection (`Circle.radialProjection`), is `u`
+on `∂X`; by naturality of the connecting morphism, the boundary degree of `u` is read off from
+`G_*[X, ∂X]`. This step follows Tau Ceti's
+`TauCeti.localHomologyMap_translate_comp_reducedSingularHomologyδ` and
+`TauCeti.snd_ofSubsetMap_translate_comp_complSingletonHomotopyEquivSphere`, which compare the
+connecting morphisms and radial projections of the model at two points along a translation; here
+the map is `G`. On the disc, `G` is the inclusion into `ℂ`, which sends the fundamental class to
+the local orientation of `ℂ` at the origin
+(`SymplecticGeometry.localHomologyMap_fundamentalClassRel_closedBall`).
 
 ## Main definitions
 
@@ -53,6 +64,8 @@ so the boundary circle, which runs counterclockwise, has boundary degree `1`
   `G_*[X, ∂X] ∈ H₂(ℂ, ℂ ∖ {0})`, by naturality of the connecting morphism; it is `c` when
   `G_*[X, ∂X]` is `c` times the local orientation of `ℂ` at the origin.
 * `SymplecticGeometry.boundaryDegree_closedBallComplToCircle`: the sign on the unit disc.
+* `SymplecticGeometry.singularHomologyOneIso_map_boundaryClass_closedBall`: the boundary class of
+  the closed unit disc is `1` in `H₁(Circle; ℤ) ≅ ℤ`.
 
 ## References
 
@@ -171,8 +184,7 @@ theorem boundaryDegree_eq_of_localHomologyMap {G : C(X, ℂ)} (hG : G ⁻¹' {0}
     o.boundaryDegree hn hι hιf hf u =
       ((Circle.singularHomologyOneIso (ModuleCat.of ℤ (ULift.{0} ℤ))).hom
         (((singularHomologyFunctor (ModuleCat.{0} ℤ) 1).obj (ModuleCat.of ℤ (ULift.{0} ℤ))).map
-          (TopCat.ofHom (complSingletonHomotopyEquivSphere (0 : ℂ)).toFun ≫
-            TopCat.ofHom (Circle.homeomorphSphere.symm : C(sphere (0 : ℂ) 1, Circle)))
+          (TopCat.ofHom Circle.radialProjection)
           ((TopPair.ofSubset ({0}ᶜ : Set (TopCat.of ℂ))).singularHomologyδ
             (ModuleCat.of ℤ (ULift.{0} ℤ)) 2 1 rfl
             (localHomologyMap (ModuleCat.of ℤ (ULift.{0} ℤ)) G hG 2
@@ -183,24 +195,21 @@ theorem boundaryDegree_eq_of_localHomologyMap {G : C(X, ℂ)} (hG : G ⁻¹' {0}
   set Q := TopPair.ofSubset ({0}ᶜ : Set (TopCat.of ℂ))
   set H := (singularHomologyFunctor (ModuleCat.{0} ℤ) 1).obj R
   set H' := reducedSingularHomologyFunctor R 1
-  set c := TopCat.ofHom (complSingletonHomotopyEquivSphere (0 : ℂ)).toFun
-  set e := TopCat.ofHom (Circle.homeomorphSphere.symm : C(sphere (0 : ℂ) 1, Circle))
+  set r := TopCat.ofHom Circle.radialProjection
   -- On `∂X`, the map `G` followed by radial projection onto `Circle` is `u`.
   have hsnd : TopPair.Hom.snd (TopPair.ofSubsetMap (X := TopCat.of X) (Y := TopCat.of ℂ)
       (B := (range ι)ᶜ) (B' := {0}ᶜ) (TopCat.ofHom G)
-      ((mapsTo_preimage _ _).mono_left (compl_subset_compl.2 hG))) ≫ c ≫ e =
+      ((mapsTo_preimage _ _).mono_left (compl_subset_compl.2 hG))) ≫ r =
       TopCat.ofHom u := by
     ext z
     -- The subspace of `TopPair.ofSubset` is the subtype only after unfolding the pair.
-    erw [ConcreteCategory.comp_apply, ConcreteCategory.comp_apply]
-    refine (Circle.coe_homeomorphSphere_symm_apply _).trans
-      ((coe_complSingletonHomotopyEquivSphere_apply 0 _).trans ?_)
+    erw [ConcreteCategory.comp_apply]
+    refine (Circle.coe_radialProjection_apply _).trans ?_
     erw [TopPair.ofSubsetMap_snd_apply]
-    simp only [TopCat.hom_ofHom, sub_zero]
     exact (hu z).symm
   -- Naturality of the connecting morphism for `G : (X, ∂X) ⟶ (ℂ, ℂ ∖ {0})`.
   have hnat : P.reducedSingularHomologyδ R 1 ≫ H'.map (TopCat.ofHom u) =
-      localHomologyMap R G hG 2 ≫ Q.reducedSingularHomologyδ R 1 ≫ H'.map (c ≫ e) := by
+      localHomologyMap R G hG 2 ≫ Q.reducedSingularHomologyδ R 1 ≫ H'.map r := by
     rw [localHomologyMap_def, ← TopPair.reducedSingularHomologyδ_naturality_assoc]
     congr 1
     -- The composite is only type-correct after unfolding the subspace of the pair.
@@ -216,11 +225,11 @@ theorem boundaryDegree_eq_of_localHomologyMap {G : C(X, ℂ)} (hG : G ⁻¹' {0}
           (H'.map (TopCat.ofHom u) (P.reducedSingularHomologyδ R 1 γ)) :=
         (ConcreteCategory.congr_hom ((reducedSingularHomologyι R 1).naturality _) _).symm
     _ = (reducedSingularHomologyι R 1).app _
-          (H'.map (c ≫ e) (Q.reducedSingularHomologyδ R 1 (localHomologyMap R G hG 2 γ))) := by
+          (H'.map r (Q.reducedSingularHomologyδ R 1 (localHomologyMap R G hG 2 γ))) := by
         have h := ConcreteCategory.congr_hom hnat γ
         simp only [ConcreteCategory.comp_apply] at h
         exact congrArg _ h
-    _ = H.map (c ≫ e) ((reducedSingularHomologyι R 1).app _
+    _ = H.map r ((reducedSingularHomologyι R 1).app _
           (Q.reducedSingularHomologyδ R 1 (localHomologyMap R G hG 2 γ))) :=
         ConcreteCategory.congr_hom ((reducedSingularHomologyι R 1).naturality _) _
     _ = _ := congrArg _
@@ -258,8 +267,37 @@ theorem boundaryDegree_closedBallComplToCircle :
       Complex.finrank_real_complex (.inclusion _ (isOpen_ball.preimage continuous_subtypeVal))
       (range_inclusion_ball_eq_compl 0 1) isCollared_inclusion_sphere_closedBall
       closedBallComplToCircle = 1 := by
-  rw [TauCeti.HomologicalOrientation.boundaryDegree_def]
-  exact congrArg ULift.down singularHomologyOneIso_map_boundaryClass_closedBall
+  have hG : (⟨Subtype.val, continuous_subtypeVal⟩ : C(closedBall (0 : ℂ) 1, ℂ)) ⁻¹' {0} ⊆
+      range (inclusion (ball_subset_closedBall : ball (0 : ℂ) 1 ⊆ closedBall 0 1)) :=
+    fun w hw ↦ ⟨⟨0, mem_ball_self one_pos⟩, Subtype.ext hw.symm⟩
+  refine (TauCeti.complexHomologicalOrientation
+    (⟨ball (0 : ℂ) 1, isOpen_ball⟩ : Opens ℂ)).boundaryDegree_eq_of_localHomologyMap_eq_zsmul
+    _ _ _ _ hG (fun w ↦ ?_) ?_
+  · -- The boundary circle has norm `1`, where radial projection is the identity.
+    have h := Circle.norm_coe (closedBallComplToCircle w)
+    rw [coe_closedBallComplToCircle_apply] at h
+    simp only [ContinuousMap.coe_mk, h, inv_one, one_smul]
+    exact coe_closedBallComplToCircle_apply w
+  · rw [localHomologyMap_fundamentalClassRel_closedBall, one_smul]
+
+/-- **The boundary class of the closed unit disc.** Orient the open unit disc as an open subset
+of `ℂ` (`TauCeti.complexHomologicalOrientation`). The boundary class of the closed unit disc
+relative to the unit circle (`TauCeti.HomologicalOrientation.boundaryClass`), the image of its
+relative fundamental class under the connecting morphism, is the class of `H₁(S¹; ℤ)` that, read
+in `Circle` and through `Circle.singularHomologyOneIso`, is `1`: the generator of `H₁(Circle)`
+that Tau Ceti fixes. -/
+theorem singularHomologyOneIso_map_boundaryClass_closedBall :
+    (Circle.singularHomologyOneIso (ModuleCat.of ℤ (ULift.{0} ℤ))).hom
+      (((singularHomologyFunctor (ModuleCat.{0} ℤ) 1).obj (ModuleCat.of ℤ (ULift.{0} ℤ))).map
+        (TopCat.ofHom closedBallComplToCircle)
+        ((TauCeti.complexHomologicalOrientation
+            (⟨ball (0 : ℂ) 1, isOpen_ball⟩ : Opens ℂ)).boundaryClass
+          Complex.finrank_real_complex
+          (.inclusion _ (isOpen_ball.preimage continuous_subtypeVal))
+          (range_inclusion_ball_eq_compl 0 1) isCollared_inclusion_sphere_closedBall)) = 1 := by
+  have h := boundaryDegree_closedBallComplToCircle
+  rw [TauCeti.HomologicalOrientation.boundaryDegree_def] at h
+  exact ULift.ext h
 
 end SymplecticGeometry
 
