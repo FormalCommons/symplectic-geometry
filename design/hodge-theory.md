@@ -306,11 +306,23 @@ codifferential in a chart `ψ`:
   $G$ of a bilinear form `B` in a basis `b` has a unit determinant, then
   `B` sends $\sum_{ij}(G^{-1})_{ij}\,\xi(b_i)\,b_j$ to the linear form $\xi$.
 
+### `Analysis/Calculus/LineDeriv/Transpose.lean`
+
+- `exists_integral_apply_eq_integral_transpose_apply`: on an open `U ⊆ E`,
+  the formal transpose for an additive Haar measure of
+  $Pa=\sum_{ij}A_{ij}\partial_{v_j}\partial_{v_i}a+\sum_iB_i\partial_{v_i}a+Ca$,
+  with scalar $A_{ij}$ and $B_i$, $C$ in `F →L[ℝ] F`, all smooth on `U`,
+  is $P'w=\sum_{ij}A_{ij}\partial_{v_j}\partial_{v_i}w+\sum_i(\partial_{v_i}w)\circ B'_i+w\circ C'$
+  on maps `w : E → F →L[ℝ] ℝ`, with $B'_i$, $C'$ smooth on `U`. The proof
+  integrates by parts with Tau Ceti's
+  `integral_bilinear_fderiv_right_eq_neg_left_of_hasCompactSupport`.
+
 ### `Geometry/Manifold/DeRham/Hodge/LocalLaplacian.lean`
 
 `LocalLaplacian.lean` imports `LinearAlgebra/BilinearForm/Gram.lean`,
-`Geometry/Manifold/DifferentialForm/PartialDiffeomorph.lean` and
-`Analysis/Normed/Module/Alternating/Uncurry/Fin.lean`.
+`Geometry/Manifold/DifferentialForm/PartialDiffeomorph.lean`,
+`Analysis/Normed/Module/Alternating/Uncurry/Fin.lean` and
+`Analysis/Calculus/LineDeriv/Transpose.lean`.
 
 - `exists_mpullback_symm_hodgeLaplacian_eq`: for a chart `ψ` and a basis `b` of
   `E`, there are smooth `B : Fin m → E → Λ →L[ℝ] Λ` and `C : E → Λ →L[ℝ] Λ`,
@@ -323,11 +335,20 @@ codifferential in a chart `ψ`:
   `exists_mpullback_symm_codifferential_eq` and `mpullback_symm_mextDerivₗ`,
   and identified with $G^{ij}$ times the identity
   by Tau Ceti's `alternatizeUncurryFin_curryLeft_comp_add_curryLeft`.
-- `exists_mpullback_symm_hodgeLaplacian_transpose_eq`: the same shape for the
-  formal transpose for Lebesgue measure of the operator conjugated by the
-  fibre metric and the volume density. This is the operator that the weak
-  equation gives in the chart. Its principal part is again
-  $-G^{ij}\partial_i\partial_j$ times the identity.
+- `exists_mpullback_symm_hodgeLaplacian_transpose_eq`: for an additive Haar
+  measure `μ` on `E`, there are `B`, `C` as above and `B'`, `C'`, smooth
+  on `ψ.target` with values in `Λ →L[ℝ] Λ`, such that the operator
+  $P'w=-\sum_{ij}G^{ij}\partial_{b_j}\partial_{b_i}w+\sum_i(\partial_{b_i}w)\circ B'_i+w\circ C'$
+  on maps `w : E → Λ →L[ℝ] ℝ` is the formal transpose of the operator $P$
+  of `exists_mpullback_symm_hodgeLaplacian_eq`:
+  $\int w(Pa)\,d\mu=\int(P'w)\,a\,d\mu$ for `w` $C^2$ on `ψ.target` and `a`
+  $C^2$ with compact support in `ψ.target`. The pairing is the plain one
+  between `Λ` and its dual, so no inverse of the fibre metric is needed:
+  in `Regularity.lean` the unknown is $w=Hu_\psi$, the localization of
+  `u` multiplied by the fibre metric and the volume density, and the weak
+  equation says that $P'w=Hf_\psi$ as distributions. It is
+  `exists_integral_apply_eq_integral_transpose_apply` applied to the
+  operator of `exists_mpullback_symm_hodgeLaplacian_eq`.
 
 ### `Geometry/Manifold/Riemannian/Basic.lean`
 
@@ -552,6 +573,8 @@ Beside *Nijenhuis tensor*'s `Integrable.lean`:
   `Integrable.lean`, for the constancy of $J$. It also imports *Nijenhuis
   tensor*'s `AlmostComplex/Chart.lean`, for
   `forall_chartPushforward_apply_eq_iff` in its proofs.
+  It imports `Geometry/Manifold/DifferentialForm/PartialDiffeomorph.lean`,
+  for `SmoothForm.differentiableAt_mpullback_symm` in its proofs.
 
 ### `LinearAlgebra/ComplexStructure/SymmetricBilinear.lean`
 
@@ -730,7 +753,7 @@ sub-issues of #874, *Build the part Hodge theory*. Sizes are estimates.
 | 1 | Interior regularity of elliptic systems with a scalar principal part | `Analysis/Distribution/EllipticSystem.lean` | — | 300 |
 | 2 | Forms along partial diffeomorphisms: agreement with `inChartAt`, $\mathcal J$, extension by zero, finite covers | `Geometry/Manifold/DifferentialForm/PartialDiffeomorph.lean`, `Geometry/Manifold/LocalDiffeomorph/ChartCover.lean` | — | 250 |
 | 3 | The metric, the Hodge star and the codifferential in a chart | `DeRham/Hodge/Chart.lean` | 2 | 350 |
-| 4 | The Hodge Laplacian in a chart has a scalar principal part | `DeRham/Hodge/LocalLaplacian.lean` | 3 | 350 |
+| 4 | The Hodge Laplacian in a chart has a scalar principal part | `DeRham/Hodge/LocalLaplacian.lean`, `Analysis/Calculus/LineDeriv/Transpose.lean` | 3 | 350 |
 | 5 | The Hilbert space of $L^2$ forms and its localizations | `DeRham/Hodge/L2.lean` | 2 | 400 |
 | 6 | Regularity of weak solutions of $\Delta u=f$ | `DeRham/Hodge/Regularity.lean` | 1, 4, 5 | 450 |
 | 7 | The Hodge $H^1$ space and compactness of its inclusion in $L^2$ | `DeRham/Hodge/Sobolev.lean` | 6 | 400 |

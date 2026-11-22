@@ -306,6 +306,14 @@ each class. It uses these copies of Tau Ceti's files of the same commit:
 - `AlgebraicTopology/Cohomology/MayerVietoris/Module.lean`: the
   Mayer–Vietoris sequence with product middle term and `Function.Exact`.
 
+### `AlgebraicTopology/Singular/MayerVietoris/Swap.lean`
+
+The sign of Tau Ceti's Mayer–Vietoris connecting morphism when the two
+pieces are exchanged: `SSet.mayerVietorisδ_flip`, the morphism of
+`sq.flip` is the negative of that of `sq`, and `TopCat.mayerVietorisδ_swap`,
+the morphism of the open cover `(V, U)` is the negative of that of `(U, V)`
+followed by the map of `U ∩ V ⊆ V ∩ U`.
+
 ### `AlgebraicTopology/Cohomology/LerayHirsch/Bundle.lean`
 
 The Leray–Hirsch theorem for a fibre bundle `[FiberBundle F Z]` over `Y`
@@ -653,6 +661,15 @@ zero, and `SSet.tripleTensorChainComplexHomotopy_hom_naturality`. It adds
 the cone `SSet.stdSimplex.tripleProdConeChain` on the chains of
 `(Δ[a] ⊗ Δ[b]) ⊗ Δ[c]` and `SSet.tripleTensorChainComplexXDesc`, the maps
 out of a triple tensor product of chain groups.
+
+### `AlgebraicTopology/SimplicialSet/ShuffleAssoc.lean`
+
+The chain-level associativity of Tau Ceti's shuffle map, from the file
+above: `SSet.shuffleAssocHomotopy`, a chain homotopy between the two
+iterated shuffle maps
+`(C(K; R) ⊗ C(L; S)) ⊗ C(M; T) ⟶ C(K ⊗ (L ⊗ M); R ⊗ (S ⊗ T))`, with the
+parenthesization and associators of `TopCat.singularHomologyCross_assoc`,
+and `SSet.shuffleAssocHomotopy_hom_naturality`.
 
 ### `AlgebraicTopology/Singular/LocalHomology/Orientation/Cross/Basic.lean`
 
