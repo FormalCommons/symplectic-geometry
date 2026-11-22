@@ -730,6 +730,25 @@ statements `SSet.mayerVietorisδ_comp_homologyMap_of_fst` and `_of_snd`.
 together: `Hₙ(X) ⟶ Hₙ(X, U ∩ V)` is the sum of the two excision composites,
 each followed by the inclusion of its pair into `(X, U ∩ V)`.
 
+### `AlgebraicTopology/Singular/LocalHomology/Orientation/Suspension.lean`
+
+The sphere suspension read in the pair `(E, E ∖ {0})`, for computing
+`crossSign m 0`. For an orthonormal basis `b` of `E` of dimension `m + 2`,
+`p` its last vector, `E ∖ {0}` is covered by `TauCeti.complRay p` and
+`TauCeti.complRay (-p)`, the points off the open rays through `p` and
+`-p`. `TauCeti.mayerVietorisδ_singularHomologyδ_localOrientation`: the
+Mayer–Vietoris connecting morphism of this cover sends the boundary of the
+local orientation selected by `b.toBasis.orientation` to the image of the
+boundary of the one of `(ℝ ∙ p)ᗮ` selected by
+`b.orthogonalLast.toBasis.orientation`, under
+`TauCeti.complZeroOrthogonalInclusion p`, with sign `1` for every `m`;
+`TauCeti.singularHomologyComplSingletonIsoOfOrientation_inv_singularHomologyδ_mayerVietorisδ`
+is the same for the oriented local homology isomorphisms, with any
+coefficients. The file imports Tau Ceti's `Singular/Sphere.lean`, the
+library's `Orientation/Linear.lean`, and
+`Topology/Homotopy/PuncturedStarConvex.lean`, which defines
+`TauCeti.complRay` and `TauCeti.complZeroOrthogonalInclusion`.
+
 ### `Topology/VectorBundle/Orientation/Complex/Whitney.lean`
 
 The integral Whitney formula for Euler classes of complex bundles, in Tau
