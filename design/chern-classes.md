@@ -256,6 +256,16 @@ The change of cochain values in singular cohomology, in the namespace
   change of values carries the cup product along `μ` to the cup product
   along `μ'`.
 
+### `AlgebraicTopology/Cohomology/LinearCongr.lean`
+
+The change of linear structure in singular cohomology, in the namespace
+`TopCat`, for any abelian `C` and two equal structures `L₁ L₂ : Linear k C`:
+`singularCohomologyLinearCongr e X R M n` for `e : L₁ = L₂`, the linear
+equivalence `LinearEquiv.cast` along `e`, with `_refl`, `_symm`, `_trans`,
+`_naturality` (it commutes with `singularCohomologyMap f`) and `_singularCup`
+(it carries cup products to cup products). `IntegralCohomologyULift.lean` uses it to pass
+from `ModuleCat.instLinear` to `CategoryTheory.Linear.preadditiveIntLinear`.
+
 ### `Algebra/Homology/Monoidal/CupChangeOfValues.lean`
 
 In the namespace `TauCeti.ChainComplex`, for a diagonal `D : E ⟶ A ⊗ B`:
