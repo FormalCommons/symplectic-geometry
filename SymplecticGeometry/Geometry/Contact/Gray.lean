@@ -46,6 +46,19 @@ glues local solutions with a smooth partition of unity. It is applied to the tan
 `ℝ × M`, the field being the `M` component of a section with vanishing `ℝ` component; away from
 `[0, 1] × M` the local solution is `0`.
 
+The comparison of two local defining families,
+`SymplecticGeometry.tangentSpaceOpenEquiv_grayVectorField_eq`, follows the proofs of
+`TauCeti.IsLocalContactFormFamily.mfderiv_grayVectorField_eq` and
+`TauCeti.IsLocalContactFormFamily.mpullback_inclusion`, in Tau Ceti's file
+`TauCeti/Geometry/Contact/Gray/Distribution.lean` at commit
+034344347f0ca1144bf5ae35c82e3edaf848fca5 (Tau Ceti pull request #773), which the pinned version
+of Tau Ceti does not have: both families are restricted to the intersection of their open sets,
+the restrictions are contact forms with the same kernels, and naturality of the Gray vector field
+under the inclusions concludes. The factor between two families with the same kernels in
+`TauCeti.SmoothForm.grayVectorField_eq_of_eventually_kerDistribution_eq` is the one of
+`TauCeti.SmoothForm.grayVectorField_eq_of_kerDistribution_eq`, in Tau Ceti's
+`TauCeti/Geometry/Contact/Gray.lean` at the same commit.
+
 ## Main results
 
 * `TauCeti.SmoothForm.mfderiv_grayVectorField_mpullback_prodMap`: naturality of the Gray vector
@@ -155,21 +168,24 @@ theorem grayVectorField_eq_of_eventually_kerDistribution_eq
     exact (congrArg (· • _) h₀).trans (zero_smul ℝ _)
 
 /-- **The Gray vector field restricts to smaller open subsets.** Let `α` be a one-form on `ℝ × U`,
-for an open subset `U` of `M`, whose slice `α_t` is a contact form, and let `V ⊆ U` be open. The
-Gray vector at time `t` and point `x ∈ V` of the restriction of `α` to `ℝ × V` is the Gray vector
-of `α` at time `t` and point `x`, the tangent spaces of `V` and `U` being the same. -/
-theorem grayVectorField_mpullback_prodMap_inclusion {U V : Opens M} (hVU : V ≤ U)
-    {α : SmoothForm (𝓘(ℝ, ℝ).prod I) (ℝ × U) ℝ 1} {t : ℝ}
+for an open subset `U` of `M`, whose slice `α_t` is a contact form, and let `V ⊆ U` be open. Read
+in the tangent space of `M`, the Gray vector at time `t` and point `x ∈ V` of the restriction of
+`α` to `ℝ × V` is the Gray vector of `α` at time `t` and point `x`. -/
+theorem tangentSpaceOpenEquiv_grayVectorField_mpullback_prodMap_inclusion {U V : Opens M}
+    (hVU : V ≤ U) {α : SmoothForm (𝓘(ℝ, ℝ).prod I) (ℝ × U) ℝ 1} {t : ℝ}
     (hc : (mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) α).IsContactForm)
     (x : V) :
-    (mpullback (Prod.map id (Opens.inclusion hVU)) (contMDiff_id.prodMap (contMDiff_inclusion hVU))
-      α).grayVectorField t x = α.grayVectorField t (Opens.inclusion hVU x) := by
-  have h := mfderiv_grayVectorField_mpullback_prodMap hc (Opens.inclusion hVU)
-    (contMDiff_inclusion hVU) (Manifold.bijective_mfderiv_inclusion hVU) x
-  rw [Manifold.mfderiv_inclusion_apply] at h
-  -- The two sides of `h` live in `TangentSpace I (Opens.inclusion hVU x)` and the goal's in
-  -- `TangentSpace I x`; both are `E`.
-  exact h
+    Manifold.tangentSpaceOpenEquiv x ((mpullback (Prod.map id (Opens.inclusion hVU))
+        (contMDiff_id.prodMap (contMDiff_inclusion hVU)) α).grayVectorField t x) =
+      Manifold.tangentSpaceOpenEquiv (Opens.inclusion hVU x)
+        (α.grayVectorField t (Opens.inclusion hVU x)) := by
+  rw [← mfderiv_grayVectorField_mpullback_prodMap hc (Opens.inclusion hVU)
+    (contMDiff_inclusion hVU)
+    (fun y ↦ ((isLocalDiffeomorph_inclusion (n := ∞) hVU y).isInvertible_mfderiv
+      (by simp)).bijective) x,
+    Manifold.tangentSpaceOpenEquiv_mfderiv_apply (f := Opens.inclusion hVU) (A := id) rfl,
+    mfderiv_id,
+    ContinuousLinearMap.id_apply]
 
 end TauCeti.SmoothForm
 
@@ -230,11 +246,13 @@ theorem tangentSpaceOpenEquiv_grayVectorField_eq {a b a' b' : ℝ} {U U' : Opens
   have hβ (u : ℝ) :
       (mpullback (Prod.mk u) (contMDiff_const.prodMk contMDiff_id) β).IsContactForm := by
     rw [mpullback_prodMk_mpullback_prodMap]
-    exact (hc u).mpullback _ (contMDiff_inclusion hV) (Manifold.bijective_mfderiv_inclusion hV)
+    exact (hc u).mpullback _ (contMDiff_inclusion hV) fun y ↦
+      ((isLocalDiffeomorph_inclusion (n := ∞) hV y).isInvertible_mfderiv (by simp)).bijective
   have hβ' (u : ℝ) :
       (mpullback (Prod.mk u) (contMDiff_const.prodMk contMDiff_id) β').IsContactForm := by
     rw [mpullback_prodMk_mpullback_prodMap]
-    exact (hc' u).mpullback _ (contMDiff_inclusion hV') (Manifold.bijective_mfderiv_inclusion hV')
+    exact (hc' u).mpullback _ (contMDiff_inclusion hV') fun y ↦
+      ((isLocalDiffeomorph_inclusion (n := ∞) hV' y).isInvertible_mfderiv (by simp)).bijective
   -- At the times of both intervals in `[0, 1]`, both restrictions have kernels `ξ`.
   have hker : ∀ᶠ q in 𝓝[unitInterval ×ˢ univ] (t, (⟨x, hx, hx'⟩ : (U ⊓ U' : Opens M))),
       (mpullback (Prod.mk q.1) (contMDiff_const.prodMk contMDiff_id) β').kerDistribution q.2 =
@@ -249,18 +267,19 @@ theorem tangentSpaceOpenEquiv_grayVectorField_eq {a b a' b' : ℝ} {U U' : Opens
       kerDistribution_mpullback (Opens.inclusion hV') (contMDiff_inclusion hV'),
       kerDistribution_mpullback (Opens.inclusion hV) (contMDiff_inclusion hV), Submodule.mem_comap,
       Submodule.mem_comap, ContinuousLinearMap.coe_coe, ContinuousLinearMap.coe_coe,
-      Manifold.mfderiv_inclusion_apply, Manifold.mfderiv_inclusion_apply,
-      mem_kerDistribution_iff_tangentSpaceOpenEquiv_mem hα' ⟨hq'.1.2, hq.1⟩
-        (Opens.inclusion hV' q.2) (v := v),
-      mem_kerDistribution_iff_tangentSpaceOpenEquiv_mem hα ⟨hq'.1.1, hq.1⟩
-        (Opens.inclusion hV q.2) (v := v)]
-    rw [Manifold.tangentSpaceOpenEquiv_apply (Opens.inclusion hV' q.2) v,
-      Manifold.tangentSpaceOpenEquiv_apply (Opens.inclusion hV q.2) v]
-  have h := grayVectorField_eq_of_eventually_kerDistribution_eq (uniqueDiffOn_Icc zero_lt_one t ht)
-    ht hβ (hβ' t) hker
-  rw [grayVectorField_mpullback_prodMap_inclusion hV' (hc' t),
-    grayVectorField_mpullback_prodMap_inclusion hV (hc t)] at h
-  rw [Manifold.tangentSpaceOpenEquiv_apply ⟨x, hx⟩, Manifold.tangentSpaceOpenEquiv_apply ⟨x, hx'⟩]
+      mem_kerDistribution_iff_tangentSpaceOpenEquiv_mem hα' ⟨hq'.1.2, hq.1⟩,
+      mem_kerDistribution_iff_tangentSpaceOpenEquiv_mem hα ⟨hq'.1.1, hq.1⟩,
+      Manifold.tangentSpaceOpenEquiv_mfderiv_apply (f := Opens.inclusion hV') (A := id) rfl,
+      Manifold.tangentSpaceOpenEquiv_mfderiv_apply (f := Opens.inclusion hV) (A := id) rfl,
+      mfderiv_id,
+      ContinuousLinearMap.id_apply]
+  have h := congrArg (Manifold.tangentSpaceOpenEquiv _)
+    (grayVectorField_eq_of_eventually_kerDistribution_eq (uniqueDiffOn_Icc zero_lt_one t ht)
+      ht hβ (hβ' t) hker)
+  rw [tangentSpaceOpenEquiv_grayVectorField_mpullback_prodMap_inclusion hV' (hc' t),
+    tangentSpaceOpenEquiv_grayVectorField_mpullback_prodMap_inclusion hV (hc t)] at h
+  -- `Opens.inclusion hV ⟨x, hx, hx'⟩` is `⟨x, hx⟩` by definition; `Set.inclusion_mk` cannot rewrite
+  -- it in `h`, where the tangent spaces depend on the point.
   exact h.symm
 
 namespace IsContactFamily
@@ -302,21 +321,20 @@ theorem exists_grayField [T2Space M] [SigmaCompactSpace M] (hξ : IsContactFamil
           (Manifold.tangentSpaceOpenEquiv (I := I) y).toLinearEquiv.toLinearMap) →
       Manifold.tangentSpaceOpenEquiv ⟨x, hx⟩ (α.grayVectorField t ⟨x, hx⟩) = w
   -- The field is glued as a section of the tangent bundle of `ℝ × M` with vanishing `ℝ`
-  -- component, subject at times of `[0, 1]` to the conditions of the statement.
+  -- component, subject at times of `[0, 1]` to the conditions of the statement on its `M`
+  -- component.
+  let D (p : ℝ × M) : Set (TangentSpace I p.2) :=
+    {w | ∀ ht : p.1 ∈ unitInterval, w ∈ ξ ⟨p.1, ht⟩ p.2 ∧ G p.1 p.2 w}
+  have hD (p : ℝ × M) : Convex ℝ (D p) := by
+    intro v hv w hw c d _ _ hcd ht
+    refine ⟨add_mem (Submodule.smul_mem _ c (hv ht).1) (Submodule.smul_mem _ d (hw ht).1),
+      fun a b hab U hx α hα hker ↦ ?_⟩
+    rw [← (hv ht).2 a b hab U hx α hα hker, ← (hw ht).2 a b hab U hx α hα hker]
+    exact (Convex.combo_self hcd _).symm
   let C (p : ℝ × M) : Set (TangentSpace (𝓘(ℝ, ℝ).prod I) p) :=
-    {v | v.1 = 0 ∧ ∀ ht : p.1 ∈ unitInterval,
-      (v.2 : TangentSpace I p.2) ∈ ξ ⟨p.1, ht⟩ p.2 ∧ G p.1 p.2 v.2}
-  have hC (p : ℝ × M) : Convex ℝ (C p) := by
-    intro v hv w hw c d _ _ hcd
-    refine ⟨?_, fun ht ↦ ⟨?_, fun a b hab U hx α hα hker ↦ ?_⟩⟩
-    · change c * v.1 + d * w.1 = 0
-      rw [hv.1, hw.1, mul_zero, mul_zero, add_zero]
-    · exact add_mem (Submodule.smul_mem _ c ((hv.2 ht).1)) (Submodule.smul_mem _ d ((hw.2 ht).1))
-    · have h₁ : (_ : E) = v.2 := (hv.2 ht).2 a b hab U hx α hα hker
-      have h₂ : (_ : E) = w.2 := (hw.2 ht).2 a b hab U hx α hα hker
-      change _ = c • v.2 + d • w.2
-      rw [← h₁, ← h₂]
-      exact (Convex.combo_self hcd _).symm
+    Manifold.tangentSpaceProdEquiv p ⁻¹' ({0} ×ˢ D p)
+  have hC (p : ℝ × M) : Convex ℝ (C p) :=
+    ((convex_singleton _).prod (hD p)).linear_preimage _
   have hloc (p₀ : ℝ × M) : ∃ W ∈ 𝓝 p₀, ∃ s : (p : ℝ × M) → TangentSpace (𝓘(ℝ, ℝ).prod I) p,
       ContMDiffOn (𝓘(ℝ, ℝ).prod I) (𝓘(ℝ, ℝ).prod I).tangent ((⊤ : ℕ∞) : WithTop ℕ∞)
         (fun p ↦ (⟨p, s p⟩ : TangentBundle (𝓘(ℝ, ℝ).prod I) (ℝ × M))) W ∧
@@ -329,33 +347,38 @@ theorem exists_grayField [T2Space M] [SigmaCompactSpace M] (hξ : IsContactFamil
       have hw := Manifold.contMDiffOn_tangentSpaceOpenEquiv_dite (J := 𝓘(ℝ, ℝ))
         (contMDiff_grayVectorField hc)
       refine ⟨Ioo a b ×ˢ U, prod_mem_nhds (isOpen_Ioo.mem_nhds hab) (U.isOpen.mem_nhds hxU),
-        fun p ↦ ((0 : ℝ), (w p : E)), ?_, fun p hp ↦ ⟨rfl, fun ht ↦ ?_⟩⟩
+        fun p ↦ (Manifold.tangentSpaceProdEquiv p).symm (0, w p), ?_, fun p hp ↦ ?_⟩
       · -- The section is `(0, w)` under the identification `T (ℝ × M) ≃ T ℝ × T M`.
+        -- After `tangentSpaceProdEquiv_symm_apply`, both sides are `⟨p, (0, w p)⟩`, since
+        -- `equivTangentBundleProd` leaves the components of a tangent vector unchanged.
         refine ContMDiffOn.congr (f := fun p ↦ (equivTangentBundleProd 𝓘(ℝ, ℝ) ℝ I M).symm
-          (Bundle.zeroSection ℝ (TangentSpace 𝓘(ℝ, ℝ)) p.1, ⟨p.2, w p⟩)) ?_ fun _ _ ↦ rfl
+          (Bundle.zeroSection ℝ (TangentSpace 𝓘(ℝ, ℝ)) p.1, ⟨p.2, w p⟩)) ?_
+          fun _ _ ↦ by simp only [Manifold.tangentSpaceProdEquiv_symm_apply]; rfl
         exact contMDiff_equivTangentBundleProd_symm.comp_contMDiffOn
           (((Bundle.contMDiff_zeroSection ℝ _).comp contMDiff_fst).contMDiffOn.prodMk
             (hw.mono fun p hp ↦ (mem_prod.1 hp).2))
       · obtain ⟨hp₁, hp₂⟩ := mem_prod.1 hp
         have hw' : w p = Manifold.tangentSpaceOpenEquiv ⟨p.2, hp₂⟩
             (α.grayVectorField p.1 ⟨p.2, hp₂⟩) := dite_eq_left hp₂
-        refine ⟨?_, fun a' b' hab' U' hx' α' hc' hα' ↦ ?_⟩
-        · change w p ∈ _
-          rw [hw']
+        rw [mem_preimage, ContinuousLinearEquiv.apply_symm_apply]
+        refine ⟨mem_singleton _, fun ht ↦ ⟨?_, fun a' b' hab' U' hx' α' hc' hα' ↦ ?_⟩⟩
+        · rw [hw']
           exact (mem_kerDistribution_iff_tangentSpaceOpenEquiv_mem hα ⟨hp₁, ht⟩ ⟨p.2, hp₂⟩ _).1
             (mem_kerDistribution.2 (apply_grayVectorField (hc p.1) _))
-        · change _ = w p
-          rw [hw']
+        · rw [hw']
           exact tangentSpaceOpenEquiv_grayVectorField_eq hc' hc hα' hα ht hab' hp₁ hx' hp₂
     · -- Away from `[0, 1] × M` the conditions are only on the `ℝ` component; take `0`.
       refine ⟨unitIntervalᶜ ×ˢ univ, prod_mem_nhds (isClosed_Icc.isOpen_compl.mem_nhds ht₀)
-        univ_mem, fun _ ↦ 0, (Bundle.contMDiff_zeroSection ℝ _).contMDiffOn,
-        fun p hp ↦ ⟨rfl, fun ht ↦ absurd ht (mem_prod.1 hp).1⟩⟩
+        univ_mem, fun _ ↦ 0, (Bundle.contMDiff_zeroSection ℝ _).contMDiffOn, fun p hp ↦ ?_⟩
+      rw [mem_preimage, map_zero]
+      exact ⟨mem_singleton _, fun ht ↦ absurd ht (mem_prod.1 hp).1⟩
   obtain ⟨s, hs⟩ := exists_contMDiffSection_forall_mem_convex_of_local (𝓘(ℝ, ℝ).prod I)
     (TangentSpace (𝓘(ℝ, ℝ).prod I)) C hC hloc
-  refine ⟨fun t x ↦ (s (t, x)).2, ?_, fun t ht x ↦ ((hs (t, x)).2 ht).1,
+  refine ⟨fun t x ↦ (Manifold.tangentSpaceProdEquiv (t, x) (s (t, x))).2, ?_,
+    fun t ht x ↦ ((hs (t, x)).2 ht).1,
     fun t ht a b hab U x hx α hα hker ↦ ((hs (t, x)).2 ht).2 a b hab U hx α hα hker⟩
   -- The field is the `M` component of `s` under `T (ℝ × M) ≃ T ℝ × T M`.
+  simp only [Manifold.tangentSpaceProdEquiv_apply]
   exact contMDiff_snd.comp (contMDiff_equivTangentBundleProd.comp s.contMDiff)
 
 end IsContactFamily

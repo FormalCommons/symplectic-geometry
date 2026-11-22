@@ -18,6 +18,13 @@ extended by `0` to the points of `N × M` outside `N × U`. If the family is smo
 tangent bundle of `U`, the family on `N × M` is smooth on `N × U`
 (`TauCeti.Manifold.contMDiffOn_tangentSpaceOpenEquiv_dite`). With `N = ℝ`, this moves a
 time-dependent vector field on `U` to `M`.
+
+The proof of `TauCeti.Manifold.contMDiffOn_tangentSpaceOpenEquiv_dite` adapts that of
+`TauCeti.IsContactDistributionFamily.contMDiff_distributionGrayVectorField`, in Tau Ceti's file
+`TauCeti/Geometry/Contact/Gray/Distribution.lean` at commit
+034344347f0ca1144bf5ae35c82e3edaf848fca5 (Tau Ceti pull request #773), which the pinned version
+of Tau Ceti does not have. Both proofs read the open subset of the product as a manifold, map it
+into `N × U` by `q ↦ (q.1, ⟨q.2, _⟩)`, and compose with the tangent map of the inclusion `U → M`.
 -/
 
 public section
@@ -57,13 +64,6 @@ theorem contMDiffOn_tangentSpaceOpenEquiv_dite {U : Opens M} {Y : (p : N × U) �
     ((hcomp ⟨p, hp⟩).congr_of_eventuallyEq (.of_forall fun q ↦ ?_)) |>.contMDiffWithinAt
   have hq : (q : N × M).2 ∈ U := q.property
   simp only [Function.comp_apply, tangentMap_subtype_val, φ, hq, ↓reduceDIte]
-
-omit [IsManifold I ∞ M] in
-/-- The differential of the inclusion of nested open subsets is bijective. -/
-theorem bijective_mfderiv_inclusion {U V : Opens M} (h : U ≤ V) (x : U) :
-    Function.Bijective (mfderiv I I (Opens.inclusion h) x) := by
-  have hd : ⇑(mfderiv I I (Opens.inclusion h) x) = id := funext (mfderiv_inclusion_apply h x)
-  exact hd ▸ Function.bijective_id
 
 end TauCeti.Manifold
 
