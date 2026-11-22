@@ -33,10 +33,12 @@ of a set such as `[0, 1]`
 (`TauCeti.SmoothForm.grayVectorField_eq_of_eventually_kerDistribution_eq`):
 two families with the same kernels differ by a nowhere vanishing factor, the value of one on the
 Reeb field of the other, and `TauCeti.SmoothForm.grayVectorField_eq_of_eventuallyEq_smul` applies.
-So two local defining families of a smooth family `ξ` of contact structures over `[0, 1]`, as
-given by `SymplecticGeometry.IsContactFamily.exists_local_extension`, have the same Gray vector
-at every time of `[0, 1]` and point where both are defined, once both are restricted to the
-intersection of their open sets (`SymplecticGeometry.tangentSpaceOpenEquiv_grayVectorField_eq`).
+So two local defining families over `ℝ` (`SymplecticGeometry.IsLocalDefiningFamily`) of a smooth
+family `ξ` of contact structures over `[0, 1]`, as given by
+`SymplecticGeometry.IsContactFamily.exists_local_extension`, have the same Gray vector at every
+time of `[0, 1]` and point where both are defined, once both are restricted to the intersection
+of their open sets
+(`SymplecticGeometry.IsLocalDefiningFamily.tangentSpaceOpenEquiv_grayVectorField_eq`).
 
 On a σ-compact Hausdorff manifold, these local Gray fields glue to a smooth time-dependent vector
 field on `ℝ × M`, the Gray field of `ξ` (`SymplecticGeometry.IsContactFamily.exists_grayField`).
@@ -47,7 +49,8 @@ glues local solutions with a smooth partition of unity. It is applied to the tan
 `[0, 1] × M` the local solution is `0`.
 
 The comparison of two local defining families,
-`SymplecticGeometry.tangentSpaceOpenEquiv_grayVectorField_eq`, follows the proofs of
+`SymplecticGeometry.IsLocalDefiningFamily.tangentSpaceOpenEquiv_grayVectorField_eq`, follows the
+proofs of
 `TauCeti.IsLocalContactFormFamily.mfderiv_grayVectorField_eq` and
 `TauCeti.IsLocalContactFormFamily.mpullback_inclusion`, in Tau Ceti's file
 `TauCeti/Geometry/Contact/Gray/Distribution.lean` at commit
@@ -67,8 +70,8 @@ under the inclusions concludes. The factor between two families with the same ke
   its restriction to an open subset.
 * `TauCeti.SmoothForm.grayVectorField_eq_of_eventually_kerDistribution_eq`: the Gray vector
   depends only on the kernels of the slices.
-* `SymplecticGeometry.tangentSpaceOpenEquiv_grayVectorField_eq`: local defining families of a
-  family of contact structures have the same Gray vectors.
+* `SymplecticGeometry.IsLocalDefiningFamily.tangentSpaceOpenEquiv_grayVectorField_eq`: local
+  defining families of a family of contact structures have the same Gray vectors.
 * `SymplecticGeometry.IsContactFamily.exists_grayField`: the Gray field of a smooth family of
   contact structures.
 
@@ -198,44 +201,20 @@ variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimen
   [IsManifold I ∞ M] [I.Boundaryless]
   {ξ : unitInterval → Π x : M, Submodule ℝ (TangentSpace I x)}
 
-omit [FiniteDimensional ℝ E] [I.Boundaryless] in
-/-- Let `α` be a one-form on `ℝ × U`, for an open subset `U` of `M`, whose slices have kernels `ξ`
-at the times of `(a, b) ∩ [0, 1]`. At such a time `t`, a tangent vector of `U` at `x` lies in the
-kernel of `α_t` exactly when, read in the tangent space of `M`, it lies in `ξ t x`. -/
-theorem mem_kerDistribution_iff_tangentSpaceOpenEquiv_mem {a b : ℝ} {U : Opens M}
-    {α : SmoothForm (𝓘(ℝ, ℝ).prod I) (ℝ × U) ℝ 1}
-    (hα : ∀ (t : ℝ) (ht : t ∈ Ioo a b ∩ unitInterval) (x : U),
-      ξ ⟨t, ht.2⟩ x = ((mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id)
-        α).kerDistribution x).map
-          (Manifold.tangentSpaceOpenEquiv (I := I) x).toLinearEquiv.toLinearMap)
-    {t : ℝ} (ht : t ∈ Ioo a b ∩ unitInterval) (x : U) (v : TangentSpace I x) :
-    v ∈ (mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) α).kerDistribution x ↔
-      Manifold.tangentSpaceOpenEquiv x v ∈ ξ ⟨t, ht.2⟩ x := by
-  rw [hα t ht x, Submodule.mem_map_equiv, ContinuousLinearEquiv.coe_symm_toLinearEquiv,
-    ContinuousLinearEquiv.symm_apply_apply]
-
 /-- **Local Gray fields agree on overlaps.** Let `α` on `ℝ × U` and `α'` on `ℝ × U'` be local
-defining families of a family `ξ` of distributions over `[0, 1]`, as given by
-`SymplecticGeometry.IsContactFamily.exists_local_extension`: all their slices are contact forms,
-and their kernels are `ξ` at the times of `(a, b) ∩ [0, 1]`, respectively `(a', b') ∩ [0, 1]`.
+defining families over `ℝ` of a family `ξ` of distributions over `[0, 1]`, on the time intervals
+`(a, b)` and `(a', b')`, as given by `SymplecticGeometry.IsContactFamily.exists_local_extension`.
 At a time `t ∈ [0, 1]` of both intervals and a point `x ∈ U ∩ U'`, their Gray vectors agree,
 read in the tangent space of `M`. -/
-theorem tangentSpaceOpenEquiv_grayVectorField_eq {a b a' b' : ℝ} {U U' : Opens M}
-    {α : SmoothForm (𝓘(ℝ, ℝ).prod I) (ℝ × U) ℝ 1} {α' : SmoothForm (𝓘(ℝ, ℝ).prod I) (ℝ × U') ℝ 1}
-    (hc : ∀ t, (mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) α).IsContactForm)
-    (hc' : ∀ t, (mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) α').IsContactForm)
-    (hα : ∀ (t : ℝ) (ht : t ∈ Ioo a b ∩ unitInterval) (x : U),
-      ξ ⟨t, ht.2⟩ x = ((mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id)
-        α).kerDistribution x).map
-          (Manifold.tangentSpaceOpenEquiv (I := I) x).toLinearEquiv.toLinearMap)
-    (hα' : ∀ (t : ℝ) (ht : t ∈ Ioo a' b' ∩ unitInterval) (x : U'),
-      ξ ⟨t, ht.2⟩ x = ((mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id)
-        α').kerDistribution x).map
-          (Manifold.tangentSpaceOpenEquiv (I := I) x).toLinearEquiv.toLinearMap)
-    {t : ℝ} (ht : t ∈ unitInterval) (htab : t ∈ Ioo a b) (htab' : t ∈ Ioo a' b') {x : M}
-    (hx : x ∈ U) (hx' : x ∈ U') :
+theorem IsLocalDefiningFamily.tangentSpaceOpenEquiv_grayVectorField_eq {a b a' b' : ℝ}
+    {U U' : Opens M} {α : SmoothForm (𝓘(ℝ, ℝ).prod I) (ℝ × U) ℝ 1}
+    {α' : SmoothForm (𝓘(ℝ, ℝ).prod I) (ℝ × U') ℝ 1} (hα : IsLocalDefiningFamily ξ U α a b)
+    (hα' : IsLocalDefiningFamily ξ U' α' a' b') {t : ℝ} (ht : t ∈ unitInterval) (htab : t ∈ Ioo a b)
+    (htab' : t ∈ Ioo a' b') {x : M} (hx : x ∈ U) (hx' : x ∈ U') :
     Manifold.tangentSpaceOpenEquiv ⟨x, hx⟩ (α.grayVectorField t ⟨x, hx⟩) =
       Manifold.tangentSpaceOpenEquiv ⟨x, hx'⟩ (α'.grayVectorField t ⟨x, hx'⟩) := by
+  have hc := hα.isContactForm
+  have hc' := hα'.isContactForm
   -- Compare the restrictions of both families to `ℝ × (U ∩ U')`.
   have hV : U ⊓ U' ≤ U := inf_le_left
   have hV' : U ⊓ U' ≤ U' := inf_le_right
@@ -267,8 +246,7 @@ theorem tangentSpaceOpenEquiv_grayVectorField_eq {a b a' b' : ℝ} {U U' : Opens
       kerDistribution_mpullback (Opens.inclusion hV') (contMDiff_inclusion hV'),
       kerDistribution_mpullback (Opens.inclusion hV) (contMDiff_inclusion hV), Submodule.mem_comap,
       Submodule.mem_comap, ContinuousLinearMap.coe_coe, ContinuousLinearMap.coe_coe,
-      mem_kerDistribution_iff_tangentSpaceOpenEquiv_mem hα' ⟨hq'.1.2, hq.1⟩,
-      mem_kerDistribution_iff_tangentSpaceOpenEquiv_mem hα ⟨hq'.1.1, hq.1⟩,
+      hα'.mem_kerDistribution_iff ⟨hq'.1.2, hq.1⟩, hα.mem_kerDistribution_iff ⟨hq'.1.1, hq.1⟩,
       Manifold.tangentSpaceOpenEquiv_mfderiv_apply (f := Opens.inclusion hV') (A := id) rfl,
       Manifold.tangentSpaceOpenEquiv_mfderiv_apply (f := Opens.inclusion hV) (A := id) rfl,
       mfderiv_id,
@@ -290,10 +268,10 @@ time-dependent vector field `Y`, jointly smooth in `(t, x) ∈ ℝ × M`, such t
 `t ∈ [0, 1]` and point `x`:
 * `Y t x` lies in `ξ t x`;
 * `Y t x` is the Gray vector at `(t, x)` of every local defining family of `ξ` near `(t, x)`: for
-  every open interval `(a, b) ∋ t`, open set `U ∋ x` and one-form `α` on `ℝ × U` all of whose
-  slices are contact forms and whose kernels are `ξ` at the times of `(a, b) ∩ [0, 1]`, as given
-  by `SymplecticGeometry.IsContactFamily.exists_local_extension`, the Gray vector of `α` at
-  `(t, x)` is `Y t x`, the tangent spaces of `U` and `M` being identified.
+  every open interval `(a, b) ∋ t`, open set `U ∋ x` and local defining family `α` over `ℝ` of
+  `ξ` on `U` and `(a, b)` (`SymplecticGeometry.IsLocalDefiningFamily`), as given by
+  `SymplecticGeometry.IsContactFamily.exists_local_extension`, the Gray vector of `α` at `(t, x)`
+  is `Y t x`, the tangent spaces of `U` and `M` being identified.
 
 At times outside `[0, 1]` nothing is said of `Y`. -/
 theorem exists_grayField [T2Space M] [SigmaCompactSpace M] (hξ : IsContactFamily ξ) :
@@ -303,22 +281,13 @@ theorem exists_grayField [T2Space M] [SigmaCompactSpace M] (hξ : IsContactFamil
       (∀ (t : ℝ) (ht : t ∈ unitInterval) (x : M), Y t x ∈ ξ ⟨t, ht⟩ x) ∧
       ∀ (t : ℝ), t ∈ unitInterval → ∀ (a b : ℝ), t ∈ Ioo a b → ∀ (U : Opens M) (x : M)
         (hx : x ∈ U) (α : SmoothForm (𝓘(ℝ, ℝ).prod I) (ℝ × U) ℝ 1),
-        (∀ s, (mpullback (Prod.mk s) (contMDiff_const.prodMk contMDiff_id) α).IsContactForm) →
-        (∀ (s : ℝ) (hs : s ∈ Ioo a b ∩ unitInterval) (y : U),
-          ξ ⟨s, hs.2⟩ y = ((mpullback (Prod.mk s) (contMDiff_const.prodMk contMDiff_id)
-            α).kerDistribution y).map
-            (Manifold.tangentSpaceOpenEquiv (I := I) y).toLinearEquiv.toLinearMap) →
+        IsLocalDefiningFamily ξ U α a b →
         Manifold.tangentSpaceOpenEquiv ⟨x, hx⟩ (α.grayVectorField t ⟨x, hx⟩) = Y t x := by
   classical
   -- The vector `w ∈ T_x M` is the Gray vector at `(t, x)` of every local defining family.
   let G (t : ℝ) (x : M) (w : TangentSpace I x) : Prop :=
     ∀ (a b : ℝ), t ∈ Ioo a b → ∀ (U : Opens M) (hx : x ∈ U)
-      (α : SmoothForm (𝓘(ℝ, ℝ).prod I) (ℝ × U) ℝ 1),
-      (∀ s, (mpullback (Prod.mk s) (contMDiff_const.prodMk contMDiff_id) α).IsContactForm) →
-      (∀ (s : ℝ) (hs : s ∈ Ioo a b ∩ unitInterval) (y : U),
-        ξ ⟨s, hs.2⟩ y = ((mpullback (Prod.mk s) (contMDiff_const.prodMk contMDiff_id)
-          α).kerDistribution y).map
-          (Manifold.tangentSpaceOpenEquiv (I := I) y).toLinearEquiv.toLinearMap) →
+      (α : SmoothForm (𝓘(ℝ, ℝ).prod I) (ℝ × U) ℝ 1), IsLocalDefiningFamily ξ U α a b →
       Manifold.tangentSpaceOpenEquiv ⟨x, hx⟩ (α.grayVectorField t ⟨x, hx⟩) = w
   -- The field is glued as a section of the tangent bundle of `ℝ × M` with vanishing `ℝ`
   -- component, subject at times of `[0, 1]` to the conditions of the statement on its `M`
@@ -328,8 +297,8 @@ theorem exists_grayField [T2Space M] [SigmaCompactSpace M] (hξ : IsContactFamil
   have hD (p : ℝ × M) : Convex ℝ (D p) := by
     intro v hv w hw c d _ _ hcd ht
     refine ⟨add_mem (Submodule.smul_mem _ c (hv ht).1) (Submodule.smul_mem _ d (hw ht).1),
-      fun a b hab U hx α hα hker ↦ ?_⟩
-    rw [← (hv ht).2 a b hab U hx α hα hker, ← (hw ht).2 a b hab U hx α hα hker]
+      fun a b hab U hx α hα ↦ ?_⟩
+    rw [← (hv ht).2 a b hab U hx α hα, ← (hw ht).2 a b hab U hx α hα]
     exact (Convex.combo_self hcd _).symm
   let C (p : ℝ × M) : Set (TangentSpace (𝓘(ℝ, ℝ).prod I) p) :=
     Manifold.tangentSpaceProdEquiv p ⁻¹' ({0} ×ˢ D p)
@@ -341,11 +310,11 @@ theorem exists_grayField [T2Space M] [SigmaCompactSpace M] (hξ : IsContactFamil
       ∀ p ∈ W, s p ∈ C p := by
     by_cases ht₀ : p₀.1 ∈ unitInterval
     · -- Near a point of `[0, 1] × M`, take the Gray field of a local defining family.
-      obtain ⟨a, b, hab, U, hxU, α, hc, hα⟩ := hξ.exists_local_extension (⟨p₀.1, ht₀⟩, p₀.2)
+      obtain ⟨a, b, hab, U, hxU, α, hα⟩ := hξ.exists_local_extension (⟨p₀.1, ht₀⟩, p₀.2)
       let w (p : ℝ × M) : TangentSpace I p.2 := if hx : p.2 ∈ U then
         Manifold.tangentSpaceOpenEquiv ⟨p.2, hx⟩ (α.grayVectorField p.1 ⟨p.2, hx⟩) else 0
       have hw := Manifold.contMDiffOn_tangentSpaceOpenEquiv_dite (J := 𝓘(ℝ, ℝ))
-        (contMDiff_grayVectorField hc)
+        (contMDiff_grayVectorField hα.isContactForm)
       refine ⟨Ioo a b ×ˢ U, prod_mem_nhds (isOpen_Ioo.mem_nhds hab) (U.isOpen.mem_nhds hxU),
         fun p ↦ (Manifold.tangentSpaceProdEquiv p).symm (0, w p), ?_, fun p hp ↦ ?_⟩
       · -- The section is `(0, w)` under the identification `T (ℝ × M) ≃ T ℝ × T M`.
@@ -361,12 +330,12 @@ theorem exists_grayField [T2Space M] [SigmaCompactSpace M] (hξ : IsContactFamil
         have hw' : w p = Manifold.tangentSpaceOpenEquiv ⟨p.2, hp₂⟩
             (α.grayVectorField p.1 ⟨p.2, hp₂⟩) := dite_eq_left hp₂
         rw [mem_preimage, ContinuousLinearEquiv.apply_symm_apply]
-        refine ⟨mem_singleton _, fun ht ↦ ⟨?_, fun a' b' hab' U' hx' α' hc' hα' ↦ ?_⟩⟩
+        refine ⟨mem_singleton _, fun ht ↦ ⟨?_, fun a' b' hab' U' hx' α' hα' ↦ ?_⟩⟩
         · rw [hw']
-          exact (mem_kerDistribution_iff_tangentSpaceOpenEquiv_mem hα ⟨hp₁, ht⟩ ⟨p.2, hp₂⟩ _).1
-            (mem_kerDistribution.2 (apply_grayVectorField (hc p.1) _))
+          exact (hα.mem_kerDistribution_iff ⟨hp₁, ht⟩ ⟨p.2, hp₂⟩ _).1
+            (mem_kerDistribution.2 (apply_grayVectorField (hα.isContactForm p.1) _))
         · rw [hw']
-          exact tangentSpaceOpenEquiv_grayVectorField_eq hc' hc hα' hα ht hab' hp₁ hx' hp₂
+          exact hα'.tangentSpaceOpenEquiv_grayVectorField_eq hα ht hab' hp₁ hx' hp₂
     · -- Away from `[0, 1] × M` the conditions are only on the `ℝ` component; take `0`.
       refine ⟨unitIntervalᶜ ×ˢ univ, prod_mem_nhds (isClosed_Icc.isOpen_compl.mem_nhds ht₀)
         univ_mem, fun _ ↦ 0, (Bundle.contMDiff_zeroSection ℝ _).contMDiffOn, fun p hp ↦ ?_⟩
@@ -376,7 +345,7 @@ theorem exists_grayField [T2Space M] [SigmaCompactSpace M] (hξ : IsContactFamil
     (TangentSpace (𝓘(ℝ, ℝ).prod I)) C hC hloc
   refine ⟨fun t x ↦ (Manifold.tangentSpaceProdEquiv (t, x) (s (t, x))).2, ?_,
     fun t ht x ↦ ((hs (t, x)).2 ht).1,
-    fun t ht a b hab U x hx α hα hker ↦ ((hs (t, x)).2 ht).2 a b hab U hx α hα hker⟩
+    fun t ht a b hab U x hx α hα ↦ ((hs (t, x)).2 ht).2 a b hab U hx α hα⟩
   -- The field is the `M` component of `s` under `T (ℝ × M) ≃ T ℝ × T M`.
   simp only [Manifold.tangentSpaceProdEquiv_apply]
   exact contMDiff_snd.comp (contMDiff_equivTangentBundleProd.comp s.contMDiff)
