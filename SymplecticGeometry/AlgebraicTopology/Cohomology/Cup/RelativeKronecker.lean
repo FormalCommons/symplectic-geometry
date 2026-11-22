@@ -100,17 +100,13 @@ theorem relativeAlexanderWhitneyDiagonal_eq_comp (U V : Set X) (u : T ⟶ R ⊗ 
     relativeAlexanderWhitneyDiagonal U V u =
       ((SSetPair.chainComplexFunctor C).map u).app (X.smallSingularSubcomplex ![U, V]).pair ≫
         relativeAlexanderWhitneyDiagonal U V (𝟙 (R ⊗ S)) := by
-  refine (cancel_epi ((X.smallSingularSubcomplex ![U, V]).pair.chainComplexπ T)).1 ?_
-  have hπ := congrArg (fun η ↦ η.app (X.smallSingularSubcomplex ![U, V]).pair)
-    ((SSetPair.chainComplexFunctorπ C).naturality u)
-  dsimp only [NatTrans.comp_app] at hπ
+  refine (cancel_epi (smallSingularSubcomplexπ ![U, V] T)).1 ?_
   have hD : X.alexanderWhitneyDiagonal u =
       ((SSet.chainComplexFunctor C).map u).app _ ≫ X.alexanderWhitneyDiagonal (𝟙 (R ⊗ S)) := by
     simp [TauCeti.alexanderWhitneyDiagonal_def]
-  exact (chainComplexπ_relativeAlexanderWhitneyDiagonal U V u).trans <|
-    (congrArg (· ≫ _) hD).trans <| (Category.assoc _ _ _).trans <|
-      (congrArg (_ ≫ ·) (chainComplexπ_relativeAlexanderWhitneyDiagonal U V (𝟙 _)).symm).trans <|
-        (Category.assoc _ _ _).symm.trans <| (congrArg (· ≫ _) hπ).trans (Category.assoc _ _ _)
+  rw [smallSingularSubcomplexπ_relativeAlexanderWhitneyDiagonal, hD, Category.assoc,
+    ← smallSingularSubcomplexπ_relativeAlexanderWhitneyDiagonal,
+    smallSingularSubcomplexπ_coefficient_naturality_assoc]
 
 /-- **The relative cup product changes coefficients along its coefficient morphism**: the relative
 cup product along `u : T ⟶ R ⊗ S` is the relative cup product along the identity of `R ⊗ S`,

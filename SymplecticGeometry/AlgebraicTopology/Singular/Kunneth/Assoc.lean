@@ -279,19 +279,12 @@ private theorem shuffleAssocHomotopy_hom_comp_singularChainComplexπ_eq_zero {X'
     ((SSet.chainComplexMap (toSSet.map f) R ⊗ₘ SSet.chainComplexMap (toSSet.map g) S) ⊗ₘ
         SSet.chainComplexMap (toSSet.map h) T).f i ≫
       (shuffleAssocHomotopy X Y Z R S T).hom i j ≫
-        ((TopPair.ofSubset (fst X (Y ⊗ Z) ⁻¹' A ∪
-          snd X (Y ⊗ Z) ⁻¹' (fst Y Z ⁻¹' B ∪ snd Y Z ⁻¹' D))).singularChainComplexπ
-            (R ⊗ (S ⊗ T))).f j = 0 := by
-  -- the tensor products of chain complexes are found along other instances here than in the
-  -- statement of the naturality, so the composites are rewritten by hand
-  exact (shuffleAssocHomotopy_hom_naturality_assoc R S T f g h i j _).trans <|
-    (congrArg (_ ≫ ·) ((comp_f _ _ j).symm.trans ((congrArg (fun φ ↦ φ.f j)
-      (TopPair.chainComplexMap_comp_singularChainComplexπ_eq_zero_of_range_subset
-        (R ⊗ (S ⊗ T)) hfgh)).trans
-        (zero_f _ _ j)))).trans comp_zero
+        (TopPair.singularChainComplexπOfSubset (R ⊗ (S ⊗ T)) (fst X (Y ⊗ Z) ⁻¹' A ∪
+          snd X (Y ⊗ Z) ⁻¹' (fst Y Z ⁻¹' B ∪ snd Y Z ⁻¹' D))).f j = 0 := by
+  rw [shuffleAssocHomotopy_hom_naturality_assoc, ← comp_f,
+    TopPair.chainComplexMap_comp_singularChainComplexπOfSubset_eq_zero_of_range_subset _ hfgh,
+    zero_f, comp_zero]
 
-/-- The first iterated shuffle map of the three pairs, followed by the coefficient associator and
-the map induced by the associator of the spaces. -/
 private abbrev shufflePairAssocLeft :
     ((TopPair.ofSubset A).singularChainComplex R ⊗ (TopPair.ofSubset B).singularChainComplex S) ⊗
         (TopPair.ofSubset D).singularChainComplex T ⟶
@@ -371,108 +364,123 @@ private theorem shortExact_shortComplex₃ :
 omit [∀ (T : C) (J : Type w), PreservesColimitsOfShape (Discrete J) (tensorLeft T)]
   [∀ (T : C) (J : Type w), PreservesColimitsOfShape (Discrete J) (tensorRight T)] in
 /-- The three projections of the descent compose to the projection
-`(C(X) ⊗ C(Y)) ⊗ C(Z) ⟶ (C(X, A) ⊗ C(Y, B)) ⊗ C(Z, D)`, followed by any map `k` out of
-`(C(X, A) ⊗ C(Y, B)) ⊗ C(Z, D)`. -/
-private theorem shortComplex₁_g_comp_shortComplex₂_g_comp_shortComplex₃_g_comp
-    {K : ChainComplex C ℕ} (k : ((TopPair.ofSubset A).singularChainComplex R ⊗
-      (TopPair.ofSubset B).singularChainComplex S) ⊗ (TopPair.ofSubset D).singularChainComplex T ⟶
-        K) :
-    (shortComplex₁ X Z A R S T Y).g ≫ (shortComplex₂ X Y A B R S T Z).g ≫
-        (shortComplex₃ X Y Z A B D R S T).g ≫ k =
-      ((TopPair.singularChainComplexπOfSubset R A ⊗ₘ TopPair.singularChainComplexπOfSubset S B) ⊗ₘ
-        TopPair.singularChainComplexπOfSubset T D) ≫ k := by
-  have h {K₁ K₂ K₃ L₁ L₂ L₃ : ChainComplex C ℕ} (f₁ : K₁ ⟶ L₁) (f₂ : K₂ ⟶ L₂) (f₃ : K₃ ⟶ L₃)
-      (l : (L₁ ⊗ L₂) ⊗ L₃ ⟶ K) :
-      ((f₁ ⊗ₘ 𝟙 K₂) ⊗ₘ 𝟙 K₃) ≫ ((𝟙 L₁ ⊗ₘ f₂) ⊗ₘ 𝟙 K₃) ≫ (𝟙 (L₁ ⊗ L₂) ⊗ₘ f₃) ≫ l =
-        ((f₁ ⊗ₘ f₂) ⊗ₘ f₃) ≫ l := by
-    simp only [tensorHom_comp_tensorHom_assoc, tensorHom_comp_tensorHom, Category.id_comp,
-      Category.comp_id]
-  -- the ambient chains of a pair are the chains of its space only up to unfolding, so the
-  -- identity is applied to the three projections rather than rewritten
-  exact h _ _ _ k
+`(C(X) ⊗ C(Y)) ⊗ C(Z) ⟶ (C(X, A) ⊗ C(Y, B)) ⊗ C(Z, D)`. -/
+@[reassoc]
+private theorem singularChainComplexπ_tensorHom_id_comp_id_tensorHom_singularChainComplexπ_comp :
+    ((TopPair.singularChainComplexπOfSubset R A ⊗ₘ 𝟙 ((toSSet.obj Y).chainComplex S)) ⊗ₘ
+        𝟙 ((toSSet.obj Z).chainComplex T)) ≫
+      ((𝟙 ((TopPair.ofSubset A).singularChainComplex R) ⊗ₘ
+          TopPair.singularChainComplexπOfSubset S B) ⊗ₘ 𝟙 ((toSSet.obj Z).chainComplex T)) ≫
+        (𝟙 ((TopPair.ofSubset A).singularChainComplex R ⊗
+          (TopPair.ofSubset B).singularChainComplex S) ⊗ₘ
+          TopPair.singularChainComplexπOfSubset T D) =
+      (TopPair.singularChainComplexπOfSubset R A ⊗ₘ TopPair.singularChainComplexπOfSubset S B) ⊗ₘ
+        TopPair.singularChainComplexπOfSubset T D := by
+  simp only [tensorHom_comp_tensorHom, Category.id_comp, Category.comp_id]
 
 /-- The first step of the descent of `TopCat.shuffleAssocHomotopy`: to
 `(C(X, A) ⊗ C(Y)) ⊗ C(Z)`, along the projection in the first factor. -/
 private def shufflePairAssocHomotopy₁ :
-    _root_.Homotopy ((shortComplex₂ X Y A B R S T Z).g ≫ (shortComplex₃ X Y Z A B D R S T).g ≫
+    _root_.Homotopy
+      (((𝟙 ((TopPair.ofSubset A).singularChainComplex R) ⊗ₘ
+          TopPair.singularChainComplexπOfSubset S B) ⊗ₘ 𝟙 ((toSSet.obj Z).chainComplex T)) ≫
+        (𝟙 ((TopPair.ofSubset A).singularChainComplex R ⊗
+          (TopPair.ofSubset B).singularChainComplex S) ⊗ₘ
+          TopPair.singularChainComplexπOfSubset T D) ≫
         shufflePairAssocLeft X Y Z A B D R S T)
-      ((shortComplex₂ X Y A B R S T Z).g ≫ (shortComplex₃ X Y Z A B D R S T).g ≫
+      (((𝟙 ((TopPair.ofSubset A).singularChainComplex R) ⊗ₘ
+          TopPair.singularChainComplexπOfSubset S B) ⊗ₘ 𝟙 ((toSSet.obj Z).chainComplex T)) ≫
+        (𝟙 ((TopPair.ofSubset A).singularChainComplex R ⊗
+          (TopPair.ofSubset B).singularChainComplex S) ⊗ₘ
+          TopPair.singularChainComplexπOfSubset T D) ≫
         shufflePairAssocRight X Y Z A B D R S T) :=
   have hS := shortExact_shortComplex₁ X Z A R S T Y
+  -- the maps of the short exact sequence, written through `TopPair.ιOfSubset` and
+  -- `TopPair.singularChainComplexπOfSubset`, so that the conditions below hold by `rw`
   _root_.Homotopy.descCokernel (shuffleAssocHomotopy X Y Z R S T)
-    (shortComplex₁ X Z A R S T Y).f (shortComplex₁ X Z A R S T Y).g
-    ((TopPair.ofSubset (fst X (Y ⊗ Z) ⁻¹' A ∪
-      snd X (Y ⊗ Z) ⁻¹' (fst Y Z ⁻¹' B ∪ snd Y Z ⁻¹' D))).singularChainComplexπ (R ⊗ (S ⊗ T)))
-    _
+    ((SSet.chainComplexMap (toSSet.map (TopPair.ιOfSubset A)) R ⊗ₘ
+      𝟙 ((toSSet.obj Y).chainComplex S)) ⊗ₘ 𝟙 ((toSSet.obj Z).chainComplex T))
+    ((TopPair.singularChainComplexπOfSubset R A ⊗ₘ 𝟙 ((toSSet.obj Y).chainComplex S)) ⊗ₘ
+      𝟙 ((toSSet.obj Z).chainComplex T))
+    (TopPair.singularChainComplexπOfSubset (R ⊗ (S ⊗ T)) (fst X (Y ⊗ Z) ⁻¹' A ∪
+      snd X (Y ⊗ Z) ⁻¹' (fst Y Z ⁻¹' B ∪ snd Y Z ⁻¹' D))) _
     (fun i ↦ (hS.map_of_exact (HomologicalComplex.eval C _ i)).gIsCokernel)
     (fun i j ↦ by
       have h := shuffleAssocHomotopy_hom_comp_singularChainComplexπ_eq_zero X Y Z A B D R S T
-        (TopPair.ofSubset A).map (𝟙 Y) (𝟙 Z) (by rintro _ ⟨x, rfl⟩; exact Or.inl x.1.property) i j
+        (TopPair.ιOfSubset A) (𝟙 Y) (𝟙 Z) (by rintro _ ⟨x, rfl⟩; exact Or.inl x.1.property) i j
       simp only [CategoryTheory.Functor.map_id] at h
       exact h)
-    ((shortComplex₁_g_comp_shortComplex₂_g_comp_shortComplex₃_g_comp X Y Z A B D R S T _).trans
-      (singularChainComplexπ_tensorHom_shufflePair_assoc_left X Y Z A B D R S T))
-    ((shortComplex₁_g_comp_shortComplex₂_g_comp_shortComplex₃_g_comp X Y Z A B D R S T _).trans
-      (singularChainComplexπ_tensorHom_shufflePair_assoc_right X Y Z A B D R S T))
+    (by rw [singularChainComplexπ_tensorHom_id_comp_id_tensorHom_singularChainComplexπ_comp_assoc,
+      singularChainComplexπ_tensorHom_shufflePair_assoc_left])
+    (by rw [singularChainComplexπ_tensorHom_id_comp_id_tensorHom_singularChainComplexπ_comp_assoc,
+      singularChainComplexπ_tensorHom_shufflePair_assoc_right])
 
 /-- The homotopy `shufflePairAssocHomotopy₁` is the homotopy `TopCat.shuffleAssocHomotopy`,
 descended. -/
-private theorem shortComplex₁_g_f_shufflePairAssocHomotopy₁_hom (i j : ℕ) :
-    (shortComplex₁ X Z A R S T Y).g.f i ≫ (shufflePairAssocHomotopy₁ X Y Z A B D R S T).hom i j =
+@[reassoc]
+private theorem singularChainComplexπ_tensorHom_id_f_shufflePairAssocHomotopy₁_hom (i j : ℕ) :
+    ((TopPair.singularChainComplexπOfSubset R A ⊗ₘ 𝟙 ((toSSet.obj Y).chainComplex S)) ⊗ₘ
+        𝟙 ((toSSet.obj Z).chainComplex T)).f i ≫
+        (shufflePairAssocHomotopy₁ X Y Z A B D R S T).hom i j =
       (shuffleAssocHomotopy X Y Z R S T).hom i j ≫
-        ((TopPair.ofSubset (fst X (Y ⊗ Z) ⁻¹' A ∪
-          snd X (Y ⊗ Z) ⁻¹' (fst Y Z ⁻¹' B ∪ snd Y Z ⁻¹' D))).singularChainComplexπ
-            (R ⊗ (S ⊗ T))).f j :=
+        (TopPair.singularChainComplexπOfSubset (R ⊗ (S ⊗ T)) (fst X (Y ⊗ Z) ⁻¹' A ∪
+          snd X (Y ⊗ Z) ⁻¹' (fst Y Z ⁻¹' B ∪ snd Y Z ⁻¹' D))).f j :=
   _root_.Homotopy.π_descCokernel_hom _ _ _ _ _ _ _ _ _ i j
 
 /-- The second step of the descent: to `(C(X, A) ⊗ C(Y, B)) ⊗ C(Z)`, along the projection in the
 second factor. -/
 private def shufflePairAssocHomotopy₂ :
-    _root_.Homotopy ((shortComplex₃ X Y Z A B D R S T).g ≫
+    _root_.Homotopy
+      ((𝟙 ((TopPair.ofSubset A).singularChainComplex R ⊗
+          (TopPair.ofSubset B).singularChainComplex S) ⊗ₘ
+          TopPair.singularChainComplexπOfSubset T D) ≫
         shufflePairAssocLeft X Y Z A B D R S T)
-      ((shortComplex₃ X Y Z A B D R S T).g ≫ shufflePairAssocRight X Y Z A B D R S T) :=
+      ((𝟙 ((TopPair.ofSubset A).singularChainComplex R ⊗
+          (TopPair.ofSubset B).singularChainComplex S) ⊗ₘ
+          TopPair.singularChainComplexπOfSubset T D) ≫
+        shufflePairAssocRight X Y Z A B D R S T) :=
   have hS := shortExact_shortComplex₂ X Y A B R S T Z
+  -- the maps of the short exact sequence, written as in `shufflePairAssocHomotopy₁`
   _root_.Homotopy.descCokernel (shufflePairAssocHomotopy₁ X Y Z A B D R S T)
-    (shortComplex₂ X Y A B R S T Z).f (shortComplex₂ X Y A B R S T Z).g (𝟙 _) _
+    ((𝟙 ((TopPair.ofSubset A).singularChainComplex R) ⊗ₘ
+      SSet.chainComplexMap (toSSet.map (TopPair.ιOfSubset B)) S) ⊗ₘ
+        𝟙 ((toSSet.obj Z).chainComplex T))
+    ((𝟙 ((TopPair.ofSubset A).singularChainComplex R) ⊗ₘ
+      TopPair.singularChainComplexπOfSubset S B) ⊗ₘ 𝟙 ((toSSet.obj Z).chainComplex T))
+    (𝟙 _) _
     (fun i ↦ (hS.map_of_exact (HomologicalComplex.eval C _ i)).gIsCokernel)
     (fun i j ↦ by
-      have : Epi ((shortComplex₁ X Z A R S T (TopPair.ofSubset B).snd).g.f i) :=
+      -- After the epimorphism `(C(X) ⊗ C(B)) ⊗ C(Z) ⟶ (C(X, A) ⊗ C(B)) ⊗ C(Z)`, this is the
+      -- vanishing of `TopCat.shuffleAssocHomotopy` on the chains of `X × (B × Z)`.
+      have : Epi (((TopPair.singularChainComplexπOfSubset R A ⊗ₘ
+          𝟙 ((toSSet.obj (TopPair.ofSubset B).snd).chainComplex S)) ⊗ₘ
+            𝟙 ((toSSet.obj Z).chainComplex T)).f i) :=
         ((shortExact_shortComplex₁ X Z A R S T (TopPair.ofSubset B).snd).map_of_exact
           (HomologicalComplex.eval C _ i)).epi_g
-      refine (cancel_epi ((shortComplex₁ X Z A R S T (TopPair.ofSubset B).snd).g.f i)).1 ?_
+      refine (cancel_epi (((TopPair.singularChainComplexπOfSubset R A ⊗ₘ
+        𝟙 ((toSSet.obj (TopPair.ofSubset B).snd).chainComplex S)) ⊗ₘ
+          𝟙 ((toSSet.obj Z).chainComplex T)).f i)).1 ?_
       have e₁ {K₁ K₂ K₃ L₁ L₂ : ChainComplex C ℕ} (f₁ : K₁ ⟶ L₁) (f₂ : K₂ ⟶ L₂) :
           ((f₁ ⊗ₘ 𝟙 K₂) ⊗ₘ 𝟙 K₃) ≫ ((𝟙 L₁ ⊗ₘ f₂) ⊗ₘ 𝟙 K₃) =
             ((𝟙 K₁ ⊗ₘ f₂) ⊗ₘ 𝟙 K₃) ≫ ((f₁ ⊗ₘ 𝟙 L₂) ⊗ₘ 𝟙 K₃) := by
         simp only [tensorHom_comp_tensorHom, Category.id_comp, Category.comp_id]
-      have e₂ := shuffleAssocHomotopy_hom_comp_singularChainComplexπ_eq_zero X Y Z A B D R S T
-        (𝟙 X) (TopPair.ofSubset B).map (𝟙 Z)
+      have h := shuffleAssocHomotopy_hom_comp_singularChainComplexπ_eq_zero X Y Z A B D R S T
+        (𝟙 X) (TopPair.ιOfSubset B) (𝟙 Z)
         (by rintro _ ⟨x, rfl⟩; exact Or.inr (Or.inl x.2.1.property)) i j
-      simp only [CategoryTheory.Functor.map_id] at e₂
-      have e₃ : (shortComplex₁ X Z A R S T (TopPair.ofSubset B).snd).g ≫
-          (shortComplex₂ X Y A B R S T Z).f =
-            ((𝟙 ((toSSet.obj X).chainComplex R) ⊗ₘ
-              SSet.chainComplexMap (toSSet.map (TopPair.ofSubset B).map) S) ⊗ₘ
-                𝟙 ((toSSet.obj Z).chainComplex T)) ≫ (shortComplex₁ X Z A R S T Y).g :=
-        e₁ _ _
-      -- the ambient chains of a pair are the chains of its space only up to unfolding, so the
-      -- composites are reassociated by hand
-      refine (congrArg (_ ≫ _ ≫ ·) ((congrArg (_ ≫ ·) (id_f _ j)).trans
-        (Category.comp_id _))).trans (Eq.trans ?_ comp_zero.symm)
-      exact (Category.assoc _ _ _).symm.trans <|
-        (congrArg (· ≫ (shufflePairAssocHomotopy₁ X Y Z A B D R S T).hom i j)
-          ((comp_f _ _ i).symm.trans ((congrArg (fun φ ↦ φ.f i) e₃).trans
-            (comp_f _ _ i)))).trans <| (Category.assoc _ _ _).trans <|
-        (congrArg (_ ≫ ·) (shortComplex₁_g_f_shufflePairAssocHomotopy₁_hom X Y Z A B D R S T
-          i j)).trans e₂)
+      simp only [CategoryTheory.Functor.map_id] at h
+      rw [id_f, Category.comp_id, ← comp_f_assoc, e₁, comp_f, Category.assoc,
+        singularChainComplexπ_tensorHom_id_f_shufflePairAssocHomotopy₁_hom, h, comp_zero])
     (Category.comp_id _).symm (Category.comp_id _).symm
 
 /-- The homotopy `shufflePairAssocHomotopy₂` is the homotopy `shufflePairAssocHomotopy₁`,
 descended. -/
-private theorem shortComplex₂_g_f_shufflePairAssocHomotopy₂_hom (i j : ℕ) :
-    (shortComplex₂ X Y A B R S T Z).g.f i ≫ (shufflePairAssocHomotopy₂ X Y Z A B D R S T).hom i j =
+@[reassoc]
+private theorem id_tensorHom_singularChainComplexπ_f_shufflePairAssocHomotopy₂_hom (i j : ℕ) :
+    ((𝟙 ((TopPair.ofSubset A).singularChainComplex R) ⊗ₘ
+        TopPair.singularChainComplexπOfSubset S B) ⊗ₘ 𝟙 ((toSSet.obj Z).chainComplex T)).f i ≫
+        (shufflePairAssocHomotopy₂ X Y Z A B D R S T).hom i j =
       (shufflePairAssocHomotopy₁ X Y Z A B D R S T).hom i j :=
-  (_root_.Homotopy.π_descCokernel_hom _ _ _ _ _ _ _ _ _ i j).trans
-    ((congrArg (_ ≫ ·) (id_f _ j)).trans (Category.comp_id _))
+  (_root_.Homotopy.π_descCokernel_hom _ _ _ _ _ _ _ _ _ i j).trans (by rw [id_f, Category.comp_id])
 
 /-- **Associativity of the shuffle map of pairs up to homotopy.** For subsets `A ⊆ X`, `B ⊆ Y`
 and `D ⊆ Z`, the two iterated shuffle maps
@@ -496,50 +504,49 @@ def shufflePairAssocHomotopy :
         ((TopPair.ofSubset A).singularChainComplex R ◁ shufflePair Y Z B D S T) ≫
           shufflePair X (Y ⊗ Z) A (fst Y Z ⁻¹' B ∪ snd Y Z ⁻¹' D) R (S ⊗ T)) :=
   have hS := shortExact_shortComplex₃ X Y Z A B D R S T
+  -- the maps of the short exact sequence, written as in `shufflePairAssocHomotopy₁`
   _root_.Homotopy.descCokernel (shufflePairAssocHomotopy₂ X Y Z A B D R S T)
-    (shortComplex₃ X Y Z A B D R S T).f (shortComplex₃ X Y Z A B D R S T).g (𝟙 _) _
+    (𝟙 ((TopPair.ofSubset A).singularChainComplex R ⊗
+      (TopPair.ofSubset B).singularChainComplex S) ⊗ₘ
+      SSet.chainComplexMap (toSSet.map (TopPair.ιOfSubset D)) T)
+    (𝟙 ((TopPair.ofSubset A).singularChainComplex R ⊗
+      (TopPair.ofSubset B).singularChainComplex S) ⊗ₘ
+      TopPair.singularChainComplexπOfSubset T D)
+    (𝟙 _) _
     (fun i ↦ (hS.map_of_exact (HomologicalComplex.eval C _ i)).gIsCokernel)
     (fun i j ↦ by
-      have : Epi ((shortComplex₁ X (TopPair.ofSubset D).snd A R S T Y).g.f i ≫
-          (shortComplex₂ X Y A B R S T (TopPair.ofSubset D).snd).g.f i) :=
+      -- After the epimorphism `(C(X) ⊗ C(Y)) ⊗ C(D) ⟶ (C(X, A) ⊗ C(Y, B)) ⊗ C(D)`, this is the
+      -- vanishing of `TopCat.shuffleAssocHomotopy` on the chains of `X × (Y × D)`.
+      have : Epi (((TopPair.singularChainComplexπOfSubset R A ⊗ₘ
+          𝟙 ((toSSet.obj Y).chainComplex S)) ⊗ₘ
+            𝟙 ((toSSet.obj (TopPair.ofSubset D).snd).chainComplex T)).f i ≫
+          ((𝟙 ((TopPair.ofSubset A).singularChainComplex R) ⊗ₘ
+            TopPair.singularChainComplexπOfSubset S B) ⊗ₘ
+              𝟙 ((toSSet.obj (TopPair.ofSubset D).snd).chainComplex T)).f i) :=
         @epi_comp _ _ _ _ _ _
           ((shortExact_shortComplex₁ X (TopPair.ofSubset D).snd A R S T Y).map_of_exact
             (HomologicalComplex.eval C _ i)).epi_g _
           ((shortExact_shortComplex₂ X Y A B R S T (TopPair.ofSubset D).snd).map_of_exact
             (HomologicalComplex.eval C _ i)).epi_g
-      refine (cancel_epi ((shortComplex₁ X (TopPair.ofSubset D).snd A R S T Y).g.f i ≫
-          (shortComplex₂ X Y A B R S T (TopPair.ofSubset D).snd).g.f i)).1 ?_
+      refine (cancel_epi (((TopPair.singularChainComplexπOfSubset R A ⊗ₘ
+          𝟙 ((toSSet.obj Y).chainComplex S)) ⊗ₘ
+            𝟙 ((toSSet.obj (TopPair.ofSubset D).snd).chainComplex T)).f i ≫
+          ((𝟙 ((TopPair.ofSubset A).singularChainComplex R) ⊗ₘ
+            TopPair.singularChainComplexπOfSubset S B) ⊗ₘ
+              𝟙 ((toSSet.obj (TopPair.ofSubset D).snd).chainComplex T)).f i)).1 ?_
       have e₁ {K₁ K₂ K₃ L₁ L₂ L₃ : ChainComplex C ℕ} (f₁ : K₁ ⟶ L₁) (f₂ : K₂ ⟶ L₂)
           (f₃ : K₃ ⟶ L₃) :
           ((f₁ ⊗ₘ 𝟙 K₂) ⊗ₘ 𝟙 K₃) ≫ ((𝟙 L₁ ⊗ₘ f₂) ⊗ₘ 𝟙 K₃) ≫ (𝟙 (L₁ ⊗ L₂) ⊗ₘ f₃) =
             ((𝟙 K₁ ⊗ₘ 𝟙 K₂) ⊗ₘ f₃) ≫ ((f₁ ⊗ₘ 𝟙 K₂) ⊗ₘ 𝟙 L₃) ≫ ((𝟙 L₁ ⊗ₘ f₂) ⊗ₘ 𝟙 L₃) := by
         simp only [tensorHom_comp_tensorHom, Category.id_comp, Category.comp_id]
-      have e₂ := shuffleAssocHomotopy_hom_comp_singularChainComplexπ_eq_zero X Y Z A B D R S T
-        (𝟙 X) (𝟙 Y) (TopPair.ofSubset D).map
+      have h := shuffleAssocHomotopy_hom_comp_singularChainComplexπ_eq_zero X Y Z A B D R S T
+        (𝟙 X) (𝟙 Y) (TopPair.ιOfSubset D)
         (by rintro _ ⟨x, rfl⟩; exact Or.inr (Or.inr x.2.2.property)) i j
-      simp only [CategoryTheory.Functor.map_id] at e₂
-      have e₃ : (shortComplex₁ X (TopPair.ofSubset D).snd A R S T Y).g ≫
-          (shortComplex₂ X Y A B R S T (TopPair.ofSubset D).snd).g ≫
-            (shortComplex₃ X Y Z A B D R S T).f =
-          ((𝟙 ((toSSet.obj X).chainComplex R) ⊗ₘ 𝟙 ((toSSet.obj Y).chainComplex S)) ⊗ₘ
-              SSet.chainComplexMap (toSSet.map (TopPair.ofSubset D).map) T) ≫
-            (shortComplex₁ X Z A R S T Y).g ≫ (shortComplex₂ X Y A B R S T Z).g :=
-        e₁ _ _ _
-      -- the ambient chains of a pair are the chains of its space only up to unfolding, so the
-      -- composites are reassociated through an identity between morphisms of `C`
-      have e₄ {P₁ P₂ P₃ P₄ P₅ P₆ P₇ : C} (a : P₁ ⟶ P₂) (b : P₂ ⟶ P₃) (c : P₃ ⟶ P₄)
-          (d : P₄ ⟶ P₇) (e : P₁ ⟶ P₅) (f : P₅ ⟶ P₆) (g : P₆ ⟶ P₄) (k : P₆ ⟶ P₇) (k' : P₅ ⟶ P₇)
-          (hc : (a ≫ b) ≫ c = e ≫ f ≫ g) (hg : g ≫ d = k) (hf : f ≫ k = k') (he : e ≫ k' = 0) :
-          (a ≫ b) ≫ c ≫ d = 0 := by
-        rw [← Category.assoc, hc, Category.assoc, Category.assoc, hg, hf, he]
-      refine (congrArg (_ ≫ _ ≫ ·) ((congrArg (_ ≫ ·) (id_f _ j)).trans
-        (Category.comp_id _))).trans (Eq.trans ?_ comp_zero.symm)
-      refine e₄ _ _ _ _ _ _ _ _ _ ((Category.assoc _ _ _).trans <|
-        ((congrArg (_ ≫ ·) (comp_f _ _ i).symm).trans (comp_f _ _ i).symm).trans <|
-          (congrArg (fun φ ↦ φ.f i) e₃).trans <|
-            (comp_f _ _ i).trans (congrArg (_ ≫ ·) (comp_f _ _ i)))
-        (shortComplex₂_g_f_shufflePairAssocHomotopy₂_hom X Y Z A B D R S T i j)
-        (shortComplex₁_g_f_shufflePairAssocHomotopy₁_hom X Y Z A B D R S T i j) e₂)
+      simp only [CategoryTheory.Functor.map_id] at h
+      rw [id_f, Category.comp_id, ← comp_f, ← comp_f_assoc, Category.assoc, e₁, comp_f, comp_f,
+        Category.assoc, Category.assoc,
+        id_tensorHom_singularChainComplexπ_f_shufflePairAssocHomotopy₂_hom,
+        singularChainComplexπ_tensorHom_id_f_shufflePairAssocHomotopy₁_hom, h, comp_zero])
     (Category.comp_id _).symm (Category.comp_id _).symm
 
 variable [∀ T : C, PreservesColimitsOfShape WalkingParallelPair (tensorLeft T)]

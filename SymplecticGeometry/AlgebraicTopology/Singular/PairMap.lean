@@ -23,9 +23,9 @@ A map into the ambient space of a pair that factors through the subspace vanishe
 chains (`TopPair.chainComplexMap_comp_singularChainComplexπ_of_fac`); so does a map into `X` with
 range in `A`, on the chains relative to `A`, since its corestriction `TopCat.codRestrict` to `A`
 factors it through the subspace
-(`TopPair.chainComplexMap_comp_singularChainComplexπ_eq_zero_of_range_subset`). A map of subspace
-pairs whose ambient map lands in the subspace of the target vanishes on relative homology
-(`TopPair.singularHomologyMap_ofSubsetMap_eq_zero_of_range_subset`). The proof of
+(`TopPair.chainComplexMap_comp_singularChainComplexπOfSubset_eq_zero_of_range_subset`). A map
+of subspace pairs whose ambient map lands in the subspace of the target vanishes on relative
+homology (`TopPair.singularHomologyMap_ofSubsetMap_eq_zero_of_range_subset`). The proof of
 `TopPair.chainComplexMap_comp_singularChainComplexπ_of_fac` adapts that of Tau Ceti's
 `TopPair.singularChainComplexMap_eq_zero_of_fac`, in
 `TauCeti/AlgebraicTopology/Singular/Relative.lean`, to a map into the ambient space that need not
@@ -69,8 +69,8 @@ the relative homology of `(X, A)` as the map induced by `TopPair.singularChainCo
   embedding of the subspace of `(X, A)`, is the map.
 * `TopPair.chainComplexMap_comp_singularChainComplexπ_of_fac`: maps through the subspace vanish on
   relative chains.
-* `TopPair.chainComplexMap_comp_singularChainComplexπ_eq_zero_of_range_subset`: maps with range in
-  `A` vanish on the chains relative to `A`.
+* `TopPair.chainComplexMap_comp_singularChainComplexπOfSubset_eq_zero_of_range_subset`: maps
+  with range in `A` vanish on the chains relative to `A`.
 * `TopPair.homologyMap_eq_singularHomologyπ_comp_inv`: a chain map into the relative chains of a
   pair, compatible with a map of pairs that is an isomorphism on homology, through the inverse of
   that isomorphism.
@@ -285,9 +285,9 @@ lemma chainComplexMap_comp_singularChainComplexπ_of_fac (P : TopPair.{w}) {Y : 
 
 /-- A map into `X` with range in `A` sends singular chains to zero in the chains of `X` relative
 to `A`. -/
-lemma chainComplexMap_comp_singularChainComplexπ_eq_zero_of_range_subset {X Z : TopCat.{w}}
-    {A : Set X} {f : Z ⟶ X} (hf : Set.range f ⊆ A) :
-    SSet.chainComplexMap (TopCat.toSSet.map f) R ≫ (ofSubset A).singularChainComplexπ R = 0 :=
+lemma chainComplexMap_comp_singularChainComplexπOfSubset_eq_zero_of_range_subset
+    {X Z : TopCat.{w}} {A : Set X} {f : Z ⟶ X} (hf : Set.range f ⊆ A) :
+    SSet.chainComplexMap (TopCat.toSSet.map f) R ≫ singularChainComplexπOfSubset R A = 0 :=
   chainComplexMap_comp_singularChainComplexπ_of_fac R (ofSubset A) f
     (TopCat.codRestrict f A fun z ↦ hf ⟨z, rfl⟩) (codRestrict_comp_ofSubset_map A _ _)
 
