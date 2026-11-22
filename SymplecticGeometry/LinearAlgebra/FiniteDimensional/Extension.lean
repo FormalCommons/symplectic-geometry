@@ -7,6 +7,7 @@ module
 
 public import Mathlib.LinearAlgebra.FiniteDimensional.Lemmas
 public import Mathlib.LinearAlgebra.Projection
+public import SymplecticGeometry.LinearAlgebra.Range
 
 /-!
 # Extending an injective linear map to a linear equivalence
@@ -40,19 +41,13 @@ theorem exists_linearEquiv_comp_eq_of_injective {i : F →ₗ[K] V} {j : F →�
     rw [finrank_range_of_inj hi] at h₁
     rw [finrank_range_of_inj hj] at h₂
     omega
-  let e : range i ≃ₗ[K] range j :=
-    (LinearEquiv.ofInjective i hi).symm.trans (LinearEquiv.ofInjective j hj)
   refine ⟨(Submodule.prodEquivOfIsCompl _ _ hC).symm.trans
-    ((e.prodCongr (LinearEquiv.ofFinrankEq C N hCN)).trans
+    (((LinearEquiv.ofInjectiveRange i j hi hj).prodCongr (LinearEquiv.ofFinrankEq C N hCN)).trans
       (Submodule.prodEquivOfIsCompl _ _ hN)), ?_⟩
   ext s
   have hs : (Submodule.prodEquivOfIsCompl _ _ hC).symm (i s) =
       ((⟨i s, mem_range_self i s⟩ : range i), (0 : C)) :=
     Submodule.prodEquivOfIsCompl_symm_apply_left _ _ hC (⟨i s, mem_range_self i s⟩ : range i)
-  have he : e ⟨i s, mem_range_self i s⟩ = ⟨j s, mem_range_self j s⟩ := by
-    have h' : (LinearEquiv.ofInjective i hi).symm ⟨i s, mem_range_self i s⟩ = s :=
-      (LinearEquiv.ofInjective i hi).symm_apply_eq.2 (Subtype.ext (by simp))
-    exact Subtype.ext (by simp [e, h'])
-  simp [hs, he]
+  simp [hs]
 
 end LinearMap
