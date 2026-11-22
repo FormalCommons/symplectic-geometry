@@ -10,7 +10,8 @@ public import TauCeti.Geometry.Manifold.Instances.Cylinder
 public import TauCeti.Geometry.Manifold.Instances.Projectivization
 public import TauCeti.Geometry.Manifold.Submersion.Split
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
-import SymplecticGeometry.Analysis.InnerProductSpace.Calculus
+import Mathlib.Analysis.Calculus.Deriv.Inv
+import TauCeti.Analysis.InnerProductSpace.RadialRescale
 import TauCeti.Geometry.Manifold.ContMDiff.RestrictScalars
 import TauCeti.Geometry.Manifold.ContMDiff.Subtype
 import TauCeti.Geometry.Manifold.Instances.Sphere
@@ -327,22 +328,27 @@ theorem mvfderiv_radialProjection (z : puncturedSpace (Fin (n + 1) → ℂ))
           complexToRealEuclidean (Fin (n + 1)) z := by
   have hz : complexToRealEuclidean (Fin (n + 1)) z ≠ 0 := by
     simpa using mem_puncturedSpace.1 z.property
-  have hd := (hasFDerivAt_norm_inv_smul hz).comp (z : Fin (n + 1) → ℂ)
+  have hd := (TauCeti.hasFDerivAt_radialRescale hz
+    (hasDerivAt_inv (norm_ne_zero_iff.2 hz))).comp (z : Fin (n + 1) → ℂ)
     (complexToRealEuclidean (Fin (n + 1))).hasFDerivAt
   have hfun : ((↑) : sphere (0 : StdSpace (Fin (n + 1))) 1 → StdSpace (Fin (n + 1))) ∘
       radialProjection n =
-        ((fun y : StdSpace (Fin (n + 1)) ↦ ‖y‖⁻¹ • y) ∘ complexToRealEuclidean (Fin (n + 1))) ∘
-          Subtype.val :=
-    funext radialProjection_apply
+        (TauCeti.radialRescale (·⁻¹) ∘ complexToRealEuclidean (Fin (n + 1))) ∘ Subtype.val :=
+    funext fun y ↦ (radialProjection_apply y).trans (TauCeti.radialRescale_apply _ _).symm
   rw [← mvfderiv_comp_apply _ ((contMDiff_coe_sphere _).mdifferentiableAt one_ne_zero)
       ((contMDiff_radialProjection n 1 z).mdifferentiableAt one_ne_zero), hfun,
     mvfderiv_comp_apply_of_differentiableAt hd.differentiableAt
       ((contMDiff_subtypeVal z).mdifferentiableAt one_ne_zero),
     TauCeti.Manifold.mvfderiv_subtype_val_apply, hd.fderiv]
-  simp [div_eq_inv_mul, mul_smul]
-  -- The difference is applied to `v : TangentSpace _ z`, not to a vector of `Fin (n + 1) → ℂ`,
-  -- which blocks `Pi.sub_apply`; the two sides agree once `TangentSpace` is unfolded.
-  rfl
+  -- Read `v` as a vector of `Fin (n + 1) → ℂ`, so that the evaluation lemmas of continuous linear
+  -- maps apply to it.
+  revert v
+  intro (w : Fin (n + 1) → ℂ)
+  simp only [ContinuousLinearMap.comp_apply, add_apply, smul_apply, ContinuousLinearMap.id_apply,
+    ContinuousLinearMap.smulRight_apply, innerSL_apply_apply, ContinuousLinearEquiv.coe_coe,
+    smul_eq_mul, sub_eq_add_neg, ← neg_smul]
+  congr 2
+  field_simp
 
 /-- The radial projection is a left inverse of the inclusion of the sphere. -/
 @[simp]

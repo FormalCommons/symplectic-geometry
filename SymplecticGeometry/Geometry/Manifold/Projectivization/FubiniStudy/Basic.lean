@@ -28,7 +28,8 @@ builds the forms upstairs from which the Fubini–Study form of `ℂPⁿ` descen
   along the radial projection `z ↦ ẑ / ‖ẑ‖` of Tau Ceti's contact form
   `TauCeti.SymplecticForm.sphereContactForm` of the unit sphere of `StdSpace (Fin (n + 1))`,
   since `ω₀(z / |z|, ·)` kills the radial direction. With the potential
-  `fubiniStudyPotential n`, the function `log |z|²`, it is `(1/4) J* d log |z|²`
+  `fubiniStudyPotential n`, the function `log |z|²` with differential
+  `v ↦ 2 ⟨z, v⟩ / |z|²` (`mextDerivₗ_fubiniStudyPotential_apply`), it is `(1/4) J* d log |z|²`
   (`fubiniStudyPrimitive_eq`), where `J*` is `covectorComplexStructure` of the complex structure
   of `Z`.
 * `SymplecticGeometry.fubiniStudyLift n` is `ρ = dα`. It is closed (`isClosed_fubiniStudyLift`),
@@ -73,6 +74,7 @@ theorem fubiniStudyPrimitive_def :
 
 variable {n} in
 /-- The Fubini–Study primitive evaluates as `α_z(v) = ω₀(z, v) / (2 |z|²)`. -/
+@[simp]
 theorem fubiniStudyPrimitive_apply (z : puncturedSpace (Fin (n + 1) → ℂ))
     (v : TangentSpace 𝓘(ℝ, Fin (n + 1) → ℂ) z) :
     (fubiniStudyPrimitive n).val z ![v] =
@@ -102,14 +104,52 @@ noncomputable def fubiniStudyPotential :
         (by simpa using mem_puncturedSpace.1 z.property)
     exact h.contMDiffAt.comp z (contMDiff_subtypeVal z)⟩
 
-/-- The potential `fubiniStudyPotential n`, as a function, is `z ↦ log |z|²`. -/
-theorem fubiniStudyPotential_apply :
-    (fun z ↦ (fubiniStudyPotential n).val z 0) =
-      fun z : puncturedSpace (Fin (n + 1) → ℂ) ↦
-        Real.log (∑ i, ‖(z : Fin (n + 1) → ℂ) i‖ ^ 2) := by
-  simp_rw [← norm_sq_complexToRealEuclidean]
-  rw [fubiniStudyPotential]
-  exact SmoothForm.ofFunction_apply_zero _
+/-- As a rough form, the potential is the `0`-form of the function `z ↦ log ‖ẑ‖²`. -/
+theorem fubiniStudyPotential_def :
+    (fubiniStudyPotential n : RoughForm 𝓘(ℝ, Fin (n + 1) → ℂ) _ ℝ 0) =
+      RoughForm.ofFunction 𝓘(ℝ, Fin (n + 1) → ℂ)
+        fun z : puncturedSpace (Fin (n + 1) → ℂ) ↦
+          Real.log (‖complexToRealEuclidean (Fin (n + 1)) z‖ ^ 2) :=
+  SmoothForm.coe_ofFunction _
+
+variable {n} in
+/-- The potential `fubiniStudyPotential n` takes the value `log |z|²` at `z`. -/
+@[simp]
+theorem fubiniStudyPotential_apply (z : puncturedSpace (Fin (n + 1) → ℂ))
+    (v : Fin 0 → TangentSpace 𝓘(ℝ, Fin (n + 1) → ℂ) z) :
+    (fubiniStudyPotential n).val z v = Real.log (∑ i, ‖(z : Fin (n + 1) → ℂ) i‖ ^ 2) := by
+  rw [fubiniStudyPotential_def, RoughForm.ofFunction_apply, norm_sq_complexToRealEuclidean]
+
+variable {n} in
+/-- The differential of the potential: `d(log |z|²)_z(v) = 2 ⟨z, v⟩ / |z|²`, with
+`⟨z, v⟩ = Re ∑ᵢ conj zᵢ vᵢ`. -/
+theorem mextDerivₗ_fubiniStudyPotential_apply (z : puncturedSpace (Fin (n + 1) → ℂ))
+    (v : TangentSpace 𝓘(ℝ, Fin (n + 1) → ℂ) z) :
+    (mextDerivₗ 𝓘(ℝ, Fin (n + 1) → ℂ) 0 (fubiniStudyPotential n)).val z ![v] =
+      2 * (star (z : Fin (n + 1) → ℂ) ⬝ᵥ v).re / ∑ i, ‖(z : Fin (n + 1) → ℂ) i‖ ^ 2 := by
+  have hz : complexToRealEuclidean (Fin (n + 1)) z ≠ 0 := by
+    simpa using mem_puncturedSpace.1 z.property
+  have hd : HasFDerivAt (fun w ↦ Real.log (‖complexToRealEuclidean (Fin (n + 1)) w‖ ^ 2))
+      ((‖complexToRealEuclidean (Fin (n + 1)) z‖ ^ 2)⁻¹ •
+        (2 • (innerSL ℝ (complexToRealEuclidean (Fin (n + 1)) z)).comp
+          (complexToRealEuclidean (Fin (n + 1)) : (Fin (n + 1) → ℂ) →L[ℝ] _)))
+      (z : Fin (n + 1) → ℂ) :=
+    ((complexToRealEuclidean (Fin (n + 1))).hasFDerivAt.norm_sq).log (by simpa using hz)
+  have hf : (fun y ↦ (fubiniStudyPotential n).val y 0) =
+      (fun w ↦ Real.log (‖complexToRealEuclidean (Fin (n + 1)) w‖ ^ 2)) ∘ Subtype.val :=
+    funext fun y ↦ by
+      rw [fubiniStudyPotential_apply, Function.comp_apply, norm_sq_complexToRealEuclidean]
+  rw [mextDerivₗ_zero_apply, hf, mvfderiv_comp_apply_of_differentiableAt hd.differentiableAt
+      ((contMDiff_subtypeVal z).mdifferentiableAt one_ne_zero),
+    Manifold.mvfderiv_subtype_val_apply, hd.fderiv]
+  -- Read `v` as a vector of `Fin (n + 1) → ℂ`, so that the evaluation lemmas of continuous linear
+  -- maps apply to it.
+  revert v
+  intro (w : Fin (n + 1) → ℂ)
+  simp only [smul_apply, ContinuousLinearMap.comp_apply,
+    ContinuousLinearEquiv.coe_coe, innerSL_apply_apply, inner_complexToRealEuclidean,
+    norm_sq_complexToRealEuclidean, smul_eq_mul, nsmul_eq_mul, Nat.cast_ofNat]
+  field_simp
 
 open TauCeti.ComplexManifold in
 /-- The Fubini–Study primitive is `(1/4) J* d log |z|²`, where `J*` is the almost complex
@@ -122,34 +162,17 @@ theorem fubiniStudyPrimitive_eq :
   refine Subtype.ext <| funext fun z ↦ ?_
   refine sub_eq_zero.1 <| (ContinuousAlternatingMap.eq_zero_iff_forall_apply_fin_one _).2
     fun v ↦ ?_
-  have hz : complexToRealEuclidean (Fin (n + 1)) z ≠ 0 := by
-    simpa using mem_puncturedSpace.1 z.property
-  have hd : HasFDerivAt (fun w ↦ Real.log (‖complexToRealEuclidean (Fin (n + 1)) w‖ ^ 2))
-      ((‖complexToRealEuclidean (Fin (n + 1)) z‖ ^ 2)⁻¹ •
-        (2 • (innerSL ℝ (complexToRealEuclidean (Fin (n + 1)) z)).comp
-          (complexToRealEuclidean (Fin (n + 1)) : (Fin (n + 1) → ℂ) →L[ℝ] _)))
-      (z : Fin (n + 1) → ℂ) :=
-    ((complexToRealEuclidean (Fin (n + 1))).hasFDerivAt.norm_sq).log (by simpa using hz)
-  have hf : (fun y ↦ (fubiniStudyPotential n).val y 0) =
-      (fun w ↦ Real.log (‖complexToRealEuclidean (Fin (n + 1)) w‖ ^ 2)) ∘ Subtype.val := by
-    simp_rw [fubiniStudyPotential_apply, Function.comp_def, norm_sq_complexToRealEuclidean]
-  -- `⟨z, i u⟩ = -ω₀(z, u)`.
-  have hJ : ∀ u : Fin (n + 1) → ℂ, inner ℝ (complexToRealEuclidean (Fin (n + 1)) z)
-      (complexToRealEuclidean (Fin (n + 1)) (Complex.I • u)) =
-        -stdComplexPiSymplecticForm (Fin (n + 1)) z u := fun u ↦ by
-    rw [← stdComplexStructure_complexToRealEuclidean, real_inner_comm, ← stdForm_apply_eq_inner,
-      ← (stdForm _).neg_eq, stdForm_complexToRealEuclidean]
   rw [ContinuousAlternatingMap.sub_apply, sub_eq_zero, SmoothForm.smul_toRoughForm, Pi.smul_apply,
     ContinuousAlternatingMap.smul_apply,
-    SmoothAlmostComplexStructure.covectorComplexStructure_apply_vec, mextDerivₗ_zero_apply, hf,
-    mvfderiv_comp_apply_of_differentiableAt hd.differentiableAt
-      ((contMDiff_subtypeVal z).mdifferentiableAt one_ne_zero),
-    Manifold.mvfderiv_subtype_val_apply, hd.fderiv, fubiniStudyPrimitive_apply]
-  have hJv := hJ v
-  have hJz := SmoothAlmostComplexStructure.ofComplexManifold_apply (E := Fin (n + 1) → ℂ) z v
-  beta_reduce at hJv hJz ⊢
-  simp only [hJz, smul_apply, ContinuousLinearMap.comp_apply, ContinuousLinearEquiv.coe_coe,
-    innerSL_apply_apply, hJv, norm_sq_complexToRealEuclidean, smul_eq_mul, nsmul_eq_mul]
+    SmoothAlmostComplexStructure.covectorComplexStructure_apply_vec,
+    mextDerivₗ_fubiniStudyPotential_apply, fubiniStudyPrimitive_apply]
+  have hJ := SmoothAlmostComplexStructure.ofComplexManifold_apply (E := Fin (n + 1) → ℂ) z v
+  have hI := inner_complexToRealEuclidean_I_smul (z : Fin (n + 1) → ℂ) v
+  -- `covectorComplexStructure_apply_vec` leaves `J z v` as an application of `fun x ↦ J x`.
+  beta_reduce at hJ hI ⊢
+  rw [hJ, ← inner_complexToRealEuclidean]
+  -- `simp only` matches `hI` up to the identification of `v` with a vector of `Fin (n + 1) → ℂ`.
+  simp only [hI]
   field_simp
   ring
 

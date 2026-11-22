@@ -279,11 +279,6 @@ real `0`-form, complexified by `SmoothForm.mapCoeff Complex.ofRealCLM`):
 
 Reference: Huybrechts, *Complex Geometry*, §§1.3 and 3.1.
 
-### `Analysis/InnerProductSpace/Calculus.lean`
-
-- `hasFDerivAt_norm_inv_smul` (root namespace): the derivative of $y\mapsto y/\lVert y\rVert$
-  away from $0$, which `Hopf.lean` uses for the derivative of `radialProjection`.
-
 ### `Geometry/Manifold/Projectivization/Hopf.lean`
 
 In namespace `Projectivization`, for `𝕜` a nontrivially normed field that is

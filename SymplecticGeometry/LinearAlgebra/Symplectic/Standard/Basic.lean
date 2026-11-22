@@ -431,6 +431,14 @@ theorem stdForm_apply_eq_inner_sub_inner (z w : StdSpace ι) :
   simp only [map_neg]
   ring
 
+/-- Read through `complexToRealEuclidean ι`, the inner product of `z` with `I • u` is
+`-ω₀(z, u)`, for `ω₀ = stdComplexPiSymplecticForm ι`. -/
+theorem inner_complexToRealEuclidean_I_smul (z u : ι → ℂ) :
+    inner ℝ (complexToRealEuclidean ι z) (complexToRealEuclidean ι (Complex.I • u)) =
+      -stdComplexPiSymplecticForm ι z u := by
+  rw [← stdComplexStructure_complexToRealEuclidean, real_inner_comm, ← stdForm_apply_eq_inner,
+    ← (stdForm _).neg_eq, stdForm_complexToRealEuclidean]
+
 /-- In coordinates, `ω₀(z, w) = -zᵀ J w` with `J = Matrix.J ι ℝ`. For `ι = Fin n` this says
 that Tau Ceti's `TauCeti.stdSymplecticBilinForm ℝ n` is `-ω₀`. -/
 theorem stdForm_toBilinForm [DecidableEq ι] :
