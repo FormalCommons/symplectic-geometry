@@ -2609,17 +2609,22 @@ has either; Tau Ceti's extension across a boundary,
   complex submanifold): the tangent bundle of $\mathbb CP^{n+1}$ plus a
   trivial line as $H^{\oplus(n+2)}$, with $H$ Tau Ceti's
   `Projectivization.twistCore 1`; the normal bundle of a hypersurface of
-  degree $d$, Tau Ceti's `TauCeti.SmoothEmbedding.NormalSpace` bundle as in
-  *Adjunction*, as the restriction of $H^{\otimes d}$, through the derivative
+  degree $d$, Tau Ceti's `TauCeti.SmoothEmbedding.NormalSpace` bundle over
+  `ℂ`, as the restriction of $H^{\otimes d}$, through the derivative
   of the polynomial; $\langle\iota^*h^n,[M]\rangle=d$; then the total Chern class
   and $c_1$ of $M$; the Euler characteristic; the numbers for surfaces in
   $\mathbb CP^3$ and threefolds in $\mathbb CP^4$, with Tau Ceti's Lefschetz
   theorems for the Betti numbers; and the genus of a smooth plane curve,
-  from $c_1(T\Sigma)=(3-d)\,\iota^*h$ and *First Chern number*'s Euler
-  number milestone.
-- **Builds on:** *Chern classes*; *First Chern number* (`EulerNumber.lean`,
-  #785, and Poincaré duality, #810); Tau Ceti's projective space, line
-  bundles, zero loci and Lefschetz theorems.
+  from its Euler characteristic $d(3-d)$. The bundles on projective space,
+  a splitting along an embedding and the Euler characteristic of a compact
+  complex manifold are in files outside that folder, which
+  `design/projective-hypersurfaces.md` lists.
+- **Builds on:** *Chern classes*; *First Chern number* (only Poincaré
+  duality, #810); Tau Ceti's projective space, line bundles, zero loci,
+  Veronese maps and Lefschetz theorems, and its normal bundles and tubular
+  neighbourhoods of smooth embeddings
+  (`Geometry/Manifold/SmoothEmbedding/NormalSpace/`,
+  `Geometry/Manifold/TubularNeighborhood/`).
 - **Milestones:** *Chern classes of projective hypersurfaces*, and the
   example of *Adjunction formula*. Tau Ceti's Lefschetz theorems assume a
   neighbourhood of the hyperplane section that retracts onto it; the design
@@ -2672,7 +2677,7 @@ that file, and the notes here may fall behind it.
 | 4 | *First Chern class of nondegenerate forms* | *First Chern number* (only `FirstChernClass.lean`, #784); merged files of *Symplectic vector bundles* |
 | 4 | *Adjunction* | *First Chern number* (only `FirstChernClass.lean`, `ChernNumber/Basic.lean` and `ChernNumber/Axioms.lean`); `NormalSpace/ComplexStructure.lean` and `NormalSplitting.lean` can start at once |
 | 4 | *Chern classes* | *First Chern number* (only `FirstChernClass.lean`, for the comparison of $c_1$); the other issues of its design file can start at once |
-| 5 | *Projective hypersurfaces* | *Chern classes*, *First Chern number* (only `ChernNumber/EulerNumber.lean`); the bundle isomorphisms on $\mathbb CP^{n+1}$ can start at once |
+| 5 | *Projective hypersurfaces* | *Chern classes*, *First Chern number* (only Poincaré duality, #810); the bundle isomorphisms on $\mathbb CP^{n+1}$, the normal bundle and the Lefschetz theorems can start at once |
 
 The design issues of the parts marked as needing one can start at once, in
 parallel with the level-0 parts.
