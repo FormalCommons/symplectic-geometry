@@ -569,6 +569,18 @@ With `injective_projectiveBundle_proj` this is the splitting principle in the
 one-step form that the inductions below use; `P(E)` is again compact
 Hausdorff.
 
+### `AlgebraicTopology/Singular/Kunneth/Connecting.lean`
+
+The connecting morphism on the cross product of the pairs of the file below,
+in the second factor, for the value of
+`TauCeti.LocalOrientation.crossSign m 0`:
+`TopCat.singularHomologyCrossRelPair_comp_singularHomologyδ_comp_singularHomologyπ`,
+that the connecting morphism of `(X × Y, A × Y ∪ X × B)`, followed by the map
+to `Hₙ'(A × Y ∪ X × B, A × Y)`, sends `a × b` to `(-1) ^ p` times the image of
+`TopCat.singularHomologyCrossRel` of `a` and `δ b` under
+`TopPair.prodExcisionFst`. It is a file of its own, beside
+`RelativePair.lean`, which it imports.
+
 ### `AlgebraicTopology/Singular/Kunneth/RelativePair.lean`
 
 The homology cross product of two pairs, for the Whitney file below:
