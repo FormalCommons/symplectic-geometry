@@ -5,9 +5,8 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import TauCeti.AlgebraicTopology.Singular.Additivity
-public import TauCeti.Topology.Category.TopCat.Monoidal
 public import SymplecticGeometry.AlgebraicTopology.Singular.CircleMap
+public import SymplecticGeometry.AlgebraicTopology.Singular.DiscreteProd
 
 /-!
 # First homology of a finite disjoint union of circles
@@ -20,11 +19,12 @@ Write `Circle.prodInclusion i : C(Circle, ι × Circle)` for the inclusion `z �
 `i`-th circle, and `Circle.prodRetraction i : C(ι × Circle, Circle)` for the map that is the
 identity on the `i`-th circle and sends the others to `1`. The composite
 `prodRetraction i ∘ prodInclusion j` is the identity for `j = i` and constant otherwise, so on
-`H₁` it is the identity or zero. The inclusions are the legs of a coproduct cofan in `TopCat`
-(Mathlib's `TopCat.sigmaCofanIsColimit`, carried to `ι × Circle` by Tau Ceti's
-`TopCat.sigmaConstIsoProd`), and singular homology preserves finite coproducts (Tau Ceti's
-`TauCeti.isColimitCofanSingularHomology`, whose `PreservesColimitsOfShape` instance is used
-here), so the composites `(prodRetraction i)_* ≫ (prodInclusion i)_*` add up to the identity of
+`H₁` it is the identity or zero. As morphisms of `TopCat`, `prodInclusion i` and
+`prodRetraction i` are the fibre inclusion `TopCat.prodFiberInclusion` and the fibre retraction
+`TopCat.prodFiberRetraction` with base point `1` (`Circle.ofHom_prodInclusion`,
+`Circle.ofHom_prodRetraction`), so the general decomposition of the homology of a product with a
+finite discrete factor, `TopCat.sum_singularHomologyFunctor_map_prodFiberRetraction_comp`, shows
+that the composites `(prodRetraction i)_* ≫ (prodInclusion i)_*` add up to the identity of
 `H₁(ι × Circle)`. Hence every class is the sum over `i` of `nᵢ` times the class of
 the `i`-th circle, `nᵢ` being the integer that `Circle.singularHomologyOneIso` gives to its image
 under `prodRetraction i`, and a class is determined by these images.
@@ -50,7 +50,7 @@ public section
 
 noncomputable section
 
-open CategoryTheory Limits AlgebraicTopology
+open CategoryTheory MonoidalCategory AlgebraicTopology
 
 namespace Circle
 
@@ -63,6 +63,16 @@ def prodInclusion (i : ι) : C(Circle, ι × Circle) :=
 @[simp]
 theorem prodInclusion_apply (i : ι) (z : Circle) : prodInclusion i z = (i, z) :=
   (rfl)
+
+/-- As a morphism of `TopCat`, `prodInclusion i` is Tau Ceti's fibre inclusion
+`TopCat.prodFiberInclusion`. -/
+theorem ofHom_prodInclusion (i : ι) :
+    (TopCat.ofHom (prodInclusion i) : TopCat.of Circle ⟶ TopCat.of ι ⊗ TopCat.of Circle) =
+      TopCat.prodFiberInclusion (TopCat.of ι) (TopCat.of Circle) i := by
+  -- `TopCat.of ι ⊗ TopCat.of Circle` is `TopCat.of (ι × Circle)` only up to unfolding the
+  -- monoidal structure, so the two sides are compared pointwise by `exact` rather than `rw`
+  refine TopCat.ext fun z ↦ ?_
+  exact (TopCat.prodFiberInclusion_apply (TopCat.of ι) (TopCat.of Circle) i z).symm
 
 variable [DiscreteTopology ι] [DecidableEq ι]
 
@@ -101,18 +111,14 @@ theorem prodRetraction_comp_prodInclusion_of_ne {i j : ι} (h : j ≠ i) :
   ext z
   simp [prodRetraction_apply_of_ne h]
 
-/-- For `ι` discrete, the inclusions `prodInclusion i` are the legs of a coproduct cofan in
-`TopCat`. -/
-private def isColimitCofanProdInclusion :
-    IsColimit (Cofan.mk (TopCat.of (ι × Circle))
-      (fun i ↦ TopCat.ofHom (prodInclusion i)) : Cofan fun _ : ι ↦ TopCat.of Circle) :=
-  IsColimit.ofIsoColimit (TopCat.sigmaCofanIsColimit _)
-    (Cofan.ext (TopCat.sigmaConstIsoProd (TopCat.of ι) (TopCat.of Circle) :
-        TopCat.of (Σ _ : ι, Circle) ≅ TopCat.of (ι × Circle))
-      fun i ↦ TopCat.ext fun z ↦ by
-        simp only [Cofan.mk_pt, TopCat.hom_comp, ContinuousMap.comp_apply, cofan_mk_inj,
-          ConcreteCategory.hom_ofHom, prodInclusion_apply]
-        exact TopCat.sigmaConstIsoProd_hom_apply (TopCat.of ι) (TopCat.of Circle) ⟨i, z⟩)
+/-- As a morphism of `TopCat`, `prodRetraction i` is the fibre retraction
+`TopCat.prodFiberRetraction` with base point `1`. -/
+theorem ofHom_prodRetraction (i : ι) :
+    (TopCat.ofHom (prodRetraction i) : TopCat.of ι ⊗ TopCat.of Circle ⟶ TopCat.of Circle) =
+      TopCat.prodFiberRetraction (TopCat.of ι) (1 : Circle) i := by
+  -- as in `ofHom_prodInclusion`, the two sources agree only up to unfolding
+  refine TopCat.ext fun p ↦ ?_
+  exact (TopCat.prodFiberRetraction_apply (TopCat.of ι) (1 : Circle) i p).symm
 
 /-! ### First homology -/
 
@@ -139,11 +145,10 @@ theorem sum_singularHomologyFunctor_map_prodRetraction_prodInclusion [Fintype ι
         (TopCat.ofHom (prodRetraction i)) ≫
       ((singularHomologyFunctor (ModuleCat.{0} ℤ) 1).obj (ModuleCat.of ℤ (ULift.{0} ℤ))).map
         (TopCat.ofHom (prodInclusion i)) = 𝟙 _ := by
-  refine Cofan.IsColimit.hom_ext (isColimitCofanMkObjOfIsColimit
-    ((singularHomologyFunctor (ModuleCat.{0} ℤ) 1).obj (ModuleCat.of ℤ (ULift.{0} ℤ)))
-    _ _ (isColimitCofanProdInclusion (ι := ι))) _ _ fun j ↦ ?_
-  simp [Preadditive.comp_sum, ← Category.assoc,
-    singularHomologyFunctor_map_prodRetraction_comp_prodInclusion, ite_comp]
+  have h := TopCat.sum_singularHomologyFunctor_map_prodFiberRetraction_comp
+    (ModuleCat.of ℤ (ULift.{0} ℤ)) (TopCat.of ι) (1 : TopCat.of Circle) one_ne_zero
+  simp only [← ofHom_prodRetraction, ← ofHom_prodInclusion] at h
+  exact h
 
 /-- On the generator `g` of `H₁(Circle)`, the image under `prodRetraction i` of the class of the
 `j`-th circle is `g` if `j = i` and `0` otherwise. -/
