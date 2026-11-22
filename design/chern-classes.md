@@ -469,6 +469,22 @@ Copied from Tau Ceti's main branch (commit `aa1b4e9e2a`), under Tau Ceti's
 header: `TauCeti.exact_singularCup_eulerClass_singularCohomologyMap`, the
 exactness of the Gysin sequence at `Hᵐ(B)`. Imports `Thom/Isomorphism.lean` above.
 
+### `AlgebraicTopology/Cohomology/PairChangeOfCoefficients.lean`
+
+The changes of coefficients of `ChangeOfValues.lean`, `LinearCongr.lean` and
+Tau Ceti's `singularCohomologyChainCoefficientMap`, for the cohomology of a
+pair, in the namespace `TopPair`: `singularCohomologyChainCoefficientMap`,
+`singularCohomologyValueMap` and `singularCohomologyLinearCongr`, with
+`_naturality` (they commute with `TopPair.singularCohomologyMap f`) and
+their compatibility with `TopPair.singularCohomologyπ`.
+
+### `Topology/VectorBundle/Thom/ChangeOfCoefficients.lean`
+
+The three changes of `PairChangeOfCoefficients.lean` carry Thom classes to
+Thom classes (`TauCeti.IsThomClass.singularCohomologyChainCoefficientMap`,
+`…ValueMap`, `…LinearCongr`) and commute with `TauCeti.eulerClass`. Imports
+`PairChangeOfCoefficients.lean`.
+
 ### `Topology/VectorBundle/Thom/CupEulerClass.lean`
 
 The Gysin step of the Thom argument above, for any real vector bundle and
@@ -476,7 +492,11 @@ coefficients: `TauCeti.injective_singularCup_eulerClass`,
 `TauCeti.surjective_singularCup_eulerClass` and
 `TauCeti.bijective_singularCup_eulerClass`, cup product with `e(u)` when
 the Thom map of `u` is injective, surjective or bijective and the cohomology
-of `E₀` vanishes in the degree below the target, in the target, or both. Imports `Thom/Gysin.lean`.
+of `E₀` vanishes in the degree below the target, in the target, or both; and
+`TauCeti.bijective_integralCup_complexEulerClass`, the bijective case for
+`complexEulerClass` over a compact base, in `TopCat.integralCohomology`.
+Imports `Thom/Gysin.lean`, `Thom/ChangeOfCoefficients.lean`,
+`IntegralCohomologyULift.lean` and Tau Ceti's `Orientation/Complex/EulerClass.lean`.
 
 ### `AlgebraicTopology/Cohomology/ComplSingleton.lean`
 
