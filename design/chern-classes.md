@@ -654,6 +654,15 @@ the cone `SSet.stdSimplex.tripleProdConeChain` on the chains of
 `(Δ[a] ⊗ Δ[b]) ⊗ Δ[c]` and `SSet.tripleTensorChainComplexXDesc`, the maps
 out of a triple tensor product of chain groups.
 
+### `AlgebraicTopology/SimplicialSet/ShuffleAssoc.lean`
+
+The chain-level associativity of Tau Ceti's shuffle map, from the file
+above: `SSet.shuffleAssocHomotopy`, a chain homotopy between the two
+iterated shuffle maps
+`(C(K; R) ⊗ C(L; S)) ⊗ C(M; T) ⟶ C(K ⊗ (L ⊗ M); R ⊗ (S ⊗ T))`, with the
+parenthesization and associators of `TopCat.singularHomologyCross_assoc`,
+and `SSet.shuffleAssocHomotopy_hom_naturality`.
+
 ### `AlgebraicTopology/Singular/LocalHomology/Orientation/Cross/Basic.lean`
 
 The cross product of local orientations, for the Whitney file below, in Tau
