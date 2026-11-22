@@ -11,6 +11,7 @@ public import SymplecticGeometry.Geometry.Manifold.SmoothTransition
 public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Flow
 public import TauCeti.Geometry.Manifold.Flow.Eulerian
 import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Family
+import SymplecticGeometry.Geometry.Manifold.Instances.Icc
 import TauCeti.Geometry.Manifold.Instances.Icc
 
 /-!
@@ -131,7 +132,7 @@ theorem mfderiv_cylinderMap_ofReal (x : M) (t : unitInterval) :
   have hcyl : (fun s ↦ ofReal ψ hψ h₀ (s, x)) = (fun u ↦ ψ u x) ∘ Subtype.val :=
     funext fun s ↦ by rw [ofReal_apply, Function.comp_apply]
   have hval : MDifferentiableAt (𝓡∂ 1) 𝓘(ℝ) (Subtype.val : unitInterval → ℝ) t :=
-    (contMDiff_subtypeVal_Icc (n := 1)).mdifferentiableAt one_ne_zero
+    mdifferentiableAt_subtypeVal_Icc _
   have hγ : MDifferentiableAt 𝓘(ℝ) I (fun u ↦ ψ u x) t :=
     (hψ.comp (contMDiff_id.prodMk contMDiff_const)).mdifferentiableAt (by simp)
   refine ((ofReal ψ hψ h₀).mfderiv_cylinderMap_time (by simp) (x, t)).trans ?_
