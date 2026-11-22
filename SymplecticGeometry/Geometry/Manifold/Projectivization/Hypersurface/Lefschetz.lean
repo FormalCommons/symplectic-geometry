@@ -130,7 +130,6 @@ theorem isIso_homologyMap_subtypeVal (hd : d ≠ 0) {C : Type*} [Category* C] [A
 
 /-- For `d ≠ 0` and `n ≠ 0`, a smooth hypersurface `X ⊆ ℂℙⁿ⁺¹` is path-connected. -/
 theorem pathConnectedSpace (hd : d ≠ 0) (hn : n ≠ 0) : PathConnectedSpace X :=
-  have := X.nonempty hd
   ((X.isNConnected_subtypeVal hd).pathConnectedSpace_iff (Nat.one_le_iff_ne_zero.2 hn)).2
     inferInstance
 
