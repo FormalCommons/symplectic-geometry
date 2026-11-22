@@ -8,6 +8,7 @@ module
 public import Mathlib.Geometry.Manifold.Instances.Sphere
 public import TauCeti.Geometry.Manifold.Orientation.Sphere
 public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.CoordinateDisc
+public import SymplecticGeometry.Topology.Circle.Degree.Square
 public import SymplecticGeometry.Topology.Homotopy.CubeToSphere
 import TauCeti.Geometry.Sphere.Connected
 
@@ -33,9 +34,10 @@ of the open square.
 The map `z ↦ (1 + i) / 2 + z / 5` sends the ball of radius `2` of `ℂ` into the open square and is
 holomorphic, so composing it with the collapse gives a coordinate disc
 `SymplecticGeometry.CoordinateDisc.cubeToSphere` of `S²` for this orientation. In the coordinates
-of the square its closed disc is the image of the points `y` with
-`(y₀ - 1/2)² + (y₁ - 1/2)² ≤ 1/25`, and its open disc that of the points where the inequality is
-strict.
+of the square, it sends `z` to the image of the point at offset `z / 5` from the centre
+(`TauCeti.squareOfOffset`), its closed disc is the image of the points `y` whose offset
+`TauCeti.squareCenterOffset y` from the centre has norm at most `1/5`, and its open disc that of
+the points where it is less than `1/5`.
 
 ## Main definitions
 
@@ -53,7 +55,8 @@ strict.
 * `SymplecticGeometry.eq_cubeToSphereOrientation` and
   `SymplecticGeometry.existsUnique_forall_localOrientationEquiv_openSquareToSphere_eq`: it is the
   only such orientation.
-* `SymplecticGeometry.CoordinateDisc.cubeToSphere_apply`: the formula of the coordinate disc.
+* `SymplecticGeometry.CoordinateDisc.cubeToSphere_apply`: the formula of the coordinate disc,
+  through `TauCeti.squareOfOffset`.
 * `SymplecticGeometry.CoordinateDisc.disc_cubeToSphere`,
   `SymplecticGeometry.CoordinateDisc.openDisc_cubeToSphere`: its closed and open discs in the
   coordinates of the square.
@@ -201,58 +204,44 @@ theorem cubeToSphere_apply_eq (z : ball) :
     cubeToSphere z = openSquareToSphere (ballToOpenSquare z) :=
   (rfl)
 
-/-- The coordinate disc `cubeToSphere` sends `z` to the image under the collapse of the point `y`
-of the square with coordinates `1/2 + re z / 5` and `1/2 + im z / 5`. -/
-theorem cubeToSphere_apply (z : ball) {y : I^(Fin 2)} (h₀ : (y 0 : ℝ) = 1 / 2 + (z : ℂ).re / 5)
-    (h₁ : (y 1 : ℝ) = 1 / 2 + (z : ℂ).im / 5) :
-    cubeToSphere z = TauCeti.cubeToSphere 2 y := by
-  rw [cubeToSphere_apply_eq, openSquareToSphere_def]
-  congr 1
-  ext i
-  fin_cases i
-  · simp [h₀]
-  · simp [h₁]
+/-- The point of the square that `ballToOpenSquare` sends `z` to has offset `z / 5` from the
+centre of the square. -/
+theorem squareCenterOffset_openSquareHomeomorph_ballToOpenSquare (z : ball) :
+    squareCenterOffset (openSquareHomeomorph (ballToOpenSquare z) : I^(Fin 2)) = (z : ℂ) / 5 := by
+  apply Complex.ext <;>
+    simp [re_squareCenterOffset, im_squareCenterOffset]
+
+/-- The coordinate disc `cubeToSphere` sends `z` to the image under the collapse of the point of
+the square at offset `z / 5` from the centre. -/
+theorem cubeToSphere_apply (z : ball) :
+    cubeToSphere z = TauCeti.cubeToSphere 2 (squareOfOffset ((z : ℂ) / 5)) := by
+  rw [cubeToSphere_apply_eq, openSquareToSphere_def,
+    ← squareCenterOffset_openSquareHomeomorph_ballToOpenSquare, squareOfOffset_squareCenterOffset]
 
 /-- The images under `cubeToSphere` of the points of the ball cut out by a condition `p` on the
-squared norm are the images under the collapse of the points of the square cut out by the same
-condition on `25` times the squared distance to the centre `(1/2, 1/2)`. -/
-private theorem image_cubeToSphere_eq {p : ℝ → Prop} (hp : ∀ t, p t → t < 4) :
-    cubeToSphere '' {z | p (‖(z : ℂ)‖ ^ 2)} =
-      TauCeti.cubeToSphere 2 ''
-        {y | p (25 * (((y 0 : ℝ) - 1 / 2) ^ 2 + ((y 1 : ℝ) - 1 / 2) ^ 2))} := by
+norm are the images under the collapse of the points `y` of the square cut out by the same
+condition on the norm of `5 * squareCenterOffset y`. -/
+private theorem image_cubeToSphere_eq {p : ℝ → Prop} (hp : ∀ t, p t → t < 2) :
+    cubeToSphere '' {z | p ‖(z : ℂ)‖} =
+      TauCeti.cubeToSphere 2 '' {y | p ‖5 * squareCenterOffset y‖} := by
   ext x
   constructor
   · rintro ⟨z, hz, rfl⟩
     refine ⟨openSquareHomeomorph (ballToOpenSquare z), ?_,
       ((cubeToSphere_apply_eq z).trans (openSquareToSphere_def _)).symm⟩
-    simp only [Set.mem_ofPred_eq, coe_openSquareHomeomorph_apply_zero,
-      coe_openSquareHomeomorph_apply_one, coe_ballToOpenSquare_apply]
-    convert hz using 2
-    rw [Set.mem_ofPred_eq, Complex.sq_norm, Complex.normSq_apply]
-    simp only [add_re, div_ofNat_re, one_re, Complex.I_re, add_zero, one_div, add_sub_cancel_left,
-      add_im, div_ofNat_im, one_im, Complex.I_im, zero_add]
-    congr! 1
-    ring
+    rwa [Set.mem_ofPred_eq, squareCenterOffset_openSquareHomeomorph_ballToOpenSquare,
+      mul_div_cancel₀ _ (by norm_num : (5 : ℂ) ≠ 0)]
   · rintro ⟨y, hy, rfl⟩
-    let z : ℂ := ⟨5 * ((y 0 : ℝ) - 1 / 2), 5 * ((y 1 : ℝ) - 1 / 2)⟩
-    have hz : ‖z‖ ^ 2 = 25 * (((y 0 : ℝ) - 1 / 2) ^ 2 + ((y 1 : ℝ) - 1 / 2) ^ 2) := by
-      rw [Complex.sq_norm, Complex.normSq_mk]
-      ring
-    have hz2 : ‖z‖ < 2 := by
-      have := hp _ hy
-      nlinarith [norm_nonneg z]
-    refine ⟨⟨z, mem_ball_iff.2 hz2⟩, by simpa [hz] using hy, cubeToSphere_apply _ ?_ ?_⟩ <;>
-      simp [z]
+    refine ⟨⟨5 * squareCenterOffset y, mem_ball_iff.2 (hp _ hy)⟩, hy, ?_⟩
+    rw [cubeToSphere_apply, mul_div_cancel_left₀ _ (by norm_num : (5 : ℂ) ≠ 0),
+      squareOfOffset_squareCenterOffset]
 
 /-- The closed disc of `cubeToSphere`, in the coordinates of the square: the image under the
 collapse of the points at distance at most `1/5` from the centre `(1/2, 1/2)`. -/
 theorem disc_cubeToSphere :
-    cubeToSphere.disc =
-      TauCeti.cubeToSphere 2 ''
-        {y | ((y 0 : ℝ) - 1 / 2) ^ 2 + ((y 1 : ℝ) - 1 / 2) ^ 2 ≤ 1 / 25} := by
-  have h := image_cubeToSphere_eq (p := (· ≤ 1)) fun t (ht : t ≤ 1) ↦ by linarith
-  simp only [pow_le_one_iff_of_nonneg (norm_nonneg _) two_ne_zero] at h
-  rw [disc_def, h]
+    cubeToSphere.disc = TauCeti.cubeToSphere 2 '' {y | ‖squareCenterOffset y‖ ≤ 1 / 5} := by
+  rw [disc_def, image_cubeToSphere_eq (p := (· ≤ 1)) fun t (ht : t ≤ 1) ↦ by linarith]
+  simp only [norm_mul, Complex.norm_ofNat]
   congr 1
   ext y
   simp only [Set.mem_ofPred_eq]
@@ -261,12 +250,9 @@ theorem disc_cubeToSphere :
 /-- The open disc of `cubeToSphere`, in the coordinates of the square: the image under the
 collapse of the points at distance less than `1/5` from the centre `(1/2, 1/2)`. -/
 theorem openDisc_cubeToSphere :
-    cubeToSphere.openDisc =
-      TauCeti.cubeToSphere 2 ''
-        {y | ((y 0 : ℝ) - 1 / 2) ^ 2 + ((y 1 : ℝ) - 1 / 2) ^ 2 < 1 / 25} := by
-  have h := image_cubeToSphere_eq (p := (· < 1)) fun t (ht : t < 1) ↦ by linarith
-  simp only [pow_lt_one_iff_of_nonneg (norm_nonneg _) two_ne_zero] at h
-  rw [openDisc_def, h]
+    cubeToSphere.openDisc = TauCeti.cubeToSphere 2 '' {y | ‖squareCenterOffset y‖ < 1 / 5} := by
+  rw [openDisc_def, image_cubeToSphere_eq (p := (· < 1)) fun t (ht : t < 1) ↦ by linarith]
+  simp only [norm_mul, Complex.norm_ofNat]
   congr 1
   ext y
   simp only [Set.mem_ofPred_eq]
