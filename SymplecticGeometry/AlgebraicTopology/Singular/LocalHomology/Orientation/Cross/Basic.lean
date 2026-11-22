@@ -32,7 +32,10 @@ coefficients `ULift ℤ`, lands in the homology of `X × Y` relative to
 (`TauCeti.localHomologyCross`). It is natural in maps of pairs
 (`TauCeti.localHomologyMap_tensorHom_localHomologyMap_localHomologyCross`), and on classes coming
 from absolute homology it is the absolute cross product
-(`TauCeti.singularHomologyπ_tensorHom_singularHomologyπ_localHomologyCross`).
+(`TauCeti.singularHomologyπ_tensorHom_singularHomologyπ_localHomologyCross`). Read back relative
+to `(X ∖ {x}) × Y ∪ X × (Y ∖ {y})`, with the coefficients split again by the inverse of
+`ModuleCat.uliftTensorSelfIso`, it is the cross product of pairs
+(`TauCeti.localHomologyCross_comp_homologyMap_uliftTensorSelfIso_inv`).
 
 The main result is that the cross product of two local orientations of real vector spaces at the
 origin is a local orientation of their product (`TauCeti.isLocalOrientation_localHomologyCross`).
@@ -147,6 +150,58 @@ theorem localHomologyCross_eq (x : X) (y : Y) (p q n : ℕ) (h : p + q = n) :
       TopPair.singularHomologyMap
         (TopPair.ofSubsetMap _ (mapsTo_preimage_fst_compl_union_preimage_snd_compl x y)) _ n := by
   rw [localHomologyCross_def, TopPair.singularHomologyMap_coefficient_naturality]
+
+/-- The identity of `X × Y` carries the complement of `(x, y)` into
+`(X ∖ {x}) × Y ∪ X × (Y ∖ {y})`: the converse of
+`TauCeti.mapsTo_preimage_fst_compl_union_preimage_snd_compl`. -/
+theorem mapsTo_compl_singleton_preimage_fst_compl_union_preimage_snd_compl (x : X) (y : Y) :
+    MapsTo (𝟙 (TopCat.of X ⊗ TopCat.of Y)) ({(x, y)}ᶜ : Set (TopCat.of (X × Y)))
+      (CartesianMonoidalCategory.fst (TopCat.of X) (TopCat.of Y) ⁻¹' ({x}ᶜ : Set (TopCat.of X)) ∪
+        CartesianMonoidalCategory.snd (TopCat.of X) (TopCat.of Y) ⁻¹'
+          ({y}ᶜ : Set (TopCat.of Y))) := by
+  rintro ⟨a, b⟩ hv
+  by_contra hc
+  simp only [mem_union, mem_preimage, mem_compl_singleton_iff, not_or, not_not] at hc
+  exact hv (Prod.ext hc.1 hc.2)
+
+/-- The local homology cross product, read back in the homology of `X × Y` relative to
+`(X ∖ {x}) × Y ∪ X × (Y ∖ {y})` with the coefficients split again by the inverse of
+`ModuleCat.uliftTensorSelfIso ℤ`, is the cross product of the pairs `(X, X ∖ {x})` and
+`(Y, Y ∖ {y})`. -/
+theorem localHomologyCross_comp_homologyMap_uliftTensorSelfIso_inv (x : X) (y : Y)
+    (p q n : ℕ) (h : p + q = n) :
+    localHomologyCross x y p q n h ≫
+      TopPair.singularHomologyMap (TopPair.ofSubsetMap _
+        (mapsTo_compl_singleton_preimage_fst_compl_union_preimage_snd_compl x y)) _ n ≫
+      HomologicalComplex.homologyMap (((SSetPair.chainComplexFunctor (ModuleCat.{0} ℤ)).map
+        (ModuleCat.uliftTensorSelfIso ℤ).inv).app _) n =
+      TopCat.singularHomologyCrossRelPair (TopCat.of X) (TopCat.of Y) {x}ᶜ {y}ᶜ
+        (ModuleCat.of ℤ (ULift.{0} ℤ)) (ModuleCat.of ℤ (ULift.{0} ℤ)) p q n h := by
+  have hpm : TopPair.ofSubsetMap _ (mapsTo_preimage_fst_compl_union_preimage_snd_compl x y) ≫
+      TopPair.ofSubsetMap _
+        (mapsTo_compl_singleton_preimage_fst_compl_union_preimage_snd_compl x y) = 𝟙 _ :=
+    (TopPair.ofSubsetMap_comp_ofSubsetMap_of_comp_eq _ _ (fun _ hv ↦ hv)
+      ((Category.comp_id _).trans (TopCat.tensorObjIsoProd_hom_eq_id X Y))).trans
+      (TopPair.ofSubsetMap_id _)
+  have key : TopCat.singularHomologyCrossRelPair (TopCat.of X) (TopCat.of Y) {x}ᶜ {y}ᶜ
+        (ModuleCat.of ℤ (ULift.{0} ℤ)) (ModuleCat.of ℤ (ULift.{0} ℤ)) p q n h ≫
+      HomologicalComplex.homologyMap (((SSetPair.chainComplexFunctor (ModuleCat.{0} ℤ)).map
+        (ModuleCat.uliftTensorSelfIso ℤ).hom).app _) n ≫
+      TopPair.singularHomologyMap
+        (TopPair.ofSubsetMap _ (mapsTo_preimage_fst_compl_union_preimage_snd_compl x y) ≫
+          TopPair.ofSubsetMap _
+            (mapsTo_compl_singleton_preimage_fst_compl_union_preimage_snd_compl x y)) _ n ≫
+      HomologicalComplex.homologyMap (((SSetPair.chainComplexFunctor (ModuleCat.{0} ℤ)).map
+        (ModuleCat.uliftTensorSelfIso ℤ).inv).app _) n =
+      TopCat.singularHomologyCrossRelPair (TopCat.of X) (TopCat.of Y) {x}ᶜ {y}ᶜ
+        (ModuleCat.of ℤ (ULift.{0} ℤ)) (ModuleCat.of ℤ (ULift.{0} ℤ)) p q n h := by
+    rw [hpm, TopPair.singularHomologyMap_id, Category.id_comp]
+    simp [← HomologicalComplex.homologyMap_comp, ← NatTrans.comp_app, ← Functor.map_comp]
+  rw [TopPair.singularHomologyMap_comp
+    (TopPair.ofSubsetMap _ (mapsTo_preimage_fst_compl_union_preimage_snd_compl x y))] at key
+  rw [localHomologyCross_eq, Category.assoc, Category.assoc]
+  -- `localHomology` is an abbreviation for the homology of the pair, so `key` is the goal.
+  exact key
 
 /-- **The cross product of local homology classes on absolute classes.** For `a ∈ Hₚ(X; ℤ)` and
 `b ∈ H_q(Y; ℤ)`, the cross product of their images in the local homology at `x` and `y` is the
