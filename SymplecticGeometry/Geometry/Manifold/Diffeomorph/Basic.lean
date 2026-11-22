@@ -13,13 +13,13 @@ public import Mathlib.Geometry.Manifold.Diffeomorph
 Two empty manifolds are diffeomorphic, whatever their models: the empty map is smooth in both
 directions. Mathlib's `Diffeomorph.empty` gives this only when both manifolds have the same model
 with corners; this file allows two models. The empty open set `⊥ : Opens M` of a manifold is
-such an empty manifold (`TopologicalSpace.Opens.isEmpty_bot`).
+such an empty manifold, by the instance `TopologicalSpace.Opens.isEmpty_bot` of
+`Topology/Sets/Opens/Basic.lean`.
 
 ## Main definitions
 
 * `Diffeomorph.ofIsEmpty`: the diffeomorphism `M ≃ₘ^n⟮I, I'⟯ M'` between empty manifolds, modelled
   on `I` and `I'`.
-* `TopologicalSpace.Opens.isEmpty_bot`: the empty open set has no points.
 
 ## Implementation notes
 
@@ -30,14 +30,6 @@ the source. It belongs upstream as a generalization of that definition.
 public section
 
 open scoped Manifold
-
-namespace TopologicalSpace.Opens
-
-/-- The empty open set of a topological space has no points. -/
-instance isEmpty_bot {X : Type*} [TopologicalSpace X] : IsEmpty (⊥ : Opens X) :=
-  ⟨fun x ↦ x.property⟩
-
-end TopologicalSpace.Opens
 
 namespace Diffeomorph
 

@@ -215,6 +215,13 @@ It also gives the `Subtype.val` counterparts of the Tau Ceti file's
 `RelativePoincare.lean` uses them. The file is about forms in general, so any
 part may import it.
 
+It also has `TauCeti.SmoothTwoForm.exists_diffeomorph_bot_mpullback_eq`, the
+empty open sets of two manifolds as a diffeomorphism matching any two
+restricted two-forms, for the empty case of `Relative.lean` and of the
+neighbourhood theorems. For it the file imports *Symplectic neighbourhoods*'
+`Geometry/Manifold/Diffeomorph/Basic.lean` and
+`Topology/Sets/Opens/Basic.lean`, which import only Mathlib.
+
 ### `Geometry/Symplectic/Manifold/TwoForm.lean`
 
 The file has the name of Tau Ceti's file that defines
@@ -678,6 +685,8 @@ pullbacks commute with `d`. That theorem gives
 - *Liouville structures*: `Geometry/Manifold/MFDeriv/Opens.lean`
   (`mdifferentiableAt_subtypeVal`), in `DifferentialForm/Opens.lean` and
   `RelativePoincare.lean`.
+- *Symplectic neighbourhoods*, merged: `Geometry/Manifold/Diffeomorph/Basic.lean`
+  and `Topology/Sets/Opens/Basic.lean`, in `DifferentialForm/Opens.lean`.
 - *Standard model*, merged, only for the plan's case `F = StdSpace (Fin n)`
   of `Darboux.lean`. The general statement does not mention it.
 
