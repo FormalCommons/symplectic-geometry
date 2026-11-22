@@ -137,14 +137,12 @@ theorem mpullback_glueₗ_right (TU : X →ₗ[ℝ] SmoothForm I U F k) (TV : X 
   congrArg Prod.snd (prod_glueₗ TU TV h x)
 
 /-- A linear map into the forms on `U ⊔ V` whose restrictions to `U` and to `V` are `TU` and `TV`
-is the glued map `glueₗ TU TV h`. -/
+is the map that glues `TU` and `TV`. They agree on `U ⊓ V`, being restrictions of `T`. -/
 theorem eq_glueₗ {TU : X →ₗ[ℝ] SmoothForm I U F k} {TV : X →ₗ[ℝ] SmoothForm I V F k}
-    {h : ∀ x, mpullback (Opens.inclusion inf_le_left) (contMDiff_inclusion _) (TU x) =
-      mpullback (Opens.inclusion inf_le_right) (contMDiff_inclusion _) (TV x)}
     (T : X →ₗ[ℝ] SmoothForm I (U ⊔ V : Opens M) F k)
     (hU : ∀ x, mpullback (Opens.inclusion le_sup_left) (contMDiff_inclusion _) (T x) = TU x)
     (hV : ∀ x, mpullback (Opens.inclusion le_sup_right) (contMDiff_inclusion _) (T x) = TV x) :
-    T = glueₗ TU TV h :=
+    T = glueₗ TU TV (fun x ↦ by rw [← hU, ← hV, mpullback_inclusion_inf_sup_left_eq_right]) :=
   LinearMap.ext fun x ↦ injective_mayerVietoris U V <| by
     rw [LinearMap.prod_apply, LinearMap.prod_apply, Function.prod_apply, Function.prod_apply,
       hU, hV, mpullback_glueₗ_left, mpullback_glueₗ_right]
