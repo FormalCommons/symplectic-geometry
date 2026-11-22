@@ -292,7 +292,7 @@ Imports between the files: `Velocity.lean` imports `Instances/Icc.lean`,
 imports `DifferentialForm/SmoothFamily/Basic.lean` of *Smooth families*, for
 `isSmoothFamily_interiorₗ`; `Flux/Hamiltonian.lean`
 imports `Diffeotopy/Basic.lean` and `DeRham/FamilyPrimitive.lean`, which
-imports `DifferentialForm/SmoothFamily/Poincare.lean` of *Smooth families*;
+imports `DifferentialForm/SmoothFamily/Poincare.lean` and `DeRham/Map.lean` of *Smooth families*;
 `Flux/CompactSupport.lean` imports `Flux/Hamiltonian.lean`. `PoissonAlgebra.lean` imports Tau Ceti,
 among it `Hamiltonian/ExtendedPhaseSpace/Manifold.lean` for the energy
 identity, `Algebra/Lie/Quotient.lean` for the value of

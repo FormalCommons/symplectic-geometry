@@ -852,7 +852,8 @@ this design already follows. `Ball/Isotopy.lean` cites
   `FiniteDimensional ℝ (deRhamCohomology I M k)` for a compact boundaryless
   `M`, which `Geometry/Manifold/DeRham/SmoothFamily/GoodCover.lean` derives
   from `hasFiniteGoodCover_of_compactSpace` (used by
-  `Cohomological/Primitive.lean`). The part uses neither the splittings and
+  `Cohomological/Primitive.lean`, which also imports `Geometry/Manifold/DeRham/Map.lean`
+  for `TauCeti.SmoothForm.mpullback_mem_closedForms`). The part uses neither the splittings and
   `contMDiff_repr_mk_of_hasFiniteGoodCover` nor the bridge
   `Diffeotopy/Real.lean`: the periods are smooth in `t` as line integrals,
   and its flows are Tau Ceti's `timeDependentFlowDiffeotopy`, already a
