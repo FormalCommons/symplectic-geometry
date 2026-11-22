@@ -330,7 +330,8 @@ Maps `unitInterval × M → F` into a normed space, for a boundaryless `M`.
   `timeExtend_def`.
 - `timeExtend_apply_coe (t : unitInterval) (x : M) : timeExtend f (t, x) =
   f (t, x)`; `timeExtend_add`, `timeExtend_smul`;
-  `LinearMap.map_timeExtend`.
+  `timeExtendLinearMap M F : (unitInterval × M → F) →ₗ[ℝ] (ℝ × M → F)` with
+  `coe_timeExtendLinearMap`; `LinearMap.map_timeExtend`.
 - `timeExtend_eq_zero (h : ∀ s, f (s, x) = 0) (t : ℝ) : timeExtend f (t, x) =
   0`: Seeley's sum at `(t, x)` combines values of `f` at the same point `x`.
   *Hamiltonian flows* uses it to keep a Hamiltonian zero off a compact set
