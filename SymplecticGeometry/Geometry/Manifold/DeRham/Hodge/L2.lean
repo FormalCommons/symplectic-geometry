@@ -79,7 +79,10 @@ unity `ρ`, an `L²` form all of whose localizations with the cutoffs `ρ i` are
 support is the smooth form glued from them. Every smooth form `β` is the sum of the extensions by
 zero of its localizations (`TauCeti.SmoothForm.sum_extendByZeroAlong_localize`); approximating
 the `L²` form by such `β`, the localizations converge in `L²`, and the bounded extension by zero
-carries this convergence back to `L2Form o k`.
+carries this convergence back to `L2Form o k`. The same decomposition, together with the bound on
+extension by zero, controls the norm of any `L²` form by a weighted sum of the norms of its
+localizations (`L2Form.exists_norm_le_sum_norm_localize`); it holds for smooth forms first, and
+then on all of `L2Form o k` by density.
 
 ## Main definitions and results
 
@@ -124,6 +127,9 @@ carries this convergence back to `L2Form o k`.
 * `SymplecticGeometry.L2Form.eq_ofSmooth_of_localize`: an `L²` form whose localizations to a
   finite cover, with a subordinate partition of unity as cutoffs, are smooth with compact support
   is smooth.
+* `SymplecticGeometry.L2Form.exists_norm_le_sum_norm_localize`: for a finite cover with a
+  subordinate partition of unity, the norm of an `L²` form is at most a weighted sum of the norms
+  of its localizations.
 
 ## Implementation notes
 
@@ -1105,6 +1111,28 @@ theorem eq_ofSmooth_of_localize {ι : Type*} [Fintype ι]
           simp only [A, add_mul, one_mul, Finset.sum_mul]
           exact congrArg _ (Finset.sum_congr rfl fun i _ ↦ by ring)
         rw [h, mul_div_cancel₀ _ hA.ne', zero_add]
+
+/-- **An `L²` form is controlled by its localizations.** Let `ψ i` be finitely many charts and `ρ`
+a smooth partition of unity subordinate to their sources. There are constants `C i ≥ 0` such that
+`‖u‖ ≤ ∑ i, C i * ‖localize (ψ i) (ρ i) _ u‖` for every `L²` form `u`. -/
+theorem exists_norm_le_sum_norm_localize {ι : Type*} [Fintype ι]
+    (ψ : ι → PartialDiffeomorph I 𝓘(ℝ, E) M E ∞) (ρ : SmoothPartitionOfUnity ι I M Set.univ)
+    (hρ : ρ.IsSubordinate fun i ↦ (ψ i).source) :
+    ∃ C : ι → ℝ, (∀ i, 0 ≤ C i) ∧ ∀ u : L2Form o k,
+      ‖u‖ ≤ ∑ i, C i * ‖localize (ψ i) (ρ i) (hρ i) u‖ := by
+  have hKρ (i : ι) : IsCompact (tsupport (ρ i)) := (isClosed_tsupport _).isCompact
+  choose C hC0 hC using fun i ↦ exists_norm_ofSmooth_extendByZeroAlong_le (k := k) (ψ i) o
+    ((ψ i).isCompact_image_of_subset_source (hKρ i) (hρ i))
+    ((ψ i).mapsTo.mono_left (hρ i)).image_subset
+  refine ⟨C, hC0, fun u ↦ ?_⟩
+  induction u using induction_on with
+  | hp => exact isClosed_le (by fun_prop) (by fun_prop)
+  | h β =>
+    -- A smooth form is the sum of the extensions by zero of its localizations.
+    conv_lhs => rw [← β.sum_extendByZeroAlong_localize ψ ρ hρ hKρ, map_sum]
+    refine (norm_sum_le _ _).trans (Finset.sum_le_sum fun i _ ↦ ?_)
+    refine (hC i _ _ _ _ (β.tsupport_localize_subset (ψ i) (hKρ i) (hρ i))).trans_eq ?_
+    rw [Lp.norm_def, eLpNorm_congr_ae (localize_ofSmooth _ _ _ β)]
 
 end ExtendByZero
 

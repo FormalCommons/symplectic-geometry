@@ -14,6 +14,8 @@ public import Mathlib.Analysis.Distribution.TemperedDistribution
 If an `Lᵖ` function `f` vanishes almost everywhere outside a closed set `K`, then every Schwartz
 function supported away from `K` pairs to zero with `f`, so the support of the tempered
 distribution of `f` lies in `K` (`MeasureTheory.Lp.dsupport_toTemperedDistribution_subset`).
+Multiplying that distribution by a function of temperate growth that equals `1` on `K` does not
+change it (`MeasureTheory.Lp.smulLeftCLM_toTemperedDistribution_of_eqOn`).
 
 ## References
 
@@ -41,6 +43,19 @@ theorem dsupport_toTemperedDistribution_subset {f : Lp F p μ} {K : Set E} (hK :
   refine integral_eq_zero_of_ae (hf.mono fun y hy ↦ ?_)
   by_cases hyK : y ∈ K
   · simp [image_eq_zero_of_notMem_tsupport fun h ↦ hg h hyK]
+  · simp [hy hyK]
+
+/-- Multiplying the tempered distribution of an `Lᵖ` function that vanishes almost everywhere
+outside a set `K` by a function of temperate growth equal to `1` on `K` leaves it unchanged. -/
+theorem smulLeftCLM_toTemperedDistribution_of_eqOn {f : Lp F p μ} {K : Set E} {g : E → ℂ}
+    (hg : g.HasTemperateGrowth) (hgK : Set.EqOn g 1 K) (hf : ∀ᵐ x ∂μ, x ∉ K → f x = 0) :
+    TemperedDistribution.smulLeftCLM F g (f : 𝓢'(E, F)) = f := by
+  ext φ
+  rw [TemperedDistribution.smulLeftCLM_apply_apply, toTemperedDistribution_apply,
+    toTemperedDistribution_apply]
+  refine integral_congr_ae (hf.mono fun y hy ↦ ?_)
+  by_cases hyK : y ∈ K
+  · simp [SchwartzMap.smulLeftCLM_apply_apply hg, hgK hyK]
   · simp [hy hyK]
 
 end MeasureTheory.Lp
