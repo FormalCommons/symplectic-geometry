@@ -989,6 +989,10 @@ issues, in an order where each issue's blockers come before it.
      `Circle.singularHomologyOneIso_inv_eq_complexOrientation`, the
      generator of `Circle.singularHomologyOneIso` is the one of the unit
      circle of `ℂ` selected by `Complex.orientation`.
+   - `Analysis/Complex/RadialProjection.lean`, used by
+     `DiscBoundaryClass.lean` and `BoundaryDegree.lean`:
+     `Circle.radialProjection : C(ℂ ∖ {0}, Circle)`, `z ↦ z / |z|`, Tau
+     Ceti's `complSingletonHomotopyEquivSphere 0` read in `Circle`.
    - `Analysis/Normed/Module/Ball/Collar.lean`, used by
      `DiscBoundaryClass.lean`: in a real normed space the unit sphere is
      collared in the closed unit ball
@@ -1012,27 +1016,31 @@ issues, in an order where each issue's blockers come before it.
      on an inner product space the local orientation that an orientation
      selects is the one of the identity chart.
    - `AlgebraicTopology/Singular/LocalHomology/BoundaryClass.lean`, imported
-     by `DiscBoundaryClass.lean` and `BoundaryDegree.lean`: in any dimension `n + 1`,
+     by `BoundaryDegree.lean`: in any dimension `n + 1`,
      `TauCeti.HomologicalOrientation.boundaryClass`, the image of
      `fundamentalClassRel` in `Hₙ(∂X; ℤ)` under the connecting morphism, with
      `boundaryClass_neg` and `map_subtypeVal_boundaryClass` (it vanishes in
      `Hₙ(X; ℤ)`).
    - `AlgebraicTopology/Singular/LocalHomology/DiscBoundaryClass.lean`, a
-     prerequisite of `BoundaryDegree.lean`; it imports `BoundaryClass.lean`:
+     prerequisite of `BoundaryDegree.lean`:
      the closed unit disc of `ℂ` in
-     this setting, by `Collar.lean`, and its boundary
-     class,
-     `SymplecticGeometry.singularHomologyOneIso_map_boundaryClass_closedBall`:
-     for the complex orientation of the open disc, the boundary class read
-     in ℤ through `Circle.singularHomologyOneIso` is $+1$.
+     this setting, by `Collar.lean`; its fundamental class is sent to the
+     local orientation of `ℂ` at `0`
+     (`SymplecticGeometry.localHomologyMap_fundamentalClassRel_closedBall`),
+     which radial projection sends to the generator of `H₁(Circle)`
+     (`SymplecticGeometry.singularHomologyOneIso_singularHomologyδ_localOrientation_complexOrientation`).
    - `AlgebraicTopology/Singular/LocalHomology/BoundaryDegree.lean`, which
      imports `BoundaryClass.lean`: the definition `TauCeti.HomologicalOrientation.boundaryDegree o hn hι hιf hf
      (u : C(∂X, Circle)) : ℤ`, the image of the boundary class
      `singularHomologyδ (fundamentalClassRel …)` under `u`, read in ℤ through
      `Circle.singularHomologyOneIso`, with the sign for which the
      counterclockwise loop counts $+1$. Tau Ceti does not record the sign of
-     its connecting morphism; `DiscBoundaryClass.lean` settles it on the
-     closed unit disc, and the definition fixes its sign by it. API:
+     its connecting morphism; it is settled on the closed unit disc, from
+     `DiscBoundaryClass.lean`, and the definition fixes its sign by it:
+     `SymplecticGeometry.boundaryDegree_closedBallComplToCircle`, and
+     `SymplecticGeometry.singularHomologyOneIso_map_boundaryClass_closedBall`,
+     for the complex orientation of the open disc the boundary class read
+     in ℤ through `Circle.singularHomologyOneIso` is $+1$. API:
      `boundaryDegree_def`;
      `boundaryDegree_mul` (pointwise products add degrees);
      `boundaryDegree_eq_of_homotopy` (homotopic maps `∂X → Circle` have the
