@@ -10,19 +10,24 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.AlmostComplexType
 import SymplecticGeometry.Analysis.Normed.Module.Alternating.Derivation
 
 /-!
-# The real derivation of smooth forms along an endomorphism field, pointwise
+# The real derivation of smooth forms along an endomorphism field, and type projections
 
 Tau Ceti's `ContMDiffSection.realAlternatingDerivation` lets a smooth endomorphism field `A` of the
 tangent bundle act on smooth real forms. This file identifies its value at each point with the
 derivation `ContinuousAlternatingMap.fderivCompContinuousLinearMap` of the value of the form, at
 the identity and in the direction `A x`. That derivation needs a norm on the tangent spaces,
-which a `RiemannianBundle` metric supplies.
+which a `RiemannianBundle` metric supplies. It also relates the real derivation to the derivation
+of complex-valued forms, and describes the range of Tau Ceti's type projections.
 
 ## Main results
 
 * `ContMDiffSection.coe_realAlternatingDerivation`: the value of `𝒜 φ` at `x` is
   `(φ x).fderivCompContinuousLinearMap (id) (A x)`.
 * `ContMDiffSection.realAlternatingDerivation_fin_zero`: the derivation vanishes on functions.
+* `ContMDiffSection.alternatingDerivation_mapCoeff_ofRealCLM`: on real forms, the complex
+  derivation is the real one.
+* `TauCeti.SmoothAlmostComplexStructure.mem_range_typeProjection_iff`: the range of the
+  type-`(p,q)` projection is the forms of type `(p,q)`.
 -/
 
 public section
@@ -61,6 +66,32 @@ theorem realAlternatingDerivation_fin_zero
   ext x v
   simp
 
+omit [RiemannianBundle (fun x : M ↦ TangentSpace I x)] in
+/-- On real forms, the derivation of complex-valued forms along an endomorphism field is the real
+derivation: `𝒜 (α : ℂ) = (𝒜 α : ℂ)`. -/
+@[simp]
+theorem alternatingDerivation_mapCoeff_ofRealCLM
+    (A : ContMDiffSection I (E →L[ℝ] E) ∞ fun x : M ↦ TangentSpace I x →L[ℝ] TangentSpace I x)
+    (α : SmoothForm I M ℝ k) :
+    A.alternatingDerivation (SmoothForm.mapCoeff Complex.ofRealCLM α) =
+      SmoothForm.mapCoeff Complex.ofRealCLM (A.realAlternatingDerivation α) := by
+  ext x v
+  simp [RoughForm.mapCoeff_apply, ContinuousLinearMap.alternatingDerivation_apply]
+
 end ContMDiffSection
+
+namespace TauCeti.SmoothAlmostComplexStructure
+
+variable [IsManifold I ∞ M] {F : Type*} [NormedAddCommGroup F] [NormedSpace ℂ F]
+
+omit [RiemannianBundle (fun x : M ↦ TangentSpace I x)] in
+/-- For `p + q = k`, the range of the type-`(p,q)` projection of smooth `k`-forms consists of the
+forms of type `(p,q)`. -/
+theorem mem_range_typeProjection_iff (J : SmoothAlmostComplexStructure I M) {p q : ℕ}
+    (hpq : p + q = k) (φ : SmoothForm I M F k) :
+    φ ∈ LinearMap.range (J.typeProjection p q) ↔ φ.IsOfType J p q :=
+  ⟨fun ⟨ψ, hψ⟩ ↦ hψ ▸ J.isOfType_typeProjection hpq ψ, fun h ↦ ⟨φ, h.typeProjection_self⟩⟩
+
+end TauCeti.SmoothAlmostComplexStructure
 
 end

@@ -38,6 +38,8 @@ complex de Rham cohomology.
   Riemannian manifold, every complex de Rham class has exactly one harmonic representative.
 * `TauCeti.exists_mem_complexHarmonicForms_add_complexHodgeLaplacian`: every complex form is
   `h + Δγ` with `h` harmonic.
+* `TauCeti.mem_complexExactForms_of_complexHodgeLaplacian_mem_complexClosedForms`: a closed
+  complex Laplacian is exact.
 * `TauCeti.finrank_complexDeRhamCohomology`: the complex dimension of complex de Rham cohomology
   is the real dimension of real de Rham cohomology.
 
@@ -238,6 +240,22 @@ theorem complexHarmonicForms_le_complexClosedForms (o : Manifold.Orientation I M
   rw [mem_complexHarmonicForms_iff_realPart_imaginaryPart] at hφ
   exact (mem_complexClosedForms_iff_realPart_imaginaryPart I φ).2
     ⟨harmonicForms_le_closedForms o hkl hφ.1, harmonicForms_le_closedForms o hkl hφ.2⟩
+
+/-- On a compact oriented boundaryless Riemannian manifold, if the complex Laplacian `Δβ` of a
+complex form is closed then it is exact, by the real statement for its real and imaginary
+parts. -/
+theorem mem_complexExactForms_of_complexHodgeLaplacian_mem_complexClosedForms
+    (o : Manifold.Orientation I M (Fin m)) (hkl : k + l = m) {β : SmoothForm I M ℂ k}
+    (hβ : SmoothForm.complexHodgeLaplacian o hkl β ∈ complexClosedForms I M k) :
+    SmoothForm.complexHodgeLaplacian o hkl β ∈ complexExactForms I M k := by
+  rw [mem_complexClosedForms_iff_realPart_imaginaryPart,
+    SmoothForm.mapCoeff_reCLM_complexHodgeLaplacian,
+    SmoothForm.mapCoeff_imCLM_complexHodgeLaplacian] at hβ
+  rw [mem_complexExactForms_iff_realPart_imaginaryPart,
+    SmoothForm.mapCoeff_reCLM_complexHodgeLaplacian,
+    SmoothForm.mapCoeff_imCLM_complexHodgeLaplacian]
+  exact ⟨mem_exactForms_of_hodgeLaplacian_mem_closedForms o hkl hβ.1,
+    mem_exactForms_of_hodgeLaplacian_mem_closedForms o hkl hβ.2⟩
 
 /-- The complex de Rham class of a complex harmonic form on a compact oriented boundaryless
 Riemannian manifold. -/
