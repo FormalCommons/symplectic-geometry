@@ -506,7 +506,7 @@ In namespace `Projectivization`:
 
 - `TauCeti.SmoothTwoForm.IsNondegenerate.isIsotropicMap_of_comp`, in Tau
   Ceti's namespace: a map `f` is isotropic when `f ∘ q` is,
-  for a surjective differentiable `q` with surjective derivatives. Both
+  for a surjective `q` with surjective derivatives. Both
   Lagrangian examples below check isotropy upstairs with it.
 - `TauCeti.SmoothTwoForm.IsNondegenerate.IsIsotropicMap.comp`: the converse,
   for differentiable `f` and `q`, and `isIsotropicMap_comp_iff`, the two

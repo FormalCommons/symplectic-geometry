@@ -15,11 +15,12 @@ shows that the Lagrangian condition passes to and from the quotient by a surject
 (`TauCeti.SmoothTwoForm.IsNondegenerate.isLagrangianMap_comp_submersion_iff`).
 
 * `TauCeti.SmoothTwoForm.IsNondegenerate.isIsotropicMap_of_comp`: a map `f` is isotropic when
-  `f ∘ q` is, for a surjective differentiable map `q` whose derivatives are all surjective. Every
-  tangent vector of the source of `f` is then the image of one under the derivative of `q`, so the
-  chain rule moves the vanishing of the form from `f ∘ q` to `f` at the points where `f` is
-  differentiable; where it is not, its derivative is zero. No smoothness of `q` beyond
-  differentiability and no condition on boundaries is needed.
+  `f ∘ q` is, for a surjective map `q` whose derivatives are all surjective. Every tangent vector
+  of the source of `f` is then the image of one under the derivative of `q`, so the chain rule
+  moves the vanishing of the form from `f ∘ q` to `f` at the points where `f` and `q` are
+  differentiable. Where `f` is not differentiable its derivative is zero; where `q` is not, its
+  derivative is zero and surjective, so the tangent space below is zero. No smoothness of `f` or
+  `q` and no condition on boundaries is needed.
 * `TauCeti.SmoothTwoForm.IsNondegenerate.IsIsotropicMap.comp`: conversely, `f ∘ q` is isotropic
   when `f` is, for differentiable `f` and `q`, by the chain rule.
 * `TauCeti.SmoothTwoForm.IsNondegenerate.isIsotropicMap_comp_iff`: the two together, the isotropic
@@ -42,20 +43,22 @@ variable {E H M F H' N G H'' P : Type*}
   {K : ModelWithCorners ℝ G H''} [TopologicalSpace P] [ChartedSpace H'' P]
   {σ : SmoothTwoForm I M} {hσ : σ.IsNondegenerate} {f : N → M} {q : P → N}
 
-/-- A map `f` is isotropic when `f ∘ q` is, for a surjective differentiable map `q` whose
-derivatives are all surjective: every tangent vector of the source of `f` is then the image of one
-under the derivative of `q`. -/
+/-- A map `f` is isotropic when `f ∘ q` is, for a surjective map `q` whose derivatives are all
+surjective: every tangent vector of the source of `f` is then the image of one under the
+derivative of `q`. -/
 theorem isIsotropicMap_of_comp (hq : Surjective q) (hdq : ∀ x, Surjective (mfderiv K J q x))
-    (hq' : MDifferentiable K J q) (h : hσ.IsIsotropicMap K (f ∘ q)) : hσ.IsIsotropicMap J f := by
+    (h : hσ.IsIsotropicMap K (f ∘ q)) : hσ.IsIsotropicMap J f := by
   rw [isIsotropicMap_iff] at h ⊢
   intro y v w
   obtain ⟨x, rfl⟩ := hq y
-  by_cases hf : MDifferentiableAt J I f (q x)
-  · obtain ⟨v, rfl⟩ := hdq x v
-    obtain ⟨w, rfl⟩ := hdq x w
-    have h' := h x v w
-    rwa [mfderiv_comp x hf (hq' x)] at h'
-  · simp [mfderiv_zero_of_not_mdifferentiableAt hf]
+  obtain ⟨v, rfl⟩ := hdq x v
+  obtain ⟨w, rfl⟩ := hdq x w
+  by_cases hq' : MDifferentiableAt K J q x
+  · by_cases hf : MDifferentiableAt J I f (q x)
+    · have h' := h x v w
+      rwa [mfderiv_comp x hf hq'] at h'
+    · simp [mfderiv_zero_of_not_mdifferentiableAt hf]
+  · simp [mfderiv_zero_of_not_mdifferentiableAt hq']
 
 /-- The composite `f ∘ q` of an isotropic differentiable map `f` with a differentiable map `q` is
 isotropic. -/
@@ -71,7 +74,7 @@ map `f` is isotropic exactly when `f ∘ q` is. -/
 theorem isIsotropicMap_comp_iff (hq : Surjective q) (hdq : ∀ x, Surjective (mfderiv K J q x))
     (hq' : MDifferentiable K J q) (hf : MDifferentiable J I f) :
     hσ.IsIsotropicMap K (f ∘ q) ↔ hσ.IsIsotropicMap J f :=
-  ⟨isIsotropicMap_of_comp hq hdq hq', fun h ↦ h.comp hf hq'⟩
+  ⟨isIsotropicMap_of_comp hq hdq, fun h ↦ h.comp hf hq'⟩
 
 end TauCeti.SmoothTwoForm.IsNondegenerate
 
