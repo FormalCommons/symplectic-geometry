@@ -60,6 +60,8 @@ standard forms (`isSymplectomorphism_sumEquiv`). Through it, `StdSpace.stdInl k 
 `StdSpace (Fin k)` in `StdSpace (Fin (k + m))` as the first `k` coordinate pairs, preserving
 `ω₀` (`stdForm_stdInl`), with range `range_stdInl`; and `StdSpace.ofX ι` includes `ι → ℝ` as
 the `x`-coordinates, onto the isotropic subspace `{y = 0}` (`range_ofX`, `stdForm_ofX`).
+Composed, `stdInl k m ∘ ofX (Fin k)` is onto the isotropic subspace
+`{y = 0, and xⱼ = 0 for j ≥ k}` (`range_stdInl_ofX`).
 Likewise `StdSpace.stdInr k m` includes `StdSpace (Fin m)` as the last `m` pairs, `ω₀`-orthogonal
 to the first `k` (`stdForm_stdInl_add_stdInr`). Together with `ofX`, they parametrize the
 coisotropic subspace `{yⱼ = 0 for j < k}` (`range_stdInl_ofX_add_stdInr`), whose `ω₀`-orthogonal
@@ -693,6 +695,27 @@ theorem range_ofX : Set.range (ofX ι) = {z | z.y = 0} := by
   ext z
   refine ⟨fun ⟨a, ha⟩ ↦ ha ▸ y_ofX a, fun hz ↦ ⟨z.x, ext (x_ofX _) ((y_ofX _).trans ?_)⟩⟩
   exact (Set.mem_ofPred_eq.mp hz).symm
+
+/-- The points `(a, 0)`, with `a : Fin k → ℝ` in the first `k` coordinates `x`, form the subspace
+`{y = 0, and xⱼ = 0 for j ≥ k}`. -/
+theorem range_stdInl_ofX {k m : ℕ} :
+    Set.range (fun a : Fin k → ℝ ↦ stdInl k m (ofX (Fin k) a)) =
+      {z | z.y = 0 ∧ ∀ j : Fin (k + m), k ≤ (j : ℕ) → z.x j = 0} := by
+  ext z
+  constructor
+  · rintro ⟨a, rfl⟩
+    refine ⟨funext fun j ↦ ?_, fun j hj ↦ ?_⟩
+    · refine Fin.addCases (fun i ↦ ?_) (fun i ↦ ?_) j <;> simp [y_apply]
+    · obtain ⟨i, rfl⟩ : ∃ i : Fin m, Fin.natAdd k i = j :=
+        ⟨⟨j - k, by omega⟩, Fin.ext (by simp; omega)⟩
+      simp [x_apply]
+  · rintro ⟨hy, hx⟩
+    refine ⟨fun i ↦ z.x (Fin.castAdd m i), ext (funext fun j ↦ ?_) (funext fun j ↦ ?_)⟩ <;>
+      refine Fin.addCases (fun i ↦ ?_) (fun i ↦ ?_) j
+    · simp [x_apply]
+    · simpa [x_apply] using (hx (Fin.natAdd k i) (by simp)).symm
+    · simpa [y_apply] using (congr_fun hy (Fin.castAdd m i)).symm
+    · simpa [y_apply] using (congr_fun hy (Fin.natAdd k i)).symm
 
 /-- `(a, w) ↦ (a, 0) + w`, putting `a : Fin k → ℝ` into the first `k` coordinates `x` and
 `w : StdSpace (Fin m)` into the last `m` coordinate pairs, is injective. -/
