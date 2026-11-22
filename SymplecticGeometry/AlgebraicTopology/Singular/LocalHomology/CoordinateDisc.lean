@@ -76,6 +76,8 @@ for `o`. Finitely many distinct points have pairwise disjoint open neighbourhood
 * `SymplecticGeometry.CoordinateDisc.boundaryCircle`: the unit circle of the chart, as a map
   `C(Circle, M)`.
 * `SymplecticGeometry.CoordinateDisc.boundaryLoop`: the loop `t ↦ φ(e^{2πit})`.
+* `SymplecticGeometry.CoordinateDisc.discContraction`: the radial contraction
+  `(s, t) ↦ φ((1 - s) e^{2πit})` of the boundary loop inside the closed disc.
 * `SymplecticGeometry.CoordinateDisc.reverse`: the coordinate disc `φ ∘ conj` for `-o`.
 * `SymplecticGeometry.CoordinateDisc.affineBall`: the map `z ↦ a + r z` of the ball into itself.
 * `SymplecticGeometry.CoordinateDisc.comp`: a coordinate disc precomposed with an
@@ -372,6 +374,47 @@ theorem boundaryLoop_mem_disc (t : unitInterval) : φ.boundaryLoop t ∈ φ.disc
 theorem boundaryLoop_notMem_openDisc (t : unitInterval) : φ.boundaryLoop t ∉ φ.openDisc := by
   rw [boundaryLoop_apply]
   exact φ.boundaryCircle_notMem_openDisc _
+
+/-! ### Contraction of the boundary loop -/
+
+private theorem norm_radialLoop_le_one (p : unitInterval × unitInterval) :
+    ‖((1 - (p.1 : ℝ) : ℝ) : ℂ) * Circle.exp (2 * Real.pi * p.2)‖ ≤ 1 := by
+  rw [norm_mul, Circle.norm_coe, mul_one, Complex.norm_real, Real.norm_eq_abs,
+    abs_of_nonneg (sub_nonneg.2 p.1.prop.2)]
+  linarith [p.1.prop.1]
+
+/-- The radial contraction of the boundary loop inside the closed disc: at time `s`, the loop
+`t ↦ φ((1 - s) e^{2πit})`. It starts at the boundary loop (`discContraction_zero`), ends at the
+constant loop at the centre (`discContraction_one`), and is a loop at every time
+(`discContraction_apply_zero`). -/
+def discContraction : C(unitInterval × unitInterval, φ.disc) where
+  toFun p := ⟨φ ⟨_, mem_ball_of_norm_le_one (norm_radialLoop_le_one p)⟩,
+    φ.apply_mem_disc_iff.2 (norm_radialLoop_le_one p)⟩
+  continuous_toFun := by
+    refine Continuous.subtype_mk (φ.continuous.comp (Continuous.subtype_mk ?_ _)) _
+    fun_prop
+
+/-- At time `0`, the radial contraction is the boundary loop. -/
+theorem discContraction_zero (t : unitInterval) :
+    φ.discContraction (0, t) = ⟨φ.boundaryLoop t, φ.boundaryLoop_mem_disc t⟩ := by
+  refine Subtype.ext ?_
+  simp only [discContraction, ContinuousMap.coe_mk, boundaryLoop_apply, boundaryCircle_apply]
+  congr 2
+  simp
+
+/-- At time `1`, the radial contraction is the constant loop at the centre. -/
+theorem discContraction_one (t : unitInterval) :
+    φ.discContraction (1, t) = ⟨φ 0, φ.openDisc_subset_disc φ.apply_zero_mem_openDisc⟩ := by
+  refine Subtype.ext ?_
+  simp only [discContraction, ContinuousMap.coe_mk]
+  congr 1
+  ext
+  simp [coe_zero]
+
+/-- At every time, the radial contraction is a loop. -/
+theorem discContraction_apply_zero (s : unitInterval) :
+    φ.discContraction (s, 0) = φ.discContraction (s, 1) := by
+  simp [discContraction]
 
 /-! ### Reversal -/
 
