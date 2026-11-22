@@ -207,16 +207,21 @@ following choices.
 `DESIGN.md` is updated with this file, in its part 19, its dependency row
 and two rows of its milestone table.
 
-- Nine files are added: `LinearAlgebra/Symplectic/Extension.lean`,
-  `Neighborhood/Extension.lean`, `Neighborhood/Basic.lean`,
+- Eleven files are added: `LinearAlgebra/Symplectic/Extension.lean`,
+  `Neighborhood/Extension.lean`, `Neighborhood/Frames.lean`,
+  `Neighborhood/Basic.lean`,
   `Geometry/Manifold/VectorBundle/ZeroSection.lean`,
   `Geometry/Manifold/VectorBundle/Adjoint.lean`,
   `Geometry/Manifold/TubularNeighborhood/MFDeriv.lean`,
   `Geometry/Manifold/VectorBundle/Orthogonal.lean`,
+  `Geometry/Manifold/VectorBundle/Subbundle.lean`,
   `LinearAlgebra/BilinearForm/Orthogonal.lean` and
   `Geometry/Manifold/Distribution/FlatChart.lean`. Each neighbourhood
   theorem would otherwise repeat the linear extension and its smoothness;
-  `Adjoint.lean` and `VectorBundle/Orthogonal.lean` hold steps of
+  `Neighborhood/Frames.lean` holds the smooth frames of the pieces of the
+  splitting along `Q`, a step of `Neighborhood/Extension.lean`;
+  `Adjoint.lean`, `VectorBundle/Orthogonal.lean` and
+  `VectorBundle/Subbundle.lean` hold steps of
   `Neighborhood/Extension.lean`, `MFDeriv.lean` the step of
   `Tubular.lean`, and `FlatChart.lean` the step of
   `CharacteristicFoliation.lean`, that use nothing symplectic; the
@@ -397,9 +402,13 @@ hom bundle of the pull-backs satisfying `hL` and `hLω` at every `q`:
   J_jK_j$. Frames of such orthogonal complements come from
   `TauCeti.HasLocalContMDiffSubbundleFrames.orthogonal`
   (`Geometry/Manifold/VectorBundle/Orthogonal.lean`), which uses nothing
-  symplectic. In these frames
-  every step of `extendAlong` is a matrix formula with inverses of smooth
-  invertible Gram matrices.
+  symplectic. The frames of the pieces along `f`, and the smooth
+  projections along the splittings that `extendAlong_def` uses, are in
+  `Neighborhood/Frames.lean` (namespace `TauCeti.SmoothEmbedding`), which
+  imports `Geometry/Symplectic/Manifold/Flat.lean` of *Moser isotopy* for
+  the flat maps of `σ` along `f`. In these frames every step of
+  `extendAlong` is a matrix formula with inverses of smooth invertible Gram
+  matrices.
 - The adjoint step $(\omega_1^\flat)^{-1}\circ T^*\circ\omega_0^\flat$ of
   `extendAlong_def` is smooth by `ContMDiff.clm_bundle_bilinAdjoint`
   (`Geometry/Manifold/VectorBundle/Adjoint.lean`), for
