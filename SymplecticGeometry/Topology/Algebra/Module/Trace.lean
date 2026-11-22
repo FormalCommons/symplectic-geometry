@@ -49,13 +49,13 @@ theorem traceForm_def :
 /-- The trace form at `(P, Q)` is `tr (P Q)`. -/
 @[simp]
 theorem traceForm_apply (P Q : V →L[𝕜] V) :
-    traceForm 𝕜 V P Q = LinearMap.trace 𝕜 V ↑(P ∘L Q) := by
-  simp [traceForm_def, mul_def]
+    traceForm 𝕜 V P Q = LinearMap.trace 𝕜 V ↑(P * Q) := by
+  simp [traceForm_def]
 
 /-- The trace form is symmetric. -/
 theorem traceForm_comm (P Q : V →L[𝕜] V) : traceForm 𝕜 V P Q = traceForm 𝕜 V Q P := by
   rw [traceForm_apply, traceForm_apply, ← TauCeti.traceCLM_apply, ← TauCeti.traceCLM_apply,
-    traceCLM_comp_comm]
+    mul_def, mul_def, traceCLM_comp_comm]
 
 /-- A scalar multiple of the trace form is symmetric. -/
 theorem smul_traceForm_comm (c : 𝕜) (P Q : V →L[𝕜] V) :
