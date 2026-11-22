@@ -2,7 +2,8 @@
 # a maintainer's review, which the ruleset requires. AGENTS.md asks agents to
 # leave them alone ("Leave the setup alone"). lakefile.toml,
 # lake-manifest.json and lean-toolchain are not listed: they change when the
-# agents move Tau Ceti to a new tag, on the tauceti-release workflow's issue,
+# agents move Tau Ceti to a later audited commit, on the tauceti-release
+# workflow's issue,
 # and CI's setup check, here in .github/, allows such a move to change only
 # what follows Tau Ceti (see .github/lakefile.toml).
 /LICENSE            @adamtopaz
