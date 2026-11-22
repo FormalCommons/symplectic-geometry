@@ -27,7 +27,8 @@ crossing-form formula for the Maslov index needs.
 * `SymplecticGeometry.lagrangianCrossingForm Z Z' V`: the quadratic form
   `u ↦ ω₀(Z u, Z' u)` on `V.comap (toEuclideanLin Z)`; it is homogeneous in `Z'`
   (`lagrangianCrossingForm_smul`) and vanishes where the image of `Z` meets `V` only in `0`
-  (`lagrangianCrossingForm_eq_zero_of_inf_eq_bot`).
+  (`lagrangianCrossingForm_eq_zero_of_inf_eq_bot`), so that its signature is zero there
+  (`sigPos_sub_sigNeg_lagrangianCrossingForm_eq_zero_of_inf_eq_bot`).
 
 ## Main results
 
@@ -117,6 +118,16 @@ theorem lagrangianCrossingForm_eq_zero_of_inf_eq_bot {Z : Matrix (ι ⊕ ι) ι 
   have hu : toEuclideanLin Z (u : EuclideanSpace ℝ ι) = 0 :=
     (Submodule.mem_bot ℝ).1 (h ▸ ⟨⟨_, rfl⟩, u.property⟩)
   simp [hu]
+
+/-- Where the image of `Z` meets `V` only in `0`, the crossing form has signature zero. -/
+theorem sigPos_sub_sigNeg_lagrangianCrossingForm_eq_zero_of_inf_eq_bot {Z : Matrix (ι ⊕ ι) ι ℝ}
+    {V : Submodule ℝ (StdSpace ι)} (h : LinearMap.range (toEuclideanLin Z) ⊓ V = ⊥)
+    (Z' : Matrix (ι ⊕ ι) ι ℝ) :
+    (sigPos (lagrangianCrossingForm Z Z' V) : ℤ) - sigNeg (lagrangianCrossingForm Z Z' V) = 0 := by
+  rw [lagrangianCrossingForm_eq_zero_of_inf_eq_bot h,
+    (QuadraticForm.forall_nonpos_iff_sigPos_eq_zero _).1 fun _ ↦ le_rfl,
+    QuadraticForm.sigNeg_zero]
+  simp
 
 /-- Relative to the vertical Lagrangian `{x = 0}`, where `X u = 0`, the crossing form of the
 frame `fromRows X Y` and of `fromRows X' Y'` is `u ↦ -⟪Y u, X' u⟫`. -/

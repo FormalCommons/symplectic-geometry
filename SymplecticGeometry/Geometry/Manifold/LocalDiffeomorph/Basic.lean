@@ -10,18 +10,25 @@ public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 
 /-!
-# Local diffeomorphisms at a point as partial diffeomorphisms
+# Local diffeomorphisms at a point and their local inverses
 
 A map `f` is a `C^n` local diffeomorphism at `x` when it agrees, on the source of some `C^n`
 partial diffeomorphism containing `x`, with that partial diffeomorphism. Mathlib's
 `IsLocalDiffeomorphAt` is defined this way, but its body is not exposed to other modules, which
-only see the chosen local inverse `IsLocalDiffeomorphAt.localInverse`. This file recovers the
-partial diffeomorphism from it; the converse is Tau Ceti's `TauCeti.isLocalDiffeomorphAt_of_eqOn`.
+only see the chosen local inverse `Λ = IsLocalDiffeomorphAt.localInverse`. This file shows that
+`f` agrees with `Λ.symm` on the target of `Λ`, since `f ∘ Λ` is the identity on the source of
+`Λ`. So `Λ.symm` is a partial diffeomorphism that `f` agrees with (the converse is Tau Ceti's
+`TauCeti.isLocalDiffeomorphAt_of_eqOn`), and `f` is a local diffeomorphism at every point of the
+target of `Λ`, not only at `x`.
 
 ## Main results
 
+* `IsLocalDiffeomorphAt.eqOn_localInverse_symm`: `f` agrees with the inverse of its local inverse
+  on the target of the local inverse.
 * `IsLocalDiffeomorphAt.exists_partialDiffeomorph`: a local diffeomorphism at `x` agrees with a
   partial diffeomorphism on a source that contains `x`.
+* `IsLocalDiffeomorphAt.isLocalDiffeomorphOn_localInverse_target`: a local diffeomorphism `f` at
+  `x` is a local diffeomorphism on the target of `hf.localInverse`.
 * `IsLocalDiffeomorphAt.congr_of_eventuallyEq`: being a local diffeomorphism at `x` depends only
   on the germ of the map at `x`.
 * `PartialDiffeomorph.isLocalDiffeomorphAt_symm_comp_comp_model`: a partial diffeomorphism of
@@ -41,18 +48,31 @@ variable {𝕜 : Type*} [NontriviallyNormedField 𝕜]
   {J : ModelWithCorners 𝕜 E' H'} {N : Type*} [TopologicalSpace N] [ChartedSpace H' N]
   {n : WithTop ℕ∞} {f : M → N} {x : M}
 
+namespace IsLocalDiffeomorphAt
+
+/-- A local diffeomorphism `f` at `x` agrees with the inverse of its local inverse
+`hf.localInverse` on the target of `hf.localInverse`. -/
+theorem eqOn_localInverse_symm (hf : IsLocalDiffeomorphAt I J n f x) :
+    EqOn f hf.localInverse.symm hf.localInverse.target :=
+  eqOn_of_leftInvOn_of_rightInvOn hf.localInverse_eqOn_right
+    hf.localInverse.toPartialEquiv.rightInvOn hf.localInverse.toPartialEquiv.mapsTo_symm
+
 /-- A `C^n` local diffeomorphism `f` at `x` agrees with some `C^n` partial diffeomorphism on
 its source, and that source contains `x`. It is the inverse of
 `IsLocalDiffeomorphAt.localInverse`. -/
-theorem IsLocalDiffeomorphAt.exists_partialDiffeomorph (hf : IsLocalDiffeomorphAt I J n f x) :
-    ∃ Φ : PartialDiffeomorph I J M N n, x ∈ Φ.source ∧ EqOn f Φ Φ.source := by
-  refine ⟨hf.localInverse.symm, hf.localInverse_mem_target, fun z hz ↦ ?_⟩
-  rw [PartialDiffeomorph.symm_toPartialEquiv, PartialEquiv.symm_source] at hz
-  calc f z = f (hf.localInverse (hf.localInverse.toPartialEquiv.symm z)) := by
-        rw [hf.localInverse.toPartialEquiv.right_inv hz]
-    -- `PartialDiffeomorph` coerces to functions through `toFun` of its `PartialEquiv`, and has no
-    -- lemma for the coercion of `symm`, so the last step is by definition.
-    _ = _ := hf.localInverse_right_inv (hf.localInverse.toPartialEquiv.map_target hz)
+theorem exists_partialDiffeomorph (hf : IsLocalDiffeomorphAt I J n f x) :
+    ∃ Φ : PartialDiffeomorph I J M N n, x ∈ Φ.source ∧ EqOn f Φ Φ.source :=
+  ⟨hf.localInverse.symm, by simpa using hf.localInverse_mem_target, by
+    simpa using hf.eqOn_localInverse_symm⟩
+
+/-- A local diffeomorphism `f` at `x` is a local diffeomorphism at every point of the target of
+its local inverse. -/
+theorem isLocalDiffeomorphOn_localInverse_target (hf : IsLocalDiffeomorphAt I J n f x) :
+    IsLocalDiffeomorphOn I J n f hf.localInverse.target := fun z ↦
+  TauCeti.isLocalDiffeomorphAt_of_eqOn (Φ := hf.localInverse.symm) (by simp)
+    (by simpa using hf.eqOn_localInverse_symm)
+
+end IsLocalDiffeomorphAt
 
 /-- A map that agrees near `x` with a local diffeomorphism at `x` is a local diffeomorphism at
 `x`. -/

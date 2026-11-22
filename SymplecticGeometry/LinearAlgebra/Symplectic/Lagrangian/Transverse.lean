@@ -25,6 +25,8 @@ Write `ℒ ι` for the Lagrangian Grassmannian of the standard model `(StdSpace 
 * `SymplecticGeometry.LagrangianGrassmannian.isCompl_horizontal_iff`, `isCompl_vertical_iff`,
   `range_graphY`, `range_graph`: the Lagrangians transverse to `{y = 0}` (resp. `{x = 0}`) are
   exactly the graphs `{(S y, y)}` (resp. `{(x, S x)}`) of symmetric matrices.
+* `SymplecticGeometry.LagrangianGrassmannian.isHermitian_of_coe_eq_graph`: a real matrix whose
+  graph `{(x, A x)}` is a Lagrangian of `ℒ ι` is symmetric.
 * `SymplecticGeometry.LagrangianGrassmannian.graphY_eq_ofFrame`: `graphY S` is spanned by the
   Lagrangian frame `fromRows S 1`; `eq_graphY_iff_of_coe_eq`: a Lagrangian spanned by the frame
   `fromRows X Y` is `graphY S` iff `Y` is invertible and `S = X Y⁻¹`.
@@ -196,6 +198,11 @@ theorem mem_graph_iff {S : selfAdjoint (Matrix ι ι ℝ)} {z : StdSpace ι} :
 /-- A point of the second chart determines its symmetric matrix. -/
 theorem graph_injective : Function.Injective (graph : selfAdjoint (Matrix ι ι ℝ) → ℒ ι) :=
   fun _ _ h ↦ Subtype.ext (StdSpace.graph_injective (congrArg toSubmodule h))
+
+/-- If a Lagrangian is the graph `{(x, A x)}` of a real matrix `A`, then `A` is symmetric. -/
+theorem isHermitian_of_coe_eq_graph {Λ : ℒ ι} {A : Matrix ι ι ℝ}
+    (hΛ : (Λ : Submodule ℝ (StdSpace ι)) = StdSpace.graph A) : A.IsHermitian :=
+  isHermitian_iff_isSymm.2 ((isLagrangian_graph_iff _).1 (hΛ ▸ Λ.isLagrangian))
 
 /-- The point of `0` in the second chart is the horizontal Lagrangian `{y = 0}`. -/
 @[simp]

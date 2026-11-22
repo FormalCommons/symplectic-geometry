@@ -325,26 +325,24 @@ theorem exists_souriau_eq_cayley_and_pathMaslovIndex_eq_maslovIndex {Λ Λ' : �
       (∀ t, (UnitaryGroup.souriau (δ t) : Matrix ι ι ℂ) = cayley ((A t).map ((↑) : ℝ → ℂ))) ∧
         pathMaslovIndex γ (horizontal ι) = UnitaryGroup.maslovIndex δ := by
   have hAc : Continuous A := continuous_of_coe_eq_graph γ.continuous hγ
-  have hA' (t : I) : (A t).IsHermitian :=
-    isHermitian_iff_isSymm.2 ((isLagrangian_graph_iff _).1 (hγ t ▸ (γ t).isLagrangian))
-  obtain ⟨U, U', δ, hδ⟩ := UnitaryGroup.exists_path_realImage_eq_and_souriau_eq_cayley hAc hA'
+  obtain ⟨U, U', δ, hδ⟩ := UnitaryGroup.exists_path_realImage_eq_and_souriau_eq_cayley hAc
+    fun t ↦ isHermitian_of_coe_eq_graph (hγ t)
   refine ⟨U, U', δ, fun t ↦ (hδ t).2, pathMaslovIndex_horizontal_eq_maslovIndex γ δ fun t ↦ ?_⟩
   rw [← toSubmodule_inj, coe_unitaryFrame_eq_map, (hδ t).1, hγ,
     ← StdSpace.range_toEuclideanLin_fromRows_one_eq_graph,
     StdSpace.range_toEuclideanLin_fromRows_eq_map_realImage, Matrix.map_one _ Complex.ofReal_zero
       Complex.ofReal_one]
 
-/-- **Localization.** Let `t ↦ A t` be a continuous path of real matrices and `γ` a path of
-Lagrangians that are their graphs `{(x, A t x)}`, so that each `A t` is symmetric. Then the index
-of `γ` relative to `{y = 0}` is half the change of the signature of `A`. -/
+/-- **Localization.** Let `γ` be a path of Lagrangians that are the graphs `{(x, A t x)}` of real
+matrices `A t`; then `t ↦ A t` is continuous and each `A t` is symmetric. The index of `γ`
+relative to `{y = 0}` is half the change of the signature of `A`. -/
 theorem pathMaslovIndex_graph {Λ Λ' : ℒ ι} (γ : Path Λ Λ') {A : I → Matrix ι ι ℝ}
-    (hAc : Continuous A) (hγ : ∀ t, (γ t : Submodule ℝ (StdSpace ι)) = StdSpace.graph (A t)) :
+    (hγ : ∀ t, (γ t : Submodule ℝ (StdSpace ι)) = StdSpace.graph (A t)) :
     pathMaslovIndex γ (horizontal ι) = ((A 1).signature - (A 0).signature : ℝ) / 2 := by
   obtain ⟨_, _, δ, hδ, h⟩ := exists_souriau_eq_cayley_and_pathMaslovIndex_eq_maslovIndex γ hγ
   rw [h]
-  exact UnitaryGroup.maslovIndex_eq_signature_sub_of_souriau_eq_cayley δ hAc
-    (fun t ↦ isHermitian_iff_isSymm.2 ((isLagrangian_graph_iff _).1
-      (hγ t ▸ (γ t).isLagrangian))) hδ
+  exact UnitaryGroup.maslovIndex_eq_signature_sub_of_souriau_eq_cayley δ
+    (continuous_of_coe_eq_graph γ.continuous hγ) (fun t ↦ isHermitian_of_coe_eq_graph (hγ t)) hδ
 
 /-- **Comparison with Tau Ceti's transverse index.** Let `δ` be a path of unitary frames whose
 Lagrangians `δ t ℝⁿ ⊆ ℂⁿ` begin and end at chart subspaces `{S y + i y}` of symmetric matrices
