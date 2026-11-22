@@ -43,16 +43,14 @@ In the top degree `p = n` the homology row stops at `H₀(M)`: surjectivity of `
 from the surjectivity of `H₀(U) ⊞ H₀(V) ⟶ H₀(M)`, but injectivity needs the group
 `Hⁿ⁺¹_c(U ∩ V; L)` to vanish. In Hatcher's argument that vanishing is part of the inductive
 hypothesis, `D` being defined in all degrees with `H_q = 0` for `q < 0`. Here it holds for every
-open set `W` of `M` (`TopCat.isZero_compactSupportCohomology_opens_of_finrank_eq`), by
-`TopCat.isZero_compactSupportCohomology_of_chartedSpace`, in `CompactSupport/Manifold.lean`, so
-the two steps need no hypothesis on it. Mathlib's five lemmas give both cases:
+open set `W` of `M`, by `TopCat.isZero_compactSupportCohomology_of_chartedSpace_int`, in
+`CompactSupport/Manifold.lean`, applied to `W` as a manifold of its own, so the two steps need no
+hypothesis on it. Mathlib's five lemmas give both cases:
 `AddMonoidHom.bijective_of_surjective_of_bijective_of_bijective_of_injective` below the top degree,
 and `AddMonoidHom.bijective_of_surjective_of_bijective_of_right_exact` in it.
 
 ## Main results
 
-* `TopCat.isZero_compactSupportCohomology_opens_of_finrank_eq`: `Hⁿ⁺¹_c(W; L) = 0` for every open
-  set `W` of `M`, for the `ℤ`-linear structure of `ModuleCat ℤ` that the duality maps use.
 * `TauCeti.HomologicalOrientation.bijective_dualityMap_of_sup_eq_top`: for open sets `U` and `V`
   covering `M`, the step from `U`, `V` and `U ∩ V` to `M`.
 * `TauCeti.HomologicalOrientation.bijective_dualityMap_comap_sup`: for any open sets `U` and `V`
@@ -62,12 +60,6 @@ and `AddMonoidHom.bijective_of_surjective_of_bijective_of_right_exact` in it.
   `M`, to `M`.
 
 ## Implementation notes
-
-The duality maps are stated with the `ℤ`-linear structure of `ModuleCat ℤ` as a preadditive
-category, while the vanishing theorem `TopCat.isZero_compactSupportCohomology_of_chartedSpace` is
-proved for the structure of a category of modules; the two agree since a `ℤ`-module structure is
-unique (`CategoryTheory.Linear.subsingletonInt`), as in Tau Ceti's
-`TauCeti.HomologicalOrientation.bijective_singularCap_fundamentalClassOn_of_starConvex`.
 
 The theorems are stated for `Opens M` and the embeddings `Opens.isOpenEmbedding'`, as Tau Ceti's
 disjoint case `TauCeti.HomologicalOrientation.bijective_dualityMap_of_disjoint` is, while the steps
@@ -107,18 +99,6 @@ variable {M E : Type} [TopologicalSpace M] [T2Space M]
   {n : ℕ} (o : HomologicalOrientation M E n) (hn : Module.finrank ℝ E = n) (L : ModuleCat.{0} ℤ)
 
 local notation "ℤₘ" => ModuleCat.of ℤ (ULift ℤ : Type)
-
-include hn in
-/-- The compactly supported cohomology `Hⁿ⁺¹_c(W; L)` of an open set `W` of the `n`-manifold `M`
-vanishes. It is stated for the `ℤ`-linear structure of `ModuleCat ℤ` as a preadditive category,
-that of the duality maps, while `TopCat.isZero_compactSupportCohomology_of_chartedSpace` uses that
-of a category of modules. -/
-theorem _root_.TopCat.isZero_compactSupportCohomology_opens_of_finrank_eq (W : Opens M) :
-    IsZero ((TopCat.of W).compactSupportCohomology ℤₘ ℤ L (n + 1)) := by
-  -- The two `ℤ`-linear structures agree, as a `ℤ`-module structure is unique.
-  have := Linear.subsingletonInt (ModuleCat.{0} ℤ)
-  convert TopCat.isZero_compactSupportCohomology_of_chartedSpace ℤₘ L (F := E) (M := W)
-    (show Module.finrank ℝ E < n + 1 by omega)
 
 section Cover
 
@@ -269,7 +249,8 @@ theorem bijective_dualityMap_of_sup_eq_top {U V : Opens M} (hUV : U ⊔ V = ⊤)
   | zero =>
     obtain rfl : p = n := by omega
     exact o.bijective_dualityMap_zero hn L hUV h (hU _ _ h) (hV _ _ h) (hW _ _ h)
-      (TopCat.isZero_compactSupportCohomology_opens_of_finrank_eq hn L (U ⊓ V))
+      (TopCat.isZero_compactSupportCohomology_of_chartedSpace_int (F := E) (M := ↥(U ⊓ V)) L
+        (by omega))
   | succ q =>
     exact o.bijective_dualityMap_succ hn L hUV h (hU _ _ h) (hV _ _ h) (hW _ _ h) (hU _ _ _)
       (hV _ _ _) (hW _ _ _)

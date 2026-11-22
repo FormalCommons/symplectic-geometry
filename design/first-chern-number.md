@@ -838,9 +838,9 @@ issues, in an order where each issue's blockers come before it.
    open sets of `M`. Both assume only duality in every degree for `U`, `V`
    and `U ∩ V`: the vanishing of `Hⁿ⁺¹_c(U ∩ V; L)`, which injectivity
    needs in the top degree, holds for every open set of `M`
-   (`TopCat.isZero_compactSupportCohomology_opens_of_finrank_eq`, in the
-   same file, from the library's
-   `AlgebraicTopology/Cohomology/CompactSupport/Manifold.lean`).
+   (`TopCat.isZero_compactSupportCohomology_of_chartedSpace_int`, in the
+   library's `AlgebraicTopology/Cohomology/CompactSupport/Manifold.lean`,
+   applied to the open set as a manifold).
    `TopCat.isZero_compactSupportCohomology_sup`, in the
    library's `AlgebraicTopology/Cohomology/CompactSupport/Vanishing.lean`,
    passes such a vanishing on to `U ∪ V`, and
