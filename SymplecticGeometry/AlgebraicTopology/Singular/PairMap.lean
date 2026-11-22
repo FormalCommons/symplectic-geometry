@@ -231,9 +231,7 @@ lemma chainComplexMap_comp_singularChainComplexπ_of_fac (P : TopPair.{w}) {Y : 
   subst hg
   simp
 
-end Preadditive
-
-variable [Abelian C]
+variable [CategoryWithHomology C]
 
 section Fst
 
@@ -317,6 +315,8 @@ lemma inv_singularHomologyMap_excisionMap_comp_ofSubsetMap_id {X : TopCat.{w}} {
   rw [← TopPair.singularHomologyMap_comp,
     ofSubsetMap_comp_ofSubsetMap_of_comp_eq h₁ h₂ (h₂.comp h₁) (Category.comp_id _),
     ← excisionMap_eq_ofSubsetMap, IsIso.inv_hom_id]
+
+end Preadditive
 
 end TopPair
 
