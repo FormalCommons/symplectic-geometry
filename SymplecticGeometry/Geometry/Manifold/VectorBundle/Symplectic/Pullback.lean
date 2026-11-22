@@ -104,11 +104,13 @@ also match the iterated pull-back of a sum, a difference, a negative or a multip
 `simp` evaluates the symplectic form of a pull-back through
 `IsNondegenerate.toBilinForm_symplecticFormAt` (`Symplectic/Basic.lean`): it turns
 `h.symplecticFormAt y v w` into the bilinear form of the two-form at `y` on `v` and `w`, which
-the lemmas above then evaluate, at every depth of pull-back and along composites. So
-`IsNondegenerate.symplecticFormAt_pullback_apply`, which states the value for one pull-back, is
-not `@[simp]`. The one exception is `IsNondegenerate.symplecticFormAt_pullback_pullback_apply`,
-which `simp` needs for two pull-backs of a sum, a difference, a negative or a multiple; its
-docstring says why.
+the lemmas above then evaluate. For a single form this works at every depth of pull-back and
+along composites, so `IsNondegenerate.symplecticFormAt_pullback_apply`, which states the value
+for one pull-back, is not `@[simp]`. For a sum, a difference, a negative or a multiple, `simp`
+evaluates the symplectic form only after one or two pull-backs, and two need
+`IsNondegenerate.symplecticFormAt_pullback_pullback_apply`, whose docstring says why. After three
+pull-backs, or a pull-back along a composite, of such a form, `simp` leaves the symplectic form
+split into a sum of unevaluated bilinear forms.
 
 In `pushforward_pullback_id` and `pushforward_pullback_comp`, the identity of each fibre is
 `Bundle.Pullback.idFiberEquiv` or `Bundle.Pullback.compFiberEquiv`
@@ -519,7 +521,9 @@ sum, a difference, a negative or a multiple, `simp` first rewrites the form name
 `h` with `pullback_add` and its partners, and then splits the bilinear form that
 `IsNondegenerate.toBilinForm_symplecticFormAt` gives, before a lemma on the whole application can
 fire. So this lemma is applied before the subterms are simplified (`simp↓`), as
-`bilinFormAt_pullback_pullback_apply` is. -/
+`bilinFormAt_pullback_pullback_apply` is. The same splitting happens at other depths, which no
+such lemma covers: for a sum, a difference, a negative or a multiple pulled back three times, or
+along a composite, `simp` does not evaluate the symplectic form. -/
 @[simp↓]
 theorem IsNondegenerate.symplecticFormAt_pullback_pullback_apply {K' : Type*} [FunLike K' P N]
     [ContinuousMapClass K' P N] {g : K} {hg : ContMDiff I' I n g} {f : K'}
@@ -612,7 +616,9 @@ example (ω ω' : ContMDiffTwoForm I n F V) (g : C^n⟮I', N; I, M⟯) (f : C^n�
       ((ω + ω').pullback (g.comp f) (g.comp f).contMDiff).bilinFormAt z v w =
         ω (g (f z)) ![v, w] + ω' (g (f z)) ![v, w] ∧
       ((c • ω).pullback (g.comp f) (g.comp f).contMDiff).bilinFormAt z v w =
-        c * ω (g (f z)) ![v, w] := by
+        c * ω (g (f z)) ![v, w] ∧
+      (((ω + ω').pullback (g.comp f) (g.comp f).contMDiff).pullback e e.contMDiff).bilinFormAt q
+        v₃ w₃ = ω (g (f (e q))) ![v₃, w₃] + ω' (g (f (e q))) ![v₃, w₃] := by
   simp
 
 variable [FiniteDimensional ℝ F]
