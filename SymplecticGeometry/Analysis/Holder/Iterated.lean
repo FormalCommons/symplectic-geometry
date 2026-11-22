@@ -22,6 +22,12 @@ These declarations are a part of Tau Ceti's file
 `0fef288e2f0539135f050168f1153e762b0189a8` (Tau Ceti's pull request #40860), and are not yet in
 the pinned release. They keep their Tau Ceti names, namespaces, statements and proofs unchanged,
 so that moving Tau Ceti past them deletes this file without renames.
+
+## References
+
+D. Gilbarg and N. Trudinger, *Elliptic Partial Differential Equations of Second Order*,
+Section 4.1; A. Lunardi, *Analytic Semigroups and Optimal Regularity in Parabolic Problems*,
+Chapter 0.
 -/
 
 public section
@@ -30,9 +36,11 @@ namespace TauCeti
 
 open scoped NNReal
 
+universe u v
+
 namespace CkHolderSpace
 
-variable {k : ℕ} {α : ℝ≥0} {E F : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+variable {k : ℕ} {α : ℝ≥0} {E : Type u} {F : Type v} [NormedAddCommGroup E] [NormedSpace ℝ E]
   [NormedAddCommGroup F] [NormedSpace ℝ F]
 
 /-- A bounded `C^{k,α}` map is itself globally `α`-Hölder, with constant `3 ‖f‖`, when `α ≤ 1`. -/

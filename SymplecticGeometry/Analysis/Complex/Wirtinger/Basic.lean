@@ -20,6 +20,11 @@ These declarations are a part of Tau Ceti's file
 `0fef288e2f0539135f050168f1153e762b0189a8` (Tau Ceti's pull request #40860), and are not yet in
 the pinned release. They keep their Tau Ceti names, namespaces, statements and proofs unchanged,
 so that moving Tau Ceti past them deletes this file without renames.
+
+## References
+
+* R. Hain, *Notes on the Morse theory of complex manifolds*.
+* L. Hörmander, *An introduction to complex analysis in several variables*, Chapter II.
 -/
 
 public section

@@ -19,6 +19,11 @@ These declarations are a part of Tau Ceti's file
 `0fef288e2f0539135f050168f1153e762b0189a8` (Tau Ceti's pull request #40860), and are not yet in
 the pinned release. They keep their Tau Ceti names, namespaces, statements and proofs unchanged,
 so that moving Tau Ceti past them deletes this file without renames.
+
+## References
+
+L. C. Evans, *Partial Differential Equations*, Section 5.1; D. Gilbarg and N. Trudinger,
+*Elliptic Partial Differential Equations of Second Order*, Section 4.1.
 -/
 
 public section
@@ -27,9 +32,11 @@ namespace TauCeti
 
 open scoped NNReal
 
+universe u v
+
 namespace HolderSpace
 
-variable {α : ℝ≥0} {X : Type*} {Y : Type*} [MetricSpace X]
+variable {α : ℝ≥0} {X : Type u} {Y : Type v} [MetricSpace X]
   [NormedAddCommGroup Y] [NormedSpace ℝ Y]
 
 /-- A function equal on `s` to an element `f` of the Hölder space of `s` is `α`-Hölder on `s` with

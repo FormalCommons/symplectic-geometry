@@ -19,6 +19,12 @@ These declarations are a part of Tau Ceti's file
 `0fef288e2f0539135f050168f1153e762b0189a8` (Tau Ceti's pull request #40860), and are not yet in
 the pinned release. They keep their Tau Ceti names, namespaces, statements and proofs unchanged,
 so that moving Tau Ceti past them deletes this file without renames.
+
+## References
+
+* D. McDuff and D. Salamon, *J-holomorphic Curves and Symplectic Topology*, Appendix B.
+* D. Gilbarg and N. Trudinger, *Elliptic Partial Differential Equations of Second Order*,
+  Lemma 4.4.
 -/
 
 public section

@@ -375,7 +375,7 @@ estimates.
 
 | # | Issue | Files | Blocked by | Size |
 |---|---|---|---|---|
-| 1 | The Beltrami equation with small $C^{k,\alpha}$ coefficient | `Analysis/Complex/Beltrami/CkHolder.lean` | — | 350 |
+| 1 | Planar charts of class `C^{k+1}` for a small $C^{k,\alpha}$ coefficient | `Analysis/Complex/Beltrami/CkHolder.lean`, and the files under *Files taken from Tau Ceti* | — | 1000 |
 | 2 | Planar isothermal charts of class `C^m`, and smooth ones | `Analysis/Complex/Beltrami/Regularity.lean` | 1 | 350 |
 | 3 | Smooth isothermal charts on surfaces, and `HasIsothermalCharts` | `Geometry/Manifold/Complex/Isothermal.lean` | 2 | 300 |
 | 4 | Integrability in dimension two, isothermal coordinates of a metric, and the milestone | `Geometry/Manifold/Complex/Isothermal.lean` | 3; #862 | 300 |
