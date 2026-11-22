@@ -8,7 +8,13 @@ module
 public import SymplecticGeometry.Geometry.Manifold.DeRham.Hodge.L2
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 public import TauCeti.Geometry.Manifold.Riemannian.Codifferential
+public import SymplecticGeometry.Geometry.Manifold.DeRham.Hodge.Regularity
+public import TauCeti.Analysis.Distribution.WaveFrontSet.Sobolev.Tempered
+public import TauCeti.Analysis.Sobolev.BesselPotential.Distribution
+public import TauCeti.MeasureTheory.Function.Lp.Precomposition
 public import TauCeti.Geometry.Manifold.Riemannian.Sobolev.H1
+import SymplecticGeometry.Analysis.Distribution.Support
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 
 /-!
 # The Hodge `H¹` space of differential forms
@@ -30,6 +36,20 @@ form on `H1Form o hkl` that extends `⟪Δα, β⟫`, so that `‖u‖ ^ 2 = dir
 every smooth form, and `toL2` is injective. The Dirichlet form is nonnegative, so it satisfies
 the Cauchy–Schwarz inequality, which bounds `|⟪toL2 u, Δφ⟫|` by `‖u‖` times the `H¹` norm
 `√(‖φ‖ ^ 2 + ⟪Δφ, φ⟫)` of `φ`.
+
+By `SymplecticGeometry.L2Form.isLocallySobolev_one_of_forall_inner`, that bound makes every
+element of `H1Form o hkl` locally `H¹` in each chart. Fix a chart `ψ`, a smooth cutoff `χ`
+supported in its source, a basis `bΛ` of the forms on `E`, an index `p` and coordinates
+`e : E ≃L[ℝ] CoordinateSpace n`. The complexified `p`-th coordinate of the localization of an
+`L²` form `u`, read through `e⁻¹`, is an `L²` function on `CoordinateSpace n`
+(`SymplecticGeometry.L2Form.localizeCoord`). Its distribution is, up to a nonzero constant, the
+coordinate distribution `Distribution.coordOfFun` of the localization, and it vanishes outside
+the compact image of the support of `χ`. So, for `u = toL2 v` with `v` in `H1Form o hkl`, Tau
+Ceti's `TemperedDistribution.memSobolev_of_isCompact_dsupport_of_forall_isLocallySobolevAt` puts
+it in the Bessel-potential space `H^1` of `CoordinateSpace n`. This defines a linear map
+`H1Form.localizeSobolev` from `H1Form o hkl` to `H^1`. Its graph is closed, because `H1Form o hkl`
+and `H^1` both map continuously into the tempered distributions, the second one injectively, so
+the map is bounded by the closed graph theorem `LinearMap.continuous_of_isClosed_graph`.
 
 In degree zero, `H1Form o hl` for `hl : 0 + l = m` is Tau Ceti's Sobolev space
 `TauCeti.Manifold.SobolevH1 I M`, the completion of the smooth functions for
@@ -60,6 +80,12 @@ model without boundary, `I.Boundaryless`, and so does this equivalence.
   with `TauCeti.Manifold.SobolevH1 I M`, with `sobolevH1Equiv_ofSmooth`,
   `sobolevH1Equiv_symm_ofSmooth`, `dirichletForm_sobolevH1Equiv` and
   `inner_toLp_sobolevH1Equiv`.
+* `SymplecticGeometry.L2Form.localizeCoord`: a coordinate of the localization of an `L²` form,
+  as an `L²` function on `CoordinateSpace n`, with `L2Form.coeFn_localizeCoord`,
+  `L2Form.coordOfFun_localize_eq_smul` and `L2Form.memSobolev_localizeCoord_of_forall_inner`.
+* `SymplecticGeometry.H1Form.localizeSobolev`: the localization of `H1Form o hkl` to the
+  Bessel-potential space `H^1` of `CoordinateSpace n`, a continuous linear map, with
+  `H1Form.toDistr_localizeSobolev`.
 
 ## Implementation notes
 
@@ -78,6 +104,11 @@ Hodge Laplacian in place of smooth functions and the gradient, and `L2Form` in p
 `L2Form.localize` does, `toL2` is Mathlib's extension `LinearMap.extendOfNorm` of the
 inclusion of smooth forms into `L2Form o k`, which is bounded by `norm_l2FormOfSmooth_le`.
 
+The Bessel-potential space `H^1` is a complex space; `H1Form.localizeSobolev` is linear over `ℝ`
+for its real structure. The change of variables along `e⁻¹` in `L2Form.localizeCoord` is Tau
+Ceti's `MeasureTheory.Lp.compOfMapLeSmul`, since the image of the volume of `CoordinateSpace n`
+is a multiple of the volume of `E`.
+
 As Tau Ceti's `TauCeti.Manifold.SobolevH1.compRiemannianIsometry`
 (`TauCeti/Geometry/Manifold/Riemannian/Sobolev/Isometry.lean`) does for pullback along a
 Riemannian isometry, `sobolevH1Equiv` is Mathlib's `LinearEquiv.extendOfIsometry` of a linear
@@ -89,6 +120,8 @@ equivalence of the dense smooth parts, here `TauCeti.SmoothForm.ofFunctionEquiv`
   Mathematics 94, Springer, 1983, Chapter 6.
 * [P. Griffiths, J. Harris, *Principles of Algebraic Geometry*][GriffithsHarris1978],
   Chapter 0, §6.
+* L. Hörmander, *The Analysis of Linear Partial Differential Operators I*, §2.2 (support of a
+  distribution) and §7.1 (tempered distributions).
 -/
 
 public section
@@ -416,6 +449,161 @@ theorem inner_toLp_sobolevH1Equiv (u v : H1Form o hl) :
 end DegreeZero
 
 end H1Form
+
+/-! ### Localizations in `H¹` of a chart -/
+
+section Localize
+
+open scoped Distributions SchwartzMap BesselPotentialSpace
+open TemperedDistribution
+
+variable [MeasureSpace E] [BorelSpace E] [(volume : Measure E).IsAddHaarMeasure]
+  (ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞) (χ : C^∞⟮I, M; ℝ⟯) (hχ : tsupport χ ⊆ ψ.source)
+  {κ : Type*} (bΛ : Module.Basis κ ℝ (E [⋀^Fin k]→L[ℝ] ℝ)) (p : κ) {n : ℕ}
+  (e : E ≃L[ℝ] CoordinateSpace n)
+
+omit [BoundarylessManifold I M] [T2Space M] in
+/-- The `p`-th coordinate in the basis `bΛ`, complexified, of the localization
+`L2Form.localize ψ χ hχ` of an `L²` form, read in the coordinates `e : E ≃L[ℝ] CoordinateSpace n`:
+the `L²` function `x ↦ (bΛ.repr (localize ψ χ hχ u (e⁻¹ x)) p : ℂ)` on `CoordinateSpace n`
+(`L2Form.coeFn_localizeCoord`). -/
+def L2Form.localizeCoord : L2Form o k →L[ℝ] Lp ℂ 2 (volume : Measure (CoordinateSpace n)) :=
+  Lp.compOfMapLeSmul ℝ e.symm.continuous.measurable ENNReal.coe_ne_top
+    (C := (((volume : Measure (CoordinateSpace n)).map e.symm).addHaarScalarFactor volume :
+      ENNReal))
+    (by rw [← ENNReal.smul_def, ← Measure.isAddLeftInvariant_eq_smul]) ∘L
+    (Complex.ofRealCLM ∘L LinearMap.toContinuousLinearMap (bΛ.coord p)).compLpL 2 volume ∘L
+      L2Form.localize ψ χ hχ
+
+omit [BoundarylessManifold I M] [T2Space M] in
+/-- `L2Form.localizeCoord ψ χ hχ bΛ p e u` is almost everywhere the complexified `p`-th
+coordinate in `bΛ` of the localization of `u`, read through `e⁻¹`. -/
+theorem L2Form.coeFn_localizeCoord (u : L2Form o k) :
+    L2Form.localizeCoord ψ χ hχ bΛ p e u =ᵐ[volume]
+      fun x ↦ (bΛ.repr (L2Form.localize ψ χ hχ u (e.symm x)) p : ℂ) := by
+  have hq : QuasiMeasurePreserving e.symm volume volume :=
+    ⟨e.symm.continuous.aemeasurable, Measure.absolutelyContinuous_isAddHaarMeasure _ _⟩
+  rw [L2Form.localizeCoord, ContinuousLinearMap.comp_apply, ContinuousLinearMap.comp_apply]
+  refine (Lp.coeFn_compOfMapLeSmul _ _ _ _).trans ?_
+  filter_upwards [hq.ae
+    ((Complex.ofRealCLM ∘L LinearMap.toContinuousLinearMap (bΛ.coord p)).coeFn_compLpL
+      (L2Form.localize ψ χ hχ u))] with x h
+  rw [Function.comp_apply, h]
+  simp
+
+omit [BoundarylessManifold I M] [T2Space M] in
+/-- **The coordinate distribution as a tempered distribution.** On all of `CoordinateSpace n`,
+the coordinate distribution `Distribution.coordOfFun` of the localization of `u` is the
+distribution of the `L²` function `L2Form.localizeCoord ψ χ hχ bΛ p e u`, multiplied by the factor
+relating the image of the volume of `E` under `e` to the volume of `CoordinateSpace n`. -/
+theorem L2Form.coordOfFun_localize_eq_smul (u : L2Form o k) :
+    Distribution.coordOfFun (U := ⊤) (Ω := ⊤) e (Set.mapsTo_univ _ _) bΛ
+        (L2Form.localize ψ χ hχ u) volume p =
+      (((volume : Measure E).map e).addHaarScalarFactor volume : ℝ) •
+        toDistribution ⊤ (L2Form.localizeCoord ψ χ hχ bΛ p e u : 𝓢'(CoordinateSpace n, ℂ)) := by
+  have hloc : LocallyIntegrableOn (L2Form.localize ψ χ hχ u) (⊤ : TopologicalSpace.Opens E)
+      volume :=
+    ((Lp.memLp _).locallyIntegrable one_le_two).locallyIntegrableOn _
+  rw [Distribution.coordOfFun_def, Distribution.transportCLM_ofFun_of_isAddHaarMeasure _ _ volume
+    volume (hloc.ofReal_basis_repr bΛ p), toDistribution_toTemperedDistribution,
+    ContinuousLinearEquiv.symm_symm,
+    Distribution.ofFun_congr_ae (ae_restrict_of_ae (L2Form.coeFn_localizeCoord ψ χ hχ bΛ p e u))]
+
+omit [BoundarylessManifold I M] in
+/-- **Localizations of `H¹` forms are in `H¹`.** Let `u` be an `L²` form whose pairing with
+Laplacians is bounded in the Hodge `H¹` norm, as in `L2Form.isLocallySobolev_one_of_forall_inner`.
+Then the `p`-th coordinate of its localization to a chart, read in coordinates
+(`L2Form.localizeCoord`), lies in the Bessel-potential space `H^1` of `CoordinateSpace n`. -/
+theorem L2Form.memSobolev_localizeCoord_of_forall_inner [Finite κ] {u : L2Form o k} {C : ℝ}
+    (hu : ∀ φ : SmoothForm I M ℝ k,
+      |⟪u, L2Form.ofSmooth (SmoothForm.hodgeLaplacian o hkl φ)⟫_ℝ| ≤
+        C * √(‖(L2Form.ofSmooth φ : L2Form o k)‖ ^ 2 +
+          ⟪(L2Form.ofSmooth (SmoothForm.hodgeLaplacian o hkl φ) : L2Form o k),
+            L2Form.ofSmooth φ⟫_ℝ)) :
+    MemSobolev 1 2 (L2Form.localizeCoord ψ χ hχ bΛ p e u : 𝓢'(CoordinateSpace n, ℂ)) := by
+  set K := e '' (ψ '' tsupport χ)
+  have hK : IsCompact K :=
+    (ψ.isCompact_image_of_subset_source (isClosed_tsupport _).isCompact hχ).image e.continuous
+  -- The localization vanishes outside the compact set `K`, and so does its distribution.
+  have hq : QuasiMeasurePreserving e.symm volume volume :=
+    ⟨e.symm.continuous.aemeasurable, Measure.absolutelyContinuous_isAddHaarMeasure _ _⟩
+  have hsupp : Distribution.dsupport
+      (L2Form.localizeCoord ψ χ hχ bΛ p e u : 𝓢'(CoordinateSpace n, ℂ)) ⊆ K := by
+    refine Lp.dsupport_toTemperedDistribution_subset hK.isClosed ?_
+    filter_upwards [L2Form.coeFn_localizeCoord ψ χ hχ bΛ p e u,
+      hq.ae (L2Form.localize_ae_eq_zero_of_notMem ψ χ hχ u)] with x h₁ h₂ hx
+    rw [h₁, h₂ fun h ↦ hx ⟨_, h, e.apply_symm_apply x⟩]
+    simp
+  refine memSobolev_of_isCompact_dsupport_of_forall_isLocallySobolevAt
+    (hK.of_isClosed_subset Distribution.isClosed_dsupport hsupp) fun x _ ↦ ?_
+  -- Near every point, it is a nonzero multiple of a coordinate distribution, which is `H¹`.
+  set c : ℝ := (((volume : Measure E).map e).addHaarScalarFactor volume : ℝ)
+  have hc : (c : ℂ) ≠ 0 := Complex.ofReal_ne_zero.2
+    (NNReal.coe_ne_zero.2 (Measure.addHaarScalarFactor_pos_of_isAddHaarMeasure _ _).ne')
+  have h := (L2Form.isLocallySobolev_one_of_forall_inner hu ψ χ hχ e
+    (U := ⊤) (Ω := ⊤) (Set.mapsTo_univ _ _) bΛ p (z := x) (Set.mem_univ x)).smul (c : ℂ)⁻¹
+  rwa [L2Form.coordOfFun_localize_eq_smul, ← Complex.coe_smul, smul_smul, inv_mul_cancel₀ hc,
+    one_smul] at h
+
+namespace H1Form
+
+variable [Finite κ]
+
+/-- The `p`-th coordinate of the localization of an element of `H1Form o hkl` to a chart, read in
+coordinates, lies in the Bessel-potential space `H^1` of `CoordinateSpace n`. -/
+theorem memSobolev_localizeCoord_toL2 (u : H1Form o hkl) :
+    MemSobolev 1 2 (L2Form.localizeCoord ψ χ hχ bΛ p e (toL2 u) : 𝓢'(CoordinateSpace n, ℂ)) :=
+  L2Form.memSobolev_localizeCoord_of_forall_inner ψ χ hχ bΛ p e
+    (abs_inner_toL2_ofSmooth_hodgeLaplacian_le u)
+
+/-- The localization of `H1Form o hkl` to `H^1` of a chart, as a linear map. -/
+private def localizeSobolevₗ : H1Form o hkl →ₗ[ℝ] H^{1}(CoordinateSpace n) where
+  toFun u := (memSobolev_localizeCoord_toL2 ψ χ hχ bΛ p e u).toBesselPotentialSpace
+  map_add' u v := BesselPotentialSpace.ext (by simp [← Lp.toTemperedDistributionCLM_apply])
+  map_smul' r u := BesselPotentialSpace.ext (by
+    rw [RingHom.id_apply, ← Complex.coe_smul, BesselPotentialSpace.toDistr_smul]
+    simp [← Lp.toTemperedDistributionCLM_apply, ← Complex.coe_smul])
+
+/-- The graph of the localization is closed: both `H1Form o hkl` and `H^1` map continuously to
+the tempered distributions, and `H^1` injectively. -/
+private theorem isClosed_graph_localizeSobolevₗ :
+    IsClosed ((localizeSobolevₗ (o := o) (hkl := hkl) ψ χ hχ bΛ p e).graph :
+      Set (H1Form o hkl × H^{1}(CoordinateSpace n))) := by
+  have h : ((localizeSobolevₗ (o := o) (hkl := hkl) ψ χ hχ bΛ p e).graph :
+      Set (H1Form o hkl × H^{1}(CoordinateSpace n))) =
+      {x | BesselPotentialSpace.toDistrCLM _ ℂ 1 2 x.2 =
+        Lp.toTemperedDistributionCLM ℂ volume 2
+          (L2Form.localizeCoord ψ χ hχ bΛ p e (toL2 x.1))} := by
+    ext x
+    rw [SetLike.mem_coe, LinearMap.mem_graph_iff, Set.mem_ofPred_eq,
+      ← (BesselPotentialSpace.toDistrCLM_injective (E := CoordinateSpace n) (F := ℂ)).eq_iff]
+    simp [localizeSobolevₗ]
+  rw [h]
+  exact isClosed_eq (by fun_prop) (by fun_prop)
+
+/-- **The localization of `H1Form o hkl` to `H^1` of a chart.** For a chart `ψ`, a smooth cutoff
+`χ` supported in its source, a basis `bΛ` of the forms on `E`, an index `p` and coordinates
+`e : E ≃L[ℝ] CoordinateSpace n`, the continuous linear map to the Bessel-potential space `H^1` of
+`CoordinateSpace n` that sends `u` to the `p`-th coordinate in `bΛ`, complexified, of the
+localization of `toL2 u`, read through `e⁻¹` (`H1Form.toDistr_localizeSobolev`). It is
+everywhere defined by `memSobolev_localizeCoord_toL2`, and continuous by the closed graph
+theorem. -/
+def localizeSobolev : H1Form o hkl →L[ℝ] H^{1}(CoordinateSpace n) :=
+  .ofIsClosedGraph (isClosed_graph_localizeSobolevₗ ψ χ hχ bΛ p e)
+
+/-- The tempered distribution of `localizeSobolev ψ χ hχ bΛ p e u` is that of the `L²` function
+`L2Form.localizeCoord ψ χ hχ bΛ p e (toL2 u)`, the complexified `p`-th coordinate of the
+localization of `toL2 u` read through `e⁻¹` (`L2Form.coeFn_localizeCoord`). -/
+@[simp]
+theorem toDistr_localizeSobolev (u : H1Form o hkl) :
+    (localizeSobolev (o := o) (hkl := hkl) ψ χ hχ bΛ p e u).toDistr =
+      (L2Form.localizeCoord ψ χ hχ bΛ p e (toL2 u) : 𝓢'(CoordinateSpace n, ℂ)) := by
+  rw [localizeSobolev, ContinuousLinearMap.coeFn_ofIsClosedGraph, localizeSobolevₗ,
+    LinearMap.coe_mk, AddHom.coe_mk, MemSobolev.toBesselPotentialSpace_toDistr]
+
+end H1Form
+
+end Localize
 
 end SymplecticGeometry
 

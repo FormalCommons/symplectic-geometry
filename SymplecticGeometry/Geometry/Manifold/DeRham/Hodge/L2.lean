@@ -107,7 +107,9 @@ carries this convergence back to `L2Form o k`.
   `L2Form.localize_ae_eq_indicator_smul_localize`, which compares the localizations with two
   cutoffs, `χ₂ = 1` on the support of `χ₁`, using that a cutoff read in the chart is continuous
   with compact support (`PartialDiffeomorph.continuous_indicator_comp_symm`,
-  `PartialDiffeomorph.hasCompactSupport_indicator_comp_symm`).
+  `PartialDiffeomorph.hasCompactSupport_indicator_comp_symm`), and
+  `L2Form.localize_ae_eq_zero_of_notMem`: the localization vanishes outside the image of the
+  support of the cutoff.
 * `TauCeti.SmoothForm.l2Inner_eq_integral_formInnerInChart` and
   `SymplecticGeometry.L2Form.inner_ofSmooth_eq_integral_localize`: the `L²` inner product with a
   smooth form supported where the cutoff is `1`, read in the chart as the integral of the inner
@@ -862,6 +864,26 @@ theorem localize_ae_eq_indicator_smul_localize {χ₁ χ₂ : C^∞⟮I, M; ℝ�
     · rw [image_eq_zero_of_notMem_tsupport hx]
       exact (zero_smul ℝ _).trans (zero_smul ℝ _).symm
   · simp [r, SmoothForm.localize_apply_of_notMem _ _ _ hy]
+
+/-- The localization of an `L²` form with the cutoff `χ` vanishes almost everywhere outside the
+image `ψ '' tsupport χ` of the support of `χ`. -/
+theorem localize_ae_eq_zero_of_notMem (u : L2Form o k) :
+    ∀ᵐ y ∂volume, y ∉ ψ '' tsupport χ → localize ψ χ hχ u y = 0 := by
+  set K := ψ '' tsupport χ
+  have hK : MeasurableSet Kᶜ := (ψ.isCompact_image_of_subset_source
+    (isClosed_tsupport _).isCompact hχ).isClosed.isOpen_compl.measurableSet
+  -- The property says that the restriction of the localization to `Kᶜ` vanishes.
+  have hP (v : Lp (E [⋀^Fin k]→L[ℝ] ℝ) 2 (volume : Measure E)) :
+      (∀ᵐ y ∂volume, y ∉ K → v y = 0) ↔ LpToLpRestrictCLM E _ ℝ volume 2 Kᶜ v = 0 := by
+    rw [Lp.eq_zero_iff_ae_eq_zero]
+    refine (ae_restrict_iff' hK).symm.trans ?_
+    exact ⟨fun h ↦ (LpToLpRestrictCLM_coeFn ℝ Kᶜ v).trans h,
+      fun h ↦ (LpToLpRestrictCLM_coeFn ℝ Kᶜ v).symm.trans h⟩
+  rw [hP]
+  refine induction_on u (isClosed_eq (by fun_prop) continuous_const) fun α ↦ ?_
+  rw [← hP]
+  filter_upwards [localize_ofSmooth ψ χ hχ α] with y hy hyK
+  rw [hy, SmoothForm.localize_apply_eq_zero_of_notMem _ _ _ hyK]
 
 /-- **The `L²` inner product in a chart, for `L²` forms.** Let `χ` be a smooth cutoff supported in
 the source of the chart `ψ` and `β` a smooth form with `χ = 1` on the support of `β`. Then the
