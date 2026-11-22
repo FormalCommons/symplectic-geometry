@@ -2816,7 +2816,7 @@ manifolds and characteristic classes*).
 | *Fubini–Study form on complex projective space* | *Complex projective space*. Existing inputs: Tau Ceti's complex manifold `ℙ ℂ (Fin (n + 1) → ℂ)`, `TauCeti.SmoothTwoForm.existsUnique_isSymplectic_mpullback_eq`, `OnePoint.fubiniStudyForm`. |
 | *Complex submanifolds of Kähler manifolds* | *Complex submanifolds*; its last sentence *Complex projective space*. Existing input: the linear `TauCeti.SymplecticForm.Compatible.restrict`. |
 | *Kähler structure on the space of compatible linear complex structures* | *Space of compatible complex structures*. Existing inputs: `TauCeti.SymplecticForm.compatibleTangentSpace`, `TauCeti.SymplecticForm.Compatible.compatibleCayleyEquiv`, and the bijection with $\mathcal S_n$ of *Siegel upper half space*. |
-| *Hodge decomposition on closed Kähler manifolds* | *Hodge theory*. Existing inputs: `TauCeti.harmonicForms` and its orthogonality results, `TauCeti.complexDeRhamCohomology`, `TauCeti.dolbeaultCohomology`, Tau Ceti's interior elliptic regularity. |
+| *Hodge decomposition on closed Kähler manifolds* | *Hodge theory*. Existing inputs: `TauCeti.harmonicForms` and its orthogonality results, `TauCeti.complexDeRhamCohomology`. |
 | *Adjunction formula* | *Adjunction*; the example of plane curves *Projective hypersurfaces*. |
 | *Chern classes of projective hypersurfaces* | *Projective hypersurfaces*, on *Chern classes*. Existing inputs: `TauCeti.isManifold_complexProjectiveZeroLocus`, `Projectivization.twistCore`, Tau Ceti's Lefschetz theorems in `Geometry/Manifold/Projectivization/Lefschetz.lean`. |
 | *Energy identity for J-holomorphic curves* | *Energy of pseudoholomorphic curves*. Existing input: `TauCeti.integralTopForm_mpullback_nonneg`. |

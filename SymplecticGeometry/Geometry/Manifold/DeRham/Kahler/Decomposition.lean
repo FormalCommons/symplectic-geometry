@@ -47,6 +47,10 @@ on it. In particular they hold for the symplectic orientation of a Kähler form.
   `p + q = k`.
 * `TauCeti.complexDeRhamCohomology.map_conj_hodgePiece`: conjugation exchanges `H^{p,q}` and
   `H^{q,p}`.
+* `TauCeti.SmoothForm.complexHodgeStar_alternatingDerivation`: the complex Hodge star commutes
+  with the derivation of an endomorphism field that is skew-adjoint at every point.
+* `TauCeti.SmoothForm.IsOfType.complexHodgeStar`: in dimension `2 n`, with `J` orthogonal, the
+  Hodge star of a form of type `(p,q)`, `p, q ≤ n`, has type `(n - q, n - p)`.
 * `TauCeti.SmoothAlmostComplexStructure.typeProjection_complexHodgeLaplacian` and
   `TauCeti.SmoothAlmostComplexStructure.typeProjection_mem_complexHarmonicForms`: the type
   projections commute with the complex Hodge Laplacian and preserve harmonic forms.
@@ -139,7 +143,7 @@ theorem map_conj_hodgePiece (p q : ℕ) :
 
 end complexDeRhamCohomology
 
-/-! ### The type projections commute with the Laplacian -/
+/-! ### The Laplacian, the Hodge star and types of forms -/
 
 variable [FiniteDimensional ℝ E] [RiemannianBundle (fun x : M ↦ TangentSpace I x)]
   [IsContMDiffRiemannianBundle I ∞ E (fun x : M ↦ TangentSpace I x)] {m k l : ℕ}
@@ -173,6 +177,34 @@ theorem IsOfType.complexHodgeLaplacian {p q : ℕ} (o : Manifold.Orientation I M
     ⟨hφ.add_eq, by
       rw [← complexHodgeLaplacian_alternatingDerivation o hJ hσ hg, (isOfType_iff.1 hφ).2,
         map_smul]⟩
+
+/-- On an oriented manifold with a smooth metric, the complex Hodge star commutes with the
+derivation `A.alternatingDerivation` of complex forms, for an endomorphism field `A` that is
+skew-adjoint at every point. -/
+theorem complexHodgeStar_alternatingDerivation (o : Manifold.Orientation I M (Fin m))
+    (hkl : k + l = m)
+    {A : ContMDiffSection I (E →L[ℝ] E) ∞ fun x : M ↦ TangentSpace I x →L[ℝ] TangentSpace I x}
+    (hA : ∀ x (u w : TangentSpace I x), ⟪A x u, w⟫ = -⟪u, A x w⟫) (φ : SmoothForm I M ℂ k) :
+    complexHodgeStar o hkl (A.alternatingDerivation φ) =
+      A.alternatingDerivation (complexHodgeStar o hkl φ) := by
+  conv_lhs => rw [← ofReal_realPart_add_I_smul_ofReal_imaginaryPart φ]
+  conv_rhs => rw [← ofReal_realPart_add_I_smul_ofReal_imaginaryPart φ]
+  simp only [complexHodgeStar_def, map_add, map_smul,
+    ContMDiffSection.alternatingDerivation_mapCoeff_ofRealCLM, complexifyₗ_mapCoeff_ofRealCLM,
+    hodgeStar_realAlternatingDerivation o hkl hA]
+
+/-- On an oriented manifold of dimension `2 n` with a metric in which `J` is orthogonal, the
+complex Hodge star of a complex form of type `(p,q)`, with `p ≤ n` and `q ≤ n`, has type
+`(n - q, n - p)`. -/
+theorem IsOfType.complexHodgeStar {n p q : ℕ}
+    (o : Manifold.Orientation I M (Fin (2 * n))) (hkl : k + l = 2 * n)
+    (hJ : ∀ x (u w : TangentSpace I x), ⟪J x u, w⟫ = -⟪u, J x w⟫) (hp : p ≤ n) (hq : q ≤ n)
+    {φ : SmoothForm I M ℂ k} (hφ : φ.IsOfType J p q) :
+    (complexHodgeStar o hkl φ).IsOfType J (n - q) (n - p) := by
+  have hpq := hφ.add_eq
+  refine isOfType_iff.2 ⟨by omega, ?_⟩
+  rw [← SmoothForm.complexHodgeStar_alternatingDerivation o hkl hJ, (isOfType_iff.1 hφ).2,
+    map_smul, Nat.cast_sub hp, Nat.cast_sub hq, sub_sub_sub_cancel_left]
 
 end SmoothForm
 
