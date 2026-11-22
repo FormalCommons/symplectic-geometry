@@ -223,9 +223,14 @@ theorem exists_maslovIndex_eq_pathMaslovIndex {Λ Λ' : ℒ ι} (γ : Path Λ Λ
 index, whatever the reference Lagrangian. -/
 theorem pathMaslovIndex_eq_of_homotopic {Λ Λ' : ℒ ι} {γ₀ γ₁ : Path Λ Λ'} (h : γ₀.Homotopic γ₁)
     (V : ℒ ι) : pathMaslovIndex γ₀ V = pathMaslovIndex γ₁ V := by
-  rw [pathMaslovIndex, pathMaslovIndex, souriauIndex, souriauIndex,
-    Circle.angleChange_eq_of_homotopic ((h.map ⟨_, continuous_const_smul _⟩).map
-      ⟨maslovPhase, continuous_maslovPhase⟩)]
+  rw [pathMaslovIndex, pathMaslovIndex, souriauIndex, souriauIndex]
+  congr 2
+  -- The homotopy pushed forward by `maslovPhaseMap` has its endpoints written with
+  -- `maslovPhaseMap`; `angleChange_congr` moves across to the paths written with `maslovPhase`.
+  refine (Circle.angleChange_congr _ _ fun _ ↦ ?_).trans
+    ((Circle.angleChange_eq_of_homotopic
+      ((h.map ⟨_, continuous_const_smul (unitaryFrame_surjective V).choose⁻¹⟩).map
+        maslovPhaseMap)).trans (Circle.angleChange_congr _ _ fun _ ↦ ?_)) <;> simp
 
 /-- **Catenation.** The index is additive under concatenation of paths. -/
 @[simp]
