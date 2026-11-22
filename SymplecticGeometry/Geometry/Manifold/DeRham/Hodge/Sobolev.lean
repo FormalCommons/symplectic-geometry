@@ -15,6 +15,13 @@ public import TauCeti.MeasureTheory.Function.Lp.Precomposition
 public import TauCeti.Geometry.Manifold.Riemannian.Sobolev.H1
 import SymplecticGeometry.Analysis.Distribution.Support
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.ChartCover
+import SymplecticGeometry.Analysis.Normed.Operator.Compact
+import TauCeti.Analysis.Distribution.SchwartzSpace.Cutoff
+import TauCeti.Analysis.Sobolev.BesselPotential.Inclusion
+import TauCeti.Analysis.Sobolev.BesselPotential.Rellich
+import TauCeti.MeasureTheory.Function.Lp.FiniteDimensional
+import TauCeti.MeasureTheory.Measure.Haar.Unique
 
 /-!
 # The Hodge `H¹` space of differential forms
@@ -51,6 +58,19 @@ it in the Bessel-potential space `H^1` of `CoordinateSpace n`. This defines a li
 and `H^1` both map continuously into the tempered distributions, the second one injectively, so
 the map is bounded by the closed graph theorem `LinearMap.continuous_of_isClosed_graph`.
 
+The inclusion `H1Form.toL2` is a compact operator (`H1Form.isCompactOperator_toL2`). In a chart,
+take a Schwartz function `φ` equal to `1` near the compact set outside which the coordinate
+`L2Form.localizeCoord` of `toL2 u` vanishes. Multiplying by `φ` leaves that coordinate unchanged,
+so it is the image of `H1Form.localizeSobolev u` under multiplication by `φ` followed by the
+inclusion of `H^1` into `L²`, which is compact by Tau Ceti's Rellich theorem
+`BesselPotentialSpace.isCompactOperator_inclusion_comp_smulLeftCLM`
+(`H1Form.isCompactOperator_localizeCoord_comp_toL2`). For a finite atlas and a subordinate
+partition of unity, the `L²` norm of a form is bounded by the norms of its localizations
+(`L2Form.exists_norm_le_sum_norm_localize`), and each localization by the norms of its
+coordinates (`L2Form.exists_norm_localize_le_mul_sum_norm_localizeCoord`). So `toL2` is
+dominated by finitely many compact operators, and is compact by
+`IsCompactOperator.of_norm_le_sum`.
+
 In degree zero, `H1Form o hl` for `hl : 0 + l = m` is Tau Ceti's Sobolev space
 `TauCeti.Manifold.SobolevH1 I M`, the completion of the smooth functions for
 `∫ a b dV + ∫ ⟪∇a, ∇b⟫ dV`. A smooth `0`-form `α` is the smooth function `a = (x ↦ α x 0)`, the
@@ -86,6 +106,14 @@ model without boundary, `I.Boundaryless`, and so does this equivalence.
 * `SymplecticGeometry.H1Form.localizeSobolev`: the localization of `H1Form o hkl` to the
   Bessel-potential space `H^1` of `CoordinateSpace n`, a continuous linear map, with
   `H1Form.toDistr_localizeSobolev`.
+* `SymplecticGeometry.L2Form.localizeCoord_ae_eq_zero_of_notMem` and
+  `SymplecticGeometry.L2Form.exists_norm_localize_le_mul_sum_norm_localizeCoord`: the
+  coordinates vanish outside the image of the support of the cutoff, and they control the
+  localization.
+* `SymplecticGeometry.H1Form.isCompactOperator_localizeCoord_comp_toL2`: Rellich's theorem in a
+  chart.
+* `SymplecticGeometry.H1Form.isCompactOperator_toL2`: the inclusion of `H1Form o hkl` into
+  `L2Form o k` is compact.
 
 ## Implementation notes
 
@@ -109,6 +137,12 @@ for its real structure. The change of variables along `e⁻¹` in `L2Form.locali
 Ceti's `MeasureTheory.Lp.compOfMapLeSmul`, since the image of the volume of `CoordinateSpace n`
 is a multiple of the volume of `E`.
 
+The proof of `H1Form.isCompactOperator_localizeCoord_comp_toL2` follows that of Tau Ceti's
+`TauCeti.Symbol.isCompactOperator_inclusion_comp_quantizeSobolev`: a Schwartz cutoff equal to `1`
+near a common compact support (`IsCompact.exists_schwartzMap_cutoff`), multiplication by which
+is the identity, reduces compactness to
+`BesselPotentialSpace.isCompactOperator_inclusion_comp_smulLeftCLM`.
+
 As Tau Ceti's `TauCeti.Manifold.SobolevH1.compRiemannianIsometry`
 (`TauCeti/Geometry/Manifold/Riemannian/Sobolev/Isometry.lean`) does for pullback along a
 Riemannian isometry, `sobolevH1Equiv` is Mathlib's `LinearEquiv.extendOfIsometry` of a linear
@@ -122,6 +156,8 @@ equivalence of the dense smooth parts, here `TauCeti.SmoothForm.ofFunctionEquiv`
   Chapter 0, §6.
 * L. Hörmander, *The Analysis of Linear Partial Differential Operators I*, §2.2 (support of a
   distribution) and §7.1 (tempered distributions).
+* G. B. Folland, *Introduction to Partial Differential Equations*, 2nd ed., Princeton University
+  Press, 1995, Chapter 6 (Rellich's theorem).
 -/
 
 public section
@@ -482,7 +518,7 @@ theorem L2Form.coeFn_localizeCoord (u : L2Form o k) :
     L2Form.localizeCoord ψ χ hχ bΛ p e u =ᵐ[volume]
       fun x ↦ (bΛ.repr (L2Form.localize ψ χ hχ u (e.symm x)) p : ℂ) := by
   have hq : QuasiMeasurePreserving e.symm volume volume :=
-    ⟨e.symm.continuous.aemeasurable, Measure.absolutelyContinuous_isAddHaarMeasure _ _⟩
+    e.symm.toContinuousAddEquiv.quasiMeasurePreserving_addHaar _ _
   rw [L2Form.localizeCoord, ContinuousLinearMap.comp_apply, ContinuousLinearMap.comp_apply]
   refine (Lp.coeFn_compOfMapLeSmul _ _ _ _).trans ?_
   filter_upwards [hq.ae
@@ -490,6 +526,60 @@ theorem L2Form.coeFn_localizeCoord (u : L2Form o k) :
       (L2Form.localize ψ χ hχ u))] with x h
   rw [Function.comp_apply, h]
   simp
+
+omit [BoundarylessManifold I M] [T2Space M] in
+/-- `L2Form.localizeCoord ψ χ hχ bΛ p e u` vanishes almost everywhere outside the image under `e`
+of the image under `ψ` of the support of `χ`. -/
+theorem L2Form.localizeCoord_ae_eq_zero_of_notMem (u : L2Form o k) :
+    ∀ᵐ x ∂volume, x ∉ e '' (ψ '' tsupport χ) → L2Form.localizeCoord ψ χ hχ bΛ p e u x = 0 := by
+  have hq : QuasiMeasurePreserving e.symm volume volume :=
+    e.symm.toContinuousAddEquiv.quasiMeasurePreserving_addHaar _ _
+  filter_upwards [L2Form.coeFn_localizeCoord ψ χ hχ bΛ p e u,
+    hq.ae (L2Form.localize_ae_eq_zero_of_notMem ψ χ hχ u)] with x h₁ h₂ hx
+  rw [h₁, h₂ fun h ↦ hx ⟨_, h, e.apply_symm_apply x⟩]
+  simp
+
+omit [BoundarylessManifold I M] [T2Space M] in
+/-- **The localization is controlled by its coordinates.** There is a constant `C` such that the
+`L²` norm of the localization `L2Form.localize ψ χ hχ u` is at most `C` times the sum over `p` of
+the `L²` norms of its coordinates `L2Form.localizeCoord ψ χ hχ bΛ p e u`. -/
+theorem L2Form.exists_norm_localize_le_mul_sum_norm_localizeCoord [Fintype κ] :
+    ∃ C, ∀ u : L2Form o k, ‖L2Form.localize ψ χ hχ u‖ ≤
+      C * ∑ p, ‖L2Form.localizeCoord ψ χ hχ bΛ p e u‖ := by
+  -- Reading a coordinate back through `e` and taking its real part.
+  have hmap : (volume : Measure E).map e ≤
+      ((((volume : Measure E).map e).addHaarScalarFactor volume : NNReal) : ENNReal) • volume := by
+    rw [← ENNReal.smul_def, ← Measure.isAddLeftInvariant_eq_smul]
+  have hq : QuasiMeasurePreserving e volume volume :=
+    e.toContinuousAddEquiv.quasiMeasurePreserving_addHaar _ _
+  let R : Lp ℂ 2 (volume : Measure (CoordinateSpace n)) →L[ℝ] Lp ℝ 2 (volume : Measure E) :=
+    (Complex.reCLM : ℂ →L[ℝ] ℝ).compLpL 2 volume ∘L
+      Lp.compOfMapLeSmul ℝ e.continuous.measurable ENNReal.coe_ne_top hmap
+  have hR (q : κ) (u : L2Form o k) : R (L2Form.localizeCoord ψ χ hχ bΛ q e u) =
+      (bΛ.coord q).toContinuousLinearMap.compLpL 2 volume (L2Form.localize ψ χ hχ u) := by
+    refine Lp.ext ?_
+    filter_upwards [(Complex.reCLM : ℂ →L[ℝ] ℝ).coeFn_compLpL (p := 2) (μ := volume)
+        (Lp.compOfMapLeSmul ℝ e.continuous.measurable ENNReal.coe_ne_top hmap
+          (L2Form.localizeCoord ψ χ hχ bΛ q e u)),
+      Lp.coeFn_compOfMapLeSmul (𝕜 := ℝ) e.continuous.measurable ENNReal.coe_ne_top hmap
+        (L2Form.localizeCoord ψ χ hχ bΛ q e u),
+      hq.ae (L2Form.coeFn_localizeCoord ψ χ hχ bΛ q e u),
+      (bΛ.coord q).toContinuousLinearMap.coeFn_compLpL (p := 2) (μ := volume)
+        (L2Form.localize ψ χ hχ u)] with y h₁ h₂ h₃ h₄
+    rw [ContinuousLinearMap.comp_apply, h₁, h₂, Function.comp_apply, h₃, h₄]
+    simp
+  let Q : κ → Lp ℂ 2 (volume : Measure (CoordinateSpace n)) →L[ℝ]
+      Lp (E [⋀^Fin k]→L[ℝ] ℝ) 2 (volume : Measure E) := fun q ↦
+    (ContinuousLinearMap.toSpanSingleton ℝ (bΛ q)).compLpL 2 volume ∘L R
+  have hQ (u : L2Form o k) :
+      L2Form.localize ψ χ hχ u = ∑ q, Q q (L2Form.localizeCoord ψ χ hχ bΛ q e u) := by
+    conv_lhs => rw [TauCeti.eq_sum_basis_compLpL bΛ (L2Form.localize ψ χ hχ u)]
+    simp only [Q, ContinuousLinearMap.comp_apply, hR]
+  refine ⟨∑ q, ‖Q q‖, fun u ↦ ?_⟩
+  rw [hQ u, Finset.mul_sum]
+  refine (norm_sum_le _ _).trans (Finset.sum_le_sum fun q _ ↦ ?_)
+  exact ((Q q).le_opNorm _).trans (mul_le_mul_of_nonneg_right
+    (Finset.single_le_sum (fun i _ ↦ norm_nonneg (Q i)) (Finset.mem_univ q)) (norm_nonneg _))
 
 omit [BoundarylessManifold I M] [T2Space M] in
 /-- **The coordinate distribution as a tempered distribution.** On all of `CoordinateSpace n`,
@@ -525,15 +615,10 @@ theorem L2Form.memSobolev_localizeCoord_of_forall_inner [Finite κ] {u : L2Form 
   have hK : IsCompact K :=
     (ψ.isCompact_image_of_subset_source (isClosed_tsupport _).isCompact hχ).image e.continuous
   -- The localization vanishes outside the compact set `K`, and so does its distribution.
-  have hq : QuasiMeasurePreserving e.symm volume volume :=
-    ⟨e.symm.continuous.aemeasurable, Measure.absolutelyContinuous_isAddHaarMeasure _ _⟩
   have hsupp : Distribution.dsupport
-      (L2Form.localizeCoord ψ χ hχ bΛ p e u : 𝓢'(CoordinateSpace n, ℂ)) ⊆ K := by
-    refine Lp.dsupport_toTemperedDistribution_subset hK.isClosed ?_
-    filter_upwards [L2Form.coeFn_localizeCoord ψ χ hχ bΛ p e u,
-      hq.ae (L2Form.localize_ae_eq_zero_of_notMem ψ χ hχ u)] with x h₁ h₂ hx
-    rw [h₁, h₂ fun h ↦ hx ⟨_, h, e.apply_symm_apply x⟩]
-    simp
+      (L2Form.localizeCoord ψ χ hχ bΛ p e u : 𝓢'(CoordinateSpace n, ℂ)) ⊆ K :=
+    Lp.dsupport_toTemperedDistribution_subset hK.isClosed
+      (L2Form.localizeCoord_ae_eq_zero_of_notMem ψ χ hχ bΛ p e u)
   refine memSobolev_of_isCompact_dsupport_of_forall_isLocallySobolevAt
     (hK.of_isClosed_subset Distribution.isClosed_dsupport hsupp) fun x _ ↦ ?_
   -- Near every point, it is a nonzero multiple of a coordinate distribution, which is `H¹`.
@@ -601,9 +686,68 @@ theorem toDistr_localizeSobolev (u : H1Form o hkl) :
   rw [localizeSobolev, ContinuousLinearMap.coeFn_ofIsClosedGraph, localizeSobolevₗ,
     LinearMap.coe_mk, AddHom.coe_mk, MemSobolev.toBesselPotentialSpace_toDistr]
 
+/-- **Rellich's theorem in a chart.** The map sending `u` in `H1Form o hkl` to the `p`-th
+coordinate of the localization of `toL2 u`, read in coordinates
+(`L2Form.localizeCoord ψ χ hχ bΛ p e`), is a compact operator into `L²` of `CoordinateSpace n`. -/
+theorem isCompactOperator_localizeCoord_comp_toL2 :
+    IsCompactOperator (L2Form.localizeCoord ψ χ hχ bΛ p e ∘L toL2 : H1Form o hkl →L[ℝ] _) := by
+  have hK : IsCompact (e '' (ψ '' tsupport χ)) :=
+    (ψ.isCompact_image_of_subset_source (isClosed_tsupport _).isCompact hχ).image e.continuous
+  obtain ⟨φ, -, -, hφ⟩ := hK.exists_schwartzMap_cutoff isOpen_univ (Set.subset_univ _)
+  -- Multiplication by `φ` does not change the coordinate, which vanishes outside that compact set;
+  -- followed by the inclusion of `H^1` into `L²`, it is compact by Rellich's theorem.
+  have h : ⇑(L2Form.localizeCoord ψ χ hχ bΛ p e ∘L toL2 : H1Form o hkl →L[ℝ] _) =
+      ⇑(BesselPotentialSpace.inclusionLp (E := CoordinateSpace n) (G := ℂ) (p := 2) le_rfl) ∘
+        ⇑(BesselPotentialSpace.inclusion zero_le_one ∘L BesselPotentialSpace.smulLeftCLM 1 φ) ∘
+        localizeSobolev ψ χ hχ bΛ p e := by
+    funext u
+    refine ((BesselPotentialSpace.inclusionLp_eq_iff le_rfl).2 ?_).symm
+    simp only [Function.comp_apply, ContinuousLinearMap.comp_apply,
+      BesselPotentialSpace.toDistr_inclusion, BesselPotentialSpace.toDistr_smulLeftCLM,
+      toDistr_localizeSobolev]
+    exact (Lp.smulLeftCLM_toTemperedDistribution_of_eqOn φ.hasTemperateGrowth
+      (fun x hx ↦ hφ.self_of_nhdsSet x hx)
+      (L2Form.localizeCoord_ae_eq_zero_of_notMem ψ χ hχ bΛ p e (toL2 u))).symm
+  rw [h]
+  exact ((BesselPotentialSpace.isCompactOperator_inclusion_comp_smulLeftCLM φ
+    zero_lt_one).clm_comp _).comp_clm _
+
 end H1Form
 
 end Localize
+
+/-! ### Compactness of the inclusion into `L2Form` -/
+
+/-- **Rellich's theorem for `H1Form`.** On a closed oriented Riemannian manifold, the inclusion
+`H1Form.toL2 : H1Form o hkl →L[ℝ] L2Form o k` is a compact operator. -/
+theorem H1Form.isCompactOperator_toL2 :
+    IsCompactOperator (toL2 : H1Form o hkl →L[ℝ] L2Form o k) := by
+  -- The localizations are taken in `L²` for a Haar measure on `E`.
+  borelize E
+  let _ : MeasureSpace E := ⟨Measure.addHaar⟩
+  have : (volume : Measure E).IsAddHaarMeasure :=
+    inferInstanceAs (Measure.addHaar : Measure E).IsAddHaarMeasure
+  obtain ⟨N, c, ρ, hρ⟩ := exists_finite_partialDiffeomorph_cover (I := I) (M := M)
+  let bΛ := Module.finBasis ℝ (E [⋀^Fin k]→L[ℝ] ℝ)
+  let e : E ≃L[ℝ] CoordinateSpace (Module.finrank ℝ E) := .ofFinrankEq (by simp)
+  obtain ⟨C, hC0, hC⟩ := L2Form.exists_norm_le_sum_norm_localize (o := o) (k := k)
+    (fun i ↦ extChartPartialDiffeomorph I ∞ (c i)) ρ hρ
+  choose D hD using fun i ↦ L2Form.exists_norm_localize_le_mul_sum_norm_localizeCoord (o := o)
+    (extChartPartialDiffeomorph I ∞ (c i)) (ρ i) (hρ i) bΛ e
+  -- `toL2` is dominated by the coordinates of its localizations, which are compact.
+  refine IsCompactOperator.of_norm_le_sum
+    (F := fun _ ↦ Lp ℂ 2 (volume : Measure (CoordinateSpace (Module.finrank ℝ E))))
+    (S := fun ip : Fin N × Fin (Module.finrank ℝ (E [⋀^Fin k]→L[ℝ] ℝ)) ↦
+      (L2Form.localizeCoord (extChartPartialDiffeomorph I ∞ (c ip.1)) (ρ ip.1) (hρ ip.1) bΛ ip.2
+        e ∘L toL2 : H1Form o hkl →L[ℝ] _).toLinearMap)
+    (fun ip ↦ ?_) (T := (toL2 : H1Form o hkl →L[ℝ] L2Form o k).toLinearMap)
+    (fun ip ↦ C ip.1 * D ip.1) fun u ↦ ?_
+  · exact isCompactOperator_localizeCoord_comp_toL2 _ _ (hρ ip.1) bΛ ip.2 e
+  refine (hC (toL2 u)).trans ?_
+  rw [Fintype.sum_prod_type]
+  refine Finset.sum_le_sum fun i _ ↦ ?_
+  refine (mul_le_mul_of_nonneg_left (hD i (toL2 u)) (hC0 i)).trans_eq ?_
+  simp [Finset.mul_sum, mul_assoc]
 
 end SymplecticGeometry
 
