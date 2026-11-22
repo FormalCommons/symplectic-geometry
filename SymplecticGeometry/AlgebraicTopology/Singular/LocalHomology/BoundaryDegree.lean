@@ -47,6 +47,11 @@ so the boundary circle, which runs counterclockwise, has boundary degree `1`
   continuously over `X` has boundary degree `0`.
 * `TauCeti.HomologicalOrientation.boundaryDegree_eq_sum_degree`: if loops in `∂X` represent the
   boundary class, the boundary degree is the sum of the degrees (`Circle.degree`) of `u` along them.
+* `TauCeti.HomologicalOrientation.boundaryDegree_eq_of_localHomologyMap`,
+  `TauCeti.HomologicalOrientation.boundaryDegree_eq_of_localHomologyMap_eq_zsmul`: for
+  `u = G / |G|` with `G : X → ℂ` nonzero on `∂X`, the boundary degree of `u` is read off from
+  `G_*[X, ∂X] ∈ H₂(ℂ, ℂ ∖ {0})`, by naturality of the connecting morphism; it is `c` when
+  `G_*[X, ∂X]` is `c` times the local orientation of `ℂ` at the origin.
 * `SymplecticGeometry.boundaryDegree_closedBallComplToCircle`: the sign on the unit disc.
 
 ## References
@@ -61,7 +66,7 @@ public section
 
 noncomputable section
 
-open CategoryTheory AlgebraicTopology Set Topology Module
+open CategoryTheory AlgebraicTopology Set Topology Module Metric
 
 namespace TauCeti.HomologicalOrientation
 
@@ -156,6 +161,87 @@ theorem boundaryDegree_eq_sum_degree {κ : Type*} [Fintype κ] {x : κ → ↥((
     ContinuousMap.singularHomologyOneIso_hom_map_map_inv_one (γ i).toCircle u]
   refine (map_sum (AddEquiv.ulift (α := ℤ)) _ _).trans (Finset.sum_congr rfl fun i _ ↦ ?_)
   exact (u.comp (γ i).toCircle).circleDegree_eq_degree _ fun t ↦ by simp
+
+/-- **The boundary degree through a map to `ℂ`.** Let `G : X → ℂ` have its zeros in `ι(M)`, and
+let `u = G / |G|` on `∂X`. Then the boundary degree of `u` is the image of
+`G_*[X, ∂X] ∈ H₂(ℂ, ℂ ∖ {0})` under the connecting morphism of `(ℂ, ℂ ∖ {0})`, radial projection
+onto `Circle` and `H₁(Circle; ℤ) ≅ ℤ`. -/
+theorem boundaryDegree_eq_of_localHomologyMap {G : C(X, ℂ)} (hG : G ⁻¹' {0} ⊆ range ι)
+    {u : C(↥((range ι)ᶜ : Set X), Circle)} (hu : ∀ z, (u z : ℂ) = ‖G z‖⁻¹ • G z) :
+    o.boundaryDegree hn hι hιf hf u =
+      ((Circle.singularHomologyOneIso (ModuleCat.of ℤ (ULift.{0} ℤ))).hom
+        (((singularHomologyFunctor (ModuleCat.{0} ℤ) 1).obj (ModuleCat.of ℤ (ULift.{0} ℤ))).map
+          (TopCat.ofHom (complSingletonHomotopyEquivSphere (0 : ℂ)).toFun ≫
+            TopCat.ofHom (Circle.homeomorphSphere.symm : C(sphere (0 : ℂ) 1, Circle)))
+          ((TopPair.ofSubset ({0}ᶜ : Set (TopCat.of ℂ))).singularHomologyδ
+            (ModuleCat.of ℤ (ULift.{0} ℤ)) 2 1 rfl
+            (localHomologyMap (ModuleCat.of ℤ (ULift.{0} ℤ)) G hG 2
+              (o.fundamentalClassRel hn hι hιf hf))))).down := by
+  set R := ModuleCat.of ℤ (ULift.{0} ℤ)
+  set γ := o.fundamentalClassRel hn hι hιf hf
+  set P := TopPair.ofSubset ((range ι)ᶜ : Set (TopCat.of X))
+  set Q := TopPair.ofSubset ({0}ᶜ : Set (TopCat.of ℂ))
+  set H := (singularHomologyFunctor (ModuleCat.{0} ℤ) 1).obj R
+  set H' := reducedSingularHomologyFunctor R 1
+  set c := TopCat.ofHom (complSingletonHomotopyEquivSphere (0 : ℂ)).toFun
+  set e := TopCat.ofHom (Circle.homeomorphSphere.symm : C(sphere (0 : ℂ) 1, Circle))
+  -- On `∂X`, the map `G` followed by radial projection onto `Circle` is `u`.
+  have hsnd : TopPair.Hom.snd (TopPair.ofSubsetMap (X := TopCat.of X) (Y := TopCat.of ℂ)
+      (B := (range ι)ᶜ) (B' := {0}ᶜ) (TopCat.ofHom G)
+      ((mapsTo_preimage _ _).mono_left (compl_subset_compl.2 hG))) ≫ c ≫ e =
+      TopCat.ofHom u := by
+    ext z
+    -- The subspace of `TopPair.ofSubset` is the subtype only after unfolding the pair.
+    erw [ConcreteCategory.comp_apply, ConcreteCategory.comp_apply]
+    refine (Circle.coe_homeomorphSphere_symm_apply _).trans
+      ((coe_complSingletonHomotopyEquivSphere_apply 0 _).trans ?_)
+    erw [TopPair.ofSubsetMap_snd_apply]
+    simp only [TopCat.hom_ofHom, sub_zero]
+    exact (hu z).symm
+  -- Naturality of the connecting morphism for `G : (X, ∂X) ⟶ (ℂ, ℂ ∖ {0})`.
+  have hnat : P.reducedSingularHomologyδ R 1 ≫ H'.map (TopCat.ofHom u) =
+      localHomologyMap R G hG 2 ≫ Q.reducedSingularHomologyδ R 1 ≫ H'.map (c ≫ e) := by
+    rw [localHomologyMap_def, ← TopPair.reducedSingularHomologyδ_naturality_assoc]
+    congr 1
+    -- The composite is only type-correct after unfolding the subspace of the pair.
+    erw [← Functor.map_comp, hsnd]
+  rw [HomologicalOrientation.boundaryDegree_def, HomologicalOrientation.boundaryClass_def]
+  refine congrArg (fun y ↦ ((Circle.singularHomologyOneIso R).hom.hom y).down) ?_
+  exact calc
+    _ = H.map (TopCat.ofHom u) ((reducedSingularHomologyι R 1).app _
+          (P.reducedSingularHomologyδ R 1 γ)) :=
+        congrArg _
+          (ConcreteCategory.congr_hom (TopPair.reducedSingularHomologyδ_comp_ι P R 1) γ).symm
+    _ = (reducedSingularHomologyι R 1).app _
+          (H'.map (TopCat.ofHom u) (P.reducedSingularHomologyδ R 1 γ)) :=
+        (ConcreteCategory.congr_hom ((reducedSingularHomologyι R 1).naturality _) _).symm
+    _ = (reducedSingularHomologyι R 1).app _
+          (H'.map (c ≫ e) (Q.reducedSingularHomologyδ R 1 (localHomologyMap R G hG 2 γ))) := by
+        have h := ConcreteCategory.congr_hom hnat γ
+        simp only [ConcreteCategory.comp_apply] at h
+        exact congrArg _ h
+    _ = H.map (c ≫ e) ((reducedSingularHomologyι R 1).app _
+          (Q.reducedSingularHomologyδ R 1 (localHomologyMap R G hG 2 γ))) :=
+        ConcreteCategory.congr_hom ((reducedSingularHomologyι R 1).naturality _) _
+    _ = _ := congrArg _
+        (ConcreteCategory.congr_hom (TopPair.reducedSingularHomologyδ_comp_ι Q R 1) _)
+
+/-- **The boundary degree is read off at the origin of `ℂ`.** Let `G : X → ℂ` have its zeros in
+`ι(M)`, and let `u = G / |G|` on `∂X`. If `G` sends the relative fundamental class `[X, ∂X]` to
+`c` times the local orientation of `ℂ` at the origin selected by `Complex.orientation`, then the
+boundary degree of `u` is `c`. -/
+theorem boundaryDegree_eq_of_localHomologyMap_eq_zsmul {G : C(X, ℂ)} (hG : G ⁻¹' {0} ⊆ range ι)
+    {u : C(↥((range ι)ᶜ : Set X), Circle)} (hu : ∀ z, (u z : ℂ) = ‖G z‖⁻¹ • G z) {c : ℤ}
+    (hc : localHomologyMap (ModuleCat.of ℤ (ULift.{0} ℤ)) G hG 2
+        (o.fundamentalClassRel hn hι hιf hf) =
+      c • (Complex.orientation.localOrientation Complex.finrank_real_complex).val) :
+    o.boundaryDegree hn hι hιf hf u = c := by
+  rw [boundaryDegree_eq_of_localHomologyMap o hn hι hιf hf hG hu, hc, map_zsmul]
+  -- `map_zsmul` sees the connecting morphism and the map induced by radial projection as linear
+  -- maps only after unfolding how `ConcreteCategory.hom` applies a morphism of `ModuleCat`.
+  erw [map_zsmul, map_zsmul,
+    SymplecticGeometry.singularHomologyOneIso_singularHomologyδ_localOrientation_complexOrientation]
+  simp
 
 end TauCeti.HomologicalOrientation
 
