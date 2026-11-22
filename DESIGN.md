@@ -2365,9 +2365,9 @@ has either; Tau Ceti's extension across a boundary,
   (for a `TauCeti.SmoothEmbedding` $f:N\to M$ whose tangent images are
   $J$-invariant: the restricted structure on $N$, with $df$ complex linear;
   the pull-back of a form taming, or compatible with, $J$ is nondegenerate
-  and tames, or is compatible with, the restriction, the linear step being
-  Tau Ceti's `TauCeti.SymplecticForm.Compatible.restrict` with nondegeneracy
-  derived from taming; closedness passes to the pull-back, so $N$ is a
+  and tames, or is compatible with, the restriction, the form conditions
+  being checked on $df_x v$ through `mfderiv_restrict_apply` and
+  nondegeneracy following from taming; closedness passes to the pull-back, so $N$ is a
   symplectic submanifold in the sense of Tau Ceti's
   `IsSymplecticSubmanifoldEmbedding`; the Nijenhuis tensor of the
   restriction is the restriction of $N_J$, so `IsKahler` passes to $N$; and

@@ -33,6 +33,13 @@ symplectic submanifold embedding for `σ` in the sense of Tau Ceti's
 symplectic, so is its pull-back. Each of these is checked on `df_x v`, so the linear facts on the
 image of `df_x`, such as Tau Ceti's `TauCeti.SymplecticForm.Compatible.restrict`, are not needed.
 
+The API of the restriction and the three form lemmas adapt Tau Ceti's
+`TauCeti.SmoothAlmostComplexStructure.pullback`,
+`TauCeti.ContMDiffAlmostComplexStructure.eq_pullback_iff`, `TauCeti.SmoothTwoForm.Tames.pullback`,
+`TauCeti.SmoothTwoForm.Invariant.pullback` and `TauCeti.SmoothTwoForm.Compatible.pullback`, from
+`TauCeti/Geometry/Symplectic/Manifold/AlmostComplex/Pullback.lean`, from diffeomorphisms to
+embeddings.
+
 Nothing here assumes `N` nonempty or of positive dimension.
 
 ## Main definitions
