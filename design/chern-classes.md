@@ -569,6 +569,18 @@ With `injective_projectiveBundle_proj` this is the splitting principle in the
 one-step form that the inductions below use; `P(E)` is again compact
 Hausdorff.
 
+### `AlgebraicTopology/Singular/Kunneth/Connecting.lean`
+
+The connecting morphism on the cross product of the pairs of the file below,
+in the second factor, for the value of
+`TauCeti.LocalOrientation.crossSign m 0`:
+`TopCat.singularHomologyCrossRelPair_comp_singularHomologyδ_comp_singularHomologyπ`,
+that the connecting morphism of `(X × Y, A × Y ∪ X × B)`, followed by the map
+to `Hₙ'(A × Y ∪ X × B, A × Y)`, sends `a × b` to `(-1) ^ p` times the image of
+`TopCat.singularHomologyCrossRel` of `a` and `δ b` under
+`TopPair.prodExcisionFst`. It is a file of its own, beside
+`RelativePair.lean`, which it imports.
+
 ### `AlgebraicTopology/Singular/Kunneth/RelativePair.lean`
 
 The homology cross product of two pairs, for the Whitney file below:
@@ -590,6 +602,25 @@ It uses these copies of Tau Ceti's files of the commit `c9d170eed5`:
 - `AlgebraicTopology/Singular/Relative.lean`, the existing copy, to which
   `TopPair.singularChainComplexπ_comp_singularChainComplexMap_of_fst_eq_id`
   is added.
+
+### `AlgebraicTopology/Cohomology/Cup/RelativeKronecker.lean`
+
+The Kronecker pairing of the relative cross products, for the Whitney file
+below: `TopCat.singularHomologyCrossRelPair_comp_singularKronecker_singularRelativeCross`,
+`⟨a × b, x × y⟩ = μ (⟨a, x⟩ ⊗ ⟨b, y⟩)` for Tau Ceti's
+`TauCeti.singularRelativeCross` and `TopCat.singularHomologyCrossRelPair`,
+with no sign. For coefficient morphisms `u : T ⟶ R ⊗ S` it adds
+`TopCat.singularRelativeCup_eq_homologyMap_singularRelativeCup` and
+`TopCat.singularKronecker_singularRelativeCupPullback_fst_snd`, and the form
+for local classes, `TauCeti.singularKronecker_complZeroPairCross`, with
+coefficients in modules, which applies to the cup data of
+`eulerClass_thomClassOfModel_prod`. The file is in `Cup/`, next to Tau Ceti's
+`Cup/Relative.lean`, and not in a folder `Cohomology/CrossProduct/`, which
+would be named like Tau Ceti's file `Cohomology/CrossProduct.lean`. Its chain-level
+steps, the shuffle map of the pairs into the small chains
+(`TopCat.shuffleSmallPair`) and the relative Eilenberg–Zilber homotopy
+(`TopCat.shuffleAlexanderWhitneyPairHomotopy`), are public and sit in
+`Singular/Kunneth/RelativePair.lean`, which the file imports.
 
 ### `AlgebraicTopology/SimplicialSet/TripleAcyclicModels.lean`
 

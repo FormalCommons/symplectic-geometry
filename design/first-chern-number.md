@@ -1079,6 +1079,10 @@ issues, in an order where each issue's blockers come before it.
    `SymplecticGeometry.boundaryDegree_prodRetraction_comp_discComplementBoundaryHomeomorph_symm`,
    the map `∂X → Circle` that is `Circle.prodRetraction i` read through
    `discComplementBoundaryHomeomorph` has boundary degree $-1$.
+   `AlgebraicTopology/Singular/Nullhomotopic.lean`, for the homology of
+   the boundary circles: a nullhomotopic map induces zero on singular
+   homology in positive degree
+   (`TopCat.singularHomologyFunctor_map_eq_zero_of_nullhomotopic`).
    Blocked by 5 and 7.
    `AlgebraicTopology/Singular/DiscreteProd.lean`, for the boundary of the
    complement, which is a product `ι × Circle`: for discrete `ι`, singular
