@@ -438,7 +438,8 @@ real vector bundle as a homotopy equivalence.
 
 Copied from Tau Ceti's main branch (commit `aa1b4e9e2a`), under Tau Ceti's
 header: `TauCeti.zeroSectionComplProjHom` and the exact sequence of the
-Thom pair with `Hᵐ(B)` in place of `Hᵐ(E)`. Imports `Smul.lean` above.
+Thom pair with `Hᵐ(B)` in place of `Hᵐ(E)`. Imports `Smul.lean` above, and
+the pinned Tau Ceti's `Thom/Connectivity.lean` for `TauCeti.zeroSectionComplProj`.
 
 ### `Topology/VectorBundle/Thom/Isomorphism.lean`
 

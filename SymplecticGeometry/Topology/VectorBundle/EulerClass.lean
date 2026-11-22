@@ -6,6 +6,7 @@ Authors: The Tau Ceti contributors
 module
 
 public import TauCeti.Topology.VectorBundle.EulerClass
+public import TauCeti.Topology.VectorBundle.Thom.Connectivity
 public import SymplecticGeometry.Topology.VectorBundle.Smul
 
 /-!
@@ -16,14 +17,17 @@ from Tau Ceti's main branch at commit `aa1b4e9e2a`, which the pinned version of 
 yet have. It contains only the declarations below; the rest of Tau Ceti's file is in the pinned
 version, which this file imports. The changes are these:
 
-* In the pinned version the base and the fibres of `TauCeti.zeroSectionComplProj` and
-  `TauCeti.zeroSectionComplProjHom` lie in one universe `w`, as in the rest of the pinned file, so
-  their section takes `B : Type w` and `E : B → Type w`; the declarations are otherwise those of
-  Tau Ceti's section `ThomClass`.
-* The pinned version does not expose the body of `TauCeti.thomPairProj`, so
-  `TauCeti.zeroSectionComplProjHom_def`, proved by `rfl` in Tau Ceti, is proved pointwise from
+* `TauCeti.zeroSectionComplProj` and `TauCeti.zeroSectionComplProj_apply`, which Tau Ceti's file
+  declares in its section `ThomClass`, are left out: the pinned version has them in
+  `TauCeti/Topology/VectorBundle/Thom/Connectivity.lean`, which this file imports.
+* The pinned version exposes the bodies of neither `TauCeti.thomPairProj` nor
+  `TauCeti.zeroSectionComplProj`, so `TauCeti.zeroSectionComplProjHom_def`, proved by `rfl` in
+  Tau Ceti, is proved pointwise from `TauCeti.zeroSectionComplProj_apply` and
   `TauCeti.thomPairProj_apply`, and `TauCeti.zeroSectionComplProjHom_apply`, proved from
-  `TauCeti.thomPairProj_apply` in Tau Ceti, is proved by `rfl`.
+  `TauCeti.thomPairProj_apply` in Tau Ceti, is proved from `TauCeti.zeroSectionComplProj_apply`.
+* The paragraph below leaves out Tau Ceti's citations of
+  `TauCeti.isIso_singularCohomologyMap_zeroSectionHom` and
+  `TauCeti.isIso_singularCohomologyMap_thomPairProj`, which this file does not copy.
 * `TauCeti.VectorBundle.totalSpaceHomotopyEquiv` comes from
   `SymplecticGeometry.Topology.VectorBundle.Smul`, the copy of Tau Ceti's main branch.
 
@@ -70,16 +74,6 @@ variable {B : Type w} [TopologicalSpace B] (F : Type*) [TopologicalSpace F] (E :
   [TopologicalSpace (TotalSpace F E)] [∀ b, TopologicalSpace (E b)] [FiberBundle F E]
   [∀ b, Zero (E b)]
 
-/-- The projection `π₀ : E₀ → B` of the complement of the zero section to the base, the
-restriction of the bundle projection. -/
-@[expose] def zeroSectionComplProj : C(zeroSectionCompl F E, B) :=
-  ⟨fun v ↦ (v : TotalSpace F E).proj, (FiberBundle.continuous_proj F E).comp continuous_subtypeVal⟩
-
-@[simp]
-theorem zeroSectionComplProj_apply (v : zeroSectionCompl F E) :
-    zeroSectionComplProj F E v = (v : TotalSpace F E).proj :=
-  (rfl)
-
 /-- The projection `π₀ : E₀ → B` (`TauCeti.zeroSectionComplProj`) as a morphism of topological
 spaces out of the subspace of the Thom pair. -/
 def zeroSectionComplProjHom : (thomPair F E).snd ⟶ TopCat.of B :=
@@ -87,12 +81,12 @@ def zeroSectionComplProjHom : (thomPair F E).snd ⟶ TopCat.of B :=
 
 theorem zeroSectionComplProjHom_def :
     zeroSectionComplProjHom F E = (thomPair F E).map ≫ thomPairProj F E :=
-  TopCat.ext fun _ ↦ (thomPairProj_apply F E _).symm
+  TopCat.ext fun _ ↦ (zeroSectionComplProj_apply F E _).trans (thomPairProj_apply F E _).symm
 
 @[simp]
 theorem zeroSectionComplProjHom_apply (v : zeroSectionCompl F E) :
     zeroSectionComplProjHom F E v = (v : TotalSpace F E).proj :=
-  (rfl)
+  zeroSectionComplProj_apply F E v
 
 end ThomClass
 
