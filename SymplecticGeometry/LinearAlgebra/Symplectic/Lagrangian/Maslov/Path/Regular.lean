@@ -158,10 +158,10 @@ private theorem IsRegularFrame.trans {Λ₀ Λ₁ Λ₂ : ℒ ι} {γ₁ : Path 
     IsRegularFrame (γ₁.trans γ₂) V (curveTrans Z₁ Z₂) := by
   refine ⟨h₁.contDiff.curveTrans h₂.contDiff hZ₁ hZ₂ h₁₂.symm, fun t ↦ ?_, fun t ht ↦ ?_⟩
   · by_cases h : (t : ℝ) ≤ 1 / 2
-    · rw [Path.trans_apply, dite_eq_left h, curveTrans_of_le h]
+    · rw [Path.trans_apply, dite_eq_left h, curveTrans_of_le_half h]
       exact h₁.range_eq
         ⟨2 * (t : ℝ), (unitInterval.mul_pos_mem_iff zero_lt_two).2 ⟨t.property.1, h⟩⟩
-    · rw [Path.trans_apply, dite_eq_right h, curveTrans_of_lt (not_le.1 h)]
+    · rw [Path.trans_apply, dite_eq_right h, curveTrans_of_half_lt (not_le.1 h)]
       exact h₂.range_eq ⟨2 * (t : ℝ) - 1,
         unitInterval.two_mul_sub_one_mem_iff.2 ⟨(not_le.1 h).le, t.property.2⟩⟩
   · rw [Path.trans_apply] at ht
@@ -170,11 +170,11 @@ private theorem IsRegularFrame.trans {Λ₀ Λ₁ Λ₂ : ℒ ι} {γ₁ : Path 
       have key := h₁.nondegenerate ⟨2 * (t : ℝ),
         unitInterval.mul_pos_mem_iff zero_lt_two |>.2 ⟨t.property.1, h.le⟩⟩ ht
       -- `deriv` in `IsRegularFrame` is for the default topology of matrices, and that of
-      -- `HasDerivAt.curveTrans_of_lt` for the entrywise norm: equal, but not syntactically, so
+      -- `HasDerivAt.curveTrans_of_lt_half` for the entrywise norm: equal, but not syntactically, so
       -- we state `hd` with the former before rewriting with it.
       have hd : deriv (curveTrans Z₁ Z₂) t = (2 : ℝ) • deriv Z₁ (2 * t) :=
-        (HasDerivAt.curveTrans_of_lt (h₁.hasDerivAt (2 * t)) h).deriv
-      rw [hd, curveTrans_of_le h.le,
+        (HasDerivAt.curveTrans_of_lt_half (h₁.hasDerivAt (2 * t)) h).deriv
+      rw [hd, curveTrans_of_le_half h.le,
         nondegenerate_lagrangianCrossingForm_smul_iff _ _ two_ne_zero]
       exact key
     · rw [dite_eq_left h.le] at ht
@@ -185,8 +185,8 @@ private theorem IsRegularFrame.trans {Λ₀ Λ₁ Λ₂ : ℒ ι} {γ₁ : Path 
       have key := h₂.nondegenerate ⟨2 * (t : ℝ) - 1,
         unitInterval.two_mul_sub_one_mem_iff.2 ⟨h.le, t.property.2⟩⟩ ht
       have hd : deriv (curveTrans Z₁ Z₂) t = (2 : ℝ) • deriv Z₂ (2 * t - 1) :=
-        (HasDerivAt.curveTrans_of_gt (h₂.hasDerivAt (2 * t - 1)) h).deriv
-      rw [hd, curveTrans_of_lt h,
+        (HasDerivAt.curveTrans_of_half_lt (h₂.hasDerivAt (2 * t - 1)) h).deriv
+      rw [hd, curveTrans_of_half_lt h,
         nondegenerate_lagrangianCrossingForm_smul_iff _ _ two_ne_zero]
       exact key
 
