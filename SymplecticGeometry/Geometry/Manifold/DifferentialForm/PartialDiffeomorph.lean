@@ -38,7 +38,8 @@ which is meaningful on `ψ.target`.
   flat form `a` on the source of `ψ`, and zero elsewhere; `TauCeti.mpullback_symm_extendByZeroAlong`
   recovers `a` on `ψ.target`. When `a` is smooth with compact support in `ψ.target`, the
   extension is smooth (`TauCeti.IsSmoothForm.extendByZeroAlong`), and bundled as
-  `TauCeti.SmoothForm.extendByZeroAlong`.
+  `TauCeti.SmoothForm.extendByZeroAlong`. Both versions are linear in `a`
+  (`extendByZeroAlong_zero`, `_add`, `_smul`, `_neg` and `_sub`).
 * `TauCeti.SmoothForm.localize ψ χ α`: in the other direction, the flat form on `E` that is the
   reading of a smooth form `α` in `ψ`, scaled by `χ ∘ ψ.symm` for a cutoff `χ` on `M`, on
   `ψ.target`, and zero elsewhere. It is continuous with compact support when `χ` is continuous
@@ -286,6 +287,14 @@ section SmoothForm
 variable [T2Space M] [IsManifold I ∞ M] {ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞}
   {a b : E → E [⋀^Fin k]→L[ℝ] F}
 
+/-- The extension by zero along `ψ` of the zero flat form is the zero smooth form. -/
+@[simp]
+theorem SmoothForm.extendByZeroAlong_zero (h : ContDiff ℝ ∞ (0 : E → E [⋀^Fin k]→L[ℝ] F))
+    (hc : HasCompactSupport (0 : E → E [⋀^Fin k]→L[ℝ] F))
+    (hs : tsupport (0 : E → E [⋀^Fin k]→L[ℝ] F) ⊆ ψ.target) :
+    SmoothForm.extendByZeroAlong ψ 0 h hc hs = 0 :=
+  Subtype.ext RoughForm.extendByZeroAlong_zero
+
 /-- Extension by zero along `ψ` of smooth forms is additive. -/
 theorem SmoothForm.extendByZeroAlong_add (ha : ContDiff ℝ ∞ a) (hac : HasCompactSupport a)
     (has : tsupport a ⊆ ψ.target) (hb : ContDiff ℝ ∞ b) (hbc : HasCompactSupport b)
@@ -294,6 +303,22 @@ theorem SmoothForm.extendByZeroAlong_add (ha : ContDiff ℝ ∞ a) (hac : HasCom
     SmoothForm.extendByZeroAlong ψ (a + b) hab habc habs =
       SmoothForm.extendByZeroAlong ψ a ha hac has + SmoothForm.extendByZeroAlong ψ b hb hbc hbs :=
   Subtype.ext (RoughForm.extendByZeroAlong_add a b)
+
+/-- Extension by zero along `ψ` of smooth forms commutes with multiplication by a real constant. -/
+theorem SmoothForm.extendByZeroAlong_smul (c : ℝ) (ha : ContDiff ℝ ∞ a)
+    (hac : HasCompactSupport a) (has : tsupport a ⊆ ψ.target) (hca : ContDiff ℝ ∞ (c • a))
+    (hcac : HasCompactSupport (c • a)) (hcas : tsupport (c • a) ⊆ ψ.target) :
+    SmoothForm.extendByZeroAlong ψ (c • a) hca hcac hcas =
+      c • SmoothForm.extendByZeroAlong ψ a ha hac has :=
+  Subtype.ext (RoughForm.extendByZeroAlong_smul a c)
+
+/-- Extension by zero along `ψ` of smooth forms commutes with negation. -/
+theorem SmoothForm.extendByZeroAlong_neg (ha : ContDiff ℝ ∞ a) (hac : HasCompactSupport a)
+    (has : tsupport a ⊆ ψ.target) (hna : ContDiff ℝ ∞ (-a)) (hnac : HasCompactSupport (-a))
+    (hnas : tsupport (-a) ⊆ ψ.target) :
+    SmoothForm.extendByZeroAlong ψ (-a) hna hnac hnas =
+      -SmoothForm.extendByZeroAlong ψ a ha hac has :=
+  Subtype.ext (RoughForm.extendByZeroAlong_neg a)
 
 /-- Extension by zero along `ψ` of smooth forms commutes with subtraction. -/
 theorem SmoothForm.extendByZeroAlong_sub (ha : ContDiff ℝ ∞ a) (hac : HasCompactSupport a)
