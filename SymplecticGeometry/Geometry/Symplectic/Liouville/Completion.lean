@@ -284,7 +284,7 @@ private theorem isLocalDiffeomorph_scale :
     funext s
     simp [e, div_eq_inv_mul]
   have := e.toDiffeomorph.isLocalDiffeomorph.prodMap
-    (Diffeomorph.refl (𝓡 n) ((𝓡∂ (n + 1)).boundary W) ∞).isLocalDiffeomorph
+    (isLocalDiffeomorph_id (I := 𝓡 n) (M := (𝓡∂ (n + 1)).boundary W))
   rwa [he, Prod.map_def] at this
 
 /-- On `(-ε, ∞) × ∂W`, the end map is a local diffeomorphism. -/
