@@ -486,15 +486,17 @@ For `n ≠ 0`.
 
 ### `Geometry/Manifold/Projectivization/Hypersurface/Veronese.lean`
 
-For `d ≠ 0`; all of it is the setting of Tau Ceti's Lefschetz theorems.
+For `d ≠ 0`, as an instance `[NeZero d]` where it is needed; all of it is the
+setting of Tau Ceti's Lefschetz theorems.
 
 - `X.veroneseEquiv`, the linear equivalence of the space of monomials with
-  `Fin (veroneseDim (n + 2) d) → ℂ` sending the form to coordinate `0`, and
+  `Fin (veroneseDim (n + 2) d - 1 + 1) → ℂ` (the form Tau Ceti's atlas on
+  projective space takes) sending the form to coordinate `0`, and
   `X.veroneseImage`, the closed set $Y$, with
   `veroneseImage_inter_hyperplane`: $Y\cap\{x_0=0\}$ is the image of `X`.
 - `X.veroneseHomeomorph : ℙ ℂ (Fin (n + 2) → ℂ) ≃ₜ X.veroneseImage`.
 - The affine part: `X.veroneseAffine`, the set $Z$, with its
-  `ChartedSpace (Fin (n + 1) → ℂ)` and `IsManifold 𝓘(ℂ, _) ∞` structure
+  `ChartedSpace (Fin (n + 1) → ℂ)` and `IsManifold 𝓘(ℂ, _) r` structure, for every `r`,
   carried from the open set of $\mathbb CP^{n+1}$ outside `X`;
   `contMDiff_coe_veroneseAffine` and `injective_mfderiv_coe_veroneseAffine`,
   the hypotheses `hZval` and `hinj` of Tau Ceti's theorems.
@@ -506,7 +508,7 @@ For `d ≠ 0`; all of it is the setting of Tau Ceti's Lefschetz theorems.
 
 For `d ≠ 0`, with the inclusion `X → ℙ ℂ (Fin (n + 2) → ℂ)`.
 
-- `isIso_homologyMap_subtypeVal`: for `k + 1 < n + 1` and coefficients `R`
+- `isIso_homologyMap_subtypeVal`: for `k < n` and coefficients `R`
   in an abelian category with coproducts, the inclusion induces an
   isomorphism on $H_k$; `bijective_homotopyGroupMap_subtypeVal`: the same
   for $\pi_k$ at any base point. From Tau Ceti's `isIso_homologyMap_notMem_affineOpen`
