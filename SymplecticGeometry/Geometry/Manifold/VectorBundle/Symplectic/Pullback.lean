@@ -36,9 +36,11 @@ that it is compatible with the rest of the structure that `Symplectic/Basic.lean
 * `IsSymplecticFrameOn.pullback` and `frameTransition_pullback`: a symplectic frame `Φ` over `U`
   pulls back to the symplectic frame `y ↦ Φ (f y)` over `f ⁻¹' U`, with transition maps those of
   `Φ` at `f y`.
-* `compMFDeriv f hf ω`, with `compMFDeriv_apply` and `bilinFormAt_compMFDeriv`: for a `C^∞` map
-  `f : N → M` and a two-form `ω` on `f *ᵖ TM`, the two-form `σ(u, v) = ω(df u, df v)` on `TN`.
-  It uses only the smoothness of `f`, not that `f` is an immersion.
+* `compMFDeriv f hf ω`, with `compMFDeriv_apply`, `bilinFormAt_compMFDeriv`,
+  `compMFDeriv_apply_apply`, and `compMFDeriv_zero`, `compMFDeriv_add`, `compMFDeriv_smul`,
+  `compMFDeriv_neg`, `compMFDeriv_sub`: for a `C^∞` map `f : N → M` and a two-form `ω` on
+  `f *ᵖ TM`, the two-form `σ(u, v) = ω(df u, df v)` on `TN`. It uses only the smoothness of `f`,
+  not that `f` is an immersion.
 
 ## Implementation notes
 
@@ -349,8 +351,12 @@ theorem compMFDeriv_def (f : K) (hf : ContMDiff I' I ((⊤ : ℕ∞) : WithTop �
       ω :=
   (rfl)
 
-/-- The induced form at `y` is `ω_y(df ·, df ·)`. -/
-@[simp]
+/-- The induced form at `y` is `ω_y(df ·, df ·)`.
+
+This is not `@[simp]`: after it rewrites, the vectors still lie in the fibre of `TN`, while
+`mfderiv I' I f y` lands in `TangentSpace I (f y)` and not in `(f *ᵖ TangentSpace I) y`, so
+`simp` cannot evaluate the composite on vectors. `simp` uses `compMFDeriv_apply_apply`
+instead. -/
 theorem compMFDeriv_apply (f : K) (hf : ContMDiff I' I ((⊤ : ℕ∞) : WithTop ℕ∞) f)
     (ω : ContMDiffTwoForm I' ⊤ EB ((f : N → M) *ᵖ (TangentSpace I))) (y : N) :
     ω.compMFDeriv f hf y = (ω y).compContinuousLinearMap (mfderiv I' I f y) := by
@@ -365,6 +371,54 @@ theorem bilinFormAt_compMFDeriv (f : K) (hf : ContMDiff I' I ((⊤ : ℕ∞) : W
       ω.bilinFormAt y (mfderiv I' I f y u) (mfderiv I' I f y v) := by
   rw [compMFDeriv_def]
   exact bilinFormAt_compContinuousLinearMap _ _ ω y u v
+
+/-- The induced form at `y` takes on `u`, `v` the value of `ω y` on `df u`, `df v`. -/
+@[simp]
+theorem compMFDeriv_apply_apply (f : K) (hf : ContMDiff I' I ((⊤ : ℕ∞) : WithTop ℕ∞) f)
+    (ω : ContMDiffTwoForm I' ⊤ EB ((f : N → M) *ᵖ (TangentSpace I))) (y : N)
+    (u v : TangentSpace I' y) :
+    ω.compMFDeriv f hf y ![u, v] = ω y ![mfderiv I' I f y u, mfderiv I' I f y v] :=
+  ((bilinFormAt_apply _ y u v).symm.trans (bilinFormAt_compMFDeriv f hf ω y u v)).trans
+    (bilinFormAt_apply ω y _ _)
+
+/-- The form induced by the zero form is zero. -/
+@[simp]
+theorem compMFDeriv_zero (f : K) (hf : ContMDiff I' I ((⊤ : ℕ∞) : WithTop ℕ∞) f) :
+    (0 : ContMDiffTwoForm I' ⊤ EB ((f : N → M) *ᵖ (TangentSpace I))).compMFDeriv f hf = 0 := by
+  rw [compMFDeriv_def]
+  exact map_zero _
+
+/-- The form induced by a sum is the sum of the induced forms. -/
+@[simp]
+theorem compMFDeriv_add (f : K) (hf : ContMDiff I' I ((⊤ : ℕ∞) : WithTop ℕ∞) f)
+    (ω ω' : ContMDiffTwoForm I' ⊤ EB ((f : N → M) *ᵖ (TangentSpace I))) :
+    (ω + ω').compMFDeriv f hf = ω.compMFDeriv f hf + ω'.compMFDeriv f hf := by
+  simp only [compMFDeriv_def]
+  exact map_add _ ω ω'
+
+/-- The form induced by a multiple is the multiple of the induced form. -/
+@[simp]
+theorem compMFDeriv_smul (f : K) (hf : ContMDiff I' I ((⊤ : ℕ∞) : WithTop ℕ∞) f) (c : ℝ)
+    (ω : ContMDiffTwoForm I' ⊤ EB ((f : N → M) *ᵖ (TangentSpace I))) :
+    (c • ω).compMFDeriv f hf = c • ω.compMFDeriv f hf := by
+  simp only [compMFDeriv_def]
+  exact map_smul _ c ω
+
+/-- The form induced by the negative of a form is the negative of the induced form. -/
+@[simp]
+theorem compMFDeriv_neg (f : K) (hf : ContMDiff I' I ((⊤ : ℕ∞) : WithTop ℕ∞) f)
+    (ω : ContMDiffTwoForm I' ⊤ EB ((f : N → M) *ᵖ (TangentSpace I))) :
+    (-ω).compMFDeriv f hf = -ω.compMFDeriv f hf := by
+  simp only [compMFDeriv_def]
+  exact map_neg _ ω
+
+/-- The form induced by a difference is the difference of the induced forms. -/
+@[simp]
+theorem compMFDeriv_sub (f : K) (hf : ContMDiff I' I ((⊤ : ℕ∞) : WithTop ℕ∞) f)
+    (ω ω' : ContMDiffTwoForm I' ⊤ EB ((f : N → M) *ᵖ (TangentSpace I))) :
+    (ω - ω').compMFDeriv f hf = ω.compMFDeriv f hf - ω'.compMFDeriv f hf := by
+  simp only [compMFDeriv_def]
+  exact map_sub _ ω ω'
 
 end CompMFDeriv
 

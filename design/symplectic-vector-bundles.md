@@ -1589,7 +1589,8 @@ For a map `f : C^n⟮I', N; I, M⟯` (the argument of Mathlib's instance
   (TangentSpace I')`, for `ω` a form on `f *ᵖ TangentSpace I`, is
   $\sigma(u,v)=\omega(df\,u,df\,v)$: `compContinuousLinearMap` along
   `mfderiv I' I f`, smooth by `Bundle.Pullback.contMDiff_mfderiv_hom`. API:
-  `compMFDeriv_def`, `@[simp] compMFDeriv_apply` and
+  `compMFDeriv_def`, `compMFDeriv_apply` (not `@[simp]`: `simp` evaluates
+  on vectors with `@[simp] compMFDeriv_apply_apply`) and
   `bilinFormAt_compMFDeriv`.
 
 ### Direct sums
