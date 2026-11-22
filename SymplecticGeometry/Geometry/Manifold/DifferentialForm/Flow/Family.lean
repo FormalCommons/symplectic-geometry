@@ -87,8 +87,6 @@ the time derivative of `σ`.
   `α₀ + c(t) (α₁ - α₀)` at time `t` is `c'(t) (α₁ - α₀)`.
 * `TauCeti.SmoothForm.timeInterior`: the contraction `ι_{∂_t} σ` with the time field.
 * `TauCeti.SmoothForm.mextDerivₗ_timeInterior`: `d (ι_{∂_t} σ) = ∂_t σ` for closed `σ`.
-* `TauCeti.SmoothForm.IsClosed.exists_timeDeriv_eq_mextDerivₗ`: the time derivative of a closed
-  form on `ℝ × M` is exact, `∂_t σ = d (ι_{∂_t} σ)`.
 
 ## References
 
@@ -299,6 +297,24 @@ theorem timeInterior_smul (c : ℝ) (σ : SmoothForm (𝓘(ℝ, ℝ).prod I) (�
   -- As in `timeInterior_add`, with multiples in place of sums.
   Subtype.ext (RoughForm.interior_smul _ _ _)
 
+/-- The contraction of the zero form with the time field is zero. -/
+@[simp]
+theorem timeInterior_zero :
+    (0 : SmoothForm (𝓘(ℝ, ℝ).prod I) (ℝ × M) F (k + 1)).timeInterior = 0 := by
+  simpa using timeInterior_smul (0 : ℝ) (0 : SmoothForm (𝓘(ℝ, ℝ).prod I) (ℝ × M) F (k + 1))
+
+/-- The contraction with the time field commutes with negation. -/
+@[simp]
+theorem timeInterior_neg (σ : SmoothForm (𝓘(ℝ, ℝ).prod I) (ℝ × M) F (k + 1)) :
+    (-σ).timeInterior = -σ.timeInterior := by
+  rw [eq_neg_iff_add_eq_zero, ← timeInterior_add, neg_add_cancel, timeInterior_zero]
+
+/-- The contraction with the time field commutes with subtraction. -/
+@[simp]
+theorem timeInterior_sub (σ τ : SmoothForm (𝓘(ℝ, ℝ).prod I) (ℝ × M) F (k + 1)) :
+    (σ - τ).timeInterior = σ.timeInterior - τ.timeInterior := by
+  simp [sub_eq_add_neg]
+
 /-- **Cartan's formula for the time field.** For a closed form `σ` on `ℝ × M`, the exterior
 derivative of `ι_{∂_t} σ` is the time derivative `∂_t σ = L_{∂_t} σ`. -/
 theorem mextDerivₗ_timeInterior {σ : SmoothForm (𝓘(ℝ, ℝ).prod I) (ℝ × M) F (k + 1)}
@@ -360,18 +376,6 @@ theorem mpullback_prodMk_timeDeriv_lineMapFamily (α₀ α₁ : SmoothForm I M F
   have hct : HasDerivAt c (deriv c t) t :=
     ((hc.of_le (by simp) : ContDiff ℝ 1 c).differentiable one_ne_zero t).hasDerivAt
   exact (hct.smul_const _).const_add _
-
-/-! ### The time derivative of a closed form -/
-
-omit [I.Boundaryless] in
-/-- **The time derivative of a closed form is exact.** For a closed form `σ` on `ℝ × M`, Cartan's
-formula gives `∂_t σ = L_{∂_t} σ = d (ι_{∂_t} σ)`, so the time derivative of `σ` is the exterior
-derivative of a smooth form on `ℝ × M`. -/
-theorem IsClosed.exists_timeDeriv_eq_mextDerivₗ
-    {σ : SmoothForm (𝓘(ℝ, ℝ).prod I) (ℝ × M) F (k + 1)} (hσ : σ.IsClosed) :
-    ∃ α : SmoothForm (𝓘(ℝ, ℝ).prod I) (ℝ × M) F k,
-      σ.timeDeriv = mextDerivₗ (𝓘(ℝ, ℝ).prod I) k α :=
-  ⟨σ.timeInterior, (mextDerivₗ_timeInterior hσ).symm⟩
 
 end TauCeti.SmoothForm
 
