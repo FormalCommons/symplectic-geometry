@@ -23,21 +23,19 @@ map `H1Form.toL2 : H1Form o hkl →L[ℝ] L2Form o k` of norm at most one. The
 **Dirichlet form** `H1Form.dirichlet u v = ⟪u, v⟫ - ⟪toL2 u, toL2 v⟫` is a continuous bilinear
 form on `H1Form o hkl` that extends `⟪Δα, β⟫`, so that `‖u‖ ^ 2 = dirichlet u u + ‖toL2 u‖ ^ 2`
 (Gårding's identity) holds by definition. Against a smooth form it is the weak Laplacian:
-`dirichlet u (ofSmooth φ) = ⟪toL2 u, Δφ⟫`. Hence an element `u` with `toL2 u = 0` is orthogonal
-to every smooth form, and `toL2` is injective. The Dirichlet form is nonnegative, so it satisfies
+`dirichlet u (ofSmooth φ) = ⟪toL2 u, Δφ⟫`, which gives Green's identity
+`⟪u, ofSmooth φ⟫ = ⟪toL2 u, φ + Δφ⟫`. Hence an element `u` with `toL2 u = 0` is orthogonal to
+every smooth form, and `toL2` is injective. The Dirichlet form is nonnegative, so it satisfies
 the Cauchy–Schwarz inequality, which bounds `|⟪toL2 u, Δφ⟫|` by `‖u‖` times the `H¹` norm
 `√(‖φ‖ ^ 2 + ⟪Δφ, φ⟫)` of `φ`.
 
 ## Main definitions and results
 
-* `TauCeti.SmoothForm.l2Inner_hodgeLaplacian_eq_l2Inner_hodgeLaplacian` and
-  `TauCeti.SmoothForm.l2Inner_hodgeLaplacian_self_nonneg`: on a closed manifold, the Hodge
-  Laplacian is symmetric and nonnegative for the `L²` inner product.
 * `SymplecticGeometry.H1Form o hkl`: the Hilbert space, with `H1Form.ofSmooth`,
   `H1Form.inner_ofSmooth`, `H1Form.norm_ofSmooth_sq`, `H1Form.ofSmooth_injective`,
   `H1Form.denseRange_ofSmooth` and `H1Form.induction_on`.
 * `SymplecticGeometry.H1Form.toL2`: the inclusion into `L2Form o k`, with `toL2_ofSmooth`,
-  `norm_toL2_le` and `toL2_injective`.
+  `norm_toL2_le`, `inner_ofSmooth_right` and `toL2_injective`.
 * `SymplecticGeometry.H1Form.dirichlet`: the Dirichlet form, with `dirichlet_ofSmooth`,
   `dirichlet_comm`, `dirichlet_self_nonneg`, `norm_sq_eq_dirichlet_add`,
   `dirichlet_ofSmooth_right` and `abs_dirichlet_le`.
@@ -49,16 +47,18 @@ the Cauchy–Schwarz inequality, which bounds `|⟪toL2 u, Δφ⟫|` by `‖u‖
 
 The construction of `H1Form` through the type synonym `SymplecticGeometry.PreH1Form`, and the
 names and proofs of `ofSmooth`, `inner_ofSmooth`, `denseRange_ofSmooth`, `induction_on`,
-`norm_toL2_le`, `dirichlet`, `dirichlet_comm`, `dirichlet_self_nonneg`,
-`norm_sq_eq_dirichlet_add`, `dirichlet_ofSmooth_right` and `toL2_injective`, adapt those of Tau
-Ceti's `TauCeti.Manifold.SobolevH1` (`TauCeti/Geometry/Manifold/Riemannian/Sobolev/H1.lean`:
-`SobolevH1.ofSmooth`, `SobolevH1.toLp`, `SobolevH1.norm_toLp_le`, `SobolevH1.dirichletForm`,
+`dirichlet`, `dirichlet_comm`, `dirichlet_self_nonneg`, `norm_sq_eq_dirichlet_add`,
+`dirichlet_ofSmooth_right`, `inner_ofSmooth_right` and `toL2_injective`, adapt those of Tau
+Ceti's `TauCeti.Manifold.SobolevH1` (`TauCeti/Geometry/Manifold/Riemannian/Sobolev/H1.lean`,
+itself after Mathlib's `PreGNS`: `SobolevH1.ofSmooth`, `SobolevH1.dirichletForm`,
 `SobolevH1.dirichletForm_comm`, `SobolevH1.dirichletForm_self_nonneg`,
-`SobolevH1.norm_sq_eq_dirichletForm_add`, `SobolevH1.dirichletForm_ofSmooth_right` and
-`SobolevH1.toLp_injective`), with smooth `k`-forms and the Hodge Laplacian in place of smooth
-functions and the gradient, and `L2Form` in place of `Lp ℝ 2`. Since the `L²` part of the inner
-product is definite, the type synonym carries an `InnerProductSpace.Core` rather than a
-`PreInnerProductSpace.Core`, as in `L2.lean`.
+`SobolevH1.norm_sq_eq_dirichletForm_add`, `SobolevH1.dirichletForm_ofSmooth_right`,
+`SobolevH1.inner_ofSmooth_right` and `SobolevH1.toLp_injective`), with smooth `k`-forms and the
+Hodge Laplacian in place of smooth functions and the gradient, and `L2Form` in place of
+`Lp ℝ 2`. Since the `L²` part of the inner product is definite, the type synonym carries an
+`InnerProductSpace.Core` rather than a `PreInnerProductSpace.Core`, as in `L2.lean`. As
+`L2Form.localize` does, `toL2` is Mathlib's extension `LinearMap.extendOfNorm` of the
+inclusion of smooth forms into `L2Form o k`, which is bounded by `norm_l2FormOfSmooth_le`.
 
 ## References
 
@@ -78,32 +78,6 @@ noncomputable section
 variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
   [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M]
   {m k l : ℕ}
-
-namespace TauCeti.SmoothForm
-
-variable [IsManifold I ∞ M] [RiemannianBundle (fun x : M ↦ TangentSpace I x)]
-  [IsContMDiffRiemannianBundle I ∞ E (fun x : M ↦ TangentSpace I x)] [CompactSpace M]
-  [BoundarylessManifold I M] [T2Space M]
-
-/-- On a closed oriented Riemannian manifold, the Hodge Laplacian is symmetric for the `L²` inner
-product: `⟪Δα, β⟫ = ⟪α, Δβ⟫`. -/
-theorem l2Inner_hodgeLaplacian_eq_l2Inner_hodgeLaplacian (o : Manifold.Orientation I M (Fin m))
-    (hkl : k + l = m) (α β : SmoothForm I M ℝ k) :
-    l2Inner o (hodgeLaplacian o hkl α) β = l2Inner o α (hodgeLaplacian o hkl β) := by
-  simp only [l2Inner_def]
-  exact integralTopForm_inner_hodgeLaplacian_eq_inner_hodgeLaplacian o hkl α β
-    (Or.inl (by simp [compactlySupportedForms_eq_top]))
-
-/-- On a closed oriented Riemannian manifold, the Hodge Laplacian is nonnegative for the `L²`
-inner product: `0 ≤ ⟪Δα, α⟫`. -/
-theorem l2Inner_hodgeLaplacian_self_nonneg (o : Manifold.Orientation I M (Fin m))
-    (hkl : k + l = m) (α : SmoothForm I M ℝ k) :
-    0 ≤ l2Inner o (hodgeLaplacian o hkl α) α := by
-  rw [l2Inner_def]
-  exact integralTopForm_inner_hodgeLaplacian_self_nonneg o hkl
-    (by simp [compactlySupportedForms_eq_top])
-
-end TauCeti.SmoothForm
 
 namespace SymplecticGeometry
 
@@ -234,38 +208,28 @@ theorem induction_on {p : H1Form o hkl → Prop} (u : H1Form o hkl) (hp : IsClos
 
 /-! ### The inclusion into `L2Form` -/
 
-/-- The inclusion of the smooth forms into `L2Form o k`, on the pre-completion space. -/
-private def preToL2 : PreH1Form o hkl →L[ℝ] L2Form o k :=
-  LinearMap.mkContinuous (L2Form.ofSmooth ∘ₗ ofPreH1Form.toLinearMap) 1 fun u ↦ by
-    obtain ⟨α, rfl⟩ := toPreH1Form.surjective u
-    rw [one_mul, ← sq_le_sq₀ (norm_nonneg _) (norm_nonneg _), LinearMap.comp_apply,
-      LinearEquiv.coe_coe, ofPreH1Form_toPreH1Form, L2Form.norm_ofSmooth_sq,
-      ← real_inner_self_eq_norm_sq, inner_toPreH1Form]
-    exact le_add_of_nonneg_right (l2Inner_hodgeLaplacian_self_nonneg o hkl α)
-
-private theorem preToL2_toPreH1Form (α : SmoothForm I M ℝ k) :
-    preToL2 (toPreH1Form α : PreH1Form o hkl) = L2Form.ofSmooth α :=
-  (rfl)
+/-- The `L²` norm of a smooth form is at most its `H¹` norm. -/
+theorem norm_l2FormOfSmooth_le (α : SmoothForm I M ℝ k) :
+    ‖(L2Form.ofSmooth α : L2Form o k)‖ ≤ 1 * ‖(ofSmooth α : H1Form o hkl)‖ := by
+  rw [one_mul, ← sq_le_sq₀ (norm_nonneg _) (norm_nonneg _), L2Form.norm_ofSmooth_sq,
+    norm_ofSmooth_sq]
+  exact le_add_of_nonneg_right (l2Inner_hodgeLaplacian_self_nonneg o hkl α)
 
 /-- The inclusion `H1Form o hkl → L2Form o k`: the continuous extension of the identity of smooth
 forms. -/
 def toL2 : H1Form o hkl →L[ℝ] L2Form o k :=
-  preToL2.fromCompletion
+  (L2Form.ofSmooth : SmoothForm I M ℝ k →ₗ[ℝ] L2Form o k).extendOfNorm ofSmooth
 
 /-- On a smooth form, `toL2` is the inclusion of smooth forms into `L2Form o k`. -/
 @[simp]
 theorem toL2_ofSmooth (α : SmoothForm I M ℝ k) :
-    toL2 (ofSmooth α : H1Form o hkl) = L2Form.ofSmooth α := by
-  rw [toL2, ofSmooth_apply, ContinuousLinearMap.fromCompletion_apply_coe, preToL2_toPreH1Form]
+    toL2 (ofSmooth α : H1Form o hkl) = L2Form.ofSmooth α :=
+  LinearMap.extendOfNorm_eq denseRange_ofSmooth ⟨1, norm_l2FormOfSmooth_le⟩ α
 
 /-- The inclusion into `L2Form o k` does not increase norms. -/
 theorem norm_toL2_le (u : H1Form o hkl) : ‖toL2 u‖ ≤ ‖u‖ := by
-  induction u using induction_on with
-  | hp => exact isClosed_le (toL2 (o := o) (hkl := hkl)).continuous.norm continuous_norm
-  | h α =>
-    rw [← sq_le_sq₀ (norm_nonneg _) (norm_nonneg _), toL2_ofSmooth, L2Form.norm_ofSmooth_sq,
-      norm_ofSmooth_sq]
-    exact le_add_of_nonneg_right (l2Inner_hodgeLaplacian_self_nonneg o hkl α)
+  simpa [toL2] using
+    LinearMap.norm_extendOfNorm_apply_le denseRange_ofSmooth 1 norm_l2FormOfSmooth_le u
 
 /-! ### The Dirichlet form -/
 
@@ -312,12 +276,19 @@ theorem dirichlet_ofSmooth_right (u : H1Form o hkl) (φ : SmoothForm I M ℝ k) 
     rw [dirichlet_ofSmooth, toL2_ofSmooth, L2Form.inner_ofSmooth,
       l2Inner_hodgeLaplacian_eq_l2Inner_hodgeLaplacian]
 
+/-- **Green's identity in `H1Form`**: the `H¹` inner product of `u` with a smooth form `φ` is
+`⟪toL2 u, φ + Δφ⟫`. -/
+theorem inner_ofSmooth_right (u : H1Form o hkl) (φ : SmoothForm I M ℝ k) :
+    ⟪u, ofSmooth φ⟫_ℝ = ⟪toL2 u, L2Form.ofSmooth (φ + hodgeLaplacian o hkl φ)⟫_ℝ := by
+  rw [map_add, inner_add_right, ← dirichlet_ofSmooth_right, dirichlet_apply, toL2_ofSmooth,
+    add_sub_cancel]
+
 /-- **The inclusion into `L2Form` is injective**: an element of `H1Form o hkl` that vanishes in
-`L2Form o k` is orthogonal to every smooth form, by `dirichlet_ofSmooth_right`, hence zero. -/
+`L2Form o k` is orthogonal to every smooth form, by `inner_ofSmooth_right`, hence zero. -/
 theorem toL2_injective : Function.Injective (toL2 : H1Form o hkl → L2Form o k) := by
   refine (injective_iff_map_eq_zero toL2).2 fun u hu ↦ ?_
   refine denseRange_ofSmooth.eq_zero_of_inner_left ℝ fun φ ↦ ?_
-  simpa [dirichlet_apply, hu] using dirichlet_ofSmooth_right u φ
+  rw [inner_ofSmooth_right, hu, inner_zero_left]
 
 /-- **Cauchy–Schwarz inequality for the Dirichlet form**: `|D(u, v)| ≤ ‖u‖ * ‖v‖`. -/
 theorem abs_dirichlet_le (u v : H1Form o hkl) : |dirichlet u v| ≤ ‖u‖ * ‖v‖ := by
