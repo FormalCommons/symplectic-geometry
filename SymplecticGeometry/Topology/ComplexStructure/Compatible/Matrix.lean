@@ -43,18 +43,6 @@ open TauCeti Matrix
 
 variable {ι : Type*} [Fintype ι] [DecidableEq ι]
 
-/-- The matrix `-J₀ M` of an `ω₀`-compatible complex structure, `M` its matrix, is a positive
-definite symplectic matrix. -/
-private theorem mem_symplecticGroup_and_posDef {J : AlmostComplexStructure (StdSpace ι)}
-    (hJ : (stdForm ι).Compatible J) :
-    -Matrix.J ι ℝ * toEuclideanLin.symm J.toLinearMap ∈ symplecticGroup ι ℝ ∧
-      (-Matrix.J ι ℝ * toEuclideanLin.symm J.toLinearMap).PosDef := by
-  have hP := compatible_stdForm_iff_posDef.1 hJ
-  refine ⟨(IsSymm.mem_symplecticGroup_iff
-    (isHermitian_iff_isSymm.1 hP.isHermitian)).2 ?_, hP⟩
-  rw [← Matrix.mul_assoc (Matrix.J ι ℝ) (-Matrix.J ι ℝ), J_mul_neg_J, Matrix.one_mul]
-  exact J.toEuclideanLin_symm_mul_self
-
 /-- The `ω₀`-compatible complex structure of a positive definite symplectic matrix `P`: the
 structure of matrix `J₀ P`. -/
 private noncomputable def ofPosDefSymplectic
@@ -83,7 +71,8 @@ noncomputable def compatibleEquivPosDefSymplectic :
     {J : AlmostComplexStructure (StdSpace ι) // (stdForm ι).Compatible J} ≃ₜ
       {P : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ // P ∈ symplecticGroup ι ℝ ∧ P.PosDef} where
   toFun J := ⟨-Matrix.J ι ℝ * toEuclideanLin.symm J.val.toLinearMap,
-    mem_symplecticGroup_and_posDef J.property⟩
+    neg_J_mul_mem_symplecticGroup_of_invariant J.property.invariant,
+    compatible_stdForm_iff_posDef.1 J.property⟩
   invFun := ofPosDefSymplectic
   left_inv J := by
     refine Subtype.ext (AlmostComplexStructure.toLinearMap_injective
