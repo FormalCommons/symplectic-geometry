@@ -5,7 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Topology.Algebra.Module.Equiv.Determinant
+public import SymplecticGeometry.Topology.Algebra.Module.Determinant
 public import SymplecticGeometry.Topology.FiberBundle.Pullback
 public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Basic
 public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Conjugate

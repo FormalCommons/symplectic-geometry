@@ -157,11 +157,8 @@ theorem IsWeakSolution.sub {u f v g : L2Form o k} (hu : IsWeakSolution o hkl u f
 theorem isWeakSolution_ofSmooth_iff [BoundarylessManifold I M] [T2Space M]
     {α f : SmoothForm I M ℝ k} :
     IsWeakSolution o hkl (ofSmooth α) (ofSmooth f) ↔ SmoothForm.hodgeLaplacian o hkl α = f := by
-  have hsa (φ : SmoothForm I M ℝ k) : SmoothForm.l2Inner o α (SmoothForm.hodgeLaplacian o hkl φ) =
-      SmoothForm.l2Inner o (SmoothForm.hodgeLaplacian o hkl α) φ := by
-    simp only [SmoothForm.l2Inner_def]
-    exact (SmoothForm.integralTopForm_inner_hodgeLaplacian_eq_inner_hodgeLaplacian o hkl α φ
-      (Or.inl (by simp [compactlySupportedForms_eq_top]))).symm
+  have hsa (φ : SmoothForm I M ℝ k) :=
+    (SmoothForm.l2Inner_hodgeLaplacian_eq_l2Inner_hodgeLaplacian o hkl α φ).symm
   refine ⟨fun h ↦ ?_, fun h φ ↦ by rw [inner_ofSmooth, inner_ofSmooth, hsa, h]⟩
   have h0 (φ : SmoothForm I M ℝ k) :
       SmoothForm.l2Inner o (SmoothForm.hodgeLaplacian o hkl α - f) φ = 0 := by
