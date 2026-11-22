@@ -9,6 +9,7 @@ public import SymplecticGeometry.Geometry.Manifold.Projectivization.Hypersurface
 public import SymplecticGeometry.Geometry.Manifold.Projectivization.TwistCore
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.Topology
 import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.VectorBundle.Basic
+import TauCeti.Topology.FiberBundle.Pullback
 
 /-!
 # The normal bundle of a smooth projective hypersurface
@@ -163,9 +164,8 @@ theorem continuous_normalSpaceEquiv :
     ?_ fun q ↦ ?_
   swap
   · rw [Function.comp_apply, SmoothEmbedding.normalQuotientMap_apply]
-  rw [(inducing_pullbackTotalSpaceEmbedding ℂ _ _).continuous_iff]
-  simp_rw [Function.comp_def, pullbackTotalSpaceEmbedding]
-  refine (Pullback.continuous_proj _ _ _).prodMk (continuous_iff_continuousAt.2 fun q₀ ↦ ?_)
+  refine Pullback.continuous_iff.2
+    ⟨Pullback.continuous_proj _ _ _, continuous_iff_continuousAt.2 fun q₀ ↦ ?_⟩
   rw [FiberBundle.continuousAt_totalSpace]
   refine ⟨(X.embedding.contMDiff.continuous.comp (Pullback.continuous_proj _ _ _)).continuousAt, ?_⟩
   set i := (twistCore (𝕜 := ℂ) (n := n + 1) (d : ℤ)).indexAt (X.embedding q₀.proj)

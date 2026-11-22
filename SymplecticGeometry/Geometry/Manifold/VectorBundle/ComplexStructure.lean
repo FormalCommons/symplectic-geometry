@@ -19,6 +19,7 @@ public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.ComplexTangentB
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Topology
 public import TauCeti.Topology.VectorBundle.Complex.Structure
 import TauCeti.Geometry.Symplectic.Finrank
+import TauCeti.Topology.FiberBundle.Pullback
 
 /-!
 # Complex structures on a vector bundle
@@ -542,17 +543,15 @@ theorem continuous_pullbackFiberEquiv [FiniteDimensional ℝ F] (G : Type*) [Nor
     Continuous fun p : TotalSpace G (J.pullback f hf).toContinuousComplexStructure.Fiber ↦
       TotalSpace.mk' G (E := (f : N → M) *ᵖ J.toContinuousComplexStructure.Fiber) p.proj
         (J.pullbackFiberEquiv f hf p.proj p.snd) := by
-  rw [(inducing_pullbackTotalSpaceEmbedding G J.toContinuousComplexStructure.Fiber
-    f).continuous_iff]
-  refine (FiberBundle.continuous_proj G _).prodMk <|
+  refine Pullback.continuous_iff.2 ⟨FiberBundle.continuous_proj G _,
     ((J.toContinuousComplexStructure.totalSpaceHomeomorph G).symm.continuous.comp
       ((Pullback.continuous_lift F V f).comp
         ((J.pullback f hf).toContinuousComplexStructure.totalSpaceHomeomorph G).continuous)).congr
-      fun p ↦ ?_
+      fun p ↦ ?_⟩
   rw [Function.comp_apply, Function.comp_apply,
     TauCeti.Bundle.ContinuousComplexStructure.totalSpaceHomeomorph_apply]
   erw [Pullback.lift_mk, TauCeti.Bundle.ContinuousComplexStructure.totalSpaceHomeomorph_symm_apply]
-  simp only [pullbackFiberEquiv_apply]
+  simp only [pullbackFiberEquiv_apply, Pullback.lift_mk]
 
 end Pullback
 

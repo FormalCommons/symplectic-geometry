@@ -100,11 +100,11 @@ private theorem complexEulerClass_tensorProduct_tautological_left (y₀ : ℙ �
       TotalSpace.mk' (ProjectiveTensor ℂ ℂ ℂ) (E := TT) (p.proj, y₀) (p.snd ⊗ₜ[ℂ] e 1) := by
     refine Continuous.tmul_section (F₁ := ℂ) (F₂ := ℂ)
       (b := fun p : TotalSpace ℂ (Tautological ℂ V) ↦ (p.proj, y₀)) ?_ ?_
-    · refine (inducing_pullbackTotalSpaceEmbedding (F := ℂ) _ _).continuous_iff.2 ?_
-      exact ((continuous_proj_tautological ℂ V).prodMk continuous_const).prodMk continuous_id
-    · refine (inducing_pullbackTotalSpaceEmbedding (F := ℂ) _ _).continuous_iff.2 ?_
-      exact ((continuous_proj_tautological ℂ V).prodMk continuous_const).prodMk
-        (continuous_const (y := (⟨y₀, e 1⟩ : TotalSpace ℂ (Tautological ℂ W))))
+    · exact Pullback.continuous_iff.2
+        ⟨(continuous_proj_tautological ℂ V).prodMk continuous_const, continuous_id⟩
+    · exact Pullback.continuous_iff.2
+        ⟨(continuous_proj_tautological ℂ V).prodMk continuous_const,
+          continuous_const (y := (⟨y₀, e 1⟩ : TotalSpace ℂ (Tautological ℂ W)))⟩
   refine complexEulerClass_eq_singularCohomologyMap_of_fiberwise _ _ (φ := φ) ?_
   convert hc using 3 with p
   exacts [by simp, heq_of_eq (hφ _ _)]
@@ -134,11 +134,11 @@ private theorem complexEulerClass_tensorProduct_tautological_right (x₀ : ℙ �
       TotalSpace.mk' (ProjectiveTensor ℂ ℂ ℂ) (E := TT) (x₀, p.proj) (e 1 ⊗ₜ[ℂ] p.snd) := by
     refine Continuous.tmul_section (F₁ := ℂ) (F₂ := ℂ)
       (b := fun p : TotalSpace ℂ (Tautological ℂ W) ↦ (x₀, p.proj)) ?_ ?_
-    · refine (inducing_pullbackTotalSpaceEmbedding (F := ℂ) _ _).continuous_iff.2 ?_
-      exact (continuous_const.prodMk (continuous_proj_tautological ℂ W)).prodMk
-        (continuous_const (y := (⟨x₀, e 1⟩ : TotalSpace ℂ (Tautological ℂ V))))
-    · refine (inducing_pullbackTotalSpaceEmbedding (F := ℂ) _ _).continuous_iff.2 ?_
-      exact (continuous_const.prodMk (continuous_proj_tautological ℂ W)).prodMk continuous_id
+    · exact Pullback.continuous_iff.2
+        ⟨continuous_const.prodMk (continuous_proj_tautological ℂ W),
+          continuous_const (y := (⟨x₀, e 1⟩ : TotalSpace ℂ (Tautological ℂ V)))⟩
+    · exact Pullback.continuous_iff.2
+        ⟨continuous_const.prodMk (continuous_proj_tautological ℂ W), continuous_id⟩
   refine complexEulerClass_eq_singularCohomologyMap_of_fiberwise _ _ (φ := φ) ?_
   convert hc using 3 with p
   exacts [by simp, heq_of_eq (hφ _ _)]
