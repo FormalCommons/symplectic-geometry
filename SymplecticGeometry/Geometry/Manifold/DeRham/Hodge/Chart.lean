@@ -18,6 +18,7 @@ public import TauCeti.Geometry.Manifold.Riemannian.Codifferential
 public import TauCeti.Geometry.Manifold.Riemannian.VolumeDensity.ChangeOfVariables
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.PartialDiffeomorph
 public import SymplecticGeometry.Geometry.Manifold.Riemannian.PartialDiffeomorph
+public import SymplecticGeometry.LinearAlgebra.BilinearForm.Gram
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 import Mathlib.Analysis.Calculus.BumpFunction.FiniteDimension
 import TauCeti.Geometry.Manifold.Riemannian.FormMetric
@@ -564,15 +565,15 @@ theorem formInnerInChart_comm (y : E) (β γ : E [⋀^Fin k]→L[ℝ] ℝ) :
     formInnerInChart ψ y β γ = formInnerInChart ψ y γ β := by
   rw [formInnerInChart_apply, formInnerInChart_apply, alternatingFormInner_comm]
 
-/-- The inner product in a chart, expanded in a basis `e` of the forms on `E`. -/
-theorem formInnerInChart_eq_sum_repr {κ : Type*} [Fintype κ]
-    (e : Module.Basis κ ℝ (E [⋀^Fin k]→L[ℝ] ℝ)) (y : E) (β γ : E [⋀^Fin k]→L[ℝ] ℝ) :
-    formInnerInChart ψ y β γ =
-      ∑ p, ∑ q, e.repr β p * e.repr γ q * formInnerInChart ψ y (e p) (e q) := by
-  conv_lhs => rw [← e.sum_repr β, ← e.sum_repr γ]
-  simp only [map_sum, map_smul, _root_.sum_apply, _root_.smul_apply, smul_eq_mul, Finset.mul_sum]
-  rw [Finset.sum_comm]
-  exact Finset.sum_congr rfl fun p _ ↦ Finset.sum_congr rfl fun q _ ↦ by ring
+/-- The matrix of the inner product in a chart in a basis `e` of the forms on `E` is the Gram
+matrix of `e`. -/
+theorem toMatrix_formInnerInChart {κ : Type*} [Fintype κ] [DecidableEq κ]
+    (e : Module.Basis κ ℝ (E [⋀^Fin k]→L[ℝ] ℝ)) (y : E) :
+    LinearMap.BilinForm.toMatrix e (formInnerInChart ψ y).toLinearMap₁₂ =
+      Matrix.of fun p q ↦ formInnerInChart ψ y (e p) (e q) := by
+  ext p q
+  rw [LinearMap.BilinForm.toMatrix_apply, Matrix.of_apply,
+    ContinuousLinearMap.toLinearMap₁₂_apply_apply_apply]
 
 /-- On the target of the chart, the Gram matrix of a basis of the forms on `E` for the inner
 product in the chart is positive definite. -/
@@ -581,14 +582,11 @@ theorem posDef_formInnerInChart (hn : n ≠ 0) {κ : Type*} [Finite κ]
     (Matrix.of fun p q ↦ formInnerInChart ψ y (e p) (e q)).PosDef := by
   classical
   have := Fintype.ofFinite κ
-  have h := (LinearMap.BilinForm.posDef_toQuadraticMap_iff_matrix e
+  rw [← toMatrix_formInnerInChart]
+  exact (LinearMap.BilinForm.posDef_toQuadraticMap_iff_matrix e
     (formInnerInChart ψ y).toLinearMap₁₂
     (LinearMap.BilinForm.isSymm_def.2 fun β γ ↦ formInnerInChart_comm ψ y β γ)).1
     fun β hβ ↦ formInnerInChart_self_pos ψ hn hy hβ
-  convert h using 1
-  ext p q
-  rw [LinearMap.BilinForm.toMatrix_apply, Matrix.of_apply,
-    ContinuousLinearMap.toLinearMap₁₂_apply_apply_apply]
 
 /-- On the target of the chart, a form `β` is recovered from its inner products in the chart with
 the vectors of a basis `e` of the forms on `E`, through the inverse of the Gram matrix of `e`. -/
@@ -598,13 +596,13 @@ theorem eq_sum_inv_mulVec_formInnerInChart (hn : n ≠ 0) {κ : Type*} [Fintype 
     (β : E [⋀^Fin k]→L[ℝ] ℝ) :
     β = ∑ p, ((Matrix.of fun p q ↦ formInnerInChart ψ y (e p) (e q))⁻¹ *ᵥ
       fun q ↦ formInnerInChart ψ y β (e q)) p • e p := by
-  set G := Matrix.of fun p q ↦ formInnerInChart ψ y (e p) (e q)
-  have hGz : (fun q ↦ formInnerInChart ψ y β (e q)) = G *ᵥ e.repr β := by
-    ext q
-    rw [formInnerInChart_comm, formInnerInChart_eq_sum_repr ψ e]
-    simp [G, Matrix.mulVec, dotProduct, mul_comm, Finsupp.single_apply]
-  have hG : IsUnit G.det := isUnit_iff_ne_zero.2 (posDef_formInnerInChart ψ hn e hy).det_pos.ne'
-  rw [hGz, Matrix.mulVec_mulVec, Matrix.nonsing_inv_mul G hG, Matrix.one_mulVec, e.sum_repr]
+  have hG : IsUnit (LinearMap.BilinForm.toMatrix e (formInnerInChart ψ y).toLinearMap₁₂).det := by
+    rw [toMatrix_formInnerInChart]
+    exact (posDef_formInnerInChart ψ hn e hy).det_pos.ne'.isUnit
+  have h := LinearMap.BilinForm.sum_inv_toMatrix_mulVec_smul _ e hG β
+  simp only [toMatrix_formInnerInChart, ContinuousLinearMap.toLinearMap₁₂_apply_apply_apply,
+    formInnerInChart_comm ψ y (e _) β] at h
+  exact h.symm
 
 end FormInner
 
@@ -661,12 +659,19 @@ theorem contDiffOn_formInnerInChart [T2Space M] [IsManifold I ∞ M]
     (hg : ContDiffOn ℝ ∞ g s) :
     ContDiffOn ℝ ∞ (fun y ↦ formInnerInChart ψ y (f y) (g y)) s := by
   let e := Module.finBasis ℝ (E [⋀^Fin k]→L[ℝ] ℝ)
-  refine ContDiffOn.congr ?_ fun y _ ↦ formInnerInChart_eq_sum_repr ψ e y (f y) (g y)
+  -- The expansion of the inner product in the basis `e`, by Mathlib's `Matrix.toBilin_apply`.
+  have hexp (y : E) : formInnerInChart ψ y (f y) (g y) =
+      ∑ p, ∑ q, e.repr (f y) p * formInnerInChart ψ y (e p) (e q) * e.repr (g y) q := by
+    rw [← ContinuousLinearMap.toLinearMap₁₂_apply_apply_apply,
+      ← Matrix.toBilin_toMatrix e (formInnerInChart ψ y).toLinearMap₁₂, Matrix.toBilin_apply,
+      toMatrix_formInnerInChart]
+    simp only [Matrix.of_apply]
+  refine ContDiffOn.congr ?_ fun y _ ↦ hexp y
   have hc (p) {F : E → E [⋀^Fin k]→L[ℝ] ℝ} (hF : ContDiffOn ℝ ∞ F s) :
       ContDiffOn ℝ ∞ (fun y ↦ e.repr (F y) p) s :=
     (LinearMap.toContinuousLinearMap (e.coord p)).contDiff.comp_contDiffOn hF
-  exact ContDiffOn.sum fun p _ ↦ ContDiffOn.sum fun q _ ↦ ((hc p hf).mul (hc q hg)).mul
-    ((contDiffOn_formInnerInChart_apply ψ (e p) (e q)).mono hs)
+  exact ContDiffOn.sum fun p _ ↦ ContDiffOn.sum fun q _ ↦ ((hc p hf).mul
+    ((contDiffOn_formInnerInChart_apply ψ (e p) (e q)).mono hs)).mul (hc q hg)
 
 end FormInnerSmooth
 
