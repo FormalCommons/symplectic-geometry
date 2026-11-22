@@ -6,10 +6,9 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.DeRham.GoodCover.Basic
-public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Basic
+public import SymplecticGeometry.Geometry.Manifold.DeRham.SmoothFamily.Contractible
 public import TauCeti.Geometry.Manifold.DeRham.Basic
 import TauCeti.Geometry.Manifold.DeRham.Map
-import TauCeti.Geometry.Manifold.DifferentialForm.HomotopyOperator
 
 /-!
 # Smooth primitives of smooth families of one-forms
@@ -22,13 +21,13 @@ every `t`. Neither compactness of `M` nor finite dimension is needed.
 The proof has two steps.
 
 * *Local step.* Let `M` be smoothly contractible, through `G : M × [0, 1] → M` with
-  `G (·, 0) = c` and `G (·, 1) = id`. Write the family as one form `Ω` on `N × M` and pull it
-  back along `Γ ((t, x), s) = (t, G (x, s))` to the cylinder `(N × M) × [0, 1]`. Tau Ceti's
-  `TauCeti.homotopyOperator` turns `Γ^* Ω` into a smooth function `f` on `N × M`, explicitly
-  `f (t, x) = ∫₀¹ α_t (G (x, s)) (∂ₛ G (x, s)) ds`. By
-  `TauCeti.homotopyOperator_mpullback_prodMap_id_of_isSmoothForm`, `f (t, ·)` is
-  `h (G^* α_t)`, and `TauCeti.mextDeriv_homotopyOperator`, which needs `G^* α_t` closed, gives
-  `d (h (G^* α_t)) = α_t - c^* α_t = α_t`.
+  `G (·, 0) = c` and `G (·, 1) = id`. By
+  `SymplecticGeometry.IsSmoothFamily.homotopyOperator_mpullback`,
+  the `0`-forms `h (G^* α_t)`, the homotopy operator after pullback along `G`, form a smooth
+  family over `N`, so they are the slices `f (t, ·)` of a smooth function `f` on `N × M`,
+  explicitly `f (t, x) = ∫₀¹ α_t (G (x, s)) (∂ₛ G (x, s)) ds`. Since `α_t` is closed,
+  `SymplecticGeometry.mextDerivₗ_homotopyOperator_mpullback_of_contraction` gives
+  `d (h (G^* α_t)) = α_t`.
 * *Gluing.* Choose primitives `g_t` of the `α_t` and a point `r i` in each connected component
   `i`, and let `f (t, x) = g_t x - g_t (r i)` for `x` in the component `i`. Every point has a
   smoothly contractible, hence connected, open neighbourhood `U`, and on `U` the difference of
@@ -99,52 +98,20 @@ theorem IsSmoothlyContractible.exists_contMDiff_mextDeriv_eq_of_forall_mem_close
     ∃ f : N × M → ℝ, ContMDiff (K.prod I) 𝓘(ℝ) ∞ f ∧
       ∀ t, mextDeriv (RoughForm.ofFunction I fun x ↦ f (t, x)) = (α t : RoughForm I M ℝ 1) := by
   obtain ⟨c, G, hG, hG₀, hG₁⟩ := isSmoothlyContractible_def.1 hM
-  obtain ⟨Ω, hΩ⟩ := isSmoothFamily_def.1 hα
-  have : IsManifold (K.prod I) ((⊤ : ℕ∞) + 1 : WithTop ℕ∞) (N × M) :=
-    IsManifold.of_le (n := ∞) (by simp)
-  -- The contraction, acting on the second factor of `N × M`.
-  let Γ : (N × M) × unitInterval → N × M := fun p ↦ (p.1.1, G (p.1.2, p.2))
-  have hΓ : ContMDiff ((K.prod I).prod (𝓡∂ 1)) (K.prod I) ∞ Γ :=
-    (contMDiff_fst.comp contMDiff_fst).prodMk
-      (hG.comp ((contMDiff_snd.comp contMDiff_fst).prodMk contMDiff_snd))
-  let β := SmoothForm.mpullback Γ hΓ Ω
-  have hh : IsSmoothForm (K.prod I) (⊤ : ℕ∞) (homotopyOperator β.val) :=
-    IsSmoothForm.homotopyOperator β.isSmoothForm
-  refine ⟨fun p ↦ homotopyOperator β.val p 0, ?_, fun t ↦ ?_⟩
-  · rw [RoughForm.eq_ofFunction (homotopyOperator β.val), isSmoothForm_ofFunction_iff] at hh
-    exact hh
-  have hι : ContMDiff I (K.prod I) ∞ (Prod.mk t : M → N × M) :=
-    contMDiff_const.prodMk contMDiff_id
-  have hιG : ContMDiff (I.prod (𝓡∂ 1)) ((K.prod I).prod (𝓡∂ 1)) ∞
-      (Prod.map (Prod.mk t) id : M × unitInterval → (N × M) × unitInterval) :=
-    hι.prodMap contMDiff_id
-  -- The slice at `t` is the homotopy operator of `G^* α_t`, by naturality of the operator.
-  have hslice : RoughForm.ofFunction I (fun x ↦ homotopyOperator β.val (t, x) 0) =
-      homotopyOperator (SmoothForm.mpullback G hG (α t)).val := by
-    rw [← hΩ t, SmoothForm.mpullback_mpullback_of_comp_eq hG hι hιG hΓ rfl Ω,
-      SmoothForm.coe_mpullback _ hιG β, homotopyOperator_mpullback_prodMap_id_of_isSmoothForm
-        (hι.mdifferentiable (by simp)) (β.isSmoothForm.of_le (by simp))]
-    conv_rhs => rw [RoughForm.eq_ofFunction (homotopyOperator β.val), mpullback_ofFunction]
-    -- Both sides are the `0`-form of `x ↦ h β (t, x)`, written with and without `∘`.
+  -- The primitives `h (G^* α_t)` form a smooth family of `0`-forms, the slices of `Ω`.
+  obtain ⟨Ω, hΩ⟩ := isSmoothFamily_def.1 (hα.homotopyOperator_mpullback hG)
+  refine ⟨fun p ↦ Ω.val p 0, ?_, fun t ↦ ?_⟩
+  · have hΩs := Ω.isSmoothForm
+    rw [RoughForm.eq_ofFunction Ω.val, isSmoothForm_ofFunction_iff] at hΩs
+    exact hΩs
+  have hslice : RoughForm.ofFunction I (fun x ↦ Ω.val (t, x) 0) =
+      (SmoothForm.homotopyOperator (SmoothForm.mpullback G hG (α t))).val := by
+    rw [← hΩ t, SmoothForm.coe_mpullback]
+    conv_rhs => rw [RoughForm.eq_ofFunction Ω.val, mpullback_ofFunction]
+    -- Both sides are the `0`-form of `x ↦ Ω (t, x)`, written with and without `∘`.
     rfl
-  have hclosed : mextDeriv (SmoothForm.mpullback G hG (α t)).val = 0 :=
-    (mem_closedForms _ _).1 (closedForms.coe_mpullback G hG 1 ⟨α t, hcl t⟩ ▸
-      (closedForms.mpullback G hG 1 ⟨α t, hcl t⟩).property)
-  have hend (s : unitInterval) : mpullback I (I.prod (𝓡∂ 1)) (fun y ↦ (y, s))
-      (SmoothForm.mpullback G hG (α t)).val = mpullback I I (fun y ↦ G (y, s)) (α t).val := by
-    rw [SmoothForm.coe_mpullback]
-    exact (mpullback_comp ((contMDiff_id.prodMk contMDiff_const :
-      ContMDiff I (I.prod (𝓡∂ 1)) 1 fun y : M ↦ (y, s)).mdifferentiable one_ne_zero)
-        (hG.mdifferentiable (by simp)) _).symm
-  -- The homotopy formula: `d (h (G^* α_t)) = α_t - c^* α_t`, and `c^* α_t = 0`.
-  funext x
-  rw [hslice, mextDeriv_homotopyOperator ((SmoothForm.mpullback G hG (α t)).isSmoothForm.of_le
-    (by simp)) hclosed x, hend, hend]
-  simp only [hG₀, hG₁]
-  rw [show (fun y : M ↦ y) = id from rfl, mpullback_id]
-  ext v
-  rw [ContinuousAlternatingMap.sub_apply, mpullback_apply, mfderiv_const, sub_eq_self]
-  exact ((α t).val c).map_coord_zero 0 rfl
+  rw [hslice, ← mextDerivₗ_apply, mextDerivₗ_homotopyOperator_mpullback_of_contraction hG hG₀ hG₁
+    ((mem_closedForms_iff_mextDerivₗ_eq_zero I _).1 (hcl t))]
 
 /-- Near every point of `M`, a family `g_t` of primitives of a smooth family of closed one-forms
 agrees, up to a function of the parameter, with a jointly smooth function `P` on `N × U`, where
