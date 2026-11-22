@@ -1121,8 +1121,9 @@ issues, in an order where each issue's blockers come before it.
 
    Done when these are proved. It can start at once.
 8. **Capping a surface with boundary.**
-   `Geometry/Manifold/Gluing/CapDiscs.lean`, a file of its own beside Tau
-   Ceti's `Geometry/Manifold/Gluing/`, whose gluing it uses: a compact
+   `Geometry/Manifold/Gluing/CapDiscs/`, a folder of its own beside Tau
+   Ceti's `Geometry/Manifold/Gluing/`, whose gluing it uses, with the
+   glued smooth surface in `Basic.lean`: a compact
    oriented surface with boundary, in the representation of *Symplectic
    vector bundles*, with its boundary circles parametrized by
    orientation-reversing loops, glued to discs along them, is a closed
@@ -1132,7 +1133,10 @@ issues, in an order where each issue's blockers come before it.
    surface sits in it as an open subset) and the data
    `SymplecticGeometry.capDiscs.coordinateDisc`, the caps as coordinate
    discs. Blocked by the issue of *Symplectic vector bundles*
-   that fixes that representation, and by 5.
+   that fixes that representation, and by 5. The gluing uses polar
+   coordinates on the circle,
+   `AddCircle.isLocalDiffeomorphAt_ofReal_mul_toCircle`, in
+   `Geometry/Manifold/Instances/AddCircle.lean`.
 9. **A map of degree one onto the sphere.**
    `Geometry/Manifold/Degree/Collapse.lean`:
    `SymplecticGeometry.exists_contMDiff_degree_eq_one`, every compact
