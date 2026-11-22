@@ -231,9 +231,7 @@ private def endToInterior : C(endOverlap (n := n) (W := W), c.interiorModelRange
   toFun q := ⟨c.endToInteriorPt q, c.mem_interiorModelRange.2
     ⟨_, ((c.endToInteriorPt_val q).trans (c.endRetract_def q.val)).symm⟩⟩
   continuous_toFun := Continuous.subtype_mk
-    (InteriorModel.isOpenEmbedding_val.isInducing.continuous_iff.2 (by
-      simpa only [Function.comp_def, endToInteriorPt_val] using
-        c.continuous_endRetract.comp continuous_subtypeVal)) _
+    (InteriorModel.continuous_mk (c.continuous_endRetract.comp continuous_subtypeVal) _) _
 
 private theorem endToInterior_val (q : endOverlap (n := n) (W := W)) :
     (c.endToInterior q).val.val = c.endRetract q.val :=
@@ -604,7 +602,7 @@ private theorem inclusion_comp_subtypeVal :
       c.interiorIncl ∘ interiorModelDiffeomorph (𝓡∂ (n + 1)) ((𝓡∂ (n + 1)).interiorOpens W) ∞ := by
   funext q
   rw [comp_apply, inclusion_apply_of_mem_interior c
-    (ModelWithCorners.coe_interiorOpens (I := 𝓡∂ (n + 1)) (M := W) ▸ SetLike.mem_coe.2 q.property),
+    (ModelWithCorners.mem_interiorOpens_iff_mem_interior.1 q.property),
     InteriorModel.mk_def, comp_apply, coe_interiorModelDiffeomorph]
 
 /-- On the interior of `W`, the inclusion is an open embedding. -/
@@ -618,7 +616,7 @@ theorem isOpenEmbedding_inclusion_comp_subtypeVal :
 theorem isLocalDiffeomorphAt_inclusion {p : W} (hp : p ∈ (𝓡∂ (n + 1)).interior W) :
     IsLocalDiffeomorphAt (𝓡∂ (n + 1)) (𝓡 (n + 1)) ∞ (inclusion c) p := by
   have h : IsLocalDiffeomorphAt (𝓡∂ (n + 1)) (𝓡 (n + 1)) ∞ (inclusion c ∘ Subtype.val)
-      (⟨p, SetLike.mem_coe.1 (ModelWithCorners.coe_interiorOpens (I := 𝓡∂ (n + 1)) (M := W) ▸ hp)⟩ :
+      (⟨p, ModelWithCorners.mem_interiorOpens_iff_mem_interior.2 hp⟩ :
         (𝓡∂ (n + 1)).interiorOpens W) := by
     rw [inclusion_comp_subtypeVal]
     exact (Diffeomorph.isLocalDiffeomorph
@@ -658,8 +656,7 @@ theorem isImmersionAt_inclusion (p : W) :
       (isLocalDiffeomorphAt_inclusion c hx).contMDiffAt.contMDiffWithinAt
     obtain ⟨e, he⟩ := (isLocalDiffeomorphAt_inclusion c hp).isInvertible_mfderiv (by simp)
     exact ContMDiffOn.isImmersionAt_of_injective_mfderiv_of_isInteriorPoint hs
-      (ModelWithCorners.coe_interiorOpens (I := 𝓡∂ (n + 1)) (M := W) ▸
-        ((𝓡∂ (n + 1)).interiorOpens W).isOpen) hp (by simp) hp
+      ((𝓡∂ (n + 1)).isOpen_interior one_ne_zero) hp (by simp) hp
       (BoundarylessManifold.isInteriorPoint) (he ▸ e.injective)
   · have hb : p ∈ (𝓡∂ (n + 1)).boundary W := by
       rwa [← ModelWithCorners.compl_interior]
