@@ -17,7 +17,8 @@ Tau Ceti's polar deformation of `A : GL n 𝕜`, over `𝕜 = ℝ` or `ℂ`, is
 the left polar decomposition. This file writes it in the right form `A (Aᴴ A) ^ (-t / 2)`, which
 involves `A` alone: conjugating by the unitary factor turns `√(A Aᴴ)` into `√(Aᴴ A)`. It also
 shows that the deformation of a matrix of square `-1`, such as the matrix of a complex structure,
-keeps square `-1` at every time.
+keeps square `-1` at every time, and that the deformation of a positive semidefinite matrix is a
+real power of it.
 
 ## Main results
 
@@ -25,6 +26,8 @@ keeps square `-1` at every time.
   `t` is `A (Aᴴ A) ^ (-t / 2)`.
 * `Matrix.GeneralLinearGroup.polarDeformation_mul_self_of_mul_self_eq_neg_one`: the polar
   deformation of a matrix of square `-1` has square `-1` at every time.
+* `Matrix.GeneralLinearGroup.coe_polarDeformation_of_nonneg`: for `A ≥ 0`, the polar
+  deformation at time `t` is `A ^ (1 - t)`.
 
 ## References
 
@@ -82,6 +85,13 @@ theorem polarDeformation_mul_self_of_mul_self_eq_neg_one {A : GL n 𝕜}
       _ = U * U := by rw [h, CFC.rpow_mul_rpow_neg s hP, one_mul]
   rw [coe_polarDeformation, key, ← key 1, CFC.rpow_one P hP.nonneg,
     Units.sqrt_mul_star_mul_polarUnitary, hA]
+
+/-- **The polar deformation of a positive semidefinite matrix.** If `A ≥ 0`, then its polar
+deformation at time `t` is the power `A ^ (1 - t)`. -/
+theorem coe_polarDeformation_of_nonneg {A : GL n 𝕜} (hA : 0 ≤ (A : Matrix n n 𝕜)) (t : ℝ) :
+    (polarDeformation A t : Matrix n n 𝕜) = (A : Matrix n n 𝕜) ^ (1 - t) := by
+  rw [coe_polarDeformation, Units.polarUnitary_eq_one hA, hA.isSelfAdjoint.star_eq,
+    CFC.sqrt_mul_self _ hA, OneMemClass.coe_one, mul_one]
 
 end Matrix.GeneralLinearGroup
 

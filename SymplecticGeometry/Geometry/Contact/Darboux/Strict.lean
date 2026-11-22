@@ -117,9 +117,8 @@ theorem SmoothForm.IsContactForm.exists_strictDarbouxChart_reebVectorField_of_fi
       refine ContinuousAlternatingMap.ext_fin_one fun w ↦ ?_
       rw [← hform y hy, mvfderiv_apply_eq_mfderiv_apply, TauCeti.mpullback_apply]
       congr 1
-      funext i
-      fin_cases i
-      rfl
+      -- The outer `Eq.symm` makes Lean read the vector off the goal's right side.
+      exact Eq.symm (FinVec.etaExpand_eq _).symm
     have hR := hα.mfderiv_reebVectorField_of_eventuallyEq_mpullback
       (SmoothForm.isContactForm_neg_iff.2 (isContactForm_innerProductContactForm V))
       (((chart.contMDiffOn x hx).contMDiffAt (chart.open_source.mem_nhds hx)).of_le (by simp))

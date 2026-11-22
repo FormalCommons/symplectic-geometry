@@ -42,6 +42,8 @@ terms are `H^(r + 1 - M)` near `x`
 
 * `Distribution.IsLocallySobolevAt.sum`: a finite sum of distributions that are `H^s` near `x` is
   `H^s` near `x`.
+* `Distribution.singularSupport_eq_empty_of_forall_isLocallySobolevAt`: a distribution that is,
+  near every point, `M` orders more regular than a family of smooth distributions is smooth.
 * `Distribution.IsLocallySobolevAt.of_ellipticSystem`,
   `Distribution.singularSupport_eq_empty_of_ellipticSystem`.
 
@@ -71,6 +73,22 @@ theorem IsLocallySobolevAt.sum {ι : Type*} {u : Finset ι} {s : ℝ} {T : ι �
   refine (notMem_sobolevSingularSupport_iff hx).1 fun hmem ↦ ?_
   obtain ⟨i, hi, hiT⟩ := Set.mem_iUnion₂.1 (sobolevSingularSupport_sum_subset s u T hmem)
   exact (notMem_sobolevSingularSupport_iff hx).2 (h i hi) hiT
+
+/-- Let `T` and the `S b` be distributions on `Ω`, with every `S b` smooth on `Ω`. If, at every
+`x ∈ Ω` and for every `s`, `T` is `H^(s + M)` near `x` whenever every `S b` is `H^s` near `x`,
+then `T` is smooth on `Ω`. -/
+theorem singularSupport_eq_empty_of_forall_isLocallySobolevAt {κ : Type*} {S : κ → 𝓓'(Ω, ℂ)}
+    {T : 𝓓'(Ω, ℂ)} {M : ℝ} (hS : ∀ b, (S b).singularSupport = ∅)
+    (h : ∀ x ∈ Ω, ∀ s, (∀ b, (S b).IsLocallySobolevAt s x) → T.IsLocallySobolevAt (s + M) x) :
+    T.singularSupport = ∅ := by
+  refine singularSupport_eq_empty_iff_forall_sobolevSingularSupport_eq_empty.2 fun s ↦
+    Set.eq_empty_of_forall_notMem fun x hx ↦ ?_
+  have hxΩ := (mem_sobolevSingularSupport_iff.1 hx).1
+  refine (notMem_sobolevSingularSupport_iff hxΩ).2 ?_ hx
+  have h := h x hxΩ (s - M) fun b ↦ (notMem_sobolevSingularSupport_iff hxΩ).1 <| by
+    rw [singularSupport_eq_empty_iff_forall_sobolevSingularSupport_eq_empty.1 (hS b)]
+    exact Set.notMem_empty x
+  rwa [sub_add_cancel] at h
 
 end Sum
 
@@ -150,16 +168,9 @@ theorem singularSupport_eq_empty_of_ellipticSystem (hg : ∀ i, ContDiff ℝ ∞
     (hPT : ∀ a, singularSupport
       (∑ i ∈ t, c i • Distribution.smulLeftCLM (hg i) (∂^{m i} (T a)) +
         ∑ b, ∑ j ∈ t', c' a b j • Distribution.smulLeftCLM (hh a b j) (∂^{m' j} (T b))) = ∅)
-    (a : ι) : (T a).singularSupport = ∅ := by
-  refine singularSupport_eq_empty_iff_forall_sobolevSingularSupport_eq_empty.2 fun s ↦
-    Set.eq_empty_of_forall_notMem fun x hx ↦ ?_
-  have hxΩ := (mem_sobolevSingularSupport_iff.1 hx).1
-  refine (notMem_sobolevSingularSupport_iff hxΩ).2 ?_ hx
-  have h := IsLocallySobolevAt.of_ellipticSystem (s := s - M) hg hh hk hk' (hσ x hxΩ)
-    (fun b ↦ (notMem_sobolevSingularSupport_iff hxΩ).1 <| by
-      rw [singularSupport_eq_empty_iff_forall_sobolevSingularSupport_eq_empty.1 (hPT b)]
-      exact Set.notMem_empty x) a
-  rwa [sub_add_cancel] at h
+    (a : ι) : (T a).singularSupport = ∅ :=
+  singularSupport_eq_empty_of_forall_isLocallySobolevAt hPT fun x hx _ hs ↦
+    IsLocallySobolevAt.of_ellipticSystem hg hh hk hk' (hσ x hx) hs a
 
 end Distribution
 

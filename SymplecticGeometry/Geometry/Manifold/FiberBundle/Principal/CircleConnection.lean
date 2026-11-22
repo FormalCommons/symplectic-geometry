@@ -441,9 +441,8 @@ private theorem IsCircleConnectionForm.sub_apply_eq_of_mfderiv_proj_eq
     rw [mpullback_apply] at h
     refine Eq.trans ?_ h
     congr 1
-    funext i
-    fin_cases i
-    rfl
+    -- The outer `Eq.symm` makes Lean read the vector off the goal's right side.
+    exact Eq.symm (FinVec.etaExpand_eq _).symm
   rw [hvu, ContinuousAlternatingMap.vecCons_add, ContinuousAlternatingMap.vecCons_smul,
     ContinuousAlternatingMap.vecCons_add, ContinuousAlternatingMap.vecCons_smul, hαu, hℓu,
     hα.apply_rightFundamentalVectorField,
@@ -597,9 +596,7 @@ theorem IsCircleConnectionForm.apply_eq_mpullback_add_mpullback (hα : IsCircleC
       (TauCeti.mpullback IB (IB.prod (𝓡 1)) s α.val) x ![u] = α.val (s (p x)) ![w] := by
     rw [mpullback_apply, mpullback_apply]
     congr 1
-    funext i
-    fin_cases i
-    rfl
+    exact (FinVec.etaExpand_eq _).symm
   rw [hℓ, sub_zero] at hkey
   rw [ContinuousAlternatingMap.add_apply, hpull, ← hkey]
   ring
