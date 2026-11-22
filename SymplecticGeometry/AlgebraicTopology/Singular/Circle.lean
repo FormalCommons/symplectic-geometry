@@ -5,12 +5,14 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import Mathlib.Analysis.Convex.Contractible
 public import Mathlib.LinearAlgebra.Complex.Orientation
 public import SymplecticGeometry.AlgebraicTopology.SimplicialSet.Homology.MayerVietoris
 public import SymplecticGeometry.AlgebraicTopology.SimplicialSet.Homology.One
 public import SymplecticGeometry.AlgebraicTopology.Singular.Path
 public import TauCeti.AlgebraicTopology.Homotopy.Hurewicz.One.Comparison
 public import TauCeti.AlgebraicTopology.Singular.Circle
+public import TauCeti.AlgebraicTopology.Singular.Contractible
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.Chart
 public import TauCeti.Analysis.Complex.Circle
 public import TauCeti.Topology.Circle.Degree
@@ -60,6 +62,11 @@ remaining basis vector `1`, while Tau Ceti's generator of the equator is `[-b] -
   `Circle.expLoop` is `-(Circle.singularHomologyOneIso A).inv`.
 * `Circle.hurewicz_genLoopEquivOfUnique_symm_expLoop`: the Hurewicz class of `Circle.expLoop`
   is `(Circle.singularHomologyOneIso A).inv`.
+* `Circle.ιHomology₁_simplex₁_exp_comp_add_two_pi_mul`: a full counterclockwise turn has the class
+  of `Circle.expLoop` from any starting angle.
+* `Circle.liftCycles_simplex₁_exp_comp_homologyπ`: three paths `exp ∘ θᵢ` whose lifts `θᵢ` to `ℝ`
+  close up after one turn form a cycle with the class of a full counterclockwise turn, since the
+  lifts and a segment of length `2π` form a cycle of the contractible line.
 
 ## References
 
@@ -556,5 +563,112 @@ theorem hurewicz_genLoopEquivOfUnique_symm_expLoop :
   rw [GenLoop.hurewicz_eq_neg_ιHomology₁, ← neg_neg (singularHomologyOneIso A).inv,
     ← ιHomology₁_simplex₁_expLoop]
   congr 2
+
+/-! ### Loops given by lifts to the real line -/
+
+section Lift
+
+open Real
+open scoped unitInterval
+
+/-- **A full counterclockwise turn from any starting angle.** The class of the closed singular
+`1`-simplex `t ↦ exp(i(x + 2πt))` of `Circle` is `-(Circle.singularHomologyOneIso A).inv`, as for
+`Circle.expLoop`, which starts at `x = 0`: the rotation by `exp(ix)` carrying one to the other is
+homotopic to the identity. -/
+theorem ιHomology₁_simplex₁_exp_comp_add_two_pi_mul (x : ℝ) :
+    SSet.ιHomology₁ A (TopCat.toSSet.obj (TopCat.of Circle))
+        (TopCat.simplex₁ (exp.comp ⟨fun t ↦ x + 2 * π * t, by fun_prop⟩)) (by
+          rw [TopCat.δ_zero_simplex₁, TopCat.δ_one_simplex₁]
+          simp [exp_add]) =
+      -(singularHomologyOneIso A).inv := by
+  let r : C(Circle, Circle) := ⟨fun z ↦ exp x * z, by fun_prop⟩
+  -- The rotation `r` is homotopic to the identity, through the rotations by `exp(i(1 - s)x)`.
+  let H : ContinuousMap.Homotopy r (ContinuousMap.id Circle) :=
+    { toFun := fun q ↦ exp ((1 - (q.1 : ℝ)) * x) * q.2
+      continuous_toFun := by fun_prop
+      map_zero_left := fun z ↦ by simp [r]
+      map_one_left := fun z ↦ by simp }
+  have hr : SSet.homologyMap (TopCat.toSSet.map (TopCat.ofHom r)) A 1 = 𝟙 _ :=
+    (TopCat.Homotopy.congr_homologyMap_singularChainComplexFunctor (f := TopCat.ofHom r)
+      (g := 𝟙 (TopCat.of Circle)) H A 1).trans (by
+        rw [CategoryTheory.Functor.map_id, HomologicalComplex.homologyMap_id]
+        rfl)
+  have hs : (TopCat.toSSet.map (TopCat.ofHom r)).app _
+      (TopCat.simplex₁ expLoop.toContinuousMap) =
+      TopCat.simplex₁ (exp.comp (⟨fun t ↦ x + 2 * π * t, by fun_prop⟩ : C(I, ℝ))) := by
+    rw [TopCat.toSSet_map_app_simplex₁]
+    congr 1
+    ext t
+    simp [r, expLoop_apply]
+  rw [← ιHomology₁_simplex₁_expLoop]
+  refine Eq.trans ?_ ((SSet.ιHomology₁_homologyMap A _ _ _).symm.trans
+    ((congrArg _ hr).trans (Category.comp_id _)))
+  congr 1
+  exact hs.symm
+
+/-- **Three lifted paths that close up after one turn.** Let `θ₀`, `θ₁`, `θ₂` be paths in `ℝ`
+such that `θ₂` runs from the start of `θ₁` to the start of `θ₀`, and `θ₀` ends `2π` above the end
+of `θ₁`. Then `exp ∘ θ₀ - exp ∘ θ₁ + exp ∘ θ₂` is a `1`-cycle of `Circle`, and its class is
+`-(Circle.singularHomologyOneIso A).inv`, that of a full counterclockwise turn
+(`Circle.ιHomology₁_simplex₁_expLoop`). Together with the segment from the end of `θ₁` to `2π`
+above it, the three paths form a `1`-cycle of `ℝ`, which bounds since `ℝ` is contractible; its
+image under `exp` is the difference of the two cycles of `Circle`. -/
+theorem liftCycles_simplex₁_exp_comp_homologyπ (θ₀ θ₁ θ₂ : C(I, ℝ)) (h₂₁ : θ₂ 0 = θ₁ 0)
+    (h₂₀ : θ₂ 1 = θ₀ 0) (h₀₁ : θ₀ 1 = θ₁ 1 + 2 * π) :
+    ((TopCat.toSSet.obj (TopCat.of Circle)).chainComplex A).liftCycles
+        ((TopCat.toSSet.obj (TopCat.of Circle)).ιChainComplex (R := A)
+            (TopCat.simplex₁ (exp.comp θ₀)) -
+          (TopCat.toSSet.obj (TopCat.of Circle)).ιChainComplex (TopCat.simplex₁ (exp.comp θ₁)) +
+          (TopCat.toSSet.obj (TopCat.of Circle)).ιChainComplex (TopCat.simplex₁ (exp.comp θ₂)))
+        0 (by simp) (TopCat.ιChainComplex_simplex₁_sub_add_d A (X := TopCat.of Circle)
+          (by simp [h₂₁]) (by simp [h₂₀]) (by simp [h₀₁, exp_add])) ≫
+        ((TopCat.toSSet.obj (TopCat.of Circle)).chainComplex A).homologyπ 1 =
+      -(singularHomologyOneIso A).inv := by
+  have hc := TopCat.ιChainComplex_simplex₁_sub_add_d A (X := TopCat.of Circle)
+    (g₀ := exp.comp θ₀) (g₁ := exp.comp θ₁) (g₂ := exp.comp θ₂) (by simp [h₂₁]) (by simp [h₂₀])
+    (by simp [h₀₁, exp_add])
+  let μ : C(I, ℝ) := ⟨fun t ↦ θ₁ 1 + 2 * π * t, by fun_prop⟩
+  have hμ : (TopCat.toSSet.obj (TopCat.of Circle)).δ 0 (TopCat.simplex₁ (exp.comp μ)) =
+      (TopCat.toSSet.obj (TopCat.of Circle)).δ 1 (TopCat.simplex₁ (exp.comp μ)) := by
+    rw [TopCat.δ_zero_simplex₁, TopCat.δ_one_simplex₁]
+    simp [μ, exp_add]
+  -- In `ℝ`, the three paths and the segment `μ` form a cycle `z`.
+  let z := (TopCat.toSSet.obj (TopCat.of ℝ)).ιChainComplex (R := A) (TopCat.simplex₁ θ₀) -
+    (TopCat.toSSet.obj (TopCat.of ℝ)).ιChainComplex (TopCat.simplex₁ θ₁) +
+    (TopCat.toSSet.obj (TopCat.of ℝ)).ιChainComplex (TopCat.simplex₁ θ₂) -
+    (TopCat.toSSet.obj (TopCat.of ℝ)).ιChainComplex (TopCat.simplex₁ μ)
+  have hz : z ≫ ((TopCat.toSSet.obj (TopCat.of ℝ)).chainComplex A).d 1 0 = 0 := by
+    have hμ0 : μ 0 = θ₁ 1 := by simp [μ]
+    have hμ1 : μ 1 = θ₀ 1 := by simp [μ, h₀₁]
+    simp only [z, Preadditive.sub_comp, Preadditive.add_comp, TopCat.ιChainComplex_simplex₁_d, hμ0,
+      hμ1, h₂₁, h₂₀]
+    abel
+  have h0 : ((TopCat.toSSet.obj (TopCat.of ℝ)).chainComplex A).liftCycles z 0 (by simp) hz ≫
+      ((TopCat.toSSet.obj (TopCat.of ℝ)).chainComplex A).homologyπ 1 = 0 :=
+    (isZero_singularHomologyFunctor_of_contractibleSpace A (TopCat.of ℝ) one_ne_zero).eq_of_tgt _ _
+  -- Its image under `exp` is the difference of the two cycles of `Circle`.
+  have hmap := congrArg (· ≫ SSet.homologyMap (TopCat.toSSet.map (TopCat.ofHom exp)) A 1) h0
+  simp only [Category.assoc, HomologicalComplex.homologyπ_naturality, zero_comp] at hmap
+  rw [← Category.assoc, HomologicalComplex.liftCycles_comp_cyclesMap] at hmap
+  have hμc : (TopCat.toSSet.obj (TopCat.of Circle)).ιChainComplex (R := A)
+      (TopCat.simplex₁ (exp.comp μ)) ≫
+        ((TopCat.toSSet.obj (TopCat.of Circle)).chainComplex A).d 1 0 = 0 := by
+    rw [SSet.ιChainComplex_d, Fin.sum_univ_two, hμ]
+    simp
+  have hsplit : ((TopCat.toSSet.obj (TopCat.of Circle)).chainComplex A).liftCycles
+      (z ≫ (SSet.chainComplexMap (TopCat.toSSet.map (TopCat.ofHom exp)) A).f 1) 0
+        (by simp) (by rw [Category.assoc, HomologicalComplex.Hom.comm, ← Category.assoc, hz,
+          zero_comp]) =
+      ((TopCat.toSSet.obj (TopCat.of Circle)).chainComplex A).liftCycles _ 0 (by simp) hc -
+        ((TopCat.toSSet.obj (TopCat.of Circle)).chainComplex A).liftCycles _ 0 (by simp) hμc := by
+    rw [← cancel_mono (((TopCat.toSSet.obj (TopCat.of Circle)).chainComplex A).iCycles 1)]
+    simp only [z, Preadditive.sub_comp, Preadditive.add_comp, HomologicalComplex.liftCycles_i,
+      SSet.ι_chainComplexMap_f, TopCat.toSSet_map_app_simplex₁]
+    rfl
+  rw [hsplit, Preadditive.sub_comp, sub_eq_zero] at hmap
+  rw [hmap, ← SSet.ιHomology₁_def A _ _ hμ]
+  exact ιHomology₁_simplex₁_exp_comp_add_two_pi_mul A (θ₁ 1)
+
+end Lift
 
 end Circle

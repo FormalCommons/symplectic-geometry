@@ -14,7 +14,7 @@ public import TauCeti.Topology.Homotopy.Path
 # Singular `1`-simplices of paths: closed paths and concatenation
 
 Tau Ceti reads a map `g : C(I, X)` as the singular `1`-simplex `TauCeti.TopCat.simplex₁ g`. This
-file proves two facts about these simplices, with coefficients in any preadditive category with
+file proves three facts about these simplices, with coefficients in any preadditive category with
 coproducts.
 
 * If `g 0 = g 1`, the two faces of `simplex₁ g` agree, so it is a `1`-cycle
@@ -24,6 +24,9 @@ coproducts.
   standard `2`-simplex onto `I` that sends its vertices to `0`, `1/2` and `1`, has faces `δ`,
   `γ.trans δ` and `γ`. So the chain `γ + δ - γ.trans δ` is its boundary
   (`TauCeti.TopCat.ιChainComplex_transSimplex_d`).
+* The boundary of `simplex₁ g` is `g 1 - g 0` (`TauCeti.TopCat.ιChainComplex_simplex₁_d`), so
+  three paths that run around a triangle form a `1`-cycle
+  (`TauCeti.TopCat.ιChainComplex_simplex₁_sub_add_d`).
 
 The second fact is the one Tau Ceti proves for integer chains as
 `TauCeti.HurewiczOne.pathChain_add_sub_trans_mem_boundaries₁`; the `2`-simplex and the
@@ -40,6 +43,7 @@ has the same code as the private `concatProj` of that file, made public here.
   continuous map (`TauCeti.TopCat.toSSetObjEquiv_transSimplex`) and its naturality in the space
   (`TauCeti.TopCat.toSSet_map_app_transSimplex`).
 * `TauCeti.TopCat.ιChainComplex_transSimplex_d`: its boundary is `γ + δ - γ.trans δ`.
+* `TauCeti.TopCat.ιChainComplex_simplex₁_sub_add_d`: three paths around a triangle form a cycle.
 
 ## References
 
@@ -182,6 +186,28 @@ lemma ιChainComplex_transSimplex_d {a b c : X} (γ : Path a b) (δ : Path b c) 
     δ_two_transSimplex]
   simp only [Fin.val_zero, pow_zero, one_smul, Fin.val_one, pow_one, neg_smul, Fin.val_two]
   rw [neg_one_sq, one_smul]
+  abel
+
+/-- The boundary of the singular `1`-simplex of `g : C(I, X)` is the point `g 1` minus the point
+`g 0`. -/
+lemma ιChainComplex_simplex₁_d (g : C(I, X)) :
+    (_root_.TopCat.toSSet.obj X).ιChainComplex (R := R) (simplex₁ g) ≫
+        ((_root_.TopCat.toSSet.obj X).chainComplex R).d 1 0 =
+      (_root_.TopCat.toSSet.obj X).ιChainComplex (_root_.TopCat.toSSetObj₀Equiv.symm (g 1)) -
+        (_root_.TopCat.toSSet.obj X).ιChainComplex (_root_.TopCat.toSSetObj₀Equiv.symm (g 0)) := by
+  rw [SSet.ιChainComplex_d, Fin.sum_univ_two, δ_zero_simplex₁, δ_one_simplex₁]
+  simp only [Fin.val_zero, pow_zero, one_smul, Fin.val_one, pow_one, neg_smul]
+  abel
+
+/-- **Three paths around a triangle form a cycle**: if `g₂` runs from the start of `g₁` to the
+start of `g₀`, and `g₀` and `g₁` end at the same point, then `g₀ - g₁ + g₂` is a `1`-cycle. -/
+lemma ιChainComplex_simplex₁_sub_add_d {g₀ g₁ g₂ : C(I, X)} (h₂₁ : g₂ 0 = g₁ 0)
+    (h₂₀ : g₂ 1 = g₀ 0) (h₀₁ : g₀ 1 = g₁ 1) :
+    ((_root_.TopCat.toSSet.obj X).ιChainComplex (R := R) (simplex₁ g₀) -
+        (_root_.TopCat.toSSet.obj X).ιChainComplex (simplex₁ g₁) +
+        (_root_.TopCat.toSSet.obj X).ιChainComplex (simplex₁ g₂)) ≫
+      ((_root_.TopCat.toSSet.obj X).chainComplex R).d 1 0 = 0 := by
+  simp only [Preadditive.add_comp, Preadditive.sub_comp, ιChainComplex_simplex₁_d, h₂₁, h₂₀, h₀₁]
   abel
 
 end TauCeti.TopCat
