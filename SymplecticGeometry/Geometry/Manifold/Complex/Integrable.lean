@@ -146,20 +146,20 @@ theorem isIntegrable_iff_mfderiv : J.IsIntegrable ↔
         mfderiv I 𝓘(ℝ, E) ψ y (J y v) = J₀ (mfderiv I 𝓘(ℝ, E) ψ y v) := by
   simp only [isIntegrable_def, forall_chartPushforward_apply_eq_iff]
 
-/-- `J` is integrable when around every point `x` there are an open set `s ∋ x` and a map
+/-- `J` is integrable when around every point `x` there are a neighbourhood `s` of `x` and a map
 `φ : M → E` that is a smooth local diffeomorphism at `x` and whose derivative carries `J` to a
 fixed linear complex structure of `E` at every point of `s`. -/
 theorem isIntegrable_of_forall_exists_isLocalDiffeomorphAt
     (h : ∀ x : M, ∃ (φ : M → E) (s : Set M) (J₀ : AlmostComplexStructure E),
-      IsOpen s ∧ x ∈ s ∧ IsLocalDiffeomorphAt I 𝓘(ℝ, E) ∞ φ x ∧
+      s ∈ nhds x ∧ IsLocalDiffeomorphAt I 𝓘(ℝ, E) ∞ φ x ∧
         ∀ y ∈ s, ∀ v : TangentSpace I y,
           mfderiv I 𝓘(ℝ, E) φ y (J y v) = J₀ (mfderiv I 𝓘(ℝ, E) φ y v)) :
     J.IsIntegrable := by
   rw [isIntegrable_iff_mfderiv]
   intro x
-  obtain ⟨φ, s, J₀, hs, hxs, hφ, hJ⟩ := h x
+  obtain ⟨φ, s, J₀, hs, hφ, hJ⟩ := h x
   -- A partial diffeomorphism that agrees with `φ` on its source, inside `s`, is the chart.
-  obtain ⟨Φ, hxΦ, hΦs, hφΦ⟩ := hφ.exists_partialDiffeomorph_source_subset (hs.mem_nhds hxs)
+  obtain ⟨Φ, hxΦ, hΦs, hφΦ⟩ := hφ.exists_partialDiffeomorph_source_subset hs
   refine ⟨Φ, J₀, hxΦ, fun y hy v ↦ ?_⟩
   have hd : mfderiv I 𝓘(ℝ, E) Φ y = mfderiv I 𝓘(ℝ, E) φ y :=
     Filter.EventuallyEq.mfderiv_eq <|
@@ -303,7 +303,8 @@ theorem isIntegrable_of_forall_mem_maximalAtlas {J : SmoothAlmostComplexStructur
     J.IsIntegrable :=
   isIntegrable_of_forall_exists_isLocalDiffeomorphAt J fun x ↦
     let ⟨e, he, hx, J₀, hJ⟩ := h x
-    ⟨e, e.source, J₀, e.open_source, hx, e.isLocalDiffeomorphAt_of_mem_maximalAtlas he hx, hJ⟩
+    ⟨e, e.source, J₀, e.open_source.mem_nhds hx, e.isLocalDiffeomorphAt_of_mem_maximalAtlas he hx,
+      hJ⟩
 
 end ModelSpace
 
