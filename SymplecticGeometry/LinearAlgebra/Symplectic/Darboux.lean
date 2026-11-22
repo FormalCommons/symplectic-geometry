@@ -53,6 +53,11 @@ model `SymplecticGeometry.stdForm` on `SymplecticGeometry.StdSpace ι`; it follo
   `LinearMap.BilinForm.IsAlt.apply_sum_smul_add_smul_eq_neg_right_coeff`: for vectors `aᵢ`, `bᵢ`
   with the Darboux relations, pairing `∑ᵢ (cᵢ aᵢ + dᵢ bᵢ)` with `bⱼ` and with `aⱼ` gives `cⱼ`
   and `-dⱼ`.
+* `LinearMap.BilinForm.apply_sub_sum_apply_smul_add_smul_snd_eq_zero` and
+  `LinearMap.BilinForm.IsAlt.apply_sub_sum_apply_smul_add_smul_fst_eq_zero`: for such vectors,
+  the projection `v ↦ v - ∑ᵢ (B(v, bᵢ) aᵢ - B(v, aᵢ) bᵢ)` lands in the `B`-orthogonal of all
+  `aⱼ` and `bⱼ`. For a single pair, this is Tau Ceti's
+  `LinearMap.BilinForm.IsAlt.sub_smul_add_smul_mem_orthogonal_span_pair`.
 * `SymplecticGeometry.exists_isSymplectomorphism_stdForm`,
   `SymplecticGeometry.exists_isSymplectomorphism_stdForm_fin`: the real version, with `stdForm`.
 
@@ -129,6 +134,23 @@ theorem IsAlt.apply_sum_smul_add_smul_eq_neg_right_coeff (hB : B.IsAlt) {κ : Ty
   have hba (i j : κ) : B (b i) (a j) = -if j = i then 1 else 0 := by
     rw [← hab j i, ← hB.neg_eq]
   simp [map_sum, haa, hba]
+
+/-- Let the `bᵢ` be pairwise `B`-orthogonal, with `B(aᵢ, bⱼ) = δᵢⱼ`. Then the projection
+`v - ∑ᵢ (B(v, bᵢ) aᵢ - B(v, aᵢ) bᵢ)` of `v` is `B`-orthogonal to each `bⱼ`. -/
+theorem apply_sub_sum_apply_smul_add_smul_snd_eq_zero {κ : Type*} [Fintype κ] [DecidableEq κ]
+    {a b : κ → M} (hbb : ∀ i j, B (b i) (b j) = 0)
+    (hab : ∀ i j, B (a i) (b j) = if i = j then 1 else 0) (v : M) (j : κ) :
+    B (v - ∑ i, (B v (b i) • a i + -B v (a i) • b i)) (b j) = 0 := by
+  rw [map_sub, LinearMap.sub_apply, apply_sum_smul_add_smul_eq_left_coeff hbb hab, sub_self]
+
+/-- Let `B` be alternating, the `aᵢ` pairwise `B`-orthogonal, and `B(aᵢ, bⱼ) = δᵢⱼ`. Then the
+projection `v - ∑ᵢ (B(v, bᵢ) aᵢ - B(v, aᵢ) bᵢ)` of `v` is `B`-orthogonal to each `aⱼ`. -/
+theorem IsAlt.apply_sub_sum_apply_smul_add_smul_fst_eq_zero (hB : B.IsAlt) {κ : Type*}
+    [Fintype κ] [DecidableEq κ] {a b : κ → M} (haa : ∀ i j, B (a i) (a j) = 0)
+    (hab : ∀ i j, B (a i) (b j) = if i = j then 1 else 0) (v : M) (j : κ) :
+    B (v - ∑ i, (B v (b i) • a i + -B v (a i) • b i)) (a j) = 0 := by
+  rw [map_sub, LinearMap.sub_apply, hB.apply_sum_smul_add_smul_eq_neg_right_coeff haa hab,
+    neg_neg, sub_self]
 
 end LinearMap.BilinForm
 

@@ -130,10 +130,8 @@ def cayleyPathDomain
     (A : ∀ q : TotalSpace (F →L[ℝ] F) (fun x ↦ V x →L[ℝ] V x), V q.proj →L[ℝ] V q.proj) :
     Set (TotalSpace (F →L[ℝ] F) (fun x ↦ V x →L[ℝ] V x)) :=
   {q | ∀ b ∈ Icc (0 : ℝ) 1,
-    (b, ((trivializationAt F V q.proj).continuousLinearEquivAt ℝ q.proj
-        (mem_baseSet_trivializationAt F V q.proj)).conjContinuousAlgEquiv (A q),
-      ((trivializationAt F V q.proj).continuousLinearEquivAt ℝ q.proj
-        (mem_baseSet_trivializationAt F V q.proj)).conjContinuousAlgEquiv q.snd) ∈
+    (b, (VectorBundle.continuousLinearEquivAt ℝ F V q.proj).conjContinuousAlgEquiv (A q),
+      (VectorBundle.continuousLinearEquivAt ℝ F V q.proj).conjContinuousAlgEquiv q.snd) ∈
       cayleyDomain (F →L[ℝ] F)}
 
 variable {A : ∀ q : TotalSpace (F →L[ℝ] F) (fun x ↦ V x →L[ℝ] V x), V q.proj →L[ℝ] V q.proj}
@@ -141,10 +139,8 @@ variable {A : ∀ q : TotalSpace (F →L[ℝ] F) (fun x ↦ V x →L[ℝ] V x), 
 
 theorem mem_cayleyPathDomain_iff :
     q ∈ cayleyPathDomain F V A ↔ ∀ b ∈ Icc (0 : ℝ) 1,
-      (b, ((trivializationAt F V q.proj).continuousLinearEquivAt ℝ q.proj
-          (mem_baseSet_trivializationAt F V q.proj)).conjContinuousAlgEquiv (A q),
-        ((trivializationAt F V q.proj).continuousLinearEquivAt ℝ q.proj
-          (mem_baseSet_trivializationAt F V q.proj)).conjContinuousAlgEquiv q.snd) ∈
+      (b, (VectorBundle.continuousLinearEquivAt ℝ F V q.proj).conjContinuousAlgEquiv (A q),
+        (VectorBundle.continuousLinearEquivAt ℝ F V q.proj).conjContinuousAlgEquiv q.snd) ∈
         cayleyDomain (F →L[ℝ] F) :=
   Iff.rfl
 
@@ -231,8 +227,8 @@ theorem Compatible.mem_cayleyPathDomain (h₀ : ω.Compatible J₀) (h : ω.Tame
     q ∈ Bundle.cayleyPathDomain F V A :=
   Bundle.mem_cayleyPathDomain_iff_forall_mem_cayleyDomain.2 fun _ hb ↦
     h₀.mem_cayleyDomain_of_continuousLinearEquiv h
-      ((trivializationAt F V q.proj).continuousLinearEquivAt ℝ q.proj
-        (mem_baseSet_trivializationAt F V q.proj)) hA hB (abs_le.2 ⟨by linarith [hb.1], hb.2⟩)
+      (VectorBundle.continuousLinearEquivAt ℝ F V q.proj) hA hB
+      (abs_le.2 ⟨by linarith [hb.1], hb.2⟩)
 
 end TauCeti.SymplecticForm
 

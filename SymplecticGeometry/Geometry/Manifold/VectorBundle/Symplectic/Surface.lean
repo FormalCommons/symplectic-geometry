@@ -30,7 +30,7 @@ is used.
 * `ContMDiffTwoForm.IsNondegenerate.exists_isSymplecticFrameOn_univ_of_boundary_nonempty`: over a
   compact connected surface whose boundary is not empty, a nondegenerate smooth two-form on a
   bundle of rank `2 |κ|` has a global smooth symplectic frame for `stdForm κ`. The frame comes
-  from the Darboux sections through `ContMDiffTwoForm.exists_isSymplecticFrameOn_univ_of_darboux`.
+  from the Darboux sections through `ContMDiffTwoForm.exists_isSymplecticFrameOn_of_darboux`.
 
 ## Implementation notes
 
@@ -160,24 +160,22 @@ private theorem exists_darboux_completion {J : ContMDiffComplexStructure I n F V
     (hbu : ∀ x i, ω.bilinFormAt x (b i x) (u x) = 0) :
     ∃ v : ∀ x, V x, CMDiff n (T% v) ∧ (∀ x j, ω.bilinFormAt x (v x) (a j x) = 0) ∧
       (∀ x j, ω.bilinFormAt x (v x) (b j x) = 0) ∧ ∀ x, ω.bilinFormAt x (u x) (v x) = 1 := by
-  have hpair {s s' : ∀ x, V x} (hs : CMDiff n (T% s)) (hs' : CMDiff n (T% s')) :
-      CMDiff n fun x ↦ ω.bilinFormAt x (s x) (s' x) :=
-    contMDiffOn_univ.1 (ω.contMDiffOn_bilinFormAt hs.contMDiffOn hs'.contMDiffOn)
   set y : ∀ x, V x := fun x ↦ J x (u x)
   have hy : CMDiff n (T% y) := J.toEndomorphism.contMDiff.clm_bundle_apply hu
   set c : M → ℝ := fun x ↦ ω.bilinFormAt x (u x) (y x)
   have hc₀ (x : M) : 0 < c x := tames_def.1 hJ x (u x) (hu₀ x)
   refine ⟨fun x ↦ (c x)⁻¹ • (y x - ∑ i,
     (ω.bilinFormAt x (y x) (b i x) • a i x + -ω.bilinFormAt x (y x) (a i x) • b i x)),
-    ((hpair hu hy).inv₀ fun x ↦ (hc₀ x).ne').smul_section (hy.sub_section
-      (ContMDiff.sum_section fun i _ ↦ ((hpair hy (hb i)).smul_section (ha i)).add_section
-        ((hpair hy (ha i)).neg.smul_section (hb i)))), fun x j ↦ ?_, fun x j ↦ ?_, fun x ↦ ?_⟩
-  · rw [map_smul, map_sub, LinearMap.smul_apply, LinearMap.sub_apply,
-      (ω.isAlt_bilinFormAt x).apply_sum_smul_add_smul_eq_neg_right_coeff (haa x) (hab x) _ _ j,
-      neg_neg, sub_self, smul_zero]
-  · rw [map_smul, map_sub, LinearMap.smul_apply, LinearMap.sub_apply,
-      (ω.bilinFormAt x).apply_sum_smul_add_smul_eq_left_coeff (hbb x) (hab x) _ _ j,
-      sub_self, smul_zero]
+    ((ω.contMDiff_bilinFormAt hu hy).inv₀ fun x ↦ (hc₀ x).ne').smul_section (hy.sub_section
+      (ContMDiff.sum_section fun i _ ↦
+        ((ω.contMDiff_bilinFormAt hy (hb i)).smul_section (ha i)).add_section
+          ((ω.contMDiff_bilinFormAt hy (ha i)).neg.smul_section (hb i)))),
+    fun x j ↦ ?_, fun x j ↦ ?_, fun x ↦ ?_⟩
+  · rw [map_smul, LinearMap.smul_apply,
+      (ω.isAlt_bilinFormAt x).apply_sub_sum_apply_smul_add_smul_fst_eq_zero (haa x) (hab x),
+      smul_zero]
+  · rw [map_smul, LinearMap.smul_apply,
+      (ω.bilinFormAt x).apply_sub_sum_apply_smul_add_smul_snd_eq_zero (hbb x) (hab x), smul_zero]
   have hua (i : Fin k) : ω.bilinFormAt x (u x) (a i x) = 0 :=
     (ω.isAlt_bilinFormAt x).eq_iff.1 (hau x i)
   have hub (i : Fin k) : ω.bilinFormAt x (u x) (b i x) = 0 :=
@@ -288,10 +286,10 @@ theorem IsNondegenerate.exists_isSymplecticFrameOn_univ_of_boundary_nonempty
       (by rw [hκ, add_zero]) le_rfl
   -- Index the pairs by `κ`.
   let e := Fintype.equivFin κ
-  obtain ⟨Φ, hΦ, -⟩ := exists_isSymplecticFrameOn_univ_of_darboux hκ
-    (a := fun i ↦ a (e i)) (b := fun i ↦ b (e i)) (fun i ↦ ha (e i)) (fun i ↦ hb (e i))
-    (fun x i j ↦ haa x (e i) (e j)) (fun x i j ↦ hbb x (e i) (e j))
-    (fun x i j ↦ by simp only [hab, e.injective.eq_iff])
+  obtain ⟨Φ, hΦ, -⟩ := exists_isSymplecticFrameOn_of_darboux hκ (U := univ)
+    (a := fun i ↦ a (e i)) (b := fun i ↦ b (e i)) (fun i ↦ (ha (e i)).contMDiffOn)
+    (fun i ↦ (hb (e i)).contMDiffOn) (fun x _ i j ↦ haa x (e i) (e j))
+    (fun x _ i j ↦ hbb x (e i) (e j)) (fun x _ i j ↦ by simp only [hab, e.injective.eq_iff])
   exact ⟨Φ, hΦ⟩
 
 end Surface
