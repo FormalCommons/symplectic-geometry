@@ -220,6 +220,16 @@ theorem singularChainComplexπOfSubset_tensorHom_singularChainComplexπOfSubset_
   -- The two statements differ only in how the sources of the quotient maps are written.
   singularChainComplexπ_tensorHom_singularChainComplexπ_shufflePair X Y A B R S
 
+omit [∀ (T : C) (J : Type w), PreservesColimitsOfShape (Discrete J) (tensorLeft T)]
+  [∀ (T : C) (J : Type w), PreservesColimitsOfShape (Discrete J) (tensorRight T)] in
+/-- The tensor product of the quotient maps `C(X; R) ⟶ C(X, A; R)` and `C(Y; S) ⟶ C(Y, B; S)`,
+written with `TopPair.singularChainComplexπOfSubset`, is an epimorphism; so a map out of
+`C(X, A; R) ⊗ C(Y, B; S)`, such as `TopCat.shufflePair`, is determined by its composite with it. -/
+instance epi_singularChainComplexπOfSubset_tensorHom_singularChainComplexπOfSubset :
+    Epi (TopPair.singularChainComplexπOfSubset R A ⊗ₘ TopPair.singularChainComplexπOfSubset S B) :=
+  inferInstanceAs (Epi ((TopPair.ofSubset A).singularChainComplexπ R ⊗ₘ
+    (TopPair.ofSubset B).singularChainComplexπ S))
+
 end ShufflePair
 
 section CrossRelPair
