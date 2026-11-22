@@ -1081,8 +1081,7 @@ issues, in an order where each issue's blockers come before it.
      (`Metric.isCollared_inclusion_sphere_closedBall`), and the
      open ball is the complement of the sphere in the closed ball
      (`Metric.range_inclusion_ball_eq_compl`).
-   - `AlgebraicTopology/Singular/LocalHomology/OrientedChart.lean`, used by
-     `Complex.lean`:
+   - `AlgebraicTopology/Singular/LocalHomology/OrientedChart.lean`:
      `OpenPartialHomeomorph.map_reducedSingularHomologyδ_localOrientationOfOrientedChart_refl`,
      the local orientation of the identity chart of an oriented inner
      product space, through the connecting morphism and radial projection,
@@ -1113,6 +1112,14 @@ issues, in an order where each issue's blockers come before it.
      `fundamentalClassRel` in `Hₙ(∂X; ℤ)` under the connecting morphism, with
      `boundaryClass_neg` and `map_subtypeVal_boundaryClass` (it vanishes in
      `Hₙ(X; ℤ)`).
+   - `AlgebraicTopology/Singular/LocalHomology/Orientation/Plane.lean`, used
+     by `Complex.lean` and by `Orientation/StdSimplex.lean` of part
+     *Energy of pseudoholomorphic curves*: on a plane `E` oriented by `o`,
+     with a linear isometry `φ : E ≃ₗᵢ[ℝ] ℂ` carrying `o` to
+     `Complex.orientation`, the oriented local homology isomorphism of the
+     identity chart at `p` is the connecting morphism, then radial
+     projection after `y ↦ φ (y - p)`, then `Circle.singularHomologyOneIso`
+     (`TauCeti.singularHomologyComplSingletonIsoOfOrientation_refl_hom_eq_radialProjection`).
    - `AlgebraicTopology/Singular/LocalHomology/Complex.lean`, used by
      `DiscBoundaryClass.lean` and `BoundaryDegree.lean`: the local
      orientation of `ℂ` at `0` is the one selected by `Complex.orientation`
@@ -1224,7 +1231,10 @@ issues, in an order where each issue's blockers come before it.
    that fixes that representation, and by 5. The gluing uses polar
    coordinates on the circle,
    `AddCircle.isLocalDiffeomorphAt_ofReal_mul_toCircle`, in
-   `Geometry/Manifold/Instances/AddCircle.lean`.
+   `Geometry/Manifold/Instances/AddCircle.lean`. That the loops are
+   finitely many uses `finite_of_compactSpace_of_pairwise_disjoint`, a
+   disjoint open cover of a compact space has finite index, in
+   `Topology/Compactness/LocallyFinite.lean`.
 9. **A map of degree one onto the sphere.**
    `Geometry/Manifold/Degree/Collapse.lean`:
    `SymplecticGeometry.exists_contMDiff_degree_eq_one`, every compact

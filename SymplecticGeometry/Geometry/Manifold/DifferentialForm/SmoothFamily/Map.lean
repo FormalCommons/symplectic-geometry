@@ -189,46 +189,11 @@ theorem preservesSmoothFamilies_sum_smulRight {ι : Type*} (s : Finset ι)
   exact IsSmoothFamily.sum fun i hi ↦
     (isSmoothFamily_const (w i)).fun_smul (hc α hα i hi)
 
-variable {S : Submodule ℝ (SmoothForm I' M' G l)}
-
-/-- The evaluation `ω ↦ φ (ω x v)` of the forms of a submodule at a point `x`, on tangent vectors
-`v`, followed by a continuous linear functional `φ`, as a linear functional on the submodule. -/
-private def evalDual (x : M') (v : Fin l → TangentSpace I' x) (φ : StrongDual ℝ G) :
-    Module.Dual ℝ S where
-  toFun w := φ ((w : SmoothForm I' M' G l).val x v)
-  map_add' _ _ := by simp
-  map_smul' _ _ := by simp
-
-/-- Let `S` be a finite-dimensional submodule of forms and `T : D →ₗ[ℝ] S` a map such that
-`S.subtype ∘ₗ T` preserves smooth families. Then every linear functional on `S` is smooth along
-the image under `T` of a smooth family. -/
-theorem PreservesSmoothFamilies.contMDiff_dual_apply [FiniteDimensional ℝ S] {T : D →ₗ[ℝ] S}
-    (hT : PreservesSmoothFamilies (S.subtype ∘ₗ T)) {α : unitInterval → D}
-    (hα : IsSmoothFamily (𝓡∂ 1) (fun t ↦ (α t : SmoothForm I M F k))) (f : Module.Dual ℝ S) :
-    ContMDiff (𝓡∂ 1) 𝓘(ℝ) ∞ (fun t ↦ f (T (α t))) := by
-  have := Module.Free.of_divisionRing ℝ S
-  have hspan : Submodule.span ℝ (Set.range fun p : (x : M') × (Fin l → TangentSpace I' x) ×
-      StrongDual ℝ G ↦ evalDual (S := S) p.1 p.2.1 p.2.2) = ⊤ := by
-    refine Submodule.span_eq_top_of_ne_zero (R := ℝ) (M := S) fun z hz ↦ ?_
-    obtain ⟨x, v, hv⟩ : ∃ x v, (z : SmoothForm I' M' G l).val x v ≠ 0 := by
-      by_contra! h
-      exact hz (Subtype.ext (SmoothBundleForm.ext h))
-    obtain ⟨φ, hφ⟩ := SeparatingDual.exists_ne_zero (R := ℝ) hv
-    exact ⟨_, ⟨⟨x, v, φ⟩, rfl⟩, hφ⟩
-  have hf : f ∈ Submodule.span ℝ _ := hspan ▸ Submodule.mem_top
-  induction hf using Submodule.span_induction with
-  | mem f hf =>
-    obtain ⟨⟨x, v, φ⟩, rfl⟩ := hf
-    exact φ.contMDiff.comp ((hT α hα).contMDiff_apply x v)
-  | zero => exact contMDiff_const
-  | add f g _ _ hf hg => exact hf.add hg
-  | smul c f _ hf => exact ((contDiff_const_smul c).contMDiff).comp hf
-
 section Families
 
 variable {EN HN N : Type*} [NormedAddCommGroup EN] [NormedSpace ℝ EN] [TopologicalSpace HN]
   [TopologicalSpace N] [ChartedSpace HN N] {J : ModelWithCorners ℝ EN HN} [IsManifold J 1 N]
-  {X : Type*} [AddCommGroup X] [Module ℝ X]
+  {X : Type*} [AddCommMonoid X] [Module ℝ X]
 
 /-- **Families with smooth coordinates.** Let `b` be a finite basis of a real vector space `X`
 and `x` a family of vectors of `X`, indexed by a manifold `N`, whose coordinates
@@ -266,7 +231,8 @@ theorem contMDiff_dual_apply_of_span_eq_top {s : Set (Module.Dual ℝ X)}
 finite-dimensional real vector space `X`, indexed by a manifold `N`, such that `t ↦ f (x t)` is
 smooth for every linear functional `f` on `X`. Then its image under any linear map `L` from `X`
 to forms is a smooth family. -/
-theorem isSmoothFamily_of_contMDiff_dual [FiniteDimensional ℝ X]
+theorem isSmoothFamily_of_contMDiff_dual {X : Type*} [AddCommGroup X] [Module ℝ X]
+    [FiniteDimensional ℝ X]
     (L : X →ₗ[ℝ] SmoothForm I' M' G l) {x : N → X}
     (hx : ∀ f : Module.Dual ℝ X, ContMDiff J 𝓘(ℝ) ∞ (fun t ↦ f (x t))) :
     IsSmoothFamily J (fun t ↦ L (x t)) :=
@@ -274,6 +240,36 @@ theorem isSmoothFamily_of_contMDiff_dual [FiniteDimensional ℝ X]
     hx ((Module.finBasis ℝ X).coord i)
 
 end Families
+
+variable {S : Submodule ℝ (SmoothForm I' M' G l)}
+
+/-- The evaluation `ω ↦ φ (ω x v)` of the forms of a submodule at a point `x`, on tangent vectors
+`v`, followed by a continuous linear functional `φ`, as a linear functional on the submodule. -/
+private def evalDual (x : M') (v : Fin l → TangentSpace I' x) (φ : StrongDual ℝ G) :
+    Module.Dual ℝ S where
+  toFun w := φ ((w : SmoothForm I' M' G l).val x v)
+  map_add' _ _ := by simp
+  map_smul' _ _ := by simp
+
+/-- Let `S` be a finite-dimensional submodule of forms and `T : D →ₗ[ℝ] S` a map such that
+`S.subtype ∘ₗ T` preserves smooth families. Then every linear functional on `S` is smooth along
+the image under `T` of a smooth family. -/
+theorem PreservesSmoothFamilies.contMDiff_dual_apply [FiniteDimensional ℝ S] {T : D →ₗ[ℝ] S}
+    (hT : PreservesSmoothFamilies (S.subtype ∘ₗ T)) {α : unitInterval → D}
+    (hα : IsSmoothFamily (𝓡∂ 1) (fun t ↦ (α t : SmoothForm I M F k))) (f : Module.Dual ℝ S) :
+    ContMDiff (𝓡∂ 1) 𝓘(ℝ) ∞ (fun t ↦ f (T (α t))) := by
+  have := Module.Free.of_divisionRing ℝ S
+  have hspan : Submodule.span ℝ (Set.range fun p : (x : M') × (Fin l → TangentSpace I' x) ×
+      StrongDual ℝ G ↦ evalDual (S := S) p.1 p.2.1 p.2.2) = ⊤ := by
+    refine Submodule.span_eq_top_of_ne_zero (R := ℝ) (M := S) fun z hz ↦ ?_
+    obtain ⟨x, v, hv⟩ : ∃ x v, (z : SmoothForm I' M' G l).val x v ≠ 0 := by
+      by_contra! h
+      exact hz (Subtype.ext (SmoothBundleForm.ext h))
+    obtain ⟨φ, hφ⟩ := SeparatingDual.exists_ne_zero (R := ℝ) hv
+    exact ⟨_, ⟨⟨x, v, φ⟩, rfl⟩, hφ⟩
+  refine contMDiff_dual_apply_of_span_eq_top hspan ?_ f
+  rintro _ ⟨⟨x, v, φ⟩, rfl⟩
+  exact φ.contMDiff.comp ((hT α hα).contMDiff_apply x v)
 
 /-- Let `b` be a finite basis of a space `S` of forms, and `T : D →ₗ[ℝ] S` a map whose
 coordinates `t ↦ b.repr (T (α t)) i` are smooth along every smooth family `α`. Then `T`

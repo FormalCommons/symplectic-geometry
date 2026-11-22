@@ -619,6 +619,14 @@ vector space) and `ContDiffOn.strictConvexOn_norm_sub_sq` (the squared distance
   carried onto a convex open set and is smoothly contractible. The embedding
   is Mathlib's `exists_embedding_euclidean_of_compact`.
 
+### `Geometry/Manifold/DeRham/Map.lean`
+
+- `TauCeti.SmoothForm.mpullback_mem_closedForms (f : M → M') (hf : ContMDiff I I' ∞ f)
+  (hφ : φ ∈ closedForms I' M' k) : SmoothForm.mpullback f hf φ ∈ closedForms I M k`,
+  the membership form of Tau Ceti's `closedForms.mpullback`. `SmoothFamily/Basic.lean`,
+  *Hamiltonian flows*' `DeRham/FamilyPrimitive.lean` and *Isotopy extension*'s
+  `Cohomological/Primitive.lean` import it.
+
 ### `Geometry/Manifold/DeRham/SmoothFamily/Basic.lean`
 
 For `[IsManifold I ∞ M]`:

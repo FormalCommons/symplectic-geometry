@@ -280,7 +280,7 @@ of Tau Ceti's roadmap that no one has started.
 | `Geometry/Manifold/DifferentialForm/Smooth/FromTauCeti.lean` | Tau Ceti main's `SmoothBundleForm.contMDiffAt_eval₂`, for the file above |
 | `Geometry/Symplectic/JHolomorphic/Energy/Surface.lean` | Tau Ceti's energy form read through `energyDensity`, the energy through an area form, the integrated identity, zero energy and local constancy |
 | `Geometry/Manifold/MFDeriv/Constancy.lean` | a locally constant map has zero differential, `IsLocallyConstant.mfderiv_eq_zero`, for the file above |
-| `AlgebraicTopology/SimplicialSet/Homology/RestrictScalars.lean` | the change of coefficients on simplicial chains along a restriction of scalars, `SSet.restrictScalarsChainMap` |
+| `AlgebraicTopology/SimplicialSet/Homology/RestrictScalars.lean` | the change of coefficients on simplicial chains along a restriction of scalars, `SSet.restrictScalarsChainMap`, and its isomorphism form `SSet.restrictScalarsChainIso` |
 | `Geometry/Manifold/SmoothSingular/SingularPeriod.lean` | the pairing of de Rham classes with integral singular homology |
 | `Geometry/Manifold/SmoothSingular/RelativeCycle.lean` | the relative step of Decision 7 |
 | `AlgebraicTopology/SimplicialSet/Homology/RelativeClass.lean` | the relative class of a simplex whose faces lie in the subcomplex of a pair of simplicial sets, `SSetPair.relClass` |
@@ -482,7 +482,8 @@ and `Geometry/Manifold/MFDeriv/Constancy.lean`, and defines nothing.
   the identity chart), in `LocalHomology/Orientation/StdSimplex.lean`. So the
   correctly signed homological orientation is
   `(-o).toHomologicalOrientation hE'`. `StdSimplex.lean` imports
-  `LinearAlgebra/Complex/Orientation.lean` and
+  `LinearAlgebra/Complex/Orientation.lean`,
+  `AlgebraicTopology/Singular/LocalHomology/Orientation/Plane.lean` and
   `AlgebraicTopology/Singular/LocalHomology/Orientation/Smooth.lean` of part
   *First Chern number*.
 
