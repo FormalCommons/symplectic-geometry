@@ -351,6 +351,13 @@ the real structures of Tau Ceti (`instIsManifoldReal`):
 - `ker_mfderiv_mkNonzero`: the kernel at $v$ is the real subspace
   `(𝕜 ∙ (v : _)).restrictScalars ℝ`, by invariance under scalars and
   dimension.
+- `affineLift 𝕜 j : (Fin n → 𝕜) → TauCeti.puncturedSpace (Fin (n + 1) → 𝕜)`,
+  $w\mapsto$ `Fin.insertNth j 1 w`, the section of `mkNonzero` over the
+  affine chart of `j`, with `coe_affineLift`, `mkNonzero_comp_affineLift`
+  (`mkNonzero 𝕜 n ∘ affineLift 𝕜 j = (affineChart j).symm`),
+  `contMDiff_affineLift_self`, `contMDiff_affineLift` and
+  `mfderiv_affineLift_apply` ($u\mapsto$ `Fin.insertNth j 0 u`).
+  `Kahler.lean` and `Normalization.lean` compute upstairs along it.
 
 In namespace `SymplecticGeometry`:
 
