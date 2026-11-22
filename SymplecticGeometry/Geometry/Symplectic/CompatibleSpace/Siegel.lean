@@ -223,9 +223,6 @@ variable {V : Type*} [NormedAddCommGroup V] [NormedSpace ℝ V] [FiniteDimension
 
 local notation "𝒥" => {J : AlmostComplexStructure V // ω.Compatible J}
 
-/-- The ambient reading of tangent vectors: the differential of the inclusion `ω.compatibleCLM`. -/
-local notation "dι" => mvfderiv 𝓘(ℝ, ω.compatibleModel) ω.compatibleCLM
-
 local notation "∇" => leviCivitaConnection 𝓘(ℝ, ω.compatibleModel) 𝒥
 
 /-- **The space of compatible complex structures is a Kähler manifold.** For a symplectic vector
@@ -252,12 +249,12 @@ theorem isKahler_compatibleSpaceForm_and_compatibleDiffeomorph {n : ℕ}
       (mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM J).toLinearMap =
         ω.compatibleTangentSpaceCLM J.val) ∧
     (∀ (J : 𝒥) (a : TangentSpace 𝓘(ℝ, ω.compatibleModel) J),
-      dι J (ω.compatibleSpaceComplexStructure J a) = -(ω.compatibleCLM J * dι J a)) ∧
+      dι[ω] J (ω.compatibleSpaceComplexStructure J a) = -(ω.compatibleCLM J * dι[ω] J a)) ∧
     (∀ (J : 𝒥) (a b : TangentSpace 𝓘(ℝ, ω.compatibleModel) J),
       ω.compatibleSpaceForm.bilinFormAt J a b =
-        2⁻¹ * LinearMap.trace ℝ V ↑(dι J a * ω.compatibleCLM J * dι J b)) ∧
+        2⁻¹ * LinearMap.trace ℝ V ↑(dι[ω] J a * ω.compatibleCLM J * dι[ω] J b)) ∧
     (∀ (J : 𝒥) (a b : TangentSpace 𝓘(ℝ, ω.compatibleModel) J),
-      ⟪a, b⟫ = 2⁻¹ * LinearMap.trace ℝ V ↑(dι J a * dι J b)) ∧
+      ⟪a, b⟫ = 2⁻¹ * LinearMap.trace ℝ V ↑(dι[ω] J a * dι[ω] J b)) ∧
     ω.compatibleSpaceForm.IsKahler ω.compatibleSpaceComplexStructure ∧
     ω.compatibleSpaceComplexStructure.IsIntegrable ∧
     (∀ (Ψ : V ≃L[ℝ] V) (hΨ : ω.IsSymplectomorphism ω Ψ.toLinearEquiv),
@@ -272,23 +269,23 @@ theorem isKahler_compatibleSpaceForm_and_compatibleDiffeomorph {n : ℕ}
     (∀ (γ : ℝ → 𝒥) (W : ∀ t, TangentSpace 𝓘(ℝ, ω.compatibleModel) (γ t)) (t : ℝ),
       MDifferentiableAt 𝓘(ℝ) 𝓘(ℝ, ω.compatibleModel).tangent
         (fun r ↦ TotalSpace.mk' ω.compatibleModel (γ r) (W r)) t →
-      dι (γ t) (alongCurve ∇ γ W t) =
-        deriv (fun r ↦ dι (γ r) (W r)) t -
+      dι[ω] (γ t) (alongCurve ∇ γ W t) =
+        deriv (fun r ↦ dι[ω] (γ r) (W r)) t -
           (2⁻¹ : ℝ) • (ω.compatibleCLM (γ t) *
-            (dι (γ t) (W t) * deriv (ω.compatibleCLM ∘ γ) t +
-              deriv (ω.compatibleCLM ∘ γ) t * dι (γ t) (W t)))) ∧
+            (dι[ω] (γ t) (W t) * deriv (ω.compatibleCLM ∘ γ) t +
+              deriv (ω.compatibleCLM ∘ γ) t * dι[ω] (γ t) (W t)))) ∧
     (∀ (J : 𝒥) (a : TangentSpace 𝓘(ℝ, ω.compatibleModel) J),
       IsGeodesicCurveOnFrom 𝓘(ℝ, ω.compatibleModel) (ω.compatibleGeodesic J a) univ J a ∧
       ∀ t, ω.compatibleCLM (ω.compatibleGeodesic J a t) =
-        ω.compatibleCLM J * NormedSpace.exp (-(t • (ω.compatibleCLM J * dι J a)))) ∧
+        ω.compatibleCLM J * NormedSpace.exp (-(t • (ω.compatibleCLM J * dι[ω] J a)))) ∧
     (∀ (J : 𝒥) (a : TangentSpace 𝓘(ℝ, ω.compatibleModel) J) (γ : ℝ → 𝒥) (s t : ℝ),
       IsGeodesicCurveOnFrom 𝓘(ℝ, ω.compatibleModel) γ (Ioo s t) J a →
         EqOn γ (ω.compatibleGeodesic J a) (Ioo s t)) ∧
     (∀ J : 𝒥, IsGeodesicallyCompleteAt 𝓘(ℝ, ω.compatibleModel) 𝒥 J) ∧
     (letI := EMetricSpace.ofRiemannianMetric 𝓘(ℝ, ω.compatibleModel) 𝒥; CompleteSpace 𝒥) ∧
     (∀ (J : 𝒥) (a b c : TangentSpace 𝓘(ℝ, ω.compatibleModel) J),
-      dι J (∇.curvatureTensor J a b c) = -(4⁻¹ : ℝ) •
-        ⁅⁅dι J a, dι J b⁆, dι J c⁆) ∧
+      dι[ω] J (∇.curvatureTensor J a b c) = -(4⁻¹ : ℝ) •
+        ⁅⁅dι[ω] J a, dι[ω] J b⁆, dι[ω] J c⁆) ∧
     (∀ (hcov : IsMetricCompatible (V := fun J : 𝒥 ↦ TangentSpace 𝓘(ℝ, ω.compatibleModel) J) ∇)
       (J : 𝒥) (u v : TangentSpace 𝓘(ℝ, ω.compatibleModel) J), ∇.sectionalCurvature hcov J u v ≤ 0) ∧
     ∀ (ι : Type) [Fintype ι] [DecidableEq ι],

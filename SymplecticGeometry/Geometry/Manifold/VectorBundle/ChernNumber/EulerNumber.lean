@@ -7,6 +7,7 @@ module
 
 public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orientation.Smooth
 public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orientation.Linear
+public import SymplecticGeometry.Topology.Algebra.Module.Equiv.Basic
 public import SymplecticGeometry.Topology.VectorBundle.Complex.FirstChernClass
 public import SymplecticGeometry.Topology.VectorBundle.Complex.Structure
 public import TauCeti.Geometry.Manifold.MFDeriv.Chart.Basic
@@ -363,10 +364,8 @@ private theorem sectionIndex_eq_ite {s : ∀ x, V x}
     (by
       rw [← hσ]
       exact fun x hx ↦ Subtype.ext (φ.injOn x.property hzφ (sub_eq_zero.1 hx)))
-  have hrefl : (ContinuousLinearEquiv.refl ℝ ℂ).toLinearEquiv = LinearEquiv.refl ℝ ℂ := by
-    ext x
-    simp
-  simp only [← hσ, hrefl, Orientation.map_refl, Equiv.refl_apply] at hφl
+  simp only [← hσ, ContinuousLinearEquiv.toLinearEquiv_refl, Orientation.map_refl,
+    Equiv.refl_apply] at hφl
   rw [← hoM] at hφl
   -- An open neighbourhood `U` of `z` in which `z` is the only zero of `s`.
   set U := e.baseSet ∩ φ.source ∩ ({x | s x = 0} \ {z})ᶜ

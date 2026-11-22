@@ -436,7 +436,7 @@ The manifold, in `TauCeti.SymplecticForm`. Besides Mathlib, Tau Ceti,
 - `ω.compatibleTransport (hΨ : ω.IsSymplectomorphism ω Ψ.toLinearEquiv) :
   𝒥 ω ≃ₘ⟮𝓘, 𝓘⟯ 𝒥 ω`
   for `Ψ : V ≃L[ℝ] V`, `J ↦ J.transport Ψ.toLinearEquiv`, with `compatibleCLM_compatibleTransport`
-  (`Ψ A Ψ⁻¹`), `mfderiv_compatibleCLM_compatibleTransport` (the reading of
+  (`Ψ A Ψ⁻¹`), `mvfderiv_compatibleCLM_compatibleTransport` (the reading of
   its differential is conjugation by `Ψ`) and
   `exists_compatibleTransport_eq (J J' : 𝒥 ω)` (transitivity, decision 10).
 
