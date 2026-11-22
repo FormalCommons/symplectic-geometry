@@ -28,6 +28,8 @@ with Tau Ceti's inverse function theorem `TauCeti.isLocalDiffeomorphAt_of_eqOn_c
 
 * `AddCircle.isLocalDiffeomorphAt_ofReal_mul_toCircle`: polar coordinates are a local
   diffeomorphism away from the radius `0`.
+* `AddCircle.isLocalDiffeomorph_prodMap_coe_id`: the quotient map `ℝ × ℝ → AddCircle p × ℝ` is a
+  local diffeomorphism.
 -/
 
 public section
@@ -38,6 +40,15 @@ open scoped Manifold ContDiff
 namespace AddCircle
 
 variable {p : ℝ} [hp : Fact (0 < p)] {n : WithTop ℕ∞}
+
+variable (p n) in
+/-- The quotient map `ℝ × ℝ → AddCircle p × ℝ`, `(u, r) ↦ (u, r)`, is a `C^n` local
+diffeomorphism. -/
+theorem isLocalDiffeomorph_prodMap_coe_id :
+    IsLocalDiffeomorph 𝓘(ℝ, ℝ × ℝ) (𝓘(ℝ).prod 𝓘(ℝ)) n
+      (Prod.map ((↑) : ℝ → AddCircle p) (id : ℝ → ℝ)) := by
+  rw [modelWithCornersSelf_prod, ← chartedSpaceSelf_prod]
+  exact (isLocalDiffeomorph_coe p n).prodMap (Diffeomorph.refl 𝓘(ℝ) ℝ n).isLocalDiffeomorph
 
 /-- The lift of polar coordinates to `ℝ × ℝ` has injective derivative away from the radius `0`. -/
 private theorem injective_fderiv_polarLift {x : ℝ × ℝ} (hx : x.2 ≠ 0) :
@@ -75,11 +86,7 @@ theorem isLocalDiffeomorphAt_ofReal_mul_toCircle {θ : AddCircle p} {r : ℝ} (h
       (fun q : AddCircle p × ℝ ↦ (q.2 : ℂ) * (toCircle q.1 : ℂ)) (θ, r) := by
   refine IsLocalDiffeomorphAt.of_le ?_ (le_top : n ≤ ω)
   obtain ⟨u, rfl⟩ := QuotientAddGroup.mk_surjective θ
-  have hΨ : IsLocalDiffeomorphAt 𝓘(ℝ, ℝ × ℝ) (𝓘(ℝ).prod 𝓘(ℝ)) ω
-      (Prod.map ((↑) : ℝ → AddCircle p) id) (u, r) := by
-    rw [modelWithCornersSelf_prod, ← chartedSpaceSelf_prod]
-    exact (isLocalDiffeomorph_coe p ω u).prodMap
-      ((Diffeomorph.refl 𝓘(ℝ) ℝ ω).isLocalDiffeomorph r)
+  have hΨ := isLocalDiffeomorph_prodMap_coe_id p ω (u, r)
   refine TauCeti.isLocalDiffeomorphAt_of_eqOn_comp (s := univ) (x := (u, r)) isOpen_univ trivial
     BoundarylessManifold.isInteriorPoint le_top
     (κ := fun q : ℝ × ℝ ↦ (q.2 : ℂ) * exp ((2 * π / p * q.1 : ℝ) * I)) ?_ ?_ ?_ ?_ hΨ
