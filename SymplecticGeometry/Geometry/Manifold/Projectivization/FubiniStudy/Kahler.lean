@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.LinearAlgebra.UnitaryGroup
+public import SymplecticGeometry.Data.Matrix.Mul
 public import SymplecticGeometry.Geometry.Manifold.Projectivization.FubiniStudy.Basic
 public import SymplecticGeometry.LinearAlgebra.Matrix.DotProduct
 public import TauCeti.Geometry.Manifold.Projectivization.Map

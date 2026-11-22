@@ -8,27 +8,17 @@ module
 public import Mathlib.LinearAlgebra.Matrix.ConjTranspose
 
 /-!
-# Matrices with a left inverse, and the Hermitian dot product
+# Matrices with orthonormal columns preserve the Hermitian dot product
 
-* `Matrix.mulVec_injective_of_mul_eq_one`: a (possibly rectangular) matrix `A` with a left
-  inverse, `B * A = 1`, acts injectively on vectors. Mathlib's
-  `Matrix.mulVec_injective_of_isUnit` is the case of a square invertible matrix.
 * `Matrix.star_mulVec_dotProduct_mulVec`: a matrix with orthonormal columns, `Aᴴ * A = 1`,
   preserves the Hermitian product `star z ⬝ᵥ v`.
 -/
 
 public section
 
-open Function
-
 namespace Matrix
 
 variable {l m R : Type*} [Fintype l] [Fintype m]
-
-/-- A matrix with a left inverse acts injectively on vectors: `A.mulVec` is injective. -/
-theorem mulVec_injective_of_mul_eq_one [Semiring R] [DecidableEq m] {A : Matrix l m R}
-    {B : Matrix m l R} (h : B * A = 1) : Injective A.mulVec := fun z w hzw ↦ by
-  simpa [mulVec_mulVec, h] using congrArg (B *ᵥ ·) hzw
 
 /-- A matrix with orthonormal columns, `Aᴴ * A = 1`, preserves the Hermitian product
 `star z ⬝ᵥ v`. -/
