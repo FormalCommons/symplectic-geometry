@@ -230,15 +230,16 @@ These conventions serve parts 22–34, for `atlas/almost-complex-structures.md`.
 The parts use Tau Ceti's objects as they are, and state each milestone in the
 page's conventions through them.
 
-- **Almost complex structures.** An almost complex structure on a manifold is
+- **Almost complex structures.** The library writes $J$ on $M$ as
   Tau Ceti's `TauCeti.SmoothAlmostComplexStructure I M`, tameness and
   compatibility with a two-form are `TauCeti.SmoothTwoForm.Tames` and
   `Compatible`, and the spaces $\mathcal J(M)$, $\mathcal J(M,\omega)$,
   $\mathcal J_\tau(M,\omega)$ are the type and its subtypes, with Tau Ceti's
   `frameTopology` (the compact-open $C^\infty$ topology), as part 12 does for
   bundles. The two-form $\omega$ of §§4.1–4.2 is only assumed nondegenerate
-  (`IsNondegenerate`); a statement that needs $d\omega=0$ says so. There is
-  no bundled almost complex manifold or compatible triple.
+  (`IsNondegenerate`); a statement that needs $d\omega=0$ says so. As in Tau
+  Ceti, $M$, $J$, $\omega$ and $g$ stay separate arguments; no structure
+  bundles them.
 - **The metric.** For a compatible pair, $g_J(v,w)=\omega(v,Jw)$, the
   page's convention and Tau Ceti's (`TauCeti.SymplecticForm.associatedBilinForm`).
   As a Riemannian metric on $TM$ it is part 12's `Compatible.metric` read on
@@ -266,8 +267,9 @@ page's conventions through them.
   case of *Complex submanifolds*). A later proof of the integrability theorem
   then turns the first kind into the book's statements without changing
   them.
-- **Complex projective space.** $\mathbb CP^n$ is Mathlib's
-  `ℙ ℂ (Fin (n + 1) → ℂ)` with Tau Ceti's complex manifold structure
+- **Complex projective space.** $\mathbb CP^n$ is
+  `ℙ ℂ (Fin (n + 1) → ℂ)`, the type of Mathlib, carrying the complex
+  manifold structure of Tau Ceti
   (`Geometry/Manifold/Instances/Projectivization.lean`), on which Tau Ceti
   has zero loci, the line bundles `Projectivization.twistCore` and the
   Lefschetz theorems; its almost complex structure is
@@ -277,7 +279,8 @@ page's conventions through them.
   Fubini–Study form has the page's normalization, area $\pi$ on a line; Tau
   Ceti's `OnePoint.fubiniStudyForm` on $\mathbb CP^1$ has area $1$, so on
   $\mathbb CP^1$ the page's form is $\pi$ times its pull-back.
-- **Energy.** $\bar\partial_J(u)=\tfrac12(du+J\circ du\circ j)$ and
+- **Energy.** The operator is
+  $\bar\partial_J(u)=\tfrac12(du+J\circ du\circ j)$, the energy
   $E(u)=\tfrac12\int_\Sigma\lvert du\rvert^2$, as on the page. A closed
   Riemann surface is a closed surface with a
   `SmoothAlmostComplexStructure` $j$, oriented by $j$; by the milestone on
@@ -2257,9 +2260,9 @@ has either; Tau Ceti's extension across a boundary,
   Ceti's file: `TauCeti.SmoothTwoForm.Compatible.metric`, the metric $g_J$
   of a compatible pair as a `Bundle.ContMDiffRiemannianMetric` on $TM$, part
   12's `Compatible.metric` read through `tangentEquiv`, with
-  `metric_inner`; and, for a fixed $J$, the bijection between $J$-compatible
-  metrics and $J$-compatible nondegenerate two-forms, through part 12's
-  `compatibleForm`, with its two evaluation lemmas).
+  `metric_inner`; and, for a fixed $J$, the one-to-one correspondence of
+  metrics compatible with $J$ and nondegenerate forms compatible with $J$,
+  through part 12's `compatibleForm`, with its two evaluation lemmas).
 - **Builds on:** *Symplectic vector bundles* (only the merged
   `Symplectic/ComplexStructure/Basic.lean` and `Contractible.lean`); Tau
   Ceti.
@@ -2350,8 +2353,8 @@ has either; Tau Ceti's extension across a boundary,
 ### 26. Almost Kähler geometry (needs `design/almost-kahler-geometry.md`)
 
 - **Files:** `Geometry/Manifold/VectorBundle/CovariantDerivative/TwoForm.lean`
-  ($d$ of a two-form through a torsion-free covariant derivative, the
-  cyclic sum of $\nabla\omega$; the analogue for two-forms of Tau Ceti's
+  (for a covariant derivative without torsion, the exterior derivative of
+  a two-form as the cyclic sum of $\nabla\omega$; the analogue for two-forms of Tau Ceti's
   `Geometry/Manifold/VectorBundle/CovariantDerivative/ExteriorDerivative.lean`,
   which treats one-forms, in Mathlib's namespace `CovariantDerivative`),
   `Geometry/Symplectic/Manifold/AlmostComplex/LeviCivita.lean` (for
@@ -2402,8 +2405,8 @@ has either; Tau Ceti's extension across a boundary,
 ### 28. Space of compatible complex structures (needs `design/compatible-structure-space.md`)
 
 - **Files:** in `Geometry/Symplectic/CompatibleSpace/`: `Manifold.lean`
-  ($\mathcal J(V,\omega)$ as a smooth submanifold of $\mathrm{End}(V)$ of
-  dimension $n(n+1)$, with Tau Ceti's `compatibleTangentSpace` as tangent
+  ($\mathcal J(V,\omega)$, of dimension $n(n+1)$, embedded as a smooth
+  submanifold in $\mathrm{End}(V)$, with Tau Ceti's `compatibleTangentSpace` as tangent
   spaces, charts from Tau Ceti's Cayley chart `compatibleCayleyEquiv`, and
   for $V$ = `StdSpace ι` the diffeomorphism with *Siegel upper half space*'s
   $\mathcal S_n$), `Kahler.lean` (the structure $\hat J\mapsto-J\hat J$, the
@@ -2451,7 +2454,7 @@ has either; Tau Ceti's extension across a boundary,
 
 - **Files:** in `Geometry/Symplectic/JHolomorphic/Energy/` (beside Tau Ceti's
   folder of the same name): `Density.lean` (the norm of a linear map from a
-  tangent plane of $\Sigma$ with the metric $\mathrm{dvol}_\Sigma(\cdot,j\cdot)$
+  tangent plane of $\Sigma$, measured by $\mathrm{dvol}_\Sigma(\cdot,j\cdot)$,
   to a tangent space with $g_J$, its value on a frame $(e,je)$, the
   operator $\bar\partial_J$, and the pointwise identity, by Tau Ceti's
   `TauCeti.SmoothTwoForm.Invariant.stdComplexLineEnergyDensity_sub_two_mul_twoForm`
@@ -2541,7 +2544,7 @@ has either; Tau Ceti's extension across a boundary,
   trivial line as $H^{\oplus(n+2)}$, with $H$ Tau Ceti's
   `Projectivization.twistCore 1`; the normal bundle of a hypersurface of
   degree $d$ as the restriction of $H^{\otimes d}$, through the derivative
-  of the polynomial; $\langle\iota^*h^n,[M]\rangle=d$; the total Chern class
+  of the polynomial; $\langle\iota^*h^n,[M]\rangle=d$; then the total Chern class
   and $c_1$ of $M$; the Euler characteristic; the numbers for surfaces in
   $\mathbb CP^3$ and threefolds in $\mathbb CP^4$, with Tau Ceti's Lefschetz
   theorems for the Betti numbers; and the genus of a smooth plane curve,
@@ -2715,7 +2718,7 @@ manifolds and characteristic classes*).
 | *Fubini–Study form on complex projective space* | *Complex projective space*. Existing inputs: Tau Ceti's complex manifold `ℙ ℂ (Fin (n + 1) → ℂ)`, `TauCeti.SmoothTwoForm.existsUnique_isSymplectic_mpullback_eq`, `OnePoint.fubiniStudyForm`. |
 | *Complex submanifolds of Kähler manifolds* | *Complex submanifolds*; its last sentence *Complex projective space*. Existing input: the linear `TauCeti.SymplecticForm.Compatible.restrict`. |
 | *Kähler structure on the space of compatible linear complex structures* | *Space of compatible complex structures*. Existing inputs: `TauCeti.SymplecticForm.compatibleTangentSpace`, `TauCeti.SymplecticForm.Compatible.compatibleCayleyEquiv`, and the bijection with $\mathcal S_n$ of *Siegel upper half space*. |
-| *Hodge decomposition on closed Kähler manifolds* | *Hodge theory*. Existing inputs: `TauCeti.harmonicForms` with the orthogonality half of the Hodge decomposition, `TauCeti.complexDeRhamCohomology`, `TauCeti.dolbeaultCohomology`, Tau Ceti's interior elliptic regularity. |
+| *Hodge decomposition on closed Kähler manifolds* | *Hodge theory*. Existing inputs: `TauCeti.harmonicForms` and its orthogonality results, `TauCeti.complexDeRhamCohomology`, `TauCeti.dolbeaultCohomology`, Tau Ceti's interior elliptic regularity. |
 | *Adjunction formula* | *Adjunction*; the example of plane curves *Projective hypersurfaces*. |
 | *Chern classes of projective hypersurfaces* | *Projective hypersurfaces*, on *Chern classes*. Existing inputs: `TauCeti.isManifold_complexProjectiveZeroLocus`, `Projectivization.twistCore`, Tau Ceti's Lefschetz theorems in `Geometry/Manifold/Projectivization/Lefschetz.lean`. |
 | *Energy identity for J-holomorphic curves* | *Energy of pseudoholomorphic curves*. Existing inputs: Tau Ceti's pointwise identity `TauCeti.SmoothTwoForm.Invariant.stdComplexLineEnergyDensity_sub_two_mul_twoForm`, `TauCeti.integralTopForm_mpullback_nonneg`. |
@@ -2726,9 +2729,10 @@ the determinant line. Higher Chern classes, the cohomology ring of
 $\mathbb CP^n$ and the Euler characteristic formula are built by *Chern
 classes*, Poincaré duality by *First Chern number*'s prerequisites
 (#806–#810). The Hodge theorem is built by *Hodge theory*, on Tau Ceti's
-elliptic regularity, and the pairing of de Rham classes with homology classes
-of surfaces by *Energy of pseudoholomorphic curves*, if Tau Ceti has not
-proved it by then. The integrability theorem is used by no milestone. The
+elliptic regularity. *Energy of pseudoholomorphic curves* identifies
+$\int_\Sigma u^*\omega$ with an evaluation on the image of the fundamental
+class of $\Sigma$, if Tau Ceti has not done so by then. The integrability
+theorem is used by no milestone. The
 Lefschetz theorem is Tau Ceti's, whose remaining hypothesis *Projective
 hypersurfaces* supplies. The signature theorem is not built: the
 hypersurface milestone takes it as a hypothesis for the signature and
