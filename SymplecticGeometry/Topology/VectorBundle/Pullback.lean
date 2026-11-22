@@ -39,7 +39,8 @@ the other side decides: `eq_zero_fiber_iff`, `zero_fiber_eq_iff`, `eq_zero_pullb
 `zero_pullback_eq_iff` replace a zero of the other type by the zero of the type of the
 equation. `linearMap_sub_apply_fiber` and `linearMap_sub_apply_pullback` evaluate a difference
 of two semilinear maps on one of the types at a vector of the other, as `LinearMap.sub_apply`
-does at the same type. The equations between two vectors are in
+does at the same type, and `linearMap_zero_apply_fiber` and `linearMap_zero_apply_pullback` do
+the same for the zero map, as `LinearMap.zero_apply` does. The equations between two vectors are in
 `SymplecticGeometry/Data/Bundle.lean`, which this file imports so that the whole simp set comes
 with it.
 
@@ -195,7 +196,29 @@ the multiple `c • v` in `E (f y)`. -/
 theorem smul_pullback (c : R) (v : E (f y)) :
     @Eq (E (f y)) (@HSMul.hSMul R ((f *ᵖ E) y) ((f *ᵖ E) y) _ c v) (c • v) := (rfl)
 
-variable {S N : Type*} [Semiring S] {σ : R →+* S} [AddCommGroup N] [Module S N]
+variable {S N : Type*} [Semiring S] {σ : R →+* S}
+
+section Zero
+
+variable [AddCommMonoid N] [Module S N]
+
+/-- The zero semilinear map on `E (f y)`, applied to a vector `v` of the fibre of `f *ᵖ E` at
+`y`, is `0`. This is `LinearMap.zero_apply` for a vector of the pull-back fibre. -/
+@[simp]
+theorem linearMap_zero_apply_fiber (v : (f *ᵖ E) y) : (0 : E (f y) →ₛₗ[σ] N) v = 0 :=
+  LinearMap.zero_apply v
+
+/-- The zero semilinear map on the fibre of `f *ᵖ E` at `y`, applied to a vector `v` of
+`E (f y)`, is `0`. This is `LinearMap.zero_apply` for a vector of `E (f y)`. -/
+@[simp]
+theorem linearMap_zero_apply_pullback (v : E (f y)) : (0 : (f *ᵖ E) y →ₛₗ[σ] N) v = 0 :=
+  LinearMap.zero_apply v
+
+end Zero
+
+section Sub
+
+variable [AddCommGroup N] [Module S N]
 
 /-- The difference of two semilinear maps `g` and `h` on `E (f y)`, applied to a vector `v` of
 the fibre of `f *ᵖ E` at `y`, is `g v - h v`. This is `LinearMap.sub_apply` for a vector of the
@@ -212,6 +235,8 @@ a vector `v` of `E (f y)`, is `g v - h v`. This is `LinearMap.sub_apply` for a v
 theorem linearMap_sub_apply_pullback (g h : (f *ᵖ E) y →ₛₗ[σ] N) (v : E (f y)) :
     (g - h) v = g v - h v :=
   LinearMap.sub_apply g h v
+
+end Sub
 
 end Module
 
