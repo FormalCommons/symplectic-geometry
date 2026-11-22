@@ -23,7 +23,8 @@ smooth function with regular value `0`. It splits `M` into `Σ₁ = {g ≤ 0}` a
 which meet along the level set `C = g⁻¹(0)`. By `SymplecticGeometry.isCollared_inclusion_levelSet`,
 `Σ₁` is a compact surface whose boundary `C` is collared, and its interior is the open set
 `{g < 0}` (`SymplecticGeometry.range_inclusion_preimage_Iio`), oriented by the restriction of
-`oM`: this is the setting of the boundary degree (`TauCeti.HomologicalOrientation.boundaryDegree`).
+`oM`: this is the setting of the boundary degree (`TauCeti.HomologicalOrientation.boundaryDegree`),
+which on `Σ₁` is `TauCeti.HomologicalOrientation.sublevelBoundaryDegree`.
 
 Let `L` be an oriented real plane bundle over `M`, `τ` a frame of `L` over `Σ₁` (linear
 isomorphisms `τ x : L_x ≃ ℂ`, continuous on the total space, carrying the orientation of `L` to
@@ -42,7 +43,7 @@ carries the orientation of `L` to that of `ℂ` since it is complex-linear
 For the trivial line bundle, whose Euler class vanishes (`TauCeti.complexEulerClass_trivial`), with
 the section `1` over `Σ₁`, this says that a circle map on `C` that extends continuously over `Σ₂`
 has boundary degree `0` on `Σ₁`
-(`TauCeti.HomologicalOrientation.boundaryDegree_eq_zero_of_extend_Ici`).
+(`TauCeti.HomologicalOrientation.sublevelBoundaryDegree_eq_zero_of_extend_Ici`).
 
 ## Proof
 
@@ -71,8 +72,8 @@ local indices of `t` restricted to `{g < 0}` with the boundary degree, and the l
   number is the boundary degree of the section over `Σ₂` read in the frame over `Σ₁`.
 * `TauCeti.VectorBundleOrientation.evalFundamentalClass_complexEulerClass_eq_boundaryDegree`: for a
   complex line bundle, the same with a nowhere-zero section over `Σ₁` in place of the frame.
-* `TauCeti.HomologicalOrientation.boundaryDegree_eq_zero_of_extend_Ici`: a circle map on `C` that
-  extends continuously over `Σ₂` has boundary degree `0` on `Σ₁`.
+* `TauCeti.HomologicalOrientation.sublevelBoundaryDegree_eq_zero_of_extend_Ici`: a circle map on `C`
+  that extends continuously over `Σ₂` has boundary degree `0` on `Σ₁`.
 
 ## References
 
@@ -208,13 +209,10 @@ theorem evalFundamentalClass_eulerClass_eq_boundaryDegree
     (hs : Continuous fun x : g ⁻¹' Ici 0 ↦ TotalSpace.mk' F (x : M) (s x)) (hs0 : ∀ x, s x ≠ 0)
     {u : C(↥(SymplecticGeometry.sublevelBoundary hg.continuous), Circle)}
     (hu : ∀ z hz, (u z : ℂ) = ‖τ z (s ⟨z, hz⟩)‖⁻¹ • τ z (s ⟨z, hz⟩)) :
-    haveI := SymplecticGeometry.compactSpace_preimage_Iic hg.continuous
     (oM.evalFundamentalClass hn (ModuleCat.of ℤ (ULift.{0} ℤ)) (ContinuousMap.id M)
       (oL.eulerClass hF)).down =
-      (oM.comap (TopologicalSpace.Opens.isOpenEmbedding' _)).boundaryDegree hn
-        (SymplecticGeometry.isOpenEmbedding_inclusion_preimage_Iio hg.continuous)
-        (SymplecticGeometry.range_inclusion_preimage_Iio hg.continuous)
-        (SymplecticGeometry.isCollared_inclusion_levelSet hg h0) u := by
+      oM.sublevelBoundaryDegree hn hg h0 u := by
+  rw [HomologicalOrientation.sublevelBoundaryDegree_def]
   have := SymplecticGeometry.compactSpace_preimage_Iic hg.continuous
   have : FiniteDimensional ℝ F := Module.finite_of_finrank_eq_succ hF
   let i₁ : C(g ⁻¹' Iic 0, M) := ⟨Subtype.val, continuous_subtypeVal⟩
@@ -290,13 +288,9 @@ theorem evalFundamentalClass_complexEulerClass_eq_boundaryDegree (hG : finrank �
       (hz : ((z : g ⁻¹' Iic 0) : M) ∈ g ⁻¹' Ici 0), s ⟨_, hz⟩ = c z • σ z)
     {u : C(↥(SymplecticGeometry.sublevelBoundary hg.continuous), Circle)}
     (hu : ∀ z, (u z : ℂ) = c z / ‖c z‖) :
-    haveI := SymplecticGeometry.compactSpace_preimage_Iic hg.continuous
     (oM.evalFundamentalClass hn (ModuleCat.of ℤ (ULift.{0} ℤ)) (ContinuousMap.id M)
       (complexEulerClass (r := 0) G L hG)).down =
-      (oM.comap (TopologicalSpace.Opens.isOpenEmbedding' _)).boundaryDegree hn
-        (SymplecticGeometry.isOpenEmbedding_inclusion_preimage_Iio hg.continuous)
-        (SymplecticGeometry.range_inclusion_preimage_Iio hg.continuous)
-        (SymplecticGeometry.isCollared_inclusion_levelSet hg h0) u := by
+      oM.sublevelBoundaryDegree hn hg h0 u := by
   have hG1 : finrank ℂ G = 1 := hG
   let i₁ : C(g ⁻¹' Iic 0, M) := ⟨Subtype.val, continuous_subtypeVal⟩
   have hσ₁ : Continuous fun x : g ⁻¹' Iic 0 ↦ TotalSpace.mk' G (E := (⇑i₁) *ᵖ L) x (σ x) :=
@@ -343,18 +337,13 @@ smooth surface oriented by `oM`, and `g : M → ℝ` smooth with regular value `
 `Σ₁ = {g ≤ 0}` and `Σ₂ = {g ≥ 0}`. A continuous `u` from the boundary of `Σ₁` to the circle that
 is the restriction of a continuous map `v : Σ₂ → S¹` has boundary degree `0` on `Σ₁`, whose
 interior `{g < 0}` carries the orientation restricted from `oM`. -/
-theorem boundaryDegree_eq_zero_of_extend_Ici (oM : HomologicalOrientation M E 2)
+theorem sublevelBoundaryDegree_eq_zero_of_extend_Ici (oM : HomologicalOrientation M E 2)
     (hn : finrank ℝ E = 2) (hg : ContMDiff 𝓘(ℝ, E) 𝓘(ℝ) ∞ g)
     (h0 : IsRegularValue 𝓘(ℝ, E) 𝓘(ℝ) g 0) (v : C(g ⁻¹' Ici 0, Circle))
     {u : C(↥(SymplecticGeometry.sublevelBoundary hg.continuous), Circle)}
     (hu : ∀ z, u z =
       v ⟨_, SymplecticGeometry.mem_preimage_Ici_of_mem_sublevelBoundary z.property⟩) :
-    haveI : CompactSpace (g ⁻¹' Iic 0) :=
-      isCompact_iff_compactSpace.1 (isClosed_Iic.preimage hg.continuous).isCompact
-    (oM.comap (TopologicalSpace.Opens.isOpenEmbedding' _)).boundaryDegree hn
-        (SymplecticGeometry.isOpenEmbedding_inclusion_preimage_Iio hg.continuous)
-        (SymplecticGeometry.range_inclusion_preimage_Iio hg.continuous)
-        (SymplecticGeometry.isCollared_inclusion_levelSet hg h0) u = 0 := by
+    oM.sublevelBoundaryDegree hn hg h0 u = 0 := by
   -- The argument principle for the trivial line bundle, with the section `1` over `{g ≤ 0}` and
   -- the section `v` over `{g ≥ 0}`; the Euler class of the trivial bundle vanishes.
   have h := VectorBundleOrientation.evalFundamentalClass_complexEulerClass_eq_boundaryDegree
