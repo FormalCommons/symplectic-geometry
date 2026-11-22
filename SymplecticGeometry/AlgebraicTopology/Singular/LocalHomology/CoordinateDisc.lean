@@ -679,6 +679,29 @@ private theorem dist_ofChartHomeomorph (c : EuclideanSpace ℝ (Fin 2)) {r : ℝ
   rw [ofChartHomeomorph_apply, dist_self_add_left, norm_smul, LinearIsometryEquiv.norm_map,
     Real.norm_of_nonneg (by positivity)]
 
+private theorem coe_ofChartHomeomorph (c : EuclideanSpace ℝ (Fin 2)) {r : ℝ} (hr : 0 < r) :
+    ⇑(ofChartHomeomorph c hr) =
+      (c + ·) ∘ ((r / 2) • ·) ∘ ⇑Complex.orthonormalBasisOneI.repr :=
+  funext (ofChartHomeomorph_apply c hr)
+
+/-- The parametrization sends the ball of radius `s` about `0` to the ball of radius `r / 2 * s`
+about `c`. -/
+private theorem image_ofChartHomeomorph_ball (c : EuclideanSpace ℝ (Fin 2)) {r : ℝ} (hr : 0 < r)
+    (s : ℝ) : ofChartHomeomorph c hr '' Metric.ball 0 s = Metric.ball c (r / 2 * s) := by
+  rw [coe_ofChartHomeomorph, Set.image_comp, Set.image_comp, LinearIsometryEquiv.image_ball,
+    map_zero, Set.image_smul, smul_ball (by positivity), smul_zero, Set.image_add_left,
+    preimage_add_ball, sub_neg_eq_add, zero_add, Real.norm_of_nonneg (by positivity)]
+
+/-- The parametrization sends the closed ball of radius `s` about `0` to the closed ball of radius
+`r / 2 * s` about `c`. -/
+private theorem image_ofChartHomeomorph_closedBall (c : EuclideanSpace ℝ (Fin 2)) {r : ℝ}
+    (hr : 0 < r) (s : ℝ) :
+    ofChartHomeomorph c hr '' Metric.closedBall 0 s = Metric.closedBall c (r / 2 * s) := by
+  rw [coe_ofChartHomeomorph, Set.image_comp, Set.image_comp,
+    LinearIsometryEquiv.image_closedBall, map_zero, Set.image_smul,
+    smul_closedBall' (by positivity), smul_zero, Set.image_add_left, preimage_add_closedBall,
+    sub_neg_eq_add, zero_add, Real.norm_of_nonneg (by positivity)]
+
 private theorem ofChartHomeomorph_mem_ball {c : EuclideanSpace ℝ (Fin 2)} {r : ℝ} (hr : 0 < r)
     (z : ball) : ofChartHomeomorph c hr z ∈ Metric.ball c r := by
   rw [Metric.mem_ball, dist_ofChartHomeomorph]
@@ -788,6 +811,13 @@ private theorem ofChart_apply_eq (e : OpenPartialHomeomorph M (EuclideanSpace �
     ofChart e hr hc he z = e.symm (ofChartHomeomorph c hr z) :=
   (rfl)
 
+private theorem coe_ofChart (e : OpenPartialHomeomorph M (EuclideanSpace ℝ (Fin 2)))
+    {c : EuclideanSpace ℝ (Fin 2)} {r : ℝ} (hr : 0 < r) (hc : Metric.ball c r ⊆ e.target)
+    (he : ∀ x ∈ e.source,
+      o.IsOrientationPreservingAt (Manifold.Orientation.euclideanSpace 2) e x) :
+    ⇑(ofChart e hr hc he) = e.symm ∘ ofChartHomeomorph c hr ∘ Subtype.val :=
+  funext (ofChart_apply_eq e hr hc he)
+
 /-- The coordinate disc of a chart is `z ↦ e.symm (c + (r / 2) (re z, im z))`. -/
 @[simp]
 theorem ofChart_apply (e : OpenPartialHomeomorph M (EuclideanSpace ℝ (Fin 2)))
@@ -813,18 +843,13 @@ theorem disc_ofChart (e : OpenPartialHomeomorph M (EuclideanSpace ℝ (Fin 2)))
     (he : ∀ x ∈ e.source,
       o.IsOrientationPreservingAt (Manifold.Orientation.euclideanSpace 2) e x) :
     (ofChart e hr hc he).disc = e.symm '' Metric.closedBall c (r / 2) := by
-  ext x
-  simp only [mem_disc_iff, Set.mem_image, Metric.mem_closedBall]
-  constructor
-  · rintro ⟨z, hz, rfl⟩
-    refine ⟨ofChartHomeomorph c hr z, ?_, (ofChart_apply_eq e hr hc he z).symm⟩
-    rw [dist_ofChartHomeomorph]
-    exact mul_le_of_le_one_right (by positivity) hz
-  · rintro ⟨y, hy, rfl⟩
-    obtain ⟨w, rfl⟩ := (ofChartHomeomorph c hr).surjective y
-    rw [dist_ofChartHomeomorph] at hy
-    have hw : ‖w‖ ≤ 1 := by nlinarith
-    exact ⟨⟨w, mem_ball_of_norm_le_one hw⟩, hw, ofChart_apply_eq e hr hc he _⟩
+  have h : Subtype.val '' {z : ball | ‖(z : ℂ)‖ ≤ 1} = Metric.closedBall 0 1 := by
+    ext w
+    refine ⟨fun ⟨z, hz, hzw⟩ ↦ hzw ▸ mem_closedBall_zero_iff.2 hz, fun hw ↦ ?_⟩
+    exact ⟨⟨w, mem_ball_of_norm_le_one (mem_closedBall_zero_iff.1 hw)⟩,
+      mem_closedBall_zero_iff.1 hw, rfl⟩
+  rw [disc_def, coe_ofChart, Set.image_comp, Set.image_comp, h,
+    image_ofChartHomeomorph_closedBall, mul_one]
 
 /-- The open disc of the coordinate disc of a chart is the image under `e.symm` of the open ball
 of radius `r / 2` about `c`. -/
@@ -834,18 +859,12 @@ theorem openDisc_ofChart (e : OpenPartialHomeomorph M (EuclideanSpace ℝ (Fin 2
     (he : ∀ x ∈ e.source,
       o.IsOrientationPreservingAt (Manifold.Orientation.euclideanSpace 2) e x) :
     (ofChart e hr hc he).openDisc = e.symm '' Metric.ball c (r / 2) := by
-  ext x
-  simp only [mem_openDisc_iff, Set.mem_image, Metric.mem_ball]
-  constructor
-  · rintro ⟨z, hz, rfl⟩
-    refine ⟨ofChartHomeomorph c hr z, ?_, (ofChart_apply_eq e hr hc he z).symm⟩
-    rw [dist_ofChartHomeomorph]
-    exact mul_lt_of_lt_one_right (by positivity) hz
-  · rintro ⟨y, hy, rfl⟩
-    obtain ⟨w, rfl⟩ := (ofChartHomeomorph c hr).surjective y
-    rw [dist_ofChartHomeomorph] at hy
-    have hw : ‖w‖ < 1 := by nlinarith
-    exact ⟨⟨w, mem_ball_of_norm_le_one hw.le⟩, hw, ofChart_apply_eq e hr hc he _⟩
+  have h : Subtype.val '' {z : ball | ‖(z : ℂ)‖ < 1} = Metric.ball 0 1 := by
+    ext w
+    refine ⟨fun ⟨z, hz, hzw⟩ ↦ hzw ▸ mem_ball_zero_iff.2 hz, fun hw ↦ ?_⟩
+    exact ⟨⟨w, mem_ball_of_norm_le_one (mem_ball_zero_iff.1 hw).le⟩, mem_ball_zero_iff.1 hw, rfl⟩
+  rw [openDisc_def, coe_ofChart, Set.image_comp, Set.image_comp, h,
+    image_ofChartHomeomorph_ball, mul_one]
 
 /-- The image of the coordinate disc of a chart is the image under `e.symm` of the ball of radius
 `r` about `c`. -/
@@ -855,17 +874,8 @@ theorem range_ofChart (e : OpenPartialHomeomorph M (EuclideanSpace ℝ (Fin 2)))
     (he : ∀ x ∈ e.source,
       o.IsOrientationPreservingAt (Manifold.Orientation.euclideanSpace 2) e x) :
     Set.range (ofChart e hr hc he) = e.symm '' Metric.ball c r := by
-  ext x
-  simp only [Set.mem_range, Set.mem_image, Metric.mem_ball]
-  constructor
-  · rintro ⟨z, rfl⟩
-    exact ⟨ofChartHomeomorph c hr z, ofChartHomeomorph_mem_ball hr z,
-      (ofChart_apply_eq e hr hc he z).symm⟩
-  · rintro ⟨y, hy, rfl⟩
-    obtain ⟨w, rfl⟩ := (ofChartHomeomorph c hr).surjective y
-    rw [dist_ofChartHomeomorph] at hy
-    have hw : ‖w‖ < 2 := by nlinarith
-    exact ⟨⟨w, mem_ball_iff.2 hw⟩, ofChart_apply_eq e hr hc he _⟩
+  rw [coe_ofChart, Set.range_comp, Set.range_comp, Subtype.range_coe, coe_ball,
+    image_ofChartHomeomorph_ball, div_mul_cancel₀ r two_ne_zero]
 
 /-- The image of the coordinate disc of a chart lies in the source of the chart. -/
 theorem range_ofChart_subset_source (e : OpenPartialHomeomorph M (EuclideanSpace ℝ (Fin 2)))
@@ -974,13 +984,13 @@ variable {M : Type} [TopologicalSpace M] [T2Space M] [ChartedSpace (EuclideanSpa
 
 /-- **Disjoint coordinate discs from oriented smooth charts.** On a smooth surface `M` modelled on
 `ℝ²` with a smooth orientation `o`, finitely many distinct points `x i`, each with a neighbourhood
-`U i`, have charts `e i` of the maximal smooth atlas, with source inside `U i` and pairwise
-disjoint sources, whose target is a ball `Metric.ball 0 (r i)`, which send `x i` to `0`, and which
-preserve orientation, from `o` to the standard orientation of `ℝ²`, at every point of their
-source. Their coordinate discs `ofChart (e i)`, on the whole target, are coordinate discs for
-`o.toHomologicalOrientation` centred at `x i`, `z ↦ (e i).symm ((r i / 2) (re z, im z))`. Their
-images lie in the sources (`range_ofChart_subset_source`), so they are pairwise disjoint and lie
-in `U i`, and so are their closed discs (`disc_subset_range`).
+`U i`, have charts `e i` of the maximal smooth atlas, whose source contains `x i` and lies inside
+`U i`, with pairwise disjoint sources, whose target is a ball `Metric.ball 0 (r i)`, which send
+`x i` to `0`, and which preserve orientation, from `o` to the standard orientation of `ℝ²`, at
+every point of their source. Their coordinate discs `ofChart (e i)`, on the whole target, are
+coordinate discs for `o.toHomologicalOrientation` centred at `x i`,
+`z ↦ (e i).symm ((r i / 2) (re z, im z))`, whose images lie in `U i` and are pairwise disjoint.
+So their closed discs are pairwise disjoint too (`disc_subset_range`).
 
 The charts are those of the maximal atlas, not the charts `chartAt` of the atlas of `M`. -/
 theorem exists_ofChart_pairwise_disjoint (o : Manifold.Orientation (𝓡 2) M (Fin 2)) {ι : Type*}
@@ -990,21 +1000,29 @@ theorem exists_ofChart_pairwise_disjoint (o : Manifold.Orientation (𝓡 2) M (F
       (hr : ∀ i, 0 < r i) (hc : ∀ i, Metric.ball 0 (r i) ⊆ (e i).target)
       (he : ∀ i, ∀ y ∈ (e i).source,
         o.IsOrientationPreservingAt (Manifold.Orientation.euclideanSpace 2) (e i) y),
-      (∀ i, e i ∈ IsManifold.maximalAtlas (𝓡 2) ∞ M) ∧
+      (∀ i, e i ∈ IsManifold.maximalAtlas (𝓡 2) ∞ M) ∧ (∀ i, x i ∈ (e i).source) ∧
       (∀ i, (e i).target = Metric.ball 0 (r i)) ∧ (∀ i, e i (x i) = 0) ∧
       (∀ i, ofChart (e i) (hr i) (hc i) (he i) 0 = x i) ∧ (∀ i, (e i).source ⊆ U i) ∧
-      Pairwise fun i j ↦ Disjoint (e i).source (e j).source := by
+      (Pairwise fun i j ↦ Disjoint (e i).source (e j).source) ∧
+      (∀ i, Set.range (ofChart (e i) (hr i) (hc i) (he i)) ⊆ U i) ∧
+      Pairwise fun i j ↦ Disjoint (Set.range (ofChart (e i) (hr i) (hc i) (he i)))
+        (Set.range (ofChart (e j) (hr j) (hc j) (he j))) := by
   obtain ⟨V, hV, hVd⟩ := (Set.finite_range x).t2_separation
   have hmem (i : ι) : U i ∩ V (x i) ∈ 𝓝 (x i) :=
     Filter.inter_mem (hU i) ((hV (x i)).2.mem_nhds (hV (x i)).1)
   choose e r hr hatlas hxe hex hsU htgt hpres using fun i ↦
     Manifold.Orientation.exists_mem_maximalAtlas_isOrientationPreservingAt
       (Manifold.Orientation.euclideanSpace 2) o (hmem i)
-  refine ⟨e, r, hr, fun i ↦ (htgt i).ge, hpres, hatlas, htgt, hex, fun i ↦ ?_,
-    fun i ↦ (hsU i).trans Set.inter_subset_left, fun i j hij ↦ ?_⟩
-  · rw [ofChart_apply_zero, ← hex i, (e i).left_inv (hxe i)]
-  · exact (hVd (Set.mem_range_self i) (Set.mem_range_self j) (hx.ne hij)).mono
+  have hsU' (i : ι) : (e i).source ⊆ U i := (hsU i).trans Set.inter_subset_left
+  have hdisj : Pairwise fun i j ↦ Disjoint (e i).source (e j).source := fun i j hij ↦
+    (hVd (Set.mem_range_self i) (Set.mem_range_self j) (hx.ne hij)).mono
       ((hsU i).trans Set.inter_subset_right) ((hsU j).trans Set.inter_subset_right)
+  have hc (i : ι) : Metric.ball 0 (r i) ⊆ (e i).target := (htgt i).ge
+  refine ⟨e, r, hr, hc, hpres, hatlas, hxe, htgt, hex, fun i ↦ ?_, hsU', hdisj,
+    fun i ↦ (range_ofChart_subset_source _ _ _ _).trans (hsU' i), fun i j hij ↦
+      (hdisj hij).mono (range_ofChart_subset_source _ _ _ _)
+        (range_ofChart_subset_source _ _ _ _)⟩
+  rw [ofChart_apply_zero, ← hex i, (e i).left_inv (hxe i)]
 
 end CoordinateDisc
 
