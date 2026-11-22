@@ -211,20 +211,26 @@ In `TauCeti`, beside Tau Ceti's file, for `ω` a closed `C¹` two-form
   global form `ω.interiorₗ ⟨Y, hY⟩` is needed, `Y` is first cut off to a global
   field equal to it near `range i`, as in `IsStrongFilling.of_contMDiffOn`.)
 - `SmoothEmbedding.exists_liouville_of_isContactForm` (the converse, for a
-  prescribed form): for `ω` symplectic, `hdim`, and a contact form
-  `α : SmoothForm J Q ℝ 1` with `mextDerivₗ J 1 α = -i^*ω`, there are an
+  prescribed form): for `ω` symplectic and a contact form
+  `α : SmoothForm J Q ℝ 1` with `mextDerivₗ J 1 α = -i^*ω` (no `hdim`: the
+  proof does not use it), there are an
   open `U ⊇ range i` and a field `Y`, smooth on `U` and Liouville there,
-  transverse along `i`, with `-i^*(ω.interiorₗ ⟨Y, hY⟩) = α` on `Q`. Route: the
-  tubular neighbourhood `T` of `i` (`SmoothEmbedding.exists_diffeomorph_normalBundle_subset`)
-  with its projection `π : T → Q`; $\bar\alpha=\pi^*\alpha$; the relative
+  transverse along `i`, with `-mpullback J I i (RoughForm.interior Y ω.val) = α.val`.
+  Route: the smooth retraction `π : T → Q` of an open `T ⊇ range i`
+  (`SmoothEmbedding.exists_contMDiffOn_retraction`); $\bar\alpha=\pi^*\alpha$; the relative
   Poincaré lemma `SmoothEmbedding.exists_isSmoothForm_relative_primitive`
   for the closed form $\omega+d\bar\alpha$ on `T`, whose pullback by `i`
   vanishes, gives $\eta$ with $d\eta=\omega+d\bar\alpha$, vanishing along
-  `i`; $\lambda=\bar\alpha-\eta$ has $d\lambda=-\omega$ and $i^*\lambda=\alpha$;
-  `Y` is the field with $\iota_Y\omega=-\lambda$, which Tau Ceti's
-  nondegenerate `ω` gives through its flat isomorphism
-  `TauCeti.SmoothTwoForm.IsNondegenerate.interiorEquiv` (reuse it, do not
-  rebuild it); it is Liouville by
+  `i`; $\lambda=\bar\alpha-\eta$ has $d\lambda=-\omega$ and $i^*\lambda=\alpha$
+  (these steps, for forms of any degree, are
+  `SmoothEmbedding.exists_mextDeriv_eq_and_mpullback_eq`, which issue 1 adds
+  to `Geometry/Manifold/TubularNeighborhood/RelativePoincare.lean` of
+  *Moser isotopy*);
+  `Y` is the field with $\iota_Y\omega=-\lambda$, given at each point by the
+  inverse flat map `(ω.flat x).inverse`
+  (`SmoothTwoForm.IsNondegenerate.interior_flat_inverse_ofSubsingleton`, and
+  `SmoothTwoForm.contMDiffAt_flat_inverse_apply` for smoothness on `U`, in
+  `Geometry/Symplectic/Manifold/Flat.lean` of *Moser isotopy*); it is Liouville by
   Cartan's formula. Transversality: at a point where `Y` is tangent,
   $Y=di(v)$ with $\alpha(v)=0$ and $\iota_v d\alpha=\alpha$, so `v` lies in
   the kernel of $d\alpha$ on $\ker\alpha$, hence `v = 0`, while
@@ -607,6 +613,14 @@ Expected size: 300 lines.
 - *Moser isotopy*: `Geometry/Manifold/DifferentialForm/Smooth.lean`
   (`SmoothForm.bilinFormAt_smul`, `SmoothForm.bilinFormAt_neg`), only in
   `StableHamiltonian.lean`.
+- *Moser isotopy*: `Geometry/Manifold/TubularNeighborhood/RelativePoincare.lean`,
+  merged, which issue 1 extends by
+  `SmoothEmbedding.exists_mextDeriv_eq_and_mpullback_eq`, only in
+  `ContactType.lean`.
+- *Moser isotopy*: `Geometry/Symplectic/Manifold/Flat.lean`
+  (`SmoothTwoForm.IsNondegenerate.interior_flat_inverse_ofSubsingleton`,
+  `SmoothTwoForm.contMDiffAt_flat_inverse_apply`), merged, only in
+  `ContactType.lean`.
 - Tau Ceti, Liouville and contact type: `IsLiouvilleVectorField`,
   `isLiouvilleVectorField_iff_mextDeriv_interior_eq`, `IsContactType`,
   `isContactType_iff`, `exists_isRestrictedContactType_iff`,

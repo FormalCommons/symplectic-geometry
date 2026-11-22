@@ -191,8 +191,9 @@ so any part may import it.
 ### `Geometry/Manifold/TubularNeighborhood/RelativePoincare.lean`
 
 The file has the name of Tau Ceti's file that proves
-`TauCeti.SmoothEmbedding.exists_isSmoothForm_relative_primitive`. It is in
-the namespace `TauCeti.SmoothEmbedding`.
+`TauCeti.SmoothEmbedding.exists_isSmoothForm_relative_primitive`. Its theorems are in
+the namespace `TauCeti.SmoothEmbedding`; the lemmas that *Liouville structures*
+adds beside them for `exists_mextDeriv_eq_and_mpullback_eq` are in `TauCeti`.
 
 - `exists_smoothForm_relative_primitive_sub`: for a smooth embedding `f`,
   closed `η₀ η₁ : SmoothForm I M F (k + 1)` with `f^* η₁ = f^* η₀`, and an
