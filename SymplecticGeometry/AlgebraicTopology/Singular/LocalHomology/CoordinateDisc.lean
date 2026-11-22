@@ -141,6 +141,7 @@ theorem injective : Function.Injective φ :=
 
 /-- The orientation condition of a coordinate disc: the excision isomorphism of `φ` at `z` carries
 the canonical local orientation of the ball at `z` to the local orientation of `o` at `φ z`. -/
+@[simp]
 theorem localOrientationEquiv_apply (z : ball) :
     φ.isOpenEmbedding.localOrientationEquiv z 2 (complexHomologicalOrientation ball z) = o (φ z) :=
   φ.localOrientationEquiv_apply' z
@@ -205,16 +206,17 @@ def boundaryCircle : C(Circle, M) where
   toFun z := φ ⟨z, mem_ball_of_norm_le_one (Circle.norm_coe z).le⟩
   continuous_toFun := by fun_prop
 
-@[simp]
 theorem boundaryCircle_apply (z : Circle) :
     φ.boundaryCircle z = φ ⟨z, mem_ball_of_norm_le_one (Circle.norm_coe z).le⟩ :=
   (rfl)
 
+@[simp]
 theorem boundaryCircle_mem_disc (z : Circle) : φ.boundaryCircle z ∈ φ.disc := by
-  simp
+  simp [boundaryCircle_apply]
 
+@[simp]
 theorem boundaryCircle_notMem_openDisc (z : Circle) : φ.boundaryCircle z ∉ φ.openDisc := by
-  simp
+  simp [boundaryCircle_apply]
 
 /-- The closed disc minus the open disc is the boundary circle. -/
 theorem disc_diff_openDisc : φ.disc \ φ.openDisc = Set.range φ.boundaryCircle := by
@@ -222,13 +224,13 @@ theorem disc_diff_openDisc : φ.disc \ φ.openDisc = Set.range φ.boundaryCircle
   constructor
   · rintro ⟨⟨z, hz, rfl⟩, hx⟩
     have h1 : ‖(z : ℂ)‖ = 1 := le_antisymm hz (not_lt.1 fun h ↦ hx ⟨z, h, rfl⟩)
-    obtain ⟨c, hc⟩ : ∃ c : Circle, (c : ℂ) = z := ⟨⟨z, by simp [Submonoid.unitSphere, h1]⟩, rfl⟩
+    obtain ⟨c, hc⟩ : ∃ c : Circle, (c : ℂ) = z := ⟨⟨z, mem_sphere_zero_iff_norm.2 h1⟩, rfl⟩
     exact ⟨c, by rw [boundaryCircle_apply]; exact congrArg φ (Subtype.ext hc)⟩
   · rintro ⟨z, rfl⟩
     exact ⟨φ.boundaryCircle_mem_disc z, φ.boundaryCircle_notMem_openDisc z⟩
 
-/-- The boundary loop of a coordinate disc, `t ↦ φ(e^{2πit})`, based at `φ 1`. It runs
-counterclockwise in the chart, so it is oriented as the boundary of the closed disc. -/
+/-- The boundary loop of a coordinate disc, `t ↦ φ(e^{2πit})`, based at `φ.boundaryCircle 1`.
+It runs counterclockwise in the chart, so it is oriented as the boundary of the closed disc. -/
 def boundaryLoop : Path (φ.boundaryCircle 1) (φ.boundaryCircle 1) :=
   φ.boundaryCircle.toBasedLoop
 
@@ -288,12 +290,14 @@ def subtypeVal : CoordinateDisc (complexHomologicalOrientation ℂ) :=
 theorem coe_subtypeVal : ⇑subtypeVal = (Subtype.val : ball → ℂ) :=
   (rfl)
 
+@[simp]
 theorem disc_subtypeVal : subtypeVal.disc = Metric.closedBall 0 1 := by
   ext w
   simp only [mem_disc_iff, coe_subtypeVal, Subtype.exists, exists_and_left, exists_prop,
     exists_eq_right_right, mem_closedBall_zero_iff]
   exact ⟨fun h ↦ h.1, fun h ↦ ⟨h, mem_ball_of_norm_le_one h⟩⟩
 
+@[simp]
 theorem openDisc_subtypeVal : subtypeVal.openDisc = Metric.ball 0 1 := by
   ext w
   simp only [mem_openDisc_iff, coe_subtypeVal, Subtype.exists, exists_and_left, exists_prop,
