@@ -64,6 +64,7 @@ for `o`. Finitely many distinct points have pairwise disjoint open neighbourhood
 
 * `SymplecticGeometry.CoordinateDisc o`: the coordinate discs of `M` for `o`.
 * `SymplecticGeometry.CoordinateDisc.ball`: the open ball of radius `2` of `ℂ`, as an open set.
+  Its centre is the point `0 : ball` (`SymplecticGeometry.CoordinateDisc.coe_zero`).
 * `SymplecticGeometry.CoordinateDisc.disc`, `SymplecticGeometry.CoordinateDisc.openDisc`: the
   images of the closed and of the open unit ball.
 * `SymplecticGeometry.CoordinateDisc.boundaryCircle`: the unit circle of the chart, as a map
@@ -143,6 +144,15 @@ theorem mem_ball_iff {z : ℂ} : z ∈ ball ↔ ‖z‖ < 2 := by
 theorem mem_ball_of_norm_le_one {z : ℂ} (hz : ‖z‖ ≤ 1) : z ∈ ball :=
   mem_ball_iff.2 (hz.trans_lt one_lt_two)
 
+/-- The centre `0` of the ball of radius `2`, as a point of the ball. Coordinate discs are
+centred at the image of this point. -/
+instance : Zero ball :=
+  ⟨⟨0, mem_ball_of_norm_le_one (by simp)⟩⟩
+
+@[simp, norm_cast]
+theorem coe_zero : ((0 : ball) : ℂ) = 0 :=
+  (rfl)
+
 theorem conj_mem_ball {z : ℂ} (hz : z ∈ ball) : conj z ∈ ball := by
   simpa using hz
 
@@ -153,6 +163,10 @@ def conjBall : ball ≃ₜ ball :=
 @[simp]
 theorem coe_conjBall_apply (z : ball) : (conjBall z : ℂ) = conj (z : ℂ) :=
   (rfl)
+
+@[simp]
+theorem conjBall_zero : conjBall 0 = 0 :=
+  Subtype.ext (by simp)
 
 @[simp]
 theorem conjBall_conjBall (z : ball) : conjBall (conjBall z) = z :=
@@ -360,6 +374,10 @@ theorem coe_reverse : ⇑φ.reverse = φ ∘ conjBall :=
 @[simp]
 theorem reverse_apply (z : ball) : φ.reverse z = φ ⟨conj (z : ℂ), conj_mem_ball z.property⟩ :=
   (rfl)
+
+/-- The reverse of a coordinate disc has the same centre. -/
+theorem reverse_apply_zero : φ.reverse 0 = φ 0 := by
+  rw [coe_reverse, Function.comp_apply, conjBall_zero]
 
 /-- Reversing a coordinate disc twice gives back its map. The discs themselves cannot be compared
 by `=`, since they lie in `CoordinateDisc (-(-o))` and in `CoordinateDisc o`. -/
@@ -616,7 +634,7 @@ theorem ofChart_apply_zero (e : OpenPartialHomeomorph M (EuclideanSpace ℝ (Fin
     {c : EuclideanSpace ℝ (Fin 2)} {r : ℝ} (hr : 0 < r) (hc : Metric.ball c r ⊆ e.target)
     (he : ∀ x ∈ e.source,
       o.IsOrientationPreservingAt (Manifold.Orientation.euclideanSpace 2) e x) :
-    ofChart e hr hc he ⟨0, mem_ball_of_norm_le_one (by simp)⟩ = e.symm c := by
+    ofChart e hr hc he 0 = e.symm c := by
   simp
 
 /-- The closed disc of the coordinate disc of a chart is the image under `e.symm` of the closed
@@ -701,8 +719,7 @@ omit [T2Space M] in
 Ceti's coordinate ball `E → interior U` about `x`, after a linear equivalence `ℂ ≃L[ℝ] E`. -/
 private theorem exists_isOpenEmbedding_ball (hE : finrank ℝ E = 2) {x : M} {U : Set M}
     (hU : U ∈ 𝓝 x) :
-    ∃ f : ball → M, IsOpenEmbedding f ∧ f ⟨0, mem_ball_of_norm_le_one (by simp)⟩ = x ∧
-      Set.range f ⊆ U := by
+    ∃ f : ball → M, IsOpenEmbedding f ∧ f 0 = x ∧ Set.range f ⊆ U := by
   obtain ⟨κ, hκ, hκx⟩ :=
     isOpen_interior.exists_isOpenEmbedding_apply_zero_eq (E := E) (mem_interior_iff_mem_nhds.2 hU)
   let L : ℂ ≃L[ℝ] E :=
@@ -722,14 +739,14 @@ point `x` is the centre of a coordinate disc for `o` whose image lies in any giv
 `U` of `x`. -/
 theorem exists_coordinateDisc (hE : finrank ℝ E = 2) (o : HomologicalOrientation M E 2) {x : M}
     {U : Set M} (hU : U ∈ 𝓝 x) :
-    ∃ φ : CoordinateDisc o, φ ⟨0, mem_ball_of_norm_le_one (by simp)⟩ = x ∧ Set.range φ ⊆ U := by
+    ∃ φ : CoordinateDisc o, φ 0 = x ∧ Set.range φ ⊆ U := by
   obtain ⟨f, hf, hfx, hfU⟩ := exists_isOpenEmbedding_ball hE hU
   rcases exists_coe_eq_or_exists_coe_eq (o := o) hE hf with ⟨φ, rfl⟩ | ⟨φ, rfl⟩
   · exact ⟨φ, hfx, hfU⟩
   · -- Reversing a coordinate disc for `-o` gives one for `-(-o) = o`, with the same centre and
     -- image.
     rw [← neg_neg o]
-    refine ⟨φ.reverse, by simpa using hfx, ?_⟩
+    refine ⟨φ.reverse, (reverse_apply_zero φ).trans hfx, ?_⟩
     rw [coe_reverse, Set.range_comp, conjBall.surjective.range_eq, Set.image_univ]
     exact hfU
 
@@ -740,7 +757,7 @@ their closed discs are pairwise disjoint (`CoordinateDisc.disc_subset_range`). -
 theorem exists_coordinateDisc_pairwise_disjoint (hE : finrank ℝ E = 2)
     (o : HomologicalOrientation M E 2) {ι : Type*} [Finite ι] {x : ι → M}
     (hx : Function.Injective x) {U : ι → Set M} (hU : ∀ i, U i ∈ 𝓝 (x i)) :
-    ∃ φ : ι → CoordinateDisc o, (∀ i, φ i ⟨0, mem_ball_of_norm_le_one (by simp)⟩ = x i) ∧
+    ∃ φ : ι → CoordinateDisc o, (∀ i, φ i 0 = x i) ∧
       (∀ i, Set.range (φ i) ⊆ U i) ∧
         Pairwise fun i j ↦ Disjoint (Set.range (φ i)) (Set.range (φ j)) := by
   obtain ⟨V, hV, hVd⟩ := (Set.finite_range x).t2_separation
