@@ -75,10 +75,7 @@ lemma mayerVietorisδ_flip (sq : IsPushout t l r b) [Mono t] [Mono l] (n m : ℕ
         apply biprod.hom_ext' <;> simp }
     (shortExact_mayerVietorisShortComplex R sq) (shortExact_mayerVietorisShortComplex R sq.flip)
     n m h
-  rw [HomologicalComplex.homologyMap_neg, HomologicalComplex.homologyMap_id,
-    HomologicalComplex.homologyMap_id, Category.id_comp, Preadditive.comp_neg,
-    Category.comp_id] at this
-  rw [mayerVietorisδ_def R sq.flip n m h, mayerVietorisδ_def R sq n m h, ← this]
+  simpa [mayerVietorisδ_def] using this.symm
 
 end SSet
 
@@ -116,14 +113,13 @@ theorem mayerVietorisδ_swap (n m : ℕ) (h : m + 1 = n := by lia) :
       homologyMap_ι_comp_mayerVietorisδ R hV hU _ n m h]
   -- The four squares commute: the first two are squares of inclusions of subspaces, and the
   -- last two compare the inclusions of the pieces into the two small singular subcomplexes.
-  · rw [Category.comp_id, ← Functor.map_comp, ofHom_inclusion_comp_ofHom_inclusion]
-  · rw [Category.comp_id, ← Functor.map_comp, ofHom_inclusion_comp_ofHom_inclusion]
-  · rw [← cancel_mono (X.smallSingularSubcomplex ![V, U]).ι, Category.assoc,
-      smallSingularSubcomplexMap_ι, toSmallSingularSubcomplex_ι_assoc, toSSet.map_id,
-      Category.comp_id, Category.id_comp, toSmallSingularSubcomplex_ι]
-  · rw [← cancel_mono (X.smallSingularSubcomplex ![V, U]).ι, Category.assoc,
-      smallSingularSubcomplexMap_ι, toSmallSingularSubcomplex_ι_assoc, toSSet.map_id,
-      Category.comp_id, Category.id_comp, toSmallSingularSubcomplex_ι]
+  iterate 2 rw [Category.comp_id, ← Functor.map_comp, ofHom_inclusion_comp_ofHom_inclusion]
+  · exact (Category.id_comp _).trans
+      (toSmallSingularSubcomplex_comp_smallSingularSubcomplexMap _ _ _ _ hf _ (j := 0) (by simp)
+        (Set.mapsTo_id _))
+  · exact (Category.id_comp _).trans
+      (toSmallSingularSubcomplex_comp_smallSingularSubcomplexMap _ _ _ _ hf _ (j := 1) (by simp)
+        (Set.mapsTo_id _))
 
 end TopCat
 
