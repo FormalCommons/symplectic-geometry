@@ -494,7 +494,7 @@ For a compact Hausdorff boundaryless smooth manifold `M` modelled on `E`
 with `finrank ℝ E = m + 1` and `o : TauCeti.Manifold.Orientation I M (Fin (m + 1))`:
 
 - `TauCeti.Manifold.Orientation.sectionIndex_eq_sign_det_vectorFieldChartDerivative`:
-  for a `C¹` vector field `X` and a zero `z` at which
+  for a continuous vector field `X`, differentiable at a zero `z` at which
   `vectorFieldChartDerivative I X z` is invertible, the local index of `X`
   for `o.toVectorBundleOrientation` and `o.toHomologicalOrientation` is the
   sign of its determinant;
@@ -503,9 +503,10 @@ with `finrank ℝ E = m + 1` and `o : TauCeti.Manifold.Orientation I M (Fin (m +
   fundamental class of `o.toHomologicalOrientation` is
   $\sum_{i\le m+1}(-1)^i\dim_k H_i(M;k)$ for any division ring `k`; and
   `TauCeti.Manifold.Orientation.evalFundamentalClass_eulerClass_eq_eulerChar`,
-  the same with `TauCeti.eulerChar M` under the finite CW type instance
-  (`TauCeti.FiniteCWType.of_isManifold`). Both come from a Morse function,
-  a Riemannian metric and the three Tau Ceti results above.
+  the same with `TauCeti.eulerChar M` under a finite CW type instance
+  argument, which `TauCeti.FiniteCWType.of_isManifold` supplies. Both come
+  from a Morse function, a Riemannian metric and the three Tau Ceti results
+  above.
 
 Dimension zero is excluded, as in Tau Ceti's homological orientations; odd
 dimensions are included (both sides vanish).
