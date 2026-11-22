@@ -759,8 +759,10 @@ proves only when the Thom classes are fixed by any chosen classes of the
 model fibres:
 
 - that `TauCeti.complZeroPairCross` sends the local generators selected by
-  orientations `ω₁` and `ω₂` of the model fibres to the generator selected
-  by `ω₁.prod ω₂`, which turns
+  orientations `ω₁` and `ω₂` of the model fibres, of dimensions `m + 1` and
+  `n + 1`, to `(-1) ^ ((m + 1) * (n + 1))` times the generator selected by
+  `ω₁.prod ω₂` (`Orientation.complZeroPairCross_localCohomologyClass`, in
+  `AlgebraicTopology/Cohomology/Local/CrossOrientation.lean`), which turns
   `TauCeti.VectorBundleOrientation.eulerClass_thomClassOfModel_prod` into
   `TauCeti.VectorBundleOrientation.eulerClass_prod` for
   `TauCeti.VectorBundleOrientation.eulerClass`;
