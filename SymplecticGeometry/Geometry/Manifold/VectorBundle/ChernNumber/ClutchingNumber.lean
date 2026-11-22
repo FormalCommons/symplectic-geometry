@@ -13,7 +13,7 @@ public import TauCeti.Topology.Homotopy.Cube.Radius
 public import TauCeti.Topology.VectorBundle.Pullback
 
 /-!
-# Clutching frames of a bundle pulled back to the sphere
+# Clutching numbers and first Chern numbers
 
 Let `p : Ω^ (Fin 2) X x` be a based sphere, a map from the square `I²` sending its boundary to
 `x`, and let `E` be a complex vector bundle over `X` with finite-dimensional model `G`. The map
@@ -24,6 +24,9 @@ the complement of its open disc, in the sense of the disc clutching formula of
 `Geometry/Manifold/VectorBundle/ChernNumber/Clutching.lean`, and shows that the degree of the
 normalized determinant of their clutching transition is Tau Ceti's clutching number
 `TauCeti.clutchingNumber G E p` (`exists_clutchingNumber_eq_degree_clutchingTransition`).
+With the disc clutching formula `chernNumber_eq_sum_degree_clutching`, for a single disc, this
+identifies the clutching number with the first Chern number of `E'` for the orientation
+`cubeToSphereOrientation` of `S²` (`clutchingNumber_eq_chernNumber`).
 
 ## Construction
 
@@ -66,6 +69,9 @@ The continuity of the transition of a frame in a trivialization,
   pull-back of `E` to `S²` over the closed disc of `CoordinateDisc.cubeToSphere` and over the
   complement of its open disc, whose clutching transition has degree the clutching number of
   `E` on `p`.
+* `SymplecticGeometry.Bundle.clutchingNumber_eq_chernNumber`: the clutching number of `E` on `p`
+  is the first Chern number of the pull-back of `E` to `S²`, oriented by
+  `cubeToSphereOrientation`.
 
 ## References
 
@@ -475,6 +481,20 @@ theorem exists_clutchingNumber_eq_degree_clutchingTransition [FiniteDimensional 
   rw [ContinuousMap.coe_mk, clutchingTransition_descendFrame hy,
     ContinuousLinearEquiv.normalizedDet_symm, Trivialization.normalizedDet_frameTransition_inv
       (apply_cubeScale_mem (mem_outerAnnulus_of_squareCenterOffset_eq hy).1)]
+
+/-- **Clutching numbers are first Chern numbers.** Let `p : I² → X` be a sphere based at `x` and
+`E` a complex vector bundle over `X` with finite-dimensional model `G`. Tau Ceti's clutching
+number `TauCeti.clutchingNumber G E p` is the first Chern number of the pull-back of `E` to `S²`
+along the map `GenLoop.toSphere p` induced by `p`, for the orientation `cubeToSphereOrientation`
+of `S²`, for which the collapse of the square preserves orientation on the open square. -/
+theorem clutchingNumber_eq_chernNumber [FiniteDimensional ℂ G]
+    [∀ x, IsTopologicalAddGroup (E x)] [∀ x, ContinuousSMul ℂ (E x)] (p : Ω^ (Fin 2) X x) :
+    clutchingNumber G E p = chernNumber cubeToSphereOrientation finrank_euclideanSpace_fin G
+      (⇑(GenLoop.toSphere p) *ᵖ E) := by
+  obtain ⟨Φ, Φout, hΦ, hΦout, h⟩ :=
+    exists_clutchingNumber_eq_degree_clutchingTransition (G := G) (E := E) p
+  rw [h, chernNumber_eq_sum_degree_clutching Subsingleton.pairwise hΦ hΦout,
+    Fintype.sum_unique]
 
 end Frames
 

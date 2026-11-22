@@ -27,7 +27,8 @@ of their transition is the quotient of the two sections in `Circle`
 whose degree is `k i` (Tau Ceti's `ContinuousMap.circleDegree_zpow`).
 
 It is enough that the relation holds on a collar `ρ < ‖z‖ < 1` inside each disc, read as
-`σout (φ i z) = σ i (φ i z) • (z / ‖z‖) ^ k i`, with `z / ‖z‖` written `Circle.exp (arg z)`, when
+`σout (φ i z) = σ i (φ i z) • (φ i).phase (φ i z) ^ k i` with the angular coordinate
+`SymplecticGeometry.CoordinateDisc.phase`, which is `z / ‖z‖` at `φ i z` for `z ≠ 0`, when
 `σout` is continuous on the complement of the images of the closed discs of radius `ρ`: the
 quotient of the two sections is continuous, so by continuity along the rays
 (`SymplecticGeometry.CoordinateDisc.apply_boundaryCircle_eq_of_continuousOn`) the relation holds
@@ -97,8 +98,8 @@ theorem chernNumber_eq_sum_of_boundaryCircle_eq_zpow_smul [Fintype ι] [CompactS
 /-- **Transitions on a collar extend to the boundary circle.** Let `φ` be a coordinate disc,
 `ρ < 1`, and `σ`, `σout` sections of the circle bundle of unitary frames of a Hermitian line
 bundle, continuous on the images under `φ` of the half-open annulus `ρ < ‖z‖ ≤ 1`. If
-`σout (φ z) = σ (φ z) • (z / ‖z‖) ^ k` on the open annulus `ρ < ‖z‖ < 1`, where
-`z / ‖z‖` is written `Circle.exp (arg z)` (equal to it for `z ≠ 0`), then `σout = σ • ζ ^ k`
+`σout (φ z) = σ (φ z) • φ.phase (φ z) ^ k` on the open annulus `ρ < ‖z‖ < 1`, where the
+angular coordinate `φ.phase (φ z)` is `z / ‖z‖` for `z ≠ 0`, then `σout = σ • ζ ^ k`
 at each point `ζ` of the boundary circle. -/
 theorem boundaryCircle_eq_zpow_smul_of_collar {φ : CoordinateDisc o} {ρ : ℝ}
     (hρ : ρ < 1) {σ σout : ∀ x, Fiber ℂ F E ℂ x}
@@ -107,7 +108,7 @@ theorem boundaryCircle_eq_zpow_smul_of_collar {φ : CoordinateDisc o} {ρ : ℝ}
     (hσout : ContinuousOn (fun x ↦ TotalSpace.mk' Circle x (σout x))
       (φ '' {z | ρ < ‖(z : ℂ)‖ ∧ ‖(z : ℂ)‖ ≤ 1}))
     (k : ℤ) (hk : ∀ z : CoordinateDisc.ball, ρ < ‖(z : ℂ)‖ → ‖(z : ℂ)‖ < 1 →
-      σout (φ z) = op (Circle.exp (arg z) ^ k) • σ (φ z)) (ζ : Circle) :
+      σout (φ z) = op (φ.phase (φ z) ^ k) • σ (φ z)) (ζ : Circle) :
     σout (φ.boundaryCircle ζ) = op (ζ ^ k) • σ (φ.boundaryCircle ζ) := by
   refine (division_eq_iff.1 (φ.apply_boundaryCircle_eq_of_continuousOn hρ (hσ.division hσout)
     fun z hz hz1 hζ ↦ ?_)).symm
@@ -118,9 +119,9 @@ Let `φ i`, for `i` in a finite type `ι`, be coordinate discs of a compact surf
 disjoint closed discs, `ρ < 1`, `σ i` sections of the circle bundle of unitary frames of a
 Hermitian line bundle `E`, continuous on the closed disc of `φ i`, and `σout` a section continuous
 on the complement of the images `φ i '' {‖z‖ ≤ ρ}`. If
-`σout (φ i z) = σ i (φ i z) • (z / ‖z‖) ^ k i` whenever `ρ < ‖z‖ < 1`, where
-`z / ‖z‖` is written `Circle.exp (arg z)` (equal to it for `z ≠ 0`), then the first Chern
-number of `E` is `∑ i, k i`. -/
+`σout (φ i z) = σ i (φ i z) • (φ i).phase (φ i z) ^ k i` whenever `ρ < ‖z‖ < 1`, where the
+angular coordinate `(φ i).phase (φ i z)` is `z / ‖z‖` for `z ≠ 0`, then the first Chern number of
+`E` is `∑ i, k i`. -/
 theorem chernNumber_eq_sum_of_collar_eq_zpow_smul [Fintype ι] [CompactSpace M]
     [FiniteDimensional ℂ F] (hn : finrank ℝ EM = 2)
     (hφ : Pairwise (Disjoint on fun i ↦ (φ i).disc)) {ρ : ℝ} (hρ : ρ < 1)
@@ -128,7 +129,7 @@ theorem chernNumber_eq_sum_of_collar_eq_zpow_smul [Fintype ι] [CompactSpace M]
     (hσout : ContinuousOn (fun x ↦ TotalSpace.mk' Circle x (σout x))
       (⋃ i, φ i '' {z | ‖(z : ℂ)‖ ≤ ρ})ᶜ)
     (k : ι → ℤ) (hk : ∀ i (z : CoordinateDisc.ball), ρ < ‖(z : ℂ)‖ → ‖(z : ℂ)‖ < 1 →
-      σout (φ i z) = op (Circle.exp (arg z) ^ k i) • σ i (φ i z)) :
+      σout (φ i z) = op ((φ i).phase (φ i z) ^ k i) • σ i (φ i z)) :
     chernNumber o hn F E = ∑ i, k i := by
   refine chernNumber_eq_sum_of_boundaryCircle_eq_zpow_smul hn hφ hσ
     (hσout.mono fun x hx ↦ ?_) k fun i ↦ boundaryCircle_eq_zpow_smul_of_collar hρ

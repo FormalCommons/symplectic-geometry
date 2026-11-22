@@ -6,11 +6,11 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.OrientedChart
+public import SymplecticGeometry.Topology.VectorBundle.Orientation.SectionIndex.Derivative
 public import TauCeti.AlgebraicTopology.Cellular.EulerCharacteristic.Manifold
 public import TauCeti.Geometry.Manifold.Morse.Generic.Basic
 public import TauCeti.Geometry.Manifold.Morse.PoincareHopf
 public import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Existence
-public import TauCeti.Topology.VectorBundle.Orientation.SectionIndex.Degree
 import TauCeti.Geometry.Manifold.VectorField.Regularity
 
 /-!
@@ -38,7 +38,10 @@ Odd dimensions are included: then both sides vanish, which the statements do not
 
 For the local index, Tau Ceti's
 `TauCeti.VectorBundleOrientation.sectionIndex_eq_sign_det_of_hasFDerivAt` computes it as the sign
-of the derivative of the section read in a trivialization and a chart. We take the trivialization
+of the derivative of the section read in a trivialization and a chart; its form
+`TauCeti.VectorBundleOrientation.sectionIndex_eq_sign_det_of_hasFDerivAt_of_eventually`, from
+`SymplecticGeometry/Topology/VectorBundle/Orientation/SectionIndex/Derivative.lean`, finds the
+neighbourhood in which `z` is the only zero itself. We take the trivialization
 of the tangent bundle at `z` and the chart at `z` followed by the model embedding, in which `X`
 reads as its coordinate field
 (`VectorField.trivializationAt_snd_eventuallyEq_mpullbackWithin_extChartAt_symm`), so that the
@@ -99,7 +102,6 @@ theorem sectionIndex_eq_sign_det_vectorFieldChartDerivative {X : (x : M) → Tan
   set φ : OpenPartialHomeomorph M E := (chartAt H z).transHomeomorph I.toHomeomorph
   have hzφ : z ∈ φ.source := by simp [φ]
   have hφz : φ z = extChartAt I z z := by simp [φ]
-  set ν := e.mapOrientation (Fin (m + 1)) hze (o.toVectorBundleOrientation z)
   -- The derivative `A` of the coordinate field of `X` in the chart at `z`.
   set A : E →L[ℝ] E := fderiv ℝ (VectorField.mpullback 𝓘(ℝ, E) I (extChartAt I z).symm X)
     (extChartAt I z z)
@@ -121,38 +123,10 @@ theorem sectionIndex_eq_sign_det_vectorFieldChartDerivative {X : (x : M) → Tan
     rw [I.range_eq_univ, VectorField.mpullbackWithin_univ] at hU
     rw [hφz] at hfeq ⊢
     exact hU.hasFDerivAt.congr_of_eventuallyEq hfeq
-  -- `A` is invertible, so `φ z` is an isolated zero of `f`.
-  have hdet' : A.det ≠ 0 := hdetA ▸ hdet
-  have hinj : Function.Injective A := by
-    have h := (LinearMap.isUnit_iff_isUnit_det (A : E →ₗ[ℝ] E)).2 (isUnit_iff_ne_zero.2 hdet')
-    exact ((Module.End.isUnit_iff _).1 h).1
-  have hne : ∀ᶠ y in 𝓝[≠] φ z, f y ≠ 0 :=
-    hA.eventually_ne (A.antilipschitz_of_injective_of_isClosed_range hinj
-      (by simpa only [LinearMap.coe_range, ContinuousLinearMap.coe_coe] using
-        (LinearMap.range (A : E →ₗ[ℝ] E)).isClosed_of_finiteDimensional))
-  have hne' : ∀ᶠ x in 𝓝 z, φ x ≠ φ z → f (φ x) ≠ 0 :=
-    (φ.continuousAt hzφ).eventually (eventually_nhdsWithin_iff.1 hne)
-  -- An open neighbourhood `U` of `z` on which everything holds.
-  have hev : ∀ᶠ x in 𝓝 z, x ∈ e.baseSet ∧ x ∈ φ.source ∧
-      (∀ hx : x ∈ e.baseSet,
-        e.mapOrientation (Fin (m + 1)) hx (o.toVectorBundleOrientation x) = ν) ∧
-      (φ x ≠ φ z → f (φ x) ≠ 0) :=
-    (e.open_baseSet.eventually_mem hze).and ((φ.open_source.eventually_mem hzφ).and
-      ((o.toVectorBundleOrientation.eventually_mapOrientation_eq o.card_eq e hze).and hne'))
-  obtain ⟨U, hUsub, hUo, hzU⟩ := mem_nhds_iff.1 hev
-  have hUz : ∀ x ∈ U, X x = 0 → x = z := by
-    intro x hx h0
-    obtain ⟨hxe, hxφ, -, hx'⟩ := hUsub hx
-    by_contra hxz
-    refine hx' (fun h ↦ hxz (φ.injOn hxφ hzφ h)) ?_
-    have hfx : f (φ x) = (e (TotalSpace.mk' E x (X x))).2 := by
-      simp only [hf]
-      rw [φ.left_inv hxφ]
-    rw [hfx, h0, ← Trivialization.linearEquivAt_apply (R := ℝ) _ _ hxe, map_zero]
-  rw [VectorBundleOrientation.sectionIndex_eq_sign_det_of_hasFDerivAt
-    o.toVectorBundleOrientation hE (o.toHomologicalOrientation hE) hX e φ hUo hzU hUz hz
-    (fun x hx ↦ (hUsub hx).1) (fun x hx ↦ (hUsub hx).2.1) (fun x hx ↦ (hUsub hx).2.2.1 _)
-    (localHomologyMap_sub_toHomologicalOrientation hE o z) hA hdet', hdetA]
+  rw [VectorBundleOrientation.sectionIndex_eq_sign_det_of_hasFDerivAt_of_eventually
+    o.toVectorBundleOrientation hE (o.toHomologicalOrientation hE) hX e φ hz hze hzφ
+    (o.toVectorBundleOrientation.eventually_mapOrientation_eq o.card_eq e hze)
+    (localHomologyMap_sub_toHomologicalOrientation hE o z) hA (hdetA ▸ hdet), hdetA]
 
 end Index
 
