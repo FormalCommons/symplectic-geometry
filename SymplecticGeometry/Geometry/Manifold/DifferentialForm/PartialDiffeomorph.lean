@@ -13,6 +13,7 @@ public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Chart
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffeomorph
+import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.ModelSpace
 
 /-!
 # Differential forms read through a partial diffeomorphism onto a normed space
@@ -36,6 +37,11 @@ which is meaningful on `ψ.target`.
   recovers `a` on `ψ.target`. When `a` is smooth with compact support in `ψ.target`, the
   extension is smooth (`TauCeti.IsSmoothForm.extendByZeroAlong`), and bundled as
   `TauCeti.SmoothForm.extendByZeroAlong`.
+* `TauCeti.SmoothForm.localize ψ χ α`: in the other direction, the flat form on `E` that is the
+  reading of a smooth form `α` in `ψ`, scaled by `χ ∘ ψ.symm` for a cutoff `χ` on `M`, on
+  `ψ.target`, and zero elsewhere. It is continuous with compact support when `χ` is continuous
+  with compact support in `ψ.source` (`TauCeti.SmoothForm.continuous_localize`,
+  `TauCeti.SmoothForm.hasCompactSupport_localize`).
 
 The proof of `TauCeti.mpullback_symm_eq_inChartAt` is the pointwise form of the argument of Tau
 Ceti's `TauCeti.RoughForm.inChartAt_ae_eq_mpullback`, which proves the same equality almost
@@ -267,6 +273,116 @@ theorem SmoothForm.coe_extendByZeroAlong [T2Space M] [IsManifold I ∞ M]
   (rfl)
 
 end ExtendByZero
+
+/-! ### Localization of a smooth form to a chart -/
+
+namespace SmoothForm
+
+section Localize
+
+variable [IsManifold I ∞ M]
+
+/-- The **localization** of a smooth `k`-form `α` to a chart `ψ : M → E` with a cutoff
+`χ : M → ℝ`: the flat form on `E` that sends a point `y` of `ψ.target` to
+`χ (ψ.symm y) • (ψ.symm)^* α (y)`, the reading of `α` in `ψ` at `y` scaled by `χ (ψ.symm y)`,
+and every other point to `0`. -/
+def localize (ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞) (χ : M → ℝ) (α : SmoothForm I M F k) :
+    E → E [⋀^Fin k]→L[ℝ] F :=
+  ψ.target.indicator fun y ↦ χ (ψ.symm y) • TauCeti.mpullback 𝓘(ℝ, E) I ψ.symm α.val y
+
+variable (ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞) (χ : M → ℝ) (α β : SmoothForm I M F k)
+
+theorem localize_def :
+    α.localize ψ χ =
+      ψ.target.indicator fun y ↦ χ (ψ.symm y) • TauCeti.mpullback 𝓘(ℝ, E) I ψ.symm α.val y :=
+  (rfl)
+
+/-- On the target of the chart, the localization of `α` is the reading of `α` in the chart,
+scaled by `χ ∘ ψ.symm`. -/
+theorem localize_of_mem {y : E} (hy : y ∈ ψ.target) :
+    α.localize ψ χ y = χ (ψ.symm y) • TauCeti.mpullback 𝓘(ℝ, E) I ψ.symm α.val y := by
+  rw [localize_def]
+  exact Set.indicator_of_mem hy _
+
+/-- On the target of the chart, the localization of `α` evaluated on vectors `v` is `χ (ψ⁻¹ y)`
+times `α` at `ψ⁻¹ y` evaluated on the images of `v` under the differential of `ψ.symm`. -/
+theorem localize_apply_of_mem {y : E} (hy : y ∈ ψ.target) (v : Fin k → E) :
+    α.localize ψ χ y v =
+      χ (ψ.symm y) • α.val (ψ.symm y) (fun i ↦ mfderiv 𝓘(ℝ, E) I ψ.symm y (v i)) := by
+  refine (congrArg (fun f : E [⋀^Fin k]→L[ℝ] F ↦ f v) (localize_of_mem _ _ _ hy)).trans ?_
+  refine (ContinuousAlternatingMap.smul_apply (R' := ℝ)
+    (TauCeti.mpullback (F := F) 𝓘(ℝ, E) I ψ.symm α.val y) _ v).trans ?_
+  exact congrArg _ (TauCeti.mpullback_apply _ _ _ v)
+
+/-- Off the target of the chart, the localization vanishes. -/
+theorem localize_apply_of_notMem {y : E} (hy : y ∉ ψ.target) : α.localize ψ χ y = 0 := by
+  rw [localize_def]
+  exact Set.indicator_of_notMem hy _
+
+/-- The localization of the zero form is zero. -/
+@[simp]
+theorem localize_zero : (0 : SmoothForm I M F k).localize ψ χ = 0 := by
+  ext y v
+  by_cases hy : y ∈ ψ.target
+  · simp [localize_apply_of_mem _ _ _ hy]
+  · simp [localize_apply_of_notMem _ _ _ hy]
+
+/-- The localization vanishes off the image `ψ '' tsupport χ` of the support of the cutoff. -/
+theorem localize_apply_eq_zero_of_notMem {y : E} (hy : y ∉ ψ '' tsupport χ) :
+    α.localize ψ χ y = 0 := by
+  by_cases hyt : y ∈ ψ.target
+  · ext v
+    rw [localize_apply_of_mem _ _ _ hyt, image_eq_zero_of_notMem_tsupport (f := χ), zero_smul,
+      ContinuousAlternatingMap.coe_zero, Pi.zero_apply]
+    exact fun h ↦ hy ⟨_, h, ψ.right_inv hyt⟩
+  · exact localize_apply_of_notMem _ _ _ hyt
+
+/-- The localization is additive in the form. -/
+@[simp]
+theorem localize_add : (α + β).localize ψ χ = α.localize ψ χ + β.localize ψ χ := by
+  ext y v
+  by_cases hy : y ∈ ψ.target
+  · simp [localize_apply_of_mem _ _ _ hy, smul_add]
+  · simp [localize_apply_of_notMem _ _ _ hy]
+
+/-- The localization is homogeneous in the form. -/
+@[simp]
+theorem localize_smul (c : ℝ) : (c • α).localize ψ χ = c • α.localize ψ χ := by
+  ext y v
+  by_cases hy : y ∈ ψ.target
+  · simp [localize_apply_of_mem _ _ _ hy, smul_comm c]
+  · simp [localize_apply_of_notMem _ _ _ hy]
+
+variable {χ}
+
+/-- If the cutoff has compact support in the source of the chart, the localization is supported
+in the image of that support under the chart. -/
+theorem tsupport_localize_subset (hK : IsCompact (tsupport χ)) (hχ : tsupport χ ⊆ ψ.source) :
+    tsupport (α.localize ψ χ) ⊆ ψ '' tsupport χ :=
+  closure_minimal (Function.support_subset_iff'.2 fun _ hy ↦
+    localize_apply_eq_zero_of_notMem _ _ _ hy)
+    (hK.image_of_continuousOn (ψ.contMDiffOn.continuousOn.mono hχ)).isClosed
+
+/-- If the cutoff has compact support in the source of the chart, so does the localization. -/
+theorem hasCompactSupport_localize (hK : IsCompact (tsupport χ)) (hχ : tsupport χ ⊆ ψ.source) :
+    HasCompactSupport (α.localize ψ χ) :=
+  (hK.image_of_continuousOn (ψ.contMDiffOn.continuousOn.mono hχ)).of_isClosed_subset
+    (isClosed_tsupport _) (α.tsupport_localize_subset ψ hK hχ)
+
+/-- The localization of a smooth form with a continuous cutoff whose support is compact and lies
+in the source of the chart is continuous. -/
+theorem continuous_localize (hχc : Continuous χ) (hK : IsCompact (tsupport χ))
+    (hχ : tsupport χ ⊆ ψ.source) : Continuous (α.localize ψ χ) := by
+  have hon : ContinuousOn (α.localize ψ χ) ψ.target :=
+    ((hχc.comp_continuousOn ψ.symm.contMDiffOn.continuousOn).smul
+      (α.contDiffOn_mpullback ψ.open_target ψ.symm.contMDiffOn).continuousOn).congr
+        fun y hy ↦ localize_of_mem _ _ _ hy
+  exact hon.continuous_of_tsupport_subset ψ.open_target
+    ((α.tsupport_localize_subset ψ hK hχ).trans (ψ.mapsTo.mono_left hχ).image_subset)
+
+end Localize
+
+end SmoothForm
 
 end TauCeti
 
