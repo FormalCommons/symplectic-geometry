@@ -36,8 +36,8 @@ products gets the same structure from the same instances.
 ## Proof
 
 Both sides are classes in `H²(ℙ ℂ V × ℙ ℂ W; ULift ℤ)`. By the vanishing criterion
-`Projectivization.eq_zero_of_singularCohomologyMap_eq_zero` (Leray–Hirsch for the product, with
-`W` finite-dimensional and `ℙ ℂ V` path-connected), it suffices that they agree on the two axes
+`Projectivization.eq_zero_of_singularCohomologyMap_prodMk_eq_zero` (Leray–Hirsch for the product,
+with `W` finite-dimensional and `ℙ ℂ V` path-connected), it suffices that they agree on the two axes
 `ℙ ℂ V × {y₀}` and `{x₀} × ℙ ℂ W`. On the first, a nonzero `w₀ ∈ y₀` gives the fibrewise
 isomorphism `v ↦ v ⊗ w₀` from `T` to `T ⊠ T'`, continuous on total spaces, so naturality
 (`TauCeti.complexEulerClass_eq_singularCohomologyMap_of_fiberwise`) pulls `e(T ⊠ T')` back to
