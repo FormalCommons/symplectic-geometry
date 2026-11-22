@@ -670,7 +670,9 @@ was found, so `ERRATA.md` needs no entry.
   (#860): `TauCeti.SmoothTwoForm.Compatible.metric` and `metric_inner`, in
   the proof of the milestone, and `val_eq_alternatingFormEquiv_kahlerForm`,
   which this part adds there, in `Kahler/Identities.lean`. This dependency
-  is new; `DESIGN.md` records it.
+  is new; `DESIGN.md` records it. Its `Metric/FromTauCeti.lean` gives
+  `TauCeti.SmoothAlmostComplexStructure.inner_apply_apply_of_inner_eq`, only in
+  the proofs of `Kahler/Identities.lean`.
 - *Moser isotopy*, `Geometry/Manifold/LocalDiffeomorph/MFDeriv.lean`
   (merged): `PartialDiffeomorph.mfderivSymmEquiv`, which this part adds
   there, only in the proofs of `DeRham/Hodge/Chart.lean`,

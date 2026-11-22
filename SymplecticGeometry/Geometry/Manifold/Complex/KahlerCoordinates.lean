@@ -327,7 +327,7 @@ so has the form `ω` read in the chart. -/
 theorem fderiv_mpullback_symm_eq_zero_of_fderiv_gramInChart_eq_zero
     [IsContMDiffRiemannianBundle I ∞ E (fun x : M ↦ TangentSpace I x)]
     {J : SmoothAlmostComplexStructure I M} {form : SmoothTwoForm I M}
-    (hg : ∀ x (v w : TangentSpace I x), ⟪v, w⟫ = form.val x ![v, J x w])
+    (hg : ∀ x (v w : TangentSpace I x), ⟪v, w⟫ = form.eval₂ x v (J x w))
     (φ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞) {J₀ : AlmostComplexStructure E}
     (hφ : ∀ p ∈ φ.target, ∀ w : E, J.chartPushforward φ.toOpenPartialHomeomorph p w = J₀ w)
     {z : E} (hz : z ∈ φ.target) (h : fderiv ℝ (gramInChart φ) z = 0) :

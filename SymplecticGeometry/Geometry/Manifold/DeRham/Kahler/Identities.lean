@@ -21,6 +21,7 @@ import SymplecticGeometry.Geometry.Manifold.DifferentialForm.PartialDiffeomorph
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Chart
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Metric
+import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Metric.FromTauCeti
 
 /-!
 # The Lefschetz operator on smooth forms, and the Hodge star against `𝒥`
@@ -51,11 +52,6 @@ derivative there of `α` read in the chart. That derivative, carried to the tang
 along the differential of `ψ`, is a linear map `B` from the tangent space to forms, and the
 identity becomes the linear Kähler identity for `B`,
 `TauCeti.AlmostComplexStructure.lefschetz_smul_formHodgeStar_alternatizeUncurryFin_sub`.
-
-The proof of `TauCeti.SmoothTwoForm.inner_almostComplexStructureAt_apply_apply` is that of Tau
-Ceti's private `TauCeti.inner_apply_apply_of_inner_eq`
-(`Geometry/Symplectic/Manifold/AlmostComplex/Metric.lean`), with the hypothesis on the metric
-stated through the value of `σ`.
 
 ## Main definitions
 
@@ -291,7 +287,7 @@ variable {σ : SmoothTwoForm I M} {J : SmoothAlmostComplexStructure I M}
 /-- Under `⟪v, w⟫ = σ(v, J w)`, the symbol of `L β` is the Lefschetz operator of `J` at
 `ψ.symm y` composed with the symbol of `β`, where the reading of `σ` has derivative zero. -/
 private theorem symbolInChart_lefschetz
-    (hg : ∀ x (v w : TangentSpace I x), ⟪v, w⟫ = σ.val x ![v, J x w])
+    (hg : ∀ x (v w : TangentSpace I x), ⟪v, w⟫ = σ.eval₂ x v (J x w))
     (ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞) (β : SmoothForm I M ℝ j) {y : E}
     (hy : y ∈ ψ.target)
     (hσ : fderiv ℝ (F := E [⋀^Fin 2]→L[ℝ] ℝ) (mpullback 𝓘(ℝ, E) I ψ.symm σ.val) y = 0) :
@@ -307,7 +303,7 @@ private theorem symbolInChart_lefschetz
 holomorphic charts at which the metric in the chart has derivative zero. -/
 private theorem eq_of_forall_osculating
     [IsContMDiffRiemannianBundle I ∞ E (fun x : M ↦ TangentSpace I x)] (hJ : J.IsIntegrable)
-    (hσ : σ.IsClosed) (hg : ∀ x (v w : TangentSpace I x), ⟪v, w⟫ = σ.val x ![v, J x w])
+    (hσ : σ.IsClosed) (hg : ∀ x (v w : TangentSpace I x), ⟪v, w⟫ = σ.eval₂ x v (J x w))
     {α β : SmoothForm I M ℝ j}
     (h : ∀ (ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞) (J₀ : AlmostComplexStructure E),
       (∀ p ∈ ψ.target, ∀ w : E, J.chartPushforward ψ.toOpenPartialHomeomorph p w = J₀ w) →
@@ -320,18 +316,6 @@ private theorem eq_of_forall_osculating
   have := h ψ J₀ hψ (ψ x₀) (ψ.map_source hx₀) hgr
   rwa [hx] at this
 
-omit [FiniteDimensional ℝ E] in
-/-- Under `⟪v, w⟫ = σ(v, J w)`, the almost complex structure is orthogonal at each point `x`. -/
-theorem inner_almostComplexStructureAt_apply_apply
-    (hg : ∀ x (v w : TangentSpace I x), ⟪v, w⟫ = σ.val x ![v, J x w]) (x : M)
-    (u v : TangentSpace I x) :
-    ⟪J.almostComplexStructureAt x u, J.almostComplexStructureAt x v⟫ = ⟪u, v⟫ := by
-  have hJ : ∀ x (u v : TangentSpace I x), ⟪u, v⟫ = σ.eval₂ x u (J x v) := fun x u v ↦ by
-    rw [hg, SmoothBundleForm.eval₂_apply]
-  simp only [SmoothAlmostComplexStructure.almostComplexStructureAt_apply]
-  rw [hJ, SmoothAlmostComplexStructure.apply_apply, SmoothBundleForm.eval₂_neg_right,
-    ← SmoothBundleForm.eval₂_swap, ← hJ, real_inner_comm]
-
 variable [IsContMDiffRiemannianBundle I ∞ E (fun x : M ↦ TangentSpace I x)]
 
 /-- **The first-order Kähler identity** `[L, d^*] = -[𝒥, d]`: let `J` be an integrable almost
@@ -343,7 +327,7 @@ hypotheses `hkl` and `hkl'` are those of the codifferential in degrees `k + 1` a
 `m < k + 3`, see `lefschetz_codifferential_of_lt`. -/
 theorem lefschetz_codifferential_sub (o : Manifold.Orientation I M (Fin m))
     (hJ : J.IsIntegrable) (hσ : σ.IsClosed)
-    (hg : ∀ x (v w : TangentSpace I x), ⟪v, w⟫ = σ.val x ![v, J x w])
+    (hg : ∀ x (v w : TangentSpace I x), ⟪v, w⟫ = σ.eval₂ x v (J x w))
     (hkl : k + 1 + l = m) (hkl' : k + 2 + 1 + l' = m) (α : SmoothForm I M ℝ (k + 1)) :
     σ.lefschetz (SmoothForm.codifferential o hkl α) -
         SmoothForm.codifferential o hkl' (σ.lefschetz α) =
@@ -370,8 +354,13 @@ theorem lefschetz_codifferential_sub (o : Manifold.Orientation I M (Fin m))
   rw [val_mextDerivₗ_symm ψ α hy, val_mextDerivₗ_symm ψ _ hy,
     symbolInChart_lefschetz hg ψ α hy
       (fderiv_mpullback_symm_eq_zero_of_fderiv_gramInChart_eq_zero hg ψ hψ hy hgr), hs, hs]
+  have hJx (u v : TangentSpace I (ψ.symm y)) :
+      ⟪J.almostComplexStructureAt (ψ.symm y) u, J.almostComplexStructureAt (ψ.symm y) v⟫ =
+        ⟪u, v⟫ := by
+    simpa only [SmoothAlmostComplexStructure.almostComplexStructureAt_apply] using
+      SmoothAlmostComplexStructure.inner_apply_apply_of_inner_eq hg (ψ.symm y) u v
   convert AlmostComplexStructure.lefschetz_smul_formHodgeStar_alternatizeUncurryFin_sub
-    (inner_almostComplexStructureAt_apply_apply hg (ψ.symm y)) (o.orientationAt (ψ.symm y))
+    hJx (o.orientationAt (ψ.symm y))
     (l := l) (l' := l') (by omega) (by omega) (by omega) (by omega) (symbolInChart ψ α y)
     using 4
   · rw [formHodgeStarCLM_apply, hS]
@@ -388,7 +377,7 @@ theorem lefschetz_codifferential_sub (o : Manifold.Orientation I M (Fin m))
 identity reads `L d^* α = -(𝒥 dα - d 𝒥 α)`. This covers the forms of degree `m - 1`. -/
 theorem lefschetz_codifferential_of_lt (o : Manifold.Orientation I M (Fin m))
     (hJ : J.IsIntegrable) (hσ : σ.IsClosed)
-    (hg : ∀ x (v w : TangentSpace I x), ⟪v, w⟫ = σ.val x ![v, J x w])
+    (hg : ∀ x (v w : TangentSpace I x), ⟪v, w⟫ = σ.eval₂ x v (J x w))
     (hkl : k + 1 + l = m) (hk : m < k + 3) (α : SmoothForm I M ℝ (k + 1)) :
     σ.lefschetz (SmoothForm.codifferential o hkl α) =
       -(J.toEndomorphism.realAlternatingDerivation (mextDerivₗ I (k + 1) α) -
@@ -411,8 +400,13 @@ theorem lefschetz_codifferential_of_lt (o : Manifold.Orientation I M (Fin m))
     ContMDiffSection.coe_realAlternatingDerivation]
   beta_reduce
   rw [val_mextDerivₗ_symm ψ α hy, val_mextDerivₗ_symm ψ _ hy, hs]
+  have hJx (u v : TangentSpace I (ψ.symm y)) :
+      ⟪J.almostComplexStructureAt (ψ.symm y) u, J.almostComplexStructureAt (ψ.symm y) v⟫ =
+        ⟪u, v⟫ := by
+    simpa only [SmoothAlmostComplexStructure.almostComplexStructureAt_apply] using
+      SmoothAlmostComplexStructure.inner_apply_apply_of_inner_eq hg (ψ.symm y) u v
   convert AlmostComplexStructure.lefschetz_smul_formHodgeStar_alternatizeUncurryFin_of_lt
-    (inner_almostComplexStructureAt_apply_apply hg (ψ.symm y)) (o.orientationAt (ψ.symm y))
+    hJx (o.orientationAt (ψ.symm y))
     (l := l) (by omega) (by omega) (by omega) (symbolInChart ψ α y) using 4
   · rw [formHodgeStarCLM_apply, hS]
   · ext u
@@ -427,7 +421,7 @@ identity one degree lower, where `d^* f` is not defined and `𝒥 f` vanishes. T
 is that of the codifferential in degree `2`. -/
 theorem codifferential_lefschetz (o : Manifold.Orientation I M (Fin m))
     (hJ : J.IsIntegrable) (hσ : σ.IsClosed)
-    (hg : ∀ x (v w : TangentSpace I x), ⟪v, w⟫ = σ.val x ![v, J x w])
+    (hg : ∀ x (v w : TangentSpace I x), ⟪v, w⟫ = σ.eval₂ x v (J x w))
     (hkl : 1 + 1 + l = m) (f : SmoothForm I M ℝ 0) :
     SmoothForm.codifferential o hkl (σ.lefschetz f) =
       J.toEndomorphism.realAlternatingDerivation (mextDerivₗ I 0 f) := by
@@ -447,8 +441,13 @@ theorem codifferential_lefschetz (o : Manifold.Orientation I M (Fin m))
   beta_reduce
   rw [val_mextDerivₗ_symm ψ f hy, symbolInChart_lefschetz hg ψ f hy
       (fderiv_mpullback_symm_eq_zero_of_fderiv_gramInChart_eq_zero hg ψ hψ hy hgr), hs]
+  have hJx (u v : TangentSpace I (ψ.symm y)) :
+      ⟪J.almostComplexStructureAt (ψ.symm y) u, J.almostComplexStructureAt (ψ.symm y) v⟫ =
+        ⟪u, v⟫ := by
+    simpa only [SmoothAlmostComplexStructure.almostComplexStructureAt_apply] using
+      SmoothAlmostComplexStructure.inner_apply_apply_of_inner_eq hg (ψ.symm y) u v
   convert AlmostComplexStructure.smul_formHodgeStar_alternatizeUncurryFin_lefschetz_fin_zero
-    (inner_almostComplexStructureAt_apply_apply hg (ψ.symm y)) (o.orientationAt (ψ.symm y))
+    hJx (o.orientationAt (ψ.symm y))
     (l := l) (by omega) (by omega) (symbolInChart ψ f y) using 3
   · rw [formHodgeStarCLM_apply, hS]
   · ext u
