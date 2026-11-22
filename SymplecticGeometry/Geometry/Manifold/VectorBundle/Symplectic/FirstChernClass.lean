@@ -21,6 +21,8 @@ relates these classes to the operations on complex structures and to tameness:
   along a `Cⁿ` map `f` is the pull-back of the class of `J`;
 * `ContMDiffComplexStructure.firstChernClass_pushforward`: transport along an isomorphism of
   vector bundles does not change the class;
+* `ContMDiffComplexStructure.firstChernClass_neg`: the complex bundle of `-J` has the opposite
+  class, since it is the conjugate of the bundle of `J`;
 * `ContMDiffTwoForm.Tames.firstChernClass_eq`: two complex structures tamed by the same two-form,
   of any regularities, have the same class, since they give isomorphic complex bundles
   (`ContMDiffTwoForm.Tames.exists_complex_bundleEquiv`).
@@ -86,6 +88,23 @@ theorem firstChernClass_pushforward
     simp [pushforward_apply]
   exact firstChernClass_congr (fiberEquivOfCommute _ _ Φ hc)
     (continuous_fiberEquivOfCommute _ _ Φ hc hΦ.continuous)
+
+/-- **Negating a complex structure negates the first Chern class.** The complex bundle of `-J`
+has the opposite of the first Chern class of the complex bundle of `J`: through the identity of
+`V`, it is the conjugate of that bundle. -/
+@[simp]
+theorem firstChernClass_neg (J : ContMDiffComplexStructure I n F V) :
+    firstChernClass G (-J).toContinuousComplexStructure.Fiber =
+      -firstChernClass G J.toContinuousComplexStructure.Fiber := by
+  -- The identity of `V` intertwines `-J` with `-J`.
+  have hc : ∀ x v, ContinuousLinearEquiv.refl ℝ (V x) ((-J).toContinuousComplexStructure x v) =
+      -J.toContinuousComplexStructure x (ContinuousLinearEquiv.refl ℝ (V x) v) := fun x v ↦ by
+    rw [ContinuousLinearEquiv.refl_apply, ContinuousLinearEquiv.refl_apply,
+      toContinuousComplexStructure_apply, toContinuousComplexStructure_apply, neg_apply,
+      _root_.neg_apply]
+  rw [← firstChernClass_conj (G := G) (E := J.toContinuousComplexStructure.Fiber)]
+  exact (firstChernClass_congr (fiberEquivConjOfAnticommute _ _ _ hc)
+    (continuous_fiberEquivConjOfAnticommute _ _ _ hc (continuous_id.congr fun _ ↦ rfl))).symm
 
 end ContMDiffComplexStructure
 

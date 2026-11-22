@@ -8,7 +8,6 @@ module
 public import SymplecticGeometry.Geometry.Manifold.TubularNeighborhood.MFDeriv
 public import SymplecticGeometry.Geometry.Symplectic.Moser.Relative
 public import TauCeti.Geometry.Symplectic.SymplecticTransport
-import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Basic
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Opens
 import SymplecticGeometry.Geometry.Symplectic.Manifold.TwoForm
 import TauCeti.Geometry.Manifold.DifferentialForm.Opens
@@ -47,8 +46,6 @@ equality of forms on the source of `ψ' ∘ χ` into the equality of restricted 
 
 * `TauCeti.SmoothEmbedding.exists_symplectomorphism_opens_mfderiv_eq`: the symplectomorphism of
   open neighbourhoods with prescribed derivative along the embedded manifold.
-* `TauCeti.SmoothTwoForm.exists_diffeomorph_bot_mpullback_eq`: the empty open sets, with which
-  this theorem and the neighbourhood theorems handle an empty submanifold.
 
 ## References
 
@@ -60,27 +57,6 @@ public section
 
 open Bundle Manifold TopologicalSpace
 open scoped ContDiff Manifold Bundle
-
-namespace TauCeti.SmoothTwoForm
-
-variable {E₀ E₁ H₀ H₁ M₀ M₁ : Type*}
-  [NormedAddCommGroup E₀] [NormedSpace ℝ E₀] [NormedAddCommGroup E₁] [NormedSpace ℝ E₁]
-  [TopologicalSpace H₀] [TopologicalSpace H₁]
-  {I₀ : ModelWithCorners ℝ E₀ H₀} {I₁ : ModelWithCorners ℝ E₁ H₁}
-  [TopologicalSpace M₀] [ChartedSpace H₀ M₀] [IsManifold I₀ ∞ M₀]
-  [TopologicalSpace M₁] [ChartedSpace H₁ M₁] [IsManifold I₁ ∞ M₁]
-
-/-- The empty open sets of `M₀` and `M₁` are diffeomorphic, by a diffeomorphism that pulls the
-restriction of any two-form `ω₁` on `M₁` back to the restriction of any two-form `ω₀` on `M₀`. -/
-theorem exists_diffeomorph_bot_mpullback_eq (ω₀ : SmoothTwoForm I₀ M₀)
-    (ω₁ : SmoothTwoForm I₁ M₁) :
-    ∃ ψ : (⊥ : Opens M₀) ≃ₘ⟮I₀, I₁⟯ (⊥ : Opens M₁),
-      SmoothForm.mpullback ψ ψ.contMDiff
-          (SmoothForm.mpullback (Subtype.val : (⊥ : Opens M₁) → M₁) contMDiff_subtypeVal ω₁) =
-        SmoothForm.mpullback (Subtype.val : (⊥ : Opens M₀) → M₀) contMDiff_subtypeVal ω₀ :=
-  ⟨Diffeomorph.ofIsEmpty, Subtype.ext (funext isEmptyElim)⟩
-
-end TauCeti.SmoothTwoForm
 
 namespace TauCeti.SmoothEmbedding
 

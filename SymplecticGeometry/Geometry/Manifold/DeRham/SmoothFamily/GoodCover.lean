@@ -9,6 +9,7 @@ public import SymplecticGeometry.Geometry.Manifold.DeRham.GoodCover.Compact
 public import SymplecticGeometry.Geometry.Manifold.DeRham.SmoothFamily.Contractible
 public import SymplecticGeometry.Geometry.Manifold.DeRham.SmoothFamily.MayerVietoris
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
+import SymplecticGeometry.Topology.Sets.Opens.Basic
 
 /-!
 # Smooth families of primitives on manifolds with a finite good cover
@@ -101,14 +102,12 @@ theorem IsFiniteGoodCover.nonempty_smoothCohomologySplitting_iSup {ι : Type*} [
   | _ n ih =>
     subst hn
     rcases s.eq_empty_or_nonempty with rfl | ⟨a, ha⟩
-    · have : IsEmpty (⨆ a ∈ (∅ : Finset (Finset ι)), ⨅ i ∈ a, U i : Opens M) :=
-        ⟨fun ⟨_, hx⟩ ↦ by simp at hx⟩
+    · rw [show (⨆ a ∈ (∅ : Finset (Finset ι)), ⨅ i ∈ a, U i : Opens M) = ⊥ by simp]
       exact nonempty_smoothCohomologySplitting_of_isEmpty I _
     -- The member `V a` of the union: empty, or smoothly contractible.
     have hV : Nonempty (SmoothCohomologySplitting I (⨅ i ∈ a, U i : Opens M)) := by
       rcases ((⨅ i ∈ a, U i : Opens M) : Set M).eq_empty_or_nonempty with he | hne
-      · have : IsEmpty (⨅ i ∈ a, U i : Opens M) :=
-          ⟨fun x ↦ Set.eq_empty_iff_forall_notMem.mp he x x.property⟩
+      · rw [Opens.coe_eq_empty.1 he]
         exact nonempty_smoothCohomologySplitting_of_isEmpty I _
       · exact nonempty_smoothCohomologySplitting_of_isSmoothlyContractible I
           (hU.isSmoothlyContractible (hs a ha) hne)

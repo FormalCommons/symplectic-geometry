@@ -278,8 +278,8 @@ theorem exists_diffeomorph_opens_of_eq_along (f : SmoothEmbedding J I ∞ Q M)
   rcases isEmpty_or_nonempty W with hW | hW
   · -- If the tube is empty, so is `Q`, and the empty opens will do.
     have : IsEmpty Q := ⟨fun q ↦ hW.false ⟨f q, (hΦf q).1⟩⟩
-    refine ⟨⊥, ⊥, Diffeomorph.refl I _ ∞, isEmptyElim, Subtype.ext (funext fun x ↦ ?_)⟩
-    exact (Opens.mem_bot.1 x.property).elim
+    obtain ⟨φ, hφ⟩ := SmoothTwoForm.exists_diffeomorph_bot_mpullback_eq σ₀ σ₁
+    exact ⟨⊥, ⊥, φ, isEmptyElim, hφ⟩
   -- Read `Φ` in `M`, as a partial diffeomorphism `Ψ`, and then as a diffeomorphism `φ` between
   -- the source and the target of `Ψ`.
   let Ψ := Φ.liftOpens hW hW

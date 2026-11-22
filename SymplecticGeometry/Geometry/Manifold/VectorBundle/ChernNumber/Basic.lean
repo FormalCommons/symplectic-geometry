@@ -9,7 +9,6 @@ public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.Class
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.FirstChernClass
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.Pullback
 public import SymplecticGeometry.Topology.VectorBundle.Complex.FirstChernClass
-public import SymplecticGeometry.Topology.VectorBundle.Complex.Structure
 public import TauCeti.Geometry.Manifold.Degree.Homological
 
 /-!
@@ -52,7 +51,7 @@ not matter.
 
 public section
 
-open Bundle Module TauCeti TauCeti.Conjugate TauCeti.Bundle.ContinuousComplexStructure
+open Bundle Module TauCeti
 open scoped Manifold
 
 namespace SymplecticGeometry
@@ -165,17 +164,7 @@ theorem symplecticChernNumber_neg (ω : ContMDiffTwoForm 𝓘(ℝ, EM) n F V) :
     have hJ' : (-ω).Tames (-J) := ContMDiffTwoForm.neg_tames_neg_iff.2 hJ
     rw [symplecticChernNumber_eq_chernNumber o hn G hJ,
       symplecticChernNumber_eq_chernNumber o hn G hJ',
-      ← chernNumber_conj o hn G J.toContinuousComplexStructure.Fiber]
-    -- The identity of `V` intertwines `-J` with `-J`.
-    have hc : ∀ x v, ContinuousLinearEquiv.refl ℝ (V x) ((-J).toContinuousComplexStructure x v) =
-        -J.toContinuousComplexStructure x (ContinuousLinearEquiv.refl ℝ (V x) v) := fun x v ↦ by
-      rw [ContinuousLinearEquiv.refl_apply, ContinuousLinearEquiv.refl_apply,
-        ContMDiffComplexStructure.toContinuousComplexStructure_apply,
-        ContMDiffComplexStructure.toContinuousComplexStructure_apply,
-        ContMDiffComplexStructure.neg_apply, neg_apply]
-    exact (chernNumber_congr o hn (fiberEquivConjOfAnticommute _ _ _ hc)
-      (continuous_fiberEquivConjOfAnticommute _ _ _ hc
-        (continuous_id.congr fun _ ↦ rfl))).symm
+      chernNumber_def, chernNumber_def, J.firstChernClass_neg G, map_neg, ULift.neg_down]
   · have hex' : ¬∃ J : ContMDiffComplexStructure 𝓘(ℝ, EM) 0 F V, (-ω).Tames J := by
       rintro ⟨J, hJ⟩
       exact hex ⟨-J, ContMDiffTwoForm.neg_tames_neg_iff.1

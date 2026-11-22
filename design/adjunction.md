@@ -51,10 +51,10 @@ pinned versions, as for `DESIGN.md`. Tau Ceti paths are relative to
   orient the normal bundle, so that $T\Sigma\oplus\nu$ and $TX|_\Sigma$
   agree. The normal bundle is oriented directly by its complex structure,
   Tau Ceti's `TauCeti.VectorBundleOrientation.complex`, as `DESIGN.md`
-  decided. `orientation_prod_normalSpace` (in `SelfIntersection.lean`)
+  decided. `shortExact_orientationAt_normalSpace` (in `SelfIntersection.lean`)
   shows that this is the orientation the page means: with $X$ and $\Sigma$
-  oriented by $J$, the splitting carries the product orientation to that
-  of $X$.
+  oriented by $J$, the orientations of $\Sigma$ and $\nu$ induce that of
+  $X$ through the short exact sequence of the normal bundle.
 - **Characteristic numbers.** $c_1(TX,J)$ is *First Chern number*'s
   `SymplecticGeometry.Bundle.firstChernClass G` of the complex tangent bundle
   `(J.toContMDiff ⊤).toContinuousComplexStructure.Fiber` (Tau Ceti's
@@ -116,8 +116,8 @@ of the normal bundle). `complexEulerClass` is by definition the Euler class
 `VectorBundleOrientation.eulerClass` of `VectorBundleOrientation.complex`,
 reindexed, so this is the page's Euler number with no further translation.
 That the complex orientation is the one induced by the orientations of $X$
-and $\Sigma$ is the pointwise lemma `orientation_prod_normalSpace`, from Tau
-Ceti's `TauCeti.prod_complexOrientation` and
+and $\Sigma$ is the pointwise lemma `shortExact_orientationAt_normalSpace`, from Tau
+Ceti's `Orientation.shortExact`, `TauCeti.prod_complexOrientation` and
 `LinearEquiv.map_complexOrientation`. No
 Poincaré duality is used, and the equality with $Q_X([\Sigma],[\Sigma])$ for
 closed $X$ is not part of the milestone, as `DESIGN.md` says.
@@ -133,7 +133,7 @@ pull-back bundle `f *ᵖ TangentSpace I` over the compact surface, and with a
 symplectic form instead of a metric, so that *First Chern number*'s
 additivity, which is stated for symplectic bundles, applies to it directly:
 
-1. Let `Jf` be `f.pullbackComplexStructure J`, the pull-back of $J$ to
+1. Let `Jf` be `J.pullbackComplexStructure f f.contMDiff`, the pull-back of $J$ to
    `f *ᵖ TangentSpace I`, and `ω` a two-form compatible with `Jf`, given by
    the library's `ContMDiffComplexStructure.exists_compatible`
    (`Symplectic/ComplexStructure/Basic.lean`).
@@ -172,7 +172,9 @@ Chern number* need. *Almost complex manifolds*' `Metric.lean` is not used.
 
 The files under `Geometry/Manifold/SmoothEmbedding/NormalSpace/` are general
 (any dimensions, no compactness) and sit beside Tau Ceti's normal bundle
-files, as the review of #838 advised; the others
+files, as the review of #838 advised; the others,
+except the linear algebra of `shortExact_orientationAt_normalSpace`
+(`LinearAlgebra/ComplexStructure/Orientation.lean`),
 are in `Geometry/Symplectic/Manifold/AlmostComplex/`, beside Tau Ceti's folder of
 that name (none of Tau Ceti's files there has their names). The overview first
 named the single file `Geometry/Manifold/Complex/Adjunction.lean`; this
@@ -183,10 +185,12 @@ is updated to match. The list is in the order of the paths.
 | File | Contents | Issue |
 |---|---|---|
 | `Geometry/Manifold/SmoothEmbedding/NormalSpace/ComplexStructure.lean` | the complex structure that $J$ induces on the normal spaces and on the normal bundle | 1 |
+| `Geometry/Manifold/SmoothEmbedding/NormalSpace/Exact.lean` | the exact sequence of the differential and the normal class map | 3 |
 | `Geometry/Manifold/SmoothEmbedding/NormalSpace/Representative.lean` | the representative of a normal class in a complement, as a projection | 2 |
 | `Geometry/Symplectic/Manifold/AlmostComplex/AdjunctionFormula.lean` | the Chern number of the pulled-back tangent bundle, the milestone | 4 |
 | `Geometry/Symplectic/Manifold/AlmostComplex/NormalSplitting.lean` | the forms on the tangent and normal bundles and the symplectic splitting of the pulled-back tangent bundle | 2 |
 | `Geometry/Symplectic/Manifold/AlmostComplex/SelfIntersection.lean` | the self-intersection number, its Chern number, the orientation lemma | 3 |
+| `LinearAlgebra/ComplexStructure/Orientation.lean` | the orientation induced by an almost complex structure, and short exact sequences of complex-linear maps | 3 |
 
 ### `Geometry/Manifold/SmoothEmbedding/NormalSpace/ComplexStructure.lean`
 
@@ -211,6 +215,15 @@ take an embedding of any regularity `n` with `hn : n ≠ 0`.
   `@[simp] almostComplexStructureAt_normalComplexStructure`). Smoothness as in
   *Decisions*.
 
+### `Geometry/Manifold/SmoothEmbedding/NormalSpace/Exact.lean`
+
+Namespace `TauCeti.SmoothEmbedding`, for a smooth embedding of any
+regularity `n` over any field, with `hn : n ≠ 0`.
+
+- `exact_mfderiv_normalClass`: the differential at `x` and
+  `normalClass x hn` are exact (`Function.Exact`), from Tau Ceti's
+  `normalClass_ker`.
+
 ### `Geometry/Manifold/SmoothEmbedding/NormalSpace/Representative.lean`
 
 Namespace `TauCeti.SmoothEmbedding`, for an embedding of any regularity.
@@ -222,8 +235,11 @@ Namespace `TauCeti.SmoothEmbedding`, for an embedding of any regularity.
 ### `Geometry/Symplectic/Manifold/AlmostComplex/NormalSplitting.lean`
 
 Namespace `TauCeti.SmoothEmbedding`, for `f`, `J`, `hJ` as above, with
-`Jf = f.pullbackComplexStructure J`, the pull-back of $J$ to
-`f *ᵖ TangentSpace I` (`pullbackComplexStructure_apply`). No hypothesis on
+`Jf = J.pullbackComplexStructure f f.contMDiff`, the pull-back of $J$ to
+`f *ᵖ TangentSpace I`, defined for any smooth map as
+`TauCeti.SmoothAlmostComplexStructure.pullbackComplexStructure` in
+`Geometry/Manifold/VectorBundle/ComplexStructure.lean`, with
+`pullbackComplexStructure_apply`. No hypothesis on
 `M` is needed: a form compatible with `Jf` comes from the library's
 `ContMDiffComplexStructure.exists_compatible` where it is used. The
 statements take a form `ω : ContMDiffTwoForm I' ⊤ E (f *ᵖ TangentSpace I)`
@@ -268,22 +284,44 @@ Namespace `TauCeti.SmoothEmbedding`, for a surface `M` in `X` with
   of `TauCeti.complexEulerClass ℂ ν_J _`, with `ν_J` the complex line bundle
   `(f.normalComplexStructure _ J hJ).toContinuousComplexStructure.Fiber` of
   model `ℂ`; with `selfIntersectionNumber_def` by `(rfl)`. Its docstring
-  says that this is the Euler number of the normal bundle oriented by its
-  complex structure.
+  says that this is $\langle e(\nu_J), [M, o]\rangle$, the Euler number of the
+  normal bundle oriented by its complex structure, and that it is the
+  self-intersection number when `o` is the orientation given by $J$ (`ho`).
 - `selfIntersectionNumber_eq_chernNumber`: it equals *First Chern number*'s
   `Bundle.chernNumber oₕ ℂ ν_J`, by `firstChernClass_eq_complexEulerClass`.
-- `selfIntersectionNumber_neg_orientation`: reversing `o` negates it, from
+- `selfIntersectionNumber_neg_orientation`: reversing `o` negates the number, from
   `chernNumber_neg_orientation`.
-- `orientation_prod_normalSpace`: under `ho`, at each point `c`, for any
-  `J`-invariant complement $W'$ of the tangent image, the isomorphism
-  $T_c\Sigma\times\nu_c\to T_{f c}X$, $(u,a)\mapsto df\,u+r_{W'}a$, carries
-  the product of `o.orientationAt c` and the complex orientation of
-  $(\nu_c, J_\nu)$ to the complex orientation of $(T_{f c}X, J)$. The map is
-  complex linear for the restriction of $J$, the descended structure and
-  $J$, so `LinearEquiv.map_complexOrientation` and
-  `prod_complexOrientation` apply, and `ho` says that the complex
-  orientation of $(T_c\Sigma, j)$ is `o.orientationAt c`, with $j$ read on
-  the tangent image through Tau Ceti's `AlmostComplexStructure.restrict`.
+- `shortExact_orientationAt_normalSpace`: under `ho` at a point `c`, Tau
+  Ceti's `Orientation.shortExact` of the sequence
+  $0\to T_c\Sigma\to T_{f c}X\to\nu_c\to 0$ (the differential and
+  `normalClass`, exact by `exact_mfderiv_normalClass` of
+  `NormalSpace/Exact.lean`) sends
+  `o.orientationAt c` and the complex orientation of $(\nu_c, J_\nu)$ to the
+  complex orientation of $(T_{f c}X, J)$. No splitting is chosen. The complex
+  orientations are `AlmostComplexStructure.orientation` of
+  `LinearAlgebra/ComplexStructure/Orientation.lean` (below); its
+  `shortExact_orientation` is the statement for the tangent image, and `ho`
+  says, through `map_eq_orientation_of_apply_one_eq`, that $df$ carries
+  `o.orientationAt c` to the orientation of the restriction of $J$ to the
+  tangent image (Tau Ceti's `AlmostComplexStructure.restrict`).
+
+### `LinearAlgebra/ComplexStructure/Orientation.lean`
+
+Namespace `TauCeti.AlmostComplexStructure`, for an almost complex structure
+`J` on a finite-dimensional real vector space `V`.
+
+- `orientation J`, indexed by `Fin (finrank ℝ V)`: Tau Ceti's
+  `complexOrientation` of `V` with the complex structure `J.complexModule`,
+  with `orientation_def`.
+- `map_orientation` (complex-linear isomorphisms carry one orientation to
+  the other), `orientation_prod` (the orientation of `J₁.prod J₂` is the
+  product orientation) and `orientation_eq_of_apply_one_eq` (in real
+  dimension two, a basis $(e, Je)$ gives the orientation of `J`).
+- `shortExact_orientation`: for a short exact sequence
+  $0\to U\to V\to W\to 0$ whose maps are complex linear for `J₁`, `J`
+  and `J₂`, `Orientation.shortExact` sends the orientations of `J₁` and
+  `J₂` to that of `J`. The proof splits the sequence along a complex-linear
+  section, so no invariant complement appears in the statement.
 
 ### `Geometry/Symplectic/Manifold/AlmostComplex/AdjunctionFormula.lean`
 
@@ -315,7 +353,7 @@ Namespace `TauCeti.SmoothEmbedding`, for a surface `M` in `X` with
   second form, $K\cdot\Sigma+\Sigma\cdot\Sigma=2g-2$ with $K=-c_1(TX,J)$, is
   the same equation, and is not stated again. Proof: choose `ω` by
   `ContMDiffComplexStructure.exists_compatible` for
-  `f.pullbackComplexStructure J`. Then
+  `J.pullbackComplexStructure f f.contMDiff`. Then
 
   - $\langle c_1(TX,J),[\Sigma]\rangle$ is `chernNumber` of `Jf` by
     `chernNumber_pullback_complexStructure`, which is
@@ -386,7 +424,7 @@ sub-issues of #879, *Build the part Adjunction*. Sizes are estimates.
 |---|---|---|---|---|
 | 1 | The complex structure on the normal bundle | `Geometry/Manifold/SmoothEmbedding/NormalSpace/ComplexStructure.lean` | — | 200 |
 | 2 | The symplectic splitting of the tangent bundle along a $J$-invariant submanifold | `AlmostComplex/NormalSplitting.lean`, `NormalSpace/Representative.lean` | 1 | 400 |
-| 3 | The self-intersection number | `AlmostComplex/SelfIntersection.lean` | 1; #784 | 250 |
+| 3 | The self-intersection number | `AlmostComplex/SelfIntersection.lean`, `LinearAlgebra/ComplexStructure/Orientation.lean`, `NormalSpace/Exact.lean` | 1; #784 | 250 |
 | 4 | The adjunction formula | `AlmostComplex/AdjunctionFormula.lean` | 2, 3; #784, #788 | 200 |
 
 Issue 1 can start once this design is merged, and issue 2 after it; both
