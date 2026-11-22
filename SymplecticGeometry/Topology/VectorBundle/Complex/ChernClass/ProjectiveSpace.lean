@@ -203,18 +203,10 @@ theorem aeval_hyperplaneClass_eq_zero_iff (hV : finrank ℂ V = n + 1) (p : ℤ[
   ext i
   rw [coeff_zero]
   rcases le_or_gt i n with hi | hi
-  · -- The component of degree `2i` of `r(h)` is `rᵢ • h ^ i`.
-    have hri := congrArg (fun y : (TopCat.of (ℙ ℂ V)).EvenIntegralCohomology ↦ y i) hr
-    rw [aeval_def, algebraMap_int_eq, eval₂_eq_sum_range] at hri
-    simp only [eq_intCast, ← zsmul_eq_mul, DirectSum.sum_apply, DirectSum.zero_apply] at hri
-    rw [Finset.sum_eq_single i] at hri
-    · rw [DFinsupp.zsmul_apply] at hri
-      exact (bijective_zsmul_hyperplaneClass_pow hV hi).1 (hri.trans (zero_smul ℤ _).symm)
-    · intro j _ hj
-      rw [DFinsupp.zsmul_apply, TopCat.evenIntegralCohomologyOf_pow_apply_of_ne _ _ (Ne.symm hj),
-        zsmul_zero]
-    · intro h
-      rw [coeff_eq_zero_of_natDegree_lt (by simpa using h), zero_smul, DirectSum.zero_apply]
+  · have hri := (TopCat.aeval_evenIntegralCohomologyOf_apply _ (hyperplaneClass V) r i).symm.trans
+      (congrArg (fun y : (TopCat.of (ℙ ℂ V)).EvenIntegralCohomology ↦ y i) hr)
+    rw [DirectSum.zero_apply] at hri
+    exact (bijective_zsmul_hyperplaneClass_pow hV hi).1 (hri.trans (zero_smul ℤ _).symm)
   · exact coeff_eq_zero_of_degree_lt ((degree_modByMonic_lt p (monic_X_pow (n + 1))).trans_le
       (by rw [degree_X_pow]; exact_mod_cast hi))
 
@@ -241,24 +233,15 @@ theorem surjective_aeval_hyperplaneClass (hV : finrank ℂ V = n + 1) :
     obtain ⟨q, rfl⟩ := hz
     exact ⟨p + q, map_add _ p q⟩
 
-/-- Evaluation at the hyperplane class, on `ℤ[X] ⧸ (X ^ (n + 1))`, is bijective. -/
-private lemma bijective_quotientLift_aeval (hV : finrank ℂ V = n + 1) :
-    Function.Bijective (Ideal.Quotient.lift (Ideal.span {(X ^ (n + 1) : ℤ[X])})
-      (aeval ((TopCat.of (ℙ ℂ V)).evenIntegralCohomologyOf 1 (hyperplaneClass V))).toRingHom
-      fun p hp ↦ (aeval_hyperplaneClass_eq_zero_iff hV p).2 (Ideal.mem_span_singleton.1 hp)) := by
-  refine ⟨(injective_iff_map_eq_zero _).2 fun a ha ↦ ?_, fun y ↦ ?_⟩
-  · obtain ⟨p, rfl⟩ := Ideal.Quotient.mk_surjective a
-    rw [Ideal.Quotient.lift_mk, AlgHom.toRingHom_eq_coe, RingHom.coe_coe] at ha
-    exact Ideal.Quotient.eq_zero_iff_mem.2 (Ideal.mem_span_singleton.2
-      ((aeval_hyperplaneClass_eq_zero_iff hV p).1 ha))
-  · obtain ⟨p, rfl⟩ := surjective_aeval_hyperplaneClass hV y
-    exact ⟨Ideal.Quotient.mk _ p, Ideal.Quotient.lift_mk _ _ _⟩
-
 /-- **The integral cohomology ring of `ℂPⁿ`.** For `finrank ℂ V = n + 1`, the even integral
 cohomology ring of `ℙ ℂ V` is `ℤ[X] ⧸ (X ^ (n + 1))`, with `X` sent to the hyperplane class. -/
 def evenIntegralCohomologyEquiv (hV : finrank ℂ V = n + 1) :
     ℤ[X] ⧸ Ideal.span {(X ^ (n + 1) : ℤ[X])} ≃+* (TopCat.of (ℙ ℂ V)).EvenIntegralCohomology :=
-  RingEquiv.ofBijective _ (bijective_quotientLift_aeval hV)
+  (Ideal.quotEquivOfEq (by
+      ext p
+      rw [RingHom.mem_ker, Ideal.mem_span_singleton]
+      exact (aeval_hyperplaneClass_eq_zero_iff hV p).symm)).trans
+    (RingHom.quotientKerEquivOfSurjective (surjective_aeval_hyperplaneClass hV))
 
 /-- `Projectivization.evenIntegralCohomologyEquiv` sends the class of a polynomial `p` to `p`
 evaluated at the hyperplane class. -/
@@ -266,8 +249,9 @@ evaluated at the hyperplane class. -/
 theorem evenIntegralCohomologyEquiv_mk (hV : finrank ℂ V = n + 1) (p : ℤ[X]) :
     evenIntegralCohomologyEquiv hV (Ideal.Quotient.mk (Ideal.span {(X ^ (n + 1) : ℤ[X])}) p) =
       aeval ((TopCat.of (ℙ ℂ V)).evenIntegralCohomologyOf 1 (hyperplaneClass V)) p := by
-  rw [evenIntegralCohomologyEquiv, RingEquiv.ofBijective_apply, Ideal.Quotient.lift_mk,
-    AlgHom.toRingHom_eq_coe, RingHom.coe_coe]
+  rw [evenIntegralCohomologyEquiv, RingEquiv.trans_apply, Ideal.quotEquivOfEq_mk,
+    RingHom.quotientKerEquivOfSurjective_apply_mk, AlgHom.toRingHom_eq_coe,
+    RingHom.coe_coe]
 
 /-- `Projectivization.evenIntegralCohomologyEquiv` sends `X` to the hyperplane class. -/
 theorem evenIntegralCohomologyEquiv_mk_X (hV : finrank ℂ V = n + 1) :

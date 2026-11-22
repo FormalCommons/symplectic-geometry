@@ -7,6 +7,7 @@ module
 
 public import TauCeti.AlgebraicTopology.Cohomology.IntegralCup
 public import Mathlib.Algebra.DirectSum.Ring
+public import Mathlib.Algebra.Polynomial.AlgebraMap
 import all TauCeti.AlgebraicTopology.Cohomology.IntegralCup
 
 /-!
@@ -26,6 +27,8 @@ the direct sum `⨁ k, H^{2k}(X; ℤ)` is a commutative ring. This file builds i
 * `TopCat.evenIntegralCohomologyOf_pow_eq_of`, `TopCat.evenIntegralCohomologyOf_pow_apply_of_ne`
   and `TopCat.evenIntegralCohomologyOf_pow_succ_apply`: the powers of a class of degree two are
   homogeneous, `a ^ (k + 1)` being `a ^ k ⌣ a` in degree `2(k + 1)`.
+* `TopCat.aeval_evenIntegralCohomologyOf_apply`: for a class `a` of degree two and `p ∈ ℤ[X]`,
+  the component of degree `2i` of `p(a)` is `pᵢ • a ^ i`.
 * `TopCat.evenIntegralCohomologyMap f`: the ring map induced by a continuous map `f : X ⟶ Y`,
   the pull-back in each degree, with `evenIntegralCohomologyMap_of`,
   `evenIntegralCohomologyMap_toAddMonoidHom` (as an additive map, the direct sum of the
@@ -167,6 +170,22 @@ theorem evenIntegralCohomologyOf_pow_succ_apply (a : X.integralCohomology 2) (k 
         ((X.evenIntegralCohomologyOf 1 a ^ k) k) a := by
   conv_lhs => rw [pow_succ, evenIntegralCohomologyOf_pow_eq_of, evenIntegralCohomologyOf_mul]
   exact DirectSum.of_eq_same _ _
+
+/-- For a class `a` of degree two and a polynomial `p ∈ ℤ[X]`, the component of degree `2i` of
+`p(a)` is the `i`-th coefficient of `p` times the component of degree `2i` of `a ^ i`. -/
+theorem aeval_evenIntegralCohomologyOf_apply (a : X.integralCohomology 2) (p : Polynomial ℤ)
+    (i : ℕ) : (Polynomial.aeval (X.evenIntegralCohomologyOf 1 a) p) i =
+      p.coeff i • (X.evenIntegralCohomologyOf 1 a ^ i) i := by
+  rw [Polynomial.aeval_def, algebraMap_int_eq, Polynomial.eval₂_eq_sum_range]
+  simp only [eq_intCast, ← zsmul_eq_mul, DirectSum.sum_apply]
+  rw [Finset.sum_eq_single i]
+  · rw [DFinsupp.zsmul_apply]
+  · intro j _ hj
+    rw [DFinsupp.zsmul_apply, evenIntegralCohomologyOf_pow_apply_of_ne _ _ (Ne.symm hj),
+      zsmul_zero]
+  · intro h
+    rw [Polynomial.coeff_eq_zero_of_natDegree_lt (by simpa using h), zero_smul,
+      DirectSum.zero_apply]
 
 variable {X} {Y Z : TopCat.{0}}
 
