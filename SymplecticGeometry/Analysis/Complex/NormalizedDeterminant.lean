@@ -10,9 +10,9 @@ public import TauCeti.Analysis.Complex.NormalizedDeterminant
 /-!
 # The normalized determinant of a scalar automorphism
 
-A fact about Tau Ceti's `ContinuousLinearEquiv.normalizedDet`: an automorphism of a
-finite-dimensional complex space that acts as multiplication by a point `z` of the unit circle
-has normalized determinant `z ^ n`, where `n` is the dimension.
+A fact about Tau Ceti's `ContinuousLinearEquiv.normalizedDet`: an automorphism of a complex
+normed space that acts as multiplication by a point `z` of the unit circle has normalized
+determinant `z ^ finrank ℂ E`. In infinite dimension both sides are `1`.
 
 ## Main results
 
@@ -27,8 +27,8 @@ namespace ContinuousLinearEquiv
 variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℂ E]
 
 /-- An automorphism that is multiplication by a point `z` of the unit circle has normalized
-determinant `z ^ n`, where `n` is the complex dimension. -/
-theorem normalizedDet_eq_pow_of_apply_eq_smul [FiniteDimensional ℂ E] (A : E ≃L[ℂ] E)
+determinant `z ^ finrank ℂ E`. -/
+theorem normalizedDet_eq_pow_of_apply_eq_smul (A : E ≃L[ℂ] E)
     (z : Circle) (h : ∀ v, A v = (z : ℂ) • v) :
     A.normalizedDet = z ^ Module.finrank ℂ E := by
   have hA : (A.toLinearEquiv : E →ₗ[ℂ] E) = (z : ℂ) • LinearMap.id := LinearMap.ext h

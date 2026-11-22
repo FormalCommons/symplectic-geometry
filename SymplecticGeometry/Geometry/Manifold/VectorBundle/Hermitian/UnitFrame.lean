@@ -99,7 +99,6 @@ theorem trans_unitFrame_symm_apply {x : B} (φ ψ : Fiber ℂ F E ℂ x) (v : F)
 element `division Circle φ ψ` of the circle that carries `φ` to `ψ`. -/
 theorem normalizedDet_trans_unitFrame_symm {x : B} (φ ψ : Fiber ℂ F E ℂ x) :
     ((unitFrame e ψ).trans (unitFrame e φ).symm).normalizedDet = division Circle φ ψ := by
-  have := FiniteDimensional.of_fact_finrank_eq_succ (K := ℂ) (V := F) 0
   rw [ContinuousLinearEquiv.normalizedDet_eq_pow_of_apply_eq_smul _ _
     (trans_unitFrame_symm_apply e φ ψ), Fact.out (p := finrank ℂ F = 1), pow_one]
 
