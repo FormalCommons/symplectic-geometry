@@ -385,15 +385,18 @@ The manifold, in `TauCeti.SymplecticForm`.
 
 ### `Geometry/Manifold/Instances/SiegelUpperHalfSpace.lean`
 
-With `open scoped Matrix.Norms.Operator`, in `SymplecticGeometry.SiegelUpperHalfSpace`:
+With `open scoped Matrix.Norms.Operator` and Tau Ceti's
+`Matrix.linftyOpTopologicalSpace` as a local instance, in
+`SymplecticGeometry.SiegelUpperHalfSpace`:
 
 writing `𝒮ι` for `selfAdjointMatricesSubmodule (1 : Matrix ι ι ℂ)` (a local
 notation of the file):
 
 - `instance : ChartedSpace 𝒮ι (SiegelUpperHalfSpace ι)`, from
   `isOpenEmbedding_toSymm` composed with the homeomorphism of decision 9,
-  `instance : IsManifold 𝓘(ℂ, 𝒮ι) ∞ _`, and its real
-  counterpart if Mathlib does not derive it; `chartAt_eq`;
+  `instance : IsManifold 𝓘(𝕜, 𝒮ι) n _` for every `n` and every
+  `[NormedAlgebra 𝕜 ℂ]`, which gives the complex and the real structure;
+  `chartAt_eq`;
 - `contMDiff_coe`, `contMDiff_iff_coe_comp` (smoothness of maps in and out,
   read through the inclusion into matrices).
 
@@ -592,7 +595,8 @@ is the conjunct on `compatibleTransport`. No entry in `ERRATA.md` is needed.
 - *Siegel upper half space* (merged): `SiegelUpperHalfSpace`, `toSymm`,
   `isOpenEmbedding_toSymm`, `complexStructureMatrix`,
   `ofComplexStructureMatrix`, `compatibleEquiv` and its two coercion lemmas,
-  `contDiffOn_complexStructureMatrix`, `contDiffOn_ofComplexStructureMatrix`;
+  `contDiffOn_complexStructureMatrix`, `contDiffOn_ofComplexStructureMatrix`,
+  `Matrix.isSelfAdjoint_one_iff_isSymm` (`LinearAlgebra/Matrix/Symmetric.lean`);
   and from Mathlib `selfAdjointMatricesSubmodule`,
   `mem_selfAdjointMatricesSubmodule` and `Homeomorph.subtype`.
 - *Lagrangian Grassmannian* (merged): `Matrix.finrank_selfAdjoint`
@@ -607,7 +611,8 @@ is the conjunct on `compatibleTransport`. No entry in `ERRATA.md` is needed.
   `isSymplectomorphism_iff_transport_eq`, `SymplecticForm.exists_compatible`,
   `SymplecticForm.even_finrank`, `SmoothForm.mpullback` with its naturality
   lemmas, `SmoothForm.bilinFormAt`, `Manifold.IsSmoothEmbedding.contMDiff_iff_comp`,
-  `EMetricSpace.ofRiemannianMetric`. Models that the building issues credit:
+  `EMetricSpace.ofRiemannianMetric`, `Matrix.linftyOpTopologicalSpace`.
+  Models that the building issues credit:
   `Geometry/Manifold/Instances/PositiveDefiniteMatrix.lean` (a matrix
   manifold with a chosen matrix norm), `Riemannian/Nil/Basic.lean` and
   `Riemannian/Nil/Connection.lean` (a global metric instance and its

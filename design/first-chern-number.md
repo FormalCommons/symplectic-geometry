@@ -1004,6 +1004,16 @@ issues, in an order where each issue's blockers come before it.
      the local orientation of the identity chart of an oriented inner
      product space, through the connecting morphism and radial projection,
      is the oriented generator of the unit sphere.
+   - `AlgebraicTopology/Singular/LocalHomology/Orientation/Chart.lean`, used
+     by `Orientation/Linear.lean`: from Tau Ceti's main branch, which the
+     pinned version lags,
+     `LinearIsometryEquiv.snd_ofSubsetMap_comp_complSingletonHomotopyEquivSphere`,
+     linear isometries commute with radial projection.
+   - `AlgebraicTopology/Singular/LocalHomology/Orientation/Linear.lean`, used
+     by `DiscBoundaryClass.lean`: from Tau Ceti's main branch,
+     `Orientation.localOrientation_eq_localOrientationOfOrientedChart_refl`,
+     on an inner product space the local orientation that an orientation
+     selects is the one of the identity chart.
    - `AlgebraicTopology/Singular/LocalHomology/BoundaryClass.lean`, imported
      by `DiscBoundaryClass.lean` and `BoundaryDegree.lean`: in any dimension `n + 1`,
      `TauCeti.HomologicalOrientation.boundaryClass`, the image of
@@ -1036,18 +1046,23 @@ issues, in an order where each issue's blockers come before it.
      (when the components of `∂X` are parametrized by loops whose classes add
      up to the boundary class, it is the sum of `Circle.degree` of `u` along
      them).
+   - `Topology/VectorBundle/Orientation/SectionIndex/FiberwiseEquiv.lean`,
+     used by `ArgumentPrinciple.lean`, beside Tau Ceti's `SectionIndex`
+     files: `TauCeti.VectorBundleOrientation.sectionIndex_eq_of_fiberwise`,
+     orientation-preserving fibrewise isomorphisms preserve local indices.
    - `Topology/VectorBundle/Orientation/ArgumentPrinciple.lean`, beside Tau
      Ceti's `SectionIndex` files. The boundary term needs a trivialization
      over the whole of `X`: with one only over `∂X` the statement is false
      (on the disc, twisting the boundary trivialization by $e^{i\theta}$
      changes the degree but not the zeros). So: let `L` be a real plane
-     bundle over `X` with a frame `τ` over all of `X` (a continuous family of
-     linear isomorphisms `ℂ ≃L[ℝ] L x`), oriented by `τ`, and `t` a
+     bundle over `X` with a frame `τ` over all of `X` (linear isomorphisms
+     `τ x : L x ≃L[ℝ] ℂ`, continuous on the total space), oriented so that
+     `τ` carries its orientation to `Complex.orientation`, and `t` a
      continuous section whose zeros are finitely many and lie in `ι(M)`.
      Then `TauCeti.VectorBundleOrientation.sum_sectionIndex_eq_boundaryDegree`:
      the sum over those zeros of the `sectionIndex` of `t` restricted along
      `ι` equals `o.boundaryDegree … u`, with `u` the normalization of
-     `τ⁻¹ t` on `∂X`. Route: by excision both sides are local homology
+     `τ t` on `∂X`. Route: by excision both sides are local homology
      computations near the zeros and near `∂X`, joined by the connecting
      morphism of `(X, ∂X)`.
    - `Geometry/Manifold/VectorBundle/Section/ArgumentPrinciple.lean`, beside
