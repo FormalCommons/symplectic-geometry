@@ -67,14 +67,13 @@ theorem isCollared_inclusion_levelSet (hg : ContMDiff I 𝓘(ℝ) ∞ g)
   obtain ⟨e, he₂, he₁⟩ := exists_bandHomeomorph hg' hcpt hreg
   have hlev : g ⁻¹' {0} ⊆ (-g) ⁻¹' {0} := fun x hx ↦ by simp_all
   have hband : (-g) ⁻¹' Icc 0 ε ⊆ g ⁻¹' Iic 0 := fun x hx ↦ by simpa using hx.1
-  have hscale : MapsTo (ε * ·) (Ico (0 : ℝ) 1) (Icc 0 ε) := fun t ht ↦
-    ⟨by nlinarith [ht.1], by nlinarith [ht.2]⟩
   -- The collar, `(y, t) ↦ e⁻¹ (y, ε t)`.
   let k : g ⁻¹' {0} × Ico (0 : ℝ) 1 → (-g) ⁻¹' {0} × Icc 0 ε :=
-    Prod.map (inclusion hlev) (hscale.restrict _ _ _)
+    Prod.map (inclusion hlev) (inclusion Ico_subset_Icc_self ∘ icoScale hε)
   have hk : IsEmbedding k := (IsEmbedding.inclusion hlev).prodMap
-    ((Homeomorph.mulLeft₀ ε hε.ne').isEmbedding.restrict hscale)
-  have hkp (p) : ((k p).2 : ℝ) = ε * p.2 := hscale.val_restrict_apply p.2
+    ((IsEmbedding.inclusion _).comp (icoScale hε).isEmbedding)
+  have hkp (p) : ((k p).2 : ℝ) = ε * p.2 :=
+    (coe_inclusion Ico_subset_Icc_self _).trans (coe_icoScale hε p.2)
   refine IsCollar.isCollared (c := inclusion hband ∘ e.symm ∘ k)
     ⟨⟨(IsEmbedding.inclusion hband).comp (e.symm.isEmbedding.comp hk), ?_⟩, fun y ↦ ?_⟩
   · -- The image of the collar is `{-ε < g}` inside `{g ≤ 0}`.
@@ -90,15 +89,15 @@ theorem isCollared_inclusion_levelSet (hg : ContMDiff I 𝓘(ℝ) ∞ g)
       nlinarith [p.2.property.2]
     · intro hx
       have hx0 : g x ≤ 0 := x.property
-      have hxb : (x : M) ∈ (-g) ⁻¹' Icc 0 ε := ⟨by simpa using hx0, by simp; linarith⟩
+      have hxb : (x : M) ∈ (-g) ⁻¹' Icc 0 ε := ⟨by simpa using hx0, by rw [Pi.neg_apply]; linarith⟩
       have h2 : ((e ⟨x, hxb⟩).2 : ℝ) = -g x := he₂ _
       have hq1 : g (e ⟨x, hxb⟩).1 = 0 := neg_eq_zero.1 (e ⟨x, hxb⟩).1.property
-      have hmem : ((e ⟨x, hxb⟩).2 : ℝ) / ε ∈ Ico (0 : ℝ) 1 := by
-        rw [h2, mem_Ico, le_div_iff₀ hε, div_lt_one hε]
-        constructor <;> linarith
-      have hk : k (⟨(e ⟨x, hxb⟩).1, hq1⟩, ⟨_, hmem⟩) = e ⟨x, hxb⟩ :=
-        Prod.ext (Subtype.ext (coe_inclusion hlev _)) (Subtype.ext (mul_div_cancel₀ _ hε.ne'))
-      exact ⟨(⟨(e ⟨x, hxb⟩).1, hq1⟩, ⟨_, hmem⟩), Subtype.ext (by simp [hk])⟩
+      have hmem : ((e ⟨x, hxb⟩).2 : ℝ) ∈ Ico 0 ε := ⟨(e ⟨x, hxb⟩).2.property.1, by linarith⟩
+      have hk : k (⟨(e ⟨x, hxb⟩).1, hq1⟩, (icoScale hε).symm ⟨_, hmem⟩) = e ⟨x, hxb⟩ :=
+        Prod.ext (Subtype.ext (coe_inclusion hlev _))
+          (Subtype.ext ((coe_inclusion Ico_subset_Icc_self _).trans
+            (congrArg Subtype.val ((icoScale hε).apply_symm_apply _))))
+      exact ⟨(⟨(e ⟨x, hxb⟩).1, hq1⟩, (icoScale hε).symm ⟨_, hmem⟩), Subtype.ext (by simp [hk])⟩
   · have hy0 : g y = 0 := y.property
     have hy : (y : M) ∈ (-g) ⁻¹' Icc 0 ε := by simp [hy0, hε.le]
     have hk : k (y, ⟨0, by norm_num⟩) = e ⟨y, hy⟩ :=
