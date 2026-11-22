@@ -52,9 +52,12 @@ are smooth on smooth families; the other writes `T (α t)` as `∑ i, c i t • 
   coordinates in a finite basis are smooth along smooth families, followed by any linear map,
   preserves smooth families; and `PreservesSmoothFamilies.comp_of_finiteDimensional`: a map
   that preserves smooth families into a finite-dimensional space of forms may be followed by
-  any linear map; `SymplecticGeometry.isSmoothFamily_of_contMDiff_dual`: a family in a finite
-  free module whose values under linear functionals are smooth is carried by any
-  linear map to a smooth family of forms.
+  any linear map.
+* `SymplecticGeometry.isSmoothFamily_comp_of_contMDiff_repr`: a family of vectors of a space
+  with a finite basis, over any manifold, whose coordinates are smooth, is carried by any linear
+  map to a smooth family of forms; `SymplecticGeometry.isSmoothFamily_of_contMDiff_dual`: the
+  same for a finite-dimensional space, with the values of all linear functionals in place of
+  the coordinates.
 
 ## References
 
@@ -221,6 +224,41 @@ theorem PreservesSmoothFamilies.contMDiff_dual_apply [FiniteDimensional ℝ S] {
   | add f g _ _ hf hg => exact hf.add hg
   | smul c f _ hf => exact ((contDiff_const_smul c).contMDiff).comp hf
 
+section Families
+
+variable {EN HN N : Type*} [NormedAddCommGroup EN] [NormedSpace ℝ EN] [TopologicalSpace HN]
+  [TopologicalSpace N] [ChartedSpace HN N] {J : ModelWithCorners ℝ EN HN} [IsManifold J 1 N]
+  {X : Type*} [AddCommGroup X] [Module ℝ X]
+
+/-- **Families with smooth coordinates.** Let `b` be a finite basis of a real vector space `X`
+and `x` a family of vectors of `X`, indexed by a manifold `N`, whose coordinates
+`t ↦ b.repr (x t) i` are smooth. Then its image under any linear map `L` from `X` to forms is a
+smooth family. -/
+theorem isSmoothFamily_comp_of_contMDiff_repr {ι : Type*} [Finite ι] (b : Module.Basis ι ℝ X)
+    (L : X →ₗ[ℝ] SmoothForm I' M' G l) {x : N → X}
+    (hx : ∀ i, ContMDiff J 𝓘(ℝ) ∞ (fun t ↦ b.repr (x t) i)) :
+    IsSmoothFamily J (fun t ↦ L (x t)) := by
+  cases nonempty_fintype ι
+  have hsum : (fun t ↦ L (x t)) = fun t ↦ ∑ i, b.repr (x t) i • L (b i) := by
+    funext t
+    conv_lhs => rw [← b.sum_repr (x t)]
+    simp only [map_sum, map_smul]
+  rw [hsum]
+  exact IsSmoothFamily.sum fun i _ ↦ (isSmoothFamily_const (L (b i))).fun_smul (hx i)
+
+/-- **Families in a finite-dimensional space.** Let `x` be a family of vectors of a
+finite-dimensional real vector space `X`, indexed by a manifold `N`, such that `t ↦ f (x t)` is
+smooth for every linear functional `f` on `X`. Then its image under any linear map `L` from `X`
+to forms is a smooth family. -/
+theorem isSmoothFamily_of_contMDiff_dual [FiniteDimensional ℝ X]
+    (L : X →ₗ[ℝ] SmoothForm I' M' G l) {x : N → X}
+    (hx : ∀ f : Module.Dual ℝ X, ContMDiff J 𝓘(ℝ) ∞ (fun t ↦ f (x t))) :
+    IsSmoothFamily J (fun t ↦ L (x t)) :=
+  isSmoothFamily_comp_of_contMDiff_repr (Module.finBasis ℝ X) L fun i ↦
+    hx ((Module.finBasis ℝ X).coord i)
+
+end Families
+
 /-- Let `b` be a finite basis of a space `S` of forms, and `T : D →ₗ[ℝ] S` a map whose
 coordinates `t ↦ b.repr (T (α t)) i` are smooth along every smooth family `α`. Then `T`
 followed by any linear map `U` on `S` preserves smooth families. -/
@@ -228,16 +266,9 @@ theorem preservesSmoothFamilies_comp_of_contMDiff_repr {ι : Type*} [Finite ι]
     (b : Module.Basis ι ℝ S) {T : D →ₗ[ℝ] S}
     (h : ∀ α : unitInterval → D, IsSmoothFamily (𝓡∂ 1) (fun t ↦ (α t : SmoothForm I M F k)) →
       ∀ i, ContMDiff (𝓡∂ 1) 𝓘(ℝ) ∞ (fun t ↦ b.repr (T (α t)) i))
-    (U : S →ₗ[ℝ] SmoothForm I'' M'' G' l') : PreservesSmoothFamilies (U ∘ₗ T) := by
-  cases nonempty_fintype ι
-  have hsum : U ∘ₗ T = ∑ i, (b.coord i ∘ₗ T).smulRight (U (b i)) := by
-    ext x : 1
-    simp only [LinearMap.comp_apply, LinearMap.sum_apply, LinearMap.smulRight_apply,
-      Module.Basis.coord_apply]
-    conv_lhs => rw [← b.sum_repr (T x)]
-    simp only [map_sum, map_smul]
-  rw [hsum]
-  exact preservesSmoothFamilies_sum_smulRight _ _ _ fun α hα i _ ↦ h α hα i
+    (U : S →ₗ[ℝ] SmoothForm I'' M'' G' l') : PreservesSmoothFamilies (U ∘ₗ T) := fun α hα ↦ by
+  simpa only [LinearMap.comp_apply] using
+    isSmoothFamily_comp_of_contMDiff_repr b U (x := fun t ↦ T (α t)) (h α hα)
 
 /-- **Maps into a finite-dimensional space of forms.** A linear map `T` into a
 finite-dimensional space `S` of forms with a basis `b` preserves smooth families exactly when, for
@@ -251,23 +282,6 @@ theorem preservesSmoothFamilies_iff_contMDiff_repr {ι : Type*} [Finite ι]
   have := Module.Finite.of_basis b
   exact ⟨fun hT α hα i ↦ hT.contMDiff_dual_apply hα (b.coord i),
     fun h ↦ preservesSmoothFamilies_comp_of_contMDiff_repr b h S.subtype⟩
-
-/-- **Families in a finite-dimensional space.** Let `x` be a family, over the unit interval, of
-vectors of a finite free module `X`, such that `t ↦ f (x t)` is smooth for every linear
-functional `f` on `X`. Then its image under any linear map `L` from `X` to forms is a smooth
-family. -/
-theorem isSmoothFamily_of_contMDiff_dual {X : Type*} [AddCommMonoid X] [Module ℝ X]
-    [Module.Free ℝ X] [Module.Finite ℝ X] (L : X →ₗ[ℝ] SmoothForm I' M' G l)
-    {x : unitInterval → X}
-    (hx : ∀ f : Module.Dual ℝ X, ContMDiff (𝓡∂ 1) 𝓘(ℝ) ∞ (fun t ↦ f (x t))) :
-    IsSmoothFamily (𝓡∂ 1) (fun t ↦ L (x t)) := by
-  let b := Module.Free.chooseBasis ℝ X
-  have hsum : (fun t ↦ L (x t)) = fun t ↦ ∑ i, b.coord i (x t) • L (b i) := by
-    funext t
-    conv_lhs => rw [← b.sum_repr (x t)]
-    simp only [map_sum, map_smul, Module.Basis.coord_apply]
-  rw [hsum]
-  exact IsSmoothFamily.sum fun i _ ↦ (isSmoothFamily_const (L (b i))).fun_smul (hx (b.coord i))
 
 /-- A map that preserves smooth families into a finite-dimensional space `S` of forms, followed by
 any linear map on `S`, preserves smooth families. -/

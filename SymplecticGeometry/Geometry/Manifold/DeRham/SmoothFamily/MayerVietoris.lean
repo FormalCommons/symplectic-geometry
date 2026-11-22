@@ -114,14 +114,6 @@ theorem coe_overlapDiff (k : ℕ) (p : closedForms I U k × closedForms I V k) :
           (p.2 : SmoothForm I V ℝ k) :=
   (rfl)
 
-/-- Restriction of a smooth family of closed forms gives a smooth family. -/
-theorem isSmoothFamily_coe_closedForms_mpullback {W W' : Opens M} (h : W' ≤ W) {n : ℕ}
-    {α : unitInterval → closedForms I W n}
-    (hα : IsSmoothFamily (𝓡∂ 1) (fun t ↦ (α t : SmoothForm I W ℝ n))) :
-    IsSmoothFamily (𝓡∂ 1) (fun t ↦ (closedForms.mpullback (Opens.inclusion h)
-      (contMDiff_inclusion h) n (α t) : SmoothForm I W' ℝ n)) := by
-  simpa only [closedForms.coe_mpullback] using hα.mpullback _ (contMDiff_inclusion h)
-
 end OverlapDiff
 
 namespace SmoothCohomologySplitting
@@ -301,7 +293,7 @@ theorem exists_projPair_eq {p : SmoothForm I U ℝ (k + 1) × SmoothForm I V ℝ
   obtain ⟨hp₁, hp₂, hex⟩ := (σU.mem_exactPairs_iff σV).mp hp
   rw [exactForms_succ] at hex
   obtain ⟨w, hw⟩ := hex
-  have hsum := c.mpullback_mextDerivₗ_extendLeft_add w
+  have hsum := c.mpullback_mextDerivₗ_extendLeft_add_mpullback_mextDerivₗ_extendRight w
   have hagree : SmoothForm.mpullback (Opens.inclusion inf_le_left) (contMDiff_inclusion _)
       (p.1 - mextDerivₗ I k (c.extendLeft w)) =
       SmoothForm.mpullback (Opens.inclusion inf_le_right) (contMDiff_inclusion _)
@@ -511,7 +503,8 @@ def exactCorrectionRight : (k : ℕ) →
   | j + 1 => mextDerivₗ I j ∘ₗ c.extendRight ∘ₗ σUV.primitive j
 
 /-- On `U ⊓ V`, the two exact parts of `e` add up to `e` minus its projection. -/
-theorem mpullback_exactCorrectionLeft_add (e : closedForms I (U ⊓ V : Opens M) k) :
+theorem mpullback_exactCorrectionLeft_add_mpullback_exactCorrectionRight
+    (e : closedForms I (U ⊓ V : Opens M) k) :
     SmoothForm.mpullback (Opens.inclusion inf_le_left) (contMDiff_inclusion _)
         (c.exactCorrectionLeft σUV k e) +
       SmoothForm.mpullback (Opens.inclusion inf_le_right) (contMDiff_inclusion _)
@@ -521,7 +514,8 @@ theorem mpullback_exactCorrectionLeft_add (e : closedForms I (U ⊓ V : Opens M)
   | zero => simp [exactCorrectionLeft, exactCorrectionRight]
   | succ j =>
     simp only [exactCorrectionLeft, exactCorrectionRight, LinearMap.comp_apply,
-      mpullback_mextDerivₗ_extendLeft_add, SmoothCohomologySplitting.mextDerivₗ_primitive]
+      mpullback_mextDerivₗ_extendLeft_add_mpullback_mextDerivₗ_extendRight,
+      SmoothCohomologySplitting.mextDerivₗ_primitive]
 
 /-- The exact part cut off to `U` is closed. -/
 @[simp]
@@ -560,12 +554,14 @@ def primitivePieceRight (k : ℕ) :
     c.extendRight ∘ₗ (σUV.overlapCompl k ⊓ σUV.space k).subtype ∘ₗ c.complementPart σU σV σUV k
 
 /-- The two pieces of the new primitive agree on `U ⊓ V`. -/
-theorem mpullback_primitivePieceLeft (z : closedForms I (U ⊔ V : Opens M) (k + 1)) :
+theorem mpullback_primitivePieceLeft_eq_mpullback_primitivePieceRight
+    (z : closedForms I (U ⊔ V : Opens M) (k + 1)) :
     SmoothForm.mpullback (Opens.inclusion inf_le_left) (contMDiff_inclusion _)
         (c.primitivePieceLeft σU σV σUV k z) =
       SmoothForm.mpullback (Opens.inclusion inf_le_right) (contMDiff_inclusion _)
         (c.primitivePieceRight σU σV σUV k z) := by
-  have h₁ := c.mpullback_exactCorrectionLeft_add σUV (c.correctedDiscrepancy σU σV σUV k z)
+  have h₁ := c.mpullback_exactCorrectionLeft_add_mpullback_exactCorrectionRight σUV
+    (c.correctedDiscrepancy σU σV σUV k z)
   have h₂ := c.mpullback_extendLeft_add_mpullback_extendRight
     (c.complementPart σU σV σUV k z : SmoothForm I (U ⊓ V : Opens M) ℝ k)
   have h₃ := c.coe_correctedDiscrepancy σU σV σUV z
@@ -582,7 +578,7 @@ theorem mpullback_primitivePieceLeft (z : closedForms I (U ⊔ V : Opens M) (k +
 def supPrimitive (k : ℕ) :
     closedForms I (U ⊔ V : Opens M) (k + 1) →ₗ[ℝ] SmoothForm I (U ⊔ V : Opens M) ℝ k :=
   SmoothForm.glueₗ (c.primitivePieceLeft σU σV σUV k) (c.primitivePieceRight σU σV σUV k)
-    (c.mpullback_primitivePieceLeft σU σV σUV (k := k))
+    (c.mpullback_primitivePieceLeft_eq_mpullback_primitivePieceRight σU σV σUV (k := k))
 
 /-- The new projection in positive degree: the fixed closed form of step 1 plus the connecting
 form of the component of step 2 in the fixed complement. -/
@@ -598,6 +594,38 @@ def supSpace (k : ℕ) : Submodule ℝ (SmoothForm I (U ⊔ V : Opens M) ℝ (k 
   LinearMap.range ((closedForms I _ _).subtype ∘ₗ c.liftPair σU σV k) ⊔
     LinearMap.range (c.connecting k ∘ₗ
       Submodule.inclusion (σUV.overlapCompl_inf_space_le_closedForms k))
+
+/-- The restriction to `U` of the new primitive is its piece on `U`. -/
+@[simp]
+theorem mpullback_supPrimitive_left (z : closedForms I (U ⊔ V : Opens M) (k + 1)) :
+    SmoothForm.mpullback (Opens.inclusion le_sup_left) (contMDiff_inclusion _)
+      (c.supPrimitive σU σV σUV k z) = c.primitivePieceLeft σU σV σUV k z :=
+  SmoothForm.mpullback_glueₗ_left _ _ _ z
+
+/-- The restriction to `V` of the new primitive is its piece on `V`. -/
+@[simp]
+theorem mpullback_supPrimitive_right (z : closedForms I (U ⊔ V : Opens M) (k + 1)) :
+    SmoothForm.mpullback (Opens.inclusion le_sup_right) (contMDiff_inclusion _)
+      (c.supPrimitive σU σV σUV k z) = c.primitivePieceRight σU σV σUV k z :=
+  SmoothForm.mpullback_glueₗ_right _ _ _ z
+
+/-- The definition of the new projection. -/
+theorem supProj_def (k : ℕ) :
+    c.supProj σU σV σUV k =
+      (closedForms I _ _).subtype ∘ₗ c.liftPair σU σV k ∘ₗ σU.projExactPair σV k +
+        c.connecting k ∘ₗ Submodule.inclusion (σUV.overlapCompl_inf_space_le_closedForms k) ∘ₗ
+          c.complementPart σU σV σUV k :=
+  (rfl)
+
+/-- The forms of the new space are the sums of a fixed closed form of step 1 and a connecting
+form of the fixed complement of step 2. -/
+theorem mem_supSpace_iff {s : SmoothForm I (U ⊔ V : Opens M) ℝ (k + 1)} :
+    s ∈ c.supSpace σU σV σUV k ↔ ∃ p e, (c.liftPair σU σV k p : SmoothForm _ _ ℝ (k + 1)) +
+      c.connecting k (Submodule.inclusion (σUV.overlapCompl_inf_space_le_closedForms k) e) = s := by
+  simp only [supSpace, Submodule.mem_sup, LinearMap.mem_range, LinearMap.comp_apply,
+    Submodule.subtype_apply]
+  exact ⟨fun ⟨_, ⟨p, hp⟩, _, ⟨e, he⟩, h⟩ ↦ ⟨p, e, hp ▸ he ▸ h⟩,
+    fun ⟨p, e, h⟩ ↦ ⟨_, ⟨p, rfl⟩, _, ⟨e, rfl⟩, h⟩⟩
 
 /-- The new projection takes its values in the new space. -/
 theorem supProj_mem (z : closedForms I (U ⊔ V : Opens M) (k + 1)) :
@@ -628,8 +656,8 @@ theorem mextDerivₗ_supPrimitive (z : closedForms I (U ⊔ V : Opens M) (k + 1)
   apply SmoothForm.injective_mayerVietoris U V
   rw [LinearMap.prod_apply, LinearMap.prod_apply, Function.prod_apply, Function.prod_apply,
     Prod.mk.injEq]
-  simp only [← SmoothForm.mextDerivₗ_mpullback, supPrimitive, SmoothForm.mpullback_glueₗ_left,
-    SmoothForm.mpullback_glueₗ_right, supProj, LinearMap.add_apply, LinearMap.comp_apply,
+  simp only [← SmoothForm.mextDerivₗ_mpullback, mpullback_supPrimitive_left,
+    mpullback_supPrimitive_right, supProj_def, LinearMap.add_apply, LinearMap.comp_apply,
     map_sub, map_add, mpullback_connecting_left, mpullback_connecting_right,
     Submodule.coe_inclusion, Submodule.subtype_apply, primitivePieceLeft, primitivePieceRight,
     LinearMap.sub_apply, LinearMap.fst_apply, LinearMap.snd_apply, mextDerivₗ_primitiveLeft,
@@ -725,61 +753,71 @@ theorem contMDiff_dual_projExactPair (f : Module.Dual ℝ (σU.exactPairs σV (k
       ← map_add, Prod.mk_add_mk, add_zero, zero_add]
   simp only [h]
   exact ((σU.preservesSmoothFamilies_subtype_comp_projSpace (k + 1)).contMDiff_dual_apply
-    (isSmoothFamily_coe_closedForms_mpullback le_sup_left hα) _).add
+    (by simpa only [closedForms.coe_mpullback] using
+      hα.mpullback _ (contMDiff_inclusion le_sup_left)) _).add
     ((σV.preservesSmoothFamilies_subtype_comp_projSpace (k + 1)).contMDiff_dual_apply
-    (isSmoothFamily_coe_closedForms_mpullback le_sup_right hα) _)
+    (by simpa only [closedForms.coe_mpullback] using
+      hα.mpullback _ (contMDiff_inclusion le_sup_right)) _)
 
 /-- The fixed closed forms of step 1 along a smooth family form a smooth family. -/
 theorem isSmoothFamily_liftPair :
     IsSmoothFamily (𝓡∂ 1) (fun t ↦ ((c.liftPair σU σV k (σU.projExactPair σV k (α t)) :
-      closedForms I (U ⊔ V : Opens M) (k + 1)) : SmoothForm I (U ⊔ V : Opens M) ℝ (k + 1))) :=
-  have := Module.Free.of_divisionRing ℝ (σU.exactPairs σV (k + 1))
-  isSmoothFamily_of_contMDiff_dual
+      closedForms I (U ⊔ V : Opens M) (k + 1)) : SmoothForm I (U ⊔ V : Opens M) ℝ (k + 1))) := by
+  simpa only [LinearMap.comp_apply, Submodule.subtype_apply] using isSmoothFamily_of_contMDiff_dual
     ((closedForms I (U ⊔ V : Opens M) (k + 1)).subtype ∘ₗ c.liftPair σU σV k)
     (x := fun t ↦ σU.projExactPair σV k (α t)) (contMDiff_dual_projExactPair σU σV hα)
+
+/-- `exactOnPieces` along a smooth family is a smooth family. -/
+theorem isSmoothFamily_exactOnPieces :
+    IsSmoothFamily (𝓡∂ 1) (fun t ↦ (c.exactOnPieces σU σV k (α t) :
+      SmoothForm I (U ⊔ V : Opens M) ℝ (k + 1))) := by
+  simpa only [coe_exactOnPieces] using hα.sub (c.isSmoothFamily_liftPair σU σV hα)
+
+/-- `primitiveLeft` along a smooth family is a smooth family. -/
+theorem isSmoothFamily_primitiveLeft :
+    IsSmoothFamily (𝓡∂ 1) (fun t ↦ c.primitiveLeft σU σV k (α t)) :=
+  preservesSmoothFamilies_def.mp (σU.preservesSmoothFamilies_primitive k)
+    (fun t ↦ closedForms.mpullback (Opens.inclusion le_sup_left) (contMDiff_inclusion _) (k + 1)
+      (c.exactOnPieces σU σV k (α t))) (by
+    simpa only [closedForms.coe_mpullback] using
+      (c.isSmoothFamily_exactOnPieces σU σV hα).mpullback _ (contMDiff_inclusion le_sup_left))
+
+/-- `primitiveRight` along a smooth family is a smooth family. -/
+theorem isSmoothFamily_primitiveRight :
+    IsSmoothFamily (𝓡∂ 1) (fun t ↦ c.primitiveRight σU σV k (α t)) :=
+  preservesSmoothFamilies_def.mp (σV.preservesSmoothFamilies_primitive k)
+    (fun t ↦ closedForms.mpullback (Opens.inclusion le_sup_right) (contMDiff_inclusion _) (k + 1)
+      (c.exactOnPieces σU σV k (α t))) (by
+    simpa only [closedForms.coe_mpullback] using
+      (c.isSmoothFamily_exactOnPieces σU σV hα).mpullback _ (contMDiff_inclusion le_sup_right))
 
 /-- The discrepancy along a smooth family is a smooth family. -/
 theorem isSmoothFamily_discrepancy :
     IsSmoothFamily (𝓡∂ 1) (fun t ↦ (c.discrepancy σU σV k (α t) :
       SmoothForm I (U ⊓ V : Opens M) ℝ k)) := by
-  have h' : IsSmoothFamily (𝓡∂ 1) (fun t ↦ (c.exactOnPieces σU σV k (α t) :
-      SmoothForm I (U ⊔ V : Opens M) ℝ (k + 1))) := by
-    simpa only [coe_exactOnPieces] using hα.sub (c.isSmoothFamily_liftPair σU σV hα)
-  have hU := preservesSmoothFamilies_def.mp (σU.preservesSmoothFamilies_primitive k) _
-    (isSmoothFamily_coe_closedForms_mpullback le_sup_left h')
-  have hV := preservesSmoothFamilies_def.mp (σV.preservesSmoothFamilies_primitive k) _
-    (isSmoothFamily_coe_closedForms_mpullback le_sup_right h')
-  simpa only [coe_discrepancy, primitiveLeft, primitiveRight, LinearMap.comp_apply] using
-    (hU.mpullback _ (contMDiff_inclusion _)).sub (hV.mpullback _ (contMDiff_inclusion _))
-
-/-- The linear functionals of the projection of the discrepancy along a smooth family are
-smooth. -/
-theorem contMDiff_dual_projSpace_discrepancy (f : Module.Dual ℝ (σUV.space k)) :
-    ContMDiff (𝓡∂ 1) 𝓘(ℝ) ∞ (fun t ↦ f (σUV.projSpace k (c.discrepancy σU σV k (α t)))) :=
-  (σUV.preservesSmoothFamilies_subtype_comp_projSpace k).contMDiff_dual_apply
-    (c.isSmoothFamily_discrepancy σU σV hα) f
+  simpa only [coe_discrepancy] using
+    ((c.isSmoothFamily_primitiveLeft σU σV hα).mpullback _ (contMDiff_inclusion _)).sub
+      ((c.isSmoothFamily_primitiveRight σU σV hα).mpullback _ (contMDiff_inclusion _))
 
 /-- The fixed closed forms on `U` of step 2 along a smooth family form a smooth family. -/
 theorem isSmoothFamily_overlapLift_fst :
     IsSmoothFamily (𝓡∂ 1) (fun t ↦ ((σUV.overlapLift k (c.rangePart σU σV σUV k (α t))).1 :
       SmoothForm I U ℝ k)) :=
-  have := Module.Free.of_divisionRing ℝ (σUV.space k)
-  isSmoothFamily_of_contMDiff_dual ((closedForms I U k).subtype ∘ₗ
-    LinearMap.fst ℝ (closedForms I U k) (closedForms I V k) ∘ₗ
-      σUV.overlapLift k ∘ₗ σUV.rangeProj k)
-    (x := fun t ↦ σUV.projSpace k (c.discrepancy σU σV k (α t)))
-    (c.contMDiff_dual_projSpace_discrepancy σU σV σUV hα)
+  preservesSmoothFamilies_def.mp
+    ((σUV.preservesSmoothFamilies_subtype_comp_projSpace k).comp_of_finiteDimensional
+    ((closedForms I U k).subtype ∘ₗ LinearMap.fst ℝ (closedForms I U k) (closedForms I V k) ∘ₗ
+      σUV.overlapLift k ∘ₗ σUV.rangeProj k)) _
+    (c.isSmoothFamily_discrepancy σU σV hα)
 
 /-- The fixed closed forms on `V` of step 2 along a smooth family form a smooth family. -/
 theorem isSmoothFamily_overlapLift_snd :
     IsSmoothFamily (𝓡∂ 1) (fun t ↦ ((σUV.overlapLift k (c.rangePart σU σV σUV k (α t))).2 :
       SmoothForm I V ℝ k)) :=
-  have := Module.Free.of_divisionRing ℝ (σUV.space k)
-  isSmoothFamily_of_contMDiff_dual ((closedForms I V k).subtype ∘ₗ
-    LinearMap.snd ℝ (closedForms I U k) (closedForms I V k) ∘ₗ
-      σUV.overlapLift k ∘ₗ σUV.rangeProj k)
-    (x := fun t ↦ σUV.projSpace k (c.discrepancy σU σV k (α t)))
-    (c.contMDiff_dual_projSpace_discrepancy σU σV σUV hα)
+  preservesSmoothFamilies_def.mp
+    ((σUV.preservesSmoothFamilies_subtype_comp_projSpace k).comp_of_finiteDimensional
+    ((closedForms I V k).subtype ∘ₗ LinearMap.snd ℝ (closedForms I U k) (closedForms I V k) ∘ₗ
+      σUV.overlapLift k ∘ₗ σUV.rangeProj k)) _
+    (c.isSmoothFamily_discrepancy σU σV hα)
 
 /-- The corrected discrepancy along a smooth family is a smooth family. -/
 theorem isSmoothFamily_correctedDiscrepancy :
@@ -820,17 +858,17 @@ theorem isSmoothFamily_complementPart_comp
     {l : ℕ} {M' : Type*} [TopologicalSpace M'] [ChartedSpace H M'] [IsManifold I ∞ M']
     (L : (σUV.overlapCompl k ⊓ σUV.space k : Submodule ℝ _) →ₗ[ℝ] SmoothForm I M' ℝ l) :
     IsSmoothFamily (𝓡∂ 1) (fun t ↦ L (c.complementPart σU σV σUV k (α t))) :=
-  have := Module.Free.of_divisionRing ℝ (σUV.space k)
-  isSmoothFamily_of_contMDiff_dual (L ∘ₗ σUV.complProj k)
-    (x := fun t ↦ σUV.projSpace k (c.discrepancy σU σV k (α t)))
-    (c.contMDiff_dual_projSpace_discrepancy σU σV σUV hα)
+  preservesSmoothFamilies_def.mp
+    ((σUV.preservesSmoothFamilies_subtype_comp_projSpace k).comp_of_finiteDimensional
+    (L ∘ₗ σUV.complProj k)) _
+    (c.isSmoothFamily_discrepancy σU σV hα)
 
 end Families
 
 /-- The new projection takes smooth families to smooth families. -/
 theorem preservesSmoothFamilies_supProj (k : ℕ) :
     PreservesSmoothFamilies (c.supProj σU σV σUV k) := preservesSmoothFamilies_def.mpr fun α hα ↦ by
-  simpa only [supProj, LinearMap.add_apply, LinearMap.comp_apply, Submodule.subtype_apply] using
+  simpa only [supProj_def, LinearMap.add_apply, LinearMap.comp_apply, Submodule.subtype_apply] using
     (c.isSmoothFamily_liftPair σU σV hα).add (c.isSmoothFamily_complementPart_comp σU σV σUV hα
       (c.connecting k ∘ₗ Submodule.inclusion (σUV.overlapCompl_inf_space_le_closedForms k)))
 
@@ -838,24 +876,18 @@ theorem preservesSmoothFamilies_supProj (k : ℕ) :
 theorem preservesSmoothFamilies_supPrimitive (k : ℕ) :
     PreservesSmoothFamilies (c.supPrimitive σU σV σUV k) :=
     preservesSmoothFamilies_def.mpr fun α hα ↦ by
-  have h' : IsSmoothFamily (𝓡∂ 1) (fun t ↦ (c.exactOnPieces σU σV k (α t) :
-      SmoothForm I (U ⊔ V : Opens M) ℝ (k + 1))) := by
-    simpa only [coe_exactOnPieces] using hα.sub (c.isSmoothFamily_liftPair σU σV hα)
   refine isSmoothFamily_iff_mpullback_inclusion_sup.mpr ⟨?_, ?_⟩
-  · simpa only [supPrimitive, SmoothForm.mpullback_glueₗ_left, primitivePieceLeft,
-      LinearMap.sub_apply, LinearMap.comp_apply, Submodule.subtype_apply, LinearMap.fst_apply,
-      primitiveLeft] using
-      (((preservesSmoothFamilies_def.mp (σU.preservesSmoothFamilies_primitive k) _
-          (isSmoothFamily_coe_closedForms_mpullback le_sup_left h')).sub
+  · simpa only [mpullback_supPrimitive_left, primitivePieceLeft,
+      LinearMap.sub_apply, LinearMap.comp_apply, Submodule.subtype_apply, LinearMap.fst_apply]
+      using (((c.isSmoothFamily_primitiveLeft σU σV hα).sub
         (c.isSmoothFamily_overlapLift_fst σU σV σUV hα)).sub
         (c.isSmoothFamily_exactCorrectionLeft σU σV σUV hα)).sub
         (c.isSmoothFamily_complementPart_comp σU σV σUV hα
           (c.extendLeft ∘ₗ (σUV.overlapCompl k ⊓ σUV.space k).subtype))
-  · simpa only [supPrimitive, SmoothForm.mpullback_glueₗ_right, primitivePieceRight,
+  · simpa only [mpullback_supPrimitive_right, primitivePieceRight,
       LinearMap.sub_apply, LinearMap.add_apply, LinearMap.comp_apply, Submodule.subtype_apply,
-      LinearMap.snd_apply, primitiveRight] using
-      (((preservesSmoothFamilies_def.mp (σV.preservesSmoothFamilies_primitive k) _
-          (isSmoothFamily_coe_closedForms_mpullback le_sup_right h')).sub
+      LinearMap.snd_apply]
+      using (((c.isSmoothFamily_primitiveRight σU σV hα).sub
         (c.isSmoothFamily_overlapLift_snd σU σV σUV hα)).add
         (c.isSmoothFamily_exactCorrectionRight σU σV σUV hα)).add
         (c.isSmoothFamily_complementPart_comp σU σV σUV hα
@@ -925,6 +957,33 @@ def sup (c : MayerVietorisCutoff I U V) (σU : SmoothCohomologySplitting I U)
     | 0 => preservesSmoothFamilies_subtype
     | k + 1 => c.preservesSmoothFamilies_supProj σU σV σUV k
   preservesSmoothFamilies_primitive k := c.preservesSmoothFamilies_supPrimitive σU σV σUV k
+
+section Sup
+
+variable (c : MayerVietorisCutoff I U V) (σU : SmoothCohomologySplitting I U)
+  (σV : SmoothCohomologySplitting I V) (σUV : SmoothCohomologySplitting I (U ⊓ V : Opens M))
+
+/-- In degree zero, the space of `sup` is the space of all closed `0`-forms. -/
+theorem space_sup_zero : (sup c σU σV σUV).space 0 = closedForms I (U ⊔ V : Opens M) 0 :=
+  (rfl)
+
+/-- In positive degree, the space of `sup` is `MayerVietorisCutoff.supSpace`. -/
+theorem space_sup_succ (k : ℕ) : (sup c σU σV σUV).space (k + 1) = c.supSpace σU σV σUV k :=
+  (rfl)
+
+/-- In degree zero, the projection of `sup` is the inclusion of the closed `0`-forms. -/
+theorem proj_sup_zero : (sup c σU σV σUV).proj 0 = (closedForms I (U ⊔ V : Opens M) 0).subtype :=
+  (rfl)
+
+/-- In positive degree, the projection of `sup` is `MayerVietorisCutoff.supProj`. -/
+theorem proj_sup_succ (k : ℕ) : (sup c σU σV σUV).proj (k + 1) = c.supProj σU σV σUV k :=
+  (rfl)
+
+/-- The primitive of `sup` is `MayerVietorisCutoff.supPrimitive`. -/
+theorem primitive_sup (k : ℕ) : (sup c σU σV σUV).primitive k = c.supPrimitive σU σV σUV k :=
+  (rfl)
+
+end Sup
 
 end SmoothCohomologySplitting
 

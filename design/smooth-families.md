@@ -595,14 +595,19 @@ For `[IsManifold I ∞ M]`:
   is $z\mapsto h(F^*z)$, which takes smooth families to smooth families by
   `preservesSmoothFamilies_homotopyOperator_mpullback`.
 
+### `Geometry/Manifold/DeRham/MayerVietoris.lean`
+
+The linear tools of `SmoothFamily/MayerVietoris.lean` that do not involve smooth families:
+`TauCeti.SmoothForm.glueₗ` (linear maps into the forms on `U` and on `V` that agree on `U ⊓ V`
+glue to one into the forms on `U ⊔ V`), the cut-off functions
+`SymplecticGeometry.MayerVietorisCutoff I U V` with `MayerVietorisCutoff.nonempty`, the cut-off
+extensions `extendLeft` and `extendRight`, and the connecting form `connecting`.
+
 ### `Geometry/Manifold/DeRham/SmoothFamily/Cutoff.lean`
 
-The linear tools of `MayerVietoris.lean`, in a file of their own so that that file stays
-within its limit: `TauCeti.SmoothForm.glueₗ` (linear maps into the forms on `U` and on `V`
-that agree on `U ⊓ V` glue to one into the forms on `U ⊔ V`), the cut-off functions
-`SymplecticGeometry.MayerVietorisCutoff I U V` with `MayerVietorisCutoff.nonempty`, the cut-off
-extensions `extendLeft` and `extendRight` with their smooth families, and the connecting form
-`connecting`.
+`MayerVietorisCutoff.isSmoothFamily_extendLeft` and `isSmoothFamily_extendRight`: the cut-off
+extensions take smooth families to smooth families. A file of its own keeps
+`MayerVietoris.lean` within its limit.
 
 ### `Geometry/Manifold/DeRham/SmoothFamily/MayerVietoris.lean`
 
@@ -781,8 +786,9 @@ can start at once; each issue's blockers come before it.
     `Geometry/Manifold/DeRham/SmoothFamily/Contractible.lean`. Blocked by 7
     and 10.
 12. **The Mayer–Vietoris step.**
-    `Geometry/Manifold/DeRham/SmoothFamily/MayerVietoris.lean` and
-    `Geometry/Manifold/DeRham/SmoothFamily/Cutoff.lean`. Blocked by 10.
+    `Geometry/Manifold/DeRham/SmoothFamily/MayerVietoris.lean`,
+    `Geometry/Manifold/DeRham/SmoothFamily/Cutoff.lean` and
+    `Geometry/Manifold/DeRham/MayerVietoris.lean`. Blocked by 10.
     It is the largest issue; if it exceeds the size limit, the proof that the
     new space maps isomorphically onto cohomology (step 4) becomes an issue
     of its own after the construction.
