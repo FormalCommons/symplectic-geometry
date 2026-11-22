@@ -144,15 +144,13 @@ variable (F V) in
 followed by Mathlib's `ContinuousLinearEquiv.ofFinrankEq`. -/
 def euclideanEquivAt [FiniteDimensional ℝ F] (x : M) :
     V x ≃L[ℝ] EuclideanSpace ℝ (Fin (finrank ℝ F)) :=
-  ((trivializationAt F V x).continuousLinearEquivAt ℝ x
-    (FiberBundle.mem_baseSet_trivializationAt' x)).trans
+  (VectorBundle.continuousLinearEquivAt ℝ F V x).trans
     (.ofFinrankEq finrank_euclideanSpace_fin.symm)
 
 variable (F V) in
 theorem euclideanEquivAt_def [FiniteDimensional ℝ F] (x : M) :
     euclideanEquivAt F V x =
-      ((trivializationAt F V x).continuousLinearEquivAt ℝ x
-        (FiberBundle.mem_baseSet_trivializationAt' x)).trans
+      (VectorBundle.continuousLinearEquivAt ℝ F V x).trans
         (.ofFinrankEq finrank_euclideanSpace_fin.symm) :=
   (rfl)
 
@@ -191,8 +189,7 @@ standard inner product. -/
 theorem exists_continuousLinearEquiv_inner_eq (x : M) :
     ∃ e : V x ≃L[ℝ] EuclideanSpace ℝ (Fin (finrank ℝ F)),
       ∀ u v, ⟪e u, e v⟫ = g.inner x u v := by
-  let e₁ := (trivializationAt F V x).continuousLinearEquivAt ℝ x
-    (FiberBundle.mem_baseSet_trivializationAt' x)
+  let e₁ := VectorBundle.continuousLinearEquivAt ℝ F V x
   let g₁ : SymplecticGeometry.innerProducts F :=
     ⟨e₁.bilinearCongr (g.inner x),
       SymplecticGeometry.mem_innerProducts.2 ⟨fun u v ↦ by simpa using g.symm x _ _,

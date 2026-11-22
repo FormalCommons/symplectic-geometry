@@ -498,8 +498,7 @@ theorem chernClass_one_eq_complexEulerClass (hG : finrank ℂ G = 1) :
       ((TopCat.of B).uliftIntegralCohomologyIso 2).hom (complexEulerClass (r := 0) G E hG) := by
   -- Every line of a fibre of rank one is the whole fibre.
   have htop (p : ProjectiveBundle ℂ G E) : p.snd.submodule = ⊤ := by
-    have e := ((trivializationAt G E p.proj).continuousLinearEquivAt ℂ p.proj
-      (mem_baseSet_trivializationAt G E p.proj)).toLinearEquiv
+    have e := (VectorBundle.continuousLinearEquivAt ℂ G E p.proj).toLinearEquiv
     have := e.symm.finiteDimensional
     exact Submodule.eq_top_of_finrank_eq
       ((Projectivization.finrank_submodule _).trans (e.finrank_eq.trans hG).symm)

@@ -165,7 +165,7 @@ private def fiberEquiv [VectorBundle 𝕜 G E] (e : Trivialization G (π G E)) [
     (b : B) : E b ≃L[𝕜] G :=
   open Classical in
   if hb : b ∈ e.baseSet then e.continuousLinearEquivAt 𝕜 b hb
-  else (trivializationAt G E b).continuousLinearEquivAt 𝕜 b (mem_baseSet_trivializationAt G E b)
+  else VectorBundle.continuousLinearEquivAt 𝕜 G E b
 
 private theorem fiberEquiv_of_mem [VectorBundle 𝕜 G E] (e : Trivialization G (π G E))
     [e.IsLinear 𝕜] {b : B} (hb : b ∈ e.baseSet) :
@@ -351,8 +351,7 @@ theorem isEmpty_of_finrank_eq_zero [FiniteDimensional 𝕜 G] (hG : Module.finra
     IsEmpty (ProjectiveBundle 𝕜 G E) :=
   ⟨fun p ↦ p.snd.rep_ne_zero <| by
     have : Subsingleton G := Module.finrank_zero_iff.1 hG
-    have := ((trivializationAt G E p.proj).continuousLinearEquivAt 𝕜 p.proj
-      (mem_baseSet_trivializationAt G E p.proj)).toLinearEquiv.toEquiv.subsingleton
+    have := (VectorBundle.continuousLinearEquivAt 𝕜 G E p.proj).toLinearEquiv.toEquiv.subsingleton
     exact Subsingleton.elim _ _⟩
 
 /-- The line spanned by a nonzero vector depends continuously on the vector. -/

@@ -42,8 +42,7 @@ variable (F) in
 /-- For a nonzero vector `v` of a fibre of a vector bundle of rank one, the map `c ↦ c • v`, as a
 continuous linear equivalence from the scalars onto the fibre. -/
 def toSpanSingletonEquiv (hF : finrank 𝕜 F = 1) {x : B} (v : E x) (hv : v ≠ 0) : 𝕜 ≃L[𝕜] E x :=
-  let e := (trivializationAt F E x).continuousLinearEquivAt 𝕜 x
-    (FiberBundle.mem_baseSet_trivializationAt' x)
+  let e := continuousLinearEquivAt 𝕜 F E x
   (LinearEquiv.ofBijective (LinearMap.toSpanSingleton 𝕜 F (e v))
     ⟨smul_left_injective 𝕜 ((map_ne_zero_iff _ e.injective).2 hv),
       (finrank_eq_one_iff_of_ne_zero' _ ((map_ne_zero_iff _ e.injective).2 hv)).1 hF⟩
