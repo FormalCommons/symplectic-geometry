@@ -83,8 +83,10 @@ Tau Ceti has, at the pinned version:
   structure `TauCeti.Hodge.Conjugation`.
 - **Kähler pairs and charts.** `TauCeti.SmoothTwoForm.IsKahler`, the
   symplectic orientation `TauCeti.SmoothTwoForm.IsNondegenerate.orientation`,
-  `chartPushforward`, and the chart expression `RoughForm.inChartAt` with
-  `inChartAt_mextDeriv` (`Geometry/Manifold/DifferentialForm/Chart.lean`).
+  `chartPushforward`, the chart expression `RoughForm.inChartAt`
+  (`Geometry/Manifold/DifferentialForm/ExtDeriv.lean`) with
+  `inChartAt_mextDeriv` (`Chart.lean`), and the pullback `mpullback` with
+  its API (`DifferentialForm/Pullback/`, `DifferentialForm/Naturality.lean`).
 
 Tau Ceti has no Sobolev or $L^2$ space of forms on a manifold, no elliptic
 regularity on manifolds, no Hodge star or Laplacian of complex-valued
@@ -240,25 +242,24 @@ coefficients by cutoffs.
 
 ### `Geometry/Manifold/DifferentialForm/PartialDiffeomorph.lean`
 
-The coordinate expression of a form along a chart that is a partial
-diffeomorphism onto an open subset of `E`, in Tau Ceti's namespace, like
-`inChartAt`:
+The coordinate expression of a form along a chart `ψ` that is a partial
+diffeomorphism onto an open subset of `E` is Tau Ceti's pullback
+`mpullback 𝓘(ℝ, E) I ψ.symm φ : E → E [⋀^Fin k]→L[ℝ] F`. Tau Ceti already
+gives its linearity (`mpullback_add`, `mpullback_smul`), smoothness on
+`ψ.target` (`SmoothForm.contDiffOn_mpullback`), recovery of the form on
+`ψ.source` (`OpenPartialHomeomorph.mpullback_mpullback_symm_apply`),
+compatibility with $d$ (`mpullback_mextDeriv_on`) and with the wedge product
+(`mpullback_wedge`). This file adds, in Tau Ceti's namespace:
 
-- `TauCeti.RoughForm.inChart (ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞)
-  (φ : RoughForm I M F k) : E → E [⋀^Fin k]→L[ℝ] F`, the form at
-  `ψ.symm y` composed with `mfderiv` of `ψ.symm` at `y`, with `inChart_def`.
-  It is linear in `φ` (`inChart_add`, `inChart_smul`), it agrees with
-  `inChartAt` for the atlas chart, a smooth form has a smooth expression
-  on `ψ.target` (`contDiffOn_inChart`), and the expression determines the
-  form on `ψ.source` (`inChart_injOn`).
-- `inChart_mextDeriv`: the expression of $d\varphi$ is the flat exterior
-  derivative of the expression of $\varphi$ on `ψ.target`, from Tau
-  Ceti's `inChartAt_mextDeriv` and the change of chart in `Chart.lean`.
-- `inChart_wedge`, and `inChart_realAlternatingDerivation`: the expression
-  of $\mathcal J\varphi$ is the derivation of `chartPushforward` of $J$.
+- `mpullback_symm_eq_inChartAt`: for the atlas chart, the expression agrees
+  with `inChartAt`.
+- `mpullback_symm_realAlternatingDerivation`: the expression of
+  $\mathcal J\varphi$ is the derivation of `chartPushforward` of $J$.
 - `SmoothForm.ofInChart`: the smooth form on $M$, zero outside `ψ.source`,
   whose expression is a given smooth function with compact support in
-  `ψ.target`, with `inChart_ofInChart`. The regularity issue glues local
+  `ψ.target`, with `mpullback_symm_ofInChart`. It is built from
+  `mpullback I 𝓘(ℝ, E) ψ` and Tau Ceti's `RoughForm.extendByZero`
+  (`DifferentialForm/Opens.lean`). The regularity issue glues local
   smooth representatives with it.
 - `exists_finite_partialDiffeomorph_cover`: on a compact boundaryless
   manifold, finitely many such charts with a subordinate smooth partition
@@ -272,30 +273,30 @@ codifferential in a chart `ψ`:
 - `gramInChart ψ : E → E →L[ℝ] E →L[ℝ] ℝ`, the inner product at
   `ψ.symm y` read through `mfderiv` of `ψ.symm`, smooth on `ψ.target`.
 - `hodgeStarInChart o ψ hkl : E → (E [⋀^Fin k]→L[ℝ] ℝ) →L[ℝ]
-  (E [⋀^Fin l]→L[ℝ] ℝ)`, with `inChart_hodgeStar`. It is smooth on
+  (E [⋀^Fin l]→L[ℝ] ℝ)`, with `mpullback_symm_hodgeStar`. It is smooth on
   `ψ.target`, and is the star of `E` for the inner product `gramInChart ψ y`.
   By `Orientation.formHodgeStar_apply_eq_volumeForm_mul_sum` it is a
   smooth function of the Gram matrix in a fixed basis. Hence
   `hasFDerivAt_hodgeStarInChart_zero`: where `gramInChart ψ` has
   derivative zero, so does `hodgeStarInChart o ψ hkl`.
-- `inChart_codifferential`: the expression of $d^*\beta$ is
+- `mpullback_symm_codifferential`: the expression of $d^*\beta$ is
   $\pm S\,d(S\,b)$, with $S$ the star in the chart, $b$ the expression of
   $\beta$, and the sign of Tau Ceti's definition of `codifferential`.
 
 ### `Geometry/Manifold/DeRham/Hodge/LocalLaplacian.lean`
 
-- `exists_inChart_hodgeLaplacian_eq`: for a chart `ψ` and a basis `b` of
+- `exists_mpullback_symm_hodgeLaplacian_eq`: for a chart `ψ` and a basis `b` of
   `E`, there are smooth `B : Fin n → E → Λ →L[ℝ] Λ` and `C : E → Λ →L[ℝ] Λ`,
   with `Λ = E [⋀^Fin k]→L[ℝ] ℝ`, such that for every smooth `k`-form
   $\alpha$ with expression $a$ and every `y ∈ ψ.target`,
   $(\Delta\alpha)_\psi(y)=-\sum_{ij}G^{ij}(y)\,\partial_{b_i}\partial_{b_j}a(y)
   +\sum_iB_i(y)\,\partial_{b_i}a(y)+C(y)\,a(y)$,
   where $G^{ij}$ is the inverse Gram matrix of `gramInChart ψ y` in `b`.
-  The second-order coefficient is computed from `inChart_codifferential`
-  and `inChart_mextDeriv`, and identified with $G^{ij}$ times the identity
+  The second-order coefficient is computed from
+  `mpullback_symm_codifferential` and `mpullback_mextDeriv_on`, and identified with $G^{ij}$ times the identity
   by Tau Ceti's `adjoint_wedgeLeft` and
   `Orientation.koszulDifferential_eq_smul_hodgeStar_wedgeLeft_hodgeStar`.
-- `exists_inChart_hodgeLaplacian_transpose_eq`: the same shape for the
+- `exists_mpullback_symm_hodgeLaplacian_transpose_eq`: the same shape for the
   formal transpose for Lebesgue measure of the operator conjugated by the
   fibre metric and the volume density. This is the operator that the weak
   equation gives in the chart. Its principal part is again
@@ -452,9 +453,9 @@ On an oriented manifold with a metric instance satisfying `hg`,
 - `lefschetz_codifferential_sub`: the Kähler identity
   $L\,d^*\alpha-d^*L\alpha=-(\mathcal J\,d\alpha-d\,\mathcal J\alpha)$, at
   each point in the chart of `KahlerCoordinates.lean`, from
-  `inChart_codifferential`, `hasFDerivAt_hodgeStarInChart_zero`,
-  `inChart_mextDeriv`, `inChart_realAlternatingDerivation` and the linear
-  identity.
+  `mpullback_symm_codifferential`, `hasFDerivAt_hodgeStarInChart_zero`,
+  `mpullback_mextDeriv_on`, `mpullback_symm_realAlternatingDerivation` and
+  the linear identity.
 - `hodgeLaplacian_realAlternatingDerivation`:
   $\Delta\mathcal J\alpha=\mathcal J\Delta\alpha$, by the algebra above.
   Also `realAlternatingDerivation_mem_harmonicForms`.
@@ -532,9 +533,11 @@ theorem TauCeti.SmoothTwoForm.IsKahler.hodge_decomposition
 This has the page's hypotheses, with Betti numbers the dimensions of de
 Rham cohomology (see *Departures* in `DESIGN.md`). The direct sum is
 `IsHodgeDecomposition.isInternal`. The bound `p ≤ n`, `q ≤ n` in the second
-symmetry is needed only because subtraction in `ℕ` truncates. Outside it
-both sides are `0`, since there are no nonzero forms of type $(p,q)$ with
-$p>n$, but the statement does not need that case. The finer results
+symmetry is needed. Outside it the page's $h^{n-q,n-p}$ has a negative
+index, so the page's statement leaves that case out. In `ℕ` the
+subtraction truncates, and the truncated right side need not vanish there:
+for $p=n$, $q=n+1$, $k=2n+1$ the left side is `⊥`, while the right side is
+`hodgePiece J 0 0 0`, all of $H^0(M;\mathbb C)$. The finer results
 (`isHodgeDecomposition_hodgePiece`, `finrank_hodgePiece_symm`, …) are
 stated separately, and the milestone collects them. No error of the page
 was found, so `ERRATA.md` needs no entry.
@@ -575,7 +578,7 @@ sub-issues of #874, *Build the part Hodge theory*. Sizes are estimates.
 | # | Issue | Files | Blocked by | Size |
 |---|---|---|---|---|
 | 1 | Interior regularity of elliptic systems with a scalar principal part | `Analysis/Distribution/EllipticSystem.lean` | — | 300 |
-| 2 | Coordinate expressions of forms along partial diffeomorphisms | `Geometry/Manifold/DifferentialForm/PartialDiffeomorph.lean` | — | 350 |
+| 2 | Forms along partial diffeomorphisms: agreement with `inChartAt`, $\mathcal J$, extension by zero, finite covers | `Geometry/Manifold/DifferentialForm/PartialDiffeomorph.lean` | — | 250 |
 | 3 | The metric, the Hodge star and the codifferential in a chart | `DeRham/Hodge/Chart.lean` | 2 | 350 |
 | 4 | The Hodge Laplacian in a chart has a scalar principal part | `DeRham/Hodge/LocalLaplacian.lean` | 3 | 350 |
 | 5 | The Hilbert space of $L^2$ forms and its localizations | `DeRham/Hodge/L2.lean` | 2 | 400 |
