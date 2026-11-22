@@ -177,6 +177,7 @@ Further choices:
 | `Geometry/Manifold/Boundary/Charts.lean` | boundary points in the extended charts of the half-space model; outward vectors are not tangent to the boundary | 5 |
 | `Geometry/Manifold/Boundary/Collar/Flow/Local.lean` | near one boundary point: the extended field and its flow from the boundary | 5 |
 | `Geometry/Manifold/Boundary/Collar/Flow/Basic.lean` | the collar of a compact boundary along an outward field | 6 |
+| `Geometry/Manifold/Boundary/Collar/Opens.lean` | σ-compact open neighbourhoods of a compact set in a charted space, the diffeomorphism `∂V ≃ ∂W` for an open `V ⊇ ∂W` (`TauCeti.diffeomorphBoundaryOpens`), and a collar of `∂V` as one of `∂W` (`TauCeti.SmoothCollar.ofOpens`); used in `Flow/Basic.lean` | — |
 | `Geometry/Symplectic/Liouville/Filling.lean` | `IsStrongFilling`, its contact form, its Liouville collar | 7 |
 | `Geometry/Symplectic/Liouville/Scaling.lean` | Liouville scaling along integral curves, on a boundaryless manifold and in the interior of a manifold with boundary, for the collar of `Filling.lean` | 7 |
 | `Geometry/Manifold/DifferentialForm/Continuity.lean` | continuity in the parameter of the pullbacks of a form along the slices of a `C¹` map on a product, for the collar of `Filling.lean`, beside Tau Ceti's file of that path | 7 |
@@ -473,9 +474,11 @@ and a field `Y` with `hY : IsOutwardPointingField Y`:
 This is a smooth collar theorem for manifolds with an outward field; such a
 field exists on a σ-compact manifold (Tau Ceti's `exists_isOutwardPointingField`),
 so with it this gives smooth collars of compact boundaries, which Tau Ceti lacks.
-The same file states that corollary, for `[SigmaCompactSpace W]`:
-`exists_range_subset` (a smooth collar with `range c` inside a given open
-`U ⊇ ∂W`) and the instance `instNonempty : Nonempty (SmoothCollar n ∞ W)`.
+The same file states that corollary, for every Hausdorff `W` with compact
+boundary: `exists_range_subset` (a smooth collar with `range c` inside a given
+open `U ⊇ ∂W`) and the instance `instNonempty : Nonempty (SmoothCollar n ∞ W)`.
+It collars a σ-compact open `V ⊇ ∂W` inside `U` and carries the collar to `W`
+through `Boundary/Collar/Opens.lean`.
 
 Expected size: 400 lines.
 
