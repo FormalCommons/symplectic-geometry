@@ -24,6 +24,11 @@ same base, and `Φ x : V₁ x ≃ V₂ x` real-linear equivalences of the fibres
 When `Φ` is continuous on total spaces, so are these equivalences, for any complex models of the
 two complex bundles.
 
+In the same way, a frame of `V` along a map `f : X → B` by real-linear equivalences
+`Ψ x : E ≃ V (f x)` from a complex normed space, that carries multiplication by `I` to `J`, is a
+frame of the complex bundle `J.Fiber` (`TauCeti.Bundle.ContinuousComplexStructure.frameOfCommute`),
+continuous when `Ψ` is.
+
 The trivialization of `J.Fiber` at `b₀` is read in that of `V` at `b₀`
 (`TauCeti.Bundle.ContinuousComplexStructure.trivializationAt_fiberEquiv_symm_apply_snd`): over
 `J.unitSet b₀`, a coordinate in `V` is sent to the inverse of `J.complexLinearPart b₀ b` applied to
@@ -140,6 +145,49 @@ theorem continuous_fiberEquivConjOfAnticommute
     ConjugateBundle.toConjHomeomorph_apply, fiberEquivConjOfAnticommute_apply]
 
 end Anticommute
+
+/-! ### Complex frames from real frames -/
+
+section Frame
+
+variable {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F]
+  {V : B → Type*} [∀ b, AddCommGroup (V b)] [∀ b, Module ℝ (V b)] [∀ b, TopologicalSpace (V b)]
+  [∀ b, IsTopologicalAddGroup (V b)] [∀ b, ContinuousSMul ℝ (V b)]
+  [TopologicalSpace (TotalSpace F V)] [FiberBundle F V] [VectorBundle ℝ F V]
+  (J : ContinuousComplexStructure F V)
+  {E : Type*} [NormedAddCommGroup E] [NormedSpace ℂ E] {X : Type*} {f : X → B}
+  (Ψ : ∀ x, E ≃L[ℝ] V (f x)) (hΨ : ∀ x v, Ψ x (Complex.I • v) = J (f x) (Ψ x v))
+
+/-- A frame of `V` along `f : X → B` by real-linear equivalences `Ψ x : E ≃ V (f x)` from a
+complex normed space, that carries multiplication by `I` to `J`, as a frame of the complex bundle
+`J.Fiber` by complex-linear equivalences `E ≃ J.Fiber (f x)`. -/
+def frameOfCommute (x : X) : E ≃L[ℂ] J.Fiber (f x) :=
+  ((Ψ x).trans (J.fiberEquiv (f x)).symm).complexOfMapISmul fun v ↦
+    (J.fiberEquiv (f x)).injective <| by simp [hΨ]
+
+theorem frameOfCommute_apply (x : X) (v : E) :
+    J.frameOfCommute Ψ hΨ x v = (J.fiberEquiv (f x)).symm (Ψ x v) := by
+  simp [frameOfCommute]
+
+@[simp]
+theorem fiberEquiv_frameOfCommute (x : X) (v : E) :
+    J.fiberEquiv (f x) (J.frameOfCommute Ψ hΨ x v) = Ψ x v := by
+  rw [frameOfCommute_apply, ContinuousLinearEquiv.apply_symm_apply]
+
+variable (G : Type*) [NormedAddCommGroup G] [NormedSpace ℂ G] [FiniteDimensional ℂ G]
+  [FiniteDimensional ℝ F] [Fact (finrank ℝ F = 2 * finrank ℂ G)]
+
+/-- If the real frame `Ψ` is continuous as a map to the total space of `V`, the complex frame
+`J.frameOfCommute Ψ hΨ` is continuous as a map to the total space of `J.Fiber`, for any complex
+model `G` of `J.Fiber`. -/
+theorem continuous_frameOfCommute [TopologicalSpace X]
+    (hc : Continuous fun q : X × E ↦ TotalSpace.mk' F (f q.1) (Ψ q.1 q.2)) :
+    Continuous fun q : X × E ↦ TotalSpace.mk' G (E := J.Fiber) (f q.1)
+      (J.frameOfCommute Ψ hΨ q.1 q.2) := by
+  refine ((J.totalSpaceHomeomorph G).symm.continuous.comp hc).congr fun q ↦ ?_
+  rw [Function.comp_apply, totalSpaceHomeomorph_symm_apply, frameOfCommute_apply]
+
+end Frame
 
 /-! ### The trivializations of `J.Fiber` -/
 

@@ -8,8 +8,11 @@ module
 public import SymplecticGeometry.Analysis.Matrix.Polar.GLSymplectic
 public import SymplecticGeometry.Analysis.Matrix.SymplecticGroup.FundamentalGroup
 public import SymplecticGeometry.LinearAlgebra.Matrix.Realify
+public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Matrix
+public import SymplecticGeometry.Topology.Algebra.Matrix.Realify
 public import SymplecticGeometry.Topology.Algebra.SymplecticGroup
 public import SymplecticGeometry.Topology.Homotopy.Path
+public import TauCeti.Analysis.Complex.NormalizedDeterminant
 public import TauCeti.Topology.Homotopy.Path
 
 /-!
@@ -55,6 +58,10 @@ move.
 * `TauCeti.GLSymplectic.maslovPhase_mul_homotopic`: the maps `(A, B) ↦ ρ(A B)` and
   `(A, B) ↦ ρ(A) ρ(B)` are homotopic. The proof runs the polar homotopy on both factors at once,
   as Tau Ceti's proof of `TauCeti.GLSymplectic.maslovIndex_mul` does along loops.
+* `TauCeti.GLSymplectic.maslovIndex_toBasedLoop_mul`: the product axiom for loops given as maps
+  from the circle.
+* `TauCeti.GLSymplectic.maslovPhase_eq_normalizedDet`: `ρ` of a symplectic matrix that acts on
+  `ℝ²ⁿ = ℂⁿ` complex-linearly is its normalized complex determinant.
 * `TauCeti.GLSymplectic.maslovIndex_eq_iff_homotopic`,
   `TauCeti.GLSymplectic.homotopicWith_iff_maslovIndex_eq`: the Maslov index classifies loops up
   to homotopy with fixed ends and up to free homotopy.
@@ -127,6 +134,48 @@ theorem maslovPhase_mul_homotopic :
       Prod.map_fst, Prod.map_snd]
     rw [maslovPhase_inclusion_mul, maslovPhase_inclusion_polarUnitary,
       maslovPhase_inclusion_polarUnitary]
+
+/-- **The product axiom for loops on the circle.** For maps `f g` from the circle to the
+symplectic group, the Maslov index of the based loop of the pointwise product `f * g` adds up
+those of the based loops of `f` and `g`. -/
+theorem maslovIndex_toBasedLoop_mul (f g : C(Circle, GLSymplectic ι ℝ)) :
+    maslovIndex (f * g).toBasedLoop = maslovIndex f.toBasedLoop + maslovIndex g.toBasedLoop := by
+  rw [← maslovIndex_mul, maslovIndex_def, maslovIndex_def]
+  refine Circle.degree_congr _ _ fun t ↦ ?_
+  rw [Path.map_coe, Function.comp_apply, ContinuousMap.toBasedLoop_apply, Path.map_coe,
+    Function.comp_apply, Path.mul_apply, ContinuousMap.toBasedLoop_apply,
+    ContinuousMap.toBasedLoop_apply, ContinuousMap.mul_apply]
+
+/-! ### Complex-linear symplectic matrices -/
+
+/-- **`ρ` of a complex-linear symplectic map.** If a symplectic matrix `A` acts on `ℝ²ⁿ`,
+identified with `ℂⁿ` by real and imaginary parts (`TauCeti.complexToRealEuclidean`), as a
+complex-linear automorphism `T` of `ℂⁿ`, then `ρ(A)` is the normalized complex determinant
+`det T / |det T|` of `T`. -/
+theorem maslovPhase_eq_normalizedDet {A : GLSymplectic ι ℝ} (T : (ι → ℂ) ≃L[ℂ] (ι → ℂ))
+    (h : ∀ v, complexToRealEuclidean ι (T v) =
+      toEuclideanLin ((A : GL (ι ⊕ ι) ℝ) : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ)
+        (complexToRealEuclidean ι v)) :
+    maslovPhase A = T.normalizedDet := by
+  -- `A` commutes with `J₀`, since `T` commutes with multiplication by `I`.
+  have hc : Commute (J ι ℝ) ((A : GL (ι ⊕ ι) ℝ) : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ) := by
+    refine (SymplecticGeometry.commute_toEuclideanLin_stdComplexStructure_iff.1
+      (LinearMap.ext fun z ↦ ?_)).symm
+    obtain ⟨v, rfl⟩ := (complexToRealEuclidean ι).surjective z
+    rw [mul_apply_eq_comp, mul_apply_eq_comp]
+    -- `J₀.toLinearMap` applied to a vector is `J₀` applied to it, through the coercion.
+    change toEuclideanLin _ (SymplecticGeometry.stdComplexStructure ι _) =
+      SymplecticGeometry.stdComplexStructure ι (toEuclideanLin _ _)
+    rw [SymplecticGeometry.stdComplexStructure_complexToRealEuclidean, ← h, ← h, map_smul,
+      SymplecticGeometry.stdComplexStructure_complexToRealEuclidean]
+  obtain ⟨U, rfl⟩ := exists_ofUnitary_eq_of_commute hc
+  have hT : (T.toLinearEquiv : (ι → ℂ) →ₗ[ℂ] (ι → ℂ)) = Matrix.toLin' (U : Matrix ι ι ℂ) := by
+    refine LinearMap.ext fun v ↦ (complexToRealEuclidean ι).injective ?_
+    rw [Matrix.toLin'_apply, complexToRealEuclidean_mulVec, ← coe_ofUnitary]
+    exact h v
+  refine Circle.ext ?_
+  rw [maslovPhase_ofUnitary, ContinuousLinearEquiv.coe_normalizedDet, hT, LinearMap.det_toLin',
+    ← coe_detCircle, Circle.norm_coe, Complex.ofReal_one, div_one]
 
 /-! ### Classification of loops -/
 
