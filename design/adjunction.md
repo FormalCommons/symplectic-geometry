@@ -49,8 +49,10 @@ pinned versions, as for `DESIGN.md`. Tau Ceti paths are relative to
   `shortExact_orientationAt_normalSpace` takes its hypothesis through the
   restriction `J.restrict f hJ` of *Complex submanifolds*, so
   `SelfIntersection.lean` imports its merged
-  `Geometry/Symplectic/Manifold/AlmostComplex/Submanifold.lean`; its callers
-  convert `ho` with `orientation_eq_of_apply_one_eq`.
+  `Geometry/Symplectic/Manifold/AlmostComplex/Submanifold.lean`. That lemma
+  holds for an embedding `f : SmoothEmbedding I' I ∞ N X` of any dimension
+  `k` (`hk : finrank ℝ E' = k`); the surface is the case `k = 2`, where its
+  callers convert `ho` with `orientation_eq_of_apply_one_eq`.
 - **Orientation of the ambient manifold and of the normal bundle.** The
   formula does not mention the orientation of $X$; the page uses it only to
   orient the normal bundle, so that $T\Sigma\oplus\nu$ and $TX|_\Sigma$
@@ -296,7 +298,9 @@ Namespace `TauCeti.SmoothEmbedding`, for a surface `M` in `X` with
   `Bundle.chernNumber oₕ ℂ ν_J`, by `firstChernClass_eq_complexEulerClass`.
 - `selfIntersectionNumber_neg_orientation`: reversing `o` negates the number, from
   `chernNumber_neg_orientation`.
-- `shortExact_orientationAt_normalSpace`: if `o.orientationAt c` is the
+- `shortExact_orientationAt_normalSpace`: for an embedding `f` of a manifold
+  `N` of any real dimension `k` whose tangent spaces `J` preserves, if
+  `o.orientationAt c` is the
   orientation of `(J.restrict f hJ).almostComplexStructureAt c`, reindexed, Tau
   Ceti's `Orientation.shortExact` of the sequence
   $0\to T_c\Sigma\to T_{f c}X\to\nu_c\to 0$ (the differential and
