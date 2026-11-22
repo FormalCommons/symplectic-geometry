@@ -87,8 +87,7 @@ theorem exists_fiberwise_tautological_of_injective (hF : finrank 𝕜 F = 1)
         TotalSpace.mk' 𝕜 (E := Tautological 𝕜 V) (g v.proj) (φ v.proj v.snd) := by
   have : FiniteDimensional 𝕜 F := Module.finite_of_finrank_eq_succ hF
   -- The fibre over `b`, read in the trivialization at `b`.
-  let e : ∀ b, E b ≃L[𝕜] F := fun b ↦
-    (trivializationAt F E b).continuousLinearEquivAt 𝕜 b (mem_baseSet_trivializationAt F E b)
+  let e : ∀ b, E b ≃L[𝕜] F := VectorBundle.continuousLinearEquivAt 𝕜 F E
   have hrange : ∀ b, finrank 𝕜 (LinearMap.range (j b)) = 1 := fun b ↦
     (LinearEquiv.ofInjective (j b) (hj b)).finrank_eq.symm.trans
       ((e b).toLinearEquiv.finrank_eq.trans hF)

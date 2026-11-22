@@ -30,6 +30,8 @@ reindexes the canonical orientation once, for every such `E` and `M`:
   indexed by `Fin 2`, with `SymplecticGeometry.complexCurveOrientation_def`;
 * `SymplecticGeometry.orientationAt_complexCurveOrientation`: at every point it is Tau Ceti's
   complex orientation `TauCeti.complexOrientation E` of the model, reindexed to `Fin 2`;
+* `SymplecticGeometry.complexCurveOrientation_complex`: on `ℂ` itself it is the constant
+  orientation given by `Complex.orientation`;
 * `Diffeomorph.isOrientationPreservingAt_complexCurveOrientation`: biholomorphisms preserve it.
 
 Tau Ceti's `TauCeti.complexHomologicalOrientation` (in
@@ -110,6 +112,16 @@ theorem orientationAt_complexCurveOrientation (h : finrank ℂ E = 1) (x : M) :
       Orientation.reindex ℝ (TangentSpace 𝓘(ℝ, E) x) (finCongr (by rw [h]))
         (complexOrientation E) := by
   rw [complexCurveOrientation_def, orientationAt_reindex_complexManifoldOrientation]
+
+/-- On `ℂ`, as a complex curve, `complexCurveOrientation` is the constant orientation given by the
+standard orientation `Complex.orientation` of `ℂ`, the orientation of the basis `(1, i)`. -/
+theorem complexCurveOrientation_complex :
+    complexCurveOrientation ℂ ℂ =
+      Manifold.Orientation.model (I := 𝓘(ℝ, ℂ)) Complex.orientation (by simp) := by
+  ext x
+  rw [orientationAt_complexCurveOrientation, Manifold.Orientation.orientationAt_model]
+  -- The tangent space of `ℂ` at `x` is `ℂ`, so this is Tau Ceti's statement on `ℂ`.
+  exact reindex_complexOrientation_complex
 
 /-- A biholomorphism `Φ : M → N` of complex curves (a `C^n` diffeomorphism for the complex
 models, `n ≠ 0`) carries `complexCurveOrientation` of `M` to that of `N` at every point. -/

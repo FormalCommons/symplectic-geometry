@@ -381,8 +381,7 @@ Bundles from clutching data, and isomorphisms from homotopies.
   symplectic isomorphism. The existence of the outer frame is *Symplectic
   vector bundles*' milestone *Unitary trivializations over surfaces with
   boundary*, applied to the complement of an open disc; the frame over the
-  disc comes from contractibility (Tau Ceti's
-  `TauCeti.exists_continuous_frame`, then smoothed).
+  disc comes from the same result, applied to a closed disc around it.
 
 ### `Geometry/Manifold/VectorBundle/ChernNumber/Axioms.lean`
 
@@ -971,7 +970,7 @@ issues, in an order where each issue's blockers come before it.
    specialization for it.
    General lemmas that the proofs use have files of their own:
    `Geometry/Manifold/Instances/Sphere.lean` (`ContMDiffOn.of_coe_sphere`,
-   smoothness on an open set of a map into a unit sphere, used for
+   smoothness on a set of a map into a unit sphere, used for
    `Circle`), `Geometry/Manifold/VectorBundle/Riemannian/Hermitian.lean`
    (`Bundle.ContMDiffRiemannianMetric.contMDiffOn_hermitianPairing`, Tau
    Ceti's `contMDiff_hermitianPairing` on a set) and

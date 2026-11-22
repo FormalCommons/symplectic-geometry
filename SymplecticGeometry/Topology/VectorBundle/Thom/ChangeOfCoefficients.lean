@@ -65,8 +65,8 @@ theorem IsThomClass.singularCohomologyChainCoefficientMap {R R' : C} {k : Type*}
     IsThomClass F E
       ((thomPair F E).singularCohomologyChainCoefficientMap k M e.hom (finrank ℝ F) u) := by
   refine isThomClass_iff.2 ⟨(isThomClass_iff.1 hu).1, fun b ↦ ?_⟩
-  rw [← ConcreteCategory.comp_apply, ← TopPair.singularCohomologyChainCoefficientMap_naturality,
-    ConcreteCategory.comp_apply, ← TopPair.singularCohomologyChainCoefficientIso_hom]
+  rw [← TopPair.singularCohomologyChainCoefficientMap_naturality_apply,
+    ← TopPair.singularCohomologyChainCoefficientIso_hom]
   exact (Iso.toLinearEquiv _).span_singleton_apply_eq_top_iff.2 ((isThomClass_iff.1 hu).2 b)
 
 /-- **A change of cochain values along an isomorphism carries Thom classes to Thom classes.** -/
@@ -76,8 +76,8 @@ theorem IsThomClass.singularCohomologyValueMap {R : C} {k : Type*} [Ring k] [Lin
     IsThomClass F E
       ((thomPair F E).singularCohomologyValueMap R k e.hom (finrank ℝ F) u) := by
   refine isThomClass_iff.2 ⟨(isThomClass_iff.1 hu).1, fun b ↦ ?_⟩
-  rw [← ConcreteCategory.comp_apply, ← TopPair.singularCohomologyValueMap_naturality,
-    ConcreteCategory.comp_apply, ← TopPair.singularCohomologyValueIso_hom]
+  rw [← TopPair.singularCohomologyValueMap_naturality_apply,
+    ← TopPair.singularCohomologyValueIso_hom]
   exact (Iso.toLinearEquiv _).span_singleton_apply_eq_top_iff.2 ((isThomClass_iff.1 hu).2 b)
 
 /-- **A change of the linear structure of the coefficients carries Thom classes to Thom
@@ -98,7 +98,7 @@ section EulerClass
 variable [∀ b, AddCommMonoid (E b)] [∀ b, Module ℝ (E b)] [VectorBundle ℝ F E]
 
 /-- **The Euler class commutes with a change of chain coefficients.** -/
-@[reassoc]
+@[reassoc, elementwise]
 theorem eulerClass_comp_singularCohomologyChainCoefficientMap {R R' : C} (k : Type*) [Ring k]
     [Linear k C] (M : C) (f : R' ⟶ R) (n : ℕ) :
     eulerClass R k M F E n ≫ (TopCat.of B).singularCohomologyChainCoefficientMap k M f n =
@@ -108,7 +108,7 @@ theorem eulerClass_comp_singularCohomologyChainCoefficientMap {R R' : C} (k : Ty
     TopPair.singularCohomologyπ_singularCohomologyChainCoefficientMap_assoc]
 
 /-- **The Euler class commutes with a change of cochain values.** -/
-@[reassoc]
+@[reassoc, elementwise]
 theorem eulerClass_comp_singularCohomologyValueMap (R : C) (k : Type*) [Ring k] [Linear k C]
     {M M' : C} (g : M ⟶ M') (n : ℕ) :
     eulerClass R k M F E n ≫ (TopCat.of B).singularCohomologyValueMap R k g n =

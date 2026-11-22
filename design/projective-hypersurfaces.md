@@ -477,7 +477,7 @@ For a compact Hausdorff complex manifold `M` modelled on `𝓘(ℂ, E)` with
   `VectorBundleOrientation.complex` to
   `(complexManifoldOrientation E M).toVectorBundleOrientation`, pointwise by
   Tau Ceti's `orientationAt_complexManifoldOrientation_eq_complexOrientation`.
-- `TauCeti.ComplexManifold.evalFundamentalClass_chernClass_eq_eulerChar`:
+- `SymplecticGeometry.evalFundamentalClass_chernClass_eq_eulerChar`:
   $\langle c_{r+1}(TM),[M]\rangle=\chi(M)$, from
   `chernClass_finrank_eq_complexEulerClass` (#1043), the previous item, and
   `evalFundamentalClass_eulerClass_eq_eulerChar` (#1045). The evaluation

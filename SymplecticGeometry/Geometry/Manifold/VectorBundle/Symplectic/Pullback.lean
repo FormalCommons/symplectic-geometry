@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Pullback
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.ComplexStructure.Basic
 public import TauCeti.Geometry.Manifold.ContMDiffMap.Basic
+import SymplecticGeometry.Geometry.Manifold.ContMDiff.Opens
 
 /-!
 # Pull-backs of two-forms on vector bundles
@@ -58,6 +59,9 @@ that it is compatible with the rest of the structure that `Symplectic/Basic.lean
 * `IsSymplecticFrameOn.pullback` and `frameTransition_pullback`: a symplectic frame `Φ` over `U`
   pulls back to the symplectic frame `y ↦ Φ (f y)` over `f ⁻¹' U`, with transition maps those of
   `Φ` at `f y`.
+* `IsSymplecticFrameOn.of_pullback_subtypeVal`: conversely, for a subset `S` of `M` with a `C^n`
+  inclusion, a symplectic frame of the pull-back of `ω` to `S` gives one of `ω` over each open
+  subset of `M` in `S` whose inclusion into `S` is `C^n`.
 * `compMFDeriv f hf ω`, with `compMFDeriv_apply`, `bilinFormAt_compMFDeriv`,
   `compMFDeriv_apply_apply`, and `compMFDeriv_zero`, `compMFDeriv_add`, `compMFDeriv_smul`,
   `compMFDeriv_neg`, `compMFDeriv_sub`: for a `C^∞` map `f : N → M` and a two-form `ω` on
@@ -415,6 +419,36 @@ theorem IsSymplecticFrameOn.pullback {W : Type*} [NormedAddCommGroup W] [NormedS
   map_bilinFormAt y hy v w := by
     rw [bilinFormAt_pullback]
     exact h.map_bilinFormAt (f y) hy v w
+
+/-- Let `S` be a subset of `M`, with charts of its own, whose inclusion `ι` into `M` is
+`C^n`, and let `Ψ` be a symplectic frame of the pull-back of `ω` to `S`, over all of `S`. Let `U`
+be an open subset of `M` contained in `S`, whose inclusion into `S` is `C^n`. Then a frame `Φ` of
+`V` that agrees with `Ψ` at each point of `U` is a symplectic frame of `ω` over `U`. -/
+theorem IsSymplecticFrameOn.of_pullback_subtypeVal {W : Type*} [NormedAddCommGroup W]
+    [NormedSpace ℝ W] {σ : TauCeti.SymplecticForm W} {S : Set M} [ChartedSpace HN S]
+    {hι : ContMDiff I' I n (⟨Subtype.val, continuous_subtypeVal⟩ : C(S, M))}
+    {Ψ : ∀ y : S, W ≃L[ℝ] V y}
+    (hΨ : (ω.pullback (⟨Subtype.val, continuous_subtypeVal⟩ : C(S, M)) hι).IsSymplecticFrameOn
+      σ Set.univ Ψ)
+    {U : TopologicalSpace.Opens M} (hUS : (U : Set M) ⊆ S)
+    (hU : ContMDiff I I' n fun x : U ↦ (⟨x, hUS x.property⟩ : S)) {Φ : ∀ x, W ≃L[ℝ] V x}
+    (hΦ : ∀ x (hx : x ∈ U), Φ x = Ψ ⟨x, hUS hx⟩) :
+    ω.IsSymplecticFrameOn σ U Φ where
+  contMDiffOn := by
+    -- `Ψ`, read on `S × W` as a map to the total space of `V`, is `C^n`.
+    have hG := (Pullback.contMDiff_lift _ hι).comp
+      (contMDiffOn_univ.1 (by simpa only [Set.univ_prod_univ] using hΨ.contMDiffOn))
+    have h := ContMDiff.contMDiffOn_prod_opens_of_eq (U := U)
+      (f := fun q : W × M ↦ TotalSpace.mk' F q.2 (Φ q.2 q.1))
+      (hG.comp ((hU.comp contMDiff_snd).prodMk contMDiff_fst)) fun w x hx ↦ by
+        rw [hΦ x hx]
+        exact (Pullback.lift_mk (E := V) _ _ _).symm
+    exact h.comp (contMDiff_snd.prodMk contMDiff_fst).contMDiffOn
+      fun p (hp : p ∈ (U : Set M) ×ˢ Set.univ) ↦ ⟨Set.mem_univ _, hp.1⟩
+  map_bilinFormAt x hx v w := by
+    rw [hΦ x hx]
+    have := hΨ.map_bilinFormAt ⟨x, hUS hx⟩ (Set.mem_univ _) v w
+    rwa [bilinFormAt_pullback] at this
 
 /-! ### Pull-backs and isomorphisms of bundles -/
 

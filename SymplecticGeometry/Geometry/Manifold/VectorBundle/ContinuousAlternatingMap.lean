@@ -134,8 +134,7 @@ continuous bilinear map `V x →L V x →L G`. The fibre carries no norm, so thi
 `flatAt_apply` shows that the choice does not matter. -/
 noncomputable def flatAt {x : M} (α : V x [⋀^Fin 2]→L[𝕜] Trivial M G x) :
     V x →L[𝕜] V x →L[𝕜] G :=
-  let e := (trivializationAt F V x).continuousLinearEquivAt 𝕜 x
-    (FiberBundle.mem_baseSet_trivializationAt F V x)
+  let e := VectorBundle.continuousLinearEquivAt 𝕜 F V x
   e.symm.bilinearCongr (ContinuousAlternatingMap.flatL 𝕜 F G (α.compContinuousLinearMap e.symm))
 
 /-- The flat map evaluates as the form: `α♭ v w = α ![v, w]`. -/
