@@ -59,7 +59,9 @@ identity from the linear algebra of `LinearMap.apply_left_eq_apply_right_of_cycl
 the trilinear form `(u, v, w) ↦ ⟪(∇_u J) v, w⟫`.
 
 The pointwise consequences of `⟪u, v⟫ = σ(u, J v)` that the proofs use, `⟪J u, w⟫ = σ(u, w)`
-and the skew-adjointness of `J`, are proved in
+and the skew-adjointness of `J`, are
+`TauCeti.SmoothAlmostComplexStructure.inner_apply_left_of_inner_eq` and
+`TauCeti.SmoothAlmostComplexStructure.inner_apply_left_eq_neg`, from
 `SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Metric`.
 
 ## References
@@ -122,7 +124,7 @@ theorem hom_hom_flat_apply_eq_inner (hJ : ∀ x u v, ⟪u, v⟫ = σ.eval₂ x u
   have hJx := J.mdifferentiableAt_toEndomorphism x
   have hσ := σ.contMDiff_flat.mdifferentiableAt (x := x) (by simp)
   have hflat (y : M) (a b : TangentSpace I y) : σ.flat y a b = ⟪J y a, b⟫ := by
-    rw [SmoothTwoForm.flat_apply, inner_apply_left_eq_eval₂ hJ]
+    rw [SmoothTwoForm.flat_apply, inner_apply_left_of_inner_eq hJ]
   have h₁ := cov.hom_hom_apply cov (CovariantDerivative.trivial ℝ) hσ hV hW u
   have h₂ := cov.hom_apply cov hJx hV u
   have h₃ := hcov.mvfderiv_inner_eq (fun _ ↦ u) (hJx.clm_bundle_apply hV) hW
