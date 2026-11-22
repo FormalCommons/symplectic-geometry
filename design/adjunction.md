@@ -98,8 +98,9 @@ so all of *Symplectic vector bundles*' API, and through
 `.Fiber`, apply to it. `normalBundleMap` (for maps of pairs) does not
 apply. As the approving review of #838 asked, the structure is in the
 namespace `TauCeti.SmoothEmbedding`, in a file beside Tau Ceti's
-`NormalSpace/` files; *Projective hypersurfaces* uses the same structure for
-the normal bundle of a hypersurface.
+`NormalSpace/` files. The structure serves this part; *Projective
+hypersurfaces* does not use it, since Tau Ceti's normal bundle of a
+holomorphic embedding over `ℂ` is already complex.
 
 ### The orientation of the normal bundle
 
@@ -377,8 +378,8 @@ sub-issues of #879, *Build the part Adjunction*. Sizes are estimates.
 
 Issue 1 can start once this design is merged, and issue 2 after it; both
 use only Tau Ceti and merged files of the library. The milestone is proved in
-issue 4. *Projective hypersurfaces* uses issue 1 for the complex structure
-on the normal bundle of a hypersurface.
+issue 4. *Projective hypersurfaces* does not use issue 1: it takes Tau Ceti's
+normal bundle over `ℂ` for the normal bundle of a hypersurface.
 
 ## References
 
