@@ -797,6 +797,9 @@ issues, in an order where each issue's blockers come before it.
    Tau Ceti's caps of chains supported in an open subspace, and their
    relative forms, come in the same way, in
    `AlgebraicTopology/Cohomology/Cap/Support.lean`.
+   Tau Ceti's connecting square of the duality maps and the Mayer–Vietoris
+   connecting maps comes in the same way, in
+   `AlgebraicTopology/Cohomology/Cap/MayerVietoris/{Local,Basic}.lean`.
 3. **The unit circle bundle of a Hermitian line bundle.**
    `Geometry/Manifold/VectorBundle/Hermitian/CircleBundle.lean`, the file
    of *Symplectic vector bundles* (its section *The circle bundle of a
