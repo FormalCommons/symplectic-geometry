@@ -19,10 +19,16 @@ pseudometric space, the open ball is the complement of the sphere in the closed 
 of inclusions (`Metric.range_inclusion_ball_eq_compl`). Together these put the closed unit ball
 in the setting of Tau Ceti's relative fundamental class.
 
+On the outer side of the sphere, for `δ > 0`, the annulus `1 ≤ ‖w‖ < 1 + δ` is homeomorphic to
+`S × [0, 1)` through `(z, t) ↦ (1 + δ t) • z` (`homeomorphUnitSphereProdIcoAnnulus`). This
+collars the boundary circle of a disc removed from a surface.
+
 ## Main results
 
 * `homeomorphUnitSphereProdIco`: the homeomorphism from `S × [0, 1)` onto the
   closed unit ball minus its centre.
+* `homeomorphUnitSphereProdIcoAnnulus`: the homeomorphism from `S × [0, 1)` onto the annulus
+  `1 ≤ ‖w‖ < 1 + δ` outside the unit sphere.
 * `Metric.isCollared_inclusion_sphere_closedBall`: the unit sphere is collared in
   the closed unit ball.
 * `Metric.range_inclusion_ball_eq_compl`: the open ball is the complement of the sphere in the
@@ -102,6 +108,55 @@ theorem coe_homeomorphUnitSphereProdIco_symm_apply_fst
 theorem coe_homeomorphUnitSphereProdIco_symm_apply_snd
     (w : ({w | (w : E) ≠ 0} : Set (closedBall (0 : E) 1))) :
     ((homeomorphUnitSphereProdIco.symm w).2 : ℝ) = 1 - ‖(w.val : E)‖ :=
+  (rfl)
+
+/-- The annulus `1 ≤ ‖w‖ < 1 + δ` outside the unit sphere is `S × [0, 1)`, `S` the unit sphere,
+through `(z, t) ↦ (1 + δ t) • z`, for `δ > 0`. -/
+def homeomorphUnitSphereProdIcoAnnulus {δ : ℝ} (hδ : 0 < δ) :
+    sphere (0 : E) 1 × Ico (0 : ℝ) 1 ≃ₜ {w : E | 1 ≤ ‖w‖ ∧ ‖w‖ < 1 + δ} where
+  toFun p := ⟨(1 + δ * p.2) • (p.1 : E), by
+    have h0 : 0 ≤ δ * p.2 := mul_nonneg hδ.le p.2.property.1
+    rw [mem_ofPred_eq, norm_smul, norm_eq_of_mem_sphere p.1, mul_one,
+      Real.norm_of_nonneg (by linarith)]
+    constructor <;> nlinarith [p.2.property.2]⟩
+  invFun w := (⟨‖(w : E)‖⁻¹ • (w : E), by
+      rw [mem_sphere_zero_iff_norm, norm_smul, norm_inv, norm_norm,
+        inv_mul_cancel₀ (by linarith [w.property.1])]⟩,
+    ⟨(‖(w : E)‖ - 1) / δ, div_nonneg (by linarith [w.property.1]) hδ.le,
+      (div_lt_one hδ).2 (by linarith [w.property.2])⟩)
+  left_inv p := by
+    have ht : 0 < 1 + δ * p.2 := by nlinarith [p.2.property.1]
+    have hn : ‖(1 + δ * p.2) • (p.1 : E)‖ = 1 + δ * p.2 := by
+      rw [norm_smul, norm_eq_of_mem_sphere p.1, mul_one, Real.norm_of_nonneg ht.le]
+    ext
+    · simp only [hn, smul_smul, inv_mul_cancel₀ ht.ne', one_smul]
+    · simp only [hn, add_sub_cancel_left, mul_div_cancel_left₀ _ hδ.ne']
+  right_inv w := by
+    ext
+    simp only [mul_div_cancel₀ _ hδ.ne', add_sub_cancel, smul_smul,
+      mul_inv_cancel₀ (show ‖(w : E)‖ ≠ 0 by linarith [w.property.1]), one_smul]
+  continuous_toFun := by fun_prop
+  continuous_invFun := by
+    have hn : Continuous fun w : {w : E | 1 ≤ ‖w‖ ∧ ‖w‖ < 1 + δ} ↦ ‖(w : E)‖ := by fun_prop
+    exact (((hn.inv₀ fun w ↦ by linarith [w.property.1]).smul (by fun_prop)).subtype_mk _).prodMk
+      (((hn.sub continuous_const).div_const δ).subtype_mk _)
+
+@[simp]
+theorem coe_homeomorphUnitSphereProdIcoAnnulus_apply {δ : ℝ} (hδ : 0 < δ)
+    (p : sphere (0 : E) 1 × Ico (0 : ℝ) 1) :
+    (homeomorphUnitSphereProdIcoAnnulus hδ p : E) = (1 + δ * p.2) • (p.1 : E) :=
+  (rfl)
+
+@[simp]
+theorem coe_homeomorphUnitSphereProdIcoAnnulus_symm_apply_fst {δ : ℝ} (hδ : 0 < δ)
+    (w : {w : E | 1 ≤ ‖w‖ ∧ ‖w‖ < 1 + δ}) :
+    (((homeomorphUnitSphereProdIcoAnnulus hδ).symm w).1 : E) = ‖(w : E)‖⁻¹ • (w : E) :=
+  (rfl)
+
+@[simp]
+theorem coe_homeomorphUnitSphereProdIcoAnnulus_symm_apply_snd {δ : ℝ} (hδ : 0 < δ)
+    (w : {w : E | 1 ≤ ‖w‖ ∧ ‖w‖ < 1 + δ}) :
+    (((homeomorphUnitSphereProdIcoAnnulus hδ).symm w).2 : ℝ) = (‖(w : E)‖ - 1) / δ :=
   (rfl)
 
 namespace Metric
