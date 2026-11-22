@@ -14,7 +14,7 @@ import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Discrete
 import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Push
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Section.Generic
 import TauCeti.Geometry.Manifold.Boundary.Collar.Topological
-import SymplecticGeometry.Geometry.Manifold.ModelTransport.Opens
+import SymplecticGeometry.Geometry.Manifold.ModelTransport.InteriorModel
 import TauCeti.Geometry.Manifold.VectorBundle.Section.Generic
 import TauCeti.Geometry.Manifold.VectorBundle.Section.Module
 import TauCeti.Topology.FiberBundle.Pullback
@@ -125,12 +125,12 @@ private theorem exists_contMDiffSection_isDiscrete_interior [SecondCountableTopo
     (hF : finrank ℝ E ≤ finrank ℝ F) :
     ∃ σ : ContMDiffSection I F ∞ V, IsDiscrete {x : I.interiorOpens M | σ x = 0} := by
   let U := I.interiorOpens M
-  let N := U.InteriorModel I
-  -- A point of `N` is a point of `U` (`TopologicalSpace.Opens.coe_interiorModelHomeomorph_symm`).
+  let N := InteriorModel I U
+  -- A point of `N` is a point of `U` (`coe_interiorModelHomeomorph_symm`).
   have hj : ContMDiff 𝓘(ℝ, E) I ∞ (fun y : N ↦ ((show U from y) : M)) := by
-    have := contMDiff_subtypeVal.comp (U.interiorModelDiffeomorph I ∞).symm.contMDiff
-    rwa [TopologicalSpace.Opens.coe_interiorModelDiffeomorph_symm,
-      TopologicalSpace.Opens.coe_interiorModelHomeomorph_symm] at this
+    have := contMDiff_subtypeVal.comp (interiorModelDiffeomorph I U ∞).symm.contMDiff
+    rwa [coe_interiorModelDiffeomorph_symm,
+      coe_interiorModelHomeomorph_symm] at this
   let j : C^∞⟮𝓘(ℝ, E), N; I, M⟯ := ⟨fun y : N ↦ ((show U from y) : M), hj⟩
   have : ContMDiffVectorBundle ∞ F ((j : C(N, M)) *ᵖ V) 𝓘(ℝ, E) :=
     ContMDiffVectorBundle.pullback F V 𝓘(ℝ, E) j
@@ -163,7 +163,7 @@ private theorem exists_homotopy_interior_ne_zero [ConnectedSpace M] (hdim : 1 < 
     ∃ G : unitInterval × I.interiorOpens M → I.interiorOpens M, Continuous G ∧
       (∀ y, G (0, y) = y) ∧ ∀ y ∈ K, σ (G (1, y)) ≠ 0 := by
   let U := I.interiorOpens M
-  let N := U.InteriorModel I
+  let N := InteriorModel I U
   -- Restate the hypotheses for the topology of `N`, which is that of `U`.
   have hZ : IsClosed (X := N) {x : U | σ x = 0} :=
     σ.isClosed_setOf_eq_zero.preimage continuous_subtypeVal

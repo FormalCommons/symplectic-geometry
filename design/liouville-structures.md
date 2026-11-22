@@ -179,7 +179,7 @@ Further choices:
 | `Geometry/Manifold/Boundary/Collar/Flow/Basic.lean` | the collar of a compact boundary along an outward field | 6 |
 | `Geometry/Symplectic/Liouville/Filling.lean` | `IsStrongFilling`, its contact form, its Liouville collar | 7 |
 | `Geometry/Symplectic/Liouville/Scaling.lean` | Liouville scaling along integral curves, on a boundaryless manifold and in the interior of a manifold with boundary, for the collar of `Filling.lean` | 7 |
-| `Geometry/Manifold/ModelTransport/Opens.lean` | an open set without boundary points, modelled on the model vector space (`TopologicalSpace.Opens.InteriorModel`), and its diffeomorphism with the open set | — |
+| `Geometry/Manifold/ModelTransport/InteriorModel.lean` | a manifold without boundary points, modelled on the model vector space (`SymplecticGeometry.InteriorModel`), and its diffeomorphism with the manifold; used in `Scaling.lean` and `End.lean` | — |
 | `Geometry/Manifold/Boundary/Collar/End.lean` | attaching the end `[0, ∞) × ∂W` along a smooth collar | 8 |
 | `Geometry/Symplectic/Liouville/Completion.lean` | $\widehat\omega$, $\widehat Y$, $\widehat\lambda$; third milestone | 9, 10 |
 | `Geometry/Symplectic/Liouville/Domain.lean` | the completion of a Liouville domain is a Tau Ceti completion | 11 |
@@ -521,8 +521,8 @@ instance and `isClosedEmbedding_inclusion`. This is differential topology, with 
 
 - `WithEnd c : Type`, the manifold $W\cup_{\partial W}([0,\infty)\times\partial W)$,
   the glued space of `c.glueData : TopCat.GlueData`, glued from the interior
-  of `W` (as `TopologicalSpace.Opens.InteriorModel` of `(𝓡∂ (n + 1)).interiorOpens W`,
-  `Geometry/Manifold/ModelTransport/Opens.lean`) and
+  of `W` (as `SymplecticGeometry.InteriorModel` of `(𝓡∂ (n + 1)).interiorOpens W`,
+  `Geometry/Manifold/ModelTransport/InteriorModel.lean`) and
   `Ioi (-1) × ∂W`, along `(s, x) ↦ c (x, -s)` on `Ioo (-1) 0 × ∂W`, with
   Tau Ceti's `Geometry/Manifold/Gluing/GlueData.lean`; the second piece is
   re-modelled by a linear equivalence
