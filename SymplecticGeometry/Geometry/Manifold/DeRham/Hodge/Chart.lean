@@ -13,7 +13,6 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.ModelSpace
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
-public import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
 public import TauCeti.Geometry.Manifold.Riemannian.Codifferential
 public import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.ChartGram
 
@@ -143,8 +142,9 @@ theorem gramInChart_trans_apply (Θ : PartialDiffeomorph 𝓘(ℝ, E) 𝓘(ℝ, 
   have hn : (∞ : WithTop ℕ∞) ≠ 0 := by simp
   have key (a : E) : mfderiv 𝓘(ℝ, E) I (ψ.trans Θ).symm w (fderiv ℝ Θ (Θ.symm w) a) =
       mfderiv 𝓘(ℝ, E) I ψ.symm (Θ.symm w) a := by
-    have ha : fderiv ℝ Θ (Θ.symm w) a = mfderiv 𝓘(ℝ, E) 𝓘(ℝ, E) Θ (Θ.symm w) a :=
-      (TauCeti.mvfderiv_eq_fderiv_apply _ _ _).symm.trans (mvfderiv_apply_eq_mfderiv_apply _ _ _)
+    have ha : fderiv ℝ Θ (Θ.symm w) a = mfderiv 𝓘(ℝ, E) 𝓘(ℝ, E) Θ (Θ.symm w) a := by
+      -- `NormedSpace.fromTangentSpace` is the identity of `E`, which Mathlib states by no lemma.
+      rw [mfderiv_eq_fderiv]; rfl
     have h1 := Θ.mfderiv_symm_apply_mfderiv_apply hn (Θ.map_target hw) a
     rw [Θ.right_inv hw] at h1
     rw [ha, PartialDiffeomorph.coe_trans_symm, mfderiv_comp w

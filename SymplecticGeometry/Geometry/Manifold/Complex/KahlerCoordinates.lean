@@ -9,7 +9,7 @@ public import SymplecticGeometry.Geometry.Manifold.Complex.Integrable
 public import SymplecticGeometry.Geometry.Manifold.DeRham.Hodge.Chart
 public import TauCeti.Analysis.Calculus.InverseFunctionTheorem
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
-public import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
+import SymplecticGeometry.LinearAlgebra.ComplexStructure.SymmetricBilinear
 
 /-!
 # Osculating holomorphic charts of a Kähler manifold
@@ -29,13 +29,12 @@ is `A(h)(u, v) - g₀(Q(h, u), v) - g₀(u, Q(h, v))`. A `Q` for which this vani
 `g₀(Q(h, u), v) = (A(h)(u, v) + A(J₀ h)(u, J₀ v)) / 2`: the form `A` is symmetric and
 `J₀`-invariant in its last two arguments, because `g` is, and closedness of `ω` gives the cyclic
 identity that makes `Q` symmetric. This linear algebra is
-`TauCeti.AlmostComplexStructure.exists_symm_complexBilinear_apply_add_apply_eq`.
+`LinearMap.BilinForm.exists_symm_complexBilinear_apply_add_apply_eq`, in
+`SymplecticGeometry.LinearAlgebra.ComplexStructure.SymmetricBilinear`. That `J` stays `J₀` after
+`Φ` follows from `SmoothAlmostComplexStructure.mfderiv_trans_apply_eq_of_fderiv_apply_eq`.
 
 ## Main results
 
-* `TauCeti.AlmostComplexStructure.exists_symm_complexBilinear_apply_add_apply_eq`: the symmetric
-  complex bilinear map `Q` above, for a nondegenerate symmetric `J`-invariant form `G₀` and a
-  trilinear form `A` with the symmetries of the derivative of a Kähler metric.
 * `SymplecticGeometry.gramInChart_apply_eq_mpullback_symm_apply`: in a chart in which `J` is `J₀`,
   the metric `g(v, w) = ω(v, J w)` is `(u, v) ↦ ω(u, J₀ v)`, with `ω` read in the chart.
 * `IsIntegrable.exists_partialDiffeomorph_fderiv_gramInChart_eq_zero`, in the namespace
@@ -61,77 +60,6 @@ noncomputable section
 
 open Set Filter
 open scoped Manifold Topology ContDiff RealInnerProductSpace
-
-namespace TauCeti.AlmostComplexStructure
-
-variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
-
-/-- Let `J` be a linear complex structure on `E`, let `G₀` be a nondegenerate symmetric bilinear
-form with `G₀ (J u) (J v) = G₀ u v`, and let `A` be a trilinear form, symmetric and `J`-invariant in
-its last two arguments, with `A h u (J v) - A u h (J v) + A v h (J u) = 0`. Then there is a
-symmetric bilinear map `Q` with `Q h (J u) = J (Q h u)` such that
-`G₀ (Q h u) v + G₀ u (Q h v) = A h u v`.
-
-For the derivative `A` at a point of a Kähler metric `G` written in holomorphic coordinates, the
-cyclic identity is the closedness of the Kähler form, and `Q` is the quadratic part of a
-holomorphic change of coordinates that kills the first derivative of the metric. -/
-theorem exists_symm_complexBilinear_apply_add_apply_eq (J : AlmostComplexStructure E)
-    (G₀ : E →L[ℝ] E →L[ℝ] ℝ) (hG₀ : ∀ v, (∀ w, G₀ v w = 0) → v = 0)
-    (hGs : ∀ u v, G₀ u v = G₀ v u) (hGJ : ∀ u v, G₀ (J u) (J v) = G₀ u v)
-    (A : E →L[ℝ] E →L[ℝ] E →L[ℝ] ℝ) (hA : ∀ h u v, A h u v = A h v u)
-    (hAJ : ∀ h u v, A h (J u) (J v) = A h u v)
-    (hd : ∀ h u v, A h u (J v) - A u h (J v) + A v h (J u) = 0) :
-    ∃ Q : E →L[ℝ] E →L[ℝ] E, (∀ h u, Q h u = Q u h) ∧ (∀ h u, Q h (J u) = J (Q h u)) ∧
-      ∀ h u v, G₀ (Q h u) v + G₀ u (Q h v) = A h u v := by
-  set B : LinearMap.BilinForm ℝ E := G₀.toLinearMap₁₂
-  have hBl : B.SeparatingLeft := hG₀
-  have hB : B.Nondegenerate := ⟨hBl, fun y hy ↦ hBl y fun x ↦ by
-    rw [← hy x]; exact hGs y x⟩
-  -- The trilinear form that `G₀ (Q h u) ·` must be.
-  let T : E →ₗ[ℝ] E →ₗ[ℝ] Module.Dual ℝ E := LinearMap.mk₂ ℝ
-    (fun h u ↦ (1 / 2 : ℝ) • ((A h u).toLinearMap + (A (J h) u).toLinearMap ∘ₗ J.toLinearMap))
-    (fun h h' u ↦ by ext v; simp [J.apply_add]; ring)
-    (fun c h u ↦ by ext v; simp [J.apply_smul]; ring)
-    (fun h u u' ↦ by ext v; simp; ring)
-    (fun c h u ↦ by ext v; simp; ring)
-  let Ql : E →ₗ[ℝ] E →ₗ[ℝ] E := T.compr₂ (B.toDual hB).symm.toLinearMap
-  let Q : E →L[ℝ] E →L[ℝ] E := LinearMap.toContinuousLinearMap
-    ((LinearMap.toContinuousLinearMap : (E →ₗ[ℝ] E) ≃ₗ[ℝ] (E →L[ℝ] E)).toLinearMap ∘ₗ Ql)
-  have hQ (h u v : E) : G₀ (Q h u) v = 2⁻¹ * A h u v + 2⁻¹ * A (J h) u (J v) := by
-    have := LinearMap.BilinForm.apply_toDual_symm_apply (hB := hB) (T h u) v
-    simp only [Q, Ql, T, B] at this ⊢
-    simpa [mul_add] using this
-  have hinj {x y : E} (h : ∀ v, G₀ x v = G₀ y v) : x = y := by
-    rw [← sub_eq_zero]
-    exact hBl _ fun v ↦ by simp [B, h v]
-  have hGJ' (x v : E) : G₀ (J x) v = - G₀ x (J v) := by
-    simpa [J.apply_apply] using (hGJ (J x) v).symm
-  -- Symmetry of `Q`, from the cyclic identity.
-  have hsymm (h u : E) : Q h u = Q u h := by
-    refine hinj fun v ↦ ?_
-    rw [hQ, hQ]
-    have h1 := hd h u (J v)
-    have h2 := hd (J u) h v
-    have h3 := hd (J h) u v
-    have h4 := hd (J v) h u
-    have e1 := hA v (J u) (J h)
-    have e2 := hA h (J v) (J u)
-    have e3 := hA u (J v) (J h)
-    simp only [J.apply_apply, map_neg] at h1
-    linarith
-  have hJl (h u : E) : Q (J h) u = J (Q h u) := by
-    refine hinj fun v ↦ ?_
-    rw [hQ, hGJ', hQ]
-    simp [J.apply_apply]
-  refine ⟨Q, hsymm, fun h u ↦ by rw [hsymm, hJl, hsymm], fun h u v ↦ ?_⟩
-  rw [hGs u, hQ, hQ]
-  have e1 := hAJ (J h) v (J u)
-  have e2 := hA (J h) (J v) u
-  have e3 := hA h v u
-  simp only [J.apply_apply, map_neg] at e1
-  linarith
-
-end TauCeti.AlmostComplexStructure
 
 namespace SymplecticGeometry
 
@@ -243,14 +171,9 @@ private theorem fderiv_gramInChart_symmetries {form : SmoothTwoForm I M} (hform 
       refine (congrArg (· k) hd.fderiv).trans ?_
       simp [hAdef]
     have h0 := congrArg (fun T ↦ T ![h, u, v]) hcl
-    have r0 : Fin.removeNth 0 ![h, u, v] = ![u, v] := by ext i; fin_cases i <;> rfl
-    have r1 : Fin.removeNth 1 ![h, u, v] = ![h, v] := by ext i; fin_cases i <;> rfl
-    have r2 : Fin.removeNth 2 ![h, u, v] = ![h, u] := by ext i; fin_cases i <;> rfl
-    rw [extDeriv_apply hΩd, Fin.sum_univ_three, r0, r1, r2] at h0
-    simp only [Int.reduceNeg, Nat.reduceAdd, Fin.isValue, Fin.coe_ofNat_eq_mod, Nat.zero_mod,
-      pow_zero, Nat.succ_eq_add_one, Matrix.cons_val_zero, hΩe, smul_neg, one_smul, Nat.one_mod,
-      pow_one, Matrix.cons_val_one, neg_smul, neg_neg, Nat.mod_succ, even_two, Even.neg_pow,
-      one_pow, Matrix.cons_val, ContinuousAlternatingMap.coe_zero, Pi.zero_apply] at h0
+    simp only [TauCeti.extDeriv_apply_triple,
+      ← fderiv_continuousAlternatingMap_apply_const_apply hΩd, hΩe,
+      ContinuousAlternatingMap.coe_zero, Pi.zero_apply] at h0
     linarith
 
 omit [FiniteDimensional ℝ E] [IsManifold I ∞ M] in
@@ -326,11 +249,26 @@ private theorem exists_partialDiffeomorph_fderiv_gramInChart_eq_zero_aux
   set z₀ := φ x₀ with hz₀
   have hz₀t : z₀ ∈ φ.target := φ.map_source hx₀
   obtain ⟨hGJ, hA, hAJ, hcyc⟩ := fderiv_gramInChart_symmetries hform φ (hc φ) hGΩ hz₀t
-  have hG₀ (v : E) (hv : ∀ w, gramInChart φ z₀ v w = 0) : v = 0 := by
+  -- The linear algebra of `LinearMap.BilinForm.exists_symm_complexBilinear_apply_add_apply_eq`,
+  -- applied to the metric at `z₀` and its derivative there.
+  let G₀ : LinearMap.BilinForm ℝ E := (gramInChart φ z₀).toLinearMap₁₂
+  have hG₀ (u v : E) : G₀ u v = gramInChart φ z₀ u v := by simp [G₀]
+  let A : E →ₗ[ℝ] E →ₗ[ℝ] E →ₗ[ℝ] ℝ :=
+    (fderiv ℝ (gramInChart φ) z₀).toLinearMap₁₂.compr₂ (ContinuousLinearMap.coeLM ℝ)
+  have hA₀ (h u v : E) : A h u v = fderiv ℝ (gramInChart φ) z₀ h u v := by simp [A]
+  have hsep : G₀.SeparatingLeft := fun v hv ↦ by
     by_contra h0
-    exact (gramInChart_apply_self_pos φ hz₀t h0).ne' (hv v)
-  obtain ⟨Q, hQs, hQJ, hQ⟩ := J₀.exists_symm_complexBilinear_apply_add_apply_eq _ hG₀
-    (gramInChart_comm φ z₀) hGJ _ hA hAJ hcyc
+    exact (gramInChart_apply_self_pos φ hz₀t h0).ne' ((hG₀ v v).symm.trans (hv v))
+  have hsymm : G₀.IsSymm :=
+    LinearMap.BilinForm.isSymm_def.2 fun u v ↦ by simpa [hG₀] using gramInChart_comm φ z₀ u v
+  obtain ⟨Ql, hQs, hQJ, hQ⟩ :=
+    LinearMap.BilinForm.exists_symm_complexBilinear_apply_add_apply_eq J₀.square_neg hsep hsymm
+      (A := A) (fun u v ↦ by simpa [hG₀] using hGJ u v)
+      (fun h u v ↦ by simpa [hA₀] using hA h u v)
+      (fun h u v ↦ by simpa [hA₀] using hAJ h u v) (fun h u v ↦ by simpa [hA₀] using hcyc h u v)
+  let Q : E →L[ℝ] E →L[ℝ] E := LinearMap.toContinuousLinearMap
+    ((LinearMap.toContinuousLinearMap : (E →ₗ[ℝ] E) ≃ₗ[ℝ] (E →L[ℝ] E)).toLinearMap ∘ₗ Ql)
+  have hQl (h u : E) : Q h u = Ql h u := rfl
   -- The holomorphic quadratic change of coordinates, and its local inverse.
   set Φ : E → E := fun z ↦ z + (2⁻¹ : ℝ) • Q (z - z₀) (z - z₀) with hΦ
   have hΦd (z : E) : HasFDerivAt Φ (ContinuousLinearMap.id ℝ E + Q (z - z₀)) z := by
@@ -341,7 +279,7 @@ private theorem exists_partialDiffeomorph_fderiv_gramInChart_eq_zero_aux
     ext k
     simp only [add_apply, smul_apply, ContinuousLinearMap.comp_apply, Function.comp_apply,
       ContinuousLinearMap.flip_apply, ContinuousLinearMap.id_apply]
-    rw [hQs k]
+    rw [hQl, hQl, hQs k]
     module
   have hΦc : ContDiff ℝ ∞ Φ := contDiff_id.add
     (((Q.contDiff.comp (contDiff_id.sub contDiff_const)).clm_apply
@@ -359,36 +297,24 @@ private theorem exists_partialDiffeomorph_fderiv_gramInChart_eq_zero_aux
   have hz₀Θd : z₀ ∈ Θd.source := by simpa [Θd] using hz₀Θ
   have hΘdd (z : E) : HasFDerivAt Θd (ContinuousLinearMap.id ℝ E + Q (z - z₀)) z :=
     hΘdc ▸ hΦd z
-  have hΘm (p a : E) : (mfderiv 𝓘(ℝ, E) 𝓘(ℝ, E) Θd p a : E) =
-      (ContinuousLinearMap.id ℝ E + Q (p - z₀)) a := by
-    rw [← (hΘdd p).fderiv]
-    exact (mvfderiv_apply_eq_mfderiv_apply (I := 𝓘(ℝ, E)) (F := E) (Θd : E → E) p a).symm.trans
-      (TauCeti.mvfderiv_eq_fderiv_apply _ _ _)
   have hψx₀ : (φ.trans Θd) x₀ = z₀ := by
     rw [PartialDiffeomorph.coe_trans, Function.comp_apply, hΘdc, ← hz₀, hΦz₀]
-  have hz₀ψ : z₀ ∈ (φ.trans Θd).target := hψx₀ ▸ (φ.trans Θd).map_source ⟨hx₀, hz₀Θd⟩
-  refine ⟨φ.trans Θd, J₀, ⟨hx₀, hz₀Θd⟩, ?_, ?_⟩
+  have hx₀ψ : x₀ ∈ (φ.trans Θd).source := by
+    rw [PartialDiffeomorph.trans_source]
+    exact ⟨hx₀, hz₀Θd⟩
+  have hz₀ψ : z₀ ∈ (φ.trans Θd).target := hψx₀ ▸ (φ.trans Θd).map_source hx₀ψ
+  refine ⟨φ.trans Θd, J₀, hx₀ψ, ?_, ?_⟩
   · -- The derivative of `Φ` is `J₀`-linear, so `J` stays `J₀` in the new chart.
-    rw [J.forall_chartPushforward_apply_eq_iff]
-    intro y hy v
-    have hd (w : TangentSpace I y) : mfderiv I 𝓘(ℝ, E) (φ.trans Θd) y w =
-        (ContinuousLinearMap.id ℝ E + Q (φ y - z₀)) (mfderiv I 𝓘(ℝ, E) φ y w) := by
-      rw [PartialDiffeomorph.coe_trans]
-      refine (congrArg (· w) (mfderiv_comp y
-        (Θd.mdifferentiableAt hn (show φ y ∈ Θd.source from hy.2))
-        (φ.mdifferentiableAt hn (show y ∈ φ.source from hy.1)))).trans ?_
-      exact hΘm (φ y) (mfderiv I 𝓘(ℝ, E) φ y w)
-    have hcomm (h a : E) : (ContinuousLinearMap.id ℝ E + Q h) (J₀ a) =
-        J₀ ((ContinuousLinearMap.id ℝ E + Q h) a) := by
-      rw [add_apply, add_apply, ContinuousLinearMap.id_apply, ContinuousLinearMap.id_apply, hQJ,
-        J₀.apply_add]
-    rw [hd, hd, (J.forall_chartPushforward_apply_eq_iff φ J₀).1 hφJ y hy.1 v]
-    exact hcomm _ _
+    rw [J.forall_chartPushforward_apply_eq_iff] at hφJ ⊢
+    refine J.mfderiv_trans_apply_eq_of_fderiv_apply_eq hφJ fun z _ w ↦ ?_
+    rw [(hΘdd z).fderiv, add_apply, add_apply, ContinuousLinearMap.id_apply,
+      ContinuousLinearMap.id_apply, hQl, hQl, hQJ, J₀.apply_add]
   · rw [hψx₀]
-    exact fderiv_gramInChart_trans_eq_zero φ Θd Q hz₀t hz₀Θd (hΘdc ▸ hΦz₀) hΘdd
+    refine fderiv_gramInChart_trans_eq_zero φ Θd Q hz₀t hz₀Θd (hΘdc ▸ hΦz₀) hΘdd
       ((hc φ).contDiffAt (φ.open_target.mem_nhds hz₀t) |>.differentiableAt (by simp))
       ((hc _).contDiffAt ((φ.trans Θd).open_target.mem_nhds hz₀ψ) |>.differentiableAt (by simp))
-      hQ
+      fun h u v ↦ ?_
+    simpa [hQl, hG₀, hA₀] using hQ h u v
 
 end SymplecticGeometry
 
