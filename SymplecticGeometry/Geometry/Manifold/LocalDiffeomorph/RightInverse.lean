@@ -17,8 +17,8 @@ import TauCeti.Geometry.Manifold.LocalDiffeomorph.Injective
 Let `F` be a finite-dimensional real normed space and `M` a boundaryless manifold of the same
 dimension. If `f, j : F → M` are smooth near a compact set `K`, agree on `K` with the same
 derivative there, and `j` is injective on `K` with injective derivative along `K`, then `f` is an
-injective local diffeomorphism near `K`, and `g = f⁻¹ ∘ j` is a smooth map near `K` with
-`f ∘ g = j`, which is the identity, with derivative the identity, along `K`
+injective local diffeomorphism near `K`, and `g = f⁻¹ ∘ j` is a smooth map near `K`, with
+`f ∘ g = j` there, and `g` is the identity, with derivative the identity, along `K`
 (`SymplecticGeometry.exists_comp_eq_of_mfderiv_eq`).
 
 Applied to the two end slices of a family `k'` over `[0, 1]` of maps `F → M`, this gives maps

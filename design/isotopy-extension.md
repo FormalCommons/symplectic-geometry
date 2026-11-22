@@ -910,7 +910,7 @@ this design already follows. `Ball/Isotopy.lean` cites
   `Flux/CompactSupport.lean`); the reparametrization of time
   `exists_contDiff_eqOn_id_Icc_mem_Ioo` in
   `Analysis/SpecialFunctions/SmoothTransition.lean` (used by
-  `Extension.lean` and `Ball/Interpolation.lean`); the parametric radial primitives
+  `Extension.lean`); the parametric radial primitives
   `exists_isSmoothFamily_mextDerivₗ_eq_of_starConvex` in
   `Geometry/Manifold/DifferentialForm/SmoothFamily/Poincare.lean`
   (used by `Ball/Isotopy.lean`, through *Hamiltonian flows*'

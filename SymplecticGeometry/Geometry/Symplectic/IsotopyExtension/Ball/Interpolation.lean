@@ -9,14 +9,12 @@ public import SymplecticGeometry.Geometry.Symplectic.IsotopyExtension.Ball.Basic
 import Mathlib.Analysis.Calculus.ContDiff.FiniteDimension
 import Mathlib.Analysis.Calculus.TangentCone.Real
 import Mathlib.Geometry.Manifold.Instances.Icc
-import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.RightInverse
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.UniqueDifferential
 import SymplecticGeometry.Geometry.Manifold.SmoothIsotopy.Extension
 import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Frame
 import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.ModelSpace
-import TauCeti.Geometry.Manifold.SmoothIsotopy.Diffeotopy
 import TauCeti.Topology.Algebra.Module.Alternating.Basic
 
 /-!
@@ -38,12 +36,13 @@ The proof has two steps.
 1. *A family that is right along `B(r₀)`, with the right ends to first order.* For `r₀ > 0`, this
    is `e` itself: two maps that agree on `B(r₀)` have the same derivative there, since the ball is
    convex with nonempty interior (`UniqueMDiffWithinAt.mfderiv_eq_of_eqOn`). For `r₀ = 0`, `e` is
-   only a path of centres `c`. A compactly supported diffeotopy `Ψ` pushes `c 0` along `c`
-   (`ContMDiff.exists_diffeotopy_forall_apply_eq`), and the family is `Ψ t ∘ j₀ ∘ P t`, where
-   `P` is a smooth path of linear maps from `1` to a frame `B` that makes the derivative at `0`
-   that of `j₁` at time `1`. The path `P` trivializes the forms `(Ψ t ∘ j₀)^* σ` at `0`
-   (`SymplecticGeometry.exists_contDiff_path_apply_eq_stdForm`); for this the times of `Ψ` are
-   first extended past both ends of `[0, 1]` (`TauCeti.SmoothIsotopy.exists_contMDiff_extend`).
+   only a path of centres `c`. A family `ψ` of diffeomorphisms over `ℝ`, jointly smooth and with
+   `ψ 0` the identity, pushes `c 0` along `c`
+   (`ContMDiff.exists_contMDiff_diffeomorph_forall_apply_eq`), and the family is
+   `ψ t ∘ j₀ ∘ P t`, where `P` is a smooth path of linear maps from `1` to a frame `B` that makes
+   the derivative at `0` that of `j₁` at time `1`. The path `P` trivializes the forms
+   `(ψ t ∘ j₀)^* σ` at `0` (`SymplecticGeometry.exists_contDiff_path_apply_eq_stdForm`), which
+   needs these forms at all real times near `[0, 1]`.
 2. *The ends* (`SymplecticGeometry.exists_contMDiffOn_forall_eq_mfderiv_eq`, the step of
    McDuff–Salamon's Theorem A.2.1(iii) that keeps both ends). If the slice `k'_0` of such a family
    agrees with `j₀` to first order along a compact set `K`, then `k'_0` is a local diffeomorphism
@@ -184,52 +183,6 @@ private theorem exists_contDiff_path_mpullback_eq [FiniteDimensional ℝ E]
     fun v w ↦ (hκ 1 _ _).trans (hB v w)
   exact ⟨P, hP.of_le (by simp), hP0, hP1, fun t v w ↦ (hκ t _ _).symm.trans (hPκ t v w)⟩
 
-/-- A diffeotopy `Ψ` composed with a map `j₀`, near `0`, with times extended past both ends of
-`[0, 1]`. Let `j₀` be smooth on an open `U₀ ∋ 0`, with injective derivative at `0`. Then there is
-a map `F : ℝ × StdSpace (Fin n) → M`, smooth on `univ ×ˢ O` for an open `O ∋ 0`, whose slice at
-each `t ∈ [0, 1]` is `Ψ t ∘ j₀` near `0`, and whose slices are all immersions at `0`. -/
-private theorem exists_contMDiffOn_eventuallyEq_diffeotopy_comp [FiniteDimensional ℝ E]
-    [I.Boundaryless] [T2Space M] (Ψ : Diffeotopy I ∞ M) {U₀ : Set (StdSpace (Fin n))}
-    (hU₀ : IsOpen U₀) (h0U₀ : (0 : StdSpace (Fin n)) ∈ U₀) {j₀ : StdSpace (Fin n) → M}
-    (hj₀U : ContMDiffOn 𝓘(ℝ, StdSpace (Fin n)) I ∞ j₀ U₀)
-    (himm : Injective (mfderiv 𝓘(ℝ, StdSpace (Fin n)) I j₀ 0)) :
-    ∃ F : ℝ × StdSpace (Fin n) → M, ∃ O, IsOpen O ∧ (0 : StdSpace (Fin n)) ∈ O ∧
-      ContMDiffOn 𝓘(ℝ, ℝ × StdSpace (Fin n)) I ∞ F (univ ×ˢ O) ∧
-      (∀ t : unitInterval, (fun z ↦ F ((t : ℝ), z)) =ᶠ[𝓝 0] fun z ↦ Ψ (t, j₀ z)) ∧
-      ∀ s, Injective (mfderiv 𝓘(ℝ, StdSpace (Fin n)) I (fun z ↦ F (s, z)) 0) := by
-  -- `Ψ` as an isotopy of `M`, extended by `G` past both ends of `[0, 1]` near `j₀ 0`.
-  obtain ⟨δ, hδ, V, hcV, G, hG, hGΨ, hGemb⟩ :=
-    (Ψ.smoothIsotopy ContMDiffMap.id Manifold.IsSmoothEmbedding.id).exists_contMDiff_extend
-      (isCompact_singleton (x := j₀ 0))
-  obtain ⟨c', hc', hc'id, hc'mem, -⟩ := exists_contDiff_eqOn_id_Icc_mem_Ioo zero_le_one hδ
-  have hc'mem' (s : ℝ) : c' s ∈ Ioo (-δ) (1 + δ) := by simpa using hc'mem s
-  have hj₀V : j₀ 0 ∈ V := hcV rfl
-  -- `F s = G (c' s) ∘ j₀` on the open `O ∋ 0`.
-  set O := U₀ ∩ j₀ ⁻¹' V
-  have hO : IsOpen O := hj₀U.continuousOn.isOpen_inter_preimage hU₀ V.isOpen
-  refine ⟨fun p ↦ G (c' p.1, j₀ p.2), O, hO, ⟨h0U₀, hj₀V⟩,
-    hG.comp ((hc'.comp contDiff_fst).contMDiff.contMDiffOn.prodMk
-      (hj₀U.comp contDiff_snd.contMDiff.contMDiffOn
-        fun p (hp : p ∈ univ ×ˢ O) ↦ hp.2.1)) fun p hp ↦ ⟨hc'mem' p.1, hp.2.2⟩,
-    fun t ↦ Filter.eventually_of_mem (hO.mem_nhds ⟨h0U₀, hj₀V⟩) fun z hz ↦ ?_, fun s ↦ ?_⟩
-  · simp only [hc'id t.property]
-    exact (hGΨ t _ hz.2).trans (Ψ.smoothIsotopy_apply _ _ _)
-  -- The slices are immersions at `0`, since those of `G` are embeddings near `j₀ 0`.
-  have hGs : ContMDiffOn I I ∞ (fun x ↦ G (c' s, x)) V :=
-    hG.comp (contMDiffOn_const.prodMk contMDiffOn_id) fun x hx ↦ ⟨hc'mem' s, hx⟩
-  have hj₀d : MDifferentiableAt 𝓘(ℝ, StdSpace (Fin n)) I j₀ 0 :=
-    (hj₀U.contMDiffAt (hU₀.mem_nhds h0U₀)).mdifferentiableAt (by simp)
-  rw [show (fun z ↦ G (c' s, j₀ z)) = (fun x ↦ G (c' s, x)) ∘ j₀ from rfl,
-    mfderiv_comp 0 ((hGs.contMDiffAt (V.isOpen.mem_nhds hj₀V)).mdifferentiableAt (by simp)) hj₀d,
-    ContinuousLinearMap.coe_comp]
-  refine Injective.comp (fun u u' h ↦ ?_) himm
-  -- Read the derivative of `G (c' s)` through the inclusion of `V`.
-  have hres (w : TangentSpace I (j₀ 0)) :=
-    Manifold.mfderiv_comp_subtype_val_apply (I := I) (J := I) (f := fun x ↦ G (c' s, x))
-      (x := ⟨j₀ 0, hj₀V⟩) w
-  exact (hGemb (c' s) (hc'mem' s)).isImmersion.mfderiv_injective (by simp) (x := ⟨j₀ 0, hj₀V⟩)
-    ((hres u).trans (h.trans (hres u').symm))
-
 /-- The case `r₀ = 0`: a family of maps that sends `0` along a path of centres `c` from `j₀ 0` to
 `j₁ 0`, pulls `σ` back to `ω₀` at `0`, starts at `j₀` near `0`, and ends with the derivative of
 `j₁` at `0`. -/
@@ -253,12 +206,26 @@ private theorem exists_contMDiffOn_mpullback_eq_of_path [FiniteDimensional ℝ E
       (stdForm (Fin n)).constSmooth.val 0 ![v, w] = stdForm (Fin n) v w :=
     (SmoothBundleForm.eval₂_apply _ _ _ _).symm.trans
       (SymplecticForm.constSmooth_apply (stdForm (Fin n)) 0 v w)
-  -- `Ψ` pushes `c 0` along `c`.
-  obtain ⟨Ψ, -, -, -, hΨ⟩ := ContMDiff.exists_diffeotopy_forall_apply_eq hc
-  obtain ⟨F, O, hO, h0O, hF, hFΨ, hAinj⟩ :=
-    exists_contMDiffOn_eventuallyEq_diffeotopy_comp Ψ hU₀ h0U₀ hj₀U (hj₀.injective_mfderiv hr h0r)
-  -- The end frame `B = (d (F 1)_0)⁻¹ ∘ d (j₁)_0`.
-  set A₁ := mfderiv 𝓘(ℝ, StdSpace (Fin n)) I (fun z ↦ F (1, z)) 0
+  -- `ψ` pushes `c 0` along `c`, and `F s = ψ s ∘ j₀`.
+  obtain ⟨ψ, hψ, hψ0, -, -, -, hψc⟩ := ContMDiff.exists_contMDiff_diffeomorph_forall_apply_eq hc
+  have hψj (s : ℝ) : MDifferentiableAt 𝓘(ℝ, StdSpace (Fin n)) I (fun z ↦ ψ s (j₀ z)) 0 :=
+    (((ψ s).contMDiff.comp_contMDiffOn hj₀U).contMDiffAt (hU₀.mem_nhds h0U₀)).mdifferentiableAt
+      (by simp)
+  have hF : ContMDiffOn 𝓘(ℝ, ℝ × StdSpace (Fin n)) I ∞ (fun p ↦ ψ p.1 (j₀ p.2)) (univ ×ˢ U₀) :=
+    hψ.comp_contMDiffOn (contDiff_fst.contMDiff.contMDiffOn.prodMk
+      (hj₀U.comp contDiff_snd.contMDiff.contMDiffOn fun p (hp : p ∈ univ ×ˢ U₀) ↦ hp.2))
+  -- The slices `ψ s ∘ j₀` are immersions at `0`, since `ψ s` is a diffeomorphism.
+  have hAinj (s : ℝ) :
+      Injective (mfderiv 𝓘(ℝ, StdSpace (Fin n)) I (fun z ↦ ψ s (j₀ z)) 0) := by
+    have hj₀d : MDifferentiableAt 𝓘(ℝ, StdSpace (Fin n)) I j₀ 0 :=
+      (hj₀U.contMDiffAt (hU₀.mem_nhds h0U₀)).mdifferentiableAt (by simp)
+    rw [show (fun z ↦ ψ s (j₀ z)) = ψ s ∘ j₀ from rfl,
+      mfderiv_comp 0 (((ψ s).contMDiff.contMDiffAt).mdifferentiableAt (by simp)) hj₀d,
+      ContinuousLinearMap.coe_comp, ← (ψ s).mfderivToContinuousLinearEquiv_coe (by simp)]
+    exact ((ψ s).mfderivToContinuousLinearEquiv (by simp) _).injective.comp
+      (hj₀.injective_mfderiv hr h0r)
+  -- The end frame `B = (d (ψ 1 ∘ j₀)_0)⁻¹ ∘ d (j₁)_0`.
+  set A₁ := mfderiv 𝓘(ℝ, StdSpace (Fin n)) I (fun z ↦ ψ 1 (j₀ z)) 0
   have hfin : Module.finrank ℝ (StdSpace (Fin n)) = Module.finrank ℝ E := by
     rw [finrank_stdSpace, Fintype.card_fin, hdim]
   let e₁ := LinearEquiv.ofBijective A₁.toLinearMap ⟨hAinj 1,
@@ -268,18 +235,17 @@ private theorem exists_contMDiffOn_mpullback_eq_of_path [FiniteDimensional ℝ E
       ).toContinuousLinearMap
   have hAB (v : StdSpace (Fin n)) : A₁ (B v) = mfderiv 𝓘(ℝ, StdSpace (Fin n)) I j₁ 0 v :=
     e₁.apply_symm_apply _
-  have hF10 : F (1, 0) = j₁ 0 := by
-    rw [show F (1, 0) = Ψ (1, j₀ 0) from (hFΨ 1).self_of_nhds, ← hc₀, hΨ, hc₁]
-  have hF0 : (fun z ↦ F (0, z)) =ᶠ[𝓝 0] j₀ := by
-    filter_upwards [hFΨ 0] with z hz
-    exact hz.trans (Ψ.apply_zero _)
-  obtain ⟨P, hP, hP0, hP1, hPF⟩ := exists_contDiff_path_mpullback_eq hσ hdim hO h0O hF hAinj
-    (fun v w ↦ by rw [hF0.mpullback_eq, hj₀.mpullback_eq (mem_ball_self hr)]; exact hω₀ v w)
+  have hψ1 : ψ 1 (j₀ 0) = j₁ 0 := by
+    rw [← hc₀, ← Set.Icc.coe_one, hψc, hc₁]
+  have hψ0' : (fun z ↦ ψ 0 (j₀ z)) = j₀ := funext fun z ↦ hψ0 _
+  obtain ⟨P, hP, hP0, hP1, hPF⟩ := exists_contDiff_path_mpullback_eq hσ hdim hU₀ h0U₀ hF hAinj
+    (fun v w ↦ by
+      rw [hψ0', hj₀.mpullback_eq (mem_ball_self hr)]; exact hω₀ v w)
     (B := B) fun v w ↦ by
       refine (mpullback_apply_pair _ _ _ (B v) (B w)).trans ?_
-      rw [hAB, hAB, ← hω₀, ← hj₁.mpullback_eq (mem_ball_self hr), hF10]
+      rw [hAB, hAB, ← hω₀, ← hj₁.mpullback_eq (mem_ball_self hr), hψ1]
       exact (mpullback_apply_pair _ _ _ _ _).symm
-  -- The family `k t = Ψ t ∘ j₀ ∘ P t`, smooth where `P t z` stays in `U₀`.
+  -- The family `k t = ψ t ∘ j₀ ∘ P t`, smooth where `P t z` stays in `U₀`.
   have hPc : ContMDiff ((𝓡∂ 1).prod 𝓘(ℝ, StdSpace (Fin n))) 𝓘(ℝ, StdSpace (Fin n)) ∞
       (fun p : unitInterval × StdSpace (Fin n) ↦ P p.1 p.2) :=
     (hP.contMDiff.comp (contMDiff_subtypeVal_Icc.comp contMDiff_fst)).clm_apply contMDiff_snd
@@ -288,39 +254,31 @@ private theorem exists_contMDiffOn_mpullback_eq_of_path [FiniteDimensional ℝ E
     fun p (hp : p ∈ univ ×ˢ {0}) ↦ by
       rw [mem_preimage, mem_singleton_iff.1 hp.2, map_zero]
       exact h0U₀
-  have hΨj (t : unitInterval) :
-      MDifferentiableAt 𝓘(ℝ, StdSpace (Fin n)) I (fun z ↦ Ψ (t, j₀ z)) 0 :=
-    ((Ψ.contMDiff.comp_contMDiffOn (contMDiffOn_const.prodMk hj₀U)).contMDiffAt
-      (hU₀.mem_nhds h0U₀)).mdifferentiableAt (by simp)
-  refine ⟨fun p ↦ Ψ (p.1, j₀ (P p.1 p.2)), W, hW, h0W rfl,
-    Ψ.contMDiff.comp_contMDiffOn (contMDiffOn_fst.prodMk (hj₀U.comp hPc.contMDiffOn
-      fun p (hp : p ∈ univ ×ˢ W) ↦ hWU (mk_mem_prod (hu (mem_univ p.1)) hp.2))),
-    fun t ↦ by simp only [map_zero, ← hc₀, hΨ], fun t ↦ ?_,
-    fun z _ ↦ by
-      -- Restate the goal with `Ψ` applied, which elaboration of `fun p ↦ …` had unfolded.
-      change Ψ (0, j₀ (P ((0 : unitInterval) : ℝ) z)) = j₀ z
-      rw [Set.Icc.coe_zero, hP0]
-      exact Ψ.apply_zero _,
-    ?_⟩
-  · -- `(k t)^* σ = (P t)^* (F t)^* σ = ω₀` at `0`.
-    have hcomp : (fun z ↦ Ψ (t, j₀ (P t z))) = (fun z ↦ Ψ (t, j₀ z)) ∘ P t := rfl
+  refine ⟨fun p ↦ ψ p.1 (j₀ (P p.1 p.2)), W, hW, h0W rfl,
+    hψ.comp_contMDiffOn ((contMDiff_subtypeVal_Icc.comp contMDiff_fst).contMDiffOn.prodMk
+      (hj₀U.comp hPc.contMDiffOn
+        fun p (hp : p ∈ univ ×ˢ W) ↦ hWU (mk_mem_prod (hu (mem_univ p.1)) hp.2))),
+    fun t ↦ by simp only [map_zero, ← hc₀, hψc], fun t ↦ ?_,
+    fun z _ ↦ by simp only [Set.Icc.coe_zero, hP0, one_apply_eq_self, hψ0], ?_⟩
+  · -- `(k t)^* σ = (P t)^* (ψ t ∘ j₀)^* σ = ω₀` at `0`.
+    have hcomp : (fun z ↦ ψ t (j₀ (P t z))) = (fun z ↦ ψ t (j₀ z)) ∘ P t := rfl
     ext m
     have hm : m = ![m 0, m 1] := by
       funext i
       fin_cases i <;> rfl
     rw [hcomp, mpullback_comp_at (P t).differentiableAt.mdifferentiableAt
-      (by rw [map_zero]; exact hΨj t), hm, mpullback_apply_pair, mfderiv_eq_fderiv,
-      (P t).fderiv, map_zero, ← (hFΨ t).mpullback_eq]
+      (by rw [map_zero]; exact hψj t), hm, mpullback_apply_pair, mfderiv_eq_fderiv,
+      (P t).fderiv, map_zero]
     exact (hPF t (m 0) (m 1)).trans (hω₀ _ _).symm
-  · -- `d (k 1)_0 = d (Ψ 1 ∘ j₀)_0 ∘ B = d (j₁)_0`.
-    have hcomp : (fun z ↦ Ψ ((1 : unitInterval), j₀ (P ((1 : unitInterval) : ℝ) z))) =
-        (fun z ↦ Ψ (1, j₀ z)) ∘ B := by
+  · -- `d (k 1)_0 = d (ψ 1 ∘ j₀)_0 ∘ B = d (j₁)_0`.
+    have hcomp : (fun z ↦ ψ ((1 : unitInterval) : ℝ) (j₀ (P ((1 : unitInterval) : ℝ) z))) =
+        (fun z ↦ ψ 1 (j₀ z)) ∘ B := by
       rw [Set.Icc.coe_one, hP1]
       rfl
-    rw [hcomp, mfderiv_comp 0 (by rw [map_zero]; exact hΨj 1)
+    rw [hcomp, mfderiv_comp 0 (by rw [map_zero]; exact hψj 1)
       B.differentiableAt.mdifferentiableAt, mfderiv_eq_fderiv, B.fderiv, map_zero]
     ext v
-    exact (DFunLike.congr_fun (hFΨ 1).mfderiv_eq (B v)).symm.trans (hAB v)
+    exact hAB v
 
 /-- For `r₀ > 0`, a slice of an `IsSymplecticBallFamily` of radius `r₀` that agrees on `B(r₀)`
 with a map `j`, smooth on a neighbourhood of `B(r₀)`, has the derivative of `j` at each point of
