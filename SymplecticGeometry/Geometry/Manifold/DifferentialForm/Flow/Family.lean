@@ -8,6 +8,7 @@ module
 public import TauCeti.Geometry.Manifold.DifferentialForm.Flow.Family
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Family
 import TauCeti.Analysis.ODE.ScalarLinear
+import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Product
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Basic
 
 /-!
@@ -64,7 +65,8 @@ smooth by the argument that Tau Ceti writes inline in the definition of
 `TauCeti.SmoothForm.timeDeriv`, through `TauCeti.contMDiff_const_prod_field`, so the contraction
 `ι_{∂_t} σ` of a smooth form is smooth (`TauCeti.SmoothForm.timeInterior`). For closed `σ`,
 Cartan's formula `TauCeti.mlieDerivForm_eq_mextDeriv_interior` makes its exterior derivative
-the time derivative of `σ`.
+the time derivative of `σ`. Since `id × f` sends `∂_t` to `∂_t`, the contraction commutes with
+pullback along `id × f`, and it vanishes on forms pulled back from `M` along the projection.
 
 ## Main results
 
@@ -90,6 +92,8 @@ the time derivative of `σ`.
   `α₀ + c(t) (α₁ - α₀)` at time `t` is `c'(t) (α₁ - α₀)`.
 * `TauCeti.SmoothForm.timeInterior`: the contraction `ι_{∂_t} σ` with the time field.
 * `TauCeti.SmoothForm.mextDerivₗ_timeInterior`: `d (ι_{∂_t} σ) = ∂_t σ` for closed `σ`.
+* `TauCeti.SmoothForm.mpullback_prodMap_timeInterior`:
+  `(id × f)^* ι_{∂_t} σ = ι_{∂_t} (id × f)^* σ`.
 
 ## References
 
@@ -337,6 +341,26 @@ theorem mextDerivₗ_timeInterior {σ : SmoothForm (𝓘(ℝ, ℝ).prod I) (ℝ 
   rw [mextDerivₗ_apply, coe_timeDeriv, coe_timeInterior]
   exact (mlieDerivForm_eq_mextDeriv_interior (contMDiff_timeField.mdifferentiable (by simp))
     hσ).symm
+
+/-- The contraction with the time field commutes with pullback along `id × f`, which sends the
+time field `∂_t` of `ℝ × M` to that of `ℝ × N`: `(id × f)^* ι_{∂_t} σ = ι_{∂_t} (id × f)^* σ`. -/
+theorem mpullback_prodMap_timeInterior (f : M → N) (hf : ContMDiff I J ∞ f)
+    (σ : SmoothForm (𝓘(ℝ, ℝ).prod J) (ℝ × N) F (k + 1)) :
+    mpullback (Prod.map id f) (contMDiff_id.prodMap hf) σ.timeInterior =
+      (mpullback (Prod.map id f) (contMDiff_id.prodMap hf) σ).timeInterior := by
+  refine Subtype.ext ?_
+  rw [coe_mpullback, coe_timeInterior, coe_timeInterior, coe_mpullback]
+  refine mpullback_interior (F := F) _ _ _ _ fun p ↦ ?_
+  rw [mfderiv_prodMap mdifferentiableAt_id (hf.mdifferentiableAt (by simp)), mfderiv_id]
+  exact Prod.ext rfl (mfderiv I J f p.2).map_zero
+
+/-- A form pulled back from `M` along the projection `ℝ × M → M` has zero contraction with the
+time field, since the projection kills `∂_t`. -/
+@[simp]
+theorem timeInterior_mpullback_snd (β : SmoothForm I M F (k + 1)) :
+    (mpullback (Prod.snd : ℝ × M → M) contMDiff_snd β).timeInterior = 0 := by
+  refine Subtype.ext ?_
+  rw [coe_timeInterior, coe_mpullback, interior_mpullback_snd_eq_zero, ZeroMemClass.coe_zero]
 
 variable [I.Boundaryless] [J.Boundaryless]
 

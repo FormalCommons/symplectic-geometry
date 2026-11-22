@@ -142,9 +142,12 @@ submanifold theorem raises a third.
   $d\gamma_t$, with $\gamma_t$ the pull-back by $G_t$ of the contraction of
   $\omega$ with the velocity field of $G_t$. On $Q$, $i^*\gamma_t$ is the
   velocity form of $e_t$, which is closed because $e_t^*\omega$ does not
-  depend on $t$. Its pull-back by a smooth retraction $r$ of a tubular
-  neighbourhood onto $Q$ is therefore closed too, so subtracting it leaves a
-  primitive of $\partial_t\omega_t$, and this one vanishes on $TQ$.
+  depend on $t$. Moser's argument needs the primitive near $[0,1]$ in time,
+  where $i^*\gamma_t$ need not be closed. So, with a smooth retraction $r$
+  of a tubular neighbourhood $W$ onto $Q$, the family on $W$ becomes
+  $G_t^*\omega-(G_t\circ i\circ r)^*\omega+(i\circ r)^*\omega$ at every
+  real time. It is $G_t^*\omega$ for $t\in[0,1]$, and its contraction with
+  $\partial_t$ is a primitive of its time derivative that vanishes on $TQ$.
   The relative Moser theorem along a family (`Moser/Family.lean` below)
   then gives $\chi_t$ fixing $Q$ with
   $\chi_t^*\omega_t=\omega$ near $Q$, and $F_t=G_t\circ\chi_t$ is the wanted
@@ -785,17 +788,20 @@ theorem TauCeti.SmoothIsotopy.exists_isSymplectic_extension_of_mpullback_eq
 
 The start `g₀` of `F` is the inclusion of `U`, given by its equation for the
 same reason as in `Cohomological/Basic.lean`.
-The route is the third decision: `Extension.lean` gives `G` with
-$G_t\circ i=e_t$. The family $\omega_t=G_t^*\omega$ has velocity $d\gamma_t$,
-with $\gamma_t$ the velocity form of the restriction of `G` to the identity
-(`Velocity.lean`).
-The form $\gamma_t-r^*(i^*\gamma_t)$, for the retraction `r` of
-`TauCeti.SmoothEmbedding.exists_contMDiffOn_retraction`, vanishes on `TQ`.
-The relative Moser theorem along a family of `Moser/Family.lean`, applied to
-the extensions of $\omega_t$ and of this primitive past both ends, gives
-$\chi_t$, and
-$F_t=G_t\circ\chi_t$ on the neighbourhood it provides. Expected size: 350
-lines.
+The route is the third decision. `Extension.lean`'s
+`TauCeti.SmoothIsotopy.exists_contMDiff_diffeomorph_forall_apply_eq` gives a
+jointly smooth family $G_t$ of diffeomorphisms over all real times with
+$G_0=\mathrm{id}$ and $G_t\circ i=e_t$ for $t\in[0,1]$. On the open set $W$
+of the retraction `r` of `TauCeti.SmoothEmbedding.exists_contMDiffOn_retraction`,
+the closed form $S=A^*\omega-B^*\omega+C^*\omega$ on $\mathbb R\times W$, for
+$A(t,w)=G_t w$, $B(t,w)=G_t(i(r w))$ and $C(t,w)=i(r w)$, has the slices
+$G_t^*\omega$ for $t\in[0,1]$. Its contraction with $\partial_t$
+(`SmoothForm.timeInterior`) is a primitive of its time derivative, and it
+pulls back to $0$ on $\mathbb R\times Q$ because $A$ and $B$ agree there. The
+relative Moser theorem along a family of `Moser/Family.lean`, on the manifold
+$W$, gives $\chi_t$, and $F_t=G_t\circ\chi_t$ on the neighbourhood it
+provides. The velocity forms of `Velocity.lean` are not needed. Expected
+size: 350 lines.
 
 ## Milestones
 
@@ -864,7 +870,8 @@ this design already follows. `Ball/Isotopy.lean` cites
   bridge `Diffeotopy/Real.lean` for `TauCeti.Diffeotopy.ofReal` and
   `Geometry/Manifold/Flow/TimeDependent.lean` for
   `TauCeti.contMDiff_timeDependentFlowOf_param`, a lemma this part adds
-  there.
+  there. `Extension.lean` imports `Diffeotopy/Real.lean` too, to restrict
+  its family over `ℝ` to a `Diffeotopy`.
 - *Hamiltonian flows*: in `DeRham/FamilyPrimitive.lean`, the smooth primitive of a
   smooth family of exact one-forms over $[0,1]$, which that part's design
   (`design/hamiltonian-flows.md`, Decision 4) builds on chart balls and glues
@@ -896,6 +903,10 @@ this design already follows. `Ball/Isotopy.lean` cites
   forms, and `Geometry/Manifold/DifferentialForm/Flow/Family.lean`, whose
   `TauCeti.SmoothForm.mpullback_prodMk_timeDeriv_lineMapFamily`
   `Moser/Family.lean` uses for the velocity of a segment of forms.
+  `IsotopyExtension/Submanifold.lean` imports it for the contraction
+  `TauCeti.SmoothForm.timeInterior` with the time field, with
+  `mpullback_prodMap_timeInterior` and `timeInterior_mpullback_snd`, which
+  its pull request adds there.
 - *Moser isotopy*: `Moser/Field.lean`, whose `moserField` (#506) is
   the cut-off Moser field of both theorems of `Moser/Family.lean`. That
   design planned it for the linear segment between two forms with a fixed
