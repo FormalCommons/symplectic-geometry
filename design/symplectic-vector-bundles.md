@@ -1583,6 +1583,14 @@ For a map `f : C^n⟮I', N; I, M⟯` (the argument of Mathlib's instance
   `@[simp] frameTransition_pullback`: `frameTransition (fun y ↦ Φ (f y))
   (fun y ↦ Φ' (f y)) y = frameTransition Φ Φ' (f y)`, for any map
   `f : N → M`, by `frameTransition_apply`.
+- Along the derivative: for `f : K` with `[FunLike K N M]
+  [ContinuousMapClass K N M]` and `hf : ContMDiff I' I ∞ f`,
+  `ContMDiffTwoForm.compMFDeriv f hf ω : ContMDiffTwoForm I' ⊤ EN
+  (TangentSpace I')`, for `ω` a form on `f *ᵖ TangentSpace I`, is
+  $\sigma(u,v)=\omega(df\,u,df\,v)$: `compContinuousLinearMap` along
+  `mfderiv I' I f`, smooth by `Bundle.Pullback.contMDiff_mfderiv_hom`. API:
+  `compMFDeriv_def`, `@[simp] compMFDeriv_apply` and
+  `bilinFormAt_compMFDeriv`.
 
 ### Direct sums
 

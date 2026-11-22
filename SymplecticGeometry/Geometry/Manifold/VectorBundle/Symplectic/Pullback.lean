@@ -36,6 +36,9 @@ that it is compatible with the rest of the structure that `Symplectic/Basic.lean
 * `IsSymplecticFrameOn.pullback` and `frameTransition_pullback`: a symplectic frame `Φ` over `U`
   pulls back to the symplectic frame `y ↦ Φ (f y)` over `f ⁻¹' U`, with transition maps those of
   `Φ` at `f y`.
+* `compMFDeriv f hf ω`, with `compMFDeriv_apply` and `bilinFormAt_compMFDeriv`: for a `C^∞` map
+  `f : N → M` and a two-form `ω` on `f *ᵖ TM`, the two-form `σ(u, v) = ω(df u, df v)` on `TN`.
+  It uses only the smoothness of `f`, not that `f` is an immersion.
 
 ## Implementation notes
 
@@ -323,6 +326,47 @@ theorem pushforward_pullback_comp (ω : ContMDiffTwoForm I n F V) (g : C^n⟮I',
   -- `v` and `w` lie in a fibre of a pull-back bundle, where `simp` does not see that the
   -- identity of `V _` applies to them.
   rfl
+
+/-! ### The form induced on the tangent bundle along a smooth map -/
+
+section CompMFDeriv
+
+variable [IsManifold I ((⊤ : ℕ∞) : WithTop ℕ∞) M] [IsManifold I' ((⊤ : ℕ∞) : WithTop ℕ∞) N]
+  [FiniteDimensional ℝ EN] {K : Type*} [FunLike K N M] [ContinuousMapClass K N M]
+
+/-- The two-form `σ(u, v) = ω(df u, df v)` on the tangent bundle of `N` that a two-form `ω` on
+the pull-back `f *ᵖ TM` induces along a `C^∞` map `f : N → M`. -/
+def compMFDeriv (f : K) (hf : ContMDiff I' I ((⊤ : ℕ∞) : WithTop ℕ∞) f)
+    (ω : ContMDiffTwoForm I' ⊤ EB ((f : N → M) *ᵖ (TangentSpace I))) :
+    ContMDiffTwoForm I' ⊤ EN (TangentSpace I' (M := N)) :=
+  compContinuousLinearMap (V := (f : N → M) *ᵖ (TangentSpace I)) (V₂ := TangentSpace I')
+    (fun y ↦ mfderiv I' I f y) (Pullback.contMDiff_mfderiv_hom f hf) ω
+
+theorem compMFDeriv_def (f : K) (hf : ContMDiff I' I ((⊤ : ℕ∞) : WithTop ℕ∞) f)
+    (ω : ContMDiffTwoForm I' ⊤ EB ((f : N → M) *ᵖ (TangentSpace I))) :
+    ω.compMFDeriv f hf = compContinuousLinearMap (V := (f : N → M) *ᵖ (TangentSpace I))
+      (V₂ := TangentSpace I') (fun y ↦ mfderiv I' I f y) (Pullback.contMDiff_mfderiv_hom f hf)
+      ω :=
+  (rfl)
+
+/-- The induced form at `y` is `ω_y(df ·, df ·)`. -/
+@[simp]
+theorem compMFDeriv_apply (f : K) (hf : ContMDiff I' I ((⊤ : ℕ∞) : WithTop ℕ∞) f)
+    (ω : ContMDiffTwoForm I' ⊤ EB ((f : N → M) *ᵖ (TangentSpace I))) (y : N) :
+    ω.compMFDeriv f hf y = (ω y).compContinuousLinearMap (mfderiv I' I f y) := by
+  rw [compMFDeriv_def]
+  exact compContinuousLinearMap_apply _ _ ω y
+
+/-- The induced form takes on `u`, `v` the value of `ω` on `df u`, `df v`. -/
+theorem bilinFormAt_compMFDeriv (f : K) (hf : ContMDiff I' I ((⊤ : ℕ∞) : WithTop ℕ∞) f)
+    (ω : ContMDiffTwoForm I' ⊤ EB ((f : N → M) *ᵖ (TangentSpace I))) (y : N)
+    (u v : TangentSpace I' y) :
+    (ω.compMFDeriv f hf).bilinFormAt y u v =
+      ω.bilinFormAt y (mfderiv I' I f y u) (mfderiv I' I f y v) := by
+  rw [compMFDeriv_def]
+  exact bilinFormAt_compContinuousLinearMap _ _ ω y u v
+
+end CompMFDeriv
 
 end ContMDiffTwoForm
 
