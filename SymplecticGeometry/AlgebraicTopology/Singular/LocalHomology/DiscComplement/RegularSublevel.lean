@@ -18,7 +18,7 @@ and one whose strict sublevel set contains the complement `discComplement` of th
 both cases the sublevel set is connected (for the second, when `M` is) and the level set is
 nonempty, so Tau Ceti's `TauCeti.isManifold_scalarRegularSublevel` and
 `TauCeti.boundary_scalarRegularSublevel` make the sublevel set a connected surface with nonempty
-boundary.
+boundary. The first sublevel set is moreover compact, whether or not `M` is.
 
 The sublevel sets are the images under `e.symm` of a closed ball of radius `3r/4` and the
 complement of that of an open ball of radius `r/4`, from
@@ -52,23 +52,25 @@ variable {M : Type} [TopologicalSpace M] [T2Space M] [ChartedSpace (EuclideanSpa
 /-- **A regular sublevel set around a coordinate disc.** Let `e` be a chart of the smooth
 maximal atlas of a Hausdorff, σ-compact smooth surface `M`, and `CoordinateDisc.ofChart e hr hc he`
 the coordinate disc it gives. There is a smooth function `f : M → ℝ` with regular value `0` such
-that the closed disc lies in `{f < 0}`, the sublevel set `{f ≤ 0}` is connected and the level set
-`{f = 0}` is nonempty. -/
+that the closed disc lies in `{f < 0}`, the sublevel set `{f ≤ 0}` is compact and connected, and
+the level set `{f = 0}` is nonempty. -/
 theorem exists_isRegularValue_disc_subset_ofChart
     (hea : e ∈ IsManifold.maximalAtlas (𝓡 2) ∞ M) (hr : 0 < r)
     (hc : Metric.ball c r ⊆ e.target)
     (he : ∀ x ∈ e.source,
       o.IsOrientationPreservingAt (Manifold.Orientation.euclideanSpace 2) e x) :
     ∃ f : M → ℝ, ContMDiff (𝓡 2) 𝓘(ℝ) ∞ f ∧ IsRegularValue (𝓡 2) 𝓘(ℝ) f 0 ∧
-      (ofChart e hr hc he).disc ⊆ {x | f x < 0} ∧ IsConnected {x | f x ≤ 0} ∧
-      {x | f x = 0}.Nonempty := by
+      (ofChart e hr hc he).disc ⊆ {x | f x < 0} ∧ IsCompact {x | f x ≤ 0} ∧
+      IsConnected {x | f x ≤ 0} ∧ {x | f x = 0}.Nonempty := by
   have hρ : 0 < 3 * r / 4 := by positivity
   have hball : closedBall c (3 * r / 4) ⊆ e.target :=
     (closedBall_subset_ball (by linarith)).trans hc
   obtain ⟨f, hf, ha, hle, hlt, heq⟩ := e.exists_isRegularValue_image_closedBall hea hball hρ
-  refine ⟨f, hf, ha, ?_, ?_, ?_⟩
+  refine ⟨f, hf, ha, ?_, ?_, ?_, ?_⟩
   · rw [disc_ofChart, hlt]
     exact image_mono (closedBall_subset_ball (by linarith))
+  · rw [hle]
+    exact (isCompact_closedBall c _).image_of_continuousOn (e.continuousOn_symm.mono hball)
   · rw [hle]
     exact (isConnected_closedBall hρ.le).image _ (e.continuousOn_symm.mono hball)
   · rw [heq]

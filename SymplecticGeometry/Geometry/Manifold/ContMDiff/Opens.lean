@@ -13,7 +13,8 @@ public import Mathlib.Geometry.Manifold.ContMDiff.Constructions
 Let `U` be an open subset of a manifold `M` and `n` a smoothness order. A map `f : P × M → N` that
 agrees on `P × U` with a `C^n` map `g : P × U → N` is `C^n` on `P × U`
 (`ContMDiff.contMDiffOn_prod_opens_of_eq`): on the open subset `P × U` of `P × M`, read as a
-manifold, `f` is `g` composed with `(p, x) ↦ (p, ⟨x, _⟩)`.
+manifold, `f` is `g` composed with `(p, x) ↦ (p, ⟨x, _⟩)`. The same holds with the factors
+swapped, on `U × P` (`ContMDiff.contMDiffOn_opens_prod_of_eq`).
 
 As a consequence, for a `C^n` map `Φ : P × U → U` and a map `k : P × M → N` that is `C^n` on
 `P × U`, the map equal to `(p, x) ↦ k (p, Φ (p, x))` on `P × U` and to `k` elsewhere is `C^n` on
@@ -24,6 +25,7 @@ As a consequence, for a `C^n` map `Φ : P × U → U` and a map `k : P × M → 
 
 * `ContMDiff.contMDiffOn_prod_opens_of_eq`: a map that agrees on `P × U` with a `C^n` map on
   `P × U` is `C^n` on `P × U`.
+* `ContMDiff.contMDiffOn_opens_prod_of_eq`: the same on `U × P`.
 * `ContMDiffOn.dite_comp_of_opens`: the map above, built from `Φ` and `k`, is `C^n` on `P × U`.
 -/
 
@@ -56,6 +58,18 @@ theorem ContMDiff.contMDiffOn_prod_opens_of_eq {n : WithTop ℕ∞} {U : Opens M
   refine (contMDiffAt_subtype_iff (U := W) (x := ⟨p, hp⟩)).1 ?_ |>.contMDiffWithinAt
   exact ((hg.comp ((contMDiff_fst.comp contMDiff_subtypeVal).prodMk hψ)) ⟨p, hp⟩
     ).congr_of_eventuallyEq (Filter.Eventually.of_forall fun q ↦ hfg (q : P × M).1 _ q.property.2)
+
+/-- Let `U` be an open subset of `M` and `g : U × P → N` a `C^n` map. A map `f : M × P → N` with
+`f (x, p) = g (⟨x, _⟩, p)` for every `x ∈ U` and every `p` is `C^n` on `U × P`. -/
+theorem ContMDiff.contMDiffOn_opens_prod_of_eq {n : WithTop ℕ∞} {U : Opens M} {g : U × P → N}
+    (hg : ContMDiff (J.prod IP) I' n g) {f : M × P → N}
+    (hfg : ∀ (x : M) (hx : x ∈ U) (p : P), f (x, p) = g (⟨x, hx⟩, p)) :
+    ContMDiffOn (J.prod IP) I' n f (U ×ˢ univ) := by
+  -- Swap the factors, and apply `ContMDiff.contMDiffOn_prod_opens_of_eq`.
+  have h := ContMDiff.contMDiffOn_prod_opens_of_eq (g := fun q ↦ g (q.2, q.1))
+    (f := fun q ↦ f (q.2, q.1)) (hg.comp (contMDiff_snd.prodMk contMDiff_fst))
+    fun p x hx ↦ hfg x hx p
+  exact h.comp (contMDiff_snd.prodMk contMDiff_fst).contMDiffOn fun q hq ↦ ⟨mem_univ _, hq.1⟩
 
 open Classical in
 /-- Let `U` be an open subset of `M`, `Φ : P × U → U` a `C^n` map, and `k : P × M → N` a map that
