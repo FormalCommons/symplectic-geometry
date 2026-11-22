@@ -20,9 +20,10 @@ assemble the shuffle map `SSet.shuffle` of Eilenberg and Mac Lane into a chain m
 * reassociate the tensor product of chain complexes, shuffle the last two factors, then the first
   with the result.
 
-Since Tau Ceti builds `SSet.shuffle` by acyclic models, the two composites are not known to be
-equal, and only their maps on homology are compared in Tau Ceti
-(`TopCat.singularHomologyCross_assoc`, through the Alexander–Whitney map).  This file shows that
+Tau Ceti defines `SSet.shuffle` explicitly, through the recursion of the shuffle chain
+`SSet.shuffleChain`, but does not state its closed formula as a signed sum over shuffles, and it
+compares the two composites only on homology (`TopCat.singularHomologyCross_assoc`, through the
+Alexander–Whitney map).  Their equality at chain level is not proved here.  This file shows that
 they are chain homotopic (`SSet.shuffleAssocHomotopy`), through a homotopy which is natural in the
 three simplicial sets (`SSet.shuffleAssocHomotopy_hom_naturality`).  The parenthesization and the
 associators are those of `TopCat.singularHomologyCross_assoc`.
