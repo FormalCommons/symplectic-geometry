@@ -2790,7 +2790,7 @@ manifolds and characteristic classes*).
 | *Hodge decomposition on closed Kähler manifolds* | *Hodge theory*. Existing inputs: `TauCeti.harmonicForms` and its orthogonality results, `TauCeti.complexDeRhamCohomology`, `TauCeti.dolbeaultCohomology`, Tau Ceti's interior elliptic regularity. |
 | *Adjunction formula* | *Adjunction*; the example of plane curves *Projective hypersurfaces*. |
 | *Chern classes of projective hypersurfaces* | *Projective hypersurfaces*, on *Chern classes*. Existing inputs: `TauCeti.isManifold_complexProjectiveZeroLocus`, `Projectivization.twistCore`, Tau Ceti's Lefschetz theorems in `Geometry/Manifold/Projectivization/Lefschetz.lean`. |
-| *Energy identity for J-holomorphic curves* | *Energy of pseudoholomorphic curves*. Existing inputs: Tau Ceti's pointwise identity `TauCeti.SmoothTwoForm.Invariant.stdComplexLineEnergyDensity_sub_two_mul_twoForm`, `TauCeti.integralTopForm_mpullback_nonneg`. |
+| *Energy identity for J-holomorphic curves* | *Energy of pseudoholomorphic curves*. Existing input: `TauCeti.integralTopForm_mpullback_nonneg`. |
 
 The results that the page quotes rather than proves are handled as follows.
 The integral first Chern class is *First Chern number*'s, the Euler class of

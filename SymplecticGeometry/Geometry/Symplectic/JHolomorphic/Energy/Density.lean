@@ -163,14 +163,26 @@ theorem energyDensity_apply_complexFrame_eq_stdComplexLineEnergyDensity
     LinearMap.coprod_toSpanSingleton_apply_stdComplexLineImag, SmoothBundleForm.eval₂_apply,
     SmoothBundleForm.eval₂_apply]
 
-/-- Tameness of `J` by `form`, at `x`, as positivity of the alternating form `form_x` on pairs
-`(v, J_x v)`. -/
-private lemma Tames.toAlternatingMap_pos {form : SmoothTwoForm I M}
+/-- If `form` tames `J`, then at each `x` the alternating form `form_x` is positive on every pair
+`(v, J_x v)` with `v ≠ 0`. -/
+theorem Tames.toAlternatingMap_pos {form : SmoothTwoForm I M}
     {J : SmoothAlmostComplexStructure I M} (h : form.Tames J) (x : M) (v : TangentSpace I x)
     (hv : v ≠ 0) : 0 < (form.val x).toAlternatingMap ![v, J.almostComplexStructureAt x v] := by
   simpa only [ContinuousAlternatingMap.coe_toAlternatingMap,
     SmoothAlmostComplexStructure.almostComplexStructureAt_apply, SmoothBundleForm.eval₂_apply]
     using tames_iff.mp h x v hv
+
+/-- If `form` is `J`-invariant, then at each `x` the alternating form `form_x` takes the same
+value on `(J_x v, J_x w)` as on `(v, w)`. -/
+theorem Invariant.toAlternatingMap_apply_eq {form : SmoothTwoForm I M}
+    {J : SmoothAlmostComplexStructure I M} (h : form.Invariant J) (x : M)
+    (v w : TangentSpace I x) :
+    (form.val x).toAlternatingMap
+        ![J.almostComplexStructureAt x v, J.almostComplexStructureAt x w] =
+      (form.val x).toAlternatingMap ![v, w] := by
+  simpa only [ContinuousAlternatingMap.coe_toAlternatingMap,
+    SmoothAlmostComplexStructure.almostComplexStructureAt_apply, SmoothBundleForm.eval₂_apply]
+    using invariant_iff.mp h x v w
 
 /-- If `form` tames `J`, the energy density is nonnegative on every frame `(e, j e)`. -/
 theorem Tames.energyDensity_apply_complexFrame_nonneg {form : SmoothTwoForm I M}
@@ -250,17 +262,12 @@ theorem Invariant.energyDensity_eq_two_smul_add {form : SmoothTwoForm I M}
         (j.toEndomorphism c : TangentSpace I' c →ₗ[ℝ] TangentSpace I' c)
         (J.toEndomorphism x : TangentSpace I x →ₗ[ℝ] TangentSpace I x) L) +
       (form.val x).compContinuousLinearMap L := by
-  have hinv' (v w : TangentSpace I x) : (form.val x).toAlternatingMap
-      ![J.almostComplexStructureAt x v, J.almostComplexStructureAt x w] =
-        (form.val x).toAlternatingMap ![v, w] := by
-    simpa only [ContinuousAlternatingMap.coe_toAlternatingMap,
-      SmoothAlmostComplexStructure.almostComplexStructureAt_apply, SmoothBundleForm.eval₂_apply]
-      using invariant_iff.mp hinv x v w
   refine ContinuousAlternatingMap.toAlternatingMap_injective ?_
   rw [ContinuousAlternatingMap.toAlternatingMap_add,
     ContinuousAlternatingMap.toAlternatingMap_smul,
     toAlternatingMap_energyDensity, toAlternatingMap_energyDensity]
-  refine (AlternatingMap.energyDensity_eq_two_smul_add _ hinv' h2
+  refine (AlternatingMap.energyDensity_eq_two_smul_add _
+    (hinv.toAlternatingMap_apply_eq x) h2
     (L : TangentSpace I' c →ₗ[ℝ] TangentSpace I x)).trans ?_
   rw [SmoothAlmostComplexStructure.almostComplexStructureAt_toLinearMap,
     SmoothAlmostComplexStructure.almostComplexStructureAt_toLinearMap]
