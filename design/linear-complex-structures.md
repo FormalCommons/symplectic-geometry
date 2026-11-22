@@ -156,10 +156,10 @@ These settle the questions that `DESIGN.md` leaves to this file.
 
 ## Files
 
-Files are under `SymplecticGeometry/`. The part has sixteen files, each with
+Files are under `SymplecticGeometry/`. Each of the part's files has
 the topic its path says. Besides the standard model, the orbit space and the
 oriented components, they hold the actions on complex structures, their
-general topology, the general orbit–stabilizer homeomorphism, the units of
+general topology, general lemmas on complex linear maps, the general orbit–stabilizer homeomorphism, the units of
 square $-1$, the inverse of
 an element and of a matrix of square $-1$, the agreement of the
 matrices given by `Matrix.toEuclideanCLM` and `Matrix.toEuclideanLin`, a star-ring
@@ -175,6 +175,7 @@ lemma extends that file and is a candidate to move there.
 | File | Contents |
 |---|---|
 | `LinearAlgebra/ComplexStructure/Action.lean` | the action of `V ≃ₗ[ℝ] V`, and of `GL n ℝ` and `specialOrthogonalGroup n ℝ` on the structures of `EuclideanSpace ℝ n` |
+| `LinearAlgebra/ComplexStructure/Hom.lean` | the inverse of a complex linear isomorphism, and the complex linear endomorphisms as those commuting with the structure |
 | `Topology/ComplexStructure/Basic.lean` | the closed embedding into operators, `T2Space` and `LocallyCompactSpace`, for finite-dimensional normed `V`; the matrix homeomorphism and continuity of the actions, for `EuclideanSpace ℝ n` |
 | `Geometry/Symplectic/Orientation.lean` | bases adapted to the transport of a tamed structure induce the transported symplectic orientation |
 | `LinearAlgebra/ComplexStructure/Standard.lean` | the isomorphism $\Phi$, transitivity, the stabilizer, positively oriented structures, compatibility with $\omega_0$ under symplectic matrices and the action of `Matrix.symplecticGroup ι ℝ` on the compatible structures |
@@ -251,15 +252,7 @@ Declarations about Tau Ceti's type go in its namespace
   (not simp: `simp` proves it from the next lemma) and
   `@[simp] toLinearMap_generalLinearGroup_smul :
   (g • J).toLinearMap = toEuclideanLin g ∘ₗ J.toLinearMap ∘ₗ toEuclideanLin (↑g)⁻¹`.
-- `TauCeti.IsComplexLinearMap.symm_linearEquiv
-  (h : IsComplexLinearMap J J' e.toLinearMap) :
-  IsComplexLinearMap J' J e.symm.toLinearMap`, for `e : V ≃ₗ[ℝ] W`: the
-  bundled form of Tau Ceti's `IsComplexLinear.symm`, obtained through the
-  bridge `isComplexLinearMap_iff_isComplexLinear`, as Tau Ceti does for
-  `IsComplexLinearMap.comp`.
-- `isComplexLinearMap_self_iff_commute :
-  IsComplexLinearMap J J f ↔ Commute f J.toLinearMap`, for
-  `f : Module.End ℝ V`, and `transport_eq_transport_iff`: for any `J` and
+- `transport_eq_transport_iff`: for any `J` and
   `Φ Ψ : V ≃ₗ[ℝ] W`, `J.transport Φ = J.transport Ψ` if and only if
   `Φ ≪≫ₗ Ψ.symm` is complex linear for `J`.
 - `exists_linearIsometryEquiv_transport_eq`: two norm-preserving complex
@@ -287,6 +280,23 @@ Declarations about Tau Ceti's type go in its namespace
   *Standard model*'s `Symplectic/Standard/Matrix.lean`, so that
   `Topology/ComplexStructure/Basic.lean` can use it; its users in other
   parts reach it through their imports.
+
+### `LinearAlgebra/ComplexStructure/Hom.lean`
+
+General lemmas on Tau Ceti's `TauCeti.IsComplexLinearMap`, kept apart from
+the actions so that a file needing only them does not import `Action.lean`.
+The file imports only Tau Ceti; its lemmas belong upstream beside Tau Ceti's
+`Geometry/Symplectic/Complex/Module/Hom.lean`.
+
+- `TauCeti.IsComplexLinearMap.symm_linearEquiv
+  (h : IsComplexLinearMap J J' e.toLinearMap) :
+  IsComplexLinearMap J' J e.symm.toLinearMap`, for `e : V ≃ₗ[ℝ] W`: the
+  bundled form of Tau Ceti's `IsComplexLinear.symm`, obtained through the
+  bridge `isComplexLinearMap_iff_isComplexLinear`, as Tau Ceti does for
+  `IsComplexLinearMap.comp`.
+- `TauCeti.AlmostComplexStructure.isComplexLinearMap_self_iff_commute :
+  IsComplexLinearMap J J f ↔ Commute f J.toLinearMap`, for
+  `f : Module.End ℝ V`.
 
 ### `Topology/ComplexStructure/Basic.lean`
 
@@ -692,7 +702,8 @@ it mentions complex structures.
 
 Two parts use merged files of this one. *Compatible complex structures*
 imports `Action.lean` into `LinearAlgebra/Symplectic/Compatible.lean`, for
-`AlmostComplexStructure.transport_eq_iff_isComplexLinearMap`, and
+`AlmostComplexStructure.transport_eq_iff_isComplexLinearMap`, `Hom.lean` into
+the same file, for `IsComplexLinearMap.symm_linearEquiv`, and
 `Topology/ComplexStructure/Basic.lean` into
 `Topology/ComplexStructure/Compatible/Matrix.lean`, for
 `AlmostComplexStructure.homeomorphMatrix`, `Standard.lean` into
@@ -715,7 +726,8 @@ names, and the first two by the *Standard model* issues (#7, #8).
 1. **Complex structures: the standard form and the action of matrices.** The
    actions of `V ≃ₗ[ℝ] V`, of `GL n ℝ` and of `specialOrthogonalGroup n ℝ` in
    `LinearAlgebra/ComplexStructure/Action.lean`, with
-   `isComplexLinearMap_self_iff_commute` and `transport_eq_transport_iff`;
+   `transport_eq_transport_iff`, and `isComplexLinearMap_self_iff_commute`
+   (in `LinearAlgebra/ComplexStructure/Hom.lean`);
    `exists_transport_stdComplexStructure_eq`, transitivity and
    `stabilizer_stdComplexStructure`, in
    `LinearAlgebra/ComplexStructure/Standard.lean`. About 200 lines. Blocked
