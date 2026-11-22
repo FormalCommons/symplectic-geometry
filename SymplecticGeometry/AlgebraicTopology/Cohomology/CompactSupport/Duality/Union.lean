@@ -6,7 +6,6 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Algebra.FiveLemma
-public import TauCeti.CategoryTheory.Linear.Int
 public import SymplecticGeometry.Algebra.Category.ModuleCat.Basic
 public import SymplecticGeometry.AlgebraicTopology.Cohomology.Cap.MayerVietoris.Basic
 public import SymplecticGeometry.AlgebraicTopology.Cohomology.CompactSupport.Duality.MayerVietoris
