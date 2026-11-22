@@ -177,9 +177,7 @@ theorem exists_mpullback_symm_codifferential_eq
   intro β y hy
   have hT := ψ.open_target.mem_nhds hy
   set a : E → E [⋀^Fin (k + 1)]→L[ℝ] ℝ := mpullback 𝓘(ℝ, E) I ψ.symm β.val
-  have ha : DifferentiableAt ℝ a y :=
-    ((SmoothForm.contDiffOn_mpullback β ψ.open_target ψ.symm.contMDiffOn).contDiffAt
-      hT).differentiableAt (by simp)
+  have ha : DifferentiableAt ℝ a y := β.differentiableAt_mpullback_symm ψ hy
   have hS : DifferentiableAt ℝ (hodgeStarInChart o ψ hkl) y :=
     ((contDiffOn_hodgeStarInChart o ψ hkl).contDiffAt hT).differentiableAt (by simp)
   rw [mpullback_symm_codifferential o ψ hkl hlk β hy, extDeriv, fderiv_clm_apply hS ha,
@@ -374,8 +372,7 @@ theorem exists_mpullback_symm_hodgeLaplacian_eq
             C y (mpullback 𝓘(ℝ, E) I ψ.symm α.val y : E [⋀^Fin k]→L[ℝ] ℝ) := by
   -- The second derivatives of a form read in the chart are symmetric.
   have hsymm (α : SmoothForm I M ℝ k) {y : E} (hy : y ∈ ψ.target) :=
-    fderiv_fderiv_apply_comm ((SmoothForm.contDiffOn_mpullback α ψ.open_target
-      ψ.symm.contMDiffOn).contDiffAt (ψ.open_target.mem_nhds hy)) (n := ∞) (by simp)
+    fderiv_fderiv_apply_comm (α.contDiffAt_mpullback_symm ψ hy) (n := ∞) (by simp)
   rcases k with _ | k <;> rcases l with _ | l
   · -- On a zero-dimensional manifold both sides vanish.
     subst hkl
