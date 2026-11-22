@@ -5,10 +5,12 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import TauCeti.Geometry.Manifold.DifferentialForm.Smooth
+public import Mathlib.Geometry.Manifold.Algebra.SmoothFunctions
+public import TauCeti.Geometry.Manifold.ContMDiffMap.Basic
+public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 
 /-!
-# The bilinear forms of smooth two-forms under the module operations
+# Smooth forms: bilinear forms of two-forms, and multiplication by smooth functions
 
 Tau Ceti's `TauCeti.SmoothForm.bilinFormAt` reads the value at `x` of a real smooth two-form
 `σ` on `M` as a bilinear form `σ_x` on the tangent space `T_x M`. This file shows that the map
@@ -20,14 +22,25 @@ The same family exists for the two-forms on a vector bundle of this library, in
 `SymplecticGeometry/Geometry/Manifold/VectorBundle/Symplectic/Basic.lean`
 (`SymplecticGeometry.ContMDiffTwoForm.bilinFormAt_add` and its neighbours).
 
+The file also gives Tau Ceti's multiplication `TauCeti.SmoothForm.funSMulₗ g` of smooth forms by
+a smooth real function `g` its behaviour in `g`: it is additive in `g`, the constant function `c`
+acts as the scalar `c` (so `1` acts as the identity), and it commutes with pullback along a
+smooth map `f`, where `g` becomes `g ∘ f`. The last is the smooth-form version of Tau Ceti's
+`TauCeti.mpullback_fun_smul` for rough forms, from which it follows. These lemmas let proofs
+about smooth forms stay with smooth forms instead of passing to the underlying rough forms.
+
 ## Main results
 
 * `TauCeti.SmoothForm.bilinFormAt_add`, `TauCeti.SmoothForm.bilinFormAt_smul`,
   `TauCeti.SmoothForm.bilinFormAt_zero`, `TauCeti.SmoothForm.bilinFormAt_neg`,
   `TauCeti.SmoothForm.bilinFormAt_sub`.
+* `TauCeti.SmoothForm.funSMulₗ_add`, `TauCeti.SmoothForm.funSMulₗ_const`,
+  `TauCeti.SmoothForm.funSMulₗ_one`, `TauCeti.SmoothForm.mpullback_funSMulₗ`.
 -/
 
 public section
+
+open scoped ContDiff Manifold
 
 namespace TauCeti.SmoothForm
 
@@ -68,6 +81,49 @@ theorem bilinFormAt_sub (σ τ : SmoothForm I M ℝ 2) (x : M) :
     (σ - τ).bilinFormAt x = σ.bilinFormAt x - τ.bilinFormAt x := by
   ext v w
   simp [SmoothBundleForm.eval₂_apply]
+
+
+section FunSMul
+
+variable {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] {k : ℕ}
+
+/-- Multiplication of smooth forms by smooth functions is additive in the function. -/
+@[simp]
+theorem funSMulₗ_add (f g : C^∞⟮I, M; ℝ⟯) (φ : SmoothForm I M F k) :
+    funSMulₗ (f + g) φ = funSMulₗ f φ + funSMulₗ g φ := by
+  ext1
+  simp [add_smul]
+
+/-- Multiplying a smooth form by the constant function `c` is multiplying it by the scalar `c`. -/
+@[simp]
+theorem funSMulₗ_const (c : ℝ) (φ : SmoothForm I M F k) :
+    funSMulₗ (ContMDiffMap.const c) φ = c • φ := by
+  ext1
+  simp
+
+/-- Multiplying a smooth form by the constant function `1` leaves it unchanged. -/
+@[simp]
+theorem funSMulₗ_one (φ : SmoothForm I M F k) : funSMulₗ 1 φ = φ := by
+  ext1
+  simp
+
+variable {E' H' M' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [TopologicalSpace H']
+  [TopologicalSpace M'] [ChartedSpace H' M'] {I' : ModelWithCorners ℝ E' H'} [IsManifold I' 1 M']
+
+/-- The pullback of `g φ` along a smooth map `f` is `(g ∘ f) (f^* φ)`: the smooth-form version of
+`TauCeti.mpullback_fun_smul`. -/
+@[simp]
+theorem mpullback_funSMulₗ (f : M → M') (hf : ContMDiff I I' ∞ f) (g : C^∞⟮I', M'; ℝ⟯)
+    (φ : SmoothForm I' M' F k) :
+    mpullback f hf (funSMulₗ g φ) = funSMulₗ (g.comp ⟨f, hf⟩) (mpullback f hf φ) := by
+  apply Subtype.ext
+  rw [coe_mpullback, coe_funSMulₗ, coe_funSMulₗ, TauCeti.mpullback_fun_smul, coe_mpullback]
+  funext x
+  -- `ContMDiffMap.comp_apply` cannot rewrite here, since the anonymous constructor `⟨f, hf⟩`
+  -- has a subtype as its type, so it is applied by `congrArg`.
+  exact congrArg (· • _) (ContMDiffMap.comp_apply g ⟨f, hf⟩ x).symm
+
+end FunSMul
 
 end TauCeti.SmoothForm
 
