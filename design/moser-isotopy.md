@@ -657,7 +657,10 @@ pullbacks commute with `d`. That theorem gives
   (`mdifferentiableAt_subtypeVal`), in `DifferentialForm/Opens.lean` and
   `RelativePoincare.lean`.
 - *Symplectic neighbourhoods*, merged: `Geometry/Manifold/Diffeomorph/Basic.lean`
-  and `Topology/Sets/Opens/Basic.lean`, in `Relative.lean`.
+  and `Topology/Sets/Opens/Basic.lean`, in `Relative.lean` and
+  `DifferentialForm/Opens.lean`; and
+  `Geometry/Manifold/DifferentialForm/Pullback/LocalDiffeomorph.lean`, in
+  `DifferentialForm/Opens.lean`, for `PartialDiffeomorph.mpullback_symm_mpullback_apply`.
 - *Standard model*, merged, only for the plan's case `F = StdSpace (Fin n)`
   of `Darboux.lean`. The general statement does not mention it.
 

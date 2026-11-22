@@ -629,7 +629,8 @@ Expected size: 400 lines, in two issues (G1 and G2).
 
 Nothing in it is about contact geometry, so it sits with Tau Ceti's
 diffeotopies rather than in `Gray.lean`, and imports only Tau Ceti's
-`Diffeotopy/Basic.lean`. Any smooth manifold, any smoothness `n`.
+`Diffeotopy/Basic.lean` and, for the differentials of an inverse and of a composite,
+`Manifold/Diffeomorph/Basic.lean`. Any smooth manifold, any smoothness `n`.
 
 - `TauCeti.Diffeotopy.Transports (Φ : Diffeotopy I n M) (ξ : unitInterval → Π x, Submodule ℝ (TangentSpace I x)) : Prop`,
   `∀ t x, ξ 0 x = (ξ t (Φ (t, x))).comap (mfderiv I I (Φ.timeSlice t) x).toLinearMap`,
@@ -704,6 +705,14 @@ Named like Tau Ceti's file. With `[I.Boundaryless] [T2Space M] [CompactSpace M]`
 Expected size: 550 lines, in two issues (G3 and G4), after the naturality
 lemmas of N.
 
+### `Geometry/Contact/Contactization.lean`
+
+Named like Tau Ceti's file, in `TauCeti.SmoothForm`: `coe_contactization`,
+the contactization form of `θ` as `dz - pr₁^* θ`, and
+`mpullback_prodMap_contactization`, by which `Prod.map ι id` pulls the
+contactization form of `θ` back to that of `ι^* θ`. `LegendrianNeighborhood.lean`
+uses them.
+
 ### `Geometry/Contact/LegendrianNeighborhood.lean`
 
 In `TauCeti.IsLegendrianEmbedding`. `L` is a boundaryless manifold modelled
@@ -769,22 +778,33 @@ Expected size: 650 lines, in two issues (L1 and L2).
   `Geometry/Manifold/Flow/TimeDependent.lean`, for the flow of a field
   restricted to an open subset (in `Gray.lean`).
 - *Hamiltonian flows*: `Geometry/Diffeomorphism/Diffeotopy/Velocity.lean`,
-  for `velocity_timeDependentFlowDiffeotopy` (in `Gray.lean`).
+  for `velocity_timeDependentFlowDiffeotopy` (in `Gray.lean`), and
+  `Geometry/Diffeomorphism/Diffeotopy/Basic.lean`, for
+  `apply_mk_symm_apply` (in `Gray.lean`).
 - *Symplectic neighbourhoods* (#475, #476): the Lagrangian neighbourhood
   theorem of `Geometry/Symplectic/Neighborhood/Lagrangian.lean`, for a
   Lagrangian embedding into a symplectic manifold, with model
   $-d\lambda_{\mathrm{can}}$ on `T*L` and a map fixing the zero section; it
-  is applied on an open submanifold of `T*L`. Also
+  is applied on an open submanifold of `T*L`. `LegendrianNeighborhood.lean` also
+  uses `Geometry/Manifold/VectorBundle/ZeroSection.lean`, for the zero section as
+  a smooth embedding, and `Geometry/Manifold/Diffeomorph/Basic.lean` and
+  `Topology/Sets/Opens/Basic.lean`, for an empty `L`. Also
   `Geometry/Manifold/IsManifold/Basic.lean`, for its instance giving
   `C^(m + 1)` structures from `C^∞` ones, in
   `Geometry/Manifold/TubularNeighborhood/Riemannian/Injective.lean`,
   `LegendrianNeighborhood.lean` and `Family.lean`.
 - *Moser isotopy*: `PartialDiffeomorph.mvfderiv_trans_toDiffeomorph` of
   `Geometry/Manifold/LocalDiffeomorph/MFDeriv.lean`, already merged (for
-  `Darboux/Strict.lean`).
+  `Darboux/Strict.lean`), and
+  `PartialDiffeomorph.exists_diffeomorph_opens_mpullback_eq` of
+  `Geometry/Manifold/DifferentialForm/Opens.lean` (for
+  `LegendrianNeighborhood.lean`).
+- *Liouville structures*: `mdifferentiableAt_subtypeVal` and
+  `mdifferentiable_subtypeVal` of `Geometry/Manifold/MFDeriv/Opens.lean`,
+  already merged (for `LegendrianNeighborhood.lean`).
 - *Cotangent bundles* (#470) only through Tau Ceti: the zero section and
   `TauCeti.Bundle.zeroSectionTangentEquiv`. The part does not need the
-  library's `ZeroSection.lean`.
+  library's `Cotangent/Bundle/ZeroSection.lean`.
 
 Mathlib and Tau Ceti were searched, at the pinned versions, for the notions
 this part defines (a submodule of contact vector fields, an equivalence with
@@ -813,7 +833,7 @@ In this order; each is blocked by the ones listed, and all are sub-issues of
 | G3 | The Gray field and the Gray isotopy of a family | `Geometry/Diffeomorphism/Diffeotopy/Transports.lean` (`Transports`), `Geometry/Contact/Gray.lean` (`exists_grayField`, `grayDiffeotopy`, transport and velocity) | G0, G2, N | 350 |
 | G4 | Uniqueness, rescaling of forms, and Gray stability | `Geometry/Contact/Gray.lean` (`eq_grayDiffeotopy_of_transports`, `Transports.exists_mpullback_eq_smul`, the milestone) | G3, the issue of *Smooth families* that adds `Diffeotopy/Real.lean` | 250 |
 | L1 | A slice through a Legendrian submanifold | `Geometry/Contact/LegendrianNeighborhood.lean` (`exists_contactSlice`) | — | 300 |
-| L2 | The Legendrian neighbourhood theorem | `Geometry/Contact/LegendrianNeighborhood.lean` (the milestone) | L1, the issue of *Symplectic neighbourhoods* that adds `Lagrangian.lean` | 350 |
+| L2 | The Legendrian neighbourhood theorem | `Geometry/Contact/LegendrianNeighborhood.lean` (the milestone), `Geometry/Contact/Contactization.lean` | L1, the issue of *Symplectic neighbourhoods* that adds `Lagrangian.lean` | 350 |
 
 H1, D, G0, G1, N and L1 can start at once. While the issues of *Smooth
 families* and *Symplectic neighbourhoods* that add the files named do not

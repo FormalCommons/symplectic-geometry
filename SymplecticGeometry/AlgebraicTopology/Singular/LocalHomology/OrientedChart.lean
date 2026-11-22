@@ -30,8 +30,6 @@ fibre at `z`, read in the trivialization of the tangent bundle at `z`.
 * `OpenPartialHomeomorph.map_reducedSingularHomologyδ_localOrientationOfOrientedChart_refl`: the
   local orientation of the identity chart, sent through the connecting morphism and radial
   projection, is the oriented generator of the unit sphere.
-* `Orientation.localHomologyMap_localOrientation`: a continuous linear equivalence `f` carries
-  `ω.localOrientation` to `(ω.map f).localOrientation` in local homology at the origin.
 * `TauCeti.Manifold.Orientation.localHomologyMap_sub_toHomologicalOrientation`: the centered chart
   of `M` at `z` carries the local orientation of `o.toHomologicalOrientation` at `z` to the local
   orientation of `E` at the origin selected by `o` at `z`.
@@ -94,24 +92,6 @@ theorem map_reducedSingularHomologyδ_localOrientationOfOrientedChart_refl {p : 
     _ = s.hom (s.inv 1) := by rw [Iso.inv_hom_id_apply, Iso.inv_hom_id_apply]
 
 end OpenPartialHomeomorph
-
-namespace Orientation
-
-variable {F G : Type w} [NormedAddCommGroup F] [NormedSpace ℝ F]
-  [NormedAddCommGroup G] [NormedSpace ℝ G] {n : ℕ}
-
-/-- A continuous linear equivalence `f : F ≃L[ℝ] G` sends, in local homology at the origin, the
-local orientation of `F` selected by `ω` to the local orientation of `G` selected by `ω.map f`. -/
-theorem localHomologyMap_localOrientation (f : F ≃L[ℝ] G) (ω : Orientation ℝ F (Fin (n + 1)))
-    (hF : finrank ℝ F = n + 1) (hG : finrank ℝ G = n + 1)
-    (h : ((f : F →L[ℝ] G) : C(F, G)) ⁻¹' {0} ⊆ {0}) :
-    localHomologyMap (ModuleCat.of ℤ (ULift.{w} ℤ)) ((f : F →L[ℝ] G) : C(F, G)) h (n + 1)
-        (ω.localOrientation hF).val =
-      ((ω.map _ f.toLinearEquiv).localOrientation hG).val := by
-  rw [Orientation.localOrientation_map f ω hF hG, LocalOrientation.coe_map,
-    ContinuousLinearEquiv.complZeroPairIso_hom, localHomologyMap_def]
-
-end Orientation
 
 namespace TauCeti.Manifold.Orientation
 

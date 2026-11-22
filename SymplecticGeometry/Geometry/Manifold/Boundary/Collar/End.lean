@@ -219,11 +219,8 @@ end
 /-- The point of the interior piece glued to a point of the end overlap. -/
 private def endToInteriorPt (q : endOverlap (n := n) (W := W)) : InteriorPiece n W :=
   InteriorModel.mk (𝓡∂ (n + 1)) (c.endRetract q.val) (by
-    rw [endRetract_def, apply_mem_interior_iff]
-    intro h
-    have := collarDepth_val_pos (s := q.val.coord.1) (mem_endOverlap.1 q.property)
-    rw [show collarDepth q.val.coord.1 = _ from h] at this
-    simp at this)
+    rw [endRetract_def, apply_mem_interior_iff_pos]
+    exact collarDepth_val_pos (mem_endOverlap.1 q.property))
 
 private theorem endToInteriorPt_val (q : endOverlap (n := n) (W := W)) :
     (c.endToInteriorPt q).val = c.endRetract q.val :=
