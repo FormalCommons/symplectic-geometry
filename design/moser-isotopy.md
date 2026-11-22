@@ -135,7 +135,7 @@ can join them.
 | `Geometry/Symplectic/Moser/Stability.lean` | Moser stability, the milestone | 6 |
 | `Geometry/Manifold/DifferentialForm/Smooth.lean` | `TauCeti.SmoothForm.bilinFormAt` of sums, real multiples, zero, negatives and differences of two-forms; `TauCeti.SmoothForm.funSMulₗ` under sums and constants of functions and under pullback | — |
 | `Geometry/Manifold/ContMDiffMap/Basic.lean` | `ContMDiffMap.comp_mk_apply`, the `@[simp]` value of `g.comp ⟨f, hf⟩` at a point | — |
-| `Geometry/Manifold/DifferentialForm/Opens.lean` | the pull-back of restricted forms along a partial diffeomorphism of open subsets, read in the ambient manifolds as a diffeomorphism between its source and its target (`PartialDiffeomorph.mpullback_toDiffeomorphSourceTarget_liftOpens`) | — |
+| `Geometry/Manifold/DifferentialForm/Opens.lean` | restriction of forms along `Subtype.val` to an open subset: surjectivity, regularity, and the exterior derivative; the pull-back of restricted forms along a partial diffeomorphism of open subsets, read in the ambient manifolds as a diffeomorphism between its source and its target (`PartialDiffeomorph.mpullback_toDiffeomorphSourceTarget_liftOpens`) | — |
 | `Geometry/Symplectic/Manifold/TwoForm.lean` | a smooth map whose differential at a point is a linear symplectomorphism for two nondegenerate two-forms pulls the second back to the first at that point (`TauCeti.SmoothTwoForm.coe_mpullback_apply_eq_of_mfderiv_eq`) | — |
 | `Geometry/Manifold/TubularNeighborhood/RelativePoincare.lean` | a primitive of the difference of two closed forms with the same pullback to `f(Q)`, as a smooth form on a tube around `f(Q)` | — |
 
@@ -203,6 +203,14 @@ the restriction of `σ` to `V` back to `τ` at every point of its source, then
 to its target back to the restriction of `τ` to its source, as smooth forms.
 `Moser/Relative.lean` ends with it, and so may the neighbourhood theorems.
 
+It also gives the `Subtype.val` counterparts of the Tau Ceti file's
+`Opens.inclusion` lemmas, in the namespace `TauCeti`:
+`mpullback_subtype_val_surjective`, `contMDiffAt_mpullback_subtype_val_iff`,
+`RoughForm.inChartAt_mpullback_subtype_val_eventuallyEq` and
+`mpullback_subtype_val_mextDeriv`, the last with no regularity hypothesis.
+`RelativePoincare.lean` uses them. The file is about forms in general, so any
+part may import it.
+
 ### `Geometry/Symplectic/Manifold/TwoForm.lean`
 
 The file has the name of Tau Ceti's file that defines
@@ -216,8 +224,9 @@ symplectomorphism for `hω₀.symplecticFormAt x₀` and `hω₁.symplecticFormA
 
 The file has the name of Tau Ceti's file that proves
 `TauCeti.SmoothEmbedding.exists_isSmoothForm_relative_primitive`. Its theorems are in
-the namespace `TauCeti.SmoothEmbedding`; the lemmas that *Liouville structures*
-adds beside them for `exists_mextDeriv_eq_and_mpullback_eq` are in `TauCeti`.
+the namespace `TauCeti.SmoothEmbedding`. Its `exists_mextDeriv_eq_and_mpullback_eq`
+extends a primitive from an open subset with the lemmas of
+`Geometry/Manifold/DifferentialForm/Opens.lean`.
 
 - `exists_smoothForm_relative_primitive_sub`: for a smooth embedding `f`,
   closed `η₀ η₁ : SmoothForm I M F (k + 1)` with `f^* η₁ = f^* η₀`, and an
