@@ -7,6 +7,7 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.IsManifold.InteriorBoundary
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
+public import TauCeti.Geometry.Manifold.Orientation.Pullback
 public import TauCeti.Geometry.Manifold.ModelTransport.Interior
 
 /-!
@@ -34,6 +35,10 @@ type synonym `SymplecticGeometry.InteriorModel I M` carries that atlas as an ins
   underlying a point of `InteriorModel I U`.
 * `SymplecticGeometry.InteriorModel.mk I p hp`: the point of `InteriorModel I (I.interiorOpens M)`
   at an interior point `p` of `M`.
+* `TauCeti.Manifold.Orientation.toInteriorModel`: an orientation of `M`, carried to
+  `InteriorModel I M`, for `M` without boundary points. For the interior of a manifold `S` with
+  boundary oriented by `o`, the orientation of its copy is
+  `(o.restrict (I.interiorOpens S)).toInteriorModel`.
 
 ## Main results
 
@@ -53,6 +58,12 @@ type synonym `SymplecticGeometry.InteriorModel I M` carries that atlas as an ins
   complement of its range is the boundary).
 * `SymplecticGeometry.InteriorModel.continuous_mk`: a continuous map with values in the interior
   of `M` is continuous into the copy of the interior.
+* `TauCeti.Manifold.Orientation.isOrientationPreservingAt_interiorModelDiffeomorph`,
+  `TauCeti.Manifold.Orientation.isOrientationPreservingAt_interiorModelDiffeomorph_symm`: the
+  diffeomorphism `M ≃ InteriorModel I M` and its inverse preserve orientation;
+  `TauCeti.Manifold.Orientation.eq_toInteriorModel_iff`: the carried orientation is the only one
+  for which the inverse does. `TauCeti.Manifold.Orientation.toInteriorModel_neg`: carrying
+  commutes with reversing the orientation.
 
 ## References
 
@@ -235,5 +246,65 @@ end Interior
 end InteriorModel
 
 end SymplecticGeometry
+
+namespace TauCeti.Manifold.Orientation
+
+open SymplecticGeometry
+
+variable {E H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
+  [TopologicalSpace H] {I : ModelWithCorners ℝ E H} {M : Type*} [TopologicalSpace M]
+  [ChartedSpace H M] [IsManifold I 1 M] [BoundarylessManifold I M] {ι : Type*} [Fintype ι]
+
+/-- An orientation `o` of a manifold `M` without boundary points, carried to the copy
+`InteriorModel I M` of `M` modelled on `E`: the orientation for which the identification
+`interiorModelDiffeomorph I M n` of `M` with its copy preserves orientation
+(`isOrientationPreservingAt_interiorModelDiffeomorph`). -/
+def toInteriorModel (o : Orientation I M ι) : Orientation 𝓘(ℝ, E) (InteriorModel I M) ι :=
+  o.pullback (interiorModelDiffeomorph I M 1).symm.contMDiff
+    (fun x ↦ ((interiorModelDiffeomorph I M 1).symm.isLocalDiffeomorph x).isInvertible_mfderiv
+      one_ne_zero)
+    o.card_eq
+
+theorem toInteriorModel_def (o : Orientation I M ι) :
+    o.toInteriorModel = o.pullback (interiorModelDiffeomorph I M 1).symm.contMDiff
+      (fun x ↦ ((interiorModelDiffeomorph I M 1).symm.isLocalDiffeomorph x).isInvertible_mfderiv
+        one_ne_zero)
+      o.card_eq :=
+  (rfl)
+
+/-- The inverse `InteriorModel I M → M` of the identification preserves orientation, from the
+carried orientation to `o`, at every regularity `n`. -/
+theorem isOrientationPreservingAt_interiorModelDiffeomorph_symm (o : Orientation I M ι)
+    (n : ℕ∞ω) (x : InteriorModel I M) :
+    IsOrientationPreservingAt o.toInteriorModel o (interiorModelDiffeomorph I M n).symm x := by
+  rw [coe_interiorModelDiffeomorph_symm, ← coe_interiorModelDiffeomorph_symm I M 1,
+    toInteriorModel_def]
+  exact isOrientationPreservingAt_pullback _ _ _ _ x
+
+/-- The identification `M → InteriorModel I M` preserves orientation, from `o` to the carried
+orientation, at every regularity `n`. -/
+theorem isOrientationPreservingAt_interiorModelDiffeomorph (o : Orientation I M ι)
+    (n : ℕ∞ω) (p : M) :
+    IsOrientationPreservingAt o o.toInteriorModel (interiorModelDiffeomorph I M n) p := by
+  rw [coe_interiorModelDiffeomorph, ← coe_interiorModelDiffeomorph I M 1]
+  exact (isOrientationPreservingAt_interiorModelDiffeomorph_symm o 1 _).diffeomorph_symm
+    (e := (interiorModelDiffeomorph I M 1).symm) one_ne_zero
+
+/-- The carried orientation is the only orientation of `InteriorModel I M` from which the inverse
+of the identification, at any regularity `n`, preserves orientation at every point. -/
+theorem eq_toInteriorModel_iff {o : Orientation I M ι}
+    {o' : Orientation 𝓘(ℝ, E) (InteriorModel I M) ι} (n : ℕ∞ω) :
+    o' = o.toInteriorModel ↔
+      ∀ x, IsOrientationPreservingAt o' o (interiorModelDiffeomorph I M n).symm x := by
+  rw [toInteriorModel_def, eq_pullback_iff, coe_interiorModelDiffeomorph_symm,
+    coe_interiorModelDiffeomorph_symm]
+
+/-- Carrying the opposite orientation gives the opposite of the carried orientation. -/
+@[simp]
+theorem toInteriorModel_neg (o : Orientation I M ι) :
+    (-o).toInteriorModel = -o.toInteriorModel := by
+  simp only [toInteriorModel_def, pullback_neg]
+
+end TauCeti.Manifold.Orientation
 
 end

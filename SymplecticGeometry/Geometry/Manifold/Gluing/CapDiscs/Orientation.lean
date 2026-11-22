@@ -102,7 +102,7 @@ variable (c : SmoothCollar 1 ∞ S) {ι : Type} (γ : ι → AddCircle (1 : ℝ)
 /-! ### The pieces, modelled on `ℝ²` -/
 
 /-- The identification of the interior of `S` with its copy over `ℝ²`. -/
-private def interiorDiffeomorph :
+private abbrev interiorDiffeomorph :
     (𝓡∂ 2).interiorOpens S ≃ₘ^∞⟮𝓡∂ 2, 𝓡 2⟯ InteriorPiece S :=
   interiorModelDiffeomorph (𝓡∂ 2) ((𝓡∂ 2).interiorOpens S) ∞
 
@@ -177,13 +177,6 @@ private theorem iUnion_range_pieceMap : ⋃ k, range (pieceMap c γ hγ hinj k) 
   · obtain ⟨i, z, rfl⟩ := mem_iUnion.1 hp
     exact mem_iUnion.2 ⟨some i, ballDiffeomorph z, by simp [pieceMap]⟩
 
-/-- The orientation `o` on the copy of the interior of `S` over `ℝ²`. -/
-private def interiorOrientation : Manifold.Orientation (𝓡 2) (InteriorPiece S) (Fin 2) :=
-  (o.restrict ((𝓡∂ 2).interiorOpens S)).pullback
-    (interiorDiffeomorph.symm.contMDiff.of_le (by simp))
-    (fun x ↦ (interiorDiffeomorph.symm.isLocalDiffeomorph x).isInvertible_mfderiv (by simp))
-    (by simp)
-
 /-- The standard orientation of `ℝ²` on the ball of radius `2`. -/
 private def discOrientation : Manifold.Orientation (𝓡 2) discOpens (Fin 2) :=
   (Manifold.Orientation.euclideanSpace 2).restrict discOpens
@@ -191,22 +184,8 @@ private def discOrientation : Manifold.Orientation (𝓡 2) discOpens (Fin 2) :=
 /-- The orientations of the pieces: `o` on the interior, and the standard orientation of `ℝ²` on
 the discs. -/
 private def pieceOrientation : ∀ k : Option ι, Manifold.Orientation (𝓡 2) (piece S ι k) (Fin 2)
-  | none => interiorOrientation o
+  | none => (o.restrict ((𝓡∂ 2).interiorOpens S)).toInteriorModel
   | some _ => discOrientation
-
-/-- The inverse of the identification of the interior with its copy over `ℝ²` preserves
-orientation. -/
-private theorem isOrientationPreservingAt_interiorDiffeomorph_symm (x : InteriorPiece S) :
-    IsOrientationPreservingAt (interiorOrientation o) (o.restrict ((𝓡∂ 2).interiorOpens S))
-      interiorDiffeomorph.symm x :=
-  isOrientationPreservingAt_pullback _ _ _ _ x
-
-/-- The identification of the interior with its copy over `ℝ²` preserves orientation. -/
-private theorem isOrientationPreservingAt_interiorDiffeomorph (p : (𝓡∂ 2).interiorOpens S) :
-    IsOrientationPreservingAt (o.restrict ((𝓡∂ 2).interiorOpens S)) (interiorOrientation o)
-      interiorDiffeomorph p :=
-  (isOrientationPreservingAt_interiorDiffeomorph_symm o _).diffeomorph_symm
-    (e := interiorDiffeomorph.symm) (by simp)
 
 /-- The coordinates `z ↦ (re z, im z)` of the ball of `ℂ` preserve orientation. -/
 private theorem isOrientationPreservingAt_ballDiffeomorph (z : ball) :
@@ -338,7 +317,7 @@ private theorem map_orientationAt_eq (i : ι) {x : piece S ι none} {y : piece S
         ((isLocalDiffeomorph_pieceMap c γ hγ hinj (some i) y).mfderivToContinuousLinearEquiv
           (NeZero.ne _)).toLinearEquiv ((pieceOrientation o (some i)).orientationAt y) := by
   subst hx hy
-  have hρ := (isOrientationPreservingAt_interiorDiffeomorph o _).comp
+  have hρ := (isOrientationPreservingAt_interiorModelDiffeomorph _ ∞ _).comp
     (isOrientationPreservingAt_collarPoint c γ hrev i u)
   have hρ' := (isOrientationPreservingAt_ballDiffeomorph _).comp
     (isOrientationPreservingAt_polarPoint u)
@@ -433,7 +412,7 @@ theorem isOrientationPreservingAt_inl (p : (𝓡∂ 2).interiorOpens S) :
   have he : inl c γ hγ hinj = pieceMap c γ hγ hinj none ∘ interiorDiffeomorph :=
     funext fun q ↦ (congrArg (inl c γ hγ hinj) (interiorDiffeomorph.symm_apply_apply q)).symm
   rw [he]
-  exact h.comp (isOrientationPreservingAt_interiorDiffeomorph o p)
+  exact h.comp (isOrientationPreservingAt_interiorModelDiffeomorph _ ∞ p)
 
 /-- The inclusion of each disc preserves orientation, from the standard orientation of `ℂ` to the
 orientation of the capped surface. -/
@@ -466,7 +445,7 @@ theorem eq_orientation_iff {o' : Manifold.Orientation (𝓡 2) (capDiscs c γ h�
       isOrientationPreservingAt_inr c γ hγ hinj hrev⟩
   refine (eq_iGlue_iff _ _ _).2 fun k x ↦ ?_
   rcases k with _ | i
-  · exact (hl _).comp (isOrientationPreservingAt_interiorDiffeomorph_symm o x)
+  · exact (hl _).comp (isOrientationPreservingAt_interiorModelDiffeomorph_symm _ ∞ x)
   · exact (hr i _).comp (isOrientationPreservingAt_ballDiffeomorph_symm x)
 
 /-! ### The caps as coordinate discs -/
