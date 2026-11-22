@@ -9,12 +9,11 @@ public import Mathlib.Analysis.Complex.Tietze
 public import SymplecticGeometry.Geometry.Manifold.RegularValue.FiniteZeros
 public import SymplecticGeometry.Geometry.Manifold.RegularValue.LevelCollar
 public import SymplecticGeometry.Topology.Algebra.Module.Equiv.Basic
-public import SymplecticGeometry.Topology.VectorBundle.LineBundle
 public import SymplecticGeometry.Topology.VectorBundle.Orientation.ArgumentPrinciple
-public import TauCeti.Topology.Algebra.Module.Equiv.RestrictScalars
+public import SymplecticGeometry.Topology.VectorBundle.Orientation.Complex.LineBundle
+public import SymplecticGeometry.Topology.VectorBundle.Section
 public import TauCeti.Topology.VectorBundle.Hom
 public import TauCeti.Topology.VectorBundle.Orientation.Complex.EulerClass
-public import TauCeti.Topology.VectorBundle.Smul
 
 /-!
 # The argument principle on a split closed surface
@@ -36,10 +35,9 @@ For a complex line bundle `L`, with the orientation of a complex line, the frame
 by a nowhere-zero section `σ` over `Σ₁`: if `s = c • σ` on `C`, the Euler number of `L` is the
 boundary degree of `c / |c|`
 (`TauCeti.VectorBundleOrientation.evalFundamentalClass_complexEulerClass_eq_boundaryDegree`). The
-frame is `τ x = (c ↦ c • σ x)⁻¹`, which carries the orientation of `L` to that of `ℂ` since it is
-complex-linear; this step follows the proof of
-`SymplecticGeometry.CoordinateDisc.sectionIndex_eq_localIndex_of_eq_smul`, which builds the same
-frame over a coordinate disc.
+frame is `τ x = (c ↦ c • σ x)⁻¹`, continuous by `Continuous.smul_totalSpace_trivial`, which
+carries the orientation of `L` to that of `ℂ` since it is complex-linear
+(`TauCeti.VectorBundleOrientation.map_toSpanSingletonEquiv`).
 
 ## Proof
 
@@ -318,25 +316,14 @@ theorem evalFundamentalClass_complexEulerClass_eq_boundaryDegree (hG : finrank �
   have hΦc : Continuous fun v : TotalSpace ℂ (Bundle.Trivial (g ⁻¹' Iic 0) ℂ) ↦
       TotalSpace.mk' G (E := (⇑i₁) *ᵖ L) v.proj (Φ v.proj v.snd) := by
     simp only [hΦ]
-    exact Continuous.smul_totalSpace
-      (c := fun v : TotalSpace ℂ (Bundle.Trivial (g ⁻¹' Iic 0) ℂ) ↦ v.snd)
-      (continuous_snd.comp (Bundle.Trivial.isInducing_toProd _ ℂ).continuous)
-      (hσ₁.comp (FiberBundle.continuous_proj ℂ _))
+    exact hσ₁.smul_totalSpace_trivial (f := id)
   have hτ := (continuous_snd.comp (Bundle.Trivial.isInducing_toProd _ ℂ).continuous).comp
     (TauCeti.continuous_bundle_symm (F₁ := ℂ) (E₁ := Bundle.Trivial (g ⁻¹' Iic 0) ℂ) (F₂ := G)
       (E₂ := (⇑i₁) *ᵖ L) Φ hΦc)
   have ho : ∀ x, Orientation.map (Fin 2) (Φ x).toLinearEquiv Complex.orientation =
       VectorBundleOrientation.reindex (finCongr (by rw [hG]))
-        (VectorBundleOrientation.complex G L) x := by
-    intro x
-    -- `Φ x` is complex-linear, so it carries the canonical orientation of `ℂ` to that of `L`.
-    have h := VectorBundleOrientation.map_complex (F := G) (E := L) (F' := ℂ)
-      (E' := Bundle.Trivial (g ⁻¹' Iic 0) ℂ) (b' := x) (b := x)
-      (VectorBundle.toSpanSingletonEquiv G hG1 (σ x) (hσ0 x)).toLinearEquiv
-    rw [VectorBundleOrientation.complex_trivial, VectorBundleOrientation.trivial_apply] at h
-    rw [← reindex_complexOrientation_complex,
-      ContinuousLinearEquiv.restrictScalars'_toLinearEquiv, Orientation.map_reindex, h,
-      VectorBundleOrientation.reindex_apply, Orientation.reindex_finCongr_reindex_finCongr]
+        (VectorBundleOrientation.complex G L) x := fun x ↦
+    map_toSpanSingletonEquiv hG1 (σ x) (hσ0 x)
   rw [complexEulerClass_def]
   refine evalFundamentalClass_eulerClass_eq_boundaryDegree _
     (by rw [finrank_real_eq_two_mul_finrank_complex, hG]) oM hn hg h0
@@ -345,7 +332,6 @@ theorem evalFundamentalClass_complexEulerClass_eq_boundaryDegree (hG : finrank �
       Equiv.symm_apply_apply]
   · rw [hsc z hz, ← hΦ, ContinuousLinearEquiv.symm_apply_apply, hu, div_eq_inv_mul,
       Complex.real_smul, Complex.ofReal_inv]
-
 
 end Complex
 
