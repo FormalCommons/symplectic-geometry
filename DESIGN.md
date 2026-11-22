@@ -2309,7 +2309,7 @@ has either; Tau Ceti's extension across a boundary,
   and 5, the integrable case of part 4, and the theorem that states all six.
   No design file is needed.
 
-### 24. Isothermal coordinates
+### 24. Isothermal coordinates (needs `design/isothermal-coordinates.md`)
 
 - **Files:** `Geometry/Manifold/Complex/Isothermal.lean` (named like Tau
   Ceti's file: every smooth almost complex structure on a surface modelled
@@ -2317,17 +2317,36 @@ has either; Tau Ceti's extension across a boundary,
   `HasIsothermalCharts`, from Tau Ceti's planar
   `TauCeti.Beltrami.exists_isothermal_chart_of_contDiffAt` read through the
   charts of the surface and made smooth by
-  `TauCeti.Beltrami.contDiffOn_infty_of_fderiv_comp`; hence every almost
+  `TauCeti.Beltrami.contDiffOn_infty_of_fderiv_comp` with the regularity
+  below; hence every almost
   complex structure on a boundaryless manifold of real dimension two, over any
   two-dimensional model, is `IsIntegrable`; and isothermal coordinates for
   a Riemannian metric on an oriented surface, through the structure of
   rotation by a right angle that the metric and the orientation give,
-  Mathlib's `Orientation.rightAngleRotation` fibrewise).
+  Mathlib's `Orientation.rightAngleRotation` fibrewise); and, in
+  `Analysis/Complex/Beltrami/` beside Tau Ceti's files, the regularity of
+  planar isothermal charts.
+- **Missing work: regularity.** Tau Ceti's planar charts are only $C^1$,
+  with Hölder derivative, and
+  `TauCeti.Beltrami.contDiffOn_infty_of_fderiv_comp` does not produce
+  smoother ones: it assumes that around each point there is, for every
+  $m$, an isothermal chart of class $C^m$, and concludes that a given chart
+  is smooth. `IsIntegrable` asks for smooth charts, so this part proves
+  that assumption: for a smooth tame $J$ on the plane and every $m$, each
+  point has an isothermal chart of class $C^m$. One way is to run Tau
+  Ceti's contraction $h=\mu(1+Bh)$ (`Beltrami/Holder.lean`) in the space
+  of $C^{k,\alpha}$ functions supported in the disc, since the Beurling
+  operator $B$ commutes with derivatives of compactly supported functions
+  and the rescaling of `Beltrami/Isothermal.lean` makes the higher Hölder
+  norms of the coefficient small too; another is Tau Ceti's interior
+  elliptic regularity (`Analysis/Pseudodifferential/InteriorRegularity.lean`)
+  applied to a chart. The design file chooses the route and splits the
+  step into issues.
 - **Builds on:** *Nijenhuis tensor* (only `Integrable.lean`); Tau Ceti's
   Beltrami files.
 - **Milestones:** *Integrability of almost complex structures on surfaces*.
   It follows the Beltrami route, not the route the page prefers (see
-  *Departures*). No design file is needed.
+  *Departures*).
 
 ### 25. Complex submanifolds
 
@@ -2499,17 +2518,22 @@ has either; Tau Ceti's extension across a boundary,
 
 - **Files:** `Geometry/Manifold/Complex/Adjunction.lean` (for a compact
   connected surface $\Sigma$ embedded in an almost complex four-manifold
-  with $J$-invariant tangent planes: the normal bundle, as the
-  orthogonal complement for a $J$-compatible metric with the complex
-  structure $J$ restricts to, built with the library's
-  `Geometry/Manifold/VectorBundle/Orthogonal.lean`; the self-intersection
+  with $J$-invariant tangent planes: the normal bundle is Tau Ceti's
+  intrinsic normal bundle of the embedding,
+  `TauCeti.SmoothEmbedding.NormalSpace` with its vector bundle structure,
+  and since $T\Sigma$ is $J$-invariant, $J$ descends to its fibres and makes
+  it a complex line bundle, with no metric; the self-intersection
   number as the Euler number of that normal bundle, with the orientation of
   its complex structure; the splitting of $TX|_\Sigma$ as a direct sum of
-  complex bundles; and the formula, with Tau Ceti's `TauCeti.surfaceGenus`).
+  complex bundles, through Tau Ceti's orthogonal representatives
+  (`NormalSpace/VectorBundle/Riemannian.lean`) for a $J$-invariant metric;
+  and the formula, with Tau Ceti's `TauCeti.surfaceGenus`).
 - **Builds on:** *First Chern number* (`ChernNumber/Axioms.lean` for
   additivity, #788, and `ChernNumber/EulerNumber.lean` for $c_1(T\Sigma)$,
-  #785); *Almost complex manifolds* (only `Metric.lean`, for a compatible
-  metric); *Symplectic vector bundles* (direct sums and pull-backs, merged).
+  #785); *Almost complex manifolds* (only `Metric.lean`, for a
+  $J$-invariant metric in the splitting); *Symplectic vector bundles*
+  (direct sums and pull-backs, merged); Tau Ceti's normal bundles of smooth
+  embeddings (`Geometry/Manifold/SmoothEmbedding/NormalSpace/`).
 - **Milestones:** *Adjunction formula*, with the self-intersection number
   defined as the page defines it, so that no Poincaré duality is needed;
   the equality with $Q_X([\Sigma],[\Sigma])$ for closed $X$ is not part of
@@ -2543,7 +2567,8 @@ has either; Tau Ceti's extension across a boundary,
   complex submanifold): the tangent bundle of $\mathbb CP^{n+1}$ plus a
   trivial line as $H^{\oplus(n+2)}$, with $H$ Tau Ceti's
   `Projectivization.twistCore 1`; the normal bundle of a hypersurface of
-  degree $d$ as the restriction of $H^{\otimes d}$, through the derivative
+  degree $d$, Tau Ceti's `TauCeti.SmoothEmbedding.NormalSpace` bundle as in
+  *Adjunction*, as the restriction of $H^{\otimes d}$, through the derivative
   of the polynomial; $\langle\iota^*h^n,[M]\rangle=d$; then the total Chern class
   and $c_1$ of $M$; the Euler characteristic; the numbers for surfaces in
   $\mathbb CP^3$ and threefolds in $\mathbb CP^4$, with Tau Ceti's Lefschetz
@@ -2714,7 +2739,7 @@ manifolds and characteristic classes*).
 | *Levi-Civita derivative of a compatible almost complex structure* | *Almost Kähler geometry*. Existing inputs: Mathlib's `CovariantDerivative.leviCivitaConnection`, Tau Ceti's `CovariantDerivative.hom` and `TauCeti.SmoothForm.mextDeriv_apply_two`. |
 | *Nijenhuis tensor* | *Nijenhuis tensor*. Existing parts: `TauCeti.SmoothAlmostComplexStructure.nijenhuis`, `nijenhuis_apply`, `nijenhuis_antisymm`, `nijenhuis_self`, `nijenhuis_apply_left`, `nijenhuis_apply_right`, `nijenhuis_eq_zero_of_finrank_eq_two`, `nijenhuis_const`, `isInvolutiveComplexDistribution_eigenspace_I_iff`. |
 | *Parallel almost complex structures and the Kähler condition* | *Almost Kähler geometry*, with $N_J=0$ in condition 2, as the page asks. |
-| *Integrability of almost complex structures on surfaces* | *Isothermal coordinates*. Existing inputs: `TauCeti.Beltrami.exists_isothermal_chart_of_contDiffAt`, `TauCeti.Beltrami.contDiffOn_infty_of_fderiv_comp`, `TauCeti.SmoothAlmostComplexStructure.HasIsothermalCharts`. |
+| *Integrability of almost complex structures on surfaces* | *Isothermal coordinates*. Existing inputs: `TauCeti.Beltrami.exists_isothermal_chart_of_contDiffAt` ($C^1$ charts only), `TauCeti.Beltrami.contDiffOn_infty_of_fderiv_comp` (which assumes $C^m$ charts for every $m$), `TauCeti.SmoothAlmostComplexStructure.HasIsothermalCharts`. Missing: isothermal charts of class $C^m$ for smooth $J$, built by the part. |
 | *Fubini–Study form on complex projective space* | *Complex projective space*. Existing inputs: Tau Ceti's complex manifold `ℙ ℂ (Fin (n + 1) → ℂ)`, `TauCeti.SmoothTwoForm.existsUnique_isSymplectic_mpullback_eq`, `OnePoint.fubiniStudyForm`. |
 | *Complex submanifolds of Kähler manifolds* | *Complex submanifolds*; its last sentence *Complex projective space*. Existing input: the linear `TauCeti.SymplecticForm.Compatible.restrict`. |
 | *Kähler structure on the space of compatible linear complex structures* | *Space of compatible complex structures*. Existing inputs: `TauCeti.SymplecticForm.compatibleTangentSpace`, `TauCeti.SymplecticForm.Compatible.compatibleCayleyEquiv`, and the bijection with $\mathcal S_n$ of *Siegel upper half space*. |
@@ -2816,12 +2841,20 @@ fixes a choice that would have to change for them.
   generalize it.
 - **Surfaces.** For *Integrability of almost complex structures on
   surfaces* the page prefers the route through local existence of
-  $J$-holomorphic discs. The library takes the Beltrami route instead,
-  because Tau Ceti already proves its planar core
-  (`TauCeti.Beltrami.exists_isothermal_chart_of_contDiffAt` and the
-  smoothness bootstrap); what remains is to read it through the charts of a
-  surface. Local existence of $J$-holomorphic discs stays available for the
-  later theory of curves.
+  $J$-holomorphic discs. The library takes the Beltrami route instead.
+  Tau Ceti has the $C^1$ half of both routes
+  (`TauCeti.Beltrami.exists_isothermal_chart_of_contDiffAt` for charts,
+  `TauCeti.exists_fderiv_one_add_apply_fderiv_I_eq_zero_of_contDiffAt` for
+  discs), and both need a separate regularity step for smooth $J$. The
+  Beltrami route gives the charts directly, Tau Ceti reduces their
+  smoothness to charts of each finite order
+  (`TauCeti.Beltrami.contDiffOn_infty_of_fderiv_comp`), and its
+  `HasIsothermalCharts` and `IsothermalSurface` take the charts from
+  there; the disc route would still have to build a chart from a family of
+  discs and prove that family smooth. What remains is the finite-order
+  regularity, which *Isothermal coordinates* builds, and reading the planar
+  charts through the charts of a surface. Local existence of
+  $J$-holomorphic discs stays available for the later theory of curves.
 - **Kähler.** The library's Kähler pairs are Tau Ceti's `IsKahler`, with
   $N_J=0$ in place of integrability, and the book's integrability is the
   separate predicate `IsIntegrable` (see *Almost complex structures, Kähler
