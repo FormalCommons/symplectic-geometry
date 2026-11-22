@@ -8,6 +8,7 @@ module
 public import Mathlib.LinearAlgebra.Complex.Orientation
 public import SymplecticGeometry.AlgebraicTopology.SimplicialSet.Homology.MayerVietoris
 public import SymplecticGeometry.AlgebraicTopology.SimplicialSet.Homology.One
+public import SymplecticGeometry.AlgebraicTopology.Singular.Path
 public import TauCeti.AlgebraicTopology.Homotopy.Hurewicz.One.Comparison
 public import TauCeti.AlgebraicTopology.Singular.Circle
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.Chart
@@ -41,12 +42,13 @@ generator (`Circle.hurewicz_genLoopEquivOfUnique_symm_expLoop`). The sign is com
 unit circle `S` of `ℂ`, with the Mayer–Vietoris sequence of the cover of `S` by the complements
 of `I` and `-I`, the one behind Tau Ceti's suspension isomorphism
 `TauCeti.reducedSingularHomologySphereSuccIso` at the last vector `I` of the basis `1, I`. The
-singular `2`-simplex `w ↦ exp(πi(w₁ + 2w₂))` has as faces the lower half-circle from `-1` to `1`,
-the loop, and the upper half-circle from `1` to `-1`, so the loop is homologous to the sum of the
-two half-circles, which lie in the two sets of the cover. The chain-level description of the
-connecting morphism (`SSet.homologyπ_mayerVietorisδ_of_chain_lifts`) then sends the class of
-the loop to `[1] - [-1]`. Radial projection to the equator carries this to `[b] - [-b]`, for `b`
-the remaining basis vector `1`, while Tau Ceti's generator of the equator is `[-b] - [b]`
+loop is the concatenation of the upper half-circle from `1` to `-1` and the lower one from `-1`
+to `1`, so it is homologous to the sum of the two half-circles
+(`TauCeti.TopCat.ιChainComplex_transSimplex_d`), which lie in the two sets of the cover. The
+chain-level description of the connecting morphism
+(`SSet.homologyπ_mayerVietorisδ_of_chain_lifts`) then sends the class of the loop to
+`[1] - [-1]`. Radial projection to the equator carries this to `[b] - [-b]`, for `b` the
+remaining basis vector `1`, while Tau Ceti's generator of the equator is `[-b] - [b]`
 (`TauCeti.reducedSingularHomologySphereIso_inv_ι`).
 
 ## Main results
@@ -165,7 +167,7 @@ theorem singularHomologyOneIso_inv_eq_complexOrientation :
 
 section Loop
 
-open Convexity Real Simplicial TopCat
+open Real Simplicial TopCat
 open scoped unitInterval
 
 /-- The unit circle of `ℂ`, as a topological space. -/
@@ -198,49 +200,29 @@ private def arc (a b : ℝ) : C(I, sphere (0 : ℂ) 1) :=
 
 private lemma arc_apply (a b : ℝ) (t : I) : arc a b t = halfTurn (a + b * t) := rfl
 
-/-- The singular `2`-simplex `w ↦ exp(πi(w₁ + 2w₂))` of the unit circle of `ℂ`. Its faces are
-the upper half-circle `δ₂`, the lower half-circle `δ₀` and the full counterclockwise loop `δ₁`. -/
-private def tri : (toSSet.obj Sph) _⦋2⦌ :=
-  (Sph.toSSetObjEquiv _).symm
-    ⟨fun w ↦ halfTurn (w.weights 1 + 2 * w.weights 2), continuous_halfTurn.comp (by fun_prop)⟩
+/-- The upper half-circle `t ↦ exp(πit)`, from `1` to `-1`, as a path. -/
+private def upperPath : Path (halfTurn 0) (halfTurn 1) where
+  toContinuousMap := arc 0 1
+  source' := by simp [arc_apply]
+  target' := by simp [arc_apply]
 
-/-- A face of `tri` is the arc whose parameter is read off the face's barycentric coordinates. -/
-private lemma δ_tri (i : Fin 3) (a b : ℝ)
-    (h : ∀ w : StdSimplex ℝ (Fin 2),
-      (w.weights.mapDomain i.succAbove) 1 + 2 * (w.weights.mapDomain i.succAbove) 2 =
-        a + b * w.weights 1) :
-    (toSSet.obj Sph).δ i tri = simplex₁ (arc a b) := by
-  apply (Sph.toSSetObjEquiv _).injective
-  ext w
-  rw [toSSetObjEquiv_δ_apply, toSSetObjEquiv_simplex₁]
-  simpa [tri, arc, StdSimplex.homeomorphI_apply_coe] using
-    congrArg (fun θ ↦ (halfTurn θ : ℂ)) (h w)
+/-- The lower half-circle `t ↦ exp(πi(1 + t))`, from `-1` to `1`, as a path. -/
+private def lowerPath : Path (halfTurn 1) (halfTurn 2) where
+  toContinuousMap := arc 1 1
+  source' := by simp [arc_apply]
+  target' := by norm_num [arc_apply]
 
-private lemma δ_zero_tri : (toSSet.obj Sph).δ 0 tri = simplex₁ (arc 1 1) := by
-  refine δ_tri 0 1 1 fun w ↦ ?_
-  rw [show (1 : Fin 3) = Fin.succAbove 0 0 from rfl, show (2 : Fin 3) = Fin.succAbove 0 1 from rfl,
-    Finsupp.mapDomain_apply_of_injective Fin.succAbove_right_injective,
-    Finsupp.mapDomain_apply_of_injective Fin.succAbove_right_injective]
-  linarith [w.total_fin_two]
-
-private lemma δ_one_tri : (toSSet.obj Sph).δ 1 tri = simplex₁ (arc 0 2) := by
-  refine δ_tri 1 0 2 fun w ↦ ?_
-  rw [Finsupp.mapDomain_of_notMem_range _ (1 : Fin 3) (by simp),
-    show (2 : Fin 3) = Fin.succAbove 1 1 from rfl,
-    Finsupp.mapDomain_apply_of_injective Fin.succAbove_right_injective]
-
-private lemma δ_two_tri : (toSSet.obj Sph).δ 2 tri = simplex₁ (arc 0 1) := by
-  refine δ_tri 2 0 1 fun w ↦ ?_
-  rw [Finsupp.mapDomain_of_notMem_range _ (2 : Fin 3) (by simp),
-    show (1 : Fin 3) = Fin.succAbove 2 1 from rfl,
-    Finsupp.mapDomain_apply_of_injective Fin.succAbove_right_injective]
-  ring
+/-- The full loop `t ↦ exp(2πit)` is the concatenation of the two half-circles. -/
+private lemma upperPath_trans_lowerPath :
+    (upperPath.trans lowerPath).toContinuousMap = arc 0 2 := by
+  ext t
+  simp only [Path.coe_toContinuousMap, Path.trans_apply, arc_apply]
+  split_ifs <;> simp [upperPath, lowerPath, arc_apply]
 
 /-- The loop `t ↦ exp(2πit)` of the unit circle of `ℂ` is a closed singular `1`-simplex. -/
 private lemma δ_zero_simplex₁_arc_eq_δ_one :
-    (toSSet.obj Sph).δ 0 (simplex₁ (arc 0 2)) = (toSSet.obj Sph).δ 1 (simplex₁ (arc 0 2)) := by
-  rw [δ_zero_simplex₁, δ_one_simplex₁]
-  simp [arc_apply, halfTurn_two]
+    (toSSet.obj Sph).δ 0 (simplex₁ (arc 0 2)) = (toSSet.obj Sph).δ 1 (simplex₁ (arc 0 2)) :=
+  δ_zero_simplex₁_eq_δ_one_simplex₁ (by simp [arc_apply, halfTurn_two])
 
 /-! The Mayer–Vietoris sequence of the cover of the unit circle of `ℂ` by the complements of a
 point `p` at `I` and of `-p`: the lower half-circle lies in the first set, the upper one in the
@@ -379,36 +361,35 @@ private lemma ιHomology₁_arc_eq
   have hl : (Sph.smallSingularSubcomplex ![({p}ᶜ : Set Sph), {-p}ᶜ]).ι.app _
       ((toSmallSingularSubcomplex ![({p}ᶜ : Set Sph), {-p}ᶜ]
         (Matrix.cons_val_zero _ _).superset).app _
-        (lowerArc p hp)) = (toSSet.obj Sph).δ 0 tri := by
-    rw [← NatTrans.comp_app_apply, toSmallSingularSubcomplex_ι, δ_zero_tri]
+        (lowerArc p hp)) = simplex₁ lowerPath.toContinuousMap := by
+    rw [← NatTrans.comp_app_apply, toSmallSingularSubcomplex_ι]
     -- The inclusion of the complement composed with the corestricted arc is the arc itself.
     exact toSSet_map_app_simplex₁ _ _
   have hu : (Sph.smallSingularSubcomplex ![({p}ᶜ : Set Sph), {-p}ᶜ]).ι.app _
       ((toSmallSingularSubcomplex ![({p}ᶜ : Set Sph), {-p}ᶜ]
         ((Matrix.cons_val_one _ _).trans (Matrix.cons_val_zero _ _)).superset).app _
-        (upperArc p hp)) = (toSSet.obj Sph).δ 2 tri := by
-    rw [← NatTrans.comp_app_apply, toSmallSingularSubcomplex_ι, δ_two_tri]
+        (upperArc p hp)) = simplex₁ upperPath.toContinuousMap := by
+    rw [← NatTrans.comp_app_apply, toSmallSingularSubcomplex_ι]
     -- As for the lower half-circle.
     exact toSSet_map_app_simplex₁ _ _
   rw [SSet.ιHomology₁_def, HomologicalComplex.homologyπ_naturality, ← Category.assoc,
     ← sub_eq_zero, ← Preadditive.sub_comp]
-  -- The loop differs from the sum of the two half-circles by the boundary of `-tri`.
+  -- The loop differs from the sum of the two half-circles by a boundary.
   have hb : HomologicalComplex.liftCycles _
         ((toSSet.obj Sph).ιChainComplex (simplex₁ (arc 0 2))) 0 (by simp)
         (by rw [SSet.ιChainComplex_d, Fin.sum_univ_two, δ_zero_simplex₁_arc_eq_δ_one]; simp) -
       z ≫ HomologicalComplex.cyclesMap (SSet.chainComplexMap
         (Sph.smallSingularSubcomplex ![({p}ᶜ : Set Sph), {-p}ᶜ]).ι A) 1 =
       HomologicalComplex.liftCycles _
-        ((-(toSSet.obj Sph).ιChainComplex tri) ≫ ((toSSet.obj Sph).chainComplex A).d 2 1) 0
+        ((-(toSSet.obj Sph).ιChainComplex (transSimplex upperPath lowerPath)) ≫
+          ((toSSet.obj Sph).chainComplex A).d 2 1) 0
         (by simp) (by rw [Category.assoc, HomologicalComplex.d_comp_d, comp_zero]) := by
     rw [← cancel_mono (HomologicalComplex.iCycles _ 1)]
     simp only [Preadditive.sub_comp, HomologicalComplex.liftCycles_i, Category.assoc,
       HomologicalComplex.cyclesMap_i]
     rw [← reassoc_of% hz]
-    simp only [Preadditive.sub_comp, Preadditive.neg_comp,
-      SSet.ι_chainComplexMap_f, SSet.ιChainComplex_d, hl, hu, ← δ_one_tri]
-    rw [Fin.sum_univ_three]
-    simp
+    simp only [Preadditive.sub_comp, Preadditive.neg_comp, SSet.ι_chainComplexMap_f, hl, hu,
+      ιChainComplex_transSimplex_d, upperPath_trans_lowerPath]
     abel
   rw [hb]
   exact HomologicalComplex.liftCycles_homologyπ_eq_zero_of_boundary _ _ _ _ _ rfl
@@ -537,9 +518,8 @@ end Loop
 /-- The counterclockwise loop `Circle.expLoop`, read as a singular `1`-simplex, is closed. -/
 theorem δ_zero_simplex₁_expLoop_eq_δ_one :
     (TopCat.toSSet.obj (TopCat.of Circle)).δ 0 (TopCat.simplex₁ expLoop.toContinuousMap) =
-      (TopCat.toSSet.obj (TopCat.of Circle)).δ 1 (TopCat.simplex₁ expLoop.toContinuousMap) := by
-  rw [TopCat.δ_zero_simplex₁, TopCat.δ_one_simplex₁]
-  simp
+      (TopCat.toSSet.obj (TopCat.of Circle)).δ 1 (TopCat.simplex₁ expLoop.toContinuousMap) :=
+  TopCat.δ_zero_simplex₁_eq_δ_one_simplex₁ (by simp)
 
 /-- **The class of the counterclockwise loop is minus the generator of `H₁(Circle)`.** The
 homology class of the singular `1`-simplex traced by the loop `t ↦ exp(2πit)` is

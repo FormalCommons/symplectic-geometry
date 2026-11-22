@@ -8,6 +8,7 @@ module
 public import Mathlib.Algebra.Lie.OfAssociative
 public import Mathlib.LinearAlgebra.Trace
 public import TauCeti.Geometry.Symplectic.AlmostComplex
+public import TauCeti.Geometry.Symplectic.Cayley.Basic
 public import TauCeti.Geometry.Symplectic.SymplecticTransport
 public import TauCeti.LinearAlgebra.BilinearForm.SkewAdjoint
 public import SymplecticGeometry.LinearAlgebra.BilinearForm.SelfAdjoint
@@ -22,6 +23,7 @@ the space of endomorphisms `Y` with `Y J + J Y = 0`, and for a symplectic form `
 For a compatible `J` the latter is the tangent space at `J` to the space of `ω`-compatible
 complex structures. This file proves the algebraic identities about these spaces on which the
 Kähler structure of that space rests (McDuff–Salamon, Example 4.3.6 and Exercise 4.3.7).
+It also describes Tau Ceti's compatible Cayley ball at `J` inside the compatible tangent space.
 
 ## Main results
 
@@ -32,6 +34,9 @@ Kähler structure of that space rests (McDuff–Salamon, Example 4.3.6 and Exerc
   of `Y * J * Z` is alternating in `Y` and `Z`.
 * `TauCeti.SymplecticForm.Invariant.mul_mem_compatibleTangentSpace`: the compatible tangent
   space at `J` is preserved by composition with `J` on the left.
+* `TauCeti.SymplecticForm.mem_compatibleCayleyBall_iff_mem_compatibleTangentSpace`: Tau Ceti's
+  compatible Cayley ball of `J` consists of the compatible tangent vectors at `J` that strictly
+  contract `v ↦ ω(v, J v)`.
 * `TauCeti.SymplecticForm.Compatible.trace_mul_self_pos`: for a compatible `J`, a nonzero
   compatible tangent vector `Y` has `0 < trace (Y * Y)`.
 * `TauCeti.SymplecticForm.Compatible.trace_commutator_sq_nonpos`: for a compatible `J` and
@@ -93,6 +98,22 @@ variable {ω : SymplecticForm V} {J : AlmostComplexStructure V} {Y Z : Module.En
 theorem isSelfAdjoint_of_mem_compatibleTangentSpace (hY : Y ∈ ω.compatibleTangentSpace J) :
     (ω.associatedBilinForm J).IsSelfAdjoint Y :=
   (mem_compatibleTangentSpace_iff_isSelfAdjoint (compatibleTangentSpace_le_tangentSpace hY)).1 hY
+
+/-- The compatible Cayley ball of `J` is the set of elements of the compatible tangent space at
+`J` that strictly contract the quadratic form `v ↦ ω(v, J v)`: for an endomorphism
+anticommuting with `J`, self-adjointness for `ω(·, J ·)` is skew-adjointness for `ω`. -/
+theorem mem_compatibleCayleyBall_iff_mem_compatibleTangentSpace {C : Module.End ℝ V} :
+    C ∈ ω.compatibleCayleyBall J ↔
+      C ∈ ω.compatibleTangentSpace J ∧ ∀ v, v ≠ 0 → ω (C v) (J (C v)) < ω v (J v) := by
+  have hT : C ∈ J.tangentSpace ↔ C * J.toLinearMap = -(J.toLinearMap * C) := by
+    rw [AlmostComplexStructure.mem_tangentSpace, add_eq_zero_iff_eq_neg]
+  rw [mem_compatibleCayleyBall, mem_cayleyBall]
+  constructor
+  · rintro ⟨⟨hA, hc⟩, hS⟩
+    exact ⟨(mem_compatibleTangentSpace_iff_isSelfAdjoint (hT.2 hA)).2 hS, hc⟩
+  · rintro ⟨hY, hc⟩
+    have hA := hT.1 (compatibleTangentSpace_le_tangentSpace hY)
+    exact ⟨⟨hA, hc⟩, (mem_compatibleTangentSpace_iff_isSelfAdjoint (hT.2 hA)).1 hY⟩
 
 /-- For a `J`-invariant `ω`, composing a compatible tangent vector at `J` with `J` on the left
 gives a compatible tangent vector at `J`. -/
