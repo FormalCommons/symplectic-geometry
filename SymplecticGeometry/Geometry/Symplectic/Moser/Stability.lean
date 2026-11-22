@@ -44,11 +44,14 @@ slices and a smooth family of primitives of its velocity.
    `(c × id)^* τ`, all of whose slices are symplectic.
 4. The time derivative of a closed form on `ℝ × M` is exact
    (`TauCeti.SmoothForm.IsClosed.exists_timeDeriv_eq_mextDerivₗ`), which is the hypothesis on the
-   velocity in Tau Ceti's theorem. Its isotopy over `ℝ` restricts to a diffeotopy
-   (`TauCeti.Diffeotopy.ofReal`).
+   velocity in Tau Ceti's theorem. So a closed form on `ℝ × M` with symplectic slices has a Moser
+   isotopy (`TauCeti.SmoothForm.IsClosed.exists_isotopy_mpullback_eq`), and the isotopy over `ℝ`
+   of `(c × id)^* τ` restricts to a diffeotopy (`TauCeti.Diffeotopy.ofReal`).
 
 ## Main results
 
+* `TauCeti.SmoothForm.IsClosed.exists_isotopy_mpullback_eq`: a closed two-form on `ℝ × M` whose
+  slices are symplectic, on a closed manifold, has an isotopy `ψ_t` with `ψ_t^* ρ_t = ρ_0`.
 * `TauCeti.SmoothTwoForm.exists_diffeotopy_mpullback_eq`: Moser stability for a family of
   cohomologous symplectic forms over `[0, 1]` on a closed manifold.
 
@@ -66,6 +69,36 @@ noncomputable section
 
 open Set
 open scoped Manifold ContDiff
+
+namespace TauCeti.SmoothForm.IsClosed
+
+variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
+  [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [I.Boundaryless] [TopologicalSpace M]
+  [ChartedSpace H M] [IsManifold I ∞ M] [T2Space M] [CompactSpace M]
+
+/-- **Moser's theorem for a closed form over `ℝ`.** Let `M` be a closed manifold and `ρ` a closed
+two-form on `ℝ × M` whose slices `ρ_t = ι_t^* ρ` are all symplectic. Then there is an isotopy
+`ψ_t` of `M`, jointly smooth in `(t, x)`, with `ψ_0 = id` and `ψ_t^* ρ_t = ρ_0` for every `t`. -/
+theorem exists_isotopy_mpullback_eq {ρ : SmoothForm (𝓘(ℝ, ℝ).prod I) (ℝ × M) ℝ 2}
+    (hρc : ρ.IsClosed)
+    (hρ : ∀ t, SmoothTwoForm.IsSymplectic
+      (SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) ρ)) :
+    ∃ ψ : ℝ → M ≃ₘ⟮I, I⟯ M, ContMDiff (𝓘(ℝ, ℝ).prod I) I ∞ (fun p : ℝ × M ↦ ψ p.1 p.2) ∧
+      (∀ x, ψ 0 x = x) ∧
+      ∀ t, SmoothForm.mpullback (ψ t) (ψ t).contMDiff
+          (SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) ρ) =
+        SmoothForm.mpullback (Prod.mk 0) (contMDiff_const.prodMk contMDiff_id) ρ := by
+  obtain ⟨α, hα⟩ := hρc.exists_timeDeriv_eq_mextDerivₗ
+  have hvel (t : ℝ) : TauCeti.mpullback I (𝓘(ℝ, ℝ).prod I) (Prod.mk t)
+        (mlieDerivForm (fun _ ↦ ((1 : ℝ), (0 : E))) ρ.val) =
+      mextDeriv (SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) α).val := by
+    have h := congrArg Subtype.val
+      (congrArg (SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id)) hα)
+    simpa [← SmoothForm.mextDerivₗ_mpullback] using h
+  obtain ⟨ψ, hψ, hψ₀, -, hψρ⟩ := TauCeti.SmoothTwoForm.exists_isotopy_mpullback_eq ρ α hρ hvel
+  exact ⟨ψ, hψ, hψ₀, hψρ⟩
+
+end TauCeti.SmoothForm.IsClosed
 
 namespace TauCeti.SmoothTwoForm
 
@@ -133,22 +166,14 @@ theorem exists_diffeotopy_mpullback_eq (σ : SmoothTwoForm ((𝓡∂ 1).prod I) 
       (SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) ρ) := by
     rw [hρs]
     exact ⟨hτc.mpullback _ _, isNondegenerate_iff_isInvertible_flat.mpr (hcP t)⟩
-  -- Step 4: the velocity of `ρ` is exact, and Tau Ceti's theorem over `ℝ` applies.
-  obtain ⟨α, hα⟩ := (hτc.mpullback _ hcs).exists_timeDeriv_eq_mextDerivₗ
-  have hvel (t : ℝ) : TauCeti.mpullback I (𝓘(ℝ, ℝ).prod I) (Prod.mk t)
-        (mlieDerivForm (fun _ ↦ ((1 : ℝ), (0 : E))) ρ.val) =
-      mextDeriv (SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) α).val := by
-    have h := congrArg Subtype.val
-      (congrArg (SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id)) hα)
-    rwa [← SmoothForm.mextDerivₗ_mpullback, mextDerivₗ_apply, SmoothForm.coe_mpullback,
-      SmoothForm.coe_timeDeriv] at h
-  obtain ⟨ψ, hψ, hψ₀, -, hψρ⟩ := exists_isotopy_mpullback_eq ρ α hρsymp hvel
+  -- Step 4: Moser's theorem over `ℝ` for the closed form `ρ`, restricted to `[0, 1]`.
+  obtain ⟨ψ, hψ, hψ₀, hψρ⟩ := (hτc.mpullback _ hcs).exists_isotopy_mpullback_eq hρsymp
   refine ⟨Diffeotopy.ofReal ψ hψ hψ₀, fun t ↦ ?_⟩
-  have h := hψρ t
   have h₀ := hτI 0
   rw [Icc.coe_zero] at h₀
-  rw [hρs, hρs, hcI t.property, hcI ⟨le_rfl, zero_le_one⟩, id_eq, id_eq, hτI t, h₀] at h
-  simpa only [Diffeotopy.timeSlice_ofReal] using h
+  have h := hψρ t
+  rw [hρs, hρs] at h
+  simpa [hcI t.property, hcI ⟨le_rfl, zero_le_one⟩, hτI t, h₀] using h
 
 end TauCeti.SmoothTwoForm
 
