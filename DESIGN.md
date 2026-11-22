@@ -2553,16 +2553,22 @@ has either; Tau Ceti's extension across a boundary,
   files (`AlgebraicTopology/Cohomology/LerayHirsch/`), with $c_1$ equal to
   *First Chern number*'s `firstChernClass`; naturality, the Whitney sum
   formula, the top class as Tau Ceti's `TauCeti.complexEulerClass`; the
-  cohomology ring of $\mathbb CP^n$, which Tau Ceti has only additively;
-  and the evaluation of the Euler class of the tangent bundle of a closed
-  oriented manifold on its fundamental class as its Euler characteristic.
-- **Builds on:** *First Chern number* (`FirstChernClass.lean`, #784, and its
-  Poincaré duality prerequisites, #806–#810); Tau Ceti's Euler and Thom
-  classes, cup products and Leray–Hirsch files.
+  cohomology ring of $\mathbb CP^n$, which Tau Ceti has only additively.
+  The evaluation of the Euler class of the tangent bundle of a closed
+  oriented manifold on its fundamental class as its Euler characteristic,
+  and the general infrastructure (the ring of even integral classes,
+  Leray–Hirsch for bundles, projective bundles), are in files outside that
+  folder, which `design/chern-classes.md` lists.
+- **Builds on:** *First Chern number* (`FirstChernClass.lean`, #784, only
+  for the comparison of $c_1$); Tau Ceti's Euler and Thom classes, cup
+  products, Leray–Hirsch files and Poincaré–Hopf theorem for gradients of
+  Morse functions. No Poincaré duality is needed.
 - **Milestones:** none by itself; it provides what *Projective
-  hypersurfaces* needs. The design file chooses the construction (the
-  projective bundle or a splitting principle) and the proof of the Euler
-  characteristic formula, and may split the part.
+  hypersurfaces* needs. `design/chern-classes.md` gives the construction
+  (the projective bundle, with Hatcher's proof of the Whitney formula and a
+  one-step splitting principle), the proof of the Euler characteristic
+  formula (Poincaré–Hopf for the gradient of a Morse function) and the
+  issues.
 
 ### 34. Projective hypersurfaces (needs `design/projective-hypersurfaces.md`)
 
@@ -2634,7 +2640,7 @@ that file, and the notes here may fall behind it.
 | 3 | *Contact geometry* | *Smooth families* (only `Family.lean` and `Gray.lean`, through `ContMDiff/TimeExtension.lean`, `DifferentialForm/TimeExtension.lean` and `Diffeotopy/Real.lean`); *Symplectic neighbourhoods* (only `LegendrianNeighborhood.lean`, through `Lagrangian.lean`); *Moser isotopy* (only `Darboux/Strict.lean`, through `LocalDiffeomorph/MFDeriv.lean`, merged); the other files of the part can start at once |
 | 4 | *First Chern class of nondegenerate forms* | *First Chern number* (only `FirstChernClass.lean`, #784); merged files of *Symplectic vector bundles* |
 | 4 | *Adjunction* | *First Chern number* (only `ChernNumber/Axioms.lean` and `ChernNumber/EulerNumber.lean`), *Almost complex manifolds* (only `Metric.lean`) |
-| 4 | *Chern classes* | *First Chern number* (only `FirstChernClass.lean` and the Poincaré duality prerequisites); the cohomology ring of $\mathbb CP^n$ can start at once |
+| 4 | *Chern classes* | *First Chern number* (only `FirstChernClass.lean`, for the comparison of $c_1$); the other issues of its design file can start at once |
 | 5 | *Projective hypersurfaces* | *Chern classes*, *First Chern number* (only `ChernNumber/EulerNumber.lean`); the bundle isomorphisms on $\mathbb CP^{n+1}$ can start at once |
 
 The design issues of the parts marked as needing one can start at once, in
