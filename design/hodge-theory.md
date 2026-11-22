@@ -363,9 +363,11 @@ a compact `K ⊆ ψ.target`, used to show that `L2Form.localize` is bounded:
   elsewhere (`localize_ofSmooth`). It is bounded
   (`exists_norm_localizeLp_le`), since the differential of `ψ.symm` is
   bounded above and its Jacobian below on `ψ '' tsupport χ`.
-- `L2Form.eq_ofSmooth_of_localize`: if, for a finite cover with a
-  partition of unity, every localization of `u` is a.e. a smooth function
-  with compact support, then `u = ofSmooth α` for a smooth form $\alpha$.
+- `L2Form.eq_ofSmooth_of_localize`: for finitely many charts `ψ i` and a
+  smooth partition of unity `ρ` subordinate to their sources, taken as the
+  cutoffs, if every `localize (ψ i) (ρ i) _ u` is a.e. a smooth `f i` with
+  compact support in `(ψ i).target`, then
+  `u = ofSmooth (∑ i, SmoothForm.extendByZeroAlong (ψ i) (f i) …)`.
 
 ### `Geometry/Manifold/DeRham/Hodge/Regularity.lean`
 
@@ -453,6 +455,12 @@ complexification:
   `fderivCompContinuousLinearMap_ofSubsingleton`,
   `fderivCompContinuousLinearMap_apply_comp_equiv` and the Leibniz rule
   `fderivCompContinuousLinearMap_wedge` for real-valued forms.
+
+### `Analysis/Normed/Module/Alternating/Uncurry/Fin.lean`
+
+- `ContinuousAlternatingMap.alternatizeUncurryFin_eq_sum_coord_smulRight`:
+  for a basis `b`, `alternatizeUncurryFin f` is the sum of the
+  alternatizations of `b.coord i • f (b i)`.
 
 ### `Analysis/InnerProductSpace/HodgeStar/AlternatingForm.lean`
 
@@ -686,7 +694,7 @@ sub-issues of #874, *Build the part Hodge theory*. Sizes are estimates.
 | 7 | The Hodge $H^1$ space and compactness of its inclusion in $L^2$ | `DeRham/Hodge/Sobolev.lean` | 6 | 400 |
 | 8 | The Hodge theorem on a closed oriented Riemannian manifold | `DeRham/Hodge/Basic.lean` | 7 | 300 |
 | 9 | Complex harmonic forms | `DeRham/Hodge/Complex.lean` | 8 | 300 |
-| 10 | The Lefschetz operator and the linear Kähler identity | `Analysis/InnerProductSpace/HodgeStar/Kahler/Lefschetz.lean`, `Analysis/InnerProductSpace/HodgeStar/AlternatingForm.lean`, `Analysis/Normed/Module/Alternating/Derivation.lean` | — | 350 |
+| 10 | The Lefschetz operator and the linear Kähler identity | `Analysis/InnerProductSpace/HodgeStar/Kahler/Lefschetz.lean`, `Analysis/InnerProductSpace/HodgeStar/AlternatingForm.lean`, `Analysis/Normed/Module/Alternating/Derivation.lean`, `Analysis/Normed/Module/Alternating/Uncurry/Fin.lean` | — | 350 |
 | 11 | Osculating holomorphic charts of a Kähler manifold | `Geometry/Manifold/Complex/KahlerCoordinates.lean`, `LinearAlgebra/ComplexStructure/SymmetricBilinear.lean` | 3; #862 | 400 |
 | 12 | The Kähler identity and $[\Delta,\mathcal J]=0$ | `DeRham/Kahler/Identities.lean` | 3, 10, 11 | 400 |
 | 13 | Conjugation on complex de Rham cohomology, and the Hodge decomposition | `Geometry/Manifold/DeRham/ComplexCoefficients.lean`, `DeRham/Kahler/Decomposition.lean` | 9, 12 | 400 |

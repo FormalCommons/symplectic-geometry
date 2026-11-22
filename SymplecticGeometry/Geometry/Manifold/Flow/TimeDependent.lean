@@ -5,13 +5,16 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Flow
 public import TauCeti.Geometry.Manifold.Flow.TimeDependent
 import TauCeti.Geometry.Manifold.Flow.Parametric
 public import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Tangent.Opens
+import Mathlib.Geometry.Manifold.Instances.Icc
+import TauCeti.Geometry.Manifold.IntegralCurve.Interval
 
 /-!
-# Joint smoothness of time-dependent flows, and flows on open subsets
+# Time-dependent flows: joint smoothness, uniqueness on intervals, open subsets
 
 Let `X` be a `C^n` time-dependent vector field, `1 ≤ n`, on a finite-dimensional boundaryless
 manifold `M`, whose suspension on `ℝ × M` is complete. Tau Ceti's
@@ -43,6 +46,16 @@ The proofs of `TauCeti.timeDependentFlowOf_restrict_eq` and
 526c5263b3fcb0f8fc7ea15aff46134de6919d86 (Tau Ceti pull request #2176), which the pinned version
 of Tau Ceti does not have.
 
+Tau Ceti proves that solutions of the time-dependent equation are unique on open intervals
+(`TauCeti.timeDependentFlowOf_eq_of_hasMFDerivAt`).
+`TauCeti.timeDependentFlowOf_eq_of_hasMFDerivWithinAt` is the same statement on any
+preconnected set of times, such as a closed interval, with derivatives within that set. Its proof
+follows Tau Ceti's: both curves are lifted through their clocks to integral curves of the
+suspension, and these agree by Tau Ceti's uniqueness theorem for integral curves on preconnected
+sets, `IsMIntegralCurveOn.eqOn_of_isPreconnected`.
+So the curves of the diffeotopy `TauCeti.timeDependentFlowDiffeotopy` of `X` are the solutions on
+`[0, 1]` (`TauCeti.timeDependentFlowDiffeotopy_apply_eq_of_mfderiv_eq`).
+
 ## Main results
 
 * `TauCeti.contMDiff_timeDependentFlowDiffeomorph`: the map
@@ -55,6 +68,10 @@ of Tau Ceti does not have.
   only where the flow of `X` is, and agrees with it there.
 * `TauCeti.tangentSpaceOpenEquiv_mfderiv_timeDependentFlowOf_restrict`: so do their differentials,
   the tangent spaces of `U` and `M` being identified.
+* `TauCeti.timeDependentFlowOf_eq_of_hasMFDerivWithinAt`: uniqueness of solutions on a
+  preconnected set of times.
+* `TauCeti.timeDependentFlowDiffeotopy_apply_eq_of_mfderiv_eq`: a curve on `[0, 1]` whose
+  velocity is `X` is a trajectory of `TauCeti.timeDependentFlowDiffeotopy`.
 -/
 
 public section
@@ -131,6 +148,82 @@ theorem contMDiff_timeDependentFlowOf_param [FiniteDimensional ℝ E] [T2Space M
     ((timeDependentFlowDomain_eq_univ (hc q.1.1)).symm ▸ Set.mem_univ _)]
 
 end Param
+
+/-! ### Uniqueness of solutions on preconnected sets of times -/
+
+section Icc
+
+open Set
+
+variable [T2Space M] [IsManifold I 1 M] [BoundarylessManifold I M]
+  {X : ℝ → (x : M) → TangentSpace I x} {s t : ℝ}
+
+/-- **Uniqueness of solutions on a preconnected set of times.** Let `X` be a `C¹` time-dependent
+vector field whose suspension is complete. A curve `γ` that solves `γ' u = X u (γ u)` on a
+preconnected `S ⊆ ℝ`, with derivatives within `S`, such as one-sided derivatives at the ends of a
+closed interval, is the curve of the time-dependent flow through `γ s` at time `s`, for all
+`s, t ∈ S`. -/
+theorem timeDependentFlowOf_eq_of_hasMFDerivWithinAt
+    (hX : ContMDiff (𝓘(ℝ, ℝ).prod I) I.tangent 1
+      (fun p : ℝ × M ↦ (⟨p.2, X p.1 p.2⟩ : TangentBundle I M)))
+    (hc : IsCompleteVectorField (timeDependentSuspensionField X)) {γ : ℝ → M} {S : Set ℝ}
+    (hS : IsPreconnected S)
+    (hγ : ∀ u ∈ S, HasMFDerivWithinAt 𝓘(ℝ, ℝ) I γ S u ((1 : ℝ →L[ℝ] ℝ).smulRight (X u (γ u))))
+    (hs : s ∈ S) (ht : t ∈ S) :
+    timeDependentFlowOf X s t (γ s) = γ t := by
+  -- A solution, lifted through its clock, is an integral curve of the suspension.
+  have hlift {c : ℝ → M} {u : ℝ} {S : Set ℝ}
+      (h : HasMFDerivWithinAt 𝓘(ℝ, ℝ) I c S u ((1 : ℝ →L[ℝ] ℝ).smulRight (X u (c u)))) :
+      HasMFDerivWithinAt 𝓘(ℝ, ℝ) (𝓘(ℝ, ℝ).prod I) (fun r ↦ (r, c r)) S u
+        ((1 : ℝ →L[ℝ] ℝ).smulRight (timeDependentSuspensionField X (u, c u))) := by
+    have hs : timeDependentSuspensionField X (u, c u) = ((1 : ℝ), X u (c u)) :=
+      Prod.ext (timeDependentSuspensionField_fst _ _) (timeDependentSuspensionField_snd _ _)
+    rw [hs]
+    -- Both derivatives send `r` to `(r, r • X u (c u))`; the clock component on the right is
+    -- `r • 1 = r * 1`.
+    exact ((hasMFDerivWithinAt_id S u).prodMk h).congr_mfderiv
+      (ContinuousLinearMap.ext fun r ↦ Prod.ext (mul_one (M := ℝ) r).symm rfl)
+  have h₁ : IsMIntegralCurveOn (fun r ↦ (r, γ r)) (timeDependentSuspensionField X) S :=
+    fun u hu ↦ hlift (hγ u hu)
+  have h₂ : IsMIntegralCurveOn (fun r ↦ (r, timeDependentFlowOf X s r (γ s)))
+      (timeDependentSuspensionField X) S := fun u _ ↦
+    hlift (hasMFDerivAt_timeDependentFlowOf hX
+      ((timeDependentFlowDomain_eq_univ hc).symm ▸ mem_univ _)).hasMFDerivWithinAt
+  have heq := h₂.eqOn_of_isPreconnected h₁ hS hs
+    (fun _ _ ↦ BoundarylessManifold.isInteriorPoint)
+    (fun _ _ ↦ (contMDiff_timeDependentSuspensionField hX).contMDiffAt)
+    (by simp [timeDependentFlowOf_self]) ht
+  exact congrArg Prod.snd heq
+
+/-- **The curves of the diffeotopy of a time-dependent field.** A differentiable curve `γ` on
+`[0, 1]` whose velocity at every time `t` is `X t (γ t)`, one-sided at the ends, is the trajectory
+of its initial point under the diffeotopy `TauCeti.timeDependentFlowDiffeotopy` of `X`. -/
+theorem timeDependentFlowDiffeotopy_apply_eq_of_mfderiv_eq [FiniteDimensional ℝ E]
+    [IsManifold I ∞ M]
+    (hX : ContMDiff (𝓘(ℝ, ℝ).prod I) I.tangent ∞
+      (fun p : ℝ × M ↦ (⟨p.2, X p.1 p.2⟩ : TangentBundle I M)))
+    (hc : IsCompleteVectorField (timeDependentSuspensionField X)) {γ : unitInterval → M}
+    (hγ : MDifferentiable (𝓡∂ 1) I γ) (hγX : ∀ t, mfderiv (𝓡∂ 1) I γ t 1 = X t (γ t))
+    (t : unitInterval) : timeDependentFlowDiffeotopy le_top hX hc (t, γ 0) = γ t := by
+  -- The curve `γ ∘ projIcc` on `ℝ` solves the time-dependent equation on `[0, 1]`.
+  have hsol (u : ℝ) (hu : u ∈ Icc (0 : ℝ) 1) :
+      HasMFDerivWithinAt 𝓘(ℝ, ℝ) I (γ ∘ projIcc 0 1 zero_le_one) (Icc 0 1) u
+        ((1 : ℝ →L[ℝ] ℝ).smulRight (X u ((γ ∘ projIcc 0 1 zero_le_one) u))) := by
+    set w : unitInterval := ⟨u, hu⟩
+    have hw : projIcc 0 1 zero_le_one u = w := projIcc_of_mem _ hu
+    refine (mdifferentiableWithinAt_comp_projIcc_iff (w := w).2 (hγ w)).hasMFDerivWithinAt
+      |>.congr_mfderiv (ContinuousLinearMap.ext_ring ?_)
+    refine (mfderivWithin_comp_projIcc_one (w := w)).trans ?_
+    rw [Function.comp_apply, hw, hγX w]
+    exact (one_smul ℝ _).symm
+  have h := timeDependentFlowOf_eq_of_hasMFDerivWithinAt (hX.of_le (by simp)) hc
+    isPreconnected_Icc hsol (s := 0) ⟨le_rfl, zero_le_one⟩ t.property
+  have h0 : projIcc (0 : ℝ) 1 zero_le_one 0 = 0 := projIcc_left _
+  rw [Function.comp_apply, Function.comp_apply, h0, projIcc_val] at h
+  rw [timeDependentFlowDiffeotopy_apply]
+  exact h
+
+end Icc
 
 /-! ### Restriction to an open subset -/
 
