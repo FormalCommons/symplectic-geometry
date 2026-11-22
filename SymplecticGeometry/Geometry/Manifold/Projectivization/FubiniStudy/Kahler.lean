@@ -7,6 +7,7 @@ module
 
 public import Mathlib.LinearAlgebra.UnitaryGroup
 public import SymplecticGeometry.Geometry.Manifold.Projectivization.FubiniStudy.Basic
+public import SymplecticGeometry.LinearAlgebra.Matrix.DotProduct
 public import TauCeti.Geometry.Manifold.Projectivization.Map
 public import TauCeti.Geometry.Symplectic.Manifold.Kahler
 import Mathlib.Analysis.InnerProductSpace.Calculus
@@ -61,39 +62,9 @@ public section
 open Function Matrix TauCeti Projectivization
 open scoped Manifold ContDiff LinearAlgebra.Projectivization ComplexOrder
 
-namespace Matrix
-
-variable {l m R : Type*} [Fintype l] [Fintype m]
-
-/-- A matrix with a left inverse acts injectively on vectors: `A.mulVec` is injective. -/
-theorem mulVec_injective_of_mul_eq_one [Semiring R] [DecidableEq m] {A : Matrix l m R}
-    {B : Matrix m l R} (h : B * A = 1) : Injective A.mulVec := fun z w hzw ↦ by
-  simpa [mulVec_mulVec, h] using congrArg (B *ᵥ ·) hzw
-
-/-- A matrix with orthonormal columns, `Aᴴ * A = 1`, preserves the Hermitian product
-`star z ⬝ᵥ v`. -/
-theorem star_mulVec_dotProduct_mulVec [Semiring R] [StarRing R] [DecidableEq m]
-    {A : Matrix l m R} (hA : Aᴴ * A = 1) (z v : m → R) :
-    star (A *ᵥ z) ⬝ᵥ (A *ᵥ v) = star z ⬝ᵥ v := by
-  rw [star_mulVec, ← dotProduct_mulVec, mulVec_mulVec, hA, one_mulVec]
-
-end Matrix
-
 namespace Projectivization
 
-variable {𝕜 : Type*} [NontriviallyNormedField 𝕜] [NormedAlgebra ℝ 𝕜] {m n : ℕ}
-
-/-- The map of projective spaces induced by an injective linear map is `C^r` for the underlying
-real manifold structures. -/
-theorem contMDiff_map_restrictScalars (f : (Fin (m + 1) → 𝕜) →ₗ[𝕜] Fin (n + 1) → 𝕜)
-    (hf : Injective f) (r : ℕ∞ω) :
-    ContMDiff 𝓘(ℝ, Fin m → 𝕜) 𝓘(ℝ, Fin n → 𝕜) r (map f hf) := by
-  simpa using (contMDiff_map f hf r).restrictScalars ℝ
-
-/-- The inverse of an affine chart is `C^r` for the underlying real manifold structures. -/
-theorem contMDiff_affineChart_symm_restrictScalars (j : Fin (n + 1)) (r : ℕ∞ω) :
-    ContMDiff 𝓘(ℝ, Fin n → 𝕜) 𝓘(ℝ, Fin n → 𝕜) r (affineChart (K := 𝕜) j).symm := by
-  simpa using (contMDiff_affineChart_symm (𝕜 := 𝕜) j r).restrictScalars ℝ
+variable {n : ℕ}
 
 open SmoothAlmostComplexStructure
 

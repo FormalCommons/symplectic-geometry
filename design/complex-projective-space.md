@@ -363,6 +363,14 @@ $\omega_0=$ `stdComplexPiSymplecticForm (Fin (n + 1))`:
   `existsUnique_mpullback_mkNonzero_eq` and
   `existsUnique_mpullback_sphereHopf_eq` (part 2).
 
+### `LinearAlgebra/Matrix/DotProduct.lean`
+
+General matrix facts that `Kahler.lean` uses, in namespace `Matrix`:
+`mulVec_injective_of_mul_eq_one` (a matrix with a left inverse acts
+injectively on vectors, beside Mathlib's `Matrix.mulVec_injective_of_isUnit`)
+and `star_mulVec_dotProduct_mulVec` (a matrix with `Aᴴ * A = 1` preserves
+`star z ⬝ᵥ v`).
+
 ### `Geometry/Manifold/Projectivization/FubiniStudy/Kahler.lean`
 
 - `mpullback_map_fubiniStudyForm (A : Matrix (Fin (n + 1)) (Fin (m + 1)) ℂ)
