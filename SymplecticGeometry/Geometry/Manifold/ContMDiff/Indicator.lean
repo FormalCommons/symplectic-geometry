@@ -97,8 +97,8 @@ namespace PartialDiffeomorph
 
 variable {𝕜 : Type*} [NontriviallyNormedField 𝕜] {E : Type*} [NormedAddCommGroup E]
   [NormedSpace 𝕜 E] {H : Type*} [TopologicalSpace H] {I : ModelWithCorners 𝕜 E H}
-  {M : Type*} [TopologicalSpace M] [ChartedSpace H M] {n : WithTop ℕ∞}
-  (ψ : PartialDiffeomorph I 𝓘(𝕜, E) M E n)
+  {M : Type*} [TopologicalSpace M] [ChartedSpace H M] {E' : Type*} [NormedAddCommGroup E']
+  [NormedSpace 𝕜 E'] {n : WithTop ℕ∞} (ψ : PartialDiffeomorph I 𝓘(𝕜, E') M E' n)
 
 /-- A function `χ` read in the chart `ψ` and extended by `0` off `ψ.target` vanishes off the
 image under `ψ` of the support of `χ`. -/
