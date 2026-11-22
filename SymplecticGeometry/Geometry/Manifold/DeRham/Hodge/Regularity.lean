@@ -11,8 +11,8 @@ import SymplecticGeometry.Analysis.Calculus.ContDiff.Matrix
 import SymplecticGeometry.Analysis.Distribution.SecondOrderSystem
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.ChartCover
+import SymplecticGeometry.Geometry.Manifold.PartitionOfUnity
 import SymplecticGeometry.Geometry.Manifold.Riemannian.PartialDiffeomorph
-import Mathlib.Geometry.Manifold.PartitionOfUnity
 import TauCeti.MeasureTheory.Function.LocallyIntegrable
 
 /-!
@@ -372,20 +372,15 @@ theorem L2Form.IsWeakSolution.exists_contDiff_ae_eq_localize {u : L2Form o k}
     ∃ F : E → E [⋀^Fin k]→L[ℝ] ℝ, ContDiff ℝ ∞ F ∧ HasCompactSupport F ∧
       tsupport F ⊆ ψ.target ∧ L2Form.localize ψ ρ hρ u =ᵐ[volume] F := by
   -- A cutoff `θ` equal to `1` on an open `U₁ ⊇ tsupport ρ` and supported in `ψ.source`.
-  obtain ⟨U₂, hU₂, hρU₂, hU₂s⟩ := normal_exists_closure_subset (isClosed_tsupport _)
-    ψ.open_source hρ
-  obtain ⟨U₁, hU₁, hρU₁, hU₁₂⟩ := normal_exists_closure_subset (isClosed_tsupport _) hU₂
-    hρU₂
-  obtain ⟨θ, hθ0, hθ1, -⟩ := exists_contMDiffMap_zero_one_of_isClosed I (n := ⊤)
-    hU₂.isClosed_compl isClosed_closure (Set.disjoint_compl_left_iff_subset.2 hU₁₂)
-  have hθ : tsupport θ ⊆ ψ.source :=
-    (closure_mono (Function.support_subset_iff'.2 fun x hx ↦ hθ0 hx)).trans hU₂s
-  have hρθ (x : M) (hx : x ∈ tsupport ρ) : θ x = 1 := hθ1 (subset_closure (hρU₁ hx))
+  obtain ⟨θ, hθ, hθ1, -⟩ :=
+    (isClosed_tsupport _).exists_contMDiffMap_tsupport_subset_eventually_eq_one I ψ.open_source hρ
+  obtain ⟨U₁, hU₁, hρU₁, hθ1⟩ := eventually_nhdsSet_iff_exists.1 hθ1
+  have hρθ (x : M) (hx : x ∈ tsupport ρ) : θ x = 1 := hθ1 x (hρU₁ hx)
   -- The open set of the chart where `θ ∘ ψ.symm = 1`.
   set V := ψ.target ∩ ψ.symm ⁻¹' U₁
   have hV : IsOpen V := ψ.contMDiffOn_invFun.continuousOn.isOpen_inter_preimage ψ.open_target hU₁
   obtain ⟨g, hg, hug⟩ := hu.exists_contDiffOn_ae_eq_localize ψ θ hθ hV Set.inter_subset_left
-    fun y hy ↦ hθ1 (subset_closure hy.2)
+    fun y hy ↦ hθ1 _ hy.2
   set r : E → ℝ := ψ.target.indicator fun y ↦ ρ (ψ.symm y)
   have hKρ : IsCompact (tsupport ρ) := (isClosed_tsupport _).isCompact
   have hK : IsCompact (ψ '' tsupport ρ) := ψ.isCompact_image_of_subset_source hKρ hρ
