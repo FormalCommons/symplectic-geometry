@@ -198,6 +198,14 @@ def singularCohomologyLinearCongr {L₁ L₂ : Linear ℤ (ModuleCat.{0} ℤ)} (
     @TopCat.singularCohomology (ModuleCat.{0} ℤ) _ _ _ (𝟙_ (ModuleCat.{0} ℤ)) ℤ _ L
       (𝟙_ (ModuleCat.{0} ℤ)) X n) e
 
+theorem singularCohomologyLinearCongr_def {L₁ L₂ : Linear ℤ (ModuleCat.{0} ℤ)} (e : L₁ = L₂)
+    (X : TopCat.{0}) (n : ℕ) :
+    singularCohomologyLinearCongr e X n = LinearEquiv.cast (R := ℤ)
+      (M := fun L : Linear ℤ (ModuleCat.{0} ℤ) =>
+        @TopCat.singularCohomology (ModuleCat.{0} ℤ) _ _ _ (𝟙_ (ModuleCat.{0} ℤ)) ℤ _ L
+          (𝟙_ (ModuleCat.{0} ℤ)) X n) e :=
+  (rfl)
+
 @[simp]
 theorem singularCohomologyLinearCongr_refl (L : Linear ℤ (ModuleCat.{0} ℤ)) (X : TopCat.{0})
     (n : ℕ) : singularCohomologyLinearCongr (rfl : L = L) X n = LinearEquiv.refl ℤ _ :=
