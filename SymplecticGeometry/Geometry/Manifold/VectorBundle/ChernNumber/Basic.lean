@@ -9,7 +9,6 @@ public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.Class
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.FirstChernClass
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.Pullback
 public import SymplecticGeometry.Topology.VectorBundle.Complex.FirstChernClass
-public import SymplecticGeometry.Topology.VectorBundle.Complex.Structure
 public import TauCeti.Geometry.Manifold.Degree.Homological
 
 /-!
