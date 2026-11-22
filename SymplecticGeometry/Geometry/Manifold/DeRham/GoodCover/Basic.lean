@@ -5,10 +5,10 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import Mathlib.Analysis.Calculus.AddTorsor.AffineMap
 public import Mathlib.Analysis.Convex.Star
 public import Mathlib.Geometry.Manifold.Diffeomorph
 public import Mathlib.Geometry.Manifold.Instances.Icc
+public import SymplecticGeometry.Geometry.Manifold.ContMDiff.LineMap
 
 /-!
 # Smoothly contractible manifolds and finite good covers
@@ -35,8 +35,8 @@ has one.
 * `StarConvex.lineContraction`: the straight-line contraction `(x, s) ↦ c + s • (x - c)` of an
   open set of a normed space, star-convex about `c`, with `StarConvex.contMDiff_lineContraction`
   and its ends `StarConvex.lineContraction_zero` and `StarConvex.lineContraction_one`. Its
-  smoothness, and that of the lines in `of_starConvex_image`, comes from `ContMDiff.lineMap`:
-  `x ↦ AffineMap.lineMap (f₁ x) (f₂ x) (g x)` is smooth for smooth `f₁`, `f₂` and `g`.
+  smoothness, and that of the lines in `of_starConvex_image`, comes from `ContMDiff.lineMap`
+  (`Geometry/Manifold/ContMDiff/LineMap.lean`).
 * `SymplecticGeometry.exists_mem_isSmoothlyContractible`: every point has a smoothly contractible
   open neighbourhood, and `SymplecticGeometry.IsSmoothlyContractible.connectedSpace`: a smoothly
   contractible manifold is connected.
@@ -113,15 +113,6 @@ theorem isSmoothlyContractible_self (E' : Type*) [NormedAddCommGroup E'] [Normed
     fun x ↦ by simp, fun x ↦ by simp⟩
 
 variable {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
-
-/-- For smooth maps `f₁ f₂ : M → E'` to a real normed space and a smooth `g : M → ℝ`, the map
-`x ↦ AffineMap.lineMap (f₁ x) (f₂ x) (g x)`, that is `x ↦ f₁ x + g x • (f₂ x - f₁ x)`, is
-smooth. This is the manifold version of Mathlib's `ContDiff.lineMap`. -/
-theorem _root_.ContMDiff.lineMap {E' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E']
-    {n : WithTop ℕ∞} {f₁ f₂ : M → E'} {g : M → ℝ} (h₁ : ContMDiff I 𝓘(ℝ, E') n f₁)
-    (h₂ : ContMDiff I 𝓘(ℝ, E') n f₂) (hg : ContMDiff I 𝓘(ℝ) n g) :
-    ContMDiff I 𝓘(ℝ, E') n fun x ↦ AffineMap.lineMap (f₁ x) (f₂ x) (g x) :=
-  AffineMap.contDiff_lineMap_uncurry.comp_contMDiff (h₁.prodMk_space (h₂.prodMk_space hg))
 
 /-- **Straight-line contraction.** Let `U` be a nonempty open subset of `M`, and `φ : M → E'` a
 map to a real normed space, smooth on `U`, with a left inverse `ψ` on `U` that is smooth on
