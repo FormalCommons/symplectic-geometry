@@ -9,7 +9,6 @@ public import SymplecticGeometry.Geometry.Symplectic.Neighborhood.Basic
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.Diffeomorph
 public import TauCeti.Geometry.Symplectic.Lagrangian.Manifold
 public import TauCeti.Geometry.Symplectic.LinearReduction
-import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Basic
 
 /-!
 # The isotropic neighbourhood theorem
@@ -164,7 +163,6 @@ theorem IsIsotropicMap.exists_symplectomorphism_opens_of_finrank_eq
   obtain ⟨u', hu'⟩ : mfderiv J I₁ g q u ∈ (mfderiv J I₁ f₁ (φ q)).range := hgr q ▸ ⟨u, rfl⟩
   exact ⟨u', hu.trans (congrArg (L q v + ·) hu'.symm)⟩
 
-
 /-- **The isotropic neighbourhood theorem.** Let `f₀ : Q₀ → M₀` and `f₁ : Q₁ → M₁` be isotropic
 smooth embeddings into second countable Hausdorff symplectic manifolds `(M₀, ω₀)` and `(M₁, ω₁)`
 without boundary, and write `Wⱼ` for the tangent image of `fⱼ`. Let `φ : Q₀ ≃ Q₁` be a
@@ -218,10 +216,8 @@ theorem IsIsotropicMap.exists_symplectomorphism_opens
         SmoothForm.mpullback (Subtype.val : U₀ → M₀) contMDiff_subtypeVal ω₀ := by
   rcases isEmpty_or_nonempty Q₀ with hQ | ⟨⟨q₀⟩⟩
   · -- Without points to work along, the empty open sets will do.
-    have : IsEmpty (⊥ : Opens M₀) := ⟨fun x ↦ x.property⟩
-    have : IsEmpty (⊥ : Opens M₁) := ⟨fun x ↦ x.property⟩
-    exact ⟨⊥, ⊥, Diffeomorph.ofIsEmpty, fun q ↦ (hQ.false q).elim,
-      Subtype.ext (funext fun x ↦ (IsEmpty.false x).elim)⟩
+    obtain ⟨ψ, hψ⟩ := SmoothTwoForm.exists_diffeomorph_bot_mpullback_eq ω₀ ω₁
+    exact ⟨⊥, ⊥, ψ, fun q ↦ (hQ.false q).elim, hψ⟩
   -- `L` preserves `ω` on `W₀^ω`, since `Φ` preserves the reduced forms.
   have hLω (q) : ∀ v ∈ (hω₀.isNondegenerate.symplecticFormAt (f₀ q)).orthogonal
       (mfderiv J I₀ f₀ q).range, ∀ w ∈ (hω₀.isNondegenerate.symplecticFormAt (f₀ q)).orthogonal

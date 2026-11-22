@@ -213,8 +213,8 @@ and two rows of its milestone table.
   place in that order: pull requests that each add a file then change
   different lines.
   - `Geometry/Manifold/Diffeomorph/Basic.lean`: the diffeomorphism between
-    empty manifolds on two models, which `MFDeriv.lean` and `Tubular.lean`
-    both use.
+    empty manifolds on two models, which `MFDeriv.lean`, `Tubular.lean` and
+    `Neighborhood/Basic.lean` use.
   - `Geometry/Manifold/Distribution/FlatChart.lean`: the step of
     `CharacteristicFoliation.lean` that uses nothing symplectic.
   - `Geometry/Manifold/IsManifold/Basic.lean`: two instances for smooth
@@ -489,7 +489,8 @@ symplectic, so it sits with the manifold topic, beside Tau Ceti's
 
 ### `Geometry/Manifold/Diffeomorph/Basic.lean`
 
-The case of an empty `Q` in `MFDeriv.lean` and `Tubular.lean`. Namespace
+The case of an empty `Q` in `MFDeriv.lean`, `Tubular.lean` and
+`Neighborhood/Basic.lean`. Namespace
 `Diffeomorph`.
 
 - `Diffeomorph.ofIsEmpty : M ≃ₘ^n⟮I, I'⟯ M'` for `[IsEmpty M] [IsEmpty M']`,
@@ -681,8 +682,8 @@ four theorems share.
   `TauCeti.SmoothTwoForm.IsNondegenerate.exists_compatible`.
 - From *Symplectic vector spaces*: `LinearAlgebra/Symplectic/Reduction.lean`
   (merged), in `Extension.lean`, and
-  `LinearAlgebra/Symplectic/Subspace.lean` (merged), in `Extension.lean` and
-  `CharacteristicFoliation.lean`.
+  `LinearAlgebra/Symplectic/Subspace.lean` (merged), in `Extension.lean`,
+  `CharacteristicFoliation.lean` and `Coisotropic.lean`.
 - From *Compatible complex structures*:
   `LinearAlgebra/Symplectic/Compatible.lean` (merged), in `Extension.lean`, and
   `Topology/Algebra/Module/BilinearForm.lean` (merged), in

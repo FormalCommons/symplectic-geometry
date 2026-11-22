@@ -7,7 +7,7 @@ module
 
 public import SymplecticGeometry.Geometry.Symplectic.Neighborhood.Basic
 public import TauCeti.Geometry.Symplectic.Lagrangian.Presymplectic
-import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Basic
+import SymplecticGeometry.LinearAlgebra.Symplectic.Subspace
 import TauCeti.Geometry.Manifold.SmoothEmbedding.Diffeomorph
 
 /-!
@@ -89,10 +89,8 @@ theorem IsCoisotropicMap.exists_symplectomorphism_opens {ω₀ : SmoothTwoForm I
         SmoothForm.mpullback (Subtype.val : U₀ → M₀) contMDiff_subtypeVal ω₀ := by
   rcases isEmpty_or_nonempty Q₀ with hQ | ⟨⟨q₀⟩⟩
   · -- Without points to work along, the empty open sets will do.
-    have : IsEmpty (⊥ : Opens M₀) := ⟨fun x ↦ x.property⟩
-    have : IsEmpty (⊥ : Opens M₁) := ⟨fun x ↦ x.property⟩
-    exact ⟨⊥, ⊥, Diffeomorph.ofIsEmpty, fun q ↦ (hQ.false q).elim,
-      Subtype.ext (funext fun x ↦ (IsEmpty.false x).elim)⟩
+    obtain ⟨ψ, hψ⟩ := SmoothTwoForm.exists_diffeomorph_bot_mpullback_eq ω₀ ω₁
+    exact ⟨⊥, ⊥, ψ, fun q ↦ (hQ.false q).elim, hψ⟩
   -- The comparison theorem applies to `f₀` and `g = f₁ ∘ φ`.
   set g := f₁.compDiffeomorph φ
   have hg : ⇑g = f₁ ∘ φ := f₁.coe_compDiffeomorph φ
@@ -101,11 +99,7 @@ theorem IsCoisotropicMap.exists_symplectomorphism_opens {ω₀ : SmoothTwoForm I
     exact (isCoisotropicMap_comp_diffeomorph_iff φ (by simp)).2 h₁
   have hσ : SmoothForm.mpullback g g.contMDiff ω₁ = SmoothForm.mpullback f₀ f₀.contMDiff ω₀ := by
     rw [← hφ, SmoothForm.mpullback_mpullback]
-    -- The two pull-backs differ only in how the map and its smoothness are written.
-    generalize g.contMDiff = hgs
-    revert hgs
-    rw [hg]
-    exact fun _ ↦ rfl
+    simp only [hg]
   have hk₀ (q) := h₀.finrank_ker_bilinFormAt_mpullback_add f₀.contMDiff
     (f₀.isImmersion.mfderiv_injective (by simp) q)
   have hk₁ := hgc.finrank_ker_bilinFormAt_mpullback_add g.contMDiff
@@ -115,8 +109,7 @@ theorem IsCoisotropicMap.exists_symplectomorphism_opens {ω₀ : SmoothTwoForm I
   have hW (q) : ∀ v ∈ (hω₀.isNondegenerate.symplecticFormAt (f₀ q)).orthogonal
       (mfderiv J I₀ f₀ q).range, ∀ w ∈ (hω₀.isNondegenerate.symplecticFormAt (f₀ q)).orthogonal
         (mfderiv J I₀ f₀ q).range, hω₀.isNondegenerate.symplecticFormAt (f₀ q) v w = 0 :=
-    fun v hv w hw ↦ SymplecticForm.mem_orthogonal_iff'.1 hv w
-      (SymplecticForm.isCoisotropic_iff_le.1 (isCoisotropicMap_iff.1 h₀ q) hw)
+    SymplecticForm.isIsotropic_iff.1 (isCoisotropicMap_iff.1 h₀ q).isIsotropic_orthogonal
   obtain ⟨U₀, U₁, ψ, hψ, hψω⟩ := SmoothEmbedding.exists_symplectomorphism_opens_of_mpullback_eq
     f₀ g hω₀ hω₁ hσ (k := finrank ℝ E₀ - finrank ℝ EQ) (fun q ↦ by have := hk₀ q; omega)
     (by have := hk₀ q₀; omega) (fun _ ↦ 0) (contMDiff_zeroSection ℝ _)
