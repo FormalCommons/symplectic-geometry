@@ -73,6 +73,12 @@ Tau Ceti's `TauCeti.Geometry.Contact.StableHamiltonian` with the following.
   submanifold, `TauCeti.SmoothTwoForm.exists_diffeomorph_opens_of_eq_along`, applied along the
   embedding `x ↦ (0, x)`, gives a diffeomorphism between neighbourhoods of `{0} × M`, and the tube
   lemma `SymplecticGeometry.exists_symmStrip_le` a strip inside the first.
+* **The milestone**
+  (`TauCeti.SmoothForm.IsStableHamiltonian.characteristicVectorField_and_stableHamiltonianModel`)
+  collects these results for a stable Hamiltonian structure on a compact boundaryless manifold of
+  dimension `2 m + 1`, together with Tau Ceti's characterization of the characteristic field
+  (`TauCeti.SmoothForm.eq_characteristicVectorField_iff`) and its completeness
+  (`TauCeti.isCompleteVectorField_of_compactSpace`), which makes its flow global.
 
 The proof of `contMDiff_characteristicVectorField` adapts Tau Ceti's proof of
 `TauCeti.SmoothForm.IsContactForm.contMDiff_reebVectorField`, through the inverse of the contact
@@ -110,11 +116,12 @@ along `(r, x) ↦ ((2 ε / π) arctan r, x)`.
 * `TauCeti.SmoothForm.exists_mpullback_eq_stableHamiltonianModel`
 * `TauCeti.SmoothForm.stableHamiltonianModel_neg_mextDerivₗ`,
   `TauCeti.SmoothForm.mpullback_subtypeVal_stableHamiltonianModel_neg_mextDerivₗ`
+* `TauCeti.SmoothForm.IsStableHamiltonian.characteristicVectorField_and_stableHamiltonianModel`
 
 ## References
 
 * [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017],
-  Exercise 3.5.37
+  Definition 3.5.32 and Exercise 3.5.37
 -/
 
 public section
@@ -906,6 +913,108 @@ theorem exists_mpullback_eq_stableHamiltonianModel [FiniteDimensional ℝ E] [Co
     simp only [σ₀, ι₀, mpullback_mpullback, hjval]
 
 end Converse
+
+section Milestone
+
+/-! ### The milestone -/
+
+open SymplecticGeometry
+
+variable [IsManifold I ∞ M] [FiniteDimensional ℝ E] [I.Boundaryless] [CompactSpace M]
+  [T2Space M] [SecondCountableTopology M]
+
+/-- **Stable Hamiltonian structures and their model on a strip.** Let `M` be a compact
+boundaryless manifold of dimension `2 m + 1`. Then:
+
+* a pair `(α', σ')` is a stable Hamiltonian structure exactly when `σ'` is closed, `α' ∧ σ' ^ m`
+  vanishes nowhere and `ker σ'_x ⊆ ker dα'_x` at every point;
+* for the stable Hamiltonian structure `(α, σ)`, the characteristic vector field `R` is at each
+  point the unique tangent vector `v` with `α(v) = 1` and `ι_v σ = 0`; it is complete, and its
+  flow pulls back both `σ` and `α` to themselves at all times;
+* for some `ε > 0`, the model `σ - d(r α)` is symplectic on the strip `(-ε, ε) × M`, and the
+  kernel of each of its slices `σ - r dα`, `|r| < ε`, is the kernel of `σ` at every point;
+* for a contact form `β`, `(β, -dβ)` is a stable Hamiltonian structure whose characteristic field
+  is the Reeb field of `β`; its model is `-d((1 + r) β)`, and on every open set where `r > -1` it
+  is the pullback of `d(eˢ (-β))` along `(r, x) ↦ (log (1 + r), x)`;
+* conversely, if `σ'` is a symplectic form on a strip `(-ε, ε) × M` whose slices have the same
+  kernels, its zero slice `Ω₀` and the one-form `λ₀ = -ι₀^*(ι_{∂_r} σ')` form a stable Hamiltonian
+  structure `(λ₀, Ω₀)`, and an injective local diffeomorphism from a strip of width
+  `δ ∈ (0, ε]` into the strip of width `ε`, fixing the zero slice pointwise, pulls `σ'` back to
+  the model of `(λ₀, Ω₀)`.
+
+McDuff–Salamon's pair `(Ω, λ)` is `IsStableHamiltonian λ Ω`, and their dimension `2 n - 1` is
+`2 m + 1` with `n = m + 1`.
+
+Milestone: *Stable Hamiltonian structures and their neighbourhood model*. -/
+theorem IsStableHamiltonian.characteristicVectorField_and_stableHamiltonianModel {m : ℕ}
+    (hm : finrank ℝ E = 2 * m + 1) {α : SmoothForm I M ℝ 1} {σ : SmoothForm I M ℝ 2}
+    (h : α.IsStableHamiltonian σ) :
+    (∀ (α' : SmoothForm I M ℝ 1) (σ' : SmoothForm I M ℝ 2), α'.IsStableHamiltonian σ' ↔
+      σ'.IsClosed ∧ (∀ x, (wedge α' (σ'.wedgePow m)).val x ≠ 0) ∧
+        ∀ x, LinearMap.ker (σ'.bilinFormAt x) ≤
+          LinearMap.ker ((mextDerivₗ I 1 α').bilinFormAt x)) ∧
+    (∀ (x : M) (v : TangentSpace I x), v = α.characteristicVectorField σ x ↔
+      α.val x ![v] = 1 ∧ ∀ w : TangentSpace I x, σ.val x ![v, w] = 0) ∧
+    IsCompleteVectorField (α.characteristicVectorField σ) ∧
+    (∀ t : ℝ, TauCeti.mpullback I I (flowOf (α.characteristicVectorField σ) t) σ.val = σ.val ∧
+      TauCeti.mpullback I I (flowOf (α.characteristicVectorField σ) t) α.val = α.val) ∧
+    (∃ ε > 0, SmoothTwoForm.IsSymplectic
+        (mpullback (Subtype.val : symmStrip M ε → ℝ × M) contMDiff_subtypeVal
+          (stableHamiltonianModel α σ)) ∧
+      ∀ r : ℝ, |r| < ε → ∀ x : M,
+        LinearMap.ker ((mpullback (Prod.mk r) (contMDiff_const.prodMk contMDiff_id)
+          (stableHamiltonianModel α σ)).bilinFormAt x) = LinearMap.ker (σ.bilinFormAt x)) ∧
+    (∀ β : SmoothForm I M ℝ 1, β.IsContactForm →
+      β.IsStableHamiltonian (-mextDerivₗ I 1 β) ∧
+      β.characteristicVectorField (-mextDerivₗ I 1 β) = β.reebVectorField ∧
+      stableHamiltonianModel β (-mextDerivₗ I 1 β) =
+        -mextDerivₗ (𝓘(ℝ).prod I) 1
+          (funSMulₗ (1 + ContMDiffMap.fst) (mpullback Prod.snd contMDiff_snd β)) ∧
+      ∀ (U : TopologicalSpace.Opens (ℝ × M)) (hU : ∀ p ∈ U, -1 < p.1),
+        mpullback (Subtype.val : U → ℝ × M) contMDiff_subtypeVal
+            (stableHamiltonianModel β (-mextDerivₗ I 1 β)) =
+          mpullback (fun p : U ↦ (Real.log (1 + p.val.1), p.val.2))
+            ((((contMDiff_const.add contMDiff_fst).comp contMDiff_subtypeVal).log
+              fun p ↦ (by linarith [hU p.val p.property] : (0 : ℝ) < 1 + p.val.1).ne').prodMk
+              (contMDiff_snd.comp contMDiff_subtypeVal))
+            (mextDerivₗ (𝓘(ℝ).prod I) 1 (-β).symplectization)) ∧
+    ∀ (ε : ℝ) (hε : 0 < ε) (σ' : SmoothTwoForm (𝓘(ℝ).prod I) (symmStrip M ε)),
+      σ'.IsSymplectic →
+      (∀ (r : ℝ) (hr : |r| < ε) (r' : ℝ) (hr' : |r'| < ε) (x : M),
+        LinearMap.ker ((mpullback (symmStripMk hr) (contMDiff_symmStripMk hr) σ').bilinFormAt x) =
+          LinearMap.ker
+            ((mpullback (symmStripMk hr') (contMDiff_symmStripMk hr') σ').bilinFormAt x)) →
+      (zeroSliceOneForm hε σ').IsStableHamiltonian
+          (mpullback (symmStripMk (abs_zero.trans_lt hε)) (contMDiff_symmStripMk _) σ') ∧
+        ∃ δ, ∃ hδ : 0 < δ, δ ≤ ε ∧ ∃ (Φ : symmStrip M δ → symmStrip M ε)
+          (hΦ : IsLocalDiffeomorph (𝓘(ℝ).prod I) (𝓘(ℝ).prod I) ∞ Φ), Function.Injective Φ ∧
+          (∀ x, Φ (symmStripMk (abs_zero.trans_lt hδ) x) =
+            symmStripMk (abs_zero.trans_lt hε) x) ∧
+          mpullback Φ hΦ.contMDiff σ' =
+            mpullback Subtype.val contMDiff_subtypeVal (stableHamiltonianModel
+              (zeroSliceOneForm hε σ')
+              (mpullback (symmStripMk (abs_zero.trans_lt hε)) (contMDiff_symmStripMk _) σ')) := by
+  have hcomplete : IsCompleteVectorField (α.characteristicVectorField σ) :=
+    isCompleteVectorField_of_compactSpace
+      ((contMDiff_characteristicVectorField h.isContact).of_le (by simp))
+  obtain ⟨ε, hε, hsymp⟩ := h.exists_isSymplectic_stableHamiltonianModel
+  refine ⟨fun _ _ ↦ isStableHamiltonian_iff_wedge_wedgePow_apply_ne_zero hm,
+    fun x _ ↦ eq_characteristicVectorField_iff (h.isContact x), hcomplete,
+    fun t ↦ ⟨funext fun x ↦ h.mpullback_flowOf_characteristicVectorField_twoForm
+        (hcomplete.mem_flowDomain t x),
+      funext fun x ↦ h.mpullback_flowOf_characteristicVectorField_oneForm
+        (hcomplete.mem_flowDomain t x)⟩,
+    ⟨ε, hε, hsymp, fun r hr x ↦ h.ker_mpullback_prodMk_stableHamiltonianModel ?_⟩,
+    fun β hβ ↦ ⟨hβ.isStableHamiltonian_neg, characteristicVectorField_neg_mextDerivₗ β,
+      stableHamiltonianModel_neg_mextDerivₗ β,
+      fun _ hU ↦ mpullback_subtypeVal_stableHamiltonianModel_neg_mextDerivₗ β hU⟩,
+    fun _ hε' _ hσ' hker ↦ exists_mpullback_eq_stableHamiltonianModel hε' hσ' hker⟩
+  -- The model is nondegenerate at `(r, x)`, since its restriction to the strip is.
+  exact (SmoothTwoForm.nondegenerate_bilinFormAt_mpullback_subtype_val_iff
+    (⟨(r, x), mem_symmStrip_iff.2 hr⟩ : symmStrip M ε)).1
+    (hsymp.isNondegenerate.nondegenerate_bilinFormAt _)
+
+end Milestone
 
 end SmoothForm
 

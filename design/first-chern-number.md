@@ -135,7 +135,8 @@ updated to match.
 - **Coordinate discs and the clutching circle.** A coordinate disc
   (`SymplecticGeometry.CoordinateDisc o.toHomologicalOrientation`,
   prerequisite 5) is an open
-  embedding `φ : Metric.ball (0 : ℂ) 2 → M` that carries the standard
+  embedding `φ : CoordinateDisc.ball → M` (the ball `Metric.ball (0 : ℂ) 2`
+  as an open set of `ℂ`) that carries the standard
   orientation of `ℂ` to `o`. Its disc is $D=\varphi(\bar B_1)$ and its
   circle is $t\mapsto\varphi(e^{2\pi it})$, counterclockwise in the chart. So
   the circle is oriented as the boundary of $D$, which plays the role of the
@@ -759,10 +760,14 @@ issues, in an order where each issue's blockers come before it.
    `AlgebraicTopology/Singular/LocalHomology/CoordinateDisc.lean`, beside
    Tau Ceti's homological orientations and winding numbers:
    `structure SymplecticGeometry.CoordinateDisc (o : TauCeti.HomologicalOrientation M E 2)`,
-   an open embedding `Metric.ball (0 : ℂ) 2 → M` that carries the local
+   an open embedding `CoordinateDisc.ball → M`, from the ball
+   `Metric.ball (0 : ℂ) 2` as `TopologicalSpace.Opens ℂ` (so that it carries
+   `TauCeti.complexHomologicalOrientation`), that carries the local
    orientations of `ℂ` to those of `o`, with `@[ext]`; its closed disc
    `CoordinateDisc.disc` (the image of `closedBall 0 1`, compact) and open
-   disc, its boundary loop `CoordinateDisc.boundaryLoop` ($t\mapsto
+   disc `CoordinateDisc.openDisc`, its boundary circle
+   `CoordinateDisc.boundaryCircle : C(Circle, M)` and
+   boundary loop `CoordinateDisc.boundaryLoop` ($t\mapsto
    \varphi(e^{2\pi it})$), `CoordinateDisc.reverse` for the opposite
    orientation (precomposition with conjugation), the constructor
    `CoordinateDisc.ofChart` from an orientation-preserving smooth chart of a
