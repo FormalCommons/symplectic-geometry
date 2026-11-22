@@ -8,6 +8,7 @@ module
 public import Mathlib.Geometry.Manifold.LocalDiffeomorph
 public import TauCeti.Geometry.Manifold.Distribution.FlatChart
 import TauCeti.Geometry.Manifold.Diffeomorph.NormedSpace
+import SymplecticGeometry.Geometry.Manifold.IsManifold.InteriorBoundary
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 
 /-!
@@ -23,7 +24,11 @@ at each point `y` of its source carries `D y` onto the vectors with second compo
 It is Tau Ceti's Frobenius theorem `TauCeti.IsInvolutiveDistribution.exists_flatChart`, read in
 coordinates adapted to the flat subspace: split the model space along that subspace, identify the
 two factors with `F₁` and `F₂`, and translate and rescale (Tau Ceti's `Diffeomorph.smulAdd`) so
-that the point goes to `0` and the unit ball lies in the target.
+that the point goes to `0` and the unit ball lies in the target. The flat chart is read as a
+partial diffeomorphism into the model space as in Tau Ceti's
+`OpenPartialHomeomorph.toPartialDiffeomorphOfMemMaximalAtlas`, which asks for a boundaryless
+model; here only `M` is boundaryless, and the target is open by
+`OpenPartialHomeomorph.isOpen_extend_target_of_mem_maximalAtlas`.
 
 ## Main results
 
@@ -46,8 +51,8 @@ open scoped Manifold ContDiff
 namespace TauCeti
 
 variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
-  [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [I.Boundaryless] [TopologicalSpace M]
-  [ChartedSpace H M] [IsManifold I ∞ M]
+  [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [TopologicalSpace M]
+  [ChartedSpace H M] [IsManifold I ∞ M] [BoundarylessManifold I M]
   {F₁ F₂ : Type*} [NormedAddCommGroup F₁] [NormedSpace ℝ F₁] [FiniteDimensional ℝ F₁]
   [NormedAddCommGroup F₂] [NormedSpace ℝ F₂] [FiniteDimensional ℝ F₂]
 
@@ -81,8 +86,16 @@ theorem IsInvolutiveDistribution.exists_flatPartialDiffeomorph {k : ℕ}
     simp only [A, ContinuousLinearEquiv.trans_apply, ContinuousLinearEquiv.prodCongr_apply,
       LinearEquiv.coe_toContinuousLinearEquiv', ContinuousLinearEquiv.map_eq_zero_iff,
       Submodule.prodEquivOfIsCompl_symm_apply_snd_eq_zero]
-  let κ := e.toPartialDiffeomorphOfMemMaximalAtlas he
-  have hκ : (κ : M → E) = I ∘ e := e.coe_toPartialDiffeomorphOfMemMaximalAtlas he
+  -- `I ∘ e` as a partial diffeomorphism into `E`. Its target is open because `M` has no boundary
+  -- (Tau Ceti's `toPartialDiffeomorphOfMemMaximalAtlas` asks the model `I` to be boundaryless).
+  let κ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞ :=
+    { toPartialEquiv := e.extend I
+      open_source := e.isOpen_extend_source
+      open_target := e.isOpen_extend_target_of_mem_maximalAtlas (by simp) he
+      contMDiffOn_toFun := by simpa only [e.extend_source] using e.contMDiffOn_extend he
+      contMDiffOn_invFun := by
+        simpa only [PartialEquiv.invFun_as_coe, e.extend_target'] using contMDiffOn_extend_symm he }
+  have hκ : (κ : M → E) = I ∘ e := e.extend_coe
   have hxκ : x ∈ κ.source := by simpa [κ] using hxe
   -- `Φ` is `κ` followed by the affine map `z ↦ ε⁻¹ • A (z - κ x)`, with `ε` small enough.
   obtain ⟨ε, hε, hball⟩ := Metric.isOpen_iff.1 (A.toHomeomorph.isOpenMap _ κ.open_target)
