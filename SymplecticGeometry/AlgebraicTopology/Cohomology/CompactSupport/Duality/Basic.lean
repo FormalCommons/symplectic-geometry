@@ -56,6 +56,10 @@ pinned release has only the part of that file that is its `Duality.lean`. They a
 under their Tau Ceti names and namespace, so that moving Tau Ceti past them deletes this file
 without renames.
 
+The Hatcher entry under References is Tau Ceti's, with one correction: Tau Ceti's text places the
+passage to increasing unions at step (3) of Lemma 3.36, but in Hatcher it is step (B) of the proof
+of Theorem 3.35 (Lemma 3.36 has no numbered steps).
+
 ## Implementation notes
 
 The naturality along inclusions of open sets is stated with `TopologicalSpace.Opens.inclusion'`
@@ -65,10 +69,13 @@ elementwise forms, which are stated separately.
 
 ## References
 
-* A. Hatcher, *Algebraic Topology*, Cambridge University Press, 2002, Section 3.3, Lemma 3.36 and
-  the proof of Theorem 3.35.
-* [R. Bott and L. W. Tu, *Differential Forms in Algebraic Topology*][BottTu1982], §5, the
-  Mayer–Vietoris argument and the disjoint-union step in the proof of Poincaré duality.
+* A. Hatcher, [*Algebraic Topology*](https://pi.math.cornell.edu/~hatcher/AT/AT.pdf),
+  Section 3.3, the duality map `D_M : Hᵖ_c(M; R) ⟶ H_{n-p}(M; R)` defined before Theorem 3.35, and
+  its naturality for inclusions of open sets used in Lemma 3.36, and step (B) of the proof of
+  Theorem 3.35, the passage to increasing unions.
+* R. Bott and L. W. Tu, *Differential Forms in Algebraic Topology*, Graduate Texts in
+  Mathematics 82, Springer, 1982, §5, the Mayer–Vietoris argument and the disjoint-union step in
+  the proof of Poincaré duality.
 -/
 
 public section
