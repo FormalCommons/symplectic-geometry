@@ -24,6 +24,10 @@ the square.
 * `TauCeti.squareOfOffset`: the point of the square with a given offset from the centre, clamped
   to the square, which inverts `TauCeti.squareCenterOffset`
   (`TauCeti.squareOfOffset_squareCenterOffset`, `TauCeti.squareCenterOffset_squareOfOffset`).
+* `TauCeti.squareBoundaryProj`: the radial projection from the centre of the square onto its
+  boundary, continuous away from the centre (`TauCeti.continuousOn_squareBoundaryProj`), with
+  values in the boundary there (`TauCeti.squareBoundaryProj_mem_boundary`), and the identity on
+  the boundary (`TauCeti.squareBoundaryProj_of_mem`).
 * `TauCeti.squareBoundaryDegree_eq_degree_toBasedLoop`: if `Γ` is continuous on the closed
   annulus of the points whose offset from the centre (`TauCeti.squareCenterOffset`) has norm at
   least `r`, for `0 ≤ r ≤ 1/2`, then its degree around the boundary of the square is the degree
@@ -133,6 +137,99 @@ theorem squareCenterOffset_squareOfOffset_mul {r : ℝ} (hr₀ : 0 ≤ r) (hr : 
   have hn : ‖(r : ℂ) * ζ‖ ≤ 1 / 2 := by simpa [abs_of_nonneg hr₀] using hr
   exact squareCenterOffset_squareOfOffset ((Complex.abs_re_le_norm _).trans hn)
     ((Complex.abs_im_le_norm _).trans hn)
+
+/-- The squared norm of the offset of a point of the square from the centre is the squared
+Euclidean distance from `(1/2, 1/2)`. -/
+theorem sq_norm_squareCenterOffset (y : Fin 2 → I) :
+    ‖squareCenterOffset y‖ ^ 2 = ((y 0 : ℝ) - 1 / 2) ^ 2 + ((y 1 : ℝ) - 1 / 2) ^ 2 := by
+  rw [Complex.sq_norm, Complex.normSq_apply, re_squareCenterOffset, im_squareCenterOffset]
+  ring
+
+/-- The radial projection of the square onto its boundary from the centre: for `y` other than the
+centre, the point of the boundary on the ray from the centre through `y`. Its offset from the
+centre is that of `y` divided by twice the larger of the absolute values of its coordinates. It is
+continuous away from the centre (`TauCeti.continuousOn_squareBoundaryProj`), lands in the
+boundary there (`TauCeti.squareBoundaryProj_mem_boundary`), and fixes the boundary
+(`TauCeti.squareBoundaryProj_of_mem`). It sends the centre to itself. -/
+def squareBoundaryProj (y : Fin 2 → I) : Fin 2 → I :=
+  squareOfOffset (((2 * max |(squareCenterOffset y).re| |(squareCenterOffset y).im|)⁻¹ : ℝ) *
+    squareCenterOffset y)
+
+theorem squareBoundaryProj_def (y : Fin 2 → I) : squareBoundaryProj y =
+    squareOfOffset (((2 * max |(squareCenterOffset y).re| |(squareCenterOffset y).im|)⁻¹ : ℝ) *
+      squareCenterOffset y) :=
+  (rfl)
+
+/-- Away from the centre, the larger of the absolute values of the coordinates of the offset is
+positive. -/
+theorem max_abs_re_abs_im_squareCenterOffset_pos {y : Fin 2 → I}
+    (hy : squareCenterOffset y ≠ 0) :
+    0 < max |(squareCenterOffset y).re| |(squareCenterOffset y).im| := by
+  by_contra h
+  refine hy (Complex.ext ?_ ?_)
+  · exact abs_nonpos_iff.1 ((le_max_left _ _).trans (not_lt.1 h))
+  · exact abs_nonpos_iff.1 ((le_max_right _ _).trans (not_lt.1 h))
+
+/-- On the boundary of the square, the larger of the absolute values of the coordinates of the
+offset from the centre is `1/2`. -/
+theorem max_abs_re_abs_im_squareCenterOffset_of_mem {y : Fin 2 → I}
+    (hy : y ∈ Cube.boundary (Fin 2)) :
+    max |(squareCenterOffset y).re| |(squareCenterOffset y).im| = 1 / 2 := by
+  refine le_antisymm (max_le (abs_re_squareCenterOffset_le y) (abs_im_squareCenterOffset_le y)) ?_
+  obtain ⟨i, hi | hi⟩ := hy <;> fin_cases i <;>
+    simp only [Fin.zero_eta, Fin.mk_one] at hi <;>
+    norm_num [hi, re_squareCenterOffset, im_squareCenterOffset]
+
+/-- The radial projection fixes the boundary of the square. -/
+theorem squareBoundaryProj_of_mem {y : Fin 2 → I} (hy : y ∈ Cube.boundary (Fin 2)) :
+    squareBoundaryProj y = y := by
+  rw [squareBoundaryProj_def, max_abs_re_abs_im_squareCenterOffset_of_mem hy]
+  norm_num
+
+/-- Away from the centre, the radial projection lands in the boundary of the square. -/
+theorem squareBoundaryProj_mem_boundary {y : Fin 2 → I} (hy : squareCenterOffset y ≠ 0) :
+    squareBoundaryProj y ∈ Cube.boundary (Fin 2) := by
+  set a := (squareCenterOffset y).re
+  set b := (squareCenterOffset y).im
+  have hm := max_abs_re_abs_im_squareCenterOffset_pos hy
+  set c := (2 * max |a| |b|)⁻¹
+  have hc : 0 < c := by positivity
+  have hca : |c * a| ≤ 1 / 2 := by
+    rw [abs_mul, abs_of_pos hc, ← div_eq_inv_mul, div_le_iff₀ (by positivity)]
+    linarith [le_max_left |a| |b|]
+  have hcb : |c * b| ≤ 1 / 2 := by
+    rw [abs_mul, abs_of_pos hc, ← div_eq_inv_mul, div_le_iff₀ (by positivity)]
+    linarith [le_max_right |a| |b|]
+  have hoff := squareCenterOffset_squareOfOffset (z := (c : ℂ) * squareCenterOffset y)
+    (by simpa [a] using hca) (by simpa [b] using hcb)
+  rw [← squareBoundaryProj_def] at hoff
+  have h0 : ((squareBoundaryProj y 0 : I) : ℝ) - 1 / 2 = c * a := by
+    rw [← re_squareCenterOffset, hoff]
+    simp [a]
+  have h1 : ((squareBoundaryProj y 1 : I) : ℝ) - 1 / 2 = c * b := by
+    rw [← im_squareCenterOffset, hoff]
+    simp [b]
+  -- The coordinate of larger absolute value is scaled to `± 1/2`.
+  have key (i : Fin 2) (t : ℝ) (ht : ((squareBoundaryProj y i : I) : ℝ) - 1 / 2 = c * t)
+      (hmax : |t| = max |a| |b|) : squareBoundaryProj y ∈ Cube.boundary (Fin 2) := by
+    have hct : |c * t| = 1 / 2 := by
+      rw [abs_mul, abs_of_pos hc, hmax, inv_mul_eq_div, div_eq_iff (by positivity)]
+      ring
+    refine ⟨i, ?_⟩
+    rcases (abs_eq (by norm_num : (0 : ℝ) ≤ 1 / 2)).1 hct with h | h
+    · exact Or.inr (Subtype.ext (by simp only [Set.Icc.coe_one]; linarith))
+    · exact Or.inl (Subtype.ext (by simp only [Set.Icc.coe_zero]; linarith))
+  rcases le_total |b| |a| with h | h
+  · exact key 0 a h0 (max_eq_left h).symm
+  · exact key 1 b h1 (max_eq_right h).symm
+
+/-- The radial projection is continuous away from the centre. -/
+theorem continuousOn_squareBoundaryProj :
+    ContinuousOn squareBoundaryProj {y | squareCenterOffset y ≠ 0} := by
+  refine continuous_squareOfOffset.comp_continuousOn (ContinuousOn.mul
+    (Complex.continuous_ofReal.comp_continuousOn (ContinuousOn.inv₀ (by fun_prop) fun y hy ↦ ?_))
+    (by fun_prop))
+  exact (mul_pos two_pos (max_abs_re_abs_im_squareCenterOffset_pos hy)).ne'
 
 /-- If `Γ` is continuous on the closed annulus of the points at distance at least `r` from the
 centre, for `0 ≤ r ≤ 1/2`, then the loop `ζ ↦ Γ (centre + r ζ)` on the circle of radius `r` is
