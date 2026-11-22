@@ -79,6 +79,13 @@ jobs:
           toolchain=$(gh api "repos/TauCetiProject/TauCeti/contents/lean-toolchain?ref=$audited" -H "Accept: application/vnd.github.raw")
           [[ $toolchain =~ ^leanprover/lean4:v[0-9]+\.[0-9]+\.[0-9]+(-rc[0-9]+)?$ ]] ||
             { echo "::error::unexpected lean-toolchain at Tau Ceti's $short"; exit 1; }
+          # CI's setup check rejects a move to a commit where Tau Ceti has a
+          # lakefile.lean, which Lake would run and the audit does not read.
+          # Such a move is a maintainer's decision, not an issue.
+          files=$(gh api "repos/TauCetiProject/TauCeti/contents?ref=$audited" --jq '.[].name') ||
+            { echo "::error::could not list Tau Ceti's files at $short"; exit 1; }
+          { grep -qx 'lakefile\.toml' <<<"$files" && ! grep -qx 'lakefile\.lean' <<<"$files"; } ||
+            { echo "::error::Tau Ceti at $short is not set up by a lakefile.toml alone, so CI would reject the move"; exit 1; }
           gh issue create --title "Move Tau Ceti to $short" --body "$(cat <<EOF
           Tau Ceti's security audit has reached commit \`$audited\` of its main branch, $ahead commits after \`$pinned\`, which the library is on. Move the library to this commit, as \`AGENTS.md\` says under *Leave the setup alone*:
 

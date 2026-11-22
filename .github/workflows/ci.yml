@@ -50,10 +50,11 @@ jobs:
           [[ -n $BASE && $was =~ ^[0-9a-f]{40}$ ]] || { echo "::error::no rev of Tau Ceti's in the base branch's lakefile.toml"; exit 1; }
           if [ "$pin" != "$was" ]; then
             # The commits of security-audit, without their files. Those
-            # along the first parents, newer than the base branch's rev, are
-            # the audited commits a move can go to: not a commit of a branch
-            # that main merged, which the audit did not inspect as it is, and
-            # not an earlier commit. The list has the newest first.
+            # along the first parents that come after the base branch's rev
+            # are the audited commits a move can go to: not a commit of a
+            # branch that main merged, which the audit did not inspect as it
+            # is, and not an earlier commit. The list has the latest first,
+            # and its order decides: commit dates do not always follow it.
             git init -q --bare "$RUNNER_TEMP/tauceti.git"
             git -C "$RUNNER_TEMP/tauceti.git" fetch -q --filter=tree:0 \
               https://github.com/TauCetiProject/TauCeti security-audit ||
@@ -63,7 +64,8 @@ jobs:
               { echo "::error::Tau Ceti's rev $pin is not on the first-parent history of Tau Ceti's branch security-audit after the base branch's rev $was"; exit 1; }
             # The audit reads Tau Ceti's library, not its Lake configuration,
             # and Lake would run a lakefile.lean of Tau Ceti's.
-            files=$(gh api "repos/TauCetiProject/TauCeti/contents?ref=$pin" --jq '.[].name')
+            files=$(gh api "repos/TauCetiProject/TauCeti/contents?ref=$pin" --jq '.[].name') ||
+              { echo "::error::could not list Tau Ceti's files at $pin"; exit 1; }
             { grep -qx 'lakefile\.toml' <<<"$files" && ! grep -qx 'lakefile\.lean' <<<"$files"; } ||
               { echo "::error::Tau Ceti at $pin is not set up by a lakefile.toml alone"; exit 1; }
           fi
