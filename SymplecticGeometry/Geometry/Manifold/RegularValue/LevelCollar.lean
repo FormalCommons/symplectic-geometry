@@ -15,8 +15,7 @@ public import TauCeti.Geometry.Manifold.Morse.Deformation
 
 Let `g : M → ℝ` be a smooth function on a compact boundaryless manifold, with `0` a regular value.
 Then the level set `g⁻¹(0)` is collared in the sublevel set `{g ≤ 0}`: the inclusion
-`g⁻¹(0) → {g ≤ 0}` is `TauCeti.IsCollared`, and the points of `{g ≤ 0}` off the level set are
-those with `g < 0` (`SymplecticGeometry.isCollared_inclusion_levelSet`).
+`g⁻¹(0) → {g ≤ 0}` is `TauCeti.IsCollared` (`SymplecticGeometry.isCollared_inclusion_levelSet`).
 
 For a continuous `g`, `SymplecticGeometry.sublevelBoundary` is the complement in `{g ≤ 0}` of
 the image of the open set `{g < 0}`. Its points are those with `g x = 0`
@@ -119,18 +118,11 @@ variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimension
 
 /-- **The collar of a regular level set.** On a compact boundaryless manifold, if `0` is a regular
 value of the smooth function `g`, then the inclusion of the level set `g⁻¹(0)` into the sublevel
-set `{g ≤ 0}` admits a collar, and the complement of its image is `{g < 0}`. -/
+set `{g ≤ 0}` admits a collar. -/
 theorem isCollared_inclusion_levelSet (hg : ContMDiff I 𝓘(ℝ) ∞ g)
     (h0 : IsRegularValue I 𝓘(ℝ) g 0) :
     IsCollared (inclusion (preimage_mono (singleton_subset_iff.2 self_mem_Iic)) :
-        g ⁻¹' {0} → g ⁻¹' Iic 0) ∧
-      (range (inclusion (preimage_mono (singleton_subset_iff.2 self_mem_Iic)) :
-        g ⁻¹' {0} → g ⁻¹' Iic 0))ᶜ = {x : g ⁻¹' Iic 0 | g x < 0} := by
-  refine ⟨?_, ?_⟩
-  swap
-  · refine Set.ext fun x ↦ ?_
-    simp only [range_inclusion, mem_compl_iff, mem_ofPred_eq]
-    exact ⟨fun h ↦ x.property.out.lt_of_ne h, ne_of_lt⟩
+        g ⁻¹' {0} → g ⁻¹' Iic 0) := by
   -- A band `(-g)⁻¹[0, ε]` without critical points, and its product structure.
   have hg' : ContMDiff I 𝓘(ℝ) ∞ (-g) := hg.neg
   obtain ⟨ε, ⟨hε, -⟩, hcpt, hreg⟩ := exists_mem_Ioc_isCompact_forall_mfderiv_ne_zero
