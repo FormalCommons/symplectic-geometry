@@ -10,7 +10,6 @@ public import SymplecticGeometry.Geometry.Manifold.SmoothSingular.SingularPeriod
 public import TauCeti.Geometry.Manifold.Orientation.Euclidean
 public import TauCeti.Geometry.Manifold.SmoothSingular.TopForm
 import Mathlib.Geometry.Manifold.PartitionOfUnity
-import SymplecticGeometry.AlgebraicTopology.SimplicialSet.Homology.RelativeClass
 import SymplecticGeometry.Geometry.Manifold.Orientation.Preserving
 import SymplecticGeometry.Geometry.Manifold.SmoothSingular.RelativeCycle
 import TauCeti.Analysis.InnerProductSpace.Reflection
@@ -49,9 +48,9 @@ The proof is local.
 * Let `z` be a smooth integral cycle representing the fundamental class (smoothing), and `ψ` a
   form supported in a compact `K ⊆ g(interior Δ²)`. The image of `z` in `H₂(C, C ∖ K)` is the
   fundamental class along `K`, and so is the class of the simplex `σ` given by `g`
-  (`TauCeti.SmoothSimplex.relativeClass_eq_fundamentalClassOn`). Hence `z - σ = ∂ B + A` with `A`
-  a singular chain of `C ∖ K`, and by `TauCeti.exists_smoothSingular_eq_d_add` also
-  `z - σ = ∂ b + c` with `b` smooth and `c` a smooth chain of `C ∖ K`. Stokes' theorem and the
+  (`TauCeti.SmoothSimplex.relativeClass_eq_fundamentalClassOn`). Hence `z - σ = ∂ b + c` with `b`
+  smooth and `c` a smooth chain of `C ∖ K`
+  (`TauCeti.exists_smoothSingular_sub_eq_d_add_of_relClass`). Stokes' theorem and the
   vanishing of `ψ` on `C ∖ K` give `∫_z ψ = ∫_σ ψ`, which is `∫_C ψ` by
   `TauCeti.SmoothSimplex.integral_eq_integralTopForm`
   (`TauCeti.Manifold.Orientation.intIntegrationCochain_iCycles_eq_integralTopForm`).
@@ -182,140 +181,6 @@ variable {E' : Type} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [FiniteDimensi
   {C : Type} [TopologicalSpace C] [ChartedSpace E' C] [IsManifold 𝓘(ℝ, E') ∞ C]
   [T2Space C] [CompactSpace C]
 
-/-- A smooth integral `2`-cycle `z` and a smooth `2`-simplex `σ` whose faces lie in an open set
-`W`, with the same image in `H₂(C, W)`, differ by an ambient singular boundary and a singular chain
-of `W`. -/
-private lemma exists_sub_eq_d_add_of_relClass (W : Opens C)
-    (z : ((smoothSingularSubcomplex 𝓘(ℝ, E') C : SSet).chainComplex
-      (ModuleCat.of ℤ (ULift.{0} ℤ))).cycles 2) (σ : SmoothSimplex 𝓘(ℝ, E') C 2)
-    (hσ : ∀ i, Set.range ((TopCat.of C).toSSetObjEquiv _
-      ((TopCat.toSSet.obj (TopCat.of C)).δ i σ.val)) ⊆
-        Set.range (TopPair.ofSubset (X := TopCat.of C) (W : Set C)).map)
-    (hcl : ((TopPair.ofSubset (X := TopCat.of C) (W : Set C)).singularHomologyπ
-        (ModuleCat.of ℤ (ULift.{0} ℤ)) 2).hom
-        ((smoothSingularHomologyIso 𝓘(ℝ, E') C (ModuleCat.of ℤ (ULift.{0} ℤ)) 2).hom.hom
-          ((((smoothSingularSubcomplex 𝓘(ℝ, E') C : SSet).chainComplex
-            (ModuleCat.of ℤ (ULift.{0} ℤ))).homologyπ 2).hom z)) =
-      ((TopPair.ofSubset (X := TopCat.of C) (W : Set C)).relClass
-        (ModuleCat.of ℤ (ULift.{0} ℤ)) (n := 1) σ.val hσ).hom 1) :
-    ∃ (B : ((TopCat.toSSet.obj (TopCat.of C)).chainComplex (ModuleCat.of ℤ (ULift.{0} ℤ))).X 3)
-      (A : ((TopCat.toSSet.obj (TopCat.of W)).chainComplex (ModuleCat.of ℤ (ULift.{0} ℤ))).X 2),
-      (SSet.chainComplexMap (smoothSingularSubcomplex 𝓘(ℝ, E') C).ι
-        (ModuleCat.of ℤ (ULift.{0} ℤ))).f 2
-          ((((smoothSingularSubcomplex 𝓘(ℝ, E') C : SSet).chainComplex
-            (ModuleCat.of ℤ (ULift.{0} ℤ))).iCycles 2).hom z -
-          ((smoothSingularSubcomplex 𝓘(ℝ, E') C : SSet).ιChainComplex
-            (R := ModuleCat.of ℤ (ULift.{0} ℤ)) σ).hom 1) =
-        ((TopCat.toSSet.obj (TopCat.of C)).chainComplex (ModuleCat.of ℤ (ULift.{0} ℤ))).d 3 2 B +
-          (SSet.chainComplexMap (TopCat.toSSet.map (TopCat.ofHom (ContinuousMap.subtypeVal
-            (W : Set C)))) (ModuleCat.of ℤ (ULift.{0} ℤ))).f 2 A := by
-  let P := TopPair.ofSubset (X := TopCat.of C) (W : Set C)
-  let Q := TopPair.toSSetPair.obj P
-  -- The continuous cycle of `z`, and the relative cycle of `σ`.
-  let zc : (Q.right.chainComplex (ModuleCat.of ℤ (ULift.{0} ℤ))).cycles 2 :=
-    HomologicalComplex.cyclesMap (SSet.chainComplexMap (smoothSingularSubcomplex 𝓘(ℝ, E') C).ι
-      (ModuleCat.of ℤ (ULift.{0} ℤ))) 2 z
-  let bc := (Q.chainComplex (ModuleCat.of ℤ (ULift.{0} ℤ))).liftCycles
-    (Q.right.ιChainComplex σ.val ≫ (Q.chainComplexπ (ModuleCat.of ℤ (ULift.{0} ℤ))).f 2)
-    1 (by simp) (SSetPair.relClass_cycle (Q := Q) (ModuleCat.of ℤ (ULift.{0} ℤ)) (n := 1) σ.val _
-      fun i ↦ (P.toSSet_map_app_liftSimplex _ (hσ i)).symm)
-  have hb : (Q.chainComplex (ModuleCat.of ℤ (ULift.{0} ℤ))).iCycles 2 (bc.hom 1) =
-      (Q.chainComplexπ (ModuleCat.of ℤ (ULift.{0} ℤ))).f 2
-        ((Q.right.ιChainComplex (R := ModuleCat.of ℤ (ULift.{0} ℤ)) σ.val).hom 1) := by
-    rw [← ModuleCat.comp_apply, ← ModuleCat.comp_apply, HomologicalComplex.liftCycles_i]
-  have hzc : (Q.right.chainComplex (ModuleCat.of ℤ (ULift.{0} ℤ))).homologyπ 2 zc =
-      (smoothSingularHomologyIso 𝓘(ℝ, E') C (ModuleCat.of ℤ (ULift.{0} ℤ)) 2).hom.hom
-        ((((smoothSingularSubcomplex 𝓘(ℝ, E') C : SSet).chainComplex
-          (ModuleCat.of ℤ (ULift.{0} ℤ))).homologyπ 2).hom z) := by
-    rw [smoothSingularHomologyIso_hom, SSet.homologyMap,
-      HomologicalComplex.moduleCat_homologyMap_homologyπ]
-    -- The singular simplicial set of `C` is `Q.right`, by unfolding `TopPair.toSSetPair`.
-    rfl
-  have hrel : ((TopPair.ofSubset (X := TopCat.of C) (W : Set C)).relClass
-      (ModuleCat.of ℤ (ULift.{0} ℤ)) (n := 1) σ.val hσ).hom 1 =
-      (Q.chainComplex (ModuleCat.of ℤ (ULift.{0} ℤ))).homologyπ 2 (bc.hom 1) := by
-    have h := congrArg (fun f ↦ ModuleCat.Hom.hom f (1 : ULift.{0} ℤ))
-      ((TopPair.relClass_def P (ModuleCat.of ℤ (ULift.{0} ℤ)) σ.val hσ).trans
-        (SSetPair.relClass_def (Q := Q) _ _ _ _))
-    -- The right side of `h` is `bc` followed by `homologyπ`, applied to `1`.
-    exact h
-  obtain ⟨B, A, hBA⟩ := Q.exists_sub_sub_d_eq_of_homologyπ_eq (n := 2) (p := 3) (by simp)
-    ((HomologicalComplex.moduleCat_homologyMap_homologyπ _ 2 zc).symm.trans
-      ((congrArg (P.singularHomologyπ (ModuleCat.of ℤ (ULift.{0} ℤ)) 2).hom hzc).trans
-        (hcl.trans hrel)))
-    (x := (Q.right.chainComplex (ModuleCat.of ℤ (ULift.{0} ℤ))).iCycles 2 zc)
-    (y := (Q.right.ιChainComplex (R := ModuleCat.of ℤ (ULift.{0} ℤ)) σ.val).hom 1)
-    (HomologicalComplex.moduleCat_iCycles_cyclesMap_apply _ _ _ _).symm hb.symm
-  have hx : (SSet.chainComplexMap (smoothSingularSubcomplex 𝓘(ℝ, E') C).ι
-      (ModuleCat.of ℤ (ULift.{0} ℤ))).f 2
-        ((((smoothSingularSubcomplex 𝓘(ℝ, E') C : SSet).chainComplex
-          (ModuleCat.of ℤ (ULift.{0} ℤ))).iCycles 2).hom z -
-        ((smoothSingularSubcomplex 𝓘(ℝ, E') C : SSet).ιChainComplex
-          (R := ModuleCat.of ℤ (ULift.{0} ℤ)) σ).hom 1) =
-      (Q.right.chainComplex (ModuleCat.of ℤ (ULift.{0} ℤ))).iCycles 2 zc -
-        (Q.right.ιChainComplex (R := ModuleCat.of ℤ (ULift.{0} ℤ)) σ.val).hom 1 := by
-    rw [map_sub, ← HomologicalComplex.moduleCat_iCycles_cyclesMap_apply]
-    congr 1
-    exact congrArg (fun f ↦ ModuleCat.Hom.hom f (1 : ULift.{0} ℤ))
-      (SSet.ι_chainComplexMap_f (f := (smoothSingularSubcomplex 𝓘(ℝ, E') C).ι)
-        (R := ModuleCat.of ℤ (ULift.{0} ℤ)) (x := σ))
-  exact ⟨B, A, sub_eq_iff_eq_add'.1 ((congrArg (· - _) hx).trans hBA)⟩
-
-omit [FiniteDimensional ℝ E'] [IsManifold 𝓘(ℝ, E') ∞ C] [T2Space C] [CompactSpace C] in
-/-- If the faces of a smooth `2`-simplex `σ` lie in an open set `W`, the boundary of `z - σ`, for
-a smooth cycle `z`, is the image of a smooth chain of `W`. -/
-private lemma exists_d_sub_eq_chainComplexMap (W : Opens C)
-    (z : ((smoothSingularSubcomplex 𝓘(ℝ, E') C : SSet).chainComplex
-      (ModuleCat.of ℤ (ULift.{0} ℤ))).cycles 2) (σ : SmoothSimplex 𝓘(ℝ, E') C 2)
-    (hσ : ∀ i, Set.range ((TopCat.of C).toSSetObjEquiv _
-      ((TopCat.toSSet.obj (TopCat.of C)).δ i σ.val)) ⊆
-        Set.range (TopPair.ofSubset (X := TopCat.of C) (W : Set C)).map) :
-    ∃ z' : ((smoothSingularSubcomplex 𝓘(ℝ, E') W : SSet).chainComplex
-      (ModuleCat.of ℤ (ULift.{0} ℤ))).X 1,
-      ((smoothSingularSubcomplex 𝓘(ℝ, E') C : SSet).chainComplex
-        (ModuleCat.of ℤ (ULift.{0} ℤ))).d 2 1
-          ((((smoothSingularSubcomplex 𝓘(ℝ, E') C : SSet).chainComplex
-            (ModuleCat.of ℤ (ULift.{0} ℤ))).iCycles 2).hom z -
-          ((smoothSingularSubcomplex 𝓘(ℝ, E') C : SSet).ιChainComplex
-            (R := ModuleCat.of ℤ (ULift.{0} ℤ)) σ).hom 1) =
-        (SSet.chainComplexMap (smoothSingularSubcomplexMap (Subtype.val : W → C)
-          (contMDiff_subtypeVal (I := 𝓘(ℝ, E')))) (ModuleCat.of ℤ (ULift.{0} ℤ))).f 1 z' := by
-  let P := TopPair.ofSubset (X := TopCat.of C) (W : Set C)
-  -- The faces of `σ`, as smooth simplices of `W`.
-  have hτ (i : Fin 3) :
-      P.liftSimplex _ (hσ i) ∈ (smoothSingularSubcomplex 𝓘(ℝ, E') W).obj _ := by
-    rw [← smoothSingularSubcomplex_preimage_subtypeVal (I := 𝓘(ℝ, E')) W]
-    -- The inclusion of `W` is the map of the pair `P`.
-    change (TopCat.toSSet.map P.map).app _ (P.liftSimplex _ (hσ i)) ∈
-      (smoothSingularSubcomplex 𝓘(ℝ, E') C).obj _
-    exact Set.mem_of_eq_of_mem (P.toSSet_map_app_liftSimplex _ (hσ i))
-      ((smoothSingularSubcomplex 𝓘(ℝ, E') C : SSet).δ i σ).property
-  let τ (i : Fin 3) : SmoothSimplex 𝓘(ℝ, E') W 1 := ⟨P.liftSimplex _ (hσ i), hτ i⟩
-  have hτσ (i : Fin 3) : (smoothSingularSubcomplexMap (Subtype.val : W → C)
-      (contMDiff_subtypeVal (I := 𝓘(ℝ, E')))).app _ (τ i) =
-      (smoothSingularSubcomplex 𝓘(ℝ, E') C : SSet).δ i σ :=
-    -- The inclusion of `W` into `C` is the map of the pair `P`.
-    Subtype.ext ((coe_smoothSingularSubcomplexMap_app _ _).trans
-      (by exact P.toSSet_map_app_liftSimplex _ (hσ i)))
-  have e : (smoothSingularSubcomplex 𝓘(ℝ, E') C : SSet).ιChainComplex
-        (R := ModuleCat.of ℤ (ULift.{0} ℤ)) σ ≫
-      ((smoothSingularSubcomplex 𝓘(ℝ, E') C : SSet).chainComplex
-        (ModuleCat.of ℤ (ULift.{0} ℤ))).d 2 1 =
-      ∑ i : Fin 3, (-1 : ℤ) ^ i.val • ((smoothSingularSubcomplex 𝓘(ℝ, E') W : SSet).ιChainComplex
-        (R := ModuleCat.of ℤ (ULift.{0} ℤ)) (τ i) ≫
-        (SSet.chainComplexMap (smoothSingularSubcomplexMap (Subtype.val : W → C)
-          (contMDiff_subtypeVal (I := 𝓘(ℝ, E')))) (ModuleCat.of ℤ (ULift.{0} ℤ))).f 1) := by
-    simp [hτσ]
-  refine ⟨-∑ i : Fin 3, (-1 : ℤ) ^ i.val •
-    ((smoothSingularSubcomplex 𝓘(ℝ, E') W : SSet).ιChainComplex
-      (R := ModuleCat.of ℤ (ULift.{0} ℤ)) (τ i)).hom 1, ?_⟩
-  simp only [map_sub, map_neg, map_sum, map_zsmul, HomologicalComplex.iCycles_d_apply, zero_sub]
-  refine neg_inj.2 ((congrArg (fun f ↦ ModuleCat.Hom.hom f (1 : ULift.{0} ℤ)) e).trans ?_)
-  simp only [ModuleCat.hom_sum, ModuleCat.hom_zsmul, LinearMap.coe_sum, Finset.sum_apply,
-    ModuleCat.hom_comp]
-  -- Both sides are the same sum, one written with composites of linear maps.
-  rfl
-
 /-- **Integration over a cycle representing the fundamental class, locally.** Let `σ` be the smooth
 `2`-simplex given by a map `g : ℝ² → C` that is, on an open neighbourhood `U` of `Δ²`, a smooth
 open embedding preserving orientation, and let `z` be a smooth integral cycle whose class is the
@@ -344,13 +209,10 @@ theorem intIntegrationCochain_iCycles_eq_integralTopForm (hE' : finrank ℝ E' =
   let W : Opens C := ⟨(_root_.tsupport (α := E' [⋀^Fin 2]→L[ℝ] ℝ) ψ)ᶜ, hK.isClosed.isOpen_compl⟩
   have hσ := SmoothSimplex.range_toSSetObjEquiv_δ_subset_compl σ hU hgσ hg hsupp
   -- In `H₂(C, W)`, both `z` and `σ` give the fundamental class along the support of `ψ`.
-  obtain ⟨B, A, hBA⟩ := exists_sub_eq_d_add_of_relClass W z σ hσ (by
+  obtain ⟨b, c, hbc⟩ := exists_smoothSingular_sub_eq_d_add_of_relClass W z σ 1 hσ (by
     rw [hz]
     exact (((-o).toHomologicalOrientation hE').singularHomologyπ_fundamentalClass hE' hK).trans
       (SmoothSimplex.relativeClass_eq_fundamentalClassOn σ hU hgσ hg hE' o ho hK hsupp).symm)
-  obtain ⟨z', hz'⟩ := exists_d_sub_eq_chainComplexMap W z σ hσ
-  obtain ⟨b, c, hbc⟩ := exists_smoothSingular_eq_d_add (I := 𝓘(ℝ, E')) W (n := 2) (p := 3)
-    (m := 1) (by simp) (by simp) _ z' hz' B A hBA
   -- `ψ` integrates to zero over `∂ b`, by Stokes' theorem, and over `c`, where it vanishes.
   have hd : (intIntegrationCochain ψ).hom
       (((smoothSingularSubcomplex 𝓘(ℝ, E') C : SSet).chainComplex
@@ -426,11 +288,7 @@ theorem integralTopForm_eq_singularHomologyPeriod (hE' : finrank ℝ E' = 2)
     (φ.val.isSmoothForm.of_le (by simp)).fun_smul ((ρ i).contMDiff.of_le (by simp))
   have hsupp (i : t) : _root_.tsupport (α := E' [⋀^Fin 2]→L[ℝ] ℝ) (ψ i) ⊆
       g i '' interior (fullSimplex 2) :=
-    (closure_mono (s := Function.support (M := E' [⋀^Fin 2]→L[ℝ] ℝ) (ψ i))
-      (t := Function.support (ρ i)) fun y hy h0 ↦ Function.mem_support.1 hy (by
-        -- The zero of the alternating maps on the tangent space is that of the model.
-        rw [show ψ i y = 0 by simp [ψ, h0]]
-        rfl)).trans (hρ i)
+    (tsupport_smul_subset_left (α := E' [⋀^Fin 2]→L[ℝ] ℝ) (ρ i) φ.val.val).trans (hρ i)
   rw [hφψ, integralTopForm_sum o ψ Finset.univ fun i _ ↦ (hψ i).integrableTopForm
       (isClosed_tsupport _).isCompact (finBasisOfFinrankEq ℝ E' hE'),
     intIntegrationCochain_sum_apply _ _ fun i _ ↦ (hψ i).of_le (by simp)]
