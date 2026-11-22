@@ -104,13 +104,15 @@ also match the iterated pull-back of a sum, a difference, a negative or a multip
 `simp` evaluates the symplectic form of a pull-back through
 `IsNondegenerate.toBilinForm_symplecticFormAt` (`Symplectic/Basic.lean`): it turns
 `h.symplecticFormAt y v w` into the bilinear form of the two-form at `y` on `v` and `w`, which
-the lemmas above then evaluate. For a single form this works at every depth of pull-back and
-along composites, so `IsNondegenerate.symplecticFormAt_pullback_apply`, which states the value
-for one pull-back, is not `@[simp]`. For a sum, a difference, a negative or a multiple, `simp`
-evaluates the symplectic form only after one or two pull-backs, and two need
-`IsNondegenerate.symplecticFormAt_pullback_pullback_apply`, whose docstring says why. After three
-pull-backs, or a pull-back along a composite, of such a form, `simp` leaves the symplectic form
-split into a sum of unevaluated bilinear forms.
+the lemmas above then evaluate. For a single form this works in the cases those lemmas cover:
+one, two or three pull-backs, a pull-back along a composite `g.comp f`, and that pull-back
+pulled back once more. So `IsNondegenerate.symplecticFormAt_pullback_apply`, which states the
+value for one pull-back, is not `@[simp]`. In other cases, such as four pull-backs or a pull-back
+along `(g.comp f).comp e`, `simp` leaves the bilinear form unevaluated. For a sum, a difference,
+a negative or a multiple, `simp` evaluates the symplectic form only after one or two pull-backs,
+and two need `IsNondegenerate.symplecticFormAt_pullback_pullback_apply`, whose docstring says
+why. After three pull-backs, or a pull-back along a composite, of such a form, `simp` leaves the
+symplectic form split into unevaluated bilinear forms.
 
 In `pushforward_pullback_id` and `pushforward_pullback_comp`, the identity of each fibre is
 `Bundle.Pullback.idFiberEquiv` or `Bundle.Pullback.compFiberEquiv`
