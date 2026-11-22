@@ -9,6 +9,7 @@ public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orient
 public import SymplecticGeometry.Topology.Algebra.Module.Equiv.Basic
 public import SymplecticGeometry.Topology.VectorBundle.Complex.FirstChernClass
 public import SymplecticGeometry.Topology.VectorBundle.Complex.Structure
+public import SymplecticGeometry.Topology.VectorBundle.Orientation.SectionIndex.Derivative
 public import TauCeti.Geometry.Manifold.MFDeriv.Chart.Basic
 public import TauCeti.Geometry.Manifold.MFDeriv.ContinuousLinearMap
 public import TauCeti.Geometry.Manifold.VectorBundle.Section.SmoothZero
@@ -40,7 +41,10 @@ of zeros of a section of `L`, counted with signs.
 At a zero `z`, the local index is computed by Tau Ceti's
 `TauCeti.VectorBundleOrientation.sectionIndex_eq_sign_det_of_hasFDerivAt` as the sign of the
 Jacobian of the section read in a chart of `M` with values in `ℂ` and in a trivialization of
-`J.Fiber`. The chart is the preferred chart at `z` followed by a linear identification `D` of
+`J.Fiber`, in the form
+`TauCeti.VectorBundleOrientation.sectionIndex_eq_sign_det_of_hasFDerivAt_of_eventually`, which
+finds the neighbourhood isolating `z` from the invertibility of the Jacobian. The chart is the
+preferred chart at `z` followed by a linear identification `D` of
 the model with `ℂ` that matches the orientations; translated so that `z` goes to the origin, it
 carries the local orientation of `M` at `z` to the local orientation of `ℂ` selected by the image
 of the tangent orientation under `D`
@@ -80,7 +84,7 @@ oriented real bundle and a chart with values in an inner product space; here the
 
 public section
 
-open Bundle Module Set TauCeti TauCeti.Bundle
+open Bundle Filter Module Set TauCeti TauCeti.Bundle
 open scoped Manifold
 
 namespace SymplecticGeometry
@@ -287,14 +291,14 @@ private theorem sign_det_eq_ite {s : ∀ x, V x} {z : M}
 
 omit [CompactSpace M] [ContMDiffVectorBundle 1 F V 𝓘(ℝ, EM)] in
 open scoped Classical in
-/-- **The local index at a transverse zero.** At a zero `z` of a `C¹` section `s` with finitely
-many zeros, where the linearization of `s` is onto, the local index of `s` for the complex
-orientation of `J.Fiber` is `1` or `-1` according as the linearization carries the orientation of
-the tangent plane to the complex orientation of the fibre or not. -/
+/-- **The local index at a transverse zero.** At a zero `z` of a `C¹` section `s` where the
+linearization of `s` is onto, the local index of `s` for the complex orientation of `J.Fiber`
+is `1` or `-1` according as the linearization carries the orientation of the tangent plane to
+the complex orientation of the fibre or not. -/
 private theorem sectionIndex_eq_ite {s : ∀ x, V x}
     (hs : ContMDiff 𝓘(ℝ, EM) (𝓘(ℝ, EM).prod 𝓘(ℝ, F)) 1 fun x ↦ TotalSpace.mk' F x (s x))
-    (hs' : Continuous fun x ↦ TotalSpace.mk' ℂ x ((J.fiberEquiv x).symm (s x)))
-    (hZ : {x | s x = 0}.Finite) {z : M} (hz : s z = 0)
+    (hs' : Continuous fun x ↦ TotalSpace.mk' ℂ x ((J.fiberEquiv x).symm (s x))) {z : M}
+    (hz : s z = 0)
     (hsurj : Function.Surjective (sectionLinearization (F := F) 𝓘(ℝ, EM) id s z)) :
     (VectorBundleOrientation.reindex (finCongr (by simp))
         (VectorBundleOrientation.complex ℂ J.Fiber)).sectionIndex (n := 1)
@@ -338,19 +342,12 @@ private theorem sectionIndex_eq_ite {s : ∀ x, V x}
   have hφl := Manifold.Orientation.localHomologyMap_sub_toHomologicalOrientation_transHomeomorph
     hn o Complex.finrank_real_complex D z
   rw [hD] at hφl
-  -- An open neighbourhood `U` of `z` in which `z` is the only zero of `s`.
-  set U := e.baseSet ∩ φ.source ∩ ({x | s x = 0} \ {z})ᶜ
-  have hUo : IsOpen U :=
-    (e.open_baseSet.inter φ.open_source).inter (hZ.sdiff (t := {z})).isClosed.isOpen_compl
-  have hzU : z ∈ U := ⟨⟨hze, hzφ⟩, fun h ↦ h.2 rfl⟩
-  have hUz : ∀ x ∈ U, (J.fiberEquiv x).symm (s x) = 0 → x = z := fun x hx h0 ↦
-    by_contra fun hxz ↦ hx.2 ⟨(J.fiberEquiv x).symm.map_eq_zero_iff.1 h0, hxz⟩
   have hsz : (J.fiberEquiv z).symm (s z) = 0 := by rw [hz, map_zero]
   obtain ⟨A, hAd, hA⟩ := exists_hasFDerivAt_trivializationAt J hs hz D
   obtain ⟨hdet, hsign⟩ := sign_det_eq_ite hn o J hsurj hD hA
-  rw [VectorBundleOrientation.sectionIndex_eq_sign_det_of_hasFDerivAt oE
-    Complex.finrank_real_complex (o.toHomologicalOrientation hn) hs' e φ hUo hzU hUz hsz
-    (fun x hx ↦ hx.1.1) (fun x hx ↦ hx.1.2) (fun x hx ↦ ho x _) hφl hAd hdet, hsign]
+  rw [VectorBundleOrientation.sectionIndex_eq_sign_det_of_hasFDerivAt_of_eventually oE
+    Complex.finrank_real_complex (o.toHomologicalOrientation hn) hs' e φ hsz hze hzφ
+    (Eventually.of_forall ho) hφl hAd hdet, hsign]
 
 open scoped Classical in
 /-- **The first Chern number counts the zeros of a transverse section.** Let `M` be a closed `C¹`
@@ -393,7 +390,7 @@ theorem chernNumber_eq_sum_sign_of_transverse {s : ∀ x, V x}
     finsum_mem_eq_finite_toFinset_sum _ hZ]
   refine Finset.sum_congr (by simp) fun z hz ↦ ?_
   have hz' : s z = 0 := hZ.mem_toFinset.1 (by simpa [hset] using hz)
-  exact sectionIndex_eq_ite hn o J hs hs' hZ hz' (htr z hz')
+  exact sectionIndex_eq_ite hn o J hs hs' hz' (htr z hz')
 
 end Smooth
 
