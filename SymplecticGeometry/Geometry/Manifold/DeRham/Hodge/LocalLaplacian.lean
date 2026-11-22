@@ -295,8 +295,6 @@ private theorem exists_mpullback_symm_mextDeriv_codifferential_eq
   · exact ContDiffOn.sum fun i _ ↦ contDiffOn_const.clm_comp (hdC₀ i)
   set a : E → E [⋀^Fin (k + 1)]→L[ℝ] ℝ := mpullback 𝓘(ℝ, E) I ψ.symm α.val
   have hT := ψ.open_target.mem_nhds hy
-  have ha : ContDiffOn ℝ ∞ a ψ.target :=
-    SmoothForm.contDiffOn_mpullback α ψ.open_target ψ.symm.contMDiffOn
   -- `d^* α` read in the chart, near `y`.
   set F : E → E [⋀^Fin k]→L[ℝ] ℝ := fun z ↦
     -∑ j, ∑ l, g z j l • κ l (fderiv ℝ a z (b j)) + C₀ z (a z)
@@ -313,7 +311,7 @@ private theorem exists_mpullback_symm_mextDeriv_codifferential_eq
           (((α.contDiffOn_fderiv_mpullback_symm_apply ψ (b j)).contDiffAt
             (ψ.open_target.mem_nhds hy)).differentiableAt (by simp)).hasFDerivAt)
     · exact ((hC₀.contDiffAt hT).differentiableAt (by simp)).hasFDerivAt.clm_apply
-        ((ha.contDiffAt hT).differentiableAt (by simp)).hasFDerivAt
+        (α.differentiableAt_mpullback_symm ψ hy).hasFDerivAt
   rw [mpullback_symm_mextDerivₗ ψ _ hy, hev.extDeriv_eq, extDeriv_eq_sum_coordExtProd b, hF.fderiv]
   simp only [← coordExtProd_apply, ← hκ, map_add, map_neg, _root_.map_sum, map_smul,
     Finset.sum_add_distrib, Finset.sum_neg_distrib, Finset.smul_sum, _root_.add_apply,
