@@ -48,7 +48,9 @@ namespace SSet
 variable {C : Type u} [Category.{v} C] [HasCoproducts.{w} C] [Abelian C] (R : C)
   {X₁ X₂ X₃ X₄ : SSet.{w}} {t : X₁ ⟶ X₂} {l : X₁ ⟶ X₃} {r : X₂ ⟶ X₄} {b : X₃ ⟶ X₄}
 
-/-- Chain lifts with the same boundary determine a cycle in the union term. -/
+/-- For a commutative square, if chains `u` of `X₂` and `v` of `X₃` in degree `q + 1` have as
+boundaries the images under `t` and `l` of a common chain `w` of `X₁`, then `r(u) - b(v)` is a
+cycle of `X₄`. -/
 lemma exists_cycle_of_chain_lifts (sq : CommSq t l r b) {A : C} (q : ℕ)
     (w : A ⟶ (X₁.chainComplex R).X q)
     (u : A ⟶ (X₂.chainComplex R).X (q + 1))
@@ -74,7 +76,10 @@ variable [Mono t]
 
 open HomologicalComplex
 
-/-- Two chain lifts with a common boundary compute the native Mayer–Vietoris connecting map. -/
+/-- For a pushout square with `t` a monomorphism, let `u` and `v` be chains of `X₂` and `X₃` in
+degree `q + 1` whose boundaries are the images under `t` and `l` of a cycle `w` of `X₁`, and
+let `z` be the cycle `r(u) - b(v)` of `X₄`. Then `SSet.mayerVietorisδ` sends the class of `z` to
+the class of `w`. -/
 lemma homologyπ_mayerVietorisδ_of_chain_lifts (sq : IsPushout t l r b) {A : C} (q : ℕ)
     (z : A ⟶ (X₄.chainComplex R).cycles (q + 1))
     (w : A ⟶ (X₁.chainComplex R).cycles q)

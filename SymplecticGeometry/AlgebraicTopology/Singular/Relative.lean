@@ -69,7 +69,7 @@ lemma ιChainComplex_comp_singularChainComplexπ_eq_zero {n : ℕ}
   erw [← hτ, ← SSet.ι_chainComplexMap_f, Category.assoc, ← HomologicalComplex.comp_f,
     chainComplexMap_comp_singularChainComplexπ, HomologicalComplex.zero_f, comp_zero]
 
-section OpenSupport
+section OpenSubspace
 
 open TopologicalSpace
 
@@ -77,20 +77,22 @@ variable {R}
 
 variable {X : TopCat.{w}} (U : Opens X) (A : Set X)
 
-/-- The original subspace paired with the inverse image of the relative subset. -/
+/-- The pair `(U, U ∩ A)` of an open set `U` of `X` and the preimage of `A` under the inclusion
+of `U` into `X`. -/
 abbrev openSubspacePair : TopPair.{w} :=
   TopPair.ofSubset (Opens.inclusion' U ⁻¹' (A : Set X))
 
-/-- The open-subspace pair of a complement is the complement pair of the inverse image. -/
+/-- The pair of `U` and the preimage of a complement `Aᶜ` is the pair of `U` and the complement
+in `U` of the preimage of `A`. -/
 lemma openSubspacePair_compl :
     openSubspacePair U Aᶜ = ofSubset (Opens.inclusion' U ⁻¹' A)ᶜ := rfl
 
-/-- The map of original relative pairs induced by the open inclusion. -/
+/-- The map of pairs `(U, U ∩ A) ⟶ (X, A)` given by the inclusion of `U` into `X`. -/
 def openSubspaceInclusion :
     openSubspacePair U A ⟶ TopPair.ofSubset (A : Set X) :=
   TopPair.ofSubsetMap (Opens.inclusion' U) (fun _ hx ↦ hx)
 
-/-- The ambient component of the native pair map is the open inclusion. -/
+/-- The map of spaces underlying `openSubspaceInclusion U A` is the inclusion of `U` into `X`. -/
 @[simp]
 lemma openSubspaceInclusion_fst :
     TopPair.Hom.fst (openSubspaceInclusion U A) = Opens.inclusion' U := by
@@ -98,7 +100,8 @@ lemma openSubspaceInclusion_fst :
 
 variable (S : (TopCat.toSSet.obj X).Subcomplex)
 
-/-- Enlarging the relative subset induces a map of the native restricted pairs. -/
+/-- For `A ⊆ B`, the map, given by the identity of `X`, from the singular simplicial pair of
+`(X, A)` restricted to the subcomplex `S` to that of `(X, B)` restricted to `S`. -/
 def restrictSubsetMap
     {A B : Set X} (hAB : A ⊆ B) :
     (TopPair.toSSetPair.obj (TopPair.ofSubset A)).restrict S ⟶
@@ -108,7 +111,7 @@ def restrictSubsetMap
       SSet.Subcomplex.preimage_id]
     exact le_refl S)
 
-/-- The ambient map of a support restriction is the identity. -/
+/-- On the subcomplex `S` itself, `restrictSubsetMap S hAB` is the identity. -/
 @[simp]
 lemma restrictSubsetMap_right
     {A B : Set X} (hAB : A ⊆ B) : (restrictSubsetMap S hAB).right = 𝟙 S.toSSet := by
@@ -116,10 +119,11 @@ lemma restrictSubsetMap_right
   apply Subtype.ext
   erw [restrictSubsetMap, SSetPair.restrictMap_right_app_coe]
   erw [TopPair.toSSetPair_map_right, TopPair.ofSubsetMap_fst, CategoryTheory.Functor.map_id]
-  -- The identity natural transformation evaluates to the original simplex.
+  -- The identity natural transformation sends each simplex to itself.
   rfl
 
-/-- Relative quotient maps commute with support restriction. -/
+/-- The quotient map onto the relative chains of `(X, A)` restricted to `S`, followed by the chain
+map of `restrictSubsetMap S hAB`, is the quotient map for `(X, B)` restricted to `S`. -/
 @[reassoc]
 lemma chainComplexπ_restrictSubsetMap
     {A B : Set X} (hAB : A ⊆ B) :
@@ -129,7 +133,9 @@ lemma chainComplexπ_restrictSubsetMap
   erw [← SSetPair.chainComplexπ_naturality, restrictSubsetMap_right]
   erw [SSet.chainComplexMap_id, Category.id_comp]
 
-/-- Support change commutes with the original relative-chain inclusion. -/
+/-- The chain map of `restrictSubsetMap S hAB`, followed by the map from the relative chains of
+`(X, B)` restricted to `S` into those of `(X, B)`, equals the map for `(X, A)` followed by the
+chain map of the map of pairs `(X, A) ⟶ (X, B)`. -/
 lemma chainComplexMap_restrictSubsetMap_comp_restrictι
     {A B : Set X} (hAB : A ⊆ B) :
     SSetPair.chainComplexMap (restrictSubsetMap S hAB) R ≫
@@ -143,7 +149,8 @@ lemma chainComplexMap_restrictSubsetMap_comp_restrictι
   have h := congrArg (fun f ↦ SSetPair.chainComplexMap f R) hc
   simpa only [CategoryTheory.Functor.map_comp] using h
 
-/-- Successive support restrictions compose. -/
+/-- For `A ⊆ B ⊆ C`, the chain maps of `restrictSubsetMap` for `A ⊆ B` and for `B ⊆ C` compose
+to that for `A ⊆ C`. -/
 @[reassoc (attr := simp)]
 lemma chainComplexMap_restrictSubsetMap_comp
     {A B C : Set X} (hAB : A ⊆ B) (hBC : B ⊆ C) :
@@ -154,7 +161,7 @@ lemma chainComplexMap_restrictSubsetMap_comp
   erw [chainComplexπ_restrictSubsetMap_assoc, chainComplexπ_restrictSubsetMap,
     chainComplexπ_restrictSubsetMap]
 
-end OpenSupport
+end OpenSubspace
 
 end TopPair
 

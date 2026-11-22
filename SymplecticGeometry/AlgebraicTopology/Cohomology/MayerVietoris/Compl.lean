@@ -53,7 +53,10 @@ attribute [local instance] hasFiniteCoproducts_of_hasCoproducts
 attribute [local instance] HasFiniteBiproducts.of_hasFiniteCoproducts
 attribute [local instance] TopPair.mono_toSSetPair_map_ofInclusionMap_inclusion_right
 
-/-- A chosen cocycle for the native connecting class is the exact coboundary of a lift. -/
+/-- If the cocycle `ζ` represents the image of `a` under the connecting map, then in the
+short exact sequence of cochains of the pairs of small chains, some cochain `x₂` of the middle
+term has as coboundary the image of `ζ` and maps to a cocycle `α` that represents the image of
+`a`. -/
 private lemma exists_complMayerVietoris_cochains
     {K N : Set X} (hK : IsClosed K) (hN : IsClosed N) (p : ℕ)
     (a : (TopPair.ofSubset (K ∪ N)ᶜ).singularCohomology R k M p)
@@ -164,7 +167,11 @@ private lemma complement_inter_cochain_square (K N S : Set X) (hS : S ⊆ K ∪ 
     hmaps
     (TopCat.mapsTo_id_compl hS)
 
-/-- Exact original-pair representatives of the native complement connecting class. -/
+/-- Let `a` be a class of `(X, X ∖ (K ∪ N))` and `ζ` a cocycle of `(X, X ∖ (K ∩ N))`
+representing its image under `TopCat.singularCohomologyComplMayerVietorisδ`. Then there are
+cochains `u` of `(X, X ∖ K)` and `v` of `(X, X ∖ N)` whose coboundaries are the restrictions of
+`ζ`, and a cocycle `α` of `(X, X ∖ (K ∪ N))` representing `a`, such that the restrictions of `u`
+and `v` to `(X, X ∖ (K ∪ N))` differ by `α`. -/
 lemma exists_singularCohomologyComplMayerVietorisδ_representatives
         {K N : Set X} (hK : IsClosed K) (hN : IsClosed N) (p : ℕ)
     (a : (TopPair.ofSubset (K ∪ N)ᶜ).singularCohomology R k M p)
@@ -223,7 +230,7 @@ lemma exists_singularCohomologyComplMayerVietorisδ_representatives
     simp only [HomologicalComplex.comp_f, ConcreteCategory.comp_apply] at hk hn
     rw [hk, hn]
   · rw [← moduleCat_homologyMap_homologyπ, hα]
-    -- The native cochain functor reverses the same original pair isomorphism.
+    -- The cohomology maps of `interComplPairIso K N` and of its inverse cancel.
     change TopPair.singularCohomologyMap (TopCat.interComplPairIso K N).inv p
       (TopPair.singularCohomologyMap (TopCat.interComplPairIso K N).hom p a) = a
     rw [← ConcreteCategory.comp_apply, ← TopPair.singularCohomologyMap_comp,
