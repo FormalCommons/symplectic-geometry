@@ -380,7 +380,8 @@ invertible.
 
 ### `Geometry/Manifold/MFDeriv/Singleton.lean`
 
-A general file that serves `CompatibleComplexStructures.lean`, whose atlas
+A general file that serves `CompatibleSpace/ComplexStructure.lean`, for the
+manifold of `CompatibleComplexStructures.lean`, whose atlas
 has one chart; imports Mathlib. In the root namespace, for points whose
 preferred charts coincide: `tangentCoordChange_of_chartAt_eq` (the tangent
 coordinate change is the identity), `mfderiv_chartAt_of_chartAt_eq` and
