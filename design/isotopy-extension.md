@@ -210,6 +210,7 @@ Further choices of this design:
 | `Geometry/Manifold/DifferentialForm/VectorBundlePoincare.lean` | the relative Poincaré operator at the zero section of a vector bundle, and its fibre-scaling primitives for a family of one-forms |
 | `Geometry/Symplectic/IsotopyExtension/Ball/Basic.lean` | `IsSymplecticBallEmbedding`, `IsSymplecticBallFamily`, enlarging a symplectic ball |
 | `Geometry/Symplectic/IsotopyExtension/Ball/Isotopy.lean` | the Hamiltonian ball extension and the milestone *Symplectic ball extension* |
+| `Geometry/Manifold/DeRham/HomologyPeriod.lean` | periods of a smooth family of closed one-forms depend smoothly on the parameter |
 | `Geometry/Symplectic/IsotopyExtension/Cohomological/Primitive.lean` | ambient closed forms with prescribed periods, and primitives on one neighbourhood for all times |
 | `Geometry/Symplectic/IsotopyExtension/Cohomological/Basic.lean` | the milestone *Symplectic isotopy extension* |
 | `Geometry/Symplectic/IsotopyExtension/Submanifold.lean` | the milestone *Neighbourhood extension of submanifold isotopies* |
@@ -678,24 +679,33 @@ Let `M : Type` be compact, `Q : Set M`, `U : Opens M` with `Q ⊆ U`, and let
   a basis, closed representatives `b_i`, and finitely many cycles `z_j` of
   `Q` on which evaluation is injective. Then $\beta_t=\sum a_i(t)b_i$, where
   the coefficients are a fixed linear function of the periods of `α_t` on
-  the `z_j`. Those periods are smooth in `t`: the image of `z_j` in `H₁ U`
-  is a sum of classes of smooth loops (Tau Ceti's `Geometry/Manifold/SmoothApprox.lean`
-  and the Hurewicz map), and along a smooth loop the period is a line
-  integral, differentiable under the integral sign.
+  the `z_j`. Those periods are smooth in `t`, by
+  `IsSmoothFamily.contMDiff_homologyPeriodHom` in
+  `Geometry/Manifold/DeRham/HomologyPeriod.lean`: each singular simplex is
+  homotopic to a smooth path (Tau Ceti's `Geometry/Manifold/SmoothApprox.lean`),
+  and along a smooth path the period is the change of a jointly smooth
+  primitive of the pulled-back family on `ℝ`.
 - `TauCeti.NDRPair.exists_forall_exact`: for NDR data on `Q` there
   is an open `V` with `Q ⊆ V ⊆ U` such that every closed one-form on `U`
   whose periods vanish on the image of `H₁ Q` is exact on `V`. This is
   `exists_isOpen_range_singularHomologyMap_le` with
   `TauCeti.exists_mextDeriv_eq_of_homologyPeriodHom_eq_zero` and
   `TauCeti.homologyPeriodHom_singularHomologyMap` for the inclusion `V → U`.
-- `SmoothIsotopy.homologyPeriodHom_mpullback_eq`: for a `SmoothIsotopy`
-  `φ` from the inclusion of `U`, the periods of `φ_t^* β` on `H₁ U` are those
-  of `β`. The slices are homotopic to the inclusion, so
+- `SmoothIsotopy.homologyPeriodHom_mpullback_eq`: for any `SmoothIsotopy`
+  `φ` starting at `f₀` and a closed one-form `θ`, the periods of `φ_t^* θ`
+  are those of `f₀^* θ`, and from the inclusion of `U` those of `θ`. The
+  slices are homotopic to `f₀`, so
   `ContinuousMap.singularHomologyMap_eq_of_homotopic` and
   `homologyPeriodHom_singularHomologyMap` apply.
-- `exists_contMDiff_primitive_of_periods`: under both hypotheses, for a
-  symplectic `φ` with velocity forms `α`, the forms `α_t - φ_t^* β_t` are
-  exact on `V` with a primitive `h` smooth on `unitInterval × V`. Exactness
+- `exists_contMDiff_primitive_of_periods`: for NDR data on `Q`, a
+  `SmoothIsotopy` `φ` of `U` whose start `f₀` is the inclusion
+  (`∀ x, f₀ x = x`), and smooth families `α` on `U` and `β` on `M` of closed
+  one-forms with the periods equation of the first item (no compactness), the
+  forms `α_t - φ_t^* β_t` are exact on `V` with a primitive `h` smooth on
+  `unitInterval × V`. Issue 11 takes the velocity forms of a symplectic `φ`
+  as `α`, and `β` from the first item or `β = 0`. The start is a variable
+  with that equation rather than the term `⟨Subtype.val, contMDiff_subtypeVal⟩`,
+  since with that term Lean finds no coercion of `φ` to a function. Exactness
   comes from the last two items. The smooth choice is *Hamiltonian flows*'
   `SymplecticGeometry.exists_contMDiff_mextDeriv_eq_of_forall_mem_exactForms` (see
   *What the part uses*), applied on the manifold `V`.
