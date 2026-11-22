@@ -835,11 +835,15 @@ issues, in an order where each issue's blockers come before it.
    `AlgebraicTopology/Cohomology/CompactSupport/Duality/Union.lean`, not a
    file of Tau Ceti's: `TauCeti.HomologicalOrientation.bijective_dualityMap_of_sup_eq_top`
    for a cover by two open sets, and `bijective_dualityMap_comap_sup` for two
-   open sets of `M`. Besides duality in every degree for `U`, `V` and
-   `U ∩ V`, both assume `Hⁿ⁺¹_c(U ∩ V; L) = 0`, which injectivity needs in
-   the top degree; `TopCat.isZero_compactSupportCohomology_sup`, in the
+   open sets of `M`. Both assume only duality in every degree for `U`, `V`
+   and `U ∩ V`: the vanishing of `Hⁿ⁺¹_c(U ∩ V; L)`, which injectivity
+   needs in the top degree, holds for every open set of `M`
+   (`TopCat.isZero_compactSupportCohomology_of_chartedSpace_int`, in the
+   library's `AlgebraicTopology/Cohomology/CompactSupport/Manifold.lean`,
+   applied to the open set as a manifold).
+   `TopCat.isZero_compactSupportCohomology_sup`, in the
    library's `AlgebraicTopology/Cohomology/CompactSupport/Vanishing.lean`,
-   passes that vanishing on to `U ∪ V`, and
+   passes such a vanishing on to `U ∪ V`, and
    `TopCat.isZero_compactSupportCohomology_of_iSup_eq_top`, in the same
    file, to a directed union of open sets. The vanishing starts from
    `AlgebraicTopology/Cohomology/CompactSupport/Euclidean/Basic.lean`,
@@ -1076,6 +1080,18 @@ issues, in an order where each issue's blockers come before it.
    the map `∂X → Circle` that is `Circle.prodRetraction i` read through
    `discComplementBoundaryHomeomorph` has boundary degree $-1$.
    Blocked by 5 and 7.
+   `AlgebraicTopology/Singular/DiscreteProd.lean`, for the boundary of the
+   complement, which is a product `ι × Circle`: for discrete `ι`, singular
+   homology in each degree sends `ι ⊗ X` to the coproduct of copies of that
+   of `X` along the fibre inclusions
+   (`TopCat.isColimitCofanSingularHomologyProd`), and for finite `ι`, in
+   positive degree, the maps induced by retracting onto one fibre and
+   including it again sum to the identity
+   (`TopCat.sum_singularHomologyFunctor_map_prodFiberRetraction_comp`).
+   `Topology/Category/TopCat/Monoidal.lean`, imported by `DiscreteProd.lean`:
+   for discrete `ι`, a point `x₀ : X` and `i : ι`, the retraction
+   `TopCat.prodFiberRetraction ι x₀ i : ι ⊗ X ⟶ X` onto the fibre over `i`,
+   a left inverse of Tau Ceti's `TopCat.prodFiberInclusion ι X i`.
 7. **Boundary degree and the argument principle on a surface with
    boundary.** The setting is that of `RelativeFundamentalClass.lean`: `X`
    compact Hausdorff, `ι : M → X` an open embedding of a surface with
