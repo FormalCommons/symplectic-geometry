@@ -8,6 +8,8 @@ module
 public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.CubeToSphere
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.ChernNumber.Clutching
 public import SymplecticGeometry.Topology.Circle.Degree.Square
+public import TauCeti.Analysis.Normed.Module.ContinuousInverse
+public import TauCeti.Topology.Homotopy.Cube.Radius
 public import TauCeti.Topology.VectorBundle.Pullback
 
 /-!
@@ -32,11 +34,12 @@ square, read on `S²` through the collapse:
 * over the closed disc, which is the image of the points of the square at distance at most `1/5`
   from the centre (`CoordinateDisc.disc_cubeToSphere`), the frame `ψ`;
 * over the complement of the open disc, the image of the closed annulus `A` of the points at
-  distance at least `1/5` from the centre, the frame `ψ y ∘ T (ρ y)⁻¹`. Here `ρ` is the radial
-  projection `TauCeti.squareBoundaryProj` of the annulus onto the boundary of the square, and
-  `T y' = e ∘ ψ y'` is the transition of `ψ` read in `e` at a point `y'` of the boundary. On the
-  boundary `ρ` is the identity, so this frame is the frame `e⁻¹` at `x` there, and it descends
-  through the collapse, which identifies the boundary to the north pole.
+  distance at least `1/5` from the centre, the frame `ψ y ∘ T (ρ y)⁻¹`. Here `ρ y` is Tau Ceti's
+  radial projection `TauCeti.cubeScale (TauCeti.cubeRadius y)⁻¹ y` of the annulus onto the
+  boundary of the square, and `T = e.frameTransition ψ` is the frame `ψ` read in `e`
+  (`Bundle.Trivialization.frameTransition`). On the boundary `ρ` is the identity, so this frame
+  is the frame `e⁻¹` at `x` there, and it descends through the collapse, which identifies the
+  boundary to the north pole.
 
 A frame along `p` on a closed set `S` of the square that agrees at points the collapse identifies
 gives a frame of `E'` on the image of `S`, continuous because the collapse restricted to the
@@ -44,18 +47,21 @@ compact `S` is a quotient map onto its image, and so is its product with the loc
 `G` (`Topology.IsQuotientMap.continuous_lift_prod_left`).
 
 On the boundary circle of the disc, the image of the circle of radius `1/5` about the centre of
-the square, the clutching transition is `T (ρ y)⁻¹`, whose normalized determinant is Tau Ceti's
-clutching function `TauCeti.clutchingFunction p ψ e` at `ρ y`. That function of `y` is continuous
-on the annulus and equals the clutching function on the boundary of the square. So the degree of
-the loop is its degree around the boundary of the square
-(`TauCeti.squareBoundaryDegree_eq_degree_toBasedLoop`), which is the clutching number
-(`TauCeti.clutchingNumber_eq_squareBoundaryDegree`).
+the square (`CoordinateDisc.cubeToSphere_eq_of_squareCenterOffset_eq`), the clutching transition
+is `T (ρ y)⁻¹`, whose normalized determinant is Tau Ceti's clutching function
+`TauCeti.clutchingFunction p ψ e` at `ρ y`. That function of `y` is continuous on the annulus and
+equals the clutching function on the boundary of the square. So the degree of the loop is its
+degree around the boundary of the square (`TauCeti.squareBoundaryDegree_eq_degree_toBasedLoop`),
+which is the clutching number (`TauCeti.clutchingNumber_eq_squareBoundaryDegree`).
 
-The continuity of the transition `T` on the preimage of the base set of `e` follows Tau Ceti's
-proof of `TauCeti.continuousOn_clutchingFunction`.
+The continuity of the transition of a frame in a trivialization,
+`Bundle.Trivialization.continuousOn_frameTransition`, follows Tau Ceti's proof of
+`TauCeti.continuousOn_clutchingFunction`.
 
 ## Main results
 
+* `Bundle.Trivialization.frameTransition`: a frame along a map read in a trivialization, with its
+  continuity and that of its inverse on the preimage of the base set.
 * `SymplecticGeometry.Bundle.exists_clutchingNumber_eq_degree_clutchingTransition`: frames of the
   pull-back of `E` to `S²` over the closed disc of `CoordinateDisc.cubeToSphere` and over the
   complement of its open disc, whose clutching transition has degree the clutching number of
@@ -81,6 +87,73 @@ open scoped unitInterval Topology.Homotopy
 /-- The unit sphere of `ℝ³`. -/
 local notation "𝕊²" => Metric.sphere (0 : EuclideanSpace ℝ (Fin 3)) (1 : ℝ)
 
+/-! ### A frame along a map read in a trivialization -/
+
+namespace Bundle.Trivialization
+
+section FrameTransition
+
+variable {R : Type*} [NontriviallyNormedField R] {B X : Type*} [TopologicalSpace X]
+  {F : Type*} [NormedAddCommGroup F] [NormedSpace R F]
+  {E : X → Type*} [∀ x, AddCommGroup (E x)] [∀ x, Module R (E x)] [∀ x, TopologicalSpace (E x)]
+  [TopologicalSpace (TotalSpace F E)] [FiberBundle F E]
+  {f : B → X} (e : Trivialization F (π F E)) [e.IsLinear R]
+
+open Classical in
+/-- A frame `ψ y : F ≃ E (f y)` of `E` along a map `f`, read in the trivialization `e`: at a
+point `y` with `f y` in the base set of `e`, the automorphism `e ∘ ψ y` of the model fibre `F`;
+at the other points, the identity. -/
+def frameTransition (ψ : ∀ y, F ≃L[R] E (f y)) (y : B) : F ≃L[R] F :=
+  if h : f y ∈ e.baseSet then (ψ y).trans (e.continuousLinearEquivAt R (f y) h)
+  else ContinuousLinearEquiv.refl R F
+
+variable {e} {ψ : ∀ y, F ≃L[R] E (f y)}
+
+theorem frameTransition_of_mem {y : B} (h : f y ∈ e.baseSet) :
+    e.frameTransition ψ y = (ψ y).trans (e.continuousLinearEquivAt R (f y) h) :=
+  dite_eq_left h
+
+theorem frameTransition_of_notMem {y : B} (h : f y ∉ e.baseSet) :
+    e.frameTransition ψ y = ContinuousLinearEquiv.refl R F :=
+  dite_eq_right h
+
+variable [CompleteSpace R] [TopologicalSpace B] [FiniteDimensional R F]
+  (hψ : Continuous fun q : B × F ↦ TotalSpace.mk' F (f q.1) (ψ q.1 q.2))
+
+include hψ in
+/-- The transition of a continuous frame in a trivialization is continuous on the preimage of
+the base set. -/
+theorem continuousOn_frameTransition (e : Trivialization F (π F E)) [e.IsLinear R] :
+    ContinuousOn (fun y ↦ (e.frameTransition ψ y : F →L[R] F)) (f ⁻¹' e.baseSet) := by
+  refine continuousOn_clm_apply.2 fun v ↦ ?_
+  have hc : ContinuousOn (fun y ↦ (e (TotalSpace.mk' F (f y) (ψ y v))).2) (f ⁻¹' e.baseSet) :=
+    continuous_snd.comp_continuousOn (e.continuousOn.comp
+      (hψ.comp (Continuous.prodMk_left v)).continuousOn fun y hy ↦ e.mem_source.2 hy)
+  refine hc.congr fun y (hy : f y ∈ e.baseSet) ↦ ?_
+  simp [frameTransition_of_mem hy]
+
+include hψ in
+/-- The inverse of the transition of a continuous frame in a trivialization is continuous on the
+preimage of the base set. -/
+theorem continuousOn_frameTransition_symm (e : Trivialization F (π F E)) [e.IsLinear R] :
+    ContinuousOn (fun y ↦ ((e.frameTransition ψ y).symm : F →L[R] F)) (f ⁻¹' e.baseSet) :=
+  fun y hy ↦ (continuousOn_frameTransition hψ e y hy).continuousLinearEquiv_symm
+
+end FrameTransition
+
+/-- At a point over the base set, the inverse of the normalized determinant of the transition of a
+frame in a trivialization is Tau Ceti's clutching function of the frame. -/
+theorem normalizedDet_frameTransition_inv {B X : Type*} [TopologicalSpace X]
+    {F : Type*} [NormedAddCommGroup F] [NormedSpace ℂ F]
+    {E : X → Type*} [∀ x, AddCommGroup (E x)] [∀ x, Module ℂ (E x)] [∀ x, TopologicalSpace (E x)]
+    [TopologicalSpace (TotalSpace F E)] [FiberBundle F E]
+    {f : B → X} {e : Trivialization F (π F E)} [e.IsLinear ℂ] {ψ : ∀ y, F ≃L[ℂ] E (f y)} {y : B}
+    (h : f y ∈ e.baseSet) :
+    (e.frameTransition ψ y).normalizedDet⁻¹ = clutchingFunction f ψ e y := by
+  rw [frameTransition_of_mem h, clutchingFunction_of_mem h]
+
+end Bundle.Trivialization
+
 namespace SymplecticGeometry
 
 namespace Bundle
@@ -93,17 +166,21 @@ variable {X : Type*} {x : X}
 
 section Cast
 
-/-- A frame at `a` carried to the fibre at `b = a`. -/
-private def frameCast {a b : X} (h : a = b) (χ : G ≃L[ℂ] E a) : G ≃L[ℂ] E b :=
-  cast (congrArg (fun b ↦ G ≃L[ℂ] E b) h) χ
+/-- A frame of `E` at `a` carried to the fibre at `b` of the pull-back of `E` along `f`, where
+`a = f b`. -/
+private def pullbackCast {B : Type*} (f : B → X) {a : X} {b : B} (h : a = f b)
+    (χ : G ≃L[ℂ] E a) : G ≃L[ℂ] (f *ᵖ E) b :=
+  cast (congrArg (fun c ↦ G ≃L[ℂ] E c) h) χ
 
-private theorem mk_frameCast {a b : X} (h : a = b) (χ : G ≃L[ℂ] E a) (v : G) :
-    TotalSpace.mk' G b (frameCast h χ v) = TotalSpace.mk' G a (χ v) := by
+private theorem mk_pullbackCast {B : Type*} (f : B → X) {a : X} {b : B} (h : a = f b)
+    (χ : G ≃L[ℂ] E a) (v : G) :
+    Pullback.lift f (TotalSpace.mk' G b (pullbackCast f h χ v)) = TotalSpace.mk' G a (χ v) := by
   subst h
   rfl
 
-private theorem frameCast_trans_symm {a b : X} (h : a = b) (α β : G ≃L[ℂ] E a) :
-    (frameCast h α).trans (frameCast h β).symm = α.trans β.symm := by
+private theorem pullbackCast_trans_symm {B : Type*} (f : B → X) {a : X} {b : B} (h : a = f b)
+    (α β : G ≃L[ℂ] E a) :
+    (pullbackCast f h α).trans (pullbackCast f h β).symm = α.trans β.symm := by
   subst h
   rfl
 
@@ -127,16 +204,16 @@ private theorem apply_eq_toSphere {y : I^(Fin 2)} {s : 𝕊²}
   rw [← h, GenLoop.toSphere_cubeToSphere]
 
 /-- A frame `χ` along `p`, read at a point `s` of the image `T` of `S` under the collapse through
-a chosen preimage of `s` in `S`. -/
+a chosen preimage of `s` in `S`, as a frame of the pull-back of `E` to the sphere. -/
 private def descendFrame (χ : ∀ y, G ≃L[ℂ] E (p y)) (s : T) :
-    G ≃L[ℂ] E (GenLoop.toSphere p (s : 𝕊²)) :=
-  frameCast (apply_eq_toSphere p (exists_mem_cubeToSphere_eq hST s).choose_spec.2)
+    G ≃L[ℂ] (⇑(GenLoop.toSphere p) *ᵖ E) (s : 𝕊²) :=
+  pullbackCast _ (apply_eq_toSphere p (exists_mem_cubeToSphere_eq hST s).choose_spec.2)
     (χ (exists_mem_cubeToSphere_eq hST s).choose)
 
-private theorem frameCast_congr (χ : ∀ y, G ≃L[ℂ] E (p y)) {y y' : I^(Fin 2)}
+private theorem pullbackCast_congr (χ : ∀ y, G ≃L[ℂ] E (p y)) {y y' : I^(Fin 2)}
     {s : 𝕊²} (hy : y = y')
     (h : p y = GenLoop.toSphere p (s : 𝕊²)) (h' : p y' = GenLoop.toSphere p (s : 𝕊²)) :
-    frameCast h (χ y) = frameCast h' (χ y') := by
+    pullbackCast _ h (χ y) = pullbackCast _ h' (χ y') := by
   subst hy
   rfl
 
@@ -144,9 +221,9 @@ private theorem frameCast_congr (χ : ∀ y, G ≃L[ℂ] E (p y)) {y y' : I^(Fin
 descended frame is `χ y`. -/
 private theorem descendFrame_eq (χ : ∀ y, G ≃L[ℂ] E (p y)) (s : T) {y : I^(Fin 2)}
     (hys : TauCeti.cubeToSphere 2 y = s) (hy : y ∉ Cube.boundary (Fin 2)) :
-    descendFrame p hST χ s = frameCast (apply_eq_toSphere p hys) (χ y) := by
+    descendFrame p hST χ s = pullbackCast _ (apply_eq_toSphere p hys) (χ y) := by
   obtain ⟨-, h₀⟩ := (exists_mem_cubeToSphere_eq hST s).choose_spec
-  refine frameCast_congr p χ ?_ _ _
+  refine pullbackCast_congr p χ ?_ _ _
   rcases cubeToSphere_eq_cubeToSphere_iff.1 (h₀.trans hys.symm) with h | ⟨-, h⟩
   · exact h
   · exact absurd h hy
@@ -158,10 +235,10 @@ variable {p} {χ : ∀ y, G ≃L[ℂ] E (p y)}
 include hcompat in
 private theorem mk_descendFrame (s : T) {y : I^(Fin 2)} (hy : y ∈ S)
     (hys : TauCeti.cubeToSphere 2 y = s) (v : G) :
-    TotalSpace.mk' G (GenLoop.toSphere p (s : 𝕊²)) (descendFrame p hST χ s v) =
+    Pullback.lift (GenLoop.toSphere p) (TotalSpace.mk' G (s : 𝕊²) (descendFrame p hST χ s v)) =
       TotalSpace.mk' G (p y) (χ y v) := by
   obtain ⟨h₀S, h₀⟩ := (exists_mem_cubeToSphere_eq hST s).choose_spec
-  rw [descendFrame, mk_frameCast]
+  rw [descendFrame, mk_pullbackCast]
   exact hcompat _ h₀S _ hy (h₀.trans hys.symm) v
 
 variable [TopologicalSpace (TotalSpace G E)] [FiniteDimensional ℂ G]
@@ -183,9 +260,8 @@ private theorem continuous_descendFrame (hS : IsClosed S)
     exact ⟨⟨y, hy⟩, Subtype.ext hys⟩
   refine hq.continuous_lift_prod_left (Pullback.continuous_iff.2 ⟨?_, ?_⟩)
   · exact (TauCeti.cubeToSphere 2).continuous.comp (continuous_subtypeVal.comp continuous_fst)
-  · simp only [Pullback.lift_mk]
-    have heq : (fun q : S × G ↦ TotalSpace.mk' G (GenLoop.toSphere p (k q.1 : 𝕊²))
-        (descendFrame p hST χ (k q.1) q.2)) =
+  · have heq : (fun q : S × G ↦ Pullback.lift (GenLoop.toSphere p)
+        (TotalSpace.mk' G (k q.1 : 𝕊²) (descendFrame p hST χ (k q.1) q.2))) =
         fun q : S × G ↦ TotalSpace.mk' G (p q.1) (χ q.1 q.2) :=
       funext fun q ↦ mk_descendFrame hST hcompat (k q.1) q.1.property rfl q.2
     rw [heq]
@@ -193,59 +269,6 @@ private theorem continuous_descendFrame (hS : IsClosed S)
       fun q ↦ ⟨q.1.property, mem_univ _⟩
 
 end Descend
-
-/-! ### The transition of a frame along the square in a trivialization -/
-
-section Transition
-
-variable {p : Ω^ (Fin 2) X x} (ψ : ∀ y, G ≃L[ℂ] E (p y))
-  [TopologicalSpace (TotalSpace G E)] [FiberBundle G E]
-  (e : Trivialization G (π G E)) [e.IsLinear ℂ]
-
-open Classical in
-/-- The frame `ψ y` read in the trivialization `e`, where `p y` lies in its base set. -/
-private def squareTransition (y : I^(Fin 2)) : G ≃L[ℂ] G :=
-  if h : p y ∈ e.baseSet then (ψ y).trans (e.continuousLinearEquivAt ℂ (p y) h)
-  else ContinuousLinearEquiv.refl ℂ G
-
-private theorem squareTransition_of_mem {y : I^(Fin 2)} (h : p y ∈ e.baseSet) :
-    squareTransition ψ e y = (ψ y).trans (e.continuousLinearEquivAt ℂ (p y) h) :=
-  dite_eq_left h
-
-private theorem normalizedDet_squareTransition_inv {y : I^(Fin 2)} (h : p y ∈ e.baseSet) :
-    (squareTransition ψ e y).normalizedDet⁻¹ = clutchingFunction p ψ e y := by
-  rw [squareTransition_of_mem ψ e h, clutchingFunction_of_mem h]
-
-variable [FiniteDimensional ℂ G] {ψ}
-  (hψ : Continuous fun q : (Fin 2 → I) × G ↦ TotalSpace.mk' G (p q.1) (ψ q.1 q.2))
-
-include hψ in
-private theorem continuousOn_squareTransition :
-    ContinuousOn (fun y ↦ (squareTransition ψ e y : G →L[ℂ] G)) (p ⁻¹' e.baseSet) := by
-  refine continuousOn_clm_apply.2 fun v ↦ ?_
-  have hc : ContinuousOn (fun y ↦ (e (TotalSpace.mk' G (p y) (ψ y v))).2) (p ⁻¹' e.baseSet) :=
-    continuous_snd.comp_continuousOn (e.continuousOn.comp
-      (hψ.comp (Continuous.prodMk_left v)).continuousOn fun y hy ↦ e.mem_source.2 hy)
-  refine hc.congr fun y (hy : p y ∈ e.baseSet) ↦ ?_
-  simp [squareTransition_of_mem ψ e hy]
-
-include hψ in
-private theorem continuousOn_squareTransition_symm :
-    ContinuousOn (fun y ↦ ((squareTransition ψ e y).symm : G →L[ℂ] G)) (p ⁻¹' e.baseSet) := by
-  have : CompleteSpace G := FiniteDimensional.completeSpace ℂ G
-  have h : (fun y ↦ ((squareTransition ψ e y).symm : G →L[ℂ] G)) =
-      fun y ↦ Ring.inverse (squareTransition ψ e y : G →L[ℂ] G) := by
-    funext y
-    rw [ContinuousLinearMap.ringInverse_equiv, ContinuousLinearMap.inverse_equiv]
-  rw [h]
-  intro y hy
-  have hu : ContinuousAt Ring.inverse (squareTransition ψ e y : G →L[ℂ] G) :=
-    NormedRing.inverse_continuousAt
-      ((ContinuousLinearEquiv.unitsEquiv ℂ G).symm (squareTransition ψ e y))
-  exact ContinuousAt.comp_continuousWithinAt (g := Ring.inverse)
-    (f := fun y ↦ (squareTransition ψ e y : G →L[ℂ] G)) hu (continuousOn_squareTransition e hψ y hy)
-
-end Transition
 
 /-! ### The frames and their clutching transition -/
 
@@ -270,38 +293,63 @@ private theorem notMem_boundary_of_mem_innerDisc {y : I^(Fin 2)} (hy : y ∈ inn
   simp only [innerDisc, mem_ofPred_eq] at hy
   linarith [one_half_le_norm_squareCenterOffset_of_mem hb]
 
-private theorem squareCenterOffset_ne_zero_of_mem_outerAnnulus {y : I^(Fin 2)}
-    (hy : y ∈ outerAnnulus) : squareCenterOffset y ≠ 0 := fun h ↦ by
-  simp only [outerAnnulus, mem_ofPred_eq, h, norm_zero] at hy
+/-- The annulus avoids the centre of the square, where the radius vanishes. -/
+private theorem cubeRadius_ne_zero_of_mem_outerAnnulus {y : I^(Fin 2)} (hy : y ∈ outerAnnulus) :
+    cubeRadius y ≠ 0 := fun h ↦ by
+  rw [cubeRadius_def, mul_eq_zero, dist_eq_zero] at h
+  obtain h | rfl := h
+  · norm_num at h
+  have h0 : squareCenterOffset (cubeCenter : I^(Fin 2)) = 0 :=
+    Complex.ext (by simp [cubeCenter_apply]) (by simp [cubeCenter_apply])
+  simp only [outerAnnulus, mem_ofPred_eq, h0, norm_zero] at hy
   norm_num at hy
+
+/-- The radial projection of the annulus onto the boundary of the square lands in the
+boundary. -/
+private theorem cubeScale_mem_boundary_of_mem_outerAnnulus {y : I^(Fin 2)}
+    (hy : y ∈ outerAnnulus) : cubeScale (cubeRadius y)⁻¹ y ∈ Cube.boundary (Fin 2) := by
+  have h := cubeRadius_ne_zero_of_mem_outerAnnulus hy
+  rw [← cubeRadius_eq_one_iff, cubeRadius_cubeScale (inv_nonneg.2 (cubeRadius_nonneg y))
+    (by rw [inv_mul_cancel₀ h])]
+  exact inv_mul_cancel₀ h
+
+/-- The radial projection of the annulus onto the boundary of the square is continuous. -/
+private theorem continuousOn_cubeScale_outerAnnulus :
+    ContinuousOn (fun y : I^(Fin 2) ↦ cubeScale (cubeRadius y)⁻¹ y) outerAnnulus := by
+  have h : Continuous fun q : ℝ × (I^(Fin 2)) ↦ cubeScale q.1 q.2 := continuous_cubeScale
+  exact h.comp_continuousOn ((continuous_cubeRadius.continuousOn.inv₀ fun _ hy ↦
+    cubeRadius_ne_zero_of_mem_outerAnnulus hy).prodMk continuousOn_id)
+
+/-- The points with offset `ζ / 5` from the centre, for `ζ` on the unit circle, lie in the
+annulus and off the boundary of the square. -/
+private theorem mem_outerAnnulus_of_squareCenterOffset_eq {ζ : Circle} {y : I^(Fin 2)}
+    (hy : squareCenterOffset y = ((1 / 5 : ℝ) : ℂ) * ζ) :
+    y ∈ outerAnnulus ∧ y ∉ Cube.boundary (Fin 2) := by
+  have hnorm : ‖squareCenterOffset y‖ = 1 / 5 := by
+    rw [hy, norm_mul, Circle.norm_coe, mul_one]
+    norm_num
+  refine ⟨hnorm.symm.le, fun hb ↦ ?_⟩
+  linarith [one_half_le_norm_squareCenterOffset_of_mem hb]
 
 private theorem image_innerDisc :
     TauCeti.cubeToSphere 2 '' innerDisc = CoordinateDisc.cubeToSphere.disc := by
-  rw [CoordinateDisc.disc_cubeToSphere]
-  congr 1
-  ext y
-  rw [innerDisc, mem_ofPred_eq, mem_ofPred_eq, ← sq_norm_squareCenterOffset]
-  constructor <;> intro h <;> nlinarith [norm_nonneg (squareCenterOffset y)]
+  rw [CoordinateDisc.disc_cubeToSphere, innerDisc]
 
 private theorem image_outerAnnulus :
     TauCeti.cubeToSphere 2 '' outerAnnulus =
       discComplement (fun _ : Unit ↦ CoordinateDisc.cubeToSphere) := by
   ext s
   rw [mem_discComplement_iff, CoordinateDisc.openDisc_cubeToSphere]
-  have hsq (y : I^(Fin 2)) : ((y 0 : ℝ) - 1 / 2) ^ 2 + ((y 1 : ℝ) - 1 / 2) ^ 2 < 1 / 25 ↔
-      ‖squareCenterOffset y‖ < 1 / 5 := by
-    rw [← sq_norm_squareCenterOffset]
-    constructor <;> intro h <;> nlinarith [norm_nonneg (squareCenterOffset y)]
   constructor
   · rintro ⟨y, hy, rfl⟩ - ⟨y', hy', h⟩
-    rw [mem_ofPred_eq, hsq] at hy'
+    rw [mem_ofPred_eq] at hy'
     rcases cubeToSphere_eq_cubeToSphere_iff.1 h with rfl | ⟨hb, -⟩
     · exact (not_le.2 hy') hy
     · linarith [one_half_le_norm_squareCenterOffset_of_mem hb]
   · intro h
     obtain ⟨y, rfl⟩ := cubeToSphere_surjective 2 s
     refine ⟨y, ?_, rfl⟩
-    rw [outerAnnulus, mem_ofPred_eq, ← not_lt, ← hsq]
+    rw [outerAnnulus, mem_ofPred_eq, ← not_lt]
     exact fun hy ↦ h () ⟨y, hy, rfl⟩
 
 variable [TopologicalSpace (TotalSpace G E)] [FiberBundle G E] [VectorBundle ℂ G E]
@@ -311,25 +359,22 @@ variable [TopologicalSpace (TotalSpace G E)] [FiberBundle G E] [VectorBundle ℂ
 /-- The frame over the annulus: `ψ y` composed with the inverse of the transition of `ψ` in the
 trivialization at `x`, taken at the radial projection of `y` onto the boundary of the square. -/
 private def annulusFrame (ψ : ∀ y, G ≃L[ℂ] E (p y)) (y : I^(Fin 2)) : G ≃L[ℂ] E (p y) :=
-  (squareTransition ψ (trivializationAt G E x) (squareBoundaryProj y)).symm.trans (ψ y)
+  ((trivializationAt G E x).frameTransition ψ (cubeScale (cubeRadius y)⁻¹ y)).symm.trans (ψ y)
 
 omit [NormedSpace ℂ G] [∀ x, AddCommGroup (E x)] [∀ x, Module ℂ (E x)] [VectorBundle ℂ G E] in
-private theorem apply_squareBoundaryProj_mem {y : I^(Fin 2)} (hy : y ∈ outerAnnulus) :
-    p (squareBoundaryProj y) ∈ (trivializationAt G E x).baseSet := by
-  rw [GenLoop.boundary p _
-    (squareBoundaryProj_mem_boundary (squareCenterOffset_ne_zero_of_mem_outerAnnulus hy))]
+private theorem apply_cubeScale_mem {y : I^(Fin 2)} (hy : y ∈ outerAnnulus) :
+    p (cubeScale (cubeRadius y)⁻¹ y) ∈ (trivializationAt G E x).baseSet := by
+  rw [GenLoop.boundary p _ (cubeScale_mem_boundary_of_mem_outerAnnulus hy)]
   exact mem_baseSet_trivializationAt G E x
 
 include hψ in
 private theorem continuousOn_annulusFrame [FiniteDimensional ℂ G] :
     ContinuousOn (fun q : (Fin 2 → I) × G ↦ TotalSpace.mk' G (p q.1) (annulusFrame ψ q.1 q.2))
       (outerAnnulus ×ˢ univ) := by
-  have hT : ContinuousOn (fun y ↦ ((squareTransition ψ (trivializationAt G E x)
-      (squareBoundaryProj y)).symm : G →L[ℂ] G)) outerAnnulus :=
-    (continuousOn_squareTransition_symm _ hψ).comp
-      (continuousOn_squareBoundaryProj.mono fun y hy ↦
-        squareCenterOffset_ne_zero_of_mem_outerAnnulus hy)
-      fun y hy ↦ apply_squareBoundaryProj_mem hy
+  have hT : ContinuousOn (fun y ↦ (((trivializationAt G E x).frameTransition ψ
+      (cubeScale (cubeRadius y)⁻¹ y)).symm : G →L[ℂ] G)) outerAnnulus :=
+    (Trivialization.continuousOn_frameTransition_symm hψ _).comp
+      continuousOn_cubeScale_outerAnnulus fun y hy ↦ apply_cubeScale_mem hy
   exact hψ.comp_continuousOn (continuousOn_fst.prodMk
     ((hT.comp continuousOn_fst fun q (hq : q ∈ outerAnnulus ×ˢ univ) ↦ hq.1).clm_apply
       continuousOn_snd))
@@ -341,9 +386,50 @@ private theorem mk_annulusFrame_of_mem {y : I^(Fin 2)} (hy : y ∈ Cube.boundary
   have hb : p y ∈ (trivializationAt G E x).baseSet :=
     by rw [GenLoop.boundary p y hy]; exact mem_baseSet_trivializationAt G E x
   have h : annulusFrame ψ y v = (trivializationAt G E x).symm (p y) v := by
-    rw [annulusFrame, squareBoundaryProj_of_mem hy, squareTransition_of_mem ψ _ hb]
+    rw [annulusFrame, (cubeRadius_eq_one_iff y).2 hy, inv_one, cubeScale_one,
+      Trivialization.frameTransition_of_mem hb]
     simp [Trivialization.continuousLinearEquivAt_symm_apply]
   rw [h, GenLoop.boundary p y hy]
+
+omit [TopologicalSpace (TotalSpace G E)] [FiberBundle G E] [VectorBundle ℂ G E] in
+/-- The frame `ψ` agrees with itself at the points of the inner disc that the collapse
+identifies, since it identifies none. -/
+private theorem mk_eq_mk_of_mem_innerDisc :
+    ∀ y ∈ innerDisc, ∀ y' ∈ innerDisc, TauCeti.cubeToSphere 2 y = TauCeti.cubeToSphere 2 y' →
+      ∀ v, TotalSpace.mk' G (p y) (ψ y v) = TotalSpace.mk' G (p y') (ψ y' v) := by
+  intro y hy y' _ h v
+  rcases cubeToSphere_eq_cubeToSphere_iff.1 h with rfl | ⟨hb, -⟩
+  · rfl
+  · exact absurd hb (notMem_boundary_of_mem_innerDisc hy)
+
+/-- The annulus frame agrees at the points of the annulus that the collapse identifies. -/
+private theorem mk_annulusFrame_eq_of_mem_outerAnnulus :
+    ∀ y ∈ outerAnnulus, ∀ y' ∈ outerAnnulus,
+      TauCeti.cubeToSphere 2 y = TauCeti.cubeToSphere 2 y' → ∀ v,
+        TotalSpace.mk' G (p y) (annulusFrame ψ y v) =
+          TotalSpace.mk' G (p y') (annulusFrame ψ y' v) := by
+  intro y _ y' _ h v
+  rcases cubeToSphere_eq_cubeToSphere_iff.1 h with rfl | ⟨hb, hb'⟩
+  · rfl
+  · rw [mk_annulusFrame_of_mem hb, mk_annulusFrame_of_mem hb']
+
+/-- On the boundary circle of the disc, at the image of the point `y` with offset `ζ / 5`, the
+clutching transition of the two descended frames is the inverse of the transition of `ψ` in the
+trivialization at `x`, taken at the radial projection of `y`. -/
+private theorem clutchingTransition_descendFrame {ζ : Circle} {y : I^(Fin 2)}
+    (hy : squareCenterOffset y = ((1 / 5 : ℝ) : ℂ) * ζ) :
+    clutchingTransition (φ := fun _ : Unit ↦ CoordinateDisc.cubeToSphere) Subsingleton.pairwise
+        (fun _ ↦ descendFrame p image_innerDisc ψ)
+        (descendFrame p image_outerAnnulus (annulusFrame ψ)) () ζ =
+      ((trivializationAt G E x).frameTransition ψ (cubeScale (cubeRadius y)⁻¹ y)).symm := by
+  have hyb := (mem_outerAnnulus_of_squareCenterOffset_eq hy).2
+  have hys : TauCeti.cubeToSphere 2 y = CoordinateDisc.cubeToSphere.boundaryCircle ζ := by
+    rw [CoordinateDisc.boundaryCircle_apply]
+    exact (CoordinateDisc.cubeToSphere_eq_of_squareCenterOffset_eq _ hy).symm
+  rw [clutchingTransition_def, descendFrame_eq _ _ _ _ hys hyb, descendFrame_eq _ _ _ _ hys hyb,
+    pullbackCast_trans_symm]
+  ext v
+  simp [annulusFrame]
 
 /-- **Clutching frames of a bundle pulled back to the sphere.** Let `p : I² → X` be a sphere based
 at `x` and `E` a complex vector bundle over `X` with finite-dimensional model `G`. The pull-back
@@ -369,68 +455,26 @@ theorem exists_clutchingNumber_eq_degree_clutchingTransition [FiniteDimensional 
   have : CompleteSpace G := FiniteDimensional.completeSpace ℂ G
   obtain ⟨ψ, hψ⟩ := exists_continuous_frame (𝕜 := ℂ) (F := G) (E := E) (map_continuous p)
   set e := trivializationAt G E x
-  have hx : x ∈ e.baseSet := mem_baseSet_trivializationAt G E x
-  have hcD : ∀ y ∈ innerDisc, ∀ y' ∈ innerDisc,
-      TauCeti.cubeToSphere 2 y = TauCeti.cubeToSphere 2 y' →
-        ∀ v, TotalSpace.mk' G (p y) (ψ y v) = TotalSpace.mk' G (p y') (ψ y' v) := by
-    intro y hy y' _ h v
-    rcases cubeToSphere_eq_cubeToSphere_iff.1 h with rfl | ⟨hb, -⟩
-    · rfl
-    · exact absurd hb (notMem_boundary_of_mem_innerDisc hy)
-  have hcA : ∀ y ∈ outerAnnulus, ∀ y' ∈ outerAnnulus,
-      TauCeti.cubeToSphere 2 y = TauCeti.cubeToSphere 2 y' → ∀ v,
-        TotalSpace.mk' G (p y) (annulusFrame ψ y v) =
-          TotalSpace.mk' G (p y') (annulusFrame ψ y' v) := by
-    intro y _ y' _ h v
-    rcases cubeToSphere_eq_cubeToSphere_iff.1 h with rfl | ⟨hb, hb'⟩
-    · rfl
-    · rw [mk_annulusFrame_of_mem hb, mk_annulusFrame_of_mem hb']
   refine ⟨fun _ ↦ descendFrame p image_innerDisc ψ,
     descendFrame p image_outerAnnulus (annulusFrame ψ),
-    fun _ ↦ continuous_descendFrame image_innerDisc hcD isClosed_innerDisc hψ.continuousOn,
-    continuous_descendFrame image_outerAnnulus hcA isClosed_outerAnnulus
-      (continuousOn_annulusFrame hψ), ?_⟩
+    fun _ ↦ continuous_descendFrame image_innerDisc mk_eq_mk_of_mem_innerDisc isClosed_innerDisc
+      hψ.continuousOn,
+    continuous_descendFrame image_outerAnnulus mk_annulusFrame_eq_of_mem_outerAnnulus
+      isClosed_outerAnnulus (continuousOn_annulusFrame hψ), ?_⟩
   -- The clutching function, read at the radial projection onto the boundary of the square.
-  let Γ : (Fin 2 → I) → Circle := fun y ↦ clutchingFunction p ψ e (squareBoundaryProj y)
-  have hΓ : ContinuousOn Γ {y | 1 / 5 ≤ ‖squareCenterOffset y‖} :=
-    (continuousOn_clutchingFunction hψ e).comp (continuousOn_squareBoundaryProj.mono fun y hy ↦
-      squareCenterOffset_ne_zero_of_mem_outerAnnulus hy) fun y hy ↦ apply_squareBoundaryProj_mem hy
+  let Γ : (Fin 2 → I) → Circle := fun y ↦ clutchingFunction p ψ e (cubeScale (cubeRadius y)⁻¹ y)
+  have hΓ : ContinuousOn Γ outerAnnulus :=
+    (continuousOn_clutchingFunction hψ e).comp continuousOn_cubeScale_outerAnnulus
+      fun y hy ↦ apply_cubeScale_mem hy
   have hb : EqOn (clutchingFunction p ψ e) Γ (Cube.boundary (Fin 2)) := fun y hy ↦ by
-    simp only [Γ, squareBoundaryProj_of_mem hy]
-  rw [clutchingNumber_eq_squareBoundaryDegree p e hx hψ, squareBoundaryDegree_congr hb]
+    simp only [Γ, (cubeRadius_eq_one_iff y).2 hy, inv_one, cubeScale_one]
+  rw [clutchingNumber_eq_squareBoundaryDegree p e (mem_baseSet_trivializationAt G E x) hψ,
+    squareBoundaryDegree_congr hb]
   refine squareBoundaryDegree_eq_degree_toBasedLoop (by norm_num) (by norm_num) hΓ _
     fun ζ y hy ↦ ?_
-  have hnorm : ‖squareCenterOffset y‖ = 1 / 5 := by
-    rw [hy, norm_mul, Circle.norm_coe, mul_one]
-    norm_num
-  have hyb : y ∉ Cube.boundary (Fin 2) := fun hb ↦ by
-    linarith [one_half_le_norm_squareCenterOffset_of_mem hb]
-  have hyA : y ∈ outerAnnulus := hnorm.symm.le
-  have hys : TauCeti.cubeToSphere 2 y = CoordinateDisc.cubeToSphere.boundaryCircle ζ := by
-    rw [CoordinateDisc.boundaryCircle_apply]
-    refine (CoordinateDisc.cubeToSphere_apply _ ?_ ?_).symm
-    · have h := congrArg Complex.re hy
-      rw [re_squareCenterOffset] at h
-      simp only [Complex.re_ofReal_mul] at h
-      simp only
-      linarith
-    · have h := congrArg Complex.im hy
-      rw [im_squareCenterOffset] at h
-      simp only [Complex.im_ofReal_mul] at h
-      simp only
-      linarith
-  have htrans : (annulusFrame ψ y).trans (ψ y).symm =
-      (squareTransition ψ e (squareBoundaryProj y)).symm := by
-    ext v
-    simp [annulusFrame, e]
-  simp only [ContinuousMap.coe_mk]
-  -- The fibres of the pull-back are those of `E` under another name, so these two rewrites need
-  -- `erw` to see through `Bundle.Pullback`.
-  erw [clutchingTransition_def]
-  rw [descendFrame_eq _ _ _ _ hys hyb, descendFrame_eq _ _ _ _ hys hyb]
-  erw [frameCast_trans_symm]
-  rw [htrans, ContinuousLinearEquiv.normalizedDet_symm,
-    normalizedDet_squareTransition_inv ψ e (apply_squareBoundaryProj_mem hyA)]
+  rw [ContinuousMap.coe_mk, clutchingTransition_descendFrame hy,
+    ContinuousLinearEquiv.normalizedDet_symm, Trivialization.normalizedDet_frameTransition_inv
+      (apply_cubeScale_mem (mem_outerAnnulus_of_squareCenterOffset_eq hy).1)]
 
 end Frames
 
