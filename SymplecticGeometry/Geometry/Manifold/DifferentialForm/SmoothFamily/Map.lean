@@ -7,7 +7,7 @@ module
 
 public import Mathlib.Analysis.LocallyConvex.SeparatingDual
 public import Mathlib.Geometry.Manifold.Instances.Real
-public import Mathlib.LinearAlgebra.Dual.Lemmas
+public import SymplecticGeometry.Geometry.Manifold.ContMDiff.Dual
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Basic
 
 /-!
@@ -211,22 +211,6 @@ theorem isSmoothFamily_comp_of_contMDiff_repr {ι : Type*} [Finite ι] (b : Modu
   rw [hsum]
   exact IsSmoothFamily.sum fun i _ ↦ (isSmoothFamily_const (L (b i))).fun_smul (hx i)
 
-omit [IsManifold J 1 N] in
-/-- **Smoothness against a spanning set of functionals.** Let `x` be a family of vectors of a real
-vector space `X`, indexed by a manifold `N`, and `s` a set of linear functionals on `X` that spans
-the dual space. If `t ↦ g (x t)` is smooth for every `g ∈ s`, then `t ↦ f (x t)` is smooth for
-every linear functional `f` on `X`. -/
-theorem contMDiff_dual_apply_of_span_eq_top {s : Set (Module.Dual ℝ X)}
-    (hs : Submodule.span ℝ s = ⊤) {x : N → X}
-    (hx : ∀ g ∈ s, ContMDiff J 𝓘(ℝ) ∞ (fun t ↦ g (x t))) (f : Module.Dual ℝ X) :
-    ContMDiff J 𝓘(ℝ) ∞ (fun t ↦ f (x t)) := by
-  have hf : f ∈ Submodule.span ℝ s := hs ▸ Submodule.mem_top
-  induction hf using Submodule.span_induction with
-  | mem f hf => exact hx f hf
-  | zero => exact contMDiff_const
-  | add f g _ _ hf hg => exact hf.add hg
-  | smul c f _ hf => exact ((contDiff_const_smul c).contMDiff).comp hf
-
 /-- **Families in a finite-dimensional space.** Let `x` be a family of vectors of a
 finite-dimensional real vector space `X`, indexed by a manifold `N`, such that `t ↦ f (x t)` is
 smooth for every linear functional `f` on `X`. Then its image under any linear map `L` from `X`
@@ -258,16 +242,18 @@ theorem PreservesSmoothFamilies.contMDiff_dual_apply [FiniteDimensional ℝ S] {
     (hT : PreservesSmoothFamilies (S.subtype ∘ₗ T)) {α : unitInterval → D}
     (hα : IsSmoothFamily (𝓡∂ 1) (fun t ↦ (α t : SmoothForm I M F k))) (f : Module.Dual ℝ S) :
     ContMDiff (𝓡∂ 1) 𝓘(ℝ) ∞ (fun t ↦ f (T (α t))) := by
-  have := Module.Free.of_divisionRing ℝ S
-  have hspan : Submodule.span ℝ (Set.range fun p : (x : M') × (Fin l → TangentSpace I' x) ×
-      StrongDual ℝ G ↦ evalDual (S := S) p.1 p.2.1 p.2.2) = ⊤ := by
-    refine Submodule.span_eq_top_of_ne_zero (R := ℝ) (M := S) fun z hz ↦ ?_
-    obtain ⟨x, v, hv⟩ : ∃ x v, (z : SmoothForm I' M' G l).val x v ≠ 0 := by
+  -- `X := S` makes Lean use the module instances of `S` itself, which it cannot match with
+  -- those coming from an `AddCommGroup` through `smoothBundleForms`, whose definition is not
+  -- exposed. `J` and `x` are given because the separating condition is elaborated before the
+  -- goal fixes the parameter manifold.
+  refine contMDiff_dual_apply_of_separating (J := 𝓡∂ 1) (X := S) (x := fun t ↦ T (α t))
+    (s := Set.range fun p : (x : M') × (Fin l → TangentSpace I' x) × StrongDual ℝ G ↦
+      evalDual (S := S) p.1 p.2.1 p.2.2) (fun z hz ↦ ?_) ?_ f
+  · obtain ⟨x, v, hv⟩ : ∃ x v, (z : SmoothForm I' M' G l).val x v ≠ 0 := by
       by_contra! h
       exact hz (Subtype.ext (SmoothBundleForm.ext h))
     obtain ⟨φ, hφ⟩ := SeparatingDual.exists_ne_zero (R := ℝ) hv
     exact ⟨_, ⟨⟨x, v, φ⟩, rfl⟩, hφ⟩
-  refine contMDiff_dual_apply_of_span_eq_top hspan ?_ f
   rintro _ ⟨⟨x, v, φ⟩, rfl⟩
   exact φ.contMDiff.comp ((hT α hα).contMDiff_apply x v)
 
