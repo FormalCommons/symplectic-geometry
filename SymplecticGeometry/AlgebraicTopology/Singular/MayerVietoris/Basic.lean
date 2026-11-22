@@ -47,9 +47,9 @@ variable {X : TopCat.{w}} {U V : Set X}
   (hU : IsOpen U) (hV : IsOpen V) (hUV : U ∪ V = Set.univ)
 
 include hU hV hUV in
-/-- If `Hₙ(U ∩ V)` vanishes, and so does `Hₘ(U ∩ V)` when `n = m + 1`, the second map
-`Hₙ(U) ⊞ Hₙ(V) ⟶ Hₙ(X)` of the Mayer–Vietoris sequence of an open cover `X = U ∪ V` is an
-isomorphism. -/
+/-- If `Hₙ(U ∩ V)` vanishes, and so does `Hₘ(U ∩ V)` when `n = m + 1`, for instance when `U` and
+`V` are disjoint, the second map `Hₙ(U) ⊞ Hₙ(V) ⟶ Hₙ(X)` of the Mayer–Vietoris sequence of an
+open cover is an isomorphism. -/
 lemma isIso_mayerVietorisFromBiprod_of_isZero (n : ℕ)
     (h₀ : IsZero ((toSSet.obj (of ↥(U ∩ V))).homology R n))
     (h₁ : ∀ m, n = m + 1 → IsZero ((toSSet.obj (of ↥(U ∩ V))).homology R m)) :
@@ -64,7 +64,8 @@ lemma isIso_mayerVietorisFromBiprod_of_isZero (n : ℕ)
 
 include hU hV hUV in
 /-- For a cover of `X` by two disjoint open sets `U` and `V`, the sum `Hₙ(U) ⊞ Hₙ(V) ⟶ Hₙ(X)` of
-the maps induced by the subspace inclusions is an isomorphism. -/
+the maps induced by the subspace inclusions is an isomorphism: it is the second map of the
+Mayer–Vietoris sequence, and the homology of `U ∩ V` vanishes in every degree. -/
 lemma isIso_biprodDesc_singularHomologyFunctor_map_of_disjoint (hd : Disjoint U V) (n : ℕ) :
     IsIso (biprod.desc
       (((AlgebraicTopology.singularHomologyFunctor C n).obj R).map
