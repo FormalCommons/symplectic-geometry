@@ -38,6 +38,7 @@ In the namespace `TauCeti.SmoothAlmostComplexStructure`, for a metric with
 
 * `inner_apply_left_eq_eval₂` and `inner_apply_left_eq_neg`: `⟪J u, w⟫ = σ(u, w)` and
   `⟪J u, w⟫ = -⟪u, J w⟫`.
+* `inner_hom_apply_apply_eq`: `⟪(∇_u J) (J v), w⟫ = ⟪(∇_u J) v, J w⟫`.
 * `inner_hom_apply_eq_neg`: `∇_u J` is skew-adjoint, for a metric connection.
 * `hom_hom_flat_apply_eq_inner`: `(∇_u σ)(v, w) = ⟪(∇_u J) v, w⟫`, for a metric connection.
 * `mextDeriv_apply_eq_inner`: `dσ` is the cyclic sum of `⟪(∇_u J) v, w⟫`, for a Levi-Civita
@@ -107,6 +108,17 @@ theorem inner_apply_left_eq_neg (hJ : ∀ x u v, ⟪u, v⟫ = σ.eval₂ x u (J 
 variable [IsContMDiffRiemannianBundle I 1 E (fun x : M ↦ TangentSpace I x)]
   {cov : CovariantDerivative I E (TangentSpace I : M → Type _)}
 
+omit [IsContMDiffRiemannianBundle I 1 E (fun x : M ↦ TangentSpace I x)] in
+/-- If `⟪u, v⟫ = σ(u, J v)`, then `J` passes from one argument of `⟪(∇_u J) ·, ·⟫` to the other:
+`⟪(∇_u J) (J v), w⟫ = ⟪(∇_u J) v, J w⟫`. -/
+theorem inner_hom_apply_apply_eq (hJ : ∀ x u v, ⟪u, v⟫ = σ.eval₂ x u (J x v)) (x : M)
+    (u v w : TangentSpace I x) :
+    ⟪cov.hom cov J.toEndomorphism x u (J x v), w⟫ =
+      ⟪cov.hom cov J.toEndomorphism x u v, J x w⟫ := by
+  rw [← _root_.neg_neg (cov.hom cov J.toEndomorphism x u (J x v)),
+    ← J.apply_hom_toEndomorphism_apply cov, inner_neg_left, inner_apply_left_eq_neg hJ,
+    _root_.neg_neg]
+
 /-- If `⟪u, v⟫ = σ(u, J v)` and `∇` is a metric connection, then `∇_u J` is skew-adjoint:
 `⟪(∇_u J) v, w⟫ = -⟪v, (∇_u J) w⟫`. -/
 theorem inner_hom_apply_eq_neg (hJ : ∀ x u v, ⟪u, v⟫ = σ.eval₂ x u (J x v))
@@ -164,14 +176,11 @@ theorem hom_apply_eq_neg_comp (hJ : ∀ x u v, ⟪u, v⟫ = σ.eval₂ x u (J x 
   have hj : (J.toEndomorphism x : TangentSpace I x →ₗ[ℝ] TangentSpace I x) ∘ₗ
       (J.toEndomorphism x : TangentSpace I x →ₗ[ℝ] TangentSpace I x) = -LinearMap.id :=
     LinearMap.ext fun a ↦ J.apply_apply x a
-  have hα (u a b : TangentSpace I x) : ⟪D u (J x a), b⟫ = ⟪D u a, J x b⟫ := by
-    rw [← _root_.neg_neg (D u (J x a)), ← J.apply_hom_toEndomorphism_apply cov, inner_neg_left,
-      inner_apply_left_eq_neg hJ, _root_.neg_neg]
   have hcyc (u a b : TangentSpace I x) : ⟪D u a, b⟫ + ⟪D a b, u⟫ + ⟪D b u, a⟫ = 0 := by
     rw [← mextDeriv_apply_eq_inner hJ hcov, σ.isClosed_iff_forall_mextDeriv_apply_eq_zero.1 hσ x]
     simp
-  have h := LinearMap.apply_left_eq_apply_right_of_cyclic (α := α) hj (fun u a b ↦ hα u a b)
-    (fun u a b ↦ hcyc u a b) v
+  have h := LinearMap.apply_left_eq_apply_right_of_cyclic (α := α) hj
+    (fun u a b ↦ inner_hom_apply_apply_eq hJ x u a b) (fun u a b ↦ hcyc u a b) v
   ext w : 1
   refine ext_inner_right ℝ fun z ↦ ?_
   have hz := h w z

@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Symplectic.Neighborhood.Basic
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Opens
 public import TauCeti.Geometry.Symplectic.Lagrangian.Presymplectic
 import SymplecticGeometry.LinearAlgebra.Symplectic.Subspace
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Diffeomorph
