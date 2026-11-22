@@ -23,13 +23,15 @@ category (`CategoryTheory.MonoidalPreadditive.monoidalLinearInt`), as there.
 * `TauCeti.VectorBundleOrientation.thomClass_prod`: the integral Thom class of the direct sum is
   `(-1) ^ ((m + 1) * (n + 1))` times the product `TauCeti.thomPairCup` of the Thom classes of the
   two factors, `p₁^* U(E₁) ⌣ p₂^* U(E₂)`.
-* `TauCeti.VectorBundleOrientation.eulerClass_prod`: the Euler class of the direct sum is
-  `(-1) ^ ((m + 1) * (n + 1))` times the cup product of the Euler classes of the factors.
+* `TauCeti.VectorBundleOrientation.eulerClass_prod`: the Euler class of the direct sum is the cup
+  product of the Euler classes of the factors, with no sign.
 
-The sign is that of `Orientation.complZeroPairCross_localCohomologyClass`, which compares the
-product of the local generators selected by orientations of the model fibres with the generator
-selected by their product orientation. It is `1` as soon as one of the two ranks is even, in
-particular for complex bundles.
+The sign in `thomClass_prod` is that of `Orientation.complZeroPairCross_localCohomologyClass`,
+which compares the product of the local generators selected by orientations of the model fibres
+with the generator selected by their product orientation. It is `1` as soon as one of the two
+ranks is even, in particular for complex bundles. It drops out of `eulerClass_prod`: when both
+ranks are odd, the Euler class of each factor is `2`-torsion
+(`TauCeti.VectorBundleOrientation.two_smul_eulerClass`), so it equals its negative.
 
 The proof of `thomClass_prod` reads both sides on the fibre over each point in the product of the
 preferred trivializations of the two factors, following Tau Ceti's proof of
@@ -109,17 +111,25 @@ theorem thomClass_prod (o₁ : VectorBundleOrientation F₁ E₁ (Fin (m + 1)))
 /-- **The integral Euler class of a direct sum of oriented bundles.** For orientations `o₁` and
 `o₂` of real vector bundles `E₁` and `E₂` over a common base, of ranks `m + 1` and `n + 1`, the
 Euler class of `E₁ ⊕ E₂` with the orientation `o₁.prod o₂`, reindexed by
-`Fin (m + 1 + (n + 1)) ≃ Fin (d + 1)`, is `(-1) ^ ((m + 1) * (n + 1))` times the cup product
-`e(E₁) ⌣ e(E₂)` of the Euler classes of `o₁` and `o₂`. -/
+`Fin (m + 1 + (n + 1)) ≃ Fin (d + 1)`, is the cup product `e(E₁) ⌣ e(E₂)` of the Euler classes
+of `o₁` and `o₂`. -/
 theorem eulerClass_prod (o₁ : VectorBundleOrientation F₁ E₁ (Fin (m + 1)))
     (o₂ : VectorBundleOrientation F₂ E₂ (Fin (n + 1))) (hF₁ : finrank ℝ F₁ = m + 1)
     (hF₂ : finrank ℝ F₂ = n + 1) (h : m + 1 + (n + 1) = d + 1) :
     (reindex (finCongr h) (o₁.prod o₂ hF₁ hF₂)).eulerClass (finrank_prod_eq_succ hF₁ hF₂ h) =
-      (-1 : ℤ) ^ ((m + 1) * (n + 1)) •
-        (TopCat.of B).singularCup ℤ integralCoeffComul (ModuleCat.uliftTensorSelfIso ℤ).hom
-          (m + 1) (n + 1) (d + 1) h (o₁.eulerClass hF₁) (o₂.eulerClass hF₂) := by
-  rw [eulerClass_def, thomClass_prod, map_zsmul, eulerClass_thomPairCup, eulerClass_def,
-    eulerClass_def]
+      (TopCat.of B).singularCup ℤ integralCoeffComul (ModuleCat.uliftTensorSelfIso ℤ).hom
+        (m + 1) (n + 1) (d + 1) h (o₁.eulerClass hF₁) (o₂.eulerClass hF₂) := by
+  rw [eulerClass_def, thomClass_prod, map_zsmul, eulerClass_thomPairCup, ← eulerClass_def,
+    ← eulerClass_def]
+  rcases Nat.even_or_odd m with hm | hm
+  · rcases Nat.even_or_odd n with hn | hn
+    · -- Both ranks are odd: the sign is `-1`, and `e(E₁)` is `2`-torsion, so `-e(E₁) = e(E₁)`.
+      have h₁ : -o₁.eulerClass hF₁ = o₁.eulerClass hF₁ :=
+        neg_eq_iff_add_eq_zero.2 (by rw [← two_nsmul, o₁.two_smul_eulerClass hF₁ hm])
+      rw [Odd.neg_one_pow (hm.add_one.mul hn.add_one), neg_one_zsmul, ← LinearMap.neg_apply,
+        ← map_neg, h₁]
+    · rw [Even.neg_one_pow (hn.add_one.mul_left _), one_smul]
+  · rw [Even.neg_one_pow (hm.add_one.mul_right _), one_smul]
 
 end TauCeti.VectorBundleOrientation
 

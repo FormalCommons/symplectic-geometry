@@ -764,8 +764,9 @@ model fibres:
   `ω₁.prod ω₂` (`Orientation.complZeroPairCross_localCohomologyClass`, in
   `AlgebraicTopology/Cohomology/Local/CrossOrientation.lean`); with the
   fibrewise steps of `TauCeti.VectorBundleOrientation.thomClassOfModel_prod`
-  it gives `TauCeti.VectorBundleOrientation.eulerClass_prod`, with the same
-  sign, for `TauCeti.VectorBundleOrientation.eulerClass` (in
+  it gives `TauCeti.VectorBundleOrientation.eulerClass_prod`, with no sign
+  (an Euler class of odd rank is `2`-torsion), for
+  `TauCeti.VectorBundleOrientation.eulerClass` (in
   `Topology/VectorBundle/Orientation/Whitney.lean`);
 - that the complex orientation of `E₁ ×ᵇ E₂` is the product of the complex
   orientations, reindexed;
