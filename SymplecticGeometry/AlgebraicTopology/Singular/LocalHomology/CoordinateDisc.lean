@@ -16,6 +16,7 @@ public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Change
 public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orientation.Smooth
 public import SymplecticGeometry.LinearAlgebra.Complex.Orientation
 import TauCeti.Geometry.Manifold.CoordinateBall
+import TauCeti.Geometry.Manifold.ModelTransport.Finrank
 import TauCeti.Topology.OpenPartialHomeomorph.Constructions
 
 /-!
@@ -49,14 +50,15 @@ gives coordinate discs for `o.toHomologicalOrientation`: for a ball `B(c, r)` in
 orientation can be read in any chart whose derivative matches the orientations
 (`TauCeti.Manifold.Orientation.toHomologicalOrientation_apply_eq_localOrientationOfOrientedChart`).
 
-Coordinate discs exist on every homologically oriented surface. An open embedding `f` of the ball
-into `M` (from a coordinate ball of `M`, `IsOpen.exists_isOpenEmbedding_apply_zero_eq`) pulls `o`
-back to a homological orientation of the ball. Read with the model `ℂ`
-(`TauCeti.HomologicalOrientation.changeModel`), it is the canonical orientation of the ball or its
-opposite, since the ball is connected (`TauCeti.HomologicalOrientation.eq_or_eq_neg`). So `f` is a
-coordinate disc for `o` or for `-o`, and in the second case its reverse is one for `o`. Finitely
-many distinct points have pairwise disjoint open neighbourhoods (`Set.Finite.t2_separation`), and
-coordinate discs inside them have disjoint images.
+Coordinate discs exist on every homologically oriented surface. Chart `M` on `ℂ` through a linear
+equivalence (`ChartedSpace.ofFinrankEq`) and read `o` with the model `ℂ`
+(`TauCeti.HomologicalOrientation.changeModel`). An open embedding `f` of the ball into `M` (from a
+coordinate ball of `M`, `IsOpen.exists_isOpenEmbedding_apply_zero_eq`) pulls it back to a
+homological orientation of the ball, which is the canonical one or its opposite, since the ball is
+connected (`TauCeti.HomologicalOrientation.eq_or_eq_neg`). So `f` is a coordinate disc for `o` or
+for `-o` (`SymplecticGeometry.CoordinateDisc.ofComapEq`), and in the second case its reverse is one
+for `o`. Finitely many distinct points have pairwise disjoint open neighbourhoods
+(`Set.Finite.t2_separation`), and coordinate discs inside them have disjoint images.
 
 ## Main definitions
 
@@ -94,10 +96,10 @@ coordinate discs inside them have disjoint images.
   are the images under `e.symm` of the closed and the open ball of radius `r / 2` about `c`.
 * `SymplecticGeometry.CoordinateDisc.exists_coe_eq_or_exists_coe_eq`: an open embedding of the
   ball is a coordinate disc for `o` or for `-o`.
-* `SymplecticGeometry.CoordinateDisc.exists_coordinateDisc`: a coordinate disc centred at any
-  point, inside any neighbourhood of it.
-* `SymplecticGeometry.CoordinateDisc.exists_coordinateDisc_pairwise_disjoint`: coordinate discs
-  centred at finitely many distinct points, with pairwise disjoint images.
+* `SymplecticGeometry.exists_coordinateDisc`: a coordinate disc centred at any point, inside any
+  neighbourhood of it.
+* `SymplecticGeometry.exists_coordinateDisc_pairwise_disjoint`: coordinate discs centred at
+  finitely many distinct points, with pairwise disjoint images.
 
 ## Implementation notes
 
@@ -668,16 +670,6 @@ namespace CoordinateDisc
 variable {M : Type} [TopologicalSpace M] [T2Space M] {E : Type} [NormedAddCommGroup E]
   [NormedSpace ℝ E] [FiniteDimensional ℝ E] [ChartedSpace E M] {o : HomologicalOrientation M E 2}
 
-/-- An open embedding of the ball along which `o`, read on the ball with the model `ℂ`, is the
-canonical orientation of the ball is a coordinate disc. -/
-private theorem exists_coe_eq_of_changeModel_comap_eq [ChartedSpace E ball] {f : ball → M}
-    (hf : IsOpenEmbedding f) (h : finrank ℝ E = finrank ℝ ℂ)
-    (ho : (o.comap hf).changeModel ℂ h = complexHomologicalOrientation ball) :
-    ∃ φ : CoordinateDisc o, ⇑φ = f := by
-  refine ⟨⟨f, hf, fun z ↦ ?_⟩, rfl⟩
-  rw [← ho, HomologicalOrientation.changeModel_apply,
-    HomologicalOrientation.localOrientationEquiv_comap_apply]
-
 /-- **Open embeddings of the ball are coordinate discs up to orientation.** On a surface `M`
 with a homological orientation `o`, an open embedding `f` of the ball of radius `2` of `ℂ` is a
 coordinate disc either for `o` or for `-o`: the ball is connected, so `o` read on it agrees with
@@ -686,18 +678,23 @@ theorem exists_coe_eq_or_exists_coe_eq (hE : finrank ℝ E = 2) {f : ball → M}
     (hf : IsOpenEmbedding f) :
     (∃ φ : CoordinateDisc o, ⇑φ = f) ∨ ∃ φ : CoordinateDisc (-o), ⇑φ = f := by
   have h : finrank ℝ E = finrank ℝ ℂ := hE.trans Complex.finrank_real_complex.symm
-  -- Chart the ball on `E` through a linear equivalence, to pull `o` back to it.
-  let : ChartedSpace E ℂ :=
-    (ContinuousLinearEquiv.ofFinrankEq h).symm.toHomeomorph.toOpenPartialHomeomorph
-      |>.singletonChartedSpace (by simp)
-  let : ChartedSpace E ball := ChartedSpace.comp E ℂ ball
+  -- Chart `M` on `ℂ` through a linear equivalence, to read `o` with the model `ℂ`.
+  let : ChartedSpace ℂ M := ChartedSpace.ofFinrankEq (𝕜 := ℝ) M h
   have : ConnectedSpace ball :=
     Subtype.connectedSpace (by simpa [coe_ball] using Metric.isConnected_ball (by norm_num))
+  -- A coordinate disc for `o.changeModel ℂ h` is one for `o`: the two have the same local
+  -- orientations.
+  have key (o' : HomologicalOrientation M E 2)
+      (ho : (o'.changeModel ℂ h).comap hf = complexHomologicalOrientation ball) :
+      ∃ φ : CoordinateDisc o', ⇑φ = f :=
+    let ψ := ofComapEq f hf ho
+    ⟨⟨f, hf, fun z ↦ (ψ.localOrientationEquiv_apply z).trans
+      (HomologicalOrientation.changeModel_apply o' h (f z))⟩, rfl⟩
   rcases HomologicalOrientation.eq_or_eq_neg Complex.finrank_real_complex
-    (complexHomologicalOrientation ball) ((o.comap hf).changeModel ℂ h) with ho | ho
-  · exact Or.inl (exists_coe_eq_of_changeModel_comap_eq hf h ho)
-  · refine Or.inr (exists_coe_eq_of_changeModel_comap_eq hf h ?_)
-    rw [HomologicalOrientation.comap_neg, HomologicalOrientation.changeModel_neg, ho, neg_neg]
+    (complexHomologicalOrientation ball) ((o.changeModel ℂ h).comap hf) with ho | ho
+  · exact Or.inl (key o ho)
+  · refine Or.inr (key (-o) ?_)
+    rw [HomologicalOrientation.changeModel_neg, HomologicalOrientation.comap_neg, ho, neg_neg]
 
 omit [T2Space M] in
 /-- An open embedding of the ball sending `0` to `x`, inside a neighbourhood `U` of `x`: Tau
@@ -715,6 +712,10 @@ private theorem exists_isOpenEmbedding_ball (hE : finrank ℝ E = 2) {x : M} {U 
     by simpa using hκx, ?_⟩
   rintro _ ⟨z, rfl⟩
   exact interior_subset (κ (L z)).property
+
+end CoordinateDisc
+
+open CoordinateDisc
 
 /-- **Existence of coordinate discs.** On a surface `M` with a homological orientation `o`, every
 point `x` is the centre of a coordinate disc for `o` whose image lies in any given neighbourhood
@@ -749,8 +750,6 @@ theorem exists_coordinateDisc_pairwise_disjoint (hE : finrank ℝ E = 2)
   refine ⟨φ, hφx, fun i ↦ (hφU i).trans Set.inter_subset_left, fun i j hij ↦ ?_⟩
   exact (hVd (Set.mem_range_self i) (Set.mem_range_self j) (hx.ne hij)).mono
     ((hφU i).trans Set.inter_subset_right) ((hφU j).trans Set.inter_subset_right)
-
-end CoordinateDisc
 
 end SymplecticGeometry
 
