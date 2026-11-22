@@ -9,6 +9,7 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.LieDeriv
 public import TauCeti.Geometry.Manifold.SmoothIsotopy.Diffeotopy
 public import TauCeti.Geometry.Manifold.VectorField.Prod
 public import TauCeti.Geometry.Symplectic.Flux.Hamiltonian
+public import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
 import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Velocity
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.LieDeriv
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
@@ -332,8 +333,7 @@ theorem mpullback_prodMk_velocityForm_restrict (σ : SmoothTwoForm I M) (G : Smo
       SmoothForm.mpullback (Opens.inclusion h) (contMDiff_inclusion h)
         (SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id)
           (G.velocityForm σ)) := by
-  refine Subtype.ext (funext fun x ↦ ContinuousAlternatingMap.ext fun v ↦ ?_)
-  obtain ⟨w, rfl⟩ : ∃ w, v = ![w] := ⟨v 0, (FinVec.etaExpand_eq _).symm⟩
+  refine Subtype.ext (funext fun x ↦ ContinuousAlternatingMap.ext_fin_one fun w ↦ ?_)
   have hGt : MDifferentiableAt J I (fun y ↦ G (t, y)) (Opens.inclusion h x) :=
     (G.contMDiff.comp (contMDiff_const.prodMk contMDiff_id)).mdifferentiableAt (by simp)
   have hcomp : mfderiv J I (fun y ↦ G (t, Opens.inclusion h y)) x w =
@@ -433,9 +433,7 @@ theorem hasHamiltonian_iff_velocityForm {σ : SmoothTwoForm I M} {Φ : Diffeotop
   refine and_congr_right fun hF ↦ ⟨fun h t ↦ ?_, fun h p v ↦ ?_⟩
   · funext x
     ext w
-    have hw : w = ![w 0] := (FinVec.etaExpand_eq _).symm
-    rw [hw]
-    exact (hα t x (w 0)).trans ((h (x, t) (w 0)).trans (hd hF t x (w 0)).symm)
+    exact (hα t x w).trans ((h (x, t) w).trans (hd hF t x w).symm)
   · rw [← hα, ← hd hF, h]
 
 end Diffeotopy
