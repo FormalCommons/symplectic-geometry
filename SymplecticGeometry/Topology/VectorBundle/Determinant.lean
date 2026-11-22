@@ -553,13 +553,9 @@ theorem detCoreFrameSection_apply_eq_det (y : X) (i : Fin ((detCore 𝕜 G E).pu
     detCoreFrameSection f Φ hΦ y i =
       LinearMap.det ((Φ y).trans (VectorBundle.continuousLinearEquivAt 𝕜 G E (f y)) :
         G →ₗ[𝕜] G) := by
-  rw [detCoreFrameSection_apply, ContinuousLinearMap.exteriorPowerCoords_self, smul_apply,
-    ContinuousLinearMap.id_apply, Pi.smul_apply, smul_eq_mul, mul_one, ContinuousLinearMap.det,
-    ← LinearMap.det_conj _
-      (ContinuousLinearEquiv.ofFinrankEq (finrank_fin_fun 𝕜).symm).toLinearEquiv.symm]
-  congr 1
-  ext v
-  simp
+  rw [detCoreFrameSection_apply, ← LinearMap.det_conj _
+    (ContinuousLinearEquiv.ofFinrankEq (finrank_fin_fun 𝕜).symm).toLinearEquiv]
+  simp [ContinuousLinearMap.det, LinearEquiv.coe_trans, LinearMap.comp_assoc, -LinearEquiv.comp_coe]
 
 /-- **Naturality of the determinant section of a frame.** Reparametrizing a frame `Φ` along `f`
 by a continuous map `g : Y → X` reparametrizes its determinant section by `g`. -/
