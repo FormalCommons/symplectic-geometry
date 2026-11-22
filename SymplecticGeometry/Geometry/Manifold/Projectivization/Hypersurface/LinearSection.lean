@@ -18,6 +18,7 @@ import SymplecticGeometry.LinearAlgebra.FiniteDimensional.KerInf
 import SymplecticGeometry.LinearAlgebra.Projectivization.Basic
 import TauCeti.Geometry.Manifold.MFDeriv.Chart.Basic
 import TauCeti.Geometry.Manifold.VectorBundle.Pullback
+import TauCeti.LinearAlgebra.Dimension.Submodule
 
 /-!
 # The section of `X.embedding^* 𝒪(1)^{⊕ι}` given by linear forms
@@ -604,12 +605,9 @@ private theorem surjective_comp_fderiv_chartLift_iff {ℓ : (Fin (n + 2) → ℂ
       LinearMap.ker ℓ ⊓ LinearMap.range D.toLinearMap = ⊥ := by
     rw [← LinearMap.ker_eq_bot, ContinuousLinearMap.toLinearMap_comp, LinearMap.ker_comp, inf_comm,
       ← Submodule.map_comap_eq, ← Submodule.map_bot D.toLinearMap,
-      (Submodule.map_injective_of_injective hD).eq_iff]
-    rfl
+      (Submodule.map_injective_of_injective hD).eq_iff, LinearMap.coe_toContinuousLinearMap]
   have hℓk : Module.finrank ℂ (LinearMap.ker ℓ) = 2 := by
-    have := ℓ.finrank_range_add_finrank_ker
-    rw [LinearMap.range_eq_top.2 hℓ, finrank_top, Module.finrank_fin_fun,
-      Module.finrank_fin_fun] at this
+    rw [ℓ.finrank_ker_eq_sub_of_surjective hℓ, Module.finrank_fin_fun, Module.finrank_fin_fun]
     omega
   rw [hinj, X.range_fderiv_chartLift z, ← inf_assoc,
     Submodule.inf_ker_inf_ker_eq_bot_iff hℓk

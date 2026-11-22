@@ -27,7 +27,7 @@ open Module LinearMap
 
 namespace Submodule
 
-variable {K V : Type*} [Field K] [AddCommGroup V] [Module K V]
+variable {K V : Type*} [DivisionRing K] [AddCommGroup V] [Module K V]
 
 /-- Let `P` be a plane, and let `f` and `g` be linear forms with a vector `v ∈ P` such that
 `f v ≠ 0` and `g v = 0`. Then `P`, `ker f` and `ker g` meet only in `0` exactly when `g` does not
