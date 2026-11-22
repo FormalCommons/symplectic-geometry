@@ -207,9 +207,8 @@ private theorem notMem_boundary_of_mem_innerDisc {y : I^(Fin 2)} (hy : y ∈ inn
 /-- The annulus avoids the centre of the square, where the radius vanishes. -/
 private theorem cubeRadius_ne_zero_of_mem_outerAnnulus {y : I^(Fin 2)} (hy : y ∈ outerAnnulus) :
     cubeRadius y ≠ 0 := fun h ↦ by
-  rw [cubeRadius_def, mul_eq_zero, dist_eq_zero] at h
-  obtain h | rfl := h
-  · norm_num at h
+  rw [cubeRadius_eq_zero_iff] at h
+  subst h
   simp only [outerAnnulus, mem_ofPred_eq, squareCenterOffset_cubeCenter, norm_zero] at hy
   norm_num at hy
 

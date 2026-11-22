@@ -41,7 +41,7 @@ namespace Bundle.Trivialization
 
 variable {R : Type*} [NontriviallyNormedField R] {B X : Type*} [TopologicalSpace X]
   {F : Type*} [NormedAddCommGroup F] [NormedSpace R F]
-  {E : X → Type*} [∀ x, AddCommGroup (E x)] [∀ x, Module R (E x)] [∀ x, TopologicalSpace (E x)]
+  {E : X → Type*} [∀ x, AddCommMonoid (E x)] [∀ x, Module R (E x)] [∀ x, TopologicalSpace (E x)]
   [TopologicalSpace (TotalSpace F E)] [FiberBundle F E]
   {f : B → X} (e : Trivialization F (π F E)) [e.IsLinear R]
 

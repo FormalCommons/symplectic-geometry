@@ -15,6 +15,8 @@ Tau Ceti's `TauCeti.cubeScale s` scales the cube `I^N` about its centre by `s`, 
 boundary is where it equals `1`. Away from the centre, scaling `z` by `(cubeRadius z)⁻¹` projects
 it radially onto the boundary of the cube.
 
+* `TauCeti.cubeRadius_eq_zero_iff`: the radius vanishes exactly at the centre, so the
+  hypothesis `cubeRadius z ≠ 0` below says that `z` is not the centre.
 * `TauCeti.cubeScale_inv_cubeRadius_mem_boundary`: the radial projection of a point other than
   the centre lies on the boundary.
 * `TauCeti.continuousOn_cubeScale_inv_cubeRadius`: the radial projection is continuous on the
@@ -28,6 +30,12 @@ open scoped unitInterval Topology Topology.Homotopy
 namespace TauCeti
 
 variable {N : Type*} [Fintype N]
+
+/-- The radius `cubeRadius z` vanishes exactly at the centre of the cube. -/
+@[simp]
+theorem cubeRadius_eq_zero_iff {z : I^N} : cubeRadius z = 0 ↔ z = cubeCenter := by
+  rw [cubeRadius_def, mul_eq_zero, dist_eq_zero]
+  simp
 
 /-- The radial projection `cubeScale (cubeRadius z)⁻¹ z` of a point `z` other than the centre of
 the cube lies on the boundary of the cube. -/
