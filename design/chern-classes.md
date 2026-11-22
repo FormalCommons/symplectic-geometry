@@ -230,13 +230,12 @@ In the namespace `TopCat`, for `X : TopCat.{0}`, with
   with its value on a cochain representative.
 - `uliftIntegralCohomologyIso_naturality`: it commutes with
   `singularCohomologyMap f` for `f : X ⟶ Y`.
-- `uliftIntCoeffMul : ModuleCat.of ℤ (ULift ℤ) ⊗ ModuleCat.of ℤ (ULift ℤ) ⟶
-  ModuleCat.of ℤ (ULift ℤ)`, `a ⊗ b ↦ ⟨a.down * b.down⟩`, the multiplication
-  of the values, with `uliftIntCoeffMul_apply`.
 - `uliftIntegralCohomologyIso_singularCup`: the isomorphism carries
-  `X.singularCup ℤ integralCoeffComul uliftIntCoeffMul p q n h a b` to
-  `X.integralCup p q n h` of the images of `a` and `b`, since `uliftIntIso`
-  carries `uliftIntCoeffMul` to `integralCoeffMul`.
+  `X.singularCup ℤ integralCoeffComul (ModuleCat.uliftTensorSelfIso ℤ).hom
+  p q n h a b` to `X.integralCup p q n h` of the images of `a` and `b`, since
+  `uliftIntIso` carries Tau Ceti's `ModuleCat.uliftTensorSelfIso ℤ`, the
+  multiplication `a ⊗ b ↦ ⟨a.down * b.down⟩` of the values, to
+  `integralCoeffMul`.
 
 ### `AlgebraicTopology/Cohomology/LerayHirsch/MayerVietoris.lean`
 
@@ -432,8 +431,8 @@ model fibres:
   orientations, reindexed;
 - `TauCeti.complexEulerClass_prod`: `complexEulerClass (G₁ × G₂) (E₁ ×ᵇ E₂) =
   complexEulerClass G₁ E₁ ⌣ complexEulerClass G₂ E₂`, the cup product being
-  `singularCup ℤ integralCoeffComul uliftIntCoeffMul` on classes with values
-  in `ULift ℤ`, as in `eulerClass_thomClassOfModel_prod`.
+  `singularCup ℤ integralCoeffComul (ModuleCat.uliftTensorSelfIso ℤ).hom` on
+  classes with values in `ULift ℤ`, as in `eulerClass_thomClassOfModel_prod`.
 
 ### `Topology/VectorBundle/Orientation/Complex/Tensor.lean`
 
@@ -519,7 +518,9 @@ dimensions are included (both sides vanish).
   `Topology/VectorBundle/Determinant.lean`.
 - From Tau Ceti: integral cohomology and cup products
   (`AlgebraicTopology/Cohomology/IntegralCup.lean`, `Cup/Relative.lean`),
-  the isomorphism `uliftIntIso` of `ULift ℤ` with `ℤ`,
+  the isomorphism `uliftIntIso` of `ULift ℤ` with `ℤ`, the multiplication
+  `ModuleCat.uliftTensorSelfIso` of `ULift ℤ`
+  (`Algebra/Category/ModuleCat/Monoidal/Unit.lean`),
   Leray–Hirsch for products (`LerayHirsch/`), the Mayer–Vietoris step of
   the Thom isomorphism, the Thom isomorphism, Euler classes of oriented and
   complex bundles and their Whitney formula for model classes, section
