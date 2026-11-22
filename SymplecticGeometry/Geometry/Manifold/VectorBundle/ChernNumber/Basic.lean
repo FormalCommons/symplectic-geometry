@@ -76,14 +76,14 @@ variable {M M' EM : Type} [NormedAddCommGroup EM] [NormedSpace ℝ EM] [FiniteDi
 oriented surfaces, `M` connected, and a complex vector bundle `E` over `M`, the first Chern number
 of the pull-back `φ* E` is the mapping degree of `φ` (the signed count of the preimages of a
 regular value) times the first Chern number of `E`. -/
-theorem chernNumber_pullback_eq_degree_mul [PreconnectedSpace M] {φ : C(M', M)}
-    (hφ : ContMDiff 𝓘(ℝ, EM) 𝓘(ℝ, EM) 1 φ) :
+theorem chernNumber_pullback_eq_degree_mul [PreconnectedSpace M] {K : Type*} [FunLike K M' M]
+    [ContinuousMapClass K M' M] {φ : K} (hφ : ContMDiff 𝓘(ℝ, EM) 𝓘(ℝ, EM) 1 φ) :
     chernNumber (o'.toHomologicalOrientation hn) hn G ((⇑φ) *ᵖ E) =
       degree o' o φ * chernNumber (o.toHomologicalOrientation hn) hn G E := by
   rw [chernNumber_pullback (o.toHomologicalOrientation hn) hn G E
       (o'.toHomologicalOrientation hn) hn,
     Manifold.Orientation.degree_toHomologicalOrientation_eq_degree hn o' o hφ
-      φ.continuous.isProperMap]
+      (map_continuous φ).isProperMap, ContinuousMap.coe_ofClass]
 
 end Degree
 
@@ -210,14 +210,15 @@ theorem symplecticChernNumber_pullback [PreconnectedSpace M]
     {EM' : Type} [NormedAddCommGroup EM'] [NormedSpace ℝ EM'] [FiniteDimensional ℝ EM']
     [ChartedSpace EM' M'] (o' : HomologicalOrientation M' EM' 2) (hn' : finrank ℝ EM' = 2)
     {ω : ContMDiffTwoForm 𝓘(ℝ, EM) n F V} (hω : ω.IsNondegenerate)
-    (f : C^n⟮𝓘(ℝ, EM'), M'; 𝓘(ℝ, EM), M⟯) :
-    symplecticChernNumber o' hn' G (ω.pullback f f.contMDiff) =
+    {K : Type*} [FunLike K M' M] [ContinuousMapClass K M' M] (f : K)
+    (hf : ContMDiff 𝓘(ℝ, EM') 𝓘(ℝ, EM) n f) :
+    symplecticChernNumber o' hn' G (ω.pullback f hf) =
       o'.degree o hn' (f : C(M', M)) * symplecticChernNumber o hn G ω := by
   obtain ⟨J, hJ⟩ := hω.exists_compatible
-  rw [symplecticChernNumber_eq_chernNumber o' hn' G (hJ.tames.pullback f f.contMDiff),
+  rw [symplecticChernNumber_eq_chernNumber o' hn' G (hJ.tames.pullback f hf),
     symplecticChernNumber_eq_chernNumber o hn G hJ.tames,
-    ← chernNumber_pullback o hn G J.toContinuousComplexStructure.Fiber o' hn' (f : C(M', M)),
-    chernNumber_def, chernNumber_def, J.firstChernClass_pullback G f f.contMDiff,
+    ← chernNumber_pullback o hn G J.toContinuousComplexStructure.Fiber o' hn' f,
+    chernNumber_def, chernNumber_def, J.firstChernClass_pullback G f hf,
     SymplecticGeometry.Bundle.firstChernClass_pullback]
 
 end Symplectic
