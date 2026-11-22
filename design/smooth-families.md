@@ -399,6 +399,15 @@ Smooth families of forms over a parameter manifold `N` (model
   it too. For it this file imports Tau Ceti's
   `Geometry/Symplectic/Manifold/Flat.lean`.
 
+### `Geometry/Manifold/ContMDiff/Dual.lean`
+
+- `contMDiff_dual_apply_of_span_eq_top`: for a family `x : N → X` and a set
+  `s` of functionals spanning `Module.Dual 𝕜 X`, if `t ↦ g (x t)` is `C^n`
+  for each `g ∈ s`, then so is `t ↦ f (x t)` for every functional `f`.
+  `contMDiff_dual_apply_of_separating`: the same for a finite-dimensional
+  `X`, with `∀ z ≠ 0, ∃ g ∈ s, g z ≠ 0` in place of the span. Imports only
+  Mathlib; `SmoothFamily/Map.lean` imports it.
+
 ### `Geometry/Manifold/DifferentialForm/SmoothFamily/Map.lean`
 
 - `SymplecticGeometry.PreservesSmoothFamilies
@@ -632,6 +641,7 @@ vector space) and `ContDiffOn.strictConvexOn_norm_sub_sq` (the squared distance
 - `TauCeti.SmoothForm.mpullback_mem_closedForms (f : M → M') (hf : ContMDiff I I' ∞ f)
   (hφ : φ ∈ closedForms I' M' k) : SmoothForm.mpullback f hf φ ∈ closedForms I M k`,
   the membership form of Tau Ceti's `closedForms.mpullback`. `SmoothFamily/Basic.lean`,
+  `SmoothFamily/MayerVietoris.lean`,
   *Hamiltonian flows*' `DeRham/FamilyPrimitive.lean` and *Isotopy extension*'s
   `Cohomological/Primitive.lean` import it.
 

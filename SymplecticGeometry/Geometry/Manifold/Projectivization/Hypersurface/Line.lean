@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.Geometry.Manifold.Projectivization.Hypersurface.Basic
 public import TauCeti.AlgebraicTopology.Cellular.EulerCharacteristic.FiniteCWType
 import Mathlib.Analysis.Complex.Polynomial.Basic
+import SymplecticGeometry.Algebra.Module.LinearMap.Polynomial
 import SymplecticGeometry.LinearAlgebra.Projectivization.BinaryForm
 import TauCeti.Algebra.MvPolynomial.PDeriv
 
@@ -23,8 +24,7 @@ of these points, that is, if the differential of `f` there does not vanish on th
 (`SymplecticGeometry.SmoothProjectiveHypersurface.card_inter_line`).
 
 The binary form is `aeval (LinearMap.toMatrix' ι).toMvPolynomial f`, whose zeros Tau Ceti's
-`TauCeti.preimage_map_complexProjectiveZeroLocus` identifies with the points of the line on `X`;
-its evaluation at a vector follows the proof of that lemma.
+`TauCeti.preimage_map_complexProjectiveZeroLocus` identifies with the points of the line on `X`.
 
 In complex dimension `n = 0` the hypersurface is a set of points of `ℂℙ¹`, and the line is all of
 `ℂℙ¹`: the hypersurface has `d` points
@@ -88,13 +88,8 @@ theorem card_inter_line {ι : (Fin 2 → ℂ) →ₗ[ℂ] (Fin (n + 2) → ℂ)}
         ∑ i, ι (Pi.single j 1) i * eval (ι p.rep) (pderiv i X.poly) = 0 := by
       rw [← h j, hFdef, pderiv_aeval, map_sum]
       refine Finset.sum_congr rfl fun i _ ↦ ?_
-      have hpull : eval p.rep (aeval M (pderiv i X.poly)) = eval (ι p.rep) (pderiv i X.poly) := by
-        simpa only [M, aeval_eq_eval, Matrix.toMvPolynomial_eval_eq_apply,
-          LinearMap.toMatrix'_mulVec] using comp_aeval_apply M (aeval p.rep) (pderiv i X.poly)
-      rw [map_mul, hpull, mul_comm]
-      congr 1
-      fin_cases j <;> simp [M, Matrix.toMvPolynomial, ← C_mul_X_eq_monomial, pderiv_X,
-        LinearMap.toMatrix'_apply]
+      rw [map_mul, Matrix.eval_aeval_toMvPolynomial, LinearMap.toMatrix'_mulVec, mul_comm]
+      simp [M, LinearMap.toMatrix'_apply]
     conv_lhs => rw [pi_eq_sum_univ' w]
     simp only [map_sum, map_smul, Finset.sum_apply, Pi.smul_apply, smul_eq_mul, Finset.sum_mul]
     rw [Finset.sum_comm]
