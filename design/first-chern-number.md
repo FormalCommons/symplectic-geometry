@@ -1104,11 +1104,12 @@ issues, in an order where each issue's blockers come before it.
      (`Metric.isCollared_inclusion_sphere_closedBall`), and the
      open ball is the complement of the sphere in the closed ball
      (`Metric.range_inclusion_ball_eq_compl`).
-   - `AlgebraicTopology/Singular/LocalHomology/OrientedChart.lean`:
-     `OpenPartialHomeomorph.map_reducedSingularHomologyδ_localOrientationOfOrientedChart_refl`,
-     the local orientation of the identity chart of an oriented inner
-     product space, through the connecting morphism and radial projection,
-     is the oriented generator of the unit sphere.
+   - `AlgebraicTopology/Singular/LocalHomology/OrientedChart.lean`, used
+     by *Chern classes*' `Orientation/EulerCharacteristic.lean`:
+     `TauCeti.Manifold.Orientation.localHomologyMap_sub_toHomologicalOrientation`,
+     the centred chart of an oriented manifold at `z` carries its local
+     orientation at `z` to that of the model at the origin selected by the
+     orientation of the fibre at `z`.
    - `Topology/OpenPartialHomeomorph/Basic.lean`, used by
      `LocalHomology/System.lean` and `Orientation/Chart.lean`: from Tau
      Ceti's main branch, `OpenPartialHomeomorph.sourceRestrict`, an open
@@ -1263,6 +1264,15 @@ issues, in an order where each issue's blockers come before it.
    capped surface is glued from the interior and the discs by
    `TauCeti.Manifold.Orientation.iGlue`, Tau Ceti's `glue` for a family
    of pieces, in `Geometry/Manifold/Orientation/Glue.lean`.
+   On the annuli, the orientation of the caps is compared with that of
+   the surface through the collar, by
+   `TauCeti.SmoothCollar.orientationSign_eq_neg_one_pow` in
+   `Geometry/Manifold/Boundary/Collar/Orientation.lean`: with the
+   outward-first boundary orientation, the standard orientation
+   `TauCeti.EuclideanHalfSpace.normalIioOpensOrientation` of $[0,1)$ and
+   their product, a smooth collar of an $(n+1)$-manifold has orientation
+   sign $(-1)^{n+1}$, so on a surface it preserves orientation
+   (`TauCeti.SmoothCollar.isOrientationPreservingAt_of_odd`).
 9. **A map of degree one onto the sphere.**
    `Geometry/Manifold/Degree/Collapse.lean`:
    `SymplecticGeometry.exists_contMDiff_degree_eq_one`, every compact
