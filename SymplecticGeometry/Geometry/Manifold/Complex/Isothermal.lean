@@ -5,27 +5,42 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import Mathlib.Analysis.Normed.Operator.Conformal
 public import Mathlib.Geometry.Manifold.LocalDiffeomorph
+public import SymplecticGeometry.Geometry.Manifold.Complex.Integrable
+public import TauCeti.Geometry.Manifold.Riemannian.Orientation.Rotation
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Chart
 import SymplecticGeometry.Analysis.Complex.Beltrami.Regularity
-import SymplecticGeometry.Geometry.Manifold.Complex.Integrable
+import SymplecticGeometry.Analysis.InnerProductSpace.TwoDim
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 import TauCeti.Analysis.Calculus.InverseFunctionTheorem
 import TauCeti.Geometry.Manifold.Diffeomorph.Basic
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
+import TauCeti.Geometry.Manifold.VectorBundle.Hom
 
 /-!
-# Smooth isothermal charts on surfaces
+# Smooth isothermal charts on surfaces, and integrability in dimension two
 
 Let `J` be a smooth almost complex structure on a boundaryless manifold `M` whose model space `E`
 has real dimension two. This file shows that every point of `M` lies in the source of a smooth
 chart `ψ : M → ℂ`, a partial diffeomorphism onto an open subset of `ℂ`, whose derivative carries
 `J` to multiplication by `i` at every point of its source
-(`TauCeti.SmoothAlmostComplexStructure.exists_isothermal_partialDiffeomorph`).
+(`TauCeti.SmoothAlmostComplexStructure.exists_isothermal_partialDiffeomorph`). Followed by a fixed
+real linear isomorphism `ℂ ≃L[ℝ] E`, these charts make `J` integrable
+(`TauCeti.SmoothAlmostComplexStructure.isIntegrable_of_finrank_eq_two`).
 
-The chart is built as follows. The extended chart of `M` at the point, followed by a real linear
-isomorphism `E ≃L[ℝ] ℂ`, is a smooth partial diffeomorphism `Φ : M → ℂ`, along which `J` pushes
-forward to a smooth field of complex structures on the target of `Φ`
+On an oriented surface with a smooth Riemannian metric, rotation by a right angle in each oriented
+tangent plane is a smooth almost complex structure
+(`TauCeti.Manifold.Orientation.rightAngleRotationStructure`, smooth by Tau Ceti's
+`TauCeti.Manifold.Orientation.contMDiff_rightAngleRotation`). Its isothermal charts are isothermal
+coordinates of the metric: their derivatives are conformal
+(`TauCeti.Manifold.Orientation.exists_isothermal_coordinates`), by the pointwise
+`Orientation.isConformalMap_of_map_rightAngleRotation`.
+
+The isothermal chart is built as follows. The extended chart of `M` at the point, followed by a
+real linear isomorphism `E ≃L[ℝ] ℂ`, is a smooth partial diffeomorphism `Φ : M → ℂ`, along which
+`J` pushes forward to a smooth field of complex structures on the target of `Φ`
 (`TauCeti.SmoothAlmostComplexStructure.contDiffOn_chartPushforward`). That planar field has a
 smooth isothermal chart `e` at the image of the point
 (`TauCeti.Beltrami.exists_smooth_isothermal_chart`, which composes with complex conjugation
@@ -43,18 +58,24 @@ real two-dimensional space with smooth charts, and the chart is a partial diffeo
 
 * `TauCeti.SmoothAlmostComplexStructure.exists_isothermal_partialDiffeomorph`: smooth isothermal
   charts on a surface.
+* `TauCeti.SmoothAlmostComplexStructure.isIntegrable_of_finrank_eq_two`: integrability of every
+  smooth almost complex structure on a surface.
+* `TauCeti.Manifold.Orientation.rightAngleRotationStructure`: the almost complex structure of an
+  oriented Riemannian surface.
+* `TauCeti.Manifold.Orientation.exists_isothermal_coordinates`: isothermal coordinates for a
+  Riemannian metric on an oriented surface.
 
 ## References
 
 * [D. McDuff, D. Salamon, *Introduction to Symplectic Topology*, 3rd ed.][McDuffSalamon2017],
-  Theorem 4.2.6.
+  Theorem 4.2.6 and Exercise 4.2.8.
 * [D. McDuff, D. Salamon, *J-holomorphic Curves and Symplectic Topology*][McDuffSalamon2012],
   Appendix E.
 -/
 
 public section
 
-open Set
+open Set Bundle
 open scoped ContDiff Manifold
 
 namespace TauCeti.SmoothAlmostComplexStructure
@@ -118,6 +139,82 @@ theorem exists_isothermal_partialDiffeomorph (J : SmoothAlmostComplexStructure I
     mvfderiv_apply_eq_mfderiv_apply, mvfderiv_apply_eq_mfderiv_apply, hJ]
   exact hlin _ hy'.2 _
 
+/-- **Integrability in real dimension two.** Every smooth almost complex
+structure on a boundaryless manifold whose model space has real dimension two is integrable.
+
+Milestone: *Integrability of almost complex structures on surfaces*. -/
+theorem isIntegrable_of_finrank_eq_two (J : SmoothAlmostComplexStructure I M)
+    (hE : Module.finrank ℝ E = 2) : J.IsIntegrable := by
+  rw [isIntegrable_iff_mfderiv]
+  have : FiniteDimensional ℝ E := Module.finite_of_finrank_eq_succ hE
+  let L : ℂ ≃L[ℝ] E :=
+    ContinuousLinearEquiv.ofFinrankEq (by rw [hE, Complex.finrank_real_complex])
+  intro x
+  obtain ⟨ψ, hx, hψ⟩ := J.exists_isothermal_partialDiffeomorph hE x
+  refine ⟨ψ.trans L.toDiffeomorph.toPartialDiffeomorph,
+    (AlmostComplexStructure.ofComplexModule ℂ).transport L.toLinearEquiv, by simpa using hx,
+    mfderiv_trans_toDiffeomorph_apply_eq_transport J (fun y hy v ↦ ?_) L⟩
+  rw [← mvfderiv_apply_eq_mfderiv_apply, ← mvfderiv_apply_eq_mfderiv_apply, hψ y hy v,
+    AlmostComplexStructure.ofComplexModule_apply, smul_eq_mul]
+
 end TauCeti.SmoothAlmostComplexStructure
+
+namespace TauCeti.Manifold.Orientation
+
+variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
+  [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M]
+  [T2Space M] [IsManifold I ∞ M] [RiemannianBundle (fun x : M ↦ TangentSpace I x)]
+  [IsContMDiffRiemannianBundle I ∞ E (fun x : M ↦ TangentSpace I x)]
+
+/-- The almost complex structure of an oriented Riemannian surface: at each point it rotates the
+tangent plane by a right angle, positively for the orientation of that plane that `o` gives. -/
+noncomputable def rightAngleRotationStructure (o : Manifold.Orientation I M (Fin 2)) :
+    SmoothAlmostComplexStructure I M where
+  toEndomorphism :=
+    { toFun := fun x ↦ letI := o.fact_finrank_tangentSpace x
+        (o.orientationAt x).rightAngleRotation.toContinuousLinearEquiv.toContinuousLinearMap
+      contMDiff_toFun :=
+        have : IsManifold I (∞ + 1) M := .of_le (n := ∞) (by simp)
+        (contMDiff_hom_iff _).2 fun _ hs ↦ o.contMDiff_rightAngleRotation hs }
+  square_neg x := by
+    let := o.fact_finrank_tangentSpace x
+    ext v
+    simp
+
+/-- The rotation structure at `x` is the rotation by a right angle of the oriented tangent
+plane at `x`. -/
+@[simp]
+theorem rightAngleRotationStructure_apply (o : Manifold.Orientation I M (Fin 2)) (x : M)
+    (v : TangentSpace I x) :
+    o.rightAngleRotationStructure x v =
+      (letI := o.fact_finrank_tangentSpace x; (o.orientationAt x).rightAngleRotation v) :=
+  (rfl)
+
+/-- **Isothermal coordinates.** On a boundaryless oriented surface with a smooth Riemannian
+metric, every point `x` lies in the source of a smooth partial diffeomorphism `ψ : M → ℂ` whose
+derivative is conformal at every point of its source: it multiplies the metric by a positive
+factor (`isConformalMap_iff`), so that in the coordinate `ψ` the metric is a positive multiple of
+the Euclidean one.
+
+Milestone: *Integrability of almost complex structures on surfaces*. -/
+theorem exists_isothermal_coordinates [I.Boundaryless] (o : Manifold.Orientation I M (Fin 2))
+    (x : M) : ∃ ψ : PartialDiffeomorph I 𝓘(ℝ, ℂ) M ℂ ∞, x ∈ ψ.source ∧
+      ∀ y ∈ ψ.source, IsConformalMap (mvfderiv I ψ y) := by
+  have hE : Module.finrank ℝ E = 2 := (o.fact_finrank_tangentSpace x).out
+  obtain ⟨ψ, hx, hψ⟩ := o.rightAngleRotationStructure.exists_isothermal_partialDiffeomorph hE x
+  refine ⟨ψ, hx, fun y hy ↦ ?_⟩
+  let := o.fact_finrank_tangentSpace y
+  refine (o.orientationAt y).isConformalMap_of_map_rightAngleRotation (fun v ↦ ?_) ?_
+  · rw [← rightAngleRotationStructure_apply, hψ y hy v, smul_eq_mul]
+  · -- The derivative of a partial diffeomorphism is injective, and the tangent plane is not zero.
+    intro h
+    have hinj := (ψ.isInvertible_mfderiv (by simp) hy).injective
+    have : Subsingleton (TangentSpace I y) := ⟨fun v w ↦ hinj <|
+      (mvfderiv_apply_eq_mfderiv_apply ψ y v).symm.trans <| (DFunLike.congr_fun h v).trans <|
+        (DFunLike.congr_fun h w).symm.trans (mvfderiv_apply_eq_mfderiv_apply ψ y w)⟩
+    have h2 := (o.fact_finrank_tangentSpace y).out
+    simp [Module.finrank_zero_of_subsingleton] at h2
+
+end TauCeti.Manifold.Orientation
 
 end
