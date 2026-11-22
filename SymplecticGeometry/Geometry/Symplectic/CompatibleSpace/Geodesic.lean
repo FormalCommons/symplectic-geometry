@@ -98,6 +98,8 @@ variable {ω : SymplecticForm V}
 
 local notation "𝒥" => {J : AlmostComplexStructure V // ω.Compatible J}
 
+local notation "dι" => mvfderiv 𝓘(ℝ, ω.compatibleModel) ω.compatibleCLM
+
 /-! ### The geodesics -/
 
 variable (ω) in
@@ -120,13 +122,12 @@ theorem compatibleGeodesic_def (J : 𝒥) (a : TangentSpace 𝓘(ℝ, ω.compati
 theorem compatibleCLM_compatibleGeodesic (J : 𝒥) (a : TangentSpace 𝓘(ℝ, ω.compatibleModel) J)
     (t : ℝ) :
     ω.compatibleCLM (ω.compatibleGeodesic J a t) =
-      ω.compatibleCLM J * exp (-(t • (ω.compatibleCLM J ∘L
-        mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM J a))) := by
+      ω.compatibleCLM J * exp (-(t • (ω.compatibleCLM J * dι J a))) := by
   have h := AlmostComplexStructure.toContinuousLinearMap_tangentPath_eq_mul_exp
     (mfderiv_compatibleCLM_mem_tangentSpace J a) t
-  rw [← compatibleCLM_def J, ContinuousLinearMap.mul_def (ω.compatibleCLM J)
-    (mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM J a)] at h
-  rw [compatibleCLM_def (ω.compatibleGeodesic J a t), compatibleGeodesic_def]
+  rw [← compatibleCLM_def J] at h
+  rw [mvfderiv_apply_eq_mfderiv_apply, compatibleCLM_def (ω.compatibleGeodesic J a t),
+    compatibleGeodesic_def]
   exact h
 
 @[simp]
@@ -150,45 +151,36 @@ theorem contMDiff_compatibleGeodesic (J : 𝒥) (a : TangentSpace 𝓘(ℝ, ω.c
 theorem hasDerivAt_compatibleCLM_compatibleGeodesic (J : 𝒥)
     (a : TangentSpace 𝓘(ℝ, ω.compatibleModel) J) (t : ℝ) :
     HasDerivAt (fun r => ω.compatibleCLM (ω.compatibleGeodesic J a r))
-      (ω.compatibleCLM (ω.compatibleGeodesic J a t) * -(ω.compatibleCLM J ∘L
-        mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM J a)) t := by
+      (ω.compatibleCLM (ω.compatibleGeodesic J a t) * -(ω.compatibleCLM J * dι J a)) t := by
   simp only [compatibleCLM_compatibleGeodesic, ← smul_neg]
   rw [mul_assoc]
   exact (hasDerivAt_exp_smul_const (𝕂 := ℝ) _ t).const_mul _
 
 /-- Along the geodesic through `J` with velocity `a`, read in `V →L[ℝ] V` as `c(t)`, the ambient
 reading of the velocity is `c(t) A`, with `A = -J â`. -/
-theorem mfderiv_compatibleCLM_curveVelocity_compatibleGeodesic (J : 𝒥)
+theorem mvfderiv_compatibleCLM_curveVelocity_compatibleGeodesic (J : 𝒥)
     (a : TangentSpace 𝓘(ℝ, ω.compatibleModel) J) (t : ℝ) :
-    mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM (ω.compatibleGeodesic J a t)
+    dι (ω.compatibleGeodesic J a t)
         (curveVelocity 𝓘(ℝ, ω.compatibleModel) (ω.compatibleGeodesic J a) t) =
-      ω.compatibleCLM (ω.compatibleGeodesic J a t) * -(ω.compatibleCLM J ∘L
-        mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM J a) := by
+      ω.compatibleCLM (ω.compatibleGeodesic J a t) * -(ω.compatibleCLM J * dι J a) := by
   have hγ : MDifferentiableAt 𝓘(ℝ) 𝓘(ℝ, ω.compatibleModel) (ω.compatibleGeodesic J a) t :=
     (contMDiff_compatibleGeodesic J a (n := 1)).mdifferentiableAt one_ne_zero
   have h := hasDerivAt_comp_curve
     ((contMDiff_compatibleCLM (n := 1)).mdifferentiableAt one_ne_zero)
     (hasMFDerivAt_curveVelocity hγ)
-  rw [mvfderiv_apply_eq_mfderiv_apply] at h
   exact h.unique (hasDerivAt_compatibleCLM_compatibleGeodesic J a t)
 
 /-- `A = -J â` anticommutes with every point `c(t)` of the geodesic through `J` with velocity `a`,
 read in `V →L[ℝ] V`. -/
 theorem compatibleCLM_compatibleGeodesic_mul_neg_mul (J : 𝒥)
     (a : TangentSpace 𝓘(ℝ, ω.compatibleModel) J) (t : ℝ) :
-    ω.compatibleCLM (ω.compatibleGeodesic J a t) * -(ω.compatibleCLM J ∘L
-        mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM J a) =
-      -(-(ω.compatibleCLM J ∘L
-        mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM J a) *
-          ω.compatibleCLM (ω.compatibleGeodesic J a t)) := by
+    ω.compatibleCLM (ω.compatibleGeodesic J a t) * -(ω.compatibleCLM J * dι J a) =
+      -(-(ω.compatibleCLM J * dι J a) * ω.compatibleCLM (ω.compatibleGeodesic J a t)) := by
   rw [compatibleCLM_compatibleGeodesic]
   set j := ω.compatibleCLM J
-  set Y : V →L[ℝ] V :=
-    mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM J a with hY
-  simp only [← ContinuousLinearMap.mul_def]
-  have hYj : Y * j = -(j * Y) := by
-    simpa only [hY, mvfderiv_apply_eq_mfderiv_apply] using
-      eq_neg_of_add_eq_zero_right (compatibleCLM_mul_mvfderiv_add_mvfderiv_mul_compatibleCLM J a)
+  set Y : V →L[ℝ] V := dι J a
+  have hYj : Y * j = -(j * Y) :=
+    eq_neg_of_add_eq_zero_right (compatibleCLM_mul_mvfderiv_add_mvfderiv_mul_compatibleCLM J a)
   -- `A = -j Y` anticommutes with `j`, and commutes with the exponential factor.
   have hjA : j * -(j * Y) = -(-(j * Y) * j) := by
     rw [neg_mul, neg_neg, mul_assoc, hYj]
@@ -203,14 +195,11 @@ theorem isGeodesicCurveOnFrom_compatibleGeodesic (J : 𝒥)
     (a : TangentSpace 𝓘(ℝ, ω.compatibleModel) J) :
     IsGeodesicCurveOnFrom 𝓘(ℝ, ω.compatibleModel) (ω.compatibleGeodesic J a) univ J a := by
   set γ := ω.compatibleGeodesic J a
-  set Y : V →L[ℝ] V :=
-    mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM J a with hY
   -- Read in `V →L[ℝ] V`, the curve is `c(t)` with `ċ = c A`, and `A` anticommutes with `c`.
-  have hv := mfderiv_compatibleCLM_curveVelocity_compatibleGeodesic J a
+  have hv := mvfderiv_compatibleCLM_curveVelocity_compatibleGeodesic J a
   have hc := hasDerivAt_compatibleCLM_compatibleGeodesic J a
   have hcA := compatibleCLM_compatibleGeodesic_mul_neg_mul J a
-  rw [← hY, ← ContinuousLinearMap.mul_def] at hv hc hcA
-  set A : V →L[ℝ] V := -(ω.compatibleCLM J * Y) with hA
+  set A : V →L[ℝ] V := -(ω.compatibleCLM J * dι J a) with hA
   refine ⟨isGeodesicCurveOn_univ.2 (isGeodesicCurve_iff.2
     ⟨contMDiff_compatibleGeodesic J a, fun t => ?_⟩), mem_univ 0, ?_⟩
   · -- The ambient reading of the acceleration is `c̈ - c ċ² = c A² - c (c A)² = 0`.
@@ -221,8 +210,7 @@ theorem isGeodesicCurveOnFrom_compatibleGeodesic (J : 𝒥)
         (curveVelocity 𝓘(ℝ, ω.compatibleModel) γ r) from
       funext (curveVelocityLift_apply γ)] at hW
     have hacc := alongCurve_leviCivitaConnection_compatibleSpace (hW.mdifferentiableAt one_ne_zero)
-    rw [show (fun r => (mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM (γ r)
-        (curveVelocity 𝓘(ℝ, ω.compatibleModel) γ r) : V →L[ℝ] V)) =
+    rw [show (fun r => dι (γ r) (curveVelocity 𝓘(ℝ, ω.compatibleModel) γ r)) =
         fun r => ω.compatibleCLM (γ r) * A from funext hv, hv t, ((hc t).mul_const A).deriv,
       Function.comp_def, (hc t).deriv, ← acceleration_def] at hacc
     have hAc : A * ω.compatibleCLM (γ t) = -(ω.compatibleCLM (γ t) * A) := by
@@ -230,16 +218,13 @@ theorem isGeodesicCurveOnFrom_compatibleGeodesic (J : 𝒥)
     have key : ω.compatibleCLM (γ t) * A * (ω.compatibleCLM (γ t) * A) = A * A := by
       rw [mul_assoc, ← mul_assoc A, hAc, neg_mul, mul_neg, ← mul_assoc, ← mul_assoc,
         compatibleCLM_mul_self, neg_one_mul, neg_mul, neg_neg]
-    apply injective_mfderiv_compatibleCLM (γ t)
-    rw [hacc]
-    simp only [← ContinuousLinearMap.mul_def]
-    rw [key, ← two_smul ℝ (A * A), mul_smul_comm, smul_smul, inv_mul_cancel₀ two_ne_zero,
-      one_smul, mul_assoc, sub_self]
-    exact (map_zero _).symm
+    apply (injective_mvfderiv_iff.2 (injective_mfderiv_compatibleCLM (γ t)))
+    rw [hacc, key, ← two_smul ℝ (A * A), mul_smul_comm, smul_smul, inv_mul_cancel₀ two_ne_zero,
+      one_smul, mul_assoc, sub_self, map_zero]
   · -- At `0` the curve is at `J`, with velocity `â`.
     rw [curveVelocityWithin_univ]
     refine TotalSpace.ext (compatibleGeodesic_zero J a) (heq_of_eq ?_)
-    apply injective_mfderiv_compatibleCLM J
+    apply (injective_mvfderiv_iff.2 (injective_mfderiv_compatibleCLM J))
     have h := hv 0
     rw [compatibleGeodesic_zero] at h
     refine h.trans ?_

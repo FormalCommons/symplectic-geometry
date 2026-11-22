@@ -162,6 +162,8 @@ variable {V : Type*} [NormedAddCommGroup V] [NormedSpace ℝ V] [FiniteDimension
 
 local notation "𝒥" => {J : AlmostComplexStructure V // ω.Compatible J}
 
+local notation "dι" => mvfderiv 𝓘(ℝ, ω.compatibleModel) ω.compatibleCLM
+
 /-! ### The Kähler form -/
 
 variable (ω) in
@@ -181,31 +183,20 @@ theorem compatibleSpaceForm_def :
 trace two-form at `J` on `â` and `b̂`. -/
 theorem compatibleSpaceForm_eval₂ (J : 𝒥) (a b : TangentSpace 𝓘(ℝ, ω.compatibleModel) J) :
     ω.compatibleSpaceForm.eval₂ J a b =
-      (ContinuousLinearMap.traceTwoForm V).eval₂ (ω.compatibleCLM J)
-        (mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM J a)
-        (mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM J b) := by
-  rw [compatibleSpaceForm_def, SmoothForm.eval₂_mpullback]
+      (ContinuousLinearMap.traceTwoForm V).eval₂ (ω.compatibleCLM J) (dι J a) (dι J b) := by
+  rw [compatibleSpaceForm_def, SmoothForm.eval₂_mpullback, mvfderiv_apply_eq_mfderiv_apply,
+    mvfderiv_apply_eq_mfderiv_apply]
 
 /-- **The Kähler form.** At `J`, on tangent vectors with ambient readings `â` and `b̂`, the form
 is `Ω_J(a, b) = ½ tr(â J b̂)`. -/
 theorem compatibleSpaceForm_apply (J : 𝒥) (a b : TangentSpace 𝓘(ℝ, ω.compatibleModel) J) :
     ω.compatibleSpaceForm.bilinFormAt J a b =
-      2⁻¹ * LinearMap.trace ℝ V
-        ↑(mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM J a ∘L
-          ω.compatibleCLM J ∘L
-            mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM J b) := by
-  rw [SmoothForm.bilinFormAt_apply, compatibleSpaceForm_eval₂]
-  -- Name the ambient readings, elements of `V →L[ℝ] V`.
-  obtain ⟨X, hX⟩ : ∃ X : V →L[ℝ] V,
-      mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM J a = X := ⟨_, rfl⟩
-  obtain ⟨Y, hY⟩ : ∃ Y : V →L[ℝ] V,
-      mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM J b = Y := ⟨_, rfl⟩
-  have hXm : (X : Module.End ℝ V) ∈ J.val.tangentSpace :=
-    hX ▸ mfderiv_compatibleCLM_mem_tangentSpace J a
-  rw [hX, hY, ContinuousLinearMap.traceTwoForm_apply, ← ContinuousLinearMap.comp_assoc,
-    ← ContinuousLinearMap.mul_def, ← ContinuousLinearMap.mul_def]
+      2⁻¹ * LinearMap.trace ℝ V ↑(dι J a * ω.compatibleCLM J * dι J b) := by
+  rw [SmoothForm.bilinFormAt_apply, compatibleSpaceForm_eval₂,
+    ContinuousLinearMap.traceTwoForm_apply]
   simp only [ContinuousLinearMap.toLinearMap_mul, toLinearMap_compatibleCLM]
-  rw [AlmostComplexStructure.trace_mul_mul_eq_neg_of_mem_tangentSpace hXm]
+  rw [AlmostComplexStructure.trace_mul_mul_eq_neg_of_mem_tangentSpace
+    (by rw [mvfderiv_apply_eq_mfderiv_apply]; exact mfderiv_compatibleCLM_mem_tangentSpace J a)]
   ring
 
 /-- **The Kähler form is closed.** The exterior derivative of the trace two-form,
@@ -245,21 +236,13 @@ readings `â` and `b̂`, `Ω_J(a, j b) = ½ tr(â b̂)`. -/
 theorem compatibleSpaceForm_apply_compatibleSpaceComplexStructure (J : 𝒥)
     (a b : TangentSpace 𝓘(ℝ, ω.compatibleModel) J) :
     ω.compatibleSpaceForm.bilinFormAt J a (ω.compatibleSpaceComplexStructure J b) =
-      2⁻¹ * LinearMap.trace ℝ V
-        ↑(mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM J a ∘L
-          mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM J b) := by
-  rw [compatibleSpaceForm_apply]
-  rw [mfderiv_compatibleCLM_compatibleSpaceComplexStructure]
-  obtain ⟨X, hX⟩ : ∃ X : V →L[ℝ] V,
-      mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM J a = X := ⟨_, rfl⟩
-  obtain ⟨Y, hY⟩ : ∃ Y : V →L[ℝ] V,
-      mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM J b = Y := ⟨_, rfl⟩
-  rw [hX, hY]
-  simp only [← ContinuousLinearMap.mul_def, ContinuousLinearMap.toLinearMap_mul,
-    ContinuousLinearMap.toLinearMap_neg, toLinearMap_compatibleCLM]
+      2⁻¹ * LinearMap.trace ℝ V ↑(dι J a * dι J b) := by
+  rw [compatibleSpaceForm_apply, mvfderiv_compatibleCLM_compatibleSpaceComplexStructure]
+  simp only [ContinuousLinearMap.toLinearMap_mul, ContinuousLinearMap.toLinearMap_neg,
+    toLinearMap_compatibleCLM]
   -- `X J (-J Y) = -X (J J) Y = X Y`.
   congr 2
-  calc _ = -((X : Module.End ℝ V) * (J.val.toLinearMap * J.val.toLinearMap) * Y) := by
+  calc _ = -((dι J a : Module.End ℝ V) * (J.val.toLinearMap * J.val.toLinearMap) * dι J b) := by
         noncomm_ring
     _ = _ := by rw [AlmostComplexStructure.toLinearMap_mul_self]; noncomm_ring
 
@@ -269,17 +252,15 @@ theorem compatible_compatibleSpaceForm :
     ω.compatibleSpaceForm.Compatible ω.compatibleSpaceComplexStructure := by
   refine ⟨SmoothTwoForm.invariant_iff.2 fun J a b => ?_, SmoothTwoForm.tames_iff.2 fun J a ha => ?_⟩
   · rw [← SmoothForm.bilinFormAt_apply, ← SmoothForm.bilinFormAt_apply,
-      compatibleSpaceForm_apply_compatibleSpaceComplexStructure, compatibleSpaceForm_apply]
-    rw [mfderiv_compatibleCLM_compatibleSpaceComplexStructure]
-    obtain ⟨X, hX⟩ : ∃ X : V →L[ℝ] V,
-        mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM J a = X := ⟨_, rfl⟩
-    obtain ⟨Y, hY⟩ : ∃ Y : V →L[ℝ] V,
-        mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM J b = Y := ⟨_, rfl⟩
-    have hXm : (X : Module.End ℝ V) ∈ J.val.tangentSpace :=
-      hX ▸ mfderiv_compatibleCLM_mem_tangentSpace J a
-    rw [hX, hY]
-    simp only [← ContinuousLinearMap.mul_def, ContinuousLinearMap.toLinearMap_mul,
-      ContinuousLinearMap.toLinearMap_neg, toLinearMap_compatibleCLM]
+      compatibleSpaceForm_apply_compatibleSpaceComplexStructure, compatibleSpaceForm_apply,
+      mvfderiv_compatibleCLM_compatibleSpaceComplexStructure]
+    have hXm : ((dι J a : V →L[ℝ] V) : Module.End ℝ V) ∈ J.val.tangentSpace := by
+      rw [mvfderiv_apply_eq_mfderiv_apply]
+      exact mfderiv_compatibleCLM_mem_tangentSpace J a
+    simp only [ContinuousLinearMap.toLinearMap_mul, ContinuousLinearMap.toLinearMap_neg,
+      toLinearMap_compatibleCLM]
+    generalize ((dι J a : V →L[ℝ] V) : Module.End ℝ V) = X at hXm ⊢
+    generalize ((dι J b : V →L[ℝ] V) : Module.End ℝ V) = Y
     -- `(-J X) Y = (J X J) J Y = X J Y`.
     congr 2
     calc _ = J.val.toLinearMap * X * J.val.toLinearMap * (J.val.toLinearMap * Y) := by
@@ -287,8 +268,9 @@ theorem compatible_compatibleSpaceForm :
               J.val.toLinearMap * X * (J.val.toLinearMap * J.val.toLinearMap) * Y by noncomm_ring,
             AlmostComplexStructure.toLinearMap_mul_self]
           noncomm_ring
-      _ = _ := by rw [AlmostComplexStructure.mul_mul_eq_of_mem_tangentSpace hXm]
-  · rw [← SmoothForm.bilinFormAt_apply, compatibleSpaceForm_apply_compatibleSpaceComplexStructure]
+      _ = _ := by rw [AlmostComplexStructure.mul_mul_eq_of_mem_tangentSpace hXm, mul_assoc]
+  · rw [← SmoothForm.bilinFormAt_apply, compatibleSpaceForm_apply_compatibleSpaceComplexStructure,
+      mvfderiv_apply_eq_mfderiv_apply]
     obtain ⟨X, hX⟩ : ∃ X : V →L[ℝ] V,
         mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM J a = X := ⟨_, rfl⟩
     have hXm : (X : Module.End ℝ V) ∈ ω.compatibleTangentSpace J.val :=
@@ -297,7 +279,7 @@ theorem compatible_compatibleSpaceForm :
     have hX0 : (X : Module.End ℝ V) ≠ 0 := by
       rw [Ne, ← ContinuousLinearMap.toLinearMap_zero, ContinuousLinearMap.coe_inj, ← hX]
       exact (map_ne_zero_iff _ (injective_mfderiv_compatibleCLM J)).2 ha
-    rw [hX, ← ContinuousLinearMap.mul_def, ContinuousLinearMap.toLinearMap_mul]
+    rw [hX, ContinuousLinearMap.toLinearMap_mul]
     exact mul_pos (by norm_num) (J.property.trace_mul_self_pos hXm hX0)
 
 /-- **The space of compatible complex structures is Kähler.** The form `Ω` is closed, compatible
@@ -348,9 +330,7 @@ theorem inner_compatibleSpace_eq_eval₂ (J : 𝒥) (a b : TangentSpace 𝓘(ℝ
 /-- **The metric.** At `J`, the inner product of tangent vectors with ambient readings `â` and
 `b̂` is `⟪a, b⟫ = ½ tr(â b̂)`. -/
 theorem inner_compatibleSpace (J : 𝒥) (a b : TangentSpace 𝓘(ℝ, ω.compatibleModel) J) :
-    ⟪a, b⟫ = 2⁻¹ * LinearMap.trace ℝ V
-      ↑(mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM J a ∘L
-        mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM J b) := by
+    ⟪a, b⟫ = 2⁻¹ * LinearMap.trace ℝ V ↑(dι J a * dι J b) := by
   rw [inner_compatibleSpace_eq_eval₂, ← SmoothForm.bilinFormAt_apply,
     compatibleSpaceForm_apply_compatibleSpaceComplexStructure]
 
@@ -358,11 +338,8 @@ theorem inner_compatibleSpace (J : 𝒥) (a b : TangentSpace 𝓘(ℝ, ω.compat
 trace form `(P, Q) ↦ tr (P Q)` of `V →L[ℝ] V` by the inclusion: `⟪a, b⟫ = ½ tr(â b̂)`. -/
 theorem inner_compatibleSpace_eq_traceForm (J : 𝒥)
     (a b : TangentSpace 𝓘(ℝ, ω.compatibleModel) J) :
-    ⟪a, b⟫ = 2⁻¹ * ContinuousLinearMap.traceForm ℝ V
-      (mvfderiv 𝓘(ℝ, ω.compatibleModel) ω.compatibleCLM J a)
-      (mvfderiv 𝓘(ℝ, ω.compatibleModel) ω.compatibleCLM J b) := by
-  rw [ContinuousLinearMap.traceForm_apply, mvfderiv_apply_eq_mfderiv_apply,
-    mvfderiv_apply_eq_mfderiv_apply, inner_compatibleSpace]
+    ⟪a, b⟫ = 2⁻¹ * ContinuousLinearMap.traceForm ℝ V (dι J a) (dι J b) := by
+  rw [ContinuousLinearMap.traceForm_apply, ← ContinuousLinearMap.mul_def, inner_compatibleSpace]
 
 /-- The metric of the manifold of compatible complex structures is the pull-back by the
 inclusion of the bilinear form `½ B` of `V →L[ℝ] V`, where `B(P, Q) = tr (P Q)` is the trace
@@ -384,8 +361,9 @@ theorem mpullback_compatibleTransport_compatibleSpaceForm :
     SmoothForm.mpullback (ω.compatibleTransport hΨ) (ω.compatibleTransport hΨ).contMDiff
       ω.compatibleSpaceForm = ω.compatibleSpaceForm := by
   refine SmoothBundleForm.ext_eval₂ fun J a b => ?_
-  rw [SmoothForm.eval₂_mpullback, compatibleSpaceForm_eval₂, compatibleSpaceForm_eval₂,
-    mfderiv_compatibleCLM_compatibleTransport, mfderiv_compatibleCLM_compatibleTransport,
+  rw [SmoothForm.eval₂_mpullback, compatibleSpaceForm_eval₂, compatibleSpaceForm_eval₂]
+  simp only [mvfderiv_apply_eq_mfderiv_apply]
+  rw [mfderiv_compatibleCLM_compatibleTransport, mfderiv_compatibleCLM_compatibleTransport,
     compatibleCLM_compatibleTransport]
   exact ContinuousLinearMap.traceTwoForm_conj Ψ _ _ _
 
