@@ -2505,9 +2505,8 @@ has either; Tau Ceti's extension across a boundary,
   folder of the same name): `Density.lean` (the norm of a linear map from a
   tangent plane of $\Sigma$, measured by $\mathrm{dvol}_\Sigma(\cdot,j\cdot)$,
   to a tangent space, its value on a frame $(e,je)$, and the pointwise
-  identity, by Tau Ceti's
-  `TauCeti.SmoothTwoForm.Invariant.stdComplexLineEnergyDensity_sub_two_mul_twoForm`
-  on each tangent plane, with $\bar\partial_J$ Tau Ceti's
+  identity, read on each tangent plane from their vector-space versions,
+  with $\bar\partial_J$ Tau Ceti's
   `TauCeti.complexAntilinearPart`), `Metric.lean` (that norm read in
   $g_J$), `Surface.lean` (the energy as an integral over
   the closed surface, Tau Ceti's `integralTopForm`, the integrated
