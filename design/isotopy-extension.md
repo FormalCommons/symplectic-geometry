@@ -217,7 +217,7 @@ Further choices of this design:
 | `Geometry/Manifold/TubularNeighborhood/OneFormCorrection.lean` | the correction lemma: a function whose slices have differential `γ_t` along a compact submanifold where `f^* γ_t` vanishes |
 | `Geometry/Manifold/DifferentialForm/VectorBundlePoincare.lean` | the relative Poincaré operator at the zero section of a vector bundle, and its fibre-scaling primitives for a family of one-forms |
 | `Analysis/Calculus/DifferentialForm/Poincare.lean` | a closed form on a star-convex open set, vanishing on a compact star-convex subset, has a global primitive near it that vanishes on it (named like Tau Ceti's file) |
-| `Analysis/Normed/Module/Ball/Pointwise.lean` | an open set containing a closed ball contains a larger ball, open or closed (used by `Ball/Basic.lean`, `Ball/Moser.lean` and *First Chern number*'s `DiscComplement/Basic.lean`; named like Mathlib's file) |
+| `Topology/MetricSpace/ProperSpace/Lemmas.lean` | in a proper pseudometric space, an open set containing a closed ball contains a larger ball, open or closed (used by `Ball/Basic.lean`, `Ball/Moser.lean` and *First Chern number*'s `DiscComplement/Basic.lean`; named like Mathlib's file) |
 | `Geometry/Symplectic/IsotopyExtension/Ball/Basic.lean` | `IsSymplecticBallEmbedding`, `IsSymplecticBallFamily`, enlarging a symplectic ball |
 | `Geometry/Manifold/ContMDiff/Opens.lean` | a map composed, on an open subset, with a smooth map of that subset over a parameter space is smooth there (used by `Ball/Moser.lean`) |
 | `Geometry/Symplectic/IsotopyExtension/Ball/Moser.lean` | Moser's correction of a family of balls with a parameter (step 3 of `Ball/Isotopy.lean`) |

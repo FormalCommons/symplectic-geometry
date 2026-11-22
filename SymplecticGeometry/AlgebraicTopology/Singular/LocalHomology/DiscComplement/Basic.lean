@@ -8,7 +8,7 @@ module
 public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.CoordinateDisc
 public import TauCeti.Geometry.Manifold.Boundary.Collar.Global
 import SymplecticGeometry.Analysis.Normed.Module.Ball.Collar
-import SymplecticGeometry.Analysis.Normed.Module.Ball.Pointwise
+import SymplecticGeometry.Topology.MetricSpace.ProperSpace.Lemmas
 import TauCeti.Analysis.Complex.Circle
 
 /-!

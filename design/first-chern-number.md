@@ -1129,7 +1129,7 @@ issues, in an order where each issue's blockers come before it.
      (`Metric.isCollared_inclusion_sphere_closedBall`), and the
      open ball is the complement of the sphere in the closed ball
      (`Metric.range_inclusion_ball_eq_compl`).
-   - `Analysis/Normed/Module/Ball/Pointwise.lean`, of *Isotopy
+   - `Topology/MetricSpace/ProperSpace/Lemmas.lean`, of *Isotopy
      extension*, used by `DiscComplement/Basic.lean`: an open set
      containing a closed ball contains a larger open ball
      (`Metric.exists_lt_ball_subset_of_closedBall_subset`).
