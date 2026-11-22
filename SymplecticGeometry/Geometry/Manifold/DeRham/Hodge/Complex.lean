@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.Geometry.Manifold.DeRham.Hodge.Basic
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Complexification
 public import TauCeti.Geometry.Manifold.DeRham.ComplexCoefficients
+import SymplecticGeometry.Geometry.Manifold.Riemannian.Codifferential
 
 /-!
 # Complex harmonic forms
@@ -44,6 +45,7 @@ real parts, imaginary parts and values on real forms with the lemmas of `complex
   `h + Δγ` with `h` harmonic.
 * `TauCeti.mem_complexExactForms_of_complexHodgeLaplacian_mem_complexClosedForms`: a closed
   complex Laplacian is exact.
+* `TauCeti.SmoothForm.complexHodgeStar_injective`: the complex Hodge star is injective.
 * `TauCeti.finrank_complexDeRhamCohomology`: the complex dimension of complex de Rham cohomology
   is the real dimension of real de Rham cohomology.
 
@@ -104,6 +106,13 @@ def complexHodgeStar (o : Manifold.Orientation I M (Fin m)) (hkl : k + l = m) :
 theorem complexHodgeStar_def (o : Manifold.Orientation I M (Fin m)) (hkl : k + l = m) :
     complexHodgeStar (I := I) o hkl = complexifyₗ (hodgeStar o hkl) :=
   (rfl)
+
+/-- The complex Hodge star is injective. -/
+theorem complexHodgeStar_injective (o : Manifold.Orientation I M (Fin m)) (hkl : k + l = m) :
+    Function.Injective (complexHodgeStar o hkl) := fun φ ψ h ↦ by
+  rw [ext_iff_realPart_imaginaryPart] at h ⊢
+  simp only [complexHodgeStar_def, mapCoeff_reCLM_complexifyₗ, mapCoeff_imCLM_complexifyₗ] at h
+  exact ⟨hodgeStar_injective o hkl h.1, hodgeStar_injective o hkl h.2⟩
 
 end SmoothForm
 

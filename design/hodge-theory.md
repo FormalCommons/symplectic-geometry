@@ -715,8 +715,8 @@ On a closed Kähler manifold as above:
 
 ### `Geometry/Manifold/DeRham/Kahler/HodgeNumbers.lean`
 
-- `finrank_hodgePiece_symm`: $h^{p,q}=h^{q,p}$, from Tau Ceti's
-  `hodgeNumber_symm`.
+- `finrank_hodgePiece_symm`: $h^{p,q}=h^{q,p}$, for every `J`, since
+  conjugation maps `H^{p,q}` onto `H^{q,p}` conjugate-linearly.
 - `finrank_hodgePiece_serre`: for `p ≤ n` and `q ≤ n`,
   $h^{p,q}=h^{n-q,n-p}$. `complexHodgeStar` maps the harmonic forms of
   type $(p,q)$ isomorphically onto those of type $(n-q,n-p)$: it preserves
@@ -735,8 +735,8 @@ On a closed Kähler manifold as above:
 ```lean
 theorem TauCeti.SmoothTwoForm.IsKahler.hodge_decomposition
     [CompactSpace M] [T2Space M] [BoundarylessManifold I M]
-    {ω : SmoothTwoForm I M} {J : SmoothAlmostComplexStructure I M}
-    (hK : ω.IsKahler J) (hJ : J.IsIntegrable) {n : ℕ} (hn : finrank ℝ E = 2 * n)
+    {σ : SmoothTwoForm I M} {J : SmoothAlmostComplexStructure I M}
+    (hK : σ.IsKahler J) (hJ : J.IsIntegrable) {n : ℕ} (hn : finrank ℝ E = 2 * n)
     (k : ℕ) :
     IsHodgeDecomposition (complexDeRhamCohomology.conj k) k
         (fun p : ℤ ↦ complexDeRhamCohomology.hodgePiece J k p.toNat (k - p).toNat) ∧
