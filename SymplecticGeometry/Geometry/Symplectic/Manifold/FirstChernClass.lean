@@ -14,6 +14,7 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Family
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.ComplexTangentBundle
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Family
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Polar
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Flow.Family
 
 /-!
 # The first Chern class of a nondegenerate two-form
@@ -193,13 +194,7 @@ theorem firstChernClass_mpullback_prodMk_eq (σ : SmoothTwoForm (𝓘(ℝ, ℝ).
   -- Reparametrize by a smooth map `ℝ → [0, 1]` fixing `0` and `1`.
   have hρ : ContMDiff 𝓘(ℝ, ℝ) 𝓘(ℝ, ℝ) ∞ Real.smoothTransition :=
     Real.smoothTransition.contDiff.contMDiff
-  have hs (t : ℝ) : SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id)
-      (SmoothForm.mpullback (Prod.map Real.smoothTransition id) (hρ.prodMap contMDiff_id) σ) =
-      SmoothForm.mpullback (Prod.mk (Real.smoothTransition t))
-        (contMDiff_const.prodMk contMDiff_id) σ := by
-    rw [SmoothForm.mpullback_mpullback]
-    -- `Prod.map ρ id ∘ Prod.mk t` is `Prod.mk (ρ t)` by definition.
-    rfl
+  have hs := SmoothForm.mpullback_prodMk_mpullback_prodMap_id_right hρ σ
   have h' (t : ℝ) := hs t ▸
     h _ ⟨Real.smoothTransition.nonneg t, Real.smoothTransition.le_one t⟩
   have hc {τ τ' : SmoothTwoForm I M} (hτ : τ.IsNondegenerate) (hτ' : τ'.IsNondegenerate)

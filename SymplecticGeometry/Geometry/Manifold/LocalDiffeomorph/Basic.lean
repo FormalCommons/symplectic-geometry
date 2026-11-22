@@ -27,9 +27,8 @@ target of `Λ`, not only at `x`.
 
 * `IsLocalDiffeomorphAt.eqOn_localInverse_symm`: `f` agrees with the inverse of its local inverse
   on the target of the local inverse.
-* `IsLocalDiffeomorphAt.exists_partialDiffeomorph`: a local diffeomorphism at `x` agrees with a
-  partial diffeomorphism on a source that contains `x`;
-  `IsLocalDiffeomorphAt.exists_partialDiffeomorph_source_subset` takes that source inside a given
+* `IsLocalDiffeomorphAt.exists_partialDiffeomorph_source_subset`: a local diffeomorphism at `x`
+  agrees with a partial diffeomorphism whose source contains `x` and lies inside a given
   neighbourhood of `x`.
 * `IsLocalDiffeomorphAt.isLocalDiffeomorphOn_localInverse_target`: a local diffeomorphism `f` at
   `x` is a local diffeomorphism on the target of `hf.localInverse`.
@@ -73,26 +72,19 @@ theorem eqOn_localInverse_symm (hf : IsLocalDiffeomorphAt I J n f x) :
   eqOn_of_leftInvOn_of_rightInvOn hf.localInverse_eqOn_right
     hf.localInverse.toPartialEquiv.rightInvOn hf.localInverse.toPartialEquiv.mapsTo_symm
 
-/-- A `C^n` local diffeomorphism `f` at `x` agrees with some `C^n` partial diffeomorphism on
-its source, and that source contains `x`. It is the inverse of
-`IsLocalDiffeomorphAt.localInverse`. -/
-theorem exists_partialDiffeomorph (hf : IsLocalDiffeomorphAt I J n f x) :
-    ∃ Φ : PartialDiffeomorph I J M N n, x ∈ Φ.source ∧ EqOn f Φ Φ.source :=
-  ⟨hf.localInverse.symm, by simpa using hf.localInverse_mem_target, by
-    simpa using hf.eqOn_localInverse_symm⟩
-
 /-- A `C^n` local diffeomorphism `f` at `x` agrees with some `C^n` partial diffeomorphism on its
-source, and that source contains `x` and lies inside a given neighbourhood `s` of `x`. -/
+source, and that source contains `x` and lies inside a given neighbourhood `s` of `x`. It is the
+inverse of `IsLocalDiffeomorphAt.localInverse`, restricted to an open subset of `s`. -/
 theorem exists_partialDiffeomorph_source_subset (hf : IsLocalDiffeomorphAt I J n f x)
     {s : Set M} (hs : s ∈ nhds x) :
     ∃ Φ : PartialDiffeomorph I J M N n, x ∈ Φ.source ∧ Φ.source ⊆ s ∧ EqOn f Φ Φ.source := by
-  obtain ⟨Φ, hxΦ, hfΦ⟩ := hf.exists_partialDiffeomorph
   obtain ⟨t, hts, ht, hxt⟩ := mem_nhds_iff.1 hs
-  refine ⟨Φ.restrOpen t ht, ?_, ?_, ?_⟩ <;>
-    simp only [PartialDiffeomorph.restrOpen_source, PartialDiffeomorph.coe_restrOpen]
-  · exact ⟨hxΦ, hxt⟩
+  refine ⟨hf.localInverse.symm.restrOpen t ht, ?_, ?_, ?_⟩ <;>
+    simp only [PartialDiffeomorph.restrOpen_source, PartialDiffeomorph.coe_restrOpen,
+      PartialDiffeomorph.symm_toPartialEquiv, PartialEquiv.symm_source]
+  · exact ⟨hf.localInverse_mem_target, hxt⟩
   · exact inter_subset_right.trans hts
-  · exact hfΦ.mono inter_subset_left
+  · exact hf.eqOn_localInverse_symm.mono inter_subset_left
 
 /-- A local diffeomorphism `f` at `x` is a local diffeomorphism at every point of the target of
 its local inverse. -/

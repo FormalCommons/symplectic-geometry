@@ -461,6 +461,14 @@ coefficients: `TauCeti.injective_singularCup_eulerClass`,
 the Thom map of `u` is bijective and the cohomology of `E₀` vanishes in the
 target degree and the one below. Imports `Thom/Gysin.lean`.
 
+### `AlgebraicTopology/Cohomology/ComplSingleton.lean`
+
+- `TauCeti.isZero_singularCohomology_complSingleton_subtype_of_ne`: for a
+  real normed space `F` of finite dimension `d` and `x : F`,
+  `Hᵐ(F ∖ {x}; R, N) = 0` for `m ≠ 0` and `m + 1 ≠ d`, for projective `R`.
+  It serves `ChernClass/ProjectiveSpace.lean`, where the deleted tautological
+  line is `{v : V // v ≠ 0}`.
+
 ### `Topology/VectorBundle/Complex/ChernClass/ProjectiveSpace.lean`
 
 For a complex vector space `V` with `finrank ℂ V = n + 1`:

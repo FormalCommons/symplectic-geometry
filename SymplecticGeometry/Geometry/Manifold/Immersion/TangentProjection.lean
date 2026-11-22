@@ -49,8 +49,9 @@ covers [Weil1952, §1, pp. 120–122].
 ## Implementation notes
 
 The chart at a single point comes from Tau Ceti's inverse function theorem on manifolds,
-`TauCeti.isLocalDiffeomorphAt_of_injective_mfderiv`, unpacked by
-`IsLocalDiffeomorphAt.exists_partialDiffeomorph`. It adapts the argument of Tau Ceti's
+`TauCeti.isLocalDiffeomorphAt_of_injective_mfderiv`: the chart is the inverse of
+`IsLocalDiffeomorphAt.localInverse`, which the map agrees with by
+`IsLocalDiffeomorphAt.eqOn_localInverse_symm`. It adapts the argument of Tau Ceti's
 `ContDiffOn.exists_openPartialHomeomorph_starProjection`, which builds the same graph chart on an
 open subset of `E`: the projection fixes the tangent space, so its differential is an isomorphism
 onto it. For the uniform statement, the projection is read in the extended chart at a point `x₀`,
@@ -132,23 +133,22 @@ differential of `e`, an isomorphism onto `T`. -/
 noncomputable def tangentProjectionChart (hn : 1 ≤ n) (he : ContMDiff I 𝓘(ℝ, F) n e) (x : M)
     (hx : Injective (mfderiv I 𝓘(ℝ, F) e x)) :
     PartialDiffeomorph I 𝓘(ℝ, (mvfderiv I e x).range) M (mvfderiv I e x).range n :=
-  (isLocalDiffeomorphAt_orthogonalProjectionOnto_range_sub hn he hx).exists_partialDiffeomorph
-    |>.choose
+  (isLocalDiffeomorphAt_orthogonalProjectionOnto_range_sub hn he hx).localInverse.symm
 
 variable {hn : 1 ≤ n} {he : ContMDiff I 𝓘(ℝ, F) n e} {hx : Injective (mfderiv I 𝓘(ℝ, F) e x)}
 
 /-- The source of the tangent projection chart at `x` contains `x`. -/
-theorem mem_tangentProjectionChart_source : x ∈ (tangentProjectionChart hn he x hx).source :=
-  (isLocalDiffeomorphAt_orthogonalProjectionOnto_range_sub hn he hx).exists_partialDiffeomorph
-    |>.choose_spec.1
+theorem mem_tangentProjectionChart_source : x ∈ (tangentProjectionChart hn he x hx).source := by
+  simpa [tangentProjectionChart] using
+    (isLocalDiffeomorphAt_orthogonalProjectionOnto_range_sub hn he hx).localInverse_mem_target
 
 /-- On its source, the tangent projection chart at `x` is the orthogonal projection of
 `e z - e x` onto the range of the differential of `e` at `x`. -/
 theorem tangentProjectionChart_apply {z : M} (hz : z ∈ (tangentProjectionChart hn he x hx).source) :
     tangentProjectionChart hn he x hx z =
       (mvfderiv I e x).range.orthogonalProjectionOnto (e z - e x) :=
-  ((isLocalDiffeomorphAt_orthogonalProjectionOnto_range_sub hn he hx).exists_partialDiffeomorph
-    |>.choose_spec.2 hz).symm
+  ((isLocalDiffeomorphAt_orthogonalProjectionOnto_range_sub hn he hx).eqOn_localInverse_symm
+    (by simpa [tangentProjectionChart] using hz)).symm
 
 /-- The tangent projection chart at `x` sends `x` to `0`. -/
 @[simp]

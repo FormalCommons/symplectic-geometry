@@ -638,6 +638,10 @@ was found, so `ERRATA.md` needs no entry.
   (#860): `TauCeti.SmoothTwoForm.Compatible.metric` and `metric_inner`, only
   in the proof of the milestone. This dependency is new; `DESIGN.md` records
   it.
+- *Moser isotopy*, `Geometry/Manifold/LocalDiffeomorph/MFDeriv.lean`
+  (merged): `PartialDiffeomorph.mfderivSymmEquiv`, which this part adds
+  there, only in the proofs of `DeRham/Hodge/Chart.lean` and
+  `DeRham/Hodge/LocalLaplacian.lean`.
 - *Symplectic neighbourhoods*,
   `Geometry/Manifold/DifferentialForm/Pullback/LocalDiffeomorph.lean`
   (merged): `PartialDiffeomorph.mpullback_symm_mpullback_apply`, only in

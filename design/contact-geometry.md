@@ -672,13 +672,18 @@ Named like Tau Ceti's file. With `[I.Boundaryless] [T2Space M] [CompactSpace M]`
   `exists_grayField` (complete since `M` is compact), with
   `IsContactFamily.transports_grayDiffeotopy` (the clopen argument of
   *Decisions*, through the trajectory theorem of `Flow/Family.lean`) and
-  `IsContactFamily.velocity_grayDiffeotopy_mem` (its velocity is `Y`, in `ξ`).
+  `IsContactFamily.velocity_grayDiffeotopy_mem` (its velocity lies in `ξ`).
   The definition is a choice; only the existence and uniqueness below are
   meant to be used.
+- `IsContactFamily.eq_of_transports (hξ) (hΦ) (hvΦ) (hΨ) (hvΨ) : Φ = Ψ`, with
+  `[SigmaCompactSpace M]` in place of compactness: two diffeotopies that
+  transport `ξ` with velocity in `ξ` are equal. It is the uniqueness argument
+  of *Decisions*, through the reading of `Φ` over `ℝ` by
+  `Real.smoothTransition` in `Diffeotopy/Real.lean` of *Smooth families*, and
+  uses only the field of `exists_grayField`.
 - `IsContactFamily.eq_grayDiffeotopy_of_transports (hξ) (hΦ : Φ.Transports ξ)
-  (hv : ∀ t x, velocity ∈ ξ t (Φ (t, x))) : Φ = hξ.grayDiffeotopy`, the
-  uniqueness argument of *Decisions*, through the reading of `Φ` over `ℝ` by
-  `Real.smoothTransition` in `Diffeotopy/Real.lean` of *Smooth families*.
+  (hv : ∀ t x, velocity ∈ ξ t (Φ (t, x))) : Φ = hξ.grayDiffeotopy`, from
+  `eq_of_transports`.
 - `TauCeti.Diffeotopy.Transports.exists_mpullback_eq_smul
   (α : SmoothForm ((𝓡∂ 1).prod I) (unitInterval × M) ℝ 1) (hc : ∀ t, (α_t).IsContactForm)
   (hΦ : Φ.Transports fun t ↦ (α_t).kerDistribution)`:
@@ -689,7 +694,8 @@ Named like Tau Ceti's file. With `[I.Boundaryless] [T2Space M] [CompactSpace M]`
   $R_{\alpha_0}(x)$, smooth jointly, nowhere zero, `1` at `t = 0`, hence
   positive since `[0, 1]` is connected. As a corollary each
   `Φ.timeSlice t` satisfies `Diffeomorph.PreservesCoorientation` from
-  $\alpha_0$ to $\alpha_t$.
+  $\alpha_0$ to $\alpha_t$
+  (`TauCeti.Diffeotopy.Transports.preservesCoorientation_timeSlice (α) (hc) (hΦ) (t)`).
 - **Milestone theorem** `IsContactFamily.existsUnique_transports (hξ)`:
 
   ```lean
