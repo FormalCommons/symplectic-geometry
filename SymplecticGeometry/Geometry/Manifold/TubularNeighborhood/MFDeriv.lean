@@ -12,6 +12,7 @@ public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
 public import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
 public import TauCeti.Geometry.Manifold.VectorBundle.Pullback
 import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Basic
+import SymplecticGeometry.Geometry.Manifold.IsManifold.Basic
 
 /-!
 # Diffeomorphisms of neighbourhoods with a prescribed derivative
@@ -139,8 +140,6 @@ private theorem contMDiff_twistedExpVector :
       (fun p : TotalSpace P (fun q ↦ f₀.NormalSpace q infty_ne_zero) ↦
         (⟨f₁ p.proj, A p.proj (f₀.normalRepresentative p.proj infty_ne_zero p.snd)⟩ :
           TangentBundle I₁ M₁)) := by
-  have : IsManifold J (∞ + 1) Q := by simpa using (inferInstance : IsManifold J ∞ Q)
-  have : IsManifold I₀ (∞ + 1) M₀ := by simpa using (inferInstance : IsManifold I₀ ∞ M₀)
   let := f₀.normalSpaceFiberBundle infty_ne_zero hdim
   have hv : ContMDiff (J.prod 𝓘(ℝ, P)) (J.prod 𝓘(ℝ, E₀)) ∞
       (fun p : TotalSpace P (fun q ↦ f₀.NormalSpace q infty_ne_zero) ↦
@@ -185,8 +184,6 @@ private theorem mfderiv_twistedExp_zeroSection_apply
       mfderiv J I₁ f₁ q u + A q (f₀.normalRepresentative q infty_ne_zero v) := by
   let := f₀.normalSpaceFiberBundle infty_ne_zero hdim
   let := f₀.normalSpaceVectorBundle infty_ne_zero hdim
-  have : IsManifold J (∞ + 1) Q := by simpa using (inferInstance : IsManifold J ∞ Q)
-  have : IsManifold I₀ (∞ + 1) M₀ := by simpa using (inferInstance : IsManifold I₀ ∞ M₀)
   let := f₀.normalSpaceContMDiffVectorBundle (m := ∞) infty_ne_zero (by simp) hdim
   have he : MDifferentiableAt (J.prod 𝓘(ℝ, P)) I₁ (twistedExp (P := P) f₀ f₁ A)
       (zeroSection P (fun q ↦ f₀.NormalSpace q infty_ne_zero) q) :=
@@ -241,7 +238,6 @@ private theorem mfderiv_twistedExp_zeroSection_apply_eq_apply_mfderiv_normalExp
   intro w
   let := f₀.normalSpaceFiberBundle infty_ne_zero hdim
   let := f₀.normalSpaceVectorBundle infty_ne_zero hdim
-  have : IsManifold J (1 + 1) Q := .of_le (n := ∞) (by norm_cast)
   obtain ⟨⟨u, v⟩, rfl⟩ := (Bundle.zeroSectionTangentEquiv (I := J) (F := P)
     (V := fun q ↦ f₀.NormalSpace q infty_ne_zero) q).symm.surjective w
   rw [f₀.mfderiv_normalExp_zeroSection_apply infty_ne_zero (by simp) hdim, map_add, hAf]
@@ -260,10 +256,7 @@ private theorem exists_partialDiffeomorph_twistedExp [SecondCountableTopology M�
         ⇑Φ = twistedExp f₀ f₁ A := by
   let := f₀.normalSpaceFiberBundle infty_ne_zero hdim
   let := f₀.normalSpaceVectorBundle infty_ne_zero hdim
-  have : IsManifold J (∞ + 1) Q := by simpa using (inferInstance : IsManifold J ∞ Q)
-  have : IsManifold I₀ (∞ + 1) M₀ := by simpa using (inferInstance : IsManifold I₀ ∞ M₀)
   let := f₀.normalSpaceContMDiffVectorBundle (m := ∞) infty_ne_zero (by simp) hdim
-  have : IsManifold J (1 + 1) Q := .of_le (n := ∞) (by norm_cast)
   let N := TotalSpace P (fun q ↦ f₀.NormalSpace q infty_ne_zero)
   let z := zeroSection P (fun q ↦ f₀.NormalSpace q infty_ne_zero)
   let Θ := twistedExp (P := P) f₀ f₁ A
@@ -313,8 +306,6 @@ private theorem exists_diffeomorph_opens_mfderiv_eq_of_riemannian [SecondCountab
           (A q : TangentSpace I₀ (f₀ q) →L[ℝ] TangentSpace I₁ (f₁ q)) := by
   let := f₀.normalSpaceFiberBundle infty_ne_zero hdim
   let := f₀.normalSpaceVectorBundle infty_ne_zero hdim
-  have : IsManifold J (∞ + 1) Q := by simpa using (inferInstance : IsManifold J ∞ Q)
-  have : IsManifold I₀ (∞ + 1) M₀ := by simpa using (inferInstance : IsManifold I₀ ∞ M₀)
   let := f₀.normalSpaceContMDiffVectorBundle (m := ∞) infty_ne_zero (by simp) hdim
   let z := zeroSection P (fun q ↦ f₀.NormalSpace q infty_ne_zero)
   obtain ⟨Φ₀, hz₀, -, -, -, hΦ₀⟩ := f₀.exists_partialDiffeomorph_normalExp_subset (m := ∞)

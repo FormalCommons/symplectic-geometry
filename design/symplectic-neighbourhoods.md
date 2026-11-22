@@ -217,6 +217,10 @@ and two rows of its milestone table.
     both use.
   - `Geometry/Manifold/Distribution/FlatChart.lean`: the step of
     `CharacteristicFoliation.lean` that uses nothing symplectic.
+  - `Geometry/Manifold/IsManifold/Basic.lean`: two instances for smooth
+    steps, here and in other parts: `C^(m + 1)` structures from `C^∞` ones,
+    and `IsNormableSpace` on tangent spaces, which `Adjoint.lean` needs when
+    its fibres are tangent spaces.
   - `Geometry/Manifold/TubularNeighborhood/MFDeriv.lean`: the step of
     `Tubular.lean` that uses nothing symplectic.
   - `Geometry/Manifold/VectorBundle/Adjoint.lean`: a step of
