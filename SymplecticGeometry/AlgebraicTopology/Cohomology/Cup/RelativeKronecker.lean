@@ -156,6 +156,7 @@ evaluating the relative cup product of the pull-backs of `a` and `b` along the t
 in `Hⁿ(X × Y, Z; T, L)` (`TopCat.singularRelativeCupPullback`), is mapping to
 `Hₙ(X × Y, A × Y ∪ X × B; T)`, changing coefficients along `u`, and evaluating the relative cross
 product `a × b`. -/
+@[elementwise]
 theorem singularKronecker_singularRelativeCupPullback_fst_snd (u : T ⟶ R ⊗ S) (μ : M ⊗ N ⟶ L)
     (hA : IsOpen A) (hB : IsOpen B) {Z : Set ↑(X ⊗ Y)} (hZ : Z ⊆ fst X Y ⁻¹' A ∪ snd X Y ⁻¹' B)
     (p q n : ℕ) (h : p + q = n) (a : (TopPair.ofSubset A).singularCohomology R k M p)
@@ -238,6 +239,7 @@ for open `A ⊆ X` and `B ⊆ Y`, the evaluation of the relative cohomology cros
 `a × b ∈ Hⁿ(X × Y, A × Y ∪ X × B; R ⊗ S, P)` on the image of the homology cross product
 `Hₚ(X, A; R) ⊗ H_q(Y, B; S) ⟶ Hₙ(X × Y, A × Y ∪ X × B; R ⊗ S)` of the pairs is the tensor product
 of the evaluations of `a` and `b`, followed by the coefficient pairing `μ`. -/
+@[elementwise]
 theorem singularHomologyCrossRelPair_comp_singularKronecker_singularRelativeCross (n : ℕ)
     (h : p + q = n) (a : (TopPair.ofSubset A).singularCohomology R k M p)
     (b : (TopPair.ofSubset B).singularCohomology S k N q) :
@@ -290,16 +292,13 @@ theorem singularKronecker_complZeroPairCross (u : T ⟶ R ⊗ S) (μ : M ⊗ N �
         (complZeroPairCross K V₁ V₂ u μ p q n h g₁ g₂) z =
       μ ((TopPair.ofSubset (X := TopCat.of V₁) ({0}ᶜ : Set V₁)).singularKronecker K p g₁ x ⊗ₜ
         (TopPair.ofSubset (X := TopCat.of V₂) ({0}ᶜ : Set V₂)).singularKronecker K q g₂ y) := by
-  have hK := ConcreteCategory.congr_hom
-    (TopCat.singularKronecker_singularRelativeCupPullback_fst_snd (X := TopCat.of V₁)
-      (Y := TopCat.of V₂) u μ isOpen_compl_singleton isOpen_compl_singleton
-      (compl_zero_prod_subset V₁ V₂) p q n h g₁ g₂) z
-  have hA := ConcreteCategory.congr_hom
-    (TopCat.singularHomologyCrossRelPair_comp_singularKronecker_singularRelativeCross
-      (TopCat.of V₁) (TopCat.of V₂) μ isOpen_compl_singleton isOpen_compl_singleton p q n h
-      g₁ g₂) (x ⊗ₜ y)
+  have hK := TopCat.singularKronecker_singularRelativeCupPullback_fst_snd_apply
+    (X := TopCat.of V₁) (Y := TopCat.of V₂) u μ isOpen_compl_singleton isOpen_compl_singleton
+    (compl_zero_prod_subset V₁ V₂) p q n h g₁ g₂ z
+  have hA := TopCat.singularHomologyCrossRelPair_comp_singularKronecker_singularRelativeCross_apply
+    (TopCat.of V₁) (TopCat.of V₂) μ isOpen_compl_singleton isOpen_compl_singleton p q n h
+    g₁ g₂ (x ⊗ₜ y)
   rw [complZeroPairCross_def]
-  -- The composite of linear maps is applied one after the other.
   exact hK.trans <| (congrArg (ConcreteCategory.hom (TopPair.singularKronecker _ K n
     (singularRelativeCross K (TopCat.of V₁) (TopCat.of V₂) isOpen_compl_singleton
       isOpen_compl_singleton μ p q n h g₁ g₂))) hz).trans hA

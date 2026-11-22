@@ -168,6 +168,7 @@ theorem mapsTo_compl_singleton_preimage_fst_compl_union_preimage_snd_compl (x : 
 `(X ∖ {x}) × Y ∪ X × (Y ∖ {y})` with the coefficients split again by the inverse of
 `ModuleCat.uliftTensorSelfIso ℤ`, is the cross product of the pairs `(X, X ∖ {x})` and
 `(Y, Y ∖ {y})`. -/
+@[elementwise]
 theorem localHomologyCross_comp_homologyMap_uliftTensorSelfIso_inv (x : X) (y : Y)
     (p q n : ℕ) (h : p + q = n) :
     localHomologyCross x y p q n h ≫
