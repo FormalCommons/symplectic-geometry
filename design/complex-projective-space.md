@@ -200,11 +200,12 @@ as the form of $\mathbb CP^1$.
   coordinate $w=(x_1+ix_2)/(1+x_3)$.
 - **The area of a line** is an integral of a top form over Tau Ceti's
   oriented $\mathbb CP^1$: with
-  `oCP1 := (TauCeti.complexManifoldOrientation (Fin 1 → ℂ) (ℙ ℂ (Fin 2 → ℂ))).reindex (finCongr h)`,
+  `projectiveLineOrientation := (TauCeti.complexManifoldOrientation (Fin 1 → ℂ) (ℙ ℂ (Fin 2 → ℂ))).reindex (finCongr h)`
+  (in `Instances/OnePoint.lean`),
   `h : 2 * finrank ℂ (Fin 1 → ℂ) = 2`, a line is the image of
   `Projectivization.map f hf` for an injective
   `f : (Fin 2 → ℂ) →ₗ[ℂ] (Fin (n + 1) → ℂ)`, and its area is
-  `TauCeti.integralTopForm oCP1 (mpullback (map f hf) (fubiniStudyForm n)).val`.
+  `TauCeti.integralTopForm projectiveLineOrientation (mpullback (map f hf) (fubiniStudyForm n)).val`.
   It is $\pi$: on $\mathbb CP^1$ itself by change of variables along
   `sphereToProjectiveLine` and the $4\pi$ of the round sphere; for every
   line by writing $f=A\circ g$ with $A$ with orthonormal columns
@@ -330,7 +331,9 @@ In namespace `OnePoint`, for the Riemann sphere read as a real surface:
 `ofTopForm_fubiniStudyForm` (the orientation of `fubiniStudyForm` is the
 reindexed `complexManifoldOrientation ℂ (OnePoint ℂ)`), and
 `isOrientationPreservingAt_equivProjectivization` (for the complex
-orientations on both sides). In namespace `SymplecticGeometry`: `northPole`,
+orientations on both sides). In namespace `SymplecticGeometry`:
+`projectiveLineOrientation` (the canonical orientation of `ℙ ℂ (Fin 2 → ℂ)`
+as a complex manifold, reindexed to `Fin 2`), `northPole`,
 `equatorIsometry` and their lemmas, and
 `mpullback_diffeomorphSphere_sphereVolumeForm` (the round area form pulls
 back to `(4 * Real.pi) • OnePoint.fubiniStudyForm`) with its `_symm_` form.
@@ -341,8 +344,8 @@ back to `(4 * Real.pi) • OnePoint.fubiniStudyForm`) with its `_symm_` form.
 Taken from Tau Ceti's main branch, with Tau Ceti's header, as *Files* in
 `AGENTS.md` says, in the sibling `FromTauCeti.lean` of the library's own
 `Orientation/Preserving.lean`: `TauCeti.Manifold.Orientation.IsOrientationPreservingAt.reindex`,
-which the pinned version lacks, for the reindexed orientation `oCP1`.
-`Normalization.lean` imports it.
+which the pinned version lacks, for the reindexed orientation `projectiveLineOrientation`.
+`Instances/OnePoint.lean` imports it.
 
 ### `Geometry/Manifold/Orientation/Sphere.lean`
 
@@ -517,11 +520,11 @@ Mathlib's `LinearAlgebra/Matrix/ToLin.lean`, where `Matrix.toLin'` lives.
   ($[1+x_3:x_1+ix_2]$), `sphereToProjectiveLine_of_ne_northPole`
   ($[x_1-ix_2:1-x_3]$),
   `isOrientationPreservingAt_sphereToProjectiveLine` (for
-  `o₃.sphereOrientation` and `oCP1`), and
+  `o₃.sphereOrientation` and `projectiveLineOrientation`), and
   `mpullback_sphereToProjectiveLine_fubiniStudyForm` (part 4, stereographic
   sentence), from `mpullback_diffeomorphSphere_sphereVolumeForm` and
   `mpullback_equivProjectivization_fubiniStudyForm`.
-- `integralTopForm_fubiniStudyForm_one : integralTopForm oCP1
+- `integralTopForm_fubiniStudyForm_one : integralTopForm projectiveLineOrientation
   (fubiniStudyForm 1).val = Real.pi`.
 - `integralTopForm_mpullback_map_fubiniStudyForm (f) (hf : Injective f)`:
   every line has area `Real.pi` (part 4, last sentence).

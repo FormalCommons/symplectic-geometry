@@ -130,7 +130,7 @@ theorem exists_diffeotopy_mpullback_eq (σ : SmoothTwoForm ((𝓡∂ 1).prod I) 
   -- Step 1: a smooth family of primitives of `σ_t - σ_0`.
   obtain ⟨β, hβ, hdβ⟩ := exists_isSmoothFamily_mextDerivₗ_eq (k := 1)
     (hasFiniteGoodCover_of_compactSpace (I := I) (M := M))
-    ((isSmoothFamily_def.mpr ⟨σ, fun _ ↦ rfl⟩).sub (isSmoothFamily_const σ₀)) hcoh
+    ((isSmoothFamily_mpullback_prodMk σ).sub (isSmoothFamily_const σ₀)) hcoh
   obtain ⟨B, hB⟩ := isSmoothFamily_def.mp hβ
   -- Step 2: the closed form `τ = pr_M^* σ_0 + d B` on `ℝ × M`.
   set τ : SmoothForm (𝓘(ℝ, ℝ).prod I) (ℝ × M) ℝ 2 :=
