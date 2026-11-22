@@ -399,8 +399,8 @@ complexification:
 
 ### `Analysis/InnerProductSpace/HodgeStar/Kahler/Lefschetz.lean`
 
-Linear algebra on a finite-dimensional real inner product space `V` with
-an orthogonal almost complex structure `J`, $\omega(v,w)=\langle Jv,w\rangle$,
+Linear algebra for `V` a real inner product space of finite dimension, with
+`J` an orthogonal almost complex structure on it, $\omega(v,w)=\langle Jv,w\rangle$,
 on the fibres `V [⋀^Fin k]→L[ℝ] ℝ` of the form bundle, beside Tau Ceti's
 `Kahler/Basic.lean`:
 
