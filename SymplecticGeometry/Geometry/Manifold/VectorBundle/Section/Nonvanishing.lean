@@ -145,14 +145,16 @@ private theorem exists_contMDiffSection_isDiscrete_interior [SecondCountableTopo
       exact Set.Subsingleton.isDiscrete fun x hx ↦ (ha x hx).elim
     · exact mem_residual_setOf_isDiscrete_zero_affineFamily h 0 t hspan'
   obtain ⟨a, ha⟩ := (dense_of_mem_residual hres).nonempty
-  -- A point of `N` is a point of `U` (`coe_interiorModelHomeomorph_symm`).
-  have hj (y : N) : j y = ((show U from y) : M) := by
-    rw [ContMDiffMap.coeFn_mk, InteriorModel.val_def, coe_interiorModelHomeomorph_symm, id_eq]
   simp only [mem_ofPred_eq, key] at ha
-  have hset :
-      {y : N | affineFamily 0 s a (j y) = 0} = {y : N | affineFamily 0 s a (show U from y) = 0} :=
-    Set.ext fun y ↦ by rw [Set.mem_ofPred_eq, Set.mem_ofPred_eq, hj]
-  exact ⟨affineFamily 0 s a, (congrArg IsDiscrete hset).mp ha⟩
+  refine ⟨affineFamily 0 s a, ?_⟩
+  convert ha.image (interiorModelHomeomorph I U).symm.isInducing using 1
+  ext x
+  rw [(interiorModelHomeomorph I U).symm.image_eq_preimage_symm, Homeomorph.symm_symm,
+    Set.mem_preimage, Set.mem_ofPred_eq, Set.mem_ofPred_eq]
+  simp only [j, ContMDiffMap.coeFn_mk]
+  have hz {p q : M} (h : p = q) : affineFamily 0 s a p = 0 ↔ affineFamily 0 s a q = 0 := by
+    subst h; rfl
+  exact hz (InteriorModel.val_interiorModelHomeomorph x).symm
 
 omit [CompactSpace M] [FiniteDimensional ℝ F] [ContMDiffVectorBundle ∞ F V I] in
 /-- In the interior of a connected manifold of dimension at least two, let `σ` be a section whose
