@@ -57,9 +57,9 @@ Gysin sequence (Milnor–Stasheff, §14) or a classifying space:
   with global classes restricting to a basis of every fibre
   (`TopCat.lerayHirschProdOfClasses_bijective`,
   `AlgebraicTopology/Cohomology/LerayHirsch/FiberwiseBasis.lean`), is the
-  local case, and the Mayer–Vietoris step of Tau Ceti's Thom isomorphism
-  (`TopCat.bijective_pullbackCupRestrict_union`,
-  `AlgebraicTopology/Cohomology/MayerVietoris/PullbackCup.lean`) is the
+  local case, and the Mayer–Vietoris step for the Leray–Hirsch map
+  (`TopCat.lerayHirschRestrict_union_bijective`,
+  `AlgebraicTopology/Cohomology/LerayHirsch/MayerVietoris.lean`) is the
   induction over a finite trivializing cover. The integral cohomology of
   $\mathbb CP^{n-1}$ is free and finitely generated
   (`TauCeti.ComplexProjectiveSpace.projective_singularHomology`), as
@@ -255,7 +255,7 @@ each class. It uses these copies of Tau Ceti's files of the same commit:
 
 - `Algebra/DirectSum/Prod.lean`: `DirectSum.prodLinearEquiv`.
 - `AlgebraicTopology/Cohomology/LerayHirsch/Defs.lean`:
-  `TopCat.lerayHirsch p e n`, the map over all of `B`, with
+  `TopCat.lerayHirsch p n e`, the map over all of `B`, with
   `TopCat.lerayHirsch_lof` and naturality.
 - `AlgebraicTopology/Cohomology/LerayHirsch/Restriction.lean`:
   `TopCat.lerayHirschRestrict`, `TopCat.lerayHirschRestrict_empty_bijective`
@@ -277,7 +277,7 @@ with a finite trivializing cover, `s : Finset Y` with
 homology projective in every degree and finitely generated in degrees
 `p ≤ n`:
 
-- `TopCat.lerayHirsch_bijective`, for the map `TopCat.lerayHirsch π c n`
+- `TopCat.lerayHirsch_bijective`, for the map `TopCat.lerayHirsch π n c`
   over all of `Y` (from `LerayHirsch/Defs.lean`, see the previous
   section): if the restrictions of the classes
   `c p i` to the fibre over every point, read through the trivialization at
