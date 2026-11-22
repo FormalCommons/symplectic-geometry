@@ -5,8 +5,8 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import TauCeti.Geometry.Manifold.Riemannian.VolumeDensity.ChangeOfVariables
-import Mathlib.Analysis.InnerProductSpace.GramMatrix
+public import SymplecticGeometry.Geometry.Manifold.Riemannian.Basic
+public import SymplecticGeometry.Geometry.Manifold.Riemannian.VolumeDensity.ChangeOfVariables
 import Mathlib.Topology.Order.Compact
 
 /-!
@@ -19,22 +19,15 @@ finite-dimensional real normed space `E`. On a compact set `K ⊆ ψ.target`, th
 Riemannian Jacobian of `ψ.symm` is bounded above and away from zero. These are the estimates that
 compare integrals over `M` with integrals in a chart.
 
-The norm bounds hold for every `C¹` map `f` from an open subset `U` of a finite-dimensional space,
-on a compact `K ⊆ U`; the lower bound needs the differential of `f` to be injective on `K`. They
-follow from the joint continuity of `(z, ξ) ↦ ‖df_z ξ‖`
-(`ContMDiffOn.continuousOn_norm_mfderiv_apply`) on the compact set `K × S`, `S` the unit sphere.
-The Jacobian is positive where the differential is injective, since the Gram matrix of linearly
-independent vectors is positive definite, and it is continuous
+The norm bounds specialize those for any `C¹` map with injective differentials
+(`ContMDiffOn.exists_norm_mfderiv_le_mul_norm`, `ContMDiffOn.exists_pos_mul_norm_le_norm_mfderiv`)
+to `ψ.symm`, whose differentials are invertible (Tau Ceti's
+`PartialDiffeomorph.isInvertible_mfderiv`). The Jacobian is positive where the differential is
+injective (`TauCeti.riemannianJacobian_pos`), and continuous
 (`TauCeti.continuousOn_riemannianJacobian`).
 
 ## Main results
 
-* `ContMDiffOn.exists_norm_mfderiv_le_mul_norm`: the differential of a `C¹` map is bounded on a
-  compact subset of its open domain.
-* `ContMDiffOn.exists_pos_mul_norm_le_norm_mfderiv`: where the differential is injective on a
-  compact set, it is bounded below there.
-* `TauCeti.riemannianJacobian_pos`: the Riemannian Jacobian is positive where the differential is
-  injective.
 * `PartialDiffeomorph.exists_mul_norm_le_norm_mfderiv_symm_le`: two-sided bounds for the
   differential of `ψ.symm` on a compact subset of `ψ.target`.
 * `PartialDiffeomorph.exists_norm_mvfderiv_le_mul_norm`: the differential of `ψ` is bounded on
@@ -52,96 +45,12 @@ independent vectors is positive definite, and it is continuous
 public section
 
 open Bundle Set
-open NormedSpace
 open scoped ContDiff Manifold
 
 variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
   {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
   {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
   [RiemannianBundle (fun x : M ↦ TangentSpace I x)]
-  {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F]
-
-namespace TauCeti
-
-/-- The Riemannian Jacobian of `f` at `x` is positive when the differential of `f` at `x` is
-injective. -/
-theorem riemannianJacobian_pos {ι : Type*} [Fintype ι] [DecidableEq ι]
-    (b : Module.Basis ι ℝ F) {f : F → M} {x : F}
-    (hf : Function.Injective (mfderiv 𝓘(ℝ, F) I f x)) :
-    0 < riemannianJacobian (I := I) b f x := by
-  rw [riemannianJacobian_eq_sqrt_det_gram, Real.sqrt_pos]
-  refine (Matrix.posDef_gram_of_linearIndependent ?_).det_pos
-  exact b.linearIndependent.map' (mfderiv 𝓘(ℝ, F) I f x).toLinearMap
-    (LinearMap.ker_eq_bot.2 hf)
-
-end TauCeti
-
-namespace ContinuousLinearMap
-
-variable {G : Type*} [NormedAddCommGroup G] [NormedSpace ℝ G]
-
-/-- A continuous linear map scales norms: `‖L v‖ = ‖v‖ * ‖L u‖` for the unit vector `u` in the
-direction of `v` (and `u = 0` if `v = 0`). -/
-theorem norm_apply_eq_norm_mul_norm_apply_normalize (L : F →L[ℝ] G) (v : F) :
-    ‖L v‖ = ‖v‖ * ‖L (normalize v)‖ := by
-  conv_lhs => rw [← norm_smul_normalize v]
-  rw [map_smul, norm_smul, norm_norm]
-
-end ContinuousLinearMap
-
-namespace ContMDiffOn
-
-variable [IsManifold I 1 M] [IsContinuousRiemannianBundle E (fun x : M ↦ TangentSpace I x)]
-  [FiniteDimensional ℝ F] {f : F → M} {U K : Set F} {n : ℕ∞ω}
-
-/-- The differential of a `C¹` map from an open subset `U` of a finite-dimensional real normed
-space to a manifold with a continuous Riemannian metric is bounded on a compact `K ⊆ U`:
-`‖df_y v‖ ≤ C * ‖v‖` for every `y ∈ K` and every `v`. -/
-theorem exists_norm_mfderiv_le_mul_norm (hf : ContMDiffOn 𝓘(ℝ, F) I n f U) (hn : 1 ≤ n)
-    (hU : IsOpen U) (hK : IsCompact K) (hKU : K ⊆ U) :
-    ∃ C, ∀ y ∈ K, ∀ v : F, ‖mfderiv 𝓘(ℝ, F) I f y v‖ ≤ C * ‖v‖ := by
-  obtain ⟨C, hC⟩ := (hK.prod (isCompact_sphere (0 : F) 1)).exists_bound_of_continuousOn
-    ((hf.continuousOn_norm_mfderiv_apply hn hU).mono (prod_mono hKU (subset_univ _)))
-  refine ⟨C, fun y hy v ↦ ?_⟩
-  have hD : ‖mfderiv 𝓘(ℝ, F) I f y v‖ = ‖v‖ * ‖mfderiv 𝓘(ℝ, F) I f y (normalize (V := F) v)‖ :=
-    ContinuousLinearMap.norm_apply_eq_norm_mul_norm_apply_normalize (F := F)
-      (G := TangentSpace I (f y)) (mfderiv 𝓘(ℝ, F) I f y) v
-  rw [hD, mul_comm C]
-  rcases eq_or_ne v 0 with rfl | hv
-  · simp
-  refine mul_le_mul_of_nonneg_left ?_ (norm_nonneg v)
-  simpa using hC (y, normalize v) (mk_mem_prod hy (by simpa using norm_normalize_eq_one_iff.2 hv))
-
-/-- If a `C¹` map from an open subset `U` of a finite-dimensional real normed space to a manifold
-with a continuous Riemannian metric has injective differentials on a compact `K ⊆ U`, they are
-uniformly bounded below there: `c * ‖v‖ ≤ ‖df_y v‖` for some `0 < c`, every `y ∈ K` and every
-`v`. -/
-theorem exists_pos_mul_norm_le_norm_mfderiv (hf : ContMDiffOn 𝓘(ℝ, F) I n f U) (hn : 1 ≤ n)
-    (hU : IsOpen U) (hK : IsCompact K) (hKU : K ⊆ U)
-    (hinj : ∀ y ∈ K, Function.Injective (mfderiv 𝓘(ℝ, F) I f y)) :
-    ∃ c, 0 < c ∧ ∀ y ∈ K, ∀ v : F, c * ‖v‖ ≤ ‖mfderiv 𝓘(ℝ, F) I f y v‖ := by
-  have hsph {v : F} (hv : v ≠ 0) : normalize v ∈ Metric.sphere (0 : F) 1 := by
-    simpa using norm_normalize_eq_one_iff.2 hv
-  rcases (K ×ˢ Metric.sphere (0 : F) 1).eq_empty_or_nonempty with he | hne
-  · refine ⟨1, one_pos, fun y hy v ↦ ?_⟩
-    rcases eq_or_ne v 0 with rfl | hv
-    · simp
-    exact (he.subset (mk_mem_prod hy (hsph hv))).elim
-  obtain ⟨⟨y₀, u₀⟩, ⟨hy₀, hu₀⟩, hmin⟩ := (hK.prod (isCompact_sphere (0 : F) 1)).exists_isMinOn
-    hne ((hf.continuousOn_norm_mfderiv_apply hn hU).mono (prod_mono hKU (subset_univ _)))
-  have hu₀' : u₀ ≠ 0 := ne_zero_of_mem_unit_sphere ⟨u₀, hu₀⟩
-  refine ⟨‖mfderiv 𝓘(ℝ, F) I f y₀ u₀‖, norm_pos_iff.2 fun h ↦ hu₀' ?_, fun y hy v ↦ ?_⟩
-  · exact (injective_iff_map_eq_zero
-      (mfderiv 𝓘(ℝ, F) I f y₀ : F →L[ℝ] TangentSpace I (f y₀))).1 (hinj y₀ hy₀) u₀ h
-  have hD : ‖mfderiv 𝓘(ℝ, F) I f y v‖ = ‖v‖ * ‖mfderiv 𝓘(ℝ, F) I f y (normalize (V := F) v)‖ :=
-    ContinuousLinearMap.norm_apply_eq_norm_mul_norm_apply_normalize (F := F)
-      (G := TangentSpace I (f y)) (mfderiv 𝓘(ℝ, F) I f y) v
-  rw [hD, mul_comm]
-  rcases eq_or_ne v 0 with rfl | hv
-  · simp
-  exact mul_le_mul_of_nonneg_left (hmin (mk_mem_prod hy (hsph hv))) (norm_nonneg v)
-
-end ContMDiffOn
 
 namespace PartialDiffeomorph
 

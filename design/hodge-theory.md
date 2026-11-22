@@ -307,6 +307,17 @@ codifferential in a chart `ψ`:
   equation gives in the chart. Its principal part is again
   $-G^{ij}\partial_i\partial_j$ times the identity.
 
+### `Geometry/Manifold/Riemannian/Basic.lean`
+
+- `ContMDiffOn.exists_norm_mfderiv_le_mul_norm` and
+  `ContMDiffOn.exists_pos_mul_norm_le_norm_mfderiv`: upper and lower bounds
+  on a compact set for the differential of a `C¹` map into `M`.
+
+### `Geometry/Manifold/Riemannian/VolumeDensity/ChangeOfVariables.lean`
+
+- `TauCeti.riemannianJacobian_pos`: Tau Ceti's `riemannianJacobian` is
+  positive where the differential is injective.
+
 ### `Geometry/Manifold/Riemannian/PartialDiffeomorph.lean`
 
 Estimates for a chart `ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E n`, `n ≠ 0`, on
