@@ -13,21 +13,20 @@ public import SymplecticGeometry.Geometry.Manifold.Projectivization.Hypersurface
 public import SymplecticGeometry.Geometry.Manifold.Projectivization.TwistCore
 public import TauCeti.Topology.VectorBundle.Pullback
 
-import SymplecticGeometry.Geometry.Manifold.VectorBundle.RestrictScalars
 import TauCeti.Geometry.Manifold.VectorBundle.Pullback
 
 /-!
-# The section of `ι^*𝒪(1)^{⊕n}` given by `n` linear forms
+# The section of `X.embedding^* 𝒪(1)^{⊕ι}` given by linear forms
 
 A linear map `ℓ : 𝕜^{m+1} → 𝕜^ι` is a tuple of `ι` linear forms on `𝕜^{m+1}`, and each of them
 is a section of `𝒪(1)` on `ℙ 𝕜 (Fin (m + 1) → 𝕜)`, by Tau Ceti's `homogeneousSection 1`. Together
 they form a section `Projectivization.linearSection ℓ` of `𝒪(1) ⊗ 𝕜^ι`, the bundle
 `Projectivization.twistPiCore 1 ι`, whose zeros are the lines on which all the forms vanish.
 
-On a smooth projective hypersurface `X` of dimension `n`, a tuple of `n` linear forms on
-`ℂ^{n+2}` so gives a section of the pull-back `X.embedding *ᵖ (twistPiCore 1 (Fin n)).Fiber` of
-`𝒪(1) ⊗ ℂ^n` to `X`. The degree of `X` can be computed by counting the zeros of a generic such
-section, with Tau Ceti's
+On a smooth projective hypersurface `X` of dimension `n`, a tuple of `ι` linear forms on
+`ℂ^{n+2}` so gives a section of the pull-back `X.embedding *ᵖ (twistPiCore 1 ι).Fiber` of
+`𝒪(1) ⊗ ℂ^ι` to `X`. For `ι = Fin n`, the rank of that bundle is the dimension of `X`, and the
+degree of `X` can be computed by counting the zeros of a generic such section, with Tau Ceti's
 `ContMDiffSection.mem_residual_setOf_regular_and_finite_zero_affineFamily`; this file provides
 the section in the form that theorem takes: a smooth section of the underlying real vector bundle
 over the underlying real manifold, real-linear in the forms, such that the sections of finitely
@@ -40,12 +39,12 @@ many forms span every fibre.
   (`Projectivization.twistTransition_mul_linearSection_mk`); it vanishes at `x` exactly when
   `ℓ` vanishes on `x` (`Projectivization.linearSection_eq_zero_iff`), and it is analytic
   (`Projectivization.contMDiff_linearSection`).
-* The instances `VectorBundle ℝ` and `ContMDiffVectorBundle ∞ _ _ 𝓘(ℝ, _)` on the pull-back of
-  `𝒪(k) ⊗ ℂ^ι` to `X`, by Tau Ceti's `VectorBundle.restrictScalars` and the library's
-  `ContMDiffVectorBundle.restrictScalars`.
+* The instance `ContMDiffVectorBundle ∞ _ _ 𝓘(ℝ, _)` on the pull-back of `𝒪(k) ⊗ ℂ^ι` to `X`,
+  by the library's `ContMDiffVectorBundle.restrictScalars`; its real structure is Mathlib's
+  pull-back of the one that `Projectivization/TwistCore.lean` gives `𝒪(k) ⊗ ℂ^ι`.
 * `SymplecticGeometry.SmoothProjectiveHypersurface.linearSection`: the `ℝ`-linear map sending
-  `ℓ : ℂ^{n+2} → ℂ^n` to the smooth real section of the pull-back of `𝒪(1) ⊗ ℂ^n` that it gives,
-  with
+  `ℓ : ℂ^{n+2} → ℂ^ι` to the smooth real section of the pull-back of `𝒪(1) ⊗ ℂ^ι` that it gives,
+  the holomorphic section with its scalars restricted (`ContMDiffSection.restrictScalars`), with
   `SymplecticGeometry.SmoothProjectiveHypersurface.linearSection_eq_zero_iff` for its zeros and
   `SymplecticGeometry.SmoothProjectiveHypersurface.span_range_linearSection_smulRight`: the
   sections of the forms `x_j e_k` and `i x_j e_k` span every fibre over `ℝ`.
@@ -169,14 +168,9 @@ namespace SmoothProjectiveHypersurface
 
 variable {n d : ℕ} (X : SmoothProjectiveHypersurface n d)
 
-/-- The pull-back of `𝒪(k) ⊗ ℂ^ι` to a smooth projective hypersurface is a real vector bundle, by
-restriction of scalars. -/
-instance (k : ℤ) (ι : Type*) [Fintype ι] :
-    VectorBundle ℝ (ι → ℂ) (X.embedding *ᵖ (twistPiCore (𝕜 := ℂ) (n := n + 1) k ι).Fiber) :=
-  VectorBundle.restrictScalars ℝ ℂ _ _
-
 /-- The pull-back of `𝒪(k) ⊗ ℂ^ι` to a smooth projective hypersurface is a smooth real vector
-bundle over the underlying real manifold. -/
+bundle over the underlying real manifold. Its real structure is Mathlib's pull-back of that of
+`𝒪(k) ⊗ ℂ^ι`. -/
 instance (k : ℤ) (ι : Type*) [Fintype ι] :
     ContMDiffVectorBundle ∞ (ι → ℂ) (X.embedding *ᵖ (twistPiCore (𝕜 := ℂ) (n := n + 1) k ι).Fiber)
       𝓘(ℝ, Fin (n + 1 - Fintype.card Unit) → ℂ) :=
@@ -186,11 +180,12 @@ instance (k : ℤ) (ι : Type*) [Fintype ι] :
     Bundle.Pullback.contMDiffVectorBundle (X.embedding.contMDiff.of_le le_top)
   ContMDiffVectorBundle.restrictScalars (𝕜' := ℂ) ℝ _ _
 
+variable {ι : Type*} [Fintype ι]
+
 /-- **The pull-back to `X` of the section given by `ℓ` is holomorphic.** The section
 `x ↦ Projectivization.linearSection ℓ (X.embedding x)` of the pull-back of `𝒪(1) ⊗ ℂ^ι` to `X` is
 analytic. -/
-theorem contMDiff_linearSection_embedding {ι : Type*} [Fintype ι]
-    (ℓ : (Fin (n + 2) → ℂ) →ₗ[ℂ] ι → ℂ) :
+theorem contMDiff_linearSection_embedding (ℓ : (Fin (n + 2) → ℂ) →ₗ[ℂ] ι → ℂ) :
     ContMDiff 𝓘(ℂ, Fin (n + 1 - Fintype.card Unit) → ℂ)
       (𝓘(ℂ, Fin (n + 1 - Fintype.card Unit) → ℂ).prod 𝓘(ℂ, ι → ℂ)) ω
       (fun x : X ↦ TotalSpace.mk' (ι → ℂ)
@@ -199,66 +194,60 @@ theorem contMDiff_linearSection_embedding {ι : Type*} [Fintype ι]
   (Bundle.Pullback.contMDiff_iff X.embedding X.embedding.contMDiff).2
     ⟨contMDiff_id, (contMDiff_linearSection ℓ ω).comp X.embedding.contMDiff⟩
 
-/-- The pull-back to `X` of the section given by `ℓ` is smooth for the underlying real
-structures. -/
-private theorem contMDiff_real_linearSection_embedding {ι : Type*} [Fintype ι]
-    (ℓ : (Fin (n + 2) → ℂ) →ₗ[ℂ] ι → ℂ) :
-    ContMDiff 𝓘(ℝ, Fin (n + 1 - Fintype.card Unit) → ℂ)
-      (𝓘(ℝ, Fin (n + 1 - Fintype.card Unit) → ℂ).prod 𝓘(ℝ, ι → ℂ)) ∞
-      (fun x : X ↦ TotalSpace.mk' (ι → ℂ)
-        (E := X.embedding *ᵖ (twistPiCore (𝕜 := ℂ) (n := n + 1) 1 ι).Fiber) x
-        (Projectivization.linearSection ℓ (X.embedding x))) := by
-  have h := ((X.contMDiff_linearSection_embedding ℓ).of_le
-    (show (∞ : ℕ∞ω) ≤ ω from le_top)).restrictScalars ℝ
-  rwa [ModelWithCorners.restrictScalars_prod, modelWithCornersSelf_restrictScalars,
-    modelWithCornersSelf_restrictScalars] at h
-
-/-- **The section of `ι^*𝒪(1)^{⊕n}` given by `n` linear forms**, for the inclusion `ι` of `X`.
-For a linear map `ℓ : ℂ^{n+2} → ℂ^n`, the smooth section of the pull-back of `𝒪(1) ⊗ ℂ^n` to `X`
-whose value at `x` is that of `Projectivization.linearSection ℓ` at `x`, as a section of the
-underlying real vector bundle over the underlying real manifold. It is `ℝ`-linear in `ℓ`. -/
-def linearSection : ((Fin (n + 2) → ℂ) →ₗ[ℂ] Fin n → ℂ) →ₗ[ℝ]
-    ContMDiffSection 𝓘(ℝ, Fin (n + 1 - Fintype.card Unit) → ℂ) (Fin n → ℂ) ∞
-      (X.embedding *ᵖ (twistPiCore (𝕜 := ℂ) (n := n + 1) 1 (Fin n)).Fiber) where
-  toFun ℓ :=
+/-- **The section of `X.embedding^* 𝒪(1)^{⊕ι}` given by linear forms.** For a linear map
+`ℓ : ℂ^{n+2} → ℂ^ι`, the smooth section of the pull-back of `𝒪(1) ⊗ ℂ^ι` to `X` whose value at
+`x` is that of `Projectivization.linearSection ℓ` at `x`, as a section of the underlying real
+vector bundle over the underlying real manifold. It is `ℝ`-linear in `ℓ`. -/
+def linearSection : ((Fin (n + 2) → ℂ) →ₗ[ℂ] ι → ℂ) →ₗ[ℝ]
+    ContMDiffSection 𝓘(ℝ, Fin (n + 1 - Fintype.card Unit) → ℂ) (ι → ℂ) ∞
+      (X.embedding *ᵖ (twistPiCore (𝕜 := ℂ) (n := n + 1) 1 ι).Fiber) where
+  toFun ℓ := ContMDiffSection.restrictScalars ℝ
     { toFun x := Projectivization.linearSection ℓ (X.embedding x)
-      contMDiff_toFun := X.contMDiff_real_linearSection_embedding ℓ }
-  -- The fibres of the pull-back are those of `𝒪(1) ⊗ ℂ^n` by the definition of `Bundle.Pullback`,
-  -- so the values of the sections are compared there.
+      contMDiff_toFun := (X.contMDiff_linearSection_embedding ℓ).of_le le_top }
+  -- The fibres of the pull-back are those of `𝒪(1) ⊗ ℂ^ι` by the definition of `Bundle.Pullback`,
+  -- so the values of the sections are compared there; the closing `exact`s read the values of
+  -- the holomorphic sections through that definition (see `linearSection_apply`).
   map_add' ℓ ℓ' := by
     ext x
+    simp only [ContMDiffSection.coe_add, Pi.add_apply, ContMDiffSection.restrictScalars_apply]
     exact Projectivization.linearSection_add ℓ ℓ' (X.embedding x)
   map_smul' c ℓ := by
     ext x
+    simp only [RingHom.id_apply, ContMDiffSection.coe_smul, Pi.smul_apply,
+      ContMDiffSection.restrictScalars_apply]
     exact Projectivization.linearSection_smul (c : ℂ) ℓ (X.embedding x)
 
-/-- The value at `x` of the section given by `ℓ` is the section of `𝒪(1) ⊗ ℂ^n` given by `ℓ` at
+/-- The value at `x` of the section given by `ℓ` is the section of `𝒪(1) ⊗ ℂ^ι` given by `ℓ` at
 the image of `x` in projective space. -/
-theorem linearSection_apply (ℓ : (Fin (n + 2) → ℂ) →ₗ[ℂ] Fin n → ℂ) (x : X) :
-    X.linearSection ℓ x = Projectivization.linearSection ℓ (X.embedding x) :=
-  (rfl)
+theorem linearSection_apply (ℓ : (Fin (n + 2) → ℂ) →ₗ[ℂ] ι → ℂ) (x : X) :
+    X.linearSection ℓ x = Projectivization.linearSection ℓ (X.embedding x) := by
+  rw [linearSection, LinearMap.coe_mk, AddHom.coe_mk, ContMDiffSection.restrictScalars_apply]
+  -- `ContMDiffSection.coeFn_mk` does not apply, since the section is written with values in the
+  -- fibres of `𝒪(1) ⊗ ℂ^ι`, which are those of the pull-back only by the definition of
+  -- `Bundle.Pullback`.
+  rfl
 
 /-- **The zeros of the section given by `ℓ`.** The section given by `ℓ` vanishes at `x` exactly
 when all the forms of `ℓ` vanish on the line `x`. -/
-theorem linearSection_eq_zero_iff (ℓ : (Fin (n + 2) → ℂ) →ₗ[ℂ] Fin n → ℂ) (x : X) :
+theorem linearSection_eq_zero_iff (ℓ : (Fin (n + 2) → ℂ) →ₗ[ℂ] ι → ℂ) (x : X) :
     X.linearSection ℓ x = 0 ↔ ℓ (x : ℙ ℂ (Fin (n + 2) → ℂ)).rep = 0 := by
   rw [linearSection_apply, ← coe_embedding]
   exact Projectivization.linearSection_eq_zero_iff ℓ _
 
 /-- **The sections given by the forms `x_j e_k` and `i x_j e_k` span every fibre.** At every
 point of `X`, the values of the sections given by the linear maps `v ↦ v j • c • e_k`, for
-`c` in the real basis `1, i` of `ℂ` and `e_k` the standard basis of `ℂ^n`, span the fibre
+`c` in the real basis `1, i` of `ℂ` and `e_k` the standard basis of `ℂ^ι`, span the fibre
 over `ℝ`. -/
-theorem span_range_linearSection_smulRight (x : X) :
-    Submodule.span ℝ (range fun p : Fin (n + 2) × Fin n × Fin 2 ↦
+theorem span_range_linearSection_smulRight [DecidableEq ι] (x : X) :
+    Submodule.span ℝ (range fun p : Fin (n + 2) × ι × Fin 2 ↦
       X.linearSection ((LinearMap.proj (R := ℂ) (φ := fun _ ↦ ℂ) p.1).smulRight
         (Pi.single p.2.1 (Complex.basisOneI p.2.2))) x) = ⊤ := by
   have hi := (mem_affineOpen_iff _ _).1
     (mem_affineOpen_twistCore_indexAt (𝕜 := ℂ) 1 (X.embedding x))
-  -- The fibre is `Fin n → ℂ` by the definitions of `Bundle.Pullback` and
-  -- `VectorBundleCore.Fiber`, so the real basis of `Fin n → ℂ` is one of the fibre.
-  let e : Module.Basis (Σ _ : Fin n, Fin 2) ℝ
-      ((X.embedding *ᵖ (twistPiCore (𝕜 := ℂ) (n := n + 1) 1 (Fin n)).Fiber) x) :=
+  -- The fibre is `ι → ℂ` by the definitions of `Bundle.Pullback` and
+  -- `VectorBundleCore.Fiber`, so the real basis of `ι → ℂ` is one of the fibre.
+  let e : Module.Basis (Σ _ : ι, Fin 2) ℝ
+      ((X.embedding *ᵖ (twistPiCore (𝕜 := ℂ) (n := n + 1) 1 ι).Fiber) x) :=
     Pi.basis fun _ ↦ Complex.basisOneI
   rw [eq_top_iff, ← e.span_eq]
   refine Submodule.span_mono ?_

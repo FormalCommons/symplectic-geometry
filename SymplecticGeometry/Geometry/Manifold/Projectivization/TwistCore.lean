@@ -11,6 +11,7 @@ public import Mathlib.Topology.VectorBundle.Constructions
 public import SymplecticGeometry.Topology.Algebra.Module.Equiv.Pi
 public import TauCeti.Geometry.Manifold.Projectivization.LineBundle
 public import TauCeti.Topology.VectorBundle.Core.Trivial
+public import SymplecticGeometry.Geometry.Manifold.VectorBundle.RestrictScalars
 public import TauCeti.Topology.VectorBundle.Hom
 public import TauCeti.Topology.VectorBundle.TensorProduct.Basic
 
@@ -36,6 +37,9 @@ polynomials that express sections of `𝒪(d)` in the standard charts.
   transitions `twistTransition k i j • id`. It is analytic
   (`Projectivization.isContMDiff_twistPiCore`), and a section of it is `C^r` exactly when its
   coordinates in the standard charts are (`Projectivization.contMDiff_section_twistPiCore_iff`).
+  For `𝕜 = ℂ`, it is also a smooth real vector bundle over the underlying real manifold, by
+  restriction of scalars (Tau Ceti's `VectorBundle.restrictScalars` and the library's
+  `ContMDiffVectorBundle.restrictScalars`).
 * `Projectivization.twistPiCoreOptionEquiv k ι x`: the splitting
   `𝒪(k) ⊗ 𝕜^{Option ι} ≅ 𝒪(k) ⊕ (𝒪(k) ⊗ 𝕜^ι)` into Mathlib's direct sum `×ᵇ` of bundles,
   continuous on total spaces in both directions, so that, by induction on `r`, `𝒪(k)^{⊕ r}` is
@@ -426,6 +430,26 @@ theorem continuous_twistPiCoreCongr {ι' : Type*} [Fintype ι'] (e : ι ≃ ι')
           (mem_affineOpen_twistCore_indexAt k p₀.proj))))
 
 end Pi
+
+section RestrictScalars
+
+variable (k : ℤ) (ι : Type*) [Fintype ι]
+
+/-- `𝒪(k) ⊗ ℂ^ι` on complex projective space is a real vector bundle, by restriction of
+scalars. -/
+instance : VectorBundle ℝ (ι → ℂ) (twistPiCore (𝕜 := ℂ) (n := n) k ι).Fiber :=
+  VectorBundle.restrictScalars ℝ ℂ _ _
+
+/-- `𝒪(k) ⊗ ℂ^ι` on complex projective space is a smooth real vector bundle over the underlying
+real manifold. -/
+instance :
+    ContMDiffVectorBundle ∞ (ι → ℂ) (twistPiCore (𝕜 := ℂ) (n := n) k ι).Fiber 𝓘(ℝ, Fin n → ℂ) :=
+  have : ContMDiffVectorBundle ∞ (ι → ℂ) (twistPiCore (𝕜 := ℂ) (n := n) k ι).Fiber
+      𝓘(ℂ, Fin n → ℂ) :=
+    ContMDiffVectorBundle.of_le le_top
+  ContMDiffVectorBundle.restrictScalars (𝕜' := ℂ) ℝ _ _
+
+end RestrictScalars
 
 /-! ### `𝒪(0)` is trivial -/
 
