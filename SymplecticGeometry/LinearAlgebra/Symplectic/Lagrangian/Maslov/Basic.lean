@@ -25,7 +25,8 @@ Write `ℒ ι` for the space of Lagrangian subspaces of the standard model `(Std
   injective, hence a closed embedding (`isClosedEmbedding_souriau`).
 * `SymplecticGeometry.LagrangianGrassmannian.maslovPhase Λ = det (souriau Λ)`, the map
   `ρ : ℒ(n) → S¹` of McDuff–Salamon; on a unitary frame it is `(det U)²`, and `rotate θ`
-  multiplies it by `e^{2inθ}` (`maslovPhase_rotate`).
+  multiplies it by `e^{2inθ}` (`maslovPhase_rotate`). `maslovPhaseMap` is `ρ` as a bundled
+  continuous map.
 * `SymplecticGeometry.LagrangianGrassmannian.maslovIndex γ`, for a loop `γ : Path Λ Λ`, the degree
   of the circle loop `t ↦ ρ (γ t)`.
 * `SymplecticGeometry.LagrangianGrassmannian.halfTurnLoop k`, the loop
@@ -204,6 +205,23 @@ theorem maslovPhase_def (Λ : ℒ ι) : maslovPhase Λ = detCircle (souriau Λ) 
 theorem continuous_maslovPhase : Continuous (maslovPhase : (ℒ ι) → Circle) :=
   continuous_detCircle.comp continuous_souriau
 
+/-- The Maslov phase `ρ : ℒ(n) → S¹` as a bundled continuous map. -/
+noncomputable def maslovPhaseMap : C(ℒ ι, Circle) :=
+  ⟨maslovPhase, continuous_maslovPhase⟩
+
+@[simp]
+theorem coe_maslovPhaseMap : ⇑(maslovPhaseMap : C(ℒ ι, Circle)) = maslovPhase :=
+  (rfl)
+
+theorem maslovPhaseMap_apply (Λ : ℒ ι) : maslovPhaseMap Λ = maslovPhase Λ :=
+  (rfl)
+
+/-- A homotopy, with fixed ends, of paths of Lagrangians gives a homotopy, with fixed ends, of
+their Maslov phase paths `t ↦ ρ (γ t)` in the circle. -/
+theorem homotopic_map_maslovPhase {Λ Λ' : ℒ ι} {γ₀ γ₁ : Path Λ Λ'} (h : γ₀.Homotopic γ₁) :
+    (γ₀.map continuous_maslovPhase).Homotopic (γ₁.map continuous_maslovPhase) :=
+  h.map maslovPhaseMap
+
 /-- The Maslov phase of the Lagrangian framed by `U` is `(det U)²`. -/
 @[simp]
 theorem maslovPhase_unitaryFrame (U : unitaryGroup ι ℂ) :
@@ -267,13 +285,13 @@ theorem maslovIndex_eq_of_homotopy {Λ Λ' : ℒ ι} (γ₀ : Path Λ Λ) (γ₁
     (hF : ∀ s, F (s, 0) = F (s, 1)) :
     maslovIndex γ₀ = maslovIndex γ₁ :=
   Circle.degree_eq_of_homotopy _ _
-    ((⟨maslovPhase, continuous_maslovPhase⟩ : C(ℒ ι, Circle)).comp F)
+    (maslovPhaseMap.comp F)
     (fun t ↦ by simp [h₀]) (fun t ↦ by simp [h₁]) (fun s ↦ by simp [hF])
 
 /-- Loops that are homotopic relative to their base point have the same Maslov index. -/
 theorem maslovIndex_eq_of_homotopic {Λ : ℒ ι} {γ₀ γ₁ : Path Λ Λ} (h : γ₀.Homotopic γ₁) :
     maslovIndex γ₀ = maslovIndex γ₁ :=
-  Circle.degree_eq_of_homotopic (h.map ⟨maslovPhase, continuous_maslovPhase⟩)
+  Circle.degree_eq_of_homotopic (homotopic_map_maslovPhase h)
 
 /-- A constant loop has Maslov index zero. -/
 @[simp]
