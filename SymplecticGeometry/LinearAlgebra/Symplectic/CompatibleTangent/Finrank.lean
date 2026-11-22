@@ -15,8 +15,9 @@ public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Matrix
 
 For a symplectic form `ω` on a real vector space `V` of dimension `2 n` and an `ω`-compatible
 complex structure `J`, Tau Ceti's `ω.compatibleTangentSpace J`, the endomorphisms `Y` that
-anticommute with `J` and are skew-adjoint for `ω`, has dimension `n (n + 1)`. This is the
-dimension of the space of compatible complex structures (McDuff–Salamon, Example 4.3.6).
+anticommute with `J` and are skew-adjoint for `ω`, has dimension `n (n + 1)`, the dimension of
+the space of compatible complex structures. McDuff–Salamon, Example 4.3.6, describe these
+tangent spaces; the dimension is computed here from that description.
 
 In the standard model `(StdSpace ι, ω₀, J₀)`, with `J₀` the map of `Matrix.J ι ℝ`, the tangent
 space at `J₀` consists of the maps of the matrices `fromBlocks X (-Y) (-Y) (-X)` with `X` and `Y`
@@ -38,7 +39,7 @@ symmetric. The general case reduces to this one by a symplectomorphism carrying 
 ## References
 
 * [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*, third
-  edition][McDuffSalamon2017], Example 4.3.6.
+  edition][McDuffSalamon2017], Example 4.3.6 (the tangent spaces).
 -/
 
 public section
@@ -54,20 +55,17 @@ standard model at `J₀` if and only if `A` anticommutes with `Matrix.J ι ℝ` 
 theorem toEuclideanLin_mem_compatibleTangentSpace_stdForm_iff {A : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ} :
     toEuclideanLin A ∈ (stdForm ι).compatibleTangentSpace (stdComplexStructure ι) ↔
       A * J ι ℝ + J ι ℝ * A = 0 ∧ A.IsHermitian := by
-  have hT : toEuclideanLin A ∈ (stdComplexStructure ι).tangentSpace ↔
-      A * J ι ℝ + J ι ℝ * A = 0 := by
-    rw [AlmostComplexStructure.mem_tangentSpace, stdComplexStructure_eq_toEuclideanLin_J,
-      Module.End.mul_eq_comp, Module.End.mul_eq_comp, ← toLpLin_mul_same, ← toLpLin_mul_same,
-      ← map_add, LinearEquiv.map_eq_zero_iff]
   constructor
   · intro h
     have h' := SymplecticForm.compatibleTangentSpace_le_tangentSpace h
-    refine ⟨hT.1 h', isSymmetric_toEuclideanLin_iff.1 fun v w ↦ ?_⟩
+    refine ⟨toEuclideanLin_mem_tangentSpace_stdComplexStructure_iff.1 h',
+      isSymmetric_toEuclideanLin_iff.1 fun v w ↦ ?_⟩
     have := (SymplecticForm.mem_compatibleTangentSpace_iff_isSelfAdjoint h').1 h v w
     simpa only [SymplecticForm.associatedBilinForm_apply, stdForm_apply_stdComplexStructure] using
       this
   · rintro ⟨h₁, h₂⟩
-    refine (SymplecticForm.mem_compatibleTangentSpace_iff_isSelfAdjoint (hT.2 h₁)).2 fun v w ↦ ?_
+    refine (SymplecticForm.mem_compatibleTangentSpace_iff_isSelfAdjoint
+      (toEuclideanLin_mem_tangentSpace_stdComplexStructure_iff.2 h₁)).2 fun v w ↦ ?_
     simpa only [SymplecticForm.associatedBilinForm_apply, stdForm_apply_stdComplexStructure] using
       isSymmetric_toEuclideanLin_iff.2 h₂ v w
 
@@ -184,9 +182,6 @@ theorem Compatible.finrank_compatibleTangentSpace (hJ : ω.Compatible J)
     ext Y
     rw [Submodule.mem_map_equiv, ← hΨ.conj_mem_compatibleTangentSpace_iff,
       LinearEquiv.apply_symm_apply, hJ']
-  -- `selfAdjoint` is only an additive subgroup; its carrier is that of `selfAdjoint.submodule`.
-  have : Module.Finite ℝ (selfAdjoint (Matrix (Fin n) (Fin n) ℝ)) :=
-    inferInstanceAs (Module.Finite ℝ (selfAdjoint.submodule ℝ (Matrix (Fin n) (Fin n) ℝ)))
   rw [← hmap, LinearEquiv.finrank_map_eq, ← (stdTangentEquiv (Fin n)).finrank_eq,
     Module.finrank_prod, Matrix.finrank_selfAdjoint, Fintype.card_fin, ← two_mul,
     Nat.mul_div_cancel' (Nat.even_mul_succ_self n).two_dvd]
