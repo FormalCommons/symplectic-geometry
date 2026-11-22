@@ -534,10 +534,11 @@ continuous bilinear form `B`, which need not be positive.
 - `leviCivitaConnection_compatibleSpace_apply`: for a vector field `Y`
   differentiable at `J`, the ambient reading of
   `leviCivitaConnection 𝓘 (𝒥 ω) Y J a` is
-  `mvfderiv 𝓘 (fun J' ↦ (d J' (Y J') : V →L[ℝ] V)) J a - (2⁻¹ : ℝ) • (ω.compatibleCLM J ∘L (d J (Y J) ∘L d J a + d J a ∘L d J (Y J)))`,
-  by the Gauss formula of `Bilinear.lean` (decision 7). The derivative of the
-  ambient reading is `mvfderiv`, with values in `V →L[ℝ] V`, and the
-  products are `∘L`, since `*` does not elaborate on tangent vectors.
+  `mvfderiv 𝓘 (fun J' ↦ D J' (Y J')) J a - (2⁻¹ : ℝ) • (ω.compatibleCLM J * (D J (Y J) * D J a + D J a * D J (Y J)))`,
+  with `D = mvfderiv 𝓘 ω.compatibleCLM`, by the Gauss formula of
+  `Bilinear.lean` (decision 7). The ambient readings are taken through
+  `mvfderiv`, with values in `V →L[ℝ] V`, so that the products are `*`
+  in that ring.
 - `alongCurve_leviCivitaConnection_compatibleSpace`: the same formula for a
   field `W` along a curve `γ : ℝ → 𝒥 ω`, differentiable at `t` as a curve in
   the tangent bundle, with Tau Ceti's

@@ -186,8 +186,8 @@ private theorem normalMap_eq_zero_of_mem (hf : IsLegendrianEmbedding J α.kerDis
     rw [SmoothForm.mpullback_apply] at this
     simp only [SmoothBundleForm.eval₂_apply, SmoothEmbedding.pairingCovector_apply_apply]
     convert this using 2
-    ext i
-    fin_cases i <;> rfl
+    -- The outer `Eq.symm` makes Lean read the vector off the goal's right side.
+    exact Eq.symm (FinVec.etaExpand_eq _).symm
   · exact SmoothForm.mem_kerDistribution.1 (hf.isHorizontalMap.mfderiv_mem q u')
 
 omit [FiniteDimensional ℝ E'] in
