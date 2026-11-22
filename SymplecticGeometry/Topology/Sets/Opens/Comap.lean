@@ -10,9 +10,16 @@ public import Mathlib.Topology.Sets.Opens
 /-!
 # Open sets of an open subspace
 
-For open sets `U ≤ W` of `X`, the set `U` read as an open set of the subspace `W` (its preimage
-under the inclusion `W → X`) is mapped back onto `U` by the inclusion of `W`
-(`TopologicalSpace.Opens.range_val_comp_val_comap`).
+Facts about open sets of `X` read as open sets of an open subspace `W` of `X`, that is, about
+their preimages under the inclusion `W → X`:
+
+* `TopologicalSpace.Opens.range_val_comp_val_comap`: for `U ≤ W`, the inclusion of `W` maps `U`,
+  read as an open set of `W`, back onto `U`;
+* `TopologicalSpace.Opens.comap_val_sup_comap_val_eq_top`: `U` and `V`, read as open sets of
+  `U ⊔ V`, cover it.
+
+For `U ≤ W`, the homeomorphism between `U` read as an open set of `W` and `U` itself is Mathlib's
+`Topology.IsEmbedding.homeomorphOfSubsetRange`, applied to `Topology.IsEmbedding.subtypeVal`.
 -/
 
 public section
@@ -28,6 +35,14 @@ theorem range_val_comp_val_comap {U W : Opens X} (hUW : U ≤ W) :
       (Subtype.val : Opens.comap ⟨Subtype.val, continuous_subtypeVal⟩ U → W)) = U := by
   ext x
   simpa using fun hx ↦ hUW hx
+
+/-- Two open sets `U` and `V` of `X`, read as open sets of the subspace `U ⊔ V` (their preimages
+under the inclusion `U ⊔ V → X`), cover `U ⊔ V`. -/
+theorem comap_val_sup_comap_val_eq_top (U V : Opens X) :
+    Opens.comap (⟨Subtype.val, continuous_subtypeVal⟩ : C(↥(U ⊔ V), X)) U ⊔
+      Opens.comap ⟨Subtype.val, continuous_subtypeVal⟩ V = ⊤ := by
+  rw [← map_sup, eq_top_iff]
+  exact fun x _ ↦ x.property
 
 end TopologicalSpace.Opens
 

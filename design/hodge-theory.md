@@ -309,11 +309,12 @@ codifferential in a chart `ψ`:
 
 ### `Geometry/Manifold/DeRham/Hodge/L2.lean`
 
-- `SmoothForm.l2Inner o (α β : SmoothForm I M ℝ k) : ℝ`, the integral of
+- `TauCeti.SmoothForm.l2Inner o (α β : SmoothForm I M ℝ k) : ℝ`, the integral of
   `alternatingFormInner` against `riemannianVolumeForm o`, written inline
   in Tau Ceti's `Codifferential.lean`, with `l2Inner_def`, symmetry,
-  bilinearity and `l2Inner_self_eq_zero_iff` (from Tau Ceti's
-  `SmoothForm.integralTopForm_inner_self_smul_riemannianVolumeForm_eq_zero_iff`).
+  bilinearity and `l2Inner_self_eq_zero_iff` (through
+  `l2Inner_eq_integral`, the integral against `riemannianVolume I M`,
+  so in every dimension).
 - `L2Form o k`, the Hilbert space completion described above, with
   `L2Form.ofSmooth : SmoothForm I M ℝ k →ₗ[ℝ] L2Form o k`,
   `inner_ofSmooth`, `ofSmooth_injective` and `denseRange_ofSmooth`.
