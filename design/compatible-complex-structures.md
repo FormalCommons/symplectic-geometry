@@ -300,12 +300,14 @@ The part uses the following from other parts:
   (`IsIsotropic.exists_le_isLagrangian` in `LinearAlgebra/Symplectic/Subspace.lean`), used only in the
   implication from (4) to (1). An isotropic plane containing $v$ and $w$ is
   extended to a Lagrangian subspace.
-- From *Linear complex structures*, only four merged files.
+- From *Linear complex structures*, only merged files.
   `Compatible.lean` imports `LinearAlgebra/ComplexStructure/Action.lean`,
   which imports only Mathlib and Tau Ceti, for
   `AlmostComplexStructure.transport_eq_iff_isComplexLinearMap`, used in
   `compatible_of_isSymplectomorphism_stdForm` and
   `compatible_iff_exists_isSymplectomorphism_stdForm`.
+  It also imports `LinearAlgebra/ComplexStructure/Hom.lean`, which imports
+  only Tau Ceti, for `IsComplexLinearMap.symm_linearEquiv`.
   `Topology/ComplexStructure/Compatible/Matrix.lean` imports
   `Topology/ComplexStructure/Basic.lean`, which besides `Action.lean` imports
   only Tau Ceti and the merged `LinearAlgebra/Matrix/NonsingularInverse.lean`
@@ -314,8 +316,8 @@ The part uses the following from other parts:
   `coe_homeomorphMatrix` in `compatibleEquivPosDefSymplectic`.
   `Topology/Algebra/Matrix/SymplecticGroup/CompactSubgroup.lean` imports
   `LinearAlgebra/ComplexStructure/Standard.lean`, for
-  `stabilizer_stdComplexStructure`; besides `Action.lean`, that file imports
-  this part's `Compatible.lean`, `Symplectic/Standard/Matrix.lean` of
+  `stabilizer_stdComplexStructure`; besides `Action.lean` and `Hom.lean`, that
+  file imports this part's `Compatible.lean`, `Symplectic/Standard/Matrix.lean` of
   *Standard model*, the library's `Geometry/Symplectic/Orientation.lean`
   (which imports only Tau Ceti) and Tau Ceti.
   `Topology/ComplexStructure/Compatible/SymplecticForms.lean` imports
@@ -469,7 +471,7 @@ statements assume `[FiniteDimensional ℝ V]`.
   `Geometry/Symplectic/Darboux/EuclideanBasis.lean`). $\Psi$ is
   its inverse, complex linear by
   `TauCeti.IsComplexLinearMap.symm_linearEquiv`
-  (`LinearAlgebra/ComplexStructure/Action.lean`), composed with the reindexing along a bijection `Fin n ≃ ι`,
+  (`LinearAlgebra/ComplexStructure/Hom.lean`), composed with the reindexing along a bijection `Fin n ≃ ι`,
   which commutes with $J_0$ (`stdComplexStructure_piLpCongrLeft_sumCongr` and
   `isComplexLinearMap_piLpCongrLeft_sumCongr`, in
   `LinearAlgebra/Symplectic/Standard/Basic.lean`), and
