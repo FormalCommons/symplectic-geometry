@@ -2373,7 +2373,10 @@ has either; Tau Ceti's extension across a boundary,
   restriction is the restriction of $N_J$, so `IsKahler` passes to $N$; and
   if $J$ is integrable, so is the restriction, since $N$ is locally a graph
   whose differential is complex linear, hence holomorphic by Tau Ceti's
-  `mdifferentiableAt_iff_mvfderiv_ofComplexManifold_apply`).
+  `mdifferentiableAt_iff_mvfderiv_ofComplexManifold_apply`) and
+  `Geometry/Manifold/Immersion/TangentEndomorphism.lean` (an endomorphism
+  field of $TN$ that $df$ relates to a smooth one along $f$ is smooth, when
+  $df$ has left inverses; it gives the restriction its smoothness).
 - **Builds on:** *Nijenhuis tensor* (`Nijenhuis.lean` for naturality along
   embeddings, `Integrable.lean`); Tau Ceti.
 - **Milestones:** *Complex submanifolds of Kähler manifolds*, except its
