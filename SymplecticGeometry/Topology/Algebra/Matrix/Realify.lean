@@ -10,7 +10,13 @@ public import TauCeti.LinearAlgebra.Matrix.UnitaryGroup.Block
 public import TauCeti.Topology.Algebra.Matrix.Realify
 
 /-!
-# Realified unitary matrices and direct sums
+# Realification as a continuous linear map, and realified unitary matrices
+
+Realification `Matrix.realify` is `ℝ`-linear (Tau Ceti's `Matrix.realifyLinearMap`) between
+finite-dimensional real vector spaces, so it is a continuous linear map, `Matrix.realifyCLM`.
+Hence `ContinuousLinearMap.contDiff` makes realification smooth of every order, for the
+entrywise norms `Matrix.Norms.Elementwise` as well as the operator norms
+`Matrix.Norms.L2Operator`, since both induce the entrywise topology.
 
 Tau Ceti's `TauCeti.GLSymplectic.ofUnitary` sends a complex unitary matrix `U` to its
 realification, a symplectic matrix. This file shows that it turns the block-diagonal sum
@@ -20,6 +26,7 @@ symplectic matrices. It sits beside Tau Ceti's `TauCeti.Topology.Algebra.Matrix.
 
 ## Main results
 
+* `Matrix.realifyCLM`: realification of matrices, as a continuous `ℝ`-linear map.
 * `TauCeti.GLSymplectic.sum_ofUnitary`: `ofUnitary U ⊕ ofUnitary U' = ofUnitary (diag(U, U'))`.
 
 ## References
@@ -29,6 +36,28 @@ symplectic matrices. It sits beside Tau Ceti's `TauCeti.Topology.Algebra.Matrix.
 -/
 
 public section
+
+namespace Matrix
+
+variable (m n 𝕜 : Type*) [Finite m] [Finite n] [RCLike 𝕜]
+
+/-- Realification of matrices `Matrix.realify`, as a continuous `ℝ`-linear map for the entrywise
+topologies. -/
+noncomputable def realifyCLM : Matrix m n 𝕜 →L[ℝ] Matrix (m ⊕ m) (n ⊕ n) ℝ :=
+  (realifyLinearMap m n 𝕜).toContinuousLinearMap
+
+variable {m n 𝕜}
+
+/-- `Matrix.realifyCLM` applied to `A` is the realification of `A`. -/
+@[simp]
+theorem realifyCLM_apply (A : Matrix m n 𝕜) : realifyCLM m n 𝕜 A = A.realify :=
+  realifyLinearMap_apply A
+
+/-- As a function, `Matrix.realifyCLM` is `Matrix.realify`. -/
+theorem coe_realifyCLM : ⇑(realifyCLM m n 𝕜) = realify :=
+  funext realifyCLM_apply
+
+end Matrix
 
 open Matrix
 

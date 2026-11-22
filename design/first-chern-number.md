@@ -832,6 +832,23 @@ issues, in an order where each issue's blockers come before it.
    `TopologicalSpace.Opens.range_val_comp_val_comap`, to read an open set of
    `M` as one of `U ∪ V`, and `Algebra/Category/ModuleCat/Basic.lean`,
    `ModuleCat.bijective_zsmul_iff`, for the sign of the connecting square.
+   Duality for every open subset of a finite-dimensional real normed space
+   `F` is the library's
+   `AlgebraicTopology/Cohomology/CompactSupport/Euclidean/Duality.lean`:
+   `TauCeti.HomologicalOrientation.bijective_dualityMap_of_isOpenEmbedding`,
+   for an open embedding `j : U → F` and any orientation of `U`. It uses
+   `TopCat.isZero_compactSupportCohomology_of_isOpenEmbedding`, in
+   `Euclidean/Basic.lean`, `Hᵐ_c(U) = 0` for `m > dim F`, which the step to
+   compact manifolds needs too, for the intersections. Both run
+   Mayer–Vietoris over finite unions of open sets of `U` with convex images,
+   starting from `isZero_compactSupportCohomology_of_convex` and Tau Ceti's
+   `bijective_dualityMap_of_convex`. Those open sets come from
+   `Analysis/Convex/Opens.lean`:
+   `TopologicalSpace.Opens.infClosed_setOf_convex_image` and
+   `Topology.IsOpenEmbedding.iSup_finset_sup_convex_image_eq_top`. The
+   induction is `InfClosed.finset_sup_induction`, in `Order/SupClosed.lean`,
+   Tau Ceti's `TauCeti.finset_sup_of_inf_closed` for a finite set of members
+   of the family.
 3. **The unit circle bundle of a Hermitian line bundle.**
    `Geometry/Manifold/VectorBundle/Hermitian/CircleBundle.lean`, the file
    of *Symplectic vector bundles* (its section *The circle bundle of a
@@ -1148,7 +1165,8 @@ issues, in an order where each issue's blockers come before it.
 8. **Capping a surface with boundary.**
    `Geometry/Manifold/Gluing/CapDiscs/`, a folder of its own beside Tau
    Ceti's `Geometry/Manifold/Gluing/`, whose gluing it uses, with the
-   glued smooth surface in `Basic.lean`: a compact
+   glued smooth surface in `Basic.lean` and its point-set topology
+   (Hausdorff, compact, connected) in `Topology.lean`: a compact
    oriented surface with boundary, in the representation of *Symplectic
    vector bundles*, with its boundary circles parametrized by
    orientation-reversing loops, glued to discs along them, is a closed
