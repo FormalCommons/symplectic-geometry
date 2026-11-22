@@ -50,6 +50,9 @@ stated with them reassociate by `rw`.
 * `TopPair.chainComplexMap_comp_singularChainComplexπFst`,
   `TopPair.singularChainComplexπFst_naturality`, `TopPair.singularChainComplexπOfSubset_naturality`:
   the chains of the subspace vanish in the relative chains, and the quotient maps are natural.
+* `TopPair.singularChainComplexπFst_coefficient_naturality`,
+  `TopPair.singularChainComplexπOfSubset_coefficient_naturality`: the quotient maps from the
+  chains of the ambient space are natural in the coefficient object.
 * `TopPair.homologyMap_comp_singularHomologyπFst`, `TopPair.singularHomologyπFst_naturality`: the
   same on homology.
 * `TopPair.excisionMap_eq_ofSubsetMap`, `TopPair.excisionMap_fst`: the excision map through the
@@ -187,6 +190,17 @@ lemma singularChainComplexπFst_naturality {Q : TopPair.{w}} (f : P ⟶ Q) :
       P.singularChainComplexπFst R ≫ singularChainComplexMap f R :=
   singularChainComplexπ_pair_naturality f R
 
+/-- The quotient map from the singular chains of the ambient space to the relative singular chains
+is natural in the coefficient object. -/
+@[reassoc]
+lemma singularChainComplexπFst_coefficient_naturality {M N : C} (φ : M ⟶ N) :
+    ((SSet.chainComplexFunctor C).map φ).app (TopCat.toSSet.obj P.fst) ≫
+        P.singularChainComplexπFst N =
+      P.singularChainComplexπFst M ≫
+        ((SSetPair.chainComplexFunctor C).map φ).app (toSSetPair.obj P) := by
+  rw [← TauCeti.singularChainComplexFunctor_map_app]
+  exact singularChainComplexπ_coefficient_naturality P φ
+
 end Fst
 
 section OfSubset
@@ -221,6 +235,16 @@ lemma singularChainComplexπOfSubset_naturality (g : X ⟶ Y) {A : Set X} {B : S
   have h := singularChainComplexπ_pair_naturality (ofSubsetMap g hA) R
   rwa [ofSubsetMap_fst] at h
 
+/-- The quotient map from the singular chains of `X` to the relative singular chains of `(X, A)`
+is natural in the coefficient object. -/
+@[reassoc]
+lemma singularChainComplexπOfSubset_coefficient_naturality (A : Set X) {M N : C} (φ : M ⟶ N) :
+    ((SSet.chainComplexFunctor C).map φ).app (TopCat.toSSet.obj X) ≫
+        singularChainComplexπOfSubset N A =
+      singularChainComplexπOfSubset M A ≫
+        ((SSetPair.chainComplexFunctor C).map φ).app (toSSetPair.obj (ofSubset A)) :=
+  (ofSubset A).singularChainComplexπFst_coefficient_naturality φ
+
 end OfSubset
 
 /-- A map into the ambient space of a pair that factors through its subspace sends singular chains
@@ -231,9 +255,7 @@ lemma chainComplexMap_comp_singularChainComplexπ_of_fac (P : TopPair.{w}) {Y : 
   subst hg
   simp
 
-end Preadditive
-
-variable [Abelian C]
+variable [CategoryWithHomology C]
 
 section Fst
 
@@ -317,6 +339,8 @@ lemma inv_singularHomologyMap_excisionMap_comp_ofSubsetMap_id {X : TopCat.{w}} {
   rw [← TopPair.singularHomologyMap_comp,
     ofSubsetMap_comp_ofSubsetMap_of_comp_eq h₁ h₂ (h₂.comp h₁) (Category.comp_id _),
     ← excisionMap_eq_ofSubsetMap, IsIso.inv_hom_id]
+
+end Preadditive
 
 end TopPair
 
