@@ -13,9 +13,9 @@ public import SymplecticGeometry.Analysis.Normed.Operator.SpanSingleton
 public import SymplecticGeometry.Topology.FiberBundle.Principal.ChangeGroup
 public import SymplecticGeometry.Geometry.Manifold.Instances.Sphere
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Riemannian.Hermitian
-public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Riemannian.Norm
 public import TauCeti.Geometry.Manifold.FiberBundle.Principal
 public import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Sphere
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.Hermitian.Frame
 import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
 import TauCeti.Geometry.Manifold.VectorBundle.Scalar
 
@@ -59,9 +59,9 @@ The last section adds the smooth structure, for a Hermitian line bundle `(g, hI)
 a smooth complex line bundle `V` with a smooth `i`-invariant real metric `g`, whose fibres get
 their norms and Hermitian products from `g` through three local instances (written with `letI` in
 the statements). The unit vector `σ 1` of a local unitary frame is then a smooth local section
-(`Bundle.Trivialization.contMDiffOn_orthonormalFrameAt_one`: in rank one it is a constant
-multiple of `u / ‖u‖` for a smooth nowhere-zero local section `u`, and `ContMDiffOn.norm_bundle`
-makes `‖u‖` smooth), so the transition functions above are smooth. By Tau Ceti's
+(`Bundle.Trivialization.contMDiffOn_orthonormalFrameAt_one`, a case of the smoothness of local
+unitary frames in any rank, `Bundle.Trivialization.contMDiffOn_orthonormalFrameAt`), so the
+transition functions above are smooth. By Tau Ceti's
 `TauCeti.PrincipalBundle.contMDiffFiberBundle_iff`, the unitary frames thus form a smooth
 principal `Circle`-bundle (`SymplecticGeometry.Bundle.contMDiffFiberBundle_circleFiber`), charted
 through the fibre as `TauCeti.ManifoldTotalSpace Circle (Fiber ℂ F V ℂ)`; Tau Ceti's
@@ -421,7 +421,8 @@ variable [ContMDiffVectorBundle n F V I] (g : ContMDiffRiemannianMetric I n F V)
 
 /-- For a smooth Hermitian metric on a complex line bundle, the unit vector `σ 1` of the local
 unitary frame `σ = e.orthonormalFrameAt c b` of a trivialization `e` of the atlas is a smooth
-section over the base set of `e`. -/
+section over the base set of `e`: the case `w = 1` of
+`Bundle.Trivialization.contMDiffOn_orthonormalFrameAt`. -/
 theorem Bundle.Trivialization.contMDiffOn_orthonormalFrameAt_one
     (e : Trivialization F (π F V)) [MemTrivializationAtlas e]
     {ι : Type*} [Fintype ι] [LinearOrder ι] [LocallyFiniteOrderBot ι] (c : Basis ι ℂ F)
@@ -429,32 +430,8 @@ theorem Bundle.Trivialization.contMDiffOn_orthonormalFrameAt_one
     letI : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
     letI : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
     ContMDiffOn I (I.prod 𝓘(ℝ, F)) n
-      (fun y ↦ (⟨y, e.orthonormalFrameAt c b y 1⟩ : TotalSpace F V)) e.baseSet := by
-  let : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
-  let : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
-  -- In rank one, `σ 1` is a multiple of the normalized vector `u / ‖u‖`, for `u = e⁻¹ (c i)`.
-  obtain ⟨i, hi⟩ := Fintype.card_eq_one_iff.1 <| by
-    rw [← finrank_eq_card_basis b.toBasis, finrank_self]
-  set u : ∀ y, V y := fun y ↦ e.symm y (c i)
-  have hu : ContMDiffOn I (I.prod 𝓘(ℝ, F)) n (fun y ↦ (⟨y, u y⟩ : TotalSpace F V)) e.baseSet :=
-    (e.contMDiffOn_symm.comp (contMDiffOn_id.prodMk (contMDiffOn_const (c := c i)))
-      fun y hy ↦ e.mem_target.2 hy).congr fun y hy ↦ e.mk_symm hy (c i)
-  have hu₀ (y : B) (hy : y ∈ e.baseSet) : u y ≠ 0 := by
-    have h : u y = (e.continuousLinearEquivAt ℂ y hy).symm (c i) := by
-      rw [e.symm_continuousLinearEquivAt_eq hy, e.symmL_apply (R := ℂ) hy]
-    rw [h, ne_eq, map_eq_zero_iff _ (e.continuousLinearEquivAt ℂ y hy).symm.injective]
-    exact c.ne_zero i
-  have hc : ContMDiffOn I 𝓘(ℝ, ℂ) n (fun y ↦ ((‖u y‖⁻¹ : ℝ) : ℂ)) e.baseSet :=
-    Complex.ofRealCLM.contMDiff.comp_contMDiffOn
-      ((hu.norm_bundle hu₀).inv₀ fun y hy ↦ norm_ne_zero_iff.2 (hu₀ y hy))
-  have hIio : Finset.Iio i = ∅ := by ext j; simp [hi j]
-  refine ((contMDiffOn_const (c := ⟪b i, 1⟫_ℂ)).smul_totalSpace
-    (hc.smul_totalSpace hu)).congr fun y hy ↦ ?_
-  rw [orthonormalFrameAt_of_mem e c b hy, orthonormalFrame_apply,
-    Fintype.sum_eq_single i fun j hj ↦ (hj (hi j)).elim, orthonormalBasis_apply,
-    InnerProductSpace.gramSchmidtNormed, InnerProductSpace.gramSchmidt_def, hIio,
-    Finset.sum_empty, sub_zero, e.symmL_apply (R := ℂ) hy, Complex.ofReal_inv]
-  rfl
+      (fun y ↦ (⟨y, e.orthonormalFrameAt c b y 1⟩ : TotalSpace F V)) e.baseSet :=
+  e.contMDiffOn_orthonormalFrameAt g hI (e.mem_maximalAtlas_of_memTrivializationAtlas I n) c b 1
 
 namespace SymplecticGeometry.Bundle
 
