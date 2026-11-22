@@ -91,10 +91,7 @@ noncomputable def tensorFiberEquiv (x : B) :
   let _ : IsModuleTopology 𝕜 ((tensor A D).core.Fiber x) :=
     inferInstanceAs (IsModuleTopology 𝕜 (Fin (A.rank * D.rank) → 𝕜))
   rw [tensorFiberEquiv]
-  -- The explicit arguments let the lemma take its instances from the goal, where the fibre of
-  -- `tensor A D` carries the module topology that `tensorFiberEquiv` gives it.
-  exact congrFun
-    (@LinearEquiv.coe_toContinuousLinearEquivOfIsModuleTopology _ _ _ _ _ _ _ _ _ _ _ _ _ _) v
+  exact congrFun (LinearEquiv.coe_toContinuousLinearEquivOfIsModuleTopology _) v
 
 @[simp] theorem tensorFiberEquiv_symm_apply (x : B) (t : A.core.Fiber x ⊗[𝕜] D.core.Fiber x) :
     (tensorFiberEquiv A D x).symm t = piTensorEquiv 𝕜 A.rank D.rank t := by
