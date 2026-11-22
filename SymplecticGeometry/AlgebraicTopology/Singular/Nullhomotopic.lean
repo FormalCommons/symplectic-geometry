@@ -19,9 +19,9 @@ A nullhomotopic map `f : X ⟶ Y` in `TopCat` induces the zero map on singular h
 constant map, which factors through a point, and the positive-degree homology of a point vanishes
 (`AlgebraicTopology.isZero_singularHomologyFunctor_of_totallyDisconnectedSpace`). In
 particular, a constant map induces zero in positive degree
-(`TopCat.singularHomologyFunctor_map_const_eq_zero`), and likewise in singular cohomology
-(`TopCat.singularCohomologyMap_const_eq_zero`, from Tau Ceti's
-`TopCat.singularCohomologyMap_eq_zero_of_nullhomotopic`).
+(`TopCat.singularHomologyFunctor_map_const_eq_zero`). In singular cohomology a constant map
+likewise induces zero in positive degree (`TopCat.singularCohomologyMap_const_eq_zero`), by
+Tau Ceti's `TopCat.singularCohomologyMap_eq_zero_of_nullhomotopic`.
 
 ## Sources
 
@@ -44,6 +44,8 @@ open CategoryTheory Limits AlgebraicTopology
 namespace TopCat
 
 universe w v u
+
+section Homology
 
 variable {C : Type u} [Category.{v} C] [HasCoproducts.{w} C] [Preadditive C]
   [CategoryWithHomology C] (R : C)
@@ -76,16 +78,23 @@ lemma singularHomologyFunctor_map_const_eq_zero {X Y : TopCat.{w}} (x₀ : X) {n
     simp
   exact h ▸ ContinuousMap.nullhomotopic_of_constant x₀
 
+end Homology
+
+section Cohomology
+
+variable {C : Type u} [Category.{v} C] [HasCoproducts.{w} C] [Abelian C]
+  {R : C} {k : Type*} [Ring k] [Linear k C] {M : C}
+
 /-- In positive degree, singular cohomology sends a constant map to zero. -/
-lemma singularCohomologyMap_const_eq_zero {C : Type u} [Category.{v} C] [HasCoproducts.{w} C]
-    [Abelian C] {R : C} {k : Type*} [Ring k] [Linear k C] {M : C} {X Y : TopCat.{w}} (x₀ : X)
-    {n : ℕ} (hn : n ≠ 0) :
+lemma singularCohomologyMap_const_eq_zero {X Y : TopCat.{w}} (x₀ : X) {n : ℕ} (hn : n ≠ 0) :
     TopCat.singularCohomologyMap (R := R) (k := k) (M := M) (TopCat.const x₀ : Y ⟶ X) n = 0 := by
   refine singularCohomologyMap_eq_zero_of_nullhomotopic ?_ hn
   have h : (TopCat.const x₀ : Y ⟶ X).hom = ContinuousMap.const Y x₀ := by
     ext
     simp
   exact h ▸ ContinuousMap.nullhomotopic_of_constant x₀
+
+end Cohomology
 
 end TopCat
 

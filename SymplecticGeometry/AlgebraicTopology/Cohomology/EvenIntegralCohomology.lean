@@ -35,10 +35,13 @@ the direct sum `⨁ k, H^{2k}(X; ℤ)` is a commutative ring. This file builds i
   pull-backs), `evenIntegralCohomologyMap_apply` (its degree-`k` component),
   `evenIntegralCohomologyMap_id` and `evenIntegralCohomologyMap_comp`.
 
+Two lemmas on Tau Ceti's `TopCat.integralCup` come first: `TopCat.integralCup_heq`, which says
+that the product does not depend on the proof that the degrees add up, and
+`TopCat.integralCup_zsmul_left`, which pulls an integer out of the left factor.
+
 The ring map preserves the unit by `TopCat.singularCohomologyMap_integralCohomologyOne`, the
 pull-back of the unit class, which Tau Ceti does not state; its proof reads the definition of
-`TopCat.integralCohomologyOne` through `import all`. The file also takes an integer multiple out
-of the left factor of the cup product (`TopCat.integralCup_zsmul_left`).
+`TopCat.integralCohomologyOne` through `import all`.
 
 The graded structures and the lemmas on the inclusions follow Tau Ceti's
 `TauCeti.NormalizedCubicalChain.gRing` and `TauCeti.cubicalChainLof_mul`,
@@ -69,13 +72,14 @@ theorem integralCup_heq {p q n n' : ℕ} (h : p + q = n) (h' : p + q = n')
   subst h h'
   rfl
 
-/-- An integer multiple can be taken out of the left factor of the integral cup product. -/
-theorem integralCup_zsmul_left {p q n : ℕ} (h : p + q = n) (m : ℤ) (a : X.integralCohomology p)
-    (b : X.integralCohomology q) :
+/-- The integral cup product is `ℤ`-linear in its left factor: `(m • a) ⌣ b = m • (a ⌣ b)`. -/
+theorem integralCup_zsmul_left {p q n : ℕ} (h : p + q = n) (m : ℤ)
+    (a : X.integralCohomology p) (b : X.integralCohomology q) :
     X.integralCup p q n h (m • a) b = m • X.integralCup p q n h a b := by
-  -- Evaluation at `b` is linear, so it commutes with the integer multiple.
-  rw [map_zsmul, ← LinearMap.applyₗ_apply_apply (R := ℤ), map_zsmul,
-    LinearMap.applyₗ_apply_apply]
+  -- `a ↦ a ⌣ b` as an additive map: the `ℤ`-action on the space of linear maps that `integralCup`
+  -- lands in is not syntactically `LinearMap.module`, so `LinearMap.smul_apply` does not apply.
+  exact map_zsmul (AddMonoidHom.mk' (fun a ↦ X.integralCup p q n h a b) fun a a' ↦ by
+    rw [map_add, LinearMap.add_apply]) m a
 
 namespace EvenIntegralCohomology
 

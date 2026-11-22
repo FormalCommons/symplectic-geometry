@@ -242,8 +242,7 @@ theorem compatibleCLM_comp_mvfderiv_mfderiv_add {p : N → 𝒥}
       fun _ ↦ 0 := by
     funext y
     have h : ω.compatibleCLM (p y) ∘L g y + g y ∘L ω.compatibleCLM (p y) = 0 :=
-      compatibleCLM_comp_add_comp_compatibleCLM (p y)
-        (mfderiv_compatibleCLM_mem_tangentSpace (p y) (Y y))
+      compatibleCLM_comp_mfderiv_add_mfderiv_comp_compatibleCLM (p y) (Y y)
     simpa only [Pi.add_apply, Function.comp_apply, add_apply,
       ContinuousLinearMap.comp_apply, zero_apply] using DFunLike.congr_fun h w
   have hsum := mvfderiv_add (I := I) (x := x) (hc.clm_apply hgw) (hY.clm_apply hJw)
@@ -367,6 +366,19 @@ theorem alongCurve_leviCivitaConnection_compatibleSpace {γ : ℝ → 𝒥}
       (differentiableAt_sectionCoord γ W hW (mem_baseSet_trivializationAt _ _ (γ t)))
       (hgm ▸ hgd) w
     rwa [ContinuousLinearMap.traceForm_apply, mvfderiv_apply_eq_mfderiv_apply] at h
+
+/-! ### Regularity of ambient readings -/
+
+/-- The ambient reading `J ↦ Ŷ(J)` of a smooth vector field `Y` on the compatible complex
+structures, a function with values in `V →L[ℝ] V`, is smooth. -/
+theorem contMDiff_mvfderiv_compatibleCLM_apply
+    {Y : Π J : 𝒥, TangentSpace 𝓘(ℝ, ω.compatibleModel) J}
+    (hY : ContMDiff 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, ω.compatibleModel).tangent
+      ((⊤ : ℕ∞) : WithTop ℕ∞) (fun J' ↦ TotalSpace.mk' ω.compatibleModel J' (Y J'))) :
+    ContMDiff 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ((⊤ : ℕ∞) : WithTop ℕ∞)
+      (fun J' : 𝒥 ↦ mvfderiv 𝓘(ℝ, ω.compatibleModel) ω.compatibleCLM J' (Y J')) :=
+  ((contMDiff_compatibleCLM (ω := ω) (n := ((⊤ : ℕ∞) : WithTop ℕ∞))).contMDiff_mvfderiv_apply
+    (m := ((⊤ : ℕ∞) : WithTop ℕ∞)) (by simp)).comp hY
 
 end TauCeti.SymplecticForm
 

@@ -537,9 +537,10 @@ In the namespace `SymplecticGeometry.Bundle`, for a complex vector bundle
 - `projectiveBundleClass G E`, the class $x=-e(S)$ of
   `ProjectiveBundle.Tautological ℂ G E`, in degree two, the image of its
   `complexEulerClass` under `uliftIntegralCohomologyIso`, negated; its
-  restriction to each fibre is `hyperplaneClass (E b)`.
+  restriction to each fibre, read through the trivialization there, is
+  `hyperplaneClass G`.
 - `chernClass G E k : (TopCat.of B).integralCohomology (2 * k)`, defined
-  from `TopCat.integralLerayHirschEquiv` for the classes $x^i$, $i<n$, applied to
+  from the inverse of `TopCat.integralLerayHirsch` for the classes $x^i$, $i<n$, applied to
   $-x^n$ when the Leray–Hirsch map is bijective, `1` for `k = 0`, and `0`
   for `k > n` and where the map is not bijective; with `chernClass_def`.
 - `totalChernClass G E : TopCat.EvenIntegralCohomology (TopCat.of B)`, the
@@ -551,11 +552,12 @@ In the namespace `SymplecticGeometry.Bundle`, for a complex vector bundle
   `chernClass_eq_of_sum_mul_pow_eq_zero`, the uniqueness: classes $a_i$
   with $a_0=1$ satisfying the relation are the Chern classes;
   `injective_projectiveBundle_proj`, the injectivity of $\pi^*$ in every
-  degree.
+  degree, for $E$ of positive rank.
 - `chernClass_zero` (`= 1`), `chernClass_eq_zero_of_finrank_lt`, and
-  `chernClass_one_eq_complexEulerClass` for a line bundle (`n = 1`):
+  `chernClass_one_eq_complexEulerClass` for a line bundle (`n = 1`) over a
+  compact base:
   `chernClass G E 1 = (uliftIntegralCohomologyIso _ 2).hom
-  (complexEulerClass G E _)`, from the relation on `P(L) ≅ B`.
+  (complexEulerClass G E _)`, from the relation and the injectivity of $\pi^*$.
 
 ### `Topology/VectorBundle/Complex/ChernClass/Naturality.lean`
 
@@ -718,7 +720,7 @@ one piece, for computing `crossSign m 0` through the sphere generator:
 `TopPair.interPair U V`, with sign `1`, ending with the map induced by
 `TopPair.interPairSndIso U V`, the homeomorphism
 `TopPair.interPairSndHomeomorph U V` from the subspace of
-`TopPair.interPair U V` onto `U ∩ V`, which this file defines;
+`TopPair.interPair U V` onto `U ∩ V`, which `Singular/PairMap.lean` defines;
 `TopCat.mayerVietorisδ_eq_neg_singularHomologyδ_right`, the same through
 `(V, U ∩ V)` with sign `-1`; and
 `TopCat.reducedMayerVietorisδ_succ_eq_singularHomologyδ_left` for the
@@ -727,6 +729,25 @@ statements `SSet.mayerVietorisδ_comp_homologyMap_of_fst` and `_of_snd`.
 `TopCat.singularHomologyπ_ofSubset_inter_eq_add` puts the two pieces
 together: `Hₙ(X) ⟶ Hₙ(X, U ∩ V)` is the sum of the two excision composites,
 each followed by the inclusion of its pair into `(X, U ∩ V)`.
+
+### `AlgebraicTopology/Singular/LocalHomology/Orientation/Suspension.lean`
+
+The sphere suspension read in the pair `(E, E ∖ {0})`, for computing
+`crossSign m 0`. For an orthonormal basis `b` of `E` of dimension `m + 2`,
+`p` its last vector, `E ∖ {0}` is covered by `TauCeti.complRay p` and
+`TauCeti.complRay (-p)`, the points off the open rays through `p` and
+`-p`. `TauCeti.mayerVietorisδ_singularHomologyδ_localOrientation`: the
+Mayer–Vietoris connecting morphism of this cover sends the boundary of the
+local orientation selected by `b.toBasis.orientation` to the image of the
+boundary of the one of `(ℝ ∙ p)ᗮ` selected by
+`b.orthogonalLast.toBasis.orientation`, under
+`TauCeti.complZeroOrthogonalInclusion p`, with sign `1` for every `m`;
+`TauCeti.singularHomologyComplSingletonIsoOfOrientation_inv_singularHomologyδ_mayerVietorisδ`
+is the same for the oriented local homology isomorphisms, with any
+coefficients. The file imports Tau Ceti's `Singular/Sphere.lean`, the
+library's `Orientation/Linear.lean`, and
+`Topology/Homotopy/PuncturedStarConvex.lean`, which defines
+`TauCeti.complRay` and `TauCeti.complZeroOrthogonalInclusion`.
 
 ### `Topology/VectorBundle/Orientation/Complex/Whitney.lean`
 

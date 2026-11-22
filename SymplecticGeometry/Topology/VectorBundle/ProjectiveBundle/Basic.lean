@@ -346,6 +346,15 @@ theorem trivializationAt_mk {b : B} (v : TotalSpace G E) (hv : v.snd ≠ 0)
   rw [mk_def, trivializationAt_apply _ hb]
   simp
 
+/-- The projective bundle of a vector bundle of rank zero is empty: its fibres have no lines. -/
+theorem isEmpty_of_finrank_eq_zero [FiniteDimensional 𝕜 G] (hG : Module.finrank 𝕜 G = 0) :
+    IsEmpty (ProjectiveBundle 𝕜 G E) :=
+  ⟨fun p ↦ p.snd.rep_ne_zero <| by
+    have : Subsingleton G := Module.finrank_zero_iff.1 hG
+    have := ((trivializationAt G E p.proj).continuousLinearEquivAt 𝕜 p.proj
+      (mem_baseSet_trivializationAt G E p.proj)).toLinearEquiv.toEquiv.subsingleton
+    exact Subsingleton.elim _ _⟩
+
 /-- The line spanned by a nonzero vector depends continuously on the vector. -/
 theorem continuous_mk' : Continuous (mk' 𝕜 G E) := by
   refine continuous_iff_continuousAt.2 fun v ↦ ?_
