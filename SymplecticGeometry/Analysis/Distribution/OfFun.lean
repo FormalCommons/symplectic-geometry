@@ -10,12 +10,13 @@ public import TauCeti.Analysis.Sobolev.WeakDeriv.Basic
 public import Mathlib.MeasureTheory.Measure.Haar.Basic
 import TauCeti.Analysis.Distribution.TestFunction.LineDeriv
 import TauCeti.Analysis.Distribution.TestFunction.SmulLeft
+import TauCeti.MeasureTheory.Function.LocallyIntegrable
 
 /-!
 # Distributions of functions under derivatives and multiplication
 
 For a function `f` on an open set `Ω`, Mathlib's `Distribution.ofFun Ω f μ` is the distribution
-`φ ↦ ∫ φ • f ∂μ`. This file computes two operations on it:
+`φ ↦ ∫ φ • f ∂μ`. This file computes some operations on it:
 
 * `TauCeti.HasWeakLineDerivOn.lineDerivOp_ofFun`: the derivative along `v` of the distribution
   of `f` is the distribution of a weak derivative of `f` along `v`.
@@ -25,6 +26,8 @@ For a function `f` on an open set `Ω`, Mathlib's `Distribution.ofFun Ω f μ` i
   derivative of `f` is a weak one.
 * `Distribution.smulLeftCLM_ofFun`: if `f` is locally integrable on `Ω`, the product of its
   distribution with a smooth function `g` is the distribution of `g • f`.
+* `Distribution.ofFun_smul_measure`: multiplying the measure by `c : ℝ≥0` multiplies the
+  distribution by `c`.
 
 ## References
 
@@ -35,7 +38,7 @@ For a function `f` on an open set `Ω`, Mathlib's `Distribution.ofFun Ω f μ` i
 public section
 
 open MeasureTheory TopologicalSpace
-open scoped Distributions LineDeriv ContDiff
+open scoped Distributions LineDeriv ContDiff NNReal
 
 namespace Distribution
 
@@ -71,6 +74,23 @@ theorem smulLeftCLM_ofFun [FiniteDimensional ℝ E] {n : ℕ∞} {g : E → ℝ}
     hf.continuousOn_smul Ω.isOpen.isLocallyClosed hg.continuous.continuousOn
   rw [smulLeftCLM_apply, ofFun_apply hf, ofFun_apply hgf]
   simp [TestFunction.smulLeftCLM_apply, smul_smul, mul_comm]
+
+/-- The distribution of `f` for the measure `c • μ` is `c` times its distribution for `μ`. -/
+theorem ofFun_smul_measure {n : ℕ∞} (c : ℝ≥0) :
+    ofFun Ω f (c • μ) n = (c : ℝ) • ofFun Ω f μ n := by
+  rcases eq_or_ne c 0 with rfl | hc
+  · ext φ
+    simp [ofFun_apply_eq_ite]
+  have hsmul : ∀ {ν : Measure E} (d : ℝ≥0), LocallyIntegrableOn f Ω ν →
+      LocallyIntegrableOn f Ω (d • ν) := fun d h ↦ by
+    simpa [Measure.coe_nnreal_smul] using h.smul_measure (c := (d : ENNReal)) ENNReal.coe_ne_top
+  have hiff : LocallyIntegrableOn f Ω (c • μ) ↔ LocallyIntegrableOn f Ω μ :=
+    ⟨fun h ↦ by simpa [smul_smul, inv_mul_cancel₀ hc] using hsmul c⁻¹ h, hsmul c⟩
+  by_cases hf : LocallyIntegrableOn f Ω μ
+  · ext φ
+    rw [ofFun_apply (hiff.2 hf), smul_apply, ofFun_apply hf, integral_smul_nnreal_measure,
+      NNReal.smul_def]
+  · rw [ofFun_eq_zero hf, ofFun_eq_zero (mt hiff.1 hf), smul_zero]
 
 end Distribution
 
