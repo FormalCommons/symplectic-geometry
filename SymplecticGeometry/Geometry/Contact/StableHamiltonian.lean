@@ -24,6 +24,8 @@ import TauCeti.Topology.Algebra.Module.BilinearForm
 import Mathlib.Analysis.SpecialFunctions.Trigonometric.ArctanDeriv
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Basic
 import SymplecticGeometry.Geometry.Symplectic.Manifold.Family
+public import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
+import TauCeti.Geometry.Symplectic.Manifold.RelativeMoser
 
 /-!
 # Stable Hamiltonian structures: wedge criterion, invariance and the model
@@ -63,6 +65,14 @@ Tau Ceti's `TauCeti.Geometry.Contact.StableHamiltonian` with the following.
   condition is the nondegeneracy of `σ` along `{0} × M`, read through the model, and the kernel
   condition follows from Cartan's formula, which makes `d λ₀` a multiple of the `r`-derivative of
   the slices at `0`, and this derivative vanishes on the common kernel.
+* **The converse normal form.** For such `σ` on a compact `M`, some strip of width `δ ≤ ε` maps
+  into the strip of width `ε` by an injective local diffeomorphism which fixes `{0} × M` and pulls
+  `σ` back to the model of `(λ₀, Ω₀)`
+  (`TauCeti.SmoothForm.exists_mpullback_eq_stableHamiltonianModel`). Since `σ` and the model
+  agree on the whole tangent space along the zero slice, Tau Ceti's Moser theorem near a compact
+  submanifold, `TauCeti.SmoothTwoForm.exists_diffeomorph_opens_of_eq_along`, applied along the
+  embedding `x ↦ (0, x)`, gives a diffeomorphism between neighbourhoods of `{0} × M`, and the tube
+  lemma `SymplecticGeometry.exists_symmStrip_le` a strip inside the first.
 
 The proof of `contMDiff_characteristicVectorField` adapts Tau Ceti's proof of
 `TauCeti.SmoothForm.IsContactForm.contMDiff_reebVectorField`, through the inverse of the contact
@@ -97,6 +107,7 @@ along `(r, x) ↦ ((2 ε / π) arctan r, x)`.
   `TauCeti.SmoothForm.IsStableHamiltonian.ker_mpullback_prodMk_stableHamiltonianModel`
 * `TauCeti.SmoothForm.val_symmStripMk_zero_eq_stableHamiltonianModel`,
   `TauCeti.SmoothForm.isStableHamiltonian_zeroSliceOneForm`
+* `TauCeti.SmoothForm.exists_mpullback_eq_stableHamiltonianModel`
 * `TauCeti.SmoothForm.stableHamiltonianModel_neg_mextDerivₗ`,
   `TauCeti.SmoothForm.mpullback_subtypeVal_stableHamiltonianModel_neg_mextDerivₗ`
 
@@ -232,6 +243,10 @@ theorem contMDiff_characteristicVectorField
           (fun x ↦ TotalSpace.mk' (E →L[ℝ] ℝ) (E := fun x : M ↦ TangentSpace I x →L[ℝ] ℝ) x
             (degreeOneEquiv α x)) x₀ :=
         (degreeOneEquiv α).contMDiff x₀
+      -- The fibrewise additive structure, given directly: searching for it times out once the
+      -- relative Moser theorem is imported.
+      let : ∀ x : M, AddCommMonoid (TangentSpace I x →L[ℝ] TangentSpace I x →L[ℝ] ℝ) :=
+        fun _ ↦ ContinuousLinearMap.addCommMonoid
       exact ContMDiffAt.add_sectionAlong (SmoothTwoForm.contMDiff_flat σ x₀)
         (hα₁.clm_bundle_smulRight hα₁)
   have hinv (x : M) : (Φ x).IsInvertible :=
@@ -382,8 +397,9 @@ theorem mpullback_prodMk_stableHamiltonianModel (α : SmoothForm I M ℝ 1)
   have hsmul : mpullback (Prod.mk r) (contMDiff_const.prodMk contMDiff_id)
       (funSMulₗ g (mpullback Prod.snd contMDiff_snd α)) = r • α := by
     -- Both sides send `x` to `r`.
-    have hg : g.comp ⟨Prod.mk r, contMDiff_const.prodMk contMDiff_id⟩ = ContMDiffMap.const r :=
-      ContMDiffMap.ext fun _ ↦ rfl
+    have hg : g.comp ⟨Prod.mk r, contMDiff_const.prodMk contMDiff_id⟩ = ContMDiffMap.const r := by
+      ext
+      simp [g]
     rw [mpullback_funSMulₗ, mpullback_prodMk_mpullback_snd, hg, funSMulₗ_const]
   rw [stableHamiltonianModel_def, map_sub, mpullback_prodMk_mpullback_snd, ← mextDerivₗ_mpullback,
     hsmul, map_smul]
@@ -818,6 +834,76 @@ theorem isStableHamiltonian_zeroSliceOneForm (hε : 0 < ε)
     rw [zeroSliceOneForm, map_smul, mextDerivₗ_mpullback, mextDerivₗ_stripInterior hε hσ.isClosed,
       bilinFormAt_smul, LinearMap.smul_apply, LinearMap.smul_apply, bilinFormAt_apply,
       SmoothBundleForm.eval₂_apply, hdt, smul_zero, LinearMap.zero_apply]
+
+/-- **The converse of the stable Hamiltonian model.** Let `M` be a compact boundaryless Hausdorff
+second-countable manifold, and `σ` a symplectic form on the strip `(-ε, ε) × M` whose slices
+`σ_r`, the pullbacks along `x ↦ (r, x)`, have the same kernel at every point for all `r, r'` in
+`(-ε, ε)`. Put `Ω₀ = σ_0` and `λ₀ = -ι₀^*(ι_{∂_r} σ)`. Then `(λ₀, Ω₀)` is a stable Hamiltonian
+structure, and for some `δ ∈ (0, ε]` there is an injective local diffeomorphism `Φ` from the strip
+of width `δ` to the strip of width `ε` which fixes every point `(0, x)` and pulls `σ` back to the
+stable Hamiltonian model of `(λ₀, Ω₀)` on the strip of width `δ`. -/
+theorem exists_mpullback_eq_stableHamiltonianModel [FiniteDimensional ℝ E] [CompactSpace M]
+    [T2Space M] [SecondCountableTopology M] (hε : 0 < ε)
+    {σ : SmoothTwoForm (𝓘(ℝ).prod I) (symmStrip M ε)} (hσ : σ.IsSymplectic)
+    (hker : ∀ (r : ℝ) (hr : |r| < ε) (r' : ℝ) (hr' : |r'| < ε) (x : M),
+      LinearMap.ker ((mpullback (symmStripMk hr) (contMDiff_symmStripMk hr) σ).bilinFormAt x) =
+        LinearMap.ker ((mpullback (symmStripMk hr') (contMDiff_symmStripMk hr') σ).bilinFormAt x)) :
+    (zeroSliceOneForm hε σ).IsStableHamiltonian
+        (mpullback (symmStripMk (abs_zero.trans_lt hε)) (contMDiff_symmStripMk _) σ) ∧
+      ∃ δ, ∃ hδ : 0 < δ, δ ≤ ε ∧ ∃ (Φ : symmStrip M δ → symmStrip M ε)
+        (hΦ : IsLocalDiffeomorph (𝓘(ℝ).prod I) (𝓘(ℝ).prod I) ∞ Φ), Function.Injective Φ ∧
+        (∀ x, Φ (symmStripMk (abs_zero.trans_lt hδ) x) = symmStripMk (abs_zero.trans_lt hε) x) ∧
+        mpullback Φ hΦ.contMDiff σ =
+          mpullback Subtype.val contMDiff_subtypeVal (stableHamiltonianModel
+            (zeroSliceOneForm hε σ)
+            (mpullback (symmStripMk (abs_zero.trans_lt hε)) (contMDiff_symmStripMk _) σ)) := by
+  have hSH := isStableHamiltonian_zeroSliceOneForm hε hσ hker
+  refine ⟨hSH, ?_⟩
+  set ι₀ : M → symmStrip M ε := symmStripMk (abs_zero.trans_lt hε)
+  set σ₀ := mpullback (Subtype.val : symmStrip M ε → ℝ × M) contMDiff_subtypeVal
+    (stableHamiltonianModel (zeroSliceOneForm hε σ) (mpullback ι₀ (contMDiff_symmStripMk _) σ))
+  -- Moser's method along the zero slice, where `σ` and the model agree to first order.
+  let f : TauCeti.SmoothEmbedding I (𝓘(ℝ).prod I) ∞ M (symmStrip M ε) :=
+    .ofIsSmoothEmbedding ι₀ (isSmoothEmbedding_symmStripMk_zero hε)
+  have hf (x : M) : f x = ι₀ x := TauCeti.SmoothEmbedding.ofIsSmoothEmbedding_apply _ _ x
+  obtain ⟨U₀, U₁, φ, hφf, hφ⟩ := SmoothTwoForm.exists_diffeomorph_opens_of_eq_along f
+    (σ₀ := σ₀) (σ₁ := σ) ((isClosed_stableHamiltonianModel hSH.isClosed).mpullback _ _)
+    hσ.isClosed (fun x ↦ by
+      rw [hf]
+      refine (SmoothTwoForm.nondegenerate_bilinFormAt_mpullback_subtype_val_iff _).2 ?_
+      rw [coe_symmStripMk]
+      exact hSH.nondegenerate_bilinFormAt_stableHamiltonianModel_zero x)
+    (fun x ↦ by rw [hf]; exact val_symmStripMk_zero_eq_stableHamiltonianModel hε σ x)
+  -- The tube lemma gives a strip of width `δ ≤ ε` inside `U₀`.
+  obtain ⟨δ, hδ, hδU⟩ := exists_symmStrip_le (X := M)
+    (U := ⟨Subtype.val '' (U₀ : Set (symmStrip M ε)),
+      (symmStrip M ε).isOpen.isOpenMap_subtypeVal _ U₀.isOpen⟩)
+    fun x ↦ ⟨f x, (hφf x).1, by rw [hf, coe_symmStripMk]⟩
+  have hle : min δ ε ≤ ε := min_le_right δ ε
+  have hU₀ (p : symmStrip M (min δ ε)) :
+      (⟨p.val, symmStrip_mono hle p.property⟩ : symmStrip M ε) ∈ U₀ := by
+    obtain ⟨q, hq, hqp⟩ := hδU (symmStrip_mono (min_le_left δ ε) p.property)
+    rwa [show q = ⟨p.val, symmStrip_mono hle p.property⟩ from Subtype.ext hqp] at hq
+  let j (p : symmStrip M (min δ ε)) : U₀ := ⟨⟨p.val, symmStrip_mono hle p.property⟩, hU₀ p⟩
+  have hj : Continuous j := (continuous_subtypeVal.subtype_mk _).subtype_mk _
+  have hjval : (Subtype.val ∘ Subtype.val) ∘ j = Subtype.val := rfl
+  have hjd : IsLocalDiffeomorph (𝓘(ℝ).prod I) (𝓘(ℝ).prod I) ∞ j := fun p ↦
+    IsLocalDiffeomorphAt.of_comp_left (hjval ▸ TauCeti.isLocalDiffeomorph_subtype_val p)
+      ((TauCeti.isLocalDiffeomorph_subtype_val (j p)).comp
+        (hg := TauCeti.isLocalDiffeomorph_subtype_val _)) hj.continuousAt
+  have hΦ : IsLocalDiffeomorph (𝓘(ℝ).prod I) (𝓘(ℝ).prod I) ∞ ((Subtype.val ∘ φ) ∘ j) := fun p ↦
+    (hjd p).comp (hg := (φ.isLocalDiffeomorph (j p)).comp
+      (hg := TauCeti.isLocalDiffeomorph_subtype_val _))
+  refine ⟨min δ ε, lt_min hδ hε, hle, (Subtype.val ∘ φ) ∘ j, hΦ, ?_, fun x ↦ ?_, ?_⟩
+  · exact Subtype.val_injective.comp (φ.injective.comp fun p q h ↦
+      Subtype.ext (congrArg (fun u : U₀ ↦ (u.val : ℝ × M)) h))
+  · obtain ⟨hx, hφx, -⟩ := hφf x
+    have : j (symmStripMk (abs_zero.trans_lt (lt_min hδ hε)) x) = ⟨f x, hx⟩ :=
+      Subtype.ext (Subtype.ext (by simp [j, hf, ι₀]))
+    rw [Function.comp_apply, Function.comp_apply, this, hφx, hf]
+  · rw [← mpullback_mpullback _ _ hjd.contMDiff (contMDiff_subtypeVal.comp φ.contMDiff),
+      ← mpullback_mpullback _ _ φ.contMDiff contMDiff_subtypeVal, hφ]
+    simp only [σ₀, ι₀, mpullback_mpullback, hjval]
 
 end Converse
 
