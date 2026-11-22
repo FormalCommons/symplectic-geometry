@@ -7,6 +7,10 @@ module
 
 public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.BoundaryDegree
 public import SymplecticGeometry.Analysis.Matrix.SymplecticGroup.Maslov
+public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Section.ArgumentPrinciple
+public import SymplecticGeometry.Topology.VectorBundle.Complex.FirstChernClass
+public import SymplecticGeometry.Topology.VectorBundle.Determinant
+public import TauCeti.Analysis.Complex.NormalizedDeterminant
 
 /-!
 # The first Chern number through a splitting of the surface
@@ -25,6 +29,22 @@ pointwise products, although `ρ` is not multiplicative on `Sp(2n)`, because `ρ
 (`TauCeti.GLSymplectic.maslovPhase_mul_homotopic`). It vanishes on maps that extend continuously
 over `X`, since the boundary class vanishes in the homology of `X`.
 
+A smooth `g : M → ℝ` with regular value `0` on a closed oriented surface `M` gives an instance of
+this setting: `X = Σ₁ = {g ≤ 0}`, with interior `{g < 0}` and boundary the level set `g⁻¹(0)`
+(`SymplecticGeometry.isCollared_inclusion_levelSet`). For a complex vector bundle `E` over `M`
+with a frame `Φ₁` over `Σ₁` and a frame `Φ₂` over `Σ₂ = {g ≥ 0}`, the first Chern number of `E`
+is the boundary degree on `Σ₁` of the normalized complex determinant of the transition
+`Φ₁⁻¹ ∘ Φ₂` (`SymplecticGeometry.Bundle.chernNumber_eq_boundaryDegree_normalizedDet`). Indeed the
+determinant sections of the two frames (`SymplecticGeometry.Bundle.detCoreFrameSection`) are
+nowhere-zero sections of the determinant line over `Σ₁` and over `Σ₂`, and on `g⁻¹(0)` the second
+is the first times the determinant of the transition
+(`SymplecticGeometry.Bundle.detCoreFrameSection_eq_det_smul`). The first Chern class is the Euler
+class of the determinant line, so the argument principle on a split surface
+(`TauCeti.VectorBundleOrientation.evalFundamentalClass_complexEulerClass_eq_boundaryDegree`)
+gives the formula. The step on `g⁻¹(0)` follows the proof of the private lemma
+`outSection_boundaryCircle` of `ChernNumber/Clutching.lean`, which does the same on the boundary
+circles of coordinate discs.
+
 ## Main definitions
 
 * `TauCeti.HomologicalOrientation.boundaryMaslovIndex`: the boundary degree of `ρ ∘ Ψ` for
@@ -41,12 +61,17 @@ over `X`, since the boundary class vanishes in the homology of `X`.
   continuously over `X` has boundary Maslov index `0`.
 * `TauCeti.HomologicalOrientation.boundaryMaslovIndex_eq_of_homotopy`: homotopic maps have the
   same boundary Maslov index.
+* `SymplecticGeometry.Bundle.chernNumber_eq_boundaryDegree_normalizedDet`: the first Chern number
+  of a complex bundle with frames over the two sides of a splitting is the boundary degree of the
+  normalized determinant of the transition.
 
 ## References
 
 * [D. McDuff, D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017], Section 2.7:
   Theorem 2.7.1 and Lemma 2.7.3, where the first Chern number of a bundle over a split surface is
   the degree of `ρ` along the transition map on the dividing curves.
+* J. W. Milnor, J. D. Stasheff, *Characteristic Classes*, Annals of Mathematics Studies 76,
+  Princeton (1974), §14: the first Chern class through the determinant line.
 -/
 
 public section
@@ -157,5 +182,94 @@ theorem boundaryMaslovIndex_inv (Ψ : C(↥((range ι)ᶜ : Set X), GLSymplectic
   lia
 
 end TauCeti.HomologicalOrientation
+
+/-! ### The splitting formula for complex frames -/
+
+namespace SymplecticGeometry.Bundle
+
+open _root_.Bundle Module TauCeti
+open scoped Manifold ContDiff
+
+variable {EM : Type} [NormedAddCommGroup EM] [NormedSpace ℝ EM] [FiniteDimensional ℝ EM]
+  {M : Type} [TopologicalSpace M] [ChartedSpace EM M] [T2Space M] [CompactSpace M]
+  [IsManifold 𝓘(ℝ, EM) ∞ M] {g : M → ℝ}
+  {G : Type*} [NormedAddCommGroup G] [NormedSpace ℂ G] [FiniteDimensional ℂ G]
+  {E : M → Type*} [∀ x, AddCommGroup (E x)] [∀ x, Module ℂ (E x)] [∀ x, TopologicalSpace (E x)]
+  [TopologicalSpace (TotalSpace G E)] [FiberBundle G E] [VectorBundle ℂ G E]
+
+/-- **The splitting formula for the first Chern number.** Let `M` be a closed smooth surface
+oriented by `oM`, and `g : M → ℝ` smooth with regular value `0`, splitting `M` into
+`Σ₁ = {g ≤ 0}` and `Σ₂ = {g ≥ 0}`. Let `E` be a complex vector bundle over `M` with model `G`,
+`Φ₁` a frame of `E` over `Σ₁` and `Φ₂` a frame over `Σ₂` (continuous families of isomorphisms
+`G ≃L[ℂ] E x`). Then the first Chern number of `E` is the boundary degree on `Σ₁`, whose interior
+`{g < 0}` carries the orientation restricted from `oM`, of any continuous `u` from the boundary
+`Σ₁ ∖ {g < 0}` of `Σ₁` to the circle equal there to the normalized complex determinant of the
+transition `(Φ₁ x)⁻¹ ∘ Φ₂ x`. -/
+theorem chernNumber_eq_boundaryDegree_normalizedDet
+    (oM : HomologicalOrientation M EM 2) (hn : finrank ℝ EM = 2)
+    (hg : ContMDiff 𝓘(ℝ, EM) 𝓘(ℝ) ∞ g) (h0 : IsRegularValue 𝓘(ℝ, EM) 𝓘(ℝ) g 0)
+    {Φ₁ : ∀ x : g ⁻¹' Iic 0, G ≃L[ℂ] E x}
+    (hΦ₁ : Continuous fun q : g ⁻¹' Iic 0 × G ↦ TotalSpace.mk' G (q.1 : M) (Φ₁ q.1 q.2))
+    {Φ₂ : ∀ x : g ⁻¹' Ici 0, G ≃L[ℂ] E x}
+    (hΦ₂ : Continuous fun q : g ⁻¹' Ici 0 × G ↦ TotalSpace.mk' G (q.1 : M) (Φ₂ q.1 q.2))
+    {u : C(↥(range (inclusion (s := ((⟨g ⁻¹' Iio 0, isOpen_Iio.preimage hg.continuous⟩ :
+      TopologicalSpace.Opens M) : Set M)) (preimage_mono Iio_subset_Iic_self)))ᶜ, Circle)}
+    (hu : ∀ (z : ↥(range (inclusion (s := ((⟨g ⁻¹' Iio 0, isOpen_Iio.preimage hg.continuous⟩ :
+      TopologicalSpace.Opens M) : Set M)) (preimage_mono Iio_subset_Iic_self)))ᶜ)
+      (hz : ((z : g ⁻¹' Iic 0) : M) ∈ g ⁻¹' Ici 0),
+      u z = ((Φ₂ ⟨_, hz⟩).trans (Φ₁ z).symm).normalizedDet) :
+    haveI : CompactSpace (g ⁻¹' Iic 0) :=
+      isCompact_iff_compactSpace.1 (isClosed_Iic.preimage hg.continuous).isCompact
+    chernNumber oM hn G E =
+      (oM.comap (TopologicalSpace.Opens.isOpenEmbedding' _)).boundaryDegree hn
+        (IsOpenEmbedding.inclusion _
+          ((isOpen_Iio.preimage hg.continuous).preimage continuous_subtypeVal))
+        ((range_inclusion _).trans (SymplecticGeometry.isCollared_inclusion_levelSet hg h0).2.symm)
+        (SymplecticGeometry.isCollared_inclusion_levelSet hg h0).1 u := by
+  let i₁ : C(g ⁻¹' Iic 0, M) := ⟨Subtype.val, continuous_subtypeVal⟩
+  let i₂ : C(g ⁻¹' Ici 0, M) := ⟨Subtype.val, continuous_subtypeVal⟩
+  -- A point of `{g ≤ 0}` off the interior `{g < 0}` lies in `{g ≥ 0}`.
+  have hlt (z : ↥(range (inclusion (s := ((⟨g ⁻¹' Iio 0, isOpen_Iio.preimage hg.continuous⟩ :
+      TopologicalSpace.Opens M) : Set M)) (preimage_mono Iio_subset_Iic_self)))ᶜ) :
+      ((z : g ⁻¹' Iic 0) : M) ∈ g ⁻¹' Ici 0 :=
+    mem_preimage.2 (mem_Ici.2 (not_lt.1 fun h' ↦ z.property ⟨⟨_, h'⟩, rfl⟩))
+  let j₁ : C(↥(range (inclusion (s := ((⟨g ⁻¹' Iio 0, isOpen_Iio.preimage hg.continuous⟩ :
+      TopologicalSpace.Opens M) : Set M)) (preimage_mono Iio_subset_Iic_self)))ᶜ, g ⁻¹' Iic 0) :=
+    ⟨Subtype.val, continuous_subtypeVal⟩
+  let j₂ : C(↥(range (inclusion (s := ((⟨g ⁻¹' Iio 0, isOpen_Iio.preimage hg.continuous⟩ :
+      TopologicalSpace.Opens M) : Set M)) (preimage_mono Iio_subset_Iic_self)))ᶜ, g ⁻¹' Ici 0) :=
+    ⟨fun z ↦ ⟨_, hlt z⟩, (continuous_subtypeVal.comp continuous_subtypeVal).subtype_mk _⟩
+  have hΦ₁j : Continuous fun q : _ × G ↦ TotalSpace.mk' G (i₁ (j₁ q.1)) (Φ₁ (j₁ q.1) q.2) :=
+    hΦ₁.comp ((j₁.continuous.comp continuous_fst).prodMk continuous_snd)
+  have hΦ₂j : Continuous fun q : _ × G ↦ TotalSpace.mk' G (i₂ (j₂ q.1)) (Φ₂ (j₂ q.1) q.2) :=
+    hΦ₂.comp ((j₂.continuous.comp continuous_fst).prodMk continuous_snd)
+  -- On the boundary, the determinant section of `Φ₂` is that of `Φ₁` times the determinant of
+  -- the transition.
+  have hsc : ∀ z : ↥(range (inclusion (s := ((⟨g ⁻¹' Iio 0, isOpen_Iio.preimage hg.continuous⟩ :
+      TopologicalSpace.Opens M) : Set M)) (preimage_mono Iio_subset_Iic_self)))ᶜ,
+      detCoreFrameSection i₂ Φ₂ hΦ₂ (j₂ z) =
+        LinearMap.det ((Φ₁ (j₁ z)).symm.trans (Φ₂ (j₂ z)) : E (z : M) →ₗ[ℂ] E (z : M)) •
+          detCoreFrameSection i₁ Φ₁ hΦ₁ (j₁ z) := by
+    intro z
+    have h1 := detCoreFrameSection_comp i₁ hΦ₁ j₁ hΦ₁j z
+    have h2 := detCoreFrameSection_comp i₂ hΦ₂ j₂ hΦ₂j z
+    have h3 := detCoreFrameSection_eq_det_smul (i₁.comp j₁) (Φ := fun z ↦ Φ₁ (j₁ z))
+      (Ψ := fun z ↦ Φ₂ (j₂ z)) hΦ₁j hΦ₂j z
+    -- The restrictions of `Φ₁` and `Φ₂` to the boundary are frames along the same map, read
+    -- once through `{g ≤ 0}` and once through `{g ≥ 0}`: `i₂ ∘ j₂` and `i₁ ∘ j₁` agree by
+    -- definition.
+    exact h2.symm.trans (h3.trans (congrArg _ h1))
+  rw [chernNumber_def, firstChernClass_def]
+  refine VectorBundleOrientation.evalFundamentalClass_complexEulerClass_eq_boundaryDegree
+    (finrank_detCore ℂ G E) oM hn hg h0
+    (σ := detCoreFrameSection i₁ Φ₁ hΦ₁) (continuous_totalSpaceMk_detCoreFrameSection i₁ hΦ₁)
+    (detCoreFrameSection_ne_zero i₁ hΦ₁)
+    (s := detCoreFrameSection i₂ Φ₂ hΦ₂) (continuous_totalSpaceMk_detCoreFrameSection i₂ hΦ₂)
+    (detCoreFrameSection_ne_zero i₂ hΦ₂) (fun z _ ↦ hsc z) fun z ↦ ?_
+  rw [hu z (hlt z), ContinuousLinearEquiv.coe_normalizedDet,
+    ← ContinuousLinearEquiv.det_trans_symm]
+  simp only [j₁, j₂, ContinuousMap.coe_mk]
+
+end SymplecticGeometry.Bundle
 
 end

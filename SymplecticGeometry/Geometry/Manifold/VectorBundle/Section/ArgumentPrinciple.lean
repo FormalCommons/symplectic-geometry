@@ -9,8 +9,12 @@ public import Mathlib.Analysis.Complex.Tietze
 public import SymplecticGeometry.Geometry.Manifold.RegularValue.FiniteZeros
 public import SymplecticGeometry.Geometry.Manifold.RegularValue.LevelCollar
 public import SymplecticGeometry.Topology.Algebra.Module.Equiv.Basic
+public import SymplecticGeometry.Topology.VectorBundle.LineBundle
 public import SymplecticGeometry.Topology.VectorBundle.Orientation.ArgumentPrinciple
+public import TauCeti.Topology.Algebra.Module.Equiv.RestrictScalars
 public import TauCeti.Topology.VectorBundle.Hom
+public import TauCeti.Topology.VectorBundle.Orientation.Complex.EulerClass
+public import TauCeti.Topology.VectorBundle.Smul
 
 /-!
 # The argument principle on a split closed surface
@@ -27,6 +31,15 @@ isomorphisms `τ x : L_x ≃ ℂ`, continuous on the total space, carrying the o
 `Complex.orientation`), and `s` a nowhere-zero continuous section of `L` over `Σ₂`. Then the Euler
 number of `L` is the boundary degree on `Σ₁` of `τ s / |τ s|` on `C`
 (`TauCeti.VectorBundleOrientation.evalFundamentalClass_eulerClass_eq_boundaryDegree`).
+
+For a complex line bundle `L`, with the orientation of a complex line, the frame may be replaced
+by a nowhere-zero section `σ` over `Σ₁`: if `s = c • σ` on `C`, the Euler number of `L` is the
+boundary degree of `c / |c|`
+(`TauCeti.VectorBundleOrientation.evalFundamentalClass_complexEulerClass_eq_boundaryDegree`). The
+frame is `τ x = (c ↦ c • σ x)⁻¹`, which carries the orientation of `L` to that of `ℂ` since it is
+complex-linear; this step follows the proof of
+`SymplecticGeometry.CoordinateDisc.sectionIndex_eq_localIndex_of_eq_smul`, which builds the same
+frame over a coordinate disc.
 
 ## Proof
 
@@ -53,6 +66,8 @@ local indices of `t` restricted to `{g < 0}` with the boundary degree, and the l
   through a frame over `{g ≤ 0}`, to a section over `M` with finitely many zeros, all in `{g < 0}`.
 * `TauCeti.VectorBundleOrientation.evalFundamentalClass_eulerClass_eq_boundaryDegree`: the Euler
   number is the boundary degree of the section over `Σ₂` read in the frame over `Σ₁`.
+* `TauCeti.VectorBundleOrientation.evalFundamentalClass_complexEulerClass_eq_boundaryDegree`: for a
+  complex line bundle, the same with a nowhere-zero section over `Σ₁` in place of the frame.
 
 ## References
 
@@ -160,10 +175,13 @@ namespace TauCeti.VectorBundleOrientation
 
 variable {E : Type} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
   {M : Type} [TopologicalSpace M] [ChartedSpace E M] [T2Space M] [CompactSpace M]
-  [IsManifold 𝓘(ℝ, E) ∞ M]
-  {F : Type} [NormedAddCommGroup F] [NormedSpace ℝ F] {L : M → Type}
+  [IsManifold 𝓘(ℝ, E) ∞ M] {g : M → ℝ}
+
+section Real
+
+variable {F : Type} [NormedAddCommGroup F] [NormedSpace ℝ F] {L : M → Type}
   [TopologicalSpace (TotalSpace F L)] [∀ x, AddCommGroup (L x)] [∀ x, Module ℝ (L x)]
-  [∀ x, TopologicalSpace (L x)] [FiberBundle F L] [VectorBundle ℝ F L] {g : M → ℝ}
+  [∀ x, TopologicalSpace (L x)] [FiberBundle F L] [VectorBundle ℝ F L]
 
 /-- **The argument principle on a split closed surface.** Let `M` be a closed smooth surface
 oriented by `oM`, and `g : M → ℝ` smooth with regular value `0`, splitting `M` into
@@ -242,6 +260,94 @@ theorem evalFundamentalClass_eulerClass_eq_boundaryDegree
   · exact (Pullback.continuous_lift F L i₁).comp (Pullback.continuous_lift F _ _)
   · rw [pullback_apply, pullback_apply, ContinuousLinearEquiv.toLinearEquiv_refl]
     exact Equiv.congr_fun (Orientation.map_refl _) _
+
+end Real
+
+section Complex
+
+variable {G : Type} [NormedAddCommGroup G] [NormedSpace ℝ G] [NormedSpace ℂ G]
+  [IsScalarTower ℝ ℂ G] [FiniteDimensional ℂ G]
+  {L : M → Type} [TopologicalSpace (TotalSpace G L)] [∀ x, AddCommGroup (L x)]
+  [∀ x, Module ℝ (L x)] [∀ x, Module ℂ (L x)] [∀ x, IsScalarTower ℝ ℂ (L x)]
+  [∀ x, TopologicalSpace (L x)] [FiberBundle G L] [VectorBundle ℂ G L]
+
+local instance : VectorBundle ℝ G L := VectorBundle.restrictScalars ℝ ℂ G L
+
+/-- **The argument principle on a split closed surface, for a complex line bundle.** Let `M` be a
+closed smooth surface oriented by `oM`, and `g : M → ℝ` smooth with regular value `0`, splitting
+`M` into `Σ₁ = {g ≤ 0}` and `Σ₂ = {g ≥ 0}`. Let `L` be a complex line bundle over `M`, `σ` a
+nowhere-zero continuous section of `L` over `Σ₁`, and `s` one over `Σ₂`. Let `c` be a function on
+the boundary `Σ₁ ∖ {g < 0}` of `Σ₁` with `s = c • σ` there. Then the Euler number of `L`, for the
+orientation of `L` as a complex line, is the boundary degree on `Σ₁`, whose interior `{g < 0}`
+carries the orientation restricted from `oM`, of any continuous `u` from the boundary to the
+circle equal to `c / |c|`. -/
+theorem evalFundamentalClass_complexEulerClass_eq_boundaryDegree (hG : finrank ℂ G = 0 + 1)
+    (oM : HomologicalOrientation M E 2) (hn : finrank ℝ E = 2)
+    (hg : ContMDiff 𝓘(ℝ, E) 𝓘(ℝ) ∞ g) (h0 : IsRegularValue 𝓘(ℝ, E) 𝓘(ℝ) g 0)
+    {σ : ∀ x : g ⁻¹' Iic 0, L x}
+    (hσ : Continuous fun x : g ⁻¹' Iic 0 ↦ TotalSpace.mk' G (x : M) (σ x)) (hσ0 : ∀ x, σ x ≠ 0)
+    {s : ∀ x : g ⁻¹' Ici 0, L x}
+    (hs : Continuous fun x : g ⁻¹' Ici 0 ↦ TotalSpace.mk' G (x : M) (s x)) (hs0 : ∀ x, s x ≠ 0)
+    {c : ↥(range (inclusion (s := ((⟨g ⁻¹' Iio 0, isOpen_Iio.preimage hg.continuous⟩ :
+      TopologicalSpace.Opens M) : Set M)) (preimage_mono Iio_subset_Iic_self)))ᶜ → ℂ}
+    (hsc : ∀ (z : ↥(range (inclusion (s := ((⟨g ⁻¹' Iio 0, isOpen_Iio.preimage hg.continuous⟩ :
+      TopologicalSpace.Opens M) : Set M)) (preimage_mono Iio_subset_Iic_self)))ᶜ)
+      (hz : ((z : g ⁻¹' Iic 0) : M) ∈ g ⁻¹' Ici 0), s ⟨_, hz⟩ = c z • σ z)
+    {u : C(↥(range (inclusion (s := ((⟨g ⁻¹' Iio 0, isOpen_Iio.preimage hg.continuous⟩ :
+      TopologicalSpace.Opens M) : Set M)) (preimage_mono Iio_subset_Iic_self)))ᶜ, Circle)}
+    (hu : ∀ z, (u z : ℂ) = c z / ‖c z‖) :
+    haveI : CompactSpace (g ⁻¹' Iic 0) :=
+      isCompact_iff_compactSpace.1 (isClosed_Iic.preimage hg.continuous).isCompact
+    (oM.evalFundamentalClass hn (ModuleCat.of ℤ (ULift.{0} ℤ)) (ContinuousMap.id M)
+      (complexEulerClass (r := 0) G L hG)).down =
+      (oM.comap (TopologicalSpace.Opens.isOpenEmbedding' _)).boundaryDegree hn
+        (IsOpenEmbedding.inclusion _
+          ((isOpen_Iio.preimage hg.continuous).preimage continuous_subtypeVal))
+        ((range_inclusion _).trans (SymplecticGeometry.isCollared_inclusion_levelSet hg h0).2.symm)
+        (SymplecticGeometry.isCollared_inclusion_levelSet hg h0).1 u := by
+  have hG1 : finrank ℂ G = 1 := hG
+  let i₁ : C(g ⁻¹' Iic 0, M) := ⟨Subtype.val, continuous_subtypeVal⟩
+  have hσ₁ : Continuous fun x : g ⁻¹' Iic 0 ↦ TotalSpace.mk' G (E := (⇑i₁) *ᵖ L) x (σ x) :=
+    Pullback.continuous_iff.2 ⟨continuous_id, hσ⟩
+  -- The frame `c ↦ c • σ x` of `L` over `{g ≤ 0}`, and its inverse `τ`.
+  let Φ : ∀ x : g ⁻¹' Iic 0, ℂ ≃L[ℝ] L x := fun x ↦
+    (VectorBundle.toSpanSingletonEquiv G hG1 (σ x) (hσ0 x)).restrictScalars' ℝ
+  have hΦ : ∀ x c, Φ x c = c • σ x := fun x c ↦
+    (congrFun (ContinuousLinearEquiv.coe_restrictScalars' ℝ _) c).trans
+      (VectorBundle.toSpanSingletonEquiv_apply G hG1 _ _ c)
+  have hΦc : Continuous fun v : TotalSpace ℂ (Bundle.Trivial (g ⁻¹' Iic 0) ℂ) ↦
+      TotalSpace.mk' G (E := (⇑i₁) *ᵖ L) v.proj (Φ v.proj v.snd) := by
+    simp only [hΦ]
+    exact Continuous.smul_totalSpace
+      (c := fun v : TotalSpace ℂ (Bundle.Trivial (g ⁻¹' Iic 0) ℂ) ↦ v.snd)
+      (continuous_snd.comp (Bundle.Trivial.isInducing_toProd _ ℂ).continuous)
+      (hσ₁.comp (FiberBundle.continuous_proj ℂ _))
+  have hτ := (continuous_snd.comp (Bundle.Trivial.isInducing_toProd _ ℂ).continuous).comp
+    (TauCeti.continuous_bundle_symm (F₁ := ℂ) (E₁ := Bundle.Trivial (g ⁻¹' Iic 0) ℂ) (F₂ := G)
+      (E₂ := (⇑i₁) *ᵖ L) Φ hΦc)
+  have ho : ∀ x, Orientation.map (Fin 2) (Φ x).toLinearEquiv Complex.orientation =
+      VectorBundleOrientation.reindex (finCongr (by rw [hG]))
+        (VectorBundleOrientation.complex G L) x := by
+    intro x
+    -- `Φ x` is complex-linear, so it carries the canonical orientation of `ℂ` to that of `L`.
+    have h := VectorBundleOrientation.map_complex (F := G) (E := L) (F' := ℂ)
+      (E' := Bundle.Trivial (g ⁻¹' Iic 0) ℂ) (b' := x) (b := x)
+      (VectorBundle.toSpanSingletonEquiv G hG1 (σ x) (hσ0 x)).toLinearEquiv
+    rw [VectorBundleOrientation.complex_trivial, VectorBundleOrientation.trivial_apply] at h
+    rw [← reindex_complexOrientation_complex,
+      ContinuousLinearEquiv.restrictScalars'_toLinearEquiv, Orientation.map_reindex, h,
+      VectorBundleOrientation.reindex_apply, Orientation.reindex_finCongr_reindex_finCongr]
+  rw [complexEulerClass_def]
+  refine evalFundamentalClass_eulerClass_eq_boundaryDegree _
+    (by rw [finrank_real_eq_two_mul_finrank_complex, hG]) oM hn hg h0
+    (τ := fun x ↦ (Φ x).symm) hτ (fun x ↦ ?_) hs hs0 fun z hz ↦ ?_
+  · rw [ContinuousLinearEquiv.toLinearEquiv_symm, ← ho, ← Orientation.map_symm,
+      Equiv.symm_apply_apply]
+  · rw [hsc z hz, ← hΦ, ContinuousLinearEquiv.symm_apply_apply, hu, div_eq_inv_mul,
+      Complex.real_smul, Complex.ofReal_inv]
+
+
+end Complex
 
 end TauCeti.VectorBundleOrientation
 
