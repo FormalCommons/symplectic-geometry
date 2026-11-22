@@ -7,13 +7,16 @@ module
 
 public import Mathlib.Topology.Algebra.Module.Equiv.Basic
 public import Mathlib.LinearAlgebra.Pi
+public import TauCeti.Topology.PiCurry
 
 /-!
 # Splitting off the `none` coordinate of a product over `Option ι`
 
 `ContinuousLinearEquiv.piOptionEquivProd` is Mathlib's `LinearEquiv.piOptionEquivProd`, the
 identification of `Π i : Option ι, M i` with `M none × Π i : ι, M (some i)`, as a continuous
-linear equivalence for the product topologies.
+linear equivalence for the product topologies. Its topological part is Tau Ceti's homeomorphism
+`TauCeti.piOptionEquivProdHomeomorph`, put together with the linear part as Mathlib does for
+`ContinuousLinearEquiv.sumPiEquivProdPi`.
 -/
 
 public section
@@ -23,16 +26,19 @@ namespace ContinuousLinearEquiv
 variable (R : Type*) [Semiring R] {ι : Type*} (M : Option ι → Type*) [∀ i, AddCommMonoid (M i)]
   [∀ i, Module R (M i)] [∀ i, TopologicalSpace (M i)]
 
-/-- `Equiv.piOptionEquivProd` as a continuous linear equivalence: a family indexed by `Option ι`
-is its `none` coordinate together with the family of its `some` coordinates. -/
+/-- The continuous linear equivalence that sends `f : Π i : Option ι, M i` to the pair of its
+value at `none` and the function `i ↦ f (some i)` on `ι`. -/
 def piOptionEquivProd : ((i : Option ι) → M i) ≃L[R] M none × ((i : ι) → M (some i)) where
   __ := LinearEquiv.piOptionEquivProd (R := R) (M := M)
-  continuous_toFun :=
-    (continuous_apply none).prodMk (continuous_pi fun i ↦ continuous_apply (some i))
-  continuous_invFun := continuous_pi fun i ↦ by
-    cases i with
-    | none => exact continuous_fst
-    | some i => exact (continuous_apply i).comp continuous_snd
+  -- The body of Tau Ceti's homeomorphism is not exposed, so its continuity is transported
+  -- along its apply lemmas. Mathlib states no apply lemma for the inverse of
+  -- `LinearEquiv.piOptionEquivProd`, so its coordinates are computed by `rfl`.
+  continuous_toFun := (TauCeti.piOptionEquivProdHomeomorph M).continuous.congr
+    (TauCeti.piOptionEquivProdHomeomorph_apply M)
+  continuous_invFun := (TauCeti.piOptionEquivProdHomeomorph M).symm.continuous.congr
+    fun p ↦ funext fun i ↦ by
+      cases i <;> simp only [TauCeti.piOptionEquivProdHomeomorph_symm_apply_none,
+        TauCeti.piOptionEquivProdHomeomorph_symm_apply_some] <;> rfl
 
 variable {R M}
 
