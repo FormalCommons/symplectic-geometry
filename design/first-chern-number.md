@@ -807,6 +807,19 @@ issues, in an order where each issue's blockers come before it.
    Tau Ceti's connecting square of the duality maps and the Mayer–Vietoris
    connecting maps comes in the same way, in
    `AlgebraicTopology/Cohomology/Cap/MayerVietoris/{Local,Basic}.lean`.
+   The Mayer–Vietoris step of duality is the library's own
+   `AlgebraicTopology/Cohomology/CompactSupport/Duality/Union.lean`, not a
+   file of Tau Ceti's: `TauCeti.HomologicalOrientation.bijective_dualityMap_of_sup_eq_top`
+   for a cover by two open sets, and `bijective_dualityMap_comap_sup` for two
+   open sets of `M`. Besides duality in every degree for `U`, `V` and
+   `U ∩ V`, both assume `Hⁿ⁺¹_c(U ∩ V; L) = 0`, which injectivity needs in
+   the top degree; `TopCat.isZero_compactSupportCohomology_sup`, in the
+   library's `AlgebraicTopology/Cohomology/CompactSupport/Vanishing.lean`,
+   passes that vanishing on to `U ∪ V`. The step uses
+   `Topology/Sets/Opens/Comap.lean`,
+   `TopologicalSpace.Opens.range_val_comp_val_comap`, to read an open set of
+   `M` as one of `U ∪ V`, and `Algebra/Category/ModuleCat/Basic.lean`,
+   `ModuleCat.bijective_zsmul_iff`, for the sign of the connecting square.
 3. **The unit circle bundle of a Hermitian line bundle.**
    `Geometry/Manifold/VectorBundle/Hermitian/CircleBundle.lean`, the file
    of *Symplectic vector bundles* (its section *The circle bundle of a
