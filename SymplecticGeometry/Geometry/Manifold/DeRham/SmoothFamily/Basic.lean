@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Manifold.DeRham.Basic
+public import TauCeti.Geometry.Manifold.DeRham.Map
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Map
 
 /-!
@@ -38,6 +39,8 @@ smooth in `t` (`SmoothCohomologySplitting.contMDiff_repr_mk`).
   of every degree, preserving smooth families.
 * `SymplecticGeometry.SmoothCohomologySplitting.spaceEquiv`: the class map `S^k ≃ H^k`.
 * `SymplecticGeometry.SmoothCohomologySplitting.exactPrimitive`: a primitive on exact forms.
+* `SymplecticGeometry.SmoothCohomologySplitting.ofDiffeomorph`: a splitting carried back along a
+  diffeomorphism.
 
 ## Main results
 
@@ -262,6 +265,74 @@ theorem contMDiff_repr_mk {k : ℕ} {ι : Type*} (b : Module.Basis ι ℝ (deRha
     ContMDiff (𝓡∂ 1) 𝓘(ℝ) ∞ (fun t ↦ b.repr (deRhamCohomology.mk I k (z t)) i) := by
   simpa using (σ.preservesSmoothFamilies_subtype_comp_projSpace k).contMDiff_dual_apply hz
     (b.coord i ∘ₗ (σ.spaceEquiv k).toLinearMap)
+
+section Diffeomorph
+
+variable {E' H' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [TopologicalSpace H']
+  {I' : ModelWithCorners ℝ E' H'} {M' : Type*} [TopologicalSpace M'] [ChartedSpace H' M']
+  [IsManifold I' ∞ M']
+
+variable (Φ : M ≃ₘ⟮I, I'⟯ M') (τ : SmoothCohomologySplitting I' M')
+
+/-- **Transport along a diffeomorphism.** A splitting `τ` of `M'` and a diffeomorphism
+`Φ : M ≃ M'` give a splitting of `M`: its spaces are the pullbacks `Φ^* (τ.space k)`, and its
+projections and primitives are `z ↦ Φ^* (τ.proj k ((Φ⁻¹)^* z))` and
+`z ↦ Φ^* (τ.primitive k ((Φ⁻¹)^* z))`. -/
+def ofDiffeomorph : SmoothCohomologySplitting I M where
+  space k := (τ.space k).map (SmoothForm.mpullback Φ Φ.contMDiff)
+  space_le_closedForms k := by
+    rintro _ ⟨s, hs, rfl⟩
+    simpa using (closedForms.mpullback Φ Φ.contMDiff k ⟨s, τ.space_le_closedForms k hs⟩).property
+  finiteDimensional_space _ := inferInstance
+  proj k := SmoothForm.mpullback Φ Φ.contMDiff ∘ₗ τ.proj k ∘ₗ
+    closedForms.mpullback Φ.symm Φ.symm.contMDiff k
+  proj_mem k z := Submodule.mem_map_of_mem (τ.proj_mem k _)
+  proj_zero z := by
+    simp only [LinearMap.comp_apply, proj_zero, closedForms.coe_mpullback,
+      SmoothForm.mpullback_mpullback_symm]
+  primitive k := SmoothForm.mpullback Φ Φ.contMDiff ∘ₗ τ.primitive k ∘ₗ
+    closedForms.mpullback Φ.symm Φ.symm.contMDiff (k + 1)
+  mextDerivₗ_primitive k z := by
+    simp only [LinearMap.comp_apply, SmoothForm.mextDerivₗ_mpullback, mextDerivₗ_primitive,
+      map_sub, closedForms.coe_mpullback, SmoothForm.mpullback_mpullback_symm]
+  eq_zero_of_mem_exactForms k := by
+    rintro _ ⟨s, hs, rfl⟩ hex
+    have h := closedForms.mpullback_mem_exactForms Φ.symm Φ.symm.contMDiff k
+      ⟨_, (closedForms.mpullback Φ Φ.contMDiff k ⟨s, τ.space_le_closedForms k hs⟩).property⟩
+      (by simpa using hex)
+    simp only [closedForms.coe_mpullback, SmoothForm.mpullback_symm_mpullback] at h
+    rw [τ.eq_zero_of_mem_exactForms k hs h, map_zero]
+  preservesSmoothFamilies_proj k := preservesSmoothFamilies_def.mpr fun α hα ↦
+    preservesSmoothFamilies_def.mp ((τ.preservesSmoothFamilies_proj k).mpullback Φ Φ.contMDiff)
+      (fun t ↦ closedForms.mpullback Φ.symm Φ.symm.contMDiff k (α t))
+      (by simpa only [closedForms.coe_mpullback] using hα.mpullback _ Φ.symm.contMDiff)
+  preservesSmoothFamilies_primitive k := preservesSmoothFamilies_def.mpr fun α hα ↦
+    preservesSmoothFamilies_def.mp
+      ((τ.preservesSmoothFamilies_primitive k).mpullback Φ Φ.contMDiff)
+      (fun t ↦ closedForms.mpullback Φ.symm Φ.symm.contMDiff (k + 1) (α t))
+      (by simpa only [closedForms.coe_mpullback] using hα.mpullback _ Φ.symm.contMDiff)
+
+/-- The spaces of `ofDiffeomorph Φ τ` are the pullbacks along `Φ` of those of `τ`. -/
+@[simp]
+theorem space_ofDiffeomorph (k : ℕ) :
+    (τ.ofDiffeomorph Φ).space k = (τ.space k).map (SmoothForm.mpullback Φ Φ.contMDiff) :=
+  (rfl)
+
+/-- The projection of `ofDiffeomorph Φ τ` is `z ↦ Φ^* (τ.proj k ((Φ⁻¹)^* z))`. -/
+@[simp]
+theorem proj_ofDiffeomorph_apply (k : ℕ) (z : closedForms I M k) :
+    (τ.ofDiffeomorph Φ).proj k z = SmoothForm.mpullback Φ Φ.contMDiff
+      (τ.proj k (closedForms.mpullback Φ.symm Φ.symm.contMDiff k z)) :=
+  (rfl)
+
+/-- The primitive of `ofDiffeomorph Φ τ` is `z ↦ Φ^* (τ.primitive k ((Φ⁻¹)^* z))`. -/
+@[simp]
+theorem primitive_ofDiffeomorph_apply (k : ℕ) (z : closedForms I M (k + 1)) :
+    (τ.ofDiffeomorph Φ).primitive k z = SmoothForm.mpullback Φ Φ.contMDiff
+      (τ.primitive k (closedForms.mpullback Φ.symm Φ.symm.contMDiff (k + 1) z)) :=
+  (rfl)
+
+end Diffeomorph
 
 end SmoothCohomologySplitting
 
