@@ -267,7 +267,9 @@ joined to `1` by `t ↦ realify (exp (t • I • H))`. The positive factor `P` 
 joined to `1` by `t ↦ P ^ t`, which is symplectic by
 `SymplecticGroup.rpow_mem`. The issue checks how Mathlib's continuous
 functional calculus gives smoothness in `t`, for instance by writing `P ^ t`
-as `exp (t • log P)`. Expected size: 150 lines.
+as `exp (t • log P)`. Smoothness is stated for the entrywise norm
+`Matrix.Norms.Elementwise`, as for the frames of *Maslov index*. Expected
+size: 150 lines.
 
 ### `Geometry/Manifold/SmoothEmbedding/Neighborhood.lean`
 
