@@ -31,6 +31,8 @@ complex de Rham cohomology.
   forms whose real and imaginary parts are harmonic.
 * `TauCeti.complexHarmonicForms.toComplexDeRhamCohomology`: the complex de Rham class of a
   complex harmonic form.
+* `TauCeti.complexHarmonicForms.complexDeRhamCohomologyEquiv`: the complex Hodge isomorphism
+  between complex harmonic forms and complex de Rham cohomology.
 
 ## Main results
 
@@ -303,6 +305,21 @@ theorem complexHarmonicForms.toComplexDeRhamCohomology_bijective
       SmoothForm.realPart_ofReal_add_I_smul_ofReal,
       SmoothForm.imaginaryPart_ofReal_add_I_smul_ofReal]
     exact ⟨hre', him'⟩
+
+/-- **The complex Hodge isomorphism**: on a closed oriented Riemannian manifold, sending a complex
+harmonic form to its class is a linear isomorphism onto complex de Rham cohomology. -/
+def complexHarmonicForms.complexDeRhamCohomologyEquiv (o : Manifold.Orientation I M (Fin m))
+    (hkl : k + l = m) : complexHarmonicForms o hkl ≃ₗ[ℂ] complexDeRhamCohomology I M k :=
+  LinearEquiv.ofBijective (complexHarmonicForms.toComplexDeRhamCohomology o hkl)
+    (complexHarmonicForms.toComplexDeRhamCohomology_bijective o hkl)
+
+/-- The complex Hodge isomorphism sends a complex harmonic form to its class. -/
+@[simp]
+theorem complexHarmonicForms.complexDeRhamCohomologyEquiv_apply
+    (o : Manifold.Orientation I M (Fin m)) (hkl : k + l = m) (φ : complexHarmonicForms o hkl) :
+    complexHarmonicForms.complexDeRhamCohomologyEquiv o hkl φ =
+      complexHarmonicForms.toComplexDeRhamCohomology o hkl φ :=
+  (rfl)
 
 /-- **The Hodge decomposition of a complex form**: on a closed oriented Riemannian manifold, every
 complex `k`-form is `h + Δγ` with `h` complex harmonic and `γ` a complex form. -/

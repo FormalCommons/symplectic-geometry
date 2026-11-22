@@ -61,6 +61,27 @@ theorem coe_conj {k : ℕ} (φ : complexClosedForms I M k) :
     (conj I φ).val = SmoothForm.mapCoeff (Complex.conjCLE : ℂ →L[ℝ] ℂ) φ.val :=
   (rfl)
 
+/-- Conjugating the coefficients twice gives back the closed form. -/
+@[simp]
+theorem conj_conj {k : ℕ} (φ : complexClosedForms I M k) : conj I (conj I φ) = φ := by
+  refine Subtype.ext <| Subtype.ext <| funext fun x ↦ ?_
+  ext v
+  simp [RoughForm.mapCoeff_apply]
+
+/-- The real part of the conjugate of a closed complex form is its real part. -/
+@[simp]
+theorem re_conj {k : ℕ} (φ : complexClosedForms I M k) : re I (conj I φ) = re I φ := by
+  refine Subtype.ext <| Subtype.ext <| funext fun x ↦ ?_
+  ext v
+  simp [RoughForm.mapCoeff_apply]
+
+/-- The imaginary part of the conjugate of a closed complex form is minus its imaginary part. -/
+@[simp]
+theorem im_conj {k : ℕ} (φ : complexClosedForms I M k) : im I (conj I φ) = -im I φ := by
+  refine Subtype.ext <| Subtype.ext <| funext fun x ↦ ?_
+  ext v
+  simp [RoughForm.mapCoeff_apply]
+
 /-- The conjugate of a closed complex form `α + i β`, with `α` and `β` its real and imaginary
 parts, is `α + (-i) β`. -/
 theorem conj_eq_ofReal_re_add_neg_I_smul_ofReal_im {k : ℕ} (φ : complexClosedForms I M k) :
@@ -96,9 +117,7 @@ theorem conj_complexificationEquiv (k : ℕ) (u : ℂ ⊗[ℝ] deRhamCohomology 
 @[simp]
 theorem conj_ofReal (k : ℕ) (a : deRhamCohomology I M k) :
     (conj k).toEquiv (ofReal I k a) = ofReal I k a := by
-  have h := conj_complexificationEquiv I k (1 ⊗ₜ a)
-  rwa [complexificationEquiv_tmul, one_smul, tmulConj_tmul, map_one, complexificationEquiv_tmul,
-    one_smul] at h
+  simpa using conj_complexificationEquiv I k (1 ⊗ₜ a)
 
 /-- Conjugation on complex de Rham cohomology sends the class of a closed complex form to the
 class of the form with complex-conjugated coefficients. -/
@@ -106,10 +125,8 @@ class of the form with complex-conjugated coefficients. -/
 theorem conj_mk (k : ℕ) (φ : complexClosedForms I M k) :
     (conj k).toEquiv (mk I k φ) = mk I k (complexClosedForms.conj I φ) := by
   rw [← (complexificationEquiv I k).apply_symm_apply (mk I k φ), conj_complexificationEquiv,
-    complexificationEquiv_symm_mk, map_add, tmulConj_tmul, tmulConj_tmul, map_one,
-    Complex.conj_I, map_add, complexificationEquiv_tmul, complexificationEquiv_tmul, one_smul,
-    ofReal_mk, ofReal_mk, complexClosedForms.conj_eq_ofReal_re_add_neg_I_smul_ofReal_im,
-    map_add, map_smul]
+    complexClosedForms.conj_eq_ofReal_re_add_neg_I_smul_ofReal_im]
+  simp [complexificationEquiv_symm_mk, ofReal_mk]
 
 end complexDeRhamCohomology
 

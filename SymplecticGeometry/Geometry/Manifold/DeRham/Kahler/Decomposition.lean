@@ -111,8 +111,7 @@ theorem mk_mem_hodgePiece {φ : complexClosedForms I M k} (hφ : φ.val.IsOfType
 
 /-- `H^{p,q}` vanishes in degree `k ≠ p + q`. -/
 theorem hodgePiece_eq_bot (hpq : p + q ≠ k) : hodgePiece J k p q = ⊥ := by
-  rw [hodgePiece_def, J.typeProjection_eq_zero hpq, LinearMap.range_zero, Submodule.comap_bot,
-    Submodule.ker_subtype, Submodule.map_bot]
+  simp [hodgePiece_def, J.typeProjection_eq_zero hpq]
 
 /-- With the indexing of a Hodge decomposition by `p : ℤ`, the pieces of index `p < 0` or
 `p > k` vanish. -/
@@ -187,16 +186,17 @@ theorem typeProjection_complexHodgeLaplacian (o : Manifold.Orientation I M (Fin 
     (hkl : k + l = m) (p q : ℕ) (φ : SmoothForm I M ℂ k) :
     J.typeProjection p q (SmoothForm.complexHodgeLaplacian o hkl φ) =
       SmoothForm.complexHodgeLaplacian o hkl (J.typeProjection p q φ) := by
-  refine J.map_eq_of_forall_isOfType
-    (f := J.typeProjection p q ∘ₗ SmoothForm.complexHodgeLaplacian o hkl)
-    (g := SmoothForm.complexHodgeLaplacian o hkl ∘ₗ J.typeProjection p q)
-    (fun p' q' _ ψ hψ ↦ ?_) φ
-  rw [LinearMap.comp_apply, LinearMap.comp_apply]
-  by_cases h : (p, q) = (p', q')
-  · obtain ⟨rfl, rfl⟩ := Prod.mk.inj h
-    rw [hψ.typeProjection_self, (hψ.complexHodgeLaplacian o hJ hσ hg hkl).typeProjection_self]
-  · rw [hψ.typeProjection_of_ne h, (hψ.complexHodgeLaplacian o hJ hσ hg hkl).typeProjection_of_ne h,
-      map_zero]
+  -- The type projection is a polynomial in the derivation of `J`, which commutes with `Δ`.
+  have h : Commute (SmoothForm.complexHodgeLaplacian o hkl)
+      J.toEndomorphism.alternatingDerivation :=
+    LinearMap.ext fun ψ ↦ by
+      rw [mul_apply_eq_comp, mul_apply_eq_comp,
+        SmoothForm.complexHodgeLaplacian_alternatingDerivation o hJ hσ hg hkl]
+  have hP := (Algebra.commute_of_mem_adjoin_singleton_of_commute
+    (Polynomial.aeval_mem_adjoin_singleton ℂ _ (p := ContinuousLinearMap.typePolynomial k p q))
+    h).symm
+  rw [← typeProjection_eq_aeval] at hP
+  rw [← mul_apply_eq_comp, hP.eq, mul_apply_eq_comp]
 
 /-- Under the hypotheses of `typeProjection_complexHodgeLaplacian`, the type components of a
 complex harmonic form are harmonic. -/
@@ -256,12 +256,9 @@ private def typeProjectionCohomology (o : Manifold.Orientation I M (Fin m))
     (hJ : J.IsIntegrable) (hσ : σ.IsClosed)
     (hg : ∀ x (v w : TangentSpace I x), ⟪v, w⟫ = σ.eval₂ x v (J x w))
     (hkl : k + l = m) (p q : ℕ) : Module.End ℂ (complexDeRhamCohomology I M k) :=
-  (LinearEquiv.ofBijective _ (complexHarmonicForms.toComplexDeRhamCohomology_bijective o hkl)
-    ).toLinearMap ∘ₗ
-    (J.typeProjection p q).restrict
-      (fun _ hφ ↦ J.typeProjection_mem_complexHarmonicForms o hJ hσ hg hkl p q hφ) ∘ₗ
-    (LinearEquiv.ofBijective _ (complexHarmonicForms.toComplexDeRhamCohomology_bijective o hkl)
-      ).symm.toLinearMap
+  (complexHarmonicForms.complexDeRhamCohomologyEquiv o hkl).conj
+    ((J.typeProjection p q).restrict
+      fun _ hφ ↦ J.typeProjection_mem_complexHarmonicForms o hJ hσ hg hkl p q hφ)
 
 private theorem typeProjectionCohomology_toComplexDeRhamCohomology
     (o : Manifold.Orientation I M (Fin m)) (hJ : J.IsIntegrable) (hσ : σ.IsClosed)
@@ -272,9 +269,9 @@ private theorem typeProjectionCohomology_toComplexDeRhamCohomology
       complexHarmonicForms.toComplexDeRhamCohomology o hkl
         ⟨J.typeProjection p q h.val,
           J.typeProjection_mem_complexHarmonicForms o hJ hσ hg hkl p q h.property⟩ := by
-  simp only [typeProjectionCohomology, LinearMap.comp_apply, LinearEquiv.coe_coe,
-    LinearEquiv.ofBijective_symm_apply_apply, LinearEquiv.ofBijective_apply,
-    LinearMap.restrict_apply]
+  rw [← complexHarmonicForms.complexDeRhamCohomologyEquiv_apply, typeProjectionCohomology,
+    LinearEquiv.conj_apply_apply, LinearEquiv.symm_apply_apply, LinearMap.restrict_apply,
+    complexHarmonicForms.complexDeRhamCohomologyEquiv_apply]
 
 private theorem typeProjectionCohomology_of_mem
     (o : Manifold.Orientation I M (Fin m)) (hJ : J.IsIntegrable) (hσ : σ.IsClosed)

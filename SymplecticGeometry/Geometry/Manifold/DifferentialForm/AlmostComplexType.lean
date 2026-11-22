@@ -28,6 +28,8 @@ of complex-valued forms, and describes the range of Tau Ceti's type projections.
   derivation is the real one.
 * `TauCeti.SmoothAlmostComplexStructure.mem_range_typeProjection_iff`: the range of the
   type-`(p,q)` projection is the forms of type `(p,q)`.
+* `TauCeti.SmoothAlmostComplexStructure.typeProjection_eq_aeval`: the type projection is a
+  polynomial in the derivation of complex forms along `J`.
 -/
 
 public section
@@ -91,6 +93,17 @@ theorem mem_range_typeProjection_iff (J : SmoothAlmostComplexStructure I M) {p q
     (hpq : p + q = k) (φ : SmoothForm I M F k) :
     φ ∈ LinearMap.range (J.typeProjection p q) ↔ φ.IsOfType J p q :=
   ⟨fun ⟨ψ, hψ⟩ ↦ hψ ▸ J.isOfType_typeProjection hpq ψ, fun h ↦ ⟨φ, h.typeProjection_self⟩⟩
+
+omit [IsManifold I 1 M] [RiemannianBundle (fun x : M ↦ TangentSpace I x)] in
+/-- The type-`(p,q)` projection of smooth `k`-forms is the type polynomial evaluated at the
+derivation `J.toEndomorphism.alternatingDerivation`. -/
+theorem typeProjection_eq_aeval (J : SmoothAlmostComplexStructure I M) (p q : ℕ) :
+    J.typeProjection (F := F) (k := k) p q =
+      Polynomial.aeval J.toEndomorphism.alternatingDerivation
+        (ContinuousLinearMap.typePolynomial k p q) := by
+  refine LinearMap.ext fun φ ↦ Subtype.ext <| funext fun x ↦ ?_
+  simp only [coe_typeProjection, ContMDiffSection.aeval_alternatingDerivation_apply,
+    ContinuousLinearMap.typeProjection_eq_aeval]
 
 end TauCeti.SmoothAlmostComplexStructure
 
