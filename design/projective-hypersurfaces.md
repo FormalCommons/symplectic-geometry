@@ -509,7 +509,8 @@ For `n ≠ 0`.
   $\iota^*\mathcal O(1)^{\oplus n}$ is $(\iota^*h)^n$, from
   `totalChernClass_twistPiCore`, `totalChernClass_pullback` and
   `chernClass_finrank_eq_complexEulerClass`.
-- `sectionIndex_eq_one_of_holomorphic` (in the namespace
+- `sectionIndex_eq_one_of_complexLinear` (in
+  `Topology/VectorBundle/Orientation/SectionIndex/ComplexLinear.lean`, in the namespace
   `TauCeti.VectorBundleOrientation`, for any complex bundle over a complex
   manifold oriented by `complexManifoldOrientation`): at a zero where a
   section has a complex-linear invertible derivative in a holomorphic chart

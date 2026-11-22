@@ -5,8 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orientation.Smooth
-public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orientation.Linear
+public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.OrientedChart
 public import SymplecticGeometry.Topology.Algebra.Module.Equiv.Basic
 public import SymplecticGeometry.Topology.VectorBundle.Complex.FirstChernClass
 public import SymplecticGeometry.Topology.VectorBundle.Complex.Structure
@@ -41,14 +40,12 @@ of zeros of a section of `L`, counted with signs.
 At a zero `z`, the local index is computed by Tau Ceti's
 `TauCeti.VectorBundleOrientation.sectionIndex_eq_sign_det_of_hasFDerivAt` as the sign of the
 Jacobian of the section read in a chart of `M` with values in `ℂ` and in a trivialization of
-`J.Fiber`. The chart is the preferred chart at `z` followed by a linear identification of the
-model with `ℂ` that matches the orientations, so that it selects the local orientation of `M` at
-`z`, by
-`TauCeti.Manifold.Orientation.toHomologicalOrientation_apply_eq_localOrientationOfOrientedChart`,
-and the chart translated so that `z` goes to the origin carries it to the local orientation of
-`ℂ`, by `OpenPartialHomeomorph.localHomologyMap_chart_localOrientationOfOrientedChart` for the
-identity of `ℂ`. The
-trivialization of `J.Fiber` is that of `V` followed by a family of linear maps that is only
+`J.Fiber`. The chart is the preferred chart at `z` followed by a linear identification `D` of
+the model with `ℂ` that matches the orientations; translated so that `z` goes to the origin, it
+carries the local orientation of `M` at `z` to the local orientation of `ℂ` selected by the image
+of the tangent orientation under `D`
+(`TauCeti.Manifold.Orientation.localHomologyMap_sub_toHomologicalOrientation_transHomeomorph`).
+The trivialization of `J.Fiber` is that of `V` followed by a family of linear maps that is only
 continuous; since the section vanishes at `z`, the Jacobian is still the linearization of `s`
 followed by the value of that family at `z` (`TauCeti.mvfderiv_eq_comp_of_eventuallyEq_clm_apply`).
 
@@ -139,16 +136,17 @@ local instance : VectorBundle ℝ ℂ J.Fiber := VectorBundle.restrictScalars �
 omit [T2Space M] [CompactSpace M] [FiniteDimensional ℝ EM] [IsManifold 𝓘(ℝ, EM) 1 M]
   [ContMDiffVectorBundle 1 F V 𝓘(ℝ, EM)] in
 /-- At a zero `z` of a `C¹` section `s`, the section read in the chart
-`(chartAt EM z).transHomeomorph D` of `M` and in the trivialization of `J.Fiber` at `z` has a
-derivative `A` with `A (D v) = e (Lz v)`, for `Lz` the linearization of `s` at `z` and `e` the
-fibre map of the trivialization at `z`. -/
+`(chartAt EM z).transHomeomorph (𝓘(ℝ, EM).toHomeomorph.trans D)` of `M` and in the trivialization
+of `J.Fiber` at `z` has a derivative `A` with `A (D v) = e (Lz v)`, for `Lz` the linearization of
+`s` at `z` and `e` the fibre map of the trivialization at `z`. -/
 private theorem exists_hasFDerivAt_trivializationAt {s : ∀ x, V x}
     (hs : ContMDiff 𝓘(ℝ, EM) (𝓘(ℝ, EM).prod 𝓘(ℝ, F)) 1 fun x ↦ TotalSpace.mk' F x (s x))
     {z : M} (hz : s z = 0) (D : EM ≃L[ℝ] ℂ) :
     ∃ A : ℂ →L[ℝ] ℂ,
       HasFDerivAt (fun y ↦ (trivializationAt ℂ J.Fiber z (TotalSpace.mk' ℂ
-        (((chartAt EM z).transHomeomorph D.toHomeomorph).symm y)
-        ((J.fiberEquiv _).symm (s (((chartAt EM z).transHomeomorph D.toHomeomorph).symm y))))).2)
+        (((chartAt EM z).transHomeomorph (𝓘(ℝ, EM).toHomeomorph.trans D.toHomeomorph)).symm y)
+        ((J.fiberEquiv _).symm (s (((chartAt EM z).transHomeomorph
+          (𝓘(ℝ, EM).toHomeomorph.trans D.toHomeomorph)).symm y))))).2)
         A (D (chartAt EM z z)) ∧
       ∀ v : TangentSpace 𝓘(ℝ, EM) z, A (D v) =
         (trivializationAt ℂ J.Fiber z).linearEquivAt ℝ z (mem_baseSet_trivializationAt ℂ J.Fiber z)
@@ -332,41 +330,14 @@ private theorem sectionIndex_eq_ite {s : ∀ x, V x}
     refine ⟨(b₁.equiv b₂ (Equiv.refl _)).toContinuousLinearEquiv, ?_⟩
     rw [← hb₁, ← hb₂, ← Basis.orientation_map]
     exact congrArg Basis.orientation ((b₁.map_equiv b₂ (Equiv.refl _)).trans b₂.reindex_refl)
-  set φ : OpenPartialHomeomorph M ℂ := (chartAt EM z).transHomeomorph D.toHomeomorph with hφ
-  have hzφ : z ∈ φ.source := by
-    rw [hφ, OpenPartialHomeomorph.transHomeomorph_source]
-    exact mem_chart_source EM z
-  -- The orientation of `M` at `z` is the one selected by `φ` and `ω`, so that `φ`, translated,
-  -- carries it to the local orientation of `ℂ` selected by `ω`.
-  have hoM : o.toHomologicalOrientation hn z =
-      φ.localOrientationOfOrientedChart hzφ ω Complex.finrank_real_complex := by
-    refine Manifold.Orientation.toHomologicalOrientation_apply_eq_localOrientationOfOrientedChart
-      hn o Complex.finrank_real_complex φ hzφ D ?_ hD
-    refine D.hasFDerivAt.congr_of_eventuallyEq ?_
-    filter_upwards [extChartAt_target_mem_nhds (I := 𝓘(ℝ, EM)) z] with y hy
-    have h := (extChartAt 𝓘(ℝ, EM) z).right_inv hy
-    simp only [extChartAt, OpenPartialHomeomorph.extend, modelWithCornersSelf_partialEquiv,
-      PartialEquiv.trans_refl, OpenPartialHomeomorph.toFun_eq_coe] at h
-    simpa [φ] using h
-  -- The centred chart is the case `L = id` of the chart map of
-  -- `OpenPartialHomeomorph.localHomologyMap_chart_localOrientationOfOrientedChart`.
-  have hσ : (⟨fun x : φ.source ↦ φ x - φ z,
-      φ.continuousOn.domRestrict.sub continuous_const⟩ : C(φ.source, ℂ)) =
-      ((ContinuousLinearEquiv.refl ℝ ℂ : ℂ →L[ℝ] ℂ) : C(ℂ, ℂ)).comp
-        ((⟨fun y ↦ y - φ z, by fun_prop⟩ : C(ℂ, ℂ)).comp φ.sourceRestrict) :=
-    ContinuousMap.ext fun x ↦ by
-      -- The topologies on `ℂ` in the type of `φ` and in `C(φ.source, ℂ)` agree only up to
-      -- unfolding instances, so `rw` does not match `ContinuousMap.coe_mk`.
-      erw [ContinuousMap.coe_mk]
-      simp
-  have hφl := φ.localHomologyMap_chart_localOrientationOfOrientedChart hzφ
-    (ContinuousLinearEquiv.refl ℝ ℂ) ω Complex.finrank_real_complex Complex.finrank_real_complex
-    (by
-      rw [← hσ]
-      exact fun x hx ↦ Subtype.ext (φ.injOn x.property hzφ (sub_eq_zero.1 hx)))
-  simp only [← hσ, ContinuousLinearEquiv.toLinearEquiv_refl, Orientation.map_refl,
-    Equiv.refl_apply] at hφl
-  rw [← hoM] at hφl
+  -- The chart `φ` of `M` at `z` with values in `ℂ`, the preferred chart followed by `D`;
+  -- translated, it carries the orientation of `M` at `z` to the local orientation selected by `ω`.
+  set φ : OpenPartialHomeomorph M ℂ :=
+    (chartAt EM z).transHomeomorph (𝓘(ℝ, EM).toHomeomorph.trans D.toHomeomorph)
+  have hzφ : z ∈ φ.source := by simp [φ]
+  have hφl := Manifold.Orientation.localHomologyMap_sub_toHomologicalOrientation_transHomeomorph
+    hn o Complex.finrank_real_complex D z
+  rw [hD] at hφl
   -- An open neighbourhood `U` of `z` in which `z` is the only zero of `s`.
   set U := e.baseSet ∩ φ.source ∩ ({x | s x = 0} \ {z})ᶜ
   have hUo : IsOpen U :=
