@@ -177,7 +177,8 @@ diffeomorphism. No Mathlib or Tau Ceti notion is redefined.
    `Riemannian/SL2Tilde/`), because it is the canonical metric of the space
    and Tau Ceti's geodesic API reads the Levi-Civita connection from that
    instance. `DESIGN.md`'s rule of local instances concerns the metric $g_J$
-   of a pair on an arbitrary manifold, and is unaffected.
+   of a pair on an arbitrary manifold, and is unaffected; §28 of `DESIGN.md`
+   records this exception.
 7. **The connection.** In the global chart the Levi-Civita connection is the
    flat derivative plus the symmetric Christoffel map
    $\Gamma_C(a,b)=aKb+bKa$ with $K=C(1-C^2)^{-1}$, which lies in the model
@@ -206,7 +207,12 @@ diffeomorphism. No Mathlib or Tau Ceti notion is redefined.
    That identity is a new lemma. With $A=-J\hat J$ one has $\dot J(t)=J(t)A$,
    $\ddot J(t)=J(t)A^2$ and $J(t)\dot J(t)^2=J(t)A^2$, so the ambient
    acceleration $\ddot J-J\dot J^2$ vanishes. The curve is defined on all of
-   `ℝ`, which gives Tau Ceti's `IsGeodesicallyCompleteAt` at every point. The
+   `ℝ`, which gives Tau Ceti's `IsGeodesicallyCompleteAt` at every point.
+   These curves are all the geodesics: by Tau Ceti's uniqueness lemmas
+   `IsGeodesicCurveOnFrom.eq_maximalGeodesic_of_univ` and
+   `IsGeodesicCurveOnFrom.eqOn_maximalGeodesic`, the maximal geodesic with
+   initial data $(J,\hat J)$ is this curve, and any geodesic on an open
+   interval around $0$ with the same initial data agrees with it there. The
    page's completeness of the metric is then Tau Ceti's Hopf–Rinow theorem
    `completeSpace_iff_isGeodesicallyCompleteAt`, for the Riemannian distance
    `EMetricSpace.ofRiemannianMetric`. Tau Ceti's
@@ -214,9 +220,14 @@ diffeomorphism. No Mathlib or Tau Ceti notion is redefined.
    transitivity of the isometries of decision 10, is a second route.
 9. **$\mathcal S_n$ as a complex manifold.** `SiegelUpperHalfSpace ι` gets the
    complex manifold structure of an open subset of the complex symmetric
-   matrices, through `toSymm` and `IsOpenEmbedding.singletonChartedSpace`.
-   Mathlib has no submodule of symmetric matrices, so this part adds
-   `Matrix.symmetricSubmodule ι R`. Matrices carry the $L^\infty$ operator norm
+   matrices, through `IsOpenEmbedding.singletonChartedSpace`. The model is
+   Mathlib's submodule of symmetric matrices,
+   `selfAdjointMatricesSubmodule (1 : Matrix ι ι ℂ)`, whose membership
+   lemma `mem_selfAdjointMatricesSubmodule` reduces to `IsSymm` by `simp`.
+   The chart is the merged open embedding `toSymm`, composed with the
+   homeomorphism of `{Z // Z.IsSymm}` onto that submodule given by Mathlib's
+   `Homeomorph.subtype` of the identity; no second inclusion is added.
+   Matrices carry the $L^\infty$ operator norm
    `Matrix.Norms.Operator`, which the Siegel part's smoothness lemmas use, so
    they apply without a change of norm; the smooth structure does not depend
    on the norm, but an instance must name one. The model is a complex normed
@@ -263,15 +274,6 @@ diffeomorphism. No Mathlib or Tau Ceti notion is redefined.
     row.
 
 ## Files and their contents
-
-### `LinearAlgebra/Matrix/Symmetric.lean` (addition)
-
-In the existing general file of *Siegel upper half space* (which imports only
-Mathlib), in the namespace `Matrix`:
-
-- `Matrix.symmetricSubmodule (ι R) [CommSemiring R] : Submodule R (Matrix ι ι R)`,
-  the symmetric matrices, with `mem_symmetricSubmodule : A ∈ symmetricSubmodule ι R ↔ A.IsSymm`
-  (`@[simp]`).
 
 ### `LinearAlgebra/Symplectic/CompatibleTangent/Basic.lean`
 
@@ -385,10 +387,12 @@ The manifold, in `TauCeti.SymplecticForm`.
 
 With `open scoped Matrix.Norms.Operator`, in `SymplecticGeometry.SiegelUpperHalfSpace`:
 
-- `toSymmetricSubmodule : SiegelUpperHalfSpace ι → Matrix.symmetricSubmodule ι ℂ`,
-  `isOpenEmbedding_toSymmetricSubmodule` (from `isOpenEmbedding_toSymm`);
-- `instance : ChartedSpace (Matrix.symmetricSubmodule ι ℂ) (SiegelUpperHalfSpace ι)`,
-  `instance : IsManifold 𝓘(ℂ, Matrix.symmetricSubmodule ι ℂ) ∞ _`, and its real
+writing `𝒮ι` for `selfAdjointMatricesSubmodule (1 : Matrix ι ι ℂ)` (a local
+notation of the file):
+
+- `instance : ChartedSpace 𝒮ι (SiegelUpperHalfSpace ι)`, from
+  `isOpenEmbedding_toSymm` composed with the homeomorphism of decision 9,
+  `instance : IsManifold 𝓘(ℂ, 𝒮ι) ∞ _`, and its real
   counterpart if Mathlib does not derive it; `chartAt_eq`;
 - `contMDiff_coe`, `contMDiff_iff_coe_comp` (smoothness of maps in and out,
   read through the inclusion into matrices).
@@ -482,6 +486,12 @@ With `open scoped Matrix.Norms.Operator`, in `SymplecticGeometry.SiegelUpperHalf
 - `isGeodesicCurveOnFrom_compatibleGeodesic : IsGeodesicCurveOnFrom 𝓘
   (ω.compatibleGeodesic J a) univ J a`, from the ambient formula of
   `LeviCivita.lean` and the computation of decision 8.
+- `maximalGeodesic_compatibleSpace : maximalGeodesic 𝓘 (𝒥 ω) J a =
+  ω.compatibleGeodesic J a`, by `IsGeodesicCurveOnFrom.eq_maximalGeodesic_of_univ`,
+  and `eqOn_compatibleGeodesic (hγ : IsGeodesicCurveOnFrom 𝓘 γ (Ioo s t) J a) :
+  EqOn γ (ω.compatibleGeodesic J a) (Ioo s t)`, by
+  `IsGeodesicCurveOnFrom.eqOn_maximalGeodesic`: these curves are all the
+  geodesics.
 - `isGeodesicallyCompleteAt_compatibleSpace (J) :
   IsGeodesicallyCompleteAt 𝓘 (𝒥 ω) J`, and
   `completeSpace_compatibleSpace : letI := EMetricSpace.ofRiemannianMetric 𝓘 (𝒥 ω);
@@ -495,7 +505,8 @@ For `ι` finite with decidable equality, `V = StdSpace ι`, `ω = stdForm ι`:
   the block formula `complexStructureMatrix` at a matrix with invertible
   imaginary part, in the Siegel part's namespace;
 - `SiegelUpperHalfSpace.compatibleDiffeomorph ι : SiegelUpperHalfSpace ι ≃ₘ⟮𝓘(ℝ,
-  Matrix.symmetricSubmodule ι ℂ), 𝓘(ℝ, (stdForm ι).compatibleModel)⟯
+  selfAdjointMatricesSubmodule (1 : Matrix ι ι ℂ)),
+  𝓘(ℝ, (stdForm ι).compatibleModel)⟯
   𝒥 (stdForm ι)`, with underlying map `compatibleEquiv`
   (`coe_compatibleDiffeomorph`), smooth in both directions by
   `contMDiff_compatibleCLM_comp_iff`, `contDiffOn_complexStructureMatrix` and
@@ -539,6 +550,8 @@ theorem compatibleSpace_properties (ω : SymplecticForm V) {n : ℕ}
     (∀ J a, IsGeodesicCurveOnFrom 𝓘 (ω.compatibleGeodesic J a) univ J a ∧
       ∀ t, ω.compatibleCLM (ω.compatibleGeodesic J a t) =
         ω.compatibleCLM J * NormedSpace.exp ℝ (-(t • (ω.compatibleCLM J * d J a)))) ∧
+    (∀ J a (γ : ℝ → 𝒥 ω) s t, IsGeodesicCurveOnFrom 𝓘 γ (Ioo s t) J a →
+      EqOn γ (ω.compatibleGeodesic J a) (Ioo s t)) ∧
     (∀ J, IsGeodesicallyCompleteAt 𝓘 (𝒥 ω) J) ∧
     (letI := EMetricSpace.ofRiemannianMetric 𝓘 (𝒥 ω); CompleteSpace (𝒥 ω)) ∧
     (∀ J a b c, d J (∇.curvatureTensor J a b c) = -(4⁻¹ : ℝ) • ⁅⁅d J a, d J b⁆, d J c⁆) ∧
@@ -580,8 +593,8 @@ is the conjunct on `compatibleTransport`. No entry in `ERRATA.md` is needed.
   `isOpenEmbedding_toSymm`, `complexStructureMatrix`,
   `ofComplexStructureMatrix`, `compatibleEquiv` and its two coercion lemmas,
   `contDiffOn_complexStructureMatrix`, `contDiffOn_ofComplexStructureMatrix`;
-  the general file `LinearAlgebra/Matrix/Symmetric.lean`, which gets
-  `Matrix.symmetricSubmodule`.
+  and from Mathlib `selfAdjointMatricesSubmodule`,
+  `mem_selfAdjointMatricesSubmodule` and `Homeomorph.subtype`.
 - *Lagrangian Grassmannian* (merged): `Matrix.finrank_selfAdjoint`
   (`LinearAlgebra/Matrix/SelfAdjoint.lean`).
 - *Nijenhuis tensor* (#862, not merged): `IsIntegrable`,
@@ -622,8 +635,9 @@ its blockers are merged.
 4. **The manifold.** `Geometry/Manifold/Instances/CompatibleComplexStructures.lean`.
    About 450 lines. Blocked by 2 and 3.
 5. **The Siegel upper half space as a complex manifold.**
-   `Matrix.symmetricSubmodule` in `LinearAlgebra/Matrix/Symmetric.lean` and
-   `Geometry/Manifold/Instances/SiegelUpperHalfSpace.lean`. About 200 lines.
+   `Geometry/Manifold/Instances/SiegelUpperHalfSpace.lean`, modelled on
+   Mathlib's `selfAdjointMatricesSubmodule (1 : Matrix ι ι ℂ)` through
+   `toSymm` (decision 9). About 200 lines.
    No blockers.
 6. **The complex structure and its integrability.**
    `Geometry/Symplectic/CompatibleSpace/ComplexStructure.lean`. About 350
@@ -637,7 +651,9 @@ its blockers are merged.
 9. **The curvature.** `Geometry/Symplectic/CompatibleSpace/Curvature.lean`.
    About 350 lines. Blocked by 8.
 10. **Geodesics and completeness.**
-    `Geometry/Symplectic/CompatibleSpace/Geodesic.lean`. About 300 lines.
+    `Geometry/Symplectic/CompatibleSpace/Geodesic.lean`, including the
+    uniqueness statements `maximalGeodesic_compatibleSpace` and
+    `eqOn_compatibleGeodesic`. About 300 lines.
     Blocked by 8.
 11. **The diffeomorphism with the Siegel upper half space, and the
     milestone.** `Geometry/Symplectic/CompatibleSpace/Siegel.lean`. About 400

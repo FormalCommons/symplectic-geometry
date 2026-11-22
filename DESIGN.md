@@ -2450,6 +2450,11 @@ has either; Tau Ceti's extension across a boundary,
   complex manifolds* (only `Metric.lean`); the merged
   *Siegel upper half space* and *Compatible complex structures*; Tau Ceti's
   Cayley files and curvature of connections.
+- **The metric:** unlike the convention *The metric* above, the trace metric
+  of $\mathcal J(V,\omega)$ is a global `RiemannianBundle` instance on its
+  tangent bundle, as Tau Ceti does for its model geometries: it is the
+  canonical metric of the space, and Tau Ceti's geodesic API reads the
+  Levi-Civita connection from that instance.
 - **Milestones:** *Kähler structure on the space of compatible linear complex
   structures*, with integrability from the global Cayley chart, the bounded
   model of $\mathcal S_n$, rather than from the parallel-$J$ criterion, as
