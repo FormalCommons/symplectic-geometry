@@ -10,6 +10,8 @@ public import SymplecticGeometry.Geometry.Symplectic.Liouville.Filling
 public import TauCeti.Geometry.Manifold.VectorField.ModelChart
 public import TauCeti.Geometry.Manifold.VectorField.Prod
 import TauCeti.Geometry.Manifold.IsManifold.Basic
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffeomorph
+import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
 import SymplecticGeometry.Geometry.Manifold.VectorField.Pullback
 import TauCeti.Topology.FiberBundle.Separation
 
@@ -385,29 +387,6 @@ section Glue
 
 variable {k : ℕ}
 
-/-- The value at a point `z = f x` of a form that pulls back along `f` to `α` at `x`, when the
-differential of `f` at `x` is invertible: `α x` read through the inverse of the differential. -/
-private noncomputable def formAt {E H M E' H' N : Type*} [NormedAddCommGroup E]
-    [NormedSpace ℝ E] [TopologicalSpace H] (I : ModelWithCorners ℝ E H) [TopologicalSpace M]
-    [ChartedSpace H M] [NormedAddCommGroup E'] [NormedSpace ℝ E'] [TopologicalSpace H']
-    (J : ModelWithCorners ℝ E' H') [TopologicalSpace N] [ChartedSpace H' N] (f : M → N)
-    (α : RoughForm I M ℝ k) (x : M) (z : N) : TangentSpace J z [⋀^Fin k]→L[ℝ] ℝ :=
-  (α x).compContinuousLinearMap
-    ((mfderiv I J f x).inverse.comp (tangentSpaceCast J z (f x) : TangentSpace J z →L[ℝ] _))
-
-private theorem mpullback_apply_eq_of_eq_formAt {E H M E' H' N : Type*} [NormedAddCommGroup E]
-    [NormedSpace ℝ E] [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [TopologicalSpace M]
-    [ChartedSpace H M] [NormedAddCommGroup E'] [NormedSpace ℝ E'] [TopologicalSpace H']
-    {J : ModelWithCorners ℝ E' H'} [TopologicalSpace N] [ChartedSpace H' N] {f : M → N}
-    {α : RoughForm I M ℝ k} {β : RoughForm J N ℝ k} {x : M}
-    (hf : (mfderiv I J f x).IsInvertible) (hβ : β (f x) = formAt I J f α x (f x)) :
-    mpullback I J f β x = α x := by
-  ext v
-  rw [mpullback_apply, hβ, formAt]
-  simp only [ContinuousAlternatingMap.compContinuousLinearMap_apply, Function.comp_def,
-    ContinuousLinearMap.comp_apply, ContinuousLinearEquiv.coe_coe, tangentSpaceCast_self,
-    hf.inverse_apply_self]
-
 open Classical in
 /-- The form on the completion that is `αE`, read through the end map, on the end
 `(-ε, ∞) × ∂W`, and `αW`, read through the inclusion, on the rest of `W`. -/
@@ -415,9 +394,9 @@ private noncomputable def glue (αW : RoughForm (𝓡∂ (n + 1)) W ℝ k)
     (αE : RoughForm (𝓘(ℝ).prod (𝓡 n)) (ℝ × (𝓡∂ (n + 1)).boundary W) ℝ k) :
     RoughForm (𝓡 (n + 1)) h.Completion ℝ k := fun z ↦
   if hz : ∃ q ∈ Ioi (-h.collarWidth) ×ˢ univ, h.completionEnd q = z then
-    formAt (𝓘(ℝ).prod (𝓡 n)) (𝓡 (n + 1)) h.completionEnd αE hz.choose z
+    RoughForm.pushforwardAt (𝓘(ℝ).prod (𝓡 n)) (𝓡 (n + 1)) h.completionEnd αE hz.choose z
   else if hz' : ∃ p, h.toCompletion p = z then
-    formAt (𝓡∂ (n + 1)) (𝓡 (n + 1)) h.toCompletion αW hz'.choose z
+    RoughForm.pushforwardAt (𝓡∂ (n + 1)) (𝓡 (n + 1)) h.toCompletion αW hz'.choose z
   else 0
 
 variable (αW : RoughForm (𝓡∂ (n + 1)) W ℝ k)
@@ -426,7 +405,8 @@ variable (αW : RoughForm (𝓡∂ (n + 1)) W ℝ k)
 private theorem glue_completionEnd {q : ℝ × (𝓡∂ (n + 1)).boundary W}
     (hq : q ∈ Ioi (-h.collarWidth) ×ˢ univ) :
     h.glue αW αE (h.completionEnd q) =
-      formAt (𝓘(ℝ).prod (𝓡 n)) (𝓡 (n + 1)) h.completionEnd αE q (h.completionEnd q) := by
+      RoughForm.pushforwardAt (𝓘(ℝ).prod (𝓡 n)) (𝓡 (n + 1)) h.completionEnd αE q
+        (h.completionEnd q) := by
   have hz : ∃ q' ∈ Ioi (-h.collarWidth) ×ˢ univ, h.completionEnd q' = h.completionEnd q :=
     ⟨q, hq, rfl⟩
   unfold glue
@@ -436,7 +416,8 @@ private theorem glue_completionEnd {q : ℝ × (𝓡∂ (n + 1)).boundary W}
 private theorem glue_toCompletion {p : W}
     (hp : ¬∃ q ∈ Ioi (-h.collarWidth) ×ˢ univ, h.completionEnd q = h.toCompletion p) :
     h.glue αW αE (h.toCompletion p) =
-      formAt (𝓡∂ (n + 1)) (𝓡 (n + 1)) h.toCompletion αW p (h.toCompletion p) := by
+      RoughForm.pushforwardAt (𝓡∂ (n + 1)) (𝓡 (n + 1)) h.toCompletion αW p
+        (h.toCompletion p) := by
   have hz : ∃ p', h.toCompletion p' = h.toCompletion p := ⟨p, rfl⟩
   unfold glue
   simp only [dite_eq_right hp, dite_eq_left hz]
@@ -446,7 +427,7 @@ private theorem glue_toCompletion {p : W}
 private theorem mpullback_completionEnd_glue {q : ℝ × (𝓡∂ (n + 1)).boundary W}
     (hq : q ∈ Ioi (-h.collarWidth) ×ˢ univ) :
     mpullback (𝓘(ℝ).prod (𝓡 n)) (𝓡 (n + 1)) h.completionEnd (h.glue αW αE) q = αE q :=
-  mpullback_apply_eq_of_eq_formAt
+  mpullback_apply_eq_of_apply_eq_pushforwardAt
     ((h.isLocalDiffeomorphOn_completionEnd ⟨q, hq⟩).isInvertible_mfderiv (by simp))
     (h.glue_completionEnd αW αE hq)
 
@@ -465,7 +446,7 @@ private theorem mpullback_toCompletion_glue_of_mem_interior
       ((h.contMDiff_toCompletion _).mdifferentiableAt (by simp)),
       ← (h.completionEnd_eventuallyEq hq').mpullback_eq, h.mpullback_completionEnd_glue αW αE hq,
       hc q hq']
-  · exact mpullback_apply_eq_of_eq_formAt
+  · exact mpullback_apply_eq_of_apply_eq_pushforwardAt
       ((h.isLocalDiffeomorphAt_toCompletion hp).isInvertible_mfderiv (by simp))
       (h.glue_toCompletion αW αE hz)
 
@@ -610,28 +591,17 @@ private theorem mfderiv_collarFlow_apply {q : ℝ × (𝓡∂ (n + 1)).boundary 
       Y (h.collarFlow q) := by
   obtain ⟨s, x⟩ := q
   have hs : s ∈ Ioo (-h.collarWidth) 0 := hq.1
-  have hγ : HasMFDerivAt 𝓘(ℝ) (𝓡∂ (n + 1)) (fun t ↦ h.collarFlow (t, x)) s
-      ((1 : ℝ →L[ℝ] ℝ).smulRight (Y (h.collarFlow (s, x)))) :=
-    ((h.isMIntegralCurveOn_collarFlow x) s (Ioo_subset_Ioc_self hs)).hasMFDerivAt
-      (Ioc_mem_nhds hs.1 hs.2)
-  have hvel : mfderiv 𝓘(ℝ) (𝓡∂ (n + 1)) (fun t ↦ h.collarFlow (t, x)) s (1 : ℝ) =
-      Y (h.collarFlow (s, x)) := by
-    -- The derivative `t ↦ t • Y` of the integral curve, applied to `1`.
-    rw [hγ.mfderiv]
-    exact one_smul ℝ _
-  have key := mfderiv_comp_apply (I' := 𝓘(ℝ).prod (𝓡 n)) (g := h.collarFlow)
-    (f := fun t : ℝ ↦ (t, x)) s (h.mdifferentiableAt_collarFlow hq)
-    (mdifferentiableAt_id.prodMk mdifferentiableAt_const) (1 : ℝ)
-  rw [mfderiv_prod_left] at key
-  -- `∂_s` at `(s, x)` is the image of `1` under the inclusion of the first factor.
+  have := (h.mdifferentiableAt_collarFlow hq).mfderiv_curry_left_apply (1 : ℝ)
+  rw [(((h.isMIntegralCurveOn_collarFlow x) s (Ioo_subset_Ioc_self hs)).hasMFDerivAt
+    (Ioc_mem_nhds hs.1 hs.2)).mfderiv] at this
   have hv : Manifold.prodVectorField (constVectorField (1 : ℝ))
       (0 : (x : (𝓡∂ (n + 1)).boundary W) → TangentSpace (𝓡 n) x) (s, x) =
-        ContinuousLinearMap.inl ℝ (TangentSpace 𝓘(ℝ) s) (TangentSpace (𝓡 n) x) (1 : ℝ) :=
-    -- Both are `(1, 0)` in the model space `ℝ × ℝⁿ`.
+        ((1 : ℝ), (0 : EuclideanSpace ℝ (Fin n))) :=
+    -- Both components are equal in the model spaces, where the tangent spaces are `ℝ` and `ℝⁿ`.
     Prod.ext (by simp only [Manifold.prodVectorField_fst, constVectorField_apply]; rfl)
       (by simp only [Manifold.prodVectorField_snd, Pi.zero_apply]; rfl)
   rw [hv]
-  exact key.symm.trans hvel
+  exact this.trans (one_smul ℝ _)
 
 /-- At interior points of `W`, the inclusion sends `Y` to the Liouville field of the completion. -/
 private theorem mfderiv_toCompletion_apply_of_mem_interior {p : W}

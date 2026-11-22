@@ -11,6 +11,7 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.Interior
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Basic
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
+import TauCeti.Geometry.Manifold.IsManifold.Basic
 
 /-!
 # Pulling forms back along local diffeomorphisms
@@ -39,6 +40,13 @@ pair, for the pulled-back field and form
 Ceti's `TauCeti.mpullback_mextDeriv_at` and `TauCeti.mpullback_interior`; that the differential of
 `f` sends the pulled-back field to `Y` comes from Mathlib's
 `IsLocalDiffeomorphAt.isInvertible_mfderiv`.
+
+For `f : M → M'` and a form `α` on `M`, `TauCeti.RoughForm.pushforwardAt I I' f α x z` is `α x`
+read through the inverse of the differential of `f` at `x`, as an alternating map on the tangent
+space at `z` (meant for `z = f x`). When that differential is invertible, a form on `M'` whose
+value at `f x` is this one pulls back to `α x`
+(`TauCeti.mpullback_apply_eq_of_apply_eq_pushforwardAt`). Reading a form through an inverse of a
+differential is what Tau Ceti's `TauCeti.RoughForm.descendedForm` does through a right inverse.
 -/
 
 public section
@@ -72,6 +80,36 @@ theorem PartialDiffeomorph.mpullback_mpullback_symm_apply (ψ : PartialDiffeomor
     (hn : n ≠ 0) (ω : RoughForm I M F k) {x : M} (hx : x ∈ ψ.source) :
     mpullback I I' ψ (mpullback I' I ψ.symm ω) x = ω x :=
   ψ.symm.mpullback_symm_mpullback_apply hn ω hx
+
+namespace TauCeti
+
+variable (I I') in
+/-- The value at `z` of the pushforward of a form `α` along `f : M → M'` from the point `x`:
+`α x` read through the inverse of the differential of `f` at `x`, with the tangent space at `z`
+identified with the one at `f x`. It is meant for `z = f x` and an invertible differential. -/
+noncomputable def RoughForm.pushforwardAt (f : M → M') (α : RoughForm I M F k) (x : M) (z : M') :
+    TangentSpace I' z [⋀^Fin k]→L[ℝ] F :=
+  (α x).compContinuousLinearMap
+    ((mfderiv I I' f x).inverse.comp (tangentSpaceCast I' z (f x) : TangentSpace I' z →L[ℝ] _))
+
+theorem RoughForm.pushforwardAt_def (f : M → M') (α : RoughForm I M F k) (x : M) (z : M') :
+    pushforwardAt I I' f α x z = (α x).compContinuousLinearMap
+      ((mfderiv I I' f x).inverse.comp (tangentSpaceCast I' z (f x) : TangentSpace I' z →L[ℝ] _)) :=
+  (rfl)
+
+/-- If the differential of `f` at `x` is invertible, a form `β` whose value at `f x` is the
+pushforward of `α` from `x` pulls back along `f` to `α` at `x`. -/
+theorem mpullback_apply_eq_of_apply_eq_pushforwardAt {α : RoughForm I M F k}
+    {β : RoughForm I' M' F k} (hf : (mfderiv I I' f x).IsInvertible)
+    (hβ : β (f x) = RoughForm.pushforwardAt I I' f α x (f x)) :
+    mpullback I I' f β x = α x := by
+  ext v
+  rw [mpullback_apply, hβ, RoughForm.pushforwardAt_def]
+  simp only [ContinuousAlternatingMap.compContinuousLinearMap_apply, Function.comp_def,
+    ContinuousLinearMap.comp_apply, ContinuousLinearEquiv.coe_coe, tangentSpaceCast_self,
+    hf.inverse_apply_self]
+
+end TauCeti
 
 namespace IsLocalDiffeomorphAt
 
