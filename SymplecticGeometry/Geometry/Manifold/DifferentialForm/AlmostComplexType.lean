@@ -27,6 +27,8 @@ of complex-valued forms, and describes the range of Tau Ceti's type projections.
 * `ContMDiffSection.realAlternatingDerivation_fin_zero`: the derivation vanishes on functions.
 * `ContMDiffSection.alternatingDerivation_mapCoeff_ofRealCLM`: on real forms, the complex
   derivation is the real one.
+* `ContMDiffSection.alternatingDerivation_eq_complexifyₗ`: on complex forms, the derivation is
+  the complexification of the real derivation.
 * `TauCeti.SmoothForm.complexifyₗ_alternatingDerivation`: if a real-linear map of real forms
   commutes with the real derivation, its complexification commutes with the complex one.
 * `TauCeti.SmoothAlmostComplexStructure.mem_range_typeProjection_iff`: the range of the
@@ -83,6 +85,15 @@ theorem alternatingDerivation_mapCoeff_ofRealCLM
   ext x v
   simp [RoughForm.mapCoeff_apply, ContinuousLinearMap.alternatingDerivation_apply]
 
+omit [RiemannianBundle (fun x : M ↦ TangentSpace I x)] in
+/-- On complex forms, the derivation along an endomorphism field is the complexification of the
+real derivation along it. -/
+theorem alternatingDerivation_eq_complexifyₗ
+    (A : ContMDiffSection I (E →L[ℝ] E) ∞ fun x : M ↦ TangentSpace I x →L[ℝ] TangentSpace I x) :
+    A.alternatingDerivation (F := ℂ) (k := k) =
+      SmoothForm.complexifyₗ A.realAlternatingDerivation :=
+  (SmoothForm.eq_complexifyₗ_iff _ _).2 (alternatingDerivation_mapCoeff_ofRealCLM A)
+
 end ContMDiffSection
 
 namespace TauCeti.SmoothForm
@@ -97,10 +108,9 @@ theorem complexifyₗ_alternatingDerivation {l : ℕ}
     (hf : ∀ α, f (A.realAlternatingDerivation α) = A.realAlternatingDerivation (f α))
     (φ : SmoothForm I M ℂ k) :
     complexifyₗ f (A.alternatingDerivation φ) = A.alternatingDerivation (complexifyₗ f φ) := by
-  conv_lhs => rw [← ofReal_realPart_add_I_smul_ofReal_imaginaryPart φ]
-  conv_rhs => rw [← ofReal_realPart_add_I_smul_ofReal_imaginaryPart φ]
-  simp only [map_add, map_smul, ContMDiffSection.alternatingDerivation_mapCoeff_ofRealCLM,
-    complexifyₗ_mapCoeff_ofRealCLM, hf]
+  have h : f ∘ₗ A.realAlternatingDerivation = A.realAlternatingDerivation ∘ₗ f := LinearMap.ext hf
+  simp only [ContMDiffSection.alternatingDerivation_eq_complexifyₗ, ← LinearMap.comp_apply,
+    ← complexifyₗ_comp, h]
 
 end TauCeti.SmoothForm
 
