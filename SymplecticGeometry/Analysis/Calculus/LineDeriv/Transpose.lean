@@ -11,8 +11,7 @@ public import Mathlib.MeasureTheory.Integral.Bochner.Basic
 public import Mathlib.MeasureTheory.Function.LpSeminorm.Basic
 import Mathlib.Analysis.Calculus.FDeriv.CompCLM
 import Mathlib.MeasureTheory.Function.LocallyIntegrable
-import Mathlib.MeasureTheory.Function.LpSeminorm.TriangleInequality
-import TauCeti.Analysis.Calculus.BumpFunction.Cutoff
+import SymplecticGeometry.MeasureTheory.Function.LpSeminorm.TriangleInequality
 import TauCeti.Analysis.Calculus.LineDeriv.IntegrationByParts
 import TauCeti.Analysis.Calculus.SecondDerivative
 import TauCeti.Analysis.Calculus.ContDiff.FDerivApply
@@ -53,9 +52,10 @@ and expands the derivatives of the products `Aᵢⱼ w` by Tau Ceti's Leibniz ru
   `φ q : E → F →L[ℝ] ℝ` and functionals `ℓ q` on `F`, the integral of
   `∑_q ℓ q (a y) * φ q y (P a y)` over `a` of class `C²` supported in a compact `K ⊆ U` is at
   most a constant times `(‖a‖_{L²} + ∑ᵢ ‖∂_{v_i} a‖_{L²}) ^ 2`, with `Aᵢⱼ` of class `C¹` and
-  `Bᵢ`, `C` continuous on `U`. One integration by parts in each second-order term, again with
-  `TauCeti.integral_bilinear_fderiv_right_eq_neg_left_of_hasCompactSupport`, leaves an integrand
-  bounded by a multiple of `(‖a‖ + ∑ᵢ ‖∂_{v_i} a‖) ^ 2`. Read in a chart, this bounds the
+  `Bᵢ`, `C` continuous on `U`. One integration by parts in each second-order term
+  (`SymplecticGeometry.integral_apply_apply_fderiv_eq_integral_neg_apply`) leaves an integrand
+  bounded by a multiple of `(‖a‖ + ∑ᵢ ‖∂_{v_i} a‖) ^ 2`, whose integral
+  `MeasureTheory.integral_sum_norm_sq_le` bounds. Read in a chart, this bounds the
   Dirichlet pairing `⟪Δφ, φ⟫` of a form `φ` supported in the chart.
 
 ## References
@@ -129,6 +129,15 @@ private theorem sum_fderiv_fderiv_smul_add_eq_transpose_apply {ι : Type*} [Fint
 variable [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E] {μ : Measure E}
   [μ.IsAddHaarMeasure] {U : Set E}
 
+omit [NormedSpace ℝ E] [NormedSpace ℝ F] [FiniteDimensional ℝ E] in
+/-- A function continuous on `U` that vanishes off the support of `a`, compact and contained in
+`U`, is integrable. This is the integrability of the terms that the integrations by parts of
+this file split an integral into. -/
+private theorem integrable_of_continuousOn_of_eq_zero {G : Type*} [NormedAddCommGroup G]
+    {a : E → F} (hac : HasCompactSupport a) (haU : tsupport a ⊆ U) {h : E → G}
+    (hh : ContinuousOn h U) (hz : ∀ y ∉ tsupport a, h y = 0) : Integrable h μ :=
+  ((hh.mono haU).integrableOn_compact hac).integrable_of_forall_notMem_eq_zero hz
+
 /-- **Transposing a first-order term.** For `B`, `C¹` on an open set `U`, `w`, `C¹` on `U`, and `a`,
 `C¹` with compact support in `U`, `∫ w (B ∂_u a) = ∫ (-(∂_u w) ∘ B - w ∘ ∂_u B) a`. -/
 theorem integral_apply_apply_fderiv_eq_integral_neg_apply (hU : IsOpen U) {B : E → F →L[ℝ] F}
@@ -199,10 +208,9 @@ theorem integral_apply_eq_integral_transpose_apply {ι : Type*} [Fintype ι] (hU
             ContinuousLinearMap.id ℝ F - B i y) +
         (w y).comp ((∑ i, ∑ j, fderiv ℝ (fun z ↦ fderiv ℝ (A i j) z (v j)) y (v i)) •
             ContinuousLinearMap.id ℝ F - ∑ i, fderiv ℝ (B i) y (v i) + C y)) (a y) ∂μ := by
-  -- A function continuous on `U` that vanishes off the compact `tsupport a ⊆ U` is integrable.
   have int (h : E → ℝ) (hh : ContinuousOn h U) (hz : ∀ y ∉ tsupport a, h y = 0) :
       Integrable h μ :=
-    ((hh.mono haU).integrableOn_compact hac).integrable_of_forall_notMem_eq_zero hz
+    integrable_of_continuousOn_of_eq_zero hac haU hh hz
   -- Outside the support of `a`, `a` and its first two derivatives vanish.
   have h0 (y : E) (hy : y ∉ tsupport a) : a y = 0 := image_eq_zero_of_notMem_tsupport hy
   have h1 (y : E) (hy : y ∉ tsupport a) (u : E) : fderiv ℝ a y u = 0 := by
@@ -292,6 +300,135 @@ theorem exists_integral_apply_eq_integral_transpose_apply {ι : Type*} [Fintype 
     (fun i j ↦ (hA i j).of_le (by simp)) (fun i ↦ (hB i).of_le (by simp)) hC.continuousOn hw ha
     hac haU
 
+omit [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E] in
+/-- The pointwise bound behind `exists_abs_integral_sum_mul_apply_le`. Write `w = (ℓ ∘ a) • φ`
+and `N = ‖a‖ + ∑ᵢ ‖∂_{v_i} a‖`. At a point where `a` and `φ` are differentiable, the integrand
+left by one integration by parts in each second-order term, with coefficients `Bt i j`, is at most
+`‖ℓ‖ * Q * N ^ 2`, where `Q` collects the norms of `φ`, of its derivatives and of the
+coefficients. -/
+private theorem norm_sum_sum_neg_comp_add_le {ι : Type*} [Fintype ι] (v : ι → E)
+    (Bt : ι → ι → E → F →L[ℝ] F) (B : ι → E → F →L[ℝ] F) (C : E → F →L[ℝ] F)
+    (φ : E → F →L[ℝ] ℝ) (ℓ : F →L[ℝ] ℝ) {a : E → F} {y : E} (ha : DifferentiableAt ℝ a y)
+    (hφ : DifferentiableAt ℝ φ y) :
+    ‖∑ i, ∑ j, (-((fderiv ℝ (fun z ↦ ℓ (a z) • φ z) y (v j)).comp (Bt i j y) +
+          (ℓ (a y) • φ y).comp (fderiv ℝ (Bt i j) y (v j)))) (fderiv ℝ a y (v i)) +
+        ∑ i, (ℓ (a y) • φ y) (B i y (fderiv ℝ a y (v i))) + (ℓ (a y) • φ y) (C y (a y))‖ ≤
+      ‖ℓ‖ * (∑ i, ∑ j, ((‖φ y‖ + ‖fderiv ℝ φ y (v j)‖) * ‖Bt i j y‖ +
+          ‖φ y‖ * ‖fderiv ℝ (Bt i j) y (v j)‖) + ∑ i, ‖φ y‖ * ‖B i y‖ + ‖φ y‖ * ‖C y‖) *
+        (‖a y‖ + ∑ i, ‖fderiv ℝ a y (v i)‖) ^ 2 := by
+  set N := ‖a y‖ + ∑ i, ‖fderiv ℝ a y (v i)‖
+  have haN : ‖a y‖ ≤ N := le_add_of_nonneg_right (by positivity)
+  have hgN (i : ι) : ‖fderiv ℝ a y (v i)‖ ≤ N :=
+    (Finset.single_le_sum (f := fun i ↦ ‖fderiv ℝ a y (v i)‖) (fun _ _ ↦ norm_nonneg _)
+      (Finset.mem_univ i)).trans (le_add_of_nonneg_left (norm_nonneg _))
+  have hℓ (x : F) (hx : ‖x‖ ≤ N) : ‖ℓ x‖ ≤ ‖ℓ‖ * N :=
+    (ℓ.le_opNorm x).trans (mul_le_mul_of_nonneg_left hx (norm_nonneg _))
+  have hw : ‖ℓ (a y) • φ y‖ ≤ ‖ℓ‖ * N * ‖φ y‖ := by
+    rw [norm_smul]
+    gcongr
+    exact hℓ _ haN
+  -- The Leibniz rule for `w = (ℓ ∘ a) • φ`.
+  have hdw (j : ι) : ‖fderiv ℝ (fun z ↦ ℓ (a z) • φ z) y (v j)‖ ≤
+      ‖ℓ‖ * N * (‖φ y‖ + ‖fderiv ℝ φ y (v j)‖) := by
+    have hda : HasFDerivAt (fun z ↦ ℓ (a z)) (ℓ.comp (fderiv ℝ a y)) y :=
+      ℓ.hasFDerivAt.comp y ha.hasFDerivAt
+    rw [fderiv_fun_smul hda.differentiableAt hφ, hda.fderiv]
+    simp only [add_apply, smul_apply, ContinuousLinearMap.comp_apply, smulRight_apply]
+    refine (norm_add_le _ _).trans ?_
+    rw [norm_smul, norm_smul, mul_add, add_comm (‖ℓ‖ * N * ‖φ y‖)]
+    gcongr <;> first | exact hℓ _ (hgN j) | exact hℓ _ haN
+  calc _ ≤ ∑ i, ∑ j, ‖ℓ‖ * ((‖φ y‖ + ‖fderiv ℝ φ y (v j)‖) * ‖Bt i j y‖ +
+          ‖φ y‖ * ‖fderiv ℝ (Bt i j) y (v j)‖) * N ^ 2 +
+        ∑ i, ‖ℓ‖ * (‖φ y‖ * ‖B i y‖) * N ^ 2 + ‖ℓ‖ * (‖φ y‖ * ‖C y‖) * N ^ 2 := by
+        refine norm_add₃_le.trans (add_le_add (add_le_add ?_ ?_) ?_)
+        · refine (norm_sum_le _ _).trans (Finset.sum_le_sum fun i _ ↦ (norm_sum_le _ _).trans
+            (Finset.sum_le_sum fun j _ ↦ ?_))
+          refine (le_opNorm _ _).trans ?_
+          rw [norm_neg]
+          calc _ ≤ (‖fderiv ℝ (fun z ↦ ℓ (a z) • φ z) y (v j)‖ * ‖Bt i j y‖ +
+                ‖ℓ (a y) • φ y‖ * ‖fderiv ℝ (Bt i j) y (v j)‖) * ‖fderiv ℝ a y (v i)‖ := by
+                gcongr
+                exact (norm_add_le _ _).trans (add_le_add (opNorm_comp_le _ _) (opNorm_comp_le _ _))
+            _ ≤ (‖ℓ‖ * N * (‖φ y‖ + ‖fderiv ℝ φ y (v j)‖) * ‖Bt i j y‖ +
+                ‖ℓ‖ * N * ‖φ y‖ * ‖fderiv ℝ (Bt i j) y (v j)‖) * N := by
+                gcongr
+                all_goals first | exact hdw j | exact hgN i
+            _ = _ := by ring
+        · refine (norm_sum_le _ _).trans (Finset.sum_le_sum fun i _ ↦ ?_)
+          calc _ ≤ ‖ℓ (a y) • φ y‖ * (‖B i y‖ * ‖fderiv ℝ a y (v i)‖) :=
+                (le_opNorm _ _).trans (by gcongr; exact le_opNorm _ _)
+            _ ≤ ‖ℓ‖ * N * ‖φ y‖ * (‖B i y‖ * N) := by gcongr; exact hgN i
+            _ = _ := by ring
+        · calc _ ≤ ‖ℓ (a y) • φ y‖ * (‖C y‖ * ‖a y‖) :=
+                (le_opNorm _ _).trans (by gcongr; exact le_opNorm _ _)
+            _ ≤ ‖ℓ‖ * N * ‖φ y‖ * (‖C y‖ * N) := by gcongr
+            _ = _ := by ring
+    _ = _ := by
+        simp only [← Finset.sum_mul, ← Finset.mul_sum]
+        ring
+
+/-- One integration by parts in each second-order term of `∫ ℓ (a y) * φ y (P a y) dμ`, for `a` of
+class `C²` with compact support in `U`. With `w = (ℓ ∘ a) • φ`, the term
+`w (Aᵢⱼ ∂_{v_j} ∂_{v_i} a)` becomes
+`-((∂_{v_j} w) ∘ (Aᵢⱼ • id) + w ∘ ∂_{v_j} (Aᵢⱼ • id)) (∂_{v_i} a)`,
+and the other terms stay. -/
+private theorem integral_mul_apply_eq_integral_sum_sum_neg_comp_add {ι : Type*} [Fintype ι]
+    (hU : IsOpen U) (v : ι → E) {A : ι → ι → E → ℝ} {B : ι → E → F →L[ℝ] F} {C : E → F →L[ℝ] F}
+    (hA : ∀ i j, ContDiffOn ℝ 1 (A i j) U) (hB : ∀ i, ContinuousOn (B i) U)
+    (hC : ContinuousOn C U) {φ : E → F →L[ℝ] ℝ} (hφ : ContDiffOn ℝ 1 φ U) (ℓ : F →L[ℝ] ℝ)
+    {a : E → F} (ha : ContDiff ℝ 2 a) (hac : HasCompactSupport a) (haU : tsupport a ⊆ U) :
+    ∫ y, ℓ (a y) * φ y (∑ i, ∑ j, A i j y • fderiv ℝ (fun z ↦ fderiv ℝ a z (v i)) y (v j) +
+        ∑ i, B i y (fderiv ℝ a y (v i)) + C y (a y)) ∂μ =
+      ∫ y, (∑ i, ∑ j, (-((fderiv ℝ (fun z ↦ ℓ (a z) • φ z) y (v j)).comp
+          (A i j y • ContinuousLinearMap.id ℝ F) + (ℓ (a y) • φ y).comp
+            (fderiv ℝ (fun z ↦ A i j z • ContinuousLinearMap.id ℝ F) y (v j))))
+              (fderiv ℝ a y (v i)) +
+        ∑ i, (ℓ (a y) • φ y) (B i y (fderiv ℝ a y (v i))) + (ℓ (a y) • φ y) (C y (a y))) ∂μ := by
+  set Bt : ι → ι → E → F →L[ℝ] F := fun i j y ↦ A i j y • ContinuousLinearMap.id ℝ F
+  have hBt (i j : ι) : ContDiffOn ℝ 1 (Bt i j) U := (hA i j).smul contDiffOn_const
+  set g : ι → E → F := fun i y ↦ fderiv ℝ a y (v i)
+  have hg (i : ι) : ContDiff ℝ 1 (g i) :=
+    (ha.fderiv_right (m := 1) (by norm_num)).clm_apply contDiff_const
+  have hgU (i : ι) : tsupport (g i) ⊆ U := (tsupport_fderiv_apply_subset ℝ (v i)).trans haU
+  have h0 (y : E) (hy : y ∉ tsupport a) : a y = 0 := image_eq_zero_of_notMem_tsupport hy
+  have h1 (y : E) (hy : y ∉ tsupport a) (i : ι) : g i y = 0 := by
+    simp [g, fderiv_of_notMem_tsupport ℝ hy]
+  -- The test function `w = (ℓ ∘ a) • φ` is `C¹` on `U`.
+  set w : E → F →L[ℝ] ℝ := fun y ↦ ℓ (a y) • φ y
+  have hw : ContDiffOn ℝ 1 w U :=
+    (ℓ.contDiff.comp (ha.of_le (by norm_num))).contDiffOn.smul hφ
+  have hdw (j : ι) : ContinuousOn (fun y ↦ fderiv ℝ w y (v j)) U :=
+    (hw.fderiv_apply_of_isOpen hU (m := 0) (by simp) (v j)).continuousOn
+  have hdBt (i j : ι) : ContinuousOn (fun y ↦ fderiv ℝ (Bt i j) y (v j)) U :=
+    ((hBt i j).fderiv_apply_of_isOpen hU (m := 0) (by simp) (v j)).continuousOn
+  -- Split the integral into its terms and integrate by parts in each second-order term.
+  rw [integral_congr_ae (g := fun y ↦ ∑ i, ∑ j, w y (Bt i j y (fderiv ℝ (g i) y (v j))) +
+      ∑ i, w y (B i y (g i y)) + w y (C y (a y)))
+      (Filter.Eventually.of_forall fun y ↦ by
+        simp [w, Bt, g, mul_add, Finset.mul_sum, mul_left_comm])]
+  have hT₁ (i : ι) : Integrable (fun y ↦ w y (B i y (g i y))) μ :=
+    integrable_of_continuousOn_of_eq_zero hac haU (hw.continuousOn.clm_apply ((hB i).clm_apply
+      (hg i).continuous.continuousOn)) fun y hy ↦ by simp [w, h0 y hy]
+  have hT₀ : Integrable (fun y ↦ w y (C y (a y))) μ :=
+    integrable_of_continuousOn_of_eq_zero hac haU
+      (hw.continuousOn.clm_apply (hC.clm_apply ha.continuous.continuousOn))
+      fun y hy ↦ by simp [w, h0 y hy]
+  rw [integral_sum_sum_add_sum_add (fun i j y ↦ w y (Bt i j y (fderiv ℝ (g i) y (v j))))
+    (fun i y ↦ w y (B i y (g i y))) (fun y ↦ w y (C y (a y)))
+    (fun i j ↦ integrable_of_continuousOn_of_eq_zero hac haU (hw.continuousOn.clm_apply
+      ((hBt i j).continuousOn.clm_apply
+        (((hg i).continuous_fderiv one_ne_zero).clm_apply continuous_const).continuousOn))
+      fun y hy ↦ by simp [w, h0 y hy]) hT₁ hT₀]
+  simp only [integral_apply_apply_fderiv_eq_integral_neg_apply (μ := μ) hU (hBt _ _) hw (hg _)
+    (hac.fderiv_apply (𝕜 := ℝ) _) (hgU _)]
+  rw [← integral_sum_sum_add_sum_add
+    (fun i j y ↦ (-((fderiv ℝ w y (v j)).comp (Bt i j y) +
+      (w y).comp (fderiv ℝ (Bt i j) y (v j)))) (g i y))
+    (fun i y ↦ w y (B i y (g i y))) (fun y ↦ w y (C y (a y)))
+    (fun i j ↦ integrable_of_continuousOn_of_eq_zero hac haU
+      ((((hdw j).clm_comp (hBt i j).continuousOn).add (hw.continuousOn.clm_comp (hdBt i j))).neg
+        |>.clm_apply (hg i).continuous.continuousOn) fun y hy ↦ by simp [h1 y hy]) hT₁ hT₀]
+
 /-- The step of `exists_abs_integral_sum_mul_apply_le` for one term `ℓ (a y) * φ y (P a y)`. -/
 private theorem exists_abs_integral_mul_apply_le {ι : Type*} [Fintype ι] (hU : IsOpen U)
     (v : ι → E) {A : ι → ι → E → ℝ} {B : ι → E → F →L[ℝ] F} {C : E → F →L[ℝ] F}
@@ -303,204 +440,63 @@ private theorem exists_abs_integral_mul_apply_le {ι : Type*} [Fintype ι] (hU :
         ∑ i, B i y (fderiv ℝ a y (v i)) + C y (a y)) ∂μ| ≤
         c * ((eLpNorm a 2 μ).toReal +
           ∑ i, (eLpNorm (fun y ↦ fderiv ℝ a y (v i)) 2 μ).toReal) ^ 2 := by
-  -- Bounds on `K` for the coefficients that integration by parts produces.
-  have hb {f : E → ℝ} (hf : ContinuousOn f U) : ∃ M, 0 ≤ M ∧ ∀ y ∈ K, f y ≤ M := by
-    obtain ⟨M, hM⟩ := hK.exists_bound_of_continuousOn (hf.mono hKU)
-    exact ⟨max M 0, le_max_right _ _, fun y hy ↦
-      (le_abs_self _).trans ((hM y hy).trans (le_max_left _ _))⟩
-  have hdA (i j : ι) : ContinuousOn (fun y ↦ fderiv ℝ (A i j) y (v j)) U :=
-    ((hA i j).fderiv_apply_of_isOpen hU (m := 0) (by simp) (v j)).continuousOn
-  have hdφ (j : ι) : ContinuousOn (fun y ↦ fderiv ℝ φ y (v j)) U :=
-    (hφ.fderiv_apply_of_isOpen hU (m := 0) (by simp) (v j)).continuousOn
-  choose M₂ hM₂ hM₂K using fun i j ↦ hb (f := fun y ↦
-    ‖A i j y‖ * ‖fderiv ℝ φ y (v j)‖ + (‖fderiv ℝ (A i j) y (v j)‖ + ‖A i j y‖) * ‖φ y‖)
-    (((hA i j).continuousOn.norm.mul (hdφ j).norm).add
-      (((hdA i j).norm.add (hA i j).continuousOn.norm).mul hφ.continuousOn.norm))
-  choose M₁ hM₁ hM₁K using fun i ↦ hb (f := fun y ↦ ‖φ y‖ * ‖B i y‖)
-    (hφ.continuousOn.norm.mul (hB i).norm)
-  obtain ⟨M₀, hM₀, hM₀K⟩ := hb (f := fun y ↦ ‖φ y‖ * ‖C y‖) (hφ.continuousOn.norm.mul hC.norm)
-  refine ⟨‖ℓ‖ * (∑ i, ∑ j, M₂ i j + ∑ i, M₁ i + M₀), fun a ha haK ↦ ?_⟩
+  -- With the coefficients `A i j • id` of the second-order terms, the factor `Q` of
+  -- `norm_sum_sum_neg_comp_add_le` is continuous on `U`, so bounded on `K`.
+  set Bt : ι → ι → E → F →L[ℝ] F := fun i j y ↦ A i j y • ContinuousLinearMap.id ℝ F
+  have hBt (i j : ι) : ContDiffOn ℝ 1 (Bt i j) U := (hA i j).smul contDiffOn_const
+  have hdφ (u : E) : ContinuousOn (fun y ↦ fderiv ℝ φ y u) U :=
+    (hφ.fderiv_apply_of_isOpen hU (m := 0) (by simp) u).continuousOn
+  have hdBt (i j : ι) (u : E) : ContinuousOn (fun y ↦ fderiv ℝ (Bt i j) y u) U :=
+    ((hBt i j).fderiv_apply_of_isOpen hU (m := 0) (by simp) u).continuousOn
+  obtain ⟨M, hM⟩ := hK.exists_bound_of_continuousOn (f := fun y ↦
+    ∑ i, ∑ j, ((‖φ y‖ + ‖fderiv ℝ φ y (v j)‖) * ‖Bt i j y‖ +
+      ‖φ y‖ * ‖fderiv ℝ (Bt i j) y (v j)‖) + ∑ i, ‖φ y‖ * ‖B i y‖ + ‖φ y‖ * ‖C y‖)
+    ((((continuousOn_finsetSum _ fun i _ ↦ continuousOn_finsetSum _ fun j _ ↦
+      ((hφ.continuousOn.norm.add (hdφ (v j)).norm).mul (hBt i j).continuousOn.norm).add
+        (hφ.continuousOn.norm.mul (hdBt i j (v j)).norm)).add
+      (continuousOn_finsetSum _ fun i _ ↦ hφ.continuousOn.norm.mul (hB i).norm)).add
+      (hφ.continuousOn.norm.mul hC.norm)).mono hKU)
+  refine ⟨‖ℓ‖ * max M 0, fun a ha haK ↦ ?_⟩
   have hac : HasCompactSupport a := hK.of_isClosed_subset (isClosed_tsupport a) haK
   have haU : tsupport a ⊆ U := haK.trans hKU
+  rw [integral_mul_apply_eq_integral_sum_sum_neg_comp_add hU v hA hB hC hφ ℓ ha hac haU]
   set g : ι → E → F := fun i y ↦ fderiv ℝ a y (v i)
   have hg (i : ι) : ContDiff ℝ 1 (g i) :=
     (ha.fderiv_right (m := 1) (by norm_num)).clm_apply contDiff_const
-  -- A function continuous on `U` that vanishes off the compact `tsupport a ⊆ U` is integrable.
-  have int (h : E → ℝ) (hh : ContinuousOn h U) (hz : ∀ y ∉ tsupport a, h y = 0) :
-      Integrable h μ :=
-    ((hh.mono haU).integrableOn_compact hac).integrable_of_forall_notMem_eq_zero hz
   have h0 (y : E) (hy : y ∉ tsupport a) : a y = 0 := image_eq_zero_of_notMem_tsupport hy
   have h1 (y : E) (hy : y ∉ tsupport a) (i : ι) : g i y = 0 := by
     simp [g, fderiv_of_notMem_tsupport ℝ hy]
-  have hℓa : ContDiff ℝ 1 fun y ↦ ℓ (a y) := ℓ.contDiff.comp (ha.of_le (by norm_num))
-  have hℓs : tsupport (fun y ↦ ℓ (a y)) ⊆ tsupport a :=
-    tsupport_comp_subset (map_zero ℓ) a
-  -- The maps `f i j = (A i j * ℓ ∘ a) • φ` are `C¹`.
-  set s : ι → ι → E → ℝ := fun i j y ↦ A i j y * ℓ (a y)
-  have hs (i j : ι) : ContDiffOn ℝ 1 (s i j) U := (hA i j).mul hℓa.contDiffOn
-  have hsU (i j : ι) : tsupport (s i j) ⊆ U :=
-    (tsupport_mul_subset_right.trans hℓs).trans haU
-  have hf (i j : ι) : ContDiff ℝ 1 fun y ↦ s i j y • φ y :=
-    hφ.contDiff_smul_of_tsupport_subset hU (hs i j) (hsU i j)
-  -- Split the integral into its terms and integrate by parts in each second-order term.
-  have hibp (i j : ι) : ∫ y, ℓ (a y) * φ y (A i j y • fderiv ℝ (g i) y (v j)) ∂μ =
-      ∫ y, -fderiv ℝ (fun z ↦ s i j z • φ z) y (v j) (g i y) ∂μ := by
-    have h := TauCeti.integral_bilinear_fderiv_right_eq_neg_left_of_hasCompactSupport (μ := μ)
-      (ContinuousLinearMap.id ℝ (F →L[ℝ] ℝ)) (f := fun y ↦ s i j y • φ y)
-      (fun y _ ↦ (hf i j).contDiffAt) (hg i) (hac.fderiv_apply (𝕜 := ℝ) (v i)) (v j)
-    simp only [ContinuousLinearMap.id_apply] at h
-    rw [integral_neg, ← h]
-    congr 1 with y
-    simp only [s, map_smul, smul_eq_mul, smul_apply]
-    ring
-  have hφa : ContinuousOn (fun y ↦ ℓ (a y)) U := hℓa.continuous.continuousOn
-  rw [integral_congr_ae (g := fun y ↦ ∑ i, ∑ j, ℓ (a y) * φ y (A i j y • fderiv ℝ (g i) y (v j)) +
-      ∑ i, ℓ (a y) * φ y (B i y (g i y)) + ℓ (a y) * φ y (C y (a y)))
-      (Filter.Eventually.of_forall fun y ↦ by simp only [map_add, map_sum, g, mul_add,
-        Finset.mul_sum])]
-  have hT₁ (i : ι) : Integrable (fun y ↦ ℓ (a y) * φ y (B i y (g i y))) μ :=
-    int _ (hφa.mul (hφ.continuousOn.clm_apply ((hB i).clm_apply
-      (hg i).continuous.continuousOn))) fun y hy ↦ by simp [h0 y hy]
-  have hT₀ : Integrable (fun y ↦ ℓ (a y) * φ y (C y (a y))) μ :=
-    int _ (hφa.mul (hφ.continuousOn.clm_apply (hC.clm_apply ha.continuous.continuousOn)))
-      fun y hy ↦ by simp [h0 y hy]
-  rw [integral_sum_sum_add_sum_add
-    (fun i j y ↦ ℓ (a y) * φ y (A i j y • fderiv ℝ (g i) y (v j)))
-    (fun i y ↦ ℓ (a y) * φ y (B i y (g i y))) (fun y ↦ ℓ (a y) * φ y (C y (a y)))
-    (fun i j ↦ int _ (hφa.mul (hφ.continuousOn.clm_apply ((hA i j).continuousOn.smul
-      (((hg i).continuous_fderiv one_ne_zero).clm_apply continuous_const).continuousOn)))
-      fun y hy ↦ by simp [h0 y hy]) hT₁ hT₀]
-  simp only [hibp]
-  have hT₂ (i j : ι) : Integrable (fun y ↦ -fderiv ℝ (fun z ↦ s i j z • φ z) y (v j) (g i y)) μ :=
-    int _ (((((hf i j).continuous_fderiv one_ne_zero).clm_apply continuous_const).clm_apply
-      (hg i).continuous).neg.continuousOn) fun y hy ↦ by simp [h1 y hy]
-  rw [← integral_sum_sum_add_sum_add
-    (fun i j y ↦ -fderiv ℝ (fun z ↦ s i j z • φ z) y (v j) (g i y))
-    (fun i y ↦ ℓ (a y) * φ y (B i y (g i y))) (fun y ↦ ℓ (a y) * φ y (C y (a y))) hT₂ hT₁ hT₀]
-  have hM : 0 ≤ ‖ℓ‖ * (∑ i, ∑ j, M₂ i j + ∑ i, M₁ i + M₀) := by
-    exact mul_nonneg (norm_nonneg _) (add_nonneg (add_nonneg (Finset.sum_nonneg fun i _ ↦
-      Finset.sum_nonneg fun j _ ↦ hM₂ i j) (Finset.sum_nonneg fun i _ ↦ hM₁ i)) hM₀)
-  -- The integrand is bounded by a multiple of `N ^ 2`, with `N = ‖a‖ + ∑ᵢ ‖∂_{v_i} a‖`.
+  -- The integrand is at most `‖ℓ‖ * max M 0 * N ^ 2`, with `N = ‖a‖ + ∑ᵢ ‖∂_{v_i} a‖`, and the
+  -- integral of `N ^ 2` is at most the square of the sum of the `L²` norms.
   set N : E → ℝ := fun y ↦ ‖a y‖ + ∑ i, ‖g i y‖
-  have hN0 (y : E) : 0 ≤ N y := by positivity
-  have haN (y : E) : ‖a y‖ ≤ N y := le_add_of_nonneg_right (by positivity)
-  have hgN (y : E) (i : ι) : ‖g i y‖ ≤ N y :=
-    (Finset.single_le_sum (f := fun i ↦ ‖g i y‖) (fun _ _ ↦ norm_nonneg _)
-      (Finset.mem_univ i)).trans (le_add_of_nonneg_left (norm_nonneg _))
-  have hℓN (y : E) : ‖ℓ (a y)‖ ≤ ‖ℓ‖ * N y :=
-    (ℓ.le_opNorm _).trans (mul_le_mul_of_nonneg_left (haN y) (norm_nonneg _))
-  have hpt (y : E) : ‖∑ i, ∑ j, -fderiv ℝ (fun z ↦ s i j z • φ z) y (v j) (g i y) +
-      ∑ i, ℓ (a y) * φ y (B i y (g i y)) + ℓ (a y) * φ y (C y (a y))‖ ≤
-      ‖ℓ‖ * (∑ i, ∑ j, M₂ i j + ∑ i, M₁ i + M₀) * N y ^ 2 := by
-    by_cases hy : y ∈ tsupport a
-    · have hyK := haK hy
-      have hyU := hU.mem_nhds (hKU hyK)
-      have hda : DifferentiableAt ℝ a y := ha.differentiable (by norm_num) y
-      refine (norm_add₃_le).trans ?_
-      simp only [mul_add, add_mul, Finset.mul_sum, Finset.sum_mul]
-      gcongr
-      · refine (norm_sum_le _ _).trans (Finset.sum_le_sum fun i _ ↦ (norm_sum_le _ _).trans
-          (Finset.sum_le_sum fun j _ ↦ ?_))
-        have hAd : DifferentiableAt ℝ (A i j) y :=
-          ((hA i j).contDiffAt hyU).differentiableAt one_ne_zero
-        have hφd : DifferentiableAt ℝ φ y := (hφ.contDiffAt hyU).differentiableAt one_ne_zero
-        have hℓd : DifferentiableAt ℝ (fun z ↦ ℓ (a z)) y := hℓa.differentiable one_ne_zero y
-        have hd : fderiv ℝ (fun z ↦ s i j z • φ z) y (v j) =
-            s i j y • fderiv ℝ φ y (v j) +
-              (fderiv ℝ (A i j) y (v j) * ℓ (a y) + A i j y * ℓ (g j y)) • φ y := by
-          have hsd : fderiv ℝ (s i j) y (v j) =
-              fderiv ℝ (A i j) y (v j) * ℓ (a y) + A i j y * ℓ (g j y) := by
-            simp only [s]
-            rw [fderiv_fun_mul hAd hℓd, fderiv_fun_comp y ℓ.differentiableAt hda]
-            simp [g]
-            ring
-          have hsD : DifferentiableAt ℝ (s i j) y := hAd.mul hℓd
-          rw [fderiv_fun_smul hsD hφd]
-          simp [hsd]
-        have hle : ‖fderiv ℝ (fun z ↦ s i j z • φ z) y (v j)‖ ≤ ‖ℓ‖ * M₂ i j * N y := by
-          rw [hd]
-          refine (norm_add_le _ _).trans ?_
-          simp only [s, norm_smul, norm_mul]
-          have e1 := hℓN y
-          have e2 : ‖ℓ (g j y)‖ ≤ ‖ℓ‖ * N y :=
-            (ℓ.le_opNorm _).trans (mul_le_mul_of_nonneg_left (hgN y j) (norm_nonneg _))
-          calc _ ≤ ‖A i j y‖ * (‖ℓ‖ * N y) * ‖fderiv ℝ φ y (v j)‖ +
-                (‖fderiv ℝ (A i j) y (v j)‖ * (‖ℓ‖ * N y) + ‖A i j y‖ * (‖ℓ‖ * N y)) *
-                  ‖φ y‖ := by
-                gcongr
-                exact (norm_add_le _ _).trans (by simp only [norm_mul]; gcongr)
-            _ = ‖ℓ‖ * (‖A i j y‖ * ‖fderiv ℝ φ y (v j)‖ +
-                (‖fderiv ℝ (A i j) y (v j)‖ + ‖A i j y‖) * ‖φ y‖) * N y := by ring
-            _ ≤ ‖ℓ‖ * M₂ i j * N y := by gcongr; exact hM₂K i j y hyK
-        rw [norm_neg]
-        calc _ ≤ ‖fderiv ℝ (fun z ↦ s i j z • φ z) y (v j)‖ * ‖g i y‖ := le_opNorm _ _
-          _ ≤ ‖ℓ‖ * M₂ i j * N y * N y := by
-              gcongr
-              · exact mul_nonneg (mul_nonneg (norm_nonneg _) (hM₂ i j)) (hN0 y)
-              · exact hgN y i
-          _ = ‖ℓ‖ * M₂ i j * N y ^ 2 := by ring
-      · refine (norm_sum_le _ _).trans (Finset.sum_le_sum fun i _ ↦ ?_)
-        rw [norm_mul]
-        calc _ ≤ (‖ℓ‖ * N y) * (‖φ y‖ * (‖B i y‖ * ‖g i y‖)) := by
-              gcongr
-              · exact hℓN y
-              · exact (le_opNorm _ _).trans (by gcongr; exact le_opNorm _ _)
-          _ ≤ (‖ℓ‖ * N y) * (‖φ y‖ * (‖B i y‖ * N y)) := by gcongr; exact hgN y i
-          _ = ‖ℓ‖ * (‖φ y‖ * ‖B i y‖) * N y ^ 2 := by ring
-          _ ≤ ‖ℓ‖ * M₁ i * N y ^ 2 := by gcongr; exact hM₁K i y hyK
-      · rw [norm_mul]
-        calc _ ≤ (‖ℓ‖ * N y) * (‖φ y‖ * (‖C y‖ * ‖a y‖)) := by
-              gcongr
-              · exact hℓN y
-              · exact (le_opNorm _ _).trans (by gcongr; exact le_opNorm _ _)
-          _ ≤ (‖ℓ‖ * N y) * (‖φ y‖ * (‖C y‖ * N y)) := by gcongr; exact haN y
-          _ = ‖ℓ‖ * (‖φ y‖ * ‖C y‖) * N y ^ 2 := by ring
-          _ ≤ ‖ℓ‖ * M₀ * N y ^ 2 := by gcongr; exact hM₀K y hyK
-    · simp only [h0 y hy, h1 y hy, map_zero, neg_zero,
-        Finset.sum_const_zero, add_zero, norm_zero, zero_mul]
-      exact mul_nonneg hM (sq_nonneg _)
-  -- The integral of `N ^ 2` is the square of its `L²` norm, which the triangle inequality bounds.
-  have hNc : Continuous N :=
-    ha.continuous.norm.add (continuous_finsetSum _ fun i _ ↦ (hg i).continuous.norm)
-  have hNs : HasCompactSupport N := by
-    refine HasCompactSupport.intro' hac (isClosed_tsupport a) fun y hy ↦ ?_
-    simp [N, h0 y hy, h1 y hy]
-  have hNm : MemLp N 2 μ := hNc.memLp_of_hasCompactSupport hNs
   have hNi : Integrable (fun y ↦ N y ^ 2) μ :=
-    int _ (hNc.pow 2).continuousOn fun y hy ↦ by simp [N, h0 y hy, h1 y hy]
-  have hmem (f : E → F) (hf : Continuous f) (hfs : HasCompactSupport f) :
-      eLpNorm f 2 μ ≠ ⊤ :=
-    (hf.memLp_of_hasCompactSupport hfs).eLpNorm_ne_top
-  have hga (i : ι) : eLpNorm (g i) 2 μ ≠ ⊤ :=
-    hmem _ (hg i).continuous (hac.fderiv_apply (𝕜 := ℝ) (v i))
-  have hNL : (eLpNorm N 2 μ).toReal ≤
-      (eLpNorm a 2 μ).toReal + ∑ i, (eLpNorm (g i) 2 μ).toReal := by
-    have hfun : N = (fun y ↦ ‖a y‖) + ∑ i, fun y ↦ ‖g i y‖ := by
-      ext y
-      simp [N]
-    have hle : eLpNorm N 2 μ ≤ eLpNorm a 2 μ + ∑ i, eLpNorm (g i) 2 μ := by
-      rw [hfun]
-      refine (eLpNorm_add_le one_le_two).trans
-        (add_le_add (eLpNorm_norm a ha.continuous.aestronglyMeasurable).le ?_)
-      exact (eLpNorm_sum_le one_le_two).trans_eq
-        (Finset.sum_congr rfl fun i _ ↦ eLpNorm_norm (g i) (hg i).continuous.aestronglyMeasurable)
-    have hne : eLpNorm a 2 μ + ∑ i, eLpNorm (g i) 2 μ ≠ ⊤ :=
-      ENNReal.add_ne_top.2 ⟨hmem a ha.continuous hac,
-        ENNReal.sum_ne_top.2 fun i _ ↦ hga i⟩
-    refine (ENNReal.toReal_mono hne hle).trans_eq ?_
-    rw [ENNReal.toReal_add (hmem a ha.continuous hac) (ENNReal.sum_ne_top.2 fun i _ ↦ hga i),
-      ENNReal.toReal_sum fun i _ ↦ hga i]
-  have hNint : ∫ y, N y ^ 2 ∂μ = (eLpNorm N 2 μ).toReal ^ 2 := by
-    rw [hNm.eLpNorm_eq_integral_rpow_norm two_ne_zero ENNReal.ofNat_ne_top,
-      ENNReal.toReal_ofReal (by positivity)]
-    rw [← Real.rpow_natCast, ← Real.rpow_mul (integral_nonneg fun y ↦ by positivity)]
-    norm_num
+    integrable_of_continuousOn_of_eq_zero hac haU ((ha.continuous.norm.add
+      (continuous_finsetSum _ fun i _ ↦ (hg i).continuous.norm)).pow 2).continuousOn
+      fun y hy ↦ by simp [N, h0 y hy, h1 y hy]
+  have hpt (y : E) : ‖∑ i, ∑ j, (-((fderiv ℝ (fun z ↦ ℓ (a z) • φ z) y (v j)).comp (Bt i j y) +
+      (ℓ (a y) • φ y).comp (fderiv ℝ (Bt i j) y (v j)))) (g i y) +
+      ∑ i, (ℓ (a y) • φ y) (B i y (g i y)) + (ℓ (a y) • φ y) (C y (a y))‖ ≤
+      ‖ℓ‖ * max M 0 * N y ^ 2 := by
+    by_cases hy : y ∈ tsupport a
+    · refine (norm_sum_sum_neg_comp_add_le v Bt B C φ ℓ (ha.differentiable (by norm_num) y)
+        ((hφ.contDiffAt (hU.mem_nhds (haU hy))).differentiableAt one_ne_zero)).trans ?_
+      gcongr
+      exact (le_abs_self _).trans ((hM y (haK hy)).trans (le_max_left _ _))
+    · simp only [h0 y hy, h1 y hy, map_zero, zero_smul, Finset.sum_const_zero, add_zero,
+        norm_zero]
+      positivity
+  have hN2 : ∫ y, N y ^ 2 ∂μ ≤ ((eLpNorm a 2 μ).toReal + ∑ i, (eLpNorm (g i) 2 μ).toReal) ^ 2 := by
+    have hm (o : Option ι) (_ : o ∈ Finset.univ) : MemLp (o.elim a g) 2 μ := by
+      cases o with
+      | none => exact ha.continuous.memLp_of_hasCompactSupport hac
+      | some i =>
+        exact (hg i).continuous.memLp_of_hasCompactSupport (hac.fderiv_apply (𝕜 := ℝ) (v i))
+    simpa [Fintype.sum_option, N] using integral_sum_norm_sq_le Finset.univ hm
   calc |∫ y, _ ∂μ| = ‖∫ y, _ ∂μ‖ := (Real.norm_eq_abs _).symm
-    _ ≤ ∫ y, ‖ℓ‖ * (∑ i, ∑ j, M₂ i j + ∑ i, M₁ i + M₀) * N y ^ 2 ∂μ :=
+    _ ≤ ∫ y, ‖ℓ‖ * max M 0 * N y ^ 2 ∂μ :=
         norm_integral_le_of_norm_le (hNi.const_mul _) (Filter.Eventually.of_forall hpt)
-    _ = ‖ℓ‖ * (∑ i, ∑ j, M₂ i j + ∑ i, M₁ i + M₀) * (eLpNorm N 2 μ).toReal ^ 2 := by
-        rw [integral_const_mul, hNint]
-    _ ≤ _ := by gcongr
+    _ = ‖ℓ‖ * max M 0 * ∫ y, N y ^ 2 ∂μ := integral_const_mul _ _
+    _ ≤ _ := mul_le_mul_of_nonneg_left hN2 (by positivity)
 
 /-- **A bound for the energy of a second-order operator.** Let `U` be an open subset of `E`,
 `v : ι → E` a finite family, and `P a = ∑ᵢⱼ Aᵢⱼ ∂_{v_j} ∂_{v_i} a + ∑ᵢ Bᵢ ∂_{v_i} a + C a` an
@@ -508,8 +504,7 @@ operator on maps `E → F` with scalar coefficients `Aᵢⱼ` of class `C¹` on 
 `Bᵢ`, `C` in `F →L[ℝ] F` continuous on `U`. Let `ℓ q : F →L[ℝ] ℝ` and `φ q : E → F →L[ℝ] ℝ`, for
 `q` in a finite type, with each `φ q` of class `C¹` on `U`. For every compact `K ⊆ U` there is
 `c` such that, for every `a` of class `C²` supported in `K`,
-`|∫ ∑_q ℓ q (a y) * φ q y (P a y) dμ| ≤ c * (‖a‖_{L²(μ)} + ∑ᵢ ‖∂_{v_i} a‖_{L²(μ)}) ^ 2`.
-One integration by parts in each second-order term leaves only first derivatives of `a`. -/
+`|∫ ∑_q ℓ q (a y) * φ q y (P a y) dμ| ≤ c * (‖a‖_{L²(μ)} + ∑ᵢ ‖∂_{v_i} a‖_{L²(μ)}) ^ 2`. -/
 theorem exists_abs_integral_sum_mul_apply_le {ι κ : Type*} [Fintype ι] [Fintype κ]
     (hU : IsOpen U) (v : ι → E) {A : ι → ι → E → ℝ} {B : ι → E → F →L[ℝ] F}
     {C : E → F →L[ℝ] F} (hA : ∀ i j, ContDiffOn ℝ 1 (A i j) U)

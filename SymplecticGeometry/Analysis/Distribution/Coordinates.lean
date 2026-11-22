@@ -252,7 +252,7 @@ theorem coordOfFun_eq_sum_smulLeftCLM [FiniteDimensional ℝ E] {F' ι' : Type*}
       ((hc j).continuous.comp e.continuous).continuousOn).ofReal_basis_repr b' j
   simp only [smulLeftCLM_coordOfFun e hΩ b' (hc _) hw']
   simp only [coordOfFun_def, ← map_sum]
-  rw [← ofFun_sum _ fun j _ ↦ hf j]
+  rw [← ofFun_finsetSum _ fun j _ ↦ hf j]
   congr 1
   refine ofFun_congr_ae (h.mono fun x hx ↦ ?_)
   simp [f, hx]
