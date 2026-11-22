@@ -1212,7 +1212,8 @@ $[0,1]$ is never fed to the lemma with `P = ℝ` directly.
 - **The homotopy equivalence.** `exists_homotopyEquiv_polarComplexStructure`:
   for a metric `g`,
   `∃ e : {ω // ω.IsNondegenerate} ≃ₕ ContMDiffComplexStructure I n F V,
-  ∀ ω, e.toFun ω = ω.2.polarComplexStructure g`, a theorem for each pair of
+  (∀ ω, e.toFun ω = ω.2.polarComplexStructure g) ∧
+  ∀ J, (e.invFun J).1 = compatibleForm g J`, a theorem for each pair of
   covering frame systems. The map is continuous by
   `continuous_polarComplexStructure`, and the inverse is
   $J\mapsto\omega_{g,J}$, continuous into the subtype by
@@ -1221,47 +1222,67 @@ $[0,1]$ is never fed to the lemma with `P = ℝ` directly.
   forms, $\omega$ and $\omega_{g,J_{g,\omega}}$ both tame $J_{g,\omega}$, and
   the straight line `AffineMap.lineMap` between them, for $t$ in
   `unitInterval`, stays nondegenerate by `tames_lineMap_compatibleForm`.
-  It is continuous in $(t,\omega)$: by `AffineMap.lineMap_apply_module` it
-  is $(1-t)\omega+t\,\omega_{g,J_{g,\omega}}$, the second end is
+  It is continuous in $(t,\omega)$ by Mathlib's
+  `ContinuousMap.Homotopy.affine`: the second end is
   continuous in $\omega$ as the composite of the two continuity lemmas above,
   and the frame topology is a topological vector space
   (`isTopologicalAddGroup_frameTopology`, `continuousSMul_frameTopology`).
   At time $0$ it is $\omega$ (`AffineMap.lineMap_apply_zero`), at time $1$
-  the composite (`AffineMap.lineMap_apply_one`). On the structures, $J$
-  and $J_{g,\omega_{g,J}}$ are both compatible with $\omega_{g,J}$, and the
-  Cayley path between them, with $J_{g,\omega_{g,J}}$ as reference and
+  the composite (`AffineMap.lineMap_apply_one`). This is
+  `ContMDiffTwoForm.homotopic_compatibleForm_polarComplexStructure`. On the
+  structures the path is stated for two metrics `g₀` and `g₁`, so that
+  `polarComplexStructure_homotopic` can use it too: $J$ and
+  $J_{g_1,\omega_{g_0,J}}$ are both compatible with $\omega_{g_0,J}$, and the
+  Cayley path between them, with $J_{g_1,\omega_{g_0,J}}$ as reference and
   coefficient `smoothTransition t`, is a fibrewise formula in $(t, J_x)$
   that is jointly smooth for every real $t$ on an open set `O` of the
   endomorphism bundle, defined below, that contains the values of every
   complex structure. The reference is not a fixed section: at a point `q` of
-  the endomorphism bundle it is `A q = polarEndAt g q.proj q.snd`, which at
-  `q = ⟨x, J x⟩` is $J_{g,\omega_{g,J}}$ at `x`
-  (`polarEndAt_eq_polarComplexStructure`). The hypothesis `hΦ` of
+  the endomorphism bundle it is
+  `A q = g₁.polarFormulaAt q.proj (g₀.compatibleBilinAt q.proj q.snd)`
+  (`polarEndAt g q.proj q.snd` when `g₀ = g₁ = g`), which at
+  `q = ⟨x, J x⟩` is $J_{g_1,\omega_{g_0,J}}$ at `x`
+  (`ContMDiffComplexStructure.polarFormulaAt_compatibleBilinAt`, in
+  `Basic.lean`). The hypothesis `hΦ` of
   `continuous_fiberwiseMap` comes from
   `ContMDiffAt.cayleyPathFormula_hom_bundle_of_vectorBundle` as above, with
   `b` the time through `smoothTransition` and this `A`, which depends on the
   point of the endomorphism bundle and not only on its base point; the lemma
   allows that, since `A` may be any function of the parameter `q`. Its
   hypothesis `hA`, smoothness of `A` at the point, is
-  `contMDiffOn_polarEndAt` on the open set `polarEndDomain g`, which
-  contains `O`; its two unit hypotheses at the point follow from the
-  membership in `O` by `isUnit_of_mem_cayleyPathDomain`, at
-  the time `b` of the point.
+  `contMDiffOn_polarFormulaAt_compatibleBilinAt` (in `PolarEnd.lean`, with
+  `contMDiffOn_polarEndAt` its case `g₀ = g₁`) on the open set
+  `polarEndDomain g₀`, which contains `O`; its two unit hypotheses at the
+  point follow from the membership in `O` by `isUnit_of_mem_cayleyPathDomain`,
+  at the time `b` of the point.
 
-  The set `O` is `polarEndDomain g ∩ cayleyPathDomain F V A`, for this `A`.
-  It is open by `isOpen_cayleyPathDomain` with `U = polarEndDomain g`, which
-  is open (`isOpen_polarEndDomain`) and on which `A` is continuous
-  (`contMDiffOn_polarEndAt`). It contains `⟨x, J x⟩` for every complex
-  structure `J`: the point is in `polarEndDomain g`
-  (`mk_mem_polarEndDomain`), and `Compatible.mem_cayleyPathDomain`
-  applies with the linear symplectic form of $\omega_{g,J}$ at `x`, the
-  linear structure $J_{g,\omega_{g,J}}$ at `x`, whose map is `A ⟨x, J x⟩` by
-  `polarEndAt_eq_polarComplexStructure`, and the one of `J x`; both are
-  compatible with that form (`compatible_polarComplexStructure`,
+  The set `O` is `polarEndDomain g₀ ∩ cayleyPathDomain F V A`, for this `A`.
+  It is open by `isOpen_cayleyPathDomain` with `U = polarEndDomain g₀`, which
+  is open (`isOpen_polarEndDomain`) and on which `A` is continuous. It
+  contains `⟨x, J x⟩` for every complex structure `J`: the point is in
+  `polarEndDomain g₀` (`mk_mem_polarEndDomain`), and
+  `Compatible.mem_cayleyPathDomain` applies with the linear symplectic form
+  of $\omega_{g_0,J}$ at `x`, the linear structure $J_{g_1,\omega_{g_0,J}}$ at
+  `x`, whose map is `A ⟨x, J x⟩`, and the one of `J x`; both are compatible
+  with that form (`compatible_polarComplexStructure`,
   `compatible_compatibleForm`), and the second is therefore tame for it, by
-  Tau Ceti's `Compatible.tames`. `polarComplexStructure_homotopic`: for two metrics
-  the two maps $\omega\mapsto J_{g,\omega}$ are homotopic, by contracting the
-  metrics.
+  Tau Ceti's `Compatible.tames`. The structures on the path are
+  `Compatible.cayleyPath` for $\omega_{g_0,J}$ and the reference
+  $J_{g_1,\omega_{g_0,J}}$. In `Contractible.lean` the smoothness and the
+  continuity for a reference `A` that is `Cⁿ` on an open set `W` are
+  `contMDiffOn_cayleyPathFormula_of_contMDiffOn` and
+  `continuous_fiberwiseMap_cayleyPathFormula`, which give, with `W = univ`,
+  `contMDiffOn_cayleyPathFormula` and `Compatible.continuous_cayleyPath`
+  too. Then come `mk_mem_polarEndDomain_inter_cayleyPathDomain`,
+  `continuous_cayleyPath_polarComplexStructure` and the homotopy
+  `homotopic_polarComplexStructure_compatibleForm` from
+  $J\mapsto J_{g_1,\omega_{g_0,J}}$ to the identity.
+  `polarComplexStructure_homotopic`: for two metrics the two maps
+  $\omega\mapsto J_{g,\omega}$ are homotopic. Contracting the metrics would
+  need continuity in the metric, which the library does not have; instead,
+  $J_{g_0,\omega}$ is homotopic to $J_{g_1,\omega_{g_0,J_{g_0,\omega}}}$ by
+  the path above with two metrics, and that is homotopic to $J_{g_1,\omega}$
+  by the straight line on forms for `g₀`.
 - **Milestone.** `SymplecticGeometry.Bundle.contractibleSpace_compatible_tames`:
   the conjunction of the three parts of the plan (for every nondegenerate
   `ω`, the two spaces of structures are contractible; for every `J`, the two
