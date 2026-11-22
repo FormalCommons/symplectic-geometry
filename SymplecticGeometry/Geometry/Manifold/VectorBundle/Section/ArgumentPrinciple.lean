@@ -8,6 +8,7 @@ module
 public import Mathlib.Analysis.Complex.Tietze
 public import SymplecticGeometry.Geometry.Manifold.RegularValue.FiniteZeros
 public import SymplecticGeometry.Geometry.Manifold.RegularValue.LevelCollar
+public import SymplecticGeometry.Topology.Algebra.Module.Equiv.Basic
 public import SymplecticGeometry.Topology.VectorBundle.Orientation.ArgumentPrinciple
 public import TauCeti.Topology.VectorBundle.Hom
 
@@ -239,9 +240,7 @@ theorem evalFundamentalClass_eulerClass_eq_boundaryDegree
     (j := ⟨Subtype.val, continuous_subtypeVal⟩) _
     (φ := fun x ↦ ContinuousLinearEquiv.refl ℝ (L x)) ?_ (fun x ↦ ?_) _ ht (fun _ ↦ rfl) y
   · exact (Pullback.continuous_lift F L i₁).comp (Pullback.continuous_lift F _ _)
-  · have hrefl : (ContinuousLinearEquiv.refl ℝ (L x)).toLinearEquiv = LinearEquiv.refl ℝ (L x) :=
-      LinearEquiv.ext fun _ ↦ rfl
-    rw [pullback_apply, pullback_apply, hrefl]
+  · rw [pullback_apply, pullback_apply, ContinuousLinearEquiv.toLinearEquiv_refl]
     exact Equiv.congr_fun (Orientation.map_refl _) _
 
 end TauCeti.VectorBundleOrientation
