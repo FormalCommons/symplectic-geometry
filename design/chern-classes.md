@@ -716,8 +716,10 @@ boundary of the one of `(ℝ ∙ p)ᗮ` selected by
 `TauCeti.complZeroOrthogonalInclusion p`, with sign `1` for every `m`;
 `TauCeti.singularHomologyComplSingletonIsoOfOrientation_inv_singularHomologyδ_mayerVietorisδ`
 is the same for the oriented local homology isomorphisms, with any
-coefficients. The file imports Tau Ceti's `Singular/Sphere.lean` and the
-library's `Orientation/Linear.lean`.
+coefficients. The file imports Tau Ceti's `Singular/Sphere.lean`, the
+library's `Orientation/Linear.lean`, and
+`Topology/Homotopy/PuncturedStarConvex.lean`, which defines
+`TauCeti.complRay` and `TauCeti.complZeroOrthogonalInclusion`.
 
 ### `Topology/VectorBundle/Orientation/Complex/Whitney.lean`
 
