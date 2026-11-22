@@ -7,7 +7,7 @@ module
 
 public import Mathlib.Analysis.Matrix.Normed
 public import SymplecticGeometry.Analysis.CStarAlgebra.Exponential
-public import SymplecticGeometry.Analysis.Matrix.Normed
+public import SymplecticGeometry.Analysis.Matrix.L2OpNorm
 public import SymplecticGeometry.Analysis.SpecialFunctions.ContinuousFunctionalCalculus.ExpLog
 public import SymplecticGeometry.LinearAlgebra.Matrix.SymplecticGroup.Basic
 public import SymplecticGeometry.Topology.Algebra.Matrix.Realify
