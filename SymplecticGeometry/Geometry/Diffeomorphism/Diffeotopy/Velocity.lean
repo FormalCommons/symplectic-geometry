@@ -243,7 +243,7 @@ theorem velocity_timeDependentFlowDiffeotopy {X : ℝ → (x : M) → TangentSpa
       (fun u ↦ timeDependentFlowOf X 0 u x) ∘ Subtype.val :=
     funext fun s ↦ timeDependentFlowDiffeotopy_apply le_top hX hc (s, x)
   have hval : MDifferentiableAt (𝓡∂ 1) 𝓘(ℝ) (Subtype.val : unitInterval → ℝ) t :=
-    (contMDiff_subtypeVal_Icc (n := 1)).mdifferentiableAt one_ne_zero
+    mdifferentiableAt_subtypeVal_Icc _
   refine (congrArg (fun f ↦ mfderiv (𝓡∂ 1) J f t (1 : TangentSpace (𝓡∂ 1) t)) hfun).trans ?_
   rw [mfderiv_comp t hγ.mdifferentiableAt hval, ContinuousLinearMap.comp_apply,
     mfderiv_subtypeVal_Icc_one, hγ.mfderiv]
