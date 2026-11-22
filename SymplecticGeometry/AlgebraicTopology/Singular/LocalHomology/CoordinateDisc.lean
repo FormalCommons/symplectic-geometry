@@ -661,7 +661,6 @@ theorem openDisc_ofChart (e : OpenPartialHomeomorph M (EuclideanSpace ℝ (Fin 2
 
 end CoordinateDisc
 
-
 /-! ### Existence of coordinate discs -/
 
 namespace CoordinateDisc
