@@ -9,11 +9,12 @@ public import Mathlib.Basic.Complex.Basic
 public import Mathlib.LinearAlgebra.Matrix.Symmetric
 public import Mathlib.LinearAlgebra.Matrix.ConjTranspose
 public import Mathlib.LinearAlgebra.Matrix.NonsingularInverse
+public import Mathlib.LinearAlgebra.Matrix.SesquilinearForm
 
 /-!
 # Symmetric matrices
 
-Two facts about symmetric matrices that Mathlib does not have.
+Three facts about symmetric matrices that Mathlib does not have.
 
 If `Aᵀ B = Bᵀ A`, then `A B⁻¹` is symmetric. When `B` is invertible, `A B⁻¹` equals
 `B⁻ᵀ (Aᵀ B) B⁻¹`, whose transpose is `B⁻ᵀ (Bᵀ A) B⁻¹`; otherwise Mathlib's `B⁻¹` is `0`.
@@ -25,6 +26,9 @@ so the difference `Z - Zᴴ` is `2i` times the imaginary part of `Z`.
 
 * `Matrix.isSymm_mul_nonsing_inv_of_transpose_mul_eq`: `A B⁻¹` is symmetric when `Aᵀ B = Bᵀ A`.
 * `Matrix.IsSymm.sub_conjTranspose`: `Z - Zᴴ = 2i Im Z` for a symmetric complex matrix `Z`.
+* `Matrix.isSelfAdjoint_one_iff_isSymm`: the matrices that are self-adjoint for the bilinear form
+  of the identity matrix, which make up Mathlib's `selfAdjointMatricesSubmodule 1`, are the
+  symmetric matrices.
 -/
 
 public section
@@ -57,6 +61,14 @@ theorem IsSymm.sub_conjTranspose {Z : Matrix n n ℂ} (hZ : Z.IsSymm) :
     hZ.apply i j, Complex.star_def, Complex.sub_conj]
   push_cast
   ring
+
+/-- A matrix is self-adjoint for the bilinear form of the identity matrix, `Aᵀ * 1 = 1 * A`,
+exactly when it is symmetric. With `mem_selfAdjointMatricesSubmodule`, `simp` reduces membership
+in `selfAdjointMatricesSubmodule 1` to symmetry. -/
+@[simp]
+theorem isSelfAdjoint_one_iff_isSymm [Fintype n] {R : Type*} [CommRing R] [DecidableEq n]
+    {A : Matrix n n R} : (1 : Matrix n n R).IsSelfAdjoint A ↔ A.IsSymm := by
+  rw [Matrix.IsSelfAdjoint, Matrix.IsAdjointPair, Matrix.mul_one, Matrix.one_mul, IsSymm]
 
 end Matrix
 
