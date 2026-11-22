@@ -2455,24 +2455,27 @@ has either; Tau Ceti's extension across a boundary,
 - **Files:** `Geometry/Manifold/DeRham/Hodge/` (the analytic half of the
   Hodge theorem on a closed oriented Riemannian manifold: every de Rham
   class has a harmonic representative, completing Tau Ceti's
-  `Geometry/Manifold/DeRham/Harmonic.lean`, from Tau Ceti's interior
-  elliptic regularity `Analysis/Pseudodifferential/EllipticRegularity.lean`
-  and the Bessel-potential spaces there), and
+  `Geometry/Manifold/DeRham/Harmonic.lean`, from Tau Ceti's scalar interior
+  elliptic regularity `Analysis/Pseudodifferential/DistributionalRegularity.lean`,
+  its Rellich theorem and its Fredholm alternative for Gårding forms), and
   `Geometry/Manifold/DeRham/Kahler/` (complex harmonic forms, the Kähler
   identities, the decomposition of $H^k(M;\mathbb C)$ by type, with Tau
-  Ceti's `complexDeRhamCohomology`, `SmoothForm.IsOfType` and
-  `dolbeaultCohomology`, the symmetries of the Hodge numbers, and the
-  evenness of odd Betti numbers).
-- **Builds on:** *Nijenhuis tensor* (only `Integrable.lean`); *Almost Kähler
-  geometry*, if the design file proves the Kähler identities through
-  $\nabla J=0$; Tau Ceti's harmonic forms, Hodge star, Dolbeault operators
-  and elliptic regularity.
+  Ceti's `complexDeRhamCohomology` and `SmoothForm.IsOfType`, the
+  symmetries of the Hodge numbers, and the evenness of odd Betti numbers),
+  with the files outside these folders that the design file lists.
+- **Builds on:** *Nijenhuis tensor* (only `Integrable.lean`); *Almost complex
+  manifolds* (only `Metric.lean`, for the metric $g_J$ in the milestone);
+  Tau Ceti's harmonic forms, Hodge star, types of forms and elliptic
+  regularity. The Kähler identities are proved in osculating holomorphic
+  charts, not through $\nabla J=0$, so the part does not use *Almost Kähler
+  geometry*.
 - **Milestones:** *Hodge decomposition on closed Kähler manifolds*, for a
   closed Kähler manifold in the page's sense (`IsKahler` and
   `IsIntegrable`, on a boundaryless manifold), with Betti numbers the
   dimensions of de Rham cohomology. This is the largest part of the page;
-  the design file splits it, and decides between a proof on the whole
-  manifold and one through a parametrix glued from charts.
+  the design file splits it, and proves the analytic half on the whole
+  manifold, with regularity and compactness in charts, not through a
+  parametrix.
 
 ### 30. Energy of pseudoholomorphic curves (needs `design/pseudoholomorphic-energy.md`)
 
@@ -2624,12 +2627,12 @@ that file, and the notes here may fall behind it.
 | 1 | *Almost Kähler geometry* | *Almost complex manifolds* (only `Metric.lean`), *Nijenhuis tensor* (only `Covariant.lean` and `Nijenhuis.lean`); `TwoForm.lean` can start at once |
 | 1 | *Space of compatible complex structures* | *Nijenhuis tensor* (only `Integrable.lean`); the merged *Siegel upper half space* and *Compatible complex structures* |
 | 1 | *Energy of pseudoholomorphic curves* | *Almost complex manifolds* (only `Metric.lean`) |
+| 1 | *Hodge theory* | *Nijenhuis tensor* (only `Integrable.lean`), *Almost complex manifolds* (only `Metric.lean`), each for one issue of its design file; the Hodge theorem for the Laplacian can start at once |
 | 2 | *Compatible complex structures* | *Standard model*, *Symplectic vector spaces*; *Linear complex structures* (only `LinearAlgebra/ComplexStructure/Action.lean`, which imports only Mathlib and Tau Ceti, `Topology/ComplexStructure/Basic.lean`, which besides it imports only Tau Ceti and the merged `LinearAlgebra/Matrix/NonsingularInverse.lean` and `Analysis/CStarAlgebra/Matrix.lean`, which import only Mathlib and merged files that do, and `LinearAlgebra/ComplexStructure/Standard.lean`, which besides `Action.lean` imports only `LinearAlgebra/Symplectic/Compatible.lean` of this part, `LinearAlgebra/Symplectic/Standard/Matrix.lean` of *Standard model*, the library's `Geometry/Symplectic/Orientation.lean`, which imports only Tau Ceti, and Tau Ceti; and `Topology/ComplexStructure/Orthogonal.lean`, which besides `Topology/ComplexStructure/Basic.lean` imports only `LinearAlgebra/Symplectic/Standard/Basic.lean` of *Standard model*, `Analysis/Matrix/Polar/Deformation.lean` of *Symplectic group* and Tau Ceti; all of them are merged); *Symplectic group* (only `LinearAlgebra/Matrix/SymplecticGroup/Basic.lean`, which imports only Mathlib and Tau Ceti and is merged, and `Analysis/Matrix/Polar/Deformation.lean`, through `Orthogonal.lean`, which is merged) |
 | 2 | *Maslov index* | *Standard model*, *Symplectic group*, *Unitary group topology*; its Lagrangian issues also *Lagrangian Grassmannian* |
 | 2 | *Isotopy extension* | *Hamiltonian flows* (only `DeRham/FamilyPrimitive.lean`, `Flux/Hamiltonian.lean` and `Flux/CompactSupport.lean`), *Smooth families* (only `ContMDiff/TimeExtension.lean`, `DifferentialForm/TimeExtension.lean` and `DeRham/SmoothFamily/GoodCover.lean`), *Moser isotopy* (only `Moser/Field.lean`); the merged *Standard model* and *Linear Moser*; the issues of its design file that use none of these can start at once |
 | 2 | *Symplectic neighbourhoods* | *Moser isotopy* (only `Relative.lean`); *Symplectic vector spaces* (only `LinearAlgebra/Symplectic/Reduction.lean` and `LinearAlgebra/Symplectic/Subspace.lean`, which are merged); *Compatible complex structures* (only `LinearAlgebra/Symplectic/Compatible.lean`, which is merged); `CharacteristicFoliation.lean` and `AdaptedDarboux.lean` can start at once |
 | 2 | *Complex projective space* | *Complex submanifolds* (only for the corollary in `Kahler.lean`; the other files can start at once) |
-| 2 | *Hodge theory* | *Nijenhuis tensor* (only `Integrable.lean`); *Almost Kähler geometry*, if its design file proves the Kähler identities through $\nabla J=0$; the Hodge theorem for the Laplacian can start at once |
 | 3 | *First Chern number* | *Symplectic vector bundles*, the symplectic-loop issues of *Maslov index* |
 | 3 | *Contact geometry* | *Smooth families* (only `Family.lean` and `Gray.lean`, through `ContMDiff/TimeExtension.lean`, `DifferentialForm/TimeExtension.lean` and `Diffeotopy/Real.lean`); *Symplectic neighbourhoods* (only `LegendrianNeighborhood.lean`, through `Lagrangian.lean`); *Moser isotopy* (only `Darboux/Strict.lean`, through `LocalDiffeomorph/MFDeriv.lean`, merged); the other files of the part can start at once |
 | 4 | *First Chern class of nondegenerate forms* | *First Chern number* (only `FirstChernClass.lean`, #784); merged files of *Symplectic vector bundles* |
