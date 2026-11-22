@@ -174,12 +174,10 @@ theorem mem_complexExactForms_of_complexHodgeLaplacian_mem_complexClosedForms
     (o : Manifold.Orientation I M (Fin m)) (hkl : k + l = m) {β : SmoothForm I M ℂ k}
     (hβ : SmoothForm.complexHodgeLaplacian o hkl β ∈ complexClosedForms I M k) :
     SmoothForm.complexHodgeLaplacian o hkl β ∈ complexExactForms I M k := by
-  rw [mem_complexClosedForms_iff_realPart_imaginaryPart,
-    SmoothForm.mapCoeff_reCLM_complexHodgeLaplacian,
-    SmoothForm.mapCoeff_imCLM_complexHodgeLaplacian] at hβ
-  rw [mem_complexExactForms_iff_realPart_imaginaryPart,
-    SmoothForm.mapCoeff_reCLM_complexHodgeLaplacian,
-    SmoothForm.mapCoeff_imCLM_complexHodgeLaplacian]
+  rw [mem_complexClosedForms_iff_realPart_imaginaryPart, SmoothForm.complexHodgeLaplacian_def,
+    SmoothForm.mapCoeff_reCLM_complexifyₗ, SmoothForm.mapCoeff_imCLM_complexifyₗ] at hβ
+  rw [mem_complexExactForms_iff_realPart_imaginaryPart, SmoothForm.complexHodgeLaplacian_def,
+    SmoothForm.mapCoeff_reCLM_complexifyₗ, SmoothForm.mapCoeff_imCLM_complexifyₗ]
   exact ⟨mem_exactForms_of_hodgeLaplacian_mem_closedForms o hkl hβ.1,
     mem_exactForms_of_hodgeLaplacian_mem_closedForms o hkl hβ.2⟩
 

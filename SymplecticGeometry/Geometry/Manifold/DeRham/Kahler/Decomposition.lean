@@ -158,8 +158,9 @@ theorem complexHodgeLaplacian_alternatingDerivation (o : Manifold.Orientation I 
       J.toEndomorphism.alternatingDerivation (complexHodgeLaplacian o hkl φ) := by
   conv_lhs => rw [← ofReal_realPart_add_I_smul_ofReal_imaginaryPart φ]
   conv_rhs => rw [← ofReal_realPart_add_I_smul_ofReal_imaginaryPart φ]
-  simp only [map_add, map_smul, ContMDiffSection.alternatingDerivation_mapCoeff_ofRealCLM,
-    complexHodgeLaplacian_mapCoeff_ofRealCLM, hodgeLaplacian_realAlternatingDerivation o hJ hσ hg]
+  simp only [complexHodgeLaplacian_def, map_add, map_smul,
+    ContMDiffSection.alternatingDerivation_mapCoeff_ofRealCLM, complexifyₗ_mapCoeff_ofRealCLM,
+    hodgeLaplacian_realAlternatingDerivation o hJ hσ hg]
 
 /-- Under the hypotheses of `hodgeLaplacian_realAlternatingDerivation`, the complex Hodge
 Laplacian of a form of type `(p,q)` has type `(p,q)`. -/
