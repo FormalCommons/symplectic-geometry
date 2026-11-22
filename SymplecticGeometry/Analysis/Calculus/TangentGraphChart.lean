@@ -7,6 +7,7 @@ module
 
 public import Mathlib.Analysis.Calculus.ContDiff.Defs
 public import Mathlib.Analysis.InnerProductSpace.Projection.FiniteDimensional
+import SymplecticGeometry.Topology.OpenPartialHomeomorph.Compact
 import TauCeti.Analysis.Calculus.FDeriv.Equiv
 import TauCeti.Analysis.Calculus.FDeriv.Prod
 import TauCeti.Analysis.Calculus.InverseFunctionTheorem
@@ -178,7 +179,7 @@ theorem ContDiffOn.exists_uniform_inverse_starProjection (hg : ContDiffOn ℝ �
   have hKt : Θ '' closedBall p₀ ε ⊆ Θ.target :=
     image_subset_iff.2 fun q hq ↦ Θ.map_source (hεΘ hq)
   have hKc : IsCompact (Θ '' closedBall p₀ ε) :=
-    (isCompact_closedBall p₀ ε).image_of_continuousOn (Θ.continuousOn.mono hεΘ)
+    Θ.isCompact_image_of_subset_source (isCompact_closedBall p₀ ε) hεΘ
   have hbd : ∀ j : ℕ, ∃ C, ∀ q ∈ Θ '' closedBall p₀ ε, ‖iteratedFDeriv ℝ j k q‖ ≤ C :=
     fun j ↦ hKc.exists_bound_of_continuousOn fun q hq ↦
       ((hk.contDiffAt (Θ.open_target.mem_nhds (hKt hq))).continuousAt_iteratedFDeriv
