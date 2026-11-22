@@ -31,7 +31,8 @@ and the pull-back of restricted forms along a partial diffeomorphism of open sub
   (`TauCeti.isSmoothForm_mpullback_subtype_val_of_contMDiffOn`).
 * For a form `γ` and a vector field `Z` that are both `C^n` on `U`, the restriction of `ι_Z γ`
   to `U` is a `C^n` form (`TauCeti.isSmoothForm_mpullback_subtypeVal_interior`), although
-  `ι_Z γ` need not be smooth on all of `M`.
+  `ι_Z γ` need not be smooth on all of `M`. For a smooth form `γ`, this restriction is the smooth
+  form `TauCeti.SmoothForm.restrictInterior γ Z hZ`.
 * Restriction commutes with the exterior derivative, with no regularity assumption
   (`TauCeti.mpullback_subtype_val_mextDeriv`), since near every point of `U` the coordinate
   expressions of a form and of its restriction agree
@@ -117,6 +118,24 @@ theorem isSmoothForm_mpullback_subtypeVal_interior {U : Opens M} {n : WithTop �
   isSmoothForm_mpullback_subtype_val_of_contMDiffOn fun _ hx ↦
     (RoughForm.contMDiffAt_interior (hZ.contMDiffAt (U.isOpen.mem_nhds hx))
       (hγ.contMDiffAt (U.isOpen.mem_nhds hx))).contMDiffWithinAt
+
+/-- For a smooth `(k + 1)`-form `γ` on `M` and a vector field `Z` on `M` that is smooth on an open
+subset `U`, the restriction to `U` of the interior product `ι_Z γ`, as a smooth `k`-form on `U`.
+The field `Z` need not be smooth outside `U`. -/
+noncomputable def SmoothForm.restrictInterior (γ : SmoothForm I M F (k + 1))
+    (Z : (x : M) → TangentSpace I x) {U : Opens M} (hZ : ContMDiffOn I I.tangent ∞ (T% Z) U) :
+    SmoothForm I U F k :=
+  ⟨TauCeti.mpullback (F := F) (k := k) I I (Subtype.val : U → M)
+      (RoughForm.interior Z γ.val),
+    (isSmoothForm_mpullback_subtypeVal_interior γ.contMDiff.contMDiffOn hZ).mem_smoothBundleForms⟩
+
+@[simp]
+theorem SmoothForm.coe_restrictInterior (γ : SmoothForm I M F (k + 1))
+    (Z : (x : M) → TangentSpace I x) {U : Opens M} (hZ : ContMDiffOn I I.tangent ∞ (T% Z) U) :
+    (γ.restrictInterior Z hZ : RoughForm I U F k) =
+      TauCeti.mpullback (F := F) (k := k) I I (Subtype.val : U → M)
+        (RoughForm.interior Z γ.val) :=
+  (rfl)
 
 /-- Near the chart image of a point of an open subset `U`, the coordinate expression of the
 restriction to `U` of a form on `M` agrees with that of the form itself. -/

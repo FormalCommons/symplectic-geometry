@@ -30,8 +30,8 @@ type synonym `TopologicalSpace.Opens.InteriorModel I U` carries that atlas as an
 
 ## Main results
 
-* The instances `TopologicalSpace`, `T2Space`, `SecondCountableTopology`, `ChartedSpace E` and
-  `IsManifold 𝓘(𝕜, E) n` on `U.InteriorModel I`.
+* The instances `TopologicalSpace`, `T2Space`, `SecondCountableTopology`, `PreconnectedSpace`,
+  `ConnectedSpace`, `ChartedSpace E` and `IsManifold 𝓘(𝕜, E) n` on `U.InteriorModel I`.
 * `TopologicalSpace.Opens.coe_interiorModelHomeomorph`,
   `TopologicalSpace.Opens.coe_interiorModelHomeomorph_symm`: the homeomorphism and its inverse are
   the identity of the common carrier.
@@ -71,6 +71,12 @@ instance [T2Space W] : T2Space (U.InteriorModel I) :=
 
 instance [SecondCountableTopology W] : SecondCountableTopology (U.InteriorModel I) :=
   inferInstanceAs (SecondCountableTopology U)
+
+instance [PreconnectedSpace U] : PreconnectedSpace (U.InteriorModel I) :=
+  inferInstanceAs (PreconnectedSpace U)
+
+instance [ConnectedSpace U] : ConnectedSpace (U.InteriorModel I) :=
+  inferInstanceAs (ConnectedSpace U)
 
 /-- The identity of `U`, as a homeomorphism onto its copy `U.InteriorModel I`. -/
 def interiorModelHomeomorph : U ≃ₜ U.InteriorModel I :=

@@ -40,7 +40,7 @@ The field `Y` is Liouville only on `U`, while Tau Ceti's collar theorems
 whole manifold. They are therefore applied on the open submanifold `U`, to the restriction of `Y`
 (Mathlib's pullback `VectorField.mpullback` along the inclusion) and of `ι_Y σ`, which is
 Liouville there by `TauCeti.SmoothTwoForm.interior_mextDeriv_restrictInterior` (the restricted
-primitive is `TauCeti.SmoothTwoForm.restrictInterior`), and the
+primitive is `TauCeti.SmoothForm.restrictInterior`), and the
 resulting injective local diffeomorphism is made a diffeomorphism onto its image with Tau Ceti's
 `IsLocalDiffeomorph.diffeomorphOfInjective`.
 
@@ -225,9 +225,9 @@ theorem SmoothEmbedding.exists_pos_forall_liouvilleCollar [SecondCountableTopolo
   -- The field `Y` and the primitive `ι_Y σ`, restricted to `U'`.
   let Z : (x : U') → TangentSpace I x := VectorField.mpullback I I Subtype.val Y
   have hZ : ContMDiff I I.tangent ∞ (T% Z) := VectorField.contMDiff_mpullback_subtypeVal hY
-  let β : SmoothForm I U' ℝ 1 := σ.restrictInterior (U := U') hY
+  let β : SmoothForm I U' ℝ 1 := σ.restrictInterior Y (U := U') hY
   have hβ : β.val = mpullback I I Subtype.val (RoughForm.interior Y σ.val) :=
-    SmoothTwoForm.coe_restrictInterior σ hY
+    SmoothForm.coe_restrictInterior σ Y hY
   have hdβ : mextDeriv β.val = mpullback I I Subtype.val σ.val :=
     SmoothTwoForm.mextDeriv_restrictInterior hσ.isClosed hY hYσ
   have hZβ : (mextDeriv β.val).interior Z = β.val :=

@@ -164,7 +164,6 @@ private theorem exists_homotopy_interior_ne_zero [ConnectedSpace M] (hdim : 1 < 
       (∀ y, G (0, y) = y) ∧ ∀ y ∈ K, σ (G (1, y)) ≠ 0 := by
   let U := I.interiorOpens M
   let N := U.InteriorModel I
-  have : PreconnectedSpace N := inferInstanceAs (PreconnectedSpace U)
   -- Restate the hypotheses for the topology of `N`, which is that of `U`.
   have hZ : IsClosed (X := N) {x : U | σ x = 0} :=
     σ.isClosed_setOf_eq_zero.preimage continuous_subtypeVal

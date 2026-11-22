@@ -11,6 +11,7 @@ public import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.LocalDiffeomorph
 public import TauCeti.Geometry.Manifold.TubularNeighborhood.RelativePoincare
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Opens
+import SymplecticGeometry.Geometry.Manifold.MFDeriv.Opens
 
 /-!
 # Relative primitives near an embedded submanifold
@@ -193,12 +194,11 @@ theorem exists_mextDeriv_eq_and_mpullback_eq (f : SmoothEmbedding J I ∞ Q M) {
       SmoothForm.coe_mpullback, mpullback_subtype_val_apply, mpullback_subtype_val_apply] at e
     rw [← e, ← hγ, ← mpullback_subtype_val_mextDeriv, mpullback_subtype_val_apply]
   · let j' := j.codRestrict W' hjW'
-    have hval' : ContMDiff I I ∞ (Subtype.val : W' → T) := contMDiff_subtypeVal
     have hf' : f = (Subtype.val ∘ Subtype.val) ∘ j' := by
       rw [Function.comp_assoc, j.val_comp_codRestrict W' hjW', hvj]
     rw [hf', mpullback_comp (j'.contMDiff.mdifferentiable (by simp))
-      ((hval.comp hval').mdifferentiable (by simp)), mpullback_comp
-      (hval'.mdifferentiable (by simp)) (hval.mdifferentiable (by simp)), hγ, hγ',
+      (mdifferentiable_subtypeVal.comp mdifferentiable_subtypeVal), mpullback_comp
+      mdifferentiable_subtypeVal mdifferentiable_subtypeVal, hγ, hγ',
       ← SmoothForm.coe_mpullback _ j'.contMDiff, hjξ]
 
 
