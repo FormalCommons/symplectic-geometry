@@ -9,6 +9,10 @@ public import TauCeti.Topology.VectorBundle.Orientation.Complex.FiberwiseEquiv
 public import SymplecticGeometry.AlgebraicTopology.Cohomology.LerayHirsch.ProjectiveSpace
 public import SymplecticGeometry.Analysis.Normed.Module.TensorProduct.ProjectiveSeminorm
 public import SymplecticGeometry.Topology.VectorBundle.TensorProduct.External
+public import SymplecticGeometry.Topology.VectorBundle.TensorProduct.Pullback
+public import SymplecticGeometry.Topology.VectorBundle.ProjectiveBundle.ClassifyingMap
+public import SymplecticGeometry.Geometry.Manifold.Projectivization.Tautological
+public import TauCeti.Topology.VectorBundle.TensorProduct.Operations
 
 /-!
 # The Euler class of a tensor product of complex line bundles
@@ -20,9 +24,16 @@ projections, with model fibre `TauCeti.ProjectiveTensor ℂ ℂ ℂ`, a complex 
 (`TauCeti.ProjectiveTensor.finrank_eq_mul`). This file computes its Euler class: it is
 `pr₁^* e(T) + pr₂^* e(T')` (`Projectivization.complexEulerClass_tensorProduct_tautological`), and
 so `-(pr₁^* h + pr₂^* h')` in integral cohomology, `h` and `h'` being the hyperplane classes
-(`Projectivization.uliftIntegralCohomologyIso_complexEulerClass_tensorProduct_tautological`). The
-Euler class of the tensor product of two complex line bundles over a compact base is pulled back
-from this case by classifying maps.
+(`Projectivization.uliftIntegralCohomologyIso_complexEulerClass_tensorProduct_tautological`).
+
+Two consequences follow.
+
+* `TauCeti.complexEulerClass_tensorProduct`: for complex line bundles `L` and `L'` over a compact
+  normal base, such as a compact Hausdorff one, the Euler class of Tau Ceti's tensor product
+  bundle `L ⊗ L'` is `e(L) + e(L')`.
+* `Projectivization.complexEulerClass_twistCore_one`: on `ℙ ℂ (Fin (n + 1) → ℂ)`, the Euler class
+  of Tau Ceti's `twistCore 1`, the bundle `𝒪(1)`, read in integral cohomology, is the hyperplane
+  class.
 
 `TauCeti.complexEulerClass` asks for a real structure on the model fibre and on the fibres,
 compatible with the complex one. Here it is the restriction of scalars from `ℂ` to `ℝ`, which
@@ -44,6 +55,22 @@ isomorphism `v ↦ v ⊗ w₀` from `T` to `T ⊠ T'`, continuous on total space
 `e(T)`; the class `pr₂^* e(T')` pulls back through a point, so to zero. The second axis is the same,
 with `w ↦ v₀ ⊗ w`.
 
+For line bundles `L` and `L'` over a compact normal base `B`, the classifying maps
+`g : B → ℙ ℂ (Fin N → ℂ)` and `g' : B → ℙ ℂ (Fin M → ℂ)` of
+`SymplecticGeometry.Bundle.exists_fiberwise_tautological_fin` come with fibrewise isomorphisms
+`L b ≃ T (g b)` and `L' b ≃ T' (g' b)`. Their tensor product (Tau Ceti's
+`TauCeti.bundleTensorCongrHomeomorph`), followed by the map of
+`TauCeti.continuous_tensorProduct_pullback` from the tensor product of pull-backs along
+`(g, g')` to `T ⊠ T'`, is a fibrewise isomorphism from `L ⊗ L'` to `T ⊠ T'` over `(g, g')`,
+continuous on total spaces. Naturality then gives `e(L ⊗ L') = (g, g')^* e(T ⊠ T')`, which is
+`g^* e(T) + g'^* e(T') = e(L) + e(L')`.
+
+For `𝒪(1)`: the Euler class of Tau Ceti's `twistCore 0` is zero
+(`Projectivization.complexEulerClass_twistCore_zero`). Through
+`Projectivization.twistCoreTensorEquiv 1 (-1)`, `twistCore 1 ⊗ twistCore (-1)` is isomorphic to it,
+so `e(𝒪(1)) = -e(𝒪(-1))`, which is the hyperplane class by
+`Projectivization.complexEulerClass_twistCore_neg_one`.
+
 ## References
 
 * J. W. Milnor, J. D. Stasheff, *Characteristic Classes*, Annals of Mathematics Studies 76,
@@ -54,6 +81,8 @@ with `w ↦ v₀ ⊗ w`.
 * A. Hatcher, *Vector Bundles and K-Theory*, §3.1 (the proof of Proposition 3.10: the first
   Chern class of a tensor product of line bundles, through the external tensor product of the
   tautological lines of two projective spaces and the restriction to the two axes).
+* [P. Griffiths, J. Harris, *Principles of Algebraic Geometry*][GriffithsHarris1978], Chapter 1,
+  §1 (the line bundles `𝒪(k)` on projective space and their tensor products).
 -/
 
 public section
@@ -205,6 +234,110 @@ theorem uliftIntegralCohomologyIso_complexEulerClass_tensorProduct_tautological
   exact congrArg₂ (· + ·)
     (ConcreteCategory.congr_hom (TopCat.uliftIntegralCohomologyIso_naturality _ 2) _)
     (ConcreteCategory.congr_hom (TopCat.uliftIntegralCohomologyIso_naturality _ 2) _)
+
+end Projectivization
+
+/-! ### Complex line bundles over a compact base -/
+
+namespace TauCeti
+
+open Projectivization
+
+variable {B : Type} [TopologicalSpace B] [CompactSpace B] [NormalSpace B]
+  {G : Type} [NormedAddCommGroup G] [NormedSpace ℂ G] [FiniteDimensional ℂ G]
+  {L : B → Type} [TopologicalSpace (TotalSpace G L)] [∀ b, AddCommGroup (L b)]
+  [∀ b, Module ℝ (L b)] [∀ b, Module ℂ (L b)] [∀ b, IsScalarTower ℝ ℂ (L b)]
+  [∀ b, TopologicalSpace (L b)] [FiberBundle G L] [VectorBundle ℂ G L]
+  {G' : Type} [NormedAddCommGroup G'] [NormedSpace ℂ G'] [FiniteDimensional ℂ G']
+  {L' : B → Type} [TopologicalSpace (TotalSpace G' L')] [∀ b, AddCommGroup (L' b)]
+  [∀ b, Module ℝ (L' b)] [∀ b, Module ℂ (L' b)] [∀ b, IsScalarTower ℝ ℂ (L' b)]
+  [∀ b, TopologicalSpace (L' b)] [FiberBundle G' L'] [VectorBundle ℂ G' L']
+
+/-- **The Euler class of a tensor product of complex line bundles.** For complex line bundles `L`
+and `L'` over a compact normal base, such as a compact Hausdorff one, the Euler class of Tau
+Ceti's tensor product bundle `L ⊗ L'` is the sum of the Euler classes of `L` and `L'`. -/
+theorem complexEulerClass_tensorProduct (hG : finrank ℂ G = 1)
+    (hG' : finrank ℂ G' = 1) :
+    complexEulerClass (r := 0) (ProjectiveTensor ℂ G G') (fun b ↦ L b ⊗[ℂ] L' b)
+        (by simp [hG, hG']) =
+      complexEulerClass (r := 0) G L hG + complexEulerClass (r := 0) G' L' hG' := by
+  obtain ⟨N, g, φ, hφ⟩ := SymplecticGeometry.Bundle.exists_fiberwise_tautological_fin (E := L) hG
+  obtain ⟨M, g', φ', hφ'⟩ :=
+    SymplecticGeometry.Bundle.exists_fiberwise_tautological_fin (E := L') hG'
+  set P := ℙ ℂ (Fin N → ℂ) × ℙ ℂ (Fin M → ℂ)
+  -- The classifying map of `L ⊗ L'` to the product of the projective spaces.
+  let γ : C(B, P) := g.prodMk g'
+  -- `φ` and `φ'` read as isomorphisms onto the pull-backs along `γ` of the two factors of the
+  -- external tensor product, whose fibres are those of the tautological lines.
+  let ψ : ∀ b, L b ≃L[ℂ]
+      ((γ : B → P) *ᵖ ((ContinuousMap.fst : C(P, ℙ ℂ (Fin N → ℂ))) *ᵖ
+        (Tautological ℂ (Fin N → ℂ)))) b := φ
+  let ψ' : ∀ b, L' b ≃L[ℂ]
+      ((γ : B → P) *ᵖ ((ContinuousMap.snd : C(P, ℙ ℂ (Fin M → ℂ))) *ᵖ
+        (Tautological ℂ (Fin M → ℂ)))) b := φ'
+  have hψ : Continuous fun v : TotalSpace G L ↦ TotalSpace.mk' ℂ v.proj (ψ v.proj v.snd) := by
+    refine (inducing_pullbackTotalSpaceEmbedding _ _ _).continuous_iff.2 <|
+      (FiberBundle.continuous_proj G L).prodMk <|
+        (inducing_pullbackTotalSpaceEmbedding _ _ _).continuous_iff.2 <|
+          (γ.continuous.comp (FiberBundle.continuous_proj G L)).prodMk hφ
+  have hψ' : Continuous fun v : TotalSpace G' L' ↦ TotalSpace.mk' ℂ v.proj (ψ' v.proj v.snd) := by
+    refine (inducing_pullbackTotalSpaceEmbedding _ _ _).continuous_iff.2 <|
+      (FiberBundle.continuous_proj G' L').prodMk <|
+        (inducing_pullbackTotalSpaceEmbedding _ _ _).continuous_iff.2 <|
+          (γ.continuous.comp (FiberBundle.continuous_proj G' L')).prodMk hφ'
+  set A₁ := (ContinuousMap.fst : C(P, ℙ ℂ (Fin N → ℂ))) *ᵖ (Tautological ℂ (Fin N → ℂ))
+  set A₂ := (ContinuousMap.snd : C(P, ℙ ℂ (Fin M → ℂ))) *ᵖ (Tautological ℂ (Fin M → ℂ))
+  -- Instance search does not find the tensor product structure on these nested pull-backs, as
+  -- for the instances of `TensorProduct/External.lean`, so it is given here.
+  let := Bundle.TensorProduct.topologicalSpaceTotalSpace ℂ ℂ ((γ : B → P) *ᵖ A₁) ℂ
+    ((γ : B → P) *ᵖ A₂)
+  let := Bundle.TensorProduct.fiberBundle ℂ ℂ ((γ : B → P) *ᵖ A₁) ℂ ((γ : B → P) *ᵖ A₂)
+  let := Bundle.TensorProduct.vectorBundle ℂ ℂ ((γ : B → P) *ᵖ A₁) ℂ ((γ : B → P) *ᵖ A₂)
+  have hΦ : Continuous fun v : TotalSpace (ProjectiveTensor ℂ G G') (fun b ↦ L b ⊗[ℂ] L' b) ↦
+      TotalSpace.mk' (ProjectiveTensor ℂ ℂ ℂ) (E := fun x ↦ A₁ x ⊗[ℂ] A₂ x) (γ v.proj)
+        (bundleTensorCongr ψ ψ' v.proj v.snd) := by
+    refine ((continuous_tensorProduct_pullback (F₁ := ℂ) (F₂ := ℂ) (E₁ := A₁) (E₂ := A₂) γ).comp
+      (bundleTensorCongrHomeomorph ψ ψ' hψ hψ').continuous).congr fun v ↦ ?_
+    rw [Function.comp_apply, bundleTensorCongrHomeomorph_apply]
+  rw [complexEulerClass_eq_singularCohomologyMap_of_fiberwise (g := γ)
+      (F := ProjectiveTensor ℂ ℂ ℂ) (E := fun x ↦ A₁ x ⊗[ℂ] A₂ x)
+      (φ := bundleTensorCongr ψ ψ') (by simp) _ hΦ,
+    complexEulerClass_tensorProduct_tautological, map_add,
+    complexEulerClass_eq_singularCohomologyMap_of_fiberwise _ hG hφ,
+    complexEulerClass_eq_singularCohomologyMap_of_fiberwise _ hG' hφ',
+    ← ConcreteCategory.comp_apply, ← TopCat.singularCohomologyMap_comp,
+    ← ConcreteCategory.comp_apply, ← TopCat.singularCohomologyMap_comp]
+  rw [← TopCat.ofHom_comp, ← TopCat.ofHom_comp,
+    show ContinuousMap.fst.comp γ = g from ContinuousMap.ext fun _ ↦ by simp [γ],
+    show ContinuousMap.snd.comp γ = g' from ContinuousMap.ext fun _ ↦ by simp [γ]]
+
+end TauCeti
+
+/-! ### The Euler class of `𝒪(1)` -/
+
+namespace Projectivization
+
+variable {n : ℕ}
+
+/-- **The Euler class of `𝒪(1)`.** On `ℙ ℂ (Fin (n + 1) → ℂ)`, the Euler class of Tau Ceti's
+`twistCore 1`, read in integral cohomology through `TopCat.uliftIntegralCohomologyIso`, is the
+hyperplane class. -/
+theorem complexEulerClass_twistCore_one :
+    ((TopCat.of (ℙ ℂ (Fin (n + 1) → ℂ))).uliftIntegralCohomologyIso 2).hom
+        (complexEulerClass (r := 0) ℂ (twistCore (𝕜 := ℂ) (n := n) 1).Fiber
+          (finrank_self ℂ)) =
+      hyperplaneClass (Fin (n + 1) → ℂ) := by
+  -- `𝒪(1 + (-1))` is `𝒪(0)`, whose Euler class vanishes.
+  have h₀ : complexEulerClass (r := 0) ℂ (twistCore (𝕜 := ℂ) (n := n) (1 + -1)).Fiber
+      (finrank_self ℂ) = 0 := by
+    rw [show (1 : ℤ) + -1 = 0 by norm_num]
+    exact complexEulerClass_twistCore_zero
+  have h := complexEulerClass_eq_of_fiberwise (by simp) (finrank_self ℂ)
+    (φ := twistCoreTensorEquiv (𝕜 := ℂ) (n := n) 1 (-1))
+    (continuous_twistCoreTensorEquiv (𝕜 := ℂ) (n := n) 1 (-1))
+  rw [h₀, complexEulerClass_tensorProduct (finrank_self ℂ) (finrank_self ℂ), eq_comm,
+    add_eq_zero_iff_eq_neg] at h
+  rw [h, map_neg, complexEulerClass_twistCore_neg_one, neg_neg]
 
 end Projectivization
 
