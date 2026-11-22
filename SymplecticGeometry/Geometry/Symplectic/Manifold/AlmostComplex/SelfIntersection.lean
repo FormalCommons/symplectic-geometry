@@ -8,6 +8,7 @@ module
 public import Mathlib.Geometry.Manifold.Instances.Real
 public import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.ComplexStructure
 public import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.Exact
+public import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Submanifold
 public import SymplecticGeometry.LinearAlgebra.ComplexStructure.Orientation
 public import SymplecticGeometry.Topology.VectorBundle.Complex.FirstChernClass
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.Smooth
@@ -156,18 +157,20 @@ theorem selfIntersectionNumber_neg_orientation (f : SmoothEmbedding (𝓡 2) I �
 end Number
 
 /-- **The orientations of `M` and of the normal spaces induce that of `J`.**
-Let `M` be oriented by `o` so that the frames `(u, j u)` of `T_c M`, with `j` the restriction of `J`
-read through `df`, are positive. Then the orientation that the short exact sequence
-`0 → T_c M → T_{f c} X → ν_c → 0`, of the differential and the normal class map, induces from `o` at
-`c` and the orientation of the structure that `J` induces on `ν_c`, with `T_c M` first, is the
-orientation of `J` at `f c`. -/
+Let `o` orient `M` at `c` by the almost complex structure `J.restrict f hJ` that `J` induces on
+`M`. Then the orientation that the short exact sequence `0 → T_c M → T_{f c} X → ν_c → 0`, of the
+differential and the normal class map, induces from `o` at `c` and the orientation of the structure
+that `J` induces on `ν_c`, with `T_c M` first, is the orientation of `J` at `f c`.
+
+A hypothesis on the frames `(u, j u)` of `T_c M` gives `ho` through
+`TauCeti.AlmostComplexStructure.orientation_eq_of_apply_one_eq`. -/
 theorem shortExact_orientationAt_normalSpace (f : SmoothEmbedding (𝓡 2) I ∞ M X)
     (J : SmoothAlmostComplexStructure I X)
     (hJ : ∀ x, ∀ v ∈ f.tangentRange x hn, J (f x) v ∈ f.tangentRange x hn)
     {o : Manifold.Orientation (𝓡 2) M (Fin 2)} {c : M}
-    (ho : ∀ b : Basis (Fin 2) ℝ (TangentSpace (𝓡 2) c),
-      mfderiv (𝓡 2) I f c (b 1) = J (f c) (mfderiv (𝓡 2) I f c (b 0)) →
-        b.orientation = o.orientationAt c) :
+    (ho : o.orientationAt c = Orientation.reindex ℝ _
+      (finCongr (n := finrank ℝ (TangentSpace (𝓡 2) c)) finrank_euclideanSpace_fin)
+      ((J.restrict f hJ).almostComplexStructureAt c).orientation) :
     Orientation.shortExact (f.isSmoothEmbedding_toFun.isImmersion.mfderiv_injective hn c)
         (f.exact_mfderiv_normalClass c hn) (f.normalClass_surjective c hn) (o.orientationAt c)
         (f.normalAlmostComplexStructureAt J hJ c).orientation finrank_euclideanSpace_fin rfl =
@@ -176,39 +179,14 @@ theorem shortExact_orientationAt_normalSpace (f : SmoothEmbedding (𝓡 2) I ∞
         have := f.finrank_normalSpace_add_finrank c hn
         omega))
         (J.almostComplexStructureAt (f c)).orientation := by
-  set K := J.almostComplexStructureAt (f c)
-  set T := f.tangentRange c hn
-  have hT : ∀ v ∈ T, K v ∈ T := fun v hv ↦ by
-    rw [SmoothAlmostComplexStructure.almostComplexStructureAt_apply]
-    exact hJ c v hv
-  -- The differential, as an isomorphism onto the tangent image.
-  let d : TangentSpace (𝓡 2) c ≃ₗ[ℝ] T := LinearEquiv.ofInjective
-    (mfderiv (𝓡 2) I f c).toLinearMap (f.isSmoothEmbedding_toFun.isImmersion.mfderiv_injective hn c)
-  have hd (u : TangentSpace (𝓡 2) c) : (d u : TangentSpace I (f c)) = mfderiv (𝓡 2) I f c u :=
-    LinearEquiv.ofInjective_apply _ _
-  have hTexact : Function.Exact T.subtype (f.normalClass c hn) := by
-    rw [LinearMap.exact_iff, normalClass_ker, Submodule.range_subtype]
-  have hT2 : finrank ℝ T = 2 := d.finrank_eq.symm.trans finrank_euclideanSpace_fin
-  -- The differential carries `o` to the orientation of the restriction of `J`, by `ho`.
-  have hdo : Orientation.map _ d (o.orientationAt c) =
-      Orientation.reindex ℝ T (finCongr hT2) (K.restrict T hT).orientation :=
-    (K.restrict T hT).map_eq_orientation_of_apply_one_eq hT2 d fun b hb ↦ ho b (by
-      simpa [← hd, K] using congrArg Subtype.val hb)
-  -- The sequence of `f` at `c` is isomorphic, through `d`, to that of the tangent image.
-  have h := Orientation.map_shortExact
-    (f.isSmoothEmbedding_toFun.isImmersion.mfderiv_injective hn c)
-    (f.exact_mfderiv_normalClass c hn) (f.normalClass_surjective c hn)
-    finrank_euclideanSpace_fin rfl T.injective_subtype hTexact (f.normalClass_surjective c hn) d
-    (LinearEquiv.refl ℝ _) (LinearEquiv.refl ℝ (f.NormalSpace c hn))
-    (LinearMap.ext fun u ↦ hd u) (LinearMap.ext fun v ↦ by simp) (o.orientationAt c)
-    (f.normalAlmostComplexStructureAt J hJ c).orientation
-  rw [Orientation.map_refl, Orientation.map_refl, Equiv.refl_apply, Equiv.refl_apply, hdo,
-    Orientation.shortExact_reindex_finCongr_left,
-    AlmostComplexStructure.shortExact_orientation _ _ _ (K.isComplexLinearMap_subtype T hT)
-      (f.isComplexLinearMap_normalClass J hJ c)] at h
-  rw [h, ← Orientation.reindex_trans]
-  -- Both sides reindex the orientation of `K` along casts between the same index types.
-  exact congrArg (Orientation.reindex ℝ _ · K.orientation) (Equiv.ext fun _ ↦ rfl)
+  rw [ho]
+  refine (Orientation.shortExact_reindex_finCongr_left _ _ _ _ _ _ _ _).trans ?_
+  rw [AlmostComplexStructure.shortExact_orientation _ _ _
+      (SmoothAlmostComplexStructure.isComplexLinearMap_mfderiv hJ c)
+      (f.isComplexLinearMap_normalClass J hJ c)]
+  -- Both sides reindex the orientation of `J` at `f c` along casts between the same index types.
+  exact (Orientation.reindex_trans _ _ _).symm.trans
+    (congrArg (Orientation.reindex ℝ _ · _) (Equiv.ext fun _ ↦ rfl))
 
 end TauCeti.SmoothEmbedding
 
