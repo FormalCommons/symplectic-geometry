@@ -12,9 +12,12 @@ public import SymplecticGeometry.Geometry.Contact.Hamiltonian
 public import SymplecticGeometry.Geometry.Contact.Moser
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Tangent.Opens
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Flow.Family
+public import SymplecticGeometry.Geometry.Manifold.Flow.TimeDependent
+public import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Transports
+public import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Velocity
 
 /-!
-# The Gray vector field: naturality, and the Gray field of a family of contact structures
+# The Gray vector field and the Gray isotopy of a family of contact structures
 
 Let `α` be a one-form on `ℝ × N`, representing the family of its slices `α_t = ι_t^* α`, and let
 `f : M → N` be smooth with bijective differentials. The slices of the pullback `(id × f)^* α` are
@@ -48,6 +51,19 @@ glues local solutions with a smooth partition of unity. It is applied to the tan
 `ℝ × M`, the field being the `M` component of a section with vanishing `ℝ` component; away from
 `[0, 1] × M` the local solution is `0`.
 
+On a compact manifold the suspension of this field is complete, and its time-dependent flow from
+time `0` is a diffeotopy, the Gray isotopy `ψ_t` of `ξ`
+(`SymplecticGeometry.IsContactFamily.grayDiffeotopy`). Its velocity is the Gray field, which lies
+in `ξ` (`SymplecticGeometry.IsContactFamily.velocity_grayDiffeotopy_mem`). It transports `ξ`,
+`ψ_t^* ξ_t = ξ_0` (`SymplecticGeometry.IsContactFamily.transports_grayDiffeotopy`), by an
+open-and-closed argument in `t`. Near a time `t₀` and the point `ψ_{t₀} x`, a local defining
+family `α` on `ℝ × U` has, at the times of `[0, 1]` near `t₀`, the restriction of the Gray field
+to `U` as its Gray vector field. By Gray's equation and the rescaling theorem along one trajectory
+of `Flow/Family.lean`, the flow of that restriction, which is the flow of the Gray field, rescales
+`α` along the trajectory of `ψ_{t₀} x`, so its differential carries `ξ_{t₀}` onto `ξ_t` there. With
+the cocycle property of the flow, the pullback of `ξ_t` by `ψ_t` at `x` is a locally constant
+function of `t`, equal to `ξ_0 x` at `t = 0`, and `[0, 1]` is connected.
+
 The comparison of two local defining families,
 `SymplecticGeometry.IsLocalDefiningFamily.tangentSpaceOpenEquiv_grayVectorField_eq`, follows the
 proofs of
@@ -60,7 +76,11 @@ the restrictions are contact forms with the same kernels, and naturality of the 
 under the inclusions concludes. The factor between two families with the same kernels in
 `TauCeti.SmoothForm.grayVectorField_eq_of_eventually_kerDistribution_eq` is the one of
 `TauCeti.SmoothForm.grayVectorField_eq_of_kerDistribution_eq`, in Tau Ceti's
-`TauCeti/Geometry/Contact/Gray.lean` at the same commit.
+`TauCeti/Geometry/Contact/Gray.lean` at the same commit. Gray's equation as a rate,
+`TauCeti.SmoothForm.mpullback_prodMk_mlieDerivForm_add_mlieDerivForm_grayVectorField_apply`, is
+the pointwise form of the private lemma
+`TauCeti.SmoothForm.mpullback_prodMk_mlieDerivForm_add_mlieDerivForm_grayVectorField` of the
+pinned Tau Ceti's `TauCeti/Geometry/Contact/Gray.lean`, with its proof.
 
 ## Main results
 
@@ -72,8 +92,17 @@ under the inclusions concludes. The factor between two families with the same ke
   depends only on the kernels of the slices.
 * `SymplecticGeometry.IsLocalDefiningFamily.tangentSpaceOpenEquiv_grayVectorField_eq`: local
   defining families of a family of contact structures have the same Gray vectors.
+* `TauCeti.SmoothForm.mpullback_prodMk_mlieDerivForm_add_mlieDerivForm_grayVectorField_apply`:
+  Gray's equation, in the form of the hypothesis of the rescaling theorems along flows.
 * `SymplecticGeometry.IsContactFamily.exists_grayField`: the Gray field of a smooth family of
   contact structures.
+* `SymplecticGeometry.IsContactFamily.grayDiffeotopy`: the Gray isotopy, with
+  `SymplecticGeometry.IsContactFamily.exists_grayField_grayDiffeotopy_apply`, which gives it as a
+  flow.
+* `SymplecticGeometry.IsContactFamily.transports_grayDiffeotopy`: the Gray isotopy transports the
+  family.
+* `SymplecticGeometry.IsContactFamily.velocity_grayDiffeotopy_mem`: its velocity lies in the
+  family.
 
 ## References
 
@@ -190,6 +219,29 @@ theorem tangentSpaceOpenEquiv_grayVectorField_mpullback_prodMap_inclusion {U V :
     mfderiv_id,
     ContinuousLinearMap.id_apply]
 
+omit [I.Boundaryless] in
+/-- **Gray's equation, as a rate.** If the slice `α_t` of a family of one-forms on `ℝ × M` is a
+contact form, then at each point `y` the rate `ι_t^* L_{∂_t} α + L_{Y_t} α_t` of the family along
+its Gray vector field `Y` is `μ_t(y) • α_t(y)`, where `μ` is the Gray rate. This is the hypothesis
+of the rescaling theorems along one trajectory of a time-dependent flow, in `Flow/Family.lean`. -/
+theorem mpullback_prodMk_mlieDerivForm_add_mlieDerivForm_grayVectorField_apply
+    {α : SmoothForm (𝓘(ℝ, ℝ).prod I) (ℝ × M) ℝ 1} {t : ℝ}
+    (hc : (mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) α).IsContactForm)
+    (y : M) :
+    (TauCeti.mpullback I (𝓘(ℝ, ℝ).prod I) (Prod.mk t)
+        (mlieDerivForm (fun _ ↦ ((1 : ℝ), (0 : E))) α.val) +
+      mlieDerivForm (α.grayVectorField t)
+        (TauCeti.mpullback I (𝓘(ℝ, ℝ).prod I) (Prod.mk t) α.val)) y =
+      α.grayRate (t, y) • TauCeti.mpullback I (𝓘(ℝ, ℝ).prod I) (Prod.mk t) α.val y := by
+  ext v
+  -- A one-form is determined by its value on the single vector `v 0`.
+  have hv : v = ![v 0] := funext fun i ↦ by fin_cases i; rfl
+  have h := mlieDerivForm_grayVectorField_add hc y (v 0)
+  rw [hv]
+  simp only [coe_mpullback, coe_timeDeriv, Pi.add_apply, ContinuousAlternatingMap.add_apply,
+    ContinuousAlternatingMap.smul_apply, smul_eq_mul] at h ⊢
+  rw [add_comm, h]
+
 end TauCeti.SmoothForm
 
 namespace SymplecticGeometry
@@ -200,6 +252,14 @@ variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimen
   [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M]
   [IsManifold I ∞ M] [I.Boundaryless]
   {ξ : unitInterval → Π x : M, Submodule ℝ (TangentSpace I x)}
+
+omit [FiniteDimensional ℝ E] [IsManifold I ∞ M] [I.Boundaryless] in
+/-- A tangent vector at `p` lies in `D p` exactly when, read at a point `q` equal to `p`, it lies in
+`D q`. -/
+private theorem mem_iff_mem_of_eq (D : Π x : M, Submodule ℝ (TangentSpace I x)) {p q : M}
+    (h : p = q) (v : TangentSpace I p) : v ∈ D p ↔ (v : TangentSpace I q) ∈ D q := by
+  subst h
+  exact Iff.rfl
 
 /-- **Local Gray fields agree on overlaps.** Let `α` on `ℝ × U` and `α'` on `ℝ × U'` be local
 defining families over `ℝ` of a family `ξ` of distributions over `[0, 1]`, on the time intervals
@@ -350,6 +410,185 @@ theorem exists_grayField [T2Space M] [SigmaCompactSpace M] (hξ : IsContactFamil
   simp only [Manifold.tangentSpaceProdEquiv_apply]
   exact contMDiff_snd.comp (contMDiff_equivTangentBundleProd.comp s.contMDiff)
 
+
+section GrayDiffeotopy
+
+variable [T2Space M]
+
+/-- Transport along the flow of a Gray field, near one time. Let `Y` be a smooth field with the
+properties of `SymplecticGeometry.IsContactFamily.exists_grayField`. For `t` in `[0, 1]` near
+`t₀`, the flow of `Y` from `t₀` to `t` is defined at `y₀`, and its differential pulls `ξ_t` back
+to `ξ_{t₀}` at `y₀`. A local defining family `α` on `ℝ × U` near `(t₀, y₀)` has the restriction of
+`Y` to `U` as Gray field at the times between `t₀` and `t`, so along the trajectory of `y₀` the
+flow rescales `α`. -/
+private theorem eventually_comap_mfderiv_timeDependentFlowOf (hξ : IsContactFamily ξ)
+    {Y : ℝ → Π x : M, TangentSpace I x}
+    (hY : ContMDiff (𝓘(ℝ, ℝ).prod I) I.tangent ∞
+        (fun p : ℝ × M ↦ (⟨p.2, Y p.1 p.2⟩ : TangentBundle I M)))
+    (hgray : ∀ (t : ℝ), t ∈ unitInterval → ∀ (a b : ℝ), t ∈ Ioo a b → ∀ (U : Opens M) (x : M)
+        (hx : x ∈ U) (α : SmoothForm (𝓘(ℝ, ℝ).prod I) (ℝ × U) ℝ 1),
+        IsLocalDefiningFamily ξ U α a b →
+        Manifold.tangentSpaceOpenEquiv ⟨x, hx⟩ (α.grayVectorField t ⟨x, hx⟩) = Y t x)
+    (t₀ : unitInterval) (y₀ : M) :
+    ∀ᶠ t : ℝ in 𝓝 (t₀ : ℝ), ∀ ht : t ∈ unitInterval,
+      (((t₀ : ℝ), t), y₀) ∈ timeDependentFlowDomain Y ∧
+      (ξ ⟨t, ht⟩ (timeDependentFlowOf Y t₀ t y₀)).comap
+        (mfderiv I I (timeDependentFlowOf Y t₀ t) y₀).toLinearMap = ξ t₀ y₀ := by
+  obtain ⟨a, b, hab, U, hy₀, α, hα⟩ := hξ.exists_local_extension (t₀, y₀)
+  have hc := hα.isContactForm
+  -- The restriction of `Y` to `U`.
+  set XU : ℝ → (y : U) → TangentSpace I y :=
+    fun u y ↦ (Manifold.tangentSpaceOpenEquiv y).symm (Y u y)
+  have hXU : ContMDiff (𝓘(ℝ, ℝ).prod I) I.tangent ∞
+      (fun p : ℝ × U ↦ (⟨p.2, XU p.1 p.2⟩ : TangentBundle I U)) :=
+    Manifold.contMDiff_tangentSpaceOpenEquiv_symm (f := Prod.snd)
+      (hY.comp (contMDiff_fst.prodMk (contMDiff_subtypeVal.comp contMDiff_snd)))
+  have hXU₁ := hXU.of_le (m := 1) (by simp)
+  have hY₁ := hY.of_le (m := 1) (by simp)
+  set y₀' : U := ⟨y₀, hy₀⟩
+  have hdom : ∀ᶠ t : ℝ in 𝓝 (t₀ : ℝ), (((t₀ : ℝ), t), y₀') ∈ timeDependentFlowDomain XU :=
+    ((isOpen_timeDependentFlowDomain hXU₁).preimage (by fun_prop)).mem_nhds
+      (mem_timeDependentFlowDomain_self hXU₁ _ _)
+  filter_upwards [hdom, isOpen_Ioo.mem_nhds hab] with t hdom htab ht
+  obtain ⟨hdomM, hpt⟩ := timeDependentFlowOf_restrict_eq hY₁ hdom
+  refine ⟨hdomM, ?_⟩
+  -- The times between `t₀` and `t` lie in `(a, b) ∩ [0, 1]`, where `XU` is the Gray field of `α`.
+  have huIcc : uIcc (t₀ : ℝ) t ⊆ Ioo a b ∩ unitInterval :=
+    (ordConnected_Ioo.inter ordConnected_Icc).uIcc_subset ⟨hab, t₀.property⟩ ⟨htab, ht⟩
+  have hXUα (u : ℝ) (hu : u ∈ uIcc (t₀ : ℝ) t) : XU u = α.grayVectorField u := by
+    funext y
+    simp only [XU]
+    rw [← hgray u (huIcc hu).2 a b (huIcc hu).1 U y y.property α hα]
+    exact ContinuousLinearEquiv.symm_apply_apply _ _
+  have hdomU (u : ℝ) (hu : u ∈ uIcc (t₀ : ℝ) t) :
+      (((t₀ : ℝ), u), y₀') ∈ timeDependentFlowDomain XU :=
+    (ordConnected_setOf_mem_timeDependentFlowDomain _ _).uIcc_subset
+      (mem_timeDependentFlowDomain_self hXU₁ _ _) hdom hu
+  -- Along the trajectory of `y₀'`, the flow of `XU` rescales `α` (the name of the theorem does not
+  -- fit in an indented line).
+  have key :=
+mpullback_timeDependentFlowOf_mpullback_prodMk_apply_eq_exp_integral_smul_of_forall_mem_uIcc_of_mem
+      (X := XU) (α := α.val) (hXU.of_le (by simp)) hdom
+      (fun u _ ↦ (α.contMDiff.of_le (by simp)).contMDiffAt)
+      (c := fun u ↦ α.grayRate (u, timeDependentFlowOf XU t₀ u y₀'))
+      ((contMDiff_grayRate hc).continuous.comp_continuousOn (continuousOn_id.prodMk
+        fun u hu ↦ (hasMFDerivAt_timeDependentFlowOf hXU₁ (hdomU u hu)).continuousAt
+          |>.continuousWithinAt))
+      (fun u hu ↦ by
+        rw [hXUα u hu]
+        exact mpullback_prodMk_mlieDerivForm_add_mlieDerivForm_grayVectorField_apply (hc u) _)
+  -- The rescaling identity, evaluated on a vector at `y₀'`, compares the kernels.
+  have hker (v : TangentSpace I y₀') :
+      mfderiv I I (timeDependentFlowOf XU t₀ t) y₀' v ∈
+          (mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) α).kerDistribution
+            (timeDependentFlowOf XU t₀ t y₀') ↔
+        v ∈ (mpullback (Prod.mk (t₀ : ℝ)) (contMDiff_const.prodMk contMDiff_id) α).kerDistribution
+          y₀' := by
+    have hk := congrArg (fun A ↦ A ![v]) key
+    have hv : (fun i ↦ mfderiv I I (timeDependentFlowOf XU t₀ t) y₀' (![v] i)) =
+        ![mfderiv I I (timeDependentFlowOf XU t₀ t) y₀' v] :=
+      funext fun i ↦ by fin_cases i; rfl
+    simp only [TauCeti.mpullback_apply (f := timeDependentFlowOf XU t₀ t), hv,
+      ContinuousAlternatingMap.smul_apply, smul_eq_mul] at hk
+    rw [mem_kerDistribution, mem_kerDistribution, coe_mpullback, coe_mpullback, hk,
+      mul_eq_zero_iff_left (Real.exp_pos _).ne']
+  -- Read in `M`, through the flow of `Y`.
+  ext w
+  have hw := tangentSpaceOpenEquiv_mfderiv_timeDependentFlowOf_restrict hY₁ hdom
+    ((Manifold.tangentSpaceOpenEquiv y₀').symm w)
+  rw [ContinuousLinearEquiv.apply_symm_apply] at hw
+  rw [Submodule.mem_comap, ContinuousLinearMap.coe_coe, ← hw]
+  refine (mem_iff_mem_of_eq (ξ ⟨t, ht⟩) hpt _).symm.trans ?_
+  exact ((hα.mem_kerDistribution_iff ⟨htab, ht⟩ _ _).symm.trans
+    (hker _)).trans ((hα.mem_kerDistribution_iff ⟨hab, t₀.property⟩ y₀' _).trans
+      (by rw [ContinuousLinearEquiv.apply_symm_apply]))
+
+variable [CompactSpace M]
+
+/-- **The Gray isotopy** of a smooth family `ξ` of contact structures over `[0, 1]` on a compact
+manifold without boundary: the diffeotopy `ψ_t` that runs, from time `0`, the Gray field `Y` of
+`ξ` chosen by `SymplecticGeometry.IsContactFamily.exists_grayField`. Its suspension is complete
+since `M` is compact. It transports `ξ`
+(`SymplecticGeometry.IsContactFamily.transports_grayDiffeotopy`) and its velocity lies in `ξ`
+(`SymplecticGeometry.IsContactFamily.velocity_grayDiffeotopy_mem`).
+
+The field `Y` is a choice, determined only on `[0, 1] × M`. -/
+noncomputable def grayDiffeotopy (hξ : IsContactFamily ξ) : Diffeotopy I ∞ M :=
+  timeDependentFlowDiffeotopy le_top hξ.exists_grayField.choose_spec.1
+    (isCompleteVectorField_timeDependentSuspensionField
+      (hξ.exists_grayField.choose_spec.1.of_le (by simp)) isCompact_univ
+      fun _ _ h ↦ absurd (mem_univ _) h)
+
+/-- The Gray isotopy at time `t` is the time-dependent flow from time `0` to time `t` of a smooth
+field `Y` with the properties of `SymplecticGeometry.IsContactFamily.exists_grayField`: in `ξ` at
+the times of `[0, 1]`, where it is the Gray vector field of every local defining family. -/
+theorem exists_grayField_grayDiffeotopy_apply (hξ : IsContactFamily ξ) :
+    ∃ Y : ℝ → Π x : M, TangentSpace I x,
+      ContMDiff (𝓘(ℝ, ℝ).prod I) I.tangent ∞
+        (fun p : ℝ × M ↦ (⟨p.2, Y p.1 p.2⟩ : TangentBundle I M)) ∧
+      (∀ (t : ℝ) (ht : t ∈ unitInterval) (x : M), Y t x ∈ ξ ⟨t, ht⟩ x) ∧
+      (∀ (t : ℝ), t ∈ unitInterval → ∀ (a b : ℝ), t ∈ Ioo a b → ∀ (U : Opens M) (x : M)
+        (hx : x ∈ U) (α : SmoothForm (𝓘(ℝ, ℝ).prod I) (ℝ × U) ℝ 1),
+        IsLocalDefiningFamily ξ U α a b →
+        Manifold.tangentSpaceOpenEquiv ⟨x, hx⟩ (α.grayVectorField t ⟨x, hx⟩) = Y t x) ∧
+      ∀ p : unitInterval × M, hξ.grayDiffeotopy p = timeDependentFlowOf Y 0 p.1 p.2 :=
+  ⟨_, hξ.exists_grayField.choose_spec.1, hξ.exists_grayField.choose_spec.2.1,
+    hξ.exists_grayField.choose_spec.2.2, timeDependentFlowDiffeotopy_apply _ _ _⟩
+
+/-- **The Gray isotopy transports the family**: `ψ_t^* ξ_t = ξ_0` for every `t ∈ [0, 1]`. -/
+theorem transports_grayDiffeotopy (hξ : IsContactFamily ξ) :
+    hξ.grayDiffeotopy.Transports ξ := by
+  obtain ⟨Y, hY, -, hgray, happly⟩ := hξ.exists_grayField_grayDiffeotopy_apply
+  have hY₁ := hY.of_le (m := 1) (by simp)
+  have hc : IsCompleteVectorField (timeDependentSuspensionField Y) :=
+    isCompleteVectorField_timeDependentSuspensionField hY₁ isCompact_univ
+      fun _ _ h ↦ absurd (mem_univ _) h
+  have hdom (s t : ℝ) (x : M) : ((s, t), x) ∈ timeDependentFlowDomain Y :=
+    (timeDependentFlowDomain_eq_univ hc).symm ▸ mem_univ _
+  refine Diffeotopy.transports_iff.2 fun t x ↦ ?_
+  -- The pullback of `ξ_s` by the flow from `0` to `s`, at `x`, as a function of `s`. It is locally
+  -- constant, by the cocycle property of the flow and the transport near each time.
+  let g : unitInterval → Submodule ℝ (TangentSpace I x) := fun s ↦
+    (ξ s (timeDependentFlowOf Y 0 s x)).comap
+      (mfderiv I I (timeDependentFlowOf Y 0 s) x).toLinearMap
+  have hg : IsLocallyConstant g := by
+    rw [IsLocallyConstant.iff_eventually_eq]
+    intro s₀
+    filter_upwards [(continuous_subtypeVal.tendsto s₀).eventually
+      (eventually_comap_mfderiv_timeDependentFlowOf hξ hY hgray s₀
+        (timeDependentFlowOf Y 0 s₀ x))] with s hs
+    ext v
+    have hd := congrArg (· v)
+      (mfderiv_timeDependentFlowOf_trans_of_mem hY₁ (hdom 0 s₀ x) (hdom s₀ s _))
+    simp only [g, Submodule.mem_comap, ContinuousLinearMap.coe_coe] at hd ⊢
+    rw [hd, mem_iff_mem_of_eq (ξ s) (timeDependentFlowOf_trans hc hY₁ 0 s₀ s x).symm,
+      ← (hs s.property).2]
+    -- `⟨(s : ℝ), s.2⟩` is `s`.
+    exact Iff.rfl
+  have h0 : g 0 = ξ 0 x := by
+    ext v
+    simp only [g, Set.Icc.coe_zero, mfderiv_timeDependentFlowOf_self, ContinuousLinearMap.coe_id]
+    exact mem_iff_mem_of_eq (ξ 0) (timeDependentFlowOf_self Y 0 x) v
+  have hslice : ⇑(hξ.grayDiffeotopy.timeSlice t) = timeDependentFlowOf Y 0 t :=
+    funext fun y ↦ (Diffeotopy.timeSlice_apply _ t y).trans (happly (t, y))
+  ext v
+  rw [← h0, hg.apply_eq_of_preconnectedSpace 0 t]
+  simp only [g]
+  refine (mem_iff_mem_of_eq (ξ t) (happly (t, x)).symm _).trans ?_
+  rw [← hslice]
+  -- Membership in a `comap` is membership of the image.
+  exact Iff.rfl
+
+/-- **The velocity of the Gray isotopy lies in the family**: the time derivative of `ψ_t` at `x`
+lies in `ξ_t` at `ψ_t x`, for every `t ∈ [0, 1]`, the ends included. -/
+theorem velocity_grayDiffeotopy_mem (hξ : IsContactFamily ξ) (t : unitInterval) (x : M) :
+    mfderiv (I.prod (𝓡∂ 1)) I hξ.grayDiffeotopy.cylinderMap (x, t)
+      ((0 : E), (1 : TangentSpace (𝓡∂ 1) t)) ∈ ξ t (hξ.grayDiffeotopy (t, x)) := by
+  rw [← Diffeotopy.velocity_apply_apply, grayDiffeotopy,
+    Diffeotopy.velocity_timeDependentFlowDiffeotopy]
+  exact hξ.exists_grayField.choose_spec.2.1 t t.property _
+
+end GrayDiffeotopy
 end IsContactFamily
 
 end SymplecticGeometry
