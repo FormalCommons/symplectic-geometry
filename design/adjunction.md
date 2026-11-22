@@ -44,8 +44,15 @@ pinned versions, as for `DESIGN.md`. Tau Ceti paths are relative to
   b.orientation = o.orientationAt c`: every frame $(u, ju)$, with $j$ the
   restriction of $J$, is positive. This is the form in which Tau Ceti's
   `Geometry/Symplectic/Manifold/AlmostComplex/Orientation.lean` writes "oriented
-  by $j$" (its `ho`), with $j$ read through $df$, so that no almost complex
-  structure on `M` has to be built and *Complex submanifolds* is not needed.
+  by $j$" (its `ho`), with $j$ read through $df$, so that the milestone and
+  its lemmas need no almost complex structure on `M`. Only the pointwise
+  `shortExact_orientationAt_normalSpace` takes its hypothesis through the
+  restriction `J.restrict f hJ` of *Complex submanifolds*, so
+  `SelfIntersection.lean` imports its merged
+  `Geometry/Symplectic/Manifold/AlmostComplex/Submanifold.lean`. That lemma
+  holds for an embedding `f : SmoothEmbedding I' I ∞ N X` of any dimension
+  `k` (`hk : finrank ℝ E' = k`); the surface is the case `k = 2`, where its
+  callers convert `ho` with `orientation_eq_of_apply_one_eq`.
 - **Orientation of the ambient manifold and of the normal bundle.** The
   formula does not mention the orientation of $X$; the page uses it only to
   orient the normal bundle, so that $T\Sigma\oplus\nu$ and $TX|_\Sigma$
@@ -296,7 +303,10 @@ Namespace `TauCeti.SmoothEmbedding`, for a surface `M` in `X` with
   `Bundle.chernNumber oₕ ℂ ν_J`, by `firstChernClass_eq_complexEulerClass`.
 - `selfIntersectionNumber_neg_orientation`: reversing `o` negates the number, from
   `chernNumber_neg_orientation`.
-- `shortExact_orientationAt_normalSpace`: under `ho` at a point `c`, Tau
+- `shortExact_orientationAt_normalSpace`: for an embedding `f` of a manifold
+  `N` of any real dimension `k` whose tangent spaces `J` preserves, if
+  `o.orientationAt c` is the
+  orientation of `(J.restrict f hJ).almostComplexStructureAt c`, reindexed, Tau
   Ceti's `Orientation.shortExact` of the sequence
   $0\to T_c\Sigma\to T_{f c}X\to\nu_c\to 0$ (the differential and
   `normalClass`, exact by `exact_mfderiv_normalClass` of
@@ -304,11 +314,10 @@ Namespace `TauCeti.SmoothEmbedding`, for a surface `M` in `X` with
   `o.orientationAt c` and the complex orientation of $(\nu_c, J_\nu)$ to the
   complex orientation of $(T_{f c}X, J)$. No splitting is chosen. The complex
   orientations are `AlmostComplexStructure.orientation` of
-  `LinearAlgebra/ComplexStructure/Orientation.lean` (below); its
-  `shortExact_orientation` is the statement for the tangent image, and `ho`
-  says, through `map_eq_orientation_of_apply_one_eq`, that $df$ carries
-  `o.orientationAt c` to the orientation of the restriction of $J$ to the
-  tangent image (Tau Ceti's `AlmostComplexStructure.restrict`).
+  `LinearAlgebra/ComplexStructure/Orientation.lean` (below), and the lemma
+  is its `shortExact_orientation`, the differential being complex linear by
+  `isComplexLinearMap_mfderiv` and the normal class map by
+  `isComplexLinearMap_normalClass`.
 
 ### `LinearAlgebra/ComplexStructure/Orientation.lean`
 
