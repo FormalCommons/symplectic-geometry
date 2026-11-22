@@ -89,7 +89,8 @@ theorem alternatizeUncurryFin_eq_sum_coord_smulRight (b : Module.Basis ι 𝕜 E
       LinearMap.coe_toContinuousLinearMap', Module.Basis.coord_apply]
     simp_rw [← map_smul, ← _root_.map_sum, b.sum_repr]
   conv_lhs => rw [hf]
-  exact _root_.map_sum (alternatizeUncurryFinCLM 𝕜 E F) _ _
+  rw [← alternatizeUncurryFinCLM_apply, _root_.map_sum]
+  simp only [alternatizeUncurryFinCLM_apply]
 
 end ContinuousAlternatingMap
 

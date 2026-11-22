@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import Mathlib.Geometry.Manifold.PartitionOfUnity
 public import TauCeti.Geometry.Manifold.DifferentialForm.AlmostComplexType
 public import TauCeti.Geometry.Manifold.DifferentialForm.ExtDeriv
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
@@ -45,7 +46,12 @@ which is meaningful on `ψ.target`.
   reading of a smooth form `α` in `ψ`, scaled by `χ ∘ ψ.symm` for a cutoff `χ` on `M`, on
   `ψ.target`, and zero elsewhere. It is continuous with compact support when `χ` is continuous
   with compact support in `ψ.source` (`TauCeti.SmoothForm.continuous_localize`,
-  `TauCeti.SmoothForm.hasCompactSupport_localize`).
+  `TauCeti.SmoothForm.hasCompactSupport_localize`), and smooth when `χ` is smooth
+  (`TauCeti.SmoothForm.contDiff_localize`).
+* `TauCeti.SmoothForm.sum_extendByZeroAlong_localize`: the two constructions are inverse to each
+  other up to the cutoff (`TauCeti.SmoothForm.extendByZeroAlong_localize_apply`), so a smooth form
+  is the sum of the extensions by zero of its localizations to finitely many charts, with a smooth
+  partition of unity subordinate to their sources as cutoffs.
 * `TauCeti.SmoothForm.contDiffOn_fderiv_mpullback_symm_apply`: the partial derivatives of the
   reading of a smooth form in `ψ` are smooth on `ψ.target`.
 
@@ -189,6 +195,19 @@ theorem extendByZeroAlong_smul (c : ℝ) :
   exact congrArg (ψ.source.piecewise · (0 : RoughForm I M F k))
     (mpullback_smul (I := I) (I' := 𝓘(ℝ, E)) ψ c (a : RoughForm 𝓘(ℝ, E) E F k))
 
+/-- Extension by zero along `ψ` commutes with negation. -/
+@[simp]
+theorem extendByZeroAlong_neg :
+    extendByZeroAlong ψ (-a) = (-extendByZeroAlong ψ a : RoughForm I M F k) := by
+  rw [← neg_one_smul ℝ a, extendByZeroAlong_smul, neg_one_smul]
+
+/-- Extension by zero along `ψ` commutes with subtraction. -/
+@[simp]
+theorem extendByZeroAlong_sub (b : E → E [⋀^Fin k]→L[ℝ] F) :
+    extendByZeroAlong ψ (a - b) =
+      (extendByZeroAlong ψ a - extendByZeroAlong ψ b : RoughForm I M F k) := by
+  rw [sub_eq_add_neg, extendByZeroAlong_add, extendByZeroAlong_neg, ← sub_eq_add_neg]
+
 /-- The extension by zero of `a` along `ψ` vanishes outside the image under `ψ.symm` of the
 support of `a`. -/
 theorem extendByZeroAlong_apply_of_notMem_image
@@ -278,6 +297,31 @@ theorem SmoothForm.coe_extendByZeroAlong [T2Space M] [IsManifold I ∞ M]
     (hs : tsupport a ⊆ ψ.target) :
     (SmoothForm.extendByZeroAlong ψ a ha hc hs).val = RoughForm.extendByZeroAlong ψ a :=
   (rfl)
+
+section SmoothForm
+
+variable [T2Space M] [IsManifold I ∞ M] {ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞}
+  {a b : E → E [⋀^Fin k]→L[ℝ] F}
+
+/-- Extension by zero along `ψ` of smooth forms is additive. -/
+theorem SmoothForm.extendByZeroAlong_add (ha : ContDiff ℝ ∞ a) (hac : HasCompactSupport a)
+    (has : tsupport a ⊆ ψ.target) (hb : ContDiff ℝ ∞ b) (hbc : HasCompactSupport b)
+    (hbs : tsupport b ⊆ ψ.target) (hab : ContDiff ℝ ∞ (a + b))
+    (habc : HasCompactSupport (a + b)) (habs : tsupport (a + b) ⊆ ψ.target) :
+    SmoothForm.extendByZeroAlong ψ (a + b) hab habc habs =
+      SmoothForm.extendByZeroAlong ψ a ha hac has + SmoothForm.extendByZeroAlong ψ b hb hbc hbs :=
+  Subtype.ext (RoughForm.extendByZeroAlong_add a b)
+
+/-- Extension by zero along `ψ` of smooth forms commutes with subtraction. -/
+theorem SmoothForm.extendByZeroAlong_sub (ha : ContDiff ℝ ∞ a) (hac : HasCompactSupport a)
+    (has : tsupport a ⊆ ψ.target) (hb : ContDiff ℝ ∞ b) (hbc : HasCompactSupport b)
+    (hbs : tsupport b ⊆ ψ.target) (hab : ContDiff ℝ ∞ (a - b))
+    (habc : HasCompactSupport (a - b)) (habs : tsupport (a - b) ⊆ ψ.target) :
+    SmoothForm.extendByZeroAlong ψ (a - b) hab habc habs =
+      SmoothForm.extendByZeroAlong ψ a ha hac has - SmoothForm.extendByZeroAlong ψ b hb hbc hbs :=
+  Subtype.ext (RoughForm.extendByZeroAlong_sub a b)
+
+end SmoothForm
 
 end ExtendByZero
 
@@ -386,6 +430,60 @@ theorem continuous_localize (hχc : Continuous χ) (hK : IsCompact (tsupport χ)
         fun y hy ↦ localize_of_mem _ _ _ hy
   exact hon.continuous_of_tsupport_subset ψ.open_target
     ((α.tsupport_localize_subset ψ hK hχ).trans (ψ.mapsTo.mono_left hχ).image_subset)
+
+/-- The localization of a smooth form with a smooth cutoff whose support is compact and lies in
+the source of the chart is smooth. -/
+theorem contDiff_localize (hχc : ContMDiff I 𝓘(ℝ) ∞ χ) (hK : IsCompact (tsupport χ))
+    (hχ : tsupport χ ⊆ ψ.source) : ContDiff ℝ ∞ (α.localize ψ χ) := by
+  rw [contDiff_iff_contDiffAt]
+  intro y
+  by_cases hy : y ∈ ψ.target
+  · have hon :=
+      (contMDiffOn_iff_contDiffOn.1 (hχc.comp_contMDiffOn ψ.symm.contMDiffOn)).smul
+        (α.contDiffOn_mpullback ψ.open_target ψ.symm.contMDiffOn)
+    refine (hon.contDiffAt (ψ.open_target.mem_nhds hy)).congr_of_eventuallyEq ?_
+    filter_upwards [ψ.open_target.mem_nhds hy] with z hz
+    exact localize_of_mem _ _ _ hz
+  · have hK' : _root_.IsClosed (ψ '' tsupport χ) :=
+      (hK.image_of_continuousOn (ψ.contMDiffOn.continuousOn.mono hχ)).isClosed
+    have hyK : y ∉ ψ '' tsupport χ := fun h ↦ hy ((ψ.mapsTo.mono_left hχ).image_subset h)
+    refine (contDiffAt_const (c := (0 : E [⋀^Fin k]→L[ℝ] F))).congr_of_eventuallyEq ?_
+    filter_upwards [hK'.isOpen_compl.mem_nhds hyK] with z hz
+    exact localize_apply_eq_zero_of_notMem _ _ _ hz
+
+/-- Extending the localization of `α` by zero along the chart gives back `χ • α`, when the
+support of the cutoff `χ` lies in the source of the chart. -/
+theorem extendByZeroAlong_localize_apply (hχ : tsupport χ ⊆ ψ.source) (x : M) :
+    RoughForm.extendByZeroAlong ψ (α.localize ψ χ) x = χ x • α.val x := by
+  by_cases hx : x ∈ ψ.source
+  · rw [RoughForm.extendByZeroAlong_apply_of_mem _ hx]
+    ext v
+    have h := congrArg (fun f ↦ f v) (ψ.mpullback_mpullback_symm_apply (by simp) α.val hx)
+    simp only [TauCeti.mpullback_apply] at h
+    refine (TauCeti.mpullback_apply (I := I) (I' := 𝓘(ℝ, E)) ψ
+      (α.localize ψ χ : RoughForm 𝓘(ℝ, E) E F k) x v).trans ?_
+    refine (localize_apply_of_mem _ _ _ (ψ.map_source hx) _).trans ?_
+    rw [h]
+    exact (congrArg (· • α.val x v) (congrArg χ (ψ.left_inv hx))).trans
+      (ContinuousAlternatingMap.smul_apply (R' := ℝ) _ _ v).symm
+  · rw [RoughForm.extendByZeroAlong_apply_of_notMem _ hx,
+      image_eq_zero_of_notMem_tsupport (fun h ↦ hx (hχ h)), zero_smul]
+
+/-- A smooth form is the sum of the extensions by zero of its localizations to finitely many
+charts, with cutoffs a smooth partition of unity subordinate to their sources. -/
+theorem sum_extendByZeroAlong_localize [T2Space M] {ι : Type*} [Fintype ι]
+    (ψ : ι → PartialDiffeomorph I 𝓘(ℝ, E) M E ∞) (ρ : SmoothPartitionOfUnity ι I M univ)
+    (hρ : ρ.IsSubordinate fun i ↦ (ψ i).source) (hK : ∀ i, IsCompact (tsupport (ρ i))) :
+    ∑ i, SmoothForm.extendByZeroAlong (ψ i) (α.localize (ψ i) (ρ i))
+      (α.contDiff_localize (ψ i) (ρ i).contMDiff (hK i) (hρ i))
+      (α.hasCompactSupport_localize (ψ i) (hK i) (hρ i))
+      ((α.tsupport_localize_subset (ψ i) (hK i) (hρ i)).trans
+        ((ψ i).mapsTo.mono_left (hρ i)).image_subset) = α := by
+  refine Subtype.ext (funext fun x ↦ ?_)
+  rw [Submodule.coe_sum, Finset.sum_apply]
+  simp only [SmoothForm.coe_extendByZeroAlong]
+  rw [Finset.sum_congr rfl fun i _ ↦ extendByZeroAlong_localize_apply (ψ i) α (hρ i) x,
+    ← Finset.sum_smul, ← finsum_eq_sum_of_fintype, ρ.sum_eq_one (mem_univ x), one_smul]
 
 end Localize
 

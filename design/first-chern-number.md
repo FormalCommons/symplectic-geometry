@@ -785,11 +785,11 @@ issues, in an order where each issue's blockers come before it.
    for the evenness: Tau Ceti's
    `TopCat.even_finrank_singularHomology_of_injective_singularCapLinearMap`,
    given injectivity of the cap product with the fundamental class in degree
-   one. `AlgebraicTopology/Cohomology/Cap/RationalCoefficients.lean` reduces
+   one. `AlgebraicTopology/Cohomology/Cap/RationalCoefficients.lean` derives
    it, for the image of the fundamental class under
-   `TopCat.singularHomologyIntToRat`, to injectivity of the duality map with
+   `TopCat.singularHomologyIntToRat`, from bijectivity of the duality map with
    values in `ℚ`
-   (`TauCeti.HomologicalOrientation.injective_singularCapLinearMap_of_injective_dualityMap`).
+   (`TauCeti.HomologicalOrientation.bijective_singularCapLinearMap_fundamentalClass`).
    It uses two new general files:
    `AlgebraicTopology/Cohomology/Cap/Basic.lean`, the singular cap product
    of a simplex along the unitors, and
@@ -1251,7 +1251,12 @@ issues, in an order where each issue's blockers come before it.
    surface sits in it as an open subset) and the data
    `SymplecticGeometry.capDiscs.coordinateDisc`, the caps as coordinate
    discs. Blocked by the issue of *Symplectic vector bundles*
-   that fixes that representation, and by 5. The gluing uses polar
+   that fixes that representation, and by 5. The tangent orientation of
+   a restricted orientation `TauCeti.Manifold.Orientation.restrict` at a
+   point of an open subset is that of the ambient orientation there
+   (`TauCeti.Manifold.Orientation.orientationAt_restrict`), in
+   `Geometry/Manifold/Orientation/OpenSubset.lean`, the library's
+   counterpart of Tau Ceti's file of that name. The gluing uses polar
    coordinates on the circle,
    `AddCircle.isLocalDiffeomorphAt_ofReal_mul_toCircle`, in
    `Geometry/Manifold/Instances/AddCircle.lean`. The orientation of the
