@@ -816,6 +816,9 @@ Expected size: 650 lines, in two issues (L1 and L2).
   `TauCeti.Manifold.prodVectorField_apply` of
   `Geometry/Manifold/VectorField/Prod.lean`, which imports only Tau Ceti
   (for `Geometry/Manifold/DifferentialForm/LieDeriv.lean`).
+- *Isotopy extension*: `ContMDiff.contMDiffOn_prod_opens_of_eq` of
+  `Geometry/Manifold/ContMDiff/Opens.lean`, which imports only Mathlib and
+  is merged (for `Geometry/Manifold/VectorBundle/Tangent/Opens.lean`).
 - *Cotangent bundles* (#470) only through Tau Ceti: the zero section and
   `TauCeti.Bundle.zeroSectionTangentEquiv`. The part does not need the
   library's `Cotangent/Bundle/ZeroSection.lean`.
