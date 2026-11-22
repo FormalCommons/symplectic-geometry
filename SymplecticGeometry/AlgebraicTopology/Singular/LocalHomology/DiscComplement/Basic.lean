@@ -32,7 +32,7 @@ images `φ i (B(0, 1 + δᵢ))` are pairwise disjoint. They exist because the cl
 finitely many pairwise disjoint compact sets, so they have pairwise disjoint open neighbourhoods,
 and each of these contains the image of a ball slightly larger than the unit ball. The map
 `(z, t) ↦ (1 + δᵢ t) z` is a homeomorphism of `S¹ × [0, 1)` onto the annulus
-(`homeomorphUnitSphereProdIcoAnnulus`); the analogous collar of the unit sphere in the closed unit
+(`homeomorphUnitSphereProdIco`); the analogous collar of the unit sphere in the closed unit
 ball is `Metric.isCollared_inclusion_sphere_closedBall`. The collars of the
 different discs are glued with `isOpenMap_prod_of_discrete_left`.
 
@@ -166,12 +166,19 @@ theorem range_inclusion_discComplementInterior (hφ : Pairwise (Disjoint on fun 
 
 /-! ### The collar of the boundary circles -/
 
+/-- For `δ > 0`, the shell `(x - 1) / δ ∈ [0, 1)` of `homeomorphUnitSphereProdIco` is the
+annulus `1 ≤ x < 1 + δ`. -/
+private lemma div_mem_Ico_iff {δ x : ℝ} (hδ : 0 < δ) :
+    (x - 1) / δ ∈ Ico (0 : ℝ) 1 ↔ 1 ≤ x ∧ x < 1 + δ := by
+  rw [mem_Ico, le_div_iff₀ hδ, zero_mul, div_lt_one hδ, sub_nonneg, sub_lt_iff_lt_add']
+
 /-- The point `(1 + δ t) z` of the ball of radius `2`, for `z` on the unit circle, `t ∈ [0, 1)`
-and `δ ∈ (0, 1)`: the homeomorphism `homeomorphUnitSphereProdIcoAnnulus`, read in the ball. -/
+and `δ ∈ (0, 1)`: the homeomorphism `homeomorphUnitSphereProdIco`, read in the ball. -/
 private def annulusPoint {δ : ℝ} (hδ : δ ∈ Ioo (0 : ℝ) 1) (q : Circle × Ico (0 : ℝ) 1) :
     CoordinateDisc.ball :=
-  let w := homeomorphUnitSphereProdIcoAnnulus hδ.1 (Circle.homeomorphSphere q.1, q.2)
-  ⟨w, CoordinateDisc.mem_ball_iff.2 (by linarith [w.property.2, hδ.2])⟩
+  let w := homeomorphUnitSphereProdIco (by linarith [hδ.1]) hδ.1.ne'
+    (Circle.homeomorphSphere q.1, q.2)
+  ⟨w, CoordinateDisc.mem_ball_iff.2 (by linarith [((div_mem_Ico_iff hδ.1).1 w.property).2, hδ.2])⟩
 
 private lemma coe_annulusPoint {δ : ℝ} (hδ : δ ∈ Ioo (0 : ℝ) 1) (q : Circle × Ico (0 : ℝ) 1) :
     (annulusPoint hδ q : ℂ) = (1 + δ * q.2) • (q.1 : ℂ) := by
@@ -180,8 +187,9 @@ private lemma coe_annulusPoint {δ : ℝ} (hδ : δ ∈ Ioo (0 : ℝ) 1) (q : Ci
 private lemma isEmbedding_annulusPoint {δ : ℝ} (hδ : δ ∈ Ioo (0 : ℝ) 1) :
     IsEmbedding (annulusPoint hδ) := by
   refine IsEmbedding.subtypeVal.of_comp_iff.1 ?_
-  convert IsEmbedding.subtypeVal.comp ((homeomorphUnitSphereProdIcoAnnulus hδ.1).isEmbedding.comp
-    (Circle.homeomorphSphere.isEmbedding.prodMap IsEmbedding.id)) using 1
+  convert IsEmbedding.subtypeVal.comp
+    ((homeomorphUnitSphereProdIco (by linarith [hδ.1]) hδ.1.ne').isEmbedding.comp
+      (Circle.homeomorphSphere.isEmbedding.prodMap IsEmbedding.id)) using 1
   ext q
   simp [coe_annulusPoint, Circle.coe_homeomorphSphere_apply]
 
@@ -190,9 +198,11 @@ private lemma range_annulusPoint {δ : ℝ} (hδ : δ ∈ Ioo (0 : ℝ) 1) :
   ext w
   constructor
   · rintro ⟨q, rfl⟩
-    exact (homeomorphUnitSphereProdIcoAnnulus hδ.1 (Circle.homeomorphSphere q.1, q.2)).property
+    exact (div_mem_Ico_iff hδ.1).1 (homeomorphUnitSphereProdIco (c := δ) (by linarith [hδ.1])
+      hδ.1.ne' (Circle.homeomorphSphere q.1, q.2)).property
   · intro hw
-    obtain ⟨p, hp⟩ := (homeomorphUnitSphereProdIcoAnnulus hδ.1).surjective ⟨(w : ℂ), hw⟩
+    obtain ⟨p, hp⟩ := (homeomorphUnitSphereProdIco (by linarith [hδ.1]) hδ.1.ne').surjective
+      ⟨(w : ℂ), (div_mem_Ico_iff hδ.1).2 hw⟩
     exact ⟨(Circle.homeomorphSphere.symm p.1, p.2), Subtype.ext (by
       simpa [annulusPoint] using congrArg Subtype.val hp)⟩
 
