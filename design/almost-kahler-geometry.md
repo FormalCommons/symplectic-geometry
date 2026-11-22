@@ -227,7 +227,7 @@ whose steps the proof follows for scalar forms.
 - `LinearMap.apply_left_eq_apply_right_of_cyclic`: for a commutative ring
   `R`, `R`-modules `V` and `W` with `[IsAddTorsionFree W]`,
   `j : V →ₗ[R] V` with `j ∘ₗ j = -LinearMap.id` and
-  `α : V →ₗ[R] V →ₗ[R] V →ₗ[R] W` such that `α u v w = -α u w v`,
+  `α : V →ₗ[R] V →ₗ[R] V →ₗ[R] W` such that
   `α u (j v) w = α u v (j w)` and `α u v w + α v w u + α w u v = 0` for all
   `u v w`, it holds that `α (j v) w z = α v w (j z)` for all `v w z`.
   Proof: $D(v,w,z)=\alpha(jv,w,z)-\alpha(v,w,jz)$ is invariant under cyclic
@@ -266,13 +266,14 @@ Variables: `[RiemannianBundle (fun x : M ↦ TangentSpace I x)]`,
 - `hom_apply_eq_neg_comp (hJ) (hcov : cov.IsLeviCivitaConnection)
   (hσ : σ.IsClosed) x v : D (J x v) = -(J.toEndomorphism x).comp (D v)`:
   the fourth identity, from `LinearMap.apply_left_eq_apply_right_of_cyclic`
-  for $\alpha(u,v,w)=\langle(\nabla_uJ)v,w\rangle$, whose hypotheses are the second
-  identity, the first identity (`Covariant.lean`) with the skew-adjointness
+  for $\alpha(u,v,w)=\langle(\nabla_uJ)v,w\rangle$, whose hypotheses are
+  the first identity (`Covariant.lean`) with the skew-adjointness
   of $J$, and the third identity with $d\sigma=0$.
 
 In the namespace `TauCeti.SmoothTwoForm`, the milestone:
 
-- `Compatible.leviCivita_hom_toEndomorphism (hJ : σ.Compatible J)`:
+- `Compatible.leviCivita_hom_comp_add_and_inner_add_and_mextDeriv_and_apply
+  (hJ : σ.Compatible J)`, with `D` written out in full rather than bound by `let`:
   ```
   letI : RiemannianBundle (fun x : M ↦ TangentSpace I x) := ⟨hJ.metric.toRiemannianMetric⟩
   ∀ x (u v w : TangentSpace I x),
@@ -363,7 +364,7 @@ Issue 1 can start at once.
 ## References
 
 * [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*, 3rd ed.][McDuffSalamon2017],
-  Lemma 4.1.14 (equations (4.1.9)–(4.1.13)), Proposition 4.2.1 and
+  Lemma 4.1.14 (equations (4.1.9)–(4.1.12)), Proposition 4.2.1 and
   equation (4.2.4), Lemma 4.2.5.
 * [A. Moroianu, *Lectures on Kähler Geometry*][Moroianu2007], Lemma 5.4
   and Theorem 5.5.
