@@ -97,7 +97,8 @@ reduction to `Z = i𝟙`.
 
 ## References
 
-* [D. McDuff, D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017], §2.5
+* [D. McDuff, D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017], §2.5,
+  Example 4.3.6 and Exercise 4.3.7.
 * C. L. Siegel, *Symplectic geometry*, Amer. J. Math. 65 (1943), 1–86, for the metric on the
   Siegel upper half space.
 -/
