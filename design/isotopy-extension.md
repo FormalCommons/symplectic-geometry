@@ -203,6 +203,7 @@ Further choices of this design:
 | `AlgebraicTopology/Singular/NDRPair.lean` | the homological shrinking lemma for the subset of an NDR pair |
 | `Analysis/CStarAlgebra/Exponential.lean` | smoothness of `t ↦ selfAdjoint.expUnitary (t • a)` (named like Mathlib's file) |
 | `Analysis/Matrix/SymplecticGroup/Connected.lean` | smooth paths in `Matrix.symplecticGroup` (named like Tau Ceti's file) |
+| `Analysis/Matrix/L2OpNorm.lean` | `ContDiff` of matrix-valued maps under the ℓ² operator norm, entrywise and against the entrywise norm (named like Tau Ceti's `Analysis/Matrix/L2OpNorm.lean`) |
 | `Analysis/SpecialFunctions/ContinuousFunctionalCalculus/ExpLog.lean` | smoothness of `t ↦ a ^ t` for strictly positive `a` (named like Tau Ceti's file) |
 | `Geometry/Manifold/SmoothEmbedding/Neighborhood.lean` | embeddings near a compact set, uniformly in a compact parameter |
 | `Geometry/Manifold/SmoothIsotopy/Extension.lean` | time extension of an isotopy past its ends, and isotopy extension at every time (named like Tau Ceti's file) |
@@ -852,7 +853,8 @@ this design already follows. `Ball/Isotopy.lean` cites
   `FiniteDimensional ℝ (deRhamCohomology I M k)` for a compact boundaryless
   `M`, which `Geometry/Manifold/DeRham/SmoothFamily/GoodCover.lean` derives
   from `hasFiniteGoodCover_of_compactSpace` (used by
-  `Cohomological/Primitive.lean`). The part uses neither the splittings and
+  `Cohomological/Primitive.lean`, which also imports `Geometry/Manifold/DeRham/Map.lean`
+  for `TauCeti.SmoothForm.mpullback_mem_closedForms`). The part uses neither the splittings and
   `contMDiff_repr_mk_of_hasFiniteGoodCover` nor the bridge
   `Diffeotopy/Real.lean`: the periods are smooth in `t` as line integrals,
   and its flows are Tau Ceti's `timeDependentFlowDiffeotopy`, already a

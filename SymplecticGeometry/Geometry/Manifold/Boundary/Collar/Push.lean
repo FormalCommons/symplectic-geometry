@@ -5,8 +5,8 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.Geometry.Manifold.IsManifold.InteriorBoundary
 public import TauCeti.Geometry.Manifold.Boundary.Collar.Deformation
-public import TauCeti.Geometry.Manifold.Boundary.Invariance
 public import TauCeti.Topology.Homeomorph.Extend
 
 /-!
@@ -163,8 +163,6 @@ theorem IsCollar.exists_homotopy_push [CompactSpace M] [T2Space M]
       (∀ p : I.boundary M × Ico (0 : ℝ) 1, (p.2 : ℝ) < 1 / 2 →
         g (c p) = c (p.1, ⟨1 / 2, by norm_num, by norm_num⟩)) ∧
       ∀ x ∉ collarPart c (1 / 2), g x = x := by
-  have : CompactSpace (I.boundary M) :=
-    isCompact_iff_compactSpace.1 I.isClosed_boundary_of_finiteDimensional.isCompact
   obtain ⟨g, hg, hgc, hgo, hgr⟩ :=
     hc.exists_homotopic_push_off_collarPart ⟨1 / 2, by norm_num, by norm_num⟩
   have hU : c '' {p | (p.2 : ℝ) ∈ Ioo 0 (1 / 2)} ⊆ collarPart c (1 / 2) :=
