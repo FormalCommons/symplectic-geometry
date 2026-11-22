@@ -16,6 +16,7 @@ public import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 public import TauCeti.Geometry.Manifold.Riemannian.Codifferential
 public import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.ChartGram
 import SymplecticGeometry.Analysis.Calculus.ContDiff.Matrix
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 
 /-!
 # The metric, the Hodge star and the codifferential in a chart
@@ -148,8 +149,8 @@ theorem gramInChart_trans_apply (Θ : PartialDiffeomorph 𝓘(ℝ, E) 𝓘(ℝ, 
     have ha : fderiv ℝ Θ (Θ.symm w) a = mfderiv 𝓘(ℝ, E) 𝓘(ℝ, E) Θ (Θ.symm w) a := by
       -- `NormedSpace.fromTangentSpace` is the identity of `E`, which Mathlib states by no lemma.
       rw [mfderiv_eq_fderiv]; rfl
-    have h1 := Θ.mfderiv_symm_apply_mfderiv_apply hn (Θ.map_target hw) a
-    rw [Θ.right_inv hw] at h1
+    have h1 := (Θ.mfderivSymmEquiv hn hw).apply_symm_apply a
+    rw [Θ.coe_mfderivSymmEquiv, Θ.coe_mfderivSymmEquiv_symm] at h1
     rw [ha, PartialDiffeomorph.coe_trans_symm, mfderiv_comp w
       (ψ.symm.mdifferentiableAt hn hψ) (Θ.symm.mdifferentiableAt hn hw)]
     exact congrArg (mfderiv 𝓘(ℝ, E) I ψ.symm (Θ.symm w)) h1
@@ -256,8 +257,8 @@ theorem mpullback_symm_hodgeStar (hkl : k + l = m)
     ext v
     refine (ContinuousAlternatingMap.compContinuousLinearMap_apply _ _ v).trans
       ((mpullback_apply _ φ y _).trans (congrArg (φ (ψ.symm y)) (funext fun i ↦ ?_)))
-    have h := ψ.mfderiv_symm_apply_mfderiv_apply (by simp) (ψ.map_target hy) (v i)
-    rwa [ψ.right_inv hy] at h
+    have h := (ψ.mfderivSymmEquiv (by simp) hy).apply_symm_apply (v i)
+    rwa [ψ.coe_mfderivSymmEquiv, ψ.coe_mfderivSymmEquiv_symm] at h
   ext w
   refine ((mpullback_apply _ _ y w).trans ?_).trans (hodgeStarInChart_apply o ψ hkl y _ w).symm
   rw [RoughForm.hodgeStar_eq_formHodgeStarCLM]
@@ -282,22 +283,12 @@ theorem hodgeStarInChart_apply_eq_sum (hkl : k + l = m)
   let := o.fact_finrank_tangentSpace x
   -- The differential of `ψ.symm` at `y` is a linear equivalence `A`, with inverse the differential
   -- of `ψ` at `x`; the frame `B = A ∘ b` is a basis of the tangent space at `x`.
-  have h₁ : (mfderiv 𝓘(ℝ, E) I ψ.symm y).comp
-      (mfderiv I 𝓘(ℝ, E) ψ x : TangentSpace I x →L[ℝ] E) = .id ℝ _ :=
-    ContinuousLinearMap.ext fun v ↦ by
-      have h := ψ.mfderiv_symm_apply_mfderiv_apply (by simp) (ψ.map_target hy) v
-      rwa [ψ.right_inv hy] at h
-  have h₂ : (mfderiv I 𝓘(ℝ, E) ψ x : TangentSpace I x →L[ℝ] E).comp
-      (mfderiv 𝓘(ℝ, E) I ψ.symm y) = .id ℝ E :=
-    ContinuousLinearMap.ext fun v ↦ ψ.mfderiv_apply_mfderiv_symm_apply (by simp) hy v
-  let A : E ≃L[ℝ] TangentSpace I x := .ofContinuousLinearMap _ _ h₁ h₂
+  let A : E ≃L[ℝ] TangentSpace I x := ψ.mfderivSymmEquiv (by simp) hy
   let B : Basis (Fin m) ℝ (TangentSpace I x) := b.map A.toLinearEquiv
   have hA (v : E) : A v = mfderiv 𝓘(ℝ, E) I ψ.symm y v :=
-    congrFun (ContinuousLinearEquiv.coe_ofContinuousLinearMap _ _ h₁ h₂) v
+    congrFun (ψ.coe_mfderivSymmEquiv _ hy) v
   have hAs (v : TangentSpace I x) : A.symm v = mfderiv I 𝓘(ℝ, E) ψ x v :=
-    (congrArg (fun e : TangentSpace I x ≃L[ℝ] E ↦ e v)
-      (ContinuousLinearEquiv.symm_ofContinuousLinearMap _ _ h₁ h₂)).trans
-      (congrFun (ContinuousLinearEquiv.coe_ofContinuousLinearMap _ _ h₂ h₁) v)
+    congrFun (ψ.coe_mfderivSymmEquiv_symm _ hy) v
   have hB (i : Fin m) : B i = A (b i) := Basis.map_apply _ _ _
   have hgram : Matrix.gram ℝ B = Matrix.of fun i j ↦ gramInChart ψ y (b i) (b j) := by
     ext i j
