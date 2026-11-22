@@ -1945,9 +1945,8 @@ has either; Tau Ceti's extension across a boundary,
   $\omega_0+t(\omega_1-\omega_0)$ among them), `Geometry/Symplectic/Moser/Isotopy.lean`
   (the isotopy of embeddings fixing a compact submanifold, with Tau Ceti's
   relative Poincaré primitive, which vanishes as a full covector, in place
-  of the correction by $dF$; the trajectory argument of Tau Ceti's
-  `TauCeti.SmoothTwoForm.exists_diffeomorph_fix_eventually_mpullback_eq_of_mextDeriv_eq_sub`
-  at every time, with the field of `Field.lean`), and
+  of the correction by $dF$; the trajectory argument is that of
+  `Moser/Family.lean` of *Isotopy extension*, for the segment), and
   `Geometry/Symplectic/Manifold/Darboux.lean` (named
   like Tau Ceti's file: Darboux charts with a prescribed derivative at the
   centre, for any linear symplectic form on the target, from Tau Ceti's
@@ -1965,7 +1964,8 @@ has either; Tau Ceti's extension across a boundary,
   Tau Ceti has the files `Geometry/Symplectic/Manifold/Moser.lean` and
   `RelativeMoser.lean`, beside which this library may not have folders of
   those names.
-- **Builds on:** *Smooth families* (only `Stability.lean`);
+- **Builds on:** *Smooth families* (only `Stability.lean`); *Isotopy extension*
+  (only `Isotopy.lean`, through `Moser/Family.lean`);
   Tau Ceti (Moser's theorem with given primitives, the compact relative
   theorem, tubular neighbourhoods and relative primitives, Darboux charts
   `TauCeti.SmoothTwoForm.IsSymplectic.exists_darbouxChart_of_symplecticForm`).
@@ -2674,7 +2674,7 @@ that file, and the notes here may fall behind it.
 | 1 | *Siegel upper half space* | *Standard model*; *Lagrangian Grassmannian* (only `LinearAlgebra/Matrix/OfReal.lean`, which imports only Mathlib and Tau Ceti and is merged); *Linear complex structures* (only `LinearAlgebra/ComplexStructure/Action.lean`, which imports only Mathlib and Tau Ceti, `LinearAlgebra/ComplexStructure/Standard.lean`, which besides it imports only *Standard model*, `LinearAlgebra/Symplectic/Compatible.lean` of *Compatible complex structures* (which in turn imports, besides Mathlib and Tau Ceti, only `Action.lean`, `Geometry/Symplectic/Darboux/EuclideanBasis.lean` of *Compatible complex structures*, which imports only Tau Ceti, `LinearAlgebra/Symplectic/Standard/Basic.lean` of *Standard model* and `LinearAlgebra/Symplectic/Subspace.lean` of *Symplectic vector spaces*) and the library's `Geometry/Symplectic/Orientation.lean`, and that file, which imports only Tau Ceti; all of them are merged); *Symplectic group* (only `LinearAlgebra/Matrix/SymplecticGroup/Basic.lean`, which imports only Mathlib and Tau Ceti and is merged) |
 | 1 | *Symplectic vector bundles* | *Standard model*, *Linear Moser*; its existence issue also the two `PolarComplexStructure/` issues of *Compatible complex structures*, its contractibility issue the Cayley domain issue of that part, and its homotopy-equivalence issue those three, none of which waits for another part |
 | 1 | *Hamiltonian flows* | *Smooth families* (only `Diffeotopy/Real.lean`, for `SymplecticIsotopy.lean`, and `ContMDiff/TimeExtension.lean`, for `Flux/CompactSupport.lean`; the other files can start at once); `PoissonAlgebra.lean` imports `Geometry/Manifold/DifferentialForm/Flow/Family.lean` of *Contact geometry*, which imports only Tau Ceti and is merged |
-| 1 | *Moser isotopy* | *Smooth families* (only `Stability.lean`; the other files can start at once) |
+| 1 | *Moser isotopy* | *Smooth families* (only `Stability.lean`; the other files can start at once); `Isotopy.lean` derives its theorem from `Moser/Family.lean` of *Isotopy extension* |
 | 1 | *Isothermal coordinates* | *Nijenhuis tensor* (only `Integrable.lean`) |
 | 1 | *Complex submanifolds* | *Nijenhuis tensor* |
 | 1 | *Almost Kähler geometry* | *Almost complex manifolds* (only `Metric.lean`), *Nijenhuis tensor* (only `Covariant.lean` and `Nijenhuis.lean`); `TwoForm.lean` can start at once |

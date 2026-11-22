@@ -105,11 +105,8 @@ theorem exists_isothermal_partialDiffeomorph (J : SmoothAlmostComplexStructure I
   have hx : x ∈ Φ.source := by simp [Φ]
   -- `J` pushed forward along `Φ`, made a field of complex structures on all of `ℂ`.
   set A := J.chartPushforward Φ.toOpenPartialHomeomorph
-  have hA (p : ℂ) (hp : p ∈ Φ.target) (w : ℂ) : A p (A p w) = -w := by
-    have h := (J.toContMDiff ⊤).chartPushforward_apply_chartPushforward_apply
-      Φ.toOpenPartialHomeomorph hp (Φ.mdifferentiableAt hn (Φ.map_target hp))
-      (Φ.symm.mdifferentiableAt hn hp) w
-    rwa [toContMDiff_chartPushforward] at h
+  have hA (p : ℂ) (hp : p ∈ Φ.target) (w : ℂ) : A p (A p w) = -w :=
+    J.chartPushforward_apply_chartPushforward_apply Φ hp w
   let K : ℂ → AlmostComplexStructure ℂ := fun p ↦
     if hp : p ∈ Φ.target then ⟨(A p).toLinearMap, LinearMap.ext (hA p hp)⟩
     else AlmostComplexStructure.ofComplexModule ℂ
@@ -135,13 +132,8 @@ theorem exists_isothermal_partialDiffeomorph (J : SmoothAlmostComplexStructure I
     (hes.contDiffAt (e.open_source.mem_nhds hy'.2)).differentiableAt hn
   -- The derivative of `Φ` carries `J` to `K`.
   have hJ : mfderiv I 𝓘(ℝ, ℂ) Φ y (J y v) = K (Φ y) (mfderiv I 𝓘(ℝ, ℂ) Φ y v) := by
-    have h := DFunLike.congr_fun ((J.toContMDiff ⊤).mfderiv_comp_toEndomorphism
-      Φ.toOpenPartialHomeomorph hy'.1 (Φ.mdifferentiableAt hn hy'.1)
-      (Φ.symm.mdifferentiableAt hn (Φ.map_source hy'.1))) v
-    simp only [toContMDiff_chartPushforward, toContMDiff_toEndomorphism_apply,
-      Φ.toFun'_toOpenPartialHomeomorph] at h
     rw [hK _ (Φ.map_source hy'.1)]
-    exact h
+    exact J.mfderiv_apply_eq_chartPushforward_apply Φ hy'.1 v
   rw [hc, mvfderiv_comp_apply_of_differentiableAt hed (Φ.mdifferentiableAt hn hy'.1),
     mvfderiv_comp_apply_of_differentiableAt hed (Φ.mdifferentiableAt hn hy'.1),
     mvfderiv_apply_eq_mfderiv_apply, mvfderiv_apply_eq_mfderiv_apply, hJ]
