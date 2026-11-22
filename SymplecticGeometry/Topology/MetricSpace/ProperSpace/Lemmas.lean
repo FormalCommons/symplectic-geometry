@@ -5,7 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import Mathlib.Topology.MetricSpace.ProperSpace.Lemmas
+public import Mathlib.Topology.MetricSpace.HausdorffDistance
 
 /-!
 # Enlarging a closed ball inside an open set
@@ -15,8 +15,10 @@ contains a ball of some radius `r > r₀`, open or closed. These results enlarge
 Mathlib's `exists_lt_subset_ball` and `exists_pos_lt_subset_ball` shrink one, and the file is
 named like Mathlib's `Mathlib/Topology/MetricSpace/ProperSpace/Lemmas.lean`, which holds those.
 
-The proof takes the compact set `closedBall x (r₀ + 1) \ U`: if it is nonempty, the distance to
-`x` attains a minimum on it, and that minimum is larger than `r₀`.
+The proof takes `r = infDist x Uᶜ`. Since `Uᶜ` is closed and the space is proper, some point of
+`Uᶜ` is at that distance from `x` (`IsClosed.exists_infDist_eq_dist`); it lies outside
+`closedBall x r₀`, so `r₀ < r`; and `ball x (infDist x Uᶜ) ⊆ U` is
+`Metric.ball_infDist_compl_subset`.
 
 ## Main results
 
@@ -38,18 +40,11 @@ variable {α : Type*} [PseudoMetricSpace α] [ProperSpace α] {x : α} {r₀ : �
 about `x` contains the open ball about `x` of some radius `r > r₀`. -/
 theorem exists_lt_ball_subset_of_closedBall_subset (hU : IsOpen U)
     (h : closedBall x r₀ ⊆ U) : ∃ r, r₀ < r ∧ ball x r ⊆ U := by
-  set K := closedBall x (r₀ + 1) \ U
-  have hK : IsCompact K := (isCompact_closedBall x _).diff hU
-  rcases K.eq_empty_or_nonempty with hK₀ | hK₀
-  · refine ⟨r₀ + 1, by linarith, fun z hz ↦ ?_⟩
-    by_contra hzU
-    exact hK₀.subset ⟨ball_subset_closedBall hz, hzU⟩
-  obtain ⟨y, hyK, hy⟩ := hK.exists_isMinOn hK₀ (continuous_id.dist continuous_const).continuousOn
-  have hyr₀ : r₀ < dist y x := not_le.1 fun hle ↦ hyK.2 (h hle)
-  refine ⟨min (dist y x) (r₀ + 1), lt_min hyr₀ (by linarith), fun z hz ↦ ?_⟩
-  by_contra hzU
-  rw [mem_ball, lt_min_iff] at hz
-  exact (hy ⟨mem_closedBall.2 hz.2.le, hzU⟩).not_gt hz.1
+  rcases Uᶜ.eq_empty_or_nonempty with hc | hc
+  · exact ⟨r₀ + 1, by linarith, by simp [compl_empty_iff.1 hc]⟩
+  obtain ⟨y, hy, hd⟩ := hU.isClosed_compl.exists_infDist_eq_dist hc x
+  exact ⟨_, hd ▸ lt_of_not_ge fun hle ↦ hy (h (mem_closedBall'.2 hle)),
+    ball_infDist_compl_subset⟩
 
 /-- In a proper pseudometric space, an open set that contains the closed ball of radius `r₀`
 about `x` contains the closed ball about `x` of some radius `r > r₀`. -/
