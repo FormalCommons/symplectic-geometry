@@ -14,9 +14,9 @@ import TauCeti.RingTheory.MvPolynomial.CommonZero
 /-!
 # Smooth projective hypersurfaces
 
-A smooth projective hypersurface of degree `d` in `ℂℙⁿ⁺¹ = ℙ ℂ (Fin (n + 2) → ℂ)` is the zero set
-of a homogeneous polynomial `f` of degree `d` in `n + 2` variables at no point of which all the
-partial derivatives of `f` vanish. This file bundles such a polynomial as the structure
+Let `f` be a polynomial in `n + 2` variables, homogeneous of degree `d`, such that at every point
+of its locus of zeros in `ℂℙⁿ⁺¹ = ℙ ℂ (Fin (n + 2) → ℂ)` some partial derivative of `f` is
+nonzero. That locus is a smooth projective hypersurface of degree `d`. This file bundles `f` as
 `SymplecticGeometry.SmoothProjectiveHypersurface n d` and makes its zero locus a compact complex
 manifold of dimension `n`, through Tau Ceti's zero-locus API
 (`TauCeti.complexProjectiveZeroLocusChartedSpace` for the open set `univ`).
