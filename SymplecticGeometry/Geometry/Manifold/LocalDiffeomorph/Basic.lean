@@ -7,6 +7,7 @@ module
 
 public import Mathlib.Geometry.Manifold.LocalDiffeomorph
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
+public import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 
 /-!
 # Local diffeomorphisms at a point and their local inverses
@@ -28,11 +29,22 @@ target of `Λ`, not only at `x`.
   partial diffeomorphism on a source that contains `x`.
 * `IsLocalDiffeomorphAt.isLocalDiffeomorphOn_localInverse_target`: a local diffeomorphism `f` at
   `x` is a local diffeomorphism on the target of `hf.localInverse`.
+* `IsLocalDiffeomorphAt.comp_iff_left`: composing on the left with a local diffeomorphism at the
+  image point, a map continuous at `x` is a local diffeomorphism at `x` exactly when the composite
+  is. It is the left-hand partner of Tau Ceti's `IsLocalDiffeomorphAt.comp_iff_right`, and
+  combines Tau Ceti's `IsLocalDiffeomorphAt.of_comp_left` with Mathlib's
+  `IsLocalDiffeomorphAt.comp`.
+* `IsLocalDiffeomorphAt.congr_of_eventuallyEq`: being a local diffeomorphism at `x` depends only
+  on the germ of the map at `x`.
+* `PartialDiffeomorph.isLocalDiffeomorphAt_symm_comp_comp_model`: a partial diffeomorphism of
+  model vector spaces that preserves the ranges of two models with corners is a local
+  diffeomorphism between their model spaces.
 -/
 
 public section
 
-open Set
+open Set Function
+open scoped Manifold
 
 variable {𝕜 : Type*} [NontriviallyNormedField 𝕜]
   {E : Type*} [NormedAddCommGroup E] [NormedSpace 𝕜 E] {H : Type*} [TopologicalSpace H]
@@ -65,6 +77,73 @@ theorem isLocalDiffeomorphOn_localInverse_target (hf : IsLocalDiffeomorphAt I J 
   TauCeti.isLocalDiffeomorphAt_of_eqOn (Φ := hf.localInverse.symm) (by simp)
     (by simpa using hf.eqOn_localInverse_symm)
 
+/-- **Composing with a local diffeomorphism on the left.** If `g` is a `C^n` local diffeomorphism
+at `f x` and `f` is continuous at `x`, then `g ∘ f` is a `C^n` local diffeomorphism at `x` exactly
+when `f` is one at `x`. -/
+theorem comp_iff_left {F' : Type*} [NormedAddCommGroup F'] [NormedSpace 𝕜 F'] {G' : Type*}
+    [TopologicalSpace G'] {K : ModelWithCorners 𝕜 F' G'} {P : Type*} [TopologicalSpace P]
+    [ChartedSpace G' P] {g : N → P} (hg : IsLocalDiffeomorphAt J K n g (f x))
+    (hf : ContinuousAt f x) :
+    IsLocalDiffeomorphAt I K n (g ∘ f) x ↔ IsLocalDiffeomorphAt I J n f x :=
+  ⟨fun h ↦ h.of_comp_left hg hf, fun h ↦ h.comp (hg := hg)⟩
+
 end IsLocalDiffeomorphAt
+
+/-- A map that agrees near `x` with a local diffeomorphism at `x` is a local diffeomorphism at
+`x`. -/
+theorem IsLocalDiffeomorphAt.congr_of_eventuallyEq {g : M → N}
+    (hf : IsLocalDiffeomorphAt I J n f x) (hfg : f =ᶠ[nhds x] g) :
+    IsLocalDiffeomorphAt I J n g x := by
+  obtain ⟨Φ, hxΦ, hfΦ⟩ := hf.exists_partialDiffeomorph
+  obtain ⟨t, hft, ht, hxt⟩ := mem_nhds_iff.1 hfg
+  refine TauCeti.isLocalDiffeomorphAt_of_eqOn (Φ := Φ.restrOpen t ht)
+    (by rw [PartialDiffeomorph.restrOpen_source]; exact ⟨hxΦ, hxt⟩) fun y hy ↦ ?_
+  rw [PartialDiffeomorph.restrOpen_source] at hy
+  rw [PartialDiffeomorph.coe_restrOpen, ← hft hy.2]
+  exact hfΦ hy.1
+
+/-- A partial diffeomorphism `Θ` between the model vector spaces of `I` and `J` which, on its
+source, sends exactly the points of `range I` into `range J` restricts to a local diffeomorphism
+`J.symm ∘ Θ ∘ I` between the model spaces of `I` and `J`, at every point that `I` sends into the
+source of `Θ`. -/
+theorem PartialDiffeomorph.isLocalDiffeomorphAt_symm_comp_comp_model
+    (I : ModelWithCorners 𝕜 E H) (J : ModelWithCorners 𝕜 E' H')
+    (Θ : PartialDiffeomorph 𝓘(𝕜, E) 𝓘(𝕜, E') E E' n)
+    (hΘ : ∀ y ∈ Θ.source, Θ y ∈ range J ↔ y ∈ range I) {x : H} (hx : I x ∈ Θ.source) :
+    IsLocalDiffeomorphAt I J n (J.symm ∘ Θ ∘ I) x := by
+  have hsrc (y : H) (hy : I y ∈ Θ.source) : Θ (I y) ∈ range J :=
+    (hΘ _ hy).2 (mem_range_self y)
+  -- `PartialDiffeomorph` coerces to functions through its `PartialEquiv`, whose inverse laws are
+  -- stated for that coercion, hence the `show`s below.
+  have htgt (z : H') (hz : J z ∈ Θ.target) : Θ.toPartialEquiv.symm (J z) ∈ range I := by
+    have h := Θ.map_target hz
+    refine (hΘ _ h).1 ?_
+    rw [show Θ (Θ.toPartialEquiv.symm (J z)) = J z from Θ.right_inv hz]
+    exact mem_range_self z
+  let Ψ : PartialDiffeomorph I J H H' n :=
+    { toFun := J.symm ∘ Θ ∘ I
+      invFun := I.symm ∘ Θ.toPartialEquiv.symm ∘ J
+      source := I ⁻¹' Θ.source
+      target := J ⁻¹' Θ.target
+      map_source' := fun y hy ↦ by
+        simp only [mem_preimage, comp_apply, J.right_inv (hsrc y hy)]
+        exact Θ.map_source hy
+      map_target' := fun z hz ↦ by
+        simp only [mem_preimage, comp_apply, I.right_inv (htgt z hz)]
+        exact Θ.map_target hz
+      left_inv' := fun y hy ↦ by
+        simp only [comp_apply, J.right_inv (hsrc y hy)]
+        rw [show Θ.toPartialEquiv.symm (Θ (I y)) = I y from Θ.left_inv hy, I.left_inv]
+      right_inv' := fun z hz ↦ by
+        simp only [comp_apply, I.right_inv (htgt z hz)]
+        rw [show Θ (Θ.toPartialEquiv.symm (J z)) = J z from Θ.right_inv hz, J.left_inv]
+      open_source := Θ.open_source.preimage I.continuous
+      open_target := Θ.open_target.preimage J.continuous
+      contMDiffOn_toFun := J.contMDiffOn_symm.comp
+        (Θ.contMDiffOn.comp I.contMDiff.contMDiffOn fun _ hy ↦ hy) fun y hy ↦ hsrc y hy
+      contMDiffOn_invFun := I.contMDiffOn_symm.comp
+        (Θ.symm.contMDiffOn.comp J.contMDiff.contMDiffOn fun _ hz ↦ hz) fun z hz ↦
+          htgt z hz }
+  exact TauCeti.isLocalDiffeomorphAt_of_eqOn (Φ := Ψ) hx fun _ _ ↦ rfl
 
 end

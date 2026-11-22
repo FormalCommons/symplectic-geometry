@@ -135,7 +135,8 @@ updated to match.
 - **Coordinate discs and the clutching circle.** A coordinate disc
   (`SymplecticGeometry.CoordinateDisc o.toHomologicalOrientation`,
   prerequisite 5) is an open
-  embedding `φ : Metric.ball (0 : ℂ) 2 → M` that carries the standard
+  embedding `φ : CoordinateDisc.ball → M` (the ball `Metric.ball (0 : ℂ) 2`
+  as an open set of `ℂ`) that carries the standard
   orientation of `ℂ` to `o`. Its disc is $D=\varphi(\bar B_1)$ and its
   circle is $t\mapsto\varphi(e^{2\pi it})$, counterclockwise in the chart. So
   the circle is oriented as the boundary of $D$, which plays the role of the
@@ -190,7 +191,7 @@ core of prerequisite 1:
   `FiniteRankBundleCore.rank_det` (`D.rank` is `1` only through that
   lemma, not by definition); and `firstChernClass_def` by `(rfl)`.
 - `firstChernClass_pullback (f : C(B', B))`: the class of `f *ᵖ E` is the
-  pull-back of the class of `E`, from the pull-back isomorphism of
+  pull-back of the class of `E`, from the pull-back equality of
   prerequisite 1 and
   `TauCeti.complexEulerClass_eq_singularCohomologyMap_of_fiberwise`.
 - `firstChernClass_congr`: a complex-linear fibrewise isomorphism, continuous
@@ -629,9 +630,11 @@ issues, in an order where each issue's blockers come before it.
      (ofBundleOfFinrankEq 𝕜 G E rfl).det`, over any `𝕜`, with `detCore_def`,
      `SymplecticGeometry.Bundle.detCoreMap` (the isomorphism of determinant
      cores induced by a fibrewise isomorphism of bundles),
-     `SymplecticGeometry.Bundle.detCorePullbackIso` (compatibility with
-     pull-back, through `CoordinateFunctor.functor_comp_pullbackFunctor`),
-     `detCore_trivial` (the trivial bundle has a trivial determinant), and
+     `SymplecticGeometry.Bundle.detCore_pullback` (compatibility with
+     pull-back, an equality, through
+     `CoordinateFunctor.functor_comp_pullbackFunctor`),
+     `SymplecticGeometry.Bundle.detCoreTrivialIso` (the trivial bundle has a
+     trivial determinant), and
      `SymplecticGeometry.Bundle.detCoreIsoOfFinrankEqOne` (the identification
      with `E` in rank one, from `exteriorPowerOneNatIso`);
    - the one step specific to `ℂ`, in
@@ -651,13 +654,30 @@ issues, in an order where each issue's blockers come before it.
      `TauCeti.FiniteRankBundleCore.detConjugateIso A :
      ((conjugate B).obj A).det ≅ (conjugate B).obj A.det`, using that
      conjugation keeps the rank (`rank_conjugate_obj`);
+   - two supporting files: `Topology/VectorBundle/Core/Basic.lean`, with
+     `VectorBundleCore.ext`, which `FiniteRank/OfBundle.lean` imports; and
+     `Analysis/Normed/Operator/ExteriorPowerCoords.lean` beside Tau Ceti's
+     file of that name, with
+     `ContinuousLinearMap.exteriorPowerCoords_intrinsicStar` (compound
+     matrices commute with entrywise conjugation), which
+     `FiniteRank/ConjugateExteriorPower.lean` imports;
+   - two steps that the conjugate case also needs, in
+     `Topology/VectorBundle/FiniteRank/Conjugate.lean`:
+     `TauCeti.FiniteRankBundleCore.continuous_star_conjugate` (conjugating
+     coordinates is continuous from the conjugate core to the core) and
+     `TauCeti.FiniteRankBundleCore.ofBundleOfFinrankEqConjugateIso` (the
+     core of `ConjugateBundle E` is the conjugate of the core of `E`);
    - back in `Topology/VectorBundle/Determinant.lean`, since it is about this
      library's `detCore`: `SymplecticGeometry.Bundle.detCoreConjugateFiberwise`,
      a conjugate-linear fibrewise isomorphism between `detCore ℂ` of the
-     conjugate bundle and `detCore ℂ G E`, from `detConjugateIso`, in the
+     conjugate bundle and `detCore ℂ G E`, from `detConjugateIso` and the
+     steps above, in the
      form that
      `complexEulerClass_eq_neg_of_finrank_eq_one_of_conjugateFiberwise`
-     takes. So the Tau Ceti-namespaced file imports nothing of this library.
+     takes. So the Tau Ceti-namespaced files under `FiniteRank/` import, of
+     this library, only each other and the two supporting files, which are
+     stated in Mathlib's and Tau Ceti's terms, so that they can move
+     upstream together.
 
    Done when these are proved and build.
 2. **Evenness of the first Betti number of a closed orientable surface.**
@@ -682,6 +702,17 @@ issues, in an order where each issue's blockers come before it.
    it since the pin. If not, duality for closed oriented manifolds from that
    criterion is likely several issues, and is split into them when the issues
    are created. Done when the evenness theorem is proved.
+   The first of them brings from Tau Ceti's main branch, under Tau Ceti's
+   names and namespaces so that a move of Tau Ceti past them deletes the
+   files, the duality maps on open subsets, the two Mayer–Vietoris squares
+   and duality for disjoint and directed unions of open sets, in
+   `AlgebraicTopology/Cohomology/CompactSupport/Duality/{Basic,MayerVietoris,DirectedUnion}.lean`.
+   The lemmas they use from other Tau Ceti files of the main branch go in
+   files at those files' paths:
+   `AlgebraicTopology/Cohomology/CompactSupport/{Extension,MayerVietoris,DirectedUnion}.lean`,
+   `AlgebraicTopology/Singular/{DirectedUnion,MayerVietoris/Basic}.lean`,
+   `AlgebraicTopology/Singular/LocalHomology/Orientation/OpenEmbedding.lean`,
+   `Geometry/Manifold/Opens.lean` and `Topology/Sets/Opens.lean`.
 3. **The unit circle bundle of a Hermitian line bundle.**
    `Geometry/Manifold/VectorBundle/Hermitian/CircleBundle.lean`, the file
    of *Symplectic vector bundles* (its section *The circle bundle of a
@@ -733,6 +764,16 @@ issues, in an order where each issue's blockers come before it.
    what issue 4 applies to this bundle. No later issue needs the projection
    from the submanifold subtype as a submersion, so the design adds no named
    specialization for it.
+   General lemmas that the proofs use have files of their own:
+   `Geometry/Manifold/Instances/Sphere.lean` (`ContMDiffOn.of_coe_sphere`,
+   smoothness on an open set of a map into a unit sphere, used for
+   `Circle`), `Geometry/Manifold/VectorBundle/Riemannian/Hermitian.lean`
+   (`Bundle.ContMDiffRiemannianMetric.contMDiffOn_hermitianPairing`, Tau
+   Ceti's `contMDiff_hermitianPairing` on a set) and
+   `Geometry/Manifold/VectorBundle/Riemannian/Norm.lean`
+   (`ContMDiffOn.norm_bundle`, smoothness of the norm of a nowhere-zero
+   section of a smooth Riemannian bundle), at the places of the Mathlib
+   and Tau Ceti files of the same names.
    Blocked by the issue from #57 for the circle bundle. Done when these are
    proved.
 4. **Connection forms on principal circle bundles.**
@@ -759,10 +800,14 @@ issues, in an order where each issue's blockers come before it.
    `AlgebraicTopology/Singular/LocalHomology/CoordinateDisc.lean`, beside
    Tau Ceti's homological orientations and winding numbers:
    `structure SymplecticGeometry.CoordinateDisc (o : TauCeti.HomologicalOrientation M E 2)`,
-   an open embedding `Metric.ball (0 : ℂ) 2 → M` that carries the local
+   an open embedding `CoordinateDisc.ball → M`, from the ball
+   `Metric.ball (0 : ℂ) 2` as `TopologicalSpace.Opens ℂ` (so that it carries
+   `TauCeti.complexHomologicalOrientation`), that carries the local
    orientations of `ℂ` to those of `o`, with `@[ext]`; its closed disc
    `CoordinateDisc.disc` (the image of `closedBall 0 1`, compact) and open
-   disc, its boundary loop `CoordinateDisc.boundaryLoop` ($t\mapsto
+   disc `CoordinateDisc.openDisc`, its boundary circle
+   `CoordinateDisc.boundaryCircle : C(Circle, M)` and
+   boundary loop `CoordinateDisc.boundaryLoop` ($t\mapsto
    \varphi(e^{2\pi it})$), `CoordinateDisc.reverse` for the opposite
    orientation (precomposition with conjugation), the constructor
    `CoordinateDisc.ofChart` from an orientation-preserving smooth chart of a
@@ -799,16 +844,53 @@ issues, in an order where each issue's blockers come before it.
    boundary.** The setting is that of `RelativeFundamentalClass.lean`: `X`
    compact Hausdorff, `ι : M → X` an open embedding of a surface with
    `o : HomologicalOrientation M E 2`, and `f : N → X` collared with image
-   `∂X`, the complement of `ι(M)`. Four files, two topological and two
-   smooth, so that no Topology file imports Geometry:
+   `∂X`, the complement of `ι(M)`. The topological files are kept apart
+   from the smooth ones, so that no Topology file imports Geometry:
+   - `AlgebraicTopology/Singular/CircleMap.lean`, needed by
+     `BoundaryDegree.lean`: maps `Y → Circle` act additively on first
+     homology, `(u * v)_* = u_* + v_*`
+     (`ContinuousMap.singularHomologyFunctor_map_mul`), a self-map of the
+     circle acts on `H₁(S¹)` by its `circleDegree`, and so `u` sends the class
+     of a free loop `ℓ` to the degree of `u ∘ ℓ`
+     (`ContinuousMap.singularHomologyOneIso_hom_map_map_inv_one`). These give
+     `boundaryDegree_mul` and `boundaryDegree_eq_sum_degree`.
+   - `AlgebraicTopology/Singular/ModuleChains.lean`, needed by
+     `CircleMap.lean`: with coefficients `k`, Mathlib's
+     `singularHomologyFunctor` induces Tau Ceti's
+     `ContinuousMap.singularHomologyMap`
+     (`AlgebraicTopology.singularHomologyFunctor_obj_map_ofHom_hom`).
+   - `AlgebraicTopology/Singular/Circle.lean`, used by
+     `DiscBoundaryClass.lean`:
+     `Circle.singularHomologyOneIso_inv_eq_complexOrientation`, the
+     generator of `Circle.singularHomologyOneIso` is the one of the unit
+     circle of `ℂ` selected by `Complex.orientation`.
+   - `Analysis/Normed/Module/Ball/Collar.lean`, used by
+     `DiscBoundaryClass.lean`: in a real normed space the unit sphere is
+     collared in the closed unit ball
+     (`Metric.isCollared_inclusion_sphere_closedBall`), and the
+     open ball is the complement of the sphere in the closed ball
+     (`Metric.range_inclusion_ball_eq_compl`).
+   - `AlgebraicTopology/Singular/LocalHomology/OrientedChart.lean`, used by
+     `DiscBoundaryClass.lean`:
+     `OpenPartialHomeomorph.map_reducedSingularHomologyδ_localOrientationOfOrientedChart_refl`,
+     the local orientation of the identity chart of an oriented inner
+     product space, through the connecting morphism and radial projection,
+     is the oriented generator of the unit sphere.
+   - `AlgebraicTopology/Singular/LocalHomology/DiscBoundaryClass.lean`, a
+     prerequisite of `BoundaryDegree.lean`: the closed unit disc of `ℂ` in
+     this setting, by `Collar.lean`, and its boundary
+     class,
+     `SymplecticGeometry.singularHomologyOneIso_singularHomologyδ_fundamentalClassRel_closedBall`:
+     for the complex orientation of the open disc, the boundary class read
+     in ℤ through `Circle.singularHomologyOneIso` is $+1$.
    - `AlgebraicTopology/Singular/LocalHomology/BoundaryDegree.lean`: the
      definition `TauCeti.HomologicalOrientation.boundaryDegree o hn hι hιf hf
      (u : C(∂X, Circle)) : ℤ`, the image of the boundary class
      `singularHomologyδ (fundamentalClassRel …)` under `u`, read in ℤ through
      `Circle.singularHomologyOneIso`, with the sign for which the
      counterclockwise loop counts $+1$. Tau Ceti does not record the sign of
-     its connecting morphism, so the issue settles it first, on the closed
-     unit disc, and fixes the sign of the definition by it. API:
+     its connecting morphism; `DiscBoundaryClass.lean` settles it on the
+     closed unit disc, and the definition fixes its sign by it. API:
      `boundaryDegree_def`;
      `boundaryDegree_mul` (pointwise products add degrees);
      `boundaryDegree_eq_of_homotopy` (homotopic maps `∂X → Circle` have the

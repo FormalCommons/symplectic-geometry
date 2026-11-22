@@ -10,12 +10,15 @@ public import TauCeti.Geometry.Symplectic.Lagrangian.Presymplectic
 public import TauCeti.Geometry.Symplectic.Manifold.Descent
 import SymplecticGeometry.Analysis.Calculus.DifferentialForm.LieDeriv
 import SymplecticGeometry.Geometry.Manifold.Distribution.FlatChart
+import SymplecticGeometry.Geometry.Manifold.IsManifold.InteriorBoundary
 import SymplecticGeometry.LinearAlgebra.Symplectic.Subspace
 import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.ModelSpace
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import TauCeti.Geometry.Manifold.Submersion.Split
 import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
+import TauCeti.Geometry.Symplectic.Manifold.Darboux
 import TauCeti.Geometry.Symplectic.Manifold.Opens
 import TauCeti.LinearAlgebra.Alternating.Conormal
 import TauCeti.LinearAlgebra.Alternating.Curry
@@ -60,10 +63,17 @@ target, whose derivative sends the kernels to the vectors with second component 
 to the preimage of the unit ball. In these coordinates the fibres of the second projection are
 slices `ball × {b}`, which are convex.
 
+Combined with a Darboux chart of the descended form on the ball, a characteristic chart gives
+Darboux coordinates for a closed form of constant rank
+(`TauCeti.SmoothForm.exists_partialDiffeomorph_eval₂_eq_stdForm`): a chart centred at a given
+point in which the form is the pullback of `stdForm (Fin r)` along a linear projection onto
+`StdSpace (Fin r)`.
+
 For a coisotropic immersion `f : N → M` into a symplectic manifold, this applies to `f^* ω`, whose
 kernels have dimension `dim M - dim N`, and `df` carries those kernels onto isotropic subspaces.
-Both statements are in the namespace `TauCeti.SmoothTwoForm.IsNondegenerate`:
-`IsCoisotropicMap.exists_isCharacteristicSubmersion` and
+These statements are in the namespace `TauCeti.SmoothTwoForm.IsNondegenerate`:
+`IsCoisotropicMap.exists_isCharacteristicSubmersion`, its Darboux form
+`IsCoisotropicMap.exists_partialDiffeomorph_eval₂_eq_stdForm`, and
 `IsCoisotropicMap.isIsotropic_map_ker_bilinFormAt_mpullback`.
 
 ## Main definitions
@@ -81,10 +91,13 @@ Both statements are in the namespace `TauCeti.SmoothTwoForm.IsNondegenerate`:
   balls, around every point, for a closed form of constant rank.
 * `TauCeti.SmoothForm.exists_isCharacteristicSubmersion_and_existsUnique_mpullback_eq`: the three
   statements together: involutivity, characteristic charts, and local symplectic quotients.
-* `IsCoisotropicMap.exists_isCharacteristicSubmersion` and
+* `TauCeti.SmoothForm.exists_partialDiffeomorph_eval₂_eq_stdForm`: Darboux coordinates for a
+  closed form of constant rank.
+* `IsCoisotropicMap.exists_isCharacteristicSubmersion`,
+  `IsCoisotropicMap.exists_partialDiffeomorph_eval₂_eq_stdForm` and
   `IsCoisotropicMap.isIsotropic_map_ker_bilinFormAt_mpullback`, in the namespace
-  `TauCeti.SmoothTwoForm.IsNondegenerate`: the case of a coisotropic submanifold, whose
-  characteristic leaves are isotropic.
+  `TauCeti.SmoothTwoForm.IsNondegenerate`: the case of a coisotropic submanifold, with its
+  characteristic charts and Darboux coordinates; its characteristic leaves are isotropic.
 
 The projection `B × F → B` with a form pulled back from a nondegenerate form on `B` is an
 example.
@@ -158,7 +171,7 @@ private theorem fibreForm_mfderiv (hp : IsCharacteristicSubmersion IB σ p) (y :
     hp.fibreForm y (fun i ↦ mfderiv I IB p y (v i)) = σ.val y v :=
   hp.apply_eq_of_mfderiv_eq fun _ ↦ surjInv_eq _ _
 
-variable [I.Boundaryless]
+variable [BoundarylessManifold I M]
 
 /-- `fibreForm` is locally constant along the fibres of `p`. -/
 private theorem eventually_fibreForm_eq (hp : IsCharacteristicSubmersion IB σ p)
@@ -170,13 +183,15 @@ private theorem eventually_fibreForm_eq (hp : IsCharacteristicSubmersion IB σ p
     IsManifold.maximalAtlas_subset_of_le (by simp) h.domChart_mem_maximalAtlas
   have hψ : h.codChart ∈ IsManifold.maximalAtlas IB 1 B :=
     IsManifold.maximalAtlas_subset_of_le (by simp) h.codChart_mem_maximalAtlas
-  have hU : IsOpen κ.target := h.domChart.isOpen_extend_target
+  have hU : IsOpen κ.target := h.domChart.isOpen_extend_target_of_mem_maximalAtlas one_ne_zero he
   have hx : x ∈ κ.source := by simpa [κ] using h.mem_domChart_source
-  -- On the chart's image, `κ⁻¹` and `κ` have inverse derivatives.
+  -- On the chart's image, `κ⁻¹` and `κ` have inverse derivatives. The image is open and lies in
+  -- the range of `I`, so the derivative of `κ⁻¹` within that range is its derivative.
   have hinv (z : E) (hz : z ∈ κ.target) (c : E) :
       mfderiv I 𝓘(ℝ, E) κ (κ.symm z) (mfderiv 𝓘(ℝ, E) I κ.symm z c) = c := by
     have := mfderiv_extend_comp_mfderivWithin_extend_symm he hz
-    rw [I.range_eq_univ, mfderivWithin_univ] at this
+    rw [mfderivWithin_of_mem_nhds (mem_of_superset (hU.mem_nhds hz)
+      h.domChart.extend_target_subset_range)] at this
     exact congrArg (· c) this
   have hsrc (z : E) (hz : z ∈ κ.target) : κ.symm z ∈ h.domChart.source := by
     simpa [κ] using κ.map_target hz
@@ -278,10 +293,11 @@ theorem isBasic (hp : IsCharacteristicSubmersion IB σ p) (hσ : σ.IsClosed) :
   -- `tangentSpaceCast` is the identity of the model space `EB` of `B`.
   exact congrArg _ (funext hvw)
 
-/-- **Descent along a characteristic submersion.** A closed two-form `σ` on a boundaryless manifold
-is the pullback `p^* τ` of a unique symplectic form `τ` on the base of each of its characteristic
-submersions `p`. -/
-theorem existsUnique_isSymplectic_mpullback_eq [IsManifold IB ∞ B]
+omit [BoundarylessManifold I M] in
+/-- **Descent along a characteristic submersion.** A closed two-form `σ` on a manifold modelled
+without boundary is the pullback `p^* τ` of a unique symplectic form `τ` on the base of each of
+its characteristic submersions `p`. -/
+theorem existsUnique_isSymplectic_mpullback_eq [I.Boundaryless] [IsManifold IB ∞ B]
     (hp : IsCharacteristicSubmersion IB σ p) (hσ : σ.IsClosed) :
     ∃! τ : SmoothTwoForm IB B, τ.IsSymplectic ∧
       SmoothForm.mpullback p hp.isSubmersion.contMDiff τ = σ :=
@@ -458,6 +474,168 @@ theorem exists_isCharacteristicSubmersion_and_existsUnique_mpullback_eq (σ : Sm
     exists_isCharacteristicSubmersion σ hσ hk hr,
     fun _ _ _ hp ↦ hp.existsUnique_isSymplectic_mpullback_eq (hσ.mpullback _ _)⟩
 
+/-! ### Darboux coordinates for a closed form of constant rank -/
+
+omit [FiniteDimensional ℝ E] [I.Boundaryless] in
+/-- Let `g : N → M` and `p : N → B'` be differentiable maps such that `g^* σ = p^* τ`, let `d` be a
+chart of `B'` pulling `stdForm (Fin r)` back to `τ`, and let `c` be a chart of `N`, whose source `p`
+maps into that of `d`, and `ρ : E' → StdSpace (Fin r)` a linear map with `d ∘ p ∘ c⁻¹ = ρ` on the
+target of `c`. Then on the target of `c`, `g ∘ c⁻¹` pulls `σ` back to the pull-back of
+`stdForm (Fin r)` along `ρ`. -/
+private theorem eval₂_mfderiv_comp_symm_eq_of_darbouxChart {E' H' N B' : Type*}
+    [NormedAddCommGroup E'] [NormedSpace ℝ E'] [TopologicalSpace H'] {J : ModelWithCorners ℝ E' H'}
+    [TopologicalSpace N] [ChartedSpace H' N] [TopologicalSpace B'] {r : ℕ}
+    [ChartedSpace (StdSpace (Fin r)) B'] [IsManifold 𝓘(ℝ, StdSpace (Fin r)) ∞ B']
+    {g : N → M} (hg : MDifferentiable J I g)
+    {p : N → B'} (hp : MDifferentiable J 𝓘(ℝ, StdSpace (Fin r)) p)
+    {τ : SmoothTwoForm 𝓘(ℝ, StdSpace (Fin r)) B'}
+    (hgp : ∀ q (v w : TangentSpace J q),
+      SmoothBundleForm.eval₂ σ (g q) (mfderiv J I g q v) (mfderiv J I g q w) =
+        τ.eval₂ (p q) (mfderiv J _ p q v) (mfderiv J _ p q w))
+    {d : PartialDiffeomorph 𝓘(ℝ, StdSpace (Fin r)) 𝓘(ℝ, StdSpace (Fin r)) B' (StdSpace (Fin r)) ∞}
+    (hd : ∀ x ∈ d.source, ∀ v w : TangentSpace 𝓘(ℝ, StdSpace (Fin r)) x,
+      τ.eval₂ x v w = stdForm (Fin r) (mvfderiv _ d x v) (mvfderiv _ d x w))
+    {c : PartialDiffeomorph J 𝓘(ℝ, E') N E' ∞} {ρ : E' →L[ℝ] StdSpace (Fin r)}
+    (hsrc : ∀ q ∈ c.source, p q ∈ d.source) (hdp : ∀ s ∈ c.target, d (p (c.symm s)) = ρ s)
+    {s : E'} (hs : s ∈ c.target) (a b : TangentSpace 𝓘(ℝ, E') s) :
+    SmoothBundleForm.eval₂ σ (g (c.symm s)) (mfderiv 𝓘(ℝ, E') I (g ∘ c.symm) s a)
+      (mfderiv 𝓘(ℝ, E') I (g ∘ c.symm) s b) = stdForm (Fin r) (ρ a) (ρ b) := by
+  have hpu : p (c.symm s) ∈ d.source := hsrc _ (c.map_target hs)
+  have hcd : MDifferentiableAt 𝓘(ℝ, E') J c.symm s :=
+    c.symm.mdifferentiableAt (by simp) (by simpa using hs)
+  have hdd := d.mdifferentiableAt (by simp) hpu
+  -- The derivative of `d ∘ p ∘ c⁻¹ = ρ` is `ρ`.
+  have hρ (v : TangentSpace 𝓘(ℝ, E') s) :
+      mvfderiv 𝓘(ℝ, StdSpace (Fin r)) d (p (c.symm s))
+        (mfderiv J 𝓘(ℝ, StdSpace (Fin r)) p (c.symm s) (mfderiv 𝓘(ℝ, E') J c.symm s v)) = ρ v := by
+    have hev : (d ∘ p) ∘ c.symm =ᶠ[𝓝 s] ρ :=
+      Filter.eventually_of_mem (c.open_target.mem_nhds hs) hdp
+    rw [← mvfderiv_comp_apply _ hdd (hp _), ← mvfderiv_comp_apply s (hdd.comp _ (hp _)) hcd,
+      hev.mvfderiv_eq, mvfderiv_eq_fderiv_apply, ρ.fderiv]
+  rw [mfderiv_comp_apply s (hg _) hcd a, mfderiv_comp_apply s (hg _) hcd b, hgp, hd _ hpu,
+    hρ a, hρ b]
+
+omit [IsManifold I ∞ M] [FiniteDimensional ℝ E] [I.Boundaryless] in
+/-- On an open `U ⊆ M` with a diffeomorphism `Ψ` onto the product of the unit balls of `ℝᵏ` and
+`StdSpace (Fin r)`, a chart `d` of the second ball and a linear identification `L` of the model of
+`M` with `ℝᵏ × StdSpace (Fin r)` give a chart `c₀ = L⁻¹ ∘ (id × d) ∘ Ψ` of `U`. -/
+private theorem exists_partialDiffeomorph_prod_comp {k r : ℕ} {U : Opens M}
+    (Ψ : U ≃ₘ^∞⟮I, 𝓘(ℝ, EuclideanSpace ℝ (Fin k) × StdSpace (Fin r))⟯
+      (⟨Metric.ball 0 1 ×ˢ Metric.ball 0 1, Metric.isOpen_ball.prod Metric.isOpen_ball⟩ :
+        Opens (EuclideanSpace ℝ (Fin k) × StdSpace (Fin r))))
+    (d : PartialDiffeomorph 𝓘(ℝ, StdSpace (Fin r)) 𝓘(ℝ, StdSpace (Fin r))
+      (⟨Metric.ball 0 1, Metric.isOpen_ball⟩ : Opens (StdSpace (Fin r))) (StdSpace (Fin r)) ∞)
+    (L : E ≃L[ℝ] EuclideanSpace ℝ (Fin k) × StdSpace (Fin r)) (u₀ : U) :
+    ∃ c₀ : PartialDiffeomorph I 𝓘(ℝ, E) U E ∞,
+      (∀ u, u ∈ c₀.source ↔
+        (⟨(Ψ u : EuclideanSpace ℝ (Fin k) × StdSpace (Fin r)).2, (Ψ u).property.2⟩ :
+          (⟨Metric.ball 0 1, Metric.isOpen_ball⟩ : Opens (StdSpace (Fin r)))) ∈ d.source) ∧
+      ∀ u, L (c₀ u) = ((Ψ u : EuclideanSpace ℝ (Fin k) × StdSpace (Fin r)).1,
+        d ⟨(Ψ u : EuclideanSpace ℝ (Fin k) × StdSpace (Fin r)).2, (Ψ u).property.2⟩) := by
+  -- `D` is `d` read on `StdSpace (Fin r)`, and `Θ = id × D` acts on the second component.
+  let D := (PartialDiffeomorph.subtypeVal 𝓘(ℝ, StdSpace (Fin r)) ∞ _
+    ⟨⟨(Ψ u₀ : EuclideanSpace ℝ (Fin k) × StdSpace (Fin r)).2, (Ψ u₀).property.2⟩⟩).symm.trans d
+  have hD (b : (⟨Metric.ball 0 1, Metric.isOpen_ball⟩ : Opens (StdSpace (Fin r)))) :
+      D b = d b := by
+    simp [D]
+  have hDs (b : (⟨Metric.ball 0 1, Metric.isOpen_ball⟩ : Opens (StdSpace (Fin r)))) :
+      (b : StdSpace (Fin r)) ∈ D.source ↔ b ∈ d.source := by
+    simp [D]
+  let Θ₀ := (OpenPartialHomeomorph.refl (EuclideanSpace ℝ (Fin k))).prod D.toOpenPartialHomeomorph
+  have hDc : ContDiffOn ℝ ∞ D D.source := contMDiffOn_iff_contDiffOn.1 D.contMDiffOn
+  have hDsc : ContDiffOn ℝ ∞ D.symm D.target := contMDiffOn_iff_contDiffOn.1 D.symm.contMDiffOn
+  let Θ := PartialDiffeomorph.ofOpenPartialHomeomorph Θ₀
+    (by
+      simp only [Θ₀, OpenPartialHomeomorph.prod_source, OpenPartialHomeomorph.refl_source]
+      exact contDiffOn_fst.prodMk (hDc.comp contDiffOn_snd fun x hx ↦ hx.2))
+    (by
+      simp only [Θ₀, OpenPartialHomeomorph.prod_target, OpenPartialHomeomorph.refl_target]
+      exact contDiffOn_fst.prodMk (hDsc.comp contDiffOn_snd fun x hx ↦ hx.2))
+  have hΘ (z : EuclideanSpace ℝ (Fin k) × StdSpace (Fin r)) : Θ z = (z.1, D z.2) := by
+    simp [Θ, Θ₀]
+  have hΘs (z : EuclideanSpace ℝ (Fin k) × StdSpace (Fin r)) :
+      z ∈ Θ.source ↔ z.2 ∈ D.source := by
+    simp [Θ, Θ₀]
+  refine ⟨(Ψ.toPartialDiffeomorph.trans (PartialDiffeomorph.subtypeVal _ ∞ _ ⟨Ψ u₀⟩)).trans
+      (Θ.trans L.symm.toPartialDiffeomorph), fun u ↦ ?_, fun u ↦ ?_⟩
+  · simp [hΘs, ← hDs]
+  · simp [hΘ, ← hD]
+
+/-- **Darboux coordinates for a closed two-form of constant rank.** Let `σ` be a closed two-form
+on a boundaryless manifold of dimension `k + 2r` whose kernels all have dimension `k`, and let
+`L` identify the model space with `ℝᵏ × StdSpace (Fin r)`. Every point `x` has a chart `c` with
+`c x = 0` in which, near `0`, `σ` is the pull-back of `stdForm (Fin r)` along the second
+component of `L`. The chart combines the leaf coordinates of a characteristic chart of `σ`
+(`exists_isCharacteristicSubmersion`) with a Darboux chart of the symplectic form that `σ`
+induces on the local space of leaves
+(`IsCharacteristicSubmersion.existsUnique_isSymplectic_mpullback_eq`). -/
+theorem exists_partialDiffeomorph_eval₂_eq_stdForm (σ : SmoothForm I M ℝ 2) (hσ : σ.IsClosed)
+    {k r : ℕ} (hk : ∀ x, finrank ℝ (LinearMap.ker (σ.bilinFormAt x)) = k)
+    (L : E ≃L[ℝ] EuclideanSpace ℝ (Fin k) × StdSpace (Fin r)) (x : M) :
+    ∃ c : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞, x ∈ c.source ∧ c x = 0 ∧
+      ∀ᶠ s in 𝓝 (0 : E), ∀ a b : TangentSpace 𝓘(ℝ, E) s,
+        SmoothBundleForm.eval₂ σ (c.symm s) (mfderiv 𝓘(ℝ, E) I c.symm s a)
+          (mfderiv 𝓘(ℝ, E) I c.symm s b) = stdForm (Fin r) (L a).2 (L b).2 := by
+  -- A characteristic chart `Ψ` of `σ` on `U ∋ x`, with leaf space the ball `B`, and the
+  -- symplectic form `τ` that `σ` induces on `B`.
+  have hr : finrank ℝ E = k + 2 * r := by
+    rw [L.toLinearEquiv.finrank_eq, Module.finrank_prod, finrank_euclideanSpace, finrank_stdSpace]
+    simp
+  obtain ⟨U, hx, Ψ, hΨ0, hp⟩ := σ.exists_isCharacteristicSubmersion hσ hk hr x
+  set p : U → (⟨Metric.ball 0 1, Metric.isOpen_ball⟩ : Opens (StdSpace (Fin r))) :=
+    fun u ↦ ⟨(Ψ u : EuclideanSpace ℝ (Fin k) × StdSpace (Fin r)).2, (Ψ u).property.2⟩ with hp_def
+  set u₀ : U := ⟨x, hx⟩
+  obtain ⟨τ, ⟨hτs, hτ⟩, -⟩ := hp.existsUnique_isSymplectic_mpullback_eq (hσ.mpullback _ _)
+  -- A Darboux chart `d` of `τ`, and the chart `c₀ = L⁻¹ ∘ (id × d) ∘ Ψ` of `U`.
+  obtain ⟨d, hd₀, hd0, hd⟩ := hτs.exists_darbouxChart_of_symplecticForm (stdForm (Fin r)) (p u₀)
+  obtain ⟨c₀, hc₀s, hc₀⟩ := exists_partialDiffeomorph_prod_comp Ψ d L u₀
+  have hu₀ : u₀ ∈ c₀.source := (hc₀s u₀).2 hd₀
+  -- `p u₀` is the second component of `Ψ u₀`, which `hc₀` writes out.
+  have hc₀0 : c₀ u₀ = 0 := L.injective (by
+    rw [hc₀, map_zero]
+    exact Prod.ext (by simp [hΨ0]) hd0)
+  -- On the target of `c₀`, the second component of `L` is `d ∘ p ∘ c₀⁻¹`.
+  let ρ : E →L[ℝ] StdSpace (Fin r) :=
+    (ContinuousLinearMap.snd ℝ (EuclideanSpace ℝ (Fin k)) (StdSpace (Fin r))).comp
+      (L : E →L[ℝ] EuclideanSpace ℝ (Fin k) × StdSpace (Fin r))
+  have hdp (z : E) (hz : z ∈ c₀.target) : d (p (c₀.symm z)) = ρ z := by
+    have h := hc₀ (c₀.symm z)
+    simp only [PartialDiffeomorph.symm_toPartialEquiv] at h ⊢
+    rw [c₀.right_inv hz] at h
+    simp [ρ, h, hp_def]
+  -- The chart `c` of `M` that agrees with `c₀` near `x`.
+  obtain ⟨c, hcx, -, hcx₀, hct, hcs⟩ := c₀.exists_ambient_of_opens hu₀
+  have h0 : (0 : E) ∈ c.target := by
+    rw [← hc₀0, ← hcx₀]
+    exact c.map_source hcx
+  refine ⟨c, hcx, hcx₀.trans hc₀0, ?_⟩
+  -- The form computation: on `U`, `σ` is `p^* τ`, and `d` pulls `stdForm (Fin r)` back to `τ`.
+  have hval (u : U) : MDifferentiableAt I I (Subtype.val : U → M) u :=
+    (contMDiff_subtypeVal (n := ∞)).mdifferentiableAt (by simp)
+  have hgp (u : U) (v w : TangentSpace I u) :
+      SmoothBundleForm.eval₂ σ (Subtype.val u) (mfderiv I I Subtype.val u v)
+        (mfderiv I I Subtype.val u w) =
+      τ.eval₂ (p u) (mfderiv I _ p u v) (mfderiv I _ p u w) := by
+    rw [← SmoothForm.eval₂_mpullback Subtype.val contMDiff_subtypeVal, ← hτ,
+      SmoothForm.eval₂_mpullback]
+  -- `Filter.EventuallyEq.mfderiv_eq` reads the derivative through `tangentSpaceCast`.
+  have hcast (y z : M) (hyz : y = z) (v w : TangentSpace I y) :
+      SmoothBundleForm.eval₂ σ z (tangentSpaceCast I y z v) (tangentSpaceCast I y z w) =
+        SmoothBundleForm.eval₂ σ y v w := by
+    subst hyz
+    simp
+  have hρ (v : E) : ρ v = (L v).2 := by simp [ρ]
+  filter_upwards [c.open_target.mem_nhds h0] with s hs a b
+  -- Near `s`, `c⁻¹` is `Subtype.val ∘ c₀⁻¹`.
+  have heq : (c.symm : E → M) =ᶠ[𝓝 s] Subtype.val ∘ c₀.symm :=
+    Filter.eventually_of_mem (c.open_target.mem_nhds hs) fun z hz ↦ hcs z hz
+  rw [heq.mfderiv_eq, ContinuousLinearMap.comp_apply, ContinuousLinearMap.comp_apply]
+  refine (hcast _ _ (hcs s hs).symm _ _).trans ?_
+  refine (eval₂_mfderiv_comp_symm_eq_of_darbouxChart hval
+    (fun u ↦ hp.isSubmersion.contMDiff.mdifferentiableAt (by simp)) hgp hd
+    (fun u hu ↦ (hc₀s u).1 hu) hdp (hct hs) a b).trans ?_
+  exact congrArg₂ (stdForm (Fin r) · ·) (hρ a) (hρ b)
+
 end Charts
 
 end TauCeti.SmoothForm
@@ -474,28 +652,45 @@ variable {E H M F H' N : Type*}
   {σ : SmoothTwoForm I M} {hσ : σ.IsNondegenerate} {f : N → M}
 
 /-- **Characteristic charts of a coisotropic submanifold.** Let `f : N → M` be a coisotropic
-immersion of a boundaryless manifold of dimension `(dim M - dim N) + 2r` for a closed nondegenerate
-two-form `σ`. Around every point `q` of `N` there is a characteristic chart of the presymplectic
-form `f^* σ`, as in `TauCeti.SmoothForm.exists_isCharacteristicSubmersion`, with leaves of
-dimension `dim M - dim N`. -/
+immersion, for a closed nondegenerate two-form `σ`, of a boundaryless manifold of codimension `k`
+and dimension `k + 2r`. Around every point `q` of `N` there is a characteristic chart of the
+presymplectic form `f^* σ`, as in `TauCeti.SmoothForm.exists_isCharacteristicSubmersion`, with
+leaves of dimension `k`. -/
 theorem IsCoisotropicMap.exists_isCharacteristicSubmersion [FiniteDimensional ℝ E]
     [FiniteDimensional ℝ F] [J.Boundaryless] (h : hσ.IsCoisotropicMap J f)
-    (hi : IsImmersion J I ∞ f) (hf : ContMDiff J I ∞ f) (hσc : σ.IsClosed) {r : ℕ}
-    (hr : finrank ℝ F = (finrank ℝ E - finrank ℝ F) + 2 * r) (q : N) :
+    (hi : IsImmersion J I ∞ f) (hf : ContMDiff J I ∞ f) (hσc : σ.IsClosed) {k r : ℕ}
+    (hk : finrank ℝ F + k = finrank ℝ E) (hr : finrank ℝ F = k + 2 * r) (q : N) :
     ∃ (U : Opens N) (hq : q ∈ U)
-      (Ψ : U ≃ₘ^∞⟮J, 𝓘(ℝ, EuclideanSpace ℝ (Fin (finrank ℝ E - finrank ℝ F)) ×
-          StdSpace (Fin r))⟯
+      (Ψ : U ≃ₘ^∞⟮J, 𝓘(ℝ, EuclideanSpace ℝ (Fin k) × StdSpace (Fin r))⟯
         (⟨Metric.ball 0 1 ×ˢ Metric.ball 0 1, Metric.isOpen_ball.prod Metric.isOpen_ball⟩ :
-          Opens (EuclideanSpace ℝ (Fin (finrank ℝ E - finrank ℝ F)) × StdSpace (Fin r)))),
-      (Ψ ⟨q, hq⟩ : EuclideanSpace ℝ (Fin (finrank ℝ E - finrank ℝ F)) × StdSpace (Fin r)) = 0 ∧
+          Opens (EuclideanSpace ℝ (Fin k) × StdSpace (Fin r)))),
+      (Ψ ⟨q, hq⟩ : EuclideanSpace ℝ (Fin k) × StdSpace (Fin r)) = 0 ∧
       SmoothForm.IsCharacteristicSubmersion 𝓘(ℝ, StdSpace (Fin r))
         (SmoothForm.mpullback (Subtype.val : U → N) contMDiff_subtypeVal
           (SmoothForm.mpullback f hf σ))
-        (fun u ↦ (⟨(Ψ u : EuclideanSpace ℝ (Fin (finrank ℝ E - finrank ℝ F)) ×
-            StdSpace (Fin r)).2, (Ψ u).property.2⟩ :
+        (fun u ↦ (⟨(Ψ u : EuclideanSpace ℝ (Fin k) × StdSpace (Fin r)).2, (Ψ u).property.2⟩ :
           (⟨Metric.ball 0 1, Metric.isOpen_ball⟩ : Opens (StdSpace (Fin r))))) :=
   (SmoothForm.mpullback f hf σ).exists_isCharacteristicSubmersion (hσc.mpullback f hf)
-    (h.finrank_ker_bilinFormAt_mpullback hi hf) hr q
+    (fun x ↦ (h.finrank_ker_bilinFormAt_mpullback hi hf x).trans (by omega)) hr q
+
+/-- **Darboux coordinates on a coisotropic submanifold.** Let `f : N → M` be a coisotropic
+immersion, for a closed nondegenerate two-form `σ`, of a boundaryless manifold of codimension `k`
+and dimension `k + 2r`, and let `L` identify the model space of `N` with
+`ℝᵏ × StdSpace (Fin r)`. Every point `q` of `N` has a chart `c` with `c q = 0` in which, near `0`,
+the presymplectic form `f^* σ` is the pull-back of `stdForm (Fin r)` along the second component
+of `L`, as in `TauCeti.SmoothForm.exists_partialDiffeomorph_eval₂_eq_stdForm`. -/
+theorem IsCoisotropicMap.exists_partialDiffeomorph_eval₂_eq_stdForm [FiniteDimensional ℝ E]
+    [FiniteDimensional ℝ F] [J.Boundaryless] (h : hσ.IsCoisotropicMap J f)
+    (hi : IsImmersion J I ∞ f) (hf : ContMDiff J I ∞ f) (hσc : σ.IsClosed) {k r : ℕ}
+    (hk : finrank ℝ F + k = finrank ℝ E)
+    (L : F ≃L[ℝ] EuclideanSpace ℝ (Fin k) × StdSpace (Fin r)) (q : N) :
+    ∃ c : PartialDiffeomorph J 𝓘(ℝ, F) N F ∞, q ∈ c.source ∧ c q = 0 ∧
+      ∀ᶠ s in 𝓝 (0 : F), ∀ a b : TangentSpace 𝓘(ℝ, F) s,
+        SmoothBundleForm.eval₂ (SmoothForm.mpullback f hf σ) (c.symm s)
+          (mfderiv 𝓘(ℝ, F) J c.symm s a) (mfderiv 𝓘(ℝ, F) J c.symm s b) =
+        stdForm (Fin r) (L a).2 (L b).2 :=
+  (SmoothForm.mpullback f hf σ).exists_partialDiffeomorph_eval₂_eq_stdForm (hσc.mpullback f hf)
+    (fun x ↦ (h.finrank_ker_bilinFormAt_mpullback hi hf x).trans (by omega)) L q
 
 /-- **The characteristic leaves of a coisotropic submanifold are isotropic.** For a coisotropic map
 `f`, the differential `df_x` carries the kernel of `f^* σ` at `x`, the tangent space of the
