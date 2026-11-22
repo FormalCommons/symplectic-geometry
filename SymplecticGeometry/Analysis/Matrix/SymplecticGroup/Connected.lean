@@ -6,7 +6,10 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Analysis.Matrix.Normed
-public import TauCeti.Analysis.Matrix.Exponential.Log
+public import SymplecticGeometry.Analysis.CStarAlgebra.Exponential
+public import SymplecticGeometry.Analysis.SpecialFunctions.ContinuousFunctionalCalculus.ExpLog
+public import SymplecticGeometry.LinearAlgebra.Matrix.SymplecticGroup.Basic
+public import SymplecticGeometry.Topology.Algebra.Matrix.Realify
 public import TauCeti.Analysis.Matrix.Polar.Symplectic
 public import TauCeti.Analysis.Matrix.UnitaryGroup.Connected
 public import TauCeti.LinearAlgebra.Matrix.GeneralLinearGroup.Symplectic.Unitary
@@ -21,13 +24,15 @@ Any two real symplectic matrices are joined by a smooth path of symplectic matri
 Left multiplication by `A⁻¹` reduces to joining `1` to a symplectic matrix `C`. Its polar
 decomposition `C = P U` has both factors symplectic (`SymplecticGroup.sqrt_mul_star_mem`,
 `SymplecticGroup.polarUnitary_mem`). The positive factor is joined to `1` by `t ↦ P ^ t`, which
-is symplectic (`SymplecticGroup.rpow_mem`) and smooth in `t` since `P ^ t = exp (t • log P)`
-(`Matrix.PosDef.rpow_eq_exp_smul_cfc_log`). The orthogonal factor `U` is the realification of a
-unitary matrix (`Matrix.symplecticGroup_inf_orthogonalGroup`), which is `exp (I • H)` for a
-Hermitian `H` (`Matrix.UnitaryGroup.exists_expUnitary_eq`); it is joined to `1` by
-`t ↦ realify (exp (I • t • H))`. The path is `t ↦ A P ^ t realify (exp (I • t • H))`; the
-same factors appear in Tau Ceti's `SymplecticGroup.joinedIn_polarUnitary` and
-`Matrix.isPathConnected_symplecticGroup`, joined here by smooth paths instead.
+is symplectic (`SymplecticGroup.rpow_mem`) and smooth in `t` (`CFC.contDiff_const_rpow`). The
+orthogonal factor `U` is the realification of a unitary matrix
+(`Matrix.symplecticGroup_inf_orthogonalGroup`), which is `exp (I • H)` for a Hermitian `H`
+(`Matrix.UnitaryGroup.exists_expUnitary_eq`); it is joined to `1` by
+`t ↦ realify (exp (I • t • H))`, which is smooth (`selfAdjoint.contDiff_expUnitary_smul`, and
+`Matrix.realifyCLM`, realification as a continuous linear map). The path is
+`t ↦ A P ^ t realify (exp (I • t • H))`; the same factors appear in Tau Ceti's
+`SymplecticGroup.joinedIn_polarUnitary` and `Matrix.isPathConnected_symplecticGroup`, joined here
+by smooth paths instead.
 
 Smoothness is stated for the entrywise norm `Matrix.Norms.Elementwise`.
 
@@ -58,8 +63,7 @@ private theorem exists_path_contDiff_apply {A B : Matrix (n ⊕ n) (n ⊕ n) ℝ
     (hA : A ∈ symplecticGroup n ℝ) (hB : B ∈ symplecticGroup n ℝ) :
     ∃ γ : ℝ → Matrix (n ⊕ n) (n ⊕ n) ℝ, (∀ i j, ContDiff ℝ ∞ fun t ↦ γ t i j) ∧
       (∀ t, γ t ∈ symplecticGroup n ℝ) ∧ γ 0 = A ∧ γ 1 = B := by
-  have hA' : A⁻¹ ∈ symplecticGroup n ℝ := by
-    simpa [SymplecticGroup.coe_inv'] using ((⟨A, hA⟩ : symplecticGroup n ℝ)⁻¹).property
+  have hA' : A⁻¹ ∈ symplecticGroup n ℝ := SymplecticGroup.inv_mem hA
   obtain ⟨C, hCB⟩ := (isUnit_iff_isUnit_det _).2
     (SymplecticGroup.symplectic_det (Submonoid.mul_mem _ hA' hB))
   have hC : (C : Matrix (n ⊕ n) (n ⊕ n) ℝ) ∈ symplecticGroup n ℝ :=
@@ -72,23 +76,13 @@ private theorem exists_path_contDiff_apply {A B : Matrix (n ⊕ n) (n ⊕ n) ℝ
   rw [symplecticGroup_inf_orthogonalGroup] at hU
   obtain ⟨V, hV, hVU⟩ := hU
   obtain ⟨H, hH⟩ := UnitaryGroup.exists_expUnitary_eq ⟨V, hV⟩
-  -- the smoothness of `t ↦ P ^ t = exp (t • log P)`, of `t ↦ exp (I • t • H)`, and of the
-  -- linear maps `realify` and `M ↦ M i j`
-  have hpow : ContDiff ℝ ∞ fun t : ℝ ↦ P ^ t := by
-    rw [funext hP.rpow_eq_exp_smul_cfc_log]
-    exact (contDiff_exp ℝ).comp (contDiff_id.smul contDiff_const)
-  have hexp : ContDiff ℝ ∞ fun t : ℝ ↦ (selfAdjoint.expUnitary (t • H) : Matrix n n ℂ) := by
-    have h (t : ℝ) : (selfAdjoint.expUnitary (t • H) : Matrix n n ℂ) =
-        exp (t • (Complex.I • (H : Matrix n n ℂ))) := by
-      simp [selfAdjoint.expUnitary_coe, smul_comm Complex.I t]
-    rw [funext h]
-    exact (contDiff_exp ℝ).comp (contDiff_id.smul contDiff_const)
-  have hre : ContDiff ℝ ∞ fun M : Matrix n n ℂ ↦ M.realify := by
-    rw [← funext (realifyLinearMap_apply (m := n) (n := n) (𝕜 := ℂ))]
-    exact (realifyLinearMap n n ℂ).toContinuousLinearMap.contDiff
+  have hre := (realifyCLM n n ℂ).contDiff (n := ∞)
+  rw [coe_realifyCLM] at hre
   refine ⟨fun t ↦ A * P ^ t * ((selfAdjoint.expUnitary (t • H) : Matrix n n ℂ)).realify,
     fun i j ↦ (entryLinearMap ℝ ℝ i j).toContinuousLinearMap.contDiff.comp
-      ((contDiff_const.mul hpow).mul (hre.comp hexp)), fun t ↦ ?_, ?_, ?_⟩
+      ((contDiff_const.mul (CFC.contDiff_const_rpow hP.isStrictlyPositive)).mul
+        (hre.comp (selfAdjoint.contDiff_expUnitary_smul H))),
+      fun t ↦ ?_, ?_, ?_⟩
   · exact Submonoid.mul_mem _ (Submonoid.mul_mem _ hA
       (SymplecticGroup.rpow_mem hP.posSemidef (SymplecticGroup.sqrt_mul_star_mem hC) t))
       (realify_mem_symplecticGroup_iff.2 (selfAdjoint.expUnitary _).property)

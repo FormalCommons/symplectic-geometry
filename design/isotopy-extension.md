@@ -198,16 +198,19 @@ Further choices of this design:
 | File | Contents |
 |---|---|
 | `AlgebraicTopology/Singular/NDRPair.lean` | the homological shrinking lemma for the subset of an NDR pair |
+| `Analysis/CStarAlgebra/Exponential.lean` | smoothness of `t ↦ selfAdjoint.expUnitary (t • a)` (named like Mathlib's file) |
 | `Analysis/Matrix/SymplecticGroup/Connected.lean` | smooth paths in `Matrix.symplecticGroup` (named like Tau Ceti's file) |
+| `Analysis/SpecialFunctions/ContinuousFunctionalCalculus/ExpLog.lean` | smoothness of `t ↦ a ^ t` for strictly positive `a` (named like Tau Ceti's file) |
 | `Geometry/Manifold/SmoothEmbedding/Neighborhood.lean` | embeddings near a compact set, uniformly in a compact parameter |
 | `Geometry/Manifold/SmoothIsotopy/Extension.lean` | time extension of an isotopy past its ends, and isotopy extension at every time (named like Tau Ceti's file) |
 | `Geometry/Symplectic/IsotopyExtension/Velocity.lean` | `SmoothIsotopy.IsSymplectic`, velocity forms, their closedness, the link with `HasHamiltonian` |
 | `Geometry/Symplectic/IsotopyExtension/Flow.lean` | extension of a family of symplectic embeddings by an ambient symplectic or Hamiltonian flow |
-| `Geometry/Symplectic/Moser/Family.lean` | Moser's argument near a compact set along a family, and with a parameter; parametric radial primitives |
+| `Geometry/Symplectic/Moser/Family.lean` | Moser's argument near a compact set along a family, and with a parameter |
 | `Geometry/Manifold/TubularNeighborhood/OneFormCorrection.lean` | the correction lemma: a function whose slices have differential `γ_t` along a compact submanifold where `f^* γ_t` vanishes |
 | `Geometry/Manifold/DifferentialForm/VectorBundlePoincare.lean` | the relative Poincaré operator at the zero section of a vector bundle, and its fibre-scaling primitives for a family of one-forms |
 | `Geometry/Symplectic/IsotopyExtension/Ball/Basic.lean` | `IsSymplecticBallEmbedding`, `IsSymplecticBallFamily`, enlarging a symplectic ball |
 | `Geometry/Symplectic/IsotopyExtension/Ball/Isotopy.lean` | the Hamiltonian ball extension and the milestone *Symplectic ball extension* |
+| `Geometry/Manifold/DeRham/HomologyPeriod.lean` | periods of a smooth family of closed one-forms depend smoothly on the parameter |
 | `Geometry/Symplectic/IsotopyExtension/Cohomological/Primitive.lean` | ambient closed forms with prescribed periods, and primitives on one neighbourhood for all times |
 | `Geometry/Symplectic/IsotopyExtension/Cohomological/Basic.lean` | the milestone *Symplectic isotopy extension* |
 | `Geometry/Symplectic/IsotopyExtension/Submanifold.lean` | the milestone *Neighbourhood extension of submanifold isotopies* |
@@ -268,6 +271,15 @@ functional calculus gives smoothness in `t`, for instance by writing `P ^ t`
 as `exp (t • log P)`. Smoothness is stated for the entrywise norm
 `Matrix.Norms.Elementwise`, as for the frames of *Maslov index*. Expected
 size: 150 lines.
+
+The general steps of the proof are public lemmas in files of their own
+topics: `CFC.contDiff_const_rpow`
+(`Analysis/SpecialFunctions/ContinuousFunctionalCalculus/ExpLog.lean`),
+`selfAdjoint.contDiff_expUnitary_smul` (`Analysis/CStarAlgebra/Exponential.lean`),
+both files of this part, and `Matrix.realifyCLM` and `SymplecticGroup.inv_mem`, which
+`Connected.lean` imports from `Topology/Algebra/Matrix/Realify.lean` of
+*Lagrangian Grassmannian* and `LinearAlgebra/Matrix/SymplecticGroup/Basic.lean` of
+*Symplectic group*. Both of those files are merged.
 
 ### `Geometry/Manifold/SmoothEmbedding/Neighborhood.lean`
 
@@ -526,18 +538,12 @@ smooth in `t`, `s` and the point, by the argument of
 extends `β` in `t` past both ends and runs
 the flow of the vertical field $(0,X_{s,t})$ on the manifold `ℝ × N`. Its
 first component is constant, so by uniqueness its slices are the flows of the
-$X_{\cdot,t}$. The same file gives the parametric radial primitives on a
-star-shaped open set of a normed space,
-`SymplecticGeometry.exists_isSmoothFamily_mextDerivₗ_eq_of_starConvex`: for a smooth family of
-closed $k$-forms ($k\ge1$) on an open set star-shaped about `0`, over any
-parameter manifold, a smooth family of
-primitives that vanishes at every point where the forms vanish along the
-segment to `0`, and is `0` when the form is. It is the homotopy operator
-after pullback along the radial contraction $(x,s)\mapsto s\,x$, slice by
-slice (`IsSmoothFamily.homotopyOperator` and
-`SmoothForm.mextDerivₗ_homotopyOperator_mpullback_of_contraction`), which
-works on an open set where Tau Ceti's `vectorBundlePoincareHomotopy` needs
-the whole bundle. Expected size: 500 lines.
+$X_{\cdot,t}$. The ball extension applies this theorem to parametric radial
+primitives, which are not in this file: they are
+`SymplecticGeometry.exists_isSmoothFamily_mextDerivₗ_eq_of_starConvex` of
+*Smooth families*' `Geometry/Manifold/DifferentialForm/SmoothFamily/Poincare.lean`,
+for an open set star-convex about any centre `c` (here `0`), with the
+segment from `c`. Expected size: 500 lines.
 
 ### `Geometry/Symplectic/IsotopyExtension/Ball/Basic.lean`
 
@@ -673,24 +679,33 @@ Let `M : Type` be compact, `Q : Set M`, `U : Opens M` with `Q ⊆ U`, and let
   a basis, closed representatives `b_i`, and finitely many cycles `z_j` of
   `Q` on which evaluation is injective. Then $\beta_t=\sum a_i(t)b_i$, where
   the coefficients are a fixed linear function of the periods of `α_t` on
-  the `z_j`. Those periods are smooth in `t`: the image of `z_j` in `H₁ U`
-  is a sum of classes of smooth loops (Tau Ceti's `Geometry/Manifold/SmoothApprox.lean`
-  and the Hurewicz map), and along a smooth loop the period is a line
-  integral, differentiable under the integral sign.
+  the `z_j`. Those periods are smooth in `t`, by
+  `IsSmoothFamily.contMDiff_homologyPeriodHom` in
+  `Geometry/Manifold/DeRham/HomologyPeriod.lean`: each singular simplex is
+  homotopic to a smooth path (Tau Ceti's `Geometry/Manifold/SmoothApprox.lean`),
+  and along a smooth path the period is the change of a jointly smooth
+  primitive of the pulled-back family on `ℝ`.
 - `TauCeti.NDRPair.exists_forall_exact`: for NDR data on `Q` there
   is an open `V` with `Q ⊆ V ⊆ U` such that every closed one-form on `U`
   whose periods vanish on the image of `H₁ Q` is exact on `V`. This is
   `exists_isOpen_range_singularHomologyMap_le` with
   `TauCeti.exists_mextDeriv_eq_of_homologyPeriodHom_eq_zero` and
   `TauCeti.homologyPeriodHom_singularHomologyMap` for the inclusion `V → U`.
-- `SmoothIsotopy.homologyPeriodHom_mpullback_eq`: for a `SmoothIsotopy`
-  `φ` from the inclusion of `U`, the periods of `φ_t^* β` on `H₁ U` are those
-  of `β`. The slices are homotopic to the inclusion, so
+- `SmoothIsotopy.homologyPeriodHom_mpullback_eq`: for any `SmoothIsotopy`
+  `φ` starting at `f₀` and a closed one-form `θ`, the periods of `φ_t^* θ`
+  are those of `f₀^* θ`, and from the inclusion of `U` those of `θ`. The
+  slices are homotopic to `f₀`, so
   `ContinuousMap.singularHomologyMap_eq_of_homotopic` and
   `homologyPeriodHom_singularHomologyMap` apply.
-- `exists_contMDiff_primitive_of_periods`: under both hypotheses, for a
-  symplectic `φ` with velocity forms `α`, the forms `α_t - φ_t^* β_t` are
-  exact on `V` with a primitive `h` smooth on `unitInterval × V`. Exactness
+- `exists_contMDiff_primitive_of_periods`: for NDR data on `Q`, a
+  `SmoothIsotopy` `φ` of `U` whose start `f₀` is the inclusion
+  (`∀ x, f₀ x = x`), and smooth families `α` on `U` and `β` on `M` of closed
+  one-forms with the periods equation of the first item (no compactness), the
+  forms `α_t - φ_t^* β_t` are exact on `V` with a primitive `h` smooth on
+  `unitInterval × V`. Issue 11 takes the velocity forms of a symplectic `φ`
+  as `α`, and `β` from the first item or `β = 0`. The start is a variable
+  with that equation rather than the term `⟨Subtype.val, contMDiff_subtypeVal⟩`,
+  since with that term Lean finds no coercion of `φ` to a function. Exactness
   comes from the last two items. The smooth choice is *Hamiltonian flows*'
   `SymplecticGeometry.exists_contMDiff_mextDeriv_eq_of_forall_mem_exactForms` (see
   *What the part uses*), applied on the manifold `V`.
@@ -807,10 +822,10 @@ this design already follows. `Ball/Isotopy.lean` cites
   `Geometry/Manifold/ContMDiff/TimeExtension.lean` (used by `Extension.lean`
   and `Flow.lean`) and of forms on `unitInterval × M` in
   `Geometry/Manifold/DifferentialForm/TimeExtension.lean` (used by
-  `Flow.lean` and `Moser/Family.lean`); the homotopy operator on smooth
-  families in
-  `Geometry/Manifold/DifferentialForm/SmoothFamily/HomotopyOperator.lean`
-  (used by `Moser/Family.lean` for the parametric radial primitives); and the
+  `Flow.lean` and `Moser/Family.lean`); the parametric radial primitives
+  `exists_isSmoothFamily_mextDerivₗ_eq_of_starConvex` in
+  `Geometry/Manifold/DifferentialForm/SmoothFamily/Poincare.lean`
+  (used by `Ball/Isotopy.lean`); and the
   instance
   `FiniteDimensional ℝ (deRhamCohomology I M k)` for a compact boundaryless
   `M`, which `Geometry/Manifold/DeRham/SmoothFamily/GoodCover.lean` derives
