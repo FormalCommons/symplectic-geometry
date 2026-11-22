@@ -671,6 +671,29 @@ iterated shuffle maps
 parenthesization and associators of `TopCat.singularHomologyCross_assoc`,
 and `SSet.shuffleAssocHomotopy_hom_naturality`.
 
+### `Algebra/Homology/Monoidal/SplitMono.lean`
+
+`HomologicalComplex.isSplitMono_tensorHom_f`: the tensor product of two
+maps of complexes that are split monomorphisms in each degree is one in each
+degree, so that Tau Ceti's `shortExact_tensorRightShortComplex` applies to a
+short exact sequence of singular chains already tensored with a complex, as
+the file below needs.
+
+### `AlgebraicTopology/Singular/Kunneth/Assoc.lean`
+
+The associativity of the cross product of pairs of `Kunneth/RelativePair.lean`,
+from the homotopy of `SimplicialSet/ShuffleAssoc.lean`:
+`TopCat.singularHomologyCrossRelPair_assoc`, that the
+map induced by the coefficient associator and by the associator
+`(X × Y) × Z ≅ X × (Y × Z)` sends `(a × b) × c` to `a × (b × c)`, with no sign;
+and `TopCat.singularHomologyCrossRelPair_uliftTensorSelfIso_assoc`, the same
+with coefficients in `ULift ℤ` multiplied by
+`(ModuleCat.uliftTensorSelfIso ℤ).hom`, for the value of
+`TauCeti.LocalOrientation.crossSign` in the file below. The
+chain-level steps are `TopCat.shuffleAssocHomotopy`, the homotopy of
+`SSet.shuffleAssocHomotopy` on singular chains, and
+`TopCat.shufflePairAssocHomotopy`, its descent to the relative chains.
+
 ### `AlgebraicTopology/Singular/LocalHomology/Orientation/Cross/Basic.lean`
 
 The cross product of local orientations, for the Whitney file below, in Tau

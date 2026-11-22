@@ -44,17 +44,34 @@ lemma prodFiberRetraction_apply [DecidableEq ι] (x₀ : X) (i : ι) (p : ↑(ι
   rw [show prodFiberRetraction ι x₀ i p = @ite _ (p.1 = i) (Classical.dec _) p.2 x₀ from rfl]
   congr
 
+/-! The two evaluation lemmas below write out the coercion to a function so that they can mark the
+codomain `↑X` of the continuous map, and the point, with `no_index`. Before rewriting, `simp`
+reduces a carrier `↑(TopCat.of Y)` to `Y`, while the index of a simp lemma keeps a carrier such as
+`↑X` or `↑ι` as a projection, which does not match `Y`. Without `no_index`, these lemmas would
+not fire when `ι` or `X` is of the form `TopCat.of _`, as it is in every use. -/
+
+/-- The retraction onto the fibre over `i` is the identity on that fibre. -/
 @[simp]
 lemma prodFiberRetraction_apply_self (x₀ : X) (i : ι) (x : X) :
-    prodFiberRetraction ι x₀ i ((i, x) : ↑(ι ⊗ X)) = x := by
+    DFunLike.coe (F := no_index C(↑(ι ⊗ X), X)) (α := ↑(ι ⊗ X))
+      (ConcreteCategory.hom (prodFiberRetraction ι x₀ i)) (no_index ((i, x) : ↑(ι ⊗ X))) = x := by
   classical
   exact (prodFiberRetraction_apply ι x₀ i _).trans (by simp)
 
+/-- The retraction onto the fibre over `i` sends every other fibre to the base point. -/
 @[simp]
 lemma prodFiberRetraction_apply_of_ne (x₀ : X) {i j : ι} (h : j ≠ i) (x : X) :
-    prodFiberRetraction ι x₀ i ((j, x) : ↑(ι ⊗ X)) = x₀ := by
+    DFunLike.coe (F := no_index C(↑(ι ⊗ X), X)) (α := ↑(ι ⊗ X))
+      (ConcreteCategory.hom (prodFiberRetraction ι x₀ i)) (no_index ((j, x) : ↑(ι ⊗ X))) =
+      x₀ := by
   classical
   exact (prodFiberRetraction_apply ι x₀ i _).trans (by simp [h])
+
+example {α Y : Type w} [TopologicalSpace α] [DiscreteTopology α] [TopologicalSpace Y] (y₀ : Y)
+    {i j : α} (h : j ≠ i) (y : Y) :
+    prodFiberRetraction (of α) (X := of Y) y₀ i (i, y) = y ∧
+      prodFiberRetraction (of α) (X := of Y) y₀ i (j, y) = y₀ := by
+  simp [h]
 
 /-- The retraction onto the fibre over `i` is a left inverse of the inclusion of that fibre. -/
 @[reassoc (attr := simp)]
