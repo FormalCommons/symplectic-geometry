@@ -237,7 +237,8 @@ cores, used by `FirstChernClass.lean`:
 
 - `complexEulerClass_eq_of_iso`: isomorphic cores have the same
   `TauCeti.complexEulerClass`, from
-  `TauCeti.complexEulerClass_eq_of_fiberwise`;
+  `TauCeti.complexEulerClass_eq_of_fiberwise` applied to `isoFiberEquiv e`
+  of `FiniteRank/Basic.lean`, which this file imports;
 - `complexEulerClass_pullback`: the class of `A.pullback f` is the
   pull-back of the class of `A`, from
   `TauCeti.complexEulerClass_eq_singularCohomologyMap_of_fiberwise`.
