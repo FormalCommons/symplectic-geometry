@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Local
 public import SymplecticGeometry.Geometry.Manifold.IsManifold.InteriorBoundary
 public import SymplecticGeometry.Geometry.Manifold.ModelTransport.InteriorModel
 public import TauCeti.Geometry.Manifold.Boundary.Collar.Smooth
@@ -141,13 +142,10 @@ private def endModelDiffeomorph (n : ℕ) :
 
 /-- The depth `max (-s) 0` as a point of `[0, 1)`. -/
 private def collarDepth (s : endInterval) : normalIioOpens 1 :=
-  ⟨normalRay (-s), by
-    rw [mem_normalIioOpens, normalRay_coe_apply]
-    have := mem_endInterval.1 s.property
-    exact max_lt (by linarith) one_pos⟩
+  normalIioRay ⟨-s, neg_lt.1 (mem_endInterval.1 s.property)⟩
 
 private theorem continuous_collarDepth : Continuous collarDepth :=
-  Continuous.subtype_mk (continuous_normalRay.comp (by fun_prop)) _
+  continuous_normalIioRay.comp ((continuous_neg.comp continuous_subtypeVal).subtype_mk _)
 
 @[simp] private theorem collarDepth_negNormalCoord (t : normalIioOpens 1) :
     collarDepth (negNormalCoord t) = t :=
@@ -255,6 +253,12 @@ theorem apply_mem_interior_iff (p : ↥((𝓡∂ (n + 1)).boundary W) × normalI
     c p ∈ (𝓡∂ (n + 1)).interior W ↔ p.2 ≠ normalIioOpensZero one_pos := by
   rw [← ModelWithCorners.compl_boundary, mem_compl_iff, apply_mem_boundary_iff]
 
+/-- A collar point lies in the interior exactly when its depth is positive. -/
+theorem apply_mem_interior_iff_pos (p : ↥((𝓡∂ (n + 1)).boundary W) × normalIioOpens 1) :
+    c p ∈ (𝓡∂ (n + 1)).interior W ↔ 0 < (p.2 : EuclideanHalfSpace 1).val 0 := by
+  rw [apply_mem_interior_iff, ((p.2 : EuclideanHalfSpace 1).property).lt_iff_ne', Ne, Ne,
+    ← Subtype.coe_inj, coe_normalIioOpensZero, EuclideanHalfSpace.eq_zero_iff]
+
 /-- The collar undoes the inverse of its diffeomorphism onto its image. -/
 @[simp] theorem apply_diffeomorphOpensRange_symm (w : c.opensRange) :
     c (c.diffeomorphOpensRange.symm w) = w := by
@@ -349,14 +353,8 @@ private theorem continuous_collarCoord : Continuous c.collarCoord :=
 
 private theorem collarCoord_val_pos (q : c.interiorOverlap) :
     0 < ((c.collarCoord q).2 : EuclideanHalfSpace 1).val 0 := by
-  refine lt_of_le_of_ne ((c.collarCoord q).2 : EuclideanHalfSpace 1).property fun h ↦ ?_
-  have hint : c (c.collarCoord q) ∈ (𝓡∂ (n + 1)).interior W := by
-    rw [apply_collarCoord]
-    exact q.val.val_mem
-  rw [apply_mem_interior_iff] at hint
-  refine hint (Subtype.ext ?_)
-  rw [coe_normalIioOpensZero, ← normalRay_normalCoord ((c.collarCoord q).2 : _), ← h,
-    normalRay_zero]
+  rw [← apply_mem_interior_iff_pos, apply_collarCoord]
+  exact q.val.val_mem
 
 /-- The point of the end piece with the collar coordinates of a point of the interior overlap. -/
 private def interiorToEndPt (q : c.interiorOverlap) : EndPiece n W :=

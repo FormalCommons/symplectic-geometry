@@ -592,13 +592,21 @@ Named like Tau Ceti's file, in `SymplecticGeometry`.
   `TauCeti.IsContMDiffDistribution.of_forall_eventuallyEq_kerDistribution`
   (`Geometry/Contact/Levi.lean`) applied to the slices of local defining
   forms.
+- `IsLocalDefiningFamily ξ U α a b`, for
+  `α : SmoothForm (𝓘(ℝ, ℝ).prod I) (ℝ × U) ℝ 1` (on the open submanifold `U`):
+  all slices of `α` are contact, and `ξ t x` is the image of
+  `(α_t).kerDistribution x` under `TauCeti.Manifold.tangentSpaceOpenEquiv x`
+  for `t ∈ Ioo a b ∩ [0, 1]`, `x ∈ U`; with `isLocalDefiningFamily_def`,
+  `IsLocalDefiningFamily.isContactForm` and
+  `IsLocalDefiningFamily.mem_kerDistribution_iff`. Tau Ceti's
+  `TauCeti.IsLocalContactFormFamily` (`Contact/Gray/Distribution.lean`,
+  after the pinned version) is for a family indexed by `ℝ`, with the
+  kernels prescribed at all real times near a given time, so it does not
+  cover the ends of `[0, 1]`.
 - `IsContactFamily.exists_local_extension (hξ) (p)` (`[BoundarylessManifold I M]`): step 1
   of the extension in *Decisions*. For every `p : unitInterval × M` there
-  are an open interval `J = Ioo a b ∋ p.1`, an open `U ∋ p.2`, and
-  `α : SmoothForm (𝓘(ℝ, ℝ).prod I) (ℝ × U) ℝ 1` (on the open submanifold `U`)
-  all of whose slices are contact, with `ξ t x` the image of
-  `(α_t).kerDistribution x` under `TauCeti.Manifold.tangentSpaceOpenEquiv x`
-  for `t ∈ J ∩ [0, 1]`, `x ∈ U`. Uses `DifferentialForm/TimeExtension.lean` of
+  are an open interval `J = Ioo a b ∋ p.1`, an open `U ∋ p.2`, and `α` with
+  `IsLocalDefiningFamily ξ U α a b`. Uses `DifferentialForm/TimeExtension.lean` of
   *Smooth families* and a smooth reparametrization `ℝ → J` that is the identity on
   a neighbourhood of the relevant times (`exists_contDiff_eqOn_id_Icc_mem_Ioo` of
   *Smooth families*).
@@ -648,12 +656,12 @@ Named like Tau Ceti's file. With `[I.Boundaryless] [T2Space M] [CompactSpace M]`
 - `IsContactFamily.exists_grayField (hξ)`: a time-dependent field
   `Y : ℝ → Π x, TangentSpace I x`, jointly smooth on `ℝ × M`, with, for
   `t ∈ [0, 1]`, `Y t x ∈ ξ t x` and `Y t x` the Gray vector of every local
-  defining family near `(t, x)` (equivalently, by `eq_grayVectorField_iff`,
+  defining family near `(t, x)`, in the sense of `IsLocalDefiningFamily` (equivalently, by `eq_grayVectorField_iff`,
   the Gray equation against it); step 3 of *Decisions*, by Mathlib's
   `exists_contMDiffSection_forall_mem_convex_of_local` on the tangent bundle
   of `ℝ × M`. It needs `[SigmaCompactSpace M]` only, not compactness. Two
   local defining families are compared by
-  `tangentSpaceOpenEquiv_grayVectorField_eq`, and a local Gray field is read
+  `IsLocalDefiningFamily.tangentSpaceOpenEquiv_grayVectorField_eq`, and a local Gray field is read
   on `M` by `TauCeti.Manifold.contMDiffOn_tangentSpaceOpenEquiv_dite`, in
   `Geometry/Manifold/VectorBundle/Tangent/Opens.lean`.
 - `IsContactFamily.grayDiffeotopy (hξ) : Diffeotopy I ∞ M`, the
