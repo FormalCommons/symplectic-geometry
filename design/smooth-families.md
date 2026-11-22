@@ -244,6 +244,15 @@ lemmas about Tau Ceti's `TauCeti.collaredSmoothTransition`, which are in `TauCet
 Named like Tau Ceti's file. `HasFTaylorSeriesUpToOn.union`, for sets each
 closed relative to their union.
 
+### `Analysis/Calculus/ContDiff/Concat.lean`
+
+`SymplecticGeometry.curveTrans Z₁ Z₂`, for `Z₁ Z₂ : ℝ → E`, equal to
+`Z₁ (2 * s)` for `s ≤ 1 / 2` and `Z₂ (2 * s - 1)` after, the parametrization
+of `Path.trans`, with `ContDiff.curveTrans` (`C^n` when `Z₁` is constant
+near `1`, `Z₂` near `0`, and `Z₁ 1 = Z₂ 0`). Tau Ceti's
+`TauCeti.curveConcat` uses `3 * s` and `3 * s - 2` instead. *Maslov index*
+uses it in `Maslov/Path/Regular.lean`.
+
 ### `Analysis/Normed/Group/FunctionSeries.lean`
 
 Named like Mathlib's file. `tendstoUniformlyOn_finsetSum_of_hasSum`, the
@@ -435,15 +444,21 @@ Named like Tau Ceti's file; in `TauCeti`.
 
 ### `Geometry/Manifold/DifferentialForm/SmoothFamily/HomotopyOperator.lean`
 
+- `SymplecticGeometry.IsSmoothFamily.homotopyOperator`: for a smooth family
+  $\alpha_t$ of `(k + 1)`-forms on `M' × Icc 0 1` over any parameter manifold
+  `N`, with a complete coefficient space, the family $t\mapsto h\alpha_t$ of
+  `k`-forms on `M'` is smooth. A form $\Omega$ on `N × (M' × Icc 0 1)` with
+  slices $\alpha_t$ is pulled back along $((t,x),s)\mapsto(t,(x,s))$ on
+  $(N\times M')\times[0,1]$, and the homotopy operator of that cylinder has
+  the slices $h\alpha_t$ by
+  `homotopyOperator_mpullback_prodMap_id_of_isSmoothForm` applied to the
+  slice inclusions.
 - `SymplecticGeometry.preservesSmoothFamilies_homotopyOperator_mpullback`:
   for a smooth `F : M' × Icc 0 1 → M`, a complete coefficient space and a
   submodule `D` of the forms on `M`, the map
-  $\omega\mapsto h(F^*\omega)$ on `D` takes smooth families to smooth families. A
-  family $\omega_t$ is pulled back along
-  $((t,x),s)\mapsto(t,F(x,s))$ on $(\text{unitInterval}\times M')\times[0,1]$,
-  and the homotopy operator of that cylinder has the wanted slices by
-  `homotopyOperator_mpullback_prodMap_id_of_isSmoothForm` applied to the
-  slice inclusions, as the auxiliary page's formalization notes say. The
+  $\omega\mapsto h(F^*\omega)$ on `D` takes smooth families to smooth
+  families, as a corollary of `IsSmoothFamily.homotopyOperator` through
+  `IsSmoothFamily.mpullback`. The
   file imports `SmoothFamily/Map.lean` and `DifferentialForm/HomotopyOperator.lean`.
 
 ### `Geometry/Manifold/DifferentialForm/TimeExtension.lean`
