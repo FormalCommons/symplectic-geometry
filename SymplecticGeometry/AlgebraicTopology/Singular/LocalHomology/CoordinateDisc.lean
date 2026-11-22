@@ -16,6 +16,7 @@ public import SymplecticGeometry.Geometry.Manifold.Complex.FundamentalClass
 public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.ChangeOfModel
 public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orientation.Smooth
 public import SymplecticGeometry.LinearAlgebra.Complex.Orientation
+import SymplecticGeometry.Geometry.Manifold.Orientation.CoordinateBall
 import TauCeti.Geometry.Manifold.CoordinateBall
 import TauCeti.Geometry.Manifold.ModelTransport.Finrank
 import TauCeti.Topology.OpenPartialHomeomorph.Constructions
@@ -66,6 +67,11 @@ for `-o` (`SymplecticGeometry.CoordinateDisc.ofComapEq`), and in the second case
 for `o`. Finitely many distinct points have pairwise disjoint open neighbourhoods
 (`Set.Finite.t2_separation`), and coordinate discs inside them have disjoint images.
 
+On a smooth surface with a smooth orientation `o`, the coordinate discs can be taken of the form
+`ofChart`, for charts of the maximal smooth atlas that preserve orientation on all of their
+source: the inverse of Tau Ceti's oriented coordinate ball, restricted to a small ball
+(`TauCeti.Manifold.Orientation.exists_mem_maximalAtlas_isOrientationPreservingAt`).
+
 ## Main definitions
 
 * `SymplecticGeometry.CoordinateDisc o`: the coordinate discs of `M` for `o`.
@@ -110,12 +116,18 @@ for `o`. Finitely many distinct points have pairwise disjoint open neighbourhood
 * `SymplecticGeometry.CoordinateDisc.disc_ofChart`,
   `SymplecticGeometry.CoordinateDisc.openDisc_ofChart`: the closed and the open disc of `ofChart`
   are the images under `e.symm` of the closed and the open ball of radius `r / 2` about `c`.
+* `SymplecticGeometry.CoordinateDisc.range_ofChart`,
+  `SymplecticGeometry.CoordinateDisc.range_ofChart_subset_source`: the image of `ofChart` is the
+  image under `e.symm` of the ball of radius `r` about `c`, inside the source of `e`.
 * `SymplecticGeometry.CoordinateDisc.exists_coe_eq_or_exists_coe_eq`: an open embedding of the
   ball is a coordinate disc for `o` or for `-o`.
 * `SymplecticGeometry.exists_coordinateDisc`: a coordinate disc centred at any point, inside any
   neighbourhood of it.
 * `SymplecticGeometry.exists_coordinateDisc_pairwise_disjoint`: coordinate discs centred at
   finitely many distinct points, with pairwise disjoint images.
+* `SymplecticGeometry.CoordinateDisc.exists_ofChart_pairwise_disjoint`: on a smoothly oriented
+  surface, oriented charts of the maximal smooth atlas with pairwise disjoint sources about finitely
+  many distinct points, whose coordinate discs `ofChart` are centred at these points.
 
 ## Implementation notes
 
@@ -835,6 +847,35 @@ theorem openDisc_ofChart (e : OpenPartialHomeomorph M (EuclideanSpace ℝ (Fin 2
     have hw : ‖w‖ < 1 := by nlinarith
     exact ⟨⟨w, mem_ball_of_norm_le_one hw.le⟩, hw, ofChart_apply_eq e hr hc he _⟩
 
+/-- The image of the coordinate disc of a chart is the image under `e.symm` of the ball of radius
+`r` about `c`. -/
+@[simp]
+theorem range_ofChart (e : OpenPartialHomeomorph M (EuclideanSpace ℝ (Fin 2)))
+    {c : EuclideanSpace ℝ (Fin 2)} {r : ℝ} (hr : 0 < r) (hc : Metric.ball c r ⊆ e.target)
+    (he : ∀ x ∈ e.source,
+      o.IsOrientationPreservingAt (Manifold.Orientation.euclideanSpace 2) e x) :
+    Set.range (ofChart e hr hc he) = e.symm '' Metric.ball c r := by
+  ext x
+  simp only [Set.mem_range, Set.mem_image, Metric.mem_ball]
+  constructor
+  · rintro ⟨z, rfl⟩
+    exact ⟨ofChartHomeomorph c hr z, ofChartHomeomorph_mem_ball hr z,
+      (ofChart_apply_eq e hr hc he z).symm⟩
+  · rintro ⟨y, hy, rfl⟩
+    obtain ⟨w, rfl⟩ := (ofChartHomeomorph c hr).surjective y
+    rw [dist_ofChartHomeomorph] at hy
+    have hw : ‖w‖ < 2 := by nlinarith
+    exact ⟨⟨w, mem_ball_iff.2 hw⟩, ofChart_apply_eq e hr hc he _⟩
+
+/-- The image of the coordinate disc of a chart lies in the source of the chart. -/
+theorem range_ofChart_subset_source (e : OpenPartialHomeomorph M (EuclideanSpace ℝ (Fin 2)))
+    {c : EuclideanSpace ℝ (Fin 2)} {r : ℝ} (hr : 0 < r) (hc : Metric.ball c r ⊆ e.target)
+    (he : ∀ x ∈ e.source,
+      o.IsOrientationPreservingAt (Manifold.Orientation.euclideanSpace 2) e x) :
+    Set.range (ofChart e hr hc he) ⊆ e.source := by
+  rw [range_ofChart]
+  exact (e.mapsTo_symm.mono_left hc).image_subset
+
 end CoordinateDisc
 
 /-! ### Existence of coordinate discs -/
@@ -921,6 +962,51 @@ theorem exists_coordinateDisc_pairwise_disjoint (hE : finrank ℝ E = 2)
   refine ⟨φ, hφx, fun i ↦ (hφU i).trans Set.inter_subset_left, fun i j hij ↦ ?_⟩
   exact (hVd (Set.mem_range_self i) (Set.mem_range_self j) (hx.ne hij)).mono
     ((hφU i).trans Set.inter_subset_right) ((hφU j).trans Set.inter_subset_right)
+
+/-! ### Disjoint coordinate discs from oriented smooth charts -/
+
+namespace CoordinateDisc
+
+open scoped ContDiff
+
+variable {M : Type} [TopologicalSpace M] [T2Space M] [ChartedSpace (EuclideanSpace ℝ (Fin 2)) M]
+  [IsManifold (𝓡 2) ∞ M]
+
+/-- **Disjoint coordinate discs from oriented smooth charts.** On a smooth surface `M` modelled on
+`ℝ²` with a smooth orientation `o`, finitely many distinct points `x i`, each with a neighbourhood
+`U i`, have charts `e i` of the maximal smooth atlas, with source inside `U i` and pairwise
+disjoint sources, whose target is a ball `Metric.ball 0 (r i)`, which send `x i` to `0`, and which
+preserve orientation, from `o` to the standard orientation of `ℝ²`, at every point of their
+source. Their coordinate discs `ofChart (e i)`, on the whole target, are coordinate discs for
+`o.toHomologicalOrientation` centred at `x i`, `z ↦ (e i).symm ((r i / 2) (re z, im z))`. Their
+images lie in the sources (`range_ofChart_subset_source`), so they are pairwise disjoint and lie
+in `U i`, and so are their closed discs (`disc_subset_range`).
+
+The charts are those of the maximal atlas, not the charts `chartAt` of the atlas of `M`. -/
+theorem exists_ofChart_pairwise_disjoint (o : Manifold.Orientation (𝓡 2) M (Fin 2)) {ι : Type*}
+    [Finite ι] {x : ι → M} (hx : Function.Injective x) {U : ι → Set M}
+    (hU : ∀ i, U i ∈ 𝓝 (x i)) :
+    ∃ (e : ι → OpenPartialHomeomorph M (EuclideanSpace ℝ (Fin 2))) (r : ι → ℝ)
+      (hr : ∀ i, 0 < r i) (hc : ∀ i, Metric.ball 0 (r i) ⊆ (e i).target)
+      (he : ∀ i, ∀ y ∈ (e i).source,
+        o.IsOrientationPreservingAt (Manifold.Orientation.euclideanSpace 2) (e i) y),
+      (∀ i, e i ∈ IsManifold.maximalAtlas (𝓡 2) ∞ M) ∧
+      (∀ i, (e i).target = Metric.ball 0 (r i)) ∧ (∀ i, e i (x i) = 0) ∧
+      (∀ i, ofChart (e i) (hr i) (hc i) (he i) 0 = x i) ∧ (∀ i, (e i).source ⊆ U i) ∧
+      Pairwise fun i j ↦ Disjoint (e i).source (e j).source := by
+  obtain ⟨V, hV, hVd⟩ := (Set.finite_range x).t2_separation
+  have hmem (i : ι) : U i ∩ V (x i) ∈ 𝓝 (x i) :=
+    Filter.inter_mem (hU i) ((hV (x i)).2.mem_nhds (hV (x i)).1)
+  choose e r hr hatlas hxe hex hsU htgt hpres using fun i ↦
+    Manifold.Orientation.exists_mem_maximalAtlas_isOrientationPreservingAt
+      (Manifold.Orientation.euclideanSpace 2) o (hmem i)
+  refine ⟨e, r, hr, fun i ↦ (htgt i).ge, hpres, hatlas, htgt, hex, fun i ↦ ?_,
+    fun i ↦ (hsU i).trans Set.inter_subset_left, fun i j hij ↦ ?_⟩
+  · rw [ofChart_apply_zero, ← hex i, (e i).left_inv (hxe i)]
+  · exact (hVd (Set.mem_range_self i) (Set.mem_range_self j) (hx.ne hij)).mono
+      ((hsU i).trans Set.inter_subset_right) ((hsU j).trans Set.inter_subset_right)
+
+end CoordinateDisc
 
 end SymplecticGeometry
 
