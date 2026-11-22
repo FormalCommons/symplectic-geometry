@@ -307,6 +307,20 @@ codifferential in a chart `ψ`:
   equation gives in the chart. Its principal part is again
   $-G^{ij}\partial_i\partial_j$ times the identity.
 
+### `Geometry/Manifold/Riemannian/PartialDiffeomorph.lean`
+
+Estimates for a chart `ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E n`, `n ≠ 0`, on
+a compact `K ⊆ ψ.target`, used to show that `L2Form.localize` is bounded:
+
+- `PartialDiffeomorph.exists_mul_norm_le_norm_mfderiv_symm_le`: the
+  differential of `ψ.symm` is bounded above and below on `K` for the
+  Riemannian norm, and `PartialDiffeomorph.exists_norm_mvfderiv_le_mul_norm`
+  bounds the differential of `ψ` on `ψ.symm '' K`.
+- `PartialDiffeomorph.riemannianJacobian_symm_pos` and
+  `PartialDiffeomorph.exists_le_riemannianJacobian_symm_le`: Tau Ceti's
+  `riemannianJacobian` of `ψ.symm` is positive on `ψ.target`, and bounded
+  above and away from zero on `K`.
+
 ### `Geometry/Manifold/DeRham/Hodge/L2.lean`
 
 - `SmoothForm.l2Inner o (α β : SmoothForm I M ℝ k) : ℝ`, the integral of
