@@ -71,6 +71,9 @@ of the same fact for Tau Ceti's contact-Moser vector field, in
   contact.
 * `TauCeti.SmoothForm.isOpen_setOf_isContactFormAt_mpullback_prodMk`: the points of `N × M` at
   which the slices of a one-form are contact form an open set.
+* `TauCeti.SmoothForm.isContactFormAt_mpullback_subtype_val_iff`,
+  `TauCeti.SmoothForm.map_kerDistribution_mpullback_subtype_val`: restricting a one-form to an open
+  subset keeps its contact points and its kernels.
 * `TauCeti.SmoothForm.grayVectorField_eq_of_eventuallyEq_smul`: the Gray vector at `(t, x)` of a
   family whose slice at `t` is a contact form is unchanged when the slices at times of `s` are
   multiplied, near `(t, x)`, by a function nonzero at `(t, x)`.
@@ -243,6 +246,29 @@ theorem isOpen_setOf_isContactFormAt_mpullback_prodMk {EN HN N : Type*} [NormedA
   filter_upwards [hO.mem_nhds (isInvertible_contactFlat_of_isContactFormAt hq₀)] with q hq
   exact isContactFormAt_of_isInvertible_contactFlat hodd hq
 
+omit [FiniteDimensional ℝ E] in
+/-- **Contactness restricts to open subsets.** The restriction of a one-form `α` to an open subset
+`U ⊆ M` is contact at `x ∈ U` if and only if `α` is contact at `x`. -/
+theorem isContactFormAt_mpullback_subtype_val_iff {U : TopologicalSpace.Opens M}
+    (α : SmoothForm I M ℝ 1) (x : U) :
+    IsContactFormAt (mpullback (Subtype.val : U → M) contMDiff_subtypeVal α).val x ↔
+      IsContactFormAt α.val x := by
+  rw [coe_mpullback, isContactFormAt_mpullback_iff contMDiff_subtypeVal.contMDiffAt
+    (((SmoothForm.contMDiff _) _).of_le (mod_cast le_top))
+    (Manifold.mfderiv_subtype_val (I := I) x ▸ (Manifold.tangentSpaceOpenEquiv x).bijective)]
+
+omit [FiniteDimensional ℝ E] in
+/-- **Kernels restrict to open subsets.** Under the canonical identification of tangent spaces,
+the kernel at `x ∈ U` of the restriction of a one-form `α` to an open subset `U ⊆ M` is the kernel
+of `α` at `x`. -/
+theorem map_kerDistribution_mpullback_subtype_val {U : TopologicalSpace.Opens M}
+    (α : SmoothForm I M ℝ 1) (x : U) :
+    ((mpullback (Subtype.val : U → M) contMDiff_subtypeVal α).kerDistribution x).map
+      (Manifold.tangentSpaceOpenEquiv (I := I) x).toLinearEquiv.toLinearMap =
+      α.kerDistribution x := by
+  rw [kerDistribution_mpullback, Manifold.mfderiv_subtype_val]
+  exact Submodule.map_comap_eq_of_surjective (Manifold.tangentSpaceOpenEquiv x).surjective _
+
 end TauCeti.SmoothForm
 
 namespace SymplecticGeometry.IsContactFamily
@@ -304,11 +330,7 @@ theorem exists_local_extension (hξ : IsContactFamily ξ) (p : unitInterval × M
       have h₃ := min_le_right 1 ((p.1 : ℝ) + δ / 2)
       rw [Real.dist_eq, abs_lt]
       constructor <;> linarith [h₁.1, h₁.2]
-    have hx := (hab (hδa hct) (hUb x x.property)).2
-    rw [coe_mpullback, isContactFormAt_mpullback_iff contMDiff_subtypeVal.contMDiffAt
-      (((SmoothForm.contMDiff _) _).of_le (mod_cast le_top))
-      (Manifold.mfderiv_subtype_val (I := I) x ▸ (Manifold.tangentSpaceOpenEquiv x).bijective)]
-    exact hx
+    exact (isContactFormAt_mpullback_subtype_val_iff _ x).2 (hab (hδa hct) (hUb x x.property)).2
   · have hct : c t = t := hcid ⟨max_le ht.2.1 (by linarith [ht.1.1]),
       le_min ht.2.2 (by linarith [ht.1.2])⟩
     have htδ : dist t p.1 < δ := by
@@ -316,13 +338,11 @@ theorem exists_local_extension (hξ : IsContactFamily ξ) (p : unitInterval × M
       constructor <;> linarith [ht.1.1, ht.1.2]
     have hx := ((hab (hδa htδ) (hUb x x.property)).1 (⟨t, ht.2⟩, x) rfl).2
     rw [mpullback_prodMk_mpullback_prodMap' hc.contMDiff Subtype.val contMDiff_subtypeVal, hct,
-      kerDistribution_mpullback, Manifold.mfderiv_subtype_val]
+      map_kerDistribution_mpullback_subtype_val, hx]
     have hβ : mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) β =
         mpullback (Prod.mk (⟨t, ht.2⟩ : unitInterval)) (contMDiff_const.prodMk contMDiff_id) α :=
       SmoothForm.mpullback_prodMk_timeExtend α ⟨t, ht.2⟩
-    rw [hβ, ← hx]
-    exact (Submodule.map_comap_eq_of_surjective
-      (Manifold.tangentSpaceOpenEquiv x).surjective _).symm
+    rw [hβ]
 
 end SymplecticGeometry.IsContactFamily
 
