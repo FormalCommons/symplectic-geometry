@@ -11,6 +11,7 @@ import Mathlib.Analysis.SpecialFunctions.SmoothTransition
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.TimeExtension
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Neighborhood
 import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Flow
+import TauCeti.Geometry.Manifold.ContMDiffMap.Extension
 import TauCeti.Geometry.Manifold.Immersion.LocalDiffeomorph
 import TauCeti.Geometry.Manifold.SmoothEmbedding.Euclidean
 import TauCeti.Geometry.Manifold.SmoothIsotopy.Velocity.Basic
@@ -146,7 +147,6 @@ theorem exists_contMDiff_extend {f₀ f₁ : C^∞⟮J, P; I, N⟯} (F : SmoothI
       ContMDiffOn (𝓘(ℝ).prod J) I ∞ G (Ioo (-δ) (1 + δ) ×ˢ (V : Set P)) ∧
       (∀ t : unitInterval, ∀ x ∈ V, G (t, x) = F (t, x)) ∧
       ∀ t ∈ Ioo (-δ) (1 + δ), IsSmoothEmbedding J I ∞ (fun x : V ↦ G (t, x)) := by
-  classical
   have : T2Space P := F.isSmoothEmbedding_left.isEmbedding.t2Space
   rcases A.eq_empty_or_nonempty with rfl | ⟨x₀, hx₀⟩
   · -- For `A = ∅`, the empty open set and the constant motion `f₀` will do.
@@ -161,11 +161,10 @@ theorem exists_contMDiff_extend {f₀ f₁ : C^∞⟮J, P; I, N⟯} (F : SmoothI
   have : Nonempty W := ⟨⟨F (0, x₀), hTW ⟨(0, x₀), ⟨mem_univ _, hx₀⟩, rfl⟩⟩⟩
   obtain ⟨O, hO, heO, -, r, hr, hre⟩ := e.exists_contMDiffOn_retraction isOpen_univ (subset_univ _)
   -- `g` is `e` on `W`, extended by `0`.
-  let g : N → EuclideanSpace ℝ (Fin n) := fun y ↦ if h : y ∈ W then e ⟨y, h⟩ else 0
-  have hgW (y : W) : g y = e y := by simp only [g, y.property, dite_true]
-  have hg : ContMDiffOn I 𝓘(ℝ, EuclideanSpace ℝ (Fin n)) ∞ g W := fun y hy ↦
-    (contMDiffAt_subtype_iff (U := W) (x := ⟨y, hy⟩).1
-      (by simpa only [hgW] using e.contMDiff ⟨y, hy⟩)).contMDiffWithinAt
+  let g : N → EuclideanSpace ℝ (Fin n) := extend Subtype.val e 0
+  have hgW (y : W) : g y = e y := Subtype.val_injective.extend_apply _ _ y
+  have hg : ContMDiffOn I 𝓘(ℝ, EuclideanSpace ℝ (Fin n)) ∞ g W :=
+    ContMDiffMap.contMDiffOn_extend W ⟨e, e.contMDiff⟩ 0
   -- The tube lemma gives an open `U ⊇ A` whose motion stays in `W`.
   obtain ⟨u, U, -, hU, hu, hAU, hUW⟩ := generalized_tube_lemma isCompact_univ hA
     (W.isOpen.preimage F.contMDiff.continuous) (fun p hp ↦ hTW ⟨p, hp, rfl⟩)
