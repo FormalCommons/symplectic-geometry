@@ -404,9 +404,11 @@ hom bundle of the pull-backs satisfying `hL` and `hLω` at every `q`:
   (`Geometry/Manifold/VectorBundle/Orthogonal.lean`), which uses nothing
   symplectic. The frames of the pieces along `f`, and the smooth
   projections along the splittings that `extendAlong_def` uses, are in
-  `Neighborhood/Frames.lean` (namespace `TauCeti.SmoothEmbedding`). In these
-  frames every step of `extendAlong` is a matrix formula with inverses of smooth
-  invertible Gram matrices.
+  `Neighborhood/Frames.lean` (namespace `TauCeti.SmoothEmbedding`), which
+  imports `Geometry/Symplectic/Manifold/Flat.lean` of *Moser isotopy* for
+  the flat maps of `σ` along `f`. In these frames every step of
+  `extendAlong` is a matrix formula with inverses of smooth invertible Gram
+  matrices.
 - The adjoint step $(\omega_1^\flat)^{-1}\circ T^*\circ\omega_0^\flat$ of
   `extendAlong_def` is smooth by `ContMDiff.clm_bundle_bilinAdjoint`
   (`Geometry/Manifold/VectorBundle/Adjoint.lean`), for
