@@ -172,6 +172,7 @@ Further choices:
 | `Geometry/Contact/Symplectization/Basic.lean` | Tau Ceti's symplectization form written with `funSMulₗ`, beside Tau Ceti's file of that path | 4 |
 | `Topology/Sets/Strip.lean` | the open strip `(-ε, ε) × X` of `ℝ × X` and the tube lemma for it | 4 |
 | `Geometry/Manifold/Strip.lean` | the slice maps of the strip as smooth maps, their differential, and slices of two-forms | 4 |
+| `Geometry/Manifold/SmoothEmbedding/Basic.lean` | the right slice `x ↦ (c, x)` of a product as a smooth embedding, beside Tau Ceti's file of that path | 4 |
 | `Geometry/Manifold/Boundary/Charts.lean` | boundary points in the extended charts of the half-space model | 5 |
 | `Geometry/Manifold/Boundary/Collar/Flow/Local.lean` | near one boundary point: the extended field and its flow from the boundary | 5 |
 | `Geometry/Manifold/Boundary/Collar/Flow/Basic.lean` | the collar of a compact boundary along an outward field | 6 |
@@ -638,6 +639,11 @@ Expected size: 300 lines.
   `Geometry/Manifold/DifferentialForm/SmoothFamily/Basic.lean`
   (`TauCeti.SmoothForm.mpullback_prodMk_mpullback_snd`), merged, in
   `StableHamiltonian.lean`.
+- *Smooth families*: `Geometry/Manifold/LocalDiffeomorph/OpenSubset.lean`
+  (`TauCeti.isLocalDiffeomorphAt_subtypeVal_comp_iff`,
+  `TauCeti.isLocalDiffeomorph_subtypeVal_comp_iff`,
+  `TauCeti.isLocalDiffeomorph_inclusion`), merged, in `Boundary/Collar/End.lean`
+  and `StableHamiltonian.lean`.
 - *Cotangent bundles*: `Geometry/Manifold/Flow/Basic.lean`, merged, which this
   part extends by the flow of a vector field on a normed space
   (`TauCeti.contDiffOn_flowOf_uncurry`,
