@@ -14,11 +14,12 @@ import TauCeti.Geometry.Manifold.Instances.Icc
 
 Mathlib's `Real.smoothTransition` takes its values in `[0, 1]`. This file defines it as a map
 `Real.smoothTransitionUnit : ℝ → unitInterval`, which is `0` on `(-∞, 0]` and `1` on `[1, ∞)`,
-and shows that it is smooth for the manifold-with-boundary structure of the unit interval, by
-Tau Ceti's `ContMDiff.smoothTransition`. Its derivative sends the unit vector `1` of `ℝ` to
-`deriv Real.smoothTransition u` times the unit tangent vector of the interval
-(`Real.mfderiv_smoothTransitionUnit_one`). Tau Ceti's `TauCeti.collaredSmoothTransitionUnit` is
-the analogous map for the reparametrization `t ↦ Real.smoothTransition (2 * t - 1 / 2)`.
+is surjective and sends `(0, 1)` onto `(0, 1)`, and shows that it is smooth for the
+manifold-with-boundary structure of the unit interval, by Tau Ceti's `ContMDiff.smoothTransition`.
+Its derivative sends the unit vector `1` of `ℝ` to `deriv Real.smoothTransition u` times
+the unit tangent vector of the interval (`Real.mfderiv_smoothTransitionUnit_one`). Tau Ceti's
+`TauCeti.collaredSmoothTransitionUnit` is the analogous map for the reparametrization
+`t ↦ Real.smoothTransition (2 * t - 1 / 2)`.
 -/
 
 public noncomputable section
@@ -44,6 +45,22 @@ theorem smoothTransitionUnit_of_nonpos {u : ℝ} (hu : u ≤ 0) : smoothTransiti
 /-- For `u ≥ 1`, `s u = 1`. -/
 theorem smoothTransitionUnit_of_one_le {u : ℝ} (hu : 1 ≤ u) : smoothTransitionUnit u = 1 :=
   Subtype.ext (smoothTransition.one_of_one_le hu)
+
+/-- The map `s : ℝ → unitInterval` is surjective. -/
+theorem smoothTransitionUnit_surjective : Function.Surjective smoothTransitionUnit := fun t ↦ by
+  obtain ⟨u, -, hu⟩ := intermediate_value_Icc zero_le_one smoothTransition.continuous.continuousOn
+    (by simpa only [smoothTransition.zero, smoothTransition.one] using t.property)
+  exact ⟨u, Subtype.ext ((coe_smoothTransitionUnit u).trans hu)⟩
+
+/-- The map `s : ℝ → unitInterval` sends `(0, 1)` onto the open interval `(0, 1)`. -/
+theorem surjOn_smoothTransitionUnit_Ioo :
+    Set.SurjOn smoothTransitionUnit (Set.Ioo 0 1) (Set.Ioo 0 1) := fun t ht ↦ by
+  obtain ⟨u, hu, hut⟩ := intermediate_value_Ioo zero_le_one
+    smoothTransition.continuous.continuousOn
+    (by
+      rw [smoothTransition.zero, smoothTransition.one]
+      exact ⟨unitInterval.coe_pos.2 ht.1, unitInterval.coe_lt_one.2 ht.2⟩)
+  exact ⟨u, hu, Subtype.ext ((coe_smoothTransitionUnit u).trans hut)⟩
 
 /-- The map `s : ℝ → unitInterval` is `C^n` for every `n ≤ ∞`. -/
 theorem contMDiff_smoothTransitionUnit {n : ℕ∞ω} (hn : n ≤ ∞) :
