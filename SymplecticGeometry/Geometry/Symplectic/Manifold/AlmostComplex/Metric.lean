@@ -212,7 +212,6 @@ theorem kahlerTwoForm_eq_compatibleFormEquiv [RiemannianBundle (fun x : M ↦ Ta
 
 end SmoothAlmostComplexStructure
 
-
 /-! ### Consequences of `⟪u, v⟫ = σ(u, J v)` -/
 
 section InnerEq
