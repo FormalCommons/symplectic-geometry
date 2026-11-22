@@ -129,10 +129,21 @@ argument of Milnor–Stasheff, §12, without a general Gysin sequence.
 
 ### Coefficients and the graded ring
 
-Integral cohomology is Tau Ceti's `TopCat.integralCohomology`
-(`AlgebraicTopology/Cohomology/IntegralCup.lean`), the convention of
-`complexEulerClass`, `firstChernClass` and `evalFundamentalClass`, with the
-cup product `TopCat.integralCup`. Bases are `B : Type`, as for these. The
+The Chern classes lie in Tau Ceti's `TopCat.integralCohomology`
+(`AlgebraicTopology/Cohomology/IntegralCup.lean`), singular cohomology with
+chain coefficients `ULift ℤ` and cochain values `ℤ`, with the cup product
+`TopCat.integralCup`. This is not the convention of `complexEulerClass` and
+`firstChernClass`, whose cochain values are `ULift ℤ`
+(`Topology/VectorBundle/Orientation/Complex/EulerClass.lean`,
+`design/first-chern-number.md`); `evalFundamentalClass` is generic in the
+values and takes either. The classes take values in `ℤ` because Tau Ceti
+gives the integral cup product there the laws a ring needs (associativity,
+the unit, graded commutativity), and nothing comparable for values in
+`ULift ℤ`. Neither library maps cohomology between the two conventions
+(`TauCeti.uliftIntIso` acts only on homology), so the part adds the bridge
+`TopCat.uliftIntegralCohomologyIso`, compatible with pull-backs and cup
+products (see *Files*), and states every comparison with `complexEulerClass`
+or `firstChernClass` through it. Bases are `B : Type`, as for these. The
 total Chern class and the Whitney formula need a ring. Neither library has
 a graded cohomology ring, and the full ring is only graded commutative, so
 the part adds the commutative ring of even-degree classes,
@@ -205,6 +216,27 @@ In the namespace `TopCat`, for `X : TopCat.{0}`:
   EvenIntegralCohomology X`, the pull-back in each degree, a ring map by
   `integralCup_naturality`, with `evenIntegralCohomologyMap_of`,
   `evenIntegralCohomologyMap_id` and `evenIntegralCohomologyMap_comp`.
+
+### `AlgebraicTopology/Cohomology/IntegralCohomologyULift.lean`
+
+In the namespace `TopCat`, for `X : TopCat.{0}`, with
+`H^n(X; ULift ℤ)` for `X.singularCohomology (ModuleCat.of ℤ (ULift ℤ)) ℤ
+(ModuleCat.of ℤ (ULift ℤ)) n`, the convention of `complexEulerClass`:
+
+- `uliftIntegralCohomologyIso X n : H^n(X; ULift ℤ) ≅ X.integralCohomology n`,
+  the map on cohomology of the cochain map that composes values with
+  `TauCeti.uliftIntIso.hom` (`ChainComplex.linearYonedaObjMap`, as in Tau
+  Ceti's `FactorPullback.lean`), an isomorphism since `uliftIntIso` is one;
+  with its value on a cochain representative.
+- `uliftIntegralCohomologyIso_naturality`: it commutes with
+  `singularCohomologyMap f` for `f : X ⟶ Y`.
+- `uliftIntCoeffMul : ModuleCat.of ℤ (ULift ℤ) ⊗ ModuleCat.of ℤ (ULift ℤ) ⟶
+  ModuleCat.of ℤ (ULift ℤ)`, `a ⊗ b ↦ ⟨a.down * b.down⟩`, the multiplication
+  of the values, with `uliftIntCoeffMul_apply`.
+- `uliftIntegralCohomologyIso_singularCup`: the isomorphism carries
+  `X.singularCup ℤ integralCoeffComul uliftIntCoeffMul p q n h a b` to
+  `X.integralCup p q n h` of the images of `a` and `b`, since `uliftIntIso`
+  carries `uliftIntCoeffMul` to `integralCoeffMul`.
 
 ### `AlgebraicTopology/Cohomology/LerayHirsch/MayerVietoris.lean`
 
@@ -296,8 +328,9 @@ classes at no cost):
 
 For a complex vector space `V` with `finrank ℂ V = n + 1`:
 
-- `Projectivization.hyperplaneClass V := -complexEulerClass ℂ
-  (Projectivization.Tautological ℂ V) _`, in degree two.
+- `Projectivization.hyperplaneClass V := -(uliftIntegralCohomologyIso _ 2).hom
+  (complexEulerClass ℂ (Projectivization.Tautological ℂ V) _)`, in degree
+  two.
 - `Projectivization.bijective_zsmul_hyperplaneClass_pow`: for `k ≤ n`,
   `m ↦ m • h ^ k` is a bijection from `ℤ` onto `H^{2k}(ℙ ℂ V; ℤ)` (powers
   in `EvenIntegralCohomology`, read in degree `k`); the proof is the Thom
@@ -320,8 +353,9 @@ In the namespace `SymplecticGeometry.Bundle`, for a complex vector bundle
 `E` with model `G` over `B : Type`, with `n := finrank ℂ G`:
 
 - `projectiveBundleClass G E`, the class $x=-e(S)$ of
-  `ProjectiveBundle.Tautological ℂ G E`, in degree two; its restriction to
-  each fibre is `hyperplaneClass (E b)`.
+  `ProjectiveBundle.Tautological ℂ G E`, in degree two, the image of its
+  `complexEulerClass` under `uliftIntegralCohomologyIso`, negated; its
+  restriction to each fibre is `hyperplaneClass (E b)`.
 - `chernClass G E k : (TopCat.of B).integralCohomology (2 * k)`, defined
   from `TopCat.lerayHirschEquiv` for the classes $x^i$, $i<n$, applied to
   $-x^n$ when the Leray–Hirsch map is bijective, `1` for `k = 0`, and `0`
@@ -337,8 +371,9 @@ In the namespace `SymplecticGeometry.Bundle`, for a complex vector bundle
   `injective_projectiveBundle_proj`, the injectivity of $\pi^*$ in every
   degree.
 - `chernClass_zero` (`= 1`), `chernClass_eq_zero_of_finrank_lt`, and
-  `chernClass_one_eq_complexEulerClass` for a line bundle (`n = 1`), from
-  the relation on `P(L) ≅ B`.
+  `chernClass_one_eq_complexEulerClass` for a line bundle (`n = 1`):
+  `chernClass G E 1 = (uliftIntegralCohomologyIso _ 2).hom
+  (complexEulerClass G E _)`, from the relation on `P(L) ≅ B`.
 
 ### `Topology/VectorBundle/Complex/ChernClass/Naturality.lean`
 
@@ -396,7 +431,9 @@ model fibres:
 - that the complex orientation of `E₁ ×ᵇ E₂` is the product of the complex
   orientations, reindexed;
 - `TauCeti.complexEulerClass_prod`: `complexEulerClass (G₁ × G₂) (E₁ ×ᵇ E₂) =
-  complexEulerClass G₁ E₁ ⌣ complexEulerClass G₂ E₂`.
+  complexEulerClass G₁ E₁ ⌣ complexEulerClass G₂ E₂`, the cup product being
+  `singularCup ℤ integralCoeffComul uliftIntCoeffMul` on classes with values
+  in `ULift ℤ`, as in `eulerClass_thomClassOfModel_prod`.
 
 ### `Topology/VectorBundle/Orientation/Complex/Tensor.lean`
 
@@ -413,7 +450,8 @@ model fibres:
   gives the coefficients.
 - `Projectivization.complexEulerClass_twistCore_one`: on
   `ℙ ℂ (Fin (n + 1) → ℂ)`, the Euler class of Tau Ceti's
-  `Projectivization.twistCore 1` is `hyperplaneClass`, since
+  `Projectivization.twistCore 1`, read through `uliftIntegralCohomologyIso`,
+  is `hyperplaneClass`, since
   `twistCore (-1)` is the tautological line (`twistTransition_neg_one_mul`)
   and `twistCore 1 ⊗ twistCore (-1)` is trivial (`twistTransition_add`).
   *Projective hypersurfaces* uses this to read the page's $h$.
@@ -430,16 +468,19 @@ model fibres:
 ### `Topology/VectorBundle/Complex/ChernClass/EulerClass.lean`
 
 - `chernClass_finrank_eq_complexEulerClass`: for `finrank ℂ G = r + 1` and
-  `B` compact Hausdorff, `chernClass G E (r + 1) = complexEulerClass G E _`
-  (degrees `2 * (r + 1) = 2 * r + 2`). By induction on `r` with the
-  splitting principle: for lines `chernClass_one_eq_complexEulerClass`, and
+  `B` compact Hausdorff, `chernClass G E (r + 1)` is the image of
+  `complexEulerClass G E _` under `uliftIntegralCohomologyIso` (degrees
+  `2 * (r + 1) = 2 * r + 2`). By induction on `r` with the splitting
+  principle: for lines `chernClass_one_eq_complexEulerClass`, and
   for `L ×ᵇ Q` both sides are products, by `chernClass_prod` (the top term)
-  and `TauCeti.complexEulerClass_prod`.
+  and `TauCeti.complexEulerClass_prod`, compared by
+  `uliftIntegralCohomologyIso_singularCup`.
 
 ### `Topology/VectorBundle/Complex/ChernClass/FirstChernClass.lean`
 
 - `chernClass_one_eq_firstChernClass`: for `B` compact Hausdorff,
-  `chernClass G E 1 = firstChernClass G E`. By induction on the rank with
+  `chernClass G E 1 = (uliftIntegralCohomologyIso _ 2).hom
+  (firstChernClass G E)`. By induction on the rank with
   the splitting principle: both sides are additive on `L ×ᵇ Q`, the first
   by `chernClass_prod`, the second by `detCoreProdIso`,
   `TauCeti.complexEulerClass_tensorProduct` and `firstChernClass_congr`; on
@@ -478,6 +519,7 @@ dimensions are included (both sides vanish).
   `Topology/VectorBundle/Determinant.lean`.
 - From Tau Ceti: integral cohomology and cup products
   (`AlgebraicTopology/Cohomology/IntegralCup.lean`, `Cup/Relative.lean`),
+  the isomorphism `uliftIntIso` of `ULift ℤ` with `ℤ`,
   Leray–Hirsch for products (`LerayHirsch/`), the Mayer–Vietoris step of
   the Thom isomorphism, the Thom isomorphism, Euler classes of oriented and
   complex bundles and their Whitney formula for model classes, section
@@ -503,33 +545,36 @@ design.
 ## Issues
 
 Each issue is a few hundred lines, in an order where each issue's blockers
-come before it. Issues 1, 2, 4, 10, 12 and 15 can start at once.
+come before it. Issues 1, 2, 3, 5, 13 and 16 can start at once.
 
 1. **Even integral cohomology ring.**
    `AlgebraicTopology/Cohomology/EvenIntegralCohomology.lean`.
-2. **Leray–Hirsch: the Mayer–Vietoris step.**
+2. **Integral cohomology with values in `ULift ℤ`.**
+   `AlgebraicTopology/Cohomology/IntegralCohomologyULift.lean`.
+3. **Leray–Hirsch: the Mayer–Vietoris step.**
    `AlgebraicTopology/Cohomology/LerayHirsch/MayerVietoris.lean`.
-3. **Leray–Hirsch for bundles with a finite trivializing cover.**
-   `AlgebraicTopology/Cohomology/LerayHirsch/Bundle.lean`. Waits for 2.
-4. **The projective bundle.** `Topology/VectorBundle/ProjectiveBundle/Basic.lean`.
-5. **Tautological lines.** `Topology/VectorBundle/ProjectiveBundle/Tautological.lean`.
-   Waits for 4.
-6. **The cohomology ring of $\mathbb CP^n$.**
-   `ChernClass/ProjectiveSpace.lean`. Waits for 1 and 5.
-7. **Definition of the Chern classes.** `ChernClass/Basic.lean`. Waits for
-   3 and 6.
-8. **Naturality.** `ChernClass/Naturality.lean`. Waits for 7.
-9. **Whitney sum formula.** `ChernClass/Whitney.lean`. Waits for 8.
-10. **Integral Whitney formula for Euler classes.**
-    `Topology/VectorBundle/Orientation/Complex/Whitney.lean`.
-11. **Euler class of a tensor product of lines, and $\mathcal O(1)$.**
-    `Topology/VectorBundle/Orientation/Complex/Tensor.lean`. Waits for 6.
-12. **Determinant of a direct sum.** Addition to
+4. **Leray–Hirsch for bundles with a finite trivializing cover.**
+   `AlgebraicTopology/Cohomology/LerayHirsch/Bundle.lean`. Waits for 3.
+5. **The projective bundle.** `Topology/VectorBundle/ProjectiveBundle/Basic.lean`.
+6. **Tautological lines.** `Topology/VectorBundle/ProjectiveBundle/Tautological.lean`.
+   Waits for 5.
+7. **The cohomology ring of $\mathbb CP^n$.**
+   `ChernClass/ProjectiveSpace.lean`. Waits for 1, 2 and 6.
+8. **Definition of the Chern classes.** `ChernClass/Basic.lean`. Waits for
+   2, 4 and 7.
+9. **Naturality.** `ChernClass/Naturality.lean`. Waits for 8.
+10. **Whitney sum formula.** `ChernClass/Whitney.lean`. Waits for 9.
+11. **Integral Whitney formula for Euler classes.**
+    `Topology/VectorBundle/Orientation/Complex/Whitney.lean`. Waits for 2.
+12. **Euler class of a tensor product of lines, and $\mathcal O(1)$.**
+    `Topology/VectorBundle/Orientation/Complex/Tensor.lean`. Waits for 2
+    and 7.
+13. **Determinant of a direct sum.** Addition to
     `Topology/VectorBundle/Determinant.lean`.
-13. **Splitting principle.** `ChernClass/Splitting.lean`. Waits for 7.
-14. **Top class and first class.** `ChernClass/EulerClass.lean` and
-    `ChernClass/FirstChernClass.lean`. Waits for 9, 10, 11, 12, 13 and
+14. **Splitting principle.** `ChernClass/Splitting.lean`. Waits for 8.
+15. **Top class and first class.** `ChernClass/EulerClass.lean` and
+    `ChernClass/FirstChernClass.lean`. Waits for 2, 10, 11, 12, 13, 14 and
     *First Chern number*'s #784 (the second file only; it may be split
     off if #784 is not merged).
-15. **Euler characteristic formula.**
+16. **Euler characteristic formula.**
     `Geometry/Manifold/Orientation/EulerCharacteristic.lean`.

@@ -286,9 +286,13 @@ page's conventions through them.
   `SmoothAlmostComplexStructure` $j$, oriented by $j$; by the milestone on
   surfaces this loses nothing.
 - **Characteristic classes and Betti numbers.** Chern classes are integral
-  singular cohomology classes (`TauCeti` singular cohomology with
+  singular cohomology classes (`TauCeti` singular cohomology with chain
   coefficients `ULift ℤ`), $c_1$ being *First Chern number*'s
-  `SymplecticGeometry.Bundle.firstChernClass`. The fundamental class and
+  `SymplecticGeometry.Bundle.firstChernClass`, with values in `ULift ℤ`.
+  *Chern classes* takes values in `ℤ` (`TopCat.integralCohomology`, whose
+  cup product has the ring laws) and compares with classes valued in
+  `ULift ℤ` through an isomorphism, as `design/chern-classes.md` says.
+  The fundamental class and
   the evaluation $\langle c,[M]\rangle$ are Tau Ceti's
   `TauCeti.HomologicalOrientation.fundamentalClass` and
   `evalFundamentalClass`. A complex manifold, or a manifold with an almost
