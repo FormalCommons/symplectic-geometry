@@ -395,12 +395,11 @@ The manifold, in `TauCeti.SymplecticForm`. Besides Mathlib, Tau Ceti,
   injectivity and the two dimensions of `Finrank.lean`.
 - `ω.compatibleTangentEquiv J : TangentSpace 𝓘 J ≃L[ℝ] ω.compatibleTangentSpaceCLM J`,
   the differential onto its range, with `coe_compatibleTangentEquiv_apply`.
-- `isSmoothEmbedding_compatibleCLM (hn : 1 ≤ n) : Manifold.IsSmoothEmbedding 𝓘
-  𝓘(ℝ, V →L[ℝ] V) n ω.compatibleCLM`, from
+- `isSmoothEmbedding_compatibleCLM : Manifold.IsSmoothEmbedding 𝓘
+  𝓘(ℝ, V →L[ℝ] V) n ω.compatibleCLM` for every `n`, from
   `ContMDiff.isImmersion_of_injective_mfderiv` and Tau Ceti's
   `isEmbedding_toContinuousLinearMap` restricted to the subtype;
-  `contMDiff_compatibleCLM_comp_iff` and `contMDiffAt_compatibleCLM_comp_iff`,
-  which take the same `hn`.
+  `contMDiff_compatibleCLM_comp_iff` and `contMDiffAt_compatibleCLM_comp_iff`.
 - `finrank_compatibleModel (hn : finrank ℝ V = 2 * n) :
   Module.finrank ℝ ω.compatibleModel = n * (n + 1)`.
 - `ω.compatibleTransport (hΨ : ω.IsSymplectomorphism ω Ψ.toLinearEquiv) :

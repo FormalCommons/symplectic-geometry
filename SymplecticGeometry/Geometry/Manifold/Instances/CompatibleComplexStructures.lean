@@ -349,31 +349,32 @@ theorem range_mfderiv_compatibleCLM (J : 𝒥) :
 /-! ### The smooth embedding -/
 
 /-- **The compatible complex structures form a submanifold** of the continuous endomorphisms:
-the inclusion is a `C^n` embedding for every `n ≥ 1`. -/
-theorem isSmoothEmbedding_compatibleCLM {n : WithTop ℕ∞} (hn : 1 ≤ n) :
+the inclusion is a `C^n` embedding for every `n`. -/
+theorem isSmoothEmbedding_compatibleCLM {n : WithTop ℕ∞} :
     Manifold.IsSmoothEmbedding 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) n ω.compatibleCLM :=
-  ⟨contMDiff_compatibleCLM.isImmersion_of_injective_mfderiv hn
-    injective_mfderiv_compatibleCLM, ω.isEmbedding_compatibleCLM⟩
+  (⟨contMDiff_compatibleCLM.isImmersion_of_injective_mfderiv le_top
+    injective_mfderiv_compatibleCLM, ω.isEmbedding_compatibleCLM⟩ :
+    Manifold.IsSmoothEmbedding _ _ ⊤ _).of_le le_top
 
 section Comp
 
 variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
   {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M]
 
-/-- For `n ≥ 1`, a map into the compatible complex structures is `C^n` exactly when it is `C^n`
-as a map into the continuous endomorphisms. -/
-theorem contMDiff_compatibleCLM_comp_iff {n : WithTop ℕ∞} (hn : 1 ≤ n) {f : M → 𝒥} :
+/-- A map into the compatible complex structures is `C^n` exactly when it is `C^n` as a map into
+the continuous endomorphisms. -/
+theorem contMDiff_compatibleCLM_comp_iff {n : WithTop ℕ∞} {f : M → 𝒥} :
     ContMDiff I 𝓘(ℝ, ω.compatibleModel) n f ↔
       ContMDiff I 𝓘(ℝ, V →L[ℝ] V) n (ω.compatibleCLM ∘ f) :=
-  (isSmoothEmbedding_compatibleCLM hn).contMDiff_iff_comp
+  isSmoothEmbedding_compatibleCLM.contMDiff_iff_comp
 
-/-- For `n ≥ 1`, a map into the compatible complex structures is `C^n` at `x` exactly when it is
-`C^n` at `x` as a map into the continuous endomorphisms. -/
-theorem contMDiffAt_compatibleCLM_comp_iff {n : WithTop ℕ∞} (hn : 1 ≤ n) {f : M → 𝒥} {x : M} :
+/-- A map into the compatible complex structures is `C^n` at `x` exactly when it is `C^n` at `x`
+as a map into the continuous endomorphisms. -/
+theorem contMDiffAt_compatibleCLM_comp_iff {n : WithTop ℕ∞} {f : M → 𝒥} {x : M} :
     ContMDiffAt I 𝓘(ℝ, ω.compatibleModel) n f x ↔
       ContMDiffAt I 𝓘(ℝ, V →L[ℝ] V) n (ω.compatibleCLM ∘ f) x := by
   rw [ContMDiffAt.iff_comp_isImmersionAt
-    ((isSmoothEmbedding_compatibleCLM hn).isImmersion.isImmersionAt (f x)),
+    (isSmoothEmbedding_compatibleCLM.isImmersion.isImmersionAt (f x)),
     ω.isEmbedding_compatibleCLM.isInducing.continuousAt_iff]
   exact ⟨And.right, fun h => ⟨h.continuousAt, h⟩⟩
 
@@ -396,12 +397,12 @@ noncomputable def compatibleTransport (hΨ : ω.IsSymplectomorphism ω Ψ.toLine
     (hΨ.symm.compatible_transport_iff J.val).2 J.property⟩
   left_inv J := Subtype.ext (J.val.transport_symm_transport _)
   right_inv J := Subtype.ext (J.val.transport_transport_symm _)
-  contMDiff_toFun := (contMDiff_compatibleCLM_comp_iff (by simp)).2 <|
+  contMDiff_toFun := contMDiff_compatibleCLM_comp_iff.2 <|
     (((Ψ.arrowCongr Ψ : (V →L[ℝ] V) →L[ℝ] V →L[ℝ] V)).contMDiff.comp
       contMDiff_compatibleCLM).congr fun J => by
       ext v
       simp [compatibleCLM_def]
-  contMDiff_invFun := (contMDiff_compatibleCLM_comp_iff (by simp)).2 <|
+  contMDiff_invFun := contMDiff_compatibleCLM_comp_iff.2 <|
     (((Ψ.symm.arrowCongr Ψ.symm : (V →L[ℝ] V) →L[ℝ] V →L[ℝ] V)).contMDiff.comp
       contMDiff_compatibleCLM).congr fun J => by
       ext v
