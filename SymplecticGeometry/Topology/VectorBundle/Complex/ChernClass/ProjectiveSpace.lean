@@ -70,10 +70,10 @@ theorem hyperplaneClass_map (f : V →ₗ[ℂ] W) (hf : Function.Injective f) :
     TopCat.singularCohomologyMap
         (TopCat.ofHom ⟨map f hf, continuous_map hf (LinearMap.continuous_of_finiteDimensional f)⟩)
         2 (hyperplaneClass W) = hyperplaneClass V := by
-  set g : V →L[ℂ] W := ⟨f, LinearMap.continuous_of_finiteDimensional f⟩
+  have hfc := LinearMap.continuous_of_finiteDimensional f
   have h := complexEulerClass_eq_singularCohomologyMap_of_fiberwise (r := 0) (finrank_self ℂ)
-    (finrank_self ℂ) (g := ⟨map f hf, continuous_map hf g.continuous⟩)
-    (continuous_tautologicalMapEquiv g hf)
+    (finrank_self ℂ) (g := ⟨map f hf, continuous_map hf hfc⟩)
+    (continuous_tautologicalMapEquiv f hf hfc)
   rw [hyperplaneClass_def, hyperplaneClass_def, map_neg, h]
   exact congrArg _ (CategoryTheory.ConcreteCategory.congr_hom
     (TopCat.uliftIntegralCohomologyIso_naturality _ 2) _).symm

@@ -21,10 +21,11 @@ sends `t` to `t` times the representative of `ℓ` on which `φ` is `1`
 (`Projectivization.normalizedRep`), which depends continuously on `ℓ`. When continuous linear forms
 separate points, every line has such a form, and these trivializations make the tautological line a
 vector bundle with model fibre `𝕜`. The complement of its zero section is the space of nonzero
-vectors of `V` (`Projectivization.tautologicalComplZeroHomeomorph`). An injective continuous
-linear map `f : V → W` maps each line `ℓ` isomorphically onto the line `map f ℓ`, so the
-tautological line of `ℙ 𝕜 V` is the pull-back of that of `ℙ 𝕜 W` along `map f`
-(`Projectivization.tautologicalMapEquiv`), by an isomorphism continuous on total spaces.
+vectors of `V` (`Projectivization.tautologicalComplZeroHomeomorph`). An injective linear map
+`f : V → W` maps each line `ℓ` isomorphically onto the line `map f ℓ`, so the tautological line
+of `ℙ 𝕜 V` is the pull-back of that of `ℙ 𝕜 W` along `map f`
+(`Projectivization.tautologicalMapEquiv`), by an isomorphism that is continuous on total spaces
+when `f` is continuous.
 
 For a vector bundle `E → B` with model fibre `G`, the tautological line
 `SymplecticGeometry.Bundle.ProjectiveBundle.Tautological 𝕜 G E` over the projective bundle has the
@@ -59,8 +60,8 @@ fibre `ι → 𝕜` rather than `𝕜`.
   instances.
 * `Projectivization.tautologicalComplZeroHomeomorph`: the complement of the zero section is
   homeomorphic to the nonzero vectors of `V`.
-* `Projectivization.tautologicalMapEquiv`: the restriction of an injective continuous linear map
-  to the lines, a fibrewise isomorphism over `Projectivization.map`.
+* `Projectivization.tautologicalMapEquiv`: the restriction of an injective linear map to the
+  lines, a fibrewise isomorphism over `Projectivization.map`.
 * `SymplecticGeometry.Bundle.ProjectiveBundle.Tautological 𝕜 G E`: the tautological line over the
   projective bundle, with its trivializations `ProjectiveBundle.tautologicalTrivialization` and
   its `FiberBundle` and `VectorBundle` instances.
@@ -322,15 +323,15 @@ variable {𝕜 : Type*} [NontriviallyNormedField 𝕜] [CompleteSpace 𝕜]
   [ContinuousSMul 𝕜 V] [T2Space V]
   {W : Type*} [AddCommGroup W] [Module 𝕜 W] [TopologicalSpace W] [IsTopologicalAddGroup W]
   [ContinuousSMul 𝕜 W] [T2Space W]
-  (f : V →L[𝕜] W) (hf : Function.Injective f)
+  (f : V →ₗ[𝕜] W) (hf : Function.Injective f)
 
-/-- An injective continuous linear map `f : V → W` restricts to an isomorphism of the line `ℓ`
-onto the line `map f ℓ`: the fibrewise isomorphism of the tautological line of `ℙ 𝕜 V` with the
-pull-back of that of `ℙ 𝕜 W` along `map f`. -/
-def tautologicalMapEquiv (ℓ : ℙ 𝕜 V) :
-    Tautological 𝕜 V ℓ ≃L[𝕜] Tautological 𝕜 W (map (f : V →ₗ[𝕜] W) hf ℓ) :=
-  ((Submodule.equivMapOfInjective (f : V →ₗ[𝕜] W) hf ℓ.submodule).trans
-    (LinearEquiv.ofEq _ _ (submodule_map (f : V →ₗ[𝕜] W) hf ℓ).symm)).toContinuousLinearEquiv
+/-- An injective linear map `f : V → W` restricts to an isomorphism of the line `ℓ` onto the line
+`map f ℓ`: the fibrewise isomorphism of the tautological line of `ℙ 𝕜 V` with the pull-back of
+that of `ℙ 𝕜 W` along `map f`. -/
+noncomputable def tautologicalMapEquiv (ℓ : ℙ 𝕜 V) :
+    Tautological 𝕜 V ℓ ≃L[𝕜] Tautological 𝕜 W (map f hf ℓ) :=
+  ((Submodule.equivMapOfInjective f hf ℓ.submodule).trans
+    (LinearEquiv.ofEq _ _ (submodule_map f hf ℓ).symm)).toContinuousLinearEquiv
 
 @[simp]
 theorem coe_tautologicalMapEquiv_apply (ℓ : ℙ 𝕜 V) (v : Tautological 𝕜 V ℓ) :
@@ -338,14 +339,14 @@ theorem coe_tautologicalMapEquiv_apply (ℓ : ℙ 𝕜 V) (v : Tautological 𝕜
   (rfl)
 
 /-- The fibrewise isomorphism `tautologicalMapEquiv` is continuous on total spaces, over the
-continuous map `map f` of projective spaces. -/
-theorem continuous_tautologicalMapEquiv :
+continuous map `map f` of projective spaces, when `f` is continuous. -/
+theorem continuous_tautologicalMapEquiv (hfc : Continuous f) :
     Continuous fun v : TotalSpace 𝕜 (Tautological 𝕜 V) ↦
-      TotalSpace.mk' 𝕜 (E := Tautological 𝕜 W) (map (f : V →ₗ[𝕜] W) hf v.proj)
+      TotalSpace.mk' 𝕜 (E := Tautological 𝕜 W) (map f hf v.proj)
         (tautologicalMapEquiv f hf v.proj v.snd) :=
   continuous_totalSpace_tautological_iff.2
-    ⟨(continuous_map hf f.continuous).comp (continuous_proj_tautological 𝕜 V),
-      f.continuous.comp (continuous_snd_tautological 𝕜 V)⟩
+    ⟨(continuous_map hf hfc).comp (continuous_proj_tautological 𝕜 V),
+      hfc.comp (continuous_snd_tautological 𝕜 V)⟩
 
 end Map
 
