@@ -45,7 +45,9 @@ The main facts fixing the conventions are `stdForm_apply`
 (`ω₀(z, w) = ∑ᵢ (xᵢ(z) yᵢ(w) - yᵢ(z) xᵢ(w))`), `stdComplexStructure_eq_toEuclideanLin_J`,
 `stdForm_apply_eq_inner` (`ω₀(z, w) = ⟪J₀ z, w⟫`), `stdForm_toBilinForm`
 (`ω₀ = -Matrix.toBilin' (Matrix.J ι ℝ)` in coordinates), and `stdForm_compatible`, with the
-Cauchy–Schwarz inequality `abs_stdForm_apply_le` (`|ω₀(z, w)| ≤ ‖z‖ ‖w‖`).
+Cauchy–Schwarz inequality `abs_stdForm_apply_le` (`|ω₀(z, w)| ≤ ‖z‖ ‖w‖`). The rotation
+`stdRotation ι t`, `z ↦ cos t • z + sin t • J₀ z`, is a linear isometry that preserves `ω₀`
+(`stdForm_stdRotation`).
 Finally, `isSymplectomorphism_sumEquivProd` and `stdComplexStructure_transport_sumEquivProd`
 compare the model with Tau Ceti's product model `TauCeti.stdSymplecticForm` and
 `TauCeti.AlmostComplexStructure.product` on `EuclideanSpace ℝ ι × EuclideanSpace ℝ ι`
@@ -457,6 +459,35 @@ theorem stdForm_compatible : (stdForm ι).Compatible (stdComplexStructure ι) :=
 /-- Cauchy–Schwarz for `ω₀`: `|ω₀(z, w)| ≤ ‖z‖ ‖w‖`. -/
 theorem abs_stdForm_apply_le (z w : StdSpace ι) : |stdForm ι z w| ≤ ‖z‖ * ‖w‖ :=
   SymplecticForm.abs_apply_le_norm_mul_norm stdForm_apply_stdComplexStructure z w
+
+variable (ι) in
+/-- The rotation `z ↦ cos t • z + sin t • J₀ z` of `StdSpace ι`, a linear isometry: through
+`complexToRealEuclidean ι` it is multiplication by `exp (t I)`
+(`complexToRealEuclidean_exp_mul_I_smul`). -/
+noncomputable def stdRotation (t : ℝ) : StdSpace ι ≃ₗᵢ[ℝ] StdSpace ι :=
+  LinearIsometry.toLinearIsometryEquiv
+    { toLinearMap := Real.cos t • LinearMap.id + Real.sin t • (stdComplexStructure ι).toLinearMap
+      norm_map' := fun z ↦ by
+        have h := complexToRealEuclidean_exp_mul_I_smul t ((complexToRealEuclidean ι).symm z)
+        rw [ContinuousLinearEquiv.apply_symm_apply] at h
+        simp only [LinearMap.add_apply, LinearMap.smul_apply, LinearMap.id_apply]
+        rw [← h, norm_complexToRealEuclidean_smul, Complex.norm_exp_ofReal_mul_I, one_mul,
+          ContinuousLinearEquiv.apply_symm_apply] }
+    rfl
+
+theorem stdRotation_apply (t : ℝ) (z : StdSpace ι) :
+    stdRotation ι t z = Real.cos t • z + Real.sin t • stdComplexStructure ι z :=
+  (rfl)
+
+/-- The rotation `stdRotation ι t` preserves `ω₀`. -/
+theorem stdForm_stdRotation (t : ℝ) (z w : StdSpace ι) :
+    stdForm ι (stdRotation ι t z) (stdRotation ι t w) = stdForm ι z w := by
+  have h₁ := stdForm_apply_stdComplexStructure z w
+  have h₂ : stdForm ι (stdComplexStructure ι z) w = -inner ℝ z w := by
+    rw [stdForm_apply_eq_inner, AlmostComplexStructure.apply_apply, inner_neg_left]
+  simp only [stdRotation_apply, map_add, map_smul, LinearMap.add_apply, LinearMap.smul_apply,
+    smul_eq_mul, h₁, h₂, stdForm_compatible.invariant_apply z w]
+  linear_combination stdForm ι z w * Real.cos_sq_add_sin_sq t
 
 /-! ### Relabelling the coordinate pairs -/
 
