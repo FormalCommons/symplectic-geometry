@@ -10,14 +10,16 @@ public import TauCeti.Topology.Circle.FreeLoop
 import Mathlib.Analysis.Convex.Contractible
 import Mathlib.Analysis.SpecialFunctions.Complex.Circle
 import Mathlib.Topology.Homotopy.Lifting
-import TauCeti.Analysis.SpecialFunctions.Complex.Arg
+import SymplecticGeometry.Geometry.Manifold.Instances.Sphere
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.Composition
 
 /-!
 # Smooth real logarithms of circle-valued maps on an annulus
 
 A continuous real function `θ` whose exponential `Circle.exp ∘ θ` is `C^n` is itself `C^n`
-(`Circle.contDiffAt_of_contDiffAt_exp`): near a point `x`, `θ` is `θ x` plus the argument of
-`exp (θ y) / exp (θ x)`, and the argument is smooth near `1`.
+(`Circle.contDiffAt_of_contDiffAt_exp`), since `Circle.exp` is a local diffeomorphism
+(`isLocalDiffeomorph_circleExp`) and a continuous map whose composite with a local diffeomorphism
+is `C^n` is `C^n` (Tau Ceti's `ContMDiffWithinAt.of_comp_isLocalDiffeomorph`).
 
 On the open annulus `A = {z : ℂ | a < ‖z‖ < b}`, `0 ≤ a`, a `C^n` map `u : ℂ → S¹` whose loop
 `ζ ↦ u (r ζ)` on one circle of radius `r ∈ (a, b)` has degree `0` is `exp (i h)` for a real
@@ -86,24 +88,16 @@ theorem Function.Periodic.continuousOn_comp_log {α : Type*} [TopologicalSpace �
 
 namespace Circle
 
+attribute [local instance] finrank_real_complex_fact'
+
 /-- A real function `θ`, continuous at `x`, whose exponential `y ↦ exp (i θ y)` is `C^n` at `x`
 is `C^n` at `x`. -/
 theorem contDiffAt_of_contDiffAt_exp {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
     {n : WithTop ℕ∞} {θ : E → ℝ} {x : E} (hθ : ContinuousAt θ x)
     (h : ContDiffAt ℝ n (fun y ↦ (exp (θ y) : ℂ)) x) : ContDiffAt ℝ n θ x := by
-  have harg : ContDiffAt ℝ n
-      (fun y ↦ θ x + arg ((exp (θ y) : ℂ) * ((exp (θ x))⁻¹ : Circle))) x := by
-    refine contDiffAt_const.add ((contDiffAt_arg ?_).comp x (h.mul contDiffAt_const))
-    rw [← coe_mul, mul_inv_cancel, coe_one]
-    exact one_mem_slitPlane
-  have hnear : ∀ᶠ y in 𝓝 x, θ y ∈ Ioo (θ x - π) (θ x + π) :=
-    hθ (Ioo_mem_nhds (by linarith [Real.pi_pos]) (by linarith [Real.pi_pos]))
-  refine harg.congr_of_eventuallyEq ?_
-  filter_upwards [hnear] with y hy
-  rw [← coe_mul, ← exp_neg, ← exp_add, arg_exp (by linarith [hy.1]) (by linarith [hy.2])]
-  ring
-
-attribute [local instance] finrank_real_complex_fact'
+  rw [← contMDiffAt_iff_contDiffAt, ← contMDiffWithinAt_univ]
+  exact ContMDiffWithinAt.of_comp_isLocalDiffeomorph (isLocalDiffeomorph_circleExp n (θ x))
+    hθ.continuousWithinAt (contMDiffAt_iff_contDiffAt.2 h).of_coe_sphere.contMDiffWithinAt
 
 /-- A real function `θ`, continuous on an open set `s`, whose exponential `y ↦ exp (i θ y)` is
 `C^n` on `s` as a map into the circle, is `C^n` on `s`. -/

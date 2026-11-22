@@ -9,7 +9,6 @@ public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Coordi
 public import SymplecticGeometry.Geometry.Manifold.DeRham.RadialAngularForm
 public import TauCeti.Geometry.Manifold.DifferentialForm.Integration.OpenSubset
 public import TauCeti.Geometry.Manifold.Orientation.OpenSubset
-import SymplecticGeometry.Geometry.Manifold.Orientation.AddCircle
 import SymplecticGeometry.Geometry.Manifold.Orientation.Preserving
 
 
@@ -80,40 +79,16 @@ theorem isOrientationPreservingAt_ofChart (he' : e ∈ IsManifold.maximalAtlas (
     IsOrientationPreservingAt
       ((Manifold.Orientation.model (I := 𝓘(ℝ, ℂ)) Complex.orientation (by simp)).restrict ball)
       o (ofChart e hr hc he) z := by
-  have hφ : ⇑(ofChart e hr hc he) = e.symm ∘ (fun v ↦ c + (r / 2) • v) ∘
-      Complex.orthonormalBasisOneI.repr ∘ (Subtype.val : ball → ℂ) :=
+  have hφ : ⇑(ofChart e hr hc he) =
+      e.symm ∘ fun w : ball ↦ c + (r / 2) • Complex.orthonormalBasisOneI.repr (w : ℂ) :=
     funext fun w ↦ ofChart_apply e hr hc he w
-  -- The point `c + (r / 2) (re z, im z)` lies in the ball of radius `r` about `c`.
-  have hy : c + (r / 2) • Complex.orthonormalBasisOneI.repr (z : ℂ) ∈ e.target := by
-    refine hc ?_
-    rw [Metric.mem_ball, dist_self_add_left, norm_smul, LinearIsometryEquiv.norm_map,
-      Real.norm_of_nonneg (by positivity)]
-    nlinarith [mem_ball_iff.1 z.property]
+  have hy : c + (r / 2) • Complex.orthonormalBasisOneI.repr (z : ℂ) ∈ e.target :=
+    hc (add_smul_orthonormalBasisOneI_repr_mem_ball c hr z)
   rw [hφ]
-  -- The map `v ↦ c + (r / 2) v` has derivative `(r / 2) • id`, of determinant `(r / 2) ^ 2 > 0`.
-  have hdet : 0 < (fderiv ℝ (fun v : EuclideanSpace ℝ (Fin 2) ↦ c + (r / 2) • v)
-      (Complex.orthonormalBasisOneI.repr (z : ℂ))).det := by
-    have hL : HasFDerivAt (fun v : EuclideanSpace ℝ (Fin 2) ↦ c + (r / 2) • v)
-        ((r / 2) • ContinuousLinearMap.id ℝ (EuclideanSpace ℝ (Fin 2)))
-        (Complex.orthonormalBasisOneI.repr (z : ℂ)) :=
-      ((hasFDerivAt_id _).const_smul (r / 2)).const_add c
-    rw [hL.fderiv]
-    simp only [ContinuousLinearMap.det, ContinuousLinearMap.toLinearMap_smul,
-      ContinuousLinearMap.coe_id, LinearMap.det_smul, finrank_euclideanSpace, Fintype.card_fin,
-      LinearMap.det_id, mul_one]
-    positivity
-  have h₁ : IsOrientationPreservingAt
-      ((Manifold.Orientation.model (I := 𝓘(ℝ, ℂ)) Complex.orientation (by simp)).restrict ball)
-      (Manifold.Orientation.euclideanSpace 2)
-      (Complex.orthonormalBasisOneI.repr ∘ (Subtype.val : ball → ℂ)) z :=
-    (Complex.isOrientationPreservingAt_orthonormalBasisOneI_repr _).comp
-      (isOrientationPreservingAt_restrict _ ball z)
-  have h := IsOrientationPreservingAt.comp
-    (f := Complex.orthonormalBasisOneI.repr ∘ (Subtype.val : ball → ℂ))
-    (isOrientationPreservingAt_of_det_fderiv_pos _ hdet) h₁
   exact IsOrientationPreservingAt.comp (g := e.symm)
-    (f := (fun v ↦ c + (r / 2) • v) ∘ Complex.orthonormalBasisOneI.repr ∘ (Subtype.val : ball → ℂ))
-    ((he _ (e.map_target hy)).symm_of_mem_maximalAtlas he' hy) h
+    (f := fun w : ball ↦ c + (r / 2) • Complex.orthonormalBasisOneI.repr (w : ℂ))
+    ((he _ (e.map_target hy)).symm_of_mem_maximalAtlas he' hy)
+    (isOrientationPreservingAt_add_smul_orthonormalBasisOneI_repr c hr z)
 
 include hc he in
 /-- **Integration in the coordinate disc of an oriented chart.** For a smooth chart `e` of `M`

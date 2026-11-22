@@ -207,7 +207,7 @@ def Compatible.cayleyPath (h₀ : ω.Compatible J₀) (h : ω.Tames J) (t : ℝ)
   square_neg x := by
     obtain ⟨K, hK, -⟩ := (h₀.compatibleAt x).exists_toLinearMap_eq_cayleyPathFormula
       (h₀.isNondegenerate.tames_iff.1 h x)
-      ((trivializationAt F V x).continuousLinearEquivAt ℝ x (mem_baseSet_trivializationAt F V x))
+      (VectorBundle.continuousLinearEquivAt ℝ F V x)
       (J₀.almostComplexStructureAt_toLinearMap x).symm
       (J.almostComplexStructureAt_toLinearMap x).symm t
     ext v
@@ -236,7 +236,7 @@ theorem Compatible.exists_almostComplexStructureAt_cayleyPath (t : ℝ) (x : M) 
         (ω.Compatible J → (h₀.isNondegenerate.symplecticFormAt x).Compatible K) := by
   obtain ⟨K, hK, hT, hC⟩ := (h₀.compatibleAt x).exists_toLinearMap_eq_cayleyPathFormula
     (h₀.isNondegenerate.tames_iff.1 h x)
-    ((trivializationAt F V x).continuousLinearEquivAt ℝ x (mem_baseSet_trivializationAt F V x))
+    (VectorBundle.continuousLinearEquivAt ℝ F V x)
     (J₀.almostComplexStructureAt_toLinearMap x).symm
     (J.almostComplexStructureAt_toLinearMap x).symm t
   refine ⟨K, AlmostComplexStructure.toLinearMap_injective ?_, hT, fun hJ ↦ hC ?_⟩
