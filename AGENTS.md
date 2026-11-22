@@ -116,6 +116,22 @@ end
 - The header is exactly as above; CI checks it. The module docstring comes
   right after the imports. Mathlib's style linters are on and fail the build,
   among them the limit of 100 characters per line.
+- The one other header is that of a file taken from Tau Ceti. When the
+  library needs declarations that Tau Ceti's main branch has and the pinned
+  version does not, you may copy them, since Tau Ceti's license is this
+  library's. The license then requires that their file keeps Tau Ceti's
+  notices, so:
+  - They go in a file of their own, at the path of Tau Ceti's file with
+    `SymplecticGeometry/` in place of `TauCeti/`, under Tau Ceti's names and
+    namespaces. A move of Tau Ceti past them then deletes the file. Add no
+    declaration of your own to such a file, and copy none into a file with
+    the header above.
+  - The first five lines are those of Tau Ceti's file as they are: its
+    copyright line and its `Authors:` line, which may name people. CI's
+    check of the header allows this.
+  - The module docstring names Tau Ceti's file and the commit you copied
+    from, and says each change you made to a statement or a proof. Change
+    only what the pinned version requires.
 - A module can import only modules, so every file starts with `module`.
   Import with `public import`, so that files that import yours see the
   declarations your statements use. Import the specific modules you need,
