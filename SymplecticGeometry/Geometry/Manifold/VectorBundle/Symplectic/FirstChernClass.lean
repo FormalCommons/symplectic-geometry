@@ -25,11 +25,6 @@ relates these classes to the operations on complex structures and to tameness:
   of any regularities, have the same class, since they give isomorphic complex bundles
   (`ContMDiffTwoForm.Tames.exists_complex_bundleEquiv`).
 
-The proof of `ContMDiffTwoForm.Tames.firstChernClass_eq` is that of
-`SymplecticGeometry.Bundle.ContMDiffTwoForm.Tames.chernNumber_eq`
-(`SymplecticGeometry/Geometry/Manifold/VectorBundle/ChernNumber/Basic.lean`), with the first
-Chern class in place of the first Chern number.
-
 ## References
 
 * [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017], §2.6

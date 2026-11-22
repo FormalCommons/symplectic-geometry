@@ -14,7 +14,7 @@ import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Discrete
 import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Push
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Section.Generic
 import TauCeti.Geometry.Manifold.Boundary.Collar.Topological
-import TauCeti.Geometry.Manifold.ModelTransport.Interior
+import SymplecticGeometry.Geometry.Manifold.ModelTransport.InteriorModel
 import TauCeti.Geometry.Manifold.VectorBundle.Section.Generic
 import TauCeti.Geometry.Manifold.VectorBundle.Section.Module
 import TauCeti.Topology.FiberBundle.Pullback
@@ -118,7 +118,6 @@ variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimen
   [TopologicalSpace (TotalSpace F V)] [FiberBundle F V] [VectorBundle ℝ F V]
   [ContMDiffVectorBundle ∞ F V I]
 
-attribute [local instance] BoundarylessModel.interiorChartedSpace in
 /-- Over a compact second-countable manifold modelled on `E`, a bundle of rank at least `dim E` has
 a smooth section whose zeros in the interior form a discrete set: the generic section of the
 bundle pulled back to the interior, which has no zeros if the rank is larger than `dim E`. -/
@@ -126,17 +125,15 @@ private theorem exists_contMDiffSection_isDiscrete_interior [SecondCountableTopo
     (hF : finrank ℝ E ≤ finrank ℝ F) :
     ∃ σ : ContMDiffSection I F ∞ V, IsDiscrete {x : I.interiorOpens M | σ x = 0} := by
   let U := I.interiorOpens M
-  let N := BoundarylessModel I U
+  let N := InteriorModel I U
+  -- A point of `N` is a point of `U` (`coe_interiorModelHomeomorph_symm`).
   have hj : ContMDiff 𝓘(ℝ, E) I ∞ (fun y : N ↦ ((show U from y) : M)) := by
-    have := contMDiff_subtypeVal.comp
-      (BoundarylessModel.interiorDiffeomorph I (M := U) ∞).symm.contMDiff
-    rw [BoundarylessModel.coe_interiorDiffeomorph_symm,
-      BoundarylessModel.coe_homeomorph_symm] at this
-    exact this
+    have := contMDiff_subtypeVal.comp (interiorModelDiffeomorph I U ∞).symm.contMDiff
+    rwa [coe_interiorModelDiffeomorph_symm,
+      coe_interiorModelHomeomorph_symm] at this
   let j : C^∞⟮𝓘(ℝ, E), N; I, M⟯ := ⟨fun y : N ↦ ((show U from y) : M), hj⟩
   have : ContMDiffVectorBundle ∞ F ((j : C(N, M)) *ᵖ V) 𝓘(ℝ, E) :=
     ContMDiffVectorBundle.pullback F V 𝓘(ℝ, E) j
-  have : SecondCountableTopology N := inferInstanceAs (SecondCountableTopology U)
   obtain ⟨k, s, hspan⟩ := exists_fin_spanning_contMDiffSection (I := I) (F := F) (V := V)
   let t i := (s i).pullback j
   have ht (i) (y : N) : t i y = s i (j y) := pullback_apply (s i) j y
@@ -156,7 +153,6 @@ private theorem exists_contMDiffSection_isDiscrete_interior [SecondCountableTopo
   exact ⟨affineFamily 0 s a, ha⟩
 
 omit [CompactSpace M] [FiniteDimensional ℝ F] [ContMDiffVectorBundle ∞ F V I] in
-attribute [local instance] BoundarylessModel.interiorChartedSpace in
 /-- In the interior of a connected manifold of dimension at least two, let `σ` be a section whose
 zeros in the interior are isolated, and `K` a compact subset of the interior whose complement in the
 interior is nonempty. Some homotopy of the interior, starting at the identity, ends at a map that
@@ -167,9 +163,7 @@ private theorem exists_homotopy_interior_ne_zero [ConnectedSpace M] (hdim : 1 < 
     ∃ G : unitInterval × I.interiorOpens M → I.interiorOpens M, Continuous G ∧
       (∀ y, G (0, y) = y) ∧ ∀ y ∈ K, σ (G (1, y)) ≠ 0 := by
   let U := I.interiorOpens M
-  let N := BoundarylessModel I U
-  have : T2Space N := inferInstanceAs (T2Space U)
-  have : PreconnectedSpace N := inferInstanceAs (PreconnectedSpace U)
+  let N := InteriorModel I U
   -- Restate the hypotheses for the topology of `N`, which is that of `U`.
   have hZ : IsClosed (X := N) {x : U | σ x = 0} :=
     σ.isClosed_setOf_eq_zero.preimage continuous_subtypeVal
