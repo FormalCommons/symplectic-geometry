@@ -262,9 +262,8 @@ The change of linear structure in singular cohomology, in the namespace
 `TopCat`, for any abelian `C` and two equal structures `L₁ L₂ : Linear k C`:
 `singularCohomologyLinearCongr e X R M n` for `e : L₁ = L₂`, the linear
 equivalence `LinearEquiv.cast` along `e`, with `_refl`, `_symm`, `_trans`,
-`_naturality` (it
-commutes with `singularCohomologyMap f`) and `_singularCup` (it carries cup
-products to cup products). `IntegralCohomologyULift.lean` uses it to pass
+`_naturality` (it commutes with `singularCohomologyMap f`) and `_singularCup`
+(it carries cup products to cup products). `IntegralCohomologyULift.lean` uses it to pass
 from `ModuleCat.instLinear` to `CategoryTheory.Linear.preadditiveIntLinear`.
 
 ### `Algebra/Homology/Monoidal/CupChangeOfValues.lean`
