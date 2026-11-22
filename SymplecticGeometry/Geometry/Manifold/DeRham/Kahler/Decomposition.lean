@@ -160,11 +160,8 @@ theorem complexHodgeLaplacian_alternatingDerivation (o : Manifold.Orientation I 
     (hkl : k + l = m) (φ : SmoothForm I M ℂ k) :
     complexHodgeLaplacian o hkl (J.toEndomorphism.alternatingDerivation φ) =
       J.toEndomorphism.alternatingDerivation (complexHodgeLaplacian o hkl φ) := by
-  conv_lhs => rw [← ofReal_realPart_add_I_smul_ofReal_imaginaryPart φ]
-  conv_rhs => rw [← ofReal_realPart_add_I_smul_ofReal_imaginaryPart φ]
-  simp only [complexHodgeLaplacian_def, map_add, map_smul,
-    ContMDiffSection.alternatingDerivation_mapCoeff_ofRealCLM, complexifyₗ_mapCoeff_ofRealCLM,
-    hodgeLaplacian_realAlternatingDerivation o hJ hσ hg]
+  rw [complexHodgeLaplacian_def,
+    complexifyₗ_alternatingDerivation _ (hodgeLaplacian_realAlternatingDerivation o hJ hσ hg hkl)]
 
 /-- Under the hypotheses of `hodgeLaplacian_realAlternatingDerivation`, the complex Hodge
 Laplacian of a form of type `(p,q)` has type `(p,q)`. -/
@@ -187,11 +184,8 @@ theorem complexHodgeStar_alternatingDerivation (o : Manifold.Orientation I M (Fi
     (hA : ∀ x (u w : TangentSpace I x), ⟪A x u, w⟫ = -⟪u, A x w⟫) (φ : SmoothForm I M ℂ k) :
     complexHodgeStar o hkl (A.alternatingDerivation φ) =
       A.alternatingDerivation (complexHodgeStar o hkl φ) := by
-  conv_lhs => rw [← ofReal_realPart_add_I_smul_ofReal_imaginaryPart φ]
-  conv_rhs => rw [← ofReal_realPart_add_I_smul_ofReal_imaginaryPart φ]
-  simp only [complexHodgeStar_def, map_add, map_smul,
-    ContMDiffSection.alternatingDerivation_mapCoeff_ofRealCLM, complexifyₗ_mapCoeff_ofRealCLM,
-    hodgeStar_realAlternatingDerivation o hkl hA]
+  rw [complexHodgeStar_def,
+    complexifyₗ_alternatingDerivation _ (hodgeStar_realAlternatingDerivation o hkl hA)]
 
 /-- On an oriented manifold of dimension `2 n` with a metric in which `J` is orthogonal, the
 complex Hodge star of a complex form of type `(p,q)`, with `p ≤ n` and `q ≤ n`, has type

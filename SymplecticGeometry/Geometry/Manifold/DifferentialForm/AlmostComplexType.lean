@@ -7,6 +7,7 @@ module
 
 public import Mathlib.Topology.VectorBundle.Riemannian
 public import TauCeti.Geometry.Manifold.DifferentialForm.AlmostComplexType
+public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Complexification
 import SymplecticGeometry.Analysis.Normed.Module.Alternating.Derivation
 
 /-!
@@ -26,6 +27,10 @@ of complex-valued forms, and describes the range of Tau Ceti's type projections.
 * `ContMDiffSection.realAlternatingDerivation_fin_zero`: the derivation vanishes on functions.
 * `ContMDiffSection.alternatingDerivation_mapCoeff_ofRealCLM`: on real forms, the complex
   derivation is the real one.
+* `ContMDiffSection.alternatingDerivation_eq_complexifyₗ`: on complex forms, the derivation is
+  the complexification of the real derivation.
+* `TauCeti.SmoothForm.complexifyₗ_alternatingDerivation`: if a real-linear map of real forms
+  commutes with the real derivation, its complexification commutes with the complex one.
 * `TauCeti.SmoothAlmostComplexStructure.mem_range_typeProjection_iff`: the range of the
   type-`(p,q)` projection is the forms of type `(p,q)`.
 * `TauCeti.SmoothAlmostComplexStructure.typeProjection_eq_aeval`: the type projection is a
@@ -80,7 +85,34 @@ theorem alternatingDerivation_mapCoeff_ofRealCLM
   ext x v
   simp [RoughForm.mapCoeff_apply, ContinuousLinearMap.alternatingDerivation_apply]
 
+omit [RiemannianBundle (fun x : M ↦ TangentSpace I x)] in
+/-- On complex forms, the derivation along an endomorphism field is the complexification of the
+real derivation along it. -/
+theorem alternatingDerivation_eq_complexifyₗ
+    (A : ContMDiffSection I (E →L[ℝ] E) ∞ fun x : M ↦ TangentSpace I x →L[ℝ] TangentSpace I x) :
+    A.alternatingDerivation (F := ℂ) (k := k) =
+      SmoothForm.complexifyₗ A.realAlternatingDerivation :=
+  (SmoothForm.eq_complexifyₗ_iff _ _).2 (alternatingDerivation_mapCoeff_ofRealCLM A)
+
 end ContMDiffSection
+
+namespace TauCeti.SmoothForm
+
+omit [RiemannianBundle (fun x : M ↦ TangentSpace I x)] in
+/-- If a real-linear map `f` of real forms commutes with the real derivation along an
+endomorphism field `A`, then its complexification commutes with the derivation along `A` of
+complex forms. -/
+theorem complexifyₗ_alternatingDerivation {l : ℕ}
+    (A : ContMDiffSection I (E →L[ℝ] E) ∞ fun x : M ↦ TangentSpace I x →L[ℝ] TangentSpace I x)
+    {f : SmoothForm I M ℝ k →ₗ[ℝ] SmoothForm I M ℝ l}
+    (hf : ∀ α, f (A.realAlternatingDerivation α) = A.realAlternatingDerivation (f α))
+    (φ : SmoothForm I M ℂ k) :
+    complexifyₗ f (A.alternatingDerivation φ) = A.alternatingDerivation (complexifyₗ f φ) := by
+  have h : f ∘ₗ A.realAlternatingDerivation = A.realAlternatingDerivation ∘ₗ f := LinearMap.ext hf
+  simp only [ContMDiffSection.alternatingDerivation_eq_complexifyₗ, ← LinearMap.comp_apply,
+    ← complexifyₗ_comp, h]
+
+end TauCeti.SmoothForm
 
 namespace TauCeti.SmoothAlmostComplexStructure
 
