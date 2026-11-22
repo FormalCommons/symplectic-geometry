@@ -197,7 +197,12 @@ line of a comment with `axiom`.
   statement and not only by the name, and use what you find. Never add a
   renamed copy, a wrapper, or a less general version of something that
   exists. Where the plan says that a result exists in a library, do not
-  reprove it.
+  reprove it. The library defers to Tau Ceti at the commit it is on: it
+  keeps no definition, lemma or step of a proof that Tau Ceti has there,
+  under any name. So after each move of Tau Ceti (*Leave the setup alone*,
+  below), issues "Use Tau Ceti `<commit>`: `<directory>`" go through what
+  the move brought, remove the library's versions, and move every use to
+  Tau Ceti's.
 - **Definitions come with their API.** A new definition comes with the API
   that the design gives it, and at least what makes it usable: how to
   build and use it (`foo_def`, `mem_foo_iff`, constructors and eliminators),
@@ -240,10 +245,12 @@ line of a comment with `axiom`.
   `lake-manifest.json`, `lean-toolchain`, `LICENSE` or anything under
   `.github/`, nor add a `lakefile.lean`, unless the issue you work on asks
   for it and a person in the project opened it. The one other exception is an
-  issue "Move Tau Ceti to `<tag>`", which `github-actions[bot]` opens when
-  Tau Ceti tags a higher version. Whoever works on it changes the first three
-  files as the issue says, and fixes in the same pull request whatever breaks
-  in the library. A move is never split, and may go over the 2000 lines of
+  issue "Move Tau Ceti to `<commit>`", which `github-actions[bot]` opens when
+  Tau Ceti's security audit has passed commits that change what the library
+  builds on. Whoever works on it changes the first three
+  files as the issue says, fixes in the same pull request whatever breaks
+  in the library, and creates the issues that remove from the library what
+  Tau Ceti now has. A move is never split, and may go over the 2000 lines of
   the next rule; CI checks that it changes the setup only as Tau Ceti does.
 - **Keep pull requests focused.** One pull request does one issue, and adds
   at most 2000 lines. If an issue is too big for that, split it into smaller
@@ -312,7 +319,7 @@ code, by the rules above:
   counterexample that shows it is needed.
 - A change to `lakefile.toml`, `lake-manifest.json` or `lean-toolchain`
   belongs to a move of Tau Ceti or to a maintainer's issue. A move changes
-  only Tau Ceti's `rev` and its tag comment, the toolchain and the
+  only the line of Tau Ceti's `rev`, the toolchain and the
   manifest, as CI's setup check enforces, and fixes the library in the same
   pull request.
 - A pull request that only adds an unresolved entry to `ERRATA.md`, and is
