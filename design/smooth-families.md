@@ -229,13 +229,15 @@ lemmas about Tau Ceti's `TauCeti.collaredSmoothTransition`, which are in `TauCet
   `expNegInvGlue` on $(0,\infty)$ (Tau Ceti's `expNegInvGlue.hasDerivAt`).
 - `SymplecticGeometry.exists_contDiff_eqOn_id_Icc_mem_Ioo {a b ε : ℝ}
   (hab : a ≤ b) (hε : 0 < ε) : ∃ c : ℝ → ℝ, ContDiff ℝ ∞ c ∧
-  Set.EqOn c id (Set.Icc a b) ∧ ∀ t, c t ∈ Set.Ioo (a - ε) (b + ε)`. Proof:
+  Set.EqOn c id (Set.Icc a b) ∧ (∀ t, c t ∈ Set.Ioo (a - ε) (b + ε)) ∧
+  ∀ t ∉ Set.Ioo (a - ε) (b + ε), c t = (a + b) / 2`. Proof:
   let $m=(a+b)/2$, let $f$ be a `ContDiffBump m` with radii
   $(b-a)/2+\varepsilon/2$ and $(b-a)/2+\varepsilon$, and set
   $c(t)=m+f(t)(t-m)$. Then $f=1$ on $[a,b]$
   (`ContDiffBump.one_of_mem_closedBall`). Since $0\le f\le1$ and $f$
   vanishes off the open ball (`ContDiffBump.support_eq`),
-  $|c(t)-m|<(b-a)/2+\varepsilon$. The case $a=b$ is included. The statement
+  $|c(t)-m|<(b-a)/2+\varepsilon$, and $c=m$ off that ball. The case $a=b$
+  is included. The statement
   does not mention `Real.smoothTransition`. It sits in this file because Tau
   Ceti keeps its truncations in its file of the same name.
 
@@ -472,6 +474,23 @@ Named like Tau Ceti's file; in `TauCeti`.
   families, as a corollary of `IsSmoothFamily.homotopyOperator` through
   `IsSmoothFamily.mpullback`. The
   file imports `SmoothFamily/Map.lean` and `DifferentialForm/HomotopyOperator.lean`.
+
+### `Geometry/Manifold/DifferentialForm/SmoothFamily/Poincare.lean`
+
+- `SymplecticGeometry.isSmoothFamily_homotopyOperator_mpullback_and_mextDerivₗ_eq`:
+  for a smooth contraction `Φ : M × unitInterval → M` of `M` to `c` and a
+  smooth family $\alpha_t$ of closed `(k + 1)`-forms with a complete
+  coefficient space, over any parameter manifold, $t\mapsto h(\Phi^*\alpha_t)$
+  is a smooth family and $d\,h(\Phi^*\alpha_t)=\alpha_t$, by
+  `IsSmoothFamily.homotopyOperator` and
+  `SmoothForm.mextDerivₗ_homotopyOperator_mpullback_of_contraction`; with the
+  corollary `IsSmoothlyContractible.exists_isSmoothFamily_mextDerivₗ_eq`.
+- `SymplecticGeometry.exists_isSmoothFamily_mextDerivₗ_eq_of_starConvex`, the
+  parametric radial primitives, through `StarConvex.lineContraction` of
+  `DeRham/GoodCover/Basic.lean`: they also vanish at each point where the
+  form vanishes along the segment from the centre, and are `0` where the form
+  is. *Isotopy extension* uses them for the ball extension. The file imports
+  `SmoothFamily/HomotopyOperator.lean` and `DeRham/GoodCover/Basic.lean`.
 
 ### `Geometry/Manifold/DifferentialForm/TimeExtension.lean`
 
@@ -806,7 +825,8 @@ In `TauCeti.Diffeotopy`, for `[FiniteDimensional ℝ E] [IsManifold I ∞ M]
   `exists_isSmoothFamily_mextDerivₗ_eq`, `hasFiniteGoodCover_of_compactSpace`,
   `DifferentialForm/TimeExtension.lean` (to pass its primitives to `ℝ × M`),
   `exists_contDiff_eqOn_id_Icc_mem_Ioo` and `ofReal`; *Isotopy extension* uses both `TimeExtension.lean` files and
-  the `FiniteDimensional` instance of `SmoothFamily/GoodCover.lean`; *Contact geometry* uses both
+  the `FiniteDimensional` instance of `SmoothFamily/GoodCover.lean`, and
+  `exists_contDiff_eqOn_id_Icc_mem_Ioo` in `Extension.lean`; *Contact geometry* uses both
   `TimeExtension.lean` files and the bridge, in `Family.lean` and
   `Gray.lean`, and `exists_contDiff_eqOn_id_Icc_mem_Ioo` in `Family.lean`.
 

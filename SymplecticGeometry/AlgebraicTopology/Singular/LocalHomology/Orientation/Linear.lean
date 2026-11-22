@@ -9,7 +9,7 @@ public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orient
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.Linear
 
 /-!
-# The local orientation of an orientation in the identity chart
+# The local orientation of an orientation in the identity chart, and centred charts
 
 In a real inner product space `X` of dimension `n + 1`, the local orientation at the origin
 selected by an orientation `ν` (`Orientation.localOrientation`) is the one selected by `ν` in the
@@ -18,16 +18,25 @@ The proof compares both with the Euclidean model through a linear isometry, whic
 identity-chart local orientations at the origin to one another
 (`LinearIsometryEquiv.localHomologyMap_localOrientationOfOrientedChart_refl`).
 
+For a chart `φ` of `M` with values in `X`, a point `z` of its source and a continuous linear
+equivalence `L : X ≃L[ℝ] F`, the map `x ↦ L (φ x - φ z)` on the source of `φ` carries the local
+orientation that `ν` selects in `φ` at `z`, read in the source through excision, to the local
+orientation of `F` at the origin selected by `ν.map L`
+(`OpenPartialHomeomorph.localHomologyMap_chart_localOrientationOfOrientedChart`). It factors the
+map into the source restriction of `φ`
+(`OpenPartialHomeomorph.localHomologyMap_sourceRestrict_localOrientationOfOrientedChart`), a
+translation, and `L`.
+
 This file is a part of Tau Ceti's
 `TauCeti/AlgebraicTopology/Singular/LocalHomology/Orientation/Linear.lean`, as of the commit
 `55525ca744` (TauCetiProject/TauCeti#37381) of Tau Ceti's main branch, not yet in the pinned
-release. The two theorems are stated here under their Tau Ceti names, so that moving Tau Ceti past
-them deletes this file without renames. The statements and proofs are Tau Ceti's, with two
-changes that the pinned release requires: the membership
-`x ∈ (OpenPartialHomeomorph.refl X).source` is proved by rewriting with
-`OpenPartialHomeomorph.refl_source`, as the pinned release does, since it lacks
-`OpenPartialHomeomorph.mem_refl_source`; and the Euclidean model, a private abbreviation `Model n`
-of Tau Ceti's file, is written out as `EuclideanSpace ℝ (ULift (Fin (n + 1)))`.
+release. The three theorems are stated here under their Tau Ceti names, so that moving Tau Ceti
+past them deletes this file without renames. The statements and proofs are Tau Ceti's, with one
+change that the pinned release requires: the Euclidean model, a private abbreviation `Model n` of
+Tau Ceti's file, is written out as `EuclideanSpace ℝ (ULift (Fin (n + 1)))`. The lemmas of the
+same commit that the pinned release lacks, `OpenPartialHomeomorph.mem_refl_source` among them,
+come from the copies `SymplecticGeometry/Topology/OpenPartialHomeomorph/Basic.lean` and
+`SymplecticGeometry/AlgebraicTopology/Singular/LocalHomology/Orientation/Chart.lean`.
 
 ## References
 
@@ -63,16 +72,15 @@ theorem _root_.LinearIsometryEquiv.localHomologyMap_localOrientationOfOrientedCh
     (h : (⟨f, f.continuous⟩ : C(X, Y)) ⁻¹' {0} ⊆ {0}) :
     localHomologyMap (ModuleCat.of ℤ (ULift.{w} ℤ)) (⟨f, f.continuous⟩ : C(X, Y)) h (n + 1)
         ((OpenPartialHomeomorph.refl X).localOrientationOfOrientedChart
-          (by rw [OpenPartialHomeomorph.refl_source]; exact Set.mem_univ _) ν hX).val =
+          (OpenPartialHomeomorph.mem_refl_source _) ν hX).val =
       ((OpenPartialHomeomorph.refl Y).localOrientationOfOrientedChart
-        (by rw [OpenPartialHomeomorph.refl_source]; exact Set.mem_univ _)
+        (OpenPartialHomeomorph.mem_refl_source _)
         (ν.map _ f.toLinearEquiv) hY).val := by
   set R := ModuleCat.of ℤ (ULift.{w} ℤ)
   let eX := singularHomologyComplSingletonIsoOfOrientation R (OpenPartialHomeomorph.refl X)
-    (by rw [OpenPartialHomeomorph.refl_source]; exact Set.mem_univ 0) ν hX
+    (OpenPartialHomeomorph.mem_refl_source 0) ν hX
   let eY := singularHomologyComplSingletonIsoOfOrientation R (OpenPartialHomeomorph.refl Y)
-    (by rw [OpenPartialHomeomorph.refl_source]; exact Set.mem_univ 0)
-    (ν.map _ f.toLinearEquiv) hY
+    (OpenPartialHomeomorph.mem_refl_source 0) (ν.map _ f.toLinearEquiv) hY
   -- Radial projection onto the unit spheres commutes with the isometry.
   have hsq : TopPair.Hom.snd (TopPair.ofSubsetMap (X := TopCat.of X) (Y := TopCat.of Y)
         (TopCat.ofHom (⟨f, f.continuous⟩ : C(X, Y))) (B := {0}ᶜ) (B' := {0}ᶜ)
@@ -110,7 +118,7 @@ space `X` of dimension `n + 1`, the local orientation at the origin selected by 
 theorem localOrientation_eq_localOrientationOfOrientedChart_refl
     (ν : Orientation ℝ X (Fin (n + 1))) (hX : finrank ℝ X = n + 1) :
     ν.localOrientation hX = (OpenPartialHomeomorph.refl X).localOrientationOfOrientedChart
-      (by rw [OpenPartialHomeomorph.refl_source]; exact Set.mem_univ _) ν hX := by
+      (OpenPartialHomeomorph.mem_refl_source _) ν hX := by
   have := FiniteDimensional.of_finrank_eq_succ hX
   -- Compare both with the Euclidean model through a linear isometry.
   let f : X ≃ₗᵢ[ℝ] EuclideanSpace ℝ (ULift.{w} (Fin (n + 1))) :=
@@ -129,5 +137,67 @@ theorem localOrientation_eq_localOrientationOfOrientedChart_refl
   exact h.symm
 
 end Orientation
+
+namespace TauCeti
+
+section Chart
+
+variable {M X F : Type w} [TopologicalSpace M] [T1Space M] [NormedAddCommGroup X]
+  [InnerProductSpace ℝ X] [NormedAddCommGroup F] [NormedSpace ℝ F] {n : ℕ}
+
+/-- **An oriented chart, followed by a linear equivalence, reads the local orientation it selects
+as the local orientation of the transported orientation.** Let `φ` be a chart of `M` with values in
+a real inner product space `X`, `ν` an orientation of `X`, and `L : X ≃L[ℝ] F` a linear
+equivalence. The map `x ↦ L (φ x - φ z)` on the source of `φ` carries the local orientation of `M`
+at `z` selected by `ν` in `φ`, read in the source through excision, to the local orientation of `F`
+at the origin selected by the transported orientation `ν.map L`. -/
+theorem _root_.OpenPartialHomeomorph.localHomologyMap_chart_localOrientationOfOrientedChart
+    (φ : OpenPartialHomeomorph M X) {z : M} (hz : z ∈ φ.source) (L : X ≃L[ℝ] F)
+    (ν : Orientation ℝ X (Fin (n + 1))) (hX : finrank ℝ X = n + 1) (hF : finrank ℝ F = n + 1)
+    (h : (((L : X →L[ℝ] F) : C(X, F)).comp
+      ((⟨fun y ↦ y - φ z, by fun_prop⟩ : C(X, X)).comp φ.sourceRestrict)) ⁻¹' {0} ⊆ {⟨z, hz⟩}) :
+    localHomologyMap (ModuleCat.of ℤ (ULift.{w} ℤ))
+        (((L : X →L[ℝ] F) : C(X, F)).comp
+          ((⟨fun y ↦ y - φ z, by fun_prop⟩ : C(X, X)).comp φ.sourceRestrict))
+        (S := {⟨z, hz⟩}) (T := {0}) h (n + 1)
+        ((φ.open_source.isOpenEmbedding_subtypeVal.localOrientationEquiv ⟨z, hz⟩ (n + 1)).symm
+          (φ.localOrientationOfOrientedChart hz ν hX)).val =
+      ((ν.map _ L.toLinearEquiv).localOrientation hF).val := by
+  set Z := ModuleCat.of ℤ (ULift.{w} ℤ)
+  set c := ((φ.open_source.isOpenEmbedding_subtypeVal.localOrientationEquiv ⟨z, hz⟩ (n + 1)).symm
+    (φ.localOrientationOfOrientedChart hz ν hX)).val
+  -- Factor the canonical map into the restricted chart, the centering translation, and `L`.
+  set sR := φ.sourceRestrict
+  let T : C(X, X) := ⟨fun y ↦ y - φ z, by fun_prop⟩
+  let Lc : C(X, F) := ((L : X →L[ℝ] F) : C(X, F))
+  have hsR : sR ⁻¹' {φ z} ⊆ {⟨z, hz⟩} := fun x hx ↦ Subtype.ext (φ.sourceRestrict_preimage hz hx)
+  have hT : T ⁻¹' {0} ⊆ {φ z} := fun y hy ↦ sub_eq_zero.1 hy
+  have hL : Lc ⁻¹' {0} ⊆ {0} := fun y hy ↦ by simpa [Lc] using hy
+  have hcomp : localHomologyMap Z (Lc.comp (T.comp sR)) h (n + 1) =
+      localHomologyMap Z sR hsR (n + 1) ≫
+      localHomologyMap Z T hT (n + 1) ≫ localHomologyMap Z Lc hL (n + 1) := by
+    rw [localHomologyMap_comp, localHomologyMap_comp,
+      localHomologyMap_congr Z (ContinuousMap.comp_assoc Lc T sR).symm]
+  -- The restricted chart carries `c` to the local orientation of `X` at `φ z` selected by `ν` in
+  -- the identity chart.
+  have hA := φ.localHomologyMap_sourceRestrict_localOrientationOfOrientedChart hz ν hX hsR
+  -- The translation carries it to the local orientation at the origin, which `L` carries to the
+  -- local orientation selected by `ν.map L`.
+  have hB := localHomologyMap_translate_localOrientationOfOrientedChart_refl
+    (OpenPartialHomeomorph.mem_refl_source (φ z)) (OpenPartialHomeomorph.mem_refl_source 0)
+    (by simpa only [zero_add] using hT) ν hX
+  simp only [zero_add] at hB
+  have hC : localHomologyMap Z Lc hL (n + 1)
+      ((OpenPartialHomeomorph.refl X).localOrientationOfOrientedChart
+        (OpenPartialHomeomorph.mem_refl_source 0) ν hX).val =
+      ((ν.map _ L.toLinearEquiv).localOrientation hF).val := by
+    rw [Orientation.localOrientation_map L ν hX hF, LocalOrientation.coe_map,
+      ← Orientation.localOrientation_eq_localOrientationOfOrientedChart_refl,
+      ContinuousLinearEquiv.complZeroPairIso_hom, ← localHomologyMap_def]
+  rw [hcomp, ConcreteCategory.comp_apply, ConcreteCategory.comp_apply, hA, hB, hC]
+
+end Chart
+
+end TauCeti
 
 end
