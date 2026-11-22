@@ -346,7 +346,8 @@ theorem LagrangianGrassmannian.isUnit_of_range_mul_eq {Λ : LagrangianGrassmanni
     (by simp [toLpLin_apply, huv])
 
 /-- Two real frames of one Lagrangian subspace differ by an invertible change of frame: if the
-columns of `Z₁` and of `Z₂` both span `Λ`, then `Z₂ * g = Z₁` for some `g : GL ι ℝ`. -/
+columns of `Z₁` and of `Z₂` both span `Λ`, then `Z₂ * g = Z₁` for some `g : GL ι ℝ`. The converse
+is `Matrix.range_toLpLin_mul_of_isUnit`. -/
 theorem LagrangianGrassmannian.exists_mul_eq_of_range_eq
     {Λ : LagrangianGrassmannian (stdForm ι)} {Z₁ Z₂ : Matrix (ι ⊕ ι) ι ℝ}
     (h₁ : LinearMap.range (toEuclideanLin Z₁) = Λ) (h₂ : LinearMap.range (toEuclideanLin Z₂) = Λ) :
@@ -361,18 +362,6 @@ theorem LagrangianGrassmannian.exists_mul_eq_of_range_eq
     rw [toLpLin_mul_same, LinearMap.comp_apply, LinearEquiv.apply_symm_apply,
       LinearMap.comp_apply, ← hv, ← LinearMap.comp_apply L, hL, LinearMap.id_apply]
   exact ⟨(isUnit_of_range_mul_eq (Z := Z₂) (hg ▸ h₁)).unit, hg⟩
-
-/-- An invertible change of frame keeps the span of the columns: if `g` is invertible, then
-`Z * g` and `Z` have the same range. This is the converse of
-`LagrangianGrassmannian.exists_mul_eq_of_range_eq`. -/
-theorem _root_.Matrix.range_toEuclideanLin_mul_of_isUnit {m : Type*}
-    (Z : Matrix m ι ℝ) {g : Matrix ι ι ℝ} (hg : IsUnit g) :
-    LinearMap.range (toEuclideanLin (Z * g)) = LinearMap.range (toEuclideanLin Z) := by
-  rw [toLpLin_mul_same]
-  refine LinearMap.range_comp_of_range_eq_top _ (LinearMap.range_eq_top.2 fun v ↦
-    ⟨toEuclideanLin g⁻¹ v, ?_⟩)
-  simpa using toEuclideanCLM_apply_toEuclideanCLM_nonsing_inv_apply
-    ((isUnit_iff_isUnit_det g).1 hg).ne_zero v
 
 /-- The `x`-coordinates of `fromRows X Y` applied to `u` are `X u`. -/
 @[simp]
