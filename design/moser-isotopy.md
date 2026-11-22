@@ -118,10 +118,9 @@ The part owns the folder `Geometry/Symplectic/Moser/`, except
 `Moser/Family.lean`, a file of *Isotopy extension*
 (`design/isotopy-extension.md`). Tau Ceti has the
 files `Geometry/Symplectic/Manifold/Moser.lean` and `RelativeMoser.lean`, so
-this library may not have folders with those names. Seven of the files outside
+this library may not have folders with those names. Eight of the files outside
 that folder have the names of the Tau Ceti files they extend, so that they
-can join them; `Geometry/Manifold/ContMDiffMap/Basic.lean` has the path of the
-Mathlib file it extends.
+can join them.
 
 | File | Contents | Issue |
 |---|---|---|
