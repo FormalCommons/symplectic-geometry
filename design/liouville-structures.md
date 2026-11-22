@@ -631,10 +631,12 @@ Expected size: 300 lines.
 ## What the part uses
 
 - *Smooth families*: Seeley's extension,
-  `Analysis/Calculus/ContDiff/Seeley/Extension.lean`,
-  `Geometry/Manifold/LocalDiffeomorph/Basic.lean` and
+  `Analysis/Calculus/ContDiff/Seeley/Extension.lean` and
   `Geometry/Manifold/MFDeriv/Chart.lean`, only in
-  `Collar/Flow/Local.lean`; and
+  `Collar/Flow/Local.lean`;
+  `Geometry/Manifold/LocalDiffeomorph/Basic.lean`, in
+  `Collar/Flow/Local.lean` and `Collar/Flow/Basic.lean`
+  (`TauCeti.EuclideanHalfSpace.isLocalDiffeomorph_of_val_eq_smul`); and
   `Geometry/Manifold/DifferentialForm/SmoothFamily/Basic.lean`
   (`TauCeti.SmoothForm.mpullback_prodMk_mpullback_snd`), merged, in
   `StableHamiltonian.lean`.

@@ -109,19 +109,20 @@ private theorem exists_isLocalDiffeomorphOn_of_isOutwardPointing
 omit [IsManifold (𝓡∂ (n + 1)) ∞ W] in
 /-- **A collar from a local diffeomorphism that is the inclusion on the boundary.** Let `W` be a
 Hausdorff manifold modelled on the half-space, with compact boundary `∂W`, `U` an open set
-containing `∂W`, and `F : ∂W × EuclideanHalfSpace 1 → W` a smooth local diffeomorphism on
+containing `∂W`, and `F : ∂W × EuclideanHalfSpace 1 → W` a `C^k` local diffeomorphism on
 `∂W × [0, η)`, for some `η > 0`, with `F (x, 0) = x`. Then for some `0 < ε ≤ η` the map
-`c (x, t) = F (x, normalRay (ε t))`, that is `F (x, ε t)`, on `∂W × [0, 1)` is a smooth collar
+`c (x, t) = F (x, normalRay (ε t))`, that is `F (x, ε t)`, on `∂W × [0, 1)` is a `C^k` collar
 with image in `U`.
 
 The proof adapts that of Tau Ceti's `TauCeti.exists_pos_injOn_flowOf_comp` from the interval
 `(-ε, ε)` to the half-open interval `[0, ε)`. -/
-theorem exists_eq_of_isLocalDiffeomorphOn [CompactSpace ↥((𝓡∂ (n + 1)).boundary W)] {η : ℝ}
+theorem exists_eq_of_isLocalDiffeomorphOn [CompactSpace ↥((𝓡∂ (n + 1)).boundary W)]
+    {k : WithTop ℕ∞} {η : ℝ}
     (hη : 0 < η) {F : (𝓡∂ (n + 1)).boundary W × EuclideanHalfSpace 1 → W}
-    (hF : IsLocalDiffeomorphOn ((𝓡 n).prod (𝓡∂ 1)) (𝓡∂ (n + 1)) ∞ F (univ ×ˢ normalIio η))
+    (hF : IsLocalDiffeomorphOn ((𝓡 n).prod (𝓡∂ 1)) (𝓡∂ (n + 1)) k F (univ ×ˢ normalIio η))
     (hF0 : ∀ x, F (x, 0) = x) {U : Set W} (hU : IsOpen U)
     (hbU : (𝓡∂ (n + 1)).boundary W ⊆ U) :
-    ∃ ε, 0 < ε ∧ ε ≤ η ∧ ∃ c : SmoothCollar n ∞ W,
+    ∃ ε, 0 < ε ∧ ε ≤ η ∧ ∃ c : SmoothCollar n k W,
       (∀ q, c q = F (q.1, normalRay (ε * (q.2 : EuclideanHalfSpace 1).val 0))) ∧ range c ⊆ U := by
   -- On `∂W × {0}` the map `F` is the inclusion, so it is injective there, and hence injective
   -- and a local diffeomorphism on an open neighbourhood `O` of `∂W × {0}`.
@@ -159,8 +160,8 @@ theorem exists_eq_of_isLocalDiffeomorphOn [CompactSpace ↥((𝓡∂ (n + 1)).bo
   have hψ : ∀ p, ψ p ∈ univ ×ˢ normalIio ε := fun p ↦ ⟨mem_univ _, by
     simpa [ψ, hσ, mem_normalIio] using
       mul_lt_of_lt_one_right hε (mem_normalIioOpens.1 p.2.property)⟩
-  have hψloc : IsLocalDiffeomorph ((𝓡 n).prod (𝓡∂ 1)) ((𝓡 n).prod (𝓡∂ 1)) ∞ ψ :=
-    (Diffeomorph.refl (𝓡 n) ((𝓡∂ (n + 1)).boundary W) ∞).isLocalDiffeomorph.prodMap fun t ↦
+  have hψloc : IsLocalDiffeomorph ((𝓡 n).prod (𝓡∂ 1)) ((𝓡 n).prod (𝓡∂ 1)) k ψ :=
+    (Diffeomorph.refl (𝓡 n) ((𝓡∂ (n + 1)).boundary W) k).isLocalDiffeomorph.prodMap fun t ↦
       (isLocalDiffeomorph_subtype_val t).comp (hg :=
         (EuclideanHalfSpace.isLocalDiffeomorph_of_val_eq_smul hε hσ _))
   have hψinj : Injective ψ := injective_id.prodMap fun s t h ↦
@@ -169,7 +170,7 @@ theorem exists_eq_of_isLocalDiffeomorphOn [CompactSpace ↥((𝓡∂ (n + 1)).bo
     fun ⟨x, t⟩ ↦ by
       simp only [ψ, Prod.map_apply, id_eq, comp_apply]
       rw [← normalRay_normalCoord (σ t), hσ, PiLp.smul_apply, smul_eq_mul]
-  let c : SmoothCollar n ∞ W :=
+  let c : SmoothCollar n k W :=
     { toFun := F ∘ ψ
       isLocalDiffeomorph' := fun p ↦ (hψloc p).comp (hg := hlocO ⟨ψ p, (hsubV (hψ p)).1⟩)
       injective' := fun p q h ↦ hψinj (hinj (hsubV (hψ p)).1 (hsubV (hψ q)).1 h)
