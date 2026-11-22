@@ -124,7 +124,7 @@ variable [RiemannianBundle (fun x : M ↦ TangentSpace I x)] [FiniteDimensional 
 /-- If the metric is `⟪v, w⟫ = σ(v, J w)`, then the value at `x` of the Lefschetz operator of `σ`
 is the Lefschetz operator `TauCeti.AlmostComplexStructure.lefschetz` of `J x` on the tangent
 space, applied to the value of `α`. -/
-theorem val_lefschetz (hg : ∀ x (v w : TangentSpace I x), ⟪v, w⟫ = σ.val x ![v, J x w])
+theorem val_lefschetz (hg : ∀ x (v w : TangentSpace I x), ⟪v, w⟫ = σ.eval₂ x v (J x w))
     (α : SmoothForm I M ℝ k) (x : M) :
     (σ.lefschetz α).val x =
       (letI : FiniteDimensional ℝ (TangentSpace I x) :=
