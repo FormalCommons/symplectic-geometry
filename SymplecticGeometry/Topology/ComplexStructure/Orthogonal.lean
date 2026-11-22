@@ -83,8 +83,7 @@ theorem mem_orthogonalComplexStructures_iff_inner
 @[simp]
 theorem stdComplexStructure_mem_orthogonalComplexStructures {ι : Type*} [Fintype ι] :
     stdComplexStructure ι ∈ orthogonalComplexStructures (ι ⊕ ι) :=
-  mem_orthogonalComplexStructures_iff_inner.2 fun v w ↦ by
-    rw [← stdForm_apply_eq_inner, stdForm_apply_stdComplexStructure]
+  mem_orthogonalComplexStructures_iff_inner.2 inner_stdComplexStructure_stdComplexStructure
 
 variable [DecidableEq n] in
 /-- A complex structure is orthogonal exactly when its matrix is orthogonal. -/
