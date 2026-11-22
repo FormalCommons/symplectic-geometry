@@ -7,6 +7,8 @@ module
 
 public import SymplecticGeometry.Geometry.Symplectic.Neighborhood.Basic
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Opens
+import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Basic
+import SymplecticGeometry.Topology.Sets.Opens.Basic
 public import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Diffeomorph
 public import TauCeti.Geometry.Symplectic.Lagrangian.Manifold
 public import TauCeti.Geometry.Symplectic.LinearReduction
@@ -218,8 +220,7 @@ theorem IsIsotropicMap.exists_symplectomorphism_opens
         SmoothForm.mpullback (Subtype.val : U₀ → M₀) contMDiff_subtypeVal ω₀ := by
   rcases isEmpty_or_nonempty Q₀ with hQ | ⟨⟨q₀⟩⟩
   · -- Without points to work along, the empty open sets will do.
-    obtain ⟨ψ, hψ⟩ := SmoothTwoForm.exists_diffeomorph_bot_mpullback_eq ω₀ ω₁
-    exact ⟨⊥, ⊥, ψ, fun q ↦ (hQ.false q).elim, hψ⟩
+    exact ⟨⊥, ⊥, Diffeomorph.ofIsEmpty, fun q ↦ (hQ.false q).elim, Subsingleton.elim _ _⟩
   -- `L` preserves `ω` on `W₀^ω`, since `Φ` preserves the reduced forms.
   have hLω (q) : ∀ v ∈ (hω₀.isNondegenerate.symplecticFormAt (f₀ q)).orthogonal
       (mfderiv J₀ I₀ f₀ q).range, ∀ w ∈ (hω₀.isNondegenerate.symplecticFormAt (f₀ q)).orthogonal

@@ -7,6 +7,8 @@ module
 
 public import SymplecticGeometry.Geometry.Symplectic.Neighborhood.Basic
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Opens
+import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Basic
+import SymplecticGeometry.Topology.Sets.Opens.Basic
 public import TauCeti.Geometry.Symplectic.Lagrangian.Presymplectic
 import SymplecticGeometry.LinearAlgebra.Symplectic.Subspace
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Diffeomorph
@@ -91,8 +93,7 @@ theorem IsCoisotropicMap.exists_symplectomorphism_opens {ω₀ : SmoothTwoForm I
         SmoothForm.mpullback (Subtype.val : U₀ → M₀) contMDiff_subtypeVal ω₀ := by
   rcases isEmpty_or_nonempty Q₀ with hQ | ⟨⟨q₀⟩⟩
   · -- Without points to work along, the empty open sets will do.
-    obtain ⟨ψ, hψ⟩ := SmoothTwoForm.exists_diffeomorph_bot_mpullback_eq ω₀ ω₁
-    exact ⟨⊥, ⊥, ψ, fun q ↦ (hQ.false q).elim, hψ⟩
+    exact ⟨⊥, ⊥, Diffeomorph.ofIsEmpty, fun q ↦ (hQ.false q).elim, Subsingleton.elim _ _⟩
   -- The comparison theorem applies to `f₀` and `g = f₁ ∘ φ`.
   set g := f₁.compDiffeomorphOfBoundaryless φ (by simp)
   have hg : ⇑g = f₁ ∘ φ := f₁.coe_compDiffeomorphOfBoundaryless φ (by simp)
