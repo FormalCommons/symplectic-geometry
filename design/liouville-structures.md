@@ -598,11 +598,11 @@ Issue 10:
 - `IsStrongFilling.isLiouvilleVectorField_completionField_of_mem`: Liouville
   at every point of `toCompletion '' U ∪ completionEnd '' (Ioi 0 ×ˢ univ)`;
   on the end from `SmoothForm.isLiouvilleVectorField_symplectization`.
+- `interior_completionField_completionForm`
+  ($\iota_{\widehat Y}\widehat\omega=-\widehat\lambda$), for every strong filling.
 - For a Liouville domain (`U = univ`):
   `mextDerivₗ_completionPrimitive`
-  (`mextDerivₗ _ 1 h.completionPrimitive = -h.completionForm`),
-  `interior_completionField_completionForm`
-  ($\iota_{\widehat Y}\widehat\omega=-\widehat\lambda$) and
+  (`mextDerivₗ _ 1 h.completionPrimitive = -h.completionForm`) and
   `isLiouvilleVectorField_completionField`.
 - The milestone, `IsStrongFilling.isSymplectic_completionForm_and_extends`:
   the conjunction of `isSymplectic_completionForm`, the two pullback
@@ -610,7 +610,7 @@ Issue 10:
   the decomposition `range toCompletion ∪ completionEnd '' (Ioi 0 ×ˢ univ) = univ`
   with the two disjoint, the collar statement of `h.exists_liouvilleCollar`
   (in the form $\omega=-d(e^s\alpha)$ on $(-\varepsilon,0)\times\partial W$,
-  the collar `c` covering the boundary itself),
+  and at `s = 0` through `completionEnd_eq_toCompletion` on `Ioc (-ε) 0`),
   the Liouville property of `completionField` on the end with
   `mfderiv_completionEnd_apply`, and, when `U = univ`, the pullback
   formulas of `completionPrimitive`, its derivative and the field identity.
