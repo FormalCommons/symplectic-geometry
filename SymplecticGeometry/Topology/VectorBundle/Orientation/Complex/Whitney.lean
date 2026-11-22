@@ -49,15 +49,17 @@ attribute [local instance] MonoidalPreadditive.monoidalLinearInt
 
 namespace TauCeti
 
-variable {B : Type} [TopologicalSpace B]
-  {F₁ : Type} [NormedAddCommGroup F₁] [NormedSpace ℝ F₁] [NormedSpace ℂ F₁]
+section Orientation
+
+variable {B : Type*} [TopologicalSpace B]
+  {F₁ : Type*} [NormedAddCommGroup F₁] [NormedSpace ℝ F₁] [NormedSpace ℂ F₁]
   [IsScalarTower ℝ ℂ F₁] [FiniteDimensional ℂ F₁]
-  {F₂ : Type} [NormedAddCommGroup F₂] [NormedSpace ℝ F₂] [NormedSpace ℂ F₂]
+  {F₂ : Type*} [NormedAddCommGroup F₂] [NormedSpace ℝ F₂] [NormedSpace ℂ F₂]
   [IsScalarTower ℝ ℂ F₂] [FiniteDimensional ℂ F₂]
-  {E₁ : B → Type} [TopologicalSpace (TotalSpace F₁ E₁)] [∀ b, AddCommGroup (E₁ b)]
+  {E₁ : B → Type*} [TopologicalSpace (TotalSpace F₁ E₁)] [∀ b, AddCommGroup (E₁ b)]
   [∀ b, Module ℝ (E₁ b)] [∀ b, Module ℂ (E₁ b)] [∀ b, IsScalarTower ℝ ℂ (E₁ b)]
   [∀ b, TopologicalSpace (E₁ b)] [FiberBundle F₁ E₁] [VectorBundle ℂ F₁ E₁]
-  {E₂ : B → Type} [TopologicalSpace (TotalSpace F₂ E₂)] [∀ b, AddCommGroup (E₂ b)]
+  {E₂ : B → Type*} [TopologicalSpace (TotalSpace F₂ E₂)] [∀ b, AddCommGroup (E₂ b)]
   [∀ b, Module ℝ (E₂ b)] [∀ b, Module ℂ (E₂ b)] [∀ b, IsScalarTower ℝ ℂ (E₂ b)]
   [∀ b, TopologicalSpace (E₂ b)] [FiberBundle F₂ E₂] [VectorBundle ℂ F₂ E₂]
 
@@ -82,11 +84,32 @@ theorem reindex_prod_complex {m n d : ℕ} (h₁ : 2 * finrank ℂ F₁ = m)
         (complex (F₁ × F₂) (E₁ ×ᵇ E₂)) := by
   subst h₁ h₂ h
   ext b
-  rw [reindex_apply, reindex_apply, finCongr_refl, finCongr_refl, finCongr_refl, reindex_refl,
-    reindex_refl, Equiv.refl_apply, Equiv.refl_apply, Orientation.reindex_refl, Equiv.refl_apply]
-  exact prod_complex b
+  simpa using prod_complex b
 
 end VectorBundleOrientation
+
+end Orientation
+
+section EulerClass
+
+/-! `VectorBundleOrientation.eulerClass_prod` is stated over `Type`, and so is this section. -/
+
+variable {B : Type} [TopologicalSpace B]
+  {F₁ : Type} [NormedAddCommGroup F₁] [NormedSpace ℝ F₁] [NormedSpace ℂ F₁]
+  [IsScalarTower ℝ ℂ F₁] [FiniteDimensional ℂ F₁]
+  {F₂ : Type} [NormedAddCommGroup F₂] [NormedSpace ℝ F₂] [NormedSpace ℂ F₂]
+  [IsScalarTower ℝ ℂ F₂] [FiniteDimensional ℂ F₂]
+  {E₁ : B → Type} [TopologicalSpace (TotalSpace F₁ E₁)] [∀ b, AddCommGroup (E₁ b)]
+  [∀ b, Module ℝ (E₁ b)] [∀ b, Module ℂ (E₁ b)] [∀ b, IsScalarTower ℝ ℂ (E₁ b)]
+  [∀ b, TopologicalSpace (E₁ b)] [FiberBundle F₁ E₁] [VectorBundle ℂ F₁ E₁]
+  {E₂ : B → Type} [TopologicalSpace (TotalSpace F₂ E₂)] [∀ b, AddCommGroup (E₂ b)]
+  [∀ b, Module ℝ (E₂ b)] [∀ b, Module ℂ (E₂ b)] [∀ b, IsScalarTower ℝ ℂ (E₂ b)]
+  [∀ b, TopologicalSpace (E₂ b)] [FiberBundle F₂ E₂] [VectorBundle ℂ F₂ E₂]
+
+local instance : VectorBundle ℝ F₁ E₁ := VectorBundle.restrictScalars ℝ ℂ F₁ E₁
+local instance : VectorBundle ℝ F₂ E₂ := VectorBundle.restrictScalars ℝ ℂ F₂ E₂
+local instance : FiniteDimensional ℝ F₁ := Module.Finite.trans ℂ F₁
+local instance : FiniteDimensional ℝ F₂ := Module.Finite.trans ℂ F₂
 
 /-- **The Whitney formula for Euler classes of complex vector bundles.** For complex vector
 bundles `E₁` and `E₂` over a common base, of complex ranks `r₁ + 1` and `r₂ + 1`, the Euler class
@@ -103,6 +126,8 @@ theorem complexEulerClass_prod {r₁ r₂ r : ℕ} (hF₁ : finrank ℂ F₁ = r
       (d := 2 * r + 1) _ _ (by rw [finrank_real_eq_two_mul_finrank_complex, hF₁]; ring)
       (by rw [finrank_real_eq_two_mul_finrank_complex, hF₂]; ring) (by omega),
     VectorBundleOrientation.reindex_prod_complex (by omega) (by omega) (by omega)]
+
+end EulerClass
 
 end TauCeti
 
