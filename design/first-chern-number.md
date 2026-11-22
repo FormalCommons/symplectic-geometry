@@ -1027,10 +1027,10 @@ issues, in an order where each issue's blockers come before it.
    minus the open discs is an instance of the setting of 7: it is compact,
    its interior is the surface minus the closed discs, and its boundary
    circles are collared by thin annuli $1\le|z|<1+\delta$ of the coordinate
-   discs. The issue picks $\delta\in(0,1)$ such that the images of the
-   closed balls of radius $1+\delta$ are pairwise disjoint; one exists
+   discs. The issue picks widths $\delta_i\in(0,1)$ such that the images
+   of the balls of radius $1+\delta_i$ are pairwise disjoint; they exist
    because the closed discs are finitely many disjoint compact sets, so
-   they have pairwise disjoint open neighbourhoods, and for small $\delta$
+   they have pairwise disjoint open neighbourhoods, and for small $\delta_i$
    each enlarged closed disc lies in its neighbourhood. Then the collars
    are disjoint and miss the other closed discs, and together they give
    the open embedding that `TauCeti.IsCollar` requires. The wider annuli
@@ -1040,7 +1040,12 @@ issues, in an order where each issue's blockers come before it.
    orientation of this surface, so `boundaryDegree_eq_sum_degree` is
    applied to their reversals (`Path.symm`); it gives minus the sum of the
    degrees along the boundary loops, which is therefore $0$. The work of
-   the issue is that instance. This is the half of the book's Lemma 2.7.3 needed for discs.
+   the issue is that instance, which
+   `AlgebraicTopology/Singular/LocalHomology/DiscComplement/Basic.lean`
+   proves (`SymplecticGeometry.isOpenEmbedding_discComplementInclusion`,
+   `SymplecticGeometry.range_discComplementInclusion`,
+   `SymplecticGeometry.isCollared_discComplementBoundary`) and
+   `ArgumentPrinciple.lean` imports. This is the half of the book's Lemma 2.7.3 needed for discs.
    Blocked by 5 and 7.
 7. **Boundary degree and the argument principle on a surface with
    boundary.** The setting is that of `RelativeFundamentalClass.lean`: `X`
