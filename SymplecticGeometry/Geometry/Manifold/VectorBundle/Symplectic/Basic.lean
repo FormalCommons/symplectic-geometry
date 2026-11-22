@@ -70,6 +70,10 @@ rank to be even (for finite rank, a nondegenerate form forces it), and rank zero
   symplectic frames it is a linear symplectomorphism of `(W, σ)`
   (`IsSymplecticFrameOn.isSymplectomorphism_frameTransition`,
   `IsSymplecticFrameOn.contMDiffOn_frameTransition`).
+* `ContMDiffTwoForm.exists_pushforward_eq_of_frameTransition_eq`: symplectic frames of two forms
+  over the two sets of an open cover, with equal transition maps on the overlap, give a symplectic
+  isomorphism between the forms; its smoothness over each set is
+  `Bundle.contMDiffOn_totalSpaceMk_symm_trans`.
 * `ContMDiffTwoForm.isNondegenerate_iff_forall_ne_zero_of_finrank_eq_two`: on a bundle of rank
   two, a two-form is nondegenerate exactly when it vanishes nowhere.
 
@@ -716,6 +720,37 @@ theorem contMDiffOn_frameTransition
   ext v
   simp [ContinuousLinearMap.inCoordinates, ContinuousLinearMap.inverse_equiv]
 
+/-- Over an open set `U`, if a frame `Φ` of `V` and a frame `Ψ` of `V₂`, with the same model fibre
+`W` of finite dimension, depend `C^n` on `(x, v) ∈ U × W`, then the fibrewise map `Ψₓ ∘ Φₓ⁻¹` from
+`V` to `V₂` is `C^n` on the part of the total space of `V` over `U`. -/
+theorem contMDiffOn_totalSpaceMk_symm_trans {F₂ : Type*} [NormedAddCommGroup F₂] [NormedSpace ℝ F₂]
+    {V₂ : M → Type*} [∀ x, AddCommGroup (V₂ x)] [∀ x, Module ℝ (V₂ x)]
+    [∀ x, TopologicalSpace (V₂ x)] [∀ x, IsTopologicalAddGroup (V₂ x)]
+    [∀ x, ContinuousSMul ℝ (V₂ x)] [TopologicalSpace (TotalSpace F₂ V₂)]
+    [FiberBundle F₂ V₂] [VectorBundle ℝ F₂ V₂] {Ψ : ∀ x, W ≃L[ℝ] V₂ x}
+    (hΦ : ContMDiffOn (I.prod 𝓘(ℝ, W)) (I.prod 𝓘(ℝ, F)) n
+      (fun p : M × W ↦ TotalSpace.mk' F p.1 (Φ p.1 p.2)) (U ×ˢ Set.univ))
+    (hΨ : ContMDiffOn (I.prod 𝓘(ℝ, W)) (I.prod 𝓘(ℝ, F₂)) n
+      (fun p : M × W ↦ TotalSpace.mk' F₂ p.1 (Ψ p.1 p.2)) (U ×ˢ Set.univ))
+    (hU : IsOpen U) :
+    ContMDiffOn (I.prod 𝓘(ℝ, F)) (I.prod 𝓘(ℝ, F₂)) n
+      (fun p : TotalSpace F V ↦ TotalSpace.mk' F₂ p.proj ((Φ p.proj).symm.trans (Ψ p.proj) p.snd))
+      (TotalSpace.proj ⁻¹' U) := by
+  intro p hp
+  -- The fibre `F` is `W` through the frame and the trivialization at `p.proj`.
+  have : FiniteDimensional ℝ F :=
+    ((Φ p.proj).trans (VectorBundle.continuousLinearEquivAt ℝ F V p.proj)).finiteDimensional
+  have hΦx := (contMDiffAt_hom_trivial_iff (fun y ↦ (Φ y : W →L[ℝ] V y)) p.proj).2 fun v ↦
+    hΦ.contMDiffAt ((hU.prod isOpen_univ).mem_nhds ⟨hp, Set.mem_univ v⟩)
+  have hΨx := (contMDiffAt_hom_trivial_iff (fun y ↦ (Ψ y : W →L[ℝ] V₂ y)) p.proj).2 fun v ↦
+    hΨ.contMDiffAt ((hU.prod isOpen_univ).mem_nhds ⟨hp, Set.mem_univ v⟩)
+  have hcomp := hΨx.clm_bundle_comp (hΦx.clm_bundle_inverse
+    ContinuousLinearMap.isInvertible_equiv)
+  simp only [ContinuousLinearMap.inverse_equiv] at hcomp
+  exact ((TauCeti.contMDiffAt_hom_bundle_iff
+    (fun y ↦ (Ψ y : W →L[ℝ] V₂ y).comp ((Φ y).symm : V y →L[ℝ] W)) p.proj).1
+    hcomp p.snd).contMDiffWithinAt
+
 end ContMDiffFrameTransition
 
 namespace ContMDiffTwoForm
@@ -831,6 +866,63 @@ theorem IsSymplecticFrameOn.trans (h : ω.IsSymplecticFrameOn σ U Φ) (Ψ : ∀
   refine ⟨hΨ.comp_contMDiffOn h.contMDiffOn, fun x hx v w ↦ ?_⟩
   rw [ContinuousLinearEquiv.trans_apply, ContinuousLinearEquiv.trans_apply,
     (pushforward_eq_iff Ψ hΨ).1 hω₂, h.map_bilinFormAt x hx]
+
+/-- Gluing of symplectic isomorphisms. Let `U` and `U'` be open sets that cover `M`, let `Φ₁`,
+`Φ₁'` be symplectic frames of `ω` for `σ` over `U` and `U'`, and `Φ₂`, `Φ₂'` frames of `ω₂` for
+`σ` over `U` and `U'`, with the same transition maps over `U ∩ U'`: `Φ₁ₓ⁻¹ ∘ Φ₁'ₓ = Φ₂ₓ⁻¹ ∘ Φ₂'ₓ`.
+Then there is a symplectic isomorphism `Ψ` from `ω` to `ω₂`, `C^n` on total spaces, that is
+`Φ₂ₓ ∘ Φ₁ₓ⁻¹` over `U` and `Φ₂'ₓ ∘ Φ₁'ₓ⁻¹` over `U'`. -/
+theorem exists_pushforward_eq_of_frameTransition_eq
+    {ω₂ : ContMDiffTwoForm I n F₂ V₂} {Φ₁ Φ₁' : ∀ x, W ≃L[ℝ] V x} {Φ₂ Φ₂' : ∀ x, W ≃L[ℝ] V₂ x}
+    (h₁ : ω.IsSymplecticFrameOn σ U Φ₁) (h₁' : ω.IsSymplecticFrameOn σ U' Φ₁')
+    (h₂ : ω₂.IsSymplecticFrameOn σ U Φ₂) (h₂' : ω₂.IsSymplecticFrameOn σ U' Φ₂')
+    (hU : IsOpen U) (hU' : IsOpen U') (hcover : U ∪ U' = Set.univ)
+    (htrans : ∀ x ∈ U ∩ U', frameTransition Φ₁' Φ₁ x = frameTransition Φ₂' Φ₂ x) :
+    ∃ (Ψ : ∀ x, V x ≃L[ℝ] V₂ x) (hΨ : ContMDiff (I.prod 𝓘(ℝ, F)) (I.prod 𝓘(ℝ, F₂)) n
+      (fun p : TotalSpace F V ↦ TotalSpace.mk' F₂ p.proj (Ψ p.proj p.snd))),
+      pushforward Ψ hΨ ω = ω₂ ∧ (∀ x ∈ U, Ψ x = (Φ₁ x).symm.trans (Φ₂ x)) ∧
+        ∀ x ∈ U', Ψ x = (Φ₁' x).symm.trans (Φ₂' x) := by
+  classical
+  -- Over `U ∩ U'` the two local isomorphisms agree, since the transition maps do.
+  have hagree : ∀ x ∈ U ∩ U', (Φ₁ x).symm.trans (Φ₂ x) = (Φ₁' x).symm.trans (Φ₂' x) := by
+    intro x hx
+    ext v
+    have h := congr($(htrans x hx) ((Φ₁' x).symm v))
+    simp only [frameTransition_apply, ContinuousLinearEquiv.apply_symm_apply] at h
+    simp [h]
+  let Ψ : ∀ x, V x ≃L[ℝ] V₂ x := fun x ↦
+    if x ∈ U then (Φ₁ x).symm.trans (Φ₂ x) else (Φ₁' x).symm.trans (Φ₂' x)
+  have hΨU : ∀ x ∈ U, Ψ x = (Φ₁ x).symm.trans (Φ₂ x) := fun x hx ↦ ite_eq_left hx
+  have hΨU' : ∀ x ∈ U', Ψ x = (Φ₁' x).symm.trans (Φ₂' x) := fun x hx ↦ by
+    by_cases hxU : x ∈ U
+    · rw [hΨU x hxU, hagree x ⟨hxU, hx⟩]
+    · exact ite_eq_right hxU
+  -- Smoothness on total spaces is local; over `U` and over `U'` it is that of the local formula.
+  have hloc {U₀ : Set M} {A : ∀ x, W ≃L[ℝ] V x} {B : ∀ x, W ≃L[ℝ] V₂ x}
+      (hA : ω.IsSymplecticFrameOn σ U₀ A) (hB : ω₂.IsSymplecticFrameOn σ U₀ B) (hU₀ : IsOpen U₀)
+      (hΨ₀ : ∀ x ∈ U₀, Ψ x = (A x).symm.trans (B x)) :
+      ContMDiffOn (I.prod 𝓘(ℝ, F)) (I.prod 𝓘(ℝ, F₂)) n
+        (fun p : TotalSpace F V ↦ TotalSpace.mk' F₂ p.proj (Ψ p.proj p.snd))
+        (TotalSpace.proj ⁻¹' U₀) := fun p hp ↦ by
+    -- The model fibre `W` is `F` through the frame and the trivialization at `p.proj`.
+    have : FiniteDimensional ℝ W :=
+      ((A p.proj).trans (VectorBundle.continuousLinearEquivAt ℝ F V p.proj)).symm.finiteDimensional
+    exact ((Bundle.contMDiffOn_totalSpaceMk_symm_trans hA.contMDiffOn hB.contMDiffOn hU₀).congr
+      fun q hq ↦ by rw [hΨ₀ _ hq]) p hp
+  have hΨ : ContMDiff (I.prod 𝓘(ℝ, F)) (I.prod 𝓘(ℝ, F₂)) n
+      (fun p : TotalSpace F V ↦ TotalSpace.mk' F₂ p.proj (Ψ p.proj p.snd)) :=
+    contMDiff_of_contMDiffOn_union_of_isOpen (hloc h₁ h₂ hU hΨU) (hloc h₁' h₂' hU' hΨU')
+      (by rw [← Set.preimage_union, hcover, Set.preimage_univ])
+      (hU.preimage (FiberBundle.continuous_proj F V))
+      (hU'.preimage (FiberBundle.continuous_proj F V))
+  refine ⟨Ψ, hΨ, (pushforward_eq_iff Ψ hΨ).2 fun x v w ↦ ?_, hΨU, hΨU'⟩
+  rcases (Set.ext_iff.1 hcover x).2 (Set.mem_univ _) with hx | hx
+  · rw [hΨU x hx, ContinuousLinearEquiv.trans_apply, ContinuousLinearEquiv.trans_apply,
+      h₂.map_bilinFormAt x hx, ← h₁.map_bilinFormAt x hx]
+    simp
+  · rw [hΨU' x hx, ContinuousLinearEquiv.trans_apply, ContinuousLinearEquiv.trans_apply,
+      h₂'.map_bilinFormAt x hx, ← h₁'.map_bilinFormAt x hx]
+    simp
 
 end Trans
 
