@@ -40,9 +40,11 @@ derivative and vanishes at the points of `f(Q)`.
 * `TauCeti.SmoothForm.exists_diffeotopy_fix_eventually_mpullback_eq_of_timeDeriv`: Moser's
   argument along a family, relative to a compact set on which the primitives vanish.
 * `TauCeti.SmoothEmbedding.exists_diffeotopy_fix_eventually_mpullback_eq_of_timeDeriv`: Moser's
-  argument along a family, fixing a compact embedded submanifold to which the primitives pull back to `0`.
+  argument along a family, fixing a compact embedded submanifold to which the primitives pull
+  back to `0`.
 
-The proof of `exists_diffeotopy_fix_eventually_mpullback_eq_of_timeDeriv` adapts Tau Ceti's
+The proof of `TauCeti.SmoothForm.exists_diffeotopy_fix_eventually_mpullback_eq_of_timeDeriv`
+adapts Tau Ceti's
 `TauCeti.SmoothTwoForm.exists_diffeomorph_fix_eventually_mpullback_eq_of_mextDeriv_eq_sub`
 (`TauCeti/Geometry/Symplectic/Manifold/RelativeMoser.lean`), whose trajectory argument it runs
 for every time `t ∈ [0, 1]` along a general family instead of for time one along a
@@ -184,7 +186,8 @@ and `γ_t` at `t ∈ ℝ`, and let `f : Q → M` be a compact embedded submanifo
 `f^* γ_t = 0`, and that `∂_t σ_t = dγ_t` near `[0, 1] × f(Q)`. Then there is a diffeotopy `Ψ`
 which fixes every point outside a compact set at all times, fixes every point of `f(Q)` at all
 times, and satisfies `Ψ_t^* σ_t = σ_0` for every `t ∈ [0, 1]` on one neighbourhood of `f(Q)`. -/
-theorem exists_diffeotopy_fix_eventually_mpullback_eq_of_timeDeriv (f : SmoothEmbedding J I ∞ Q M)
+theorem exists_diffeotopy_fix_eventually_mpullback_eq_of_timeDeriv
+    (f : SmoothEmbedding J I ∞ Q M)
     (σ : SmoothForm (𝓘(ℝ, ℝ).prod I) (ℝ × M) ℝ 2)
     (hσ : ∀ t ∈ Icc (0 : ℝ) 1,
       (SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) σ).IsClosed)
