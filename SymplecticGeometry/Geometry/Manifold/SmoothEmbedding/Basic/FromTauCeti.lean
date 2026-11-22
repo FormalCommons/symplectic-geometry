@@ -6,7 +6,6 @@ Authors: The Tau Ceti contributors
 module
 
 public import Mathlib.Geometry.Manifold.SmoothEmbedding
-import TauCeti.Geometry.Manifold.Immersion.Basic
 
 /-!
 # Smooth embeddings: smoothness at a point through the embedding
