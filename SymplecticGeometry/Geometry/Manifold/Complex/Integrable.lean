@@ -10,8 +10,8 @@ public import TauCeti.Geometry.Manifold.Complex.Isothermal
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Pullback
 public import TauCeti.Geometry.Symplectic.Manifold.Nijenhuis
-public import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Chart
 import Mathlib.Geometry.Manifold.MFDeriv.Tangent
+import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Chart
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 import TauCeti.Geometry.Manifold.MFDeriv.RestrictScalars
