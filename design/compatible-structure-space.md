@@ -342,20 +342,21 @@ normed space:
   the comap of `compatibleTangentSpace ω J` along
   `ContinuousLinearMap.coeLM ℝ`, with `mem_compatibleTangentSpaceCLM`
   (`@[simp]`).
-- `TauCeti.SymplecticForm.Tames.isOpen_setOf_strictContraction (h₀ : ω.Tames J₀) :
-  IsOpen {C : V →L[ℝ] V | ∀ v, v ≠ 0 → ω (C v) (J₀ (C v)) < ω v (J₀ v)}`:
-  for the norm of $g_{J_0}$ the condition is an operator norm below one,
-  attained on the compact unit sphere.
+- `TauCeti.SymplecticForm.isOpen_setOf_strictContraction ω J₀ :
+  IsOpen {C : V →L[ℝ] V | ∀ v, v ≠ 0 → ω (C v) (J₀ (C v)) < ω v (J₀ v)}`,
+  with no tameness hypothesis: the condition is positivity on the diagonal of
+  the form $\omega(v,J_0w)-\omega(Cv,J_0Cw)$, which depends continuously on
+  `C` (Tau Ceti's `isOpen_setOf_forall_bilinear_apply_self_pos`).
 - `TauCeti.SymplecticForm.Compatible.cayleyCoord (h₀ : ω.Compatible J₀) :
   𝒥 ω → ω.compatibleTangentSpaceCLM J₀`, `J ↦ J₀.cayley J` read as a
   continuous map, with `coe_cayleyCoord`, `cayleyCoord_self` (`J₀ ↦ 0`),
   `range_cayleyCoord` (the strict contractions of the model, an open set),
-  `cayleyCoord_symm_formula`
+  `toContinuousLinearMap_eq_of_cayleyCoord_eq`
   (the inverse is `C ↦ J₀ (1 + C) (1 - C)⁻¹`, from
   `compatibleCayleyEquiv_symm_apply_toContinuousLinearMap`) and
   `Compatible.isOpenEmbedding_cayleyCoord`, from continuity of both
   directions (`AlmostComplexStructure.toContinuousLinearMap_cayley`,
-  `contDiff_compatibleCayleyEquiv_symm`).
+  `contMDiffAt_cayleyFormula_of_isUnit`, `contMDiffAt_mul_one_add_ringInverse`).
 - `TauCeti.SymplecticForm.compatibleBase ω : 𝒥 ω`, chosen from
   `ω.exists_compatible`, and `TauCeti.SymplecticForm.compatibleModel ω :=
   ω.compatibleTangentSpaceCLM (ω.compatibleBase : AlmostComplexStructure V)`,
@@ -694,7 +695,7 @@ the integrability statement uses `IsIntegrable` from *Nijenhuis tensor*'s
 ## References
 
 * [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*, third
-  edition][McDuffSalamon2017], §2.5 (the Cayley transform, Lemma 2.5.12),
+  edition][McDuffSalamon2017], §2.5 (the Cayley transform, Sévennec's proof of Proposition 2.5.13),
   Example 4.3.6 and Exercise 4.3.7.
 * J. M. Lee, *Introduction to Riemannian Manifolds*, 2nd ed., Springer GTM
   176, 2018, Chapters 5 and 7, for the conventions of the connection and the
