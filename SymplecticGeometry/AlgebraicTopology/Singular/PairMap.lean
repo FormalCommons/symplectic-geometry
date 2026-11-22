@@ -50,6 +50,9 @@ stated with them reassociate by `rw`.
 * `TopPair.chainComplexMap_comp_singularChainComplexπFst`,
   `TopPair.singularChainComplexπFst_naturality`, `TopPair.singularChainComplexπOfSubset_naturality`:
   the chains of the subspace vanish in the relative chains, and the quotient maps are natural.
+* `TopPair.singularChainComplexπFst_coefficient_naturality`,
+  `TopPair.singularChainComplexπOfSubset_coefficient_naturality`: the quotient maps from the
+  chains of the ambient space are natural in the coefficient object.
 * `TopPair.homologyMap_comp_singularHomologyπFst`, `TopPair.singularHomologyπFst_naturality`: the
   same on homology.
 * `TopPair.excisionMap_eq_ofSubsetMap`, `TopPair.excisionMap_fst`: the excision map through the
@@ -143,7 +146,11 @@ lemma excisionMap_fst : Hom.fst (excisionMap A B) = TopCat.ofHom (ContinuousMap.
 
 end Subsets
 
-variable {C : Type u} [Category.{v} C] [HasCoproducts.{w} C] [Abelian C] (R : C)
+variable {C : Type u} [Category.{v} C] [HasCoproducts.{w} C] (R : C)
+
+section Preadditive
+
+variable [Preadditive C]
 
 section Fst
 
@@ -182,6 +189,77 @@ lemma singularChainComplexπFst_naturality {Q : TopPair.{w}} (f : P ⟶ Q) :
     SSet.chainComplexMap (TopCat.toSSet.map (Hom.fst f)) R ≫ Q.singularChainComplexπFst R =
       P.singularChainComplexπFst R ≫ singularChainComplexMap f R :=
   singularChainComplexπ_pair_naturality f R
+
+/-- The quotient map from the singular chains of the ambient space to the relative singular chains
+is natural in the coefficient object. -/
+@[reassoc]
+lemma singularChainComplexπFst_coefficient_naturality {M N : C} (φ : M ⟶ N) :
+    ((SSet.chainComplexFunctor C).map φ).app (TopCat.toSSet.obj P.fst) ≫
+        P.singularChainComplexπFst N =
+      P.singularChainComplexπFst M ≫
+        ((SSetPair.chainComplexFunctor C).map φ).app (toSSetPair.obj P) := by
+  rw [← TauCeti.singularChainComplexFunctor_map_app]
+  exact singularChainComplexπ_coefficient_naturality P φ
+
+end Fst
+
+section OfSubset
+
+variable {X Y : TopCat.{w}}
+
+/-- The quotient map from the singular chains of `X` to the relative singular chains of the pair
+`(X, A)`: `TopPair.singularChainComplexπ` of `TopPair.ofSubset A`, with its source written as the
+chains of `X` rather than as the ambient chains of the pair, as in
+`TopPair.singularChainComplexπFst`. -/
+noncomputable abbrev singularChainComplexπOfSubset (A : Set X) :
+    (TopCat.toSSet.obj X).chainComplex R ⟶ (ofSubset A).singularChainComplex R :=
+  (ofSubset A).singularChainComplexπ R
+
+lemma singularChainComplexπOfSubset_eq (A : Set X) :
+    singularChainComplexπOfSubset R A = (ofSubset A).singularChainComplexπ R :=
+  (rfl)
+
+/-- The quotient map from the singular chains of `X` to the relative singular chains of `(X, A)` is
+an epimorphism. -/
+instance epi_singularChainComplexπOfSubset (A : Set X) :
+    Epi (singularChainComplexπOfSubset R A) :=
+  inferInstanceAs (Epi ((ofSubset A).singularChainComplexπ R))
+
+/-- The quotient map from the singular chains of `X` to the relative singular chains of `(X, A)`
+is natural in the maps of pairs `TopPair.ofSubsetMap g hA : (X, A) ⟶ (Y, B)`. -/
+@[reassoc]
+lemma singularChainComplexπOfSubset_naturality (g : X ⟶ Y) {A : Set X} {B : Set Y}
+    (hA : Set.MapsTo g A B) :
+    SSet.chainComplexMap (TopCat.toSSet.map g) R ≫ singularChainComplexπOfSubset R B =
+      singularChainComplexπOfSubset R A ≫ singularChainComplexMap (ofSubsetMap g hA) R := by
+  have h := singularChainComplexπ_pair_naturality (ofSubsetMap g hA) R
+  rwa [ofSubsetMap_fst] at h
+
+/-- The quotient map from the singular chains of `X` to the relative singular chains of `(X, A)`
+is natural in the coefficient object. -/
+@[reassoc]
+lemma singularChainComplexπOfSubset_coefficient_naturality (A : Set X) {M N : C} (φ : M ⟶ N) :
+    ((SSet.chainComplexFunctor C).map φ).app (TopCat.toSSet.obj X) ≫
+        singularChainComplexπOfSubset N A =
+      singularChainComplexπOfSubset M A ≫
+        ((SSetPair.chainComplexFunctor C).map φ).app (toSSetPair.obj (ofSubset A)) :=
+  (ofSubset A).singularChainComplexπFst_coefficient_naturality φ
+
+end OfSubset
+
+/-- A map into the ambient space of a pair that factors through its subspace sends singular chains
+to zero in the relative chains of the pair. -/
+lemma chainComplexMap_comp_singularChainComplexπ_of_fac (P : TopPair.{w}) {Y : TopCat.{w}}
+    (k : Y ⟶ P.fst) (g : Y ⟶ P.snd) (hg : g ≫ P.map = k) :
+    SSet.chainComplexMap (TopCat.toSSet.map k) R ≫ P.singularChainComplexπFst R = 0 := by
+  subst hg
+  simp
+
+variable [CategoryWithHomology C]
+
+section Fst
+
+variable (P : TopPair.{w})
 
 /-- The map from the singular homology of the ambient space `P.fst` of a pair to the relative
 singular homology of the pair: `TopPair.singularHomologyπ`, with its source written as the
@@ -223,48 +301,6 @@ lemma homologyMap_singularChainComplexπFst (n : ℕ) :
 
 end Fst
 
-section OfSubset
-
-variable {X Y : TopCat.{w}}
-
-/-- The quotient map from the singular chains of `X` to the relative singular chains of the pair
-`(X, A)`: `TopPair.singularChainComplexπ` of `TopPair.ofSubset A`, with its source written as the
-chains of `X` rather than as the ambient chains of the pair, as in
-`TopPair.singularChainComplexπFst`. -/
-noncomputable abbrev singularChainComplexπOfSubset (A : Set X) :
-    (TopCat.toSSet.obj X).chainComplex R ⟶ (ofSubset A).singularChainComplex R :=
-  (ofSubset A).singularChainComplexπ R
-
-lemma singularChainComplexπOfSubset_eq (A : Set X) :
-    singularChainComplexπOfSubset R A = (ofSubset A).singularChainComplexπ R :=
-  (rfl)
-
-/-- The quotient map from the singular chains of `X` to the relative singular chains of `(X, A)` is
-an epimorphism. -/
-instance epi_singularChainComplexπOfSubset (A : Set X) :
-    Epi (singularChainComplexπOfSubset R A) :=
-  inferInstanceAs (Epi ((ofSubset A).singularChainComplexπ R))
-
-/-- The quotient map from the singular chains of `X` to the relative singular chains of `(X, A)`
-is natural in the maps of pairs `TopPair.ofSubsetMap g hA : (X, A) ⟶ (Y, B)`. -/
-@[reassoc]
-lemma singularChainComplexπOfSubset_naturality (g : X ⟶ Y) {A : Set X} {B : Set Y}
-    (hA : Set.MapsTo g A B) :
-    SSet.chainComplexMap (TopCat.toSSet.map g) R ≫ singularChainComplexπOfSubset R B =
-      singularChainComplexπOfSubset R A ≫ singularChainComplexMap (ofSubsetMap g hA) R := by
-  have h := singularChainComplexπ_pair_naturality (ofSubsetMap g hA) R
-  rwa [ofSubsetMap_fst] at h
-
-end OfSubset
-
-/-- A map into the ambient space of a pair that factors through its subspace sends singular chains
-to zero in the relative chains of the pair. -/
-lemma chainComplexMap_comp_singularChainComplexπ_of_fac (P : TopPair.{w}) {Y : TopCat.{w}}
-    (k : Y ⟶ P.fst) (g : Y ⟶ P.snd) (hg : g ≫ P.map = k) :
-    SSet.chainComplexMap (TopCat.toSSet.map k) R ≫ P.singularChainComplexπFst R = 0 := by
-  subst hg
-  simp
-
 /-- Let `e : P ⟶ Q` be a map of pairs that induces an isomorphism in degree `n`, and `g` a chain
 map from the chains of `K` to the relative chains of `P` that `e` sends to the image of the chains
 of `K` under `f : K ⟶ Q.fst` in the relative chains of `Q`. Then the map induced by `g` is the map
@@ -303,6 +339,8 @@ lemma inv_singularHomologyMap_excisionMap_comp_ofSubsetMap_id {X : TopCat.{w}} {
   rw [← TopPair.singularHomologyMap_comp,
     ofSubsetMap_comp_ofSubsetMap_of_comp_eq h₁ h₂ (h₂.comp h₁) (Category.comp_id _),
     ← excisionMap_eq_ofSubsetMap, IsIso.inv_hom_id]
+
+end Preadditive
 
 end TopPair
 

@@ -52,9 +52,8 @@ theorem mfderiv_reebVectorField_of_eventuallyEq_mpullback (hα : α.IsContactFor
   · have h := hα.apply_reebVectorField x
     rw [hpb.self_of_nhds, TauCeti.mpullback_apply] at h
     convert h using 2
-    ext i
-    fin_cases i
-    simp
+    -- The outer `Eq.symm` makes Lean read the vector off the goal's right side.
+    exact Eq.symm (FinVec.etaExpand_eq _).symm
   · obtain ⟨u, rfl⟩ := hsurj w
     have hd := mpullback_mextDeriv_at hf
       ((β.contMDiff (f x)).of_le (by norm_num))
