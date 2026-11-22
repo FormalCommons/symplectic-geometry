@@ -7,11 +7,9 @@ module
 
 public import SymplecticGeometry.Analysis.Matrix.LDL
 public import SymplecticGeometry.Geometry.Manifold.Instances.OnePoint
-public import SymplecticGeometry.Geometry.Manifold.Orientation.Preserving.FromTauCeti
 public import SymplecticGeometry.Geometry.Manifold.Orientation.Sphere
 public import SymplecticGeometry.Geometry.Manifold.Projectivization.FubiniStudy.Basic
 public import SymplecticGeometry.Geometry.Manifold.Projectivization.FubiniStudy.Kahler
-public import TauCeti.Geometry.Manifold.Complex.Orientation
 public import TauCeti.Geometry.Manifold.DifferentialForm.Integration.ChangeOfVariables
 public import TauCeti.Geometry.Manifold.DifferentialForm.Integration.UnitSphere
 public import TauCeti.Geometry.Manifold.Instances.OnePoint.FubiniStudy
@@ -83,10 +81,6 @@ local notation "ℝ³" => EuclideanSpace ℝ (Fin 3)
 /-- The standard orientation of `ℝ³`. -/
 local notation "o₃" =>
   Module.Basis.orientation (OrthonormalBasis.toBasis (EuclideanSpace.basisFun (Fin 3) ℝ))
-
-/-- The canonical orientation of `ℂP¹`, as a complex manifold, indexed by `Fin 2`. -/
-local notation "oCP1" => Manifold.Orientation.reindex (finCongr (by simp))
-  (complexManifoldOrientation (Fin 1 → ℂ) (ℙ ℂ (Fin 2 → ℂ)))
 
 attribute [local instance] TauCeti.finrank_euclideanSpace_fin_succ_fact
 
@@ -272,8 +266,8 @@ theorem mpullback_sphereToProjectiveLine_fubiniStudyForm :
 unit sphere of `ℝ³`, for the standard orientation of `ℝ³`, to the canonical orientation of
 `ℂP¹` as a complex manifold. -/
 theorem isOrientationPreservingAt_sphereToProjectiveLine (p : sphere (0 : ℝ³) 1) :
-    Manifold.Orientation.IsOrientationPreservingAt (Orientation.sphereOrientation o₃) oCP1
-      sphereToProjectiveLine p := by
+    Manifold.Orientation.IsOrientationPreservingAt (Orientation.sphereOrientation o₃)
+      projectiveLineOrientation sphereToProjectiveLine p := by
   rw [coe_sphereToProjectiveLine]
   refine (OnePoint.isOrientationPreservingAt_equivProjectivization _).comp ?_
   have h := congrArg (fun φ : SmoothForm (𝓡 2) (sphere (0 : ℝ³) 1) ℝ 2 ↦ φ.val p)
@@ -288,7 +282,7 @@ theorem isOrientationPreservingAt_sphereToProjectiveLine (p : sphere (0 : ℝ³)
 /-- **The area of `ℂP¹`.** The Fubini–Study form of `ℂP¹ = ℙ ℂ (Fin 2 → ℂ)` integrates to `π`
 over `ℂP¹` with its canonical orientation as a complex manifold. -/
 theorem integralTopForm_fubiniStudyForm_one :
-    integralTopForm oCP1 (fubiniStudyForm 1).val = Real.pi := by
+    integralTopForm projectiveLineOrientation (fubiniStudyForm 1).val = Real.pi := by
   have he : Topology.IsOpenEmbedding sphereToProjectiveLine := by
     simpa using sphereToProjectiveLine.toHomeomorph.isOpenEmbedding
   rw [← he.integralTopForm_mpullback_of_isOrientationPreservingAt
@@ -304,7 +298,7 @@ theorem integralTopForm_fubiniStudyForm_one :
 canonical orientation as a complex manifold. -/
 theorem integralTopForm_mpullback_map_fubiniStudyForm {n : ℕ}
     (f : (Fin 2 → ℂ) →ₗ[ℂ] Fin (n + 1) → ℂ) (hf : Function.Injective f) :
-    integralTopForm oCP1
+    integralTopForm projectiveLineOrientation
       (SmoothForm.mpullback (map f hf) (contMDiff_map_restrictScalars f hf ∞)
         (fubiniStudyForm n)).val = Real.pi := by
   classical
@@ -327,7 +321,7 @@ theorem integralTopForm_mpullback_map_fubiniStudyForm {n : ℕ}
   have hΦ : Topology.IsOpenEmbedding Φ := by simpa using Φ.toHomeomorph.isOpenEmbedding
   -- `Φ` is a biholomorphism of `ℂP¹`, so it preserves the canonical orientation.
   rw [← hΦ.integralTopForm_mpullback_of_isOrientationPreservingAt
-      (fun x ↦ (Φ.isOrientationPreservingAt_complexManifoldOrientation ω x).reindex _) (by simp),
+      (Φ.isOrientationPreservingAt_projectiveLineOrientation ω) (by simp),
     ← SmoothForm.coe_mpullback _ (by simpa [Φ] using contMDiff_map_restrictScalars _ _ ∞),
     SmoothForm.mpullback_mpullback]
   simp only [hcomp, mpullback_map_fubiniStudyForm (F * P) hA]
