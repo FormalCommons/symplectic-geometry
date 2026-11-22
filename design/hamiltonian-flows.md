@@ -526,8 +526,10 @@ In `TauCeti.Diffeotopy`, for any two-form `σ` unless said:
   and `hσ`, added by *Isotopy extension*: for a smooth one-form `Ω` on
   `unitInterval × M` whose slices `Ω_t` are closed and vanish off a compact
   `L`, there is `Φ` with `ι_{Φ.velocity t} σ = Ω_t`, every slice in
-  `diffeomorphStabilizer σ`, `Φ (t, y) = y` for `y ∉ L`, and which moves
-  the start of every curve whose derivative is `Φ.velocity` along it.
+  `diffeomorphStabilizer σ`, and `Φ (t, y) = y` for `y ∉ L`. Trajectories
+  need no conjunct here: for every diffeotopy, a curve whose derivative is
+  `Φ.velocity` is the trajectory of its start, by
+  `TauCeti.Diffeotopy.apply_eq_of_mfderiv_eq_velocity`.
 - `TauCeti.Diffeotopy.exists_isCompactlySupportedHamiltonian`, under
   `[FiniteDimensional ℝ E] [J.Boundaryless] [T2Space M]` and
   `hσ : σ.IsSymplectic`: for `G : M × I → ℝ` smooth and `K` compact with
