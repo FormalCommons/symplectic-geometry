@@ -246,6 +246,22 @@ theorem isSmoothFamily_comp_of_contMDiff_repr {ι : Type*} [Finite ι] (b : Modu
   rw [hsum]
   exact IsSmoothFamily.sum fun i _ ↦ (isSmoothFamily_const (L (b i))).fun_smul (hx i)
 
+omit [IsManifold J 1 N] in
+/-- **Smoothness against a spanning set of functionals.** Let `x` be a family of vectors of a real
+vector space `X`, indexed by a manifold `N`, and `s` a set of linear functionals on `X` that spans
+the dual space. If `t ↦ g (x t)` is smooth for every `g ∈ s`, then `t ↦ f (x t)` is smooth for
+every linear functional `f` on `X`. -/
+theorem contMDiff_dual_apply_of_span_eq_top {s : Set (Module.Dual ℝ X)}
+    (hs : Submodule.span ℝ s = ⊤) {x : N → X}
+    (hx : ∀ g ∈ s, ContMDiff J 𝓘(ℝ) ∞ (fun t ↦ g (x t))) (f : Module.Dual ℝ X) :
+    ContMDiff J 𝓘(ℝ) ∞ (fun t ↦ f (x t)) := by
+  have hf : f ∈ Submodule.span ℝ s := hs ▸ Submodule.mem_top
+  induction hf using Submodule.span_induction with
+  | mem f hf => exact hx f hf
+  | zero => exact contMDiff_const
+  | add f g _ _ hf hg => exact hf.add hg
+  | smul c f _ hf => exact ((contDiff_const_smul c).contMDiff).comp hf
+
 /-- **Families in a finite-dimensional space.** Let `x` be a family of vectors of a
 finite-dimensional real vector space `X`, indexed by a manifold `N`, such that `t ↦ f (x t)` is
 smooth for every linear functional `f` on `X`. Then its image under any linear map `L` from `X`
