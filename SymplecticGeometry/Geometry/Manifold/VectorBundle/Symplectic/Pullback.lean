@@ -46,7 +46,10 @@ that it is compatible with the rest of the structure that `Symplectic/Basic.lean
 * `bilinFormAt_pullback_pullback_apply` and
   `IsNondegenerate.symplecticFormAt_pullback_pullback_apply`: `simp` evaluates the form of an
   iterated pull-back `(ω.pullback g hg).pullback f hf`, and its symplectic form, on vectors of
-  `V (g (f z))`.
+  `V (g (f z))`; `bilinFormAt_pullback_pullback_pullback_apply` does the same for three
+  pull-backs. `bilinFormAt_pullback_comp_apply_pullback` evaluates the pull-back along a
+  composite `g.comp f` on vectors of `V (g (f z))`, and `pullback_apply_apply_fiber` evaluates a
+  pull-back on a pair formed in the pull-back fibre.
 * `IsSymplecticFrameOn.pullback` and `frameTransition_pullback`: a symplectic frame `Φ` over `U`
   pulls back to the symplectic frame `y ↦ Φ (f y)` over `f ⁻¹' U`, with transition maps those of
   `Φ` at `f y`.
@@ -93,6 +96,16 @@ and `pullback_smul` would otherwise split first.
 type-correct. `bilinFormAt_apply_pullback` states the evaluation with the vectors typed in
 `V (f y)`, so that `simp` matches it as written; `IsNondegenerate.symplecticFormAt_apply_pullback`
 does the same for the symplectic form of a nondegenerate form on `f *ᵖ V`.
+
+For the same reason, a lemma that evaluates a form on vectors of a fibre of `V` matches only
+as many pull-backs as its statement names: on vectors of `V (g (f z))`, the form of
+`(ω.pullback g hg).pullback f hf` at `z` lives on the fibre `(f *ᵖ (g *ᵖ V)) z`, which unfolds to
+`V (g (f z))` only after two steps. So `bilinFormAt_apply_pullback`, which names one, does not
+match, and each depth of iterated pull-back needs its own statement, such as
+`bilinFormAt_pullback_pullback_apply` and `bilinFormAt_pullback_pullback_pullback_apply`. Since
+Mathlib's `Bundle.Pullback` cannot be made reducible outside its own file, no single lemma covers
+every depth. These lemmas are applied before the subterms are simplified (`simp↓`), so that they
+also match the iterated pull-back of a sum, a difference, a negative or a multiple.
 
 In `pushforward_pullback_id` and `pushforward_pullback_comp`, the identity of each fibre is
 `Bundle.Pullback.idFiberEquiv` or `Bundle.Pullback.compFiberEquiv`
@@ -210,6 +223,20 @@ vectors of `V (f y)`. -/
 @[simp↓]
 theorem pullback_apply_apply (ω : ContMDiffTwoForm I n F V) (f : K) (hf : ContMDiff I' I n f)
     (y : N) (v w : V (f y)) : ω.pullback f hf y ![v, w] = ω (f y) ![v, w] :=
+  congrArg (· ![v, w]) (pullback_apply ω f hf y)
+
+/-- The pull-back at `y` takes on the pair `![v, w]` of vectors `v w : (f *ᵖ V) y` of the
+pull-back fibre the value of `ω (f y)` on the same pair, formed in `V (f y)`.
+
+This is `pullback_apply_apply` for vectors typed in the pull-back fibre. `simp` meets such a
+pair when it evaluates an iterated pull-back `(ω.pullback g hg).pullback f hf` on vectors of
+the middle fibre `(g *ᵖ V) (f z)`: after `pullback_apply_apply`, the pair is formed in that
+fibre. It is applied before the subterms are simplified (`simp↓`), as `pullback_apply_apply`
+is. -/
+@[simp↓]
+theorem pullback_apply_apply_fiber (ω : ContMDiffTwoForm I n F V) (f : K)
+    (hf : ContMDiff I' I n f) (y : N) (v w : ((f : N → M) *ᵖ V) y) :
+    ω.pullback f hf y ![v, w] = ω (f y) ![v, w] :=
   congrArg (· ![v, w]) (pullback_apply ω f hf y)
 
 /-- The pull-back of the zero form is zero. -/
@@ -439,6 +466,8 @@ theorem bilinFormAt_pullback_id_apply (ω : ContMDiffTwoForm I n F V) (x : M)
 
 variable {EP HP P : Type*} [NormedAddCommGroup EP] [NormedSpace ℝ EP] [TopologicalSpace HP]
   {I'' : ModelWithCorners ℝ EP HP} [TopologicalSpace P] [ChartedSpace HP P]
+  {EQ HQ Q : Type*} [NormedAddCommGroup EQ] [NormedSpace ℝ EQ] [TopologicalSpace HQ]
+  {I''' : ModelWithCorners ℝ EQ HQ} [TopologicalSpace Q] [ChartedSpace HQ Q]
 
 /-- The bilinear form of the pull-back of `ω` along a composite `g ∘ f` at `z` takes on `v` and
 `w` the value of the bilinear form of the pull-back along `g` and then along `f` on their images
@@ -459,11 +488,29 @@ theorem bilinFormAt_pullback_comp_apply (ω : ContMDiffTwoForm I n F V) (g : C^n
   -- in the two different pull-back fibres: equal by definition only.
   rfl
 
+/-- The bilinear form of the pull-back of `ω` along a composite `g.comp f` at `z` evaluates on
+`v w : V (g (f z))` as `ω (g (f z)) ![v, w]`, for any proof that the composite is `C^n`.
+
+`bilinFormAt_apply_pullback` does not match such vectors: the fibre of the pull-back at `z` is
+`V ((g.comp f) z)`, which `simp` does not identify with `V (g (f z))`. -/
+@[simp]
+theorem bilinFormAt_pullback_comp_apply_pullback (ω : ContMDiffTwoForm I n F V)
+    (g : C^n⟮I', N; I, M⟯) (f : C^n⟮I'', P; I', N⟯) (hgf : ContMDiff I'' I n (g.comp f)) (z : P)
+    (v w : V (g (f z))) :
+    (ω.pullback (g.comp f) hgf).bilinFormAt z v w = ω (g (f z)) ![v, w] :=
+  -- `bilinFormAt_pullback_apply` gives `ω ((g.comp f) z) ![v, w]`; the fibre `V x` depends on
+  -- `x`, so `ContMDiffMap.comp_apply` cannot rewrite the point, and the two agree by definition.
+  ω.bilinFormAt_pullback_apply (g.comp f) hgf z v w
+
 /-- The bilinear form of the pull-back of `ω` along `g` and then along `f` at `z` evaluates on
 `v w : V (g (f z))` as `ω (g (f z)) ![v, w]`. It is `bilinFormAt_pullback_apply` for the form
 `ω.pullback g`, restated with the vectors typed in the fibre of `V` rather than in that of
-`g *ᵖ V`, since `simp` cannot match that lemma on such vectors. -/
-@[simp]
+`g *ᵖ V`, since `simp` cannot match that lemma on such vectors.
+
+It is applied before the subterms are simplified (`simp↓`), so that it still matches the
+iterated pull-back of a sum, a difference, a negative or a multiple, which `pullback_add`,
+`pullback_sub`, `pullback_neg` and `pullback_smul` would otherwise split first. -/
+@[simp↓]
 theorem bilinFormAt_pullback_pullback_apply {K' : Type*} [FunLike K' P N]
     [ContinuousMapClass K' P N] (ω : ContMDiffTwoForm I n F V) (g : K) (hg : ContMDiff I' I n g)
     (f : K') (hf : ContMDiff I'' I' n f) (z : P) (v w : V (g (f z))) :
@@ -482,6 +529,22 @@ theorem IsNondegenerate.symplecticFormAt_pullback_pullback_apply {K' : Type*} [F
     (v w : V (g (f z))) : h.symplecticFormAt z v w = ω (g (f z)) ![v, w] :=
   IsNondegenerate.symplecticFormAt_pullback_apply (ω := ω.pullback g hg) h z v w
 
+/-- The bilinear form of the pull-back of `ω` along `g`, then `f`, then `e` at `z` evaluates on
+`v w : V (g (f (e z)))` as `ω (g (f (e z))) ![v, w]`. It is `bilinFormAt_pullback_pullback_apply`
+one level deeper, with the vectors typed in the fibre of `V`, and it is applied before the
+subterms are simplified (`simp↓`) for the same reason. -/
+@[simp↓]
+theorem bilinFormAt_pullback_pullback_pullback_apply {K' K'' : Type*} [FunLike K' P N]
+    [ContinuousMapClass K' P N] [FunLike K'' Q P] [ContinuousMapClass K'' Q P]
+    (ω : ContMDiffTwoForm I n F V) (g : K) (hg : ContMDiff I' I n g) (f : K')
+    (hf : ContMDiff I'' I' n f) (e : K'') (he : ContMDiff I''' I'' n e) (z : Q)
+    (v w : V (g (f (e z)))) :
+    (((ω.pullback g hg).pullback f hf).pullback e he).bilinFormAt z v w =
+      ω (g (f (e z))) ![v, w] :=
+  ((((ω.pullback g hg).pullback f hf).bilinFormAt_pullback_apply e he z v w).trans
+    ((ω.pullback g hg).pullback_apply_apply f hf (e z) v w)).trans
+    (ω.pullback_apply_apply g hg (f (e z)) v w)
+
 /-- `simp` evaluates the iterated pull-back of a form, and its symplectic form, on vectors of the
 fibre of `V`. -/
 example {K' : Type*} [FunLike K' P N] [ContinuousMapClass K' P N] (ω : ContMDiffTwoForm I n F V)
@@ -489,6 +552,33 @@ example {K' : Type*} [FunLike K' P N] [ContinuousMapClass K' P N] (ω : ContMDif
     (v w : V (g (f z))) (h : ((ω.pullback g hg).pullback f hf).IsNondegenerate) :
     ((ω.pullback g hg).pullback f hf).bilinFormAt z v w = ω (g (f z)) ![v, w] ∧
       h.symplecticFormAt z v w = ω (g (f z)) ![v, w] := by
+  simp
+
+/-- `simp` evaluates three iterated pull-backs on vectors of the fibre of `V`, the pull-back
+along a composite on vectors of the fibre of `V`, and two iterated pull-backs on vectors of the
+middle fibre `(g *ᵖ V) (f z)`. -/
+example (ω : ContMDiffTwoForm I n F V) (g : C^n⟮I', N; I, M⟯) (f : C^n⟮I'', P; I', N⟯)
+    (e : C^n⟮I''', Q; I'', P⟯) (q : Q) (v₃ w₃ : V (g (f (e q)))) (z : P) (v w : V (g (f z)))
+    (v' w' : ((g : N → M) *ᵖ V) (f z)) :
+    (((ω.pullback g g.contMDiff).pullback f f.contMDiff).pullback e e.contMDiff).bilinFormAt q
+        v₃ w₃ = ω (g (f (e q))) ![v₃, w₃] ∧
+      (ω.pullback (g.comp f) (g.comp f).contMDiff).bilinFormAt z v w = ω (g (f z)) ![v, w] ∧
+      ((ω.pullback g g.contMDiff).pullback f f.contMDiff).bilinFormAt z v' w' =
+        ω (g (f z)) ![v', w'] := by
+  simp
+
+/-- `simp` evaluates iterated pull-backs of sums, differences, negatives and multiples on
+vectors of the fibre of `V`. -/
+example (ω ω' : ContMDiffTwoForm I n F V) (g : C^n⟮I', N; I, M⟯) (f : C^n⟮I'', P; I', N⟯)
+    (e : C^n⟮I''', Q; I'', P⟯) (c : ℝ) (q : Q) (v₃ w₃ : V (g (f (e q)))) (z : P)
+    (v w : V (g (f z))) :
+    (((ω + ω').pullback g g.contMDiff).pullback f f.contMDiff).bilinFormAt z v w =
+        ω (g (f z)) ![v, w] + ω' (g (f z)) ![v, w] ∧
+      (((-ω).pullback g g.contMDiff).pullback f f.contMDiff).bilinFormAt z v w =
+        -ω (g (f z)) ![v, w] ∧
+      ((((ω - c • ω').pullback g g.contMDiff).pullback f f.contMDiff).pullback e
+        e.contMDiff).bilinFormAt q v₃ w₃ =
+        ω (g (f (e q))) ![v₃, w₃] - c * ω' (g (f (e q))) ![v₃, w₃] := by
   simp
 
 variable [FiniteDimensional ℝ F]
