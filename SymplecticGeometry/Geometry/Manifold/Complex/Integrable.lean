@@ -13,7 +13,7 @@ public import TauCeti.Geometry.Symplectic.Manifold.Nijenhuis
 import Mathlib.Geometry.Manifold.MFDeriv.Tangent
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Chart
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
-import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.MFDeriv
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 import TauCeti.Geometry.Manifold.MFDeriv.RestrictScalars
 import TauCeti.Geometry.Symplectic.Finrank
 import TauCeti.Geometry.Manifold.VectorField.LieBracket
@@ -167,29 +167,6 @@ theorem IsIntegrable.nijenhuis_eq_zero [FiniteDimensional ℝ E]
   rw [hsurj, hsurj] at h
   simpa using h
 
-/-- Following a smooth chart `ψ` into `G` whose derivative carries `J` to `J₀` by a continuous
-linear equivalence `L : G ≃L[ℝ] G'` gives a chart whose derivative carries `J` to the transport of
-`J₀` along `L`, at every point of its source. -/
-theorem mfderiv_trans_toDiffeomorph_apply_eq_transport {G G' : Type*} [NormedAddCommGroup G]
-    [NormedSpace ℝ G] [NormedAddCommGroup G'] [NormedSpace ℝ G']
-    {ψ : PartialDiffeomorph I 𝓘(ℝ, G) M G ∞} {J₀ : AlmostComplexStructure G}
-    (hψ : ∀ y ∈ ψ.source, ∀ v : TangentSpace I y,
-      mfderiv I 𝓘(ℝ, G) ψ y (J y v) = J₀ (mfderiv I 𝓘(ℝ, G) ψ y v)) (L : G ≃L[ℝ] G') :
-    ∀ y ∈ (ψ.trans L.toDiffeomorph.toPartialDiffeomorph).source, ∀ v : TangentSpace I y,
-      mfderiv I 𝓘(ℝ, G') (ψ.trans L.toDiffeomorph.toPartialDiffeomorph) y (J y v) =
-        J₀.transport L.toLinearEquiv
-          (mfderiv I 𝓘(ℝ, G') (ψ.trans L.toDiffeomorph.toPartialDiffeomorph) y v) := by
-  intro y hy v
-  have hy' : y ∈ ψ.source := by simpa using hy
-  have hd (u : TangentSpace I y) :
-      mfderiv I 𝓘(ℝ, G') (ψ.trans L.toDiffeomorph.toPartialDiffeomorph) y u =
-        L (mfderiv I 𝓘(ℝ, G) ψ y u) := by
-    rw [← mvfderiv_apply_eq_mfderiv_apply, ← mvfderiv_apply_eq_mfderiv_apply,
-      ψ.mvfderiv_trans_toDiffeomorph L hy', ContinuousLinearMap.comp_apply,
-      ContinuousLinearEquiv.coe_coe]
-  rw [hd, hd, hψ y hy' v, AlmostComplexStructure.transport_apply]
-  exact congrArg (fun z : G ↦ L (J₀ z)) (L.symm_apply_apply _).symm
-
 /-- Following a smooth chart `ψ` into `G` whose derivative carries `J` to `J₀` by a partial
 diffeomorphism `Θ` from `G` to `G'` whose derivative carries `J₀` to `J₁` at every point of its
 source gives a chart whose derivative carries `J` to `J₁` at every point of its source. -/
@@ -214,6 +191,21 @@ theorem mfderiv_trans_apply_eq_of_fderiv_apply_eq {G G' : Type*} [NormedAddCommG
     rfl
   rw [hd, hd, hψ y hy.1 v]
   exact hΘ _ hy.2 _
+
+/-- Following a smooth chart `ψ` into `G` whose derivative carries `J` to `J₀` by a continuous
+linear equivalence `L : G ≃L[ℝ] G'` gives a chart whose derivative carries `J` to the transport of
+`J₀` along `L`, at every point of its source. -/
+theorem mfderiv_trans_toDiffeomorph_apply_eq_transport {G G' : Type*} [NormedAddCommGroup G]
+    [NormedSpace ℝ G] [NormedAddCommGroup G'] [NormedSpace ℝ G']
+    {ψ : PartialDiffeomorph I 𝓘(ℝ, G) M G ∞} {J₀ : AlmostComplexStructure G}
+    (hψ : ∀ y ∈ ψ.source, ∀ v : TangentSpace I y,
+      mfderiv I 𝓘(ℝ, G) ψ y (J y v) = J₀ (mfderiv I 𝓘(ℝ, G) ψ y v)) (L : G ≃L[ℝ] G') :
+    ∀ y ∈ (ψ.trans L.toDiffeomorph.toPartialDiffeomorph).source, ∀ v : TangentSpace I y,
+      mfderiv I 𝓘(ℝ, G') (ψ.trans L.toDiffeomorph.toPartialDiffeomorph) y (J y v) =
+        J₀.transport L.toLinearEquiv
+          (mfderiv I 𝓘(ℝ, G') (ψ.trans L.toDiffeomorph.toPartialDiffeomorph) y v) :=
+  J.mfderiv_trans_apply_eq_of_fderiv_apply_eq hψ fun _ _ w ↦ by
+    simp [ContinuousLinearEquiv.fderiv]
 
 /-- **Integrability is invariant under pullback.** The pullback of an integrable almost complex
 structure along a diffeomorphism is integrable. -/
