@@ -695,7 +695,7 @@ four theorems share.
 
 - From *Moser isotopy*: `Relative.lean`, `Geometry/Manifold/DifferentialForm/Opens.lean` and
   `Geometry/Symplectic/Manifold/TwoForm.lean`, only in `Tubular.lean`, and `Opens.lean`
-  also in `Symplectic.lean`, `Isotropic.lean`, `Coisotropic.lean` and `Lagrangian.lean`.
+  also in `Symplectic.lean`.
 - From *Liouville structures*: `Geometry/Manifold/MFDeriv/Opens.lean`
   (`mdifferentiable_subtypeVal`), in `CharacteristicFoliation.lean`.
 - From *Symplectic vector bundles*:
