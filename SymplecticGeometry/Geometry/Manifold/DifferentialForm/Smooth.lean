@@ -8,6 +8,7 @@ module
 public import Mathlib.Geometry.Manifold.Algebra.SmoothFunctions
 public import TauCeti.Geometry.Manifold.ContMDiffMap.Basic
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
+public import SymplecticGeometry.Geometry.Manifold.ContMDiffMap.Basic
 
 /-!
 # Smooth forms: bilinear forms of two-forms, and multiplication by smooth functions
@@ -116,12 +117,8 @@ variable {E' H' M' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [Topolo
 theorem mpullback_funSMulₗ (f : M → M') (hf : ContMDiff I I' ∞ f) (g : C^∞⟮I', M'; ℝ⟯)
     (φ : SmoothForm I' M' F k) :
     mpullback f hf (funSMulₗ g φ) = funSMulₗ (g.comp ⟨f, hf⟩) (mpullback f hf φ) := by
-  apply Subtype.ext
-  rw [coe_mpullback, coe_funSMulₗ, coe_funSMulₗ, TauCeti.mpullback_fun_smul, coe_mpullback]
-  funext x
-  -- `ContMDiffMap.comp_apply` cannot rewrite here, since the anonymous constructor `⟨f, hf⟩`
-  -- has a subtype as its type, so it is applied by `congrArg`.
-  exact congrArg (· • _) (ContMDiffMap.comp_apply g ⟨f, hf⟩ x).symm
+  ext1
+  simp [TauCeti.mpullback_fun_smul]
 
 end FunSMul
 

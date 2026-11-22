@@ -191,7 +191,9 @@ rewrite the bilinear form at a point of a segment `σ₀ + s • (σ₁ - σ₀)
 two-forms. It also has the `@[simp]` lemmas `TauCeti.SmoothForm.funSMulₗ_add`,
 `_const`, `_one` and `mpullback_funSMulₗ`, for smooth `k`-forms with any
 coefficient space. The file is about smooth forms in general, so any part may
-import it.
+import it. It imports `Geometry/Manifold/ContMDiffMap/Basic.lean` for
+`ContMDiffMap.comp_mk_apply`, with which `simp` proves
+`mpullback_funSMulₗ`.
 
 ### `Geometry/Manifold/DifferentialForm/Opens.lean`
 
