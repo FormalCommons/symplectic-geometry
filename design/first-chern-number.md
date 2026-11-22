@@ -971,7 +971,7 @@ issues, in an order where each issue's blockers come before it.
    specialization for it.
    General lemmas that the proofs use have files of their own:
    `Geometry/Manifold/Instances/Sphere.lean` (`ContMDiffOn.of_coe_sphere`,
-   smoothness on an open set of a map into a unit sphere, used for
+   smoothness on a set of a map into a unit sphere, used for
    `Circle`), `Geometry/Manifold/VectorBundle/Riemannian/Hermitian.lean`
    (`Bundle.ContMDiffRiemannianMetric.contMDiffOn_hermitianPairing`, Tau
    Ceti's `contMDiff_hermitianPairing` on a set) and
