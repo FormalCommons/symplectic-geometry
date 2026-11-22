@@ -31,15 +31,8 @@ closed sets, so `U₁` and `U₂` are open and cover `P`, and `r₁ r₂ = 0`
 coefficients of the relation (`chernClass_eq_of_sum_mul_pow_eq_zero`) the `aₖ` are the Chern
 classes of `E₁ ⊕ E₂`.
 
-The pull-back of such a relation along a map of projective bundles over the identity of `B` that
-preserves the tautological class adapts a step of the proof of
-`chernClass_eq_singularCohomologyMap_of_projectiveBundle` to bundles of different ranks.
-
 ## Main results
 
-* `singularCohomologyMap_inl_projectiveBundleClass`,
-  `singularCohomologyMap_inr_projectiveBundleClass`: `inl` and `inr` pull the tautological class
-  of `E₁ ⊕ E₂` back to those of `E₁` and `E₂`.
 * `ProjectiveBundle.evenIntegralCohomologyMap_subtypeVal_compl_range_inr_eq_zero` and
   `ProjectiveBundle.evenIntegralCohomologyMap_subtypeVal_compl_range_inl_eq_zero`: a class of
   `P(E₁ ⊕ E₂)` whose pull-back along `inl` (along `inr`) vanishes restricts to zero on the
@@ -72,28 +65,6 @@ variable {B : Type} [TopologicalSpace B]
   {E₂ : B → Type} [∀ b, AddCommGroup (E₂ b)] [∀ b, Module ℂ (E₂ b)] [∀ b, Module ℝ (E₂ b)]
   [∀ b, IsScalarTower ℝ ℂ (E₂ b)] [∀ b, TopologicalSpace (E₂ b)]
   [TopologicalSpace (TotalSpace G₂ E₂)] [FiberBundle G₂ E₂] [VectorBundle ℂ G₂ E₂]
-
-/-! ### The tautological class on the summands -/
-
-/-- The embedding `inl : P(E₁) → P(E₁ ⊕ E₂)` pulls the tautological class of `E₁ ⊕ E₂` back to
-that of `E₁`. -/
-theorem singularCohomologyMap_inl_projectiveBundleClass :
-    TopCat.singularCohomologyMap
-        (TopCat.ofHom (ProjectiveBundle.inl G₂ E₂ : C(ProjectiveBundle ℂ G₁ E₁, _))) 2
-        (projectiveBundleClass (G₁ × G₂) (E₁ ×ᵇ E₂)) = projectiveBundleClass G₁ E₁ :=
-  singularCohomologyMap_projectiveBundleClass_of_fiberwise
-    (φ := ProjectiveBundle.tautologicalInlEquiv G₂ E₂)
-    ((Pullback.continuous_lift _ _ _).comp ProjectiveBundle.continuous_tautologicalInlEquiv)
-
-/-- The embedding `inr : P(E₂) → P(E₁ ⊕ E₂)` pulls the tautological class of `E₁ ⊕ E₂` back to
-that of `E₂`. -/
-theorem singularCohomologyMap_inr_projectiveBundleClass :
-    TopCat.singularCohomologyMap
-        (TopCat.ofHom (ProjectiveBundle.inr G₁ E₁ : C(ProjectiveBundle ℂ G₂ E₂, _))) 2
-        (projectiveBundleClass (G₁ × G₂) (E₁ ×ᵇ E₂)) = projectiveBundleClass G₂ E₂ :=
-  singularCohomologyMap_projectiveBundleClass_of_fiberwise
-    (φ := ProjectiveBundle.tautologicalInrEquiv G₁ E₁)
-    ((Pullback.continuous_lift _ _ _).comp ProjectiveBundle.continuous_tautologicalInrEquiv)
 
 /-! ### Classes vanishing on the summands -/
 
@@ -167,47 +138,6 @@ end ProjectiveBundle
 
 /-! ### The Whitney sum formula -/
 
-/-- The ring map of `g : P' → P` sends the left side of a relation of the form of the defining
-relation of the Chern classes on `P` to the same on `P'`, when `g` lies over the identity of the
-base and pulls the tautological class back to the tautological class. -/
-private theorem evenIntegralCohomologyMap_sum_mul_pow
-    {G : Type} [NormedAddCommGroup G] [NormedSpace ℂ G]
-    {E : B → Type} [∀ b, AddCommGroup (E b)] [∀ b, Module ℂ (E b)] [∀ b, Module ℝ (E b)]
-    [∀ b, IsScalarTower ℝ ℂ (E b)] [∀ b, TopologicalSpace (E b)]
-    [TopologicalSpace (TotalSpace G E)] [FiberBundle G E] [VectorBundle ℂ G E]
-    {G' : Type} [NormedAddCommGroup G'] [NormedSpace ℂ G']
-    {E' : B → Type} [∀ b, AddCommGroup (E' b)] [∀ b, Module ℂ (E' b)] [∀ b, Module ℝ (E' b)]
-    [∀ b, IsScalarTower ℝ ℂ (E' b)] [∀ b, TopologicalSpace (E' b)]
-    [TopologicalSpace (TotalSpace G' E')] [FiberBundle G' E'] [VectorBundle ℂ G' E']
-    (g : C(ProjectiveBundle ℂ G' E', ProjectiveBundle ℂ G E))
-    (hπ : (ProjectiveBundle.projection ℂ G E).comp g = ProjectiveBundle.projection ℂ G' E')
-    (hx : TopCat.singularCohomologyMap (TopCat.ofHom g) 2 (projectiveBundleClass G E) =
-      projectiveBundleClass G' E')
-    (a : ∀ k : ℕ, (TopCat.of B).integralCohomology (2 * k)) (n : ℕ) :
-    TopCat.evenIntegralCohomologyMap (TopCat.ofHom g)
-        (∑ i ∈ Finset.range (n + 1),
-          TopCat.evenIntegralCohomologyMap (TopCat.ofHom (ProjectiveBundle.projection ℂ G E))
-            ((TopCat.of B).evenIntegralCohomologyOf i (a i)) *
-          (TopCat.of (ProjectiveBundle ℂ G E)).evenIntegralCohomologyOf 1
-            (projectiveBundleClass G E) ^ (n - i)) =
-      ∑ i ∈ Finset.range (n + 1),
-        TopCat.evenIntegralCohomologyMap (TopCat.ofHom (ProjectiveBundle.projection ℂ G' E'))
-          ((TopCat.of B).evenIntegralCohomologyOf i (a i)) *
-        (TopCat.of (ProjectiveBundle ℂ G' E')).evenIntegralCohomologyOf 1
-          (projectiveBundleClass G' E') ^ (n - i) := by
-  have hx' : TopCat.evenIntegralCohomologyMap (TopCat.ofHom g)
-      ((TopCat.of (ProjectiveBundle ℂ G E)).evenIntegralCohomologyOf 1
-        (projectiveBundleClass G E)) =
-      (TopCat.of (ProjectiveBundle ℂ G' E')).evenIntegralCohomologyOf 1
-        (projectiveBundleClass G' E') := by
-    rw [TopCat.evenIntegralCohomologyMap_of]
-    -- `evenIntegralCohomologyMap_of` pulls back in degree `2 * 1`, which `hx` writes `2`.
-    exact congrArg _ hx
-  rw [map_sum]
-  refine Finset.sum_congr rfl fun i _ ↦ ?_
-  rw [map_mul, map_pow, hx', ← RingHom.comp_apply, ← TopCat.evenIntegralCohomologyMap_comp,
-    ← TopCat.ofHom_comp, hπ]
-
 variable (G₁ E₁ G₂ E₂) in
 /-- The Cauchy product `k ↦ ∑_{i ≤ k} cᵢ(E₁) ⌣ c_{k-i}(E₂)` of the Chern classes of `E₁` and
 `E₂`, in degree `2k`. -/
@@ -268,15 +198,17 @@ private theorem sum_chernClassCauchy_mul_pow_eq_zero :
   rw [Module.finrank_prod, ← sum_mul_pow_mul_sum_mul_pow φ x]
   refine TopCat.evenIntegralCohomology_mul_eq_zero_of_union_eq_univ
     (ProjectiveBundle.isClosedEmbedding_inr.isClosed_range.isOpen_compl)
-    (ProjectiveBundle.isClosedEmbedding_inl.isClosed_range.isOpen_compl) ?_
+    ProjectiveBundle.isOpen_compl_range_inl ?_
     (ProjectiveBundle.evenIntegralCohomologyMap_subtypeVal_compl_range_inr_eq_zero ?_)
     (ProjectiveBundle.evenIntegralCohomologyMap_subtypeVal_compl_range_inl_eq_zero ?_)
   · rw [← compl_inter, (ProjectiveBundle.disjoint_range_inl_inr).symm.inter_eq, compl_empty]
-  · rw [evenIntegralCohomologyMap_sum_mul_pow _ (ContinuousMap.ext fun _ ↦ rfl)
-      singularCohomologyMap_inl_projectiveBundleClass]
+  · rw [evenIntegralCohomologyMap_sum_mul_projectiveBundleClass_pow (ContinuousMap.id B) _
+      (ContinuousMap.ext fun _ ↦ rfl) singularCohomologyMap_inl_projectiveBundleClass]
+    simp only [TopCat.ofHom_id, TopCat.singularCohomologyMap_id, ModuleCat.id_apply]
     exact sum_chernClass_mul_projectiveBundleClass_pow G₁ E₁
-  · rw [evenIntegralCohomologyMap_sum_mul_pow _ (ContinuousMap.ext fun _ ↦ rfl)
-      singularCohomologyMap_inr_projectiveBundleClass]
+  · rw [evenIntegralCohomologyMap_sum_mul_projectiveBundleClass_pow (ContinuousMap.id B) _
+      (ContinuousMap.ext fun _ ↦ rfl) singularCohomologyMap_inr_projectiveBundleClass]
+    simp only [TopCat.ofHom_id, TopCat.singularCohomologyMap_id, ModuleCat.id_apply]
     exact sum_chernClass_mul_projectiveBundleClass_pow G₂ E₂
 
 /-- **The Whitney sum formula in degree `2k`.** Over a compact base,
