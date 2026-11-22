@@ -44,6 +44,7 @@ structures `J₀`, `J₁` compatible with `ω₀`, `ω₁`. With them,
 
 * [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017], §3.4,
   proofs of Theorems 3.4.10 and 3.4.13.
+* [K. Cieliebak, *Symplectic Geometry*, lecture notes][Cieliebak2010], Theorem 6.10.
 -/
 
 public section
@@ -108,10 +109,8 @@ theorem exists_symplectomorphism_opens_of_mpullback_eq [SecondCountableTopology 
           (SmoothForm.mpullback (Subtype.val : U₁ → M₁) contMDiff_subtypeVal ω₁) =
         SmoothForm.mpullback (Subtype.val : U₀ → M₀) contMDiff_subtypeVal ω₀ := by
   -- Second countable manifolds on finite-dimensional models are σ-compact.
-  have : LocallyCompactSpace H₀ := I₀.locallyCompactSpace
-  have : LocallyCompactSpace H₁ := I₁.locallyCompactSpace
-  have : LocallyCompactSpace M₀ := ChartedSpace.locallyCompactSpace H₀ M₀
-  have : LocallyCompactSpace M₁ := ChartedSpace.locallyCompactSpace H₁ M₁
+  have := Manifold.locallyCompact_of_finiteDimensional (M := M₀) I₀
+  have := Manifold.locallyCompact_of_finiteDimensional (M := M₁) I₁
   obtain ⟨Jc₀, hc₀⟩ := hω₀.isNondegenerate.exists_compatible
   obtain ⟨Jc₁, hc₁⟩ := hω₁.isNondegenerate.exists_compatible
   let A := smoothExtendAlong hc₀ hc₁ hσ L hL hLω hdim
