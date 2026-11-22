@@ -34,8 +34,9 @@ another module, whose body this file does not see, so the proof identifies the t
 
 ## References
 
-* A. Hatcher, *Algebraic Topology*, Cambridge University Press, 2002, Section 3.3, the
-  Mayer–Vietoris sequence for cohomology with compact supports in the proof of Lemma 3.36.
+* A. Hatcher, [*Algebraic Topology*](https://pi.math.cornell.edu/~hatcher/AT/AT.pdf),
+  Section 3.3, the Mayer–Vietoris sequence `⋯ ⟶ Hⁿ_c(U ∩ V) ⟶ Hⁿ_c(U) ⊕ Hⁿ_c(V) ⟶ Hⁿ_c(X) ⟶
+  Hⁿ⁺¹_c(U ∩ V) ⟶ ⋯` in the proof of Lemma 3.36.
 -/
 
 public section
