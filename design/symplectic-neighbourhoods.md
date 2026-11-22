@@ -594,7 +594,7 @@ At Tau Ceti's path, in its namespace `TauCeti`, beside Tau Ceti's
 `isImmersion_comp_diffeomorph_of_boundaryless`,
 `isSmoothEmbedding_comp_diffeomorph_of_boundaryless`, and the bundled
 `SmoothEmbedding.compDiffeomorphOfBoundaryless`, with its `_apply`, `coe_`
-and `range_` lemmas.
+and `range_` lemmas, and `mfderiv_` and `range_mfderiv_` for its differential.
 
 ### `Geometry/Symplectic/Neighborhood/Isotropic.lean`
 

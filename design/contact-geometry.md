@@ -597,8 +597,10 @@ Named like Tau Ceti's file, in `SymplecticGeometry`.
   all slices of `α` are contact, and `ξ t x` is the image of
   `(α_t).kerDistribution x` under `TauCeti.Manifold.tangentSpaceOpenEquiv x`
   for `t ∈ Ioo a b ∩ [0, 1]`, `x ∈ U`; with `isLocalDefiningFamily_def`,
-  `IsLocalDefiningFamily.isContactForm` and
-  `IsLocalDefiningFamily.mem_kerDistribution_iff`. Tau Ceti's
+  `IsLocalDefiningFamily.isContactForm`,
+  `IsLocalDefiningFamily.mem_kerDistribution_iff` and
+  `IsLocalDefiningFamily.mpullback_inclusion` (restriction to an open
+  `V ≤ U`, as Tau Ceti's `IsLocalContactFormFamily.mpullback_inclusion`). Tau Ceti's
   `TauCeti.IsLocalContactFormFamily` (`Contact/Gray/Distribution.lean`,
   after the pinned version) is for a family indexed by `ℝ`, with the
   kernels prescribed at all real times near a given time, so it does not

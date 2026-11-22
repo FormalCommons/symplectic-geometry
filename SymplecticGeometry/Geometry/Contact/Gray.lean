@@ -86,13 +86,12 @@ existence and uniqueness this is Gray stability
 
 The comparison of two local defining families,
 `SymplecticGeometry.IsLocalDefiningFamily.tangentSpaceOpenEquiv_grayVectorField_eq`, follows the
-proofs of
-`TauCeti.IsLocalContactFormFamily.mfderiv_grayVectorField_eq` and
-`TauCeti.IsLocalContactFormFamily.mpullback_inclusion`, in Tau Ceti's file
+proof of `TauCeti.IsLocalContactFormFamily.mfderiv_grayVectorField_eq`, in Tau Ceti's file
 `TauCeti/Geometry/Contact/Gray/Distribution.lean` at commit
 034344347f0ca1144bf5ae35c82e3edaf848fca5 (Tau Ceti pull request #773), which the pinned version
-of Tau Ceti does not have: both families are restricted to the intersection of their open sets,
-the restrictions are contact forms with the same kernels, and naturality of the Gray vector field
+of Tau Ceti does not have: both families are restricted to the intersection of their open sets
+(`SymplecticGeometry.IsLocalDefiningFamily.mpullback_inclusion`), the restrictions are contact
+forms with the same kernels, and naturality of the Gray vector field
 under the inclusions concludes. The factor between two families with the same kernels in
 `TauCeti.SmoothForm.grayVectorField_eq_of_eventually_kerDistribution_eq` is the one of
 `TauCeti.SmoothForm.grayVectorField_eq_of_kerDistribution_eq`, in Tau Ceti's
@@ -384,16 +383,8 @@ theorem IsLocalDefiningFamily.tangentSpaceOpenEquiv_grayVectorField_eq {a b a' b
     (contMDiff_inclusion hV)) α
   set β' := mpullback (Prod.map id (Opens.inclusion hV')) (contMDiff_id.prodMap
     (contMDiff_inclusion hV')) α'
-  have hβ (u : ℝ) :
-      (mpullback (Prod.mk u) (contMDiff_const.prodMk contMDiff_id) β).IsContactForm := by
-    rw [mpullback_prodMk_mpullback_prodMap]
-    exact (hc u).mpullback _ (contMDiff_inclusion hV) fun y ↦
-      ((isLocalDiffeomorph_inclusion (n := ∞) hV y).isInvertible_mfderiv (by simp)).bijective
-  have hβ' (u : ℝ) :
-      (mpullback (Prod.mk u) (contMDiff_const.prodMk contMDiff_id) β').IsContactForm := by
-    rw [mpullback_prodMk_mpullback_prodMap]
-    exact (hc' u).mpullback _ (contMDiff_inclusion hV') fun y ↦
-      ((isLocalDiffeomorph_inclusion (n := ∞) hV' y).isInvertible_mfderiv (by simp)).bijective
+  have hβ : IsLocalDefiningFamily ξ _ β a b := hα.mpullback_inclusion hV
+  have hβ' : IsLocalDefiningFamily ξ _ β' a' b' := hα'.mpullback_inclusion hV'
   -- At the times of both intervals in `[0, 1]`, both restrictions have kernels `ξ`.
   have hker : ∀ᶠ q in 𝓝[unitInterval ×ˢ univ] (t, (⟨x, hx, hx'⟩ : (U ⊓ U' : Opens M))),
       (mpullback (Prod.mk q.1) (contMDiff_const.prodMk contMDiff_id) β').kerDistribution q.2 =
@@ -403,19 +394,10 @@ theorem IsLocalDefiningFamily.tangentSpaceOpenEquiv_grayVectorField_eq {a b a' b
       prod_mem_nhds ((isOpen_Ioo.inter isOpen_Ioo).mem_nhds ⟨htab, htab'⟩) univ_mem
     filter_upwards [self_mem_nhdsWithin, mem_nhdsWithin_of_mem_nhds hJ] with q hq hq'
     ext v
-    rw [mpullback_prodMk_mpullback_prodMap _ (contMDiff_inclusion hV'),
-      mpullback_prodMk_mpullback_prodMap _ (contMDiff_inclusion hV),
-      kerDistribution_mpullback (Opens.inclusion hV') (contMDiff_inclusion hV'),
-      kerDistribution_mpullback (Opens.inclusion hV) (contMDiff_inclusion hV), Submodule.mem_comap,
-      Submodule.mem_comap, ContinuousLinearMap.coe_coe, ContinuousLinearMap.coe_coe,
-      hα'.mem_kerDistribution_iff ⟨hq'.1.2, hq.1⟩, hα.mem_kerDistribution_iff ⟨hq'.1.1, hq.1⟩,
-      Manifold.tangentSpaceOpenEquiv_mfderiv_apply (f := Opens.inclusion hV') (A := id) rfl,
-      Manifold.tangentSpaceOpenEquiv_mfderiv_apply (f := Opens.inclusion hV) (A := id) rfl,
-      mfderiv_id,
-      ContinuousLinearMap.id_apply]
+    rw [hβ'.mem_kerDistribution_iff ⟨hq'.1.2, hq.1⟩, hβ.mem_kerDistribution_iff ⟨hq'.1.1, hq.1⟩]
   have h := congrArg (Manifold.tangentSpaceOpenEquiv _)
     (grayVectorField_eq_of_eventually_kerDistribution_eq (uniqueDiffOn_Icc zero_lt_one t ht)
-      ht hβ (hβ' t) hker)
+      ht hβ.isContactForm (hβ'.isContactForm t) hker)
   rw [tangentSpaceOpenEquiv_grayVectorField_mpullback_prodMap_inclusion hV' (hc' t),
     tangentSpaceOpenEquiv_grayVectorField_mpullback_prodMap_inclusion hV (hc t)] at h
   -- `Opens.inclusion hV ⟨x, hx, hx'⟩` is `⟨x, hx⟩` by definition; `Set.inclusion_mk` cannot rewrite
