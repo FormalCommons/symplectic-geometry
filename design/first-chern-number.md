@@ -1042,8 +1042,8 @@ issues, in an order where each issue's blockers come before it.
    degrees along the boundary loops, which is therefore $0$. The work of
    the issue is that instance, which
    `AlgebraicTopology/Singular/LocalHomology/DiscComplement/Basic.lean`
-   proves (`SymplecticGeometry.isOpenEmbedding_discComplementInclusion`,
-   `SymplecticGeometry.range_discComplementInclusion`,
+   proves (`SymplecticGeometry.isOpenEmbedding_inclusion_discComplementInterior`,
+   `SymplecticGeometry.range_inclusion_discComplementInterior`,
    `SymplecticGeometry.isCollared_discComplementBoundary`) and
    `ArgumentPrinciple.lean` imports. This is the half of the book's Lemma 2.7.3 needed for discs.
    Blocked by 5 and 7.
@@ -1081,7 +1081,8 @@ issues, in an order where each issue's blockers come before it.
      `Circle.radialProjection : C(ℂ ∖ {0}, Circle)`, `z ↦ z / |z|`, Tau
      Ceti's `complSingletonHomotopyEquivSphere 0` read in `Circle`.
    - `Analysis/Normed/Module/Ball/Collar.lean`, used by
-     `DiscBoundaryClass.lean`: in a real normed space the unit sphere is
+     `DiscBoundaryClass.lean` and `DiscComplement/Basic.lean`: in a real
+     normed space the unit sphere is
      collared in the closed unit ball
      (`Metric.isCollared_inclusion_sphere_closedBall`), and the
      open ball is the complement of the sphere in the closed ball

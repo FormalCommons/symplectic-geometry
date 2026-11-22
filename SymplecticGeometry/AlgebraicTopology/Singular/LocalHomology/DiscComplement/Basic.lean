@@ -7,9 +7,8 @@ module
 
 public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.CoordinateDisc
 public import TauCeti.Geometry.Manifold.Boundary.Collar.Global
-import Mathlib.Analysis.Normed.Module.Ball.Pointwise
-import Mathlib.Analysis.Normed.Module.Ball.RadialEquiv
 import Mathlib.Topology.MetricSpace.Thickening
+import SymplecticGeometry.Analysis.Normed.Module.Ball.Collar
 import TauCeti.Analysis.Complex.Circle
 
 /-!
@@ -32,16 +31,15 @@ through `((i, z), t) ↦ φ i ((1 + δᵢ t) z)`. The widths `δᵢ ∈ (0, 1)` 
 images `φ i (B(0, 1 + δᵢ))` are pairwise disjoint. They exist because the closed discs are
 finitely many pairwise disjoint compact sets, so they have pairwise disjoint open neighbourhoods,
 and each of these contains the image of a ball slightly larger than the unit ball. The map
-`(z, t) ↦ (1 + δᵢ t) z` is an embedding of `S¹ × [0, 1)` onto the annulus, read through Mathlib's
-polar coordinates `homeomorphUnitSphereProd`; the analogous collar of the unit sphere in the
-closed unit ball is `Metric.isCollared_inclusion_sphere_closedBall`. The collars of the
+`(z, t) ↦ (1 + δᵢ t) z` is a homeomorphism of `S¹ × [0, 1)` onto the annulus
+(`homeomorphUnitSphereProdIcoAnnulus`); the analogous collar of the unit sphere in the closed unit
+ball is `Metric.isCollared_inclusion_sphere_closedBall`. The collars of the
 different discs are glued with `isOpenMap_prod_of_discrete_left`.
 
 ## Main definitions
 
 * `SymplecticGeometry.discComplement φ`: the complement of the open discs.
 * `SymplecticGeometry.discComplementInterior φ`: the complement of the closed discs, an open set.
-* `SymplecticGeometry.discComplementInclusion φ`: the inclusion of the second into the first.
 * `SymplecticGeometry.discComplementBoundary φ hφ`: the boundary circles, as a map
   `ι × Circle → discComplement φ`.
 
@@ -49,9 +47,10 @@ different discs are glued with `isOpenMap_prod_of_discrete_left`.
 
 * `SymplecticGeometry.isClosed_discComplement`, and `CompactSpace (discComplement φ)` when `M` is
   compact.
-* `SymplecticGeometry.isOpenEmbedding_discComplementInclusion`: the inclusion of the interior is an
-  open embedding.
-* `SymplecticGeometry.range_discComplementInclusion`: its range is the complement of the boundary.
+* `SymplecticGeometry.isOpenEmbedding_inclusion_discComplementInterior`: the inclusion of the
+  interior is an open embedding.
+* `SymplecticGeometry.range_inclusion_discComplementInterior`: its range is the complement of the
+  boundary.
 * `SymplecticGeometry.isCollared_discComplementBoundary`: the boundary is collared.
 
 ## References
@@ -82,6 +81,7 @@ def discComplement : Set M :=
 theorem discComplement_def : discComplement φ = (⋃ i, (φ i).openDisc)ᶜ :=
   (rfl)
 
+@[simp]
 theorem mem_discComplement_iff {x : M} : x ∈ discComplement φ ↔ ∀ i, x ∉ (φ i).openDisc := by
   simp [discComplement_def]
 
@@ -129,6 +129,7 @@ theorem coe_discComplementInterior :
     (discComplementInterior φ : Set M) = (⋃ i, (φ i).disc)ᶜ :=
   (rfl)
 
+@[simp]
 theorem mem_discComplementInterior_iff {x : M} :
     x ∈ discComplementInterior φ ↔ ∀ i, x ∉ (φ i).disc := by
   simp [← SetLike.mem_coe]
@@ -136,18 +137,10 @@ theorem mem_discComplementInterior_iff {x : M} :
 theorem discComplementInterior_subset : (discComplementInterior φ : Set M) ⊆ discComplement φ :=
   compl_subset_compl.2 (iUnion_mono fun i ↦ (φ i).openDisc_subset_disc)
 
-/-- The inclusion of the complement of the closed discs into the complement of the open discs. -/
-def discComplementInclusion : discComplementInterior φ → discComplement φ :=
-  inclusion (discComplementInterior_subset φ)
-
-@[simp]
-theorem coe_discComplementInclusion_apply (x : discComplementInterior φ) :
-    (discComplementInclusion φ x : M) = x :=
-  (rfl)
-
 /-- The inclusion of the complement of the closed discs into the complement of the open discs is
 an open embedding. -/
-theorem isOpenEmbedding_discComplementInclusion : IsOpenEmbedding (discComplementInclusion φ) :=
+theorem isOpenEmbedding_inclusion_discComplementInterior :
+    IsOpenEmbedding (inclusion (discComplementInterior_subset φ)) :=
   .inclusion (discComplementInterior_subset φ)
     ((discComplementInterior φ).isOpen.preimage continuous_subtypeVal)
 
@@ -155,14 +148,15 @@ variable [TopologicalSpace ι] [DiscreteTopology ι]
 
 /-- The complement of the closed discs is the complement of the boundary circles in the
 complement of the open discs. -/
-theorem range_discComplementInclusion (hφ : Pairwise (Disjoint on fun i ↦ (φ i).disc)) :
-    range (discComplementInclusion φ) = (range (discComplementBoundary φ hφ))ᶜ := by
+theorem range_inclusion_discComplementInterior (hφ : Pairwise (Disjoint on fun i ↦ (φ i).disc)) :
+    range (inclusion (discComplementInterior_subset φ)) =
+      (range (discComplementBoundary φ hφ))ᶜ := by
   ext x
   simp only [mem_compl_iff, mem_range, Prod.exists, not_exists]
   constructor
   · rintro ⟨y, rfl⟩ i z h
     refine (mem_discComplementInterior_iff φ).1 y.property i ?_
-    rw [← coe_discComplementInclusion_apply, ← h, coe_discComplementBoundary_apply]
+    rw [← coe_inclusion (discComplementInterior_subset φ), ← h, coe_discComplementBoundary_apply]
     exact (φ i).boundaryCircle_mem_disc z
   · intro h
     refine ⟨⟨x, (mem_discComplementInterior_iff φ).2 fun i hi ↦ ?_⟩, rfl⟩
@@ -173,49 +167,34 @@ theorem range_discComplementInclusion (hφ : Pairwise (Disjoint on fun i ↦ (φ
 /-! ### The collar of the boundary circles -/
 
 /-- The point `(1 + δ t) z` of the ball of radius `2`, for `z` on the unit circle, `t ∈ [0, 1)`
-and `δ ∈ (0, 1)`. -/
+and `δ ∈ (0, 1)`: the homeomorphism `homeomorphUnitSphereProdIcoAnnulus`, read in the ball. -/
 private def annulusPoint {δ : ℝ} (hδ : δ ∈ Ioo (0 : ℝ) 1) (q : Circle × Ico (0 : ℝ) 1) :
     CoordinateDisc.ball :=
-  ⟨(1 + δ * q.2) • (q.1 : ℂ), CoordinateDisc.mem_ball_iff.2 <| by
-    simp only [norm_smul, Circle.norm_coe, mul_one, Real.norm_eq_abs,
-      abs_of_nonneg (add_nonneg zero_le_one (mul_nonneg hδ.1.le q.2.property.1))]
-    nlinarith [q.2.property.1, q.2.property.2, hδ.1, hδ.2]⟩
+  let w := homeomorphUnitSphereProdIcoAnnulus hδ.1 (Circle.homeomorphSphere q.1, q.2)
+  ⟨w, CoordinateDisc.mem_ball_iff.2 (by linarith [w.property.2, hδ.2])⟩
 
 private lemma coe_annulusPoint {δ : ℝ} (hδ : δ ∈ Ioo (0 : ℝ) 1) (q : Circle × Ico (0 : ℝ) 1) :
-    (annulusPoint hδ q : ℂ) = (1 + δ * q.2) • (q.1 : ℂ) :=
-  (rfl)
+    (annulusPoint hδ q : ℂ) = (1 + δ * q.2) • (q.1 : ℂ) := by
+  simp [annulusPoint, Circle.coe_homeomorphSphere_apply]
 
 private lemma isEmbedding_annulusPoint {δ : ℝ} (hδ : δ ∈ Ioo (0 : ℝ) 1) :
     IsEmbedding (annulusPoint hδ) := by
   refine IsEmbedding.subtypeVal.of_comp_iff.1 ?_
-  have hr : IsEmbedding fun t : Ico (0 : ℝ) 1 ↦
-      (⟨1 + δ * t, add_pos_of_pos_of_nonneg one_pos (mul_nonneg hδ.1.le t.property.1)⟩ :
-        Ioi (0 : ℝ)) := by
-    refine IsEmbedding.subtypeVal.of_comp_iff.1 ?_
-    convert ((Homeomorph.mulLeft₀ δ hδ.1.ne').trans (Homeomorph.addLeft 1)).isEmbedding.comp
-      IsEmbedding.subtypeVal using 1
-    ext t
-    simp
-  convert IsEmbedding.subtypeVal.comp ((homeomorphUnitSphereProd ℂ).symm.isEmbedding.comp
-    (Circle.homeomorphSphere.isEmbedding.prodMap hr)) using 1
+  convert IsEmbedding.subtypeVal.comp ((homeomorphUnitSphereProdIcoAnnulus hδ.1).isEmbedding.comp
+    (Circle.homeomorphSphere.isEmbedding.prodMap IsEmbedding.id)) using 1
   ext q
-  simp [coe_annulusPoint]
+  simp [coe_annulusPoint, Circle.coe_homeomorphSphere_apply]
 
 private lemma range_annulusPoint {δ : ℝ} (hδ : δ ∈ Ioo (0 : ℝ) 1) :
     range (annulusPoint hδ) = {z : CoordinateDisc.ball | 1 ≤ ‖(z : ℂ)‖ ∧ ‖(z : ℂ)‖ < 1 + δ} := by
   ext w
   constructor
   · rintro ⟨q, rfl⟩
-    simp only [mem_ofPred_eq, coe_annulusPoint, norm_smul, Circle.norm_coe, mul_one,
-      Real.norm_eq_abs, abs_of_nonneg (add_nonneg zero_le_one (mul_nonneg hδ.1.le q.2.property.1))]
-    constructor <;> nlinarith [q.2.property.1, q.2.property.2, hδ.1, hδ.2]
-  · rintro ⟨h1, h2⟩
-    have hw : 0 < ‖(w : ℂ)‖ := by linarith
-    refine ⟨(Circle.homeomorphSphere.symm ⟨‖(w : ℂ)‖⁻¹ • (w : ℂ), by
-        simp [hw.ne']⟩, ⟨(‖(w : ℂ)‖ - 1) / δ, div_nonneg (by linarith) hδ.1.le,
-        (div_lt_one hδ.1).2 (by linarith)⟩), Subtype.ext ?_⟩
-    rw [coe_annulusPoint, Circle.coe_homeomorphSphere_symm_apply, mul_div_cancel₀ _ hδ.1.ne',
-      add_sub_cancel, smul_inv_smul₀ hw.ne']
+    exact (homeomorphUnitSphereProdIcoAnnulus hδ.1 (Circle.homeomorphSphere q.1, q.2)).property
+  · intro hw
+    obtain ⟨p, hp⟩ := (homeomorphUnitSphereProdIcoAnnulus hδ.1).surjective ⟨(w : ℂ), hw⟩
+    exact ⟨(Circle.homeomorphSphere.symm p.1, p.2), Subtype.ext (by
+      simpa [annulusPoint] using congrArg Subtype.val hp)⟩
 
 omit [TopologicalSpace ι] [DiscreteTopology ι] in
 /-- Widths `δ i ∈ (0, 1)` such that the images under the coordinate discs of the balls of radius
