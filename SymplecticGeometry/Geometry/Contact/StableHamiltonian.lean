@@ -303,7 +303,7 @@ theorem mlieDerivForm_characteristicVectorField_oneForm :
   have hR := (contMDiff_characteristicVectorField h.isContact).mdifferentiable (by simp)
   funext y
   refine ContinuousAlternatingMap.ext fun v ↦ ?_
-  obtain ⟨w, rfl⟩ : ∃ w, v = ![w] := ⟨v 0, funext fun i ↦ by fin_cases i; rfl⟩
+  obtain ⟨w, rfl⟩ : ∃ w, v = ![w] := ⟨v 0, (FinVec.etaExpand_eq _).symm⟩
   rw [mlieDerivForm_apply_eq_mextDeriv_add (f := fun _ ↦ (1 : ℝ))
     (fun y ↦ apply_characteristicVectorField (h.isContact y)) (α.mdifferentiable y) (hR y),
     h.mextDeriv_characteristicVectorField_left]
@@ -738,7 +738,7 @@ theorem coe_zeroSliceOneForm (hε : 0 < ε) (σ : SmoothTwoForm (𝓘(ℝ).prod 
         (RoughForm.interior (fun _ ↦ ((1 : ℝ), (0 : E))) σ.val) := by
   funext x
   refine ContinuousAlternatingMap.ext fun v ↦ ?_
-  obtain ⟨w, rfl⟩ : ∃ w, v = ![w] := ⟨v 0, funext fun i ↦ by fin_cases i; rfl⟩
+  obtain ⟨w, rfl⟩ : ∃ w, v = ![w] := ⟨v 0, (FinVec.etaExpand_eq _).symm⟩
   rw [zeroSliceOneForm_apply, Pi.neg_apply, ContinuousAlternatingMap.neg_apply,
     TauCeti.mpullback_apply]
   refine congrArg Neg.neg (((σ.bilinFormAt_apply _ _ _).trans

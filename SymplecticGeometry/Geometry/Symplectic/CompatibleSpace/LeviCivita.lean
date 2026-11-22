@@ -30,9 +30,9 @@ where `D_X Ŷ` is the derivative along `X` of the ambient reading `Ŷ` of `Y`, a
 with values in `V →L[ℝ] V`; and along a curve `J(t)`, for a field `W` along it,
 `(∇_t W)^ = ∂_t Ŵ - ½ J (Ŵ J̇ + J̇ Ŵ)`.
 
-The proof goes through the Gauss formula for the trace form `B(P, Q) = ½ tr(P Q)` of
-`V →L[ℝ] V` (`ContinuousLinearMap.traceForm`), for which the inclusion is isometric
-(`inner_compatibleSpace_eq_traceForm`,
+The proof goes through the Gauss formula for the form `B(P, Q) = ½ tr(P Q)`, half the trace form
+of `V →L[ℝ] V` (`ContinuousLinearMap.traceForm`), for which the inclusion is isometric
+(`inner_compatibleSpace_eq_smul_traceForm`,
 `CovariantDerivative.IsLeviCivitaConnection.inner_apply_eq_bilin_mvfderiv`): the connection pairs
 with each tangent vector `w` as `B(D_X Ŷ, ŵ)`. The trace form is not positive definite on
 `V →L[ℝ] V`, so the remaining step is algebraic. Differentiating the relations `J Ŷ + Ŷ J = 0` and
@@ -292,10 +292,10 @@ theorem leviCivitaConnection_compatibleSpace_apply
   · -- The Gauss formula for the trace form.
     have h := (CovariantDerivative.isLeviCivitaConnection_leviCivitaConnection
       𝓘(ℝ, ω.compatibleModel) (M := 𝒥)).inner_apply_eq_bilin_mvfderiv hf
-      ContinuousLinearMap.traceForm_comm inner_compatibleSpace_eq_traceForm
+      (ContinuousLinearMap.smul_traceForm_comm _) inner_compatibleSpace_eq_smul_traceForm
       (mdifferentiableAt_extend _ _ a) hY w
-    rwa [extend_apply_self, ← hgm, ContinuousLinearMap.traceForm_apply,
-      mvfderiv_apply_eq_mfderiv_apply] at h
+    rwa [extend_apply_self, ← hgm, smul_apply, smul_apply,
+      smul_eq_mul, ContinuousLinearMap.traceForm_apply, mvfderiv_apply_eq_mfderiv_apply] at h
 
 /-- The Levi-Civita connection in ambient terms, with the ambient readings written through
 `mvfderiv`, as elements of `V →L[ℝ] V`, and the products as multiplication there: the ambient
@@ -380,10 +380,11 @@ theorem alongCurve_leviCivitaConnection_compatibleSpace {γ : ℝ → 𝒥}
   · -- The Gauss formula along a curve, for the trace form.
     have h := (CovariantDerivative.isLeviCivitaConnection_leviCivitaConnection
       𝓘(ℝ, ω.compatibleModel) (M := 𝒥)).inner_alongCurve_eq_bilin hf
-      ContinuousLinearMap.traceForm_comm inner_compatibleSpace_eq_traceForm hγ
+      (ContinuousLinearMap.smul_traceForm_comm _) inner_compatibleSpace_eq_smul_traceForm hγ
       (differentiableAt_sectionCoord γ W hW (mem_baseSet_trivializationAt _ _ (γ t)))
       (hgm ▸ hgd) w
-    rwa [ContinuousLinearMap.traceForm_apply, mvfderiv_apply_eq_mfderiv_apply] at h
+    rwa [smul_apply, smul_apply, smul_eq_mul,
+      ContinuousLinearMap.traceForm_apply, mvfderiv_apply_eq_mfderiv_apply] at h
 
 /-! ### Regularity of ambient readings -/
 

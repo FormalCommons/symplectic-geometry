@@ -122,7 +122,7 @@ theorem interior_moserField (σ : SmoothForm (J.prod I) (N × M) ℝ 2)
   rw [SmoothTwoForm.interior_apply_eq_ofSubsingleton_flat, moserField_def, map_smul,
     hx.self_apply_inverse]
   ext v
-  have hv : v = ![v 0] := funext fun i ↦ by rw [Fin.fin_one_eq_zero i, Matrix.cons_val_zero]
+  have hv : v = ![v 0] := (FinVec.etaExpand_eq _).symm
   rw [hv]
   simp
 
