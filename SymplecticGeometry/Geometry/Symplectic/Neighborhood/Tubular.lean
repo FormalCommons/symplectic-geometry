@@ -9,6 +9,8 @@ public import SymplecticGeometry.Geometry.Manifold.TubularNeighborhood.MFDeriv
 public import SymplecticGeometry.Geometry.Symplectic.Moser.Relative
 public import TauCeti.Geometry.Symplectic.SymplecticTransport
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Opens
+import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Basic
+import SymplecticGeometry.Topology.Sets.Opens.Basic
 import SymplecticGeometry.Geometry.Symplectic.Manifold.TwoForm
 import TauCeti.Geometry.Manifold.DifferentialForm.Opens
 import TauCeti.Geometry.Manifold.SmoothEmbedding.LocalDiffeomorph
@@ -122,8 +124,7 @@ theorem exists_symplectomorphism_opens_mfderiv_eq [SecondCountableTopology M₀]
   choose hgV hχfix hχd using hχf
   rcases isEmpty_or_nonempty Q with hQ | ⟨⟨q₀⟩⟩
   · -- Without points to work along, the empty open sets will do.
-    obtain ⟨ψ, hψ⟩ := SmoothTwoForm.exists_diffeomorph_bot_mpullback_eq ω₀ ω₁
-    exact ⟨⊥, ⊥, ψ, fun q ↦ (hQ.false q).elim, hψ⟩
+    exact ⟨⊥, ⊥, Diffeomorph.ofIsEmpty, fun q ↦ (hQ.false q).elim, Subsingleton.elim _ _⟩
   have hU₀ : Nonempty U₀ := ⟨g q₀⟩
   have hU₁ : Nonempty U₁ := ⟨ψ' (g q₀)⟩
   have hV₀ : Nonempty V₀ := ⟨⟨g q₀, hgV q₀⟩⟩
