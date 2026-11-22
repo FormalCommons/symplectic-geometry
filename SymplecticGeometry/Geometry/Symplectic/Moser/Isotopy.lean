@@ -13,6 +13,7 @@ import SymplecticGeometry.Geometry.Manifold.TubularNeighborhood.RelativePoincare
 import SymplecticGeometry.Geometry.Symplectic.Manifold.Family
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Flow.Family
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Family
+import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Velocity
 import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Extend
 import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Flow
 import TauCeti.Geometry.Manifold.PartitionOfUnity.Compact
@@ -124,10 +125,6 @@ theorem exists_diffeotopy_fix_eventually_mpullback_eq_of_mextDeriv_eq_sub
     moserField_eq_zero_of_apply_eq_zero (by rw [hβt]; exact hβK x hx)
   have hc := isCompleteVectorField_timeDependentSuspensionField hX₁ hC hXC
   let Ψ := timeDependentFlowDiffeotopy (by simp) hX hc
-  have hΨ (t : unitInterval) :
-      ⇑(Ψ.timeSlice t) = timeDependentFlowOf (moserField σ β' ρ) 0 t := by
-    funext x
-    rw [Diffeotopy.timeSlice_apply, timeDependentFlowDiffeotopy_apply]
   have hzero (x : M) (hx : ∀ u, moserField σ β' ρ u x = 0) (s t : ℝ) :
       timeDependentFlowOf (moserField σ β' ρ) s t x = x :=
     timeDependentFlowOf_eq_self_of_forall_eq_zero hX₁ hx s t
@@ -180,7 +177,7 @@ theorem exists_diffeotopy_fix_eventually_mpullback_eq_of_mextDeriv_eq_sub
       (huW (mk_mem_prod (hu (Icc_subset_Icc_right t.property.2
         ((uIcc_of_le t.property.1).subset hs))) hx))
   simp only [σ, SmoothForm.coe_mpullback_prodMk_lineMapFamily, id_eq, zero_smul, add_zero] at h
-  rw [SmoothForm.coe_mpullback, hΨ]
+  rw [SmoothForm.coe_mpullback, Diffeotopy.timeSlice_timeDependentFlowDiffeotopy]
   exact h
 
 end TauCeti.SmoothTwoForm
