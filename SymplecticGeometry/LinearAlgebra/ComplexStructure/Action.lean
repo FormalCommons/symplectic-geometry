@@ -35,8 +35,8 @@ gives actions of the invertible matrices and of the special orthogonal matrices.
   exactly when `e` is complex linear from `J` to `J'`.
 * `TauCeti.IsComplexLinearMap.symm_linearEquiv`: the inverse of a complex linear isomorphism is
   complex linear.
-* `TauCeti.IsComplexLinearMap.exists_leftInverse`: an injective complex linear map has a
-  complex linear left inverse.
+* `TauCeti.IsComplexLinearMap.exists_leftInverse_of_injective`: an injective complex linear map
+  has a complex linear left inverse.
 * `TauCeti.AlmostComplexStructure.exists_linearIsometryEquiv_transport_eq`: two norm-preserving
   complex structures on inner product spaces of the same finite dimension are conjugate by a
   linear isometry.
@@ -99,7 +99,8 @@ theorem _root_.TauCeti.IsComplexLinearMap.symm_linearEquiv {J : AlmostComplexStr
 
 /-- An injective real-linear map that is complex linear from `J` to `J'` has a left inverse that
 is complex linear from `J'` to `J`. -/
-theorem _root_.TauCeti.IsComplexLinearMap.exists_leftInverse {J : AlmostComplexStructure V}
+theorem _root_.TauCeti.IsComplexLinearMap.exists_leftInverse_of_injective
+    {J : AlmostComplexStructure V}
     {J' : AlmostComplexStructure W} {F : V →ₗ[ℝ] W} (hF : IsComplexLinearMap J J' F)
     (hinj : Function.Injective F) :
     ∃ G : W →ₗ[ℝ] V, IsComplexLinearMap J' J G ∧ G ∘ₗ F = LinearMap.id := by
