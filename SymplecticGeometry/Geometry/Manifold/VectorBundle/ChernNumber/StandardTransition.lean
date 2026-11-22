@@ -37,9 +37,9 @@ The construction:
   local unit section `σ i`
   (`SymplecticGeometry.CoordinateDisc.exists_ofChart_pairwise_disjoint`,
   `SymplecticGeometry.Bundle.exists_contMDiffOn_circleFiber`), with smooth extensions to the
-  ball of radius `2` and smooth left inverses
+  ball of radius `2` and smooth inverses on their images
   (`SymplecticGeometry.CoordinateDisc.contMDiffOn_symm_add_smul_orthonormalBasisOneI_repr`,
-  `SymplecticGeometry.CoordinateDisc.contMDiffOn_smul_orthonormalBasisOneI_repr_symm_sub`);
+  `SymplecticGeometry.CoordinateDisc.contMDiffOn_coord_ofChart`);
 * off the zeros, the unit section `ν = s / ‖s‖`
   (`SymplecticGeometry.Bundle.contMDiffOn_normalizedFrame`), which on the punctured `i`-th disc is
   `σ i` acted on by a smooth map `w i` to the circle (Tau Ceti's `ContMDiffOn.division`);
@@ -79,22 +79,23 @@ section Disc
 variable {M : Type} [TopologicalSpace M] [ChartedSpace (EuclideanSpace ℝ (Fin 2)) M] [T2Space M]
 
 open scoped Classical in
-/-- Let `φ` be a coordinate disc, `B` a smooth inverse of `φ` on its image, and `c : ℂ → S¹`
-smooth on the punctured ball `0 < ‖z‖ < 2` and equal to `1` from radius `3 / 2` on. Then the
-map equal to `c ∘ B` on the image of `φ` and to `1` off it is smooth off the centre `φ 0`. -/
+/-- Let `φ` be a coordinate disc whose coordinate `φ.coord` is smooth on its image, and
+`c : ℂ → S¹` smooth on the punctured ball `0 < ‖z‖ < 2` and equal to `1` from radius `3 / 2` on.
+Then the map equal to `c ∘ φ.coord` on the image of `φ` and to `1` off it is smooth off the
+centre `φ 0`. -/
 private theorem contMDiffAt_ite_mem_range
     {o : HomologicalOrientation M (EuclideanSpace ℝ (Fin 2)) 2} (φ : CoordinateDisc o)
-    {B : M → ℂ} (hB : ContMDiffOn (𝓡 2) 𝓘(ℝ, ℂ) ∞ B (range φ)) (hBφ : ∀ z, B (φ z) = z)
+    (hB : ContMDiffOn (𝓡 2) 𝓘(ℝ, ℂ) ∞ φ.coord (range φ))
     {c : ℂ → Circle} (hc : ContMDiffOn 𝓘(ℝ, ℂ) (𝓡 1) ∞ c {z | 0 < ‖z‖ ∧ ‖z‖ < 2})
     (hc1 : ∀ z, 3 / 2 ≤ ‖z‖ → c z = 1) {x : M} (hx : x ≠ φ 0) :
-    ContMDiffAt (𝓡 2) (𝓡 1) ∞ (fun y ↦ if y ∈ range φ then c (B y) else 1) x := by
+    ContMDiffAt (𝓡 2) (𝓡 1) ∞ (fun y ↦ if y ∈ range φ then c (φ.coord y) else 1) x := by
   by_cases hxφ : x ∈ range φ
-  · -- on the punctured image, the map is `c ∘ B`
+  · -- on the punctured image, the map is `c ∘ φ.coord`
     set W := range φ \ {φ 0}
     have hW : IsOpen W := φ.isOpenEmbedding.isOpen_range.sdiff isClosed_singleton
-    have hBW : MapsTo B W {z | 0 < ‖z‖ ∧ ‖z‖ < 2} := by
+    have hBW : MapsTo φ.coord W {z | 0 < ‖z‖ ∧ ‖z‖ < 2} := by
       rintro _ ⟨⟨z, rfl⟩, hz⟩
-      rw [mem_ofPred_eq, hBφ]
+      rw [mem_ofPred_eq, CoordinateDisc.coord_apply]
       refine ⟨norm_pos_iff.2 fun h ↦ hz ?_, CoordinateDisc.mem_ball_iff.1 z.property⟩
       rw [show z = 0 from Subtype.ext h]
       rfl
@@ -107,7 +108,7 @@ private theorem contMDiffAt_ite_mem_range
     filter_upwards [hK.isOpen_compl.mem_nhds fun h ↦ hxφ (image_subset_range _ _ h)] with y hy
     by_cases hyφ : y ∈ range φ
     · obtain ⟨z, rfl⟩ := hyφ
-      rw [ite_eq_left (mem_range_self z), hBφ]
+      rw [ite_eq_left (mem_range_self z), CoordinateDisc.coord_apply]
       exact hc1 z (not_le.1 fun h ↦ hy ⟨z, h, rfl⟩).le
     · exact ite_eq_right hyφ
 
@@ -199,18 +200,13 @@ theorem exists_coordinateDisc_unitSection_eq_exp_arg_zpow_smul
     CoordinateDisc.exists_ofChart_pairwise_disjoint o (x := fun i : ι ↦ (i : M))
       Subtype.val_injective (U := fun i ↦ U i) fun i ↦ (hUo i).mem_nhds (hxU i)
   set φ := fun i ↦ CoordinateDisc.ofChart (e i) (hr i) (hc i) (he i)
-  -- `φ i` extends to `ψ i`, smooth on the ball of radius `2`, with a smooth left inverse `B i`
+  -- `φ i` extends to `ψ i`, smooth on the ball of radius `2`
   let ψ (i : ι) (z : ℂ) : M := (e i).symm (0 + (r i / 2) • Complex.orthonormalBasisOneI.repr z)
-  let B (i : ι) (x : M) : ℂ :=
-    (r i / 2)⁻¹ • Complex.orthonormalBasisOneI.repr.symm (e i x - 0)
   have hψs (i : ι) : ContMDiffOn 𝓘(ℝ, ℂ) (𝓡 2) ∞ (ψ i) (CoordinateDisc.ball : Set ℂ) :=
     CoordinateDisc.contMDiffOn_symm_add_smul_orthonormalBasisOneI_repr (e i) (hr i) (hc i)
       (hatlas i)
-  have hBs (i : ι) : ContMDiffOn (𝓡 2) 𝓘(ℝ, ℂ) ∞ (B i) (e i).source :=
-    CoordinateDisc.contMDiffOn_smul_orthonormalBasisOneI_repr_symm_sub (e i) (hatlas i)
-  have hψB (i : ι) (z : CoordinateDisc.ball) : φ i z = ψ i z ∧ B i (φ i z) = z :=
-    ⟨CoordinateDisc.ofChart_apply (e i) (hr i) (hc i) (he i) z,
-      CoordinateDisc.smul_orthonormalBasisOneI_repr_symm_sub_ofChart (e i) (hr i) (hc i) (he i) z⟩
+  have hψ (i : ι) (z : CoordinateDisc.ball) : φ i z = ψ i z :=
+    CoordinateDisc.ofChart_apply (e i) (hr i) (hc i) (he i) z
   -- the unit section `ν = s / ‖s‖`, smooth off the zeros
   set ν : ∀ x, Fiber ℂ F V ℂ x := fun x ↦ normalizedFrame (F := F) (s x)
   have hν : ContMDiffOn (𝓡 2) ((𝓡 2).prod (𝓡 1)) ∞
@@ -230,7 +226,7 @@ theorem exists_coordinateDisc_unitSection_eq_exp_arg_zpow_smul
   have hw (i : ι) : ContMDiffOn 𝓘(ℝ, ℂ) (𝓡 1) ∞ (w i) {z | 0 < ‖z‖ ∧ ‖z‖ < 2} := by
     refine (((hτ i).mono inter_subset_left).division (hν.mono inter_subset_right)).comp
       ((hψs i).mono fun z hz ↦ by simpa using hz.2) fun z hz ↦ ?_
-    have hzφ := (hψB i ⟨z, CoordinateDisc.mem_ball_iff.2 hz.2⟩).1
+    have hzφ := hψ i ⟨z, CoordinateDisc.mem_ball_iff.2 hz.2⟩
     refine ⟨hzφ ▸ hrU i (mem_range_self _), ?_⟩
     rw [mem_ofPred_eq, ← hzφ]
     exact hne i fun h ↦ norm_pos_iff.1 hz.1 (congrArg Subtype.val h)
@@ -239,11 +235,11 @@ theorem exists_coordinateDisc_unitSection_eq_exp_arg_zpow_smul
     Circle.exists_contMDiffOn_mul_eq_exp_arg_zpow (r₁ := 1) (r₂ := 3 / 2) one_pos
       (by norm_num) (by norm_num) (hw i)
   -- the outer section `σout = ν • ∏ i, c i`, with `c i` extended by `1` off the `i`-th disc
-  let G (i : ι) (x : M) : Circle := if x ∈ range (φ i) then c i (B i x) else 1
+  let G (i : ι) (x : M) : Circle := if x ∈ range (φ i) then c i ((φ i).coord x) else 1
   have hGφ (i j : ι) (z : CoordinateDisc.ball) : G j (φ i z) = if j = i then c i z else 1 := by
     split_ifs with hji
     · subst hji
-      exact (ite_eq_left (mem_range_self z)).trans (congrArg _ (hψB j z).2)
+      exact (ite_eq_left (mem_range_self z)).trans (congrArg _ ((φ j).coord_apply z))
     · exact ite_eq_right fun h ↦ (hrdisj hji).ne_of_mem h (mem_range_self z) rfl
   let σout : ∀ x, Fiber ℂ F V ℂ x := fun x ↦ op (∏ i, G i x) • ν x
   have hσout : ContMDiffOn (𝓡 2) ((𝓡 2).prod (𝓡 1)) ∞
@@ -251,8 +247,8 @@ theorem exists_coordinateDisc_unitSection_eq_exp_arg_zpow_smul
       {x | s x ≠ 0} :=
     hν.totalSpaceMk_smul fun x hx ↦ (ContMDiffAt.prod fun i _ ↦
       contMDiffAt_ite_mem_range (φ i)
-        ((hBs i).mono (CoordinateDisc.range_ofChart_subset_source _ _ _ _))
-        (fun z ↦ (hψB i z).2) (hcs i) (hc1 i) fun h ↦
+        (CoordinateDisc.contMDiffOn_coord_ofChart (e i) (hr i) (hc i) (he i) (hatlas i))
+        (hcs i) (hc1 i) fun h ↦
           hx (by rw [h, hφ0 i]; exact i.property)).contMDiffWithinAt
   -- on the punctured unit disc, `σout = τ i • (z / ‖z‖) ^ k i`
   have hrel (i : ι) (z : CoordinateDisc.ball) (hz : 0 < ‖(z : ℂ)‖) (hz1 : ‖(z : ℂ)‖ < 1) :
@@ -260,7 +256,7 @@ theorem exists_coordinateDisc_unitSection_eq_exp_arg_zpow_smul
     have hprod : ∏ j, G j (φ i z) = c i z := by simp [hGφ]
     have hdiv : division Circle (τ i (φ i z)) (ν (φ i z)) = w i z := by
       simp only [w]
-      rw [(hψB i z).1]
+      rw [hψ i z]
     rw [← hck i z hz hz1.le, ← hdiv, ← hprod, op_mul, mul_smul, smul_division]
   refine ⟨ι, inferInstance, e, r, hr, hc, he, φ, fun i ↦ rfl, hatlas, hrdisj, k,
     fun i ↦ τ i, σout, fun i ↦ (hτ i).mono (hrU i),
@@ -270,7 +266,8 @@ theorem exists_coordinateDisc_unitSection_eq_exp_arg_zpow_smul
     zero_lt_one (fun i ↦ ManifoldTotalSpace.continuousOn_of_contMDiffOn_homeomorph
       ((hτ i).mono ((φ i).disc_subset_range.trans (hrU i))))
     (ManifoldTotalSpace.continuousOn_of_contMDiffOn_homeomorph
-      (hσout.mono fun x hx h ↦ hx ?_)) k hrel).symm
+      (hσout.mono fun x hx h ↦ hx ?_)) k fun i z hz hz1 ↦ by
+        rw [CoordinateDisc.phase_def, CoordinateDisc.coord_apply]; exact hrel i z hz hz1).symm
   exact mem_iUnion.2 ⟨⟨x, h⟩, 0, by simp, (hzero h).symm⟩
 
 end Surface

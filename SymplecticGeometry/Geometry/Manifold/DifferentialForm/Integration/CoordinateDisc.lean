@@ -34,10 +34,7 @@ to any orientation-preserving open embedding, so no comparison with the charts o
 `M` is needed.
 
 For a chart in the maximal `C^n` atlas, the formula of `φ` is `C^n` on the ball of radius `2`
-(`SymplecticGeometry.CoordinateDisc.contMDiffOn_symm_add_smul_orthonormalBasisOneI_repr`), and
-`φ` has the left inverse `x ↦ (r / 2)⁻¹ (re, im)⁻¹ (e x - c)`, which is `C^n` on the source of `e`
-(`SymplecticGeometry.CoordinateDisc.contMDiffOn_smul_orthonormalBasisOneI_repr_symm_sub`,
-`SymplecticGeometry.CoordinateDisc.smul_orthonormalBasisOneI_repr_symm_sub_ofChart`).
+(`SymplecticGeometry.CoordinateDisc.contMDiffOn_symm_add_smul_orthonormalBasisOneI_repr`).
 
 ## Main results
 
@@ -47,10 +44,8 @@ For a chart in the maximal `C^n` atlas, the formula of `φ` is `C^n` on the ball
   for a top form `f` supported in the image of `φ`.
 * `SymplecticGeometry.CoordinateDisc.integralTopForm_eq_of_mpullback_ofChart_eq`: a form that
   reads `k • d(β(‖z‖) dθ)` in the disc and vanishes outside it integrates to `2πk`.
-* `SymplecticGeometry.CoordinateDisc.contMDiffOn_symm_add_smul_orthonormalBasisOneI_repr`,
-  `SymplecticGeometry.CoordinateDisc.contMDiffOn_smul_orthonormalBasisOneI_repr_symm_sub`: the
-  coordinate disc of a smooth chart extends smoothly to the ball of radius `2`, with a smooth
-  left inverse on the source of the chart.
+* `SymplecticGeometry.CoordinateDisc.contMDiffOn_symm_add_smul_orthonormalBasisOneI_repr`: the
+  coordinate disc of a smooth chart extends smoothly to the ball of radius `2`.
 
 ## References
 
@@ -155,27 +150,6 @@ theorem contMDiffOn_symm_add_smul_orthonormalBasisOneI_repr {n : ℕ∞ω} [IsMa
     (contDiff_const.add (Complex.orthonormalBasisOneI.repr.contDiff.const_smul
       (r / 2))).contMDiff.contMDiffOn
     fun z hz ↦ hc (add_smul_orthonormalBasisOneI_repr_mem_ball c hr ⟨z, hz⟩)
-
-omit [T2Space M] [IsManifold (𝓡 2) 1 M] in
-/-- For a chart `e` of the maximal `C^n` atlas of `M`, the map
-`x ↦ (r / 2)⁻¹ (re, im)⁻¹ (e x - c)` from `M` to `ℂ` is `C^n` on the source of `e`. It is a left
-inverse of the coordinate disc `ofChart e hr hc he`
-(`smul_orthonormalBasisOneI_repr_symm_sub_ofChart`). -/
-theorem contMDiffOn_smul_orthonormalBasisOneI_repr_symm_sub {n : ℕ∞ω} [IsManifold (𝓡 2) n M]
-    (he' : e ∈ IsManifold.maximalAtlas (𝓡 2) n M) :
-    ContMDiffOn (𝓡 2) 𝓘(ℝ, ℂ) n
-      (fun x ↦ (r / 2)⁻¹ • Complex.orthonormalBasisOneI.repr.symm (e x - c)) e.source :=
-  ((Complex.orthonormalBasisOneI.repr.symm.contDiff.comp
-    (contDiff_id.sub contDiff_const)).const_smul (r / 2)⁻¹).contMDiff.comp_contMDiffOn
-    (contMDiffOn_of_mem_maximalAtlas he')
-
-/-- The map `x ↦ (r / 2)⁻¹ (re, im)⁻¹ (e x - c)` is a left inverse of the coordinate disc
-`ofChart e hr hc he`. -/
-theorem smul_orthonormalBasisOneI_repr_symm_sub_ofChart (z : ball) :
-    (r / 2)⁻¹ • Complex.orthonormalBasisOneI.repr.symm (e (ofChart e hr hc he z) - c) = z := by
-  rw [ofChart_apply, e.right_inv (hc (add_smul_orthonormalBasisOneI_repr_mem_ball c hr z)),
-    add_sub_cancel_left, LinearIsometryEquiv.map_smul, LinearIsometryEquiv.symm_apply_apply,
-    inv_smul_smul₀ (by positivity)]
 
 end CoordinateDisc
 
