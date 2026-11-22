@@ -31,7 +31,7 @@ namespace MeasureTheory
 
 variable {E E' G : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [MeasurableSpace E]
   [BorelSpace E] [NormedAddCommGroup E'] [NormedSpace ℝ E'] [FiniteDimensional ℝ E']
-  [MeasurableSpace E'] [BorelSpace E'] [NormedAddCommGroup G]
+  [MeasurableSpace E'] [BorelSpace E'] [TopologicalSpace G] [ContinuousENorm G]
 
 /-- **Linear change of variables in the `Lᵖ` seminorm, between two spaces.** For additive Haar
 measures `μ` on `E` and `ν` on `E'` and a continuous linear equivalence `e : E ≃L[ℝ] E'`, the
