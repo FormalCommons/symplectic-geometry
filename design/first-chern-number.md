@@ -702,6 +702,17 @@ issues, in an order where each issue's blockers come before it.
    it since the pin. If not, duality for closed oriented manifolds from that
    criterion is likely several issues, and is split into them when the issues
    are created. Done when the evenness theorem is proved.
+   The first of them brings from Tau Ceti's main branch, under Tau Ceti's
+   names and namespaces so that a move of Tau Ceti past them deletes the
+   files, the duality maps on open subsets, the two Mayer–Vietoris squares
+   and duality for disjoint and directed unions of open sets, in
+   `AlgebraicTopology/Cohomology/CompactSupport/Duality/{Basic,MayerVietoris,DirectedUnion}.lean`.
+   The lemmas they use from other Tau Ceti files of the main branch go in
+   files at those files' paths:
+   `AlgebraicTopology/Cohomology/CompactSupport/{Extension,MayerVietoris,DirectedUnion}.lean`,
+   `AlgebraicTopology/Singular/{DirectedUnion,MayerVietoris/Basic}.lean`,
+   `AlgebraicTopology/Singular/LocalHomology/Orientation/OpenEmbedding.lean`,
+   `Geometry/Manifold/Opens.lean` and `Topology/Sets/Opens.lean`.
 3. **The unit circle bundle of a Hermitian line bundle.**
    `Geometry/Manifold/VectorBundle/Hermitian/CircleBundle.lean`, the file
    of *Symplectic vector bundles* (its section *The circle bundle of a
