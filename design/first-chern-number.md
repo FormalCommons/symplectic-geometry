@@ -830,14 +830,20 @@ issues, in an order where each issue's blockers come before it.
    orientation (precomposition with conjugation), the constructor
    `CoordinateDisc.ofChart` from an orientation-preserving smooth chart of a
    smoothly oriented surface (through `o.toHomologicalOrientation`), and
-   `exists_coordinateDisc` (one centred at any point, and finitely many with
-   disjoint closed discs at distinct points). `CoordinateDisc.lean` imports
+   `exists_coordinateDisc` (one centred at any point) and
+   `exists_coordinateDisc_pairwise_disjoint` (finitely many at distinct
+   points, with disjoint images). `CoordinateDisc.lean` imports
    supporting files of this part, each beside the Mathlib or Tau Ceti
    file it adds to: `LinearAlgebra/Complex/Orientation.lean`,
    `AlgebraicTopology/Singular/LocalHomology/Orientation/Smooth.lean`, and
    `Geometry/Manifold/Complex/FundamentalClass.lean`, for the reversal of
    `TauCeti.complexHomologicalOrientation` by conjugation that
-   `CoordinateDisc.reverse` uses. Done when this API is proved.
+   `CoordinateDisc.reverse` uses, and
+   `AlgebraicTopology/Singular/LocalHomology/ChangeOfModel.lean`, beside
+   Tau Ceti's `System.lean`, for `exists_coordinateDisc`: local homology
+   transport does not depend on the model, so a homological orientation
+   can be read with the model `ℂ`
+   (`TauCeti.HomologicalOrientation.changeModel`). Done when this API is proved.
 6. **Argument principle for discs.**
    `AlgebraicTopology/Singular/LocalHomology/ArgumentPrinciple.lean`:
    `SymplecticGeometry.sum_degree_boundary_eq_zero`. Let `φ i`, `i : ι`
