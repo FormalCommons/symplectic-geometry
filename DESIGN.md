@@ -1974,8 +1974,9 @@ has either; Tau Ceti's extension across a boundary,
   extended to a linear equivalence),
   `Geometry/Manifold/DifferentialForm/Pullback/LocalDiffeomorph.lean` (pull-back
   along the local inverse of a local diffeomorphism),
-  `Geometry/Manifold/LocalDiffeomorph/LocalInverse.lean` (a local
-  diffeomorphism on the target of its local inverse) and
+  `Geometry/Manifold/LocalDiffeomorph/Basic.lean` (a local
+  diffeomorphism on the target of its local inverse, shared with *Smooth
+  families*) and
   `Topology/Maps/Embedding.lean` (an inducing map cut out by a chart).
   The symplectic normal bundle of a symplectic submanifold is Tau Ceti's
   normal bundle with `TauCeti.SmoothEmbedding.symplecticNormalForm`; the
