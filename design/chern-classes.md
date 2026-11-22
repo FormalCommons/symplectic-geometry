@@ -390,6 +390,19 @@ submodule onto its image, the continuous form of Mathlib's
 `Submodule.equivMapOfInjective`. The path is that of Mathlib's file with
 `ContinuousLinearEquiv.ofSubmodules`.
 
+### `Analysis/LocallyConvex/SeparatingDual.lean`
+
+`SeparatingDual.of_injective`: a topological module with an injective
+continuous linear map into one with separating dual has separating dual.
+
+### `Topology/VectorBundle/SeparatingDual.lean`
+
+`VectorBundle.separatingDual`: for `b : B`, the fibre `E b` of a vector
+bundle with model `F` has separating dual when `F` has, through the
+trivialization at `b`. With Tau Ceti's `VectorBundle.isTopologicalAddGroup`
+and `VectorBundle.continuousSMul`, it gives the fibres `E b` the instances
+that `Projectivization.Tautological 𝕜 (E b)` needs.
+
 ### `Topology/VectorBundle/ProjectiveBundle/Tautological.lean`
 
 - `Projectivization.Tautological 𝕜 V : ℙ 𝕜 V → Type`, `ℓ ↦ ℓ.submodule`, the

@@ -36,6 +36,7 @@ lift gives the smoothness of polar coordinates and, by the chain rule, their der
 * `AddCircle.mfderiv_ofReal_mul_toCircle_apply`: the derivative of polar coordinates.
 * `AddCircle.not_isInvertible_mfderiv_ofReal_mul_toCircle_zero`: that derivative is not invertible
   at the radius `0`.
+* `AddCircle.contMDiff_toCircle`: the map `toCircle : AddCircle p → ℂ` is smooth.
 -/
 
 public section
@@ -159,5 +160,17 @@ theorem isLocalDiffeomorphAt_ofReal_mul_toCircle {θ : AddCircle p} {r : ℝ} (h
   · rw [mfderiv_eq_fderiv]
     exact injective_fderiv_polarLift hr
   · simp [finrank_real_complex]
+
+/-- The map `AddCircle p → ℂ`, `[t] ↦ exp (2π i t / p)`, given by `AddCircle.toCircle`, is smooth
+of every order. -/
+theorem contMDiff_toCircle (r : ℕ∞ω) :
+    ContMDiff 𝓘(ℝ) 𝓘(ℝ, ℂ) r fun x : AddCircle p ↦ (toCircle x : ℂ) := by
+  rw [← (isLocalDiffeomorph_coe p r).contMDiff_comp_iff QuotientAddGroup.mk_surjective le_rfl]
+  have h : (fun x : AddCircle p ↦ (toCircle x : ℂ)) ∘ ((↑) : ℝ → AddCircle p) =
+      fun t ↦ Complex.exp (((2 * π / p * t : ℝ) : ℂ) * Complex.I) :=
+    funext fun t ↦ by rw [comp_apply, toCircle_apply_mk, Circle.coe_exp]
+  rw [h]
+  exact ContDiff.contMDiff (Complex.contDiff_exp.comp
+    ((Complex.ofRealCLM.contDiff.comp (contDiff_const.mul contDiff_id)).mul contDiff_const))
 
 end AddCircle
