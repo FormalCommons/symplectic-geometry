@@ -47,7 +47,7 @@ public section
 
 noncomputable section
 
-open CategoryTheory TauCeti AlgebraicTopology Module Set Topology TopologicalSpace
+open TauCeti Module
 
 universe w
 
