@@ -98,7 +98,7 @@ section EulerClass
 variable [∀ b, AddCommMonoid (E b)] [∀ b, Module ℝ (E b)] [VectorBundle ℝ F E]
 
 /-- **The Euler class commutes with a change of chain coefficients.** -/
-@[reassoc]
+@[reassoc, elementwise]
 theorem eulerClass_comp_singularCohomologyChainCoefficientMap {R R' : C} (k : Type*) [Ring k]
     [Linear k C] (M : C) (f : R' ⟶ R) (n : ℕ) :
     eulerClass R k M F E n ≫ (TopCat.of B).singularCohomologyChainCoefficientMap k M f n =
@@ -108,7 +108,7 @@ theorem eulerClass_comp_singularCohomologyChainCoefficientMap {R R' : C} (k : Ty
     TopPair.singularCohomologyπ_singularCohomologyChainCoefficientMap_assoc]
 
 /-- **The Euler class commutes with a change of cochain values.** -/
-@[reassoc]
+@[reassoc, elementwise]
 theorem eulerClass_comp_singularCohomologyValueMap (R : C) (k : Type*) [Ring k] [Linear k C]
     {M M' : C} (g : M ⟶ M') (n : ℕ) :
     eulerClass R k M F E n ≫ (TopCat.of B).singularCohomologyValueMap R k g n =

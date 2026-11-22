@@ -244,8 +244,7 @@ theorem exists_compatible_symplecticChernNumber_eq_chernNumber [Nonempty M]
   obtain ⟨Θ, -⟩ := h x₀
   have : Fact (finrank ℝ F = 2 * finrank ℂ (κ → ℂ)) := by
     refine ⟨?_⟩
-    rw [← ((trivializationAt F V x₀).continuousLinearEquivAt ℝ x₀
-        (FiberBundle.mem_baseSet_trivializationAt' x₀)).toLinearEquiv.finrank_eq,
+    rw [← (VectorBundle.continuousLinearEquivAt ℝ F V x₀).toLinearEquiv.finrank_eq,
       ← Θ.toLinearEquiv.finrank_eq, finrank_euclideanSpace, Fintype.card_sum,
       Module.finrank_fintype_fun_eq_card]
     ring

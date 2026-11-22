@@ -534,9 +534,10 @@ complexification:
 
 - `TauCeti.SmoothForm.complexHodgeLaplacian o hkl` and
   `TauCeti.SmoothForm.complexHodgeStar o hkl`, ℂ-linear maps of
-  `SmoothForm I M ℂ k`, acting on real and imaginary parts
-  (`mapCoeff_reCLM_complexHodgeLaplacian`, `mapCoeff_imCLM_…`, and the same
-  for the star).
+  `SmoothForm I M ℂ k`, defined as `TauCeti.SmoothForm.complexifyₗ` of the
+  real operators, so that they act on real and imaginary parts by the
+  lemmas of `complexifyₗ` (`mapCoeff_reCLM_complexifyₗ`,
+  `mapCoeff_imCLM_complexifyₗ`).
 - `TauCeti.complexHarmonicForms o hkl : Submodule ℂ (SmoothForm I M ℂ k)`,
   the forms whose real and imaginary parts are harmonic, with
   `mem_complexHarmonicForms_iff` (the kernel of `complexHodgeLaplacian`),
