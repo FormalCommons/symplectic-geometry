@@ -5,7 +5,6 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import Mathlib.Analysis.Calculus.MeanValue
 public import Mathlib.Geometry.Manifold.ContMDiff.Constructions
 public import Mathlib.Geometry.Manifold.Instances.Real
 public import TauCeti.Geometry.Manifold.SmoothIsotopy.Basic
@@ -13,6 +12,8 @@ import Mathlib.Topology.MetricSpace.Thickening
 import TauCeti.Geometry.Manifold.Immersion.Differential
 import TauCeti.Geometry.Manifold.Immersion.Family
 import TauCeti.Geometry.Manifold.Immersion.LocalDiffeomorph
+import TauCeti.Geometry.Manifold.MFDeriv.LocalInjectivity
+import TauCeti.Geometry.Manifold.MFDeriv.Prod
 
 /-!
 # Embeddings near a compact set
@@ -23,16 +24,12 @@ without boundary. Suppose that for every parameter `q` of a compact set `T`, the
 of `K`. Then there are an open `U ⊇ T` and an open `V ⊇ K` such that every slice with parameter
 in `U` is a smooth embedding of `V`.
 
-The proof first shows that the slices near a point `(q₀, x₀)` at which the slice at `q₀` has
-injective differential are injective on one neighbourhood of `x₀`, for all `q` near `q₀`. In the
-charts at `x₀` and at `G (q₀, x₀)`, the partial derivatives in the space variable are close to
-the one at `(q₀, x₀)`, which is injective. By the mean value inequality each slice differs from
-that derivative by a map of small Lipschitz constant on a ball, so it is injective there
-(`AntilipschitzWith.add_sub_lipschitzWith`). Only the derivative in the space variable is used,
-so the parameter manifold may have boundary, as `unitInterval` does. Then the map
-`(q, x) ↦ (q, G (q, x))` is injective on `T ×ˢ K` and locally injective there, so it is injective
-near `T ×ˢ K`
-(`Set.InjOn.exists_isOpen_superset`), and injective differentials persist near `T ×ˢ K`
+The proof works with the map `(q, x) ↦ (q, G (q, x))`. Its differential at `(q, x)` is injective
+when that of the slice at `q` is (Tau Ceti's `MDifferentiableAt.injective_mfderiv_fst_prod_iff`),
+so it is locally injective near `T ×ˢ K` (Tau Ceti's `ContMDiffAt.exists_mem_nhds_injOn`, which
+allows the boundary of a parameter manifold such as `unitInterval`). Being injective on
+`T ×ˢ K`, it is injective near `T ×ˢ K` (`Set.InjOn.exists_isOpen_superset`). Injective
+differentials of the slices persist near `T ×ˢ K`
 (Tau Ceti's `ContMDiffAt.eventually_injective_mfderiv`). The tube lemma makes these
 neighbourhoods products. On an open `V ⊇ K` with compact closure inside them, every slice is an
 injective immersion that extends injectively to the compact closure of `V`, hence a topological
@@ -40,11 +37,9 @@ embedding of `V`.
 
 ## Main results
 
-* `ContMDiffAt.exists_mem_nhds_injOn_of_injective_mfderiv`: in a `C¹` family whose slice at `q₀`
-  has injective differential at `x₀`, the slices near `q₀` are injective on one neighbourhood
-  of `x₀`.
 * `TauCeti.exists_isOpen_superset_forall_isSmoothEmbedding_of_injOn`: the slices with parameters
-  near a compact set `T` are smooth embeddings near `K`, for any parameter manifold.
+  near a compact set `T` are smooth embeddings near `K`, for any finite-dimensional parameter
+  manifold.
 * `TauCeti.exists_isOpen_forall_isSmoothEmbedding_of_injOn`: the case of `unitInterval`, where the
   slices at all times are smooth embeddings of one open `V ⊇ K`.
 * `TauCeti.exists_pos_forall_isSmoothEmbedding_of_injOn`: for a family over `ℝ` whose slices at
@@ -52,8 +47,8 @@ embedding of `V`.
   smooth embeddings of one open `V ⊇ K`, for some `δ > 0`.
 * `TauCeti.exists_isOpen_isSmoothEmbedding_of_injOn`: a smooth map, injective on a compact set
   with injective differential there, is a smooth embedding of an open neighbourhood of it.
-* `TauCeti.SmoothIsotopy.ofForallIsSmoothEmbedding`: a family over `unitInterval`, smooth on
-  `unitInterval × V` with embedding slices, as a smooth isotopy of `V`.
+* `TauCeti.SmoothIsotopy.ofForallIsSmoothEmbedding`: a family over `unitInterval`, `Cⁿ` on
+  `unitInterval × V` with `Cⁿ` embedding slices, as an isotopy of `V`.
 
 ## References
 
@@ -79,88 +74,6 @@ variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
   {HQ : Type*} [TopologicalSpace HQ] {IQ : ModelWithCorners ℝ EQ HQ}
   {Q : Type*} [TopologicalSpace Q] [ChartedSpace HQ Q]
 
-/-- **Uniform local injectivity in a family.** Let `G : Q × P → M` be `C¹` at `(q₀, x₀)`, with `P`
-boundaryless and finite-dimensional, and let the slice `x ↦ G (q₀, x)` have injective differential
-at `x₀`. Then there are neighbourhoods `U` of `q₀` and `V` of `x₀` such that the slice
-`x ↦ G (q, x)` is injective on `V` for every `q ∈ U`. The parameter manifold `Q` may have
-boundary. -/
-theorem ContMDiffAt.exists_mem_nhds_injOn_of_injective_mfderiv [J.Boundaryless]
-    [FiniteDimensional ℝ E'] {G : Q × P → M} {q₀ : Q} {x₀ : P} {n : ℕ∞ω}
-    (hG : ContMDiffAt (IQ.prod J) I n G (q₀, x₀)) (hn : 1 ≤ n)
-    (hinj : Injective (mfderiv J I (fun x ↦ G (q₀, x)) x₀)) :
-    ∃ U ∈ 𝓝 q₀, ∃ V ∈ 𝓝 x₀, ∀ q ∈ U, InjOn (fun x ↦ G (q, x)) V := by
-  set χ := extChartAt IQ q₀
-  set φ := extChartAt J x₀
-  set ψ := extChartAt I (G (q₀, x₀))
-  -- `G` read in the charts at `q₀`, `x₀` and `G (q₀, x₀)`.
-  set g : EQ × E' → E := fun p ↦ ψ (G (χ.symm p.1, φ.symm p.2)) with hg_def
-  set S : Set (EQ × E') := range IQ ×ˢ univ
-  set z₀ : EQ × E' := (χ q₀, φ x₀)
-  have hz₀ : z₀ ∈ S := ⟨mem_range_self _, mem_univ _⟩
-  have hg : ContDiffWithinAt ℝ 1 g S z₀ := by
-    have h := (contMDiffAt_iff.1 (hG.of_le hn)).2
-    rw [extChartAt_prod, PartialEquiv.prod_coe_symm, ModelWithCorners.range_prod,
-      J.range_eq_univ] at h
-    exact h
-  -- Partial derivatives in the space variable, continuous at `z₀` within `S`.
-  obtain ⟨v, hv, -, f', hf', hf'c⟩ := ContDiffWithinAt.hasFDerivWithinAt_nhds (n := 0)
-    (f := fun (z : EQ × E') (w : E') ↦ g (z.1, w)) (g := Prod.snd) (t := univ) (by simp)
-    (by
-      rw [insert_eq_of_mem hz₀, zero_add]
-      exact ContDiffWithinAt.comp (g := g) (f := fun z : (EQ × E') × E' ↦ (z.1.1, z.2))
-        (t := S) (s := S ×ˢ univ) (z₀, z₀.2) hg
-        ((contDiff_fst.comp contDiff_fst).prodMk contDiff_snd).contDiffWithinAt
-        fun z hz ↦ ⟨hz.1.1, mem_univ _⟩)
-    contDiff_snd.contDiffWithinAt univ_mem
-  rw [insert_eq_of_mem hz₀] at hv
-  set D₀ := f' z₀
-  -- `D₀` is the differential of the slice at `q₀`, read in charts.
-  have hD₀ : HasFDerivAt (writtenInExtChartAt J I x₀ fun x ↦ G (q₀, x)) D₀ (φ x₀) := by
-    have h := hasFDerivWithinAt_univ.1 (hf' z₀ (mem_of_mem_nhdsWithin hz₀ hv))
-    have heq : (fun w ↦ g (z₀.1, w)) = writtenInExtChartAt J I x₀ fun x ↦ G (q₀, x) := by
-      ext w
-      simp [hg_def, z₀, χ, φ, ψ, writtenInExtChartAt]
-    rwa [heq] at h
-  have hinjD : Injective D₀ := by
-    have hmd : MDifferentiableAt J I (fun x ↦ G (q₀, x)) x₀ :=
-      ((hG.of_le hn).comp x₀ (contMDiffAt_const.prodMk contMDiffAt_id)).mdifferentiableAt
-        one_ne_zero
-    rw [hmd.mfderiv, J.range_eq_univ, fderivWithin_univ, hD₀.fderiv] at hinj
-    simpa only [ContinuousLinearMap.coe_comp, ContinuousLinearEquiv.coe_coe,
-      EquivLike.comp_injective, EquivLike.injective_comp] using hinj
-  obtain ⟨K, hK, hKD⟩ := (LinearMap.injective_iff_antilipschitz (D₀ : E' →ₗ[ℝ] E)).1 hinjD
-  obtain ⟨ε, hε, hεK⟩ := exists_between (inv_pos.2 hK)
-  -- Near `z₀`, the partial derivatives stay within `ε` of `D₀`.
-  have hnear : ∀ᶠ z in 𝓝[S] z₀, z ∈ v ∧ ‖f' z - D₀‖₊ ≤ ε := by
-    filter_upwards [hv, hf'c.continuousWithinAt.tendsto.eventually
-      (Metric.closedBall_mem_nhds D₀ (NNReal.coe_pos.2 hε))] with z hz hz'
-    refine ⟨hz, ?_⟩
-    rw [← NNReal.coe_le_coe, coe_nnNorm]
-    simpa [dist_eq_norm] using hz'
-  rw [nhdsWithin_prod_eq, nhdsWithin_univ] at hnear
-  obtain ⟨A, hA, B, hB, hAB⟩ := mem_prod_iff.1 hnear
-  obtain ⟨r, hr, hrB⟩ := Metric.mem_nhds_iff.1 hB
-  have hAq : χ ⁻¹' A ∈ 𝓝 q₀ := by
-    rw [← map_extChartAt_nhds] at hA
-    exact hA
-  refine ⟨χ ⁻¹' A ∩ χ.source, inter_mem hAq (extChartAt_source_mem_nhds q₀),
-    φ.source ∩ φ ⁻¹' Metric.ball (φ x₀) r, inter_mem (extChartAt_source_mem_nhds x₀)
-      ((continuousAt_extChartAt x₀).preimage_mem_nhds (Metric.ball_mem_nhds _ hr)), ?_⟩
-  rintro q ⟨hqA, hq⟩ x ⟨hx, hxr⟩ y ⟨hy, hyr⟩ (hxy : G (q, x) = G (q, y))
-  have hgq : ∀ x ∈ φ.source, g (χ q, φ x) = ψ (G (q, x)) := fun x hx ↦ by
-    simp only [hg_def, χ.left_inv hq, φ.left_inv hx]
-  -- On the ball, the slice at `q` read in charts differs from `D₀` by an `ε`-Lipschitz map, so it
-  -- is injective there.
-  have hlip := (convex_ball (φ x₀) r).lipschitzOnWith_of_nnNorm_hasFDerivWithin_le
-    (f := fun w ↦ g (χ q, w) - D₀ w) (f' := fun w ↦ f' (χ q, w) - D₀) (C := ε)
-    (fun w hw ↦ ((hasFDerivWithinAt_univ.1 (hf' (χ q, w)
-      (hAB (mk_mem_prod hqA (hrB hw))).1)).sub D₀.hasFDerivAt).hasFDerivWithinAt)
-    fun w hw ↦ (hAB (mk_mem_prod hqA (hrB hw))).2
-  have hinjq : InjOn (fun w ↦ g (χ q, w)) (Metric.ball (φ x₀) r) :=
-    injOn_iff_injective.2
-      ((hKD.domRestrict _).add_sub_lipschitzWith hlip.to_restrict hεK).injective
-  exact φ.injOn hx hy (hinjq hxr hyr (by simp only [hgq x hx, hgq y hy, hxy]))
-
 namespace TauCeti
 
 section
@@ -173,8 +86,8 @@ variable [FiniteDimensional ℝ E] [FiniteDimensional ℝ E'] [I.Boundaryless] [
 `x ↦ G (q, x)` with `q ∈ T` be injective on `K` with injective differential at each point of `K`.
 Then there are open sets `U ⊇ T` and `V ⊇ K`, with `U ×ˢ V ⊆ W`, such that each slice with
 `q ∈ U` is a smooth embedding of `V`. -/
-theorem exists_isOpen_superset_forall_isSmoothEmbedding_of_injOn [IsManifold IQ ∞ Q]
-    [T2Space Q] {G : Q × P → M} {W : Set (Q × P)} (hW : IsOpen W)
+theorem exists_isOpen_superset_forall_isSmoothEmbedding_of_injOn [FiniteDimensional ℝ EQ]
+    [IsManifold IQ ∞ Q] [T2Space Q] {G : Q × P → M} {W : Set (Q × P)} (hW : IsOpen W)
     (hG : ContMDiffOn (IQ.prod J) I ∞ G W) {T : Set Q} (hT : IsCompact T) {K : Set P}
     (hK : IsCompact K) (hTK : T ×ˢ K ⊆ W) (hinj : ∀ q ∈ T, InjOn (fun x ↦ G (q, x)) K)
     (himm : ∀ q ∈ T, ∀ x ∈ K, Injective (mfderiv J I (fun x ↦ G (q, x)) x)) :
@@ -192,10 +105,9 @@ theorem exists_isOpen_superset_forall_isSmoothEmbedding_of_injOn [IsManifold IQ 
   obtain ⟨W₁, hW₁o, hTKW₁, hW₁⟩ := Set.InjOn.exists_isOpen_superset
     (htrack (s := T ×ˢ K) fun q x hx y hy ↦ hinj q hx.1 hx.2 hy.2) (hT.prod hK)
     (fun p hp ↦ continuousAt_fst.prodMk (hGat p (hTK hp)).continuousAt) fun p hp ↦ by
-      obtain ⟨U, hU, V, hV, h⟩ := (hGat p (hTK hp)).exists_mem_nhds_injOn_of_injective_mfderiv
-        (by simp) (himm p.1 hp.1 p.2 hp.2)
-      exact ⟨U ×ˢ V, prod_mem_nhds hU hV,
-        htrack (s := U ×ˢ V) fun q x hx y hy ↦ h q hx.1 hx.2 hy.2⟩
+      have h := hGat p (hTK hp)
+      exact (contMDiffAt_fst.prodMk h).exists_mem_nhds_injOn (by simp)
+        ((h.mdifferentiableAt (by simp)).injective_mfderiv_fst_prod_iff.2 (himm p.1 hp.1 p.2 hp.2))
   -- Injective differentials persist near `T ×ˢ K`.
   have hdiff : ∀ᶠ p in 𝓝ˢ (T ×ˢ K), Injective (mfderiv J I (fun x ↦ G (p.1, x)) p.2) :=
     eventually_nhdsSet_iff_forall.2 fun p hp ↦
@@ -284,12 +196,13 @@ end
 namespace SmoothIsotopy
 
 /-- The smooth isotopy of an open `V ⊆ P` given by a family `G : unitInterval × P → M` that is
-smooth on `unitInterval × V` and whose slices are smooth embeddings of `V`, from the slice `f₀`
+`Cⁿ` on `unitInterval × V` and whose slices are `Cⁿ` embeddings of `V`, from the slice `f₀`
 at time `0` to the slice `f₁` at time `1`. -/
-def ofForallIsSmoothEmbedding {V : TopologicalSpace.Opens P} {G : unitInterval × P → M}
-    (hG : ContMDiffOn ((𝓡∂ 1).prod J) I ∞ G (univ ×ˢ (V : Set P)))
-    (hemb : ∀ t, Manifold.IsSmoothEmbedding J I ∞ (fun x : V ↦ G (t, x)))
-    {f₀ f₁ : C^∞⟮J, V; I, M⟯} (h₀ : ∀ x : V, G (0, x) = f₀ x) (h₁ : ∀ x : V, G (1, x) = f₁ x) :
+def ofForallIsSmoothEmbedding {n : WithTop ℕ∞} {V : TopologicalSpace.Opens P}
+    {G : unitInterval × P → M}
+    (hG : ContMDiffOn ((𝓡∂ 1).prod J) I n G (univ ×ˢ (V : Set P)))
+    (hemb : ∀ t, Manifold.IsSmoothEmbedding J I n (fun x : V ↦ G (t, x)))
+    {f₀ f₁ : C^n⟮J, V; I, M⟯} (h₀ : ∀ x : V, G (0, x) = f₀ x) (h₁ : ∀ x : V, G (1, x) = f₁ x) :
     SmoothIsotopy f₀ f₁ where
   toContMDiffMap := ⟨fun p ↦ G (p.1, p.2),
     hG.comp_contMDiff (contMDiff_fst.prodMk (contMDiff_subtypeVal.comp contMDiff_snd))
@@ -299,10 +212,10 @@ def ofForallIsSmoothEmbedding {V : TopologicalSpace.Opens P} {G : unitInterval �
   isSmoothEmbedding := hemb
 
 @[simp]
-theorem ofForallIsSmoothEmbedding_apply {V : TopologicalSpace.Opens P}
-    {G : unitInterval × P → M} (hG : ContMDiffOn ((𝓡∂ 1).prod J) I ∞ G (univ ×ˢ (V : Set P)))
-    (hemb : ∀ t, Manifold.IsSmoothEmbedding J I ∞ (fun x : V ↦ G (t, x)))
-    {f₀ f₁ : C^∞⟮J, V; I, M⟯} (h₀ : ∀ x : V, G (0, x) = f₀ x) (h₁ : ∀ x : V, G (1, x) = f₁ x)
+theorem ofForallIsSmoothEmbedding_apply {n : WithTop ℕ∞} {V : TopologicalSpace.Opens P}
+    {G : unitInterval × P → M} (hG : ContMDiffOn ((𝓡∂ 1).prod J) I n G (univ ×ˢ (V : Set P)))
+    (hemb : ∀ t, Manifold.IsSmoothEmbedding J I n (fun x : V ↦ G (t, x)))
+    {f₀ f₁ : C^n⟮J, V; I, M⟯} (h₀ : ∀ x : V, G (0, x) = f₀ x) (h₁ : ∀ x : V, G (1, x) = f₁ x)
     (p : unitInterval × V) : ofForallIsSmoothEmbedding hG hemb h₀ h₁ p = G (p.1, p.2) :=
   (rfl)
 
