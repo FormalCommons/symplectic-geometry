@@ -133,7 +133,7 @@ theorem curryLeft_alternatingFormEquiv_kahlerForm (u : V) :
     (alternatingFormEquiv V 2 J.kahlerForm).curryLeft u =
       ofSubsingleton ℝ V ℝ (0 : Fin 1) (innerSL ℝ (J u)) := by
   ext v
-  have hv : v = ![v 0] := by ext i; fin_cases i; rfl
+  have hv : v = ![v 0] := (FinVec.etaExpand_eq _).symm
   rw [hv]
   simp [alternatingFormEquiv_apply, ← inner_kahlerForm_ιMulti hJ]
 
@@ -196,7 +196,7 @@ theorem curryLeft_lefschetz_fin_zero (u : V) (β : V [⋀^Fin 0]→L[ℝ] ℝ) :
   rw [lefschetz_fin_zero, curryLeft_smul, _root_.smul_apply,
     curryLeft_alternatingFormEquiv_kahlerForm hJ u]
   ext v
-  have hv : v = ![v 0] := by ext i; fin_cases i; rfl
+  have hv : v = ![v 0] := (FinVec.etaExpand_eq _).symm
   rw [hv, ContinuousAlternatingMap.neg_apply, fderivCompContinuousLinearMap_apply_vecCons_fin_one]
   simp [alternatizeUncurryFin_apply, hA, mul_comm]
 

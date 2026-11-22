@@ -350,7 +350,7 @@ private theorem IsStrongFilling.mpullback_interiorₗ_eq_of_eq_collar
         (-fillingContactForm σ ⟨Y, h.isOutwardPointingField.contMDiff⟩).symplectization.val p := by
   rintro ⟨t, x⟩ ⟨ht, -⟩
   ext v
-  obtain ⟨w, rfl⟩ : ∃ w, v = ![w] := ⟨v 0, by ext i; fin_cases i; rfl⟩
+  obtain ⟨w, rfl⟩ : ∃ w, v = ![w] := ⟨v 0, (FinVec.etaExpand_eq _).symm⟩
   rw [h.mpullback_interiorₗ_apply_of_eq_collar hε hΦY hc hcU ht x w,
     SmoothForm.symplectization_apply, NegMemClass.coe_neg, coe_fillingContactForm,
     SmoothTwoForm.coe_interiorₗ]
@@ -387,7 +387,7 @@ theorem IsStrongFilling.exists_liouvilleCollar [CompactSpace ((𝓡∂ (n + 1)).
   have hβα := h.mpullback_interiorₗ_eq_of_eq_collar hε hΦY hc hcU
   refine ⟨ε, Φ, c, hε, hΦ0, hΦY, hc, hcU, fun p hp ↦ ?_, fun p hp ↦ ?_⟩
   · ext v
-    obtain ⟨w, rfl⟩ : ∃ w, v = ![w] := ⟨v 0, by ext i; fin_cases i; rfl⟩
+    obtain ⟨w, rfl⟩ : ∃ w, v = ![w] := ⟨v 0, (FinVec.etaExpand_eq _).symm⟩
     have hw := congrArg (fun φ ↦ φ ![w]) (hβα p hp)
     simp only [SmoothForm.symplectization_apply, NegMemClass.coe_neg] at hw ⊢
     simp only [mpullback_apply, Pi.neg_apply, ContinuousAlternatingMap.neg_apply] at hw ⊢

@@ -32,9 +32,20 @@ cohomology ring of `ℙ ℂ V` is `ℤ[X] ⧸ (X ^ (n + 1))`, with `X` going to 
   isomorphisms `Projectivization.tautologicalMapEquiv`, so this is the naturality of the Euler
   class, `TauCeti.complexEulerClass_eq_singularCohomologyMap_of_fiberwise`, together with that of
   `TopCat.uliftIntegralCohomologyIso`.
-* `Projectivization.isZero_integralCohomology_of_lt`: `Hᵐ(ℙ ℂ V; ℤ) = 0` for `m > 2n`.
+* `Projectivization.complexProjectiveSpaceHomeomorph`: `ℙ ℂ V` is homeomorphic to Tau Ceti's
+  `ℂPⁿ`.
+* `Projectivization.isZero_integralCohomology_of_lt` and
+  `Projectivization.isZero_integralCohomology_of_odd`: `Hᵐ(ℙ ℂ V; ℤ) = 0` for `m > 2n` and for odd
+  `m`.
+* `Projectivization.projective_singularHomology`: the singular homology of `ℙ ℂ V` is projective
+  in every degree, as the Leray–Hirsch theorem asks of a fibre.
 * `Projectivization.bijective_zsmul_hyperplaneClass_pow`: for `k ≤ n`, `m ↦ m • h ^ k` is a
   bijection `ℤ → H^{2k}(ℙ ℂ V; ℤ)`.
+* `Projectivization.bijective_zsmul_hyperplaneClass` and
+  `Projectivization.exists_eq_zsmul_hyperplaneClass`: in degree two, `m ↦ m • h` is a bijection
+  `ℤ → H²(ℙ ℂ V; ℤ)` for `n ≥ 1`, and for every `n` each class of `H²(ℙ ℂ V; ℤ)` is a multiple
+  of `h`.
+* `Projectivization.free_integralCohomology`: `Hᵐ(ℙ ℂ V; ℤ)` is a free `ℤ`-module for every `m`.
 * `Projectivization.hyperplaneClass_pow_eq_zero`: `h ^ (n + 1) = 0`.
 * `Projectivization.aeval_hyperplaneClass_eq_zero_iff` and
   `Projectivization.surjective_aeval_hyperplaneClass`: a polynomial `p ∈ ℤ[X]` has `p(h) = 0`
@@ -119,16 +130,45 @@ open CategoryTheory Limits Polynomial
 
 variable {V : Type} [NormedAddCommGroup V] [NormedSpace ℂ V] {n : ℕ}
 
+/-- A complex projective space `ℙ ℂ V` with `finrank ℂ V = n + 1` is homeomorphic to Tau Ceti's
+`ℂPⁿ`, through Tau Ceti's `ComplexProjectiveSpace.homeomorphProjectivization` and a linear
+equivalence `(Fin (n + 1) → ℂ) ≃ V`. -/
+def complexProjectiveSpaceHomeomorph (hV : finrank ℂ V = n + 1) :
+    ComplexProjectiveSpace n ≃ₜ ℙ ℂ V :=
+  have : FiniteDimensional ℂ V := Module.finite_of_finrank_eq_succ hV
+  (ComplexProjectiveSpace.homeomorphProjectivization n).trans
+    (ContinuousLinearEquiv.ofFinrankEq (E := Fin (n + 1) → ℂ) (F := V)
+      (by rw [finrank_fin_fun, hV])).mapProjectivization
+
 /-- The integral cohomology of `ℙ ℂ V`, for `finrank ℂ V = n + 1`, vanishes above degree `2n`. -/
 theorem isZero_integralCohomology_of_lt (hV : finrank ℂ V = n + 1) {m : ℕ} (hm : 2 * n < m) :
-    IsZero ((TopCat.of (ℙ ℂ V)).integralCohomology m) := by
-  have : FiniteDimensional ℂ V := Module.finite_of_finrank_eq_succ hV
-  let e : ComplexProjectiveSpace n ≃ₜ ℙ ℂ V :=
-    (ComplexProjectiveSpace.homeomorphProjectivization n).trans
-      (ContinuousLinearEquiv.ofFinrankEq (E := Fin (n + 1) → ℂ) (F := V)
-        (by rw [finrank_fin_fun, hV])).mapProjectivization
-  exact (ComplexProjectiveSpace.isZero_singularCohomology_of_lt _ _ hm).of_iso
-    ((singularCohomologyFunctor _ ℤ _ m).mapIso (TopCat.isoOfHomeo e).op)
+    IsZero ((TopCat.of (ℙ ℂ V)).integralCohomology m) :=
+  (ComplexProjectiveSpace.isZero_singularCohomology_of_lt _ _ hm).of_iso
+    ((singularCohomologyFunctor _ ℤ _ m).mapIso
+      (TopCat.isoOfHomeo (complexProjectiveSpaceHomeomorph hV)).op)
+
+/-- The integral cohomology of `ℙ ℂ V`, for `finrank ℂ V = n + 1`, vanishes in odd degrees. -/
+theorem isZero_integralCohomology_of_odd (hV : finrank ℂ V = n + 1) {m : ℕ} (hm : Odd m) :
+    IsZero ((TopCat.of (ℙ ℂ V)).integralCohomology m) :=
+  (ComplexProjectiveSpace.isZero_singularCohomology_of_odd _ _ hm).of_iso
+    ((singularCohomologyFunctor _ ℤ _ m).mapIso
+      (TopCat.isoOfHomeo (complexProjectiveSpaceHomeomorph hV)).op)
+
+section Homology
+
+open AlgebraicTopology
+
+variable {k : Type} [CommRing k] (R : ModuleCat.{0} k)
+
+/-- The singular homology of `ℙ ℂ V`, for `finrank ℂ V = n + 1`, is projective in every degree,
+with projective coefficients `R`. -/
+theorem projective_singularHomology (hV : finrank ℂ V = n + 1) [Module.Projective k R] (m : ℕ) :
+    Projective (((singularHomologyFunctor (ModuleCat.{0} k) m).obj R).obj (TopCat.of (ℙ ℂ V))) :=
+  Projective.of_iso (((singularHomologyFunctor _ m).obj R).mapIso
+    (TopCat.isoOfHomeo (X := TopCat.of (ComplexProjectiveSpace n)) (Y := TopCat.of (ℙ ℂ V))
+      (complexProjectiveSpaceHomeomorph hV))) inferInstance
+
+end Homology
 
 /-- The integral cohomology of the nonzero vectors of the tautological line of `ℙ ℂ V`, for
 `finrank ℂ V = n + 1`, vanishes in the degrees `m ≠ 0` with `m + 1 ≠ 2n + 2`. -/
@@ -171,10 +211,43 @@ theorem bijective_zsmul_hyperplaneClass_pow (hV : finrank ℂ V = n + 1) {k : �
     simp only [TopCat.evenIntegralCohomologyOf_pow_succ_apply]
     convert hcup.comp (ih (by omega)) using 1
     funext m
-    -- `a ↦ a ⌣ h` as an additive map, since the bilinear map has no `flip` over `ℤ` here.
-    exact (map_zsmul (AddMonoidHom.mk' (fun a ↦ (TopCat.of (ℙ ℂ V)).integralCup (2 * k) (2 * 1)
-      (2 * (k + 1)) (by ring) a (hyperplaneClass V)) fun a b ↦ by
-        rw [map_add, LinearMap.add_apply]) m _).symm
+    exact (TopCat.integralCup_zsmul_left _ _ m _ _).symm
+
+/-- **The integral cohomology of `ℙ ℂ V` in degree two**, for `finrank ℂ V = n + 1` with
+`n ≥ 1`, is free on the hyperplane class: `m ↦ m • h` is a bijection from `ℤ` onto
+`H²(ℙ ℂ V; ℤ)`. -/
+theorem bijective_zsmul_hyperplaneClass (hV : finrank ℂ V = n + 1) (hn : 0 < n) :
+    Function.Bijective fun m : ℤ ↦ m • hyperplaneClass V := by
+  simpa only [pow_one, DirectSum.of_eq_same] using bijective_zsmul_hyperplaneClass_pow hV hn
+
+/-- Every class of `H²(ℙ ℂ V; ℤ)`, for `finrank ℂ V = n + 1`, is an integer multiple of the
+hyperplane class. For `n = 0` the group is zero. -/
+theorem exists_eq_zsmul_hyperplaneClass (hV : finrank ℂ V = n + 1)
+    (y : (TopCat.of (ℙ ℂ V)).integralCohomology 2) : ∃ m : ℤ, y = m • hyperplaneClass V := by
+  rcases Nat.eq_zero_or_pos n with rfl | hn
+  · have := ModuleCat.subsingleton_of_isZero (isZero_integralCohomology_of_lt hV (m := 2)
+      (by omega))
+    exact ⟨0, Subsingleton.elim _ _⟩
+  · exact ((bijective_zsmul_hyperplaneClass hV hn).2 y).imp fun _ h ↦ h.symm
+
+/-- The integral cohomology of `ℙ ℂ V`, for `finrank ℂ V = n + 1`, is a free `ℤ`-module in every
+degree. -/
+theorem free_integralCohomology (hV : finrank ℂ V = n + 1) (m : ℕ) :
+    Module.Free ℤ ((TopCat.of (ℙ ℂ V)).integralCohomology m) := by
+  rcases Nat.even_or_odd m with ⟨k, rfl⟩ | hm
+  · rw [← two_mul]
+    by_cases hk : k ≤ n
+    · refine Module.Free.of_equiv (LinearEquiv.ofBijective (LinearMap.toSpanSingleton ℤ _
+        (((TopCat.of (ℙ ℂ V)).evenIntegralCohomologyOf 1 (hyperplaneClass V) ^ k) k)) ?_)
+      convert bijective_zsmul_hyperplaneClass_pow hV hk using 1
+      funext m
+      -- The two sides use the `ℤ`-action of the module structure and that of the group structure.
+      exact int_smul_eq_zsmul _ _ _
+    · have := ModuleCat.subsingleton_of_isZero (isZero_integralCohomology_of_lt hV (m := 2 * k)
+        (by omega))
+      infer_instance
+  · have := ModuleCat.subsingleton_of_isZero (isZero_integralCohomology_of_odd hV hm)
+    infer_instance
 
 /-- **The hyperplane class of `ℙ ℂ V` is nilpotent**: `h ^ (n + 1) = 0` in the even integral
 cohomology ring, for `finrank ℂ V = n + 1`. -/

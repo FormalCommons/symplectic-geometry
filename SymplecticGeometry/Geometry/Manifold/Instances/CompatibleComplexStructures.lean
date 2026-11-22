@@ -344,6 +344,16 @@ theorem compatibleCLM_comp_add_comp_compatibleCLM (J : 𝒥) {X : V →L[ℝ] V}
     ContinuousLinearMap.toLinearMap_mul, toLinearMap_compatibleCLM, add_comm, hX,
     ContinuousLinearMap.toLinearMap_zero]
 
+/-- The ambient reading `X` of a tangent vector at `J` anticommutes with `J`:
+`J ∘ X + X ∘ J = 0`. -/
+theorem compatibleCLM_comp_mfderiv_add_mfderiv_comp_compatibleCLM (J : 𝒥)
+    (a : TangentSpace 𝓘(ℝ, ω.compatibleModel) J) :
+    ω.compatibleCLM J ∘L
+        mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM J a +
+      mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM J a ∘L
+        ω.compatibleCLM J = 0 :=
+  compatibleCLM_comp_add_comp_compatibleCLM J (mfderiv_compatibleCLM_mem_tangentSpace J a)
+
 /-- The model space has dimension `n (n + 1)` when `V` has dimension `2 n`. -/
 theorem finrank_compatibleModel {n : ℕ} (hn : Module.finrank ℝ V = 2 * n) :
     Module.finrank ℝ ω.compatibleModel = n * (n + 1) := by
