@@ -26,7 +26,9 @@ This is the counterpart for alternating maps of Tau Ceti's
 
 `Bundle.Trivialization.linearMapAt_pullback` says that a pulled-back linear trivialization reads
 a vector over `x` as the original one reads it over `f x`: the `linearMapAt` form of Tau Ceti's
-`Bundle.Trivialization.linearEquivAt_pullback`.
+`Bundle.Trivialization.linearEquivAt_pullback`. `VectorBundle.continuousLinearEquivAt_pullback`
+says that the preferred chart of `f *ᵖ E` at `x` is that of `E` at `f x`: the form for preferred
+charts of Tau Ceti's `Bundle.Trivialization.continuousLinearEquivAt_pullback`.
 
 The file also has `simp` lemmas for vectors of the fibre `(f *ᵖ V) y`, which is `V (f y)` by
 definition, with the group and module structures of `V (f y)` under another name (Tau Ceti's
@@ -122,6 +124,30 @@ theorem linearMapAt_pullback (e : Trivialization F (π F E)) [e.IsLinear 𝕜] (
   rfl
 
 end Bundle.Trivialization
+
+namespace VectorBundle
+
+variable {𝕜 B B' F : Type*} [NontriviallyNormedField 𝕜] [TopologicalSpace B] [TopologicalSpace B']
+  [NormedAddCommGroup F] [NormedSpace 𝕜 F] (E : B → Type*) [∀ b, AddCommMonoid (E b)]
+  [∀ b, Module 𝕜 (E b)] [∀ b, TopologicalSpace (E b)] [TopologicalSpace (TotalSpace F E)]
+  [FiberBundle F E] [VectorBundle 𝕜 F E] {K : Type*} [FunLike K B' B] [ContinuousMapClass K B' B]
+
+/-- The preferred chart of the pull-back `f *ᵖ E` at `x` is the preferred chart of `E` at `f x`:
+the preferred trivialization of the pull-back is the pull-back of that of `E`
+(`FiberBundle.pullback_trivializationAt'`). This is the form for preferred charts of Tau Ceti's
+`Bundle.Trivialization.continuousLinearEquivAt_pullback`. -/
+@[simp]
+theorem continuousLinearEquivAt_pullback (f : K) (x : B') :
+    continuousLinearEquivAt 𝕜 F ((f : B' → B) *ᵖ E) x = continuousLinearEquivAt 𝕜 F E (f x) := by
+  ext v
+  rw [continuousLinearEquivAt, Trivialization.continuousLinearEquivAt_apply, trivializationAt,
+    FiberBundle.pullback_trivializationAt']
+  -- The pulled-back chart sends `⟨x, v⟩` to the image of `⟨f x, v⟩` under the chart of `E`, by
+  -- definition. Tau Ceti's `Bundle.Trivialization.continuousLinearEquivAt_pullback` asks for
+  -- fibres that are groups, and `Bundle.Trivialization.pullback_apply` for a `ContinuousMap`.
+  rfl
+
+end VectorBundle
 
 namespace Bundle.Pullback
 

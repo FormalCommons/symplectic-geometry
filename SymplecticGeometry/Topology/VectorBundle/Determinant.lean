@@ -63,9 +63,10 @@ Ceti's `TauCeti.clutchingFunction_eq_mul_normalizedDet_inv`, which compares the 
 functions of two frames through the automorphism `(φ y)⁻¹ ∘ ψ y` of the model fibre.
 
 In coordinates, the value of the section at `y` is the top compound matrix of `Φ y` read in the
-preferred trivialization of `E` at `f y` (`detCoreFrameSection_apply`). It depends only on `f y`
-and `Φ y`, so the section is natural under reparametrization of the frame
-(`detCoreFrameSection_comp`).
+preferred trivialization of `E` at `f y` (`detCoreFrameSection_apply`); each of its coordinates
+is the determinant of `Φ y` followed by the preferred chart of `E` at `f y`, an automorphism of
+`G` (`detCoreFrameSection_apply_eq_det`). It depends only on `f y` and `Φ y`, so the section is
+natural under reparametrization of the frame (`detCoreFrameSection_comp`).
 
 ## References
 
@@ -544,6 +545,21 @@ theorem detCoreFrameSection_apply (y : X) (i : Fin ((detCore 𝕜 G E).pullback 
   -- The two sides differ only in the proofs inside `Fin.cast`, and in how the rank of the
   -- determinant line is written in its implicit arguments.
   rfl
+
+/-- **The determinant section of a frame as a determinant.** Each coordinate of the value at `y`
+of the determinant section of a frame `Φ` along `f` is the determinant of the automorphism of `G`
+that reads `Φ y` in the preferred chart of `E` at `f y`. -/
+theorem detCoreFrameSection_apply_eq_det (y : X) (i : Fin ((detCore 𝕜 G E).pullback f).rank) :
+    detCoreFrameSection f Φ hΦ y i =
+      LinearMap.det ((Φ y).trans (VectorBundle.continuousLinearEquivAt 𝕜 G E (f y)) :
+        G →ₗ[𝕜] G) := by
+  rw [detCoreFrameSection_apply, ContinuousLinearMap.exteriorPowerCoords_self, smul_apply,
+    ContinuousLinearMap.id_apply, Pi.smul_apply, smul_eq_mul, mul_one, ContinuousLinearMap.det,
+    ← LinearMap.det_conj _
+      (ContinuousLinearEquiv.ofFinrankEq (finrank_fin_fun 𝕜).symm).toLinearEquiv.symm]
+  congr 1
+  ext v
+  simp
 
 /-- **Naturality of the determinant section of a frame.** Reparametrizing a frame `Φ` along `f`
 by a continuous map `g : Y → X` reparametrizes its determinant section by `g`. -/
