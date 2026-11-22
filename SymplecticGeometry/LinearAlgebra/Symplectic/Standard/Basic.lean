@@ -60,6 +60,11 @@ standard forms (`isSymplectomorphism_sumEquiv`). Through it, `StdSpace.stdInl k 
 `StdSpace (Fin k)` in `StdSpace (Fin (k + m))` as the first `k` coordinate pairs, preserving
 `ω₀` (`stdForm_stdInl`), with range `range_stdInl`; and `StdSpace.ofX ι` includes `ι → ℝ` as
 the `x`-coordinates, onto the isotropic subspace `{y = 0}` (`range_ofX`, `stdForm_ofX`).
+Likewise `StdSpace.stdInr k m` includes `StdSpace (Fin m)` as the last `m` pairs, `ω₀`-orthogonal
+to the first `k` (`stdForm_stdInl_add_stdInr`). Together with `ofX`, they parametrize the
+coisotropic subspace `{yⱼ = 0 for j < k}` (`range_stdInl_ofX_add_stdInr`), whose `ω₀`-orthogonal
+is the span of the first `k` vectors `∂/∂xⱼ`
+(`forall_stdForm_eq_zero_iff_y_eq_zero_and_x_eq_zero`).
 
 The sign conventions are those of McDuff–Salamon, Section 2.1.
 
@@ -599,6 +604,58 @@ theorem range_stdInl {k m : ℕ} :
     · simp [y_apply]
     · simpa [y_apply] using (hz (Fin.natAdd k i) (by simp)).2.symm
 
+variable (k m : ℕ) in
+/-- `StdSpace (Fin m)` inside `StdSpace (Fin (k + m))`: a point goes to the point whose last `m`
+coordinate pairs are its own and whose first `k` pairs are `0`. It is the inclusion of the second
+factor of `StdSpace (Fin k) × StdSpace (Fin m)`, read through `sumEquiv` and the relabelling
+along `finSumFinEquiv`, as `stdInl k m` is that of the first. -/
+noncomputable def stdInr : StdSpace (Fin m) →L[ℝ] StdSpace (Fin (k + m)) :=
+  (LinearIsometryEquiv.piLpCongrLeft 2 ℝ ℝ
+      (finSumFinEquiv.sumCongr finSumFinEquiv)).toContinuousLinearEquiv.toContinuousLinearMap.comp
+    ((sumEquiv (Fin k) (Fin m)).symm.toContinuousLinearMap.comp (ContinuousLinearMap.inr ℝ _ _))
+
+variable (k m : ℕ) in
+theorem stdInr_def :
+    stdInr k m =
+      (LinearIsometryEquiv.piLpCongrLeft 2 ℝ ℝ (finSumFinEquiv.sumCongr finSumFinEquiv)
+          ).toContinuousLinearEquiv.toContinuousLinearMap.comp
+        ((sumEquiv (Fin k) (Fin m)).symm.toContinuousLinearMap.comp
+          (ContinuousLinearMap.inr ℝ _ _)) :=
+  (rfl)
+
+theorem x_stdInr {k m : ℕ} (z : StdSpace (Fin m)) :
+    (stdInr k m z).x = Sum.elim (0 : Fin k → ℝ) z.x ∘ finSumFinEquiv.symm := by
+  simp [stdInr_def]
+
+theorem y_stdInr {k m : ℕ} (z : StdSpace (Fin m)) :
+    (stdInr k m z).y = Sum.elim (0 : Fin k → ℝ) z.y ∘ finSumFinEquiv.symm := by
+  simp [stdInr_def]
+
+@[simp]
+theorem stdInr_apply_inl_castAdd {k m : ℕ} (z : StdSpace (Fin m)) (i : Fin k) :
+    stdInr k m z (Sum.inl (Fin.castAdd m i)) = 0 := by
+  simpa using congr_fun (x_stdInr (k := k) z) (Fin.castAdd m i)
+
+@[simp]
+theorem stdInr_apply_inr_castAdd {k m : ℕ} (z : StdSpace (Fin m)) (i : Fin k) :
+    stdInr k m z (Sum.inr (Fin.castAdd m i)) = 0 := by
+  simpa using congr_fun (y_stdInr (k := k) z) (Fin.castAdd m i)
+
+@[simp]
+theorem stdInr_apply_inl_natAdd {k m : ℕ} (z : StdSpace (Fin m)) (i : Fin m) :
+    stdInr k m z (Sum.inl (Fin.natAdd k i)) = z (Sum.inl i) := by
+  simpa using congr_fun (x_stdInr (k := k) z) (Fin.natAdd k i)
+
+@[simp]
+theorem stdInr_apply_inr_natAdd {k m : ℕ} (z : StdSpace (Fin m)) (i : Fin m) :
+    stdInr k m z (Sum.inr (Fin.natAdd k i)) = z (Sum.inr i) := by
+  simpa using congr_fun (y_stdInr (k := k) z) (Fin.natAdd k i)
+
+theorem injective_stdInr {k m : ℕ} : Function.Injective (stdInr k m) := by
+  rw [stdInr_def, ContinuousLinearMap.coe_comp, ContinuousLinearMap.coe_comp]
+  exact (LinearIsometryEquiv.injective _).comp
+    ((ContinuousLinearEquiv.injective _).comp (Prod.mk_right_injective 0))
+
 omit [Fintype ι] in
 variable (ι) in
 /-- The inclusion of `ι → ℝ` into `StdSpace ι` as the `x`-coordinates, the `y`-coordinates being
@@ -637,22 +694,92 @@ theorem range_ofX : Set.range (ofX ι) = {z | z.y = 0} := by
   refine ⟨fun ⟨a, ha⟩ ↦ ha ▸ y_ofX a, fun hz ↦ ⟨z.x, ext (x_ofX _) ((y_ofX _).trans ?_)⟩⟩
   exact (Set.mem_ofPred_eq.mp hz).symm
 
+/-- `(a, w) ↦ (a, 0) + w`, putting `a : Fin k → ℝ` into the first `k` coordinates `x` and
+`w : StdSpace (Fin m)` into the last `m` coordinate pairs, is injective. -/
+theorem injective_stdInl_ofX_add_stdInr {k m : ℕ} :
+    Function.Injective fun p : (Fin k → ℝ) × StdSpace (Fin m) ↦
+      stdInl k m (ofX (Fin k) p.1) + stdInr k m p.2 := by
+  rintro ⟨a, w⟩ ⟨a', w'⟩ h
+  have hc (j : Fin (k + m) ⊕ Fin (k + m)) := congr_fun (congrArg WithLp.ofLp h) j
+  refine Prod.ext (funext fun i ↦ ?_) (ext (funext fun i ↦ ?_) (funext fun i ↦ ?_))
+  · simpa using hc (Sum.inl (Fin.castAdd m i))
+  · simpa using hc (Sum.inl (Fin.natAdd k i))
+  · simpa using hc (Sum.inr (Fin.natAdd k i))
+
+/-- The points `(a, 0) + w`, with `a : Fin k → ℝ` in the first `k` coordinates `x` and
+`w : StdSpace (Fin m)` in the last `m` coordinate pairs, form the subspace `{yⱼ = 0 for j < k}`. -/
+theorem range_stdInl_ofX_add_stdInr {k m : ℕ} :
+    Set.range (fun p : (Fin k → ℝ) × StdSpace (Fin m) ↦
+      stdInl k m (ofX (Fin k) p.1) + stdInr k m p.2) =
+      {z | ∀ j : Fin (k + m), (j : ℕ) < k → z.y j = 0} := by
+  ext z
+  constructor
+  · rintro ⟨⟨a, w⟩, rfl⟩ j hj
+    obtain ⟨i, rfl⟩ : ∃ i : Fin k, Fin.castAdd m i = j := ⟨⟨j, hj⟩, rfl⟩
+    simp
+  · intro hz
+    refine ⟨(fun i ↦ z.x (Fin.castAdd m i),
+      (equivProd (Fin m)).symm (fun i ↦ z.x (Fin.natAdd k i), fun i ↦ z.y (Fin.natAdd k i))), ?_⟩
+    refine ext (funext fun j ↦ ?_) (funext fun j ↦ ?_) <;>
+      refine Fin.addCases (fun i ↦ ?_) (fun i ↦ ?_) j
+    · simp
+    · simp
+    · simpa [y_apply] using (hz (Fin.castAdd m i) (by simp)).symm
+    · simp
+
 end StdSpace
 
 open StdSpace
+
+/-- The first `k` and the last `m` coordinate pairs of `StdSpace (Fin (k + m))` are
+`ω₀`-orthogonal, and `ω₀` restricts to the standard form on each:
+`ω₀(z + w, z' + w') = ω₀(z, z') + ω₀(w, w')` along `stdInl k m` and `stdInr k m`. -/
+theorem stdForm_stdInl_add_stdInr {k m : ℕ} (z z' : StdSpace (Fin k)) (w w' : StdSpace (Fin m)) :
+    stdForm (Fin (k + m)) (stdInl k m z + stdInr k m w) (stdInl k m z' + stdInr k m w') =
+      stdForm (Fin k) z z' + stdForm (Fin m) w w' := by
+  have h (v : StdSpace (Fin k)) (u : StdSpace (Fin m)) : stdInl k m v + stdInr k m u =
+      (LinearIsometryEquiv.piLpCongrLeft 2 ℝ ℝ
+          (finSumFinEquiv.sumCongr finSumFinEquiv)).toLinearEquiv
+        ((sumEquiv (Fin k) (Fin m)).toLinearEquiv.symm (v, u)) := by
+    rw [show (v, u) = (v, 0) + (0, u) by simp, map_add, map_add]
+    simp [stdInl_def, stdInr_def]
+  rw [h, h, (isSymplectomorphism_piLpCongrLeft_sumCongr _).apply,
+    isSymplectomorphism_sumEquiv.symm.apply]
+  simp
 
 /-- `stdInl k m` pulls the standard form of `StdSpace (Fin (k + m))` back to that of
 `StdSpace (Fin k)`. -/
 theorem stdForm_stdInl {k m : ℕ} (z w : StdSpace (Fin k)) :
     stdForm (Fin (k + m)) (stdInl k m z) (stdInl k m w) = stdForm (Fin k) z w := by
-  have h (v : StdSpace (Fin k)) : stdInl k m v =
-      (LinearIsometryEquiv.piLpCongrLeft 2 ℝ ℝ
-          (finSumFinEquiv.sumCongr finSumFinEquiv)).toLinearEquiv
-        ((sumEquiv (Fin k) (Fin m)).toLinearEquiv.symm (v, 0)) := by
-    simp [stdInl_def]
-  rw [h, h, (isSymplectomorphism_piLpCongrLeft_sumCongr _).apply,
-    isSymplectomorphism_sumEquiv.symm.apply]
-  simp
+  simpa using stdForm_stdInl_add_stdInr (m := m) z w 0 0
+
+/-- `stdInr k m` pulls the standard form of `StdSpace (Fin (k + m))` back to that of
+`StdSpace (Fin m)`. -/
+theorem stdForm_stdInr {k m : ℕ} (w w' : StdSpace (Fin m)) :
+    stdForm (Fin (k + m)) (stdInr k m w) (stdInr k m w') = stdForm (Fin m) w w' := by
+  simpa using stdForm_stdInl_add_stdInr (k := k) 0 0 w w'
+
+/-- The `ω₀`-orthogonal of the coisotropic subspace `{yⱼ = 0 for j < k}` of `StdSpace (Fin n)` is
+the span of the first `k` vectors `∂/∂xⱼ`: a point `v` is `ω₀`-orthogonal to every point of that
+subspace exactly when `y = 0` and `xⱼ = 0` for all `j ≥ k`. -/
+theorem forall_stdForm_eq_zero_iff_y_eq_zero_and_x_eq_zero {n : ℕ} (k : ℕ) (v : StdSpace (Fin n)) :
+    (∀ z : StdSpace (Fin n), (∀ j : Fin n, (j : ℕ) < k → z.y j = 0) → stdForm (Fin n) z v = 0) ↔
+      v.y = 0 ∧ ∀ j : Fin n, k ≤ (j : ℕ) → v.x j = 0 := by
+  constructor
+  · intro h
+    refine ⟨funext fun j ↦ ?_, fun j hj ↦ ?_⟩
+    · have := h ((equivProd (Fin n)).symm (Pi.single j 1, 0)) fun i _ ↦ by simp
+      simpa [Pi.single_apply] using this
+    · have := h ((equivProd (Fin n)).symm (0, Pi.single j 1)) fun i hi ↦ by
+        simp [Fin.ext_iff, show (i : ℕ) ≠ j by omega]
+      simpa [Pi.single_apply] using this
+  · rintro ⟨hy, hx⟩ z hz
+    rw [stdForm_apply]
+    refine Finset.sum_eq_zero fun i _ ↦ ?_
+    rw [show v.y i = 0 from congr_fun hy i, mul_zero, zero_sub, neg_eq_zero]
+    rcases lt_or_ge (i : ℕ) k with hi | hi
+    · rw [hz i hi, zero_mul]
+    · rw [hx i hi, mul_zero]
 
 /-- The subspace `{y = 0}`, the range of `StdSpace.ofX`, is isotropic for `stdForm`. -/
 theorem stdForm_ofX (a b : ι → ℝ) : stdForm ι (ofX ι a) (ofX ι b) = 0 := by

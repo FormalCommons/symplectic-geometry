@@ -398,8 +398,9 @@ theorem mpullback_prodMk_stableHamiltonianModel (α : SmoothForm I M ℝ 1)
   have hsmul : mpullback (Prod.mk r) (contMDiff_const.prodMk contMDiff_id)
       (funSMulₗ g (mpullback Prod.snd contMDiff_snd α)) = r • α := by
     -- Both sides send `x` to `r`.
-    have hg : g.comp ⟨Prod.mk r, contMDiff_const.prodMk contMDiff_id⟩ = ContMDiffMap.const r :=
-      ContMDiffMap.ext fun _ ↦ rfl
+    have hg : g.comp ⟨Prod.mk r, contMDiff_const.prodMk contMDiff_id⟩ = ContMDiffMap.const r := by
+      ext
+      simp [g]
     rw [mpullback_funSMulₗ, mpullback_prodMk_mpullback_snd, hg, funSMulₗ_const]
   rw [stableHamiltonianModel_def, map_sub, mpullback_prodMk_mpullback_snd, ← mextDerivₗ_mpullback,
     hsmul, map_smul]

@@ -129,17 +129,14 @@ theorem rotationFrame_zero (Z : Matrix (ι ⊕ ι) ι ℝ) : rotationFrame Z 0 =
 /-- The frame of a rotation turns at unit speed: its derivative is `J (rotationFrame Z θ)`. -/
 theorem hasDerivAt_rotationFrame (Z : Matrix (ι ⊕ ι) ι ℝ) (θ : ℝ) :
     HasDerivAt (rotationFrame Z) (J ι ℝ * rotationFrame Z θ) θ := by
-  have hR : HasDerivWithinAt (fun θ ↦ Real.cos θ • (1 : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ) +
-      Real.sin θ • J ι ℝ) (-Real.sin θ • 1 + Real.cos θ • J ι ℝ) univ θ :=
-    hasDerivWithinAt_matrix.2 fun p q ↦ by
+  have hR : HasDerivAt (fun θ ↦ Real.cos θ • (1 : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ) +
+      Real.sin θ • J ι ℝ) (-Real.sin θ • 1 + Real.cos θ • J ι ℝ) θ :=
+    hasDerivAt_matrix.2 fun p q ↦ by
       simpa using ((Real.hasDerivAt_cos θ).mul_const ((1 : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ) p q)).fun_add
         ((Real.hasDerivAt_sin θ).mul_const (J ι ℝ p q))
-  have h := hR.matrix_mul (hasDerivWithinAt_matrix_const Z univ θ)
-  replace h : HasDerivAt _ _ θ :=
-    hasDerivWithinAt_matrix_univ.1 h
   rw [show rotationFrame Z = _ from funext (rotationFrame_def Z)]
-  convert h using 1
-  rw [Matrix.mul_zero, add_zero, ← Matrix.mul_assoc, Matrix.mul_add, Matrix.mul_smul,
+  convert hR.matrix_mul_const Z using 1
+  rw [← Matrix.mul_assoc, Matrix.mul_add, Matrix.mul_smul,
     Matrix.mul_smul, Matrix.mul_one, J_squared, smul_neg, neg_smul, add_comm]
 
 /-- **Chain rule** for the frame of a rotation: if `f` has derivative `f'` at `s`, then
