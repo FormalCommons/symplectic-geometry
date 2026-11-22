@@ -459,8 +459,10 @@ compact set: the first with `β = 0`, the second with that set `univ`. Its route
    jointly smooth and $f_0$ is a local diffeomorphism, and $G_t\circ k_t=h_t$
    near `K` (`TauCeti.SmoothIsotopy.exists_contMDiff_comp_eventuallyEq`, in
    `Extension.lean`).
-3. `Φ` comes from `TauCeti.Diffeotopy.exists_interior_velocity_eq`, which
-   this part adds to *Hamiltonian flows*' `Flux/CompactSupport.lean`, for the
+3. `Φ` comes from `TauCeti.Diffeotopy.exists_interior_velocity_eq_add_mextDeriv`
+   of *Hamiltonian flows*' `Flux/CompactSupport.lean`, which applies
+   `TauCeti.Diffeotopy.exists_interior_velocity_eq`, which
+   this part adds to that file, to the
    form $\beta+dG$ on `unitInterval × M`. There the forms $\beta_t+dG_t$
    are extended past both ends with
    `DifferentialForm/TimeExtension.lean`, and
@@ -911,7 +913,9 @@ this design already follows. `Ball/Isotopy.lean` cites
   `Flux/CompactSupport.lean`, through
   `isCompactlySupportedHamiltonian_iff_isGeneratedBy` (step 5 of `Flow.lean`),
   and states the compact support of `exists_hasHamiltonian_forall_apply_eq`
-  with it; and the flow `TauCeti.Diffeotopy.exists_interior_velocity_eq`,
+  with it; and the flow
+  `TauCeti.Diffeotopy.exists_interior_velocity_eq_add_mextDeriv`, built on
+  `exists_interior_velocity_eq`,
   which this part adds to that file (step 3 of `Flow.lean`).
   `Ball/Isotopy.lean` imports `DeRham/FamilyPrimitive.lean`, for
   `IsSmoothlyContractible.exists_contMDiff_mextDeriv_eq_of_forall_mem_closedForms`
