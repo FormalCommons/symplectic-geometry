@@ -482,9 +482,9 @@ compact set: the first with `β = 0`, the second with that set `univ`. Its route
    both contractions are $k_t^*\beta_t+dh_t$, and $dk_t$ is
    onto (`TauCeti.SmoothIsotopy.eq_mfderiv_of_forall_eq_mpullback_prodMk_velocityForm`,
    in `Velocity.lean`). Uniqueness of solutions on `[0, 1]`
-   (`TauCeti.timeDependentFlowDiffeotopy_apply_eq_of_mfderiv_eq`, which this
-   part adds to `Geometry/Manifold/Flow/TimeDependent.lean` of *Smooth
-   families*, with `TauCeti.timeDependentFlowOf_eq_of_hasMFDerivWithinAt`)
+   (`TauCeti.Diffeotopy.apply_eq_of_mfderiv_eq_velocity`, for every
+   diffeotopy, in `Geometry/Diffeomorphism/Diffeotopy/Velocity.lean` of
+   *Hamiltonian flows*)
    gives `Φ (t, f₀ x) = k (t, x)`.
 5. The slices preserve `ω`, in `exists_interior_velocity_eq`, by
    `TauCeti.Diffeotopy.forall_timeSlice_mem_diffeomorphStabilizer_iff`, since
