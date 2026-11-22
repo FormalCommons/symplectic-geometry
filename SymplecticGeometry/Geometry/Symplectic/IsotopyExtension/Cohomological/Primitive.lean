@@ -10,6 +10,7 @@ public import SymplecticGeometry.Geometry.Manifold.DeRham.HomologyPeriod
 public import SymplecticGeometry.Geometry.Manifold.DeRham.SmoothFamily.GoodCover
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Map
 public import TauCeti.Geometry.Manifold.SmoothIsotopy.Basic
+import SymplecticGeometry.Geometry.Manifold.DeRham.Map
 
 /-!
 # Closed forms with prescribed periods, and primitives near a subset
@@ -79,7 +80,7 @@ theorem NDRPair.exists_forall_exact {Q : Set M} (hN : NDRPair Q) {U : Opens M}
   refine ⟨⟨V, hVo⟩, hQV, hVU, fun φ hφ hper ↦ ?_⟩
   have hi := contMDiff_inclusion (I := I) (n := ∞) (U := ⟨V, hVo⟩) hVU
   have hcl : SmoothForm.mpullback _ hi φ ∈ closedForms I (⟨V, hVo⟩ : Opens M) 1 :=
-    closedForms.coe_mpullback _ hi 1 ⟨φ, hφ⟩ ▸ (closedForms.mpullback _ hi 1 ⟨φ, hφ⟩).property
+    SmoothForm.mpullback_mem_closedForms _ hi hφ
   refine (mem_exactForms_one_iff_homologyPeriodHom_eq_zero hcl).2 (AddMonoidHom.ext fun c ↦ ?_)
   -- The class pushed into `U` comes from `Q`, where the periods of `φ` vanish.
   obtain ⟨z, hz⟩ := hV 1 ⟨c, rfl⟩
@@ -211,8 +212,7 @@ theorem exists_contMDiff_primitive_of_periods {Q : Set M} (hN : NDRPair Q) {U : 
   have hφt (t : unitInterval) : ContMDiff I I ∞ fun x : U ↦ φ (t, x) :=
     φ.contMDiff.comp (contMDiff_const.prodMk contMDiff_id)
   have hψcl (t : unitInterval) : SmoothForm.mpullback _ (hφt t) (β t) ∈ closedForms I U 1 :=
-    closedForms.coe_mpullback _ (hφt t) 1 ⟨β t, hβcl t⟩ ▸
-      (closedForms.mpullback _ (hφt t) 1 ⟨β t, hβcl t⟩).property
+    SmoothForm.mpullback_mem_closedForms _ (hφt t) (hβcl t)
   -- Each corrected form is exact on `V`.
   have hex (t : unitInterval) : SmoothForm.mpullback (Opens.inclusion hVU)
       (contMDiff_inclusion hVU) (α t - SmoothForm.mpullback _ (hφt t) (β t)) ∈

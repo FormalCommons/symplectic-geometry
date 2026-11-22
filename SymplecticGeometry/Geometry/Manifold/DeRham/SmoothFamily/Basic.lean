@@ -7,6 +7,7 @@ module
 
 public import TauCeti.Geometry.Manifold.DeRham.Basic
 public import TauCeti.Geometry.Manifold.DeRham.Map
+import SymplecticGeometry.Geometry.Manifold.DeRham.Map
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Map
 
 /-!
@@ -282,7 +283,7 @@ def ofDiffeomorph : SmoothCohomologySplitting I M where
   space k := (τ.space k).map (SmoothForm.mpullback Φ Φ.contMDiff)
   space_le_closedForms k := by
     rintro _ ⟨s, hs, rfl⟩
-    simpa using (closedForms.mpullback Φ Φ.contMDiff k ⟨s, τ.space_le_closedForms k hs⟩).property
+    exact SmoothForm.mpullback_mem_closedForms Φ Φ.contMDiff (τ.space_le_closedForms k hs)
   finiteDimensional_space _ := inferInstance
   proj k := SmoothForm.mpullback Φ Φ.contMDiff ∘ₗ τ.proj k ∘ₗ
     closedForms.mpullback Φ.symm Φ.symm.contMDiff k
@@ -298,7 +299,7 @@ def ofDiffeomorph : SmoothCohomologySplitting I M where
   eq_zero_of_mem_exactForms k := by
     rintro _ ⟨s, hs, rfl⟩ hex
     have h := closedForms.mpullback_mem_exactForms Φ.symm Φ.symm.contMDiff k
-      ⟨_, (closedForms.mpullback Φ Φ.contMDiff k ⟨s, τ.space_le_closedForms k hs⟩).property⟩
+      ⟨_, SmoothForm.mpullback_mem_closedForms Φ Φ.contMDiff (τ.space_le_closedForms k hs)⟩
       (by simpa using hex)
     simp only [closedForms.coe_mpullback, SmoothForm.mpullback_symm_mpullback] at h
     rw [τ.eq_zero_of_mem_exactForms k hs h, map_zero]
