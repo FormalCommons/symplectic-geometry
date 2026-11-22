@@ -10,6 +10,7 @@ public import TauCeti.Geometry.Symplectic.Lagrangian.Presymplectic
 public import TauCeti.Geometry.Symplectic.Manifold.Descent
 import SymplecticGeometry.Analysis.Calculus.DifferentialForm.LieDeriv
 import SymplecticGeometry.Geometry.Manifold.Distribution.FlatChart
+import SymplecticGeometry.Geometry.Manifold.IsManifold.InteriorBoundary
 import SymplecticGeometry.LinearAlgebra.Symplectic.Subspace
 import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.ModelSpace
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
@@ -158,7 +159,7 @@ private theorem fibreForm_mfderiv (hp : IsCharacteristicSubmersion IB σ p) (y :
     hp.fibreForm y (fun i ↦ mfderiv I IB p y (v i)) = σ.val y v :=
   hp.apply_eq_of_mfderiv_eq fun _ ↦ surjInv_eq _ _
 
-variable [I.Boundaryless]
+variable [BoundarylessManifold I M]
 
 /-- `fibreForm` is locally constant along the fibres of `p`. -/
 private theorem eventually_fibreForm_eq (hp : IsCharacteristicSubmersion IB σ p)
@@ -170,13 +171,15 @@ private theorem eventually_fibreForm_eq (hp : IsCharacteristicSubmersion IB σ p
     IsManifold.maximalAtlas_subset_of_le (by simp) h.domChart_mem_maximalAtlas
   have hψ : h.codChart ∈ IsManifold.maximalAtlas IB 1 B :=
     IsManifold.maximalAtlas_subset_of_le (by simp) h.codChart_mem_maximalAtlas
-  have hU : IsOpen κ.target := h.domChart.isOpen_extend_target
+  have hU : IsOpen κ.target := h.domChart.isOpen_extend_target_of_mem_maximalAtlas one_ne_zero he
   have hx : x ∈ κ.source := by simpa [κ] using h.mem_domChart_source
-  -- On the chart's image, `κ⁻¹` and `κ` have inverse derivatives.
+  -- On the chart's image, `κ⁻¹` and `κ` have inverse derivatives. The image is open and lies in
+  -- the range of `I`, so the derivative of `κ⁻¹` within that range is its derivative.
   have hinv (z : E) (hz : z ∈ κ.target) (c : E) :
       mfderiv I 𝓘(ℝ, E) κ (κ.symm z) (mfderiv 𝓘(ℝ, E) I κ.symm z c) = c := by
     have := mfderiv_extend_comp_mfderivWithin_extend_symm he hz
-    rw [I.range_eq_univ, mfderivWithin_univ] at this
+    rw [mfderivWithin_of_mem_nhds (mem_of_superset (hU.mem_nhds hz)
+      h.domChart.extend_target_subset_range)] at this
     exact congrArg (· c) this
   have hsrc (z : E) (hz : z ∈ κ.target) : κ.symm z ∈ h.domChart.source := by
     simpa [κ] using κ.map_target hz
@@ -278,10 +281,11 @@ theorem isBasic (hp : IsCharacteristicSubmersion IB σ p) (hσ : σ.IsClosed) :
   -- `tangentSpaceCast` is the identity of the model space `EB` of `B`.
   exact congrArg _ (funext hvw)
 
-/-- **Descent along a characteristic submersion.** A closed two-form `σ` on a boundaryless manifold
-is the pullback `p^* τ` of a unique symplectic form `τ` on the base of each of its characteristic
-submersions `p`. -/
-theorem existsUnique_isSymplectic_mpullback_eq [IsManifold IB ∞ B]
+omit [BoundarylessManifold I M] in
+/-- **Descent along a characteristic submersion.** A closed two-form `σ` on a manifold modelled
+without boundary is the pullback `p^* τ` of a unique symplectic form `τ` on the base of each of
+its characteristic submersions `p`. -/
+theorem existsUnique_isSymplectic_mpullback_eq [I.Boundaryless] [IsManifold IB ∞ B]
     (hp : IsCharacteristicSubmersion IB σ p) (hσ : σ.IsClosed) :
     ∃! τ : SmoothTwoForm IB B, τ.IsSymplectic ∧
       SmoothForm.mpullback p hp.isSubmersion.contMDiff τ = σ :=
@@ -474,28 +478,26 @@ variable {E H M F H' N : Type*}
   {σ : SmoothTwoForm I M} {hσ : σ.IsNondegenerate} {f : N → M}
 
 /-- **Characteristic charts of a coisotropic submanifold.** Let `f : N → M` be a coisotropic
-immersion of a boundaryless manifold of dimension `(dim M - dim N) + 2r` for a closed nondegenerate
-two-form `σ`. Around every point `q` of `N` there is a characteristic chart of the presymplectic
-form `f^* σ`, as in `TauCeti.SmoothForm.exists_isCharacteristicSubmersion`, with leaves of
-dimension `dim M - dim N`. -/
+immersion, for a closed nondegenerate two-form `σ`, of a boundaryless manifold of codimension `k`
+and dimension `k + 2r`. Around every point `q` of `N` there is a characteristic chart of the
+presymplectic form `f^* σ`, as in `TauCeti.SmoothForm.exists_isCharacteristicSubmersion`, with
+leaves of dimension `k`. -/
 theorem IsCoisotropicMap.exists_isCharacteristicSubmersion [FiniteDimensional ℝ E]
     [FiniteDimensional ℝ F] [J.Boundaryless] (h : hσ.IsCoisotropicMap J f)
-    (hi : IsImmersion J I ∞ f) (hf : ContMDiff J I ∞ f) (hσc : σ.IsClosed) {r : ℕ}
-    (hr : finrank ℝ F = (finrank ℝ E - finrank ℝ F) + 2 * r) (q : N) :
+    (hi : IsImmersion J I ∞ f) (hf : ContMDiff J I ∞ f) (hσc : σ.IsClosed) {k r : ℕ}
+    (hk : finrank ℝ F + k = finrank ℝ E) (hr : finrank ℝ F = k + 2 * r) (q : N) :
     ∃ (U : Opens N) (hq : q ∈ U)
-      (Ψ : U ≃ₘ^∞⟮J, 𝓘(ℝ, EuclideanSpace ℝ (Fin (finrank ℝ E - finrank ℝ F)) ×
-          StdSpace (Fin r))⟯
+      (Ψ : U ≃ₘ^∞⟮J, 𝓘(ℝ, EuclideanSpace ℝ (Fin k) × StdSpace (Fin r))⟯
         (⟨Metric.ball 0 1 ×ˢ Metric.ball 0 1, Metric.isOpen_ball.prod Metric.isOpen_ball⟩ :
-          Opens (EuclideanSpace ℝ (Fin (finrank ℝ E - finrank ℝ F)) × StdSpace (Fin r)))),
-      (Ψ ⟨q, hq⟩ : EuclideanSpace ℝ (Fin (finrank ℝ E - finrank ℝ F)) × StdSpace (Fin r)) = 0 ∧
+          Opens (EuclideanSpace ℝ (Fin k) × StdSpace (Fin r)))),
+      (Ψ ⟨q, hq⟩ : EuclideanSpace ℝ (Fin k) × StdSpace (Fin r)) = 0 ∧
       SmoothForm.IsCharacteristicSubmersion 𝓘(ℝ, StdSpace (Fin r))
         (SmoothForm.mpullback (Subtype.val : U → N) contMDiff_subtypeVal
           (SmoothForm.mpullback f hf σ))
-        (fun u ↦ (⟨(Ψ u : EuclideanSpace ℝ (Fin (finrank ℝ E - finrank ℝ F)) ×
-            StdSpace (Fin r)).2, (Ψ u).property.2⟩ :
+        (fun u ↦ (⟨(Ψ u : EuclideanSpace ℝ (Fin k) × StdSpace (Fin r)).2, (Ψ u).property.2⟩ :
           (⟨Metric.ball 0 1, Metric.isOpen_ball⟩ : Opens (StdSpace (Fin r))))) :=
   (SmoothForm.mpullback f hf σ).exists_isCharacteristicSubmersion (hσc.mpullback f hf)
-    (h.finrank_ker_bilinFormAt_mpullback hi hf) hr q
+    (fun x ↦ (h.finrank_ker_bilinFormAt_mpullback hi hf x).trans (by omega)) hr q
 
 /-- **The characteristic leaves of a coisotropic submanifold are isotropic.** For a coisotropic map
 `f`, the differential `df_x` carries the kernel of `f^* σ` at `x`, the tangent space of the
