@@ -692,7 +692,9 @@ The route keeps the times of `e` exactly:
 4. *Hamiltonian.* The velocity forms of $\hat k$ are closed on a ball, and
    their parametric radial primitives $h_t$ are smooth in $(t,z)$. `Flow.lean`
    (`exists_hasHamiltonian_forall_apply_eq`, with $K=B(\rho)$ for
-   $\lambda<\rho<\rho_2$) concludes.
+   $\lambda<\rho<\rho_2$) concludes. This step is the theorem
+   `IsSymplecticBallFamily.exists_hasHamiltonian_forall_apply_eq`, for any
+   `IsSymplecticBallFamily` and `0 ≤ ρ < r`.
 
 The milestone is the conjunction of the two halves:
 
@@ -879,7 +881,8 @@ this design already follows. `Ball/Isotopy.lean` cites
   `Extension.lean`); the parametric radial primitives
   `exists_isSmoothFamily_mextDerivₗ_eq_of_starConvex` in
   `Geometry/Manifold/DifferentialForm/SmoothFamily/Poincare.lean`
-  (used by `Ball/Isotopy.lean`); the homotopy operator on smooth families
+  (used by `Ball/Isotopy.lean`, through *Hamiltonian flows*'
+  `DeRham/FamilyPrimitive.lean`); the homotopy operator on smooth families
   `SymplecticGeometry.IsSmoothFamily.homotopyOperator` in
   `Geometry/Manifold/DifferentialForm/SmoothFamily/HomotopyOperator.lean`
   (used by `DifferentialForm/VectorBundlePoincare.lean`); and the
@@ -910,6 +913,9 @@ this design already follows. `Ball/Isotopy.lean` cites
   and states the compact support of `exists_hasHamiltonian_forall_apply_eq`
   with it; and the flow `TauCeti.Diffeotopy.exists_interior_velocity_eq`,
   which this part adds to that file (step 3 of `Flow.lean`).
+  `Ball/Isotopy.lean` imports `DeRham/FamilyPrimitive.lean`, for
+  `IsSmoothlyContractible.exists_contMDiff_mextDeriv_eq_of_forall_mem_closedForms`
+  (step 4 of that file).
   `IsotopyExtension/Velocity.lean` also imports three files of that part:
   `Geometry/Diffeomorphism/Diffeotopy/Velocity.lean`, for the derivatives
   of the motion of a diffeotopy; `Geometry/Manifold/Instances/Icc.lean`,
