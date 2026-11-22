@@ -163,6 +163,12 @@ theorem mem_interiorOpens [IsManifold I 1 M] {x : M} :
     x ∈ I.interiorOpens M ↔ I.IsInteriorPoint x :=
   (Iff.rfl)
 
+/-- A point lies in the interior of `M`, as an open subset, if and only if it lies in the interior
+of `M`, as a set. -/
+theorem mem_interiorOpens_iff_mem_interior [IsManifold I 1 M] {x : M} :
+    x ∈ I.interiorOpens M ↔ x ∈ I.interior M :=
+  (Iff.rfl)
+
 /-- The interior of a `C¹` manifold, as an open submanifold, has no boundary. -/
 instance BoundarylessManifold.interior [IsManifold I 1 M] :
     BoundarylessManifold I (I.interiorOpens M) :=

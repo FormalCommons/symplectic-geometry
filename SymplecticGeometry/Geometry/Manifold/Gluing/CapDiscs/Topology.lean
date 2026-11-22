@@ -83,7 +83,7 @@ private theorem exists_nhds_inr_ne_inl (i : ι) (p : (𝓡∂ 2).interiorOpens S
     rintro ⟨θ, hθ⟩
     have hb : (p : S) ∈ (𝓡∂ 2).boundary S := hθ ▸ (γ i θ).property
     exact disjoint_left.1 ModelWithCorners.disjoint_interior_boundary
-      (ModelWithCorners.coe_interiorOpens (I := 𝓡∂ 2) (M := S) ▸ p.property) hb
+      (ModelWithCorners.mem_interiorOpens_iff_mem_interior.1 p.property) hb
   obtain ⟨B, hB, A, hA, hAB⟩ := Filter.disjoint_iff.1 (hC.disjoint_nhdsSet_nhds hp)
   obtain ⟨B', hB'o, hCB', hB'B⟩ := mem_nhdsSet_iff_exists.1 hB
   -- The collar coordinates `(γ i θ, t)` whose collar point lies in `B'`, read in `∂S × [0, ∞)`.
