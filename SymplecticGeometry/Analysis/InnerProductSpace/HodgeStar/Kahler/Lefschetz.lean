@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.Analysis.InnerProductSpace.HodgeStar.AlternatingForm
 public import TauCeti.Analysis.InnerProductSpace.HodgeStar.Kahler.Basic
 public import TauCeti.Analysis.Normed.Module.Alternating.Wedge.ContinuousLinearMap
+public import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
 import TauCeti.Analysis.Normed.Module.Alternating.Wedge.Uncurry
 
 /-!
@@ -132,9 +133,7 @@ include hJ
 theorem curryLeft_alternatingFormEquiv_kahlerForm (u : V) :
     (alternatingFormEquiv V 2 J.kahlerForm).curryLeft u =
       ofSubsingleton ℝ V ℝ (0 : Fin 1) (innerSL ℝ (J u)) := by
-  ext v
-  have hv : v = ![v 0] := (FinVec.etaExpand_eq _).symm
-  rw [hv]
+  ext w
   simp [alternatingFormEquiv_apply, ← inner_kahlerForm_ιMulti hJ]
 
 /-- **The linear Kähler identity**: for an orthogonal almost complex structure `J`, a vector `u`
@@ -195,9 +194,8 @@ theorem curryLeft_lefschetz_fin_zero (u : V) (β : V [⋀^Fin 0]→L[ℝ] ℝ) :
   have hA := inner_apply_left hJ
   rw [lefschetz_fin_zero, curryLeft_smul, _root_.smul_apply,
     curryLeft_alternatingFormEquiv_kahlerForm hJ u]
-  ext v
-  have hv : v = ![v 0] := (FinVec.etaExpand_eq _).symm
-  rw [hv, ContinuousAlternatingMap.neg_apply, fderivCompContinuousLinearMap_apply_vecCons_fin_one]
+  ext w
+  rw [ContinuousAlternatingMap.neg_apply, fderivCompContinuousLinearMap_apply_vecCons_fin_one]
   simp [alternatizeUncurryFin_apply, hA, mul_comm]
 
 section Symbol
