@@ -235,6 +235,16 @@ theorem compatibleModel_def :
     ω.compatibleModel = ω.compatibleTangentSpaceCLM ω.compatibleBase.val :=
   (rfl)
 
+variable (ω) in
+/-- The norm of the model, Mathlib's `Submodule.normedAddCommGroup` stated for the model by name.
+With it, instance search finds the structures of the fibres of the tangent bundle of a manifold
+modelled on `ω.compatibleModel` uniformly in the point, such as
+`∀ J, TopologicalSpace (TangentSpace 𝓘(ℝ, ω.compatibleModel) J)`, which it does not find through
+the general instance. -/
+noncomputable instance instNormedAddCommGroupCompatibleModel :
+    NormedAddCommGroup ω.compatibleModel :=
+  Submodule.normedAddCommGroup _
+
 end TauCeti.SymplecticForm
 
 end

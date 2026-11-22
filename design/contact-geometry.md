@@ -812,7 +812,10 @@ Expected size: 650 lines, in two issues (L1 and L2).
   `LegendrianNeighborhood.lean`).
 - *Liouville structures*: `mdifferentiableAt_subtypeVal` and
   `mdifferentiable_subtypeVal` of `Geometry/Manifold/MFDeriv/Opens.lean`,
-  already merged (for `LegendrianNeighborhood.lean`).
+  already merged (for `LegendrianNeighborhood.lean`), and
+  `TauCeti.Manifold.prodVectorField_apply` of
+  `Geometry/Manifold/VectorField/Prod.lean`, which imports only Tau Ceti
+  (for `Geometry/Manifold/DifferentialForm/LieDeriv.lean`).
 - *Cotangent bundles* (#470) only through Tau Ceti: the zero section and
   `TauCeti.Bundle.zeroSectionTangentEquiv`. The part does not need the
   library's `Cotangent/Bundle/ZeroSection.lean`.

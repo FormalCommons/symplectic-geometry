@@ -6,7 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Analysis.Normed.Module.Alternating.Curry
-public import Mathlib.Topology.Algebra.Module.FiniteDimension
+public import SymplecticGeometry.Topology.Algebra.Module.FiniteDimension
 public import TauCeti.Analysis.Normed.Module.Alternating.Uncurry.Fin
 
 /-!
@@ -26,7 +26,8 @@ degree-`0` form `ι_v ε_ξ = ξ(v)`, and the expansion of `alternatizeUncurryFi
 * `ContinuousAlternatingMap.curryLeft_alternatizeUncurryFin_smulRight_zero`: `ι_v ε_ξ = ξ(v)` in
   degree `0`.
 * `ContinuousAlternatingMap.alternatizeUncurryFin_eq_sum_coord_smulRight`: for a basis `b`,
-  `alternatizeUncurryFin f` is the sum of the alternatizations of `b.coord i • f (b i)`.
+  `alternatizeUncurryFin f` is the sum of the alternatizations of `b.coord i • f (b i)`, by
+  `Module.Basis.sum_coord_smulRight`.
 * `ContinuousAlternatingMap.curryLeft_sum`: the interior product of a finite sum.
 -/
 
@@ -83,12 +84,7 @@ theorem alternatizeUncurryFin_eq_sum_coord_smulRight (b : Module.Basis ι 𝕜 E
     (f : E →L[𝕜] E [⋀^Fin n]→L[𝕜] F) :
     alternatizeUncurryFin f = ∑ i, alternatizeUncurryFin
       ((LinearMap.toContinuousLinearMap (b.coord i)).smulRight (f (b i))) := by
-  have hf : f = ∑ i, (LinearMap.toContinuousLinearMap (b.coord i)).smulRight (f (b i)) := by
-    ext1 v
-    simp only [FunLike.coe_sum, Finset.sum_apply, ContinuousLinearMap.smulRight_apply,
-      LinearMap.coe_toContinuousLinearMap', Module.Basis.coord_apply]
-    simp_rw [← map_smul, ← _root_.map_sum, b.sum_repr]
-  conv_lhs => rw [hf]
+  conv_lhs => rw [← b.sum_coord_smulRight f]
   rw [← alternatizeUncurryFinCLM_apply, _root_.map_sum]
   simp only [alternatizeUncurryFinCLM_apply]
 
