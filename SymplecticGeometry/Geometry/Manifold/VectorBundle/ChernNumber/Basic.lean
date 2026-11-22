@@ -24,6 +24,7 @@ data:
   the number of the complex bundle `(V, J)` for a complex structure `J` tamed by `ω`;
 * `symplecticChernNumber_eq_chernNumber`: every complex structure tamed by `ω`, in particular
   every compatible one, gives the same number;
+* `symplecticChernNumber_congr_model`: the number does not depend on the complex model `G`;
 * `symplecticChernNumber_neg`: `(V, -ω)` has the opposite number;
 * `symplecticChernNumber_pullback` and `symplecticChernNumber_congr`: behaviour under pull-backs
   and invariance under isomorphisms of symplectic bundles.
@@ -32,7 +33,7 @@ data:
 
 The complex bundle of a continuous complex structure `J` needs a complex model `G`, with
 `Fact (finrank ℝ F = 2 * finrank ℂ G)`; it is a parameter of `symplecticChernNumber`, on which the
-number does not depend (`chernNumber_congr` allows the models to differ). The number is defined
+number does not depend (`symplecticChernNumber_congr_model`). The number is defined
 through a choice of a continuous complex structure tamed by `ω`, and is `0` if there is none; over
 a Hausdorff σ-compact base every nondegenerate form tames some complex structure
 (`SymplecticGeometry.Bundle.ContMDiffTwoForm.IsNondegenerate.exists_compatible`). Two tamed
@@ -151,8 +152,27 @@ theorem symplecticChernNumber_eq_chernNumber {ω : ContMDiffTwoForm 𝓘(ℝ, EM
   rw [symplecticChernNumber_def, dite_eq_left_of_eq_true (eq_true hex)]
   exact h.chernNumber_eq o hn G hex.choose_spec
 
+/-- **The first Chern number of a symplectic bundle does not depend on the complex model** `G`
+of the complex bundles it is computed from. -/
+theorem symplecticChernNumber_congr_model
+    (G' : Type*) [NormedAddCommGroup G'] [NormedSpace ℂ G'] [FiniteDimensional ℂ G']
+    [Fact (finrank ℝ F = 2 * finrank ℂ G')] (ω : ContMDiffTwoForm 𝓘(ℝ, EM) n F V) :
+    symplecticChernNumber o hn G' ω = symplecticChernNumber o hn G ω := by
+  by_cases hex : ∃ J : ContMDiffComplexStructure 𝓘(ℝ, EM) 0 F V, ω.Tames J
+  · obtain ⟨J, hJ⟩ := hex
+    rw [symplecticChernNumber_eq_chernNumber o hn G hJ,
+      symplecticChernNumber_eq_chernNumber o hn G' hJ]
+    -- The identity of `V` intertwines `J` with itself.
+    have hc : ∀ x v, ContinuousLinearEquiv.refl ℝ (V x) (J.toContinuousComplexStructure x v) =
+        J.toContinuousComplexStructure x (ContinuousLinearEquiv.refl ℝ (V x) v) := fun _ _ ↦ rfl
+    exact chernNumber_congr o hn (fiberEquivOfCommute _ _ _ hc)
+      (continuous_fiberEquivOfCommute _ _ _ hc (continuous_id.congr fun _ ↦ rfl))
+  · rw [symplecticChernNumber_def, symplecticChernNumber_def,
+      dite_eq_right_of_eq_false (eq_false hex), dite_eq_right_of_eq_false (eq_false hex)]
+
 /-- **Reversing the form negates the first Chern number**: `(V, -ω)` has the opposite number,
 since `-ω` tames `-J` when `ω` tames `J`, and `(V, -J)` is the conjugate of `(V, J)`. -/
+@[simp]
 theorem symplecticChernNumber_neg (ω : ContMDiffTwoForm 𝓘(ℝ, EM) n F V) :
     symplecticChernNumber o hn G (-ω) = -symplecticChernNumber o hn G ω := by
   by_cases hex : ∃ J : ContMDiffComplexStructure 𝓘(ℝ, EM) 0 F V, ω.Tames J
@@ -183,24 +203,27 @@ variable [IsManifold 𝓘(ℝ, EM) ((⊤ : ℕ∞) : WithTop ℕ∞) M] [ContMDi
 
 /-- **Invariance under isomorphisms of symplectic bundles.** If fibrewise linear equivalences
 `Φ : V₁ ≃ V₂`, whose map of total spaces is `Cⁿ`, carry a nondegenerate form `ω₁` to `ω₂`, then
-`(V₁, ω₁)` and `(V₂, ω₂)` have the same first Chern number. -/
+`(V₁, ω₁)` and `(V₂, ω₂)` have the same first Chern number; each may be computed with its own
+complex model. -/
 theorem symplecticChernNumber_congr
     {F₂ : Type*} [NormedAddCommGroup F₂] [NormedSpace ℝ F₂] [FiniteDimensional ℝ F₂]
     {V₂ : M → Type*} [∀ x, AddCommGroup (V₂ x)] [∀ x, Module ℝ (V₂ x)]
     [∀ x, TopologicalSpace (V₂ x)] [∀ x, IsTopologicalAddGroup (V₂ x)]
     [∀ x, ContinuousSMul ℝ (V₂ x)] [TopologicalSpace (TotalSpace F₂ V₂)]
-    [FiberBundle F₂ V₂] [VectorBundle ℝ F₂ V₂] [Fact (finrank ℝ F₂ = 2 * finrank ℂ G)]
+    [FiberBundle F₂ V₂] [VectorBundle ℝ F₂ V₂]
+    (G₂ : Type*) [NormedAddCommGroup G₂] [NormedSpace ℂ G₂] [FiniteDimensional ℂ G₂]
+    [Fact (finrank ℝ F₂ = 2 * finrank ℂ G₂)]
     {ω : ContMDiffTwoForm 𝓘(ℝ, EM) n F V} {ω₂ : ContMDiffTwoForm 𝓘(ℝ, EM) n F₂ V₂}
     (hω : ω.IsNondegenerate) (Φ : ∀ x, V x ≃L[ℝ] V₂ x)
     (hΦ : ContMDiff (𝓘(ℝ, EM).prod 𝓘(ℝ, F)) (𝓘(ℝ, EM).prod 𝓘(ℝ, F₂)) n
       (fun v : TotalSpace F V ↦ TotalSpace.mk' F₂ v.proj (Φ v.proj v.snd)))
     (hΦω : ∀ x v w, ω₂.bilinFormAt x (Φ x v) (Φ x w) = ω.bilinFormAt x v w) :
-    symplecticChernNumber o hn G ω₂ = symplecticChernNumber o hn G ω := by
+    symplecticChernNumber o hn G₂ ω₂ = symplecticChernNumber o hn G ω := by
   obtain ⟨J, hJ⟩ := hω.exists_compatible
   -- `ω₂` tames the transport of `J` along `Φ`, which `Φ` intertwines with `J`.
   have ht : ω₂.Tames (J.pushforward Φ hΦ) :=
     (ContMDiffTwoForm.pushforward_eq_iff Φ hΦ).2 hΦω ▸ hJ.tames.pushforward Φ hΦ hΦ
-  rw [symplecticChernNumber_eq_chernNumber o hn G ht,
+  rw [symplecticChernNumber_eq_chernNumber o hn G₂ ht,
     symplecticChernNumber_eq_chernNumber o hn G hJ.tames]
   have hc : ∀ x v, Φ x (J.toContinuousComplexStructure x v) =
       (J.pushforward Φ hΦ).toContinuousComplexStructure x (Φ x v) := fun x v ↦ by

@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.Data.Bundle
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Hom
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Prod
+public import SymplecticGeometry.Topology.Algebra.Module.ComplexSmulI
 public import SymplecticGeometry.Topology.VectorBundle.Pullback
 public import TauCeti.Geometry.Manifold.VectorBundle.Complexification
 public import TauCeti.Geometry.Manifold.VectorBundle.Pullback
@@ -480,42 +481,30 @@ theorem pullback_neg_apply (J : ContMDiffComplexStructure I n F V) (f : C^n⟮I'
 identity of `V (f y)`, as a complex-linear equivalence. -/
 def pullbackFiberEquiv (J : ContMDiffComplexStructure I n F V) (f : C^n⟮I', N; I, M⟯) (y : N) :
     (J.pullback f).toContinuousComplexStructure.Fiber y ≃L[ℂ]
-      ((f : N → M) *ᵖ J.toContinuousComplexStructure.Fiber) y where
-  toFun v := (J.toContinuousComplexStructure.fiberEquiv (f y)).symm
-    ((J.pullback f).toContinuousComplexStructure.fiberEquiv y v)
-  invFun v := ((J.pullback f).toContinuousComplexStructure.fiberEquiv y).symm
-    (J.toContinuousComplexStructure.fiberEquiv (f y) v)
-  -- The operations of `(f *ᵖ J.toContinuousComplexStructure.Fiber) y` are, by definition, those
-  -- of `J.toContinuousComplexStructure.Fiber (f y)`, which the closing `exact`s use.
-  map_add' v w := by
-    rw [map_add]
-    exact map_add _ _ _
-  map_smul' z v := (J.toContinuousComplexStructure.fiberEquiv (f y)).injective <| by
-    have h₁ := (J.pullback f).toContinuousComplexStructure.fiberEquiv_smul y z v
-    have h₂ := J.toContinuousComplexStructure.fiberEquiv_smul (f y) z
-      ((J.toContinuousComplexStructure.fiberEquiv (f y)).symm
-        ((J.pullback f).toContinuousComplexStructure.fiberEquiv y v))
-    erw [ContinuousLinearEquiv.apply_symm_apply] at h₂
-    rw [toContinuousComplexStructure_apply] at h₂
-    rw [toContinuousComplexStructure_apply, coe_pullback] at h₁
-    erw [ContinuousLinearEquiv.apply_symm_apply]
-    exact h₁.trans h₂.symm
-  left_inv v := by
-    dsimp only
-    erw [ContinuousLinearEquiv.apply_symm_apply, ContinuousLinearEquiv.symm_apply_apply]
-  right_inv v := by
-    dsimp only
-    erw [ContinuousLinearEquiv.apply_symm_apply, ContinuousLinearEquiv.symm_apply_apply]
-  continuous_toFun := (J.toContinuousComplexStructure.fiberEquiv (f y)).symm.continuous.comp
-    ((J.pullback f).toContinuousComplexStructure.fiberEquiv y).continuous
-  continuous_invFun :=
-    ((J.pullback f).toContinuousComplexStructure.fiberEquiv y).symm.continuous.comp
-      (J.toContinuousComplexStructure.fiberEquiv (f y)).continuous
+      ((f : N → M) *ᵖ J.toContinuousComplexStructure.Fiber) y :=
+  -- The fibres of `(f *ᵖ J.toContinuousComplexStructure.Fiber) y` are, by definition, those of
+  -- `J.toContinuousComplexStructure.Fiber (f y)`, which the closing `exact`s use.
+  ContinuousLinearEquiv.complexOfMapISmul
+    (W := ((f : N → M) *ᵖ J.toContinuousComplexStructure.Fiber) y)
+    (((J.pullback f).toContinuousComplexStructure.fiberEquiv y).trans
+      (J.toContinuousComplexStructure.fiberEquiv (f y)).symm) fun v ↦
+    (J.toContinuousComplexStructure.fiberEquiv (f y)).injective <| by
+      have h₁ := (J.pullback f).toContinuousComplexStructure.fiberEquiv_I_smul y v
+      have h₂ (w : V (f y)) : J.toContinuousComplexStructure.fiberEquiv (f y)
+          (Complex.I • (J.toContinuousComplexStructure.fiberEquiv (f y)).symm w) = J (f y) w := by
+        rw [TauCeti.Bundle.ContinuousComplexStructure.fiberEquiv_I_smul,
+          ContinuousLinearEquiv.apply_symm_apply, toContinuousComplexStructure_apply]
+      rw [toContinuousComplexStructure_apply, coe_pullback] at h₁
+      exact (((J.toContinuousComplexStructure.fiberEquiv (f y)).apply_symm_apply _).trans
+        h₁).trans (h₂ _).symm
 
 theorem pullbackFiberEquiv_apply (J : ContMDiffComplexStructure I n F V) (f : C^n⟮I', N; I, M⟯)
     (y : N) (v : (J.pullback f).toContinuousComplexStructure.Fiber y) :
     J.pullbackFiberEquiv f y v = (J.toContinuousComplexStructure.fiberEquiv (f y)).symm
-      ((J.pullback f).toContinuousComplexStructure.fiberEquiv y v) := (rfl)
+      ((J.pullback f).toContinuousComplexStructure.fiberEquiv y v) := by
+  -- As in `pullbackFiberEquiv`, the `exact` reads the pull-back fibre as `V (f y)`.
+  rw [pullbackFiberEquiv]
+  exact congrFun (ContinuousLinearEquiv.coe_complexOfMapISmul _ _) v
 
 /-- `pullbackFiberEquiv` is continuous on total spaces, for any complex model `G`. -/
 theorem continuous_pullbackFiberEquiv [FiniteDimensional ℝ F] (G : Type*) [NormedAddCommGroup G]

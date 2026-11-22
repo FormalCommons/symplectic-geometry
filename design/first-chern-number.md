@@ -178,7 +178,12 @@ bundles that `Basic.lean` needs, go in
 `Topology/VectorBundle/Complex/`, because they use no smooth structure (a
 folder here beside Tau Ceti's folder of the same name; no Tau Ceti file has
 the name `FirstChernClass.lean` at that place, and `Structure.lean` is
-named after Tau Ceti's file there so that the two can merge). The
+named after Tau Ceti's file there so that the two can merge). Two general
+lemmas on Euler classes of finite-rank cores go in
+`Topology/VectorBundle/FiniteRank/EulerClass.lean`, and the complex-linear
+equivalence of a real one that commutes with `I` in
+`Topology/Algebra/Module/ComplexSmulI.lean`, named after Tau Ceti's file
+where `ContinuousLinearMap.complexOfMapISmul` lives. The
 prerequisites have files of their own, listed with their issues.
 
 ### `Topology/VectorBundle/Complex/FirstChernClass.lean`
@@ -225,6 +230,18 @@ core of prerequisite 1:
 No Whitney sum formula is claimed over a general base; additivity is proved
 over surfaces only, from clutching.
 
+### `Topology/VectorBundle/FiniteRank/EulerClass.lean`
+
+In the namespace `TauCeti.FiniteRankBundleCore`, for complex finite-rank
+cores, used by `FirstChernClass.lean`:
+
+- `complexEulerClass_eq_of_iso`: isomorphic cores have the same
+  `TauCeti.complexEulerClass`, from
+  `TauCeti.complexEulerClass_eq_of_fiberwise`;
+- `complexEulerClass_pullback`: the class of `A.pullback f` is the
+  pull-back of the class of `A`, from
+  `TauCeti.complexEulerClass_eq_singularCohomologyMap_of_fiberwise`.
+
 ### `Topology/VectorBundle/Complex/Structure.lean`
 
 In the namespace `TauCeti.Bundle.ContinuousComplexStructure`, for
@@ -242,6 +259,16 @@ one base and fibrewise real-linear equivalences `Φ`:
 
 They turn the real isomorphisms of *Symplectic vector bundles* into the
 complex ones that `chernNumber_congr` takes.
+
+### `Topology/Algebra/Module/ComplexSmulI.lean`
+
+- `ContinuousLinearEquiv.complexOfMapISmul`: a continuous real-linear
+  equivalence of complex modules that commutes with multiplication by `I`,
+  as a continuous complex-linear one, from Tau Ceti's
+  `ContinuousLinearMap.complexOfMapISmul`. `Structure.lean` builds its
+  equivalences with it, and so does `pullbackFiberEquiv` in
+  `Geometry/Manifold/VectorBundle/ComplexStructure.lean` of *Symplectic
+  vector bundles*, which imports this file.
 
 ### `Geometry/Manifold/VectorBundle/ChernNumber/Basic.lean`
 
@@ -1045,7 +1072,9 @@ issues, in an order where each issue's blockers come before it.
 
 ### The part's own issues
 
-10. **Chern classes and numbers.** `FirstChernClass.lean` and `Basic.lean`.
+10. **Chern classes and numbers.** `FirstChernClass.lean` and `Basic.lean`,
+    with `FiniteRank/EulerClass.lean`, `Complex/Structure.lean` and
+    `ComplexSmulI.lean`.
     Blocked by 1, by *Symplectic vector bundles*' issues for symplectic
     bundles and complex structures, by its classification issue for
     `symplecticChernNumber_eq_chernNumber`, and by the issues from #57 for

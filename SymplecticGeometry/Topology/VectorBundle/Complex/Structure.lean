@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.Topology.Algebra.Module.ComplexSmulI
 public import TauCeti.Topology.VectorBundle.Complex.Structure
 public import TauCeti.Topology.VectorBundle.Conjugate
 
@@ -59,23 +60,13 @@ variable (hΦ : ∀ b v, Φ b (J₁ b v) = J₂ b (Φ b v))
 
 /-- A family of real-linear equivalences `Φ` that intertwines `J₁` with `J₂`, as complex-linear
 equivalences `J₁.Fiber b ≃ J₂.Fiber b`. -/
-def fiberEquivOfCommute (b : B) : J₁.Fiber b ≃L[ℂ] J₂.Fiber b where
-  toFun v := (J₂.fiberEquiv b).symm (Φ b (J₁.fiberEquiv b v))
-  invFun v := (J₁.fiberEquiv b).symm ((Φ b).symm (J₂.fiberEquiv b v))
-  map_add' v w := by simp
-  map_smul' z v := (J₂.fiberEquiv b).injective <| by
-    simp only [fiberEquiv_smul, map_add, map_smul, RingHom.id_apply,
-      ContinuousLinearEquiv.apply_symm_apply, hΦ]
-  left_inv v := by simp
-  right_inv v := by simp
-  continuous_toFun := ((J₂.fiberEquiv b).symm.continuous.comp
-    ((Φ b).continuous.comp (J₁.fiberEquiv b).continuous))
-  continuous_invFun := ((J₁.fiberEquiv b).symm.continuous.comp
-    ((Φ b).symm.continuous.comp (J₂.fiberEquiv b).continuous))
+def fiberEquivOfCommute (b : B) : J₁.Fiber b ≃L[ℂ] J₂.Fiber b :=
+  ((J₁.fiberEquiv b).trans ((Φ b).trans (J₂.fiberEquiv b).symm)).complexOfMapISmul fun v ↦
+    (J₂.fiberEquiv b).injective <| by simp [hΦ]
 
 theorem fiberEquivOfCommute_apply (b : B) (v : J₁.Fiber b) :
-    J₁.fiberEquivOfCommute J₂ Φ hΦ b v = (J₂.fiberEquiv b).symm (Φ b (J₁.fiberEquiv b v)) :=
-  (rfl)
+    J₁.fiberEquivOfCommute J₂ Φ hΦ b v = (J₂.fiberEquiv b).symm (Φ b (J₁.fiberEquiv b v)) := by
+  simp [fiberEquivOfCommute]
 
 @[simp]
 theorem fiberEquiv_fiberEquivOfCommute (b : B) (v : J₁.Fiber b) :
@@ -108,25 +99,15 @@ variable (hΦ : ∀ b v, Φ b (J₁ b v) = -J₂ b (Φ b v))
 
 /-- A family of real-linear equivalences `Φ` that intertwines `J₁` with `-J₂`, as complex-linear
 equivalences from `J₁.Fiber b` to the conjugate of `J₂.Fiber b`. -/
-def fiberEquivConjOfAnticommute (b : B) : J₁.Fiber b ≃L[ℂ] ConjugateBundle J₂.Fiber b where
-  toFun v := toConj ((J₂.fiberEquiv b).symm (Φ b (J₁.fiberEquiv b v)))
-  invFun v := (J₁.fiberEquiv b).symm ((Φ b).symm (J₂.fiberEquiv b (ofConj v)))
-  map_add' v w := by simp
-  map_smul' z v := ofConj.injective <| (J₂.fiberEquiv b).injective <| by
-    simp only [ofConj_toConj, ofConj_smul, fiberEquiv_smul, map_add, map_smul, RingHom.id_apply,
-      ContinuousLinearEquiv.apply_symm_apply, hΦ, Complex.conj_re, Complex.conj_im, neg_smul,
-      smul_neg]
-  left_inv v := by simp
-  right_inv v := by simp
-  continuous_toFun := ((J₂.fiberEquiv b).symm.continuous.comp
-    ((Φ b).continuous.comp (J₁.fiberEquiv b).continuous))
-  continuous_invFun := ((J₁.fiberEquiv b).symm.continuous.comp
-    ((Φ b).symm.continuous.comp (J₂.fiberEquiv b).continuous))
+def fiberEquivConjOfAnticommute (b : B) : J₁.Fiber b ≃L[ℂ] ConjugateBundle J₂.Fiber b :=
+  ((J₁.fiberEquiv b).trans ((Φ b).trans ((J₂.fiberEquiv b).symm.trans toConjL'))).complexOfMapISmul
+    fun v ↦ ofConj.injective <| (J₂.fiberEquiv b).injective <| by
+      simp [hΦ, Complex.conj_I, neg_smul]
 
 theorem fiberEquivConjOfAnticommute_apply (b : B) (v : J₁.Fiber b) :
     J₁.fiberEquivConjOfAnticommute J₂ Φ hΦ b v =
-      toConj ((J₂.fiberEquiv b).symm (Φ b (J₁.fiberEquiv b v))) :=
-  (rfl)
+      toConj ((J₂.fiberEquiv b).symm (Φ b (J₁.fiberEquiv b v))) := by
+  simp [fiberEquivConjOfAnticommute]
 
 @[simp]
 theorem fiberEquiv_ofConj_fiberEquivConjOfAnticommute (b : B) (v : J₁.Fiber b) :

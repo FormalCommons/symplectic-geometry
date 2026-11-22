@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Topology.VectorBundle.Determinant
+public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.EulerClass
 public import TauCeti.AlgebraicTopology.Cohomology.FundamentalClass
 public import TauCeti.AlgebraicTopology.Cohomology.Point
 public import TauCeti.Topology.VectorBundle.Orientation.Complex.FiberwiseEquiv
@@ -32,10 +33,6 @@ is the integer `⟨c₁(E), [M]⟩`.
   `chernNumber_neg_orientation`, `chernNumber_congr`, `chernNumber_trivial`, `chernNumber_conj`
   and `chernNumber_pullback` (the number of a pull-back is the degree times the number).
 
-On the way, `TauCeti.FiniteRankBundleCore.complexEulerClass_eq_of_iso` and
-`TauCeti.FiniteRankBundleCore.complexEulerClass_pullback` say that the Euler class of a complex
-finite-rank core only depends on its isomorphism class and is natural under pull-back.
-
 ## Implementation notes
 
 The class is the class of `complexEulerClass` with `r = 0`, of degree `2 * 0 + 2`, which is `2`
@@ -54,56 +51,11 @@ public section
 
 open Bundle CategoryTheory Module TauCeti TauCeti.Conjugate
 
-/-! ### The Euler class of a complex finite-rank core -/
-
-namespace TauCeti.FiniteRankBundleCore
-
-variable {B : Type} [TopologicalSpace B] {r : ℕ}
-
-/-- **Isomorphic complex finite-rank cores have the same Euler class.** -/
-theorem complexEulerClass_eq_of_iso {A D : FiniteRankBundleCore ℂ B} (e : A ≅ D)
-    (hA : finrank ℂ (Fin A.rank → ℂ) = r + 1) (hD : finrank ℂ (Fin D.rank → ℂ) = r + 1) :
-    complexEulerClass (Fin A.rank → ℂ) A.core.Fiber hA =
-      complexEulerClass (Fin D.rank → ℂ) D.core.Fiber hD := by
-  -- The fibre maps of `e`, between the coordinate spaces, which are the fibres of the cores.
-  let φ (x : B) : (Fin A.rank → ℂ) ≃L[ℂ] (Fin D.rank → ℂ) :=
-    ContinuousLinearEquiv.ofContinuousLinearMap (e.hom.fiberMap x) (e.inv.fiberMap x)
-      (by rw [← fiberMap_comp, Iso.inv_hom_id, fiberMap_id])
-      (by rw [← fiberMap_comp, Iso.hom_inv_id, fiberMap_id])
-  refine complexEulerClass_eq_of_fiberwise hD hA (φ := φ) ?_
-  refine e.hom.continuous_totalSpaceMap.congr fun p ↦ ?_
-  rw [VectorBundleCore.CoordinateHom.totalSpaceMap_mk]
-  -- `φ p.proj` applies `e.hom.fiberMap p.proj`, by its construction above.
-  rfl
-
-/-- **Naturality of the Euler class of a complex finite-rank core**: the Euler class of the
-pull-back core `A.pullback f` is the pull-back of the Euler class of `A`. -/
-theorem complexEulerClass_pullback {X : Type} [TopologicalSpace X] (A : FiniteRankBundleCore ℂ B)
-    (f : C(X, B)) (hA : finrank ℂ (Fin A.rank → ℂ) = r + 1) :
-    complexEulerClass (Fin (A.pullback f).rank → ℂ) (A.pullback f).core.Fiber hA =
-      TopCat.singularCohomologyMap (TopCat.ofHom f) (2 * r + 2)
-        (complexEulerClass (Fin A.rank → ℂ) A.core.Fiber hA) :=
-  complexEulerClass_eq_singularCohomologyMap_of_fiberwise hA hA
-    (φ := fun _ ↦ ContinuousLinearEquiv.refl ℂ (Fin A.rank → ℂ))
-    ((A.continuous_pullbackLift f).congr fun p ↦ A.pullbackLift_eq_mk f p rfl rfl)
-
-end TauCeti.FiniteRankBundleCore
-
 namespace SymplecticGeometry
 
 namespace Bundle
 
 open TauCeti.FiniteRankBundleCore
-
-/-- The determinant line of a complex bundle has a model of complex dimension `0 + 1`, the form
-in which `TauCeti.complexEulerClass` takes the rank. -/
-theorem finrank_detCore {B : Type*} [TopologicalSpace B]
-    (G : Type*) [NormedAddCommGroup G] [NormedSpace ℂ G] [FiniteDimensional ℂ G]
-    (E : B → Type*) [∀ x, AddCommMonoid (E x)] [∀ x, Module ℂ (E x)]
-    [∀ x, TopologicalSpace (E x)] [TopologicalSpace (TotalSpace G E)]
-    [FiberBundle G E] [VectorBundle ℂ G E] :
-    finrank ℂ (Fin (detCore ℂ G E).rank → ℂ) = 0 + 1 := by
-  simp
 
 /-! ### The first Chern class -/
 
@@ -121,11 +73,11 @@ orientation of a complex line. -/
 noncomputable def firstChernClass :
     (TopCat.of B).singularCohomology (ModuleCat.of ℤ (ULift ℤ)) ℤ (ModuleCat.of ℤ (ULift ℤ)) 2 :=
   complexEulerClass (r := 0) (Fin (detCore ℂ G E).rank → ℂ) (detCore ℂ G E).core.Fiber
-    (finrank_detCore G E)
+    (finrank_detCore ℂ G E)
 
 theorem firstChernClass_def :
     firstChernClass G E = complexEulerClass (r := 0) (Fin (detCore ℂ G E).rank → ℂ)
-      (detCore ℂ G E).core.Fiber (finrank_detCore G E) := (rfl)
+      (detCore ℂ G E).core.Fiber (finrank_detCore ℂ G E) := (rfl)
 
 /-- **Naturality of the first Chern class**: `c₁(f* E) = f* c₁(E)` for a continuous map
 `f : X → B`. -/
@@ -134,7 +86,7 @@ theorem firstChernClass_pullback {X : Type} [TopologicalSpace X] (f : C(X, B)) :
       TopCat.singularCohomologyMap (TopCat.ofHom f) 2 (firstChernClass G E) := by
   rw [firstChernClass_def, firstChernClass_def]
   have h := detCore_pullback ℂ G E f
-  rw [← complexEulerClass_pullback (detCore ℂ G E) f (finrank_detCore G E)]
+  rw [← complexEulerClass_pullback (detCore ℂ G E) f (finrank_detCore ℂ G E)]
   exact complexEulerClass_eq_of_iso (eqToIso h) _ _
 
 variable {G E} in
@@ -187,6 +139,7 @@ theorem firstChernClass_eq_complexEulerClass
 
 /-- **The first Chern class of the conjugate bundle** is the opposite of that of the bundle:
 `c₁(Ē) = -c₁(E)`. -/
+@[simp]
 theorem firstChernClass_conj
     (E : B → Type*) [∀ x, AddCommGroup (E x)] [∀ x, Module ℂ (E x)]
     [∀ x, TopologicalSpace (E x)] [TopologicalSpace (TotalSpace G E)]
@@ -242,6 +195,7 @@ theorem chernNumber_congr
   rw [chernNumber_def, firstChernClass_trivial, map_zero, ULift.zero_down]
 
 /-- **The first Chern number of the conjugate bundle** is the opposite of that of the bundle. -/
+@[simp]
 theorem chernNumber_conj
     (E : M → Type*) [∀ x, AddCommGroup (E x)] [∀ x, Module ℂ (E x)]
     [∀ x, TopologicalSpace (E x)] [TopologicalSpace (TotalSpace G E)]
