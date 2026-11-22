@@ -526,11 +526,16 @@ $A$"):
   `ω.energy J j o u ≤ ω.energy J j o v` (both areas are the period of `A`,
   and Tau Ceti's `Compatible.integralTopForm_mpullback_le_energy` bounds
   that of `v` by its energy).
-- `singularHomologyPeriod_pos`: for `hc`, `ho` and pseudoholomorphic `u`
+- `Tames.singularHomologyPeriod_pos`: for `ω.Tames J` (a compatible pair
+  gives it), `ho` and pseudoholomorphic `u`
   that is not locally constant, `0 < singularHomologyPeriod (mk ω) A`.
 - **Milestone** `Compatible.energy_identity_and_homology`: the conjunction of
-  `Compatible.energy_identity` and, for closed `ω`, the three statements
-  above. Milestone: *Energy identity for J-holomorphic curves*.
+  `Compatible.energy_identity` and, for closed `ω`,
+  `energy_eq_singularHomologyPeriod`, `Compatible.energy_le_energy` and
+  `Tames.singularHomologyPeriod_pos`, with the energy written as in
+  `Compatible.energy_identity`, through
+  `energy_eq_half_integralTopForm_normSq`. Milestone: *Energy identity for
+  J-holomorphic curves*.
 
 ## Main results
 
