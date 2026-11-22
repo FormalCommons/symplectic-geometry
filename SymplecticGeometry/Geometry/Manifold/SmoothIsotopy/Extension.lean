@@ -11,11 +11,11 @@ import Mathlib.Geometry.Manifold.Algebra.Monoid
 import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition
 import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Basic
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.TimeExtension
-import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Neighborhood
 import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Flow
 import TauCeti.Geometry.Manifold.ContMDiffMap.Extension
 import TauCeti.Geometry.Manifold.Immersion.LocalDiffeomorph
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.Injective
 import TauCeti.Geometry.Manifold.MFDeriv.Basic
 import TauCeti.Geometry.Manifold.PartitionOfUnity.Compact
 import TauCeti.Geometry.Manifold.SmoothEmbedding.Euclidean
@@ -71,7 +71,8 @@ Steps 2 and 3 adapt the proof of Tau Ceti's `TauCeti.SmoothIsotopy.exists_diffeo
   composite with the slices of the isotopy of a smooth family of functions on the target that
   vanishes off a compact set. It is `(χ · h_t ∘ f₀⁻¹) ∘ Φ_t⁻¹`, with `Φ` the diffeotopy of isotopy
   extension at every time and `χ` a cutoff; `f₀⁻¹` is smooth on the image of `f₀` because
-  `f₀` is a local diffeomorphism (Tau Ceti's `IsImmersion.isLocalDiffeomorph`).
+  `f₀` is an injective local diffeomorphism (Tau Ceti's `IsImmersion.isLocalDiffeomorph` and
+  `IsLocalDiffeomorphOn.contMDiffOn_invFunOn`).
 
 ## References
 
@@ -238,14 +239,15 @@ theorem exists_contMDiff_comp_eventuallyEq [SigmaCompactSpace N] [FiniteDimensio
     (hA.image f₀.contMDiff.continuous).exists_contMDiff_one_nhds_tsupport_subset
     I (hf₀.isOpenMap _ isOpen_interior) (image_mono hAA')
   -- The function `χ · h_t ∘ f₀⁻¹` on `[0, 1] × N`.
-  set g : unitInterval × N → ℝ := fun q ↦ χ q.2 * h (q.1, invFun f₀ q.2)
+  set g : unitInterval × N → ℝ := fun q ↦ χ q.2 * h (q.1, invFunOn f₀ univ q.2)
   have hg : ContMDiff ((𝓡∂ 1).prod I) 𝓘(ℝ) ∞ g := by
     rintro ⟨t, y⟩
     by_cases hy : y ∈ tsupport χ
     · obtain ⟨p, -, rfl⟩ := hχW hy
       exact (hχ.contMDiffAt.comp _ contMDiffAt_snd).mul (hh.contMDiffAt.comp _
-        (contMDiffAt_fst.prodMk (((hf₀ p).contMDiffAt_invFun hinj).comp (t, f₀ p)
-          contMDiffAt_snd)))
+        (contMDiffAt_fst.prodMk ((((hf₀.isLocalDiffeomorphOn univ).contMDiffOn_invFunOn
+          isOpen_univ hinj.injOn).contMDiffAt ((hf₀.isOpenMap _ isOpen_univ).mem_nhds
+            (mem_image_of_mem f₀ (mem_univ p)))).comp (t, f₀ p) contMDiffAt_snd)))
     · refine contMDiffAt_const (c := (0 : ℝ)).congr_of_eventuallyEq ?_
       filter_upwards [(continuous_snd.tendsto (t, y)).eventually
         (notMem_tsupport_iff_eventuallyEq.1 hy)] with q hq
@@ -262,7 +264,7 @@ theorem exists_contMDiff_comp_eventuallyEq [SigmaCompactSpace N] [FiniteDimensio
         (hχ1.filter_mono (nhds_le_nhdsSet (mem_image_of_mem f₀ hx)))]
       with y hy hy1
     simp only [g, ← hΨ t y (interior_subset hy), Diffeotopy.symm_apply_mk_apply, hy1, one_mul,
-      leftInverse_invFun hinj y]
+      hinj.injOn.leftInvOn_invFunOn (mem_univ y)]
 
 end SmoothIsotopy
 

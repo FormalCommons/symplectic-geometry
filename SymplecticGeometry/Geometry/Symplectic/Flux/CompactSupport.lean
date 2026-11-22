@@ -274,9 +274,8 @@ theorem exists_interior_velocity_eq (hσ : SmoothTwoForm.IsSymplectic σ)
   set σ' : SmoothTwoForm (𝓘(ℝ, ℝ).prod J) (ℝ × M) :=
     SmoothForm.mpullback Prod.snd contMDiff_snd σ
   have hσ' (u : ℝ) : SmoothForm.mpullback (Prod.mk u) (contMDiff_const.prodMk contMDiff_id) σ' =
-      σ := by
-    rw [SmoothForm.mpullback_mpullback]
-    exact LinearMap.congr_fun SmoothForm.mpullback_id σ
+      σ :=
+    SmoothForm.mpullback_prodMk_mpullback_snd u σ
   have hnd (u : ℝ) : SmoothTwoForm.IsNondegenerate
       (SmoothForm.mpullback (Prod.mk u) (contMDiff_const.prodMk contMDiff_id) σ') :=
     (hσ' u).symm ▸ hσ.isNondegenerate

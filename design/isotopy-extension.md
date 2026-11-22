@@ -356,9 +356,9 @@ The file also has `TauCeti.SmoothIsotopy.exists_contMDiff_comp_eventuallyEq`,
 for `F` between manifolds of the same dimension and `h` smooth on
 `unitInterval × P`: a smooth `G` on `N × unitInterval`, vanishing off a
 compact set, with `G (F (t, y), t) = h (t, y)` for `y` near `A` (step 2 of
-`Flow.lean`). For it, `Extension.lean` imports *Smooth families*'
-`Geometry/Manifold/LocalDiffeomorph/Basic.lean`, for
-`IsLocalDiffeomorphAt.contMDiffAt_invFun`, and *Hamiltonian flows*'
+`Flow.lean`). For it, `Extension.lean` imports Tau Ceti's
+`Geometry/Manifold/LocalDiffeomorph/Injective.lean`, for
+`IsLocalDiffeomorphOn.contMDiffOn_invFunOn`, and *Hamiltonian flows*'
 `Geometry/Diffeomorphism/Diffeotopy/Basic.lean`.
 
 Expected size: 450 lines. The proof adapts Tau Ceti's

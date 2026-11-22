@@ -38,9 +38,6 @@ target of `Λ`, not only at `x`.
   is. It is the left-hand partner of Tau Ceti's `IsLocalDiffeomorphAt.comp_iff_right`, and
   combines Tau Ceti's `IsLocalDiffeomorphAt.of_comp_left` with Mathlib's
   `IsLocalDiffeomorphAt.comp`.
-* `IsLocalDiffeomorphAt.invFun_eventuallyEq_localInverse`,
-  `IsLocalDiffeomorphAt.contMDiffAt_invFun`: an injective local diffeomorphism at `x` has, as its
-  inverse `Function.invFun f`, its local inverse near `f x`, so that inverse is smooth at `f x`.
 * `isLocalDiffeomorph_id`: the identity of a manifold is a local diffeomorphism.
 * `IsLocalDiffeomorphAt.congr_of_eventuallyEq`: being a local diffeomorphism at `x` depends only
   on the germ of the map at `x`.
@@ -113,20 +110,6 @@ theorem comp_iff_left {F' : Type*} [NormedAddCommGroup F'] [NormedSpace 𝕜 F']
     (hf : ContinuousAt f x) :
     IsLocalDiffeomorphAt I K n (g ∘ f) x ↔ IsLocalDiffeomorphAt I J n f x :=
   ⟨fun h ↦ h.of_comp_left hg hf, fun h ↦ h.comp (hg := hg)⟩
-
-/-- An injective local diffeomorphism `f` at `x` has, as its inverse `Function.invFun f`, the
-local inverse `hf.localInverse` near `f x`. -/
-theorem invFun_eventuallyEq_localInverse [Nonempty M] (hf : IsLocalDiffeomorphAt I J n f x)
-    (hinj : Injective f) : invFun f =ᶠ[nhds (f x)] hf.localInverse := by
-  filter_upwards [hf.localInverse_eventuallyEq_right] with z hz
-  have hz' : f (hf.localInverse z) = z := hz
-  exact (congrArg (invFun f) hz').symm.trans (leftInverse_invFun hinj _)
-
-/-- The inverse `Function.invFun f` of an injective `C^n` local diffeomorphism `f` at `x` is
-`C^n` at `f x`. -/
-theorem contMDiffAt_invFun [Nonempty M] (hf : IsLocalDiffeomorphAt I J n f x)
-    (hinj : Injective f) : ContMDiffAt J I n (invFun f) (f x) :=
-  hf.contMDiffAt_localInverse.congr_of_eventuallyEq (hf.invFun_eventuallyEq_localInverse hinj)
 
 end IsLocalDiffeomorphAt
 
