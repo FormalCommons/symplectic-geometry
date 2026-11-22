@@ -282,8 +282,8 @@ codifferential in a chart `ψ`:
   `ψ.target`, and is the star of `E` for the inner product `gramInChart ψ y`.
   By `Orientation.formHodgeStar_apply_eq_volumeForm_mul_sum` it is a
   smooth function of the Gram matrix in a fixed basis. Hence
-  `hasFDerivAt_hodgeStarInChart_zero`: where `gramInChart ψ` has
-  derivative zero, so does `hodgeStarInChart o ψ hkl`.
+  `fderiv_hodgeStarInChart_eq_zero`: where `fderiv ℝ (gramInChart ψ)`
+  vanishes, so does `fderiv ℝ (hodgeStarInChart o ψ hkl)`.
 - `mpullback_symm_codifferential`: the expression of $d^*\beta$ is
   $\pm S\,d(S\,b)$, with $S$ the star in the chart, $b$ the expression of
   $\beta$, and the sign of Tau Ceti's definition of `codifferential`.
@@ -497,7 +497,7 @@ On an oriented manifold with a metric instance satisfying `hg`,
 - `lefschetz_codifferential_sub`: the Kähler identity
   $L\,d^*\alpha-d^*L\alpha=-(\mathcal J\,d\alpha-d\,\mathcal J\alpha)$, at
   each point in the chart of `KahlerCoordinates.lean`, from
-  `mpullback_symm_codifferential`, `hasFDerivAt_hodgeStarInChart_zero`,
+  `mpullback_symm_codifferential`, `fderiv_hodgeStarInChart_eq_zero`,
   `mpullback_mextDeriv_on`, `mpullback_symm_realAlternatingDerivation` and
   the linear identity.
 - `hodgeLaplacian_realAlternatingDerivation`:
