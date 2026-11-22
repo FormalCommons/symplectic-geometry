@@ -297,10 +297,13 @@ reflection $t\mapsto1-t$.
   both ends), with `_def` lemmas.
 - `seeleyIccExtend_of_mem (h : t ∈ Icc 0 1) : seeleyIccExtend f t = f t`;
   `seeleyIccExtend_congr (h : EqOn f g (Icc 0 1)) : seeleyIccExtend f =
-  seeleyIccExtend g`; `seeleyIccExtend_add`, `seeleyIccExtend_smul`, and
+  seeleyIccExtend g`; `seeleyIccExtend_zero`, `seeleyIccExtend_add`,
+  `seeleyIccExtend_smul`, bundled as the `ℝ`-linear map
+  `seeleyIccExtendLinearMap F : (ℝ → F) →ₗ[ℝ] (ℝ → F)` with
+  `coe_seeleyIccExtendLinearMap`; and
   `LinearMap.map_seeleyIccExtend (L : F →ₗ[ℝ] G) : L (seeleyIccExtend f t) =
   seeleyIccExtend (L ∘ f) t`, the last because the sum is finite at each $t$.
-  The same lemmas for `seeleyExtend`.
+  The same lemmas, and `seeleyExtendLinearMap`, for `seeleyExtend`.
 - `contDiffOn_seeleyIccExtend {f : ℝ × E → F} {U : Set E} (hU : IsOpen U)
   (hf : ContDiffOn ℝ ∞ f (Icc 0 1 ×ˢ U)) : ContDiffOn ℝ ∞
   (fun p : ℝ × E ↦ seeleyIccExtend (fun s ↦ f (s, p.2)) p.1) (univ ×ˢ U)`,

@@ -85,8 +85,8 @@ variable {EB HB M : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB]
     uses `polarComplexStructure` (`compatible_polarComplexStructure`,
     `polarComplexStructure_tangentEquiv`, `IsNondegenerate.exists_compatible`,
     `exists_homotopyEquiv_polarComplexStructure`,
-    `polarComplexStructure_homotopic`, both milestones, and the local
-    Darboux frames of issue 9); `isOpen_polarFormulaDomain`,
+    `polarComplexStructure_homotopic` and both milestones);
+    `isOpen_polarFormulaDomain`,
     `isOpen_polarEndDomain` (through `isOpen_polarFormulaDomain`),
     `polarFormulaAt` and `polarEndAt` with their lemmas,
     `contMDiffOn_polarFormulaAt` and `contMDiffOn_polarEndAt`, which go
@@ -183,8 +183,9 @@ file to it.
 - The overview's `.../Symplectic/ComplexStructure.lean` becomes a folder of
   two files from the start, since its content is more than one file holds.
 - The local trivializations move from `Symplectic/Basic.lean` to
-  `Symplectic/Trivialization.lean`, since their proof uses $J_{g,\omega}$,
-  which is defined after `Basic.lean`.
+  `Symplectic/Trivialization.lean`, a file of their own: the local Darboux
+  frames and the reduction of the structure group are a topic apart from
+  the definitions in `Basic.lean`.
 - `ContMDiffMap/Chart/CodRestrict.lean` is new: it holds a general fact
   about Tau Ceti's weak Whitney topology that the proof of
   `continuous_fiberwiseMap` uses (see *Continuity of fibrewise maps*), and
@@ -244,21 +245,19 @@ file to it.
   `isOpen_setOf_nondegenerate` and `isOpen_polarFormulaDomain` holds for any
   fibrewise condition on any fibre bundle, so it is stated there, in Mathlib's `FiberBundle` namespace, as
   `FiberBundle.isOpen_of_forall_mem_iff_snd_mem` (#456).
-- `Analysis/InnerProductSpace/GramSchmidtOrtho.lean` is new: the step of
-  issue 9 showing that Gram–Schmidt applied to `u₀, J u₀, u₁, J u₁, …` gives
-  `e₀, J e₀, e₁, J e₁, …` uses only an inner product space and a skew-adjoint
+- `Analysis/InnerProductSpace/GramSchmidtOrtho.lean` is new, from
+  issue 9: the result that Gram–Schmidt applied to `u₀, J u₀, u₁, J u₁, …` gives
+  `e₀, J e₀, e₁, J e₁, …` needs only an inner product space and a skew-adjoint
   orthogonal `J`. It is in Mathlib's namespace `InnerProductSpace`, in a file
   with the name of Mathlib's file of `gramSchmidt`, so that it can merge there.
-- `Topology/VectorBundle/LinearIndependent.lean` is new: the step of issue 9
-  that keeps the extended sections independent near the point holds for any
-  sections of a topological vector bundle that are continuous there, so it is
+- `Topology/VectorBundle/LinearIndependent.lean` is new, from issue 9:
+  the result that sections independent at a point stay independent near it
+  holds for any sections of a topological vector bundle that are continuous there, so it is
   stated there, in Mathlib's namespace `Bundle.Trivialization`, as
   `Bundle.Trivialization.eventually_linearIndependent`.
 - `ContMDiffTwoForm.Compatible.metric`, the bundle metric $\omega(\cdot,J\cdot)$
   of a compatible pair, is public, in `Symplectic/ComplexStructure/Basic.lean`
-  next to `compatibleForm`, which goes the other way. Issue 9 uses it, and
-  `Trivialization.lean` imports part 9's `LinearAlgebra/Symplectic/Compatible.lean`
-  for `isDarbouxBasis_iff_apply_apply_eq_ite`.
+  next to `compatibleForm`, which goes the other way.
 - The lemma of `Section/Topology.lean` asks for joint $C^n$ regularity in a
   manifold parameter instead of derivatives continuous in the parameter (see
   below), and issues 6, 7 and 8 wait for part 9: issue 6 for its building
@@ -482,9 +481,9 @@ the form and of the structure are independent.
   `ContMDiffComplexStructure.compatibleForm g J : ContMDiffTwoForm I n F V`
   (`[FiniteDimensional ℝ F]`) with `compatibleForm_apply` (the formula above)
   and `compatible_compatibleForm`. It is `ContMDiffTwoForm.ofBilinearSection`
-  of the bilinear section `(g ∘ J - (g ∘ J)ᵀ) / 2`, built with
-  `ContMDiff.clm_bundle_comp` and `TauCeti.Manifold.transposeBilinearSection`
-  (`Geometry/Manifold/VectorBundle/Bilinear/Section.lean`). The constructor
+  of the bilinear section `x ↦ compatibleBilinAt g x (J x)`, which is $C^n$ by
+  `Bundle.ContMDiffRiemannianMetric.contMDiff_compatibleBilinAt`
+  (`Riemannian/PolarEnd.lean`). The constructor
   `ContMDiffTwoForm.ofBilinearSection β hβ` (`[FiniteDimensional ℝ F]`), in
   `Symplectic/Basic.lean` with `ofBilinearSection_apply` and
   `bilinFormAt_ofBilinearSection`, turns a $C^n$ bilinear section `β` with
@@ -1069,7 +1068,9 @@ $[0,1]$ is never fed to the lemma with `P = ℝ` directly.
   `Geometry/Manifold/VectorBundle/ContinuousAlternatingMap.lean`, beside
   `contMDiff_compContinuousLinearMap_totalSpace`, over the file's field `𝕜`,
   with values in a normed space `G` (the two-forms of this part are the case
-  `𝕜 = G = ℝ`) and a manifold `N` with model `IN`:
+  `𝕜 = G = ℝ`), `alternatingMapOfBilin` with values in the file's
+  coefficient bundle `W` (it uses no trivialization), and a manifold `N`
+  with model `IN`:
 
   ```lean
   def Bundle.flatAt (F) {x : M} (α : V x [⋀^Fin 2]→L[𝕜] Trivial M G x) :
@@ -1088,9 +1089,9 @@ $[0,1]$ is never fed to the lemma with `P = ℝ` directly.
           (E := fun x ↦ V x →L[𝕜] V x →L[𝕜] G) (b y) (flatAt F (α y))) y₀
 
   def Bundle.alternatingMapOfBilin (F) [CompleteSpace 𝕜] [FiniteDimensional 𝕜 F] {x : M}
-      (β : V x →L[𝕜] V x →L[𝕜] G) (hβ : ∀ v, β v v = 0) : V x [⋀^Fin 2]→L[𝕜] Trivial M G x
+      (β : V x →L[𝕜] V x →L[𝕜] W x) (hβ : ∀ v, β v v = 0) : V x [⋀^Fin 2]→L[𝕜] W x
 
-  @[simp] theorem Bundle.alternatingMapOfBilin_apply (β : V x →L[𝕜] V x →L[𝕜] G)
+  @[simp] theorem Bundle.alternatingMapOfBilin_apply (β : V x →L[𝕜] V x →L[𝕜] W x)
       (hβ : ∀ v, β v v = 0) (v : Fin 2 → V x) :
       alternatingMapOfBilin F β hβ v = β (v 0) (v 1)
 
@@ -1288,18 +1289,6 @@ $[0,1]$ is never fed to the lemma with `P = ℝ` directly.
   keep $a_1$ and $c^{-1}b_1$, and project the other sections by
   $v\mapsto v-\omega(v,c^{-1}b_1)a_1+\omega(v,a_1)c^{-1}b_1$, which fixes them
   at $x$. No metric, complex structure or ODE is needed.
-- `ContMDiffTwoForm.Compatible.exists_isLocalFrameOn_isDarbouxBasis`: the
-  same frames for a form compatible with a given $C^n$ complex structure
-  `J`, with no hypothesis on the base. Route: the metric
-  $\omega(\cdot,J\cdot)$; extend a $J_x$-complex basis $u_1,\dots,u_k$ of
-  $V_x$ to local sections, and apply Tau Ceti's smooth Gram–Schmidt
-  (`Geometry/Manifold/VectorBundle/GramSchmidt.lean`) to
-  $u_1,Ju_1,u_2,Ju_2,\dots$; since the metric is $J$-invariant, the output is
-  $e_1,Je_1,e_2,Je_2,\dots$, a Darboux frame.
-  The metric is `Compatible.metric`; the sections stay independent near the
-  point by `Bundle.Trivialization.eventually_linearIndependent`
-  (`Topology/VectorBundle/LinearIndependent.lean`), and the orthonormal output
-  is a Darboux basis by part 9's `isDarbouxBasis_iff_apply_apply_eq_ite`.
 - `IsNondegenerate.exists_trivialization_isSymplectomorphism`: for a symplectic
   form `σ` on the model fibre `F`, every point lies in the base set of a
   trivialization in the $C^n$ maximal atlas whose fibre maps carry
@@ -2079,7 +2068,7 @@ it, its design adds it.
   part uses nothing from *Compatible complex structures* (part 9) beyond what
   Tau Ceti already has: the fibrewise constructions it needs (the Cayley path,
   $J_{g,\omega}$, $\omega_{g,J}$, the complex-linear part) are Tau Ceti's
-  linear ones or explicit formulas. There are three exceptions. The first is
+  linear ones or explicit formulas. There are two exceptions. The first is
   the polar formula on the bundle of bilinear forms (`polarFormulaDomain`,
   `polarFormulaAt` and `contMDiffOn_polarFormulaAt`), from which both the
   smoothness of `polarComplexStructure` and `polarEndAt` with its
@@ -2104,11 +2093,7 @@ it, its design adds it.
   `isOpen_setOf_forall_Icc_mem_cayleyDomain`,
   `Compatible.mem_cayleyDomain`), so that the units, the compactness of
   $[0,1]$ and the two Tau Ceti unit lemmas are handled there once. It makes
-  issue 7 wait for part 9's building issue 6, which has no blocker. The
-  third is the converse `isDarbouxBasis_iff_apply_apply_eq_ite`, which
-  issue 9 adds to part 9's linear `LinearAlgebra/Symplectic/Compatible.lean`
-  and uses for its Darboux frames. Part 9's building issue 1, which made
-  that file, is merged, so issue 9 needs no new blocker. So issues 6 and 7
+  issue 7 wait for part 9's building issue 6, which has no blocker. So issues 6 and 7
   wait for part 9, and issue 8 through them. The straight line on forms of
   the homotopy equivalence needs nothing from part 9: its nondegeneracy
   comes from `convex_setOf_tames` (see `tames_lineMap_compatibleForm`), not
@@ -2184,9 +2169,7 @@ of *Constructions* for *First Chern number*.
    issue of their own (#638), done first, since issue 27 uses
    `compatibleBilinAt`.
 9. **Local Darboux frames.** `Symplectic/Trivialization.lean`, as above. The
-   smooth Gram–Schmidt of Mathlib and Tau Ceti needs a linearly ordered
-   index, so the frame is built on `Fin (2 * k)` and reindexed to
-   `Fin k × Fin 2`. The frame form `IsNondegenerate.exists_isSymplecticFrameOn`
+   frame form `IsNondegenerate.exists_isSymplecticFrameOn`
    comes last. Blockers: 6, 19.
 10. **Parametric smoothness of the linear Moser flow.** The solution of the
     linear Moser equation, read in a trivialization, is $C^n$ jointly in the

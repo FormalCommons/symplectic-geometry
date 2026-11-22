@@ -6,10 +6,15 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Geometry.Manifold.VectorBundle.ContinuousAlternatingMap
+public import Mathlib.Topology.VectorBundle.FiniteDimensional
 public import TauCeti.Analysis.Calculus.ContDiff.ContinuousAlternatingMap
+public import TauCeti.Analysis.Normed.Module.Alternating.Curry
+public import TauCeti.Geometry.Manifold.ContMDiff.ContinuousAlternatingMap
+public import TauCeti.LinearAlgebra.BilinearMap.Multilinear
+public import TauCeti.Topology.Algebra.Module.FiniteDimension
 
 /-!
-# Precomposition in bundles of continuous alternating maps
+# Precomposition, flat maps and bilinear maps in bundles of continuous alternating maps
 
 For vector bundles `V₁`, `V₂` and `W` over `M` and a `C^n` section `L` of the bundle of
 continuous linear maps `V₂ x →L V₁ x`, the map `α ↦ α ∘ L` from the total space of the bundle of
@@ -19,6 +24,35 @@ bundle `W`, and asks no regularity of the bundles themselves.
 
 The proof reads the map in the fibre coordinates of the trivializations at a point, where it is
 Tau Ceti's `ContinuousAlternatingMap.compContinuousLinearMapCLM`, a `C^n` map of the model spaces.
+
+The file also passes between alternating maps of two vectors and alternating bilinear maps on the
+fibres, along a map `b : N → M` into the base, so that both a section over `M` (`b = id`) and a
+point of a total space (`b` the projection) are covered:
+
+* `Bundle.flatAt F α`: for an alternating map `α` of two vectors of `V x` with values in a normed
+  space `G`, the continuous bilinear map `(v, w) ↦ α ![v, w]` (`Bundle.flatAt_apply`). The fibre
+  carries no norm, so it is Tau Ceti's `ContinuousAlternatingMap.flatL` read through the fibre
+  equivalence of `trivializationAt F V x`. By `contMDiffAt_sectionAlong_flatAt`, the flat maps of
+  a `C^n` family of such maps along `b` form a `C^n` family along `b`.
+* `Bundle.alternatingMapOfBilin F β hβ`: for a continuous bilinear map `β` on a fibre of finite
+  dimension that vanishes on the diagonal, the continuous alternating map `v ↦ β (v 0) (v 1)`
+  (`Bundle.alternatingMapOfBilin_apply`), with its two round trips with `flatAt`. By
+  `contMDiffAt_sectionAlong_continuousAlternatingMap_of_bilinear`, a family of alternating maps
+  along `b` whose values come from a `C^n` family of bilinear maps is `C^n`.
+
+The coefficients of `flatAt` form the trivial bundle with fibre `G`, since the flat map is read
+through a trivialization of `V` alone; the two-forms of this library take values in `ℝ`. The other
+declarations allow any coefficient bundle `W`.
+
+## Implementation notes
+
+The proof of `contMDiffAt_sectionAlong_flatAt` is that of Tau Ceti's
+`TauCeti.SmoothTwoForm.contMDiffAt_sectionAlong_flatL`
+(`TauCeti/Geometry/Symplectic/Manifold/Flat.lean`) with the tangent bundle replaced by `V`. The
+proof of `contMDiffAt_sectionAlong_continuousAlternatingMap_of_bilinear` is that of Tau Ceti's
+`TauCeti.contMDiffAt_continuousAlternatingMap_bundle_of_bilinear`
+(`TauCeti/Geometry/Manifold/VectorBundle/ContinuousAlternatingMap.lean`), its case `b = id`, with
+the sections of that proof composed with `b`.
 -/
 
 public section
@@ -78,5 +112,167 @@ theorem contMDiff_compContinuousLinearMap_totalSpace (L : ∀ x, V₂ x →L[�
   ext i
   simp only [Function.comp_apply, ContinuousLinearMap.coe_comp]
   exact (Trivialization.symmL_continuousLinearMapAt _ hp _).symm
+
+/-! ### Flat maps and alternating bilinear maps on the fibres -/
+
+section TwoForms
+
+variable {F : Type*} [NormedAddCommGroup F] [NormedSpace 𝕜 F]
+  {V : M → Type*} [∀ x, AddCommGroup (V x)] [∀ x, Module 𝕜 (V x)]
+  [∀ x, TopologicalSpace (V x)] [TopologicalSpace (TotalSpace F V)]
+  [FiberBundle F V] [VectorBundle 𝕜 F V]
+  {EN HN N : Type*} [NormedAddCommGroup EN] [NormedSpace 𝕜 EN] [TopologicalSpace HN]
+  {IN : ModelWithCorners 𝕜 EN HN} [TopologicalSpace N] [ChartedSpace HN N]
+
+namespace Bundle
+
+variable (F) in
+/-- The flat map `v ↦ α(v, ·)` of an alternating map `α` of two vectors of the fibre `V x`, as a
+continuous bilinear map `V x →L V x →L G`. The fibre carries no norm, so this is Tau Ceti's
+`ContinuousAlternatingMap.flatL` read through the fibre equivalence of `trivializationAt F V x`;
+`flatAt_apply` shows that the choice does not matter. -/
+noncomputable def flatAt {x : M} (α : V x [⋀^Fin 2]→L[𝕜] Trivial M G x) :
+    V x →L[𝕜] V x →L[𝕜] G :=
+  let e := (trivializationAt F V x).continuousLinearEquivAt 𝕜 x
+    (FiberBundle.mem_baseSet_trivializationAt F V x)
+  (e.arrowCongr (e.arrowCongr (ContinuousLinearEquiv.refl 𝕜 G))).symm
+    (ContinuousAlternatingMap.flatL 𝕜 F G (α.compContinuousLinearMap e.symm))
+
+/-- The flat map evaluates as the form: `α♭ v w = α ![v, w]`. -/
+@[simp]
+theorem flatAt_apply {x : M} (α : V x [⋀^Fin 2]→L[𝕜] Trivial M G x) (v w : V x) :
+    flatAt F α v w = α ![v, w] := by
+  simp only [flatAt, ContinuousLinearEquiv.arrowCongr,
+    ContinuousLinearEquiv.arrowCongrSL_symm_apply, ContinuousLinearMap.comp_apply,
+    ContinuousLinearEquiv.coe_coe, ContinuousAlternatingMap.flatL_apply_apply,
+    ContinuousAlternatingMap.compContinuousLinearMap_apply, ContinuousLinearEquiv.refl_symm,
+    ContinuousLinearEquiv.coe_refl, ContinuousLinearMap.id_apply]
+  congr 1
+  ext i
+  fin_cases i <;> simp [Trivialization.symm_apply_apply_mk _
+    (FiberBundle.mem_baseSet_trivializationAt F V x)]
+
+/-- The flat map of an alternating map vanishes on the diagonal: `α♭ v v = 0`. -/
+theorem flatAt_apply_self {x : M} (α : V x [⋀^Fin 2]→L[𝕜] Trivial M G x) (v : V x) :
+    flatAt F α v v = 0 := by
+  simp [α.map_eq_zero_of_eq ![v, v] (i := 0) (j := 1) rfl (by decide)]
+
+variable [∀ x, IsTopologicalAddGroup (V x)] [∀ x, ContinuousSMul 𝕜 (V x)] [CompleteSpace 𝕜]
+  [FiniteDimensional 𝕜 F]
+
+variable (F) in
+/-- The continuous alternating map `v ↦ β (v 0) (v 1)` of a continuous bilinear map `β` on a
+fibre of a bundle of finite rank that vanishes on the diagonal, `β v v = 0`. -/
+noncomputable def alternatingMapOfBilin {x : M} (β : V x →L[𝕜] V x →L[𝕜] W x)
+    (hβ : ∀ v, β v v = 0) :
+    V x [⋀^Fin 2]→L[𝕜] W x :=
+  haveI := VectorBundle.finiteDimensional (R := 𝕜) (F := F) (E := V) x
+  haveI := FiberBundle.t2Space (E := V) F x
+  AlternatingMap.toContinuousAlternatingMap
+    (LinearMap.IsAlt.toAlternatingMap (ω := β.toLinearMap₁₂) hβ)
+
+/-- The alternating map of a bilinear map `β` takes the value `β (v 0) (v 1)` on `v`. -/
+@[simp]
+theorem alternatingMapOfBilin_apply {x : M} (β : V x →L[𝕜] V x →L[𝕜] W x)
+    (hβ : ∀ v, β v v = 0) (v : Fin 2 → V x) :
+    alternatingMapOfBilin F β hβ v = β (v 0) (v 1) :=
+  by
+  simp only [alternatingMapOfBilin, AlternatingMap.coe_toContinuousAlternatingMap]
+  exact LinearMap.IsAlt.toAlternatingMap_apply _ v
+
+/-- The flat map of the alternating map of a bilinear map `β` is `β`. -/
+@[simp]
+theorem flatAt_alternatingMapOfBilin {x : M} (β : V x →L[𝕜] V x →L[𝕜] Trivial M G x)
+    (hβ : ∀ v, β v v = 0) : flatAt F (alternatingMapOfBilin F β hβ) = β := by
+  ext v w
+  simp
+
+/-- The alternating map of the flat map of `α` is `α`. -/
+@[simp]
+theorem alternatingMapOfBilin_flatAt {x : M} (α : V x [⋀^Fin 2]→L[𝕜] Trivial M G x)
+    (hα : ∀ v, flatAt F α v v = 0) : alternatingMapOfBilin F (flatAt F α) hα = α := by
+  ext v
+  rw [alternatingMapOfBilin_apply, flatAt_apply]
+  congr 1
+  ext i
+  fin_cases i <;> simp
+
+end Bundle
+
+/-- **Flat maps along a map into the base.** Let `α y` be alternating maps of two vectors of the
+fibres `V (b y)` along a map `b : N → M`, depending `C^n` on `y` at `y₀`. Then their flat maps
+`v ↦ α y (v, ·)` depend `C^n` on `y` at `y₀`, as maps into the bundle of bilinear maps along
+`b`. -/
+theorem contMDiffAt_sectionAlong_flatAt {b : N → M}
+    {α : ∀ y, V (b y) [⋀^Fin 2]→L[𝕜] Trivial M G (b y)} {y₀ : N}
+    (hα : ContMDiffAt IN (I.prod 𝓘(𝕜, F [⋀^Fin 2]→L[𝕜] G)) n
+      (fun y ↦ TotalSpace.mk' (F [⋀^Fin 2]→L[𝕜] G)
+        (E := fun x ↦ V x [⋀^Fin 2]→L[𝕜] Trivial M G x) (b y) (α y)) y₀) :
+    ContMDiffAt IN (I.prod 𝓘(𝕜, F →L[𝕜] F →L[𝕜] G)) n
+      (fun y ↦ TotalSpace.mk' (F →L[𝕜] F →L[𝕜] G)
+        (E := fun x ↦ V x →L[𝕜] V x →L[𝕜] G) (b y) (Bundle.flatAt F (α y))) y₀ := by
+  rw [contMDiffAt_hom_bundle]
+  have hα' := (contMDiffAt_continuousAlternatingMap_bundle _).1 hα
+  refine ⟨hα'.1, ?_⟩
+  -- In coordinates, the flat map is `flatL` applied to the coordinate expression of the form.
+  refine ((ContinuousAlternatingMap.flatL 𝕜 F G).contDiff.comp_contMDiffAt
+    hα'.2).congr_of_eventuallyEq ?_
+  filter_upwards [hα'.1.continuousAt.preimage_mem_nhds
+    ((trivializationAt F V (b y₀)).open_baseSet.mem_nhds
+      (FiberBundle.mem_baseSet_trivializationAt F V (b y₀)))] with y
+    (hy : b y ∈ (trivializationAt F V (b y₀)).baseSet)
+  ext v w
+  rw [inCoordinates_apply_eq₂ (E₃ := Trivial M G) hy hy (Set.mem_univ _), Function.comp_apply,
+    ContinuousAlternatingMap.flatL_apply_apply, Bundle.flatAt_apply]
+  simp only [Trivial.fiberBundle_trivializationAt', Trivial.linearMapAt_trivialization,
+    Trivial.continuousLinearMapAt_trivialization, ContinuousAlternatingMap.inCoordinates,
+    ContinuousLinearMap.id_compContinuousAlternatingMap,
+    ContinuousAlternatingMap.compContinuousLinearMap_apply, LinearMap.id_coe, id_eq]
+  congr 1
+  ext i
+  fin_cases i <;> exact (Trivialization.symmL_apply _ hy _).symm
+
+omit [∀ x, IsTopologicalAddGroup (V₁ x)] [∀ x, ContinuousSMul 𝕜 (V₁ x)] in
+/-- **Alternating maps from bilinear maps, along a map into the base.** Let `α y` be alternating
+maps of two vectors of the fibres `V₁ (b y)` along a map `b : N → M`, given by bilinear maps
+`β y` as `α y v = β y (v 0) (v 1)`. If the `β y` depend `C^n` on `y` at `y₀`, so do the `α y`. -/
+theorem contMDiffAt_sectionAlong_continuousAlternatingMap_of_bilinear [CompleteSpace 𝕜]
+    [FiniteDimensional 𝕜 F₁] {b : N → M}
+    {α : ∀ y, V₁ (b y) [⋀^Fin 2]→L[𝕜] W (b y)}
+    {β : ∀ y, V₁ (b y) →L[𝕜] V₁ (b y) →L[𝕜] W (b y)} {y₀ : N}
+    (hβ : ContMDiffAt IN (I.prod 𝓘(𝕜, F₁ →L[𝕜] F₁ →L[𝕜] G)) n
+      (fun y ↦ TotalSpace.mk' (F₁ →L[𝕜] F₁ →L[𝕜] G)
+        (E := fun x ↦ V₁ x →L[𝕜] V₁ x →L[𝕜] W x) (b y) (β y)) y₀)
+    (hα : ∀ y v, α y v = β y (v 0) (v 1)) :
+    ContMDiffAt IN (I.prod 𝓘(𝕜, F₁ [⋀^Fin 2]→L[𝕜] G)) n
+      (fun y ↦ TotalSpace.mk' (F₁ [⋀^Fin 2]→L[𝕜] G)
+        (E := fun x ↦ V₁ x [⋀^Fin 2]→L[𝕜] W x) (b y) (α y)) y₀ := by
+  have hb : ContMDiffAt IN I n b y₀ := ((contMDiffAt_hom_bundle _).1 hβ).1
+  rw [contMDiffAt_continuousAlternatingMap_bundle]
+  refine ⟨hb, TauCeti.contMDiffAt_continuousAlternatingMap_apply.2 fun v ↦ ?_⟩
+  let e := trivializationAt F₁ V₁ (b y₀)
+  have he : b y₀ ∈ e.baseSet := FiberBundle.mem_baseSet_trivializationAt F₁ V₁ (b y₀)
+  -- The sections `x ↦ e.symm x (v i)` of `V₁` near `b y₀`, composed with `b`.
+  have hs (i : Fin 2) : ContMDiffAt IN (I.prod 𝓘(𝕜, F₁)) n
+      (fun y ↦ TotalSpace.mk' F₁ (b y) (e.symm (b y) (v i))) y₀ := by
+    refine ContMDiffAt.comp (g := fun x ↦ TotalSpace.mk' F₁ x (e.symm x (v i))) y₀ ?_ hb
+    rw [contMDiffAt_section_iff]
+    refine (contMDiffAt_const (c := v i)).congr_of_eventuallyEq ?_
+    filter_upwards [e.open_baseSet.mem_nhds he] with x hx
+    exact congr(Prod.snd $(e.apply_mk_symm hx (v i)))
+  have hc := (contMDiffAt_totalSpace_iff.1 (hβ.clm_bundle_apply₂ (hs 0) (hs 1))).2
+  refine hc.congr_of_eventuallyEq ?_
+  let e' := trivializationAt G W (b y₀)
+  have he' : b y₀ ∈ e'.baseSet := FiberBundle.mem_baseSet_trivializationAt G W (b y₀)
+  filter_upwards [hb.continuousAt.preimage_mem_nhds (e.open_baseSet.mem_nhds he),
+    hb.continuousAt.preimage_mem_nhds (e'.open_baseSet.mem_nhds he')] with y
+    (hy : b y ∈ e.baseSet) (hy' : b y ∈ e'.baseSet)
+  simp only [ContinuousAlternatingMap.inCoordinates,
+    ContinuousLinearMap.compContinuousAlternatingMap_coe,
+    ContinuousAlternatingMap.compContinuousLinearMap_apply, hα, Function.comp_apply]
+  rw [Trivialization.symmL_apply _ hy, Trivialization.symmL_apply _ hy]
+  exact e'.continuousLinearMapAt_apply_of_mem 𝕜 hy' _
+
+end TwoForms
 
 end
