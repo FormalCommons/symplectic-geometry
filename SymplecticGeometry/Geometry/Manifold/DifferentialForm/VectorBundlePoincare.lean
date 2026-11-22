@@ -7,6 +7,7 @@ module
 
 public import TauCeti.Geometry.Manifold.DifferentialForm.Relative.Basic
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.HomotopyOperator
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Regularity
 
 /-!
 # The relative Poincaré operator at the zero section, and for families
@@ -117,9 +118,7 @@ theorem exists_contMDiff_mextDeriv_ofFunction_eq_of_mpullback_zeroSection
     rw [RoughForm.ofFunction_apply, mpullback_apply]
     exact congrArg (Ω.val (t, v)) (Subsingleton.elim _ _)
   refine ⟨fun p ↦ Ω.val p 0, ?_, fun t b ↦ ?_, fun t b hb ↦ ?_⟩
-  · have h := Ω.isSmoothForm
-    rw [RoughForm.eq_ofFunction (F := F) (I := 𝓘(ℝ, ℝ).prod (IB.prod 𝓘(ℝ, FV))) Ω.val] at h
-    exact isSmoothForm_ofFunction_iff.mp h
+  · exact Ω.contMDiff_apply_zero
   · have h := congrFun (hG t) (zeroSection FV V b)
     rw [vectorBundlePoincareHomotopy_zeroSection] at h
     simpa [RoughForm.ofFunction_apply] using congrArg (· 0) h
