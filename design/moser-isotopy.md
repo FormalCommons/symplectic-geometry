@@ -447,7 +447,7 @@ Proof. Take the tube `W` and the primitive `β` of
 `exists_isSmoothForm_relative_primitive`. It vanishes along `f(Q)`, since
 `f^*(σ₁ - σ₀) = 0` by `hf`. On the open submanifold `W`, apply *Isotopy
 extension*'s Moser argument along a family fixing a submanifold,
-`TauCeti.SmoothEmbedding.exists_diffeotopy_mpullback_eq_of_timeDeriv`
+`TauCeti.SmoothEmbedding.exists_diffeotopy_fix_eventually_mpullback_eq_of_timeDeriv`
 (`Moser/Family.lean`), to `f.codRestrict W`, the family
 `SmoothForm.lineMapFamily` of the restricted forms with `contDiff_id`, and
 `SmoothForm.mpullback Prod.snd contMDiff_snd β`. Then extend the

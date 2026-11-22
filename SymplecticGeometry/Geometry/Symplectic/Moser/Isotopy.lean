@@ -33,7 +33,7 @@ relative Moser theorem fixing a submanifold from it.
   primitive comes from Tau Ceti's relative Poincaré lemma on a tube around `f(Q)`
   (`TauCeti.SmoothEmbedding.exists_isSmoothForm_relative_primitive`, in the form of
   `TauCeti.SmoothEmbedding.exists_smoothForm_relative_primitive_sub`). On the tube, Moser's
-  argument along a family (`TauCeti.SmoothEmbedding.exists_diffeotopy_mpullback_eq_of_timeDeriv`,
+  argument along a family (`TauCeti.SmoothEmbedding.exists_diffeotopy_fix_eventually_mpullback_eq_of_timeDeriv`,
   in `Moser/Family.lean`) runs for the segment `SmoothForm.lineMapFamily` with that primitive
   constant in time, and the diffeotopy built on the tube is extended by the identity
   (`TauCeti.Diffeotopy.exists_extend_of_isCompact`).
@@ -110,7 +110,7 @@ theorem exists_diffeotopy_fix_eventually_mpullback_eq (f : SmoothEmbedding J I �
   have hβt (u : ℝ) :
       SmoothForm.mpullback (Prod.mk u) (contMDiff_const.prodMk contMDiff_id) γ = βW :=
     SmoothForm.mpullback_prodMk_mpullback_snd u βW
-  obtain ⟨Λ, ⟨C, hC, hΛC⟩, hΛK, hΛ⟩ := g.exists_diffeotopy_mpullback_eq_of_timeDeriv
+  obtain ⟨Λ, ⟨C, hC, hΛC⟩, hΛK, hΛ⟩ := g.exists_diffeotopy_fix_eventually_mpullback_eq_of_timeDeriv
     (SmoothForm.lineMapFamily τ₀ τ₁ (contDiff_id (n := ∞)))
     (fun t _ ↦ by rw [hσt]; exact hτ₀.add (hτ.smul t))
     γ
