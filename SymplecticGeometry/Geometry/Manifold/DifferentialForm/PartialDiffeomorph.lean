@@ -373,6 +373,18 @@ theorem localize_apply_of_mem {y : E} (hy : y ∈ ψ.target) (v : Fin k → E) :
     (TauCeti.mpullback (F := F) 𝓘(ℝ, E) I ψ.symm α.val y) _ v).trans ?_
   exact congrArg _ (TauCeti.mpullback_apply _ _ _ v)
 
+/-- On the target of the chart, the localization of `α` at `y` is `χ (ψ⁻¹ y)` times `α` at
+`ψ⁻¹ y` composed with the differential of `ψ.symm` at `y`, as a form on `E`. -/
+theorem localize_of_mem_eq_smul_compContinuousLinearMap {y : E} (hy : y ∈ ψ.target) :
+    α.localize ψ χ y = χ (ψ.symm y) • (show E [⋀^Fin k]→L[ℝ] F from
+      (α.val (ψ.symm y)).compContinuousLinearMap (mfderiv 𝓘(ℝ, E) I ψ.symm y)) := by
+  -- The `show` reads the composite, whose domain is `TangentSpace 𝓘(ℝ, E) y`, in
+  -- `E [⋀^Fin k]→L[ℝ] F`, so that the smul and the norm are those of forms on `E`. The closing
+  -- `rfl` unfolds `TangentSpace 𝓘(ℝ, E) y` to `E`, which no lemma rewrites.
+  ext v
+  rw [localize_apply_of_mem _ _ _ hy]
+  rfl
+
 /-- Off the target of the chart, the localization vanishes. -/
 theorem localize_apply_of_notMem {y : E} (hy : y ∉ ψ.target) : α.localize ψ χ y = 0 := by
   rw [localize_def]

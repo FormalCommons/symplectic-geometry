@@ -50,8 +50,8 @@ a constant times that of `α`: on the compact set `ψ '' tsupport χ` the differ
 is bounded above and its Riemannian Jacobian below
 (`PartialDiffeomorph.exists_mul_norm_le_norm_mfderiv_symm_le`,
 `PartialDiffeomorph.exists_le_riemannianJacobian_symm_le`), which bounds the comass norm of the
-localization pointwise (`TauCeti.SmoothForm.norm_localize_apply_le`, from the value of a pullback
-`TauCeti.mpullback_apply_eq_compContinuousLinearMap` and Mathlib's
+localization pointwise (`TauCeti.SmoothForm.norm_localize_apply_le`, from
+`TauCeti.SmoothForm.localize_of_mem_eq_smul_compContinuousLinearMap` and Mathlib's
 `ContinuousAlternatingMap.norm_compContinuousLinearMap_le`), the comass norm of a form is at most
 its Hilbert norm (Tau Ceti's `ContinuousAlternatingMap.norm_le_sqrt_alternatingFormInner_self`),
 and the change of variables `PartialDiffeomorph.setLIntegral_riemannianVolume_eq` along
@@ -296,13 +296,7 @@ theorem norm_localize_apply_le [RiemannianBundle (fun x : M ↦ TangentSpace I x
     {C : ℝ} (hC : 0 ≤ C) (h : ∀ v : E, ‖mfderiv 𝓘(ℝ, E) I ψ.symm y v‖ ≤ C * ‖v‖) :
     ‖α.localize ψ χ y‖ ≤ ‖χ (ψ.symm y)‖ * ‖α.val (ψ.symm y)‖ * C ^ k := by
   by_cases hy : y ∈ ψ.target
-  · -- The differential of `ψ.symm` with its domain read as `E`, so that `localize` and the bound
-    -- below use the smul and norm of `E [⋀^Fin k]→L[ℝ] ℝ`; the `rfl` unfolds this `let`.
-    let L : E →L[ℝ] TangentSpace I (ψ.symm y) := mfderiv 𝓘(ℝ, E) I ψ.symm y
-    have hl : α.localize ψ χ y = χ (ψ.symm y) • (α.val (ψ.symm y)).compContinuousLinearMap L := by
-      rw [localize_of_mem _ _ _ hy, mpullback_apply_eq_compContinuousLinearMap]
-      rfl
-    rw [hl, norm_smul, mul_assoc]
+  · rw [localize_of_mem_eq_smul_compContinuousLinearMap _ _ _ hy, norm_smul, mul_assoc]
     refine mul_le_mul_of_nonneg_left
       ((ContinuousAlternatingMap.norm_compContinuousLinearMap_le _ _).trans ?_) (norm_nonneg _)
     rw [Fintype.card_fin]
