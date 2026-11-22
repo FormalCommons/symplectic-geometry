@@ -177,11 +177,12 @@ Further choices:
 | `Geometry/Manifold/Boundary/Collar/Flow/Local.lean` | near one boundary point: the extended field and its flow from the boundary | 5 |
 | `Geometry/Manifold/Boundary/Collar/Flow/Basic.lean` | the collar of a compact boundary along an outward field | 6 |
 | `Geometry/Symplectic/Liouville/Filling.lean` | `IsStrongFilling`, its contact form, its Liouville collar | 7 |
+| `Geometry/Symplectic/Liouville/Scaling.lean` | Liouville scaling along integral curves, on a boundaryless manifold and in the interior of a manifold with boundary, for the collar of `Filling.lean` | 7 |
 | `Geometry/Manifold/Boundary/Collar/End.lean` | attaching the end `[0, ∞) × ∂W` along a smooth collar | 8 |
 | `Geometry/Symplectic/Liouville/Completion.lean` | $\widehat\omega$, $\widehat Y$, $\widehat\lambda$; third milestone | 9, 10 |
 | `Geometry/Symplectic/Liouville/Domain.lean` | the completion of a Liouville domain is a Tau Ceti completion | 11 |
 
-`ContactType.lean`, `Collar.lean`, `StableHamiltonian.lean`,
+`ContactType.lean`, `Collar.lean`, `Scaling.lean`, `StableHamiltonian.lean`,
 `Completion.lean` and `Domain.lean` have the paths of Tau Ceti files and
 extend them. No folder below has the name of a Tau Ceti file at its place:
 Tau Ceti's `Geometry/Manifold/Boundary/Collar/` is a folder with no
@@ -649,7 +650,9 @@ Expected size: 300 lines.
 - *Cotangent bundles*: `Geometry/Manifold/Flow/Basic.lean`, merged, which this
   part extends by the flow of a vector field on a normed space
   (`TauCeti.contDiffOn_flowOf_uncurry`,
-  `TauCeti.hasFDerivAt_flowOf_uncurry_zero`), in `Collar/Flow/Local.lean`.
+  `TauCeti.hasFDerivAt_flowOf_uncurry_zero`), in `Collar/Flow/Local.lean`, and by integral
+  curves as trajectories of the flow (`IsMIntegralCurveOn.sub_mem_flowDomain`,
+  `IsMIntegralCurveOn.flowOf_sub_eq`), in `Liouville/Scaling.lean`.
 - *Moser isotopy*: `Geometry/Symplectic/Manifold/Family.lean`
   (`SmoothTwoForm.isOpen_setOf_nondegenerate_bilinFormAt`), merged, in
   `StableHamiltonian.lean`.
@@ -667,7 +670,8 @@ Expected size: 300 lines.
   `ContactType.lean`.
 - *Moser isotopy*: `Geometry/Manifold/DifferentialForm/Opens.lean`
   (`TauCeti.mpullback_subtype_val_mextDeriv`), merged, in `ContactType.lean`,
-  and (`TauCeti.isSmoothForm_mpullback_subtypeVal_interior`) in `Collar.lean`.
+  and (`TauCeti.isSmoothForm_mpullback_subtypeVal_interior`) in `Collar.lean` and
+  `Scaling.lean`.
 - *Moser isotopy*: `Geometry/Symplectic/Manifold/Flat.lean`
   (`SmoothTwoForm.IsNondegenerate.interior_flat_inverse_ofSubsingleton`,
   `SmoothTwoForm.contMDiffAt_flat_inverse_apply`), merged, only in
