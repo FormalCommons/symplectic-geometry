@@ -19,8 +19,9 @@ total spaces. This file gives the converse construction.
   the fibre map of `e.hom` as the map and that of `e.inv` as its inverse;
 * `TauCeti.FiniteRankBundleCore.continuous_isoFiberEquiv`: this family is continuous on total
   spaces, in the form that `isoOfContinuousEquiv` takes;
-* `TauCeti.FiniteRankBundleCore.isoFiberEquiv_isoOfContinuousEquiv`: the two constructions are
-  inverse to each other in this direction.
+* `TauCeti.FiniteRankBundleCore.isoFiberEquiv_isoOfContinuousEquiv` and
+  `TauCeti.FiniteRankBundleCore.isoOfContinuousEquiv_isoFiberEquiv`: the two constructions are
+  inverse to each other.
 
 ## References
 
@@ -95,6 +96,13 @@ equivalences are those of `ψ`. -/
     isoFiberEquiv (isoOfContinuousEquiv ψ hψ) x = ψ x := by
   apply ContinuousLinearEquiv.coe_injective
   rw [toContinuousLinearMap_isoFiberEquiv, fiberMap_isoOfContinuousEquiv_hom]
+
+/-- The isomorphism built from the fibrewise equivalences of an isomorphism `e` of finite-rank
+cores is `e`. -/
+@[simp] theorem isoOfContinuousEquiv_isoFiberEquiv [CompleteSpace 𝕜] (e : A ≅ D) :
+    isoOfContinuousEquiv (isoFiberEquiv e) (continuous_isoFiberEquiv e) = e := by
+  ext x : 2
+  simp
 
 end FiniteRankBundleCore
 
