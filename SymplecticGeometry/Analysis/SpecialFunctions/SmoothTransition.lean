@@ -8,6 +8,7 @@ module
 public import Mathlib.Analysis.Calculus.BumpFunction.InnerProduct
 public import Mathlib.Analysis.SpecialFunctions.SmoothTransition
 import Mathlib.Analysis.Calculus.Deriv.Inv
+public import TauCeti.Geometry.Manifold.Instances.Icc.CollaredSmoothTransition
 import TauCeti.Analysis.SpecialFunctions.SmoothTransition
 
 /-!
@@ -19,6 +20,12 @@ vanishes outside `[0, 1]`. This file shows that the derivative is positive on th
 `(0, 1)` (`Real.smoothTransition.deriv_pos`): by the quotient rule it is
 `(f' x f (1 - x) + f x f' (1 - x)) / (f x + f (1 - x)) ^ 2`, and `f` and `f'` are positive on
 `(0, ∞)`.
+
+For Tau Ceti's `TauCeti.collaredSmoothTransition`, the map `s ↦ smoothTransition (2 * s - 1 / 2)`,
+it adds that the map is `0` near `0` and `1` near `1`
+(`TauCeti.collaredSmoothTransition_eventuallyEq_zero`,
+`TauCeti.collaredSmoothTransition_eventuallyEq_one`), and that its derivative is positive at
+every point where its value is neither `0` nor `1` (`TauCeti.deriv_collaredSmoothTransition_pos`).
 
 It also gives a smooth map `c : ℝ → ℝ` that is the identity on a closed interval `[a, b]` and
 takes its values in the open interval `(a - ε, b + ε)`
@@ -52,6 +59,38 @@ theorem deriv_pos {x : ℝ} (h₀ : 0 < x) (h₁ : x < 1) : 0 < deriv smoothTran
   positivity
 
 end Real.smoothTransition
+
+namespace TauCeti
+
+open Filter Topology
+
+/-- `collaredSmoothTransition` is `0` on a neighbourhood of `0`. -/
+theorem collaredSmoothTransition_eventuallyEq_zero :
+    collaredSmoothTransition =ᶠ[𝓝 0] fun _ ↦ 0 := by
+  filter_upwards [Iio_mem_nhds (by norm_num : (0 : ℝ) < 1 / 4)] with s hs
+  exact collaredSmoothTransition_eq_zero_of_le hs.le
+
+/-- `collaredSmoothTransition` is `1` on a neighbourhood of `1`. -/
+theorem collaredSmoothTransition_eventuallyEq_one :
+    collaredSmoothTransition =ᶠ[𝓝 1] fun _ ↦ 1 := by
+  filter_upwards [Ioi_mem_nhds (by norm_num : (3 / 4 : ℝ) < 1)] with s hs
+  exact collaredSmoothTransition_eq_one_of_ge hs.le
+
+/-- Where `collaredSmoothTransition` is neither `0` nor `1`, its derivative is positive. -/
+theorem deriv_collaredSmoothTransition_pos {s : ℝ}
+    (h₀ : collaredSmoothTransition s ≠ 0) (h₁ : collaredSmoothTransition s ≠ 1) :
+    0 < deriv collaredSmoothTransition s := by
+  rw [collaredSmoothTransition_def] at h₀ h₁
+  have hs₀ : 0 < 2 * s - 1 / 2 :=
+    lt_of_not_ge fun h ↦ h₀ (Real.smoothTransition.zero_of_nonpos h)
+  have hs₁ : 2 * s - 1 / 2 < 1 :=
+    lt_of_not_ge fun h ↦ h₁ (Real.smoothTransition.one_of_one_le h)
+  have hd := (((hasDerivAt_id' s).const_mul 2).sub_const (1 / 2)).smoothTransition
+    |>.congr_of_eventuallyEq (Eventually.of_forall fun r ↦ collaredSmoothTransition_def r)
+  rw [hd.deriv, mul_one]
+  exact mul_pos (Real.smoothTransition.deriv_pos hs₀ hs₁) two_pos
+
+end TauCeti
 
 namespace SymplecticGeometry
 
