@@ -876,6 +876,12 @@ issues, in an order where each issue's blockers come before it.
      the local orientation of the identity chart of an oriented inner
      product space, through the connecting morphism and radial projection,
      is the oriented generator of the unit sphere.
+   - `AlgebraicTopology/Singular/LocalHomology/BoundaryClass.lean`, imported
+     by `BoundaryDegree.lean`: in any dimension `n + 1`,
+     `TauCeti.HomologicalOrientation.boundaryClass`, the image of
+     `fundamentalClassRel` in `Hₙ(∂X; ℤ)` under the connecting morphism, with
+     `boundaryClass_neg` and `map_subtypeVal_boundaryClass` (it vanishes in
+     `Hₙ(X; ℤ)`).
    - `AlgebraicTopology/Singular/LocalHomology/DiscBoundaryClass.lean`, a
      prerequisite of `BoundaryDegree.lean`: the closed unit disc of `ℂ` in
      this setting, by `Collar.lean`, and its boundary
@@ -883,8 +889,8 @@ issues, in an order where each issue's blockers come before it.
      `SymplecticGeometry.singularHomologyOneIso_singularHomologyδ_fundamentalClassRel_closedBall`:
      for the complex orientation of the open disc, the boundary class read
      in ℤ through `Circle.singularHomologyOneIso` is $+1$.
-   - `AlgebraicTopology/Singular/LocalHomology/BoundaryDegree.lean`: the
-     definition `TauCeti.HomologicalOrientation.boundaryDegree o hn hι hιf hf
+   - `AlgebraicTopology/Singular/LocalHomology/BoundaryDegree.lean`, which
+     imports `BoundaryClass.lean`: the definition `TauCeti.HomologicalOrientation.boundaryDegree o hn hι hιf hf
      (u : C(∂X, Circle)) : ℤ`, the image of the boundary class
      `singularHomologyδ (fundamentalClassRel …)` under `u`, read in ℤ through
      `Circle.singularHomologyOneIso`, with the sign for which the

@@ -6,20 +6,21 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.AlgebraicTopology.Singular.CircleMap
+public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.BoundaryClass
 public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.DiscBoundaryClass
 
 /-!
 # The boundary degree of a circle-valued map
 
 We work in the setting of Tau Ceti's relative fundamental class
-(`TauCeti.HomologicalOrientation.fundamentalClassRel`): `X` is compact Hausdorff, `ι : M → X` is
-an open embedding of a manifold oriented by `o`, and the complement `∂X = X ∖ ι(M)` is the image of
-a collared map. The connecting morphism of the pair `(X, ∂X)` carries the relative fundamental class
-`[X, ∂X]` to the *boundary class* `∂[X, ∂X]` in the homology of `∂X`
-(`TauCeti.HomologicalOrientation.boundaryClass`). It vanishes in the homology of `X`, by exactness,
-and changes sign with the orientation.
+(`TauCeti.HomologicalOrientation.fundamentalClassRel`) for surfaces: `X` is compact
+Hausdorff, `ι : M → X` is an open embedding of a surface oriented by `o`, and the complement
+`∂X = X ∖ ι(M)` is the image of a collared map. Its boundary class `∂[X, ∂X] ∈ H₁(∂X; ℤ)`
+(`TauCeti.HomologicalOrientation.boundaryClass`, in
+`SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.BoundaryClass`) vanishes in the
+homology of `X` and changes sign with the orientation.
 
-When `M` is a surface, a map `u : ∂X → S¹` sends the boundary class to `H₁(S¹; ℤ) ≅ ℤ`
+A map `u : ∂X → S¹` sends the boundary class to `H₁(S¹; ℤ) ≅ ℤ`
 (`Circle.singularHomologyOneIso`); the resulting integer is the *boundary degree* of `u`
 (`TauCeti.HomologicalOrientation.boundaryDegree`). Tau Ceti fixes no sign convention for its
 connecting morphisms, so we check the sign on the closed unit disc of `ℂ`: there the boundary
@@ -30,13 +31,15 @@ so the boundary circle, which runs counterclockwise, has boundary degree `1`
 
 ## Main definitions
 
-* `TauCeti.HomologicalOrientation.boundaryClass`: the boundary class `∂[X, ∂X]`.
 * `TauCeti.HomologicalOrientation.boundaryDegree`: the boundary degree of `u : ∂X → S¹`.
 
 ## Main results
 
 * `TauCeti.HomologicalOrientation.boundaryDegree_mul`: pointwise products add boundary degrees,
   since circle-valued maps act additively on `H₁` (`ContinuousMap.singularHomologyFunctor_map_mul`).
+* `TauCeti.HomologicalOrientation.boundaryDegree_one`,
+  `TauCeti.HomologicalOrientation.boundaryDegree_inv`: the constant map `1` has boundary degree
+  `0`, and inverting a map negates its boundary degree.
 * `TauCeti.HomologicalOrientation.boundaryDegree_eq_of_homotopy`: homotopy invariance.
 * `TauCeti.HomologicalOrientation.boundaryDegree_neg_orientation`: reversing the orientation
   negates the boundary degree.
@@ -66,57 +69,14 @@ variable {X M : Type} {N : Type*} [TopologicalSpace X] [TopologicalSpace N] [Top
   [T2Space X] [CompactSpace X] [T2Space M] {E : Type} [NormedAddCommGroup E] [NormedSpace ℝ E]
   [FiniteDimensional ℝ E] [ChartedSpace E M] {ι : M → X} {f : N → X}
 
-/-! ### The boundary class -/
-
-section BoundaryClass
-
-variable {n : ℕ} (o : HomologicalOrientation M E (n + 1)) (hn : finrank ℝ E = n + 1)
-  (hι : IsOpenEmbedding ι) (hιf : range ι = (range f)ᶜ) (hf : IsCollared f)
-
-/-- **The boundary class** `∂[X, ∂X] ∈ Hₙ(∂X; ℤ)` of a compact `(n + 1)`-manifold `X` with
-collared boundary `∂X`, the complement of `ι(M)`: the image of the relative fundamental class
-`[X, ∂X]` under the connecting morphism of the pair `(X, ∂X)`. -/
-def boundaryClass :
-    ((singularHomologyFunctor (ModuleCat.{0} ℤ) n).obj (ModuleCat.of ℤ (ULift.{0} ℤ))).obj
-      (TopCat.of ↥((range ι)ᶜ : Set X)) :=
-  ((TopPair.ofSubset (X := TopCat.of X) (range ι)ᶜ).singularHomologyδ
-    (ModuleCat.of ℤ (ULift.{0} ℤ)) (n + 1) n rfl).hom (o.fundamentalClassRel hn hι hιf hf)
-
-theorem boundaryClass_def :
-    o.boundaryClass hn hι hιf hf =
-      ((TopPair.ofSubset (X := TopCat.of X) (range ι)ᶜ).singularHomologyδ
-        (ModuleCat.of ℤ (ULift.{0} ℤ)) (n + 1) n rfl).hom (o.fundamentalClassRel hn hι hιf hf) :=
-  (rfl)
-
-/-- Reversing the orientation negates the boundary class. -/
-@[simp]
-theorem boundaryClass_neg : (-o).boundaryClass hn hι hιf hf = -o.boundaryClass hn hι hιf hf := by
-  rw [boundaryClass_def, boundaryClass_def, fundamentalClassRel_neg]
-  exact map_neg _ _
-
-/-- The boundary class vanishes in `Hₙ(X; ℤ)`, by exactness of the sequence of the pair
-`(X, ∂X)`. -/
-@[simp]
-theorem map_subtypeVal_boundaryClass :
-    (((singularHomologyFunctor (ModuleCat.{0} ℤ) n).obj (ModuleCat.of ℤ (ULift.{0} ℤ))).map
-      (TopCat.ofHom ⟨Subtype.val, continuous_subtypeVal⟩ :
-        TopCat.of ↥((range ι)ᶜ : Set X) ⟶ TopCat.of X)).hom
-        (o.boundaryClass hn hι hιf hf) = 0 := by
-  have h := (TopPair.ofSubset (X := TopCat.of X) (range ι)ᶜ).singularHomologyδ_comp
-    (ModuleCat.of ℤ (ULift.{0} ℤ)) (n + 1) n rfl
-  -- `h` is the vanishing of the composite morphism; evaluate it at `[X, ∂X]`.
-  exact ConcreteCategory.congr_hom h (o.fundamentalClassRel hn hι hιf hf)
-
-end BoundaryClass
-
-/-! ### The boundary degree -/
-
 variable (o : HomologicalOrientation M E 2) (hn : finrank ℝ E = 2) (hι : IsOpenEmbedding ι)
   (hιf : range ι = (range f)ᶜ) (hf : IsCollared f)
 
 /-- **The boundary degree of a circle-valued map.** For a compact surface `X` with collared
 boundary `∂X`, the complement of `ι(M)`, and `u : ∂X → S¹`: the image under `u` of the boundary
-class `∂[X, ∂X] ∈ H₁(∂X; ℤ)`, read in `ℤ` through `Circle.singularHomologyOneIso`. -/
+class `∂[X, ∂X] ∈ H₁(∂X; ℤ)`, read in `ℤ` through `Circle.singularHomologyOneIso`. With this
+sign, the counterclockwise boundary of the closed unit disc of `ℂ` has boundary degree `1`
+(`SymplecticGeometry.boundaryDegree_closedBallComplToCircle`). -/
 def boundaryDegree (u : C(↥((range ι)ᶜ : Set X), Circle)) : ℤ :=
   ((Circle.singularHomologyOneIso (ModuleCat.of ℤ (ULift.{0} ℤ))).hom.hom
     ((((singularHomologyFunctor (ModuleCat.{0} ℤ) 1).obj (ModuleCat.of ℤ (ULift.{0} ℤ))).map
@@ -149,6 +109,7 @@ theorem boundaryDegree_eq_of_homotopy {u v : C(↥((range ι)ᶜ : Set X), Circl
   rw [boundaryDegree_def, boundaryDegree_def, hF]
 
 /-- Reversing the orientation negates the boundary degree. -/
+@[simp]
 theorem boundaryDegree_neg_orientation (u : C(↥((range ι)ᶜ : Set X), Circle)) :
     (-o).boundaryDegree hn hι hιf hf u = -o.boundaryDegree hn hι hιf hf u := by
   simp only [boundaryDegree_def, boundaryClass_neg, map_neg, ULift.neg_down]
@@ -166,6 +127,18 @@ theorem boundaryDegree_eq_zero_of_extend {u : C(↥((range ι)ᶜ : Set X), Circ
   rw [boundaryDegree_def, hu, Functor.map_comp, ModuleCat.hom_comp, LinearMap.comp_apply,
     map_subtypeVal_boundaryClass, map_zero, map_zero, ULift.zero_down]
 
+/-- The constant map `1 : ∂X → S¹` has boundary degree `0`. -/
+@[simp]
+theorem boundaryDegree_one : o.boundaryDegree hn hι hιf hf 1 = 0 :=
+  o.boundaryDegree_eq_zero_of_extend hn hι hιf hf 1 fun _ => rfl
+
+/-- The boundary degree of the pointwise inverse is the negative of the boundary degree. -/
+theorem boundaryDegree_inv (u : C(↥((range ι)ᶜ : Set X), Circle)) :
+    o.boundaryDegree hn hι hιf hf u⁻¹ = -o.boundaryDegree hn hι hιf hf u := by
+  have h := o.boundaryDegree_mul hn hι hιf hf u⁻¹ u
+  rw [inv_mul_cancel, boundaryDegree_one] at h
+  lia
+
 /-- **The boundary degree along loops.** Suppose that loops `γ i` in `∂X` represent the boundary
 class: the sum of their classes in `H₁(∂X; ℤ)`, the push-forwards along `(γ i).toCircle` of the
 generator of `Circle.singularHomologyOneIso`, is `∂[X, ∂X]`. Then the boundary degree of `u` is the
@@ -181,13 +154,8 @@ theorem boundaryDegree_eq_sum_degree {κ : Type*} [Fintype κ] {x : κ → ↥((
   rw [boundaryDegree_def, ← hγ, map_sum, map_sum]
   rw [Finset.sum_congr rfl fun i _ ↦
     ContinuousMap.singularHomologyOneIso_hom_map_map_inv_one (γ i).toCircle u]
-  -- `AddEquiv.ulift` is `ULift.down`, and the degree of a circle map is that of its based loop.
   refine (map_sum (AddEquiv.ulift (α := ℤ)) _ _).trans (Finset.sum_congr rfl fun i _ ↦ ?_)
-  rw [← Circle.degree_toBasedLoop]
-  exact (Circle.degree_congr _ _ fun t ↦ by
-      rw [ContinuousMap.toBasedLoop_apply, ContinuousMap.comp_apply, Path.toCircle_unitToCircle,
-        Path.map_coe, Function.comp_apply] :
-    Circle.degree (u.comp (γ i).toCircle).toBasedLoop = Circle.degree ((γ i).map u.continuous))
+  exact (u.comp (γ i).toCircle).circleDegree_eq_degree _ fun t ↦ by simp
 
 end TauCeti.HomologicalOrientation
 
@@ -206,8 +174,7 @@ theorem boundaryDegree_closedBallComplToCircle :
       closedBallComplToCircle = 1 := by
   rw [TauCeti.HomologicalOrientation.boundaryDegree_def,
     TauCeti.HomologicalOrientation.boundaryClass_def]
-  -- The disc lemma applies the connecting morphism and the isomorphism as coerced functions.
-  erw [singularHomologyOneIso_singularHomologyδ_fundamentalClassRel_closedBall, ULift.one_down]
+  exact congrArg ULift.down singularHomologyOneIso_singularHomologyδ_fundamentalClassRel_closedBall
 
 end SymplecticGeometry
 
