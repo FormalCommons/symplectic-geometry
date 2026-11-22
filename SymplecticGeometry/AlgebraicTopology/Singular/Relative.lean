@@ -33,6 +33,8 @@ These declarations are from Tau Ceti's main branch
 `e48a7f81a81426270765022681d165be592a3231`, not yet in the pinned release; they are stated here
 under their Tau Ceti names, so that moving Tau Ceti past them deletes this file without renames.
 
+Tau Ceti's file has no References section; this module docstring adds the one below.
+
 ## References
 
 * A. Hatcher, *Algebraic Topology*, Cambridge University Press, 2002, Section 2.1, relative
