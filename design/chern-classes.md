@@ -591,6 +591,14 @@ It uses these copies of Tau Ceti's files of the commit `c9d170eed5`:
   `TopPair.singularChainComplexπ_comp_singularChainComplexMap_of_fst_eq_id`
   is added.
 
+### `AlgebraicTopology/Singular/MayerVietoris/Swap.lean`
+
+The sign of Tau Ceti's Mayer–Vietoris connecting morphism when the two
+pieces are exchanged: `SSet.mayerVietorisδ_flip`, the morphism of
+`sq.flip` is the negative of that of `sq`, and `TopCat.mayerVietorisδ_swap`,
+the morphism of the open cover `(V, U)` is the negative of that of `(U, V)`
+followed by the map of `U ∩ V ⊆ V ∩ U`.
+
 ### `AlgebraicTopology/SimplicialSet/TripleAcyclicModels.lean`
 
 Acyclic models for three factors of simplicial chains, which the
