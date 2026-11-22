@@ -1,0 +1,470 @@
+# Energy of pseudoholomorphic curves
+
+The detailed design of part 30 of `DESIGN.md`, *Energy of pseudoholomorphic
+curves*. It proves the milestone *Energy identity for J-holomorphic curves*
+of `atlas/almost-complex-structures.md`, and settles the question that
+`DESIGN.md` leaves to this file: how $\int_\Sigma u^*\omega$ is compared with
+the pairing of $[\omega]$ with $u_*[\Sigma]$.
+
+Sources: McDuff–Salamon [McDuffSalamon2017], §4.5, equation (4.5.4) and the
+paragraph after it; for the pointwise computation and the tame case Wendl
+[Wendl2010] (equation (2.6), Definition 2.18, Proposition 2.19) and
+McDuff–Salamon [McDuffSalamon2012], §2.2. For the topological side: J. M.
+Lee, *Introduction to Smooth Manifolds*, 2nd ed., Chapters 16 and 18
+(integration of top forms, smooth chains and the smoothing theorem), and
+A. Hatcher, *Algebraic Topology*, §§2.1 and 3.3 (the class of a simplex,
+local orientations and fundamental classes along compact sets).
+
+All declarations of Tau Ceti and Mathlib named below were checked against the
+pinned versions (Tau Ceti `v4.37.0-rc1`, see `lakefile.toml`). Paths of Tau
+Ceti files are relative to `.lake/packages/TauCeti/TauCeti/`.
+
+## What there is, and what is missing
+
+- **Pointwise energy on the standard line**
+  (`Geometry/Symplectic/Manifold/Energy.lean`): for `F : ℝ × ℝ →ₗ[ℝ] T_xM`,
+  `TauCeti.SmoothTwoForm.stdComplexLineEnergyDensity ω J x F`
+  $=\omega(F\partial_s,JF\partial_s)+\omega(F\partial_t,JF\partial_t)$, the
+  Wirtinger identity
+  `TauCeti.SmoothTwoForm.Invariant.stdComplexLineEnergyDensity_sub_two_mul_twoForm`
+  ($e(F)-2\omega(F\partial_s,F\partial_t)=\omega(v,Jv)$ with
+  $v=F\partial_s+JF\partial_t$, for $J$-invariant $\omega$), and the
+  tameness lemmas `Tames.stdComplexLineEnergyDensity_nonneg`, `_eq_zero_iff`.
+  The integrated energy there, `stdComplexLineEnergy`, lives on
+  $\mathbb R^2$ with a measure; no energy of a map from a closed surface
+  exists.
+- **The Cauchy–Riemann operator, linearly**
+  (`LinearAlgebra/Complex/LinearPart.lean`):
+  `TauCeti.complexAntilinearPart J J' F` $=\tfrac12(F+J'\circ F\circ J)$ for
+  linear endomorphisms `J`, `J'` and a linear map `F`, with
+  `TauCeti.isComplexLinear_iff_complexAntilinearPart_eq_zero`. With
+  `J := j c`, `J' := J (u c)` and `F := mfderiv I' I u c` this is the page's
+  $\bar\partial_J(u)$ at `c`. The part defines no operator of its own.
+- **Pseudoholomorphic maps** (`Geometry/Symplectic/Manifold/JHolomorphic.lean`):
+  `TauCeti.IsPseudoholomorphicAt j J u c`, `IsPseudoholomorphic`,
+  `IsPseudoholomorphicAt.mfderiv_apply_commute`,
+  `IsPseudoholomorphicAt.mfderiv_isComplexLinear`.
+- **Surfaces with an almost complex structure**
+  (`Geometry/Symplectic/Manifold/AlmostComplex/Orientation.lean`):
+  `TauCeti.SmoothAlmostComplexStructure.complexFrame` (the basis $(e,je)$ of
+  a tangent plane), `apply_basis_nonneg_of_forall_nonneg` and
+  `integralTopForm_pos_of_forall_nonneg` (a continuous top form that is
+  $\ge0$ on every frame $(e,je)$ and $>0$ on one has positive integral). The
+  orientation of a surface by $j$ is not a definition there: statements take
+  `o : Manifold.Orientation I' C (Fin 2)` and the hypothesis that every basis
+  `b` with `b 1 = j c (b 0)` has orientation `o.orientationAt c`. The part
+  does the same.
+- **Integration** (`Geometry/Manifold/DifferentialForm/Integration/`):
+  `TauCeti.integralTopForm o φ` for a rough top form, with
+  `IsSmoothForm.integrableTopForm`, `integralTopForm_add_of_compactSpace`,
+  `integralTopForm_smul`, `integralTopForm_nonneg`, `integralTopForm_pos`;
+  and, in `Geometry/Symplectic/Manifold/CurvePairing.lean`,
+  `TauCeti.integralTopForm_mpullback_nonneg` (only $\ge0$).
+- **Smooth chains** (`Geometry/Manifold/SmoothSingular/`): `SmoothSimplex`,
+  `SmoothSimplex.integral`, the cochain `TauCeti.integrationCochain` with
+  Stokes' theorem (`d_comp_integrationCochain`), the de Rham map
+  `deRhamCohomology.integration` into smooth singular cohomology, the
+  smoothing theorem (`smoothSingularHomologyIso`,
+  `quasiIso_chainComplexMap_smoothSingularSubcomplex_ι_opens`, for every
+  open subset of a Hausdorff σ-compact manifold), and
+  `TauCeti.SmoothSimplex.integral_eq_integralTopForm` (`TopForm.lean`): a
+  top form supported in the image of a simplex that is, near
+  $\Delta^p$, an orientation-preserving open embedding $g$ has the same
+  integral over the simplex as over the manifold.
+- **Fundamental classes** (`AlgebraicTopology/Singular/LocalHomology/`):
+  `TauCeti.HomologicalOrientation` with `fundamentalClass`,
+  `fundamentalClassOn` (the class along a compact set) and their uniqueness
+  lemmas `eq_fundamentalClass`, `eq_fundamentalClassOn`;
+  `mapFundamentalClass`, `evalFundamentalClass`; and the passage from a
+  smooth orientation, `TauCeti.Manifold.Orientation.toHomologicalOrientation`
+  (`Orientation/Smooth.lean`), with `toHomologicalOrientation_neg`.
+
+Missing: an energy of maps from a closed surface, its identity, and any link
+between `integralTopForm` and fundamental classes. On Tau Ceti's main branch
+(after the pin), `Geometry/Manifold/SmoothSingular/Period.lean` pairs de Rham
+classes with integral *smooth* singular homology
+(`deRhamCohomology.smoothHomologyPeriod`, built on a version of
+`integrationCochain` generalized to integer coefficients) and
+`SingularCohomology.lean` adds the de Rham homomorphism `deRhamHom` into
+real singular cohomology. The comparison with fundamental classes is a target
+of Tau Ceti's roadmap that no one has started.
+
+## Decisions
+
+1. **The energy integrand is a top form that does not see the area form.**
+   For a linear map $L:T_c\Sigma\to T_xM$ let
+   $b(v,w)=\omega_x(Lv,J_xLw)$ and
+
+   $$\varepsilon_L(v,w)=\tfrac14\bigl(b(jv,w)+b(w,jv)-b(v,jw)-b(jw,v)\bigr).$$
+
+   This is alternating for every $\omega$ and $J$, and on a frame
+   $\varepsilon_L(e,je)=\tfrac12\bigl(b(e,e)+b(je,je)\bigr)$, which is half
+   of `stdComplexLineEnergyDensity` of $(a,s)\mapsto L(ae+s\,je)$. For a
+   compatible pair it is $\tfrac12(\lvert Le\rvert^2+\lvert Lje\rvert^2)$ in
+   $g_J$. If $\mathrm{dvol}_\Sigma$ is positive on frames, the squared norm
+   of $L$ for the metric $\mathrm{dvol}_\Sigma(\cdot,j\cdot)$ is
+   $\lvert L\rvert^2=(b(e,e)+b(je,je))/\mathrm{dvol}_\Sigma(e,je)$ for any
+   $e\ne0$, so $\tfrac12\lvert L\rvert^2\,\mathrm{dvol}_\Sigma=\varepsilon_L$
+   as top forms. The page's integrand is therefore $\varepsilon_{du}$, and
+   independence of the area form is a pointwise identity. The energy is
+   defined as $\int_\Sigma\varepsilon_{du}$, and the page's
+   $\tfrac12\int\lvert du\rvert^2\mathrm{dvol}_\Sigma$ is proved equal to it
+   for every admissible area form.
+2. **The pointwise identity is an identity of top forms.** For
+   $J$-invariant $\omega$,
+   $\varepsilon_L=2\,\varepsilon_{\bar\partial L}+L^*\omega_x$ with
+   $\bar\partial L$ = `complexAntilinearPart`. Both sides are top forms on a
+   plane, so they agree once they agree on one frame $(e,je)$, where this is
+   Tau Ceti's Wirtinger identity. Integrated, it gives the first display of
+   the milestone; no orientation hypothesis is needed for it, only for signs
+   (nonnegativity, positivity).
+3. **An area form compatible with the orientation is a taming form.** With
+   the orientation hypothesis on `o`, a two-form on the surface is positive
+   on positively oriented bases exactly when it is positive on every frame
+   $(e,je)$, which is Tau Ceti's `dvol.Tames j`. The statements take
+   `hdvol : dvol.Tames j`; no new predicate.
+4. **Regularity.** Integrals are added only for integrable forms, so the
+   part proves that $c\mapsto\varepsilon_{du_c}$ is a continuous form
+   (`IsSmoothForm I' 0`) for a $C^1$ map. The forms
+   $c\mapsto\varepsilon_{\bar\partial(du_c)}$ and
+   $c\mapsto\lvert du_c\rvert^2\mathrm{dvol}_\Sigma$ are then continuous by
+   the identities of Decisions 1 and 2, since $u^*\omega$ is smooth.
+5. **The pairing with homology.** For a closed two-form, $\langle[\omega],A\rangle$
+   for $A\in H_2(M;\mathbb Z)$ (Tau Ceti's model of integral singular
+   homology, the type of `mapFundamentalClass`) is the integral of $\omega$
+   over a smooth integral cycle representing $A$, which exists and is
+   unique up to smooth boundaries by the smoothing theorem. The part needs
+   this map only through two properties: its value on such a cycle, and
+   naturality under smooth maps. It is
+   `TauCeti.deRhamCohomology.singularHomologyPeriod` below, unless Tau Ceti
+   has a map with these properties by the time its issue starts (its
+   main-branch `smoothHomologyPeriod` composed with the smoothing
+   isomorphism would be one; it cannot be brought over under its Tau Ceti
+   name, since it rests on a generalization of the pinned
+   `integrationCochain`).
+6. **The comparison with the fundamental class, and its sign.** The library
+   proves that for a closed oriented surface $\Sigma$ and a smooth top form
+   $\varphi$, $\int_\Sigma\varphi=\langle[\varphi],[\Sigma]\rangle$, where the
+   local orientations of $[\Sigma]$ are the classes of positively oriented
+   simplices, as in Hatcher. The proof is local (route under
+   `FundamentalClass.lean`). Tau Ceti's `toHomologicalOrientation` selects
+   its local orientations through radial projection and an orthonormal-basis
+   generator of the sphere, not through simplices; Tau Ceti's own roadmap
+   records that in dimension one this is the class of a *decreasing* path,
+   the negative of the simplex convention. So the issue that proves the
+   local lemma first determines, in dimension two, the sign
+   $s\in\{1,-1\}$ with $[\text{positive simplex}]=s\cdot$(Tau Ceti's local
+   orientation). The homology statements then use `o.toHomologicalOrientation`
+   if $s=1$ and `(-o).toHomologicalOrientation` if $s=-1$, and that issue
+   records the outcome in this file. The comparison is proved for surfaces
+   only: the milestone needs nothing more, and only the local lemma depends
+   on the dimension. Tau Ceti's roadmap plans the general statement; when
+   it arrives, the library's surface case becomes a corollary to be
+   replaced in a refactor.
+7. **Relative cycles without a relative smoothing theorem.** The local step
+   needs: if a smooth cycle $z$ and a smooth chain $\sigma$ with boundary in
+   an open $U$ have the same class in the continuous relative homology
+   $H_2(M,U)$, then $z-\sigma=\partial b+c$ with $b$ smooth and $c$ a smooth
+   chain in $U$. This follows by a diagram chase from the absolute smoothing
+   theorem for $M$ and for $U$ (both pinned), with no relative chain
+   complexes; it is one lemma.
+
+## Conventions
+
+- **Target.** `I : ModelWithCorners ℝ E H`, `[IsManifold I ∞ M]`,
+  `ω : TauCeti.SmoothTwoForm I M`, `J : TauCeti.SmoothAlmostComplexStructure I M`;
+  the milestone assumes `ω.Compatible J`. The homology statements add
+  `[FiniteDimensional ℝ E] [T2Space M] [SigmaCompactSpace M]` and `M : Type`.
+- **Surface.** `C` (the letter `Σ` is a token) with
+  `I' : ModelWithCorners ℝ E' H'`, `[FiniteDimensional ℝ E']`,
+  `[IsManifold I' ∞ C]`, `j : SmoothAlmostComplexStructure I' C`,
+  `o : Manifold.Orientation I' C (Fin 2)` (which fixes the dimension, by
+  `o.finrank_tangentSpace_eq`) and, where signs matter, the hypothesis
+  `ho : ∀ c (b : Basis (Fin 2) ℝ (TangentSpace I' c)), b 1 = j c (b 0) → b.orientation = o.orientationAt c`
+  of `integralTopForm_mpullback_nonneg`. *Closed* is `[CompactSpace C]`; the
+  identities hold on compact surfaces with boundary too. The homology
+  statements take the model `𝓘(ℝ, E')` with `hE' : finrank ℝ E' = 2`,
+  `[ChartedSpace E' C] [T2Space C] [CompactSpace C]` and `C : Type`, as
+  `toHomologicalOrientation` and `fundamentalClass` need.
+- **Maps.** `u : C → M` with `hu : ContMDiff I' I ∞ u`; the regularity lemma
+  needs only `ContMDiff I' I 1 u`.
+- **Namespaces.** The densities and the energy are about the target form, as
+  Tau Ceti's `stdComplexLineEnergyDensity` is, and go in
+  `TauCeti.SmoothTwoForm` (dot notation `ω.energyForm J j u`). The general
+  lemmas go in the namespaces of the Tau Ceti notions they are about.
+
+## Files
+
+| File | Contents |
+|---|---|
+| `Geometry/Symplectic/JHolomorphic/Energy/Density.lean` | the pointwise density $\varepsilon_L$, the squared norm, the pointwise identity |
+| `Geometry/Symplectic/JHolomorphic/Energy/Metric.lean` | the squared norm read in $g_J$ |
+| `Geometry/Symplectic/JHolomorphic/Energy/Surface.lean` | the energy form and its continuity, the energy, the integrated identity, the pseudoholomorphic case, positivity |
+| `Geometry/Manifold/SmoothSingular/SingularPeriod.lean` | the pairing of de Rham classes with integral singular homology |
+| `Geometry/Manifold/SmoothSingular/RelativeCycle.lean` | the relative step of Decision 7 |
+| `AlgebraicTopology/Singular/LocalHomology/Orientation/Simplex.lean` | the class of a positively oriented simplex in local homology, in dimension two |
+| `Geometry/Manifold/DeRham/FundamentalClass.lean` | $\int_\Sigma\varphi=\langle[\varphi],[\Sigma]\rangle$ on closed oriented surfaces |
+| `Geometry/Symplectic/JHolomorphic/Energy/Homology.lean` | topological invariance, minimality, the milestone |
+
+The `Energy/` folder sits beside Tau Ceti's folder of the same name, as
+`DESIGN.md` says. The files outside it are general manifold topology
+and are placed by topic.
+
+## Definitions and their API
+
+### `Energy/Density.lean`
+
+For `c : C`, `x : M` and `L : TangentSpace I' c →ₗ[ℝ] TangentSpace I x`
+(linear suffices, the source being finite-dimensional):
+
+- `TauCeti.SmoothTwoForm.energyDensity (ω : SmoothTwoForm I M) (J) (j) (L) :
+  TangentSpace I' c [⋀^Fin 2]→L[ℝ] ℝ`, the form $\varepsilon_L$ of Decision 1.
+  API: `energyDensity_apply` (the four-term formula on `![v, w]`),
+  `energyDensity_apply_complexFrame` (on `![e, j c e]` it is
+  $\tfrac12(\omega(Le,JLe)+\omega(Lje,JLje))$), `energyDensity_zero`
+  (`@[simp]`), `energyDensity_apply_complexFrame_eq_stdComplexLineEnergyDensity`
+  (half of Tau Ceti's density of $(a,s)\mapsto L(ae+s\,je)$; the issue looks
+  for that linear map in Tau Ceti before defining it),
+  `Tames.energyDensity_apply_complexFrame_nonneg` and
+  `Tames.energyDensity_apply_complexFrame_eq_zero_iff` (zero exactly when
+  `L e = 0 ∧ L (j c e) = 0`), both from the `Tames` lemmas of
+  `Manifold/Energy.lean`.
+- `TauCeti.SmoothTwoForm.normSq (ω) (J) (j) (dvol : SmoothTwoForm I' C) (L) : ℝ`,
+  the squared norm of `L` for the metric $\mathrm{dvol}(\cdot,j\cdot)$ on the
+  source and $\omega(\cdot,J\cdot)$ on the target:
+  $(\omega(Le,JLe)+\omega(Lje,JLje))/\mathrm{dvol}(e,je)$ for a nonzero `e`
+  chosen once (and `0` on a zero tangent space). API: `normSq_eq` (the same
+  formula for *every* nonzero `e`, on a plane; it holds because numerator and
+  denominator are values of the top forms $2\varepsilon_L$ and
+  $\mathrm{dvol}$ on the same frame), `normSq_smul_eq_two_smul_energyDensity`
+  (`normSq • dvol c = 2 • energyDensity L` when `dvol` is nonzero on frames
+  at `c`), `normSq_nonneg` under tameness of both forms.
+- `Invariant.energyDensity_eq_two_smul_add` (Decision 2): for
+  `ω.Invariant J`, `ω.energyDensity J j L = 2 • ω.energyDensity J j
+  (complexAntilinearPart (j c) (J x) L) + (ω x).compContinuousLinearMap L`
+  (the linear maps of `j c`, `J x` and `L` coerced as needed). Proof on the
+  frame `j.complexFrame o he`, with Tau Ceti's Wirtinger identity, and
+  extensionality of top forms on a plane (a top form is its value on a basis
+  times the determinant, `AlternatingMap.eq_smul_basis_det`).
+
+### `Energy/Metric.lean`
+
+- `TauCeti.SmoothTwoForm.Compatible.normSq_eq_inner`: for `hc : ω.Compatible J`
+  and `e` with `dvol (e, j e) = 1` (a unit vector for the domain metric),
+  `normSq = hc.metric.inner x (L e) (L e) + hc.metric.inner x (L (j e)) (L (j e))`,
+  from `Compatible.metric_inner` of *Almost complex manifolds*' `Metric.lean`.
+  This is the page's reading of $\lvert\eta\rvert^2$ through a unit vector, in
+  the metric $g_J$ as a Riemannian metric. Separate from `Density.lean` so
+  that only this file waits for `Metric.lean`.
+
+### `Energy/Surface.lean`
+
+- `TauCeti.SmoothTwoForm.energyForm (ω) (J) (j) (u : C → M) : RoughForm I' C ℝ 2`,
+  `fun c ↦ ω.energyDensity J j (mfderiv I' I u c)`, with `energyForm_apply`.
+- `isSmoothForm_energyForm (hu : ContMDiff I' I 1 u) : IsSmoothForm I' 0 (ω.energyForm J j u)`.
+  Proof in the trivializations of the alternating bundle: the coordinate
+  expression is a continuous multilinear expression in the coordinate
+  expressions of `mfderiv I' I u` (Mathlib's `ContMDiffAt.mfderiv`, in
+  tangent coordinates), of `j`, of `J ∘ u` and of `ω ∘ u`, as Tau Ceti's
+  `Regularity.lean` and `Continuity.lean` read forms in charts.
+- `TauCeti.SmoothTwoForm.energy (ω) (J) (j) (o) (u) : ℝ`,
+  `integralTopForm o (ω.energyForm J j u)`, with `energy_def`.
+- `energy_eq_half_integralTopForm_normSq`: for `hdvol : dvol.Tames j`,
+  `ω.energy J j o u = 1 / 2 * integralTopForm o (fun c ↦ ω.normSq J j dvol (mfderiv I' I u c) • dvol c)`.
+  This is the independence of the area form: the left side has none.
+- `Invariant.energy_eq_integralTopForm_add`: for `ω.Invariant J`, compact `C`
+  and `hdvol`,
+  `ω.energy J j o u = integralTopForm o (fun c ↦ ω.normSq J j dvol (complexAntilinearPart … (mfderiv I' I u c)) • dvol c) + integralTopForm o (SmoothForm.mpullback u hu ω).val`.
+- `energy_eq_integralTopForm_mpullback`: for `IsPseudoholomorphic j J u`,
+  `ω.energy J j o u = integralTopForm o (SmoothForm.mpullback u hu ω).val`
+  (the $\bar\partial$ term vanishes by
+  `isComplexLinear_iff_complexAntilinearPart_eq_zero`; no relation between
+  `ω` and `J` is needed, as in Tau Ceti's `stdComplexLineEnergy_eq_lintegral_twoForm`).
+- `Tames.energy_nonneg` (with `ho`), and `Tames.energy_eq_zero_iff`: for compact
+  `C`, `ho` and `ω.Tames J`, `ω.energy J j o u = 0 ↔ ∀ c, mfderiv I' I u c = 0`,
+  by `SmoothAlmostComplexStructure.integralTopForm_pos_of_forall_nonneg` and
+  the frame $(e,je)$ spanning the plane; with
+  `TauCeti.isLocallyConstant_of_mfderiv_eq_zero`
+  (`Geometry/Manifold/MFDeriv/Constancy.lean`) and its converse,
+  `Tames.energy_eq_zero_iff_isLocallyConstant`. This is the strict positivity
+  that `integralTopForm_mpullback_nonneg` does not give.
+- `Compatible.energy_identity`: the analytic half of the milestone, the
+  conjunction, for compact `C`, `hc : ω.Compatible J` and every `dvol` taming
+  `j`, of the first display (in the form of
+  `Invariant.energy_eq_integralTopForm_add` with the left side written
+  through `energy_eq_half_integralTopForm_normSq`), the pseudoholomorphic
+  case, and the independence of `dvol`. No milestone line; the milestone is
+  in `Homology.lean`.
+
+### `SmoothSingular/SingularPeriod.lean`
+
+- `TauCeti.deRhamCohomology.singularHomologyPeriod : deRhamCohomology I M p →ₗ[ℝ]
+  (((singularHomologyFunctor (ModuleCat.{0} ℤ) p).obj (ModuleCat.of ℤ (ULift ℤ))).obj (TopCat.of M) →+ ℝ)`
+  (the name avoids Tau Ceti's degree-one `deRhamCohomology.homologyPeriod`).
+  Built from the inverse of `smoothSingularHomologyIso I M (ModuleCat.of ℤ (ULift ℤ)) p`
+  and the integral of a closed form over smooth integral chains, which on a
+  chain $\sum n_i\sigma_i$ is $\sum n_i\int_{\sigma_i}\varphi$ (Tau Ceti's real
+  `integrationCochain` after the change of coefficients $\mathbb Z\to\mathbb R$,
+  or `SmoothSimplex.integral` summed directly), well defined by Stokes'
+  theorem for chains. API: `singularHomologyPeriod_mk_apply_smoothCycle` (on
+  the image of the class of a smooth integral cycle it is the integral over
+  the cycle; the exact form of the cycle's class is the issue's), and
+  `singularHomologyPeriod_map` ($\langle f^*c,A\rangle=\langle c,f_*A\rangle$
+  for smooth `f`, from `integrationCochain_naturality` and the naturality of
+  the smoothing isomorphism, `smoothSingularHomologyIso_inv_naturality`).
+  The issue first checks whether Tau Ceti has such a map since the pin
+  (Decision 5).
+
+### `SmoothSingular/RelativeCycle.lean`
+
+- The lemma of Decision 7, for an open `U : Opens M` of a Hausdorff
+  σ-compact `M` and integral coefficients: a smooth chain `w` whose boundary
+  is a smooth chain of `U`, and which is zero in the continuous relative
+  homology of `(M, U)`, is `∂ b + c` with `b` a smooth chain of `M` and `c` a
+  smooth chain of `U`. Proposed name
+  `TauCeti.exists_smoothSingular_eq_d_add_of_relHomologous` (the issue may
+  adapt it to its neighbours and to how Tau Ceti writes relative chains,
+  `TopPair` in `AlgebraicTopology/Singular/Relative.lean`). Proof: the
+  boundary of `w` is a smooth cycle of `U` that bounds continuously in `U`,
+  so it bounds smoothly in `U`; correct `w` by that chain; the remaining
+  smooth cycle of `M` is continuously homologous to a cycle of `U`, hence
+  smoothly (smoothing for `U`), and the difference bounds smoothly in `M`
+  (smoothing for `M`).
+
+### `LocalHomology/Orientation/Simplex.lean`
+
+- For a smooth 2-simplex `σ : SmoothSimplex 𝓘(ℝ, E') C 2` given near
+  `fullSimplex 2` by an open embedding `g` that is orientation preserving
+  from `Manifold.Orientation.euclideanSpace 2` to `o` (the hypotheses of
+  `SmoothSimplex.integral_eq_integralTopForm`), and a compact `K` inside
+  `g '' interior (fullSimplex 2)`: `σ` is a relative cycle of
+  `(C, C ∖ K)`, and its class is the fundamental class along `K` of the
+  correctly signed homological orientation (Decision 6):
+  `SmoothSimplex.relativeClass_eq_fundamentalClassOn`, with the class of a
+  relative cycle as the issue finds it in Tau Ceti or defines it
+  (`SmoothSimplex.relativeClass`). By `eq_fundamentalClassOn` it suffices to
+  compute the local image at each point of `K`; by the change-of-chart sign
+  rule (`OpenPartialHomeomorph.localHomologyMap_restrict_localOrientationOfOrientedChart`)
+  and translation invariance this reduces to one affine simplex around `0`
+  in $\mathbb R^2$ with its standard orientation, where the connecting
+  morphism takes the simplex to its boundary loop, and Tau Ceti's explicit
+  description of the circle (`AlgebraicTopology/Singular/Sphere.lean`: the
+  connecting morphism of the two-arc cover sends its generator to
+  `[-x] - [x]`) fixes the sign $s$.
+- The issue records $s$ in this file and in this section, and from then on
+  "the correctly signed homological orientation" means
+  `o.toHomologicalOrientation hE'` if $s=1$ and
+  `(-o).toHomologicalOrientation hE'` if $s=-1$. If $s=-1$, it also opens an
+  issue, labelled `proposed`, for the parts that compare integrals of forms
+  with Tau Ceti's fundamental classes (at present *First Chern number*'s
+  Chern–Weil formula).
+
+### `DeRham/FundamentalClass.lean`
+
+- `TauCeti.Manifold.Orientation.integralTopForm_eq_singularHomologyPeriod`
+  (the name follows the orientation used): for a closed surface `C` as in
+  *Conventions*, oriented by `o`, and a smooth two-form `φ` (closed, by
+  `mextDeriv_eq_zero_of_finrank_le`),
+  `integralTopForm o φ = deRhamCohomology.singularHomologyPeriod (mk φ) (oₕ.fundamentalClass hE')`
+  with `oₕ` the correctly signed homological orientation. Route: every
+  point has a positively oriented simplex chart (a chart, a linear
+  equivalence of `E'` with $\mathbb R^2$ matching `o` at the point, and a
+  small affine simplex around it); a smooth partition of unity subordinate to
+  the interiors of finitely many of them splits `φ` into forms `ρᵢ • φ`
+  supported in compact sets `Kᵢ`; both sides are additive in `φ`. For one
+  piece choose a smooth integral cycle `z` representing the fundamental
+  class (smoothing). Its image in $H_2(C,C\setminus K_i)$ is the class along
+  `Kᵢ` (Tau Ceti), so is that of the simplex `σᵢ` (`Simplex.lean`), and the
+  relative step gives `z - σᵢ = ∂ b + c` with `c` in `C ∖ Kᵢ`. Hence
+  $\int_z\rho_i\varphi=\int_{\sigma_i}\rho_i\varphi$ (Stokes for `b`, and
+  `ρᵢ • φ` vanishes on `c`), which is `integralTopForm o (ρᵢ • φ)` by
+  `SmoothSimplex.integral_eq_integralTopForm`.
+
+### `Energy/Homology.lean`
+
+With `oₕ` as above, `A` an integral class of $H_2(M)$, `hω : ω` closed, and
+`hA : oₕ.mapFundamentalClass hE' ⟨u, hu.continuous⟩ = A` ("$u$ represents
+$A$"):
+
+- `integralTopForm_mpullback_eq_singularHomologyPeriod`:
+  `integralTopForm o (SmoothForm.mpullback u hu ω).val = singularHomologyPeriod (mk ω) A`,
+  from `FundamentalClass.lean` for `u^* ω` and `singularHomologyPeriod_map`.
+- `energy_eq_singularHomologyPeriod`: for `IsPseudoholomorphic j J u`,
+  `ω.energy J j o u = singularHomologyPeriod (mk ω) A`.
+- `Compatible.energy_le_energy`: for `hc`, `ho`, pseudoholomorphic `u` and
+  any smooth `v : C → M` representing the same `A`,
+  `ω.energy J j o u ≤ ω.energy J j o v` (the $\bar\partial$ term of `v` is
+  nonnegative under `ho`).
+- `singularHomologyPeriod_pos`: for `hc`, `ho` and pseudoholomorphic `u`
+  that is not locally constant, `0 < singularHomologyPeriod (mk ω) A`.
+- **Milestone** `Compatible.energy_identity_and_homology`: the conjunction of
+  `Compatible.energy_identity` and, for closed `ω`, the three statements
+  above. Milestone: *Energy identity for J-holomorphic curves*.
+
+## Main results
+
+| Result | Lean name | File |
+|---|---|---|
+| pointwise identity | `TauCeti.SmoothTwoForm.Invariant.energyDensity_eq_two_smul_add` | `Density.lean` |
+| independence of the area form | `TauCeti.SmoothTwoForm.energy_eq_half_integralTopForm_normSq` | `Surface.lean` |
+| integrated identity | `TauCeti.SmoothTwoForm.Invariant.energy_eq_integralTopForm_add` | `Surface.lean` |
+| pseudoholomorphic case | `TauCeti.SmoothTwoForm.energy_eq_integralTopForm_mpullback` | `Surface.lean` |
+| zero energy | `TauCeti.SmoothTwoForm.Tames.energy_eq_zero_iff_isLocallyConstant` | `Surface.lean` |
+| integration against $[\Sigma]$ | `TauCeti.Manifold.Orientation.integralTopForm_eq_singularHomologyPeriod` | `DeRham/FundamentalClass.lean` |
+| the milestone | `TauCeti.SmoothTwoForm.Compatible.energy_identity_and_homology` | `Homology.lean` |
+
+The tame case of the page's notes (the symmetrized metric) is not a
+milestone. The densities are defined for any `ω` and `J`, and the
+pseudoholomorphic case and positivity need only `Tames`, so it costs nothing
+later.
+
+## What it uses
+
+- From *Almost complex manifolds*: `Metric.lean` (`Compatible.metric`,
+  `Compatible.metric_inner`), for `Energy/Metric.lean` only.
+- From Tau Ceti: the declarations of *What there is*.
+- From Mathlib: `ContMDiffAt.mfderiv` (smoothness of the derivative in
+  tangent coordinates), `SmoothPartitionOfUnity`,
+  `AlternatingMap.eq_smul_basis_det`, `IsLocallyConstant`.
+
+## Building issues
+
+Each is a few hundred lines; each is blocked by the issues it names.
+
+1. **Energy densities.** `Energy/Density.lean`, all of it. About 350
+   lines. No blockers.
+2. **Continuity of the energy form.** In `Energy/Surface.lean`:
+   `energyForm` and `isSmoothForm_energyForm`. About 300 lines. Blocked by 1.
+3. **The energy and its identity.** In `Energy/Surface.lean`: `energy`
+   and the rest of the file, with `Compatible.energy_identity`. About 350
+   lines. Blocked by 2.
+4. **The squared norm in the metric of a compatible pair.**
+   `Energy/Metric.lean`. About 80 lines. Blocked by 1 and #860.
+5. **Periods of closed forms on integral singular homology.**
+   `SmoothSingular/SingularPeriod.lean`. About 300 lines. No blockers.
+6. **Relative cycles and smooth chains.** `SmoothSingular/RelativeCycle.lean`.
+   About 250 lines. No blockers.
+7. **Positively oriented simplices in local homology.**
+   `LocalHomology/Orientation/Simplex.lean`, with the sign of Decision 6
+   recorded here. About 400 lines. No blockers.
+8. **Integration against the fundamental class of a surface.**
+   `DeRham/FundamentalClass.lean`. About 350 lines. Blocked by 5, 6 and 7.
+9. **Topological invariance, and the milestone.** `Energy/Homology.lean`.
+   About 200 lines. Blocked by 3 and 8.
+
+Issues 1, 5, 6 and 7 can start at once. Before starting, 5–8 check whether
+Tau Ceti has done their work since the pin; if a move of Tau Ceti brings it,
+the issue uses it instead and this file is updated.
+
+## References
+
+* [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*, 3rd ed.][McDuffSalamon2017],
+  §4.5, equation (4.5.4) and the paragraph after it.
+* [D. McDuff and D. Salamon, *J-holomorphic Curves and Symplectic Topology*, 2nd ed.][McDuffSalamon2012],
+  §2.2.
+* [C. Wendl, *Lectures on Holomorphic Curves in Symplectic and Contact Geometry*][Wendl2010],
+  equation (2.6), Definition 2.18, Proposition 2.19.
+* J. M. Lee, *Introduction to Smooth Manifolds*, 2nd ed., Graduate Texts in
+  Mathematics 218, Springer, 2013, Chapters 16 and 18.
+* A. Hatcher, *Algebraic Topology*, Cambridge University Press, 2002,
+  §2.1 and §3.3.
