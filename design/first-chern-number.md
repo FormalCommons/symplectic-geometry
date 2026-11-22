@@ -1087,19 +1087,22 @@ issues, in an order where each issue's blockers come before it.
    `SymplecticGeometry.isCollared_discComplementBoundary`) and
    `ArgumentPrinciple.lean` imports. This is the half of the book's Lemma 2.7.3 needed for discs.
    `AlgebraicTopology/Singular/DisjointCircles.lean`, for the boundary class
-   of the complement, shows that a class of `H₁(ι × Circle)`, `ι` finite and
+   of the complement, shows that a class of `H₁(ι ⊗ Circle)`, `ι` finite and
    discrete, is determined by its images under the maps
-   `Circle.prodRetraction i` that keep the `i`-th circle and send the
-   others to `1` (`Circle.singularHomologyOne_prod_ext`). It imports
+   `TopCat.prodFiberRetraction (TopCat.of ι) (1 : Circle) i` that keep the
+   `i`-th circle and send the others to `1`
+   (`Circle.singularHomologyOne_prod_ext`). It imports
    `DiscreteProd.lean` and derives this from its sum decomposition, with
    `X = Circle`, degree 1 and coefficients `ULift ℤ`.
    `AlgebraicTopology/Singular/LocalHomology/DiscComplement/BoundaryDegree.lean`,
    beside `DiscComplement/Basic.lean`, which it imports with
    `HolomorphicZero.lean` and `DisjointCircles.lean`, for the signs of the
    boundary circles:
-   `SymplecticGeometry.boundaryDegree_prodRetraction_comp_discComplementBoundaryHomeomorph_symm`,
-   the map `∂X → Circle` that is `Circle.prodRetraction i` read through
-   `discComplementBoundaryHomeomorph` has boundary degree $-1$.
+   `SymplecticGeometry.boundaryDegree_prodFiberRetraction_comp_discComplementBoundaryHomeomorph_symm`,
+   the map `∂X → Circle` that is
+   `TopCat.prodFiberRetraction (TopCat.of ι) (1 : Circle) i` read through
+   `discComplementBoundaryHomeomorph` and `TopCat.prodHomeomorphTensorObj` has boundary
+   degree $-1$.
    `AlgebraicTopology/Singular/LocalHomology/DiscComplement/BoundaryClass.lean`,
    beside `DiscComplement/BoundaryDegree.lean`, which it imports: the
    reversed boundary loop of one disc, read in `∂X`

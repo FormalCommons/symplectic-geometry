@@ -35,6 +35,10 @@ the direct sum `⨁ k, H^{2k}(X; ℤ)` is a commutative ring. This file builds i
   pull-backs), `evenIntegralCohomologyMap_apply` (its degree-`k` component),
   `evenIntegralCohomologyMap_id` and `evenIntegralCohomologyMap_comp`.
 
+Two lemmas on Tau Ceti's `TopCat.integralCup` come first: `TopCat.integralCup_heq`, which says
+that the product does not depend on the proof that the degrees add up, and
+`TopCat.integralCup_zsmul_left`, which pulls an integer out of the left factor.
+
 The ring map preserves the unit by `TopCat.singularCohomologyMap_integralCohomologyOne`, the
 pull-back of the unit class, which Tau Ceti does not state; its proof reads the definition of
 `TopCat.integralCohomologyOne` through `import all`.
@@ -67,6 +71,15 @@ theorem integralCup_heq {p q n n' : ℕ} (h : p + q = n) (h' : p + q = n')
     X.integralCup p q n h a b ≍ X.integralCup p q n' h' a b := by
   subst h h'
   rfl
+
+/-- The integral cup product is `ℤ`-linear in its left factor: `(m • a) ⌣ b = m • (a ⌣ b)`. -/
+theorem integralCup_zsmul_left {p q n : ℕ} (h : p + q = n) (m : ℤ)
+    (a : X.integralCohomology p) (b : X.integralCohomology q) :
+    X.integralCup p q n h (m • a) b = m • X.integralCup p q n h a b := by
+  -- `a ↦ a ⌣ b` as an additive map: the `ℤ`-action on the space of linear maps that `integralCup`
+  -- lands in is not syntactically `LinearMap.module`, so `LinearMap.smul_apply` does not apply.
+  exact map_zsmul (AddMonoidHom.mk' (fun a ↦ X.integralCup p q n h a b) fun a a' ↦ by
+    rw [map_add, LinearMap.add_apply]) m a
 
 namespace EvenIntegralCohomology
 

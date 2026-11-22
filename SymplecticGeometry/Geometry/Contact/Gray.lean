@@ -269,7 +269,7 @@ theorem mpullback_prodMk_mlieDerivForm_add_mlieDerivForm_grayVectorField_apply
       α.grayRate (t, y) • TauCeti.mpullback I (𝓘(ℝ, ℝ).prod I) (Prod.mk t) α.val y := by
   ext v
   -- A one-form is determined by its value on the single vector `v 0`.
-  have hv : v = ![v 0] := funext fun i ↦ by fin_cases i; rfl
+  have hv : v = ![v 0] := (FinVec.etaExpand_eq _).symm
   have h := mlieDerivForm_grayVectorField_add hc y (v 0)
   rw [hv]
   simp only [coe_mpullback, coe_timeDeriv, Pi.add_apply, ContinuousAlternatingMap.add_apply,

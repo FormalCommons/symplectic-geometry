@@ -138,7 +138,7 @@ theorem apply_eq_apply_reebVectorField_smul_of_kerDistribution_le {β : RoughFor
     {x : M} (hβ : α.kerDistribution x ≤ β.ker x) :
     β x = β x ![α.reebVectorField x] • α.val x := by
   ext v
-  obtain ⟨w, rfl⟩ : ∃ w, v = ![w] := ⟨v 0, by ext i; fin_cases i; rfl⟩
+  obtain ⟨w, rfl⟩ : ∃ w, v = ![w] := ⟨v 0, (FinVec.etaExpand_eq _).symm⟩
   -- Subtract the Reeb component of `w` to land in the contact hyperplane.
   have hw : w - α.val x ![w] • α.reebVectorField x ∈ α.kerDistribution x := by
     rw [mem_kerDistribution, ← degreeOneEquiv_apply_apply_vec, map_sub, map_smul]
