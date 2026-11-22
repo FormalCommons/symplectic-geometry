@@ -8,7 +8,7 @@ module
 public import Mathlib.Topology.FiberBundle.Basic
 
 /-!
-# Open sets of a fibre bundle read in its trivializations
+# Fibre bundles read in their trivializations
 
 Let `E` be a fibre bundle over `B` with model fibre `F`. A set `s` of points of the total space
 is open as soon as, in the trivialization at each point `b` of the base, membership in `s` of a
@@ -17,8 +17,19 @@ is how a fibrewise condition, such as nondegeneracy of the forms in a bundle of 
 alternating maps, is shown to be open: the condition is invariant under the fibre equivalences
 of the trivializations and open on the model fibre.
 
+A trivialization `e` whose base set contains `b` also gives the inclusion `f ↦ e⁻¹ (b, f)` of
+the model fibre onto the fibre over `b` (`Bundle.Trivialization.fiberInclusion`). Read through
+two trivializations, these inclusions differ by the coordinate change.
+
+## Main definitions
+
+* `Bundle.Trivialization.fiberInclusion`: the inclusion of the model fibre onto the fibre over a
+  point of the base set of a trivialization.
+
 ## Main results
 
+* `Bundle.Trivialization.fiberInclusion_coordChange`: the inclusions of a fibre through two
+  trivializations differ by their coordinate change.
 * `FiberBundle.isOpen_of_forall_mem_iff_snd_mem`: a set of the total space that every
   trivialization `trivializationAt F E b` reads, on its source, as the preimage of an open set of
   the model fibre under the fibre coordinate, is open.
@@ -38,6 +49,36 @@ trivialization is open in its source, by `ContinuousOn.isOpen_inter_preimage`.
 public section
 
 open Bundle Topology
+
+namespace Bundle.Trivialization
+
+variable {B F Z : Type*} [TopologicalSpace B] [TopologicalSpace F] [TopologicalSpace Z]
+  {proj : Z → B}
+
+/-- The inclusion `f ↦ e⁻¹ (b, f)` of the model fibre `F` onto the fibre over `b` of the
+total space, read through a trivialization `e` whose base set contains `b`: the inverse of
+`Bundle.Trivialization.preimageSingletonHomeomorph`, followed by the inclusion of the fibre. -/
+def fiberInclusion (e : Trivialization F proj) {b : B} (hb : b ∈ e.baseSet) : C(F, Z) :=
+  (ContinuousMap.subtypeVal (proj ⁻¹' {b})).comp (e.preimageSingletonHomeomorph hb).symm
+
+lemma fiberInclusion_apply (e : Trivialization F proj) {b : B} (hb : b ∈ e.baseSet) (f : F) :
+    e.fiberInclusion hb f = e.toOpenPartialHomeomorph.symm (b, f) :=
+  (rfl)
+
+/-- The inclusion of the fibre over `b` lands in the fibre over `b`. -/
+lemma proj_fiberInclusion (e : Trivialization F proj) {b : B} (hb : b ∈ e.baseSet) (f : F) :
+    proj (e.fiberInclusion hb f) = b :=
+  ((e.preimageSingletonHomeomorph hb).symm f).property
+
+/-- The inclusions of a fibre read through two trivializations differ by the coordinate
+change. -/
+lemma fiberInclusion_coordChange (e₁ e₂ : Trivialization F proj) {b : B} (h₁ : b ∈ e₁.baseSet)
+    (h₂ : b ∈ e₂.baseSet) (f : F) :
+    e₂.fiberInclusion h₂ (e₁.coordChange e₂ b f) = e₁.fiberInclusion h₁ f := by
+  rw [fiberInclusion_apply, fiberInclusion_apply, e₁.mk_coordChange e₂ h₁ h₂]
+  exact e₂.toOpenPartialHomeomorph.left_inv (e₂.mem_source.2 (by rwa [e₁.proj_symm_apply' h₁]))
+
+end Bundle.Trivialization
 
 namespace FiberBundle
 

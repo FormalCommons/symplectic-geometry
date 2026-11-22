@@ -598,14 +598,14 @@ Issue 10:
   checked on the two pieces (on the end by Tau Ceti's
   `IsContactForm.isSymplectic_mextDerivₗ_symplectization` with
   `isContactForm_neg_iff`).
-- `IsStrongFilling.isLiouvilleVectorField_completionField_of_mem`: Liouville
+- `IsStrongFilling.mlieDerivForm_completionField_of_mem`: Liouville
   at every point of `toCompletion '' U ∪ completionEnd '' (Ioi 0 ×ˢ univ)`;
   on the end from `SmoothForm.isLiouvilleVectorField_symplectization`.
+- `interior_completionField_completionForm`
+  ($\iota_{\widehat Y}\widehat\omega=-\widehat\lambda$), for every strong filling.
 - For a Liouville domain (`U = univ`):
   `mextDerivₗ_completionPrimitive`
-  (`mextDerivₗ _ 1 h.completionPrimitive = -h.completionForm`),
-  `interior_completionField_completionForm`
-  ($\iota_{\widehat Y}\widehat\omega=-\widehat\lambda$) and
+  (`mextDerivₗ _ 1 h.completionPrimitive = -h.completionForm`) and
   `isLiouvilleVectorField_completionField`.
 - The milestone, `IsStrongFilling.isSymplectic_completionForm_and_extends`:
   the conjunction of `isSymplectic_completionForm`, the two pullback
@@ -613,10 +613,10 @@ Issue 10:
   the decomposition `range toCompletion ∪ completionEnd '' (Ioi 0 ×ˢ univ) = univ`
   with the two disjoint, the collar statement of `h.exists_liouvilleCollar`
   (in the form $\omega=-d(e^s\alpha)$ on $(-\varepsilon,0)\times\partial W$,
-  the collar `c` covering the boundary itself),
+  and at `s = 0` through `completionEnd_eq_toCompletion` on `Ioc (-ε) 0`),
   the Liouville property of `completionField` on the end with
-  `mfderiv_completionEnd_apply`, and, when `U = univ`, the pullback
-  formulas of `completionPrimitive`, its derivative and the field identity.
+  `mfderiv_completionEnd_apply`, the field identity, and, when `U = univ`,
+  the pullback formulas of `completionPrimitive` and its derivative.
   Docstring line: "Milestone: *Completion of a strong filling*."
 
 Expected size: 450 lines for issue 9, 350 for issue 10.
