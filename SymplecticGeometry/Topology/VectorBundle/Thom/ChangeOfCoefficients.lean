@@ -32,7 +32,7 @@ isomorphism `TauCeti.bijective_thomMap_of_compactSpace` applies.
   classes.
 * `TauCeti.eulerClass_comp_singularCohomologyChainCoefficientMap`,
   `TauCeti.eulerClass_comp_singularCohomologyValueMap`,
-  `TauCeti.eulerClass_singularCohomologyLinearCongr`: they commute with the Euler class.
+  `TauCeti.singularCohomologyLinearCongr_eulerClass`: they commute with the Euler class.
 
 ## References
 
@@ -118,7 +118,7 @@ theorem eulerClass_comp_singularCohomologyValueMap (R : C) (k : Type*) [Ring k] 
     TopPair.singularCohomologyπ_singularCohomologyValueMap_assoc]
 
 /-- **The Euler class commutes with a change of the linear structure of the coefficients.** -/
-theorem eulerClass_singularCohomologyLinearCongr {k : Type*} [Ring k] {L₁ L₂ : Linear k C}
+theorem singularCohomologyLinearCongr_eulerClass {k : Type*} [Ring k] {L₁ L₂ : Linear k C}
     (e : L₁ = L₂) (R M : C) (n : ℕ)
     (u : @TopPair.singularCohomology C _ _ _ (thomPair F E) R k _ L₁ M n) :
     TopCat.singularCohomologyLinearCongr e (TopCat.of B) R M n

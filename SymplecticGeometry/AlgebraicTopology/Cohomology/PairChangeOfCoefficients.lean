@@ -242,6 +242,23 @@ theorem singularCohomologyLinearCongr_symm {L₁ L₂ : Linear k C} (e : L₁ = 
   subst e
   rfl
 
+@[simp]
+theorem singularCohomologyLinearCongr_trans {L₁ L₂ L₃ : Linear k C} (e : L₁ = L₂)
+    (e' : L₂ = L₃) (P : TopPair.{w}) (R M : C) (n : ℕ) :
+    (singularCohomologyLinearCongr e P R M n).trans (singularCohomologyLinearCongr e' P R M n) =
+      singularCohomologyLinearCongr (e.trans e') P R M n := by
+  subst e e'
+  rfl
+
+@[simp]
+theorem singularCohomologyLinearCongr_apply_apply {L₁ L₂ L₃ : Linear k C} (e : L₁ = L₂)
+    (e' : L₂ = L₃) (P : TopPair.{w}) (R M : C) (n : ℕ)
+    (a : @TopPair.singularCohomology C _ _ _ P R k _ L₁ M n) :
+    singularCohomologyLinearCongr e' P R M n (singularCohomologyLinearCongr e P R M n a) =
+      singularCohomologyLinearCongr (e.trans e') P R M n a := by
+  subst e e'
+  rfl
+
 /-- **Naturality of `TopPair.singularCohomologyLinearCongr`**: it commutes with the maps induced
 by a map of pairs `f : P ⟶ P'`. -/
 theorem singularCohomologyLinearCongr_naturality {L₁ L₂ : Linear k C} (e : L₁ = L₂)

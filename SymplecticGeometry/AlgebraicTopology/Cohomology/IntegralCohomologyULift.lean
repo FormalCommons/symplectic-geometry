@@ -41,8 +41,9 @@ identification transports classes, pull-backs and cup products along that equali
 
 * `TopCat.uliftIntegralCohomologyIso`: the isomorphism `Hⁿ(X; ULift ℤ) ≅ Hⁿ(X; ℤ)`.
 * `TopCat.integralCohomologyLinearEquiv`: the linear equivalence from cohomology with chain
-  coefficients and values `ℤ` to `TopCat.integralCohomology`; its value is given by
-  `TopCat.integralCohomologyLinearEquiv_apply`.
+  coefficients and values `ℤ` to `TopCat.integralCohomology`; its value and that of its inverse
+  are given by `TopCat.integralCohomologyLinearEquiv_apply` and
+  `TopCat.integralCohomologyLinearEquiv_symm_apply`.
 
 ## Main results
 
@@ -240,6 +241,22 @@ theorem integralCohomologyLinearEquiv_apply (X : TopCat.{0}) (n : ℕ)
         (singularCohomologyLinearCongr (Subsingleton.elim ModuleCat.instLinear _) X (𝟙_ _) (𝟙_ _) n
           a) := by
   rw [integralCohomologyLinearEquiv_eq, toIntegral_apply]
+
+/-- The inverse of `TopCat.integralCohomologyLinearEquiv`: the change of chain coefficients
+`TopCat.singularCohomologyChainCoefficientMap` along the inverse of `TauCeti.integralCoeffIso`,
+followed by the change of linear structure `TopCat.singularCohomologyLinearCongr`, from
+`CategoryTheory.Linear.preadditiveIntLinear` to `ModuleCat.instLinear`. -/
+theorem integralCohomologyLinearEquiv_symm_apply (X : TopCat.{0}) (n : ℕ)
+    (y : X.integralCohomology n) :
+    (X.integralCohomologyLinearEquiv n).symm y =
+      singularCohomologyLinearCongr (Subsingleton.elim _ ModuleCat.instLinear) X (𝟙_ _) (𝟙_ _) n
+        (@TopCat.singularCohomologyChainCoefficientMap _ _ _ _ _ _ X ℤ _
+          Linear.preadditiveIntLinear (ModuleCat.of ℤ ℤ) integralCoeffIso.symm.hom n y) := by
+  rw [LinearEquiv.symm_apply_eq, integralCohomologyLinearEquiv_apply,
+    singularCohomologyLinearCongr_apply_apply, singularCohomologyLinearCongr_refl,
+    LinearEquiv.refl_apply, Iso.symm_hom, ← singularCohomologyChainCoefficientIso_inv,
+    ← singularCohomologyChainCoefficientIso_hom]
+  exact (Iso.inv_hom_id_apply _ y).symm
 
 /-- **Naturality of `TopCat.integralCohomologyLinearEquiv`**: it commutes with the maps induced by
 a continuous map `f : X ⟶ Y`. -/

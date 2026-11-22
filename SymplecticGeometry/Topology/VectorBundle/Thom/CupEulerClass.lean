@@ -29,21 +29,28 @@ through the exactness of the Gysin sequence at `Hᵐ(B; M)`. Applied to the taut
 over `ℂPⁿ`, whose complement of the zero section is `ℂⁿ⁺¹ ∖ {0}`, this is the inductive step for
 the powers of the hyperplane class.
 
-For a complex vector bundle of complex rank `r + 1` over a compact base, the same holds in
-integral cohomology for the Euler class `TauCeti.complexEulerClass` of the underlying real bundle
+Over a compact base, the bijectivity also holds in integral cohomology for a Thom class with
+values `ULift ℤ` (`TauCeti.bijective_integralCup_eulerClass`), hence for the Euler class of an
+oriented real vector bundle (`TauCeti.VectorBundleOrientation.bijective_integralCup_eulerClass`)
+and for the Euler class `TauCeti.complexEulerClass` of the real bundle underlying a complex one,
 with its canonical orientation (`TauCeti.bijective_integralCup_complexEulerClass`). Tau Ceti
-writes that class, and the Thom class it comes from, with chain coefficients and values `ULift ℤ`
-and the structure `CategoryTheory.Linear.preadditiveIntLinear` of `ModuleCat ℤ`, while its Thom
-map takes chain coefficients and values `ℤ` and the structure `ModuleCat.instLinear`. The changes
-of coefficients of `ChangeOfCoefficients.lean` carry the Thom class to one with coefficients `ℤ`
-and its Euler class along, and `TopCat.integralCohomologyLinearEquiv` and
-`TopCat.uliftIntegralCohomologyIso` carry the result to `TopCat.integralCohomology`.
+writes these classes, and the Thom classes they come from, with chain coefficients and
+values `ULift ℤ` and the structure `CategoryTheory.Linear.preadditiveIntLinear` of `ModuleCat ℤ`,
+while its Thom map takes chain coefficients and values `ℤ` and the structure
+`ModuleCat.instLinear`. The changes of coefficients of `ChangeOfCoefficients.lean` carry the Thom
+class to one with coefficients `ℤ` and its Euler class along, and
+`TopCat.integralCohomologyLinearEquiv` and `TopCat.uliftIntegralCohomologyIso` carry the result
+to `TopCat.integralCohomology`.
 
 ## Main results
 
 * `TauCeti.injective_singularCup_eulerClass`: injectivity, if `Hᵐ⁻¹(E₀; M)` vanishes.
 * `TauCeti.surjective_singularCup_eulerClass`: surjectivity, if `Hᵐ(E₀; M)` vanishes.
 * `TauCeti.bijective_singularCup_eulerClass`: bijectivity, if both vanish.
+* `TauCeti.bijective_integralCup_eulerClass`: the bijectivity in integral cohomology, for a Thom
+  class with values `ULift ℤ` over a compact base.
+* `TauCeti.VectorBundleOrientation.bijective_integralCup_eulerClass`: the same for the Euler class
+  of an oriented real vector bundle.
 * `TauCeti.bijective_integralCup_complexEulerClass`: the bijectivity for the Euler class of a
   complex vector bundle, in integral cohomology.
 
@@ -118,25 +125,21 @@ theorem bijective_singularCup_eulerClass {n p l m : ℕ} (hl : l + 1 = m) (h : p
 
 end Real
 
-section Complex
+section Integral
 
 open Module
 
-variable {B : Type} [TopologicalSpace B]
-  {F : Type} [NormedAddCommGroup F] [NormedSpace ℝ F] [NormedSpace ℂ F] [IsScalarTower ℝ ℂ F]
-  [FiniteDimensional ℂ F]
-  {E : B → Type} [TopologicalSpace (TotalSpace F E)] [∀ b, AddCommGroup (E b)]
-  [∀ b, Module ℝ (E b)] [∀ b, Module ℂ (E b)] [∀ b, IsScalarTower ℝ ℂ (E b)]
-  [∀ b, TopologicalSpace (E b)] [FiberBundle F E] [VectorBundle ℂ F E]
+variable {B : Type} [TopologicalSpace B] {F : Type} [NormedAddCommGroup F] [NormedSpace ℝ F]
+  {E : B → Type} [TopologicalSpace (TotalSpace F E)] [∀ b, AddCommMonoid (E b)]
+  [∀ b, Module ℝ (E b)] [∀ b, TopologicalSpace (E b)] [FiberBundle F E] [VectorBundle ℝ F E]
 
-local instance instVectorBundleRealCupEulerClass : VectorBundle ℝ F E :=
-  VectorBundle.restrictScalars ℝ ℂ F E
-
-omit [FiniteDimensional ℂ F] in
-/-- The Gysin step for a Thom class with chain coefficients and values `ULift ℤ`, read in
-integral cohomology, in a degree `d` equal to the real rank, so that the class can be cast to the
-degree of `TauCeti.IsThomClass`. -/
-private theorem bijective_integralCup_eulerClass_of_finrank_eq [CompactSpace B] {d p l m : ℕ}
+/-- **The Gysin step in integral cohomology**: for a Thom class `U ∈ Hᵈ(E, E₀; ULift ℤ)` of a real
+vector bundle `E → B` of rank `d` over a compact base, `p + d = m = l + 1`, and
+`Hˡ(E₀; ℤ) = Hᵐ(E₀; ℤ) = 0`, the map `a ↦ a ⌣ e(U) : Hᵖ(B; ℤ) → Hᵐ(B; ℤ)` is bijective, where
+the Euler class `e(U)` is read in integral cohomology through
+`TopCat.uliftIntegralCohomologyIso`. The rank is any `d` equal to `finrank ℝ F`, so that `U` can
+live in the degree that its Euler class is used in. -/
+theorem bijective_integralCup_eulerClass [CompactSpace B] {d p l m : ℕ}
     (hd : finrank ℝ F = d) (hl : l + 1 = m) (h : p + d = m)
     (U : (thomPair F E).singularCohomology (ModuleCat.of ℤ (ULift.{0} ℤ)) ℤ
       (ModuleCat.of ℤ (ULift.{0} ℤ)) d)
@@ -152,10 +155,8 @@ private theorem bijective_integralCup_eulerClass_of_finrank_eq [CompactSpace B] 
   have hU' := ((hU.singularCohomologyValueMap uliftIntIso).singularCohomologyChainCoefficientMap
       integralCoeffIso.symm).singularCohomologyLinearCongr (L₂ := ModuleCat.instLinear)
     (Subsingleton.elim _ _)
-  have hzero (n : ℕ) (hn : IsZero ((thomPair F E).snd.integralCohomology n)) := by
-    have := ModuleCat.subsingleton_of_isZero hn
-    exact @ModuleCat.isZero_of_subsingleton _ _ _
-      ((thomPair F E).snd.integralCohomologyLinearEquiv n).toEquiv.subsingleton
+  have hzero (n : ℕ) (hn : IsZero ((thomPair F E).snd.integralCohomology n)) :=
+    hn.of_iso ((thomPair F E).snd.integralCohomologyLinearEquiv n).toModuleIso
   have hbij := bijective_singularCup_eulerClass (M := 𝟙_ (ModuleCat.{0} ℤ)) hl h _
     (bijective_thomMap_of_compactSpace _ p m h hU') (hzero l hEl) (hzero m hEm)
   rw [← unitors_equal] at hbij
@@ -165,25 +166,52 @@ private theorem bijective_integralCup_eulerClass_of_finrank_eq [CompactSpace B] 
   have h₂ := ConcreteCategory.congr_hom (eulerClass_comp_singularCohomologyValueMap (F := F)
     (E := E) (ModuleCat.of ℤ (ULift.{0} ℤ)) ℤ uliftIntIso.hom (finrank ℝ F))
   simp only [ConcreteCategory.comp_apply] at h₁ h₂
-  have h₃ (y : (TopCat.of B).integralCohomology (finrank ℝ F)) :
-      (TopCat.of B).integralCohomologyLinearEquiv _ (TopCat.singularCohomologyLinearCongr
-        (Subsingleton.elim Linear.preadditiveIntLinear ModuleCat.instLinear) _ _
-        (ModuleCat.of ℤ ℤ) _
-        ((TopCat.of B).singularCohomologyChainCoefficientMap ℤ (ModuleCat.of ℤ ℤ)
-          integralCoeffIso.symm.hom _ y)) =
-        y := by
-    rw [TopCat.integralCohomologyLinearEquiv_apply]
-    -- The values are written `ModuleCat.of ℤ ℤ` on one side and `𝟙_ (ModuleCat ℤ)`, which Mathlib
-    -- defines to be it, on the other, so the two changes of linear structure compose by a term.
-    refine (congrArg _ (TopCat.singularCohomologyLinearCongr_apply_apply _ _ _ _ _ _ _)).trans ?_
-    rw [TopCat.singularCohomologyLinearCongr_refl, LinearEquiv.refl_apply, Iso.symm_hom,
-      ← TopCat.singularCohomologyChainCoefficientIso_inv,
-      ← TopCat.singularCohomologyChainCoefficientIso_hom]
-    exact Iso.inv_hom_id_apply _ y
-  rw [← h₃ ((TopCat.uliftIntegralCohomologyIso _ _).hom (eulerClass _ ℤ _ F E _ U)),
-    TopCat.uliftIntegralCohomologyIso_hom, h₂, h₁, eulerClass_singularCohomologyLinearCongr]
-  exact (TopCat.bijective_integralCup_integralCohomologyLinearEquiv_iff _ p _ m h _).2 hbij
+  rw [← LinearEquiv.apply_symm_apply ((TopCat.of B).integralCohomologyLinearEquiv _)
+      ((TopCat.uliftIntegralCohomologyIso _ _).hom (eulerClass _ ℤ _ F E _ U)),
+    TopCat.integralCohomologyLinearEquiv_symm_apply, TopCat.uliftIntegralCohomologyIso_hom, h₂, h₁]
+  -- The values are written `ModuleCat.of ℤ ℤ` in `hbij` and `𝟙_ (ModuleCat ℤ)`, which Mathlib
+  -- defines to be it, in the goal, so `rw` cannot carry one to the other; `exact` matches them.
+  refine (TopCat.bijective_integralCup_integralCohomologyLinearEquiv_iff _ p _ m h _).2 ?_
+  convert hbij using 4
+  exact congrArg _ (singularCohomologyLinearCongr_eulerClass (F := F) (E := E) _ _ _ _ _)
 
+namespace VectorBundleOrientation
+
+/-- **Cup product with the Euler class of an oriented vector bundle is bijective** if the integral
+cohomology of the complement `E₀` of the zero section vanishes in the target degree and one below
+it: for an orientation `o` of a real vector bundle `E → B` of rank `n + 1` over a compact base,
+`p + (n + 1) = m = l + 1`, and `Hˡ(E₀; ℤ) = Hᵐ(E₀; ℤ) = 0`, the map
+`a ↦ a ⌣ e(E, o) : Hᵖ(B; ℤ) → Hᵐ(B; ℤ)` is bijective, where the Euler class
+`TauCeti.VectorBundleOrientation.eulerClass` is read in integral cohomology through
+`TopCat.uliftIntegralCohomologyIso`. -/
+theorem bijective_integralCup_eulerClass [CompactSpace B] {n : ℕ}
+    (o : VectorBundleOrientation F E (Fin (n + 1))) (hF : finrank ℝ F = n + 1) {p l m : ℕ}
+    (hl : l + 1 = m) (h : p + (n + 1) = m)
+    (hEl : IsZero ((TopCat.of (zeroSectionCompl F E)).integralCohomology l))
+    (hEm : IsZero ((TopCat.of (zeroSectionCompl F E)).integralCohomology m)) :
+    Function.Bijective fun a : (TopCat.of B).integralCohomology p ↦
+      (TopCat.of B).integralCup p (n + 1) m h a
+        ((TopCat.uliftIntegralCohomologyIso _ _).hom (o.eulerClass hF)) := by
+  rw [eulerClass_def]
+  exact TauCeti.bijective_integralCup_eulerClass hF hl h _ (o.isThomClass_thomClass hF) hEl hEm
+
+end VectorBundleOrientation
+
+end Integral
+
+section Complex
+
+open Module
+
+variable {B : Type} [TopologicalSpace B]
+  {F : Type} [NormedAddCommGroup F] [NormedSpace ℝ F] [NormedSpace ℂ F] [IsScalarTower ℝ ℂ F]
+  [FiniteDimensional ℂ F]
+  {E : B → Type} [TopologicalSpace (TotalSpace F E)] [∀ b, AddCommGroup (E b)]
+  [∀ b, Module ℝ (E b)] [∀ b, Module ℂ (E b)] [∀ b, IsScalarTower ℝ ℂ (E b)]
+  [∀ b, TopologicalSpace (E b)] [FiberBundle F E] [VectorBundle ℂ F E]
+
+local instance instVectorBundleRealCupEulerClass : VectorBundle ℝ F E :=
+  VectorBundle.restrictScalars ℝ ℂ F E
 
 /-- **Cup product with the Euler class of a complex vector bundle is bijective** if the integral
 cohomology of the complement `E₀` of the zero section vanishes in the target degree and one below
@@ -199,12 +227,10 @@ theorem bijective_integralCup_complexEulerClass [CompactSpace B] {r : ℕ}
     Function.Bijective fun a : (TopCat.of B).integralCohomology p ↦
       (TopCat.of B).integralCup p (2 * r + 2) m h a
         ((TopCat.uliftIntegralCohomologyIso _ _).hom (complexEulerClass F E hF)) := by
-  have hd : finrank ℝ F = 2 * r + 2 := by
-    rw [finrank_real_eq_two_mul_finrank_complex, hF]
-    ring
-  rw [complexEulerClass_def, VectorBundleOrientation.eulerClass_def]
-  exact bijective_integralCup_eulerClass_of_finrank_eq hd hl h _
-    (VectorBundleOrientation.isThomClass_thomClass _ _) hEl hEm
+  rw [complexEulerClass_def]
+  exact VectorBundleOrientation.bijective_integralCup_eulerClass _
+    (by rw [finrank_real_eq_two_mul_finrank_complex, hF]; ring) hl h hEl hEm
+
 end Complex
 
 end TauCeti
