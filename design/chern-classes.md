@@ -237,6 +237,29 @@ In the namespace `TopCat`, for `X : TopCat.{0}`, with
   multiplication `a ⊗ b ↦ ⟨a.down * b.down⟩` of the values, to
   `integralCoeffMul`.
 
+### `AlgebraicTopology/Cohomology/ChangeOfValues.lean`
+
+The change of cochain values in singular cohomology, in the namespace
+`TopCat`, for any abelian `C`, the counterpart of Tau Ceti's
+`singularCohomologyChainCoefficientIso`:
+
+- `singularCohomologyValueMap X R k g n` for `g : M ⟶ M'`, the map on
+  cohomology of `ChainComplex.linearYonedaObjMap k g`, with its value on a
+  cocycle class, `_id`, `_comp` and `_naturality` (it commutes with
+  `singularCohomologyMap f`).
+- `singularCohomologyValueIso X R k e n` for `e : M ≅ M'`.
+- `singularCup_singularCohomologyValueMap`: if `(g₁ ⊗ g₂) ≫ μ' = μ ≫ g`, the
+  change of values carries the cup product along `μ` to the cup product
+  along `μ'`.
+
+### `Algebra/Homology/Monoidal/CupChangeOfValues.lean`
+
+In the namespace `TauCeti.ChainComplex`, for a diagonal `D : E ⟶ A ⊗ B`:
+`cupCochain_comp_comp`, the cup product of cochains under morphisms of
+values that intertwine two pairings, and
+`cup_homologyMap_linearYonedaObjMap`, the same on cohomology. The latter
+adapts Tau Ceti's `cup_naturality`.
+
 ### `AlgebraicTopology/Cohomology/LerayHirsch/MayerVietoris.lean`
 
 The Mayer–Vietoris step for the Leray–Hirsch map of a family of classes,
@@ -570,7 +593,9 @@ come before it. Issues 1, 2, 3, 5, 13 and 16 can start at once.
 1. **Even integral cohomology ring.**
    `AlgebraicTopology/Cohomology/EvenIntegralCohomology.lean`.
 2. **Integral cohomology with values in `ULift ℤ`.**
-   `AlgebraicTopology/Cohomology/IntegralCohomologyULift.lean`.
+   `AlgebraicTopology/Cohomology/IntegralCohomologyULift.lean`, with
+   `AlgebraicTopology/Cohomology/ChangeOfValues.lean` and
+   `Algebra/Homology/Monoidal/CupChangeOfValues.lean`.
 3. **Leray–Hirsch: the Mayer–Vietoris step.**
    `AlgebraicTopology/Cohomology/LerayHirsch/MayerVietoris.lean`.
 4. **Leray–Hirsch for bundles with a finite trivializing cover.**
