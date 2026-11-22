@@ -468,12 +468,11 @@ theorem exists_isCharacteristicSubmersion_and_existsUnique_mpullback_eq (σ : Sm
     exists_isCharacteristicSubmersion σ hσ hk hr,
     fun _ _ _ hp ↦ hp.existsUnique_isSymplectic_mpullback_eq (hσ.mpullback _ _)⟩
 
-
 /-! ### Darboux coordinates for a closed form of constant rank -/
 
 omit [FiniteDimensional ℝ E] [I.Boundaryless] in
-/-- Let `g : N → M` and `p : N → B` be differentiable maps such that `g^* σ = p^* τ`, let `d` be a
-chart of `B` pulling `stdForm (Fin r)` back to `τ`, and let `c` be a chart of `N`, whose source `p`
+/-- Let `g : N → M` and `p : N → B'` be differentiable maps such that `g^* σ = p^* τ`, let `d` be a
+chart of `B'` pulling `stdForm (Fin r)` back to `τ`, and let `c` be a chart of `N`, whose source `p`
 maps into that of `d`, and `ρ : E' → StdSpace (Fin r)` a linear map with `d ∘ p ∘ c⁻¹ = ρ` on the
 target of `c`. Then on the target of `c`, `g ∘ c⁻¹` pulls `σ` back to the pull-back of
 `stdForm (Fin r)` along `ρ`. -/
@@ -566,14 +565,16 @@ induces on the local space of leaves
 (`IsCharacteristicSubmersion.existsUnique_isSymplectic_mpullback_eq`). -/
 theorem exists_partialDiffeomorph_eval₂_eq_stdForm (σ : SmoothForm I M ℝ 2) (hσ : σ.IsClosed)
     {k r : ℕ} (hk : ∀ x, finrank ℝ (LinearMap.ker (σ.bilinFormAt x)) = k)
-    (hr : finrank ℝ E = k + 2 * r) (L : E ≃L[ℝ] EuclideanSpace ℝ (Fin k) × StdSpace (Fin r))
-    (x : M) :
+    (L : E ≃L[ℝ] EuclideanSpace ℝ (Fin k) × StdSpace (Fin r)) (x : M) :
     ∃ c : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞, x ∈ c.source ∧ c x = 0 ∧
       ∀ᶠ s in 𝓝 (0 : E), ∀ a b : TangentSpace 𝓘(ℝ, E) s,
         SmoothBundleForm.eval₂ σ (c.symm s) (mfderiv 𝓘(ℝ, E) I c.symm s a)
           (mfderiv 𝓘(ℝ, E) I c.symm s b) = stdForm (Fin r) (L a).2 (L b).2 := by
   -- A characteristic chart `Ψ` of `σ` on `U ∋ x`, with leaf space the ball `B`, and the
   -- symplectic form `τ` that `σ` induces on `B`.
+  have hr : finrank ℝ E = k + 2 * r := by
+    rw [L.toLinearEquiv.finrank_eq, Module.finrank_prod, finrank_euclideanSpace, finrank_stdSpace]
+    simp
   obtain ⟨U, hx, Ψ, hΨ0, hp⟩ := σ.exists_isCharacteristicSubmersion hσ hk hr x
   set p : U → (⟨Metric.ball 0 1, Metric.isOpen_ball⟩ : Opens (StdSpace (Fin r))) :=
     fun u ↦ ⟨(Ψ u : EuclideanSpace ℝ (Fin k) × StdSpace (Fin r)).2, (Ψ u).property.2⟩ with hp_def
@@ -628,6 +629,7 @@ theorem exists_partialDiffeomorph_eval₂_eq_stdForm (σ : SmoothForm I M ℝ 2)
     (fun u ↦ hp.isSubmersion.contMDiff.mdifferentiableAt (by simp)) hgp hd
     (fun u hu ↦ (hc₀s u).1 hu) hdp (hct hs) a b).trans ?_
   exact congrArg₂ (stdForm (Fin r) · ·) (hρ a) (hρ b)
+
 end Charts
 
 end TauCeti.SmoothForm

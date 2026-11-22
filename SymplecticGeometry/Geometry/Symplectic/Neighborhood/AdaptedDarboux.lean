@@ -514,19 +514,22 @@ model of `Q` with `ℝᵏ × StdSpace (Fin r)`, some chart `c` of `Q` with `c q�
 `0`, as the pull-back of `stdForm (Fin r)` along the second component of `L`. -/
 private theorem IsCoisotropicMap.exists_chart_eval₂_eq {hσ : σ.IsNondegenerate}
     {f : SmoothEmbedding J I ∞ Q M} (h : hσ.IsCoisotropicMap J f) (hcl : σ.IsClosed) {k r : ℕ}
-    (hn : finrank ℝ E = 2 * (k + r)) (hk : finrank ℝ E' = k + 2 * r)
+    (hn : finrank ℝ E = 2 * (k + r))
     (L : E' ≃L[ℝ] EuclideanSpace ℝ (Fin k) × StdSpace (Fin r)) (q₀ : Q) :
     ∃ c : PartialDiffeomorph J 𝓘(ℝ, E') Q E' ∞, q₀ ∈ c.source ∧ c q₀ = 0 ∧
       ∀ᶠ s in 𝓝 (0 : E'), ∀ a b : TangentSpace 𝓘(ℝ, E') s,
         σ.eval₂ (f (c.symm s)) (mfderiv 𝓘(ℝ, E') I (f ∘ c.symm) s a)
           (mfderiv 𝓘(ℝ, E') I (f ∘ c.symm) s b) = stdForm (Fin r) (L a).2 (L b).2 := by
+  have hk : finrank ℝ E' = k + 2 * r := by
+    rw [L.toLinearEquiv.finrank_eq, Module.finrank_prod, finrank_euclideanSpace, finrank_stdSpace]
+    simp
   have hker (x : Q) :
       finrank ℝ (LinearMap.ker ((SmoothForm.mpullback f f.contMDiff σ).bilinFormAt x)) = k := by
     have := h.finrank_ker_bilinFormAt_mpullback f.isImmersion f.contMDiff x
     omega
   obtain ⟨c, hcq, hc0, hc⟩ :=
     (SmoothForm.mpullback f f.contMDiff σ).exists_partialDiffeomorph_eval₂_eq_stdForm
-      (hcl.mpullback f f.contMDiff) hker hk L q₀
+      (hcl.mpullback f f.contMDiff) hker L q₀
   refine ⟨c, hcq, hc0, ?_⟩
   filter_upwards [c.open_target.mem_nhds (hc0 ▸ c.map_source hcq), hc] with s hs hcs a b
   have hcd : MDifferentiableAt 𝓘(ℝ, E') J c.symm s :=
@@ -554,7 +557,7 @@ private theorem IsCoisotropicMap.exists_darbouxChart_inter_range_eq_of_eq_add
   subst hkr
   let L : E' ≃L[ℝ] EuclideanSpace ℝ (Fin k) × StdSpace (Fin r) :=
     ContinuousLinearEquiv.ofFinrankEq (by simp [hk]; omega)
-  obtain ⟨c, hq₀, hc₀, hc⟩ := h.exists_chart_eval₂_eq hcl hn hk L q₀
+  obtain ⟨c, hq₀, hc₀, hc⟩ := h.exists_chart_eval₂_eq hcl hn L q₀
   -- `ι` puts the leaf coordinates into the first `k` coordinates `x`, and the coordinates of the
   -- space of leaves into the last `r` coordinate pairs.
   let ι : E' →L[ℝ] StdSpace (Fin (k + r)) := LinearMap.toContinuousLinearMap
