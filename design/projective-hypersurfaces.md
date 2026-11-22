@@ -451,7 +451,7 @@ Namespace `SymplecticGeometry.SmoothProjectiveHypersurface`.
   `chernClass ℂ (X.embedding.NormalSpace · _) 1 = d • X.hyperplaneClass`, from
   `normalSpaceEquiv`, `chernClass_congr`, `chernClass_pullback` and
   `chernClass_one_twistCore`.
-- **Milestone, part 3** `totalChernClass_mul`:
+- **Milestone, part 3** `totalChernClass_tangentSpace_mul`:
   `totalChernClass _ (TangentSpace _) * (1 + d • ι^*h) = (1 + ι^*h) ^ (n + 2)`
   in `EvenIntegralCohomology (TopCat.of X)`, from `tangentNormalEquiv`,
   `totalChernClass_prod`, `totalChernClass_pullback` and

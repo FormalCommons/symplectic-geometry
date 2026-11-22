@@ -8,7 +8,7 @@ module
 public import SymplecticGeometry.Geometry.Manifold.Projectivization.Hypersurface.Basic
 public import SymplecticGeometry.Geometry.Manifold.Projectivization.TwistCore
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.Topology
-import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.VectorBundle.Basic
+public import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.VectorBundle.Basic
 import TauCeti.Topology.FiberBundle.Pullback
 
 /-!
@@ -44,6 +44,10 @@ classes, as in Tau Ceti's `TauCeti.SmoothEmbedding.continuous_normalBundleMap`.
 * `SymplecticGeometry.SmoothProjectiveHypersurface.continuous_normalSpaceEquiv` and
   `SymplecticGeometry.SmoothProjectiveHypersurface.continuous_normalSpaceEquiv_symm`: it is
   continuous on total spaces, from the normal bundle to `ι^* 𝒪(d)`, and so is its inverse.
+* `SymplecticGeometry.SmoothProjectiveHypersurface.instFiberBundleNormalSpace` and
+  `SymplecticGeometry.SmoothProjectiveHypersurface.instVectorBundleNormalSpace`: the normal
+  bundle of `X` is a complex vector bundle of rank one, through Tau Ceti's complementary normal
+  charts.
 
 ## References
 
@@ -63,6 +67,17 @@ namespace SymplecticGeometry
 namespace SmoothProjectiveHypersurface
 
 variable {n d : ℕ} (X : SmoothProjectiveHypersurface n d)
+
+/-- The normal bundle of a hypersurface is a fibre bundle with model `ℂ`, through Tau Ceti's
+complementary normal charts. -/
+noncomputable instance instFiberBundleNormalSpace :
+    FiberBundle ℂ fun x : X ↦ X.embedding.NormalSpace x WithTop.top_ne_zero :=
+  X.embedding.normalSpaceFiberBundle WithTop.top_ne_zero (by rw [finrank_model]; simp)
+
+/-- The normal bundle of a hypersurface is a complex vector bundle, of rank one. -/
+instance instVectorBundleNormalSpace :
+    VectorBundle ℂ ℂ fun x : X ↦ X.embedding.NormalSpace x WithTop.top_ne_zero :=
+  X.embedding.normalSpaceVectorBundle WithTop.top_ne_zero (by rw [finrank_model]; simp)
 
 /-- **The normal bundle of a hypersurface is `ι^* 𝒪(d)`, fibrewise.** At a point `x` of the
 hypersurface, the isomorphism of its normal space with the fibre `ℂ` of `𝒪(d)` at `x` induced by
@@ -205,12 +220,6 @@ theorem continuous_normalSpaceEquiv_symm :
         (twistCore (𝕜 := ℂ) (n := n + 1) (d : ℤ)).Fiber) ↦
       TotalSpace.mk' ℂ (E := fun x : X ↦ X.embedding.NormalSpace x WithTop.top_ne_zero) q.proj
         ((X.normalSpaceEquiv q.proj).symm q.snd) := by
-  have hdim : Module.finrank ℂ ℂ = Module.finrank ℂ (Fin (n + 1) → ℂ) -
-      Module.finrank ℂ (Fin (n + 1 - Fintype.card Unit) → ℂ) := by
-    rw [finrank_model]
-    simp
-  let := X.embedding.normalSpaceFiberBundle WithTop.top_ne_zero hdim
-  let := X.embedding.normalSpaceVectorBundle WithTop.top_ne_zero hdim
   -- The fibres of the pull-back are `ℂ`, so they are groups, as `continuous_bundle_symm` asks.
   let _ : ∀ x : X, AddCommGroup (((X.embedding : X → ℙ ℂ (Fin (n + 2) → ℂ)) *ᵖ
       (twistCore (𝕜 := ℂ) (n := n + 1) (d : ℤ)).Fiber) x) :=
