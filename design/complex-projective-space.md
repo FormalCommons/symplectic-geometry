@@ -505,9 +505,12 @@ In namespace `Projectivization`:
 ### `Geometry/Symplectic/Lagrangian/Submersion.lean`
 
 - `TauCeti.SmoothTwoForm.IsNondegenerate.isIsotropicMap_of_comp`, in Tau
-  Ceti's namespace: a differentiable map `f` is isotropic when `f ∘ q` is,
+  Ceti's namespace: a map `f` is isotropic when `f ∘ q` is,
   for a surjective differentiable `q` with surjective derivatives. Both
   Lagrangian examples below check isotropy upstairs with it.
+- `TauCeti.SmoothTwoForm.IsNondegenerate.IsIsotropicMap.comp`: the converse,
+  for differentiable `f` and `q`, and `isIsotropicMap_comp_iff`, the two
+  together.
 
 ### `Geometry/Manifold/Projectivization/FubiniStudy/Lagrangian.lean`
 

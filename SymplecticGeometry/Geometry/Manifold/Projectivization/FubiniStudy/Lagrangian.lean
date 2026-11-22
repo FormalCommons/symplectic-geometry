@@ -91,7 +91,6 @@ theorem isLagrangianEmbedding_mapProjective_ofReal :
     (by simp [Module.finrank_pi_fintype, mul_comm])
   refine SmoothTwoForm.IsNondegenerate.isIsotropicMap_of_comp (surjective_mkNonzero ℝ n)
     ((isSubmersion_mkNonzero ℝ n).surjective_mfderiv (by simp))
-    (he.isImmersion.contMDiff.mdifferentiable (by simp))
     ((contMDiff_mkNonzero ℝ n 1).mdifferentiable one_ne_zero) ?_
   rw [mapProjective_ofReal_comp_mkNonzero, isIsotropicMap_mkNonzero_comp_iff
     ((contMDiff_puncturedSpaceOfReal n 1).mdifferentiable one_ne_zero)]
@@ -300,7 +299,6 @@ theorem isLagrangianEmbedding_cliffordTorus :
     (q := fun t : Fin n → ℝ ↦ fun k ↦ (t k : AddCircle (2 * π)))
     (Surjective.piMap fun _ ↦ QuotientAddGroup.mk_surjective)
     (fun t ↦ by rw [AddCircle.mfderiv_coe_pi]; exact surjective_id)
-    (he.isImmersion.contMDiff.mdifferentiable (by simp))
     ((AddCircle.contMDiff_coe_pi (ι := Fin n) (2 * π) 1).mdifferentiable one_ne_zero) ?_
   rw [cliffordTorus_def, comp_assoc, isIsotropicMap_mkNonzero_comp_iff
     (((contMDiff_cliffordTorusLift 1).comp
