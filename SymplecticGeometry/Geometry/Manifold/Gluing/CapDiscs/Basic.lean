@@ -21,8 +21,8 @@ Let `S` be a surface with boundary, modelled on the half-plane `EuclideanHalfSpa
 smooth collar `c` of its boundary, and let `γ i : AddCircle 1 → ∂S`, for `i` in an index type `ι`,
 be smooth local diffeomorphisms whose images are disjoint (the map `(i, θ) ↦ γ i θ` is injective).
 The capped surface `SymplecticGeometry.capDiscs c γ hγ hinj` is glued (`TopCat.GlueData`) from
-the interior of `S`, re-modelled on `ℝ²` by Tau Ceti's `BoundarylessModel`, and one copy of the
-ball `CoordinateDisc.ball` of radius `2` of `ℂ` for each `i`, re-modelled on `ℝ²` along the
+the interior of `S`, re-modelled on `ℝ²` as `SymplecticGeometry.InteriorModel`, and one copy
+of the ball `CoordinateDisc.ball` of radius `2` of `ℂ` for each `i`, re-modelled on `ℝ²` along the
 orthonormal basis `1, i` of `ℂ`. The point `z` of the annulus `1 < ‖z‖ < 2` of the `i`-th disc is
 identified with the interior point `c (γ i (arg z / 2π), ‖z‖ - 1)`, and distinct discs are not
 glued to each other. When the `γ i` together parametrize the whole boundary, this closes up the
@@ -88,45 +88,32 @@ namespace capDiscs
 
 variable (S) in
 /-- The interior of `S`, as a boundaryless manifold over `ℝ²`. -/
-private def InteriorPiece : Type :=
-  BoundarylessModel (𝓡∂ 2) ((𝓡∂ 2).interiorOpens S)
-
-private instance : TopologicalSpace (InteriorPiece S) :=
-  inferInstanceAs (TopologicalSpace (BoundarylessModel (𝓡∂ 2) ((𝓡∂ 2).interiorOpens S)))
-
-private instance : ChartedSpace (EuclideanSpace ℝ (Fin 2)) (InteriorPiece S) :=
-  BoundarylessModel.interiorChartedSpace (𝓡∂ 2) (M := (𝓡∂ 2).interiorOpens S)
-
-private instance : IsManifold (𝓡 2) ∞ (InteriorPiece S) :=
-  BoundarylessModel.instIsManifoldInteriorChartedSpace (𝓡∂ 2) (M := (𝓡∂ 2).interiorOpens S)
-
-/-- The interior of `S`, as an open subset, is diffeomorphic to the interior piece. -/
-private def interiorPieceDiffeomorph :
-    (𝓡∂ 2).interiorOpens S ≃ₘ^∞⟮𝓡∂ 2, 𝓡 2⟯ InteriorPiece S :=
-  BoundarylessModel.interiorDiffeomorph (𝓡∂ 2) (M := (𝓡∂ 2).interiorOpens S) ∞
+private abbrev InteriorPiece : Type := InteriorModel (𝓡∂ 2) ((𝓡∂ 2).interiorOpens S)
 
 /-- The point of `S` underlying a point of the interior piece. -/
 private def InteriorPiece.val (q : InteriorPiece S) : S :=
-  (interiorPieceDiffeomorph.symm q : S)
+  ((interiorModelHomeomorph (𝓡∂ 2) ((𝓡∂ 2).interiorOpens S)).symm q : S)
 
 private theorem InteriorPiece.val_injective : Injective (InteriorPiece.val (S := S)) :=
-  Subtype.val_injective.comp interiorPieceDiffeomorph.symm.injective
+  Subtype.val_injective.comp (interiorModelHomeomorph _ _).symm.injective
 
 private theorem InteriorPiece.continuous_val : Continuous (InteriorPiece.val (S := S)) :=
-  continuous_subtypeVal.comp interiorPieceDiffeomorph.symm.continuous
+  continuous_subtypeVal.comp (interiorModelHomeomorph _ _).symm.continuous
 
 private theorem InteriorPiece.val_mem (q : InteriorPiece S) : q.val ∈ (𝓡∂ 2).interior S := by
   rw [← ModelWithCorners.coe_interiorOpens (I := 𝓡∂ 2)]
-  exact (interiorPieceDiffeomorph.symm q).property
+  exact ((interiorModelHomeomorph (𝓡∂ 2) ((𝓡∂ 2).interiorOpens S)).symm q).property
 
 private theorem InteriorPiece.isLocalDiffeomorph_val :
-    IsLocalDiffeomorph (𝓡 2) (𝓡∂ 2) ∞ (InteriorPiece.val (S := S)) := fun q ↦
-  (interiorPieceDiffeomorph.symm.isLocalDiffeomorph q).comp
-    (hg := isLocalDiffeomorph_subtype_val _)
+    IsLocalDiffeomorph (𝓡 2) (𝓡∂ 2) ∞ (InteriorPiece.val (S := S)) := fun q ↦ by
+  have h := ((interiorModelDiffeomorph (𝓡∂ 2) ((𝓡∂ 2).interiorOpens S) ∞).symm.isLocalDiffeomorph
+    q).comp (hg := isLocalDiffeomorph_subtype_val _)
+  rwa [coe_interiorModelDiffeomorph_symm] at h
 
-@[simp] private theorem InteriorPiece.val_interiorPieceDiffeomorph
-    (p : (𝓡∂ 2).interiorOpens S) : (interiorPieceDiffeomorph p).val = p := by
-  simp [InteriorPiece.val]
+private theorem InteriorPiece.val_interiorModelDiffeomorph
+    (p : (𝓡∂ 2).interiorOpens S) :
+    InteriorPiece.val (interiorModelDiffeomorph (𝓡∂ 2) ((𝓡∂ 2).interiorOpens S) ∞ p) = p := by
+  rw [InteriorPiece.val, coe_interiorModelDiffeomorph, Homeomorph.symm_apply_apply]
 
 /-! ### The disc pieces -/
 
@@ -179,6 +166,9 @@ private theorem mem_annulus {z : DiscPiece} : z ∈ annulus ↔ 1 < ‖z.val‖ 
 /-- The depth `t ∈ [0, 1)` of a collar point, as a real number. -/
 private def depth (t : normalIioOpens 1) : ℝ := (t : EuclideanHalfSpace 1).val 0
 
+private theorem depth_def (t : normalIioOpens 1) : depth t = (t : EuclideanHalfSpace 1).val 0 :=
+  rfl
+
 private theorem depth_nonneg (t : normalIioOpens 1) : 0 ≤ depth t :=
   (t : EuclideanHalfSpace 1).property
 
@@ -205,14 +195,6 @@ private theorem isLocalDiffeomorphAt_depth {t : normalIioOpens 1} (ht : 0 < dept
   simp [depth, e]
 
 variable (c : SmoothCollar 1 ∞ S)
-
-omit [IsManifold (𝓡∂ 2) ∞ S] in
-/-- A collar point is an interior point exactly when its depth is positive. -/
-private theorem apply_mem_interior_iff {p : ↥((𝓡∂ 2).boundary S) × normalIioOpens 1} :
-    c p ∈ (𝓡∂ 2).interior S ↔ 0 < depth p.2 := by
-  rw [SmoothCollar.apply_mem_interior_iff, (depth_nonneg p.2).lt_iff_ne', Ne, Ne,
-    ← depth_injective.eq_iff]
-  simp [depth, coe_normalIioOpensZero]
 
 variable {ι : Type} (γ : ι → AddCircle (1 : ℝ) → (𝓡∂ 2).boundary S)
 
@@ -252,7 +234,7 @@ private theorem exists_collarCoord_eq {i : ι} (q : interiorOverlap c γ hγ i) 
 
 private theorem depth_collarCoord_pos {i : ι} (q : interiorOverlap c γ hγ i) :
     0 < depth (collarCoord hγ q).2 := by
-  rw [← apply_mem_interior_iff c, apply_collarCoord]
+  rw [depth_def, ← c.apply_mem_interior_iff_pos, apply_collarCoord]
   exact q.val.val_mem
 
 private theorem isLocalDiffeomorph_collarCoord (i : ι) :
@@ -280,8 +262,8 @@ variable (γ) in
 private def angle (i : ι) (x : (𝓡∂ 2).boundary S) : AddCircle (1 : ℝ) := invFunOn (γ i) univ x
 
 include hinj in
-private theorem injective_apply (i : ι) : Function.Injective (γ i) := fun a b h ↦
-  congrArg Prod.snd (hinj (a₁ := (i, a)) (a₂ := (i, b)) h)
+private theorem injective_apply (i : ι) : Function.Injective (γ i) :=
+  hinj.comp (Prod.mk_right_injective i)
 
 include hinj in
 private theorem angle_apply (i : ι) (θ : AddCircle (1 : ℝ)) : angle γ i (γ i θ) = θ :=
@@ -416,7 +398,7 @@ def gluingCoord (i : ι) (z : ball) : ↥((𝓡∂ 2).boundary S) × normalIioOp
 
 private theorem depth_gluingCoord {i : ι} {z : ball} (hz : 1 < ‖(z : ℂ)‖) :
     depth (gluingCoord γ i z).2 = ‖(z : ℂ)‖ - 1 := by
-  rw [depth, coe_gluingCoord_snd, normalRay_coe_apply, max_eq_left (by linarith)]
+  rw [depth_def, coe_gluingCoord_snd, normalRay_coe_apply, max_eq_left (by linarith)]
 
 end
 
@@ -424,19 +406,21 @@ variable (c) in
 /-- The point of `S` glued to a point `z` with `1 < ‖z‖` of a disc is an interior point. -/
 theorem apply_gluingCoord_mem_interiorOpens {i : ι} {z : ball} (hz : 1 < ‖(z : ℂ)‖) :
     c (gluingCoord γ i z) ∈ (𝓡∂ 2).interiorOpens S := by
-  rw [← SetLike.mem_coe, ModelWithCorners.coe_interiorOpens, apply_mem_interior_iff,
-    depth_gluingCoord hz]
+  rw [← SetLike.mem_coe, ModelWithCorners.coe_interiorOpens, c.apply_mem_interior_iff_pos,
+    ← depth_def, depth_gluingCoord hz]
   linarith
 
 /-- The point of the interior glued to a point `z` of the annulus of the `i`-th disc. -/
 private def gluingPoint (i : ι) {z : ball} (hz : 1 < ‖(z : ℂ)‖) : interiorOverlap c γ hγ i :=
-  ⟨interiorPieceDiffeomorph ⟨c (gluingCoord γ i z), apply_gluingCoord_mem_interiorOpens c hz⟩, by
-    rw [mem_interiorOverlap, InteriorPiece.val_interiorPieceDiffeomorph]
+  ⟨interiorModelDiffeomorph (𝓡∂ 2) ((𝓡∂ 2).interiorOpens S) ∞
+    ⟨c (gluingCoord γ i z), apply_gluingCoord_mem_interiorOpens c hz⟩, by
+    rw [mem_interiorOverlap, InteriorPiece.val_interiorModelDiffeomorph]
     exact ⟨_, _, rfl⟩⟩
 
 private theorem val_gluingPoint (i : ι) {z : ball} (hz : 1 < ‖(z : ℂ)‖) :
     (gluingPoint (c := c) hγ i hz).val =
-      interiorPieceDiffeomorph ⟨c (gluingCoord γ i z), apply_gluingCoord_mem_interiorOpens c hz⟩ :=
+      interiorModelDiffeomorph (𝓡∂ 2) ((𝓡∂ 2).interiorOpens S) ∞
+        ⟨c (gluingCoord γ i z), apply_gluingCoord_mem_interiorOpens c hz⟩ :=
   rfl
 
 include hinj in
@@ -444,7 +428,7 @@ private theorem polarPoint_gluingPoint (i : ι) {z : ball} (hz : 1 < ‖(z : ℂ
     polarPoint hγ (gluingPoint (c := c) hγ i hz) = z := by
   have hcoord : collarCoord hγ (gluingPoint (c := c) hγ i hz) = gluingCoord γ i z :=
     c.injective (by
-      rw [apply_collarCoord, val_gluingPoint, InteriorPiece.val_interiorPieceDiffeomorph])
+      rw [apply_collarCoord, val_gluingPoint, InteriorPiece.val_interiorModelDiffeomorph])
   rw [polarPoint, hcoord, depth_gluingCoord hz, gluingCoord_fst, angle_apply hinj,
     toCircle_apply_mk, Circle.coe_exp]
   conv_rhs => rw [← norm_mul_exp_arg_mul_I (z : ℂ)]
@@ -638,7 +622,8 @@ instance : IsManifold (𝓡 2) ∞ (capDiscs c γ hγ hinj) :=
 
 /-- The inclusion of the interior of `S` into the capped surface. -/
 def inl (p : (𝓡∂ 2).interiorOpens S) : capDiscs c γ hγ hinj :=
-  (glueData c γ hγ hinj).toGlueData.ι none (interiorPieceDiffeomorph p)
+  (glueData c γ hγ hinj).toGlueData.ι none
+    (interiorModelDiffeomorph (𝓡∂ 2) ((𝓡∂ 2).interiorOpens S) ∞ p)
 
 /-- The inclusion of the ball of radius `2` of `ℂ` into the capped surface as the `i`-th disc. -/
 def inr (i : ι) (z : ball) : capDiscs c γ hγ hinj :=
@@ -646,7 +631,7 @@ def inr (i : ι) (z : ball) : capDiscs c γ hγ hinj :=
 
 private theorem range_inl :
     range (inl c γ hγ hinj) = range ((glueData c γ hγ hinj).toGlueData.ι none) :=
-  (interiorPieceDiffeomorph.surjective.range_comp _)
+  ((interiorModelDiffeomorph (𝓡∂ 2) ((𝓡∂ 2).interiorOpens S) ∞).surjective.range_comp _)
 
 private theorem range_inr (i : ι) :
     range (inr c γ hγ hinj i) = range ((glueData c γ hγ hinj).toGlueData.ι (some i)) :=
@@ -654,7 +639,7 @@ private theorem range_inr (i : ι) :
 
 /-- The inclusion of the interior of `S` is a smooth local diffeomorphism. -/
 theorem isLocalDiffeomorph_inl : IsLocalDiffeomorph (𝓡∂ 2) (𝓡 2) ∞ (inl c γ hγ hinj) := fun p ↦
-  (interiorPieceDiffeomorph.isLocalDiffeomorph p).comp
+  ((interiorModelDiffeomorph (𝓡∂ 2) ((𝓡∂ 2).interiorOpens S) ∞).isLocalDiffeomorph p).comp
     (hg := (isCompatible_glueData hγ hinj).isLocalDiffeomorph_ι none _)
 
 /-- The inclusion of each disc is a smooth local diffeomorphism. -/
@@ -668,7 +653,7 @@ end capDiscs
 /-- The interior of `S` is an open subset of the capped surface. -/
 theorem isOpenEmbedding_capDiscs_inl : IsOpenEmbedding (capDiscs.inl c γ hγ hinj) :=
   ((capDiscs.glueData c γ hγ hinj).ι_isOpenEmbedding none).comp
-    capDiscs.interiorPieceDiffeomorph.toHomeomorph.isOpenEmbedding
+    (interiorModelDiffeomorph (𝓡∂ 2) ((𝓡∂ 2).interiorOpens S) ∞).toHomeomorph.isOpenEmbedding
 
 /-- Each disc is an open subset of the capped surface. -/
 theorem isOpenEmbedding_capDiscs_inr (i : ι) : IsOpenEmbedding (capDiscs.inr c γ hγ hinj i) :=
