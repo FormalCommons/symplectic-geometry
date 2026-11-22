@@ -257,7 +257,7 @@ Named like Tau Ceti's file. Tau Ceti's `Distribution.transportCLM` along
 - `Distribution.lineDerivOp_ofFun`: for an additive Haar measure, the
   derivative along `v` of the distribution of a function `C¹` on `Ω` is the
   distribution of `x ↦ fderiv ℝ f x v`, by Tau Ceti's
-  `integral_bilinear_fderiv_right_eq_neg_left_of_hasCompactSupport`.
+  `ContDiffOn.hasWeakFDerivOn_fderiv`.
 - `Distribution.smulLeftCLM_ofFun`: multiplication by a smooth `g` is the
   distribution of `g • f`.
 
@@ -277,10 +277,9 @@ finite-dimensional `F`:
   (the integral `∫ x, φ (e x) • b.repr (w x) i ∂μ`), `coordOfFun_add`,
   `coordOfFun_smul` and `coordOfFun_congr_ae`.
 - `Distribution.lineDerivOp_coordOfFun` and
-  `Distribution.iteratedLineDerivOp_coordOfFun`: for `w` smooth on `U`,
-  `∂^{m}` of the coordinate distributions are those of
-  `x ↦ iteratedFDeriv ℝ k w x (e.symm ∘ m)` (one derivative needs only
-  `C¹`); and
+  `Distribution.iteratedLineDerivOp_coordOfFun`: for `w` of class `C^k` on
+  `U`, `∂^{m}` along `m : Fin k → E'` of the coordinate distributions are
+  those of `x ↦ iteratedFDeriv ℝ k w x (e.symm ∘ m)`; and
   `Distribution.smulLeftCLM_coordOfFun`: multiplication by `g` multiplies
   `w` by `g ∘ e`.
 - `Distribution.exists_contDiffOn_ae_eq_of_singularSupport_coordOfFun_eq_empty`:

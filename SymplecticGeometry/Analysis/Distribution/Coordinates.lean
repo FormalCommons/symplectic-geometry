@@ -30,10 +30,11 @@ the interior regularity of elliptic systems applies.
 * `MeasureTheory.LocallyIntegrableOn.ofReal_basis_repr`: the coordinates of a locally integrable
   function, as complex functions, are locally integrable.
 * `Distribution.coordOfFun_apply`: the pairing with a test function is an integral over `E`.
-* `Distribution.coordOfFun_add`, `Distribution.coordOfFun_smul`,
+* `Distribution.coordOfFun_zero`, `Distribution.coordOfFun_neg`, `Distribution.coordOfFun_add`,
+  `Distribution.coordOfFun_sub`, `Distribution.coordOfFun_smul`,
   `Distribution.coordOfFun_congr_ae`: linearity, and independence of the representative of `w`.
 * `Distribution.lineDerivOp_coordOfFun`, `Distribution.iteratedLineDerivOp_coordOfFun`: for an
-  additive Haar measure and `w` of class `C¹` (resp. smooth) on `U`, the derivative along `v` of
+  additive Haar measure and `w` of class `C¹` (resp. `C^k`) on `U`, the derivative along `v` of
   the coordinate distributions is that of `x ↦ fderiv ℝ w x (e⁻¹ v)`, and the iterated derivative
   along `m` is that of `x ↦ iteratedFDeriv ℝ k w x (e⁻¹ ∘ m)`.
 * `Distribution.smulLeftCLM_coordOfFun`: multiplying by a smooth function `g` on `E'` multiplies
@@ -102,7 +103,24 @@ theorem coordOfFun_congr_ae (h : w =ᵐ[μ.restrict U] w') (i : ι) :
     ofFun_congr_ae (f' := fun x ↦ (b.repr (w' x) i : ℂ))
     (h.mono fun x hx ↦ by simp [hx])]
 
+/-- The coordinate distributions of the zero function vanish. -/
+@[simp]
+theorem coordOfFun_zero (i : ι) : coordOfFun e hΩ b (0 : E → F) μ i = 0 := by
+  rw [coordOfFun_def, ← map_zero (transportCLM e.symm hΩ), ← ofFun_zero]
+  congr 2
+  ext x
+  simp
+
+/-- The coordinate distributions of `-w` are the negatives of those of `w`. -/
+@[simp]
+theorem coordOfFun_neg (i : ι) : coordOfFun e hΩ b (-w) μ i = -coordOfFun e hΩ b w μ i := by
+  rw [coordOfFun_def, coordOfFun_def, ← map_neg, ← ofFun_neg]
+  congr 2
+  ext x
+  simp
+
 /-- The coordinate distributions of `c • w` are `c` times those of `w`. -/
+@[simp]
 theorem coordOfFun_smul (c : ℝ) (i : ι) :
     coordOfFun e hΩ b (c • w) μ i = c • coordOfFun e hΩ b w μ i := by
   rw [coordOfFun_def, coordOfFun_def, ← map_smul, ← ofFun_smul]
@@ -121,6 +139,7 @@ theorem coordOfFun_apply (hw : LocallyIntegrableOn w U μ) (i : ι) (φ : 𝓓(�
 
 /-- The coordinate distributions of a sum of locally integrable functions are the sums of their
 coordinate distributions. -/
+@[simp]
 theorem coordOfFun_add (hw : LocallyIntegrableOn w U μ) (hw' : LocallyIntegrableOn w' U μ)
     (i : ι) :
     coordOfFun e hΩ b (w + w') μ i = coordOfFun e hΩ b w μ i + coordOfFun e hΩ b w' μ i := by
@@ -129,6 +148,13 @@ theorem coordOfFun_add (hw : LocallyIntegrableOn w U μ) (hw' : LocallyIntegrabl
   congr 2
   ext x
   simp
+
+/-- The coordinate distributions of a difference of locally integrable functions are the
+differences of their coordinate distributions. -/
+theorem coordOfFun_sub (hw : LocallyIntegrableOn w U μ) (hw' : LocallyIntegrableOn w' U μ)
+    (i : ι) :
+    coordOfFun e hΩ b (w - w') μ i = coordOfFun e hΩ b w μ i - coordOfFun e hΩ b w' μ i := by
+  rw [sub_eq_add_neg, coordOfFun_add e hΩ b hw hw'.neg, coordOfFun_neg, sub_eq_add_neg]
 
 /-- The derivatives along `v` of the coordinate distributions of a function `w` of class `C¹` on
 `U` are the coordinate distributions of its derivative `x ↦ fderiv ℝ w x (e⁻¹ v)`, for an
@@ -151,10 +177,10 @@ theorem lineDerivOp_coordOfFun [FiniteDimensional ℝ E] [μ.IsAddHaarMeasure]
   simp [hL]
 
 /-- The iterated derivatives along `m : Fin k → E'` of the coordinate distributions of a function
-`w` smooth on `U` are the coordinate distributions of `x ↦ iteratedFDeriv ℝ k w x (e⁻¹ ∘ m)`, for
-an additive Haar measure. -/
+`w` of class `C^k` on `U` are the coordinate distributions of
+`x ↦ iteratedFDeriv ℝ k w x (e⁻¹ ∘ m)`, for an additive Haar measure. -/
 theorem iteratedLineDerivOp_coordOfFun [FiniteDimensional ℝ E] [μ.IsAddHaarMeasure]
-    (hw : ContDiffOn ℝ ∞ w U) (i : ι) {k : ℕ} (m : Fin k → E') :
+    {k : ℕ} (hw : ContDiffOn ℝ k w U) (i : ι) (m : Fin k → E') :
     ∂^{m} (coordOfFun e hΩ b w μ i) =
       coordOfFun e hΩ b (fun x ↦ iteratedFDeriv ℝ k w x (e.symm ∘ m)) μ i := by
   induction k with
@@ -163,17 +189,18 @@ theorem iteratedLineDerivOp_coordOfFun [FiniteDimensional ℝ E] [μ.IsAddHaarMe
     refine coordOfFun_congr_ae e hΩ b (ae_of_all _ fun x ↦ ?_) i
     simp
   | succ k ih =>
-    have hwx : ∀ x ∈ U, ContDiffAt ℝ ∞ w x := fun x hx ↦ hw.contDiffAt (U.isOpen.mem_nhds hx)
-    -- The iterated derivative of order `k`, evaluated at a fixed family of vectors, is smooth.
-    have hg : ∀ c : Fin k → E, ContDiffOn ℝ ∞ (fun x ↦ iteratedFDeriv ℝ k w x c) U :=
+    have hwx : ∀ x ∈ U, ContDiffAt ℝ (k + 1 : ℕ) w x :=
+      fun x hx ↦ hw.contDiffAt (U.isOpen.mem_nhds hx)
+    -- The iterated derivative of order `k`, evaluated at a fixed family of vectors, is `C¹`.
+    have hg : ∀ c : Fin k → E, ContDiffOn ℝ 1 (fun x ↦ iteratedFDeriv ℝ k w x c) U :=
       fun c x hx ↦ ((ContinuousMultilinearMap.apply ℝ (fun _ : Fin k ↦ E) F c).contDiff.contDiffAt
-        |>.comp x ((hwx x hx).iteratedFDeriv_right (by simp))).contDiffWithinAt
-    rw [LineDeriv.iteratedLineDerivOp_succ_left, ih, lineDerivOp_coordOfFun e hΩ b
-      ((hg _).of_le (by simp))]
+        |>.comp x ((hwx x hx).iteratedFDeriv_right (by norm_cast; omega))).contDiffWithinAt
+    rw [LineDeriv.iteratedLineDerivOp_succ_left, ih (hw.of_le (by norm_cast; omega)),
+      lineDerivOp_coordOfFun e hΩ b (hg _)]
     refine coordOfFun_congr_ae e hΩ b ((ae_restrict_iff' U.isOpen.measurableSet).2
       (ae_of_all _ fun x hx ↦ ?_)) i
     rw [iteratedFDeriv_succ_apply_left, ← fderiv_continuousMultilinear_apply_const_apply
-      ((hwx x hx).differentiableAt_iteratedFDeriv (mod_cast ENat.natCast_lt_top k))]
+      ((hwx x hx).differentiableAt_iteratedFDeriv (by norm_cast; omega))]
     simp [Fin.tail_def, Function.comp_def]
 
 /-- Multiplying the coordinate distributions of `w` by a smooth function `g` on `E'` gives the
@@ -245,10 +272,11 @@ private theorem exists_contDiffOn_ae_eq_repr (hw : LocallyIntegrableOn w U μ) (
 /-- **Smooth representatives from coordinate distributions.** If `e` maps `U` into `Ω` and every
 coordinate distribution of `w`, locally integrable on `U` for an additive Haar measure, has empty
 singular support, then `w` agrees almost everywhere on `U` with a function smooth on `U`. -/
-theorem exists_contDiffOn_ae_eq_of_singularSupport_coordOfFun_eq_empty [Finite ι]
+theorem exists_contDiffOn_ae_eq_of_singularSupport_coordOfFun_eq_empty
     (hU : MapsTo e U Ω) (hw : LocallyIntegrableOn w U μ)
     (h : ∀ i, (coordOfFun e hΩ b w μ i).singularSupport = ∅) :
     ∃ g : E → F, ContDiffOn ℝ ∞ g U ∧ w =ᵐ[μ.restrict U] g := by
+  have := Module.Finite.finite_basis b
   have := Fintype.ofFinite ι
   -- Glue the local smooth representatives of each coordinate.
   choose g hg hwg using fun i ↦ TauCeti.exists_contDiffOn_ae_eq_of_locally (μ := μ)
