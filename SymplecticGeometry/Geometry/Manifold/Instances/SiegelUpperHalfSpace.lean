@@ -46,8 +46,14 @@ space a real and a complex manifold, smooth and analytic.
 * `SiegelUpperHalfSpace.contMDiff_iff_coe_comp`: a map into the Siegel upper half space is smooth
   exactly when its matrix is.
 
-The instances follow Mathlib's manifold structure on the upper half plane,
-`Mathlib/Analysis/Complex/UpperHalfPlane/Manifold.lean`, which is the case of index one.
+The charted space and the `IsManifold` instance adapt Mathlib's instances `ChartedSpace ℂ ℍ`
+and `IsManifold 𝓘(ℂ) ω ℍ` in `Mathlib/Analysis/Complex/UpperHalfPlane/Manifold.lean`, the case
+of index one, and `contMDiff_coe` has the statement of Mathlib's `UpperHalfPlane.contMDiff_coe`.
+The proof of `contMDiff_coe`, composing the smoothness of the continuous linear inclusion of the
+model with that of the open embedding, adapts Tau Ceti's `Matrix.contMDiff_coe_posDefOpens` in
+`TauCeti/Geometry/Manifold/Instances/PositiveDefiniteMatrix.lean`, as does the note above on
+the scope to open and the local instance to enable. The local instance itself is chosen as in
+the setup of Tau Ceti's `TauCeti/Geometry/Manifold/Instances/GeneralLinearGroup.lean`.
 
 ## References
 
@@ -61,7 +67,6 @@ noncomputable section
 open Matrix Topology
 open scoped Manifold ContDiff Matrix.Norms.Operator
 
-attribute [local instance] NormedAddCommGroup.toSeminormedAddCommGroup
 attribute [local instance] Matrix.linftyOpTopologicalSpace
 
 namespace SymplecticGeometry
