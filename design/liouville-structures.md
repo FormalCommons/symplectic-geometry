@@ -108,7 +108,8 @@ by `coe_interiorₗ`. For a strong filling `h`, `hY` is
   in `Geometry/Manifold/Boundary/Collar/Flow/`). It is proved in the extended
   chart at a boundary point, where the field is extended across the boundary
   by Seeley's extension in the normal coordinate, from *Smooth families*'
-  `contDiffOn_seeleyExtend` (`Analysis/Calculus/ContDiff/Seeley/Extension.lean`);
+  `exists_contDiff_eqOn_of_contDiffOn_halfSpace`
+  (`Analysis/Calculus/ContDiff/Seeley/Extension.lean`);
   the extended field has a flow (Tau Ceti's, on the boundaryless `ℝⁿ⁺¹`),
   whose backward lines from the boundary enter the interior and are there the integral curves of
   `Y`, so the local collars agree and patch. For a strong filling the
@@ -166,6 +167,7 @@ Further choices:
 | `Geometry/Symplectic/Liouville/Collar.lean` | the Liouville collar of a hypersurface; first milestone | 2 |
 | `Geometry/Contact/StableHamiltonian.lean` | wedge criterion, smooth Reeb field, invariance, contact case; the model and its converse; second milestone | 3, 4 |
 | `Topology/Sets/Strip.lean` | the open strip `(-ε, ε) × X` of `ℝ × X` and the tube lemma for it | 4 |
+| `Geometry/Manifold/Boundary/Charts.lean` | boundary points in the extended charts of the half-space model | 5 |
 | `Geometry/Manifold/Boundary/Collar/Flow/Local.lean` | near one boundary point: the extended field and its flow from the boundary | 5 |
 | `Geometry/Manifold/Boundary/Collar/Flow/Basic.lean` | the collar of a compact boundary along an outward field | 6 |
 | `Geometry/Symplectic/Liouville/Filling.lean` | `IsStrongFilling`, its contact form, its Liouville collar | 7 |
@@ -390,9 +392,10 @@ along the boundary), and a boundary point `p`:
 - In the extended chart at `p`, the coordinate expression of the field,
   smooth on a relatively open part of the half-space, agrees near `p` with a
   smooth field on `ℝⁿ⁺¹` (`exists_contDiff_eqOn_mpullbackWithin_extChartAt_symm`,
-  from `SymplecticGeometry.exists_contDiff_eqOn_of_contDiffOn_halfSpace`):
-  Seeley's extension in the normal coordinate, from *Smooth families*'
-  `contDiffOn_seeleyExtend`, after a cut-off in the normal coordinate.
+  from *Smooth families*'
+  `SymplecticGeometry.exists_contDiff_eqOn_of_contDiffOn_halfSpace` in
+  `Analysis/Calculus/ContDiff/Seeley/Extension.lean`): Seeley's extension in
+  the normal coordinate.
 - `exists_isMIntegralCurveOn_of_isOutwardPointing`: there are an open
   `B ∋ p` of `∂W`, `η > 0` and a map `γ : ℝ × ∂W → W` such that for `x ∈ B`
   the curve `s ↦ γ (s, x)` starts at `x`, lies in the interior of `W` for
@@ -604,15 +607,16 @@ Expected size: 300 lines.
 ## What the part uses
 
 - *Smooth families*: Seeley's extension,
-  `Analysis/Calculus/ContDiff/Seeley/Extension.lean`, and
-  `Geometry/Manifold/LocalDiffeomorph/Basic.lean`, only in
+  `Analysis/Calculus/ContDiff/Seeley/Extension.lean`,
+  `Geometry/Manifold/LocalDiffeomorph/Basic.lean` and
+  `Geometry/Manifold/MFDeriv/Chart.lean`, only in
   `Collar/Flow/Local.lean`; and
   `Geometry/Manifold/DifferentialForm/SmoothFamily/Basic.lean`
   (`TauCeti.SmoothForm.mpullback_prodMk_mpullback_snd`), merged, in
   `StableHamiltonian.lean`.
 - *Cotangent bundles*: `Geometry/Manifold/Flow/Basic.lean`, merged, which this
-  part extends by the flow of a smooth field on a normed space
-  (`TauCeti.contDiffOn_flowOf_uncurry`, `TauCeti.hasDerivAt_flowOf`,
+  part extends by the flow of a vector field on a normed space
+  (`TauCeti.contDiffOn_flowOf_uncurry`,
   `TauCeti.hasFDerivAt_flowOf_uncurry_zero`), in `Collar/Flow/Local.lean`.
 - *Moser isotopy*: `Geometry/Symplectic/Manifold/Family.lean`
   (`SmoothTwoForm.isOpen_setOf_nondegenerate_bilinFormAt`), merged, in
@@ -702,7 +706,7 @@ In this order; each is blocked by the ones listed. All are parts of #480,
 | 2 | Liouville collars of hypersurfaces, first milestone | `Liouville/Collar.lean` | 1 | 300 |
 | 3 | Stable Hamiltonian structures: wedge criterion, Reeb field, invariance | `Contact/StableHamiltonian.lean` | — | 300 |
 | 4 | The stable Hamiltonian model and its converse, second milestone | `Contact/StableHamiltonian.lean` | 3 | 500 |
-| 5 | Outward flow near a boundary point | `Boundary/Collar/Flow/Local.lean` | the *Smooth families* issue that adds `TimeExtension.lean` | 500 |
+| 5 | Outward flow near a boundary point | `Boundary/Collar/Flow/Local.lean` | the *Smooth families* issue that adds `Seeley/Extension.lean` | 500 |
 | 6 | The collar along an outward field | `Boundary/Collar/Flow/Basic.lean` | 5 | 400 |
 | 7 | Strong fillings and their Liouville collar | `Liouville/Filling.lean` | 6 | 400 |
 | 8 | Attaching an end along a smooth collar | `Boundary/Collar/End.lean` | — | 600 |
@@ -710,7 +714,8 @@ In this order; each is blocked by the ones listed. All are parts of #480,
 | 10 | Symplecticity and the third milestone | `Liouville/Completion.lean` | 9 | 350 |
 | 11 | The completion of a Liouville domain is a Tau Ceti completion | `Liouville/Domain.lean` | 10 | 300 |
 
-Issues 1, 3 and 8 can start at once; issue 5 waits for *Smooth families*.
+Issues 1, 3 and 8 can start at once; issue 5 waits for Seeley's extension
+in *Smooth families*.
 The milestones are proved in issues 2, 4 and 10. If issue 5 or 8 exceeds the
 size limit, its local chart computations become an issue of their own before
 it.

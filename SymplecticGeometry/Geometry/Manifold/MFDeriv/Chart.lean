@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Geometry.Manifold.MFDeriv.NormedSpace
+public import Mathlib.Geometry.Manifold.VectorField.Pullback
 import Mathlib.Geometry.Manifold.ContMDiff.Atlas
 import TauCeti.Geometry.Manifold.MFDeriv.Chart.Basic
 import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
@@ -28,6 +29,13 @@ differential of the chart. These are the `mvfderiv` and off-centre forms of Tau 
   range of `mvfderiv I f y` is that of the coordinate derivative at the chart image of `y`.
 * `ContMDiff.contDiffOn_comp_extChartAt_symm`: a `C^n` map into a normed space is `C^n` in every
   chart.
+* `ContMDiff.contDiffOn_mpullbackWithin_extChartAt_symm`: a smooth vector field is smooth in every
+  chart: its coordinate expression `mpullbackWithin 𝓘(𝕜, E) I (extChartAt I x).symm V (range I)`
+  is smooth on the target of the extended chart.
+* `VectorField.mfderivWithin_extChartAt_symm_mpullbackWithin`,
+  `VectorField.mpullbackWithin_extChartAt_symm_apply_eq_mfderiv`: the coordinate expression of a
+  vector field and the field correspond under the differentials of the chart and of its inverse,
+  as in Tau Ceti's `VectorField.mpullback_extChartAt_symm_apply_eq_mfderiv`.
 -/
 
 public section
@@ -76,5 +84,50 @@ theorem ContMDiff.contDiffOn_comp_extChartAt_symm {n : WithTop ℕ∞} [IsManifo
     (hf : ContMDiff I 𝓘(𝕜, F) n f) (x : M) :
     ContDiffOn 𝕜 n (f ∘ (extChartAt I x).symm) (extChartAt I x).target :=
   contMDiffOn_iff_contDiffOn.mp (hf.comp_contMDiffOn (contMDiffOn_extChartAt_symm x))
+
+section VectorField
+
+open VectorField
+
+variable {V : (x : M) → TangentSpace I x}
+
+/-- A smooth vector field, read in an extended chart, is smooth on the chart target. -/
+theorem ContMDiff.contDiffOn_mpullbackWithin_extChartAt_symm [CompleteSpace E] [IsManifold I ∞ M]
+    (hV : ContMDiff I I.tangent ∞ (fun y ↦ (⟨y, V y⟩ : TangentBundle I M))) (x : M) :
+    ContDiffOn 𝕜 ∞ (mpullbackWithin 𝓘(𝕜, E) I (extChartAt I x).symm V (range I))
+      (extChartAt I x).target := fun y hy ↦
+  contMDiffWithinAt_vectorSpace_iff_contDiffWithinAt.1 <|
+    ContMDiffWithinAt.mpullbackWithin_vectorField_of_eq' (t := univ) (n := ∞)
+      (hV _).contMDiffWithinAt (contMDiffWithinAt_extChartAt_symm_range x hy)
+      (isInvertible_mfderivWithin_extChartAt_symm hy) hy
+      (uniqueMDiffOn_iff_uniqueDiffOn.2 (uniqueDiffOn_extChartAt_target x)) (by simp) (by simp)
+      (extChartAt_target_subset_range x) rfl
+
+namespace VectorField
+
+/-- The derivative of the inverse chart sends the coordinate expression of a vector field back to
+the field. -/
+theorem mfderivWithin_extChartAt_symm_mpullbackWithin [IsManifold I 1 M] {y : E}
+    (hy : y ∈ (extChartAt I x).target) :
+    mfderivWithin 𝓘(𝕜, E) I (extChartAt I x).symm (range I) y
+      (mpullbackWithin 𝓘(𝕜, E) I (extChartAt I x).symm V (range I) y) =
+        V ((extChartAt I x).symm y) := by
+  rw [mpullbackWithin_apply]
+  exact ((isInvertible_mfderivWithin_extChartAt_symm hy).inverse_apply_eq.1 rfl).symm
+
+/-- At the chart image of a point `z`, the coordinate expression of a vector field is the image of
+the field at `z` under the derivative of the chart. -/
+theorem mpullbackWithin_extChartAt_symm_apply_eq_mfderiv [IsManifold I 1 M] {z : M}
+    (hz : z ∈ (extChartAt I x).source) :
+    mpullbackWithin 𝓘(𝕜, E) I (extChartAt I x).symm V (range I) (extChartAt I x z) =
+      mfderiv I 𝓘(𝕜, E) (extChartAt I x) z (V z) := by
+  rw [mpullbackWithin_apply, (isInvertible_mfderivWithin_extChartAt_symm
+    ((extChartAt I x).map_source hz)).inverse_apply_eq, (extChartAt I x).left_inv hz]
+  exact (DFunLike.congr_fun (mfderivWithin_extChartAt_symm_comp_mfderiv_extChartAt' hz)
+    (V z)).symm
+
+end VectorField
+
+end VectorField
 
 end
