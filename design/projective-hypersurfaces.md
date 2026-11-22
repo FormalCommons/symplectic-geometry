@@ -526,7 +526,7 @@ In the namespace `TauCeti.HomologicalOrientation`, beside
 
 - `bijective_singularCapLinearMap_of_bijective_dualityMap`, its bijective
   form, by the same proof;
-- `bettiNumber_eq_of_add_eq`: for a compact homologically oriented
+- `bettiNumber_eq_bettiNumber`: for a compact homologically oriented
   `m`-manifold and `p + q = m`, `bettiNumber ℚ M q = bettiNumber ℚ M p`, from
   #810's bijectivity of the duality map and Tau Ceti's
   `TopCat.finrank_singularHomology_eq_of_bijective_singularCapLinearMap`.
@@ -538,7 +538,7 @@ For `d ≠ 0` and `n ≠ 0`.
 - `bettiNumber_of_ne`: for `k ≠ n`, `bettiNumber ℚ X k` is `1` if `k` is even
   and `k ≤ 2 * n`, and `0` otherwise; below `n` by
   `isIso_homologyMap_subtypeVal` and the homology of $\mathbb CP^{n+1}$,
-  above by `bettiNumber_eq_of_add_eq`, and above `2 * n` by Tau Ceti's
+  above by `bettiNumber_eq_bettiNumber`, and above `2 * n` by Tau Ceti's
   vanishing of homology above the dimension of a manifold.
 - `bettiNumber_middle`: $(-1)^n b_n=\chi(X)-(n+1)+[n\text{ even}]$, from
   the alternating sum of #1045 (`evalFundamentalClass_eulerClass_eq_sum_finrank_singularHomology`)
