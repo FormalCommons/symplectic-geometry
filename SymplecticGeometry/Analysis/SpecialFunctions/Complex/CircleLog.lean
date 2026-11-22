@@ -31,12 +31,17 @@ continuous `G` on `S`. The lifts `G (w + 2πi)` and `G w` of the same map differ
 multiple of `2π` (Tau Ceti's `Circle.exists_int_forall_eq_add_of_exp_eq`), which on the line
 `Re w = log r` is the degree of the loop on the circle of radius `r`, so `G` is `2πi`-periodic.
 Then `h = G ∘ log` is continuous on `A`, as near each point it agrees with `G` composed with a
-continuous branch of the logarithm, and smooth by the first result.
+continuous branch of the logarithm (`Function.Periodic.continuousOn_comp_log`), and smooth by the
+first result, in the form `Circle.contDiffOn_of_contMDiffOn_exp`.
 
 ## Main results
 
 * `Circle.contDiffAt_of_contDiffAt_exp`: continuous lifts of `C^n` circle-valued maps through
   `Circle.exp` are `C^n`.
+* `Circle.contDiffOn_of_contMDiffOn_exp`: the same on an open set, for a lift whose exponential
+  is `C^n` as a map into the manifold `Circle`.
+* `Function.Periodic.continuousOn_comp_log`: a `2πi`-periodic function continuous on
+  `exp ⁻¹' U` becomes continuous on `U` after composing with `Complex.log`.
 * `Circle.exists_contDiffOn_exp_eq_of_circleDegree_eq_zero`: a `C^n` circle-valued map of
   degree `0` on an annulus has a `C^n` real logarithm.
 
@@ -50,6 +55,32 @@ public section
 
 open Complex Filter Set Topology
 open scoped Manifold ContDiff Real
+
+/-- If `G` is `2πi`-periodic and continuous on `exp ⁻¹' U`, for an open set `U` not
+containing `0`, then `z ↦ G (log z)` is continuous on `U`. -/
+theorem Function.Periodic.continuousOn_comp_log {α : Type*} [TopologicalSpace α] {G : ℂ → α}
+    {U : Set ℂ} (hper : Function.Periodic G (2 * π * I)) (hU : IsOpen U) (h0 : (0 : ℂ) ∉ U)
+    (hG : ContinuousOn G (Complex.exp ⁻¹' U)) : ContinuousOn (fun z ↦ G (log z)) U := by
+  intro z₀ hz₀
+  have hz₀0 : z₀ ≠ 0 := ne_of_mem_of_not_mem hz₀ h0
+  -- near `z₀`, `G ∘ log` agrees with `G` after the continuous branch `L` of the logarithm
+  let L : ℂ → ℂ := fun z ↦ log (z * z₀⁻¹) + log z₀
+  have hL : ContinuousAt L z₀ := by
+    refine ((continuousAt_clog ?_).comp (continuousAt_id.mul continuousAt_const)).add
+      continuousAt_const
+    simp [hz₀0]
+  have hLz₀ : L z₀ = log z₀ := by simp [L, hz₀0]
+  have hGL : ContinuousAt (G ∘ L) z₀ := by
+    refine ContinuousAt.comp ?_ hL
+    rw [hLz₀]
+    exact hG.continuousAt ((hU.preimage Complex.continuous_exp).mem_nhds
+      (by simpa [exp_log hz₀0] using hz₀))
+  refine (hGL.congr ?_).continuousWithinAt
+  filter_upwards [isOpen_ne.mem_nhds hz₀0] with z hz
+  obtain ⟨k, hk⟩ := exp_eq_exp_iff_exists_int.1
+    (show Complex.exp (log z) = Complex.exp (L z) by
+      simp [L, Complex.exp_add, exp_log, hz, hz₀0])
+  simp [hk, hper.int_mul k (L z)]
 
 namespace Circle
 
@@ -71,6 +102,16 @@ theorem contDiffAt_of_contDiffAt_exp {E : Type*} [NormedAddCommGroup E] [NormedS
   ring
 
 attribute [local instance] finrank_real_complex_fact'
+
+/-- A real function `θ`, continuous on an open set `s`, whose exponential `y ↦ exp (i θ y)` is
+`C^n` on `s` as a map into the circle, is `C^n` on `s`. -/
+theorem contDiffOn_of_contMDiffOn_exp {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {n : WithTop ℕ∞} {θ : E → ℝ} {s : Set E} (hs : IsOpen s) (hθ : ContinuousOn θ s)
+    (h : ContMDiffOn 𝓘(ℝ, E) (𝓡 1) n (fun y ↦ exp (θ y)) s) : ContDiffOn ℝ n θ s := by
+  intro x hx
+  refine (contDiffAt_of_contDiffAt_exp (hθ.continuousAt (hs.mem_nhds hx)) ?_).contDiffWithinAt
+  have h' := (contMDiff_coe_sphere (m := n)).contMDiffAt.comp_contMDiffWithinAt x (h x hx)
+  exact (contMDiffWithinAt_iff_contDiffWithinAt.1 h').contDiffAt (hs.mem_nhds hx)
 
 /-- **Smooth logarithms on an annulus.** Let `0 ≤ a < r < b` and let `u : ℂ → S¹` be `C^n` on the
 open annulus `a < ‖z‖ < b`. If the loop `ζ ↦ u (r ζ)` on the circle of radius `r` has degree `0`,
@@ -140,39 +181,12 @@ theorem exists_contDiffOn_exp_eq_of_circleDegree_eq_zero {n : WithTop ℕ∞} {a
       rw [← hGx ⟨w, hw⟩, ← hGx (τ ⟨w, hw⟩)] at h
       simpa [τ] using h
     · simp [Gx, hw, hshift]
-  have hA0 {z : ℂ} (hz : z ∈ A) : z ≠ 0 := by
-    rintro rfl
-    exact (ha.trans_lt hz.1).ne' norm_zero
-  have hlog {z : ℂ} (hz : z ∈ A) : log z ∈ S := by
-    simpa [S, exp_log (hA0 hz)] using hz
+  have hA0 : (0 : ℂ) ∉ A := fun h ↦ (ha.trans_lt h.1).ne' norm_zero
   have hexp {z : ℂ} (hz : z ∈ A) : u z = exp (Gx (log z)) := by
-    rw [hGx ⟨_, hlog hz⟩, hGF, exp_log (hA0 hz)]
-  -- `Gx ∘ log` is continuous on `A`: near `z₀` it is `Gx` after a continuous branch of `log`
-  have hcont {z₀ : ℂ} (hz₀ : z₀ ∈ A) : ContinuousAt (fun z ↦ Gx (log z)) z₀ := by
-    have h0 := hA0 hz₀
-    let L : ℂ → ℂ := fun z ↦ log (z * z₀⁻¹) + log z₀
-    have hL : ContinuousAt L z₀ := by
-      refine ((continuousAt_clog ?_).comp (continuousAt_id.mul continuousAt_const)).add
-        continuousAt_const
-      simp [h0]
-    have hLz₀ : L z₀ = log z₀ := by simp [L, h0]
-    have hGL : ContinuousAt (Gx ∘ L) z₀ := by
-      refine ContinuousAt.comp ?_ hL
-      rw [hLz₀]
-      exact hGxc.continuousAt (hSo.mem_nhds (hlog hz₀))
-    refine hGL.congr ?_
-    filter_upwards [isOpen_ne.mem_nhds h0] with z hz
-    obtain ⟨k, hk⟩ := exp_eq_exp_iff_exists_int.1
-      (show Complex.exp (log z) = Complex.exp (L z) by
-        simp [L, Complex.exp_add, exp_log, hz, h0])
-    simp [hk, hper.int_mul k (L z)]
-  refine ⟨fun z ↦ Gx (log z), fun z hz ↦ ?_, fun z h₁ h₂ ↦ hexp ⟨h₁, h₂⟩⟩
-  refine (contDiffAt_of_contDiffAt_exp (hcont hz) ?_).contDiffWithinAt
-  have hu' : ContDiffAt ℝ n (fun z ↦ (u z : ℂ)) z := by
-    have h := (contMDiff_coe_sphere (m := n)).contMDiffAt.comp_contMDiffWithinAt z (hu z hz)
-    exact (contMDiffWithinAt_iff_contDiffWithinAt.1 h).contDiffAt (hA.mem_nhds hz)
-  refine hu'.congr_of_eventuallyEq ?_
-  filter_upwards [hA.mem_nhds hz] with w hw
-  rw [← hexp hw]
+    have hz0 : z ≠ 0 := ne_of_mem_of_not_mem hz hA0
+    rw [hGx ⟨log z, by simpa [S, exp_log hz0] using hz⟩, hGF, exp_log hz0]
+  refine ⟨fun z ↦ Gx (log z), ?_, fun z h₁ h₂ ↦ hexp ⟨h₁, h₂⟩⟩
+  exact contDiffOn_of_contMDiffOn_exp hA (hper.continuousOn_comp_log hA hA0 hGxc)
+    (hu.congr fun z hz ↦ (hexp hz).symm)
 
 end Circle
