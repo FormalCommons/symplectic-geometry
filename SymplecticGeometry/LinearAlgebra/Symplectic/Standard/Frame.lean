@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.Analysis.CStarAlgebra.Matrix
 public import SymplecticGeometry.Analysis.Matrix.SymplecticGroup.Connected
 public import SymplecticGeometry.Geometry.Symplectic.LinearMoser
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Matrix
@@ -63,9 +64,9 @@ theorem exists_contDiff_path_apply_eq_stdForm {n : ℕ∞}
       _ = stdForm ι v w := by rw [hΨL, hΨL, hB]
   obtain ⟨γ, hγ, hγs, hγ0, hγ1⟩ :=
     Matrix.exists_contDiff_path_symplecticGroup (one_mem _) hL
-  have hS : ContDiff ℝ (⊤ : ℕ∞) fun t ↦ Matrix.toEuclideanCLM (n := ι ⊕ ι) (𝕜 := ℝ) (γ t) :=
-    (LinearMap.toContinuousLinearMap
-      (Matrix.toEuclideanCLM (n := ι ⊕ ι) (𝕜 := ℝ)).toAlgEquiv.toLinearMap).contDiff.comp hγ
+  have hS : ContDiff ℝ (⊤ : ℕ∞) fun t ↦ Matrix.toEuclideanCLM (n := ι ⊕ ι) (𝕜 := ℝ) (γ t) := by
+    rw [← Matrix.coe_toEuclideanCLMContinuousLinearEquiv]
+    exact Matrix.toEuclideanCLMContinuousLinearEquiv.contDiff.comp hγ
   refine ⟨fun t ↦ Ψ t * Matrix.toEuclideanCLM (n := ι ⊕ ι) (𝕜 := ℝ) (γ t),
     hΨ.mul (hS.of_le (mod_cast le_top)), ?_, ?_, fun t v w ↦ ?_⟩
   · dsimp only
