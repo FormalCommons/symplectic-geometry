@@ -16,8 +16,8 @@ import SymplecticGeometry.Analysis.Distribution.SecondOrderSystem
 import SymplecticGeometry.Analysis.Normed.Operator.BoundedSMul
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.ChartCover
+import SymplecticGeometry.Geometry.Manifold.PartitionOfUnity
 import SymplecticGeometry.Geometry.Manifold.Riemannian.PartialDiffeomorph
-import Mathlib.Geometry.Manifold.PartitionOfUnity
 import TauCeti.Analysis.Calculus.BumpFunction.Cutoff
 import TauCeti.MeasureTheory.Function.LocallyIntegrable
 
@@ -114,21 +114,6 @@ local instance [IsManifold I ∞ M] [RiemannianBundle (fun x : M ↦ TangentSpac
     IsContinuousRiemannianBundle E (fun x : M ↦ TangentSpace I x) :=
   IsContMDiffRiemannianBundle.toIsContinuousRiemannianBundle
     (IB := I) (n := ∞) (F := E) (V := fun x : M ↦ TangentSpace I x)
-
-/-- A smooth cutoff `θ` supported in the source of a chart `ψ` and equal to `1` on an open set
-`U₁` that contains the support of a function `χ` supported in that source. -/
-private theorem exists_cutoff_eq_one_of_tsupport_subset [IsManifold I ∞ M] [T2Space M]
-    [CompactSpace M] (ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞) {χ : M → ℝ}
-    (hχ : tsupport χ ⊆ ψ.source) :
-    ∃ (θ : C^∞⟮I, M; ℝ⟯) (U₁ : Set M), IsOpen U₁ ∧ tsupport χ ⊆ U₁ ∧
-      tsupport θ ⊆ ψ.source ∧ ∀ x ∈ U₁, θ x = 1 := by
-  obtain ⟨θ, hθ0, hθ1, -⟩ := exists_contMDiffMap_zero_one_nhds_of_isClosed I (n := ⊤)
-    ψ.open_source.isClosed_compl (isClosed_tsupport χ) (Set.disjoint_compl_left_iff_subset.2 hχ)
-  obtain ⟨W, hW, hsW, hW0⟩ := eventually_nhdsSet_iff_exists.1 hθ0
-  obtain ⟨U₁, hU₁, hχU₁, hU₁1⟩ := eventually_nhdsSet_iff_exists.1 hθ1
-  have hθW : Function.support θ ⊆ Wᶜ := fun x hx hxW ↦ Function.mem_support.1 hx (hW0 x hxW)
-  exact ⟨θ, U₁, hU₁, hχU₁, (closure_minimal hθW hW.isClosed_compl).trans
-    (Set.compl_subset_comm.1 hsW), hU₁1⟩
 
 /-! ### Weak solutions -/
 
@@ -484,7 +469,10 @@ theorem L2Form.IsWeakSolution.exists_contDiff_ae_eq_localize {u : L2Form o k}
     (ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞) (ρ : C^∞⟮I, M; ℝ⟯) (hρ : tsupport ρ ⊆ ψ.source) :
     ∃ F : E → E [⋀^Fin k]→L[ℝ] ℝ, ContDiff ℝ ∞ F ∧ HasCompactSupport F ∧
       tsupport F ⊆ ψ.target ∧ L2Form.localize ψ ρ hρ u =ᵐ[volume] F := by
-  obtain ⟨θ, U₁, hU₁, hρU₁, hθ, hθ1⟩ := exists_cutoff_eq_one_of_tsupport_subset ψ hρ
+  -- A cutoff `θ` equal to `1` on an open `U₁ ⊇ tsupport ρ` and supported in `ψ.source`.
+  obtain ⟨θ, hθ, hθ1, -⟩ :=
+    (isClosed_tsupport _).exists_contMDiffMap_tsupport_subset_eventually_eq_one I ψ.open_source hρ
+  obtain ⟨U₁, hU₁, hρU₁, hθ1⟩ := eventually_nhdsSet_iff_exists.1 hθ1
   have hρθ (x : M) (hx : x ∈ tsupport ρ) : θ x = 1 := hθ1 x (hρU₁ hx)
   -- The open set of the chart where `θ ∘ ψ.symm = 1`.
   set V := ψ.target ∩ ψ.symm ⁻¹' U₁
@@ -776,7 +764,9 @@ theorem L2Form.isLocallySobolev_one_of_forall_inner {u : L2Form o k} {C : ℝ}
     (hz : z ∈ Ω) :
     (Distribution.coordOfFun e hΩ bΛ (L2Form.localize ψ χ hχ u) volume p).IsLocallySobolevAt 1
       z := by
-  obtain ⟨θ, U₁, hU₁, hχU₁, hθ, hθ1⟩ := exists_cutoff_eq_one_of_tsupport_subset ψ hχ
+  obtain ⟨θ, hθ, hθ1, -⟩ :=
+    (isClosed_tsupport _).exists_contMDiffMap_tsupport_subset_eventually_eq_one I ψ.open_source hχ
+  obtain ⟨U₁, hU₁, hχU₁, hθ1⟩ := eventually_nhdsSet_iff_exists.1 hθ1
   have hχθ (x : M) (hx : x ∈ tsupport χ) : θ x = 1 := hθ1 x (hχU₁ hx)
   -- The open set of the chart where `θ ∘ ψ.symm = 1`, and the compact image of `tsupport χ`.
   set V : TopologicalSpace.Opens E := ⟨ψ.target ∩ ψ.symm ⁻¹' U₁,
