@@ -285,6 +285,8 @@ private theorem shuffleAssocHomotopy_hom_comp_singularChainComplexπ_eq_zero {X'
     TopPair.chainComplexMap_comp_singularChainComplexπOfSubset_eq_zero_of_range_subset _ hfgh,
     zero_f, comp_zero]
 
+/-- The first iterated shuffle map of the three pairs, followed by the coefficient associator and
+the map induced by the associator of the spaces. -/
 private abbrev shufflePairAssocLeft :
     ((TopPair.ofSubset A).singularChainComplex R ⊗ (TopPair.ofSubset B).singularChainComplex S) ⊗
         (TopPair.ofSubset D).singularChainComplex T ⟶
@@ -417,7 +419,6 @@ private def shufflePairAssocHomotopy₁ :
 
 /-- The homotopy `shufflePairAssocHomotopy₁` is the homotopy `TopCat.shuffleAssocHomotopy`,
 descended. -/
-@[reassoc]
 private theorem singularChainComplexπ_tensorHom_id_f_shufflePairAssocHomotopy₁_hom (i j : ℕ) :
     ((TopPair.singularChainComplexπOfSubset R A ⊗ₘ 𝟙 ((toSSet.obj Y).chainComplex S)) ⊗ₘ
         𝟙 ((toSSet.obj Z).chainComplex T)).f i ≫
@@ -474,7 +475,6 @@ private def shufflePairAssocHomotopy₂ :
 
 /-- The homotopy `shufflePairAssocHomotopy₂` is the homotopy `shufflePairAssocHomotopy₁`,
 descended. -/
-@[reassoc]
 private theorem id_tensorHom_singularChainComplexπ_f_shufflePairAssocHomotopy₂_hom (i j : ℕ) :
     ((𝟙 ((TopPair.ofSubset A).singularChainComplex R) ⊗ₘ
         TopPair.singularChainComplexπOfSubset S B) ⊗ₘ 𝟙 ((toSSet.obj Z).chainComplex T)).f i ≫
