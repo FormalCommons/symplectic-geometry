@@ -7,6 +7,7 @@ module
 
 public import Mathlib.LinearAlgebra.Complex.Orientation
 public import SymplecticGeometry.AlgebraicTopology.SimplicialSet.Homology.MayerVietoris
+public import SymplecticGeometry.AlgebraicTopology.SimplicialSet.Homology.One
 public import TauCeti.AlgebraicTopology.Homotopy.Hurewicz.One.Comparison
 public import TauCeti.AlgebraicTopology.Singular.Circle
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.Chart
@@ -57,9 +58,6 @@ the remaining basis vector `1`, while Tau Ceti's generator of the equator is `[-
   `Circle.expLoop` is `-(Circle.singularHomologyOneIso A).inv`.
 * `Circle.hurewicz_genLoopEquivOfUnique_symm_expLoop`: the Hurewicz class of `Circle.expLoop`
   is `(Circle.singularHomologyOneIso A).inv`.
-* `SSet.ιHomology₁_homologyMap`: a map of simplicial sets carries the class of a closed
-  `1`-simplex to the class of its image. Its proof follows Tau Ceti's
-  `SSetPair.relClass₁_homologyMap`.
 
 ## References
 
@@ -74,28 +72,6 @@ public section
 noncomputable section
 
 open CategoryTheory Limits Metric TauCeti AlgebraicTopology
-
-namespace SSet
-
-open Simplicial
-
-universe w v' u'
-
-variable {C' : Type u'} [Category.{v'} C'] [HasCoproducts.{w} C'] [Preadditive C']
-  [CategoryWithHomology C'] (R : C')
-
-/-- **Naturality of the class of a closed `1`-simplex**: a map of simplicial sets carries the class
-of a `1`-simplex with equal faces to the class of its image. -/
-@[reassoc (attr := simp)]
-lemma ιHomology₁_homologyMap {X Y : SSet.{w}} (f : X ⟶ Y) (s : X _⦋1⦌) (h : X.δ 0 s = X.δ 1 s) :
-    ιHomology₁ R X s h ≫ SSet.homologyMap f R 1 =
-      ιHomology₁ R Y (f.app _ s) (by rw [← δ_naturality_apply, h, δ_naturality_apply]) := by
-  rw [ιHomology₁_def, ιHomology₁_def, Category.assoc, HomologicalComplex.homologyπ_naturality,
-    ← Category.assoc, HomologicalComplex.liftCycles_comp_cyclesMap]
-  congr 2
-  exact ι_chainComplexMap_f _ _ _ _ s
-
-end SSet
 
 namespace Circle
 
@@ -588,7 +564,6 @@ theorem ιHomology₁_simplex₁_expLoop :
   congr 1
   exact hs.symm
 
-open Simplicial in
 /-- **The Hurewicz class of the counterclockwise loop is the generator of `H₁(Circle)`**:
 `GenLoop.hurewicz` reads a loop with the opposite sign to its singular `1`-simplex
 (`GenLoop.hurewicz_eq_neg_ιHomology₁`). -/
@@ -598,16 +573,8 @@ theorem hurewicz_genLoopEquivOfUnique_symm_expLoop :
   have hs : GenLoop.simplex₁ ((genLoopEquivOfUnique (Fin 1)).symm expLoop) =
       TopCat.simplex₁ expLoop.toContinuousMap := by
     rw [GenLoop.simplex₁_eq_topCatSimplex₁, Equiv.apply_symm_apply]
-  have he : ∀ (s : (TopCat.toSSet.obj (TopCat.of Circle)) _⦋1⦌)
-      (_ : s = TopCat.simplex₁ expLoop.toContinuousMap) h,
-      SSet.ιHomology₁ A _ s h = SSet.ιHomology₁ A _ _ δ_zero_simplex₁_expLoop_eq_δ_one := by
-    rintro _ rfl _
-    rfl
-  rw [GenLoop.hurewicz_eq_neg_ιHomology₁]
-  refine (congrArg Neg.neg
-    (?_ : _ = SSet.ιHomology₁ A _ _ δ_zero_simplex₁_expLoop_eq_δ_one)).trans ?_
-  · exact he _ hs _
-  · rw [ιHomology₁_simplex₁_expLoop]
-    exact neg_neg _
+  rw [GenLoop.hurewicz_eq_neg_ιHomology₁, ← neg_neg (singularHomologyOneIso A).inv,
+    ← ιHomology₁_simplex₁_expLoop]
+  congr 2
 
 end Circle

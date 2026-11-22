@@ -207,6 +207,7 @@ of Tau Ceti's roadmap that no one has started.
 | `Geometry/Manifold/SmoothSingular/SingularPeriod.lean` | the pairing of de Rham classes with integral singular homology |
 | `Geometry/Manifold/SmoothSingular/RelativeCycle.lean` | the relative step of Decision 7 |
 | `AlgebraicTopology/SimplicialSet/Homology/RelativeClass.lean` | the relative class of a simplex whose faces lie in the subcomplex of a pair of simplicial sets, `SSetPair.relClass` |
+| `AlgebraicTopology/SimplicialSet/Homology/One.lean` | naturality of the class of a closed $1$-simplex under maps of simplicial sets, `SSet.ιHomology₁_homologyMap` |
 | `AlgebraicTopology/Singular/RelativeClass.lean` | the relative class of a singular simplex whose faces lie in the subspace, `TopPair.relClass` |
 | `AlgebraicTopology/Singular/LocalHomology/Orientation/Simplex.lean` | the class of a positively oriented simplex in local homology, in dimension two |
 | `Geometry/Manifold/DeRham/FundamentalClass.lean` | $\int_\Sigma\varphi=\langle[\varphi],[\Sigma]\rangle$ on closed oriented surfaces |
