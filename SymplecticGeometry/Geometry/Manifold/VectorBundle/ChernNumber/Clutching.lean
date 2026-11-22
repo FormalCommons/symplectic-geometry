@@ -9,6 +9,7 @@ public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Argume
 public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.DiscComplement.Basic
 public import SymplecticGeometry.Analysis.Matrix.SymplecticGroup.Maslov
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.ChernNumber.Basic
+public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Hermitian.UnitFrame
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.ComplexStructure.UnitaryFrame
 public import SymplecticGeometry.Topology.VectorBundle.Complex.FirstChernClass
 public import SymplecticGeometry.Topology.VectorBundle.Complex.Structure
@@ -49,6 +50,13 @@ fundamental class as the sum of the local indices of the section at its zeros
 (`TauCeti.VectorBundleOrientation.evalFundamentalClass_eulerClass_eq_sum_sectionIndex`), as in
 `chernNumber_eq_sum_sectionIndex` for line bundles; the zeros are indexed by `ι`, since distinct
 discs have distinct centres. One disc is the case `ι = Unit`.
+
+For a Hermitian line bundle, sections of its circle bundle of unitary frames give frames
+`SymplecticGeometry.Bundle.unitFrame` (`Geometry/Manifold/VectorBundle/Hermitian/UnitFrame.lean`).
+The clutching transition of two such frames on the `i`-th circle is multiplication by the
+`Circle`-valued quotient `TauCeti.PrincipalBundle.division` of the two sections, and so is its
+normalized determinant (`clutchingTransition_unitFrame_apply`,
+`normalizedDet_clutchingTransition_unitFrame`).
 
 For a symplectic vector bundle `(V, ω)` over a closed surface the formula reads, as in McDuff and
 Salamon, Theorem 2.7.1: if `Φ i` and `Φout` are symplectic frames, families of linear
@@ -456,6 +464,41 @@ theorem chernNumber_eq_sum_degree_clutching [Fintype ι] [CompactSpace M] (hn : 
   exact Finset.sum_congr rfl fun i _ ↦ hind i
 
 end Clutching
+
+/-! ### Frames from sections of the circle bundle of a Hermitian line bundle -/
+
+section UnitFrame
+
+open MulOpposite OrthonormalFrameBundle PrincipalBundle
+
+variable {M : Type} [TopologicalSpace M] [T2Space M] {EM : Type} [NormedAddCommGroup EM]
+  [NormedSpace ℝ EM] [FiniteDimensional ℝ EM] [ChartedSpace EM M]
+  {o : HomologicalOrientation M EM 2} {ι : Type*} {φ : ι → CoordinateDisc o}
+  (hφ : Pairwise (Disjoint on fun i ↦ (φ i).disc))
+  {F : Type*} [NormedAddCommGroup F] [NormedSpace ℂ F] {E : M → Type*}
+  [∀ x, NormedAddCommGroup (E x)] [∀ x, InnerProductSpace ℂ (E x)]
+  [TopologicalSpace (TotalSpace F E)] [FiberBundle F E] [VectorBundle ℂ F E]
+  [ContinuousFiberNorm F E] [Fact (finrank ℂ F = 1)] (e : F ≃L[ℂ] ℂ)
+  (σ : ι → ∀ x, Fiber ℂ F E ℂ x) (σout : ∀ x, Fiber ℂ F E ℂ x)
+
+/-- The clutching transition of the frames `unitFrame e (σ i x)` over the closed discs and
+`unitFrame e (σout x)` over their complement is, on the `i`-th boundary circle, multiplication by
+the element of the circle that carries `σ i` to `σout`. -/
+theorem clutchingTransition_unitFrame_apply (i : ι) (ζ : Circle) (v : F) :
+    clutchingTransition hφ (fun i x ↦ unitFrame e (σ i x)) (fun x ↦ unitFrame e (σout x)) i ζ v =
+      (division Circle (σ i ((φ i).boundaryCircle ζ)) (σout ((φ i).boundaryCircle ζ)) : ℂ) • v := by
+  rw [clutchingTransition_def, trans_unitFrame_symm_apply]
+
+/-- The normalized determinant of the clutching transition of the frames `unitFrame e (σ i x)`
+over the closed discs and `unitFrame e (σout x)` over their complement is, on the `i`-th boundary
+circle, the element of the circle that carries `σ i` to `σout`. -/
+theorem normalizedDet_clutchingTransition_unitFrame (i : ι) (ζ : Circle) :
+    (clutchingTransition hφ (fun i x ↦ unitFrame e (σ i x)) (fun x ↦ unitFrame e (σout x))
+      i ζ).normalizedDet =
+      division Circle (σ i ((φ i).boundaryCircle ζ)) (σout ((φ i).boundaryCircle ζ)) := by
+  rw [clutchingTransition_def, normalizedDet_trans_unitFrame_symm]
+
+end UnitFrame
 
 /-! ### Symplectic frames -/
 

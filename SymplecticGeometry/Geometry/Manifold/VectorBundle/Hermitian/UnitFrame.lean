@@ -6,7 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Hermitian.CircleBundle
-public import SymplecticGeometry.Geometry.Manifold.VectorBundle.ChernNumber.Clutching
+public import SymplecticGeometry.Analysis.Complex.NormalizedDeterminant
 
 /-!
 # Frames of a Hermitian line bundle from sections of its circle bundle
@@ -25,11 +25,10 @@ proves:
   fibre is multiplication by the element `TauCeti.PrincipalBundle.division Circle φ ψ` of the
   circle that carries `φ` to `ψ` (`SymplecticGeometry.Bundle.trans_unitFrame_symm_apply`), so its
   normalized determinant is that element
-  (`SymplecticGeometry.Bundle.normalizedDet_trans_unitFrame_symm`);
-* in particular, the clutching transitions of frames of this form, and their normalized
-  determinants, are these divisions on the boundary circles
-  (`SymplecticGeometry.Bundle.clutchingTransition_unitFrame_apply`,
-  `SymplecticGeometry.Bundle.normalizedDet_clutchingTransition_unitFrame`).
+  (`SymplecticGeometry.Bundle.normalizedDet_trans_unitFrame_symm`).
+
+`Geometry/Manifold/VectorBundle/ChernNumber/Clutching.lean` applies these facts to the clutching
+transitions of such frames.
 
 For smooth sections, `SymplecticGeometry.Bundle.contMDiffOn_normalizedFrame` and
 `SymplecticGeometry.Bundle.exists_contMDiffOn_circleFiber` give smooth sections of `P`, and Tau
@@ -63,6 +62,7 @@ def unitFrame {x : B} (φ : Fiber ℂ F E ℂ x) : F ≃L[ℂ] E x :=
   e.trans φ.frame.toContinuousLinearEquiv
 
 /-- The frame `unitFrame e φ` sends `v` to `φ (e v)`. -/
+@[simp]
 theorem unitFrame_apply {x : B} (φ : Fiber ℂ F E ℂ x) (v : F) :
     unitFrame e φ v = φ.frame (e v) :=
   (rfl)
@@ -73,6 +73,7 @@ theorem unitFrame_apply_eq_smul {x : B} (φ : Fiber ℂ F E ℂ x) (v : F) :
   rw [unitFrame_apply, ← map_smul, smul_eq_mul, mul_one]
 
 /-- The inverse of `unitFrame e φ` sends `w` to `e⁻¹ (φ⁻¹ w)`. -/
+@[simp]
 theorem unitFrame_symm_apply {x : B} (φ : Fiber ℂ F E ℂ x) (w : E x) :
     (unitFrame e φ).symm w = e.symm (φ.frame.symm w) :=
   (rfl)
@@ -98,13 +99,9 @@ theorem trans_unitFrame_symm_apply {x : B} (φ ψ : Fiber ℂ F E ℂ x) (v : F)
 element `division Circle φ ψ` of the circle that carries `φ` to `ψ`. -/
 theorem normalizedDet_trans_unitFrame_symm {x : B} (φ ψ : Fiber ℂ F E ℂ x) :
     ((unitFrame e ψ).trans (unitFrame e φ).symm).normalizedDet = division Circle φ ψ := by
-  have h : (((unitFrame e ψ).trans (unitFrame e φ).symm).toLinearEquiv : F →ₗ[ℂ] F) =
-      (division Circle φ ψ : ℂ) • LinearMap.id :=
-    LinearMap.ext (trans_unitFrame_symm_apply e φ ψ)
-  ext
-  rw [ContinuousLinearEquiv.coe_normalizedDet, h, LinearMap.det_smul, LinearMap.det_id,
-    Fact.out (p := finrank ℂ F = 1), pow_one, mul_one, Circle.norm_coe, Complex.ofReal_one,
-    div_one]
+  have := FiniteDimensional.of_fact_finrank_eq_succ (K := ℂ) (V := F) 0
+  rw [ContinuousLinearEquiv.normalizedDet_eq_pow_of_apply_eq_smul _ _
+    (trans_unitFrame_symm_apply e φ ψ), Fact.out (p := finrank ℂ F = 1), pow_one]
 
 omit [ContinuousFiberNorm F E] in
 /-- **Continuity of the frames `unitFrame`.** If `σ` is a section of the principal
@@ -125,39 +122,6 @@ theorem continuous_unitFrame {S : Set B} {σ : ∀ x, Fiber ℂ F E ℂ x}
   simp only [Function.comp_apply, unitFrame_apply_eq_smul]
 
 end Frame
-
-/-! ### Clutching transitions -/
-
-section Clutching
-
-variable {M : Type} [TopologicalSpace M] [T2Space M] {EM : Type} [NormedAddCommGroup EM]
-  [NormedSpace ℝ EM] [FiniteDimensional ℝ EM] [ChartedSpace EM M]
-  {o : HomologicalOrientation M EM 2} {ι : Type*} {φ : ι → CoordinateDisc o}
-  (hφ : Pairwise (Disjoint on fun i ↦ (φ i).disc))
-  {F : Type*} [NormedAddCommGroup F] [NormedSpace ℂ F] {E : M → Type*}
-  [∀ x, NormedAddCommGroup (E x)] [∀ x, InnerProductSpace ℂ (E x)]
-  [TopologicalSpace (TotalSpace F E)] [FiberBundle F E] [VectorBundle ℂ F E]
-  [ContinuousFiberNorm F E] [Fact (finrank ℂ F = 1)] (e : F ≃L[ℂ] ℂ)
-  (σ : ι → ∀ x, Fiber ℂ F E ℂ x) (σout : ∀ x, Fiber ℂ F E ℂ x)
-
-/-- The clutching transition of the frames `unitFrame e (σ i x)` over the closed discs and
-`unitFrame e (σout x)` over their complement is, on the `i`-th boundary circle, multiplication by
-the element of the circle that carries `σ i` to `σout`. -/
-theorem clutchingTransition_unitFrame_apply (i : ι) (ζ : Circle) (v : F) :
-    clutchingTransition hφ (fun i x ↦ unitFrame e (σ i x)) (fun x ↦ unitFrame e (σout x)) i ζ v =
-      (division Circle (σ i ((φ i).boundaryCircle ζ)) (σout ((φ i).boundaryCircle ζ)) : ℂ) • v := by
-  rw [clutchingTransition_def, trans_unitFrame_symm_apply]
-
-/-- The normalized determinant of the clutching transition of the frames `unitFrame e (σ i x)`
-over the closed discs and `unitFrame e (σout x)` over their complement is, on the `i`-th boundary
-circle, the element of the circle that carries `σ i` to `σout`. -/
-theorem normalizedDet_clutchingTransition_unitFrame (i : ι) (ζ : Circle) :
-    (clutchingTransition hφ (fun i x ↦ unitFrame e (σ i x)) (fun x ↦ unitFrame e (σout x))
-      i ζ).normalizedDet =
-      division Circle (σ i ((φ i).boundaryCircle ζ)) (σout ((φ i).boundaryCircle ζ)) := by
-  rw [clutchingTransition_def, normalizedDet_trans_unitFrame_symm]
-
-end Clutching
 
 end SymplecticGeometry.Bundle
 

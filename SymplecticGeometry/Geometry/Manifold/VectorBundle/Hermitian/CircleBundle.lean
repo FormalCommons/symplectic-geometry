@@ -255,6 +255,7 @@ def normalizedFrame {x : B} (v : E x) : Fiber ℂ F E ℂ x :=
       rw [norm_smul, norm_inv, Complex.norm_real, norm_norm, inv_mul_cancel₀ hw]))
 
 /-- The normalization of a nonzero vector `v` is the frame `z ↦ (z / ‖v‖) • v`. -/
+@[simp]
 theorem frame_normalizedFrame_apply {x : B} {v : E x} (hv : v ≠ 0) (z : ℂ) :
     (normalizedFrame (F := F) v).frame z = (z / ‖v‖) • v := by
   simp only [normalizedFrame, Fiber.frame_ofFrame, LinearIsometryEquiv.toSpanSingleton_apply, hv,
