@@ -6,12 +6,13 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.DiscComplement.Basic
+public import SymplecticGeometry.Topology.VectorBundle.Complex.FirstChernClass
 public import SymplecticGeometry.Topology.VectorBundle.Determinant
 public import SymplecticGeometry.Topology.VectorBundle.Orientation.SectionIndex.Radial
 public import TauCeti.Topology.VectorBundle.Complex.Clutching
 
 /-!
-# The clutching section of the determinant line
+# The disc clutching formula for the first Chern number
 
 Let `φ i`, for `i` in a finite type `ι`, be coordinate discs of a surface `M` with a homological
 orientation, whose closed discs are pairwise disjoint, and let `E` be a complex vector bundle over
@@ -36,6 +37,14 @@ for the orientation of the determinant line as a complex line, is the degree of 
 normalized determinants `ContinuousLinearEquiv.normalizedDet` of the transition around the `i`-th
 circle.
 
+The disc clutching formula, `chernNumber_eq_sum_degree_clutching`, follows when `M` is compact:
+the first Chern number of `E` is the sum over `i` of these degrees. The first Chern class is the
+Euler class of the determinant line (`firstChernClass_def`), and Tau Ceti evaluates it on the
+fundamental class as the sum of the local indices of the section at its zeros
+(`TauCeti.VectorBundleOrientation.evalFundamentalClass_eulerClass_eq_sum_sectionIndex`), as in
+`chernNumber_eq_sum_sectionIndex` for line bundles; the zeros are indexed by `ι`, since distinct
+discs have distinct centres. One disc is the case `ι = Unit`.
+
 ## Proof
 
 The two descriptions agree on the boundary circles: there the section of `Φout` is that of `Φ i`
@@ -56,6 +65,8 @@ only at the centre (`TauCeti.sphereCone_eq_zero_iff`). The local index is
   determinant is a continuous loop on the circle.
 * `SymplecticGeometry.Bundle.exists_detCore_section_clutching`: the section described above, its
   continuity, its zeros and its local indices.
+* `SymplecticGeometry.Bundle.chernNumber_eq_sum_degree_clutching`: the first Chern number is the
+  sum of the degrees of the normalized determinants of the clutching transitions.
 
 ## References
 
@@ -301,13 +312,11 @@ private theorem continuous_clutchingSection [Finite ι] :
 /-- The zeros of the clutching section are the centres of the discs. -/
 private theorem clutchingSection_eq_zero_iff {x : M} :
     clutchingSection hφ hΦ hΦout x = 0 ↔ ∃ i, φ i 0 = x := by
-  have h0 : ∀ i, φ i 0 ∈ (φ i).openDisc := fun i ↦
-    (φ i).apply_mem_openDisc_iff.2 (by simp [CoordinateDisc.coe_zero])
   by_cases hx : x ∈ discComplement φ
   · rw [clutchingSection_of_mem_discComplement hφ hΦ hΦout hx]
     refine iff_of_false (outSection_ne_zero hΦout _) ?_
     rintro ⟨i, rfl⟩
-    exact (mem_discComplement_iff φ).1 hx i (h0 i)
+    exact (mem_discComplement_iff φ).1 hx i (φ i).apply_zero_mem_openDisc
   obtain ⟨i, hi⟩ : ∃ i, x ∈ (φ i).openDisc := by simpa using hx
   obtain ⟨z, -, rfl⟩ := (φ i).mem_openDisc_iff.1 hi
   rw [clutchingSection_of_mem_openDisc hφ hΦ hΦout hi, smul_eq_zero,
@@ -318,7 +327,7 @@ private theorem clutchingSection_eq_zero_iff {x : M} :
   · intro hz
     exact ⟨i, congrArg (φ i) (Subtype.ext (CoordinateDisc.coe_zero.trans hz.symm))⟩
   · rintro ⟨j, hj⟩
-    obtain rfl := eq_of_mem_openDisc_of_mem_disc φ hφ (h0 j)
+    obtain rfl := eq_of_mem_openDisc_of_mem_disc φ hφ (φ j).apply_zero_mem_openDisc
       (hj ▸ (φ i).openDisc_subset_disc hi)
     rw [← (φ j).injective hj, CoordinateDisc.coe_zero]
 
@@ -392,6 +401,26 @@ theorem exists_detCore_section_clutching [Finite ι] (hn : finrank ℝ EM = 2) :
   ⟨clutchingSection hφ hΦ hΦout, continuous_clutchingSection hφ hΦ hΦout,
     Set.ext fun _ ↦ clutchingSection_eq_zero_iff hφ hΦ hΦout,
     fun i ↦ sectionIndex_clutchingSection hφ hΦ hΦout hn i _⟩
+
+/-- **The disc clutching formula for the first Chern number.** Let `φ i`, for `i` in a finite type
+`ι`, be coordinate discs of a compact surface `M` with a homological orientation `o`, with pairwise
+disjoint closed discs, and let `E` be a complex vector bundle over `M` with a frame `Φ i` over each
+closed disc and a frame `Φout` over the complement of the open discs. Then the first Chern number
+of `E` is the sum over `i` of the degrees of the loops `ζ ↦ normalizedDet ((Φ i)⁻¹ ∘ Φout)` around
+the boundary circles `(φ i).boundaryCircle`. -/
+theorem chernNumber_eq_sum_degree_clutching [Fintype ι] [CompactSpace M] (hn : finrank ℝ EM = 2) :
+    chernNumber o hn G E = ∑ i, Circle.degree (ContinuousMap.mk _
+      (continuous_normalizedDet_clutchingTransition hφ hΦ hΦout i)).toBasedLoop := by
+  obtain ⟨s, hs, hZ, hind⟩ := exists_detCore_section_clutching hφ hΦ hΦout hn
+  have hfin : {x | s x = 0}.Finite := hZ ▸ finite_range _
+  rw [chernNumber_def, firstChernClass_def, complexEulerClass_def,
+    VectorBundleOrientation.evalFundamentalClass_eulerClass_eq_sum_sectionIndex _ _ o hs hn hfin]
+  have hset : hfin.toFinset =
+      Finset.univ.map ⟨_, injective_apply_zero_of_pairwise_disjoint φ hφ⟩ := by
+    ext x
+    simp [hZ]
+  rw [hset, Finset.sum_map]
+  exact Finset.sum_congr rfl fun i _ ↦ hind i
 
 end Clutching
 
