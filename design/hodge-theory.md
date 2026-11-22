@@ -330,14 +330,13 @@ compatibility with $d$ (`mpullback_mextDeriv_on`) and with the wedge product
 
 ### `Geometry/Manifold/DeRham/Hodge/Chart.lean`
 
-`Chart.lean` imports `Analysis/Calculus/ContDiff/Matrix.lean` and
-`Geometry/Manifold/DifferentialForm/PartialDiffeomorph.lean`.
+`Chart.lean` imports `Geometry/Manifold/DifferentialForm/PartialDiffeomorph.lean` and
+`Geometry/Manifold/Riemannian/PartialDiffeomorph.lean`.
 
-The coordinate expressions of the metric, the Hodge star and the
-codifferential in a chart `ψ`:
+The coordinate expressions of the Hodge star and the codifferential in a
+chart `ψ`, in terms of the metric in the chart `gramInChart ψ`
+(`Geometry/Manifold/Riemannian/PartialDiffeomorph.lean`):
 
-- `gramInChart ψ : E → E →L[ℝ] E →L[ℝ] ℝ`, the inner product at
-  `ψ.symm y` read through `mfderiv` of `ψ.symm`, smooth on `ψ.target`.
 - `hodgeStarInChart o ψ hkl : E → (E [⋀^Fin k]→L[ℝ] ℝ) →L[ℝ]
   (E [⋀^Fin l]→L[ℝ] ℝ)`, with `mpullback_symm_hodgeStar`. It is smooth on
   `ψ.target`, and is the star of `E` for the inner product `gramInChart ψ y`.
@@ -423,6 +422,11 @@ a compact `K ⊆ ψ.target`, used to show that `L2Form.localize` is bounded:
   `PartialDiffeomorph.exists_le_riemannianJacobian_symm_le`: Tau Ceti's
   `riemannianJacobian` of `ψ.symm` is positive on `ψ.target`, and bounded
   above and away from zero on `K`.
+
+The metric in a chart `ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞`:
+
+- `gramInChart ψ : E → E →L[ℝ] E →L[ℝ] ℝ`, the inner product at
+  `ψ.symm y` read through `mfderiv` of `ψ.symm`, smooth on `ψ.target`.
 
 ### `Analysis/InnerProductSpace/Comass.lean`
 

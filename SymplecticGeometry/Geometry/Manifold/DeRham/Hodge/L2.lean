@@ -15,6 +15,7 @@ public import TauCeti.Geometry.Manifold.Riemannian.VolumeDensity.Volume
 public import TauCeti.Geometry.Manifold.Riemannian.VolumeForm
 import SymplecticGeometry.Analysis.InnerProductSpace.Comass
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 import SymplecticGeometry.Geometry.Manifold.Riemannian.PartialDiffeomorph
 import TauCeti.Analysis.InnerProductSpace.Comass
 import TauCeti.Geometry.Manifold.Riemannian.Codifferential
@@ -94,7 +95,7 @@ carries this convergence back to `L2Form o k`.
   `L2Form.localize_ae_eq_indicator_smul_localize`, which compares the localizations with two
   cutoffs, `χ₂ = 1` on the support of `χ₁`, using that a cutoff read in the chart is continuous
   with compact support (`PartialDiffeomorph.continuous_indicator_comp_symm`,
-  `PartialDiffeomorph.tsupport_indicator_comp_symm_subset`).
+  `PartialDiffeomorph.hasCompactSupport_indicator_comp_symm`).
 * `TauCeti.SmoothForm.l2Inner_eq_integral_formInnerInChart` and
   `SymplecticGeometry.L2Form.inner_ofSmooth_eq_integral_localize`: the `L²` inner product with a
   smooth form supported where the cutoff is `1`, read in the chart as the integral of the inner
@@ -334,8 +335,7 @@ theorem exists_norm_localize_apply_sq_le [RiemannianBundle (fun x : M ↦ Tangen
       riemannianJacobian (I := I) b ψ.symm y *
         (B * alternatingFormInner (TangentSpace I (ψ.symm y)) k (α.val (ψ.symm y))
           (α.val (ψ.symm y))) := by
-  have hKψ : IsCompact (ψ '' tsupport χ) :=
-    hK.image_of_continuousOn (ψ.contMDiffOn.continuousOn.mono hχ)
+  have hKψ : IsCompact (ψ '' tsupport χ) := ψ.isCompact_image_of_subset_source hK hχ
   have hKt : ψ '' tsupport χ ⊆ ψ.target := (ψ.mapsTo.mono_left hχ).image_subset
   have hn : (∞ : ℕ∞ω) ≠ 0 := by simp
   -- The differential of `ψ.symm` is bounded above, and its Jacobian below, on `ψ '' tsupport χ`.
@@ -543,45 +543,6 @@ theorem exists_riemannianJacobian_mul_alternatingFormInner_extendByZeroAlong_le
     positivity
 
 end TauCeti.RoughForm
-
-/-! ### A cutoff read in a chart -/
-
-namespace PartialDiffeomorph
-
-omit [FiniteDimensional ℝ E]
-
-/-- The cutoff `χ` read in the chart `ψ` and extended by `0` off `ψ.target` vanishes off the
-image under `ψ` of the support of `χ`. -/
-theorem support_indicator_comp_symm_subset {n : WithTop ℕ∞}
-    (ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E n) (χ : M → ℝ) :
-    Function.support (ψ.target.indicator fun y ↦ χ (ψ.symm y)) ⊆ ψ '' tsupport χ := fun y hy ↦ by
-  by_cases hyt : y ∈ ψ.target
-  · refine ⟨ψ.symm y, subset_tsupport _ fun h0 ↦ hy ?_, ψ.right_inv hyt⟩
-    exact (Set.indicator_of_mem hyt _).trans h0
-  · exact absurd (Set.indicator_of_notMem hyt _) hy
-
-/-- If the support of `χ` is compact and lies in the source of `ψ`, the cutoff `χ` read in the
-chart and extended by `0` off `ψ.target` is supported in the image under `ψ` of the support of
-`χ`. -/
-theorem tsupport_indicator_comp_symm_subset {n : WithTop ℕ∞}
-    (ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E n) {χ : M → ℝ} (hK : IsCompact (tsupport χ))
-    (hχ : tsupport χ ⊆ ψ.source) :
-    tsupport (ψ.target.indicator fun y ↦ χ (ψ.symm y)) ⊆ ψ '' tsupport χ :=
-  closure_minimal (ψ.support_indicator_comp_symm_subset χ)
-    (hK.image_of_continuousOn (ψ.contMDiffOn.continuousOn.mono hχ)).isClosed
-
-/-- If `χ` is continuous and its support is compact and lies in the source of `ψ`, the cutoff
-`χ` read in the chart and extended by `0` off `ψ.target` is continuous. -/
-theorem continuous_indicator_comp_symm {n : WithTop ℕ∞}
-    (ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E n) {χ : M → ℝ} (hχc : Continuous χ)
-    (hK : IsCompact (tsupport χ)) (hχ : tsupport χ ⊆ ψ.source) :
-    Continuous (ψ.target.indicator fun y ↦ χ (ψ.symm y)) :=
-  ContinuousOn.continuous_of_tsupport_subset
-    ((hχc.comp_continuousOn ψ.symm.contMDiffOn.continuousOn).congr
-      fun _ hy ↦ Set.indicator_of_mem hy _) ψ.open_target
-    ((ψ.tsupport_indicator_comp_symm_subset hK hχ).trans (ψ.mapsTo.mono_left hχ).image_subset)
-
-end PartialDiffeomorph
 
 namespace SymplecticGeometry
 
@@ -809,8 +770,7 @@ theorem localize_ae_eq_indicator_smul_localize {χ₁ χ₂ : C^∞⟮I, M; ℝ�
   have hK1 : IsCompact (tsupport χ₁) := (isClosed_tsupport _).isCompact
   have hrm : MemLp r ⊤ volume :=
     (ψ.continuous_indicator_comp_symm χ₁.contMDiff.continuous hK1 h₁).memLp_of_hasCompactSupport
-      ((hK1.image_of_continuousOn (ψ.contMDiffOn.continuousOn.mono h₁)).of_isClosed_subset
-        (isClosed_tsupport _) (ψ.tsupport_indicator_comp_symm_subset hK1 h₁))
+      (ψ.hasCompactSupport_indicator_comp_symm hK1 h₁)
   let B : ℝ →L[ℝ] (E [⋀^Fin k]→L[ℝ] ℝ) →L[ℝ] E [⋀^Fin k]→L[ℝ] ℝ := ContinuousLinearMap.lsmul ℝ ℝ
   let T := B.holderL volume ⊤ 2 2 hrm.toLp
   have hT (v : Lp (E [⋀^Fin k]→L[ℝ] ℝ) 2 volume) : T v =ᵐ[volume] fun y ↦ r y • v y := by
@@ -1001,7 +961,7 @@ theorem eq_ofSmooth_of_localize {ι : Type*} [Fintype ι]
     ((ψ i).mapsTo.mono_left (hρ i)).image_subset
   set K : ι → Set E := fun i ↦ tsupport (f i) ∪ (ψ i) '' tsupport (ρ i)
   have hK (i : ι) : IsCompact (K i) := (hfc i).union
-    ((hKρ i).image_of_continuousOn ((ψ i).contMDiffOn.continuousOn.mono (hρ i)))
+    ((ψ i).isCompact_image_of_subset_source (hKρ i) (hρ i))
   have hKψ (i : ι) : K i ⊆ (ψ i).target := Set.union_subset (hfs i) (himage i)
   choose C hC0 hC using fun i ↦
     exists_norm_ofSmooth_extendByZeroAlong_le (k := k) (ψ i) o (hK i) (hKψ i)
