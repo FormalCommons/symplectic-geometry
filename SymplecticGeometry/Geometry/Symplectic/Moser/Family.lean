@@ -15,12 +15,11 @@ import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Flow
 import TauCeti.Geometry.Manifold.PartitionOfUnity.Compact
 
 /-!
-# Moser's argument along a family and with a parameter
+# Moser's argument along a family
 
-This file holds two forms of Moser's argument near a compact set: along a family of two-forms
-running in the Moser time and fixing a compact submanifold, and for the segments
-`ω₀ + s dβ_t`, `s ∈ [0, 1]`, for every value of a parameter `t`, relative to a compact set. Both
-use the cut-off Moser field `SymplecticGeometry.moserField`.
+This file holds Moser's argument near a compact set along a family of two-forms running in the
+Moser time, relative to a compact set and fixing a compact embedded submanifold. Both theorems use
+the cut-off Moser field `SymplecticGeometry.moserField`.
 
 ## Moser's argument along a family
 
