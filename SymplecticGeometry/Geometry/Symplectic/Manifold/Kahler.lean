@@ -165,8 +165,7 @@ theorem Compatible.inner_nijenhuis_and_leviCivita_hom_eq_zero_iff (hJ : σ.Compa
         (CovariantDerivative.leviCivitaConnection I M) J.toEndomorphism = 0 ↔
       σ.IsClosed ∧ J.nijenhuis = 0) := by
   let : RiemannianBundle (fun x : M ↦ TangentSpace I x) := ⟨hJ.metric.toRiemannianMetric⟩
-  have hg : ∀ x (u v : TangentSpace I x), ⟪u, v⟫ = σ.eval₂ x u (J x v) := fun x u v ↦ by
-    rw [hJ.metric.inner_eq, Compatible.metric_inner]
+  have hg := hJ.inner_eq_eval₂
   have hL := CovariantDerivative.isLeviCivitaConnection_leviCivitaConnection I (M := M)
   exact ⟨SmoothAlmostComplexStructure.inner_nijenhuis_eq hg hL,
     SmoothAlmostComplexStructure.hom_toEndomorphism_eq_zero_iff hg hL⟩
