@@ -298,6 +298,10 @@ complex ones that `chernNumber_congr` takes.
   the complex statements and the pull-backs and isomorphisms of symplectic
   bundles that *Symplectic vector bundles* gets from #57. Both take the form
   nondegenerate, so that a compatible complex structure exists.
+- The file imports `Geometry/Manifold/VectorBundle/Symplectic/FirstChernClass.lean`
+  of *First Chern class of nondegenerate forms*; `Tames.chernNumber_eq`,
+  `symplecticChernNumber_congr` and `symplecticChernNumber_pullback` follow
+  from the first-Chern-class lemmas there.
 
 ### `Geometry/Manifold/VectorBundle/ChernNumber/Clutching.lean`
 
