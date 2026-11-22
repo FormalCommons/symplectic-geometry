@@ -275,11 +275,20 @@ diffeomorphism. No Mathlib or Tau Ceti notion is redefined.
 
 ## Files and their contents
 
+### `LinearAlgebra/BilinearForm/SelfAdjoint.lean`
+
+The self-adjoint counterpart of Tau Ceti's
+`LinearMap.BilinForm.trace_mul_self_nonpos_of_posDef`, which
+`Compatible.trace_mul_self_pos` below needs:
+`LinearMap.BilinForm.trace_mul_self_nonneg_of_posDef` and
+`LinearMap.BilinForm.trace_mul_self_pos_of_posDef`, for an endomorphism
+self-adjoint for a symmetric positive-definite form `B` over an ordered field.
+
 ### `LinearAlgebra/Symplectic/CompatibleTangent/Basic.lean`
 
 The tangent spaces as algebra, in `Module.End ℝ V` for `V` a finite-dimensional
-real vector space, in the namespaces of Tau Ceti's notions. Imports only
-Mathlib and Tau Ceti.
+real vector space, in the namespaces of Tau Ceti's notions. Imports
+Mathlib, Tau Ceti and `LinearAlgebra/BilinearForm/SelfAdjoint.lean`.
 
 - `TauCeti.AlmostComplexStructure.trace_mul_eq_zero_of_mem_tangentSpace
   (hY : Y ∈ J.tangentSpace) (hW : Commute W J.toLinearMap) :
@@ -292,9 +301,10 @@ Mathlib and Tau Ceti.
   `Invariant.mul_mem_tangentSpace_and_isSelfAdjoint` and
   `mem_compatibleTangentSpace_iff_isSelfAdjoint`. It makes
   $\hat J\mapsto-J\hat J$ an endomorphism of $T_J$.
-- `TauCeti.SymplecticForm.Compatible.trace_mul_mul_comm
-  (hJ : ω.Compatible J) (hY hZ : _ ∈ ω.compatibleTangentSpace J) :
-  trace (Y * J * Z) = -trace (Z * J * Y)` (alternation of $\Omega$).
+- `TauCeti.AlmostComplexStructure.trace_mul_mul_eq_neg_of_mem_tangentSpace
+  (hY : Y ∈ J.tangentSpace) (Z) :
+  trace (Y * J * Z) = -trace (Z * J * Y)` (alternation of $\Omega$). It needs
+  neither compatibility nor a hypothesis on `Z`.
 - `TauCeti.SymplecticForm.Compatible.trace_mul_self_pos (hJ : ω.Compatible J)
   (hY : Y ∈ ω.compatibleTangentSpace J) (h0 : Y ≠ 0) : 0 < trace (Y * Y)`:
   `Y` is self-adjoint for the inner product $g_J$, so `trace (Y * Y)` is the
@@ -303,8 +313,8 @@ Mathlib and Tau Ceti.
   `trace (⁅Y, Z⁆ * ⁅Y, Z⁆) ≤ 0` for `Y Z` in the tangent space (the
   commutator is $g_J$-skew-adjoint).
 - `TauCeti.SymplecticForm.IsSymplectomorphism.conj_mem_compatibleTangentSpace_iff`:
-  for a linear symplectomorphism `Ψ`,
-  `Ψ Y Ψ⁻¹ ∈ ω.compatibleTangentSpace (J.transport Ψ) ↔ Y ∈ ω.compatibleTangentSpace J`.
+  for a linear symplectomorphism `e : V ≃ₗ[ℝ] W` from `ω` to `ω₂`,
+  `e.conj Y ∈ ω₂.compatibleTangentSpace (J.transport e) ↔ Y ∈ ω.compatibleTangentSpace J`.
 
 ### `LinearAlgebra/Symplectic/CompatibleTangent/Finrank.lean`
 
@@ -625,7 +635,8 @@ to be created in this order. The sizes are estimates. An issue may start once
 its blockers are merged.
 
 1. **Tangent spaces as algebra.**
-   `LinearAlgebra/Symplectic/CompatibleTangent/Basic.lean`. About 200 lines.
+   `LinearAlgebra/Symplectic/CompatibleTangent/Basic.lean`, with
+   `LinearAlgebra/BilinearForm/SelfAdjoint.lean`. About 200 lines.
    No blockers.
 2. **Dimension of the tangent spaces.**
    `LinearAlgebra/Symplectic/CompatibleTangent/Finrank.lean`. About 250 lines.
