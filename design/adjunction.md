@@ -245,8 +245,13 @@ Namespace `TauCeti.SmoothEmbedding`, for `f`, `J`, `hJ` as above, with
 `Jf = J.pullbackComplexStructure f f.contMDiff`, the pull-back of $J$ to
 `f *ᵖ TangentSpace I`, defined for any smooth map as
 `TauCeti.SmoothAlmostComplexStructure.pullbackComplexStructure` in
-`Geometry/Manifold/VectorBundle/ComplexStructure.lean`, with
-`pullbackComplexStructure_apply`. No hypothesis on
+`Geometry/Manifold/VectorBundle/ComplexStructure.lean`, the specialization
+of `ContMDiffComplexStructure.pullback` to the tangent bundle, with
+`pullbackComplexStructure_toEndomorphism`, `coe_pullbackComplexStructure`,
+`pullbackComplexStructure_neg`, `apply_eq_pullbackComplexStructure_apply`
+(on `(f *ᵖ TangentSpace I) y`, passed to `simp` with `hf`) and the `simp` lemmas
+`pullbackComplexStructure_apply` (on `TangentSpace I (f y)`) and
+`pullbackComplexStructure_neg_apply` (on `(f *ᵖ TangentSpace I) y`). No hypothesis on
 `M` is needed: a form compatible with `Jf` comes from the library's
 `ContMDiffComplexStructure.exists_compatible` where it is used. The
 statements take a form `ω : ContMDiffTwoForm I' ⊤ E (f *ᵖ TangentSpace I)`
@@ -272,7 +277,8 @@ with `hω : ω.Tames Jf`, and `hω : ω.Compatible Jf` where invariance is used.
   classes of vectors of $W^\omega$) and `compatible_normalForm`: it is
   compatible with `normalComplexStructure`.
 - `normalSplitting f hJ ω hω x : (f *ᵖ TangentSpace I) x ≃L[ℝ]
-  (TangentSpace I' ×ᵇ NormalSpace) x`, with `normalSplitting_symm_apply`,
+  (TangentSpace I' ×ᵇ NormalSpace) x`, the inverse of `tangentNormalEquiv` for the
+  representatives in $W^\omega$, with `normalSplitting_symm_apply`,
   `snd_normalSplitting_apply` and `mfderiv_fst_normalSplitting_apply`, the
   smoothness of its map of total spaces (`contMDiff_normalSplitting`), and
   `pushforward_normalSplitting`: it carries `ω` to
@@ -406,6 +412,8 @@ Namespace `TauCeti.AlmostComplexStructure`, for an almost complex structure
 - The library's merged `Geometry/Manifold/VectorBundle/Pullback.lean`
   (`Bundle.Pullback.hasLocalContMDiffSubbundleFrames_range_mfderiv`,
   `contMDiff_totalSpace_mfderiv`) and `Geometry/Manifold/VectorBundle/Orthogonal.lean`.
+- *Projective hypersurfaces*: `Geometry/Manifold/SmoothEmbedding/NormalSpace/Splitting.lean`
+  (`tangentNormalEquiv`, whose inverse is `normalSplitting`).
 - *First Chern number*: `Topology/VectorBundle/Complex/FirstChernClass.lean`
   and `ChernNumber/Basic.lean` (#784: `firstChernClass`,
   `firstChernClass_pullback`, `firstChernClass_congr`,

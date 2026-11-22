@@ -172,13 +172,14 @@ The genus of plane curves is not derived from `adjunction_formula` either
 The tangent bundle of `X` and the normal bundle are compared with
 $\iota^*T\mathbb CP^{n+1}$ by a splitting of the exact sequence
 $0\to TX\to\iota^*T\mathbb CP^{n+1}\to\nu\to0$, built from a fibrewise right
-inverse of the quotient map. Tau Ceti gives local smooth right inverses
-(`TauCeti.SmoothEmbedding.exists_contMDiffOn_normalQuotientMap_rightInverse`,
-over any field); fibrewise linear right inverses form an affine space, so a
-partition of unity glues them. The splitting is general (issue 4), and
-complex linear for `𝕜 = ℂ`. *Adjunction*'s `NormalSplitting.lean` splits
-with the symplectic complement for a compatible form instead, and stays
-specific to that setting.
+inverse of the quotient map. Near each point, a complement of the image of
+the differential fixed in a tangent chart gives a linear one (Tau Ceti's
+`TauCeti.SmoothEmbedding.normalSpaceEquivOfComplement`, over any field);
+fibrewise linear right inverses form an affine space, so a partition of unity
+glues them. The splitting is general (issue 4), and complex linear for
+`𝕜 = ℂ`. *Adjunction*'s `normalSplitting` is the inverse of the same
+isomorphism, for the right inverse into the symplectic complement of a
+compatible form.
 
 ### $\langle\iota^*h^n,[X]\rangle=d$ by counting points on a line
 
@@ -258,11 +259,15 @@ as in `DESIGN.md`, beside Tau Ceti's `ZeroLocus.lean` (Tau Ceti has no file
 sit beside Tau Ceti's `LineBundle.lean`, in that folder (not in a folder
 `LineBundle/`, since Tau Ceti has a file of that name there); the splitting
 is general and sits beside Tau Ceti's `NormalSpace/` files, as *Adjunction*'s
-file does; the Euler characteristic of a compact complex manifold sits beside
-Tau Ceti's `Geometry/Manifold/Complex/Orientation.lean`; Poincaré duality for
+`NormalSpace/ComplexStructure.lean` does; the Euler characteristic of a compact
+complex manifold sits beside Tau Ceti's
+`Geometry/Manifold/Complex/Orientation.lean`; Poincaré duality for
 Betti numbers is an addition to the library's file of rational coefficients.
-None of these names is taken by Tau Ceti at the same place. The list is in
-the order of the paths.
+The pointwise continuity of fibrewise operations that the gluing of the
+splitting uses is general too: `Topology/VectorBundle/Section.lean`
+complements Tau Ceti's file of that path, as the library's `Pullback.lean`
+there does. None of the other names is taken by Tau Ceti at the same place.
+The list is in the order of the paths.
 
 | File | Contents | Issue |
 |---|---|---|
@@ -292,6 +297,7 @@ the order of the paths.
 | `Topology/Algebra/Module/Equiv/Pi.lean` | `ContinuousLinearEquiv.piOptionEquivProd` | 2 |
 | `Topology/ComplexProjectiveSpace/SimplyConnected.lean` | `ℙ ℂ (Fin (m + 1) → ℂ)` is simply connected | 12 |
 | `Topology/Homotopy/HomotopyGroup/ConnectedMap/PathConnected.lean` | path-connectedness under `n`-connected maps | 12 |
+| `Topology/VectorBundle/Section.lean` | pointwise continuity of fibrewise scalar multiples and finite sums | 4 |
 
 ### `Geometry/Manifold/Projectivization/Hypersurface/Basic.lean`
 
@@ -307,7 +313,8 @@ Namespace `SymplecticGeometry`.
   `isClosed_complexProjectiveZeroLocus`) and `T2Space`.
 - `X.surjective_jacobiMatrixAt`, the cone-Jacobian form of `smooth`;
   `X.embedding`, Tau Ceti's `complexProjectiveZeroLocusEmbedding` for
-  regularity `ω`, with `coe_embedding : ⇑X.embedding = Subtype.val`;
+  regularity `ω`, `@[expose]` so that Tau Ceti's lemmas about that embedding apply
+  to it, with `coe_embedding : ⇑X.embedding = Subtype.val`;
   `finrank_model : finrank ℂ (Fin (n + 1 - Fintype.card Unit) → ℂ) = n`.
 - `X.poly_ne_zero`, and `X.nonempty` for `d ≠ 0` (a homogeneous polynomial
   of positive degree in at least two variables has a nonzero zero over `ℂ`).
@@ -382,22 +389,28 @@ Namespace `Projectivization`, with `h := hyperplaneClass (Fin (m + 1) → ℂ)`.
 
 ### `Geometry/Manifold/SmoothEmbedding/NormalSpace/Splitting.lean`
 
-Namespace `TauCeti.SmoothEmbedding`, for `f : SmoothEmbedding I J ∞ M N`
-between finite-dimensional manifolds over `𝕜` with `[IsRCLikeNormedField 𝕜]`,
-`[T2Space M] [SigmaCompactSpace M]` (for a partition of unity), and the
-normal bundle with model `P` (`hdim`).
+Namespace `TauCeti.SmoothEmbedding`, for `f : SmoothEmbedding I J n M N`
+with `hn : n ≠ 0`, between finite-dimensional manifolds over `𝕜`.
 
-- `normalRightInverse f hdim x : f.NormalSpace x hn →L[𝕜] (f *ᵖ TangentSpace J) x`,
-  with `normalClass_normalRightInverse` (a right inverse of `normalClass`)
-  and the continuity of its map of total spaces; glued from Tau Ceti's local
-  right inverses `exists_contMDiffOn_normalQuotientMap_rightInverse` by a
-  partition of unity (`SmoothPartitionOfUnity`), since a combination with
-  real coefficients summing to one of right inverses is one.
-- `tangentNormalEquiv f hdim x : (TangentSpace I ×ᵇ fun x ↦ f.NormalSpace x hn) x
-  ≃L[𝕜] (f *ᵖ TangentSpace J) x`, `(u, a) ↦ df u + normalRightInverse a`,
-  with `tangentNormalEquiv_apply` and the continuity of its map of total
-  spaces and of its inverse. Bijective since the image of `df` is the kernel
-  of `normalClass` (Tau Ceti's `NormalSpace` is that quotient).
+- `tangentNormalEquiv f hn r hr x : (TangentSpace I ×ᵇ fun x ↦ f.NormalSpace x hn) x
+  ≃L[𝕜] (f *ᵖ TangentSpace J) x`, `(u, a) ↦ df u + r a`, for any fibrewise
+  linear right inverse `r` of `normalClass` (`hr`), with
+  `tangentNormalEquiv_apply` and the continuity of its map of total spaces
+  and of its inverse (with the normal bundle of model `P`, `hdim`) when that
+  of `r` is continuous. Bijective since the image of `df` is the kernel of
+  `normalClass` (Tau Ceti's `NormalSpace` is that quotient). *Adjunction*'s
+  `normalSplitting` is its inverse for the representatives in the
+  `ω`-orthogonal.
+- `normalRightInverse f hn x : f.NormalSpace x hn →L[𝕜] TangentSpace J (f x)`,
+  with `[IsRCLikeNormedField 𝕜]` and `[NormalSpace M] [ParacompactSpace M]` (for
+  a partition of unity), with `normalClass_normalRightInverse` (a right inverse
+  of `normalClass`) and the continuity of its map of total spaces; glued from
+  local linear right inverses, built from a fixed complement in a tangent
+  chart (`normalSpaceEquivOfComplement`), by a `PartitionOfUnity`, since a
+  combination with real coefficients summing to one of right inverses is one.
+  The continuity of the glued map uses `ContinuousAt.smul_totalSpace` and
+  `ContinuousAt.sum_totalSpace` from the library's
+  `Topology/VectorBundle/Section.lean`, which it imports.
 
 ### `Geometry/Manifold/Projectivization/Hypersurface/NormalBundle.lean`
 
@@ -551,9 +564,11 @@ For `d ≠ 0`, with the inclusion `X → ℙ ℂ (Fin (n + 2) → ℂ)`.
 In the namespace `TauCeti.HomologicalOrientation`, beside
 `injective_singularCapLinearMap_of_injective_dualityMap`:
 
-- `bijective_singularCapLinearMap_of_bijective_dualityMap`, its bijective
-  form, by the same proof;
-- `bettiNumber_eq_of_add_eq`: for a compact homologically oriented
+- `bijective_singularCapLinearMap_fundamentalClass`: for a compact
+  homologically oriented `m`-manifold and `p + q = m`, capping with the image
+  of the fundamental class is a bijection `Hᵖ(M; ℚ) → H_q(M; ℚ)`, with no
+  hypothesis on the duality map, by #810's bijectivity of the duality map;
+- `bettiNumber_eq_bettiNumber`: for a compact homologically oriented
   `m`-manifold and `p + q = m`, `bettiNumber ℚ M q = bettiNumber ℚ M p`, from
   #810's bijectivity of the duality map and Tau Ceti's
   `TopCat.finrank_singularHomology_eq_of_bijective_singularCapLinearMap`.
@@ -565,7 +580,7 @@ For `d ≠ 0` and `n ≠ 0`.
 - `bettiNumber_of_ne`: for `k ≠ n`, `bettiNumber ℚ X k` is `1` if `k` is even
   and `k ≤ 2 * n`, and `0` otherwise; below `n` by
   `isIso_homologyMap_subtypeVal` and the homology of $\mathbb CP^{n+1}$,
-  above by `bettiNumber_eq_of_add_eq`, and above `2 * n` by Tau Ceti's
+  above by `bettiNumber_eq_bettiNumber`, and above `2 * n` by Tau Ceti's
   vanishing of homology above the dimension of a manifold.
 - `bettiNumber_middle`: $(-1)^n b_n=\chi(X)-(n+1)+[n\text{ even}]$, from
   the alternating sum of #1045 (`evalFundamentalClass_eulerClass_eq_sum_finrank_singularHomology`)

@@ -28,7 +28,9 @@ target of `Λ`, not only at `x`.
 * `IsLocalDiffeomorphAt.eqOn_localInverse_symm`: `f` agrees with the inverse of its local inverse
   on the target of the local inverse.
 * `IsLocalDiffeomorphAt.exists_partialDiffeomorph`: a local diffeomorphism at `x` agrees with a
-  partial diffeomorphism on a source that contains `x`.
+  partial diffeomorphism on a source that contains `x`;
+  `IsLocalDiffeomorphAt.exists_partialDiffeomorph_source_subset` takes that source inside a given
+  neighbourhood of `x`.
 * `IsLocalDiffeomorphAt.isLocalDiffeomorphOn_localInverse_target`: a local diffeomorphism `f` at
   `x` is a local diffeomorphism on the target of `hf.localInverse`.
 * `IsLocalDiffeomorphAt.comp_iff_left`: composing on the left with a local diffeomorphism at the
@@ -36,6 +38,7 @@ target of `Λ`, not only at `x`.
   is. It is the left-hand partner of Tau Ceti's `IsLocalDiffeomorphAt.comp_iff_right`, and
   combines Tau Ceti's `IsLocalDiffeomorphAt.of_comp_left` with Mathlib's
   `IsLocalDiffeomorphAt.comp`.
+* `isLocalDiffeomorph_id`: the identity of a manifold is a local diffeomorphism.
 * `IsLocalDiffeomorphAt.congr_of_eventuallyEq`: being a local diffeomorphism at `x` depends only
   on the germ of the map at `x`.
 * `PartialDiffeomorph.isLocalDiffeomorphAt_symm_comp_comp_model`: a partial diffeomorphism of
@@ -78,6 +81,19 @@ theorem exists_partialDiffeomorph (hf : IsLocalDiffeomorphAt I J n f x) :
   ⟨hf.localInverse.symm, by simpa using hf.localInverse_mem_target, by
     simpa using hf.eqOn_localInverse_symm⟩
 
+/-- A `C^n` local diffeomorphism `f` at `x` agrees with some `C^n` partial diffeomorphism on its
+source, and that source contains `x` and lies inside a given neighbourhood `s` of `x`. -/
+theorem exists_partialDiffeomorph_source_subset (hf : IsLocalDiffeomorphAt I J n f x)
+    {s : Set M} (hs : s ∈ nhds x) :
+    ∃ Φ : PartialDiffeomorph I J M N n, x ∈ Φ.source ∧ Φ.source ⊆ s ∧ EqOn f Φ Φ.source := by
+  obtain ⟨Φ, hxΦ, hfΦ⟩ := hf.exists_partialDiffeomorph
+  obtain ⟨t, hts, ht, hxt⟩ := mem_nhds_iff.1 hs
+  refine ⟨Φ.restrOpen t ht, ?_, ?_, ?_⟩ <;>
+    simp only [PartialDiffeomorph.restrOpen_source, PartialDiffeomorph.coe_restrOpen]
+  · exact ⟨hxΦ, hxt⟩
+  · exact inter_subset_right.trans hts
+  · exact hfΦ.mono inter_subset_left
+
 /-- A local diffeomorphism `f` at `x` is a local diffeomorphism at every point of the target of
 its local inverse. -/
 theorem isLocalDiffeomorphOn_localInverse_target (hf : IsLocalDiffeomorphAt I J n f x) :
@@ -97,18 +113,18 @@ theorem comp_iff_left {F' : Type*} [NormedAddCommGroup F'] [NormedSpace 𝕜 F']
 
 end IsLocalDiffeomorphAt
 
+/-- The identity of a manifold is a `C^n` local diffeomorphism. -/
+theorem isLocalDiffeomorph_id : IsLocalDiffeomorph I I n (id : M → M) := by
+  rw [← Diffeomorph.coe_refl I M n]
+  exact Diffeomorph.isLocalDiffeomorph _
+
 /-- A map that agrees near `x` with a local diffeomorphism at `x` is a local diffeomorphism at
 `x`. -/
 theorem IsLocalDiffeomorphAt.congr_of_eventuallyEq {g : M → N}
     (hf : IsLocalDiffeomorphAt I J n f x) (hfg : f =ᶠ[nhds x] g) :
     IsLocalDiffeomorphAt I J n g x := by
-  obtain ⟨Φ, hxΦ, hfΦ⟩ := hf.exists_partialDiffeomorph
-  obtain ⟨t, hft, ht, hxt⟩ := mem_nhds_iff.1 hfg
-  refine TauCeti.isLocalDiffeomorphAt_of_eqOn (Φ := Φ.restrOpen t ht)
-    (by rw [PartialDiffeomorph.restrOpen_source]; exact ⟨hxΦ, hxt⟩) fun y hy ↦ ?_
-  rw [PartialDiffeomorph.restrOpen_source] at hy
-  rw [PartialDiffeomorph.coe_restrOpen, ← hft hy.2]
-  exact hfΦ hy.1
+  obtain ⟨Φ, hxΦ, hΦg, hfΦ⟩ := hf.exists_partialDiffeomorph_source_subset hfg
+  exact TauCeti.isLocalDiffeomorphAt_of_eqOn hxΦ fun y hy ↦ (hΦg hy).symm.trans (hfΦ hy)
 
 /-- A partial diffeomorphism `Θ` between the model vector spaces of `I` and `J` which, on its
 source, sends exactly the points of `range I` into `range J` restricts to a local diffeomorphism
