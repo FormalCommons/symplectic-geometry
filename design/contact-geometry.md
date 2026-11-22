@@ -629,7 +629,7 @@ Expected size: 400 lines, in two issues (G1 and G2).
 
 Nothing in it is about contact geometry, so it sits with Tau Ceti's
 diffeotopies rather than in `Gray.lean`, and imports only Tau Ceti's
-`Diffeotopy/Basic.lean` and, for the differential of an inverse,
+`Diffeotopy/Basic.lean` and, for the differentials of an inverse and of a composite,
 `Manifold/Diffeomorph/Basic.lean`. Any smooth manifold, any smoothness `n`.
 
 - `TauCeti.Diffeotopy.Transports (Φ : Diffeotopy I n M) (ξ : unitInterval → Π x, Submodule ℝ (TangentSpace I x)) : Prop`,
