@@ -316,6 +316,13 @@ Mathlib, Tau Ceti and `LinearAlgebra/BilinearForm/SelfAdjoint.lean`.
   for a linear symplectomorphism `e : V ≃ₗ[ℝ] W` from `ω` to `ω₂`,
   `e.conj Y ∈ ω₂.compatibleTangentSpace (J.transport e) ↔ Y ∈ ω.compatibleTangentSpace J`.
 
+### `Algebra/Star/Module.lean`
+
+`selfAdjoint.instModuleFinite`: `Module.Finite R (selfAdjoint A)` for a finite
+star module `A` over a Noetherian ring `R` with trivial star, through Mathlib's
+`selfAdjoint.submodule`. `Finrank.lean` imports it for the finiteness of
+`selfAdjoint (Matrix ι ι ℝ)`.
+
 ### `LinearAlgebra/Symplectic/CompatibleTangent/Finrank.lean`
 
 - `TauCeti.SymplecticForm.Compatible.finrank_compatibleTangentSpace
@@ -362,14 +369,28 @@ normed space:
   ω.compatibleTangentSpaceCLM (ω.compatibleBase : AlmostComplexStructure V)`,
   with `compatibleModel_def` and `compatibleBase_def`.
 
+### `Analysis/Calculus/FDeriv/Cayley.lean`
+
+A general file that serves `CompatibleComplexStructures.lean`; imports
+Mathlib. `SymplecticGeometry.hasFDerivAt_mul_one_add_ringInverse`: in a
+normed algebra with summable geometric series, `x ↦ A (1 + x) (1 - x)⁻¹` has
+derivative $\dot X\mapsto2A(1-C)^{-1}\dot X(1-C)^{-1}$ at `C` with `1 - C`
+invertible.
+
 ### `Geometry/Manifold/Instances/CompatibleComplexStructures.lean`
 
-The manifold, in `TauCeti.SymplecticForm`.
+The manifold, in `TauCeti.SymplecticForm`. Besides Mathlib, Tau Ceti,
+`CompatibleTangent/Finrank.lean` and `Compatible/Cayley.lean`, it imports
+`Analysis/Calculus/FDeriv/Cayley.lean` and *Linear complex structures*'
+`Topology/ComplexStructure/Basic.lean`.
 
 - `instance : ChartedSpace ω.compatibleModel (𝒥 ω)` and
-  `instance : IsManifold 𝓘 ∞ (𝒥 ω)`, from the open embedding
-  `ω.compatibleBase.2.cayleyCoord`. API: `chartAt_eq` (the chart is the
-  Cayley coordinate map), `chartAt_symm_apply`.
+  `instance : IsManifold 𝓘 n (𝒥 ω)` for every `n`, from the open embedding
+  `ω.cayleyChart : 𝒥 ω → ω.compatibleModel`, the map
+  `ω.compatibleBase.2.cayleyCoord` with values in the model
+  (`isOpenEmbedding_cayleyChart`). API: `chartAt_eq` (the chart is
+  `ω.cayleyChart`), `compatibleCLM_chartAt_symm_apply` (on the chart's
+  target, `compatibleCLM` of the inverse chart is `J₀ (1 + C) (1 - C)⁻¹`).
 - `ω.compatibleCLM : 𝒥 ω → V →L[ℝ] V`, with `compatibleCLM_apply`, and
   `contMDiff_compatibleCLM`.
 - `hasMFDerivAt_compatibleCLM_chartAt_symm`: in the chart, the ambient
@@ -382,14 +403,15 @@ The manifold, in `TauCeti.SymplecticForm`.
 - `ω.compatibleTangentEquiv J : TangentSpace 𝓘 J ≃L[ℝ] ω.compatibleTangentSpaceCLM J`,
   the differential onto its range, with `coe_compatibleTangentEquiv_apply`.
 - `isSmoothEmbedding_compatibleCLM : Manifold.IsSmoothEmbedding 𝓘
-  𝓘(ℝ, V →L[ℝ] V) ∞ ω.compatibleCLM`, from
+  𝓘(ℝ, V →L[ℝ] V) n ω.compatibleCLM` for every `n`, from
   `ContMDiff.isImmersion_of_injective_mfderiv` and Tau Ceti's
   `isEmbedding_toContinuousLinearMap` restricted to the subtype;
   `contMDiff_compatibleCLM_comp_iff` and `contMDiffAt_compatibleCLM_comp_iff`.
 - `finrank_compatibleModel (hn : finrank ℝ V = 2 * n) :
   Module.finrank ℝ ω.compatibleModel = n * (n + 1)`.
-- `ω.compatibleTransport (hΨ : ω.IsSymplectomorphism ω Ψ) : 𝒥 ω ≃ₘ⟮𝓘, 𝓘⟯ 𝒥 ω`
-  for `Ψ : V ≃L[ℝ] V`, `J ↦ J.transport Ψ`, with `compatibleCLM_compatibleTransport`
+- `ω.compatibleTransport (hΨ : ω.IsSymplectomorphism ω Ψ.toLinearEquiv) :
+  𝒥 ω ≃ₘ⟮𝓘, 𝓘⟯ 𝒥 ω`
+  for `Ψ : V ≃L[ℝ] V`, `J ↦ J.transport Ψ.toLinearEquiv`, with `compatibleCLM_compatibleTransport`
   (`Ψ A Ψ⁻¹`), `mfderiv_compatibleCLM_compatibleTransport` (the reading of
   its differential is conjugation by `Ψ`) and
   `exists_compatibleTransport_eq (J J' : 𝒥 ω)` (transitivity, decision 10).
@@ -561,7 +583,7 @@ theorem compatibleSpace_properties (ω : SymplecticForm V) {n : ℕ}
       2⁻¹ * LinearMap.trace ℝ V (d J a * ω.compatibleCLM J * d J b)) ∧
     (∀ J (a b : TangentSpace 𝓘 J), ⟪a, b⟫_ℝ = 2⁻¹ * LinearMap.trace ℝ V (d J a * d J b)) ∧
     Ω.IsKahler j ∧ j.IsIntegrable ∧
-    (∀ (Ψ : V ≃L[ℝ] V) (hΨ : ω.IsSymplectomorphism ω Ψ),
+    (∀ (Ψ : V ≃L[ℝ] V) (hΨ : ω.IsSymplectomorphism ω Ψ.toLinearEquiv),
       IsPseudoholomorphic j j (ω.compatibleTransport hΨ) ∧
       Ω.mpullback (ω.compatibleTransport hΨ) _ = Ω ∧
       ∀ J (a b : TangentSpace 𝓘 J),

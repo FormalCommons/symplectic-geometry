@@ -344,6 +344,12 @@ $\omega_0=$ `stdComplexPiSymplecticForm (Fin (n + 1))`:
   `sphereContactForm`) and `isClosed_sphereStdForm`.
 - `mpullback_radialProjection_sphereStdForm`:
   `mpullback (radialProjection n) _ (sphereStdForm n) = fubiniStudyLift n`.
+- the rotation `stdRotation ι t : StdSpace ι ≃ₗᵢ[ℝ] StdSpace ι`,
+  $z\mapsto\cos t\,z+\sin t\,J_0z$, with `stdRotation_apply` and
+  `stdForm_stdRotation`, is placed with `stdForm` in
+  `LinearAlgebra/Symplectic/Standard/Basic.lean` of *Standard model*; this
+  file acts on the sphere by its restriction, Tau Ceti's
+  `LinearIsometryEquiv.unitSphereEquiv`.
 - `isBasic_sphereStdForm` and `ker_sphereStdForm`: $\sigma$ is basic for
   `sphereHopf n`, and its kernel at every point is that of the derivative
   of `sphereHopf n`.
