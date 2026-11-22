@@ -37,6 +37,8 @@ conditions on that map.
   `Matrix.toEuclideanCLE`, is a symplectomorphism of `ω₀`.
 * `SymplecticGeometry.commute_toEuclideanLin_stdComplexStructure_iff`: `A` commutes with
   `Matrix.J ι ℝ` if and only if its map commutes with `J₀`.
+* `SymplecticGeometry.toEuclideanLin_mem_tangentSpace_stdComplexStructure_iff`: the map of `A`
+  anticommutes with `J₀` if and only if `A * J₀ + J₀ * A = 0`.
 * `SymplecticGeometry.associatedBilinForm_stdForm_apply` and
   `SymplecticGeometry.toMatrix_associatedBilinForm_stdForm`: for a complex structure `J` with
   matrix `M`, the matrix `-J₀ M` is the Gram matrix of the metric `g_J(v, w) = ω₀(v, J w)`.
@@ -150,6 +152,17 @@ theorem commute_toEuclideanLin_stdComplexStructure_iff {A : Matrix (ι ⊕ ι) (
   rw [stdComplexStructure_eq_toEuclideanLin_J]
   exact commute_map_iff (f := toLpLinAlgEquiv (R := ℝ) (n := ι ⊕ ι) 2)
     (toLpLinAlgEquiv 2).injective
+
+/-- The map `Matrix.toEuclideanLin A` of a real matrix `A` indexed by `ι ⊕ ι` lies in the
+tangent space of `J₀`, that is, anticommutes with `J₀`, if and only if
+`A * Matrix.J ι ℝ + Matrix.J ι ℝ * A = 0`. -/
+theorem toEuclideanLin_mem_tangentSpace_stdComplexStructure_iff
+    {A : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ} :
+    Matrix.toEuclideanLin A ∈ (stdComplexStructure ι).tangentSpace ↔
+      A * J ι ℝ + J ι ℝ * A = 0 := by
+  rw [AlmostComplexStructure.mem_tangentSpace, stdComplexStructure_eq_toEuclideanLin_J,
+    Module.End.mul_eq_comp, Module.End.mul_eq_comp, ← toLpLin_mul_same, ← toLpLin_mul_same,
+    ← map_add, LinearEquiv.map_eq_zero_iff]
 
 /-- The metric `g_J(v, w) = ω₀(v, J w)` is `vᵀ (-J₀ M) w`, where `M` is the matrix of `J` and
 `J₀ = Matrix.J ι ℝ`. -/

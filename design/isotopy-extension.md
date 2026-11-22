@@ -283,8 +283,8 @@ theorem TauCeti.exists_isOpen_forall_isSmoothEmbedding_of_injOn
 Its corollary without the parameter is `TauCeti.exists_isOpen_isSmoothEmbedding_of_injOn`.
 The constructor `TauCeti.SmoothIsotopy.ofForallIsSmoothEmbedding`
 (`V : Opens P`, `G` jointly smooth on `unitInterval × V` with embedding
-slices) gives the `SmoothIsotopy` from the slice at `0` to the slice at `1`,
-with an `_apply` lemma. Immersions are locally injective, and a locally
+slices) gives the `SmoothIsotopy f₀ f₁` for any smooth `f₀`, `f₁` on `V`
+equal to the slices at `0` and `1`, with an `_apply` lemma. Immersions are locally injective, and a locally
 injective map, injective on a compact set, is injective on a neighbourhood
 of it. With the parameter this is uniform, by compactness of
 `unitInterval × K`. The issue first looks for the topological step stated in
@@ -834,6 +834,16 @@ this design already follows. `Ball/Isotopy.lean` cites
   with compact support" are stated with it, since it says the same thing.
   Otherwise the issue of `Flow.lean` proves the time-dependent version of
   Tau Ceti's `hasHamiltonian_globalFlowDiffeotopy` in `Flux/Hamiltonian.lean`.
+  `IsotopyExtension/Velocity.lean` also imports three files of that part:
+  `Geometry/Diffeomorphism/Diffeotopy/Velocity.lean`, for the derivatives
+  of the motion of a diffeotopy; `Geometry/Manifold/Instances/Icc.lean`,
+  for the unit tangent vector of `unitInterval`; and
+  `Geometry/Manifold/MFDeriv/Prod.lean`, for derivatives on products.
+- *Contact geometry*: only the merged
+  `Geometry/Manifold/DifferentialForm/LieDeriv.lean`, whose
+  `TauCeti.mpullback_prodMk_mlieDerivForm_prodVectorField_zero_eq_zero`
+  `IsotopyExtension/Velocity.lean` uses for the closedness of the velocity
+  forms.
 - *Moser isotopy*: only `Moser/Field.lean`, whose `moserField` (#506) is
   the cut-off Moser field of both theorems of `Moser/Family.lean`. That
   design planned it for the linear segment between two forms with a fixed
