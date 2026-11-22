@@ -7,7 +7,6 @@ module
 
 public import Mathlib.Analysis.InnerProductSpace.PiL2
 public import SymplecticGeometry.AlgebraicTopology.Cohomology.Cap.RationalCoefficients
-public import SymplecticGeometry.AlgebraicTopology.Cohomology.CompactSupport.Duality.Manifold
 public import TauCeti.AlgebraicTopology.Cohomology.UniversalCoefficient.CapDuality
 public import TauCeti.AlgebraicTopology.Singular.Sphere
 public import TauCeti.AlgebraicTopology.Singular.SurfaceGenus
@@ -27,10 +26,9 @@ two can merge.
 * `TauCeti.surfaceGenus_sphere`: the case of `S²` in `EuclideanSpace ℝ (Fin 3)`.
 * `TauCeti.HomologicalOrientation.even_finrank_singularHomology_of_odd`: for a compact
   homologically oriented manifold of dimension `n = 2p` with `p` odd, the middle rational Betti
-  number `finrank ℚ Hₚ(M; ℚ)` is even. By Poincaré duality
-  (`TauCeti.HomologicalOrientation.bijective_dualityMap`, passed to rational coefficients by
-  `TauCeti.HomologicalOrientation.injective_singularCapLinearMap_of_injective_dualityMap`),
-  capping with the image of the fundamental class in `Hₙ(M; ℚ)` is injective on `Hᵖ(M; ℚ)`, and
+  number `finrank ℚ Hₚ(M; ℚ)` is even. By rational Poincaré duality
+  (`TauCeti.HomologicalOrientation.bijective_singularCapLinearMap_fundamentalClass`), capping
+  with the image of the fundamental class in `Hₙ(M; ℚ)` is injective on `Hᵖ(M; ℚ)`, and
   Tau Ceti's `TopCat.even_finrank_singularHomology_of_injective_singularCapLinearMap` turns this
   into evenness through the alternating cup product pairing.
 * `TauCeti.HomologicalOrientation.even_finrank_singularHomology_one`: the case `p = 1`; a compact
@@ -76,8 +74,7 @@ theorem HomologicalOrientation.even_finrank_singularHomology_of_odd {M E : Type}
     Even (Module.finrank ℚ (((AlgebraicTopology.singularHomologyFunctor (ModuleCat.{0} ℚ) p).obj
       (ModuleCat.of ℚ ℚ)).obj (TopCat.of M))) :=
   (TopCat.of M).even_finrank_singularHomology_of_injective_singularCapLinearMap ℚ two_ne_zero
-    hp h _ (o.injective_singularCapLinearMap_of_injective_dualityMap hn h
-      (o.bijective_dualityMap hn _ h).1)
+    hp h _ (o.bijective_singularCapLinearMap_fundamentalClass hn h).injective
 
 /-- **The first Betti number of a closed oriented surface is even.** If `M` is a compact
 Hausdorff space with charts in a real normed space of dimension `2` and a homological orientation,
