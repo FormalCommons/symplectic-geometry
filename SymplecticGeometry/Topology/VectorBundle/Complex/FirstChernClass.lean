@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.Topology.ContinuousMap.Defs
 public import SymplecticGeometry.Topology.VectorBundle.Complex.Structure
 public import SymplecticGeometry.Topology.VectorBundle.Determinant
 public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.EulerClass
