@@ -207,6 +207,7 @@ Further choices of this design:
 | `Geometry/Symplectic/IsotopyExtension/Flow.lean` | extension of a family of symplectic embeddings by an ambient symplectic or Hamiltonian flow |
 | `Geometry/Symplectic/Moser/Family.lean` | Moser's argument near a compact set along a family, and with a parameter; parametric radial primitives |
 | `Geometry/Manifold/TubularNeighborhood/OneFormCorrection.lean` | the correction lemma: a function whose slices have differential `γ_t` along a compact submanifold where `f^* γ_t` vanishes |
+| `Geometry/Manifold/DifferentialForm/VectorBundlePoincare.lean` | the relative Poincaré operator at the zero section of a vector bundle, and its fibre-scaling primitives for a family of one-forms |
 | `Geometry/Symplectic/IsotopyExtension/Ball/Basic.lean` | `IsSymplecticBallEmbedding`, `IsSymplecticBallFamily`, enlarging a symplectic ball |
 | `Geometry/Symplectic/IsotopyExtension/Ball/Isotopy.lean` | the Hamiltonian ball extension and the milestone *Symplectic ball extension* |
 | `Geometry/Symplectic/IsotopyExtension/Cohomological/Primitive.lean` | ambient closed forms with prescribed periods, and primitives on one neighbourhood for all times |
@@ -810,7 +811,7 @@ this design already follows. `Ball/Isotopy.lean` cites
   `Cohomological/Primitive.lean`). It also uses
   `SymplecticGeometry.IsSmoothFamily.homotopyOperator`
   (`Geometry/Manifold/DifferentialForm/SmoothFamily/HomotopyOperator.lean`,
-  used by `TubularNeighborhood/OneFormCorrection.lean`). The part uses neither the splittings and
+  used by `DifferentialForm/VectorBundlePoincare.lean`). The part uses neither the splittings and
   `contMDiff_repr_mk_of_hasFiniteGoodCover` nor the bridge
   `Diffeotopy/Real.lean`: the periods are smooth in `t` as line integrals,
   and its flows are Tau Ceti's `timeDependentFlowDiffeotopy`, already a

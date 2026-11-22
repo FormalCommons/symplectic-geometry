@@ -5,9 +5,8 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import TauCeti.Geometry.Manifold.DifferentialForm.Relative.Basic
 public import TauCeti.Geometry.Manifold.TubularNeighborhood.Existence
-public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.HomotopyOperator
+public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.VectorBundlePoincare
 import Mathlib.Geometry.Manifold.PartitionOfUnity
 
 /-!
@@ -25,33 +24,20 @@ family (compare [McDuffSalamon2017], §3.2).
 
 ## Construction
 
-On the total space of a smooth vector bundle `V → B`, let `P` be Tau Ceti's relative Poincaré
-operator `TauCeti.vectorBundlePoincareHomotopy`. For a one-form `η`, the function `P η` vanishes
-on the zero section, and Tau Ceti's cochain-homotopy identity
-`TauCeti.mextDeriv_vectorBundlePoincareHomotopy_add_vectorBundlePoincareHomotopy_mextDeriv`
-gives `d (P η) = η - ρ^* η - P (d η)`, with `ρ = 0 ∘ π`. At a zero vector `0_b`, the form
-`P (d η)` vanishes, and `ρ^* η` vanishes as soon as the pullback of `η` along the zero section
-vanishes at `b`; there `d (P η) = η`. Applied slice by slice to a family `η_t`, the functions
-`P η_t` form a smooth function of `(t, v)`, since the homotopy operator preserves smooth
-families (`SymplecticGeometry.IsSmoothFamily.homotopyOperator`). This is
-`TauCeti.exists_contMDiff_mextDeriv_ofFunction_eq_of_mpullback_zeroSection`.
-
-For the embedding, take a tubular neighbourhood `Φ` from the total space of the normal bundle of
-`f` onto an open set `W ⊇ f(Q)` (Tau Ceti's
-`TauCeti.SmoothEmbedding.exists_diffeomorph_normalBundle_subset`), apply the bundle statement to
-the pullback of `γ` along `id × Φ`, transport the result back by `Φ⁻¹`, and multiply it by a
+Take a tubular neighbourhood `Φ` from the total space of the normal bundle of `f` onto an open
+set `W ⊇ f(Q)` (Tau Ceti's `TauCeti.SmoothEmbedding.exists_diffeomorph_normalBundle_subset`).
+On the total space of a vector bundle, the relative Poincaré operator gives fibre-scaling
+primitives of a family of one-forms, jointly smooth in `(t, v)`
+(`TauCeti.exists_contMDiff_mextDeriv_ofFunction_eq_of_mpullback_zeroSection`). Apply this to the
+pullback of `γ` along `id × Φ`, transport the result back by `Φ⁻¹`, and multiply it by a
 cutoff equal to `1` near `f(Q)` with compact support in `W`. The argument for a single form is
 that of Tau Ceti's `Diffeomorph.exists_isSmoothForm_mextDeriv_eq_sub_mpullback`, without the
-closedness of the form, which only removes the term `P (d η)`. The inverse of the tube, as a
-map on `M` smooth on `W`, is built as in Tau Ceti's
+closedness of the form, since the extra term it removes vanishes along the zero section. The
+inverse of the tube, as a map on `M` smooth on `W`, is built as in Tau Ceti's
 `TauCeti.SmoothEmbedding.exists_contMDiffOn_retraction`.
 
 ## Main results
 
-* `TauCeti.exists_contMDiff_mextDeriv_ofFunction_eq_of_mpullback_zeroSection`: on the total space
-  of a vector bundle, a smooth function of `(t, v)` vanishing on the zero section whose slices
-  have differential `η_t` at the zero vectors where the restriction of `η_t` to the zero section
-  vanishes.
 * `TauCeti.SmoothEmbedding.exists_contMDiff_mextDeriv_eq_mpullback_prodMk`: the correction
   function along a compact embedded submanifold.
 
@@ -69,71 +55,6 @@ open Bundle Manifold Set Filter Topology
 open scoped ContDiff Manifold
 
 namespace TauCeti
-
-open SymplecticGeometry
-
-section Bundle
-
-variable {B FV : Type*} {V : B → Type*} [∀ b, AddCommGroup (V b)] [∀ b, Module ℝ (V b)]
-  {EB HB : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB] [TopologicalSpace HB]
-  {IB : ModelWithCorners ℝ EB HB} [TopologicalSpace B] [ChartedSpace HB B] [IsManifold IB ∞ B]
-  [NormedAddCommGroup FV] [NormedSpace ℝ FV]
-  [∀ b, TopologicalSpace (V b)] [TopologicalSpace (TotalSpace FV V)] [FiberBundle FV V]
-  [VectorBundle ℝ FV V] [ContMDiffVectorBundle ∞ FV V IB]
-  {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] [CompleteSpace F]
-
-/-- **Fibre-scaling primitives of a family of one-forms on a vector bundle.** Let `η_t`,
-`t ∈ ℝ`, be the slices of a smooth one-form `η` on `ℝ × V`, for a smooth vector bundle
-`V → B`. There is a smooth function `G` on `ℝ × V` that vanishes on `ℝ ×` the zero section,
-such that `d G_t = η_t` at the zero vector `0_b` whenever the pullback of `η_t` along the zero
-section vanishes at `b`. -/
-theorem exists_contMDiff_mextDeriv_ofFunction_eq_of_mpullback_zeroSection
-    (η : SmoothForm (𝓘(ℝ, ℝ).prod (IB.prod 𝓘(ℝ, FV))) (ℝ × TotalSpace FV V) F 1) :
-    ∃ G : ℝ × TotalSpace FV V → F,
-      ContMDiff (𝓘(ℝ, ℝ).prod (IB.prod 𝓘(ℝ, FV))) 𝓘(ℝ, F) ∞ G ∧
-      (∀ t b, G (t, zeroSection FV V b) = 0) ∧
-      ∀ t b, (SmoothForm.mpullback (zeroSection FV V) (contMDiff_zeroSection ℝ V)
-          (SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) η)).val b = 0 →
-        mextDeriv (RoughForm.ofFunction (IB.prod 𝓘(ℝ, FV)) fun v ↦ G (t, v))
-            (zeroSection FV V b) =
-          (SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) η).val
-            (zeroSection FV V b) := by
-  set ηt : ℝ → SmoothForm (IB.prod 𝓘(ℝ, FV)) (TotalSpace FV V) F 1 :=
-    fun t ↦ SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) η
-  have hH : ContMDiff ((IB.prod 𝓘(ℝ, FV)).prod (𝓡∂ 1)) (IB.prod 𝓘(ℝ, FV)) ∞
-      (vectorBundleFiberScaling FV V) :=
-    contMDiff_vectorBundleFiberScaling
-  have hη : IsSmoothFamily 𝓘(ℝ, ℝ) ηt := isSmoothFamily_def.mpr ⟨η, fun _ ↦ rfl⟩
-  obtain ⟨Ω, hΩ⟩ := isSmoothFamily_def.mp (hη.mpullback _ hH).homotopyOperator
-  -- The slice of `Ω` at `t`, as a function, is the relative Poincaré operator of `η_t`.
-  have hG (t : ℝ) : RoughForm.ofFunction (IB.prod 𝓘(ℝ, FV)) (fun v ↦ Ω.val (t, v) 0) =
-      vectorBundlePoincareHomotopy (ηt t).val := by
-    have h := congrArg Subtype.val (hΩ t)
-    rw [SmoothForm.coe_mpullback, SmoothForm.coe_homotopyOperator,
-      SmoothForm.coe_mpullback] at h
-    rw [vectorBundlePoincareHomotopy_def, ← h]
-    funext v
-    ext w
-    rw [RoughForm.ofFunction_apply, mpullback_apply]
-    exact congrArg (Ω.val (t, v)) (Subsingleton.elim _ _)
-  refine ⟨fun p ↦ Ω.val p 0, ?_, fun t b ↦ ?_, fun t b hb ↦ ?_⟩
-  · have h := Ω.isSmoothForm
-    rw [RoughForm.eq_ofFunction (F := F) (I := 𝓘(ℝ, ℝ).prod (IB.prod 𝓘(ℝ, FV))) Ω.val] at h
-    exact isSmoothForm_ofFunction_iff.mp h
-  · have h := congrFun (hG t) (zeroSection FV V b)
-    rw [vectorBundlePoincareHomotopy_zeroSection] at h
-    simpa [RoughForm.ofFunction_apply] using congrArg (· 0) h
-  · rw [hG t]
-    have h := congrFun
-      (mextDeriv_vectorBundlePoincareHomotopy_add_vectorBundlePoincareHomotopy_mextDeriv
-        ((ηt t).isSmoothForm.of_le (by simp))) (zeroSection FV V b)
-    rw [Pi.add_apply, vectorBundlePoincareHomotopy_zeroSection, add_zero, Pi.sub_apply,
-      mpullback_zeroSection_comp_proj, mpullback_apply_eq_zero, sub_zero] at h
-    · exact h
-    · rw [zeroSection_proj, ← SmoothForm.coe_mpullback _ (contMDiff_zeroSection ℝ V)]
-      exact hb
-
-end Bundle
 
 namespace SmoothEmbedding
 
@@ -258,13 +179,7 @@ theorem exists_contMDiff_mextDeriv_eq_mpullback_prodMk [CompactSpace Q]
       (SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) γ).val
     ext v
     rw [mpullback_apply, hd, SmoothForm.coe_mpullback, ← mpullback_apply, ← hcomp,
-      mpullback_apply, hid.mfderiv_eq, mfderiv_id]
-    -- The form is evaluated at `Φ' (ψ (f q))`, which is `f q`.
-    have key : ∀ (α : RoughForm I M F 1) (y : M), y = f q →
-        α y (fun i ↦ tangentSpaceCast I (f q) y (v i)) = α (f q) v := by
-      rintro α y rfl
-      rfl
-    exact key _ _ (hΦψ (hfW q))
+      hid.mpullback_eq, mpullback_id]
 
 end SmoothEmbedding
 
