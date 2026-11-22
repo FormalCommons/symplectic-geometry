@@ -160,16 +160,9 @@ theorem singularSupport_eq_empty_of_secondOrderSystem (v : ι → CoordinateSpac
     {T : κ → 𝓓'(Ω, ℂ)}
     (hT : ∀ a, singularSupport (∑ i, ∑ j, ∂_{v i} (∂_{v j} (smulLeftCLM (hg i j) (T a))) +
       ∑ b, ∑ i, ∂_{v i} (smulLeftCLM (hβ a b i) (T b)) + ∑ b, smulLeftCLM (hγ a b) (T b)) = ∅)
-    (a : κ) : (T a).singularSupport = ∅ := by
-  refine singularSupport_eq_empty_iff_forall_sobolevSingularSupport_eq_empty.2 fun s ↦
-    Set.eq_empty_of_forall_notMem fun x hx ↦ ?_
-  have hxΩ := (mem_sobolevSingularSupport_iff.1 hx).1
-  refine (notMem_sobolevSingularSupport_iff hxΩ).2 ?_ hx
-  have h := IsLocallySobolevAt.of_secondOrderSystem (s := s - 2) v hg hβ hγ (hσ x hxΩ)
-    (fun b ↦ (notMem_sobolevSingularSupport_iff hxΩ).1 <| by
-      rw [singularSupport_eq_empty_iff_forall_sobolevSingularSupport_eq_empty.1 (hT b)]
-      exact Set.notMem_empty x) a
-  rwa [sub_add_cancel] at h
+    (a : κ) : (T a).singularSupport = ∅ :=
+  singularSupport_eq_empty_of_forall_isLocallySobolevAt hT fun x hx _ hs ↦
+    IsLocallySobolevAt.of_secondOrderSystem v hg hβ hγ (hσ x hx) hs a
 
 end Distribution
 
@@ -185,21 +178,24 @@ variable {E F ι : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDime
 omit [FiniteDimensional ℝ E] [μ.IsAddHaarMeasure] in
 /-- **The coordinate distributions of `w` under a second-order operator.** Let
 `P a = -∑ i j, A i j ∂_{b j} ∂_{b i} a + ∑ i, B i (∂_{b i} a) + C a`, let `w` be locally integrable
-on an open set `V`, and let the coefficients of `P`, multiplied by a function `χ` equal to `1` on
-`V`, be read in coordinates `e`. Applied to the coordinate distributions of `w` in the dual basis
-`bD` of `bF`, the system of `Distribution.singularSupport_eq_empty_of_secondOrderSystem` with these
-coefficients is the distribution `φ ↦ ∫ y, w y (P ((φ ∘ e) • bF k) y) ∂μ` on `Ω`. -/
+on an open set `V`, and let `e : E ≃L[ℝ] CoordinateSpace n`. Let `g`, `β`, `γ` be smooth, with
+`g i j (e y) = -A i j y`, `β k l i (e y) = -bF.repr (B i y (bF k)) l` and
+`γ k l (e y) = bF.repr (C y (bF k)) l` for `y ∈ V`. Applied to the coordinate distributions of
+`w` in the dual basis `bD` of `bF`, the system of
+`Distribution.singularSupport_eq_empty_of_secondOrderSystem` with these coefficients is the
+distribution `φ ↦ ∫ y, w y (P ((φ ∘ e) • bF k) y) ∂μ` on `Ω`. -/
 theorem secondOrderSystem_coordOfFun_apply (b : Module.Basis ι ℝ E)
     {A : ι → ι → E → ℝ} {B : ι → E → F →L[ℝ] F} {C : E → F →L[ℝ] F} {w : E → F →L[ℝ] ℝ}
-    {V : TopologicalSpace.Opens E} (hwV : LocallyIntegrableOn w V μ) {χ : E → ℝ}
-    (hχV : ∀ y ∈ V, χ y = 1) {n : ℕ} (e : E ≃L[ℝ] CoordinateSpace n)
-    {Ω : TopologicalSpace.Opens (CoordinateSpace n)} (hΩ : MapsTo e.symm Ω V) {κ : Type*}
-    [Fintype κ] (bF : Module.Basis κ ℝ F) (bD : Module.Basis κ ℝ (F →L[ℝ] ℝ))
-    (hbD : ∀ L l, bD.repr L l = L (bF l))
-    (hg : ∀ i j, ContDiff ℝ ∞ fun z ↦ -(χ (e.symm z) • A i j (e.symm z)))
-    (hβ : ∀ k l i, ContDiff ℝ ∞ fun z ↦ -(χ (e.symm z) • bF.repr (B i (e.symm z) (bF k)) l))
-    (hγ : ∀ k l, ContDiff ℝ ∞ fun z ↦ χ (e.symm z) • bF.repr (C (e.symm z) (bF k)) l) (k : κ)
-    (φ : 𝓓(Ω, ℝ)) :
+    {V : TopologicalSpace.Opens E} (hwV : LocallyIntegrableOn w V μ) {n : ℕ}
+    (e : E ≃L[ℝ] CoordinateSpace n) {Ω : TopologicalSpace.Opens (CoordinateSpace n)}
+    (hΩ : MapsTo e.symm Ω V) {κ : Type*} [Fintype κ] (bF : Module.Basis κ ℝ F)
+    (bD : Module.Basis κ ℝ (F →L[ℝ] ℝ)) (hbD : ∀ L l, bD.repr L l = L (bF l))
+    {g : ι → ι → CoordinateSpace n → ℝ} {β : κ → κ → ι → CoordinateSpace n → ℝ}
+    {γ : κ → κ → CoordinateSpace n → ℝ} (hg : ∀ i j, ContDiff ℝ ∞ (g i j))
+    (hβ : ∀ k l i, ContDiff ℝ ∞ (β k l i)) (hγ : ∀ k l, ContDiff ℝ ∞ (γ k l))
+    (hgA : ∀ i j, ∀ y ∈ V, g i j (e y) = -A i j y)
+    (hβB : ∀ k l i, ∀ y ∈ V, β k l i (e y) = -bF.repr (B i y (bF k)) l)
+    (hγC : ∀ k l, ∀ y ∈ V, γ k l (e y) = bF.repr (C y (bF k)) l) (k : κ) (φ : 𝓓(Ω, ℝ)) :
     (∑ i, ∑ j, ∂_{e (b i)} (∂_{e (b j)} (smulLeftCLM (hg i j) (coordOfFun e hΩ bD w μ k))) +
       ∑ l, ∑ i, ∂_{e (b i)} (smulLeftCLM (hβ k l i) (coordOfFun e hΩ bD w μ l)) +
       ∑ l, smulLeftCLM (hγ k l) (coordOfFun e hΩ bD w μ l)) φ =
@@ -244,7 +240,8 @@ theorem secondOrderSystem_coordOfFun_apply (b : Module.Basis ι ℝ E)
   by_cases hy : y ∈ V
   · simp only [smul_eq_mul, map_neg, Finset.sum_neg_distrib, add_apply, apply_ite,
       FunLike.coe_zero, ite_apply, sum_apply, TestFunction.smulLeftCLM_apply,
-      ContinuousLinearEquiv.symm_apply_apply, hχV y hy, one_mul, TestFunction.lineDerivOp_apply,
+      hgA _ _ y hy, hβB _ _ _ y hy, hγC _ _ y hy,
+      TestFunction.lineDerivOp_apply,
       neg_mul, Pi.zero_apply, neg_apply, neg_neg, hbD, Complex.real_smul, Complex.ofReal_add,
       Complex.ofReal_neg, Complex.ofReal_sum, Complex.ofReal_mul, Complex.ofReal_zero, add_mul,
       ite_mul, Finset.sum_mul, zero_mul, Finset.sum_add_distrib, Finset.sum_ite_eq',
@@ -312,7 +309,9 @@ theorem exists_secondOrderSystem_coordOfFun {U : Set E} (hU : IsOpen U)
   have hγ (k l : κ) : ContDiff ℝ ∞ fun z ↦ χ (e.symm z) • bF.repr (C (e.symm z) (bF k)) l :=
     hext _ (hrepr (hC.clm_apply contDiffOn_const) l)
   refine ⟨V, ⟨hxt, hx⟩, hVU, _, _, _, hg, hβ, hγ, ?_, fun hΩ _ hwV k φ ↦
-    secondOrderSystem_coordOfFun_apply b hwV (fun y hy ↦ ht1 y hy.1) e hΩ bF bD hbD hg hβ hγ k φ⟩
+    secondOrderSystem_coordOfFun_apply b hwV e hΩ bF bD hbD hg hβ hγ
+      (fun _ _ y hy ↦ by simp [ht1 y hy.1]) (fun _ _ _ y hy ↦ by simp [ht1 y hy.1])
+      (fun _ _ y hy ↦ by simp [ht1 y hy.1]) k φ⟩
   -- Ellipticity: `ξ ≠ 0` has a nonzero coordinate `⟪e (b i), ξ⟫`.
   intro z hzV ξ hξ
   have hη : (fun i ↦ ⟪e (b i), ξ⟫_ℝ) ≠ 0 := by
