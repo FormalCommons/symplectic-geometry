@@ -7,6 +7,7 @@ module
 
 public import Mathlib.Geometry.Manifold.MFDeriv.NormedSpace
 public import Mathlib.Topology.Compactification.OnePoint.ProjectiveLine
+public import SymplecticGeometry.Geometry.Manifold.Orientation.Preserving.FromTauCeti
 public import TauCeti.Geometry.Manifold.Complex.Orientation
 public import TauCeti.Geometry.Manifold.Instances.OnePoint.FubiniStudy
 public import TauCeti.Geometry.Manifold.Instances.OnePoint.Projectivization
@@ -41,6 +42,10 @@ reads for the underlying real surface, modelled on `𝓘(ℝ, ℂ)`, and compare
   stereographic projection `OnePoint.diffeomorphSphere v ι`, read on `ℂ`;
 * `OnePoint.ofTopForm_fubiniStudyForm`: the orientation of Tau Ceti's `OnePoint.fubiniStudyForm`
   is the canonical orientation of the Riemann sphere as a complex manifold;
+* `SymplecticGeometry.projectiveLineOrientation`: the canonical orientation of `ℂP¹` as a complex
+  manifold, indexed by `Fin 2`, with `SymplecticGeometry.orientationAt_projectiveLineOrientation`;
+* `Diffeomorph.isOrientationPreservingAt_projectiveLineOrientation`: biholomorphisms of `ℂP¹`
+  preserve that orientation;
 * `OnePoint.isOrientationPreservingAt_equivProjectivization`: the identification with `ℂP¹`
   preserves the canonical orientations;
 * `SymplecticGeometry.northPole` and `SymplecticGeometry.equatorIsometry`: the north pole
@@ -83,6 +88,43 @@ local notation "o₃" =>
   Module.Basis.orientation (OrthonormalBasis.toBasis (EuclideanSpace.basisFun (Fin 3) ℝ))
 
 attribute [local instance] TauCeti.finrank_euclideanSpace_fin_succ_fact
+
+namespace SymplecticGeometry
+
+/-! ### The orientation of `ℂP¹` -/
+
+/-- The canonical orientation of `ℂP¹ = ℙ ℂ (Fin 2 → ℂ)` as a complex manifold, Tau Ceti's
+`complexManifoldOrientation`, indexed by `Fin 2` instead of `Fin (2 * finrank ℂ (Fin 1 → ℂ))`. -/
+noncomputable def projectiveLineOrientation :
+    Manifold.Orientation 𝓘(ℝ, Fin 1 → ℂ) (ℙ ℂ (Fin 2 → ℂ)) (Fin 2) :=
+  (complexManifoldOrientation (Fin 1 → ℂ) (ℙ ℂ (Fin 2 → ℂ))).reindex (finCongr (by simp))
+
+theorem projectiveLineOrientation_def :
+    projectiveLineOrientation =
+      (complexManifoldOrientation (Fin 1 → ℂ) (ℙ ℂ (Fin 2 → ℂ))).reindex (finCongr (by simp)) :=
+  (rfl)
+
+/-- At every point of `ℂP¹`, `projectiveLineOrientation` is the complex orientation of the model
+space `Fin 1 → ℂ`, indexed by `Fin 2`. -/
+@[simp]
+theorem orientationAt_projectiveLineOrientation (x : ℙ ℂ (Fin 2 → ℂ)) :
+    projectiveLineOrientation.orientationAt x =
+      Orientation.reindex ℝ (TangentSpace 𝓘(ℝ, Fin 1 → ℂ) x) (finCongr (by simp))
+        (complexOrientation (Fin 1 → ℂ)) := by
+  rw [projectiveLineOrientation_def, Manifold.Orientation.orientationAt_reindex,
+    orientationAt_complexManifoldOrientation_eq_complexOrientation]
+
+/-- A biholomorphism of `ℂP¹` (a `C^n` diffeomorphism for the complex model, `n ≠ 0`) preserves
+`projectiveLineOrientation` at every point. -/
+theorem _root_.Diffeomorph.isOrientationPreservingAt_projectiveLineOrientation (n : ℕ∞ω)
+    [NeZero n] (Φ : ℙ ℂ (Fin 2 → ℂ) ≃ₘ^n⟮𝓘(ℂ, Fin 1 → ℂ), 𝓘(ℂ, Fin 1 → ℂ)⟯ ℙ ℂ (Fin 2 → ℂ))
+    (x : ℙ ℂ (Fin 2 → ℂ)) :
+    Manifold.Orientation.IsOrientationPreservingAt projectiveLineOrientation
+      projectiveLineOrientation Φ x := by
+  rw [projectiveLineOrientation_def]
+  exact (Φ.isOrientationPreservingAt_complexManifoldOrientation n x).reindex _
+
+end SymplecticGeometry
 
 namespace OnePoint
 
@@ -184,9 +226,7 @@ both as complex manifolds: its derivative is complex-linear. -/
 theorem isOrientationPreservingAt_equivProjectivization (x : OnePoint ℂ) :
     Manifold.Orientation.IsOrientationPreservingAt
       ((complexManifoldOrientation ℂ (OnePoint ℂ)).reindex (finCongr (m := 2) (by simp)))
-      ((complexManifoldOrientation (Fin 1 → ℂ) (ℙ ℂ (Fin 2 → ℂ))).reindex
-        (finCongr (m := 2) (by simp)))
-      (equivProjectivization ℂ) x := by
+      SymplecticGeometry.projectiveLineOrientation (equivProjectivization ℂ) x := by
   set P₀ := diffeomorphProjectivization ℂ ω
   -- The real derivative is the complex one, the casts between tangent spaces being identities.
   have hpt (v : ℂ) : mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin 1 → ℂ) (equivProjectivization ℂ) x v =
@@ -208,9 +248,9 @@ theorem isOrientationPreservingAt_equivProjectivization (x : OnePoint ℂ) :
             (complexOrientation (Fin 1 → ℂ)) := by
       rw [Orientation.map_reindex, ContinuousLinearEquiv.restrictScalars'_toLinearEquiv,
         LinearEquiv.map_complexOrientation, Orientation.reindex_finCongr_reindex_finCongr]
-    rw [Manifold.Orientation.orientationAt_reindex, Manifold.Orientation.orientationAt_reindex,
+    rw [Manifold.Orientation.orientationAt_reindex,
       orientationAt_complexManifoldOrientation_eq_complexOrientation,
-      orientationAt_complexManifoldOrientation_eq_complexOrientation]
+      SymplecticGeometry.orientationAt_projectiveLineOrientation]
     exact key
 
 end OnePoint
