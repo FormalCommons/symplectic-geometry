@@ -53,6 +53,20 @@ and the change of variables `PartialDiffeomorph.setLIntegral_riemannianVolume_eq
 `ψ.symm` compares the integrals (`L2Form.exists_lintegral_enorm_localize_sq_le`). So the
 localization extends to `L2Form o k` (`SymplecticGeometry.L2Form.localize`).
 
+In the other direction, extending a smooth flat form `a` supported in a compact `K ⊆ ψ.target`
+by zero along `ψ` is bounded in `L²` (`L2Form.exists_norm_ofSmooth_extendByZeroAlong_le`): by
+the same change of variables, now with the Jacobian of `ψ.symm` bounded above and the
+differential of `ψ` bounded on `ψ.symm '' K`
+(`PartialDiffeomorph.exists_norm_mvfderiv_le_mul_norm`), and with the Hilbert norm of a form at
+most `√(n choose k)` times its comass norm (Tau Ceti's
+`ContinuousAlternatingMap.sqrt_alternatingFormInner_self_le`). This gives the gluing
+`L2Form.eq_ofSmooth_of_localize`: for finitely many charts with a subordinate smooth partition of
+unity `ρ`, an `L²` form all of whose localizations with the cutoffs `ρ i` are smooth with compact
+support is the smooth form glued from them. Every smooth form `β` is the sum of the extensions by
+zero of its localizations (`TauCeti.SmoothForm.sum_extendByZeroAlong_localize`); approximating
+the `L²` form by such `β`, the localizations converge in `L²`, and the bounded extension by zero
+carries this convergence back to `L2Form o k`.
+
 ## Main definitions and results
 
 * `TauCeti.SmoothForm.l2Inner`: the `L²` inner product of smooth forms, symmetric
@@ -68,6 +82,12 @@ localization extends to `L2Form o k` (`SymplecticGeometry.L2Form.localize`).
 * `SymplecticGeometry.L2Form.localize ψ χ hχ`: the extension of `localizeLp` to `L2Form o k`, a
   continuous linear map to `Lp (E [⋀^Fin k]→L[ℝ] ℝ) 2 volume`, bounded by
   `L2Form.exists_norm_localizeLp_le`, with `L2Form.localize_ofSmooth`.
+* `SymplecticGeometry.L2Form.exists_norm_ofSmooth_extendByZeroAlong_le`: extension by zero along
+  a chart, of smooth flat forms supported in a fixed compact subset of its target, is bounded for
+  the `L²` norms.
+* `SymplecticGeometry.L2Form.eq_ofSmooth_of_localize`: an `L²` form whose localizations to a
+  finite cover, with a subordinate partition of unity as cutoffs, are smooth with compact support
+  is smooth.
 
 ## Implementation notes
 
@@ -574,6 +594,204 @@ theorem localize_ofSmooth (α : SmoothForm I M ℝ k) :
   exact MemLp.coeFn_toLp _
 
 end Localize
+
+/-! ### Extension by zero along a chart, and gluing -/
+
+section ExtendByZero
+
+variable [MeasureSpace E] [BorelSpace E] [(volume : Measure E).IsAddHaarMeasure] [T2Space M]
+
+/-- The step of `exists_norm_ofSmooth_extendByZeroAlong_le` for the squares of the norms, as an
+inequality of integrals: the change of variables along `ψ.symm` turns the integral of `⟨γ, γ⟩` for
+the extension by zero `γ` of `a` into an integral over `ψ.target`, where the integrand is bounded by
+a multiple of `‖a‖ ^ 2`. -/
+private theorem exists_ofReal_norm_ofSmooth_extendByZeroAlong_sq_le
+    (ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞) (o : Manifold.Orientation I M (Fin m)) {K : Set E}
+    (hK : IsCompact K) (hKψ : K ⊆ ψ.target) :
+    ∃ B, 0 ≤ B ∧ ∀ (a : E → E [⋀^Fin k]→L[ℝ] ℝ) (ha : ContDiff ℝ ∞ a) (hc : HasCompactSupport a)
+      (hs : tsupport a ⊆ ψ.target), tsupport a ⊆ K →
+      ENNReal.ofReal (‖(ofSmooth (SmoothForm.extendByZeroAlong ψ a ha hc hs) : L2Form o k)‖ ^ 2) ≤
+        ENNReal.ofReal B * ∫⁻ y, ‖a y‖ₑ ^ (2 : ℝ) ∂volume := by
+  borelize M
+  have hn : (∞ : ℕ∞ω) ≠ 0 := by simp
+  let b := Module.finBasis ℝ E
+  obtain ⟨Cd, hCd⟩ := ψ.exists_norm_mvfderiv_le_mul_norm hn hK hKψ
+  obtain ⟨c₀, CJ, -, hJ⟩ := ψ.exists_le_riemannianJacobian_symm_le hn b hK hKψ
+  set D := max Cd 0
+  set c : ℝ := ((Module.finrank ℝ E).choose k : ℝ)
+  set s := b.addHaar.addHaarScalarFactor volume
+  set B' := max CJ 0 * (c * D ^ (2 * k))
+  have hB' : 0 ≤ B' := by positivity
+  refine ⟨s * B', by positivity, fun a ha hc hs haK ↦ ?_⟩
+  set γ := SmoothForm.extendByZeroAlong ψ a ha hc hs
+  set g : M → ℝ := fun x ↦ alternatingFormInner (TangentSpace I x) k (γ.val x) (γ.val x)
+  set J : E → ℝ := riemannianJacobian (I := I) b ψ.symm
+  -- The integrand in the chart is bounded by a multiple of `‖a‖ ^ 2`.
+  have hpt : ∀ y ∈ ψ.target, J y * g (ψ.symm y) ≤ B' * ‖a y‖ ^ 2 := by
+    intro y hy
+    have hx : ψ.symm y ∈ ψ.source := ψ.map_target hy
+    have hyy : ψ (ψ.symm y) = y := ψ.right_inv hy
+    have hγ : γ.val (ψ.symm y) =
+        mpullback I 𝓘(ℝ, E) ψ (a : RoughForm 𝓘(ℝ, E) E ℝ k) (ψ.symm y) := by
+      rw [SmoothForm.coe_extendByZeroAlong, RoughForm.extendByZeroAlong_apply_of_mem _ hx]
+    by_cases hyK : y ∈ K
+    · have hnorm : ‖γ.val (ψ.symm y)‖ ≤ ‖a y‖ * D ^ k := by
+        rw [hγ]
+        refine ContinuousAlternatingMap.opNorm_le_bound _ (by positivity) fun v ↦ ?_
+        refine (congrArg norm (TauCeti.mpullback_apply (I := I) (I' := 𝓘(ℝ, E)) _
+          (a : RoughForm 𝓘(ℝ, E) E ℝ k) _ v)).trans_le ?_
+        calc ‖a (ψ (ψ.symm y)) (fun i ↦ mfderiv I 𝓘(ℝ, E) ψ (ψ.symm y) (v i))‖
+            ≤ ‖a (ψ (ψ.symm y))‖ * ∏ i, @norm E _ (mfderiv I 𝓘(ℝ, E) ψ (ψ.symm y) (v i)) :=
+              (a (ψ (ψ.symm y))).le_opNorm _
+          _ ≤ ‖a (ψ (ψ.symm y))‖ * ∏ i, (D * ‖v i‖) := by
+              refine mul_le_mul_of_nonneg_left (Finset.prod_le_prod₀ (fun i _ ↦ norm_nonneg _)
+                fun i _ ↦ ?_) (norm_nonneg _)
+              exact (hCd _ ⟨y, hyK, rfl⟩ (v i)).trans (by gcongr; exact le_max_left _ _)
+          _ = ‖a y‖ * D ^ k * ∏ i, ‖v i‖ := by
+              rw [Finset.prod_mul_distrib, Finset.prod_const, Finset.card_univ, Fintype.card_fin,
+                hyy]
+              ring
+      have hg : g (ψ.symm y) ≤ c * ‖γ.val (ψ.symm y)‖ ^ 2 := by
+        have h := ContinuousAlternatingMap.sqrt_alternatingFormInner_self_le (γ.val (ψ.symm y))
+        calc g (ψ.symm y) = √(g (ψ.symm y)) ^ 2 :=
+              (Real.sq_sqrt (alternatingFormInner_self_nonneg _)).symm
+          _ ≤ (√c * ‖γ.val (ψ.symm y)‖) ^ 2 := by gcongr; exact h
+          _ = c * ‖γ.val (ψ.symm y)‖ ^ 2 := by rw [mul_pow, Real.sq_sqrt (by positivity)]
+      calc J y * g (ψ.symm y) ≤ max CJ 0 * (c * (‖a y‖ * D ^ k) ^ 2) := by
+            gcongr
+            · exact alternatingFormInner_self_nonneg _
+            · exact (hJ y hyK).2.trans (le_max_left _ _)
+            · exact hg.trans (by gcongr)
+        _ = B' * ‖a y‖ ^ 2 := by ring
+    · have ha0 : a y = 0 := image_eq_zero_of_notMem_tsupport fun h ↦ hyK (haK h)
+      have hγ0 : γ.val (ψ.symm y) = 0 := by
+        rw [hγ]
+        exact mpullback_apply_eq_zero (by rw [hyy]; exact ha0)
+      rw [show g (ψ.symm y) = 0 by simp only [g, hγ0, map_zero], mul_zero]
+      positivity
+  calc ENNReal.ofReal (‖(ofSmooth γ : L2Form o k)‖ ^ 2)
+      = ∫⁻ x, ENNReal.ofReal (g x) ∂riemannianVolume I M := by
+        rw [norm_ofSmooth_sq, l2Inner_eq_integral, ofReal_integral_eq_lintegral_ofReal]
+        · exact (continuous_alternatingFormInner γ γ).integrable_of_compactSpace
+        · exact Filter.Eventually.of_forall fun x ↦ alternatingFormInner_self_nonneg _
+    _ = ∫⁻ x in ψ.source, ENNReal.ofReal (g x) ∂riemannianVolume I M := by
+        refine (setLIntegral_eq_of_support_subset fun x hx ↦ ?_).symm
+        by_contra hxs
+        apply hx
+        simp [g, γ, RoughForm.extendByZeroAlong_apply_of_notMem _ hxs]
+    _ = ∫⁻ y in ψ.target, ENNReal.ofReal (J y) * ENNReal.ofReal (g (ψ.symm y)) ∂b.addHaar := by
+        simpa [J] using ψ.symm.setLIntegral_riemannianVolume_eq hn b fun x ↦ ENNReal.ofReal (g x)
+    _ ≤ ∫⁻ y in ψ.target, ENNReal.ofReal B' * ‖a y‖ₑ ^ (2 : ℝ) ∂b.addHaar := by
+        refine setLIntegral_mono' ψ.open_target.measurableSet fun y hy ↦ ?_
+        rw [← ENNReal.ofReal_mul (riemannianJacobian_nonneg _ _ _), ← ofReal_norm,
+          ENNReal.ofReal_rpow_of_nonneg (norm_nonneg _) zero_le_two, ← ENNReal.ofReal_mul hB',
+          Real.rpow_two]
+        exact ENNReal.ofReal_le_ofReal (hpt y hy)
+    _ ≤ ∫⁻ y, ENNReal.ofReal B' * ‖a y‖ₑ ^ (2 : ℝ) ∂b.addHaar := setLIntegral_le_lintegral _ _
+    _ = ENNReal.ofReal (s * B') * ∫⁻ y, ‖a y‖ₑ ^ (2 : ℝ) ∂volume := by
+        rw [lintegral_const_mul' _ _ ENNReal.ofReal_ne_top,
+          Measure.isAddLeftInvariant_eq_smul b.addHaar volume, lintegral_smul_measure,
+          ENNReal.smul_def, smul_eq_mul, ENNReal.ofReal_mul (q := B') s.coe_nonneg,
+          ENNReal.ofReal_coe_nnreal]
+        ring
+
+/-- **Extension by zero along a chart is bounded in `L²`.** For a chart `ψ` and a compact set
+`K ⊆ ψ.target`, there is `C` such that the extension by zero along `ψ` of every smooth flat form
+`a` supported in `K` has `L²` norm at most `C` times the `L²` norm of `a` for the Haar measure
+`volume` of `E`. -/
+theorem exists_norm_ofSmooth_extendByZeroAlong_le (ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞)
+    (o : Manifold.Orientation I M (Fin m)) {K : Set E} (hK : IsCompact K) (hKψ : K ⊆ ψ.target) :
+    ∃ C, 0 ≤ C ∧ ∀ (a : E → E [⋀^Fin k]→L[ℝ] ℝ) (ha : ContDiff ℝ ∞ a)
+      (hc : HasCompactSupport a) (hs : tsupport a ⊆ ψ.target), tsupport a ⊆ K →
+      ‖(ofSmooth (SmoothForm.extendByZeroAlong ψ a ha hc hs) : L2Form o k)‖ ≤
+        C * (eLpNorm a 2 volume).toReal := by
+  obtain ⟨B, hB, h⟩ := exists_ofReal_norm_ofSmooth_extendByZeroAlong_sq_le (k := k) ψ o hK hKψ
+  refine ⟨√B, by positivity, fun a ha hc hs haK ↦ ?_⟩
+  have hmem : MemLp a 2 volume := ha.continuous.memLp_of_hasCompactSupport hc
+  have hX : eLpNorm a 2 volume ^ (2 : ℝ) = ∫⁻ y, ‖a y‖ₑ ^ (2 : ℝ) ∂volume := by
+    simpa using eLpNorm_nnreal_pow_eq_lintegral (p := 2) two_ne_zero hmem.aestronglyMeasurable
+  have h2 := h a ha hc hs haK
+  rw [← hX] at h2
+  have h3 := (ENNReal.ofReal_le_iff_le_toReal (ENNReal.mul_ne_top ENNReal.ofReal_ne_top
+    (ENNReal.rpow_ne_top_of_nonneg zero_le_two hmem.eLpNorm_ne_top))).1 h2
+  rw [ENNReal.toReal_mul, ENNReal.toReal_ofReal hB, ← ENNReal.toReal_rpow, Real.rpow_two] at h3
+  refine (pow_le_pow_iff_left₀ (norm_nonneg _)
+    (mul_nonneg (Real.sqrt_nonneg _) ENNReal.toReal_nonneg) two_ne_zero).1 ?_
+  rwa [mul_pow, Real.sq_sqrt hB]
+
+/-- **An `L²` form whose localizations are smooth is smooth.** Let `ψ i` be finitely many charts
+and `ρ` a smooth partition of unity subordinate to their sources. If, for every `i`, the
+localization of `u` to `ψ i` with the cutoff `ρ i` is almost everywhere a smooth flat form `f i`
+with compact support in `(ψ i).target`, then `u` is the smooth form obtained by extending each
+`f i` by zero along `ψ i` and summing over `i`. -/
+theorem eq_ofSmooth_of_localize {ι : Type*} [Fintype ι]
+    (ψ : ι → PartialDiffeomorph I 𝓘(ℝ, E) M E ∞) (ρ : SmoothPartitionOfUnity ι I M Set.univ)
+    (hρ : ρ.IsSubordinate fun i ↦ (ψ i).source) {u : L2Form o k}
+    {f : ι → E → E [⋀^Fin k]→L[ℝ] ℝ} (hf : ∀ i, ContDiff ℝ ∞ (f i))
+    (hfc : ∀ i, HasCompactSupport (f i)) (hfs : ∀ i, tsupport (f i) ⊆ (ψ i).target)
+    (hu : ∀ i, localize (ψ i) (ρ i) (hρ i) u =ᵐ[volume] f i) :
+    u = ofSmooth (∑ i, SmoothForm.extendByZeroAlong (ψ i) (f i) (hf i) (hfc i) (hfs i)) := by
+  have hKρ (i : ι) : IsCompact (tsupport (ρ i)) := (isClosed_tsupport _).isCompact
+  have himage (i : ι) : (ψ i) '' tsupport (ρ i) ⊆ (ψ i).target :=
+    ((ψ i).mapsTo.mono_left (hρ i)).image_subset
+  set K : ι → Set E := fun i ↦ tsupport (f i) ∪ (ψ i) '' tsupport (ρ i)
+  have hK (i : ι) : IsCompact (K i) := (hfc i).union
+    ((hKρ i).image_of_continuousOn ((ψ i).contMDiffOn.continuousOn.mono (hρ i)))
+  have hKψ (i : ι) : K i ⊆ (ψ i).target := Set.union_subset (hfs i) (himage i)
+  choose C hC0 hC using fun i ↦
+    exists_norm_ofSmooth_extendByZeroAlong_le (k := k) (ψ i) o (hK i) (hKψ i)
+  set L : ι → L2Form o k →L[ℝ] Lp (E [⋀^Fin k]→L[ℝ] ℝ) 2 (volume : Measure E) :=
+    fun i ↦ localize (ψ i) (ρ i) (hρ i)
+  choose CL hCL0 hCL using fun i ↦ (L i).bound
+  set A := 1 + ∑ i, C i * CL i
+  have hA : 0 < A := add_pos_of_pos_of_nonneg one_pos
+    (Finset.sum_nonneg fun i _ ↦ mul_nonneg (hC0 i) (hCL0 i).le)
+  rw [← sub_eq_zero, ← norm_le_zero_iff]
+  refine le_of_forall_pos_le_add fun ε hε ↦ ?_
+  obtain ⟨β, hβ⟩ := denseRange_ofSmooth.exists_dist_lt u (div_pos hε hA)
+  rw [dist_eq_norm] at hβ
+  set g : ι → E → E [⋀^Fin k]→L[ℝ] ℝ := fun i ↦ β.localize (ψ i) (ρ i)
+  have hg (i : ι) : ContDiff ℝ ∞ (g i) := β.contDiff_localize (ψ i) (ρ i).contMDiff (hKρ i) (hρ i)
+  have hgc (i : ι) : HasCompactSupport (g i) := β.hasCompactSupport_localize (ψ i) (hKρ i) (hρ i)
+  have hsub (i : ι) : tsupport (g i - f i) ⊆ K i := by
+    refine closure_minimal (fun y hy ↦ ?_) (hK i).isClosed
+    by_contra h
+    simp only [K, Set.mem_union, not_or] at h
+    exact hy (by simp [g, image_eq_zero_of_notMem_tsupport h.1,
+      localize_apply_eq_zero_of_notMem _ _ _ h.2])
+  -- The difference of `β` and the glued form is the sum of the extensions of `g i - f i`.
+  have hdiff : ofSmooth β - ofSmooth (∑ i, SmoothForm.extendByZeroAlong (ψ i) (f i) (hf i)
+      (hfc i) (hfs i)) = ∑ i, (ofSmooth (SmoothForm.extendByZeroAlong (ψ i) (g i - f i)
+        ((hg i).sub (hf i)) ((hgc i).sub (hfc i)) ((hsub i).trans (hKψ i))) : L2Form o k) := by
+    rw [← map_sub, ← map_sum]
+    congr 1
+    conv_lhs => rw [← β.sum_extendByZeroAlong_localize ψ ρ hρ hKρ]
+    rw [← Finset.sum_sub_distrib]
+    exact Finset.sum_congr rfl fun i _ ↦ (SmoothForm.extendByZeroAlong_sub _ _ _ _ _ _ _ _ _).symm
+  -- Each `g i - f i` is small in `L²`, since `localize` is continuous.
+  have hloc (i : ι) : (eLpNorm (g i - f i) 2 volume).toReal ≤ CL i * (ε / A) := by
+    have h : (eLpNorm (g i - f i) 2 volume).toReal = ‖L i (ofSmooth β - u)‖ := by
+      rw [map_sub, Lp.norm_def, eLpNorm_congr_ae ((Lp.coeFn_sub _ _).trans
+        ((localize_ofSmooth _ _ _ β).sub (hu i)))]
+    rw [h]
+    refine (hCL i _).trans (mul_le_mul_of_nonneg_left ?_ (hCL0 i).le)
+    rw [norm_sub_rev]
+    exact hβ.le
+  calc ‖u - ofSmooth (∑ i, SmoothForm.extendByZeroAlong (ψ i) (f i) (hf i) (hfc i) (hfs i))‖
+      = ‖(u - ofSmooth β) + (ofSmooth β - ofSmooth (∑ i, SmoothForm.extendByZeroAlong (ψ i) (f i)
+          (hf i) (hfc i) (hfs i)))‖ := by rw [sub_add_sub_cancel]
+    _ ≤ ε / A + ∑ i, C i * (CL i * (ε / A)) := by
+        refine (norm_add_le _ _).trans (add_le_add hβ.le ?_)
+        rw [hdiff]
+        refine (norm_sum_le _ _).trans (Finset.sum_le_sum fun i _ ↦ ?_)
+        exact (hC i _ _ _ _ (hsub i)).trans (by gcongr; exacts [hC0 i, hloc i])
+    _ = 0 + ε := by
+        have h : ε / A + ∑ i, C i * (CL i * (ε / A)) = A * (ε / A) := by
+          simp only [A, add_mul, one_mul, Finset.sum_mul]
+          exact congrArg _ (Finset.sum_congr rfl fun i _ ↦ by ring)
+        rw [h, mul_div_cancel₀ _ hA.ne', zero_add]
+
+end ExtendByZero
 
 end L2Form
 
