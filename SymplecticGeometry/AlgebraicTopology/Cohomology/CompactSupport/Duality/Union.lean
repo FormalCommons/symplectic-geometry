@@ -58,8 +58,10 @@ of the proof use open sets of `TopCat.of M`, as Tau Ceti's Mayer–Vietoris squa
 
 The proof of `TauCeti.HomologicalOrientation.bijective_dualityMap_comap_sup` adapts that of Tau
 Ceti's `TauCeti.HomologicalOrientation.bijective_dualityMap_comap_sup_of_disjoint`: it applies the
-form for a cover inside `U ∪ V`. Its passage between an open set of `U ∪ V` and the same open set of
-`M` adapts Tau Ceti's private lemma `bijective_dualityMap_comap_comap_iff` (in
+form for a cover inside `U ∪ V`, the cover being
+`TopologicalSpace.Opens.comap_val_sup_comap_val_eq_top`. Its passage between an open set of
+`U ∪ V` and the same open set of `M` adapts Tau Ceti's private lemma
+`bijective_dualityMap_comap_comap_iff` (in
 `TauCeti/AlgebraicTopology/Cohomology/CompactSupport/Duality/Basic.lean`): it combines
 `TauCeti.HomologicalOrientation.comap_comap`,
 `TauCeti.HomologicalOrientation.bijective_dualityMap_comap_iff_of_range_eq` and
@@ -262,8 +264,7 @@ theorem bijective_dualityMap_comap_sup {U V : Opens M}
   have hle : U ⊓ V ≤ U ⊔ V := inf_le_left.trans le_sup_left
   refine (o.comap (U ⊔ V).isOpenEmbedding').bijective_dualityMap_of_sup_eq_top hn L
     (U := Opens.comap i U) (V := Opens.comap i V) ?_ (fun p q h ↦ ?_) (fun p q h ↦ ?_) ?_ ?_ h
-  · rw [← map_sup, eq_top_iff]
-    exact fun x _ ↦ x.property
+  · exact Opens.comap_val_sup_comap_val_eq_top U V
   · rw [comap_comap]
     exact (o.bijective_dualityMap_comap_iff_of_range_eq hn L h _ _
       (by rw [Opens.range_val_comp_val_comap le_sup_left, Subtype.range_coe])).2 (hU p q h)
