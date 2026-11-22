@@ -184,9 +184,8 @@ namespace TauCeti.Manifold.Orientation
 
 open SymplecticGeometry
 
-
 variable {S : Type} [TopologicalSpace S] [ChartedSpace (EuclideanHalfSpace 2) S]
-  [IsManifold (𝓡∂ 2) ∞ S] [T2Space S] [CompactSpace S] {n : Type*} [Fintype n] [DecidableEq n]
+  [IsManifold (𝓡∂ 2) 1 S] [T2Space S] [CompactSpace S] {n : Type*} [Fintype n] [DecidableEq n]
   (o : Manifold.Orientation (𝓡 2) (InteriorModel (𝓡∂ 2) ((𝓡∂ 2).interiorOpens S)) (Fin 2))
 
 /-- **The boundary Maslov index on a compact surface with boundary.** Let `S` be a compact surface
@@ -207,7 +206,6 @@ theorem boundaryMaslovIndex_def (Ψ : C((𝓡∂ 2).boundary S, GLSymplectic n �
         InteriorModel.range_val_interiorOpens isCollared_subtypeVal_boundary_of_compactSpace
         (Ψ.comp (.inclusion InteriorModel.compl_range_val_interiorOpens.subset)) :=
   (rfl)
-
 
 /-- Homotopic maps `∂S → Sp(2n)` have the same boundary Maslov index. -/
 theorem boundaryMaslovIndex_eq_of_homotopy {Ψ Ψ' : C((𝓡∂ 2).boundary S, GLSymplectic n ℝ)}
