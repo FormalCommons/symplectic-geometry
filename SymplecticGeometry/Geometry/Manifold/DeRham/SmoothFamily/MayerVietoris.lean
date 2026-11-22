@@ -8,6 +8,7 @@ module
 public import Mathlib.LinearAlgebra.Projection
 public import SymplecticGeometry.Geometry.Manifold.DeRham.SmoothFamily.Basic
 public import SymplecticGeometry.Geometry.Manifold.DeRham.SmoothFamily.Cutoff
+import SymplecticGeometry.Geometry.Manifold.DeRham.Map
 
 /-!
 # The Mayer–Vietoris step for smooth cohomology splittings
@@ -99,11 +100,9 @@ def overlapDiff (k : ℕ) :
       (closedForms I U k).subtype ∘ₗ LinearMap.fst _ _ _ -
     SmoothForm.mpullback (Opens.inclusion inf_le_right) (contMDiff_inclusion _) ∘ₗ
       (closedForms I V k).subtype ∘ₗ LinearMap.snd _ _ _).codRestrict _ fun p ↦ by
-    rw [mem_closedForms_iff_mextDerivₗ_eq_zero, LinearMap.sub_apply, map_sub]
-    simp only [LinearMap.comp_apply, Submodule.subtype_apply, LinearMap.fst_apply,
-      LinearMap.snd_apply, SmoothForm.mextDerivₗ_mpullback,
-      (mem_closedForms_iff_mextDerivₗ_eq_zero I _).mp p.1.property,
-      (mem_closedForms_iff_mextDerivₗ_eq_zero I _).mp p.2.property, map_zero, sub_zero]
+    rw [LinearMap.sub_apply]
+    exact sub_mem (SmoothForm.mpullback_mem_closedForms _ _ p.1.property)
+      (SmoothForm.mpullback_mem_closedForms _ _ p.2.property)
 
 /-- The underlying form of `overlapDiff`. -/
 theorem coe_overlapDiff (k : ℕ) (p : closedForms I U k × closedForms I V k) :
