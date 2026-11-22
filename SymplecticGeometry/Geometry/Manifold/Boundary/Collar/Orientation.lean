@@ -10,6 +10,7 @@ public import TauCeti.Geometry.Manifold.Boundary.InducedOrientation
 public import TauCeti.Geometry.Manifold.Orientation.OpenSubset
 public import TauCeti.Geometry.Manifold.Orientation.Prod
 public import TauCeti.Geometry.Manifold.Orientation.Sign
+public import SymplecticGeometry.Geometry.Manifold.Orientation.OpenSubset
 import Mathlib.GroupTheory.Perm.Fin
 import SymplecticGeometry.Geometry.Manifold.Boundary.Charts
 
@@ -94,14 +95,8 @@ theorem normalIioOpensOrientation_def (ε : ℝ) :
 theorem orientationAt_normalIioOpensOrientation {ε : ℝ} (t : normalIioOpens ε) :
     (normalIioOpensOrientation ε).orientationAt t =
       (EuclideanSpace.basisFun (Fin 1) ℝ).toBasis.orientation := by
-  have h := (Manifold.Orientation.isOrientationPreservingAt_iff_of_basis
-    (o := normalIioOpensOrientation ε) (f := Subtype.val) (x := t)
-    (EuclideanSpace.basisFun (Fin 1) ℝ).toBasis (EuclideanSpace.basisFun (Fin 1) ℝ).toBasis
-    (fun i ↦ by rw [Manifold.mfderiv_subtype_val, ContinuousLinearEquiv.coe_coe,
-      Manifold.tangentSpaceOpenEquiv_apply]; rfl)).1
-    (Manifold.Orientation.isOrientationPreservingAt_restrict _ _ t)
-  rw [normalIioOpensOrientation_def, Manifold.Orientation.orientationAt_model] at h
-  exact (h.2 rfl).symm
+  rw [normalIioOpensOrientation_def, Manifold.Orientation.orientationAt_restrict,
+    Manifold.Orientation.orientationAt_model]
 
 /-- The coordinate `t ↦ t 0` of `[0, ε)` preserves orientation at every point, from the standard
 orientation of `[0, ε)` to the standard orientation of `ℝ`. -/

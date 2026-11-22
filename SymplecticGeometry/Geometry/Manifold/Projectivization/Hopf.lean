@@ -8,6 +8,7 @@ module
 public import Mathlib.Geometry.Manifold.Instances.Sphere
 public import TauCeti.Geometry.Manifold.Instances.Cylinder
 public import TauCeti.Geometry.Manifold.Instances.Projectivization
+public import TauCeti.Geometry.Manifold.Projectivization.Map
 public import TauCeti.Geometry.Manifold.Submersion.Split
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
 import Mathlib.Analysis.Calculus.Deriv.Inv
@@ -32,6 +33,10 @@ underlying real manifolds, using Tau Ceti's affine charts of `ℙ 𝕜 (Fin (n +
   of a coordinate `j` with `v j ≠ 0` it has the local section `z ↦ v j • Fin.insertNth j 1 z` in
   the chart. The kernel of its derivative at `v` is the line `𝕜 ∙ v` (`ker_mfderiv_mkNonzero`),
   since `mkNonzero` is constant along that line and the dimensions agree.
+* For the same real structures, the map of projective spaces induced by an injective linear map
+  and the inverse of each affine chart are smooth of every order
+  (`contMDiff_map_restrictScalars`, `contMDiff_affineChart_symm_restrictScalars`), by Tau Ceti's
+  `ContMDiff.restrictScalars` applied to `contMDiff_map` and `contMDiff_affineChart_symm`.
 * `SymplecticGeometry.sphereHopf n` is the Hopf map `S²ⁿ⁺¹ → ℂPⁿ` from the unit sphere of
   `StdSpace (Fin (n + 1))`, sending `x` to the complex line through
   `(TauCeti.complexToRealEuclidean _)⁻¹ x`. It is `mkNonzero ℂ n` after the inclusion
@@ -108,6 +113,18 @@ manifold structures, for every `r`. -/
 theorem contMDiff_mkNonzero (r : ℕ∞ω) :
     ContMDiff 𝓘(ℝ, Fin (n + 1) → 𝕜) 𝓘(ℝ, Fin n → 𝕜) r (mkNonzero 𝕜 n) := by
   simpa using (contMDiff_mkNonzero_self (𝕜 := 𝕜) (n := n) r).restrictScalars ℝ
+
+/-- The map of projective spaces induced by an injective linear map is `C^r` for the underlying
+real manifold structures. -/
+theorem contMDiff_map_restrictScalars {m : ℕ} (f : (Fin (m + 1) → 𝕜) →ₗ[𝕜] Fin (n + 1) → 𝕜)
+    (hf : Injective f) (r : ℕ∞ω) :
+    ContMDiff 𝓘(ℝ, Fin m → 𝕜) 𝓘(ℝ, Fin n → 𝕜) r (map f hf) := by
+  simpa using (contMDiff_map f hf r).restrictScalars ℝ
+
+/-- The inverse of an affine chart is `C^r` for the underlying real manifold structures. -/
+theorem contMDiff_affineChart_symm_restrictScalars (j : Fin (n + 1)) (r : ℕ∞ω) :
+    ContMDiff 𝓘(ℝ, Fin n → 𝕜) 𝓘(ℝ, Fin n → 𝕜) r (affineChart (K := 𝕜) j).symm := by
+  simpa using (contMDiff_affineChart_symm (𝕜 := 𝕜) j r).restrictScalars ℝ
 
 /-- Near `v`, the projection `mkNonzero` has the local section
 `y ↦ v j • Fin.insertNth j 1 (affineChart j y)` through `v`, for a coordinate `j` with `v j ≠ 0`,
