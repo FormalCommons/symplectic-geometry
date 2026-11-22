@@ -692,9 +692,7 @@ with coefficients in `ULift ℤ` multiplied by
 `TauCeti.LocalOrientation.crossSign` in the file below. The
 chain-level steps are `TopCat.shuffleAssocHomotopy`, the homotopy of
 `SSet.shuffleAssocHomotopy` on singular chains, and
-`TopCat.shufflePairAssocHomotopy`, its descent to the relative chains; the
-file also adds `TopCat.shufflePair_coefficient_naturality` and
-`TopCat.singularHomologyCrossRelPair_coefficient_naturality`.
+`TopCat.shufflePairAssocHomotopy`, its descent to the relative chains.
 
 ### `AlgebraicTopology/Singular/LocalHomology/Orientation/Cross/Basic.lean`
 

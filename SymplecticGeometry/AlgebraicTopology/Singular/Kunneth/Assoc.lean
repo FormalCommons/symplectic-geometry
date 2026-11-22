@@ -5,10 +5,12 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.Algebra.Category.ModuleCat.ULiftTensor
+public import SymplecticGeometry.Algebra.Homology.Monoidal.HomologyCrossHomotopy
 public import SymplecticGeometry.Algebra.Homology.Monoidal.SplitMono
+public import SymplecticGeometry.AlgebraicTopology.Singular.PairChangeOfCoefficients
 public import SymplecticGeometry.AlgebraicTopology.Singular.Kunneth.RelativePair
 public import SymplecticGeometry.AlgebraicTopology.SimplicialSet.ShuffleAssoc
-public import TauCeti.Algebra.Category.ModuleCat.Monoidal.Unit
 
 /-!
 # Associativity of the homology cross product of pairs
@@ -19,11 +21,12 @@ pairs `TopCat.singularHomologyCrossRelPair` is associative
 `c ∈ H_r(Z, D; T)`, the map induced by the coefficient associator `(R ⊗ S) ⊗ T ≅ R ⊗ (S ⊗ T)`
 and by the associator `(X × Y) × Z ≅ X × (Y × Z)`, a map of pairs
 (`TopCat.mapsTo_associator_hom_preimage_union`), sends `(a × b) × c` to `a × (b × c)`, with no
-sign. With coefficients in `ULift ℤ`, multiplied back to `ULift ℤ` after each cross product by
-`ModuleCat.uliftTensorSelfIso`, this is
-`TopCat.singularHomologyCrossRelPair_uliftTensorSelfIso_assoc`; it uses the naturality of the
-cross product of pairs in the coefficients
-(`TopCat.singularHomologyCrossRelPair_coefficient_naturality`).
+sign. For a coefficient object `R` with an associative multiplication `μ : R ⊗ R ⟶ R`, applied
+after each cross product, the same holds without the coefficient associator
+(`TopCat.singularHomologyCrossRelPair_mul_assoc`), by the naturality of the cross product of
+pairs in the coefficients (`TopCat.singularHomologyCrossRelPair_coefficient_naturality`). With
+coefficients in `ULift ℤ` and the multiplication of `ModuleCat.uliftTensorSelfIso`, this is
+`TopCat.singularHomologyCrossRelPair_uliftTensorSelfIso_assoc`.
 
 Tau Ceti proves the absolute statement `TopCat.singularHomologyCross_assoc` by cancelling the
 isomorphism that the Alexander–Whitney map induces on homology. For pairs that argument would need
@@ -36,14 +39,13 @@ inclusions of `A`, `B` and `D`, the homotopy followed by the projection to the r
 vanishes on the chains of the three pieces of the subspace, so it descends to the tensor product
 of the relative chains, one factor at a time (`Homotopy.descCokernel`), as `TopCat.shufflePair` is
 built: this is `TopCat.shufflePairAssocHomotopy`. On homology, the associativity of the algebraic
-cross product (`HomologicalComplex.homologyCross_assoc`) and its naturality conclude.
+cross product and its naturality conclude
+(`HomologicalComplex.homologyCross_homologyMap_assoc_of_homotopy`).
 
 The descent of the homotopy follows that of `TopCat.shuffleAlexanderWhitneyPairHomotopy`
 (`Singular/Kunneth/RelativePair.lean`), and the homology step follows the proof of Tau Ceti's
 `TopCat.singularHomologyCross_assoc` (`TauCeti/AlgebraicTopology/Singular/CrossProduct.lean`),
-with the homotopy in place of the Alexander–Whitney map. The coefficient naturality adapts
-`TopCat.singularHomologyCross_coefficient_naturality` (same file) to pairs, through the
-characterization of `TopCat.shufflePair` as in `TopCat.shufflePair_naturality`.
+with the homotopy in place of the Alexander–Whitney map.
 
 ## Main definitions
 
@@ -55,9 +57,9 @@ characterization of `TopCat.shufflePair` as in `TopCat.shufflePair_naturality`.
 ## Main results
 
 * `TopCat.shuffleAssocHomotopy_hom_naturality`: the homotopy of spaces is natural.
-* `TopCat.shufflePair_coefficient_naturality` and
-  `TopCat.singularHomologyCrossRelPair_coefficient_naturality`: naturality in the coefficients.
 * `TopCat.singularHomologyCrossRelPair_assoc`: associativity of the cross product of pairs.
+* `TopCat.singularHomologyCrossRelPair_mul_assoc`: the same, followed by an associative
+  multiplication of the coefficients.
 * `TopCat.singularHomologyCrossRelPair_uliftTensorSelfIso_assoc`: the same with coefficients in
   `ULift ℤ`.
 
@@ -76,34 +78,6 @@ open CategoryTheory MonoidalCategory CartesianMonoidalCategory HomologicalComple
   AlgebraicTopology
 
 universe w v u
-
-namespace TopPair
-
-variable {C : Type u} [Category.{v} C] [Preadditive C] [HasCoproducts.{w} C]
-
-/-- A continuous map into `X` with range in `A` induces a chain map that vanishes in the chains of
-`X` relative to `A`. -/
-theorem chainComplexMap_comp_singularChainComplexπ_eq_zero_of_range_subset
-    {X Z : TopCat.{w}} {A : Set X} {f : Z ⟶ X} (hf : Set.range f ⊆ A) (R : C) :
-    SSet.chainComplexMap (TopCat.toSSet.map f) R ≫ (ofSubset A).singularChainComplexπ R = 0 := by
-  let g : Z ⟶ (ofSubset A).snd :=
-    TopCat.ofHom ⟨Set.codRestrict f A fun z ↦ hf ⟨z, rfl⟩, by fun_prop⟩
-  have hfac : g ≫ (TopPair.ofSubset A).map = f := by
-    rw [TopPair.ofSubset_map]
-    rfl
-  have h : SSet.chainComplexMap (TopCat.toSSet.map f) R =
-      SSet.chainComplexMap (TopCat.toSSet.map g) R ≫
-        SSet.chainComplexMap (TopCat.toSSet.map (ofSubset A).map) R := by
-    rw [← hfac]
-    exact (congrArg (SSet.chainComplexMap · R) (Functor.map_comp _ _ _)).trans
-      (Functor.map_comp _ _ _)
-  rw [h]
-  -- the ambient chains of the pair `(X, A)` are those of `X` only up to unfolding, so the
-  -- composite is reassociated by hand
-  exact (Category.assoc _ _ _).trans ((congrArg (_ ≫ ·)
-    (chainComplexMap_comp_singularChainComplexπ (TopPair.ofSubset A) R)).trans comp_zero)
-
-end TopPair
 
 namespace TopCat
 
@@ -480,9 +454,7 @@ private def shufflePairAssocHomotopy₁ :
     ((TopPair.ofSubset (fst X (Y ⊗ Z) ⁻¹' A ∪
       snd X (Y ⊗ Z) ⁻¹' (fst Y Z ⁻¹' B ∪ snd Y Z ⁻¹' D))).singularChainComplexπ (R ⊗ (S ⊗ T)))
     _
-    (fun i ↦ have hSi := hS.map_of_exact (HomologicalComplex.eval C _ i)
-      have := hSi.epi_g
-      hSi.exact.gIsCokernel)
+    (fun i ↦ (hS.map_of_exact (HomologicalComplex.eval C _ i)).gIsCokernel)
     (fun i j ↦ by
       have h := shuffleAssocHomotopy_hom_comp_singularChainComplexπ_eq_zero X Y Z A B D R S T
         (TopPair.ofSubset A).map (𝟙 Y) (𝟙 Z) (by rintro _ ⟨x, rfl⟩; exact Or.inl x.1.property) i j
@@ -516,9 +488,7 @@ private def shufflePairAssocHomotopy₂ :
   have hS := shortExact_shortComplex₂ X Y A B R S T Z
   _root_.Homotopy.descCokernel (shufflePairAssocHomotopy₁ X Y Z A B D R S T)
     (shortComplex₂ X Y A B R S T Z).f (shortComplex₂ X Y A B R S T Z).g (𝟙 _) _
-    (fun i ↦ have hSi := hS.map_of_exact (HomologicalComplex.eval C _ i)
-      have := hSi.epi_g
-      hSi.exact.gIsCokernel)
+    (fun i ↦ (hS.map_of_exact (HomologicalComplex.eval C _ i)).gIsCokernel)
     (fun i j ↦ by
       have : Epi ((shortComplex₁ X Z A R S T (TopPair.ofSubset B).snd).g.f i) :=
         ((shortExact_shortComplex₁ X Z A R S T (TopPair.ofSubset B).snd).map_of_exact
@@ -582,9 +552,7 @@ def shufflePairAssocHomotopy :
   have hS := shortExact_shortComplex₃ X Y Z A B D R S T
   _root_.Homotopy.descCokernel (shufflePairAssocHomotopy₂ X Y Z A B D R S T)
     (shortComplex₃ X Y Z A B D R S T).f (shortComplex₃ X Y Z A B D R S T).g (𝟙 _) _
-    (fun i ↦ have hSi := hS.map_of_exact (HomologicalComplex.eval C _ i)
-      have := hSi.epi_g
-      hSi.exact.gIsCokernel)
+    (fun i ↦ (hS.map_of_exact (HomologicalComplex.eval C _ i)).gIsCokernel)
     (fun i j ↦ by
       have : Epi ((shortComplex₁ X (TopPair.ofSubset D).snd A R S T Y).g.f i ≫
           (shortComplex₂ X Y A B R S T (TopPair.ofSubset D).snd).g.f i) :=
@@ -653,33 +621,7 @@ theorem singularHomologyCrossRelPair_assoc :
           singularHomologyCrossRelPair Y Z B D S T q r qr hqr ≫
         singularHomologyCrossRelPair X (Y ⊗ Z) A (fst Y Z ⁻¹' B ∪ snd Y Z ⁻¹' D) R (S ⊗ T)
           p qr n hn' := by
-  -- the homology cross product of chain complexes, followed by two chain maps that are
-  -- associative up to homotopy, is associative
-  have key {K₁ K₂ K₃ L L' N : ChainComplex C ℕ} (φ : K₁ ⊗ K₂ ⟶ L) (ψ : L ⊗ K₃ ⟶ N)
-        (θ : K₂ ⊗ K₃ ⟶ L') (χ : K₁ ⊗ L' ⟶ N)
-        (H : _root_.Homotopy ((φ ▷ K₃) ≫ ψ) ((α_ K₁ K₂ K₃).hom ≫ (K₁ ◁ θ) ≫ χ)) :
-        (homologyCross K₁ K₂ p q pq hpq ≫ homologyMap φ pq) ▷ K₃.homology r ≫
-            homologyCross L K₃ pq r n hn ≫ homologyMap ψ n =
-          (α_ (K₁.homology p) (K₂.homology q) (K₃.homology r)).hom ≫
-            K₁.homology p ◁ (homologyCross K₂ K₃ q r qr hqr ≫ homologyMap θ qr) ≫
-              homologyCross K₁ L' p qr n hn' ≫ homologyMap χ n := by
-    have hL := homologyCross_naturality φ (𝟙 K₃) pq r n hn
-    rw [homologyMap_id, tensorHom_id] at hL
-    have hR := homologyCross_naturality (𝟙 K₁) θ p qr n hn'
-    rw [homologyMap_id, id_tensorHom] at hR
-    have hH : homologyMap (HomologicalComplex.tensorHom φ (𝟙 K₃)) n ≫ homologyMap ψ n =
-        homologyMap (α_ K₁ K₂ K₃).hom n ≫ homologyMap (HomologicalComplex.tensorHom (𝟙 K₁) θ) n ≫
-          homologyMap χ n := by
-      have := H.homologyMap_eq n
-      rw [homologyMap_comp, homologyMap_comp, homologyMap_comp] at this
-      -- `▷` and `◁` of complexes are the tensor products with identities, by definition
-      exact this
-    rw [comp_whiskerRight_assoc, reassoc_of% hL, whiskerLeft_comp_assoc, reassoc_of% hR]
-    -- the homology of `K ⊗ L` is that of `HomologicalComplex.tensorObj K L` only up to unfolding
-    refine (congrArg (homologyCross K₁ K₂ p q pq hpq ▷ K₃.homology r ≫
-      homologyCross (K₁ ⊗ K₂) K₃ pq r n hn ≫ ·) hH).trans ?_
-    exact homologyCross_assoc_assoc K₁ K₂ K₃ p q r pq qr n hpq hqr hn hn' _
-  have := key (shufflePair X Y A B R S)
+  have := homologyCross_homologyMap_assoc_of_homotopy (shufflePair X Y A B R S)
     (shufflePair (X ⊗ Y) Z (fst X Y ⁻¹' A ∪ snd X Y ⁻¹' B) D (R ⊗ S) T ≫
       ((SSetPair.chainComplexFunctor C).map (α_ R S T).hom).app (TopPair.toSSetPair.obj
         (TopPair.ofSubset (fst (X ⊗ Y) Z ⁻¹' (fst X Y ⁻¹' A ∪ snd X Y ⁻¹' B) ∪
@@ -687,78 +629,65 @@ theorem singularHomologyCrossRelPair_assoc :
         TopPair.singularChainComplexMap (TopPair.ofSubsetMap (α_ X Y Z).hom
           (mapsTo_associator_hom_preimage_union X Y Z A B D)) (R ⊗ (S ⊗ T)))
     (shufflePair Y Z B D S T) (shufflePair X (Y ⊗ Z) A (fst Y Z ⁻¹' B ∪ snd Y Z ⁻¹' D) R (S ⊗ T))
-    (shufflePairAssocHomotopy X Y Z A B D R S T)
+    (shufflePairAssocHomotopy X Y Z A B D R S T) p q r pq qr n hpq hqr hn hn'
   simp only [homologyMap_comp] at this
   simp only [singularHomologyCrossRelPair_def, Category.assoc]
   exact this
 
-section Coefficients
-
-variable {X Y} {R S R' S' : C} (φ : R ⟶ R') (ψ : S ⟶ S')
-
-omit [∀ T : C, PreservesColimitsOfShape WalkingParallelPair (tensorLeft T)]
-  [∀ T : C, PreservesColimitsOfShape WalkingParallelPair (tensorRight T)] in
-/-- **Naturality of the shuffle map of a product of pairs** in the two coefficient objects. -/
-@[reassoc]
-theorem shufflePair_coefficient_naturality :
-    (((SSetPair.chainComplexFunctor C).map φ).app (TopPair.toSSetPair.obj (TopPair.ofSubset A)) ⊗ₘ
-        ((SSetPair.chainComplexFunctor C).map ψ).app
-          (TopPair.toSSetPair.obj (TopPair.ofSubset B))) ≫ shufflePair X Y A B R' S' =
-      shufflePair X Y A B R S ≫ ((SSetPair.chainComplexFunctor C).map (φ ⊗ₘ ψ)).app
-        (TopPair.toSSetPair.obj (TopPair.ofSubset (fst X Y ⁻¹' A ∪ snd X Y ⁻¹' B))) := by
-  refine (cancel_epi ((TopPair.ofSubset A).singularChainComplexπ R ⊗ₘ
-      (TopPair.ofSubset B).singularChainComplexπ S)).1 ?_
-  have h₁ := TopPair.singularChainComplexπ_coefficient_naturality (TopPair.ofSubset A) φ
-  have h₂ := TopPair.singularChainComplexπ_coefficient_naturality (TopPair.ofSubset B) ψ
-  have h₃ := TopPair.singularChainComplexπ_coefficient_naturality
-    (TopPair.ofSubset (fst X Y ⁻¹' A ∪ snd X Y ⁻¹' B)) (φ ⊗ₘ ψ)
-  have h₄ := shuffle_coefficient_naturality X Y φ ψ
-  have h₅ : ((TopPair.ofSubset A).singularChainComplexπ R ⊗ₘ
-        (TopPair.ofSubset B).singularChainComplexπ S) ≫
-      (((SSetPair.chainComplexFunctor C).map φ).app (TopPair.toSSetPair.obj (TopPair.ofSubset A)) ⊗ₘ
-        ((SSetPair.chainComplexFunctor C).map ψ).app
-          (TopPair.toSSetPair.obj (TopPair.ofSubset B))) =
-      (((SSet.chainComplexFunctor C).map φ).app (toSSet.obj X) ⊗ₘ
-        ((SSet.chainComplexFunctor C).map ψ).app (toSSet.obj Y)) ≫
-        ((TopPair.ofSubset A).singularChainComplexπ R' ⊗ₘ
-          (TopPair.ofSubset B).singularChainComplexπ S') :=
-    (tensorHom_comp_tensorHom _ _ _ _).trans ((congrArg₂ (· ⊗ₘ ·) h₁.symm h₂.symm).trans
-      (tensorHom_comp_tensorHom _ _ _ _).symm)
-  -- the ambient chains of a pair are the chains of its space only up to unfolding, so the
-  -- composites are reassociated by hand
-  exact (Category.assoc _ _ _).symm.trans <| (congrArg (· ≫ shufflePair X Y A B R' S') h₅).trans <|
-    (Category.assoc _ _ _).trans <| (congrArg (_ ≫ ·)
-      (singularChainComplexπ_tensorHom_singularChainComplexπ_shufflePair X Y A B R' S')).trans <|
-    (Category.assoc _ _ _).symm.trans <| (congrArg (· ≫ _) h₄).trans <|
-    (Category.assoc _ _ _).trans <| (congrArg (shuffle X Y R S ≫ ·) h₃).trans <|
-    (Category.assoc _ _ _).symm.trans <| (congrArg (· ≫ _)
-      (singularChainComplexπ_tensorHom_singularChainComplexπ_shufflePair X Y A B R S).symm).trans
-        (Category.assoc _ _ _)
-
-/-- **Naturality of the cross product of two pairs** in the two coefficient objects:
-`φ_* a × ψ_* b = (φ ⊗ ψ)_* (a × b)`. -/
-@[reassoc]
-theorem singularHomologyCrossRelPair_coefficient_naturality :
-    (homologyMap (((SSetPair.chainComplexFunctor C).map φ).app
-          (TopPair.toSSetPair.obj (TopPair.ofSubset A))) p ⊗ₘ
-        homologyMap (((SSetPair.chainComplexFunctor C).map ψ).app
-          (TopPair.toSSetPair.obj (TopPair.ofSubset B))) q) ≫
-        singularHomologyCrossRelPair X Y A B R' S' p q pq hpq =
-      singularHomologyCrossRelPair X Y A B R S p q pq hpq ≫
-        homologyMap (((SSetPair.chainComplexFunctor C).map (φ ⊗ₘ ψ)).app
-          (TopPair.toSSetPair.obj (TopPair.ofSubset (fst X Y ⁻¹' A ∪ snd X Y ⁻¹' B)))) pq := by
-  rw [singularHomologyCrossRelPair_def, singularHomologyCrossRelPair_def]
-  -- the relative singular homology objects are by definition the homology of the relative chains,
-  -- so the algebraic naturality applies; the composites are reassociated by hand, as in
-  -- `TopCat.singularHomologyCrossRelPair_naturality`
-  exact (Category.assoc _ _ _).symm.trans <|
-    (congrArg (· ≫ homologyMap (shufflePair X Y A B R' S') pq)
-      (homologyCross_naturality _ _ p q pq hpq)).trans <|
-    (Category.assoc _ _ _).trans <| (congrArg (_ ≫ ·) ((homologyMap_comp _ _ pq).symm.trans
-      ((congrArg (homologyMap · pq) (shufflePair_coefficient_naturality A B φ ψ)).trans
-        (homologyMap_comp _ _ pq)))).trans (Category.assoc _ _ _).symm
-
-end Coefficients
+variable {R} in
+/-- **Associativity of the cross product of pairs followed by a multiplication.** Let
+`μ : R ⊗ R ⟶ R` be associative, `(μ ▷ R) ≫ μ = (α_ R R R).hom ≫ (R ◁ μ) ≫ μ`, and write `a × b`
+for the cross product of pairs with coefficients in `R` followed by the map induced by `μ`. Then
+the map of pairs induced by the associator `(X × Y) × Z ≅ X × (Y × Z)` sends `(a × b) × c` to
+`a × (b × c)`. -/
+theorem singularHomologyCrossRelPair_mul_assoc (μ : R ⊗ R ⟶ R)
+    (hμ : (μ ▷ R) ≫ μ = (α_ R R R).hom ≫ (R ◁ μ) ≫ μ) :
+    (singularHomologyCrossRelPair X Y A B R R p q pq hpq ≫
+        homologyMap (((SSetPair.chainComplexFunctor C).map μ).app (TopPair.toSSetPair.obj
+          (TopPair.ofSubset (fst X Y ⁻¹' A ∪ snd X Y ⁻¹' B)))) pq) ▷
+        (TopPair.ofSubset D).singularHomology R r ≫
+      singularHomologyCrossRelPair (X ⊗ Y) Z (fst X Y ⁻¹' A ∪ snd X Y ⁻¹' B) D R R pq r n hn ≫
+        homologyMap (((SSetPair.chainComplexFunctor C).map μ).app (TopPair.toSSetPair.obj
+          (TopPair.ofSubset (fst (X ⊗ Y) Z ⁻¹' (fst X Y ⁻¹' A ∪ snd X Y ⁻¹' B) ∪
+            snd (X ⊗ Y) Z ⁻¹' D)))) n ≫
+          TopPair.singularHomologyMap (TopPair.ofSubsetMap (α_ X Y Z).hom
+            (mapsTo_associator_hom_preimage_union X Y Z A B D)) R n =
+      (α_ _ _ _).hom ≫
+        (TopPair.ofSubset A).singularHomology R p ◁
+          (singularHomologyCrossRelPair Y Z B D R R q r qr hqr ≫
+            homologyMap (((SSetPair.chainComplexFunctor C).map μ).app (TopPair.toSSetPair.obj
+              (TopPair.ofSubset (fst Y Z ⁻¹' B ∪ snd Y Z ⁻¹' D)))) qr) ≫
+        singularHomologyCrossRelPair X (Y ⊗ Z) A (fst Y Z ⁻¹' B ∪ snd Y Z ⁻¹' D) R R p qr n hn' ≫
+          homologyMap (((SSetPair.chainComplexFunctor C).map μ).app (TopPair.toSSetPair.obj
+            (TopPair.ofSubset (fst X (Y ⊗ Z) ⁻¹' A ∪
+              snd X (Y ⊗ Z) ⁻¹' (fst Y Z ⁻¹' B ∪ snd Y Z ⁻¹' D))))) n := by
+  have h₁ := singularHomologyCrossRelPair_coefficient_naturality
+    (A := fst X Y ⁻¹' A ∪ snd X Y ⁻¹' B) (B := D) (p := pq) (q := r) (n := n) (h := hn) μ (𝟙 R)
+  have h₂ := singularHomologyCrossRelPair_coefficient_naturality (A := A)
+    (B := fst Y Z ⁻¹' B ∪ snd Y Z ⁻¹' D) (p := p) (q := qr) (n := n) (h := hn') (𝟙 R) μ
+  simp only [CategoryTheory.Functor.map_id, NatTrans.id_app, homologyMap_id, tensorHom_id,
+    id_tensorHom] at h₁ h₂
+  have h₃ := singularHomologyCrossRelPair_assoc X Y Z A B D R R R p q r pq qr n hpq hqr hn hn'
+  have h₄ : homologyMap (((SSetPair.chainComplexFunctor C).map (μ ▷ R)).app
+        (TopPair.toSSetPair.obj (TopPair.ofSubset (fst (X ⊗ Y) Z ⁻¹' (fst X Y ⁻¹' A ∪
+          snd X Y ⁻¹' B) ∪ snd (X ⊗ Y) Z ⁻¹' D)))) n ≫
+      homologyMap (((SSetPair.chainComplexFunctor C).map μ).app
+        (TopPair.toSSetPair.obj (TopPair.ofSubset (fst (X ⊗ Y) Z ⁻¹' (fst X Y ⁻¹' A ∪
+          snd X Y ⁻¹' B) ∪ snd (X ⊗ Y) Z ⁻¹' D)))) n =
+      homologyMap (((SSetPair.chainComplexFunctor C).map (α_ R R R).hom).app
+          (TopPair.toSSetPair.obj (TopPair.ofSubset (fst (X ⊗ Y) Z ⁻¹' (fst X Y ⁻¹' A ∪
+            snd X Y ⁻¹' B) ∪ snd (X ⊗ Y) Z ⁻¹' D)))) n ≫
+        homologyMap (((SSetPair.chainComplexFunctor C).map (R ◁ μ)).app
+          (TopPair.toSSetPair.obj (TopPair.ofSubset (fst (X ⊗ Y) Z ⁻¹' (fst X Y ⁻¹' A ∪
+            snd X Y ⁻¹' B) ∪ snd (X ⊗ Y) Z ⁻¹' D)))) n ≫
+          homologyMap (((SSetPair.chainComplexFunctor C).map μ).app
+            (TopPair.toSSetPair.obj (TopPair.ofSubset (fst (X ⊗ Y) Z ⁻¹' (fst X Y ⁻¹' A ∪
+              snd X Y ⁻¹' B) ∪ snd (X ⊗ Y) Z ⁻¹' D)))) n := by
+    simp only [← homologyMap_comp, ← NatTrans.comp_app, ← Functor.map_comp, hμ]
+  have h₅ {R₁ R₂ : C} (φ : R₁ ⟶ R₂) := TopPair.singularHomologyMap_coefficient_naturality
+    (TopPair.ofSubsetMap (α_ X Y Z).hom (mapsTo_associator_hom_preimage_union X Y Z A B D)) φ n
+  rw [comp_whiskerRight_assoc, reassoc_of% h₁, reassoc_of% h₄, h₅, reassoc_of% h₅,
+    reassoc_of% h₃, ← reassoc_of% h₂, whiskerLeft_comp_assoc]
 
 end Relative
 
@@ -800,71 +729,9 @@ theorem singularHomologyCrossRelPair_uliftTensorSelfIso_assoc :
           homologyMap (((SSetPair.chainComplexFunctor (ModuleCat.{0} ℤ)).map
             (ModuleCat.uliftTensorSelfIso ℤ).hom).app (TopPair.toSSetPair.obj
               (TopPair.ofSubset (fst X (Y ⊗ Z) ⁻¹' A ∪
-                snd X (Y ⊗ Z) ⁻¹' (fst Y Z ⁻¹' B ∪ snd Y Z ⁻¹' D))))) n := by
-  have hμ : ((ModuleCat.uliftTensorSelfIso ℤ).hom ▷ ModuleCat.of ℤ (ULift.{0} ℤ)) ≫
-      (ModuleCat.uliftTensorSelfIso ℤ).hom =
-        (α_ _ _ _).hom ≫ (ModuleCat.of ℤ (ULift.{0} ℤ) ◁ (ModuleCat.uliftTensorSelfIso ℤ).hom) ≫
-          (ModuleCat.uliftTensorSelfIso ℤ).hom := by
-    refine ModuleCat.MonoidalCategory.tensor_ext₃' fun a b c ↦ ?_
-    -- the whiskerings and the associator act on pure tensors by definition
-    -- (`ModuleCat.MonoidalCategory.whiskerRight_apply` and its neighbours), which `simp` does not
-    -- see through the carrier of `ModuleCat.of ℤ (ULift ℤ)`
-    change (ModuleCat.uliftTensorSelfIso ℤ).hom
-        ((ModuleCat.uliftTensorSelfIso ℤ).hom (a ⊗ₜ b) ⊗ₜ c) =
-      (ModuleCat.uliftTensorSelfIso ℤ).hom (a ⊗ₜ (ModuleCat.uliftTensorSelfIso ℤ).hom (b ⊗ₜ c))
-    rw [ModuleCat.uliftTensorSelfIso_hom_tmul ℤ a b, ModuleCat.uliftTensorSelfIso_hom_tmul ℤ b c,
-      ModuleCat.uliftTensorSelfIso_hom_tmul, ModuleCat.uliftTensorSelfIso_hom_tmul]
-    exact congrArg ULift.up (mul_assoc _ _ _)
-  have h₁ := singularHomologyCrossRelPair_coefficient_naturality
-    (A := fst X Y ⁻¹' A ∪ snd X Y ⁻¹' B)
-    (B := D) (p := pq) (q := r) (pq := n) (hpq := hn) (ModuleCat.uliftTensorSelfIso ℤ).hom
-    (𝟙 (ModuleCat.of ℤ (ULift.{0} ℤ)))
-  have h₂ := singularHomologyCrossRelPair_coefficient_naturality (A := A)
-    (B := fst Y Z ⁻¹' B ∪ snd Y Z ⁻¹' D) (p := p) (q := qr) (pq := n) (hpq := hn')
-    (𝟙 (ModuleCat.of ℤ (ULift.{0} ℤ))) (ModuleCat.uliftTensorSelfIso ℤ).hom
-  simp only [CategoryTheory.Functor.map_id, NatTrans.id_app, homologyMap_id, tensorHom_id,
-    id_tensorHom] at h₁ h₂
-  have h₃ := singularHomologyCrossRelPair_assoc X Y Z A B D (ModuleCat.of ℤ (ULift.{0} ℤ))
-    (ModuleCat.of ℤ (ULift.{0} ℤ)) (ModuleCat.of ℤ (ULift.{0} ℤ)) p q r pq qr n hpq hqr hn hn'
-  rw [comp_whiskerRight_assoc, reassoc_of% h₁]
-  have h₄ : homologyMap (((SSetPair.chainComplexFunctor (ModuleCat.{0} ℤ)).map
-        ((ModuleCat.uliftTensorSelfIso ℤ).hom ▷ ModuleCat.of ℤ (ULift.{0} ℤ))).app
-          (TopPair.toSSetPair.obj (TopPair.ofSubset (fst (X ⊗ Y) Z ⁻¹' (fst X Y ⁻¹' A ∪
-            snd X Y ⁻¹' B) ∪ snd (X ⊗ Y) Z ⁻¹' D)))) n ≫
-      homologyMap (((SSetPair.chainComplexFunctor (ModuleCat.{0} ℤ)).map
-        (ModuleCat.uliftTensorSelfIso ℤ).hom).app
-          (TopPair.toSSetPair.obj (TopPair.ofSubset (fst (X ⊗ Y) Z ⁻¹' (fst X Y ⁻¹' A ∪
-            snd X Y ⁻¹' B) ∪ snd (X ⊗ Y) Z ⁻¹' D)))) n =
-      homologyMap (((SSetPair.chainComplexFunctor (ModuleCat.{0} ℤ)).map (α_ _ _ _).hom).app
-          (TopPair.toSSetPair.obj (TopPair.ofSubset (fst (X ⊗ Y) Z ⁻¹' (fst X Y ⁻¹' A ∪
-            snd X Y ⁻¹' B) ∪ snd (X ⊗ Y) Z ⁻¹' D)))) n ≫
-        homologyMap (((SSetPair.chainComplexFunctor (ModuleCat.{0} ℤ)).map
-          (ModuleCat.of ℤ (ULift.{0} ℤ) ◁ (ModuleCat.uliftTensorSelfIso ℤ).hom)).app
-            (TopPair.toSSetPair.obj (TopPair.ofSubset (fst (X ⊗ Y) Z ⁻¹' (fst X Y ⁻¹' A ∪
-              snd X Y ⁻¹' B) ∪ snd (X ⊗ Y) Z ⁻¹' D)))) n ≫
-          homologyMap (((SSetPair.chainComplexFunctor (ModuleCat.{0} ℤ)).map
-            (ModuleCat.uliftTensorSelfIso ℤ).hom).app
-              (TopPair.toSSetPair.obj (TopPair.ofSubset (fst (X ⊗ Y) Z ⁻¹' (fst X Y ⁻¹' A ∪
-                snd X Y ⁻¹' B) ∪ snd (X ⊗ Y) Z ⁻¹' D)))) n := by
-    simp only [← homologyMap_comp, ← NatTrans.comp_app, ← Functor.map_comp, hμ]
-  -- the change of coefficients commutes with the map of pairs induced by the associator
-  have h₅ {R R' : ModuleCat.{0} ℤ} (φ : R ⟶ R') :
-      homologyMap (((SSetPair.chainComplexFunctor (ModuleCat.{0} ℤ)).map φ).app
-          (TopPair.toSSetPair.obj (TopPair.ofSubset (fst (X ⊗ Y) Z ⁻¹' (fst X Y ⁻¹' A ∪
-            snd X Y ⁻¹' B) ∪ snd (X ⊗ Y) Z ⁻¹' D)))) n ≫
-        TopPair.singularHomologyMap (TopPair.ofSubsetMap (α_ X Y Z).hom
-          (mapsTo_associator_hom_preimage_union X Y Z A B D)) R' n =
-      TopPair.singularHomologyMap (TopPair.ofSubsetMap (α_ X Y Z).hom
-          (mapsTo_associator_hom_preimage_union X Y Z A B D)) R n ≫
-        homologyMap (((SSetPair.chainComplexFunctor (ModuleCat.{0} ℤ)).map φ).app
-          (TopPair.toSSetPair.obj (TopPair.ofSubset (fst X (Y ⊗ Z) ⁻¹' A ∪
-            snd X (Y ⊗ Z) ⁻¹' (fst Y Z ⁻¹' B ∪ snd Y Z ⁻¹' D))))) n :=
-    (homologyMap_comp _ _ n).symm.trans <| (congrArg (homologyMap · n)
-      (((SSetPair.chainComplexFunctor (ModuleCat.{0} ℤ)).map φ).naturality
-        (TopPair.toSSetPair.map (TopPair.ofSubsetMap (α_ X Y Z).hom
-          (mapsTo_associator_hom_preimage_union X Y Z A B D)))).symm).trans
-      (homologyMap_comp _ _ n)
-  rw [reassoc_of% h₄, h₅, reassoc_of% h₅, reassoc_of% h₃, ← reassoc_of% h₂, whiskerLeft_comp_assoc]
+                snd X (Y ⊗ Z) ⁻¹' (fst Y Z ⁻¹' B ∪ snd Y Z ⁻¹' D))))) n :=
+  singularHomologyCrossRelPair_mul_assoc X Y Z A B D p q r pq qr n hpq hqr hn hn'
+    (ModuleCat.uliftTensorSelfIso ℤ).hom (ModuleCat.uliftTensorSelfIso_hom_assoc ℤ)
 
 end ULift
 
