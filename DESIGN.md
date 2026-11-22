@@ -2479,19 +2479,20 @@ has either; Tau Ceti's extension across a boundary,
 - **Files:** in `Geometry/Symplectic/JHolomorphic/Energy/` (beside Tau Ceti's
   folder of the same name): `Density.lean` (the norm of a linear map from a
   tangent plane of $\Sigma$, measured by $\mathrm{dvol}_\Sigma(\cdot,j\cdot)$,
-  to a tangent space with $g_J$, its value on a frame $(e,je)$, the
-  operator $\bar\partial_J$, and the pointwise identity, by Tau Ceti's
+  to a tangent space, its value on a frame $(e,je)$, and the pointwise
+  identity, by Tau Ceti's
   `TauCeti.SmoothTwoForm.Invariant.stdComplexLineEnergyDensity_sub_two_mul_twoForm`
-  on each tangent plane), `Surface.lean` (the energy as an integral over
+  on each tangent plane, with $\bar\partial_J$ Tau Ceti's
+  `TauCeti.complexAntilinearPart`), `Metric.lean` (that norm read in
+  $g_J$), `Surface.lean` (the energy as an integral over
   the closed surface, Tau Ceti's `integralTopForm`, the integrated
-  identity, independence of the area form, and the $J$-holomorphic case)
+  identity, independence of the area form, the $J$-holomorphic case and
+  positivity)
   and `Homology.lean` (for closed $\omega$, $\int_\Sigma u^*\omega$ as the
-  pairing of $[\omega]$ with $u_*[\Sigma]$, from Tau Ceti's
-  `deRhamCohomology.integration`, its smoothing theorem
-  `TauCeti.smoothSingularChainHomotopyEquiv` and
-  `TauCeti.SmoothSimplex.integral_eq_integralTopForm`, if Tau Ceti has not
-  proved the comparison by then; and positivity, by Tau Ceti's
-  `TauCeti.integralTopForm_mpullback_nonneg`).
+  pairing of $[\omega]$ with $u_*[\Sigma]$, and the milestone), with the
+  comparison of `integralTopForm` with fundamental classes of closed
+  oriented surfaces, which Tau Ceti does not have, in files outside
+  the folder that the design file lists.
 - **Builds on:** *Almost complex manifolds* (only `Metric.lean`); Tau Ceti's
   `IsPseudoholomorphic`, energy densities, integration of top forms and
   smooth singular chains.
