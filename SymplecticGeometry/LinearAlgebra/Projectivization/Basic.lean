@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import TauCeti.LinearAlgebra.Projectivization.AffineChart
 public import TauCeti.LinearAlgebra.Projectivization.Basic
 
 /-!
@@ -26,6 +27,9 @@ For a linear form `φ` on a vector space `V` over a field `K`, every point `x` o
 * `Projectivization.apply_smul_normalizedRep`: a vector `u` of the line `x` is
   `φ u • normalizedRep φ x`.
 * `Projectivization.mk_eq_of_mem_submodule`: a nonzero vector of a line spans it.
+* `Projectivization.insertNth_one_affineChart_eq_normalizedRep`: on the standard affine open
+  `U_i` of `ℙ K (Fin (n + 1) → K)`, the homogeneous coordinates `[1 : z]` of a point are its
+  representative normalized by the `i`-th coordinate.
 -/
 
 public section
@@ -85,6 +89,16 @@ theorem mk_eq_of_mem_submodule {x : ℙ K V} {v : V} (hv : v ≠ 0) (hx : v ∈ 
   obtain ⟨c, rfl⟩ := hx
   conv_rhs => rw [← mk_rep x]
   exact (mk_eq_mk_iff' K _ _ hv x.rep_ne_zero).2 ⟨c, rfl⟩
+
+/-- On the standard affine open `U_i`, the homogeneous coordinates `[1 : z]` of a point, with `1`
+in position `i` and `z` its affine coordinates, are its representative on which the `i`-th
+coordinate is `1`. -/
+theorem insertNth_one_affineChart_eq_normalizedRep {n : ℕ} (i : Fin (n + 1))
+    {x : ℙ K (Fin (n + 1) → K)} (hx : x ∈ affineOpen i) :
+    Fin.insertNth (α := fun _ ↦ K) i 1 (affineChart i x) = normalizedRep (LinearMap.proj i) x := by
+  ext l
+  rw [← rep_div_rep_eq_insertNth_affineChart l hx, normalizedRep_def, LinearMap.proj_apply,
+    Pi.smul_apply, smul_eq_mul, div_eq_inv_mul]
 
 end Projectivization
 
