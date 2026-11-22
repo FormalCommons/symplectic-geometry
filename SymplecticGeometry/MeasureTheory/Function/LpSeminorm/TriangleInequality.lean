@@ -8,6 +8,7 @@ module
 public import Mathlib.MeasureTheory.Function.LpSeminorm.Basic
 public import Mathlib.MeasureTheory.Integral.Bochner.Basic
 import Mathlib.MeasureTheory.Function.LpSeminorm.TriangleInequality
+import TauCeti.MeasureTheory.Function.Lp.Norm
 
 /-!
 # The integral of the square of a sum of norms
@@ -33,10 +34,8 @@ theorem integral_sum_norm_sq_le {ι : Type*} (s : Finset ι) {f : ι → α → 
   set N : α → ℝ := fun x ↦ ∑ i ∈ s, ‖f i x‖
   have hN : MemLp N 2 μ := memLp_finsetSum s fun i hi ↦ (hf i hi).norm
   have hint : ∫ x, N x ^ 2 ∂μ = (eLpNorm N 2 μ).toReal ^ 2 := by
-    rw [hN.eLpNorm_eq_integral_rpow_norm two_ne_zero ENNReal.ofNat_ne_top,
-      ENNReal.toReal_ofReal (by positivity), ← Real.rpow_natCast,
-      ← Real.rpow_mul (integral_nonneg fun x ↦ by positivity)]
-    norm_num
+    rw [← Lp.norm_toLp _ hN, hN.norm_toLp_sq]
+    simp only [Real.norm_of_nonneg (Finset.sum_nonneg fun _ _ ↦ norm_nonneg _), N]
   have hne (i : ι) (hi : i ∈ s) : eLpNorm (f i) 2 μ ≠ ∞ := (hf i hi).eLpNorm_ne_top
   have hle : eLpNorm N 2 μ ≤ ∑ i ∈ s, eLpNorm (f i) 2 μ := by
     have hfun : N = ∑ i ∈ s, fun x ↦ ‖f i x‖ := by

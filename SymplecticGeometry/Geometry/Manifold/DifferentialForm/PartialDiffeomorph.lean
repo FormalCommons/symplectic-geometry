@@ -582,16 +582,11 @@ in the chart and extended by `0` off `ψ.target` is `C^n`. -/
 theorem _root_.PartialDiffeomorph.contDiff_indicator_comp_symm (hχc : ContMDiff I 𝓘(ℝ) n χ)
     (hK : IsCompact (tsupport χ)) (hχ : tsupport χ ⊆ ψ.source) :
     ContDiff ℝ n (ψ.target.indicator fun y ↦ χ (ψ.symm y)) := by
-  refine contDiff_iff_contDiffAt.2 fun y ↦ ?_
-  by_cases hy : y ∈ ψ.target
-  · have h : ContDiffOn ℝ n (fun y ↦ χ (ψ.symm y)) ψ.target :=
-      contMDiffOn_iff_contDiffOn.1 (hχc.comp_contMDiffOn ψ.symm.contMDiffOn)
-    exact (h.congr fun y hy ↦ Set.indicator_of_mem hy _).contDiffAt (ψ.open_target.mem_nhds hy)
-  · -- Off `ψ.target`, the cutoff vanishes near `y`, off the compact image of `tsupport χ`.
-    have hK' := ψ.isCompact_image_of_subset_source hK hχ
-    exact contDiffAt_const.congr_of_eventuallyEq (Filter.eventually_of_mem
-      (hK'.isClosed.isOpen_compl.mem_nhds fun h ↦ hy ((ψ.mapsTo.mono_left hχ).image_subset h))
-      fun z hz ↦ Function.notMem_support.1 fun h ↦ hz (ψ.support_indicator_comp_symm_subset χ h))
+  refine contMDiff_iff_contDiff.1 (contMDiff_of_tsupport fun y hy ↦ ?_)
+  have hyt : y ∈ ψ.target := (ψ.mapsTo.mono_left hχ).image_subset
+    (ψ.tsupport_indicator_comp_symm_subset hK hχ hy)
+  exact ((hχc.comp_contMDiffOn ψ.symm.contMDiffOn).congr fun y hy ↦ Set.indicator_of_mem hy _)
+    |>.contMDiffAt (ψ.open_target.mem_nhds hyt)
 
 end Cutoff
 
