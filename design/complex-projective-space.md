@@ -389,10 +389,11 @@ $\omega_0=$ `stdComplexPiSymplecticForm (Fin (n + 1))`:
 - `isKahler_mpullback_fubiniStudyForm`: for a complex submanifold
   $f:N\to\mathbb CP^n$ (a `TauCeti.SmoothEmbedding` whose tangent images
   are `J_P`-invariant), the pull-back of `fubiniStudyForm n` is Kähler, and
-  symplectic, for the restricted structure of *Complex submanifolds*; it
-  applies that part's transfer of `IsKahler` and of symplecticity to
-  `isKahler_fubiniStudyForm`. This is the only declaration that waits for
-  *Complex submanifolds*.
+  symplectic, for the restricted structure of *Complex submanifolds*, and
+  that structure is integrable when $N$ has no boundary; it applies that
+  part's transfer of `IsKahler`, of symplecticity and of integrability to
+  `isKahler_fubiniStudyForm` and `isIntegrable_ofComplexManifold`. This is
+  the only declaration that waits for *Complex submanifolds*.
 
 ### `Geometry/Manifold/Projectivization/FubiniStudy/Normalization.lean`
 
