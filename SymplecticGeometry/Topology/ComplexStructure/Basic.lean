@@ -71,6 +71,13 @@ theorem isClosedEmbedding_toContinuousLinearMap :
     rw [range_toContinuousLinearMap]
     exact isClosed_eq (continuous_id.mul continuous_id) continuous_const⟩
 
+/-- A complex structure is invertible as a continuous endomorphism, with inverse `-J`. -/
+theorem isUnit_toContinuousLinearMap (J : AlmostComplexStructure V) :
+    IsUnit (LinearMap.toContinuousLinearMap J.toLinearMap) :=
+  isUnit_iff_exists.2 ⟨-LinearMap.toContinuousLinearMap J.toLinearMap,
+    by rw [mul_neg, toContinuousLinearMap_mul_self, neg_neg],
+    by rw [neg_mul, toContinuousLinearMap_mul_self, neg_neg]⟩
+
 instance : T2Space (AlmostComplexStructure V) :=
   isEmbedding_toContinuousLinearMap.t2Space
 
