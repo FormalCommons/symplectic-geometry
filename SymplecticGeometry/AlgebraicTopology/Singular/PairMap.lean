@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.Topology.Category.TopCat.CodRestrict
 public import TauCeti.AlgebraicTopology.Singular.Excision
 
 /-!
@@ -19,8 +20,11 @@ preimage of `B` in `A`, is homeomorphic to `A ∩ B` (`TopPair.interPairSndHomeo
 `TopPair.ofSubsetMap` induced by the inclusion of `A` (`TopPair.excisionMap_eq_ofSubsetMap`).
 
 A map into the ambient space of a pair that factors through the subspace vanishes on relative
-chains (`TopPair.chainComplexMap_comp_singularChainComplexπ_of_fac`), and a map of subspace pairs
-whose ambient map lands in the subspace of the target vanishes on relative homology
+chains (`TopPair.chainComplexMap_comp_singularChainComplexπ_of_fac`); so does a map into `X` with
+range in `A`, on the chains relative to `A`, since its corestriction `TopCat.codRestrict` to `A`
+factors it through the subspace
+(`TopPair.chainComplexMap_comp_singularChainComplexπ_eq_zero_of_range_subset`). A map of subspace
+pairs whose ambient map lands in the subspace of the target vanishes on relative homology
 (`TopPair.singularHomologyMap_ofSubsetMap_eq_zero_of_range_subset`). The proof of
 `TopPair.chainComplexMap_comp_singularChainComplexπ_of_fac` adapts that of Tau Ceti's
 `TopPair.singularChainComplexMap_eq_zero_of_fac`, in
@@ -61,8 +65,12 @@ the relative homology of `(X, A)` as the map induced by `TopPair.singularChainCo
   same on homology.
 * `TopPair.excisionMap_eq_ofSubsetMap`, `TopPair.excisionMap_fst`: the excision map through the
   inclusion of `A`.
+* `TopPair.codRestrict_comp_ofSubset_map`: the corestriction of a map to `A`, followed by the
+  embedding of the subspace of `(X, A)`, is the map.
 * `TopPair.chainComplexMap_comp_singularChainComplexπ_of_fac`: maps through the subspace vanish on
   relative chains.
+* `TopPair.chainComplexMap_comp_singularChainComplexπ_eq_zero_of_range_subset`: maps with range in
+  `A` vanish on the chains relative to `A`.
 * `TopPair.homologyMap_eq_singularHomologyπ_comp_inv`: a chain map into the relative chains of a
   pair, compatible with a map of pairs that is an isomorphism on homology, through the inverse of
   that isomorphism.
@@ -147,6 +155,13 @@ lemma excisionMap_eq_ofSubsetMap :
 lemma excisionMap_fst : Hom.fst (excisionMap A B) = TopCat.ofHom (ContinuousMap.subtypeVal A) := by
   ext x
   exact excisionMap_fst_apply A B x
+
+/-- The corestriction of a map `f : Z ⟶ X` to `A`, followed by the embedding of the subspace of
+the pair `(X, A)`, is `f`. -/
+lemma codRestrict_comp_ofSubset_map {Z : TopCat.{w}} (f : Z ⟶ X) (h : ∀ z, f z ∈ A) :
+    TopCat.codRestrict f A h ≫ (ofSubset A).map = f :=
+  (congrArg (TopCat.codRestrict f A h ≫ ·) (ofSubset_map A)).trans
+    (TopCat.codRestrict_comp_ofHom_subtypeVal f A h)
 
 /-- The embedding of the subset `B` into `X`: the map `(TopPair.ofSubset B).map`, with its target
 written as `X` rather than as the ambient space of the pair, so that the chain maps it induces
@@ -268,6 +283,14 @@ lemma chainComplexMap_comp_singularChainComplexπ_of_fac (P : TopPair.{w}) {Y : 
   subst hg
   simp
 
+/-- A map into `X` with range in `A` sends singular chains to zero in the chains of `X` relative
+to `A`. -/
+lemma chainComplexMap_comp_singularChainComplexπ_eq_zero_of_range_subset {X Z : TopCat.{w}}
+    {A : Set X} {f : Z ⟶ X} (hf : Set.range f ⊆ A) :
+    SSet.chainComplexMap (TopCat.toSSet.map f) R ≫ (ofSubset A).singularChainComplexπ R = 0 :=
+  chainComplexMap_comp_singularChainComplexπ_of_fac R (ofSubset A) f
+    (TopCat.codRestrict f A fun z ↦ hf ⟨z, rfl⟩) (codRestrict_comp_ofSubset_map A _ _)
+
 variable [CategoryWithHomology C]
 
 section Fst
@@ -349,9 +372,8 @@ zero on relative singular homology. -/
 lemma singularHomologyMap_ofSubsetMap_eq_zero_of_range_subset {X Y : TopCat.{w}} {B : Set Y}
     {S : Set X} (f : Y ⟶ X) (h : Set.MapsTo f B S) (hf : Set.range f ⊆ S) (n : ℕ) :
     TopPair.singularHomologyMap (ofSubsetMap f h) R n = 0 :=
-  singularHomologyMap_eq_zero_of_fac _ R
-    (TopCat.ofHom (⟨fun y ↦ ⟨f y, hf ⟨y, rfl⟩⟩, by fun_prop⟩ : C(Y, S)) : Y ⟶ (ofSubset S).snd)
-    (by ext y; exact (ofSubsetMap_fst_apply f h y).symm) n
+  singularHomologyMap_eq_zero_of_fac _ R (TopCat.codRestrict f S fun y ↦ hf ⟨y, rfl⟩)
+    (by rw [ofSubsetMap_fst]; exact codRestrict_comp_ofSubset_map S f _) n
 
 /-- For a subset `S` of `X` with `A ∩ B ⊆ S ⊆ B`, the inverse of the excision isomorphism
 `Hₙ(A, A ∩ B) ≅ Hₙ(X, B)`, followed by the maps induced by the inclusions of pairs

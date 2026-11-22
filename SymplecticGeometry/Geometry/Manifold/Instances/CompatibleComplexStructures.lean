@@ -44,7 +44,9 @@ The layout follows `SymplecticGeometry/Geometry/Manifold/Instances/LagrangianGra
 
 ## Main definitions and results
 
-* `TauCeti.SymplecticForm.compatibleCLM`: the inclusion of `𝒥 ω` into `V →L[ℝ] V`.
+* `TauCeti.SymplecticForm.compatibleCLM`: the inclusion of `𝒥 ω` into `V →L[ℝ] V`, with the
+  notation `dι[ω]`, scoped to `TauCeti.SymplecticForm`, for its differential read through
+  `mvfderiv` in `V →L[ℝ] V`.
 * `TauCeti.SymplecticForm.cayleyChart`: the global Cayley chart, with values in
   `ω.compatibleModel`.
 * The `ChartedSpace ω.compatibleModel (𝒥 ω)` instance, whose chart is `cayleyChart`
@@ -60,7 +62,7 @@ The layout follows `SymplecticGeometry/Geometry/Manifold/Instances/LagrangianGra
 * `TauCeti.SymplecticForm.finrank_compatibleModel`: `𝒥 ω` has dimension `n (n + 1)` when `V` has
   dimension `2 n`.
 * `TauCeti.SymplecticForm.compatibleTransport`: the diffeomorphism `J ↦ Ψ J Ψ⁻¹` of a linear
-  symplectomorphism `Ψ`, with `mfderiv_compatibleCLM_compatibleTransport` and the transitivity
+  symplectomorphism `Ψ`, with `mvfderiv_compatibleCLM_compatibleTransport` and the transitivity
   `exists_compatibleTransport_eq`.
 
 ## References
@@ -120,6 +122,11 @@ theorem isUnit_compatibleCLM (J : 𝒥) : IsUnit (ω.compatibleCLM J) := by
 theorem compatibleCLM_mul_self (J : 𝒥) : ω.compatibleCLM J * ω.compatibleCLM J = -1 := by
   rw [compatibleCLM_def]
   exact J.val.toContinuousLinearMap_mul_self
+
+/-- `dι[ω] J a` is the differential at `J` of the inclusion `ω.compatibleCLM`, applied to the
+tangent vector `a` and read through `mvfderiv` as an element of `V →L[ℝ] V`. -/
+scoped notation "dι[" ω "]" =>
+  mvfderiv 𝓘(ℝ, TauCeti.SymplecticForm.compatibleModel ω) (TauCeti.SymplecticForm.compatibleCLM ω)
 
 /-! ### The global Cayley chart -/
 
@@ -266,11 +273,12 @@ theorem hasMFDerivAt_compatibleCLM (J : 𝒥) :
 
 /-- The differential of the inclusion at `J`, with Cayley coordinate `C`, sends `Ċ` to
 `2 J₀ (1 - C)⁻¹ Ċ (1 - C)⁻¹`, `J₀` being the base point. -/
-theorem mfderiv_compatibleCLM_apply (J : 𝒥) (a : ω.compatibleModel) :
-    mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM J a =
+theorem mvfderiv_compatibleCLM_apply (J : 𝒥) (a : ω.compatibleModel) :
+    dι[ω] J a =
       (2 : ℝ) • (ω.compatibleCLM ω.compatibleBase *
         Ring.inverse (1 - (ω.cayleyChart J : V →L[ℝ] V)) * (a : V →L[ℝ] V) *
           Ring.inverse (1 - (ω.cayleyChart J : V →L[ℝ] V))) := by
+  refine (mvfderiv_apply_eq_mfderiv_apply _ J a).trans ?_
   rw [(hasMFDerivAt_compatibleCLM J).mfderiv]
   -- `a` is now read as a tangent vector, so the computation is made for a vector of the model.
   have h (b : ω.compatibleModel) : ((2 : ℝ) • (ContinuousLinearMap.mulLeftRight ℝ (V →L[ℝ] V)
@@ -289,7 +297,8 @@ theorem injective_mfderiv_compatibleCLM (J : 𝒥) :
   refine (injective_iff_map_eq_zero _).2 fun a ha => ?_
   have hR :=
     (isUnit_one_sub_of_mem_chartAt_target (cayleyChart_mem_chartAt_target J J)).ringInverse
-  have h : (2 : ℝ) • (_ : V →L[ℝ] V) = 0 := (mfderiv_compatibleCLM_apply J a).symm.trans ha
+  have h : (2 : ℝ) • (_ : V →L[ℝ] V) = 0 := (mvfderiv_compatibleCLM_apply J a).symm.trans
+    ((mvfderiv_apply_eq_mfderiv_apply _ _ _).trans ha)
   rw [smul_eq_zero, hR.mul_left_eq_zero,
     ((isUnit_compatibleCLM _).mul hR).mul_right_eq_zero] at h
   exact Subtype.ext (h.resolve_left two_ne_zero)
@@ -310,7 +319,7 @@ theorem mfderiv_compatibleCLM_mem (J : 𝒥) (a : ω.compatibleModel) :
   -- The goal is stated in the tangent space of `V →L[ℝ] V`, so the formula for the differential
   -- is substituted through `congrArg` rather than rewritten.
   refine (congrArg (· ∈ ω.compatibleTangentSpaceCLM J.val)
-    (mfderiv_compatibleCLM_apply J a)).mpr ?_
+    ((mvfderiv_apply_eq_mfderiv_apply _ _ _).symm.trans (mvfderiv_compatibleCLM_apply J a))).mpr ?_
   rw [chartAt_eq] at hmem
   rw [mem_compatibleTangentSpaceCLM]
   convert hmem using 2
@@ -319,41 +328,30 @@ theorem mfderiv_compatibleCLM_mem (J : 𝒥) (a : ω.compatibleModel) :
 
 /-- The ambient reading of a tangent vector at `J` is in Tau Ceti's compatible tangent space at
 `J`. -/
-theorem mfderiv_compatibleCLM_mem_compatibleTangentSpace (J : 𝒥)
+theorem mvfderiv_compatibleCLM_mem_compatibleTangentSpace (J : 𝒥)
     (a : TangentSpace 𝓘(ℝ, ω.compatibleModel) J) :
-    ContinuousLinearMap.toLinearMap
-      (mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM J a) ∈
-        ω.compatibleTangentSpace J.val :=
-  mem_compatibleTangentSpaceCLM.1 (mfderiv_compatibleCLM_mem J a)
+    (dι[ω] J a).toLinearMap ∈ ω.compatibleTangentSpace J.val := by
+  rw [mvfderiv_apply_eq_mfderiv_apply]
+  exact mem_compatibleTangentSpaceCLM.1 (mfderiv_compatibleCLM_mem J a)
 
 /-- The ambient reading of a tangent vector at `J` is in the tangent space at `J` of the
 almost complex structures: it anticommutes with `J`. -/
-theorem mfderiv_compatibleCLM_mem_tangentSpace (J : 𝒥)
+theorem mvfderiv_compatibleCLM_mem_tangentSpace (J : 𝒥)
     (a : TangentSpace 𝓘(ℝ, ω.compatibleModel) J) :
-    ContinuousLinearMap.toLinearMap
-      (mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM J a) ∈
-        J.val.tangentSpace :=
-  compatibleTangentSpace_le_tangentSpace (mfderiv_compatibleCLM_mem_compatibleTangentSpace J a)
-
-/-- An endomorphism in the tangent space at `J` anticommutes with `J`. -/
-theorem compatibleCLM_comp_add_comp_compatibleCLM (J : 𝒥) {X : V →L[ℝ] V}
-    (hX : (X : Module.End ℝ V) ∈ J.val.tangentSpace) :
-    ω.compatibleCLM J ∘L X + X ∘L ω.compatibleCLM J = 0 := by
-  rw [AlmostComplexStructure.mem_tangentSpace] at hX
-  apply ContinuousLinearMap.coe_injective
-  rw [← ContinuousLinearMap.mul_def, ← ContinuousLinearMap.mul_def,
-    ContinuousLinearMap.toLinearMap_add, ContinuousLinearMap.toLinearMap_mul,
-    ContinuousLinearMap.toLinearMap_mul, toLinearMap_compatibleCLM, add_comm, hX,
-    ContinuousLinearMap.toLinearMap_zero]
+    (dι[ω] J a).toLinearMap ∈ J.val.tangentSpace :=
+  compatibleTangentSpace_le_tangentSpace (mvfderiv_compatibleCLM_mem_compatibleTangentSpace J a)
 
 /-- The ambient reading `X` of a tangent vector at `J`, read through `mvfderiv` as an element of
 `V →L[ℝ] V`, anticommutes with `J` in that ring: `J X + X J = 0`. -/
 theorem compatibleCLM_mul_mvfderiv_add_mvfderiv_mul_compatibleCLM (J : 𝒥)
     (a : TangentSpace 𝓘(ℝ, ω.compatibleModel) J) :
-    ω.compatibleCLM J * mvfderiv 𝓘(ℝ, ω.compatibleModel) ω.compatibleCLM J a +
-      mvfderiv 𝓘(ℝ, ω.compatibleModel) ω.compatibleCLM J a * ω.compatibleCLM J = 0 := by
-  rw [ContinuousLinearMap.mul_def, ContinuousLinearMap.mul_def, mvfderiv_apply_eq_mfderiv_apply]
-  exact compatibleCLM_comp_add_comp_compatibleCLM J (mfderiv_compatibleCLM_mem_tangentSpace J a)
+    ω.compatibleCLM J * dι[ω] J a + dι[ω] J a * ω.compatibleCLM J = 0 := by
+  have hX := mvfderiv_compatibleCLM_mem_tangentSpace J a
+  rw [AlmostComplexStructure.mem_tangentSpace] at hX
+  apply ContinuousLinearMap.coe_injective
+  rw [ContinuousLinearMap.toLinearMap_add, ContinuousLinearMap.toLinearMap_mul,
+    ContinuousLinearMap.toLinearMap_mul, toLinearMap_compatibleCLM, add_comm, hX,
+    ContinuousLinearMap.toLinearMap_zero]
 
 /-- The model space has dimension `n (n + 1)` when `V` has dimension `2 n`. -/
 theorem finrank_compatibleModel {n : ℕ} (hn : Module.finrank ℝ V = 2 * n) :
@@ -480,11 +478,11 @@ theorem compatibleCLM_compatibleTransport (J : 𝒥) :
 
 /-- The differential of the transport by `Ψ`, read in the continuous endomorphisms, is the
 conjugation `Ĵ ↦ Ψ Ĵ Ψ⁻¹`. -/
-theorem mfderiv_compatibleCLM_compatibleTransport (J : 𝒥)
+theorem mvfderiv_compatibleCLM_compatibleTransport (J : 𝒥)
     (a : TangentSpace 𝓘(ℝ, ω.compatibleModel) J) :
-    mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM (ω.compatibleTransport hΨ J)
+    dι[ω] (ω.compatibleTransport hΨ J)
         (mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, ω.compatibleModel) (ω.compatibleTransport hΨ) J a) =
-      Ψ.arrowCongr Ψ (mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM J a) := by
+      Ψ.arrowCongr Ψ (dι[ω] J a) := by
   have hcomp : ω.compatibleCLM ∘ ω.compatibleTransport hΨ = Ψ.arrowCongr Ψ ∘ ω.compatibleCLM :=
     funext (compatibleCLM_compatibleTransport hΨ)
   have h1 := mfderiv_comp J ((contMDiff_compatibleCLM (n := 1)).mdifferentiableAt one_ne_zero)
@@ -492,6 +490,7 @@ theorem mfderiv_compatibleCLM_compatibleTransport (J : 𝒥)
   have h2 := mfderiv_comp J (Ψ.arrowCongr Ψ).mdifferentiableAt
     ((contMDiff_compatibleCLM (n := 1)).mdifferentiableAt one_ne_zero (x := J))
   rw [hcomp, h2, ContinuousLinearEquiv.mfderiv_eq] at h1
+  rw [mvfderiv_apply_eq_mfderiv_apply, mvfderiv_apply_eq_mfderiv_apply]
   exact (congrArg (fun L => L a) h1).symm
 
 /-- **Transitivity.** The linear symplectomorphisms act transitively on the `ω`-compatible

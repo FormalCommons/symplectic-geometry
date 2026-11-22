@@ -75,8 +75,6 @@ variable {V : Type*} [NormedAddCommGroup V] [NormedSpace ℝ V] [FiniteDimension
 
 local notation "𝒥" => {J : AlmostComplexStructure V // ω.Compatible J}
 
-local notation "dι" => mvfderiv 𝓘(ℝ, ω.compatibleModel) ω.compatibleCLM
-
 local notation "∞" => ((⊤ : ℕ∞) : WithTop ℕ∞)
 
 local notation "∇" => leviCivitaConnection 𝓘(ℝ, ω.compatibleModel) 𝒥
@@ -117,19 +115,19 @@ private theorem mvfderiv_ambient_leviCivita
     (hZ : ContMDiff 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, ω.compatibleModel).tangent ∞
       (fun J' ↦ TotalSpace.mk' ω.compatibleModel J' (Z J')))
     (J : 𝒥) (a : TangentSpace 𝓘(ℝ, ω.compatibleModel) J) :
-    mvfderiv 𝓘(ℝ, ω.compatibleModel) (fun J' : 𝒥 ↦ dι J' (∇ Z J' (Y J'))) J a =
+    mvfderiv 𝓘(ℝ, ω.compatibleModel) (fun J' : 𝒥 ↦ dι[ω] J' (∇ Z J' (Y J'))) J a =
       mvfderiv 𝓘(ℝ, ω.compatibleModel) (fun J' : 𝒥 ↦ mvfderiv 𝓘(ℝ, ω.compatibleModel)
-          (fun J'' : 𝒥 ↦ dι J'' (Z J'')) J' (Y J')) J a -
-        (2⁻¹ : ℝ) • (dι J a * (dι J (Z J) * dι J (Y J) + dι J (Y J) * dι J (Z J)) +
+          (fun J'' : 𝒥 ↦ dι[ω] J'' (Z J'')) J' (Y J')) J a -
+        (2⁻¹ : ℝ) • (dι[ω] J a * (dι[ω] J (Z J) * dι[ω] J (Y J) + dι[ω] J (Y J) * dι[ω] J (Z J)) +
           ω.compatibleCLM J *
-            (mvfderiv 𝓘(ℝ, ω.compatibleModel) (fun J' : 𝒥 ↦ dι J' (Z J')) J a * dι J (Y J) +
-              dι J (Z J) * mvfderiv 𝓘(ℝ, ω.compatibleModel) (fun J' : 𝒥 ↦ dι J' (Y J')) J a +
-              (mvfderiv 𝓘(ℝ, ω.compatibleModel) (fun J' : 𝒥 ↦ dι J' (Y J')) J a * dι J (Z J) +
-              dι J (Y J) *
-                mvfderiv 𝓘(ℝ, ω.compatibleModel) (fun J' : 𝒥 ↦ dι J' (Z J')) J a))) := by
+            (mvfderiv 𝓘(ℝ, ω.compatibleModel) (fun J' : 𝒥 ↦ dι[ω] J' (Z J')) J a * dι[ω] J (Y J) +
+              dι[ω] J (Z J) * mvfderiv 𝓘(ℝ, ω.compatibleModel) (fun J' : 𝒥 ↦ dι[ω] J' (Y J')) J a +
+              (mvfderiv 𝓘(ℝ, ω.compatibleModel) (fun J' : 𝒥 ↦ dι[ω] J' (Y J')) J a * dι[ω] J (Z J) +
+              dι[ω] J (Y J) *
+                mvfderiv 𝓘(ℝ, ω.compatibleModel) (fun J' : 𝒥 ↦ dι[ω] J' (Z J')) J a))) := by
   set P : 𝒥 → V →L[ℝ] V := ω.compatibleCLM
-  set Yh : 𝒥 → V →L[ℝ] V := fun J' ↦ dι J' (Y J')
-  set Zh : 𝒥 → V →L[ℝ] V := fun J' ↦ dι J' (Z J')
+  set Yh : 𝒥 → V →L[ℝ] V := fun J' ↦ dι[ω] J' (Y J')
+  set Zh : 𝒥 → V →L[ℝ] V := fun J' ↦ dι[ω] J' (Z J')
   have hP : ∀ J', MDifferentiableAt 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) P J' :=
     fun J' => (contMDiff_compatibleCLM (n := 1)).mdifferentiableAt one_ne_zero
   have hYh : MDifferentiable 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) Yh :=
@@ -141,7 +139,7 @@ private theorem mvfderiv_ambient_leviCivita
       (fun J' ↦ mvfderiv 𝓘(ℝ, ω.compatibleModel) Zh J' (Y J')) J :=
     TauCeti.mdifferentiableAt_mvfderiv_apply hZh'.contMDiffAt (by simp)
       ((hY J).mdifferentiableAt (by simp))
-  have hfun : (fun J' : 𝒥 ↦ dι J' (∇ Z J' (Y J'))) = fun J' ↦
+  have hfun : (fun J' : 𝒥 ↦ dι[ω] J' (∇ Z J' (Y J'))) = fun J' ↦
       mvfderiv 𝓘(ℝ, ω.compatibleModel) Zh J' (Y J') -
         (2⁻¹ : ℝ) • (P J' * (Zh J' * Yh J' + Yh J' * Zh J')) := by
     funext J'
@@ -168,8 +166,8 @@ ambient readings in `V →L[ℝ] V`, for the curvature tensor of the Levi-Civita
 convention `R(X, Y) Z = ∇_X ∇_Y Z - ∇_Y ∇_X Z - ∇_[X,Y] Z`. -/
 theorem curvatureTensor_leviCivitaConnection_compatibleSpace (J : 𝒥)
     (a b c : TangentSpace 𝓘(ℝ, ω.compatibleModel) J) :
-    dι J ((leviCivitaConnection 𝓘(ℝ, ω.compatibleModel) 𝒥).curvatureTensor J a b c) =
-      -(4⁻¹ : ℝ) • ⁅⁅dι J a, dι J b⁆, dι J c⁆ := by
+    dι[ω] J ((leviCivitaConnection 𝓘(ℝ, ω.compatibleModel) 𝒥).curvatureTensor J a b c) =
+      -(4⁻¹ : ℝ) • ⁅⁅dι[ω] J a, dι[ω] J b⁆, dι[ω] J c⁆ := by
   obtain ⟨X, hX, rfl⟩ :=
     FiberBundle.exists_contMDiff_section_eq 𝓘(ℝ, ω.compatibleModel) ω.compatibleModel ∞ a
   obtain ⟨Y, hY, rfl⟩ :=
@@ -194,7 +192,7 @@ theorem curvatureTensor_leviCivitaConnection_compatibleSpace (J : 𝒥)
     (by simp) (hXd J) (hYd J)
   rw [hL, hZL]
   have anti (v : TangentSpace 𝓘(ℝ, ω.compatibleModel) J) :
-      ω.compatibleCLM J * dι J v = -(dι J v * ω.compatibleCLM J) :=
+      ω.compatibleCLM J * dι[ω] J v = -(dι[ω] J v * ω.compatibleCLM J) :=
     eq_neg_of_add_eq_zero_left (compatibleCLM_mul_mvfderiv_add_mvfderiv_mul_compatibleCLM J v)
   exact curvature_algebra (compatibleCLM_mul_self J) (anti (X J)) (anti (Y J)) (anti (Z J))
 
@@ -203,10 +201,10 @@ the commutator of the ambient readings. -/
 theorem inner_curvatureTensor_compatibleSpace (J : 𝒥)
     (u v : TangentSpace 𝓘(ℝ, ω.compatibleModel) J) :
     ⟪(leviCivitaConnection 𝓘(ℝ, ω.compatibleModel) 𝒥).curvatureTensor J u v v, u⟫ =
-      8⁻¹ * LinearMap.trace ℝ V ↑(⁅dι J u, dι J v⁆ * ⁅dι J u, dι J v⁆) := by
+      8⁻¹ * LinearMap.trace ℝ V ↑(⁅dι[ω] J u, dι[ω] J v⁆ * ⁅dι[ω] J u, dι[ω] J v⁆) := by
   rw [inner_compatibleSpace, curvatureTensor_leviCivitaConnection_compatibleSpace]
-  generalize dι J u = U
-  generalize dι J v = W
+  generalize dι[ω] J u = U
+  generalize dι[ω] J v = W
   simp only [Ring.lie_def, ContinuousLinearMap.toLinearMap_mul,
     ContinuousLinearMap.toLinearMap_smul, ContinuousLinearMap.toLinearMap_sub, smul_mul_assoc,
     map_smul]
@@ -231,9 +229,8 @@ theorem sectionalCurvature_compatibleSpace_nonpos
   rw [sectionalCurvature_apply, inner_curvatureTensor_compatibleSpace]
   refine div_nonpos_of_nonpos_of_nonneg ?_ (Matrix.posSemidef_gram ℝ _).det_nonneg
   have h := J.property.trace_commutator_sq_nonpos
-    (mfderiv_compatibleCLM_mem_compatibleTangentSpace J u)
-    (mfderiv_compatibleCLM_mem_compatibleTangentSpace J v)
-  simp only [← mvfderiv_apply_eq_mfderiv_apply] at h
+    (mvfderiv_compatibleCLM_mem_compatibleTangentSpace J u)
+    (mvfderiv_compatibleCLM_mem_compatibleTangentSpace J v)
   simp only [Ring.lie_def, ContinuousLinearMap.toLinearMap_mul,
     ContinuousLinearMap.toLinearMap_sub] at h ⊢
   exact mul_nonpos_of_nonneg_of_nonpos (by norm_num) h

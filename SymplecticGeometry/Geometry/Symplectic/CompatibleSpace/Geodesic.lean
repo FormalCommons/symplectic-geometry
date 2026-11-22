@@ -98,8 +98,6 @@ variable {ω : SymplecticForm V}
 
 local notation "𝒥" => {J : AlmostComplexStructure V // ω.Compatible J}
 
-local notation "dι" => mvfderiv 𝓘(ℝ, ω.compatibleModel) ω.compatibleCLM
-
 /-! ### The geodesics -/
 
 variable (ω) in
@@ -108,13 +106,13 @@ Tau Ceti's exponential path `t ↦ exp(t B) J exp(-t B)`, `B = ½ J â`, where `
 reading of `a`. It is `t ↦ J exp(-t J â)` (`compatibleCLM_compatibleGeodesic`). -/
 noncomputable def compatibleGeodesic (J : 𝒥) (a : TangentSpace 𝓘(ℝ, ω.compatibleModel) J)
     (t : ℝ) : 𝒥 :=
-  ⟨J.val.tangentPath (mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM J a) t,
-    J.property.tangentPath (mfderiv_compatibleCLM_mem_compatibleTangentSpace J a) t⟩
+  ⟨J.val.tangentPath (dι[ω] J a) t,
+    J.property.tangentPath (mvfderiv_compatibleCLM_mem_compatibleTangentSpace J a) t⟩
 
 theorem compatibleGeodesic_def (J : 𝒥) (a : TangentSpace 𝓘(ℝ, ω.compatibleModel) J) (t : ℝ) :
     ω.compatibleGeodesic J a t =
-      ⟨J.val.tangentPath (mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM J a) t,
-        J.property.tangentPath (mfderiv_compatibleCLM_mem_compatibleTangentSpace J a) t⟩ :=
+      ⟨J.val.tangentPath (dι[ω] J a) t,
+        J.property.tangentPath (mvfderiv_compatibleCLM_mem_compatibleTangentSpace J a) t⟩ :=
   (rfl)
 
 /-- The geodesic through `J` with velocity `a`, read in `V →L[ℝ] V`, is `t ↦ J exp(-t J â)`, where
@@ -122,12 +120,11 @@ theorem compatibleGeodesic_def (J : 𝒥) (a : TangentSpace 𝓘(ℝ, ω.compati
 theorem compatibleCLM_compatibleGeodesic (J : 𝒥) (a : TangentSpace 𝓘(ℝ, ω.compatibleModel) J)
     (t : ℝ) :
     ω.compatibleCLM (ω.compatibleGeodesic J a t) =
-      ω.compatibleCLM J * exp (-(t • (ω.compatibleCLM J * dι J a))) := by
+      ω.compatibleCLM J * exp (-(t • (ω.compatibleCLM J * dι[ω] J a))) := by
   have h := AlmostComplexStructure.toContinuousLinearMap_tangentPath_eq_mul_exp
-    (mfderiv_compatibleCLM_mem_tangentSpace J a) t
+    (mvfderiv_compatibleCLM_mem_tangentSpace J a) t
   rw [← compatibleCLM_def J] at h
-  rw [mvfderiv_apply_eq_mfderiv_apply, compatibleCLM_def (ω.compatibleGeodesic J a t),
-    compatibleGeodesic_def]
+  rw [compatibleCLM_def (ω.compatibleGeodesic J a t), compatibleGeodesic_def]
   exact h
 
 @[simp]
@@ -140,8 +137,7 @@ theorem contMDiff_compatibleGeodesic (J : 𝒥) (a : TangentSpace 𝓘(ℝ, ω.c
     {n : WithTop ℕ∞} : ContMDiff 𝓘(ℝ) 𝓘(ℝ, ω.compatibleModel) n (ω.compatibleGeodesic J a) := by
   -- Read in `V →L[ℝ] V`, the curve is Tau Ceti's exponential path, which is smooth.
   have h : ω.compatibleCLM ∘ ω.compatibleGeodesic J a = fun t => LinearMap.toContinuousLinearMap
-      (J.val.tangentPath
-        (mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM J a) t).toLinearMap :=
+      (J.val.tangentPath (dι[ω] J a) t).toLinearMap :=
     funext fun t => by rw [Function.comp_apply, compatibleCLM_def, compatibleGeodesic_def]
   rw [contMDiff_compatibleCLM_comp_iff, h, contMDiff_iff_contDiff]
   exact AlmostComplexStructure.contDiff_tangentPath _ _
@@ -151,7 +147,7 @@ theorem contMDiff_compatibleGeodesic (J : 𝒥) (a : TangentSpace 𝓘(ℝ, ω.c
 theorem hasDerivAt_compatibleCLM_compatibleGeodesic (J : 𝒥)
     (a : TangentSpace 𝓘(ℝ, ω.compatibleModel) J) (t : ℝ) :
     HasDerivAt (fun r => ω.compatibleCLM (ω.compatibleGeodesic J a r))
-      (ω.compatibleCLM (ω.compatibleGeodesic J a t) * -(ω.compatibleCLM J * dι J a)) t := by
+      (ω.compatibleCLM (ω.compatibleGeodesic J a t) * -(ω.compatibleCLM J * dι[ω] J a)) t := by
   simp only [compatibleCLM_compatibleGeodesic, ← smul_neg]
   rw [mul_assoc]
   exact (hasDerivAt_exp_smul_const (𝕂 := ℝ) _ t).const_mul _
@@ -160,9 +156,9 @@ theorem hasDerivAt_compatibleCLM_compatibleGeodesic (J : 𝒥)
 reading of the velocity is `c(t) A`, with `A = -J â`. -/
 theorem mvfderiv_compatibleCLM_curveVelocity_compatibleGeodesic (J : 𝒥)
     (a : TangentSpace 𝓘(ℝ, ω.compatibleModel) J) (t : ℝ) :
-    dι (ω.compatibleGeodesic J a t)
+    dι[ω] (ω.compatibleGeodesic J a t)
         (curveVelocity 𝓘(ℝ, ω.compatibleModel) (ω.compatibleGeodesic J a) t) =
-      ω.compatibleCLM (ω.compatibleGeodesic J a t) * -(ω.compatibleCLM J * dι J a) := by
+      ω.compatibleCLM (ω.compatibleGeodesic J a t) * -(ω.compatibleCLM J * dι[ω] J a) := by
   have hγ : MDifferentiableAt 𝓘(ℝ) 𝓘(ℝ, ω.compatibleModel) (ω.compatibleGeodesic J a) t :=
     (contMDiff_compatibleGeodesic J a (n := 1)).mdifferentiableAt one_ne_zero
   have h := hasDerivAt_comp_curve
@@ -174,11 +170,11 @@ theorem mvfderiv_compatibleCLM_curveVelocity_compatibleGeodesic (J : 𝒥)
 read in `V →L[ℝ] V`. -/
 theorem compatibleCLM_compatibleGeodesic_mul_neg_mul (J : 𝒥)
     (a : TangentSpace 𝓘(ℝ, ω.compatibleModel) J) (t : ℝ) :
-    ω.compatibleCLM (ω.compatibleGeodesic J a t) * -(ω.compatibleCLM J * dι J a) =
-      -(-(ω.compatibleCLM J * dι J a) * ω.compatibleCLM (ω.compatibleGeodesic J a t)) := by
+    ω.compatibleCLM (ω.compatibleGeodesic J a t) * -(ω.compatibleCLM J * dι[ω] J a) =
+      -(-(ω.compatibleCLM J * dι[ω] J a) * ω.compatibleCLM (ω.compatibleGeodesic J a t)) := by
   rw [compatibleCLM_compatibleGeodesic]
   set j := ω.compatibleCLM J
-  set Y : V →L[ℝ] V := dι J a
+  set Y : V →L[ℝ] V := dι[ω] J a
   have hYj : Y * j = -(j * Y) :=
     eq_neg_of_add_eq_zero_right (compatibleCLM_mul_mvfderiv_add_mvfderiv_mul_compatibleCLM J a)
   -- `A = -j Y` anticommutes with `j`, and commutes with the exponential factor.
@@ -199,7 +195,7 @@ theorem isGeodesicCurveOnFrom_compatibleGeodesic (J : 𝒥)
   have hv := mvfderiv_compatibleCLM_curveVelocity_compatibleGeodesic J a
   have hc := hasDerivAt_compatibleCLM_compatibleGeodesic J a
   have hcA := compatibleCLM_compatibleGeodesic_mul_neg_mul J a
-  set A : V →L[ℝ] V := -(ω.compatibleCLM J * dι J a) with hA
+  set A : V →L[ℝ] V := -(ω.compatibleCLM J * dι[ω] J a) with hA
   refine ⟨isGeodesicCurveOn_univ.2 (isGeodesicCurve_iff.2
     ⟨contMDiff_compatibleGeodesic J a, fun t => ?_⟩), mem_univ 0, ?_⟩
   · -- The ambient reading of the acceleration is `c̈ - c ċ² = c A² - c (c A)² = 0`.
@@ -210,7 +206,7 @@ theorem isGeodesicCurveOnFrom_compatibleGeodesic (J : 𝒥)
         (curveVelocity 𝓘(ℝ, ω.compatibleModel) γ r) from
       funext (curveVelocityLift_apply γ)] at hW
     have hacc := alongCurve_leviCivitaConnection_compatibleSpace (hW.mdifferentiableAt one_ne_zero)
-    rw [show (fun r => dι (γ r) (curveVelocity 𝓘(ℝ, ω.compatibleModel) γ r)) =
+    rw [show (fun r => dι[ω] (γ r) (curveVelocity 𝓘(ℝ, ω.compatibleModel) γ r)) =
         fun r => ω.compatibleCLM (γ r) * A from funext hv, hv t, ((hc t).mul_const A).deriv,
       Function.comp_def, (hc t).deriv, ← acceleration_def] at hacc
     have hAc : A * ω.compatibleCLM (γ t) = -(ω.compatibleCLM (γ t) * A) := by

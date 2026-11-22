@@ -582,15 +582,17 @@ In the namespace `SymplecticGeometry.Bundle`, for a complex vector bundle
   $(P,P)$, which is zero.
 - `chernClass_prod`, the same in degree `k`, as a sum of `integralCup`s.
 
-### `Topology/VectorBundle/Complex/ChernClass/Splitting.lean`
+### `Topology/VectorBundle/ProjectiveBundle/Splitting.lean`
 
 For `E` of rank `n + 1` over a compact Hausdorff `B`:
 
-- `ProjectiveBundle.tautologicalComplement G E`, the orthogonal complement
-  of the tautological line in the pull-back of `E` to `P(E)`, for the
-  Hermitian metric pulled back from a fibrewise injection of `E` into a
-  trivial bundle (`TauCeti.weightedTrivializationMap`, Tau Ceti's
-  `bundleComplementVectorBundle`), a complex vector bundle of rank `n`;
+- `ProjectiveBundle.tautologicalComplement 𝕜 G E`, for `RCLike 𝕜`, the
+  orthogonal complement of the tautological line in the pull-back of `E` to
+  `P(E)`, for the Hermitian metric pulled back from a fibrewise injection of
+  `E` into a trivial bundle
+  (`TauCeti.exists_continuous_injective_fin_of_compactSpace`), as the range
+  of the difference of two orthogonal projections (Tau Ceti's
+  `rangeVectorBundle`), a complex vector bundle of rank `n` for `𝕜 = ℂ`;
 - `ProjectiveBundle.pullbackEquivTautologicalProdComplement`, the
   complex-linear fibrewise isomorphism, continuous on total spaces, of the
   pull-back of `E` with `Tautological ×ᵇ tautologicalComplement`.
@@ -931,7 +933,8 @@ come before it. Issues 1, 2, 3, 5, 13 and 16 can start at once.
 13. **Determinant of a direct sum.** Addition to
     `Topology/VectorBundle/Determinant.lean`, with
     `Topology/VectorBundle/FiniteRank/Tensor.lean`.
-14. **Splitting principle.** `ChernClass/Splitting.lean`. Waits for 8.
+14. **Splitting principle.**
+    `Topology/VectorBundle/ProjectiveBundle/Splitting.lean`. Waits for 8.
 15. **Top class and first class.** `ChernClass/EulerClass.lean` and
     `ChernClass/FirstChernClass.lean`. Waits for 2, 10, 11, 12, 13, 14 and
     *First Chern number*'s #784 (the second file only; it may be split
