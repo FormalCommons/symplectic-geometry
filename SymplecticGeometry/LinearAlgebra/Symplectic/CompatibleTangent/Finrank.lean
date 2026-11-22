@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Analysis.Matrix.Hermitian
+public import SymplecticGeometry.Algebra.Star.Module
 public import SymplecticGeometry.LinearAlgebra.Matrix.SelfAdjoint
 public import SymplecticGeometry.LinearAlgebra.Symplectic.CompatibleTangent.Basic
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Matrix
