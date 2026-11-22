@@ -28,8 +28,16 @@ morphism of the tensored sequence is computed by Tau Ceti's
 the pair followed by the map to relative homology
 (`TauCeti.TopTriple.singularHomologyδ_eq_comp_singularHomologyπ`).
 
+## Main definitions
+
+* `TopCat.shufflePairShortComplexMap`: the shuffle maps, as a morphism from
+  `C(X, A; R) ⊗ (C(B; S) ⟶ C(Y; S) ⟶ C(Y, B; S))` to the singular chain sequence of the triple
+  `(X × Y, A × Y ∪ X × B, A × Y)`.
+
 ## Main results
 
+* `TopCat.id_tensorHom_chainComplexMap_shuffleRel`: the relative shuffle maps commute with the
+  first maps of these two sequences.
 * `TopCat.singularHomologyCrossRelPair_comp_singularHomologyδ_comp_singularHomologyπ`: the
   connecting morphism on the cross product of two pairs, in the second factor.
 
@@ -38,9 +46,16 @@ branch, `TauCeti/AlgebraicTopology/Singular/Kunneth/Relative.lean`, commit `96e3
 pair is the first factor, and that of
 `TauCeti.homologyCross_comp_homologyMap_cubicalCrossProductRel_comp_cubicalHomologyδ` (Tau Ceti,
 `TauCeti/AlgebraicTopology/Singular/Cubical/Kunneth/Relative.lean`), its cubical analogue with the
-pair in the second factor. The commutation of the first square adapts Tau Ceti's private
-`TopCat.shufflePair_comm₁₂` (`TauCeti/AlgebraicTopology/Singular/Kunneth/Pair.lean`, of which the
-library's `Kunneth/Pair.lean` is a copy), which is not visible from this file.
+pair in the second factor.
+
+Two private declarations of Tau Ceti's main branch, in
+`TauCeti/AlgebraicTopology/Singular/Kunneth/Pair.lean` (commit `c9d170eed5`), are built again
+here as public ones. The library's `Kunneth/Pair.lean` copies only the sections `Construction`
+and `Naturality` of that file and keeps them private, so they are not visible from this file:
+* `TopCat.id_tensorHom_chainComplexMap_shuffleRel` adapts `TopCat.shufflePair_comm₁₂` (section
+  `Construction`);
+* `TopCat.shufflePairShortComplexMap` adapts `TopCat.shufflePairShortComplexMap` (section
+  `QuasiIso`), with the same components.
 
 ## References
 
@@ -73,7 +88,8 @@ variable {C : Type u} [Category.{v} C] [Abelian C] [MonoidalCategory C] [Monoida
 `(X × B, A × B) ⟶ (A × Y ∪ X × B, A × Y)`, and the relative shuffle map of `(X, A)` and `Y`
 commute with the maps `C(X, A; R) ⊗ C(B; S) ⟶ C(X, A; R) ⊗ C(Y; S)` and
 `C(A × Y ∪ X × B, A × Y) ⟶ C(X × Y, A × Y)`. -/
-private theorem shuffleRel_comp_innerToTotal :
+@[reassoc]
+theorem id_tensorHom_chainComplexMap_shuffleRel :
     (𝟙 ((TopPair.ofSubset A).singularChainComplex R) ⊗ₘ
         (SSet.chainComplexMap (toSSet.map (TopPair.ofSubset B).map) S :
           (toSSet.obj (TopPair.ofSubset B).snd).chainComplex S ⟶ (toSSet.obj Y).chainComplex S)) ≫
@@ -125,11 +141,14 @@ private theorem shuffleRel_comp_innerToTotal :
     (Category.assoc _ _ _).trans <|
     congrArg (_ ≫ ·) (Category.assoc _ _ _).symm
 
-/-- The morphism from `C(X, A; R) ⊗ (C(B; S) ⟶ C(Y; S) ⟶ C(Y, B; S))` to the singular chain
-sequence of the triple `(X × Y, A × Y ∪ X × B, A × Y)` given by the relative shuffle maps, the
-first one followed by the inclusion of pairs `(X × B, A × B) ⟶ (A × Y ∪ X × B, A × Y)`, and the
-shuffle map of the product of the pairs. -/
-private def shufflePairShortComplexMap :
+/-- The shuffle maps, as a morphism of short complexes of chain complexes. Its source is
+`C(X, A; R)` tensored on the left with the sequence `C(B; S) ⟶ C(Y; S) ⟶ C(Y, B; S)` of `(Y, B)`,
+and its target is the sequence
+`C(A × Y ∪ X × B, A × Y) ⟶ C(X × Y, A × Y) ⟶ C(X × Y, A × Y ∪ X × B)` of the triple
+`(X × Y, A × Y ∪ X × B, A × Y)`, with coefficients in `R ⊗ S`. Its first component is the relative
+shuffle map of `(X, A)` and `B` composed with `TopPair.prodExcisionFst`, its second the relative
+shuffle map of `(X, A)` and `Y`, and its third `TopCat.shufflePair`. -/
+def shufflePairShortComplexMap :
     tensorLeftShortComplex ((TopPair.ofSubset A).singularChainComplex R)
         ((TopPair.ofSubset B).singularChainComplexShortComplex S) ⟶
       (TopPair.prodUnionTripleFst A B).singularChainComplexShortComplex (R ⊗ S) where
@@ -137,10 +156,23 @@ private def shufflePairShortComplexMap :
     TopPair.singularChainComplexMap (TopPair.prodExcisionFst A B) (R ⊗ S)
   τ₂ := shuffleRel X Y A R S
   τ₃ := shufflePair X Y A B R S
-  comm₁₂ := (shuffleRel_comp_innerToTotal X Y A B R S).symm
+  comm₁₂ := (id_tensorHom_chainComplexMap_shuffleRel X Y A B R S).symm
   comm₂₃ := ((id_tensorHom_singularChainComplexπ_shufflePair X Y A B R S).trans
     (congrArg (fun f ↦ shuffleRel X Y A R S ≫ TopPair.singularChainComplexMap f (R ⊗ S))
       (TauCeti.TopTriple.totalToOuter_app_ofSubset _).symm)).symm
+
+@[simp]
+theorem shufflePairShortComplexMap_τ₁ :
+    (shufflePairShortComplexMap X Y A B R S).τ₁ = shuffleRel X (TopPair.ofSubset B).snd A R S ≫
+      TopPair.singularChainComplexMap (TopPair.prodExcisionFst A B) (R ⊗ S) := (rfl)
+
+@[simp]
+theorem shufflePairShortComplexMap_τ₂ :
+    (shufflePairShortComplexMap X Y A B R S).τ₂ = shuffleRel X Y A R S := (rfl)
+
+@[simp]
+theorem shufflePairShortComplexMap_τ₃ :
+    (shufflePairShortComplexMap X Y A B R S).τ₃ = shufflePair X Y A B R S := (rfl)
 
 variable (p q n : ℕ) (h : p + q = n)
   [PreservesColimitsOfShape WalkingParallelPair
@@ -198,8 +230,9 @@ theorem singularHomologyCrossRelPair_comp_singularHomologyδ_comp_singularHomolo
   have key : homologyMap (shufflePair X Y A B R S) n ≫
       hT.δ n n' (by simp; omega) =
         hKS.δ n n' (by simp; omega) ≫ homologyMap (shuffleRel X (TopPair.ofSubset B).snd A R S ≫
-          TopPair.singularChainComplexMap (TopPair.prodExcisionFst A B) (R ⊗ S)) n' :=
-    hδ.symm
+          TopPair.singularChainComplexMap (TopPair.prodExcisionFst A B) (R ⊗ S)) n' := by
+    simp only [shufflePairShortComplexMap_τ₁, shufflePairShortComplexMap_τ₃] at hδ
+    exact hδ.symm
   have e : (homologyCross ((TopPair.ofSubset A).singularChainComplex R)
         ((toSSet.obj (TopPair.ofSubset B).snd).chainComplex S) p q' n' h' ≫
           homologyMap (shuffleRel X (TopPair.ofSubset B).snd A R S ≫
