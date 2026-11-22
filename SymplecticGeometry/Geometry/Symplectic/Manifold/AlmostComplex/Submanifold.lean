@@ -7,9 +7,12 @@ module
 
 public import Mathlib.Geometry.Manifold.ImmersionDiff
 public import SymplecticGeometry.Geometry.Manifold.Immersion.TangentEndomorphism
+public import SymplecticGeometry.Geometry.Symplectic.Manifold.Nijenhuis
 public import TauCeti.Geometry.Manifold.DifferentialForm.Closed
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.Basic
 public import TauCeti.Geometry.Symplectic.Lagrangian.Embedding.Symplectic.Basic
+public import TauCeti.Geometry.Symplectic.Manifold.Kahler
+import SymplecticGeometry.Geometry.Manifold.VectorField.Immersion
 
 /-!
 # Complex submanifolds of almost complex manifolds
@@ -32,6 +35,15 @@ symplectic submanifold embedding for `σ` in the sense of Tau Ceti's
 `TauCeti.SmoothTwoForm.IsNondegenerate.IsSymplecticSubmanifoldEmbedding`, and if `σ` is
 symplectic, so is its pull-back. Each of these is checked on `df_x v`, so the linear facts on the
 image of `df_x`, such as Tau Ceti's `TauCeti.SymplecticForm.Compatible.restrict`, are not needed.
+
+The Nijenhuis tensor of the restriction is read through `df_x`:
+`df_x (N_{J|_N}(v, w)) = N_J(df_x v, df_x w)`. Every tangent vector of `N` is the value of a field
+that is `f`-related near `x` to a field on `M`
+(`Manifold.IsImmersionAt.exists_vectorField_mfderiv_eventuallyEq`), and `J|_N` intertwines with
+`J` through `df`, so this is the naturality of the Nijenhuis tensor for related fields,
+`TauCeti.SmoothAlmostComplexStructure.mfderiv_nijenhuis_of_eventually_related`. Hence
+`N_J = 0` gives `N_{J|_N} = 0`, and a Kähler pair in the sense of Tau Ceti's
+`TauCeti.SmoothTwoForm.IsKahler`, which asks for `N_J = 0`, restricts to a Kähler pair.
 
 The API of the restriction and the three form lemmas adapt Tau Ceti's
 `TauCeti.SmoothAlmostComplexStructure.pullback`,
@@ -60,6 +72,13 @@ Nothing here assumes `N` nonempty or of positive dimension.
   submanifold is a symplectic submanifold embedding for a taming form.
 * `TauCeti.SmoothTwoForm.Tames.isSymplectic_mpullback`: a symplectic form taming `J` pulls back to
   a symplectic form.
+* `TauCeti.SmoothAlmostComplexStructure.mfderiv_nijenhuis_restrict`,
+  `TauCeti.SmoothAlmostComplexStructure.nijenhuis_restrict_apply`: the Nijenhuis tensor of the
+  restriction is the Nijenhuis tensor of `J` read through `df_x`.
+* `TauCeti.SmoothAlmostComplexStructure.nijenhuis_restrict_eq_zero`,
+  `TauCeti.SmoothTwoForm.IsKahler.restrict`: vanishing of the Nijenhuis tensor and the Kähler
+  condition pass to complex submanifolds.
+* `TauCeti.SmoothTwoForm.Tames.complex_submanifold`: these statements together.
 
 ## References
 
@@ -170,6 +189,44 @@ theorem eq_restrict_iff {K : SmoothAlmostComplexStructure I' N} :
   exact f.isImmersion.mfderiv_injective (by simp) x
     ((h x v).trans (mfderiv_restrict_apply hJ x v).symm)
 
+section Nijenhuis
+
+variable [FiniteDimensional ℝ E] [FiniteDimensional ℝ E']
+
+/-- The differential of the embedding carries the Nijenhuis tensor of the restricted structure to
+the Nijenhuis tensor of `J`: `df_x (N_{J|_N}(v, w)) = N_J(df_x v, df_x w)`. -/
+theorem mfderiv_nijenhuis_restrict (x : N) (v w : TangentSpace I' x) :
+    mfderiv I' I f x ((J.restrict f hJ).nijenhuis x v w) =
+      J.nijenhuis (f x) (mfderiv I' I f x v) (mfderiv I' I f x w) := by
+  have hf := f.isImmersion.isImmersionAt x
+  obtain ⟨X, V, hX, hV, hXv, hXV⟩ := hf.exists_vectorField_mfderiv_eventuallyEq (m := 1)
+    (by simp) v
+  obtain ⟨Y, W, hY, hW, hYw, hYW⟩ := hf.exists_vectorField_mfderiv_eventuallyEq (m := 1)
+    (by simp) w
+  have h := (J.restrict f hJ).mfderiv_nijenhuis_of_eventually_related J
+    ((f.contMDiff x).of_le (by simp))
+    (.of_forall fun z u ↦ mfderiv_restrict_apply hJ z u) (hX.mdifferentiableAt one_ne_zero)
+    (hY.mdifferentiableAt one_ne_zero) (hV.mdifferentiableAt one_ne_zero)
+    (hW.mdifferentiableAt one_ne_zero) hXV hYW
+  rwa [← hXV.self_of_nhds, ← hYW.self_of_nhds, hXv, hYw] at h
+
+/-- The Nijenhuis tensor of the restricted structure at `x` is
+`N_{J|_N}(v, w) = L (N_J(df_x v, df_x w))` for every left inverse `L` of `df_x`. -/
+theorem nijenhuis_restrict_apply {x : N} {L : TangentSpace I (f x) →L[ℝ] TangentSpace I' x}
+    (hL : LeftInverse L (mfderiv I' I f x)) (v w : TangentSpace I' x) :
+    (J.restrict f hJ).nijenhuis x v w =
+      L (J.nijenhuis (f x) (mfderiv I' I f x v) (mfderiv I' I f x w)) := by
+  rw [← mfderiv_nijenhuis_restrict hJ, hL]
+
+/-- If the Nijenhuis tensor of `J` vanishes, so does that of the restricted structure. -/
+theorem nijenhuis_restrict_eq_zero (h : J.nijenhuis = 0) : (J.restrict f hJ).nijenhuis = 0 := by
+  funext x
+  ext v w
+  refine f.isImmersion.mfderiv_injective (by simp) x ?_
+  simp [mfderiv_nijenhuis_restrict hJ, h]
+
+end Nijenhuis
+
 end SmoothAlmostComplexStructure
 
 namespace SmoothTwoForm
@@ -216,6 +273,40 @@ theorem Tames.isSymplecticSubmanifoldEmbedding (hσ : σ.Tames J) :
 theorem Tames.isSymplectic_mpullback (hσ : σ.Tames J) (hσs : σ.IsSymplectic) :
     SmoothTwoForm.IsSymplectic (SmoothForm.mpullback f f.contMDiff σ) :=
   ⟨hσs.isClosed.mpullback f f.contMDiff, (hσ.restrict hJ).isNondegenerate⟩
+
+variable [FiniteDimensional ℝ E] [FiniteDimensional ℝ E']
+
+/-- A Kähler pair `(σ, J)` restricts to a Kähler pair on a complex submanifold: the pull-back of
+`σ` and the restricted structure. -/
+theorem IsKahler.restrict (hσ : σ.IsKahler J) :
+    SmoothTwoForm.IsKahler (SmoothForm.mpullback f f.contMDiff σ) (J.restrict f hJ) :=
+  ⟨hσ.isClosed.mpullback f f.contMDiff, hσ.compatible.restrict hJ,
+    SmoothAlmostComplexStructure.nijenhuis_restrict_eq_zero hJ hσ.nijenhuis_eq_zero⟩
+
+/-- **Complex submanifolds of tame and Kähler manifolds.** Let `σ` be a two-form on `M` taming a
+smooth almost complex structure `J` (so `σ` is nondegenerate), and let `f : N → M` be a smooth
+embedding whose tangent images are `J`-invariant, with restricted structure `J|_N`. Then
+
+1. the pull-back `f^* σ` is nondegenerate, and it tames `J|_N`;
+2. if `σ` is compatible with `J`, then `f^* σ` is compatible with `J|_N`;
+3. if `σ` is closed, then `f` is a symplectic submanifold embedding for `σ`, and `f^* σ` is
+   symplectic;
+4. if `(σ, J)` is Kähler (closed, compatible, with vanishing Nijenhuis tensor), then so is
+   `(f^* σ, J|_N)`.
+
+Milestone: *Complex submanifolds of Kähler manifolds*. -/
+theorem Tames.complex_submanifold (hσ : σ.Tames J) :
+    SmoothTwoForm.IsNondegenerate (SmoothForm.mpullback f f.contMDiff σ) ∧
+      SmoothTwoForm.Tames (SmoothForm.mpullback f f.contMDiff σ) (J.restrict f hJ) ∧
+      (σ.Compatible J →
+        SmoothTwoForm.Compatible (SmoothForm.mpullback f f.contMDiff σ) (J.restrict f hJ)) ∧
+      (σ.IsClosed → hσ.isNondegenerate.IsSymplecticSubmanifoldEmbedding I' f ∧
+        SmoothTwoForm.IsSymplectic (SmoothForm.mpullback f f.contMDiff σ)) ∧
+      (σ.IsKahler J →
+        SmoothTwoForm.IsKahler (SmoothForm.mpullback f f.contMDiff σ) (J.restrict f hJ)) :=
+  ⟨(hσ.restrict hJ).isNondegenerate, hσ.restrict hJ, fun h ↦ h.restrict hJ,
+    fun h ↦ ⟨hσ.isSymplecticSubmanifoldEmbedding hJ, hσ.isSymplectic_mpullback hJ
+      ⟨h, hσ.isNondegenerate⟩⟩, fun h ↦ h.restrict hJ⟩
 
 end SmoothTwoForm
 
