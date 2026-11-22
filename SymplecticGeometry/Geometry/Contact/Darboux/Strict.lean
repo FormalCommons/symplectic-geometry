@@ -114,7 +114,7 @@ theorem SmoothForm.IsContactForm.exists_strictDarbouxChart_reebVectorField_of_fi
         (-innerProductContactForm V).val y := by
       filter_upwards [chart.open_source.mem_nhds hx] with y hy
       refine ContinuousAlternatingMap.ext fun v ↦ ?_
-      obtain ⟨w, rfl⟩ : ∃ w, v = ![w] := ⟨v 0, funext fun i ↦ by fin_cases i; simp⟩
+      obtain ⟨w, rfl⟩ : ∃ w, v = ![w] := ⟨v 0, (FinVec.etaExpand_eq _).symm⟩
       rw [← hform y hy, mvfderiv_apply_eq_mfderiv_apply, TauCeti.mpullback_apply]
       congr 1
       funext i
