@@ -1063,6 +1063,10 @@ issues, in an order where each issue's blockers come before it.
    `SymplecticGeometry.range_inclusion_discComplementInterior`,
    `SymplecticGeometry.isCollared_discComplementBoundary`) and
    `ArgumentPrinciple.lean` imports. This is the half of the book's Lemma 2.7.3 needed for discs.
+   `AlgebraicTopology/Singular/Nullhomotopic.lean`, for the homology of
+   the boundary circles: a nullhomotopic map induces zero on singular
+   homology in positive degree
+   (`TopCat.singularHomologyFunctor_map_eq_zero_of_nullhomotopic`).
    Blocked by 5 and 7.
 7. **Boundary degree and the argument principle on a surface with
    boundary.** The setting is that of `RelativeFundamentalClass.lean`: `X`
