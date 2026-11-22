@@ -46,6 +46,8 @@ which is meaningful on `ψ.target`.
   `ψ.target`, and zero elsewhere. It is continuous with compact support when `χ` is continuous
   with compact support in `ψ.source` (`TauCeti.SmoothForm.continuous_localize`,
   `TauCeti.SmoothForm.hasCompactSupport_localize`).
+* `TauCeti.SmoothForm.contDiffOn_fderiv_mpullback_symm_apply`: the partial derivatives of the
+  reading of a smooth form in `ψ` are smooth on `ψ.target`.
 
 The proof of `TauCeti.mpullback_symm_eq_inChartAt` is the pointwise form of the argument of Tau
 Ceti's `TauCeti.RoughForm.inChartAt_ae_eq_mpullback`, which proves the same equality almost
@@ -386,6 +388,17 @@ theorem continuous_localize (hχc : Continuous χ) (hK : IsCompact (tsupport χ)
     ((α.tsupport_localize_subset ψ hK hχ).trans (ψ.mapsTo.mono_left hχ).image_subset)
 
 end Localize
+
+/-! ### Partial derivatives in a chart -/
+
+/-- The partial derivative `∂_v` of the reading `(ψ.symm)^* α` of a smooth form in a chart `ψ` is
+smooth on the target of the chart. -/
+theorem contDiffOn_fderiv_mpullback_symm_apply [IsManifold I ∞ M]
+    (α : SmoothForm I M F k) (ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞) (v : E) :
+    ContDiffOn ℝ ∞ (fun z ↦ fderiv ℝ (F := E [⋀^Fin k]→L[ℝ] F)
+      (TauCeti.mpullback 𝓘(ℝ, E) I ψ.symm α.val) z v) ψ.target :=
+  ((α.contDiffOn_mpullback ψ.open_target ψ.symm.contMDiffOn).fderiv_of_isOpen ψ.open_target
+    (m := ∞) (by simp)).clm_apply contDiffOn_const
 
 end SmoothForm
 

@@ -48,8 +48,6 @@ since forms of degree `m + 1` vanish.
 * `SymplecticGeometry.exists_mpullback_symm_hodgeLaplacian_eq`: the Hodge Laplacian in the chart
   is a second-order operator with principal part `-∑ᵢⱼ G⁻¹ᵢⱼ ∂_{b_i} ∂_{b_j}` and smooth
   lower-order coefficients.
-* `SymplecticGeometry.differentiableAt_fderiv_mpullback_symm_apply`: the partial derivatives of a
-  smooth form read in the chart are differentiable on the target.
 
 ## References
 
@@ -202,17 +200,6 @@ theorem exists_mpullback_symm_codifferential_eq
     smul_hodgeStarInChart_alternatizeUncurryFin_hodgeStarInChart o ψ hkl hlk b hy]
   simp [Finset.sum_neg_distrib, Basis.coord_apply, Finsupp.single_apply, ite_smul]
 
-omit [RiemannianBundle (fun x : M ↦ TangentSpace I x)] [FiniteDimensional ℝ E] in
-/-- The partial derivatives of a smooth form read in a chart are differentiable on the target of
-the chart. -/
-theorem differentiableAt_fderiv_mpullback_symm_apply (α : SmoothForm I M ℝ k) {y : E}
-    (hy : y ∈ ψ.target) (v : E) :
-    DifferentiableAt ℝ (fun z ↦ fderiv ℝ (F := E [⋀^Fin k]→L[ℝ] ℝ)
-      (mpullback 𝓘(ℝ, E) I ψ.symm α.val : E → E [⋀^Fin k]→L[ℝ] ℝ) z v) y :=
-  ((((SmoothForm.contDiffOn_mpullback α ψ.open_target ψ.symm.contMDiffOn).fderiv_of_isOpen
-    ψ.open_target (m := ∞) (by simp)).contDiffAt (ψ.open_target.mem_nhds hy)).clm_apply
-      contDiffAt_const).differentiableAt (by simp)
-
 /-- The exterior product `ε_{b^*_i}` with the `i`-th coordinate covector of a basis `b`, from
 `k`-forms to `(k + 1)`-forms. The two computations below expand `d` in the basis with it. -/
 private def coordExtProd (b : Basis (Fin m) ℝ E) (k : ℕ) (i : Fin m) :
@@ -262,7 +249,8 @@ private theorem exists_mpullback_symm_codifferential_mextDeriv_eq
   have hD : HasFDerivAt (fun z ↦ ∑ i, coordExtProd b k i (fderiv ℝ a z (b i)))
       (∑ i, (coordExtProd b k i).comp (fderiv ℝ (fun z ↦ fderiv ℝ a z (b i)) y)) y :=
     HasFDerivAt.fun_sum fun i _ ↦ (coordExtProd b k i).hasFDerivAt.comp y
-      (differentiableAt_fderiv_mpullback_symm_apply ψ α hy (b i)).hasFDerivAt
+      (((α.contDiffOn_fderiv_mpullback_symm_apply ψ (b i)).contDiffAt
+        (ψ.open_target.mem_nhds hy)).differentiableAt (by simp)).hasFDerivAt
   rw [hδ (mextDerivₗ I k α) y hy, hev.fderiv_eq, hev.eq_of_nhds, hD.fderiv]
   simp only [_root_.sum_apply, ContinuousLinearMap.comp_apply, _root_.map_sum, coordExtProd_apply,
     curryLeft_sum]
@@ -331,7 +319,8 @@ private theorem exists_mpullback_symm_mextDeriv_codifferential_eq
     refine (HasFDerivAt.fun_sum fun j _ ↦ HasFDerivAt.fun_sum fun l _ ↦ ?_).neg.add ?_
     · exact (((hgs j l).contDiffAt hT).differentiableAt (by simp)).hasFDerivAt.smul
         ((κ l).hasFDerivAt.comp y
-          (differentiableAt_fderiv_mpullback_symm_apply ψ α hy (b j)).hasFDerivAt)
+          (((α.contDiffOn_fderiv_mpullback_symm_apply ψ (b j)).contDiffAt
+            (ψ.open_target.mem_nhds hy)).differentiableAt (by simp)).hasFDerivAt)
     · exact ((hC₀.contDiffAt hT).differentiableAt (by simp)).hasFDerivAt.clm_apply
         ((ha.contDiffAt hT).differentiableAt (by simp)).hasFDerivAt
   rw [mpullback_symm_mextDerivₗ ψ _ hy, hev.extDeriv_eq, extDeriv_eq_sum_coordExtProd b, hF.fderiv]
