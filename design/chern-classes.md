@@ -610,6 +610,18 @@ steps, the shuffle map of the pairs into the small chains
 (`TopCat.shuffleAlexanderWhitneyPairHomotopy`), are public and sit in
 `Singular/Kunneth/RelativePair.lean`, which the file imports.
 
+### `AlgebraicTopology/SimplicialSet/TripleAcyclicModels.lean`
+
+Acyclic models for three factors of simplicial chains, which the
+associativity of the cross product of pairs needs:
+`SSet.tripleTensorChainComplexHomotopy`, a chain homotopy between two
+natural families of chain maps
+`(C(K; R) ⊗ C(L; S)) ⊗ C(M; T) ⟶ C((K ⊗ L) ⊗ M; U)` that agree in degree
+zero, and `SSet.tripleTensorChainComplexHomotopy_hom_naturality`. It adds
+the cone `SSet.stdSimplex.tripleProdConeChain` on the chains of
+`(Δ[a] ⊗ Δ[b]) ⊗ Δ[c]` and `SSet.tripleTensorChainComplexXDesc`, the maps
+out of a triple tensor product of chain groups.
+
 ### `AlgebraicTopology/Singular/LocalHomology/Orientation/Cross/Basic.lean`
 
 The cross product of local orientations, for the Whitney file below, in Tau

@@ -7,6 +7,7 @@ module
 
 public import SymplecticGeometry.AlgebraicTopology.Cohomology.CompactSupport.Euclidean.Basic
 public import SymplecticGeometry.Geometry.Manifold.ChartedSpace
+public import TauCeti.CategoryTheory.Linear.Int
 public import TauCeti.Topology.OpenPartialHomeomorph.Constructions
 
 /-!
@@ -26,9 +27,17 @@ that the vanishing holds for them by `TopCat.isZero_compactSupportCohomology_of_
 They cover `M` (`TopologicalSpace.Opens.sSup_setOf_subset_chartAt_source_eq_top`), so the
 vanishing holds on `M` by `TopCat.isZero_compactSupportCohomology_of_infClosed`.
 
+For `ℤ` coefficients, `TopCat.isZero_compactSupportCohomology_of_chartedSpace_int` gives the same
+vanishing for the `ℤ`-linear structure of `ModuleCat ℤ` as a preadditive category, the one that
+Lean finds by default and that the duality maps use. It agrees with the structure of a category of
+modules since a `ℤ`-module structure is unique (`CategoryTheory.Linear.subsingletonInt`), as in
+Tau Ceti's `TauCeti.HomologicalOrientation.bijective_singularCap_fundamentalClassOn_of_starConvex`.
+
 ## Main results
 
 * `TopCat.isZero_compactSupportCohomology_of_chartedSpace`: `Hᵐ_c(M) = 0` above the dimension.
+* `TopCat.isZero_compactSupportCohomology_of_chartedSpace_int`: the same for `ℤ` coefficients,
+  with the `ℤ`-linear structure of `ModuleCat ℤ` as a preadditive category.
 
 ## References
 
@@ -61,6 +70,18 @@ theorem isZero_compactSupportCohomology_of_chartedSpace {m : ℕ} (hm : finrank 
   rintro W ⟨x, hx⟩ m hm
   exact isZero_compactSupportCohomology_of_isOpenEmbedding R N
     ((chartAt F x).isOpenEmbedding_comp W.isOpenEmbedding' (by rwa [Subtype.range_coe])) hm
+
+/-- **Cohomology with compact supports of a manifold vanishes above the dimension**, for integer
+coefficients and any abelian group `L`, with the `ℤ`-linear structure of `ModuleCat ℤ` as a
+preadditive category: `Hᵐ_c(M; L) = 0` for `m > finrank ℝ F`. -/
+theorem isZero_compactSupportCohomology_of_chartedSpace_int
+    {F : Type} [NormedAddCommGroup F] [NormedSpace ℝ F] [FiniteDimensional ℝ F]
+    {M : Type} [TopologicalSpace M] [T2Space M] [ChartedSpace F M]
+    (L : ModuleCat.{0} ℤ) {m : ℕ} (hm : finrank ℝ F < m) :
+    IsZero ((of M).compactSupportCohomology (ModuleCat.of ℤ (ULift ℤ)) ℤ L m) := by
+  -- The two `ℤ`-linear structures agree, as a `ℤ`-module structure is unique.
+  have := Linear.subsingletonInt (ModuleCat.{0} ℤ)
+  convert isZero_compactSupportCohomology_of_chartedSpace (ModuleCat.of ℤ (ULift ℤ)) L (M := M) hm
 
 end TopCat
 

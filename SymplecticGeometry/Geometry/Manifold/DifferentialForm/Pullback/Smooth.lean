@@ -8,7 +8,14 @@ module
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 
 /-!
-# Pullback of forms: negation and constant maps
+# Pullback of forms: its value at a point, negation and constant maps
+
+At a point `x`, the pullback of a form `φ` along `f` is the value of `φ` at `f x` composed with
+the differential of `f` at `x` (`TauCeti.mpullback_apply_eq_compContinuousLinearMap`). The
+statement is on the tangent spaces, so that Mathlib's bound
+`ContinuousAlternatingMap.norm_compContinuousLinearMap_le` applies with their norms, such as
+Riemannian ones. Tau Ceti's `TauCeti.mpullback_apply_eq_compContinuousLinearMapCLM` states the
+same equality on the model spaces.
 
 Pulling a form back commutes with negation (`TauCeti.mpullback_neg`), as Tau Ceti's
 `TauCeti.mpullback_sub` says for subtraction.
@@ -18,6 +25,8 @@ along a constant map gives the zero form (`TauCeti.SmoothForm.mpullback_const`).
 
 ## Main results
 
+* `TauCeti.mpullback_apply_eq_compContinuousLinearMap`: the pullback at `x` is
+  `(φ (f x)).compContinuousLinearMap (mfderiv I I' f x)`.
 * `TauCeti.mpullback_neg`: the pullback of `-φ` is minus the pullback of `φ`.
 * `TauCeti.SmoothForm.mpullback_const`: the pullback of a smooth `(k + 1)`-form along a constant
   map is `0`.
@@ -35,6 +44,13 @@ variable {E H M E' H' M' F : Type*}
   [NormedAddCommGroup E'] [NormedSpace ℝ E'] [TopologicalSpace H']
   [TopologicalSpace M'] [ChartedSpace H' M'] {I' : ModelWithCorners ℝ E' H'}
   [NormedAddCommGroup F] [NormedSpace ℝ F] {k : ℕ}
+
+/-- At a point `x`, the pullback of `φ` along `f` is `φ (f x)` composed with the differential of
+`f` at `x`, as an alternating map on the tangent space at `x`. -/
+theorem mpullback_apply_eq_compContinuousLinearMap (f : M → M') (φ : RoughForm I' M' F k)
+    (x : M) :
+    mpullback I I' f φ x = (φ (f x)).compContinuousLinearMap (mfderiv I I' f x) :=
+  ContinuousAlternatingMap.ext fun v ↦ mpullback_apply f φ x v
 
 /-- Pullback commutes with negation. -/
 @[simp]

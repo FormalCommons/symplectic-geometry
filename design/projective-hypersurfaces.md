@@ -648,6 +648,9 @@ For `X : SmoothProjectiveHypersurface 1 d` with `d ≠ 0`:
   (#1045).
 - *First Chern number*'s prerequisites: Poincaré duality (#810), and the
   library's merged `Cap/RationalCoefficients.lean`.
+- *Complex projective space*: `ContMDiff.restrictScalars'`
+  (`Geometry/Manifold/ContMDiff/RestrictScalars.lean`), which
+  `SmoothEmbedding/RestrictScalars.lean` imports.
 - Tau Ceti: projective space and its zero loci
   (`Geometry/Manifold/Projectivization/ZeroLocus.lean`), the line bundles
   `twistCore` and `homogeneousSection`, the Veronese map, the Lefschetz
