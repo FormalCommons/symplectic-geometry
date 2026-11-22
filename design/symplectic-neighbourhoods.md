@@ -252,10 +252,11 @@ and two rows of its milestone table.
 - The part no longer builds on *Symplectic vector bundles*, neither on
   `Symplectic/Basic.lean` nor on any of its open issues: the compatible
   complex structures come from Tau Ceti, and the symplectic normal bundle
-  is read through Tau Ceti's `symplecticNormalForm`. Its one import from
-  that part is the merged `Geometry/Manifold/IsManifold/InteriorBoundary.lean`,
+  is read through Tau Ceti's `symplecticNormalForm`. Its imports from
+  that part are the merged `Geometry/Manifold/IsManifold/InteriorBoundary.lean`,
   in `CharacteristicFoliation.lean` and `FlatChart.lean`, for the open
-  targets of maximal-atlas charts on a manifold without boundary.
+  targets of maximal-atlas charts on a manifold without boundary, and the
+  merged `Geometry/Manifold/VectorBundle/Pullback.lean`, in `Adjoint.lean`.
 
 ## Files and their contents
 
@@ -401,43 +402,41 @@ the table of *Conventions*), and `W : Submodule ℝ V`.
 
 The construction above along a submanifold, smoothly. Namespace
 `TauCeti.SmoothEmbedding`. For `f₀ : SmoothEmbedding J I₀ ∞ Q M₀`,
-`f₁ : SmoothEmbedding J I₁ ∞ Q M₁`, symplectic `ω₀`, `ω₁`, compatible
+`f₁ : SmoothEmbedding J I₁ ∞ Q M₁`, two-forms `ω₀`, `ω₁` with compatible
 `J₀ J₁ : TauCeti.SmoothAlmostComplexStructure` on `M₀` and `M₁`, with
 `SmoothForm.mpullback f₁ _ ω₁ = SmoothForm.mpullback f₀ _ ω₀` of constant
 rank, `finrank ℝ E₀ = finrank ℝ E₁`, and `L` a smooth section over `Q` of the
-hom bundle of the pull-backs satisfying `hL` and `hLω` at every `q`:
+hom bundle of the pull-backs satisfying `hL` and `hLω` at every `q` (the
+constant rank and the smoothness of `L` are hypotheses of
+`contMDiff_smoothExtendAlong` only):
 
 - `smoothExtendAlong … q : TangentSpace I₀ (f₀ q) ≃L[ℝ] TangentSpace I₁ (f₁ q)`,
   the map `extendAlong` of the previous file at `q`, with $W_j=df_j(T_qQ)$
-  and `b` = $df_1\circ df_0^{-1}$ on $W_0$; `smoothExtendAlong_def`.
+  and `b` = $df_1\circ df_0^{-1}$ on $W_0$ (`mfderivRangeEquiv`);
+  `smoothExtendAlong_def`.
 - `contMDiff_smoothExtendAlong`: it is a smooth section of the hom bundle
-  of the pull-backs. Route: smoothness is local in `Q`. Near a point, the
-  kernel of `σ` has a smooth frame (Tau Ceti's
-  `isContMDiffDistribution_ker_bilinFormAt`). Its image by $df_0$,
-  completed by frames of $TQ$, is orthonormalized by Tau Ceti's smooth
-  Gram–Schmidt (`Geometry/Manifold/VectorBundle/GramSchmidt.lean`) for
-  $g_j$. That gives smooth frames of $H_j$, $K_j$, $J_jK_j$ and of $E_j$, the
-  last as the $g_j$-orthogonal complement of $J_j(H_j\oplus K_j\oplus
-  J_jK_j)$, that is, the $\omega_j$-orthogonal of $H_j\oplus K_j\oplus
-  J_jK_j$. Frames of such orthogonal complements come from
-  `TauCeti.HasLocalContMDiffSubbundleFrames.orthogonal`
-  (`Geometry/Manifold/VectorBundle/Orthogonal.lean`), which uses nothing
-  symplectic. The frames of the pieces along `f`, and the smooth
+  of the pull-backs. Route: the frames of the pieces along `f`, and the smooth
   projections along the splittings that `extendAlong_def` uses, are in
   `Neighborhood/Frames.lean` (namespace `TauCeti.SmoothEmbedding`), which
   imports `Geometry/Symplectic/Manifold/Flat.lean` of *Moser isotopy* for
-  the flat maps of `σ` along `f`. In these frames every step of
-  `extendAlong` is a matrix formula with inverses of smooth invertible Gram
-  matrices.
+  the flat maps of `σ` along `f`. Tau Ceti's `contMDiff_hom_bundle_iff`
+  makes those projections smooth sections of the endomorphism bundles. On
+  $W_0$ and $W_1$, `b` and $b^{-1}$ are $df_1\circ S_0$ and $df_0\circ S_1$
+  for smooth left inverses $S_j$ of $df_j$
+  (`exists_contMDiff_leftInverse_mfderiv`, from
+  `Manifold.IsImmersion.exists_contMDiff_leftInverse_mfderiv` in
+  `Geometry/Manifold/VectorBundle/Adjoint.lean`: the adjoint of $df$ for
+  $\sigma(J\cdot,\cdot)$ and its pull-back to $TQ$).
 - The adjoint step $(\omega_1^\flat)^{-1}\circ T^*\circ\omega_0^\flat$ of
   `extendAlong_def` is smooth by `ContMDiff.clm_bundle_bilinAdjoint`
   (`Geometry/Manifold/VectorBundle/Adjoint.lean`), for
   `ContinuousLinearMap.bilinAdjoint`, whose linear map is that formula
   (`ContinuousLinearMap.coe_bilinAdjoint`); both are in part 9's
   `Topology/Algebra/Module/BilinearForm.lean`.
-- `mfderiv_comp_smoothExtendAlong` ($A\circ df_0=df_1$),
+- `smoothExtendAlong_comp_mfderiv` ($A\circ df_0=df_1$, applied:
+  `smoothExtendAlong_apply_mfderiv`),
   `isSymplectomorphism_smoothExtendAlong` (at each `q`, for
-  `hω₀.symplecticFormAt (f₀ q)` and `hω₁.symplecticFormAt (f₁ q)`), and
+  `hc₀.isNondegenerate.symplecticFormAt (f₀ q)` and the same for `f₁`), and
   `smoothExtendAlong_sub_mem`.
 
 ### `Geometry/Manifold/Distribution/FlatChart.lean`
@@ -655,7 +654,10 @@ four theorems share.
 
 - From *Moser isotopy*: `Relative.lean`, `Geometry/Manifold/DifferentialForm/Opens.lean` and
   `Geometry/Symplectic/Manifold/TwoForm.lean`, only in `Tubular.lean`.
-- *Symplectic vector bundles* is not used: the compatible complex
+- From *Symplectic vector bundles*:
+  `Geometry/Manifold/VectorBundle/Pullback.lean` (merged), in
+  `Geometry/Manifold/VectorBundle/Adjoint.lean`, for the derivative of an
+  immersion as a section of the pull-back. The compatible complex
   structures of `Neighborhood/Basic.lean` come from Tau Ceti's
   `TauCeti.SmoothTwoForm.IsNondegenerate.exists_compatible`.
 - From *Symplectic vector spaces*: `LinearAlgebra/Symplectic/Reduction.lean`
