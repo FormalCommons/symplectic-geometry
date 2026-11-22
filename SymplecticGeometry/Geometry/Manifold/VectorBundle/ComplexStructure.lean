@@ -921,8 +921,12 @@ theorem pullbackComplexStructure_toEndomorphism (J : SmoothAlmostComplexStructur
     (hf : ContMDiff I' I ∞ f) (y : N) :
     (J.pullbackComplexStructure f hf).toEndomorphism y = J.toEndomorphism (f y) := by
   rw [pullbackComplexStructure_def]
+  -- `rw` cannot use `pullback_toEndomorphism` here: its statement carries the bundle structure of
+  -- `C^∞⟮I', N; I, M⟯`, while the goal carries that of `K`.
   exact (ContMDiffComplexStructure.pullback_toEndomorphism _ ⟨f, hf⟩ y).trans
-    (J.toContMDiff_toEndomorphism_apply ⊤ (f y))
+    ((congrFun (congrArg DFunLike.coe
+      (ContMDiffComplexStructure.tangentEquiv_symm_toEndomorphism (J.toContMDiff ⊤))) (f y)).trans
+      (J.toContMDiff_toEndomorphism_apply ⊤ (f y)))
 
 /-- The pull-back of `J` along `f` acts at `y` as `J (f y)`. -/
 @[simp]
