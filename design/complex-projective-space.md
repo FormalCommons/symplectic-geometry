@@ -470,7 +470,7 @@ In this order; each is blocked by the ones listed, and all are sub-issues of
 | N1 | The affine formula, the comparison with `OnePoint.fubiniStudyForm` and the stereographic map | `FubiniStudy/Normalization.lean` (up to `mpullback_sphereToProjectiveLine_fubiniStudyForm`) | B2 | 300 |
 | N2 | The area of a line | `FubiniStudy/Normalization.lean` (the two integrals) | N1, K1 | 250 |
 | D | The Darboux charts | `FubiniStudy/Darboux.lean` | B2, K1 | 300 |
-| L | $\mathbb RP^n$ and the Clifford torus as Lagrangians | `FubiniStudy/Lagrangian.lean` (all but `fubiniStudyForm_spec`) | B2 | 300 |
+| L | Lagrangian embeddings of real projective space and of the Clifford torus | `FubiniStudy/Lagrangian.lean` (all but `fubiniStudyForm_spec`) | B2 | 300 |
 | S | The milestone as one theorem | `FubiniStudy/Lagrangian.lean` (`fubiniStudyForm_spec`) | K1, N2, D, L | 60 |
 
 P and H can start at once. K2 waits for *Complex submanifolds* (#864). The
