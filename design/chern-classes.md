@@ -701,6 +701,9 @@ one piece, for computing `crossSign m 0` through the sphere generator:
 `TopCat.reducedMayerVietorisδ_succ_eq_singularHomologyδ_left` for the
 reduced morphism in positive degrees. They come from the simplicial-set
 statements `SSet.mayerVietorisδ_comp_homologyMap_of_fst` and `_of_snd`.
+`TopCat.singularHomologyπ_ofSubset_inter_eq_add` puts the two pieces
+together: `Hₙ(X) ⟶ Hₙ(X, U ∩ V)` is the sum of the two excision composites,
+each followed by the inclusion of its pair into `(X, U ∩ V)`.
 
 ### `AlgebraicTopology/Singular/LocalHomology/Orientation/Suspension.lean`
 
