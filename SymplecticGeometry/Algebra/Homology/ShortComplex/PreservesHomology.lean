@@ -27,7 +27,7 @@ variable {C D : Type*} [Category* C] [Category* D] [Limits.HasZeroMorphisms C]
 
 /-- Under the inverse identifications `mapCyclesIso` and `mapHomologyIso`, the image under `F` of
 the class map of `S` is the class map of `S.map F`. -/
-@[reassoc]
+@[reassoc (attr := simp)]
 theorem map_homologyπ_comp_mapHomologyIso_inv [S.HasHomology] [(S.map F).HasHomology]
     [F.PreservesLeftHomologyOf S] :
     F.map S.homologyπ ≫ (S.mapHomologyIso F).inv =
