@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Basic
+import TauCeti.Geometry.Manifold.Diffeomorph.Basic
 
 /-!
 # Diffeotopies that transport a family of distributions
@@ -25,6 +26,8 @@ is written with `Submodule.comap`, as Tau Ceti writes pullbacks of distributions
 
 * `TauCeti.Diffeotopy.transports_iff`: the unfolding of the definition.
 * `TauCeti.Diffeotopy.transports_refl`: the constant diffeotopy transports every constant family.
+* `TauCeti.Diffeotopy.Transports.mfderiv_timeSlice_comp_symm_mem`: a transporting diffeotopy
+  carries `ξ_s` into `ξ_t` along `φ_t ∘ φ_s⁻¹`, for all times `s` and `t`.
 * `TauCeti.Diffeotopy.Transports.trans`: if `χ` preserves `ξ_0` at all times and `Φ` transports
   `ξ`, then `χ.trans Φ`, whose slice at `t` is `ψ_t ∘ χ_t`, transports `ξ`. So a transporting
   diffeotopy can be changed by composing it with any diffeotopy that preserves `ξ_0`.
@@ -86,6 +89,31 @@ theorem Transports.trans (hn : 1 ≤ n) {χ Φ : Diffeotopy J n M}
     mfderiv_comp x ((Φ.timeSlice t).mdifferentiable hn₀ _) ((χ.timeSlice t).mdifferentiable hn₀ _),
     hχ', hΦ', ContinuousLinearMap.toLinearMap_comp, Function.comp_apply,
     Submodule.comap_comp]
+
+/-- **Transport between two times.** If `Φ` transports `ξ`, then for all times `s` and `t` the
+differential of `φ_t ∘ φ_s⁻¹` at `φ_s x` sends `ξ_s (φ_s x)` into `ξ_t (φ_t x)`. -/
+theorem Transports.mfderiv_timeSlice_comp_symm_mem (hn : 1 ≤ n) {Φ : Diffeotopy J n M}
+    {ξ : unitInterval → Π x : M, Submodule ℝ (TangentSpace J x)} (hΦ : Φ.Transports ξ)
+    (s t : unitInterval) (x : M) {w : TangentSpace J (Φ.timeSlice s x)}
+    (hw : w ∈ ξ s (Φ.timeSlice s x)) :
+    mfderiv J J (fun y ↦ Φ.timeSlice t ((Φ.timeSlice s).symm y)) (Φ.timeSlice s x) w ∈
+      ξ t (Φ.timeSlice t x) := by
+  have hn₀ : n ≠ 0 := (zero_lt_one.trans_le hn).ne'
+  have hs := hΦ s x
+  have ht := hΦ t x
+  rw [← timeSlice_apply] at hs ht
+  -- The vector `v` at `x` that `φ_s` sends to `w` lies in `ξ 0 x`, so `φ_t` sends it into `ξ t`.
+  set v : TangentSpace J x := mfderiv J J (Φ.timeSlice s).symm (Φ.timeSlice s x) w
+  have hdv : mfderiv J J (Φ.timeSlice s) x v = w :=
+    Diffeomorph.mfderiv_apply_mfderiv_symm_apply _ hn₀ x w
+  -- `φ_t ∘ φ_s⁻¹` is the composite of two diffeomorphisms, so its differential at `φ_s x` is
+  -- the composite of the differentials, and it sends `w` to the image of `v` under `φ_t`.
+  rw [show (fun y ↦ Φ.timeSlice t ((Φ.timeSlice s).symm y)) =
+      Φ.timeSlice t ∘ (Φ.timeSlice s).symm from rfl,
+    Diffeomorph.mfderiv_diffeomorph_comp _ hn₀, ContinuousLinearMap.comp_apply,
+    Diffeomorph.symm_apply_apply]
+  -- Membership in a `comap` is membership of the image.
+  exact ht.le (hs.ge ((congrArg (· ∈ ξ s _) hdv).mpr hw))
 
 end TauCeti.Diffeotopy
 

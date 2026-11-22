@@ -43,6 +43,10 @@ and its time-dependent flows use, and a `TauCeti.Diffeotopy`, a level-preserving
   `u ↦ φ_{s(u)}` at `φ_{s(u)} x` is `s'(u)` times the time derivative of `Φ` at `(x, s(u))`.
 * `TauCeti.Diffeotopy.eulerianField_smoothTransitionFamily`: as a vector field, the Eulerian field
   of `u ↦ φ_{s(u)}` at time `u` is `s'(u)` times the velocity `X_{s(u)}` of `Φ`.
+* `TauCeti.Diffeotopy.contMDiff_eulerianField_smoothTransitionFamily`: that Eulerian field is
+  jointly smooth.
+* `TauCeti.Diffeotopy.timeDependentFlowOf_eulerianField_smoothTransitionFamily`: its
+  time-dependent flow from time `u` to time `u'` is `φ_{s(u')} ∘ φ_{s(u)}⁻¹`.
 
 Time derivatives of a diffeotopy are taken, as in Tau Ceti's `TauCeti.Diffeotopy.HasHamiltonian`,
 through `Φ.cylinderMap` on the vector `∂ₜ = (0, 1)` at `(x, t)`, where `1` is the unit tangent
@@ -251,6 +255,27 @@ theorem eulerianField_smoothTransitionFamily [IsManifold I ∞ M] (u : ℝ) :
   -- The sides differ only in the base point that names the fibre of the scalar multiplication,
   -- `Φ (s u, x)` on the left and `Φ.cylinderMap (x, s u)` on the right, equal by definition.
   rfl
+
+/-- The Eulerian field of the family `u ↦ φ_{s(u)}` over `ℝ` of a diffeotopy `Φ`,
+`s = Real.smoothTransition`, is jointly smooth in `(u, y)`. -/
+theorem contMDiff_eulerianField_smoothTransitionFamily [IsManifold I ∞ M] :
+    ContMDiff (𝓘(ℝ, ℝ).prod I) I.tangent ∞ (fun p : ℝ × M ↦ (⟨p.2,
+      eulerianField I (fun v ↦ (Φ.smoothTransitionFamily v).toEquiv) p.1 p.2⟩ :
+        TangentBundle I M)) :=
+  contMDiff_eulerianField (by simp) Φ.contMDiff_smoothTransitionFamily
+    Φ.contMDiff_smoothTransitionFamily_symm
+
+/-- The family `u ↦ φ_{s(u)}` over `ℝ` of a diffeotopy `Φ`, `s = Real.smoothTransition`, is the
+time-dependent flow of its Eulerian field: the flow from time `u` to time `u'` is
+`φ_{s(u')} ∘ φ_{s(u)}⁻¹`. -/
+theorem timeDependentFlowOf_eulerianField_smoothTransitionFamily
+    [IsManifold I ∞ M] [T2Space M] [BoundarylessManifold I M] (u u' : ℝ) (y : M) :
+    timeDependentFlowOf (eulerianField I (fun v ↦ (Φ.smoothTransitionFamily v).toEquiv)) u u' y =
+      Φ.smoothTransitionFamily u' ((Φ.smoothTransitionFamily u).symm y) :=
+  timeDependentFlowOf_eulerianField
+    (fun z ↦ (Φ.contMDiff_smoothTransitionFamily.comp
+      (contMDiff_id.prodMk contMDiff_const)).mdifferentiable (by simp))
+    (Φ.contMDiff_eulerianField_smoothTransitionFamily.of_le (by simp)) u u' y
 
 end SmoothTransition
 
