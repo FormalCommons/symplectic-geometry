@@ -492,8 +492,12 @@ theorem bilinFormAt_pullback_comp_apply (ω : ContMDiffTwoForm I n F V) (g : C^n
 `v w : V (g (f z))` as `ω (g (f z)) ![v, w]`, for any proof that the composite is `C^n`.
 
 `bilinFormAt_apply_pullback` does not match such vectors: the fibre of the pull-back at `z` is
-`V ((g.comp f) z)`, which `simp` does not identify with `V (g (f z))`. -/
-@[simp]
+`V ((g.comp f) z)`, which `simp` does not identify with `V (g (f z))`.
+
+It is applied before the subterms are simplified (`simp↓`), so that it still matches the
+pull-back of a sum, a difference, a negative or a multiple, which `pullback_add`,
+`pullback_sub`, `pullback_neg` and `pullback_smul` would otherwise split first. -/
+@[simp↓]
 theorem bilinFormAt_pullback_comp_apply_pullback (ω : ContMDiffTwoForm I n F V)
     (g : C^n⟮I', N; I, M⟯) (f : C^n⟮I'', P; I', N⟯) (hgf : ContMDiff I'' I n (g.comp f)) (z : P)
     (v w : V (g (f z))) :
@@ -521,8 +525,10 @@ theorem bilinFormAt_pullback_pullback_apply {K' : Type*} [FunLike K' P N]
 `v w : V (g (f z))` as `ω (g (f z)) ![v, w]`, for any proof of the nondegeneracy of the iterated
 pull-back. It is `IsNondegenerate.symplecticFormAt_pullback_apply` for the form `ω.pullback g`,
 restated with the vectors typed in the fibre of `V`, since `simp` cannot match that lemma on
-such vectors. -/
-@[simp]
+such vectors. Like `bilinFormAt_pullback_pullback_apply`, it is applied before the subterms are
+simplified (`simp↓`), so that it still matches when the iterated pull-back is that of a sum, a
+difference, a negative or a multiple. -/
+@[simp↓]
 theorem IsNondegenerate.symplecticFormAt_pullback_pullback_apply {K' : Type*} [FunLike K' P N]
     [ContinuousMapClass K' P N] {g : K} {hg : ContMDiff I' I n g} {f : K'}
     {hf : ContMDiff I'' I' n f} (h : ((ω.pullback g hg).pullback f hf).IsNondegenerate) (z : P)
@@ -541,17 +547,18 @@ theorem bilinFormAt_pullback_pullback_pullback_apply {K' K'' : Type*} [FunLike K
     (v w : V (g (f (e z)))) :
     (((ω.pullback g hg).pullback f hf).pullback e he).bilinFormAt z v w =
       ω (g (f (e z))) ![v, w] :=
-  ((((ω.pullback g hg).pullback f hf).bilinFormAt_pullback_apply e he z v w).trans
-    ((ω.pullback g hg).pullback_apply_apply f hf (e z) v w)).trans
-    (ω.pullback_apply_apply g hg (f (e z)) v w)
+  ((ω.pullback g hg).pullback f hf).bilinFormAt_pullback_apply e he z v w
 
 /-- `simp` evaluates the iterated pull-back of a form, and its symplectic form, on vectors of the
-fibre of `V`. -/
-example {K' : Type*} [FunLike K' P N] [ContinuousMapClass K' P N] (ω : ContMDiffTwoForm I n F V)
-    (g : K) (hg : ContMDiff I' I n g) (f : K') (hf : ContMDiff I'' I' n f) (z : P)
-    (v w : V (g (f z))) (h : ((ω.pullback g hg).pullback f hf).IsNondegenerate) :
+fibre of `V`, also when the form is a sum. -/
+example {K' : Type*} [FunLike K' P N] [ContinuousMapClass K' P N]
+    (ω ω' : ContMDiffTwoForm I n F V) (g : K) (hg : ContMDiff I' I n g) (f : K')
+    (hf : ContMDiff I'' I' n f) (z : P) (v w : V (g (f z)))
+    (h : ((ω.pullback g hg).pullback f hf).IsNondegenerate)
+    (h' : (((ω + ω').pullback g hg).pullback f hf).IsNondegenerate) :
     ((ω.pullback g hg).pullback f hf).bilinFormAt z v w = ω (g (f z)) ![v, w] ∧
-      h.symplecticFormAt z v w = ω (g (f z)) ![v, w] := by
+      h.symplecticFormAt z v w = ω (g (f z)) ![v, w] ∧
+      h'.symplecticFormAt z v w = ω (g (f z)) ![v, w] + ω' (g (f z)) ![v, w] := by
   simp
 
 /-- `simp` evaluates three iterated pull-backs on vectors of the fibre of `V`, the pull-back
@@ -567,8 +574,8 @@ example (ω : ContMDiffTwoForm I n F V) (g : C^n⟮I', N; I, M⟯) (f : C^n⟮I'
         ω (g (f z)) ![v', w'] := by
   simp
 
-/-- `simp` evaluates iterated pull-backs of sums, differences, negatives and multiples on
-vectors of the fibre of `V`. -/
+/-- `simp` evaluates iterated pull-backs, and pull-backs along a composite, of sums,
+differences, negatives and multiples on vectors of the fibre of `V`. -/
 example (ω ω' : ContMDiffTwoForm I n F V) (g : C^n⟮I', N; I, M⟯) (f : C^n⟮I'', P; I', N⟯)
     (e : C^n⟮I''', Q; I'', P⟯) (c : ℝ) (q : Q) (v₃ w₃ : V (g (f (e q)))) (z : P)
     (v w : V (g (f z))) :
@@ -578,7 +585,11 @@ example (ω ω' : ContMDiffTwoForm I n F V) (g : C^n⟮I', N; I, M⟯) (f : C^n�
         -ω (g (f z)) ![v, w] ∧
       ((((ω - c • ω').pullback g g.contMDiff).pullback f f.contMDiff).pullback e
         e.contMDiff).bilinFormAt q v₃ w₃ =
-        ω (g (f (e q))) ![v₃, w₃] - c * ω' (g (f (e q))) ![v₃, w₃] := by
+        ω (g (f (e q))) ![v₃, w₃] - c * ω' (g (f (e q))) ![v₃, w₃] ∧
+      ((ω + ω').pullback (g.comp f) (g.comp f).contMDiff).bilinFormAt z v w =
+        ω (g (f z)) ![v, w] + ω' (g (f z)) ![v, w] ∧
+      ((c • ω).pullback (g.comp f) (g.comp f).contMDiff).bilinFormAt z v w =
+        c * ω (g (f z)) ![v, w] := by
   simp
 
 variable [FiniteDimensional ℝ F]
