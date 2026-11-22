@@ -401,7 +401,10 @@ identity, which Tau Ceti proves for nondegenerate forms only. The lemmas of
   `TopPair.relClass_fullSimplex_eq_neg_localOrientationOfOrientedChart` for
   the identity chart), in `LocalHomology/Orientation/StdSimplex.lean`. So the
   correctly signed homological orientation is
-  `(-o).toHomologicalOrientation hE'`.
+  `(-o).toHomologicalOrientation hE'`. `StdSimplex.lean` imports
+  `LinearAlgebra/Complex/Orientation.lean` and
+  `AlgebraicTopology/Singular/LocalHomology/Orientation/Smooth.lean` of part
+  *First Chern number*.
 
 ### `DeRham/FundamentalClass.lean`
 
