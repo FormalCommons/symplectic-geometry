@@ -64,14 +64,13 @@ is how a construction carried out on an open submanifold, such as a Moser flow d
 part of a tube, gives a diffeomorphism of open subsets of the ambient manifold that pulls one form
 back to another.
 
-The proof combines Tau Ceti's `TauCeti.mpullback_liftOpens_apply_coe` with the functoriality of
-pull-backs at a point (`TauCeti.mpullback_comp_at`). The relative Moser theorem
-`TauCeti.SmoothEmbedding.exists_diffeomorph_opens_of_eq_along` uses it.
-
 For a partial diffeomorphism `Φ` from `M` to `M'` itself, read as a diffeomorphism between its
 source and its target, the same holds with no lift
-(`PartialDiffeomorph.mpullback_toDiffeomorphSourceTarget`), by the same proof; the Legendrian
-neighbourhood theorem uses it.
+(`PartialDiffeomorph.mpullback_toDiffeomorphSourceTarget`), by the functoriality of pull-backs at
+a point (`TauCeti.mpullback_comp_at`); the Legendrian neighbourhood theorem uses it. The version
+with a lift is the case `Φ.liftOpens` of it, with Tau Ceti's
+`TauCeti.mpullback_liftOpens_apply_coe` to read the pull-back along the lift. The relative Moser
+theorem `TauCeti.SmoothEmbedding.exists_diffeomorph_opens_of_eq_along` uses that version.
 
 ## References
 
@@ -226,12 +225,11 @@ theorem mpullback_toDiffeomorphSourceTarget (Φ : PartialDiffeomorph I I' M M' �
   have hφΦ : Subtype.val ∘ ⇑φ = ⇑Φ ∘ Subtype.val := funext Φ.toDiffeomorphSourceTarget_apply_coe
   apply Subtype.ext
   funext z
-  have hval {N : Opens M'} (x : N) : MDifferentiableAt I' I' (Subtype.val : N → M') x :=
-    (contMDiff_subtypeVal (n := 1)).mdifferentiableAt one_ne_zero
   rw [TauCeti.SmoothForm.coe_mpullback_subtype_val_apply τ z, TauCeti.SmoothForm.coe_mpullback,
     TauCeti.SmoothForm.coe_mpullback,
-    ← TauCeti.mpullback_comp_at (φ.contMDiff.mdifferentiableAt (by simp)) (hval _), hφΦ,
-    TauCeti.mpullback_comp_at ((contMDiff_subtypeVal (n := 1)).mdifferentiableAt one_ne_zero)
+    ← TauCeti.mpullback_comp_at (φ.contMDiff.mdifferentiableAt (by simp))
+      mdifferentiableAt_subtypeVal, hφΦ,
+    TauCeti.mpullback_comp_at mdifferentiableAt_subtypeVal
       (Φ.mdifferentiableAt (by simp) z.property), TauCeti.mpullback_subtype_val_apply,
     h z z.property]
 
@@ -249,21 +247,9 @@ theorem mpullback_toDiffeomorphSourceTarget_liftOpens {U : Opens M} {V : Opens M
         (Φ.liftOpens hU hV).toDiffeomorphSourceTarget.contMDiff
         (TauCeti.SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ) =
       TauCeti.SmoothForm.mpullback Subtype.val contMDiff_subtypeVal τ := by
-  set Ψ := Φ.liftOpens hU hV
-  set φ := Ψ.toDiffeomorphSourceTarget
-  have hφΨ : Subtype.val ∘ ⇑φ = ⇑Ψ ∘ Subtype.val := funext Ψ.toDiffeomorphSourceTarget_apply_coe
-  -- At a point `z` of the source of `Ψ`, `φ^* σ` is `Φ^* σ` at the point of `U` that `z` is.
-  apply Subtype.ext
-  funext z
-  obtain ⟨y, hy, hyz⟩ : (z : M) ∈ Subtype.val '' Φ.source :=
-    Φ.liftOpens_source hU hV ▸ z.property
-  have hφz : MDifferentiableAt I I' φ z := φ.contMDiff.mdifferentiableAt (by simp)
-  have hΨz : MDifferentiableAt I I' Ψ z := Ψ.mdifferentiableAt (by simp) z.property
-  rw [TauCeti.SmoothForm.coe_mpullback_subtype_val_apply τ z, TauCeti.SmoothForm.coe_mpullback,
-    TauCeti.SmoothForm.coe_mpullback, ← TauCeti.mpullback_comp_at hφz mdifferentiableAt_subtypeVal,
-    hφΨ, TauCeti.mpullback_comp_at mdifferentiableAt_subtypeVal hΨz,
-    TauCeti.mpullback_subtype_val_apply, ← hyz,
-    TauCeti.mpullback_liftOpens_apply_coe Φ (by simp) hU hV _ hy, h y hy]
+  refine mpullback_toDiffeomorphSourceTarget _ fun z hz ↦ ?_
+  obtain ⟨y, hy, rfl⟩ : z ∈ Subtype.val '' Φ.source := Φ.liftOpens_source hU hV ▸ hz
+  rw [TauCeti.mpullback_liftOpens_apply_coe Φ (by simp) hU hV _ hy, h y hy]
 
 end PartialDiffeomorph
 

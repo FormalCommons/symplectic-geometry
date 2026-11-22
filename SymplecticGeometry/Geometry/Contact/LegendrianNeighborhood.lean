@@ -22,6 +22,7 @@ public import TauCeti.Geometry.Symplectic.Lagrangian.Embedding.Normal
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Opens
 import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Basic
 import SymplecticGeometry.Geometry.Manifold.IsManifold.Basic
+import SymplecticGeometry.Geometry.Manifold.MFDeriv.Opens
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.ZeroSection
 import SymplecticGeometry.Geometry.Symplectic.Neighborhood.Lagrangian
 import TauCeti.Geometry.Contact.Slice
@@ -92,13 +93,18 @@ the zero section is Lagrangian for it, since `f^* α = 0`. Then:
   `TauCeti.SmoothEmbedding.exists_isSmoothForm_relative_primitive` writes it as `dg` near the zero
   section, with `g = 0` there;
 * the map `Φ (a, z) = φ^R_{-z - g a} (κ a)`, with `φ^R` the local Reeb flow, pulls `α` back to
-  `λ_can - dz` wherever it is defined, since the Reeb flow out of `κ` pulls `α` back to
-  `dt + κ^* α` (`TauCeti.mpullback_flowOf_comp_apply_eq_contactization`); and it is a local
-  diffeomorphism there, since `d(κ^* α)` is nondegenerate
+  `λ_can - dz` wherever it is defined
+  (`TauCeti.SmoothForm.IsContactForm.mpullback_flowOf_neg_sub_apply`, for any map `κ` with
+  `κ^* α = β + dg`), since the Reeb flow out of `κ` pulls `α` back to `dt + κ^* α`
+  (`TauCeti.mpullback_flowOf_comp_apply_eq_contactization`); and it is a local diffeomorphism
+  there, since `d(κ^* α)` is nondegenerate
   (`TauCeti.isLocalDiffeomorphAt_flowOf_comp_of_nondegenerate`);
 * `Φ` is `f` on the zero section, which `f` embeds, so it restricts to a diffeomorphism from a
   neighbourhood of the zero section onto an open set
-  (`IsLocalDiffeomorphOn.exists_partialDiffeomorph_near_section`).
+  (`IsLocalDiffeomorphOn.exists_partialDiffeomorph_near_section`). Its source is an open subset
+  of `W × ℝ`, with `W` an open subset of an open subset of `T^* L`; the map `(w, z) ↦ (w, z)` moves
+  it to an open subset of `T^* L × ℝ`, and pulls `-λ_can.contactization` back to minus the
+  contactization form of `λ_can` restricted to `W` (`TauCeti.SmoothForm.mpullback_contactization`).
 
 The last two steps adapt the proof of Tau Ceti's
 `TauCeti.SmoothForm.IsContactForm.exists_strictDarbouxChart`, which straightens a contact form
@@ -113,6 +119,13 @@ sets (`TopologicalSpace.Opens.isEmpty_bot`).
   containing the zero section, and whose differential at `0_q` has range `ker α_(f q)`.
 * `TauCeti.SmoothForm.IsContactForm.isSymplectic_neg_mextDerivₗ_mpullback`: on a hypersurface
   that is everywhere an immersion transverse to the Reeb field, `-d(ι^* α)` is symplectic.
+* `TauCeti.SmoothForm.IsContactForm.mpullback_flowOf_neg_sub_apply`: if `κ^* α = β + dg`, the map
+  `(s, z) ↦ φ^R_{-z - g s} (κ s)` pulls `α` back to minus the contactization form of `β`.
+* `TauCeti.SmoothForm.coe_contactization`, `TauCeti.SmoothForm.mpullback_contactization`: the
+  contactization form of `θ` is `dz - θ`, and `(s, z) ↦ (ι s, z)` pulls it back to the
+  contactization form of `ι^* θ`.
+* `TauCeti.IsLegendrianImmersion.finrank_prod_dual_add_one`: the model of `T^* L` has one
+  dimension less than that of `M`.
 * `TauCeti.IsLegendrianEmbedding.exists_diffeomorph_opens_mpullback_eq_neg_contactization`: the
   Legendrian neighbourhood theorem.
 
@@ -519,6 +532,36 @@ theorem exists_contactSlice [I.Boundaryless] [J.Boundaryless] [T2Space M]
 
 end TauCeti.IsLegendrianEmbedding
 
+namespace TauCeti.SmoothForm
+
+variable {E H W : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
+  {I : ModelWithCorners ℝ E H} [TopologicalSpace W] [ChartedSpace H W] [IsManifold I ∞ W]
+
+/-- The contactization form of a one-form `θ` on `W` is `dz - θ`, with `z` the coordinate of `ℝ`
+and `θ` pulled back along the projection to `W`. -/
+theorem coe_contactization (θ : SmoothForm I W ℝ 1) :
+    θ.contactization.val = mextDeriv (RoughForm.ofFunction (I.prod 𝓘(ℝ)) (Prod.snd : W × ℝ → ℝ)) -
+      (mpullback Prod.fst contMDiff_fst θ).val :=
+  -- The map `p ↦ (p.1, p.2)` of `mpullback_prodMk_contactization` is the identity by `Prod` eta.
+  (congrArg Subtype.val (LinearMap.congr_fun mpullback_id θ.contactization)).symm.trans
+    (mpullback_prodMk_contactization θ contMDiff_fst contMDiff_snd)
+
+variable {E' H' S : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [TopologicalSpace H']
+  {J : ModelWithCorners ℝ E' H'} [TopologicalSpace S] [ChartedSpace H' S] [IsManifold J ∞ S]
+
+/-- For a smooth map `ι : S → W`, the map `(s, z) ↦ (ι s, z)` pulls the contactization form of a
+one-form `θ` on `W` back to the contactization form of `ι^* θ`. -/
+theorem mpullback_contactization (θ : SmoothForm I W ℝ 1) {ι : S → W} (hι : ContMDiff J I ∞ ι) :
+    mpullback (fun p : S × ℝ ↦ (ι p.1, p.2)) ((hι.comp contMDiff_fst).prodMk contMDiff_snd)
+      θ.contactization = (mpullback ι hι θ).contactization := by
+  refine Subtype.ext ?_
+  rw [mpullback_prodMk_contactization (ι := fun p : S × ℝ ↦ ι p.1) _ (hι.comp contMDiff_fst)
+    contMDiff_snd, coe_contactization, mpullback_mpullback]
+  -- `ι ∘ Prod.fst` is `fun p ↦ ι p.1` by the definition of composition.
+  rfl
+
+end TauCeti.SmoothForm
+
 namespace TauCeti.SmoothForm.IsContactForm
 
 variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
@@ -535,13 +578,76 @@ an immersion whose image does not contain the Reeb vector of a contact form `α`
 theorem isSymplectic_neg_mextDerivₗ_mpullback (hα : α.IsContactForm)
     (hdim : finrank ℝ E' + 1 = finrank ℝ E) {ι : S → M} (hι : ContMDiff J I ∞ ι)
     (hιs : ∀ s, Injective (mfderiv J I ι s) ∧ α.reebVectorField (ι s) ∉ (mfderiv J I ι s).range) :
-    SmoothTwoForm.IsSymplectic (-mextDerivₗ J 1 (SmoothForm.mpullback ι hι α)) := by
-  refine ⟨(SmoothForm.isClosed_mextDerivₗ _).neg,
-    SmoothTwoForm.isNondegenerate_iff_separatingLeft.2 fun s v hv ↦ ?_⟩
-  refine (hα.nondegenerate_bilinFormAt_mextDerivₗ_mpullback hι hdim (hιs s).1 (hιs s).2).1 v
-    fun w ↦ ?_
-  rw [SmoothForm.bilinFormAt_apply, ← neg_eq_zero, ← SmoothBundleForm.eval₂_neg]
-  exact hv w
+    SmoothTwoForm.IsSymplectic (-mextDerivₗ J 1 (SmoothForm.mpullback ι hι α)) :=
+  ⟨(SmoothForm.isClosed_mextDerivₗ _).neg, SmoothTwoForm.IsNondegenerate.neg <|
+    SmoothTwoForm.isNondegenerate_iff_separatingLeft.2 fun s v hv ↦
+      (hα.nondegenerate_bilinFormAt_mextDerivₗ_mpullback hι hdim (hιs s).1 (hιs s).2).1 v
+        fun w ↦ by rw [SmoothForm.bilinFormAt_apply]; exact hv w⟩
+
+variable {ES HS S : Type*} [NormedAddCommGroup ES] [NormedSpace ℝ ES] [TopologicalSpace HS]
+  {IS : ModelWithCorners ℝ ES HS} [TopologicalSpace S] [ChartedSpace HS S] [IsManifold IS ∞ S]
+
+/-- Let `κ : S → M` be a smooth map and `g` a smooth function on `S` with `κ^* α = β + dg`, for a
+contact form `α` and a one-form `β` on `S`. At each point `(s, z)` of `S × ℝ` where the Reeb flow
+`φ^R` of `α` is defined for the time `-z - g s` from `κ s`, the map `(s, z) ↦ φ^R_{-z - g s} (κ s)`
+pulls `α` back to `-(dz - β)`, minus the contactization form of `β`. -/
+theorem mpullback_flowOf_neg_sub_apply [I.Boundaryless] [T2Space M] (hα : α.IsContactForm)
+    {κ : S → M} (hκ : ContMDiff IS I ∞ κ) {g : S → ℝ} (hg : ContMDiff IS 𝓘(ℝ) ∞ g)
+    {β : SmoothForm IS S ℝ 1}
+    (hκα : SmoothForm.mpullback κ hκ α = β + mextDerivₗ IS 0
+      ⟨RoughForm.ofFunction _ g, (isSmoothForm_ofFunction_iff.2 hg).mem_smoothBundleForms⟩)
+    {p : S × ℝ} (hp : (-p.2 - g p.1, κ p.1) ∈ flowDomain α.reebVectorField) :
+    TauCeti.mpullback (IS.prod 𝓘(ℝ)) I
+        (fun p : S × ℝ ↦ flowOf α.reebVectorField (-p.2 - g p.1) (κ p.1)) α.val p =
+      (-β.contactization).val p := by
+  have hR := hα.contMDiff_reebVectorField
+  have hh : ContMDiff (IS.prod 𝓘(ℝ)) 𝓘(ℝ) ∞ (fun p : S × ℝ ↦ -p.2 - g p.1) :=
+    contMDiff_snd.neg.sub (hg.comp contMDiff_fst)
+  have hχ := (contMDiff_fst (M := S) (N := ℝ)).prodMk hh
+  have hFd : MDifferentiableAt _ I (fun q : S × ℝ ↦ flowOf α.reebVectorField q.2 (κ q.1))
+      (p.1, -p.2 - g p.1) :=
+    (contMDiffAt_flowOf_comp le_top hR contMDiffAt_snd (hκ.contMDiffAt.comp _ contMDiffAt_fst)
+      hp).mdifferentiableAt (by simp)
+  have hflow := mpullback_flowOf_comp_apply_eq_contactization hR hκ hα.apply_reebVectorField
+    hα.interior_mextDeriv_reebVectorField (p := (p.1, -p.2 - g p.1)) hp
+  have h1 : TauCeti.mpullback _ I
+      (fun p : S × ℝ ↦ flowOf α.reebVectorField (-p.2 - g p.1) (κ p.1)) α.val p =
+      (SmoothForm.mpullback (fun p : S × ℝ ↦ (p.1, -p.2 - g p.1)) hχ
+        (-SmoothForm.mpullback κ hκ α).contactization).val p := by
+    rw [show (fun p : S × ℝ ↦ flowOf α.reebVectorField (-p.2 - g p.1) (κ p.1)) =
+        (fun q : S × ℝ ↦ flowOf α.reebVectorField q.2 (κ q.1)) ∘
+          (fun p : S × ℝ ↦ (p.1, -p.2 - g p.1)) from rfl,
+      mpullback_comp_at (hχ.mdifferentiableAt (by simp)) hFd, SmoothForm.coe_mpullback]
+    exact ContinuousAlternatingMap.ext fun u ↦ by
+      rw [TauCeti.mpullback_apply (fun p : S × ℝ ↦ (p.1, -p.2 - g p.1)),
+        TauCeti.mpullback_apply (fun p : S × ℝ ↦ (p.1, -p.2 - g p.1)), hflow]
+  have hfst : MDifferentiable (IS.prod 𝓘(ℝ)) 𝓘(ℝ) (fun p : S × ℝ ↦ g p.1) :=
+    (hg.comp (contMDiff_fst (n := ∞))).mdifferentiable (by simp)
+  have hsnd : MDifferentiable (IS.prod 𝓘(ℝ)) 𝓘(ℝ) (fun p : S × ℝ ↦ p.2) :=
+    (contMDiff_snd (n := ∞)).mdifferentiable (by simp)
+  -- `d(-z - g) = -dz - dg`.
+  have hdh : mextDeriv (RoughForm.ofFunction (IS.prod 𝓘(ℝ)) (fun p : S × ℝ ↦ -p.2 - g p.1)) =
+      -(mextDeriv (RoughForm.ofFunction _ (fun p : S × ℝ ↦ p.2)) +
+        mextDeriv (RoughForm.ofFunction _ (fun p : S × ℝ ↦ g p.1))) := by
+    rw [← mextDeriv_ofFunction_add hsnd hfst, eq_neg_iff_add_eq_zero,
+      ← mextDeriv_ofFunction_add (hh.mdifferentiable (by simp)) (hsnd.add hfst)]
+    convert mextDeriv_ofFunction_zero using 3
+    ext p
+    simp only [Pi.add_apply, Pi.zero_apply]
+    ring
+  have hfstα : (SmoothForm.mpullback (Prod.fst : S × ℝ → S) (contMDiff_fst (J := 𝓘(ℝ)))
+      (SmoothForm.mpullback κ hκ α)).val =
+      (SmoothForm.mpullback (Prod.fst : S × ℝ → S) contMDiff_fst β).val +
+      mextDeriv (RoughForm.ofFunction _ (fun p : S × ℝ ↦ g p.1)) := by
+    rw [hκα, map_add, Submodule.coe_add, ← SmoothForm.mextDerivₗ_mpullback, mextDerivₗ_apply,
+      SmoothForm.coe_mpullback Prod.fst _ ⟨RoughForm.ofFunction _ g,
+        (isSmoothForm_ofFunction_iff.2 hg).mem_smoothBundleForms⟩]
+    exact congrArg₂ (· + ·) rfl (congrArg mextDeriv (mpullback_ofFunction _ _))
+  rw [h1]
+  refine congrFun ?_ p
+  rw [SmoothForm.mpullback_prodMk_contactization _ contMDiff_fst hh, NegMemClass.coe_neg,
+    SmoothForm.coe_contactization, map_neg, NegMemClass.coe_neg, hfstα, hdh]
+  abel
 
 end TauCeti.SmoothForm.IsContactForm
 
@@ -555,12 +661,34 @@ variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimen
   [IsManifold J ∞ L]
   {α : SmoothForm I M ℝ 1}
 
+omit [IsManifold J ∞ L] in
+/-- For a Legendrian immersion `f : L → M`, the model `E' × E'^*` of the cotangent bundle of `L`
+has dimension one less than the model `E` of `M`. -/
+theorem _root_.TauCeti.IsLegendrianImmersion.finrank_prod_dual_add_one
+    {D : Π x : M, Submodule ℝ (TangentSpace I x)} {f : L → M}
+    (hf : IsLegendrianImmersion J D f) : finrank ℝ (E' × (E' →L[ℝ] ℝ)) + 1 = finrank ℝ E := by
+  rw [finrank_prod, ContinuousLinearMap.dual_finrank_eq, ← hf.two_mul_finrank_add_one]
+  ring
+
+/-- The zero section of `T^* L`, as a smooth embedding into an open set `N` that contains it. -/
+private def zeroSectionOpens [J.Boundaryless] (N : Opens (CotangentBundle J L))
+    (hN : ∀ q, zeroSection (E' →L[ℝ] ℝ) (fun q : L ↦ TangentSpace J q →L[ℝ] ℝ) q ∈ N) :
+    SmoothEmbedding J (J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)) ∞ L N :=
+  (Bundle.zeroSectionEmbedding J (E' →L[ℝ] ℝ) (fun q : L ↦ TangentSpace J q →L[ℝ] ℝ)).codRestrict
+    N fun q ↦ by rw [Bundle.coe_zeroSectionEmbedding]; exact hN q
+
+private theorem coe_zeroSectionOpens_apply [J.Boundaryless] (N : Opens (CotangentBundle J L))
+    (hN : ∀ q, zeroSection (E' →L[ℝ] ℝ) (fun q : L ↦ TangentSpace J q →L[ℝ] ℝ) q ∈ N) (q : L) :
+    ((zeroSectionOpens N hN q : N) : CotangentBundle J L) =
+      zeroSection (E' →L[ℝ] ℝ) (fun q : L ↦ TangentSpace J q →L[ℝ] ℝ) q := by
+  rw [zeroSectionOpens, SmoothEmbedding.val_codRestrict_apply, Bundle.coe_zeroSectionEmbedding]
+
 /-- Step 2 of the proof: given a map `κ` from an open neighbourhood `N` of the zero section of
 `T^* L` into `M`, which is `f` on the zero section and for which `-d(κ^* α)` is symplectic, the
 Lagrangian neighbourhood theorem reparametrizes it near the zero section so that `d(κ^* α)` becomes
 `dλ`. -/
 private theorem exists_mextDerivₗ_eq_of_isSymplectic [I.Boundaryless] [J.Boundaryless]
-    [T2Space M] [SecondCountableTopology M] {f : L → M}
+    [T2Space L] [SecondCountableTopology L] {f : L → M}
     (hf : IsLegendrianEmbedding J α.kerDistribution f) {N : Opens (CotangentBundle J L)}
     (hN : ∀ q, zeroSection (E' →L[ℝ] ℝ) (fun q : L ↦ TangentSpace J q →L[ℝ] ℝ) q ∈ N)
     {κ : N → M} (hκ : ContMDiff (J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)) I ∞ κ)
@@ -573,22 +701,12 @@ private theorem exists_mextDerivₗ_eq_of_isSymplectic [I.Boundaryless] [J.Bound
       mextDerivₗ _ 1 (SmoothForm.mpullback κ' hκ' α) = mextDerivₗ _ 1
         (SmoothForm.mpullback (Subtype.val : U → CotangentBundle J L) contMDiff_subtypeVal
           (CotangentBundle.liouvilleForm J L)) := by
-  let g : SmoothEmbedding J I ∞ L M := .ofIsSmoothEmbedding f hf.isSmoothEmbedding
-  have hg : ⇑g = f := SmoothEmbedding.coe_ofIsSmoothEmbedding f _
-  have := g.isEmbedding.t2Space
-  have := g.isEmbedding.isInducing.secondCountableTopology
   -- The zero section is Lagrangian for `-d(κ^* α)`, since `f^* α = 0`.
-  let z₀ := (Bundle.zeroSectionEmbedding J (E' →L[ℝ] ℝ)
-    (fun q : L ↦ TangentSpace J q →L[ℝ] ℝ)).codRestrict N
-    fun q ↦ by rw [Bundle.coe_zeroSectionEmbedding]; exact hN q
-  have hz₀ (q : L) : ((z₀ q : N) : CotangentBundle J L) =
-      zeroSection (E' →L[ℝ] ℝ) (fun q : L ↦ TangentSpace J q →L[ℝ] ℝ) q :=
-    (SmoothEmbedding.val_codRestrict_apply _ _ _ q).trans
-      (congrFun (Bundle.coe_zeroSectionEmbedding _ _ _) q)
+  let z₀ := zeroSectionOpens N hN
   have hκz₀ : κ ∘ z₀ = f ∘ id :=
-    funext fun q ↦ (congrArg κ (Subtype.ext (hz₀ q))).trans (hκ0 q)
+    funext fun q ↦ (congrArg κ (Subtype.ext (coe_zeroSectionOpens_apply N hN q))).trans (hκ0 q)
   have h0 : SmoothForm.mpullback z₀ z₀.contMDiff (SmoothForm.mpullback κ hκ α) = 0 := by
-    rw [SmoothForm.mpullback_mpullback_of_comp_eq _ _ contMDiff_id (hg ▸ g.contMDiff) hκz₀,
+    rw [SmoothForm.mpullback_mpullback_of_comp_eq _ _ contMDiff_id hf.isImmersion.contMDiff hκz₀,
       (SmoothForm.isHorizontalMap_kerDistribution_iff_mpullback_eq_zero α _).1
         hf.isHorizontalMap, map_zero]
   have hLag : hσ.isNondegenerate.IsLagrangianMap J z₀ := by
@@ -623,8 +741,8 @@ private theorem exists_mextDerivₗ_eq_of_isSymplectic [I.Boundaryless] [J.Bound
 /-- Steps 1 and 2 of the proof: a map `κ` from an open set of `T^* L` containing its zero
 section into `M`, equal to `f` on the zero section, with `d(κ^* α) = dλ`. -/
 private theorem exists_slice_mextDerivₗ_eq [I.Boundaryless] [J.Boundaryless] [T2Space M]
-    [SecondCountableTopology M] {f : L → M} (hα : α.IsContactForm)
-    (hf : IsLegendrianEmbedding J α.kerDistribution f) :
+    [SecondCountableTopology M] [T2Space L] [SecondCountableTopology L] {f : L → M}
+    (hα : α.IsContactForm) (hf : IsLegendrianEmbedding J α.kerDistribution f) :
     ∃ (U : Opens (CotangentBundle J L)) (κ : U → M)
       (hκ : ContMDiff (J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)) I ∞ κ),
       (∀ q, ∃ h : zeroSection (E' →L[ℝ] ℝ) (fun q : L ↦ TangentSpace J q →L[ℝ] ℝ) q ∈ U,
@@ -633,14 +751,12 @@ private theorem exists_slice_mextDerivₗ_eq [I.Boundaryless] [J.Boundaryless] [
         (SmoothForm.mpullback (Subtype.val : U → CotangentBundle J L) contMDiff_subtypeVal
           (CotangentBundle.liouvilleForm J L)) := by
   obtain ⟨ι, N, hι, -, hN, hzN, hι0, hNι, -⟩ := exists_contactSlice hα hf
-  have hdim : finrank ℝ (E' × (E' →L[ℝ] ℝ)) + 1 = finrank ℝ E := by
-    rw [finrank_prod, ContinuousLinearMap.dual_finrank_eq, ← hf.two_mul_finrank_add_one]
-    ring
   -- On `N`, `-d(ι^* α)` is symplectic, since `ι` is an immersion transverse to the Reeb field.
   refine exists_mextDerivₗ_eq_of_isSymplectic (N := ⟨N, hN⟩) hf hzN (hι.comp contMDiff_subtypeVal)
-    (fun q ↦ hι0 q) (hα.isSymplectic_neg_mextDerivₗ_mpullback hdim _ fun x ↦ ?_)
-  rw [mfderiv_comp x ((hι _).mdifferentiableAt (by simp))
-    ((contMDiff_subtypeVal (n := 1)).mdifferentiableAt one_ne_zero), Manifold.mfderiv_subtype_val]
+    (fun q ↦ hι0 q) (hα.isSymplectic_neg_mextDerivₗ_mpullback hf.finrank_prod_dual_add_one _
+      fun x ↦ ?_)
+  rw [mfderiv_comp x ((hι _).mdifferentiableAt (by simp)) mdifferentiableAt_subtypeVal,
+    Manifold.mfderiv_subtype_val]
   refine ⟨(hNι x x.property).1.comp (Manifold.tangentSpaceOpenEquiv x).injective, ?_⟩
   rintro ⟨v, hv⟩
   exact (hNι x x.property).2 ⟨_, hv⟩
@@ -648,8 +764,8 @@ private theorem exists_slice_mextDerivₗ_eq [I.Boundaryless] [J.Boundaryless] [
 /-- Step 3 of the proof: for `κ` as in step 2, the closed form `κ^* α - λ` has a primitive `g` near
 the zero section of `T^* L`, which vanishes on it. The zero section of the open set `W` where `g`
 is defined is `s₀`. -/
-private theorem exists_primitive [I.Boundaryless] [J.Boundaryless] [T2Space M]
-    [SecondCountableTopology M] {f : L → M} (hf : IsLegendrianEmbedding J α.kerDistribution f)
+private theorem exists_primitive [I.Boundaryless] [J.Boundaryless] [T2Space L]
+    [SecondCountableTopology L] {f : L → M} (hf : IsLegendrianEmbedding J α.kerDistribution f)
     {U : Opens (CotangentBundle J L)} {κ : U → M}
     (hκ : ContMDiff (J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)) I ∞ κ)
     (hκ0 : ∀ q, ∃ h : zeroSection (E' →L[ℝ] ℝ) (fun q : L ↦ TangentSpace J q →L[ℝ] ℝ) q ∈ U,
@@ -666,10 +782,6 @@ private theorem exists_primitive [I.Boundaryless] [J.Boundaryless] [T2Space M]
         TauCeti.mpullback _ _ ((Subtype.val : U → CotangentBundle J L) ∘ Subtype.val)
           (CotangentBundle.liouvilleForm J L).val +
         mextDeriv (RoughForm.ofFunction (J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)) g) := by
-  let G : SmoothEmbedding J I ∞ L M := .ofIsSmoothEmbedding f hf.isSmoothEmbedding
-  have hG : ⇑G = f := SmoothEmbedding.coe_ofIsSmoothEmbedding f _
-  have := G.isEmbedding.t2Space
-  have := G.isEmbedding.isInducing.secondCountableTopology
   set lam := CotangentBundle.liouvilleForm J L
   obtain ⟨lamU, hlamU⟩ : ∃ l, l =
       SmoothForm.mpullback (Subtype.val : U → CotangentBundle J L) contMDiff_subtypeVal lam :=
@@ -677,13 +789,8 @@ private theorem exists_primitive [I.Boundaryless] [J.Boundaryless] [T2Space M]
   obtain ⟨γ, hγ⟩ : ∃ γ, γ = SmoothForm.mpullback κ hκ α - lamU := ⟨_, rfl⟩
   have hγc : mextDeriv γ.val = 0 := by
     rw [hγ, ← mextDerivₗ_apply, map_sub, hlamU, hdκ, sub_self, ZeroMemClass.coe_zero]
-  let z₀ := (Bundle.zeroSectionEmbedding J (E' →L[ℝ] ℝ)
-    (fun q : L ↦ TangentSpace J q →L[ℝ] ℝ)).codRestrict U
-    fun q ↦ by rw [Bundle.coe_zeroSectionEmbedding]; exact (hκ0 q).1
-  have hz₀ (q : L) : ((z₀ q : U) : CotangentBundle J L) =
-      zeroSection (E' →L[ℝ] ℝ) (fun q : L ↦ TangentSpace J q →L[ℝ] ℝ) q :=
-    (SmoothEmbedding.val_codRestrict_apply _ _ _ q).trans
-      (congrFun (Bundle.coe_zeroSectionEmbedding _ _ _) q)
+  let z₀ := zeroSectionOpens U fun q ↦ (hκ0 q).1
+  have hz₀ := coe_zeroSectionOpens_apply U fun q ↦ (hκ0 q).1
   have hκz₀ (q : L) : κ (z₀ q) = f q := by
     obtain ⟨h, hq⟩ := hκ0 q
     rw [← hq]
@@ -691,7 +798,7 @@ private theorem exists_primitive [I.Boundaryless] [J.Boundaryless] [T2Space M]
   -- Along the zero section, `κ^* α` and `λ` both vanish.
   have hγ0 : TauCeti.mpullback J _ z₀ γ.val = 0 := by
     have h1 : SmoothForm.mpullback z₀ z₀.contMDiff (SmoothForm.mpullback κ hκ α) = 0 := by
-      rw [SmoothForm.mpullback_mpullback_of_comp_eq _ _ contMDiff_id (hG ▸ G.contMDiff)
+      rw [SmoothForm.mpullback_mpullback_of_comp_eq _ _ contMDiff_id hf.isImmersion.contMDiff
         (funext hκz₀ : κ ∘ z₀ = f ∘ id)]
       simp [(SmoothForm.isHorizontalMap_kerDistribution_iff_mpullback_eq_zero α _).1
         hf.isHorizontalMap]
@@ -715,109 +822,31 @@ private theorem exists_primitive [I.Boundaryless] [J.Boundaryless] [T2Space M]
   have hfin : TauCeti.mpullback _ I (κ ∘ Subtype.val) α.val =
       TauCeti.mpullback _ _ ((Subtype.val : U → CotangentBundle J L) ∘ Subtype.val) lam.val +
       mextDeriv (RoughForm.ofFunction (J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)) fun w : W ↦ b w 0) := by
-    have hv : MDifferentiable (J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)) (J.prod 𝓘(ℝ, E' →L[ℝ] ℝ))
-        (Subtype.val : W → U) := (contMDiff_subtypeVal (n := 1)).mdifferentiable one_ne_zero
     rw [← hbg, hdb, hγ, hlamU, Submodule.coe_sub, TauCeti.mpullback_sub, SmoothForm.coe_mpullback,
-      SmoothForm.coe_mpullback, ← TauCeti.mpullback_comp hv (hκ.mdifferentiable (by simp)),
-      ← TauCeti.mpullback_comp hv ((contMDiff_subtypeVal (n := 1)).mdifferentiable one_ne_zero),
+      SmoothForm.coe_mpullback,
+      ← TauCeti.mpullback_comp mdifferentiable_subtypeVal (hκ.mdifferentiable (by simp)),
+      ← TauCeti.mpullback_comp mdifferentiable_subtypeVal mdifferentiable_subtypeVal,
       add_sub_cancel]
   exact ⟨W, fun w ↦ b w 0, hgs, fun q ↦ ⟨z₀ q, hz₀W (mem_range_self q)⟩,
     z₀.contMDiff.continuous.subtype_mk _, hz₀, hκz₀,
     fun q ↦ (congrFun (congrArg DFunLike.coe (hb0 q)) 0 : _), hfin⟩
 
+section Flow
 
-omit [FiniteDimensional ℝ E'] in
-/-- Step 4 of the proof, at one point: if `κ^* α = e^* λ + dg`, the map
-`(s, z) ↦ φ^R_{-z - g s} (κ s)` pulls `α` back to `λ - dz`, read through `(s, z) ↦ (e s, z)`, at
-every point where the Reeb flow is defined. -/
-private theorem mpullback_flowOf_shift_apply (hα : α.IsContactForm)
-    {S : Type*} [TopologicalSpace S] [ChartedSpace (ModelProd H' (E' →L[ℝ] ℝ)) S]
-    [IsManifold (J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)) ∞ S] [T2Space M] [I.Boundaryless]
-    {e : S → CotangentBundle J L} (he : ContMDiff (J.prod 𝓘(ℝ, E' →L[ℝ] ℝ))
-      (J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)) ∞ e)
-    {κ : S → M} (hκ : ContMDiff (J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)) I ∞ κ)
-    {g : S → ℝ} (hg : ContMDiff (J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)) 𝓘(ℝ) ∞ g)
-    (hκα : SmoothForm.mpullback κ hκ α = SmoothForm.mpullback e he
-      (CotangentBundle.liouvilleForm J L) +
-        mextDerivₗ (J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)) 0
-          ⟨RoughForm.ofFunction _ g, (isSmoothForm_ofFunction_iff.2 hg).mem_smoothBundleForms⟩)
-    {p : S × ℝ} (hp : (-p.2 - g p.1, κ p.1) ∈ flowDomain α.reebVectorField) :
-    TauCeti.mpullback _ I (fun p : S × ℝ ↦ flowOf α.reebVectorField (-p.2 - g p.1) (κ p.1))
-        α.val p =
-      (-SmoothForm.mpullback (fun p : S × ℝ ↦ (e p.1, p.2)) (he.comp contMDiff_fst |>.prodMk
-        contMDiff_snd) (CotangentBundle.liouvilleForm J L).contactization).val p := by
-  have hR := hα.contMDiff_reebVectorField
-  have hh : ContMDiff ((J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)).prod 𝓘(ℝ)) 𝓘(ℝ) ∞
-      (fun p : S × ℝ ↦ -p.2 - g p.1) := contMDiff_snd.neg.sub (hg.comp contMDiff_fst)
-  have hχ := (contMDiff_fst (M := S) (N := ℝ)).prodMk hh
-  have hFd : MDifferentiableAt _ I (fun q : S × ℝ ↦ flowOf α.reebVectorField q.2 (κ q.1))
-      (p.1, -p.2 - g p.1) :=
-    (contMDiffAt_flowOf_comp le_top hR contMDiffAt_snd (hκ.contMDiffAt.comp _ contMDiffAt_fst)
-      hp).mdifferentiableAt (by simp)
-  have hflow := mpullback_flowOf_comp_apply_eq_contactization hR hκ hα.apply_reebVectorField
-    hα.interior_mextDeriv_reebVectorField (p := (p.1, -p.2 - g p.1)) hp
-  have h1 : TauCeti.mpullback _ I
-      (fun p : S × ℝ ↦ flowOf α.reebVectorField (-p.2 - g p.1) (κ p.1)) α.val p =
-      (SmoothForm.mpullback (fun p : S × ℝ ↦ (p.1, -p.2 - g p.1)) hχ
-        (-SmoothForm.mpullback κ hκ α).contactization).val p := by
-    rw [show (fun p : S × ℝ ↦ flowOf α.reebVectorField (-p.2 - g p.1) (κ p.1)) =
-        (fun q : S × ℝ ↦ flowOf α.reebVectorField q.2 (κ q.1)) ∘
-          (fun p : S × ℝ ↦ (p.1, -p.2 - g p.1)) from rfl,
-      mpullback_comp_at (hχ.mdifferentiableAt (by simp)) hFd, SmoothForm.coe_mpullback]
-    exact ContinuousAlternatingMap.ext fun u ↦ by
-      rw [TauCeti.mpullback_apply (fun p : S × ℝ ↦ (p.1, -p.2 - g p.1)),
-        TauCeti.mpullback_apply (fun p : S × ℝ ↦ (p.1, -p.2 - g p.1)), hflow]
-  have hfst : MDifferentiable ((J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)).prod 𝓘(ℝ)) 𝓘(ℝ)
-      (fun p : S × ℝ ↦ g p.1) :=
-    (hg.comp (contMDiff_fst (n := ∞))).mdifferentiable (by simp)
-  have hsnd : MDifferentiable ((J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)).prod 𝓘(ℝ)) 𝓘(ℝ)
-      (fun p : S × ℝ ↦ p.2) := (contMDiff_snd (n := ∞)).mdifferentiable (by simp)
-  -- `d(-z - g) = -dz - dg`.
-  have hdh : mextDeriv (RoughForm.ofFunction ((J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)).prod 𝓘(ℝ))
-      (fun p : S × ℝ ↦ -p.2 - g p.1)) =
-      -(mextDeriv (RoughForm.ofFunction _ (fun p : S × ℝ ↦ p.2)) +
-        mextDeriv (RoughForm.ofFunction _ (fun p : S × ℝ ↦ g p.1))) := by
-    rw [← mextDeriv_ofFunction_add hsnd hfst, eq_neg_iff_add_eq_zero,
-      ← mextDeriv_ofFunction_add (hh.mdifferentiable (by simp)) (hsnd.add hfst)]
-    convert mextDeriv_ofFunction_zero using 3
-    ext p
-    simp only [Pi.add_apply, Pi.zero_apply]
-    ring
-  have hfstα : (SmoothForm.mpullback (Prod.fst : S × ℝ → S)
-      (contMDiff_fst (I := J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)) (J := 𝓘(ℝ)))
-        (SmoothForm.mpullback κ hκ α)).val =
-      (SmoothForm.mpullback (fun p : S × ℝ ↦ e p.1) (he.comp contMDiff_fst)
-        (CotangentBundle.liouvilleForm J L)).val +
-      mextDeriv (RoughForm.ofFunction _ (fun p : S × ℝ ↦ g p.1)) := by
-    rw [hκα, map_add, Submodule.coe_add, SmoothForm.mpullback_mpullback,
-      ← SmoothForm.mextDerivₗ_mpullback, mextDerivₗ_apply,
-      SmoothForm.coe_mpullback Prod.fst _ ⟨RoughForm.ofFunction _ g,
-        (isSmoothForm_ofFunction_iff.2 hg).mem_smoothBundleForms⟩]
-    exact congrArg₂ (· + ·) rfl (congrArg mextDeriv (mpullback_ofFunction _ _))
-  have h2 : SmoothForm.mpullback (fun p : S × ℝ ↦ (p.1, -p.2 - g p.1)) hχ
-      (-SmoothForm.mpullback κ hκ α).contactization =
-      -SmoothForm.mpullback (fun p : S × ℝ ↦ (e p.1, p.2))
-        (he.comp contMDiff_fst |>.prodMk contMDiff_snd)
-        (CotangentBundle.liouvilleForm J L).contactization := by
-    apply Subtype.ext
-    rw [SmoothForm.mpullback_prodMk_contactization _ contMDiff_fst hh, NegMemClass.coe_neg,
-      SmoothForm.mpullback_prodMk_contactization (ι := fun p : S × ℝ ↦ e p.1)
-        (h := fun p : S × ℝ ↦ p.2) _ (he.comp contMDiff_fst) contMDiff_snd, map_neg,
-      NegMemClass.coe_neg, hfstα, hdh]
-    abel
-  rw [h1, h2]
+variable {S : Type*} [TopologicalSpace S] [ChartedSpace (ModelProd H' (E' →L[ℝ] ℝ)) S]
+  [IsManifold (J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)) ∞ S]
 
 /-- Step 4 of the proof: from a local diffeomorphism `e : S → T^* L`, a map `κ : S → M` and a
 function `g` on `S` with `κ^* α = e^* λ + dg`, all compatible with `f` along a section `s₀` of `e`
-over the zero section, the Reeb flow gives the Legendrian neighbourhood theorem. -/
-private theorem exists_diffeomorph_of_primitive [I.Boundaryless] [J.Boundaryless] [T2Space M]
-    [SecondCountableTopology M] [Nonempty L] {f : L → M} (hα : α.IsContactForm)
-    (hf : IsLegendrianEmbedding J α.kerDistribution f)
-    {S : Type*} [TopologicalSpace S] [ChartedSpace (ModelProd H' (E' →L[ℝ] ℝ)) S]
-    [IsManifold (J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)) ∞ S] [T2Space S] [SecondCountableTopology S]
+over the zero section, the map `(s, z) ↦ φ^R_{-z - g s} (κ s)` restricts to a partial
+diffeomorphism near the points `(s₀ q, 0)`, which sends them to `f q` and pulls `α` back to minus
+the contactization form of `e^* λ`, that is to `e^* λ - dz`. -/
+private theorem exists_partialDiffeomorph_of_primitive [I.Boundaryless] [J.Boundaryless]
+    [T2Space M] [SecondCountableTopology M] [Nonempty L] {f : L → M} (hα : α.IsContactForm)
+    (hf : IsLegendrianEmbedding J α.kerDistribution f) [T2Space S] [SecondCountableTopology S]
     {e : S → CotangentBundle J L}
     (he : IsLocalDiffeomorph (J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)) (J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)) ∞ e)
-    (heinj : Injective e) {κ : S → M} (hκ : ContMDiff (J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)) I ∞ κ)
+    {κ : S → M} (hκ : ContMDiff (J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)) I ∞ κ)
     {g : S → ℝ} (hg : ContMDiff (J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)) 𝓘(ℝ) ∞ g)
     {s₀ : L → S} (hs₀ : Continuous s₀)
     (hes₀ : ∀ q, e (s₀ q) = zeroSection (E' →L[ℝ] ℝ) (fun q : L ↦ TangentSpace J q →L[ℝ] ℝ) q)
@@ -826,17 +855,12 @@ private theorem exists_diffeomorph_of_primitive [I.Boundaryless] [J.Boundaryless
       (CotangentBundle.liouvilleForm J L) +
         mextDerivₗ (J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)) 0
           ⟨RoughForm.ofFunction _ g, (isSmoothForm_ofFunction_iff.2 hg).mem_smoothBundleForms⟩) :
-    ∃ (U : Opens (CotangentBundle J L × ℝ)) (V : Opens M)
-      (Φ : U ≃ₘ⟮(J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)).prod 𝓘(ℝ), I⟯ V),
-      (∀ q, ∃ h : (zeroSection (E' →L[ℝ] ℝ) (fun q : L ↦ TangentSpace J q →L[ℝ] ℝ) q,
-        (0 : ℝ)) ∈ U, (Φ ⟨_, h⟩ : M) = f q) ∧
-      SmoothForm.mpullback Φ Φ.contMDiff
-          (SmoothForm.mpullback (Subtype.val : V → M) contMDiff_subtypeVal α) =
-        -SmoothForm.mpullback (Subtype.val : U → CotangentBundle J L × ℝ) contMDiff_subtypeVal
-          (CotangentBundle.liouvilleForm J L).contactization := by
+    ∃ Φ : PartialDiffeomorph ((J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)).prod 𝓘(ℝ)) I (S × ℝ) M ∞,
+      (∀ q, (s₀ q, 0) ∈ Φ.source) ∧ (∀ q, Φ (s₀ q, 0) = f q) ∧
+      ∀ x ∈ Φ.source, TauCeti.mpullback _ I Φ α.val x =
+        (-(SmoothForm.mpullback e he.contMDiff
+          (CotangentBundle.liouvilleForm J L)).contactization).val x := by
   have hR := hα.contMDiff_reebVectorField
-  let G : SmoothEmbedding J I ∞ L M := .ofIsSmoothEmbedding f hf.isSmoothEmbedding
-  have hG : ⇑G = f := SmoothEmbedding.coe_ofIsSmoothEmbedding f _
   have : LocallyCompactSpace H := I.locallyCompactSpace
   have := ChartedSpace.locallyCompactSpace H M
   have : LocallyCompactSpace (ModelProd (ModelProd H' (E' →L[ℝ] ℝ)) ℝ) :=
@@ -845,9 +869,6 @@ private theorem exists_diffeomorph_of_primitive [I.Boundaryless] [J.Boundaryless
   have := Manifold.metrizableSpace ((J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)).prod 𝓘(ℝ)) (S × ℝ)
   have := Manifold.metrizableSpace I M
   have : Nonempty (S × ℝ) := ⟨(s₀ (Classical.arbitrary L), 0)⟩
-  have hdim : finrank ℝ (E' × (E' →L[ℝ] ℝ)) + 1 = finrank ℝ E := by
-    rw [finrank_prod, ContinuousLinearMap.dual_finrank_eq, ← hf.two_mul_finrank_add_one]
-    ring
   -- `d(κ^* α) = d(e^* λ) = -e^* ω` is nondegenerate.
   have hdκ : mextDerivₗ _ 1 (SmoothForm.mpullback κ hκ α) =
       -SmoothForm.mpullback e he.contMDiff (CotangentBundle.symplecticForm J L) := by
@@ -860,16 +881,9 @@ private theorem exists_diffeomorph_of_primitive [I.Boundaryless] [J.Boundaryless
       CotangentBundle.symplecticForm_eq_neg_mextDerivₗ, map_neg, neg_neg]
   have hω := CotangentBundle.isSymplectic_symplecticForm.isNondegenerate
     |>.isNondegenerate_mpullback_of_isLocalDiffeomorph (I := J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)) he
-  have hnd (s : S) :
-      ((mextDerivₗ _ 1 (SmoothForm.mpullback κ hκ α)).bilinFormAt s).Nondegenerate := by
-    have hneg (v w) : (mextDerivₗ _ 1 (SmoothForm.mpullback κ hκ α)).bilinFormAt s v w =
-        -((SmoothForm.mpullback e he.contMDiff (CotangentBundle.symplecticForm J L)).bilinFormAt
-          s v w) := by
-      rw [hdκ, SmoothForm.bilinFormAt_apply, SmoothForm.bilinFormAt_apply,
-        SmoothBundleForm.eval₂_neg]
-    have h := hω.nondegenerate_bilinFormAt s
-    exact ⟨fun v hv ↦ h.1 v fun w ↦ neg_eq_zero.1 ((hneg v w).symm.trans (hv w)),
-      fun w hw ↦ h.2 w fun v ↦ neg_eq_zero.1 ((hneg v w).symm.trans (hw v))⟩
+  have hnd : SmoothTwoForm.IsNondegenerate (mextDerivₗ _ 1 (SmoothForm.mpullback κ hκ α)) := by
+    rw [hdκ]
+    exact hω.neg
   -- The change of time `χ (s, z) = (s, -z - g s)`, an involution.
   have hh : ContMDiff ((J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)).prod 𝓘(ℝ)) 𝓘(ℝ) ∞
       (fun p : S × ℝ ↦ -p.2 - g p.1) := contMDiff_snd.neg.sub (hg.comp contMDiff_fst)
@@ -889,7 +903,8 @@ private theorem exists_diffeomorph_of_primitive [I.Boundaryless] [J.Boundaryless
     (hκ.continuous.comp continuous_fst)
   have hloc : IsLocalDiffeomorphOn _ I ∞ Φ₀ O := fun p ↦
     (χ.isLocalDiffeomorph p).comp I M (isLocalDiffeomorphAt_flowOf_comp_of_nondegenerate hR hκ
-      hdim hα.apply_reebVectorField hα.interior_mextDeriv_reebVectorField (hnd p.val.1) p.property)
+      hf.finrank_prod_dual_add_one hα.apply_reebVectorField hα.interior_mextDeriv_reebVectorField
+      (hnd.nondegenerate_bilinFormAt p.val.1) p.property)
   -- It is `f` on the zero section, so it is a diffeomorphism near it.
   let s : L → S × ℝ := fun q ↦ (s₀ q, 0)
   have hΦ₀s : Φ₀ ∘ s = f := funext fun q ↦ by simp [Φ₀, s, hgs₀, hκs₀]
@@ -899,70 +914,78 @@ private theorem exists_diffeomorph_of_primitive [I.Boundaryless] [J.Boundaryless
   obtain ⟨Φ', hsΦ', hΦ'O, -, hΦ'⟩ := hloc.exists_partialDiffeomorph_near_section hO hsO
     (hs₀.prodMk continuous_const) (fun p ↦ (e p.1).proj)
     ((FiberBundle.continuous_proj _ _).comp (he.contMDiff.continuous.comp continuous_fst))
-    (fun q ↦ by simp [s, hes₀]) (by rw [hΦ₀s, ← hG]; exact G.isEmbedding.isInducing)
-  -- Read `Φ'` on an open subset of `T^* L × ℝ`, through `k (s, z) = (e s, z)`.
+    (fun q ↦ by simp [s, hes₀]) (by rw [hΦ₀s]; exact hf.isEmbedding.isInducing)
+  refine ⟨Φ', fun q ↦ hsΦ' ⟨q, rfl⟩, fun q ↦ by rw [hΦ']; exact congrFun hΦ₀s q,
+    fun x hx ↦ ?_⟩
+  rw [hΦ']
+  exact hα.mpullback_flowOf_neg_sub_apply hκ hg hκα (hΦ'O hx)
+
+omit [FiniteDimensional ℝ E] [FiniteDimensional ℝ E'] in
+/-- Step 5 of the proof: a partial diffeomorphism `Φ` from `S × ℝ` to `M`, read on an open subset
+of `T^* L × ℝ` through `k (s, z) = (e s, z)` for an injective local diffeomorphism `e`. If `Φ` pulls
+`α` back to `k^* τ` for a form `τ`, the diffeomorphism of open sets that it gives pulls `α` back
+to `τ`, and it sends `k x` to `Φ x`. -/
+private theorem exists_diffeomorph_opens_of_partialDiffeomorph [Nonempty S]
+    {e : S → CotangentBundle J L}
+    (he : IsLocalDiffeomorph (J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)) (J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)) ∞ e)
+    (heinj : Injective e)
+    (Φ : PartialDiffeomorph ((J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)).prod 𝓘(ℝ)) I (S × ℝ) M ∞)
+    {τ : SmoothForm ((J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)).prod 𝓘(ℝ)) (CotangentBundle J L × ℝ) ℝ 1}
+    (hΦ : ∀ x ∈ Φ.source, TauCeti.mpullback ((J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)).prod 𝓘(ℝ)) I Φ α.val x =
+      (SmoothForm.mpullback (fun p : S × ℝ ↦ (e p.1, p.2))
+        ((he.contMDiff.comp contMDiff_fst).prodMk contMDiff_snd) τ).val x) :
+    ∃ (U : Opens (CotangentBundle J L × ℝ)) (V : Opens M)
+      (Ψ : U ≃ₘ⟮(J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)).prod 𝓘(ℝ), I⟯ V),
+      (∀ x ∈ Φ.source, ∃ h : (e x.1, x.2) ∈ U, (Ψ ⟨_, h⟩ : M) = Φ x) ∧
+      SmoothForm.mpullback Ψ Ψ.contMDiff
+          (SmoothForm.mpullback (Subtype.val : V → M) contMDiff_subtypeVal α) =
+        SmoothForm.mpullback (Subtype.val : U → CotangentBundle J L × ℝ) contMDiff_subtypeVal
+          τ := by
+  set k : S × ℝ → CotangentBundle J L × ℝ := fun p ↦ (e p.1, p.2)
+  have hkm : Prod.map e id = k := funext fun p ↦ by rw [Prod.map_apply, id_eq]
   have hk : IsLocalDiffeomorph ((J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)).prod 𝓘(ℝ))
-      ((J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)).prod 𝓘(ℝ)) ∞ (Prod.map e id) :=
-    he.prodMap (Diffeomorph.refl 𝓘(ℝ) ℝ ∞).isLocalDiffeomorph
+      ((J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)).prod 𝓘(ℝ)) ∞ k :=
+    hkm ▸ he.prodMap (Diffeomorph.refl 𝓘(ℝ) ℝ ∞).isLocalDiffeomorph
   let ek := (hk.isLocalDiffeomorphOn univ).partialDiffeomorphOfInjOn isOpen_univ
-    (heinj.prodMap injective_id).injOn
-  have hek : ⇑ek = Prod.map e id := IsLocalDiffeomorphOn.coe_partialDiffeomorphOfInjOn _ _ _
-  have hekt : ek.target = range (Prod.map e id) := by
+    (hkm ▸ heinj.prodMap injective_id).injOn
+  have hek : ⇑ek = k := IsLocalDiffeomorphOn.coe_partialDiffeomorphOfInjOn _ _ _
+  have hekt : ek.target = range k := by
     rw [IsLocalDiffeomorphOn.partialDiffeomorphOfInjOn_target, image_univ]
-  have heks (x : S × ℝ) : ek.symm (Prod.map e id x) = x := by
+  have heks (x : S × ℝ) : ek.symm (k x) = x := by
     rw [← hek]
     exact ek.left_inv (by rw [IsLocalDiffeomorphOn.partialDiffeomorphOfInjOn_source]; trivial)
-  let Ψ := ek.symm.trans Φ'
-  have hΨ : ⇑Ψ = Φ₀ ∘ ek.symm := by
-    rw [← hΦ']
-    exact PartialDiffeomorph.coe_trans _ _
-  have hmemΨ {x : S × ℝ} (hx : x ∈ Φ'.source) : Prod.map e id x ∈ Ψ.source := by
+  let Ψ := ek.symm.trans Φ
+  have hΨ : ⇑Ψ = Φ ∘ ek.symm := PartialDiffeomorph.coe_trans _ _
+  have hmemΨ {x : S × ℝ} (hx : x ∈ Φ.source) : k x ∈ Ψ.source := by
     rw [PartialDiffeomorph.trans_source]
-    refine ⟨?_, ?_⟩
-    · -- The source of the inverse of `ek` is the target of `ek`.
-      change _ ∈ ek.target
-      rw [hekt]
-      exact mem_range_self x
-    · -- The coercion of the underlying partial equivalence is the inverse of `ek`.
-      change ek.symm _ ∈ Φ'.source
-      rw [heks]
-      exact hx
-  have hks (q : L) : Prod.map e id (s q) =
-      (zeroSection (E' →L[ℝ] ℝ) (fun q : L ↦ TangentSpace J q →L[ℝ] ℝ) q, (0 : ℝ)) :=
-    Prod.ext (hes₀ q) rfl
+    refine ⟨?_, by rw [mem_preimage, heks]; exact hx⟩
+    rw [PartialDiffeomorph.symm_toPartialEquiv, PartialEquiv.symm_source, hekt]
+    exact mem_range_self x
   refine ⟨⟨Ψ.source, Ψ.open_source⟩, ⟨Ψ.target, Ψ.open_target⟩, Ψ.toDiffeomorphSourceTarget,
-    fun q ↦ ⟨by rw [← hks]; exact hmemΨ (hsΦ' ⟨q, rfl⟩), ?_⟩, ?_⟩
-  · rw [PartialDiffeomorph.toDiffeomorphSourceTarget_apply_coe, hΨ, Function.comp_apply]
-    -- Forget the membership proof in the point of the source.
-    change Φ₀ (ek.symm (_, 0)) = f q
-    rw [← hks, heks]
-    exact congrFun hΦ₀s q
-  rw [← map_neg]
+    fun x hx ↦ ⟨hmemΨ hx, ?_⟩, ?_⟩
+  · rw [PartialDiffeomorph.toDiffeomorphSourceTarget_apply_coe, hΨ, Function.comp_apply, heks]
   refine PartialDiffeomorph.mpullback_toDiffeomorphSourceTarget Ψ fun y hy ↦ ?_
   rw [PartialDiffeomorph.trans_source] at hy
   obtain ⟨hyt, hys⟩ := hy
-  have hΦ₀d : MDifferentiableAt _ I Φ₀ (ek.symm y) := hΦ' ▸ Φ'.mdifferentiableAt (by simp) hys
   have hkd : MDifferentiableAt ((J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)).prod 𝓘(ℝ))
-      ((J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)).prod 𝓘(ℝ)) (Prod.map e id) (ek.symm y) :=
+      ((J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)).prod 𝓘(ℝ)) k (ek.symm y) :=
     (hk.contMDiff (ek.symm y)).mdifferentiableAt (by simp)
-  have hpt := mpullback_flowOf_shift_apply hα he.contMDiff hκ hg hκα (hΦ'O hys)
-  rw [← map_neg, SmoothForm.coe_mpullback] at hpt
-  have hkid : Prod.map e id ∘ ek.symm =ᶠ[𝓝 y] id := by
+  have hkid : k ∘ ek.symm =ᶠ[𝓝 y] id := by
     filter_upwards [ek.open_target.mem_nhds hyt] with z hz
     rw [Function.comp_apply, ← hek]
     exact ek.right_inv hz
-  rw [hΨ, mpullback_comp_at (ek.symm.mdifferentiableAt (by simp) hyt) hΦ₀d]
-  calc TauCeti.mpullback _ _ ek.symm (TauCeti.mpullback _ I Φ₀ α.val) y
-      = TauCeti.mpullback _ _ ek.symm (TauCeti.mpullback _ _ (Prod.map e id)
-          (-(CotangentBundle.liouvilleForm J L).contactization).val) y :=
+  rw [hΨ, mpullback_comp_at (ek.symm.mdifferentiableAt (by simp) hyt)
+    (Φ.mdifferentiableAt (by simp) hys)]
+  calc TauCeti.mpullback _ _ ek.symm (TauCeti.mpullback _ I Φ α.val) y
+      = TauCeti.mpullback _ _ ek.symm (TauCeti.mpullback _ _ k τ.val) y :=
         ContinuousAlternatingMap.ext fun u ↦ by
-          rw [TauCeti.mpullback_apply (⇑ek.symm), TauCeti.mpullback_apply (⇑ek.symm)]
-          exact DFunLike.congr_fun hpt _
-    _ = TauCeti.mpullback _ _ (Prod.map e id ∘ ek.symm)
-          (-(CotangentBundle.liouvilleForm J L).contactization).val y :=
+          rw [TauCeti.mpullback_apply (⇑ek.symm), TauCeti.mpullback_apply (⇑ek.symm), hΦ _ hys,
+            SmoothForm.coe_mpullback]
+    _ = TauCeti.mpullback _ _ (k ∘ ek.symm) τ.val y :=
         (mpullback_comp_at (ek.symm.mdifferentiableAt (by simp) hyt) hkd _).symm
     _ = _ := by rw [hkid.mpullback_eq, mpullback_id]
 
+end Flow
 
 /-- **The Legendrian neighbourhood theorem.** Let `f : L → M` be a Legendrian embedding for a
 contact form `α`, between boundaryless manifolds, `M` Hausdorff and second countable. Then an
@@ -986,18 +1009,31 @@ theorem exists_diffeomorph_opens_mpullback_eq_neg_contactization [I.Boundaryless
   rcases isEmpty_or_nonempty L with hL | hL
   · exact ⟨⊥, ⊥, Diffeomorph.ofIsEmpty, fun q ↦ (hL.false q).elim,
       Subtype.ext (funext fun x ↦ (IsEmpty.false x).elim)⟩
-  let G : SmoothEmbedding J I ∞ L M := .ofIsSmoothEmbedding f hf.isSmoothEmbedding
-  have := G.isEmbedding.t2Space
-  have := G.isEmbedding.isInducing.secondCountableTopology
+  have := hf.isEmbedding.t2Space
+  have := hf.isEmbedding.isInducing.secondCountableTopology
   obtain ⟨U, κ, hκ, hκ0, hdκ⟩ := exists_slice_mextDerivₗ_eq hα hf
   obtain ⟨W, g, hg, s₀, hs₀, hes₀, hκs₀, hgs₀, hκα⟩ := exists_primitive hf hκ hκ0 hdκ
-  have he : IsLocalDiffeomorph (J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)) (J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)) ∞
-      ((Subtype.val : U → CotangentBundle J L) ∘ (Subtype.val : W → U)) :=
+  let e := (Subtype.val : U → CotangentBundle J L) ∘ (Subtype.val : W → U)
+  have he : IsLocalDiffeomorph (J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)) (J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)) ∞ e :=
     fun x ↦ (isLocalDiffeomorph_subtype_val x).comp _ _ (isLocalDiffeomorph_subtype_val _)
-  refine exists_diffeomorph_of_primitive hα hf he
-    (Subtype.val_injective.comp Subtype.val_injective) (hκ.comp contMDiff_subtypeVal) hg hs₀
-    hes₀ hκs₀ hgs₀ (Subtype.ext ?_)
-  rw [Submodule.coe_add, SmoothForm.coe_mpullback, SmoothForm.coe_mpullback, mextDerivₗ_apply]
-  exact hκα
+  have hκα' : SmoothForm.mpullback (κ ∘ Subtype.val) (hκ.comp contMDiff_subtypeVal) α =
+      SmoothForm.mpullback e he.contMDiff (CotangentBundle.liouvilleForm J L) +
+        mextDerivₗ (J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)) 0
+          ⟨RoughForm.ofFunction _ g, (isSmoothForm_ofFunction_iff.2 hg).mem_smoothBundleForms⟩ := by
+    refine Subtype.ext ?_
+    rw [Submodule.coe_add, SmoothForm.coe_mpullback, SmoothForm.coe_mpullback, mextDerivₗ_apply]
+    exact hκα
+  obtain ⟨Φ, hsΦ, hΦs, hΦα⟩ := exists_partialDiffeomorph_of_primitive (S := W) (e := e) hα hf he
+    (hκ.comp contMDiff_subtypeVal) hg hs₀ hes₀ hκs₀ hgs₀ hκα'
+  have : Nonempty W := ⟨s₀ (Classical.arbitrary L)⟩
+  obtain ⟨U', V', Ψ, hΨ, hΨα⟩ := exists_diffeomorph_opens_of_partialDiffeomorph (S := W) (e := e) he
+    (Subtype.val_injective.comp Subtype.val_injective) Φ (τ := -_)
+    fun x hx ↦ by rw [hΦα x hx, map_neg, SmoothForm.mpullback_contactization]
+  refine ⟨U', V', Ψ, fun q ↦ ?_, by rw [hΨα, map_neg]⟩
+  obtain ⟨h, hq⟩ := hΨ _ (hsΦ q)
+  have hk : (e (s₀ q), (0 : ℝ)) =
+      (zeroSection (E' →L[ℝ] ℝ) (fun q : L ↦ TangentSpace J q →L[ℝ] ℝ) q, (0 : ℝ)) :=
+    Prod.ext (hes₀ q) rfl
+  exact ⟨hk ▸ h, (congrArg (fun y ↦ (Ψ y : M)) (Subtype.ext hk.symm)).trans (hq.trans (hΦs q))⟩
 
 end TauCeti.IsLegendrianEmbedding
