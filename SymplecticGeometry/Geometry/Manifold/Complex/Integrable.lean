@@ -12,7 +12,7 @@ public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Pullback
 public import TauCeti.Geometry.Symplectic.Manifold.Nijenhuis
 import Mathlib.Geometry.Manifold.MFDeriv.Tangent
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
-import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.MFDeriv
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 import TauCeti.Geometry.Manifold.MFDeriv.RestrictScalars
 import TauCeti.Geometry.Symplectic.Finrank
 import TauCeti.Geometry.Manifold.VectorField.LieBracket
