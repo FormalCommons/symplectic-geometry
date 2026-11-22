@@ -478,6 +478,13 @@ theorem coe_almostComplexStructureAt_pullback (J : ContMDiffComplexStructure I n
     ⇑((J.pullback f hf).almostComplexStructureAt y) = ⇑(J (f y)) :=
   funext fun v ↦ almostComplexStructureAt_apply (J.pullback f hf) y v
 
+/-- With `Bundle.Pullback.fun_eq_iff`, `simp` closes the equation of
+`coe_almostComplexStructureAt_pullback`: it brings both sides to maps on `V (f y)`, while the
+equation is stated between maps on `(f *ᵖ V) y`. -/
+example (J : ContMDiffComplexStructure I n F V) (f : K) (hf : ContMDiff I' I n f) (y : N) :
+    ⇑((J.pullback f hf).almostComplexStructureAt y) = ⇑(J (f y)) := by
+  simp
+
 /-- The pull-back of `-J` is `-(J.pullback f hf)`. This is not a `simp` lemma: it would rewrite the
 left-hand side of `pullback_neg_apply`, which evaluates the pull-back of `-J` on vectors of type
 `(f *ᵖ V) y`, while `pullback_apply` evaluates it on vectors of type `V (f y)`. -/
@@ -1000,8 +1007,7 @@ theorem almostComplexStructureAt_pullbackComplexStructure (J : SmoothAlmostCompl
   refine AlmostComplexStructure.toLinearMap_injective ?_
   rw [ContMDiffComplexStructure.almostComplexStructureAt_toLinearMap,
     almostComplexStructureAt_toLinearMap,
-    ContMDiffComplexStructure.tangentEquiv_symm_toEndomorphism,
-    toContMDiff_toEndomorphism_apply]
+    ContMDiffComplexStructure.tangentEquiv_symm_toEndomorphism, toContMDiff_toEndomorphism_apply]
 
 /-- The almost complex structure of the pull-back of `J` along `f` at `y` acts as `J (f y)`; see
 `coe_pullbackComplexStructure`. -/
@@ -1013,6 +1019,12 @@ theorem coe_almostComplexStructureAt_pullbackComplexStructure
     ContMDiffComplexStructure.coe_almostComplexStructureAt_pullback]
   ext v
   rw [ContMDiffComplexStructure.tangentEquiv_symm_apply, toContMDiff_apply]
+
+/-- With `Bundle.Pullback.fun_eq_iff`, `simp` closes the equation of
+`coe_almostComplexStructureAt_pullbackComplexStructure`. -/
+example (J : SmoothAlmostComplexStructure I M) (f : K) (hf : ContMDiff I' I ∞ f) (y : N) :
+    ⇑((J.pullbackComplexStructure f hf).almostComplexStructureAt y) = J (f y) := by
+  simp
 
 /-- The pull-back of `-J` is minus the pull-back of `J`. This is not a `simp` lemma: it would
 rewrite the left-hand side of `pullbackComplexStructure_neg_apply`. -/
