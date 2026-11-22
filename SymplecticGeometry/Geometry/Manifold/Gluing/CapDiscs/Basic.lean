@@ -553,7 +553,7 @@ private instance (p : (glueData c γ hγ hinj).J × (glueData c γ hγ hinj).J) 
 private theorem isCompatible_glueData : (glueData c γ hγ hinj).IsCompatible (𝓡 2) ∞ := by
   refine .of_isLocalDiffeomorph_t (fun i j ↦ isLocalDiffeomorph_subtype_val) ?_
   rintro (_ | i) (_ | j)
-  · exact (Diffeomorph.refl (𝓡 2) _ ∞).isLocalDiffeomorph
+  · exact isLocalDiffeomorph_id
   · exact (annulusDiffeomorph hγ hinj j).isLocalDiffeomorph
   · exact (annulusDiffeomorph hγ hinj i).symm.isLocalDiffeomorph
   · exact isLocalDiffeomorph_inclusion (U := overlap c γ hγ (some i) (some j))

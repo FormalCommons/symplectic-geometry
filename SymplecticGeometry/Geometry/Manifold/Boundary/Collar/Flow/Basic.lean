@@ -166,7 +166,7 @@ theorem exists_eq_of_isLocalDiffeomorphOn [CompactSpace ↥((𝓡∂ (n + 1)).bo
     simpa [ψ, hσ, mem_normalIio] using
       mul_lt_of_lt_one_right hε (mem_normalIioOpens.1 p.2.property)⟩
   have hψloc : IsLocalDiffeomorph ((𝓡 n).prod (𝓡∂ 1)) ((𝓡 n).prod (𝓡∂ 1)) k ψ :=
-    (Diffeomorph.refl (𝓡 n) ((𝓡∂ (n + 1)).boundary W) k).isLocalDiffeomorph.prodMap fun t ↦
+    isLocalDiffeomorph_id.prodMap fun t ↦
       (isLocalDiffeomorph_subtype_val t).comp (hg :=
         (EuclideanHalfSpace.isLocalDiffeomorph_of_val_eq_smul hε hσ _))
   have hψinj : Injective ψ := injective_id.prodMap fun s t h ↦

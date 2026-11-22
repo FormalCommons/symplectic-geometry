@@ -1238,7 +1238,9 @@ issues, in an order where each issue's blockers come before it.
    that fixes that representation, and by 5. The gluing uses polar
    coordinates on the circle,
    `AddCircle.isLocalDiffeomorphAt_ofReal_mul_toCircle`, in
-   `Geometry/Manifold/Instances/AddCircle.lean`. That the loops are
+   `Geometry/Manifold/Instances/AddCircle.lean`, which imports
+   `Geometry/Manifold/LocalDiffeomorph/Basic.lean` of *Smooth families*,
+   merged, for `isLocalDiffeomorph_id`. That the loops are
    finitely many uses `finite_of_compactSpace_of_pairwise_disjoint`, a
    disjoint open cover of a compact space has finite index, in
    `Topology/Compactness/LocallyFinite.lean`. The orientation of the

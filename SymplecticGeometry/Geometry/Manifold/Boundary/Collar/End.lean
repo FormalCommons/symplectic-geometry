@@ -324,7 +324,7 @@ private theorem isLocalDiffeomorphAt_collarToEnd {p : ↥((𝓡∂ (n + 1)).boun
     IsLocalDiffeomorphAt ((𝓡 n).prod (𝓡∂ 1)) (𝓘(ℝ).prod (𝓡 n)) ∞ collarToEnd p := by
   exact ((Diffeomorph.prodComm (𝓡 n) (𝓡∂ 1) _ _ ∞).isLocalDiffeomorph p).comp
     (hg := (isLocalDiffeomorphAt_negNormalCoord hp).prodMap
-      ((Diffeomorph.refl (𝓡 n) _ ∞).isLocalDiffeomorph p.1))
+      (isLocalDiffeomorph_id p.1))
 
 private instance instChartedSpacePiece :
     ∀ i : ULift.{u} Bool, ChartedSpace (EuclideanSpace ℝ (Fin (n + 1))) (piece (n := n) (W := W) i)
@@ -370,15 +370,15 @@ private theorem isLocalDiffeomorph_endToInterior :
   have h : (c.interiorToEnd ∘ c.endToInterior : endOverlap (n := n) (W := W) → _) = id :=
     funext c.interiorToEnd_endToInterior
   rw [h]
-  exact (Diffeomorph.refl (𝓡 (n + 1)) _ ∞).isLocalDiffeomorph q
+  exact isLocalDiffeomorph_id q
 
 private theorem isCompatible_glueData : c.glueData.IsCompatible (𝓡 (n + 1)) ∞ := by
   refine .of_isLocalDiffeomorph_t (fun i j ↦ isLocalDiffeomorph_subtype_val) ?_
   rintro ⟨_ | _⟩ ⟨_ | _⟩
-  · exact (Diffeomorph.refl (𝓡 (n + 1)) _ ∞).isLocalDiffeomorph
+  · exact isLocalDiffeomorph_id
   · exact c.isLocalDiffeomorph_interiorToEnd
   · exact c.isLocalDiffeomorph_endToInterior
-  · exact (Diffeomorph.refl (𝓡 (n + 1)) _ ∞).isLocalDiffeomorph
+  · exact isLocalDiffeomorph_id
 
 /-- The manifold `W ∪ ([0, ∞) × ∂W)` obtained from `W` by attaching the end `[0, ∞) × ∂W` along
 the smooth collar `c`: the interior of `W` and `(-1, ∞) × ∂W`, glued along
@@ -691,7 +691,7 @@ omit [IsManifold (𝓡∂ (n + 1)) ∞ W] in
 private theorem isLocalDiffeomorph_endIntervalVal :
     IsLocalDiffeomorph (𝓘(ℝ).prod (𝓡 n)) (𝓘(ℝ).prod (𝓡 n)) ∞
       (Prod.map Subtype.val id : endInterval × (𝓡∂ (n + 1)).boundary W → _) :=
-  isLocalDiffeomorph_subtype_val.prodMap (Diffeomorph.refl (𝓡 n) _ ∞).isLocalDiffeomorph
+  isLocalDiffeomorph_subtype_val.prodMap isLocalDiffeomorph_id
 
 private theorem endMap_comp_endIntervalVal :
     endMap c ∘ (Prod.map Subtype.val id : endInterval × (𝓡∂ (n + 1)).boundary W → _) =

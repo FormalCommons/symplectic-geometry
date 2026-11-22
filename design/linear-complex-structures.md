@@ -175,7 +175,7 @@ lemma extends that file and is a candidate to move there.
 | File | Contents |
 |---|---|
 | `LinearAlgebra/ComplexStructure/Action.lean` | the action of `V ≃ₗ[ℝ] V`, and of `GL n ℝ` and `specialOrthogonalGroup n ℝ` on the structures of `EuclideanSpace ℝ n` |
-| `LinearAlgebra/ComplexStructure/Hom.lean` | the inverse of a complex linear isomorphism, and the complex linear endomorphisms as those commuting with the structure |
+| `LinearAlgebra/ComplexStructure/Hom.lean` | the inverse of a complex linear isomorphism, complex linear left and right inverses, the inclusion of an invariant subspace, and the complex linear endomorphisms as those commuting with the structure |
 | `Topology/ComplexStructure/Basic.lean` | the closed embedding into operators, `T2Space` and `LocallyCompactSpace`, for finite-dimensional normed `V`; the matrix homeomorphism and continuity of the actions, for `EuclideanSpace ℝ n` |
 | `Geometry/Symplectic/Orientation.lean` | bases adapted to the transport of a tamed structure induce the transported symplectic orientation |
 | `LinearAlgebra/ComplexStructure/Standard.lean` | the isomorphism $\Phi$, transitivity, the stabilizer, positively oriented structures, compatibility with $\omega_0$ under symplectic matrices and the action of `Matrix.symplecticGroup ι ℝ` on the compatible structures |
@@ -294,6 +294,19 @@ The file imports only Tau Ceti; its lemmas belong upstream beside Tau Ceti's
   bundled form of Tau Ceti's `IsComplexLinear.symm`, obtained through the
   bridge `isComplexLinearMap_iff_isComplexLinear`, as Tau Ceti does for
   `IsComplexLinearMap.comp`.
+- `TauCeti.IsComplexLinearMap.exists_leftInverse_of_injective
+  (hF : IsComplexLinearMap J J' F) (hinj : Function.Injective F) :
+  ∃ G : W →ₗ[ℝ] V, IsComplexLinearMap J' J G ∧ G ∘ₗ F = LinearMap.id` and
+  `TauCeti.IsComplexLinearMap.exists_rightInverse_of_surjective
+  (hF : IsComplexLinearMap J J' F) (hsurj : Function.Surjective F) :
+  ∃ G : W →ₗ[ℝ] V, IsComplexLinearMap J' J G ∧ F ∘ₗ G = LinearMap.id`:
+  Mathlib's `LinearMap.exists_leftInverse_of_injective` and
+  `LinearMap.exists_rightInverse_of_surjective` over `ℂ`, for the complex
+  module structures of `J` and `J'`, with scalars restricted to `ℝ`.
+- `TauCeti.AlmostComplexStructure.isComplexLinearMap_subtype
+  (hW : ∀ v ∈ W, J v ∈ W) : IsComplexLinearMap (J.restrict W hW) J W.subtype`,
+  for `W : Submodule ℝ V`, moved here from *Adjunction*'s
+  `LinearAlgebra/ComplexStructure/Orientation.lean`.
 - `TauCeti.AlmostComplexStructure.isComplexLinearMap_self_iff_commute :
   IsComplexLinearMap J J f ↔ Commute f J.toLinearMap`, for
   `f : Module.End ℝ V`.
@@ -700,7 +713,7 @@ it mentions complex structures.
   symplectic group on the compatible structures).
 - No other part.
 
-Two parts use merged files of this one. *Compatible complex structures*
+Other parts use merged files of this one. *Compatible complex structures*
 imports `Action.lean` into `LinearAlgebra/Symplectic/Compatible.lean`, for
 `AlmostComplexStructure.transport_eq_iff_isComplexLinearMap`, `Hom.lean` into
 the same file, for `IsComplexLinearMap.symm_linearEquiv`, and
@@ -712,8 +725,12 @@ the same file, for `IsComplexLinearMap.symm_linearEquiv`, and
 into `Topology/ComplexStructure/Compatible/SymplecticForms.lean`, for
 `metricComplexStructures_innerSL`; it states its own equivariance
 with Tau Ceti's `transport` directly. *Siegel upper half
-space* imports `Action.lean` and `Standard.lean`. `DESIGN.md` records both
-in its build-order table. Since `Standard.lean` in turn imports
+space* imports `Action.lean` and `Standard.lean`. `DESIGN.md` records these
+two in its build-order table. *Complex submanifolds* imports `Hom.lean` into
+`Geometry/Symplectic/Manifold/AlmostComplex/Submanifold.lean`, for
+`IsComplexLinearMap.exists_leftInverse_of_injective`, and *Adjunction*
+imports it into `LinearAlgebra/ComplexStructure/Orientation.lean`, for
+`IsComplexLinearMap.exists_rightInverse_of_surjective`. Since `Standard.lean` in turn imports
 `LinearAlgebra/Symplectic/Compatible.lean` of *Compatible complex
 structures*, as listed above, each of this part and *Compatible complex
 structures* uses a merged file of the other.
