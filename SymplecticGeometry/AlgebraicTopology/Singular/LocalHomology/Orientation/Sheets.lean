@@ -5,9 +5,11 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.AlgebraicTopology.Singular.Contractible
 public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orientation.Suspension
 public import SymplecticGeometry.AlgebraicTopology.Singular.MayerVietoris.Connecting
-public import TauCeti.AlgebraicTopology.Singular.Contractible
+public import SymplecticGeometry.Analysis.InnerProductSpace.Orthogonal
+public import SymplecticGeometry.Analysis.InnerProductSpace.OrthogonalLast
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.Prod
 
 /-!
@@ -48,7 +50,7 @@ the same class. Hence `a` and `-a'` are these images.
 The case of `F × ℝ` follows by naturality, along a continuous linear equivalence of `F × ℝ` with
 the Euclidean space `EuclideanSpace ℝ (Fin (m + 2))` that carries `F × {0}` onto the orthogonal
 complement of the last basis vector and `(0, 1)` to it, built from a basis of `F` with the
-orientation of `z`.
+orientation of `z` (`OrthonormalBasis.prodEquivOfBasis`).
 
 ## Main definitions
 
@@ -81,26 +83,6 @@ open scoped ContinuousMap
 
 universe w v u
 
-/-- In an inner product space, a vector `x` of `Kᗮ` with `x + y ∈ K` for some `y ∈ K` is zero. -/
-theorem Submodule.eq_zero_of_mem_orthogonal_of_add_mem {𝕜 E : Type*} [RCLike 𝕜]
-    [NormedAddCommGroup E] [InnerProductSpace 𝕜 E] {K : Submodule 𝕜 E} {x y : E} (hx : x ∈ Kᗮ)
-    (hy : y ∈ K) (h : x + y ∈ K) : x = 0 :=
-  Submodule.disjoint_def.1 K.orthogonal_disjoint x (by simpa using K.sub_mem h hy) hx
-
-namespace TopPair
-
-variable {C : Type u} [Category.{v} C] [HasCoproducts.{w} C] [Abelian C] (R : C)
-
-/-- If the ambient space of a pair is contractible, its connecting morphism
-`Hₘ₊₁(X, A) ⟶ Hₘ(A)` is a monomorphism. -/
-theorem mono_singularHomologyδ_of_contractibleSpace (P : TopPair.{w}) [ContractibleSpace P.fst]
-    (m : ℕ) : Mono (P.singularHomologyδ R (m + 1) m) :=
-  (P.singularHomology_exact_relative R (m + 1) m).mono_g
-    ((TauCeti.isZero_singularHomologyFunctor_of_contractibleSpace R P.fst
-      m.succ_ne_zero).eq_of_src _ _)
-
-end TopPair
-
 namespace TauCeti
 
 section Sheets
@@ -112,10 +94,9 @@ variable {E : Type w} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
 def orthogonalSheet (p : sphere (0 : E) 1) {t : ℝ} (ht : t ≠ 0) :
     C((ℝ ∙ (p : E))ᗮ, ({0}ᶜ : Set E)) where
   toFun x := ⟨x + t • (p : E), fun h ↦ by
-    have hx := Submodule.eq_zero_of_mem_orthogonal_of_add_mem x.property
-      (Submodule.smul_mem _ t (Submodule.mem_span_singleton_self (p : E)))
+    have hx := (Submodule.add_smul_mem_span_singleton_iff (p : E) x t).1
       (by rw [h]; exact Submodule.zero_mem _)
-    rw [hx, zero_add] at h
+    rw [hx, Submodule.coe_zero, zero_add] at h
     exact ht ((smul_eq_zero.1 h).resolve_right (ne_zero_of_mem_unit_sphere p))⟩
   continuous_toFun := by fun_prop
 
@@ -124,28 +105,19 @@ theorem coe_orthogonalSheet_apply (p : sphere (0 : E) 1) {t : ℝ} (ht : t ≠ 0
     (x : (ℝ ∙ (p : E))ᗮ) : (orthogonalSheet p ht x : E) = x + t • (p : E) :=
   (rfl)
 
-/-- A translate `x + s • p` of a point `x` of `(ℝ ∙ p)ᗮ` lies on the line through `p` only for
-`x = 0`. -/
-theorem add_smul_mem_span_singleton_iff (p : E) (x : (ℝ ∙ p)ᗮ) (s : ℝ) :
-    (x : E) + s • p ∈ ℝ ∙ p ↔ x = 0 := by
-  refine ⟨fun h ↦ Subtype.ext (Submodule.eq_zero_of_mem_orthogonal_of_add_mem x.property
-    (Submodule.smul_mem _ s (Submodule.mem_span_singleton_self p)) h), fun h ↦ ?_⟩
-  rw [h, Submodule.coe_zero, zero_add]
-  exact Submodule.smul_mem _ s (Submodule.mem_span_singleton_self p)
-
 /-- Off `0`, the sheet `x ↦ x + t • p` lies off the line through `p`. -/
 theorem orthogonalSheet_mem_complRay_inter_complRay_neg (p : sphere (0 : E) 1) {t : ℝ}
     (ht : t ≠ 0) {x : (ℝ ∙ (p : E))ᗮ} (hx : x ≠ 0) :
     orthogonalSheet p ht x ∈ complRay p ∩ complRay (-p) :=
   mem_complRay_inter_complRay_neg_iff.2 fun h ↦
-    hx ((add_smul_mem_span_singleton_iff _ x t).1 h)
+    hx ((Submodule.add_smul_mem_span_singleton_iff _ x t).1 h)
 
 /-- For `t < 0`, the sheet `x ↦ x + t • p` lies off the open ray through `p`. -/
 theorem orthogonalSheet_mem_complRay_of_neg (p : sphere (0 : E) 1) {t : ℝ} (ht : t < 0)
     (x : (ℝ ∙ (p : E))ᗮ) : orthogonalSheet p ht.ne x ∈ complRay p := by
   refine mem_complRay_iff.2 fun s hs h ↦ ?_
   have h' : (x : E) + t • (p : E) = s • (p : E) := h.symm
-  rw [(add_smul_mem_span_singleton_iff _ x t).1 (h' ▸ Submodule.smul_mem _ _
+  rw [(Submodule.add_smul_mem_span_singleton_iff _ x t).1 (h' ▸ Submodule.smul_mem _ _
     (Submodule.mem_span_singleton_self _)), Submodule.coe_zero, zero_add] at h'
   have := smul_left_injective ℝ (ne_zero_of_mem_unit_sphere p) h'
   linarith
@@ -156,7 +128,7 @@ theorem orthogonalSheet_mem_complRay_neg_of_pos (p : sphere (0 : E) 1) {t : ℝ}
   refine mem_complRay_iff.2 fun s hs h ↦ ?_
   have h' : (x : E) + t • (p : E) = (-s) • (p : E) := by
     rw [neg_smul, ← smul_neg]; exact h.symm
-  rw [(add_smul_mem_span_singleton_iff _ x t).1 (h' ▸ Submodule.smul_mem _ _
+  rw [(Submodule.add_smul_mem_span_singleton_iff _ x t).1 (h' ▸ Submodule.smul_mem _ _
     (Submodule.mem_span_singleton_self _)), Submodule.coe_zero, zero_add] at h'
   have := smul_left_injective ℝ (ne_zero_of_mem_unit_sphere p) h'
   linarith
@@ -202,7 +174,7 @@ private theorem homologyMap_eq_complZeroOrthogonalInclusion (p : sphere (0 : E) 
       (x : E) + s • (p : E) ≠ 0 ∧ ∀ h : (x : E) + s • (p : E) ≠ 0,
         (⟨_, h⟩ : ({0}ᶜ : Set E)) ∈ complRay p ∩ complRay (-p) := fun s x ↦
     have h' : (x : E) + s • (p : E) ∉ ℝ ∙ (p : E) := fun h ↦
-      x.property ((add_smul_mem_span_singleton_iff _ _ s).1 h)
+      x.property ((Submodule.add_smul_mem_span_singleton_iff _ _ s).1 h)
     ⟨fun h ↦ h' (by rw [h]; exact Submodule.zero_mem _),
       fun _ ↦ mem_complRay_inter_complRay_neg_iff.2 h'⟩
   let H : ContinuousMap.Homotopy (complZeroOrthogonalInclusion p) f.hom :=
@@ -481,6 +453,51 @@ theorem prodSheetPairMap_fst {t : ℝ} (ht : t ≠ 0) :
 
 variable {E : Type} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
 
+/-- A continuous linear equivalence `φ : F × ℝ ≃L[ℝ] E` with `φ (x, t) = ψ x + t • p`, for a
+continuous linear equivalence `ψ : F ≃L[ℝ] (ℝ ∙ p)ᗮ`, as an isomorphism of the pair
+`((F × ℝ) ∖ {0}, (F ∖ {0}) × ℝ)` with `E ∖ {0}` relative to the complement of the line through
+`p`. -/
+private def prodPairIso (p : sphere (0 : E) 1) (φ : (F × ℝ) ≃L[ℝ] E) (ψ : F ≃L[ℝ] (ℝ ∙ (p : E))ᗮ)
+    (hφ : ∀ x t, φ (x, t) = (ψ x : E) + t • (p : E)) :
+    TopPair.ofSubset (X := TopCat.of ({0}ᶜ : Set (F × ℝ))) {x | (x : F × ℝ).1 ≠ 0} ≅
+      TopPair.ofSubset (X := TopCat.of ({0}ᶜ : Set E)) (complRay p ∩ complRay (-p)) :=
+  TopPair.ofSubsetIso (X := TopCat.of ({0}ᶜ : Set (F × ℝ))) (Y := TopCat.of ({0}ᶜ : Set E))
+    (φ.toHomeomorph.subtype fun _ ↦ φ.map_ne_zero_iff.symm) (by
+      rintro ⟨⟨y, t⟩, hx⟩
+      rw [mem_complRay_inter_complRay_neg_iff]
+      -- The image of the point in `E ∖ {0}` is `φ (y, t)` by definition.
+      change y ≠ 0 ↔ φ (y, t) ∉ ℝ ∙ (p : E)
+      rw [hφ, Submodule.add_smul_mem_span_singleton_iff, ψ.map_eq_zero_iff])
+
+private theorem prodPairIso_hom_fst (p : sphere (0 : E) 1) (φ : (F × ℝ) ≃L[ℝ] E)
+    (ψ : F ≃L[ℝ] (ℝ ∙ (p : E))ᗮ) (hφ : ∀ x t, φ (x, t) = (ψ x : E) + t • (p : E)) :
+    TopPair.Hom.fst (prodPairIso p φ ψ hφ).hom = TopPair.Hom.snd φ.complZeroPairIso.hom := by
+  ext x
+  refine Subtype.ext ?_
+  rw [ContinuousLinearEquiv.complZeroPairIso_hom, prodPairIso, TopPair.ofSubsetIso_hom]
+  -- Both sides are `φ x`; the subspace of `TopPair.ofSubset` is the subtype only after
+  -- unfolding, and the homeomorphism is `φ` on the subtype by definition.
+  erw [TopPair.ofSubsetMap_snd_apply, TopPair.ofSubsetMap_fst_apply]
+  rfl
+
+private theorem prodSheetPairMap_comp_prodPairIso_hom (p : sphere (0 : E) 1)
+    (φ : (F × ℝ) ≃L[ℝ] E) (ψ : F ≃L[ℝ] (ℝ ∙ (p : E))ᗮ)
+    (hφ : ∀ x t, φ (x, t) = (ψ x : E) + t • (p : E)) {s : ℝ} (hs : s ≠ 0) :
+    prodSheetPairMap (F := F) hs ≫ (prodPairIso p φ ψ hφ).hom =
+      ψ.complZeroPairIso.hom ≫ orthogonalSheetPairMap p hs := by
+  refine TopPair.hom_ext_of_fst _ ?_
+  ext x
+  refine Subtype.ext ?_
+  rw [TopPair.Hom.fst_comp, TopPair.Hom.fst_comp, prodPairIso, TopPair.ofSubsetIso_hom,
+    prodSheetPairMap, orthogonalSheetPairMap, ConcreteCategory.comp_apply,
+    ConcreteCategory.comp_apply]
+  -- The sources of the maps of pairs are the punctured spaces only after unfolding
+  -- `TopPair.ofSubset`.
+  erw [TopPair.ofSubsetMap_fst_apply, TopPair.ofSubsetMap_fst_apply,
+    TopPair.ofSubsetMap_fst_apply]
+  exact (hφ x s).trans (congrArg (· + s • (p : E))
+    (congrArg Subtype.val (ψ.complZeroPairIso_hom_fst_apply x).symm))
+
 /-- The identity of `TauCeti.LocalOrientation.singularHomologyπ_singularHomologyδ_prod` follows
 from the same identity in `E`, along a continuous linear equivalence `φ : F × ℝ ≃L[ℝ] E` with
 `φ (x, t) = ψ x + t • p` for a continuous linear equivalence `ψ : F ≃L[ℝ] (ℝ ∙ p)ᗮ`. -/
@@ -504,33 +521,11 @@ private theorem singularHomologyπ_singularHomologyδ_of_continuousLinearEquiv {
         (ModuleCat.of ℤ (ULift.{0} ℤ)) (m + 1) z.val -
       TopPair.singularHomologyMap (prodSheetPairMap (F := F) one_ne_zero)
         (ModuleCat.of ℤ (ULift.{0} ℤ)) (m + 1) z.val := by
-  -- `φ` carries `(F ∖ {0}) × ℝ` onto the complement of the line through `p`.
-  let eφ : ({0}ᶜ : Set (F × ℝ)) ≃ₜ ({0}ᶜ : Set E) :=
-    φ.toHomeomorph.subtype fun _ ↦ φ.map_ne_zero_iff.symm
-  have hI : ∀ x : ({0}ᶜ : Set (F × ℝ)), x ∈ {x : ({0}ᶜ : Set (F × ℝ)) | (x : F × ℝ).1 ≠ 0} ↔
-      eφ x ∈ complRay p ∩ complRay (-p) := by
-    rintro ⟨⟨y, t⟩, hx⟩
-    rw [mem_complRay_inter_complRay_neg_iff]
-    -- The point `eφ x` of `E ∖ {0}` is `φ x` by definition.
-    change y ≠ 0 ↔ φ (y, t) ∉ ℝ ∙ (p : E)
-    rw [hφ, add_smul_mem_span_singleton_iff, ψ.map_eq_zero_iff]
-  let I := TopPair.ofSubsetIso (X := TopCat.of ({0}ᶜ : Set (F × ℝ)))
-    (Y := TopCat.of ({0}ᶜ : Set E)) eφ hI
+  let I := prodPairIso p φ ψ hφ
   have hinj : Function.Injective
-      (TopPair.singularHomologyMap I.hom (ModuleCat.of ℤ (ULift.{0} ℤ)) (m + 1)) := by
-    intro a a' h
-    have h' := congrArg (TopPair.singularHomologyMap I.inv (ModuleCat.of ℤ (ULift.{0} ℤ)) (m + 1)) h
-    rwa [← ConcreteCategory.comp_apply, ← ConcreteCategory.comp_apply,
-      ← TopPair.singularHomologyMap_comp, I.hom_inv_id, TopPair.singularHomologyMap_id,
-      ConcreteCategory.id_apply, ConcreteCategory.id_apply] at h'
-  have hfst : TopPair.Hom.fst I.hom = TopPair.Hom.snd φ.complZeroPairIso.hom := by
-    ext x
-    refine Subtype.ext ?_
-    rw [ContinuousLinearEquiv.complZeroPairIso_hom, TopPair.ofSubsetIso_hom]
-    -- Both sides are `φ x`; the subspace of `TopPair.ofSubset` is the subtype only after
-    -- unfolding, and `eφ` is `φ` on the subtype by definition.
-    erw [TopPair.ofSubsetMap_snd_apply, TopPair.ofSubsetMap_fst_apply]
-    rfl
+      (TopPair.singularHomologyMap I.hom (ModuleCat.of ℤ (ULift.{0} ℤ)) (m + 1)) :=
+    (TopPair.singularHomologyMapIso (ModuleCat.of ℤ (ULift.{0} ℤ)) I
+      (m + 1)).toLinearEquiv.injective
   have M₁ : (TopPair.ofSubset ({0}ᶜ : Set (TopCat.of (F × ℝ)))).singularHomologyδ
         (ModuleCat.of ℤ (ULift.{0} ℤ)) (m + 2) (m + 1) ≫
       (TopPair.ofSubset (X := TopCat.of ({0}ᶜ : Set (F × ℝ)))
@@ -545,24 +540,13 @@ private theorem singularHomologyπ_singularHomologyδ_of_continuousLinearEquiv {
       (R := ModuleCat.of ℤ (ULift.{0} ℤ)) (n := m + 1)).symm).trans ?_
     refine Eq.trans ?_ (TopPair.singularHomologyδ_naturality_assoc _ φ.complZeroPairIso.hom
       (m + 2) (m + 1) rfl _)
-    rw [hfst]
+    rw [prodPairIso_hom_fst]
     exact (Category.assoc _ _ _).symm
-  have M₂ : ∀ {s : ℝ} (hs : s ≠ 0), (prodSheetPairMap (F := F) hs ≫ I.hom :) =
-      ψ.complZeroPairIso.hom ≫ orthogonalSheetPairMap p hs := fun {s} hs ↦
-    TopPair.hom_ext_of_fst _ (by
-      ext x
-      refine Subtype.ext ?_
-      rw [TopPair.Hom.fst_comp, TopPair.Hom.fst_comp, TopPair.ofSubsetIso_hom, prodSheetPairMap,
-        orthogonalSheetPairMap, ConcreteCategory.comp_apply, ConcreteCategory.comp_apply]
-      -- The sources of the maps of pairs are the punctured spaces only after unfolding
-      -- `TopPair.ofSubset`.
-      erw [TopPair.ofSubsetMap_fst_apply, TopPair.ofSubsetMap_fst_apply,
-        TopPair.ofSubsetMap_fst_apply]
-      exact (hφ x s).trans (congrArg (· + s • (p : E))
-        (congrArg Subtype.val (ψ.complZeroPairIso_hom_fst_apply x).symm)))
   apply hinj
   rw [map_sub, ← ConcreteCategory.comp_apply, ← ConcreteCategory.comp_apply,
-    ← TopPair.singularHomologyMap_comp, ← TopPair.singularHomologyMap_comp, M₂, M₂,
+    ← TopPair.singularHomologyMap_comp, ← TopPair.singularHomologyMap_comp,
+    prodSheetPairMap_comp_prodPairIso_hom p φ ψ hφ,
+    prodSheetPairMap_comp_prodPairIso_hom p φ ψ hφ,
     TopPair.singularHomologyMap_comp, TopPair.singularHomologyMap_comp]
   rw [LocalOrientation.coe_map, LocalOrientation.coe_map] at h
   exact (congrArg (fun f ↦ f w.val) M₁).trans h
@@ -601,50 +585,27 @@ theorem LocalOrientation.singularHomologyπ_singularHomologyδ_prod {m : ℕ}
         (finrank_self ℝ)) = B.orientation.localOrientation hFR := by
     rw [LocalOrientation.prod_localOrientation, ← he, Orientation.prod_basis_orientation,
       ← Basis.orientation_reindex]
-  -- `φ` carries `B` to the standard basis `b` of the Euclidean space, and `ψ` carries `e` to
-  -- `b.orthogonalLast`.
+  -- `b.prodEquivOfBasis e` carries `B` to the standard basis `b` of the Euclidean space, and
+  -- `b.orthogonalLastEquivOfBasis e` carries `e` to `b.orthogonalLast`.
   let b : OrthonormalBasis (Fin (m + 2)) ℝ (EuclideanSpace ℝ (Fin (m + 2))) :=
     EuclideanSpace.basisFun _ ℝ
-  let φ : (F × ℝ) ≃L[ℝ] EuclideanSpace ℝ (Fin (m + 2)) :=
-    (B.equiv b.toBasis (Equiv.refl _)).toContinuousLinearEquiv
   let p : sphere (0 : EuclideanSpace ℝ (Fin (m + 2))) 1 := ⟨b (Fin.last _), by simp⟩
-  let ψ : F ≃L[ℝ] (ℝ ∙ (p : EuclideanSpace ℝ (Fin (m + 2))))ᗮ :=
-    (e.equiv b.orthogonalLast.toBasis (Equiv.refl _)).toContinuousLinearEquiv
-  have hB : ∀ j : Fin (m + 1), B j.castSucc = (e j, 0) := fun j ↦ by simp [B, Basis.prod_apply]
-  have hB' : B (Fin.last _) = (0, 1) := by simp [B, Basis.prod_apply]
-  have hφ₀ : ∀ x, φ (x, 0) = (ψ x : EuclideanSpace ℝ (Fin (m + 2))) := by
-    have h : (φ : F × ℝ →L[ℝ] EuclideanSpace ℝ (Fin (m + 2))).toLinearMap ∘ₗ LinearMap.inl ℝ F ℝ =
-        (ℝ ∙ (p : EuclideanSpace ℝ (Fin (m + 2))))ᗮ.subtype ∘ₗ
-          (ψ : F →L[ℝ] (ℝ ∙ (p : EuclideanSpace ℝ (Fin (m + 2))))ᗮ).toLinearMap := by
-      refine e.ext fun j ↦ ?_
-      have h₁ : φ (e j, 0) = b j.castSucc := by
-        rw [← hB]; exact (B.equiv_apply j.castSucc b.toBasis (Equiv.refl _)).trans (by simp)
-      have h₂ : ψ (e j) = b.orthogonalLast j :=
-        (e.equiv_apply j b.orthogonalLast.toBasis (Equiv.refl _)).trans (by simp)
-      simp [h₁, h₂]
-    exact fun x ↦ LinearMap.congr_fun h x
-  have hφ₁ : φ (0, 1) = (p : EuclideanSpace ℝ (Fin (m + 2))) := by
-    rw [← hB']; exact (B.equiv_apply _ b.toBasis (Equiv.refl _)).trans (by simp [p])
-  have hφ : ∀ x t, φ (x, t) = (ψ x : EuclideanSpace ℝ (Fin (m + 2))) + t • (p : _) := by
-    intro x t
-    rw [← hφ₀, ← hφ₁, ← map_smul, ← map_add, Prod.smul_mk, smul_zero, smul_eq_mul, mul_one,
-      Prod.mk_add_mk, add_zero, zero_add]
-  have hwE : (B.orientation.localOrientation hFR).map φ.complZeroPairIso =
+  have hwE : (B.orientation.localOrientation hFR).map (b.prodEquivOfBasis e).complZeroPairIso =
       b.toBasis.orientation.localOrientation
         ((finrank_eq_card_basis b.toBasis).trans (Fintype.card_fin _)) := by
-    rw [← Orientation.localOrientation_map φ _ hFR, ← Basis.orientation_map]
-    rw [show B.map (φ : (F × ℝ) ≃ₗ[ℝ] EuclideanSpace ℝ (Fin (m + 2))) = b.toBasis from
-      (B.map_equiv b.toBasis (Equiv.refl _)).trans b.toBasis.reindex_refl]
-  have hzG : (ω.localOrientation hF).map ψ.complZeroPairIso =
+    rw [← Orientation.localOrientation_map (b.prodEquivOfBasis e) _ hFR, ← Basis.orientation_map,
+      show B.map (b.prodEquivOfBasis e : (F × ℝ) ≃ₗ[ℝ] EuclideanSpace ℝ (Fin (m + 2))) =
+        b.toBasis by simpa [B] using b.map_prodEquivOfBasis e]
+  have hzG : (ω.localOrientation hF).map (b.orthogonalLastEquivOfBasis e).complZeroPairIso =
       b.orthogonalLast.toBasis.orientation.localOrientation
         ((finrank_eq_card_basis b.orthogonalLast.toBasis).trans (Fintype.card_fin _)) := by
-    rw [← Orientation.localOrientation_map ψ _ hF, ← he, ← Basis.orientation_map]
-    rw [show e.map (ψ : F ≃ₗ[ℝ] (ℝ ∙ (p : EuclideanSpace ℝ (Fin (m + 2))))ᗮ) =
-        b.orthogonalLast.toBasis from
-      (e.map_equiv b.orthogonalLast.toBasis (Equiv.refl _)).trans
-        b.orthogonalLast.toBasis.reindex_refl]
+    rw [← Orientation.localOrientation_map (b.orthogonalLastEquivOfBasis e) _ hF, ← he,
+      ← Basis.orientation_map, show e.map (b.orthogonalLastEquivOfBasis e :
+        F ≃ₗ[ℝ] (ℝ ∙ (p : EuclideanSpace ℝ (Fin (m + 2))))ᗮ) = b.orthogonalLast.toBasis from
+        b.map_orthogonalLastEquivOfBasis e]
   rw [hw]
-  refine singularHomologyπ_singularHomologyδ_of_continuousLinearEquiv p φ ψ hφ _ _ ?_
+  refine singularHomologyπ_singularHomologyδ_of_continuousLinearEquiv p _ _
+    (b.prodEquivOfBasis_apply e) _ _ ?_
   rw [hwE, hzG]
   exact singularHomologyπ_singularHomologyδ_localOrientation b
 

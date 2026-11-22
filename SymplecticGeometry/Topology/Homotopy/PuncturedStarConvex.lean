@@ -5,9 +5,9 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import Mathlib.Analysis.Convex.Contractible
 public import Mathlib.Analysis.Normed.Module.Normalize
 public import TauCeti.AlgebraicTopology.Sphere.Equator
+public import TauCeti.AlgebraicTopology.Sphere.Puncture
 public import TauCeti.Analysis.Normed.Group.BallSphere
 public import TauCeti.Topology.Homotopy.FiberHomotopyEquiv.Basic
 public import TauCeti.Topology.Homotopy.PuncturedStarConvex
@@ -25,7 +25,7 @@ that the punctured cone `ρ⁻¹ W` over any subset `W` of the unit sphere is ho
 
 For a point `p` of the unit sphere, `E ∖ {0}` is covered by `TauCeti.complRay p` and
 `TauCeti.complRay (-p)`, the points off the open rays `{t • p | t > 0}` and `{t • p | t < 0}`.
-Each is contractible, as a subset of `E` star-convex about the opposite point
+Each is contractible, as the punctured cone over the sphere minus a point
 (`TauCeti.contractibleSpace_complRay`).
 Their intersection is the complement of the line `ℝ ∙ p`
 (`TauCeti.mem_complRay_inter_complRay_neg_iff`), the punctured cone over the sphere minus `±p`.
@@ -262,36 +262,12 @@ theorem mem_complRay_inter_complRay_neg_iff {p : sphere (0 : E) 1} {x : ({0}ᶜ 
     compl_singleton_inter_compl_singleton_neg_eq, Set.mem_ofPred_eq,
     coe_complSingletonHomotopyEquivSphere_apply, sub_zero, Submodule.smul_mem_iff _ hx]
 
-/-- `TauCeti.complRay p` is contractible: as a subset of `E` it is the complement of the closed
-ray `{t • p | t ≥ 0}`, which is star-convex about `-p`. -/
+/-- `TauCeti.complRay p` is contractible: it is the punctured cone over the sphere minus `p`,
+which is contractible (`TauCeti.contractibleSpace_sphere_compl_singleton`). -/
 instance contractibleSpace_complRay (p : sphere (0 : E) 1) : ContractibleSpace (complRay p) := by
-  set S : Set E := {y | ∀ t : ℝ, 0 ≤ t → t • (p : E) ≠ y}
-  have hp : (p : E) ≠ 0 := ne_zero_of_mem_unit_sphere p
-  have hS : StarConvex ℝ (-(p : E)) S := by
-    intro y hy a b ha hb hab t ht h
-    have hby : b • y = (t + a) • (p : E) := by
-      rw [add_smul, h, smul_neg]; abel
-    rcases hb.eq_or_lt with rfl | hb
-    · rw [zero_smul] at hby
-      exact hp ((smul_eq_zero.1 hby.symm).resolve_left (by linarith))
-    · refine hy ((t + a) / b) (div_nonneg (by linarith) hb.le) ?_
-      rw [div_eq_inv_mul, mul_smul, ← hby, smul_smul, inv_mul_cancel₀ hb.ne', one_smul]
-  have hemb : Topology.IsEmbedding fun x : complRay p ↦ ((x : ({0}ᶜ : Set E)) : E) :=
-    Topology.IsEmbedding.subtypeVal.comp Topology.IsEmbedding.subtypeVal
-  have hrange : Set.range (fun x : complRay p ↦ ((x : ({0}ᶜ : Set E)) : E)) = S := by
-    ext y
-    constructor
-    · rintro ⟨x, rfl⟩ t ht h
-      rcases ht.eq_or_lt with rfl | ht
-      · exact (x : ({0}ᶜ : Set E)).property (by simpa using h.symm)
-      · exact mem_complRay_iff.1 x.property t ht h
-    · intro hy
-      have hy0 : y ≠ 0 := fun h ↦ hy 0 le_rfl (by simp [h])
-      exact ⟨⟨⟨y, hy0⟩, mem_complRay_iff.2 fun t ht ↦ hy t ht.le⟩, rfl⟩
-  have : ContractibleSpace S := hS.contractibleSpace ⟨-(p : E), fun t ht h ↦ hp (by
-    have h' : (t + 1) • (p : E) = 0 := by rw [add_smul, one_smul, h, neg_add_cancel]
-    exact (smul_eq_zero.1 h').resolve_left (by linarith))⟩
-  exact (hemb.toHomeomorph.trans (Homeomorph.setCongr hrange)).contractibleSpace
+  have := contractibleSpace_sphere_compl_singleton p
+  rw [complRay_def]
+  exact (complZeroPreimageHomotopyEquiv {p}ᶜ).contractibleSpace
 
 end ComplRay
 
