@@ -92,7 +92,7 @@ or use `erw`, and say so.
 ## References
 
 * A. Hatcher, *Algebraic Topology*, Cambridge University Press, 2002, Section 3.1 (change of
-  coefficients) and Section 3.3 (the cap product, and Corollary 3.37 for the Betti numbers).
+  coefficients) and Section 3.3 (the cap product, and Theorem 3.30, Poincaré duality).
 -/
 
 public section
