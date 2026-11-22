@@ -171,7 +171,7 @@ Chern number* need. *Almost complex manifolds*' `Metric.lean` is not used.
 
 ## Files
 
-The first file is general (any dimensions, no compactness) and sits beside
+The files under `Geometry/Manifold/` are general (any dimensions, no compactness) and sit beside
 Tau Ceti's normal bundle files, as the review of #838 advised; the others,
 except the linear algebra of `shortExact_orientationAt_normalSpace`
 (`LinearAlgebra/ComplexStructure/Orientation.lean`),
@@ -185,6 +185,7 @@ is updated to match. The list is in the order of the paths.
 | File | Contents | Issue |
 |---|---|---|
 | `Geometry/Manifold/SmoothEmbedding/NormalSpace/ComplexStructure.lean` | the complex structure that $J$ induces on the normal spaces and on the normal bundle | 1 |
+| `Geometry/Manifold/SmoothEmbedding/NormalSpace/Exact.lean` | the exact sequence of the differential and the normal class map | 3 |
 | `Geometry/Symplectic/Manifold/AlmostComplex/AdjunctionFormula.lean` | the Chern number of the pulled-back tangent bundle, the milestone | 4 |
 | `Geometry/Symplectic/Manifold/AlmostComplex/NormalSplitting.lean` | the forms on the tangent and normal bundles and the symplectic splitting of the pulled-back tangent bundle | 2 |
 | `Geometry/Symplectic/Manifold/AlmostComplex/SelfIntersection.lean` | the self-intersection number, its Chern number, the orientation lemma | 3 |
@@ -212,6 +213,15 @@ take an embedding of any regularity `n` with `hn : n ≠ 0`.
   `normalAlmostComplexStructureAt` (`normalComplexStructure_apply`,
   `@[simp] almostComplexStructureAt_normalComplexStructure`). Smoothness as in
   *Decisions*.
+
+### `Geometry/Manifold/SmoothEmbedding/NormalSpace/Exact.lean`
+
+Namespace `TauCeti.SmoothEmbedding`, for a smooth embedding of any
+regularity `n` over any field, with `hn : n ≠ 0`.
+
+- `exact_mfderiv_normalClass`: the differential at `x` and
+  `normalClass x hn` are exact (`Function.Exact`), from Tau Ceti's
+  `normalClass_ker`.
 
 ### `Geometry/Symplectic/Manifold/AlmostComplex/NormalSplitting.lean`
 
@@ -268,7 +278,8 @@ Namespace `TauCeti.SmoothEmbedding`, for a surface `M` in `X` with
 - `shortExact_orientationAt_normalSpace`: under `ho` at a point `c`, Tau
   Ceti's `Orientation.shortExact` of the sequence
   $0\to T_c\Sigma\to T_{f c}X\to\nu_c\to 0$ (the differential and
-  `normalClass`, exact by `exact_mfderiv_normalClass`) sends
+  `normalClass`, exact by `exact_mfderiv_normalClass` of
+  `NormalSpace/Exact.lean`) sends
   `o.orientationAt c` and the complex orientation of $(\nu_c, J_\nu)$ to the
   complex orientation of $(T_{f c}X, J)$. No splitting is chosen. The complex
   orientations are `AlmostComplexStructure.orientation` of
@@ -396,7 +407,7 @@ sub-issues of #879, *Build the part Adjunction*. Sizes are estimates.
 |---|---|---|---|---|
 | 1 | The complex structure on the normal bundle | `Geometry/Manifold/SmoothEmbedding/NormalSpace/ComplexStructure.lean` | — | 200 |
 | 2 | The symplectic splitting of the tangent bundle along a $J$-invariant submanifold | `AlmostComplex/NormalSplitting.lean` | 1 | 400 |
-| 3 | The self-intersection number | `AlmostComplex/SelfIntersection.lean`, `LinearAlgebra/ComplexStructure/Orientation.lean` | 1; #784 | 250 |
+| 3 | The self-intersection number | `AlmostComplex/SelfIntersection.lean`, `LinearAlgebra/ComplexStructure/Orientation.lean`, `NormalSpace/Exact.lean` | 1; #784 | 250 |
 | 4 | The adjunction formula | `AlmostComplex/AdjunctionFormula.lean` | 2, 3; #784, #788 | 200 |
 
 Issue 1 can start once this design is merged, and issue 2 after it; both

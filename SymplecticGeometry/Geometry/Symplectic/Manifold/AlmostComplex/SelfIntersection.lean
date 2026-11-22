@@ -7,10 +7,10 @@ module
 
 public import Mathlib.Geometry.Manifold.Instances.Real
 public import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.ComplexStructure
+public import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.Exact
 public import SymplecticGeometry.LinearAlgebra.ComplexStructure.Orientation
 public import SymplecticGeometry.Topology.VectorBundle.Complex.FirstChernClass
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.Smooth
-public import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.Representative
 
 /-!
 # The self-intersection number of a `J`-invariant surface
@@ -77,22 +77,6 @@ theorem Complex.finrank_real_complex_eq_two_mul_finrank_fact :
 namespace TauCeti.SmoothEmbedding
 
 open SymplecticGeometry SymplecticGeometry.Bundle
-
-section Exact
-
-variable {𝕜 : Type*} [NontriviallyNormedField 𝕜] {E' F' H' G' M' N' : Type*}
-  [NormedAddCommGroup E'] [NormedSpace 𝕜 E'] [NormedAddCommGroup F'] [NormedSpace 𝕜 F']
-  [TopologicalSpace H'] [TopologicalSpace G'] {I' : ModelWithCorners 𝕜 E' H'}
-  {J' : ModelWithCorners 𝕜 F' G'} [TopologicalSpace M'] [ChartedSpace H' M']
-  [TopologicalSpace N'] [ChartedSpace G' N'] {n : ℕ∞ω}
-
-/-- The differential of a smooth embedding at `x` and its normal class map form an exact
-sequence `T_x M → T_{f x} N → ν_x`. -/
-theorem exact_mfderiv_normalClass (f : SmoothEmbedding I' J' n M' N') (x : M') (hn : n ≠ 0) :
-    Function.Exact (mfderiv I' J' f x).toLinearMap (f.normalClass x hn) :=
-  LinearMap.exact_iff.2 (f.normalClass_ker x hn)
-
-end Exact
 
 variable {E : Type} {H X : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
   [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [TopologicalSpace X] [ChartedSpace H X]
@@ -171,7 +155,7 @@ theorem selfIntersectionNumber_neg_orientation (f : SmoothEmbedding (𝓡 2) I �
 
 end Number
 
-/-- **The complex orientation of the normal spaces is induced by the orientations of `X` and `M`.**
+/-- **The orientations of `M` and of the normal spaces induce that of `J`.**
 Let `M` be oriented by `o` so that the frames `(u, j u)` of `T_c M`, with `j` the restriction of `J`
 read through `df`, are positive. Then the orientation that the short exact sequence
 `0 → T_c M → T_{f c} X → ν_c → 0`, of the differential and the normal class map, induces from `o` at
