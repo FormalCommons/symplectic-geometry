@@ -1047,11 +1047,10 @@ theorem pullbackComplexStructure_neg_apply (J : SmoothAlmostComplexStructure I M
 
 /-- A nonempty manifold with an almost complex structure has even dimension: given a point `x`,
 the model space `EB` of the tangent spaces has even real dimension, since `J x` is a complex
-structure on the tangent space at `x`. -/
-theorem even_finrank [FiniteDimensional ℝ EB] (J : SmoothAlmostComplexStructure I M) (x : M) :
+structure on the tangent space at `x`. When `EB` is infinite-dimensional, `finrank` is `0`, so
+the statement needs no finiteness assumption. -/
+theorem even_finrank (J : SmoothAlmostComplexStructure I M) (x : M) :
     Even (Module.finrank ℝ EB) :=
-  letI : FiniteDimensional ℝ (TangentSpace I x) :=
-    VectorBundle.finiteDimensional ℝ EB (TangentSpace I) x
   (J.almostComplexStructureAt x).even_finrank_real
 
 end TauCeti.SmoothAlmostComplexStructure
