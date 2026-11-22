@@ -79,9 +79,8 @@ theorem mfderiv_symm_apply_chartPushforward_apply (ψ : PartialDiffeomorph I �
     {p : G} (hp : p ∈ ψ.target) (w : G) :
     mfderiv 𝓘(ℝ, G) I ψ.symm p (J.chartPushforward ψ.toOpenPartialHomeomorph p w) =
       J (ψ.symm p) (mfderiv 𝓘(ℝ, G) I ψ.symm p w) := by
-  rw [chartPushforward_apply, ψ.coe_toOpenPartialHomeomorph_symm, ψ.toFun'_toOpenPartialHomeomorph,
-    ← ψ.coe_mfderivSymmEquiv (by simp) hp, ← ψ.coe_mfderivSymmEquiv_symm (by simp) hp]
-  exact (ψ.mfderivSymmEquiv _ hp).apply_symm_apply _
+  rw [chartPushforward_apply, ψ.coe_toOpenPartialHomeomorph_symm, ψ.toFun'_toOpenPartialHomeomorph]
+  exact ψ.mfderiv_symm_apply_mfderiv_apply_of_mem_target (by simp) hp _
 
 /-- The pushforward of `J` along a smooth chart `ψ` into a normed space squares to `-1` at every
 point of the target of `ψ`. -/
