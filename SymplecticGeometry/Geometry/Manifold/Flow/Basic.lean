@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import TauCeti.Geometry.Manifold.ContMDiff.Prod
 public import TauCeti.Geometry.Manifold.Flow.Basic
 
 /-!
@@ -23,6 +24,10 @@ Ceti's chain rule for the time maps, `TauCeti.mfderiv_flowOf_add_apply`, and
 
 * `TauCeti.mfderiv_flowOf_neg_apply_mfderiv_flowOf`: `(dφ_{-t})_{φ_t x} ∘ (dφ_t)_x = id`.
 * `TauCeti.mfderiv_flowOf_apply_mfderiv_flowOf_neg`: `(dφ_t)_x ∘ (dφ_{-t})_{φ_t x} = id`.
+* `TauCeti.contDiffOn_flowOf_uncurry`, `TauCeti.hasFDerivAt_flowOf_uncurry_zero`: for a `C^n`
+  field, `1 ≤ n`, on a complete normed space, the flow is `C^n` on its domain, and for a `C¹`
+  field its derivative at time zero is `(r, u) ↦ r • v y + u`. They read Tau Ceti's
+  `TauCeti.contMDiffOn_flowOf` and `TauCeti.mfderiv_flowOf_zero_apply` in the model space.
 -/
 
 public section
@@ -63,6 +68,42 @@ theorem mfderiv_flowOf_apply_mfderiv_flowOf_neg
   exact mfderiv_flowOf_zero_apply_eq_self v _ w
 
 end FlowInverse
+
+section NormedSpace
+
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E] {v : E → E}
+
+/-- The flow of a `C^n` vector field on a normed space, `1 ≤ n`, is `C^n` on its domain. -/
+theorem contDiffOn_flowOf_uncurry {n : ℕ∞} (hn : 1 ≤ n) (hv : ContDiff ℝ n v) :
+    ContDiffOn ℝ n (fun p : ℝ × E ↦ flowOf (I := 𝓘(ℝ, E)) v p.1 p.2)
+      (flowDomain (I := 𝓘(ℝ, E)) v) := by
+  have h := contMDiffOn_flowOf (I := 𝓘(ℝ, E)) hn (contMDiff_vectorSpace_iff_contDiff.2 hv)
+  rw [contMDiffOn_prod_modelWithCornersSelf_iff] at h
+  exact contMDiffOn_iff_contDiffOn.1 h
+
+/-- The derivative at time zero of the flow of a `C¹` vector field `v` on a normed space, as a
+function of time and initial point, is `(r, u) ↦ r • v y + u`. -/
+theorem hasFDerivAt_flowOf_uncurry_zero (hv : ContDiff ℝ 1 v) (y : E) :
+    HasFDerivAt (fun p : ℝ × E ↦ flowOf (I := 𝓘(ℝ, E)) v p.1 p.2)
+      ((ContinuousLinearMap.fst ℝ ℝ E).smulRight (v y) + ContinuousLinearMap.snd ℝ ℝ E)
+      (0, y) := by
+  have hv1 : CMDiff 1 (fun y ↦ (⟨y, v y⟩ : TangentBundle 𝓘(ℝ, E) E)) :=
+    contMDiff_vectorSpace_iff_contDiff.2 hv
+  have hD := ((contDiffOn_flowOf_uncurry le_rfl hv).contDiffAt ((isOpen_flowDomain hv1).mem_nhds
+    (mem_flowDomain_zero hv1 y))).differentiableAt one_ne_zero
+  have h := mfderiv_flowOf_zero_apply hv1 y
+  -- Name the flow map, so that the model of its source can be rewritten without retyping `v`.
+  generalize (fun p : ℝ × E ↦ flowOf (I := 𝓘(ℝ, E)) v p.1 p.2) = G at h hD ⊢
+  rw [← modelWithCornersSelf_prod, chartedSpaceSelf_prod] at h
+  have hM := (mdifferentiableAt_iff_differentiableAt.2 hD).hasMFDerivAt
+  rw [hasMFDerivAt_iff_hasFDerivAt] at hM
+  refine hM.congr_fderiv (ContinuousLinearMap.ext fun ⟨a, u⟩ ↦ ?_)
+  -- `h` is an equation in `E`, the goal one in the tangent space at `G (0, y)`, which is `E`.
+  refine (h a u).trans ?_
+  exact (show ((ContinuousLinearMap.fst ℝ ℝ E).smulRight (v y) + ContinuousLinearMap.snd ℝ ℝ E)
+    (a, u) = a • v y + u by simp).symm
+
+end NormedSpace
 
 end TauCeti
 

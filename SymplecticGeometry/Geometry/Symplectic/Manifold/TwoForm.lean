@@ -5,7 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import TauCeti.Geometry.Symplectic.Manifold.TwoForm
+public import TauCeti.Geometry.Symplectic.Manifold.Opens
 
 /-!
 # Pull-back of a nondegenerate two-form by a map with symplectic differential
@@ -19,9 +19,16 @@ pointwise input of the relative Moser argument in the neighbourhood theorems: a 
 whose derivative along a submanifold is symplectic pulls one form back to a form that agrees with
 the other along the submanifold.
 
+A linear symplectomorphism between ambient tangent spaces is also one between the tangent spaces
+of open subsets `U₀ ⊆ M₀` and `U₁ ⊆ M₁` for the restricted forms
+(`TauCeti.SmoothTwoForm.IsNondegenerate.isSymplectomorphism_mpullback_subtype_val`), since
+restriction does not change the values of the forms. Together, these give the same conclusion
+for maps between open subsets.
+
 ## Main results
 
 * `TauCeti.SmoothTwoForm.coe_mpullback_apply_eq_of_mfderiv_eq`.
+* `TauCeti.SmoothTwoForm.IsNondegenerate.isSymplectomorphism_mpullback_subtype_val`.
 
 ## References
 
@@ -30,6 +37,7 @@ the other along the submanifold.
 
 public section
 
+open TopologicalSpace
 open scoped Manifold ContDiff
 
 namespace TauCeti.SmoothTwoForm
@@ -56,6 +64,38 @@ theorem coe_mpullback_apply_eq_of_mfderiv_eq {f : M₀ → M₁} (hf : ContMDiff
   refine SmoothBundleForm.apply_eq_of_eval₂_eq fun v w ↦ ?_
   rw [SmoothForm.eval₂_mpullback, hfA]
   simpa using hA.apply v w
+
+/-- Let `U₀ ⊆ M₀` and `U₁ ⊆ M₁` be open, `x₀ ∈ U₀` and `x₁ ∈ U₁`. A linear map
+`A : T_{x₀} M₀ ≃ T_{x₁} M₁` that is a symplectomorphism for the forms that nondegenerate two-forms
+`ω₀` and `ω₁` give these tangent spaces is also a symplectomorphism `T_{x₀} U₀ ≃ T_{x₁} U₁` for
+the restrictions of `ω₀` to `U₀` and of `ω₁` to `U₁`. The point `x₁` is given in `M₁` as `y₁`,
+up to the equality `hx₁`. -/
+theorem IsNondegenerate.isSymplectomorphism_mpullback_subtype_val
+    {ω₀ : SmoothTwoForm I₀ M₀} {ω₁ : SmoothTwoForm I₁ M₁} (hω₀ : ω₀.IsNondegenerate)
+    (hω₁ : ω₁.IsNondegenerate) {U₀ : Opens M₀} {U₁ : Opens M₁} {x₀ : U₀} {x₁ : U₁} {y₁ : M₁}
+    (hx₁ : (x₁ : M₁) = y₁) (A : TangentSpace I₀ (x₀ : M₀) ≃L[ℝ] TangentSpace I₁ y₁)
+    (hA : (hω₀.symplecticFormAt (x₀ : M₀)).IsSymplectomorphism (hω₁.symplecticFormAt y₁)
+      A.toLinearEquiv) :
+    ((hω₀.mpullback_subtype_val U₀).symplecticFormAt x₀).IsSymplectomorphism
+      ((hω₁.mpullback_subtype_val U₁).symplecticFormAt x₁) A.toLinearEquiv := by
+  subst hx₁
+  have h := ((SymplecticForm.isSymplectomorphism_iff_transport_eq.2
+    (hω₀.symplecticFormAt_mpullback_subtype_val_transport x₀)).trans hA).trans
+    (SymplecticForm.isSymplectomorphism_iff_transport_eq.2
+      (hω₁.symplecticFormAt_mpullback_subtype_val_transport x₁)).symm
+  -- The identifications of the tangent spaces of `U₀` and `U₁` with those of `M₀` and `M₁`
+  -- cancel around `A`.
+  have e : (Manifold.tangentSpaceOpenEquiv (I := I₀) x₀).toLinearEquiv ≪≫ₗ A.toLinearEquiv ≪≫ₗ
+      (Manifold.tangentSpaceOpenEquiv (I := I₁) x₁).toLinearEquiv.symm =
+      (A.toLinearEquiv : TangentSpace I₀ x₀ ≃ₗ[ℝ] TangentSpace I₁ x₁) := by
+    ext v
+    simp only [LinearEquiv.trans_apply, ContinuousLinearEquiv.coe_toLinearEquiv,
+      ContinuousLinearEquiv.coe_symm_toLinearEquiv, Manifold.tangentSpaceOpenEquiv_apply,
+      Manifold.tangentSpaceOpenEquiv_symm_apply]
+    -- Both sides apply `A` to `v`. The right side reads `A` between the tangent spaces of `U₀`
+    -- and `U₁`, so `ContinuousLinearEquiv.coe_toLinearEquiv` does not match it syntactically.
+    rfl
+  rwa [e] at h
 
 end TauCeti.SmoothTwoForm
 
