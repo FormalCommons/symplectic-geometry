@@ -79,20 +79,23 @@ theorem IsNondegenerate.isSymplectomorphism_mpullback_subtype_val
     ((hω₀.mpullback_subtype_val U₀).symplecticFormAt x₀).IsSymplectomorphism
       ((hω₁.mpullback_subtype_val U₁).symplecticFormAt x₁) A.toLinearEquiv := by
   subst hx₁
-  -- `rw` cannot match `isSymplectomorphism_iff` here: `A` is stated between the tangent spaces of
-  -- `M₀` and `M₁`, which are those of `U₀` and `U₁` only up to unfolding.
-  refine SymplecticForm.isSymplectomorphism_iff.2 fun v w ↦ ?_
-  have h : SmoothBundleForm.eval₂ ω₁ (x₁ : M₁) (A v) (A w) =
-      SmoothBundleForm.eval₂ ω₀ (x₀ : M₀) v w := by
-    have h := hA.apply v w
-    simp only [IsNondegenerate.toBilinForm_symplecticFormAt,
-      ContinuousLinearEquiv.coe_toLinearEquiv] at h
-    exact (SmoothForm.bilinFormAt_apply ω₁ _ _ _).symm.trans
-      (h.trans (SmoothForm.bilinFormAt_apply ω₀ _ v w))
-  simp only [IsNondegenerate.symplecticFormAt_apply, SmoothForm.eval₂_mpullback,
-    Manifold.mfderiv_subtype_val, ContinuousLinearEquiv.coe_coe,
-    Manifold.tangentSpaceOpenEquiv_apply]
-  exact h
+  have h := ((SymplecticForm.isSymplectomorphism_iff_transport_eq.2
+    (hω₀.symplecticFormAt_mpullback_subtype_val_transport x₀)).trans hA).trans
+    (SymplecticForm.isSymplectomorphism_iff_transport_eq.2
+      (hω₁.symplecticFormAt_mpullback_subtype_val_transport x₁)).symm
+  -- The identifications of the tangent spaces of `U₀` and `U₁` with those of `M₀` and `M₁`
+  -- cancel around `A`.
+  have e : (Manifold.tangentSpaceOpenEquiv (I := I₀) x₀).toLinearEquiv ≪≫ₗ A.toLinearEquiv ≪≫ₗ
+      (Manifold.tangentSpaceOpenEquiv (I := I₁) x₁).toLinearEquiv.symm =
+      (A.toLinearEquiv : TangentSpace I₀ x₀ ≃ₗ[ℝ] TangentSpace I₁ x₁) := by
+    ext v
+    simp only [LinearEquiv.trans_apply, ContinuousLinearEquiv.coe_toLinearEquiv,
+      ContinuousLinearEquiv.coe_symm_toLinearEquiv, Manifold.tangentSpaceOpenEquiv_apply,
+      Manifold.tangentSpaceOpenEquiv_symm_apply]
+    -- Both sides apply `A` to `v`. The right side reads `A` between the tangent spaces of `U₀`
+    -- and `U₁`, so `ContinuousLinearEquiv.coe_toLinearEquiv` does not match it syntactically.
+    rfl
+  rwa [e] at h
 
 end TauCeti.SmoothTwoForm
 
