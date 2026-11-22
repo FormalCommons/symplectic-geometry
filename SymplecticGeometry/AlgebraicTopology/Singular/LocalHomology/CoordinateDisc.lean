@@ -393,11 +393,7 @@ theorem coe_phase_apply {z : ball} (hz : (z : ℂ) ≠ 0) : (φ.phase (φ z) : �
 `ζ`. -/
 theorem phase_apply_of_coe_eq_mul {z : ball} {r : ℝ} (hr : 0 < r) {ζ : Circle}
     (hz : (z : ℂ) = r * ζ) : φ.phase (φ z) = ζ := by
-  have hr' : (r : ℂ) ≠ 0 := Complex.ofReal_ne_zero.2 hr.ne'
-  refine Circle.ext ?_
-  rw [φ.coe_phase_apply (by rw [hz]; exact mul_ne_zero hr' (Circle.coe_ne_zero ζ)), hz, norm_mul,
-    Complex.norm_real, Circle.norm_coe, mul_one, Real.norm_of_nonneg hr.le]
-  field_simp
+  rw [phase_def, coord_apply, hz, Complex.arg_ofReal_mul hr, Circle.exp_arg]
 
 /-- If the coordinate of a coordinate disc is `Cⁿ` on the range of `φ`, then its angular
 coordinate is `Cⁿ` on the points of that range where the coordinate does not vanish. -/

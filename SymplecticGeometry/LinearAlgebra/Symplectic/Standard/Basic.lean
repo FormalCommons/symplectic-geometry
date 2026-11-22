@@ -977,6 +977,7 @@ theorem equivComplex_complexToRealEuclidean (u : ι → ℂ) :
   simp [equivComplex_apply]
 
 /-- The inverse of `equivComplex ι` sends `z` to the point with coordinates `(re z, im z)`. -/
+@[simp]
 theorem equivComplex_symm_apply (z : ℂ) :
     (equivComplex ι).symm z = complexToRealEuclidean ι fun _ ↦ z :=
   (equivComplex ι).symm_apply_eq.2 (by simp)
