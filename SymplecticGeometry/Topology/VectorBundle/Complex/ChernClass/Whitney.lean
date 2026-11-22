@@ -154,10 +154,8 @@ private theorem evenIntegralCohomologyOf_chernClassCauchy (k : ℕ) :
           (TopCat.of B).evenIntegralCohomologyOf (k - i) (chernClass G₂ E₂ (k - i)) := by
   rw [map_sum, ← Fin.sum_univ_eq_sum_range]
   refine Finset.sum_congr rfl fun i _ ↦ ?_
-  rw [TopCat.evenIntegralCohomologyOf_mul]
-  exact DirectSum.of_eq_of_gradedMonoid_eq
-    (Sigma.ext (Nat.add_sub_cancel' (Nat.le_of_lt_succ i.isLt)).symm
-      (TopCat.integralCup_heq _ _ _ _ _))
+  rw [(TopCat.of B).evenIntegralCohomologyOf_mul_of_add_eq
+    (Nat.add_sub_cancel' (Nat.le_of_lt_succ i.isLt))]
 
 /-- The product of the classes `∑_{i ≤ nₗ} cᵢ(Eₗ) x^{nₗ-i}`, `l = 1, 2`, in a ring map from the
 even integral cohomology ring of `B`, is `∑_{k ≤ n₁+n₂} aₖ x^{n₁+n₂-k}`, where `aₖ` is the Cauchy
