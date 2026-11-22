@@ -8,9 +8,12 @@ module
 public import Mathlib.Geometry.Manifold.Diffeomorph
 public import Mathlib.Geometry.Manifold.Immersion
 public import Mathlib.Geometry.Manifold.MFDeriv.FDeriv
+public import SymplecticGeometry.Analysis.Calculus.FDeriv.Cayley
 public import SymplecticGeometry.LinearAlgebra.Symplectic.CompatibleTangent.Finrank
+public import SymplecticGeometry.Topology.ComplexStructure.Basic
 public import SymplecticGeometry.Topology.ComplexStructure.Compatible.Cayley
 public import TauCeti.Geometry.Manifold.Immersion.Differential
+public import TauCeti.Geometry.Manifold.MFDeriv.Chart.Basic
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
 public import TauCeti.Geometry.Symplectic.Cayley.Tangent
 
@@ -107,8 +110,9 @@ theorem isEmbedding_compatibleCLM : IsEmbedding ω.compatibleCLM :=
   AlmostComplexStructure.isEmbedding_toContinuousLinearMap.comp IsEmbedding.subtypeVal
 
 /-- A complex structure is invertible in the continuous endomorphisms, with inverse `-J`. -/
-theorem isUnit_compatibleCLM (J : 𝒥) : IsUnit (ω.compatibleCLM J) :=
-  ⟨⟨_, -ω.compatibleCLM J, by simp [compatibleCLM_def], by simp [compatibleCLM_def]⟩, rfl⟩
+theorem isUnit_compatibleCLM (J : 𝒥) : IsUnit (ω.compatibleCLM J) := by
+  rw [compatibleCLM_def]
+  exact J.val.isUnit_toContinuousLinearMap
 
 /-! ### The global Cayley chart -/
 
@@ -205,34 +209,8 @@ theorem hasFDerivAt_compatibleCLM_chartAt_symm {J : 𝒥} {C : ω.compatibleMode
       ((2 : ℝ) • (ContinuousLinearMap.mulLeftRight ℝ (V →L[ℝ] V)
         (ω.compatibleCLM ω.compatibleBase * Ring.inverse (1 - (C : V →L[ℝ] V)))
         (Ring.inverse (1 - (C : V →L[ℝ] V)))).comp ω.compatibleModel.subtypeL) C := by
-  set A := ω.compatibleCLM ω.compatibleBase
-  obtain ⟨u, hu⟩ := isUnit_one_sub_of_mem_chartAt_target hC
-  set R := Ring.inverse (1 - (C : V →L[ℝ] V))
-  have hR : (1 - (C : V →L[ℝ] V)) * R = 1 := by
-    simp only [R, ← hu, Ring.inverse_unit, Units.mul_inv]
-  -- The inverse Cayley transform `x ↦ A (1 + x) (1 - x)⁻¹` has the derivative of the statement.
-  have hinv : HasFDerivAt (fun x : V →L[ℝ] V => Ring.inverse (1 - x))
-      (-(ContinuousLinearMap.mulLeftRight ℝ (V →L[ℝ] V) R R).comp
-        (-ContinuousLinearMap.id ℝ (V →L[ℝ] V))) (C : V →L[ℝ] V) := by
-    have h := hasFDerivAt_ringInverse (𝕜 := ℝ) u
-    rw [hu, ← Ring.inverse_unit u, hu] at h
-    have h' := (hasFDerivAt_id (𝕜 := ℝ) (C : V →L[ℝ] V)).const_sub 1
-    exact h.comp _ h'
-  have hG : HasFDerivAt (fun x : V →L[ℝ] V => A * (1 + x) * Ring.inverse (1 - x))
-      ((2 : ℝ) • ContinuousLinearMap.mulLeftRight ℝ (V →L[ℝ] V) (A * R) R)
-      (C : V →L[ℝ] V) := by
-    have h1 : HasFDerivAt (fun x : V →L[ℝ] V => A * (1 + x))
-        ((ContinuousLinearMap.mul ℝ (V →L[ℝ] V) A).comp (ContinuousLinearMap.id ℝ (V →L[ℝ] V)))
-        (C : V →L[ℝ] V) :=
-      (ContinuousLinearMap.mul ℝ (V →L[ℝ] V) A).hasFDerivAt.comp _
-        ((hasFDerivAt_id (𝕜 := ℝ) (C : V →L[ℝ] V)).const_add 1)
-    refine (h1.mul' hinv).congr_fderiv (ContinuousLinearMap.ext fun X => ?_)
-    have hX : X * R = (1 - (C : V →L[ℝ] V)) * R * X * R := by rw [hR, one_mul]
-    simp only [add_apply, smul_apply, ContinuousLinearMap.comp_apply, neg_apply,
-      ContinuousLinearMap.mulLeftRight_apply, ContinuousLinearMap.id_apply, smul_eq_mul,
-      op_smul_eq_mul, neg_mul, mul_neg, neg_neg, two_smul, ContinuousLinearMap.mul_apply']
-    rw [show Ring.inverse (1 - (C : V →L[ℝ] V)) = R from rfl, mul_assoc A X R, hX]
-    noncomm_ring
+  have hG := SymplecticGeometry.hasFDerivAt_mul_one_add_ringInverse (𝕜 := ℝ)
+    (ω.compatibleCLM ω.compatibleBase) (isUnit_one_sub_of_mem_chartAt_target hC)
   refine (hG.comp (f := ω.compatibleModel.subtypeL) C
     ω.compatibleModel.subtypeL.hasFDerivAt).congr_of_eventuallyEq ?_
   filter_upwards [(chartAt ω.compatibleModel J).open_target.mem_nhds hC] with C' hC'
@@ -263,17 +241,12 @@ theorem hasMFDerivAt_compatibleCLM (J : 𝒥) :
     HasMFDerivAt 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM J
       ((2 : ℝ) • (ContinuousLinearMap.mulLeftRight ℝ (V →L[ℝ] V)
         (ω.compatibleCLM ω.compatibleBase * Ring.inverse (1 - (ω.cayleyChart J : V →L[ℝ] V)))
-        (Ring.inverse (1 - (ω.cayleyChart J : V →L[ℝ] V)))).comp ω.compatibleModel.subtypeL) := by
-  have h := hasMFDerivAt_compatibleCLM_chartAt_symm (cayleyChart_mem_chartAt_target J J)
-  refine ⟨ω.isEmbedding_compatibleCLM.continuous.continuousAt, ?_⟩
-  have h2 := h.2
-  -- Both sides are derivatives of the inclusion read in the chart; they differ only by the casts
-  -- `tangentSpaceCastModel` between tangent spaces of model spaces, which are identities.
-  simp only [writtenInExtChartAt_model_space] at h2
-  simp only [writtenInExtChartAt, extChartAt_model_space_eq_id, extChartAt_coe, extChartAt_coe_symm,
-    modelWithCornersSelf_coe, modelWithCornersSelf_coe_symm, Function.comp_id, Function.id_comp,
-    PartialEquiv.refl_coe, chartAt_eq, Set.range_id] at h2 ⊢
-  exact h2
+        (Ring.inverse (1 - (ω.cayleyChart J : V →L[ℝ] V)))).comp ω.compatibleModel.subtypeL) :=
+  TauCeti.Manifold.hasMFDerivAt_of_hasFDerivWithinAt_extChartAt_target (by simp)
+    ω.isEmbedding_compatibleCLM.continuous.continuousAt
+    (hasFDerivAt_compatibleCLM_chartAt_symm
+      (cayleyChart_mem_chartAt_target J J)).hasFDerivWithinAt
+    (fun C _ => by simp [writtenInExtChartAt])
 
 /-- The differential of the inclusion at `J`, with Cayley coordinate `C`, sends `Ċ` to
 `2 J₀ (1 - C)⁻¹ Ċ (1 - C)⁻¹`, `J₀` being the base point. -/
@@ -376,10 +349,10 @@ theorem range_mfderiv_compatibleCLM (J : 𝒥) :
 /-! ### The smooth embedding -/
 
 /-- **The compatible complex structures form a submanifold** of the continuous endomorphisms:
-the inclusion is a smooth embedding. -/
-theorem isSmoothEmbedding_compatibleCLM :
-    Manifold.IsSmoothEmbedding 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ∞ ω.compatibleCLM :=
-  ⟨contMDiff_compatibleCLM.isImmersion_of_injective_mfderiv (by simp)
+the inclusion is a `C^n` embedding for every `n ≥ 1`. -/
+theorem isSmoothEmbedding_compatibleCLM {n : WithTop ℕ∞} (hn : 1 ≤ n) :
+    Manifold.IsSmoothEmbedding 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) n ω.compatibleCLM :=
+  ⟨contMDiff_compatibleCLM.isImmersion_of_injective_mfderiv hn
     injective_mfderiv_compatibleCLM, ω.isEmbedding_compatibleCLM⟩
 
 section Comp
@@ -387,20 +360,20 @@ section Comp
 variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
   {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M]
 
-/-- A map into the compatible complex structures is smooth exactly when it is smooth as a map
-into the continuous endomorphisms. -/
-theorem contMDiff_compatibleCLM_comp_iff {f : M → 𝒥} :
-    ContMDiff I 𝓘(ℝ, ω.compatibleModel) ∞ f ↔
-      ContMDiff I 𝓘(ℝ, V →L[ℝ] V) ∞ (ω.compatibleCLM ∘ f) :=
-  isSmoothEmbedding_compatibleCLM.contMDiff_iff_comp
-
-/-- A map into the compatible complex structures is smooth at `x` exactly when it is smooth at `x`
+/-- For `n ≥ 1`, a map into the compatible complex structures is `C^n` exactly when it is `C^n`
 as a map into the continuous endomorphisms. -/
-theorem contMDiffAt_compatibleCLM_comp_iff {f : M → 𝒥} {x : M} :
-    ContMDiffAt I 𝓘(ℝ, ω.compatibleModel) ∞ f x ↔
-      ContMDiffAt I 𝓘(ℝ, V →L[ℝ] V) ∞ (ω.compatibleCLM ∘ f) x := by
+theorem contMDiff_compatibleCLM_comp_iff {n : WithTop ℕ∞} (hn : 1 ≤ n) {f : M → 𝒥} :
+    ContMDiff I 𝓘(ℝ, ω.compatibleModel) n f ↔
+      ContMDiff I 𝓘(ℝ, V →L[ℝ] V) n (ω.compatibleCLM ∘ f) :=
+  (isSmoothEmbedding_compatibleCLM hn).contMDiff_iff_comp
+
+/-- For `n ≥ 1`, a map into the compatible complex structures is `C^n` at `x` exactly when it is
+`C^n` at `x` as a map into the continuous endomorphisms. -/
+theorem contMDiffAt_compatibleCLM_comp_iff {n : WithTop ℕ∞} (hn : 1 ≤ n) {f : M → 𝒥} {x : M} :
+    ContMDiffAt I 𝓘(ℝ, ω.compatibleModel) n f x ↔
+      ContMDiffAt I 𝓘(ℝ, V →L[ℝ] V) n (ω.compatibleCLM ∘ f) x := by
   rw [ContMDiffAt.iff_comp_isImmersionAt
-    (isSmoothEmbedding_compatibleCLM.isImmersion.isImmersionAt (f x)),
+    ((isSmoothEmbedding_compatibleCLM hn).isImmersion.isImmersionAt (f x)),
     ω.isEmbedding_compatibleCLM.isInducing.continuousAt_iff]
   exact ⟨And.right, fun h => ⟨h.continuousAt, h⟩⟩
 
@@ -423,12 +396,12 @@ noncomputable def compatibleTransport (hΨ : ω.IsSymplectomorphism ω Ψ.toLine
     (hΨ.symm.compatible_transport_iff J.val).2 J.property⟩
   left_inv J := Subtype.ext (J.val.transport_symm_transport _)
   right_inv J := Subtype.ext (J.val.transport_transport_symm _)
-  contMDiff_toFun := contMDiff_compatibleCLM_comp_iff.2 <|
+  contMDiff_toFun := (contMDiff_compatibleCLM_comp_iff (by simp)).2 <|
     (((Ψ.arrowCongr Ψ : (V →L[ℝ] V) →L[ℝ] V →L[ℝ] V)).contMDiff.comp
       contMDiff_compatibleCLM).congr fun J => by
       ext v
       simp [compatibleCLM_def]
-  contMDiff_invFun := contMDiff_compatibleCLM_comp_iff.2 <|
+  contMDiff_invFun := (contMDiff_compatibleCLM_comp_iff (by simp)).2 <|
     (((Ψ.symm.arrowCongr Ψ.symm : (V →L[ℝ] V) →L[ℝ] V →L[ℝ] V)).contMDiff.comp
       contMDiff_compatibleCLM).congr fun J => by
       ext v
@@ -474,21 +447,10 @@ complex structures. -/
 theorem exists_compatibleTransport_eq (J J' : 𝒥) :
     ∃ (Ψ : V ≃L[ℝ] V) (hΨ : ω.IsSymplectomorphism ω Ψ.toLinearEquiv),
       ω.compatibleTransport hΨ J = J' := by
-  obtain ⟨n, hn⟩ := ω.even_finrank
-  have hι : Module.finrank ℝ V = 2 * Fintype.card (Fin n) := by
-    rw [Fintype.card_fin]
-    omega
-  obtain ⟨Φ, hΦ, hΦJ⟩ := (SymplecticGeometry.compatible_iff_exists_isSymplectomorphism_stdForm
-    hι).1 J.property
-  obtain ⟨Φ', hΦ', hΦJ'⟩ := (SymplecticGeometry.compatible_iff_exists_isSymplectomorphism_stdForm
-    hι).1 J'.property
-  refine ⟨(Φ.symm.trans Φ').toContinuousLinearEquiv, by
-    rw [LinearEquiv.toLinearEquiv_toContinuousLinearEquiv]
-    exact hΦ.symm.trans hΦ', Subtype.ext ?_⟩
-  rw [compatibleTransport_apply_coe, LinearEquiv.toLinearEquiv_toContinuousLinearEquiv,
-    ← (AlmostComplexStructure.transport_eq_iff_isComplexLinearMap Φ).2 hΦJ,
-    ← (AlmostComplexStructure.transport_eq_iff_isComplexLinearMap Φ').2 hΦJ',
-    ← AlmostComplexStructure.transport_trans, AlmostComplexStructure.transport_symm_transport]
+  obtain ⟨Ψ, hΨ, hΨJ⟩ := J.property.exists_isSymplectomorphism_transport_eq J'.property
+  refine ⟨Ψ.toContinuousLinearEquiv, by rwa [LinearEquiv.toLinearEquiv_toContinuousLinearEquiv],
+    Subtype.ext ?_⟩
+  rw [compatibleTransport_apply_coe, LinearEquiv.toLinearEquiv_toContinuousLinearEquiv, hΨJ]
 
 end Transport
 

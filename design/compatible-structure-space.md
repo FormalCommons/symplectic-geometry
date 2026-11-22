@@ -362,9 +362,20 @@ normed space:
   ω.compatibleTangentSpaceCLM (ω.compatibleBase : AlmostComplexStructure V)`,
   with `compatibleModel_def` and `compatibleBase_def`.
 
+### `Analysis/Calculus/FDeriv/Cayley.lean`
+
+A general file that serves `CompatibleComplexStructures.lean`; imports
+Mathlib. `SymplecticGeometry.hasFDerivAt_mul_one_add_ringInverse`: in a
+normed algebra with summable geometric series, `x ↦ A (1 + x) (1 - x)⁻¹` has
+derivative $\dot X\mapsto2A(1-C)^{-1}\dot X(1-C)^{-1}$ at `C` with `1 - C`
+invertible.
+
 ### `Geometry/Manifold/Instances/CompatibleComplexStructures.lean`
 
-The manifold, in `TauCeti.SymplecticForm`.
+The manifold, in `TauCeti.SymplecticForm`. Besides Mathlib, Tau Ceti,
+`CompatibleTangent/Finrank.lean` and `Compatible/Cayley.lean`, it imports
+`Analysis/Calculus/FDeriv/Cayley.lean` and *Linear complex structures*'
+`Topology/ComplexStructure/Basic.lean`.
 
 - `instance : ChartedSpace ω.compatibleModel (𝒥 ω)` and
   `instance : IsManifold 𝓘 n (𝒥 ω)` for every `n`, from the open embedding
@@ -384,11 +395,12 @@ The manifold, in `TauCeti.SymplecticForm`.
   injectivity and the two dimensions of `Finrank.lean`.
 - `ω.compatibleTangentEquiv J : TangentSpace 𝓘 J ≃L[ℝ] ω.compatibleTangentSpaceCLM J`,
   the differential onto its range, with `coe_compatibleTangentEquiv_apply`.
-- `isSmoothEmbedding_compatibleCLM : Manifold.IsSmoothEmbedding 𝓘
-  𝓘(ℝ, V →L[ℝ] V) ∞ ω.compatibleCLM`, from
+- `isSmoothEmbedding_compatibleCLM (hn : 1 ≤ n) : Manifold.IsSmoothEmbedding 𝓘
+  𝓘(ℝ, V →L[ℝ] V) n ω.compatibleCLM`, from
   `ContMDiff.isImmersion_of_injective_mfderiv` and Tau Ceti's
   `isEmbedding_toContinuousLinearMap` restricted to the subtype;
-  `contMDiff_compatibleCLM_comp_iff` and `contMDiffAt_compatibleCLM_comp_iff`.
+  `contMDiff_compatibleCLM_comp_iff` and `contMDiffAt_compatibleCLM_comp_iff`,
+  which take the same `hn`.
 - `finrank_compatibleModel (hn : finrank ℝ V = 2 * n) :
   Module.finrank ℝ ω.compatibleModel = n * (n + 1)`.
 - `ω.compatibleTransport (hΨ : ω.IsSymplectomorphism ω Ψ.toLinearEquiv) :
