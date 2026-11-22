@@ -681,6 +681,11 @@ issues, in an order where each issue's blockers come before it.
    `TopCat.singularHomologyIntToRat`, to injectivity of the duality map with
    values in `ℚ`
    (`TauCeti.HomologicalOrientation.injective_singularCapLinearMap_of_injective_dualityMap`).
+   It uses two new general files:
+   `AlgebraicTopology/Cohomology/Cap/Basic.lean`, the singular cap product
+   of a simplex along the unitors, and
+   `Algebra/Homology/ShortComplex/PreservesHomology.lean`,
+   `CategoryTheory.ShortComplex.map_homologyπ_comp_mapHomologyIso_inv`.
    That injectivity is the degree-one case of Poincaré duality, which
    Tau Ceti prepares in `AlgebraicTopology/Cohomology/CompactSupport/`
    (`HomologicalOrientation.dualityMap` and its criterion in `Duality.lean`)
