@@ -19,8 +19,9 @@ with a vertex `y`, weighted by `t : 𝟙_ C ⟶ S`, followed by the projection `
 coefficient map `r ↦ r ⊗ t`. Tau Ceti uses it to compute the cross product with the class of a
 point.
 
-It is stated under its Tau Ceti name and namespace, with Tau Ceti's statement, proof and docstring,
-so that moving Tau Ceti past this commit deletes this file without renames. The changes are:
+It is stated under its Tau Ceti name and namespace, with Tau Ceti's statement, proof and docstring.
+Because of the first two changes below, a move of Tau Ceti past this commit keeps this file: it can
+be deleted only once Tau Ceti makes the lemma public and gives it `@[reassoc]`. The changes are:
 
 * the lemma is public, where Tau Ceti's is `private`, since
   `SymplecticGeometry/AlgebraicTopology/Singular/Kunneth/RelativePoint.lean` uses it;
