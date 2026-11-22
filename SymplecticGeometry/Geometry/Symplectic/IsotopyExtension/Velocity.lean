@@ -11,6 +11,7 @@ public import TauCeti.Geometry.Manifold.VectorField.Prod
 public import TauCeti.Geometry.Symplectic.Flux.Hamiltonian
 import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Velocity
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.LieDeriv
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import SymplecticGeometry.Geometry.Manifold.Instances.Icc
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
 import TauCeti.Geometry.Manifold.ContMDiffMap.Basic
@@ -286,6 +287,64 @@ theorem IsSymplectic.of_apply_eq_apply_diffeomorph {E'' H'' : Type*} [NormedAddC
   rw [hfun, mpullback_comp (χ.contMDiff.mdifferentiable (by simp))
     ((F.timeSlice t).contMDiff.mdifferentiable (by simp)), hF.mpullback_timeSlice t,
     SmoothForm.coe_mpullback]
+
+/-! ### Restriction to an open subset -/
+
+section Restrict
+
+open TopologicalSpace
+
+variable {V W : Opens P} {g₀ g₁ : C^∞⟮J, W; I, M⟯}
+
+/-- The **restriction** of a smooth isotopy `G` of an open set `W ⊆ P` to an open set `V ⊆ W`:
+the isotopy `(t, x) ↦ G (t, x)` of `V`, from the restriction of `g₀` to that of `g₁`. -/
+def restrict (G : SmoothIsotopy g₀ g₁) (h : V ≤ W) :
+    SmoothIsotopy (g₀.comp (⟨Opens.inclusion h, contMDiff_inclusion h⟩ : C^∞⟮J, V; J, W⟯))
+      (g₁.comp (⟨Opens.inclusion h, contMDiff_inclusion h⟩ : C^∞⟮J, V; J, W⟯)) where
+  toContMDiffMap := ⟨fun p ↦ G (p.1, Opens.inclusion h p.2),
+    G.contMDiff.comp (contMDiff_fst.prodMk ((contMDiff_inclusion h).comp contMDiff_snd))⟩
+  map_zero_left _ := G.apply_zero _
+  map_one_left _ := G.apply_one _
+  isSmoothEmbedding t := isSmoothEmbedding_comp_isLocalDiffeomorph (f := fun y ↦ G (t, y))
+    (isLocalDiffeomorph_inclusion h) (Topology.IsEmbedding.inclusion h) (G.isSmoothEmbedding t)
+
+omit [IsManifold I ∞ M] in
+@[simp]
+theorem restrict_apply (G : SmoothIsotopy g₀ g₁) (h : V ≤ W) (p : unitInterval × V) :
+    G.restrict h p = G (p.1, Opens.inclusion h p.2) := by
+  rw [← toContMDiffMap_apply]
+  rfl
+
+/-- The slices of the velocity form of a restriction are the restrictions of the slices of the
+velocity form. -/
+theorem mpullback_prodMk_velocityForm_restrict (σ : SmoothTwoForm I M) (G : SmoothIsotopy g₀ g₁)
+    (h : V ≤ W) (t : unitInterval) :
+    SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id)
+        ((G.restrict h).velocityForm σ) =
+      SmoothForm.mpullback (Opens.inclusion h) (contMDiff_inclusion h)
+        (SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id)
+          (G.velocityForm σ)) := by
+  refine Subtype.ext (funext fun x ↦ ContinuousAlternatingMap.ext fun v ↦ ?_)
+  obtain ⟨w, rfl⟩ : ∃ w, v = ![w] := ⟨v 0, funext fun i ↦ by fin_cases i; rfl⟩
+  have hGt : MDifferentiableAt J I (fun y ↦ G (t, y)) (Opens.inclusion h x) :=
+    (G.contMDiff.comp (contMDiff_const.prodMk contMDiff_id)).mdifferentiableAt (by simp)
+  have hcomp : mfderiv J I (fun y ↦ G (t, Opens.inclusion h y)) x w =
+      mfderiv J I (fun y ↦ G (t, y)) (Opens.inclusion h x) w :=
+    (mfderiv_comp_apply (g := fun y ↦ G (t, y)) x hGt
+      ((contMDiff_inclusion (n := ∞) h).mdifferentiableAt (by simp)) w).trans
+      (congrArg _ (Manifold.mfderiv_inclusion_apply h x w))
+  have hv : (fun i ↦ mfderiv J J (Opens.inclusion h) x (![w] i)) = ![w] :=
+    funext fun i ↦ Manifold.mfderiv_inclusion_apply h x _
+  conv_rhs => rw [SmoothForm.mpullback_apply, hv]
+  refine (mpullback_prodMk_velocityForm σ (G.restrict h) t x w).trans
+    (Eq.trans ?_ (mpullback_prodMk_velocityForm σ G t (Opens.inclusion h x) w).symm)
+  have h₁ : (fun s ↦ G.restrict h (s, x)) = fun s ↦ G (s, Opens.inclusion h x) :=
+    funext fun s ↦ restrict_apply G h (s, x)
+  have h₂ : (fun y ↦ G.restrict h (t, y)) = fun y ↦ G (t, Opens.inclusion h y) :=
+    funext fun y ↦ restrict_apply G h (t, y)
+  rw [restrict_apply, h₁, h₂, hcomp]
+
+end Restrict
 
 end SmoothIsotopy
 
