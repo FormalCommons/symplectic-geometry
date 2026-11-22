@@ -205,6 +205,22 @@ theorem Compatible.radicalComplement_sup_inf [FiniteDimensional ℝ V] :
     inf_comm W ((ω.associatedBilinForm J).orthogonal (W ⊓ ω.orthogonal W))]
   exact h.symm
 
+/-- The radical complement `H` is the image of `W` under the projection onto `K^{⊥g}` along the
+radical `K = W ∩ W^ω`. -/
+theorem Compatible.map_projection_orthogonal_eq_radicalComplement [FiniteDimensional ℝ V] :
+    W.map (((ω.associatedBilinForm J).orthogonal (W ⊓ ω.orthogonal W)).projection
+        (W ⊓ ω.orthogonal W) (hJ.isCompl_orthogonal_associatedBilinForm _).symm) =
+      ω.radicalComplement J W := by
+  ext x
+  rw [radicalComplement_def, Submodule.mem_map, Submodule.mem_inf]
+  constructor
+  · rintro ⟨w, hw, rfl⟩
+    refine ⟨?_, Submodule.projection_apply_mem _ _⟩
+    rw [Submodule.projection_eq_self_sub_projection (hJ.isCompl_orthogonal_associatedBilinForm _)]
+    exact W.sub_mem hw (Submodule.mem_inf.1 (Submodule.projection_apply_mem _ _)).1
+  · rintro ⟨hxW, hxS⟩
+    exact ⟨x, hxW, Submodule.projection_apply_of_mem_left _ hxS⟩
+
 /-- The radical complement is `ω`-orthogonal to `K ⊕ J K`. -/
 theorem Compatible.radicalComplement_le_orthogonal_sup_map :
     ω.radicalComplement J W ≤

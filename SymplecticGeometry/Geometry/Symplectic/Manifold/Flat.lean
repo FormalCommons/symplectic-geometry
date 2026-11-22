@@ -5,6 +5,9 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import Mathlib.LinearAlgebra.BilinearForm.Orthogonal
+public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Pullback
+public import TauCeti.Geometry.Symplectic.Lagrangian.Basic
 public import TauCeti.Geometry.Symplectic.Manifold.Flat
 import TauCeti.Analysis.Normed.Module.Alternating.Curry
 import TauCeti.Geometry.Manifold.VectorBundle.Hom
@@ -39,6 +42,14 @@ what makes the Moser flow fix `x` to first order ([McDuffSalamon2017], §3.2;
   map is invertible.
 * `TauCeti.SmoothTwoForm.IsNondegenerate.hasFDerivAt_mpullbackWithin_interiorEquiv_symm`: the
   coordinate expression of `(σ♭)⁻¹ β` has zero derivative where `β` vanishes to first order.
+* `TauCeti.SmoothTwoForm.IsNondegenerate.orthogonal_flat` and
+  `TauCeti.SmoothTwoForm.Compatible.orthogonal_flatComp`: the orthogonal of a subspace for the
+  bilinear form `σ♭_x` is its symplectic complement, and, for a compatible almost complex
+  structure `J`, its orthogonal for `σ(J ·, ·)` is its orthogonal for the metric `σ(·, J ·)`.
+* `TauCeti.SmoothTwoForm.contMDiff_flat_pullback` and
+  `TauCeti.SmoothTwoForm.contMDiff_flatComp_pullback`: along a smooth map `f`, the forms
+  `σ♭_{f q}` and `σ(C ·, ·)` at `f q` are smooth sections of the bundle of bilinear forms on
+  the pull-back `f *ᵖ TM`.
 
 The smoothness lemmas take the argument by which Tau Ceti's
 `TauCeti.SmoothTwoForm.IsNondegenerate.interiorEquiv` shows that its inverse is smooth
@@ -196,6 +207,74 @@ theorem hasFDerivAt_mpullbackWithin_interiorEquiv_symm (h : σ.IsNondegenerate)
     simpa only [hV₀, sub_zero, zero_apply] using hbig.trans_isLittleO hβo)
 
 end IsNondegenerate
+
+section Orthogonal
+
+variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
+  {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M] [IsManifold I ∞ M]
+  {σ : SmoothTwoForm I M} {Jc : SmoothAlmostComplexStructure I M}
+
+/-- The orthogonal of a subspace for the flat map of a nondegenerate two-form is its symplectic
+complement. -/
+theorem IsNondegenerate.orthogonal_flat (hω : σ.IsNondegenerate) (x : M)
+    (N : Submodule ℝ (TangentSpace I x)) :
+    LinearMap.BilinForm.orthogonal (σ.flat x).toLinearMap₁₂ N =
+      (hω.symplecticFormAt x).orthogonal N := by
+  rw [SymplecticForm.orthogonal_def]
+  congr 1
+  ext v w
+  simp
+
+/-- For a compatible almost complex structure `J`, the orthogonal of a subspace for the forms
+`σ(J ·, ·)` is its orthogonal for the metric `g = σ(·, J ·)`: by invariance, the two forms differ
+by a sign. -/
+theorem Compatible.orthogonal_flatComp (hc : σ.Compatible Jc) (x : M)
+    (N : Submodule ℝ (TangentSpace I x)) :
+    LinearMap.BilinForm.orthogonal (σ.flatComp Jc.toEndomorphism x).toLinearMap₁₂ N =
+      ((hc.isNondegenerate.symplecticFormAt x).associatedBilinForm
+        (Jc.almostComplexStructureAt x)).orthogonal N := by
+  ext w
+  simp only [LinearMap.BilinForm.mem_orthogonal_iff]
+  refine forall₂_congr fun v _ ↦ ?_
+  have h := (SymplecticForm.invariant_iff _ _).1 (hc.compatibleAt x).invariant v
+    (Jc.almostComplexStructureAt x w)
+  simp only [AlmostComplexStructure.apply_apply, map_neg] at h
+  simp only [SymplecticForm.associatedBilinForm_apply, ContinuousLinearMap.toLinearMap₁₂_apply,
+    flatComp_apply]
+  rw [← h, neg_eq_zero]
+  simp [IsNondegenerate.toBilinForm_symplecticFormAt]
+
+end Orthogonal
+
+section Pullback
+
+variable {E E' H H' M Q K : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
+  {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M] [IsManifold I ∞ M]
+  [NormedAddCommGroup E'] [NormedSpace ℝ E'] [TopologicalSpace H'] {J : ModelWithCorners ℝ E' H'}
+  [TopologicalSpace Q] [ChartedSpace H' Q] [FunLike K Q M] [ContinuousMapClass K Q M]
+
+/-- Along a `C^∞` map `f`, the flat maps `v ↦ σ(v, ·)` of `σ` at the points `f q` form a smooth
+section of the bundle of bilinear forms on the pull-back `f *ᵖ TM`. -/
+theorem contMDiff_flat_pullback (σ : SmoothTwoForm I M) (f : K) (hf : ContMDiff J I ∞ f) :
+    ContMDiff J (J.prod 𝓘(ℝ, E →L[ℝ] E →L[ℝ] ℝ)) ∞
+      (fun q ↦ TotalSpace.mk' (E →L[ℝ] E →L[ℝ] ℝ)
+        (E := fun q ↦ ((f : Q → M) *ᵖ (TangentSpace I)) q →L[ℝ]
+          ((f : Q → M) *ᵖ (TangentSpace I)) q →L[ℝ] ℝ) q (σ.flat (f q))) :=
+  (Bundle.Pullback.contMDiff_bilinear_section_iff f hf _).mpr (σ.contMDiff_flat.comp hf)
+
+/-- Along a `C^∞` map `f`, the forms `σ(C ·, ·)` at the points `f q`, for a smooth section `C` of
+`End(TM)`, form a smooth section of the bundle of bilinear forms on the pull-back `f *ᵖ TM`. -/
+theorem contMDiff_flatComp_pullback (σ : SmoothTwoForm I M)
+    (C : Cₛ^∞⟮I; E →L[ℝ] E, fun x : M ↦ TangentSpace I x →L[ℝ] TangentSpace I x⟯) (f : K)
+    (hf : ContMDiff J I ∞ f) :
+    ContMDiff J (J.prod 𝓘(ℝ, E →L[ℝ] E →L[ℝ] ℝ)) ∞
+      (fun q ↦ TotalSpace.mk' (E →L[ℝ] E →L[ℝ] ℝ)
+        (E := fun q ↦ ((f : Q → M) *ᵖ (TangentSpace I)) q →L[ℝ]
+          ((f : Q → M) *ᵖ (TangentSpace I)) q →L[ℝ] ℝ) q (σ.flatComp C (f q))) :=
+  (Bundle.Pullback.contMDiff_bilinear_section_iff f hf _).mpr
+    ((σ.flatComp C).contMDiff.comp hf)
+
+end Pullback
 
 end SmoothTwoForm
 
