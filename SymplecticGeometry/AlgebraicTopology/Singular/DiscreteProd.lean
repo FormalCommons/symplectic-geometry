@@ -7,6 +7,7 @@ module
 
 public import Mathlib.CategoryTheory.Abelian.GrothendieckAxioms.Basic
 public import TauCeti.AlgebraicTopology.Singular.Additivity
+public import SymplecticGeometry.AlgebraicTopology.Singular.Nullhomotopic
 public import SymplecticGeometry.Topology.Category.TopCat.Monoidal
 
 /-!
@@ -25,8 +26,8 @@ is the identity on the fibre over `i` and sends every other fibre to `x₀`. Whe
 identity of `Hₙ(ι ⊗ X)` (`TopCat.sum_singularHomologyFunctor_map_prodFiberRetraction_comp`). Only
 finite coproducts are involved there, which are exact in every abelian category. On the fibre
 over `j`, the term of index `j` is the identity, and every other term vanishes, since the fibre
-inclusion followed by the retraction onto another fibre is constant, so it factors through a
-point, whose homology vanishes in positive degree.
+inclusion followed by the retraction onto another fibre is constant, so it induces zero in
+positive degree (`TopCat.singularHomologyFunctor_map_const_eq_zero`).
 
 ## Main results
 
@@ -81,27 +82,6 @@ def isColimitCofanSingularHomologyProd [HasExactColimitsOfShape (Discrete ι) C]
           sigmaι_comp_sigmaConstIsoProd_hom])
 
 end Coproduct
-
-section Const
-
-variable {C : Type u} [Category.{v} C] [HasCoproducts.{w} C] [Preadditive C]
-  [CategoryWithHomology C] (R : C)
-
-/-- In positive degree, singular homology sends a constant map to zero, since it factors through
-a point. -/
-lemma singularHomologyFunctor_map_const_eq_zero {X Y : TopCat.{w}} (x₀ : X) {n : ℕ}
-    (hn : n ≠ 0) :
-    ((singularHomologyFunctor C n).obj R).map (TopCat.const x₀ : Y ⟶ X) = 0 := by
-  let pt : TopCat.{w} := TopCat.of PUnit
-  have h : (TopCat.const x₀ : Y ⟶ X) =
-      (TopCat.const (PUnit.unit : pt) : Y ⟶ pt) ≫ TopCat.const x₀ := by
-    ext
-    simp
-  rw [h, Functor.map_comp,
-    (isZero_singularHomologyFunctor_of_totallyDisconnectedSpace C n R pt hn).eq_of_src
-      (((singularHomologyFunctor C n).obj R).map (TopCat.const x₀)) 0, comp_zero]
-
-end Const
 
 section Sum
 

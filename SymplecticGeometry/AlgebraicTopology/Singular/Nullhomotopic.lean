@@ -16,7 +16,9 @@ A nullhomotopic map `f : X ⟶ Y` in `TopCat` induces the zero map on singular h
 (`TopCat.singularHomologyFunctor_map_eq_zero_of_nullhomotopic`). By homotopy invariance
 (`TopCat.Homotopy.congr_homologyMap_singularChainComplexFunctor`), `f` induces the same map as a
 constant map, which factors through a point, and the positive-degree homology of a point vanishes
-(`AlgebraicTopology.isZero_singularHomologyFunctor_of_totallyDisconnectedSpace`).
+(`AlgebraicTopology.isZero_singularHomologyFunctor_of_totallyDisconnectedSpace`). In
+particular, a constant map induces zero in positive degree
+(`TopCat.singularHomologyFunctor_map_const_eq_zero`).
 
 ## Sources
 
@@ -60,6 +62,16 @@ theorem singularHomologyFunctor_map_eq_zero_of_nullhomotopic {X Y : TopCat.{w}} 
     isZero_singularHomologyFunctor_of_totallyDisconnectedSpace C n R _ hn
   rw [hfs, Functor.map_comp, hpt.eq_of_src (((singularHomologyFunctor C n).obj R).map s) 0,
     comp_zero]
+
+/-- In positive degree, singular homology sends a constant map to zero. -/
+lemma singularHomologyFunctor_map_const_eq_zero {X Y : TopCat.{w}} (x₀ : X) {n : ℕ}
+    (hn : n ≠ 0) :
+    ((singularHomologyFunctor C n).obj R).map (TopCat.const x₀ : Y ⟶ X) = 0 := by
+  refine singularHomologyFunctor_map_eq_zero_of_nullhomotopic R ?_ hn
+  have h : (TopCat.const x₀ : Y ⟶ X).hom = ContinuousMap.const Y x₀ := by
+    ext
+    simp
+  exact h ▸ ContinuousMap.nullhomotopic_of_constant x₀
 
 end TopCat
 
