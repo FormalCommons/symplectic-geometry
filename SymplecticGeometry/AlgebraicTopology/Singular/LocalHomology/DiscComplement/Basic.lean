@@ -90,6 +90,12 @@ theorem discComplement_def : discComplement φ = (⋃ i, (φ i).openDisc)ᶜ :=
 theorem mem_discComplement_iff {x : M} : x ∈ discComplement φ ↔ ∀ i, x ∉ (φ i).openDisc := by
   simp [discComplement_def]
 
+/-- A point `φ i w` of the complement of the open discs lies outside the open unit disc of the
+chart: `1 ≤ ‖w‖`. -/
+theorem one_le_norm_of_mem_discComplement {i : ι} {w : CoordinateDisc.ball}
+    (hw : φ i w ∈ discComplement φ) : 1 ≤ ‖(w : ℂ)‖ :=
+  not_lt.1 fun h ↦ (mem_discComplement_iff φ).1 hw i ((φ i).apply_mem_openDisc_iff.2 h)
+
 theorem isClosed_discComplement : IsClosed (discComplement φ) :=
   (isOpen_iUnion fun i ↦ (φ i).isOpen_openDisc).isClosed_compl
 
@@ -254,8 +260,7 @@ theorem image_ball_inter_discComplement {δ : ι → ℝ} (hδ : ∀ i, 0 < δ i
   ext x
   constructor
   · rintro ⟨⟨w, hw, rfl⟩, hx⟩
-    exact ⟨w, ⟨not_lt.1 fun h ↦
-      (mem_discComplement_iff φ).1 hx i ((φ i).apply_mem_openDisc_iff.2 h), hw⟩, rfl⟩
+    exact ⟨w, ⟨one_le_norm_of_mem_discComplement φ hx, hw⟩, rfl⟩
   · rintro ⟨w, ⟨h1, hw⟩, rfl⟩
     refine ⟨mem_image_of_mem _ hw, (mem_discComplement_iff φ).2 fun j hj ↦ ?_⟩
     obtain rfl | hij := eq_or_ne j i
@@ -288,8 +293,7 @@ theorem isCollared_discComplementBoundary (hφ : Pairwise (Disjoint on fun i ↦
     · rintro ⟨q, rfl⟩
       exact hsub i q
     · rintro ⟨w, hw, hwx⟩
-      have h1 : 1 ≤ ‖(w : ℂ)‖ := not_lt.1 fun h ↦
-        (mem_discComplement_iff φ).1 x.property i (hwx ▸ (φ i).apply_mem_openDisc_iff.2 h)
+      have h1 : 1 ≤ ‖(w : ℂ)‖ := one_le_norm_of_mem_discComplement φ (hwx ▸ x.property)
       obtain ⟨q, hq⟩ : w ∈ range (annulusPoint (hδ i)) := range_annulusPoint (hδ i) ▸ ⟨h1, hw⟩
       exact ⟨q, Subtype.ext (by simp [c, hq, hwx])⟩
   have hc : IsOpenEmbedding c := by

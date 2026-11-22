@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Analysis.InnerProductSpace.HodgeStar.AlternatingForm
+public import SymplecticGeometry.Analysis.Calculus.LineDeriv.Transpose
 public import SymplecticGeometry.Geometry.Manifold.DeRham.Hodge.Chart
 import SymplecticGeometry.Analysis.Normed.Module.Alternating.Uncurry.Fin
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.PartialDiffeomorph
@@ -48,6 +49,10 @@ since forms of degree `m + 1` vanish.
 * `SymplecticGeometry.exists_mpullback_symm_hodgeLaplacian_eq`: the Hodge Laplacian in the chart
   is a second-order operator with principal part `-∑ᵢⱼ G⁻¹ᵢⱼ ∂_{b_i} ∂_{b_j}` and smooth
   lower-order coefficients.
+* `SymplecticGeometry.exists_mpullback_symm_hodgeLaplacian_transpose_eq`: its formal transpose for
+  an additive Haar measure on `E`, acting on maps into the dual of the forms, has the same
+  principal part (`exists_integral_apply_eq_integral_transpose_apply`, in
+  `Analysis/Calculus/LineDeriv/Transpose.lean`).
 
 ## References
 
@@ -59,7 +64,7 @@ public section
 
 noncomputable section
 
-open Module TauCeti ContinuousAlternatingMap
+open Module TauCeti ContinuousAlternatingMap MeasureTheory
 open Bundle
 open scoped Manifold ContDiff RealInnerProductSpace Topology
 
@@ -177,9 +182,7 @@ theorem exists_mpullback_symm_codifferential_eq
   intro β y hy
   have hT := ψ.open_target.mem_nhds hy
   set a : E → E [⋀^Fin (k + 1)]→L[ℝ] ℝ := mpullback 𝓘(ℝ, E) I ψ.symm β.val
-  have ha : DifferentiableAt ℝ a y :=
-    ((SmoothForm.contDiffOn_mpullback β ψ.open_target ψ.symm.contMDiffOn).contDiffAt
-      hT).differentiableAt (by simp)
+  have ha : DifferentiableAt ℝ a y := β.differentiableAt_mpullback_symm ψ hy
   have hS : DifferentiableAt ℝ (hodgeStarInChart o ψ hkl) y :=
     ((contDiffOn_hodgeStarInChart o ψ hkl).contDiffAt hT).differentiableAt (by simp)
   rw [mpullback_symm_codifferential o ψ hkl hlk β hy, extDeriv, fderiv_clm_apply hS ha,
@@ -297,8 +300,6 @@ private theorem exists_mpullback_symm_mextDeriv_codifferential_eq
   · exact ContDiffOn.sum fun i _ ↦ contDiffOn_const.clm_comp (hdC₀ i)
   set a : E → E [⋀^Fin (k + 1)]→L[ℝ] ℝ := mpullback 𝓘(ℝ, E) I ψ.symm α.val
   have hT := ψ.open_target.mem_nhds hy
-  have ha : ContDiffOn ℝ ∞ a ψ.target :=
-    SmoothForm.contDiffOn_mpullback α ψ.open_target ψ.symm.contMDiffOn
   -- `d^* α` read in the chart, near `y`.
   set F : E → E [⋀^Fin k]→L[ℝ] ℝ := fun z ↦
     -∑ j, ∑ l, g z j l • κ l (fderiv ℝ a z (b j)) + C₀ z (a z)
@@ -315,7 +316,7 @@ private theorem exists_mpullback_symm_mextDeriv_codifferential_eq
           (((α.contDiffOn_fderiv_mpullback_symm_apply ψ (b j)).contDiffAt
             (ψ.open_target.mem_nhds hy)).differentiableAt (by simp)).hasFDerivAt)
     · exact ((hC₀.contDiffAt hT).differentiableAt (by simp)).hasFDerivAt.clm_apply
-        ((ha.contDiffAt hT).differentiableAt (by simp)).hasFDerivAt
+        (α.differentiableAt_mpullback_symm ψ hy).hasFDerivAt
   rw [mpullback_symm_mextDerivₗ ψ _ hy, hev.extDeriv_eq, extDeriv_eq_sum_coordExtProd b, hF.fderiv]
   simp only [← coordExtProd_apply, ← hκ, map_add, map_neg, _root_.map_sum, map_smul,
     Finset.sum_add_distrib, Finset.sum_neg_distrib, Finset.smul_sum, _root_.add_apply,
@@ -374,8 +375,7 @@ theorem exists_mpullback_symm_hodgeLaplacian_eq
             C y (mpullback 𝓘(ℝ, E) I ψ.symm α.val y : E [⋀^Fin k]→L[ℝ] ℝ) := by
   -- The second derivatives of a form read in the chart are symmetric.
   have hsymm (α : SmoothForm I M ℝ k) {y : E} (hy : y ∈ ψ.target) :=
-    fderiv_fderiv_apply_comm ((SmoothForm.contDiffOn_mpullback α ψ.open_target
-      ψ.symm.contMDiffOn).contDiffAt (ψ.open_target.mem_nhds hy)) (n := ∞) (by simp)
+    fderiv_fderiv_apply_comm (α.contDiffAt_mpullback_symm ψ hy) (n := ∞) (by simp)
   rcases k with _ | k <;> rcases l with _ | l
   · -- On a zero-dimensional manifold both sides vanish.
     subst hkl
@@ -432,5 +432,56 @@ theorem exists_mpullback_symm_hodgeLaplacian_eq
     simp only [_root_.add_apply, Finset.sum_add_distrib]
     abel
 
+/-- **The formal transpose of the Hodge Laplacian in a chart.** For a chart `ψ`, a basis `b` of
+`E` and an additive Haar measure `μ` on `E`, write `Λ = E [⋀^Fin k]→L[ℝ] ℝ`. There are `B`,
+`C`, `B'` and `C'`, smooth on `ψ.target`, such that:
+
+* the Hodge Laplacian read in the chart is the operator
+  `P a = -∑ᵢⱼ G⁻¹ᵢⱼ ∂_{b_j} ∂_{b_i} a + ∑ᵢ Bᵢ ∂_{b_i} a + C a`, as in
+  `exists_mpullback_symm_hodgeLaplacian_eq`, `G(y)` being the Gram matrix of `b` for the metric
+  in the chart;
+* the operator `P' w = -∑ᵢⱼ G⁻¹ᵢⱼ ∂_{b_j} ∂_{b_i} w + ∑ᵢ (∂_{b_i} w) ∘ B'ᵢ + w ∘ C'` on maps
+  `w : E → Λ →L[ℝ] ℝ` is the formal transpose of `P` for `μ`: `∫ w (P a) dμ = ∫ (P' w) a dμ`
+  for every `w` that is `C²` on `ψ.target` and every `a` that is `C²` with compact support in
+  `ψ.target`. -/
+theorem exists_mpullback_symm_hodgeLaplacian_transpose_eq
+    [IsContMDiffRiemannianBundle I ∞ E (fun x : M ↦ TangentSpace I x)] [MeasurableSpace E]
+    [BorelSpace E] (μ : Measure E) [μ.IsAddHaarMeasure] (hkl : k + l = m)
+    (b : Basis (Fin m) ℝ E) :
+    ∃ (B : Fin m → E → (E [⋀^Fin k]→L[ℝ] ℝ) →L[ℝ] E [⋀^Fin k]→L[ℝ] ℝ)
+      (C : E → (E [⋀^Fin k]→L[ℝ] ℝ) →L[ℝ] E [⋀^Fin k]→L[ℝ] ℝ)
+      (B' : Fin m → E → (E [⋀^Fin k]→L[ℝ] ℝ) →L[ℝ] E [⋀^Fin k]→L[ℝ] ℝ)
+      (C' : E → (E [⋀^Fin k]→L[ℝ] ℝ) →L[ℝ] E [⋀^Fin k]→L[ℝ] ℝ),
+      (∀ i, ContDiffOn ℝ ∞ (B i) ψ.target) ∧ ContDiffOn ℝ ∞ C ψ.target ∧
+      (∀ i, ContDiffOn ℝ ∞ (B' i) ψ.target) ∧ ContDiffOn ℝ ∞ C' ψ.target ∧
+      (∀ (α : SmoothForm I M ℝ k), ∀ y ∈ ψ.target,
+        (mpullback 𝓘(ℝ, E) I ψ.symm (SmoothForm.hodgeLaplacian o hkl α).val y :
+            E [⋀^Fin k]→L[ℝ] ℝ) =
+          -∑ i, ∑ j, (Matrix.of fun i j ↦ gramInChart ψ y (b i) (b j))⁻¹ i j •
+              fderiv ℝ (F := E [⋀^Fin k]→L[ℝ] ℝ) (fun z ↦ fderiv ℝ
+                (mpullback 𝓘(ℝ, E) I ψ.symm α.val : E → E [⋀^Fin k]→L[ℝ] ℝ) z (b i)) y (b j) +
+            ∑ i, B i y (fderiv ℝ (mpullback 𝓘(ℝ, E) I ψ.symm α.val : E → E [⋀^Fin k]→L[ℝ] ℝ) y
+              (b i)) +
+            C y (mpullback 𝓘(ℝ, E) I ψ.symm α.val y : E [⋀^Fin k]→L[ℝ] ℝ)) ∧
+      ∀ (w : E → (E [⋀^Fin k]→L[ℝ] ℝ) →L[ℝ] ℝ) (a : E → E [⋀^Fin k]→L[ℝ] ℝ),
+        ContDiffOn ℝ 2 w ψ.target → ContDiff ℝ 2 a → HasCompactSupport a →
+        tsupport a ⊆ ψ.target →
+        ∫ y, w y (-∑ i, ∑ j, (Matrix.of fun i j ↦ gramInChart ψ y (b i) (b j))⁻¹ i j •
+              fderiv ℝ (fun z ↦ fderiv ℝ a z (b i)) y (b j) +
+            ∑ i, B i y (fderiv ℝ a y (b i)) + C y (a y)) ∂μ =
+          ∫ y, (-∑ i, ∑ j, (Matrix.of fun i j ↦ gramInChart ψ y (b i) (b j))⁻¹ i j •
+              fderiv ℝ (fun z ↦ fderiv ℝ w z (b i)) y (b j) +
+            ∑ i, (fderiv ℝ w y (b i)).comp (B' i y) + (w y).comp (C' y)) (a y) ∂μ := by
+  obtain ⟨B, C, hB, hC, hΔ⟩ := exists_mpullback_symm_hodgeLaplacian_eq o ψ hkl b
+  obtain ⟨B', C', hB', hC', h⟩ := exists_integral_apply_eq_integral_transpose_apply (μ := μ)
+    ψ.open_target (fun i ↦ b i)
+    (fun i j y ↦ -((Matrix.of fun i j ↦ gramInChart ψ y (b i) (b j))⁻¹ i j)) B C
+    (fun i j ↦ (contDiffOn_inv_gramInChart_apply ψ b i j).neg) hB hC
+  refine ⟨B, C, B', C', hB, hC, hB', hC', hΔ, fun w a hw ha hac haU ↦ ?_⟩
+  convert h w a hw ha hac haU using 4
+  · simp only [neg_smul, Finset.sum_neg_distrib]
+  · -- `neg_smul` does not fire on the dual of `Λ`, so the sign is moved out pointwise.
+    ext
+    simp [Finset.sum_neg_distrib]
 
 end SymplecticGeometry

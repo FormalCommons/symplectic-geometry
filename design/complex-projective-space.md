@@ -328,10 +328,12 @@ In namespace `OnePoint`, for the Riemann sphere read as a real surface:
 `equivProjectivization_apply_coe_eq_affineParam`,
 `hasFDerivAt_coe_diffeomorphSphere_coe` (the derivative of
 `diffeomorphSphere v ι` on `ℂ`, for any `v` and `ι`),
-`ofTopForm_fubiniStudyForm` (the orientation of `fubiniStudyForm` is the
-reindexed `complexManifoldOrientation ℂ (OnePoint ℂ)`), and
+`ofTopForm_fubiniStudyForm` (the orientation of `fubiniStudyForm` is
+`riemannSphereOrientation`), and
 `isOrientationPreservingAt_equivProjectivization` (for the complex
 orientations on both sides). In namespace `SymplecticGeometry`:
+`riemannSphereOrientation` (the canonical orientation of `OnePoint ℂ` as a
+complex manifold, reindexed to `Fin 2`),
 `projectiveLineOrientation` (the canonical orientation of `ℙ ℂ (Fin 2 → ℂ)`
 as a complex manifold, reindexed to `Fin 2`), `northPole`,
 `equatorIsometry` and their lemmas, and

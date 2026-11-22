@@ -7,6 +7,7 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Poincare
 public import TauCeti.Geometry.Manifold.DeRham.Basic
+import SymplecticGeometry.Geometry.Manifold.ContMDiff.Opens
 import SymplecticGeometry.Geometry.Manifold.DeRham.Map
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Opens
 
@@ -180,17 +181,11 @@ private theorem contMDiff_of_forall_sub_eq {f : N × M → ℝ} {U : M → Opens
     exact hSc.connectedComponent_subset hrS (connectedComponent_eq hrx ▸ mem_connectedComponent)
   -- Near `p`, `f` is `P p.2` plus a smooth function of the parameter.
   intro p
-  let W : Opens (N × M) := ⟨univ ×ˢ U p.2, isOpen_univ.prod (U p.2).isOpen⟩
-  have hq : ContMDiff (K.prod I) (K.prod I) ∞
-      fun w : W ↦ ((w : N × M).1, (⟨(w : N × M).2, w.property.2⟩ : U p.2)) :=
-    (contMDiff_fst.comp contMDiff_subtypeVal).prodMk
-      ((ContMDiff.subtypeVal_comp_iff (U p.2) _).1 (contMDiff_snd.comp contMDiff_subtypeVal))
-  have hW : ContMDiff (K.prod I) 𝓘(ℝ) ∞ fun w : W ↦ f w := by
-    refine (((hSall p.2).comp (contMDiff_fst.comp contMDiff_subtypeVal)).add
-      (((hP p.2).comp hq).sub ((hPs p.2 ⟨p.2, hxU p.2⟩).comp
-        (contMDiff_fst.comp contMDiff_subtypeVal)))).congr fun w ↦ ?_
-    exact hslice p.2 (w : N × M).2 w.property.2 (w : N × M).1
-  exact contMDiffAt_subtype_iff.1 (hW (⟨p, mem_univ _, hxU p.2⟩ : W))
+  have hW : ContMDiffOn (K.prod I) 𝓘(ℝ) ∞ f (univ ×ˢ U p.2) :=
+    ContMDiff.contMDiffOn_prod_opens_of_eq (((hSall p.2).comp contMDiff_fst).add
+      ((hP p.2).sub ((hPs p.2 ⟨p.2, hxU p.2⟩).comp contMDiff_fst)))
+      fun t y hy ↦ hslice p.2 y hy t
+  exact hW.contMDiffAt ((isOpen_univ.prod (U p.2).isOpen).mem_nhds ⟨mem_univ _, hxU p.2⟩)
 
 /-- **Smooth primitives of a smooth family of exact one-forms.** On any manifold `M`, a smooth
 family `α_t`, `t ∈ N`, of exact one-forms has a jointly smooth family of primitives: there is a
