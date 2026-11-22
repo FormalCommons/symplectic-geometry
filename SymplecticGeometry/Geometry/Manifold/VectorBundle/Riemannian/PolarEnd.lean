@@ -62,6 +62,8 @@ structure, the form is the flat map of `ω_{g,J}`.
 * `Bundle.ContMDiffRiemannianMetric.isOpen_polarEndDomain` and
   `Bundle.ContMDiffRiemannianMetric.contMDiffOn_polarEndAt`: in finite rank, `polarEndDomain g` is
   open, and for a metric of class `Cⁿ` the map `(x, B) ↦ (x, J_{g,ω_{g,B}})` is `Cⁿ` on it.
+* `Bundle.ContMDiffRiemannianMetric.contMDiffOn_polarFormulaAt_compatibleBilinAt`: the same for
+  `(x, B) ↦ (x, J_{g',ω_{g,B}})`, with a second metric `g'`.
 
 ## Implementation notes
 
@@ -419,6 +421,17 @@ theorem polarEndAt_def (x : M) (B : V x →L[ℝ] V x) :
     g.polarEndAt x B = g.polarFormulaAt x (g.compatibleBilinAt x B) :=
   (rfl)
 
+/-- For metrics `g` and `g'` of class `Cⁿ`, the map `(x, B) ↦ (x, J_{g',ω_{g,B}})` of the
+endomorphism bundle to itself, the polar formula of `g'` at `compatibleBilinAt g x B`, is `Cⁿ` on
+`polarEndDomain g`. -/
+theorem contMDiffOn_polarFormulaAt_compatibleBilinAt (g' : ContMDiffRiemannianMetric I n F V) :
+    ContMDiffOn (I.prod 𝓘(ℝ, F →L[ℝ] F)) (I.prod 𝓘(ℝ, F →L[ℝ] F)) n
+      (fun q : TotalSpace (F →L[ℝ] F) (fun x ↦ V x →L[ℝ] V x) ↦
+        TotalSpace.mk' (F →L[ℝ] F) (E := fun x ↦ V x →L[ℝ] V x) q.proj
+          (g'.polarFormulaAt q.proj (g.compatibleBilinAt q.proj q.snd)))
+      g.polarEndDomain :=
+  g'.contMDiffOn_polarFormulaAt.comp g.contMDiff_compatibleBilinAt.contMDiffOn fun _ hq ↦ hq
+
 /-- For a metric of class `Cⁿ`, the map `(x, B) ↦ (x, polarEndAt g x B)` of the endomorphism
 bundle to itself is `Cⁿ` on `polarEndDomain g`. -/
 theorem contMDiffOn_polarEndAt :
@@ -427,9 +440,7 @@ theorem contMDiffOn_polarEndAt :
         TotalSpace.mk' (F →L[ℝ] F) (E := fun x ↦ V x →L[ℝ] V x) q.proj
           (g.polarEndAt q.proj q.snd))
       g.polarEndDomain := by
-  simp only [polarEndAt_def]
-  exact g.contMDiffOn_polarFormulaAt.comp g.contMDiff_compatibleBilinAt.contMDiffOn
-    fun _ hq ↦ hq
+  simpa only [polarEndAt_def] using g.contMDiffOn_polarFormulaAt_compatibleBilinAt g
 
 end ContMDiffRiemannianMetric
 
