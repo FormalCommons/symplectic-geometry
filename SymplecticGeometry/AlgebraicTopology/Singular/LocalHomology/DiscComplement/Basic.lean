@@ -102,15 +102,19 @@ theorem isClosed_discComplement : IsClosed (discComplement φ) :=
 instance [CompactSpace M] : CompactSpace (discComplement φ) :=
   isCompact_iff_compactSpace.1 (isClosed_discComplement φ).isCompact
 
+/-- If the closed discs are pairwise disjoint, a point of the `i`-th open disc lies in the
+`j`-th closed disc only for `j = i`. -/
+theorem eq_of_mem_openDisc_of_mem_disc (hφ : Pairwise (Disjoint on fun i ↦ (φ i).disc))
+    {i j : ι} {x : M} (hi : x ∈ (φ i).openDisc) (hj : x ∈ (φ j).disc) : i = j := by
+  by_contra h
+  exact (hφ h).notMem_of_mem_left ((φ i).openDisc_subset_disc hi) hj
+
 /-- If the closed discs are pairwise disjoint, the boundary circle of each disc lies in the
 complement of the open discs. -/
 theorem boundaryCircle_mem_discComplement (hφ : Pairwise (Disjoint on fun i ↦ (φ i).disc))
     (i : ι) (ζ : Circle) : (φ i).boundaryCircle ζ ∈ discComplement φ :=
-  (mem_discComplement_iff φ).2 fun j hj ↦ by
-    by_cases hij : j = i
-    · exact (φ i).boundaryCircle_notMem_openDisc ζ (hij ▸ hj)
-    · exact (hφ hij).notMem_of_mem_left ((φ j).openDisc_subset_disc hj)
-        ((φ i).boundaryCircle_mem_disc ζ)
+  (mem_discComplement_iff φ).2 fun _ hj ↦ (φ i).boundaryCircle_notMem_openDisc ζ
+    (eq_of_mem_openDisc_of_mem_disc φ hφ hj ((φ i).boundaryCircle_mem_disc ζ) ▸ hj)
 
 section Boundary
 

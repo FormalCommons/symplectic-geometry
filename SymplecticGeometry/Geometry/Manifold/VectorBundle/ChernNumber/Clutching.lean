@@ -229,11 +229,7 @@ private theorem outSection_boundaryCircle (i : ι) (ζ : Circle) :
         (Φout ⟨(φ i).boundaryCircle ζ, boundaryCircle_mem_discComplement φ hφ i ζ⟩) :
           E ((φ i).boundaryCircle ζ) →ₗ[ℂ] E ((φ i).boundaryCircle ζ))) =
       clutchingDet hφ hΦ hΦout i ζ := by
-    refine Eq.trans ?_ (LinearMap.det_conj _
-      (Φ i ⟨(φ i).boundaryCircle ζ, (φ i).boundaryCircle_mem_disc ζ⟩).toLinearEquiv)
-    congr 1
-    ext v
-    simp [clutchingTransition_def]
+    rw [ContinuousLinearEquiv.det_symm_trans, clutchingDet_apply, clutchingTransition_def]
   rw [outSection, discSection]
   refine h1.symm.trans (h3.trans ?_)
   rw [hc]
@@ -248,14 +244,6 @@ private def clutchingSection (x : M) : (detCore ℂ G E).core.Fiber x :=
       discSection hΦ h.choose ⟨x, (φ _).openDisc_subset_disc h.choose_spec⟩
   else outSection hΦout ⟨x, (mem_discComplement_iff φ).2 fun i hi ↦ h ⟨i, hi⟩⟩
 
-omit [FiniteDimensional ℂ G] [TopologicalSpace (TotalSpace G E)] [FiberBundle G E]
-  [VectorBundle ℂ G E] in
-include hφ in
-private theorem eq_of_mem_openDisc_of_mem_disc {i j : ι} {x : M} (hi : x ∈ (φ i).openDisc)
-    (hj : x ∈ (φ j).disc) : i = j := by
-  by_contra h
-  exact (hφ h).notMem_of_mem_left ((φ i).openDisc_subset_disc hi) hj
-
 private theorem clutchingSection_of_mem_discComplement {x : M} (hx : x ∈ discComplement φ) :
     clutchingSection hφ hΦ hΦout x = outSection hΦout ⟨x, hx⟩ := by
   rw [clutchingSection, dite_eq_right fun ⟨i, hi⟩ ↦ (mem_discComplement_iff φ).1 hx i hi]
@@ -267,7 +255,7 @@ private theorem clutchingSection_of_mem_openDisc {i : ι} {x : M} (hx : x ∈ (�
       discSection hΦ j ⟨x, (φ j).openDisc_subset_disc hj⟩ = radialCoeff hφ hΦ hΦout i x •
       discSection hΦ i ⟨x, (φ i).openDisc_subset_disc hx⟩ := by
     intro j hj
-    obtain rfl := eq_of_mem_openDisc_of_mem_disc hφ hj ((φ i).openDisc_subset_disc hx)
+    obtain rfl := eq_of_mem_openDisc_of_mem_disc φ hφ hj ((φ i).openDisc_subset_disc hx)
     rfl
   rw [clutchingSection, dite_eq_left ⟨i, hx⟩]
   exact key _ (Exists.choose_spec (⟨i, hx⟩ : ∃ j, x ∈ (φ j).openDisc))
@@ -330,7 +318,7 @@ private theorem clutchingSection_eq_zero_iff {x : M} :
   · intro hz
     exact ⟨i, congrArg (φ i) (Subtype.ext (CoordinateDisc.coe_zero.trans hz.symm))⟩
   · rintro ⟨j, hj⟩
-    obtain rfl := eq_of_mem_openDisc_of_mem_disc hφ (h0 j)
+    obtain rfl := eq_of_mem_openDisc_of_mem_disc φ hφ (h0 j)
       (hj ▸ (φ i).openDisc_subset_disc hi)
     rw [← (φ j).injective hj, CoordinateDisc.coe_zero]
 
