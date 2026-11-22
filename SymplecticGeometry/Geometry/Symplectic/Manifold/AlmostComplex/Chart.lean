@@ -7,7 +7,7 @@ module
 
 public import Mathlib.Geometry.Manifold.LocalDiffeomorph
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Chart
-import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 
 /-!
@@ -79,11 +79,9 @@ theorem mfderiv_symm_apply_chartPushforward_apply (ψ : PartialDiffeomorph I �
     {p : G} (hp : p ∈ ψ.target) (w : G) :
     mfderiv 𝓘(ℝ, G) I ψ.symm p (J.chartPushforward ψ.toOpenPartialHomeomorph p w) =
       J (ψ.symm p) (mfderiv 𝓘(ℝ, G) I ψ.symm p w) := by
-  have h := ψ.mfderiv_symm_apply_mfderiv_apply (by simp) (ψ.map_target hp)
-    (J (ψ.symm p) (mfderiv 𝓘(ℝ, G) I ψ.symm p w))
-  rw [ψ.right_inv hp] at h
-  rw [chartPushforward_apply, ψ.coe_toOpenPartialHomeomorph_symm, ψ.toFun'_toOpenPartialHomeomorph]
-  exact h
+  rw [chartPushforward_apply, ψ.coe_toOpenPartialHomeomorph_symm, ψ.toFun'_toOpenPartialHomeomorph,
+    ← ψ.coe_mfderivSymmEquiv (by simp) hp, ← ψ.coe_mfderivSymmEquiv_symm (by simp) hp]
+  exact (ψ.mfderivSymmEquiv _ hp).apply_symm_apply _
 
 /-- The pushforward of `J` along a smooth chart `ψ` into a normed space squares to `-1` at every
 point of the target of `ψ`. -/

@@ -118,7 +118,7 @@ theorem toEndomorphism_injective : Function.Injective
 
 /-- A complex structure is applied as `J x v`. -/
 instance : CoeFun (ContMDiffComplexStructure I n F V) fun _ ↦ ∀ x, V x →L[ℝ] V x :=
-  ⟨fun J x ↦ J.toEndomorphism x⟩
+  ⟨fun J ↦ J.toEndomorphism⟩
 
 /-- Two complex structures agree when they agree on every vector of every fibre. -/
 @[ext]
@@ -166,7 +166,7 @@ theorem toContinuousComplexStructure_almostComplexStructureAt
       J.almostComplexStructureAt x := (rfl)
 
 theorem almostComplexStructureAt_toLinearMap (J : ContMDiffComplexStructure I n F V) (x : M) :
-    (J.almostComplexStructureAt x).toLinearMap = (J.toEndomorphism x).toLinearMap :=
+    (J.almostComplexStructureAt x).toLinearMap = (J x).toLinearMap :=
   LinearMap.ext fun v ↦ J.toContinuousComplexStructure.almostComplexStructureAt_apply x v
 
 @[simp]
