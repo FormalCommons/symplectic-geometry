@@ -46,7 +46,7 @@ the codifferential.
 * `SymplecticGeometry.contDiffOn_gramInChart`: the metric in the chart is smooth on `ψ.target`,
   and so are the entries of the inverse of its Gram matrix in a basis
   (`SymplecticGeometry.contDiffOn_inv_gramInChart_apply`), and so is the Riemannian Jacobian of
-  `ψ.symm` (`SymplecticGeometry.contDiffOn_riemannianJacobian_symm`).
+  `ψ.symm` (`PartialDiffeomorph.contDiffOn_riemannianJacobian_symm`).
 * `SymplecticGeometry.gramInChart_apply_self_pos`: on `ψ.target`, the metric in the chart is
   positive on nonzero vectors.
 * `SymplecticGeometry.gramInChart_trans_apply`: how the metric in the chart changes when the chart
@@ -79,8 +79,8 @@ the codifferential.
 * `SymplecticGeometry.alternatingFormInner_eq_formInnerInChart`: the pointwise inner product of
   two forms, read in the chart, is `formInnerInChart`; it is positive definite on `ψ.target`
   (`formInnerInChart_self_pos`) and smooth there (`contDiffOn_formInnerInChart`), and the Gram
-  matrix of a basis is invertible (`det_formInnerInChart_ne_zero`), which recovers a form from
-  its inner products (`eq_sum_inv_mulVec_of_eq_mul_formInnerInChart`).
+  matrix of a basis is positive definite (`posDef_formInnerInChart`), so that a form is recovered
+  from its inner products with the basis (`eq_sum_inv_mulVec_formInnerInChart`).
 
 The proof of `hodgeStarInChart_apply_eq_sum` follows that of Tau Ceti's private lemma
 `TauCeti.hodgeStar_symmL_apply` (`Geometry/Manifold/Riemannian/HodgeStar.lean`), with the
@@ -208,7 +208,7 @@ theorem contDiffOn_inv_gramInChart_apply
 
 /-- The Riemannian Jacobian of `ψ.symm` for a basis `b` of `E`, the square root of the determinant
 of the Gram matrix of `b` for the metric in the chart, is smooth on the target of the chart. -/
-theorem contDiffOn_riemannianJacobian_symm
+theorem _root_.PartialDiffeomorph.contDiffOn_riemannianJacobian_symm
     [IsContMDiffRiemannianBundle I ∞ E (fun x : M ↦ TangentSpace I x)] {ι : Type*} [Fintype ι]
     [DecidableEq ι] (b : Basis ι ℝ E) :
     ContDiffOn ℝ ∞ (riemannianJacobian (I := I) b ψ.symm) ψ.target := by
@@ -769,42 +769,35 @@ theorem contDiffOn_formInnerInChart [T2Space M] [IsManifold I ∞ M]
   exact ContDiffOn.sum fun p _ ↦ ContDiffOn.sum fun q _ ↦ ((hc p hf).mul (hc q hg)).mul
     ((contDiffOn_formInnerInChart_apply ψ (e p) (e q)).mono hs)
 
-
 /-- On the target of the chart, the Gram matrix of a basis of the forms on `E` for the inner
-product in the chart is invertible. -/
-theorem det_formInnerInChart_ne_zero {κ : Type*} [Fintype κ] [DecidableEq κ]
+product in the chart is positive definite. -/
+theorem posDef_formInnerInChart {κ : Type*} [Finite κ]
     (e : Module.Basis κ ℝ (E [⋀^Fin k]→L[ℝ] ℝ)) {y : E} (hy : y ∈ ψ.target) :
-    (Matrix.of fun p q ↦ formInnerInChart ψ y (e p) (e q)).det ≠ 0 := by
-  intro h
-  obtain ⟨v, hv, hGv⟩ := Matrix.exists_mulVec_eq_zero_iff.2 h
-  have hβ : e.equivFun.symm v ≠ 0 := fun h0 ↦ hv (e.equivFun.symm.injective (h0.trans
-    (map_zero _).symm))
-  refine (formInnerInChart_self_pos ψ hy hβ).ne' ?_
-  rw [formInnerInChart_eq_sum_repr ψ e]
-  simp only [Module.Basis.equivFun_symm_apply, Module.Basis.repr_sum_self]
-  have h0 (p : κ) : ∑ q, formInnerInChart ψ y (e p) (e q) * v q = 0 := by
-    simpa [Matrix.mulVec, dotProduct] using congrFun hGv p
-  calc ∑ p, ∑ q, v p * v q * formInnerInChart ψ y (e p) (e q)
-      = ∑ p, v p * ∑ q, formInnerInChart ψ y (e p) (e q) * v q := by
-        simp only [Finset.mul_sum]
-        exact Finset.sum_congr rfl fun p _ ↦ Finset.sum_congr rfl fun q _ ↦ by ring
-    _ = 0 := by simp [h0]
+    (Matrix.of fun p q ↦ formInnerInChart ψ y (e p) (e q)).PosDef := by
+  classical
+  have := Fintype.ofFinite κ
+  have h := (LinearMap.BilinForm.posDef_toQuadraticMap_iff_matrix e
+    (formInnerInChart ψ y).toLinearMap₁₂
+    (LinearMap.BilinForm.isSymm_def.2 fun β γ ↦ formInnerInChart_comm ψ y β γ)).1
+    fun β hβ ↦ formInnerInChart_self_pos ψ hy hβ
+  convert h using 1
+  ext p q
+  rw [LinearMap.BilinForm.toMatrix_apply, Matrix.of_apply,
+    ContinuousLinearMap.toLinearMap₁₂_apply_apply_apply]
 
-/-- On the target of the chart, a form `β` is recovered from the values `z (e q)` of the
-functional `z = D • formInnerInChart ψ y β`, for `D ≠ 0` and a basis `e` of the forms on `E`,
-through the inverse of the Gram matrix of `e`. -/
-theorem eq_sum_inv_mulVec_of_eq_mul_formInnerInChart {κ : Type*} [Fintype κ] [DecidableEq κ]
+/-- On the target of the chart, a form `β` is recovered from its inner products in the chart with
+the vectors of a basis `e` of the forms on `E`, through the inverse of the Gram matrix of `e`. -/
+theorem eq_sum_inv_mulVec_formInnerInChart {κ : Type*} [Fintype κ] [DecidableEq κ]
     (e : Module.Basis κ ℝ (E [⋀^Fin k]→L[ℝ] ℝ)) {y : E} (hy : y ∈ ψ.target)
-    {β : E [⋀^Fin k]→L[ℝ] ℝ} {D : ℝ} (hD : D ≠ 0) {z : κ → ℝ}
-    (hz : ∀ q, z q = D * formInnerInChart ψ y β (e q)) :
-    β = ∑ p, ((Matrix.of fun p q ↦ formInnerInChart ψ y (e p) (e q))⁻¹ *ᵥ fun q ↦ z q / D) p •
-      e p := by
+    (β : E [⋀^Fin k]→L[ℝ] ℝ) :
+    β = ∑ p, ((Matrix.of fun p q ↦ formInnerInChart ψ y (e p) (e q))⁻¹ *ᵥ
+      fun q ↦ formInnerInChart ψ y β (e q)) p • e p := by
   set G := Matrix.of fun p q ↦ formInnerInChart ψ y (e p) (e q)
-  have hGz : (fun q ↦ z q / D) = G *ᵥ e.repr β := by
+  have hGz : (fun q ↦ formInnerInChart ψ y β (e q)) = G *ᵥ e.repr β := by
     ext q
-    rw [hz q, mul_div_cancel_left₀ _ hD, formInnerInChart_comm, formInnerInChart_eq_sum_repr ψ e]
+    rw [formInnerInChart_comm, formInnerInChart_eq_sum_repr ψ e]
     simp [G, Matrix.mulVec, dotProduct, mul_comm, Finsupp.single_apply]
-  have hG : IsUnit G.det := isUnit_iff_ne_zero.2 (det_formInnerInChart_ne_zero ψ e hy)
+  have hG : IsUnit G.det := isUnit_iff_ne_zero.2 (posDef_formInnerInChart ψ e hy).det_pos.ne'
   rw [hGz, Matrix.mulVec_mulVec, Matrix.nonsing_inv_mul G hG, Matrix.one_mulVec, e.sum_repr]
 
 end FormInner

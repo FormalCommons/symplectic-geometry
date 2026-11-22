@@ -11,7 +11,6 @@ import SymplecticGeometry.Analysis.Calculus.ContDiff.Matrix
 import SymplecticGeometry.Analysis.Distribution.SecondOrderSystem
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.ChartCover
 import SymplecticGeometry.Geometry.Manifold.Riemannian.PartialDiffeomorph
-import Mathlib.MeasureTheory.Function.Holder
 import Mathlib.Geometry.Manifold.PartitionOfUnity
 import TauCeti.MeasureTheory.Function.LocallyIntegrable
 
@@ -28,14 +27,14 @@ The argument is local. In a chart `ψ` with a cutoff `χ` supported in its sourc
 product of `u` with a smooth form `β` supported where `χ = 1` is the integral over `E` of the
 inner product in the chart (`SymplecticGeometry.formInnerInChart`) of the localizations of `u`
 and `β`, weighted by the density of the Riemannian volume read in the chart
-(`SymplecticGeometry.L2Form.inner_ofSmooth_eq_integral_localize`). For smooth `u` this is the
-change of variables `PartialDiffeomorph.setIntegral_riemannianVolume_eq`; it extends to every `u`
-by density, since both sides are continuous in `u`. Taking for `β` the Hodge Laplacian of the
-extension by zero of a flat form `a`, which the chart reads as the operator `P a` of
-`SymplecticGeometry.exists_mpullback_symm_hodgeLaplacian_eq`, the weak equation becomes
-`∫ w (P a) = ∫ h a`, with `w` the localization of `u` multiplied by the inner product in the chart
-and the density, and `h` the same for `f`. The principal part of `P` is `-∑ i j, G⁻¹ i j ∂ᵢ ∂ⱼ`
-with `G` the Gram matrix of the metric in the chart, so
+(`SymplecticGeometry.L2Form.inner_ofSmooth_eq_integral_localize`, in
+`SymplecticGeometry.Geometry.Manifold.DeRham.Hodge.L2`). Taking for `β` the Hodge Laplacian of
+the extension by zero of a flat form `a`, which the chart reads as the operator `P a` of
+`SymplecticGeometry.exists_mpullback_symm_hodgeLaplacian_eq`
+(`SymplecticGeometry.L2Form.inner_ofSmooth_hodgeLaplacian_extendByZeroAlong_eq_integral`), the
+weak equation becomes `∫ w (P a) = ∫ h a`, with `w` the localization of `u` multiplied by the
+inner product in the chart and the density, and `h` the same for `f`. The principal part of `P`
+is `-∑ i j, G⁻¹ i j ∂ᵢ ∂ⱼ` with `G` the Gram matrix of the metric in the chart, so
 `SymplecticGeometry.exists_contDiffOn_ae_eq_of_forall_integral_apply_eq` makes `w` smooth, and
 inverting the Gram matrix of the inner product of forms in the chart makes the localization of `u`
 smooth (`SymplecticGeometry.L2Form.IsWeakSolution.exists_contDiffOn_ae_eq_localize`).
@@ -56,18 +55,13 @@ because the Hodge Laplacian is formally self-adjoint
 * `SymplecticGeometry.L2Form.IsWeakSolution o hkl u f`: `u` is a weak solution of `Δu = f`, with
   `isWeakSolution_iff`, its linearity (`IsWeakSolution.add`, `IsWeakSolution.smul`, …) and
   `isWeakSolution_ofSmooth_iff`: a smooth form is a weak solution exactly when it is a solution.
-* `SymplecticGeometry.l2Inner_eq_integral_formInnerInChart` and
-  `SymplecticGeometry.L2Form.inner_ofSmooth_eq_integral_localize`: the `L²` inner product in a
-  chart.
+* `SymplecticGeometry.L2Form.inner_ofSmooth_hodgeLaplacian_extendByZeroAlong_eq_integral`: the
+  inner product of an `L²` form with the Hodge Laplacian of a test form supported in a chart, read
+  in the chart.
 * `SymplecticGeometry.L2Form.IsWeakSolution.exists_contDiffOn_ae_eq_localize`: regularity in a
   chart.
 * `SymplecticGeometry.L2Form.exists_eq_ofSmooth_of_isWeakSolution`: weak solutions of `Δu = f`
   with smooth `f` are smooth.
-
-## Implementation notes
-
-The pairing of the localization of `u` with a fixed function is written in the coordinates of a
-basis of the forms on `E`, so that only real-valued `L²` functions enter the continuity argument.
 
 ## References
 
@@ -96,140 +90,6 @@ local instance [IsManifold I ∞ M] [RiemannianBundle (fun x : M ↦ TangentSpac
     IsContinuousRiemannianBundle E (fun x : M ↦ TangentSpace I x) :=
   IsContMDiffRiemannianBundle.toIsContinuousRiemannianBundle
     (IB := I) (n := ∞) (F := E) (V := fun x : M ↦ TangentSpace I x)
-
-/-! ### The `L²` inner product read in a chart -/
-
-section Pairing
-
-variable [IsManifold I ∞ M] [RiemannianBundle (fun x : M ↦ TangentSpace I x)]
-  [IsContMDiffRiemannianBundle I ∞ E (fun x : M ↦ TangentSpace I x)]
-  (ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞)
-  [MeasureSpace E] [BorelSpace E] [(volume : Measure E).IsAddHaarMeasure]
-
-/-- **The `L²` inner product in a chart.** Let `θ` be a cutoff supported in the source of the
-chart `ψ` and `β` a smooth form with `θ = 1` on the support of `β`. Then the `L²` inner product of
-a smooth form `α` with `β` is the integral over `E`, for the Haar measure `volume`, of the inner
-product in the chart of the localizations of `α` and `β`, weighted by the density
-`s * riemannianJacobian b ψ.symm` of the Riemannian volume read in the chart, with `s` the
-ratio of the Haar measures of `b` and `volume`. -/
-theorem l2Inner_eq_integral_formInnerInChart (o : Manifold.Orientation I M (Fin m)) [CompactSpace M]
-    {ι : Type*} [Fintype ι] [DecidableEq ι] (b : Module.Basis ι ℝ E) {θ : M → ℝ}
-    (hθ : tsupport θ ⊆ ψ.source) {α β : SmoothForm I M ℝ k}
-    (hβ : ∀ x ∈ tsupport (α := E [⋀^Fin k]→L[ℝ] ℝ) β.val, θ x = 1) :
-    SmoothForm.l2Inner o α β = ∫ y, (b.addHaar.addHaarScalarFactor volume : ℝ) *
-      riemannianJacobian (I := I) b ψ.symm y *
-        formInnerInChart ψ y (α.localize ψ θ y) (β.localize ψ θ y) := by
-  borelize M
-  have hn : (∞ : ℕ∞ω) ≠ 0 := by simp
-  set s : ℝ := (b.addHaar.addHaarScalarFactor volume : ℝ)
-  set g : M → ℝ := fun x ↦ alternatingFormInner (TangentSpace I x) k (α.val x) (β.val x)
-  have hβ0 (x : M) (hx : θ x ≠ 1) : β.val x = 0 :=
-    image_eq_zero_of_notMem_tsupport fun h ↦ hx (hβ x h)
-  have hgs (x : M) (hx : x ∉ ψ.source) : g x = 0 := by
-    have : θ x ≠ 1 := fun h ↦ hx (hθ (subset_tsupport _ (by simp [Function.mem_support, h])))
-    simp [g, hβ0 x this]
-  have hθg (x : M) : θ x * θ x * g x = g x := by
-    by_cases h : θ x = 1
-    · simp [h]
-    · simp [g, hβ0 x h]
-  -- In the chart, the integrand is `g` read through `ψ.symm`.
-  have hpt (y : E) (hy : y ∈ ψ.target) :
-      formInnerInChart ψ y (α.localize ψ θ y) (β.localize ψ θ y) = g (ψ.symm y) := by
-    have e (γ : SmoothForm I M ℝ k) : γ.localize ψ θ y =
-        θ (ψ.symm y) • (mpullback 𝓘(ℝ, E) I ψ.symm γ.val y : E [⋀^Fin k]→L[ℝ] ℝ) :=
-      SmoothForm.localize_of_mem _ _ _ hy
-    have hsm (c : ℝ) (a a' : E [⋀^Fin k]→L[ℝ] ℝ) :
-        formInnerInChart ψ y (c • a) (c • a') = c * c * formInnerInChart ψ y a a' := by
-      simp [mul_assoc]
-    rw [e, e]
-    refine (hsm _ _ _).trans ?_
-    rw [← alternatingFormInner_eq_formInnerInChart ψ _ _ hy]
-    -- Restate the goal through `g`, so that both sides read `ψ.symm y` through the same coercion.
-    change θ (ψ.symm y) * θ (ψ.symm y) * g (ψ.symm y) = g (ψ.symm y)
-    exact hθg _
-  calc SmoothForm.l2Inner o α β = ∫ x, g x ∂riemannianVolume I M :=
-        SmoothForm.l2Inner_eq_integral o α β
-    _ = ∫ x in ψ.source, g x ∂riemannianVolume I M :=
-        (setIntegral_eq_integral_of_forall_compl_eq_zero hgs).symm
-    _ = ∫ y in ψ.target, riemannianJacobian (I := I) b ψ.symm y • g (ψ.symm y) ∂b.addHaar := by
-        simpa using ψ.symm.setIntegral_riemannianVolume_eq hn b g
-    _ = ∫ y in ψ.target, s * riemannianJacobian (I := I) b ψ.symm y *
-          formInnerInChart ψ y (α.localize ψ θ y) (β.localize ψ θ y) := by
-        rw [Measure.isAddLeftInvariant_eq_smul b.addHaar volume, Measure.restrict_smul,
-          integral_smul_nnreal_measure, NNReal.smul_def, smul_eq_mul, ← integral_const_mul]
-        refine setIntegral_congr_fun ψ.open_target.measurableSet fun y hy ↦ ?_
-        simp only [hpt y hy, smul_eq_mul, s]
-        ring
-    _ = _ := setIntegral_eq_integral_of_forall_compl_eq_zero fun y hy ↦ by
-        simp [SmoothForm.localize_apply_of_notMem _ _ _ hy]
-
-/-- **The `L²` inner product in a chart, for `L²` forms.** Let `χ` be a smooth cutoff supported in
-the source of the chart `ψ` and `β` a smooth form with `χ = 1` on the support of `β`. Then the
-`L²` inner product of `u` with `β` is the integral over `E` of the inner product in the chart of
-the localizations `L2Form.localize ψ χ hχ u` and `β.localize ψ χ`, weighted by the density of the
-Riemannian volume read in the chart, as in `l2Inner_eq_integral_formInnerInChart`. -/
-theorem L2Form.inner_ofSmooth_eq_integral_localize [T2Space M] [CompactSpace M]
-    {o : Manifold.Orientation I M (Fin m)} {ι : Type*} [Fintype ι] [DecidableEq ι]
-    (b : Module.Basis ι ℝ E) (χ : C^∞⟮I, M; ℝ⟯) (hχ : tsupport χ ⊆ ψ.source)
-    {β : SmoothForm I M ℝ k} (hβ : ∀ x ∈ tsupport (α := E [⋀^Fin k]→L[ℝ] ℝ) β.val, χ x = 1)
-    (u : L2Form o k) :
-    ⟪u, L2Form.ofSmooth β⟫_ℝ = ∫ y, (b.addHaar.addHaarScalarFactor volume : ℝ) *
-      riemannianJacobian (I := I) b ψ.symm y *
-        formInnerInChart ψ y (L2Form.localize ψ χ hχ u y) (β.localize ψ χ y) := by
-  set D : E → ℝ := fun y ↦ (b.addHaar.addHaarScalarFactor volume : ℝ) *
-    riemannianJacobian (I := I) b ψ.symm y
-  have hK : IsCompact (tsupport χ) := (isClosed_tsupport _).isCompact
-  have hβl : ContDiff ℝ ∞ (β.localize ψ χ) := β.contDiff_localize ψ χ.contMDiff hK hχ
-  have hβc : HasCompactSupport (β.localize ψ χ) := β.hasCompactSupport_localize ψ hK hχ
-  have hβt : tsupport (β.localize ψ χ) ⊆ ψ.target :=
-    (β.tsupport_localize_subset ψ hK hχ).trans ((ψ.mapsTo.mono_left hχ).image_subset)
-  -- In a basis `e` of the forms on `E`, the integrand is a sum of products of a coordinate of the
-  -- localization of `u` with a continuous function `G p` with compact support.
-  let e := Module.finBasis ℝ (E [⋀^Fin k]→L[ℝ] ℝ)
-  let L (p : Fin (Module.finrank ℝ (E [⋀^Fin k]→L[ℝ] ℝ))) :
-      (E [⋀^Fin k]→L[ℝ] ℝ) →L[ℝ] ℝ := LinearMap.toContinuousLinearMap (e.coord p)
-  let G (p : Fin (Module.finrank ℝ (E [⋀^Fin k]→L[ℝ] ℝ))) (y : E) : ℝ :=
-    D y * formInnerInChart ψ y (e p) (β.localize ψ χ y)
-  have hGm (p) : MemLp (G p) 2 volume := by
-    refine Continuous.memLp_of_hasCompactSupport ?_ ?_
-    · refine ContinuousOn.continuous_of_tsupport_subset ?_ ψ.open_target
-        ((closure_mono (Function.support_subset_iff'.2 fun y hy ↦ by
-          simp [G, Function.notMem_support.1 hy])).trans hβt)
-      exact ((contDiffOn_const.mul (contDiffOn_riemannianJacobian_symm ψ b)).mul
-        (contDiffOn_formInnerInChart ψ subset_rfl contDiffOn_const hβl.contDiffOn)).continuousOn
-    · exact hβc.mono (Function.support_subset_iff'.2 fun y hy ↦ by
-        simp [G, Function.notMem_support.1 hy])
-  let B := ContinuousLinearMap.mul ℝ ℝ
-  have key (v : L2Form o k) : ∫ y, D y * formInnerInChart ψ y (L2Form.localize ψ χ hχ v y)
-      (β.localize ψ χ y) =
-        ∑ p, B.lpPairing volume 2 2 ((L p).compLp (L2Form.localize ψ χ hχ v)) (hGm p).toLp := by
-    have hint (p) : Integrable (fun y ↦ L p (L2Form.localize ψ χ hχ v y) * G p y) volume :=
-      ((L p).comp_memLp' (Lp.memLp _)).integrable_mul (hGm p)
-    simp_rw [ContinuousLinearMap.lpPairing_eq_integral]
-    rw [← integral_finsetSum _ fun p _ ↦ (hint p).congr ?_]
-    · refine integral_congr_ae ?_
-      filter_upwards [ae_all_iff.2 fun p ↦ (L p).coeFn_compLp (L2Form.localize ψ χ hχ v),
-        ae_all_iff.2 fun p ↦ (hGm p).coeFn_toLp] with y h1 h2
-      simp only [B, ContinuousLinearMap.mul_apply', h1, h2, G, L,
-        LinearMap.coe_toContinuousLinearMap',
-        Module.Basis.coord_apply]
-      conv_lhs => rw [← e.sum_repr (L2Form.localize ψ χ hχ v y)]
-      simp only [map_sum, map_smul, _root_.sum_apply, _root_.smul_apply, smul_eq_mul,
-        Finset.mul_sum]
-      exact Finset.sum_congr rfl fun p _ ↦ by ring
-    · filter_upwards [(L p).coeFn_compLp (L2Form.localize ψ χ hχ v), (hGm p).coeFn_toLp]
-        with y h1 h2
-      simp [B, h1, h2]
-  rw [key u]
-  refine L2Form.induction_on u (isClosed_eq (continuous_id.inner continuous_const)
-    (continuous_finsetSum _ fun p _ ↦ ((B.lpPairing volume 2 2).flip (hGm p).toLp).continuous.comp
-      (((L p).compLpL 2 volume).continuous.comp (L2Form.localize ψ χ hχ).continuous))) fun α ↦ ?_
-  rw [← key, L2Form.inner_ofSmooth, l2Inner_eq_integral_formInnerInChart ψ o b hχ hβ]
-  refine integral_congr_ae ?_
-  filter_upwards [L2Form.localize_ofSmooth ψ χ hχ α] with y hy
-  rw [hy]
-
-end Pairing
 
 /-! ### Weak solutions -/
 
@@ -321,11 +181,12 @@ private theorem localize_hodgeLaplacian_extendByZeroAlong (o : Manifold.Orientat
         ∑ i, B i y (fderiv ℝ a y (b i)) + C y (a y) := by
   have hn : (∞ : WithTop ℕ∞) ≠ 0 := by simp
   set φ := SmoothForm.extendByZeroAlong ψ a ha hac hat
+  let P : E → E [⋀^Fin k]→L[ℝ] ℝ := fun y ↦
+    -∑ i, ∑ j, (Matrix.of fun i j ↦ gramInChart ψ y (b i) (b j))⁻¹ i j •
+      fderiv ℝ (fun z ↦ fderiv ℝ a z (b i)) y (b j) + ∑ i, B i y (fderiv ℝ a y (b i)) + C y (a y)
   -- Off the support of `a`, the operator vanishes.
-  have hP0 (y : E) (hy : y ∉ tsupport a) : -∑ i, ∑ j,
-      (Matrix.of fun i j ↦ gramInChart ψ y (b i) (b j))⁻¹ i j •
-        fderiv ℝ (fun z ↦ fderiv ℝ a z (b i)) y (b j) + ∑ i, B i y (fderiv ℝ a y (b i)) +
-          C y (a y) = 0 := by
+  have hP : Function.support P ⊆ tsupport a := fun y hPy ↦ by
+    by_contra hy
     have h0 : a =ᶠ[𝓝 y] 0 := notMem_tsupport_iff_eventuallyEq.1 hy
     have h1 : ∀ᶠ z in 𝓝 y, fderiv ℝ a z = 0 := h0.eventually_nhds.mono fun z (hz : a =ᶠ[𝓝 z] 0) ↦ by
       rw [hz.fderiv_eq, fderiv_zero, Pi.zero_apply]
@@ -333,34 +194,64 @@ private theorem localize_hodgeLaplacian_extendByZeroAlong (o : Manifold.Orientat
       have h3 : (fun z ↦ fderiv ℝ a z (b i)) =ᶠ[𝓝 y] fun _ ↦ 0 :=
         Filter.Eventually.mono h1 fun z hz ↦ by simp [hz]
       rw [Filter.EventuallyEq.fderiv_eq h3, fderiv_const_apply]
-    simp [h2, h1.self_of_nhds, h0.self_of_nhds]
+    exact hPy (by simp [P, h2, h1.self_of_nhds, h0.self_of_nhds])
   -- On the target, the reading of `φ` agrees with `a` near every point.
   have hφa (y : E) (hy : y ∈ ψ.target) :
       (mpullback 𝓘(ℝ, E) I ψ.symm φ.val : E → E [⋀^Fin k]→L[ℝ] ℝ) =ᶠ[𝓝 y] a :=
     Filter.eventually_of_mem (ψ.open_target.mem_nhds hy) fun z hz ↦ by
       rw [SmoothForm.coe_extendByZeroAlong, mpullback_symm_extendByZeroAlong ψ _ hn hz]
-  by_cases hy : y ∈ ψ.target
-  · have e1 : fderiv ℝ (mpullback 𝓘(ℝ, E) I ψ.symm φ.val : E → E [⋀^Fin k]→L[ℝ] ℝ) y =
-        fderiv ℝ a y := Filter.EventuallyEq.fderiv_eq (hφa y hy)
-    have e2 (v : E) : fderiv ℝ (fun z ↦ fderiv ℝ (mpullback 𝓘(ℝ, E) I ψ.symm φ.val :
-        E → E [⋀^Fin k]→L[ℝ] ℝ) z v) y = fderiv ℝ (fun z ↦ fderiv ℝ a z v) y :=
-      Filter.EventuallyEq.fderiv_eq (Filter.eventually_of_mem (ψ.open_target.mem_nhds hy)
-        fun z hz ↦ by beta_reduce; rw [Filter.EventuallyEq.fderiv_eq (hφa z hz)])
-    have e3 : (mpullback 𝓘(ℝ, E) I ψ.symm φ.val y : E [⋀^Fin k]→L[ℝ] ℝ) = a y :=
-      Filter.EventuallyEq.eq_of_nhds (hφa y hy)
-    have e : (SmoothForm.hodgeLaplacian o hkl φ).localize ψ χ y = χ (ψ.symm y) •
-        (mpullback 𝓘(ℝ, E) I ψ.symm (SmoothForm.hodgeLaplacian o hkl φ).val y :
-          E [⋀^Fin k]→L[ℝ] ℝ) :=
-      SmoothForm.localize_of_mem _ _ _ hy
-    rw [e, hΔ φ y hy, e1, e3]
-    simp only [e2]
-    by_cases hya : y ∈ tsupport a
-    · rw [haχ y hya]
-      exact one_smul ℝ _
-    · rw [hP0 y hya]
-      exact smul_zero _
-  · rw [SmoothForm.localize_apply_of_notMem _ _ _ hy,
-      hP0 y fun h ↦ hy (hat h)]
+  refine congrFun (SmoothForm.localize_eq_of_mpullback_symm_eq ψ _ (g := P) (fun y hy ↦ ?_)
+    (hP.trans hat) fun y hy ↦ haχ y (hP hy)) y
+  have e2 (v : E) : fderiv ℝ (fun z ↦ fderiv ℝ (mpullback 𝓘(ℝ, E) I ψ.symm φ.val :
+      E → E [⋀^Fin k]→L[ℝ] ℝ) z v) y = fderiv ℝ (fun z ↦ fderiv ℝ a z v) y :=
+    Filter.EventuallyEq.fderiv_eq (Filter.eventually_of_mem (ψ.open_target.mem_nhds hy)
+      fun z hz ↦ by beta_reduce; rw [Filter.EventuallyEq.fderiv_eq (hφa z hz)])
+  rw [hΔ φ y hy, Filter.EventuallyEq.fderiv_eq (hφa y hy),
+    Filter.EventuallyEq.eq_of_nhds (hφa y hy)]
+  simp only [e2]
+  -- What remains is `P y` with the derivatives of `a` taken with values in the forms on the
+  -- tangent spaces of `E`, which are those on `E` by definition.
+  rfl
+
+/-- **The weak equation read in a chart.** Let `ψ` be a chart, `χ` a smooth cutoff supported in
+its source, and `a` a smooth flat form with compact support in `ψ.target` on which
+`χ ∘ ψ.symm = 1`. For every `L²` form `u`, the inner product of `u` with the Hodge Laplacian of
+the extension by zero of `a` along `ψ` is the integral over `E` of the inner product in the chart
+of the localization of `u` with the operator `P a` of `exists_mpullback_symm_hodgeLaplacian_eq`,
+weighted by the density of the Riemannian volume read in the chart. -/
+theorem L2Form.inner_ofSmooth_hodgeLaplacian_extendByZeroAlong_eq_integral
+    (hkl : k + l = m) (ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞) (b : Module.Basis (Fin m) ℝ E)
+    {B : Fin m → E → (E [⋀^Fin k]→L[ℝ] ℝ) →L[ℝ] E [⋀^Fin k]→L[ℝ] ℝ}
+    {C : E → (E [⋀^Fin k]→L[ℝ] ℝ) →L[ℝ] E [⋀^Fin k]→L[ℝ] ℝ}
+    (hΔ : ∀ (α : SmoothForm I M ℝ k), ∀ y ∈ ψ.target,
+        (mpullback 𝓘(ℝ, E) I ψ.symm (SmoothForm.hodgeLaplacian o hkl α).val y :
+            E [⋀^Fin k]→L[ℝ] ℝ) =
+          -∑ i, ∑ j, (Matrix.of fun i j ↦ gramInChart ψ y (b i) (b j))⁻¹ i j •
+              fderiv ℝ (F := E [⋀^Fin k]→L[ℝ] ℝ) (fun z ↦ fderiv ℝ
+                (mpullback 𝓘(ℝ, E) I ψ.symm α.val : E → E [⋀^Fin k]→L[ℝ] ℝ) z (b i)) y (b j) +
+            ∑ i, B i y (fderiv ℝ (mpullback 𝓘(ℝ, E) I ψ.symm α.val : E → E [⋀^Fin k]→L[ℝ] ℝ) y
+              (b i)) +
+            C y (mpullback 𝓘(ℝ, E) I ψ.symm α.val y : E [⋀^Fin k]→L[ℝ] ℝ))
+    (χ : C^∞⟮I, M; ℝ⟯) (hχ : tsupport χ ⊆ ψ.source) {a : E → E [⋀^Fin k]→L[ℝ] ℝ}
+    (ha : ContDiff ℝ ∞ a) (hac : HasCompactSupport a) (hat : tsupport a ⊆ ψ.target)
+    (haχ : ∀ y ∈ tsupport a, χ (ψ.symm y) = 1) (u : L2Form o k) :
+    ⟪u, ofSmooth (SmoothForm.hodgeLaplacian o hkl
+      (SmoothForm.extendByZeroAlong ψ a ha hac hat))⟫_ℝ =
+      ∫ y, (b.addHaar.addHaarScalarFactor volume : ℝ) * riemannianJacobian (I := I) b ψ.symm y *
+        formInnerInChart ψ y (L2Form.localize ψ χ hχ u y)
+          (-∑ i, ∑ j, (Matrix.of fun i j ↦ gramInChart ψ y (b i) (b j))⁻¹ i j •
+              fderiv ℝ (fun z ↦ fderiv ℝ a z (b i)) y (b j) +
+            ∑ i, B i y (fderiv ℝ a y (b i)) + C y (a y)) := by
+  -- `χ = 1` on the support of the Hodge Laplacian of the extension by zero of `a`.
+  have hΔχ (x : M) (hx : x ∈ tsupport (α := E [⋀^Fin k]→L[ℝ] ℝ)
+      (SmoothForm.hodgeLaplacian o hkl (SmoothForm.extendByZeroAlong ψ a ha hac hat)).val) :
+      χ x = 1 := by
+    have hx' := SmoothForm.tsupport_hodgeLaplacian_subset o hkl _ hx
+    rw [SmoothForm.coe_extendByZeroAlong] at hx'
+    obtain ⟨y, hy, rfl⟩ := RoughForm.tsupport_extendByZeroAlong_subset a hac hat hx'
+    exact haχ y hy
+  rw [L2Form.inner_ofSmooth_eq_integral_localize ψ χ hχ b hΔχ u]
+  simp only [localize_hodgeLaplacian_extendByZeroAlong o hkl ψ b hΔ ha hac hat haχ]
 
 /-- **Regularity of weak solutions in a chart.** Let `u` be a weak solution of `Δu = f` with `f`
 smooth, `ψ` a chart and `χ` a smooth cutoff supported in its source. On an open set `V` of the
@@ -385,7 +276,7 @@ theorem L2Form.IsWeakSolution.exists_contDiffOn_ae_eq_localize {u : L2Form o k}
   set D : E → ℝ := fun y ↦ (b.addHaar.addHaarScalarFactor volume : ℝ) *
     riemannianJacobian (I := I) b ψ.symm y
   have hD : ContDiffOn ℝ ∞ D ψ.target :=
-    contDiffOn_const.mul (contDiffOn_riemannianJacobian_symm ψ b)
+    contDiffOn_const.mul (ψ.contDiffOn_riemannianJacobian_symm b)
   have hDpos (y : E) (hy : y ∈ ψ.target) : 0 < D y :=
     mul_pos (NNReal.coe_pos.2 (Measure.addHaarScalarFactor_pos_of_isAddHaarMeasure _ _))
       (ψ.riemannianJacobian_symm_pos hn b hy)
@@ -417,51 +308,28 @@ theorem L2Form.IsWeakSolution.exists_contDiffOn_ae_eq_localize {u : L2Form o k}
       ∫ y, w y (-∑ i, ∑ j, (Matrix.of fun i j ↦ gramInChart ψ y (b i) (b j))⁻¹ i j •
           fderiv ℝ (fun z ↦ fderiv ℝ a z (b i)) y (b j) +
         ∑ i, B i y (fderiv ℝ a y (b i)) + C y (a y)) = ∫ y, h y (a y) := by
-    have hnt : (∞ : WithTop ℕ∞) ≠ 0 := by simp
     have hat : tsupport a ⊆ ψ.target := haV.trans hVt
     have haχ (y : E) (hy : y ∈ tsupport a) : χ (ψ.symm y) = 1 := hVχ y (haV hy)
-    have ha0 (y : E) (hy : y ∉ tsupport a) : a y = 0 := image_eq_zero_of_notMem_tsupport hy
     set φ := SmoothForm.extendByZeroAlong ψ a ha hac hat
-    -- `χ = 1` on the supports of `φ` and of `Δφ`.
     have hφχ (x : M) (hx : x ∈ tsupport (α := E [⋀^Fin k]→L[ℝ] ℝ) φ.val) : χ x = 1 := by
       rw [SmoothForm.coe_extendByZeroAlong] at hx
       obtain ⟨y, hy, rfl⟩ := RoughForm.tsupport_extendByZeroAlong_subset a hac hat hx
       exact haχ y hy
-    have hΔφχ (x : M) (hx : x ∈ tsupport (α := E [⋀^Fin k]→L[ℝ] ℝ)
-        (SmoothForm.hodgeLaplacian o hkl φ).val) : χ x = 1 :=
-      hφχ x (SmoothForm.tsupport_hodgeLaplacian_subset o hkl φ hx)
-    -- The localizations of `φ` and of `f`.
-    have hφl (y : E) : φ.localize ψ χ y = a y := by
-      by_cases hy : y ∈ ψ.target
-      · have e : φ.localize ψ χ y = χ (ψ.symm y) •
-            (mpullback 𝓘(ℝ, E) I ψ.symm φ.val y : E [⋀^Fin k]→L[ℝ] ℝ) :=
-          SmoothForm.localize_of_mem _ _ _ hy
-        rw [e, SmoothForm.coe_extendByZeroAlong, mpullback_symm_extendByZeroAlong ψ _ hnt hy]
-        by_cases hya : y ∈ tsupport a
-        · rw [haχ y hya]
-          exact one_smul ℝ _
-        · rw [ha0 y hya]
-          exact smul_zero _
-      · rw [SmoothForm.localize_apply_of_notMem _ _ _ hy, ha0 y fun h ↦ hy (hat h)]
-    have hfl (y : E) (hy : y ∈ tsupport a) : f.localize ψ χ y =
-        (mpullback 𝓘(ℝ, E) I ψ.symm f.val y : E [⋀^Fin k]→L[ℝ] ℝ) := by
-      have e : f.localize ψ χ y = χ (ψ.symm y) •
-          (mpullback 𝓘(ℝ, E) I ψ.symm f.val y : E [⋀^Fin k]→L[ℝ] ℝ) :=
-        SmoothForm.localize_of_mem _ _ _ (hat hy)
-      rw [e, haχ y hy, one_smul]
     have hweakφ := hu φ
-    rw [L2Form.inner_ofSmooth_eq_integral_localize ψ b χ hχ hΔφχ u, L2Form.inner_ofSmooth,
-      l2Inner_eq_integral_formInnerInChart ψ o b hχ hφχ] at hweakφ
+    rw [L2Form.inner_ofSmooth_hodgeLaplacian_extendByZeroAlong_eq_integral hkl ψ b hΔ χ hχ ha hac
+      hat haχ u, L2Form.inner_ofSmooth,
+      SmoothForm.l2Inner_eq_integral_formInnerInChart ψ o b hχ hφχ,
+      SmoothForm.localize_extendByZeroAlong ψ ha hac hat haχ] at hweakφ
     convert hweakφ using 1
+    · simp only [hw, U, D]
     · refine integral_congr_ae (Filter.Eventually.of_forall fun y ↦ ?_)
-      have hl := localize_hodgeLaplacian_extendByZeroAlong o hkl ψ b hΔ ha hac hat haχ y
-      simp only [hw]
-      exact congrArg (fun z ↦ D y * formInnerInChart ψ y (U y) z) hl.symm
-    · refine integral_congr_ae (Filter.Eventually.of_forall fun y ↦ ?_)
-      simp only [h, _root_.smul_apply, smul_eq_mul, hφl]
+      simp only [h, _root_.smul_apply, smul_eq_mul]
       by_cases hya : y ∈ tsupport a
-      · rw [hfl y hya]
-      · simp [ha0 y hya]
+      · have e : f.localize ψ χ y = χ (ψ.symm y) •
+            (mpullback 𝓘(ℝ, E) I ψ.symm f.val y : E [⋀^Fin k]→L[ℝ] ℝ) :=
+          SmoothForm.localize_of_mem _ _ _ (hat hya)
+        rw [e, haχ y hya, one_smul]
+      · simp [image_eq_zero_of_notMem_tsupport hya]
   obtain ⟨g', hg', hwg⟩ := exists_contDiffOn_ae_eq_of_forall_integral_apply_eq (μ := volume) hV b
     (A := fun i j y ↦ (Matrix.of fun i j ↦ gramInChart ψ y (b i) (b j))⁻¹ i j) (B := B) (C := C)
     (fun i j ↦ (contDiffOn_inv_gramInChart_apply ψ b i j).mono hVt) (fun i ↦ (hB i).mono hVt)
@@ -474,7 +342,7 @@ theorem L2Form.IsWeakSolution.exists_contDiffOn_ae_eq_localize {u : L2Form o k}
     (contDiffOn_clm_apply.2 fun γ ↦ ((hD.mul (contDiffOn_formInnerInChart ψ subset_rfl
       (fun y hy ↦ (f.contDiffAt_mpullback_symm ψ hy).contDiffWithinAt)
       contDiffOn_const)).mono hVt).congr fun y _ ↦ rfl) hweak
-  -- Recover the localization from `g'`, through the inverse Gram matrix of `e`.
+  -- Recover the localization from `g' / D`, through the inverse Gram matrix of `e`.
   set G : E → Matrix _ _ ℝ := fun y ↦ Matrix.of fun p q ↦ formInnerInChart ψ y (e p) (e q)
   refine ⟨fun y ↦ ∑ p, ((G y)⁻¹ *ᵥ fun q ↦ g' y (e q) / D y) p • e p, ?_, ?_⟩
   · refine ContDiffOn.sum fun p _ ↦ ?_
@@ -483,11 +351,14 @@ theorem L2Form.IsWeakSolution.exists_contDiffOn_ae_eq_localize {u : L2Form o k}
     simp only [Matrix.mulVec, dotProduct]
     refine ContDiffOn.sum fun q _ ↦ ContDiffOn.mul ?_ ?_
     · exact (ContDiffOn.matrix_inv_apply (fun p q ↦ (contDiffOn_formInnerInChart_apply ψ (e p)
-        (e q)).mono hVt) (fun y hy ↦ det_formInnerInChart_ne_zero ψ e (hVt hy)) p q)
+        (e q)).mono hVt) (fun y hy ↦ (posDef_formInnerInChart ψ e (hVt hy)).det_pos.ne') p q)
     · exact (hg'.clm_apply contDiffOn_const).div (hD.mono hVt) fun y hy ↦ (hDpos y (hVt hy)).ne'
   · filter_upwards [hwg, ae_restrict_mem hV.measurableSet] with y hy hyV
-    exact eq_sum_inv_mulVec_of_eq_mul_formInnerInChart ψ e (hVt hyV) (hDpos y (hVt hyV)).ne'
-      fun q ↦ by rw [← hy, hw]
+    have hz : (fun q ↦ g' y (e q) / D y) = fun q ↦ formInnerInChart ψ y (U y) (e q) := by
+      ext q
+      rw [← hy, hw, mul_div_cancel_left₀ _ (hDpos y (hVt hyV)).ne']
+    rw [hz]
+    exact eq_sum_inv_mulVec_formInnerInChart ψ e (hVt hyV) (U y)
 
 /-- The localization of a weak solution of `Δu = f`, with `f` smooth, to a chart `ψ` with a smooth
 cutoff `ρ` supported in its source, is almost everywhere a smooth flat form with compact support
@@ -518,20 +389,12 @@ theorem L2Form.IsWeakSolution.exists_contDiff_ae_eq_localize {u : L2Form o k}
   have hKV : ψ '' tsupport ρ ⊆ V := by
     rintro _ ⟨x, hx, rfl⟩
     exact ⟨ψ.map_source (hρ hx), by simpa [ψ.left_inv (hρ hx)] using hρU₁ hx⟩
-  have hr0 (y : E) (hy : y ∉ V) : r y = 0 := by
-    by_cases hyt : y ∈ ψ.target
-    · refine (Set.indicator_of_mem hyt _).trans (image_eq_zero_of_notMem_tsupport fun h ↦ hy ?_)
-      exact hKV ⟨_, h, ψ.right_inv hyt⟩
-    · exact Set.indicator_of_notMem hyt _
+  have hr0 (y : E) (hy : y ∉ V) : r y = 0 :=
+    Function.notMem_support.1 fun h ↦ hy (hKV (ψ.support_indicator_comp_symm_subset ρ h))
   set F := fun y ↦ r y • g y
-  have hFs : tsupport F ⊆ ψ '' tsupport ρ := by
-    refine closure_minimal (fun y hy ↦ ?_) hK.isClosed
-    have hry : r y ≠ 0 := fun h ↦ hy (by simp [F, h])
-    have hyt : y ∈ ψ.target := by
-      by_contra h
-      exact hry (Set.indicator_of_notMem h _)
-    refine ⟨ψ.symm y, subset_tsupport _ fun h ↦ hry ?_, ψ.right_inv hyt⟩
-    exact (Set.indicator_of_mem hyt _).trans h
+  have hFs : tsupport F ⊆ ψ '' tsupport ρ :=
+    closure_minimal ((Function.support_smul_subset_left r g).trans
+      (ψ.support_indicator_comp_symm_subset ρ)) hK.isClosed
   have hFV : ContDiffOn ℝ ∞ F V := by
     have hρψ : ContDiffOn ℝ ∞ (fun y ↦ ρ (ψ.symm y)) V :=
       contMDiffOn_iff_contDiffOn.1 ((ρ.contMDiff.comp_contMDiffOn ψ.symm.contMDiffOn).mono
@@ -552,12 +415,20 @@ theorem L2Form.IsWeakSolution.exists_contDiff_ae_eq_localize {u : L2Form o k}
       change r y • _ = r y • g y
       rw [hr0 y hy, zero_smul, zero_smul]
 
+omit [MeasureSpace E] [BorelSpace E] [(volume : Measure E).IsAddHaarMeasure] in
 /-- **Weak solutions of `Δu = f` with smooth `f` are smooth.** On a closed oriented Riemannian
 manifold, if the `L²` form `u` is a weak solution of `Δu = f` for a smooth form `f`, then `u` is a
 smooth form `α`, and `Δα = f`. -/
 theorem L2Form.exists_eq_ofSmooth_of_isWeakSolution [BoundarylessManifold I M] {u : L2Form o k}
     {f : SmoothForm I M ℝ k} (hu : IsWeakSolution o hkl u (ofSmooth f)) :
     ∃ α : SmoothForm I M ℝ k, u = ofSmooth α ∧ SmoothForm.hodgeLaplacian o hkl α = f := by
+  -- The localizations are taken in `L²` for a Haar measure on `E`.
+  borelize E
+  let _ : MeasureSpace E := ⟨Measure.addHaar⟩
+  have : (volume : Measure E).IsAddHaarMeasure := by
+    -- `volume` is by definition the Haar measure just chosen.
+    change (Measure.addHaar : Measure E).IsAddHaarMeasure
+    infer_instance
   obtain ⟨N, c, ρ, hρ⟩ := exists_finite_partialDiffeomorph_cover (I := I) (M := M)
   choose F hF hFc hFs hFu using fun i ↦
     hu.exists_contDiff_ae_eq_localize (extChartPartialDiffeomorph I ∞ (c i)) (ρ i) (hρ i)

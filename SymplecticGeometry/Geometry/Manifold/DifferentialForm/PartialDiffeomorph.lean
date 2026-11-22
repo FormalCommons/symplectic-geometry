@@ -64,7 +64,8 @@ which is meaningful on `ψ.target`.
   `ψ.target`, and zero elsewhere. It is continuous with compact support when `χ` is continuous
   with compact support in `ψ.source` (`TauCeti.SmoothForm.continuous_localize`,
   `TauCeti.SmoothForm.hasCompactSupport_localize`), and smooth when `χ` is smooth
-  (`TauCeti.SmoothForm.contDiff_localize`).
+  (`TauCeti.SmoothForm.contDiff_localize`). With a cutoff equal to `1` on the support of `a`,
+  it recovers `a` from its extension by zero (`TauCeti.SmoothForm.localize_extendByZeroAlong`).
 * `TauCeti.SmoothForm.sum_extendByZeroAlong_localize`: the two constructions are inverse to each
   other up to the cutoff (`TauCeti.SmoothForm.extendByZeroAlong_localize_apply`), so a smooth form
   is the sum of the extensions by zero of its localizations to finitely many charts, with a smooth
@@ -617,6 +618,37 @@ theorem localize_smul (c : ℝ) : (c • α).localize ψ χ = c • α.localize 
   · simp [localize_apply_of_notMem _ _ _ hy]
 
 variable {χ}
+
+/-- If the reading of `α` in the chart agrees on `ψ.target` with a flat form `g` supported in
+`ψ.target`, and `χ ∘ ψ.symm = 1` on the support of `g`, the localization of `α` is `g`. -/
+theorem localize_eq_of_mpullback_symm_eq {g : E → E [⋀^Fin k]→L[ℝ] F}
+    (hg : ∀ y ∈ ψ.target,
+      (TauCeti.mpullback 𝓘(ℝ, E) I ψ.symm α.val y : E [⋀^Fin k]→L[ℝ] F) = g y)
+    (hgt : Function.support g ⊆ ψ.target)
+    (hgχ : ∀ y ∈ Function.support g, χ (ψ.symm y) = 1) :
+    α.localize ψ χ = g := by
+  ext1 y
+  by_cases hy : y ∈ ψ.target
+  · rw [localize_of_mem _ _ _ hy, hg y hy]
+    -- The reading lives in forms on the tangent space `TangentSpace 𝓘(ℝ, E) y`, a synonym of `E`,
+    -- so `smul_zero` and `one_smul` close the goals by unification rather than by rewriting.
+    by_cases hgy : g y = 0
+    · rw [hgy]
+      exact smul_zero _
+    · rw [hgχ y hgy]
+      exact one_smul ℝ _
+  · rw [localize_apply_of_notMem _ _ _ hy, eq_comm, ← Function.notMem_support]
+    exact fun h ↦ hy (hgt h)
+
+/-- The localization, with a cutoff `χ` such that `χ ∘ ψ.symm = 1` on the support of `a`, of the
+extension by zero of a flat form `a` along the chart is `a`. -/
+theorem localize_extendByZeroAlong [T2Space M] {a : E → E [⋀^Fin k]→L[ℝ] F}
+    (ha : ContDiff ℝ ∞ a) (hac : HasCompactSupport a) (hat : tsupport a ⊆ ψ.target)
+    (haχ : ∀ y ∈ tsupport a, χ (ψ.symm y) = 1) :
+    (extendByZeroAlong ψ a ha hac hat).localize ψ χ = a :=
+  localize_eq_of_mpullback_symm_eq _ _
+    (fun y hy ↦ by rw [coe_extendByZeroAlong, mpullback_symm_extendByZeroAlong ψ _ (by simp) hy])
+    (subset_tsupport _ |>.trans hat) fun y hy ↦ haχ y (subset_tsupport _ hy)
 
 /-- If the cutoff has compact support in the source of the chart, the localization is supported
 in the image of that support under the chart. -/
