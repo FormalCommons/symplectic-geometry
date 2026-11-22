@@ -115,7 +115,7 @@ of Tau Ceti's roadmap that no one has started.
    $\varepsilon_L=2\,\varepsilon_{\bar\partial L}+L^*\omega_x$ with
    $\bar\partial L$ = `complexAntilinearPart`. Both sides are top forms on a
    plane, so they agree once they agree on one frame $(e,je)$, where this is
-   Tau Ceti's Wirtinger identity. Integrated, it gives the first display of
+   the Wirtinger identity. Integrated, it gives the first display of
    the milestone; no orientation hypothesis is needed for it, only for signs
    (nonnegativity, positivity).
 3. **An area form compatible with the orientation is a taming form.** With
@@ -201,9 +201,12 @@ of Tau Ceti's roadmap that no one has started.
 | File | Contents |
 |---|---|
 | `Geometry/Symplectic/JHolomorphic/Energy/Density.lean` | the pointwise density $\varepsilon_L$, the squared norm, the pointwise identity |
+| `LinearAlgebra/Complex/EnergyDensity.lean` | the same for a linear map between vector spaces, from which `Density.lean` reads its statements |
 | `Geometry/Symplectic/Manifold/AlmostComplex/TopForm.lean` | top forms on a tangent plane of an almost complex surface: equality and ratios read on one frame $(e,je)$, without an orientation |
+| `LinearAlgebra/Complex/TopForm.lean` | the same on a real plane with a complex structure |
 | `Geometry/Symplectic/JHolomorphic/Energy/Metric.lean` | the squared norm read in $g_J$ |
 | `Geometry/Symplectic/JHolomorphic/Energy/Surface.lean` | the energy form and its continuity, the energy, the integrated identity, the pseudoholomorphic case, positivity |
+| `AlgebraicTopology/SimplicialSet/Homology/RestrictScalars.lean` | the change of coefficients on simplicial chains along a restriction of scalars, `SSet.restrictScalarsChainMap` |
 | `Geometry/Manifold/SmoothSingular/SingularPeriod.lean` | the pairing of de Rham classes with integral singular homology |
 | `Geometry/Manifold/SmoothSingular/RelativeCycle.lean` | the relative step of Decision 7 |
 | `AlgebraicTopology/SimplicialSet/Homology/RelativeClass.lean` | the relative class of a simplex whose faces lie in the subcomplex of a pair of simplicial sets, `SSetPair.relClass` |
@@ -214,7 +217,7 @@ of Tau Ceti's roadmap that no one has started.
 | `Geometry/Symplectic/JHolomorphic/Energy/Homology.lean` | topological invariance, minimality, the milestone |
 
 The `Energy/` folder sits beside Tau Ceti's folder of the same name, as
-`DESIGN.md` says. The files outside it are general manifold topology
+`DESIGN.md` says. The files outside it are general manifold topology or linear algebra
 and are placed by topic.
 
 ## Definitions and their API
@@ -222,11 +225,9 @@ and are placed by topic.
 ### `Energy/Density.lean`
 
 For `c : C`, `x : M` and `L : TangentSpace I' c →ₗ[ℝ] TangentSpace I x`
-(linear suffices, the source being finite-dimensional), using the lemmas
-`topForm_ext` and `topForm_apply_div_apply_eq` of
-`Manifold/AlmostComplex/TopForm.lean`, which it imports, and the instance
-`TangentSpace.instNontrivial` of `Geometry/Manifold/IsManifold/Basic.lean`
-(part *Symplectic neighbourhoods*), which it also imports:
+(linear suffices, the source being finite-dimensional), each statement read
+from that of `LinearAlgebra/Complex/EnergyDensity.lean`, which it imports,
+for `ω x`, `J x`, `j c` and `dvol c`:
 
 - `TauCeti.SmoothTwoForm.energyDensity (ω : SmoothTwoForm I M) (J) (j) (L) :
   TangentSpace I' c [⋀^Fin 2]→L[ℝ] ℝ`, the form $\varepsilon_L$ of Decision 1.
@@ -238,8 +239,7 @@ For `c : C`, `x : M` and `L : TangentSpace I' c →ₗ[ℝ] TangentSpace I x`
   for that linear map in Tau Ceti before defining it),
   `Tames.energyDensity_apply_complexFrame_nonneg` and
   `Tames.energyDensity_apply_complexFrame_eq_zero_iff` (zero exactly when
-  `L e = 0 ∧ L (j c e) = 0`), both from the `Tames` lemmas of
-  `Manifold/Energy.lean`.
+  `L e = 0 ∧ L (j c e) = 0`).
 - `TauCeti.SmoothTwoForm.normSq (ω) (J) (j) (dvol : SmoothTwoForm I' C) (L) : ℝ`,
   the squared norm of `L` for the metric $\mathrm{dvol}(\cdot,j\cdot)$ on the
   source and $\omega(\cdot,J\cdot)$ on the target:
@@ -254,11 +254,24 @@ For `c : C`, `x : M` and `L : TangentSpace I' c →ₗ[ℝ] TangentSpace I x`
   `ω.Invariant J`, `ω.energyDensity J j L = 2 • ω.energyDensity J j
   (complexAntilinearPart (j c) (J x) L) + (ω x).compContinuousLinearMap L`
   (for `L : TangentSpace I' c →L[ℝ] TangentSpace I x`, with the linear maps of
-  `j c`, `J x` and `L` coerced as needed). Proof on a
-  frame $(e,je)$, by `SmoothAlmostComplexStructure.topForm_ext` of
-  `Manifold/AlmostComplex/TopForm.lean`, with Tau Ceti's Wirtinger identity, and
-  extensionality of top forms on a plane (a top form is its value on a basis
-  times the determinant, `AlternatingMap.eq_smul_basis_det`).
+  `j c`, `J x` and `L` coerced as needed).
+
+### `LinearAlgebra/Complex/EnergyDensity.lean`
+
+The same statements for vector spaces, in the namespace `AlternatingMap`:
+for `ω : V [⋀^Fin 2]→ₗ[ℝ] ℝ`, which may be degenerate, complex structures
+`J : AlmostComplexStructure V` and `j : AlmostComplexStructure W`, and
+`L : W →ₗ[ℝ] V`. The definitions are `AlternatingMap.energyDensity ω J j L`
+and `AlternatingMap.energyNormSq ω J j dvol L`. Tameness and invariance are
+hypotheses on `ω` (`∀ v, v ≠ 0 → 0 < ω ![v, J v]`,
+`∀ v w, ω ![J v, J w] = ω ![v, w]`), and planes are `finrank ℝ W = 2`. The
+identity `AlternatingMap.energyDensity_eq_two_smul_add` is proved on a frame
+$(e,je)$, by `TauCeti.AlmostComplexStructure.alternatingMap_ext` of
+`LinearAlgebra/Complex/TopForm.lean` (a top form is its value on a basis times
+the determinant, `AlternatingMap.eq_smul_basis_det`), with the Wirtinger
+identity, which Tau Ceti proves for nondegenerate forms only. The lemmas of
+`Manifold/AlmostComplex/TopForm.lean` are those of
+`LinearAlgebra/Complex/TopForm.lean` at `j c`.
 
 ### `Energy/Metric.lean`
 
@@ -460,7 +473,9 @@ Each is a few hundred lines; each is blocked by the issues it names.
 4. **The squared norm in the metric of a compatible pair.**
    `Energy/Metric.lean`. About 80 lines. Blocked by 1 and #860.
 5. **Periods of closed forms on integral singular homology.**
-   `SmoothSingular/SingularPeriod.lean`. About 300 lines. No blockers.
+   `SmoothSingular/SingularPeriod.lean`, with the change of coefficients on
+   chains in `SimplicialSet/Homology/RestrictScalars.lean`. About 300 lines.
+   No blockers.
 6. **Relative cycles and smooth chains.** `SmoothSingular/RelativeCycle.lean`.
    About 250 lines. No blockers.
 7. **Positively oriented simplices in local homology.**
