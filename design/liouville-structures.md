@@ -185,6 +185,7 @@ Further choices:
 | `Geometry/Manifold/ModelTransport/Remodel.lean` | a manifold re-modelled along a diffeomorphism of model spaces (`SymplecticGeometry.Remodel`), and its diffeomorphism with the manifold; used in `End.lean` and `Gluing/CapDiscs/Basic.lean` | — |
 | `Geometry/Manifold/Boundary/Collar/Interior.lean` | interior collar points, and the collar coordinates on the part of the interior covered by the collar (`SmoothCollar.interiorModelCoord`); used in `End.lean` and `Gluing/CapDiscs/Basic.lean` | — |
 | `Geometry/Manifold/Boundary/Collar/End.lean` | attaching the end `[0, ∞) × ∂W` along a smooth collar | 8 |
+| `Geometry/Manifold/VectorField/Prod.lean` | the value `(v, 0)` of the product of a constant field and the zero field (`TauCeti.Manifold.prodVectorField_constVectorField_zero_apply`); used in `Completion.lean` and `Domain.lean`, beside Tau Ceti's file of that path | — |
 | `Geometry/Symplectic/Liouville/Completion.lean` | $\widehat\omega$, $\widehat Y$, $\widehat\lambda$; third milestone | 9, 10 |
 | `Geometry/Symplectic/Liouville/Domain.lean` | the completion of a Liouville domain is a Tau Ceti completion | 11 |
 

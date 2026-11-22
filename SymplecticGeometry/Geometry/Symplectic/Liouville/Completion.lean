@@ -15,6 +15,7 @@ import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffe
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
 import SymplecticGeometry.Geometry.Manifold.VectorField.Pullback
+import SymplecticGeometry.Geometry.Manifold.VectorField.Prod
 import TauCeti.Topology.FiberBundle.Separation
 
 /-!
@@ -616,13 +617,7 @@ private theorem mfderiv_collarFlow_apply {q : ℝ × (𝓡∂ (n + 1)).boundary 
   have := (h.mdifferentiableAt_collarFlow hq).mfderiv_curry_left_apply (1 : ℝ)
   rw [(((h.isMIntegralCurveOn_collarFlow x) s (Ioo_subset_Ioc_self hs)).hasMFDerivAt
     (Ioc_mem_nhds hs.1 hs.2)).mfderiv] at this
-  have hv : Manifold.prodVectorField (constVectorField (1 : ℝ))
-      (0 : (x : (𝓡∂ (n + 1)).boundary W) → TangentSpace (𝓡 n) x) (s, x) =
-        ((1 : ℝ), (0 : EuclideanSpace ℝ (Fin n))) :=
-    -- Both components are equal in the model spaces, where the tangent spaces are `ℝ` and `ℝⁿ`.
-    Prod.ext (by simp only [Manifold.prodVectorField_fst, constVectorField_apply]; rfl)
-      (by simp only [Manifold.prodVectorField_snd, Pi.zero_apply]; rfl)
-  rw [hv]
+  rw [Manifold.prodVectorField_constVectorField_zero_apply]
   exact this.trans (one_smul ℝ _)
 
 /-- At interior points of `W`, the inclusion sends `Y` to the Liouville field of the completion. -/

@@ -25,8 +25,9 @@ diffeomorphism at every point with `r ≠ 0`
 (`AddCircle.mfderiv_prodMap_coe_id`),
 to `(u, r) ↦ r · exp (2π u / p · i)`, whose derivative is injective for `r ≠ 0`, and descends it
 with Tau Ceti's inverse function theorem `TauCeti.isLocalDiffeomorphAt_of_eqOn_comp`. The same
-lift gives the smoothness of polar coordinates and, by the chain rule, their derivative: at
-`(θ, r)` it sends `(a, b)` to `(2π r a / p · i + b) · toCircle θ`.
+lift gives, by the chain rule, the derivative of polar coordinates: at `(θ, r)` it sends `(a, b)`
+to `(2π r a / p · i + b) · toCircle θ`. Their smoothness follows from that of `toCircle`
+(`AddCircle.contMDiff_toCircle`), which lifts along the quotient map `ℝ → AddCircle p`.
 
 ## Main results
 
@@ -97,17 +98,25 @@ private theorem injective_fderiv_polarLift {x : ℝ × ℝ} (hx : x.2 ≠ 0) :
   have ha : a = 0 := by simpa [hx, Real.pi_ne_zero, hp.out.ne'] using him
   simp [ha, hre]
 
+/-- The map `AddCircle p → ℂ`, `[t] ↦ exp (2π i t / p)`, given by `AddCircle.toCircle`, is smooth
+of every order. -/
+theorem contMDiff_toCircle (r : ℕ∞ω) :
+    ContMDiff 𝓘(ℝ) 𝓘(ℝ, ℂ) r fun x : AddCircle p ↦ (toCircle x : ℂ) := by
+  rw [← (isLocalDiffeomorph_coe p r).contMDiff_comp_iff QuotientAddGroup.mk_surjective le_rfl]
+  have h : (fun x : AddCircle p ↦ (toCircle x : ℂ)) ∘ ((↑) : ℝ → AddCircle p) =
+      fun t ↦ Complex.exp (((2 * π / p * t : ℝ) : ℂ) * Complex.I) :=
+    funext fun t ↦ by rw [comp_apply, toCircle_apply_mk, Circle.coe_exp]
+  rw [h]
+  exact ContDiff.contMDiff (Complex.contDiff_exp.comp
+    ((Complex.ofRealCLM.contDiff.comp (contDiff_const.mul contDiff_id)).mul contDiff_const))
+
 variable (p n) in
 /-- Polar coordinates `(θ, r) ↦ r · toCircle θ` on `AddCircle p × ℝ` are `C^n`. -/
 theorem contMDiff_ofReal_mul_toCircle :
     ContMDiff (𝓘(ℝ).prod 𝓘(ℝ)) 𝓘(ℝ, ℂ) n
-      (fun q : AddCircle p × ℝ ↦ (q.2 : ℂ) * (toCircle q.1 : ℂ)) := by
-  refine ContMDiff.of_le ?_ (le_top : n ≤ ω)
-  rw [← (isLocalDiffeomorph_prodMap_coe_id p ω).contMDiff_comp_iff
-    (QuotientAddGroup.mk_surjective.prodMap surjective_id) le_rfl,
-    ofReal_mul_toCircle_comp_prodMap_coe_id, contMDiff_iff_contDiff]
-  exact (ofRealCLM.contDiff.comp contDiff_snd).mul
-    ((ofRealCLM.contDiff.comp (contDiff_const.mul contDiff_fst)).mul contDiff_const).cexp
+      (fun q : AddCircle p × ℝ ↦ (q.2 : ℂ) * (toCircle q.1 : ℂ)) :=
+  contDiff_mul.comp_contMDiff ((ofRealCLM.contMDiff.comp contMDiff_snd).prodMk_space
+    ((contMDiff_toCircle n).comp contMDiff_fst))
 
 /-- **The derivative of polar coordinates.** At `(θ, r)`, the derivative of
 `(θ, r) ↦ r · toCircle θ` sends `(a, b)` to `(2π r a / p · i + b) · toCircle θ`. -/
@@ -160,17 +169,5 @@ theorem isLocalDiffeomorphAt_ofReal_mul_toCircle {θ : AddCircle p} {r : ℝ} (h
   · rw [mfderiv_eq_fderiv]
     exact injective_fderiv_polarLift hr
   · simp [finrank_real_complex]
-
-/-- The map `AddCircle p → ℂ`, `[t] ↦ exp (2π i t / p)`, given by `AddCircle.toCircle`, is smooth
-of every order. -/
-theorem contMDiff_toCircle (r : ℕ∞ω) :
-    ContMDiff 𝓘(ℝ) 𝓘(ℝ, ℂ) r fun x : AddCircle p ↦ (toCircle x : ℂ) := by
-  rw [← (isLocalDiffeomorph_coe p r).contMDiff_comp_iff QuotientAddGroup.mk_surjective le_rfl]
-  have h : (fun x : AddCircle p ↦ (toCircle x : ℂ)) ∘ ((↑) : ℝ → AddCircle p) =
-      fun t ↦ Complex.exp (((2 * π / p * t : ℝ) : ℂ) * Complex.I) :=
-    funext fun t ↦ by rw [comp_apply, toCircle_apply_mk, Circle.coe_exp]
-  rw [h]
-  exact ContDiff.contMDiff (Complex.contDiff_exp.comp
-    ((Complex.ofRealCLM.contDiff.comp (contDiff_const.mul contDiff_id)).mul contDiff_const))
 
 end AddCircle
