@@ -6,7 +6,6 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Manifold.DifferentialForm.Opens
-import SymplecticGeometry.Geometry.Manifold.ExtChartAt
 import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffeomorph
 
 /-!
@@ -28,9 +27,8 @@ restriction from `M` itself.
   (`TauCeti.RoughForm.inChartAt_mpullback_subtype_val_eventuallyEq`).
 
 The proofs of the last item adapt those of Tau Ceti's `TauCeti.mpullback_inclusion_mextDeriv` and
-`TauCeti.RoughForm.inChartAt_mpullback_inclusion_eventuallyEq`, with
-`TauCeti.extChartAt_subtype_val_symm_eventuallyEq` in place of
-`TauCeti.extChartAt_inclusion_symm_eventuallyEq`.
+`TauCeti.RoughForm.inChartAt_mpullback_inclusion_eventuallyEq`, with Tau Ceti's
+`TopologicalSpace.Opens.coe_extChartAt_symm_apply` for the agreement of the inverse charts.
 
 ## References
 
@@ -75,15 +73,17 @@ theorem RoughForm.inChartAt_mpullback_subtype_val_eventuallyEq {U : Opens M}
     (γ : RoughForm I M F k) (x : U) :
     (mpullback I I (Subtype.val : U → M) γ).inChartAt x =ᶠ[𝓝[range I] (extChartAt I x x)]
       γ.inChartAt (x : M) := by
-  filter_upwards [extChartAt_target_mem_nhdsWithin x,
-    nhdsWithin_le_nhds (extChartAt_subtype_val_symm_eventuallyEq (I := I) U x).eventually_nhds]
-    with z hz hev
-  have hev' : (extChartAt I (x : M)).symm =ᶠ[𝓝 z] Subtype.val ∘ (extChartAt I x).symm := hev
+  filter_upwards [extChartAt_target_mem_nhdsWithin x] with z hz
+  have hev : (extChartAt I (x : M)).symm =ᶠ[𝓝[range I] z] Subtype.val ∘ (extChartAt I x).symm :=
+    Filter.mem_of_superset (extChartAt_target_mem_nhdsWithin_of_mem hz)
+      fun w hw ↦ (U.coe_extChartAt_symm_apply x hw).symm
+  have h0 : (Subtype.val ∘ (extChartAt I x).symm) z = (extChartAt I (x : M)).symm z :=
+    U.coe_extChartAt_symm_apply x hz
   have hmf : mfderivWithin 𝓘(ℝ, E) I (Subtype.val ∘ (extChartAt I x).symm) (range I) z =
       mfderivWithin 𝓘(ℝ, E) I (extChartAt I (x : M)).symm (range I) z :=
-    (hev'.filter_mono nhdsWithin_le_nhds).symm.mfderivWithin_eq hev'.self_of_nhds.symm
+    hev.symm.mfderivWithin_eq h0
   rw [inChartAt_mpullback γ _ x hz (contMDiff_subtypeVal.mdifferentiableAt one_ne_zero), hmf,
-    ← Function.comp_apply (f := Subtype.val), ← hev'.self_of_nhds]
+    ← Function.comp_apply (f := Subtype.val), h0]
   ext v
   exact (inChartAt_apply γ (x : M) z v).symm
 
