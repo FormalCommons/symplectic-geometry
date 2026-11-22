@@ -140,7 +140,7 @@ variable {EB HB M : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB]
 | `Geometry/Manifold/VectorBundle/Prod.lean` | `Bundle.Prod.contMDiff_prodMap` and `Bundle.Prod.contMDiff_swap`: smoothness on total spaces of the fibrewise product of two maps and of the swap, for fibres with only a zero; `Bundle.Prod.contMDiff_prodCongr` and `Bundle.Prod.contMDiff_prodComm`: the same for bundle isomorphisms | 22 |
 | `Topology/VectorBundle/Pullback.lean` | coordinates of alternating maps on a pull-back bundle; `Bundle.Pullback.neg_fiber`, `add_fiber`, `sub_fiber`, `smul_fiber`, `neg_pullback`, `add_pullback`, `sub_pullback`, `smul_pullback`, `zero_fiber`, `eq_zero_fiber_iff`, `zero_fiber_eq_iff`, `eq_zero_pullback_iff` and `zero_pullback_eq_iff`: operations and zeros in a fibre of a pull-back bundle, for `simp` | 18, 20 |
 | `Topology/VectorBundle/Coordinates.lean` | coordinates of continuous bilinear forms on a vector bundle | 6 |
-| `Geometry/Manifold/VectorBundle/BilinearForm.lean` | `SymplecticGeometry.Bundle.mapBilinPairAt`: a map on pairs of continuous bilinear forms on a normed space, applied in each fibre through a family of fibre equivalences; for a map natural under automorphisms, independence of the equivalence (`mapBilinPairAt_eq_conj`) and, for one $C^n$ on an open set, smoothness along $C^n$ sections (`contMDiffAt_mapBilinPairAt`); `polarFormulaAt` and the fibrewise Moser flow of the classification are built on it | 6, 11 |
+| `Geometry/Manifold/VectorBundle/BilinearForm.lean` | `SymplecticGeometry.Bundle.mapBilinPairAt`: a map on pairs of continuous bilinear forms on a normed space, applied in each fibre through a family of fibre equivalences; for a map related to one on another model by the equivalences between the models, computation through any equivalence with that model (`mapBilinPairAt_eq_conj`) and, for one $C^n$ on an open set, smoothness along $C^n$ sections (`contMDiffAt_mapBilinPairAt`); `polarFormulaAt` and the fibrewise Moser flow of the classification are built on it | 6, 11 |
 | `Data/Bundle.lean` | `Bundle.Pullback.eq_iff`, `eq_fiber_iff`, `neg_apply_fiber` and `neg_apply_pullback`: equations and negated functions in a fibre of a pull-back bundle, for `simp` | 20 |
 | `Geometry/Manifold/VectorBundle/Symplectic/Pullback.lean` | pull-backs of forms, of tame and compatible pairs, of isomorphisms and of frames | 21 |
 | `Geometry/Manifold/VectorBundle/Symplectic/Prod.lean` | direct sums of forms, of tame and compatible pairs and of isomorphisms; block frames | 22 |
@@ -391,7 +391,7 @@ but the predicate below, as in Tau Ceti for $TM$.
   The fibres carry no norm, so Tau Ceti's `ContinuousAlternatingMap.flatL`
   cannot be applied to `ω x` itself: `flat` is `flatL ℝ F ℝ` of `ω x` read
   through the fibre equivalence of `trivializationAt F V x`, carried back by
-  the same equivalence (`ContinuousLinearEquiv.arrowCongr`); `flat_apply`
+  the same equivalence (`ContinuousLinearEquiv.bilinearCongr`); `flat_apply`
   hides that choice. `contMDiff_flat`: the map
   `x ↦ TotalSpace.mk' (F →L[ℝ] F →L[ℝ] ℝ) x (ω.flat x)` is
   `ContMDiff I (I.prod 𝓘(ℝ, F →L[ℝ] F →L[ℝ] ℝ)) n`, by the proof of Tau

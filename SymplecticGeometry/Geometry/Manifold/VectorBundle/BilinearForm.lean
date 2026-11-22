@@ -19,13 +19,16 @@ obtained from `Φ` and a pair `(a, b)` of continuous bilinear forms on `V x`: ca
 `W` along `e x`, apply `Φ`, and conjugate back
 (`SymplecticGeometry.Bundle.mapBilinPairAt e Φ x a b`).
 
-Suppose that `Φ` is natural on a set `U` of pairs: for every automorphism `f` of `W` and
-`p ∈ U`, carrying both forms of `p` along `f` conjugates `Φ p` by `f`. Then the endomorphism does
-not depend on the equivalence, as long as the carried pair lies in `U`
-(`mapBilinPairAt_eq_conj`). If moreover `U` is open and `Φ` is `Cⁿ` on `U`, then applying the
-construction to two sections of the bundle of bilinear forms along a map, both `Cⁿ` at a point
-where their carried pair lies in `U`, gives a section of the endomorphism bundle along that map
-that is `Cⁿ` at that point (`contMDiffAt_mapBilinPairAt`).
+Let `Φ'` be a map of the same kind on another normed space `W'`, related to `Φ` on a set `U'` of
+pairs on `W'`: for every continuous linear equivalence `f : W' ≃L[ℝ] W` and `p ∈ U'`, carrying
+both forms of `p` along `f` and applying `Φ` gives `Φ' p` conjugated by `f`. Then the endomorphism
+may be computed from `Φ'` through any equivalence of `V x` with `W'` that carries the pair into
+`U'` (`mapBilinPairAt_eq_conj`). With `W' = W` and `Φ' = Φ`: if `Φ` is natural on a set `U` under
+the automorphisms of `W`, the endomorphism does not depend on the equivalence. If moreover `U` is
+open and `Φ` is `Cⁿ` on `U`, then applying the construction to two sections of the bundle of
+bilinear forms along a map, both `Cⁿ` at a point where their carried pair lies in `U`, gives a
+section of the endomorphism bundle along that map that is `Cⁿ` at that point
+(`contMDiffAt_mapBilinPairAt`).
 
 ## Main definitions
 
@@ -34,9 +37,9 @@ that is `Cⁿ` at that point (`contMDiffAt_mapBilinPairAt`).
 
 ## Main results
 
-* `SymplecticGeometry.Bundle.mapBilinPairAt_eq_conj`: for `Φ` natural on `U`, the endomorphism
-  may be computed through any continuous linear equivalence of `V x` with `W` that carries the
-  pair into `U`.
+* `SymplecticGeometry.Bundle.mapBilinPairAt_eq_conj`: for `Φ` related to `Φ'` on `U'` by the
+  equivalences `W' ≃L[ℝ] W`, the endomorphism may be computed from `Φ'` through any continuous
+  linear equivalence of `V x` with `W'` that carries the pair into `U'`.
 * `SymplecticGeometry.Bundle.contMDiffAt_mapBilinPairAt`: for `Φ` natural and `Cⁿ` on an open
   set `U`, the construction is `Cⁿ` along sections that are `Cⁿ` at a point where their pair
   is carried into `U`.
@@ -84,17 +87,22 @@ theorem mapBilinPairAt_def (e : ∀ x, V x ≃L[ℝ] W)
 variable {Φ : (W →L[ℝ] W →L[ℝ] ℝ) × (W →L[ℝ] W →L[ℝ] ℝ) → W →L[ℝ] W}
   {U : Set ((W →L[ℝ] W →L[ℝ] ℝ) × (W →L[ℝ] W →L[ℝ] ℝ))}
 
-/-- **Independence of the equivalence.** If `Φ` is natural on `U` under the automorphisms of `W`,
-then `mapBilinPairAt e Φ x a b` may be computed through any continuous linear equivalence `e'` of
-`V x` with `W` that carries `(a, b)` into `U`. -/
-theorem mapBilinPairAt_eq_conj (e : ∀ x, V x ≃L[ℝ] W)
-    (hΦ : ∀ f : W ≃L[ℝ] W, ∀ p ∈ U,
-      Φ (f.bilinearCongr p.1, f.bilinearCongr p.2) = f.conjContinuousAlgEquiv (Φ p))
-    {x : M} {a b : V x →L[ℝ] V x →L[ℝ] ℝ} (e' : V x ≃L[ℝ] W)
-    (h : (e'.bilinearCongr a, e'.bilinearCongr b) ∈ U) :
+/-- **Independence of the equivalence.** Let `Φ'` send pairs of continuous bilinear forms on a
+normed space `W'` to endomorphisms of `W'`, so that for every continuous linear equivalence
+`f : W' ≃L[ℝ] W` and every pair `p ∈ U'`, `Φ` of `p` carried along `f` is `Φ' p` conjugated by
+`f`. Then for any continuous linear equivalence `e'` of `V x` with `W'` that carries `(a, b)` into
+`U'`, `mapBilinPairAt e Φ x a b` is `Φ'` of `(a, b)` carried along `e'`, conjugated back by
+`e'`. -/
+theorem mapBilinPairAt_eq_conj (e : ∀ x, V x ≃L[ℝ] W) {W' : Type*} [NormedAddCommGroup W']
+    [NormedSpace ℝ W'] {Φ' : (W' →L[ℝ] W' →L[ℝ] ℝ) × (W' →L[ℝ] W' →L[ℝ] ℝ) → W' →L[ℝ] W'}
+    {U' : Set ((W' →L[ℝ] W' →L[ℝ] ℝ) × (W' →L[ℝ] W' →L[ℝ] ℝ))}
+    (hΦ : ∀ f : W' ≃L[ℝ] W, ∀ p ∈ U',
+      Φ (f.bilinearCongr p.1, f.bilinearCongr p.2) = f.conjContinuousAlgEquiv (Φ' p))
+    {x : M} {a b : V x →L[ℝ] V x →L[ℝ] ℝ} (e' : V x ≃L[ℝ] W')
+    (h : (e'.bilinearCongr a, e'.bilinearCongr b) ∈ U') :
     mapBilinPairAt e Φ x a b =
-      e'.symm.conjContinuousAlgEquiv (Φ (e'.bilinearCongr a, e'.bilinearCongr b)) := by
-  -- `e x` is `e'` followed by the automorphism `f` of `W`.
+      e'.symm.conjContinuousAlgEquiv (Φ' (e'.bilinearCongr a, e'.bilinearCongr b)) := by
+  -- `e x` is `e'` followed by the equivalence `f : W' ≃L[ℝ] W`.
   let f := e'.symm.trans (e x)
   have he : e x = e'.trans f := by
     ext v
@@ -150,15 +158,12 @@ theorem contMDiffAt_mapBilinPairAt {n : WithTop ℕ∞} (e : ∀ x, V x ≃L[ℝ
         (fun y ↦ ContinuousLinearMap.inCoordinates F V (F →L[ℝ] ℝ)
           (fun x ↦ V x →L[ℝ] Trivial M ℝ x) x₀ (f y) x₀ (f y) (σ y)) y₀ :=
       ((contMDiffAt_hom_bundle _).1 hσ).2
-    -- Carrying along `T` is precomposing with `T.symm` in both arguments.
-    let Ts : W →L[ℝ] F := T.symm
-    have hC : C σ = fun y ↦ (ContinuousLinearMap.compL ℝ W F ℝ).flip Ts ∘L
-        (ContinuousLinearMap.inCoordinates F V (F →L[ℝ] ℝ)
-          (fun x ↦ V x →L[ℝ] Trivial M ℝ x) x₀ (f y) x₀ (f y) (σ y) ∘L Ts) := by
-      ext y v w
-      simp [C, Ts]
-    rw [hC]
-    exact contMDiffAt_const.clm_comp (hR.clm_comp contMDiffAt_const)
+    -- Carrying along `T` is a continuous linear map, hence smooth.
+    have hL : ContDiff ℝ n
+        (T.bilinearCongr (G := ℝ) : (F →L[ℝ] F →L[ℝ] ℝ) → W →L[ℝ] W →L[ℝ] ℝ) :=
+      ContinuousLinearMap.contDiff (𝕜 := ℝ) (E := F →L[ℝ] F →L[ℝ] ℝ)
+        (F := W →L[ℝ] W →L[ℝ] ℝ) (T.bilinearCongr (G := ℝ))
+    exact hL.contDiffAt.comp_contMDiffAt hR
   -- Over the base set, the readings are the forms carried along the fibre equivalence and `T`.
   have hcarry (y : N) (hy : f y ∈ e₀.baseSet) (σ : ∀ y, V (f y) →L[ℝ] V (f y) →L[ℝ] ℝ) :
       C σ y = ((e₀.continuousLinearEquivAt ℝ (f y) hy).trans T).bilinearCongr (σ y) := by

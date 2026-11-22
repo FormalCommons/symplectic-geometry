@@ -226,18 +226,10 @@ theorem polarFormulaAt_eq_conj {x : M} {σ : V x →L[ℝ] V x →L[ℝ] ℝ}
     [NormedAddCommGroup W] [InnerProductSpace ℝ W] [FiniteDimensional ℝ W] (e : V x ≃L[ℝ] W) :
     g.polarFormulaAt x σ = e.symm.conjContinuousAlgEquiv
       (TauCeti.metricPolarFormula (e.bilinearCongr (g.inner x)) (e.bilinearCongr σ)) := by
-  let e₀ := euclideanEquivAt F V x
-  -- Carrying along `e` is carrying along `e₀`, then along `f = e₀⁻¹ ≫ e`.
-  let f := e₀.symm.trans e
-  have he : e = e₀.trans f := by
-    ext v
-    simp [f]
-  rw [polarFormulaAt_def, SymplecticGeometry.Bundle.mapBilinPairAt_def, he,
-    ContinuousLinearEquiv.bilinearCongr_trans, ContinuousLinearEquiv.trans_apply,
-    ContinuousLinearEquiv.trans_apply,
-    TauCeti.metricPolarFormula_conj f (g.mem_polarDomain_bilinearCongr e₀ hσ)]
-  ext v
-  simp [e₀]
+  rw [polarFormulaAt_def]
+  exact SymplecticGeometry.Bundle.mapBilinPairAt_eq_conj _
+    (Φ' := fun p ↦ TauCeti.metricPolarFormula p.1 p.2)
+    (fun f _ hp ↦ TauCeti.metricPolarFormula_conj f hp) e (g.mem_polarDomain_bilinearCongr e hσ)
 
 /-- For a metric of class `Cⁿ`, the polar formula is a `Cⁿ` map from the bundle of bilinear forms
 to the endomorphism bundle on the domain `Bundle.polarFormulaDomain F V`. -/

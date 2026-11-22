@@ -560,7 +560,7 @@ This is $\mathrm{Met}(V)$, in `SymplecticGeometry`.
   `ContinuousLinearEquiv.ofFinrankEq`), and the instances `Nonempty` and
   `ContractibleSpace (innerProducts V)` (Mathlib's `Convex.contractibleSpace`).
 - `innerProducts.transport (e : V ≃L[ℝ] W) : innerProducts V ≃ₜ innerProducts W`,
-  `g ↦ g.bilinearComp e.symm e.symm`, with `@[simp]` `transport_apply`
+  `g ↦ e.bilinearCongr g`, with `@[simp]` `transport_apply`
   (`transport e g w w' = g (e.symm w) (e.symm w')`), `transport_symm`,
   `transport_trans` and `transport_refl`. It pushes forward along `e`, in the
   same direction as Tau Ceti's `SymplecticForm.transport` and
