@@ -53,6 +53,10 @@ section `σ`, a connection form is `θ^* dθ + π^* (σ^* α)`.
 * `SymplecticGeometry.IsCircleConnectionForm.add_mpullback`,
   `SymplecticGeometry.IsCircleConnectionForm.existsUnique_eq_add_mpullback`,
   `SymplecticGeometry.IsCircleConnectionForm.curvature_add_mpullback`: the affine structure.
+* `SymplecticGeometry.mpullback_op_smul_mpullback_trivialization_snd`,
+  `SymplecticGeometry.mpullback_trivialization_snd_apply_rightFundamentalVectorField`: over the
+  base set of an equivariant trivialization with fibre coordinate `θ`, `θ^* dθ` is invariant and
+  takes the value `1` on the fundamental vector field.
 * `SymplecticGeometry.exists_isCircleConnectionForm`: existence of connection forms.
 * `SymplecticGeometry.IsCircleConnectionForm.apply_eq_mpullback_add_mpullback`: the local form in
   the trivialization of a local section.
@@ -338,7 +342,8 @@ theorem IsCircleConnectionForm.existsUnique_eq_add_mpullback (hα : IsCircleConn
         funext i
         fin_cases i
         exact hc.trans (zero_add _).symm
-      rw [hv0, ContinuousAlternatingMap.vecCons_add, ContinuousAlternatingMap.vecCons_smul, ((β - α).val x).map_coord_zero (0 : Fin 1) rfl,
+      rw [hv0, ContinuousAlternatingMap.vecCons_add, ContinuousAlternatingMap.vecCons_smul,
+        ((β - α).val x).map_coord_zero (0 : Fin 1) rfl,
         Submodule.coe_sub, Pi.sub_apply, ContinuousAlternatingMap.sub_apply,
         hα.apply_rightFundamentalVectorField, hβ.apply_rightFundamentalVectorField, sub_self,
         smul_zero, add_zero]
@@ -366,37 +371,17 @@ section Local
 
 variable {e : Trivialization Circle (π Circle P)} [e.IsEquivariant]
 
-omit [IsManifold IB ∞ B] [∀ b, TopologicalSpace (P b)] [FiberBundle Circle P]
-  [PrincipalBundle Circle P] [ContMDiffFiberBundle ∞ Circle P IB (𝓡 1)] in
-/-- The fibre coordinate of an equivariant trivialization is equivariant. -/
-private theorem trivialization_snd_op_smul {x : ManifoldTotalSpace Circle P}
-    (hx : ((ManifoldTotalSpace.homeomorph Circle P).symm x).proj ∈ e.baseSet) (z : Circle) :
-    (e ((ManifoldTotalSpace.homeomorph Circle P).symm (op z • x))).2 =
-      (e ((ManifoldTotalSpace.homeomorph Circle P).symm x)).2 * z := by
-  rw [ManifoldTotalSpace.homeomorph_symm_smul]
-  exact e.snd_apply_smul hx _ z
-
-variable (hθ : ContMDiffOn (IB.prod (𝓡 1)) (𝓡 1) ∞
-  (fun x : ManifoldTotalSpace Circle P ↦ (e ((ManifoldTotalSpace.homeomorph Circle P).symm x)).2)
-  ((fun x : ManifoldTotalSpace Circle P ↦ ((ManifoldTotalSpace.homeomorph Circle P).symm x).proj)
-    ⁻¹' e.baseSet))
+variable (hθ : ∀ x : ManifoldTotalSpace Circle P,
+  ((ManifoldTotalSpace.homeomorph Circle P).symm x).proj ∈ e.baseSet →
+    MDifferentiableAt (IB.prod (𝓡 1)) (𝓡 1) (fun x : ManifoldTotalSpace Circle P ↦
+      (e ((ManifoldTotalSpace.homeomorph Circle P).symm x)).2) x)
 include hθ
 
-omit [IsManifold IB ∞ B] [∀ b, MulAction Circleᵐᵒᵖ (P b)] [PrincipalBundle Circle P]
-  [ContMDiffFiberBundle ∞ Circle P IB (𝓡 1)] [e.IsEquivariant] in
-/-- The fibre coordinate of a trivialization is differentiable over its base set. -/
-private theorem mdifferentiableAt_trivialization_snd {x : ManifoldTotalSpace Circle P}
-    (hx : ((ManifoldTotalSpace.homeomorph Circle P).symm x).proj ∈ e.baseSet) :
-    MDifferentiableAt (IB.prod (𝓡 1)) (𝓡 1) (fun x : ManifoldTotalSpace Circle P ↦
-      (e ((ManifoldTotalSpace.homeomorph Circle P).symm x)).2) x :=
-  (hθ.contMDiffAt ((e.open_baseSet.preimage
-    (ManifoldTotalSpace.contMDiff_proj ∞ Circle P IB (𝓡 1)).continuous).mem_nhds
-      hx)).mdifferentiableAt (by simp)
-
 omit [IsManifold IB ∞ B] [ContMDiffFiberBundle ∞ Circle P IB (𝓡 1)] in
-/-- Over the base set of an equivariant trivialization, the pull-back of the angular form along
-its fibre coordinate is invariant under the action of `Circle`. -/
-private theorem mpullback_op_smul_mpullback_trivialization_snd {x : ManifoldTotalSpace Circle P}
+/-- Let `e` be an equivariant trivialization whose fibre coordinate `θ` is differentiable over its
+base set. Over the base set, `θ^* dθ`, the pull-back of the angular form of the circle along `θ`,
+is invariant under the action of `Circle`. -/
+theorem mpullback_op_smul_mpullback_trivialization_snd {x : ManifoldTotalSpace Circle P}
     (hx : ((ManifoldTotalSpace.homeomorph Circle P).symm x).proj ∈ e.baseSet) (z : Circle) :
     TauCeti.mpullback (IB.prod (𝓡 1)) (IB.prod (𝓡 1))
       (fun y : ManifoldTotalSpace Circle P ↦ op z • y)
@@ -418,15 +403,17 @@ private theorem mpullback_op_smul_mpullback_trivialization_snd {x : ManifoldTota
   -- Near `x`, the fibre coordinate of `y • z` is that of `y` times `z`.
   have heq : θ ∘ (fun y ↦ op z • y) =ᶠ[𝓝 x] (fun w : Circle ↦ w * z) ∘ θ := by
     filter_upwards [hS.mem_nhds hx] with y hy
-    exact trivialization_snd_op_smul hy z
-  rw [← mpullback_comp_at hsmul (mdifferentiableAt_trivialization_snd hθ hzx), heq.mpullback_eq,
-    mpullback_comp_at (mdifferentiableAt_trivialization_snd hθ hx) hmul,
+    simp only [Function.comp_apply, θ, ManifoldTotalSpace.homeomorph_symm_smul]
+    exact e.snd_apply_smul hy _ z
+  rw [← mpullback_comp_at hsmul (hθ _ hzx), heq.mpullback_eq,
+    mpullback_comp_at (hθ _ hx) hmul,
     mpullback_mul_right_circleAngularForm]
 
 omit [IsManifold IB ∞ B] [ContMDiffFiberBundle ∞ Circle P IB (𝓡 1)] in
-/-- Over the base set of an equivariant trivialization, the pull-back of the angular form along
-its fibre coordinate takes the value `1` on the fundamental vector field of `1`. -/
-private theorem mpullback_trivialization_snd_apply_rightFundamentalVectorField
+/-- Let `e` be an equivariant trivialization whose fibre coordinate `θ` is differentiable over its
+base set. Over the base set, `θ^* dθ`, the pull-back of the angular form of the circle along `θ`,
+takes the value `1` on the fundamental vector field of `1`. -/
+theorem mpullback_trivialization_snd_apply_rightFundamentalVectorField
     {x : ManifoldTotalSpace Circle P}
     (hx : ((ManifoldTotalSpace.homeomorph Circle P).symm x).proj ∈ e.baseSet) :
     TauCeti.mpullback (IB.prod (𝓡 1)) (𝓡 1) (fun x : ManifoldTotalSpace Circle P ↦
@@ -438,10 +425,12 @@ private theorem mpullback_trivialization_snd_apply_rightFundamentalVectorField
     (by simp) x 1
   have hθx : MDifferentiableAt (IB.prod (𝓡 1)) (𝓡 1) θ (op (1 : Circle) • x) := by
     rw [op_one, one_smul]
-    exact mdifferentiableAt_trivialization_snd hθ hx
+    exact hθ _ hx
   -- Along the orbit of `x`, the fibre coordinate is left multiplication by `θ x`.
   have hcomp : θ ∘ (fun g : Circle ↦ op g • x) = fun g ↦ θ x * g :=
-    funext fun g ↦ trivialization_snd_op_smul hx g
+    funext fun g ↦ by
+      simp only [Function.comp_apply, θ, ManifoldTotalSpace.homeomorph_symm_smul]
+      exact e.snd_apply_smul hx _ g
   have hv : mfderiv (IB.prod (𝓡 1)) (𝓡 1) θ x
       (rightFundamentalVectorField (IB.prod (𝓡 1)) circleLieGenerator x) =
       mfderiv (𝓡 1) (𝓡 1) (fun g ↦ θ x * g) 1 circleLieGenerator := by
@@ -551,6 +540,12 @@ theorem exists_isCircleConnectionForm [FiniteDimensional ℝ EB] [T2Space B]
       (p ⁻¹' (trivializationAt Circle P b).baseSet) :=
     ManifoldTotalSpace.contMDiffOn_trivialization_snd_comp _ (f := fun x ↦ x) contMDiffOn_id
       fun _ hx ↦ hx
+  have hθd (b : B) (x : ManifoldTotalSpace Circle P)
+      (hx : p x ∈ (trivializationAt Circle P b).baseSet) :
+      MDifferentiableAt (IB.prod (𝓡 1)) (𝓡 1) (fun x : ManifoldTotalSpace Circle P ↦
+        (trivializationAt Circle P b ((ManifoldTotalSpace.homeomorph Circle P).symm x)).2) x :=
+    ((hθ b).contMDiffAt (((trivializationAt Circle P b).open_baseSet.preimage
+      hpc.continuous).mem_nhds hx)).mdifferentiableAt (by simp)
   -- The local connection forms, cut off by the partition of unity.
   set t : B → RoughForm (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) ℝ 1 := fun b x ↦
     ρ b (p x) • TauCeti.mpullback (IB.prod (𝓡 1)) (𝓡 1) (fun x : ManifoldTotalSpace Circle P ↦
@@ -602,7 +597,7 @@ theorem exists_isCircleConnectionForm [FiniteDimensional ℝ EB] [T2Space B]
     · have hxb : p x ∈ (trivializationAt Circle P b).baseSet := hρ b (subset_tsupport _ hb)
       congr 1
       exact (mpullback_apply _ _ _ _).symm.trans (DFunLike.congr_fun
-        (mpullback_op_smul_mpullback_trivialization_snd (hθ b) hxb z) v)
+        (mpullback_op_smul_mpullback_trivialization_snd (hθd b) hxb z) v)
   · obtain ⟨s, hsmem, hs⟩ := hfin x
     have hterm (b : B) :
         t b x ![rightFundamentalVectorField (IB.prod (𝓡 1)) circleLieGenerator x] =
@@ -610,7 +605,7 @@ theorem exists_isCircleConnectionForm [FiniteDimensional ℝ EB] [T2Space B]
       simp only [ht, ContinuousAlternatingMap.smul_apply, smul_eq_mul]
       by_cases hb : ρ b (p x) = 0
       · simp [hb]
-      · rw [mpullback_trivialization_snd_apply_rightFundamentalVectorField (hθ b)
+      · rw [mpullback_trivialization_snd_apply_rightFundamentalVectorField (hθd b)
           (hρ b (subset_tsupport _ hb)), mul_one]
     rw [hs x rfl, ContinuousAlternatingMap.sum_apply, Finset.sum_congr rfl fun b _ ↦ hterm b,
       ← finsum_eq_sum_of_support_subset _ fun b hb ↦ hsmem b hb, ρ.sum_eq_one (Set.mem_univ _)]
@@ -647,6 +642,11 @@ theorem IsCircleConnectionForm.apply_eq_mpullback_add_mpullback (hα : IsCircleC
       (hU := hU) (hσ := hσ) hσ')).mono fun y hy ↦ by
         rw [Set.mem_preimage, PrincipalBundle.baseSet_trivializationOfSection] at hy
         exact hy
+  have hθd (y : ManifoldTotalSpace Circle P) (hy : p y ∈ e.baseSet) :
+      MDifferentiableAt (IB.prod (𝓡 1)) (𝓡 1) θ y :=
+    (hθ.contMDiffAt ((e.open_baseSet.preimage
+      (ManifoldTotalSpace.contMDiff_proj ∞ Circle P IB (𝓡 1)).continuous).mem_nhds
+        hy)).mdifferentiableAt (by simp)
   have hps (b : B) : p (s b) = b := by simp [hp, hs]
   -- The section `s` has fibre coordinate `1`.
   have hθs (b : B) : θ (s b) = 1 := by
@@ -671,10 +671,10 @@ theorem IsCircleConnectionForm.apply_eq_mpullback_add_mpullback (hα : IsCircleC
     rw [show p ∘ s = id from funext hps, mfderiv_id] at h
     exact DFunLike.congr_fun h _
   have hdθs : mfderiv (IB.prod (𝓡 1)) (𝓡 1) θ (s (p x)) w = 0 := by
-    have h := mfderiv_comp (p x) (mdifferentiableAt_trivialization_snd hθ hxU) hsd
+    have h := mfderiv_comp (p x) (hθd _ hxU) hsd
     rw [show θ ∘ s = fun _ ↦ (1 : Circle) from funext hθs, mfderiv_const] at h
     exact (DFunLike.congr_fun h _).symm
-  have hkey := hα.sub_apply_eq_of_mfderiv_proj_eq hθ hxU (hps (p x)).symm (v 0) w hdps
+  have hkey := hα.sub_apply_eq_of_mfderiv_proj_eq hθd hxU (hps (p x)).symm (v 0) w hdps
   have hℓ : TauCeti.mpullback (IB.prod (𝓡 1)) (𝓡 1) θ circleAngularForm (s (p x)) ![w] = 0 := by
     rw [mpullback_apply]
     exact (circleAngularForm (θ (s (p x)))).map_coord_zero (0 : Fin 1) hdθs
