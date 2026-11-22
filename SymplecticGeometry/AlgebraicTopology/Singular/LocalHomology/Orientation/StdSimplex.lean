@@ -34,7 +34,7 @@ orientation to `1`, is the connecting morphism of `(ℝ², ℝ² ∖ {p})`, foll
 `ℝ² ∖ {p} → Circle` and `Circle.singularHomologyOneIso`
 (`TauCeti.singularHomologyComplSingletonIsoOfOrientation_refl_hom_eq_radialProjection`, for the
 linear isometry `(x, y) ↦ x + iy` of `ℝ²` with `ℂ`, which preserves orientations). The direction
-map is radial projection (`Circle.radialProjection`) after translation by `-p` and that isometry.
+map is `Circle.radialProjectionAt` of that isometry and `p`.
 
 The connecting morphism sends `[σ]` to the class of the edge cycle `t₀ - t₁ + t₂`
 (`TopPair.relClass_singularHomologyδ_two`), whose edges are the segments from `e₀` to `e₁`, from
@@ -123,15 +123,11 @@ private abbrev R : ModuleCat.{0} ℤ := ModuleCat.of ℤ (ULift.{0} ℤ)
 private abbrev toComplex : EuclideanSpace ℝ (Fin 2) ≃ₗᵢ[ℝ] ℂ :=
   Complex.orthonormalBasisOneI.repr.symm
 
-/-- The direction about `p` of a point of `ℝ² ∖ {p}`, in `Circle`: radial projection after
-translation by `-p` and `toComplex`, as a map out of the subspace of the pair `(ℝ², ℝ² ∖ {p})`. -/
+/-- The direction about `p` of a point of `ℝ² ∖ {p}`, in `Circle`: `Circle.radialProjectionAt`
+of `toComplex` and `p`, as a map out of the subspace of the pair `(ℝ², ℝ² ∖ {p})`. -/
 private abbrev direction (p : EuclideanSpace ℝ (Fin 2)) :
     (ofSubset ({p}ᶜ : Set (TopCat.of (EuclideanSpace ℝ (Fin 2))))).snd ⟶ TopCat.of Circle :=
-  TopCat.ofHom (Circle.radialProjection.comp
-    ⟨fun y : ({p}ᶜ : Set (EuclideanSpace ℝ (Fin 2))) ↦
-      ⟨toComplex ((y : EuclideanSpace ℝ (Fin 2)) - p),
-        fun h ↦ y.property (sub_eq_zero.1 ((map_eq_zero_iff toComplex toComplex.injective).1 h))⟩,
-      by fun_prop⟩)
+  TopCat.ofHom (Circle.radialProjectionAt toComplex p)
 
 /-! ### The faces of the standard simplex -/
 
@@ -303,9 +299,9 @@ private lemma toSSet_map_app_simplex₁_segmentCompl_direction {a b p : Euclidea
   ext t
   rw [ContinuousMap.comp_apply, ContinuousMap.comp_apply, coe_exp_segmentLift hA hζ hc,
     ← toComplex_segment_sub]
-  -- `direction p` is radial projection after `y ↦ toComplex (y - p)`, and `segmentCompl` is
-  -- `Path.segment a b` with its values in `ℝ² ∖ {p}`.
-  refine (Circle.coe_radialProjection_apply _).trans ?_
+  -- `segmentCompl` is `Path.segment a b`, with values in the subspace of the pair, which is
+  -- `{p}ᶜ` only after unfolding `TopPair.ofSubset`, so the last step is by definition.
+  refine (Circle.coe_radialProjectionAt_apply _ _ _).trans ?_
   rw [Complex.real_smul, Complex.ofReal_inv, div_eq_inv_mul]
   rfl
 
@@ -475,7 +471,7 @@ theorem relClass_fullSimplex_eq_neg_localOrientationOfOrientedChart
         (OpenPartialHomeomorph.refl (EuclideanSpace ℝ (Fin 2))) (x := p) (by simp) (n := 1)
         (EuclideanSpace.basisFun (Fin 2) ℝ).toBasis.orientation finrank_euclideanSpace_fin).hom,
       Preadditive.neg_comp, Iso.inv_hom_id,
-      singularHomologyComplSingletonIsoOfOrientation_refl_hom_eq_radialProjection _ _ p toComplex
+      singularHomologyComplSingletonIsoOfOrientation_refl_hom_eq_radialProjection R _ _ p toComplex
         (by rw [← Complex.orientation_map_orthonormalBasisOneI_repr,
           LinearIsometryEquiv.toLinearEquiv_symm, ← Orientation.map_symm,
           Equiv.symm_apply_apply])]

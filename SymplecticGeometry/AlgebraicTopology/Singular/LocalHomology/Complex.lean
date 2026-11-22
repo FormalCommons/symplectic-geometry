@@ -76,18 +76,10 @@ theorem singularHomologyOneIso_singularHomologyδ_localOrientation_complexOrient
   set R := ModuleCat.of ℤ (ULift.{0} ℤ)
   set e := singularHomologyComplSingletonIsoOfOrientation R (OpenPartialHomeomorph.refl ℂ)
     (x := (0 : ℂ)) (by simp) (n := 1) Complex.orientation Complex.finrank_real_complex
-  have he := singularHomologyComplSingletonIsoOfOrientation_refl_hom_eq_radialProjection
+  have he := singularHomologyComplSingletonIsoOfOrientation_refl_hom_eq_radialProjection R
     Complex.orientation Complex.finrank_real_complex 0 (LinearIsometryEquiv.refl ℝ ℂ)
     (by simp)
-  -- With `p = 0` and `φ = id`, the map to `Circle` is radial projection.
-  have hrad : Circle.radialProjection.comp
-      ⟨fun y : ({0}ᶜ : Set ℂ) ↦ ⟨LinearIsometryEquiv.refl ℝ ℂ ((y : ℂ) - 0),
-        fun h ↦ y.property (sub_eq_zero.1 ((map_eq_zero_iff _
-          (LinearIsometryEquiv.refl ℝ ℂ).injective).1 h))⟩, by fun_prop⟩ =
-      Circle.radialProjection := by
-    ext y
-    simp
-  rw [hrad] at he
+  rw [Circle.radialProjectionAt_refl_zero] at he
   have h1 := ConcreteCategory.congr_hom he (e.inv 1)
   rw [Iso.inv_hom_id_apply, ConcreteCategory.comp_apply] at h1
   rw [Orientation.localOrientation_eq_localOrientationOfOrientedChart_refl,
