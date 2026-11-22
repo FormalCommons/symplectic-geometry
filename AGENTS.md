@@ -246,8 +246,8 @@ line of a comment with `axiom`.
   `.github/`, nor add a `lakefile.lean`, unless the issue you work on asks
   for it and a person in the project opened it. The one other exception is an
   issue "Move Tau Ceti to `<commit>`", which `github-actions[bot]` opens when
-  Tau Ceti's security audit has passed a later commit than the one the
-  library is on. Whoever works on it changes the first three
+  Tau Ceti's security audit has passed commits that change what the library
+  builds on. Whoever works on it changes the first three
   files as the issue says, fixes in the same pull request whatever breaks
   in the library, and creates the issues that remove from the library what
   Tau Ceti now has. A move is never split, and may go over the 2000 lines of

@@ -34,10 +34,13 @@ jobs:
           set -euo pipefail
           # Lake would read a lakefile.lean instead of lakefile.toml.
           [ ! -e lakefile.lean ] || { echo "::error::the setup is lakefile.toml; remove lakefile.lean"; exit 1; }
-          # A rev has no comment after it, but for the one that was a version
-          # tag's, which keeps its own until the first move.
-          tauceti() { sed -E 's/^rev = "([0-9a-f]{40}"|e0e414ce57522ba17560057ad0d7f2edab91bf0c" # tag v4\.37\.0-rc1)$/rev = (Tau Ceti)/' "$1"; }
-          diff <(tauceti .github/lakefile.toml) <(tauceti lakefile.toml) ||
+          # A rev has no comment after it. The one exception is the rev that
+          # was a version tag's, in lakefile.toml, which keeps its comment
+          # until the first move: a maintainer then removes the exception.
+          rev='rev = "[0-9a-f]{40}"'
+          was_tag='rev = "e0e414ce57522ba17560057ad0d7f2edab91bf0c" # tag v4\.37\.0-rc1'
+          diff <(sed -E "s/^$rev\$/rev = (Tau Ceti)/" .github/lakefile.toml) \
+               <(sed -E "s/^($rev|$was_tag)\$/rev = (Tau Ceti)/" lakefile.toml) ||
             { echo "::error::lakefile.toml differs from .github/lakefile.toml in more than Tau Ceti's rev"; exit 1; }
           pin=$(sed -nE 's/^rev = "([0-9a-f]{40})".*/\1/p' lakefile.toml)
           # The base branch's rev passed this check when it was set, so only
@@ -46,19 +49,23 @@ jobs:
             sed -nE 's/^rev = "([0-9a-f]{40})".*/\1/p' || true)
           [[ -n $BASE && $was =~ ^[0-9a-f]{40}$ ]] || { echo "::error::no rev of Tau Ceti's in the base branch's lakefile.toml"; exit 1; }
           if [ "$pin" != "$was" ]; then
-            # The commits of security-audit's history that are no older than
-            # the base branch's rev, without their files. Those along the
-            # first parents, down to that rev, are the audited commits a move
-            # can go to: not a commit of a branch that main merged, which the
-            # audit did not inspect as it is, and not an earlier commit.
-            since=$(gh api "repos/TauCetiProject/TauCeti/commits/$was" --jq '.commit.committer.date')
+            # The commits of security-audit, without their files. Those
+            # along the first parents, newer than the base branch's rev, are
+            # the audited commits a move can go to: not a commit of a branch
+            # that main merged, which the audit did not inspect as it is, and
+            # not an earlier commit. The list has the newest first.
             git init -q --bare "$RUNNER_TEMP/tauceti.git"
-            git -C "$RUNNER_TEMP/tauceti.git" fetch -q --filter=tree:0 --shallow-since="$since" \
+            git -C "$RUNNER_TEMP/tauceti.git" fetch -q --filter=tree:0 \
               https://github.com/TauCetiProject/TauCeti security-audit ||
-              { echo "::error::could not fetch Tau Ceti's branch security-audit since $since, the date of the base branch's rev $was"; exit 1; }
+              { echo "::error::could not fetch Tau Ceti's branch security-audit"; exit 1; }
             git -C "$RUNNER_TEMP/tauceti.git" rev-list --first-parent FETCH_HEAD |
               awk -v pin="$pin" -v was="$was" '$0 == pin { p = NR } $0 == was { w = NR } END { exit !(p && w && p < w) }' ||
               { echo "::error::Tau Ceti's rev $pin is not on the first-parent history of Tau Ceti's branch security-audit after the base branch's rev $was"; exit 1; }
+            # The audit reads Tau Ceti's library, not its Lake configuration,
+            # and Lake would run a lakefile.lean of Tau Ceti's.
+            files=$(gh api "repos/TauCetiProject/TauCeti/contents?ref=$pin" --jq '.[].name')
+            { grep -qx 'lakefile\.toml' <<<"$files" && ! grep -qx 'lakefile\.lean' <<<"$files"; } ||
+              { echo "::error::Tau Ceti at $pin is not set up by a lakefile.toml alone"; exit 1; }
           fi
           upstream() { gh api "repos/TauCetiProject/TauCeti/contents/$1?ref=$pin" -H "Accept: application/vnd.github.raw"; }
           [ "$(cat lean-toolchain)" = "$(upstream lean-toolchain)" ] ||
