@@ -28,9 +28,12 @@ More generally, let `φ x : E₁_x ≃ E_{j x}` be such an isomorphism over an o
 (`TauCeti.VectorBundleOrientation.sectionIndex_comap_eq_of_fiberwise`). An isolating neighbourhood
 `U` of `z` maps onto the isolating neighbourhood `j(U)` of `j z`, and `j` carries the local
 orientation of `U` at `z` to that of `j(U)` at `j z`
-(`Topology.IsOpenEmbedding.localHomologyMap_restrict_localOrientationEquiv_symm`, whose proof
-adapts that of Tau Ceti's `IsOpen.localHomologyMap_inclusion_localOrientationEquiv_symm`, the case
-of the identity map). The rest of the proof follows the step of Tau Ceti's proof of
+(`Topology.IsOpenEmbedding.localHomologyMap_restrict_localOrientationEquiv_symm`, which
+generalizes Tau Ceti's `IsOpen.localHomologyMap_inclusion_localOrientationEquiv_symm`, the case of
+the identity map; its proof composes open embeddings with Tau Ceti's
+`IsOpenEmbedding.localOrientationEquiv_trans`, as Tau Ceti's proof of
+`TauCeti.HomologicalOrientation.localIndex_comap` does). The rest of the proof follows the step of
+Tau Ceti's proof of
 `TauCeti.VectorBundleOrientation.sectionIndex_eq` that shrinks an isolating neighbourhood.
 
 ## Main results
@@ -82,22 +85,20 @@ lemma localHomologyMap_restrict_localOrientationEquiv_symm (hj : IsOpenEmbedding
           ((hj.localOrientationEquiv x d).symm z)).val =
       ((hV.isOpenEmbedding_subtypeVal.localOrientationEquiv (Subtype.mk (j x) (hUV x.property))
         d).symm z).val := by
-  -- Both sides map to `z` under the excision isomorphism of `V`, which is injective.
-  refine (ConcreteCategory.bijective_of_isIso (localHomologyIsoOfIsOpenEmbedding
-    (A := ModuleCat.{w} ℤ) (ModuleCat.of ℤ (ULift.{w} ℤ)) hV.isOpenEmbedding_subtypeVal
-    (Subtype.mk (j x) (hUV x.property)) d).hom).1 ?_
-  have h₁ : (⟨Subtype.val, continuous_subtypeVal⟩ : C(U, M)) ⁻¹' {(x : M)} ⊆ {x} :=
-    fun y hy ↦ Subtype.ext hy
-  have h₂ : j ⁻¹' {j x} ⊆ {(x : M)} := fun y hy ↦ hj.injective hy
-  rw [localHomologyIsoOfIsOpenEmbedding_hom, ← ConcreteCategory.comp_apply, localHomologyMap_comp,
-    localHomologyMap_congr _ (ContinuousMap.ext fun _ ↦ rfl :
-      (⟨Subtype.val, continuous_subtypeVal⟩ : C(V, N)).comp
-        (ContinuousMap.mk (hUV.restrict j U V) (hj.continuous.restrict hUV)) =
-      (⟨j, hj.continuous⟩ : C(M, N)).comp ⟨Subtype.val, continuous_subtypeVal⟩),
-    ← localHomologyMap_comp _ _ _ h₁ h₂, ConcreteCategory.comp_apply,
-    hU.isOpenEmbedding_subtypeVal.localHomologyMap_localOrientationEquiv_symm x _ h₁,
-    hj.localHomologyMap_localOrientationEquiv_symm _ _ h₂,
-    hV.isOpenEmbedding_subtypeVal.localHomologyMap_localOrientationEquiv_symm]
+  have hk : IsOpenEmbedding (hUV.restrict j U V) :=
+    (IsOpenEmbedding.of_comp_iff _ hV.isOpenEmbedding_subtypeVal).1
+      (hj.comp hU.isOpenEmbedding_subtypeVal)
+  -- Both local orientations of `U` come from `z` through composites of the same open
+  -- embeddings, `j ∘ Subtype.val = Subtype.val ∘ restrict`.
+  have e : (hU.isOpenEmbedding_subtypeVal.localOrientationEquiv x d).symm
+        ((hj.localOrientationEquiv x d).symm z) =
+      (hk.localOrientationEquiv x d).symm
+        ((hV.isOpenEmbedding_subtypeVal.localOrientationEquiv _ d).symm z) := by
+    rw [← Equiv.symm_trans_apply, IsOpenEmbedding.localOrientationEquiv_trans]
+    exact (congrArg (fun e ↦ e.symm z) (IsOpenEmbedding.localOrientationEquiv_trans hk
+      hV.isOpenEmbedding_subtypeVal x d)).symm
+  rw [e]
+  exact hk.localHomologyMap_localOrientationEquiv_symm x _ h
 
 end Topology.IsOpenEmbedding
 
