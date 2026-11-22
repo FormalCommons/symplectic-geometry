@@ -6,12 +6,12 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.LinearAlgebra.BilinearForm.Properties
-import Mathlib.Tactic.Linarith
+import Mathlib.Tactic.LinearCombination
 
 /-!
 # Symmetric `j`-bilinear maps with a prescribed symmetrization against a form
 
-Let `j ∘ j = -1` on `V`, finite-dimensional over a linearly ordered field, let `G` be a
+Let `j ∘ j = -1` on `V`, finite-dimensional over a field of characteristic zero, let `G` be a
 left-separating symmetric `j`-invariant bilinear form, and let `A` be a trilinear form that is
 symmetric and `j`-invariant in its last two arguments and satisfies the cyclic identity
 `A(h, u, j v) - A(u, h, j v) + A(v, h, j u) = 0`. Then there is a symmetric bilinear map `Q` that
@@ -36,10 +36,10 @@ public section
 
 namespace LinearMap.BilinForm
 
-variable {K V : Type*} [Field K] [LinearOrder K] [IsStrictOrderedRing K] [AddCommGroup V]
+variable {K V : Type*} [Field K] [CharZero K] [AddCommGroup V]
   [Module K V] [FiniteDimensional K V]
 
-/-- Let `j ∘ j = -1` on `V`, finite-dimensional over a linearly ordered field `K`, let `G`
+/-- Let `j ∘ j = -1` on `V`, finite-dimensional over a field `K` of characteristic zero, let `G`
 be a symmetric left-separating bilinear form with `G (j u) (j v) = G u v`, and let `A` be a
 trilinear form, symmetric and `j`-invariant in its last two arguments, with
 `A h u (j v) - A u h (j v) + A v h (j u) = 0`. Then there is a symmetric bilinear map `Q` with
@@ -88,7 +88,7 @@ theorem exists_symm_complexBilinear_apply_add_apply_eq {j : V →ₗ[K] V}
     have e2 := hA h (j v) (j u)
     have e3 := hA u (j v) (j h)
     simp only [hjj, map_neg] at h1
-    linarith
+    linear_combination (2⁻¹ : K) * (-h1 + h4 + h3 - h2 + e1 + e2 - e3)
   have hJl (h u : V) : Q (j h) u = j (Q h u) := by
     refine hinj fun v ↦ ?_
     rw [hQ, hGj', hQ]
@@ -99,7 +99,7 @@ theorem exists_symm_complexBilinear_apply_add_apply_eq {j : V →ₗ[K] V}
   have e2 := hA (j h) (j v) u
   have e3 := hA h v u
   simp only [hjj, map_neg] at e1
-  linarith
+  linear_combination (2⁻¹ : K) * e3 - (2⁻¹ : K) * e1 - (2⁻¹ : K) * e2
 
 end LinearMap.BilinForm
 

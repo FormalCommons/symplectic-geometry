@@ -260,11 +260,7 @@ private theorem exists_symm_complexBilinear_fderiv_gramInChart {form : SmoothTwo
       (A := A) (fun u v ↦ by simpa [hG₀] using hGJ u v)
       (fun h u v ↦ by simpa [hA₀] using hA h u v)
       (fun h u v ↦ by simpa [hA₀] using hAJ h u v) (fun h u v ↦ by simpa [hA₀] using hcyc h u v)
-  let Q : E →L[ℝ] E →L[ℝ] E := LinearMap.toContinuousLinearMap
-    ((LinearMap.toContinuousLinearMap : (E →ₗ[ℝ] E) ≃ₗ[ℝ] (E →L[ℝ] E)).toLinearMap ∘ₗ Ql)
-  have hQl (h u : E) : Q h u = Ql h u := by simp [Q]
-  exact ⟨Q, fun h u ↦ by rw [hQl, hQl, hQs], fun h u ↦ by rw [hQl, hQl, hQJ],
-    fun h u v ↦ by simpa [hQl, hG₀, hA₀] using hQ h u v⟩
+  exact ⟨Ql.toContinuousBilinearMap, hQs, hQJ, fun h u v ↦ by simpa [hG₀, hA₀] using hQ h u v⟩
 
 /-- The construction of an osculating chart from a chart `φ` in which `J` is `J₀` and in which the
 metric is `(u, v) ↦ ω(u, J₀ v)` for a closed form `ω`. The smoothness of the metric in charts

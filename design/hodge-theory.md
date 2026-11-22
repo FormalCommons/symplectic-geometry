@@ -504,7 +504,8 @@ Beside *Nijenhuis tensor*'s `Integrable.lean`:
 
 - `LinearMap.BilinForm.exists_symm_complexBilinear_apply_add_apply_eq`:
   the linear algebra behind $Q$ above, for a symmetric left-separating
-  $j$-invariant form on a finite-dimensional space over an ordered field.
+  $j$-invariant form on a finite-dimensional space over a field of
+  characteristic zero.
   It imports only Mathlib.
 
 ### `Geometry/Manifold/DeRham/Kahler/Identities.lean`
