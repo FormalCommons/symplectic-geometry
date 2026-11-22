@@ -53,8 +53,6 @@ it descends along the two quotient maps (`Homotopy.descCokernel`).
 * `TopCat.shufflePair_coefficient_naturality` and
   `TopCat.singularHomologyCrossRelPair_coefficient_naturality`: naturality in the two coefficient
   objects.
-* `TopPair.chainComplexMap_comp_singularChainComplexπ_eq_zero_of_range_subset`: a continuous map
-  with range in `A` induces a chain map that vanishes in the chains relative to `A`.
 * `TopCat.whiskerLeft_singularHomologyπ_comp_singularHomologyCrossRelPair`: on the relative
   cross product `Hₚ(X, A) ⊗ H_q(Y) ⟶ Hₙ(X × Y, A × Y)`, the cross product of the pairs is the
   map of pairs `(X × Y, A × Y) ⟶ (X × Y, A × Y ∪ X × B)` applied after it.
@@ -112,22 +110,13 @@ theorem chainComplexMap_comp_chainComplexπ_smallSingularSubcomplex {X Z : TopCa
     {ι : Type*} (U : ι → Set X) {f : Z ⟶ X} {i : ι} (hf : Set.range f ⊆ U i) (R : C) :
     SSet.chainComplexMap (toSSet.map f) R ≫
       (X.smallSingularSubcomplex U).pair.chainComplexπ R = 0 := by
-  have hfac : f = ofHom ⟨Set.codRestrict f (U i) fun z ↦ hf ⟨z, rfl⟩, by fun_prop⟩ ≫
-      ofHom (ContinuousMap.subtypeVal (U i)) := TopCat.ext fun _ ↦ rfl
+  have hfac : f = codRestrict f (U i) (fun z ↦ hf ⟨z, rfl⟩) ≫
+      ofHom (ContinuousMap.subtypeVal (U i)) := (codRestrict_comp_ofHom_subtypeVal _ _ _).symm
   rw [hfac, Functor.map_comp, ← toSmallSingularSubcomplex_ι U (subset_refl (U i)),
     SSet.chainComplexMap, Functor.map_comp, Functor.map_comp]
   exact (Category.assoc _ _ _).trans <| (congrArg (_ ≫ ·) ((Category.assoc _ _ _).trans
     ((congrArg (_ ≫ ·) ((X.smallSingularSubcomplex U).pair.chainComplex_condition R)).trans
       comp_zero))).trans comp_zero
-
-/-- A continuous map into `X` with range in `A` induces a chain map that vanishes in the chains of
-`X` relative to `A`. -/
-theorem _root_.TopPair.chainComplexMap_comp_singularChainComplexπ_eq_zero_of_range_subset
-    {X Z : TopCat.{w}} {A : Set X} {f : Z ⟶ X} (hf : Set.range f ⊆ A) (R : C) :
-    SSet.chainComplexMap (toSSet.map f) R ≫ (TopPair.ofSubset A).singularChainComplexπ R = 0 :=
-  TopPair.chainComplexMap_comp_singularChainComplexπ_of_fac R (TopPair.ofSubset A) f
-    (ofHom ⟨Set.codRestrict f A fun z ↦ hf ⟨z, rfl⟩, by fun_prop⟩)
-    (by rw [TopPair.ofSubset_map]; rfl)
 
 end Small
 
