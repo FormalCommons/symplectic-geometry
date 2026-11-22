@@ -68,7 +68,8 @@ type synonym `SymplecticGeometry.InteriorModel I M` carries that atlas as an ins
 ## References
 
 * J. M. Lee, *Introduction to Smooth Manifolds*, second edition, Springer GTM 218 (2013),
-  Chapter 1, Proposition 1.17.
+  Chapter 1, Proposition 1.17, and Chapter 15 (pulling back orientations along local
+  diffeomorphisms).
 -/
 
 public section
