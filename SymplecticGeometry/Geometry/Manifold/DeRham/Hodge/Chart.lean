@@ -532,9 +532,8 @@ theorem compContinuousLinearMap_hodgeStarInChart (hkl : k + l = m) {y : E} (hy :
         (a.compContinuousLinearMap
           (mfderiv I 𝓘(ℝ, E) ψ (ψ.symm y) : TangentSpace I (ψ.symm y) →L[ℝ] E)) := by
   ext w
-  refine (hodgeStarInChart_apply o ψ hkl y a _).trans (congrArg _ (funext fun i ↦ ?_))
-  have h := (ψ.mfderivSymmEquiv (by simp) hy).apply_symm_apply (w i)
-  rwa [ψ.coe_mfderivSymmEquiv, ψ.coe_mfderivSymmEquiv_symm] at h
+  exact (hodgeStarInChart_apply o ψ hkl y a _).trans (congrArg _ (funext fun i ↦
+    ψ.mfderiv_symm_apply_mfderiv_apply_of_mem_target (by simp) hy (w i)))
 
 /-- At a point of the target where the metric in the chart has derivative zero, the
 codifferential read in the chart is `± S (Alt (S ∘ Db))`, with `S` the star in the chart at that

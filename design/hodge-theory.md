@@ -676,8 +676,7 @@ was found, so `ERRATA.md` needs no entry.
 - *Moser isotopy*, `Geometry/Manifold/LocalDiffeomorph/MFDeriv.lean`
   (merged): `PartialDiffeomorph.mfderivSymmEquiv`, which this part adds
   there, only in the proofs of `DeRham/Hodge/Chart.lean`,
-  `DeRham/Hodge/LocalLaplacian.lean`, `DifferentialForm/PartialDiffeomorph.lean`
-  and `DeRham/Kahler/Identities.lean`.
+  `DeRham/Hodge/LocalLaplacian.lean` and `DeRham/Kahler/Identities.lean`.
 - *Symplectic neighbourhoods*,
   `Geometry/Manifold/DifferentialForm/Pullback/LocalDiffeomorph.lean`
   (merged): `PartialDiffeomorph.mpullback_symm_mpullback_apply`, only in

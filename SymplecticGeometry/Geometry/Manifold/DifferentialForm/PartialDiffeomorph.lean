@@ -161,9 +161,8 @@ theorem mpullback_symm_compContinuousLinearMap_mfderiv {n : WithTop ℕ∞}
   ext v
   -- The left side evaluated at `v` is the pullback evaluated at the images of `v`.
   refine (mpullback_apply _ φ y _).trans ?_
-  refine congrArg (φ (ψ.symm y)) (funext fun i ↦ ?_)
-  have h := (ψ.mfderivSymmEquiv hn hy).apply_symm_apply (v i)
-  rwa [ψ.coe_mfderivSymmEquiv, ψ.coe_mfderivSymmEquiv_symm] at h
+  exact congrArg (φ (ψ.symm y))
+    (funext fun i ↦ ψ.mfderiv_symm_apply_mfderiv_apply_of_mem_target hn hy (v i))
 
 variable [IsManifold I ∞ M]
 
