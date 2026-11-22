@@ -24,6 +24,7 @@ has one.
 
 * `SymplecticGeometry.IsSmoothlyContractible.of_diffeomorph`: smooth contractibility is invariant
   under diffeomorphisms.
+* `SymplecticGeometry.isSmoothlyContractible_self`: a real normed space is smoothly contractible.
 * `SymplecticGeometry.IsSmoothlyContractible.of_starConvex_image`: a nonempty open set `U ⊆ M`
   carried by a map `φ`, smooth on `U` and with a smooth left inverse on `φ '' U`, onto a
   star-convex subset of a normed space is smoothly contractible, by straight lines.
@@ -103,6 +104,13 @@ theorem IsSmoothlyContractible.of_diffeomorph {E' H' : Type*} [NormedAddCommGrou
   obtain ⟨c, F, hF, h₀, h₁⟩ := h
   refine ⟨e c, fun p ↦ e (F (e.symm p.1, p.2)), ?_, fun x ↦ by simp [h₀], fun x ↦ by simp [h₁]⟩
   exact e.contMDiff.comp (hF.comp ((e.symm.contMDiff.comp contMDiff_fst).prodMk contMDiff_snd))
+
+/-- A real normed space is smoothly contractible, by the homotopy `(x, t) ↦ t • x`. -/
+theorem isSmoothlyContractible_self (E' : Type*) [NormedAddCommGroup E'] [NormedSpace ℝ E'] :
+    IsSmoothlyContractible 𝓘(ℝ, E') E' :=
+  ⟨0, fun p ↦ (p.2 : ℝ) • p.1,
+    ((contMDiff_subtypeVal_Icc (x := 0) (y := 1)).comp contMDiff_snd).smul contMDiff_fst,
+    fun x ↦ by simp, fun x ↦ by simp⟩
 
 variable {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
 

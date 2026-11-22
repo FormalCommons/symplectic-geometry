@@ -560,8 +560,8 @@ Expected size: 600 lines.
 ### `Geometry/Symplectic/Liouville/Completion.lean`
 
 For `h : IsStrongFilling ω U Y`, with the collar `c`, `ε` and `Φ` of
-`h.exists_liouvilleCollar` chosen once (`Classical.choose`, through a
-private structure of the choices) and `α := fillingContactForm ω ⟨Y, hY⟩`.
+`h.exists_liouvilleCollar` chosen once (`Classical.choose`, as `h.collarWidth`,
+`h.collarFlow` and `h.collar`) and `α := fillingContactForm ω ⟨Y, hY⟩`.
 Issue 9:
 
 - `IsStrongFilling.Completion h := c.WithEnd`, with the instances above,
@@ -573,13 +573,11 @@ Issue 9:
   `completionEnd (s, x) = toCompletion (Φ (s, x))`).
 - `h.completionForm : SmoothTwoForm (𝓡 (n + 1)) h.Completion`, equal to the
   transport of `ω` on the image of the interior, and on the end piece to
-  the symplectization form $-d(e^s\alpha)$; it is glued by Tau Ceti's
-  descent along the surjective local
-  diffeomorphism from the disjoint union of the two pieces
-  (`RoughForm.IsBasic.mpullback_descendedForm`,
-  `Geometry/Manifold/DifferentialForm/Pullback/Descent.lean`), the pieces
+  the symplectization form $-d(e^s\alpha)$; it is defined pointwise, through
+  the inverse differential of the end map on the image of
+  `Ioi (-ε) ×ˢ univ` and of the inclusion elsewhere, the pieces
   agreeing on the overlap by `h.exists_liouvilleCollar`; smoothness by
-  `IsSmoothForm.of_mpullback_inclusion` (`DifferentialForm/Opens.lean`).
+  `IsLocalDiffeomorphAt.contMDiffAt_mpullback_form_iff`.
   Likewise `h.completionPrimitive` (λ on `W`, $e^s\alpha$ on the end) and
   the vector field `h.completionField` (`Y` on `W`, $\partial_s$ on the
   end; the pieces agree because the collar lines are integral curves of
@@ -667,7 +665,10 @@ Expected size: 300 lines.
   `Geometry/Manifold/DifferentialForm/Pullback/LocalDiffeomorph.lean`, merged,
   which this part extends by
   `IsLocalDiffeomorph.interior_mextDeriv_mpullback_of_interior_mextDeriv`, in
-  `Liouville/Scaling.lean`.
+  `Liouville/Scaling.lean`, and by `TauCeti.RoughForm.pushforwardAt` and
+  `TauCeti.mpullback_apply_eq_of_apply_eq_pushforwardAt`, in `Completion.lean`.
+- *Hamiltonian flows*: `Geometry/Manifold/MFDeriv/Prod.lean`
+  (`MDifferentiableAt.mfderiv_curry_left_apply`), merged, in `Completion.lean`.
 - *Moser isotopy*: `Geometry/Symplectic/Manifold/Family.lean`
   (`SmoothTwoForm.isOpen_setOf_nondegenerate_bilinFormAt`), merged, in
   `StableHamiltonian.lean`.
@@ -718,7 +719,8 @@ Expected size: 300 lines.
   `SmoothForm.mpullback`, `mextDerivₗ`, `flowOf`, `globalFlow`,
   `mpullback_flowOf_apply_of_mextDeriv_interior_eq_zero`,
   `mpullback_flowOf_apply_of_interior_mextDeriv_eq_zero`,
-  `IsSmoothForm.of_mpullback_inclusion`, `RoughForm.IsBasic.mpullback_descendedForm`;
+  `IsLocalDiffeomorphAt.contMDiffAt_mpullback_form_iff`,
+  `SmoothBundleForm.eq_of_forall_mem_dense`;
   tubular neighbourhoods and relative primitives:
   `SmoothEmbedding.exists_diffeomorph_normalBundle_subset`,
   `SmoothEmbedding.exists_isSmoothForm_relative_primitive`; relative Moser:

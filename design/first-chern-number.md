@@ -830,7 +830,9 @@ issues, in an order where each issue's blockers come before it.
    image. The step uses
    `Topology/Sets/Opens/Comap.lean`,
    `TopologicalSpace.Opens.range_val_comp_val_comap`, to read an open set of
-   `M` as one of `U ∪ V`, and `Algebra/Category/ModuleCat/Basic.lean`,
+   `M` as one of `U ∪ V`, and `comap_val_sup_comap_val_eq_top`, for the
+   cover of `U ∪ V` by `U` and `V` so read, and
+   `Algebra/Category/ModuleCat/Basic.lean`,
    `ModuleCat.bijective_zsmul_iff`, for the sign of the connecting square.
    Duality for every open subset of a finite-dimensional real normed space
    `F` is the library's
@@ -1165,7 +1167,8 @@ issues, in an order where each issue's blockers come before it.
 8. **Capping a surface with boundary.**
    `Geometry/Manifold/Gluing/CapDiscs/`, a folder of its own beside Tau
    Ceti's `Geometry/Manifold/Gluing/`, whose gluing it uses, with the
-   glued smooth surface in `Basic.lean`: a compact
+   glued smooth surface in `Basic.lean` and its point-set topology
+   (Hausdorff, compact, connected) in `Topology.lean`: a compact
    oriented surface with boundary, in the representation of *Symplectic
    vector bundles*, with its boundary circles parametrized by
    orientation-reversing loops, glued to discs along them, is a closed

@@ -53,8 +53,8 @@ Families live on `N × M`, the parameter first. A form on `M × N` is turned aro
 * `SymplecticGeometry.IsSmoothFamily.ext_on`: two smooth families that agree on a dense set of
   parameters are equal.
 * `SymplecticGeometry.isSmoothFamily_const` and the closure lemmas `IsSmoothFamily.add`, `.neg`,
-  `.sub`, `.smul`, `.fun_smul`, `.funSMul`, `.sum`, `.mpullback`, `.mextDeriv`,
-  `.extendByZero_smul` and `.comp`.
+  `.sub`, `.smul`, `.fun_smul`, `.funSMul`, `.sum`, `.mpullback`, `.mpullback_family`,
+  `.mextDeriv`, `.extendByZero_smul` and `.comp`.
 * `SymplecticGeometry.isSmoothFamily_interiorₗ`: the contractions of a two-form with a jointly
   smooth family of vector fields form a smooth family of one-forms.
 * `SymplecticGeometry.isSmoothFamily_iff_mpullback_inclusion_sup`: smoothness of a family on
@@ -447,13 +447,22 @@ variable {E' H' M' EN' HN' N' : Type*}
   [TopologicalSpace N'] [ChartedSpace HN' N'] {J' : ModelWithCorners ℝ EN' HN'}
   [IsManifold J' 1 N'] {α : N → SmoothForm I M F k}
 
+/-- **Pullback of a smooth family along a smooth family of maps.** For a smooth map
+`f : N × M' → M`, the pullbacks of `α t` along the slices `f (t, ·)` form a smooth family. -/
+protected theorem mpullback_family (hα : IsSmoothFamily J α) {f : N × M' → M}
+    (hf : ContMDiff (J.prod I') I ∞ f) :
+    IsSmoothFamily J (fun t ↦ SmoothForm.mpullback (fun x ↦ f (t, x))
+      (hf.comp (contMDiff_const.prodMk contMDiff_id)) (α t)) := by
+  obtain ⟨Ω, hΩ⟩ := hα
+  refine ⟨SmoothForm.mpullback (fun p ↦ (p.1, f p)) (contMDiff_fst.prodMk hf) Ω, fun t ↦ ?_⟩
+  have hcomp : ((fun p ↦ (p.1, f p)) ∘ Prod.mk t : M' → N × M) =
+      Prod.mk t ∘ fun x ↦ f (t, x) := rfl
+  simp only [← hΩ, SmoothForm.mpullback_mpullback, hcomp]
+
 /-- The pullbacks of a smooth family along a smooth map form a smooth family. -/
 protected theorem mpullback (hα : IsSmoothFamily J α) (f : M' → M) (hf : ContMDiff I' I ∞ f) :
-    IsSmoothFamily J (fun t ↦ SmoothForm.mpullback f hf (α t)) := by
-  obtain ⟨Ω, hΩ⟩ := hα
-  refine ⟨SmoothForm.mpullback (Prod.map id f) (contMDiff_id.prodMap hf) Ω, fun t ↦ ?_⟩
-  have hcomp : (Prod.map id f ∘ Prod.mk t : M' → N × M) = Prod.mk t ∘ f := rfl
-  simp only [← hΩ, SmoothForm.mpullback_mpullback, hcomp]
+    IsSmoothFamily J (fun t ↦ SmoothForm.mpullback f hf (α t)) :=
+  hα.mpullback_family (f := fun p : N × M' ↦ f p.2) (hf.comp contMDiff_snd)
 
 /-- Reparametrizing a smooth family by a smooth map of parameter manifolds gives a smooth
 family. -/
