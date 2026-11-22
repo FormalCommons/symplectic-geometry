@@ -15,6 +15,7 @@ public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Flow.Family
 public import SymplecticGeometry.Geometry.Manifold.Flow.TimeDependent
 public import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Transports
 public import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Velocity
+public import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
 import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Basic
 import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Real
 
@@ -267,11 +268,8 @@ theorem mpullback_prodMk_mlieDerivForm_add_mlieDerivForm_grayVectorField_apply
       mlieDerivForm (α.grayVectorField t)
         (TauCeti.mpullback I (𝓘(ℝ, ℝ).prod I) (Prod.mk t) α.val)) y =
       α.grayRate (t, y) • TauCeti.mpullback I (𝓘(ℝ, ℝ).prod I) (Prod.mk t) α.val y := by
-  ext v
-  -- A one-form is determined by its value on the single vector `v 0`.
-  have hv : v = ![v 0] := (FinVec.etaExpand_eq _).symm
-  have h := mlieDerivForm_grayVectorField_add hc y (v 0)
-  rw [hv]
+  ext w
+  have h := mlieDerivForm_grayVectorField_add hc y w
   simp only [coe_mpullback, coe_timeDeriv, Pi.add_apply, ContinuousAlternatingMap.add_apply,
     ContinuousAlternatingMap.smul_apply, smul_eq_mul] at h ⊢
   rw [add_comm, h]
