@@ -488,22 +488,19 @@ theorem L2Form.IsWeakSolution.exists_contDiff_ae_eq_localize {u : L2Form o k}
   set F := fun y ↦ r y • g y
   have hFs : tsupport F ⊆ ψ '' tsupport ρ :=
     (tsupport_smul_subset_left r g).trans (ψ.tsupport_indicator_comp_symm_subset hKρ hρ)
-  have hFV : ContDiffOn ℝ ∞ F V :=
-    (ψ.contDiff_indicator_comp_symm ρ.contMDiff hKρ hρ).contDiffOn.smul hg
-  refine ⟨F, contDiff_iff_contDiffAt.2 fun y ↦ ?_, hK.of_isClosed_subset (isClosed_tsupport _) hFs,
+  refine ⟨F, hg.contDiff_smul_of_tsupport_subset hV
+    (ψ.contDiff_indicator_comp_symm ρ.contMDiff hKρ hρ).contDiffOn
+    ((ψ.tsupport_indicator_comp_symm_subset hKρ hρ).trans hKV),
+    hK.of_isClosed_subset (isClosed_tsupport _) hFs,
     hFs.trans (hKV.trans Set.inter_subset_left), ?_⟩
-  · by_cases hy : y ∈ V
-    · exact hFV.contDiffAt (hV.mem_nhds hy)
-    · exact contDiffAt_const.congr_of_eventuallyEq
-        (notMem_tsupport_iff_eventuallyEq.1 fun h ↦ hy (hKV (hFs h)))
-  · filter_upwards [L2Form.localize_ae_eq_indicator_smul_localize ψ hρ hθ hρθ u,
-      (ae_restrict_iff' hV.measurableSet).1 hug] with y h1 h2
-    rw [h1]
-    by_cases hy : y ∈ V
-    · rw [h2 hy]
-    · -- Fold the indicator back into `r`, which vanishes off `V`.
-      change r y • _ = r y • g y
-      rw [hr0 y hy, zero_smul, zero_smul]
+  filter_upwards [L2Form.localize_ae_eq_indicator_smul_localize ψ hρ hθ hρθ u,
+    (ae_restrict_iff' hV.measurableSet).1 hug] with y h1 h2
+  rw [h1]
+  by_cases hy : y ∈ V
+  · rw [h2 hy]
+  · -- Fold the indicator back into `r`, which vanishes off `V`.
+    change r y • _ = r y • g y
+    rw [hr0 y hy, zero_smul, zero_smul]
 
 /-- **The Dirichlet pairing in a chart.** Let `ψ` be a chart, `θ` a smooth cutoff supported in its
 source, and `K` a compact subset of `ψ.target` on which `θ ∘ ψ.symm = 1`. There is `c` such that
