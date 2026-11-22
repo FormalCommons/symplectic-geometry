@@ -579,10 +579,7 @@ theorem IsCircleConnectionForm.apply_eq_mpullback_add_mpullback (hα : IsCircleC
     rw [hps, PrincipalBundle.baseSet_trivializationOfSection]
     exact hx
   ext v
-  have hv : v = ![v 0] := by
-    funext i
-    fin_cases i
-    rfl
+  have hv : v = ![v 0] := (FinVec.etaExpand_eq _).symm
   set w := mfderiv IB (IB.prod (𝓡 1)) s (p x) (mfderiv (IB.prod (𝓡 1)) IB p x (v 0))
   -- The derivative of `p ∘ s = id` is the identity, and that of `θ ∘ s = 1` vanishes.
   have hdps : mfderiv (IB.prod (𝓡 1)) IB p x (v 0) = mfderiv (IB.prod (𝓡 1)) IB p (s (p x)) w := by
