@@ -154,7 +154,6 @@ lemma excisionMap_fst : Hom.fst (excisionMap A B) = TopCat.ofHom (ContinuousMap.
 
 /-- The corestriction of a map `f : Z ⟶ X` to `A`, followed by the embedding of the subspace of
 the pair `(X, A)`, is `f`. -/
-@[reassoc]
 lemma codRestrict_comp_ofSubset_map {Z : TopCat.{w}} (f : Z ⟶ X) (h : ∀ z, f z ∈ A) :
     TopCat.codRestrict f A h ≫ (ofSubset A).map = f :=
   (congrArg (TopCat.codRestrict f A h ≫ ·) (ofSubset_map A)).trans
