@@ -731,6 +731,9 @@ issues, in an order where each issue's blockers come before it.
    `AlgebraicTopology/Singular/{Relative,Subspace}.lean`,
    `AlgebraicTopology/Singular/Subdivision/Small/{Chains,Relative}.lean` and
    `Topology/Sets/Compacts.lean`.
+   Tau Ceti's caps of chains supported in an open subspace, and their
+   relative forms, come in the same way, in
+   `AlgebraicTopology/Cohomology/Cap/Support.lean`.
 3. **The unit circle bundle of a Hermitian line bundle.**
    `Geometry/Manifold/VectorBundle/Hermitian/CircleBundle.lean`, the file
    of *Symplectic vector bundles* (its section *The circle bundle of a
