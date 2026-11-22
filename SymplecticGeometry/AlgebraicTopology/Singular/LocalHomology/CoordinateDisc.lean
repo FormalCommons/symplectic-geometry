@@ -17,6 +17,7 @@ public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Change
 public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orientation.Smooth
 public import SymplecticGeometry.LinearAlgebra.Complex.Orientation
 import SymplecticGeometry.Geometry.Manifold.Orientation.CoordinateBall
+import TauCeti.Analysis.SpecialFunctions.Complex.Arg
 import TauCeti.Geometry.Manifold.CoordinateBall
 import TauCeti.Geometry.Manifold.ModelTransport.Finrank
 import TauCeti.Topology.OpenPartialHomeomorph.Constructions
@@ -84,6 +85,10 @@ source: the inverse of Tau Ceti's oriented coordinate ball, restricted to a smal
 * `SymplecticGeometry.CoordinateDisc.boundaryLoop`: the loop `t ↦ φ(e^{2πit})`.
 * `SymplecticGeometry.CoordinateDisc.discContraction`: the radial contraction
   `(s, t) ↦ φ((1 - s) e^{2πit})` of the boundary loop inside the closed disc.
+* `SymplecticGeometry.CoordinateDisc.coord`: the inverse of a coordinate disc on its range, as a
+  map to `ℂ`.
+* `SymplecticGeometry.CoordinateDisc.phase`: the angular coordinate `w / ‖w‖` of a coordinate
+  disc, as a map to `Circle`.
 * `SymplecticGeometry.CoordinateDisc.reverse`: the coordinate disc `φ ∘ conj` for `-o`.
 * `SymplecticGeometry.CoordinateDisc.affineBall`: the map `z ↦ a + r z` of the ball into itself.
 * `SymplecticGeometry.CoordinateDisc.comp`: a coordinate disc precomposed with an
@@ -100,6 +105,9 @@ source: the inverse of Tau Ceti's oriented coordinate ball, restricted to a smal
 * `SymplecticGeometry.CoordinateDisc.isCompact_disc`,
   `SymplecticGeometry.CoordinateDisc.isOpen_openDisc`,
   `SymplecticGeometry.CoordinateDisc.openDisc_subset_disc`.
+* `SymplecticGeometry.CoordinateDisc.phase_boundaryCircle`,
+  `SymplecticGeometry.CoordinateDisc.contMDiffOn_coe_phase`: the angular coordinate is `ζ` at the
+  point `ζ` of the boundary circle, and it is `Cⁿ` off the centre where the coordinate is.
 * `SymplecticGeometry.CoordinateDisc.disc_diff_openDisc`: the closed disc minus the open disc is
   the boundary circle.
 * `SymplecticGeometry.CoordinateDisc.apply_boundaryCircle_eq_of_continuousOn`: a map continuous on
@@ -116,6 +124,8 @@ source: the inverse of Tau Ceti's oriented coordinate ball, restricted to a smal
   ball.
 * `SymplecticGeometry.CoordinateDisc.ofChart_apply`,
   `SymplecticGeometry.CoordinateDisc.ofChart_apply_zero`: the formula of `ofChart`, and its centre.
+* `SymplecticGeometry.CoordinateDisc.contMDiffOn_coord_ofChart`: for a chart of the maximal atlas,
+  the coordinate of `ofChart` is smooth on its range.
 * `SymplecticGeometry.CoordinateDisc.disc_ofChart`,
   `SymplecticGeometry.CoordinateDisc.openDisc_ofChart`: the closed and the open disc of `ofChart`
   are the images under `e.symm` of the closed and the open ball of radius `r / 2` about `c`.
@@ -346,6 +356,59 @@ theorem openDisc_subset_disc : φ.openDisc ⊆ φ.disc :=
 theorem disc_subset_range : φ.disc ⊆ Set.range φ :=
   Set.image_subset_range _ _
 
+/-! ### The coordinate of a coordinate disc -/
+
+/-- The coordinate of a coordinate disc: the inverse of `φ` on its range, as a map to `ℂ`, so
+that `φ.coord (φ z) = z` (`coord_apply`). Its values off the range of `φ` are unspecified. -/
+def coord : M → ℂ :=
+  fun x ↦ ((φ.isOpenEmbedding.toOpenPartialHomeomorph φ).symm x : ℂ)
+
+@[simp]
+theorem coord_apply (z : ball) : φ.coord (φ z) = z :=
+  congrArg Subtype.val (φ.isOpenEmbedding.toOpenPartialHomeomorph_left_inv φ)
+
+/-- The coordinate of a coordinate disc is continuous on the range of `φ`. -/
+theorem continuousOn_coord : ContinuousOn φ.coord (Set.range φ) :=
+  continuous_subtypeVal.comp_continuousOn
+    ((φ.isOpenEmbedding.toOpenPartialHomeomorph φ).continuousOn_symm.mono
+      (by simp [IsOpenEmbedding.toOpenPartialHomeomorph_target]))
+
+/-- The angular coordinate of a coordinate disc, as a point of the circle: `e^{iθ}` at
+`φ (r e^{iθ})`, that is `w / ‖w‖` for `w = φ.coord x` when `w ≠ 0` (`coe_phase`). -/
+def phase (x : M) : Circle :=
+  Circle.exp (Complex.arg (φ.coord x))
+
+theorem phase_def (x : M) : φ.phase x = Circle.exp (Complex.arg (φ.coord x)) :=
+  (rfl)
+
+theorem coe_phase {x : M} (hx : φ.coord x ≠ 0) : (φ.phase x : ℂ) = φ.coord x / ‖φ.coord x‖ := by
+  rw [phase_def, Circle.coe_exp, eq_div_iff (by simpa using hx), mul_comm,
+    Complex.norm_mul_exp_arg_mul_I]
+
+/-- At `φ z`, the angular coordinate is `z / ‖z‖`. -/
+theorem coe_phase_apply {z : ball} (hz : (z : ℂ) ≠ 0) : (φ.phase (φ z) : ℂ) = z / ‖(z : ℂ)‖ := by
+  rw [coe_phase φ (by rwa [coord_apply]), coord_apply]
+
+/-- At a point `φ z` with `z = r ζ`, where `r > 0` and `|ζ| = 1`, the angular coordinate is
+`ζ`. -/
+theorem phase_apply_of_coe_eq_mul {z : ball} {r : ℝ} (hr : 0 < r) {ζ : Circle}
+    (hz : (z : ℂ) = r * ζ) : φ.phase (φ z) = ζ := by
+  rw [phase_def, coord_apply, hz, Complex.arg_ofReal_mul hr, Circle.exp_arg]
+
+/-- If the coordinate of a coordinate disc is `Cⁿ` on the range of `φ`, then its angular
+coordinate is `Cⁿ` on the points of that range where the coordinate does not vanish. -/
+theorem contMDiffOn_coe_phase {n : WithTop ℕ∞}
+    (hφ : ContMDiffOn 𝓘(ℝ, E) 𝓘(ℝ, ℂ) n φ.coord (Set.range φ)) :
+    ContMDiffOn 𝓘(ℝ, E) 𝓘(ℝ, ℂ) n (fun x ↦ (φ.phase x : ℂ))
+      {x ∈ Set.range φ | φ.coord x ≠ 0} := by
+  intro x hx
+  -- The map `w ↦ w / ‖w‖` is smooth away from `0`.
+  have hs : ContDiffAt ℝ n (fun w : ℂ ↦ w / ‖w‖) (φ.coord x) := by
+    simpa using (Complex.contDiffOn_div_norm_pow 1).contDiffAt
+      (isOpen_compl_singleton.mem_nhds hx.2)
+  exact (hs.comp_contMDiffWithinAt ((hφ x hx.1).mono (Set.sep_subset _ _))).congr
+    (fun _ hy ↦ φ.coe_phase hy.2) (φ.coe_phase hx.2)
+
 /-! ### The boundary circle -/
 
 /-- The boundary circle of a coordinate disc: the unit circle of the chart, `z ↦ φ z`. -/
@@ -356,6 +419,11 @@ def boundaryCircle : C(Circle, M) where
 theorem boundaryCircle_apply (z : Circle) :
     φ.boundaryCircle z = φ ⟨z, mem_ball_of_norm_le_one (Circle.norm_coe z).le⟩ :=
   (rfl)
+
+/-- The angular coordinate of the point `ζ` of the boundary circle is `ζ`. -/
+@[simp]
+theorem phase_boundaryCircle (ζ : Circle) : φ.phase (φ.boundaryCircle ζ) = ζ :=
+  φ.phase_apply_of_coe_eq_mul one_pos (by simp)
 
 @[simp]
 theorem boundaryCircle_mem_disc (z : Circle) : φ.boundaryCircle z ∈ φ.disc := by
@@ -908,6 +976,26 @@ theorem ofChart_apply (e : OpenPartialHomeomorph M (EuclideanSpace ℝ (Fin 2)))
       o.IsOrientationPreservingAt (Manifold.Orientation.euclideanSpace 2) e x) (z : ball) :
     ofChart e hr hc he z = e.symm (c + (r / 2) • Complex.orthonormalBasisOneI.repr z) :=
   (ofChart_apply_eq e hr hc he z).trans (congrArg e.symm (ofChartHomeomorph_apply c hr z))
+
+/-- The coordinate of the coordinate disc of a chart `e` of the maximal `Cⁿ` atlas is `Cⁿ` on its
+range: there it is `e` followed by an affine map. -/
+theorem contMDiffOn_coord_ofChart {n : WithTop ℕ∞} [IsManifold (𝓡 2) n M]
+    (e : OpenPartialHomeomorph M (EuclideanSpace ℝ (Fin 2))) {c : EuclideanSpace ℝ (Fin 2)}
+    {r : ℝ} (hr : 0 < r) (hc : Metric.ball c r ⊆ e.target)
+    (he : ∀ x ∈ e.source,
+      o.IsOrientationPreservingAt (Manifold.Orientation.euclideanSpace 2) e x)
+    (he' : e ∈ IsManifold.maximalAtlas (𝓡 2) n M) :
+    ContMDiffOn (𝓡 2) 𝓘(ℝ, ℂ) n (ofChart e hr hc he).coord (Set.range (ofChart e hr hc he)) := by
+  -- By definition of `ofChartHomeomorph`, its inverse is the affine map `y ↦ L⁻¹ (-c + y)`.
+  have hL : ContDiff ℝ n (ofChartHomeomorph c hr).symm :=
+    (ofChartLinearEquiv hr).symm.contDiff.comp (contDiff_const.add contDiff_id)
+  refine ((hL.contMDiff.comp_contMDiffOn (contMDiffOn_of_mem_maximalAtlas he')).mono ?_).congr ?_
+  · rintro _ ⟨z, rfl⟩
+    rw [ofChart_apply_eq]
+    exact e.map_target (hc (ofChartHomeomorph_mem_ball hr z))
+  · rintro _ ⟨z, rfl⟩
+    rw [coord_apply, Function.comp_apply, ofChart_apply_eq,
+      e.right_inv (hc (ofChartHomeomorph_mem_ball hr z)), Homeomorph.symm_apply_apply]
 
 /-- The centre of the coordinate disc of a chart is `e.symm c`. -/
 theorem ofChart_apply_zero (e : OpenPartialHomeomorph M (EuclideanSpace ℝ (Fin 2)))

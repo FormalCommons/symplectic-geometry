@@ -12,6 +12,7 @@ public import SymplecticGeometry.Topology.Algebra.Module.Equiv.Pi
 public import TauCeti.Geometry.Manifold.Projectivization.LineBundle
 public import TauCeti.Topology.VectorBundle.Core.Trivial
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.RestrictScalars
+public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Core.Section
 public import TauCeti.Topology.VectorBundle.Hom
 public import TauCeti.Topology.VectorBundle.TensorProduct.Basic
 
@@ -67,8 +68,8 @@ The proof of `HasMFDerivAt.eval_affineChart_dehomogenize` adapts that of Tau Cet
 The core `twistPiCore`, its base sets and its smoothness instance follow Tau Ceti's
 `Projectivization.twistCore` and `Projectivization.isContMDiff_twistCore`, with the scalar
 multiplication `lsmul` replaced by a scalar multiple of the identity of `ι → 𝕜`;
-`contMDiff_section_twistPiCore_iff` follows the proof of Tau Ceti's
-`Projectivization.contMDiff_section_twistCore_iff`.
+`contMDiff_section_twistPiCore_iff` is the case of the library's
+`VectorBundleCore.contMDiff_section_iff` for this core.
 
 The fibres of a vector bundle core are its model fibre under the name `VectorBundleCore.Fiber`,
 and the body of `twistCore` is not visible here. The fibrewise maps are therefore built on the
@@ -241,15 +242,15 @@ theorem contMDiff_section_twistPiCore_iff {r : ℕ∞ω}
         (fun x ↦ TotalSpace.mk' (ι → 𝕜) x (s x)) ↔
       ∀ j, ContMDiffOn 𝓘(𝕜, Fin n → 𝕜) 𝓘(𝕜, ι → 𝕜) r
         (fun x a ↦ twistTransition k ((twistCore k).indexAt x) j x * s x a) (affineOpen j) := by
-  have key (j : Fin (n + 1)) := by
-    haveI : MemTrivializationAtlas ((twistPiCore (𝕜 := 𝕜) (n := n) k ι).localTriv j) :=
-      ⟨⟨j, rfl⟩⟩
-    exact ((twistPiCore (𝕜 := 𝕜) (n := n) k ι).localTriv j).contMDiffOn_section_iff
-      (IB := 𝓘(𝕜, Fin n → 𝕜)) (n := r) (s := s) (a := affineOpen j) (isOpen_affineOpen j)
-      fun _ hx ↦ hx
-  rw [← contMDiffOn_univ, ← iUnion_affineOpen,
-    contMDiffOn_iUnion_iff_of_isOpen fun j ↦ isOpen_affineOpen j]
-  exact forall_congr' key
+  rw [VectorBundleCore.contMDiff_section_iff]
+  refine forall_congr' fun j ↦ ?_
+  rw [twistPiCore_baseSet]
+  refine contMDiffOn_congr fun x _ ↦ funext fun a ↦ ?_
+  have h := congrFun (twistPiCore_coordChange_apply k ι ((twistPiCore k ι).indexAt x) j x (s x)) a
+  simp only [twistPiCore_indexAt] at h
+  -- The fibre `(twistPiCore k ι).Fiber x` is `ι → 𝕜` only up to unfolding `VectorBundleCore.Fiber`,
+  -- for which Mathlib states no lemma, so its scalar multiplication is evaluated by `exact`.
+  exact h
 
 /-- The fibrewise splitting `𝒪(k) ⊗ 𝕜^{Option ι} ≅ 𝒪(k) ⊕ (𝒪(k) ⊗ 𝕜^ι)`, which takes the
 `none` coordinate to the first summand and the others to the second. It is continuous on total

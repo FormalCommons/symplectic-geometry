@@ -698,18 +698,20 @@ On a closed Kähler manifold as above:
   (complexDeRhamCohomology I M k)`, the classes `mk φ` of closed forms with
   `φ.IsOfType J p q`, with `mem_hodgePiece_iff`. It is `⊥` unless
   `p + q = k`.
-- `typeProjection_complexHodgeLaplacian`: the type projections commute with
-  `complexHodgeLaplacian`. Then `typeProjection_mem_complexHarmonicForms`.
-- `hodgePiece_eq_map_complexHarmonicForms`: $H^{p,q}$ is the image of the
-  harmonic forms of type $(p,q)$, by the argument above.
-- `isHodgeDecomposition_hodgePiece`:
+- `TauCeti.SmoothAlmostComplexStructure.typeProjection_complexHodgeLaplacian`:
+  the type projections commute with `complexHodgeLaplacian`. Then
+  `typeProjection_mem_complexHarmonicForms`, in the same namespace.
+- `TauCeti.complexDeRhamCohomology.hodgePiece_eq_map_complexHarmonicForms`:
+  $H^{p,q}$ is the image of the harmonic forms of type $(p,q)$, by the
+  argument above.
+- `TauCeti.complexDeRhamCohomology.isHodgeDecomposition_hodgePiece`:
   `IsHodgeDecomposition (conj k) k (fun p : ℤ ↦ hodgePiece J k p.toNat (k - p).toNat)`.
   The conjugation exchanges `hodgePiece J k p q` and `hodgePiece J k q p`
   by `mapCoeff_typeProjection_of_map_smul_conj`. The pieces form an
   internal direct sum because the harmonic forms of each type do, and
   harmonic forms map isomorphically to cohomology.
-- `kahlerHodgeStructure`, Tau Ceti's `HodgeStructureOn.ofDecomposition`
-  of it, whose `hodgeNumber p` is the dimension of `hodgePiece J k p (k - p)`.
+- `TauCeti.complexDeRhamCohomology.kahlerHodgeStructure`, Tau Ceti's
+  `HodgeStructureOn.ofDecomposition` of it, whose `hodgeNumber p` is the dimension of `hodgePiece J k p (k - p)`.
 
 ### `Geometry/Manifold/DeRham/Kahler/HodgeNumbers.lean`
 

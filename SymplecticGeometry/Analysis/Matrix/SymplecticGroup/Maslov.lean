@@ -49,6 +49,8 @@ move.
 ## Main definitions
 
 * `SymplecticGeometry.symplecticRotationLoop k`: the loop `t ↦ e^{2πikt}` in `U(1) ⊆ Sp(2)`.
+* `SymplecticGeometry.circlePowLoop k`: the loop `ζ ↦ ζ ^ k` in `U(1) ⊆ Sp(2)`, as a map from the
+  circle; its Maslov index is `k` (`maslovIndex_toBasedLoop_circlePowLoop`).
 * `SymplecticGeometry.IsMaslovIndex`: the axioms of the Maslov index of symplectic loops.
 
 ## Main results
@@ -60,6 +62,8 @@ move.
   as Tau Ceti's proof of `TauCeti.GLSymplectic.maslovIndex_mul` does along loops;
   `TauCeti.GLSymplectic.maslovPhaseMap_comp_mul_homotopic` is the same for pointwise products
   of maps `Y → Sp(2n)`, with `TauCeti.GLSymplectic.maslovPhaseMap` the bundled `ρ`.
+* `TauCeti.GLSymplectic.maslovIndex_eq_of_maslovPhase_apply`: a loop on which `ρ` is
+  `t ↦ e^{2πikt}` has Maslov index `k`.
 * `TauCeti.GLSymplectic.maslovIndex_toBasedLoop_mul`: the product axiom for loops given as maps
   from the circle.
 * `TauCeti.GLSymplectic.maslovPhase_eq_normalizedDet`: `ρ` of a symplectic matrix that acts on
@@ -228,6 +232,15 @@ theorem homotopicWith_iff_maslovIndex_eq {A B : GLSymplectic ι ℝ} (γ : Path 
     maslovIndex_eq_iff_homotopic.1 (h.trans (maslovIndex_eq_of_homotopicWith hχ).symm)
   exact hγ.homotopicWith.trans hχ
 
+/-- A loop on which `ρ` is `t ↦ e^{2πikt}` has Maslov index `k`. -/
+theorem maslovIndex_eq_of_maslovPhase_apply {A : GLSymplectic ι ℝ} (γ : Path A A) (k : ℤ)
+    (h : ∀ t : I, maslovPhase (γ t) = Circle.exp (2 * Real.pi * k * t)) :
+    maslovIndex γ = k := by
+  rw [maslovIndex_def]
+  exact Circle.degree_eq_of_sub_eq _ (θ := fun t ↦ 2 * Real.pi * k * t) (by fun_prop)
+    (fun t ↦ by rw [Path.map_coe, Function.comp_apply, h]) (by
+      simp only [Set.Icc.coe_one, Set.Icc.coe_zero]; ring)
+
 end TauCeti.GLSymplectic
 
 namespace SymplecticGeometry
@@ -270,10 +283,36 @@ theorem maslovPhase_symplecticRotationLoop_apply (k : ℤ) (t : I) :
 /-- The loop `t ↦ e^{2πikt}` in `U(1) ⊆ Sp(2)` has Maslov index `k`. -/
 @[simp]
 theorem maslovIndex_symplecticRotationLoop (k : ℤ) :
-    maslovIndex (symplecticRotationLoop k) = k := by
-  rw [maslovIndex_def]
-  refine Circle.degree_eq_of_sub_eq _ (θ := fun t ↦ 2 * Real.pi * k * t) (by fun_prop)
-    (fun t ↦ by simp) (by simp only [Set.Icc.coe_one, Set.Icc.coe_zero]; ring)
+    maslovIndex (symplecticRotationLoop k) = k :=
+  maslovIndex_eq_of_maslovPhase_apply _ k (maslovPhase_symplecticRotationLoop_apply k)
+
+/-- The loop `ζ ↦ ζ ^ k` in `U(1) = Sp(2) ∩ O(2)`, as a map from the circle to symplectic
+`2 × 2` matrices: the realification of the `1 × 1` unitary matrix `ζ ^ k`. -/
+noncomputable def circlePowLoop (k : ℤ) : C(Circle, GLSymplectic (Fin 1) ℝ) :=
+  ⟨fun ζ ↦ ofUnitary (detSection (Fin 1) 0 (ζ ^ k)),
+    continuous_ofUnitary.comp ((continuous_detSection 0).comp (continuous_zpow k))⟩
+
+theorem circlePowLoop_apply (k : ℤ) (ζ : Circle) :
+    circlePowLoop k ζ = ofUnitary (detSection (Fin 1) 0 (ζ ^ k)) :=
+  (rfl)
+
+/-- At `ζ`, the loop `circlePowLoop k` is the realification of the `1 × 1` matrix `ζ ^ k`. -/
+@[simp]
+theorem coe_circlePowLoop_apply (k : ℤ) (ζ : Circle) :
+    ((circlePowLoop k ζ : GL (Fin 1 ⊕ Fin 1) ℝ) : Matrix (Fin 1 ⊕ Fin 1) _ ℝ) =
+      (diagonal fun _ : Fin 1 ↦ (ζ : ℂ) ^ k).realify := by
+  rw [circlePowLoop_apply, coe_ofUnitary, coe_detSection]
+  congr 2 with i
+  rw [Subsingleton.elim i 0, Pi.mulSingle_eq_same, Circle.coe_zpow]
+
+/-- The loop `ζ ↦ ζ ^ k` in `U(1) ⊆ Sp(2)` has Maslov index `k`. -/
+@[simp]
+theorem maslovIndex_toBasedLoop_circlePowLoop (k : ℤ) :
+    maslovIndex (circlePowLoop k).toBasedLoop = k := by
+  refine maslovIndex_eq_of_maslovPhase_apply _ k fun t ↦ ?_
+  rw [ContinuousMap.toBasedLoop_apply, circlePowLoop_apply, maslovPhase_ofUnitary,
+    detCircle_detSection, unitToCircle_apply, ← Circle.exp_zsmul, zsmul_eq_mul]
+  ring_nf
 
 /-! ### Uniqueness -/
 
