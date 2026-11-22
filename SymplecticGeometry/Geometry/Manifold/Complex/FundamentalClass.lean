@@ -34,13 +34,16 @@ where those have a positive one.
   back along `conj` gives its negation.
 * `TauCeti.comap_conj_complexHomologicalOrientation`: the same for an open embedding `U → V`
   between open sets of `ℂ` that acts as `conj`.
+* `TauCeti.comap_complexHomologicalOrientation_of_comp_eq`: an open embedding `U → V` between
+  open sets of Riemann surfaces that acts as an open embedding `T` which is a `C^k` local
+  biholomorphism preserves their canonical orientations.
 -/
 
 public section
 
 noncomputable section
 
-open Topology ComplexConjugate
+open Topology ComplexConjugate Manifold
 
 namespace TauCeti
 
@@ -90,6 +93,24 @@ theorem comap_conj_complexHomologicalOrientation {U V : TopologicalSpace.Opens �
     ← HomologicalOrientation.comap_comap _ Complex.conjCLE.toHomeomorph.isOpenEmbedding hU,
     comap_conjCLE_complexHomologicalOrientation, HomologicalOrientation.comap_neg,
     comap_subtypeVal_complexHomologicalOrientation]
+
+/-- Let `U` and `V` be open sets of Riemann surfaces `M` and `N`, and `f : U → V` an open
+embedding that acts as `T : M → N`, an open embedding which is a `C^k` local biholomorphism, for
+`k ≠ 0`. Then pulling the canonical orientation of `V` back along `f` gives that of `U`. -/
+theorem comap_complexHomologicalOrientation_of_comp_eq
+    {M : Type} [TopologicalSpace M] [T2Space M] [ChartedSpace ℂ M] [IsManifold 𝓘(ℂ, ℂ) 1 M]
+    {N : Type} [TopologicalSpace N] [T2Space N] [ChartedSpace ℂ N] [IsManifold 𝓘(ℂ, ℂ) 1 N]
+    {U : TopologicalSpace.Opens M} {V : TopologicalSpace.Opens N} {f : U → V}
+    (hf : IsOpenEmbedding f) {k : WithTop ℕ∞} [NeZero k] {T : M → N} (hT : IsOpenEmbedding T)
+    (hT' : IsLocalDiffeomorph 𝓘(ℂ, ℂ) 𝓘(ℂ, ℂ) k T)
+    (h : Subtype.val ∘ f = T ∘ Subtype.val) :
+    (complexHomologicalOrientation V).comap hf = complexHomologicalOrientation U := by
+  rw [← comap_subtypeVal_complexHomologicalOrientation U.isOpenEmbedding',
+    ← comap_subtypeVal_complexHomologicalOrientation V.isOpenEmbedding',
+    HomologicalOrientation.comap_comap,
+    ← HomologicalOrientation.comap_comap_of_comp_eq _ hT U.isOpenEmbedding'
+      (V.isOpenEmbedding'.comp hf) h.symm,
+    comap_complexHomologicalOrientation hT hT']
 
 end TauCeti
 
