@@ -843,11 +843,8 @@ theorem disc_ofChart (e : OpenPartialHomeomorph M (EuclideanSpace ℝ (Fin 2)))
     (he : ∀ x ∈ e.source,
       o.IsOrientationPreservingAt (Manifold.Orientation.euclideanSpace 2) e x) :
     (ofChart e hr hc he).disc = e.symm '' Metric.closedBall c (r / 2) := by
-  have h : Subtype.val '' {z : ball | ‖(z : ℂ)‖ ≤ 1} = Metric.closedBall 0 1 := by
-    ext w
-    refine ⟨fun ⟨z, hz, hzw⟩ ↦ hzw ▸ mem_closedBall_zero_iff.2 hz, fun hw ↦ ?_⟩
-    exact ⟨⟨w, mem_ball_of_norm_le_one (mem_closedBall_zero_iff.1 hw)⟩,
-      mem_closedBall_zero_iff.1 hw, rfl⟩
+  have h := (disc_def subtypeVal).symm.trans disc_subtypeVal
+  rw [coe_subtypeVal] at h
   rw [disc_def, coe_ofChart, Set.image_comp, Set.image_comp, h,
     image_ofChartHomeomorph_closedBall, mul_one]
 
@@ -859,10 +856,8 @@ theorem openDisc_ofChart (e : OpenPartialHomeomorph M (EuclideanSpace ℝ (Fin 2
     (he : ∀ x ∈ e.source,
       o.IsOrientationPreservingAt (Manifold.Orientation.euclideanSpace 2) e x) :
     (ofChart e hr hc he).openDisc = e.symm '' Metric.ball c (r / 2) := by
-  have h : Subtype.val '' {z : ball | ‖(z : ℂ)‖ < 1} = Metric.ball 0 1 := by
-    ext w
-    refine ⟨fun ⟨z, hz, hzw⟩ ↦ hzw ▸ mem_ball_zero_iff.2 hz, fun hw ↦ ?_⟩
-    exact ⟨⟨w, mem_ball_of_norm_le_one (mem_ball_zero_iff.1 hw).le⟩, mem_ball_zero_iff.1 hw, rfl⟩
+  have h := (openDisc_def subtypeVal).symm.trans openDisc_subtypeVal
+  rw [coe_subtypeVal] at h
   rw [openDisc_def, coe_ofChart, Set.image_comp, Set.image_comp, h,
     image_ofChartHomeomorph_ball, mul_one]
 
