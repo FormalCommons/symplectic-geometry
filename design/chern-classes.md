@@ -548,6 +548,20 @@ It uses these copies of Tau Ceti's files of the commit `c9d170eed5`:
   `TopPair.singularChainComplexπ_comp_singularChainComplexMap_of_fst_eq_id`
   is added.
 
+### `AlgebraicTopology/Singular/LocalHomology/Orientation/Cross/Basic.lean`
+
+The cross product of local orientations, for the Whitney file below, in Tau
+Ceti's namespace: `TauCeti.localHomologyCross`, the cross product of the pairs
+`(X, X ∖ {x})` and `(Y, Y ∖ {y})` read in the local homology of `X × Y` at
+`(x, y)` with the coefficients multiplied by `ModuleCat.uliftTensorSelfIso ℤ`;
+`TauCeti.isLocalOrientation_localHomologyCross`, that it carries local
+orientations of vector spaces to a local orientation; and
+`TauCeti.LocalOrientation.cross`, with `cross_neg_left`, `cross_neg_right`,
+the naturality `cross_map_complZeroPairIso`, and the sign
+`TauCeti.LocalOrientation.crossSign m n` comparing it with
+`TauCeti.LocalOrientation.prod` (`coe_cross_eq_crossSign_smul`), whose value
+is not computed there.
+
 ### `Topology/VectorBundle/Orientation/Complex/Whitney.lean`
 
 The integral Whitney formula for Euler classes of complex bundles, in Tau
