@@ -854,7 +854,8 @@ issues, in an order where each issue's blockers come before it.
    `TauCeti.HomologicalOrientation.bijective_dualityMap`, for every
    homologically oriented manifold, compact or not, and for compact `M` its
    form for capping with the fundamental class,
-   `bijective_singularCap_fundamentalClass`. The same file proves
+   `bijective_singularCap_fundamentalClass`. It imports
+   `AlgebraicTopology/Cohomology/CompactSupport/Manifold.lean`, which proves
    `TopCat.isZero_compactSupportCohomology_of_chartedSpace`, `Hᵐ_c(M) = 0`
    above the dimension, which the Mayer–Vietoris step needs for the
    intersections. Both run the induction above over the open sets lying in

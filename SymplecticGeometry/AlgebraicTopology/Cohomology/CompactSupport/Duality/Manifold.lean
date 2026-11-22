@@ -6,8 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.AlgebraicTopology.Cohomology.CompactSupport.Euclidean.Duality
-public import SymplecticGeometry.Geometry.Manifold.ChartedSpace
-public import TauCeti.Topology.OpenPartialHomeomorph.Constructions
+public import SymplecticGeometry.AlgebraicTopology.Cohomology.CompactSupport.Manifold
 
 /-!
 # Poincaré duality for manifolds
@@ -15,8 +14,6 @@ public import TauCeti.Topology.OpenPartialHomeomorph.Constructions
 Let `M` be a Hausdorff space with charts in a finite-dimensional real normed space `E` of
 dimension `n`, that is, a topological `n`-manifold without boundary, and `L` an abelian group.
 
-* `Hᵐ_c(M; R, N) = 0` for `m > n`, for projective coefficients `R`
-  (`TopCat.isZero_compactSupportCohomology_of_chartedSpace`).
 * For a homological orientation of `M` and `p + q = n`, the duality map
   `D_M : Hᵖ_c(M; L) ⟶ H_q(M; L)` is a bijection
   (`TauCeti.HomologicalOrientation.bijective_dualityMap`).
@@ -25,27 +22,23 @@ dimension `n`, that is, a topological `n`-manifold without boundary, and `L` an 
   (`TauCeti.HomologicalOrientation.bijective_singularCap_fundamentalClass`),
   by `TauCeti.HomologicalOrientation.dualityMap_compactSupportCohomologyIsoOfCompactSpace_inv`.
 
-No compactness or countability is needed for the first two, as in Hatcher's Theorem 3.35. Both
-are proved by the same induction, which follows the proof of
-`TauCeti.HomologicalOrientation.bijective_dualityMap_of_isOpenEmbedding` (and of
-`TopCat.isZero_compactSupportCohomology_of_isOpenEmbedding`) with the open sets of `M` lying in
-one chart in place of those with convex image. Such open sets are closed under intersection
+No compactness or countability is needed for the first, as in Hatcher's Theorem 3.35. The proof
+follows that of `TauCeti.HomologicalOrientation.bijective_dualityMap_of_isOpenEmbedding`, with the
+open sets of `M` lying in one chart in place of those with convex image, as the proof of
+`TopCat.isZero_compactSupportCohomology_of_chartedSpace` in `CompactSupport/Manifold.lean` does.
+Such open sets are closed under intersection
 (`TopologicalSpace.Opens.infClosed_setOf_subset_chartAt_source`), and each embeds openly into `E`
-through its chart (`OpenPartialHomeomorph.isOpenEmbedding_comp`), so that the
-statements hold for them by
-`TauCeti.HomologicalOrientation.bijective_dualityMap_of_isOpenEmbedding` and
-`TopCat.isZero_compactSupportCohomology_of_isOpenEmbedding`. They pass to finite unions by
-Mayer–Vietoris (`TauCeti.HomologicalOrientation.bijective_dualityMap_comap_sup`,
-`TopCat.isZero_compactSupportCohomology_sup`, `InfClosed.finset_sup_induction`); for duality, the
-vanishing of `Hⁿ⁺¹_c(V ∩ W)` that this step needs is the first result, applied to the manifold
-`V ∩ W`. Finally, these finite unions form a directed family covering `M`
-(`TopologicalSpace.Opens.iSup_finset_sup_subset_chartAt_source_eq_top`), and both statements pass
-to directed unions (`TauCeti.HomologicalOrientation.bijective_dualityMap_of_iSup_eq_top`,
-`TopCat.isZero_compactSupportCohomology_of_iSup_eq_top`).
+through its chart (`OpenPartialHomeomorph.isOpenEmbedding_comp`), so that duality holds for them
+by `TauCeti.HomologicalOrientation.bijective_dualityMap_of_isOpenEmbedding`. It passes to finite
+unions by Mayer–Vietoris (`TauCeti.HomologicalOrientation.bijective_dualityMap_comap_sup`,
+`InfClosed.finset_sup_induction`); the vanishing of `Hⁿ⁺¹_c(V ∩ W)` that this step needs is
+`TopCat.isZero_compactSupportCohomology_of_chartedSpace`, applied to the manifold `V ∩ W`.
+Finally, these finite unions form a directed family covering `M`
+(`TopologicalSpace.Opens.iSup_finset_sup_subset_chartAt_source_eq_top`), and duality passes to
+directed unions (`TauCeti.HomologicalOrientation.bijective_dualityMap_of_iSup_eq_top`).
 
 ## Main results
 
-* `TopCat.isZero_compactSupportCohomology_of_chartedSpace`: `Hᵐ_c(M) = 0` above the dimension.
 * `TauCeti.HomologicalOrientation.bijective_dualityMap`: Poincaré duality for an oriented
   manifold.
 * `TauCeti.HomologicalOrientation.bijective_singularCap_fundamentalClass`: Poincaré duality for a
@@ -69,43 +62,6 @@ public section
 noncomputable section
 
 open CategoryTheory Limits MonoidalCategory Module TopologicalSpace Topology
-
-universe v
-
-namespace TopCat
-
-variable {k : Type v} [CommRing k] (R N : ModuleCat.{v} k) [Module.Projective k R]
-  {F : Type v} [NormedAddCommGroup F] [NormedSpace ℝ F] [FiniteDimensional ℝ F]
-  {M : Type v} [TopologicalSpace M] [T2Space M] [ChartedSpace F M]
-
-/-- **Cohomology with compact supports of a manifold vanishes above the dimension.** For a
-Hausdorff space `M` with charts in a finite-dimensional real normed space `F`,
-`Hᵐ_c(M; R, N) = 0` for `m > finrank ℝ F`, for projective coefficients `R`. -/
-theorem isZero_compactSupportCohomology_of_chartedSpace {m : ℕ} (hm : finrank ℝ F < m) :
-    IsZero ((of M).compactSupportCohomology R k N m) := by
-  -- Vanishing passes to finite unions of open sets lying in one chart, by Mayer–Vietoris.
-  have hT (s : Finset {W : Opens M | ∃ x, (W : Set M) ⊆ (chartAt F x).source}) :
-      ∀ m, finrank ℝ F < m →
-        IsZero ((of ↥(s.sup Subtype.val)).compactSupportCohomology R k N m) := by
-    refine (Opens.infClosed_setOf_subset_chartAt_source F).finset_sup_induction
-      (fun W : Opens M ↦ ∀ m, finrank ℝ F < m → IsZero ((of W).compactSupportCohomology R k N m))
-      ?_ ?_ ?_ s
-    · have : IsEmpty ↥(⊥ : Opens M) := ⟨fun x ↦ x.property⟩
-      exact fun m _ ↦ isZero_compactSupportCohomology_of_isEmpty R k N _ m
-    · rintro W ⟨x, hx⟩ m hm
-      exact isZero_compactSupportCohomology_of_isOpenEmbedding R N
-        ((chartAt F x).isOpenEmbedding_comp W.isOpenEmbedding' (by rwa [Subtype.range_coe])) hm
-    · exact fun V W hV hW hVW m hm ↦ isZero_compactSupportCohomology_sup R k N (hV m hm)
-        (hW m hm) (hVW (m + 1) (by omega))
-  -- They form a directed family covering `M`; `(Opens.toTopCat (of M)).obj W` is `of W` by
-  -- definition.
-  exact isZero_compactSupportCohomology_of_iSup_eq_top R k N (X := of M)
-    (U := fun s : Finset {W : Opens M | ∃ x, (W : Set M) ⊆ (chartAt F x).source} ↦
-      s.sup Subtype.val)
-    (fun _ _ hst ↦ Finset.sup_mono hst) (Opens.iSup_finset_sup_subset_chartAt_source_eq_top F)
-    fun s ↦ hT s m hm
-
-end TopCat
 
 namespace TauCeti
 
