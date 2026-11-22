@@ -341,6 +341,13 @@ the tensor products on total spaces.
   and `twistCoreZeroTrivialization`, the trivialization of `twistCore 0`
   (`twistTransition_zero`). #1040 uses the case `k = 1`, `l = -1`; if it
   has merged a general form by then, this item is not added again.
+- `eval_affineChart_dehomogenize_eq_twistTransition_mul`,
+  `HasMFDerivAt.eval_affineChart_dehomogenize` and
+  `contMDiffOn_eval_affineChart`: on `U_i ∩ U_j` the dehomogenizations of
+  a homogeneous polynomial of degree `d`, read in the charts, differ by
+  `twistTransition d i j`, and so do their differentials at a zero; a
+  polynomial read in the chart at `i` is `C^r` on `U_i`. They are used by
+  `Hypersurface/NormalBundle.lean`, which imports this file.
 
 ### `Geometry/Manifold/Projectivization/EulerSequence.lean`
 
@@ -644,7 +651,7 @@ waits for another part.
 | 2 | Sums and tensor products of the bundles $\mathcal O(k)$ | `Projectivization/TwistCore.lean` | — | 300 |
 | 3 | The Euler sequence | `Projectivization/EulerSequence.lean` | 2 | 400 |
 | 4 | Splitting the tangent bundle along an embedding | `NormalSpace/Splitting.lean` | — | 300 |
-| 5 | The normal bundle of a hypersurface | `Hypersurface/NormalBundle.lean` | 1 | 350 |
+| 5 | The normal bundle of a hypersurface | `Hypersurface/NormalBundle.lean` | 1, 2 | 350 |
 | 6 | Chern classes on projective space (part 1) | `Projectivization/ChernClass.lean` | 2, 3; #1037, #1038, #1040, #1043 | 250 |
 | 7 | The Euler characteristic of a compact complex manifold | `Complex/EulerCharacteristic.lean` | #1043, #1045 | 250 |
 | 8 | Chern classes of a hypersurface (parts 2 and 3) | `Hypersurface/ChernClass.lean` | 4, 5, 6 | 250 |
