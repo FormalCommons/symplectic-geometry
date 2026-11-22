@@ -321,10 +321,12 @@ For `c : C`, `x : M` and `L : TangentSpace I' c →ₗ[ℝ] TangentSpace I x`
   σ-compact `M` and integral coefficients: a smooth chain `w` whose boundary
   is a smooth chain of `U`, and which is zero in the continuous relative
   homology of `(M, U)`, is `∂ b + c` with `b` a smooth chain of `M` and `c` a
-  smooth chain of `U`. Proposed name
-  `TauCeti.exists_smoothSingular_eq_d_add_of_relHomologous` (the issue may
-  adapt it to its neighbours and to how Tau Ceti writes relative chains,
-  `TopPair` in `AlgebraicTopology/Singular/Relative.lean`). Proof: the
+  smooth chain of `U`. Name `TauCeti.exists_smoothSingular_eq_d_add`. It is
+  stated on elements, for any coefficient module `R : ModuleCat.{u} k`: the
+  vanishing in relative homology is the hypothesis that, as a continuous
+  chain, `w = ∂ B + A` with `A` a chain of `U` (the chain-level meaning of
+  vanishing in the relative chains of `TopPair`), so issue 8 passes from
+  the classes it compares to such a decomposition. Proof: the
   boundary of `w` is a smooth cycle of `U` that bounds continuously in `U`,
   so it bounds smoothly in `U`; correct `w` by that chain; the remaining
   smooth cycle of `M` is continuously homologous to a cycle of `U`, hence
