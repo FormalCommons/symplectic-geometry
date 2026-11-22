@@ -6,7 +6,8 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.Projectivization.BaseChange
-public import SymplecticGeometry.Geometry.Manifold.Projectivization.FubiniStudy.Basic
+public import SymplecticGeometry.Geometry.Manifold.Projectivization.FubiniStudy.Darboux
+public import SymplecticGeometry.Geometry.Manifold.Projectivization.FubiniStudy.Normalization
 public import SymplecticGeometry.Geometry.Manifold.Instances.AddCircle
 public import SymplecticGeometry.Geometry.Symplectic.Lagrangian.Submersion
 public import TauCeti.Geometry.Manifold.Instances.AddCircle.Torus
@@ -40,6 +41,10 @@ submanifolds of `(ℂPⁿ, ω_FS)`.
   (`isLagrangianEmbedding_cliffordTorus`): at `z = (1, e^{iθ})` the derivative of the lift sends
   `a` to `(0, i a_k e^{iθ_k})_k`, whose coordinates are real multiples of `i zⱼ`, so that `ρ`
   vanishes on them.
+
+The file ends with `SymplecticGeometry.fubiniStudyForm_spec`, which collects in one statement the
+properties of `ω_FS` proved in `FubiniStudy/Basic.lean`, `Kahler.lean`, `Normalization.lean`,
+`Darboux.lean` and here; it is the reason this file imports the others.
 
 ## References
 
@@ -329,6 +334,159 @@ theorem isLagrangianEmbedding_cliffordTorus :
     ring
   rw [fubiniStudyLift_apply, hu, hu, hω, hre, hre]
   simp
+
+/-! ### All properties of the Fubini–Study form in one statement -/
+
+section Spec
+
+open Metric SmoothAlmostComplexStructure ComplexConjugate
+
+attribute [local instance] TauCeti.finrank_euclideanSpace_fin_succ_fact
+
+/-- **The Fubini–Study form on `ℂPⁿ`.** Write `ω₀` for the standard symplectic form, `J` for the
+complex structure of a complex manifold, `ρ = fubiniStudyLift n` and `α = fubiniStudyPrimitive n`
+on `ℂⁿ⁺¹ ∖ 0`, `σ = sphereStdForm n` for the restriction of `ω₀` to the unit sphere `S²ⁿ⁺¹`, and
+`ω_FS = fubiniStudyForm n`.
+
+1. `ρ = (i/2) ∂∂bar log |z|²` and `ρ = dα`, where `α_z(v) = ω₀(z, v) / (2 |z|²)`; and `ρ` is the
+   pull-back of `σ` along the radial projection `z ↦ z / |z|`.
+2. `ω_FS` is the only two-form on `ℂPⁿ` whose pull-back along the projection
+   `ℂⁿ⁺¹ ∖ 0 → ℂPⁿ` is `ρ`, and also the only one whose pull-back along the Hopf map
+   `S²ⁿ⁺¹ → ℂPⁿ` is `σ`.
+3. `ω_FS` is symplectic (closed and nondegenerate) and compatible with `J`, `J` is integrable,
+   and `(ω_FS, J)` is Kähler. Along the inverse of each affine chart, `w ↦ [Fin.insertNth j 1 w]`,
+   `ω_FS` pulls back to `(i/2) ∂∂bar log (1 + |w|²)`; in homogeneous coordinates the potential is
+   `log (|z|² / |z_j|²)`.
+4. `ω_FS` is invariant under the unitary group `U(n + 1)`. On `ℂP¹`, in either affine coordinate
+   `t`, it evaluates on `v, w` as `Im (conj v * w) / (1 + |t|²)²`, that is,
+   `dx ∧ dy / (1 + x² + y²)²`. The diffeomorphism `sphereToProjectiveLine` from the unit sphere
+   of `ℝ³` onto `ℂP¹`, which sends `x` to `[1 + x₃ : x₁ + i x₂]` off the south pole, pulls `ω_FS`
+   back to a quarter of the area form of the sphere for its outward normal. Every projective line
+   of `ℂPⁿ`, the image of an injective linear map `ℂ² → ℂⁿ⁺¹`, has area `π`, for the canonical
+   orientation of `ℂP¹` as a complex manifold.
+5. For every `j`, the partial diffeomorphism `fubiniStudyDarbouxChart n j` has source the affine
+   open `{z_j ≠ 0}` and target the open unit ball of `StdSpace (Fin n)`, sends `[v]` to
+   `(|v_j| / |v|) (v_{j.succAbove k} / v_j)_k`, has inverse
+   `ζ ↦ [Fin.insertNth j √(1 - |ζ|²) ζ]` on the ball, and pulls `ω₀` back to `ω_FS`. For every
+   nonzero linear form `ℓ`, there is such a partial diffeomorphism with source the complement
+   `{ℓ ≠ 0}` of the hyperplane `{ℓ = 0}`.
+6. The real projective space `ℝPⁿ`, embedded by the change of field, and the Clifford torus,
+   whose image is the set of points `[z]` with `|z₀| = ⋯ = |zₙ|`, are Lagrangian embeddings.
+
+Milestone: *Fubini–Study form on complex projective space*. -/
+theorem fubiniStudyForm_spec :
+    -- 1. The two-form `ρ` on `ℂⁿ⁺¹ ∖ 0`, its primitive `α`, and the radial projection
+    (SmoothForm.mapCoeff Complex.ofRealCLM (fubiniStudyLift n) =
+        (Complex.I / 2) • (ofComplexManifold (Fin (n + 1) → ℂ)
+          (puncturedSpace (Fin (n + 1) → ℂ))).del
+            ((ofComplexManifold (Fin (n + 1) → ℂ) (puncturedSpace (Fin (n + 1) → ℂ))).delBar
+              (SmoothForm.mapCoeff Complex.ofRealCLM (fubiniStudyPotential n))) ∧
+      fubiniStudyLift n = mextDerivₗ 𝓘(ℝ, Fin (n + 1) → ℂ) 1 (fubiniStudyPrimitive n) ∧
+      (∀ (z : puncturedSpace (Fin (n + 1) → ℂ)) (v : TangentSpace 𝓘(ℝ, Fin (n + 1) → ℂ) z),
+        (fubiniStudyPrimitive n).val z ![v] =
+          stdComplexPiSymplecticForm (Fin (n + 1)) z v /
+            (2 * ∑ i, ‖(z : Fin (n + 1) → ℂ) i‖ ^ 2)) ∧
+      SmoothForm.mpullback (radialProjection n) (contMDiff_radialProjection n ∞)
+        (sphereStdForm n) = fubiniStudyLift n) ∧
+    -- 2. `ω_FS` is the descent of `ρ`, and of `σ`
+    (∀ η : SmoothTwoForm 𝓘(ℝ, Fin n → ℂ) (ℙ ℂ (Fin (n + 1) → ℂ)),
+        SmoothForm.mpullback (mkNonzero ℂ n) (contMDiff_mkNonzero ℂ n ∞) η = fubiniStudyLift n ↔
+          η = fubiniStudyForm n) ∧
+      (∀ η : SmoothTwoForm 𝓘(ℝ, Fin n → ℂ) (ℙ ℂ (Fin (n + 1) → ℂ)),
+        SmoothForm.mpullback (sphereHopf n) (contMDiff_sphereHopf n ∞) η = sphereStdForm n ↔
+          η = fubiniStudyForm n) ∧
+    -- 3. Symplectic, compatible, Kähler, with local potentials
+    ((fubiniStudyForm n).IsSymplectic ∧
+      (fubiniStudyForm n).Compatible (ofComplexManifold (Fin n → ℂ) (ℙ ℂ (Fin (n + 1) → ℂ))) ∧
+      (ofComplexManifold (Fin n → ℂ) (ℙ ℂ (Fin (n + 1) → ℂ))).IsIntegrable ∧
+      (fubiniStudyForm n).IsKahler (ofComplexManifold (Fin n → ℂ) (ℙ ℂ (Fin (n + 1) → ℂ))) ∧
+      ∀ j : Fin (n + 1),
+        SmoothForm.mapCoeff Complex.ofRealCLM (SmoothForm.mpullback (affineChart (K := ℂ) j).symm
+            (contMDiff_affineChart_symm_restrictScalars j ∞) (fubiniStudyForm n)) =
+          (Complex.I / 2) • (ofComplexManifold (Fin n → ℂ) (Fin n → ℂ)).del
+            ((ofComplexManifold (Fin n → ℂ) (Fin n → ℂ)).delBar
+              (SmoothForm.mapCoeff Complex.ofRealCLM (fubiniStudyAffinePotential n)))) ∧
+    -- 4. Unitary invariance and the normalization
+    ((∀ U : Matrix.unitaryGroup (Fin (n + 1)) ℂ,
+        SmoothForm.mpullback (mapDiffeomorph (Matrix.UnitaryGroup.toLinearEquiv U) ∞)
+          (by rw [coe_mapDiffeomorph]; exact contMDiff_map_restrictScalars _ _ ∞)
+          (fubiniStudyForm n) = fubiniStudyForm n) ∧
+      (∀ (i : Fin 2) (t v w : ℂ),
+        (SmoothForm.mpullback (ProjectiveLine.affineParam i)
+            (ProjectiveLine.contMDiff_affineParam_real i) (fubiniStudyForm 1)).eval₂ t v w =
+          (conj v * w).im / (1 + ‖t‖ ^ 2) ^ 2) ∧
+      (∀ {p : sphere (0 : EuclideanSpace ℝ (Fin 3)) 1} (hp : p ≠ -northPole),
+        sphereToProjectiveLine p =
+          mk ℂ ![((1 + (p : EuclideanSpace ℝ (Fin 3)) 2 : ℝ) : ℂ),
+              ((p : EuclideanSpace ℝ (Fin 3)) 0 : ℂ) +
+                ((p : EuclideanSpace ℝ (Fin 3)) 1 : ℂ) * Complex.I]
+            (fun h ↦ one_add_ne_zero_of_ne_neg_northPole hp
+              (Complex.ofReal_eq_zero.1 (congrFun h 0)))) ∧
+      SmoothForm.mpullback sphereToProjectiveLine (sphereToProjectiveLine.contMDiff.of_le le_top)
+          (fubiniStudyForm 1) =
+        (4 : ℝ)⁻¹ • Orientation.sphereVolumeForm
+          (Module.Basis.orientation
+            (OrthonormalBasis.toBasis (EuclideanSpace.basisFun (Fin 3) ℝ))) ∧
+      ∀ (f : (Fin 2 → ℂ) →ₗ[ℂ] Fin (n + 1) → ℂ) (hf : Injective f),
+        integralTopForm
+            (Manifold.Orientation.reindex (finCongr (by simp))
+              (complexManifoldOrientation (Fin 1 → ℂ) (ℙ ℂ (Fin 2 → ℂ))))
+            (SmoothForm.mpullback (map f hf) (contMDiff_map_restrictScalars f hf ∞)
+              (fubiniStudyForm n)).val = π) ∧
+    -- 5. Darboux charts
+    ((∀ j : Fin (n + 1),
+        (fubiniStudyDarbouxChart n j).source = affineOpen j ∧
+          (fubiniStudyDarbouxChart n j).target = ball 0 1 ∧
+          (∀ (v : Fin (n + 1) → ℂ) (hv : v ≠ 0),
+            fubiniStudyDarbouxChart n j (mk ℂ v hv) =
+              (‖v j‖ / ‖complexToRealEuclidean (Fin (n + 1)) v‖) •
+                complexToRealEuclidean (Fin n) (fun k ↦ v (j.succAbove k) / v j)) ∧
+          (∀ {ζ : StdSpace (Fin n)}, ζ ∈ ball (0 : StdSpace (Fin n)) 1 →
+            (fubiniStudyDarbouxChart n j).symm ζ =
+              mk ℂ (Fin.insertNth (α := fun _ ↦ ℂ) j (√(1 - ‖ζ‖ ^ 2) : ℂ)
+                ((complexToRealEuclidean (Fin n)).symm ζ))
+                (insertNth_sqrt_one_sub_norm_sq_ne_zero j ζ)) ∧
+          ∀ x ∈ (fubiniStudyDarbouxChart n j).source, ∀ v w : TangentSpace 𝓘(ℝ, Fin n → ℂ) x,
+            (fubiniStudyForm n).eval₂ x v w =
+              stdForm (Fin n) (mvfderiv 𝓘(ℝ, Fin n → ℂ) (fubiniStudyDarbouxChart n j) x v)
+                (mvfderiv 𝓘(ℝ, Fin n → ℂ) (fubiniStudyDarbouxChart n j) x w)) ∧
+      ∀ ℓ : Module.Dual ℂ (Fin (n + 1) → ℂ), ℓ ≠ 0 →
+        ∃ ψ : PartialDiffeomorph 𝓘(ℝ, Fin n → ℂ) 𝓘(ℝ, StdSpace (Fin n))
+            (ℙ ℂ (Fin (n + 1) → ℂ)) (StdSpace (Fin n)) ∞,
+          ψ.source = {x | ℓ x.rep ≠ 0} ∧ ψ.target = ball 0 1 ∧
+          (∀ (v : Fin (n + 1) → ℂ) (hv : v ≠ 0), mk ℂ v hv ∈ ψ.source ↔ ℓ v ≠ 0) ∧
+          ∀ x ∈ ψ.source, ∀ v w : TangentSpace 𝓘(ℝ, Fin n → ℂ) x,
+            (fubiniStudyForm n).eval₂ x v w =
+              stdForm (Fin n) (mvfderiv 𝓘(ℝ, Fin n → ℂ) ψ x v)
+                (mvfderiv 𝓘(ℝ, Fin n → ℂ) ψ x w)) ∧
+    -- 6. Lagrangian `ℝPⁿ` and Clifford torus
+    ((isSymplectic_fubiniStudyForm n).isNondegenerate.IsLagrangianEmbedding 𝓘(ℝ, Fin n → ℝ)
+        (Complex.ofRealHom.mapProjective : ℙ ℝ (Fin (n + 1) → ℝ) → ℙ ℂ (Fin (n + 1) → ℂ)) ∧
+      Set.range (cliffordTorus n) =
+        {x | ∃ (v : Fin (n + 1) → ℂ) (hv : v ≠ 0), mk ℂ v hv = x ∧ ∀ i j, ‖v i‖ = ‖v j‖} ∧
+      (isSymplectic_fubiniStudyForm n).isNondegenerate.IsLagrangianEmbedding
+        (ModelWithCorners.pi fun _ : Fin n ↦ 𝓘(ℝ)) (cliffordTorus n)) :=
+  ⟨⟨fubiniStudyLift_eq_del_delBar n, fubiniStudyLift_def n, fubiniStudyPrimitive_apply,
+      mpullback_radialProjection_sphereStdForm n⟩,
+    fun _ ↦ ⟨fun h ↦ (existsUnique_mpullback_mkNonzero_eq n).unique h
+        (mpullback_mkNonzero_fubiniStudyForm n),
+      fun h ↦ h ▸ mpullback_mkNonzero_fubiniStudyForm n⟩,
+    fun _ ↦ ⟨fun h ↦ (existsUnique_mpullback_sphereHopf_eq n).unique h
+        (mpullback_sphereHopf_fubiniStudyForm n),
+      fun h ↦ h ▸ mpullback_sphereHopf_fubiniStudyForm n⟩,
+    ⟨isSymplectic_fubiniStudyForm n, compatible_fubiniStudyForm, isIntegrable_ofComplexManifold,
+      isKahler_fubiniStudyForm, mpullback_affineChart_symm_fubiniStudyForm_eq_del_delBar⟩,
+    ⟨mpullback_unitary_fubiniStudyForm, eval₂_fubiniStudyForm_affineParam,
+      sphereToProjectiveLine_of_ne_southPole, mpullback_sphereToProjectiveLine_fubiniStudyForm,
+      integralTopForm_mpullback_map_fubiniStudyForm⟩,
+    ⟨fun j ↦ ⟨fubiniStudyDarbouxChart_source j, fubiniStudyDarbouxChart_target j,
+        fubiniStudyDarbouxChart_mk j, fubiniStudyDarbouxChart_symm_apply j,
+        fun _ hx ↦ eval₂_fubiniStudyForm_eq_stdForm_mvfderiv_darbouxChart j hx⟩,
+      exists_darbouxChart_compl_hyperplane⟩,
+    ⟨isLagrangianEmbedding_mapProjective_ofReal n, range_cliffordTorus n,
+      isLagrangianEmbedding_cliffordTorus n⟩⟩
+
+end Spec
 
 end SymplecticGeometry
 

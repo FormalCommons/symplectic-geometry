@@ -193,15 +193,8 @@ theorem exists_mpullback_symm_codifferential_eq
   swap
   · simp only [_root_.smul_apply, ContinuousLinearMap.comp_apply, alternatizeUncurryFinCLM_apply]
   -- The principal part: expand the derivative of `a` in the dual basis of `b`.
-  have hD : hodgeStarInChart o ψ hkl y ∘L fderiv ℝ a y = ∑ i,
-      (LinearMap.toContinuousLinearMap (b.coord i)).smulRight
-        (hodgeStarInChart o ψ hkl y (fderiv ℝ a y (b i))) := by
-    ext1 v
-    simp only [ContinuousLinearMap.comp_apply, FunLike.coe_sum, Finset.sum_apply,
-      ContinuousLinearMap.smulRight_apply, LinearMap.coe_toContinuousLinearMap', Basis.coord_apply]
-    simp_rw [← map_smul, ← _root_.map_sum, b.sum_repr]
-  rw [hD, ← alternatizeUncurryFinCLM_apply, _root_.map_sum, _root_.map_sum, Finset.smul_sum]
-  simp_rw [alternatizeUncurryFinCLM_apply,
+  rw [alternatizeUncurryFin_eq_sum_coord_smulRight b, _root_.map_sum, Finset.smul_sum]
+  simp_rw [ContinuousLinearMap.comp_apply,
     smul_hodgeStarInChart_alternatizeUncurryFin_hodgeStarInChart o ψ hkl hlk b hy]
   simp [Finset.sum_neg_distrib, Basis.coord_apply, Finsupp.single_apply, ite_smul]
 

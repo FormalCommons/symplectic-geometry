@@ -11,7 +11,6 @@ import SymplecticGeometry.Geometry.Manifold.ContMDiff.TimeExtension
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.TimeExtension
 import SymplecticGeometry.Geometry.Manifold.Flow.TimeDependent
 import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.SymplecticIsotopy
-import TauCeti.Geometry.Symplectic.Hamiltonian.CommutingFlow
 import TauCeti.Geometry.Symplectic.Manifold.Family
 
 /-!
@@ -58,6 +57,8 @@ these diffeotopies form the group `Ham_c(M, σ)`
 * `TauCeti.Diffeotopy.exists_interior_velocity_eq`: for a symplectic `σ`, a smooth family of closed
   one-forms `Ω_t` vanishing off a compact set `L` is `ι_{X_t} σ` for the velocity `X_t` of a
   diffeotopy that preserves `σ` and fixes every point outside `L`.
+* `TauCeti.Diffeotopy.exists_interior_velocity_eq_add_mextDeriv`: the case `Ω_t = β_t + dG_t`, for
+  closed `β_t` vanishing off `L` and a smooth `G` vanishing off `C`, with fixed set `L ∪ C`.
 * `TauCeti.SmoothTwoForm.IsSymplectic.isHamiltonian_iff_and_normal_hamiltonianGroup`: the
   characterizations of Hamiltonian diffeotopies, uniqueness of their generating functions, the
   rules for composites, inverses and conjugates, and the normality of `Ham(M, σ)` and
@@ -78,16 +79,19 @@ The subgroup and its API follow Tau Ceti's `TauCeti.SmoothForm.hamiltonianGroup`
 the predicate add compact sets to Tau Ceti's `TauCeti.Diffeotopy.IsHamiltonian.trans`,
 `TauCeti.Diffeotopy.IsHamiltonian.symm` and `TauCeti.Diffeotopy.IsHamiltonian.transDiffeomorph`.
 
-The diffeotopy of `TauCeti.Diffeotopy.exists_isCompactlySupportedHamiltonian` is Tau Ceti's
-`TauCeti.timeDependentFlowDiffeotopy` of the Hamiltonian vector fields of the extension
-`SymplecticGeometry.timeExtend` of the function to `ℝ × M`, by Seeley's operator. The extension
-still vanishes off `K`, so the fields vanish off `K` and their suspension is complete
-(`TauCeti.isCompleteVectorField_timeDependentSuspensionField`).
-The diffeotopy of `TauCeti.Diffeotopy.exists_interior_velocity_eq` is built the same way, from the
-fields `(σ♭)⁻¹ α_u`, `α` being the extension `TauCeti.SmoothForm.timeExtend` of `Ω` to
-`ℝ × M`. Its slices preserve `σ` because the `Ω_t` are closed for `t ∈ [0, 1]`
+The diffeotopy of `TauCeti.Diffeotopy.exists_interior_velocity_eq` is Tau Ceti's
+`TauCeti.timeDependentFlowDiffeotopy` of the fields `(σ♭)⁻¹ α_u`, `α` being the extension
+`TauCeti.SmoothForm.timeExtend` of `Ω` to `ℝ × M`, by Seeley's operator. The extension still
+vanishes off `L` (`SymplecticGeometry.timeExtend_eq_zero`), so the fields vanish off `L` and their
+suspension is complete (`TauCeti.isCompleteVectorField_timeDependentSuspensionField`). Its slices
+preserve `σ` because the `Ω_t` are closed for `t ∈ [0, 1]`
 (`TauCeti.Diffeotopy.forall_timeSlice_mem_diffeomorphStabilizer_iff`); past the ends of `[0, 1]`
 the extended forms need not be closed, and they are not needed there.
+`TauCeti.Diffeotopy.exists_interior_velocity_eq_add_mextDeriv` applies it to `Ω = β + dG`, whose
+slices are `β_t + dG_t`, and `TauCeti.Diffeotopy.exists_isCompactlySupportedHamiltonian` is its
+case `β = 0`: the equation
+`ι_{X_t} σ = dG_t` says that `X_t` is the Hamiltonian vector field of `G_t`, so `G` generates the
+diffeotopy.
 
 ## References
 
@@ -204,52 +208,6 @@ section Flow
 
 variable [FiniteDimensional ℝ E] [J.Boundaryless] [T2Space M]
 
-/-- **The flow of a compactly supported Hamiltonian.** For a symplectic form `σ`, a smooth function
-`G` on `M × [0, 1]` that vanishes at `(x, t)` whenever `x` lies outside a compact set `K`
-generates a diffeotopy `φ_t`, which is a compactly supported Hamiltonian diffeotopy and fixes
-every point outside `K` at every time. -/
-theorem exists_isCompactlySupportedHamiltonian (hσ : SmoothTwoForm.IsSymplectic σ)
-    {G : M × unitInterval → ℝ} (hG : ContMDiff (J.prod (𝓡∂ 1)) 𝓘(ℝ) ∞ G) {K : Set M}
-    (hK : IsCompact K) (hGK : ∀ p : M × unitInterval, p.1 ∉ K → G p = 0) :
-    ∃ Φ : Diffeotopy J ∞ M, Φ.IsGeneratedBy σ G ∧ Φ.IsCompactlySupportedHamiltonian σ ∧
-      ∀ t, ∀ x ∉ K, Φ (t, x) = x := by
-  -- The extension `g` of `G` to `ℝ × M`, and its Hamiltonian vector fields `X`.
-  set g : ℝ × M → ℝ := SymplecticGeometry.timeExtend fun q : unitInterval × M ↦ G (q.2, q.1)
-  have hg : ContMDiff (𝓘(ℝ, ℝ).prod J) 𝓘(ℝ) ∞ g :=
-    (hG.comp (contMDiff_snd.prodMk contMDiff_fst)).timeExtend
-  have hgK (u : ℝ) (y : M) (hy : y ∉ K) : g (u, y) = 0 :=
-    SymplecticGeometry.timeExtend_eq_zero (fun s ↦ hGK (y, s) hy) u
-  set X : ℝ → (x : M) → TangentSpace J x :=
-    fun u ↦ SmoothTwoForm.hamiltonianVectorField σ fun y ↦ g (u, y)
-  have hX : ContMDiff (𝓘(ℝ, ℝ).prod J) J.tangent ∞
-      (fun p : ℝ × M ↦ (⟨p.2, X p.1 p.2⟩ : TangentBundle J M)) :=
-    hσ.isNondegenerate.contMDiff_hamiltonianVectorField_uncurry le_rfl
-      (show ContMDiff (𝓘(ℝ, ℝ).prod J) 𝓘(ℝ) (∞ + 1) (Function.uncurry fun u y ↦ g (u, y)) by
-        simpa only [Function.uncurry_def, ENat.coe_top_add_one, Prod.mk.eta] using hg)
-  have hXK (u : ℝ) (y : M) (hy : y ∉ K) : X u y = 0 :=
-    SmoothTwoForm.hamiltonianVectorField_eq_zero_of_eventuallyEq (c := 0) <|
-      Filter.mem_of_superset (hK.isClosed.isOpen_compl.mem_nhds hy) fun z hz ↦ hgK u z hz
-  have hc := isCompleteVectorField_timeDependentSuspensionField (hX.of_le (by simp)) hK hXK
-  set Φ := timeDependentFlowDiffeotopy le_top hX hc
-  have hgen : Φ.IsGeneratedBy σ G := by
-    refine isGeneratedBy_iff.2 ⟨hG, fun t ↦ ?_⟩
-    rw [velocity_timeDependentFlowDiffeotopy]
-    convert hσ.isNondegenerate.isHamiltonianVectorField_hamiltonianVectorField
-      (fun y ↦ g (t, y)) using 2 with y
-    exact (SymplecticGeometry.timeExtend_apply_coe (fun q : unitInterval × M ↦ G (q.2, q.1)) t
-      y).symm
-  have hslice (t : unitInterval) : Φ.timeSlice t ∈ SmoothForm.diffeomorphStabilizer σ := by
-    have hpull := SmoothTwoForm.mpullback_timeDependentFlowOf_of_isHamiltonianVectorField (X := X)
-      (fun u ↦ hσ.isNondegenerate.isHamiltonianVectorField_hamiltonianVectorField
-        (fun y ↦ g (u, y))) hσ.isClosed
-      (fun u ↦ (hg.comp (contMDiff_const.prodMk contMDiff_id)).of_le (by simp)) hc
-      (hX.of_le (by simp)) 0 t
-    refine SmoothForm.mem_diffeomorphStabilizer_iff_forall.2 fun x ↦ ?_
-    rw [timeSlice_timeDependentFlowDiffeotopy, hpull]
-  exact ⟨Φ, hgen, isCompactlySupportedHamiltonian_iff_isGeneratedBy.2 ⟨hslice, G, hgen, K, hK,
-    hGK⟩, fun t x hx ↦ timeDependentFlowDiffeotopy_apply_of_forall_eq_zero _ _ _
-      (fun u ↦ hXK u x hx) t⟩
-
 /-- **The flow of a family of closed one-forms.** For a symplectic form `σ` and a smooth one-form
 `Ω` on `[0, 1] × M` whose slices `Ω_t` are closed and vanish off a compact set `L`, there is a
 diffeotopy `φ_t` whose velocity `X_t` satisfies `ι_{X_t} σ = Ω_t`, whose slices preserve `σ`,
@@ -309,6 +267,88 @@ theorem exists_interior_velocity_eq (hσ : SmoothTwoForm.IsSymplectic σ)
       (fun u ↦ hXL u y hy) t,
     fun γ hγ hγX t ↦ timeDependentFlowDiffeotopy_apply_eq_of_mfderiv_eq hX hc hγ
       (fun s ↦ (hγX s).trans (congrFun (hvel s) (γ s))) t⟩
+
+/-- **The flow of a family of closed one-forms plus an exact family.** For a symplectic form `σ`,
+a smooth one-form `β` on `[0, 1] × M` whose slices `β_t` are closed and vanish off a compact set
+`L`, and a smooth function `G` on `M × [0, 1]` that vanishes at `(x, t)` whenever `x` lies outside
+a compact set `C`, there is a diffeotopy `φ_t` whose velocity `X_t` satisfies
+`ι_{X_t} σ = β_t + dG_t`, whose slices preserve `σ`, and which fixes every point outside `L ∪ C`
+at every time. Moreover `φ_t` moves the initial point of every differentiable curve `γ` on
+`[0, 1]` with `γ' t = X_t (γ t)` along `γ`. -/
+theorem exists_interior_velocity_eq_add_mextDeriv (hσ : SmoothTwoForm.IsSymplectic σ)
+    {β : SmoothForm ((𝓡∂ 1).prod J) (unitInterval × M) ℝ 1}
+    (hβ : ∀ t, mextDeriv
+      (SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) β).val = 0)
+    {L : Set M} (hL : IsCompact L)
+    (hβL : ∀ t, ∀ y ∉ L,
+      (SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) β).val y = 0)
+    {G : M × unitInterval → ℝ} (hG : ContMDiff (J.prod (𝓡∂ 1)) 𝓘(ℝ) ∞ G) {C : Set M}
+    (hC : IsCompact C) (hGC : ∀ p : M × unitInterval, p.1 ∉ C → G p = 0) :
+    ∃ Φ : Diffeotopy J ∞ M,
+      (∀ t, RoughForm.interior (Φ.velocity t) σ.val =
+        (SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) β).val +
+          mextDeriv (RoughForm.ofFunction J fun y ↦ G (y, t))) ∧
+      (∀ t, Φ.timeSlice t ∈ SmoothForm.diffeomorphStabilizer σ) ∧
+      (∀ t, ∀ y ∉ L ∪ C, Φ (t, y) = y) ∧
+      ∀ γ : unitInterval → M, MDifferentiable (𝓡∂ 1) J γ →
+        (∀ t, mfderiv (𝓡∂ 1) J γ t 1 = Φ.velocity t (γ t)) → ∀ t, Φ (t, γ 0) = γ t := by
+  let Gc : C^∞⟮(𝓡∂ 1).prod J, unitInterval × M; 𝓘(ℝ, ℝ), ℝ⟯ :=
+    ⟨fun q ↦ G (q.2, q.1), hG.comp (contMDiff_snd.prodMk contMDiff_fst)⟩
+  set Ω := β + mextDerivₗ ((𝓡∂ 1).prod J) 0 (SmoothForm.ofFunction Gc)
+  -- The slices of `Ω` are `β_t + dG_t`, and they are closed.
+  have hΩ (t : unitInterval) :
+      SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) Ω =
+        SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) β +
+          mextDerivₗ J 0 (SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id)
+            (SmoothForm.ofFunction Gc)) := by
+    rw [map_add, SmoothForm.mextDerivₗ_mpullback]
+  have hΩval (t : unitInterval) :
+      (SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) Ω).val =
+        (SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) β).val +
+          mextDeriv (RoughForm.ofFunction J fun y ↦ G (y, t)) := by
+    rw [hΩ, Submodule.coe_add, mextDerivₗ_apply,
+      SmoothForm.coe_mpullback _ _ (SmoothForm.ofFunction Gc), SmoothForm.coe_ofFunction,
+      mpullback_ofFunction, ContMDiffMap.coeFn_mk, Function.comp_def]
+  have hΩd (t : unitInterval) :
+      mextDeriv (SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) Ω).val
+        = 0 := by
+    rw [← mextDerivₗ_apply, hΩ, map_add, Submodule.coe_add, mextDerivₗ_apply, hβ t,
+      ← LinearMap.comp_apply, mextDerivₗ_comp_mextDerivₗ]
+    simp
+  -- The slices of `Ω` vanish off `L ∪ C`.
+  have hΩL (t : unitInterval) (y : M) (hy : y ∉ L ∪ C) :
+      (SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) Ω).val y = 0 := by
+    rw [mem_union, not_or] at hy
+    have hGy : (fun z ↦ G (z, t)) =ᶠ[nhds y] fun _ ↦ 0 := by
+      filter_upwards [hC.isClosed.isOpen_compl.mem_nhds hy.2] with z hz
+      exact hGC (z, t) hz
+    rw [hΩval, Pi.add_apply, hβL t y hy.1, zero_add]
+    exact mextDeriv_ofFunction_apply_eq_zero_iff.2 (by
+      rw [hGy.mfderiv_eq, mfderiv_const, ContinuousLinearMap.comp_zero])
+  obtain ⟨Φ, hint, hpres, hfix, htraj⟩ := exists_interior_velocity_eq hσ hΩd (hL.union hC) hΩL
+  exact ⟨Φ, fun t ↦ (hint t).trans (hΩval t), hpres, hfix, htraj⟩
+
+/-- **The flow of a compactly supported Hamiltonian.** For a symplectic form `σ`, a smooth function
+`G` on `M × [0, 1]` that vanishes at `(x, t)` whenever `x` lies outside a compact set `K`
+generates a diffeotopy `φ_t`, which is a compactly supported Hamiltonian diffeotopy and fixes
+every point outside `K` at every time. -/
+theorem exists_isCompactlySupportedHamiltonian (hσ : SmoothTwoForm.IsSymplectic σ)
+    {G : M × unitInterval → ℝ} (hG : ContMDiff (J.prod (𝓡∂ 1)) 𝓘(ℝ) ∞ G) {K : Set M}
+    (hK : IsCompact K) (hGK : ∀ p : M × unitInterval, p.1 ∉ K → G p = 0) :
+    ∃ Φ : Diffeotopy J ∞ M, Φ.IsGeneratedBy σ G ∧ Φ.IsCompactlySupportedHamiltonian σ ∧
+      ∀ t, ∀ x ∉ K, Φ (t, x) = x := by
+  have h0 (t : unitInterval) : SmoothForm.mpullback (Prod.mk t)
+      (contMDiff_const.prodMk contMDiff_id) (0 : SmoothForm ((𝓡∂ 1).prod J) (unitInterval × M) ℝ 1)
+      = 0 := map_zero _
+  obtain ⟨Φ, hint, hslice, hfix, -⟩ := exists_interior_velocity_eq_add_mextDeriv hσ (β := 0)
+    (fun t ↦ by rw [h0, ZeroMemClass.coe_zero, mextDeriv_zero]) isCompact_empty
+    (fun t y _ ↦ by rw [h0, ZeroMemClass.coe_zero, Pi.zero_apply]) hG hK hGK
+  -- `ι_{X_t} σ = dG_t` says that `X_t` is the Hamiltonian vector field of `G_t`.
+  have hgen : Φ.IsGeneratedBy σ G := isGeneratedBy_iff.2 ⟨hG, fun t ↦
+    SmoothTwoForm.isHamiltonianVectorField_iff_interior_eq.2 (by
+      rw [hint t, h0, ZeroMemClass.coe_zero, zero_add])⟩
+  exact ⟨Φ, hgen, isCompactlySupportedHamiltonian_iff_isGeneratedBy.2 ⟨hslice, G, hgen, K, hK,
+    hGK⟩, fun t x hx ↦ hfix t x (by rwa [empty_union])⟩
 
 end Flow
 
