@@ -40,7 +40,10 @@ primitives (`TauCeti.SmoothTwoForm.exists_isotopy_mpullback_eq_of_isCompact`,
 `Geometry/Symplectic/Manifold/Moser.lean`), the relative Moser theorem for one
 pair of forms
 (`TauCeti.SmoothTwoForm.exists_diffeomorph_fix_eventually_mpullback_eq_of_mextDeriv_eq_sub`,
-`RelativeMoser.lean`), tubular
+`RelativeMoser.lean`), the relative Poincaré operator of a vector bundle
+(`TauCeti.vectorBundlePoincareHomotopy`,
+`Geometry/Manifold/DifferentialForm/Relative/Basic.lean`, used by
+`DifferentialForm/VectorBundlePoincare.lean`), tubular
 neighbourhoods with their retractions and deformations
 (`TauCeti.SmoothEmbedding.exists_contMDiffOn_retraction`,
 `TauCeti.SmoothEmbedding.exists_deformation_subset`,
@@ -833,16 +836,16 @@ this design already follows. `Ball/Isotopy.lean` cites
   `Extension.lean`); the parametric radial primitives
   `exists_isSmoothFamily_mextDerivₗ_eq_of_starConvex` in
   `Geometry/Manifold/DifferentialForm/SmoothFamily/Poincare.lean`
-  (used by `Ball/Isotopy.lean`); and the
+  (used by `Ball/Isotopy.lean`); the homotopy operator on smooth families
+  `SymplecticGeometry.IsSmoothFamily.homotopyOperator` in
+  `Geometry/Manifold/DifferentialForm/SmoothFamily/HomotopyOperator.lean`
+  (used by `DifferentialForm/VectorBundlePoincare.lean`); and the
   instance
   `FiniteDimensional ℝ (deRhamCohomology I M k)` for a compact boundaryless
   `M`, which `Geometry/Manifold/DeRham/SmoothFamily/GoodCover.lean` derives
   from `hasFiniteGoodCover_of_compactSpace` (used by
   `Cohomological/Primitive.lean`, which also imports `Geometry/Manifold/DeRham/Map.lean`
-  for `TauCeti.SmoothForm.mpullback_mem_closedForms`). It also uses
-  `SymplecticGeometry.IsSmoothFamily.homotopyOperator`
-  (`Geometry/Manifold/DifferentialForm/SmoothFamily/HomotopyOperator.lean`,
-  used by `DifferentialForm/VectorBundlePoincare.lean`). The part uses neither the splittings and
+  for `TauCeti.SmoothForm.mpullback_mem_closedForms`). The part uses neither the splittings and
   `contMDiff_repr_mk_of_hasFiniteGoodCover` nor the bridge
   `Diffeotopy/Real.lean`: the periods are smooth in `t` as line integrals,
   and its flows are Tau Ceti's `timeDependentFlowDiffeotopy`, already a
