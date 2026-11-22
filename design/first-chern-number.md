@@ -859,14 +859,38 @@ issues, in an order where each issue's blockers come before it.
      `singularHomologyFunctor` induces Tau Ceti's
      `ContinuousMap.singularHomologyMap`
      (`AlgebraicTopology.singularHomologyFunctor_obj_map_ofHom_hom`).
+   - `AlgebraicTopology/Singular/Circle.lean`, used by
+     `DiscBoundaryClass.lean`:
+     `Circle.singularHomologyOneIso_inv_eq_complexOrientation`, the
+     generator of `Circle.singularHomologyOneIso` is the one of the unit
+     circle of `ℂ` selected by `Complex.orientation`.
+   - `Analysis/Normed/Module/Ball/Collar.lean`, used by
+     `DiscBoundaryClass.lean`: in a real normed space the unit sphere is
+     collared in the closed unit ball
+     (`Metric.isCollared_inclusion_sphere_closedBall`), and the
+     open ball is the complement of the sphere in the closed ball
+     (`Metric.range_inclusion_ball_eq_compl`).
+   - `AlgebraicTopology/Singular/LocalHomology/OrientedChart.lean`, used by
+     `DiscBoundaryClass.lean`:
+     `OpenPartialHomeomorph.map_reducedSingularHomologyδ_localOrientationOfOrientedChart_refl`,
+     the local orientation of the identity chart of an oriented inner
+     product space, through the connecting morphism and radial projection,
+     is the oriented generator of the unit sphere.
+   - `AlgebraicTopology/Singular/LocalHomology/DiscBoundaryClass.lean`, a
+     prerequisite of `BoundaryDegree.lean`: the closed unit disc of `ℂ` in
+     this setting, by `Collar.lean`, and its boundary
+     class,
+     `SymplecticGeometry.singularHomologyOneIso_singularHomologyδ_fundamentalClassRel_closedBall`:
+     for the complex orientation of the open disc, the boundary class read
+     in ℤ through `Circle.singularHomologyOneIso` is $+1$.
    - `AlgebraicTopology/Singular/LocalHomology/BoundaryDegree.lean`: the
      definition `TauCeti.HomologicalOrientation.boundaryDegree o hn hι hιf hf
      (u : C(∂X, Circle)) : ℤ`, the image of the boundary class
      `singularHomologyδ (fundamentalClassRel …)` under `u`, read in ℤ through
      `Circle.singularHomologyOneIso`, with the sign for which the
      counterclockwise loop counts $+1$. Tau Ceti does not record the sign of
-     its connecting morphism, so the issue settles it first, on the closed
-     unit disc, and fixes the sign of the definition by it. API:
+     its connecting morphism; `DiscBoundaryClass.lean` settles it on the
+     closed unit disc, and the definition fixes its sign by it. API:
      `boundaryDegree_def`;
      `boundaryDegree_mul` (pointwise products add degrees);
      `boundaryDegree_eq_of_homotopy` (homotopic maps `∂X → Circle` have the
