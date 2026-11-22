@@ -23,6 +23,8 @@ applies: the points of a fibre are related by the action, through the division m
 ## Main results
 
 * `TauCeti.PrincipalBundle.proj_comp_op_smul`: the projection is invariant under the action.
+* `TauCeti.PrincipalBundle.exists_op_smul_eq_of_proj_eq`: two points of one fibre differ by the
+  action.
 * `TauCeti.PrincipalBundle.mpullback_op_smul_mpullback_proj`: forms pulled back from the base are
   invariant under the action.
 * `TauCeti.PrincipalBundle.isBasic_of_mpullback_op_smul`: an invariant form that vanishes on
@@ -56,6 +58,7 @@ variable {B G : Type*}
 omit [TopologicalSpace B] [∀ b, TopologicalSpace (P b)] [FiberBundle G P] [TopologicalSpace G] in
 /-- The projection of the charted total space of a principal bundle is invariant under the right
 action. -/
+@[simp]
 theorem proj_comp_op_smul (g : G) :
     (fun y : ManifoldTotalSpace G P ↦ ((ManifoldTotalSpace.homeomorph G P).symm y).proj) ∘
       (fun x ↦ op g • x) =
@@ -66,8 +69,22 @@ theorem proj_comp_op_smul (g : G) :
 variable [IsManifold IB ∞ B] [ContMDiffMul IG ∞ G] [ContMDiffFiberBundle ∞ G P IB IG]
   [PrincipalBundle G P]
 
+omit [IsManifold IB ∞ B] [ContMDiffMul IG ∞ G] [ContMDiffFiberBundle ∞ G P IB IG] in
+/-- Two points of the charted total space of a principal bundle with the same projection differ by
+the right action of an element of the structure group. -/
+theorem exists_op_smul_eq_of_proj_eq {x y : ManifoldTotalSpace G P}
+    (hxy : ((ManifoldTotalSpace.homeomorph G P).symm x).proj =
+      ((ManifoldTotalSpace.homeomorph G P).symm y).proj) :
+    ∃ g : G, op g • y = x := by
+  obtain ⟨⟨b, p⟩, rfl⟩ := (ManifoldTotalSpace.homeomorph G P).surjective x
+  obtain ⟨⟨b', q⟩, rfl⟩ := (ManifoldTotalSpace.homeomorph G P).surjective y
+  simp only [Homeomorph.symm_apply_apply] at hxy
+  subst hxy
+  exact ⟨division G q p, by rw [ManifoldTotalSpace.smul_homeomorph, smul_division]⟩
+
 /-- A form pulled back from the base of a smooth principal bundle is invariant under the right
 action. -/
+@[simp]
 theorem mpullback_op_smul_mpullback_proj {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F]
     {k : ℕ} (g : G) (a : SmoothForm IB B F k) :
     SmoothForm.mpullback (fun x : ManifoldTotalSpace G P ↦ op g • x)
@@ -97,12 +114,8 @@ theorem isBasic_of_mpullback_op_smul {F : Type*} [NormedAddCommGroup F] [NormedS
     (σ := fun (g : G) (x : ManifoldTotalSpace G P) ↦ op g • x)
     ((ManifoldTotalSpace.contMDiff_proj ∞ G P IB IG).mdifferentiable (by simp))
     (fun g ↦ (contMDiff_const_smul (I := IB.prod IG) (n := ∞) (op g)).mdifferentiable (by simp))
-    proj_comp_op_smul (fun x y hxy ↦ Or.inr ?_) hvert fun g ↦ ?_
-  · obtain ⟨⟨b, p⟩, rfl⟩ := (ManifoldTotalSpace.homeomorph G P).surjective x
-    obtain ⟨⟨b', q⟩, rfl⟩ := (ManifoldTotalSpace.homeomorph G P).surjective y
-    simp only [Homeomorph.symm_apply_apply] at hxy
-    subst hxy
-    exact ⟨division G p q, by rw [ManifoldTotalSpace.smul_homeomorph, smul_division]⟩
-  · rw [← SmoothForm.coe_mpullback _ (contMDiff_const_smul (op g)), hβ]
+    proj_comp_op_smul (fun x y hxy ↦ Or.inr (exists_op_smul_eq_of_proj_eq hxy.symm)) hvert
+    fun g ↦ ?_
+  rw [← SmoothForm.coe_mpullback _ (contMDiff_const_smul (op g)), hβ]
 
 end TauCeti.PrincipalBundle

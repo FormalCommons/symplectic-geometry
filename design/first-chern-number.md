@@ -799,10 +799,13 @@ issues, in an order where each issue's blockers come before it.
    the proofs use have files of their own:
    `Geometry/Manifold/DeRham/Circle.lean` (the rotations of the circle preserve
    `TauCeti.circleAngularForm`), at the place of the Tau Ceti file of the same
-   name, and `Geometry/Manifold/FiberBundle/Principal/BasicForm.lean`
+   name, `Geometry/Manifold/FiberBundle/Principal/BasicForm.lean`
    (`TauCeti.PrincipalBundle.isBasic_of_mpullback_op_smul`: on a smooth
    principal bundle, an invariant form that vanishes on vertical vectors is
-   basic). The example on the circle bundle imports
+   basic), and `Geometry/Manifold/DifferentialForm/PartitionOfUnity.lean`
+   (`SmoothPartitionOfUnity.IsSubordinate.isSmoothForm_finsum_smul_comp`: a
+   locally finite sum of local forms weighted by a smooth partition of unity
+   is smooth). The example on the circle bundle imports
    `Geometry/Manifold/VectorBundle/Hermitian/CircleBundle.lean` of *Symplectic
    vector bundles*. Blocked by 3 only for its example; the definitions are for
    any `P`.

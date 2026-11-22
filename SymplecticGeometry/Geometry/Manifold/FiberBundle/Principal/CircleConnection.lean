@@ -7,16 +7,16 @@ module
 
 public import Mathlib.Geometry.Manifold.Instances.Sphere
 public import TauCeti.Geometry.Manifold.DeRham.Circle
+public import TauCeti.Geometry.Manifold.DifferentialForm.LieDeriv
 public import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Submersion
 public import TauCeti.Geometry.Manifold.FiberBundle.Principal.FundamentalVectorField
 public import TauCeti.Geometry.Manifold.FiberBundle.Submersion
-import Mathlib.Geometry.Manifold.PartitionOfUnity
 import SymplecticGeometry.Geometry.Manifold.DeRham.Circle
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.PartitionOfUnity
 import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.BasicForm
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Hermitian.CircleBundle
 import TauCeti.Geometry.Manifold.DifferentialForm.Flow
-import TauCeti.Geometry.Manifold.DifferentialForm.LieDeriv
 import TauCeti.Geometry.Manifold.Instances.Sphere
 
 /-!
@@ -47,6 +47,8 @@ section `σ`, a connection form is `θ^* dθ + π^* (σ^* α)`.
 
 ## Main results
 
+* `SymplecticGeometry.mlieDerivForm_rightFundamentalVectorField_circleLieGenerator_eq_zero`: an
+  invariant form has vanishing Lie derivative along the fundamental vector field of `1`.
 * `SymplecticGeometry.IsCircleConnectionForm.mpullback_curvature`,
   `SymplecticGeometry.IsCircleConnectionForm.curvature_eq_iff`: the curvature is the unique form on
   the base whose pull-back is `d α`.
@@ -102,6 +104,7 @@ theorem circleLieGenerator_ne_zero : circleLieGenerator ≠ 0 := fun h ↦
   one_ne_zero (α := ℝ) <| injective_mfderiv_circleExp 0 (h.trans (map_zero _).symm)
 
 /-- The angular form of the circle takes the value `1` on the generator of its Lie algebra. -/
+@[simp]
 theorem circleAngularForm_one_circleLieGenerator :
     circleAngularForm 1 ![circleLieGenerator] = 1 := by
   have h := circleAngularForm_apply_curveVelocity_circleExp 0
@@ -160,9 +163,9 @@ section Curvature
 
 variable [IB.Boundaryless]
 
-/-- An invariant form on the total space of a principal `Circle`-bundle has vanishing Lie
-derivative along the fundamental vector field of `1`. -/
-private theorem mlieDerivForm_eq_zero_of_mpullback_op_smul {k : ℕ}
+/-- A form on the total space of a principal `Circle`-bundle that is invariant under the action
+has vanishing Lie derivative along the fundamental vector field of `1`. -/
+theorem mlieDerivForm_rightFundamentalVectorField_circleLieGenerator_eq_zero {k : ℕ}
     {β : SmoothForm (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) ℝ k}
     (hβ : ∀ z : Circle, SmoothForm.mpullback (fun x : ManifoldTotalSpace Circle P ↦ op z • x)
       (contMDiff_const_smul (op z)) β = β) :
@@ -212,7 +215,8 @@ private theorem IsCircleConnectionForm.mextDeriv_apply_rightFundamentalVectorFie
     (m := 1) (n := ∞) (by simp) circleLieGenerator x).mdifferentiableAt one_ne_zero
   have h := mlieDerivForm_apply_eq_mextDeriv_add (f := fun _ ↦ (1 : ℝ))
     hα.apply_rightFundamentalVectorField (α.mdifferentiable x) hV v
-  rw [mlieDerivForm_eq_zero_of_mpullback_op_smul hα.mpullback_op_smul, mvfderiv_const] at h
+  rw [mlieDerivForm_rightFundamentalVectorField_circleLieGenerator_eq_zero hα.mpullback_op_smul,
+    mvfderiv_const] at h
   simpa [eq_comm] using h
 
 /-- The exterior derivative of a connection form vanishes as soon as one of its arguments is
@@ -229,14 +233,8 @@ private theorem IsCircleConnectionForm.mextDeriv_apply_eq_zero_of_vertical
     funext i
     fin_cases i <;> rfl
   have hfirst (w : TangentSpace (IB.prod (𝓡 1)) x) : mextDeriv α.val x ![c • ξ, w] = 0 := by
-    have hupd : ![c • ξ, w] = Function.update ![ξ, w] 0 (c • ξ) := by
-      funext i
-      fin_cases i <;> rfl
-    have hself : Function.update ![ξ, w] 0 ξ = ![ξ, w] := by
-      funext i
-      fin_cases i <;> rfl
-    rw [hupd, ContinuousAlternatingMap.map_update_smul, hself,
-      hα.mextDeriv_apply_rightFundamentalVectorField, smul_zero]
+    rw [ContinuousAlternatingMap.vecCons_smul, hα.mextDeriv_apply_rightFundamentalVectorField,
+      smul_zero]
   obtain rfl | rfl : j = 0 ∨ j = 1 := by fin_cases j <;> simp
   · rw [hv01]
     exact hc ▸ hfirst (v 1)
@@ -322,7 +320,9 @@ theorem IsCircleConnectionForm.add_mpullback (hα : IsCircleConnectionForm α)
 
 variable [IB.Boundaryless]
 
-/-- Two connection forms differ by the pull-back of a unique `1`-form on the base. -/
+/-- Two connection forms differ by the pull-back of a unique `1`-form on the base. The base is
+assumed boundaryless, as for the curvature, because Tau Ceti's descent of basic forms along
+submersions (`Manifold.IsSubmersion.exists_smoothForm_mpullback_eq_iff`) assumes it. -/
 theorem IsCircleConnectionForm.existsUnique_eq_add_mpullback (hα : IsCircleConnectionForm α)
     {β : SmoothForm (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) ℝ 1}
     (hβ : IsCircleConnectionForm β) :
@@ -357,6 +357,7 @@ theorem IsCircleConnectionForm.existsUnique_eq_add_mpullback (hα : IsCircleConn
 
 /-- Adding the pull-back of a `1`-form `a` on the base to a connection form adds `d a` to its
 curvature. -/
+@[simp]
 theorem IsCircleConnectionForm.curvature_add_mpullback (hα : IsCircleConnectionForm α)
     (a : SmoothForm IB B ℝ 1) :
     (hα.add_mpullback a).curvature = hα.curvature + mextDerivₗ IB 1 a := by
@@ -471,14 +472,7 @@ private theorem IsCircleConnectionForm.sub_apply_eq_of_mfderiv_proj_eq
   set ℓ := TauCeti.mpullback (IB.prod (𝓡 1)) (𝓡 1) (fun x : ManifoldTotalSpace Circle P ↦
     (e ((ManifoldTotalSpace.homeomorph Circle P).symm x)).2) circleAngularForm
   -- `x = y • g` for some `g`.
-  obtain ⟨g, hg⟩ : ∃ g : Circle, op g • y = x := by
-    obtain ⟨⟨b, q⟩, rfl⟩ := (ManifoldTotalSpace.homeomorph Circle P).surjective x
-    obtain ⟨⟨b', q'⟩, rfl⟩ := (ManifoldTotalSpace.homeomorph Circle P).surjective y
-    simp only [Homeomorph.symm_apply_apply] at hxy
-    subst hxy
-    exact ⟨PrincipalBundle.division Circle q' q, by
-      rw [ManifoldTotalSpace.smul_homeomorph, PrincipalBundle.smul_division]⟩
-  subst hg
+  obtain ⟨g, rfl⟩ := PrincipalBundle.exists_op_smul_eq_of_proj_eq hxy
   have hgd : MDifferentiableAt (IB.prod (𝓡 1)) (IB.prod (𝓡 1))
       (fun z : ManifoldTotalSpace Circle P ↦ op g • z) y :=
     (contMDiff_const_smul (I := IB.prod (𝓡 1)) (n := 1) (op g) y).mdifferentiableAt one_ne_zero
@@ -542,40 +536,24 @@ theorem exists_isCircleConnectionForm [FiniteDimensional ℝ EB] [T2Space B]
       fun _ hx ↦ hx
   have hθd (b : B) (x : ManifoldTotalSpace Circle P)
       (hx : p x ∈ (trivializationAt Circle P b).baseSet) :
-      MDifferentiableAt (IB.prod (𝓡 1)) (𝓡 1) (fun x : ManifoldTotalSpace Circle P ↦
+      ContMDiffAt (IB.prod (𝓡 1)) (𝓡 1) ∞ (fun x : ManifoldTotalSpace Circle P ↦
         (trivializationAt Circle P b ((ManifoldTotalSpace.homeomorph Circle P).symm x)).2) x :=
-    ((hθ b).contMDiffAt (((trivializationAt Circle P b).open_baseSet.preimage
-      hpc.continuous).mem_nhds hx)).mdifferentiableAt (by simp)
-  -- The local connection forms, cut off by the partition of unity.
-  set t : B → RoughForm (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) ℝ 1 := fun b x ↦
-    ρ b (p x) • TauCeti.mpullback (IB.prod (𝓡 1)) (𝓡 1) (fun x : ManifoldTotalSpace Circle P ↦
+    (hθ b).contMDiffAt (((trivializationAt Circle P b).open_baseSet.preimage
+      hpc.continuous).mem_nhds hx)
+  -- The local connection forms `θ^* dθ`, glued with the partition of unity.
+  set ℓ : B → RoughForm (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) ℝ 1 := fun b ↦
+    TauCeti.mpullback (IB.prod (𝓡 1)) (𝓡 1) (fun x : ManifoldTotalSpace Circle P ↦
       (trivializationAt Circle P b ((ManifoldTotalSpace.homeomorph Circle P).symm x)).2)
-      circleAngularForm x with ht
+      circleAngularForm
+  set t : B → RoughForm (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) ℝ 1 :=
+    fun b x ↦ ρ b (p x) • ℓ b x with ht
   have hsupp (b : B) (x : ManifoldTotalSpace Circle P) (hx : t b x ≠ 0) : ρ b (p x) ≠ 0 :=
-    fun h ↦ hx (by rw [ht]; simp only [h, zero_smul])
-  have hlf : LocallyFinite fun b ↦ {x | t b x ≠ 0} :=
-    (ρ.locallyFinite.preimage_continuous hpc.continuous).subset fun b x hx ↦ hsupp b x hx
-  have hsmooth (b : B) (x : ManifoldTotalSpace Circle P) :
-      ContMDiffAt (IB.prod (𝓡 1)) ((IB.prod (𝓡 1)).prod 𝓘(ℝ, (EB × EuclideanSpace ℝ (Fin 1))
-        [⋀^Fin 1]→L[ℝ] ℝ)) ∞ (fun y ↦ TotalSpace.mk' ((EB × EuclideanSpace ℝ (Fin 1))
-          [⋀^Fin 1]→L[ℝ] ℝ) y (t b y)) x := by
-    by_cases hx : p x ∈ (trivializationAt Circle P b).baseSet
-    · have hθx := (hθ b).contMDiffAt (((trivializationAt Circle P b).open_baseSet.preimage
-        hpc.continuous).mem_nhds hx)
-      exact (((ρ b).contMDiff.comp hpc) x).smul_section
-        ((isSmoothForm_circleAngularForm.contMDiff _).mpullback_form hθx (by simp))
-    · -- Away from the support of `ρ b`, the cut-off form vanishes.
-      have hx' : p x ∉ tsupport (ρ b) := fun h ↦ hx (hρ b h)
-      refine (contMDiff_zeroSection ℝ (fun x : ManifoldTotalSpace Circle P ↦
-        TangentSpace (IB.prod (𝓡 1)) x [⋀^Fin 1]→L[ℝ] ℝ) x).congr_of_eventuallyEq ?_
-      filter_upwards [((isClosed_tsupport _).isOpen_compl.preimage hpc.continuous).mem_nhds hx']
-        with y hy
-      rw [ht]
-      simp only [image_eq_zero_of_notMem_tsupport hy, zero_smul]
-      rfl
+    left_ne_zero_of_smul hx
   let α : SmoothForm (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) ℝ 1 :=
-    ⟨fun x ↦ ∑ᶠ b, t b x, IsSmoothForm.mem_smoothBundleForms <| (isSmoothForm_def ∞ _).mpr
-      fun x ↦ ContMDiffAt.finsum_section_of_locallyFinite hlf fun b ↦ hsmooth b x⟩
+    ⟨fun x ↦ ∑ᶠ b, t b x, IsSmoothForm.mem_smoothBundleForms <|
+      hρ.isSmoothForm_finsum_smul_comp (fun b ↦ (trivializationAt Circle P b).open_baseSet) hpc
+        fun b x hx ↦ ((isSmoothForm_circleAngularForm.contMDiff _).mpullback_form (hθd b x hx)
+          (by simp)).contMDiffWithinAt⟩
   -- Over a point of the base, `α` is a finite sum.
   have hfin (x : ManifoldTotalSpace Circle P) : ∃ s : Finset B, (∀ b, ρ b (p x) ≠ 0 → b ∈ s) ∧
       ∀ y, p y = p x → α.val y = ∑ b ∈ s, t b y := by
@@ -597,7 +575,8 @@ theorem exists_isCircleConnectionForm [FiniteDimensional ℝ EB] [T2Space B]
     · have hxb : p x ∈ (trivializationAt Circle P b).baseSet := hρ b (subset_tsupport _ hb)
       congr 1
       exact (mpullback_apply _ _ _ _).symm.trans (DFunLike.congr_fun
-        (mpullback_op_smul_mpullback_trivialization_snd (hθd b) hxb z) v)
+        (mpullback_op_smul_mpullback_trivialization_snd
+          (fun x hx ↦ (hθd b x hx).mdifferentiableAt (by simp)) hxb z) v)
   · obtain ⟨s, hsmem, hs⟩ := hfin x
     have hterm (b : B) :
         t b x ![rightFundamentalVectorField (IB.prod (𝓡 1)) circleLieGenerator x] =
@@ -605,8 +584,9 @@ theorem exists_isCircleConnectionForm [FiniteDimensional ℝ EB] [T2Space B]
       simp only [ht, ContinuousAlternatingMap.smul_apply, smul_eq_mul]
       by_cases hb : ρ b (p x) = 0
       · simp [hb]
-      · rw [mpullback_trivialization_snd_apply_rightFundamentalVectorField (hθd b)
-          (hρ b (subset_tsupport _ hb)), mul_one]
+      · rw [mpullback_trivialization_snd_apply_rightFundamentalVectorField
+          (fun x hx ↦ (hθd b x hx).mdifferentiableAt (by simp)) (hρ b (subset_tsupport _ hb)),
+          mul_one]
     rw [hs x rfl, ContinuousAlternatingMap.sum_apply, Finset.sum_congr rfl fun b _ ↦ hterm b,
       ← finsum_eq_sum_of_support_subset _ fun b hb ↦ hsmem b hb, ρ.sum_eq_one (Set.mem_univ _)]
 
@@ -637,16 +617,13 @@ theorem IsCircleConnectionForm.apply_eq_mpullback_add_mpullback (hα : IsCircleC
   set θ := fun y : ManifoldTotalSpace Circle P ↦
     (e ((ManifoldTotalSpace.homeomorph Circle P).symm y)).2 with hθdef
   set s := fun b ↦ ManifoldTotalSpace.homeomorph Circle P ⟨b, σ b⟩ with hs
-  have hθ : ContMDiffOn (IB.prod (𝓡 1)) (𝓡 1) ∞ θ (p ⁻¹' e.baseSet) :=
-    (contMDiff_snd.comp_contMDiffOn (PrincipalBundle.contMDiffOn_trivializationOfSection
-      (hU := hU) (hσ := hσ) hσ')).mono fun y hy ↦ by
-        rw [Set.mem_preimage, PrincipalBundle.baseSet_trivializationOfSection] at hy
-        exact hy
   have hθd (y : ManifoldTotalSpace Circle P) (hy : p y ∈ e.baseSet) :
       MDifferentiableAt (IB.prod (𝓡 1)) (𝓡 1) θ y :=
-    (hθ.contMDiffAt ((e.open_baseSet.preimage
-      (ManifoldTotalSpace.contMDiff_proj ∞ Circle P IB (𝓡 1)).continuous).mem_nhds
-        hy)).mdifferentiableAt (by simp)
+    ((contMDiff_snd.comp_contMDiffOn (PrincipalBundle.contMDiffOn_trivializationOfSection
+      (hU := hU) (hσ := hσ) hσ')).contMDiffAt ((hU.preimage
+        (ManifoldTotalSpace.contMDiff_proj ∞ Circle P IB (𝓡 1)).continuous).mem_nhds
+          (by rwa [PrincipalBundle.baseSet_trivializationOfSection] at hy))).mdifferentiableAt
+            (by simp)
   have hps (b : B) : p (s b) = b := by simp [hp, hs]
   -- The section `s` has fibre coordinate `1`.
   have hθs (b : B) : θ (s b) = 1 := by
@@ -685,9 +662,8 @@ theorem IsCircleConnectionForm.apply_eq_mpullback_add_mpullback (hα : IsCircleC
     funext i
     fin_cases i
     rfl
-  rw [ContinuousAlternatingMap.add_apply, hv, hpull]
   rw [hℓ, sub_zero] at hkey
-  rw [← hkey]
+  rw [ContinuousAlternatingMap.add_apply, hv, hpull, ← hkey]
   ring
 
 /-! ### The circle bundle of a Hermitian line bundle -/

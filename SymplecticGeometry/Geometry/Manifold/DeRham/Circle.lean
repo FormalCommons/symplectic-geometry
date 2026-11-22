@@ -63,6 +63,7 @@ theorem mpullback_mul_planeAngularForm {a : ℂ} (ha : ‖a‖ = 1) :
   exact key z (v 0)
 
 /-- The rotations `w ↦ a * w` of the circle preserve its angular form. -/
+@[simp]
 theorem mpullback_mul_left_circleAngularForm (a : Circle) :
     mpullback (𝓡 1) (𝓡 1) (fun w : Circle ↦ a * w) circleAngularForm = circleAngularForm := by
   have hcoe : MDifferentiable (𝓡 1) 𝓘(ℝ, ℂ) (fun z : Circle ↦ (z : ℂ)) :=
@@ -79,6 +80,7 @@ theorem mpullback_mul_left_circleAngularForm (a : Circle) :
     mpullback_mul_planeAngularForm (by simp)]
 
 /-- The rotations `w ↦ w * a` of the circle preserve its angular form. -/
+@[simp]
 theorem mpullback_mul_right_circleAngularForm (a : Circle) :
     mpullback (𝓡 1) (𝓡 1) (fun w : Circle ↦ w * a) circleAngularForm = circleAngularForm := by
   simp_rw [mul_comm _ a]
