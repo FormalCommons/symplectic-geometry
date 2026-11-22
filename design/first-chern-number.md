@@ -835,11 +835,15 @@ issues, in an order where each issue's blockers come before it.
    `AlgebraicTopology/Cohomology/CompactSupport/Duality/Union.lean`, not a
    file of Tau Ceti's: `TauCeti.HomologicalOrientation.bijective_dualityMap_of_sup_eq_top`
    for a cover by two open sets, and `bijective_dualityMap_comap_sup` for two
-   open sets of `M`. Besides duality in every degree for `U`, `V` and
-   `U ∩ V`, both assume `Hⁿ⁺¹_c(U ∩ V; L) = 0`, which injectivity needs in
-   the top degree; `TopCat.isZero_compactSupportCohomology_sup`, in the
+   open sets of `M`. Both assume only duality in every degree for `U`, `V`
+   and `U ∩ V`: the vanishing of `Hⁿ⁺¹_c(U ∩ V; L)`, which injectivity
+   needs in the top degree, holds for every open set of `M`
+   (`TopCat.isZero_compactSupportCohomology_opens_of_finrank_eq`, in the
+   same file, from the library's
+   `AlgebraicTopology/Cohomology/CompactSupport/Manifold.lean`).
+   `TopCat.isZero_compactSupportCohomology_sup`, in the
    library's `AlgebraicTopology/Cohomology/CompactSupport/Vanishing.lean`,
-   passes that vanishing on to `U ∪ V`, and
+   passes such a vanishing on to `U ∪ V`, and
    `TopCat.isZero_compactSupportCohomology_of_iSup_eq_top`, in the same
    file, to a directed union of open sets. The vanishing starts from
    `AlgebraicTopology/Cohomology/CompactSupport/Euclidean/Basic.lean`,

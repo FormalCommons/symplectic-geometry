@@ -11,7 +11,6 @@ public import SymplecticGeometry.Algebra.Category.ModuleCat.Basic
 public import SymplecticGeometry.AlgebraicTopology.Cohomology.Cap.MayerVietoris.Basic
 public import SymplecticGeometry.AlgebraicTopology.Cohomology.CompactSupport.Duality.MayerVietoris
 public import SymplecticGeometry.AlgebraicTopology.Cohomology.CompactSupport.Manifold
-public import SymplecticGeometry.AlgebraicTopology.Cohomology.CompactSupport.Vanishing
 public import SymplecticGeometry.Topology.Sets.Opens.Comap
 
 /-!
@@ -20,15 +19,13 @@ public import SymplecticGeometry.Topology.Sets.Opens.Comap
 Fix a boundaryless `n`-manifold `M` with a homological orientation `o`, an abelian group `L`, and
 give every open set of `M` the restricted orientation. This file proves the Mayer–Vietoris step of
 Poincaré duality: if the duality maps `D : Hᵖ_c(-; L) ⟶ H_q(-; L)`, `p + q = n`, of open sets `U`,
-`V` and `U ∩ V` are bijective in every degree, and `Hⁿ⁺¹_c(U ∩ V; L) = 0`, then the duality map of
-`U ∪ V` is bijective in every degree.
+`V` and `U ∩ V` are bijective in every degree, then the duality map of `U ∪ V` is bijective in
+every degree.
 
 Run over the finite unions of the members of a family of open sets that is closed under
 intersection (`InfClosed.finset_sup_induction`), this step carries duality from the members to
 every such union, and on to `M` when the family covers it
-(`TauCeti.HomologicalOrientation.bijective_dualityMap_of_iSup_eq_top`). There the vanishing of
-`Hⁿ⁺¹_c(W; L)` for the open sets `W` of `M` holds by
-`TopCat.isZero_compactSupportCohomology_of_chartedSpace`, in `CompactSupport/Manifold.lean`.
+(`TauCeti.HomologicalOrientation.bijective_dualityMap_of_iSup_eq_top`).
 
 The proof is the five lemma on the ladder formed by the two Mayer–Vietoris sequences,
 
@@ -44,16 +41,18 @@ which we absorb into the last two vertical maps, `dualityMap_mayerVietorisδ`.
 
 In the top degree `p = n` the homology row stops at `H₀(M)`: surjectivity of `D_M` then follows
 from the surjectivity of `H₀(U) ⊞ H₀(V) ⟶ H₀(M)`, but injectivity needs the group
-`Hⁿ⁺¹_c(U ∩ V; L)` to vanish. That vanishing is part of the inductive hypothesis of Hatcher's
-argument, where `D` is defined in all degrees with `H_q = 0` for `q < 0`. It is a hypothesis of
-the two steps here, and `TopCat.isZero_compactSupportCohomology_of_sup_eq_top` and
-`TopCat.isZero_compactSupportCohomology_sup`, in `CompactSupport/Vanishing.lean`, carry it from `U`,
-`V` and `U ∩ V` to `U ∪ V`. Mathlib's five lemmas give both cases:
+`Hⁿ⁺¹_c(U ∩ V; L)` to vanish. In Hatcher's argument that vanishing is part of the inductive
+hypothesis, `D` being defined in all degrees with `H_q = 0` for `q < 0`. Here it holds for every
+open set `W` of `M` (`TopCat.isZero_compactSupportCohomology_opens_of_finrank_eq`), by
+`TopCat.isZero_compactSupportCohomology_of_chartedSpace`, in `CompactSupport/Manifold.lean`, so
+the two steps need no hypothesis on it. Mathlib's five lemmas give both cases:
 `AddMonoidHom.bijective_of_surjective_of_bijective_of_bijective_of_injective` below the top degree,
 and `AddMonoidHom.bijective_of_surjective_of_bijective_of_right_exact` in it.
 
 ## Main results
 
+* `TopCat.isZero_compactSupportCohomology_opens_of_finrank_eq`: `Hⁿ⁺¹_c(W; L) = 0` for every open
+  set `W` of `M`, for the `ℤ`-linear structure of `ModuleCat ℤ` that the duality maps use.
 * `TauCeti.HomologicalOrientation.bijective_dualityMap_of_sup_eq_top`: for open sets `U` and `V`
   covering `M`, the step from `U`, `V` and `U ∩ V` to `M`.
 * `TauCeti.HomologicalOrientation.bijective_dualityMap_comap_sup`: for any open sets `U` and `V`
@@ -108,6 +107,18 @@ variable {M E : Type} [TopologicalSpace M] [T2Space M]
   {n : ℕ} (o : HomologicalOrientation M E n) (hn : Module.finrank ℝ E = n) (L : ModuleCat.{0} ℤ)
 
 local notation "ℤₘ" => ModuleCat.of ℤ (ULift ℤ : Type)
+
+include hn in
+/-- The compactly supported cohomology `Hⁿ⁺¹_c(W; L)` of an open set `W` of the `n`-manifold `M`
+vanishes. It is stated for the `ℤ`-linear structure of `ModuleCat ℤ` as a preadditive category,
+that of the duality maps, while `TopCat.isZero_compactSupportCohomology_of_chartedSpace` uses that
+of a category of modules. -/
+theorem _root_.TopCat.isZero_compactSupportCohomology_opens_of_finrank_eq (W : Opens M) :
+    IsZero ((TopCat.of W).compactSupportCohomology ℤₘ ℤ L (n + 1)) := by
+  -- The two `ℤ`-linear structures agree, as a `ℤ`-module structure is unique.
+  have := Linear.subsingletonInt (ModuleCat.{0} ℤ)
+  convert TopCat.isZero_compactSupportCohomology_of_chartedSpace ℤₘ L (F := E) (M := W)
+    (show Module.finrank ℝ E < n + 1 by omega)
 
 section Cover
 
@@ -241,8 +252,7 @@ end Cover
 
 /-- **Poincaré duality for a cover by two open sets.** Let `M` be the union of open sets `U` and
 `V`, each with the orientation restricted from `M`. If the duality maps of `U`, `V` and `U ∩ V`
-are bijective in every degree, and `Hⁿ⁺¹_c(U ∩ V; L) = 0`, then the duality map
-`Hᵖ_c(M; L) ⟶ H_q(M; L)` is bijective. -/
+are bijective in every degree, then the duality map `Hᵖ_c(M; L) ⟶ H_q(M; L)` is bijective. -/
 theorem bijective_dualityMap_of_sup_eq_top {U V : Opens M} (hUV : U ⊔ V = ⊤)
     (hU : ∀ p q (h : p + q = n),
       Function.Bijective ((o.comap U.isOpenEmbedding').dualityMap hn L p q h))
@@ -250,7 +260,6 @@ theorem bijective_dualityMap_of_sup_eq_top {U V : Opens M} (hUV : U ⊔ V = ⊤)
       Function.Bijective ((o.comap V.isOpenEmbedding').dualityMap hn L p q h))
     (hW : ∀ p q (h : p + q = n),
       Function.Bijective ((o.comap (U ⊓ V).isOpenEmbedding').dualityMap hn L p q h))
-    (hW₀ : IsZero ((TopCat.of ↥(U ⊓ V)).compactSupportCohomology ℤₘ ℤ L (n + 1)))
     {p q : ℕ} (h : p + q = n) :
     Function.Bijective (o.dualityMap hn L p q h) := by
   -- The steps above are stated for `Opens (TopCat.of M)`, which is `Opens M`, and for
@@ -259,15 +268,15 @@ theorem bijective_dualityMap_of_sup_eq_top {U V : Opens M} (hUV : U ⊔ V = ⊤)
   cases q with
   | zero =>
     obtain rfl : p = n := by omega
-    exact o.bijective_dualityMap_zero hn L hUV h (hU _ _ h) (hV _ _ h) (hW _ _ h) hW₀
+    exact o.bijective_dualityMap_zero hn L hUV h (hU _ _ h) (hV _ _ h) (hW _ _ h)
+      (TopCat.isZero_compactSupportCohomology_opens_of_finrank_eq hn L (U ⊓ V))
   | succ q =>
     exact o.bijective_dualityMap_succ hn L hUV h (hU _ _ h) (hV _ _ h) (hW _ _ h) (hU _ _ _)
       (hV _ _ _) (hW _ _ _)
 
 /-- **Poincaré duality for the union of two open sets.** For open sets `U` and `V` of `M`, each
 with the orientation restricted from `M`: if the duality maps of `U`, `V` and `U ∩ V` are
-bijective in every degree, and `Hⁿ⁺¹_c(U ∩ V; L) = 0`, then the duality map of `U ∪ V` is
-bijective. -/
+bijective in every degree, then the duality map of `U ∪ V` is bijective. -/
 theorem bijective_dualityMap_comap_sup {U V : Opens M}
     (hU : ∀ p q (h : p + q = n),
       Function.Bijective ((o.comap U.isOpenEmbedding').dualityMap hn L p q h))
@@ -275,13 +284,12 @@ theorem bijective_dualityMap_comap_sup {U V : Opens M}
       Function.Bijective ((o.comap V.isOpenEmbedding').dualityMap hn L p q h))
     (hW : ∀ p q (h : p + q = n),
       Function.Bijective ((o.comap (U ⊓ V).isOpenEmbedding').dualityMap hn L p q h))
-    (hW₀ : IsZero ((TopCat.of ↥(U ⊓ V)).compactSupportCohomology ℤₘ ℤ L (n + 1)))
     {p q : ℕ} (h : p + q = n) :
     Function.Bijective ((o.comap (U ⊔ V).isOpenEmbedding').dualityMap hn L p q h) := by
   let i : C(↥(U ⊔ V), M) := ⟨Subtype.val, continuous_subtypeVal⟩
   have hle : U ⊓ V ≤ U ⊔ V := inf_le_left.trans le_sup_left
   refine (o.comap (U ⊔ V).isOpenEmbedding').bijective_dualityMap_of_sup_eq_top hn L
-    (U := Opens.comap i U) (V := Opens.comap i V) ?_ (fun p q h ↦ ?_) (fun p q h ↦ ?_) ?_ ?_ h
+    (U := Opens.comap i U) (V := Opens.comap i V) ?_ (fun p q h ↦ ?_) (fun p q h ↦ ?_) ?_ h
   · exact Opens.comap_val_sup_comap_val_eq_top U V
   · rw [comap_comap]
     exact (o.bijective_dualityMap_comap_iff_of_range_eq hn L h _ _
@@ -294,8 +302,6 @@ theorem bijective_dualityMap_comap_sup {U V : Opens M}
     rw [comap_comap]
     exact (o.bijective_dualityMap_comap_iff_of_range_eq hn L h _ _
       (by rw [Opens.range_val_comp_val_comap hle, Subtype.range_coe])).2 (hW p q h)
-  · rw [← map_inf]
-    exact (TopCat.isZero_compactSupportCohomology_comap_iff _ _ _ hle _).2 hW₀
 
 /-- **Poincaré duality over an inf-closed family of open sets.** Let `S` be a family of open sets
 of `M`, closed under intersection, that covers `M`. If the duality map of every member of `S`,
@@ -306,20 +312,12 @@ theorem bijective_dualityMap_of_infClosed {S : Set (Opens M)} (hS : InfClosed S)
     (hbase : ∀ W ∈ S, ∀ p q (h : p + q = n),
       Function.Bijective ((o.comap W.isOpenEmbedding').dualityMap hn L p q h))
     {p q : ℕ} (h : p + q = n) : Function.Bijective (o.dualityMap hn L p q h) := by
-  -- `TopCat.isZero_compactSupportCohomology_of_chartedSpace` uses the `ℤ`-linear structure of
-  -- `ModuleCat ℤ` as a category of modules; it agrees with the one of a preadditive category
-  -- used here, as a `ℤ`-module structure is unique.
-  have hvanish (W : Opens M) :
-      IsZero ((TopCat.of W).compactSupportCohomology ℤₘ ℤ L (n + 1)) := by
-    have := Linear.subsingletonInt (ModuleCat.{0} ℤ)
-    convert TopCat.isZero_compactSupportCohomology_of_chartedSpace ℤₘ L (F := E) (M := W)
-      (show Module.finrank ℝ E < n + 1 by omega)
   -- Duality in every degree passes to the finite unions of members of `S`, by Mayer–Vietoris.
   have hT (s : Finset S) : ∀ p q (h : p + q = n), Function.Bijective
       ((o.comap (s.sup Subtype.val).isOpenEmbedding').dualityMap hn L p q h) := by
     refine hS.finset_sup_induction (fun W : Opens M ↦ ∀ p q (h : p + q = n), Function.Bijective
         ((o.comap W.isOpenEmbedding').dualityMap hn L p q h)) (fun p q h ↦ ?_) hbase
-      (fun V W hV hW hVW _ _ ↦ o.bijective_dualityMap_comap_sup hn L hV hW hVW (hvanish _)) s
+      (fun V W hV hW hVW _ _ ↦ o.bijective_dualityMap_comap_sup hn L hV hW hVW) s
     exact (o.comap _).bijective_dualityMap_of_isEmpty hn L h
   -- They form a directed family covering `M`.
   exact o.bijective_dualityMap_of_iSup_eq_top hn L h (fun _ _ hst ↦ Finset.sup_mono hst)
