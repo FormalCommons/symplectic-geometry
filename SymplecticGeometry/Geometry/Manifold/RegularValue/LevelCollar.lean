@@ -24,7 +24,11 @@ the image of the open set `{g < 0}`. Its points are those with `g x = 0`
 `g⁻¹(0)` (`SymplecticGeometry.sublevelBoundary_eq_range_inclusion`), and its points lie in
 `{g ≥ 0}` (`SymplecticGeometry.mem_preimage_Ici_of_mem_sublevelBoundary`). When `0` is a regular
 value, it is the boundary of `{g ≤ 0}` in the form that
-`TauCeti.HomologicalOrientation.boundaryDegree` takes.
+`TauCeti.HomologicalOrientation.boundaryDegree` takes. The other data that the boundary degree
+needs are named here too: on a compact `M` the sublevel set is compact
+(`SymplecticGeometry.compactSpace_preimage_Iic`), the inclusion of `{g < 0}` into it is an open
+embedding (`SymplecticGeometry.isOpenEmbedding_inclusion_preimage_Iio`), and its image is the
+complement of the image of `g⁻¹(0)` (`SymplecticGeometry.range_inclusion_preimage_Iio`).
 
 The proof builds no new flow. Since `0` is a regular value and `M` is compact, some band
 `g⁻¹[-ε, 0]` with `ε > 0` has no critical point
@@ -80,6 +84,26 @@ theorem sublevelBoundary_eq_range_inclusion (hg : Continuous g) :
   ext x
   rw [mem_sublevelBoundary_iff_eq_zero, range_inclusion, mem_ofPred_eq, mem_preimage,
     mem_singleton_iff]
+
+/-- The image of the open set `{g < 0}` in `{g ≤ 0}` is the complement of the image of the level
+set `g⁻¹(0)`. -/
+theorem range_inclusion_preimage_Iio (hg : Continuous g) :
+    range (inclusion (s := ((⟨g ⁻¹' Iio 0, isOpen_Iio.preimage hg⟩ :
+      TopologicalSpace.Opens M) : Set M)) (preimage_mono Iio_subset_Iic_self)) =
+      (range (inclusion (preimage_mono (singleton_subset_iff.2 self_mem_Iic)) :
+        g ⁻¹' {0} → g ⁻¹' Iic 0))ᶜ :=
+  (compl_compl _).symm.trans (congrArg _ (sublevelBoundary_eq_range_inclusion hg))
+
+/-- The inclusion of the open set `{g < 0}` into `{g ≤ 0}` is an open embedding. -/
+theorem isOpenEmbedding_inclusion_preimage_Iio (hg : Continuous g) :
+    IsOpenEmbedding (inclusion (s := ((⟨g ⁻¹' Iio 0, isOpen_Iio.preimage hg⟩ :
+      TopologicalSpace.Opens M) : Set M)) (preimage_mono Iio_subset_Iic_self)) :=
+  IsOpenEmbedding.inclusion _ ((isOpen_Iio.preimage hg).preimage continuous_subtypeVal)
+
+/-- On a compact space, the sublevel set `{g ≤ 0}` of a continuous `g` is compact. -/
+theorem compactSpace_preimage_Iic [CompactSpace M] (hg : Continuous g) :
+    CompactSpace (g ⁻¹' Iic 0) :=
+  isCompact_iff_compactSpace.1 (isClosed_Iic.preimage hg).isCompact
 
 /-- A point of `sublevelBoundary hg` lies in `{g ≥ 0}`. -/
 theorem mem_preimage_Ici_of_mem_sublevelBoundary {hg : Continuous g} {x : g ⁻¹' Iic 0}
