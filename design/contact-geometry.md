@@ -356,9 +356,10 @@ because along one trajectory nothing else is needed. Expected size: 100
 lines.
 
 The second, added by *Hamiltonian flows* for `PoissonAlgebra.lean`, under
-the same `[IsManifold I 2 M]`, is Tau Ceti's
-`mpullback_timeDependentFlowOf_mpullback_prodMk_apply_eq_of_mem` for the
-constant family of a closed form whose contractions are closed:
+the same `[IsManifold I 2 M]`, is the invariance of a closed form whose
+contractions are closed. By Cartan's formula
+(`mlieDerivForm_eq_mextDeriv_interior`) such a form satisfies the eigenform
+equation of the third theorem with $g=0$, and the proof applies that theorem:
 
 ```lean
 theorem mpullback_timeDependentFlowOf_apply_of_mextDeriv_interior_eq_zero
@@ -370,8 +371,11 @@ theorem mpullback_timeDependentFlowOf_apply_of_mextDeriv_interior_eq_zero
 ```
 
 The third, added by *Contact geometry* for `Contact/Hamiltonian.lean`, is
-the same constant-family argument with the eigenform equation in place of
-the closedness conditions:
+Tau Ceti's
+`mpullback_timeDependentFlowOf_mpullback_prodMk_apply_eq_exp_integral_smul_of_mem`
+for the constant family of a form satisfying the eigenform equation, whose
+slices `SmoothForm.mpullback_prodMk_mpullback_snd` of *Smooth families*
+identifies; it comes before the second in the file:
 
 ```lean
 theorem mpullback_timeDependentFlowOf_apply_eq_exp_integral_smul_of_mlieDerivForm_eq
@@ -713,6 +717,9 @@ Expected size: 650 lines, in two issues (L1 and L2).
 ## What the part uses from other parts
 
 - *Smooth families* (#466, #467):
+  `Geometry/Manifold/DifferentialForm/SmoothFamily/Basic.lean`, already
+  merged, for `SmoothForm.mpullback_prodMk_mpullback_snd` (in
+  `Flow/Family.lean`);
   `Geometry/Manifold/DifferentialForm/TimeExtension.lean`, the extension of
   a smooth form on `unitInterval × M` to `ℝ × M` (for
   `IsContactFamily.exists_local_extension`, with

@@ -55,15 +55,21 @@ tangent bundle, and for a nondegenerate form they are, on each fibre, Tau Ceti's
   taming, invariant under, or compatible with a fixed complex structure form a convex set.
 * `ContMDiffComplexStructure.compatible_compatibleForm`: `ω_{g,J}` is compatible with `J`.
 * `ContMDiffComplexStructure.flat_compatibleForm`: the flat map of `ω_{g,J}` at `x` is
-  `Bundle.ContMDiffRiemannianMetric.compatibleBilinAt g x (J x)`.
+  `Bundle.ContMDiffRiemannianMetric.compatibleBilinAt g x (J x)`, and
+  `ContMDiffComplexStructure.compatibleForm_eq_alternatingMapOfBilin`: the value of `ω_{g,J}` at
+  `x` is the alternating map `Bundle.alternatingMapOfBilin` of that form.
 * `ContMDiffTwoForm.Compatible.compatibleForm_metric`: for a compatible pair `(ω, J)`, the form
   `ω_{g,J}` of the metric `g = Compatible.metric` is `ω` again.
+* `Bundle.mk_flatAt_mem_polarFormulaDomain`, `IsNondegenerate.mk_flat_mem_polarFormulaDomain`:
+  the flat map of a nondegenerate alternating form lies in `Bundle.polarFormulaDomain`.
 * `IsNondegenerate.polarFormulaAt_flat`: the polar formula of
   `Bundle.ContMDiffRiemannianMetric.polarFormulaAt` at the flat map of a nondegenerate form is
   Tau Ceti's linear polar complex structure.
 * `IsNondegenerate.compatible_polarComplexStructure`, `apply_polarComplexStructure_apply` and
   `polarComplexStructure_eq_iff`: `J_{g,ω}` is the only complex structure compatible with `ω` and
   orthogonal for `g`.
+* `IsNondegenerate.tames_lineMap_compatibleForm`: the segment from `ω` to `ω_{g,J_{g,ω}}` consists
+  of forms taming `J_{g,ω}`.
 * `ContMDiffComplexStructure.mk_mem_polarEndDomain`,
   `IsNondegenerate.polarEndAt_eq_polarComplexStructure`: the
   values of a complex structure lie in `Bundle.ContMDiffRiemannianMetric.polarEndDomain g`, and
@@ -372,6 +378,15 @@ theorem compatible_compatibleForm (g : ContMDiffRiemannianMetric I n F V)
     simp only [Matrix.cons_val_zero, Matrix.cons_val_one, apply_apply, map_neg]
     linarith
 
+/-- The value of `ω_{g,J}` at `x` is the alternating map of the form
+`compatibleBilinAt g x (J x)`. -/
+theorem compatibleForm_eq_alternatingMapOfBilin (g : ContMDiffRiemannianMetric I n F V)
+    (J : ContMDiffComplexStructure I n F V) (x : M) :
+    compatibleForm g J x = _root_.Bundle.alternatingMapOfBilin F (g.compatibleBilinAt x (J x))
+      fun v ↦ by simpa using g.isAlt_compatibleBilinAt x (J x) v := by
+  ext v
+  simp
+
 /-- The flat map of `ω_{g,J}` at `x` is the form `compatibleBilinAt g x (J x)`. -/
 theorem flat_compatibleForm (g : ContMDiffRiemannianMetric I n F V)
     (J : ContMDiffComplexStructure I n F V) (x : M) :
@@ -457,18 +472,34 @@ namespace ContMDiffTwoForm
 
 variable {ω : ContMDiffTwoForm I n F V}
 
-/-- The flat map of a nondegenerate two-form lies in the domain of the polar formula: since the
-form is alternating, its skew part is twice the form. -/
+omit [∀ x, IsTopologicalAddGroup (V x)] [∀ x, ContinuousSMul ℝ (V x)] in
+/-- The flat map of an alternating map `α` of two vectors of `V x` whose bilinear form is
+nondegenerate lies in the domain of the polar formula: since `α` is alternating, the skew part of
+its flat map is twice its bilinear form. -/
+theorem _root_.Bundle.mk_flatAt_mem_polarFormulaDomain {x : M}
+    {α : V x [⋀^Fin 2]→L[ℝ] Trivial M ℝ x}
+    (hα : (MultilinearMap.toBilinMap α.toMultilinearMap :
+      LinearMap.BilinForm ℝ (V x)).Nondegenerate) :
+    (⟨x, _root_.Bundle.flatAt F α⟩ : TotalSpace (F →L[ℝ] F →L[ℝ] ℝ)
+      fun x ↦ V x →L[ℝ] V x →L[ℝ] ℝ) ∈ _root_.Bundle.polarFormulaDomain F V := by
+  set B : LinearMap.BilinForm ℝ (V x) := MultilinearMap.toBilinMap α.toMultilinearMap
+  have hB : (_root_.Bundle.flatAt F α).toBilinForm = B := by
+    ext v w
+    simp [B]
+  have h : B - B.flip = (2 : ℝ) • B := by
+    ext v w
+    simpa [B, two_smul, two_nsmul] using
+      congr($((AlternatingMap.isAlt_toBilinMap α.toAlternatingMap).sub_flip_eq_two_smul) v w)
+  rw [_root_.Bundle.mem_polarFormulaDomain_iff, hB, h]
+  exact (TauCeti.BilinForm.nondegenerate_smul_iff (IsRegular.of_ne_zero two_ne_zero)).2 hα
+
+/-- The flat map of a nondegenerate two-form lies in the domain of the polar formula. -/
 theorem IsNondegenerate.mk_flat_mem_polarFormulaDomain (hω : ω.IsNondegenerate) (x : M) :
     (⟨x, ω.flat x⟩ : TotalSpace (F →L[ℝ] F →L[ℝ] ℝ) fun x ↦ V x →L[ℝ] V x →L[ℝ] ℝ) ∈
       _root_.Bundle.polarFormulaDomain F V := by
-  have h : ω.bilinFormAt x - (ω.bilinFormAt x).flip = (2 : ℝ) • ω.bilinFormAt x := by
-    ext v w
-    simpa [two_smul, two_nsmul] using
-      congr($((ω.isAlt_bilinFormAt x).sub_flip_eq_two_smul) v w)
-  rw [_root_.Bundle.mem_polarFormulaDomain_iff, toBilinForm_flat, h]
-  exact (TauCeti.BilinForm.nondegenerate_smul_iff (IsRegular.of_ne_zero two_ne_zero)).2
-    (hω.nondegenerate_bilinFormAt x)
+  rw [flat_def]
+  exact _root_.Bundle.mk_flatAt_mem_polarFormulaDomain
+    ((bilinFormAt_def ω x) ▸ hω.nondegenerate_bilinFormAt x)
 
 variable [FiniteDimensional ℝ F]
 
@@ -582,6 +613,18 @@ theorem IsNondegenerate.polarComplexStructure_eq_iff {J : ContMDiffComplexStruct
         ((hω.compatible_iff.1 hc) x)
   rw [hω.polarComplexStructure_apply e he, hK]
   simp
+
+variable (g) in
+/-- For `t ∈ [0, 1]`, the form `(1 - t) • ω + t • ω_{g,J_{g,ω}}` on the segment from `ω` to the
+form of `g` and `J_{g,ω}` tames `J_{g,ω}`, as both ends do; in particular it is nondegenerate
+(`Tames.isNondegenerate`). -/
+theorem IsNondegenerate.tames_lineMap_compatibleForm {t : ℝ} (ht : t ∈ Icc (0 : ℝ) 1) :
+    (AffineMap.lineMap ω
+      (ContMDiffComplexStructure.compatibleForm g (hω.polarComplexStructure g)) t).Tames
+      (hω.polarComplexStructure g) :=
+  (convex_setOf_tames (hω.polarComplexStructure g)).lineMap_mem
+    (hω.compatible_polarComplexStructure g).tames
+    (ContMDiffComplexStructure.compatible_compatibleForm g _).tames ht
 
 
 /-! ### The polar formula on the endomorphism bundle -/

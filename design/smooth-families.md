@@ -181,16 +181,16 @@ No statement of this part is one that the authors' errata
 - **The constructor.** `TauCeti.Diffeotopy.ofContMDiff` takes a family
   `ψ : unitInterval → M ≃ₘ⟮I, I⟯ M`, jointly smooth, with `ψ 0` the identity:
   the input that the milestones of *Hamiltonian flows* describe. Its inverse
-  is jointly smooth by an argument local in charts. At an interior time the
-  inverse function theorem applies to `(t, x) ↦ (t, ψ t x)` on
-  `Ioo 0 1 × M`. At an end, say $t=0$, near $(0,x_0)$, the map is written in
-  a chart of $M$ at $x_0$ and one at $\psi_0(x_0)$, cut off in time near $0$,
-  and extended past $0$ by Seeley's operator; the extended map
-  $(s,u)\mapsto(s,\tilde G(s,u))$ has an invertible derivative at $(0,u_0)$,
-  so it has a smooth local inverse, and that inverse agrees with
-  $(s,v)\mapsto(s,\psi_s^{-1}v)$ for $s\ge0$, because it preserves the time and
-  $\tilde G=G$ there. The slices being bijective, no injectivity of the
-  extension and no compactness are needed. A version taking a
+  is jointly smooth by an argument local in charts, the same at every time
+  $t_0\in[0,1]$. Near $(t_0,x_0)$, the map is written as $G(s,u)$ in a chart
+  of $M$ at $x_0$ and one at $\psi_{t_0}(x_0)$, for $s$ in an interval
+  $[a,b]$ that is a neighbourhood of $t_0$ in $[0,1]$, and extended to all
+  $s\in\mathbb R$ by Seeley's operator, giving $\tilde G$. Its partial
+  derivative in $u$ at $(t_0,u_0)$ is invertible, so the implicit function
+  theorem with a moving level solves $\tilde G(s,u)=v$ by a smooth
+  $u=\varphi(s,v)$, and $\varphi(s,v)=\psi_s^{-1}v$ in charts for
+  $s\in[a,b]$, because $\tilde G=G$ there. The slices being bijective, no
+  injectivity of the extension and no compactness are needed. A version taking a
   `TauCeti.SmoothIsotopy` from the identity with surjective slices would need
   the same argument to see that the slices are diffeomorphisms, so it is not
   planned; a part that needs it adds it as a corollary.
@@ -297,10 +297,13 @@ reflection $t\mapsto1-t$.
   both ends), with `_def` lemmas.
 - `seeleyIccExtend_of_mem (h : t ∈ Icc 0 1) : seeleyIccExtend f t = f t`;
   `seeleyIccExtend_congr (h : EqOn f g (Icc 0 1)) : seeleyIccExtend f =
-  seeleyIccExtend g`; `seeleyIccExtend_add`, `seeleyIccExtend_smul`, and
+  seeleyIccExtend g`; `seeleyIccExtend_zero`, `seeleyIccExtend_add`,
+  `seeleyIccExtend_smul`, bundled as the `ℝ`-linear map
+  `seeleyIccExtendLinearMap F : (ℝ → F) →ₗ[ℝ] (ℝ → F)` with
+  `coe_seeleyIccExtendLinearMap`; and
   `LinearMap.map_seeleyIccExtend (L : F →ₗ[ℝ] G) : L (seeleyIccExtend f t) =
   seeleyIccExtend (L ∘ f) t`, the last because the sum is finite at each $t$.
-  The same lemmas for `seeleyExtend`.
+  The same lemmas, and `seeleyExtendLinearMap`, for `seeleyExtend`.
 - `contDiffOn_seeleyIccExtend {f : ℝ × E → F} {U : Set E} (hU : IsOpen U)
   (hf : ContDiffOn ℝ ∞ f (Icc 0 1 ×ˢ U)) : ContDiffOn ℝ ∞
   (fun p : ℝ × E ↦ seeleyIccExtend (fun s ↦ f (s, p.2)) p.1) (univ ×ˢ U)`,
@@ -685,11 +688,13 @@ Below, `∂ₜ` at `(x, t)` is the tangent vector
 In `TauCeti.Diffeotopy`, for `[FiniteDimensional ℝ E] [IsManifold I ∞ M]
 [BoundarylessManifold I M]`:
 
-- `TauCeti.contMDiff_diffeomorph_symm_apply_unitInterval {ψ : unitInterval →
+- `Diffeomorph.contMDiff_symm_eval_unitInterval {ψ : unitInterval →
   M ≃ₘ⟮I, I⟯ M} (hψ : ContMDiff ((𝓡∂ 1).prod I) I ∞ (fun p ↦ ψ p.1 p.2)) :
-  ContMDiff ((𝓡∂ 1).prod I) I ∞ (fun p ↦ (ψ p.1).symm p.2)`, by the local
-  argument of *Decisions*, with Mathlib's inverse function theorem in
-  normed spaces for the extended chart map and `contDiffOn_seeleyIccExtend`.
+  ContMDiff ((𝓡∂ 1).prod I) I ∞ (fun p ↦ (ψ p.1).symm p.2)`, in Mathlib's
+  namespace `Diffeomorph` as `Diffeomorph.contMDiff_symm_eval` is, by the
+  local argument of *Decisions*, with Tau Ceti's
+  `HasStrictFDerivAt.jointImplicitFunctionOfProdDomain` for the extended
+  chart map and `contDiffOn_seeleyIccExtend`.
 - `ofContMDiff (ψ : unitInterval → M ≃ₘ⟮I, I⟯ M) (hψ : …) (h₀ : ∀ x, ψ 0 x =
   x) : Diffeotopy I ∞ M`, with `ofContMDiff_apply` and `timeSlice_ofContMDiff
   : (ofContMDiff ψ hψ h₀).timeSlice t = ψ t`.
@@ -759,8 +764,7 @@ can start at once; each issue's blockers come before it.
     `Geometry/Diffeomorphism/Diffeotopy/Real.lean`.
 15. **Diffeotopies from families of diffeomorphisms.**
     `Geometry/Diffeomorphism/Diffeotopy/OfContMDiff.lean`. Blocked by 2 and 14
-    (for the inverse function theorem step it shares with
-    `Diffeomorph.contMDiff_symm_eval` of `Diffeomorph/Family.lean`).
+    (for `ofReal`, which `ofContMDiff_eq_ofReal` uses).
 16. **A reparametrization equal to the identity on an interval.**
     `exists_contDiff_eqOn_id_Icc_mem_Ioo` in
     `Analysis/SpecialFunctions/SmoothTransition.lean`. Blocked by 14, which
