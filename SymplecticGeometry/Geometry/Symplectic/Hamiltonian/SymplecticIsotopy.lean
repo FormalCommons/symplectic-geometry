@@ -54,7 +54,8 @@ forms `d(ι_{X_t} σ)` are a smooth family in `t` (`SymplecticGeometry.isSmoothF
 which vanishes on the dense set `(0, 1)` (`SymplecticGeometry.IsSmoothFamily.ext_on`).
 The flow criterion uses Tau Ceti's `TauCeti.mpullback_flowOf_apply_of_mextDeriv_interior_eq_zero`
 in one direction and `TauCeti.hasDerivAt_mpullback_flowOf_zero` in the other. That second
-direction is adapted from Tau Ceti's `TauCeti.ContactForm.mpullback_flowOf_apply_eq_self_iff`
+direction is adapted from Tau Ceti's
+`TauCeti.SmoothForm.IsContactHamiltonianVectorField.mpullback_flowOf_apply_eq_self_iff`
 (`TauCeti/Geometry/Contact/Flow.lean`): the pulled-back forms are constant near time `0`, so their
 derivative there vanishes.
 
