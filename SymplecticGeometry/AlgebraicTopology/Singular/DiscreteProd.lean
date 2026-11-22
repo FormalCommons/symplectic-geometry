@@ -7,7 +7,7 @@ module
 
 public import Mathlib.CategoryTheory.Abelian.GrothendieckAxioms.Basic
 public import TauCeti.AlgebraicTopology.Singular.Additivity
-public import TauCeti.Topology.Category.TopCat.Monoidal
+public import SymplecticGeometry.Topology.Category.TopCat.Monoidal
 
 /-!
 # Singular homology of a product with a discrete factor
@@ -19,6 +19,7 @@ in the coefficient category, `Hₙ(ι ⊗ X)` is the coproduct of copies of `H�
 (`TopCat.isColimitCofanSingularHomologyProd`).
 
 For a point `x₀ : X` and `i : ι`, the retraction `TopCat.prodFiberRetraction ι x₀ i : ι ⊗ X ⟶ X`
+of `SymplecticGeometry/Topology/Category/TopCat/Monoidal`
 is the identity on the fibre over `i` and sends every other fibre to `x₀`. When `ι` is finite and
 `n ≠ 0`, the composites "retract onto the fibre over `i`, then include it again" add up to the
 identity of `Hₙ(ι ⊗ X)` (`TopCat.sum_singularHomologyFunctor_map_prodFiberRetraction_comp`). Only
@@ -81,51 +82,10 @@ def isColimitCofanSingularHomologyProd [HasExactColimitsOfShape (Discrete ι) C]
 
 end Coproduct
 
-section Retraction
+section Const
 
-variable (ι : TopCat.{w}) [DiscreteTopology ι] {X : TopCat.{w}}
-
-open Classical in
-/-- For a discrete space `ι`, a point `x₀ : X` and `i : ι`, the retraction of `ι ⊗ X` onto the
-fibre over `i`: it sends `(i, x)` to `x`, and `(j, x)` to `x₀` for `j ≠ i`. -/
-def prodFiberRetraction (x₀ : X) (i : ι) : ι ⊗ X ⟶ X :=
-  ofHom ⟨fun p ↦ if p.1 = i then p.2 else x₀,
-    continuous_prod_of_discrete_left.2 fun j ↦ by
-      by_cases h : j = i <;> simp only [h, ↓reduceIte] <;> fun_prop⟩
-
-open Classical in
-lemma prodFiberRetraction_apply (x₀ : X) (i : ι) (p : ↑(ι ⊗ X)) :
-    prodFiberRetraction ι x₀ i p = if p.1 = i then p.2 else x₀ :=
-  (rfl)
-
-@[simp]
-lemma prodFiberRetraction_apply_self (x₀ : X) (i : ι) (x : X) :
-    prodFiberRetraction ι x₀ i ((i, x) : ↑(ι ⊗ X)) = x :=
-  (prodFiberRetraction_apply ι x₀ i _).trans (by simp)
-
-lemma prodFiberRetraction_apply_of_ne (x₀ : X) {i j : ι} (h : j ≠ i) (x : X) :
-    prodFiberRetraction ι x₀ i ((j, x) : ↑(ι ⊗ X)) = x₀ :=
-  (prodFiberRetraction_apply ι x₀ i _).trans (by simp [h])
-
-/-- The retraction onto the fibre over `i` is a left inverse of the inclusion of that fibre. -/
-@[reassoc (attr := simp)]
-lemma prodFiberInclusion_comp_prodFiberRetraction (x₀ : X) (i : ι) :
-    prodFiberInclusion ι X i ≫ prodFiberRetraction ι x₀ i = 𝟙 X := by
-  ext x
-  simp
-
-/-- The inclusion of the fibre over `j`, followed by the retraction onto another fibre, is the
-constant map at the base point. -/
-lemma prodFiberInclusion_comp_prodFiberRetraction_of_ne (x₀ : X) {i j : ι} (h : j ≠ i) :
-    prodFiberInclusion ι X j ≫ prodFiberRetraction ι x₀ i = TopCat.const x₀ := by
-  ext x
-  simp [prodFiberRetraction_apply_of_ne ι x₀ h]
-
-end Retraction
-
-section Sum
-
-variable {C : Type u} [Category.{v} C] [HasCoproducts.{w} C] [Abelian C] (R : C)
+variable {C : Type u} [Category.{v} C] [HasCoproducts.{w} C] [Preadditive C]
+  [CategoryWithHomology C] (R : C)
 
 /-- In positive degree, singular homology sends a constant map to zero, since it factors through
 a point. -/
@@ -141,7 +101,12 @@ lemma singularHomologyFunctor_map_const_eq_zero {X Y : TopCat.{w}} (x₀ : X) {n
     (isZero_singularHomologyFunctor_of_totallyDisconnectedSpace C n R pt hn).eq_of_src
       (((singularHomologyFunctor C n).obj R).map (TopCat.const x₀)) 0, comp_zero]
 
-variable (ι : TopCat.{w}) [DiscreteTopology ι] {X : TopCat.{w}}
+end Const
+
+section Sum
+
+variable {C : Type u} [Category.{v} C] [HasCoproducts.{w} C] [Abelian C] (R : C)
+  (ι : TopCat.{w}) [DiscreteTopology ι] {X : TopCat.{w}}
 
 /-- **Decomposition of the identity of `Hₙ(ι ⊗ X)`.** For a finite discrete space `ι`, a point
 `x₀ : X` and `n ≠ 0`, the endomorphisms of `Hₙ(ι ⊗ X; R)` induced by retracting onto the fibre

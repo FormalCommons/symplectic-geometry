@@ -1072,6 +1072,10 @@ issues, in an order where each issue's blockers come before it.
    positive degree, the maps induced by retracting onto one fibre and
    including it again sum to the identity
    (`TopCat.sum_singularHomologyFunctor_map_prodFiberRetraction_comp`).
+   `Topology/Category/TopCat/Monoidal.lean`, imported by `DiscreteProd.lean`:
+   for discrete `ι`, a point `x₀ : X` and `i : ι`, the retraction
+   `TopCat.prodFiberRetraction ι x₀ i : ι ⊗ X ⟶ X` onto the fibre over `i`,
+   a left inverse of Tau Ceti's `TopCat.prodFiberInclusion ι X i`.
 7. **Boundary degree and the argument principle on a surface with
    boundary.** The setting is that of `RelativeFundamentalClass.lean`: `X`
    compact Hausdorff, `ι : M → X` an open embedding of a surface with
