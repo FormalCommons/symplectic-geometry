@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.Geometry.Symplectic.IsotopyExtension.Ball.Basic
 public import SymplecticGeometry.Geometry.Symplectic.IsotopyExtension.Flow
 import SymplecticGeometry.Geometry.Manifold.DeRham.FamilyPrimitive
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Neighborhood
 import TauCeti.Geometry.Manifold.Immersion.LocalDiffeomorph
 
@@ -92,9 +93,8 @@ theorem IsSymplecticBallFamily.exists_smoothIsotopy [FiniteDimensional ℝ E] [I
   -- Restricted to `P ⊆ V`, the slices are still smooth embeddings.
   have hemb (t : unitInterval) :
       Manifold.IsSmoothEmbedding 𝓘(ℝ, StdSpace (Fin n)) I ∞ (fun z : P ↦ e (t, z)) :=
-    ⟨(isImmersion_comp_subtypeVal_iff (f := fun z ↦ e (t, z))).2 fun z hz ↦
-      (isImmersion_comp_subtypeVal_iff (f := fun z ↦ e (t, z))).1 (hV t).isImmersion z (hPV hz),
-      (hV t).isEmbedding.comp (Topology.IsEmbedding.inclusion hPV)⟩
+    isSmoothEmbedding_comp_isLocalDiffeomorph (f := fun z : V ↦ e (t, z))
+      (isLocalDiffeomorph_inclusion hPV) (Topology.IsEmbedding.inclusion hPV) (hV t)
   have hslice (t : unitInterval) :
       ContMDiff 𝓘(ℝ, StdSpace (Fin n)) I ∞ (fun z : P ↦ e (t, z)) :=
     (hemb t).isImmersion.contMDiff
