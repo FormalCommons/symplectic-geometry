@@ -11,9 +11,9 @@ public import SymplecticGeometry.Geometry.Manifold.Projectivization.FubiniStudy.
 import Mathlib.Analysis.InnerProductSpace.Calculus
 import Mathlib.Analysis.SpecialFunctions.Sqrt
 import TauCeti.Analysis.Matrix.OrthogonalRows
-import TauCeti.Geometry.Manifold.Diffeomorph.RestrictScalars
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
+import SymplecticGeometry.Geometry.Manifold.Diffeomorph.RestrictScalars
 
 /-!
 # Darboux charts of the Fubini–Study form
@@ -116,11 +116,9 @@ noncomputable def fubiniStudyDarbouxChart (j : Fin (n + 1)) :
       univUnitBall.right_inv hζ]
   open_source := isOpen_affineOpen j
   open_target := isOpen_ball
-  contMDiffOn_toFun := by
-    have h := (contMDiffOn_affineChart (𝕜 := ℂ) (n := n) j ∞).restrictScalars ℝ
-    rw [modelWithCornersSelf_restrictScalars] at h
-    exact ((contDiff_univUnitBall.comp
-      (complexToRealEuclidean (Fin n)).contDiff).contMDiff.comp_contMDiffOn h :)
+  contMDiffOn_toFun :=
+    ((contDiff_univUnitBall.comp (complexToRealEuclidean (Fin n)).contDiff).contMDiff
+      |>.comp_contMDiffOn ((contMDiffOn_affineChart (𝕜 := ℂ) (n := n) j ∞).restrictScalars' ℝ) :)
   contMDiffOn_invFun :=
     (contMDiff_affineChart_symm_restrictScalars j ∞).comp_contMDiffOn
       (((complexToRealEuclidean (Fin n)).symm.contDiff.comp_contDiffOn
@@ -343,37 +341,22 @@ theorem eval₂_fubiniStudyForm_eq_stdForm_mvfderiv_darbouxChart (j : Fin (n + 1
     ((fubiniStudyDarbouxChart n j).mfderiv_symm_apply_mfderiv_apply hn hx v).symm
     ((fubiniStudyDarbouxChart n j).mfderiv_symm_apply_mfderiv_apply hn hx w).symm
 
-/-- The action of a unitary matrix `W` on `ℂPⁿ`, as a diffeomorphism of the underlying real
-manifold. Its smoothness over `ℝ` is that of `Diffeomorph.restrictScalars`, whose model
-`𝓘(ℂ, _).restrictScalars ℝ` is `𝓘(ℝ, _)` only up to `modelWithCornersSelf_restrictScalars`. -/
-private noncomputable def unitaryDiffeomorph (W : unitaryGroup (Fin (n + 1)) ℂ) :
-    ℙ ℂ (Fin (n + 1) → ℂ) ≃ₘ^∞⟮𝓘(ℝ, Fin n → ℂ), 𝓘(ℝ, Fin n → ℂ)⟯ ℙ ℂ (Fin (n + 1) → ℂ) where
-  toEquiv := ((mapDiffeomorph (UnitaryGroup.toLinearEquiv W) ∞).restrictScalars ℝ).toEquiv
-  contMDiff_toFun := by
-    simpa using ((mapDiffeomorph (UnitaryGroup.toLinearEquiv W) ∞).restrictScalars ℝ).contMDiff
-  contMDiff_invFun := by
-    simpa using
-      ((mapDiffeomorph (UnitaryGroup.toLinearEquiv W) ∞).restrictScalars ℝ).symm.contMDiff
-
-/-- The diffeomorphism `unitaryDiffeomorph W` is the action `mapDiffeomorph` of `W`. -/
-private theorem coe_unitaryDiffeomorph (W : unitaryGroup (Fin (n + 1)) ℂ) :
-    ⇑(unitaryDiffeomorph (n := n) W) = mapDiffeomorph (UnitaryGroup.toLinearEquiv W) ∞ :=
-  (Diffeomorph.coe_toEquiv _).symm.trans ((Diffeomorph.coe_toEquiv _).trans
-    (Diffeomorph.coe_restrictScalars _ _))
-
-/-- The Darboux chart of `j` after the action of a unitary matrix still pulls the standard form
-back to the Fubini–Study form, since that action preserves it. -/
+/-- The Darboux chart of `j` after the action of a unitary matrix, taken as a diffeomorphism `D`
+of the underlying real manifold, still pulls the standard form back to the Fubini–Study form,
+since that action preserves it. -/
 private theorem eval₂_fubiniStudyForm_eq_stdForm_mvfderiv_unitary_trans_darbouxChart
-    (W : unitaryGroup (Fin (n + 1)) ℂ) (j : Fin (n + 1)) {x : ℙ ℂ (Fin (n + 1) → ℂ)}
-    (hx : x ∈ ((unitaryDiffeomorph W).toPartialDiffeomorph.trans
-      (fubiniStudyDarbouxChart n j)).source) (v w : TangentSpace 𝓘(ℝ, Fin n → ℂ) x) :
+    (W : unitaryGroup (Fin (n + 1)) ℂ)
+    {D : ℙ ℂ (Fin (n + 1) → ℂ) ≃ₘ^∞⟮𝓘(ℝ, Fin n → ℂ), 𝓘(ℝ, Fin n → ℂ)⟯ ℙ ℂ (Fin (n + 1) → ℂ)}
+    (hD : ⇑D = mapDiffeomorph (UnitaryGroup.toLinearEquiv W) ∞) (j : Fin (n + 1))
+    {x : ℙ ℂ (Fin (n + 1) → ℂ)}
+    (hx : x ∈ (D.toPartialDiffeomorph.trans (fubiniStudyDarbouxChart n j)).source)
+    (v w : TangentSpace 𝓘(ℝ, Fin n → ℂ) x) :
     (fubiniStudyForm n).eval₂ x v w =
       stdForm (Fin n)
-        (mvfderiv 𝓘(ℝ, Fin n → ℂ) ((unitaryDiffeomorph W).toPartialDiffeomorph.trans
-          (fubiniStudyDarbouxChart n j)) x v)
-        (mvfderiv 𝓘(ℝ, Fin n → ℂ) ((unitaryDiffeomorph W).toPartialDiffeomorph.trans
-          (fubiniStudyDarbouxChart n j)) x w) := by
-  set D := unitaryDiffeomorph (n := n) W
+        (mvfderiv 𝓘(ℝ, Fin n → ℂ)
+          (D.toPartialDiffeomorph.trans (fubiniStudyDarbouxChart n j)) x v)
+        (mvfderiv 𝓘(ℝ, Fin n → ℂ)
+          (D.toPartialDiffeomorph.trans (fubiniStudyDarbouxChart n j)) x w) := by
   have hn : (∞ : WithTop ℕ∞) ≠ 0 := by simp
   have hx' : D x ∈ (fubiniStudyDarbouxChart n j).source := by simpa using hx
   have hc : ⇑(D.toPartialDiffeomorph.trans (fubiniStudyDarbouxChart n j)) =
@@ -383,8 +366,8 @@ private theorem eval₂_fubiniStudyForm_eq_stdForm_mvfderiv_unitary_trans_darbou
   have hψ := (fubiniStudyDarbouxChart n j).mdifferentiableAt hn hx'
   rw [hc, mvfderiv_comp_apply x hψ (D.mdifferentiable hn x),
     mvfderiv_comp_apply x hψ (D.mdifferentiable hn x),
-    ← eval₂_fubiniStudyForm_eq_stdForm_mvfderiv_darbouxChart j hx', coe_unitaryDiffeomorph,
-    ← SmoothForm.eval₂_mpullback _ (coe_unitaryDiffeomorph W ▸ D.contMDiff),
+    ← eval₂_fubiniStudyForm_eq_stdForm_mvfderiv_darbouxChart j hx', hD,
+    ← SmoothForm.eval₂_mpullback _ (hD ▸ D.contMDiff),
     mpullback_unitary_fubiniStudyForm]
 
 /-- **Darboux charts on the complement of a hyperplane.** For a nonzero linear form `ℓ` on `ℂⁿ⁺¹`,
@@ -422,14 +405,15 @@ theorem exists_darbouxChart_compl_hyperplane (ℓ : Module.Dual ℂ (Fin (n + 1)
     simp only [mulVec, dotProduct, W, hQ0, hℓa, Finset.mul_sum]
     exact Finset.sum_congr rfl fun i _ ↦ by ring
   -- The action `D` of `W` sends the complement of the hyperplane `ℓ = 0` to the affine open of `0`.
-  set D := unitaryDiffeomorph (n := n) W
+  set D := (mapDiffeomorph (UnitaryGroup.toLinearEquiv W) ∞).restrictScalars' ℝ
   have hDmk (v : Fin (n + 1) → ℂ) (hv : v ≠ 0) : D (mk ℂ v hv) ∈ affineOpen 0 ↔ ℓ v ≠ 0 := by
-    rw [coe_unitaryDiffeomorph, coe_mapDiffeomorph, map_mk, mk_mem_affineOpen_iff]
+    rw [Diffeomorph.coe_restrictScalars', coe_mapDiffeomorph, map_mk, mk_mem_affineOpen_iff]
     simp [UnitaryGroup.toLinearEquiv, hW, c, ha]
   refine ⟨D.toPartialDiffeomorph.trans (fubiniStudyDarbouxChart n 0), ?_,
     by simp [fubiniStudyDarbouxChart_target],
     fun v hv ↦ by simpa [fubiniStudyDarbouxChart_source] using hDmk v hv,
-    fun x hx v w ↦ eval₂_fubiniStudyForm_eq_stdForm_mvfderiv_unitary_trans_darbouxChart W 0 hx v w⟩
+    fun x hx v w ↦ eval₂_fubiniStudyForm_eq_stdForm_mvfderiv_unitary_trans_darbouxChart W
+      (Diffeomorph.coe_restrictScalars' ℝ _) 0 hx v w⟩
   ext x
   induction x using ind with
   | h v hv =>
