@@ -37,7 +37,8 @@ classes of `E₁ ⊕ E₂`.
   `ProjectiveBundle.evenIntegralCohomologyMap_subtypeVal_compl_range_inl_eq_zero`: a class of
   `P(E₁ ⊕ E₂)` whose pull-back along `inl` (along `inr`) vanishes restricts to zero on the
   complement of the range of `inr` (of `inl`).
-* `chernClass_prod`: `c_k(E₁ ⊕ E₂) = ∑_{i ≤ k} cᵢ(E₁) ⌣ c_{k-i}(E₂)`.
+* `chernClass_prod`: `c_k(E₁ ⊕ E₂) = ∑_{i ≤ k} cᵢ(E₁) ⌣ c_{k-i}(E₂)`, and in degree two
+  `chernClass_one_prod`: `c₁(E₁ ⊕ E₂) = c₁(E₁) + c₁(E₂)`.
 * `totalChernClass_prod`: the **Whitney sum formula** `c(E₁ ⊕ E₂) = c(E₁) c(E₂)`.
 
 ## References
@@ -229,6 +230,14 @@ theorem chernClass_prod (k : ℕ) :
     rcases le_or_gt (i : ℕ) (finrank ℂ G₁) with hi | hi
     · rw [chernClass_eq_zero_of_finrank_lt G₂ E₂ (by omega), map_zero]
     · rw [chernClass_eq_zero_of_finrank_lt G₁ E₁ hi, map_zero, LinearMap.zero_apply]
+
+/-- **The first Chern class is additive.** Over a compact base,
+`c₁(E₁ ⊕ E₂) = c₁(E₁) + c₁(E₂)`: the Whitney sum formula in degree two. -/
+theorem chernClass_one_prod :
+    chernClass (G₁ × G₂) (E₁ ×ᵇ E₂) 1 = chernClass G₁ E₁ 1 + chernClass G₂ E₂ 1 := by
+  simp [chernClass_prod, Fin.sum_univ_two, chernClass_zero,
+    TopCat.integralCup_integralCohomologyOne, TopCat.integralCup_integralCohomologyOne_right,
+    add_comm]
 
 /-- **The Whitney sum formula.** Over a compact base, the total Chern class of a direct sum is the
 product of the total Chern classes: `c(E₁ ⊕ E₂) = c(E₁) c(E₂)`. -/

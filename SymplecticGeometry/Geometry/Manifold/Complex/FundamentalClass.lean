@@ -9,11 +9,14 @@ public import TauCeti.Analysis.Complex.Determinant
 public import TauCeti.Geometry.Manifold.Complex.FundamentalClass
 
 /-!
-# Complex conjugation and the canonical orientation of `ℂ`
+# The canonical orientation of `ℂ` under holomorphic and antiholomorphic maps
 
 Complex conjugation reverses Tau Ceti's canonical homological orientation
 `TauCeti.complexHomologicalOrientation` of `ℂ`, and of open sets of `ℂ`, since its real derivative
-`Complex.conjCLE` has determinant `-1`.
+`Complex.conjCLE` has determinant `-1`. The file also gives a form of Tau Ceti's
+`TauCeti.comap_complexHomologicalOrientation`, which says that an open local biholomorphism of
+Riemann surfaces preserves their canonical orientations, for an open embedding between open sets
+of the two surfaces that acts as such a map.
 
 The proof for `ℂ` compares two charts at a point `x`: the chart `OpenPartialHomeomorph.refl` and
 conjugation itself, seen as a chart. Tau Ceti's

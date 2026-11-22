@@ -32,6 +32,7 @@ is the integer `⟨c₁(E), [M]⟩`.
 * `TauCeti.Bundle.ContinuousComplexStructure.firstChernClass_congr_model`: the class of the
   complex bundle of a continuous complex structure does not depend on the complex model;
 * `firstChernClass_trivial`: the trivial bundle has class zero;
+* `firstChernClass_eq_zero_of_finrank_eq_zero`: so has a bundle of rank zero;
 * `firstChernClass_eq_complexEulerClass`: for a line bundle it is the Euler class of the bundle;
 * `firstChernClass_conj`: the conjugate bundle has the opposite class;
 * `chernNumber o hn G E`: the first Chern number over a compact oriented surface, with
@@ -140,6 +141,20 @@ variable (B) in
   refine complexEulerClass_eq_zero_of_forall_ne_zero _ _ _ (s := fun _ _ ↦ 1)
     (continuous_trivial_iff.2 ⟨continuous_id, continuous_const⟩)
     fun _ h ↦ one_ne_zero (congrFun h ⟨0, Nat.one_pos⟩)
+
+/-- **A bundle of rank zero has first Chern class zero.** -/
+theorem firstChernClass_eq_zero_of_finrank_eq_zero (hG : finrank ℂ G = 0) :
+    firstChernClass G E = 0 := by
+  have : Subsingleton G := Module.finrank_zero_iff.1 hG
+  -- A bundle of rank zero is isomorphic to the trivial bundle, through any trivializations.
+  let φ (b : B) : E b ≃L[ℂ] Bundle.Trivial B G b :=
+    (trivializationAt G E b).continuousLinearEquivAt ℂ b (mem_baseSet_trivializationAt G E b)
+  have hφ : Continuous fun v : TotalSpace G E ↦
+      TotalSpace.mk' G (E := Bundle.Trivial B G) v.proj (φ v.proj v.snd) :=
+    ((Trivial.homeomorphProd B G).symm.continuous.comp
+      ((FiberBundle.continuous_proj G E).prodMk (continuous_const (y := (0 : G))))).congr
+      fun v ↦ congrArg (TotalSpace.mk v.proj) (Subsingleton.elim _ _)
+  rw [firstChernClass_congr φ hφ, firstChernClass_trivial]
 
 /-- **The first Chern class of a line bundle** is the Euler class of the bundle itself. -/
 theorem firstChernClass_eq_complexEulerClass
