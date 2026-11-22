@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.BoundaryDegree
+public import SymplecticGeometry.Topology.VectorBundle.Orientation.Basic
 public import SymplecticGeometry.Topology.VectorBundle.Orientation.SectionIndex.FiberwiseEquiv
 public import TauCeti.Topology.FiberBundle.Pullback
 public import TauCeti.Topology.VectorBundle.Orientation.SectionIndex.Degree
@@ -129,14 +130,6 @@ private theorem localHomologyMap_fundamentalClassRel_eq_sum
     sectionIndex_eq_of_fiberwise _ _ o _ _ hφ (fun x ↦ by
       rw [pullback_apply, trivial_apply]
       exact hτo (ι x)) hs z
-  -- The trivialization of `M × ℂ` reads every fibre orientation as `Complex.orientation`.
-  have htriv (x : M) : (Bundle.Trivial.trivialization M ℂ).mapOrientation (Fin (1 + 1))
-      (by simp) ((trivial M Complex.orientation) x) = Complex.orientation := by
-    rw [Trivialization.mapOrientation_apply, trivial_apply]
-    have hrefl : Trivialization.linearEquivAt ℝ (Bundle.Trivial.trivialization M ℂ) x
-        (by simp) = LinearEquiv.refl ℝ ℂ :=
-      LinearEquiv.ext fun v ↦ by simp [Trivialization.linearEquivAt_apply]
-    rw [hrefl, Orientation.map_refl, Equiv.refl_apply]
   -- Each zero `z` is the only zero in its open neighbourhood `(Z ∖ {z})ᶜ`.
   have hU : ∀ z, IsOpen (Z \ {z})ᶜ := fun _ ↦ hZ.sdiff.isClosed.isOpen_compl
   have hzU : ∀ z, z ∈ (Z \ {z})ᶜ := fun _ h ↦ h.2 rfl
@@ -157,7 +150,7 @@ private theorem localHomologyMap_fundamentalClassRel_eq_sum
   exact localHomologyMap_eq_sectionIndex_smul (trivial M Complex.orientation)
     Complex.finrank_real_complex o (hφ.comp hs) (Bundle.Trivial.trivialization M ℂ) (hU z)
     (hzU z) (fun x hx h0 ↦ hUz z x hx ((τ (ι x)).map_eq_zero_iff.1 (hst x ▸ h0)))
-    (fun _ _ ↦ by simp) (fun x _ ↦ htriv x) _ (fun x ↦ by simp [G, hst]) _
+    (fun _ _ ↦ by simp) (fun _ _ ↦ by simp) _ (fun x ↦ by simp [G, hst]) _
 
 /-- **The argument principle on a surface with boundary.** Let `X` be compact Hausdorff, let
 `ι : M → X` be an open embedding of a surface oriented by `o`, and let the complement `∂X` of
