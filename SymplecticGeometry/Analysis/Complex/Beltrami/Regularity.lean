@@ -39,7 +39,7 @@ structure of the rescaled coefficient has a chart of class `C^{k+1}`
 coefficient by `coefficientEquiv.symm`, as in Tau Ceti's
 `TauCeti.Beltrami.exists_chart_of_norm_lt`. That chart, read through `z ↦ ε⁻¹ L (z - c)` on the
 unit disc, is the isothermal chart. Its equation follows from
-`TauCeti.Beltrami.comp_smul_linearEquiv_apply_eq_I_mul`, which carries the equation back through
+`TauCeti.Beltrami.comp_smul_linearMap_apply_eq_I_mul`, which carries the equation back through
 `ε⁻¹ L` by `TauCeti.Beltrami.isComplexLinear_comp_linearMap_iff`, as the last step of
 `TauCeti.Beltrami.exists_isothermal_chart` does. The private steps
 `exists_rescaled_coefficient_of_contDiffAt` and `exists_chart_comp_affine_of_contDiffOn` are the
@@ -53,7 +53,7 @@ smooth (`TauCeti.Beltrami.contDiffOn_infty_of_fderiv_comp`).
 
 ## Main results
 
-* `TauCeti.Beltrami.comp_smul_linearEquiv_apply_eq_I_mul`: a map complex linear for the
+* `TauCeti.Beltrami.comp_smul_linearMap_apply_eq_I_mul`: a map complex linear for the
   structure of the normalized coefficient, composed with `ε⁻¹ L`, carries `J` to
   multiplication by `i`.
 * `TauCeti.Beltrami.exists_contDiffOn_isothermal_chart_of_contDiffAt`: isothermal charts of class
@@ -165,26 +165,22 @@ private theorem exists_chart_comp_affine_of_contDiffOn {n : WithTop ℕ∞} (hn 
     exact (hinv _ ((hEs z).mp hz).1).comp hTinv
 
 /-- **Carrying the isothermal equation back through `t • L`.** Let `J` and `J'` be tame
-structures on the plane whose coefficients `μ` and `ν` satisfy `ν (1 - conj a μ) = μ - a`, where
-`|a|² ≠ 1`, and let `L = linearEquiv a`. If a real-linear map `A` is complex linear from `J'` to
-multiplication by `i`, then for every real `t` the map `A ∘ (t • L)` carries `J` to
-multiplication by `i`. -/
-theorem comp_smul_linearEquiv_apply_eq_I_mul (J J' : AlmostComplexStructure ℂ)
+structures on the plane whose coefficients `μ` and `ν` satisfy `ν (1 - conj a μ) = μ - a`, and
+let `L = linearMap a`. If a real-linear map `A` is complex linear from `J'` to multiplication by
+`i`, then for every real `t` the map `A ∘ (t • L)` carries `J` to multiplication by `i`. -/
+theorem comp_smul_linearMap_apply_eq_I_mul (J J' : AlmostComplexStructure ℂ)
     (hJ : stdComplexSymplecticForm.Tames J) (hJ' : stdComplexSymplecticForm.Tames J') {a : ℂ}
-    (ha : Complex.normSq a ≠ 1)
     (h : (coefficientEquiv ⟨J', hJ'⟩).val * (1 - conj a * (coefficientEquiv ⟨J, hJ⟩).val) =
       (coefficientEquiv ⟨J, hJ⟩).val - a) {A : ℂ →L[ℝ] ℂ}
     (hA : IsComplexLinear J'.toLinearMap (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap
       A.toLinearMap) (t : ℝ) (v : ℂ) :
-    A.comp (t • (linearEquiv a ha : ℂ →L[ℝ] ℂ)) (J v) =
-      I * A.comp (t • (linearEquiv a ha : ℂ →L[ℝ] ℂ)) v := by
+    A.comp (t • linearMap a) (J v) = I * A.comp (t • linearMap a) v := by
   have hkey := ((isComplexLinear_comp_linearMap_iff J J' hJ hJ' h A).mpr hA).apply v
   have hkey' : A (linearMap a (J v)) = I * A (linearMap a v) := by
     simpa only [ContinuousLinearMap.coe_coe, ContinuousLinearMap.coe_comp, Function.comp_apply,
       LinearMap.coe_comp, AlmostComplexStructure.ofComplexModule_apply, smul_eq_mul] using hkey
   simp only [ContinuousLinearMap.coe_comp, Function.comp_apply, FunLike.coe_smul,
-    Pi.smul_apply, ContinuousLinearMap.map_smul_of_tower, ContinuousLinearEquiv.coe_coe,
-    linearEquiv_apply, linearMap_apply] at hkey' ⊢
+    Pi.smul_apply, ContinuousLinearMap.map_smul_of_tower]
   rw [hkey', Complex.real_smul, Complex.real_smul]
   ring
 
@@ -260,8 +256,8 @@ theorem exists_contDiffOn_isothermal_chart_of_contDiffAt {m : ℕ} (hm : 1 ≤ m
     have hJfw : (coefficientEquiv ⟨Jf w, hJf w⟩).val = f w := by simp [Jf]
     rw [hJfw, hfz, ← hμJ z hzρ]
     exact div_mul_cancel₀ _ (one_sub_conj_mul_ne_zero_of_norm_le_one_of_norm_lt_one hμz ha)
-  exact comp_smul_linearEquiv_apply_eq_I_mul (J z) (Jf w) (hρJ z hzρ) (hJf w) ha' hcoef hlin
-    _ v
+  rw [linearEquiv_toContinuousLinearMap]
+  exact comp_smul_linearMap_apply_eq_I_mul (J z) (Jf w) (hρJ z hzρ) (hJf w) hcoef hlin _ v
 
 /-- **Smooth isothermal charts.** Let `J` be a field of almost complex structures on the plane
 that is smooth on an open set `U` in the operator norm and tame at every point of `U`. Then every
