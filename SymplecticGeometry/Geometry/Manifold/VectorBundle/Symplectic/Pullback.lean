@@ -22,7 +22,7 @@ that it is compatible with the rest of the structure that `Symplectic/Basic.lean
 ## Main definitions and results
 
 * `SymplecticGeometry.Bundle.ContMDiffTwoForm.pullback ω f hf`, with `pullback_apply`,
-  `bilinFormAt_pullback`, `bilinFormAt_pullback_apply` and the linear map
+  `bilinFormAt_pullback`, `bilinFormAt_pullback_apply`, `pullback_apply_apply` and the linear map
   `pullbackLinearMap f hf`.
 * `bilinFormAt_apply_pullback`: a two-form on a pull-back bundle `f *ᵖ V` evaluates on vectors
   typed in `V (f y)`, for `simp`.
@@ -72,14 +72,21 @@ isomorphism of bundles is smooth by `Bundle.Pullback.contMDiff_fiberwise`. The A
 `bilinFormAt_pullback` and `IsNondegenerate.symplecticFormAt_pullback` are not `@[simp]`: the
 form they give lives on `V (f y)`, but the instances around it still name the fibre
 `(f *ᵖ V) y`, so the lemmas that evaluate it no longer apply. `simp` evaluates the pulled-back
-form on vectors with `bilinFormAt_pullback_apply`, and its symplectic form with
-`IsNondegenerate.symplecticFormAt_pullback_apply`. The first is `@[simp high]`: if
-`bilinFormAt_apply_pullback` and `pullback_apply` rewrite first, the two sides still differ in
-hidden arguments that name the fibre `(f *ᵖ V) y`, and `simp` cannot close the goal. The second
-is applied before the subterms are simplified (`simp↓`). So it fires before
-`IsNondegenerate.symplecticFormAt_apply_pullback`, which would leave the same mismatch, and it
-still matches the symplectic form of the pull-back of a sum, a difference or a multiple, whose
-form `pullback_add`, `pullback_sub` and `pullback_smul` would otherwise rewrite first.
+form on vectors with `bilinFormAt_apply_pullback`, which gives the value of the pull-back on a
+pair, and then `pullback_apply_apply`. `bilinFormAt_pullback_apply` states the value of the
+pulled-back bilinear form, and is not `@[simp]`, since `simp` proves it. `simp` evaluates the
+symplectic form of a pull-back on vectors with `IsNondegenerate.symplecticFormAt_pullback_apply`,
+which is applied before the subterms are simplified (`simp↓`). So it fires before
+`IsNondegenerate.symplecticFormAt_apply_pullback`, and it still matches the symplectic form of the
+pull-back of a sum, a difference or a multiple, whose form `pullback_add`, `pullback_sub` and
+`pullback_smul` would otherwise rewrite first.
+
+For the same reason `simp` cannot evaluate `ω.pullback f hf y ![v, w]` once `pullback_apply` has
+rewritten `ω.pullback f hf y`: the pair stays a family in `(f *ᵖ V) y`. `pullback_apply_apply`
+evaluates the whole application, and is applied before the subterms are simplified (`simp↓`), so
+that it fires before `pullback_apply` rewrites `ω.pullback f hf y`, and also on the pull-back of a
+sum, a difference, a negative or a multiple, which `pullback_add`, `pullback_sub`, `pullback_neg`
+and `pullback_smul` would otherwise split first.
 
 `bilinFormAt_apply` does not fire on vectors typed in `V (f y)` for a form on `f *ᵖ V`: Mathlib's
 `Bundle.Pullback` is a plain definition, so at the transparency `simp` uses, such a term is not
@@ -175,7 +182,7 @@ theorem bilinFormAt_apply_pullback {f : K}
 
 This is not `@[simp]`: after it rewrites, the instances around the form still name the fibre
 `(f *ᵖ V) y`, and `bilinFormAt_apply` no longer applies. On vectors, `simp` uses
-`bilinFormAt_pullback_apply` instead. -/
+`bilinFormAt_apply_pullback` and then `pullback_apply_apply` instead. -/
 theorem bilinFormAt_pullback (ω : ContMDiffTwoForm I n F V) (f : K) (hf : ContMDiff I' I n f)
     (y : N) : (ω.pullback f hf).bilinFormAt y = ω.bilinFormAt (f y) := by
   rw [bilinFormAt_def, bilinFormAt_def, pullback_apply]
@@ -184,14 +191,26 @@ theorem bilinFormAt_pullback (ω : ContMDiffTwoForm I n F V) (f : K) (hf : ContM
 
 /-- The bilinear form of the pull-back at `y` evaluates on `v w : V (f y)` as `ω (f y) ![v, w]`.
 
-It has priority `high`, so that `simp` uses it before `bilinFormAt_apply_pullback` on
-`ω.pullback f hf`: after that lemma and `pullback_apply`, hidden arguments that name the fibre
-`(f *ᵖ V) y` remain, and `simp` cannot close the goal. -/
-@[simp high]
+This is not `@[simp]`: `simp` proves it with `bilinFormAt_apply_pullback` and
+`pullback_apply_apply`. -/
 theorem bilinFormAt_pullback_apply (ω : ContMDiffTwoForm I n F V) (f : K) (hf : ContMDiff I' I n f)
     (y : N) (v w : V (f y)) : (ω.pullback f hf).bilinFormAt y v w = ω (f y) ![v, w] :=
   ((ω.pullback f hf).bilinFormAt_apply y v w).trans
     (congrArg (· ![v, w]) (pullback_apply ω f hf y))
+
+/-- The pull-back at `y` takes on the pair `![v, w]` of vectors `v w : V (f y)` the value of
+`ω (f y)` on that pair.
+
+On the left the pair is a family in the fibre `(f *ᵖ V) y`, on the right one in `V (f y)`, and
+`simp` does not identify the two. The lemma is a `simp` lemma applied before the subterms are
+simplified (`simp↓`): otherwise `pullback_apply` would rewrite `ω.pullback f hf y` first, and on the
+pull-back of a combination `pullback_add`, `pullback_sub`, `pullback_neg` or `pullback_smul`
+would, so a plain `@[simp]` lemma would never fire. `simp` then evaluates the form `ω (f y)` on
+vectors of `V (f y)`. -/
+@[simp↓]
+theorem pullback_apply_apply (ω : ContMDiffTwoForm I n F V) (f : K) (hf : ContMDiff I' I n f)
+    (y : N) (v w : V (f y)) : ω.pullback f hf y ![v, w] = ω (f y) ![v, w] :=
+  congrArg (· ![v, w]) (pullback_apply ω f hf y)
 
 /-- The pull-back of the zero form is zero. -/
 @[simp]
@@ -251,6 +270,18 @@ example (ω ω' : ContMDiffTwoForm I n F V) (f : K) (hf : ContMDiff I' I n f) (y
       ((c • ω).pullback f hf).bilinFormAt y v w = c * ω (f y) ![v, w] := by
   simp
 
+/-- `simp` evaluates the bilinear form of the pull-back of the zero form, with
+`Bundle.Pullback.linearMap_zero_apply_pullback`, and the pull-back of a sum, a difference, a
+negative or a multiple on a pair `![v, w]` of vectors of `V (f y)`, with `pullback_apply_apply`. -/
+example (ω ω' : ContMDiffTwoForm I n F V) (f : K) (hf : ContMDiff I' I n f) (y : N)
+    (c : ℝ) (v w : V (f y)) :
+    ((0 : ContMDiffTwoForm I n F V).pullback f hf).bilinFormAt y v w = 0 ∧
+      (ω + ω').pullback f hf y ![v, w] = ω (f y) ![v, w] + ω' (f y) ![v, w] ∧
+      (ω - ω').pullback f hf y ![v, w] = ω (f y) ![v, w] - ω' (f y) ![v, w] ∧
+      (-ω).pullback f hf y ![v, w] = -ω (f y) ![v, w] ∧
+      (c • ω).pullback f hf y ![v, w] = c * ω (f y) ![v, w] := by
+  simp
+
 /-! ### Nondegeneracy -/
 
 variable {ω : ContMDiffTwoForm I n F V}
@@ -279,11 +310,10 @@ it against any proof of it, such as `h.pullback f hf`.
 
 `simp` applies it before it simplifies the subterms (`simp↓`). Otherwise `pullback_add`,
 `pullback_sub` or `pullback_smul` would first rewrite the form named in the type of `h`, and the
-lemma would no longer match; and after `IsNondegenerate.symplecticFormAt_apply_pullback` and
-`pullback_apply`, the two sides would still differ in hidden arguments that name the fibre
-`(f *ᵖ V) y`. Applied first, it leaves the form `ω (f y)` evaluated on a pair of vectors of
-`V (f y)`, where Mathlib's lemmas on sums, differences and multiples of alternating maps
-apply. -/
+lemma would no longer match. (For a single form, `simp` also gets there through
+`IsNondegenerate.symplecticFormAt_apply_pullback` and `pullback_apply_apply`.) Applied first, it
+leaves the form `ω (f y)` evaluated on a pair of vectors of `V (f y)`, where Mathlib's lemmas on
+sums, differences and multiples of alternating maps apply. -/
 @[simp↓]
 theorem IsNondegenerate.symplecticFormAt_pullback_apply {f : K} {hf : ContMDiff I' I n f}
     (h : (ω.pullback f hf).IsNondegenerate) (y : N) (v w : V (f y)) :
