@@ -19,6 +19,8 @@ fibrewise operations on maps `X → TotalSpace F E` preserve continuity at a poi
   at a point, is continuous there. This is the pointwise form of Tau Ceti's
   `Continuous.smul_totalSpace`, and follows from the joint continuity of fibrewise scalar
   multiplication, `TauCeti.VectorBundle.continuous_smul`.
+* `ContinuousOn.smul_totalSpace`: the same on a set, for a map and a scalar function both
+  continuous on it.
 * `ContinuousAt.sum_totalSpace`: a finite fibrewise sum of maps over a common base map, each
   continuous at a point, is continuous there, provided the base map is (for the empty sum, which
   is the zero section along the base map). Its proof is adapted from Tau Ceti's
@@ -42,6 +44,13 @@ theorem ContinuousAt.smul_totalSpace {c : X → 𝕜} {φ : X → TotalSpace F E
     (hc : ContinuousAt c x₀) (hφ : ContinuousAt φ x₀) :
     ContinuousAt (fun x ↦ TotalSpace.mk' F (φ x).proj (c x • (φ x).snd)) x₀ :=
   (TauCeti.VectorBundle.continuous_smul 𝕜 F E).continuousAt.comp (hc.prodMk hφ)
+
+/-- A map into the total space of a vector bundle, rescaled fibrewise by a scalar function, is
+continuous on a set on which both the map and the scalar function are. -/
+theorem ContinuousOn.smul_totalSpace {c : X → 𝕜} {φ : X → TotalSpace F E} {S : Set X}
+    (hc : ContinuousOn c S) (hφ : ContinuousOn φ S) :
+    ContinuousOn (fun x ↦ TotalSpace.mk' F (φ x).proj (c x • (φ x).snd)) S :=
+  (TauCeti.VectorBundle.continuous_smul 𝕜 F E).comp_continuousOn (hc.prodMk hφ)
 
 variable (𝕜) in
 include 𝕜 in
