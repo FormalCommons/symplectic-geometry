@@ -27,7 +27,10 @@ along `ContinuousLinearEquiv.ofFinrankEq` (`VectorBundleCore.congrModel`).
 ## Main definitions and results
 
 * `ofBundleOfFinrankEqFiberEquiv`: the identification of each fibre of the core with the fibre of
-  `E`;
+  `E`; for the trivial bundle it is the inverse of `ContinuousLinearEquiv.ofFinrankEq`
+  (`ofBundleOfFinrankEqFiberEquiv_trivial_apply`), and for a pull-back `f *ᵖ E` it is, over `y`,
+  that of `E` over `f y` (`ofBundleOfFinrankEqFiberEquiv_pullback_symm_apply`, from
+  `TauCeti.pointIndexedCoreFiberEquiv_pullback_symm_apply`);
 * `ofBundleOfFinrankEqHomeomorph`: the identification of total spaces, over the identity of `B`,
   acting on each fibre by `ofBundleOfFinrankEqFiberEquiv`;
 * `ofBundleOfFinrankEqIso`: a fibrewise isomorphism of bundles, continuous on total spaces, gives
@@ -41,7 +44,10 @@ along `ContinuousLinearEquiv.ofFinrankEq` (`VectorBundleCore.congrModel`).
 
 The constructions follow Tau Ceti's `ofBundle` and `ofBundleIso`, and the use of `congrModel` in
 `TauCeti.FiniteRankAtlas.whitneyStratumCore`; the proof of `pullback_ofBundleOfFinrankEq`
-adapts that of Tau Ceti's `pullback_ofBundle`.
+adapts that of Tau Ceti's `pullback_ofBundle`, and that of
+`TauCeti.pointIndexedCoreFiberEquiv_pullback_symm_apply` adapts that of Tau Ceti's private
+`pointIndexedCoreFiberEquiv_toInfinite_pullback_symm_apply`, for the stages of the infinite
+Grassmannian.
 -/
 
 public section
@@ -49,6 +55,29 @@ public section
 open Bundle Module
 
 namespace TauCeti
+
+section PointIndexed
+
+variable {𝕜 : Type*} [NontriviallyNormedField 𝕜] {B : Type*} [TopologicalSpace B]
+  {X : Type*} [TopologicalSpace X]
+  {G : Type*} [NormedAddCommGroup G] [NormedSpace 𝕜 G]
+  (E : B → Type*) [∀ x, AddCommMonoid (E x)] [∀ x, Module 𝕜 (E x)]
+  [∀ x, TopologicalSpace (E x)] [TopologicalSpace (TotalSpace G E)]
+  [FiberBundle G E] [VectorBundle 𝕜 G E]
+
+/-- Over `y`, the inverse of the identification of the fibre of the point-indexed core of the
+pull-back `f *ᵖ E` with that of `f *ᵖ E` is the inverse of the identification for `E` over
+`f y`: the preferred chart of `f *ᵖ E` at `y` is the pull-back of that of `E` at `f y`. -/
+theorem pointIndexedCoreFiberEquiv_pullback_symm_apply (f : C(X, B)) (y : X)
+    (w : ((⇑f) *ᵖ E) y) :
+    (pointIndexedCoreFiberEquiv 𝕜 G ((⇑f) *ᵖ E) y).symm w =
+      (pointIndexedCoreFiberEquiv 𝕜 G E (f y)).symm w := by
+  refine (pointIndexedCoreFiberEquiv_symm_apply 𝕜 G _ y w).trans ?_
+  refine Eq.trans ?_ (pointIndexedCoreFiberEquiv_symm_apply 𝕜 G E (f y) w).symm
+  rw [trivializationAt, FiberBundle.pullback_trivializationAt']
+  rfl
+
+end PointIndexed
 
 namespace FiniteRankBundleCore
 
@@ -225,6 +254,18 @@ pulled-back bundle `f *ᵖ E`. -/
       rw [eᵢ.coordChangeL_of_notMem 𝕜 eⱼ hfx,
         (eᵢ.pullback f).coordChangeL_of_notMem 𝕜 (eⱼ.pullback f) hx]
 
+/-- Over `y`, the inverse of the identification of the fibre of
+`ofBundleOfFinrankEq 𝕜 G (f *ᵖ E) h` with that of `f *ᵖ E` is the inverse of the identification
+for `E` over `f y`. -/
+theorem ofBundleOfFinrankEqFiberEquiv_pullback_symm_apply (f : C(X, B)) (y : X)
+    (w : ((⇑f) *ᵖ E) y) :
+    (ofBundleOfFinrankEqFiberEquiv 𝕜 G ((⇑f) *ᵖ E) h y).symm w =
+      (ofBundleOfFinrankEqFiberEquiv 𝕜 G E h (f y)).symm w :=
+  (ofBundleOfFinrankEqFiberEquiv_symm_apply 𝕜 G _ h y w).trans <|
+    (congrArg (ContinuousLinearEquiv.ofFinrankEq (h.trans (finrank_fin_fun 𝕜).symm))
+      (pointIndexedCoreFiberEquiv_pullback_symm_apply E f y w)).trans
+      (ofBundleOfFinrankEqFiberEquiv_symm_apply 𝕜 G E h (f y) w).symm
+
 end Pullback
 
 section Trivial
@@ -249,6 +290,14 @@ variable (B) {G : Type*} [NormedAddCommGroup G] [NormedSpace 𝕜 G] [FiniteDime
     rw [VectorBundleCore.coordChange_congrModel, pointIndexedCore_coordChange]
     refine ContinuousLinearMap.ext fun v ↦ ?_
     simp
+
+/-- The identification of the fibre of the core of the trivial bundle `B × G` with `G` is the
+inverse of `ContinuousLinearEquiv.ofFinrankEq`. -/
+theorem ofBundleOfFinrankEqFiberEquiv_trivial_apply (x : B) (v : Fin n → 𝕜) :
+    ofBundleOfFinrankEqFiberEquiv 𝕜 G (Bundle.Trivial B G) h x v =
+      (ContinuousLinearEquiv.ofFinrankEq (h.trans (finrank_fin_fun 𝕜).symm)).symm v := by
+  rw [ofBundleOfFinrankEqFiberEquiv_apply, pointIndexedCoreFiberEquiv_apply]
+  exact Trivial.trivialization_symm_apply B G x _
 
 end Trivial
 
