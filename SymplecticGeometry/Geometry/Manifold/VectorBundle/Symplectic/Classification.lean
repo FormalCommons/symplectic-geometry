@@ -7,13 +7,13 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.ComplexStructure.Basic
 import Mathlib.Geometry.Manifold.VectorBundle.ContMDiffSection
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.BilinearForm
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.Riemannian.PolarEnd
 import SymplecticGeometry.Geometry.Symplectic.LinearMoser
-import SymplecticGeometry.Topology.VectorBundle.Coordinates
 import TauCeti.Geometry.Manifold.VectorBundle.Hom
 import TauCeti.Geometry.Symplectic.Cayley.Basic
 import TauCeti.Topology.Algebra.Module.BilinearForm
 import TauCeti.Topology.Algebra.Module.ContinuousLinearMap.FiniteDimensional
-import TauCeti.Topology.VectorBundle.Coordinates
 
 /-!
 # Symplectic and complex isomorphisms of vector bundles
@@ -48,13 +48,13 @@ nondegenerate, and the linear Moser flow of the segment from `ω₁'` to `ω₂`
 `Real.smoothTransition` (`SymplecticGeometry.segmentMoserFlow`), applied in each fibre, pulls
 `ω₂` back to `ω₁'`.
 
-The fibres carry no norm, so the Moser flow at `x` is computed on the model fibre through the
-trivialization at `x`. By its naturality (`SymplecticGeometry.segmentMoserFlow_conj`) any other
-continuous linear equivalence of the fibre with a Banach space gives the same map. Read in the
-trivialization at a base point `x₀`, the flow at `x` near `x₀` is therefore the flow of the
-coordinate readings of the two forms at `x`, and so it is `Cⁿ` by
-`SymplecticGeometry.contDiffOn_segmentMoserFlow`, which takes the pair of forms as parameter.
-This follows the proof of `Bundle.ContMDiffRiemannianMetric.contMDiffOn_polarFormulaAt`.
+The fibres carry no norm, so the Moser flow at `x` is computed on a Euclidean space through
+`Bundle.euclideanEquivAt F V x`, as `SymplecticGeometry.Bundle.mapBilinPairAt`. The flow is
+natural under linear isomorphisms (`SymplecticGeometry.segmentMoserFlow_conj`) and smooth in the
+pair of forms on the open set `SymplecticGeometry.invertibleSegments`
+(`SymplecticGeometry.contDiffOn_segmentMoserFlow`), so
+`SymplecticGeometry.Bundle.contMDiffAt_mapBilinPairAt` shows that it is a `Cⁿ` section of the
+endomorphism bundle.
 
 ## References
 
@@ -66,8 +66,8 @@ public section
 
 noncomputable section
 
-open _root_.Bundle Set Filter
-open scoped Manifold Topology
+open _root_.Bundle Set
+open scoped Manifold
 
 namespace SymplecticGeometry.Bundle
 
@@ -133,101 +133,20 @@ section Moser
 
 variable {ω ω' : ContMDiffTwoForm I n F V}
 
-/-- A continuous bilinear form on `V x` carried in both arguments along `e : V x ≃L[ℝ] W`. -/
-private def carry {x : M} {W : Type*} [NormedAddCommGroup W] [NormedSpace ℝ W]
-    (e : V x ≃L[ℝ] W) (σ : V x →L[ℝ] V x →L[ℝ] ℝ) : W →L[ℝ] W →L[ℝ] ℝ :=
-  e.arrowCongr (e.arrowCongr (.refl ℝ ℝ)) σ
-
-omit [TopologicalSpace M] [∀ x, IsTopologicalAddGroup (V x)] [∀ x, ContinuousSMul ℝ (V x)] in
-private theorem carry_apply {x : M} {W : Type*} [NormedAddCommGroup W] [NormedSpace ℝ W]
-    (e : V x ≃L[ℝ] W) (σ : V x →L[ℝ] V x →L[ℝ] ℝ) (v w : W) :
-    carry e σ v w = σ (e.symm v) (e.symm w) := by
-  simp [carry]
-
 omit [FiniteDimensional ℝ F] in
 /-- If every convex combination of `ω` and `ω'` is nondegenerate, their flat maps at `x`, carried
 to a finite-dimensional normed space, are a pair of `invertibleSegments`. -/
 private theorem mem_invertibleSegments
     (h : ∀ s ∈ Icc (0 : ℝ) 1, ((1 - s) • ω + s • ω').IsNondegenerate) (x : M) {W : Type*}
     [NormedAddCommGroup W] [NormedSpace ℝ W] [FiniteDimensional ℝ W] (e : V x ≃L[ℝ] W) :
-    (carry e (ω.flat x), carry e (ω'.flat x)) ∈ invertibleSegments W := by
+    (e.bilinearCongr (ω.flat x), e.bilinearCongr (ω'.flat x)) ∈ invertibleSegments W := by
   rw [mem_invertibleSegments_iff]
   intro s hs
   rw [ContinuousLinearMap.isInvertible_iff_separatingLeft]
   intro v hv
   have h0 := isNondegenerate_iff_separatingLeft.1 (h s hs) x (e.symm v) fun w ↦ by
-    simpa [carry_apply, flat_apply] using hv (e w)
+    simpa [flat_apply] using hv (e w)
   simpa using congrArg e h0
-
-variable (F V) in
-/-- The fibre equivalence of the trivialization at `x`. -/
-private def fibreEquiv (x : M) : V x ≃L[ℝ] F :=
-  (trivializationAt F V x).continuousLinearEquivAt ℝ x (mem_baseSet_trivializationAt F V x)
-
-variable (ω ω') in
-/-- The linear Moser flow from `ω` to `ω'` at `x`, computed on the model fibre through the
-trivialization at `x`. -/
-private def moserFlowAt (x : M) : V x →L[ℝ] V x :=
-  (fibreEquiv F V x).symm.conjContinuousAlgEquiv
-    (segmentMoserFlow (carry (fibreEquiv F V x) (ω.flat x)) (carry (fibreEquiv F V x) (ω'.flat x)))
-
-/-- **Independence of the equivalence.** The Moser flow at `x` may be computed through any
-continuous linear equivalence of `V x` with a finite-dimensional normed space. -/
-private theorem moserFlowAt_eq_conj
-    (h : ∀ s ∈ Icc (0 : ℝ) 1, ((1 - s) • ω + s • ω').IsNondegenerate) (x : M) {W : Type*}
-    [NormedAddCommGroup W] [NormedSpace ℝ W] [FiniteDimensional ℝ W] (e : V x ≃L[ℝ] W) :
-    moserFlowAt ω ω' x = e.symm.conjContinuousAlgEquiv
-      (segmentMoserFlow (carry e (ω.flat x)) (carry e (ω'.flat x))) := by
-  have := FiniteDimensional.completeSpace ℝ W
-  have := FiniteDimensional.completeSpace ℝ F
-  -- Carrying along `e` is carrying along `fibreEquiv x`, then along `f`.
-  let f := (fibreEquiv F V x).symm.trans e
-  have hc (σ : V x →L[ℝ] V x →L[ℝ] ℝ) :
-      carry e σ =
-        (carry (fibreEquiv F V x) σ).bilinearComp (f.symm : W →L[ℝ] F) (f.symm : W →L[ℝ] F) := by
-    ext v w
-    simp [carry_apply, f]
-  rw [moserFlowAt, hc, hc, segmentMoserFlow_conj f (mem_invertibleSegments h x _)]
-  ext v
-  simp [f]
-
-/-- The linear Moser flow at each point is a `Cⁿ` section of the endomorphism bundle. -/
-private theorem contMDiff_moserFlowAt
-    (h : ∀ s ∈ Icc (0 : ℝ) 1, ((1 - s) • ω + s • ω').IsNondegenerate) :
-    ContMDiff I (I.prod 𝓘(ℝ, F →L[ℝ] F)) n fun x ↦
-      TotalSpace.mk' (F →L[ℝ] F) (E := fun x ↦ V x →L[ℝ] V x) x (moserFlowAt ω ω' x) := by
-  have := FiniteDimensional.completeSpace ℝ F
-  intro x₀
-  rw [contMDiffAt_hom_bundle]
-  refine ⟨contMDiffAt_id, ?_⟩
-  let e₀ := trivializationAt F V x₀
-  -- The readings of the two forms in the trivialization at `x₀`.
-  let C (σ : ∀ x, V x →L[ℝ] V x →L[ℝ] ℝ) (x : M) : F →L[ℝ] F →L[ℝ] ℝ :=
-    ContinuousLinearMap.inCoordinates F V (F →L[ℝ] ℝ) (fun y ↦ V y →L[ℝ] Trivial M ℝ y)
-      x₀ x x₀ x (σ x)
-  have hC (η : ContMDiffTwoForm I n F V) : ContMDiffAt I 𝓘(ℝ, F →L[ℝ] F →L[ℝ] ℝ) n
-      (C η.flat) x₀ :=
-    ((contMDiffAt_hom_bundle _).1 (η.contMDiff_flat x₀)).2
-  have hcarry (x : M) (hx : x ∈ e₀.baseSet) (σ : V x →L[ℝ] V x →L[ℝ] ℝ) :
-      ContinuousLinearMap.inCoordinates F V (F →L[ℝ] ℝ) (fun y ↦ V y →L[ℝ] Trivial M ℝ y)
-        x₀ x x₀ x σ = carry (e₀.continuousLinearEquivAt ℝ x hx) σ := by
-    rw [ContinuousLinearMap.inCoordinates_eq_arrowCongr_arrowCongr hx]
-    ext v w
-    simp [carry_apply, e₀]
-  have hU : e₀.baseSet ∈ 𝓝 x₀ := e₀.open_baseSet.mem_nhds (mem_baseSet_trivializationAt F V x₀)
-  have hmem : (C ω.flat x₀, C ω'.flat x₀) ∈ invertibleSegments F := by
-    simp only [C, hcarry x₀ (mem_of_mem_nhds hU)]
-    exact mem_invertibleSegments h x₀ _
-  have hP := ContDiffAt.comp_contMDiffAt (f := fun x ↦ (C ω.flat x, C ω'.flat x)) (x := x₀)
-    (contDiffOn_segmentMoserFlow.contDiffAt (isOpen_invertibleSegments.mem_nhds hmem))
-    ((hC ω).prodMk_space (hC ω'))
-  refine hP.congr_of_eventuallyEq ?_
-  filter_upwards [hU] with x hx
-  rw [ContinuousLinearMap.inCoordinates_eq_conjContinuousAlgEquiv hx,
-    moserFlowAt_eq_conj h x (e₀.continuousLinearEquivAt ℝ x hx)]
-  simp only [Function.comp_apply, C, hcarry x hx]
-  ext v
-  simp [e₀, Trivialization.apply_mk_symm _ hx]
 
 /-- **Two-forms joined by nondegenerate forms are isomorphic.** If every convex combination
 `(1 - s) • ω + s • ω'`, `0 ≤ s ≤ 1`, of two `Cⁿ` two-forms on a bundle of finite rank is
@@ -238,29 +157,38 @@ theorem exists_symplectic_bundleEquiv_of_forall_isNondegenerate
     ∃ Ψ : ∀ x, V x ≃L[ℝ] V x, ContMDiff (I.prod 𝓘(ℝ, F)) (I.prod 𝓘(ℝ, F)) n
         (fun v : TotalSpace F V ↦ TotalSpace.mk' F v.proj (Ψ v.proj v.snd)) ∧
       ∀ x v w, ω'.bilinFormAt x (Ψ x v) (Ψ x w) = ω.bilinFormAt x v w := by
-  have := FiniteDimensional.completeSpace ℝ F
-  have hu (x : M) : IsUnit (moserFlowAt ω ω' x) :=
-    (isUnit_segmentMoserFlow (mem_invertibleSegments h x (fibreEquiv F V x))).map
-      (fibreEquiv F V x).symm.conjContinuousAlgEquiv
+  -- The linear Moser flow at `x`, computed through `Bundle.euclideanEquivAt F V x`.
+  let E := _root_.Bundle.euclideanEquivAt F V
+  let P (x : M) : V x →L[ℝ] V x :=
+    mapBilinPairAt E (fun p ↦ segmentMoserFlow p.1 p.2) x (ω.flat x) (ω'.flat x)
+  have hu (x : M) : IsUnit (P x) := by
+    simp only [P, mapBilinPairAt_def]
+    exact (isUnit_segmentMoserFlow (mem_invertibleSegments h x (E x))).map
+      (E x).symm.conjContinuousAlgEquiv
   let Ψ x := ContinuousLinearEquiv.unitsEquiv ℝ (V x) (hu x).unit
-  have hΨ (x : M) (v : V x) : Ψ x v = moserFlowAt ω ω' x v := by
+  have hΨ (x : M) (v : V x) : Ψ x v = P x v := by
     simp [Ψ, ContinuousLinearEquiv.unitsEquiv_apply]
   refine ⟨Ψ, (TauCeti.contMDiff_hom_bundle_iff fun x ↦ (Ψ x : V x →L[ℝ] V x)).1 ?_,
     fun x v w ↦ ?_⟩
-  · convert contMDiff_moserFlowAt h using 3 with x
+  · have hP : ContMDiff I (I.prod 𝓘(ℝ, F →L[ℝ] F)) n fun x ↦
+        TotalSpace.mk' (F →L[ℝ] F) (E := fun x ↦ V x →L[ℝ] V x) x (P x) := fun x ↦
+      contMDiffAt_mapBilinPairAt E isOpen_invertibleSegments contDiffOn_segmentMoserFlow
+        (fun f _ hp ↦ segmentMoserFlow_conj f hp) (f := id) (ω.contMDiff_flat x)
+        (ω'.contMDiff_flat x) (mem_invertibleSegments h x _)
+    convert hP using 3 with x
     ext v
     simp [hΨ]
-  · -- Read in the fibre equivalence at `x`, this is the defining property of the Moser flow.
-    let e := fibreEquiv F V x
-    have hskew (η : ContMDiffTwoForm I n F V) (v w : F) :
-        carry e (η.flat x) v w = -carry e (η.flat x) w v := by
-      simp only [carry_apply, flat_apply, ← bilinFormAt_apply]
+  · -- Read in the equivalence `E x`, this is the defining property of the Moser flow.
+    let e := E x
+    have hskew (η : ContMDiffTwoForm I n F V) (v w : EuclideanSpace ℝ (Fin (Module.finrank ℝ F))) :
+        e.bilinearCongr (η.flat x) v w = -e.bilinearCongr (η.flat x) w v := by
+      simp only [ContinuousLinearEquiv.bilinearCongr_apply, flat_apply, ← bilinFormAt_apply]
       exact ((η.isAlt_bilinFormAt x).neg_eq _ _).symm
     have key := apply_segmentMoserFlow (mem_invertibleSegments h x e) (hskew ω) (hskew ω')
       (e v) (e w)
-    simp only [carry_apply] at key
-    rw [hΨ, hΨ, moserFlowAt]
-    simpa [e, bilinFormAt_apply, flat_apply] using key
+    simp only [ContinuousLinearEquiv.bilinearCongr_apply] at key
+    rw [hΨ, hΨ]
+    simpa [P, mapBilinPairAt_def, e, bilinFormAt_apply, flat_apply] using key
 
 end Moser
 
