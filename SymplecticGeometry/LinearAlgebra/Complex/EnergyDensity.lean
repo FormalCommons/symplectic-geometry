@@ -13,7 +13,7 @@ public import TauCeti.LinearAlgebra.Complex.LinearPart
 # The energy density of a linear map into a space with a two-form
 
 Let `V` be a real vector space with an alternating form `ω` of degree two and a complex structure
-`J`, and let `W` be a real vector space with a complex structure `j`. For a linear map
+`J`, and let `j` be a complex structure on a second real vector space `W`. For a linear map
 `L : W → V` put `b (v, w) = ω (L v, J (L w))`. The energy density of `L` is the alternating form
 
 `ε_L (v, w) = ¼ (b (j v, w) + b (w, j v) - b (v, j w) - b (j w, v))`
