@@ -405,12 +405,14 @@ private lemma ιHomology₁_arc_eq
         (Matrix.cons_val_zero _ _).superset).app _
         (lowerArc p hp)) = (toSSet.obj Sph).δ 0 tri := by
     rw [← NatTrans.comp_app_apply, toSmallSingularSubcomplex_ι, δ_zero_tri]
+    -- The inclusion of the complement composed with the corestricted arc is the arc itself.
     exact toSSet_map_app_simplex₁ _ _
   have hu : (Sph.smallSingularSubcomplex ![({p}ᶜ : Set Sph), {-p}ᶜ]).ι.app _
       ((toSmallSingularSubcomplex ![({p}ᶜ : Set Sph), {-p}ᶜ]
         ((Matrix.cons_val_one _ _).trans (Matrix.cons_val_zero _ _)).superset).app _
         (upperArc p hp)) = (toSSet.obj Sph).δ 2 tri := by
     rw [← NatTrans.comp_app_apply, toSmallSingularSubcomplex_ι, δ_two_tri]
+    -- As for the lower half-circle.
     exact toSSet_map_app_simplex₁ _ _
   rw [SSet.ιHomology₁_def, HomologicalComplex.homologyπ_naturality, ← Category.assoc,
     ← sub_eq_zero, ← Preadditive.sub_comp]
