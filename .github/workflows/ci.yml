@@ -75,23 +75,11 @@ jobs:
               || report "$f must start with the copyright header in AGENTS.md, then module."
           done
           exit $fail
-      - name: install elan
-        run: |
-          curl -sSfL https://raw.githubusercontent.com/leanprover/elan/v4.2.4/elan-init.sh \
-            | sh -s -- -y --no-modify-path --default-toolchain none
-          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
-      # The latest save for this lean-toolchain and lake-manifest.json; see
-      # the cache workflow.
-      - name: restore the built dependencies
-        id: restore
-        uses: actions/cache/restore@v6
-        with:
-          path: .lake/packages
-          key: lake-packages-${{ hashFiles('lean-toolchain', 'lake-manifest.json') }}
-          restore-keys: lake-packages-${{ hashFiles('lean-toolchain', 'lake-manifest.json') }}-
-      - name: fetch Mathlib's build cache
-        if: steps.restore.outputs.cache-matched-key == ''
-        run: lake exe cache get
+      # elan, then the latest save of the built dependencies, or Mathlib's
+      # build cache without one; see the cache workflow.
+      - name: set up Lean and restore the built dependencies
+        id: setup
+        uses: ./.github/actions/setup-lean
       # main's latest build of the library, from the cache workflow, whatever
       # its hour. Lake takes a file's build from it only if the file's source,
       # its imports' builds, the toolchain and the options are as they were
@@ -102,8 +90,8 @@ jobs:
         uses: actions/cache/restore@v6
         with:
           path: .lake/build
-          key: lake-build-${{ hashFiles('lean-toolchain', 'lake-manifest.json', 'lakefile.toml') }}
-          restore-keys: lake-build-${{ hashFiles('lean-toolchain', 'lake-manifest.json', 'lakefile.toml') }}-
+          key: ${{ steps.setup.outputs.build }}
+          restore-keys: ${{ steps.setup.outputs.build }}-
       # --wfail fails the build on any warning, including a `sorry`.
       - name: build
         run: lake build --wfail

@@ -695,7 +695,17 @@ issues, in an order where each issue's blockers come before it.
    for the evenness: Tau Ceti's
    `TopCat.even_finrank_singularHomology_of_injective_singularCapLinearMap`,
    given injectivity of the cap product with the fundamental class in degree
-   one. That injectivity is the degree-one case of Poincaré duality, which
+   one. `AlgebraicTopology/Cohomology/Cap/RationalCoefficients.lean` reduces
+   it, for the image of the fundamental class under
+   `TopCat.singularHomologyIntToRat`, to injectivity of the duality map with
+   values in `ℚ`
+   (`TauCeti.HomologicalOrientation.injective_singularCapLinearMap_of_injective_dualityMap`).
+   It uses two new general files:
+   `AlgebraicTopology/Cohomology/Cap/Basic.lean`, the singular cap product
+   of a simplex along the unitors, and
+   `Algebra/Homology/ShortComplex/PreservesHomology.lean`,
+   `CategoryTheory.ShortComplex.map_homologyπ_comp_mapHomologyIso_inv`.
+   That injectivity is the degree-one case of Poincaré duality, which
    Tau Ceti prepares in `AlgebraicTopology/Cohomology/CompactSupport/`
    (`HomologicalOrientation.dualityMap` and its criterion in `Duality.lean`)
    but does not finish. The issue first checks whether Tau Ceti has finished
@@ -821,7 +831,11 @@ issues, in an order where each issue's blockers come before it.
    `CoordinateDisc.ofChart` from an orientation-preserving smooth chart of a
    smoothly oriented surface (through `o.toHomologicalOrientation`), and
    `exists_coordinateDisc` (one centred at any point, and finitely many with
-   disjoint closed discs at distinct points). Done when this API is proved.
+   disjoint closed discs at distinct points). `CoordinateDisc.lean` imports
+   two supporting files of this part, each beside the Mathlib or Tau Ceti
+   file it adds to: `LinearAlgebra/Complex/Orientation.lean` and
+   `AlgebraicTopology/Singular/LocalHomology/Orientation/Smooth.lean`. Done
+   when this API is proved.
 6. **Argument principle for discs.**
    `AlgebraicTopology/Singular/LocalHomology/ArgumentPrinciple.lean`:
    `SymplecticGeometry.sum_degree_boundary_eq_zero`. Let `φ i`, `i : ι`

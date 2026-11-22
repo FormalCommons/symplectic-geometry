@@ -46,6 +46,8 @@ what makes the Moser flow fix `x` to first order ([McDuffSalamon2017], §3.2;
   `TauCeti.SmoothTwoForm.Compatible.orthogonal_flatComp`: the orthogonal of a subspace for the
   bilinear form `σ♭_x` is its symplectic complement, and, for a compatible almost complex
   structure `J`, its orthogonal for `σ(J ·, ·)` is its orthogonal for the metric `σ(·, J ·)`.
+* `TauCeti.SmoothTwoForm.Tames.flatComp_apply_self_eq_zero_iff`: if `σ` tames `J`, the form
+  `σ(J ·, ·)` vanishes on the diagonal only at `0`.
 * `TauCeti.SmoothTwoForm.contMDiff_flat_pullback` and
   `TauCeti.SmoothTwoForm.contMDiff_flatComp_pullback`: along a smooth map `f`, the forms
   `σ♭_{f q}` and `σ(C ·, ·)` at `f q` are smooth sections of the bundle of bilinear forms on
@@ -243,6 +245,17 @@ theorem Compatible.orthogonal_flatComp (hc : σ.Compatible Jc) (x : M)
     flatComp_apply]
   rw [← h, neg_eq_zero]
   simp [IsNondegenerate.toBilinForm_symplecticFormAt]
+
+/-- If `σ` tames `J`, the bilinear form `σ(J ·, ·)` vanishes on the diagonal only at `0`, since
+`σ(J u, u) = -σ(u, J u)`. -/
+theorem Tames.flatComp_apply_self_eq_zero_iff (h : σ.Tames Jc) {x : M} {u : TangentSpace I x} :
+    σ.flatComp Jc.toEndomorphism x u u = 0 ↔ u = 0 := by
+  refine ⟨fun hu ↦ ?_, fun hu ↦ by simp [hu]⟩
+  by_contra hne
+  have hp := tames_iff.1 h x u hne
+  rw [flatComp_apply, ContinuousLinearMap.comp_apply, flat_apply, SmoothBundleForm.eval₂_swap,
+    neg_eq_zero] at hu
+  exact hp.ne' (by simpa using hu)
 
 end Orthogonal
 
