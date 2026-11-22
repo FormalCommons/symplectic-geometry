@@ -161,14 +161,16 @@ as the form of $\mathbb CP^1$.
 
 ### The normalization and the area of a line
 
-- **The affine formula** is stated in Tau Ceti's coordinate
-  `ProjectiveLine.affineParam 0`, $t\mapsto[1:t]$: the pull-back evaluates
+- **The affine formula** is stated in Tau Ceti's coordinates
+  `ProjectiveLine.affineParam i`, $t\mapsto[1:t]$ and $t\mapsto[t:1]$: the
+  pull-back evaluates
   as $\operatorname{Im}(\bar vw)/(1+\lvert t\rvert^2)^2$, which is
   $dx\wedge dy/(1+x^2+y^2)^2$ in the form of Tau Ceti's
   `OnePoint.eval₂_fubiniStudyForm_coe`. The comparison with Tau Ceti's form
-  is `mpullback (diffeomorphProjectivization ℂ ∞) (fubiniStudyForm 1) =
-  π • OnePoint.fubiniStudyForm`; both sides have the same density up to the
-  factor $\pi$ in each chart.
+  is `mpullback (OnePoint.equivProjectivization ℂ) (fubiniStudyForm 1) =
+  π • OnePoint.fubiniStudyForm`, along the map of
+  `OnePoint.diffeomorphProjectivization`; both sides have the same density
+  up to the factor $\pi$ in each chart.
 - **The stereographic map.** The page's formula $[1+x_3:x_1+ix_2]$ has both
   entries zero at the south pole $(0,0,-1)$, so it defines the map only on
   the sphere without that point. Because $(1+x_3)(1-x_3)=x_1^2+x_2^2$, it
@@ -176,9 +178,12 @@ as the form of $\mathbb CP^1$.
   pole. The part does not define the map by cases, since Tau Ceti has it
   as a composite of two diffeomorphisms: `sphereToProjectiveLine` is
   `(OnePoint.diffeomorphSphere v ι).symm` followed by
-  `OnePoint.diffeomorphProjectivization ℂ ω` read on the real structures
-  (`Diffeomorph.restrictScalars ℝ`), with `v` the north pole $(0,0,1)$ and
-  `ι z = (Re z, -Im z, 0)`. Off `v` the first factor is
+  `OnePoint.equivProjectivization ℂ`, the map of
+  `OnePoint.diffeomorphProjectivization ℂ ω`, smooth for the real structures
+  by `OnePoint.contMDiff_equivProjectivization_real`, with `v = northPole`,
+  the north pole $(0,0,1)$, and
+  `ι = equatorIsometry`, `ι z = (Re z, -Im z, 0)`, both defined in
+  `Instances/OnePoint.lean`. Off `v` the first factor is
   $(x_1-ix_2)/(1-x_3)$ by `diffeomorphSphere_symm_apply_of_ne`, and the
   second sends $t$ to $[t:1]$ and $\infty$ to $[1:0]$, so the composite is
   $[x_1-ix_2:1-x_3]$ off the north pole, and $[1+x_3:x_1+ix_2]$ off the
@@ -283,6 +288,32 @@ real `0`-form, complexified by `SmoothForm.mapCoeff Complex.ofRealCLM`):
   `mextDerivₗ_dC_of_mextDerivₗ_eq_del_add_delBar`.
 
 Reference: Huybrechts, *Complex Geometry*, §§1.3 and 3.1.
+
+### `Geometry/Manifold/Instances/OnePoint.lean`
+
+In namespace `OnePoint`, for the Riemann sphere read as a real surface:
+`contMDiff_coe_real`, `mfderiv_coe_apply` (the derivative of
+`ℂ → OnePoint ℂ` is the identity), `mvfderiv_coe_apply`,
+`contMDiff_equivProjectivization_real` with its `_symm_` form,
+`equivProjectivization_apply_coe_eq_affineParam`,
+`hasFDerivAt_coe_diffeomorphSphere_coe` (the derivative of
+`diffeomorphSphere v ι` on `ℂ`, for any `v` and `ι`),
+`ofTopForm_fubiniStudyForm` (the orientation of `fubiniStudyForm` is the
+reindexed `complexManifoldOrientation ℂ (OnePoint ℂ)`), and
+`isOrientationPreservingAt_equivProjectivization` (for the complex
+orientations on both sides). In namespace `SymplecticGeometry`: `northPole`,
+`equatorIsometry` and their lemmas, and
+`mpullback_diffeomorphSphere_sphereVolumeForm` (the round area form pulls
+back to `(4 * Real.pi) • OnePoint.fubiniStudyForm`) with its `_symm_` form.
+`Normalization.lean` imports it.
+
+### `Geometry/Manifold/Orientation/Sphere.lean`
+
+In namespace `Orientation`: `sphereOrientation_eq_ofTopForm`, Tau Ceti's
+outward-normal orientation `o.sphereOrientation` is the orientation
+`Manifold.Orientation.ofTopForm` of `o.sphereVolumeForm`, for any `E` and
+`n`. Tau Ceti does not expose the definition of `sphereOrientation`.
+`Normalization.lean` imports it.
 
 ### `Geometry/Manifold/Projectivization/Hopf.lean`
 
@@ -402,23 +433,26 @@ $\omega_0=$ `stdComplexPiSymplecticForm (Fin (n + 1))`:
 ### `Geometry/Manifold/Projectivization/FubiniStudy/Normalization.lean`
 
 - `eval₂_fubiniStudyForm_affineParam`: on $\mathbb CP^1$, the pull-back along
-  `ProjectiveLine.affineParam 0` at $t$ evaluates on $v,w$ as
+  `ProjectiveLine.affineParam i` (either `i : Fin 2`) at $t$ evaluates on
+  $v,w$ as
   $\operatorname{Im}(\bar vw)/(1+\lVert t\rVert^2)^2$ (part 4, affine formula).
-- `mpullback_diffeomorphProjectivization_fubiniStudyForm`:
-  the pull-back along `OnePoint.diffeomorphProjectivization ℂ ∞` (read on
-  the real structures) is `Real.pi • OnePoint.fubiniStudyForm`.
+- `mpullback_equivProjectivization_fubiniStudyForm`:
+  the pull-back along `OnePoint.equivProjectivization ℂ`, the map of
+  `OnePoint.diffeomorphProjectivization`, is
+  `Real.pi • OnePoint.fubiniStudyForm`.
 - `sphereToProjectiveLine : sphere (0 : EuclideanSpace ℝ (Fin 3)) 1 ≃ₘ^ω⟮𝓡 2,
   𝓘(ℝ, Fin 1 → ℂ)⟯ ℙ ℂ (Fin 2 → ℂ)`, the composite
-  `(OnePoint.diffeomorphSphere v ι).symm.trans
-  ((OnePoint.diffeomorphProjectivization ℂ ω).restrictScalars ℝ)` with `v`
-  and `ι` as above, with `sphereToProjectiveLine_of_ne_southPole`
+  of `(OnePoint.diffeomorphSphere v ι).symm` and
+  `OnePoint.equivProjectivization ℂ`, with `v = northPole` and
+  `ι = equatorIsometry` as above, with
+  `sphereToProjectiveLine_of_ne_southPole`
   ($[1+x_3:x_1+ix_2]$), `sphereToProjectiveLine_of_ne_northPole`
   ($[x_1-ix_2:1-x_3]$),
   `isOrientationPreservingAt_sphereToProjectiveLine` (for
   `o₃.sphereOrientation` and `oCP1`), and
   `mpullback_sphereToProjectiveLine_fubiniStudyForm` (part 4, stereographic
-  sentence), from `OnePoint.inner_mfderiv_diffeomorphSphere` and
-  `mpullback_diffeomorphProjectivization_fubiniStudyForm`.
+  sentence), from `mpullback_diffeomorphSphere_sphereVolumeForm` and
+  `mpullback_equivProjectivization_fubiniStudyForm`.
 - `integralTopForm_fubiniStudyForm_one : integralTopForm oCP1
   (fubiniStudyForm 1).val = Real.pi`.
 - `integralTopForm_mpullback_map_fubiniStudyForm (f) (hf : Injective f)`:
