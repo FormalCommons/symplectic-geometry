@@ -119,13 +119,7 @@ theorem IsNondegenerate.firstChernClass_congr_model
     [Fact (finrank ℝ E = 2 * finrank ℂ G')] {σ : SmoothTwoForm I M} (h : σ.IsNondegenerate) :
     h.firstChernClass G' = h.firstChernClass G := by
   rw [firstChernClass_def, firstChernClass_def]
-  -- The identity of `TM` intertwines the chosen complex structure with itself.
-  have hc : ∀ x v, ContinuousLinearEquiv.refl ℝ (TangentSpace I x)
-      ((h.exists_compatible.choose.toContMDiff ⊤).toContinuousComplexStructure x v) =
-      (h.exists_compatible.choose.toContMDiff ⊤).toContinuousComplexStructure x
-        (ContinuousLinearEquiv.refl ℝ (TangentSpace I x) v) := fun _ _ ↦ rfl
-  exact firstChernClass_congr (fiberEquivOfCommute _ _ _ hc)
-    (continuous_fiberEquivOfCommute _ _ _ hc (continuous_id.congr fun _ ↦ rfl))
+  exact TauCeti.Bundle.ContinuousComplexStructure.firstChernClass_congr_model G _ G'
 
 /-! ### Families of nondegenerate two-forms -/
 

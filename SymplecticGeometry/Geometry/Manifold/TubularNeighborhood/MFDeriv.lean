@@ -376,8 +376,6 @@ theorem exists_diffeomorph_opens_mfderiv_eq [SecondCountableTopology M₀]
           (A q : TangentSpace I₀ (f₀ q) →L[ℝ] TangentSpace I₁ (f₁ q)) := by
   cases isEmpty_or_nonempty Q with
   | inl hQ =>
-    have : IsEmpty (⊥ : Opens M₀) := ⟨fun x ↦ x.property⟩
-    have : IsEmpty (⊥ : Opens M₁) := ⟨fun x ↦ x.property⟩
     exact ⟨⊥, ⊥, Diffeomorph.ofIsEmpty, fun q ↦ (hQ.false q).elim⟩
   | inr hQ =>
     have := Manifold.locallyCompact_of_finiteDimensional (M := M₀) I₀
