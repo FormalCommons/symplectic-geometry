@@ -204,6 +204,8 @@ Further choices of this design:
 | `Geometry/Symplectic/IsotopyExtension/Velocity.lean` | `SmoothIsotopy.IsSymplectic`, velocity forms, their closedness, the link with `HasHamiltonian` |
 | `Geometry/Symplectic/IsotopyExtension/Flow.lean` | extension of a family of symplectic embeddings by an ambient symplectic or Hamiltonian flow |
 | `Geometry/Symplectic/Moser/Family.lean` | Moser's argument near a compact set along a family, and with a parameter |
+| `Geometry/Manifold/TubularNeighborhood/OneFormCorrection.lean` | the correction lemma: a function whose slices have differential `γ_t` along a compact submanifold where `f^* γ_t` vanishes |
+| `Geometry/Manifold/DifferentialForm/VectorBundlePoincare.lean` | the relative Poincaré operator at the zero section of a vector bundle, and its fibre-scaling primitives for a family of one-forms |
 | `Geometry/Symplectic/IsotopyExtension/Ball/Basic.lean` | `IsSymplecticBallEmbedding`, `IsSymplecticBallFamily`, enlarging a symplectic ball |
 | `Geometry/Symplectic/IsotopyExtension/Ball/Isotopy.lean` | the Hamiltonian ball extension and the milestone *Symplectic ball extension* |
 | `Geometry/Symplectic/IsotopyExtension/Cohomological/Primitive.lean` | ambient closed forms with prescribed periods, and primitives on one neighbourhood for all times |
@@ -472,17 +474,18 @@ theorem TauCeti.SmoothEmbedding.exists_diffeotopy_mpullback_eq_of_timeDeriv
 ```
 
 The primitive `γ_t` vanishes on the tangent vectors of `Q`. Its correction
-by $dF_t$, with $F_t$ the fibrewise linear function of `γ_t` in a tubular
-neighbourhood (Tau Ceti's `exists_isTubularNeighborhood_subset`), the same
-for every `t`, makes it vanish as a full covector along `Q`. The cut-off
+by $dF_t$, with $F$ the function of the correction lemma
+`TauCeti.SmoothEmbedding.exists_contMDiff_mextDeriv_eq_mpullback_prodMk`
+(`Geometry/Manifold/TubularNeighborhood/OneFormCorrection.lean`: the relative
+Poincaré operator of `γ_t` on a tubular neighbourhood, cut off near `Q`),
+makes it vanish as a full covector along `Q`. The cut-off
 Moser field then vanishes on `Q`, and Moser's principle along trajectories
 (`mpullback_timeDependentFlowOf_mpullback_prodMk_apply_eq_exp_integral_smul_of_mem`)
 gives the identity near `Q` for every $t\in[0,1]$. The field is
 `moserField σ γ' ρ` for the corrected primitive `γ'` and a cutoff `ρ` on
 `ℝ × M`. This is the argument of
 *Moser isotopy*'s milestone *Relative Moser theorem fixing a submanifold*
-for a general family. If `Moser/Isotopy.lean` is merged first, its
-correction lemma is reused.
+for a general family.
 
 *With a parameter*: Moser's argument for the linear paths $\omega_0+s\,d\beta_t$, $s\in[0,1]$, for
 every value of a parameter $t\in[0,1]$, relative to a compact set:
@@ -806,7 +809,10 @@ this design already follows. `Ball/Isotopy.lean` cites
   `FiniteDimensional ℝ (deRhamCohomology I M k)` for a compact boundaryless
   `M`, which `Geometry/Manifold/DeRham/SmoothFamily/GoodCover.lean` derives
   from `hasFiniteGoodCover_of_compactSpace` (used by
-  `Cohomological/Primitive.lean`). The part uses neither the splittings and
+  `Cohomological/Primitive.lean`). It also uses
+  `SymplecticGeometry.IsSmoothFamily.homotopyOperator`
+  (`Geometry/Manifold/DifferentialForm/SmoothFamily/HomotopyOperator.lean`,
+  used by `DifferentialForm/VectorBundlePoincare.lean`). The part uses neither the splittings and
   `contMDiff_repr_mk_of_hasFiniteGoodCover` nor the bridge
   `Diffeotopy/Real.lean`: the periods are smooth in `t` as line integrals,
   and its flows are Tau Ceti's `timeDependentFlowDiffeotopy`, already a
