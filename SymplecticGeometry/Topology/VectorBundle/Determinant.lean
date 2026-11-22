@@ -200,7 +200,7 @@ theorem fiberMap_detCoreMap_trans_symm_hom (Φ Ψ : ∀ x, E x ≃L[𝕜] E₁ x
   refine (ContinuousLinearMap.exteriorPowerCoords_self _).trans ?_
   congr 1
   rw [Iso.trans_hom, Iso.symm_hom, fiberMap_comp, fiberMap_ofBundleOfFinrankEqIso_inv,
-    fiberMap_ofBundleOfFinrankEqIso_hom, ← ContinuousLinearEquiv.det_symm_trans_trans
+    fiberMap_ofBundleOfFinrankEqIso_hom, ← ContinuousLinearEquiv.det_coe_symm_trans_trans
       (ofBundleOfFinrankEqFiberEquiv 𝕜 G E rfl x).symm ((Ψ x).trans (Φ x).symm)]
   refine congrArg LinearMap.det (LinearMap.ext fun v ↦ ?_)
   exact congrArg (fun w ↦ (ofBundleOfFinrankEqFiberEquiv 𝕜 G E rfl x).symm ((Φ x).symm w))
@@ -489,7 +489,7 @@ theorem fiberMap_detCoreFrameIso_trans_symm_hom (y : X) :
   have hc : LinearMap.det (((Ψ y : Trivial X G y ≃L[𝕜] ((⇑f) *ᵖ E) y).trans
         (Φ y : Trivial X G y ≃L[𝕜] ((⇑f) *ᵖ E) y).symm : Trivial X G y →ₗ[𝕜] Trivial X G y)) =
       LinearMap.det ((Φ y).symm.trans (Ψ y) : E (f y) →ₗ[𝕜] E (f y)) :=
-    ContinuousLinearEquiv.det_trans_symm (Φ y : G ≃L[𝕜] E (f y)) (Ψ y)
+    ContinuousLinearEquiv.det_coe_trans_symm (Φ y : G ≃L[𝕜] E (f y)) (Ψ y)
   rw [detCoreFrameIso_def, detCoreFrameIso_def, ← hc]
   exact fiberMap_trans_trans_symm_hom _ _ _ _
     (fiberMap_detCoreMap_trans_symm_hom (E := Trivial X G) (E₁ := (⇑f) *ᵖ E) Φ Ψ _ _ y)
