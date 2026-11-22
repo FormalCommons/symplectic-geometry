@@ -36,8 +36,13 @@ sum runs over the finitely many crossings (`finite_setOf_inf_ne_bot_of_regular`)
   `Matrix.crossingForm (A t) (A' t)`.
 * `SymplecticGeometry.LagrangianGrassmannian.finite_setOf_inf_ne_bot_of_regular`: a path with
   regular crossings has finitely many.
+* `SymplecticGeometry.LagrangianGrassmannian.finite_Icc_inter_support_signature_of_regular`: the
+  signatures of the crossing forms of such a path are nonzero at finitely many times.
 * `SymplecticGeometry.LagrangianGrassmannian.pathMaslovIndex_eq_crossing_sum`: the formula for
   every path with a frame whose crossings are regular, relative to every Lagrangian.
+* `SymplecticGeometry.LagrangianGrassmannian.pathMaslovIndex_eq_crossing_sum_Ico`: the same
+  formula with the crossing at `0` counted fully and at `1` not at all, plus half the difference
+  of the signatures at `1` and at `0`.
 
 ## Implementation notes
 
@@ -330,14 +335,28 @@ theorem finite_setOf_inf_ne_bot_of_regular {Λ Λ' : ℒ ι} (γ : Path Λ Λ') 
   rw [codiscrete_eq_cofinite] at h
   exact Filter.eventually_cofinite.1 h
 
-/-- **The crossing-form formula for paths.** Let `γ` be a path of Lagrangians and `Z` a frame of
-it: the columns of `Z t` span `γ t`, for `t ∈ [0, 1]`. Suppose that at each crossing `t` with a
-Lagrangian `V`, where `γ t ∩ V ≠ 0`, `Z` has derivative `Z' t` within `[0, 1]` and the crossing
-form `lagrangianCrossingForm (Z t) (Z' t) V` is nondegenerate. Then the index of `γ` relative to
-`V` is the sum of the signatures of the crossing forms, those at `0` and `1` counting one half.
-Away from the crossings the forms are zero (`lagrangianCrossingForm_eq_zero_of_inf_eq_bot`), and
-the crossings are finitely many (`finite_setOf_inf_ne_bot_of_regular`). -/
-theorem pathMaslovIndex_eq_crossing_sum {Λ Λ' : ℒ ι} (γ : Path Λ Λ') (V : ℒ ι)
+/-- **Regular crossings have finitely many nonzero signatures.** Under the hypotheses of
+`finite_setOf_inf_ne_bot_of_regular`, the signature of the crossing form
+`lagrangianCrossingForm (Z t) (Z' t) V` is nonzero at only finitely many times `t ∈ [0, 1]`. -/
+theorem finite_Icc_inter_support_signature_of_regular {Λ Λ' : ℒ ι} (γ : Path Λ Λ') (V : ℒ ι)
+    {Z Z' : ℝ → Matrix (ι ⊕ ι) ι ℝ}
+    (hZ : ∀ t : I, LinearMap.range (toEuclideanLin (Z t)) = γ t)
+    (hd : ∀ t : I, (γ t : Submodule ℝ (StdSpace ι)) ⊓ V ≠ ⊥ →
+      HasDerivWithinAt Z (Z' t) (Icc 0 1) t)
+    (hreg : ∀ t : I, (γ t : Submodule ℝ (StdSpace ι)) ⊓ V ≠ ⊥ →
+      (lagrangianCrossingForm (Z t) (Z' t) V).Nondegenerate) :
+    (Icc (0 : ℝ) 1 ∩
+      Function.support fun t ↦ σ[lagrangianCrossingForm (Z t) (Z' t) V]).Finite :=
+  ((finite_setOf_inf_ne_bot_of_regular γ V hZ hd hreg).image ((↑) : I → ℝ)).subset
+    fun t ⟨ht, hst⟩ ↦ ⟨⟨t, ht⟩, fun h ↦
+      hst (sigPos_sub_sigNeg_lagrangianCrossingForm_eq_zero_of_inf_eq_bot
+        (by rwa [hZ ⟨t, ht⟩]) _), rfl⟩
+
+/-- **The crossing-form formula for paths, with the crossing at `0` counted fully.** Under the
+hypotheses of `pathMaslovIndex_eq_crossing_sum`, the index of `γ` relative to `V` is the sum of
+the signatures of the crossing forms over `[0, 1)`, plus half the difference of the signatures
+at `1` and at `0`. -/
+theorem pathMaslovIndex_eq_crossing_sum_Ico {Λ Λ' : ℒ ι} (γ : Path Λ Λ') (V : ℒ ι)
     {Z Z' : ℝ → Matrix (ι ⊕ ι) ι ℝ}
     (hZ : ∀ t : I, LinearMap.range (toEuclideanLin (Z t)) = γ t)
     (hd : ∀ t : I, (γ t : Submodule ℝ (StdSpace ι)) ⊓ V ≠ ⊥ →
@@ -345,29 +364,17 @@ theorem pathMaslovIndex_eq_crossing_sum {Λ Λ' : ℒ ι} (γ : Path Λ Λ') (V 
     (hreg : ∀ t : I, (γ t : Submodule ℝ (StdSpace ι)) ⊓ V ≠ ⊥ →
       (lagrangianCrossingForm (Z t) (Z' t) V).Nondegenerate) :
     pathMaslovIndex γ V =
-      ((σ[lagrangianCrossingForm (Z 0) (Z' 0) V] + σ[lagrangianCrossingForm (Z 1) (Z' 1) V] :
-          ℤ) : ℝ) / 2 +
-        ((∑ᶠ t ∈ Ioo (0 : ℝ) 1, σ[lagrangianCrossingForm (Z t) (Z' t) V] : ℤ) : ℝ) := by
+      ((∑ᶠ t ∈ Ico (0 : ℝ) 1, σ[lagrangianCrossingForm (Z t) (Z' t) V] : ℤ) : ℝ) +
+        ((σ[lagrangianCrossingForm (Z 1) (Z' 1) V] - σ[lagrangianCrossingForm (Z 0) (Z' 0) V] :
+          ℤ) : ℝ) / 2 := by
   set sgn : ℝ → ℤ := fun t ↦ σ[lagrangianCrossingForm (Z t) (Z' t) V] with hsgn
-  -- The signature vanishes away from the crossings, which are finitely many.
-  have hsgn0 (t : I) (h : (γ t : Submodule ℝ (StdSpace ι)) ⊓ V = ⊥) : sgn t = 0 := by
-    have h0 := lagrangianCrossingForm_eq_zero_of_inf_eq_bot (by rw [hZ t]; exact h) (Z' t)
-    have hpos := (QuadraticForm.forall_nonpos_iff_sigPos_eq_zero
-      (lagrangianCrossingForm (Z t) (Z' t) V)).1 fun u ↦ by simp [h0]
-    have hneg := (QuadraticForm.forall_nonneg_iff_sigNeg_eq_zero
-      (lagrangianCrossingForm (Z t) (Z' t) V)).1 fun u ↦ by simp [h0]
-    simp only [hsgn, hpos, hneg, Nat.cast_zero, sub_zero]
   have hsupp {s : Set ℝ} (hs : s ⊆ Icc 0 1) : (s ∩ Function.support sgn).Finite :=
-    ((finite_setOf_inf_ne_bot_of_regular γ V hZ hd hreg).image ((↑) : I → ℝ)).subset
-      fun t ⟨ht, hst⟩ ↦ ⟨⟨t, hs ht⟩, fun h ↦ hst (hsgn0 ⟨t, hs ht⟩ h), rfl⟩
-  have hIco {a b : ℝ} (hab : a < b) (h : Icc a b ⊆ Icc 0 1) :
-      ∑ᶠ t ∈ Ico a b, sgn t = sgn a + ∑ᶠ t ∈ Ioo a b, sgn t := by
-    rw [← insert_left_Ioo hab,
-      finsum_mem_insert' sgn left_notMem_Ioo (hsupp (Ioo_subset_Icc_self.trans h))]
+    (finite_Icc_inter_support_signature_of_regular γ V hZ hd hreg).subset
+      (inter_subset_inter_left _ hs)
   -- The crossing sum of `[a, b]` with weight one at `a` and none at `b`, corrected to half
   -- weights at both ends; unlike the sum with half weights, it is additive over adjacent
   -- intervals, also empty ones.
-  let F (a b : I) : ℝ := ((∑ᶠ t ∈ Ico (a : ℝ) b, sgn t : ℤ) : ℝ) + ((sgn b : ℝ) - sgn a) / 2
+  let F (a b : I) : ℝ := ((∑ᶠ t ∈ Ico (a : ℝ) b, sgn t : ℤ) : ℝ) + ((sgn b - sgn a : ℤ) : ℝ) / 2
   have hF {a b c : I} (hab : a ≤ b) (hbc : b ≤ c) : F a b + F b c = F a c := by
     have hs (x y : I) : Ico (x : ℝ) y ⊆ Icc 0 1 :=
       Ico_subset_Icc_self.trans (Icc_subset_Icc x.property.1 y.property.2)
@@ -387,7 +394,9 @@ theorem pathMaslovIndex_eq_crossing_sum {Λ Λ' : ℒ ι} (γ : Path Λ Λ') (V 
     · rw [Path.subpath_self, pathMaslovIndex_refl, hF0]
     · simp only [F]
       rw [crossing_sum_subpath γ hVW hZ hd hreg hab hW,
-        hIco (Subtype.coe_lt_coe.2 hab) (Icc_subset_Icc a.property.1 b.property.2)]
+        ← insert_left_Ioo (Subtype.coe_lt_coe.2 hab),
+        finsum_mem_insert' sgn left_notMem_Ioo
+          (hsupp (Ioo_subset_Icc_self.trans (Icc_subset_Icc a.property.1 b.property.2)))]
       simp only [hsgn]
       push_cast
       ring
@@ -410,11 +419,33 @@ theorem pathMaslovIndex_eq_crossing_sum {Λ Λ' : ℒ ι} (γ : Path Λ Λ') (V 
   have h1 := hind m
   rw [hm m le_rfl, Path.subpath_zero_one, pathMaslovIndex_congr _ γ (fun t ↦ by simp) V] at h1
   rw [h1]
-  simp only [F, Icc.coe_zero, Icc.coe_one]
-  rw [hIco zero_lt_one subset_rfl]
-  simp only [hsgn]
+  simp only [F, Icc.coe_zero, Icc.coe_one, hsgn]
+
+/-- **The crossing-form formula for paths.** Let `γ` be a path of Lagrangians and `Z` a frame of
+it: the columns of `Z t` span `γ t`, for `t ∈ [0, 1]`. Suppose that at each crossing `t` with a
+Lagrangian `V`, where `γ t ∩ V ≠ 0`, `Z` has derivative `Z' t` within `[0, 1]` and the crossing
+form `lagrangianCrossingForm (Z t) (Z' t) V` is nondegenerate. Then the index of `γ` relative to
+`V` is the sum of the signatures of the crossing forms, those at `0` and `1` counting one half.
+Away from the crossings the forms are zero (`lagrangianCrossingForm_eq_zero_of_inf_eq_bot`), and
+the crossings are finitely many (`finite_setOf_inf_ne_bot_of_regular`). -/
+theorem pathMaslovIndex_eq_crossing_sum {Λ Λ' : ℒ ι} (γ : Path Λ Λ') (V : ℒ ι)
+    {Z Z' : ℝ → Matrix (ι ⊕ ι) ι ℝ}
+    (hZ : ∀ t : I, LinearMap.range (toEuclideanLin (Z t)) = γ t)
+    (hd : ∀ t : I, (γ t : Submodule ℝ (StdSpace ι)) ⊓ V ≠ ⊥ →
+      HasDerivWithinAt Z (Z' t) (Icc 0 1) t)
+    (hreg : ∀ t : I, (γ t : Submodule ℝ (StdSpace ι)) ⊓ V ≠ ⊥ →
+      (lagrangianCrossingForm (Z t) (Z' t) V).Nondegenerate) :
+    pathMaslovIndex γ V =
+      ((σ[lagrangianCrossingForm (Z 0) (Z' 0) V] + σ[lagrangianCrossingForm (Z 1) (Z' 1) V] :
+          ℤ) : ℝ) / 2 +
+        ((∑ᶠ t ∈ Ioo (0 : ℝ) 1, σ[lagrangianCrossingForm (Z t) (Z' t) V] : ℤ) : ℝ) := by
+  rw [pathMaslovIndex_eq_crossing_sum_Ico γ V hZ hd hreg, ← insert_left_Ioo zero_lt_one,
+    finsum_mem_insert' _ left_notMem_Ioo
+      ((finite_Icc_inter_support_signature_of_regular γ V hZ hd hreg).subset
+        (inter_subset_inter_left _ Ioo_subset_Icc_self))]
   push_cast
   ring
+
 
 end LagrangianGrassmannian
 

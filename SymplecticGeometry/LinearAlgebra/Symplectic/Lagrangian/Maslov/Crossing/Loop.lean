@@ -38,12 +38,13 @@ real orthogonal matrix.
 
 ## Implementation notes
 
-The Lagrangian formula is the formula for paths, `pathMaslovIndex_eq_crossing_sum`, relative to
-`{x = 0}`, together with `pathMaslovIndex_eq_maslovIndex`. At time `1` the frame is `Z 0 * g`
-with derivative `Z' 0 * g`, so the crossing forms at `0` and at `1` are equivalent
-(`lagrangianCrossingForm_mul_equivalent`), and the two half weights of the path formula add up to
-one. The symplectic formula applies the Lagrangian one to the loop `t ↦ Ψ t {x = 0}`, framed by
-`fromRows B D`, whose Maslov index is twice that of `Ψ` (`maslovIndex_smul_const`).
+The Lagrangian formula is the formula for paths in the form `pathMaslovIndex_eq_crossing_sum_Ico`,
+relative to `{x = 0}`, together with `pathMaslovIndex_eq_maslovIndex`. At time `1` the frame is
+`Z 0 * g` with derivative `Z' 0 * g`, so the crossing forms at `0` and at `1` are equivalent
+(`lagrangianCrossingForm_mul_equivalent`), and the correction term of the path formula, half the
+difference of their signatures, vanishes. The symplectic formula applies the Lagrangian one to the
+loop `t ↦ Ψ t {x = 0}`, framed by `fromRows B D`, whose Maslov index is twice that of `Ψ`
+(`maslovIndex_smul_const`).
 
 ## References
 
@@ -145,26 +146,18 @@ theorem maslovIndex_eq_crossing_sum {Λ : ℒ ι} (γ : Path Λ Λ) {Z Z' : ℝ 
     · have ht' : (t : ℝ) ≠ 1 := fun h ↦ ht (Subtype.ext h)
       rw [hZ''t ht']
       exact hreg t ⟨t.property.1, lt_of_le_of_ne t.property.2 ht'⟩ h
-  have key := pathMaslovIndex_eq_crossing_sum γ (vertical ι) hZ hd' hreg'
+  have key := pathMaslovIndex_eq_crossing_sum_Ico γ (vertical ι) hZ hd' hreg'
   rw [pathMaslovIndex_eq_maslovIndex] at key
-  -- The crossing sum, with the two half weights at `0` and `1` added up.
-  set sgn : ℝ → ℤ := fun t ↦ σ[lagrangianCrossingForm (Z t) (Z' t) (vertical ι)] with hsgn
-  have hσ1 : σ[lagrangianCrossingForm (Z 1) (Z'' 1) (vertical ι)] = sgn 0 := by
+  -- With the derivative `Z' 0 * g` at `1`, the signatures at `0` and `1` agree, and the sum over
+  -- `[0, 1)` does not see the change of derivative at `1`.
+  have hσ1 : σ[lagrangianCrossingForm (Z 1) (Z'' 1) (vertical ι)] =
+      σ[lagrangianCrossingForm (Z 0) (Z' 0) (vertical ι)] := by
     rw [← heq1.sigPos_eq, ← heq1.sigNeg_eq]
-  have hIoo : ∑ᶠ t ∈ Ioo (0 : ℝ) 1, σ[lagrangianCrossingForm (Z t) (Z'' t) (vertical ι)] =
-      ∑ᶠ t ∈ Ioo (0 : ℝ) 1, sgn t :=
+  have hIco : ∑ᶠ t ∈ Ico (0 : ℝ) 1, σ[lagrangianCrossingForm (Z t) (Z'' t) (vertical ι)] =
+      ∑ᶠ t ∈ Ico (0 : ℝ) 1, σ[lagrangianCrossingForm (Z t) (Z' t) (vertical ι)] :=
     finsum_mem_congr rfl fun t ht ↦ by rw [hZ''t ht.2.ne]
-  have hfin : (Ioo (0 : ℝ) 1 ∩ Function.support sgn).Finite :=
-    ((finite_setOf_inf_ne_bot_of_regular γ (vertical ι) hZ hd' hreg').image
-      ((↑) : I → ℝ)).subset fun t ⟨ht, hst⟩ ↦
-        ⟨⟨t, Ioo_subset_Icc_self ht⟩, fun h ↦
-          hst (sigPos_sub_sigNeg_lagrangianCrossingForm_eq_zero_of_inf_eq_bot
-            (by rwa [← hZ] at h) _), rfl⟩
-  rw [hσ1, hIoo, hZ''t zero_ne_one] at key
-  rw [← insert_left_Ioo zero_lt_one, finsum_mem_insert' sgn left_notMem_Ioo hfin]
-  have : (maslovIndex γ : ℝ) = ((sgn 0 + ∑ᶠ t ∈ Ioo (0 : ℝ) 1, sgn t : ℤ) : ℝ) := by
-    rw [key]; simp only [hsgn]; push_cast; ring
-  exact_mod_cast this
+  rw [hσ1, hIco, hZ''t zero_ne_one, sub_self, Int.cast_zero, zero_div, add_zero] at key
+  exact_mod_cast key
 
 end LagrangianGrassmannian
 

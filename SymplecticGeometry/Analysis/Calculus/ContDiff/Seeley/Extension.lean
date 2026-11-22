@@ -47,6 +47,8 @@ two series glue across `t = 0` by `HasFTaylorSeriesUpToOn.union`. The uniform co
 
 * `SymplecticGeometry.contDiffOn_seeleyExtend`, `SymplecticGeometry.contDiffOn_seeleyIccExtend`:
   the extensions of smooth families are smooth.
+* `SymplecticGeometry.exists_contDiffOn_eqOn_Icc_prod`: a family smooth on `Icc a b ×ˢ U` agrees
+  there with one smooth on `univ ×ˢ U`.
 
 ## References
 
@@ -559,6 +561,25 @@ theorem contDiffOn_seeleyIccExtend {f : ℝ × E → F} {U : Set E} (hU : IsOpen
       fun y (hy : y ∈ univ ×ˢ U ∩ Ioi 0 ×ˢ univ) ↦
         ⟨show 1 - y.1 < 1 by linarith [mem_Ioi.mp hy.2.1], hy.1.2⟩).congr fun y hy ↦ ?_
     exact seeleyIccExtend_of_pos _ hy.2.1
+
+/-- Seeley's extension on an interval `[a, b]`, `a < b`, with parameters: a function smooth on
+`Icc a b ×ˢ U`, for an open `U`, agrees on `Icc a b ×ˢ U` with a function smooth on
+`univ ×ˢ U`. -/
+theorem exists_contDiffOn_eqOn_Icc_prod {f : ℝ × E → F} {U : Set E} {a b : ℝ} (hab : a < b)
+    (hU : IsOpen U) (hf : ContDiffOn ℝ ∞ f (Icc a b ×ˢ U)) :
+    ∃ g : ℝ × E → F, ContDiffOn ℝ ∞ g (univ ×ˢ U) ∧ EqOn g f (Icc a b ×ˢ U) := by
+  have hc : 0 < b - a := sub_pos.2 hab
+  have hf' : ContDiffOn ℝ ∞ (fun q : ℝ × E ↦ f (a + (b - a) * q.1, q.2)) (Icc 0 1 ×ˢ U) :=
+    hf.comp ((contDiff_const.add (contDiff_const.mul contDiff_fst)).prodMk contDiff_snd).contDiffOn
+      fun q hq ↦ ⟨⟨by nlinarith [hq.1.1], by nlinarith [hq.1.2]⟩, hq.2⟩
+  refine ⟨fun p ↦ seeleyIccExtend (fun s ↦ f (a + (b - a) * s, p.2)) ((p.1 - a) / (b - a)),
+    (contDiffOn_seeleyIccExtend hU hf').comp
+      (((contDiff_fst.sub contDiff_const).div_const _).prodMk contDiff_snd).contDiffOn
+      fun p hp ↦ ⟨trivial, hp.2⟩, fun p hp ↦ ?_⟩
+  have hmem : (p.1 - a) / (b - a) ∈ Icc 0 1 :=
+    ⟨div_nonneg (by linarith [hp.1.1]) hc.le, (div_le_one hc).2 (by linarith [hp.1.2])⟩
+  simp only [seeleyIccExtend_of_mem _ hmem]
+  rw [mul_div_cancel₀ _ hc.ne', add_sub_cancel]
 
 end Smooth
 
