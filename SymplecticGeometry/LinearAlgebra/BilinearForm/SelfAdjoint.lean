@@ -10,6 +10,7 @@ public import Mathlib.LinearAlgebra.BilinearForm.Properties
 public import Mathlib.LinearAlgebra.QuadraticForm.Basic
 public import Mathlib.LinearAlgebra.Trace
 import Mathlib.LinearAlgebra.QuadraticForm.Prod
+import TauCeti.LinearAlgebra.BilinearForm.Prod
 import TauCeti.LinearAlgebra.BilinearForm.SkewAdjoint
 
 /-!
@@ -25,8 +26,9 @@ square, and positive trace of its square unless it is zero.
 These trace results follow from Tau Ceti's public lemmas
 `LinearMap.BilinForm.trace_mul_self_nonpos_of_posDef` and
 `LinearMap.BilinForm.trace_mul_self_eq_zero_iff_of_posDef` for skew-adjoint endomorphisms
-(`TauCeti/LinearAlgebra/BilinearForm/SkewAdjoint.lean`), applied on `V × V` to the form
-`B ⊕ B` and the endomorphism `(x, y) ↦ (-A y, A x)`, which is skew-adjoint for it and whose
+(`TauCeti/LinearAlgebra/BilinearForm/SkewAdjoint.lean`), applied on `V × V` to Tau Ceti's
+product form `LinearMap.BilinForm.prod B B` (`TauCeti/LinearAlgebra/BilinearForm/Prod.lean`)
+and the endomorphism `(x, y) ↦ (-A y, A x)`, which is skew-adjoint for it and whose
 square is `-(A * A)` on each factor.
 
 ## Main results
@@ -67,23 +69,16 @@ has positive trace of its square. -/
 theorem trace_mul_self_pos_of_posDef (B : LinearMap.BilinForm F V)
     (hsymm : B.IsSymm) (hpos : B.toQuadraticMap.PosDef) {A : Module.End F V}
     (hA : B.IsSelfAdjoint A) (h0 : A ≠ 0) : 0 < LinearMap.trace F V (A * A) := by
-  -- The form `B ⊕ B` on `V × V`, and the endomorphism `(x, y) ↦ (-A y, A x)`.
-  let B' : LinearMap.BilinForm F (V × V) :=
-    B.compl₁₂ (fst F V V) (fst F V V) + B.compl₁₂ (snd F V V) (snd F V V)
+  -- The product form `B.prod B` on `V × V`, and the endomorphism `(x, y) ↦ (-A y, A x)`.
   let X : Module.End F (V × V) := (-(A ∘ₗ snd F V V)).prod (A ∘ₗ fst F V V)
-  have hsymm' : B'.IsSymm := by
-    refine isSymm_def.mpr fun x y ↦ ?_
-    simp [B', hsymm.eq x.1 y.1, hsymm.eq x.2 y.2]
-  have hpos' : B'.toQuadraticMap.PosDef := by
-    have h : B'.toQuadraticMap = B.toQuadraticMap.prod B.toQuadraticMap := by
-      ext x
-      simp [B']
-    rw [h]
+  have hsymm' : (B.prod B).IsSymm := isSymm_prod_iff.mpr ⟨hsymm, hsymm⟩
+  have hpos' : (B.prod B).toQuadraticMap.PosDef := by
+    rw [toQuadraticMap_prod]
     exact hpos.prod hpos
-  have hX : X ∈ B'.skewAdjointSubmodule := by
+  have hX : X ∈ (B.prod B).skewAdjointSubmodule := by
     rw [LinearMap.mem_skewAdjointSubmodule]
     intro x y
-    simp only [B', X, add_apply, compl₁₂_apply, prod_apply, Function.prod, fst_apply,
+    simp only [X, BilinForm.prod_apply, LinearMap.prod_apply, Function.prod, fst_apply,
       snd_apply, LinearMap.comp_apply, map_neg, Pi.neg_apply, LinearMap.neg_apply, neg_add_rev]
     rw [hA x.1 y.2, hA x.2 y.1]
     abel
@@ -98,8 +93,8 @@ theorem trace_mul_self_pos_of_posDef (B : LinearMap.BilinForm F V)
     apply h0
     ext v
     simpa [X] using congrArg (fun f ↦ (f (v, 0)).2) h
-  have hle := trace_mul_self_nonpos_of_posDef B' hsymm' hpos' X hX
-  have hne := (trace_mul_self_eq_zero_iff_of_posDef B' hsymm' hpos' X hX).not.mpr hX0
+  have hle := trace_mul_self_nonpos_of_posDef (B.prod B) hsymm' hpos' X hX
+  have hne := (trace_mul_self_eq_zero_iff_of_posDef (B.prod B) hsymm' hpos' X hX).not.mpr hX0
   rw [htr] at hle hne
   exact lt_of_le_of_ne (by linarith) fun h ↦ hne (by rw [← h]; ring)
 
