@@ -9,7 +9,6 @@ public import TauCeti.AlgebraicTopology.Cohomology.CompactSupport.Euclidean.Basi
 public import TauCeti.AlgebraicTopology.Cohomology.CompactSupport.Extension
 public import SymplecticGeometry.AlgebraicTopology.Cohomology.CompactSupport.Vanishing
 public import SymplecticGeometry.Analysis.Convex.Opens
-public import SymplecticGeometry.Order.SupClosed
 
 /-!
 # Vanishing of cohomology with compact supports on star-convex open sets
@@ -35,9 +34,10 @@ This vanishing above the dimension is what the Mayer–Vietoris step of Poincar�
 besides duality itself, in the induction over convex open sets of Hatcher's Lemma 3.36. That
 induction, run for vanishing alone, gives `Hⁿ_c(U) = 0` for `n > finrank ℝ F` and every `U` that
 embeds openly in `F` (`TopCat.isZero_compactSupportCohomology_of_isOpenEmbedding`): it holds for
-the open sets of `U` with convex image, passes to finite unions of them by Mayer–Vietoris
-(`TopCat.isZero_compactSupportCohomology_sup`, `InfClosed.finset_sup_induction`), and to their
-directed union `U` (`TopCat.isZero_compactSupportCohomology_of_iSup_eq_top`).
+the open sets of `U` with convex image, which are closed under intersection
+(`TopologicalSpace.Opens.infClosed_setOf_convex_image`) and whose finite unions cover `U`
+(`Topology.IsOpenEmbedding.iSup_finset_sup_convex_image_eq_top`), so it holds on `U` by
+`TopCat.isZero_compactSupportCohomology_of_infClosed`.
 
 ## Main results
 
@@ -129,25 +129,11 @@ theorem isZero_compactSupportCohomology_of_isOpenEmbedding {j : U → F} (hj : I
     {n : ℕ} (hn : finrank ℝ F < n) :
     IsZero ((of U).compactSupportCohomology R k N n) := by
   have := hj.isEmbedding.t2Space
-  -- Vanishing passes to finite unions of open sets with convex images, by Mayer–Vietoris.
-  have hT (s : Finset {W : Opens U | Convex ℝ (j '' W)}) : ∀ m, finrank ℝ F < m →
-      IsZero ((of ↥(s.sup Subtype.val)).compactSupportCohomology R k N m) := by
-    refine (Opens.infClosed_setOf_convex_image hj.injective).finset_sup_induction
-      (fun W : Opens U ↦ ∀ m, finrank ℝ F < m → IsZero ((of W).compactSupportCohomology R k N m))
-      ?_ ?_ ?_ s
-    · have : IsEmpty ↥(⊥ : Opens U) := ⟨fun x ↦ x.property⟩
-      exact fun m _ ↦ isZero_compactSupportCohomology_of_isEmpty R k N _ m
-    · intro W hW m hm
-      refine isZero_compactSupportCohomology_of_convex R N (hj.comp W.isOpenEmbedding') ?_
-        (by omega)
-      rwa [range_comp, Subtype.range_coe]
-    · exact fun V W hV hW hVW m hm ↦ isZero_compactSupportCohomology_sup R k N (hV m hm)
-        (hW m hm) (hVW (m + 1) (by omega))
-  -- They form a directed family covering `U`; `(Opens.toTopCat (of U)).obj W` is `of W` by
-  -- definition.
-  exact isZero_compactSupportCohomology_of_iSup_eq_top R k N (X := of U)
-    (U := fun s : Finset {W : Opens U | Convex ℝ (j '' W)} ↦ s.sup Subtype.val)
-    (fun _ _ hst ↦ Finset.sup_mono hst) hj.iSup_finset_sup_convex_image_eq_top fun s ↦ hT s n hn
+  refine isZero_compactSupportCohomology_of_infClosed R k N
+    (Opens.infClosed_setOf_convex_image hj.injective) hj.iSup_finset_sup_convex_image_eq_top
+    (fun W _ m hm ↦ ?_) hn
+  refine isZero_compactSupportCohomology_of_convex R N (hj.comp W.isOpenEmbedding') ?_ (by omega)
+  rwa [range_comp, Subtype.range_coe]
 
 end TopCat
 
