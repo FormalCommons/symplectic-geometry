@@ -43,8 +43,8 @@ file without renames. The changes are these:
   are replaced by this library's files at the same paths, and the imports add this library's
   `Singular/Subdivision/Small/Relative.lean` and `Topology/Sets/Compacts.lean`, for
   `TopPair.isIso_homologyMap_restrictι_smallSingularSubcomplex_ofSubset`,
-  `Topology.IsOpenEmbedding.preimageCompacts` and
-  `Topology.IsOpenEmbedding.subset_map_preimageCompacts`, which the pinned release does not have;
+  `Topology.IsInducing.preimageCompacts` and
+  `Topology.IsInducing.subset_map_preimageCompacts`, which the pinned release does not have;
 * in the private lemmas `fundamentalClassOn_open_preimage` and `support_excision_preimage`, the
   last step, which identified `TopPair.openSubspaceInclusion` with a map `TopPair.ofSubsetMap` by
   unfolding it, now compares the maps of spaces with `TopPair.hom_ext_of_fst` and the lemma
