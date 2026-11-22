@@ -237,7 +237,8 @@ cores, used by `FirstChernClass.lean`:
 
 - `complexEulerClass_eq_of_iso`: isomorphic cores have the same
   `TauCeti.complexEulerClass`, from
-  `TauCeti.complexEulerClass_eq_of_fiberwise`;
+  `TauCeti.complexEulerClass_eq_of_fiberwise` applied to `isoFiberEquiv e`
+  of `FiniteRank/Basic.lean`, which this file imports;
 - `complexEulerClass_pullback`: the class of `A.pullback f` is the
   pull-back of the class of `A`, from
   `TauCeti.complexEulerClass_eq_singularCohomologyMap_of_fiberwise`.
@@ -909,14 +910,20 @@ issues, in an order where each issue's blockers come before it.
    orientation (precomposition with conjugation), the constructor
    `CoordinateDisc.ofChart` from an orientation-preserving smooth chart of a
    smoothly oriented surface (through `o.toHomologicalOrientation`), and
-   `exists_coordinateDisc` (one centred at any point, and finitely many with
-   disjoint closed discs at distinct points). `CoordinateDisc.lean` imports
+   `exists_coordinateDisc` (one centred at any point) and
+   `exists_coordinateDisc_pairwise_disjoint` (finitely many at distinct
+   points, with disjoint images). `CoordinateDisc.lean` imports
    supporting files of this part, each beside the Mathlib or Tau Ceti
    file it adds to: `LinearAlgebra/Complex/Orientation.lean`,
    `AlgebraicTopology/Singular/LocalHomology/Orientation/Smooth.lean`, and
    `Geometry/Manifold/Complex/FundamentalClass.lean`, for the reversal of
    `TauCeti.complexHomologicalOrientation` by conjugation that
-   `CoordinateDisc.reverse` uses. Done when this API is proved.
+   `CoordinateDisc.reverse` uses, and
+   `AlgebraicTopology/Singular/LocalHomology/ChangeOfModel.lean`, beside
+   Tau Ceti's `System.lean`, for `exists_coordinateDisc`: local homology
+   transport does not depend on the model, so a homological orientation
+   can be read with the model `ℂ`
+   (`TauCeti.HomologicalOrientation.changeModel`). Done when this API is proved.
 6. **Argument principle for discs.**
    `AlgebraicTopology/Singular/LocalHomology/ArgumentPrinciple.lean`:
    `SymplecticGeometry.sum_degree_boundary_eq_zero`. Let `φ i`, `i : ι`
@@ -980,16 +987,17 @@ issues, in an order where each issue's blockers come before it.
      product space, through the connecting morphism and radial projection,
      is the oriented generator of the unit sphere.
    - `AlgebraicTopology/Singular/LocalHomology/BoundaryClass.lean`, imported
-     by `BoundaryDegree.lean`: in any dimension `n + 1`,
+     by `DiscBoundaryClass.lean` and `BoundaryDegree.lean`: in any dimension `n + 1`,
      `TauCeti.HomologicalOrientation.boundaryClass`, the image of
      `fundamentalClassRel` in `Hₙ(∂X; ℤ)` under the connecting morphism, with
      `boundaryClass_neg` and `map_subtypeVal_boundaryClass` (it vanishes in
      `Hₙ(X; ℤ)`).
    - `AlgebraicTopology/Singular/LocalHomology/DiscBoundaryClass.lean`, a
-     prerequisite of `BoundaryDegree.lean`: the closed unit disc of `ℂ` in
+     prerequisite of `BoundaryDegree.lean`; it imports `BoundaryClass.lean`:
+     the closed unit disc of `ℂ` in
      this setting, by `Collar.lean`, and its boundary
      class,
-     `SymplecticGeometry.singularHomologyOneIso_singularHomologyδ_fundamentalClassRel_closedBall`:
+     `SymplecticGeometry.singularHomologyOneIso_map_boundaryClass_closedBall`:
      for the complex orientation of the open disc, the boundary class read
      in ℤ through `Circle.singularHomologyOneIso` is $+1$.
    - `AlgebraicTopology/Singular/LocalHomology/BoundaryDegree.lean`, which

@@ -213,8 +213,8 @@ and two rows of its milestone table.
   place in that order: pull requests that each add a file then change
   different lines.
   - `Geometry/Manifold/Diffeomorph/Basic.lean`: the diffeomorphism between
-    empty manifolds on two models, which `MFDeriv.lean` and `Tubular.lean`
-    both use.
+    empty manifolds on two models, which `MFDeriv.lean`, `Tubular.lean` and
+    `Neighborhood/Basic.lean` use.
   - `Geometry/Manifold/Distribution/FlatChart.lean`: the step of
     `CharacteristicFoliation.lean` that uses nothing symplectic.
   - `Geometry/Manifold/IsManifold/Basic.lean`: two instances for smooth
@@ -489,7 +489,8 @@ symplectic, so it sits with the manifold topic, beside Tau Ceti's
 
 ### `Geometry/Manifold/Diffeomorph/Basic.lean`
 
-The case of an empty `Q` in `MFDeriv.lean` and `Tubular.lean`. Namespace
+The case of an empty `Q` in `MFDeriv.lean`, `Tubular.lean` and
+`Neighborhood/Basic.lean`. Namespace
 `Diffeomorph`.
 
 - `Diffeomorph.ofIsEmpty : M ≃ₘ^n⟮I, I'⟯ M'` for `[IsEmpty M] [IsEmpty M']`,
@@ -576,28 +577,38 @@ forms are `0`. The dimensions agree by Tau Ceti's
 
 ### `Geometry/Symplectic/Neighborhood/Isotropic.lean`
 
-`TauCeti.SmoothTwoForm.IsNondegenerate.IsIsotropicMap.exists_symplectomorphism_opens`,
-the milestone. Isotropic `f₀` (closed image) and `f₁`, a diffeomorphism
-`φ`, and `L` over `Q₀` from `T_{f₀ q}M₀` to `T_{f₁ (φ q)}M₁`, smooth,
+`TauCeti.SmoothTwoForm.IsNondegenerate.IsIsotropicMap.exists_symplectomorphism_opens_of_finrank_eq`.
+Isotropic `f₀` and `f₁`, both modelled on one `J`, a diffeomorphism
+`φ : Q₀ ≃ₘ⟮J, J⟯ Q₁`, and `L` over `Q₀` from `T_{f₀ q}M₀` to
+`T_{f₁ (φ q)}M₁`, smooth as a section along `f₁.compDiffeomorph φ`,
 mapping $W_0^\omega$ into $W_1^\omega$ and preserving $\omega$ there; the
 dimensions of `M₀` and `M₁` are equal. Conclusion: `ψ` with
-`ψ ∘ f₀ = f₁ ∘ φ`, and `mfderiv ψ v - L q v ∈ W₁` for $v\in W_0^\omega$,
+`ψ ∘ f₀ = f₁ ∘ φ`, and `mfderiv ψ v = L q v + mfderiv f₁ (φ q) u` for
+some `u`, for $v\in W_0^\omega$,
 which says that $d\psi$ and $L$ induce the same map of the reduced spaces
-`ReducedSpace (orthogonal W)`. A corollary states that induced map with Tau
-Ceti's `ReducedSpace` and `reduction`, so that the statement can be read in
-the milestone's terms. The restricted forms are `0`, so `φ` needs no
-hypothesis. Milestone: *Isotropic neighbourhood theorem*.
+`ReducedSpace (orthogonal W)`. The restricted forms are `0`, so `φ` needs no
+hypothesis.
+
+`TauCeti.SmoothTwoForm.IsNondegenerate.IsIsotropicMap.exists_symplectomorphism_opens`,
+the milestone, states it with Tau Ceti's `ReducedSpace` and `reduction`: a
+family `Φ q` of linear symplectomorphisms of the reduced spaces, induced by
+a smooth `L` as above (`Φ q [v] = [L q v]`), and the conclusion
+`Φ q [v] = [mfderiv ψ v]`. It assumes neither a closed image nor equal
+dimensions: `L` preserves $\omega$ because `Φ` does, and when `Q₀` is
+nonempty the dimensions agree, since `Φ` matches reduced spaces of
+dimension `dim M - 2 dim Q`. Milestone: *Isotropic neighbourhood theorem*.
 
 ### `Geometry/Symplectic/Neighborhood/Coisotropic.lean`
 
 `TauCeti.SmoothTwoForm.IsNondegenerate.IsCoisotropicMap.exists_symplectomorphism_opens`,
-the milestone. Coisotropic `f₀` (closed image) and `f₁`, a diffeomorphism
+the milestone. Coisotropic `f₀` and `f₁` (no closed image is needed), both
+modelled on one `J`, a diffeomorphism
 `φ` pulling `f₁^*ω₁` back to `f₀^*ω₀`, and nothing else. Conclusion: `ψ`
 with `ψ ∘ f₀ = f₁ ∘ φ` that pulls `ω₁` back to `ω₀`. Route: the comparison
 theorem with `L = 0`, since $W^\omega=K$. The equal dimensions follow from
-`φ` and Tau Ceti's `IsCoisotropicMap.finrank_ker_bilinFormAt_mpullback`
-(the codimension is the rank of the kernel). Milestone: *Coisotropic
-neighbourhood theorem*.
+`φ` and Tau Ceti's `IsCoisotropicMap.finrank_ker_bilinFormAt_mpullback_add`
+(the codimension is the rank of the kernel) when `Q₀` is nonempty.
+Milestone: *Coisotropic neighbourhood theorem*.
 
 ### `Geometry/Symplectic/Neighborhood/AdaptedDarboux.lean`
 
@@ -670,9 +681,9 @@ four theorems share.
   structures of `Neighborhood/Basic.lean` come from Tau Ceti's
   `TauCeti.SmoothTwoForm.IsNondegenerate.exists_compatible`.
 - From *Symplectic vector spaces*: `LinearAlgebra/Symplectic/Reduction.lean`
-  (merged), in `Extension.lean` and `Isotropic.lean`, and
-  `LinearAlgebra/Symplectic/Subspace.lean` (merged), in `Extension.lean` and
-  `CharacteristicFoliation.lean`.
+  (merged), in `Extension.lean`, and
+  `LinearAlgebra/Symplectic/Subspace.lean` (merged), in `Extension.lean`,
+  `CharacteristicFoliation.lean` and `Coisotropic.lean`.
 - From *Compatible complex structures*:
   `LinearAlgebra/Symplectic/Compatible.lean` (merged), in `Extension.lean`, and
   `Topology/Algebra/Module/BilinearForm.lean` (merged), in
