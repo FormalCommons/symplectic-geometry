@@ -165,9 +165,10 @@ of Tau Ceti's roadmap that no one has started.
    needs: if a smooth cycle $z$ and a smooth chain $\sigma$ with boundary in
    an open $U$ have the same class in the continuous relative homology
    $H_2(M,U)$, then $z-\sigma=\partial b+c$ with $b$ smooth and $c$ a smooth
-   chain in $U$. This follows by a diagram chase from the absolute smoothing
-   theorem for $M$ and for $U$ (both pinned), with no relative chain
-   complexes; it is one lemma.
+   chain in $U$. This follows from the absolute smoothing theorem for $M$
+   and for $U$ (both pinned): through the relative chains of the pairs of
+   simplicial sets of smooth and of continuous simplices, and Tau Ceti's
+   `SSetPair.quasiIso_chainComplexMap`; it is one lemma.
 
 ## Conventions
 
@@ -327,18 +328,21 @@ For `c : C`, `x : M` and `L : TangentSpace I' c →ₗ[ℝ] TangentSpace I x`
 ### `SmoothSingular/RelativeCycle.lean`
 
 - The lemma of Decision 7, for an open `U : Opens M` of a Hausdorff
-  σ-compact `M` and integral coefficients: a smooth chain `w` whose boundary
+  σ-compact `M`: a smooth chain `w` whose boundary
   is a smooth chain of `U`, and which is zero in the continuous relative
   homology of `(M, U)`, is `∂ b + c` with `b` a smooth chain of `M` and `c` a
-  smooth chain of `U`. Proposed name
-  `TauCeti.exists_smoothSingular_eq_d_add_of_relHomologous` (the issue may
-  adapt it to its neighbours and to how Tau Ceti writes relative chains,
-  `TopPair` in `AlgebraicTopology/Singular/Relative.lean`). Proof: the
-  boundary of `w` is a smooth cycle of `U` that bounds continuously in `U`,
-  so it bounds smoothly in `U`; correct `w` by that chain; the remaining
-  smooth cycle of `M` is continuously homologous to a cycle of `U`, hence
-  smoothly (smoothing for `U`), and the difference bounds smoothly in `M`
-  (smoothing for `M`).
+  smooth chain of `U`. Name `TauCeti.exists_smoothSingular_eq_d_add`. It is
+  stated on elements, for any coefficient module `R : ModuleCat.{u} k`: the
+  vanishing in relative homology is the hypothesis that, as a continuous
+  chain, `w = ∂ B + A` with `A` a chain of `U` (the chain-level meaning of
+  vanishing in the relative chains of `TopPair`), so issue 8 passes from
+  the classes it compares to such a decomposition. Proof: the inclusion of
+  smooth into continuous simplices is a morphism from the pair of smooth
+  simplices of `(M, U)` to that of continuous ones, a quasi-isomorphism on
+  relative chains by smoothing for `U` and for `M` and
+  `SSetPair.quasiIso_chainComplexMap`; the image of `w` in the smooth
+  relative chains is a cycle that bounds continuously, hence smoothly, and
+  lifting that bound gives `b`.
 
 ### `LocalHomology/Orientation/Simplex.lean`
 

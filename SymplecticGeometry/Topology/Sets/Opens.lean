@@ -24,7 +24,7 @@ namespace TopologicalSpace.Opens
 
 variable {X : Type*} [TopologicalSpace X]
 
-/-- A family of open sets indexed by an empty type covers only the empty space. -/
+/-- An empty family of open sets covers only the empty space. -/
 theorem isEmpty_of_iSup_eq_top {ι : Sort*} [IsEmpty ι] {U : ι → Opens X}
     (hcover : ⨆ i, U i = ⊤) : IsEmpty X :=
   ⟨fun x ↦ isEmptyElim (Opens.mem_iSup.1 (hcover ▸ Opens.mem_top x)).choose⟩
