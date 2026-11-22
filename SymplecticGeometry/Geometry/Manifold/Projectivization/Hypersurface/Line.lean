@@ -22,6 +22,10 @@ of these points, that is, if the differential of `f` there does not vanish on th
 `range ι`, then the binary form has only simple zeros, and there are exactly `d` of them
 (`SymplecticGeometry.SmoothProjectiveHypersurface.card_inter_line`).
 
+The binary form is `aeval (LinearMap.toMatrix' ι).toMvPolynomial f`, whose zeros Tau Ceti's
+`TauCeti.preimage_map_complexProjectiveZeroLocus` identifies with the points of the line on `X`;
+its evaluation at a vector follows the proof of that lemma.
+
 In complex dimension `n = 0` the hypersurface is a set of points of `ℂℙ¹`, and the line is all of
 `ℂℙ¹`: the hypersurface has `d` points
 (`SymplecticGeometry.SmoothProjectiveHypersurface.card_eq`), it is discrete and finite, and its

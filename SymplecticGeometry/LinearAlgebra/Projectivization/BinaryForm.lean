@@ -26,7 +26,8 @@ which vanishes at exactly one point of the line.
   `ℙ K (Fin 2 → K)` are `d` in number.
 
 The factorization into linear forms is Tau Ceti's
-`MvPolynomial.IsHomogeneous.exists_linear_factors`.
+`MvPolynomial.IsHomogeneous.exists_linear_factors`, and the zeros of the linear forms are
+compared by Tau Ceti's `Projectivization.mk_eq_mk_iff_forall_mul_eq`.
 -/
 
 public section
