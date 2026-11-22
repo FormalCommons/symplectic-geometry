@@ -461,9 +461,10 @@ their families over `unitInterval` with
 ```lean
 theorem TauCeti.SmoothEmbedding.exists_diffeotopy_mpullback_eq_of_timeDeriv
     [I.Boundaryless] [T2Space M] [SecondCountableTopology M] (f : SmoothEmbedding J I ∞ Q M)
-    (σ : SmoothForm (𝓘(ℝ, ℝ).prod I) (ℝ × M) ℝ 2) (hσ : ∀ t, (σ.slice t).IsClosed)
+    (σ : SmoothForm (𝓘(ℝ, ℝ).prod I) (ℝ × M) ℝ 2) (hσ : ∀ t ∈ Icc (0 : ℝ) 1, (σ.slice t).IsClosed)
     (γ : SmoothForm (𝓘(ℝ, ℝ).prod I) (ℝ × M) ℝ 1)
-    (hγ : ∀ t ∈ Icc (0 : ℝ) 1, (σ.timeDeriv.slice t).val = mextDeriv (γ.slice t).val)
+    (hγ : ∀ᶠ p in 𝓝ˢ (Icc (0 : ℝ) 1 ×ˢ range f),
+      (σ.timeDeriv.slice p.1).val p.2 = mextDeriv (γ.slice p.1).val p.2)
     (hγf : ∀ t ∈ Icc (0 : ℝ) 1, SmoothForm.mpullback f f.contMDiff (γ.slice t) = 0)
     (hnd : ∀ t ∈ Icc (0 : ℝ) 1, ∀ q, ((σ.slice t).bilinFormAt (f q)).Nondegenerate) :
     ∃ Ψ : Diffeotopy I ∞ M, (∃ C, IsCompact C ∧ ∀ t, ∀ x ∉ C, Ψ (t, x) = x) ∧
@@ -480,7 +481,7 @@ by $dF_t$, with $F$ the function of the correction lemma
 Poincaré operator of `γ_t` on a tubular neighbourhood, cut off near `Q`),
 makes it vanish as a full covector along `Q`. The cut-off
 Moser field then vanishes on `Q`, and Moser's principle along trajectories
-(`mpullback_timeDependentFlowOf_mpullback_prodMk_apply_eq_exp_integral_smul_of_mem`)
+(`mpullback_timeDependentFlowOf_mpullback_prodMk_apply_eq_of_forall_mem_uIcc`)
 gives the identity near `Q` for every $t\in[0,1]$. The field is
 `moserField σ γ' ρ` for the corrected primitive `γ'` and a cutoff `ρ` on
 `ℝ × M`. This is the argument of
@@ -845,19 +846,25 @@ this design already follows. `Ball/Isotopy.lean` cites
   of the motion of a diffeotopy; `Geometry/Manifold/Instances/Icc.lean`,
   for the unit tangent vector of `unitInterval`; and
   `Geometry/Manifold/MFDeriv/Prod.lean`, for derivatives on products.
+  `Moser/Family.lean` imports `Geometry/Diffeomorphism/Diffeotopy/Velocity.lean`
+  too, for the slices of the Moser diffeotopy.
 - *Contact geometry*: only the merged
   `Geometry/Manifold/DifferentialForm/LieDeriv.lean`, whose
   `TauCeti.mpullback_prodMk_mlieDerivForm_prodVectorField_zero_eq_zero`
   `IsotopyExtension/Velocity.lean` uses for the closedness of the velocity
   forms.
-- *Moser isotopy*: only `Moser/Field.lean`, whose `moserField` (#506) is
+- *Moser isotopy*: `Moser/Field.lean`, whose `moserField` (#506) is
   the cut-off Moser field of both theorems of `Moser/Family.lean`. That
   design planned it for the linear segment between two forms with a fixed
   primitive. #551 generalizes it to a smooth family of two-forms
   over a parameter manifold with a time-dependent primitive, the segment being the family
   `SmoothForm.lineMapFamily σ₀ σ₁ contDiff_id`, and this pull request records
   that choice in `design/moser-isotopy.md`. So the library adapts Tau Ceti's
-  private field of `RelativeMoser.lean` once.
+  private field of `RelativeMoser.lean` once. `Moser/Family.lean` also imports
+  `Geometry/Symplectic/Manifold/Family.lean`, for the openness of the set
+  where the slices of a family are nondegenerate, and `Moser/Isotopy.lean`
+  derives its theorem fixing a submanifold from the family theorem of
+  `Moser/Family.lean`.
 - Tau Ceti, besides the declarations named above:
   `TauCeti.SmoothIsotopy` with `timeSlice`, `ContMDiffMap.smoothIsotopyRefl`;
   `TauCeti.Diffeotopy` with `timeSlice`, `final`, `trans`, `symm`,
