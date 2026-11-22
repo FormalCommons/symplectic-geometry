@@ -12,6 +12,8 @@ public import TauCeti.Geometry.Manifold.Submersion.Split
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
 import TauCeti.Geometry.Manifold.ContMDiff.RestrictScalars
 import TauCeti.Geometry.Manifold.ContMDiff.Subtype
+import TauCeti.Geometry.Manifold.Instances.Sphere
+import TauCeti.Geometry.Manifold.MFDeriv.Basic
 import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
 
 /-!
@@ -131,13 +133,13 @@ private theorem surjective_mfderiv_mkNonzero (v : TauCeti.puncturedSpace (Fin (n
     conv_rhs => rw [← (affineChart j).left_inv hy',
       affineChart_symm_apply]
     exact (mk_eq_mk_iff' 𝕜 _ _ _ _).2 ⟨(v : Fin (n + 1) → 𝕜) j, rfl⟩
-  have key := mfderiv_comp (mkNonzero 𝕜 n v)
-    ((contMDiff_mkNonzero 𝕜 n 1 (s (mkNonzero 𝕜 n v))).mdifferentiableAt one_ne_zero) hs
-  rw [hid.mfderiv_eq, mfderiv_id] at key
   have hsurj : Surjective (mfderiv 𝓘(ℝ, Fin (n + 1) → 𝕜) 𝓘(ℝ, Fin n → 𝕜) (mkNonzero 𝕜 n)
       (s (mkNonzero 𝕜 n v))) := fun w ↦
     ⟨mfderiv 𝓘(ℝ, Fin n → 𝕜) 𝓘(ℝ, Fin (n + 1) → 𝕜) s (mkNonzero 𝕜 n v) w,
-      (DFunLike.congr_fun key w).symm⟩
+      (TauCeti.mfderiv_apply_mfderiv_of_eventuallyEq_comp hid
+        ((contMDiff_mkNonzero 𝕜 n 1 _).mdifferentiableAt one_ne_zero) hs w).trans
+        -- `w` is read in the tangent space at `mkNonzero 𝕜 n (s _)`, the same model space.
+        (by rw [mfderiv_id]; rfl)⟩
   rwa [hsx] at hsurj
 
 variable (𝕜 n) in
@@ -176,12 +178,10 @@ theorem mfderiv_mkNonzero_smul_self (v : TauCeti.puncturedSpace (Fin (n + 1) →
         ((hasFDerivAt_id (𝕜 := ℝ) (1 : 𝕜)).smul_const (v : Fin (n + 1) → 𝕜)).fderiv
     rw [mfderiv_eq_fderiv] at h₂
     exact h₁.symm.trans (h₂.trans h₃)
-  have h := mfderiv_comp_apply one
+  have h := TauCeti.mfderiv_apply_mfderiv_of_eventuallyEq_comp (Filter.EventuallyEq.of_eq hconst)
     ((contMDiff_mkNonzero 𝕜 n 1 (φ one)).mdifferentiableAt one_ne_zero)
     ((hφ one).mdifferentiableAt one_ne_zero) c
-  rw [hconst, mfderiv_const, hderiv] at h
-  rw [hφ1] at h
-  exact h.symm
+  rwa [mfderiv_const, hderiv, hφ1] at h
 
 /-- The kernel of the real derivative of `mkNonzero` at `v` is the line `𝕜 ∙ v`, viewed as a real
 subspace. -/
@@ -205,9 +205,8 @@ theorem ker_mfderiv_mkNonzero [FiniteDimensional ℝ 𝕜]
       ((isSubmersion_mkNonzero 𝕜 n).surjective_mfderiv
       (by simp) v), finrank_top] at h
     have h₁ : finrank ℝ ((𝕜 ∙ (v : Fin (n + 1) → 𝕜)).restrictScalars ℝ) = finrank ℝ 𝕜 := by
-      -- Restricting the scalars of a submodule does not change its carrier.
-      change finrank ℝ (𝕜 ∙ (v : Fin (n + 1) → 𝕜)) = _
-      rw [← Module.finrank_mul_finrank ℝ 𝕜, finrank_span_singleton hv, mul_one]
+      rw [((Submodule.restrictScalarsEquiv ℝ 𝕜 _ (𝕜 ∙ (v : Fin (n + 1) → 𝕜))).restrictScalars
+        ℝ).finrank_eq, ← Module.finrank_mul_finrank ℝ 𝕜, finrank_span_singleton hv, mul_one]
     simp only [Module.finrank_pi_fintype, Finset.sum_const, Finset.card_univ, Fintype.card_fin,
       smul_eq_mul] at h
     rw [h₁]
@@ -256,6 +255,7 @@ noncomputable def sphereHopf (x : sphere (0 : StdSpace (Fin (n + 1))) 1) :
 
 variable {n} in
 /-- The Hopf map sends `x` to the line through `(complexToRealEuclidean _)⁻¹ x`. -/
+@[simp]
 theorem sphereHopf_apply (x : sphere (0 : StdSpace (Fin (n + 1))) 1) :
     sphereHopf n x = Projectivization.mk ℂ ((complexToRealEuclidean (Fin (n + 1))).symm x)
       (by simpa using ne_zero_of_mem_unit_sphere x) :=
@@ -288,21 +288,28 @@ theorem radialProjection_apply (z : puncturedSpace (Fin (n + 1) → ℂ)) :
       ‖complexToRealEuclidean (Fin (n + 1)) z‖⁻¹ • complexToRealEuclidean (Fin (n + 1)) z :=
   coe_sphereProdRealDiffeomorph_symm_apply_fst _
 
-/-- The radial projection onto the unit sphere is smooth. -/
-theorem contMDiff_radialProjection :
-    ContMDiff 𝓘(ℝ, Fin (n + 1) → ℂ) (𝓡 (2 * n + 1)) ∞ (radialProjection n) := by
-  have h : ContMDiff 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, StdSpace (Fin (n + 1))) ∞
-      (fun z : puncturedSpace (Fin (n + 1) → ℂ) ↦ (⟨complexToRealEuclidean (Fin (n + 1)) z,
-        mem_puncturedSpace.2 <| by simpa using mem_puncturedSpace.1 z.property⟩ :
-          puncturedSpace (StdSpace (Fin (n + 1))))) :=
+/-- The radial projection onto the unit sphere is `C^r` for every `r`. -/
+theorem contMDiff_radialProjection (r : ℕ∞ω) :
+    ContMDiff 𝓘(ℝ, Fin (n + 1) → ℂ) (𝓡 (2 * n + 1)) r (radialProjection n) := by
+  -- `contMDiff_normalize_sphere` is stated on the open set `{0}ᶜ` itself rather than on
+  -- `puncturedSpace`; matching the two by unification times out, so `g` lands in `{0}ᶜ`.
+  let g : puncturedSpace (Fin (n + 1) → ℂ) →
+      (⟨{0}ᶜ, isOpen_compl_singleton⟩ : Opens (StdSpace (Fin (n + 1)))) := fun z ↦
+    ⟨complexToRealEuclidean (Fin (n + 1)) z, by simpa using mem_puncturedSpace.1 z.property⟩
+  have hg : ContMDiff 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, StdSpace (Fin (n + 1))) r g :=
     (TauCeti.ContMDiff.subtypeVal_comp_iff _ _).1
       (((complexToRealEuclidean (Fin (n + 1))) :
         (Fin (n + 1) → ℂ) →L[ℝ] StdSpace (Fin (n + 1))).contMDiff.comp contMDiff_subtypeVal)
-  exact contMDiff_fst.comp
-    ((sphereProdRealDiffeomorph (V := StdSpace (Fin (n + 1))) (n := 2 * n + 1)).symm.contMDiff.comp
-      h)
+  have hr : radialProjection n = (fun x : (⟨{0}ᶜ, isOpen_compl_singleton⟩ :
+      Opens (StdSpace (Fin (n + 1)))) ↦ (⟨NormedSpace.normalize (x : StdSpace (Fin (n + 1))),
+        mem_sphere_zero_iff_norm.2 (NormedSpace.norm_normalize_eq_one_iff.2 x.property)⟩ :
+          sphere (0 : StdSpace (Fin (n + 1))) 1)) ∘ g :=
+    funext fun z ↦ Subtype.ext (by simp [g, NormedSpace.normalize])
+  rw [hr]
+  exact contMDiff_normalize_sphere.comp hg
 
 /-- The radial projection is a left inverse of the inclusion of the sphere. -/
+@[simp]
 theorem radialProjection_sphereToPuncturedSpace (x : sphere (0 : StdSpace (Fin (n + 1))) 1) :
     radialProjection n (sphereToPuncturedSpace n x) = x := by
   ext1
@@ -327,16 +334,15 @@ theorem isSubmersion_sphereHopf :
   refine ((contMDiff_sphereHopf n ∞).isSubmersionOfComplement_of_surjective_mfderiv
     (by exact_mod_cast le_top) fun x ↦ ?_).isSubmersion
   set z := sphereToPuncturedSpace n x
-  have h := mfderiv_comp z
-    ((contMDiff_sphereHopf n 1 (radialProjection n z)).mdifferentiableAt one_ne_zero)
-    ((contMDiff_radialProjection n z).mdifferentiableAt (by simp))
-  rw [sphereHopf_comp_radialProjection] at h
   have hs := (isSubmersion_mkNonzero ℂ n).surjective_mfderiv (by simp) z
   have hs' : Surjective (mfderiv (𝓡 (2 * n + 1)) 𝓘(ℝ, Fin n → ℂ) (sphereHopf n)
       (radialProjection n z)) := fun w ↦
     let ⟨u, hu⟩ := hs w
     ⟨mfderiv 𝓘(ℝ, Fin (n + 1) → ℂ) (𝓡 (2 * n + 1)) (radialProjection n) z u,
-      (DFunLike.congr_fun h u).symm.trans hu⟩
+      (TauCeti.mfderiv_apply_mfderiv_of_eventuallyEq_comp
+        (.of_eq (sphereHopf_comp_radialProjection n))
+        ((contMDiff_sphereHopf n 1 _).mdifferentiableAt one_ne_zero)
+        ((contMDiff_radialProjection n 1 z).mdifferentiableAt one_ne_zero) u).trans hu⟩
   rwa [radialProjection_sphereToPuncturedSpace] at hs'
 
 /-- Two points of the unit sphere have the same image under the Hopf map exactly when they lie on
@@ -346,32 +352,22 @@ theorem sphereHopf_eq_sphereHopf_iff (x y : sphere (0 : StdSpace (Fin (n + 1))) 
       Real.cos t • (x : StdSpace (Fin (n + 1))) +
         Real.sin t • stdComplexStructure (Fin (n + 1)) (x : StdSpace (Fin (n + 1))) := by
   set e := complexToRealEuclidean (Fin (n + 1))
-  have hexp (t : ℝ) (u : Fin (n + 1) → ℂ) : e (Complex.exp (t * Complex.I) • u) =
-      Real.cos t • e u + Real.sin t • stdComplexStructure (Fin (n + 1)) (e u) := by
-    rw [stdComplexStructure_complexToRealEuclidean, ← map_smul, ← map_smul, ← map_add,
-      Complex.exp_mul_I, add_smul, ← Complex.ofReal_cos, ← Complex.ofReal_sin, mul_smul,
-      Complex.coe_smul, Complex.coe_smul]
-  have hnorm (a : ℂ) (u : Fin (n + 1) → ℂ) : ‖e (a • u)‖ ^ 2 = ‖a‖ ^ 2 * ‖e u‖ ^ 2 := by
-    rw [← real_inner_self_eq_norm_sq (e (a • u)), ← real_inner_self_eq_norm_sq (e u),
-      inner_complexToRealEuclidean,
-      inner_complexToRealEuclidean, star_smul, smul_dotProduct, dotProduct_smul, smul_eq_mul,
-      smul_eq_mul, Complex.star_def, ← mul_assoc, Complex.conj_mul', ← Complex.ofReal_pow,
-      Complex.re_ofReal_mul]
   rw [sphereHopf_apply, sphereHopf_apply, eq_comm, mk_eq_mk_iff']
   constructor
   · rintro ⟨a, ha⟩
     have hy : (y : StdSpace (Fin (n + 1))) = e (a • e.symm x) := by
       rw [ha, ContinuousLinearEquiv.apply_symm_apply]
     have ha1 : ‖a‖ = 1 := by
-      have h := hnorm a (e.symm x)
-      rw [← hy, ContinuousLinearEquiv.apply_symm_apply, norm_eq_of_mem_sphere,
-        norm_eq_of_mem_sphere] at h
-      nlinarith [norm_nonneg a]
+      have h := norm_complexToRealEuclidean_smul a (e.symm x)
+      rwa [← hy, ContinuousLinearEquiv.apply_symm_apply, norm_eq_of_mem_sphere,
+        norm_eq_of_mem_sphere, mul_one, eq_comm] at h
     obtain ⟨t, rfl⟩ := (Complex.norm_eq_one_iff a).1 ha1
-    exact ⟨t, by rw [hy, hexp, ContinuousLinearEquiv.apply_symm_apply]⟩
+    exact ⟨t, by
+      rw [hy, complexToRealEuclidean_exp_mul_I_smul, ContinuousLinearEquiv.apply_symm_apply]⟩
   · rintro ⟨t, ht⟩
     exact ⟨Complex.exp (t * Complex.I), e.injective (by
-      rw [hexp, ContinuousLinearEquiv.apply_symm_apply, ContinuousLinearEquiv.apply_symm_apply,
+      rw [complexToRealEuclidean_exp_mul_I_smul, ContinuousLinearEquiv.apply_symm_apply,
+        ContinuousLinearEquiv.apply_symm_apply,
         ht])⟩
 
 /-- The kernel of the derivative of the Hopf map at `x`, read in `StdSpace (Fin (n + 1))` through
