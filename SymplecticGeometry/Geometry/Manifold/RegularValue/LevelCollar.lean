@@ -18,6 +18,11 @@ Then the level set `g⁻¹(0)` is collared in the sublevel set `{g ≤ 0}`: the 
 `g⁻¹(0) → {g ≤ 0}` is `TauCeti.IsCollared`, and the points of `{g ≤ 0}` off the level set are
 those with `g < 0` (`SymplecticGeometry.isCollared_inclusion_levelSet`).
 
+The complement in `{g ≤ 0}` of the image of `{g < 0}`, the boundary of `{g ≤ 0}` for the
+boundary degree, is `SymplecticGeometry.sublevelBoundary`; its points are those with `0 ≤ g x`
+(`SymplecticGeometry.mem_sublevelBoundary_iff`), so they lie in `{g ≥ 0}`
+(`SymplecticGeometry.mem_preimage_Ici_of_mem_sublevelBoundary`).
+
 The proof builds no new flow. Since `0` is a regular value and `M` is compact, some band
 `g⁻¹[-ε, 0]` with `ε > 0` has no critical point
 (`TauCeti.exists_mem_Ioc_isCompact_forall_mfderiv_ne_zero`, applied to `-g`). Tau Ceti's
@@ -39,6 +44,31 @@ open Set TauCeti Topology
 open scoped Manifold ContDiff
 
 namespace SymplecticGeometry
+
+section Boundary
+
+variable {M : Type*} [TopologicalSpace M] {g : M → ℝ}
+
+/-- The boundary of the sublevel set `{g ≤ 0}` of a continuous `g : M → ℝ`: the points of
+`{g ≤ 0}` outside the image of the open set `{g < 0}`, taken as a `TopologicalSpace.Opens M`.
+With interior `{g < 0}`, this is the boundary of `{g ≤ 0}` in the setting of the boundary
+degree (`TauCeti.HomologicalOrientation.boundaryDegree`). -/
+abbrev sublevelBoundary (hg : Continuous g) : Set (g ⁻¹' Iic 0) :=
+  (range (inclusion (s := ((⟨g ⁻¹' Iio 0, isOpen_Iio.preimage hg⟩ :
+    TopologicalSpace.Opens M) : Set M)) (preimage_mono Iio_subset_Iic_self)))ᶜ
+
+/-- A point `x` of `{g ≤ 0}` lies on the boundary `sublevelBoundary hg` if and only if
+`0 ≤ g x`. -/
+theorem mem_sublevelBoundary_iff {hg : Continuous g} {x : g ⁻¹' Iic 0} :
+    x ∈ sublevelBoundary hg ↔ 0 ≤ g x := by
+  simp [range_inclusion]
+
+/-- A point of the boundary of `{g ≤ 0}` lies in `{g ≥ 0}`. -/
+theorem mem_preimage_Ici_of_mem_sublevelBoundary {hg : Continuous g} {x : g ⁻¹' Iic 0}
+    (hx : x ∈ sublevelBoundary hg) : (x : M) ∈ g ⁻¹' Ici 0 :=
+  mem_preimage.2 (mem_Ici.2 (mem_sublevelBoundary_iff.1 hx))
+
+end Boundary
 
 variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
   {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H}

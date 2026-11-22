@@ -285,10 +285,8 @@ theorem chernNumber_eq_boundaryDegree_normalizedDet
     (hΦ₁ : Continuous fun q : g ⁻¹' Iic 0 × G ↦ TotalSpace.mk' G (q.1 : M) (Φ₁ q.1 q.2))
     {Φ₂ : ∀ x : g ⁻¹' Ici 0, G ≃L[ℂ] E x}
     (hΦ₂ : Continuous fun q : g ⁻¹' Ici 0 × G ↦ TotalSpace.mk' G (q.1 : M) (Φ₂ q.1 q.2))
-    {u : C(↥(range (inclusion (s := ((⟨g ⁻¹' Iio 0, isOpen_Iio.preimage hg.continuous⟩ :
-      TopologicalSpace.Opens M) : Set M)) (preimage_mono Iio_subset_Iic_self)))ᶜ, Circle)}
-    (hu : ∀ (z : ↥(range (inclusion (s := ((⟨g ⁻¹' Iio 0, isOpen_Iio.preimage hg.continuous⟩ :
-      TopologicalSpace.Opens M) : Set M)) (preimage_mono Iio_subset_Iic_self)))ᶜ)
+    {u : C(↥(sublevelBoundary hg.continuous), Circle)}
+    (hu : ∀ (z : ↥(sublevelBoundary hg.continuous))
       (hz : ((z : g ⁻¹' Iic 0) : M) ∈ g ⁻¹' Ici 0),
       u z = ((Φ₂ ⟨_, hz⟩).trans (Φ₁ z).symm).normalizedDet) :
     haveI : CompactSpace (g ⁻¹' Iic 0) :=
@@ -301,25 +299,18 @@ theorem chernNumber_eq_boundaryDegree_normalizedDet
         (SymplecticGeometry.isCollared_inclusion_levelSet hg h0).1 u := by
   let i₁ : C(g ⁻¹' Iic 0, M) := ⟨Subtype.val, continuous_subtypeVal⟩
   let i₂ : C(g ⁻¹' Ici 0, M) := ⟨Subtype.val, continuous_subtypeVal⟩
-  -- A point of `{g ≤ 0}` off the interior `{g < 0}` lies in `{g ≥ 0}`.
-  have hlt (z : ↥(range (inclusion (s := ((⟨g ⁻¹' Iio 0, isOpen_Iio.preimage hg.continuous⟩ :
-      TopologicalSpace.Opens M) : Set M)) (preimage_mono Iio_subset_Iic_self)))ᶜ) :
-      ((z : g ⁻¹' Iic 0) : M) ∈ g ⁻¹' Ici 0 :=
-    mem_preimage.2 (mem_Ici.2 (not_lt.1 fun h' ↦ z.property ⟨⟨_, h'⟩, rfl⟩))
-  let j₁ : C(↥(range (inclusion (s := ((⟨g ⁻¹' Iio 0, isOpen_Iio.preimage hg.continuous⟩ :
-      TopologicalSpace.Opens M) : Set M)) (preimage_mono Iio_subset_Iic_self)))ᶜ, g ⁻¹' Iic 0) :=
+  let j₁ : C(↥(sublevelBoundary hg.continuous), g ⁻¹' Iic 0) :=
     ⟨Subtype.val, continuous_subtypeVal⟩
-  let j₂ : C(↥(range (inclusion (s := ((⟨g ⁻¹' Iio 0, isOpen_Iio.preimage hg.continuous⟩ :
-      TopologicalSpace.Opens M) : Set M)) (preimage_mono Iio_subset_Iic_self)))ᶜ, g ⁻¹' Ici 0) :=
-    ⟨fun z ↦ ⟨_, hlt z⟩, (continuous_subtypeVal.comp continuous_subtypeVal).subtype_mk _⟩
+  let j₂ : C(↥(sublevelBoundary hg.continuous), g ⁻¹' Ici 0) :=
+    ⟨fun z ↦ ⟨_, mem_preimage_Ici_of_mem_sublevelBoundary z.property⟩,
+      (continuous_subtypeVal.comp continuous_subtypeVal).subtype_mk _⟩
   have hΦ₁j : Continuous fun q : _ × G ↦ TotalSpace.mk' G (i₁ (j₁ q.1)) (Φ₁ (j₁ q.1) q.2) :=
     hΦ₁.comp ((j₁.continuous.comp continuous_fst).prodMk continuous_snd)
   have hΦ₂j : Continuous fun q : _ × G ↦ TotalSpace.mk' G (i₂ (j₂ q.1)) (Φ₂ (j₂ q.1) q.2) :=
     hΦ₂.comp ((j₂.continuous.comp continuous_fst).prodMk continuous_snd)
   -- On the boundary, the determinant section of `Φ₂` is that of `Φ₁` times the determinant of
   -- the transition.
-  have hsc : ∀ z : ↥(range (inclusion (s := ((⟨g ⁻¹' Iio 0, isOpen_Iio.preimage hg.continuous⟩ :
-      TopologicalSpace.Opens M) : Set M)) (preimage_mono Iio_subset_Iic_self)))ᶜ,
+  have hsc : ∀ z : ↥(sublevelBoundary hg.continuous),
       detCoreFrameSection i₂ Φ₂ hΦ₂ (j₂ z) =
         LinearMap.det ((Φ₁ (j₁ z)).symm.trans (Φ₂ (j₂ z)) : E (z : M) →ₗ[ℂ] E (z : M)) •
           detCoreFrameSection i₁ Φ₁ hΦ₁ (j₁ z) := by
@@ -339,8 +330,8 @@ theorem chernNumber_eq_boundaryDegree_normalizedDet
     (detCoreFrameSection_ne_zero i₁ hΦ₁)
     (s := detCoreFrameSection i₂ Φ₂ hΦ₂) (continuous_totalSpaceMk_detCoreFrameSection i₂ hΦ₂)
     (detCoreFrameSection_ne_zero i₂ hΦ₂) (fun z _ ↦ hsc z) fun z ↦ ?_
-  rw [hu z (hlt z), ContinuousLinearEquiv.coe_normalizedDet,
-    ← ContinuousLinearEquiv.det_coe_trans_symm]
+  rw [hu z (mem_preimage_Ici_of_mem_sublevelBoundary z.property),
+    ContinuousLinearEquiv.coe_normalizedDet, ← ContinuousLinearEquiv.det_coe_trans_symm]
   simp only [j₁, j₂, ContinuousMap.coe_mk]
 
 end SymplecticGeometry.Bundle
