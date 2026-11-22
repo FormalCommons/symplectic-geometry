@@ -33,7 +33,6 @@ Its carrier is definitionally the preimage, as for `Compacts.compactNhdsOfSubset
     (hSf : S ⊆ Set.range f) : TopologicalSpace.Compacts α :=
   ⟨f ⁻¹' S, hf.isCompact_preimage' hS hSf⟩
 
-/-- A compact set in the range of an inducing map lies in the image of its compact preimage. -/
 lemma subset_map_preimageCompacts (hf : IsInducing f) {S : Set β} (hS : IsCompact S)
     (hSf : S ⊆ Set.range f) :
     S ⊆ ((hf.preimageCompacts hS hSf).map f hf.continuous : Set β) :=
