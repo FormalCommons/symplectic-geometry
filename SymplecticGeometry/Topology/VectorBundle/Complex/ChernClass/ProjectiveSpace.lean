@@ -32,7 +32,14 @@ cohomology ring of `ℙ ℂ V` is `ℤ[X] ⧸ (X ^ (n + 1))`, with `X` going to 
   isomorphisms `Projectivization.tautologicalMapEquiv`, so this is the naturality of the Euler
   class, `TauCeti.complexEulerClass_eq_singularCohomologyMap_of_fiberwise`, together with that of
   `TopCat.uliftIntegralCohomologyIso`.
-* `Projectivization.isZero_integralCohomology_of_lt`: `Hᵐ(ℙ ℂ V; ℤ) = 0` for `m > 2n`.
+* `Projectivization.complexProjectiveSpaceHomeomorph`: `ℙ ℂ V` is homeomorphic to Tau Ceti's
+  `ℂPⁿ`.
+* `Projectivization.isZero_integralCohomology_of_lt` and
+  `Projectivization.isZero_integralCohomology_of_odd`: `Hᵐ(ℙ ℂ V; ℤ) = 0` for `m > 2n` and for odd
+  `m`.
+* `Projectivization.projective_singularHomology` and `Projectivization.finite_singularHomology`:
+  the singular homology of `ℙ ℂ V` is projective, and finitely generated, in every degree, as the
+  Leray–Hirsch theorem asks of a fibre.
 * `Projectivization.bijective_zsmul_hyperplaneClass_pow`: for `k ≤ n`, `m ↦ m • h ^ k` is a
   bijection `ℤ → H^{2k}(ℙ ℂ V; ℤ)`.
 * `Projectivization.hyperplaneClass_pow_eq_zero`: `h ^ (n + 1) = 0`.
