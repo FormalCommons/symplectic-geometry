@@ -267,7 +267,7 @@ theorem chernNumber_eq_boundaryDegree_normalizedDet
     (s := detCoreFrameSection i₂ Φ₂ hΦ₂) (continuous_totalSpaceMk_detCoreFrameSection i₂ hΦ₂)
     (detCoreFrameSection_ne_zero i₂ hΦ₂) (fun z _ ↦ hsc z) fun z ↦ ?_
   rw [hu z (hlt z), ContinuousLinearEquiv.coe_normalizedDet,
-    ← ContinuousLinearEquiv.det_trans_symm]
+    ← ContinuousLinearEquiv.det_coe_trans_symm]
   simp only [j₁, j₂, ContinuousMap.coe_mk]
 
 end SymplecticGeometry.Bundle
