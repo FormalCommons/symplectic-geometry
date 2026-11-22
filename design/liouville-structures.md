@@ -166,6 +166,7 @@ Further choices:
 | `Geometry/Symplectic/Liouville/ContactType.lean` | contact type through local Liouville fields; both directions in the book's signs | 1 |
 | `Geometry/Symplectic/Liouville/Collar.lean` | the Liouville collar of a hypersurface; first milestone | 2 |
 | `Geometry/Contact/StableHamiltonian.lean` | wedge criterion, smooth Reeb field, invariance, contact case; the model and its converse; second milestone | 3, 4 |
+| `Geometry/Contact/Symplectization/Basic.lean` | Tau Ceti's symplectization form written with `funSMulₗ`, beside Tau Ceti's file of that path | 4 |
 | `Topology/Sets/Strip.lean` | the open strip `(-ε, ε) × X` of `ℝ × X` and the tube lemma for it | 4 |
 | `Geometry/Manifold/Boundary/Collar/Flow/Local.lean` | near one boundary point: the extended field and its flow from the boundary | 5 |
 | `Geometry/Manifold/Boundary/Collar/Flow/Basic.lean` | the collar of a compact boundary along an outward field | 6 |
@@ -284,7 +285,9 @@ a two-form on `M` (the book's $(\Omega,\lambda)$ is `IsStableHamiltonian α ω`
 with `α = λ`, `ω = Ω`). It imports
 `Geometry/Manifold/DifferentialForm/Smooth.lean` of *Moser isotopy* for
 `SmoothForm.bilinFormAt_smul`, `_neg`, `SmoothForm.mpullback_funSMulₗ`,
-`funSMulₗ_const`, `funSMulₗ_add` and `funSMulₗ_one`. Issue 3:
+`funSMulₗ_const`, `funSMulₗ_add` and `funSMulₗ_one`, and
+`Geometry/Contact/Symplectization/Basic.lean` for
+`symplectization_eq_funSMulₗ`. Issue 3:
 
 - `isStableHamiltonian_iff_wedge_wedgePow_apply_ne_zero`: for
   `finrank ℝ E = 2 * m + 1`, `IsStableHamiltonian α ω` if and only if `ω` is

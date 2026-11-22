@@ -5,10 +5,10 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.Geometry.Contact.Symplectization.Basic
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 public import TauCeti.Geometry.Contact.Flat
 public import TauCeti.Geometry.Contact.StableHamiltonian
-public import TauCeti.Geometry.Contact.Symplectization.Basic
 public import TauCeti.Geometry.Contact.Volume
 public import TauCeti.Geometry.Manifold.DifferentialForm.Flow
 public import SymplecticGeometry.Topology.Sets.Strip
@@ -305,7 +305,7 @@ def stableHamiltonianModel (α : SmoothForm I M ℝ 1) (σ : SmoothForm I M ℝ 
     SmoothTwoForm (𝓘(ℝ).prod I) (ℝ × M) :=
   mpullback Prod.snd contMDiff_snd σ -
     mextDerivₗ (𝓘(ℝ).prod I) 1
-      (funSMulₗ (⟨Prod.fst, contMDiff_fst⟩ : C^∞⟮𝓘(ℝ).prod I, ℝ × M; ℝ⟯)
+      (funSMulₗ (ContMDiffMap.fst : C^∞⟮𝓘(ℝ).prod I, ℝ × M; ℝ⟯)
         (mpullback Prod.snd contMDiff_snd α))
 
 /-- The stable Hamiltonian model is `σ - d(r α)`, with `σ` and `α` pulled back along the
@@ -314,7 +314,7 @@ theorem stableHamiltonianModel_def (α : SmoothForm I M ℝ 1) (σ : SmoothForm 
     stableHamiltonianModel α σ =
       mpullback Prod.snd contMDiff_snd σ -
         mextDerivₗ (𝓘(ℝ).prod I) 1
-          (funSMulₗ (⟨Prod.fst, contMDiff_fst⟩ : C^∞⟮𝓘(ℝ).prod I, ℝ × M; ℝ⟯)
+          (funSMulₗ (ContMDiffMap.fst : C^∞⟮𝓘(ℝ).prod I, ℝ × M; ℝ⟯)
             (mpullback Prod.snd contMDiff_snd α)) :=
   (rfl)
 
@@ -331,7 +331,7 @@ theorem stableHamiltonianModel_apply (α : SmoothForm I M ℝ 1) (σ : SmoothFor
           NormedSpace.fromTangentSpace p.1 (Manifold.tangentSpaceProdEquiv p w).1 *
             α.val p.2 ![(Manifold.tangentSpaceProdEquiv p v).2]) := by
   set β : SmoothForm (𝓘(ℝ).prod I) (ℝ × M) ℝ 1 := mpullback Prod.snd contMDiff_snd α
-  set g : C^∞⟮𝓘(ℝ).prod I, ℝ × M; ℝ⟯ := ⟨Prod.fst, contMDiff_fst⟩
+  set g : C^∞⟮𝓘(ℝ).prod I, ℝ × M; ℝ⟯ := ContMDiffMap.fst
   have hβ (u : TangentSpace (𝓘(ℝ).prod I) p) :
       β.val p ![u] = α.val p.2 ![(Manifold.tangentSpaceProdEquiv p u).2] := by
     simp only [β, mpullback_snd_apply, Matrix.vec_single_eq_const]
@@ -353,7 +353,7 @@ theorem stableHamiltonianModel_apply (α : SmoothForm I M ℝ 1) (σ : SmoothFor
     mextDerivₗ_apply, coe_funSMulₗ g β,
     mextDeriv_fun_smul_apply ((g.contMDiff p).mdifferentiableAt (by simp))
       (β.mdifferentiableAt p), hg, hg, hβ, hβ, hdβ]
-  simp only [g, ContMDiffMap.coeFn_mk]
+  simp only [g, ContMDiffMap.fst_apply]
   ring
 
 /-- **The slices of the stable Hamiltonian model.** The pullback of the model along
@@ -363,7 +363,7 @@ theorem mpullback_prodMk_stableHamiltonianModel (α : SmoothForm I M ℝ 1)
     (σ : SmoothForm I M ℝ 2) (r : ℝ) :
     mpullback (Prod.mk r) (contMDiff_const.prodMk contMDiff_id) (stableHamiltonianModel α σ) =
       σ - r • mextDerivₗ I 1 α := by
-  set g : C^∞⟮𝓘(ℝ).prod I, ℝ × M; ℝ⟯ := ⟨Prod.fst, contMDiff_fst⟩
+  set g : C^∞⟮𝓘(ℝ).prod I, ℝ × M; ℝ⟯ := ContMDiffMap.fst
   have hsmul : mpullback (Prod.mk r) (contMDiff_const.prodMk contMDiff_id)
       (funSMulₗ g (mpullback Prod.snd contMDiff_snd α)) = r • α := by
     -- Both sides send `x` to `r`.
@@ -468,16 +468,6 @@ theorem ker_mpullback_prodMk_stableHamiltonianModel [FiniteDimensional ℝ E] {r
 
 end IsStableHamiltonian
 
-/-- The symplectization form `eᵗ α` is the pullback of `α` along the projection to `M`,
-multiplied by any smooth function `g` with `g (t, x) = eᵗ`. -/
-theorem symplectization_eq_funSMulₗ (α : SmoothForm I M ℝ 1) {g : C^∞⟮𝓘(ℝ).prod I, ℝ × M; ℝ⟯}
-    (hg : ∀ p, g p = Real.exp p.1) :
-    α.symplectization = funSMulₗ g (mpullback Prod.snd contMDiff_snd α) := by
-  apply Subtype.ext
-  rw [coe_symplectization, coe_funSMulₗ]
-  funext p
-  rw [hg]
-
 /-- **The model of the contact pair.** For a one-form `α`, the stable Hamiltonian model of
 `(α, -dα)` is `-d((1 + r) α)` on `ℝ × M`, with `α` pulled back along the projection to `M` and
 `r` the real coordinate. -/
@@ -485,9 +475,7 @@ theorem stableHamiltonianModel_neg_mextDerivₗ (α : SmoothForm I M ℝ 1) :
     stableHamiltonianModel α (-mextDerivₗ I 1 α) =
       -mextDerivₗ (𝓘(ℝ).prod I) 1
         (funSMulₗ (1 + ContMDiffMap.fst) (mpullback Prod.snd contMDiff_snd α)) := by
-  have hr : (⟨Prod.fst, contMDiff_fst⟩ : C^∞⟮𝓘(ℝ).prod I, ℝ × M; ℝ⟯) = ContMDiffMap.fst :=
-    ContMDiffMap.ext fun p ↦ (ContMDiffMap.fst_apply p).symm
-  rw [stableHamiltonianModel_def, hr, map_neg, ← mextDerivₗ_mpullback, funSMulₗ_add,
+  rw [stableHamiltonianModel_def, map_neg, ← mextDerivₗ_mpullback, funSMulₗ_add,
     funSMulₗ_one, map_add, neg_add, sub_eq_add_neg]
 
 /-- **The model of the contact pair is a symplectization form.** On an open set `U` of `ℝ × M`
