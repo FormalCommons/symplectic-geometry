@@ -38,6 +38,8 @@ the interior regularity of elliptic systems applies.
   along `m` is that of `x ↦ iteratedFDeriv ℝ k w x (e⁻¹ ∘ m)`.
 * `Distribution.smulLeftCLM_coordOfFun`: multiplying by a smooth function `g` on `E'` multiplies
   `w` by `g ∘ e`.
+* `Distribution.singularSupport_coordOfFun_eq_empty`: the coordinate distributions of a function
+  smooth on `U` have empty singular support.
 * `Distribution.exists_contDiffOn_ae_eq_of_singularSupport_coordOfFun_eq_empty`: if `e` maps `U`
   into `Ω` and every coordinate distribution has empty singular support, then `w` agrees almost
   everywhere on `U` with a function smooth on `U`.
@@ -48,7 +50,10 @@ Changing variables along `e` (`Distribution.transportCLM_ofFun` and
 `Distribution.transportCLM_ofFun_of_isAddHaarMeasure`) turns it into a smooth local representative
 of the coordinate of `w` for `μ`, up to the constant factor relating the image of the volume to
 `μ`; Mathlib's `Distribution.ofFun_injective` identifies the two, and Tau Ceti's
-`TauCeti.exists_contDiffOn_ae_eq_of_locally` glues the local representatives.
+`TauCeti.exists_contDiffOn_ae_eq_of_locally` glues the local representatives. The same change of
+variables, with Tau Ceti's `Distribution.singularSupport_ofFun_eq_empty`, shows that the
+coordinate distributions of a smooth function have empty singular support
+(`Distribution.singularSupport_coordOfFun_eq_empty`).
 
 ## References
 
@@ -286,6 +291,19 @@ theorem exists_contDiffOn_ae_eq_of_singularSupport_coordOfFun_eq_empty
   conv_lhs => rw [← b.sum_repr (w x)]
   refine Finset.sum_congr rfl fun i _ ↦ ?_
   rw [← hx i, Complex.ofReal_re]
+
+/-- The coordinate distributions of a function smooth on `U` have empty singular support. -/
+theorem singularSupport_coordOfFun_eq_empty (hw : ContDiffOn ℝ ∞ w U) (i : ι) :
+    (coordOfFun e hΩ b w μ i).singularSupport = ∅ := by
+  have hc : ContDiffOn ℝ ∞ (fun z ↦ (b.repr (w (e.symm z)) i : ℂ)) Ω :=
+    (Complex.ofRealCLM.comp (b.coord i).toContinuousLinearMap).contDiff.comp_contDiffOn
+      (hw.comp e.symm.contDiff.contDiffOn fun z hz ↦ hΩ hz)
+  -- After the change of variables `x = e⁻¹ z`, it is a multiple of the distribution of a function
+  -- smooth on `Ω`.
+  rw [coordOfFun_def, transportCLM_ofFun_of_isAddHaarMeasure e.symm hΩ μ volume
+    ((hw.continuousOn.locallyIntegrableOn U.isOpen.measurableSet).ofReal_basis_repr b i)]
+  exact subset_empty_iff.1 ((singularSupport_smul_subset _ _).trans
+    (singularSupport_ofFun_eq_empty hc).subset)
 
 end InnerProductSpace
 
