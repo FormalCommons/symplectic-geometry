@@ -10,6 +10,7 @@ public import TauCeti.Geometry.Manifold.SmoothIsotopy.Basic
 import Mathlib.Geometry.Manifold.Algebra.Monoid
 import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition
 import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Basic
+import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Real
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.TimeExtension
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Neighborhood
 import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Flow
@@ -57,6 +58,11 @@ The proof has three steps.
    (`TauCeti.timeDependentFlowDiffeotopy`) is `Φ`. Uniqueness of solutions
    (`TauCeti.timeDependentFlowOf_eq_of_hasMFDerivAt`) gives `Φ (t, f₀ x) = F (t, x)`.
 
+The flow is defined at all real times, so the proof also gives `Φ` as the restriction of a jointly
+smooth family of diffeomorphisms `ψ_t` over `ℝ`
+(`TauCeti.SmoothIsotopy.exists_contMDiff_diffeomorph_forall_apply_eq`), for arguments that
+differentiate in time near the ends of `[0, 1]`.
+
 Steps 2 and 3 adapt the proof of Tau Ceti's `TauCeti.SmoothIsotopy.exists_diffeotopy_apply_eq`
 (through `TauCeti.SmoothIsotopy.exists_diffeotopy_apply_eq_of_forall_notMem`), with the cut-off
 `c` in place of `Real.smoothTransition`.
@@ -65,6 +71,8 @@ Steps 2 and 3 adapt the proof of Tau Ceti's `TauCeti.SmoothIsotopy.exists_diffeo
 
 * `TauCeti.SmoothIsotopy.exists_contMDiff_extend`: a smooth isotopy extends near a compact set to
   times in an open interval around `[0, 1]`, with embedding slices.
+* `TauCeti.SmoothIsotopy.exists_contMDiff_diffeomorph_forall_apply_eq`: isotopy extension at every
+  time, by a jointly smooth family of diffeomorphisms over `ℝ`.
 * `TauCeti.SmoothIsotopy.exists_diffeotopy_forall_apply_eq`: isotopy extension at every time.
 * `TauCeti.SmoothIsotopy.exists_contMDiff_comp_eventuallyEq`: for an isotopy between manifolds of
   the same dimension, a smooth family of functions on the source is, near a compact set, the
@@ -171,15 +179,16 @@ theorem exists_contMDiff_extend {f₀ f₁ : C^∞⟮J, P; I, N⟯} (F : SmoothI
     (hVS ⟨⟨by linarith, by linarith⟩, hx⟩ : ((0 : ℝ), x) ∈ S).1.2
   exact ⟨δ, hδ, V, hAV, G, hG.mono hVS, fun t x hx ↦ hGF t x (hVU hx), hV⟩
 
-/-- **Isotopy extension at every time.** A smooth isotopy `F` of a boundaryless manifold through
-smooth embeddings into a finite-dimensional, Hausdorff, σ-compact boundaryless manifold `N` is
-on any compact subset `A` of the source the restriction of a smooth diffeotopy `Φ` of `N`
-fixing every point outside a compact set: `Φ (t, f₀ x) = F (t, x)` for every time `t` and every
-`x ∈ A`. The source need not be compact. -/
-theorem exists_diffeotopy_forall_apply_eq [SigmaCompactSpace N] {f₀ f₁ : C^∞⟮J, P; I, N⟯}
-    (F : SmoothIsotopy f₀ f₁) {A : Set P} (hA : IsCompact A) :
-    ∃ Φ : Diffeotopy I ∞ N, ∃ K : Set N, IsCompact K ∧ (∀ t, ∀ y ∉ K, Φ (t, y) = y) ∧
-      ∀ t, ∀ x ∈ A, Φ (t, f₀ x) = F (t, x) := by
+/-- **Isotopy extension at every time, over `ℝ`.** A smooth isotopy `F` of a boundaryless
+manifold through smooth embeddings into a finite-dimensional, Hausdorff, σ-compact boundaryless
+manifold `N` is on any compact subset `A` of the source the restriction of a jointly smooth
+family `ψ` of diffeomorphisms of `N` over all real times, with `ψ 0 = id`, fixing every point
+outside a compact set: `ψ t (f₀ x) = F (t, x)` for every `t ∈ [0, 1]` and every `x ∈ A`. -/
+theorem exists_contMDiff_diffeomorph_forall_apply_eq [SigmaCompactSpace N]
+    {f₀ f₁ : C^∞⟮J, P; I, N⟯} (F : SmoothIsotopy f₀ f₁) {A : Set P} (hA : IsCompact A) :
+    ∃ ψ : ℝ → N ≃ₘ⟮I, I⟯ N, ContMDiff (𝓘(ℝ, ℝ).prod I) I ∞ (fun p : ℝ × N ↦ ψ p.1 p.2) ∧
+      (∀ y, ψ 0 y = y) ∧ ∃ K : Set N, IsCompact K ∧ (∀ t, ∀ y ∉ K, ψ t y = y) ∧
+      ∀ t : unitInterval, ∀ x ∈ A, ψ t (f₀ x) = F (t, x) := by
   obtain ⟨δ, hδ, V, hAV, G, hG, hGF, hemb⟩ := F.exists_contMDiff_extend hA
   obtain ⟨c, hc, hc_id, hc_mem, hc_out⟩ :=
     SymplecticGeometry.exists_contDiff_eqOn_id_Icc_mem_Ioo zero_le_one (half_pos hδ)
@@ -202,9 +211,12 @@ theorem exists_diffeotopy_forall_apply_eq [SigmaCompactSpace N] {f₀ f₁ : C^�
     (fun t ht x _ ↦ by simp only [G', hc_hi t ht, hc_hi _ le_rfl]) le_top le_top
   have hX₁ := hX.of_le (m := 1) (by simp)
   have hcomplete := isCompleteVectorField_timeDependentSuspensionField hX₁ hK hXK
-  refine ⟨timeDependentFlowDiffeotopy le_top hX hcomplete, K, hK,
-    fun t y hy ↦ timeDependentFlowDiffeotopy_apply_of_forall_eq_zero le_top hX hcomplete
-      (fun u ↦ hXK u y hy) t, fun t x hx ↦ ?_⟩
+  refine ⟨fun t ↦ timeDependentFlowDiffeomorph hcomplete le_top hX 0 t,
+    contMDiff_timeDependentFlowDiffeomorph le_top hX hcomplete 0,
+    fun y ↦ (timeDependentFlowDiffeomorph_apply ..).trans (timeDependentFlowOf_self X 0 y), K, hK,
+    fun t y hy ↦ (timeDependentFlowDiffeomorph_apply ..).trans
+      (timeDependentFlowOf_eq_self_of_forall_eq_zero hX₁ (fun u ↦ hXK u y hy) 0 t),
+    fun t x hx ↦ ?_⟩
   -- The curve `s ↦ G' (s, x)` solves the time-dependent equation, starts at `f₀ x`, and is `F`
   -- on `[0, 1]`.
   have hsol := timeDependentFlowOf_eq_of_hasMFDerivAt hX₁ (a := -1) (b := 2) (s := 0) (t := t)
@@ -212,8 +224,22 @@ theorem exists_diffeotopy_forall_apply_eq [SigmaCompactSpace N] {f₀ f₁ : C^�
     ⟨by linarith [t.property.1], by linarith [t.property.2]⟩
   have hc₀ : c 0 = ((0 : unitInterval) : ℝ) := hc_id ⟨le_rfl, zero_le_one⟩
   simp only [G', hc₀, hc_id t.property, id, hGF _ x (hAV hx), apply_zero] at hsol
-  rw [timeDependentFlowDiffeotopy_apply]
+  rw [timeDependentFlowDiffeomorph_apply]
   exact hsol
+
+/-- **Isotopy extension at every time.** A smooth isotopy `F` of a boundaryless manifold through
+smooth embeddings into a finite-dimensional, Hausdorff, σ-compact boundaryless manifold `N` is
+on any compact subset `A` of the source the restriction of a smooth diffeotopy `Φ` of `N`
+fixing every point outside a compact set: `Φ (t, f₀ x) = F (t, x)` for every time `t` and every
+`x ∈ A`. The source need not be compact. -/
+theorem exists_diffeotopy_forall_apply_eq [SigmaCompactSpace N] {f₀ f₁ : C^∞⟮J, P; I, N⟯}
+    (F : SmoothIsotopy f₀ f₁) {A : Set P} (hA : IsCompact A) :
+    ∃ Φ : Diffeotopy I ∞ N, ∃ K : Set N, IsCompact K ∧ (∀ t, ∀ y ∉ K, Φ (t, y) = y) ∧
+      ∀ t, ∀ x ∈ A, Φ (t, f₀ x) = F (t, x) := by
+  obtain ⟨ψ, hψ, h₀, K, hK, hψK, hψF⟩ := F.exists_contMDiff_diffeomorph_forall_apply_eq hA
+  exact ⟨Diffeotopy.ofReal ψ hψ h₀, K, hK,
+    fun t y hy ↦ by rw [Diffeotopy.ofReal_apply, hψK t y hy],
+    fun t x hx ↦ by rw [Diffeotopy.ofReal_apply, hψF t x hx]⟩
 
 /-- **Transport of functions along an isotopy.** Let `F` be a smooth isotopy of embeddings of `P`
 into a manifold `N` of the same dimension, `A ⊆ P` compact, and `h` a smooth function on

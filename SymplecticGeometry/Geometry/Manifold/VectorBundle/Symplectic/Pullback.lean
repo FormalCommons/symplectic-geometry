@@ -67,11 +67,12 @@ form they give lives on `V (f y)`, but the instances around it still name the fi
 `(f *ᵖ V) y`, so the lemmas that evaluate it no longer apply. `simp` evaluates the pulled-back
 form on vectors with `bilinFormAt_apply_pullback`, which gives the value of the pull-back on a
 pair, and then `pullback_apply_apply`. `bilinFormAt_pullback_apply` states the value of the
-pulled-back bilinear form, and is not `@[simp]`, since `simp` proves it. In the same way `simp`
-evaluates the symplectic form of a pull-back on vectors with
-`IsNondegenerate.symplecticFormAt_apply_pullback` and then `pullback_apply_apply`, so
-`IsNondegenerate.symplecticFormAt_pullback_apply`, which states that value, is not `@[simp]`
-either.
+pulled-back bilinear form, and is not `@[simp]`, since `simp` proves it. `simp` evaluates the
+symplectic form of a pull-back on vectors with `IsNondegenerate.symplecticFormAt_pullback_apply`,
+which is applied before the subterms are simplified (`simp↓`). So it fires before
+`IsNondegenerate.symplecticFormAt_apply_pullback`, and it still matches the symplectic form of the
+pull-back of a sum, a difference or a multiple, whose form `pullback_add`, `pullback_sub` and
+`pullback_smul` would otherwise rewrite first.
 
 For the same reason `simp` cannot evaluate `ω.pullback f y ![v, w]` once `pullback_apply` has
 rewritten `ω.pullback f y`: the pair stays a family in `(f *ᵖ V) y`. `pullback_apply_apply`
@@ -282,8 +283,7 @@ theorem IsNondegenerate.pullback (h : ω.IsNondegenerate) (f : C^n⟮I', N; I, M
 /-- The symplectic form of the pull-back on the fibre over `y` is that of `ω` over `f y`.
 
 This is not `@[simp]`, for the reason given at `bilinFormAt_pullback`. On vectors, `simp` uses
-`IsNondegenerate.symplecticFormAt_apply_pullback` and then `pullback_apply_apply` instead, which
-give `IsNondegenerate.symplecticFormAt_pullback_apply`. -/
+`IsNondegenerate.symplecticFormAt_pullback_apply` instead. -/
 theorem IsNondegenerate.symplecticFormAt_pullback (h : ω.IsNondegenerate) (f : C^n⟮I', N; I, M⟯)
     (y : N) : (h.pullback f).symplecticFormAt y = h.symplecticFormAt (f y) :=
   TauCeti.SymplecticForm.toBilinForm_injective <| by
@@ -291,9 +291,17 @@ theorem IsNondegenerate.symplecticFormAt_pullback (h : ω.IsNondegenerate) (f : 
       bilinFormAt_pullback]
 
 /-- The symplectic form of the pull-back on the fibre over `y` evaluates as `ω (f y)`. The
-hypothesis is the nondegeneracy of the pull-back, rather than of `ω`, so that the lemma applies
-to any proof of it, such as `h.pullback f`. It is not `@[simp]`: `simp` proves it with
-`IsNondegenerate.symplecticFormAt_apply_pullback` and then `pullback_apply_apply`. -/
+hypothesis is the nondegeneracy of the pull-back, rather than of `ω`, so that `simp` can match
+it against any proof of it, such as `h.pullback f`.
+
+`simp` applies it before it simplifies the subterms (`simp↓`). Otherwise `pullback_add`,
+`pullback_sub` or `pullback_smul` would first rewrite the form named in the type of `h`, and the
+lemma would no longer match; and after `IsNondegenerate.symplecticFormAt_apply_pullback` and
+`pullback_apply`, the two sides would still differ in hidden arguments that name the fibre
+`(f *ᵖ V) y`. Applied first, it leaves the form `ω (f y)` evaluated on a pair of vectors of
+`V (f y)`, where Mathlib's lemmas on sums, differences and multiples of alternating maps
+apply. -/
+@[simp↓]
 theorem IsNondegenerate.symplecticFormAt_pullback_apply {f : C^n⟮I', N; I, M⟯}
     (h : (ω.pullback f).IsNondegenerate) (y : N) (v w : V (f y)) :
     h.symplecticFormAt y v w = ω (f y) ![v, w] :=
@@ -310,6 +318,16 @@ theorem IsNondegenerate.symplecticFormAt_apply_pullback {K : Type*} [FunLike K N
     (h : ω.IsNondegenerate) (y : N) (v w : V (f y)) :
     h.symplecticFormAt y v w = ω y ![v, w] :=
   h.symplecticFormAt_apply y v w
+
+/-- `simp` evaluates the symplectic form of the pull-back of a sum, a difference or a multiple of
+two-forms on vectors of `V (f y)`, with `IsNondegenerate.symplecticFormAt_pullback_apply`. -/
+example (ω ω' : ContMDiffTwoForm I n F V) (f : C^n⟮I', N; I, M⟯) (y : N) (c : ℝ)
+    (v w : V (f y)) (h₁ : ((ω + ω').pullback f).IsNondegenerate)
+    (h₂ : ((ω - ω').pullback f).IsNondegenerate) (h₃ : ((c • ω).pullback f).IsNondegenerate) :
+    h₁.symplecticFormAt y v w = ω (f y) ![v, w] + ω' (f y) ![v, w] ∧
+      h₂.symplecticFormAt y v w = ω (f y) ![v, w] - ω' (f y) ![v, w] ∧
+      h₃.symplecticFormAt y v w = c * ω (f y) ![v, w] := by
+  simp
 
 /-! ### Tame and compatible pairs -/
 
