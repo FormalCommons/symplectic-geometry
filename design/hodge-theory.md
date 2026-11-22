@@ -251,19 +251,24 @@ gives its linearity (`mpullback_add`, `mpullback_smul`), smoothness on
 compatibility with $d$ (`mpullback_mextDeriv_on`) and with the wedge product
 (`mpullback_wedge`). This file adds, in Tau Ceti's namespace:
 
-- `mpullback_symm_eq_inChartAt`: for the atlas chart, the expression agrees
-  with `inChartAt`.
+- `mpullback_symm_eq_inChartAt`: for the atlas chart
+  `extChartPartialDiffeomorph I n x`, the expression agrees with `inChartAt`
+  on its target.
 - `mpullback_symm_realAlternatingDerivation`: the expression of
   $\mathcal J\varphi$ is the derivation of `chartPushforward` of $J$.
-- `SmoothForm.ofInChart`: the smooth form on $M$, zero outside `ψ.source`,
-  whose expression is a given smooth function with compact support in
-  `ψ.target`, with `mpullback_symm_ofInChart`. It is built from
-  `mpullback I 𝓘(ℝ, E) ψ` and Tau Ceti's `RoughForm.extendByZero`
-  (`DifferentialForm/Opens.lean`). The regularity issue glues local
-  smooth representatives with it.
+- `SmoothForm.extendByZeroAlong`: the smooth form on $M$, zero outside
+  `ψ.source`, whose expression is a given smooth function with compact
+  support in `ψ.target`, with `mpullback_symm_extendByZeroAlong`. It is
+  `RoughForm.extendByZeroAlong`, defined piecewise from
+  `mpullback I 𝓘(ℝ, E) ψ` on `ψ.source`, not through Tau Ceti's
+  `RoughForm.extendByZero` between `Opens`. The regularity issue glues
+  local smooth representatives with it.
+
+### `Geometry/Manifold/LocalDiffeomorph/ChartCover.lean`
+
 - `exists_finite_partialDiffeomorph_cover`: on a compact boundaryless
-  manifold, finitely many such charts with a subordinate smooth partition
-  of unity.
+  manifold, finitely many charts `extChartPartialDiffeomorph I ∞ x` with a
+  subordinate smooth partition of unity.
 
 ### `Geometry/Manifold/DeRham/Hodge/Chart.lean`
 
@@ -603,7 +608,7 @@ sub-issues of #874, *Build the part Hodge theory*. Sizes are estimates.
 | # | Issue | Files | Blocked by | Size |
 |---|---|---|---|---|
 | 1 | Interior regularity of elliptic systems with a scalar principal part | `Analysis/Distribution/EllipticSystem.lean` | — | 300 |
-| 2 | Forms along partial diffeomorphisms: agreement with `inChartAt`, $\mathcal J$, extension by zero, finite covers | `Geometry/Manifold/DifferentialForm/PartialDiffeomorph.lean` | — | 250 |
+| 2 | Forms along partial diffeomorphisms: agreement with `inChartAt`, $\mathcal J$, extension by zero, finite covers | `Geometry/Manifold/DifferentialForm/PartialDiffeomorph.lean`, `Geometry/Manifold/LocalDiffeomorph/ChartCover.lean` | — | 250 |
 | 3 | The metric, the Hodge star and the codifferential in a chart | `DeRham/Hodge/Chart.lean` | 2 | 350 |
 | 4 | The Hodge Laplacian in a chart has a scalar principal part | `DeRham/Hodge/LocalLaplacian.lean` | 3 | 350 |
 | 5 | The Hilbert space of $L^2$ forms and its localizations | `DeRham/Hodge/L2.lean` | 2 | 400 |
