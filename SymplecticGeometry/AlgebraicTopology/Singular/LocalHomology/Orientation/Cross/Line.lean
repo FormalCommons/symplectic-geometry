@@ -221,12 +221,11 @@ private theorem homologyMap_singularHomologyCrossRel_singularHomology₀Section
               (X := TopCat.of ({0}ᶜ : Set ℝ)) ⟨t, ht⟩ 1)))) =
       TopPair.singularHomologyMap (prodSheetPairMap (F := F) ht)
         (ModuleCat.of ℤ (ULift.{0} ℤ)) p a := by
-  have hpt := ConcreteCategory.congr_hom
-    (TopCat.singularHomology₀Section_singularHomologyCrossRel (TopCat.of F)
-      (TopPair.ofSubset ({0}ᶜ : Set (TopCat.of ℝ))).snd ({0}ᶜ : Set (TopCat.of F))
-      (ModuleCat.of ℤ (ULift.{0} ℤ)) (ModuleCat.of ℤ (ULift.{0} ℤ)) p
-      (⟨t, ht⟩ : ({0}ᶜ : Set ℝ))
-      (ModuleCat.ofHom (ULift.moduleEquiv.symm : ℤ ≃ₗ[ℤ] ULift.{0} ℤ).toLinearMap)) a
+  have hpt := TopCat.singularHomology₀Section_singularHomologyCrossRel_apply (TopCat.of F)
+    (TopPair.ofSubset ({0}ᶜ : Set (TopCat.of ℝ))).snd ({0}ᶜ : Set (TopCat.of F))
+    (ModuleCat.of ℤ (ULift.{0} ℤ)) (ModuleCat.of ℤ (ULift.{0} ℤ)) p
+    (⟨t, ht⟩ : ({0}ᶜ : Set ℝ))
+    (ModuleCat.ofHom (ULift.moduleEquiv.symm : ℤ ≃ₗ[ℤ] ULift.{0} ℤ).toLinearMap) a
   have hpt' : TopCat.singularHomologyCrossRel (TopCat.of F)
       (TopPair.ofSubset ({0}ᶜ : Set (TopCat.of ℝ))).snd ({0}ᶜ : Set (TopCat.of F))
       (ModuleCat.of ℤ (ULift.{0} ℤ)) (ModuleCat.of ℤ (ULift.{0} ℤ)) p 0 p rfl
@@ -242,9 +241,10 @@ private theorem homologyMap_singularHomologyCrossRel_singularHomology₀Section
         (HomologicalComplex.homologyMap (((SSetPair.chainComplexFunctor (ModuleCat ℤ)).map
           ((ρ_ (ModuleCat.of ℤ (ULift.{0} ℤ))).inv ≫ ModuleCat.of ℤ (ULift.{0} ℤ) ◁
             ModuleCat.ofHom (ULift.moduleEquiv.symm : ℤ ≃ₗ[ℤ] ULift.{0} ℤ).toLinearMap)).app
-          (TopPair.toSSetPair.obj (TopPair.ofSubset ({0}ᶜ : Set (TopCat.of F))))) p a) :=
+          (TopPair.toSSetPair.obj (TopPair.ofSubset ({0}ᶜ : Set (TopCat.of F))))) p a) := by
+    rw [Functor.map_comp, NatTrans.comp_app]
     -- `ρ⁻¹` and the whiskering act on `a ⊗ 1` by definition, and `ULift.up 1 = 1`
-    (Eq.trans rfl hpt).trans rfl
+    exact (Eq.trans rfl hpt).trans rfl
   have hj := (congrArg (_ ≫ ·) (TopPair.singularHomologyMap_comp _ _ _ _).symm).trans
     ((TopPair.singularHomologyMap_comp _ _ _ _).symm.trans
       (congrArg (TopPair.singularHomologyMap ·

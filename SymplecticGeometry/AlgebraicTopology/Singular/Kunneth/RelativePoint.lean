@@ -168,7 +168,7 @@ morphism `t : 𝟙_ C ⟶ S`, which selects a coefficient of `S`, the relative c
 of a class `a ∈ Hₚ(X, B; R)` with the class of `y` weighted by `t` is the image of `a` under the
 coefficient map `R ≅ R ⊗ 𝟙_ C ⟶ R ⊗ S`, `r ↦ r ⊗ t`, followed by the map of pairs
 `(X, B) ⟶ (X × Y, B × Y)`, `x ↦ (x, y)`. -/
-@[reassoc]
+@[reassoc, elementwise]
 theorem singularHomology₀Section_singularHomologyCrossRel (y : Y) (t : 𝟙_ C ⟶ S) :
     (ρ_ _).inv ≫ (_ ◁ (t ≫ TauCeti.singularHomology₀Section S y)) ≫
         singularHomologyCrossRel X Y B R S p 0 p (add_zero p) =
