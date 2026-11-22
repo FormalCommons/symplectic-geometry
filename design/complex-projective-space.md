@@ -45,9 +45,10 @@ Tau Ceti already has:
   `Geometry/Manifold/DifferentialForm/Dolbeault/` and
   `DifferentialForm/AlmostComplexType.lean`;
 - descent of forms: `TauCeti.RoughForm.isBasic_of_mpullback_eq`
-  (invariant forms that kill vertical vectors are basic),
+  (invariant forms that kill vertical vectors are basic,
+  `Geometry/Manifold/DifferentialForm/Pullback/Descent.lean`),
   `TauCeti.SmoothForm.descendedForm`, `mpullback_descendedForm`,
-  `eq_descendedForm_iff`, and
+  `eq_descendedForm_iff` (`Pullback/Submersion.lean`), and
   `TauCeti.SmoothTwoForm.existsUnique_isSymplectic_mpullback_eq`,
   `eval₂_descendedForm_mfderiv`, `isSymplectic_descendedForm_iff`
   (`Geometry/Symplectic/Manifold/Descent.lean`); submersions from surjective
@@ -61,6 +62,15 @@ Tau Ceti already has:
 - on $\mathbb CP^1$: `OnePoint.fubiniStudyForm`, of total area $1$, with
   `eval₂_fubiniStudyForm_coe`, `isSymplectic_fubiniStudyForm`,
   `compatible_fubiniStudyForm`, and `OnePoint.diffeomorphProjectivization`;
+  the diffeomorphism `OnePoint.diffeomorphSphere v ι` from the Riemann
+  sphere onto the unit sphere, whose inverse is stereographic projection
+  from `v` (`diffeomorphSphere_symm_apply_of_ne`), with
+  `OnePoint.inner_mfderiv_diffeomorphSphere` (the round metric is $4\pi$
+  times the Fubini–Study metric); and `Diffeomorph.restrictScalars`
+  (`Geometry/Manifold/Diffeomorph/RestrictScalars.lean`);
+- the punctured space `TauCeti.puncturedSpace V : Opens V`, the set
+  $\{0\}^c$, with `mem_puncturedSpace`
+  (`Geometry/Manifold/Instances/Cylinder.lean`);
 - integration: `TauCeti.integralTopForm`,
   `integralTopForm_mpullback_of_isOrientationPreservingAt`, the canonical
   orientation `TauCeti.complexManifoldOrientation` of a complex manifold
@@ -85,7 +95,7 @@ This part adds them.
 - **$\mathbb CP^n$** is `ℙ ℂ (Fin (n + 1) → ℂ)`, as `DESIGN.md` fixes. The
   part defines no abbreviation for it.
 - **$\mathbb C^{n+1}\setminus0$** is the open subset
-  `Projectivization.nonzeroOpens ℂ (Fin (n + 1) → ℂ)` of `Fin (n + 1) → ℂ`,
+  `TauCeti.puncturedSpace (Fin (n + 1) → ℂ)` of `Fin (n + 1) → ℂ`,
   an open submanifold of a complex vector space, hence a complex manifold.
   This is where $\rho_{\mathrm{FS}}$ and $\alpha_{\mathrm{FS}}$ live: the
   page states $\rho_{\mathrm{FS}}$ through $\partial\bar\partial$, and Tau
@@ -162,11 +172,17 @@ as the form of $\mathbb CP^1$.
   entries zero at the south pole $(0,0,-1)$, so it defines the map only on
   the sphere without that point. Because $(1+x_3)(1-x_3)=x_1^2+x_2^2$, it
   agrees there with $[x_1-ix_2:1-x_3]$, which is defined except at the north
-  pole. The part defines `sphereToProjectiveLine` on all of $S^2$ by the
-  first formula away from the south pole and the second at it, proves both
-  formulas, and proves that it is a diffeomorphism-onto (an open embedding,
-  being a continuous bijection of compact Hausdorff spaces, with smooth
-  inverse given by the affine coordinates). The page's statement is the
+  pole. The part does not define the map by cases, since Tau Ceti has it
+  as a composite of two diffeomorphisms: `sphereToProjectiveLine` is
+  `(OnePoint.diffeomorphSphere v ι).symm` followed by
+  `OnePoint.diffeomorphProjectivization ℂ ω` read on the real structures
+  (`Diffeomorph.restrictScalars ℝ`), with `v` the north pole $(0,0,1)$ and
+  `ι z = (Re z, -Im z, 0)`. Off `v` the first factor is
+  $(x_1-ix_2)/(1-x_3)$ by `diffeomorphSphere_symm_apply_of_ne`, and the
+  second sends $t$ to $[t:1]$ and $\infty$ to $[1:0]$, so the composite is
+  $[x_1-ix_2:1-x_3]$ off the north pole, and $[1+x_3:x_1+ix_2]$ off the
+  south pole. Both formulas are lemmas; smoothness, bijectivity and the
+  smooth inverse come with the diffeomorphism. The page's statement is the
   first formula where it makes sense, so no entry in `ERRATA.md` is needed.
   The pull-back identity is
   `mpullback sphereToProjectiveLine (fubiniStudyForm 1) = (4 : ℝ)⁻¹ • o₃.sphereVolumeForm`
@@ -268,9 +284,7 @@ In namespace `Projectivization`, for `𝕜` a nontrivially normed field that is
 a normed `ℝ`-algebra and finite-dimensional over `ℝ` (so `ℝ` and `ℂ`), and
 the real structures of Tau Ceti (`instIsManifoldReal`):
 
-- `nonzeroOpens 𝕜 V : TopologicalSpace.Opens V`, the set `{0}ᶜ`, with
-  `mem_nonzeroOpens_iff`.
-- `mkNonzero 𝕜 n : nonzeroOpens 𝕜 (Fin (n + 1) → 𝕜) → ℙ 𝕜 (Fin (n + 1) → 𝕜)`,
+- `mkNonzero 𝕜 n : TauCeti.puncturedSpace (Fin (n + 1) → 𝕜) → ℙ 𝕜 (Fin (n + 1) → 𝕜)`,
   $v\mapsto[v]$, with `mkNonzero_apply` and `surjective_mkNonzero`.
 - `contMDiff_mkNonzero` (every order), `isSubmersion_mkNonzero`
   (`IsSubmersion 𝓘(ℝ, Fin (n + 1) → 𝕜) 𝓘(ℝ, Fin n → 𝕜) ∞`), from the local
@@ -291,7 +305,7 @@ In namespace `SymplecticGeometry`:
   the same image exactly when $y=\cos t\,x+\sin t\,J_0x$ for some $t$), and
   `ker_mfderiv_sphereHopf`: read in `StdSpace` through the derivative of the
   inclusion, the kernel at $x$ is `ℝ ∙ stdComplexStructure _ x`.
-- `radialProjection n : nonzeroOpens ℂ (Fin (n + 1) → ℂ) → sphere (0 :
+- `radialProjection n : TauCeti.puncturedSpace (Fin (n + 1) → ℂ) → sphere (0 :
   StdSpace (Fin (n + 1))) 1`, $z\mapsto\hat z/\lVert\hat z\rVert$ with
   $\hat z=$ `complexToRealEuclidean _ z`, with `radialProjection_apply`,
   `contMDiff_radialProjection`, and `sphereHopf_comp_radialProjection :
@@ -301,7 +315,7 @@ Reference: Griffiths–Harris, Chapter 0, §1.
 
 ### `Geometry/Manifold/Projectivization/FubiniStudy/Basic.lean`
 
-With `Z := nonzeroOpens ℂ (Fin (n + 1) → ℂ)`, `J_Z` its `ofComplexManifold`,
+With `Z := TauCeti.puncturedSpace (Fin (n + 1) → ℂ)`, `J_Z` its `ofComplexManifold`,
 $\lvert z\rvert^2=\sum_i\lVert z_i\rVert^2$ and
 $\omega_0=$ `stdComplexPiSymplecticForm (Fin (n + 1))`:
 
@@ -376,15 +390,18 @@ $\omega_0=$ `stdComplexPiSymplecticForm (Fin (n + 1))`:
 - `mpullback_diffeomorphProjectivization_fubiniStudyForm`:
   the pull-back along `OnePoint.diffeomorphProjectivization ℂ ∞` (read on
   the real structures) is `Real.pi • OnePoint.fubiniStudyForm`.
-- `sphereToProjectiveLine : sphere (0 : EuclideanSpace ℝ (Fin 3)) 1 → ℙ ℂ (Fin 2 → ℂ)`,
-  with `sphereToProjectiveLine_of_ne_southPole` ($[1+x_3:x_1+ix_2]$),
-  `sphereToProjectiveLine_of_ne_northPole` ($[x_1-ix_2:1-x_3]$),
-  `contMDiff_sphereToProjectiveLine`, `isOpenEmbedding_sphereToProjectiveLine`,
-  `surjective_sphereToProjectiveLine`,
+- `sphereToProjectiveLine : sphere (0 : EuclideanSpace ℝ (Fin 3)) 1 ≃ₘ^ω⟮𝓡 2,
+  𝓘(ℝ, Fin 1 → ℂ)⟯ ℙ ℂ (Fin 2 → ℂ)`, the composite
+  `(OnePoint.diffeomorphSphere v ι).symm.trans
+  ((OnePoint.diffeomorphProjectivization ℂ ω).restrictScalars ℝ)` with `v`
+  and `ι` as above, with `sphereToProjectiveLine_of_ne_southPole`
+  ($[1+x_3:x_1+ix_2]$), `sphereToProjectiveLine_of_ne_northPole`
+  ($[x_1-ix_2:1-x_3]$),
   `isOrientationPreservingAt_sphereToProjectiveLine` (for
   `o₃.sphereOrientation` and `oCP1`), and
   `mpullback_sphereToProjectiveLine_fubiniStudyForm` (part 4, stereographic
-  sentence).
+  sentence), from `OnePoint.inner_mfderiv_diffeomorphSphere` and
+  `mpullback_diffeomorphProjectivization_fubiniStudyForm`.
 - `integralTopForm_fubiniStudyForm_one : integralTopForm oCP1
   (fubiniStudyForm 1).val = Real.pi`.
 - `integralTopForm_mpullback_map_fubiniStudyForm (f) (hf : Injective f)`:
@@ -467,7 +484,7 @@ In this order; each is blocked by the ones listed, and all are sub-issues of
 | B2 | The descended form and its uniqueness | `FubiniStudy/Basic.lean` (from `isBasic_sphereStdForm`) | B1 | 250 |
 | K1 | Unitary invariance, compatibility, the Kähler property and the local potentials | `FubiniStudy/Kahler.lean` (all but `isKahler_mpullback_fubiniStudyForm`) | B2 | 350 |
 | K2 | Complex submanifolds of $\mathbb CP^n$ | `FubiniStudy/Kahler.lean` (`isKahler_mpullback_fubiniStudyForm`) | K1, #864 | 80 |
-| N1 | The affine formula, the comparison with `OnePoint.fubiniStudyForm` and the stereographic map | `FubiniStudy/Normalization.lean` (up to `mpullback_sphereToProjectiveLine_fubiniStudyForm`) | B2 | 300 |
+| N1 | The affine formula, the comparison with `OnePoint.fubiniStudyForm`, and the stereographic map as a composite of Tau Ceti's diffeomorphisms, with its two formulas and its pull-back of the form | `FubiniStudy/Normalization.lean` (up to `mpullback_sphereToProjectiveLine_fubiniStudyForm`) | B2 | 300 |
 | N2 | The area of a line | `FubiniStudy/Normalization.lean` (the two integrals) | N1, K1 | 250 |
 | D | The Darboux charts | `FubiniStudy/Darboux.lean` | B2, K1 | 300 |
 | L | Lagrangian embeddings of real projective space and of the Clifford torus | `FubiniStudy/Lagrangian.lean` (all but `fubiniStudyForm_spec`) | B2 | 300 |
