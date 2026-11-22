@@ -132,8 +132,9 @@ theorem finrank_model : Module.finrank ℂ (Fin (n + 1 - Fintype.card Unit) → 
   rw [Fintype.card_unit, Nat.add_sub_cancel, Module.finrank_fin_fun]
 
 /-- The inclusion of a smooth projective hypersurface into projective space, as an analytic
-embedding. -/
-noncomputable def embedding :
+embedding. It is Tau Ceti's `TauCeti.complexProjectiveZeroLocusEmbedding`, and its body is
+exposed so that Tau Ceti's lemmas about that embedding apply to it. -/
+@[expose] noncomputable def embedding :
     SmoothEmbedding 𝓘(ℂ, Fin (n + 1 - Fintype.card Unit) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) ω X
       (ℙ ℂ (Fin (n + 2) → ℂ)) :=
   complexProjectiveZeroLocusEmbedding (fun _ ↦ X.isHomogeneous) isOpen_univ
