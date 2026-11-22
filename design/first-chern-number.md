@@ -820,6 +820,22 @@ issues, in an order where each issue's blockers come before it.
    `TopologicalSpace.Opens.range_val_comp_val_comap`, to read an open set of
    `M` as one of `U ∪ V`, and `Algebra/Category/ModuleCat/Basic.lean`,
    `ModuleCat.bijective_zsmul_iff`, for the sign of the connecting square.
+   Duality for every open subset of a finite-dimensional real normed space
+   `F` is the library's
+   `AlgebraicTopology/Cohomology/CompactSupport/Euclidean/Duality.lean`:
+   `TauCeti.HomologicalOrientation.bijective_dualityMap_of_isOpenEmbedding`,
+   for an open embedding `j : U → F` and any orientation of `U`. The same
+   file has `TopCat.isZero_compactSupportCohomology_of_isOpenEmbedding`,
+   `Hᵐ_c(U) = 0` for `m > dim F`, which the step to compact manifolds needs
+   for the intersections. Both run Mayer–Vietoris over finite unions of open
+   sets of `U` with bounded convex images, by Tau Ceti's
+   `TauCeti.finset_sup_of_inf_closed`; such a set is empty or homeomorphic
+   to `F`, by
+   `Convex.nonempty_homeomorph_of_isOpen_of_isBounded`
+   (`Analysis/Convex/GaugeRescale.lean`). `Vanishing.lean` has the vanishing
+   for the empty space, `TopCat.isZero_compactSupportCohomology_of_isEmpty`,
+   and for directed unions,
+   `TopCat.isZero_compactSupportCohomology_of_iSup_eq_top`.
 3. **The unit circle bundle of a Hermitian line bundle.**
    `Geometry/Manifold/VectorBundle/Hermitian/CircleBundle.lean`, the file
    of *Symplectic vector bundles* (its section *The circle bundle of a
