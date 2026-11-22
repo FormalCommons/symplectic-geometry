@@ -203,6 +203,8 @@ of Tau Ceti's roadmap that no one has started.
 | `Geometry/Symplectic/JHolomorphic/Energy/Surface.lean` | the energy form and its continuity, the energy, the integrated identity, the pseudoholomorphic case, positivity |
 | `Geometry/Manifold/SmoothSingular/SingularPeriod.lean` | the pairing of de Rham classes with integral singular homology |
 | `Geometry/Manifold/SmoothSingular/RelativeCycle.lean` | the relative step of Decision 7 |
+| `AlgebraicTopology/SimplicialSet/Homology/RelativeClass.lean` | the relative class of a simplex whose faces lie in the subcomplex of a pair of simplicial sets, `SSetPair.relClass` |
+| `AlgebraicTopology/Singular/RelativeClass.lean` | the relative class of a singular simplex whose faces lie in the subspace, `TopPair.relClass` |
 | `AlgebraicTopology/Singular/LocalHomology/Orientation/Simplex.lean` | the class of a positively oriented simplex in local homology, in dimension two |
 | `Geometry/Manifold/DeRham/FundamentalClass.lean` | $\int_\Sigma\varphi=\langle[\varphi],[\Sigma]\rangle$ on closed oriented surfaces |
 | `Geometry/Symplectic/JHolomorphic/Energy/Homology.lean` | topological invariance, minimality, the milestone |
@@ -344,9 +346,10 @@ For `c : C`, `x : M` and `L : TangentSpace I' c →ₗ[ℝ] TangentSpace I x`
   `g '' interior (fullSimplex 2)`: `σ` is a relative cycle of
   `(C, C ∖ K)`, and its class is the fundamental class along `K` of the
   correctly signed homological orientation (Decision 6):
-  `SmoothSimplex.relativeClass_eq_fundamentalClassOn`, with the class of a
-  relative cycle as the issue finds it in Tau Ceti or defines it
-  (`SmoothSimplex.relativeClass`). By `eq_fundamentalClassOn` it suffices to
+  `SmoothSimplex.relativeClass_eq_fundamentalClassOn`, the class being
+  `TopPair.relClass` of the underlying singular simplex, from
+  `AlgebraicTopology/Singular/RelativeClass.lean` (it defines no class of its
+  own). By `eq_fundamentalClassOn` it suffices to
   compute the local image at each point of `K`; by the change-of-chart sign
   rule (`OpenPartialHomeomorph.localHomologyMap_restrict_localOrientationOfOrientedChart`)
   and translation invariance this reduces to one affine simplex around `0`
