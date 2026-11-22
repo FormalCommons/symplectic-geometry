@@ -5,9 +5,11 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import Mathlib.RingTheory.TensorProduct.Finite
 public import SymplecticGeometry.Geometry.Manifold.DeRham.GoodCover.Compact
 public import SymplecticGeometry.Geometry.Manifold.DeRham.SmoothFamily.Contractible
 public import SymplecticGeometry.Geometry.Manifold.DeRham.SmoothFamily.MayerVietoris
+public import TauCeti.Geometry.Manifold.DeRham.ComplexCoefficients
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import SymplecticGeometry.Topology.Sets.Opens.Basic
 
@@ -47,7 +49,8 @@ boundaryless manifold is finite-dimensional.
   the unit interval has a smooth family of primitives.
 * `SymplecticGeometry.finiteDimensional_deRhamCohomology_of_hasFiniteGoodCover`,
   `SymplecticGeometry.contMDiff_repr_mk_of_hasFiniteGoodCover`, and the instance
-  `SymplecticGeometry.finiteDimensional_deRhamCohomology` on compact boundaryless manifolds.
+  `SymplecticGeometry.finiteDimensional_deRhamCohomology` on compact boundaryless manifolds, with
+  its complex counterpart `TauCeti.finiteDimensional_complexDeRhamCohomology`.
 
 ## References
 
@@ -209,3 +212,19 @@ theorem finiteDimensional_deRhamCohomology [CompactSpace M] [BoundarylessManifol
 attribute [instance] finiteDimensional_deRhamCohomology
 
 end SymplecticGeometry
+
+namespace TauCeti
+
+variable [FiniteDimensional ℝ E] [IsManifold I ∞ M] [T2Space M] [CompactSpace M]
+  [BoundarylessManifold I M]
+
+/-- **Complex de Rham cohomology of a compact manifold is finite-dimensional.** On a compact
+Hausdorff boundaryless manifold, modelled on a finite-dimensional space, the complex de Rham
+cohomology is finite-dimensional in every degree. -/
+theorem finiteDimensional_complexDeRhamCohomology {k : ℕ} :
+    FiniteDimensional ℂ (complexDeRhamCohomology I M k) :=
+  Module.Finite.equiv (complexDeRhamCohomology.complexificationEquiv I k)
+
+attribute [instance] finiteDimensional_complexDeRhamCohomology
+
+end TauCeti

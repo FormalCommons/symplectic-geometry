@@ -8,6 +8,7 @@ module
 public import Mathlib.Geometry.Manifold.VectorBundle.ContinuousAlternatingMap
 public import Mathlib.Geometry.Manifold.VectorBundle.ContMDiffSection
 public import SymplecticGeometry.Topology.FiberBundle.Basic
+public import SymplecticGeometry.Topology.VectorBundle.Frame
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.ContinuousAlternatingMap
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Hom
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
@@ -73,8 +74,9 @@ rank to be even (for finite rank, a nondegenerate form forces it), and rank zero
   bundle of rank `2 |κ|` that are `C^n` on a set `U` and satisfy the Darboux relations at every
   point of `U` give a symplectic frame over `U` for `stdForm κ`, which is
   `(x, y) ↦ ∑ᵢ (xᵢ aᵢ + yᵢ bᵢ)` on the fibres over `U`.
-* `Bundle.frameTransition`: the transition map `Φ'ₓ⁻¹ ∘ Φₓ` between two frames. Over an open set
-  it depends `C^n` on the point when both frames do (`Bundle.contMDiffOn_frameTransition`), and for
+* `Bundle.frameTransition` (of `Topology/VectorBundle/Frame.lean`), the transition map `Φ'ₓ⁻¹ ∘ Φₓ`
+  between two frames: over an open set it depends `C^n` on the point when both frames do
+  (`Bundle.contMDiffOn_frameTransition`), and for
   symplectic frames it is a linear symplectomorphism of `(W, σ)`
   (`IsSymplecticFrameOn.isSymplectomorphism_frameTransition`,
   `IsSymplecticFrameOn.contMDiffOn_frameTransition`).
@@ -662,50 +664,7 @@ theorem isNondegenerate_iff_forall_ne_zero_of_finrank_eq_two (hF : Module.finran
 
 end ContMDiffTwoForm
 
-/-! ### Transition maps between frames -/
-
-section FrameTransition
-
-omit [TopologicalSpace M]
-
-variable {W : Type*} [AddCommGroup W] [Module ℝ W] [TopologicalSpace W]
-  {V : M → Type*} [∀ x, AddCommGroup (V x)] [∀ x, Module ℝ (V x)] [∀ x, TopologicalSpace (V x)]
-  (Φ Φ' Φ'' : ∀ x, W ≃L[ℝ] V x) (x : M)
-
-/-- The transition map `Φ'ₓ⁻¹ ∘ Φₓ` at the point `x` from a frame `Φ` of a bundle with model fibre
-`W` to a frame `Φ'`. As a map it is in the order of Mathlib's `Trivialization.coordChangeL`. -/
-def frameTransition : W ≃L[ℝ] W :=
-  (Φ x).trans (Φ' x).symm
-
-/-- The transition map is the composite of `Φ x` with the inverse of `Φ' x`. -/
-theorem frameTransition_def : frameTransition Φ Φ' x = (Φ x).trans (Φ' x).symm :=
-  (rfl)
-
-/-- The transition map sends `v` to `Φ'ₓ⁻¹ (Φₓ v)`. -/
-@[simp]
-theorem frameTransition_apply (v : W) : frameTransition Φ Φ' x v = (Φ' x).symm (Φ x v) :=
-  (rfl)
-
-/-- The transition map from a frame to itself is the identity. -/
-@[simp]
-theorem frameTransition_self : frameTransition Φ Φ x = ContinuousLinearEquiv.refl ℝ W := by
-  ext v
-  simp
-
-/-- Transition maps compose: going from `Φ` to `Φ'` and then to `Φ''` is going from `Φ` to
-`Φ''`. -/
-theorem frameTransition_trans :
-    (frameTransition Φ Φ' x).trans (frameTransition Φ' Φ'' x) = frameTransition Φ Φ'' x := by
-  ext v
-  simp
-
-/-- The inverse of the transition map from `Φ` to `Φ'` is the transition map from `Φ'` to `Φ`. -/
-@[simp]
-theorem frameTransition_symm : (frameTransition Φ Φ' x).symm = frameTransition Φ' Φ x := by
-  ext v
-  rfl
-
-end FrameTransition
+/-! ### Smoothness of transition maps between frames -/
 
 section ContMDiffFrameTransition
 

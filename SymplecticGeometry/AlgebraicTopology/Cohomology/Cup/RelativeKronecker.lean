@@ -7,6 +7,7 @@ module
 
 public import SymplecticGeometry.AlgebraicTopology.Singular.AlexanderWhitney.RelativeCup
 public import SymplecticGeometry.AlgebraicTopology.Singular.Kunneth.RelativePair
+public import SymplecticGeometry.Topology.Category.TopCat.Monoidal
 public import TauCeti.AlgebraicTopology.Cohomology.Local.Cross
 import TauCeti.CategoryTheory.Linear.Int
 
@@ -284,8 +285,9 @@ theorem singularKronecker_complZeroPairCross (u : T ⟶ R ⊗ S) (μ : M ⊗ N �
         (TopPair.toSSetPair.obj (TopPair.ofSubset
           (CartesianMonoidalCategory.fst (TopCat.of V₁) (TopCat.of V₂) ⁻¹' {0}ᶜ ∪
             CartesianMonoidalCategory.snd (TopCat.of V₁) (TopCat.of V₂) ⁻¹' {0}ᶜ))))
-        n (TopPair.singularHomologyMap (TopPair.ofSubsetMap (𝟙 (TopCat.of V₁ ⊗ TopCat.of V₂))
-          fun _ hv ↦ compl_zero_prod_subset V₁ V₂ hv) T n z) =
+        n (TopPair.singularHomologyMap (TopPair.ofSubsetMap (TopCat.tensorObjIsoProd V₁ V₂).inv
+          (TopCat.mapsTo_compl_singleton_preimage_fst_compl_union_preimage_snd_compl
+            (0 : V₁) (0 : V₂))) T n z) =
       TopCat.singularHomologyCrossRelPair (TopCat.of V₁) (TopCat.of V₂) {0}ᶜ {0}ᶜ R S p q n h
         (x ⊗ₜ y)) :
     (TopPair.ofSubset (X := TopCat.of (V₁ × V₂)) ({0}ᶜ : Set (V₁ × V₂))).singularKronecker K n
@@ -298,6 +300,16 @@ theorem singularKronecker_complZeroPairCross (u : T ⟶ R ⊗ S) (μ : M ⊗ N �
   have hA := TopCat.singularHomologyCrossRelPair_comp_singularKronecker_singularRelativeCross_apply
     (TopCat.of V₁) (TopCat.of V₂) μ isOpen_compl_singleton isOpen_compl_singleton p q n h
     g₁ g₂ (x ⊗ₜ y)
+  have he : TopPair.ofSubsetMap (TopCat.tensorObjIsoProd V₁ V₂).inv
+      (TopCat.mapsTo_compl_singleton_preimage_fst_compl_union_preimage_snd_compl
+        (0 : V₁) (0 : V₂)) =
+        TopPair.ofSubsetMap (𝟙 (TopCat.of V₁ ⊗ TopCat.of V₂))
+          fun _ hv ↦ compl_zero_prod_subset V₁ V₂ hv := by
+    simp only [TopCat.tensorObjIsoProd_inv_eq_id]
+    -- The two sides now differ only in writing the source as `TopCat.of (V₁ × V₂)` or as
+    -- `TopCat.of V₁ ⊗ TopCat.of V₂`, which are the same space by definition.
+    rfl
+  rw [he] at hz
   rw [complZeroPairCross_def]
   exact hK.trans <| (congrArg (ConcreteCategory.hom (TopPair.singularKronecker _ K n
     (singularRelativeCross K (TopCat.of V₁) (TopCat.of V₂) isOpen_compl_singleton
@@ -327,8 +339,9 @@ theorem singularKronecker_complZeroPairCross_int {iL : Linear ℤ (ModuleCat.{0}
         (TopPair.toSSetPair.obj (TopPair.ofSubset
           (CartesianMonoidalCategory.fst (TopCat.of V₁) (TopCat.of V₂) ⁻¹' {0}ᶜ ∪
             CartesianMonoidalCategory.snd (TopCat.of V₁) (TopCat.of V₂) ⁻¹' {0}ᶜ))))
-        n (TopPair.singularHomologyMap (TopPair.ofSubsetMap (𝟙 (TopCat.of V₁ ⊗ TopCat.of V₂))
-          fun _ hv ↦ compl_zero_prod_subset V₁ V₂ hv) T n z) =
+        n (TopPair.singularHomologyMap (TopPair.ofSubsetMap (TopCat.tensorObjIsoProd V₁ V₂).inv
+          (TopCat.mapsTo_compl_singleton_preimage_fst_compl_union_preimage_snd_compl
+            (0 : V₁) (0 : V₂))) T n z) =
       TopCat.singularHomologyCrossRelPair (TopCat.of V₁) (TopCat.of V₂) {0}ᶜ {0}ᶜ R S p q n h
         (x ⊗ₜ y)) :
     (TopPair.ofSubset (X := TopCat.of (V₁ × V₂)) ({0}ᶜ : Set (V₁ × V₂))).singularKronecker ℤ n

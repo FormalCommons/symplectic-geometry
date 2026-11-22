@@ -1445,8 +1445,8 @@ on complex structures are in `ContMDiffComplexStructure` and in
   with `const ω'`, a linear symplectomorphism `e : W ≃L[ℝ] W'` from `σ` to
   `ω'` is a frame `fun _ ↦ e` over `univ`. Existence over small open sets is
   `IsNondegenerate.exists_isSymplecticFrameOn` (*Local Darboux frames*).
-- **Transition maps.** For two families `Φ Φ' : ∀ x, W ≃L[ℝ] V x`, the
-  definition `frameTransition Φ Φ' x : W ≃L[ℝ] W` is
+- **Transition maps.** For two families `Φ Φ' : ∀ x, W ≃L[R] V x`, over
+  any semiring `R`, the definition `frameTransition Φ Φ' x : W ≃L[R] W` is
   `(Φ x).trans (Φ' x).symm`, with `frameTransition_def` (by `(rfl)`),
   `@[simp] frameTransition_apply` (`(Φ' x).symm (Φ x v)`),
   `@[simp] frameTransition_self` (the identity), `frameTransition_trans`
@@ -1456,8 +1456,8 @@ on complex structures are in `ContMDiffComplexStructure` and in
   Mathlib's `Trivialization.symm_coordChangeL`). As a map it is
   `(Φ' x)⁻¹ ∘ Φ x`, in the order of Mathlib's `coordChangeL`, so the
   $\Phi_1^{-1}\Phi_2$ of *First Chern number* is `frameTransition Φ₂ Φ₁`. It uses no form, so it is in
-  `SymplecticGeometry.Bundle`; *First Chern number*'s transition loops are
-  its values along a loop. For frames `Φ`, `Φ'` of `ω` for `σ` over `U`:
+  `SymplecticGeometry.Bundle`, in `Topology/VectorBundle/Frame.lean`;
+  *First Chern number*'s transition loops are its values along a loop. For frames `Φ`, `Φ'` of `ω` for `σ` over `U`:
   `IsSymplecticFrameOn.isSymplectomorphism_frameTransition`
   (`frameTransition Φ Φ' x` preserves `σ` at `x ∈ U`) and, for
   `[FiniteDimensional ℝ W]` and `IsOpen U`,
@@ -2347,9 +2347,10 @@ of *Constructions* for *First Chern number*.
     Blockers: none.
 19. **Symplectic isomorphisms, frames and forms of rank two.**
     `Symplectic/Basic.lean`: `pushforward_eq_iff`, `IsSymplecticFrameOn` with
-    its API and `isSymplecticFrameOn_const`, `frameTransition` with its API
-    (`frameTransition_symm` among it),
-    and `isNondegenerate_iff_forall_ne_zero_of_finrank_eq_two`. Blockers: 3.
+    its API and `isSymplecticFrameOn_const`, and
+    `isNondegenerate_iff_forall_ne_zero_of_finrank_eq_two`; and
+    `Topology/VectorBundle/Frame.lean`: `frameTransition` with its API
+    (`frameTransition_symm` among it). Blockers: 3.
 20. **Pull-back, direct sum and multiplication by `Complex.I` for complex
     structures.** `ComplexStructure.lean`: `ContMDiffComplexStructure.pullback`,
     `prod` and `ofComplexModule` with their API, and `Bundle.Pullback.eq_iff`
