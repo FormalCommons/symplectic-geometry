@@ -869,7 +869,16 @@ issues, in an order where each issue's blockers come before it.
    `Topology.IsOpenEmbedding.iSup_finset_sup_convex_image_eq_top`. The
    induction is `InfClosed.finset_sup_induction`, in `Order/SupClosed.lean`,
    Tau Ceti's `TauCeti.finset_sup_of_inf_closed` for a finite set of members
-   of the family.
+   of the family. It is run once for each theory, over any inf-closed
+   family of open sets whose finite unions cover the space:
+   `TopCat.isZero_compactSupportCohomology_of_infClosed`, in
+   `CompactSupport/Vanishing.lean`, and
+   `TauCeti.HomologicalOrientation.bijective_dualityMap_of_infClosed`, in
+   `CompactSupport/Duality/Union.lean`, which also assumes
+   `Hⁿ⁺¹_c(W; L) = 0` for every open set `W`. Their case of the empty
+   union uses the instance `TopologicalSpace.Opens.isEmpty_bot` of
+   `Topology/Sets/Opens/Basic.lean`, which `CompactSupport/Vanishing.lean`
+   imports.
    Duality for a manifold is the library's
    `AlgebraicTopology/Cohomology/CompactSupport/Duality/Manifold.lean`:
    `TauCeti.HomologicalOrientation.bijective_dualityMap`, for every
