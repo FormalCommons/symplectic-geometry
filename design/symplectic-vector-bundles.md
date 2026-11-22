@@ -1525,18 +1525,22 @@ For a map `f : C^n⟮I', N; I, M⟯` (the argument of Mathlib's instance
   on `v w : V (f y)`, for any proof that the pull-back is nondegenerate.
   `bilinFormAt_pullback` and `symplecticFormAt_pullback` are not `@[simp]`,
   for the reason given below for `pullback_toEndomorphism`.
-- `ComplexStructure.lean`: `ContMDiffComplexStructure.pullback J f :
-  ContMDiffComplexStructure I' n F (f *ᵖ V)`, the endomorphism section
+- `ComplexStructure.lean`: `ContMDiffComplexStructure.pullback J f hf :
+  ContMDiffComplexStructure I' n F (f *ᵖ V)`, for `f : K` with
+  `[FunLike K N M] [ContinuousMapClass K N M]` and `hf : ContMDiff I' I n f`,
+  as `Bundle.Pullback.contMDiff_mfderiv_hom` takes it, so that the bundle
+  `f *ᵖ V` carries the instances of the map's own type. It is the
+  endomorphism section
   `y ↦ J (f y)`, which is $C^n$ by `Bundle.Pullback.contMDiff_hom_section_iff`
   itself. API: `pullback_toEndomorphism` (`J (f y)`),
   `almostComplexStructureAt_pullback`, `pullback_neg`, and `coe_pullback`
-  (`⇑(J.pullback f y) = ⇑(J (f y))`). `simp` treats a vector by its type.
+  (`⇑(J.pullback f hf y) = ⇑(J (f y))`). `simp` treats a vector by its type.
   On a vector of `V (f y)` it evaluates the pull-back by `@[simp]
-  pullback_apply` (`J.pullback f y v = J (f y) v`). A vector of
+  pullback_apply` (`J.pullback f hf y v = J (f y) v`). A vector of
   `(f *ᵖ V) y` stays in the pull-back bundle, where the lemmas about
-  `J.pullback f` as a complex structure apply to it; there
-  `@[simp] apply_eq_pullback_apply` (`J (f y) v = J.pullback f y v`) and
-  `@[simp] pullback_neg_apply` (`(-J).pullback f y v = -J.pullback f y v`)
+  `J.pullback f hf` as a complex structure apply to it; there
+  `@[simp] apply_eq_pullback_apply` (`J (f y) v = J.pullback f hf y v`) and
+  `@[simp] pullback_neg_apply` (`(-J).pullback f hf y v = -J.pullback f hf y v`)
   bring `J (f y)` and `-J` to it. `@[simp]
   coe_almostComplexStructureAt_pullback` evaluates the almost complex
   structure of the pull-back. The root-namespace `@[simp]
@@ -1566,7 +1570,7 @@ For a map `f : C^n⟮I', N; I, M⟯` (the argument of Mathlib's instance
 - `Symplectic/Pullback.lean`, the pairs: `Tames.pullback`,
   `Invariant.pullback` and `Compatible.pullback`, for a form and a complex
   structure of the same regularity `n`, from `ω.Tames J` to
-  `(ω.pullback f).Tames (J.pullback f)`, pointwise.
+  `(ω.pullback f).Tames (J.pullback f f.contMDiff)`, pointwise.
 - Isomorphisms: `pullback_pushforward`, `(pushforward Φ hΦ ω).pullback f` is
   `pushforward (fun y ↦ Φ (f y)) _ (ω.pullback f)`,
   the smoothness coming from Tau Ceti's `Bundle.Pullback.contMDiff_fiberwise`
