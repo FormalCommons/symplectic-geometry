@@ -9,6 +9,7 @@ public import Mathlib.Geometry.Manifold.IntegralCurve.Basic
 public import Mathlib.Geometry.Manifold.LocalDiffeomorph
 public import Mathlib.Geometry.Manifold.VectorField.Pullback
 import TauCeti.Geometry.Manifold.IntegralCurve.Basic
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Opens
 
@@ -16,7 +17,7 @@ import SymplecticGeometry.Geometry.Manifold.MFDeriv.Opens
 # Pulling back vector fields along local diffeomorphisms
 
 Mathlib's `VectorField.mpullback I J f V` is the vector field `x ↦ (df_x)⁻¹ (V (f x))`, which is
-meaningful when the differential of `f` is invertible. This file gives its two basic properties
+meaningful when the differential of `f` is invertible. This file gives its basic properties
 when `f` is a local diffeomorphism, and specializes them to the inclusion `Subtype.val : U → M`
 of an open subset, where the pullback is the restriction of a vector field to `U`.
 
@@ -25,6 +26,10 @@ of an open subset, where the pullback is the restriction of a vector field to `U
   `f`-related to `V` there.
 * `IsLocalDiffeomorph.contMDiffOn_mpullback`: if `f` is a `C^n` local diffeomorphism and `V` is
   `C^m` on a set `t`, with `m + 1 ≤ n`, then the pullback is `C^m` on `f ⁻¹' t`.
+* `IsLocalDiffeomorphAt.contMDiffAt_of_eventually_mfderiv_apply_eq`: conversely, a vector field
+  that is, near `x`, the image under the differential of a local diffeomorphism `f` of a field
+  that is `C^m` at `x`, is `C^m` at `f x`; near `f x` it is the pullback of that field along a
+  local inverse of `f`.
 * `VectorField.mfderiv_subtypeVal_mpullback_subtypeVal` and
   `VectorField.contMDiff_mpullback_subtypeVal`: for an open subset `U`, the restriction of `V`
   to `U` is related to `V` by the inclusion, and is a `C^m` vector field on `U` when `V` is
@@ -47,8 +52,8 @@ Ceti's `PartialDiffeomorph.subtypeVal`.
 
 public section
 
-open Set TopologicalSpace
-open scoped Manifold ContDiff
+open Set TopologicalSpace Filter
+open scoped Manifold ContDiff Topology
 
 variable {𝕜 : Type*} [NontriviallyNormedField 𝕜]
   {E H M : Type*} [NormedAddCommGroup E] [NormedSpace 𝕜 E] [TopologicalSpace H]
@@ -72,6 +77,42 @@ theorem IsLocalDiffeomorph.contMDiffOn_mpullback [CompleteSpace E] [IsManifold I
     ContMDiffOn I I.tangent m (T% (VectorField.mpullback I J f V)) (f ⁻¹' t) :=
   hV.mpullback_vectorField_preimage hf.contMDiff
     (fun x _ ↦ hf.isInvertible_mfderiv (ne_bot_of_le_ne_bot (by simp) hmn) x) hmn
+
+/-- **Smoothness of a vector field through a local diffeomorphism.** Let `f` be a `C^n` local
+diffeomorphism at `x` and `m + 1 ≤ n`. If a vector field `V` on `N` is, near `x`, the image under
+the differential of `f` of a vector field `X` on `M` that is `C^m` at `x`, then `V` is `C^m` at
+`f x`: near `f x` it is the pullback of `X` along a local inverse of `f`. -/
+theorem IsLocalDiffeomorphAt.contMDiffAt_of_eventually_mfderiv_apply_eq [CompleteSpace E']
+    [IsManifold I 1 M] [IsManifold J 1 N] {x : M} (hf : IsLocalDiffeomorphAt I J n f x)
+    (hmn : m + 1 ≤ n) {X : Π y : M, TangentSpace I y} {V : Π y : N, TangentSpace J y}
+    (hX : ContMDiffAt I I.tangent m (T% X) x)
+    (hXV : ∀ᶠ y in 𝓝 x, mfderiv I J f y (X y) = V (f y)) :
+    ContMDiffAt J J.tangent m (T% V) (f x) := by
+  have hn : n ≠ 0 := ne_bot_of_le_ne_bot (by simp) hmn
+  set g := hf.localInverse
+  have hgx : g (f x) = x := hf.localInverse_left_inv hf.localInverse_mem_target
+  have hpull : ContMDiffAt J J.tangent m (T% (VectorField.mpullback J I g X)) (f x) :=
+    ContMDiffAt.mpullback_vectorField_preimage (by rwa [hgx]) hf.contMDiffAt_localInverse
+      (hf.localInverse_isLocalDiffeomorphAt.isInvertible_mfderiv hn) hmn
+  refine hpull.congr_of_eventuallyEq ?_
+  have hg : Tendsto g (𝓝 (f x)) (𝓝 x) := by
+    have := hf.continuousAt_localInverse
+    rwa [ContinuousAt, hgx] at this
+  filter_upwards [hg.eventually (hXV.and (hf.eventually.and
+      (g.open_target.mem_nhds hf.localInverse_mem_target))),
+    g.open_source.mem_nhds hf.localInverse_mem_source] with y ⟨hV, hfy, hgt⟩ hy
+  have hfg : f (g y) = y := hf.localInverse_right_inv hy
+  -- `g ∘ f` is the identity near `g y`, so `dg_y ∘ df_(g y)` is the identity.
+  have hid : mfderiv J I g (f (g y)) (mfderiv I J f (g y) (X (g y))) = X (g y) := by
+    have h1 := _root_.mfderiv_comp (g y) (by rw [hfg]; exact g.mdifferentiableAt hn hy)
+      (hfy.mdifferentiableAt hn)
+    rw [(Filter.eventuallyEq_of_mem (g.open_target.mem_nhds hgt)
+      hf.localInverse_eqOn_left).mfderiv_eq, mfderiv_id] at h1
+    exact (congrArg (fun L ↦ L (X (g y))) h1).symm
+  rw [hV, hfg] at hid
+  simp only [VectorField.mpullback_apply, Bundle.TotalSpace.mk_inj]
+  rw [← hid, ContinuousLinearMap.IsInvertible.inverse_apply_self
+    ((g.isLocalDiffeomorphAt _ _ _ hy).isInvertible_mfderiv hn)]
 
 namespace VectorField
 
