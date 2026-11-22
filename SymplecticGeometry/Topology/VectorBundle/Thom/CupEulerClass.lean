@@ -161,11 +161,10 @@ theorem bijective_integralCup_eulerClass [CompactSpace B] {d p l m : ℕ}
     (bijective_thomMap_of_compactSpace _ p m h hU') (hzero l hEl) (hzero m hEm)
   rw [← unitors_equal] at hbij
   -- Carry the Euler class of the new Thom class back to that of `U`.
-  have h₁ := ConcreteCategory.congr_hom (eulerClass_comp_singularCohomologyChainCoefficientMap
-    (F := F) (E := E) ℤ (ModuleCat.of ℤ ℤ) integralCoeffIso.symm.hom (finrank ℝ F))
-  have h₂ := ConcreteCategory.congr_hom (eulerClass_comp_singularCohomologyValueMap (F := F)
-    (E := E) (ModuleCat.of ℤ (ULift.{0} ℤ)) ℤ uliftIntIso.hom (finrank ℝ F))
-  simp only [ConcreteCategory.comp_apply] at h₁ h₂
+  have h₁ := eulerClass_comp_singularCohomologyChainCoefficientMap_apply (F := F) (E := E) ℤ
+    (ModuleCat.of ℤ ℤ) integralCoeffIso.symm.hom (finrank ℝ F)
+  have h₂ := eulerClass_comp_singularCohomologyValueMap_apply (F := F) (E := E)
+    (ModuleCat.of ℤ (ULift.{0} ℤ)) ℤ uliftIntIso.hom (finrank ℝ F)
   rw [← LinearEquiv.apply_symm_apply ((TopCat.of B).integralCohomologyLinearEquiv _)
       ((TopCat.uliftIntegralCohomologyIso _ _).hom (eulerClass _ ℤ _ F E _ U)),
     TopCat.integralCohomologyLinearEquiv_symm_apply, TopCat.uliftIntegralCohomologyIso_hom, h₂, h₁]
