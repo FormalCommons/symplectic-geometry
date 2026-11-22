@@ -119,16 +119,69 @@ open CategoryTheory Limits Polynomial
 
 variable {V : Type} [NormedAddCommGroup V] [NormedSpace ℂ V] {n : ℕ}
 
+/-- A complex projective space `ℙ ℂ V` with `finrank ℂ V = n + 1` is homeomorphic to Tau Ceti's
+`ℂPⁿ`, through Tau Ceti's `ComplexProjectiveSpace.homeomorphProjectivization` and a linear
+equivalence `(Fin (n + 1) → ℂ) ≃ V`. -/
+def complexProjectiveSpaceHomeomorph (hV : finrank ℂ V = n + 1) :
+    ComplexProjectiveSpace n ≃ₜ ℙ ℂ V :=
+  have : FiniteDimensional ℂ V := Module.finite_of_finrank_eq_succ hV
+  (ComplexProjectiveSpace.homeomorphProjectivization n).trans
+    (ContinuousLinearEquiv.ofFinrankEq (E := Fin (n + 1) → ℂ) (F := V)
+      (by rw [finrank_fin_fun, hV])).mapProjectivization
+
 /-- The integral cohomology of `ℙ ℂ V`, for `finrank ℂ V = n + 1`, vanishes above degree `2n`. -/
 theorem isZero_integralCohomology_of_lt (hV : finrank ℂ V = n + 1) {m : ℕ} (hm : 2 * n < m) :
-    IsZero ((TopCat.of (ℙ ℂ V)).integralCohomology m) := by
-  have : FiniteDimensional ℂ V := Module.finite_of_finrank_eq_succ hV
-  let e : ComplexProjectiveSpace n ≃ₜ ℙ ℂ V :=
-    (ComplexProjectiveSpace.homeomorphProjectivization n).trans
-      (ContinuousLinearEquiv.ofFinrankEq (E := Fin (n + 1) → ℂ) (F := V)
-        (by rw [finrank_fin_fun, hV])).mapProjectivization
-  exact (ComplexProjectiveSpace.isZero_singularCohomology_of_lt _ _ hm).of_iso
-    ((singularCohomologyFunctor _ ℤ _ m).mapIso (TopCat.isoOfHomeo e).op)
+    IsZero ((TopCat.of (ℙ ℂ V)).integralCohomology m) :=
+  (ComplexProjectiveSpace.isZero_singularCohomology_of_lt _ _ hm).of_iso
+    ((singularCohomologyFunctor _ ℤ _ m).mapIso
+      (TopCat.isoOfHomeo (complexProjectiveSpaceHomeomorph hV)).op)
+
+/-- The integral cohomology of `ℙ ℂ V`, for `finrank ℂ V = n + 1`, vanishes in odd degrees. -/
+theorem isZero_integralCohomology_of_odd (hV : finrank ℂ V = n + 1) {m : ℕ} (hm : Odd m) :
+    IsZero ((TopCat.of (ℙ ℂ V)).integralCohomology m) :=
+  (ComplexProjectiveSpace.isZero_singularCohomology_of_odd _ _ hm).of_iso
+    ((singularCohomologyFunctor _ ℤ _ m).mapIso
+      (TopCat.isoOfHomeo (complexProjectiveSpaceHomeomorph hV)).op)
+
+section Homology
+
+open AlgebraicTopology
+
+variable {k : Type} [CommRing k] (R : ModuleCat.{0} k)
+
+/-- The singular homology of `ℙ ℂ V`, for `finrank ℂ V = n + 1`, is projective in every degree,
+with projective coefficients `R`. -/
+theorem projective_singularHomology (hV : finrank ℂ V = n + 1) [Module.Projective k R] (m : ℕ) :
+    Projective (((singularHomologyFunctor (ModuleCat.{0} k) m).obj R).obj (TopCat.of (ℙ ℂ V))) :=
+  Projective.of_iso (((singularHomologyFunctor _ m).obj R).mapIso
+    (TopCat.isoOfHomeo (X := TopCat.of (ComplexProjectiveSpace n)) (Y := TopCat.of (ℙ ℂ V))
+      (complexProjectiveSpaceHomeomorph hV))) inferInstance
+
+/-- The singular homology of `ℙ ℂ V`, for `finrank ℂ V = n + 1`, is finitely generated in every
+degree, with finitely generated projective coefficients `R`: it is `R` in the degrees
+`0, 2, …, 2n` and zero in the others. -/
+theorem finite_singularHomology (hV : finrank ℂ V = n + 1) [Module.Projective k R]
+    [Module.Finite k R] (m : ℕ) :
+    Module.Finite k
+      (((singularHomologyFunctor (ModuleCat.{0} k) m).obj R).obj (TopCat.of (ℙ ℂ V))) := by
+  suffices Module.Finite k (((singularHomologyFunctor (ModuleCat.{0} k) m).obj R).obj
+      (TopCat.of (ComplexProjectiveSpace n))) from
+    Module.Finite.equiv (((singularHomologyFunctor _ m).obj R).mapIso
+      (TopCat.isoOfHomeo (X := TopCat.of (ComplexProjectiveSpace n)) (Y := TopCat.of (ℙ ℂ V))
+        (complexProjectiveSpaceHomeomorph hV))).toLinearEquiv
+  rcases Nat.even_or_odd m with ⟨i, rfl⟩ | hm
+  · rw [← two_mul]
+    by_cases hi : i ≤ n
+    · exact Module.Finite.equiv
+        (ComplexProjectiveSpace.singularHomologyIso R hi).symm.toLinearEquiv
+    · have := ModuleCat.subsingleton_of_isZero
+        (ComplexProjectiveSpace.isZero_singularHomology_of_lt (n := n) R (k := 2 * i) (by omega))
+      infer_instance
+  · have := ModuleCat.subsingleton_of_isZero
+      (ComplexProjectiveSpace.isZero_singularHomology_of_odd (n := n) R hm)
+    infer_instance
+
+end Homology
 
 /-- The integral cohomology of the nonzero vectors of the tautological line of `ℙ ℂ V`, for
 `finrank ℂ V = n + 1`, vanishes in the degrees `m ≠ 0` with `m + 1 ≠ 2n + 2`. -/

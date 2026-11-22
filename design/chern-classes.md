@@ -537,9 +537,10 @@ In the namespace `SymplecticGeometry.Bundle`, for a complex vector bundle
 - `projectiveBundleClass G E`, the class $x=-e(S)$ of
   `ProjectiveBundle.Tautological ℂ G E`, in degree two, the image of its
   `complexEulerClass` under `uliftIntegralCohomologyIso`, negated; its
-  restriction to each fibre is `hyperplaneClass (E b)`.
+  restriction to each fibre, read through the trivialization there, is
+  `hyperplaneClass G`.
 - `chernClass G E k : (TopCat.of B).integralCohomology (2 * k)`, defined
-  from `TopCat.integralLerayHirschEquiv` for the classes $x^i$, $i<n$, applied to
+  from the inverse of `TopCat.integralLerayHirsch` for the classes $x^i$, $i<n$, applied to
   $-x^n$ when the Leray–Hirsch map is bijective, `1` for `k = 0`, and `0`
   for `k > n` and where the map is not bijective; with `chernClass_def`.
 - `totalChernClass G E : TopCat.EvenIntegralCohomology (TopCat.of B)`, the
@@ -551,11 +552,12 @@ In the namespace `SymplecticGeometry.Bundle`, for a complex vector bundle
   `chernClass_eq_of_sum_mul_pow_eq_zero`, the uniqueness: classes $a_i$
   with $a_0=1$ satisfying the relation are the Chern classes;
   `injective_projectiveBundle_proj`, the injectivity of $\pi^*$ in every
-  degree.
+  degree, for $E$ of positive rank.
 - `chernClass_zero` (`= 1`), `chernClass_eq_zero_of_finrank_lt`, and
-  `chernClass_one_eq_complexEulerClass` for a line bundle (`n = 1`):
+  `chernClass_one_eq_complexEulerClass` for a line bundle (`n = 1`) over a
+  compact base:
   `chernClass G E 1 = (uliftIntegralCohomologyIso _ 2).hom
-  (complexEulerClass G E _)`, from the relation on `P(L) ≅ B`.
+  (complexEulerClass G E _)`, from the relation and the injectivity of $\pi^*$.
 
 ### `Topology/VectorBundle/Complex/ChernClass/Naturality.lean`
 
