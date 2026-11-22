@@ -21,9 +21,10 @@ to the type `E (f y)`, and `Bundle.Pullback.eq_fiber_iff` moves an equation stat
 the type of the equation differs from the type of its two sides, so between them `simp` states
 such an equation at the type of its sides.
 
-For the same reason `Pi.neg_apply` does not evaluate the negative `-g` of a function on one of
-the two types at a vector of the other; `Bundle.Pullback.neg_apply_fiber` and
-`Bundle.Pullback.neg_apply_pullback` do.
+For the same reason `Pi.neg_apply`, `Pi.add_apply` and `Pi.smul_apply` do not evaluate `-g`,
+`g + h` or `c • g`, for functions on one of the two types, at a vector of the other;
+`Bundle.Pullback.neg_apply_fiber`, `add_apply_fiber` and `smul_apply_fiber`, and
+`neg_apply_pullback`, `add_apply_pullback` and `smul_apply_pullback`, do.
 
 ## References
 
@@ -62,6 +63,40 @@ theorem neg_apply_fiber (g : E (f y) → β) (v : (f *ᵖ E) y) : (-g) v = -g v 
 theorem neg_apply_pullback (g : (f *ᵖ E) y → β) (v : E (f y)) : (-g) v = -g v := (rfl)
 
 end Neg
+
+section Add
+
+variable {β : Type*} [Add β]
+
+/-- The sum of two functions `g` and `h` on `E (f y)`, applied to a vector `v` of the fibre of
+`f *ᵖ E` at `y`, is `g v + h v`. This is `Pi.add_apply` for a vector of the pull-back fibre. -/
+@[simp]
+theorem add_apply_fiber (g h : E (f y) → β) (v : (f *ᵖ E) y) : (g + h) v = g v + h v := (rfl)
+
+/-- The sum of two functions `g` and `h` on the fibre of `f *ᵖ E` at `y`, applied to a vector `v`
+of `E (f y)`, is `g v + h v`. This is `Pi.add_apply` for a vector of `E (f y)`. -/
+@[simp]
+theorem add_apply_pullback (g h : (f *ᵖ E) y → β) (v : E (f y)) : (g + h) v = g v + h v := (rfl)
+
+end Add
+
+section SMul
+
+variable {α β : Type*} [SMul α β]
+
+/-- The multiple `c • g` of a function `g` on `E (f y)`, applied to a vector `v` of the fibre of
+`f *ᵖ E` at `y`, is `c • g v`. This is `Pi.smul_apply` for a vector of the pull-back fibre. -/
+@[simp]
+theorem smul_apply_fiber (c : α) (g : E (f y) → β) (v : (f *ᵖ E) y) : (c • g) v = c • g v :=
+  (rfl)
+
+/-- The multiple `c • g` of a function `g` on the fibre of `f *ᵖ E` at `y`, applied to a vector
+`v` of `E (f y)`, is `c • g v`. This is `Pi.smul_apply` for a vector of `E (f y)`. -/
+@[simp]
+theorem smul_apply_pullback (c : α) (g : (f *ᵖ E) y → β) (v : E (f y)) : (c • g) v = c • g v :=
+  (rfl)
+
+end SMul
 
 end Bundle.Pullback
 
