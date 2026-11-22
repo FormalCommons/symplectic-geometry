@@ -329,7 +329,7 @@ Taken from Tau Ceti's main branch, with Tau Ceti's header, as *Files* in
 `AGENTS.md` says, in the sibling `FromTauCeti.lean` of the library's own
 `Orientation/Preserving.lean`: `TauCeti.Manifold.Orientation.IsOrientationPreservingAt.reindex`,
 which the pinned version lacks, for the reindexed orientation `projectiveLineOrientation`.
-`Normalization.lean` imports it.
+`Instances/OnePoint.lean` imports it.
 
 ### `Geometry/Manifold/Orientation/Sphere.lean`
 

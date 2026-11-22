@@ -7,7 +7,6 @@ module
 
 public import SymplecticGeometry.Analysis.Matrix.LDL
 public import SymplecticGeometry.Geometry.Manifold.Instances.OnePoint
-public import SymplecticGeometry.Geometry.Manifold.Orientation.Preserving.FromTauCeti
 public import SymplecticGeometry.Geometry.Manifold.Orientation.Sphere
 public import SymplecticGeometry.Geometry.Manifold.Projectivization.FubiniStudy.Basic
 public import SymplecticGeometry.Geometry.Manifold.Projectivization.FubiniStudy.Kahler
@@ -321,12 +320,11 @@ theorem integralTopForm_mpullback_map_fubiniStudyForm {n : ℕ}
     | h v hv => simp [Φ, map_mk, F, Matrix.toLin'_mul]
   have hΦ : Topology.IsOpenEmbedding Φ := by simpa using Φ.toHomeomorph.isOpenEmbedding
   -- `Φ` is a biholomorphism of `ℂP¹`, so it preserves the canonical orientation.
-  rw [projectiveLineOrientation_def, ← hΦ.integralTopForm_mpullback_of_isOrientationPreservingAt
-      (fun x ↦ (Φ.isOrientationPreservingAt_complexManifoldOrientation ω x).reindex _) (by simp),
+  rw [← hΦ.integralTopForm_mpullback_of_isOrientationPreservingAt
+      (Φ.isOrientationPreservingAt_projectiveLineOrientation ω) (by simp),
     ← SmoothForm.coe_mpullback _ (by simpa [Φ] using contMDiff_map_restrictScalars _ _ ∞),
     SmoothForm.mpullback_mpullback]
   simp only [hcomp, mpullback_map_fubiniStudyForm (F * P) hA]
-  rw [← projectiveLineOrientation_def]
   exact integralTopForm_fubiniStudyForm_one
 
 end SymplecticGeometry

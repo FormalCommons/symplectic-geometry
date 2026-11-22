@@ -7,6 +7,7 @@ module
 
 public import Mathlib.Geometry.Manifold.MFDeriv.NormedSpace
 public import Mathlib.Topology.Compactification.OnePoint.ProjectiveLine
+public import SymplecticGeometry.Geometry.Manifold.Orientation.Preserving.FromTauCeti
 public import TauCeti.Geometry.Manifold.Complex.Orientation
 public import TauCeti.Geometry.Manifold.Instances.OnePoint.FubiniStudy
 public import TauCeti.Geometry.Manifold.Instances.OnePoint.Projectivization
@@ -42,6 +43,8 @@ reads for the underlying real surface, modelled on `𝓘(ℝ, ℂ)`, and compare
   is the canonical orientation of the Riemann sphere as a complex manifold;
 * `SymplecticGeometry.projectiveLineOrientation`: the canonical orientation of `ℂP¹` as a complex
   manifold, indexed by `Fin 2`, with `SymplecticGeometry.orientationAt_projectiveLineOrientation`;
+* `Diffeomorph.isOrientationPreservingAt_projectiveLineOrientation`: biholomorphisms of `ℂP¹`
+  preserve that orientation;
 * `OnePoint.isOrientationPreservingAt_equivProjectivization`: the identification with `ℂP¹`
   preserves the canonical orientations;
 * `SymplecticGeometry.northPole` and `SymplecticGeometry.equatorIsometry`: the north pole
@@ -109,6 +112,16 @@ theorem orientationAt_projectiveLineOrientation (x : ℙ ℂ (Fin 2 → ℂ)) :
         (complexOrientation (Fin 1 → ℂ)) := by
   rw [projectiveLineOrientation_def, Manifold.Orientation.orientationAt_reindex,
     orientationAt_complexManifoldOrientation_eq_complexOrientation]
+
+/-- A biholomorphism of `ℂP¹` (a `C^n` diffeomorphism for the complex model, `n ≠ 0`) preserves
+`projectiveLineOrientation` at every point. -/
+theorem _root_.Diffeomorph.isOrientationPreservingAt_projectiveLineOrientation (n : ℕ∞ω)
+    [NeZero n] (Φ : ℙ ℂ (Fin 2 → ℂ) ≃ₘ^n⟮𝓘(ℂ, Fin 1 → ℂ), 𝓘(ℂ, Fin 1 → ℂ)⟯ ℙ ℂ (Fin 2 → ℂ))
+    (x : ℙ ℂ (Fin 2 → ℂ)) :
+    Manifold.Orientation.IsOrientationPreservingAt projectiveLineOrientation
+      projectiveLineOrientation Φ x := by
+  rw [projectiveLineOrientation_def]
+  exact (Φ.isOrientationPreservingAt_complexManifoldOrientation n x).reindex _
 
 end SymplecticGeometry
 
