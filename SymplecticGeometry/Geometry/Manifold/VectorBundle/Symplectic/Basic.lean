@@ -269,6 +269,20 @@ theorem isNondegenerate_iff_forall_ker_bilinFormAt_eq_bot :
   simp only [isNondegenerate_iff_separatingLeft, LinearMap.ker_eq_bot', LinearMap.ext_iff,
     bilinFormAt_apply, LinearMap.zero_apply]
 
+/-- A two-form whose fibre over every point is isomorphic to a symplectic vector space
+`(W, σ)`, by a linear isomorphism that carries `σ` to the form, is nondegenerate. -/
+theorem isNondegenerate_of_forall_exists {W : Type*} [AddCommGroup W] [Module ℝ W]
+    (σ : TauCeti.SymplecticForm W)
+    (h : ∀ x, ∃ Θ : W ≃ₗ[ℝ] V x, ∀ v w, ω.bilinFormAt x (Θ v) (Θ w) = σ v w) :
+    ω.IsNondegenerate := by
+  refine isNondegenerate_iff_separatingLeft.2 fun x v hv ↦ ?_
+  obtain ⟨Θ, hΘ⟩ := h x
+  obtain ⟨u, rfl⟩ := Θ.surjective v
+  refine (map_eq_zero_iff Θ Θ.injective).2 (σ.nondegenerate.1 u fun u' ↦ ?_)
+  refine (hΘ u u').symm.trans ?_
+  rw [bilinFormAt_apply]
+  exact hv (Θ u')
+
 /-- The negative of a nondegenerate two-form is nondegenerate. -/
 theorem IsNondegenerate.neg (h : ω.IsNondegenerate) : (-ω).IsNondegenerate := by
   rw [isNondegenerate_iff_separatingLeft] at h ⊢

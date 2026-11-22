@@ -21,13 +21,16 @@ entrywise norms `Matrix.Norms.Elementwise` as well as the operator norms
 Tau Ceti's `TauCeti.GLSymplectic.ofUnitary` sends a complex unitary matrix `U` to its
 realification, a symplectic matrix. This file shows that it turns the block-diagonal sum
 `Matrix.UnitaryGroup.sum` of unitary matrices into the direct sum `TauCeti.GLSymplectic.sum` of
-symplectic matrices. It sits beside Tau Ceti's `TauCeti.Topology.Algebra.Matrix.Realify`, where
-`ofUnitary` is defined, so that the lemma can join `ofUnitary` there.
+symplectic matrices, and that every symplectic matrix commuting with `Matrix.J` lies in its
+image. It sits beside Tau Ceti's `TauCeti.Topology.Algebra.Matrix.Realify`, where
+`ofUnitary` is defined, so that the lemmas can join `ofUnitary` there.
 
 ## Main results
 
 * `Matrix.realifyCLM`: realification of matrices, as a continuous `ℝ`-linear map.
 * `TauCeti.GLSymplectic.sum_ofUnitary`: `ofUnitary U ⊕ ofUnitary U' = ofUnitary (diag(U, U'))`.
+* `TauCeti.GLSymplectic.exists_ofUnitary_eq_of_commute`: a symplectic matrix that commutes with
+  `J` is `ofUnitary U` for a unitary matrix `U`.
 
 ## References
 
@@ -72,6 +75,20 @@ theorem sum_ofUnitary (U : unitaryGroup ι ℂ) (U' : unitaryGroup κ ℂ) :
   Subtype.ext <| Units.ext <| by
     rw [coe_sum, coe_ofUnitary, coe_ofUnitary, coe_ofUnitary, UnitaryGroup.coe_sum,
       realify_fromBlocks_zero]
+
+/-- **A symplectic matrix that commutes with `J` is a realified unitary matrix**: it is
+orthogonal (`Matrix.SymplecticGroup.mem_iff_mem_orthogonalGroup_of_commute`), and the orthogonal
+symplectic matrices are the image of `TauCeti.GLSymplectic.ofUnitary`. -/
+theorem exists_ofUnitary_eq_of_commute {A : GLSymplectic ι ℝ}
+    (h : Commute (J ι ℝ) ((A : GL (ι ⊕ ι) ℝ) : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ)) :
+    ∃ U, ofUnitary U = A := by
+  have hO : (A : GL (ι ⊕ ι) ℝ) ∈ unitarySubgroup (GL (ι ⊕ ι) ℝ) := by
+    rw [mem_unitarySubgroup_iff, Units.unitary_eq]
+    exact ((SymplecticGroup.mem_iff_mem_orthogonalGroup_of_commute h).1
+        (mem_iff_mem_symplecticGroup.1 A.property))
+  refine ⟨unitaryGroupEquivSymplecticInfOrthogonal.symm ⟨A, A.property, hO⟩, ?_⟩
+  rw [ofUnitary_apply, ContinuousMulEquiv.apply_symm_apply]
+  exact Subtype.ext (Subgroup.coe_inclusion _ _)
 
 end TauCeti.GLSymplectic
 
