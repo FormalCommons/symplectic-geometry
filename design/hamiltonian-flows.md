@@ -288,7 +288,8 @@ Imports between the files: `Velocity.lean` imports `Instances/Icc.lean`,
 `MFDeriv/Prod.lean` and `Diffeotopy/Basic.lean`;
 `SymplecticIsotopy.lean` and
 `Flux/Hamiltonian.lean` import `Velocity.lean`; `SymplecticIsotopy.lean`
-imports `Flux/Hamiltonian.lean`, for `isSmoothFamily_interiorₗ`; `Flux/Hamiltonian.lean`
+imports `DifferentialForm/SmoothFamily/Basic.lean` of *Smooth families*, for
+`isSmoothFamily_interiorₗ`; `Flux/Hamiltonian.lean`
 imports `Diffeotopy/Basic.lean` and `DeRham/FamilyPrimitive.lean`, which
 imports `DeRham/GoodCover/Basic.lean` and
 `DifferentialForm/SmoothFamily/HomotopyOperator.lean` of *Smooth families*;

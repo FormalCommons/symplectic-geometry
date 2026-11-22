@@ -389,6 +389,13 @@ Smooth families of forms over a parameter manifold `N` (model
   `TauCeti.SmoothForm.mpullback_prodMk_mpullback_prodComm`, that the slice
   at `t` of the pullback of `Ω : SmoothForm (I.prod J) (M × N) F k` along
   `Diffeomorph.prodComm` is the pullback of `Ω` along `(·, t)`.
+- `SymplecticGeometry.isSmoothFamily_interiorₗ`: for a two-form `σ` and a
+  family `X_t` of vector fields that is jointly smooth on `N × M`, the
+  family `t ↦ σ.interiorₗ (X t)` is smooth. It was first in
+  `Flux/Hamiltonian.lean` of *Hamiltonian flows*; it is here because it is
+  about smooth families only, and `SymplecticIsotopy.lean` of that part uses
+  it too. For it this file imports Tau Ceti's
+  `Geometry/Symplectic/Manifold/Flat.lean`.
 
 ### `Geometry/Manifold/DifferentialForm/SmoothFamily/Map.lean`
 
