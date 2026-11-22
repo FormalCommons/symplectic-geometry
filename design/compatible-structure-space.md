@@ -383,6 +383,16 @@ The manifold, in `TauCeti.SymplecticForm`.
   its differential is conjugation by `Ψ`) and
   `exists_compatibleTransport_eq (J J' : 𝒥 ω)` (transitivity, decision 10).
 
+### `Geometry/Manifold/ContMDiff/Submodule.lean`
+
+A general file that serves `SiegelUpperHalfSpace.lean`; imports only Mathlib.
+In `Submodule.ClosedComplemented`:
+
+- `contMDiff_iff_subtypeL_comp` (with its `WithinAt`, `At` and `On` forms):
+  for `p.ClosedComplemented`, a map into `p` is `C^n`, for every `n`, exactly
+  when its composite with `p.subtypeL` is; the field of `p` may be larger than
+  that of smoothness, through a scalar tower.
+
 ### `Geometry/Manifold/Instances/SiegelUpperHalfSpace.lean`
 
 With `open scoped Matrix.Norms.Operator` and Tau Ceti's
