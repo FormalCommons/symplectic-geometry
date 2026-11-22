@@ -260,10 +260,12 @@ with `hω : ω.Tames Jf`, and `hω : ω.Compatible Jf` where invariance is used.
   `SymplecticForm.Tames.isSymplectic_of_mem_invtSubmodule`; and
   `pullbackComplexStructure_mem_orthogonal`: for `ω` invariant under `Jf`,
   the orthogonal is `Jf`-invariant.
-- `tangentForm f ω : ContMDiffTwoForm I' ⊤ E' (TangentSpace I')`, the form
-  $\sigma(u,v)=\omega(df\,u,df\,v)$, with `tangentForm_apply`,
-  `isNondegenerate_tangentForm`, and `tangentForm_pos`: $\sigma(u,v)>0$ when
-  $u\neq0$ and $df\,v=J\,df\,u$.
+- The form $\sigma(u,v)=\omega(df\,u,df\,v)$ on `TangentSpace I'` is
+  `ω.compMFDeriv f f.contMDiff`, defined for any smooth map as
+  `ContMDiffTwoForm.compMFDeriv` in
+  `Geometry/Manifold/VectorBundle/Symplectic/Pullback.lean`, which this file
+  imports. Here: `isNondegenerate_compMFDeriv`, and `compMFDeriv_pos`:
+  $\sigma(u,v)>0$ when $u\neq0$ and $df\,v=J\,df\,u$.
 - `normalForm f hdim hJ ω hω : ContMDiffTwoForm I' ⊤ P (NormalSpace)`, the
   form $\omega_\nu(a,b)=\omega(r\,a, r\,b)$ with $r$ the complement
   representative for $W^\omega$, with `normalForm_normalClass` (its value on
@@ -274,7 +276,7 @@ with `hω : ω.Tames Jf`, and `hω : ω.Compatible Jf` where invariance is used.
   `snd_normalSplitting_apply` and `mfderiv_fst_normalSplitting_apply`, the
   smoothness of its map of total spaces (`contMDiff_normalSplitting`), and
   `pushforward_normalSplitting`: it carries `ω` to
-  `(tangentForm f ω).prod (normalForm f hdim hJ ω hω)`.
+  `(ω.compMFDeriv f f.contMDiff).prod (normalForm f hdim hJ ω hω)`.
 
 The orthogonal and `normalForm` stay in this file, with the splitting: they
 share the complement and the smoothness of its representatives, and the file
@@ -370,9 +372,9 @@ Namespace `TauCeti.AlmostComplexStructure`, for an almost complex structure
     `symplecticChernNumber_eq_chernNumber`;
   - by `symplecticChernNumber_congr` along `normalSplitting` and
     `symplecticChernNumber_whitneySum`, that is the sum of the numbers of
-    `(TΣ, tangentForm)` and `(ν, normalForm)`;
+    `(TΣ, ω.compMFDeriv f f.contMDiff)` and `(ν, normalForm)`;
   - the first is $2-2g$ by `symplecticChernNumber_tangent`, since
-    `tangentForm` induces `o` (`tangentForm_pos` with `ho`);
+    `ω.compMFDeriv f f.contMDiff` induces `o` (`compMFDeriv_pos` with `ho`);
   - the second is `chernNumber` of `ν_J` by
     `symplecticChernNumber_eq_chernNumber` with `compatible_normalForm`, and
     so `selfIntersectionNumber` by `selfIntersectionNumber_eq_chernNumber`.
@@ -399,8 +401,8 @@ Namespace `TauCeti.AlmostComplexStructure`, for an almost complex structure
   `surfaceGenus`; `nonempty_contMDiffRiemannianMetric`.
 - *Symplectic vector bundles*, merged: `ContMDiffComplexStructure` with
   `tangentEquiv`, `pullback` and `toContinuousComplexStructure`;
-  `ContMDiffTwoForm` with `prod`, `pushforward`, `compatibleForm` and
-  `compatible_compatibleForm`.
+  `ContMDiffTwoForm` with `prod`, `pushforward`, `compMFDeriv`,
+  `compatibleForm` and `compatible_compatibleForm`.
 - The library's merged `Geometry/Manifold/VectorBundle/Pullback.lean`
   (`Bundle.Pullback.hasLocalContMDiffSubbundleFrames_range_mfderiv`,
   `contMDiff_totalSpace_mfderiv`) and `Geometry/Manifold/VectorBundle/Orthogonal.lean`.
