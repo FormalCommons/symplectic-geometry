@@ -6,9 +6,12 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.LinearAlgebra.UnitaryGroup
+public import SymplecticGeometry.Data.Matrix.Mul
 public import SymplecticGeometry.Geometry.Manifold.Projectivization.FubiniStudy.Basic
+public import SymplecticGeometry.LinearAlgebra.Matrix.DotProduct
 public import TauCeti.Geometry.Manifold.Projectivization.Map
 public import TauCeti.Geometry.Symplectic.Manifold.Kahler
+public import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Submanifold
 import Mathlib.Analysis.InnerProductSpace.Calculus
 import Mathlib.Analysis.SpecialFunctions.Log.Deriv
 import TauCeti.Analysis.Calculus.ContDiff.FinInsertNth
@@ -38,6 +41,13 @@ potentials in the affine charts. Each statement is proved on `ℂⁿ⁺¹ ∖ 0`
   image of a vector `u` with `star z ⬝ᵥ u = 0`, and on such a vector
   `ρ_z(u, i u) = |u|² / |z|² > 0`.
 * `SymplecticGeometry.isKahler_fubiniStudyForm`: the Fubini–Study form is Kähler for `J`.
+* `SymplecticGeometry.isKahler_mpullback_fubiniStudyForm`: on a smooth embedding `f : N → ℂPⁿ`
+  with `J`-invariant tangent images, the pull-back of the Fubini–Study form is symplectic and
+  Kähler for the restricted structure `J|_N`, which is integrable when `N` has no boundary. This
+  is the case `M = ℂPⁿ` of the results of
+  `SymplecticGeometry/Geometry/Symplectic/Manifold/AlmostComplex/Submanifold.lean`
+  (`TauCeti.SmoothTwoForm.Tames.isSymplectic_mpullback`, `TauCeti.SmoothTwoForm.IsKahler.restrict`
+  and `TauCeti.SmoothAlmostComplexStructure.IsIntegrable.restrict`).
 * `SymplecticGeometry.mpullback_affineChart_symm_fubiniStudyForm` and
   `SymplecticGeometry.mpullback_affineChart_symm_fubiniStudyForm_eq_del_delBar`: along the inverse
   `w ↦ [Fin.insertNth j 1 w]` of each affine chart, the Fubini–Study form is
@@ -61,39 +71,9 @@ public section
 open Function Matrix TauCeti Projectivization
 open scoped Manifold ContDiff LinearAlgebra.Projectivization ComplexOrder
 
-namespace Matrix
-
-variable {l m R : Type*} [Fintype l] [Fintype m]
-
-/-- A matrix with a left inverse acts injectively on vectors: `A.mulVec` is injective. -/
-theorem mulVec_injective_of_mul_eq_one [Semiring R] [DecidableEq m] {A : Matrix l m R}
-    {B : Matrix m l R} (h : B * A = 1) : Injective A.mulVec := fun z w hzw ↦ by
-  simpa [mulVec_mulVec, h] using congrArg (B *ᵥ ·) hzw
-
-/-- A matrix with orthonormal columns, `Aᴴ * A = 1`, preserves the Hermitian product
-`star z ⬝ᵥ v`. -/
-theorem star_mulVec_dotProduct_mulVec [Semiring R] [StarRing R] [DecidableEq m]
-    {A : Matrix l m R} (hA : Aᴴ * A = 1) (z v : m → R) :
-    star (A *ᵥ z) ⬝ᵥ (A *ᵥ v) = star z ⬝ᵥ v := by
-  rw [star_mulVec, ← dotProduct_mulVec, mulVec_mulVec, hA, one_mulVec]
-
-end Matrix
-
 namespace Projectivization
 
-variable {𝕜 : Type*} [NontriviallyNormedField 𝕜] [NormedAlgebra ℝ 𝕜] {m n : ℕ}
-
-/-- The map of projective spaces induced by an injective linear map is `C^r` for the underlying
-real manifold structures. -/
-theorem contMDiff_map_restrictScalars (f : (Fin (m + 1) → 𝕜) →ₗ[𝕜] Fin (n + 1) → 𝕜)
-    (hf : Injective f) (r : ℕ∞ω) :
-    ContMDiff 𝓘(ℝ, Fin m → 𝕜) 𝓘(ℝ, Fin n → 𝕜) r (map f hf) := by
-  simpa using (contMDiff_map f hf r).restrictScalars ℝ
-
-/-- The inverse of an affine chart is `C^r` for the underlying real manifold structures. -/
-theorem contMDiff_affineChart_symm_restrictScalars (j : Fin (n + 1)) (r : ℕ∞ω) :
-    ContMDiff 𝓘(ℝ, Fin n → 𝕜) 𝓘(ℝ, Fin n → 𝕜) r (affineChart (K := 𝕜) j).symm := by
-  simpa using (contMDiff_affineChart_symm (𝕜 := 𝕜) j r).restrictScalars ℝ
+variable {n : ℕ}
 
 open SmoothAlmostComplexStructure
 
@@ -275,6 +255,35 @@ theorem isKahler_fubiniStudyForm :
     (fubiniStudyForm n).IsKahler (ofComplexManifold (Fin n → ℂ) (ℙ ℂ (Fin (n + 1) → ℂ))) :=
   SmoothTwoForm.isKahler_ofComplexManifold_iff.2
     ⟨(isSymplectic_fubiniStudyForm n).isClosed, compatible_fubiniStudyForm⟩
+
+/-! ### Complex submanifolds -/
+
+section Submanifold
+
+variable {E' H' N : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [FiniteDimensional ℝ E']
+  [TopologicalSpace H'] {I' : ModelWithCorners ℝ E' H'} [TopologicalSpace N] [ChartedSpace H' N]
+  [IsManifold I' ∞ N] {hn : (∞ : ℕ∞ω) ≠ 0}
+
+/-- **Complex submanifolds of `ℂPⁿ` are Kähler.** Let `f : N → ℂPⁿ` be a smooth embedding whose
+tangent images are invariant under the complex structure `J` of `ℂPⁿ`, and let `J|_N` be the
+restricted structure on `N`. Then the pull-back `f^* ω_FS` of the Fubini–Study form is a
+symplectic form on `N`, the pair `(f^* ω_FS, J|_N)` is Kähler (closed, compatible, with vanishing
+Nijenhuis tensor), and if `N` has no boundary, then `J|_N` is integrable.
+
+Milestone: *Complex submanifolds of Kähler manifolds*. -/
+theorem isKahler_mpullback_fubiniStudyForm
+    {f : SmoothEmbedding I' 𝓘(ℝ, Fin n → ℂ) ∞ N (ℙ ℂ (Fin (n + 1) → ℂ))}
+    (hJ : ∀ x, ∀ v ∈ f.tangentRange x hn,
+      ofComplexManifold (Fin n → ℂ) (ℙ ℂ (Fin (n + 1) → ℂ)) (f x) v ∈ f.tangentRange x hn) :
+    SmoothTwoForm.IsSymplectic (SmoothForm.mpullback f f.contMDiff (fubiniStudyForm n)) ∧
+      SmoothTwoForm.IsKahler (SmoothForm.mpullback f f.contMDiff (fubiniStudyForm n))
+        ((ofComplexManifold (Fin n → ℂ) (ℙ ℂ (Fin (n + 1) → ℂ))).restrict f hJ) ∧
+      (BoundarylessManifold I' N →
+        ((ofComplexManifold (Fin n → ℂ) (ℙ ℂ (Fin (n + 1) → ℂ))).restrict f hJ).IsIntegrable) :=
+  ⟨compatible_fubiniStudyForm.tames.isSymplectic_mpullback hJ (isSymplectic_fubiniStudyForm n),
+    isKahler_fubiniStudyForm.restrict hJ, fun _ ↦ isIntegrable_ofComplexManifold.restrict hJ⟩
+
+end Submanifold
 
 end Kahler
 
