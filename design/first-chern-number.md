@@ -1064,7 +1064,7 @@ issues, in an order where each issue's blockers come before it.
    `ArgumentPrinciple.lean` imports. This is the half of the book's Lemma 2.7.3 needed for discs.
    `AlgebraicTopology/Singular/DisjointCircles.lean`, for the boundary class
    of the complement, shows that a class of `H₁(ι × Circle)`, `ι` finite and
-   discrete, is fixed by its images under the maps
+   discrete, is determined by its images under the maps
    `Circle.prodRetraction i` that keep the `i`-th circle and send the
    others to `1` (`Circle.singularHomologyOne_prod_ext`).
    Blocked by 5 and 7.

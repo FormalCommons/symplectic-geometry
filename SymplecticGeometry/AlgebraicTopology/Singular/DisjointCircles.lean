@@ -19,11 +19,11 @@ Write `Circle.prodInclusion i : C(Circle, ι × Circle)` for the inclusion `z �
 `i`-th circle, and `Circle.prodRetraction i : C(ι × Circle, Circle)` for the map that is the
 identity on the `i`-th circle and sends the others to `1`. The composite
 `prodRetraction i ∘ prodInclusion j` is the identity for `j = i` and constant otherwise, so on
-`H₁` it is the identity or zero. The inclusions are the legs of a coproduct cofan in `TopCat`
-(`Circle.isColimitCofanProdInclusion`), and singular homology preserves finite coproducts
-(Tau Ceti's `TauCeti.isColimitCofanSingularHomology`, whose `PreservesColimitsOfShape` instance
-is used here), so the composites `(prodRetraction i)_* ≫ (prodInclusion i)_*` add up to the
-identity of `H₁(ι × Circle)`. Hence every class is the sum over `i` of `nᵢ` times the class of
+`H₁` it is the identity or zero. The inclusions are the legs of a coproduct cofan in `TopCat`,
+and singular homology preserves finite coproducts (Tau Ceti's
+`TauCeti.isColimitCofanSingularHomology`, whose `PreservesColimitsOfShape` instance is used
+here), so the composites `(prodRetraction i)_* ≫ (prodInclusion i)_*` add up to the identity of
+`H₁(ι × Circle)`. Hence every class is the sum over `i` of `nᵢ` times the class of
 the `i`-th circle, `nᵢ` being the integer that `Circle.singularHomologyOneIso` gives to its image
 under `prodRetraction i`, and a class is determined by these images.
 
@@ -99,9 +99,9 @@ theorem prodRetraction_comp_prodInclusion_of_ne {i j : ι} (h : j ≠ i) :
   ext z
   simp [prodRetraction_apply_of_ne h]
 
-/-- **`ι × Circle` is the disjoint union of its circles.** For `ι` discrete, the inclusions
-`prodInclusion i` are the legs of a coproduct cofan in `TopCat`. -/
-def isColimitCofanProdInclusion :
+/-- For `ι` discrete, the inclusions `prodInclusion i` are the legs of a coproduct cofan in
+`TopCat`. -/
+private def isColimitCofanProdInclusion :
     IsColimit (Cofan.mk (TopCat.of (ι × Circle))
       (fun i ↦ TopCat.ofHom (prodInclusion i)) : Cofan fun _ : ι ↦ TopCat.of Circle) :=
   Cofan.IsColimit.mk _
@@ -156,20 +156,6 @@ theorem singularHomologyFunctor_map_prodRetraction_map_prodInclusion (i j : ι) 
   rw [← LinearMap.comp_apply, ← ModuleCat.hom_comp,
     singularHomologyFunctor_map_prodRetraction_comp_prodInclusion]
   split_ifs <;> simp
-
-/-- A class `x` of `H₁(Circle)` is `n • g`, for `g` the generator and `n` the integer that
-`Circle.singularHomologyOneIso` gives to `x`. -/
-theorem eq_zsmul_singularHomologyOneIso_inv_one
-    (x : ((singularHomologyFunctor (ModuleCat.{0} ℤ) 1).obj (ModuleCat.of ℤ (ULift.{0} ℤ))).obj
-      (TopCat.of Circle)) :
-    x = ((singularHomologyOneIso (ModuleCat.of ℤ (ULift.{0} ℤ))).hom.hom x).down •
-      (singularHomologyOneIso (ModuleCat.of ℤ (ULift.{0} ℤ))).inv.hom (ULift.up 1) := by
-  have h : (singularHomologyOneIso (ModuleCat.of ℤ (ULift.{0} ℤ))).hom.hom x =
-      ((singularHomologyOneIso (ModuleCat.of ℤ (ULift.{0} ℤ))).hom.hom x).down • ULift.up 1 := by
-    ext
-    simp
-  rw [← map_zsmul, ← h]
-  simp
 
 /-- **Classes of `H₁(ι × Circle)` in terms of the circles.** Every class `y` is the sum over `i` of
 `nᵢ` times the class of the `i`-th circle, the push-forward along `prodInclusion i` of the
