@@ -27,8 +27,8 @@ transverse zero of a holomorphic section of a holomorphic bundle.
 
 ## Proof
 
-The index is the sign of the Jacobian determinant of the section read in an oriented chart of
-`M` with values in the model fibre `G` and in `e`
+Tau Ceti computes the local index as a sign: that of the determinant of the derivative of the
+section, read in `e` and in an oriented chart of `M` with values in the model fibre `G`
 (`TauCeti.VectorBundleOrientation.sectionIndex_eq_sign_det_of_hasFDerivAt`). Take as chart the
 preferred chart at `z` followed by `A`. It carries the local orientation of `M` at `z` to the
 local orientation of `G` selected by the image under `A` of the tangent orientation at `z`
@@ -113,6 +113,7 @@ theorem sectionIndex_eq_one_of_complexLinear {n : ℕ} (hE : finrank ℝ E = n +
       (g ∘ (chartAt E z).symm) ∘ Aℝ.symm := by
     ext y
     exact congrArg g (by simp [φ, OpenPartialHomeomorph.transHomeomorph_symm_apply])
+  -- By definition of `g`, the function of `hA` is `g ∘ (chartAt E z).symm`.
   replace hA : HasFDerivAt (g ∘ (chartAt E z).symm) (Aℝ : E →L[ℝ] G) (chartAt E z z) := hA
   -- The derivative of the section read in `φ` is the identity.
   have hAφ : HasFDerivAt (fun y ↦ (e (TotalSpace.mk' G (φ.symm y) (s (φ.symm y)))).2)
@@ -144,7 +145,7 @@ theorem sectionIndex_eq_one_of_complexLinear {n : ℕ} (hE : finrank ℝ E = n +
     have := VectorBundle.finiteDimensional ℂ G V x
     rw [reindex_apply, Trivialization.mapOrientation_reindex, complex_apply,
       Trivialization.mapOrientation_complexOrientation _ _ _ rfl, ← Orientation.reindex_trans]
-    rfl
+    exact congrArg (Orientation.reindex ℝ G · (complexOrientation G)) (Equiv.ext fun _ ↦ by simp)
   -- The chart `φ` carries the local orientation of `M` at `z` to the one selected by `ω`.
   have hoz : (oM.orientationAt z : Orientation ℝ E (Fin (n + 1))) =
       Orientation.reindex ℝ E (finCongr h₂) (complexOrientation E) := by
@@ -156,7 +157,7 @@ theorem sectionIndex_eq_one_of_complexLinear {n : ℕ} (hE : finrank ℝ E = n +
     refine (congrArg (Orientation.map (Fin (n + 1)) Aℝ.toLinearEquiv) hoz).trans ?_
     rw [Orientation.map_reindex, ContinuousLinearEquiv.restrictScalars'_toLinearEquiv,
       LinearEquiv.map_complexOrientation, ← Orientation.reindex_trans]
-    rfl
+    exact congrArg (Orientation.reindex ℝ G · (complexOrientation G)) (Equiv.ext fun _ ↦ by simp)
   have hφl := Manifold.Orientation.localHomologyMap_sub_toHomologicalOrientation_transHomeomorph
     hE oM hG Aℝ z
   rw [hω] at hφl
