@@ -377,6 +377,15 @@ normed algebra with summable geometric series, `x ↦ A (1 + x) (1 - x)⁻¹` ha
 derivative $\dot X\mapsto2A(1-C)^{-1}\dot X(1-C)^{-1}$ at `C` with `1 - C`
 invertible.
 
+### `Geometry/Manifold/MFDeriv/Singleton.lean`
+
+A general file that serves `CompatibleComplexStructures.lean`, whose atlas
+has one chart; imports Mathlib. In the root namespace, for points whose
+preferred charts coincide: `tangentCoordChange_of_chartAt_eq` (the tangent
+coordinate change is the identity), `mfderiv_chartAt_of_chartAt_eq` and
+`mfderiv_chartAt_symm_of_chartAt_eq` (the differentials of the chart and of
+its inverse are the identity).
+
 ### `Geometry/Manifold/SmoothEmbedding/Basic/FromTauCeti.lean`
 
 Tau Ceti main's `Manifold.IsSmoothEmbedding.contMDiffAt_iff_comp` (commit

@@ -8,6 +8,7 @@ module
 public import TauCeti.Geometry.Manifold.TubularNeighborhood.Existence
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.VectorBundlePoincare
 import Mathlib.Geometry.Manifold.PartitionOfUnity
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Family
 
 /-!
 # Correcting a family of one-forms to vanish along a submanifold
@@ -124,14 +125,6 @@ theorem exists_contMDiff_mextDeriv_eq_mpullback_prodMk [CompactSpace Q]
   obtain ⟨G, hG, hG0, hdG⟩ :=
     exists_contMDiff_mextDeriv_ofFunction_eq_of_mpullback_zeroSection
       (SmoothForm.mpullback (Prod.map _root_.id Φ') hΦ'' γ)
-  have hslice (t : ℝ) :
-      SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id)
-          (SmoothForm.mpullback (Prod.map _root_.id Φ') hΦ'' γ) =
-        SmoothForm.mpullback Φ' hΦ'
-          (SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) γ) := by
-    have hcomp : (Prod.map _root_.id Φ' ∘ Prod.mk t : TotalSpace P N → ℝ × M) =
-        Prod.mk t ∘ Φ' := rfl
-    simp only [SmoothForm.mpullback_mpullback, hcomp]
   -- A cutoff `χ`, equal to `1` near `f(Q)` and vanishing outside a compact `K ⊆ W`.
   have hfc : IsCompact (range f) := isCompact_range f.contMDiff.continuous
   obtain ⟨K, hK, hfK, hKW⟩ := exists_compact_between hfc W.isOpen (range_subset_iff.2 hfW)
@@ -163,11 +156,12 @@ theorem exists_contMDiff_mextDeriv_eq_mpullback_prodMk [CompactSpace Q]
       filter_upwards [W.isOpen.mem_nhds (hfW q)] with x hx
       exact hΦψ hx
     have hd := hdG t q (by
-      rw [hslice, SmoothForm.mpullback_mpullback]
+      rw [SmoothForm.mpullback_prodMk_mpullback_prodMap Φ' hΦ' γ t,
+        SmoothForm.mpullback_mpullback]
       rw [SmoothForm.coe_mpullback, show Φ' ∘ zeroSection P N = f from funext hΦ,
         ← SmoothForm.coe_mpullback _ f.contMDiff]
       exact hq)
-    rw [hslice] at hd
+    rw [SmoothForm.mpullback_prodMk_mpullback_prodMap Φ' hΦ' γ t] at hd
     rw [mextDeriv_congr_of_eventuallyEq
         (η := RoughForm.ofFunction I ((fun v ↦ G (t, v)) ∘ ψ)) (hloc.mono fun x hx ↦ by
         rw [RoughForm.ofFunction_apply_eq_constOfIsEmpty,

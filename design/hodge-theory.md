@@ -363,9 +363,11 @@ a compact `K ⊆ ψ.target`, used to show that `L2Form.localize` is bounded:
   elsewhere (`localize_ofSmooth`). It is bounded
   (`exists_norm_localizeLp_le`), since the differential of `ψ.symm` is
   bounded above and its Jacobian below on `ψ '' tsupport χ`.
-- `L2Form.eq_ofSmooth_of_localize`: if, for a finite cover with a
-  partition of unity, every localization of `u` is a.e. a smooth function
-  with compact support, then `u = ofSmooth α` for a smooth form $\alpha$.
+- `L2Form.eq_ofSmooth_of_localize`: for finitely many charts `ψ i` and a
+  smooth partition of unity `ρ` subordinate to their sources, taken as the
+  cutoffs, if every `localize (ψ i) (ρ i) _ u` is a.e. a smooth `f i` with
+  compact support in `(ψ i).target`, then
+  `u = ofSmooth (∑ i, SmoothForm.extendByZeroAlong (ψ i) (f i) …)`.
 
 ### `Geometry/Manifold/DeRham/Hodge/Regularity.lean`
 
