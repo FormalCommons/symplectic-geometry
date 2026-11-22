@@ -6,7 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.DiscComplement.BoundaryClass
-public import SymplecticGeometry.Analysis.Complex.RadialProjection
+public import TauCeti.Topology.Circle.Normalize
 
 /-!
 # The argument principle for coordinate discs
@@ -68,13 +68,11 @@ theorem sum_degree_boundary_eq_zero [CompactSpace M] (hn : finrank ℝ E = 2)
   let _ : TopologicalSpace ι := ⊥
   have : DiscreteTopology ι := ⟨rfl⟩
   -- `u / |u|` as a map from the complement of the open discs to the circle
-  let v : C(discComplement φ, Circle) := Circle.radialProjection.comp
-    (⟨fun y ↦ ⟨u y, mem_compl_singleton_iff.2 (hu₀ y y.property)⟩,
-      (hu.comp_continuous continuous_subtypeVal fun y ↦ y.property).subtype_mk _⟩ :
-      C(discComplement φ, ({0}ᶜ : Set ℂ)))
-  have hv (y : discComplement φ) : (v y : ℂ) = u y / ‖u y‖ := by
-    rw [ContinuousMap.comp_apply, Circle.coe_radialProjection_apply, ContinuousMap.coe_mk,
-      Complex.real_smul, Complex.ofReal_inv, inv_mul_eq_div]
+  let v : C(discComplement φ, Circle) :=
+    (⟨(discComplement φ).domRestrict u, hu.domRestrict⟩ : C(discComplement φ, ℂ)).normalizeToCircle
+      fun y ↦ hu₀ y y.property
+  have hv (y : discComplement φ) : (v y : ℂ) = u y / ‖u y‖ :=
+    ContinuousMap.coe_normalizeToCircle_apply _ _ y
   let w : C(↥(range (inclusion (discComplementInterior_subset φ)))ᶜ, Circle) :=
     v.restrict _
   have h₀ := (o.comap (discComplementInterior φ).isOpenEmbedding').boundaryDegree_eq_zero_of_extend
