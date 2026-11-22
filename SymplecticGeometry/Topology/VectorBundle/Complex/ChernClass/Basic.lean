@@ -387,9 +387,8 @@ private theorem sum_mul_pow_eq (a : ∀ k : ℕ, (TopCat.of B).integralCohomolog
     (2 * (k + 1)) (by omega) ⟨⟨finrank ℂ G - (k + 1), by omega⟩, rfl⟩ (a (k + 1)))).symm
   rw [TopCat.evenIntegralCohomologyMap_of,
     TopCat.evenIntegralCohomologyOf_pow_eq_of _ _ (finrank ℂ G - (k + 1)),
-    TopCat.evenIntegralCohomologyOf_mul]
-  exact DirectSum.of_eq_of_gradedMonoid_eq
-    (Sigma.ext (Nat.add_sub_cancel' (by omega)) (TopCat.integralCup_heq _ _ _ _ _))
+    TopCat.evenIntegralCohomologyOf_mul_of_add_eq _ (Nat.add_sub_cancel' (by omega)),
+    projectiveBundleClassPow_mk G E ⟨finrank ℂ G - (k + 1), by omega⟩]
 
 variable [FiniteDimensional ℂ G] [CompactSpace B]
 
