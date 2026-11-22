@@ -647,9 +647,15 @@ Named like Tau Ceti's file. With `[I.Boundaryless] [T2Space M] [CompactSpace M]`
   step 2 of *Decisions*.
 - `IsContactFamily.exists_grayField (hξ)`: a time-dependent field
   `Y : ℝ → Π x, TangentSpace I x`, jointly smooth on `ℝ × M`, with, for
-  `t ∈ [0, 1]`, `Y t x ∈ ξ t x` and the Gray equation against every local
-  defining family near `(t, x)`; step 3 of *Decisions*, by a smooth partition
-  of unity on `ℝ × M`.
+  `t ∈ [0, 1]`, `Y t x ∈ ξ t x` and `Y t x` the Gray vector of every local
+  defining family near `(t, x)` (equivalently, by `eq_grayVectorField_iff`,
+  the Gray equation against it); step 3 of *Decisions*, by Mathlib's
+  `exists_contMDiffSection_forall_mem_convex_of_local` on the tangent bundle
+  of `ℝ × M`. It needs `[SigmaCompactSpace M]` only, not compactness. Two
+  local defining families are compared by
+  `tangentSpaceOpenEquiv_grayVectorField_eq`, and a local Gray field is read
+  on `M` by `TauCeti.Manifold.contMDiffOn_tangentSpaceOpenEquiv_dite`, in
+  `Geometry/Manifold/VectorBundle/Tangent/Opens.lean`.
 - `IsContactFamily.grayDiffeotopy (hξ) : Diffeotopy I ∞ M`, the
   `TauCeti.timeDependentFlowDiffeotopy` of the field chosen by
   `exists_grayField` (complete since `M` is compact), with
