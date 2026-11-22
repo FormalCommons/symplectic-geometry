@@ -14,7 +14,6 @@ public import TauCeti.Geometry.Manifold.Orientation.AddCircle
 public import TauCeti.Geometry.Manifold.Orientation.OpenSubset
 import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Orientation
 import SymplecticGeometry.Geometry.Manifold.Orientation.AddCircle
-import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Injective
 import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
 
@@ -102,10 +101,6 @@ variable (c : SmoothCollar 1 ∞ S) {ι : Type} (γ : ι → AddCircle (1 : ℝ)
 
 /-! ### The pieces, modelled on `ℝ²` -/
 
-variable (S) in
-/-- The interior of `S`, as a boundaryless manifold over `ℝ²`. -/
-private abbrev InteriorPiece : Type := InteriorModel (𝓡∂ 2) ((𝓡∂ 2).interiorOpens S)
-
 /-- The identification of the interior of `S` with its copy over `ℝ²`. -/
 private def interiorDiffeomorph :
     (𝓡∂ 2).interiorOpens S ≃ₘ^∞⟮𝓡∂ 2, 𝓡 2⟯ InteriorPiece S :=
@@ -121,34 +116,15 @@ private theorem mem_discOpens {v : EuclideanSpace ℝ (Fin 2)} : v ∈ discOpens
 private instance : Nonempty discOpens :=
   ⟨⟨0, mem_discOpens.2 (by simp)⟩⟩
 
-/-- The point of the ball of `ℂ` with coordinates `v`. -/
-private def discToBall (v : discOpens) : ball :=
-  ⟨orthonormalBasisOneI.repr.symm v, by
-    rw [mem_ball_iff, LinearIsometryEquiv.norm_map]
-    exact mem_discOpens.1 v.property⟩
+/-- The identification `z ↦ (re z, im z)` of the ball of `ℂ` with the ball of radius `2` of
+`ℝ²`, the restriction of `complexDiffeomorph`. -/
+private def ballDiffeomorph : ball ≃ₘ^∞⟮𝓘(ℝ, ℂ), 𝓡 2⟯ discOpens :=
+  complexDiffeomorph.subtype fun z ↦ by
+    rw [mem_ball_iff, mem_discOpens, coe_complexDiffeomorph, LinearIsometryEquiv.norm_map]
 
-/-- The coordinates of a point of the ball of `ℂ`. -/
-private def ballToDisc (z : ball) : discOpens :=
-  ⟨orthonormalBasisOneI.repr z, by
-    rw [mem_discOpens, LinearIsometryEquiv.norm_map]
-    exact mem_ball_iff.1 z.property⟩
-
-private theorem coe_ballToDisc (z : ball) :
-    (ballToDisc z : EuclideanSpace ℝ (Fin 2)) = orthonormalBasisOneI.repr z :=
-  (rfl)
-
-private theorem discToBall_ballToDisc (z : ball) : discToBall (ballToDisc z) = z :=
-  Subtype.ext (orthonormalBasisOneI.repr.symm_apply_apply _)
-
-private theorem ballToDisc_discToBall (v : discOpens) : ballToDisc (discToBall v) = v :=
-  Subtype.ext (orthonormalBasisOneI.repr.apply_symm_apply _)
-
-private theorem isLocalDiffeomorph_discToBall :
-    IsLocalDiffeomorph (𝓡 2) 𝓘(ℝ, ℂ) ∞ discToBall := fun v ↦ by
-  refine isLocalDiffeomorphAt_subtypeVal_comp_iff.1 ?_
-  exact (isLocalDiffeomorph_subtype_val v).comp
-    (hg := orthonormalBasisOneI.repr.symm.toContinuousLinearEquiv.toDiffeomorph.isLocalDiffeomorph
-      _)
+private theorem coe_ballDiffeomorph (z : ball) :
+    (ballDiffeomorph z : EuclideanSpace ℝ (Fin 2)) = orthonormalBasisOneI.repr z := by
+  rw [ballDiffeomorph, Diffeomorph.subtype_apply_coe, coe_complexDiffeomorph]
 
 variable (S ι) in
 /-- The pieces of the capped surface: the interior of `S`, and one disc for each `i : ι`. -/
@@ -175,17 +151,23 @@ private instance (k : Option ι) : IsManifold (𝓡 2) 1 (piece S ι k) :=
 /-- The maps of the pieces into the capped surface. -/
 private def pieceMap : ∀ k : Option ι, piece S ι k → capDiscs c γ hγ hinj
   | none => fun x ↦ inl c γ hγ hinj (interiorDiffeomorph.symm x)
-  | some i => fun v ↦ inr c γ hγ hinj i (discToBall v)
+  | some i => fun v ↦ inr c γ hγ hinj i (ballDiffeomorph.symm v)
 
-private theorem isLocalDiffeomorph_inr_discToBall (i : ι) :
-    IsLocalDiffeomorph (𝓡 2) (𝓡 2) ∞ fun v : discOpens ↦ inr c γ hγ hinj i (discToBall v) :=
-  fun v ↦ (isLocalDiffeomorph_discToBall v).comp (hg := isLocalDiffeomorph_inr c γ hγ hinj i _)
+private theorem isLocalDiffeomorph_inr_ballDiffeomorph_symm (i : ι) :
+    IsLocalDiffeomorph (𝓡 2) (𝓡 2) ∞
+      fun v : discOpens ↦ inr c γ hγ hinj i (ballDiffeomorph.symm v) :=
+  fun v ↦ (ballDiffeomorph.symm.isLocalDiffeomorph v).comp
+    (hg := isLocalDiffeomorph_inr c γ hγ hinj i _)
+
+private theorem injective_inr_ballDiffeomorph_symm (i : ι) :
+    Injective fun v : discOpens ↦ inr c γ hγ hinj i (ballDiffeomorph.symm v) :=
+  (isOpenEmbedding_capDiscs_inr c γ hγ hinj i).injective.comp ballDiffeomorph.symm.injective
 
 private theorem isLocalDiffeomorph_pieceMap :
     ∀ k : Option ι, IsLocalDiffeomorph (𝓡 2) (𝓡 2) ∞ (pieceMap c γ hγ hinj k)
   | none => fun x ↦ (interiorDiffeomorph.symm.isLocalDiffeomorph x).comp
       (hg := isLocalDiffeomorph_inl c γ hγ hinj _)
-  | some i => isLocalDiffeomorph_inr_discToBall c γ hγ hinj i
+  | some i => isLocalDiffeomorph_inr_ballDiffeomorph_symm c γ hγ hinj i
 
 private theorem iUnion_range_pieceMap : ⋃ k, range (pieceMap c γ hγ hinj k) = univ := by
   refine eq_univ_of_forall fun p ↦ ?_
@@ -193,7 +175,7 @@ private theorem iUnion_range_pieceMap : ⋃ k, range (pieceMap c γ hγ hinj k) 
     p ∈ range (inl c γ hγ hinj) ∪ ⋃ i, range (inr c γ hγ hinj i)) with ⟨q, rfl⟩ | hp
   · exact mem_iUnion.2 ⟨none, interiorDiffeomorph q, by simp [pieceMap]⟩
   · obtain ⟨i, z, rfl⟩ := mem_iUnion.1 hp
-    exact mem_iUnion.2 ⟨some i, ballToDisc z, by simp [pieceMap, discToBall_ballToDisc]⟩
+    exact mem_iUnion.2 ⟨some i, ballDiffeomorph z, by simp [pieceMap]⟩
 
 /-- The orientation `o` on the copy of the interior of `S` over `ℝ²`. -/
 private def interiorOrientation : Manifold.Orientation (𝓡 2) (InteriorPiece S) (Fin 2) :=
@@ -222,43 +204,27 @@ private theorem isOrientationPreservingAt_interiorDiffeomorph_symm (x : Interior
 /-- The identification of the interior with its copy over `ℝ²` preserves orientation. -/
 private theorem isOrientationPreservingAt_interiorDiffeomorph (p : (𝓡∂ 2).interiorOpens S) :
     IsOrientationPreservingAt (o.restrict ((𝓡∂ 2).interiorOpens S)) (interiorOrientation o)
-      interiorDiffeomorph p := by
-  refine .of_comp (isOrientationPreservingAt_interiorDiffeomorph_symm o _) ?_
-    (interiorDiffeomorph.mdifferentiable (by simp) p)
-  have hid : interiorDiffeomorph.symm ∘ interiorDiffeomorph = id :=
-    funext (interiorDiffeomorph (S := S)).symm_apply_apply
-  rw [hid]
-  exact isOrientationPreservingAt_id _ p
-
-private theorem val_comp_ballToDisc :
-    Subtype.val ∘ ballToDisc = orthonormalBasisOneI.repr ∘ (Subtype.val : ball → ℂ) :=
-  (rfl)
+      interiorDiffeomorph p :=
+  (isOrientationPreservingAt_interiorDiffeomorph_symm o _).diffeomorph_symm
+    (e := interiorDiffeomorph.symm) (by simp)
 
 /-- The coordinates `z ↦ (re z, im z)` of the ball of `ℂ` preserve orientation. -/
-private theorem isOrientationPreservingAt_ballToDisc (z : ball) :
+private theorem isOrientationPreservingAt_ballDiffeomorph (z : ball) :
     IsOrientationPreservingAt
       ((Manifold.Orientation.model (I := 𝓘(ℝ, ℂ)) Complex.orientation (by simp)).restrict ball)
-      discOrientation ballToDisc z := by
-  have h : IsOrientationPreservingAt
-      ((Manifold.Orientation.model (I := 𝓘(ℝ, ℂ)) Complex.orientation (by simp)).restrict ball)
-      (Manifold.Orientation.euclideanSpace 2) (Subtype.val ∘ ballToDisc) z := by
-    rw [val_comp_ballToDisc]
-    exact (Complex.isOrientationPreservingAt_orthonormalBasisOneI_repr _).comp
-      (isOrientationPreservingAt_restrict _ ball z)
-  exact .of_comp (isOrientationPreservingAt_restrict _ discOpens _) h
-    (TauCeti.Manifold.mdifferentiableAt_subtype_val_comp_iff.1
-      (mdifferentiableAt_of_isInvertible_mfderiv h.isInvertible_mfderiv))
+      discOrientation ballDiffeomorph z := by
+  have he : Subtype.val ∘ ballDiffeomorph = orthonormalBasisOneI.repr ∘ (Subtype.val : ball → ℂ) :=
+    funext coe_ballDiffeomorph
+  rw [discOrientation, isOrientationPreservingAt_restrict_iff, he]
+  exact (Complex.isOrientationPreservingAt_orthonormalBasisOneI_repr _).comp
+    (isOrientationPreservingAt_restrict _ ball z)
 
 /-- The inverse of the coordinates preserves orientation. -/
-private theorem isOrientationPreservingAt_discToBall (v : discOpens) :
+private theorem isOrientationPreservingAt_ballDiffeomorph_symm (v : discOpens) :
     IsOrientationPreservingAt discOrientation
       ((Manifold.Orientation.model (I := 𝓘(ℝ, ℂ)) Complex.orientation (by simp)).restrict ball)
-      discToBall v := by
-  refine .of_comp (isOrientationPreservingAt_ballToDisc _) ?_
-    ((isLocalDiffeomorph_discToBall v).mdifferentiableAt (by simp))
-  have hid : ballToDisc ∘ discToBall = id := funext ballToDisc_discToBall
-  rw [hid]
-  exact isOrientationPreservingAt_id _ v
+      ballDiffeomorph.symm v :=
+  (isOrientationPreservingAt_ballDiffeomorph _).diffeomorph_symm (by simp)
 
 /-! ### The annuli -/
 
@@ -329,9 +295,7 @@ private theorem isOrientationPreservingAt_collarPoint (i : ι) (u : annulusParam
     rw [val_comp_collarPoint, ← isOrientationReversingAt_neg_right, annulusOrientation,
       isOrientationReversingAt_neg_left]
     exact (hc.comp hprod).comp (isOrientationPreservingAt_restrict _ _ u)
-  exact .of_comp (isOrientationPreservingAt_restrict _ _ _) h
-    (TauCeti.Manifold.mdifferentiableAt_subtype_val_comp_iff.1
-      (mdifferentiableAt_of_isInvertible_mfderiv h.isInvertible_mfderiv))
+  exact isOrientationPreservingAt_restrict_iff.2 h
 
 /-- In the parameters, the polar parametrization reverses orientation. -/
 private theorem isOrientationPreservingAt_polarPoint (u : annulusParam) :
@@ -359,16 +323,14 @@ private theorem isOrientationPreservingAt_polarPoint (u : annulusParam) :
     exact (hpol.comp_preserving
       ((isOrientationPreservingAt_id _ u.val.1).prodMap (hd _))).comp_preserving
       (isOrientationPreservingAt_restrict _ _ u)
-  exact .of_comp (isOrientationPreservingAt_restrict _ _ _) h
-    (TauCeti.Manifold.mdifferentiableAt_subtype_val_comp_iff.1
-      (mdifferentiableAt_of_isInvertible_mfderiv h.isInvertible_mfderiv))
+  exact isOrientationPreservingAt_restrict_iff.2 h
 
 include hrev in
 /-- On the annuli, the interior piece and the `i`-th disc carry their orientations to the same
 orientation of the capped surface. -/
 private theorem map_orientationAt_eq (i : ι) {x : piece S ι none} {y : piece S ι (some i)}
     (u : annulusParam) (hx : interiorDiffeomorph (collarPoint (c := c) (γ := γ) i u) = x)
-    (hy : ballToDisc (polarPoint u) = y) :
+    (hy : ballDiffeomorph (polarPoint u) = y) :
     _root_.Orientation.map (Fin 2)
         ((isLocalDiffeomorph_pieceMap c γ hγ hinj none x).mfderivToContinuousLinearEquiv
           (NeZero.ne _)).toLinearEquiv ((pieceOrientation o none).orientationAt x) =
@@ -378,50 +340,39 @@ private theorem map_orientationAt_eq (i : ι) {x : piece S ι none} {y : piece S
   subst hx hy
   have hρ := (isOrientationPreservingAt_interiorDiffeomorph o _).comp
     (isOrientationPreservingAt_collarPoint c γ hrev i u)
-  have hρ' := (isOrientationPreservingAt_ballToDisc _).comp (isOrientationPreservingAt_polarPoint u)
+  have hρ' := (isOrientationPreservingAt_ballDiffeomorph _).comp
+    (isOrientationPreservingAt_polarPoint u)
   refine map_orientationAt_eq_of_comp_eventuallyEq (isLocalDiffeomorph_pieceMap c γ hγ hinj none)
     (isLocalDiffeomorph_pieceMap c γ hγ hinj (some i)) (o₁ := pieceOrientation o none)
     (o₂ := pieceOrientation o (some i))
     (ρ₁ := fun u ↦ (interiorDiffeomorph (collarPoint (c := c) (γ := γ) i u) : piece S ι none))
-    (ρ₂ := fun u ↦ (ballToDisc (polarPoint u) : piece S ι (some i))) hρ hρ'
+    (ρ₂ := fun u ↦ (ballDiffeomorph (polarPoint u) : piece S ι (some i))) hρ hρ'
     (mdifferentiableAt_of_isInvertible_mfderiv hρ.isInvertible_mfderiv)
     (mdifferentiableAt_of_isInvertible_mfderiv hρ'.isInvertible_mfderiv)
     (Filter.Eventually.of_forall fun u ↦ ?_)
-  -- On the two pieces, `pieceMap` is `inl ∘ interiorDiffeomorph.symm` and `inr i ∘ discToBall`.
+  -- On the two pieces, `pieceMap` is `inl ∘ interiorDiffeomorph.symm` and
+  -- `inr i ∘ ballDiffeomorph.symm`.
   exact (congrArg (inl c γ hγ hinj) (interiorDiffeomorph.symm_apply_apply _)).trans
     ((inl_collarPoint c γ hγ hinj i u).trans
-      (congrArg (inr c γ hγ hinj i) (discToBall_ballToDisc _)).symm)
-
-private theorem coe_polarPoint (u : annulusParam) :
-    (polarPoint u : ℂ) =
-      ((1 + (u.val.2 : EuclideanHalfSpace 1).val 0 : ℝ) : ℂ) * (toCircle u.val.1 : ℂ) :=
-  (rfl)
+      (congrArg (inr c γ hγ hinj i) (ballDiffeomorph.symm_apply_apply _)).symm)
 
 include hγ hinj in
 /-- A point where the interior piece meets the `i`-th disc is given by parameters of the annulus. -/
 private theorem exists_annulusParam (i : ι) {x : piece S ι none} {y : piece S ι (some i)}
     (h : pieceMap c γ hγ hinj none x = pieceMap c γ hγ hinj (some i) y) :
     ∃ u : annulusParam, interiorDiffeomorph (collarPoint (c := c) (γ := γ) i u) = x ∧
-      ballToDisc (polarPoint u) = y := by
-  set z := discToBall y with hzy
+      ballDiffeomorph (polarPoint u) = y := by
+  set z := ballDiffeomorph.symm y with hzy
   have h' : inl c γ hγ hinj (interiorDiffeomorph.symm x) = inr c γ hγ hinj i z := h
   have hz : 1 < ‖(z : ℂ)‖ := (inr_mem_range_inl_iff c γ hγ hinj).1 ⟨_, h'⟩
   let u : annulusParam := ⟨(((arg z / (2 * π) : ℝ) : AddCircle (1 : ℝ)), (gluingCoord γ i z).2), by
     rw [mem_annulusParam, coe_gluingCoord_snd, normalRay_coe_apply]
     exact lt_max_of_lt_left (by linarith)⟩
-  have hP : polarPoint u = z := by
-    refine Subtype.ext ?_
-    rw [coe_polarPoint]
-    simp only [u, coe_gluingCoord_snd, normalRay_coe_apply,
-      max_eq_left (by linarith : 0 ≤ ‖(z : ℂ)‖ - 1),
-      toCircle_apply_mk, Circle.coe_exp]
-    conv_rhs => rw [← norm_mul_exp_arg_mul_I (z : ℂ)]
-    congr 2
-    · ring
-    · field_simp
-  have hy : ballToDisc (polarPoint u) = y := by
+  have hP : polarPoint u = z :=
+    Subtype.ext (ofReal_one_add_mul_toCircle_gluingCoord (γ := γ) (i := i) hz)
+  have hy : ballDiffeomorph (polarPoint u) = y := by
     rw [hP, hzy]
-    exact ballToDisc_discToBall y
+    exact ballDiffeomorph.apply_symm_apply y
   refine ⟨u, ?_, hy⟩
   have hc : collarPoint (c := c) (γ := γ) i u = interiorDiffeomorph.symm x := by
     refine (isOpenEmbedding_capDiscs_inl c γ hγ hinj).injective ?_
@@ -449,11 +400,7 @@ private theorem map_orientationAt_pieceMap (k l : Option ι) (x : piece S ι k) 
     exact (map_orientationAt_eq c γ hγ hinj hrev i u hx hy).symm
   · obtain rfl : i = j := by_contra fun hij ↦
       (disjoint_range_inr c γ hγ hinj hij).ne_of_mem ⟨_, rfl⟩ ⟨_, rfl⟩ h
-    obtain rfl : x = y := by
-      have hxy : discToBall x = discToBall y :=
-        (isOpenEmbedding_capDiscs_inr c γ hγ hinj i).injective h
-      exact (ballToDisc_discToBall x).symm.trans
-        ((congrArg ballToDisc hxy).trans (ballToDisc_discToBall y))
+    obtain rfl : x = y := injective_inr_ballDiffeomorph_symm c γ hγ hinj i h
     rfl
 
 /-! ### The orientation of the capped surface -/
@@ -496,11 +443,11 @@ theorem isOrientationPreservingAt_inr (i : ι) (z : ball) :
       (orientation c γ hγ hinj o hrev) (inr c γ hγ hinj i) z := by
   have h := isOrientationPreservingAt_iGlue (isLocalDiffeomorph_pieceMap c γ hγ hinj)
     (iUnion_range_pieceMap c γ hγ hinj) (map_orientationAt_pieceMap c γ hγ hinj hrev) (some i)
-    (ballToDisc z)
-  have he : inr c γ hγ hinj i = pieceMap c γ hγ hinj (some i) ∘ ballToDisc :=
-    funext fun q ↦ (congrArg (inr c γ hγ hinj i) (discToBall_ballToDisc q)).symm
+    (ballDiffeomorph z)
+  have he : inr c γ hγ hinj i = pieceMap c γ hγ hinj (some i) ∘ ballDiffeomorph :=
+    funext fun q ↦ (congrArg (inr c γ hγ hinj i) (ballDiffeomorph.symm_apply_apply q)).symm
   rw [he]
-  exact h.comp (isOrientationPreservingAt_ballToDisc z)
+  exact h.comp (isOrientationPreservingAt_ballDiffeomorph z)
 
 /-- **The orientation of the capped surface is characterized by the pieces.** An orientation of the
 capped surface is `capDiscs.orientation` exactly when the inclusion of the interior of `S`
@@ -520,73 +467,47 @@ theorem eq_orientation_iff {o' : Manifold.Orientation (𝓡 2) (capDiscs c γ h�
   refine (eq_iGlue_iff _ _ _).2 fun k x ↦ ?_
   rcases k with _ | i
   · exact (hl _).comp (isOrientationPreservingAt_interiorDiffeomorph_symm o x)
-  · exact (hr i _).comp (isOrientationPreservingAt_discToBall x)
+  · exact (hr i _).comp (isOrientationPreservingAt_ballDiffeomorph_symm x)
 
 /-! ### The caps as coordinate discs -/
-
-private theorem injective_inr_discToBall (i : ι) :
-    Injective fun v : discOpens ↦ inr c γ hγ hinj i (discToBall v) := fun v w h ↦ by
-  have hvw : discToBall v = discToBall w := (isOpenEmbedding_capDiscs_inr c γ hγ hinj i).injective h
-  exact (ballToDisc_discToBall v).symm.trans
-    ((congrArg ballToDisc hvw).trans (ballToDisc_discToBall w))
 
 /-- The `i`-th disc, as a partial diffeomorphism from the ball of radius `2` of `ℝ²` onto its image
 in the capped surface. -/
 private def discPartialDiffeomorph (i : ι) :
     PartialDiffeomorph (𝓡 2) (𝓡 2) discOpens (capDiscs c γ hγ hinj) ∞ :=
   IsLocalDiffeomorphOn.partialDiffeomorphOfInjOn
-    (f := fun v : discOpens ↦ inr c γ hγ hinj i (discToBall v))
-    ((isLocalDiffeomorph_inr_discToBall c γ hγ hinj i).isLocalDiffeomorphOn univ)
-    isOpen_univ (injective_inr_discToBall c γ hγ hinj i).injOn
+    (f := fun v : discOpens ↦ inr c γ hγ hinj i (ballDiffeomorph.symm v))
+    ((isLocalDiffeomorph_inr_ballDiffeomorph_symm c γ hγ hinj i).isLocalDiffeomorphOn univ)
+    isOpen_univ (injective_inr_ballDiffeomorph_symm c γ hγ hinj i).injOn
 
 private theorem coe_discPartialDiffeomorph (i : ι) :
     ⇑(discPartialDiffeomorph c γ hγ hinj i) =
-      fun v : discOpens ↦ inr c γ hγ hinj i (discToBall v) :=
+      fun v : discOpens ↦ inr c γ hγ hinj i (ballDiffeomorph.symm v) :=
   IsLocalDiffeomorphOn.coe_partialDiffeomorphOfInjOn _ _ _
 
-/-- The inclusion of the ball of radius `2` into `ℝ²`, as a partial diffeomorphism. -/
-private def discInclusion : PartialDiffeomorph (𝓡 2) (𝓡 2) discOpens (EuclideanSpace ℝ (Fin 2)) ∞ :=
-  IsLocalDiffeomorphOn.partialDiffeomorphOfInjOn
-    ((isLocalDiffeomorph_subtype_val (U := discOpens)).isLocalDiffeomorphOn univ)
-    isOpen_univ Subtype.val_injective.injOn
+private theorem discPartialDiffeomorph_source (i : ι) :
+    (discPartialDiffeomorph c γ hγ hinj i).source = univ :=
+  IsLocalDiffeomorphOn.partialDiffeomorphOfInjOn_source _ _ _
 
 /-- The chart `(inr i)⁻¹` of the capped surface, read in `ℝ²` through `z ↦ (re z, im z)`. -/
 private def discChart (i : ι) :
     OpenPartialHomeomorph (capDiscs c γ hγ hinj) (EuclideanSpace ℝ (Fin 2)) :=
-  ((discPartialDiffeomorph c γ hγ hinj i).symm.trans discInclusion).toOpenPartialHomeomorph
+  ((discPartialDiffeomorph c γ hγ hinj i).symm.trans
+    (PartialDiffeomorph.subtypeVal (𝓡 2) ∞ discOpens inferInstance)).toOpenPartialHomeomorph
 
 private theorem ball_subset_discChart_target (i : ι) :
     Metric.ball 0 2 ⊆ (discChart c γ hγ hinj i).target := by
   intro v hv
-  simp only [discChart, discInclusion,
-    PartialDiffeomorph.toOpenPartialHomeomorph_toPartialHomeomorph_toPartialEquiv,
-    PartialDiffeomorph.trans_toPartialEquiv, OpenPartialHomeomorph.trans_toPartialEquiv,
-    PartialDiffeomorph.symm_toPartialEquiv, PartialEquiv.trans_target,
-    IsLocalDiffeomorphOn.partialDiffeomorphOfInjOn_target, image_univ, Subtype.range_coe_subtype,
-    SetLike.setOfPred_mem_eq, PartialEquiv.symm_target, mem_inter_iff, SetLike.mem_coe,
-    mem_preimage]
-  exact ⟨mem_discOpens.2 (mem_ball_zero_iff.1 hv), by
-    rw [discPartialDiffeomorph, IsLocalDiffeomorphOn.partialDiffeomorphOfInjOn_source]
-    exact mem_univ _⟩
+  simpa [discChart, discPartialDiffeomorph_source] using mem_discOpens.2 (mem_ball_zero_iff.1 hv)
 
 private theorem coe_discChart (i : ι) :
     ⇑(discChart c γ hγ hinj i) = Subtype.val ∘ (discPartialDiffeomorph c γ hγ hinj i).symm := by
-  ext x
-  simp only [discChart, discInclusion, PartialDiffeomorph.toFun'_toOpenPartialHomeomorph,
-    PartialDiffeomorph.trans_toPartialEquiv, OpenPartialHomeomorph.trans_toPartialEquiv,
-    PartialDiffeomorph.toOpenPartialHomeomorph_toPartialHomeomorph_toPartialEquiv,
-    PartialDiffeomorph.symm_toPartialEquiv, PartialEquiv.coe_trans,
-    IsLocalDiffeomorphOn.coe_partialDiffeomorphOfInjOn, comp_apply]
+  simp [discChart]
 
 private theorem mem_discPartialDiffeomorph_target {i : ι} {x : capDiscs c γ hγ hinj}
     (hx : x ∈ (discChart c γ hγ hinj i).source) :
     x ∈ (discPartialDiffeomorph c γ hγ hinj i).target := by
-  simp only [discChart,
-    PartialDiffeomorph.toOpenPartialHomeomorph_toPartialHomeomorph_toPartialEquiv,
-    PartialDiffeomorph.trans_toPartialEquiv, OpenPartialHomeomorph.trans_toPartialEquiv,
-    PartialDiffeomorph.symm_toPartialEquiv, PartialEquiv.trans_source, PartialEquiv.symm_source,
-    mem_inter_iff, mem_preimage] at hx
-  exact hx.1
+  simpa [discChart] using hx
 
 include hrev in
 private theorem isOrientationPreservingAt_discChart (i : ι) {x : capDiscs c γ hγ hinj}
@@ -620,15 +541,7 @@ theorem coe_coordinateDisc (i : ι) :
     ⇑(coordinateDisc c γ hγ hinj o hrev i) = inr c γ hγ hinj i := by
   funext z
   rw [coordinateDisc, ofChart_apply, zero_add, div_self two_ne_zero, one_smul]
-  simp only [discChart, discPartialDiffeomorph, discInclusion,
-    PartialDiffeomorph.coe_toOpenPartialHomeomorph_symm, PartialDiffeomorph.symm_toPartialEquiv,
-    PartialDiffeomorph.trans_toPartialEquiv, OpenPartialHomeomorph.trans_toPartialEquiv,
-    PartialDiffeomorph.toOpenPartialHomeomorph_toPartialHomeomorph_toPartialEquiv,
-    PartialEquiv.coe_trans_symm, PartialEquiv.symm_symm,
-    IsLocalDiffeomorphOn.coe_partialDiffeomorphOfInjOn, comp_apply,
-    IsLocalDiffeomorphOn.partialDiffeomorphOfInjOn_symm_apply]
-  rw [← coe_ballToDisc, Subtype.val_injective.injOn.leftInvOn_invFunOn (mem_univ _),
-    discToBall_ballToDisc]
+  simp [discChart, discPartialDiffeomorph, ← coe_ballDiffeomorph]
 
 end capDiscs
 
