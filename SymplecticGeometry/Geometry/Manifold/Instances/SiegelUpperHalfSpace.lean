@@ -10,8 +10,8 @@ public import Mathlib.Geometry.Manifold.ContMDiff.NormedSpace
 public import TauCeti.Analysis.Matrix.Normed
 public import SymplecticGeometry.Analysis.Complex.SiegelUpperHalfSpace.Basic
 public import SymplecticGeometry.LinearAlgebra.Matrix.Symmetric
-import Mathlib.LinearAlgebra.Projection
-import Mathlib.Topology.Algebra.Module.FiniteDimension
+import Mathlib.Analysis.LocallyConvex.HahnBanach
+import SymplecticGeometry.Geometry.Manifold.ContMDiff.Submodule
 
 /-!
 # The Siegel upper half space as a complex manifold
@@ -126,15 +126,11 @@ theorem contMDiff_iff_coe_comp {f : M → SiegelUpperHalfSpace ι} :
     ContMDiff I 𝓘(𝕜, 𝒮 ι) n f ↔
       ContMDiff I 𝓘(𝕜, Matrix ι ι ℂ) n fun x ↦ (f x : Matrix ι ι ℂ) := by
   refine ⟨contMDiff_coe.comp, fun hf ↦ ?_⟩
-  -- a continuous linear projection of the matrices onto the symmetric ones
-  obtain ⟨q, hq⟩ := (𝒮 ι).exists_isCompl
-  let P : Matrix ι ι ℂ →L[ℂ] 𝒮 ι := ((𝒮 ι).projectionOnto q hq).toContinuousLinearMap
   refine ContMDiff.of_comp_isOpenEmbedding isOpenEmbedding_subtype_comp_toSymm ?_
-  convert ((P.restrictScalars 𝕜).contDiff.contMDiff).comp hf using 1
-  funext x
-  ext1
-  simp [P, Submodule.projectionOnto_apply_of_mem_left hq (x := (f x : Matrix ι ι ℂ))
-    (by simpa using (f x).isSymm)]
+  refine ((Submodule.ClosedComplemented.of_finiteDimensional (𝒮 ι)).contMDiff_iff_subtypeL_comp
+    (𝕜 := 𝕜)).2 ?_
+  convert hf using 2 with x
+  simp
 
 end SiegelUpperHalfSpace
 
