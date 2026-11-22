@@ -7,6 +7,8 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Flow.Local
 public import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Local
+public import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Opens
+public import SymplecticGeometry.Topology.Compactness.SigmaCompact
 public import TauCeti.Geometry.Manifold.Boundary.Collar.Smooth
 public import TauCeti.Geometry.Manifold.Boundary.OutwardExistence
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
@@ -36,9 +38,11 @@ Liouville collar of a compact hypersurface, from the time interval `(-ε, ε)` o
 manifold to the half-open interval of a boundary.
 
 On a σ-compact manifold, outward fields exist (Tau Ceti's
-`TauCeti.exists_isOutwardPointingField`, by a partition of unity), so every compact boundary of a
-σ-compact Hausdorff manifold has a smooth collar, inside any given open neighbourhood of the
-boundary.
+`TauCeti.exists_isOutwardPointingField`, by a partition of unity). A compact boundary has a
+σ-compact open neighbourhood `V`, since `W` is locally compact
+(`IsCompact.exists_isOpen_isSigmaCompact_subset`), and a collar of `∂V` is a collar of `∂W`
+(`TauCeti.SmoothCollar.ofOpens`). So every compact boundary of a Hausdorff manifold has a smooth
+collar, inside any given open neighbourhood of the boundary, without σ-compactness of `W`.
 
 ## Main results
 
@@ -47,7 +51,7 @@ boundary.
 * `TauCeti.SmoothCollar.exists_eq_of_isOutwardPointing_of_subset`: the same, with the image of
   the collar inside a given open neighbourhood of the boundary.
 * `TauCeti.SmoothCollar.exists_range_subset` and the instance `Nonempty (SmoothCollar n ∞ W)`:
-  a compact boundary of a σ-compact Hausdorff manifold has a smooth collar, which may be taken
+  a compact boundary of a Hausdorff manifold has a smooth collar, which may be taken
   inside any open neighbourhood of the boundary.
 * `TauCeti.SmoothCollar.exists_eq_of_isLocalDiffeomorphOn`: a local diffeomorphism from
   `∂W × [0, η)` that is the inclusion on `∂W × {0}` gives, after rescaling, a smooth collar.
@@ -226,19 +230,29 @@ theorem exists_eq_of_isOutwardPointing [CompactSpace ↥((𝓡∂ (n + 1)).bound
     exists_eq_of_isOutwardPointing_of_subset hY isOpen_univ (subset_univ _)
   exact ⟨ε, Φ, c, hε, hΦ0, hΦY, hc⟩
 
-/-- **Smooth collars of compact boundaries.** Let `W` be a smooth σ-compact Hausdorff manifold
-modelled on the half-space, with compact boundary `∂W`, and `U` an open set containing `∂W`.
-Then `∂W` has a smooth collar with image in `U`. -/
-theorem exists_range_subset [CompactSpace ↥((𝓡∂ (n + 1)).boundary W)] [SigmaCompactSpace W]
+/-- **Smooth collars of compact boundaries.** Let `W` be a smooth Hausdorff manifold modelled on
+the half-space, with compact boundary `∂W`, and `U` an open set containing `∂W`. Then `∂W` has a
+smooth collar with image in `U`. -/
+theorem exists_range_subset [CompactSpace ↥((𝓡∂ (n + 1)).boundary W)]
     {U : Set W} (hU : IsOpen U) (hbU : (𝓡∂ (n + 1)).boundary W ⊆ U) :
     ∃ c : SmoothCollar n ∞ W, range c ⊆ U := by
-  obtain ⟨Y, hY⟩ := exists_isOutwardPointingField (n := n) (M := W)
-  obtain ⟨-, -, c, -, -, -, -, hcU⟩ := exists_eq_of_isOutwardPointing_of_subset hY hU hbU
-  exact ⟨c, hcU⟩
+  have : LocallyCompactSpace (EuclideanHalfSpace (n + 1)) := (𝓡∂ (n + 1)).locallyCompactSpace
+  have : LocallyCompactSpace W := ChartedSpace.locallyCompactSpace (EuclideanHalfSpace (n + 1)) W
+  obtain ⟨V, hVo, hbV, hVU, hVσ⟩ :=
+    (isCompact_iff_compactSpace.2 ‹_›).exists_isOpen_isSigmaCompact_subset hU hbU
+  lift V to TopologicalSpace.Opens W using hVo
+  have : SigmaCompactSpace V := isSigmaCompact_iff_sigmaCompactSpace.1 hVσ
+  have : CompactSpace ↥((𝓡∂ (n + 1)).boundary V) :=
+    (diffeomorphBoundaryOpens (k := ∞) V hbV).toHomeomorph.symm.compactSpace
+  obtain ⟨Y, hY⟩ := exists_isOutwardPointingField (n := n) (M := V)
+  obtain ⟨-, -, c, -, -, -, -⟩ := exists_eq_of_isOutwardPointing hY
+  refine ⟨c.ofOpens hbV, ?_⟩
+  rw [range_ofOpens]
+  exact (image_subset_range _ _).trans (Subtype.range_val.trans_subset hVU)
 
-/-- **Smooth collars of compact boundaries.** A smooth σ-compact Hausdorff manifold modelled on
-the half-space whose boundary is compact has a smooth collar of its boundary. -/
-instance instNonempty [CompactSpace ↥((𝓡∂ (n + 1)).boundary W)] [SigmaCompactSpace W] :
+/-- **Smooth collars of compact boundaries.** A smooth Hausdorff manifold modelled on the
+half-space whose boundary is compact has a smooth collar of its boundary. -/
+instance instNonempty [CompactSpace ↥((𝓡∂ (n + 1)).boundary W)] :
     Nonempty (SmoothCollar n ∞ W) :=
   (exists_range_subset isOpen_univ (subset_univ ((𝓡∂ (n + 1)).boundary W))).nonempty
 
