@@ -279,10 +279,8 @@ private theorem exists_partialDiffeomorph_twistedExp [SecondCountableTopology M�
     exact ⟨hΘz q, zeroSection_mem_twistedExpDomain f₀ f₁ A q⟩
   have : T2Space Q := f₀.isEmbedding.t2Space
   have : SecondCountableTopology Q := f₀.isEmbedding.isInducing.secondCountableTopology
-  have : LocallyCompactSpace (ModelProd HQ P) := (J.prod 𝓘(ℝ, P)).locallyCompactSpace
-  have : LocallyCompactSpace N := ChartedSpace.locallyCompactSpace (ModelProd HQ P) _
-  have : LocallyCompactSpace H₁ := I₁.locallyCompactSpace
-  have : LocallyCompactSpace M₁ := ChartedSpace.locallyCompactSpace H₁ M₁
+  have := Manifold.locallyCompact_of_finiteDimensional (M := N) (J.prod 𝓘(ℝ, P))
+  have := Manifold.locallyCompact_of_finiteDimensional (M := M₁) I₁
   have : MetrizableSpace M₁ := Manifold.metrizableSpace I₁ M₁
   have : MetrizableSpace N := Manifold.metrizableSpace (J.prod 𝓘(ℝ, P)) _
   have : Nonempty N := Nonempty.map z inferInstance
@@ -382,10 +380,8 @@ theorem exists_diffeomorph_opens_mfderiv_eq [SecondCountableTopology M₀]
     have : IsEmpty (⊥ : Opens M₁) := ⟨fun x ↦ x.property⟩
     exact ⟨⊥, ⊥, Diffeomorph.ofIsEmpty, fun q ↦ (hQ.false q).elim⟩
   | inr hQ =>
-    have : LocallyCompactSpace H₀ := I₀.locallyCompactSpace
-    have : LocallyCompactSpace M₀ := ChartedSpace.locallyCompactSpace H₀ M₀
-    have : LocallyCompactSpace H₁ := I₁.locallyCompactSpace
-    have : LocallyCompactSpace M₁ := ChartedSpace.locallyCompactSpace H₁ M₁
+    have := Manifold.locallyCompact_of_finiteDimensional (M := M₀) I₀
+    have := Manifold.locallyCompact_of_finiteDimensional (M := M₁) I₁
     obtain ⟨g₀⟩ := nonempty_contMDiffRiemannianMetric (IB := I₀) (n := ⊤) (F := E₀)
       (E := fun y : M₀ ↦ TangentSpace I₀ y)
     let : RiemannianBundle (fun y : M₀ ↦ TangentSpace I₀ y) := ⟨g₀.toRiemannianMetric⟩

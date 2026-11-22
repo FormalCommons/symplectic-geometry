@@ -7,6 +7,7 @@ module
 
 public import TauCeti.Geometry.Symplectic.Manifold.Family
 import Mathlib.Topology.Compactness.Compact
+import Mathlib.Topology.Maps.Proper.Basic
 import TauCeti.Topology.VectorBundle.Hom
 
 /-!
@@ -27,6 +28,8 @@ open sets on which the Moser fields of Moser's argument are defined
 
 * `TauCeti.SmoothTwoForm.isOpen_setOf_isInvertible_flat_mpullback_prodMk`: the set of points of
   `N × M` at which the slice has an invertible flat map is open.
+* `TauCeti.SmoothTwoForm.isOpen_setOf_forall_isInvertible_flat_mpullback_prodMk`: for compact
+  `M`, the set of parameters whose slice has invertible flat maps everywhere is open.
 * `TauCeti.SmoothTwoForm.isOpen_setOf_isInvertible_flat_add_smul_sub`: the same openness for the
   segment `σ₀ + s (σ₁ - σ₀)`, as a set of points `(s, x)` of `ℝ × M`.
 * `TauCeti.SmoothTwoForm.isOpen_setOf_nondegenerate_bilinFormAt`: in finite dimensions, the set of
@@ -89,6 +92,31 @@ theorem isOpen_setOf_nondegenerate_bilinFormAt [FiniteDimensional ℝ E] (σ : S
   exact Continuous.isOpen_setOf_clm_bundle_isInvertible (𝕜 := ℝ) (F₁ := E) (F₂ := E →L[ℝ] ℝ)
     (E₁ := TangentSpace I) (E₂ := fun x : M ↦ TangentSpace I x →L[ℝ] ℝ) (b := id)
     (ϕ := σ.flat) σ.contMDiff_flat.continuous
+
+/-- **Nondegeneracy of whole slices is an open condition on the parameter.** For a smooth
+two-form `σ` on `N × M` with `M` compact, the set of parameters `t` at which the slice
+`σ_t = ι_t^* σ` has an invertible flat map at every point of `M` is open in `N`. The model space of
+`M` is assumed complete. -/
+theorem isOpen_setOf_forall_isInvertible_flat_mpullback_prodMk [CompleteSpace E] [CompactSpace M]
+    {EN HN N : Type*} [NormedAddCommGroup EN] [NormedSpace ℝ EN] [TopologicalSpace HN]
+    {J : ModelWithCorners ℝ EN HN} [TopologicalSpace N] [ChartedSpace HN N] [IsManifold J ∞ N]
+    (σ : SmoothForm (J.prod I) (N × M) ℝ 2) :
+    IsOpen {t : N | ∀ x : M,
+      (flat (SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) σ)
+        x).IsInvertible} := by
+  -- Its complement is the projection of the closed set of points `(t, x)` with a non-invertible
+  -- flat map, and the projection `N × M → N` is closed since `M` is compact.
+  have h : {t : N | ∀ x : M,
+      (flat (SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) σ)
+        x).IsInvertible} =
+      (Prod.fst '' {p : N × M |
+        (flat (SmoothForm.mpullback (Prod.mk p.1) (contMDiff_const.prodMk contMDiff_id) σ)
+          p.2).IsInvertible}ᶜ)ᶜ := by
+    ext t
+    simp
+  rw [h]
+  exact (isClosedMap_fst_of_compactSpace _
+    (isOpen_setOf_isInvertible_flat_mpullback_prodMk σ).isClosed_compl).isOpen_compl
 
 /-- **Invertibility of the flat maps along a segment is an open condition.** For two-forms `σ₀`,
 `σ₁` on `M`, the set of points `(s, x)` of `ℝ × M` at which `σ₀ + s (σ₁ - σ₀)` has an invertible
