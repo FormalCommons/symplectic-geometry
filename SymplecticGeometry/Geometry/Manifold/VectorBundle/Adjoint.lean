@@ -5,7 +5,9 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Pullback
 public import SymplecticGeometry.Topology.Algebra.Module.BilinearForm
+public import TauCeti.Geometry.Manifold.Riemannian.Pullback.Basic
 public import TauCeti.Geometry.Manifold.VectorBundle.Hom
 
 /-!
@@ -22,19 +24,31 @@ map `b`, with `β₁` invertible at every point, and a `C^n` section `T` of the 
 (`ContMDiff.clm_bundle_bilinAdjoint`, and `ContMDiffAt.clm_bundle_bilinAdjoint` at a point). On a
 fibre of finite dimension, a nondegenerate form is invertible
 (`ContinuousLinearMap.isInvertible_iff_nondegenerate_toBilinForm` of Tau Ceti). The fibres carry
-`IsNormableSpace` instances, which transposing the forms needs. Instance search does not find
-them on tangent spaces: there a user provides Mathlib's `instIsNormableSpaceTangentSpace I x` as
-a local instance, as Tau Ceti's `Geometry/Symplectic/Manifold/Flat.lean` does.
+`IsNormableSpace` instances, which transposing the forms needs. On tangent spaces, instance search
+finds them through `TangentSpace.instIsNormableSpace` of
+`SymplecticGeometry/Geometry/Manifold/IsManifold/Basic.lean`, which a user imports.
 
 The proof composes Tau Ceti's `ContMDiffWithinAt.clm_bundle_flip`, `ContMDiffAt.clm_bundle_comp`
 and `ContMDiffAt.clm_bundle_inverse`, as Tau Ceti's
 `TauCeti.SmoothTwoForm.IsNondegenerate.skewPart` does for the tangent bundle.
+
+## Left inverses of derivatives of immersions
+
+As an application, `Manifold.IsImmersion.exists_contMDiff_leftInverse_mfderiv` gives a smooth
+left inverse of the derivative of a smooth immersion `f : Q → M`, with `Q` of finite dimension,
+as a section of the bundle of linear maps from the pull-back `f *ᵖ TM` to `TQ`. Given a smooth
+field `β` of bilinear forms on `TM`, definite at the points of the image, the left inverse at
+`q` is the adjoint of `df_q` for `β` at `f q` and for its pull-back `β(df_q ·, df_q ·)`, which
+is definite since `df_q` is injective. The pull-back is smooth by Tau Ceti's
+`Bundle.contMDiffAt_bilinearForm_pullback`, and the pull-back bundle `f *ᵖ TM` with its smooth
+sections comes from `SymplecticGeometry/Geometry/Manifold/VectorBundle/Pullback.lean`; only this
+application uses these two imports.
 -/
 
 public section
 
 open Bundle
-open scoped Manifold
+open scoped Manifold ContDiff
 
 section Bundle
 
@@ -110,5 +124,76 @@ theorem ContMDiff.clm_bundle_bilinAdjoint
   fun m ↦ (hβ₀ m).clm_bundle_bilinAdjoint (hβ₁ m) (hT m) (hinv m)
 
 end Bundle
+
+section Immersion
+
+variable {E E' H H' M Q K : Type*}
+  [NormedAddCommGroup E] [NormedSpace ℝ E]
+  [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M]
+  [IsManifold I ∞ M]
+  [NormedAddCommGroup E'] [NormedSpace ℝ E'] [FiniteDimensional ℝ E']
+  [TopologicalSpace H'] {J : ModelWithCorners ℝ E' H'} [TopologicalSpace Q] [ChartedSpace H' Q]
+  [IsManifold J ∞ Q]
+  [FunLike K Q M] [ContinuousMapClass K Q M]
+
+/-- Mathlib's `IsNormableSpace` instance on tangent spaces is not found by instance search;
+transposing bilinear forms needs it. -/
+local instance (x : M) : IsNormableSpace ℝ (TangentSpace I x) :=
+  instIsNormableSpaceTangentSpace I x
+
+local instance (x : Q) : IsNormableSpace ℝ (TangentSpace J x) :=
+  instIsNormableSpaceTangentSpace J x
+
+/-- **A smooth left inverse of the derivative of an immersion.** Let `f : Q → M` be a smooth
+immersion, with `Q` of finite dimension, and `β` a smooth field of bilinear forms on `TM` such that
+`β u u = 0` only for `u = 0` at the points `f q`. Then there is a smooth section `S` of the bundle
+of linear maps from the pull-back `f *ᵖ TM` to `TQ` with `S_q ∘ df_q = id` at every `q`. -/
+theorem Manifold.IsImmersion.exists_contMDiff_leftInverse_mfderiv {f : K}
+    (hf : IsImmersion J I ∞ f) {β : ∀ x : M, TangentSpace I x →L[ℝ] TangentSpace I x →L[ℝ] ℝ}
+    (hβ : ContMDiff I (I.prod 𝓘(ℝ, E →L[ℝ] E →L[ℝ] ℝ)) ∞
+      (fun x ↦ TotalSpace.mk' (E →L[ℝ] E →L[ℝ] ℝ)
+        (E := fun x : M ↦ TangentSpace I x →L[ℝ] TangentSpace I x →L[ℝ] ℝ) x (β x)))
+    (hdef : ∀ q (u : TangentSpace I (f q)), β (f q) u u = 0 → u = 0) :
+    ∃ S : ∀ q, TangentSpace I (f q) →L[ℝ] TangentSpace J q,
+      ContMDiff J (J.prod 𝓘(ℝ, E →L[ℝ] E')) ∞ (fun q ↦ TotalSpace.mk' (E →L[ℝ] E')
+        (E := fun q ↦ ((f : Q → M) *ᵖ (TangentSpace I)) q →L[ℝ] TangentSpace J q) q (S q)) ∧
+      ∀ q, Function.LeftInverse (S q) (mfderiv J I f q) := by
+  have : IsManifold I (∞ + 1) M := by simpa using (inferInstance : IsManifold I ∞ M)
+  have : IsManifold J (∞ + 1) Q := by simpa using (inferInstance : IsManifold J ∞ Q)
+  have : ContMDiffVectorBundle ∞ E ((f : Q → M) *ᵖ (TangentSpace I)) J :=
+    Bundle.Pullback.contMDiffVectorBundle (E := TangentSpace I) hf.contMDiff
+  have (q : Q) : IsNormableSpace ℝ (((f : Q → M) *ᵖ (TangentSpace I)) q) :=
+    instIsNormableSpaceTangentSpace I (f q)
+  -- `S` is the adjoint of `df` for `β` along `f` and its pull-back `h = β(df ·, df ·)` to `TQ`.
+  set T : ∀ q, TangentSpace J q →L[ℝ] TangentSpace I (f q) := fun q ↦ mfderiv J I f q
+  set h : ∀ q, TangentSpace J q →L[ℝ] TangentSpace J q →L[ℝ] ℝ :=
+    fun q ↦ (ContinuousLinearMap.precomp ℝ (T q)).comp ((β (f q)).comp (T q))
+  have hβf : ContMDiff J (J.prod 𝓘(ℝ, E →L[ℝ] E →L[ℝ] ℝ)) ∞
+      (fun q ↦ TotalSpace.mk' (E →L[ℝ] E →L[ℝ] ℝ)
+        (E := fun q ↦ ((f : Q → M) *ᵖ (TangentSpace I)) q →L[ℝ]
+          ((f : Q → M) *ᵖ (TangentSpace I)) q →L[ℝ] ℝ) q (β (f q))) :=
+    (Bundle.Pullback.contMDiff_bilinear_section_iff f hf.contMDiff _).mpr (hβ.comp hf.contMDiff)
+  have hh : ContMDiff J (J.prod 𝓘(ℝ, E' →L[ℝ] E' →L[ℝ] ℝ)) ∞
+      (fun q ↦ TotalSpace.mk' (E' →L[ℝ] E' →L[ℝ] ℝ)
+        (E := fun q ↦ TangentSpace J q →L[ℝ] TangentSpace J q →L[ℝ] ℝ) q (h q)) := fun q ↦
+    Bundle.contMDiffAt_bilinearForm_pullback (hβ (f q)) (hf.contMDiff q)
+  have hT : ContMDiff J (J.prod 𝓘(ℝ, E' →L[ℝ] E)) ∞ (fun q ↦ TotalSpace.mk' (E' →L[ℝ] E)
+      (E := fun q ↦ TangentSpace J q →L[ℝ] ((f : Q → M) *ᵖ (TangentSpace I)) q) q (T q)) :=
+    (TauCeti.contMDiff_hom_bundle_iff (E₂ := (f : Q → M) *ᵖ (TangentSpace I)) _).2
+      (Bundle.Pullback.contMDiff_totalSpace_mfderiv f hf.contMDiff)
+  -- `h` is definite, since `β` is definite on the image and `df` is injective.
+  have hdef' (q : Q) (x : TangentSpace J q) (hx : h q x x = 0) : x = 0 :=
+    hf.mfderiv_injective (by simp) q ((map_zero (T q)).symm ▸ hdef q _ hx)
+  have hinv (q : Q) : (h q).IsInvertible := by
+    rw [ContinuousLinearMap.isInvertible_iff_nondegenerate_toBilinForm]
+    exact ⟨fun x hx ↦ hdef' q x (hx x), fun y hy ↦ hdef' q y (hy y)⟩
+  refine ⟨fun q ↦ ContinuousLinearMap.bilinAdjoint (β (f q)) (h q) (T q), ?_, fun q v ↦ ?_⟩
+  · exact ContMDiff.clm_bundle_bilinAdjoint (E₀ := (f : Q → M) *ᵖ (TangentSpace I))
+      (E₁ := TangentSpace J) hβf hh hT hinv
+  · refine (hinv q).injective (ContinuousLinearMap.ext fun y ↦ ?_)
+    rw [ContinuousLinearMap.apply_bilinAdjoint_apply (hinv q)]
+    simp only [h, T, ContinuousLinearMap.comp_apply, ContinuousLinearMap.precomp_apply]
+
+end Immersion
 
 end
