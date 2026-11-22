@@ -123,7 +123,6 @@ theorem compatibleSpaceComplexStructure_def :
 
 /-- The almost complex structure at every point is the complex structure `C ↦ -J₀ C` of the
 model. -/
-@[simp]
 theorem compatibleSpaceComplexStructure_apply (J : 𝒥)
     (a : TangentSpace 𝓘(ℝ, ω.compatibleModel) J) :
     ω.compatibleSpaceComplexStructure J a = ω.compatibleModelComplexStructure a := by
