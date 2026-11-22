@@ -1303,7 +1303,7 @@ issues, in an order where each issue's blockers come before it.
      `SymplecticGeometry.isCollared_inclusion_levelSet`, for a smooth
      `g : M → ℝ` on a compact manifold without boundary with regular value
      `0`, the inclusion of $g^{-1}(0)$ into $\{g\le0\}$ is
-     `TauCeti.IsCollared`, and $\{g<0\}$ is the complement of its image.
+     `TauCeti.IsCollared`.
      Compactness is the case `Splitting.lean` uses, and it makes the band
      below compact. No new flow is built: by compactness the critical values
      of `g` stay away from $0$, so for some $\varepsilon>0$ Tau Ceti's
