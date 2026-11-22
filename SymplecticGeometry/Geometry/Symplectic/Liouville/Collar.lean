@@ -250,8 +250,7 @@ theorem SmoothEmbedding.exists_pos_forall_liouvilleCollar [SecondCountableTopolo
     rw [hια, Subtype.ext (hα.trans hα₀.symm), SmoothForm.isContactForm_neg_iff]
     exact hα₀c
   -- Second countable Hausdorff manifolds are metrizable, as Tau Ceti's variable width needs.
-  have := I.locallyCompactSpace
-  have := ChartedSpace.locallyCompactSpace H M
+  have := Manifold.locallyCompact_of_finiteDimensional (M := M) I
   have := Manifold.metrizableSpace I M
   have : PseudoMetrizableSpace U' := Topology.IsInducing.subtypeVal.pseudoMetrizableSpace
   have : PseudoMetrizableSpace Q := i.isEmbedding.isInducing.pseudoMetrizableSpace

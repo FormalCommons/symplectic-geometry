@@ -86,10 +86,8 @@ theorem exists_contMDiff_injective_normalBundle (f : SmoothEmbedding I J ∞ M N
       fun _ ↦ 1, fun _ ↦ one_pos, fun x ↦ isEmptyElim x⟩
   have : T2Space M := f.isEmbedding.t2Space
   have : SecondCountableTopology M := f.isEmbedding.isInducing.secondCountableTopology
-  have : LocallyCompactSpace H := I.locallyCompactSpace
-  have : LocallyCompactSpace M := ChartedSpace.locallyCompactSpace H M
-  have : LocallyCompactSpace G := J.locallyCompactSpace
-  have : LocallyCompactSpace N := ChartedSpace.locallyCompactSpace G N
+  have := Manifold.locallyCompact_of_finiteDimensional (M := M) I
+  have := Manifold.locallyCompact_of_finiteDimensional (M := N) J
   -- An auxiliary metric on `N`, and the normal exponential on a neighbourhood of the zero
   -- section on which it is a diffeomorphism.
   obtain ⟨gN⟩ := nonempty_contMDiffRiemannianMetric (IB := J) (n := ⊤) (F := V)
