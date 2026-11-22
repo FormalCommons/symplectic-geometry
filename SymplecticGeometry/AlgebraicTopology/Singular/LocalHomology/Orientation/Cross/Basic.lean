@@ -207,6 +207,7 @@ theorem localHomologyCross_comp_homologyMap_uliftTensorSelfIso_inv (x : X) (y : 
 `b ∈ H_q(Y; ℤ)`, the cross product of their images in the local homology at `x` and `y` is the
 image of the absolute cross product `a × b ∈ Hₙ(X × Y; ℤ ⊗ ℤ)` in the local homology at `(x, y)`,
 with the coefficients multiplied to `ℤ`. -/
+@[elementwise]
 theorem singularHomologyπ_tensorHom_singularHomologyπ_localHomologyCross (x : X) (y : Y)
     (p q n : ℕ) (h : p + q = n) :
     ((TopPair.ofSubset ({x}ᶜ : Set (TopCat.of X))).singularHomologyπ
@@ -239,6 +240,7 @@ theorem singularHomologyπ_tensorHom_singularHomologyπ_localHomologyCross (x : 
 
 /-- **Naturality of the cross product of local homology classes.** For maps `f : X → X'` and
 `g : Y → Y'` with `f⁻¹(x') ⊆ {x}` and `g⁻¹(y') ⊆ {y}`, `f_* a × g_* b = (f × g)_* (a × b)`. -/
+@[elementwise]
 theorem localHomologyMap_tensorHom_localHomologyMap_localHomologyCross (f : C(X, X'))
     (g : C(Y, Y')) {x : X} {x' : X'} {y : Y} {y' : Y'} (hf : f ⁻¹' {x'} ⊆ {x})
     (hg : g ⁻¹' {y'} ⊆ {y}) (p q n : ℕ) (h : p + q = n) :
@@ -329,8 +331,7 @@ theorem isLocalOrientation_localHomologyCross_of_isFundamentalClass
         (ModuleCat.of ℤ (ULift.{0} ℤ)) q ν)) =
       c (((TopPair.ofSubset ({(x, y)}ᶜ : Set (TopCat.of (M × N)))).singularHomologyπ
         (ModuleCat.of ℤ (ULift.{0} ℤ) ⊗ ModuleCat.of ℤ (ULift.{0} ℤ)) (p + q)).hom g) :=
-    ConcreteCategory.congr_hom
-      (singularHomologyπ_tensorHom_singularHomologyπ_localHomologyCross x y p q (p + q) rfl)
+    singularHomologyπ_tensorHom_singularHomologyπ_localHomologyCross_apply x y p q (p + q) rfl
       (μ ⊗ₜ ν)
   have hspan : Submodule.span ℤ (Set.singleton ((localHomologyCross x y p q (p + q) rfl).hom
       (((TopPair.ofSubset ({x}ᶜ : Set (TopCat.of M))).singularHomologyπ
@@ -375,14 +376,12 @@ theorem localHomologyCross_localHomologyIsoOfIsOpenEmbedding [T1Space X'] [T1Spa
           (localHomologyIsoOfIsOpenEmbedding (ModuleCat.of ℤ (ULift.{0} ℤ)) hj₂ y q).hom b) =
       (localHomologyIsoOfIsOpenEmbedding (ModuleCat.of ℤ (ULift.{0} ℤ)) (hj₁.prodMap hj₂) (x, y)
         n).hom ((localHomologyCross x y p q n h).hom (a ⊗ₜ b)) := by
-  have hn := ConcreteCategory.congr_hom
-    (localHomologyMap_tensorHom_localHomologyMap_localHomologyCross
-      ⟨j₁, hj₁.continuous⟩ ⟨j₂, hj₂.continuous⟩
-      (by rw [ContinuousMap.coe_mk, ← image_singleton, hj₁.injective.preimage_image])
-      (by rw [ContinuousMap.coe_mk, ← image_singleton, hj₂.injective.preimage_image]) p q n h)
+  have hn := localHomologyMap_tensorHom_localHomologyMap_localHomologyCross_apply
+    ⟨j₁, hj₁.continuous⟩ ⟨j₂, hj₂.continuous⟩
+    (by rw [ContinuousMap.coe_mk, ← image_singleton, hj₁.injective.preimage_image])
+    (by rw [ContinuousMap.coe_mk, ← image_singleton, hj₂.injective.preimage_image]) p q n h
     (a ⊗ₜ b)
-  simp only [ModuleCat.hom_comp, LinearMap.comp_apply,
-    ModuleCat.MonoidalCategory.tensorHom_tmul] at hn
+  simp only [ModuleCat.MonoidalCategory.tensorHom_tmul] at hn
   simp only [localHomologyIsoOfIsOpenEmbedding_hom]
   exact hn
 
@@ -435,6 +434,7 @@ variable {X Y Z : Type} [TopologicalSpace X] [TopologicalSpace Y] [TopologicalSp
 
 /-- **Associativity of the cross product of local homology classes.** The map of local homology
 induced by the associator `(X × Y) × Z ≃ₜ X × (Y × Z)` sends `(a × b) × c` to `a × (b × c)`. -/
+@[elementwise]
 theorem localHomologyCross_assoc (x : X) (y : Y) (z : Z) (p q r pq qr n : ℕ) (hpq : p + q = pq)
     (hqr : q + r = qr) (hn : pq + r = n) (hn' : p + qr = n) :
     (localHomologyCross x y p q pq hpq ▷
@@ -648,14 +648,12 @@ theorem cross_map_complZeroPairIso (hE : finrank ℝ E = m + 1) (hF : finrank �
     ContinuousLinearEquiv.singularHomologyMap_complZeroPairIso_hom,
     ContinuousLinearEquiv.singularHomologyMap_complZeroPairIso_hom,
     ContinuousLinearEquiv.singularHomologyMap_complZeroPairIso_hom]
-  have hn := ConcreteCategory.congr_hom
-    (localHomologyMap_tensorHom_localHomologyMap_localHomologyCross
-      ((f : E →L[ℝ] E') : C(E, E')) ((g : F →L[ℝ] F') : C(F, F'))
-      (x := 0) (x' := 0) (y := 0) (y' := 0)
-      (fun a ha ↦ by simpa using ha) (fun a ha ↦ by simpa using ha) (m + 1) (n + 1) (d + 1) hd)
+  have hn := localHomologyMap_tensorHom_localHomologyMap_localHomologyCross_apply
+    ((f : E →L[ℝ] E') : C(E, E')) ((g : F →L[ℝ] F') : C(F, F'))
+    (x := 0) (x' := 0) (y := 0) (y' := 0)
+    (fun a ha ↦ by simpa using ha) (fun a ha ↦ by simpa using ha) (m + 1) (n + 1) (d + 1) hd
     (z.val ⊗ₜ z'.val)
-  simp only [ModuleCat.hom_comp, LinearMap.comp_apply,
-    ModuleCat.MonoidalCategory.tensorHom_tmul] at hn
+  simp only [ModuleCat.MonoidalCategory.tensorHom_tmul] at hn
   refine hn.trans ?_
   -- The product map `f × g` appears as `ContinuousMap.prodMap` and as `f.prodCongr g`.
   congr 3
@@ -681,11 +679,10 @@ theorem map_prodAssoc_cross {e f : ℕ} (hE : finrank ℝ E = m + 1) (hF : finra
   -- product in `ModuleCat`, whose module structure the outer tensor product uses.
   have h (w : ↑(localHomology (A := ModuleCat.{0} ℤ) (ModuleCat.of ℤ (ULift.{0} ℤ)) ({0} : Set E)
       (m + 1) ⊗ localHomology (A := ModuleCat.{0} ℤ) (ModuleCat.of ℤ (ULift.{0} ℤ)) ({0} : Set F)
-        (n + 1))) := ConcreteCategory.congr_hom (localHomologyCross_assoc (0 : E) (0 : F) (0 : G)
-    (m + 1) (n + 1) (p + 1) (e + 1) (f + 1) (d + 1) he hf hd he') (w ⊗ₜ z''.val)
+        (n + 1))) := localHomologyCross_assoc_apply (0 : E) (0 : F) (0 : G)
+    (m + 1) (n + 1) (p + 1) (e + 1) (f + 1) (d + 1) he hf hd he' (w ⊗ₜ z''.val)
   specialize h (z.val ⊗ₜ z'.val)
-  simp only [ModuleCat.hom_comp, LinearMap.comp_apply,
-    ModuleCat.MonoidalCategory.whiskerRight_apply,
+  simp only [ModuleCat.MonoidalCategory.whiskerRight_apply,
     ModuleCat.MonoidalCategory.associator_hom_apply] at h
   rw [localHomologyMap_congr _ (j₁ := ((Homeomorph.prodAssoc E F G : (E × F) × G ≃ₜ E × F × G) :
     C((E × F) × G, E × F × G))) (j₂ := ((ContinuousLinearEquiv.prodAssoc ℝ E F G :

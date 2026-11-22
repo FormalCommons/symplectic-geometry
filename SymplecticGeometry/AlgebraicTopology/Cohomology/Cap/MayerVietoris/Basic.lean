@@ -211,6 +211,7 @@ private lemma localized_cap_fundamentalClass (W : Opens Mₜ) (K : Compacts Mₜ
   rfl
 
 omit [T2Space M] in
+@[elementwise]
 private lemma support_excision_preimage (W : Opens Mₜ)
     (K : Compacts Mₜ) (hKW : (K : Set Mₜ) ⊆ W) (p : ℕ) :
     TopCat.singularCohomologyComplRestrict ℤₘ ℤ L (W.isOpenEmbedding.subset_map_preimageCompacts
@@ -322,8 +323,7 @@ private lemma duality_excision_preimage (W : Opens Mₜ)
           (openSubspaceInclusion W (K : Set Mₜ)ᶜ)
           p a) := by
   intro NW hKI
-  have hc := ConcreteCategory.congr_hom (support_excision_preimage L W K hKW p) a
-  erw [ConcreteCategory.comp_apply] at hc
+  have hc := support_excision_preimage_apply L W K hKW p a
   have hd := HomologicalOrientation.dualityMap_compactSupportCohomologyι_apply
     (o.comap (j := (Opens.inclusion' W).hom) W.isOpenEmbedding) hn L p q h NW
       (TopCat.singularCohomologyComplCompactsMap W.isOpenEmbedding.injective NW p
@@ -396,11 +396,9 @@ private lemma localized_duality_compact_union (U V : Opens Mₜ)
     restriction_small_fundamentalClass o hn S (K ⊓ N) (K ⊔ N) inf_le_sup _ hz
   have hKW : ((K ⊓ N : Compacts Mₜ) : Set Mₜ) ⊆ W :=
     Set.inter_subset_inter hKU hNV
-  have hright₀ := ConcreteCategory.congr_hom
-    (homologyπ_capIntoHomology L S W D hSW (p + 1) q d (by omega) ζ)
+  have hright₀ := homologyπ_capIntoHomology_apply L S W D hSW (p + 1) q d (by omega) ζ
     (HomologicalComplex.cyclesMap qD d z)
-  erw [ConcreteCategory.comp_apply, ConcreteCategory.comp_apply,
-    ← HomologicalComplex.moduleCat_homologyMap_homologyπ] at hright₀
+  erw [← HomologicalComplex.moduleCat_homologyMap_homologyπ] at hright₀
   have hright := hright₀.symm.trans (localized_cap_fundamentalClass L o hn W (K ⊓ N)
     hKW F hF hcov hSW (p + 1) q (by omega) ζ _ hμD)
   erw [hζ] at hright
@@ -408,11 +406,10 @@ private lemma localized_duality_compact_union (U V : Opens Mₜ)
     W.isOpenEmbedding.preimageCompacts (K ⊓ N).isCompact (fun x hx ↦ ⟨⟨x, hKW hx⟩, rfl⟩)
   have hN := W.isOpenEmbedding.subset_map_preimageCompacts (K ⊓ N).isCompact
     (fun x hx ↦ ⟨⟨x, hKW hx⟩, rfl⟩)
-  have hδc := ConcreteCategory.congr_hom
-    (TopCat.compactSupportCohomologyι_compactSupportCohomologyMayerVietorisδ ℤₘ ℤ L U V hUV (K ⊔ N)
-      K.isCompact N.isCompact hKU hNV (by exact Set.Subset.rfl) NW hN p (p + 1) rfl) a
-  simp only [ConcreteCategory.comp_apply, TopCat.singularCohomologyComplRestrict,
-    TopPair.ofSubsetMap_id, TopPair.singularCohomologyMap_id, ConcreteCategory.id_apply] at hδc
+  have hδc := TopCat.compactSupportCohomologyι_compactSupportCohomologyMayerVietorisδ_apply ℤₘ ℤ L
+    U V hUV (K ⊔ N) K.isCompact N.isCompact hKU hNV (by exact Set.Subset.rfl) NW hN p (p + 1) rfl a
+  simp only [TopCat.singularCohomologyComplRestrict, TopPair.ofSubsetMap_id,
+    TopPair.singularCohomologyMap_id, ConcreteCategory.id_apply] at hδc
   have hdex := duality_excision_preimage L o hn W (K ⊓ N) hKW (p + 1) q (by omega)
     (TopCat.singularCohomologyComplMayerVietorisδ ℤₘ ℤ L
       K.isCompact.isClosed N.isCompact.isClosed p (p + 1) rfl a)
@@ -472,9 +469,8 @@ private lemma signed_duality_on_compact_union (U V : Opens Mₜ)
   erw [ChainComplex.linearYonedaObj_d_apply, TopPair.singularCochainComplexMap_f_apply] at hφ hψ
   simp only [TopPair.singularCochainComplexMap_f_apply] at hα
   obtain ⟨z, hz⟩ := exists_small_fundamentalCycle o hn (K ⊔ N) F hF hcov
-  have hs := ConcreteCategory.congr_hom
-    (capCycles_homologyπ_mayerVietorisδ L S U V A B C D hUV hCA hCB hAD hBD hSU hSV hSW
-      p q (p + q) rfl φ ψ α ζ hφ hψ hα) z
+  have hs := capCycles_homologyπ_mayerVietorisδ_apply L S U V A B C D hUV hCA hCB hAD hBD hSU hSV
+    hSW p q (p + q) rfl φ ψ α ζ hφ hψ hα z
   have hleft := cap_fundamentalCycle L o hn S (K ⊔ N) p (q + 1) h α z hz
   erw [ha] at hleft
   have hr := localized_duality_compact_union L o hn U V hUV K N hKU hNV
@@ -482,7 +478,6 @@ private lemma signed_duality_on_compact_union (U V : Opens Mₜ)
   let Q := (TopCat.toSSet.obj ((Opens.toTopCat Mₜ).obj (U ⊓ V))).homology L q
   let ev := LinearMap.evalAddMonoidHom (σ₁₂ := RingHom.id ℤ) (M₂ := Q) z
   erw [congrArg ev (ModuleCat.hom_zsmul _ _), map_zsmul ev _ _] at hs
-  simp only [ModuleCat.hom_comp, LinearMap.comp_apply] at hs
   erw [hleft, hr] at hs
   exact hs
 

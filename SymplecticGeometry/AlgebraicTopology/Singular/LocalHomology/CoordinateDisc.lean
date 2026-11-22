@@ -46,8 +46,11 @@ run backwards.
 
 Smaller coordinate discs come from precomposing with the affine maps `z ↦ a + r z`, `r > 0`, of
 the ball into itself, which preserve its canonical orientation since they are holomorphic
-(`TauCeti.comap_complexHomologicalOrientation`). A coordinate disc whose image lies in an open
-set `U` is one of `U`, for the restriction of `o` (`TauCeti.HomologicalOrientation.comap`).
+(`TauCeti.comap_complexHomologicalOrientation`). More generally, an orientation-preserving open
+embedding into `M` of an open set of `ℂ`, precomposed with an orientation-preserving open
+embedding of the ball into that set, such as an affine map, is a coordinate disc. A coordinate
+disc whose image lies in an open set `U` is one of `U`, for the restriction of `o`
+(`TauCeti.HomologicalOrientation.comap`).
 
 On a `C¹` surface `M` charted on `ℝ²` with an orientation
 `o : TauCeti.Manifold.Orientation (𝓡 2) M (Fin 2)`, every chart `e` that preserves orientation
@@ -90,9 +93,13 @@ source: the inverse of Tau Ceti's oriented coordinate ball, restricted to a smal
 * `SymplecticGeometry.CoordinateDisc.phase`: the angular coordinate `w / ‖w‖` of a coordinate
   disc, as a map to `Circle`.
 * `SymplecticGeometry.CoordinateDisc.reverse`: the coordinate disc `φ ∘ conj` for `-o`.
-* `SymplecticGeometry.CoordinateDisc.affineBall`: the map `z ↦ a + r z` of the ball into itself.
+* `SymplecticGeometry.CoordinateDisc.affineBall`: the map `z ↦ a + r z` of the ball into an open
+  set of `ℂ` that contains its image.
+* `SymplecticGeometry.CoordinateDisc.ofComp`: the coordinate disc `g ∘ f`, for an
+  orientation-preserving open embedding `g` of an open set `U` of `ℂ` into `M` and an
+  orientation-preserving open embedding `f` of the ball into `U`.
 * `SymplecticGeometry.CoordinateDisc.comp`: a coordinate disc precomposed with an
-  orientation-preserving open embedding of the ball into itself.
+  orientation-preserving open embedding of the ball into itself, the case `U = ball` of `ofComp`.
 * `SymplecticGeometry.CoordinateDisc.restrict`: a coordinate disc with image in an open set `U`,
   as a coordinate disc of `U`.
 * `SymplecticGeometry.CoordinateDisc.subtypeVal`: the inclusion of the ball into `ℂ`, a coordinate
@@ -118,7 +125,8 @@ source: the inverse of Tau Ceti's oriented coordinate ball, restricted to a smal
   `SymplecticGeometry.CoordinateDisc.boundaryLoop_reverse`: reversal keeps the discs and reverses
   the boundary loop (`Path.symm`).
 * `SymplecticGeometry.CoordinateDisc.comap_affineBall_complexHomologicalOrientation`: the maps
-  `z ↦ a + r z`, `r > 0`, preserve the canonical orientation of the ball.
+  `z ↦ a + r z`, `r ≠ 0`, pull the canonical orientation of their codomain back to that of the
+  ball.
 * `SymplecticGeometry.CoordinateDisc.comap_eq_complexHomologicalOrientation`: when `M` is charted
   on `ℂ`, the orientation condition says that `o` pulls back to the canonical orientation of the
   ball.
@@ -451,8 +459,7 @@ ray through `ζ`. -/
 theorem apply_boundaryCircle_eq_of_continuousOn {X : Type*} [TopologicalSpace X] [T1Space X]
     {ρ : ℝ} (hρ : ρ < 1) {f : M → X}
     (hf : ContinuousOn f (φ '' {z | ρ < ‖(z : ℂ)‖ ∧ ‖(z : ℂ)‖ ≤ 1})) {ζ : Circle} {c : X}
-    (h : ∀ z : ball, ρ < ‖(z : ℂ)‖ → ‖(z : ℂ)‖ < 1 → Circle.exp (Complex.arg z) = ζ →
-      f (φ z) = c) :
+    (h : ∀ z : ball, ρ < ‖(z : ℂ)‖ → ‖(z : ℂ)‖ < 1 → φ.phase (φ z) = ζ → f (φ z) = c) :
     f (φ.boundaryCircle ζ) = c := by
   -- The ray through `ζ`, as a map from `[0, 1]` to the ball.
   let γ : unitInterval → ball := fun t ↦
@@ -485,8 +492,8 @@ theorem apply_boundaryCircle_eq_of_continuousOn {X : Type*} [TopologicalSpace X]
       (Set.mem_insert _ _)).mono (Set.subset_insert _ _)
   rw [← hγ1]
   refine hcont.eq_const_of_mem_closure hmem fun t ht ↦ h (γ t)
-    (by rw [hnorm]; exact (le_max_left ρ 0).trans_lt ht.1) (by rw [hnorm]; exact ht.2) ?_
-  simp [γ, Complex.arg_ofReal_mul ((le_max_right ρ 0).trans_lt ht.1), Circle.exp_arg]
+    (by rw [hnorm]; exact (le_max_left ρ 0).trans_lt ht.1) (by rw [hnorm]; exact ht.2)
+    (φ.phase_apply_of_coe_eq_mul ((le_max_right ρ 0).trans_lt ht.1) (by simp [γ]))
 
 /-- The boundary loop of a coordinate disc, `t ↦ φ(e^{2πit})`, based at `φ.boundaryCircle 1`.
 It runs counterclockwise in the chart, so it is oriented as the boundary of the closed disc. -/
@@ -636,59 +643,84 @@ theorem boundaryLoop_reverse :
 
 /-! ### Smaller discs and restriction to an open set -/
 
-/-- The affine map `z ↦ a + r z` of the ball of radius `2` into itself, for `r > 0` and
-`‖a‖ + 2 r ≤ 2`. -/
-def affineBall (a : ℂ) {r : ℝ} (hr : 0 < r) (h : ‖a‖ + 2 * r ≤ 2) : ball → ball :=
-  fun z ↦ ⟨a + r * z, mem_ball_iff.2 <| by
+/-- A point `a + r z`, for `z` in the ball of radius `2`, `r > 0` and `‖a‖ + 2 r ≤ 2`, lies in
+the ball. -/
+theorem add_mul_mem_ball {a : ℂ} {r : ℝ} (hr : 0 < r) (h : ‖a‖ + 2 * r ≤ 2) (z : ball) :
+    a + r * (z : ℂ) ∈ ball :=
+  mem_ball_iff.2 <| by
     calc ‖a + r * (z : ℂ)‖ ≤ ‖a‖ + r * ‖(z : ℂ)‖ := by
           simpa [norm_mul, abs_of_pos hr] using norm_add_le a (r * (z : ℂ))
       _ < ‖a‖ + r * 2 := by gcongr; exact mem_ball_iff.1 z.property
-      _ ≤ 2 := by linarith⟩
+      _ ≤ 2 := by linarith
+
+/-- The affine map `z ↦ a + r z` of the ball of radius `2` into an open set `V` of `ℂ` that
+contains its image. For `V = ball`, `add_mul_mem_ball` gives the condition on the image. -/
+def affineBall {V : TopologicalSpace.Opens ℂ} (a : ℂ) {r : ℝ}
+    (h : ∀ z : ball, a + r * (z : ℂ) ∈ V) : ball → V :=
+  fun z ↦ ⟨a + r * z, h z⟩
 
 @[simp]
-theorem coe_affineBall_apply (a : ℂ) {r : ℝ} (hr : 0 < r) (h : ‖a‖ + 2 * r ≤ 2) (z : ball) :
-    (affineBall a hr h z : ℂ) = a + r * z :=
+theorem coe_affineBall_apply {V : TopologicalSpace.Opens ℂ} (a : ℂ) {r : ℝ}
+    (h : ∀ z : ball, a + r * (z : ℂ) ∈ V) (z : ball) :
+    (affineBall a h z : ℂ) = a + r * z :=
   (rfl)
 
-private theorem subtypeVal_comp_affineBall (a : ℂ) {r : ℝ} (hr : 0 < r) (h : ‖a‖ + 2 * r ≤ 2) :
-    Subtype.val ∘ affineBall a hr h =
-      Diffeomorph.smulAdd 1 (r : ℂ) a (Complex.ofReal_ne_zero.2 hr.ne') ∘ Subtype.val := by
+private theorem subtypeVal_comp_affineBall {V : TopologicalSpace.Opens ℂ} (a : ℂ) {r : ℝ}
+    (h : ∀ z : ball, a + r * (z : ℂ) ∈ V) (hr : r ≠ 0) :
+    Subtype.val ∘ affineBall a h =
+      Diffeomorph.smulAdd 1 (r : ℂ) a (Complex.ofReal_ne_zero.2 hr) ∘ Subtype.val := by
   ext z
   simp [add_comm]
 
-theorem isOpenEmbedding_affineBall (a : ℂ) {r : ℝ} (hr : 0 < r) (h : ‖a‖ + 2 * r ≤ 2) :
-    IsOpenEmbedding (affineBall a hr h) :=
-  (IsOpenEmbedding.of_comp_iff _ ball.isOpenEmbedding').1 <| by
-    rw [subtypeVal_comp_affineBall]
+theorem isOpenEmbedding_affineBall {V : TopologicalSpace.Opens ℂ} (a : ℂ) {r : ℝ}
+    (h : ∀ z : ball, a + r * (z : ℂ) ∈ V) (hr : r ≠ 0) :
+    IsOpenEmbedding (affineBall a h) :=
+  (IsOpenEmbedding.of_comp_iff _ V.isOpenEmbedding').1 <| by
+    rw [subtypeVal_comp_affineBall a h hr]
     exact (Diffeomorph.smulAdd 1 (r : ℂ) a
-      (Complex.ofReal_ne_zero.2 hr.ne')).toHomeomorph.isOpenEmbedding.comp ball.isOpenEmbedding'
+      (Complex.ofReal_ne_zero.2 hr)).toHomeomorph.isOpenEmbedding.comp ball.isOpenEmbedding'
 
-/-- The affine map `z ↦ a + r z`, `r > 0`, of the ball into itself preserves its canonical
-orientation. -/
-theorem comap_affineBall_complexHomologicalOrientation (a : ℂ) {r : ℝ} (hr : 0 < r)
-    (h : ‖a‖ + 2 * r ≤ 2) :
-    (complexHomologicalOrientation ball).comap (isOpenEmbedding_affineBall a hr h) =
+/-- The affine map `z ↦ a + r z`, `r ≠ 0`, of the ball into an open set `V` of `ℂ` pulls the
+canonical orientation of `V` back to that of the ball. -/
+theorem comap_affineBall_complexHomologicalOrientation {V : TopologicalSpace.Opens ℂ} (a : ℂ)
+    {r : ℝ} (h : ∀ z : ball, a + r * (z : ℂ) ∈ V) (hr : r ≠ 0) :
+    (complexHomologicalOrientation V).comap (isOpenEmbedding_affineBall a h hr) =
       complexHomologicalOrientation ball :=
-  let T := Diffeomorph.smulAdd 1 (r : ℂ) a (Complex.ofReal_ne_zero.2 hr.ne')
+  let T := Diffeomorph.smulAdd 1 (r : ℂ) a (Complex.ofReal_ne_zero.2 hr)
   comap_complexHomologicalOrientation_of_comp_eq _ T.toHomeomorph.isOpenEmbedding
-    T.isLocalDiffeomorph (subtypeVal_comp_affineBall a hr h)
+    T.isLocalDiffeomorph (subtypeVal_comp_affineBall a h hr)
+
+/-- Let `g` be an open embedding of an open set `U` of `ℂ` into `M` that carries the canonical
+orientation of `U` to `o` at every point, and `f` an open embedding of the ball into `U` that
+pulls the canonical orientation of `U` back to that of the ball. Then `z ↦ g (f z)` is a
+coordinate disc. -/
+def ofComp {U : TopologicalSpace.Opens ℂ} (g : U → M) (hg : IsOpenEmbedding g)
+    (hgo : ∀ w, hg.localOrientationEquiv w 2 (complexHomologicalOrientation U w) = o (g w))
+    (f : ball → U) (hf : IsOpenEmbedding f)
+    (h : (complexHomologicalOrientation U).comap hf = complexHomologicalOrientation ball) :
+    CoordinateDisc o where
+  toFun z := g (f z)
+  isOpenEmbedding' := hg.comp hf
+  localOrientationEquiv_apply' z := by
+    have h' := HomologicalOrientation.localOrientationEquiv_comap_apply
+      (complexHomologicalOrientation U) hf z
+    rw [h] at h'
+    rw [← IsOpenEmbedding.localOrientationEquiv_trans hf hg, Equiv.trans_apply, h', hgo]
+
+@[simp]
+theorem ofComp_apply {U : TopologicalSpace.Opens ℂ} (g : U → M) (hg : IsOpenEmbedding g)
+    (hgo : ∀ w, hg.localOrientationEquiv w 2 (complexHomologicalOrientation U w) = o (g w))
+    (f : ball → U) (hf : IsOpenEmbedding f)
+    (h : (complexHomologicalOrientation U).comap hf = complexHomologicalOrientation ball)
+    (z : ball) : ofComp g hg hgo f hf h z = g (f z) :=
+  (rfl)
 
 /-- Precomposing a coordinate disc with an open embedding of the ball into itself that preserves
 its canonical orientation gives a coordinate disc. -/
 def comp (f : ball → ball) (hf : IsOpenEmbedding f)
     (h : (complexHomologicalOrientation ball).comap hf = complexHomologicalOrientation ball) :
-    CoordinateDisc o where
-  toFun := φ ∘ f
-  isOpenEmbedding' := φ.isOpenEmbedding.comp hf
-  localOrientationEquiv_apply' z := by
-    have h' := HomologicalOrientation.localOrientationEquiv_comap_apply
-      (complexHomologicalOrientation ball) hf z
-    rw [h] at h'
-    rw [← IsOpenEmbedding.localOrientationEquiv_trans hf φ.isOpenEmbedding, Equiv.trans_apply,
-      h', φ.localOrientationEquiv_apply]
-    -- `(φ ∘ f) z` is `φ (f z)`; as in `reverse`, `rw [Function.comp_apply]` fails here, since the
-    -- type of a local orientation depends on its point.
-    rfl
+    CoordinateDisc o :=
+  ofComp φ φ.isOpenEmbedding φ.localOrientationEquiv_apply f hf h
 
 @[simp]
 theorem comp_apply (f : ball → ball) (hf : IsOpenEmbedding f)
