@@ -652,7 +652,8 @@ Expected size: 300 lines.
   (`TauCeti.contDiffOn_flowOf_uncurry`,
   `TauCeti.hasFDerivAt_flowOf_uncurry_zero`), in `Collar/Flow/Local.lean`, and by integral
   curves as trajectories of the flow (`IsMIntegralCurveOn.sub_mem_flowDomain`,
-  `IsMIntegralCurveOn.flowOf_sub_eq`), in `Liouville/Scaling.lean`.
+  `IsMIntegralCurveOn.flowOf_sub_eq`, `TauCeti.eventuallyEq_flowOf_sub_of_isMIntegralCurveOn`,
+  `TauCeti.contMDiffAt_of_isMIntegralCurveOn`), in `Liouville/Scaling.lean`.
 - *Moser isotopy*: `Geometry/Symplectic/Manifold/Family.lean`
   (`SmoothTwoForm.isOpen_setOf_nondegenerate_bilinFormAt`), merged, in
   `StableHamiltonian.lean`.
