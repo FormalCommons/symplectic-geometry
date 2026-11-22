@@ -406,6 +406,21 @@ Named like Tau Ceti's file; in `TauCeti`.
   inclusion `Opens.inclusion h : U → W` is a `C^n` local diffeomorphism, for
   restricting families and forms between open subsets.
 
+### `Geometry/Manifold/DifferentialForm/Pullback/Smooth.lean`
+
+Named like Tau Ceti's file; in `TauCeti`.
+
+- `TauCeti.SmoothForm.mpullback_const`: the pullback of a smooth
+  `(k + 1)`-form along a constant map is `0`, for the end of a contraction.
+
+### `Geometry/Manifold/DeRham/DegreeZero.lean`
+
+Named like Tau Ceti's file; in `TauCeti`.
+
+- `TauCeti.finiteDimensional_closedForms_zero`: an instance, on a connected
+  manifold, of `FiniteDimensional ℝ (closedForms I M 0)`, for the degree-zero
+  space of the contractible splitting.
+
 ### `Geometry/Manifold/DifferentialForm/HomotopyOperator.lean`
 
 Named like Tau Ceti's file; in `TauCeti`.
@@ -749,7 +764,9 @@ can start at once; each issue's blockers come before it.
     `Geometry/Manifold/DeRham/SmoothFamily/Basic.lean`. Blocked by 5.
 11. **The homotopy operator on families, and contractible manifolds.**
     `Geometry/Manifold/DifferentialForm/HomotopyOperator.lean`,
-    `Geometry/Manifold/DifferentialForm/SmoothFamily/HomotopyOperator.lean` and
+    `Geometry/Manifold/DifferentialForm/SmoothFamily/HomotopyOperator.lean`,
+    `Geometry/Manifold/DifferentialForm/Pullback/Smooth.lean`,
+    `Geometry/Manifold/DeRham/DegreeZero.lean` and
     `Geometry/Manifold/DeRham/SmoothFamily/Contractible.lean`. Blocked by 7
     and 10.
 12. **The Mayer–Vietoris step.**

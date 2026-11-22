@@ -27,8 +27,12 @@ on a smooth manifold `M` possibly with boundary or corners. Smoothness of `h φ`
 
 * `TauCeti.SmoothForm.coe_homotopyOperator`: its underlying rough form is
   `TauCeti.homotopyOperator`.
-* `TauCeti.SmoothForm.mextDerivₗ_homotopyOperator`: for a closed form `φ` with values in a Banach
-  space, `d (h φ) = ι₁^* φ - ι₀^* φ`, where `ιₜ x = (x, t)`.
+* `TauCeti.SmoothForm.mextDerivₗ_homotopyOperator_add_homotopyOperator_mextDerivₗ`: for a form
+  `φ` with values in a Banach space, `d (h φ) + h (d φ) = ι₁^* φ - ι₀^* φ`, where
+  `ιₜ x = (x, t)`; it is Tau Ceti's
+  `TauCeti.mextDeriv_homotopyOperator_add_homotopyOperator_mextDeriv` on smooth forms.
+* `TauCeti.SmoothForm.mextDerivₗ_homotopyOperator`: its case of a closed form,
+  `d (h φ) = ι₁^* φ - ι₀^* φ`.
 
 ## References
 
@@ -70,6 +74,22 @@ theorem coe_homotopyOperator (φ : SmoothForm (I.prod (𝓡∂ 1)) (M × Icc (0 
     (homotopyOperator φ).val = TauCeti.homotopyOperator φ.val :=
   (rfl)
 
+/-- **The homotopy formula.** For a smooth form `φ` on `M × [0, 1]` with values in a Banach
+space, `d (h φ) + h (d φ) = ι₁^* φ - ι₀^* φ`, where `ιₜ x = (x, t)`: the homotopy operator is a
+cochain homotopy between the pullbacks along the two ends of the cylinder. -/
+theorem mextDerivₗ_homotopyOperator_add_homotopyOperator_mextDerivₗ [CompleteSpace F]
+    (φ : SmoothForm (I.prod (𝓡∂ 1)) (M × Icc (0 : ℝ) 1) F (k + 1)) :
+    mextDerivₗ I k (homotopyOperator φ) +
+        homotopyOperator (mextDerivₗ (I.prod (𝓡∂ 1)) (k + 1) φ) =
+      mpullback (fun x : M ↦ (x, (1 : Icc (0 : ℝ) 1))) (contMDiff_id.prodMk contMDiff_const) φ -
+        mpullback (fun x : M ↦ (x, (0 : Icc (0 : ℝ) 1))) (contMDiff_id.prodMk contMDiff_const)
+          φ := by
+  refine Subtype.ext (funext fun x ↦ ?_)
+  rw [Submodule.coe_add, Pi.add_apply, mextDerivₗ_apply, coe_homotopyOperator,
+    coe_homotopyOperator, mextDerivₗ_apply,
+    mextDeriv_homotopyOperator_add_homotopyOperator_mextDeriv (φ.isSmoothForm.of_le (by simp)) x,
+    Submodule.coe_sub, Pi.sub_apply, coe_mpullback, coe_mpullback]
+
 /-- **The homotopy formula for closed forms.** For a closed smooth form `φ` on `M × [0, 1]` with
 values in a Banach space, the exterior derivative of `h φ` is the difference `ι₁^* φ - ι₀^* φ`
 of the slices of `φ` at the ends, where `ιₜ x = (x, t)`. -/
@@ -80,12 +100,7 @@ theorem mextDerivₗ_homotopyOperator [CompleteSpace F]
       mpullback (fun x : M ↦ (x, (1 : Icc (0 : ℝ) 1))) (contMDiff_id.prodMk contMDiff_const) φ -
         mpullback (fun x : M ↦ (x, (0 : Icc (0 : ℝ) 1))) (contMDiff_id.prodMk contMDiff_const)
           φ := by
-  have hclosed : mextDeriv φ.val = 0 := by
-    rw [← mextDerivₗ_apply, hφ, Submodule.coe_zero]
-  refine Subtype.ext (funext fun x ↦ ?_)
-  rw [mextDerivₗ_apply, coe_homotopyOperator,
-    mextDeriv_homotopyOperator (φ.isSmoothForm.of_le (by simp)) hclosed x, Submodule.coe_sub,
-    Pi.sub_apply, coe_mpullback, coe_mpullback]
+  rw [← mextDerivₗ_homotopyOperator_add_homotopyOperator_mextDerivₗ, hφ, map_zero, add_zero]
 
 end SmoothForm
 
