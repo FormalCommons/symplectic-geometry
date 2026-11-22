@@ -1130,9 +1130,13 @@ issues, in an order where each issue's blockers come before it.
      first, in `Geometry/Manifold/DifferentialForm/Wedge/Smooth/Pow.lean`;
    - `TauCeti.SmoothTwoForm.IsNondegenerate.volumeOrientation_eq_ofTopForm`
      (on a surface, the orientation of a nondegenerate `σ` is `ofTopForm`
-     of `σ`), in `Geometry/Symplectic/Manifold/Volume.lean`.
+     of `σ`), in `Geometry/Symplectic/Manifold/Volume.lean`;
+   - `TauCeti.degree_eq_orientationSign_of_preimage_eq_singleton` (the
+     degree of a proper smooth map whose fibre over a point is one point
+     with invertible derivative is the orientation sign there), in
+     `Geometry/Manifold/Degree/Global.lean`.
 
-   With the last one the induced orientation is `o.sphereOrientation`,
+   With `volumeOrientation_eq_ofTopForm` the induced orientation is `o.sphereOrientation`,
    which is defined by `ofTopForm`. The genus of
    the sphere is `TauCeti.surfaceGenus_sphere` of prerequisite 2. Blocked by
    5. Done when these are proved.

@@ -6,13 +6,13 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Geometry.Manifold.Instances.Sphere
-public import TauCeti.Geometry.Manifold.Degree.Global
+public import SymplecticGeometry.Geometry.Manifold.Degree.Global
 public import TauCeti.Geometry.Manifold.Orientation.Sphere
 import Mathlib.Analysis.InnerProductSpace.Calculus
-import Mathlib.Analysis.InnerProductSpace.Projection.FiniteDimensional
 import Mathlib.Analysis.SpecialFunctions.SmoothTransition
-import Mathlib.Geometry.Manifold.MFDeriv.Tangent
+import TauCeti.Analysis.InnerProductSpace.Reflection
 import TauCeti.Geometry.Diffeomorphism.Sphere
+import TauCeti.Geometry.Manifold.MFDeriv.Chart.Basic
 import TauCeti.Geometry.Sphere.Connected
 
 /-!
@@ -40,9 +40,6 @@ reflection of the sphere, which reverses its orientation
 
 ## Main results
 
-* `TauCeti.degree_eq_orientationSign_of_preimage_eq_singleton`: if the fibre of a proper smooth map
-  over a point `y` is a single point `x` where the derivative is invertible, the degree is the
-  orientation sign at `x`.
 * `SymplecticGeometry.exists_contMDiff_degree_eq_one`: a compact nonempty Hausdorff oriented
   manifold of dimension `n ≥ 1` has a smooth map of degree one to `Sⁿ`.
 
@@ -58,35 +55,6 @@ public section
 
 open Function Metric Module Set
 open scoped ContDiff Manifold Topology RealInnerProductSpace
-
-namespace TauCeti
-
-variable {E H H' M N : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
-  [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M]
-  [IsManifold I ∞ M] [BoundarylessManifold I M] [T2Space M]
-  [TopologicalSpace H'] {J : ModelWithCorners ℝ E H'} [TopologicalSpace N] [ChartedSpace H' N]
-  [IsManifold J ∞ N] [BoundarylessManifold J N] [T2Space N] [SigmaCompactSpace N]
-  [ConnectedSpace N] {k : ℕ}
-
-/-- If the fibre of a proper smooth map `f` over `y` is a single point `x` at which the derivative
-of `f` is invertible, then `y` is a regular value, and the degree of `f` is the orientation sign
-of `f` at `x`. -/
-theorem degree_eq_orientationSign_of_preimage_eq_singleton (o : Manifold.Orientation I M (Fin k))
-    (o' : Manifold.Orientation J N (Fin k)) {f : M → N} (hf : ContMDiff I J ∞ f)
-    (hfp : IsProperMap f) {x : M} {y : N} (hxy : f ⁻¹' {y} = {x})
-    (hx : (mfderiv I J f x).IsInvertible) :
-    degree o o' f = Manifold.Orientation.orientationSign o o' f x := by
-  have hy : IsRegularValue I J f y := isRegularValue_iff.2 fun x' hx' ↦ by
-    obtain rfl : x' = x := by
-      rw [← mem_singleton_iff, ← hxy]
-      exact hx'
-    exact (isRegularPoint_iff_isInvertible_mfderiv rfl).2 hx
-  rw [degree_eq_degreeAtRegularValue o o' hf hfp hy,
-    degreeAtRegularValue_eq_sum (s := {x}) fun x' ↦ by
-      rw [Finset.mem_singleton, ← mem_singleton_iff, ← hxy, mem_preimage, mem_singleton_iff],
-    Finset.sum_singleton]
-
-end TauCeti
 
 namespace SymplecticGeometry
 
@@ -285,7 +253,7 @@ private theorem contMDiff_chartCollapse (hr : 0 < r)
   · exact contMDiffAt_const.congr_of_eventuallyEq
       (Filter.eventually_of_mem (hK.isOpen_compl.mem_nhds fun h ↦ hx (hKs h)) hGK)
 
-omit [T2Space M] in
+omit [T2Space M] [IsManifold (𝓡 n) ∞ M] in
 /-- The derivative of the chart collapse at the centre `x₀` is injective: in the chart it is a
 nonzero multiple of `J`. -/
 private theorem injective_mfderiv_chartCollapse (hr : 0 < r) :
@@ -300,25 +268,16 @@ private theorem injective_mfderiv_chartCollapse (hr : 0 < r) :
     rw [← sub_self c] at h3
     exact h3.comp (f := fun z ↦ z - c) c h2
   have hD : HasMFDerivAt (𝓡 n) 𝓘(ℝ, F) (chartCollapse J v x₀ r) x₀
-      ((coeffJ ((r / 2) ^ 2) 0 • J.toContinuousLinearMap).comp
-        (mfderiv (𝓡 n) (𝓡 n) (chartAt (EuclideanSpace ℝ (Fin n)) x₀) x₀)) :=
-    (h1.hasMFDerivAt.comp x₀ (hasMFDerivAt_extChartAt (mem_chart_source _ x₀))
-      ).congr_of_eventuallyEq (Filter.eventually_of_mem
-        ((chartAt _ x₀).open_source.mem_nhds (mem_chart_source _ x₀))
-          fun y hy ↦ chartCollapse_of_mem hy)
+      (coeffJ ((r / 2) ^ 2) 0 • J.toContinuousLinearMap) :=
+    (h1.hasMFDerivAt.comp x₀ (TauCeti.hasMFDerivAt_extChartAt_self x₀)).congr_of_eventuallyEq
+      (Filter.eventually_of_mem ((chartAt _ x₀).open_source.mem_nhds (mem_chart_source _ x₀))
+        fun y hy ↦ chartCollapse_of_mem hy)
   have hcoeff : coeffJ ((r / 2) ^ 2) 0 ≠ 0 := by
     have := expNegInvGlue.pos_of_pos hε
     simp only [coeffJ, cutoff, sub_zero, add_zero]
     positivity
-  -- The derivative of the chart at its centre is the identity.
-  have hT (a : EuclideanSpace ℝ (Fin n)) : tangentCoordChange (𝓡 n) x₀ x₀ x₀ a = a :=
-    tangentCoordChange_self (mem_extChartAt_source x₀)
   rw [hD.mfderiv]
-  intro a b hab
-  rw [mfderiv_chartAt_eq_tangentCoordChange (mem_chart_source _ x₀)] at hab
-  have h' : J (tangentCoordChange (𝓡 n) x₀ x₀ x₀ a) = J (tangentCoordChange (𝓡 n) x₀ x₀ x₀ b) :=
-    smul_right_injective F hcoeff hab
-  exact (hT a).symm.trans ((J.injective h').trans (hT b))
+  exact fun a b hab ↦ J.injective (smul_right_injective F hcoeff hab)
 
 variable [Fact (finrank ℝ F = n + 1)]
 
@@ -381,10 +340,8 @@ theorem exists_contMDiff_degree_eq_one [NeZero n] (o : TauCeti.Manifold.Orientat
   set R := ((ℝ ∙ v)ᗮ.reflection).unitSphereEquiv
   have hdet : LinearMap.det (((ℝ ∙ v)ᗮ.reflection).toLinearEquiv : F →ₗ[ℝ] F) < 0 := by
     have hv0 : v ≠ 0 := by rintro rfl; simp at hv
-    rw [show (((ℝ ∙ v)ᗮ.reflection).toLinearEquiv : F →ₗ[ℝ] F) =
-      ((ℝ ∙ v)ᗮ.reflection).toLinearMap from rfl, Submodule.det_reflection,
-      Submodule.orthogonal_orthogonal, finrank_span_singleton hv0]
-    norm_num
+    rw [← LinearEquiv.coe_det, TauCeti.linearEquiv_det_reflection_orthogonal_singleton hv0]
+    exact neg_one_lt_zero
   have hR : ContMDiff (𝓡 n) (𝓡 n) ∞ R := LinearIsometryEquiv.contMDiff_unitSphereEquiv _
   have hsign : TauCeti.Manifold.Orientation.orientationSign o o'.sphereOrientation (R ∘ f)
       (Classical.arbitrary M) = 1 := by
