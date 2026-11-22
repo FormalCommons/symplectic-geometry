@@ -5,10 +5,8 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.AlgebraicTopology.Singular.Circle
-public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.OrientedChart
 public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orientation.Linear
-public import SymplecticGeometry.Analysis.Complex.RadialProjection
+public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orientation.Plane
 public import TauCeti.Geometry.Manifold.Complex.FundamentalClass
 
 /-!
@@ -24,10 +22,9 @@ orientation that `Complex.orientation` selects
 
 The connecting morphism of the pair `(ℂ, ℂ ∖ {0})` followed by radial projection
 (`Circle.radialProjection`) sends the local orientation of the identity chart to the generator of
-the homology of the unit circle that `Complex.orientation` selects
-(`OpenPartialHomeomorph.map_reducedSingularHomologyδ_localOrientationOfOrientedChart_refl`),
-and this is the generator of `Circle.singularHomologyOneIso`
-(`Circle.singularHomologyOneIso_inv_eq_complexOrientation`).
+`Circle.singularHomologyOneIso`. This is the case `p = 0`, `φ = id` of the description of the
+oriented local homology isomorphism of a plane through `Circle`
+(`TauCeti.singularHomologyComplSingletonIsoOfOrientation_refl_hom_eq_radialProjection`).
 
 ## Main results
 
@@ -77,32 +74,19 @@ theorem singularHomologyOneIso_singularHomologyδ_localOrientation_complexOrient
           (ModuleCat.of ℤ (ULift.{0} ℤ)) 2 1 rfl
           (Complex.orientation.localOrientation Complex.finrank_real_complex).val)) = 1 := by
   set R := ModuleCat.of ℤ (ULift.{0} ℤ)
-  set Q := TopPair.ofSubset ({0}ᶜ : Set (TopCat.of ℂ))
-  set H := (singularHomologyFunctor (ModuleCat.{0} ℤ) 1).obj R
-  set e := TopCat.ofHom (Circle.homeomorphSphere.symm : C(sphere (0 : ℂ) 1, Circle))
-  set c := TopCat.ofHom (complSingletonHomotopyEquivSphere (0 : ℂ)).toFun
-  set x := (Complex.orientation.localOrientation Complex.finrank_real_complex).val
-  have key : H.map (c ≫ e) (Q.singularHomologyδ R 2 1 rfl x) =
-      (Circle.singularHomologyOneIso R).inv 1 := calc
-    _ = H.map e (H.map c ((reducedSingularHomologyι R 1).app _
-          (Q.reducedSingularHomologyδ R 1 x))) :=
-        (ConcreteCategory.congr_hom (H.map_comp c e) _).trans
-          ((ConcreteCategory.comp_apply _ _ _).trans (congrArg _ (congrArg _
-            (ConcreteCategory.congr_hom (TopPair.reducedSingularHomologyδ_comp_ι Q R 1) x).symm)))
-    _ = H.map e ((reducedSingularHomologyι R 1).app _
-          ((reducedSingularHomologyFunctor R 1).map c (Q.reducedSingularHomologyδ R 1 x))) :=
-        congrArg _ (ConcreteCategory.congr_hom ((reducedSingularHomologyι R 1).naturality c) _).symm
-    _ = H.map e ((reducedSingularHomologyι R 1).app _
-          ((reducedSingularHomologySphereIsoOfOrientation R Complex.orientation
-            Complex.finrank_real_complex).inv 1)) := by
-        have h :=
-          OpenPartialHomeomorph.map_reducedSingularHomologyδ_localOrientationOfOrientedChart_refl
-            (p := (0 : ℂ)) (by simp) Complex.orientation Complex.finrank_real_complex
-        rw [← Orientation.localOrientation_eq_localOrientationOfOrientedChart_refl] at h
-        exact congrArg _ (congrArg _ h)
-    _ = (Circle.singularHomologyOneIso R).inv 1 := by
-        rw [Circle.singularHomologyOneIso_inv_eq_complexOrientation, ConcreteCategory.comp_apply,
-          ConcreteCategory.comp_apply]
-  rw [Circle.radialProjection_def, TopCat.ofHom_comp, key, Iso.inv_hom_id_apply]
+  set e := singularHomologyComplSingletonIsoOfOrientation R (OpenPartialHomeomorph.refl ℂ)
+    (x := (0 : ℂ)) (by simp) (n := 1) Complex.orientation Complex.finrank_real_complex
+  have he := singularHomologyComplSingletonIsoOfOrientation_refl_hom_eq_radialProjection R
+    Complex.orientation Complex.finrank_real_complex 0 (LinearIsometryEquiv.refl ℝ ℂ)
+    (by simp)
+  rw [Circle.radialProjectionAt_refl_zero] at he
+  have h1 := ConcreteCategory.congr_hom he (e.inv 1)
+  rw [Iso.inv_hom_id_apply, ConcreteCategory.comp_apply] at h1
+  rw [Orientation.localOrientation_eq_localOrientationOfOrientedChart_refl,
+    OpenPartialHomeomorph.coe_localOrientationOfOrientedChart]
+  -- The two sides differ in how the subspace of the pair is written, as `(ofSubset {0}ᶜ).snd`
+  -- or as the source `{0}ᶜ` of radial projection, so `ConcreteCategory.comp_apply` cannot
+  -- rewrite the last composite.
+  exact h1.symm
 
 end SymplecticGeometry

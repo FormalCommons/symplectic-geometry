@@ -60,13 +60,22 @@ def restrictScalarsChainMap (X : SSet.{u}) :
   ((chainComplexFunctor _).map g).app X ≫
     (chainComplexFunctorObjCompMapIso (ModuleCat.restrictScalars f) N).inv.app X
 
+/-- The change of coefficients along `g` is the map induced by `g` on chain complexes, followed
+by the inverse of the identification of the chains with coefficients `f^* N` with the
+restriction of scalars of the chains with coefficients `N`. -/
+theorem restrictScalarsChainMap_def (X : SSet.{u}) :
+    restrictScalarsChainMap f g X =
+      ((chainComplexFunctor _).map g).app X ≫
+        (chainComplexFunctorObjCompMapIso (ModuleCat.restrictScalars f) N).inv.app X :=
+  (rfl)
+
 /-- The change of coefficients along `g` sends the summand of a simplex `x` to the summand
 of `x`, through `g` on coefficients. -/
 @[reassoc (attr := simp)]
 theorem ιChainComplex_restrictScalarsChainMap_f (X : SSet.{u}) {n : ℕ} (x : X _⦋n⦌) :
     X.ιChainComplex x ≫ (restrictScalarsChainMap f g X).f n =
       g ≫ (ModuleCat.restrictScalars f).map (X.ιChainComplex x) := by
-  rw [restrictScalarsChainMap, HomologicalComplex.comp_f,
+  rw [restrictScalarsChainMap_def, HomologicalComplex.comp_f,
     ιChainComplex_chainComplexFunctor_map_app_f_assoc,
     ιChainComplex_chainComplexFunctorObjCompMapIso_inv_app_f]
 
