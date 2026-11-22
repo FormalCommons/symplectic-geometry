@@ -5,12 +5,12 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.Analysis.Matrix.LDL
 public import SymplecticGeometry.Geometry.Manifold.Instances.OnePoint
 public import SymplecticGeometry.Geometry.Manifold.Orientation.Preserving.FromTauCeti
 public import SymplecticGeometry.Geometry.Manifold.Orientation.Sphere
 public import SymplecticGeometry.Geometry.Manifold.Projectivization.FubiniStudy.Basic
 public import SymplecticGeometry.Geometry.Manifold.Projectivization.FubiniStudy.Kahler
-public import TauCeti.Analysis.Matrix.LDL
 public import TauCeti.Geometry.Manifold.Complex.Orientation
 public import TauCeti.Geometry.Manifold.DifferentialForm.Integration.ChangeOfVariables
 public import TauCeti.Geometry.Manifold.DifferentialForm.Integration.UnitSphere
@@ -53,19 +53,15 @@ coordinate `x 0` in Lean.
   `sphereToProjectiveLine` and the area `4π` of the round sphere.
 * `SymplecticGeometry.integralTopForm_mpullback_map_fubiniStudyForm`: every line of `ℂPⁿ`, the
   image of `Projectivization.map f hf` for an injective linear `f : ℂ² → ℂⁿ⁺¹`, has area `π`.
-  With `F` the matrix of `f` and `P` an upper triangular matrix such that `Pᴴ (Fᴴ F) P = 1`, the
-  matrix `F P` has orthonormal columns, so `f ∘ P` pulls `ω_FS` back to the form of `ℂP¹`
-  (`mpullback_map_fubiniStudyForm`), and the biholomorphism of `ℂP¹` induced by `P` preserves the
-  canonical orientation and hence the integral.
+  With `F` the matrix of `f` and `P` an upper triangular matrix such that `F P` has orthonormal
+  columns (`Matrix.exists_isUpperTriangular_conjTranspose_mul_mul_self_eq_one`), `f ∘ P` pulls
+  `ω_FS` back to the form of `ℂP¹` (`mpullback_map_fubiniStudyForm`), and the biholomorphism of
+  `ℂP¹` induced by `P` preserves the canonical orientation and hence the integral.
 
 The comparison at the finite points through `TauCeti.SmoothBundleForm.eq_of_forall_mem_dense`
 follows the proof of Tau Ceti's
 `OnePoint.mpullback_smul_fubiniStudyForm_eq_self_iff_mem_unitaryGroup` (through its step
-`mpullback_eq_of_sq_norm_add_sq_norm_eq`). The normalization of the Gram matrix `Fᴴ F` by
-Tau Ceti's `Matrix.PosDef.exists_isUpperTriangular_conjTranspose_mul_mul_eq_one` follows the
-proof of Tau Ceti's `QR` factorization
-`Matrix.GeneralLinearGroup.exists_mem_upperTriangularGroup_toUnits_mul_eq`, for a rectangular
-matrix with injective `mulVec` in place of an invertible one.
+`mpullback_eq_of_sq_norm_add_sq_norm_eq`).
 
 ## References
 
@@ -74,8 +70,6 @@ matrix with injective `mulVec` in place of an invertible one.
 * John M. Lee, *Introduction to Smooth Manifolds*, 2nd ed., Graduate Texts in Mathematics 218,
   Springer, 2013, Chapters 15 and 16 (the outward-normal orientation and the volume form of the
   sphere).
-* R. A. Horn and C. R. Johnson, *Matrix Analysis*, 2nd ed., Cambridge University Press, 2013,
-  Section 2.1 (the `QR` factorization), as Tau Ceti's `QR.lean` cites.
 -/
 public section
 
@@ -344,19 +338,14 @@ theorem integralTopForm_mpullback_map_fubiniStudyForm {n : ℕ}
       (SmoothForm.mpullback (map f hf) (contMDiff_map_restrictScalars f hf ∞)
         (fubiniStudyForm n)).val = Real.pi := by
   classical
-  -- Write `f ∘ g = A` with `A` of orthonormal columns and `g` invertible: the matrix `P` of `g`
-  -- normalizes the Gram matrix `Fᴴ F` of the matrix `F` of `f`, and `A = F P`.
+  -- Write `f ∘ g = A` with `A` of orthonormal columns and `g` invertible: `A = F P` for the
+  -- matrix `F` of `f` and an upper triangular `P`, the matrix of `g`.
   set F := LinearMap.toMatrix' f
   have hF : Function.Injective F.mulVec := fun x y h ↦
     hf (by simpa only [F, LinearMap.toMatrix'_mulVec] using h)
-  obtain ⟨P, -, hP⟩ := (Matrix.PosDef.conjTranspose_mul_self F
-    hF).exists_isUpperTriangular_conjTranspose_mul_mul_eq_one
-  have hA : (F * P)ᴴ * (F * P) = 1 := by
-    simpa only [Matrix.conjTranspose_mul, Matrix.mul_assoc] using hP
-  have hPi : Function.Injective (Matrix.toLin' P) := by
-    rw [Matrix.toLin'_apply', Matrix.coe_mulVecLin]
-    exact Matrix.mulVec_injective_of_mul_eq_one (B := Pᴴ * Fᴴ * F) (by
-      simpa only [Matrix.mul_assoc] using hP)
+  obtain ⟨P, -, hPi, hA⟩ := F.exists_isUpperTriangular_conjTranspose_mul_mul_self_eq_one hF
+  replace hPi : Function.Injective (Matrix.toLin' P) := by
+    rwa [Matrix.toLin'_apply', Matrix.coe_mulVecLin]
   set Φ := mapDiffeomorph (LinearEquiv.ofInjectiveEndo (Matrix.toLin' P) hPi) ω
   have hAi : Function.Injective (Matrix.toLin' (F * P)) := by
     rw [Matrix.toLin'_apply', Matrix.coe_mulVecLin]

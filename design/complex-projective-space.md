@@ -272,6 +272,15 @@ own milestone line.
 
 ## Files and declarations
 
+### `Analysis/Matrix/LDL.lean`
+
+In namespace `Matrix`: `exists_isUpperTriangular_conjTranspose_mul_mul_self_eq_one`,
+a rectangular matrix `F` with injective `mulVec` becomes one with
+orthonormal columns, `F * P`, for an upper triangular `P` with injective
+`mulVec`; from Tau Ceti's
+`Matrix.PosDef.exists_isUpperTriangular_conjTranspose_mul_mul_eq_one`.
+`Normalization.lean` imports it.
+
 ### `Geometry/Manifold/DifferentialForm/Dolbeault/Potential.lean`
 
 In namespace `TauCeti.SmoothAlmostComplexStructure`, for a manifold with a
