@@ -274,7 +274,15 @@ compatibility with $d$ (`mpullback_mextDeriv_on`) and with the wedge product
   manifold, finitely many charts `extChartPartialDiffeomorph I ∞ x` with a
   subordinate smooth partition of unity.
 
+### `Analysis/Calculus/ContDiff/Matrix.lean`
+
+- `ContDiffOn.matrix_inv_apply`: a matrix-valued map with `C^n` entries on a
+  set, whose determinant does not vanish there, has an inverse with `C^n`
+  entries there.
+
 ### `Geometry/Manifold/DeRham/Hodge/Chart.lean`
+
+`Chart.lean` imports `Analysis/Calculus/ContDiff/Matrix.lean`.
 
 The coordinate expressions of the metric, the Hodge star and the
 codifferential in a chart `ψ`:
@@ -300,7 +308,9 @@ codifferential in a chart `ψ`:
 
 ### `Geometry/Manifold/DeRham/Hodge/LocalLaplacian.lean`
 
-`LocalLaplacian.lean` imports `LinearAlgebra/BilinearForm/Gram.lean`.
+`LocalLaplacian.lean` imports `LinearAlgebra/BilinearForm/Gram.lean`,
+`Geometry/Manifold/DifferentialForm/PartialDiffeomorph.lean` and
+`Analysis/Normed/Module/Alternating/Uncurry/Fin.lean`.
 
 - `exists_mpullback_symm_hodgeLaplacian_eq`: for a chart `ψ` and a basis `b` of
   `E`, there are smooth `B : Fin m → E → Λ →L[ℝ] Λ` and `C : E → Λ →L[ℝ] Λ`,
@@ -310,7 +320,8 @@ codifferential in a chart `ψ`:
   +\sum_iB_i(y)\,\partial_{b_i}a(y)+C(y)\,a(y)$,
   where $G^{ij}$ is the inverse Gram matrix of `gramInChart ψ y` in `b`.
   The second-order coefficient is computed from
-  `mpullback_symm_codifferential` and `mpullback_mextDeriv_on`, and identified with $G^{ij}$ times the identity
+  `exists_mpullback_symm_codifferential_eq` and `mpullback_symm_mextDerivₗ`,
+  and identified with $G^{ij}$ times the identity
   by Tau Ceti's `alternatizeUncurryFin_curryLeft_comp_add_curryLeft`.
 - `exists_mpullback_symm_hodgeLaplacian_transpose_eq`: the same shape for the
   formal transpose for Lebesgue measure of the operator conjugated by the
@@ -452,6 +463,16 @@ complexification:
   `fderivCompContinuousLinearMap_ofSubsingleton`,
   `fderivCompContinuousLinearMap_apply_comp_equiv` and the Leibniz rule
   `fderivCompContinuousLinearMap_wedge` for real-valued forms.
+
+### `Analysis/Normed/Module/Alternating/Uncurry/Fin.lean`
+
+- `ContinuousAlternatingMap.alternatizeUncurryFin_eq_sum_coord_smulRight`:
+  for a basis `b`, `alternatizeUncurryFin f` is the sum of the
+  alternatizations of `b.coord i • f (b i)`.
+- `ContinuousAlternatingMap.curryLeft_alternatizeUncurryFin_smulRight_add`
+  and `curryLeft_alternatizeUncurryFin_smulRight_zero`: for a covector
+  $\xi$, $\iota_v\varepsilon_\xi+\varepsilon_\xi\iota_v=\xi(v)$ in positive
+  degree, and $\iota_v\varepsilon_\xi=\xi(v)$ in degree $0$.
 
 ### `Analysis/InnerProductSpace/HodgeStar/AlternatingForm.lean`
 

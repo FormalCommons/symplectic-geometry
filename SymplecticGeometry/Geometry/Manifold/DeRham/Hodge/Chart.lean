@@ -15,7 +15,7 @@ public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 public import TauCeti.Geometry.Manifold.Riemannian.Codifferential
 public import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.ChartGram
-import TauCeti.Analysis.Calculus.ContDiff.Matrix
+import SymplecticGeometry.Analysis.Calculus.ContDiff.Matrix
 
 /-!
 # The metric, the Hodge star and the codifferential in a chart
@@ -179,17 +179,10 @@ theorem contDiffOn_inv_gramInChart_apply
     [IsContMDiffRiemannianBundle I ∞ E (fun x : M ↦ TangentSpace I x)] {ι : Type*} [Fintype ι]
     [DecidableEq ι] (b : Basis ι ℝ E) (i j : ι) :
     ContDiffOn ℝ ∞ (fun y ↦ (Matrix.of fun i j ↦ gramInChart ψ y (b i) (b j))⁻¹ i j)
-      ψ.target := by
-  have hG (i j : ι) : ContDiffOn ℝ ∞ (fun y ↦ gramInChart ψ y (b i) (b j)) ψ.target :=
-    contDiffOn_clm_apply.1 (contDiffOn_clm_apply.1 (contDiffOn_gramInChart ψ) (b i)) (b j)
-  -- Cramer's rule: the entries of `G⁻¹` are those of the adjugate divided by `det G`.
-  simp_rw [Matrix.inv_def, Matrix.smul_apply, Matrix.adjugate_apply, smul_eq_mul,
-    Ring.inverse_eq_inv']
-  refine ((ContDiffOn.matrix_det fun i j ↦ hG i j).inv fun y hy ↦
-    (posDef_gramInChart ψ b hy).det_pos.ne').mul (ContDiffOn.matrix_det fun i' j' ↦ ?_)
-  rcases eq_or_ne i' j with rfl | h
-  · simpa using contDiffOn_const
-  · simpa [Matrix.updateRow_ne h] using hG i' j'
+      ψ.target :=
+  ContDiffOn.matrix_inv_apply (fun i j ↦
+      contDiffOn_clm_apply.1 (contDiffOn_clm_apply.1 (contDiffOn_gramInChart ψ) (b i)) (b j))
+    (fun _ hy ↦ (posDef_gramInChart ψ b hy).det_pos.ne') i j
 
 end Metric
 
