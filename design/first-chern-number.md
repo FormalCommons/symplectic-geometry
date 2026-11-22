@@ -729,6 +729,17 @@ issues, in an order where each issue's blockers come before it.
    it since the pin. If not, duality for closed oriented manifolds from that
    criterion is likely several issues, and is split into them when the issues
    are created. Done when the evenness theorem is proved.
+   The first of them brings from Tau Ceti's main branch, under Tau Ceti's
+   names and namespaces so that a move of Tau Ceti past them deletes the
+   files, the duality maps on open subsets, the two Mayer–Vietoris squares
+   and duality for disjoint and directed unions of open sets, in
+   `AlgebraicTopology/Cohomology/CompactSupport/Duality/{Basic,MayerVietoris,DirectedUnion}.lean`.
+   The lemmas they use from other Tau Ceti files of the main branch go in
+   files at those files' paths:
+   `AlgebraicTopology/Cohomology/CompactSupport/{Extension,MayerVietoris,DirectedUnion}.lean`,
+   `AlgebraicTopology/Singular/{DirectedUnion,MayerVietoris/Basic}.lean`,
+   `AlgebraicTopology/Singular/LocalHomology/Orientation/OpenEmbedding.lean`,
+   `Geometry/Manifold/Opens.lean` and `Topology/Sets/Opens.lean`.
 3. **The unit circle bundle of a Hermitian line bundle.**
    `Geometry/Manifold/VectorBundle/Hermitian/CircleBundle.lean`, the file
    of *Symplectic vector bundles* (its section *The circle bundle of a
@@ -875,14 +886,38 @@ issues, in an order where each issue's blockers come before it.
      `singularHomologyFunctor` induces Tau Ceti's
      `ContinuousMap.singularHomologyMap`
      (`AlgebraicTopology.singularHomologyFunctor_obj_map_ofHom_hom`).
+   - `AlgebraicTopology/Singular/Circle.lean`, used by
+     `DiscBoundaryClass.lean`:
+     `Circle.singularHomologyOneIso_inv_eq_complexOrientation`, the
+     generator of `Circle.singularHomologyOneIso` is the one of the unit
+     circle of `ℂ` selected by `Complex.orientation`.
+   - `Analysis/Normed/Module/Ball/Collar.lean`, used by
+     `DiscBoundaryClass.lean`: in a real normed space the unit sphere is
+     collared in the closed unit ball
+     (`Metric.isCollared_inclusion_sphere_closedBall`), and the
+     open ball is the complement of the sphere in the closed ball
+     (`Metric.range_inclusion_ball_eq_compl`).
+   - `AlgebraicTopology/Singular/LocalHomology/OrientedChart.lean`, used by
+     `DiscBoundaryClass.lean`:
+     `OpenPartialHomeomorph.map_reducedSingularHomologyδ_localOrientationOfOrientedChart_refl`,
+     the local orientation of the identity chart of an oriented inner
+     product space, through the connecting morphism and radial projection,
+     is the oriented generator of the unit sphere.
+   - `AlgebraicTopology/Singular/LocalHomology/DiscBoundaryClass.lean`, a
+     prerequisite of `BoundaryDegree.lean`: the closed unit disc of `ℂ` in
+     this setting, by `Collar.lean`, and its boundary
+     class,
+     `SymplecticGeometry.singularHomologyOneIso_singularHomologyδ_fundamentalClassRel_closedBall`:
+     for the complex orientation of the open disc, the boundary class read
+     in ℤ through `Circle.singularHomologyOneIso` is $+1$.
    - `AlgebraicTopology/Singular/LocalHomology/BoundaryDegree.lean`: the
      definition `TauCeti.HomologicalOrientation.boundaryDegree o hn hι hιf hf
      (u : C(∂X, Circle)) : ℤ`, the image of the boundary class
      `singularHomologyδ (fundamentalClassRel …)` under `u`, read in ℤ through
      `Circle.singularHomologyOneIso`, with the sign for which the
      counterclockwise loop counts $+1$. Tau Ceti does not record the sign of
-     its connecting morphism, so the issue settles it first, on the closed
-     unit disc, and fixes the sign of the definition by it. API:
+     its connecting morphism; `DiscBoundaryClass.lean` settles it on the
+     closed unit disc, and the definition fixes its sign by it. API:
      `boundaryDegree_def`;
      `boundaryDegree_mul` (pointwise products add degrees);
      `boundaryDegree_eq_of_homotopy` (homotopic maps `∂X → Circle` have the
