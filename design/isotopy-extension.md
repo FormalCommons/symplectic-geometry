@@ -827,6 +827,16 @@ this design already follows. `Ball/Isotopy.lean` cites
   with compact support" are stated with it, since it says the same thing.
   Otherwise the issue of `Flow.lean` proves the time-dependent version of
   Tau Ceti's `hasHamiltonian_globalFlowDiffeotopy` in `Flux/Hamiltonian.lean`.
+  `IsotopyExtension/Velocity.lean` also imports three files of that part:
+  `Geometry/Diffeomorphism/Diffeotopy/Velocity.lean`, for the derivatives
+  of the motion of a diffeotopy; `Geometry/Manifold/Instances/Icc.lean`,
+  for the unit tangent vector of `unitInterval`; and
+  `Geometry/Manifold/MFDeriv/Prod.lean`, for derivatives on products.
+- *Contact geometry*: only the merged
+  `Geometry/Manifold/DifferentialForm/LieDeriv.lean`, whose
+  `TauCeti.mpullback_prodMk_mlieDerivForm_prodVectorField_zero_eq_zero`
+  `IsotopyExtension/Velocity.lean` uses for the closedness of the velocity
+  forms.
 - *Moser isotopy*: only `Moser/Field.lean`, whose `moserField` (#506) is
   the cut-off Moser field of both theorems of `Moser/Family.lean`. That
   design planned it for the linear segment between two forms with a fixed

@@ -10,10 +10,10 @@ public import TauCeti.Geometry.Manifold.SmoothIsotopy.Diffeotopy
 public import TauCeti.Geometry.Manifold.VectorField.Prod
 public import TauCeti.Geometry.Symplectic.Flux.Hamiltonian
 import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Velocity
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.LieDeriv
 import SymplecticGeometry.Geometry.Manifold.Instances.Icc
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
 import TauCeti.Geometry.Manifold.ContMDiffMap.Basic
-import TauCeti.Geometry.Manifold.MFDeriv.Prod
 
 /-!
 # Velocity forms of symplectic isotopies
@@ -31,14 +31,14 @@ When `σ` is closed and `F` is symplectic, every slice of the velocity form is c
 `L_{∂ₜ} F^* σ`, and the slices of this Lie derivative vanish because the slices of `F^* σ` do not
 depend on `t`. The last step holds for any form on a product `N × P` with constant slices and the
 horizontal lift `(X, 0)` of any vector field on `N`
-(`TauCeti.mpullback_prodMk_mlieDerivForm_prodVectorField_zero_eq_zero`). It is proved with the
-bracket formula for the Lie derivative, since horizontal and vertical lifts commute.
+(`TauCeti.mpullback_prodMk_mlieDerivForm_prodVectorField_zero_eq_zero`, in
+`SymplecticGeometry.Geometry.Manifold.DifferentialForm.LieDeriv`).
 
 For a diffeotopy `φ_t` of `M`, the slices of the velocity form of the isotopy `(t, x) ↦ φ_t x`
 are the integrands of Tau Ceti's `TauCeti.Diffeotopy.HasHamiltonian`. So a function `F` on
-`M × [0, 1]` is a Hamiltonian of `φ_t` exactly when the slices of the velocity form are the
-differentials of the `F (·, t)`. This passes between the cylinder `M × [0, 1]` of diffeotopies and
-the cylinder `[0, 1] × M` of isotopies.
+`M × [0, 1]` is a Hamiltonian of `φ_t` exactly when it is smooth and the slices of the velocity
+form are the differentials of the `F (·, t)`. This passes between the cylinder `M × [0, 1]` of
+diffeotopies and the cylinder `[0, 1] × M` of isotopies.
 
 ## Main definitions
 
@@ -59,7 +59,7 @@ the cylinder `[0, 1] × M` of isotopies.
   symplectic isotopy composed with a diffeotopy preserving `σ`, or with a diffeomorphism of the
   source, is symplectic.
 * `TauCeti.Diffeotopy.hasHamiltonian_iff_velocityForm`: Hamiltonians of a diffeotopy are the
-  functions whose slices are primitives of the slices of its velocity form.
+  smooth functions whose slices are primitives of the slices of its velocity form.
 
 ## Implementation notes
 
@@ -86,73 +86,6 @@ variable {E H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSp
   {I : ModelWithCorners ℝ E H} {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
   {E' H' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [TopologicalSpace H']
   {J : ModelWithCorners ℝ E' H'} {P : Type*} [TopologicalSpace P] [ChartedSpace H' P]
-
-/-! ### Lie derivatives along horizontal fields -/
-
-section Horizontal
-
-variable {EN HN : Type*} [NormedAddCommGroup EN] [NormedSpace ℝ EN] [CompleteSpace EN]
-  [TopologicalSpace HN] {K : ModelWithCorners ℝ EN HN} {N : Type*} [TopologicalSpace N]
-  [ChartedSpace HN N] [IsManifold K 2 N] [CompleteSpace E'] [IsManifold J 2 P]
-  {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] {k : ℕ}
-
-/-- **Lie derivatives of a form with constant slices.** Let `β` be a form on `N × P` whose slices
-`ι_s^* β`, `ι_s : y ↦ (s, y)`, do not depend on `s ∈ N`, and let `X` be a vector field on `N`,
-lifted horizontally to `(X, 0)` on `N × P`. Then the slice at time `t` of the Lie derivative
-`L_{(X, 0)} β` vanishes at every `x` such that `β` is differentiable at `(t, x)` and `X` at `t`. -/
-theorem mpullback_prodMk_mlieDerivForm_prodVectorField_zero_eq_zero
-    {β : RoughForm (K.prod J) (N × P) F k} {X : Π s : N, TangentSpace K s} {t : N} {x : P}
-    (hβ : MDifferentiableAt (K.prod J) ((K.prod J).prod 𝓘(ℝ, (EN × E') [⋀^Fin k]→L[ℝ] F))
-      (fun p ↦ TotalSpace.mk' ((EN × E') [⋀^Fin k]→L[ℝ] F) p (β p)) (t, x))
-    (hX : MDifferentiableAt K K.tangent (fun s ↦ (⟨s, X s⟩ : TangentBundle K N)) t)
-    (hslice : ∀ s, mpullback J (K.prod J) (Prod.mk s) β = mpullback J (K.prod J) (Prod.mk t) β) :
-    mpullback J (K.prod J) (Prod.mk t)
-      (mlieDerivForm (Manifold.prodVectorField X (0 : Π y : P, TangentSpace J y)) β) x = 0 := by
-  have h2 : minSmoothness ℝ 2 = 2 := minSmoothness_of_isRCLikeNormedField
-  have : IsManifold K (minSmoothness ℝ 2) N := by rw [h2]; infer_instance
-  have : IsManifold J (minSmoothness ℝ 2) P := by rw [h2]; infer_instance
-  have : IsManifold K 1 N := .of_le one_le_two
-  have : IsManifold J 1 P := .of_le one_le_two
-  ext v
-  -- Extend each vector `v i` to a field `V i` on `P`, and lift it vertically to `(0, V i)`.
-  set V : Fin k → Π y : P, TangentSpace J y := fun i ↦ FiberBundle.extend E' (v i)
-  have hV (i : Fin k) :
-      MDifferentiableAt J J.tangent (fun y ↦ (⟨y, V i y⟩ : TangentBundle J P)) x :=
-    FiberBundle.mdifferentiableAt_extend J E' (v i)
-  have h0 : MDifferentiableAt K K.tangent
-      (fun s ↦ (⟨s, (0 : Π s : N, TangentSpace K s) s⟩ : TangentBundle K N)) t :=
-    (contMDiff_zeroSection ℝ (TangentSpace K)).mdifferentiableAt one_ne_zero
-  set Y : Fin k → Π q : N × P, TangentSpace (K.prod J) q :=
-    fun i ↦ Manifold.prodVectorField 0 (V i)
-  have hY (i : Fin k) : MDifferentiableAt (K.prod J) (K.prod J).tangent
-      (fun q ↦ (⟨q, Y i q⟩ : TangentBundle (K.prod J) (N × P))) (t, x) :=
-    Manifold.mdifferentiableAt_prodVectorField h0 (hV i)
-  -- The vertical lift of a vector field is the image of the field under `dι_s`.
-  have hι (q : N × P) (i : Fin k) :
-      Y i q = mfderiv J (K.prod J) (Prod.mk q.1) q.2 (V i q.2) := by
-    rw [mfderiv_prod_right]
-    -- `inr w` is `(0, w)` by definition.
-    exact Prod.ext (by simp only [Y, Manifold.prodVectorField_fst]; rfl)
-      (by simp only [Y, Manifold.prodVectorField_snd]; rfl)
-  have hYv : (Y · (t, x)) = fun i ↦ mfderiv J (K.prod J) (Prod.mk t) x (v i) := by
-    funext i
-    rw [hι (t, x) i]
-    simp [V]
-  rw [mpullback_apply, ← hYv, mlieDerivForm_apply_vectorField hβ hY]
-  -- Horizontal and vertical lifts commute, so the bracket terms vanish.
-  have hbr (i : Fin k) : mlieBracket (K.prod J) (Manifold.prodVectorField X 0) (Y i) (t, x) = 0 :=
-    Manifold.mlieBracket_prodVectorField_horizontal_vertical hX (hV i)
-  simp only [hbr, ContinuousAlternatingMap.map_update_zero, Finset.sum_const_zero, sub_zero]
-  -- The evaluation of `β` on the vertical lifts is a function on `P` alone.
-  have hg : (fun q : N × P ↦ β q (Y · q)) =
-      (fun y ↦ mpullback J (K.prod J) (Prod.mk t) β y (V · y)) ∘ Prod.snd := by
-    funext q
-    rw [Function.comp_apply, ← hslice q.1, mpullback_apply]
-    exact congrArg (β q) (funext fun i ↦ hι q i)
-  rw [hg, mvfderiv_comp_snd_apply, Manifold.prodVectorField_snd, Pi.zero_apply, map_zero,
-    ContinuousAlternatingMap.coe_zero, Pi.zero_apply]
-
-end Horizontal
 
 /-! ### The unit time field of the cylinder -/
 
@@ -249,9 +182,7 @@ theorem mpullback_prodMk_velocityForm (t : unitInterval) (x : P) (v : E') :
 /-! ### Closedness of the velocity forms -/
 
 /-- **The velocity forms of a symplectic isotopy are closed.** If `σ` is closed and every slice of
-`F` pulls `σ` back to the same form `τ`, then every slice `α_t` of the velocity form is closed.
-This is Cartan's formula for the closed form `F^* σ` on the cylinder, whose slices do not depend
-on `t`. -/
+`F` pulls `σ` back to the same form `τ`, then every slice `α_t` of the velocity form is closed. -/
 theorem IsSymplectic.mextDeriv_mpullback_prodMk_velocityForm [CompleteSpace E']
     {τ : SmoothTwoForm J P} {σ : SmoothTwoForm I M} {F : SmoothIsotopy f₀ f₁}
     (hσ : σ.IsClosed) (hF : F.IsSymplectic τ σ) (t : unitInterval) :
