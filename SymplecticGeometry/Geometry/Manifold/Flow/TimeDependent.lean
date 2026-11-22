@@ -7,6 +7,7 @@ module
 
 public import TauCeti.Geometry.Manifold.Flow.TimeDependent
 public import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
+public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Tangent.Opens
 
 /-!
 # Joint smoothness of time-dependent flows, and flows on open subsets
@@ -21,7 +22,16 @@ The restriction of a `C¹` time-dependent field `X` to an open subset `U` has, a
 of `X`, wherever the flow of the restriction is defined: a trajectory of the restriction is a
 trajectory of `X`, and Tau Ceti's uniqueness theorem
 `TauCeti.timeDependentFlowOf_eq_of_hasMFDerivAt` applies. The two flows then agree near the
-initial point, so their differentials agree too.
+initial point, so their differentials agree too. The restriction is `C¹` by
+`TauCeti.Manifold.contMDiff_tangentSpaceOpenEquiv_symm`.
+
+The proofs of `TauCeti.timeDependentFlowOf_restrict_eq` and
+`TauCeti.tangentSpaceOpenEquiv_mfderiv_timeDependentFlowOf_restrict` adapt those of
+`TauCeti.timeDependentFlowOf_restrict_opens` and
+`TauCeti.mfderiv_timeDependentFlowOf_restrict_opens_apply`, in Tau Ceti's file
+`TauCeti/Geometry/Manifold/Flow/TimeDependent/Opens.lean` at commit
+526c5263b3fcb0f8fc7ea15aff46134de6919d86 (Tau Ceti pull request #2176), which the pinned version
+of Tau Ceti does not have.
 
 ## Main results
 
@@ -70,14 +80,12 @@ variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [Topological
   {U : Opens M} {s t : ℝ} {z : U}
   (hX : ContMDiff (𝓘(ℝ, ℝ).prod I) I.tangent 1
     (fun p : ℝ × M ↦ (⟨p.2, X p.1 p.2⟩ : TangentBundle I M)))
-  (hXU : ContMDiff (𝓘(ℝ, ℝ).prod I) I.tangent 1 (fun p : ℝ × U ↦
-    (⟨p.2, (Manifold.tangentSpaceOpenEquiv p.2).symm (X p.1 p.2)⟩ : TangentBundle I U)))
-include hX hXU
+include hX
 
 /-- **The flow of a restricted field is the restricted flow.** Let `X` be a `C¹` time-dependent
-vector field on `M` whose restriction to an open subset `U` is `C¹`. Wherever the flow of the
-restriction is defined, so is the flow of `X`, and the two agree: a trajectory in `U` is a
-trajectory in `M`. -/
+vector field on `M` and `U` an open subset. Wherever the flow of the restriction of `X` to `U`
+is defined, so is the flow of `X`, and the two agree: a trajectory in `U` is a trajectory in `M`.
+-/
 theorem timeDependentFlowOf_restrict_eq
     (h : ((s, t), z) ∈ timeDependentFlowDomain (M := U)
       fun u y ↦ (Manifold.tangentSpaceOpenEquiv y).symm (X u y)) :
@@ -86,6 +94,10 @@ theorem timeDependentFlowOf_restrict_eq
         s t z : M) = timeDependentFlowOf X s t z := by
   set XU : ℝ → (y : U) → TangentSpace I y :=
     fun u y ↦ (Manifold.tangentSpaceOpenEquiv y).symm (X u y)
+  have hXU : ContMDiff (𝓘(ℝ, ℝ).prod I) I.tangent 1
+      (fun p : ℝ × U ↦ (⟨p.2, XU p.1 p.2⟩ : TangentBundle I U)) :=
+    Manifold.contMDiff_tangentSpaceOpenEquiv_symm (f := Prod.snd)
+      (hX.comp (contMDiff_fst.prodMk (contMDiff_subtypeVal.comp contMDiff_snd)))
   obtain ⟨a, b, hs, ht, hab⟩ := exists_Ioo_of_mem_timeDependentFlowDomain h
   -- The trajectory of `XU`, read in `M`, solves the equation of `X`.
   have hγ : ∀ u ∈ Ioo a b, HasMFDerivAt 𝓘(ℝ, ℝ) I
@@ -106,7 +118,7 @@ theorem timeDependentFlowOf_restrict_eq
 /-- The differential of the flow of a restricted field is the differential of the flow, the
 tangent spaces of `U` and `M` being identified, wherever the flow of the restriction is
 defined. -/
-theorem tangentSpaceOpenEquiv_mfderiv_timeDependentFlowOf_restrict [FiniteDimensional ℝ E]
+theorem tangentSpaceOpenEquiv_mfderiv_timeDependentFlowOf_restrict [CompleteSpace E]
     (h : ((s, t), z) ∈ timeDependentFlowDomain (M := U)
       fun u y ↦ (Manifold.tangentSpaceOpenEquiv y).symm (X u y)) (v : TangentSpace I z) :
     Manifold.tangentSpaceOpenEquiv _ (mfderiv I I (timeDependentFlowOf (M := U)
@@ -114,27 +126,20 @@ theorem tangentSpaceOpenEquiv_mfderiv_timeDependentFlowOf_restrict [FiniteDimens
       mfderiv I I (timeDependentFlowOf X s t) z (Manifold.tangentSpaceOpenEquiv z v) := by
   set XU : ℝ → (y : U) → TangentSpace I y :=
     fun u y ↦ (Manifold.tangentSpaceOpenEquiv y).symm (X u y)
+  have hXU : ContMDiff (𝓘(ℝ, ℝ).prod I) I.tangent 1
+      (fun p : ℝ × U ↦ (⟨p.2, XU p.1 p.2⟩ : TangentBundle I U)) :=
+    Manifold.contMDiff_tangentSpaceOpenEquiv_symm (f := Prod.snd)
+      (hX.comp (contMDiff_fst.prodMk (contMDiff_subtypeVal.comp contMDiff_snd)))
   -- Near `z`, the flow of `XU`, read in `M`, is the flow of `X`.
   have heq : Subtype.val ∘ timeDependentFlowOf XU s t =ᶠ[𝓝 z]
       timeDependentFlowOf X s t ∘ Subtype.val := by
     filter_upwards [((isOpen_timeDependentFlowDomain hXU).preimage (by fun_prop)).mem_nhds h]
       with y hy
-    exact (timeDependentFlowOf_restrict_eq hX hXU hy).2
-  have h₁ : mfderiv I I (Subtype.val ∘ timeDependentFlowOf XU s t) z v =
-      mfderiv I I (timeDependentFlowOf XU s t) z v :=
-    Manifold.mfderiv_subtype_val_comp_apply v
-  have hA := (mdifferentiableAt_timeDependentFlowOf hX
-    (timeDependentFlowOf_restrict_eq hX hXU h).1).hasMFDerivAt.comp z
-    ((contMDiff_subtypeVal (I := I) (U := U) (n := 1)).mdifferentiableAt one_ne_zero
-      (x := z)).hasMFDerivAt
-  rw [(hA.congr_of_eventuallyEq heq).mfderiv, ContinuousLinearMap.comp_apply,
-    Manifold.mfderiv_subtype_val] at h₁
-  rw [← h₁]
-  refine (Manifold.tangentSpaceOpenEquiv_apply _ _).trans ?_
-  rw [ContinuousLinearMap.comp_apply, ContinuousLinearEquiv.coe_coe]
-  -- Mathlib's `tangentSpaceCast` between the tangent spaces at the equal points
-  -- `(Subtype.val ∘ φ_{s,t}) z` and `φ_{s,t} z` is the identity of the model space.
-  rfl
+    exact (timeDependentFlowOf_restrict_eq hX hy).2
+  rw [Manifold.tangentSpaceOpenEquiv_apply, Manifold.tangentSpaceOpenEquiv_apply,
+    ← Manifold.mfderiv_subtype_val_comp_apply]
+  exact (congrArg (fun L ↦ L v) (heq.mfderiv_eq (I := I) (I' := I))).trans
+    (Manifold.mfderiv_comp_subtype_val_apply (f := timeDependentFlowOf X s t) v)
 
 end Opens
 
