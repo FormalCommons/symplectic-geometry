@@ -49,6 +49,7 @@ construction follows the gluing of `TauCeti.SmoothCollar.WithEnd`
   interior of `S` and of the `i`-th disc.
 * `SymplecticGeometry.capDiscs.gluingCoord`: the collar coordinates `(γ i (arg z / 2π), ‖z‖ - 1)`
   of a point `z` of the `i`-th disc.
+* `SymplecticGeometry.capDiscs.InteriorPiece`: the interior of `S`, as a manifold over `ℝ²`.
 
 ## Main results
 
@@ -58,6 +59,8 @@ construction follows the gluing of `TauCeti.SmoothCollar.WithEnd`
   embeddings.
 * `SymplecticGeometry.capDiscs.inr_eq_inl`: the gluing formula on the annuli;
   `inr_ofReal_mul_toCircle_eq_inl`: its converse, from a collar point to the disc.
+* `SymplecticGeometry.capDiscs.ofReal_one_add_mul_toCircle_gluingCoord`: a point `z` with
+  `1 < ‖z‖` is `(1 + t) · toCircle θ` for its collar coordinates `(θ, t)`.
 * `SymplecticGeometry.capDiscs.range_inl_union_iUnion_range_inr`: the interior and the discs cover
   the capped surface; `disjoint_range_inr`: distinct discs are disjoint;
   `inr_mem_range_inl_iff`: a point of a disc lies in the interior exactly on the annulus.
@@ -94,7 +97,7 @@ namespace capDiscs
 
 variable (S) in
 /-- The interior of `S`, as a boundaryless manifold over `ℝ²`. -/
-private abbrev InteriorPiece : Type := InteriorModel (𝓡∂ 2) ((𝓡∂ 2).interiorOpens S)
+abbrev InteriorPiece : Type := InteriorModel (𝓡∂ 2) ((𝓡∂ 2).interiorOpens S)
 
 /-! ### The disc pieces -/
 
@@ -375,6 +378,17 @@ private theorem depth_gluingCoord {i : ι} {z : ball} (hz : 1 < ‖(z : ℂ)‖)
     depth (gluingCoord γ i z).2 = ‖(z : ℂ)‖ - 1 := by
   rw [depth_def, coe_gluingCoord_snd, normalRay_coe_apply, max_eq_left (by linarith)]
 
+/-- A point `z` of the ball with `1 < ‖z‖` is `(1 + t) · toCircle θ` for its collar coordinates:
+the depth `t = ‖z‖ - 1` of `gluingCoord γ i z` and the angle `θ = arg z / 2π`. -/
+theorem ofReal_one_add_mul_toCircle_gluingCoord {i : ι} {z : ball} (hz : 1 < ‖(z : ℂ)‖) :
+    ((1 + ((gluingCoord γ i z).2 : EuclideanHalfSpace 1).val 0 : ℝ) : ℂ) *
+      (toCircle ((arg z / (2 * π) : ℝ) : AddCircle (1 : ℝ)) : ℂ) = z := by
+  rw [← depth_def, depth_gluingCoord hz, toCircle_apply_mk, Circle.coe_exp]
+  conv_rhs => rw [← norm_mul_exp_arg_mul_I (z : ℂ)]
+  congr 2
+  · ring
+  · field_simp
+
 end
 
 variable (c) in
@@ -403,12 +417,8 @@ private theorem polarPoint_gluingPoint (i : ι) {z : ball} (hz : 1 < ‖(z : ℂ
   have hcoord : collarCoord hγ (gluingPoint (c := c) hγ i hz) = gluingCoord γ i z :=
     c.injective (by
       rw [apply_collarCoord, val_gluingPoint])
-  rw [polarPoint, hcoord, depth_gluingCoord hz, gluingCoord_fst, angle_apply hinj,
-    toCircle_apply_mk, Circle.coe_exp]
-  conv_rhs => rw [← norm_mul_exp_arg_mul_I (z : ℂ)]
-  congr 2
-  · ring
-  · field_simp
+  rw [polarPoint, hcoord, gluingCoord_fst, angle_apply hinj, depth_def]
+  exact ofReal_one_add_mul_toCircle_gluingCoord hz
 
 include hinj in
 private theorem toAnnulus_gluingPoint (i : ι) {z : ball} (hz : 1 < ‖(z : ℂ)‖) :
