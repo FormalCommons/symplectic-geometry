@@ -169,14 +169,11 @@ theorem exists_closedForms_periods_eq [I.Boundaryless] [CompactSpace M] {Q : Set
       { toFun g := g z
         map_add' _ _ := rfl
         map_smul' _ _ := rfl }
-    have := Module.Free.of_divisionRing ℝ W
-    have hspan : Submodule.span ℝ (range ev) = ⊤ := by
-      refine Submodule.span_eq_top_of_ne_zero fun g hg ↦ ?_
-      obtain ⟨z, hz⟩ : ∃ z, g z ≠ 0 := by
+    refine contMDiff_dual_apply_of_separating (s := range ev) (fun g hg ↦ ?_) ?_ f
+    · obtain ⟨z, hz⟩ : ∃ z, g z ≠ 0 := by
         by_contra! h
         exact hg (AddMonoidHom.ext h)
       exact ⟨ev z, ⟨z, rfl⟩, hz⟩
-    refine contMDiff_dual_apply_of_span_eq_top hspan ?_ f
     rintro _ ⟨z, rfl⟩
     exact hα.contMDiff_homologyPeriodHom hcl _
   · -- The class `S (p t)` restricts to `p t`, and `L` picks a representative of it.

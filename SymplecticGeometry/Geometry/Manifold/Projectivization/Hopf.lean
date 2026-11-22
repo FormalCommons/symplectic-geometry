@@ -49,9 +49,10 @@ underlying real manifolds, using Tau Ceti's affine charts of `ℙ 𝕜 (Fin (n +
   the radial projection at `z` sends `v` to `v̂ / ‖ẑ‖ - (⟪ẑ, v̂⟫ / ‖ẑ‖ ^ 3) ẑ`
   (`mvfderiv_radialProjection`).
 * Two points of the sphere have the same image exactly when they lie on one orbit of the circle
-  action `x ↦ cos t • x + sin t • J₀ x` (`sphereHopf_eq_sphereHopf_iff`), and the kernel of the
-  derivative of the Hopf map at `x`, read in `StdSpace (Fin (n + 1))`, is the tangent line
-  `ℝ ∙ J₀ x` of that orbit (`ker_mfderiv_sphereHopf`).
+  action of the rotations `stdRotation _ t`, `x ↦ cos t • x + sin t • J₀ x`
+  (`sphereHopf_eq_sphereHopf_iff`), and the kernel of the derivative of the Hopf map at `x`, read
+  in `StdSpace (Fin (n + 1))`, is the tangent line `ℝ ∙ J₀ x` of that orbit
+  (`ker_mfderiv_sphereHopf`).
 
 Mathlib's charts on the sphere need its dimension in the form
 `finrank ℝ (StdSpace (Fin (n + 1))) = 2 * n + 1 + 1`, which the scoped instance
@@ -405,11 +406,11 @@ theorem isSubmersion_sphereHopf :
   rwa [radialProjection_sphereToPuncturedSpace] at hs'
 
 /-- Two points of the unit sphere have the same image under the Hopf map exactly when they lie on
-the same orbit of the circle action `x ↦ cos t • x + sin t • J₀ x`. -/
+the same orbit of the circle action of the rotations `stdRotation _ t`,
+`x ↦ cos t • x + sin t • J₀ x`. -/
 theorem sphereHopf_eq_sphereHopf_iff (x y : sphere (0 : StdSpace (Fin (n + 1))) 1) :
-    sphereHopf n x = sphereHopf n y ↔ ∃ t : ℝ, (y : StdSpace (Fin (n + 1))) =
-      Real.cos t • (x : StdSpace (Fin (n + 1))) +
-        Real.sin t • stdComplexStructure (Fin (n + 1)) (x : StdSpace (Fin (n + 1))) := by
+    sphereHopf n x = sphereHopf n y ↔
+      ∃ t : ℝ, (y : StdSpace (Fin (n + 1))) = stdRotation (Fin (n + 1)) t x := by
   set e := complexToRealEuclidean (Fin (n + 1))
   rw [sphereHopf_apply, sphereHopf_apply, eq_comm, mk_eq_mk_iff']
   constructor
@@ -431,7 +432,7 @@ theorem sphereHopf_eq_sphereHopf_iff (x y : sphere (0 : StdSpace (Fin (n + 1))) 
 
 /-- The kernel of the derivative of the Hopf map at `x`, read in `StdSpace (Fin (n + 1))` through
 the derivative of the inclusion of the sphere, is the line `ℝ ∙ J₀ x` tangent to the circle
-orbit `t ↦ cos t • x + sin t • J₀ x` through `x`. -/
+orbit `t ↦ stdRotation _ t x = cos t • x + sin t • J₀ x` through `x`. -/
 theorem ker_mfderiv_sphereHopf (x : sphere (0 : StdSpace (Fin (n + 1))) 1) :
     (LinearMap.ker (mfderiv (𝓡 (2 * n + 1)) 𝓘(ℝ, Fin n → ℂ) (sphereHopf n) x).toLinearMap).map
         (mvfderiv (𝓡 (2 * n + 1))
