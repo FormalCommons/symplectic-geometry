@@ -20,7 +20,7 @@ import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.ModelSpace
 Let `J` be an integrable almost complex structure on a manifold `M` modelled on `E`, let `ω` be a
 closed two-form, and let the Riemannian metric be `g(v, w) = ω(v, J w)`. Every point `x₀` lies in
 the source of a chart `ψ` in which `J` is a constant linear complex structure `J₀` of `E` and in
-which the metric, read in the chart as `SymplecticGeometry.gramInChart ψ`, has derivative zero at
+which the metric, read in the chart as `PartialDiffeomorph.gramInChart ψ`, has derivative zero at
 `ψ x₀`.
 
 The chart is an integrable chart `φ` followed by the quadratic map
@@ -38,18 +38,18 @@ identity that makes `Q` symmetric. This linear algebra is
 
 ## Main results
 
-* `SymplecticGeometry.gramInChart_apply_eq_mpullback_symm_apply`: in a chart in which `J` is `J₀`,
+* `PartialDiffeomorph.gramInChart_apply_eq_mpullback_symm_apply`: in a chart in which `J` is `J₀`,
   the metric `g(v, w) = ω(v, J w)` is `(u, v) ↦ ω(u, J₀ v)`, with `ω` read in the chart.
 * `IsIntegrable.exists_partialDiffeomorph_fderiv_gramInChart_eq_zero`, in the namespace
   `TauCeti.SmoothAlmostComplexStructure`: osculating holomorphic charts.
-* `SymplecticGeometry.fderiv_mpullback_symm_eq_zero_of_fderiv_gramInChart_eq_zero`: in a chart
+* `PartialDiffeomorph.fderiv_mpullback_symm_eq_zero_of_fderiv_gramInChart_eq_zero`: in a chart
   in which `J` is `J₀`, where the metric has derivative zero, so has `ω` read in the chart.
 
 ## Implementation notes
 
 The fibres of the tangent bundle get their inner product spaces from the scoped instances of
 `Bundle`, which are costly: with them open, elaborating statements about derivatives of
-`gramInChart ψ : E → E →L[ℝ] E →L[ℝ] ℝ` can time out. They are opened only for the declarations
+`ψ.gramInChart : E → E →L[ℝ] E →L[ℝ] ℝ` can time out. They are opened only for the declarations
 whose statements involve the inner product, and the computation in coordinates is a private lemma
 that takes the smoothness of the metric in charts as a hypothesis.
 
@@ -66,18 +66,15 @@ noncomputable section
 open Set Filter
 open scoped Manifold Topology ContDiff RealInnerProductSpace
 
-namespace SymplecticGeometry
+namespace PartialDiffeomorph
 
 open TauCeti
 
-section Metric
-
-open Bundle
-
 variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
   {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M] [IsManifold I ∞ M]
-  [RiemannianBundle (fun x : M ↦ TangentSpace I x)]
+  [Bundle.RiemannianBundle (fun x : M ↦ TangentSpace I x)]
 
+open Bundle in
 /-- Let the metric be `g(v, w) = ω(v, J w)`, and let `φ` be a chart in which `J` is a constant
 linear structure `J₀`. Then on the target of `φ` the metric in the chart is `(u, v) ↦ ω(u, J₀ v)`,
 with `ω` read in the chart. -/
@@ -87,7 +84,7 @@ theorem gramInChart_apply_eq_mpullback_symm_apply {J : SmoothAlmostComplexStruct
     (φ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞) {J₀ : AlmostComplexStructure E}
     (hφ : ∀ p ∈ φ.target, ∀ w : E, J.chartPushforward φ.toOpenPartialHomeomorph p w = J₀ w)
     {z : E} (hz : z ∈ φ.target) (u v : E) :
-    gramInChart φ z u v = mpullback 𝓘(ℝ, E) I φ.symm form.val z ![u, J₀ v] := by
+    φ.gramInChart z u v = mpullback 𝓘(ℝ, E) I φ.symm form.val z ![u, J₀ v] := by
   -- `J` read through the inverse of the chart is `J₀`.
   have hJ : J (φ.symm z) (mfderiv 𝓘(ℝ, E) I φ.symm z v) =
       mfderiv 𝓘(ℝ, E) I φ.symm z (J₀ v) := by
@@ -98,7 +95,50 @@ theorem gramInChart_apply_eq_mpullback_symm_apply {J : SmoothAlmostComplexStruct
   -- The outer `Eq.symm` makes Lean read the vector off the goal's right side.
   exact Eq.symm (FinVec.etaExpand_eq _).symm
 
-end Metric
+variable [FiniteDimensional ℝ E]
+
+open Bundle in
+/-- Let the metric be `g(v, w) = ω(v, J w)`, and let `φ` be a chart in which `J` is a constant
+linear structure `J₀`. At a point of the target where the metric in the chart has derivative zero,
+so has the form `ω` read in the chart. -/
+theorem fderiv_mpullback_symm_eq_zero_of_fderiv_gramInChart_eq_zero
+    [IsContMDiffRiemannianBundle I ∞ E (fun x : M ↦ TangentSpace I x)]
+    {J : SmoothAlmostComplexStructure I M} {form : SmoothTwoForm I M}
+    (hg : ∀ x (v w : TangentSpace I x), ⟪v, w⟫ = form.eval₂ x v (J x w))
+    (φ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞) {J₀ : AlmostComplexStructure E}
+    (hφ : ∀ p ∈ φ.target, ∀ w : E, J.chartPushforward φ.toOpenPartialHomeomorph p w = J₀ w)
+    {z : E} (hz : z ∈ φ.target) (h : fderiv ℝ φ.gramInChart z = 0) :
+    fderiv ℝ (F := E [⋀^Fin 2]→L[ℝ] ℝ) (mpullback 𝓘(ℝ, E) I φ.symm form.val) z = 0 := by
+  have hT := φ.open_target.mem_nhds hz
+  have hΩ : DifferentiableAt ℝ (F := E [⋀^Fin 2]→L[ℝ] ℝ)
+      (mpullback 𝓘(ℝ, E) I φ.symm form.val) z :=
+    ((form.contDiffOn_mpullback φ.open_target φ.symm.contMDiffOn).contDiffAt hT).differentiableAt
+      (by simp)
+  have hG := ((φ.contDiffOn_gramInChart.contDiffAt hT).differentiableAt (by simp)).hasFDerivAt
+  rw [h] at hG
+  ext v w
+  have hw : w = ![w 0, w 1] := (FinVec.etaExpand_eq _).symm
+  -- On the target, `ω(u, u') = g(u, -J₀ u')` in the chart, which has derivative zero at `z`.
+  have hc : HasFDerivAt (fun p ↦ (mpullback 𝓘(ℝ, E) I φ.symm form.val p : E [⋀^Fin 2]→L[ℝ] ℝ)
+      ![w 0, w 1]) (0 : E →L[ℝ] ℝ) z := by
+    have := (hG.clm_apply (hasFDerivAt_const (w 0) z)).clm_apply (hasFDerivAt_const (-J₀ (w 1)) z)
+    simp only [zero_apply, ContinuousLinearMap.comp_zero, zero_add,
+      ContinuousLinearMap.flip_zero] at this
+    refine this.congr_of_eventuallyEq (Filter.eventually_of_mem hT fun p hp ↦ ?_)
+    have hgp := φ.gramInChart_apply_eq_mpullback_symm_apply hg hφ hp (w 0) (-J₀ (w 1))
+    have hJ : J₀ (-J₀ (w 1)) = w 1 := by rw [map_neg, J₀.apply_apply, neg_neg]
+    simp only [hJ] at hgp
+    exact hgp.symm
+  have hd := (ContinuousAlternatingMap.apply ℝ E ℝ ![w 0, w 1]).hasFDerivAt.comp z hΩ.hasFDerivAt
+  have h0 := congrArg (· v) (hd.unique hc)
+  rw [hw]
+  simpa using h0
+
+end PartialDiffeomorph
+
+namespace SymplecticGeometry
+
+open TauCeti
 
 variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
   [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M]
@@ -110,25 +150,25 @@ omit [FiniteDimensional ℝ E] in
 arguments, and it satisfies the cyclic identity that comes from `dω = 0`. -/
 private theorem fderiv_gramInChart_symmetries {form : SmoothTwoForm I M} (hform : form.IsClosed)
     (φ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞) {J₀ : AlmostComplexStructure E}
-    (hc : ContDiffOn ℝ ∞ (gramInChart φ) φ.target)
+    (hc : ContDiffOn ℝ ∞ φ.gramInChart φ.target)
     (hGΩ : ∀ z ∈ φ.target, ∀ u v : E,
-      gramInChart φ z u v = mpullback 𝓘(ℝ, E) I φ.symm form.val z ![u, J₀ v])
+      φ.gramInChart z u v = mpullback 𝓘(ℝ, E) I φ.symm form.val z ![u, J₀ v])
     {z₀ : E} (hz₀ : z₀ ∈ φ.target) :
-    (∀ u v, gramInChart φ z₀ (J₀ u) (J₀ v) = gramInChart φ z₀ u v) ∧
-      (∀ h u v, fderiv ℝ (gramInChart φ) z₀ h u v = fderiv ℝ (gramInChart φ) z₀ h v u) ∧
-      (∀ h u v, fderiv ℝ (gramInChart φ) z₀ h (J₀ u) (J₀ v) =
-        fderiv ℝ (gramInChart φ) z₀ h u v) ∧
-      ∀ h u v, fderiv ℝ (gramInChart φ) z₀ h u (J₀ v) - fderiv ℝ (gramInChart φ) z₀ u h (J₀ v) +
-        fderiv ℝ (gramInChart φ) z₀ v h (J₀ u) = 0 := by
+    (∀ u v, φ.gramInChart z₀ (J₀ u) (J₀ v) = φ.gramInChart z₀ u v) ∧
+      (∀ h u v, fderiv ℝ φ.gramInChart z₀ h u v = fderiv ℝ φ.gramInChart z₀ h v u) ∧
+      (∀ h u v, fderiv ℝ φ.gramInChart z₀ h (J₀ u) (J₀ v) =
+        fderiv ℝ φ.gramInChart z₀ h u v) ∧
+      ∀ h u v, fderiv ℝ φ.gramInChart z₀ h u (J₀ v) - fderiv ℝ φ.gramInChart z₀ u h (J₀ v) +
+        fderiv ℝ φ.gramInChart z₀ v h (J₀ u) = 0 := by
   set Ω : E → E [⋀^Fin 2]→L[ℝ] ℝ := mpullback 𝓘(ℝ, E) I φ.symm form.val
-  set G := gramInChart φ with hG
+  set G := φ.gramInChart with hG
   have hGJ (z : E) (hz : z ∈ φ.target) (u v : E) : G z (J₀ u) (J₀ v) = G z u v :=
     calc G z (J₀ u) (J₀ v) = Ω z ![J₀ u, J₀ (J₀ v)] := hGΩ z hz _ _
       _ = - Ω z ![J₀ (J₀ v), J₀ u] := ContinuousAlternatingMap.apply_vecCons_swap _ _ _
       _ = - G z (J₀ (J₀ v)) u := congrArg Neg.neg (hGΩ z hz _ _).symm
       _ = G z u v := by
         rw [J₀.apply_apply]
-        simp [hG, gramInChart_comm φ z v u]
+        simp [hG, φ.gramInChart_comm z v u]
   have hGd : DifferentiableAt ℝ G z₀ :=
     (hc.contDiffAt (φ.open_target.mem_nhds hz₀)).differentiableAt (by simp)
   set A := fderiv ℝ G z₀ with hAdef
@@ -141,7 +181,7 @@ private theorem fderiv_gramInChart_symmetries {form : SmoothTwoForm I M} (hform 
     simpa using this
   refine ⟨hGJ z₀ hz₀, fun h u v ↦ ?_, fun h u v ↦ ?_, fun h u v ↦ ?_⟩
   · have := hder u v ((hGd.hasFDerivAt.clm_apply (hasFDerivAt_const v z₀)).clm_apply
-      (hasFDerivAt_const u z₀)) (Eventually.of_forall fun z ↦ gramInChart_comm φ z u v) h
+      (hasFDerivAt_const u z₀)) (Eventually.of_forall fun z ↦ φ.gramInChart_comm z u v) h
     simpa using this
   · have := hder (J₀ u) (J₀ v) ((hGd.hasFDerivAt.clm_apply (hasFDerivAt_const u z₀)).clm_apply
       (hasFDerivAt_const v z₀))
@@ -178,20 +218,20 @@ private theorem fderiv_gramInChart_trans_eq_zero (φ : PartialDiffeomorph I 𝓘
     (Θ : PartialDiffeomorph 𝓘(ℝ, E) 𝓘(ℝ, E) E E ∞) (Q : E →L[ℝ] E →L[ℝ] E) {z₀ : E}
     (hz₀ : z₀ ∈ φ.target) (hz₀Θ : z₀ ∈ Θ.source) (hΘz₀ : Θ z₀ = z₀)
     (hΘd : ∀ z, HasFDerivAt Θ (ContinuousLinearMap.id ℝ E + Q (z - z₀)) z)
-    (hGd : DifferentiableAt ℝ (gramInChart φ) z₀)
-    (hG'd : DifferentiableAt ℝ (gramInChart (φ.trans Θ)) z₀)
-    (hQ : ∀ h u v, gramInChart φ z₀ (Q h u) v + gramInChart φ z₀ u (Q h v) =
-      fderiv ℝ (gramInChart φ) z₀ h u v) :
-    fderiv ℝ (gramInChart (φ.trans Θ)) z₀ = 0 := by
-  set G := gramInChart φ
-  set G' := gramInChart (φ.trans Θ)
+    (hGd : DifferentiableAt ℝ φ.gramInChart z₀)
+    (hG'd : DifferentiableAt ℝ (φ.trans Θ).gramInChart z₀)
+    (hQ : ∀ h u v, φ.gramInChart z₀ (Q h u) v + φ.gramInChart z₀ u (Q h v) =
+      fderiv ℝ φ.gramInChart z₀ h u v) :
+    fderiv ℝ (φ.trans Θ).gramInChart z₀ = 0 := by
+  set G := φ.gramInChart
+  set G' := (φ.trans Θ).gramInChart
   -- Near `z₀`, `G` is the pullback of `G'` by `Θ`.
   have hid : ∀ᶠ z in 𝓝 z₀, ∀ u v, G z u v =
       G' (Θ z) ((ContinuousLinearMap.id ℝ E + Q (z - z₀)) u)
         ((ContinuousLinearMap.id ℝ E + Q (z - z₀)) v) := by
     filter_upwards [φ.open_target.mem_nhds hz₀, Θ.open_source.mem_nhds hz₀Θ] with z hz hzΘ u v
     have hl : Θ.symm (Θ z) = z := Θ.left_inv hzΘ
-    have := gramInChart_trans_apply φ Θ (Θ.map_source hzΘ) (by rw [hl]; exact hz) u v
+    have := φ.gramInChart_trans_apply (by simp) Θ (Θ.map_source hzΘ) (by rw [hl]; exact hz) u v
     rw [hl, (hΘd z).fderiv] at this
     exact this.symm
   have hG'z₀ (u v : E) : G' z₀ u v = G z₀ u v := by
@@ -228,26 +268,26 @@ a symmetric bilinear map `Q` with `Q h (J₀ u) = J₀ (Q h u)` and
 `G z₀ (Q h u) v + G z₀ u (Q h v) = A h u v`, where `A` is the derivative of `G` at `z₀`. -/
 private theorem exists_symm_complexBilinear_fderiv_gramInChart {form : SmoothTwoForm I M}
     (hform : form.IsClosed) (φ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞)
-    {J₀ : AlmostComplexStructure E} (hc : ContDiffOn ℝ ∞ (gramInChart φ) φ.target)
+    {J₀ : AlmostComplexStructure E} (hc : ContDiffOn ℝ ∞ φ.gramInChart φ.target)
     (hGΩ : ∀ z ∈ φ.target, ∀ u v : E,
-      gramInChart φ z u v = mpullback 𝓘(ℝ, E) I φ.symm form.val z ![u, J₀ v])
+      φ.gramInChart z u v = mpullback 𝓘(ℝ, E) I φ.symm form.val z ![u, J₀ v])
     {z₀ : E} (hz₀ : z₀ ∈ φ.target) :
     ∃ Q : E →L[ℝ] E →L[ℝ] E, (∀ h u, Q h u = Q u h) ∧ (∀ h u, Q h (J₀ u) = J₀ (Q h u)) ∧
-      ∀ h u v, gramInChart φ z₀ (Q h u) v + gramInChart φ z₀ u (Q h v) =
-        fderiv ℝ (gramInChart φ) z₀ h u v := by
+      ∀ h u v, φ.gramInChart z₀ (Q h u) v + φ.gramInChart z₀ u (Q h v) =
+        fderiv ℝ φ.gramInChart z₀ h u v := by
   obtain ⟨hGJ, hA, hAJ, hcyc⟩ := fderiv_gramInChart_symmetries hform φ hc hGΩ hz₀
   -- The linear algebra of `LinearMap.BilinForm.exists_symm_complexBilinear_apply_add_apply_eq`,
   -- applied to the metric at `z₀` and its derivative there.
-  let G₀ : LinearMap.BilinForm ℝ E := (gramInChart φ z₀).toLinearMap₁₂
-  have hG₀ (u v : E) : G₀ u v = gramInChart φ z₀ u v := by simp [G₀]
+  let G₀ : LinearMap.BilinForm ℝ E := (φ.gramInChart z₀).toLinearMap₁₂
+  have hG₀ (u v : E) : G₀ u v = φ.gramInChart z₀ u v := by simp [G₀]
   let A : E →ₗ[ℝ] E →ₗ[ℝ] E →ₗ[ℝ] ℝ :=
-    (fderiv ℝ (gramInChart φ) z₀).toLinearMap₁₂.compr₂ (ContinuousLinearMap.coeLM ℝ)
-  have hA₀ (h u v : E) : A h u v = fderiv ℝ (gramInChart φ) z₀ h u v := by simp [A]
+    (fderiv ℝ φ.gramInChart z₀).toLinearMap₁₂.compr₂ (ContinuousLinearMap.coeLM ℝ)
+  have hA₀ (h u v : E) : A h u v = fderiv ℝ φ.gramInChart z₀ h u v := by simp [A]
   have hsep : G₀.SeparatingLeft := fun v hv ↦ by
     by_contra h0
-    exact (gramInChart_apply_self_pos φ hz₀ h0).ne' ((hG₀ v v).symm.trans (hv v))
+    exact (φ.gramInChart_apply_self_pos (by simp) hz₀ h0).ne' ((hG₀ v v).symm.trans (hv v))
   have hsymm : G₀.IsSymm :=
-    LinearMap.BilinForm.isSymm_def.2 fun u v ↦ by simpa [hG₀] using gramInChart_comm φ z₀ u v
+    LinearMap.BilinForm.isSymm_def.2 fun u v ↦ by simpa [hG₀] using φ.gramInChart_comm z₀ u v
   obtain ⟨Ql, hQs, hQJ, hQ⟩ :=
     LinearMap.BilinForm.exists_symm_complexBilinear_apply_add_apply_eq J₀.square_neg hsep hsymm
       (A := A) (fun u v ↦ by simpa [hG₀] using hGJ u v)
@@ -259,17 +299,17 @@ private theorem exists_symm_complexBilinear_fderiv_gramInChart {form : SmoothTwo
 metric is `(u, v) ↦ ω(u, J₀ v)` for a closed form `ω`. The smoothness of the metric in charts
 is a hypothesis, so that the proof runs without the scoped instances of `Bundle`. -/
 private theorem exists_partialDiffeomorph_fderiv_gramInChart_eq_zero_aux
-    (hc : ∀ ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞, ContDiffOn ℝ ∞ (gramInChart ψ) ψ.target)
+    (hc : ∀ ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞, ContDiffOn ℝ ∞ ψ.gramInChart ψ.target)
     {J : SmoothAlmostComplexStructure I M} {form : SmoothTwoForm I M} (hform : form.IsClosed)
     (φ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞) {J₀ : AlmostComplexStructure E}
     (hφJ : ∀ p ∈ φ.target, ∀ w : E, J.chartPushforward φ.toOpenPartialHomeomorph p w = J₀ w)
     {x₀ : M} (hx₀ : x₀ ∈ φ.source)
     (hGΩ : ∀ z ∈ φ.target, ∀ u v : E,
-      gramInChart φ z u v = mpullback 𝓘(ℝ, E) I φ.symm form.val z ![u, J₀ v]) :
+      φ.gramInChart z u v = mpullback 𝓘(ℝ, E) I φ.symm form.val z ![u, J₀ v]) :
     ∃ (ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞) (J₀ : AlmostComplexStructure E),
       x₀ ∈ ψ.source ∧
         (∀ p ∈ ψ.target, ∀ w : E, J.chartPushforward ψ.toOpenPartialHomeomorph p w = J₀ w) ∧
-        fderiv ℝ (gramInChart ψ) (ψ x₀) = 0 := by
+        fderiv ℝ ψ.gramInChart (ψ x₀) = 0 := by
   set z₀ := φ x₀ with hz₀
   have hz₀t : z₀ ∈ φ.target := φ.map_source hx₀
   obtain ⟨Q, hQs, hQJ, hQ⟩ :=
@@ -320,43 +360,6 @@ private theorem exists_partialDiffeomorph_fderiv_gramInChart_eq_zero_aux
       ((hc _).contDiffAt ((φ.trans Θd).open_target.mem_nhds hz₀ψ) |>.differentiableAt (by simp))
       hQ
 
-open Bundle in
-/-- Let the metric be `g(v, w) = ω(v, J w)`, and let `φ` be a chart in which `J` is a constant
-linear structure `J₀`. At a point of the target where the metric in the chart has derivative zero,
-so has the form `ω` read in the chart. -/
-theorem fderiv_mpullback_symm_eq_zero_of_fderiv_gramInChart_eq_zero
-    [IsContMDiffRiemannianBundle I ∞ E (fun x : M ↦ TangentSpace I x)]
-    {J : SmoothAlmostComplexStructure I M} {form : SmoothTwoForm I M}
-    (hg : ∀ x (v w : TangentSpace I x), ⟪v, w⟫ = form.eval₂ x v (J x w))
-    (φ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞) {J₀ : AlmostComplexStructure E}
-    (hφ : ∀ p ∈ φ.target, ∀ w : E, J.chartPushforward φ.toOpenPartialHomeomorph p w = J₀ w)
-    {z : E} (hz : z ∈ φ.target) (h : fderiv ℝ (gramInChart φ) z = 0) :
-    fderiv ℝ (F := E [⋀^Fin 2]→L[ℝ] ℝ) (mpullback 𝓘(ℝ, E) I φ.symm form.val) z = 0 := by
-  have hT := φ.open_target.mem_nhds hz
-  have hΩ : DifferentiableAt ℝ (F := E [⋀^Fin 2]→L[ℝ] ℝ)
-      (mpullback 𝓘(ℝ, E) I φ.symm form.val) z :=
-    ((form.contDiffOn_mpullback φ.open_target φ.symm.contMDiffOn).contDiffAt hT).differentiableAt
-      (by simp)
-  have hG := (((contDiffOn_gramInChart φ).contDiffAt hT).differentiableAt (by simp)).hasFDerivAt
-  rw [h] at hG
-  ext v w
-  have hw : w = ![w 0, w 1] := (FinVec.etaExpand_eq _).symm
-  -- On the target, `ω(u, u') = g(u, -J₀ u')` in the chart, which has derivative zero at `z`.
-  have hc : HasFDerivAt (fun p ↦ (mpullback 𝓘(ℝ, E) I φ.symm form.val p : E [⋀^Fin 2]→L[ℝ] ℝ)
-      ![w 0, w 1]) (0 : E →L[ℝ] ℝ) z := by
-    have := (hG.clm_apply (hasFDerivAt_const (w 0) z)).clm_apply (hasFDerivAt_const (-J₀ (w 1)) z)
-    simp only [zero_apply, ContinuousLinearMap.comp_zero, zero_add,
-      ContinuousLinearMap.flip_zero] at this
-    refine this.congr_of_eventuallyEq (Filter.eventually_of_mem hT fun p hp ↦ ?_)
-    have hgp := gramInChart_apply_eq_mpullback_symm_apply hg φ hφ hp (w 0) (-J₀ (w 1))
-    have hJ : J₀ (-J₀ (w 1)) = w 1 := by rw [map_neg, J₀.apply_apply, neg_neg]
-    simp only [hJ] at hgp
-    exact hgp.symm
-  have hd := (ContinuousAlternatingMap.apply ℝ E ℝ ![w 0, w 1]).hasFDerivAt.comp z hΩ.hasFDerivAt
-  have h0 := congrArg (· v) (hd.unique hc)
-  rw [hw]
-  simpa using h0
-
 end SymplecticGeometry
 
 namespace TauCeti.SmoothAlmostComplexStructure
@@ -382,11 +385,11 @@ theorem IsIntegrable.exists_partialDiffeomorph_fderiv_gramInChart_eq_zero
     ∃ (ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞) (J₀ : AlmostComplexStructure E),
       x₀ ∈ ψ.source ∧
         (∀ p ∈ ψ.target, ∀ w : E, J.chartPushforward ψ.toOpenPartialHomeomorph p w = J₀ w) ∧
-        fderiv ℝ (gramInChart ψ) (ψ x₀) = 0 := by
+        fderiv ℝ ψ.gramInChart (ψ x₀) = 0 := by
   obtain ⟨φ, J₀, hx₀, hφJ⟩ := J.isIntegrable_def.1 hJ x₀
   exact exists_partialDiffeomorph_fderiv_gramInChart_eq_zero_aux
-    (fun ψ ↦ contDiffOn_gramInChart ψ) hform φ hφJ hx₀
-    fun z hz u v ↦ gramInChart_apply_eq_mpullback_symm_apply hg φ hφJ hz u v
+    (fun ψ ↦ ψ.contDiffOn_gramInChart) hform φ hφJ hx₀
+    fun z hz u v ↦ φ.gramInChart_apply_eq_mpullback_symm_apply hg hφJ hz u v
 
 end TauCeti.SmoothAlmostComplexStructure
 

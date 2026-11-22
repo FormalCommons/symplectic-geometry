@@ -99,7 +99,7 @@ carries this convergence back to `L2Form o k`.
 * `TauCeti.SmoothForm.l2Inner_eq_integral_formInnerInChart` and
   `SymplecticGeometry.L2Form.inner_ofSmooth_eq_integral_localize`: the `L²` inner product with a
   smooth form supported where the cutoff is `1`, read in the chart as the integral of the inner
-  product `SymplecticGeometry.formInnerInChart` of the localizations, weighted by the density of
+  product `PartialDiffeomorph.formInnerInChart` of the localizations, weighted by the density of
   the Riemannian volume; for smooth forms by the change of variables
   `PartialDiffeomorph.setIntegral_riemannianVolume_eq`, and for `L²` forms by density.
 * `SymplecticGeometry.L2Form.exists_norm_ofSmooth_extendByZeroAlong_le`: extension by zero along
@@ -406,7 +406,7 @@ namespace TauCeti.SmoothForm
 
 section Chart
 
-open Set SymplecticGeometry
+open Set
 
 variable [IsManifold I ∞ M] [CompactSpace M] [RiemannianBundle (fun x : M ↦ TangentSpace I x)]
   [IsContMDiffRiemannianBundle I ∞ E (fun x : M ↦ TangentSpace I x)]
@@ -425,7 +425,7 @@ theorem l2Inner_eq_integral_formInnerInChart (o : Manifold.Orientation I M (Fin 
     (hβ : ∀ x ∈ tsupport (α := E [⋀^Fin k]→L[ℝ] ℝ) β.val, θ x = 1) :
     l2Inner o α β = ∫ y, (b.addHaar.addHaarScalarFactor volume : ℝ) *
       riemannianJacobian (I := I) b ψ.symm y *
-        formInnerInChart ψ y (α.localize ψ θ y) (β.localize ψ θ y) := by
+        ψ.formInnerInChart y (α.localize ψ θ y) (β.localize ψ θ y) := by
   borelize M
   have hn : (∞ : ℕ∞ω) ≠ 0 := by simp
   set s : ℝ := (b.addHaar.addHaarScalarFactor volume : ℝ)
@@ -441,16 +441,16 @@ theorem l2Inner_eq_integral_formInnerInChart (o : Manifold.Orientation I M (Fin 
     · simp [g, hβ0 x h]
   -- In the chart, the integrand is `g` read through `ψ.symm`.
   have hpt (y : E) (hy : y ∈ ψ.target) :
-      formInnerInChart ψ y (α.localize ψ θ y) (β.localize ψ θ y) = g (ψ.symm y) := by
+      ψ.formInnerInChart y (α.localize ψ θ y) (β.localize ψ θ y) = g (ψ.symm y) := by
     have e (γ : SmoothForm I M ℝ k) : γ.localize ψ θ y =
         θ (ψ.symm y) • (TauCeti.mpullback 𝓘(ℝ, E) I ψ.symm γ.val y : E [⋀^Fin k]→L[ℝ] ℝ) :=
       localize_of_mem _ _ _ hy
     have hsm (c : ℝ) (a a' : E [⋀^Fin k]→L[ℝ] ℝ) :
-        formInnerInChart ψ y (c • a) (c • a') = c * c * formInnerInChart ψ y a a' := by
+        ψ.formInnerInChart y (c • a) (c • a') = c * c * ψ.formInnerInChart y a a' := by
       simp [mul_assoc]
     rw [e, e]
     refine (hsm _ _ _).trans ?_
-    rw [← alternatingFormInner_eq_formInnerInChart ψ _ _ hy]
+    rw [← ψ.alternatingFormInner_eq_formInnerInChart _ _ hy]
     -- Restate the goal through `g`, so that both sides read `ψ.symm y` through the same coercion.
     change θ (ψ.symm y) * θ (ψ.symm y) * g (ψ.symm y) = g (ψ.symm y)
     exact hθg _
@@ -460,7 +460,7 @@ theorem l2Inner_eq_integral_formInnerInChart (o : Manifold.Orientation I M (Fin 
     _ = ∫ y in ψ.target, riemannianJacobian (I := I) b ψ.symm y • g (ψ.symm y) ∂b.addHaar := by
         simpa using ψ.symm.setIntegral_riemannianVolume_eq hn b g
     _ = ∫ y in ψ.target, s * riemannianJacobian (I := I) b ψ.symm y *
-          formInnerInChart ψ y (α.localize ψ θ y) (β.localize ψ θ y) := by
+          ψ.formInnerInChart y (α.localize ψ θ y) (β.localize ψ θ y) := by
         rw [Measure.isAddLeftInvariant_eq_smul b.addHaar volume, Measure.restrict_smul,
           integral_smul_nnreal_measure, NNReal.smul_def, smul_eq_mul, ← integral_const_mul]
         refine setIntegral_congr_fun ψ.open_target.measurableSet fun y hy ↦ ?_
@@ -807,7 +807,7 @@ theorem inner_ofSmooth_eq_integral_localize [T2Space M] {ι : Type*} [Fintype ι
     (u : L2Form o k) :
     ⟪u, L2Form.ofSmooth β⟫_ℝ = ∫ y, (b.addHaar.addHaarScalarFactor volume : ℝ) *
       riemannianJacobian (I := I) b ψ.symm y *
-        formInnerInChart ψ y (localize ψ χ hχ u y) (β.localize ψ χ y) := by
+        ψ.formInnerInChart y (localize ψ χ hχ u y) (β.localize ψ χ y) := by
   set D : E → ℝ := fun y ↦ (b.addHaar.addHaarScalarFactor volume : ℝ) *
     riemannianJacobian (I := I) b ψ.symm y
   have hK : IsCompact (tsupport χ) := (isClosed_tsupport _).isCompact
@@ -821,18 +821,18 @@ theorem inner_ofSmooth_eq_integral_localize [T2Space M] {ι : Type*} [Fintype ι
   let L (p : Fin (Module.finrank ℝ (E [⋀^Fin k]→L[ℝ] ℝ))) :
       (E [⋀^Fin k]→L[ℝ] ℝ) →L[ℝ] ℝ := LinearMap.toContinuousLinearMap (e.coord p)
   let G (p : Fin (Module.finrank ℝ (E [⋀^Fin k]→L[ℝ] ℝ))) (y : E) : ℝ :=
-    D y * formInnerInChart ψ y (e p) (β.localize ψ χ y)
+    D y * ψ.formInnerInChart y (e p) (β.localize ψ χ y)
   have hGm (p) : MemLp (G p) 2 volume := by
     refine Continuous.memLp_of_hasCompactSupport ?_ ?_
     · refine ContinuousOn.continuous_of_tsupport_subset ?_ ψ.open_target
         ((closure_mono (Function.support_subset_iff'.2 fun y hy ↦ by
           simp [G, Function.notMem_support.1 hy])).trans hβt)
       exact ((contDiffOn_const.mul (ψ.contDiffOn_riemannianJacobian_symm b)).mul
-        (contDiffOn_formInnerInChart ψ subset_rfl contDiffOn_const hβl.contDiffOn)).continuousOn
+        (ψ.contDiffOn_formInnerInChart subset_rfl contDiffOn_const hβl.contDiffOn)).continuousOn
     · exact hβc.mono (Function.support_subset_iff'.2 fun y hy ↦ by
         simp [G, Function.notMem_support.1 hy])
   let B := ContinuousLinearMap.mul ℝ ℝ
-  have key (v : L2Form o k) : ∫ y, D y * formInnerInChart ψ y (localize ψ χ hχ v y)
+  have key (v : L2Form o k) : ∫ y, D y * ψ.formInnerInChart y (localize ψ χ hχ v y)
       (β.localize ψ χ y) =
         ∑ p, B.lpPairing volume 2 2 ((L p).compLp (localize ψ χ hχ v)) (hGm p).toLp := by
     have hint (p) : Integrable (fun y ↦ L p (localize ψ χ hχ v y) * G p y) volume :=
