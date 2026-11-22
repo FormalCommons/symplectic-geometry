@@ -245,10 +245,11 @@ and two rows of its milestone table.
 - The part no longer builds on *Symplectic vector bundles*, neither on
   `Symplectic/Basic.lean` nor on any of its open issues: the compatible
   complex structures come from Tau Ceti, and the symplectic normal bundle
-  is read through Tau Ceti's `symplecticNormalForm`. Its one import from
-  that part is the merged `Geometry/Manifold/IsManifold/InteriorBoundary.lean`,
+  is read through Tau Ceti's `symplecticNormalForm`. Its imports from
+  that part are the merged `Geometry/Manifold/IsManifold/InteriorBoundary.lean`,
   in `CharacteristicFoliation.lean` and `FlatChart.lean`, for the open
-  targets of maximal-atlas charts on a manifold without boundary.
+  targets of maximal-atlas charts on a manifold without boundary, and the
+  merged `Geometry/Manifold/VectorBundle/Pullback.lean`, in `Adjoint.lean`.
 
 ## Files and their contents
 
@@ -408,7 +409,9 @@ constant rank and the smoothness of `L` are hypotheses of
   makes those projections smooth sections of the endomorphism bundles. On
   $W_0$ and $W_1$, `b` and $b^{-1}$ are $df_1\circ S_0$ and $df_0\circ S_1$
   for smooth left inverses $S_j$ of $df_j$
-  (`exists_contMDiff_leftInverse_mfderiv`: the adjoint of $df$ for
+  (`exists_contMDiff_leftInverse_mfderiv`, from
+  `Manifold.IsImmersion.exists_contMDiff_leftInverse_mfderiv` in
+  `Geometry/Manifold/VectorBundle/Adjoint.lean`: the adjoint of $df$ for
   $\sigma(J\cdot,\cdot)$ and its pull-back to $TQ$).
 - The adjoint step $(\omega_1^\flat)^{-1}\circ T^*\circ\omega_0^\flat$ of
   `extendAlong_def` is smooth by `ContMDiff.clm_bundle_bilinAdjoint`
@@ -635,7 +638,10 @@ four theorems share.
 
 - From *Moser isotopy*: `Relative.lean`, `Geometry/Manifold/DifferentialForm/Opens.lean` and
   `Geometry/Symplectic/Manifold/TwoForm.lean`, only in `Tubular.lean`.
-- *Symplectic vector bundles* is not used: the compatible complex
+- From *Symplectic vector bundles*:
+  `Geometry/Manifold/VectorBundle/Pullback.lean` (merged), in
+  `Geometry/Manifold/VectorBundle/Adjoint.lean`, for the derivative of an
+  immersion as a section of the pull-back. The compatible complex
   structures of `Neighborhood/Basic.lean` come from Tau Ceti's
   `TauCeti.SmoothTwoForm.IsNondegenerate.exists_compatible`.
 - From *Symplectic vector spaces*: `LinearAlgebra/Symplectic/Reduction.lean`

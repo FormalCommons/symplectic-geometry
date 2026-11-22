@@ -44,8 +44,10 @@ steps, each smooth in `q`:
   spaces, and Tau Ceti's `TauCeti.contMDiff_hom_bundle_iff` turns into smooth sections of the
   bundle of endomorphisms;
 * `b` and `b⁻¹`, which agree on `W₀` and `W₁` with `df₁ ∘ S₀` and `df₀ ∘ S₁` for smooth left
-  inverses `Sⱼ` of the derivatives (`TauCeti.SmoothEmbedding.exists_contMDiff_leftInverse_mfderiv`:
-  the adjoint of `df` for the metric `σ(·, J ·)` and its pull-back to `TQ`);
+  inverses `Sⱼ` of the derivatives (`TauCeti.SmoothEmbedding.exists_contMDiff_leftInverse_mfderiv`,
+  which is `Manifold.IsImmersion.exists_contMDiff_leftInverse_mfderiv` of
+  `SymplecticGeometry/Geometry/Manifold/VectorBundle/Adjoint.lean` for the form `σ(J ·, ·)`,
+  definite by `TauCeti.SmoothTwoForm.Compatible.flatComp_apply_self_eq_zero_iff`);
 * the adjoint `(ω₁^♭)⁻¹ ∘ T^* ∘ ω₀^♭` of `T = b⁻¹ ∘ (projection onto W₁)`, smooth by
   `ContMDiff.clm_bundle_bilinAdjoint`.
 
@@ -78,73 +80,34 @@ Tau Ceti's `Geometry/Symplectic/Manifold/Flat.lean`); transposing bilinear forms
 local instance (x : M) : IsNormableSpace ℝ (TangentSpace I x) :=
   instIsNormableSpaceTangentSpace I x
 
-local instance (x : Q) : IsNormableSpace ℝ (TangentSpace J x) :=
-  instIsNormableSpaceTangentSpace J x
+/-- For a compatible almost complex structure `J`, the form `σ(J ·, ·)` vanishes on the diagonal
+only at `0`: `σ(J u, u) = -g(u, u)` for the metric `g = σ(·, J ·)`. -/
+theorem _root_.TauCeti.SmoothTwoForm.Compatible.flatComp_apply_self_eq_zero_iff
+    (hc : σ.Compatible Jc) {x : M} {u : TangentSpace I x} :
+    σ.flatComp Jc.toEndomorphism x u u = 0 ↔ u = 0 := by
+  refine ⟨fun hu ↦ ?_, fun hu ↦ by simp [hu]⟩
+  by_contra hne
+  have hp := (hc.compatibleAt x).positive u hne
+  rw [LinearMap.BilinMap.toQuadraticMap_apply, SymplecticForm.associatedBilinForm_apply] at hp
+  simp only [SmoothTwoForm.flatComp_apply, ContinuousLinearMap.comp_apply,
+    SmoothTwoForm.flat_apply] at hu
+  rw [← SmoothTwoForm.IsNondegenerate.symplecticFormAt_apply hc.isNondegenerate,
+    ← SymplecticForm.neg_eq, neg_eq_zero] at hu
+  simp only [SmoothAlmostComplexStructure.almostComplexStructureAt_toLinearMap,
+    ContinuousLinearMap.coe_coe] at hp
+  exact hp.ne' hu
 
 /-- **A smooth left inverse of the derivative.** For a smooth embedding `f` into a manifold with
 a two-form `σ` and a compatible almost complex structure `J`, there is a smooth section `S` of
 the bundle of linear maps from the pull-back `f *ᵖ TM` to `TQ` with `S_q ∘ df_q = id` at every
-`q`. -/
+`q`: `Manifold.IsImmersion.exists_contMDiff_leftInverse_mfderiv` for the form `σ(J ·, ·)`. -/
 theorem exists_contMDiff_leftInverse_mfderiv (hc : σ.Compatible Jc) :
     ∃ S : ∀ q, TangentSpace I (f q) →L[ℝ] TangentSpace J q,
       ContMDiff J (J.prod 𝓘(ℝ, E →L[ℝ] E')) ∞ (fun q ↦ TotalSpace.mk' (E →L[ℝ] E')
         (E := fun q ↦ ((f : Q → M) *ᵖ (TangentSpace I)) q →L[ℝ] TangentSpace J q) q (S q)) ∧
-      ∀ q, Function.LeftInverse (S q) (mfderiv J I f q) := by
-  have : IsManifold I (∞ + 1) M := by simpa using (inferInstance : IsManifold I ∞ M)
-  have : IsManifold J (∞ + 1) Q := by simpa using (inferInstance : IsManifold J ∞ Q)
-  have : ContMDiffVectorBundle ∞ E ((f : Q → M) *ᵖ (TangentSpace I)) J :=
-    Bundle.Pullback.contMDiffVectorBundle (E := TangentSpace I) f.contMDiff
-  have (q : Q) : IsNormableSpace ℝ (((f : Q → M) *ᵖ (TangentSpace I)) q) :=
-    instIsNormableSpaceTangentSpace I (f q)
-  -- `S` is the adjoint of `df` for the forms `β = σ(J ·, ·)` on `f *ᵖ TM` and
-  -- `h = β(df ·, df ·)` on `TQ`.
-  set β : ∀ q, TangentSpace I (f q) →L[ℝ] TangentSpace I (f q) →L[ℝ] ℝ :=
-    fun q ↦ σ.flatComp Jc.toEndomorphism (f q)
-  set T : ∀ q, TangentSpace J q →L[ℝ] TangentSpace I (f q) := fun q ↦ mfderiv J I (f : Q → M) q
-  set h : ∀ q, TangentSpace J q →L[ℝ] TangentSpace J q →L[ℝ] ℝ :=
-    fun q ↦ (((β q).comp (T q)).flip.comp (T q)).flip
-  have hβ := SmoothTwoForm.contMDiff_flatComp_pullback σ Jc.toEndomorphism f f.contMDiff
-  have hT : ContMDiff J (J.prod 𝓘(ℝ, E' →L[ℝ] E)) ∞ (fun q ↦ TotalSpace.mk' (E' →L[ℝ] E)
-      (E := fun q ↦ TangentSpace J q →L[ℝ] ((f : Q → M) *ᵖ (TangentSpace I)) q) q (T q)) :=
-    (contMDiff_hom_bundle_iff (E₂ := (f : Q → M) *ᵖ (TangentSpace I)) _).2
-      (Pullback.contMDiff_totalSpace_mfderiv f f.contMDiff)
-  -- The scalar factor is named as the trivial bundle, as in `ContMDiff.clm_bundle_bilinAdjoint`.
-  have h₁ := hβ.clm_bundle_comp (V₁ := TangentSpace J) (V₂ := (f : Q → M) *ᵖ (TangentSpace I))
-    (V₃ := fun q ↦ ((f : Q → M) *ᵖ (TangentSpace I)) q →L[ℝ] Trivial Q ℝ q) (IM := J) (IB := J) hT
-  have h₂ : ContMDiff J _ ∞ _ := fun q ↦ contMDiffWithinAt_univ.1
-    ((h₁ q).contMDiffWithinAt.clm_bundle_flip (V₁ := TangentSpace J)
-      (V₂ := (f : Q → M) *ᵖ (TangentSpace I)) (V₃ := Trivial Q ℝ))
-  have h₃ := h₂.clm_bundle_comp (V₁ := TangentSpace J) (V₂ := (f : Q → M) *ᵖ (TangentSpace I))
-    (V₃ := fun q ↦ TangentSpace J q →L[ℝ] Trivial Q ℝ q) (IM := J) (IB := J) hT
-  have hh : ContMDiff J (J.prod 𝓘(ℝ, E' →L[ℝ] E' →L[ℝ] ℝ)) ∞
-      (fun q ↦ TotalSpace.mk' (E' →L[ℝ] E' →L[ℝ] ℝ)
-        (E := fun q ↦ TangentSpace J q →L[ℝ] TangentSpace J q →L[ℝ] ℝ) q (h q)) := fun q ↦
-    contMDiffWithinAt_univ.1 ((h₃ q).contMDiffWithinAt.clm_bundle_flip (V₁ := TangentSpace J)
-      (V₂ := TangentSpace J) (V₃ := Trivial Q ℝ))
-  have hhapply (q : Q) (x y : TangentSpace J q) : h q x y = β q (T q x) (T q y) := by
-    simp only [h, ContinuousLinearMap.flip_apply, ContinuousLinearMap.comp_apply]
-  -- `h` is definite, since `β (u, u) = -σ(u, J u) < 0` for `u ≠ 0` and `df` is injective.
-  have hdef (q : Q) (x : TangentSpace J q) (hx : h q x x = 0) : x = 0 := by
-    refine f.isImmersion.mfderiv_injective (by simp) q ((map_zero (T q)).symm ▸ ?_)
-    by_contra hne
-    have hp := (hc.compatibleAt (f q)).positive (T q x) hne
-    rw [hhapply] at hx
-    rw [LinearMap.BilinMap.toQuadraticMap_apply, SymplecticForm.associatedBilinForm_apply] at hp
-    simp only [β, SmoothTwoForm.flatComp_apply, ContinuousLinearMap.comp_apply,
-      SmoothTwoForm.flat_apply] at hx
-    rw [← SmoothTwoForm.IsNondegenerate.symplecticFormAt_apply hc.isNondegenerate,
-      ← SymplecticForm.neg_eq, neg_eq_zero] at hx
-    simp only [SmoothAlmostComplexStructure.almostComplexStructureAt_toLinearMap,
-      ContinuousLinearMap.coe_coe] at hp
-    exact hp.ne' hx
-  have hinv (q : Q) : (h q).IsInvertible := by
-    rw [ContinuousLinearMap.isInvertible_iff_nondegenerate_toBilinForm]
-    exact ⟨fun x hx ↦ hdef q x (hx x), fun y hy ↦ hdef q y (hy y)⟩
-  refine ⟨fun q ↦ ContinuousLinearMap.bilinAdjoint (β q) (h q) (T q), ?_, fun q v ↦ ?_⟩
-  · exact ContMDiff.clm_bundle_bilinAdjoint (E₀ := (f : Q → M) *ᵖ (TangentSpace I))
-      (E₁ := TangentSpace J) hβ hh hT hinv
-  · refine (hinv q).injective (ContinuousLinearMap.ext fun y ↦ ?_)
-    rw [ContinuousLinearMap.apply_bilinAdjoint_apply (hinv q), hhapply]
+      ∀ q, Function.LeftInverse (S q) (mfderiv J I f q) :=
+  f.isImmersion.exists_contMDiff_leftInverse_mfderiv (σ.flatComp Jc.toEndomorphism).contMDiff
+    fun _ _ ↦ hc.flatComp_apply_self_eq_zero_iff.1
 
 variable [FiniteDimensional ℝ E]
 
@@ -274,6 +237,34 @@ theorem mfderivRangeEquiv_apply_mfderiv (q : Q) (v : TangentSpace J q) :
   rw [mfderivRangeEquiv, h, LinearEquiv.trans_apply, LinearEquiv.symm_apply_apply,
     LinearEquiv.ofInjective_apply, ContinuousLinearMap.coe_coe]
 
+omit [FiniteDimensional ℝ E₀] [FiniteDimensional ℝ E₁] [IsManifold I₀ ∞ M₀] [IsManifold I₁ ∞ M₁]
+  [IsManifold J ∞ Q] in
+/-- The inverse of `df₁ ∘ df₀⁻¹` is `df₀ ∘ df₁⁻¹`. -/
+theorem mfderivRangeEquiv_symm (q : Q) :
+    (mfderivRangeEquiv f₀ f₁ q).symm = mfderivRangeEquiv f₁ f₀ q := by
+  ext w
+  rw [mfderivRangeEquiv, mfderivRangeEquiv, LinearEquiv.symm_trans_apply, LinearEquiv.symm_symm,
+    LinearEquiv.trans_apply]
+
+omit [FiniteDimensional ℝ E₀] [FiniteDimensional ℝ E₁] [IsManifold I₀ ∞ M₀] [IsManifold I₁ ∞ M₁]
+  [IsManifold J ∞ Q] in
+/-- The inverse of `df₁ ∘ df₀⁻¹` sends `df₁ v` to `df₀ v`. -/
+@[simp]
+theorem mfderivRangeEquiv_symm_apply_mfderiv (q : Q) (v : TangentSpace J q) :
+    ((mfderivRangeEquiv f₀ f₁ q).symm ⟨mfderiv J I₁ f₁ q v, LinearMap.mem_range_self _ v⟩ :
+      TangentSpace I₀ (f₀ q)) = mfderiv J I₀ f₀ q v := by
+  rw [mfderivRangeEquiv_symm, mfderivRangeEquiv_apply_mfderiv]
+
+omit [FiniteDimensional ℝ E₀] [FiniteDimensional ℝ E₁] [IsManifold I₀ ∞ M₀] [IsManifold I₁ ∞ M₁]
+  [IsManifold J ∞ Q] in
+/-- For any left inverse `S` of `df₀`, `df₁ ∘ df₀⁻¹` is `df₁ ∘ S` on the tangent image of `f₀`. -/
+theorem mfderivRangeEquiv_apply_of_leftInverse (q : Q)
+    {S : TangentSpace I₀ (f₀ q) → TangentSpace J q}
+    (hS : Function.LeftInverse S (mfderiv J I₀ f₀ q)) (w : (mfderiv J I₀ f₀ q).range) :
+    (mfderivRangeEquiv f₀ f₁ q w : TangentSpace I₁ (f₁ q)) = mfderiv J I₁ f₁ q (S w) := by
+  obtain ⟨_, u, rfl⟩ := w
+  simp [hS u]
+
 omit [FiniteDimensional ℝ E₀] [FiniteDimensional ℝ E₁] in
 /-- If `f₀` and `f₁` pull `σ₀` and `σ₁` back to the same form, then `df₁ ∘ df₀⁻¹` carries the
 restriction of `σ₀` to the tangent image of `f₀` to the restriction of `σ₁` to that of `f₁`. -/
@@ -283,10 +274,8 @@ theorem symplecticFormAt_mfderivRangeEquiv (hω₀ : σ₀.IsNondegenerate)
     (q : Q) (x y : (mfderiv J I₀ f₀ q).range) :
     hω₁.symplecticFormAt (f₁ q) (mfderivRangeEquiv f₀ f₁ q x) (mfderivRangeEquiv f₀ f₁ q y) =
       hω₀.symplecticFormAt (f₀ q) x y := by
-  obtain ⟨u, hu⟩ := x.property
-  obtain ⟨v, hv⟩ := y.property
-  obtain rfl : x = ⟨_, LinearMap.mem_range_self _ u⟩ := Subtype.ext hu.symm
-  obtain rfl : y = ⟨_, LinearMap.mem_range_self _ v⟩ := Subtype.ext hv.symm
+  obtain ⟨_, u, rfl⟩ := x
+  obtain ⟨_, v, rfl⟩ := y
   simp only [ContinuousLinearMap.coe_coe, mfderivRangeEquiv_apply_mfderiv]
   have h := congr(SmoothForm.bilinFormAt $hσ q u v)
   simp only [SmoothForm.bilinFormAt_apply, SmoothForm.eval₂_mpullback] at h
@@ -395,19 +384,12 @@ private theorem smoothExtendAlong_eq_extendFormula
       TangentSpace I₁ (f₁ q)) = extendFormula hc₀ hc₁ L S₀ S₁ q := by
   set b := mfderivRangeEquiv f₀ f₁ q
   have hb (w : (mfderiv J I₀ f₀ q).range) :
-      (b w : TangentSpace I₁ (f₁ q)) = mfderiv J I₁ f₁ q (S₀ q w) := by
-    obtain ⟨u, hu⟩ := w.property
-    obtain rfl : w = ⟨_, LinearMap.mem_range_self _ u⟩ := Subtype.ext hu.symm
-    simp only [ContinuousLinearMap.coe_coe, b, mfderivRangeEquiv_apply_mfderiv, hS₀ q u]
+      (b w : TangentSpace I₁ (f₁ q)) = mfderiv J I₁ f₁ q (S₀ q w) :=
+    mfderivRangeEquiv_apply_of_leftInverse q (hS₀ q) w
   have hb' (w : (mfderiv J I₁ f₁ q).range) :
       (b.symm w : TangentSpace I₀ (f₀ q)) = mfderiv J I₀ f₀ q (S₁ q w) := by
-    obtain ⟨u, hu⟩ := w.property
-    obtain rfl : w = ⟨_, LinearMap.mem_range_self _ u⟩ := Subtype.ext hu.symm
-    have hs : b.symm ⟨mfderiv J I₁ f₁ q u, LinearMap.mem_range_self _ u⟩ =
-        ⟨mfderiv J I₀ f₀ q u, LinearMap.mem_range_self _ u⟩ := by
-      rw [LinearEquiv.symm_apply_eq]
-      exact Subtype.ext (mfderivRangeEquiv_apply_mfderiv q u).symm
-    simp only [ContinuousLinearMap.coe_coe, hs, hS₁ q u]
+    simp only [b, mfderivRangeEquiv_symm]
+    exact mfderivRangeEquiv_apply_of_leftInverse q (hS₁ q) w
   -- The adjoint step of the formula is `pairMap`.
   have hpair (x : TangentSpace I₀ (f₀ q)) :
       ((hc₁.isNondegenerate.symplecticFormAt (f₁ q)).toBilinForm.toDual
