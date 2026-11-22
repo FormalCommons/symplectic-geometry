@@ -125,23 +125,20 @@ theorem nijenhuis_pullback (h : M ≃ₘ⟮I, I'⟯ N) (J : SmoothAlmostComplexS
     (v w : TangentSpace I x) :
     (pullback h J).nijenhuis x v w = (mfderiv I I' h x).inverse
       (J.nijenhuis (h x) (mfderiv I I' h x v) (mfderiv I I' h x w)) := by
-  have hinv (y : M) := h.isInvertible_mfderiv (by simp) (x := y)
-  -- The pullbacks of fields on `N` through `dh_x v` and `dh_x w` are `h`-related to those fields.
-  have hrel (V : Π z : N, TangentSpace I' z) :
-      ∀ᶠ z in 𝓝 x, mfderiv I I' h z (VectorField.mpullback I I' h V z) = V (h z) :=
-    .of_forall fun z ↦ by rw [VectorField.mpullback_apply, (hinv z).self_apply_inverse]
+  have hinv := h.isInvertible_mfderiv (by simp) (x := x)
   have hval (u : TangentSpace I x) :
       VectorField.mpullback I I' h (extend E' (mfderiv I I' h x u)) x = u := by
-    rw [VectorField.mpullback_apply, extend_apply_self, (hinv x).inverse_apply_self]
+    rw [VectorField.mpullback_apply, extend_apply_self, hinv.inverse_apply_self]
   have hext (u : TangentSpace I x) : MDiffAt (T% (extend E' (mfderiv I I' h x u))) (h x) :=
     mdifferentiableAt_extend ..
   have key := (pullback h J).mfderiv_nijenhuis_of_eventually_related J
     ((h.contMDiff x).of_le (by simp)) (.of_forall (mfderiv_pullback_apply h J))
-    ((hext v).mpullback_vectorField (h.contMDiff x) (hinv x) (by simp))
-    ((hext w).mpullback_vectorField (h.contMDiff x) (hinv x) (by simp)) (hext v) (hext w)
-    (hrel _) (hrel _)
+    ((hext v).mpullback_vectorField (h.contMDiff x) hinv (by simp))
+    ((hext w).mpullback_vectorField (h.contMDiff x) hinv (by simp)) (hext v) (hext w)
+    (.of_forall (h.mfderiv_apply_mpullback (by simp) _))
+    (.of_forall (h.mfderiv_apply_mpullback (by simp) _))
   rw [hval, hval, extend_apply_self, extend_apply_self] at key
-  rw [← key, (hinv x).inverse_apply_self]
+  rw [← key, hinv.inverse_apply_self]
 
 /-- **Naturality of the Nijenhuis tensor on vector fields.** For a diffeomorphism `h : M → N`, a
 smooth almost complex structure `J` on `N` and vector fields `X`, `Y` on `N`,
@@ -151,9 +148,8 @@ theorem nijenhuis_mpullback (h : M ≃ₘ⟮I, I'⟯ N) (J : SmoothAlmostComplex
     (pullback h J).nijenhuis x (VectorField.mpullback I I' h X x)
         (VectorField.mpullback I I' h Y x) =
       VectorField.mpullback I I' h (fun y ↦ J.nijenhuis y (X y) (Y y)) x := by
-  have hinv := h.isInvertible_mfderiv (by simp) (x := x)
-  simp only [nijenhuis_pullback, VectorField.mpullback_apply]
-  rw [hinv.self_apply_inverse, hinv.self_apply_inverse]
+  rw [nijenhuis_pullback, h.mfderiv_apply_mpullback (by simp),
+    h.mfderiv_apply_mpullback (by simp), VectorField.mpullback_apply]
 
 end Pullback
 
