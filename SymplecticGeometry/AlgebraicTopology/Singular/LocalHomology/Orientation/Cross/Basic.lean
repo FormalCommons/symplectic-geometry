@@ -151,23 +151,26 @@ theorem localHomologyCross_eq (x : X) (y : Y) (p q n : ℕ) (h : p + q = n) :
         (TopPair.ofSubsetMap _ (mapsTo_preimage_fst_compl_union_preimage_snd_compl x y)) _ n := by
   rw [localHomologyCross_def, TopPair.singularHomologyMap_coefficient_naturality]
 
-/-- The identity of `X × Y` carries the complement of `(x, y)` into
-`(X ∖ {x}) × Y ∪ X × (Y ∖ {y})`: the converse of
+/-- The inverse of `TopCat.tensorObjIsoProd X Y`, the identity of `X × Y`, carries the complement
+of `(x, y)` into `(X ∖ {x}) × Y ∪ X × (Y ∖ {y})`: the converse of
 `TauCeti.mapsTo_preimage_fst_compl_union_preimage_snd_compl`. -/
 theorem mapsTo_compl_singleton_preimage_fst_compl_union_preimage_snd_compl (x : X) (y : Y) :
-    MapsTo (𝟙 (TopCat.of X ⊗ TopCat.of Y)) ({(x, y)}ᶜ : Set (TopCat.of (X × Y)))
+    MapsTo (TopCat.tensorObjIsoProd X Y).inv ({(x, y)}ᶜ : Set (TopCat.of (X × Y)))
       (CartesianMonoidalCategory.fst (TopCat.of X) (TopCat.of Y) ⁻¹' ({x}ᶜ : Set (TopCat.of X)) ∪
         CartesianMonoidalCategory.snd (TopCat.of X) (TopCat.of Y) ⁻¹'
           ({y}ᶜ : Set (TopCat.of Y))) := by
-  rintro ⟨a, b⟩ hv
+  intro p hv
   by_contra hc
   simp only [mem_union, mem_preimage, mem_compl_singleton_iff, not_or, not_not] at hc
-  exact hv (Prod.ext hc.1 hc.2)
+  refine hv ?_
+  rw [← Iso.inv_hom_id_apply (TopCat.tensorObjIsoProd X Y) p, TopCat.tensorObjIsoProd_hom_apply]
+  exact Prod.ext hc.1 hc.2
 
 /-- The local homology cross product, read back in the homology of `X × Y` relative to
 `(X ∖ {x}) × Y ∪ X × (Y ∖ {y})` with the coefficients split again by the inverse of
 `ModuleCat.uliftTensorSelfIso ℤ`, is the cross product of the pairs `(X, X ∖ {x})` and
 `(Y, Y ∖ {y})`. -/
+@[elementwise]
 theorem localHomologyCross_comp_homologyMap_uliftTensorSelfIso_inv (x : X) (y : Y)
     (p q n : ℕ) (h : p + q = n) :
     localHomologyCross x y p q n h ≫
@@ -181,7 +184,7 @@ theorem localHomologyCross_comp_homologyMap_uliftTensorSelfIso_inv (x : X) (y : 
       TopPair.ofSubsetMap _
         (mapsTo_compl_singleton_preimage_fst_compl_union_preimage_snd_compl x y) = 𝟙 _ :=
     (TopPair.ofSubsetMap_comp_ofSubsetMap_of_comp_eq _ _ (fun _ hv ↦ hv)
-      ((Category.comp_id _).trans (TopCat.tensorObjIsoProd_hom_eq_id X Y))).trans
+      (TopCat.tensorObjIsoProd X Y).hom_inv_id).trans
       (TopPair.ofSubsetMap_id _)
   have key : TopCat.singularHomologyCrossRelPair (TopCat.of X) (TopCat.of Y) {x}ᶜ {y}ᶜ
         (ModuleCat.of ℤ (ULift.{0} ℤ)) (ModuleCat.of ℤ (ULift.{0} ℤ)) p q n h ≫

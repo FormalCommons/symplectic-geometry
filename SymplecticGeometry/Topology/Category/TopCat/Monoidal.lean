@@ -134,6 +134,12 @@ lemma tensorObjIsoProd_hom_eq_id (X Y : Type w) [TopologicalSpace X] [Topologica
     (tensorObjIsoProd X Y).hom = 𝟙 (TopCat.of (X × Y)) :=
   (rfl)
 
+/-- The inverse of the isomorphism `TopCat.of X ⊗ TopCat.of Y ≅ TopCat.of (X × Y)` is the identity
+of `TopCat.of X ⊗ TopCat.of Y`, since `TopCat.of X ⊗ TopCat.of Y` unfolds to `TopCat.of (X × Y)`. -/
+lemma tensorObjIsoProd_inv_eq_id (X Y : Type w) [TopologicalSpace X] [TopologicalSpace Y] :
+    (tensorObjIsoProd X Y).inv = 𝟙 (TopCat.of X ⊗ TopCat.of Y) :=
+  (rfl)
+
 /-! The two evaluation lemmas below write out the coercion to a function so that they can write
 the carrier of `TopCat.of (X × Y)` as `X × Y`, the form `simp` reduces it to in goals, and mark
 the type of continuous maps with `no_index`. -/
