@@ -10,13 +10,12 @@ public import SymplecticGeometry.Geometry.Manifold.DeRham.HomologyPeriod
 public import SymplecticGeometry.Geometry.Manifold.DeRham.SmoothFamily.GoodCover
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Map
 public import TauCeti.Geometry.Manifold.SmoothIsotopy.Basic
-import TauCeti.AlgebraicTopology.Singular.Homotopy.Invariance
 
 /-!
 # Closed forms with prescribed periods, and primitives near a subset
 
 This file collects the cohomological input of the symplectic isotopy extension theorem
-(McDuff–Salamon, Theorem 3.3.1). Let `Q` be a subset of a manifold `M` and `U` an open set
+(McDuff–Salamon, Theorem 3.3.2). Let `Q` be a subset of a manifold `M` and `U` an open set
 containing it. The first cohomology of `Q` is read through singular homology: a class is an
 additive map `H₁(Q; ℤ) → ℝ`, and a closed one-form on `U` or on `M` restricts to `Q` through its
 periods (`TauCeti.homologyPeriodHom`) on the image of `H₁(Q; ℤ)`.
@@ -49,7 +48,7 @@ Neither of the last three results needs `M` to be compact.
 ## References
 
 * [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017], §3.3
-  (proof of Theorem 3.3.1).
+  (proof of Theorem 3.3.2).
 * M. Farber, *Topology of Closed One-Forms*, Section 1.1 (the homomorphism of periods
   `H₁(M; ℤ) → ℝ`).
 -/
@@ -114,10 +113,8 @@ theorem SmoothIsotopy.homologyPeriodHom_mpullback_eq {f₀ f₁ : C^∞⟮J, P; 
       continuous_toFun := F.contMDiff.continuous.comp (by fun_prop)
       map_zero_left := fun x ↦ by simp [F.apply_zero]
       map_one_left := fun x ↦ by simp }
-  ext c
-  rw [← homologyPeriodHom_singularHomologyMap (hFt.of_le (by simp)) hθ hcl,
-    ← homologyPeriodHom_singularHomologyMap (f₀.contMDiff.of_le (by simp)) hθ hcl,
-    ContinuousMap.singularHomologyMap_eq_of_homotopic ℤ 1 ⟨K⟩]
+  exact (homologyPeriodHom_mpullback_eq_of_homotopic (f₀.contMDiff.of_le (by simp))
+    (hFt.of_le (by simp)) ⟨K⟩ hθ hcl).symm
 
 end TauCeti
 
@@ -178,14 +175,9 @@ theorem exists_closedForms_periods_eq [I.Boundaryless] [CompactSpace M] {Q : Set
         by_contra! h
         exact hg (AddMonoidHom.ext h)
       exact ⟨ev z, ⟨z, rfl⟩, hz⟩
-    have hf : f ∈ Submodule.span ℝ (range ev) := hspan ▸ Submodule.mem_top
-    induction hf using Submodule.span_induction with
-    | mem f hf =>
-      obtain ⟨z, rfl⟩ := hf
-      exact hα.contMDiff_homologyPeriodHom hcl _
-    | zero => exact contMDiff_const
-    | add f g _ _ hf hg => exact hf.add hg
-    | smul c f _ hf => exact ((contDiff_const_smul c).contMDiff).comp hf
+    refine contMDiff_dual_apply_of_span_eq_top hspan ?_ f
+    rintro _ ⟨z, rfl⟩
+    exact hα.contMDiff_homologyPeriodHom hcl _
   · -- The class `S (p t)` restricts to `p t`, and `L` picks a representative of it.
     have h₁ : deRhamCohomology.mk I 1 (L (S (p t))) = S (p t) := LinearMap.congr_fun hL _
     have h₂ : R (S (p t)) = p t := LinearMap.congr_fun hS _
@@ -238,7 +230,9 @@ theorem exists_contMDiff_primitive_of_periods {Q : Set M} (hN : NDRPair Q) {U : 
       ← ContinuousMap.singularHomologyMap_comp] at hψ
     have hz := DFunLike.congr_fun (hper t) z
     simp only [AddMonoidHom.coe_comp, LinearMap.toAddMonoidHom_coe, Function.comp_apply] at hz
-    rw [homologyPeriodHom_sub_of_mem_closedForms (hαcl t) (hψcl t)]
+    rw [Submodule.coe_sub, homologyPeriodHom_sub ((α t).isSmoothForm.of_le (by simp))
+      ((mem_closedForms I _).mp (hαcl t)) ((SmoothForm.mpullback _ (hφt t) (β t)).isSmoothForm.of_le
+        (by simp)) ((mem_closedForms I _).mp (hψcl t))]
     simp only [AddMonoidHom.coe_comp, LinearMap.toAddMonoidHom_coe, Function.comp_apply,
       AddMonoidHom.sub_apply, AddMonoidHom.zero_apply, SmoothForm.coe_mpullback]
     rw [hψ, hz, sub_eq_zero]

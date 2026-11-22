@@ -447,14 +447,6 @@ variable {E' H' M' EN' HN' N' : Type*}
   [TopologicalSpace N'] [ChartedSpace HN' N'] {J' : ModelWithCorners ℝ EN' HN'}
   [IsManifold J' 1 N'] {α : N → SmoothForm I M F k}
 
-/-- The pullbacks of a smooth family along a smooth map form a smooth family. -/
-protected theorem mpullback (hα : IsSmoothFamily J α) (f : M' → M) (hf : ContMDiff I' I ∞ f) :
-    IsSmoothFamily J (fun t ↦ SmoothForm.mpullback f hf (α t)) := by
-  obtain ⟨Ω, hΩ⟩ := hα
-  refine ⟨SmoothForm.mpullback (Prod.map id f) (contMDiff_id.prodMap hf) Ω, fun t ↦ ?_⟩
-  have hcomp : (Prod.map id f ∘ Prod.mk t : M' → N × M) = Prod.mk t ∘ f := rfl
-  simp only [← hΩ, SmoothForm.mpullback_mpullback, hcomp]
-
 /-- **Pullback of a smooth family along a smooth family of maps.** For a smooth map
 `f : N × M' → M`, the pullbacks of `α t` along the slices `f (t, ·)` form a smooth family. -/
 protected theorem mpullback_family (hα : IsSmoothFamily J α) {f : N × M' → M}
@@ -466,6 +458,11 @@ protected theorem mpullback_family (hα : IsSmoothFamily J α) {f : N × M' → 
   have hcomp : ((fun p ↦ (p.1, f p)) ∘ Prod.mk t : M' → N × M) =
       Prod.mk t ∘ fun x ↦ f (t, x) := rfl
   simp only [← hΩ, SmoothForm.mpullback_mpullback, hcomp]
+
+/-- The pullbacks of a smooth family along a smooth map form a smooth family. -/
+protected theorem mpullback (hα : IsSmoothFamily J α) (f : M' → M) (hf : ContMDiff I' I ∞ f) :
+    IsSmoothFamily J (fun t ↦ SmoothForm.mpullback f hf (α t)) :=
+  hα.mpullback_family (f := fun p : N × M' ↦ f p.2) (hf.comp contMDiff_snd)
 
 /-- Reparametrizing a smooth family by a smooth map of parameter manifolds gives a smooth
 family. -/

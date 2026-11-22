@@ -8,6 +8,7 @@ module
 import Mathlib.Geometry.Manifold.Algebra.SmoothFunctions
 public import SymplecticGeometry.Geometry.Manifold.DeRham.FamilyPrimitive
 public import TauCeti.Geometry.Manifold.DeRham.HomologyPeriod
+public import TauCeti.AlgebraicTopology.Singular.Homotopy.Invariance
 import TauCeti.Geometry.Manifold.SmoothApprox
 
 /-!
@@ -18,9 +19,10 @@ Let `α_t`, `t ∈ N`, be a smooth family of closed one-forms on a manifold `M`
 smooth curve, along a path class, and on a class of the first singular homology group
 `H₁(M; ℤ)` (`TauCeti.homologyPeriodHom`).
 
-Along a smooth curve `c : ℝ → M`, the forms `c^* α_t` are a smooth family of closed one-forms on
-`ℝ`, which is smoothly contractible, so they have a jointly smooth family of primitives `f` (the
-parametric Poincaré lemma of `SymplecticGeometry.Geometry.Manifold.DeRham.FamilyPrimitive`), and
+Along a smooth curve `c : ℝ → M`, the forms `c^* α_t` are a smooth family of one-forms on `ℝ`,
+closed since `ℝ` has dimension one. As `ℝ` is smoothly contractible, they have a jointly smooth
+family of primitives `f` (the parametric Poincaré lemma of
+`SymplecticGeometry.Geometry.Manifold.DeRham.FamilyPrimitive`), and
 the line integral from `a` to `b` is `f (t, b) - f (t, a)`. No integral is differentiated
 by hand. On a Hausdorff boundaryless manifold every path is homotopic, relative to its
 endpoints, to one with a smooth extension to `ℝ` (Tau Ceti's
@@ -34,8 +36,10 @@ class is the same combination of the periods along the simplices.
 * `SymplecticGeometry.IsSmoothFamily.contMDiff_pathClassIntegral`: integrals over a path class.
 * `SymplecticGeometry.IsSmoothFamily.contMDiff_homologyPeriodHom`: periods on a class of
   `H₁(M; ℤ)`.
-* `TauCeti.homologyPeriodHom_sub_of_mem_closedForms`: the periods of a difference of closed
-  forms are the differences of their periods.
+* `TauCeti.homologyPeriodHom_sub`: the periods of a difference of closed one-forms are the
+  differences of their periods.
+* `TauCeti.homologyPeriodHom_mpullback_eq_of_homotopic`: homotopic maps pull a closed one-form
+  back to forms with the same periods.
 
 ## References
 
@@ -54,16 +58,31 @@ namespace TauCeti
 variable {E H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
   {I : ModelWithCorners ℝ E H} {M : Type} [TopologicalSpace M] [ChartedSpace H M]
   [FiniteDimensional ℝ E] [T2Space M] [IsManifold I ∞ M]
+  {F : Type} [NormedAddCommGroup F] [NormedSpace ℝ F] [CompleteSpace F]
 
-/-- The periods on `H₁(M; ℤ)` of the difference of two closed smooth real one-forms are the
-differences of their periods. -/
-theorem homologyPeriodHom_sub_of_mem_closedForms {φ ψ : SmoothForm I M ℝ 1}
-    (hφ : φ ∈ closedForms I M 1) (hψ : ψ ∈ closedForms I M 1) :
-    homologyPeriodHom ((φ - ψ : SmoothForm I M ℝ 1) : RoughForm I M ℝ 1) =
-      homologyPeriodHom (φ : RoughForm I M ℝ 1) - homologyPeriodHom (ψ : RoughForm I M ℝ 1) := by
-  have h := map_sub (deRhamCohomology.homologyPeriod.comp (deRhamCohomology.mk I 1))
-    (⟨φ, hφ⟩ : closedForms I M 1) ⟨ψ, hψ⟩
-  simpa only [LinearMap.comp_apply, deRhamCohomology.homologyPeriod_mk, Submodule.coe_sub] using h
+/-- The periods on `H₁(M; ℤ)` of the difference of two closed `C¹` one-forms are the differences
+of their periods. -/
+theorem homologyPeriodHom_sub {φ ψ : RoughForm I M F 1} (hφ : IsSmoothForm I 1 φ)
+    (hφc : mextDeriv φ = 0) (hψ : IsSmoothForm I 1 ψ) (hψc : mextDeriv ψ = 0) :
+    homologyPeriodHom (φ - ψ) = homologyPeriodHom φ - homologyPeriodHom ψ := by
+  rw [sub_eq_add_neg, homologyPeriodHom_add hφ hφc hψ.neg (by rw [mextDeriv_neg, hψc, neg_zero]),
+    ← neg_one_smul ℝ ψ, homologyPeriodHom_smul, neg_one_smul, sub_eq_add_neg]
+
+/-- **Homotopic maps pull a closed one-form back to forms with the same periods.** If the `C²`
+maps `f, g : P → M` are homotopic, then for every closed `C¹` one-form `θ` on `M` the pullbacks
+`f^* θ` and `g^* θ` have the same periods on `H₁(P; ℤ)`. -/
+theorem homologyPeriodHom_mpullback_eq_of_homotopic {E' H' : Type*} [NormedAddCommGroup E']
+    [NormedSpace ℝ E'] [FiniteDimensional ℝ E'] [TopologicalSpace H']
+    {J : ModelWithCorners ℝ E' H'} {P : Type} [TopologicalSpace P] [ChartedSpace H' P]
+    [IsManifold J ∞ P] [T2Space P] {f g : P → M} (hf : ContMDiff J I 2 f)
+    (hg : ContMDiff J I 2 g)
+    (hfg : ContinuousMap.Homotopic ⟨f, hf.continuous⟩ ⟨g, hg.continuous⟩)
+    {θ : RoughForm I M F 1} (hθ : IsSmoothForm I 1 θ) (hcl : mextDeriv θ = 0) :
+    homologyPeriodHom (mpullback J I f θ) = homologyPeriodHom (mpullback J I g θ) := by
+  ext c
+  rw [← homologyPeriodHom_singularHomologyMap hf hθ hcl,
+    ← homologyPeriodHom_singularHomologyMap hg hθ hcl,
+    ContinuousMap.singularHomologyMap_eq_of_homotopic ℤ 1 hfg]
 
 end TauCeti
 
@@ -78,17 +97,16 @@ variable {E H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSp
 
 namespace IsSmoothFamily
 
-/-- **Line integrals of a smooth family of closed one-forms along a smooth curve depend smoothly
-on the parameter.** -/
-theorem contMDiff_pathIntegral (hα : IsSmoothFamily K α) (hcl : ∀ t, α t ∈ closedForms I M 1)
-    {c : ℝ → M} (hc : ContMDiff 𝓘(ℝ) I ∞ c) (a b : ℝ) :
+/-- **Line integrals of a smooth family of one-forms along a smooth curve depend smoothly on the
+parameter.** -/
+theorem contMDiff_pathIntegral (hα : IsSmoothFamily K α) {c : ℝ → M}
+    (hc : ContMDiff 𝓘(ℝ) I ∞ c) (a b : ℝ) :
     ContMDiff K 𝓘(ℝ) ∞ fun t ↦ pathIntegral (α t : RoughForm I M ℝ 1) c a b := by
   -- The pullbacks `c^* α_t` have a jointly smooth family of primitives `f` on `ℝ`.
   obtain ⟨f, hf, hdf⟩ :=
     (isSmoothlyContractible_self ℝ).exists_contMDiff_mextDeriv_eq_of_forall_mem_closedForms
-      (hα.mpullback c hc) fun t ↦
-        closedForms.coe_mpullback c hc 1 ⟨α t, hcl t⟩ ▸
-          (closedForms.mpullback c hc 1 ⟨α t, hcl t⟩).property
+      (hα.mpullback c hc) fun _ ↦
+        mem_closedForms_of_finrank_le (I := 𝓘(ℝ, ℝ)) (by simp) _
   have key (t : N) : pathIntegral (α t : RoughForm I M ℝ 1) c a b = f (t, b) - f (t, a) := by
     have hfc : ContMDiff 𝓘(ℝ) 𝓘(ℝ) ∞ fun x ↦ f (t, x) :=
       hf.comp (contMDiff_const.prodMk contMDiff_id)
@@ -118,7 +136,7 @@ theorem contMDiff_pathClassIntegral (hα : IsSmoothFamily K α)
       ((mem_closedForms I _).mp (hcl t)) (hγ'.of_le (by simp))
       fun s ↦ (γ'.extend_extends' s).symm
   simp_rw [key]
-  exact hα.contMDiff_pathIntegral hcl hγ' 0 1
+  exact hα.contMDiff_pathIntegral hγ' 0 1
 
 /-- **The periods of a smooth family of closed one-forms on a class of `H₁(M; ℤ)` depend smoothly
 on the parameter**, on a Hausdorff boundaryless manifold. -/
