@@ -15,9 +15,11 @@ public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Flow.Family
 public import SymplecticGeometry.Geometry.Manifold.Flow.TimeDependent
 public import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Transports
 public import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Velocity
+import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Basic
+import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Real
 
 /-!
-# The Gray vector field and the Gray isotopy of a family of contact structures
+# The Gray vector field, the Gray isotopy and Gray stability
 
 Let `α` be a one-form on `ℝ × N`, representing the family of its slices `α_t = ι_t^* α`, and let
 `f : M → N` be smooth with bijective differentials. The slices of the pullback `(id × f)^* α` are
@@ -64,6 +66,24 @@ of `Flow/Family.lean`, the flow of that restriction, which is the flow of the Gr
 the cocycle property of the flow, the pullback of `ξ_t` by `ψ_t` at `x` is a locally constant
 function of `t`, equal to `ξ_0 x` at `t = 0`, and `[0, 1]` is connected.
 
+The Gray isotopy is the only diffeotopy that transports `ξ` and whose velocity lies in `ξ`
+(`SymplecticGeometry.IsContactFamily.eq_grayDiffeotopy_of_transports`). Such a diffeotopy `Φ` is
+read over `ℝ` as `u ↦ φ_{s(u)}`, `s = Real.smoothTransition`, the time-dependent flow of its
+Eulerian field `Z_u = s'(u) X_{s(u)}`. Near a point, take a local defining family `β` and its
+reparametrization `β'_u = β_{s(u)}`. Since `Φ` transports `ξ`, the pullback of `β'_v` along the
+flow from time `u` vanishes on `ker β'_u` for `v` near `u`, and so does its derivative at `v = u`,
+`ι_u^* L_{∂_t} β' + L_{Z_u} β'_u`. As `β'_u(Z_u) = 0` on an open set, Cartan's formula leaves
+`dβ_{s(u)}(Z_u, ·) + s'(u) ∂_t β_{s(u)}`, so `Z_u = s'(u) Y_{s(u)}` by
+`TauCeti.SmoothForm.inv_smul_eq_grayVectorField`. Two such diffeotopies are therefore both flows
+of the same field, and agree, since `s` maps `ℝ` onto `[0, 1]`.
+
+When `ξ` is the family of kernels of contact forms `α_t`, every diffeotopy `φ_t` that transports
+`ξ` rescales them, `φ_t^* α_t = f_t α_0` with `f` smooth and positive and `f_0 = 1`
+(`TauCeti.Diffeotopy.Transports.exists_mpullback_eq_smul`): `f_t` is the value of `φ_t^* α_t` on
+the Reeb field of `α_0`, and it does not vanish on the connected interval. Together with the
+existence and uniqueness this is Gray stability
+(`SymplecticGeometry.IsContactFamily.existsUnique_transports`).
+
 The comparison of two local defining families,
 `SymplecticGeometry.IsLocalDefiningFamily.tangentSpaceOpenEquiv_grayVectorField_eq`, follows the
 proof of `TauCeti.IsLocalContactFormFamily.mfderiv_grayVectorField_eq`, in Tau Ceti's file
@@ -93,6 +113,8 @@ pinned Tau Ceti's `TauCeti/Geometry/Contact/Gray.lean`, with its proof.
   defining families of a family of contact structures have the same Gray vectors.
 * `TauCeti.SmoothForm.mpullback_prodMk_mlieDerivForm_add_mlieDerivForm_grayVectorField_apply`:
   Gray's equation, in the form of the hypothesis of the rescaling theorems along flows.
+* `TauCeti.SmoothForm.inv_smul_eq_grayVectorField`: its converse, which recognizes a multiple of
+  the Gray vector from the rate of the family along a field in the kernel of `α_t`.
 * `SymplecticGeometry.IsContactFamily.exists_grayField`: the Gray field of a smooth family of
   contact structures.
 * `SymplecticGeometry.IsContactFamily.grayDiffeotopy`: the Gray isotopy, with
@@ -102,11 +124,16 @@ pinned Tau Ceti's `TauCeti/Geometry/Contact/Gray.lean`, with its proof.
   family.
 * `SymplecticGeometry.IsContactFamily.velocity_grayDiffeotopy_mem`: its velocity lies in the
   family.
+* `SymplecticGeometry.IsContactFamily.eq_grayDiffeotopy_of_transports`: it is the only
+  diffeotopy that transports the family with velocity in the family.
+* `TauCeti.Diffeotopy.Transports.exists_mpullback_eq_smul`: a diffeotopy that transports the
+  kernels of a family of contact forms rescales the forms by a smooth positive function.
+* `SymplecticGeometry.IsContactFamily.existsUnique_transports`: Gray stability.
 
 ## References
 
 * [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017], §3.5,
-  the discussion of Gray stability on pp. 135–136.
+  the discussion of Gray stability on pp. 135–136, and Exercise 3.5.21.
 * H. Geiges, *An Introduction to Contact Topology*, Cambridge University Press, 2008,
   Theorem 2.2.2 (Gray stability) and its proof.
 -/
@@ -241,7 +268,112 @@ theorem mpullback_prodMk_mlieDerivForm_add_mlieDerivForm_grayVectorField_apply
     ContinuousAlternatingMap.smul_apply, smul_eq_mul] at h ⊢
   rw [add_comm, h]
 
+omit [I.Boundaryless] in
+/-- **The converse of Gray's equation.** Let the slice `α_t` of a family of one-forms on `ℝ × M`
+be a contact form, let `Z` be a vector field on `M`, differentiable at `y`, with `α_t(Z) = 0`
+everywhere, and let `c ≠ 0`. If `c • ι_t^* L_{∂_t} α + L_Z α_t` vanishes at `y` on the kernel of
+`α_t`, then `c⁻¹ • Z y` is the Gray vector of `α` at time `t` and the point `y`. -/
+theorem inv_smul_eq_grayVectorField {α : SmoothForm (𝓘(ℝ, ℝ).prod I) (ℝ × M) ℝ 1} {t c : ℝ}
+    (hc : (mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) α).IsContactForm)
+    (hc₀ : c ≠ 0) {Z : Π y : M, TangentSpace I y} {y : M}
+    (hZ : MDifferentiableAt I I.tangent (fun z ↦ (⟨z, Z z⟩ : TangentBundle I M)) y)
+    (hZker : ∀ z,
+      (mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) α).val z ![Z z] = 0)
+    (h : ∀ w ∈ (mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) α).kerDistribution y,
+      c * (mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) α.timeDeriv).val y ![w] +
+        mlieDerivForm Z (mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) α).val y
+          ![w] = 0) :
+    c⁻¹ • Z y = α.grayVectorField t y := by
+  refine (eq_grayVectorField_iff hc).2 ⟨?_, fun w hw ↦ ?_⟩
+  · rw [ContinuousAlternatingMap.vecCons_smul, hZker, smul_zero]
+  · have h' := h w hw
+    -- Cartan's formula, with `ι_Z α_t = 0`.
+    rw [mlieDerivForm_apply_eq_mextDeriv_add (f := fun _ ↦ (0 : ℝ)) hZker
+      ((mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) α).contMDiff.mdifferentiableAt
+        (by simp)) hZ] at h'
+    have h0 : mvfderiv I (fun _ : M ↦ (0 : ℝ)) y w = 0 := by simp [mvfderiv]
+    rw [h0, add_zero] at h'
+    rw [ContinuousAlternatingMap.vecCons_smul, smul_eq_mul]
+    field_simp
+    linear_combination h'
+
 end TauCeti.SmoothForm
+
+namespace TauCeti.Diffeotopy
+
+open Set TauCeti.SmoothForm
+
+variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
+  [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M]
+  [IsManifold I ∞ M]
+
+/-- **Transporting diffeotopies rescale the forms.** Let `α` be a one-form on `[0, 1] × M` all of
+whose slices `α_t` are contact forms, and let `Φ` be a diffeotopy that transports their kernels.
+Then `φ_t^* α_t = f(t, ·) • α_0` for a smooth function `f` on `[0, 1] × M`, positive everywhere
+and equal to `1` at time `0`. -/
+theorem Transports.exists_mpullback_eq_smul {Φ : Diffeotopy I ∞ M}
+    (α : SmoothForm ((𝓡∂ 1).prod I) (unitInterval × M) ℝ 1)
+    (hc : ∀ t, (SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id)
+      α).IsContactForm)
+    (hΦ : Φ.Transports fun t ↦
+      (SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) α).kerDistribution) :
+    ∃ f : unitInterval × M → ℝ, ContMDiff ((𝓡∂ 1).prod I) 𝓘(ℝ) ∞ f ∧ (∀ p, 0 < f p) ∧
+      (∀ x, f (0, x) = 1) ∧ ∀ t x,
+        (SmoothForm.mpullback (Φ.timeSlice t) (Φ.timeSlice t).contMDiff
+          (SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) α)).val x =
+          f (t, x) •
+            (SmoothForm.mpullback (Prod.mk 0) (contMDiff_const.prodMk contMDiff_id) α).val x := by
+  set α₀ := SmoothForm.mpullback (Prod.mk 0) (contMDiff_const.prodMk contMDiff_id) α
+  -- The constant family of `α₀`, and the pullback of `α` by the total diffeomorphism.
+  set κ := SmoothForm.mpullback (Prod.snd : unitInterval × M → M)
+    (contMDiff_snd : ContMDiff ((𝓡∂ 1).prod I) I ∞ (Prod.snd : unitInterval × M → M)) α₀
+  set β := SmoothForm.mpullback Φ.toDiffeomorph Φ.toDiffeomorph.contMDiff α
+  have hκ (t : unitInterval) :
+      SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) κ = α₀ :=
+    mpullback_prodMk_mpullback_snd t α₀
+  have hβ (t : unitInterval) :
+      SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) β =
+        SmoothForm.mpullback (Φ.timeSlice t) (Φ.timeSlice t).contMDiff
+          (SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) α) :=
+    SmoothForm.mpullback_mpullback_of_comp_eq (f := Prod.mk t) (g := Φ.toDiffeomorph)
+      (f' := Φ.timeSlice t) (g' := Prod.mk t) _ _ _ _
+      (funext fun x ↦ by
+        rw [Function.comp_apply, Function.comp_apply, Φ.toDiffeomorph_apply, timeSlice_apply]) α
+  have hf := contMDiff_apply_reebVectorField_mpullback_prodMk κ β fun t ↦ (hκ t).symm ▸ hc 0
+  simp only [hκ, hβ] at hf
+  set f : unitInterval × M → ℝ := fun p ↦
+    (SmoothForm.mpullback (Φ.timeSlice p.1) (Φ.timeSlice p.1).contMDiff
+      (SmoothForm.mpullback (Prod.mk p.1) (contMDiff_const.prodMk contMDiff_id) α)).val p.2
+        ![α₀.reebVectorField p.2] with hfdef
+  -- By the transport, `φ_t^* α_t` and `α₀` have the same kernel, so the first is `f • α₀`.
+  have heq (t : unitInterval) (x : M) :
+      (SmoothForm.mpullback (Φ.timeSlice t) (Φ.timeSlice t).contMDiff
+        (SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) α)).val x =
+        f (t, x) • α₀.val x := by
+    refine (hc 0).apply_eq_apply_reebVectorField_smul_of_kerDistribution_le ?_
+    have h := transports_iff.1 hΦ t x
+    rw [← timeSlice_apply] at h
+    rw [← kerDistribution_eq_ker, kerDistribution_mpullback (Φ.timeSlice t)]
+    exact h.le
+  have hne (t : unitInterval) (x : M) : f (t, x) ≠ 0 := by
+    intro h
+    refine ((hc t).mpullback _ (Φ.timeSlice t).contMDiff fun y ↦
+      ((Φ.timeSlice t).isInvertible_mfderiv (x := y) (by simp)).bijective).apply_ne_zero x ?_
+    rw [heq, h, zero_smul]
+  have h0 (x : M) : f (0, x) = 1 := by
+    rw [hfdef]
+    dsimp only
+    rw [coe_mpullback, timeSlice_zero, Diffeomorph.coe_refl, TauCeti.mpullback_id]
+    exact (hc 0).apply_reebVectorField x
+  refine ⟨f, hf, fun p ↦ ?_, h0, heq⟩
+  -- On the connected interval, the nowhere vanishing `t ↦ f (t, x)` keeps the sign of `f (0, x)`.
+  by_contra hneg
+  obtain ⟨s, -, hs⟩ := isPreconnected_univ.intermediate_value (mem_univ p.1) (mem_univ 0)
+    (hf.continuous.comp (continuous_id.prodMk continuous_const)).continuousOn
+    ⟨not_lt.1 hneg, (h0 p.2).ge.trans' zero_le_one⟩
+  exact hne s p.2 hs
+
+end TauCeti.Diffeotopy
 
 namespace SymplecticGeometry
 
@@ -485,6 +617,168 @@ mpullback_timeDependentFlowOf_mpullback_prodMk_apply_eq_exp_integral_smul_of_for
     (hker _)).trans ((hα.mem_kerDistribution_iff ⟨hab, t₀.property⟩ y₀' _).trans
       (by rw [ContinuousLinearEquiv.apply_symm_apply]))
 
+/-- Take the flow from time `u` of the Eulerian field of `v ↦ φ_{s(v)}`,
+`s = Real.smoothTransition`, restricted to an open set `U`, a local defining family `β` of `ξ` on
+`U`, and its reparametrization `β'_v = β_{s(v)}`. For `u'` near `u`, the pullback of `β'_{u'}`
+along the flow vanishes on each vector of the kernel of `β'_u`, because `Φ` transports `ξ`. -/
+private theorem eventuallyEq_mpullback_timeDependentFlowOf_eulerianField_restrict
+    {Φ : Diffeotopy I ∞ M} (hΦ : Φ.Transports ξ) {u a b : ℝ}
+    (hab : Real.smoothTransition u ∈ Ioo a b) {U : Opens M}
+    {β : SmoothForm (𝓘(ℝ, ℝ).prod I) (ℝ × U) ℝ 1} (hβ : IsLocalDefiningFamily ξ U β a b)
+    (y : U) {w : TangentSpace I y}
+    (hw : w ∈ (mpullback (Prod.mk (Real.smoothTransition u))
+      (contMDiff_const.prodMk contMDiff_id) β).kerDistribution y) :
+    (fun u' ↦ TauCeti.mpullback I I (timeDependentFlowOf (fun v (z : U) ↦
+        (Manifold.tangentSpaceOpenEquiv z).symm
+          (eulerianField I (fun v ↦ (Φ.smoothTransitionFamily v).toEquiv) v z)) u u')
+      (TauCeti.mpullback I (𝓘(ℝ, ℝ).prod I) (Prod.mk u')
+        (mpullback (Prod.map Real.smoothTransition id)
+          (Real.smoothTransition.contDiff.contMDiff.prodMap contMDiff_id) β).val) y ![w]) =ᶠ[𝓝 u]
+      fun _ ↦ 0 := by
+  set Z := eulerianField I (fun v ↦ (Φ.smoothTransitionFamily v).toEquiv)
+  set ZU : ℝ → (z : U) → TangentSpace I z :=
+    fun u' z ↦ (Manifold.tangentSpaceOpenEquiv z).symm (Z u' z)
+  have hZ₁ := Φ.contMDiff_eulerianField_smoothTransitionFamily.of_le (m := 1) (by simp)
+  have hZU₁ : ContMDiff (𝓘(ℝ, ℝ).prod I) I.tangent 1
+      (fun p : ℝ × U ↦ (⟨p.2, ZU p.1 p.2⟩ : TangentBundle I U)) :=
+    Manifold.contMDiff_tangentSpaceOpenEquiv_symm (f := Prod.snd)
+      (hZ₁.comp (contMDiff_fst.prodMk (contMDiff_subtypeVal.comp contMDiff_snd)))
+  -- Write `y = φ_{s u} x`.
+  obtain ⟨y, hxU⟩ := y
+  obtain ⟨x, rfl⟩ := (Φ.timeSlice (Real.smoothTransitionUnit u)).surjective y
+  have hdom : ∀ᶠ u' : ℝ in 𝓝 u, ((u, u'), (⟨_, hxU⟩ : U)) ∈ timeDependentFlowDomain ZU :=
+    ((isOpen_timeDependentFlowDomain hZU₁).preimage (by fun_prop)).mem_nhds
+      (mem_timeDependentFlowDomain_self hZU₁ _ _)
+  filter_upwards [hdom, (isOpen_Ioo.preimage Real.smoothTransition.continuous).mem_nhds hab]
+    with u' hdom' hu'
+  obtain ⟨-, hpt⟩ := timeDependentFlowOf_restrict_eq hZ₁ hdom'
+  have hw' := tangentSpaceOpenEquiv_mfderiv_timeDependentFlowOf_restrict hZ₁ hdom' w
+  have hvec : (fun i ↦ mfderiv I I (timeDependentFlowOf ZU u u') ⟨_, hxU⟩ (![w] i)) =
+      ![mfderiv I I (timeDependentFlowOf ZU u u') ⟨_, hxU⟩ w] :=
+    funext fun i ↦ by fin_cases i; rfl
+  rw [TauCeti.mpullback_apply, hvec,
+    ← coe_mpullback (Prod.mk u') (contMDiff_const.prodMk contMDiff_id),
+    mpullback_prodMk_mpullback_prodMap_id_right Real.smoothTransition.contDiff.contMDiff,
+    ← mem_kerDistribution,
+    ← Real.coe_smoothTransitionUnit u', hβ.mem_kerDistribution_iff
+      ⟨(Real.coe_smoothTransitionUnit u').symm ▸ hu', (Real.smoothTransitionUnit u').property⟩,
+    hw']
+  -- The flow of `Z` from time `u` to time `u'` is `φ_{s u'} ∘ φ_{s u}⁻¹`.
+  have hflow : timeDependentFlowOf Z u u' =
+      fun y' ↦ Φ.timeSlice (Real.smoothTransitionUnit u')
+        ((Φ.timeSlice (Real.smoothTransitionUnit u)).symm y') := by
+    funext y'
+    rw [Φ.timeDependentFlowOf_eulerianField_smoothTransitionFamily,
+      Diffeotopy.smoothTransitionFamily_def, Diffeotopy.smoothTransitionFamily_def]
+  have hpt' : timeDependentFlowOf Z u u' (Φ.timeSlice (Real.smoothTransitionUnit u) x) =
+      Φ.timeSlice (Real.smoothTransitionUnit u') x := by
+    simp only [hflow, Diffeomorph.symm_apply_apply]
+  refine (mem_iff_mem_of_eq _ (hpt.trans hpt') _).2 ?_
+  rw [hflow]
+  rw [← Real.coe_smoothTransitionUnit u] at hab hw
+  exact hΦ.mfderiv_timeSlice_comp_symm_mem (by simp) (Real.smoothTransitionUnit u)
+    (Real.smoothTransitionUnit u') x
+    ((hβ.mem_kerDistribution_iff ⟨hab, (Real.smoothTransitionUnit u).property⟩ _ w).1 hw)
+
+/-- The Eulerian field of a normalized transporting diffeotopy, read over `ℝ`. Let `Φ` transport
+`ξ` with velocity in `ξ`, and let `Y` be a field with the properties of
+`SymplecticGeometry.IsContactFamily.exists_grayField`. The family `u ↦ φ_{s(u)}`,
+`s = Real.smoothTransition`, has Eulerian field `s'(u) • Y_{s(u)}`. Where `s'(u) ≠ 0`, take a local
+defining family `β` near `(s(u), y)` and reparametrize it to `β'_v = β_{s(v)}`. The pullback of
+`β'_v` along the flow from time `u` vanishes on `ker β'_u` for `v` near `u`, because `Φ`
+transports `ξ`. So does its derivative at `v = u`, `s'(u) ι_{s(u)}^* L_{∂_t} β + L_{Z_u} β_{s(u)}`;
+then `s'(u)⁻¹ Z_u` is the Gray vector of `β`. -/
+private theorem eulerianField_smoothTransitionFamily_eq (hξ : IsContactFamily ξ)
+    {Y : ℝ → Π x : M, TangentSpace I x}
+    (hgray : ∀ (t : ℝ), t ∈ unitInterval → ∀ (a b : ℝ), t ∈ Ioo a b → ∀ (U : Opens M) (x : M)
+        (hx : x ∈ U) (α : SmoothForm (𝓘(ℝ, ℝ).prod I) (ℝ × U) ℝ 1),
+        IsLocalDefiningFamily ξ U α a b →
+        Manifold.tangentSpaceOpenEquiv ⟨x, hx⟩ (α.grayVectorField t ⟨x, hx⟩) = Y t x)
+    {Φ : Diffeotopy I ∞ M} (hΦ : Φ.Transports ξ) (hv : ∀ t y, Φ.velocity t y ∈ ξ t y)
+    (u : ℝ) (y : M) :
+    eulerianField I (fun v ↦ (Φ.smoothTransitionFamily v).toEquiv) u y =
+      deriv Real.smoothTransition u • Y (Real.smoothTransition u) y := by
+  set Z := eulerianField I (fun v ↦ (Φ.smoothTransitionFamily v).toEquiv) with hZdef
+  have hZeq (u' : ℝ) (y' : M) :
+      Z u' y' = deriv Real.smoothTransition u' • Φ.velocity (Real.smoothTransitionUnit u') y' := by
+    rw [hZdef, Φ.eulerianField_smoothTransitionFamily u', ContMDiffSection.coe_smul, Pi.smul_apply]
+  by_cases hd : deriv Real.smoothTransition u = 0
+  · rw [hZeq, hd, zero_smul, zero_smul]
+  have hs : ContMDiff 𝓘(ℝ) 𝓘(ℝ) ∞ Real.smoothTransition :=
+    Real.smoothTransition.contDiff.contMDiff
+  -- A local defining family `β` near `(s u, y)`, read over `ℝ` as `β'`.
+  obtain ⟨a, b, hab, U, hyU, β, hβ⟩ := hξ.exists_local_extension (Real.smoothTransitionUnit u, y)
+  rw [Real.coe_smoothTransitionUnit] at hab
+  set β' := mpullback (Prod.map Real.smoothTransition id) (hs.prodMap contMDiff_id) β
+  -- The restriction `ZU` of `Z` to `U`, which lies in the kernels of `β`, since the velocities of
+  -- `Φ` lie in `ξ`.
+  set ZU : ℝ → (z : U) → TangentSpace I z :=
+    fun u' z ↦ (Manifold.tangentSpaceOpenEquiv z).symm (Z u' z)
+  have hZU : ContMDiff (𝓘(ℝ, ℝ).prod I) I.tangent ∞
+      (fun p : ℝ × U ↦ (⟨p.2, ZU p.1 p.2⟩ : TangentBundle I U)) :=
+    Manifold.contMDiff_tangentSpaceOpenEquiv_symm (f := Prod.snd)
+      (Φ.contMDiff_eulerianField_smoothTransitionFamily.comp
+        (contMDiff_fst.prodMk (contMDiff_subtypeVal.comp contMDiff_snd)))
+  have hZker (z : U) : (mpullback (Prod.mk (Real.smoothTransition u))
+      (contMDiff_const.prodMk contMDiff_id) β).val z ![ZU u z] = 0 := by
+    rw [← mem_kerDistribution, ← Real.coe_smoothTransitionUnit u,
+      hβ.mem_kerDistribution_iff
+        ⟨(Real.coe_smoothTransitionUnit u).symm ▸ hab, (Real.smoothTransitionUnit u).property⟩,
+      ContinuousLinearEquiv.apply_symm_apply, hZeq]
+    exact Submodule.smul_mem _ _ (hv _ _)
+  set y' : U := ⟨y, hyU⟩
+  -- The derivative at `u` of the pullbacks of `β'` along the flow of `ZU` from time `u`.
+  have hD := hasDerivAt_mpullback_timeDependentFlowOf_mpullback_prodMk (hZU.of_le (by simp))
+    (mem_timeDependentFlowDomain_self (hZU.of_le (by simp)) u y')
+    ((β'.contMDiff.of_le (by simp)).contMDiffAt)
+  rw [show timeDependentFlowOf ZU u u = id from funext (timeDependentFlowOf_self ZU u),
+    TauCeti.mpullback_id] at hD
+  -- It vanishes on the kernel of `β_{s u}`, so `s'(u)⁻¹ • ZU u y'` is the Gray vector of `β`.
+  have hgv : (deriv Real.smoothTransition u)⁻¹ • ZU u y' =
+      β.grayVectorField (Real.smoothTransition u) y' := by
+    refine inv_smul_eq_grayVectorField (hβ.isContactForm _) hd
+      ((hZU.comp (contMDiff_const.prodMk contMDiff_id)).mdifferentiableAt (by simp)) hZker
+      fun w hw ↦ ?_
+    -- Evaluation on `w`, read in the model space `E`.
+    have h := ((ContinuousAlternatingMap.apply ℝ E ℝ (Matrix.vecCons (α := E) w ![])).hasFDerivAt
+      |>.comp_hasDerivAt u hD).unique ((hasDerivAt_const u (0 : ℝ)).congr_of_eventuallyEq
+        (eventuallyEq_mpullback_timeDependentFlowOf_eulerianField_restrict hΦ hab hβ y' hw))
+    rw [← coe_timeDeriv, ← coe_mpullback (Prod.mk u) (contMDiff_const.prodMk contMDiff_id),
+      mpullback_prodMk_timeDeriv_mpullback_prodMap' hs id contMDiff_id, SmoothForm.mpullback_id,
+      LinearMap.id_apply, ← coe_mpullback (Prod.mk u) (contMDiff_const.prodMk contMDiff_id),
+      mpullback_prodMk_mpullback_prodMap_id_right hs] at h
+    -- Evaluation on `![w]` of a sum of forms at `y'`; the evaluation map is read in the model
+    -- fibre, so `ContinuousAlternatingMap.apply_apply` does not rewrite it.
+    replace h : (deriv Real.smoothTransition u • mpullback (Prod.mk (Real.smoothTransition u))
+        (contMDiff_const.prodMk contMDiff_id) β.timeDeriv).val y' ![w] +
+        mlieDerivForm (ZU u) (mpullback (Prod.mk (Real.smoothTransition u))
+          (contMDiff_const.prodMk contMDiff_id) β).val y' ![w] = 0 := h
+    simpa only [Submodule.coe_smul, Pi.smul_apply, ContinuousAlternatingMap.smul_apply,
+      smul_eq_mul] using h
+  rw [← hgray (Real.smoothTransition u)
+    (Real.coe_smoothTransitionUnit u ▸ (Real.smoothTransitionUnit u).property) a b hab U y hyU β hβ,
+    ← hgv, map_smul, smul_inv_smul₀ hd]
+  exact (ContinuousLinearEquiv.apply_symm_apply _ _).symm
+
+/-- A normalized transporting diffeotopy `Φ`, read over `ℝ` as `u ↦ φ_{s(u)}`, is the
+time-dependent flow from time `0` of the field `s'(u) • Y_{s(u)}`, which depends only on `Y`. -/
+private theorem apply_smoothTransitionUnit_eq_timeDependentFlowOf (hξ : IsContactFamily ξ)
+    {Y : ℝ → Π x : M, TangentSpace I x}
+    (hgray : ∀ (t : ℝ), t ∈ unitInterval → ∀ (a b : ℝ), t ∈ Ioo a b → ∀ (U : Opens M) (x : M)
+        (hx : x ∈ U) (α : SmoothForm (𝓘(ℝ, ℝ).prod I) (ℝ × U) ℝ 1),
+        IsLocalDefiningFamily ξ U α a b →
+        Manifold.tangentSpaceOpenEquiv ⟨x, hx⟩ (α.grayVectorField t ⟨x, hx⟩) = Y t x)
+    {Φ : Diffeotopy I ∞ M} (hΦ : Φ.Transports ξ) (hv : ∀ t y, Φ.velocity t y ∈ ξ t y)
+    (u : ℝ) (x : M) :
+    Φ (Real.smoothTransitionUnit u, x) = timeDependentFlowOf
+      (fun u y ↦ deriv Real.smoothTransition u • Y (Real.smoothTransition u) y) 0 u x := by
+  have hZ : eulerianField I (fun v ↦ (Φ.smoothTransitionFamily v).toEquiv) =
+      fun u y ↦ deriv Real.smoothTransition u • Y (Real.smoothTransition u) y :=
+    funext fun u ↦ funext (eulerianField_smoothTransitionFamily_eq hξ hgray hΦ hv u)
+  rw [← hZ, Φ.timeDependentFlowOf_eulerianField_smoothTransitionFamily,
+    Φ.smoothTransitionFamily_of_nonpos le_rfl, Φ.smoothTransitionFamily_apply]
+  simp
+
 variable [CompactSpace M]
 
 /-- **The Gray isotopy** of a smooth family `ξ` of contact structures over `[0, 1]` on a compact
@@ -569,6 +863,58 @@ theorem velocity_grayDiffeotopy_mem (hξ : IsContactFamily ξ) (t : unitInterval
   rw [← Diffeotopy.velocity_apply_apply, grayDiffeotopy,
     Diffeotopy.velocity_timeDependentFlowDiffeotopy]
   exact hξ.exists_grayField.choose_spec.2.1 t t.property _
+
+/-- **Uniqueness of the normalized Gray isotopy.** On a compact Hausdorff manifold without
+boundary, a diffeotopy `Φ` that transports a smooth family `ξ` of contact structures over
+`[0, 1]` and whose velocity lies in `ξ` at every time and point is the Gray isotopy of `ξ`. -/
+theorem eq_grayDiffeotopy_of_transports (hξ : IsContactFamily ξ) {Φ : Diffeotopy I ∞ M}
+    (hΦ : Φ.Transports ξ)
+    (hv : ∀ (t : unitInterval) (x : M), mfderiv (I.prod (𝓡∂ 1)) I Φ.cylinderMap (x, t)
+      ((0 : E), (1 : TangentSpace (𝓡∂ 1) t)) ∈ ξ t (Φ (t, x))) :
+    Φ = hξ.grayDiffeotopy := by
+  obtain ⟨Y, -, -, hgray⟩ := hξ.exists_grayField
+  -- Read along the motion, the normalization says that the velocity lies in `ξ`.
+  have hvel {Ψ : Diffeotopy I ∞ M} (h : ∀ (t : unitInterval) (x : M),
+      mfderiv (I.prod (𝓡∂ 1)) I Ψ.cylinderMap (x, t)
+        ((0 : E), (1 : TangentSpace (𝓡∂ 1) t)) ∈ ξ t (Ψ (t, x))) (t : unitInterval) (y : M) :
+      Ψ.velocity t y ∈ ξ t y := by
+    obtain ⟨x, rfl⟩ : ∃ x, Ψ (t, x) = y := ⟨_, Ψ.apply_mk_symm_apply t y⟩
+    rw [Diffeotopy.velocity_apply_apply]
+    exact h t x
+  refine Diffeotopy.ext fun p ↦ ?_
+  obtain ⟨u, hu⟩ := Real.smoothTransitionUnit_surjective p.1
+  rw [← Prod.mk.eta (p := p), ← hu,
+    apply_smoothTransitionUnit_eq_timeDependentFlowOf hξ hgray hΦ (hvel hv),
+    apply_smoothTransitionUnit_eq_timeDependentFlowOf hξ hgray hξ.transports_grayDiffeotopy
+      (hvel hξ.velocity_grayDiffeotopy_mem)]
+
+/-- **Gray stability.** Let `M` be a compact Hausdorff manifold without boundary and `ξ` a
+smooth family of contact structures over `[0, 1]`, not necessarily coorientable. There is a unique
+diffeotopy `ψ_t` that transports `ξ`, `ψ_t^* ξ_t = ξ_0`, and whose velocity `∂_t ψ_t`, read along
+the motion, lies in `ξ_t` at every time and point. If moreover `ξ_t = ker α_t` for a smooth
+family of contact forms `α` over `[0, 1]`, then every diffeotopy that transports `ξ` rescales the
+forms: `ψ_t^* α_t = f_t α_0` with `f` smooth and positive on `[0, 1] × M` and `f_0 = 1`.
+
+Milestone: *Gray stability*. -/
+theorem existsUnique_transports (hξ : IsContactFamily ξ) :
+    (∃! Φ : Diffeotopy I ∞ M, Φ.Transports ξ ∧ ∀ (t : unitInterval) (x : M),
+      mfderiv (I.prod (𝓡∂ 1)) I Φ.cylinderMap (x, t)
+        ((0 : E), (1 : TangentSpace (𝓡∂ 1) t)) ∈ ξ t (Φ (t, x))) ∧
+    ∀ α : SmoothForm ((𝓡∂ 1).prod I) (unitInterval × M) ℝ 1,
+      (∀ t, (mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) α).IsContactForm) →
+      (∀ t, ξ t = (mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) α).kerDistribution) →
+      ∀ Φ : Diffeotopy I ∞ M, Φ.Transports ξ →
+        ∃ f : unitInterval × M → ℝ, ContMDiff ((𝓡∂ 1).prod I) 𝓘(ℝ) ∞ f ∧ (∀ p, 0 < f p) ∧
+          (∀ x, f (0, x) = 1) ∧ ∀ t x,
+            (mpullback (Φ.timeSlice t) (Φ.timeSlice t).contMDiff
+              (mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) α)).val x =
+              f (t, x) •
+                (mpullback (Prod.mk 0) (contMDiff_const.prodMk contMDiff_id) α).val x :=
+  ⟨⟨hξ.grayDiffeotopy, ⟨hξ.transports_grayDiffeotopy, hξ.velocity_grayDiffeotopy_mem⟩,
+      fun _ hΦ ↦ hξ.eq_grayDiffeotopy_of_transports hΦ.1 hΦ.2⟩,
+    fun α hc hker _ hΦ ↦ Diffeotopy.Transports.exists_mpullback_eq_smul α hc
+      ((funext hker : ξ = _) ▸ hΦ)⟩
+
 
 end GrayDiffeotopy
 end IsContactFamily
