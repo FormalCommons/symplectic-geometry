@@ -206,11 +206,10 @@ theorem tsupport_one_sub_coe_subset : tsupport (fun x ↦ 1 - c x) ⊆ {x | (x :
 open sets has a cut-off function. -/
 theorem nonempty [FiniteDimensional ℝ E] [IsManifold I ∞ M] [T2Space M] [SigmaCompactSpace M]
     (U V : Opens M) : Nonempty (MayerVietorisCutoff I U V) := by
-  have : LocallyCompactSpace H := I.locallyCompactSpace
   have : SecondCountableTopology H := I.secondCountableTopology
-  have : LocallyCompactSpace M := ChartedSpace.locallyCompactSpace H M
+  have := Manifold.locallyCompact_of_finiteDimensional (M := M) I
   have : SecondCountableTopology M := ChartedSpace.secondCountable_of_sigmaCompact H M
-  have : LocallyCompactSpace (U ⊔ V : Opens M) := ChartedSpace.locallyCompactSpace H _
+  have := Manifold.locallyCompact_of_finiteDimensional (M := (U ⊔ V : Opens M)) I
   have : NormalSpace (U ⊔ V : Opens M) :=
     have := Manifold.metrizableSpace I (U ⊔ V : Opens M)
     inferInstance
