@@ -201,16 +201,18 @@ $X$ on the projective line $\{\ell_1=\dots=\ell_n=0\}$. Then:
   makes each index $+1$. By
   `TauCeti.VectorBundleOrientation.evalFundamentalClass_eulerClass_eq_sum_sectionIndex`
   the number is the count of zeros.
-- The count is $d$ (issue 9): restricted to the line, parametrized by
-  $[s:t]\mapsto su+tw$, the polynomial is a binary form of degree $d$. It is
-  not zero, since the zeros are finite, and transversality at a point of the
-  line is the simplicity of that root (the tangent space of `X` is the kernel
-  of the differential, Tau Ceti's
-  `TauCeti.tangentRange_complexProjectiveZeroLocusEmbedding`). A nonzero
-  binary form of degree $d$ over `ℂ` with only simple roots has exactly $d$
-  of them on $\mathbb CP^1$ (after a change of coordinates that puts no root
-  at infinity, Mathlib's `IsAlgClosed.card_roots_eq_natDegree` and
-  `Polynomial.nodup_roots`).
+- The count is $d$ (issue 9): the line is the image of an injective linear
+  map $\iota:\mathbb C^2\to\mathbb C^{n+2}$, and the polynomial pulled back
+  along $\iota$ (by `aeval` of Mathlib's `Matrix.toMvPolynomial`, as in Tau
+  Ceti's `TauCeti.preimage_map_complexProjectiveZeroLocus`) is a binary form
+  of degree $d$. Transversality at a point of the line says that this form's
+  gradient is nonzero there (the tangent space of `X` is the kernel of the
+  differential, Tau Ceti's
+  `TauCeti.tangentRange_complexProjectiveZeroLocusEmbedding`), so it has no
+  squared linear factor. By Tau Ceti's
+  `MvPolynomial.IsHomogeneous.exists_linear_factors` it is then a product of
+  $d$ pairwise non-proportional linear forms, each with one zero on
+  $\mathbb CP^1$ (`LinearAlgebra/Projectivization/BinaryForm.lean`).
 
 For `n = 0`, Tau Ceti's fundamental classes need positive dimension, so
 the pairing with $[X]$ is read as a count of points: part 2 of the milestone

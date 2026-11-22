@@ -10,6 +10,7 @@ public import Mathlib.Algebra.MvPolynomial.PDeriv
 public import Mathlib.RingTheory.MvPolynomial.Homogeneous
 public import Mathlib.FieldTheory.IsAlgClosed.Basic
 import TauCeti.Algebra.Polynomial.Homogenize
+import TauCeti.LinearAlgebra.Projectivization.Basic
 
 /-!
 # Zeros of binary forms on the projective line
@@ -21,8 +22,6 @@ which vanishes at exactly one point of the line.
 
 ## Main results
 
-* `Projectivization.mk_eq_mk_iff_mul_sub_mul_eq_zero`: two nonzero vectors of `K²` span the same
-  point of the projective line exactly when their determinant vanishes.
 * `MvPolynomial.IsHomogeneous.ncard_setOf_eval_rep_eq_zero`: the zeros of such a form on
   `ℙ K (Fin 2 → K)` are `d` in number.
 
@@ -36,33 +35,6 @@ open Finset
 open scoped LinearAlgebra.Projectivization
 
 variable {K : Type*} [Field K]
-
-namespace Projectivization
-
-/-- Two nonzero vectors of `K²` span the same point of the projective line exactly when their
-determinant vanishes. -/
-theorem mk_eq_mk_iff_mul_sub_mul_eq_zero {v w : Fin 2 → K} (hv : v ≠ 0) (hw : w ≠ 0) :
-    mk K v hv = mk K w hw ↔ v 0 * w 1 - v 1 * w 0 = 0 := by
-  rw [mk_eq_mk_iff']
-  refine ⟨?_, fun h ↦ ?_⟩
-  · rintro ⟨c, rfl⟩
-    simp only [Pi.smul_apply, smul_eq_mul]
-    ring
-  by_cases h0 : w 0 = 0
-  · have h1 : w 1 ≠ 0 := fun h1 ↦ hw (funext fun i ↦ by fin_cases i <;> simp [h0, h1])
-    have hv0 : v 0 = 0 := by simpa [h0, h1] using h
-    refine ⟨v 1 / w 1, funext fun i ↦ ?_⟩
-    fin_cases i
-    · simp [h0, hv0]
-    · simp [h1]
-  · refine ⟨v 0 / w 0, funext fun i ↦ ?_⟩
-    fin_cases i
-    · simp [h0]
-    · simp only [Fin.mk_one, Fin.isValue, Pi.smul_apply, smul_eq_mul]
-      field_simp
-      linear_combination h
-
-end Projectivization
 
 namespace MvPolynomial.IsHomogeneous
 
@@ -108,8 +80,10 @@ theorem ncard_setOf_eval_rep_eq_zero {F : MvPolynomial (Fin 2) K} {d : ℕ}
     · rintro ⟨ℓ, hℓ, h⟩
       refine ⟨ℓ, hℓ, ?_⟩
       rw [← p.mk_rep]
-      exact (Projectivization.mk_eq_mk_iff_mul_sub_mul_eq_zero _ _).2 <| by
-        simp; linear_combination h
+      refine (Projectivization.mk_eq_mk_iff_forall_mul_eq _ _).2 ?_
+      simp only [Fin.forall_fin_two, Fin.isValue, Matrix.cons_val_zero, Matrix.cons_val_one,
+        neg_mul, true_and, and_true]
+      exact ⟨by linear_combination h, by linear_combination -h⟩
     · rintro ⟨ℓ, hℓ, rfl⟩
       refine ⟨ℓ, hℓ, ?_⟩
       obtain ⟨c, hc⟩ := Projectivization.exists_smul_eq_mk_rep K _ (hne ℓ hℓ)
@@ -120,9 +94,9 @@ theorem ncard_setOf_eval_rep_eq_zero {F : MvPolynomial (Fin 2) K} {d : ℕ}
     rintro ⟨ℓ, hℓ⟩ ⟨ℓ', hℓ'⟩ h
     by_contra hne'
     refine hpair hℓ hℓ' (fun h' ↦ hne' (Subtype.ext h')) ?_
-    have := (Projectivization.mk_eq_mk_iff_mul_sub_mul_eq_zero _ _).1 h
+    have := (Projectivization.mk_eq_mk_iff_forall_mul_eq _ _).1 h 0 1
     simp at this
-    linear_combination this
+    linear_combination -this
   rw [hφ, ← Set.image_univ, Set.ncard_image_of_injective _ hinj, Set.ncard_univ,
     Nat.card_eq_fintype_card, Fintype.card_coe, hT]
 

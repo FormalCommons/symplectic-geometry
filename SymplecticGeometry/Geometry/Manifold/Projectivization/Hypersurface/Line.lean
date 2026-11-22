@@ -67,24 +67,14 @@ theorem card_inter_line {ι : (Fin 2 → ℂ) →ₗ[ℂ] (Fin (n + 2) → ℂ)}
       ∃ w, ∑ i, ι w i * eval (ι p.rep) (pderiv i X.poly) ≠ 0) :
     Nat.card ↥(X.carrier ∩ range (Projectivization.map ι hι)) = d := by
   -- The restriction of the polynomial to the line: the binary form `F = X.poly ∘ ι`.
-  set g : Fin (n + 2) → MvPolynomial (Fin 2) ℂ :=
-    fun i ↦ ∑ j, C (ι (Pi.single j 1) i) * MvPolynomial.X j with hg
-  have hgv (v : Fin 2 → ℂ) (i : Fin (n + 2)) : eval v (g i) = ι v i := by
-    conv_rhs => rw [pi_eq_sum_univ' v]
-    simp [hg, mul_comm]
-  have heval' (v : Fin 2 → ℂ) (q : MvPolynomial (Fin (n + 2)) ℂ) :
-      eval v (aeval g q) = eval (ι v) q := by
-    rw [map_aeval, ← funext (hgv v)]
-    congr 1
-    ext <;> simp
-  set F := aeval g X.poly with hFdef
+  set M := (LinearMap.toMatrix' ι).toMvPolynomial
+  set F := aeval M X.poly with hFdef
   have hF : F.IsHomogeneous d := by
-    simpa using X.isHomogeneous.aeval g fun i ↦
-      IsHomogeneous.sum _ _ _ fun j _ ↦ (isHomogeneous_X ℂ j).C_mul _
-  have heval (v : Fin 2 → ℂ) : eval v F = eval (ι v) X.poly := heval' v X.poly
+    simpa using X.isHomogeneous.aeval _ (Matrix.toMvPolynomial_isHomogeneous _)
   have hmem (p : ℙ ℂ (Fin 2 → ℂ)) : Projectivization.map ι hι p ∈ X.carrier ↔ eval p.rep F = 0 := by
-    conv_lhs => rw [← p.mk_rep, Projectivization.map_mk]
-    rw [mem_carrier_mk_iff, heval]
+    rw [← mem_preimage, carrier_def, preimage_map_complexProjectiveZeroLocus,
+      mem_complexProjectiveZeroLocus_iff_eval_rep (fun _ ↦ hF)]
+    simp [hFdef, M]
   have hsing (p : ℙ ℂ (Fin 2 → ℂ)) (hp : eval p.rep F = 0) :
       ∃ j, eval p.rep (pderiv j F) ≠ 0 := by
     obtain ⟨w, hw⟩ := htr p ((hmem p).2 hp)
@@ -94,22 +84,23 @@ theorem card_inter_line {ι : (Fin 2 → ℂ) →ₗ[ℂ] (Fin (n + 2) → ℂ)}
         ∑ i, ι (Pi.single j 1) i * eval (ι p.rep) (pderiv i X.poly) = 0 := by
       rw [← h j, hFdef, pderiv_aeval, map_sum]
       refine Finset.sum_congr rfl fun i _ ↦ ?_
-      rw [map_mul, heval', mul_comm]
+      have hpull : eval p.rep (aeval M (pderiv i X.poly)) = eval (ι p.rep) (pderiv i X.poly) := by
+        simpa only [M, aeval_eq_eval, Matrix.toMvPolynomial_eval_eq_apply,
+          LinearMap.toMatrix'_mulVec] using comp_aeval_apply M (aeval p.rep) (pderiv i X.poly)
+      rw [map_mul, hpull, mul_comm]
       congr 1
-      fin_cases j <;> simp [hg, pderiv_X]
+      fin_cases j <;> simp [M, Matrix.toMvPolynomial, ← C_mul_X_eq_monomial, pderiv_X,
+        LinearMap.toMatrix'_apply]
     conv_lhs => rw [pi_eq_sum_univ' w]
     simp only [map_sum, map_smul, Finset.sum_apply, Pi.smul_apply, smul_eq_mul, Finset.sum_mul]
     rw [Finset.sum_comm]
     simp [mul_assoc, ← Finset.mul_sum, hj]
   have hset : X.carrier ∩ range (Projectivization.map ι hι) =
       Projectivization.map ι hι '' {p | eval p.rep F = 0} := by
-    ext L
-    simp only [mem_inter_iff, mem_range, mem_image, mem_ofPred_eq]
-    constructor
-    · rintro ⟨hL, p, rfl⟩
-      exact ⟨p, (hmem p).1 hL, rfl⟩
-    · rintro ⟨p, hp, rfl⟩
-      exact ⟨(hmem p).2 hp, p, rfl⟩
+    rw [← image_preimage_eq_inter_range]
+    congr 1
+    ext p
+    exact hmem p
   rw [Nat.card_coe_set_eq, hset,
     ncard_image_of_injective _ (Projectivization.map_injective ι hι),
     IsHomogeneous.ncard_setOf_eval_rep_eq_zero hF hsing]
