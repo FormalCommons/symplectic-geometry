@@ -6,10 +6,9 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.Projectivization.Hypersurface.Basic
-public import TauCeti.Geometry.Manifold.Projectivization.LineBundle
+public import SymplecticGeometry.Geometry.Manifold.Projectivization.TwistCore
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.Topology
 import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.VectorBundle.Basic
-import TauCeti.Topology.VectorBundle.Hom
 
 /-!
 # The normal bundle of a smooth projective hypersurface
@@ -24,22 +23,15 @@ normal space at `x` with `ℂ` (Tau Ceti's `TauCeti.complexProjectiveZeroLocusNo
 In the frame of the chart `i`, this number is the coordinate of `𝒪(d)`: on `U_i ∩ U_j` the
 dehomogenizations satisfy `f_j = (v_i / v_j) ^ d * f_i`, and since `f_i` vanishes at `x`, their
 differentials at `x` differ by the factor `(v_i / v_j) ^ d`, which is the transition function
-`Projectivization.twistTransition d i j` of `𝒪(d)`. So the identifications in the different
-charts fit together into one isomorphism of bundles.
+`Projectivization.twistTransition d i j` of `𝒪(d)`
+(`HasMFDerivAt.eval_affineChart_dehomogenize`, in `Projectivization/TwistCore.lean`). So the
+identifications in the different charts fit together into one isomorphism of bundles.
 
 The continuity of that isomorphism is checked on ambient tangent representatives of normal
-classes, as in Tau Ceti's `TauCeti.SmoothEmbedding.continuous_normalBundleMap`. The proof of
-the chart change for differentials, `HasMFDerivAt.eval_affineChart_dehomogenize`, adapts the
-proof of Tau Ceti's `TauCeti.fderiv_eval_dehomogenize_transition` from Fréchet derivatives on
-`Fin n → 𝕜` to `mfderiv` on projective space.
+classes, as in Tau Ceti's `TauCeti.SmoothEmbedding.continuous_normalBundleMap`.
 
 ## Main declarations
 
-* `Projectivization.eval_affineChart_dehomogenize_eq_twistTransition_mul`: the dehomogenizations
-  of a homogeneous polynomial of degree `d` in two charts differ by the transition function
-  of `𝒪(d)`.
-* `HasMFDerivAt.eval_affineChart_dehomogenize`: at a zero of the polynomial, so do their
-  differentials.
 * `SymplecticGeometry.SmoothProjectiveHypersurface.normalSpaceEquiv`: the fibrewise isomorphism
   of the normal space of `X` at `x` with the fibre of `𝒪(d)` at `x`, read in the preferred chart
   `(twistCore d).indexAt x`.
@@ -65,58 +57,6 @@ public section
 open Bundle MvPolynomial Set Projectivization TauCeti
 open scoped ContDiff Manifold LinearAlgebra.Projectivization Topology
 
-namespace Projectivization
-
-variable {𝕜 : Type*} [NontriviallyNormedField 𝕜] {n d : ℕ}
-
-/-- The dehomogenizations at `i` and at `j` of a polynomial `P`, homogeneous of degree `d`, read
-in the affine charts, differ on `U_i ∩ U_j` by the transition function of `𝒪(d)`. -/
-theorem eval_affineChart_dehomogenize_eq_twistTransition_mul
-    {P : MvPolynomial (Fin (n + 1)) 𝕜} (hP : P.IsHomogeneous d) {i j : Fin (n + 1)}
-    {x : ℙ 𝕜 (Fin (n + 1) → 𝕜)} (hi : x ∈ affineOpen i) (hj : x ∈ affineOpen j) :
-    eval (affineChart j x) (dehomogenize j P) =
-      twistTransition (d : ℤ) i j x * eval (affineChart i x) (dehomogenize i P) := by
-  rw [← homogeneousSection_coord hP hi, ← homogeneousSection_coord hP hj, ← mul_assoc,
-    twistTransition_mul_twistTransition _ _ _ hi]
-
-/-- At a zero `x` of a polynomial `P`, homogeneous of degree `d`, in `U_i ∩ U_j`: if the
-dehomogenization of `P` at `i`, read in the affine chart at `i`, has the derivative `L` at `x`,
-then the dehomogenization at `j`, read in the chart at `j`, has the derivative `L` multiplied by
-the transition function `twistTransition d i j x` of `𝒪(d)`. -/
-theorem _root_.HasMFDerivAt.eval_affineChart_dehomogenize {P : MvPolynomial (Fin (n + 1)) 𝕜}
-    (hP : P.IsHomogeneous d) {i j : Fin (n + 1)} {x : ℙ 𝕜 (Fin (n + 1) → 𝕜)}
-    (hi : x ∈ affineOpen i) (hj : x ∈ affineOpen j)
-    (hx : eval (affineChart i x) (dehomogenize i P) = 0)
-    {L : TangentSpace 𝓘(𝕜, Fin n → 𝕜) x →L[𝕜] 𝕜}
-    (hL : HasMFDerivAt 𝓘(𝕜, Fin n → 𝕜) 𝓘(𝕜)
-      (fun y ↦ eval (affineChart i y) (dehomogenize i P)) x L) :
-    HasMFDerivAt 𝓘(𝕜, Fin n → 𝕜) 𝓘(𝕜) (fun y ↦ eval (affineChart j y) (dehomogenize j P)) x
-      (twistTransition (d : ℤ) i j x • L) := by
-  have hU : affineOpen i ∩ affineOpen j ∈ 𝓝 x :=
-    ((isOpen_affineOpen i).inter (isOpen_affineOpen j)).mem_nhds ⟨hi, hj⟩
-  obtain ⟨T, hT⟩ : ∃ T : TangentSpace 𝓘(𝕜, Fin n → 𝕜) x →L[𝕜] 𝕜,
-      HasMFDerivAt 𝓘(𝕜, Fin n → 𝕜) 𝓘(𝕜) (twistTransition (d : ℤ) i j) x T :=
-    ⟨_, (((contMDiffOn_twistTransition (d : ℤ) i j 1).contMDiffAt hU).mdifferentiableAt
-      one_ne_zero).hasMFDerivAt⟩
-  -- The product rule; the second term vanishes since `x` is a zero of `P`.
-  have heq : (twistTransition (d : ℤ) i j x • L +
-      eval (affineChart i x) (dehomogenize i P) • T : TangentSpace 𝓘(𝕜, Fin n → 𝕜) x →L[𝕜] 𝕜) =
-      twistTransition (d : ℤ) i j x • L := by
-    ext v
-    simp [hx]
-  refine ((hT.mul hL).congr_mfderiv heq).congr_of_eventuallyEq_abuse ?_
-  filter_upwards [hU] with y hy
-  exact eval_affineChart_dehomogenize_eq_twistTransition_mul hP hy.1 hy.2
-
-/-- A polynomial read in the affine chart at `i` is `C^r` on the affine open `U_i`. -/
-theorem contMDiffOn_eval_affineChart (P : MvPolynomial (Fin n) 𝕜) (i : Fin (n + 1))
-    (r : ℕ∞ω) :
-    ContMDiffOn 𝓘(𝕜, Fin n → 𝕜) 𝓘(𝕜) r (fun x ↦ eval (affineChart i x) P) (affineOpen i) :=
-  (AnalyticOnNhd.eval_continuousLinearMap (ContinuousLinearMap.id 𝕜 (Fin n → 𝕜))
-    P).contDiff.contMDiff.comp_contMDiffOn (contMDiffOn_affineChart i r)
-
-end Projectivization
-
 namespace SymplecticGeometry
 
 namespace SmoothProjectiveHypersurface
@@ -132,8 +72,7 @@ noncomputable def normalSpaceEquiv (x : X) :
       (twistCore (𝕜 := ℂ) (n := n + 1) (d : ℤ)).Fiber (x : ℙ ℂ (Fin (n + 2) → ℂ)) :=
   (complexProjectiveZeroLocusNormalSpaceEquiv (fun _ ↦ X.isHomogeneous) isOpen_univ
       X.carrier_eq_inter_univ X.surjective_jacobiMatrixAt (r := ω) WithTop.top_ne_zero x
-      (twistCore_baseSet (𝕜 := ℂ) (d : ℤ) _ ▸
-        (twistCore (d : ℤ)).mem_baseSet_at (x : ℙ ℂ (Fin (n + 2) → ℂ)))).trans
+      (mem_affineOpen_twistCore_indexAt (d : ℤ) (x : ℙ ℂ (Fin (n + 2) → ℂ)))).trans
     (ContinuousLinearEquiv.funUnique Unit ℂ ℂ)
 
 /-- `normalSpaceEquiv` is Tau Ceti's identification of the normal space with the space
@@ -142,8 +81,7 @@ theorem normalSpaceEquiv_apply (x : X) (a : X.embedding.NormalSpace x WithTop.to
     X.normalSpaceEquiv x a = ContinuousLinearEquiv.funUnique Unit ℂ ℂ
       (complexProjectiveZeroLocusNormalSpaceEquiv (fun _ ↦ X.isHomogeneous) isOpen_univ
         X.carrier_eq_inter_univ X.surjective_jacobiMatrixAt (r := ω) WithTop.top_ne_zero x
-        (twistCore_baseSet (𝕜 := ℂ) (d : ℤ) _ ▸
-          (twistCore (d : ℤ)).mem_baseSet_at (x : ℙ ℂ (Fin (n + 2) → ℂ))) a) :=
+        (mem_affineOpen_twistCore_indexAt (d : ℤ) (x : ℙ ℂ (Fin (n + 2) → ℂ))) a) :=
   (rfl)
 
 /-- On the normal class of an ambient tangent vector `v` at `x`, `normalSpaceEquiv` is the
@@ -156,7 +94,7 @@ theorem normalSpaceEquiv_normalClass (x : X)
           (dehomogenize ((twistCore (𝕜 := ℂ) (n := n + 1) (d : ℤ)).indexAt x) X.poly)) x v := by
   set i := (twistCore (𝕜 := ℂ) (n := n + 1) (d : ℤ)).indexAt (x : ℙ ℂ (Fin (n + 2) → ℂ))
   have hi : (x : ℙ ℂ (Fin (n + 2) → ℂ)) ∈ affineOpen i :=
-    twistCore_baseSet (𝕜 := ℂ) (d : ℤ) _ ▸ (twistCore (d : ℤ)).mem_baseSet_at _
+    mem_affineOpen_twistCore_indexAt (d : ℤ) _
   -- The derivative of the equation, with values in `Unit → ℂ` as Tau Ceti states it.
   have h : HasMFDerivAt 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Unit → ℂ)
       (fun y (_ : Unit) ↦ eval (affineChart i y) (dehomogenize i X.poly))
@@ -192,7 +130,7 @@ theorem twistTransition_smul_normalSpaceEquiv_normalClass (x : X) {i : Fin (n + 
         (fun y ↦ eval (affineChart i y) (dehomogenize i X.poly)) x v := by
   set k := (twistCore (𝕜 := ℂ) (n := n + 1) (d : ℤ)).indexAt (x : ℙ ℂ (Fin (n + 2) → ℂ))
   have hk : (x : ℙ ℂ (Fin (n + 2) → ℂ)) ∈ affineOpen k :=
-    twistCore_baseSet (𝕜 := ℂ) (d : ℤ) _ ▸ (twistCore (d : ℤ)).mem_baseSet_at _
+    mem_affineOpen_twistCore_indexAt (d : ℤ) _
   have hx : eval (affineChart k (x : ℙ ℂ (Fin (n + 2) → ℂ))) (dehomogenize k X.poly) = 0 :=
     (mem_complexProjectiveZeroLocus_iff_eval_affineChart (fun _ ↦ X.isHomogeneous) hk).1
       (X.carrier_def ▸ x.property) ()
@@ -232,7 +170,7 @@ theorem continuous_normalSpaceEquiv :
   refine ⟨(X.embedding.contMDiff.continuous.comp (Pullback.continuous_proj _ _ _)).continuousAt, ?_⟩
   set i := (twistCore (𝕜 := ℂ) (n := n + 1) (d : ℤ)).indexAt (X.embedding q₀.proj)
   have hi : X.embedding q₀.proj ∈ affineOpen i :=
-    twistCore_baseSet (𝕜 := ℂ) (d : ℤ) _ ▸ (twistCore (d : ℤ)).mem_baseSet_at _
+    mem_affineOpen_twistCore_indexAt (d : ℤ) _
   have hU : ∀ᶠ q in 𝓝 q₀, X.embedding q.proj ∈ affineOpen i :=
     (X.embedding.contMDiff.continuous.comp (Pullback.continuous_proj _ _ _)).continuousAt
       |>.preimage_mem_nhds

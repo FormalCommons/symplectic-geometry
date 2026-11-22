@@ -7,6 +7,7 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Pullback
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.ComplexStructure.Basic
+public import TauCeti.Geometry.Manifold.ContMDiffMap.Basic
 
 /-!
 # Pull-backs of two-forms on vector bundles
@@ -21,6 +22,8 @@ that it is compatible with the rest of the structure that `Symplectic/Basic.lean
 
 * `SymplecticGeometry.Bundle.ContMDiffTwoForm.pullback ω f`, with `pullback_apply`,
   `bilinFormAt_pullback`, `bilinFormAt_pullback_apply` and the linear map `pullbackLinearMap f`.
+* `bilinFormAt_apply_pullback`: a two-form on a pull-back bundle `f *ᵖ V` evaluates on vectors
+  typed in `V (f y)`, for `simp`.
 * `IsNondegenerate.pullback` and `IsNondegenerate.symplecticFormAt_pullback`: the pull-back of a
   symplectic structure is one, with the symplectic form of `ω` at `f y` on the fibre over `y`;
   `IsNondegenerate.symplecticFormAt_pullback_apply` evaluates it on vectors.
@@ -58,8 +61,19 @@ isomorphism of bundles is smooth by `Bundle.Pullback.contMDiff_fiberwise`. The A
 `bilinFormAt_pullback` and `IsNondegenerate.symplecticFormAt_pullback` are not `@[simp]`: the
 form they give lives on `V (f y)`, but the instances around it still name the fibre
 `(f *ᵖ V) y`, so the lemmas that evaluate it no longer apply. `simp` evaluates the pulled-back
-form on vectors with `bilinFormAt_pullback_apply` and
-`IsNondegenerate.symplecticFormAt_pullback_apply` instead.
+form on vectors with `bilinFormAt_pullback_apply`, and its symplectic form with
+`IsNondegenerate.symplecticFormAt_pullback_apply`. The first is `@[simp high]`: if
+`bilinFormAt_apply_pullback` and `pullback_apply` rewrite first, the two sides still differ in
+hidden arguments that name the fibre `(f *ᵖ V) y`, and `simp` cannot close the goal.
+
+`bilinFormAt_apply` does not fire on vectors typed in `V (f y)` for a form on `f *ᵖ V`: Mathlib's
+`Bundle.Pullback` is a plain definition, so at the transparency `simp` uses, such a term is not
+type-correct. `bilinFormAt_apply_pullback` states the evaluation with the vectors typed in
+`V (f y)`, so that `simp` matches it as written. The same mismatch remains in
+`pushforward_pullback_id` and `pushforward_pullback_comp`, where the identity of each fibre is
+`ContinuousLinearEquiv.refl` of `V _` but is applied to vectors of a pull-back fibre, and no
+lemma about the forms removes it: `simp` evaluates the forms, with `ContMDiffMap.id_apply` and
+`ContMDiffMap.comp_apply` for the base points, and the identity is closed by `rfl`.
 
 ## References
 
@@ -126,19 +140,32 @@ theorem pullback_apply (ω : ContMDiffTwoForm I n F V) (f : C^n⟮I', N; I, M⟯
     ω.pullback f y = ω (f y) :=
   (rfl)
 
+/-- A two-form `ω` on a pull-back bundle `f *ᵖ V` evaluates on vectors `v w : V (f y)` as
+`ω y ![v, w]`. This is `bilinFormAt_apply` for vectors typed in `V (f y)` rather than in the
+fibre `(f *ᵖ V) y`: the two types are the same, but `simp` does not see it. -/
+@[simp]
+theorem bilinFormAt_apply_pullback {K : Type*} [FunLike K N M] [ContinuousMapClass K N M] {f : K}
+    (ω : ContMDiffTwoForm I' n F ((f : N → M) *ᵖ V)) (y : N) (v w : V (f y)) :
+    ω.bilinFormAt y v w = ω y ![v, w] :=
+  bilinFormAt_apply ω y v w
+
 /-- The bilinear form of the pull-back at `y` is that of `ω` at `f y`.
 
 This is not `@[simp]`: after it rewrites, the instances around the form still name the fibre
-`(f *ᵖ V) y`, and `bilinFormAt_apply` no longer applies. `simp` uses `bilinFormAt_pullback_apply`
-instead. -/
+`(f *ᵖ V) y`, and `bilinFormAt_apply` no longer applies. On vectors, `simp` uses
+`bilinFormAt_pullback_apply` instead. -/
 theorem bilinFormAt_pullback (ω : ContMDiffTwoForm I n F V) (f : C^n⟮I', N; I, M⟯) (y : N) :
     (ω.pullback f).bilinFormAt y = ω.bilinFormAt (f y) := by
   rw [bilinFormAt_def, bilinFormAt_def, pullback_apply]
   -- The two sides differ only in the fibre type, `(f *ᵖ V) y` against `V (f y)`.
   rfl
 
-/-- The bilinear form of the pull-back at `y` evaluates as `ω (f y)`. -/
-@[simp]
+/-- The bilinear form of the pull-back at `y` evaluates on `v w : V (f y)` as `ω (f y) ![v, w]`.
+
+It has priority `high`, so that `simp` uses it before `bilinFormAt_apply_pullback` on
+`ω.pullback f`: after that lemma and `pullback_apply`, hidden arguments that name the fibre
+`(f *ᵖ V) y` remain, and `simp` cannot close the goal. -/
+@[simp high]
 theorem bilinFormAt_pullback_apply (ω : ContMDiffTwoForm I n F V) (f : C^n⟮I', N; I, M⟯) (y : N)
     (v w : V (f y)) : (ω.pullback f).bilinFormAt y v w = ω (f y) ![v, w] :=
   ((ω.pullback f).bilinFormAt_apply y v w).trans (congrArg (· ![v, w]) (pullback_apply ω f y))
@@ -316,9 +343,10 @@ theorem pushforward_pullback_id (ω : ContMDiffTwoForm I n F V) :
         fun p ↦ (Pullback.idDiffeomorph_apply p).symm)
       (ω.pullback ContMDiffMap.id) = ω := by
   refine (pushforward_eq_iff _ _).2 fun x v w ↦ ?_
-  simp only [bilinFormAt_pullback]
-  -- `v` and `w` lie in a fibre of a pull-back bundle, where `simp` does not see that the
-  -- identity of `V x` applies to them; and `ContMDiffMap.id x` is `x`, with no lemma for it.
+  simp only [bilinFormAt_apply, pullback_apply, ContMDiffMap.id_apply]
+  -- Only the identity of each fibre is left. It is stated as `ContinuousLinearEquiv.refl` of
+  -- `V _` but applied to vectors of a pull-back fibre, so `ContinuousLinearEquiv.coe_refl'`
+  -- does not match it.
   rfl
 
 variable {EP HP P : Type*} [NormedAddCommGroup EP] [NormedSpace ℝ EP] [TopologicalSpace HP]
@@ -335,9 +363,10 @@ theorem pushforward_pullback_comp (ω : ContMDiffTwoForm I n F V) (g : C^n⟮I',
         fun p ↦ (Pullback.compDiffeomorph_apply g f p).symm)
       (ω.pullback (g.comp f)) = (ω.pullback g).pullback f := by
   refine (pushforward_eq_iff _ _).2 fun x v w ↦ ?_
-  simp only [bilinFormAt_pullback]
-  -- `v` and `w` lie in a fibre of a pull-back bundle, where `simp` does not see that the
-  -- identity of `V _` applies to them.
+  simp only [bilinFormAt_apply, pullback_apply, ContMDiffMap.comp_apply]
+  -- Only the identity of each fibre is left. It is stated as `ContinuousLinearEquiv.refl` of
+  -- `V _` but applied to vectors of a pull-back fibre, so `ContinuousLinearEquiv.coe_refl'`
+  -- does not match it.
   rfl
 
 /-! ### The form induced on the tangent bundle along a smooth map -/
