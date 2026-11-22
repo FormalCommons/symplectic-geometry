@@ -216,6 +216,12 @@ theorem coe_maslovPhaseMap : ⇑(maslovPhaseMap : C(ℒ ι, Circle)) = maslovPha
 theorem maslovPhaseMap_apply (Λ : ℒ ι) : maslovPhaseMap Λ = maslovPhase Λ :=
   (rfl)
 
+/-- A homotopy, with fixed ends, of paths of Lagrangians gives a homotopy, with fixed ends, of
+their Maslov phase paths `t ↦ ρ (γ t)` in the circle. -/
+theorem homotopic_map_maslovPhase {Λ Λ' : ℒ ι} {γ₀ γ₁ : Path Λ Λ'} (h : γ₀.Homotopic γ₁) :
+    (γ₀.map continuous_maslovPhase).Homotopic (γ₁.map continuous_maslovPhase) :=
+  h.map maslovPhaseMap
+
 /-- The Maslov phase of the Lagrangian framed by `U` is `(det U)²`. -/
 @[simp]
 theorem maslovPhase_unitaryFrame (U : unitaryGroup ι ℂ) :
@@ -285,7 +291,7 @@ theorem maslovIndex_eq_of_homotopy {Λ Λ' : ℒ ι} (γ₀ : Path Λ Λ) (γ₁
 /-- Loops that are homotopic relative to their base point have the same Maslov index. -/
 theorem maslovIndex_eq_of_homotopic {Λ : ℒ ι} {γ₀ γ₁ : Path Λ Λ} (h : γ₀.Homotopic γ₁) :
     maslovIndex γ₀ = maslovIndex γ₁ :=
-  Circle.degree_eq_of_homotopic (h.map maslovPhaseMap)
+  Circle.degree_eq_of_homotopic (homotopic_map_maslovPhase h)
 
 /-- A constant loop has Maslov index zero. -/
 @[simp]
