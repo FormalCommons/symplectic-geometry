@@ -305,7 +305,7 @@ In namespace `SymplecticGeometry`:
   $x\mapsto[(\texttt{complexToRealEuclidean})^{-1}x]$, with
   `sphereHopf_apply`, `contMDiff_sphereHopf`, `surjective_sphereHopf`,
   `isSubmersion_sphereHopf`, `sphereHopf_eq_sphereHopf_iff` (two points have
-  the same image exactly when $y=\cos t\,x+\sin t\,J_0x$ for some $t$), and
+  the same image exactly when `y = stdRotation _ t x` for some $t$), and
   `ker_mfderiv_sphereHopf`: read in `StdSpace` through the derivative of the
   inclusion, the kernel at $x$ is `ℝ ∙ stdComplexStructure _ x`.
 - `radialProjection n : TauCeti.puncturedSpace (Fin (n + 1) → ℂ) → sphere (0 :
