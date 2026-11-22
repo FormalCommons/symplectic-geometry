@@ -300,6 +300,7 @@ complex ones that `chernNumber_congr` takes.
   nondegenerate, so that a compatible complex structure exists.
 - The file imports `Geometry/Manifold/VectorBundle/Symplectic/FirstChernClass.lean`
   of *First Chern class of nondegenerate forms*; `Tames.chernNumber_eq`,
+  `symplecticChernNumber_neg`,
   `symplecticChernNumber_congr` and `symplecticChernNumber_pullback` follow
   from the first-Chern-class lemmas there.
 
