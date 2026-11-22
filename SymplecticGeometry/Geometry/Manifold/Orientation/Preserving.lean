@@ -10,13 +10,19 @@ import Mathlib.Geometry.Manifold.MFDeriv.NormedSpace
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 
 /-!
-# Maps of a real normed space with positive Jacobian determinant
+# Orientation-preserving maps between a manifold and its model space
 
 A map of a finite-dimensional real normed space `E` whose derivative at `v` has positive
 determinant preserves every orientation of `E` at `v`
 (`TauCeti.Manifold.Orientation.isOrientationPreservingAt_of_det_fderiv_pos`). This is the
 counterpart of Tau Ceti's `TauCeti.Manifold.Orientation.isOrientationReversingAt_of_det_fderiv_neg`,
 and its proof is that of Tau Ceti's lemma with the sign changed.
+
+The inverse of a chart of the maximal `C¹` atlas of a manifold modelled on `E` preserves
+orientation at a point of its target when the chart preserves it at the corresponding point of its
+source (`TauCeti.Manifold.Orientation.IsOrientationPreservingAt.symm_of_mem_maximalAtlas`). It
+reads the chart as a partial diffeomorphism and applies Tau Ceti's
+`TauCeti.Manifold.Orientation.IsOrientationPreservingAt.partialDiffeomorph_symm`.
 
 ## References
 

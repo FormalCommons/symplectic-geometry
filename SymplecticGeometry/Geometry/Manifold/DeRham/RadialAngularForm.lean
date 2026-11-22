@@ -46,6 +46,8 @@ indexed by `Fin (2 * finrank ℂ ℂ)`, which is not `Fin 2` by definition, so i
 * `SymplecticGeometry.tsupport_mextDeriv_radialAngularForm_subset`: its exterior derivative is
   supported in the annulus `a ≤ ‖z‖ ≤ b`.
 * `SymplecticGeometry.integralTopForm_mextDeriv_radialAngularForm`: `∫_ℂ d(β(‖z‖) dθ) = 2π`.
+* `deriv_eq_zero_of_notMem_Icc`: a function constant on `(-∞, a]` and on `[b, ∞)` has derivative
+  zero outside `[a, b]`.
 
 ## References
 
