@@ -2308,7 +2308,11 @@ has either; Tau Ceti's extension across a boundary,
   `VectorField.mpullback_mlieBracket` for constant fields pulled back along a
   chart; on surfaces modelled on `𝓘(ℝ, ℂ)`, the
   comparison with Tau Ceti's class
-  `SmoothAlmostComplexStructure.HasIsothermalCharts`).
+  `SmoothAlmostComplexStructure.HasIsothermalCharts`); the lemmas on Tau
+  Ceti's `chartPushforward` of a smooth `J` along a smooth chart that
+  `Integrable.lean` uses are in
+  `Geometry/Symplectic/Manifold/AlmostComplex/Chart.lean`, which imports no
+  Nijenhuis material.
 - **Builds on:** Mathlib (`mlieBracket`, `CovariantDerivative.torsion`) and
   Tau Ceti (`nijenhuis` and its lemmas, `pullback`, `CovariantDerivative.hom`,
   the eigenbundles of `J`); *Smooth families* (only

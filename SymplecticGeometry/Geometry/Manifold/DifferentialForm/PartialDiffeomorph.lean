@@ -13,6 +13,7 @@ public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Chart
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffeomorph
+import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Chart
 import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.ModelSpace
 
 /-!
@@ -100,18 +101,7 @@ theorem mpullback_symm_realAlternatingDerivation [IsManifold I ∞ M]
     mpullback 𝓘(ℝ, E) I ψ.symm (J.toEndomorphism.realAlternatingDerivation φ).val y v =
       ∑ i, mpullback 𝓘(ℝ, E) I ψ.symm φ.val y
         (Function.update v i (J.chartPushforward ψ.toOpenPartialHomeomorph y (v i))) := by
-  have hx : ψ.symm y ∈ ψ.source := ψ.map_target hy
-  have hr : ψ (ψ.symm y) = y := ψ.right_inv hy
-  have hJ (w : E) : mfderiv 𝓘(ℝ, E) I ψ.symm y (J.chartPushforward ψ.toOpenPartialHomeomorph y w) =
-      J (ψ.symm y) (mfderiv 𝓘(ℝ, E) I ψ.symm y w) := by
-    have h := ψ.mfderiv_symm_apply_mfderiv_apply (by simp) hx
-      (J (ψ.symm y) (mfderiv 𝓘(ℝ, E) I ψ.symm y w))
-    rw [hr] at h
-    rw [← J.toContMDiff_chartPushforward ⊤,
-      ContMDiffAlmostComplexStructure.chartPushforward_apply,
-      SmoothAlmostComplexStructure.toContMDiff_apply]
-    rw [ψ.coe_toOpenPartialHomeomorph_symm, ψ.toFun'_toOpenPartialHomeomorph]
-    exact h
+  have hJ := J.mfderiv_symm_apply_chartPushforward_apply ψ hy
   simp only [mpullback_apply, ContMDiffSection.realAlternatingDerivation_apply]
   refine Finset.sum_congr rfl fun i _ ↦ congrArg (φ.val (ψ.symm y)) (funext fun j ↦ ?_)
   rcases eq_or_ne j i with rfl | hj

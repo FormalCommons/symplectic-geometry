@@ -1267,6 +1267,15 @@ issues, in an order where each issue's blockers come before it.
    capped surface is glued from the interior and the discs by
    `TauCeti.Manifold.Orientation.iGlue`, Tau Ceti's `glue` for a family
    of pieces, in `Geometry/Manifold/Orientation/Glue.lean`.
+   On the annuli, the orientation of the caps is compared with that of
+   the surface through the collar, by
+   `TauCeti.SmoothCollar.orientationSign_eq_neg_one_pow` in
+   `Geometry/Manifold/Boundary/Collar/Orientation.lean`: with the
+   outward-first boundary orientation, the standard orientation
+   `TauCeti.EuclideanHalfSpace.normalIioOpensOrientation` of $[0,1)$ and
+   their product, a smooth collar of an $(n+1)$-manifold has orientation
+   sign $(-1)^{n+1}$, so on a surface it preserves orientation
+   (`TauCeti.SmoothCollar.isOrientationPreservingAt_of_odd`).
 9. **A map of degree one onto the sphere.**
    `Geometry/Manifold/Degree/Collapse.lean`:
    `SymplecticGeometry.exists_contMDiff_degree_eq_one`, every compact
