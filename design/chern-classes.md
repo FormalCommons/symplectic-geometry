@@ -762,10 +762,11 @@ model fibres:
   orientations `ω₁` and `ω₂` of the model fibres, of dimensions `m + 1` and
   `n + 1`, to `(-1) ^ ((m + 1) * (n + 1))` times the generator selected by
   `ω₁.prod ω₂` (`Orientation.complZeroPairCross_localCohomologyClass`, in
-  `AlgebraicTopology/Cohomology/Local/CrossOrientation.lean`), which turns
-  `TauCeti.VectorBundleOrientation.eulerClass_thomClassOfModel_prod` into
-  `TauCeti.VectorBundleOrientation.eulerClass_prod` for
-  `TauCeti.VectorBundleOrientation.eulerClass`;
+  `AlgebraicTopology/Cohomology/Local/CrossOrientation.lean`); with the
+  fibrewise steps of `TauCeti.VectorBundleOrientation.thomClassOfModel_prod`
+  it gives `TauCeti.VectorBundleOrientation.eulerClass_prod`, with the same
+  sign, for `TauCeti.VectorBundleOrientation.eulerClass` (in
+  `Topology/VectorBundle/Orientation/Whitney.lean`);
 - that the complex orientation of `E₁ ×ᵇ E₂` is the product of the complex
   orientations, reindexed;
 - `TauCeti.complexEulerClass_prod`: `complexEulerClass (G₁ × G₂) (E₁ ×ᵇ E₂) =
