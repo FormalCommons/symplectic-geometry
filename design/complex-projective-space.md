@@ -297,7 +297,9 @@ the real structures of Tau Ceti (`instIsManifoldReal`):
 In namespace `SymplecticGeometry`:
 
 - the instance `fact_finrank_stdSpace_fin_succ : Fact (finrank ℝ (StdSpace
-  (Fin (n + 1))) = 2 * n + 1 + 1)`, which Mathlib's charts on the sphere need.
+  (Fin (n + 1))) = 2 * n + 1 + 1)`, which Mathlib's charts on the sphere need,
+  is a scoped instance of *Standard model*, placed with `StdSpace` in
+  `LinearAlgebra/Symplectic/Standard/Basic.lean`; this file uses it.
 - `sphereHopf n : sphere (0 : StdSpace (Fin (n + 1))) 1 → ℙ ℂ (Fin (n + 1) → ℂ)`,
   $x\mapsto[(\texttt{complexToRealEuclidean})^{-1}x]$, with
   `sphereHopf_apply`, `contMDiff_sphereHopf`, `surjective_sphereHopf`,
@@ -457,7 +459,9 @@ Manifolds*, 2nd ed., Chapters 15–16, as Tau Ceti's `UnitSphere.lean` cites.
 
 - *Standard model* (merged): `StdSpace`, `stdForm`, `stdComplexStructure`,
   `stdForm_def`, `stdForm_apply_eq_inner`, `x_complexToRealEuclidean`,
-  `y_complexToRealEuclidean`.
+  `y_complexToRealEuclidean`, and the scoped instance
+  `fact_finrank_stdSpace_fin_succ`, which issue H adds to that part's
+  file.
 - *Complex submanifolds* (issue #864, `Geometry/Symplectic/Manifold/AlmostComplex/Submanifold.lean`):
   only for `isKahler_mpullback_fubiniStudyForm`, through its restricted
   structure and its transfer of `IsKahler` and symplecticity.
