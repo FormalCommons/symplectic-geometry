@@ -2287,7 +2287,7 @@ has either; Tau Ceti's extension across a boundary,
   Ceti's file, in Tau Ceti's namespace
   `TauCeti.SmoothAlmostComplexStructure`: $N_J(v,Jv)=0$; naturality,
   `nijenhuis_pullback`, for Tau Ceti's `pullback` along a diffeomorphism,
-  from Mathlib's `VectorField.mpullback_mlieBracket`; and the formula of
+  from `mfderiv_nijenhuis_of_eventually_related`; and the formula of
   $N_J$ through any torsion-free covariant derivative on $TM$, with the
   milestone as one theorem),
   `Geometry/Symplectic/Manifold/AlmostComplex/Covariant.lean` (the covariant
@@ -2388,7 +2388,7 @@ has either; Tau Ceti's extension across a boundary,
   Nijenhuis tensor of the restriction).
 - **Builds on:** *Nijenhuis tensor* (`Nijenhuis.lean` for naturality along
   embeddings, `Integrable.lean`); *Linear complex structures*
-  (`LinearAlgebra/ComplexStructure/Action.lean`, for complex linear left
+  (`LinearAlgebra/ComplexStructure/Hom.lean`, for complex linear left
   inverses); Tau Ceti.
 - **Milestones:** *Complex submanifolds of Kähler manifolds*, except its
   last sentence, on $\mathbb CP^n$, which *Complex projective space* proves.

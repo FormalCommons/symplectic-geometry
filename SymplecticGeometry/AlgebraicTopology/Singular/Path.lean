@@ -43,6 +43,7 @@ has the same code as the private `concatProj` of that file, made public here.
   continuous map (`TauCeti.TopCat.toSSetObjEquiv_transSimplex`) and its naturality in the space
   (`TauCeti.TopCat.toSSet_map_app_transSimplex`).
 * `TauCeti.TopCat.ιChainComplex_transSimplex_d`: its boundary is `γ + δ - γ.trans δ`.
+* `TauCeti.TopCat.ιChainComplex_simplex₁_d`: the boundary of `simplex₁ g` is `g 1 - g 0`.
 * `TauCeti.TopCat.ιChainComplex_simplex₁_sub_add_d`: three paths around a triangle form a cycle.
 
 ## References
