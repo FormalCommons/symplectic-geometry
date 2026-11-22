@@ -377,6 +377,15 @@ normed algebra with summable geometric series, `x ↦ A (1 + x) (1 - x)⁻¹` ha
 derivative $\dot X\mapsto2A(1-C)^{-1}\dot X(1-C)^{-1}$ at `C` with `1 - C`
 invertible.
 
+### `Geometry/Manifold/MFDeriv/Singleton.lean`
+
+A general file that serves `CompatibleComplexStructures.lean`, whose atlas
+has one chart; imports Mathlib. In the root namespace, for points whose
+preferred charts coincide: `tangentCoordChange_of_chartAt_eq` (the tangent
+coordinate change is the identity), `mfderiv_chartAt_of_chartAt_eq` and
+`mfderiv_chartAt_symm_of_chartAt_eq` (the differentials of the chart and of
+its inverse are the identity).
+
 ### `Geometry/Manifold/SmoothEmbedding/Basic/FromTauCeti.lean`
 
 Tau Ceti main's `Manifold.IsSmoothEmbedding.contMDiffAt_iff_comp` (commit
@@ -459,7 +468,7 @@ notation of the file):
   the constant section `compatibleModelComplexStructure` in the global chart.
   API: `compatibleSpaceComplexStructure_apply` (its value in the model) and
   `mfderiv_compatibleCLM_compatibleSpaceComplexStructure : d J (j J a) =
-  -(ω.compatibleCLM J * d J a)`, writing `d J` for the differential of
+  -(ω.compatibleCLM J ∘L d J a)`, writing `d J` for the differential of
   `compatibleCLM` at `J` and `j` for the structure. The proof is the
   computation of decision 4 in the chart.
 - `chartPushforward_compatibleSpaceComplexStructure`: in the global chart the
@@ -585,7 +594,7 @@ theorem compatibleSpace_properties (ω : SymplecticForm V) {n : ℕ}
     Manifold.IsSmoothEmbedding 𝓘 𝓘(ℝ, V →L[ℝ] V) ∞ ω.compatibleCLM ∧
     Module.finrank ℝ ω.compatibleModel = n * (n + 1) ∧
     (∀ J, LinearMap.range (d J) = ω.compatibleTangentSpaceCLM J) ∧
-    (∀ J a, d J (j J a) = -(ω.compatibleCLM J * d J a)) ∧
+    (∀ J a, d J (j J a) = -(ω.compatibleCLM J ∘L d J a)) ∧
     (∀ J a b, Ω.bilinFormAt J a b =
       2⁻¹ * LinearMap.trace ℝ V (d J a * ω.compatibleCLM J * d J b)) ∧
     (∀ J (a b : TangentSpace 𝓘 J), ⟪a, b⟫_ℝ = 2⁻¹ * LinearMap.trace ℝ V (d J a * d J b)) ∧
@@ -653,7 +662,9 @@ is the conjunct on `compatibleTransport`. No entry in `ERRATA.md` is needed.
 - *Lagrangian Grassmannian* (merged): `Matrix.finrank_selfAdjoint`
   (`LinearAlgebra/Matrix/SelfAdjoint.lean`).
 - *Nijenhuis tensor* (#862, not merged): `IsIntegrable`,
-  `IsIntegrable.nijenhuis_eq_zero` (`Geometry/Manifold/Complex/Integrable.lean`).
+  `IsIntegrable.nijenhuis_eq_zero` (`Geometry/Manifold/Complex/Integrable.lean`);
+  `SmoothAlmostComplexStructure.chartPushforward_apply`
+  (`Geometry/Symplectic/Manifold/AlmostComplex/Chart.lean`).
 - *Almost complex manifolds* (#860, not merged):
   `TauCeti.SmoothTwoForm.Compatible.metric` and `Compatible.metric_inner`
   (`Geometry/Symplectic/Manifold/AlmostComplex/Metric.lean`).

@@ -216,6 +216,17 @@ theorem pullback_sub (ω ω' : ContMDiffTwoForm I n F V) (f : C^n⟮I', N; I, M�
     (ω - ω').pullback f = ω.pullback f - ω'.pullback f :=
   map_sub (pullbackLinearMap I F V n f) ω ω'
 
+/-- `simp` evaluates the pull-back of a sum, a difference, a negative or a multiple on vectors of
+`V (f y)`, with `Bundle.Pullback.add_apply_pullback`, `linearMap_sub_apply_pullback`,
+`neg_apply_pullback` and `smul_apply_pullback`. -/
+example (ω ω' : ContMDiffTwoForm I n F V) (f : C^n⟮I', N; I, M⟯) (y : N) (c : ℝ)
+    (v w : V (f y)) :
+    ((ω + ω').pullback f).bilinFormAt y v w = ω (f y) ![v, w] + ω' (f y) ![v, w] ∧
+      ((ω - ω').pullback f).bilinFormAt y v w = ω (f y) ![v, w] - ω' (f y) ![v, w] ∧
+      ((-ω).pullback f).bilinFormAt y v w = -ω (f y) ![v, w] ∧
+      ((c • ω).pullback f).bilinFormAt y v w = c * ω (f y) ![v, w] := by
+  simp
+
 /-! ### Nondegeneracy -/
 
 variable {ω : ContMDiffTwoForm I n F V}

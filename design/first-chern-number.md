@@ -866,16 +866,17 @@ issues, in an order where each issue's blockers come before it.
    `bijective_dualityMap_of_convex`. Those open sets come from
    `Analysis/Convex/Opens.lean`:
    `TopologicalSpace.Opens.infClosed_setOf_convex_image` and
-   `Topology.IsOpenEmbedding.iSup_finset_sup_convex_image_eq_top`. The
+   `Topology.IsOpenEmbedding.sSup_setOf_convex_image_eq_top`. The
    induction is `InfClosed.finset_sup_induction`, in `Order/SupClosed.lean`,
    Tau Ceti's `TauCeti.finset_sup_of_inf_closed` for a finite set of members
    of the family. It is run once for each theory, over any inf-closed
-   family of open sets whose finite unions cover the space:
+   family of open sets that covers the space:
    `TopCat.isZero_compactSupportCohomology_of_infClosed`, in
    `CompactSupport/Vanishing.lean`, and
    `TauCeti.HomologicalOrientation.bijective_dualityMap_of_infClosed`, in
-   `CompactSupport/Duality/Union.lean`, which also assumes
-   `Hⁿ⁺¹_c(W; L) = 0` for every open set `W`. Their case of the empty
+   `CompactSupport/Duality/Union.lean`, which imports
+   `CompactSupport/Manifold.lean` for `Hⁿ⁺¹_c(W; L) = 0` on every open
+   set `W`. Their case of the empty
    union uses the instance `TopologicalSpace.Opens.isEmpty_bot` of
    `Topology/Sets/Opens/Basic.lean`, which `CompactSupport/Vanishing.lean`
    imports.
@@ -884,7 +885,7 @@ issues, in an order where each issue's blockers come before it.
    `TauCeti.HomologicalOrientation.bijective_dualityMap`, for every
    homologically oriented manifold, compact or not, and for compact `M` its
    form for capping with the fundamental class,
-   `bijective_singularCap_fundamentalClass`. It imports
+   `bijective_singularCap_fundamentalClass`. It uses
    `AlgebraicTopology/Cohomology/CompactSupport/Manifold.lean`, which proves
    `TopCat.isZero_compactSupportCohomology_of_chartedSpace`, `Hᵐ_c(M) = 0`
    above the dimension, which the Mayer–Vietoris step needs for the
@@ -892,7 +893,7 @@ issues, in an order where each issue's blockers come before it.
    one chart instead of those with convex image; that family comes from
    `Geometry/Manifold/ChartedSpace.lean`:
    `TopologicalSpace.Opens.infClosed_setOf_subset_chartAt_source` and
-   `TopologicalSpace.Opens.iSup_finset_sup_subset_chartAt_source_eq_top`.
+   `TopologicalSpace.Opens.sSup_setOf_subset_chartAt_source_eq_top`.
 3. **The unit circle bundle of a Hermitian line bundle.**
    `Geometry/Manifold/VectorBundle/Hermitian/CircleBundle.lean`, the file
    of *Symplectic vector bundles* (its section *The circle bundle of a
@@ -1262,7 +1263,12 @@ issues, in an order where each issue's blockers come before it.
    surface sits in it as an open subset) and the data
    `SymplecticGeometry.capDiscs.coordinateDisc`, the caps as coordinate
    discs. Blocked by the issue of *Symplectic vector bundles*
-   that fixes that representation, and by 5. The gluing uses polar
+   that fixes that representation, and by 5. The tangent orientation of
+   a restricted orientation `TauCeti.Manifold.Orientation.restrict` at a
+   point of an open subset is that of the ambient orientation there
+   (`TauCeti.Manifold.Orientation.orientationAt_restrict`), in
+   `Geometry/Manifold/Orientation/OpenSubset.lean`, the library's
+   counterpart of Tau Ceti's file of that name. The gluing uses polar
    coordinates on the circle,
    `AddCircle.isLocalDiffeomorphAt_ofReal_mul_toCircle`, in
    `Geometry/Manifold/Instances/AddCircle.lean`. The orientation of the
