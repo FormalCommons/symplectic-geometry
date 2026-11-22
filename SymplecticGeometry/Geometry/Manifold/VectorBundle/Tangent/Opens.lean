@@ -19,6 +19,13 @@ tangent bundle of `U`, the family on `N × M` is smooth on `N × U`
 (`TauCeti.Manifold.contMDiffOn_tangentSpaceOpenEquiv_dite`). With `N = ℝ`, this moves a
 time-dependent vector field on `U` to `M`.
 
+Conversely, a smooth family of tangent vectors of `M` along a map `f : N → U`, read in the tangent
+spaces of `U`, is smooth as a map into the tangent bundle of `U`
+(`TauCeti.Manifold.contMDiff_tangentSpaceOpenEquiv_symm`). With `N = ℝ × U` and `f = Prod.snd`,
+this restricts a time-dependent vector field on `M` to `U`. Its proof compares the coordinates of
+a vector in the tangent charts of `U` and of `M`, as the proof of Tau Ceti's
+`TauCeti.Manifold.inCoordinates_openTangentSpaceHom_eq` does for linear maps.
+
 The proof of `TauCeti.Manifold.contMDiffOn_tangentSpaceOpenEquiv_dite` adapts that of
 `TauCeti.IsContactDistributionFamily.contMDiff_distributionGrayVectorField`, in Tau Ceti's file
 `TauCeti/Geometry/Contact/Gray/Distribution.lean` at commit
@@ -64,6 +71,38 @@ theorem contMDiffOn_tangentSpaceOpenEquiv_dite {U : Opens M} {Y : (p : N × U) �
     ((hcomp ⟨p, hp⟩).congr_of_eventuallyEq (.of_forall fun q ↦ ?_)) |>.contMDiffWithinAt
   have hq : (q : N × M).2 ∈ U := q.property
   simp only [Function.comp_apply, tangentMap_subtype_val, φ, hq, ↓reduceDIte]
+
+/-- **A tangent vector field of `M`, read on an open subset.** Let `f : N → U` be a map into an
+open subset `U` of `M` and `V z ∈ T_{f z} M` a family of tangent vectors of `M` along it, smooth
+as a map into the tangent bundle of `M`. Then the same vectors, read in the tangent spaces of `U`
+through `tangentSpaceOpenEquiv`, form a smooth map into the tangent bundle of `U`. With
+`N = ℝ × U` and `f = Prod.snd`, this restricts a smooth time-dependent vector field to `U`. -/
+theorem contMDiff_tangentSpaceOpenEquiv_symm {U : Opens M} {f : N → U}
+    {V : (z : N) → TangentSpace I (f z : M)}
+    (hV : ContMDiff J I.tangent ∞ fun z ↦ (⟨f z, V z⟩ : TangentBundle I M)) :
+    ContMDiff J I.tangent ∞ fun z ↦
+      (⟨f z, (tangentSpaceOpenEquiv (f z)).symm (V z)⟩ : TangentBundle I U) := by
+  intro z₀
+  have h := contMDiffAt_totalSpace_iff.1 (hV z₀)
+  have hf := (ContMDiffAt.subtypeVal_comp_iff U f z₀).1 h.1
+  refine contMDiffAt_totalSpace_iff.2 ⟨hf, h.2.congr_of_eventuallyEq ?_⟩
+  set tU := trivializationAt E (TangentSpace I : U → Type _) (f z₀)
+  set tM := trivializationAt E (TangentSpace I : M → Type _) (f z₀ : M)
+  -- Near `z₀`, the coordinates of a vector of `U` in the chart of `U` are those of the same vector
+  -- of `M` in the chart of `M`.
+  filter_upwards [hf.continuousAt.eventually
+      (eventually_tangentSpaceOpenEquiv_symmL_trivializationAt_eq (I := I) (f z₀)),
+    hf.continuousAt.eventually (tU.open_baseSet.mem_nhds (mem_baseSet_trivializationAt E _ _)),
+    (continuousAt_subtypeVal.comp hf.continuousAt).eventually
+      (tM.open_baseSet.mem_nhds (mem_baseSet_trivializationAt E _ _))] with z hs hU hM
+  rw [← tU.continuousLinearMapAt_apply_of_mem (R := ℝ) hU,
+    ← tM.continuousLinearMapAt_apply_of_mem (R := ℝ) (b := (f z : M)) hM]
+  have hw : (tangentSpaceOpenEquiv (I := I) (f z)).symm (V z) =
+      tU.symmL ℝ (f z) (tM.continuousLinearMapAt ℝ (f z : M) (V z)) := by
+    apply (tangentSpaceOpenEquiv (I := I) (f z)).injective
+    rw [ContinuousLinearEquiv.apply_symm_apply, hs]
+    exact (tM.symmL_continuousLinearMapAt hM (V z)).symm
+  rw [hw, tU.continuousLinearMapAt_symmL hU]
 
 end TauCeti.Manifold
 
