@@ -24,12 +24,13 @@ the underlying real manifolds.
   (`contMDiff_puncturedSpaceOfReal`), its derivative is again the inclusion of real vectors
   (`mfderiv_puncturedSpaceOfReal_apply`), and it lifts the change of field:
   `ofRealHom.mapProjective (mkNonzero ℝ n x) = mkNonzero ℂ n (puncturedSpaceOfReal n x)`
-  (`mapProjective_ofReal_mkNonzero`).
+  (`mapProjective_ofReal_mkNonzero`, `mapProjective_ofReal_comp_mkNonzero`).
 * `Projectivization.isSmoothEmbedding_mapProjective_ofReal`: the change of field from `ℝ` to `ℂ`
   is a smooth embedding of `ℝPⁿ` into `ℂPⁿ`. Through the submersion `mkNonzero ℝ n` it is an
   immersion, by Tau Ceti's `Manifold.IsSubmersion.isImmersion_iff_ker_mfderiv_comp`, since a real
-  vector lies on the complex line of a real vector `x` exactly when it lies on its real line. It
-  is injective, and a closed map since `ℝPⁿ` is compact.
+  vector lies on the complex line of a real vector `x` exactly when it lies on its real line
+  (`Complex.ofReal_mem_span_singleton_iff`, derived from Tau Ceti's
+  `RingHom.mapProjective_injective`). It is injective, and a closed map since `ℝPⁿ` is compact.
 
 ## References
 
@@ -41,6 +42,28 @@ public section
 
 open Function Manifold TauCeti
 open scoped Manifold ContDiff LinearAlgebra.Projectivization
+
+namespace Complex
+
+/-- A real vector `v` lies on the complex line through a real vector `x` exactly when it lies on
+the real line through `x`. -/
+theorem ofReal_mem_span_singleton_iff {ι : Type*} (x v : ι → ℝ) :
+    (fun i ↦ (v i : ℂ)) ∈ ℂ ∙ (fun i ↦ (x i : ℂ)) ↔ v ∈ ℝ ∙ x := by
+  rcases eq_or_ne v 0 with rfl | hv
+  · simp only [Pi.zero_apply, Complex.ofReal_zero]
+    exact iff_of_true (Submodule.zero_mem _) (Submodule.zero_mem _)
+  rcases eq_or_ne x 0 with rfl | hx
+  · have h0 : (fun i ↦ ((0 : ι → ℝ) i : ℂ)) = 0 := funext fun _ ↦ by simp
+    rw [h0, Submodule.span_singleton_eq_bot.2 rfl, Submodule.span_singleton_eq_bot.2 rfl,
+      Submodule.mem_bot, Submodule.mem_bot]
+    exact iff_of_false (fun h ↦ hv (funext fun i ↦ by simpa using congrFun h i)) hv
+  have h := (RingHom.mapProjective_injective Complex.ofRealHom).eq_iff
+    (a := Projectivization.mk ℝ v hv) (b := Projectivization.mk ℝ x hx)
+  simp only [RingHom.mapProjective_mk, Projectivization.mk_eq_mk_iff'] at h
+  simp only [Submodule.mem_span_singleton, ← h]
+  rfl
+
+end Complex
 
 namespace Projectivization
 
@@ -93,23 +116,11 @@ theorem mapProjective_ofReal_mkNonzero (x : puncturedSpace (Fin (n + 1) → ℝ)
     Complex.ofRealHom.mapProjective (mkNonzero ℝ n x) = mkNonzero ℂ n (puncturedSpaceOfReal n x) :=
   by rw [mkNonzero_apply, mkNonzero_apply, RingHom.mapProjective_mk]; rfl
 
-/-- A real vector `v` lies on the complex line through a nonzero real vector `x` exactly when it
-lies on the real line through `x`. -/
-theorem ofReal_mem_span_singleton_iff (x : puncturedSpace (Fin (n + 1) → ℝ))
-    (v : Fin (n + 1) → ℝ) :
-    (fun i ↦ (v i : ℂ)) ∈ ℂ ∙ (puncturedSpaceOfReal n x : Fin (n + 1) → ℂ) ↔
-      v ∈ ℝ ∙ (x : Fin (n + 1) → ℝ) := by
-  simp only [Submodule.mem_span_singleton, coe_puncturedSpaceOfReal]
-  refine ⟨fun ⟨c, hc⟩ ↦ ?_, fun ⟨a, ha⟩ ↦ ⟨a, funext fun i ↦ by simp [← ha]⟩⟩
-  obtain ⟨j, hj⟩ := Function.ne_iff.1 (mem_puncturedSpace.1 x.property)
-  have hcj : c = (v j / (x : Fin (n + 1) → ℝ) j : ℝ) := by
-    have h := congrFun hc j
-    simp only [Pi.smul_apply, smul_eq_mul] at h
-    rw [Complex.ofReal_div, ← h, mul_div_cancel_right₀ _ (by exact_mod_cast hj)]
-  refine ⟨v j / (x : Fin (n + 1) → ℝ) j, funext fun i ↦ Complex.ofReal_injective ?_⟩
-  have h := congrFun hc i
-  simp only [Pi.smul_apply, smul_eq_mul, hcj] at h
-  simpa using h
+/-- The change of field, read on `ℝⁿ⁺¹ ∖ 0`: it sends the real line through `x` to the complex
+line through `x`. -/
+theorem mapProjective_ofReal_comp_mkNonzero :
+    Complex.ofRealHom.mapProjective ∘ mkNonzero ℝ n = mkNonzero ℂ n ∘ puncturedSpaceOfReal n :=
+  funext mapProjective_ofReal_mkNonzero
 
 variable (n) in
 /-- The change of field `ℝPⁿ → ℂPⁿ`, `[x] ↦ [x]`, is a smooth embedding of the underlying real
@@ -117,23 +128,21 @@ manifolds. -/
 theorem isSmoothEmbedding_mapProjective_ofReal :
     IsSmoothEmbedding 𝓘(ℝ, Fin n → ℝ) 𝓘(ℝ, Fin n → ℂ) ∞
       (Complex.ofRealHom.mapProjective : ℙ ℝ (Fin (n + 1) → ℝ) → ℙ ℂ (Fin (n + 1) → ℂ)) := by
-  have hcomp : Complex.ofRealHom.mapProjective ∘ mkNonzero ℝ n =
-      mkNonzero ℂ n ∘ puncturedSpaceOfReal n :=
-    funext mapProjective_ofReal_mkNonzero
   have hι := contMDiff_puncturedSpaceOfReal n ∞
   have himm : IsImmersion 𝓘(ℝ, Fin n → ℝ) 𝓘(ℝ, Fin n → ℂ) ∞
       (Complex.ofRealHom.mapProjective : ℙ ℝ (Fin (n + 1) → ℝ) → ℙ ℂ (Fin (n + 1) → ℂ)) := by
     refine ((isSubmersion_mkNonzero ℝ n).isImmersion_iff_ker_mfderiv_comp
       (surjective_mkNonzero ℝ n) (by simp)).2 ⟨?_, fun x ↦ ?_⟩
-    · rw [hcomp]
+    · rw [mapProjective_ofReal_comp_mkNonzero]
       exact (contMDiff_mkNonzero ℂ n ∞).comp hι
     · ext v
-      rw [hcomp, mfderiv_comp x ((contMDiff_mkNonzero ℂ n 1 _).mdifferentiableAt one_ne_zero)
-        ((hι x).mdifferentiableAt (by simp))]
+      rw [mapProjective_ofReal_comp_mkNonzero,
+        mfderiv_comp x ((contMDiff_mkNonzero ℂ n 1 _).mdifferentiableAt one_ne_zero)
+          ((hι x).mdifferentiableAt (by simp))]
       have h₁ := ker_mfderiv_mkNonzero (𝕜 := ℂ) (puncturedSpaceOfReal n x)
       have h₂ := ker_mfderiv_mkNonzero (𝕜 := ℝ) x
       rw [h₂]
-      refine Iff.trans ?_ (ofReal_mem_span_singleton_iff x v)
+      refine Iff.trans ?_ (Complex.ofReal_mem_span_singleton_iff _ v)
       have h := SetLike.ext_iff.1 h₁
         ((ContinuousLinearMap.piMap fun _ : Fin (n + 1) ↦ Complex.ofRealCLM) v)
       rw [LinearMap.mem_ker, ContinuousLinearMap.coe_coe, ContinuousLinearMap.comp_apply,

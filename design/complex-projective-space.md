@@ -477,7 +477,9 @@ In namespace `Projectivization`:
   representatives of equal moduli), `isSmoothEmbedding_cliffordTorus` and
   `isLagrangianEmbedding_cliffordTorus` (part 6). Isotropy holds upstairs:
   at $z=(1,e^{i\theta})$ the tangent vectors $(0,ia_ke^{i\theta_k})_k$ have
-  $\omega_0=0$ and $\langle z,\cdot\rangle=0$.
+  $\omega_0=0$ and $\langle z,\cdot\rangle=0$. The smoothness of
+  `AddCircle.toCircle`, `AddCircle.contMDiff_toCircle`, comes from
+  `Geometry/Manifold/Instances/AddCircle.lean` of *First Chern number*.
 - `fubiniStudyForm_spec`: the conjunction of parts 1–6, with the milestone
   line.
 
@@ -491,6 +493,9 @@ In namespace `Projectivization`:
 - *Complex submanifolds* (issue #864, `Geometry/Symplectic/Manifold/AlmostComplex/Submanifold.lean`):
   only for `isKahler_mpullback_fubiniStudyForm`, through its restricted
   structure and its transfer of `IsKahler` and symplecticity.
+- *First Chern number* (`Geometry/Manifold/Instances/AddCircle.lean`):
+  only `AddCircle.contMDiff_toCircle`, for the Clifford torus in
+  `FubiniStudy/Lagrangian.lean`.
 
 Mathlib and Tau Ceti were searched, at the pinned versions, for a smooth or
 submersive Hopf map, a Fubini–Study form on $\mathbb CP^n$ for $n\ge2$, a

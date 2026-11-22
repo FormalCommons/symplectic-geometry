@@ -7,6 +7,7 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.Projectivization.BaseChange
 public import SymplecticGeometry.Geometry.Manifold.Projectivization.FubiniStudy.Basic
+public import SymplecticGeometry.Geometry.Manifold.Instances.AddCircle
 public import TauCeti.Geometry.Manifold.Instances.AddCircle.Torus
 public import TauCeti.Geometry.Symplectic.Lagrangian.Embedding.Basic
 import Mathlib.Analysis.SpecialFunctions.ExpDeriv
@@ -38,8 +39,6 @@ submanifolds of `(ℂPⁿ, ω_FS)`.
   (`isLagrangianEmbedding_cliffordTorus`): at `z = (1, e^{iθ})` the derivative of the lift sends
   `a` to `(0, i a_k e^{iθ_k})_k`, whose coordinates are real multiples of `i zⱼ`, so that `ρ`
   vanishes on them.
-
-The map `AddCircle.toCircle : AddCircle p → ℂ` is smooth (`AddCircle.contMDiff_toCircle`).
 
 ## References
 
@@ -79,24 +78,6 @@ theorem isIsotropicMap_of_comp (hq : Surjective q) (hdq : ∀ x, Surjective (mfd
 
 end TauCeti.SmoothTwoForm.IsNondegenerate
 
-namespace AddCircle
-
-variable {p : ℝ} [Fact (0 < p)]
-
-/-- The map `AddCircle p → ℂ`, `[t] ↦ exp (2π i t / p)`, given by `AddCircle.toCircle`, is smooth
-of every order. -/
-theorem contMDiff_toCircle (r : ℕ∞ω) :
-    ContMDiff 𝓘(ℝ) 𝓘(ℝ, ℂ) r fun x : AddCircle p ↦ (toCircle x : ℂ) := by
-  rw [← (isLocalDiffeomorph_coe p r).contMDiff_comp_iff QuotientAddGroup.mk_surjective le_rfl]
-  have h : (fun x : AddCircle p ↦ (toCircle x : ℂ)) ∘ ((↑) : ℝ → AddCircle p) =
-      fun t ↦ Complex.exp (((2 * π / p * t : ℝ) : ℂ) * Complex.I) :=
-    funext fun t ↦ by rw [comp_apply, toCircle_apply_mk, Circle.coe_exp]
-  rw [h]
-  exact ContDiff.contMDiff (Complex.contDiff_exp.comp
-    ((Complex.ofRealCLM.contDiff.comp (contDiff_const.mul contDiff_id)).mul contDiff_const))
-
-end AddCircle
-
 namespace SymplecticGeometry
 
 /-! ### Isotropic maps through `ℂⁿ⁺¹ ∖ 0` -/
@@ -107,8 +88,8 @@ variable {n : ℕ} {F H' N : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] [
   {J : ModelWithCorners ℝ F H'} [TopologicalSpace N] [ChartedSpace H' N]
 
 /-- A map `x ↦ [G x]` into `ℂPⁿ`, for a differentiable map `G` into `ℂⁿ⁺¹ ∖ 0`, is isotropic for
-the Fubini–Study form exactly when `ρ` vanishes on every pair of tangent vectors in the image of
-the derivative of `G`. -/
+the Fubini–Study form exactly when `fubiniStudyLift n` vanishes on every pair of tangent vectors in
+the image of the derivative of `G`. -/
 theorem isIsotropicMap_mkNonzero_comp_iff {G : N → puncturedSpace (Fin (n + 1) → ℂ)}
     (hG : MDifferentiable J 𝓘(ℝ, Fin (n + 1) → ℂ) G) :
     (isSymplectic_fubiniStudyForm n).isNondegenerate.IsIsotropicMap J (mkNonzero ℂ n ∘ G) ↔
@@ -138,24 +119,19 @@ theorem isLagrangianEmbedding_mapProjective_ofReal :
     ((isSubmersion_mkNonzero ℝ n).surjective_mfderiv (by simp))
     (he.isImmersion.contMDiff.mdifferentiable (by simp))
     ((contMDiff_mkNonzero ℝ n 1).mdifferentiable one_ne_zero) ?_
-  have hcomp : Complex.ofRealHom.mapProjective ∘ mkNonzero ℝ n =
-      mkNonzero ℂ n ∘ puncturedSpaceOfReal n :=
-    funext mapProjective_ofReal_mkNonzero
-  rw [hcomp, isIsotropicMap_mkNonzero_comp_iff
+  rw [mapProjective_ofReal_comp_mkNonzero, isIsotropicMap_mkNonzero_comp_iff
     ((contMDiff_puncturedSpaceOfReal n 1).mdifferentiable one_ne_zero)]
-  intro x v w
-  rw [fubiniStudyLift_apply]
-  simp only [mfderiv_puncturedSpaceOfReal_apply]
   -- Read the tangent vectors as vectors of `Fin (n + 1) → ℝ`, to apply linear maps to them.
-  revert v w
-  intro (v : Fin (n + 1) → ℝ) (w : Fin (n + 1) → ℝ)
+  intro x (v : Fin (n + 1) → ℝ) (w : Fin (n + 1) → ℝ)
+  rw [fubiniStudyLift_apply, mfderiv_puncturedSpaceOfReal_apply x v,
+    mfderiv_puncturedSpaceOfReal_apply x w]
   set L := ContinuousLinearMap.piMap fun _ : Fin (n + 1) ↦ Complex.ofRealCLM
   -- `ω₀` vanishes on pairs of real vectors.
   have h (a b : Fin (n + 1) → ℝ) : stdComplexPiSymplecticForm (Fin (n + 1)) (L a) (L b) = 0 :=
     isLagrangian_stdComplexPiSymplecticForm_range_ofReal.symplecticForm_apply_eq_zero
       ⟨a, rfl⟩ ⟨b, rfl⟩
   have hx : (puncturedSpaceOfReal n x : Fin (n + 1) → ℂ) = L x := funext fun i ↦ by simp [L]
-  beta_reduce at h
+  beta_reduce at h ⊢
   rw [hx, h, h, h]
   simp
 
