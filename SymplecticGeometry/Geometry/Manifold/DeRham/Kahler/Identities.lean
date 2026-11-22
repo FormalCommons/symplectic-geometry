@@ -13,15 +13,11 @@ public import TauCeti.Geometry.Manifold.Riemannian.HodgeStar
 public import TauCeti.Geometry.Manifold.TwoForm.Basic
 public import SymplecticGeometry.Geometry.Manifold.Complex.Integrable
 public import TauCeti.Geometry.Manifold.Riemannian.Codifferential
-import SymplecticGeometry.Analysis.Normed.Module.Alternating.Derivation
+public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.PartialDiffeomorph
 import SymplecticGeometry.Geometry.Manifold.Complex.KahlerCoordinates
 import SymplecticGeometry.Geometry.Manifold.DeRham.Hodge.Chart
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.AlmostComplexType
-import SymplecticGeometry.Geometry.Manifold.DifferentialForm.PartialDiffeomorph
-import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.MFDeriv
-import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Chart
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Metric
-import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Metric.FromTauCeti
 
 /-!
 # The Lefschetz operator on smooth forms, and the Hodge star against `𝒥`
@@ -66,8 +62,13 @@ identity becomes the linear Kähler identity for `B`,
   derivation `𝒜` of a skew-adjoint endomorphism field.
 * `TauCeti.SmoothTwoForm.lefschetz_codifferential_sub`: the first-order Kähler identity
   `L d^* α - d^* L α = -(𝒥 dα - d 𝒥 α)`, with its edge cases
-  `TauCeti.SmoothTwoForm.lefschetz_codifferential_of_lt` above the middle degrees and
-  `TauCeti.SmoothTwoForm.codifferential_lefschetz` on functions.
+  `TauCeti.SmoothTwoForm.lefschetz_codifferential_of_lt` in the top degrees `m - 1` and `m`, where
+  `L α = 0`, and `TauCeti.SmoothTwoForm.codifferential_lefschetz` on functions.
+* `TauCeti.SmoothTwoForm.symbolInChart_lefschetz`: where `σ` read in a chart has derivative zero,
+  the derivative of `L β` read in the chart, carried to the tangent space by
+  `TauCeti.symbolInChart`, is the linear Lefschetz operator applied to that of `β`.
+* `TauCeti.formHodgeStarCLM_eq_formHodgeStar`: Tau Ceti's fibrewise Hodge star is the Hodge star
+  of the tangent space, as a continuous linear map.
 
 ## References
 
@@ -159,84 +160,37 @@ end TauCeti.SmoothForm
 
 /-! ### The first-order Kähler identity -/
 
+namespace TauCeti
+
+variable [FiniteDimensional ℝ E] [RiemannianBundle (fun x : M ↦ TangentSpace I x)] {m l : ℕ}
+
+/-- The fibrewise Hodge star `formHodgeStarCLM` at `x` is the Hodge star
+`Orientation.formHodgeStar` of the tangent space at `x`, for the orientation that `o` gives it,
+as a continuous linear map. -/
+theorem formHodgeStarCLM_eq_formHodgeStar (o : Manifold.Orientation I M (Fin m))
+    (hkl : k + l = m) (x : M) :
+    formHodgeStarCLM o hkl x =
+      (letI := o.fact_finrank_tangentSpace x
+       ((o.orientationAt x).formHodgeStar (hkl.trans (o.fact_finrank_tangentSpace x).out.symm)
+         ).toContinuousLinearEquiv.toContinuousLinearMap) :=
+  ContinuousLinearMap.ext fun a ↦ formHodgeStarCLM_apply o hkl x a
+
+end TauCeti
+
 namespace TauCeti.SmoothTwoForm
 
 open _root_.ContinuousAlternatingMap Module SymplecticGeometry
 
-variable {m j l l' : ℕ}
+variable {m j l l' : ℕ} [RiemannianBundle (fun x : M ↦ TangentSpace I x)]
 
-/-- The derivative at `y` of the reading of `φ` in the chart `ψ`, transported to the tangent space
-at `ψ.symm y` along the differential of `ψ`. At `ψ.symm y`, `d φ` is its alternation, and the
-codifferential is computed from it where the metric in the chart has derivative zero. -/
-private def symbolInChart (ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞) (φ : SmoothForm I M ℝ j)
-    (y : E) : TangentSpace I (ψ.symm y) →L[ℝ] TangentSpace I (ψ.symm y) [⋀^Fin j]→L[ℝ] ℝ :=
-  compContinuousLinearMapCLM
-      (mfderiv I 𝓘(ℝ, E) ψ (ψ.symm y) : TangentSpace I (ψ.symm y) →L[ℝ] E) ∘L
-    fderiv ℝ (F := E [⋀^Fin j]→L[ℝ] ℝ) (mpullback 𝓘(ℝ, E) I ψ.symm φ.val) y ∘L
-      (mfderiv I 𝓘(ℝ, E) ψ (ψ.symm y) : TangentSpace I (ψ.symm y) →L[ℝ] E)
-
-private theorem symbolInChart_apply (ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞)
-    (φ : SmoothForm I M ℝ j) (y : E) (v : TangentSpace I (ψ.symm y)) :
-    symbolInChart ψ φ y v =
-      (fderiv ℝ (F := E [⋀^Fin j]→L[ℝ] ℝ) (mpullback 𝓘(ℝ, E) I ψ.symm φ.val) y
-        (mfderiv I 𝓘(ℝ, E) ψ (ψ.symm y) v)).compContinuousLinearMap
-        (mfderiv I 𝓘(ℝ, E) ψ (ψ.symm y) : TangentSpace I (ψ.symm y) →L[ℝ] E) :=
-  (rfl)
-
-variable [RiemannianBundle (fun x : M ↦ TangentSpace I x)]
-
-/-- The exterior derivative at `ψ.symm y` is the alternation of the symbol in the chart. -/
-private theorem val_mextDerivₗ_symm (ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞)
-    (φ : SmoothForm I M ℝ j) {y : E} (hy : y ∈ ψ.target) :
-    (mextDerivₗ I j φ).val (ψ.symm y) = alternatizeUncurryFin (symbolInChart ψ φ y) := by
-  rw [← mpullback_symm_compContinuousLinearMap_mfderiv ψ (by simp) (mextDerivₗ I j φ).val hy,
-    mextDerivₗ_apply, mpullback_symm_mextDeriv ψ φ hy]
-  -- `extDeriv` is the alternation of the derivative.
-  exact alternatizeUncurryFin_compContinuousLinearMap (𝕜 := ℝ) (E := E)
-    (fderiv ℝ (F := E [⋀^Fin j]→L[ℝ] ℝ) (mpullback 𝓘(ℝ, E) I ψ.symm φ.val) y) _
-
-variable [FiniteDimensional ℝ E]
-
-/-- Where the metric in the chart has derivative zero, the codifferential at `ψ.symm y` is the
-symbol of `d^*` applied to the symbol in the chart, `± ⋆ Alt (⋆ ∘ B)`. -/
-private theorem val_codifferential_symm
-    [IsContMDiffRiemannianBundle I ∞ E (fun x : M ↦ TangentSpace I x)]
-    (o : Manifold.Orientation I M (Fin m))
-    (ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞) (hkl : k + 1 + l = m) (hlk : l + 1 + k = m)
-    (β : SmoothForm I M ℝ (k + 1)) {y : E} (hy : y ∈ ψ.target)
-    (h : fderiv ℝ (gramInChart ψ) y = 0) :
-    (SmoothForm.codifferential o hkl β).val (ψ.symm y) =
-      (-1 : ℝ) ^ (m * (k + 2) + 1) • formHodgeStarCLM o hlk (ψ.symm y)
-        (alternatizeUncurryFin (formHodgeStarCLM o hkl (ψ.symm y) ∘L symbolInChart ψ β y)) := by
-  -- The step on `E`, for a map `T` that intertwines the two stars, and the derivative `C`.
-  have key (T : TangentSpace I (ψ.symm y) →L[ℝ] E)
-      (hT : ∀ {i i' : ℕ} (hii' : i + i' = m) (a : E [⋀^Fin i]→L[ℝ] ℝ),
-        (hodgeStarInChart o ψ hii' y a).compContinuousLinearMap T =
-          formHodgeStarCLM o hii' (ψ.symm y) (a.compContinuousLinearMap T))
-      (C : E →L[ℝ] E [⋀^Fin (k + 1)]→L[ℝ] ℝ) :
-      ((-1 : ℝ) ^ (m * (k + 2) + 1) • hodgeStarInChart o ψ hlk y
-        (alternatizeUncurryFin (hodgeStarInChart o ψ hkl y ∘L C))).compContinuousLinearMap T =
-      (-1 : ℝ) ^ (m * (k + 2) + 1) • formHodgeStarCLM o hlk (ψ.symm y)
-        (alternatizeUncurryFin (formHodgeStarCLM o hkl (ψ.symm y) ∘L
-          (compContinuousLinearMapCLM T ∘L C ∘L T))) := by
-    rw [← compContinuousLinearMapCLM_apply, map_smul, compContinuousLinearMapCLM_apply, hT,
-      alternatizeUncurryFin_compContinuousLinearMap]
-    congr 3
-    ext v w
-    simp only [ContinuousLinearMap.comp_apply, compContinuousLinearMapCLM_apply, hT]
-  rw [← mpullback_symm_compContinuousLinearMap_mfderiv ψ (by simp)
-      (SmoothForm.codifferential o hkl β).val hy,
-    mpullback_symm_codifferential_of_fderiv_gramInChart_eq_zero o ψ hkl hlk β hy h]
-  exact key _ (fun hii' a ↦ compContinuousLinearMap_hodgeStarInChart o ψ hii' hy a) _
-
-omit [FiniteDimensional ℝ E] in
-/-- Where the reading of `σ` in the chart has derivative zero, the symbol of `L β` is the wedge of
-the symbol of `β` with `σ`. -/
-private theorem symbolInChart_lefschetz_apply (ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞)
+/-- Where the reading of `σ` in the chart has derivative zero, `symbolInChart` carries `L β` to
+the wedge of `symbolInChart` of `β` with `σ`. -/
+theorem symbolInChart_lefschetz_apply (ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞)
     (σ : SmoothTwoForm I M) (β : SmoothForm I M ℝ j) {y : E} (hy : y ∈ ψ.target)
     (hσ : fderiv ℝ (F := E [⋀^Fin 2]→L[ℝ] ℝ) (mpullback 𝓘(ℝ, E) I ψ.symm σ.val) y = 0)
     (v : TangentSpace I (ψ.symm y)) :
-    symbolInChart ψ (σ.lefschetz β) y v = (symbolInChart ψ β y v).wedge (σ.val (ψ.symm y)) := by
+    symbolInChart ψ (σ.lefschetz β).val y v =
+      (symbolInChart ψ β.val y v).wedge (σ.val (ψ.symm y)) := by
   -- The step on `E`, for the value `b` and derivative `D` of `β` read in the chart, the value `Ω`
   -- and derivative `D₂` of `σ`, and the derivative `D'` of `β ∧ σ`.
   have key (T : TangentSpace I (ψ.symm y) →L[ℝ] E) (Ω : E [⋀^Fin 2]→L[ℝ] ℝ)
@@ -247,54 +201,26 @@ private theorem symbolInChart_lefschetz_apply (ψ : PartialDiffeomorph I 𝓘(�
       (D' (T v)).compContinuousLinearMap T =
         ((D (T v)).compContinuousLinearMap T).wedge (σ.val (ψ.symm y)) := by
     rw [hD, hD₂, zero_apply, wedge_zero_right, add_zero, ← hT, wedge_compContinuousLinearMap]
+  rw [symbolInChart_apply, symbolInChart_apply]
   refine key _ _ (mpullback_symm_compContinuousLinearMap_mfderiv ψ (by simp) σ.val hy)
     (mpullback 𝓘(ℝ, E) I ψ.symm β.val y) _ _ hσ _ fun u ↦ ?_
   rw [lefschetz_apply]
   exact fderiv_mpullback_symm_wedge_apply ψ β σ hy u
 
-omit [FiniteDimensional ℝ E] in
-/-- In a chart in which `J` is a constant `A₀`, the symbol of `𝒥 β` is the derivation of
-`J (ψ.symm y)` applied to the symbol of `β`. -/
-private theorem symbolInChart_realAlternatingDerivation_apply
-    (J : SmoothAlmostComplexStructure I M)
-    (ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞) {A₀ : E →L[ℝ] E}
-    (hψ : ∀ p ∈ ψ.target, ∀ w, J.chartPushforward ψ.toOpenPartialHomeomorph p w = A₀ w)
-    (β : SmoothForm I M ℝ j) {y : E} (hy : y ∈ ψ.target) (v : TangentSpace I (ψ.symm y)) :
-    symbolInChart ψ (J.toEndomorphism.realAlternatingDerivation β) y v =
-      (symbolInChart ψ β y v).fderivCompContinuousLinearMap (.id ℝ _)
-        (J.toEndomorphism (ψ.symm y)) := by
-  -- The step on `E`, for a map `T` that intertwines `A₀` and `J`.
-  have key (T : TangentSpace I (ψ.symm y) →L[ℝ] E)
-      (hT : A₀ ∘L T = T ∘L J.toEndomorphism (ψ.symm y)) (D D' : E →L[ℝ] E [⋀^Fin j]→L[ℝ] ℝ)
-      (hD : ∀ u, D' u = (D u).fderivCompContinuousLinearMap (.id ℝ E) A₀) :
-      (D' (T v)).compContinuousLinearMap T =
-        ((D (T v)).compContinuousLinearMap T).fderivCompContinuousLinearMap (.id ℝ _)
-          (J.toEndomorphism (ψ.symm y)) := by
-    rw [hD, compContinuousLinearMap_fderivCompContinuousLinearMap_id _ hT]
-  refine key _ ?_ _ _ (fderiv_mpullback_symm_realAlternatingDerivation_apply J ψ hψ β hy)
-  ext u
-  set e := ψ.mfderivSymmEquiv (by simp) hy
-  have h1 := (congrArg (mfderiv 𝓘(ℝ, E) I ψ.symm y) (hψ y hy (e.symm u))).symm.trans
-    (J.mfderiv_symm_apply_chartPushforward_apply ψ hy (e.symm u))
-  rw [← ψ.coe_mfderivSymmEquiv (by simp) hy] at h1
-  have hT (w : TangentSpace I (ψ.symm y)) : mfderiv I 𝓘(ℝ, E) ψ (ψ.symm y) w = e.symm w :=
-    (congrFun (ψ.coe_mfderivSymmEquiv_symm (by simp) hy) w).symm
-  exact (congrArg A₀ (hT u)).trans (((e.symm_apply_apply _).symm.trans
-    (congrArg e.symm (h1.trans (congrArg _ (e.apply_symm_apply u))))).trans (hT _).symm)
+variable [FiniteDimensional ℝ E] {σ : SmoothTwoForm I M} {J : SmoothAlmostComplexStructure I M}
 
-variable {σ : SmoothTwoForm I M} {J : SmoothAlmostComplexStructure I M}
-
-/-- Under `⟪v, w⟫ = σ(v, J w)`, the symbol of `L β` is the Lefschetz operator of `J` at
-`ψ.symm y` composed with the symbol of `β`, where the reading of `σ` has derivative zero. -/
-private theorem symbolInChart_lefschetz
+/-- Under `⟪v, w⟫ = σ(v, J w)`, where the reading of `σ` in the chart has derivative zero,
+`symbolInChart` carries `L β` to the Lefschetz operator of `J` at `ψ.symm y` composed with
+`symbolInChart` of `β`. -/
+theorem symbolInChart_lefschetz
     (hg : ∀ x (v w : TangentSpace I x), ⟪v, w⟫ = σ.eval₂ x v (J x w))
     (ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞) (β : SmoothForm I M ℝ j) {y : E}
     (hy : y ∈ ψ.target)
     (hσ : fderiv ℝ (F := E [⋀^Fin 2]→L[ℝ] ℝ) (mpullback 𝓘(ℝ, E) I ψ.symm σ.val) y = 0) :
-    symbolInChart ψ (σ.lefschetz β) y =
+    symbolInChart ψ (σ.lefschetz β).val y =
       (letI : FiniteDimensional ℝ (TangentSpace I (ψ.symm y)) :=
         VectorBundle.finiteDimensional ℝ E (TangentSpace I) (ψ.symm y)
-       (J.almostComplexStructureAt (ψ.symm y)).lefschetz ∘L symbolInChart ψ β y) := by
+       (J.almostComplexStructureAt (ψ.symm y)).lefschetz ∘L symbolInChart ψ β.val y) := by
   ext1 v
   rw [symbolInChart_lefschetz_apply ψ σ β hy hσ v, ContinuousLinearMap.comp_apply,
     AlmostComplexStructure.lefschetz_apply, val_eq_alternatingFormEquiv_kahlerForm hg]
@@ -334,47 +260,40 @@ theorem lefschetz_codifferential_sub (o : Manifold.Orientation I M (Fin m))
       -(J.toEndomorphism.realAlternatingDerivation (mextDerivₗ I (k + 1) α) -
         mextDerivₗ I (k + 1) (J.toEndomorphism.realAlternatingDerivation α)) := by
   refine eq_of_forall_osculating hJ hσ hg fun ψ J₀ hψ y hy hgr ↦ ?_
-  have hψ' : ∀ p ∈ ψ.target, ∀ w, J.chartPushforward ψ.toOpenPartialHomeomorph p w =
-      J₀.toLinearMap.toContinuousLinearMap w := by simpa using hψ
   let _ := o.fact_finrank_tangentSpace (ψ.symm y)
   let _ : FiniteDimensional ℝ (TangentSpace I (ψ.symm y)) :=
     VectorBundle.finiteDimensional ℝ E (TangentSpace I) (ψ.symm y)
-  have hm : finrank ℝ (TangentSpace I (ψ.symm y)) = m := (o.fact_finrank_tangentSpace _).out
-  have hs (i : ℕ) : (-1 : ℝ) ^ (m * i + 1) =
-      (-1) ^ (finrank ℝ (TangentSpace I (ψ.symm y)) * i + 1) := by rw [hm]
-  have hS {i i' : ℕ} (hii' : i + i' = m) : formHodgeStarCLM o hii' (ψ.symm y) =
-      ((o.orientationAt (ψ.symm y)).formHodgeStar
-        (hii'.trans hm.symm)).toContinuousLinearEquiv.toContinuousLinearMap :=
-    ContinuousLinearMap.ext fun a ↦ formHodgeStarCLM_apply o hii' (ψ.symm y) a
+  have hm := (o.fact_finrank_tangentSpace (ψ.symm y)).out
   simp only [Submodule.coe_sub, Submodule.coe_neg, Pi.sub_apply, Pi.neg_apply]
-  rw [val_lefschetz hg, val_codifferential_symm o ψ hkl (by omega) α hy hgr,
-    val_codifferential_symm o ψ hkl' (by omega) (σ.lefschetz α) hy hgr,
+  rw [val_lefschetz hg, val_codifferential_symm_of_fderiv_gramInChart_eq_zero o ψ hkl (by omega)
+      α hy hgr,
+    val_codifferential_symm_of_fderiv_gramInChart_eq_zero o ψ hkl' (by omega) (σ.lefschetz α) hy
+      hgr,
     ContMDiffSection.coe_realAlternatingDerivation]
   beta_reduce
-  rw [val_mextDerivₗ_symm ψ α hy, val_mextDerivₗ_symm ψ _ hy,
+  rw [val_mextDerivₗ_symm_eq_alternatizeUncurryFin_symbolInChart ψ α hy,
+    val_mextDerivₗ_symm_eq_alternatizeUncurryFin_symbolInChart ψ _ hy,
     symbolInChart_lefschetz hg ψ α hy
-      (fderiv_mpullback_symm_eq_zero_of_fderiv_gramInChart_eq_zero hg ψ hψ hy hgr), hs, hs]
-  have hJx (u v : TangentSpace I (ψ.symm y)) :
-      ⟪J.almostComplexStructureAt (ψ.symm y) u, J.almostComplexStructureAt (ψ.symm y) v⟫ =
-        ⟪u, v⟫ := by
-    simpa only [SmoothAlmostComplexStructure.almostComplexStructureAt_apply] using
-      SmoothAlmostComplexStructure.inner_apply_apply_of_inner_eq hg (ψ.symm y) u v
+      (fderiv_mpullback_symm_eq_zero_of_fderiv_gramInChart_eq_zero hg ψ hψ hy hgr)]
   convert AlmostComplexStructure.lefschetz_smul_formHodgeStar_alternatizeUncurryFin_sub
-    hJx (o.orientationAt (ψ.symm y))
-    (l := l) (l' := l') (by omega) (by omega) (by omega) (by omega) (symbolInChart ψ α y)
+    (SmoothAlmostComplexStructure.inner_almostComplexStructureAt_apply_apply hg (ψ.symm y))
+    (o.orientationAt (ψ.symm y))
+    (l := l) (l' := l') (by omega) (by omega) (by omega) (by omega) (symbolInChart ψ α.val y)
     using 4
-  · rw [formHodgeStarCLM_apply, hS]
-  · rw [formHodgeStarCLM_apply, hS]
+  · rw [hm]
+  · rw [formHodgeStarCLM_apply, formHodgeStarCLM_eq_formHodgeStar]
+  · rw [hm]
+  · rw [formHodgeStarCLM_apply, formHodgeStarCLM_eq_formHodgeStar]
   · ext u
     simp
   · ext1 v
-    exact (symbolInChart_realAlternatingDerivation_apply J ψ hψ' α hy v).trans
+    exact (symbolInChart_realAlternatingDerivation_apply J ψ
+      (A₀ := J₀.toLinearMap.toContinuousLinearMap) (by simpa using hψ) α hy v).trans
       (congrArg _ (by ext u; simp))
 
-
-/-- **The first-order Kähler identity above the middle degrees**: under the hypotheses of
-`lefschetz_codifferential_sub`, if `m < k + 3` then `L` vanishes on the `(k + 1)`-forms and the
-identity reads `L d^* α = -(𝒥 dα - d 𝒥 α)`. This covers the forms of degree `m - 1`. -/
+/-- **The first-order Kähler identity in the top two degrees**: under the hypotheses of
+`lefschetz_codifferential_sub`, if `m < k + 3`, that is if `α` has degree `m - 1` or `m`, then `L`
+vanishes on the `(k + 1)`-forms and the identity reads `L d^* α = -(𝒥 dα - d 𝒥 α)`. -/
 theorem lefschetz_codifferential_of_lt (o : Manifold.Orientation I M (Fin m))
     (hJ : J.IsIntegrable) (hσ : σ.IsClosed)
     (hg : ∀ x (v w : TangentSpace I x), ⟪v, w⟫ = σ.eval₂ x v (J x w))
@@ -383,36 +302,28 @@ theorem lefschetz_codifferential_of_lt (o : Manifold.Orientation I M (Fin m))
       -(J.toEndomorphism.realAlternatingDerivation (mextDerivₗ I (k + 1) α) -
         mextDerivₗ I (k + 1) (J.toEndomorphism.realAlternatingDerivation α)) := by
   refine eq_of_forall_osculating hJ hσ hg fun ψ J₀ hψ y hy hgr ↦ ?_
-  have hψ' : ∀ p ∈ ψ.target, ∀ w, J.chartPushforward ψ.toOpenPartialHomeomorph p w =
-      J₀.toLinearMap.toContinuousLinearMap w := by simpa using hψ
   let _ := o.fact_finrank_tangentSpace (ψ.symm y)
   let _ : FiniteDimensional ℝ (TangentSpace I (ψ.symm y)) :=
     VectorBundle.finiteDimensional ℝ E (TangentSpace I) (ψ.symm y)
-  have hm : finrank ℝ (TangentSpace I (ψ.symm y)) = m := (o.fact_finrank_tangentSpace _).out
-  have hs (i : ℕ) : (-1 : ℝ) ^ (m * i + 1) =
-      (-1) ^ (finrank ℝ (TangentSpace I (ψ.symm y)) * i + 1) := by rw [hm]
-  have hS {i i' : ℕ} (hii' : i + i' = m) : formHodgeStarCLM o hii' (ψ.symm y) =
-      ((o.orientationAt (ψ.symm y)).formHodgeStar
-        (hii'.trans hm.symm)).toContinuousLinearEquiv.toContinuousLinearMap :=
-    ContinuousLinearMap.ext fun a ↦ formHodgeStarCLM_apply o hii' (ψ.symm y) a
+  have hm := (o.fact_finrank_tangentSpace (ψ.symm y)).out
   simp only [Submodule.coe_sub, Submodule.coe_neg, Pi.sub_apply, Pi.neg_apply]
-  rw [val_lefschetz hg, val_codifferential_symm o ψ hkl (by omega) α hy hgr,
+  rw [val_lefschetz hg, val_codifferential_symm_of_fderiv_gramInChart_eq_zero o ψ hkl (by omega)
+      α hy hgr,
     ContMDiffSection.coe_realAlternatingDerivation]
   beta_reduce
-  rw [val_mextDerivₗ_symm ψ α hy, val_mextDerivₗ_symm ψ _ hy, hs]
-  have hJx (u v : TangentSpace I (ψ.symm y)) :
-      ⟪J.almostComplexStructureAt (ψ.symm y) u, J.almostComplexStructureAt (ψ.symm y) v⟫ =
-        ⟪u, v⟫ := by
-    simpa only [SmoothAlmostComplexStructure.almostComplexStructureAt_apply] using
-      SmoothAlmostComplexStructure.inner_apply_apply_of_inner_eq hg (ψ.symm y) u v
+  rw [val_mextDerivₗ_symm_eq_alternatizeUncurryFin_symbolInChart ψ α hy,
+    val_mextDerivₗ_symm_eq_alternatizeUncurryFin_symbolInChart ψ _ hy]
   convert AlmostComplexStructure.lefschetz_smul_formHodgeStar_alternatizeUncurryFin_of_lt
-    hJx (o.orientationAt (ψ.symm y))
-    (l := l) (by omega) (by omega) (by omega) (symbolInChart ψ α y) using 4
-  · rw [formHodgeStarCLM_apply, hS]
+    (SmoothAlmostComplexStructure.inner_almostComplexStructureAt_apply_apply hg (ψ.symm y))
+    (o.orientationAt (ψ.symm y))
+    (l := l) (by omega) (by omega) (by omega) (symbolInChart ψ α.val y) using 4
+  · rw [hm]
+  · rw [formHodgeStarCLM_apply, formHodgeStarCLM_eq_formHodgeStar]
   · ext u
     simp
   · ext1 v
-    exact (symbolInChart_realAlternatingDerivation_apply J ψ hψ' α hy v).trans
+    exact (symbolInChart_realAlternatingDerivation_apply J ψ
+      (A₀ := J₀.toLinearMap.toContinuousLinearMap) (by simpa using hψ) α hy v).trans
       (congrArg _ (by ext u; simp))
 
 /-- **The first-order Kähler identity on functions**: under the hypotheses of
@@ -429,27 +340,20 @@ theorem codifferential_lefschetz (o : Manifold.Orientation I M (Fin m))
   let _ := o.fact_finrank_tangentSpace (ψ.symm y)
   let _ : FiniteDimensional ℝ (TangentSpace I (ψ.symm y)) :=
     VectorBundle.finiteDimensional ℝ E (TangentSpace I) (ψ.symm y)
-  have hm : finrank ℝ (TangentSpace I (ψ.symm y)) = m := (o.fact_finrank_tangentSpace _).out
-  have hs (i : ℕ) : (-1 : ℝ) ^ (m * i + 1) =
-      (-1) ^ (finrank ℝ (TangentSpace I (ψ.symm y)) * i + 1) := by rw [hm]
-  have hS {i i' : ℕ} (hii' : i + i' = m) : formHodgeStarCLM o hii' (ψ.symm y) =
-      ((o.orientationAt (ψ.symm y)).formHodgeStar
-        (hii'.trans hm.symm)).toContinuousLinearEquiv.toContinuousLinearMap :=
-    ContinuousLinearMap.ext fun a ↦ formHodgeStarCLM_apply o hii' (ψ.symm y) a
-  rw [val_codifferential_symm o ψ hkl (by omega) (σ.lefschetz f) hy hgr,
+  have hm := (o.fact_finrank_tangentSpace (ψ.symm y)).out
+  rw [val_codifferential_symm_of_fderiv_gramInChart_eq_zero o ψ hkl (by omega) (σ.lefschetz f) hy
+      hgr,
     ContMDiffSection.coe_realAlternatingDerivation]
   beta_reduce
-  rw [val_mextDerivₗ_symm ψ f hy, symbolInChart_lefschetz hg ψ f hy
-      (fderiv_mpullback_symm_eq_zero_of_fderiv_gramInChart_eq_zero hg ψ hψ hy hgr), hs]
-  have hJx (u v : TangentSpace I (ψ.symm y)) :
-      ⟪J.almostComplexStructureAt (ψ.symm y) u, J.almostComplexStructureAt (ψ.symm y) v⟫ =
-        ⟪u, v⟫ := by
-    simpa only [SmoothAlmostComplexStructure.almostComplexStructureAt_apply] using
-      SmoothAlmostComplexStructure.inner_apply_apply_of_inner_eq hg (ψ.symm y) u v
+  rw [val_mextDerivₗ_symm_eq_alternatizeUncurryFin_symbolInChart ψ f hy,
+    symbolInChart_lefschetz hg ψ f hy
+      (fderiv_mpullback_symm_eq_zero_of_fderiv_gramInChart_eq_zero hg ψ hψ hy hgr)]
   convert AlmostComplexStructure.smul_formHodgeStar_alternatizeUncurryFin_lefschetz_fin_zero
-    hJx (o.orientationAt (ψ.symm y))
-    (l := l) (by omega) (by omega) (symbolInChart ψ f y) using 3
-  · rw [formHodgeStarCLM_apply, hS]
+    (SmoothAlmostComplexStructure.inner_almostComplexStructureAt_apply_apply hg (ψ.symm y))
+    (o.orientationAt (ψ.symm y))
+    (l := l) (by omega) (by omega) (symbolInChart ψ f.val y) using 3
+  · rw [hm]
+  · rw [formHodgeStarCLM_apply, formHodgeStarCLM_eq_formHodgeStar]
   · ext u
     simp
 

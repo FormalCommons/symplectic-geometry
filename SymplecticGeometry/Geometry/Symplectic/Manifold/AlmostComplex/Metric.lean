@@ -50,6 +50,8 @@ For any `RiemannianBundle` metric on `TM` with `⟪u, v⟫ = σ(u, J v)`, the hy
 `TauCeti.SmoothTwoForm.compatible_of_inner_eq`:
 
 * `TauCeti.SmoothAlmostComplexStructure.inner_apply_left_eq_neg`: `J` is skew-adjoint.
+* `TauCeti.SmoothAlmostComplexStructure.inner_almostComplexStructureAt_apply_apply`: at each
+  point, `J` is orthogonal as an almost complex structure of the tangent space.
 * `TauCeti.SmoothTwoForm.val_eq_alternatingFormEquiv_kahlerForm`: at each point, `σ` is the
   Kähler form of `J`.
 
@@ -227,6 +229,14 @@ theorem inner_apply_left_eq_neg (hJ : ∀ x u v, ⟪u, v⟫ = σ.eval₂ x u (J 
     (u w : TangentSpace I x) : ⟪J x u, w⟫ = -⟪u, J x w⟫ := by
   rw [inner_apply_left_of_inner_eq hJ, hJ, apply_apply, SmoothBundleForm.eval₂_neg_right,
     _root_.neg_neg]
+
+omit [FiniteDimensional ℝ E] in
+/-- If `⟪u, v⟫ = σ(u, J v)`, then at each point `x` the almost complex structure
+`J.almostComplexStructureAt x` of the tangent space is orthogonal. -/
+theorem inner_almostComplexStructureAt_apply_apply
+    (hJ : ∀ x u v, ⟪u, v⟫ = σ.eval₂ x u (J x v)) (x : M) (u v : TangentSpace I x) :
+    ⟪J.almostComplexStructureAt x u, J.almostComplexStructureAt x v⟫ = ⟪u, v⟫ := by
+  simpa only [almostComplexStructureAt_apply] using inner_apply_apply_of_inner_eq hJ x u v
 
 end SmoothAlmostComplexStructure
 

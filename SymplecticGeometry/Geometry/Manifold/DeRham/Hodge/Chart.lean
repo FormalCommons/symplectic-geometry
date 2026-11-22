@@ -15,6 +15,7 @@ public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 public import TauCeti.Geometry.Manifold.Riemannian.Codifferential
 public import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.ChartGram
+public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.PartialDiffeomorph
 import SymplecticGeometry.Analysis.Calculus.ContDiff.Matrix
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 
@@ -64,6 +65,9 @@ expressions, on `ψ.target`, of the metric, of the Hodge star and of the codiffe
 * `SymplecticGeometry.mpullback_symm_codifferential_of_fderiv_gramInChart_eq_zero`: where the
   metric in the chart has derivative zero, the codifferential read in the chart is
   `± S (Alt (S ∘ Db))`, with `Db` the derivative of the form read in the chart.
+* `SymplecticGeometry.val_codifferential_symm_of_fderiv_gramInChart_eq_zero`: the same at the
+  point `ψ.symm y` of `M`, as `± ⋆ Alt (⋆ ∘ B)` with `⋆` the Hodge star of the tangent space and
+  `B` the derivative of the form read in the chart, carried there by `TauCeti.symbolInChart`.
 
 The proof of `hodgeStarInChart_apply_eq_sum` follows that of Tau Ceti's private lemma
 `TauCeti.hodgeStar_symmL_apply` (`Geometry/Manifold/Riemannian/HodgeStar.lean`), with the
@@ -256,17 +260,12 @@ theorem mpullback_symm_hodgeStar (hkl : k + l = m)
     (φ : RoughForm I M ℝ k) {y : E} (hy : y ∈ ψ.target) :
     (mpullback 𝓘(ℝ, E) I ψ.symm (RoughForm.hodgeStar o hkl φ) y : E [⋀^Fin l]→L[ℝ] ℝ) =
       hodgeStarInChart o ψ hkl y (mpullback 𝓘(ℝ, E) I ψ.symm φ y) := by
-  have hφ : (mpullback 𝓘(ℝ, E) I ψ.symm φ y : E [⋀^Fin k]→L[ℝ] ℝ).compContinuousLinearMap
-      (mfderiv I 𝓘(ℝ, E) ψ (ψ.symm y) : TangentSpace I (ψ.symm y) →L[ℝ] E) = φ (ψ.symm y) := by
-    ext v
-    refine (ContinuousAlternatingMap.compContinuousLinearMap_apply _ _ v).trans
-      ((mpullback_apply _ φ y _).trans (congrArg (φ (ψ.symm y)) (funext fun i ↦ ?_)))
-    exact ψ.mfderiv_symm_apply_mfderiv_apply_of_mem_target (by simp) hy (v i)
   ext w
   refine ((mpullback_apply _ _ y w).trans ?_).trans (hodgeStarInChart_apply o ψ hkl y _ w).symm
   rw [RoughForm.hodgeStar_eq_formHodgeStarCLM]
   exact (congrArg (fun a ↦ formHodgeStarCLM o hkl (ψ.symm y) a
-    fun i ↦ mfderiv 𝓘(ℝ, E) I ψ.symm y (w i)) hφ).symm
+    fun i ↦ mfderiv 𝓘(ℝ, E) I ψ.symm y (w i))
+    (mpullback_symm_compContinuousLinearMap_mfderiv ψ (by simp) φ hy)).symm
 
 /-- **The Hodge star in a chart, in a basis.** On the target of the chart, for a basis `b` of `E`
 with Gram matrix `G` for `gramInChart ψ y`, `(S a)(w)` is the volume of `b` (read in the chart)
@@ -563,6 +562,41 @@ theorem mpullback_symm_codifferential_of_fderiv_gramInChart_eq_zero
   -- is cleared up to that identification of types.
   erw [zero_apply]
   rw [add_zero]
+
+open ContinuousAlternatingMap in
+/-- At `ψ.symm y`, where the metric in the chart has derivative zero, the codifferential of `β`
+is `± ⋆ Alt (⋆ ∘ B)`, with `⋆` the Hodge star of the tangent space at `ψ.symm y`, `Alt` the
+alternation `alternatizeUncurryFin` and `B = TauCeti.symbolInChart ψ β y` the derivative of the
+reading of `β` carried to that tangent space. -/
+theorem val_codifferential_symm_of_fderiv_gramInChart_eq_zero
+    [IsContMDiffRiemannianBundle I ∞ E (fun x : M ↦ TangentSpace I x)]
+    (hkl : k + 1 + l = m) (hlk : l + 1 + k = m) (β : SmoothForm I M ℝ (k + 1)) {y : E}
+    (hy : y ∈ ψ.target) (h : fderiv ℝ (gramInChart ψ) y = 0) :
+    (SmoothForm.codifferential o hkl β).val (ψ.symm y) =
+      (-1 : ℝ) ^ (m * (k + 2) + 1) • formHodgeStarCLM o hlk (ψ.symm y)
+        (alternatizeUncurryFin
+          (formHodgeStarCLM o hkl (ψ.symm y) ∘L symbolInChart ψ β.val y)) := by
+  -- The step on `E`, for a map `T` that intertwines the two stars, and the derivative `C`.
+  have key (T : TangentSpace I (ψ.symm y) →L[ℝ] E)
+      (hT : ∀ {i i' : ℕ} (hii' : i + i' = m) (a : E [⋀^Fin i]→L[ℝ] ℝ),
+        (hodgeStarInChart o ψ hii' y a).compContinuousLinearMap T =
+          formHodgeStarCLM o hii' (ψ.symm y) (a.compContinuousLinearMap T))
+      (C : E →L[ℝ] E [⋀^Fin (k + 1)]→L[ℝ] ℝ) :
+      ((-1 : ℝ) ^ (m * (k + 2) + 1) • hodgeStarInChart o ψ hlk y
+        (alternatizeUncurryFin (hodgeStarInChart o ψ hkl y ∘L C))).compContinuousLinearMap T =
+      (-1 : ℝ) ^ (m * (k + 2) + 1) • formHodgeStarCLM o hlk (ψ.symm y)
+        (alternatizeUncurryFin (formHodgeStarCLM o hkl (ψ.symm y) ∘L
+          (compContinuousLinearMapCLM T ∘L C ∘L T))) := by
+    rw [← compContinuousLinearMapCLM_apply, map_smul, compContinuousLinearMapCLM_apply, hT,
+      alternatizeUncurryFin_compContinuousLinearMap]
+    congr 3
+    ext v w
+    simp only [ContinuousLinearMap.comp_apply, compContinuousLinearMapCLM_apply, hT]
+  rw [← mpullback_symm_compContinuousLinearMap_mfderiv ψ (by simp)
+      (SmoothForm.codifferential o hkl β).val hy,
+    mpullback_symm_codifferential_of_fderiv_gramInChart_eq_zero o ψ hkl hlk β hy h,
+    symbolInChart_def]
+  exact key _ (fun hii' a ↦ compContinuousLinearMap_hodgeStarInChart o ψ hii' hy a) _
 
 end HodgeStar
 
