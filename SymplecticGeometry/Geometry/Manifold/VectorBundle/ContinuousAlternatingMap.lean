@@ -192,8 +192,7 @@ theorem alternatingMapOfBilin_flatAt {x : M} (α : V x [⋀^Fin 2]→L[𝕜] Tri
   ext v
   rw [alternatingMapOfBilin_apply, flatAt_apply]
   congr 1
-  -- The outer `Eq.symm` makes Lean read the vector off the goal's right side.
-  exact Eq.symm (FinVec.etaExpand_eq _).symm
+  exact FinVec.etaExpand_eq _
 
 end Bundle
 
