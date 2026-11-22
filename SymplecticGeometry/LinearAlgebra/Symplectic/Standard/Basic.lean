@@ -281,6 +281,13 @@ variable [Fintype ι]
 theorem finrank_stdSpace : Module.finrank ℝ (StdSpace ι) = 2 * Fintype.card ι := by
   rw [finrank_euclideanSpace, Fintype.card_sum, two_mul]
 
+/-- `StdSpace (Fin (n + 1))` has real dimension `2 * n + 1 + 1`. This is the form in which
+Mathlib's charts on the unit sphere of `StdSpace (Fin (n + 1))`, modelled on `𝓡 (2 * n + 1)`,
+ask for it. -/
+scoped instance fact_finrank_stdSpace_fin_succ (n : ℕ) :
+    Fact (Module.finrank ℝ (StdSpace (Fin (n + 1))) = 2 * n + 1 + 1) :=
+  ⟨by rw [finrank_stdSpace, Fintype.card_fin]; omega⟩
+
 variable (ι) in
 /-- The standard symplectic form `ω₀ = ∑ᵢ dxᵢ ∧ dyᵢ` on `StdSpace ι`: the transport of
 `TauCeti.stdComplexPiSymplecticForm ι` along `complexToRealEuclidean ι`. -/
@@ -355,6 +362,29 @@ theorem stdComplexStructure_complexToRealEuclidean (v : ι → ℂ) :
       complexToRealEuclidean ι (Complex.I • v) := by
   rw [stdComplexStructure_def, AlmostComplexStructure.transport_apply]
   simp [AlmostComplexStructure.ofComplexModule_apply]
+
+/-- `complexToRealEuclidean ι` carries multiplication by `exp (t I)` on `ι → ℂ` to the rotation
+`z ↦ cos t • z + sin t • J₀ z`. -/
+theorem complexToRealEuclidean_exp_mul_I_smul (t : ℝ) (v : ι → ℂ) :
+    complexToRealEuclidean ι (Complex.exp (t * Complex.I) • v) =
+      Real.cos t • complexToRealEuclidean ι v +
+        Real.sin t • stdComplexStructure ι (complexToRealEuclidean ι v) := by
+  rw [stdComplexStructure_complexToRealEuclidean, ← map_smul, ← map_smul, ← map_add,
+    Complex.exp_mul_I, add_smul, ← Complex.ofReal_cos, ← Complex.ofReal_sin, mul_smul,
+    Complex.coe_smul, Complex.coe_smul]
+
+/-- `complexToRealEuclidean ι` is compatible with the norms: scaling by `a : ℂ` scales the norm
+of the image by `‖a‖`. -/
+theorem norm_complexToRealEuclidean_smul (a : ℂ) (v : ι → ℂ) :
+    ‖complexToRealEuclidean ι (a • v)‖ = ‖a‖ * ‖complexToRealEuclidean ι v‖ := by
+  have h : ‖complexToRealEuclidean ι (a • v)‖ ^ 2 =
+      (‖a‖ * ‖complexToRealEuclidean ι v‖) ^ 2 := by
+    rw [mul_pow, ← real_inner_self_eq_norm_sq (complexToRealEuclidean ι (a • v)),
+      ← real_inner_self_eq_norm_sq (complexToRealEuclidean ι v), inner_complexToRealEuclidean,
+      inner_complexToRealEuclidean, star_smul, smul_dotProduct,
+      dotProduct_smul, smul_eq_mul, smul_eq_mul, Complex.star_def, ← mul_assoc,
+      Complex.conj_mul', ← Complex.ofReal_pow, Complex.re_ofReal_mul]
+  exact (pow_left_inj₀ (norm_nonneg _) (by positivity) two_ne_zero).1 h
 
 /-- `J₀` is the linear map of the matrix `Matrix.J ι ℝ = !![0, -1; 1, 0]`. -/
 theorem stdComplexStructure_eq_toEuclideanLin_J [DecidableEq ι] :
