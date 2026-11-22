@@ -337,11 +337,10 @@ theorem isBasic_sphereStdForm :
     (fun t ↦ ((stdRotation (Fin (n + 1)) t).contMDiff_unitSphereEquiv (n := 2 * n + 1)
       (k := 2 * n + 1)).mdifferentiable one_ne_zero)
     (fun t ↦ funext fun x ↦ ((sphereHopf_eq_sphereHopf_iff n x _).2
-      ⟨t, by rw [LinearIsometryEquiv.coe_unitSphereEquiv_apply, stdRotation_apply]⟩).symm)
+      ⟨t, LinearIsometryEquiv.coe_unitSphereEquiv_apply _ _⟩).symm)
     (fun x y h ↦ .inr <|
       let ⟨t, ht⟩ := (sphereHopf_eq_sphereHopf_iff n x y).1 h
-      ⟨t, Subtype.ext <| by
-        rw [LinearIsometryEquiv.coe_unitSphereEquiv_apply, stdRotation_apply, ht]⟩)
+      ⟨t, Subtype.ext <| (LinearIsometryEquiv.coe_unitSphereEquiv_apply _ _).trans ht.symm⟩)
     (fun x v j hj ↦ ?_) fun t ↦ ?_
   · have hv : v = ![v 0, v 1] := (FinVec.etaExpand_eq v).symm
     have hj' := (ker_sphereStdForm n x).ge hj
