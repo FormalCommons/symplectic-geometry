@@ -18,9 +18,9 @@ last two arguments of `α`, `α(u, j v, w) = α(u, v, j w)`, and that the cyclic
 vanishes, `α(u, v, w) + α(v, w, u) + α(w, u, v) = 0`. Then `j` also moves from the first argument
 to the last: `α(j v, w, z) = α(v, w, j z)`.
 
-This is the algebraic step behind the identity `∇_{J v} J = -J ∘ ∇_v J` for the Levi-Civita
-connection of a compatible pair `(ω, J)` with `ω` closed, applied to the trilinear form
-`α(u, v, w) = ⟪(∇_u J) v, w⟫`.
+Applied to `α(u, v, w) = ⟪(∇_u J) v, w⟫`, where `∇` is the Levi-Civita connection of the metric
+`ω(·, J ·)` of a closed two-form `ω` and a `J` compatible with it, this gives
+`∇_{J v} J = -J ∘ ∇_v J`.
 
 ## Main results
 
