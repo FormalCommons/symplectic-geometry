@@ -77,8 +77,6 @@ noncomputable section
 
 open CategoryTheory Limits TopologicalSpace Topology Opens
 
-universe v u
-
 namespace TauCeti
 
 attribute [local instance] MonoidalPreadditive.monoidalLinearInt
