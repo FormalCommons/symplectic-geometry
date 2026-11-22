@@ -44,6 +44,9 @@ described as in Tau Ceti's `SSet.tensorChainComplexXDesc`.
 * `SSet.tripleTensorChainComplexXDesc`: the morphism out of
   `(Cₚ(K; R) ⊗ C_q(L; S)) ⊗ C_r(M; T)` given on the summand of each triple of simplices, with
   `SSet.tripleTensorChainComplexX_hom_ext`.
+* `SSet.ιTripleTensorChainComplex`: the summand of a triple of simplices in the chains of degree `n`
+  of `(C(K; R) ⊗ C(L; S)) ⊗ C(M; T)`, with the extensionality lemma
+  `SSet.tripleTensorChainComplex_X_hom_ext`.
 * `SSet.tripleTensorChainComplexHomotopy`: two natural families of chain maps
   `(C(K; R) ⊗ C(L; S)) ⊗ C(M; T) ⟶ C((K × L) × M; U)` which agree in degree zero are chain
   homotopic, and `SSet.tripleTensorChainComplexHomotopy_hom_naturality`: the homotopy is natural.
@@ -138,7 +141,8 @@ section TripleTensor
 
 variable {C : Type u} [Category.{v} C] [Preadditive C] [HasCoproducts.{w} C] [MonoidalCategory C]
   {K L M : SSet.{w}} {R S T A : C} {p q r : ℕ}
-  [∀ (X : C) (J : Type w), PreservesColimitsOfShape (Discrete J) (tensorLeft X)]
+  [∀ J : Type w, PreservesColimitsOfShape (Discrete J) (tensorLeft R)]
+  [∀ J : Type w, PreservesColimitsOfShape (Discrete J) (tensorLeft (R ⊗ S))]
   [∀ (X : C) (J : Type w), PreservesColimitsOfShape (Discrete J) (tensorRight X)]
 
 /-- The morphism out of `(Cₚ(K; R) ⊗ C_q(L; S)) ⊗ C_r(M; T)` given by a morphism
@@ -209,25 +213,35 @@ section TripleAcyclicModels
 variable {C : Type u} [Category.{v} C] [Preadditive C] [HasCoproducts.{w} C] [MonoidalCategory C]
   [MonoidalPreadditive C] {R S T U : C}
 
-/-- The summand `(R ⊗ S) ⊗ T` of a triple of simplices `(x, y, z)` of dimensions `p`, `q` and `r`
-in the chains of degree `n` of `(C(K; R) ⊗ C(L; S)) ⊗ C(M; T)`. -/
-private def tripleSummand {K L M : SSet.{w}} {p q r : ℕ} (x : K _⦋p⦌) (y : L _⦋q⦌) (z : M _⦋r⦌)
-    (n : ℕ) (h : p + q + r = n) :
+/-- The inclusion of the summand `(R ⊗ S) ⊗ T` of a triple of simplices `(x, y, z)` of
+dimensions `p`, `q` and `r`, with `p + q + r = n`, into the chains of degree `n` of
+`(C(K; R) ⊗ C(L; S)) ⊗ C(M; T)`.  These inclusions determine maps out of that object
+(`SSet.tripleTensorChainComplex_X_hom_ext`). -/
+def ιTripleTensorChainComplex {K L M : SSet.{w}} {p q r : ℕ} (x : K _⦋p⦌) (y : L _⦋q⦌)
+    (z : M _⦋r⦌) (n : ℕ) (h : p + q + r = n) :
     (R ⊗ S) ⊗ T ⟶ ((K.chainComplex R ⊗ L.chainComplex S) ⊗ M.chainComplex T).X n :=
   ((K.ιChainComplex x ⊗ₘ L.ιChainComplex y) ⊗ₘ M.ιChainComplex z) ≫
     (ιTensorObj _ _ p q (p + q) rfl ▷ _) ≫
       ιTensorObj (K.chainComplex R ⊗ L.chainComplex S) (M.chainComplex T) (p + q) r n h
 
+lemma ιTripleTensorChainComplex_def {K L M : SSet.{w}} {p q r : ℕ} (x : K _⦋p⦌) (y : L _⦋q⦌)
+    (z : M _⦋r⦌) (n : ℕ) (h : p + q + r = n) :
+    ιTripleTensorChainComplex (R := R) (S := S) (T := T) x y z n h =
+      ((K.ιChainComplex x ⊗ₘ L.ιChainComplex y) ⊗ₘ M.ιChainComplex z) ≫
+        (ιTensorObj _ _ p q (p + q) rfl ▷ _) ≫
+          ιTensorObj (K.chainComplex R ⊗ L.chainComplex S) (M.chainComplex T) (p + q) r n h :=
+  (rfl)
+
 /-- The tensor product of the chain maps of `f`, `g` and `h'` sends the summand of a triple of
 simplices `(x, y, z)` to the summand of `(f x, g y, h' z)`. -/
 @[reassoc]
-private lemma tripleSummand_tensorHom_f {K K' L L' M M' : SSet.{w}} (f : K ⟶ K') (g : L ⟶ L')
+lemma ιTripleTensorChainComplex_tensorHom_f {K K' L L' M M' : SSet.{w}} (f : K ⟶ K') (g : L ⟶ L')
     (h' : M ⟶ M') {p q r : ℕ} (x : K _⦋p⦌) (y : L _⦋q⦌) (z : M _⦋r⦌) (n : ℕ)
     (h : p + q + r = n) :
-    tripleSummand (R := R) (S := S) (T := T) x y z n h ≫
+    ιTripleTensorChainComplex (R := R) (S := S) (T := T) x y z n h ≫
         ((chainComplexMap f R ⊗ₘ chainComplexMap g S) ⊗ₘ chainComplexMap h' T).f n =
-      tripleSummand (f.app _ x) (g.app _ y) (h'.app _ z) n h := by
-  rw [tripleSummand, tripleSummand, Category.assoc, Category.assoc,
+      ιTripleTensorChainComplex (f.app _ x) (g.app _ y) (h'.app _ z) n h := by
+  rw [ιTripleTensorChainComplex_def, ιTripleTensorChainComplex_def, Category.assoc, Category.assoc,
     tensorHom_eq_mapBifunctorMap (f₁ := chainComplexMap f R ⊗ₘ chainComplexMap g S),
     HomologicalComplex.ι_tensorHom, whiskerRight_comp_tensorHom_assoc,
     tensorHom_eq_mapBifunctorMap (f₁ := chainComplexMap f R),
@@ -242,45 +256,46 @@ private abbrev topSimplex (p : ℕ) : (Δ[p] : SSet.{w}) _⦋p⦌ := yonedaEquiv
 /-- The summand of a triple of simplices `(x, y, z)` is the image of the summand of the triple of
 top simplices of the models `Δ[p]`, `Δ[q]` and `Δ[r]` under the maps classifying `x`, `y`
 and `z`. -/
-private lemma tripleSummand_eq_model {K L M : SSet.{w}} {p q r : ℕ} (x : K _⦋p⦌) (y : L _⦋q⦌)
-    (z : M _⦋r⦌) (n : ℕ) (h : p + q + r = n) :
-    tripleSummand (R := R) (S := S) (T := T) x y z n h =
-      tripleSummand (topSimplex p) (topSimplex q) (topSimplex r) n h ≫
+private lemma ιTripleTensorChainComplex_eq_model {K L M : SSet.{w}} {p q r : ℕ} (x : K _⦋p⦌)
+    (y : L _⦋q⦌) (z : M _⦋r⦌) (n : ℕ) (h : p + q + r = n) :
+    ιTripleTensorChainComplex (R := R) (S := S) (T := T) x y z n h =
+      ιTripleTensorChainComplex (topSimplex p) (topSimplex q) (topSimplex r) n h ≫
         ((chainComplexMap (yonedaEquiv.symm x) R ⊗ₘ chainComplexMap (yonedaEquiv.symm y) S) ⊗ₘ
           chainComplexMap (yonedaEquiv.symm z) T).f n := by
-  rw [tripleSummand_tensorHom_f, yonedaEquiv_symm_app_id, yonedaEquiv_symm_app_id,
+  rw [ιTripleTensorChainComplex_tensorHom_f, yonedaEquiv_symm_app_id, yonedaEquiv_symm_app_id,
     yonedaEquiv_symm_app_id]
 
 /-- A natural family of maps out of `(C(K; R) ⊗ C(L; S)) ⊗ C(M; T)` is determined by its values on
 the models: on the summand of a triple of simplices `(x, y, z)` it is the image of its value on
 the triple of top simplices of `Δ[p]`, `Δ[q]` and `Δ[r]` under the map classifying
 `((x, y), z)`. -/
-private lemma tripleSummand_comp_eq_model {n m : ℕ}
+private lemma ιTripleTensorChainComplex_comp_eq_model {n m : ℕ}
     (u : ∀ K L M : SSet.{w}, ((K.chainComplex R ⊗ L.chainComplex S) ⊗ M.chainComplex T).X n ⟶
       (((K ⊗ L) ⊗ M).chainComplex U).X m)
     (hu : ∀ ⦃K K' L L' M M' : SSet.{w}⦄ (f : K ⟶ K') (g : L ⟶ L') (h' : M ⟶ M'),
       ((chainComplexMap f R ⊗ₘ chainComplexMap g S) ⊗ₘ chainComplexMap h' T).f n ≫ u K' L' M' =
         u K L M ≫ (chainComplexMap ((f ⊗ₘ g) ⊗ₘ h') U).f m)
     {K L M : SSet.{w}} {p q r : ℕ} (x : K _⦋p⦌) (y : L _⦋q⦌) (z : M _⦋r⦌) (h : p + q + r = n) :
-    tripleSummand x y z n h ≫ u K L M =
-      tripleSummand (topSimplex p) (topSimplex q) (topSimplex r) n h ≫ u _ _ _ ≫
+    ιTripleTensorChainComplex x y z n h ≫ u K L M =
+      ιTripleTensorChainComplex (topSimplex p) (topSimplex q) (topSimplex r) n h ≫ u _ _ _ ≫
         (chainComplexMap ((yonedaEquiv.symm x ⊗ₘ yonedaEquiv.symm y) ⊗ₘ yonedaEquiv.symm z) U).f
           m := by
-  rw [tripleSummand_eq_model, Category.assoc, hu]
+  rw [ιTripleTensorChainComplex_eq_model, Category.assoc, hu]
 
 variable [∀ (X : C) (J : Type w), PreservesColimitsOfShape (Discrete J) (tensorLeft X)]
   [∀ (X : C) (J : Type w), PreservesColimitsOfShape (Discrete J) (tensorRight X)]
 
-/-- Morphisms out of `(C(K; R) ⊗ C(L; S)) ⊗ C(M; T)` are determined on the summands of triples of
-simplices. -/
-private lemma tripleSummand_hom_ext {K L M : SSet.{w}} {n : ℕ} {A : C}
+/-- Morphisms out of the chains of degree `n` of `(C(K; R) ⊗ C(L; S)) ⊗ C(M; T)` are equal if
+they agree on the summand `SSet.ιTripleTensorChainComplex` of each triple of simplices whose
+dimensions add up to `n`. -/
+lemma tripleTensorChainComplex_X_hom_ext {K L M : SSet.{w}} {n : ℕ} {A : C}
     {f g : ((K.chainComplex R ⊗ L.chainComplex S) ⊗ M.chainComplex T).X n ⟶ A}
     (H : ∀ (p q r : ℕ) (h : p + q + r = n) (x : K _⦋p⦌) (y : L _⦋q⦌) (z : M _⦋r⦌),
-      tripleSummand x y z n h ≫ f = tripleSummand x y z n h ≫ g) :
+      ιTripleTensorChainComplex x y z n h ≫ f = ιTripleTensorChainComplex x y z n h ≫ g) :
     f = g := by
   refine mapBifunctor₁₂.hom_ext fun p q r h ↦ tripleTensorChainComplexX_hom_ext fun x y z ↦ ?_
   rw [mapBifunctor₁₂.ι_eq_whiskerRight _ _ _ p q r (p + q) n rfl h]
-  simpa only [tripleSummand, Category.assoc] using H p q r h x y z
+  simpa only [ιTripleTensorChainComplex_def, Category.assoc] using H p q r h x y z
 
 /-- The natural extension of a family `c` of chains of `(Δ[p] ⊗ Δ[q]) ⊗ Δ[r]` of degree `n + 1`,
 indexed by `p + q + r = n`: the map raising degrees from `(C(K; R) ⊗ C(L; S)) ⊗ C(M; T)` to
@@ -298,15 +313,15 @@ private def tripleExtend {n : ℕ}
         (n + 1)
 
 @[reassoc]
-private lemma tripleSummand_tripleExtend {n : ℕ}
+private lemma ιTripleTensorChainComplex_tripleExtend {n : ℕ}
     (c : ∀ p q r : ℕ, p + q + r = n →
       ((R ⊗ S) ⊗ T ⟶ ((((Δ[p] : SSet.{w}) ⊗ Δ[q]) ⊗ Δ[r]).chainComplex U).X (n + 1)))
     {K L M : SSet.{w}} {p q r : ℕ} (x : K _⦋p⦌) (y : L _⦋q⦌) (z : M _⦋r⦌) (h : p + q + r = n) :
-    tripleSummand x y z n h ≫ tripleExtend c K L M =
+    ιTripleTensorChainComplex x y z n h ≫ tripleExtend c K L M =
       c p q r h ≫
         (chainComplexMap ((yonedaEquiv.symm x ⊗ₘ yonedaEquiv.symm y) ⊗ₘ yonedaEquiv.symm z) U).f
           (n + 1) := by
-  rw [tripleSummand, ← mapBifunctor₁₂.ι_eq_whiskerRight _ _ _ p q r (p + q) n rfl h,
+  rw [ιTripleTensorChainComplex_def, ← mapBifunctor₁₂.ι_eq_whiskerRight _ _ _ p q r (p + q) n rfl h,
     Category.assoc, tripleExtend, mapBifunctor₁₂.ι_mapBifunctor₁₂Desc,
     ιChainComplex_tensorHom_tensorHom_tripleTensorChainComplexXDesc]
 
@@ -318,9 +333,9 @@ private lemma tensorHom_f_tripleExtend {n : ℕ}
     ((chainComplexMap f R ⊗ₘ chainComplexMap g S) ⊗ₘ chainComplexMap h' T).f n ≫
         tripleExtend c K' L' M' =
       tripleExtend c K L M ≫ (chainComplexMap ((f ⊗ₘ g) ⊗ₘ h') U).f (n + 1) := by
-  refine tripleSummand_hom_ext fun p q r h x y z ↦ ?_
-  rw [tripleSummand_tensorHom_f_assoc, tripleSummand_tripleExtend,
-    tripleSummand_tripleExtend_assoc, chainComplexMap_f_comp,
+  refine tripleTensorChainComplex_X_hom_ext fun p q r h x y z ↦ ?_
+  rw [ιTripleTensorChainComplex_tensorHom_f_assoc, ιTripleTensorChainComplex_tripleExtend,
+    ιTripleTensorChainComplex_tripleExtend_assoc, chainComplexMap_f_comp,
     tensorHom_comp_tensorHom, tensorHom_comp_tensorHom, yonedaEquiv_symm_comp,
     yonedaEquiv_symm_comp, yonedaEquiv_symm_comp]
 
@@ -328,8 +343,8 @@ private lemma tripleExtend_zero {n : ℕ} (K L M : SSet.{w}) :
     tripleExtend (fun p q r (_ : p + q + r = n) ↦
       (0 : (R ⊗ S) ⊗ T ⟶ ((((Δ[p] : SSet.{w}) ⊗ Δ[q]) ⊗ Δ[r]).chainComplex U).X (n + 1)))
         K L M = 0 := by
-  refine tripleSummand_hom_ext fun p q r h x y z ↦ ?_
-  rw [tripleSummand_tripleExtend, zero_comp, comp_zero]
+  refine tripleTensorChainComplex_X_hom_ext fun p q r h x y z ↦ ?_
+  rw [ιTripleTensorChainComplex_tripleExtend, zero_comp, comp_zero]
 
 variable (θ : ∀ K L M : SSet.{w},
   (K.chainComplex R ⊗ L.chainComplex S) ⊗ M.chainComplex T ⟶ ((K ⊗ L) ⊗ M).chainComplex U)
@@ -343,7 +358,7 @@ private def tripleModelHom : (n : ℕ) → ∀ p q r : ℕ, p + q + r = n →
     ((R ⊗ S) ⊗ T ⟶ ((((Δ[p] : SSet.{w}) ⊗ Δ[q]) ⊗ Δ[r]).chainComplex U).X (n + 1))
   | 0 => fun _ _ _ _ ↦ 0
   | n + 1 => fun p q r h ↦
-      tripleSummand (topSimplex p) (topSimplex q) (topSimplex r) (n + 1) h ≫
+      ιTripleTensorChainComplex (topSimplex p) (topSimplex q) (topSimplex r) (n + 1) h ≫
         ((θ (Δ[p]) (Δ[q]) (Δ[r])).f (n + 1) -
           (((Δ[p] : SSet.{w}).chainComplex R ⊗ (Δ[q] : SSet.{w}).chainComplex S) ⊗
             (Δ[r] : SSet.{w}).chainComplex T).d (n + 1) n ≫
@@ -386,7 +401,7 @@ private lemma tripleExtend_tripleModelHom_succ_d (n : ℕ)
   -- on the models, the chain `(θ - h ∂) (ι)` is a cycle, so the cone on it bounds it
   have hmodel : ∀ p q r (h : p + q + r = n + 1), tripleModelHom θ (n + 1) p q r h ≫
       ((((Δ[p] : SSet.{w}) ⊗ Δ[q]) ⊗ Δ[r]).chainComplex U).d (n + 2) (n + 1) =
-        tripleSummand (topSimplex p) (topSimplex q) (topSimplex r) (n + 1) h ≫
+        ιTripleTensorChainComplex (topSimplex p) (topSimplex q) (topSimplex r) (n + 1) h ≫
           ((θ (Δ[p]) (Δ[q]) (Δ[r])).f (n + 1) -
             (((Δ[p] : SSet.{w}).chainComplex R ⊗ (Δ[q] : SSet.{w}).chainComplex S) ⊗
               (Δ[r] : SSet.{w}).chainComplex T).d (n + 1) n ≫
@@ -401,9 +416,9 @@ private lemma tripleExtend_tripleModelHom_succ_d (n : ℕ)
       Preadditive.comp_sub, Category.comp_id, reassoc_of% hcyc', zero_comp, sub_zero]
   -- by naturality, the identity on a triple of simplices is the image of the identity on the
   -- models
-  refine tripleSummand_hom_ext fun p q r h x y z ↦ ?_
-  rw [tripleSummand_tripleExtend_assoc, Hom.comm, reassoc_of% hmodel,
-    tripleSummand_comp_eq_model (fun K L M ↦ (θ K L M).f (n + 1) -
+  refine tripleTensorChainComplex_X_hom_ext fun p q r h x y z ↦ ?_
+  rw [ιTripleTensorChainComplex_tripleExtend_assoc, Hom.comm, reassoc_of% hmodel,
+    ιTripleTensorChainComplex_comp_eq_model (fun K L M ↦ (θ K L M).f (n + 1) -
       ((K.chainComplex R ⊗ L.chainComplex S) ⊗ M.chainComplex T).d (n + 1) n ≫
         tripleExtend (tripleModelHom θ n) K L M) hnat]
 
