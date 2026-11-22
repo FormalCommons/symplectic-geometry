@@ -60,6 +60,8 @@ standard forms (`isSymplectomorphism_sumEquiv`). Through it, `StdSpace.stdInl k 
 `StdSpace (Fin k)` in `StdSpace (Fin (k + m))` as the first `k` coordinate pairs, preserving
 `ω₀` (`stdForm_stdInl`), with range `range_stdInl`; and `StdSpace.ofX ι` includes `ι → ℝ` as
 the `x`-coordinates, onto the isotropic subspace `{y = 0}` (`range_ofX`, `stdForm_ofX`).
+Composed, `stdInl k m ∘ ofX (Fin k)` is onto the isotropic subspace
+`{y = 0, and xⱼ = 0 for j ≥ k}` (`range_stdInl_ofX`).
 Likewise `StdSpace.stdInr k m` includes `StdSpace (Fin m)` as the last `m` pairs, `ω₀`-orthogonal
 to the first `k` (`stdForm_stdInl_add_stdInr`). Together with `ofX`, they parametrize the
 coisotropic subspace `{yⱼ = 0 for j < k}` (`range_stdInl_ofX_add_stdInr`), whose `ω₀`-orthogonal
@@ -693,6 +695,24 @@ theorem range_ofX : Set.range (ofX ι) = {z | z.y = 0} := by
   ext z
   refine ⟨fun ⟨a, ha⟩ ↦ ha ▸ y_ofX a, fun hz ↦ ⟨z.x, ext (x_ofX _) ((y_ofX _).trans ?_)⟩⟩
   exact (Set.mem_ofPred_eq.mp hz).symm
+
+/-- The points `(a, 0)`, with `a : Fin k → ℝ` in the first `k` coordinates `x`, form the subspace
+`{y = 0, and xⱼ = 0 for j ≥ k}`. -/
+theorem range_stdInl_ofX {k m : ℕ} :
+    Set.range (stdInl k m ∘ ofX (Fin k)) =
+      {z | z.y = 0 ∧ ∀ j : Fin (k + m), k ≤ (j : ℕ) → z.x j = 0} := by
+  rw [Set.range_comp, range_ofX]
+  ext z
+  constructor
+  · rintro ⟨w, hw, rfl⟩
+    refine ⟨?_, fun j hj ↦ ((range_stdInl (m := m)).subset ⟨w, rfl⟩ j hj).1⟩
+    rw [y_stdInl, show w.y = 0 from hw]
+    funext j; simp
+  · rintro ⟨hy, hx⟩
+    obtain ⟨w, rfl⟩ : z ∈ Set.range (stdInl k m) := by
+      rw [range_stdInl]; exact fun j hj ↦ ⟨hx j hj, congr_fun hy j⟩
+    refine ⟨w, funext fun i ↦ ?_, rfl⟩
+    simpa using congr_fun hy (Fin.castAdd m i)
 
 /-- `(a, w) ↦ (a, 0) + w`, putting `a : Fin k → ℝ` into the first `k` coordinates `x` and
 `w : StdSpace (Fin m)` into the last `m` coordinate pairs, is injective. -/
