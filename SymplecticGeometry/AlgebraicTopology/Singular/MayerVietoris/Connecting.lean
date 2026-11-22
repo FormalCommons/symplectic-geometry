@@ -7,6 +7,7 @@ module
 
 public import TauCeti.AlgebraicTopology.Singular.Excision
 public import TauCeti.AlgebraicTopology.Singular.MayerVietoris.Reduced
+public import TauCeti.AlgebraicTopology.Singular.MayerVietoris.Relative
 
 /-!
 # The Mayer–Vietoris connecting morphism through the connecting morphism of a pair
@@ -32,6 +33,13 @@ middle, commutes with the connecting morphisms (`SSet.mayerVietorisδ_comp_homol
 In positive degrees the same holds for the reduced connecting morphism
 `TopCat.reducedMayerVietorisδ` (`TopCat.reducedMayerVietorisδ_succ_eq_singularHomologyδ_left`).
 
+The two pieces fit together: the image of a class `c` of `Hₙ(X)` in `Hₙ(X, U ∩ V)` is the sum of
+the images of the excision preimages `a ∈ Hₙ(U, U ∩ V)` of the image of `c` in `Hₙ(X, V)` and
+`a' ∈ Hₙ(V, V ∩ U)` of its image in `Hₙ(X, U)` (`TopCat.singularHomologyπ_ofSubset_inter_eq_add`).
+Since `U ∪ V = X`, Tau Ceti's `TopCat.mono_relativeMayerVietorisToBiprod` makes
+`Hₙ(X, U ∩ V) ⟶ Hₙ(X, U) ⊞ Hₙ(X, V)` a monomorphism, and both sides have the same two components,
+as `(U, U ∩ V) ⟶ (X, U)` factors through `(U, U)`.
+
 The proof of `TopPair.chainComplexMap_comp_singularChainComplexπ_of_fac` adapts that of Tau Ceti's
 `TopPair.singularChainComplexMap_eq_zero_of_fac`, in
 `TauCeti/AlgebraicTopology/Singular/Relative.lean`, to a map into the ambient space that need not
@@ -53,6 +61,8 @@ come from a map of pairs.
   with a sign.
 * `TopCat.reducedMayerVietorisδ_succ_eq_singularHomologyδ_left`: the reduced form in positive
   degrees.
+* `TopCat.singularHomologyπ_ofSubset_inter_eq_add`: the image of an absolute class relative to
+  `U ∩ V`, as the sum of the images of its two excision preimages.
 * `TopPair.homologyMap_eq_singularHomologyπ_comp_inv`,
   `TopCat.chainComplexMap_toSmallSingularSubcomplex_comp_singularChainComplexπ_eq` and its
   neighbours: a chain map out of the small chains of the cover that is compatible with the
@@ -235,6 +245,30 @@ lemma homologyMap_eq_singularHomologyπ_comp_inv {P Q : TopPair.{w}} (e : P ⟶ 
   refine ((IsIso.eq_comp_inv _).2 ?_).trans (Category.assoc _ _ _)
   rw [← HomologicalComplex.homologyMap_comp, hg]
   exact HomologicalComplex.homologyMap_comp _ _ _
+
+/-- For a subset `S` of `X` containing `A ∩ B` and contained in `B`, the inclusion of pairs
+`(A, A ∩ B) ⟶ (X, S)` followed by the identity of `X` as a map `(X, S) ⟶ (X, B)` is the excision
+map `(A, A ∩ B) ⟶ (X, B)`. -/
+lemma ofSubsetMap_subtypeVal_comp_ofSubsetMap_id {X : TopCat.{w}} (A B : Set X) {S : Set X}
+    (h₁ : Set.MapsTo (TopCat.ofHom (ContinuousMap.subtypeVal A)) (Subtype.val ⁻¹' B) S)
+    (h₂ : Set.MapsTo (𝟙 X) S B) :
+    ofSubsetMap (TopCat.ofHom (ContinuousMap.subtypeVal A)) h₁ ≫ ofSubsetMap (𝟙 X) h₂ =
+      excisionMap A B := by
+  rw [ofSubsetMap_comp_ofSubsetMap_of_comp_eq h₁ h₂ (h₂.comp h₁) (Category.comp_id _)]
+  ext x : 2
+  · exact Subtype.ext ((ofSubsetMap_snd_apply _ _ x).trans (excisionMap_snd_apply A B x).symm)
+  · exact (ofSubsetMap_fst_apply _ _ x).trans (excisionMap_fst_apply A B x).symm
+
+/-- The inclusion of pairs `(A, A ∩ B) ⟶ (X, S)` induces zero on relative singular homology when
+`A ⊆ S`, since its map of ambient spaces then factors through `S`. -/
+lemma singularHomologyMap_ofSubsetMap_subtypeVal_eq_zero {X : TopCat.{w}} {A B S : Set X}
+    (h : Set.MapsTo (TopCat.ofHom (ContinuousMap.subtypeVal A)) (Subtype.val ⁻¹' B) S)
+    (hA : A ⊆ S) (n : ℕ) :
+    TopPair.singularHomologyMap (ofSubsetMap (TopCat.ofHom (ContinuousMap.subtypeVal A)) h) R n =
+      0 :=
+  singularHomologyMap_eq_zero_of_fac _ R
+    (TopCat.ofHom (ContinuousMap.inclusion hA) : TopCat.of A ⟶ (ofSubset S).snd)
+    (by ext x; exact (ofSubsetMap_fst_apply _ h x).symm) n
 
 end TopPair
 
@@ -440,5 +474,101 @@ theorem reducedMayerVietorisδ_succ_eq_singularHomologyδ_left (k : ℕ) :
   -- `simp only [Category.assoc]` fails here for the reason given above.
   exact (Category.assoc _ _ _).trans (congrArg (_ ≫ ·) ((Category.assoc _ _ _).trans
     (congrArg (_ ≫ ·) (Category.assoc _ _ _))))
+
+/-- **The image of an absolute class relative to `U ∩ V`, through excision.** For an open cover of
+`X` by `U` and `V`, the map `Hₙ(X) ⟶ Hₙ(X, U ∩ V)` is the sum of two composites: the map
+`Hₙ(X) ⟶ Hₙ(X, V)`, followed by the inverse of the excision isomorphism `Hₙ(U, U ∩ V) ≅ Hₙ(X, V)`
+and by the inclusion `(U, U ∩ V) ⟶ (X, U ∩ V)`; and the map `Hₙ(X) ⟶ Hₙ(X, U)`, followed by the
+inverse of the excision isomorphism `Hₙ(V, V ∩ U) ≅ Hₙ(X, U)` and by the inclusion
+`(V, V ∩ U) ⟶ (X, U ∩ V)`. -/
+theorem singularHomologyπ_ofSubset_inter_eq_add (n : ℕ) :
+    (TopPair.ofSubset (U ∩ V)).singularHomologyπ R n =
+      ((TopPair.ofSubset V).singularHomologyπ R n ≫
+        (haveI := TopPair.isIso_singularHomologyMap_excisionMap R U V
+          (by rw [hU.interior_eq, hV.interior_eq, hUV]) n
+        inv (TopPair.singularHomologyMap (TopPair.excisionMap U V) R n)) ≫
+        TopPair.singularHomologyMap (TopPair.ofSubsetMap (B := Subtype.val ⁻¹' V) (B' := U ∩ V)
+          (ofHom (ContinuousMap.subtypeVal U))
+          fun (x : U) (hx : x.val ∈ V) ↦ ⟨x.property, hx⟩) R n :
+        (toSSet.obj X).homology R n ⟶ _) +
+      ((TopPair.ofSubset U).singularHomologyπ R n ≫
+        (haveI := TopPair.isIso_singularHomologyMap_excisionMap R V U
+          (by rw [hU.interior_eq, hV.interior_eq, Set.union_comm, hUV]) n
+        inv (TopPair.singularHomologyMap (TopPair.excisionMap V U) R n)) ≫
+        TopPair.singularHomologyMap (TopPair.ofSubsetMap (B := Subtype.val ⁻¹' U) (B' := U ∩ V)
+          (ofHom (ContinuousMap.subtypeVal V))
+          fun (x : V) (hx : x.val ∈ U) ↦ ⟨hx, x.property⟩) R n :
+        (toSSet.obj X).homology R n ⟶ _) := by
+  have := TopPair.isIso_singularHomologyMap_excisionMap R U V
+    (by rw [hU.interior_eq, hV.interior_eq, hUV]) n
+  have := TopPair.isIso_singularHomologyMap_excisionMap R V U
+    (by rw [hU.interior_eq, hV.interior_eq, Set.union_comm, hUV]) n
+  -- `Hₙ₊₁(X, U ∪ V)` vanishes, so `Hₙ(X, U ∩ V) ⟶ Hₙ(X, U) ⊞ Hₙ(X, V)` is a monomorphism.
+  have := mono_relativeMayerVietorisToBiprod R hU hV (k := n)
+    (TopPair.isZero_singularHomology_of_surjective_map _ R
+      (Set.range_eq_univ.1 (TopPair.range_ofSubset_map.trans hUV)) _)
+  have hU₁ : Set.MapsTo (𝟙 X) (U ∩ V) U := (Set.mapsTo_id _).mono_right Set.inter_subset_left
+  have hV₁ : Set.MapsTo (𝟙 X) (U ∩ V) V := (Set.mapsTo_id _).mono_right Set.inter_subset_right
+  have hUi : Set.MapsTo (ofHom (ContinuousMap.subtypeVal U)) (Subtype.val ⁻¹' V) (U ∩ V) :=
+    fun x hx ↦ ⟨x.property, hx⟩
+  have hVi : Set.MapsTo (ofHom (ContinuousMap.subtypeVal V)) (Subtype.val ⁻¹' U) (U ∩ V) :=
+    fun x hx ↦ ⟨hx, x.property⟩
+  -- Each inclusion `(U, U ∩ V) ⟶ (X, U ∩ V)` and `(V, V ∩ U) ⟶ (X, U ∩ V)` is the excision map into
+  -- one of `(X, U)` and `(X, V)`, and induces zero into the other.
+  have hUU := (TopPair.singularHomologyMap_comp _ R _ n).symm.trans
+    ((congrArg (TopPair.singularHomologyMap · R n)
+      (TopPair.ofSubsetMap_comp_ofSubsetMap_of_comp_eq hUi hU₁
+        (fun x _ ↦ x.property)
+        (Category.comp_id _))).trans
+      (TopPair.singularHomologyMap_ofSubsetMap_subtypeVal_eq_zero R _ subset_rfl n))
+  have hVV := (TopPair.singularHomologyMap_comp _ R _ n).symm.trans
+    ((congrArg (TopPair.singularHomologyMap · R n)
+      (TopPair.ofSubsetMap_comp_ofSubsetMap_of_comp_eq hVi hV₁
+        (fun x _ ↦ x.property)
+        (Category.comp_id _))).trans
+      (TopPair.singularHomologyMap_ofSubsetMap_subtypeVal_eq_zero R _ subset_rfl n))
+  have hVU := (TopPair.singularHomologyMap_comp _ R _ n).symm.trans
+    (congrArg (TopPair.singularHomologyMap · R n)
+      (TopPair.ofSubsetMap_subtypeVal_comp_ofSubsetMap_id V U hVi hU₁))
+  have hUV' := (TopPair.singularHomologyMap_comp _ R _ n).symm.trans
+    (congrArg (TopPair.singularHomologyMap · R n)
+      (TopPair.ofSubsetMap_subtypeVal_comp_ofSubsetMap_id U V hUi hV₁))
+  have k₁ := (congrArg (inv (TopPair.singularHomologyMap (TopPair.excisionMap U V) R n) ≫ ·)
+    hUU).trans comp_zero
+  have k₂ := (congrArg (inv (TopPair.singularHomologyMap (TopPair.excisionMap V U) R n) ≫ ·)
+    hVU).trans (IsIso.inv_hom_id _)
+  have k₃ := (congrArg (inv (TopPair.singularHomologyMap (TopPair.excisionMap U V) R n) ≫ ·)
+    hUV').trans (IsIso.inv_hom_id _)
+  have k₄ := (congrArg (inv (TopPair.singularHomologyMap (TopPair.excisionMap V U) R n) ≫ ·)
+    hVV).trans comp_zero
+  -- The steps below are `Eq.trans` rather than `rw`: the two summands have the homology of `X` as
+  -- source under different names, `(TopPair.toSSetPair.obj (TopPair.ofSubset U)).right` and the
+  -- same for `V`, so that rewriting the sum fails.
+  refine (cancel_mono (relativeMayerVietorisToBiprod R U V n)).1 (biprod.hom_ext _ _ ?_ ?_)
+  · refine (Category.assoc _ _ _).trans (((congrArg (_ ≫ ·)
+      (relativeMayerVietorisToBiprod_fst R U V n)).trans
+        (TopPair.singularHomologyπ_comp_singularHomologyMap_ofSubsetMap_id R _ n)).trans ?_)
+    refine Eq.trans ?_ (Category.assoc _ _ _).symm
+    refine Eq.trans ?_ (congrArg (_ ≫ ·) (relativeMayerVietorisToBiprod_fst R U V n)).symm
+    refine Eq.trans ?_ (Preadditive.add_comp _ _ _ _ _ _).symm
+    refine Eq.trans ?_ (congrArg₂ (· + ·) (Category.assoc _ _ _) (Category.assoc _ _ _)).symm
+    refine Eq.trans ?_ (congrArg₂ (· + ·) (congrArg (_ ≫ ·) (Category.assoc _ _ _))
+      (congrArg (_ ≫ ·) (Category.assoc _ _ _))).symm
+    exact (Category.comp_id _).symm.trans ((zero_add _).symm.trans
+      (congrArg₂ (· + ·) ((congrArg (_ ≫ ·) k₁).trans comp_zero).symm (congrArg (_ ≫ ·) k₂).symm))
+  · refine (Category.assoc _ _ _).trans (((congrArg (_ ≫ ·)
+      (relativeMayerVietorisToBiprod_snd R U V n)).trans ((Preadditive.comp_neg _ _).trans
+        (congrArg Neg.neg
+          (TopPair.singularHomologyπ_comp_singularHomologyMap_ofSubsetMap_id R _ n)))).trans ?_)
+    refine Eq.trans ?_ (Category.assoc _ _ _).symm
+    refine Eq.trans ?_ (congrArg (_ ≫ ·) (relativeMayerVietorisToBiprod_snd R U V n)).symm
+    refine Eq.trans ?_ (Preadditive.comp_neg _ _).symm
+    refine congrArg Neg.neg ?_
+    refine Eq.trans ?_ (Preadditive.add_comp _ _ _ _ _ _).symm
+    refine Eq.trans ?_ (congrArg₂ (· + ·) (Category.assoc _ _ _) (Category.assoc _ _ _)).symm
+    refine Eq.trans ?_ (congrArg₂ (· + ·) (congrArg (_ ≫ ·) (Category.assoc _ _ _))
+      (congrArg (_ ≫ ·) (Category.assoc _ _ _))).symm
+    exact (Category.comp_id _).symm.trans ((add_zero _).symm.trans
+      (congrArg₂ (· + ·) (congrArg (_ ≫ ·) k₃).symm ((congrArg (_ ≫ ·) k₄).trans comp_zero).symm))
 
 end TopCat
