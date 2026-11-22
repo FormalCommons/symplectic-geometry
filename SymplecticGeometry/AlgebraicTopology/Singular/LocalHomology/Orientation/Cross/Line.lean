@@ -41,8 +41,8 @@ map to the homology of `(F × ℝ) ∖ {0}` relative to `(F ∖ {0}) × ℝ`, wh
   relative cross product with the class of a point `t` is the map induced by `jₜ`
   (`TopCat.singularHomology₀Section_singularHomologyCrossRel`).
 
-A local orientation of `F × ℝ` has infinite order (`TauCeti.IsLocalOrientation.zsmul_eq_zero_iff`),
-so the sign is `(-1) ^ (m + 1)`.
+A local orientation of `F × ℝ` has infinite order
+(`TauCeti.LocalOrientation.zsmul_left_injective`), so the sign is `(-1) ^ (m + 1)`.
 
 ## Main results
 
@@ -398,7 +398,6 @@ theorem LocalOrientation.singularHomologyπ_singularHomologyδ_cross {m : ℕ}
 product of a local orientation of a real vector space of dimension `m + 1` with a local
 orientation of `ℝ` differs from their ordered product `TauCeti.LocalOrientation.prod`
 (`TauCeti.LocalOrientation.coe_cross_eq_crossSign_smul`), is `(-1) ^ (m + 1)`. -/
-@[simp]
 theorem LocalOrientation.crossSign_zero_right (m : ℕ) :
     LocalOrientation.crossSign m 0 = (-1) ^ (m + 1) := by
   have hF : finrank ℝ (Fin (m + 1) → ℝ) = m + 1 := Module.finrank_fin_fun ℝ
@@ -419,11 +418,7 @@ theorem LocalOrientation.crossSign_zero_right (m : ℕ) :
     exact (congrArg Φ hc.symm).trans ((h₁.trans (congrArg _ h₂.symm)).trans (map_zsmul Φ _ _).symm)
   -- A local orientation of `F × ℝ` has infinite order, so the two signs agree.
   have hFR : finrank ℝ ((Fin (m + 1) → ℝ) × ℝ) = m + 1 + 1 := by simp
-  have h := (w.property.zsmul_eq_zero_iff (singularHomologyComplSingletonIsoOfFinrankEq _
-    (OpenPartialHomeomorph.refl _) (Set.mem_univ 0) hFR)
-      (c := (LocalOrientation.crossSign m 0 : ℤ) - (-1) ^ (m + 1))).1
-    (by rw [sub_zsmul, key, add_neg_cancel])
-  exact Units.ext (by simpa [sub_eq_zero] using h)
+  exact Units.ext (by simpa using LocalOrientation.zsmul_left_injective hFR w key)
 
 end Prod
 
