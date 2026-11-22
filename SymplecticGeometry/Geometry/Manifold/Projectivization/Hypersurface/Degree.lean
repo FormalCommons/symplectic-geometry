@@ -31,8 +31,8 @@ with inclusion `ι = X.embedding`, and let `h` be the hyperplane class of `ℂ�
 
 The class `(ι^* h) ^ n` is the top Chern class of `ι^* 𝒪(1)^{⊕n}`, by the Whitney sum formula
 for `𝒪(1)^{⊕n}` (`Projectivization.totalChernClass_twistPiCore`) and naturality, hence its Euler
-class (`SymplecticGeometry.Bundle.chernClass_finrank_eq_complexEulerClass`). The Euler class
-evaluated on `[X]` is the sum of the local indices of any section with finitely many zeros
+class (`SymplecticGeometry.Bundle.chernClass_finrank_eq_complexEulerClass`). Pairing the Euler class
+with `[X]` adds up, over the zeros of a section with finitely many zeros, its index at each
 (`TauCeti.VectorBundleOrientation.evalFundamentalClass_eulerClass_eq_sum_sectionIndex`). The
 section is the one given by a tuple `ℓ` of `n` linear forms on `ℂⁿ⁺²`, whose zeros are the points
 of `X` on the line `{ℓ = 0}`; it is chosen by Tau Ceti's theorem on generic sections
