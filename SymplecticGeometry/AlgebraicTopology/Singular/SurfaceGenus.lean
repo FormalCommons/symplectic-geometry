@@ -18,9 +18,10 @@ two can merge.
 
 ## Main results
 
-* `TauCeti.surfaceGenus_sphere`: the unit sphere `S²` of `EuclideanSpace ℝ (Fin 3)` has genus
-  `0`, since `H₁(S²; ℚ) = 0` (Tau Ceti's
+* `TauCeti.surfaceGenus_sphere_of_finrank_eq_three`: the unit sphere of a real normed space of
+  dimension `3` has genus `0`, since its first rational homology vanishes (Tau Ceti's
   `ModuleCat.finrank_singularHomology_sphere_of_finrank_eq_succ`).
+* `TauCeti.surfaceGenus_sphere`: the case of `S²` in `EuclideanSpace ℝ (Fin 3)`.
 
 ## References
 
@@ -31,13 +32,21 @@ public section
 
 namespace TauCeti
 
-/-- **The 2-sphere has genus `0`**: the first rational homology of the unit sphere of
-`ℝ³ = EuclideanSpace ℝ (Fin 3)` vanishes. -/
-theorem surfaceGenus_sphere :
-    surfaceGenus (Metric.sphere (0 : EuclideanSpace ℝ (Fin 3)) 1) = 0 := by
+/-- **The 2-sphere has genus `0`.** The unit sphere of a real normed space `E` of dimension `3`
+has genus `0`, since its first rational homology vanishes. -/
+@[simp]
+theorem surfaceGenus_sphere_of_finrank_eq_three {E : Type} [NormedAddCommGroup E]
+    [NormedSpace ℝ E] (hE : Module.finrank ℝ E = 3) :
+    surfaceGenus (Metric.sphere (0 : E) 1) = 0 := by
   rw [surfaceGenus_def, ModuleCat.finrank_singularHomology_sphere_of_finrank_eq_succ
-    (ModuleCat.of ℚ ℚ) (d := 2) finrank_euclideanSpace_fin 1]
+    (ModuleCat.of ℚ ℚ) (d := 2) hE 1]
   simp
+
+/-- The unit sphere `S²` of `ℝ³ = EuclideanSpace ℝ (Fin 3)` has genus `0`, since its first
+rational homology vanishes. -/
+theorem surfaceGenus_sphere :
+    surfaceGenus (Metric.sphere (0 : EuclideanSpace ℝ (Fin 3)) 1) = 0 :=
+  surfaceGenus_sphere_of_finrank_eq_three finrank_euclideanSpace_fin
 
 end TauCeti
 
