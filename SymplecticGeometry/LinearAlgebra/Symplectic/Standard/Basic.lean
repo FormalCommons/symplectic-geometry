@@ -699,23 +699,20 @@ theorem range_ofX : Set.range (ofX ι) = {z | z.y = 0} := by
 /-- The points `(a, 0)`, with `a : Fin k → ℝ` in the first `k` coordinates `x`, form the subspace
 `{y = 0, and xⱼ = 0 for j ≥ k}`. -/
 theorem range_stdInl_ofX {k m : ℕ} :
-    Set.range (fun a : Fin k → ℝ ↦ stdInl k m (ofX (Fin k) a)) =
+    Set.range (stdInl k m ∘ ofX (Fin k)) =
       {z | z.y = 0 ∧ ∀ j : Fin (k + m), k ≤ (j : ℕ) → z.x j = 0} := by
+  rw [Set.range_comp, range_ofX]
   ext z
   constructor
-  · rintro ⟨a, rfl⟩
-    refine ⟨funext fun j ↦ ?_, fun j hj ↦ ?_⟩
-    · refine Fin.addCases (fun i ↦ ?_) (fun i ↦ ?_) j <;> simp [y_apply]
-    · obtain ⟨i, rfl⟩ : ∃ i : Fin m, Fin.natAdd k i = j :=
-        ⟨⟨j - k, by omega⟩, Fin.ext (by simp; omega)⟩
-      simp [x_apply]
+  · rintro ⟨w, hw, rfl⟩
+    refine ⟨?_, fun j hj ↦ ((range_stdInl (m := m)).subset ⟨w, rfl⟩ j hj).1⟩
+    rw [y_stdInl, show w.y = 0 from hw]
+    funext j; simp
   · rintro ⟨hy, hx⟩
-    refine ⟨fun i ↦ z.x (Fin.castAdd m i), ext (funext fun j ↦ ?_) (funext fun j ↦ ?_)⟩ <;>
-      refine Fin.addCases (fun i ↦ ?_) (fun i ↦ ?_) j
-    · simp [x_apply]
-    · simpa [x_apply] using (hx (Fin.natAdd k i) (by simp)).symm
-    · simpa [y_apply] using (congr_fun hy (Fin.castAdd m i)).symm
-    · simpa [y_apply] using (congr_fun hy (Fin.natAdd k i)).symm
+    obtain ⟨w, rfl⟩ : z ∈ Set.range (stdInl k m) := by
+      rw [range_stdInl]; exact fun j hj ↦ ⟨hx j hj, congr_fun hy j⟩
+    refine ⟨w, funext fun i ↦ ?_, rfl⟩
+    simpa using congr_fun hy (Fin.castAdd m i)
 
 /-- `(a, w) ↦ (a, 0) + w`, putting `a : Fin k → ℝ` into the first `k` coordinates `x` and
 `w : StdSpace (Fin m)` into the last `m` coordinate pairs, is injective. -/

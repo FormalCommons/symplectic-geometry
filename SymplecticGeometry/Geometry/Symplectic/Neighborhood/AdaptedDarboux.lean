@@ -443,14 +443,14 @@ theorem IsIsotropicMap.exists_darbouxChart_inter_range_eq
   have hιapp (a : E') : ι a = stdInl k m (ofX (Fin k) (L a)) := by
     simp only [ι, ContinuousLinearMap.comp_apply, LinearMap.coe_toContinuousLinearMap',
       LinearMap.comp_apply, LinearEquiv.coe_coe, ContinuousLinearEquiv.coe_toLinearEquiv]
-  have hιF : ⇑ι = (fun a ↦ stdInl k m (ofX (Fin k) a)) ∘ L := funext hιapp
+  have hιF : ⇑ι = stdInl k m ∘ ofX (Fin k) ∘ L := funext hιapp
   have hι : Injective ι := by
     rw [hιF]
     exact injective_stdInl.comp (injective_ofX.comp L.injective)
   have hstd (a b : E') : stdForm (Fin (k + m)) (ι a) (ι b) = 0 := by
     rw [hιapp, hιapp, stdForm_stdInl, stdForm_ofX]
   have hrange : range ι = {z | z.y = 0 ∧ ∀ j : Fin (k + m), k ≤ (j : ℕ) → z.x j = 0} := by
-    rw [hιF, range_comp, L.surjective.range_eq, image_univ, range_stdInl_ofX]
+    rw [hιF, ← comp_assoc, range_comp, L.surjective.range_eq, image_univ, range_stdInl_ofX]
   obtain ⟨c, hq₀, hc₀⟩ := exists_partialDiffeomorph_apply_eq_zero (I := J) q₀
   obtain ⟨e, h₁, h₂, h₃, h₄⟩ := hσ.exists_darbouxChart_inter_range_eq_of_chart hcl hn f c hq₀ hc₀
     hι (by
