@@ -40,6 +40,8 @@ identity that makes `Q` symmetric. This linear algebra is
   the metric `g(v, w) = ω(v, J w)` is `(u, v) ↦ ω(u, J₀ v)`, with `ω` read in the chart.
 * `IsIntegrable.exists_partialDiffeomorph_fderiv_gramInChart_eq_zero`, in the namespace
   `TauCeti.SmoothAlmostComplexStructure`: osculating holomorphic charts.
+* `SymplecticGeometry.fderiv_mpullback_symm_eq_zero_of_fderiv_gramInChart_eq_zero`: in a chart
+  in which `J` is `J₀`, where the metric has derivative zero, so has `ω` read in the chart.
 
 ## Implementation notes
 
@@ -317,6 +319,43 @@ private theorem exists_partialDiffeomorph_fderiv_gramInChart_eq_zero_aux
       ((hc φ).contDiffAt (φ.open_target.mem_nhds hz₀t) |>.differentiableAt (by simp))
       ((hc _).contDiffAt ((φ.trans Θd).open_target.mem_nhds hz₀ψ) |>.differentiableAt (by simp))
       hQ
+
+open Bundle in
+/-- Let the metric be `g(v, w) = ω(v, J w)`, and let `φ` be a chart in which `J` is a constant
+linear structure `J₀`. At a point of the target where the metric in the chart has derivative zero,
+so has the form `ω` read in the chart. -/
+theorem fderiv_mpullback_symm_eq_zero_of_fderiv_gramInChart_eq_zero
+    [IsContMDiffRiemannianBundle I ∞ E (fun x : M ↦ TangentSpace I x)]
+    {J : SmoothAlmostComplexStructure I M} {form : SmoothTwoForm I M}
+    (hg : ∀ x (v w : TangentSpace I x), ⟪v, w⟫ = form.val x ![v, J x w])
+    (φ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞) {J₀ : AlmostComplexStructure E}
+    (hφ : ∀ p ∈ φ.target, ∀ w : E, J.chartPushforward φ.toOpenPartialHomeomorph p w = J₀ w)
+    {z : E} (hz : z ∈ φ.target) (h : fderiv ℝ (gramInChart φ) z = 0) :
+    fderiv ℝ (F := E [⋀^Fin 2]→L[ℝ] ℝ) (mpullback 𝓘(ℝ, E) I φ.symm form.val) z = 0 := by
+  have hT := φ.open_target.mem_nhds hz
+  have hΩ : DifferentiableAt ℝ (F := E [⋀^Fin 2]→L[ℝ] ℝ)
+      (mpullback 𝓘(ℝ, E) I φ.symm form.val) z :=
+    ((form.contDiffOn_mpullback φ.open_target φ.symm.contMDiffOn).contDiffAt hT).differentiableAt
+      (by simp)
+  have hG := (((contDiffOn_gramInChart φ).contDiffAt hT).differentiableAt (by simp)).hasFDerivAt
+  rw [h] at hG
+  ext v w
+  have hw : w = ![w 0, w 1] := by ext i; fin_cases i <;> rfl
+  -- On the target, `ω(u, u') = g(u, -J₀ u')` in the chart, which has derivative zero at `z`.
+  have hc : HasFDerivAt (fun p ↦ (mpullback 𝓘(ℝ, E) I φ.symm form.val p : E [⋀^Fin 2]→L[ℝ] ℝ)
+      ![w 0, w 1]) (0 : E →L[ℝ] ℝ) z := by
+    have := (hG.clm_apply (hasFDerivAt_const (w 0) z)).clm_apply (hasFDerivAt_const (-J₀ (w 1)) z)
+    simp only [zero_apply, ContinuousLinearMap.comp_zero, zero_add,
+      ContinuousLinearMap.flip_zero] at this
+    refine this.congr_of_eventuallyEq (Filter.eventually_of_mem hT fun p hp ↦ ?_)
+    have hgp := gramInChart_apply_eq_mpullback_symm_apply hg φ hφ hp (w 0) (-J₀ (w 1))
+    have hJ : J₀ (-J₀ (w 1)) = w 1 := by rw [map_neg, J₀.apply_apply, neg_neg]
+    simp only [hJ] at hgp
+    exact hgp.symm
+  have hd := (ContinuousAlternatingMap.apply ℝ E ℝ ![w 0, w 1]).hasFDerivAt.comp z hΩ.hasFDerivAt
+  have h0 := congrArg (· v) (hd.unique hc)
+  rw [hw]
+  simpa using h0
 
 end SymplecticGeometry
 
