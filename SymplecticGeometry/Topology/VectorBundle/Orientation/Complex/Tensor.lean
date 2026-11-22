@@ -46,8 +46,8 @@ with `w ↦ v₀ ⊗ w`.
 ## References
 
 * J. W. Milnor, J. D. Stasheff, *Characteristic Classes*, Annals of Mathematics Studies 76,
-  Princeton University Press (1974), §14 (the canonical orientation of a complex vector bundle
-  and its Euler class).
+  Princeton University Press (1974), §14 (the orientation that the complex structure gives the
+  underlying real bundle, and the top Chern class as its Euler class).
 * [R. Bott, L. W. Tu, *Differential Forms in Algebraic Topology*][BottTu1982], §20 (the
   tautological line of a projective space and the class `x = -e(S)`).
 -/
