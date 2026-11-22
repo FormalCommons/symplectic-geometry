@@ -126,6 +126,7 @@ private theorem exists_contMDiffSection_isDiscrete_interior [SecondCountableTopo
     ∃ σ : ContMDiffSection I F ∞ V, IsDiscrete {x : I.interiorOpens M | σ x = 0} := by
   let U := I.interiorOpens M
   let N := U.InteriorModel I
+  -- A point of `N` is a point of `U` (`TopologicalSpace.Opens.coe_interiorModelHomeomorph_symm`).
   have hj : ContMDiff 𝓘(ℝ, E) I ∞ (fun y : N ↦ ((show U from y) : M)) := by
     have := contMDiff_subtypeVal.comp (U.interiorModelDiffeomorph I ∞).symm.contMDiff
     rwa [TopologicalSpace.Opens.coe_interiorModelDiffeomorph_symm,
