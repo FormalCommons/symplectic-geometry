@@ -300,7 +300,7 @@ diffeomorphism. If, at every point of the source of `Φ`, `Φ` pulls a form `σ`
 value of `e^* τ`, for a form `τ` on `Y`, then there is a diffeomorphism `Ψ` between open subsets of
 `Y` and `M'` that pulls the restriction of `σ` back to the restriction of `τ`, with
 `Ψ (e x) = Φ x` for each `x` in the source of `Φ`. -/
-theorem exists_diffeomorph_opens_mpullback_eq [Nonempty X] {e : X → Y}
+theorem exists_diffeomorph_opens_mpullback_eq {e : X → Y}
     (he : IsLocalDiffeomorph IX IY ∞ e) (heinj : Function.Injective e)
     (Φ : PartialDiffeomorph IX I' X M' ∞) {σ : TauCeti.SmoothForm I' M' F k}
     {τ : TauCeti.SmoothForm IY Y F k}
@@ -311,6 +311,8 @@ theorem exists_diffeomorph_opens_mpullback_eq [Nonempty X] {e : X → Y}
       TauCeti.SmoothForm.mpullback Ψ Ψ.contMDiff
           (TauCeti.SmoothForm.mpullback (Subtype.val : V → M') contMDiff_subtypeVal σ) =
         TauCeti.SmoothForm.mpullback (Subtype.val : U → Y) contMDiff_subtypeVal τ := by
+  rcases isEmpty_or_nonempty X with hX | hX
+  · exact ⟨⊥, ⊥, Diffeomorph.ofIsEmpty, fun x ↦ isEmptyElim x, Subtype.ext (funext isEmptyElim)⟩
   let ee := (he.isLocalDiffeomorphOn univ).partialDiffeomorphOfInjOn isOpen_univ heinj.injOn
   have hee : ⇑ee = e := IsLocalDiffeomorphOn.coe_partialDiffeomorphOfInjOn _ _ _
   have hees (x : X) : ee.symm (e x) = x := by

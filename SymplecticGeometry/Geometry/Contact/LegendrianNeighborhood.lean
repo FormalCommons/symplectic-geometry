@@ -922,7 +922,6 @@ private theorem exists_diffeomorph_opens_of_primitive [I.Boundaryless] [J.Bounda
           (CotangentBundle.liouvilleForm J L).contactization := by
   obtain ⟨Φ, hsΦ, hΦs, hΦα⟩ :=
     exists_partialDiffeomorph_of_primitive hα hf he hκ hg hs₀ hes₀ hκs₀ hgs₀ hκα
-  have : Nonempty S := ⟨s₀ (Classical.arbitrary L)⟩
   have hk : IsLocalDiffeomorph ((J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)).prod 𝓘(ℝ))
       ((J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)).prod 𝓘(ℝ)) ∞ (Prod.map e id) :=
     he.prodMap (by
