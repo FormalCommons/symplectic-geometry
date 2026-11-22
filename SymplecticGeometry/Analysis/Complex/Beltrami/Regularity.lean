@@ -51,7 +51,16 @@ analogues, of class `C^m`, of the private steps `exists_rescaled_coefficient` an
 The second result takes Tau Ceti's `C¹` chart
 (`TauCeti.Beltrami.exists_isothermal_chart_of_contDiffAt`), restricted to `U`. Since every point
 of its source has isothermal charts of every finite order, by the first result, the chart is
-smooth (`TauCeti.Beltrami.contDiffOn_infty_of_fderiv_comp`).
+smooth (`TauCeti.Beltrami.contDiffOn_infty_of_fderiv_comp`). Where `J c` is tame, the chart is
+that of the second result on the open set where `J` is tame
+(`TauCeti.Beltrami.exists_smooth_isothermal_chart_of_tames`). Otherwise the field transported by
+conjugation is tame at `conj c`, and its chart, composed with conjugation, is one for `J`
+(`TauCeti.Beltrami.exists_smooth_isothermal_chart_of_tames_transport`, for any real-linear
+automorphism of the plane in place of conjugation). This case split adapts the proof of
+`TauCeti.Beltrami.exists_isothermal_chart_of_contDiffAt` and its private step
+`exists_isothermal_chart_of_transport_conj` on Tau Ceti's main branch, in
+`TauCeti/Analysis/Complex/Beltrami/Isothermal.lean` at commit 1179cf0e10, which the pinned
+version of Tau Ceti does not have; here the charts are smooth rather than of class `C¹`.
 
 ## Main results
 
@@ -62,6 +71,10 @@ smooth (`TauCeti.Beltrami.contDiffOn_infty_of_fderiv_comp`).
   `C^m` for a field of structures of class `C^m` at a point.
 * `TauCeti.Beltrami.exists_smooth_isothermal_chart_of_contDiffOn`: smooth isothermal charts for a
   smooth field of structures on an open set.
+* `TauCeti.Beltrami.exists_smooth_isothermal_chart_of_tames`: the same at a point where the
+  field is tame.
+* `TauCeti.Beltrami.exists_smooth_isothermal_chart_of_tames_transport`: the same at a point where
+  the transport of the field along a real-linear automorphism is tame.
 * `TauCeti.Beltrami.exists_smooth_isothermal_chart`: the same without the hypothesis that the
   structures are tame.
 
@@ -299,83 +312,94 @@ theorem exists_smooth_isothermal_chart_of_contDiffOn {J : ℂ → AlmostComplexS
       (le_max_right m 1) (hJat z hzU _) (hJU z hzU)
     exact ⟨e', hz', hC'.of_le (by exact_mod_cast le_max_left m 1), hinv', hlin'⟩
 
+/-- **Smooth isothermal charts where the field is tame.** Let `J` be a field of almost complex
+structures on the plane that is smooth on an open set `U` in the operator norm, and tame for the
+standard form at `c ∈ U`. Then `c` has a smooth isothermal chart: an open partial homeomorphism
+`e` whose source contains `c` and lies in `U`, which is smooth on its source with invertible
+derivative there, and in which `J` is multiplication by `i`: `de_z (J z v) = i · de_z v`. -/
+theorem exists_smooth_isothermal_chart_of_tames {J : ℂ → AlmostComplexStructure ℂ} {U : Set ℂ}
+    (hU : IsOpen U)
+    (hJ : ContDiffOn ℝ ∞ (fun z ↦ LinearMap.toContinuousLinearMap (J z).toLinearMap) U)
+    {c : ℂ} (hc : c ∈ U) (hJc : stdComplexSymplecticForm.Tames (J c)) :
+    ∃ e : OpenPartialHomeomorph ℂ ℂ, c ∈ e.source ∧ e.source ⊆ U ∧
+      ContDiffOn ℝ ∞ e e.source ∧ (∀ z ∈ e.source, (fderiv ℝ e z).IsInvertible) ∧
+      ∀ z ∈ e.source, ∀ v, fderiv ℝ e z (J z v) = I * fderiv ℝ e z v := by
+  obtain ⟨t, htame, ht, hct⟩ := _root_.eventually_nhds_iff.1
+    (SymplecticForm.Tames.eventually_of_continuousAt
+      (hJ.continuousOn.continuousAt (hU.mem_nhds hc)) hJc)
+  obtain ⟨e, hce, heU, he⟩ := exists_smooth_isothermal_chart_of_contDiffOn (hU.inter ht)
+    (hJ.mono inter_subset_left) (fun z hz ↦ htame z hz.2) ⟨hc, hct⟩
+  exact ⟨e, hce, heU.trans inter_subset_left, he⟩
+
+/-- Precomposing with a real-linear automorphism `σ` of the plane turns a map in which the
+transport of `K` along `σ` is multiplication by `i` at `σ z` into one in which `K` is
+multiplication by `i` at `z`. -/
+theorem fderiv_comp_continuousLinearEquiv_apply_eq_I_mul (σ : ℂ ≃L[ℝ] ℂ) {f : ℂ → ℂ} {z : ℂ}
+    {K : AlmostComplexStructure ℂ}
+    (h : ∀ w, fderiv ℝ f (σ z) (K.transport σ.toLinearEquiv w) = I * fderiv ℝ f (σ z) w)
+    (v : ℂ) : fderiv ℝ (f ∘ σ) z (K v) = I * fderiv ℝ (f ∘ σ) z v := by
+  rw [σ.comp_right_fderiv]
+  simpa using h (σ v)
+
+/-- **Smooth isothermal charts where a transport of the field is tame.** Let `J` be a field of
+almost complex structures on the plane that is smooth on an open set `U` in the operator norm,
+and `σ` a real-linear automorphism of the plane such that the transport of `J c` along `σ` is
+tame for the standard form, for some `c ∈ U`. Then `c` has a smooth isothermal chart for `J`,
+with source in `U`, smooth with invertible derivative on its source. -/
+theorem exists_smooth_isothermal_chart_of_tames_transport (σ : ℂ ≃L[ℝ] ℂ)
+    {J : ℂ → AlmostComplexStructure ℂ} {U : Set ℂ} (hU : IsOpen U)
+    (hJ : ContDiffOn ℝ ∞ (fun z ↦ LinearMap.toContinuousLinearMap (J z).toLinearMap) U)
+    {c : ℂ} (hc : c ∈ U) (hJc : stdComplexSymplecticForm.Tames ((J c).transport σ.toLinearEquiv)) :
+    ∃ e : OpenPartialHomeomorph ℂ ℂ, c ∈ e.source ∧ e.source ⊆ U ∧
+      ContDiffOn ℝ ∞ e e.source ∧ (∀ z ∈ e.source, (fderiv ℝ e z).IsInvertible) ∧
+      ∀ z ∈ e.source, ∀ v, fderiv ℝ e z (J z v) = I * fderiv ℝ e z v := by
+  -- The field `J` read through `σ`, on `σ '' U`.
+  let J₂ : ℂ → AlmostComplexStructure ℂ := fun w ↦ (J (σ.symm w)).transport σ.toLinearEquiv
+  have hJ₂ : ContDiffOn ℝ ∞ (fun w ↦ LinearMap.toContinuousLinearMap (J₂ w).toLinearMap)
+      (σ.symm ⁻¹' U) := by
+    have h : (fun w ↦ LinearMap.toContinuousLinearMap (J₂ w).toLinearMap) = fun w ↦
+        (σ : ℂ →L[ℝ] ℂ).comp ((LinearMap.toContinuousLinearMap (J (σ.symm w)).toLinearMap).comp
+          (σ.symm : ℂ →L[ℝ] ℂ)) := by
+      ext w v
+      simp [J₂]
+    rw [h]
+    exact contDiffOn_const.clm_comp ((hJ.comp σ.symm.contDiff.contDiffOn fun _ hz ↦ hz).clm_comp
+      contDiffOn_const)
+  obtain ⟨e₂, hce₂, he₂U, hC₂, hinv₂, hlin₂⟩ :=
+    exists_smooth_isothermal_chart_of_tames (hU.preimage σ.symm.continuous) hJ₂
+      (c := σ c) (by simpa using hc) (by simpa [J₂] using hJc)
+  -- The chart `e₂ ∘ σ` is isothermal for `J`.
+  let e := σ.toHomeomorph.toOpenPartialHomeomorph.trans e₂
+  have hes : e.source = σ ⁻¹' e₂.source := by simp [e]
+  have he : ⇑e = e₂ ∘ σ := by
+    ext z
+    simp [e]
+  refine ⟨e, by rw [hes]; exact hce₂, fun z hz ↦ ?_, ?_, fun z hz ↦ ?_, fun z hz v ↦ ?_⟩
+  · rw [hes] at hz
+    simpa using he₂U hz
+  · rw [he, hes]
+    exact hC₂.comp σ.contDiff.contDiffOn fun _ hz ↦ hz
+  · rw [he, σ.comp_right_fderiv]
+    exact (hinv₂ _ (by rwa [hes] at hz)).comp ⟨σ, rfl⟩
+  · rw [he]
+    refine fderiv_comp_continuousLinearEquiv_apply_eq_I_mul σ (fun w ↦ ?_) v
+    simpa [J₂] using hlin₂ (σ z) (by rwa [hes] at hz) w
+
 /-- **Smooth isothermal charts, with no tameness hypothesis.** Let `J` be a field of almost
 complex structures on the plane that is smooth on an open set `U` in the operator norm. Then every
 `c ∈ U` has a smooth isothermal chart: an open partial homeomorphism `e` whose source contains
 `c` and lies in `U`, which is smooth on its source with invertible derivative there, and in which
-`J` is multiplication by `i`: `de_z (J z v) = i · de_z v`. Where `J c` is not tame for the
-standard form, its transport by conjugation is, and the chart is the one of
-`exists_smooth_isothermal_chart_of_contDiffOn` for that field, composed with conjugation. -/
+`J` is multiplication by `i`: `de_z (J z v) = i · de_z v`. -/
 theorem exists_smooth_isothermal_chart {J : ℂ → AlmostComplexStructure ℂ} {U : Set ℂ}
     (hU : IsOpen U)
     (hJ : ContDiffOn ℝ ∞ (fun z ↦ LinearMap.toContinuousLinearMap (J z).toLinearMap) U)
     {c : ℂ} (hc : c ∈ U) :
     ∃ e : OpenPartialHomeomorph ℂ ℂ, c ∈ e.source ∧ e.source ⊆ U ∧
       ContDiffOn ℝ ∞ e e.source ∧ (∀ z ∈ e.source, (fderiv ℝ e z).IsInvertible) ∧
-      ∀ z ∈ e.source, ∀ v, fderiv ℝ e z (J z v) = I * fderiv ℝ e z v := by
-  -- The tame case: restrict `U` to the open set where `J` is tame.
-  have tame : ∀ {J : ℂ → AlmostComplexStructure ℂ} {U : Set ℂ}, IsOpen U →
-      ContDiffOn ℝ ∞ (fun z ↦ LinearMap.toContinuousLinearMap (J z).toLinearMap) U →
-      ∀ {c : ℂ}, c ∈ U → stdComplexSymplecticForm.Tames (J c) →
-      ∃ e : OpenPartialHomeomorph ℂ ℂ, c ∈ e.source ∧ e.source ⊆ U ∧
-        ContDiffOn ℝ ∞ e e.source ∧ (∀ z ∈ e.source, (fderiv ℝ e z).IsInvertible) ∧
-        ∀ z ∈ e.source, ∀ v, fderiv ℝ e z (J z v) = I * fderiv ℝ e z v := by
-    intro J U hU hJ c hc hJc
-    obtain ⟨t, htame, ht, hct⟩ := _root_.eventually_nhds_iff.1
-      (SymplecticForm.Tames.eventually_of_continuousAt
-        (hJ.continuousOn.continuousAt (hU.mem_nhds hc)) hJc)
-    obtain ⟨e, hce, heU, he⟩ := exists_smooth_isothermal_chart_of_contDiffOn (hU.inter ht)
-      (hJ.mono inter_subset_left) (fun z hz ↦ htame z hz.2) ⟨hc, hct⟩
-    exact ⟨e, hce, heU.trans inter_subset_left, he⟩
-  rcases stdComplexSymplecticForm_tames_or_tames_transport_conj (J c) with hJc | hJc
-  · exact tame hU hJ hc hJc
-  -- Otherwise `J` read through the conjugation `z ↦ conj z` is tame at `conj c`.
-  set σ : ℂ ≃L[ℝ] ℂ := conjCLE
-  let J₂ : ℂ → AlmostComplexStructure ℂ := fun z ↦ (J (σ z)).transport σ.toLinearEquiv
-  have hJ₂ : ContDiffOn ℝ ∞ (fun z ↦ LinearMap.toContinuousLinearMap (J₂ z).toLinearMap)
-      (σ ⁻¹' U) := by
-    have h : (fun z ↦ LinearMap.toContinuousLinearMap (J₂ z).toLinearMap) = fun z ↦
-        (σ : ℂ →L[ℝ] ℂ).comp ((LinearMap.toContinuousLinearMap (J (σ z)).toLinearMap).comp
-          (σ.symm : ℂ →L[ℝ] ℂ)) := by
-      funext z
-      ext v
-      rw [LinearMap.coe_toContinuousLinearMap', AlmostComplexStructure.transport_apply,
-        ContinuousLinearEquiv.coe_toLinearEquiv, ← ContinuousLinearEquiv.toLinearEquiv_symm,
-        ContinuousLinearEquiv.coe_toLinearEquiv]
-      simp only [ContinuousLinearMap.comp_apply, ContinuousLinearEquiv.coe_coe,
-        LinearMap.coe_toContinuousLinearMap']
-    rw [h]
-    exact contDiffOn_const.clm_comp ((hJ.comp σ.contDiff.contDiffOn fun _ hz ↦ hz).clm_comp
-      contDiffOn_const)
-  have hc₂ : σ c ∈ σ ⁻¹' U := by simpa [σ] using hc
-  obtain ⟨e₂, hce₂, he₂U, hC₂, hinv₂, hlin₂⟩ := tame (hU.preimage σ.continuous) hJ₂ hc₂
-    (by simpa [J₂, σ] using hJc)
-  -- The chart `e₂ ∘ conj` is isothermal for `J`.
-  let e := σ.toHomeomorph.toOpenPartialHomeomorph.trans e₂
-  have hes : e.source = σ ⁻¹' e₂.source := by simp [e]
-  have he : ⇑e = e₂ ∘ σ := by
-    ext z
-    simp [e]
-  have hd : ∀ z ∈ e.source, fderiv ℝ e z = (fderiv ℝ e₂ (σ z)).comp (σ : ℂ →L[ℝ] ℂ) := by
-    intro z hz
-    rw [hes] at hz
-    rw [he, fderiv_comp z ((hC₂.contDiffAt (e₂.open_source.mem_nhds hz)).differentiableAt
-      (by simp)) σ.differentiableAt, σ.fderiv]
-  refine ⟨e, by rw [hes]; exact hce₂, fun z hz ↦ ?_, ?_, fun z hz ↦ ?_, fun z hz v ↦ ?_⟩
-  · rw [hes] at hz
-    simpa [σ] using he₂U hz
-  · rw [he, hes]
-    exact hC₂.comp σ.contDiff.contDiffOn fun _ hz ↦ hz
-  · rw [hd z hz]
-    exact (hinv₂ _ (by rwa [hes] at hz)).comp ⟨σ, rfl⟩
-  · have h := hlin₂ (σ z) (by rwa [hes] at hz) (σ v)
-    have hJ₂z : J₂ (σ z) (σ v) = σ (J z v) := by
-      rw [AlmostComplexStructure.transport_apply, ContinuousLinearEquiv.coe_toLinearEquiv,
-        ← ContinuousLinearEquiv.toLinearEquiv_symm, ContinuousLinearEquiv.coe_toLinearEquiv,
-        σ.symm_apply_apply]
-      simp [σ]
-    rw [hd z hz]
-    simpa [hJ₂z] using h
+      ∀ z ∈ e.source, ∀ v, fderiv ℝ e z (J z v) = I * fderiv ℝ e z v :=
+  (stdComplexSymplecticForm_tames_or_tames_transport_conj (J c)).elim
+    (exists_smooth_isothermal_chart_of_tames hU hJ hc)
+    (exists_smooth_isothermal_chart_of_tames_transport conjCLE hU hJ hc)
 
 end TauCeti.Beltrami
 

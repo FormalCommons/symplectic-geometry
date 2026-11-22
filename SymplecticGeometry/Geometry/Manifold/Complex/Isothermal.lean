@@ -11,6 +11,7 @@ import SymplecticGeometry.Analysis.Complex.Beltrami.Regularity
 import TauCeti.Analysis.Calculus.InverseFunctionTheorem
 import TauCeti.Geometry.Manifold.Diffeomorph.Basic
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
+import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
 
 /-!
 # Smooth isothermal charts on surfaces
@@ -28,6 +29,14 @@ forward to a smooth field of complex structures on the target of `Φ`
 smooth isothermal chart `e` at the image of the point
 (`TauCeti.Beltrami.exists_smooth_isothermal_chart`, which composes with complex conjugation
 where the field is not tame for the standard form), and `ψ` is `e ∘ Φ`.
+
+This construction adapts the proof of
+`TauCeti.SmoothAlmostComplexStructure.exists_isIsothermalChart` on Tau Ceti's main branch, in
+`TauCeti/Geometry/Manifold/Complex/Isothermal.lean` at commit 1179cf0e10, which the pinned version
+of Tau Ceti does not have: the pushforward of `J` along a chart, its smoothness and square, the
+planar chart, and the equation from
+`TauCeti.ContMDiffAlmostComplexStructure.mfderiv_comp_toEndomorphism`. Here the model space is any
+real two-dimensional space with smooth charts, and the chart is a partial diffeomorphism.
 
 ## Main results
 
@@ -97,19 +106,11 @@ theorem exists_isothermal_partialDiffeomorph (J : SmoothAlmostComplexStructure I
       hes hinv)
   refine ⟨Φ.trans D, by simp [D, hx, hxe], fun y hy v ↦ ?_⟩
   have hy' : y ∈ Φ.source ∧ Φ y ∈ e.source := by simpa [D] using hy
-  have hd (u : TangentSpace I y) : mfderiv I 𝓘(ℝ, ℂ) (Φ.trans D) y u =
-      fderiv ℝ e (Φ y) (mfderiv I 𝓘(ℝ, ℂ) Φ y u) := by
-    have he : MDifferentiableAt 𝓘(ℝ, ℂ) 𝓘(ℝ, ℂ) e (Φ y) :=
-      ((hes.contDiffAt (e.open_source.mem_nhds hy'.2)).differentiableAt hn).mdifferentiableAt
-    have hc : (Φ.trans D : M → ℂ) = e ∘ Φ := by
-      ext z
-      simp [D]
-    rw [hc, mfderiv_comp_apply y he (Φ.mdifferentiableAt hn hy'.1), mfderiv_eq_fderiv]
-    simp only [ContinuousLinearMap.comp_apply, ContinuousLinearEquiv.coe_coe,
-      NormedSpace.fromTangentSpace_apply, NormedSpace.fromTangentSpace_symm_apply]
-    -- The two sides differ only in the tangent space of `ℂ` that `fderiv ℝ e` is read on, which is
-    -- `ℂ` by definition.
-    rfl
+  have hc : (Φ.trans D : M → ℂ) = e ∘ Φ := by
+    ext z
+    simp [D]
+  have hed : DifferentiableAt ℝ e (Φ y) :=
+    (hes.contDiffAt (e.open_source.mem_nhds hy'.2)).differentiableAt hn
   -- The derivative of `Φ` carries `J` to `K`.
   have hJ : mfderiv I 𝓘(ℝ, ℂ) Φ y (J y v) = K (Φ y) (mfderiv I 𝓘(ℝ, ℂ) Φ y v) := by
     have h := DFunLike.congr_fun ((J.toContMDiff ⊤).mfderiv_comp_toEndomorphism
@@ -119,7 +120,9 @@ theorem exists_isothermal_partialDiffeomorph (J : SmoothAlmostComplexStructure I
       Φ.toFun'_toOpenPartialHomeomorph] at h
     rw [hK _ (Φ.map_source hy'.1)]
     exact h
-  rw [mvfderiv_apply_eq_mfderiv_apply, mvfderiv_apply_eq_mfderiv_apply, hd, hd, hJ]
+  rw [hc, mvfderiv_comp_apply_of_differentiableAt hed (Φ.mdifferentiableAt hn hy'.1),
+    mvfderiv_comp_apply_of_differentiableAt hed (Φ.mdifferentiableAt hn hy'.1),
+    mvfderiv_apply_eq_mfderiv_apply, mvfderiv_apply_eq_mfderiv_apply, hJ]
   exact hlin _ hy'.2 _
 
 end TauCeti.SmoothAlmostComplexStructure

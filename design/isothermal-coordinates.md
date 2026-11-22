@@ -318,8 +318,8 @@ About 350 lines.
 **Issue 3** imports Mathlib's `Geometry/Manifold/LocalDiffeomorph.lean` and
 Tau Ceti's `Symplectic/Manifold/AlmostComplex/Chart.lean`, and, for its
 proof only, `Regularity.lean` and Tau Ceti's
-`Calculus/InverseFunctionTheorem.lean`, `Manifold/Diffeomorph/Basic.lean`
-and `Manifold/LocalDiffeomorph/Basic.lean`. Throughout,
+`Calculus/InverseFunctionTheorem.lean`, `Manifold/Diffeomorph/Basic.lean`,
+`Manifold/LocalDiffeomorph/Basic.lean` and `Manifold/MFDeriv/NormedSpace.lean`. Throughout,
 `I : ModelWithCorners ℝ E H` with
 `[I.Boundaryless]` and `[IsManifold I ∞ M]`; `[FiniteDimensional ℝ E]`
 follows from `hE`.
