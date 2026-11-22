@@ -342,8 +342,8 @@ private theorem shuffleAssocHomotopy_hom_comp_singularChainComplexπ_eq_zero {X'
   -- statement of the naturality, so the composites are rewritten by hand
   exact (shuffleAssocHomotopy_hom_naturality_assoc R S T f g h i j _).trans <|
     (congrArg (_ ≫ ·) ((comp_f _ _ j).symm.trans ((congrArg (fun φ ↦ φ.f j)
-      (TopPair.chainComplexMap_comp_singularChainComplexπ_eq_zero_of_range_subset hfgh
-        (R ⊗ (S ⊗ T)))).trans
+      (TopPair.chainComplexMap_comp_singularChainComplexπ_eq_zero_of_range_subset
+        (R ⊗ (S ⊗ T)) hfgh)).trans
         (zero_f _ _ j)))).trans comp_zero
 
 /-- The first iterated shuffle map of the three pairs, followed by the coefficient associator and
