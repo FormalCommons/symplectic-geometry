@@ -67,7 +67,6 @@ remaining basis vector `1`, while Tau Ceti's generator of the equator is `[-b] -
 * `Circle.liftCycles_simplex₁_exp_comp_homologyπ`: three paths `exp ∘ θᵢ` whose lifts `θᵢ` to `ℝ`
   close up after one turn form a cycle with the class of a full counterclockwise turn, since the
   lifts and a segment of length `2π` form a cycle of the contractible line.
-* `Circle.coe_exp_arg`: `exp(i arg z)` is the direction `z / |z|` of `z ≠ 0`.
 
 ## References
 
@@ -572,12 +571,6 @@ section Lift
 open Real
 open scoped unitInterval
 
-/-- The point `exp(i arg z)` of `Circle` is the direction `z / |z|` of a nonzero complex number
-`z`. -/
-theorem coe_exp_arg {z : ℂ} (hz : z ≠ 0) : (exp (Complex.arg z) : ℂ) = z / ‖z‖ := by
-  rw [coe_exp, eq_div_iff (by exact_mod_cast norm_ne_zero_iff.2 hz), mul_comm]
-  exact Complex.norm_mul_exp_arg_mul_I z
-
 /-- **A full counterclockwise turn from any starting angle.** The class of the closed singular
 `1`-simplex `t ↦ exp(i(x + 2πt))` of `Circle` is `-(Circle.singularHomologyOneIso A).inv`, as for
 `Circle.expLoop`, which starts at `x = 0`: the rotation by `exp(ix)` carrying one to the other is
@@ -621,20 +614,19 @@ of `θ₁`. Then `exp ∘ θ₀ - exp ∘ θ₁ + exp ∘ θ₂` is a `1`-cycle 
 above it, the three paths form a `1`-cycle of `ℝ`, which bounds since `ℝ` is contractible; its
 image under `exp` is the difference of the two cycles of `Circle`. -/
 theorem liftCycles_simplex₁_exp_comp_homologyπ (θ₀ θ₁ θ₂ : C(I, ℝ)) (h₂₁ : θ₂ 0 = θ₁ 0)
-    (h₂₀ : θ₂ 1 = θ₀ 0) (h₀₁ : θ₀ 1 = θ₁ 1 + 2 * π)
-    (hc : ((TopCat.toSSet.obj (TopCat.of Circle)).ιChainComplex (R := A)
-          (TopCat.simplex₁ (exp.comp θ₀)) -
-        (TopCat.toSSet.obj (TopCat.of Circle)).ιChainComplex (TopCat.simplex₁ (exp.comp θ₁)) +
-        (TopCat.toSSet.obj (TopCat.of Circle)).ιChainComplex (TopCat.simplex₁ (exp.comp θ₂))) ≫
-          ((TopCat.toSSet.obj (TopCat.of Circle)).chainComplex A).d 1 0 = 0) :
+    (h₂₀ : θ₂ 1 = θ₀ 0) (h₀₁ : θ₀ 1 = θ₁ 1 + 2 * π) :
     ((TopCat.toSSet.obj (TopCat.of Circle)).chainComplex A).liftCycles
         ((TopCat.toSSet.obj (TopCat.of Circle)).ιChainComplex (R := A)
             (TopCat.simplex₁ (exp.comp θ₀)) -
           (TopCat.toSSet.obj (TopCat.of Circle)).ιChainComplex (TopCat.simplex₁ (exp.comp θ₁)) +
           (TopCat.toSSet.obj (TopCat.of Circle)).ιChainComplex (TopCat.simplex₁ (exp.comp θ₂)))
-        0 (by simp) hc ≫
+        0 (by simp) (TopCat.ιChainComplex_simplex₁_sub_add_d A (X := TopCat.of Circle)
+          (by simp [h₂₁]) (by simp [h₂₀]) (by simp [h₀₁, exp_add])) ≫
         ((TopCat.toSSet.obj (TopCat.of Circle)).chainComplex A).homologyπ 1 =
       -(singularHomologyOneIso A).inv := by
+  have hc := TopCat.ιChainComplex_simplex₁_sub_add_d A (X := TopCat.of Circle)
+    (g₀ := exp.comp θ₀) (g₁ := exp.comp θ₁) (g₂ := exp.comp θ₂) (by simp [h₂₁]) (by simp [h₂₀])
+    (by simp [h₀₁, exp_add])
   let μ : C(I, ℝ) := ⟨fun t ↦ θ₁ 1 + 2 * π * t, by fun_prop⟩
   have hμ : (TopCat.toSSet.obj (TopCat.of Circle)).δ 0 (TopCat.simplex₁ (exp.comp μ)) =
       (TopCat.toSSet.obj (TopCat.of Circle)).δ 1 (TopCat.simplex₁ (exp.comp μ)) := by
@@ -645,17 +637,11 @@ theorem liftCycles_simplex₁_exp_comp_homologyπ (θ₀ θ₁ θ₂ : C(I, ℝ)
     (TopCat.toSSet.obj (TopCat.of ℝ)).ιChainComplex (TopCat.simplex₁ θ₁) +
     (TopCat.toSSet.obj (TopCat.of ℝ)).ιChainComplex (TopCat.simplex₁ θ₂) -
     (TopCat.toSSet.obj (TopCat.of ℝ)).ιChainComplex (TopCat.simplex₁ μ)
-  have hd (g : C(I, ℝ)) :
-      (TopCat.toSSet.obj (TopCat.of ℝ)).ιChainComplex (R := A) (TopCat.simplex₁ g) ≫
-        ((TopCat.toSSet.obj (TopCat.of ℝ)).chainComplex A).d 1 0 =
-      (TopCat.toSSet.obj (TopCat.of ℝ)).ιChainComplex (TopCat.toSSetObj₀Equiv.symm (g 1)) -
-        (TopCat.toSSet.obj (TopCat.of ℝ)).ιChainComplex (TopCat.toSSetObj₀Equiv.symm (g 0)) := by
-    rw [SSet.ιChainComplex_d, Fin.sum_univ_two, TopCat.δ_zero_simplex₁, TopCat.δ_one_simplex₁]
-    simp [sub_eq_add_neg]
   have hz : z ≫ ((TopCat.toSSet.obj (TopCat.of ℝ)).chainComplex A).d 1 0 = 0 := by
     have hμ0 : μ 0 = θ₁ 1 := by simp [μ]
     have hμ1 : μ 1 = θ₀ 1 := by simp [μ, h₀₁]
-    simp only [z, Preadditive.sub_comp, Preadditive.add_comp, hd, hμ0, hμ1, h₂₁, h₂₀]
+    simp only [z, Preadditive.sub_comp, Preadditive.add_comp, TopCat.ιChainComplex_simplex₁_d, hμ0,
+      hμ1, h₂₁, h₂₀]
     abel
   have h0 : ((TopCat.toSSet.obj (TopCat.of ℝ)).chainComplex A).liftCycles z 0 (by simp) hz ≫
       ((TopCat.toSSet.obj (TopCat.of ℝ)).chainComplex A).homologyπ 1 = 0 :=

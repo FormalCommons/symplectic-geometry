@@ -9,6 +9,7 @@ public import SymplecticGeometry.AlgebraicTopology.Singular.Circle
 public import SymplecticGeometry.AlgebraicTopology.Singular.RelativeClass
 public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orientation.Smooth
 public import SymplecticGeometry.LinearAlgebra.Complex.Orientation
+public import TauCeti.Analysis.SpecialFunctions.Complex.Arg
 public import TauCeti.Geometry.Convex.FullSimplex
 public import TauCeti.Geometry.Manifold.Orientation.Euclidean
 
@@ -109,8 +110,8 @@ private lemma coe_exp_segmentLift {A B : ℂ} (hA : A ≠ 0) (hζ : (B / A).im �
   have hw := Complex.slitPlane_ne_zero (one_add_mul_sub_one_mem_slitPlane hζ t)
   have hAw : A + (t : ℝ) * (B - A) = A * (1 + (t : ℝ) * (B / A - 1)) := by
     field_simp
-  rw [segmentLift_apply, Circle.exp_add, Circle.coe_mul, hc, Circle.coe_exp_arg hw, hAw, norm_mul,
-    Complex.ofReal_mul]
+  rw [segmentLift_apply, Circle.exp_add, Circle.coe_mul, hc, Circle.coe_exp,
+    Complex.exp_arg_mul_I hw, hAw, norm_mul, Complex.ofReal_mul]
   field_simp
 
 /-! ### The local homology of the plane read in `Circle` -/
@@ -203,14 +204,6 @@ private def stdTri : (TopCat.toSSet.obj (TopCat.of (EuclideanSpace ℝ (Fin 2)))
   ((TopCat.of (EuclideanSpace ℝ (Fin 2))).toSSetObjEquiv _).symm
     ((ContinuousMap.subtypeVal (fullSimplex 2)).comp (fullSimplexEquivStdSimplex 2).symm)
 
-/-- The segment `t ↦ a + t (b - a)` of `ℝ²`. -/
-private def segment₂ (a b : EuclideanSpace ℝ (Fin 2)) : C(I, EuclideanSpace ℝ (Fin 2)) :=
-  ⟨fun t ↦ a + (t : ℝ) • (b - a), by fun_prop⟩
-
-private lemma segment₂_apply (a b : EuclideanSpace ℝ (Fin 2)) (t : I) :
-    segment₂ a b t = a + (t : ℝ) • (b - a) :=
-  rfl
-
 /-- A face of the standard simplex is the segment between the vertices it keeps. -/
 private lemma δ_stdTri (i : Fin 3) (a b : EuclideanSpace ℝ (Fin 2))
     (h₀ : ∀ w : Convexity.StdSimplex ℝ (Fin 2),
@@ -218,22 +211,26 @@ private lemma δ_stdTri (i : Fin 3) (a b : EuclideanSpace ℝ (Fin 2))
     (h₁ : ∀ w : Convexity.StdSimplex ℝ (Fin 2),
       (w.map i.succAbove).weights 2 = a 1 + w.weights 1 * (b 1 - a 1)) :
     (TopCat.toSSet.obj (TopCat.of (EuclideanSpace ℝ (Fin 2)))).δ i stdTri =
-      TopCat.simplex₁ (X := TopCat.of (EuclideanSpace ℝ (Fin 2))) (segment₂ a b) := by
+      TopCat.simplex₁ (X := TopCat.of (EuclideanSpace ℝ (Fin 2)))
+        (Path.segment a b).toContinuousMap := by
   apply ((TopCat.of (EuclideanSpace ℝ (Fin 2))).toSSetObjEquiv _).injective
   ext w j
   rw [TopCat.toSSetObjEquiv_δ_apply, TopCat.toSSetObjEquiv_simplex₁]
   fin_cases j
-  · simpa [stdTri, segment₂_apply, Convexity.StdSimplex.homeomorphI_apply_coe] using h₀ w
-  · simpa [stdTri, segment₂_apply, Convexity.StdSimplex.homeomorphI_apply_coe] using h₁ w
+  · simpa [stdTri, AffineMap.lineMap_apply_module', add_comm,
+      Convexity.StdSimplex.homeomorphI_apply_coe] using h₀ w
+  · simpa [stdTri, AffineMap.lineMap_apply_module', add_comm,
+      Convexity.StdSimplex.homeomorphI_apply_coe] using h₁ w
 
 private lemma δ_zero_stdTri :
     (TopCat.toSSet.obj (TopCat.of (EuclideanSpace ℝ (Fin 2)))).δ 0 stdTri =
       TopCat.simplex₁ (X := TopCat.of (EuclideanSpace ℝ (Fin 2)))
-        (segment₂ (EuclideanSpace.single 0 1) (EuclideanSpace.single 1 1)) := by
+        (Path.segment (EuclideanSpace.single 0 1) (EuclideanSpace.single 1 1)).toContinuousMap := by
   refine δ_stdTri 0 _ _ (fun w ↦ ?_) fun w ↦ ?_
   · rw [show (1 : Fin 3) = Fin.succAbove 0 0 from rfl,
       Convexity.StdSimplex.weights_map_apply_of_injective Fin.succAbove_right_injective]
-    simp
+    simp only [PiLp.single_eq_same, ne_eq, zero_ne_one, not_false_eq_true, PiLp.single_eq_of_ne,
+      zero_sub, mul_neg, mul_one]
     linarith [w.total_fin_two]
   · rw [show (2 : Fin 3) = Fin.succAbove 0 1 from rfl,
       Convexity.StdSimplex.weights_map_apply_of_injective Fin.succAbove_right_injective]
@@ -242,7 +239,7 @@ private lemma δ_zero_stdTri :
 private lemma δ_one_stdTri :
     (TopCat.toSSet.obj (TopCat.of (EuclideanSpace ℝ (Fin 2)))).δ 1 stdTri =
       TopCat.simplex₁ (X := TopCat.of (EuclideanSpace ℝ (Fin 2)))
-        (segment₂ 0 (EuclideanSpace.single 1 1)) := by
+        (Path.segment 0 (EuclideanSpace.single 1 1)).toContinuousMap := by
   refine δ_stdTri 1 _ _ (fun w ↦ ?_) fun w ↦ ?_
   · rw [Convexity.StdSimplex.weights_map_succAbove_self]
     simp
@@ -253,7 +250,7 @@ private lemma δ_one_stdTri :
 private lemma δ_two_stdTri :
     (TopCat.toSSet.obj (TopCat.of (EuclideanSpace ℝ (Fin 2)))).δ 2 stdTri =
       TopCat.simplex₁ (X := TopCat.of (EuclideanSpace ℝ (Fin 2)))
-        (segment₂ 0 (EuclideanSpace.single 0 1)) := by
+        (Path.segment 0 (EuclideanSpace.single 0 1)).toContinuousMap := by
   refine δ_stdTri 2 _ _ (fun w ↦ ?_) fun w ↦ ?_
   · rw [show (1 : Fin 3) = Fin.succAbove 2 1 from rfl,
       Convexity.StdSimplex.weights_map_apply_of_injective Fin.succAbove_right_injective]
@@ -286,44 +283,52 @@ private lemma vertices_sub {p : EuclideanSpace ℝ (Fin 2)} (hp : p ∈ interior
   have im_div (z w : ℂ) : (z / w).im = (z.im * w.re - z.re * w.im) / Complex.normSq w := by
     rw [Complex.div_im]
     ring
+  -- The coordinates of the vertices seen from `p`.
+  have hAre : (toComplex (0 - p)).re = -p 0 := by simp
+  have hAim : (toComplex (0 - p)).im = -p 1 := by simp
+  have hBre : (toComplex (EuclideanSpace.single 0 1 - p)).re = 1 - p 0 := by simp
+  have hBim : (toComplex (EuclideanSpace.single 0 1 - p)).im = -p 1 := by simp
+  have hCre : (toComplex (EuclideanSpace.single 1 1 - p)).re = -p 0 := by simp
+  have hCim : (toComplex (EuclideanSpace.single 1 1 - p)).im = 1 - p 1 := by simp
   have hA : toComplex (0 - p) ≠ 0 := fun h ↦ by
     have := congrArg Complex.im h
-    simp at this
+    rw [hAim, Complex.zero_im] at this
     linarith
   have hB : toComplex (EuclideanSpace.single 0 1 - p) ≠ 0 := fun h ↦ by
     have := congrArg Complex.im h
-    simp at this
+    rw [hBim, Complex.zero_im] at this
     linarith
   have hA' := Complex.normSq_pos.2 hA
   have hB' := Complex.normSq_pos.2 hB
   refine ⟨hA, hB, ?_, ?_, ?_⟩
   · rw [im_div]
     refine div_pos ?_ hA'
-    simp
+    rw [hAre, hAim, hBre, hBim]
     nlinarith
   · rw [im_div]
     refine div_pos ?_ hB'
-    simp
+    rw [hBre, hBim, hCre, hCim]
     nlinarith
   · rw [im_div]
     refine div_neg_of_neg_of_pos ?_ hA'
-    simp
+    rw [hAre, hAim, hCre, hCim]
     nlinarith
 
 /-- Seen from `p`, the segment from `a` to `b` is the segment between the complex numbers of `a`
 and `b`. -/
-private lemma toComplex_segment₂_sub (a b p : EuclideanSpace ℝ (Fin 2)) (t : I) :
-    toComplex (segment₂ a b t - p) =
+private lemma toComplex_segment_sub (a b p : EuclideanSpace ℝ (Fin 2)) (t : I) :
+    toComplex (Path.segment a b t - p) =
       toComplex (a - p) + (t : ℝ) * (toComplex (b - p) - toComplex (a - p)) := by
-  simp only [segment₂_apply, map_add, map_sub, map_smul, Complex.real_smul]
+  simp only [Path.segment_apply, AffineMap.lineMap_apply_module',
+    map_add, map_sub, map_smul, Complex.real_smul]
   ring
 
 /-- A segment along which the direction from `p` turns by less than half a turn avoids `p`. -/
-private lemma segment₂_ne {a b p : EuclideanSpace ℝ (Fin 2)} (hA : toComplex (a - p) ≠ 0)
-    (hζ : (toComplex (b - p) / toComplex (a - p)).im ≠ 0) (t : I) : segment₂ a b t ≠ p := by
+private lemma segment_ne {a b p : EuclideanSpace ℝ (Fin 2)} (hA : toComplex (a - p) ≠ 0)
+    (hζ : (toComplex (b - p) / toComplex (a - p)).im ≠ 0) (t : I) : Path.segment a b t ≠ p := by
   intro h
   have hw := Complex.slitPlane_ne_zero (one_add_mul_sub_one_mem_slitPlane hζ t)
-  have h0 := toComplex_segment₂_sub a b p t
+  have h0 := toComplex_segment_sub a b p t
   rw [h, sub_self, map_zero] at h0
   refine mul_ne_zero hA hw ?_
   rw [h0]
@@ -333,8 +338,8 @@ private lemma segment₂_ne {a b p : EuclideanSpace ℝ (Fin 2)} (hA : toComplex
 private def segmentCompl {a b p : EuclideanSpace ℝ (Fin 2)} (hA : toComplex (a - p) ≠ 0)
     (hζ : (toComplex (b - p) / toComplex (a - p)).im ≠ 0) :
     C(I, (ofSubset ({p}ᶜ : Set (TopCat.of (EuclideanSpace ℝ (Fin 2))))).snd) :=
-  ⟨fun t ↦ (⟨segment₂ a b t, segment₂_ne hA hζ t⟩ : ({p}ᶜ : Set (EuclideanSpace ℝ (Fin 2)))),
-    (segment₂ a b).continuous.subtype_mk _⟩
+  ⟨fun t ↦ (⟨Path.segment a b t, segment_ne hA hζ t⟩ : ({p}ᶜ : Set (EuclideanSpace ℝ (Fin 2)))),
+    (Path.segment a b).continuous.subtype_mk _⟩
 
 /-- The segment in `ℝ² ∖ {p}`, followed by the inclusion into `ℝ²`, is the segment of `ℝ²`. -/
 private lemma toSSet_map_app_simplex₁_segmentCompl {a b p : EuclideanSpace ℝ (Fin 2)}
@@ -342,9 +347,10 @@ private lemma toSSet_map_app_simplex₁_segmentCompl {a b p : EuclideanSpace ℝ
     (TopCat.toSSet.map (ofSubset ({p}ᶜ : Set (TopCat.of (EuclideanSpace ℝ (Fin 2))))).map).app _
         (TopCat.simplex₁ (X := (ofSubset ({p}ᶜ : Set (TopCat.of (EuclideanSpace ℝ (Fin 2))))).snd)
           (segmentCompl hA hζ)) =
-      TopCat.simplex₁ (X := TopCat.of (EuclideanSpace ℝ (Fin 2))) (segment₂ a b) := by
+      TopCat.simplex₁ (X := TopCat.of (EuclideanSpace ℝ (Fin 2)))
+        (Path.segment a b).toContinuousMap := by
   rw [TopCat.toSSet_map_app_simplex₁, ofSubset_map]
-  -- `segmentCompl` is `segment₂` with its values in `ℝ² ∖ {p}`.
+  -- `segmentCompl` is `Path.segment a b` with its values in `ℝ² ∖ {p}`.
   rfl
 
 /-- The direction from `p` along the segment from `a` to `b` is lifted by `segmentLift`. -/
@@ -359,7 +365,7 @@ private lemma toSSet_map_app_simplex₁_segmentCompl_direction {a b p : Euclidea
   congr 1
   ext t
   rw [ContinuousMap.comp_apply, ContinuousMap.comp_apply, coe_exp_segmentLift hA hζ hc,
-    ← toComplex_segment₂_sub]
+    ← toComplex_segment_sub]
   exact coe_directionMap_apply p _
 
 /-- The three edges of the standard simplex, as singular `1`-simplices of `ℝ² ∖ {p}`: from `e₀`
@@ -433,7 +439,7 @@ private lemma relClass_stdTri_singularHomologyδ_direction {p : EuclideanSpace �
   change _ ≫ SSet.homologyMap (TopCat.toSSet.map (direction p)) R 1 = _
   rw [Category.assoc, HomologicalComplex.homologyπ_naturality, ← Category.assoc]
   -- The directions along the edges, lifted to `ℝ`.
-  have hexpA := Circle.coe_exp_arg hA
+  have hexpA := (Circle.coe_exp _).trans (Complex.exp_arg_mul_I hA)
   have hexpB : (Circle.exp (Complex.arg (toComplex (0 - p)) +
       Complex.arg (toComplex (EuclideanSpace.single 0 1 - p) / toComplex (0 - p))) : ℂ) =
         toComplex (EuclideanSpace.single 0 1 - p) /
@@ -441,7 +447,8 @@ private lemma relClass_stdTri_singularHomologyδ_direction {p : EuclideanSpace �
     have hnA : (‖toComplex (0 - p)‖ : ℂ) ≠ 0 := by exact_mod_cast norm_ne_zero_iff.2 hA
     have hnB : (‖toComplex (EuclideanSpace.single 0 1 - p)‖ : ℂ) ≠ 0 := by
       exact_mod_cast norm_ne_zero_iff.2 hB
-    rw [Circle.exp_add, Circle.coe_mul, hexpA, Circle.coe_exp_arg (div_ne_zero hB hA), norm_div,
+    rw [Circle.exp_add, Circle.coe_mul, hexpA, Circle.coe_exp,
+      Complex.exp_arg_mul_I (div_ne_zero hB hA), norm_div,
       Complex.ofReal_div]
     field_simp
   -- The edge cycle, pushed forward by the direction about `p`.
@@ -471,14 +478,7 @@ private lemma relClass_stdTri_singularHomologyδ_direction {p : EuclideanSpace �
     (segmentLift (Complex.arg (toComplex (0 - p))) _ hBA.ne')
     ((segmentLift_zero _ _ _).trans (segmentLift_zero _ _ _).symm)
     ((segmentLift_one _ _ _).trans (segmentLift_zero _ _ _).symm)
-    (by rw [segmentLift_one, segmentLift_one]; linarith [arg_div_add_arg_div hp])
-    (by
-      rw [← hchain, Category.assoc, HomologicalComplex.Hom.comm, ← Category.assoc]
-      -- The edge cycle is a cycle of the subspace of the pair of simplicial sets of the pair.
-      erw [SSetPair.ιChainComplex_sub_add_comp_d
-        (Q := toSSetPair.obj (ofSubset ({p}ᶜ : Set (TopCat.of (EuclideanSpace ℝ (Fin 2))))))
-        R stdTri _ (δ_stdTri_eq_stdTriEdges hp) 0]
-      exact zero_comp))
+    (by rw [segmentLift_one, segmentLift_one]; linarith [arg_div_add_arg_div hp]))
   congr 1
   rw [← cancel_mono (HomologicalComplex.iCycles _ 1)]
   simp only [Category.assoc, HomologicalComplex.cyclesMap_i]
