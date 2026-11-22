@@ -2089,7 +2089,7 @@ it, its design adds it.
   `stdForm` and `complexToRealEuclidean` in the standard Hermitian case, and
   for `StdSpace.sumEquiv` with its two lemmas, which exist (#232).
   *Symplectic neighbourhoods* for the instance of
-  `Geometry/Manifold/IsManifold/Basic.lean` giving `C^(∞ + 1)` structures
+  `Geometry/Manifold/IsManifold/Basic.lean` giving `C^(m + 1)` structures
   from `C^∞` ones, in
   `Geometry/Manifold/VectorBundle/Pullback.lean`. The
   part uses nothing from *Compatible complex structures* (part 9) beyond what

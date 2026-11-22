@@ -743,9 +743,9 @@ Expected size: 650 lines, in two issues (L1 and L2).
   $-d\lambda_{\mathrm{can}}$ on `T*L` and a map fixing the zero section; it
   is applied on an open submanifold of `T*L`. Also
   `Geometry/Manifold/IsManifold/Basic.lean`, for its instance giving
-  `C^(∞ + 1)` structures from `C^∞` ones, in
-  `Geometry/Manifold/TubularNeighborhood/Riemannian/Injective.lean` and
-  `LegendrianNeighborhood.lean`.
+  `C^(m + 1)` structures from `C^∞` ones, in
+  `Geometry/Manifold/TubularNeighborhood/Riemannian/Injective.lean`,
+  `LegendrianNeighborhood.lean` and `Family.lean`.
 - *Moser isotopy*: `PartialDiffeomorph.mvfderiv_trans_toDiffeomorph` of
   `Geometry/Manifold/LocalDiffeomorph/MFDeriv.lean`, already merged (for
   `Darboux/Strict.lean`).

@@ -228,7 +228,7 @@ and two rows of its milestone table.
   `CharacteristicFoliation.lean`, that use nothing symplectic; the
   linear-algebra lemma of `VectorBundle/Orthogonal.lean` is in
   `LinearAlgebra/BilinearForm/Orthogonal.lean`. `IsManifold/Basic.lean` holds
-  two instances for smooth steps, here and in other parts: `C^(∞ + 1)`
+  two instances for smooth steps, here and in other parts: `C^(m + 1)`
   structures from `C^∞` ones, and `IsNormableSpace` on tangent spaces, which
   `Adjoint.lean` needs when its fibres are tangent spaces.
 - `Geometry/Manifold/Diffeomorph/Basic.lean` is added for the

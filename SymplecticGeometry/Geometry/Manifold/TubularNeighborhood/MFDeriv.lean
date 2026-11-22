@@ -238,7 +238,6 @@ private theorem mfderiv_twistedExp_zeroSection_apply_eq_apply_mfderiv_normalExp
   intro w
   let := f₀.normalSpaceFiberBundle infty_ne_zero hdim
   let := f₀.normalSpaceVectorBundle infty_ne_zero hdim
-  have : IsManifold J (1 + 1) Q := .of_le (n := ∞) (by norm_cast)
   obtain ⟨⟨u, v⟩, rfl⟩ := (Bundle.zeroSectionTangentEquiv (I := J) (F := P)
     (V := fun q ↦ f₀.NormalSpace q infty_ne_zero) q).symm.surjective w
   rw [f₀.mfderiv_normalExp_zeroSection_apply infty_ne_zero (by simp) hdim, map_add, hAf]
@@ -258,7 +257,6 @@ private theorem exists_partialDiffeomorph_twistedExp [SecondCountableTopology M�
   let := f₀.normalSpaceFiberBundle infty_ne_zero hdim
   let := f₀.normalSpaceVectorBundle infty_ne_zero hdim
   let := f₀.normalSpaceContMDiffVectorBundle (m := ∞) infty_ne_zero (by simp) hdim
-  have : IsManifold J (1 + 1) Q := .of_le (n := ∞) (by norm_cast)
   let N := TotalSpace P (fun q ↦ f₀.NormalSpace q infty_ne_zero)
   let z := zeroSection P (fun q ↦ f₀.NormalSpace q infty_ne_zero)
   let Θ := twistedExp (P := P) f₀ f₁ A
