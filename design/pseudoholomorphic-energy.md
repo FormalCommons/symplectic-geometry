@@ -460,14 +460,11 @@ and `Geometry/Manifold/MFDeriv/Constancy.lean`, and defines nothing.
   `TopPair.relClass` of the underlying singular simplex, from
   `AlgebraicTopology/Singular/RelativeClass.lean` (it defines no class of its
   own). By `eq_fundamentalClassOn` it suffices to
-  compute the local image at each point of `K`; by the change-of-chart sign
-  rule (`OpenPartialHomeomorph.localHomologyMap_restrict_localOrientationOfOrientedChart`)
-  and translation invariance this reduces to one affine simplex around `0`
-  in $\mathbb R^2$ with its standard orientation, where the connecting
-  morphism takes the simplex to its boundary loop, and Tau Ceti's explicit
-  description of the circle (`AlgebraicTopology/Singular/Sphere.lean`: the
-  connecting morphism of the two-arc cover sends its generator to
-  `[-x] - [x]`) fixes the sign $s$.
+  compute the local image at each point of `K`. There `g`, read on `U`, and
+  the inclusion of `U` into $\mathbb R^2$ preserve orientation, so they carry
+  local orientations to local orientations (Tau Ceti's
+  `localIndex_toHomologicalOrientation`), and this reduces to the standard
+  simplex of `StdSimplex.lean`, which fixes the sign $s$.
 - The issue records $s$ in this file and in this section, and from then on
   "the correctly signed homological orientation" means
   `o.toHomologicalOrientation hE'` if $s=1$ and
