@@ -51,7 +51,9 @@ Changing variables along `e`, as in the proof of Tau Ceti's
 `Distribution.compCLMOfContinuousLinearEquiv_ofFun`, turns it into a smooth local representative
 of the coordinate of `w` for `μ`, up to the constant factor relating the image of the volume to
 `μ`; Mathlib's `Distribution.ofFun_injective` identifies the two, and Tau Ceti's
-`TauCeti.exists_contDiffOn_ae_eq_of_locally` glues the local representatives.
+`TauCeti.exists_contDiffOn_ae_eq_of_locally` glues the local representatives. The same change of
+variables shows that the coordinate distributions of a smooth function are smooth functions on `Ω`
+(`Distribution.singularSupport_coordOfFun_eq_empty`).
 
 ## References
 
