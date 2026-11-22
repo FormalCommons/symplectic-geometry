@@ -7,7 +7,7 @@ module
 
 public import TauCeti.AlgebraicTopology.Cohomology.CompactSupport.Euclidean.Basic
 public import TauCeti.AlgebraicTopology.Cohomology.CompactSupport.Extension
-public import TauCeti.AlgebraicTopology.Cohomology.Point
+public import SymplecticGeometry.AlgebraicTopology.Cohomology.CompactSupport.Vanishing
 
 /-!
 # Vanishing of cohomology with compact supports on star-convex open sets
@@ -18,7 +18,8 @@ coefficients `R` (`TopCat.isZero_compactSupportCohomology_of_starConvex`), and i
 an open embedding with convex image (`TopCat.isZero_compactSupportCohomology_of_convex`). This
 extends Tau Ceti's `TopCat.isZero_compactSupportCohomology_euclidean`, the case `U = F`.
 
-For nonempty `U`, the point `y` lies in the image of `j`. Every class of `Hⁿ_c(U)` comes from
+For empty `U` the groups vanish (`TopCat.isZero_compactSupportCohomology_of_isEmpty`). For
+nonempty `U`, the point `y` lies in the image of `j`. Every class of `Hⁿ_c(U)` comes from
 `Hⁿ(U, U ∖ K)` for a compact `K` whose image is the star hull about `y` of the image of a given
 compact set: these star hulls stay inside the image of `j`, as in the proof of Tau Ceti's
 `TauCeti.HomologicalOrientation.bijective_dualityMap_of_starConvex`, whose cofinality argument this
@@ -65,11 +66,12 @@ theorem isZero_compactSupportCohomology_of_starConvex {j : U → F} (hj : IsOpen
     {y : F} (hU : StarConvex ℝ y (range j)) {n : ℕ} (h : n ≠ finrank ℝ F) :
     IsZero ((of U).compactSupportCohomology R k N n) := by
   rcases isEmpty_or_nonempty U with hU₀ | ⟨⟨u₀⟩⟩
-  · have : IsEmpty (of U) := hU₀
-    exact (TauCeti.isZero_singularCohomology_of_isEmpty R k N (of U) n).of_iso
-      (compactSupportCohomologyIsoOfCompactSpace (R := R) (k := k) (M := N) n)
+  · -- the carrier of `of U` is `U`
+    have : IsEmpty (of U) := hU₀
+    exact isZero_compactSupportCohomology_of_isEmpty R k N (of U) n
   have hy : y ∈ range j := hU.mem ⟨j u₀, u₀, rfl⟩
   let f : of U ⟶ of F := ofHom ⟨j, hj.continuous⟩
+  -- the underlying function of `f` is `j`
   have hf : IsOpenEmbedding f := hj
   refine ModuleCat.isZero_iff_subsingleton.2 ⟨fun a b ↦ ?_⟩
   suffices ∀ x : (of U).compactSupportCohomology R k N n, x = 0 by rw [this a, this b]

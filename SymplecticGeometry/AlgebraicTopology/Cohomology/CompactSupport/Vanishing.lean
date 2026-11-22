@@ -24,6 +24,7 @@ member of a directed open cover, `Hᵐ_c(X)` also vanishes once it vanishes on e
 * `TopCat.compactSupportCohomologyIsoOfHomeomorph`: the isomorphism `Hᵐ_c(Y) ≅ Hᵐ_c(X)`.
 * `TopCat.isZero_compactSupportCohomology_iff_of_homeomorph`: vanishing of `Hᵐ_c` is invariant
   under homeomorphisms.
+* `TopCat.isZero_compactSupportCohomology_of_isEmpty`: `Hᵐ_c` of the empty space vanishes.
 * `TopCat.isZero_compactSupportCohomology_of_sup_eq_top` and
   `TopCat.isZero_compactSupportCohomology_sup`: vanishing of `Hᵐ_c` passes from `U`, `V` and
   `U ∩ V` to `U ∪ V`.
@@ -97,6 +98,12 @@ theorem isZero_compactSupportCohomology_of_sup_eq_top {X : TopCat.{v}} [T2Space 
   (compactSupportCohomologyMayerVietoris_exact₃ R k N U V hUV m (m + 1)).isZero_X₂
     (((biprod_isZero_iff _ _).2 ⟨hU, hV⟩).eq_of_src _ _) (hW.eq_of_tgt _ _)
 
+/-- Cohomology with compact supports of the empty space vanishes in every degree. -/
+theorem isZero_compactSupportCohomology_of_isEmpty (X : TopCat.{v}) [IsEmpty X] (m : ℕ) :
+    IsZero (X.compactSupportCohomology R k N m) :=
+  (TauCeti.isZero_singularCohomology_of_isEmpty R k N X m).of_iso
+    (compactSupportCohomologyIsoOfCompactSpace (R := R) (k := k) (M := N) m)
+
 /-- **Vanishing of cohomology with compact supports along a directed open cover.** If the
 Hausdorff space `X` is the union of a monotone family of open sets `U i`, indexed by a directed
 preorder, with `Hᵐ_c(U i) = 0` for every `i`, then `Hᵐ_c(X) = 0`. -/
@@ -107,8 +114,7 @@ theorem isZero_compactSupportCohomology_of_iSup_eq_top {X : TopCat.{v}} [T2Space
     IsZero (X.compactSupportCohomology R k N m) := by
   rcases isEmpty_or_nonempty ι with hι | hι
   · have : IsEmpty X := Opens.isEmpty_of_iSup_eq_top hcover
-    exact (TauCeti.isZero_singularCohomology_of_isEmpty R k N X m).of_iso
-      (compactSupportCohomologyIsoOfCompactSpace (R := R) (k := k) (M := N) m)
+    exact isZero_compactSupportCohomology_of_isEmpty R k N X m
   refine ModuleCat.isZero_iff_subsingleton.2 ⟨fun a b ↦ ?_⟩
   suffices ∀ x : X.compactSupportCohomology R k N m, x = 0 by rw [this a, this b]
   intro x
