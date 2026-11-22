@@ -581,6 +581,10 @@ was found, so `ERRATA.md` needs no entry.
   (#860): `TauCeti.SmoothTwoForm.Compatible.metric` and `metric_inner`, only
   in the proof of the milestone. This dependency is new; `DESIGN.md` records
   it.
+- *Symplectic neighbourhoods*,
+  `Geometry/Manifold/DifferentialForm/Pullback/LocalDiffeomorph.lean`
+  (merged): `PartialDiffeomorph.mpullback_symm_mpullback_apply`, only in
+  the proof of `mpullback_symm_extendByZeroAlong`.
 - Tau Ceti: the declarations listed under *What exists*, and
   `SmoothForm.mapCoeff`, `exactForms`, `closedForms`,
   `deRhamCohomology.mk`, `riemannianVolumeForm`, `integralTopForm`,
