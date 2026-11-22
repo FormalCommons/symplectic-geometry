@@ -340,8 +340,9 @@ The disc clutching formula, for the coordinate discs of prerequisite 5.
   and `TauCeti.HomologicalOrientation.localDegree_eq_degree_toBasedLoop`).
   One disc is the case `ι = Unit`.
 - `symplecticChernNumber_eq_sum_maslovIndex_clutching`: the same with
-  symplectic frames (fibrewise symplectic isomorphisms with `stdForm (Fin
-  n)`), with the sum of `TauCeti.GLSymplectic.maslovIndex` of the transition
+  symplectic frames (fibrewise symplectic isomorphisms with `stdForm κ`, for
+  a finite type `κ`), with the sum of `TauCeti.GLSymplectic.maslovIndex` of
+  the transition
   loops. Proof: make both frames unitary for a compatible `J` by a continuous
   change of frame into $\mathrm{Sp}(2n)$: the inverse square root of the Gram
   matrix of $\omega(\cdot,J\cdot)$ in the frame, taken with Tau Ceti's

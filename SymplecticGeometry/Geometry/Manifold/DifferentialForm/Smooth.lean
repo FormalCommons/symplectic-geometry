@@ -9,9 +9,10 @@ public import Mathlib.Geometry.Manifold.Algebra.SmoothFunctions
 public import TauCeti.Geometry.Manifold.ContMDiffMap.Basic
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 public import SymplecticGeometry.Geometry.Manifold.ContMDiffMap.Basic
+public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Regularity
 
 /-!
-# Smooth forms: bilinear forms of two-forms, and multiplication by smooth functions
+# Smooth forms: bilinear forms of two-forms, multiplication by smooth functions, `0`-forms
 
 Tau Ceti's `TauCeti.SmoothForm.bilinFormAt` reads the value at `x` of a real smooth two-form
 `σ` on `M` as a bilinear form `σ_x` on the tangent space `T_x M`. This file shows that the map
@@ -30,6 +31,13 @@ smooth map `f`, where `g` becomes `g ∘ f`. The last is the smooth-form version
 `TauCeti.mpullback_fun_smul` for rough forms, from which it follows. These lemmas let proofs
 about smooth forms stay with smooth forms instead of passing to the underlying rough forms.
 
+Finally, the smooth `F`-valued `0`-forms are the smooth `F`-valued functions:
+`TauCeti.SmoothForm.ofFunctionEquiv` is the linear equivalence that sends a function `f` to
+Tau Ceti's `0`-form `TauCeti.SmoothForm.ofFunction f`, and whose inverse reads a `0`-form `α` as
+the function `x ↦ α x 0`, which is smooth by `TauCeti.SmoothForm.contMDiff_apply_zero`. Its
+construction follows that of Tau Ceti's `TauCeti.kerDelBarZeroEquiv`, which identifies the
+`∂̄`-closed smooth `0`-forms with the holomorphic functions.
+
 ## Main results
 
 * `TauCeti.SmoothForm.bilinFormAt_add`, `TauCeti.SmoothForm.bilinFormAt_smul`,
@@ -37,6 +45,8 @@ about smooth forms stay with smooth forms instead of passing to the underlying r
   `TauCeti.SmoothForm.bilinFormAt_sub`.
 * `TauCeti.SmoothForm.funSMulₗ_add`, `TauCeti.SmoothForm.funSMulₗ_const`,
   `TauCeti.SmoothForm.funSMulₗ_one`, `TauCeti.SmoothForm.mpullback_funSMulₗ`.
+* `TauCeti.SmoothForm.ofFunctionEquiv`, with `ofFunctionEquiv_apply`,
+  `coe_ofFunctionEquiv_symm` and `ofFunctionEquiv_symm_apply`.
 -/
 
 public section
@@ -121,6 +131,55 @@ theorem mpullback_funSMulₗ (f : M → M') (hf : ContMDiff I I' ∞ f) (g : C^�
   simp [TauCeti.mpullback_fun_smul]
 
 end FunSMul
+
+section ZeroForm
+
+variable {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F]
+
+/-- The smooth `F`-valued functions on `M` are the smooth `F`-valued `0`-forms: a function `f` is
+sent to its `0`-form `TauCeti.SmoothForm.ofFunction f`, and a `0`-form `α` to its value
+`x ↦ α x 0` on the empty tuple of tangent vectors. -/
+noncomputable def ofFunctionEquiv : C^∞⟮I, M; 𝓘(ℝ, F), F⟯ ≃ₗ[ℝ] SmoothForm I M F 0 :=
+  LinearEquiv.symm
+    { toFun α := (⟨fun x ↦ α.val x 0, contMDiff_apply_zero α⟩ : C^∞⟮I, M; 𝓘(ℝ, F), F⟯)
+      invFun := ofFunction
+      map_add' _ _ := rfl
+      map_smul' _ _ := rfl
+      left_inv α := Subtype.ext <| (coe_ofFunction _).trans <|
+        (congrArg (RoughForm.ofFunction I) (ContMDiffMap.coeFn_mk _ _)).trans
+          (RoughForm.eq_ofFunction (I := I) (F := F) α.val).symm
+      right_inv f := ContMDiffMap.ext fun x ↦ congrFun (ofFunction_apply_zero f) x }
+
+/-- `ofFunctionEquiv` sends a smooth function to its `0`-form. -/
+@[simp]
+theorem ofFunctionEquiv_apply (f : C^∞⟮I, M; 𝓘(ℝ, F), F⟯) : ofFunctionEquiv f = ofFunction f :=
+  (rfl)
+
+/-- Reading the `0`-form of a smooth function `f` back as a function gives `f`. -/
+@[simp]
+theorem ofFunctionEquiv_symm_ofFunction (f : C^∞⟮I, M; 𝓘(ℝ, F), F⟯) :
+    ofFunctionEquiv.symm (ofFunction f) = f :=
+  ofFunctionEquiv.symm_apply_apply f
+
+/-- The `0`-form of the function of a smooth `0`-form `α` is `α`. -/
+@[simp]
+theorem ofFunction_ofFunctionEquiv_symm (α : SmoothForm I M F 0) :
+    ofFunction (ofFunctionEquiv.symm α) = α :=
+  ofFunctionEquiv.apply_symm_apply α
+
+/-- The function of a smooth `0`-form `α` is `x ↦ α x 0`, the value of `α x` on the empty
+tuple. -/
+@[simp]
+theorem coe_ofFunctionEquiv_symm (α : SmoothForm I M F 0) :
+    ⇑(ofFunctionEquiv.symm α) = fun x ↦ α.val x 0 :=
+  (rfl)
+
+/-- The function of a smooth `0`-form `α` takes at `x` the value of `α x` on the empty tuple. -/
+theorem ofFunctionEquiv_symm_apply (α : SmoothForm I M F 0) (x : M) :
+    ofFunctionEquiv.symm α x = α.val x 0 :=
+  (rfl)
+
+end ZeroForm
 
 end TauCeti.SmoothForm
 

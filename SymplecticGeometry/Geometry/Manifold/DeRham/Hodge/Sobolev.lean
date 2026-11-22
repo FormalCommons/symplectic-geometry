@@ -6,11 +6,13 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.DeRham.Hodge.L2
+public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 public import TauCeti.Geometry.Manifold.Riemannian.Codifferential
 public import SymplecticGeometry.Geometry.Manifold.DeRham.Hodge.Regularity
 public import TauCeti.Analysis.Distribution.WaveFrontSet.Sobolev.Tempered
 public import TauCeti.Analysis.Sobolev.BesselPotential.Distribution
 public import TauCeti.MeasureTheory.Function.Lp.Precomposition
+public import TauCeti.Geometry.Manifold.Riemannian.Sobolev.H1
 import SymplecticGeometry.Analysis.Distribution.Support
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.ChartCover
@@ -67,6 +69,18 @@ coordinates (`L2Form.exists_norm_localize_le_mul_sum_norm_localizeCoord`). So `t
 dominated by finitely many compact operators, and is compact by
 `IsCompactOperator.of_norm_le_sum`.
 
+In degree zero, `H1Form o hl` for `hl : 0 + l = m` is Tau Ceti's Sobolev space
+`TauCeti.Manifold.SobolevH1 I M`, the completion of the smooth functions for
+`∫ a b dV + ∫ ⟪∇a, ∇b⟫ dV`. A smooth `0`-form `α` is the smooth function `a = (x ↦ α x 0)`, the
+`L²` inner product of two `0`-forms is `∫ a b dV`, and `⟪Δα, β⟫ = ∫ ⟪∇a, ∇b⟫ dV`, since the Hodge
+Laplacian of a function is minus its Laplace–Beltrami operator and by Green's first identity
+(`TauCeti.SmoothForm.l2Inner_hodgeLaplacian_zero_eq_integral_inner_mgradient`). So the two inner
+products agree on smooth functions, and the identification extends to a linear isometric
+equivalence `H1Form.sobolevH1Equiv o hl : H1Form o hl ≃ₗᵢ[ℝ] SobolevH1 I M`, which carries
+`H1Form.dirichlet` to `SobolevH1.dirichletForm`, and so the `L²` inner product of the images
+under `toL2` to that of the images under `SobolevH1.toLp`. Tau Ceti's Green identity asks for a
+model without boundary, `I.Boundaryless`, and so does this equivalence.
+
 ## Main definitions and results
 
 * `SymplecticGeometry.H1Form o hkl`: the Hilbert space, with `H1Form.ofSmooth`,
@@ -80,6 +94,10 @@ dominated by finitely many compact operators, and is compact by
 * `SymplecticGeometry.H1Form.abs_inner_toL2_ofSmooth_hodgeLaplacian_le`: the bound
   `|⟪toL2 u, Δφ⟫| ≤ ‖u‖ * √(‖φ‖ ^ 2 + ⟪Δφ, φ⟫)`, the hypothesis of
   `SymplecticGeometry.L2Form.isLocallySobolev_one_of_forall_inner`.
+* `SymplecticGeometry.H1Form.sobolevH1Equiv`: in degree zero, the linear isometric equivalence
+  with `TauCeti.Manifold.SobolevH1 I M`, with `sobolevH1Equiv_ofSmooth`,
+  `sobolevH1Equiv_symm_ofSmooth`, `dirichletForm_sobolevH1Equiv` and
+  `inner_toLp_sobolevH1Equiv`.
 * `SymplecticGeometry.L2Form.localizeCoord`: a coordinate of the localization of an `L²` form,
   as an `L²` function on `CoordinateSpace n`, with `L2Form.coeFn_localizeCoord`,
   `L2Form.coordOfFun_localize_eq_smul` and `L2Form.memSobolev_localizeCoord_of_forall_inner`.
@@ -122,6 +140,11 @@ The proof of `H1Form.isCompactOperator_localizeCoord_comp_toL2` follows that of 
 near a common compact support (`IsCompact.exists_schwartzMap_cutoff`), multiplication by which
 is the identity, reduces compactness to
 `BesselPotentialSpace.isCompactOperator_inclusion_comp_smulLeftCLM`.
+
+As Tau Ceti's `TauCeti.Manifold.SobolevH1.compRiemannianIsometry`
+(`TauCeti/Geometry/Manifold/Riemannian/Sobolev/Isometry.lean`) does for pullback along a
+Riemannian isometry, `sobolevH1Equiv` is Mathlib's `LinearEquiv.extendOfIsometry` of a linear
+equivalence of the dense smooth parts, here `TauCeti.SmoothForm.ofFunctionEquiv`.
 
 ## References
 
@@ -383,6 +406,81 @@ theorem abs_inner_toL2_ofSmooth_hodgeLaplacian_le (u : H1Form o hkl) (φ : Smoot
   rw [← dirichlet_ofSmooth_right, L2Form.norm_ofSmooth_sq, L2Form.inner_ofSmooth,
     ← norm_ofSmooth_sq (hkl := hkl), Real.sqrt_sq (norm_nonneg _)]
   exact abs_dirichlet_le u (ofSmooth φ)
+
+/-! ### Degree zero: Tau Ceti's Sobolev space of functions -/
+
+section DegreeZero
+
+/-- Tau Ceti's Riemannian volume measure and Sobolev space `H¹(M)` ask for a continuous metric. -/
+local instance : IsContinuousRiemannianBundle E (fun x : M ↦ TangentSpace I x) :=
+  IsContMDiffRiemannianBundle.toIsContinuousRiemannianBundle
+    (IB := I) (n := ∞) (F := E) (V := fun x : M ↦ TangentSpace I x)
+
+variable [I.Boundaryless] [MeasurableSpace M] [BorelSpace M] {hl : 0 + l = m}
+
+/-- On smooth `0`-forms, the Hodge `H¹` inner product `⟪α, β⟫ + ⟪Δα, β⟫` is Tau Ceti's `H¹`
+inner product `∫ a b dV + ∫ ⟪∇a, ∇b⟫ dV` of the underlying functions. -/
+private theorem inner_sobolevH1_ofSmooth_ofFunctionEquiv_symm (α β : SmoothForm I M ℝ 0) :
+    ⟪Manifold.SobolevH1.ofSmooth (SmoothForm.ofFunctionEquiv.symm α),
+        Manifold.SobolevH1.ofSmooth (SmoothForm.ofFunctionEquiv.symm β)⟫_ℝ =
+      ⟪(ofSmooth α : H1Form o hl), ofSmooth β⟫_ℝ := by
+  rw [Manifold.SobolevH1.inner_ofSmooth, inner_ofSmooth, l2Inner_zero_eq_integral,
+    l2Inner_hodgeLaplacian_zero_eq_integral_inner_mgradient, SmoothForm.coe_ofFunctionEquiv_symm,
+    SmoothForm.coe_ofFunctionEquiv_symm]
+
+variable (o hl) in
+/-- **In degree zero, the Hodge `H¹` space is Tau Ceti's Sobolev space `H¹(M)`.** On a closed
+oriented Riemannian manifold whose model has no boundary, reading a smooth `0`-form `α` as the
+smooth function `x ↦ α x 0` extends to a linear isometric equivalence of `H1Form o hl` with
+`TauCeti.Manifold.SobolevH1 I M` (`H1Form.sobolevH1Equiv_ofSmooth`). -/
+def sobolevH1Equiv : H1Form o hl ≃ₗᵢ[ℝ] Manifold.SobolevH1 I M :=
+  SmoothForm.ofFunctionEquiv.symm.extendOfIsometry ofSmooth Manifold.SobolevH1.ofSmooth
+    denseRange_ofSmooth Manifold.SobolevH1.denseRange_ofSmooth fun α ↦ by
+      rw [norm_eq_sqrt_real_inner, norm_eq_sqrt_real_inner (ofSmooth α : H1Form o hl),
+        inner_sobolevH1_ofSmooth_ofFunctionEquiv_symm]
+
+/-- `sobolevH1Equiv` sends a smooth `0`-form `α` to the smooth function `x ↦ α x 0`. -/
+@[simp]
+theorem sobolevH1Equiv_ofSmooth (α : SmoothForm I M ℝ 0) :
+    sobolevH1Equiv o hl (ofSmooth α) =
+      Manifold.SobolevH1.ofSmooth (SmoothForm.ofFunctionEquiv.symm α) :=
+  LinearEquiv.extendOfIsometry_eq _ _ _ _ _ _ α
+
+/-- The inverse of `sobolevH1Equiv` sends a smooth function `f` to its `0`-form. -/
+@[simp]
+theorem sobolevH1Equiv_symm_ofSmooth (f : C^∞⟮I, M; ℝ⟯) :
+    (sobolevH1Equiv o hl).symm (Manifold.SobolevH1.ofSmooth f) =
+      ofSmooth (SmoothForm.ofFunction f) := by
+  rw [LinearIsometryEquiv.symm_apply_eq, sobolevH1Equiv_ofSmooth,
+    SmoothForm.ofFunctionEquiv_symm_ofFunction]
+
+/-- `sobolevH1Equiv` carries the Dirichlet form of `H1Form o hl` to Tau Ceti's Dirichlet form
+`TauCeti.Manifold.SobolevH1.dirichletForm`. -/
+@[simp]
+theorem dirichletForm_sobolevH1Equiv (u v : H1Form o hl) :
+    Manifold.SobolevH1.dirichletForm (sobolevH1Equiv o hl u) (sobolevH1Equiv o hl v) =
+      dirichlet u v := by
+  induction u using induction_on with
+  | hp => exact isClosed_eq (by fun_prop) (by fun_prop)
+  | h α =>
+    induction v using induction_on with
+    | hp => exact isClosed_eq (by fun_prop) (by fun_prop)
+    | h β =>
+      rw [sobolevH1Equiv_ofSmooth, sobolevH1Equiv_ofSmooth,
+        Manifold.SobolevH1.dirichletForm_ofSmooth, dirichlet_ofSmooth,
+        l2Inner_hodgeLaplacian_zero_eq_integral_inner_mgradient,
+        SmoothForm.coe_ofFunctionEquiv_symm, SmoothForm.coe_ofFunctionEquiv_symm]
+
+/-- `sobolevH1Equiv` carries the `L²` inner product of the images under `toL2` to that of the
+images under Tau Ceti's `TauCeti.Manifold.SobolevH1.toLp`. -/
+theorem inner_toLp_sobolevH1Equiv (u v : H1Form o hl) :
+    ⟪Manifold.SobolevH1.toLp (sobolevH1Equiv o hl u),
+        Manifold.SobolevH1.toLp (sobolevH1Equiv o hl v)⟫_ℝ = ⟪toL2 u, toL2 v⟫_ℝ := by
+  have h := Manifold.SobolevH1.dirichletForm_apply (sobolevH1Equiv o hl u) (sobolevH1Equiv o hl v)
+  rw [dirichletForm_sobolevH1Equiv, dirichlet_apply, LinearIsometryEquiv.inner_map_map] at h
+  linarith
+
+end DegreeZero
 
 end H1Form
 

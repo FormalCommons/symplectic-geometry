@@ -199,8 +199,7 @@ theorem evalFundamentalClass_eulerClass_eq_boundaryDegree
     (hτo : ∀ x, Orientation.map (Fin 2) (τ x).toLinearEquiv (oL x) = Complex.orientation)
     {s : ∀ x : g ⁻¹' Ici 0, L x}
     (hs : Continuous fun x : g ⁻¹' Ici 0 ↦ TotalSpace.mk' F (x : M) (s x)) (hs0 : ∀ x, s x ≠ 0)
-    {u : C(↥(range (inclusion (s := ((⟨g ⁻¹' Iio 0, isOpen_Iio.preimage hg.continuous⟩ :
-      TopologicalSpace.Opens M) : Set M)) (preimage_mono Iio_subset_Iic_self)))ᶜ, Circle)}
+    {u : C(↥(SymplecticGeometry.sublevelBoundary hg.continuous), Circle)}
     (hu : ∀ z hz, (u z : ℂ) = ‖τ z (s ⟨z, hz⟩)‖⁻¹ • τ z (s ⟨z, hz⟩)) :
     haveI : CompactSpace (g ⁻¹' Iic 0) :=
       isCompact_iff_compactSpace.1 (isClosed_Iic.preimage hg.continuous).isCompact
@@ -228,12 +227,6 @@ theorem evalFundamentalClass_eulerClass_eq_boundaryDegree
     exact hτo x
   have ht' : Continuous fun x : g ⁻¹' Iic 0 ↦ TotalSpace.mk' F (E := (⇑i₁) *ᵖ L) x (t x) :=
     Pullback.continuous_iff.2 ⟨continuous_id, ht.comp continuous_subtypeVal⟩
-  -- A point of `{g ≤ 0}` off the interior `{g < 0}` lies in `{g ≥ 0}`.
-  have hlt (x : g ⁻¹' Iic 0)
-      (hx : x ∉ range (inclusion (s := ((⟨g ⁻¹' Iio 0, isOpen_Iio.preimage hg.continuous⟩ :
-        TopologicalSpace.Opens M) : Set M)) (preimage_mono Iio_subset_Iic_self))) :
-      (x : M) ∈ g ⁻¹' Ici 0 :=
-    mem_preimage.2 (mem_Ici.2 (not_lt.1 fun h' ↦ hx ⟨⟨x, h'⟩, rfl⟩))
   refine Eq.trans ?_ (sum_sectionIndex_eq_boundaryDegree (oL.pullback i₁) hF
     (oM.comap (TopologicalSpace.Opens.isOpenEmbedding' _)) hn
     (IsOpenEmbedding.inclusion _
@@ -242,7 +235,10 @@ theorem evalFundamentalClass_eulerClass_eq_boundaryDegree
     (SymplecticGeometry.isCollared_inclusion_levelSet hg h0).1 hτ hτo'
     (t := fun x ↦ t x) ht' (hZ.preimage Subtype.val_injective.injOn)
     (fun x hx ↦ ⟨⟨x, hZneg x hx⟩, rfl⟩) (u := u)
-    (fun z ↦ by rw [ht₂ ⟨z, hlt z z.property⟩]; exact hu z _))
+    (fun z ↦ by
+      rw [ht₂ ⟨z, SymplecticGeometry.mem_preimage_Ici_of_mem_sublevelBoundary
+        (hg := hg.continuous) z.property⟩]
+      exact hu z _))
   -- Each local index on `{g < 0}` is the local index on `M` at the same point.
   symm
   -- The zeros of `t` on `{g < 0}` are its zeros on `M`, read in the fibres of a pull-back: the
@@ -286,13 +282,10 @@ theorem evalFundamentalClass_complexEulerClass_eq_boundaryDegree (hG : finrank �
     (hσ : Continuous fun x : g ⁻¹' Iic 0 ↦ TotalSpace.mk' G (x : M) (σ x)) (hσ0 : ∀ x, σ x ≠ 0)
     {s : ∀ x : g ⁻¹' Ici 0, L x}
     (hs : Continuous fun x : g ⁻¹' Ici 0 ↦ TotalSpace.mk' G (x : M) (s x)) (hs0 : ∀ x, s x ≠ 0)
-    {c : ↥(range (inclusion (s := ((⟨g ⁻¹' Iio 0, isOpen_Iio.preimage hg.continuous⟩ :
-      TopologicalSpace.Opens M) : Set M)) (preimage_mono Iio_subset_Iic_self)))ᶜ → ℂ}
-    (hsc : ∀ (z : ↥(range (inclusion (s := ((⟨g ⁻¹' Iio 0, isOpen_Iio.preimage hg.continuous⟩ :
-      TopologicalSpace.Opens M) : Set M)) (preimage_mono Iio_subset_Iic_self)))ᶜ)
+    {c : ↥(SymplecticGeometry.sublevelBoundary hg.continuous) → ℂ}
+    (hsc : ∀ (z : ↥(SymplecticGeometry.sublevelBoundary hg.continuous))
       (hz : ((z : g ⁻¹' Iic 0) : M) ∈ g ⁻¹' Ici 0), s ⟨_, hz⟩ = c z • σ z)
-    {u : C(↥(range (inclusion (s := ((⟨g ⁻¹' Iio 0, isOpen_Iio.preimage hg.continuous⟩ :
-      TopologicalSpace.Opens M) : Set M)) (preimage_mono Iio_subset_Iic_self)))ᶜ, Circle)}
+    {u : C(↥(SymplecticGeometry.sublevelBoundary hg.continuous), Circle)}
     (hu : ∀ z, (u z : ℂ) = c z / ‖c z‖) :
     haveI : CompactSpace (g ⁻¹' Iic 0) :=
       isCompact_iff_compactSpace.1 (isClosed_Iic.preimage hg.continuous).isCompact
