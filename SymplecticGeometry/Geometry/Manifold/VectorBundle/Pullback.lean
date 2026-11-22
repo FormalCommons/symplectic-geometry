@@ -8,10 +8,12 @@ module
 public import Mathlib.Geometry.Manifold.ContMDiffMFDeriv
 public import Mathlib.Geometry.Manifold.Immersion
 public import Mathlib.Geometry.Manifold.VectorBundle.ContinuousAlternatingMap
+public import Mathlib.Geometry.Manifold.VectorBundle.Hom
 public import TauCeti.Geometry.Manifold.VectorBundle.Pullback
 public import TauCeti.Geometry.Manifold.VectorBundle.Subbundle
 public import SymplecticGeometry.Topology.VectorBundle.Pullback
 import SymplecticGeometry.Geometry.Manifold.IsManifold.Basic
+import TauCeti.Geometry.Manifold.VectorBundle.Hom
 
 /-!
 # Sections of the alternating and bilinear bundles of a pull-back
@@ -36,7 +38,9 @@ agreeing near each point by Mathlib's `inCoordinates_apply_eq₂`.
 
 Finally, for a `C^∞` map `f : Q → M`, the derivative `(q, v) ↦ (q, df_q v)` is a `C^∞` map from
 the tangent bundle of `Q` to the pull-back `f *ᵖ TM`
-(`Bundle.Pullback.contMDiff_totalSpace_mfderiv`). When `f` is moreover an immersion, the tangent
+(`Bundle.Pullback.contMDiff_totalSpace_mfderiv`), so the maps `df_q` form a `C^∞` section of the
+bundle of linear maps from `TQ` to `f *ᵖ TM` (`Bundle.Pullback.contMDiff_mfderiv_hom`). When `f`
+is moreover an immersion, the tangent
 images `df_q(T_q Q)` have `C^∞` local frames in `f *ᵖ TM`
 (`Bundle.Pullback.hasLocalContMDiffSubbundleFrames_range_mfderiv`), by Tau Ceti's constant-rank
 criterion `TauCeti.hasLocalContMDiffSubbundleFrames_of_contMDiff_totalSpace_range`.
@@ -185,6 +189,16 @@ theorem contMDiff_totalSpace_mfderiv (f : K) (hf : ContMDiff J I ∞ f) :
           TotalSpace E ((f : Q → M) *ᵖ (TangentSpace I)))) := by
   rw [Bundle.Pullback.contMDiff_iff f hf]
   exact ⟨contMDiff_proj _, hf.contMDiff_tangentMap (by simp)⟩
+
+/-- The derivatives `df_q : T_q Q → T_{f q} M` of a `C^∞` map `f` form a `C^∞` section of the
+bundle of continuous linear maps from `TQ` to the pull-back `f *ᵖ TM`. -/
+theorem contMDiff_mfderiv_hom [FiniteDimensional ℝ E'] (f : K) (hf : ContMDiff J I ∞ f) :
+    ContMDiff J (J.prod 𝓘(ℝ, E' →L[ℝ] E)) ∞
+      (fun q ↦ TotalSpace.mk' (E' →L[ℝ] E)
+        (E := fun q ↦ TangentSpace J q →L[ℝ] ((f : Q → M) *ᵖ (TangentSpace I)) q) q
+        (mfderiv J I f q)) :=
+  (contMDiff_hom_bundle_iff (E₁ := TangentSpace J) (E₂ := (f : Q → M) *ᵖ (TangentSpace I))
+    fun q ↦ mfderiv J I f q).2 (contMDiff_totalSpace_mfderiv f hf)
 
 /-- **Frames of the tangent image.** For a `C^∞` immersion `f`, the images `df_q(T_q Q)` of the
 tangent spaces of `Q` have `C^∞` local frames of size `dim Q` in the pull-back `f *ᵖ TM`. -/

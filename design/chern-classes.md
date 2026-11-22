@@ -57,9 +57,9 @@ Gysin sequence (Milnor–Stasheff, §14) or a classifying space:
   with global classes restricting to a basis of every fibre
   (`TopCat.lerayHirschProdOfClasses_bijective`,
   `AlgebraicTopology/Cohomology/LerayHirsch/FiberwiseBasis.lean`), is the
-  local case, and the Mayer–Vietoris step of Tau Ceti's Thom isomorphism
-  (`TopCat.bijective_pullbackCupRestrict_union`,
-  `AlgebraicTopology/Cohomology/MayerVietoris/PullbackCup.lean`) is the
+  local case, and the Mayer–Vietoris step for the Leray–Hirsch map
+  (`TopCat.lerayHirschRestrict_union_bijective`,
+  `AlgebraicTopology/Cohomology/LerayHirsch/MayerVietoris.lean`) is the
   induction over a finite trivializing cover. The integral cohomology of
   $\mathbb CP^{n-1}$ is free and finitely generated
   (`TauCeti.ComplexProjectiveSpace.projective_singularHomology`), as
@@ -237,19 +237,60 @@ In the namespace `TopCat`, for `X : TopCat.{0}`, with
   multiplication `a ⊗ b ↦ ⟨a.down * b.down⟩` of the values, to
   `integralCoeffMul`.
 
+### `AlgebraicTopology/Cohomology/ChangeOfValues.lean`
+
+The change of cochain values in singular cohomology, in the namespace
+`TopCat`, for any abelian `C`, the counterpart of Tau Ceti's
+`singularCohomologyChainCoefficientIso`:
+
+- `singularCohomologyValueMap X R k g n` for `g : M ⟶ M'`, the map on
+  cohomology of `ChainComplex.linearYonedaObjMap k g`, with its value on a
+  cocycle class, `_id`, `_comp` and `_naturality` (it commutes with
+  `singularCohomologyMap f`).
+- `singularCohomologyValueIso X R k e n` for `e : M ≅ M'`.
+- `singularCup_singularCohomologyValueMap`: if `(g₁ ⊗ g₂) ≫ μ' = μ ≫ g`, the
+  change of values carries the cup product along `μ` to the cup product
+  along `μ'`.
+
+### `Algebra/Homology/Monoidal/CupChangeOfValues.lean`
+
+In the namespace `TauCeti.ChainComplex`, for a diagonal `D : E ⟶ A ⊗ B`:
+`cupCochain_comp_comp`, the cup product of cochains under morphisms of
+values that intertwine two pairings, and
+`cup_homologyMap_linearYonedaObjMap`, the same on cohomology. The latter
+adapts Tau Ceti's `cup_naturality`.
+
 ### `AlgebraicTopology/Cohomology/LerayHirsch/MayerVietoris.lean`
 
 The Mayer–Vietoris step for the Leray–Hirsch map of a family of classes,
-adapted from `TopCat.bijective_pullbackCupRestrict_union` (credited in the
-module docstring). For `π : X ⟶ Y`, classes `c p : ι p → Hᵖ(X; k)`
-(finite for `p ≤ n`) and `S ⊆ Y`, `TopCat.lerayHirschRestrict π c S n` is
-the map `⨁_{p + q = n} ⨁_{i : ι p} H^q(S; k) ⟶ Hⁿ(π⁻¹ S; k)`,
-`(a_{p,i}) ↦ ∑ π^*a_{p,i} ⌣ c_{p,i}|`. The theorem
-`TopCat.bijective_lerayHirschRestrict_union`: for open `U`, `V`, if the maps
-over `U`, `V` and `U ∩ V` are bijective in all degrees `q ≤ n`, so is the
-map over `U ∪ V` in degree `n`. The proof compares the two Mayer–Vietoris
-sequences as Tau Ceti's does, with a direct sum of copies of the sequence of
-the base, one for each class.
+copied from Tau Ceti's main branch (commit `ee1e8aa`), which has it and
+the pinned release does not; the files keep Tau Ceti's paths, names and
+statements, so moving Tau Ceti past them deletes them. For `p : E ⟶ B`,
+classes `e d : ι d → Hᵈ(E; k)` and `S ⊆ B`, `TopCat.lerayHirschRestrict p e S n`
+is the map `⨁_{d + q = n} ⨁_{i : ι d} H^q(S; k) ⟶ Hⁿ(p⁻¹ S; k)`,
+`(a_{d,i}) ↦ ∑ p^*a_{d,i} ⌣ e_{d,i}|`. The theorem
+`TopCat.lerayHirschRestrict_union_bijective`: for `U`, `V` open in `U ∪ V`,
+if the maps over `U`, `V` and `U ∩ V` are bijective in all degrees `m ≤ n`,
+so is the map over `U ∪ V`; `TopCat.lerayHirsch_bijective_of_union_eq_univ`
+is the case `U ∪ V = B`. The proof compares the two Mayer–Vietoris
+sequences, with a direct sum of copies of the sequence of the base, one for
+each class. It uses these copies of Tau Ceti's files of the same commit:
+
+- `Algebra/DirectSum/Prod.lean`: `DirectSum.prodLinearEquiv`.
+- `AlgebraicTopology/Cohomology/LerayHirsch/Defs.lean`:
+  `TopCat.lerayHirsch p n e`, the map over all of `B`, with
+  `TopCat.lerayHirsch_lof` and naturality.
+- `AlgebraicTopology/Cohomology/LerayHirsch/Restriction.lean`:
+  `TopCat.lerayHirschRestrict`, `TopCat.lerayHirschRestrict_empty_bijective`
+  and `TopCat.lerayHirschRestrict_univ_bijective_iff`.
+- `AlgebraicTopology/Cohomology/MayerVietoris/Basic.lean`,
+  `AlgebraicTopology/Cohomology/MayerVietoris/Cup.lean`,
+  `AlgebraicTopology/Cohomology/MayerVietoris/Pair.lean` and
+  `AlgebraicTopology/Cohomology/Relative.lean`: only the declarations that
+  the pin lacks and that the proof of
+  `TopCat.singularCohomologyMayerVietorisδ_singularCup` needs.
+- `AlgebraicTopology/Cohomology/MayerVietoris/Module.lean`: the
+  Mayer–Vietoris sequence with product middle term and `Function.Exact`.
 
 ### `AlgebraicTopology/Cohomology/LerayHirsch/Bundle.lean`
 
@@ -259,8 +300,9 @@ with a finite trivializing cover, `s : Finset Y` with
 homology projective in every degree and finitely generated in degrees
 `p ≤ n`:
 
-- `TopCat.lerayHirsch π c n`, the map over all of `Y`, and
-  `TopCat.lerayHirsch_bijective`: if the restrictions of the classes
+- `TopCat.lerayHirsch_bijective`, for the map `TopCat.lerayHirsch π n c`
+  over all of `Y` (from `LerayHirsch/Defs.lean`, see the previous
+  section): if the restrictions of the classes
   `c p i` to the fibre over every point, read through the trivialization at
   that point, form a basis of `Hᵖ(F; k)`, then it is bijective in degree
   `n`. Over one trivializing set it is `TopCat.lerayHirschProdOfClasses_bijective`
@@ -551,7 +593,9 @@ come before it. Issues 1, 2, 3, 5, 13 and 16 can start at once.
 1. **Even integral cohomology ring.**
    `AlgebraicTopology/Cohomology/EvenIntegralCohomology.lean`.
 2. **Integral cohomology with values in `ULift ℤ`.**
-   `AlgebraicTopology/Cohomology/IntegralCohomologyULift.lean`.
+   `AlgebraicTopology/Cohomology/IntegralCohomologyULift.lean`, with
+   `AlgebraicTopology/Cohomology/ChangeOfValues.lean` and
+   `Algebra/Homology/Monoidal/CupChangeOfValues.lean`.
 3. **Leray–Hirsch: the Mayer–Vietoris step.**
    `AlgebraicTopology/Cohomology/LerayHirsch/MayerVietoris.lean`.
 4. **Leray–Hirsch for bundles with a finite trivializing cover.**

@@ -40,9 +40,7 @@ primitives (`TauCeti.SmoothTwoForm.exists_isotopy_mpullback_eq_of_isCompact`,
 `Geometry/Symplectic/Manifold/Moser.lean`), the relative Moser theorem for one
 pair of forms
 (`TauCeti.SmoothTwoForm.exists_diffeomorph_fix_eventually_mpullback_eq_of_mextDeriv_eq_sub`,
-`RelativeMoser.lean`), the relative Poincaré operator of a vector bundle
-(`TauCeti.vectorBundlePoincareHomotopy`,
-`Geometry/Manifold/DifferentialForm/Relative/Basic.lean`), tubular
+`RelativeMoser.lean`), tubular
 neighbourhoods with their retractions and deformations
 (`TauCeti.SmoothEmbedding.exists_contMDiffOn_retraction`,
 `TauCeti.SmoothEmbedding.exists_deformation_subset`,
@@ -265,7 +263,9 @@ joined to `1` by `t ↦ realify (exp (t • I • H))`. The positive factor `P` 
 joined to `1` by `t ↦ P ^ t`, which is symplectic by
 `SymplecticGroup.rpow_mem`. The issue checks how Mathlib's continuous
 functional calculus gives smoothness in `t`, for instance by writing `P ^ t`
-as `exp (t • log P)`. Expected size: 150 lines.
+as `exp (t • log P)`. Smoothness is stated for the entrywise norm
+`Matrix.Norms.Elementwise`, as for the frames of *Maslov index*. Expected
+size: 150 lines.
 
 ### `Geometry/Manifold/SmoothEmbedding/Neighborhood.lean`
 
@@ -525,13 +525,16 @@ the flow of the vertical field $(0,X_{s,t})$ on the manifold `ℝ × N`. Its
 first component is constant, so by uniqueness its slices are the flows of the
 $X_{\cdot,t}$. The same file gives the parametric radial primitives on a
 star-shaped open set of a normed space,
-`TauCeti.exists_contMDiff_parametric_radialPrimitive`: for a smooth family of
-closed $k$-forms ($k\ge1$) on an open ball about `0`, a smooth family of
+`SymplecticGeometry.exists_isSmoothFamily_mextDerivₗ_eq_of_starConvex`: for a smooth family of
+closed $k$-forms ($k\ge1$) on an open set star-shaped about `0`, over any
+parameter manifold, a smooth family of
 primitives that vanishes at every point where the forms vanish along the
-segment to `0`, and is `0` when the form is. It is Tau Ceti's
-`vectorBundlePoincareHomotopy` of the trivial bundle
-`unitInterval × V → unitInterval`, read slice by slice. Expected size: 500
-lines.
+segment to `0`, and is `0` when the form is. It is the homotopy operator
+after pullback along the radial contraction $(x,s)\mapsto s\,x$, slice by
+slice (`IsSmoothFamily.homotopyOperator` and
+`SmoothForm.mextDerivₗ_homotopyOperator_mpullback_of_contraction`), which
+works on an open set where Tau Ceti's `vectorBundlePoincareHomotopy` needs
+the whole bundle. Expected size: 500 lines.
 
 ### `Geometry/Symplectic/IsotopyExtension/Ball/Basic.lean`
 
@@ -801,7 +804,11 @@ this design already follows. `Ball/Isotopy.lean` cites
   `Geometry/Manifold/ContMDiff/TimeExtension.lean` (used by `Extension.lean`
   and `Flow.lean`) and of forms on `unitInterval × M` in
   `Geometry/Manifold/DifferentialForm/TimeExtension.lean` (used by
-  `Flow.lean` and `Moser/Family.lean`); and the instance
+  `Flow.lean` and `Moser/Family.lean`); the homotopy operator on smooth
+  families in
+  `Geometry/Manifold/DifferentialForm/SmoothFamily/HomotopyOperator.lean`
+  (used by `Moser/Family.lean` for the parametric radial primitives); and the
+  instance
   `FiniteDimensional ℝ (deRhamCohomology I M k)` for a compact boundaryless
   `M`, which `Geometry/Manifold/DeRham/SmoothFamily/GoodCover.lean` derives
   from `hasFiniteGoodCover_of_compactSpace` (used by

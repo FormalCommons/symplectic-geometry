@@ -167,6 +167,7 @@ Further choices:
 |---|---|---|
 | `Geometry/Symplectic/Liouville/ContactType.lean` | contact type through local Liouville fields; both directions in the book's signs | 1 |
 | `Geometry/Manifold/VectorField/Pullback.lean` | pullbacks of vector fields along local diffeomorphisms, and restrictions of vector fields to open subsets: smoothness and relatedness | — |
+| `Geometry/Manifold/MFDeriv/Opens.lean` | differentiability of the inclusion of an open subset (`mdifferentiableAt_subtypeVal`, `mdifferentiable_subtypeVal`), beside Tau Ceti's file of that path | — |
 | `Geometry/Symplectic/Liouville/Collar.lean` | the Liouville collar of a hypersurface; first milestone | 2 |
 | `Geometry/Contact/StableHamiltonian.lean` | wedge criterion, smooth Reeb field, invariance, contact case; the model and its converse; second milestone | 3, 4 |
 | `Geometry/Contact/Symplectization/Basic.lean` | Tau Ceti's symplectization form written with `funSMulₗ`, beside Tau Ceti's file of that path | 4 |
@@ -178,6 +179,9 @@ Further choices:
 | `Geometry/Manifold/Boundary/Collar/Flow/Basic.lean` | the collar of a compact boundary along an outward field | 6 |
 | `Geometry/Symplectic/Liouville/Filling.lean` | `IsStrongFilling`, its contact form, its Liouville collar | 7 |
 | `Geometry/Symplectic/Liouville/Scaling.lean` | Liouville scaling along integral curves, on a boundaryless manifold and in the interior of a manifold with boundary, for the collar of `Filling.lean` | 7 |
+| `Geometry/Manifold/DifferentialForm/Continuity.lean` | continuity in the parameter of the pullbacks of a form along the slices of a `C¹` map on a product, for the collar of `Filling.lean`, beside Tau Ceti's file of that path | 7 |
+| `Geometry/Manifold/Boundary/Collar/Local.lean` | smoothness of Tau Ceti's normal ray of the half-line on `[0, ∞)`, and the ray on `(-∞, 1)` as a depth map into `normalIioOpens 1`, for the collars of `Flow/Basic.lean` and `Filling.lean`, beside Tau Ceti's file of that path | 7 |
+| `Geometry/Manifold/ModelTransport/InteriorModel.lean` | a manifold without boundary points, modelled on the model vector space (`SymplecticGeometry.InteriorModel`), and its diffeomorphism with the manifold; used in `Scaling.lean` and `End.lean` | — |
 | `Geometry/Manifold/Boundary/Collar/End.lean` | attaching the end `[0, ∞) × ∂W` along a smooth collar | 8 |
 | `Geometry/Symplectic/Liouville/Completion.lean` | $\widehat\omega$, $\widehat Y$, $\widehat\lambda$; third milestone | 9, 10 |
 | `Geometry/Symplectic/Liouville/Domain.lean` | the completion of a Liouville domain is a Tau Ceti completion | 11 |
@@ -519,7 +523,8 @@ instance and `isClosedEmbedding_inclusion`. This is differential topology, with 
 
 - `WithEnd c : Type`, the manifold $W\cup_{\partial W}([0,\infty)\times\partial W)$,
   the glued space of `c.glueData : TopCat.GlueData`, glued from the interior
-  of `W` (as `BoundarylessModel` of `(𝓡∂ (n + 1)).interiorOpens W`) and
+  of `W` (as `SymplecticGeometry.InteriorModel` of `(𝓡∂ (n + 1)).interiorOpens W`,
+  `Geometry/Manifold/ModelTransport/InteriorModel.lean`) and
   `Ioi (-1) × ∂W`, along `(s, x) ↦ c (x, -s)` on `Ioo (-1) 0 × ∂W`, with
   Tau Ceti's `Geometry/Manifold/Gluing/GlueData.lean`; the second piece is
   re-modelled by a linear equivalence
@@ -680,7 +685,8 @@ Expected size: 300 lines.
   `ContactType.lean`.
 - *Moser isotopy*: `Geometry/Manifold/DifferentialForm/Opens.lean`
   (`TauCeti.mpullback_subtype_val_mextDeriv`), merged, in `ContactType.lean`,
-  and (`TauCeti.isSmoothForm_mpullback_subtypeVal_interior`) in `Collar.lean`.
+  and (`TauCeti.SmoothForm.restrictInterior`) in `ContactType.lean`, `Collar.lean` and
+  `Scaling.lean`.
 - *Moser isotopy*: `Geometry/Symplectic/Manifold/Flat.lean`
   (`SmoothTwoForm.IsNondegenerate.interior_flat_inverse_ofSubsingleton`,
   `SmoothTwoForm.contMDiffAt_flat_inverse_apply`), merged, only in

@@ -10,6 +10,7 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffeomor
 public import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
 public import TauCeti.Geometry.Manifold.DifferentialForm.Opens
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Prod.Basic
+public import TauCeti.Geometry.Symplectic.Manifold.Flat
 public import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 
 /-!
@@ -54,6 +55,8 @@ Families live on `N × M`, the parameter first. A form on `M × N` is turned aro
 * `SymplecticGeometry.isSmoothFamily_const` and the closure lemmas `IsSmoothFamily.add`, `.neg`,
   `.sub`, `.smul`, `.fun_smul`, `.funSMul`, `.sum`, `.mpullback`, `.mextDeriv`,
   `.extendByZero_smul` and `.comp`.
+* `SymplecticGeometry.isSmoothFamily_interiorₗ`: the contractions of a two-form with a jointly
+  smooth family of vector fields form a smooth family of one-forms.
 * `SymplecticGeometry.isSmoothFamily_iff_mpullback_inclusion_sup`: smoothness of a family on
   `U ⊔ V` is smoothness of its restrictions to `U` and to `V`.
 * `TauCeti.SmoothForm.mpullback_prodMk_mpullback_prodComm`: slices of a form on `M × N` turned
@@ -524,5 +527,29 @@ theorem isSmoothFamily_iff_mpullback_inclusion_sup {U V : Opens M}
   · exact (contMDiffAt_mpullback_inclusion_iff_of_family le_sup_right (fun s ↦ (α s).val)
       (t, ⟨x, hx⟩)).mp
         (by simpa only [SmoothForm.coe_mpullback] using hV (t, ⟨x, hx⟩))
+
+section Interior
+
+variable {E H M EN HN N : Type*}
+  [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
+  [TopologicalSpace M] [ChartedSpace H M] {I : ModelWithCorners ℝ E H} [IsManifold I ∞ M]
+  [NormedAddCommGroup EN] [NormedSpace ℝ EN] [TopologicalSpace HN]
+  [TopologicalSpace N] [ChartedSpace HN N] {J : ModelWithCorners ℝ EN HN} [IsManifold J 1 N]
+
+/-- For a jointly smooth family `X_t`, `t ∈ N`, of vector fields, the contractions `ι_{X_t} σ` of
+a two-form `σ` form a smooth family of one-forms. -/
+theorem isSmoothFamily_interiorₗ (σ : SmoothTwoForm I M)
+    {X : N → Cₛ^∞⟮I; E, TangentSpace I (M := M)⟯}
+    (hX : ContMDiff (J.prod I) I.tangent ∞
+      fun p : N × M ↦ (⟨p.2, X p.1 p.2⟩ : TangentBundle I M)) :
+    IsSmoothFamily J fun t ↦ σ.interiorₗ (X t) := by
+  rw [isSmoothFamily_iff_contMDiff]
+  intro p
+  rw [← SmoothForm.contMDiffAt_sectionAlong_degreeOneEquiv_iff (b := Prod.snd)
+    (α := fun q : N × M ↦ σ.interiorₗ (X q.1))]
+  simp only [SmoothTwoForm.degreeOneEquiv_interiorₗ]
+  exact ((σ.contMDiff_flat.comp contMDiff_snd).clm_bundle_apply hX) p
+
+end Interior
 
 end SymplecticGeometry

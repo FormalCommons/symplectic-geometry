@@ -298,6 +298,10 @@ complex ones that `chernNumber_congr` takes.
   the complex statements and the pull-backs and isomorphisms of symplectic
   bundles that *Symplectic vector bundles* gets from #57. Both take the form
   nondegenerate, so that a compatible complex structure exists.
+- The file imports `Geometry/Manifold/VectorBundle/Symplectic/FirstChernClass.lean`
+  of *First Chern class of nondegenerate forms*; `Tames.chernNumber_eq`,
+  `symplecticChernNumber_congr` and `symplecticChernNumber_pullback` follow
+  from the first-Chern-class lemmas there.
 
 ### `Geometry/Manifold/VectorBundle/ChernNumber/Clutching.lean`
 
@@ -437,7 +441,8 @@ Bundles from clutching data, and isomorphisms from homotopies.
 
 - `chernNumber_eq_sum_sectionIndex`: let `L` be a complex line bundle over a
   compact homologically oriented surface, and `s` a continuous section with
-  finitely many zeros. Then `chernNumber o hn ℂ L` is the sum over the zeros of
+  finitely many zeros. Then `chernNumber o hn G L`, for a model `G` of complex
+  dimension one, is the sum over the zeros of
   `TauCeti.VectorBundleOrientation.sectionIndex` for the canonical
   orientation `TauCeti.VectorBundleOrientation.complex`. The proof is
   `firstChernClass_eq_complexEulerClass` followed by
@@ -445,12 +450,14 @@ Bundles from clutching data, and isomorphisms from homotopies.
   be connected. The clutching proofs use this general form.
 - **Milestone** `chernNumber_eq_sum_sign_of_transverse`, the corollary in the
   plan's form: for a smooth complex line bundle over a closed oriented surface
-  (a smooth real rank-2 bundle with a complex structure, in the
-  representation of *Symplectic vector bundles*), and `s` a smooth section
+  (a `C¹` real rank-2 bundle with a continuous complex structure
+  `TauCeti.Bundle.ContinuousComplexStructure`, which the complex structures
+  of *Symplectic vector bundles* give), and `s` a `C¹` section
   transverse to the zero section in Tau Ceti's sense
   (`TauCeti.sectionLinearization` surjective at every zero), the zero set is
-  finite and the Chern number is the sum over the zeros of the signs $\pm1$
-  of the Jacobians in oriented charts
+  finite and the Chern number is the sum over the zeros of $\pm1$, according as
+  the linearization preserves the orientations or not; in oriented charts, the
+  sign of the Jacobian
   (`sectionIndex_eq_sign_det_of_hasFDerivAt`), the book's intersection
   indices. Finiteness is Tau Ceti's `TauCeti.finite_sectionZero_of_contMDiff`
   (`Geometry/Manifold/VectorBundle/Section/SmoothZero.lean`), its Fredholm
@@ -982,6 +989,10 @@ issues, in an order where each issue's blockers come before it.
      `Circle.singularHomologyOneIso_inv_eq_complexOrientation`, the
      generator of `Circle.singularHomologyOneIso` is the one of the unit
      circle of `ℂ` selected by `Complex.orientation`.
+   - `Analysis/Complex/RadialProjection.lean`, used by
+     `DiscBoundaryClass.lean` and `BoundaryDegree.lean`:
+     `Circle.radialProjection : C(ℂ ∖ {0}, Circle)`, `z ↦ z / |z|`, Tau
+     Ceti's `complSingletonHomotopyEquivSphere 0` read in `Circle`.
    - `Analysis/Normed/Module/Ball/Collar.lean`, used by
      `DiscBoundaryClass.lean`: in a real normed space the unit sphere is
      collared in the closed unit ball
@@ -1005,27 +1016,31 @@ issues, in an order where each issue's blockers come before it.
      on an inner product space the local orientation that an orientation
      selects is the one of the identity chart.
    - `AlgebraicTopology/Singular/LocalHomology/BoundaryClass.lean`, imported
-     by `DiscBoundaryClass.lean` and `BoundaryDegree.lean`: in any dimension `n + 1`,
+     by `BoundaryDegree.lean`: in any dimension `n + 1`,
      `TauCeti.HomologicalOrientation.boundaryClass`, the image of
      `fundamentalClassRel` in `Hₙ(∂X; ℤ)` under the connecting morphism, with
      `boundaryClass_neg` and `map_subtypeVal_boundaryClass` (it vanishes in
      `Hₙ(X; ℤ)`).
    - `AlgebraicTopology/Singular/LocalHomology/DiscBoundaryClass.lean`, a
-     prerequisite of `BoundaryDegree.lean`; it imports `BoundaryClass.lean`:
+     prerequisite of `BoundaryDegree.lean`:
      the closed unit disc of `ℂ` in
-     this setting, by `Collar.lean`, and its boundary
-     class,
-     `SymplecticGeometry.singularHomologyOneIso_map_boundaryClass_closedBall`:
-     for the complex orientation of the open disc, the boundary class read
-     in ℤ through `Circle.singularHomologyOneIso` is $+1$.
+     this setting, by `Collar.lean`; its fundamental class is sent to the
+     local orientation of `ℂ` at `0`
+     (`SymplecticGeometry.localHomologyMap_fundamentalClassRel_closedBall`),
+     which radial projection sends to the generator of `H₁(Circle)`
+     (`SymplecticGeometry.singularHomologyOneIso_singularHomologyδ_localOrientation_complexOrientation`).
    - `AlgebraicTopology/Singular/LocalHomology/BoundaryDegree.lean`, which
      imports `BoundaryClass.lean`: the definition `TauCeti.HomologicalOrientation.boundaryDegree o hn hι hιf hf
      (u : C(∂X, Circle)) : ℤ`, the image of the boundary class
      `singularHomologyδ (fundamentalClassRel …)` under `u`, read in ℤ through
      `Circle.singularHomologyOneIso`, with the sign for which the
      counterclockwise loop counts $+1$. Tau Ceti does not record the sign of
-     its connecting morphism; `DiscBoundaryClass.lean` settles it on the
-     closed unit disc, and the definition fixes its sign by it. API:
+     its connecting morphism; it is settled on the closed unit disc, from
+     `DiscBoundaryClass.lean`, and the definition fixes its sign by it:
+     `SymplecticGeometry.boundaryDegree_closedBallComplToCircle`, and
+     `SymplecticGeometry.singularHomologyOneIso_map_boundaryClass_closedBall`,
+     for the complex orientation of the open disc the boundary class read
+     in ℤ through `Circle.singularHomologyOneIso` is $+1$. API:
      `boundaryDegree_def`;
      `boundaryDegree_mul` (pointwise products add degrees);
      `boundaryDegree_eq_of_homotopy` (homotopic maps `∂X → Circle` have the
@@ -1111,12 +1126,15 @@ issues, in an order where each issue's blockers come before it.
    that fixes that representation, and by 5.
 9. **A map of degree one onto the sphere.**
    `Geometry/Manifold/Degree/Collapse.lean`:
-   `SymplecticGeometry.exists_contMDiff_degree_eq_one`, every closed
-   connected oriented surface has a smooth map to $S^2$ of degree one, by
-   collapsing the complement of a coordinate disc through a cut-off, with
-   `TauCeti.degree` computed at the image of the centre. The sphere is
-   `sphere (0 : EuclideanSpace ℝ (Fin 3)) 1` with Tau Ceti's outward-normal
-   orientation `o.sphereOrientation`
+   `SymplecticGeometry.exists_contMDiff_degree_eq_one`, every compact
+   nonempty oriented manifold of dimension $n\ge1$ modelled on
+   `EuclideanSpace ℝ (Fin n)` (a closed oriented surface when $n=2$) has a
+   smooth map of degree one to the unit sphere of any oriented real inner
+   product space of dimension $n+1$, by collapsing the complement of a
+   coordinate ball of a chart through a cut-off, with
+   `TauCeti.degree` computed at the image of the centre. For surfaces the
+   sphere is `sphere (0 : EuclideanSpace ℝ (Fin 3)) 1` with Tau Ceti's
+   outward-normal orientation `o.sphereOrientation`
    (`Geometry/Manifold/Orientation/Sphere.lean`) for an orientation `o` of
    `EuclideanSpace ℝ (Fin 3)`, as in `orientable_sphere`; no new orientation
    is defined. The area form that uniqueness needs is `o.sphereVolumeForm`:
@@ -1136,9 +1154,13 @@ issues, in an order where each issue's blockers come before it.
      first, in `Geometry/Manifold/DifferentialForm/Wedge/Smooth/Pow.lean`;
    - `TauCeti.SmoothTwoForm.IsNondegenerate.volumeOrientation_eq_ofTopForm`
      (on a surface, the orientation of a nondegenerate `σ` is `ofTopForm`
-     of `σ`), in `Geometry/Symplectic/Manifold/Volume.lean`.
+     of `σ`), in `Geometry/Symplectic/Manifold/Volume.lean`;
+   - `TauCeti.degree_eq_orientationSign_of_preimage_eq_singleton` (the
+     degree of a proper smooth map whose fibre over a point is one point
+     with invertible derivative is the orientation sign there), in
+     `Geometry/Manifold/Degree/Global.lean`.
 
-   With the last one the induced orientation is `o.sphereOrientation`,
+   With `volumeOrientation_eq_ofTopForm` the induced orientation is `o.sphereOrientation`,
    which is defined by `ofTopForm`. The genus of
    the sphere is `TauCeti.surfaceGenus_sphere` of prerequisite 2. Blocked by
    5. Done when these are proved.
