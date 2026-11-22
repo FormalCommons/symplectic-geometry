@@ -335,7 +335,10 @@ also uses.
 
 Each part lists its folder and files, what it builds on, and the milestones it
 proves. Files are under `SymplecticGeometry/`. A part's files may be split
-further when they grow, following `AGENTS.md`.
+further when they grow, following `AGENTS.md`. Where a part has a design
+file, `design/<part>.md`, new files of the part, and the files of other
+parts that they import, are recorded there as they are added: the lists
+below and the notes in the build-order table may fall behind it.
 
 ### 1. Standard model
 
@@ -2165,6 +2168,8 @@ A part's level counts only the parts whose unmerged work it waits for. A
 part may also use files of a part at its own level or a higher one, provided
 each such file is merged, as the notes in parentheses in the table record;
 so two parts can each use merged files of the other without either waiting.
+For a part with a design file, new imports of this kind are recorded in
+that file, and the notes here may fall behind it.
 
 | Level | Part | Builds on |
 |---|---|---|
