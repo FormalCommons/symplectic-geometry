@@ -29,6 +29,8 @@ commutes with the maps induced by continuous maps, and carries cup products to c
 * `TopCat.singularCohomologyLinearCongr_refl`: it is the identity for `e = rfl`.
 * `TopCat.singularCohomologyLinearCongr_symm`, `TopCat.singularCohomologyLinearCongr_trans`: its
   inverse is the change along `e.symm`, and two changes compose to the change along `e.trans e'`.
+* `TopCat.singularCohomologyLinearCongr_apply_apply`: the same composition law for two changes
+  applied in turn to a class, so that `simp` closes round trips.
 * `TopCat.singularCohomologyLinearCongr_naturality`: it commutes with
   `TopCat.singularCohomologyMap`.
 * `TopCat.singularCohomologyLinearCongr_singularCup`: it carries the cup product for one
@@ -84,6 +86,15 @@ theorem singularCohomologyLinearCongr_trans {L₁ L₂ L₃ : Linear k C} (e : L
     (e' : L₂ = L₃) (X : TopCat.{w}) (R M : C) (n : ℕ) :
     (singularCohomologyLinearCongr e X R M n).trans (singularCohomologyLinearCongr e' X R M n) =
       singularCohomologyLinearCongr (e.trans e') X R M n := by
+  subst e e'
+  rfl
+
+@[simp]
+theorem singularCohomologyLinearCongr_apply_apply {L₁ L₂ L₃ : Linear k C} (e : L₁ = L₂)
+    (e' : L₂ = L₃) (X : TopCat.{w}) (R M : C) (n : ℕ)
+    (a : @TopCat.singularCohomology C _ _ _ R k _ L₁ M X n) :
+    singularCohomologyLinearCongr e' X R M n (singularCohomologyLinearCongr e X R M n a) =
+      singularCohomologyLinearCongr (e.trans e') X R M n a := by
   subst e e'
   rfl
 
