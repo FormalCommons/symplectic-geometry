@@ -240,8 +240,9 @@ line of a comment with `axiom`.
   `lake-manifest.json`, `lean-toolchain`, `LICENSE` or anything under
   `.github/`, nor add a `lakefile.lean`, unless the issue you work on asks
   for it and a person in the project opened it. The one other exception is an
-  issue "Move Tau Ceti to `<tag>`", which `github-actions[bot]` opens when
-  Tau Ceti tags a higher version. Whoever works on it changes the first three
+  issue "Move Tau Ceti to `<commit>`", which `github-actions[bot]` opens when
+  Tau Ceti's security audit has passed a later commit than the one the
+  library is on. Whoever works on it changes the first three
   files as the issue says, and fixes in the same pull request whatever breaks
   in the library. A move is never split, and may go over the 2000 lines of
   the next rule; CI checks that it changes the setup only as Tau Ceti does.
@@ -312,7 +313,7 @@ code, by the rules above:
   counterexample that shows it is needed.
 - A change to `lakefile.toml`, `lake-manifest.json` or `lean-toolchain`
   belongs to a move of Tau Ceti or to a maintainer's issue. A move changes
-  only Tau Ceti's `rev` and its tag comment, the toolchain and the
+  only Tau Ceti's `rev` and its comment, the toolchain and the
   manifest, as CI's setup check enforces, and fixes the library in the same
   pull request.
 - A pull request that only adds an unresolved entry to `ERRATA.md`, and is

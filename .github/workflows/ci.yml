@@ -18,8 +18,10 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       # The setup follows Tau Ceti. lakefile.toml must be .github/lakefile.toml
-      # but for Tau Ceti's rev, which must be the commit of one of Tau Ceti's
-      # version tags; lean-toolchain, and every other package in
+      # but for Tau Ceti's rev, which must be a commit that Tau Ceti's security
+      # audit has passed: one at or behind its branch security-audit, which
+      # only moves forward along its main branch (docs/security-audit.md
+      # there). lean-toolchain, and every other package in
       # lake-manifest.json, must be as Tau Ceti has them at that commit. So a
       # move of Tau Ceti can change only that. This reads files and runs
       # nothing from them.
@@ -34,9 +36,11 @@ jobs:
           diff <(tauceti .github/lakefile.toml) <(tauceti lakefile.toml) ||
             { echo "::error::lakefile.toml differs from .github/lakefile.toml in more than Tau Ceti's rev"; exit 1; }
           pin=$(sed -nE 's/^rev = "([0-9a-f]{40})".*/\1/p' lakefile.toml)
-          git ls-remote --tags https://github.com/TauCetiProject/TauCeti |
-            grep -qE "^$pin"$'\t'"refs/tags/v[0-9]+\.[0-9]+\.[0-9]+(-rc[0-9]+)?(\+patch[0-9]+)?(\^\{\})?$" ||
-            { echo "::error::Tau Ceti's rev $pin is the commit of none of Tau Ceti's version tags"; exit 1; }
+          # behind_by counts the commits of the pin's history that
+          # security-audit's lacks. A commit GitHub does not know gives no
+          # number, and fails too.
+          [ "$(gh api "repos/TauCetiProject/TauCeti/compare/$pin...security-audit" --jq '.behind_by' || true)" = 0 ] ||
+            { echo "::error::Tau Ceti's rev $pin is not at or behind Tau Ceti's branch security-audit"; exit 1; }
           upstream() { gh api "repos/TauCetiProject/TauCeti/contents/$1?ref=$pin" -H "Accept: application/vnd.github.raw"; }
           [ "$(cat lean-toolchain)" = "$(upstream lean-toolchain)" ] ||
             { echo "::error::lean-toolchain differs from Tau Ceti's at $pin"; exit 1; }
