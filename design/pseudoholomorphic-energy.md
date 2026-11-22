@@ -279,7 +279,8 @@ of Tau Ceti's roadmap that no one has started.
 | `Geometry/Symplectic/Manifold/Energy/Surface.lean` | Tau Ceti main's file of that path, through its section on compact surfaces, copied with Tau Ceti's header (Decision 8): the energy form and its continuity, the energy, the pseudoholomorphic case, positivity, the Wirtinger inequality |
 | `Geometry/Manifold/DifferentialForm/Smooth/FromTauCeti.lean` | Tau Ceti main's `SmoothBundleForm.contMDiffAt_eval₂`, for the file above |
 | `Geometry/Symplectic/JHolomorphic/Energy/Surface.lean` | Tau Ceti's energy form read through `energyDensity`, the energy through an area form, the integrated identity, zero energy and local constancy |
-| `AlgebraicTopology/SimplicialSet/Homology/RestrictScalars.lean` | the change of coefficients on simplicial chains along a restriction of scalars, `SSet.restrictScalarsChainMap` |
+| `Geometry/Manifold/MFDeriv/Constancy.lean` | a locally constant map has zero differential, `IsLocallyConstant.mfderiv_eq_zero`, for the file above |
+| `AlgebraicTopology/SimplicialSet/Homology/RestrictScalars.lean` | the change of coefficients on simplicial chains along a restriction of scalars, `SSet.restrictScalarsChainMap`, and its isomorphism form `SSet.restrictScalarsChainIso` |
 | `Geometry/Manifold/SmoothSingular/SingularPeriod.lean` | the pairing of de Rham classes with integral singular homology |
 | `Geometry/Manifold/SmoothSingular/RelativeCycle.lean` | the relative step of Decision 7 |
 | `AlgebraicTopology/SimplicialSet/Homology/RelativeClass.lean` | the relative class of a simplex whose faces lie in the subcomplex of a pair of simplicial sets, `SSetPair.relClass` |
@@ -378,7 +379,8 @@ rest of this design.
 
 ### `JHolomorphic/Energy/Surface.lean`
 
-It imports the copy above and `Energy/Density.lean`, and defines nothing.
+It imports the copy above, `Energy/Density.lean`, `Manifold/AlmostComplex/TopForm.lean`
+and `Geometry/Manifold/MFDeriv/Constancy.lean`, and defines nothing.
 
 - `energyForm_apply_eq_energyDensity`: on a plane (`h2 : finrank ℝ E' = 2`),
   `ω.energyForm J j u c = ω.energyDensity J j (mfderiv I' I u c).toLinearMap`.
@@ -386,21 +388,22 @@ It imports the copy above and `Energy/Density.lean`, and defines nothing.
   and `energyDensity_apply_complexFrame_eq_stdComplexLineEnergyDensity`, hence
   everywhere by `SmoothAlmostComplexStructure.topForm_ext` (Decision 1).
 - `energy_eq_half_integralTopForm_normSq`: for `hdvol : dvol.Tames j`,
-  `ω.energy J j o u = 1 / 2 * integralTopForm o (fun c ↦ ω.normSq J j dvol (mfderiv I' I u c) • dvol c)`.
+  `ω.energy J j o u = 1 / 2 * integralTopForm o (fun c ↦ ω.normSq J j dvol (mfderiv I' I u c).toLinearMap • dvol.val c)`.
   This is the independence of the area form: the left side has none.
-- `Invariant.energy_eq_integralTopForm_add`: for `ω.Invariant J`, compact `C`
-  and `hdvol`,
-  `ω.energy J j o u = integralTopForm o (fun c ↦ ω.normSq J j dvol (complexAntilinearPart … (mfderiv I' I u c)) • dvol c) + integralTopForm o (mpullback I' I u ω.val)`.
+- `Invariant.energy_eq_integralTopForm_add`: for `ω.Invariant J`, compact `C`,
+  `hdvol` and `hu : ContMDiff I' I 1 u`,
+  `ω.energy J j o u = integralTopForm o (fun c ↦ ω.normSq J j dvol (complexAntilinearPart … (mfderiv I' I u c).toLinearMap) • dvol.val c) + integralTopForm o (mpullback I' I u ω.val)`.
 - `Tames.energy_eq_zero_iff_isLocallyConstant`: for compact `C`, `ho`,
   `ω.Tames J` and `hu`, `ω.energy J j o u = 0 ↔ IsLocallyConstant u`, from
   Tau Ceti's `Tames.energy_eq_zero_iff`,
   `MDifferentiable.isLocallyConstant_of_mfderiv_eq_zero`
-  (`Geometry/Manifold/MFDeriv/Constancy.lean`) and its converse. Tau Ceti's
+  (`Geometry/Manifold/MFDeriv/Constancy.lean`) and its converse
+  `IsLocallyConstant.mfderiv_eq_zero` (the library's file of the same path). Tau Ceti's
   `Tames.apply_eq_of_energy_eq_zero` is the connected case; the milestone
   speaks of local constancy.
 - `Compatible.energy_identity`: the analytic half of the milestone, the
-  conjunction, for compact `C`, `hc : ω.Compatible J` and every `dvol` taming
-  `j`, of the first display (in the form of
+  conjunction, for compact `C`, `hc : ω.Compatible J`, `hu : ContMDiff I' I 1 u`
+  and every `dvol` taming `j`, of the first display (in the form of
   `Invariant.energy_eq_integralTopForm_add` with the left side written
   through `energy_eq_half_integralTopForm_normSq`), the pseudoholomorphic
   case, and the independence of `dvol`. No milestone line; the milestone is
@@ -457,14 +460,11 @@ It imports the copy above and `Energy/Density.lean`, and defines nothing.
   `TopPair.relClass` of the underlying singular simplex, from
   `AlgebraicTopology/Singular/RelativeClass.lean` (it defines no class of its
   own). By `eq_fundamentalClassOn` it suffices to
-  compute the local image at each point of `K`; by the change-of-chart sign
-  rule (`OpenPartialHomeomorph.localHomologyMap_restrict_localOrientationOfOrientedChart`)
-  and translation invariance this reduces to one affine simplex around `0`
-  in $\mathbb R^2$ with its standard orientation, where the connecting
-  morphism takes the simplex to its boundary loop, and Tau Ceti's explicit
-  description of the circle (`AlgebraicTopology/Singular/Sphere.lean`: the
-  connecting morphism of the two-arc cover sends its generator to
-  `[-x] - [x]`) fixes the sign $s$.
+  compute the local image at each point of `K`. There `g`, read on `U`, and
+  the inclusion of `U` into $\mathbb R^2$ preserve orientation, so they carry
+  local orientations to local orientations (Tau Ceti's
+  `localIndex_toHomologicalOrientation`), and this reduces to the standard
+  simplex of `StdSimplex.lean`, which fixes the sign $s$.
 - The issue records $s$ in this file and in this section, and from then on
   "the correctly signed homological orientation" means
   `o.toHomologicalOrientation hE'` if $s=1$ and
@@ -534,10 +534,10 @@ $A$"):
 | Result | Lean name | File |
 |---|---|---|
 | pointwise identity | `TauCeti.SmoothTwoForm.Invariant.energyDensity_eq_two_smul_add` | `Density.lean` |
-| independence of the area form | `TauCeti.SmoothTwoForm.energy_eq_half_integralTopForm_normSq` | `Surface.lean` |
-| integrated identity | `TauCeti.SmoothTwoForm.Invariant.energy_eq_integralTopForm_add` | `Surface.lean` |
+| independence of the area form | `TauCeti.SmoothTwoForm.energy_eq_half_integralTopForm_normSq` | `JHolomorphic/Energy/Surface.lean` |
+| integrated identity | `TauCeti.SmoothTwoForm.Invariant.energy_eq_integralTopForm_add` | `JHolomorphic/Energy/Surface.lean` |
 | pseudoholomorphic case | `TauCeti.SmoothTwoForm.energy_eq_integralTopForm_mpullback` (Tau Ceti main) | `Manifold/Energy/Surface.lean` |
-| zero energy | `TauCeti.SmoothTwoForm.Tames.energy_eq_zero_iff_isLocallyConstant` | `Surface.lean` |
+| zero energy | `TauCeti.SmoothTwoForm.Tames.energy_eq_zero_iff_isLocallyConstant` | `JHolomorphic/Energy/Surface.lean` |
 | integration against $[\Sigma]$ | `TauCeti.Manifold.Orientation.integralTopForm_eq_singularHomologyPeriod` | `DeRham/FundamentalClass.lean` |
 | the milestone | `TauCeti.SmoothTwoForm.Compatible.energy_identity_and_homology` | `Homology.lean` |
 
