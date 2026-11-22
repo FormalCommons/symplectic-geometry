@@ -245,14 +245,20 @@ as above with `Y` Liouville on `U` and transverse along `i`, and `α` with
 `hα : α.val = -mpullback J I i (RoughForm.interior Y ω.val)` (a hypothesis,
 since `Y` is smooth only on `U`):
 
+- `IsLiouvilleCollar ω Y i α Φ φ`, a `Prop`-valued structure, for
+  `Φ : D ≃ₘ⟮𝓘(ℝ).prod J, I⟯ V` with `D : Opens (ℝ × Q)`, `V : Opens W`, and
+  `φ : ℝ × Q → W`: its fields are `range_subset : range i ⊆ V`,
+  `coe_apply : Φ p = φ p`, `apply_zero : φ (0, q) = i q`,
+  `isMIntegralCurveOn` (each `t ↦ φ (t, q)` an integral curve of `Y` on the
+  slice of `D`), `mpullback_eq`:
+  `mpullback _ I Φ ω.val = (mextDerivₗ _ 1 (SmoothForm.symplectization (-α))).val|D`,
+  that is $\Phi^*\omega=-d(e^s\alpha)$, and `mpullback_interior_eq`:
+  `mpullback _ I Φ (RoughForm.interior Y ω.val) = (symplectization (-α)).val|D`,
+  that is $\Phi^*\lambda=e^s\alpha$; both are pullbacks of rough forms to `D`.
 - `SmoothEmbedding.exists_liouvilleCollar`: there are `D : Opens (ℝ × Q)`
-  with `{0} ×ˢ univ ⊆ D`, `V : Opens W` with `range i ⊆ V ⊆ U`,
-  `Φ : D ≃ₘ⟮𝓘(ℝ).prod J, I⟯ V` and `φ : ℝ × Q → W` with `Φ p = φ p`,
-  `φ (0, q) = i q`, each `t ↦ φ (t, q)` an integral curve of `Y` on the
-  slice of `D`, and
-  `Φ^*(ω|V) = (mextDerivₗ _ 1 (SmoothForm.symplectization (-α)))|D`, that is
-  $\Phi^*\omega=-d(e^s\alpha)$; also $\Phi^*\lambda=e^s\alpha$, stated as
-  `mpullback _ I Φ (RoughForm.interior Y ω.val) = (symplectization (-α))|D`.
+  with `{0} ×ˢ univ ⊆ D`, `V : Opens W` with `V ⊆ U`,
+  `Φ : D ≃ₘ⟮𝓘(ℝ).prod J, I⟯ V` and `φ : ℝ × Q → W` with
+  `IsLiouvilleCollar ω Y i α Φ φ`.
   From Tau
   Ceti's `exists_continuous_pos_injOn_flowOf_comp` (variable width, `D` the
   set `|t| < ε q`) applied on the open submanifold `U` with

@@ -10,6 +10,7 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.LieDeriv
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
 import TauCeti.Geometry.Manifold.DifferentialForm.Interior
 import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
+import TauCeti.Geometry.Manifold.DifferentialForm.Opens
 import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import TauCeti.Geometry.Contact.Flat
 import SymplecticGeometry.Geometry.Manifold.TubularNeighborhood.RelativePoincare
@@ -60,6 +61,16 @@ builds such a field from a prescribed contact form.
   so that `ι_v dα + α(v) α = α`, which forces `α(v) = 1`
   (`TauCeti.SmoothForm.IsContactForm.contactFlat_apply_eq_iff`). This pointwise step is
   `TauCeti.SmoothForm.IsContactForm.notMem_range_mfderiv_of_interior_eq_neg`.
+* Restriction to the open set `U` of a field `Z` that is smooth and Liouville on `U`:
+  `VectorField.contMDiff_mpullback_subtypeVal` and
+  `VectorField.mfderiv_subtypeVal_mpullback_subtypeVal` say that the restricted field
+  `VectorField.mpullback I I Subtype.val Z` is smooth on `U` and related to `Z` by the inclusion;
+  `TauCeti.isSmoothForm_mpullback_subtypeVal_interior`,
+  `TauCeti.mextDeriv_mpullback_subtypeVal_interior` and
+  `TauCeti.interior_mextDeriv_mpullback_subtypeVal_interior` say that the restriction `β` of
+  `ι_Z σ` is smooth, has `dβ` the restriction of `σ`, and that the restricted field is Liouville
+  for `β` in Tau Ceti's sense. The last is Tau Ceti's naturality of the interior product,
+  `TauCeti.mpullback_interior`, after Cartan's formula on `U`.
 
 ## References
 
@@ -68,7 +79,7 @@ builds such a field from a prescribed contact form.
 
 public section
 
-open Bundle Module Set
+open Bundle Module Set TopologicalSpace
 open scoped Manifold ContDiff
 
 namespace TauCeti
@@ -259,6 +270,74 @@ theorem SmoothEmbedding.exists_liouville_of_isContactForm [FiniteDimensional ℝ
     funext s
     ext v
     simp [mpullback_apply]
+
+section Restrict
+
+/-! ### Restricting a local Liouville field to its open set -/
+
+variable [IsManifold I ∞ M]
+
+/-- On an open set `U`, the restriction `VectorField.mpullback I I Subtype.val Y` of a vector field
+`Y` that is `C^m` on `U` is a `C^m` vector field on `U`. -/
+theorem _root_.VectorField.contMDiff_mpullback_subtypeVal [CompleteSpace E] {m : ℕ∞ω}
+    {U : Opens M} {Y : (x : M) → TangentSpace I x} (hY : ContMDiffOn I I.tangent m (T% Y) U) :
+    ContMDiff I I.tangent m (T% (VectorField.mpullback I I (Subtype.val : U → M) Y)) :=
+  fun x ↦ by
+    have := ContMDiffWithinAt.mpullback_vectorField_preimage (n := ω) (hY x x.property)
+      contMDiff_subtypeVal.contMDiffAt ⟨_, (Manifold.mfderiv_subtype_val x).symm⟩ le_top
+    rwa [show (Subtype.val : U → M) ⁻¹' U = univ from eq_univ_of_forall fun y ↦ y.property,
+      contMDiffWithinAt_univ] at this
+
+omit [IsManifold I ∞ M] in
+/-- The restriction `VectorField.mpullback I I Subtype.val Y` of a vector field `Y` to an open set
+`U` is related to `Y` by the inclusion of `U`. -/
+theorem _root_.VectorField.mfderiv_subtypeVal_mpullback_subtypeVal {U : Opens M}
+    (Y : (x : M) → TangentSpace I x) (x : U) :
+    mfderiv I I (Subtype.val : U → M) x (VectorField.mpullback I I Subtype.val Y x) = Y x := by
+  rw [VectorField.mpullback_apply]
+  exact ContinuousLinearMap.IsInvertible.self_apply_inverse
+    ⟨_, (Manifold.mfderiv_subtype_val x).symm⟩ _
+
+/-- On an open set `U`, the restriction of `ι_Z σ` is a smooth form when the field `Z` is smooth
+on `U`. -/
+theorem isSmoothForm_mpullback_subtypeVal_interior {U : Opens M} {σ : SmoothTwoForm I M}
+    (hY : ContMDiffOn I I.tangent ∞ (T% Z) U) :
+    IsSmoothForm I ∞ (mpullback I I (Subtype.val : U → M) (RoughForm.interior Z σ.val)) :=
+  (isSmoothForm_def ∞ _).mpr fun x ↦ (RoughForm.contMDiffAt_interior
+    (hY.contMDiffAt (U.isOpen.mem_nhds x.property)) (σ.contMDiff x)).mpullback_form
+      (contMDiff_subtypeVal (n := ∞) x) le_rfl
+
+/-- Cartan's formula on an open set `U`: if `σ` is closed and the field `Z`, smooth on `U`, has
+`L_Z σ = σ` on `U`, then the restriction of `ι_Z σ` to `U` is a primitive of the restriction of
+`σ`. -/
+theorem mextDeriv_mpullback_subtypeVal_interior {U : Opens M} {σ : SmoothTwoForm I M}
+    (hσ : σ.IsClosed) (hZ : ContMDiffOn I I.tangent ∞ (T% Z) U)
+    (hZσ : ∀ x ∈ U, mlieDerivForm Z σ.val x = σ.val x) :
+    mextDeriv (mpullback I I (Subtype.val : U → M) (RoughForm.interior Z σ.val)) =
+      mpullback I I Subtype.val σ.val := by
+  funext x
+  have hZx := hZ.contMDiffAt (U.isOpen.mem_nhds x.property)
+  rw [← mpullback_mextDeriv_at ((contMDiff_subtypeVal x).of_le le_top)
+    ((RoughForm.contMDiffAt_interior hZx (σ.contMDiff x)).of_le (by simp)),
+    mpullback_subtype_val_apply, mpullback_subtype_val_apply,
+    ← mlieDerivForm_eq_mextDeriv_interior_apply
+      (σ.isSmoothForm.contMDiff.mdifferentiable (by simp) x)
+      (hZx.mdifferentiableAt (by simp))
+      (congrFun ((SmoothForm.isClosed_def σ).1 hσ) x), hZσ x x.property]
+
+/-- **The restriction of a local Liouville field.** If `σ` is closed and the field `Z`, smooth on
+an open set `U`, has `L_Z σ = σ` on `U`, then its restriction `Z'` to `U` is a Liouville field of
+the restriction `β` of `ι_Z σ` in Tau Ceti's sense: `ι_{Z'} dβ = β`. -/
+theorem interior_mextDeriv_mpullback_subtypeVal_interior {U : Opens M} {σ : SmoothTwoForm I M}
+    (hσ : σ.IsClosed) (hZ : ContMDiffOn I I.tangent ∞ (T% Z) U)
+    (hZσ : ∀ x ∈ U, mlieDerivForm Z σ.val x = σ.val x) :
+    (mextDeriv (mpullback I I (Subtype.val : U → M) (RoughForm.interior Z σ.val))).interior
+        (VectorField.mpullback I I Subtype.val Z) =
+      mpullback I I Subtype.val (RoughForm.interior Z σ.val) := by
+  rw [mextDeriv_mpullback_subtypeVal_interior hσ hZ hZσ,
+    ← mpullback_interior _ _ Z σ.val (VectorField.mfderiv_subtypeVal_mpullback_subtypeVal Z)]
+
+end Restrict
 
 end TauCeti
 
