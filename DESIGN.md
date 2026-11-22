@@ -2428,24 +2428,30 @@ has either; Tau Ceti's extension across a boundary,
 
 ### 28. Space of compatible complex structures (needs `design/compatible-structure-space.md`)
 
-- **Files:** in `Geometry/Symplectic/CompatibleSpace/`: `Manifold.lean`
+- **Files:** `Geometry/Manifold/Instances/CompatibleComplexStructures.lean`
   ($\mathcal J(V,\omega)$, of dimension $n(n+1)$, embedded as a smooth
   submanifold in $\mathrm{End}(V)$, with Tau Ceti's `compatibleTangentSpace` as tangent
-  spaces, charts from Tau Ceti's Cayley chart `compatibleCayleyEquiv`, and
-  for $V$ = `StdSpace ι` the diffeomorphism with *Siegel upper half space*'s
-  $\mathcal S_n$), `Kahler.lean` (the structure $\hat J\mapsto-J\hat J$, the
+  spaces, charts from Tau Ceti's Cayley chart `compatibleCayleyEquiv`), with
+  its algebra in `LinearAlgebra/Symplectic/CompatibleTangent/` and its
+  Cayley coordinates in `Topology/ComplexStructure/Compatible/Cayley.lean`;
+  `Geometry/Manifold/Instances/SiegelUpperHalfSpace.lean` ($\mathcal S_n$
+  as a complex manifold); and in `Geometry/Symplectic/CompatibleSpace/`:
+  `ComplexStructure.lean` (the structure $\hat J\mapsto-J\hat J$, constant in
+  the global Cayley chart, hence integrable), `Kahler.lean` (the
   form $\Omega$ and the trace metric, their invariance under linear
-  symplectomorphisms, integrability from the holomorphic coordinates of
-  $\mathcal S_n$, and `IsKahler`) and `Geodesic.lean` (the Levi-Civita
-  connection, the geodesics $J\exp(-J\hat Jt)$ and completeness, the
-  curvature and the sign of the sectional curvature, and the pulled-back
-  metric on $\mathcal S_n$).
-- **Builds on:** *Nijenhuis tensor* (only `Integrable.lean`); the merged
+  symplectomorphisms, and `IsKahler`), `LeviCivita.lean`, `Curvature.lean`
+  (the curvature and the sign of the sectional curvature),
+  `Geodesic.lean` (the geodesics $J\exp(-J\hat Jt)$ and completeness) and
+  `Siegel.lean` (for $V$ = `StdSpace ι` the holomorphic diffeomorphism with
+  *Siegel upper half space*'s $\mathcal S_n$ and the pulled-back metric).
+- **Builds on:** *Nijenhuis tensor* (only `Integrable.lean`); *Almost
+  complex manifolds* (only `Metric.lean`); the merged
   *Siegel upper half space* and *Compatible complex structures*; Tau Ceti's
   Cayley files and curvature of connections.
 - **Milestones:** *Kähler structure on the space of compatible linear complex
-  structures*, with integrability from the coordinates of $\mathcal S_n$
-  rather than from the parallel-$J$ criterion, as the page advises. The
+  structures*, with integrability from the global Cayley chart, the bounded
+  model of $\mathcal S_n$, rather than from the parallel-$J$ criterion, as
+  the page advises. The
   design file fixes the curvature convention, which the page gives, and
   whether the manifold is a subtype of `V →L[ℝ] V` or Tau Ceti's type of
   compatible structures.
@@ -2622,7 +2628,7 @@ that file, and the notes here may fall behind it.
 | 1 | *Isothermal coordinates* | *Nijenhuis tensor* (only `Integrable.lean`) |
 | 1 | *Complex submanifolds* | *Nijenhuis tensor* |
 | 1 | *Almost Kähler geometry* | *Almost complex manifolds* (only `Metric.lean`), *Nijenhuis tensor* (only `Covariant.lean` and `Nijenhuis.lean`); `TwoForm.lean` can start at once |
-| 1 | *Space of compatible complex structures* | *Nijenhuis tensor* (only `Integrable.lean`); the merged *Siegel upper half space* and *Compatible complex structures* |
+| 1 | *Space of compatible complex structures* | *Nijenhuis tensor* (only `Integrable.lean`), *Almost complex manifolds* (only `Metric.lean`); the merged *Siegel upper half space* and *Compatible complex structures* |
 | 1 | *Energy of pseudoholomorphic curves* | *Almost complex manifolds* (only `Metric.lean`) |
 | 2 | *Compatible complex structures* | *Standard model*, *Symplectic vector spaces*; *Linear complex structures* (only `LinearAlgebra/ComplexStructure/Action.lean`, which imports only Mathlib and Tau Ceti, `Topology/ComplexStructure/Basic.lean`, which besides it imports only Tau Ceti and the merged `LinearAlgebra/Matrix/NonsingularInverse.lean` and `Analysis/CStarAlgebra/Matrix.lean`, which import only Mathlib and merged files that do, and `LinearAlgebra/ComplexStructure/Standard.lean`, which besides `Action.lean` imports only `LinearAlgebra/Symplectic/Compatible.lean` of this part, `LinearAlgebra/Symplectic/Standard/Matrix.lean` of *Standard model*, the library's `Geometry/Symplectic/Orientation.lean`, which imports only Tau Ceti, and Tau Ceti; and `Topology/ComplexStructure/Orthogonal.lean`, which besides `Topology/ComplexStructure/Basic.lean` imports only `LinearAlgebra/Symplectic/Standard/Basic.lean` of *Standard model*, `Analysis/Matrix/Polar/Deformation.lean` of *Symplectic group* and Tau Ceti; all of them are merged); *Symplectic group* (only `LinearAlgebra/Matrix/SymplecticGroup/Basic.lean`, which imports only Mathlib and Tau Ceti and is merged, and `Analysis/Matrix/Polar/Deformation.lean`, through `Orthogonal.lean`, which is merged) |
 | 2 | *Maslov index* | *Standard model*, *Symplectic group*, *Unitary group topology*; its Lagrangian issues also *Lagrangian Grassmannian* |
