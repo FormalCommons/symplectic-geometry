@@ -27,6 +27,8 @@ For a linear form `φ` on a vector space `V` over a field `K`, every point `x` o
 * `Projectivization.apply_smul_normalizedRep`: a vector `u` of the line `x` is
   `φ u • normalizedRep φ x`.
 * `Projectivization.mk_eq_of_mem_submodule`: a nonzero vector of a line spans it.
+* `Projectivization.affineOpen_eq_linearProjectionDomain`: the standard affine open `U_i` of
+  `ℙ K (ι → K)` is the set where the `i`-th coordinate form does not vanish.
 * `Projectivization.insertNth_one_affineChart_eq_normalizedRep`: on the standard affine open
   `U_i` of `ℙ K (Fin (n + 1) → K)`, the homogeneous coordinates `[1 : z]` of a point are its
   representative normalized by the `i`-th coordinate.
@@ -89,6 +91,13 @@ theorem mk_eq_of_mem_submodule {x : ℙ K V} {v : V} (hv : v ≠ 0) (hx : v ∈ 
   obtain ⟨c, rfl⟩ := hx
   conv_rhs => rw [← mk_rep x]
   exact (mk_eq_mk_iff' K _ _ hv x.rep_ne_zero).2 ⟨c, rfl⟩
+
+/-- The standard affine open `U_i` of `ℙ K (ι → K)` is the set of points on which the `i`-th
+coordinate form `LinearMap.proj i` does not vanish. -/
+theorem affineOpen_eq_linearProjectionDomain {ι : Type*} (i : ι) :
+    affineOpen (K := K) i = linearProjectionDomain (LinearMap.proj (R := K) i) := by
+  ext x
+  rw [mem_affineOpen_iff, mem_linearProjectionDomain_iff, LinearMap.proj_apply]
 
 /-- On the standard affine open `U_i`, the homogeneous coordinates `[1 : z]` of a point, with `1`
 in position `i` and `z` its affine coordinates, are its representative on which the `i`-th
