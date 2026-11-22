@@ -28,7 +28,10 @@ differentials at `x` differ by the factor `(v_i / v_j) ^ d`, which is the transi
 charts fit together into one isomorphism of bundles.
 
 The continuity of that isomorphism is checked on ambient tangent representatives of normal
-classes, as in Tau Ceti's `TauCeti.SmoothEmbedding.continuous_normalBundleMap`.
+classes, as in Tau Ceti's `TauCeti.SmoothEmbedding.continuous_normalBundleMap`. The proof of
+the chart change for differentials, `HasMFDerivAt.eval_affineChart_dehomogenize`, adapts the
+proof of Tau Ceti's `TauCeti.fderiv_eval_dehomogenize_transition` from Fréchet derivatives on
+`Fin n → 𝕜` to `mfderiv` on projective space.
 
 ## Main declarations
 
@@ -73,13 +76,8 @@ theorem eval_affineChart_dehomogenize_eq_twistTransition_mul
     {x : ℙ 𝕜 (Fin (n + 1) → 𝕜)} (hi : x ∈ affineOpen i) (hj : x ∈ affineOpen j) :
     eval (affineChart j x) (dehomogenize j P) =
       twistTransition (d : ℤ) i j x * eval (affineChart i x) (dehomogenize i P) := by
-  have hc (k : Fin (n + 1)) : affineChart k x = fun m ↦ x.rep (k.succAbove m) / x.rep k := by
-    rw [← affineChart_mk k x.rep x.rep_ne_zero, mk_rep]
-  have hi' := (mem_affineOpen_iff i x).1 hi
-  have hj' := (mem_affineOpen_iff j x).1 hj
-  rw [hc, hc, eval_dehomogenize_div j hP _ hj', eval_dehomogenize_div i hP _ hi',
-    twistTransition_def, zpow_natCast, div_pow, inv_pow, inv_pow]
-  field_simp
+  rw [← homogeneousSection_coord hP hi, ← homogeneousSection_coord hP hj, ← mul_assoc,
+    twistTransition_mul_twistTransition _ _ _ hi]
 
 /-- At a zero `x` of a polynomial `P`, homogeneous of degree `d`, in `U_i ∩ U_j`: if the
 dehomogenization of `P` at `i`, read in the affine chart at `i`, has the derivative `L` at `x`,
@@ -110,14 +108,12 @@ theorem _root_.HasMFDerivAt.eval_affineChart_dehomogenize {P : MvPolynomial (Fin
   filter_upwards [hU] with y hy
   exact eval_affineChart_dehomogenize_eq_twistTransition_mul hP hy.1 hy.2
 
-variable [CompleteSpace 𝕜]
-
 /-- A polynomial read in the affine chart at `i` is `C^r` on the affine open `U_i`. -/
 theorem contMDiffOn_eval_affineChart (P : MvPolynomial (Fin n) 𝕜) (i : Fin (n + 1))
     (r : ℕ∞ω) :
     ContMDiffOn 𝓘(𝕜, Fin n → 𝕜) 𝓘(𝕜) r (fun x ↦ eval (affineChart i x) P) (affineOpen i) :=
-  ((AnalyticOnNhd.eval_mvPolynomial P).contDiff (n := r)).contMDiff.comp_contMDiffOn
-    (contMDiffOn_affineChart i r)
+  (AnalyticOnNhd.eval_continuousLinearMap (ContinuousLinearMap.id 𝕜 (Fin n → 𝕜))
+    P).contDiff.contMDiff.comp_contMDiffOn (contMDiffOn_affineChart i r)
 
 end Projectivization
 
