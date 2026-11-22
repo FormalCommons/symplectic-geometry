@@ -207,29 +207,32 @@ following choices.
 `DESIGN.md` is updated with this file, in its part 19, its dependency row
 and two rows of its milestone table.
 
-- Eleven files are added: `LinearAlgebra/Symplectic/Extension.lean`,
-  `Neighborhood/Extension.lean`, `Neighborhood/Frames.lean`,
-  `Neighborhood/Basic.lean`,
-  `Geometry/Manifold/VectorBundle/ZeroSection.lean`,
-  `Geometry/Manifold/VectorBundle/Adjoint.lean`,
-  `Geometry/Manifold/TubularNeighborhood/MFDeriv.lean`,
-  `Geometry/Manifold/VectorBundle/Orthogonal.lean`,
-  `Geometry/Manifold/VectorBundle/Subbundle.lean`,
-  `LinearAlgebra/BilinearForm/Orthogonal.lean` and
-  `Geometry/Manifold/Distribution/FlatChart.lean`. Each neighbourhood
-  theorem would otherwise repeat the linear extension and its smoothness;
-  `Neighborhood/Frames.lean` holds the smooth frames of the pieces of the
-  splitting along `Q`, a step of `Neighborhood/Extension.lean`;
-  `Adjoint.lean`, `VectorBundle/Orthogonal.lean` and
-  `VectorBundle/Subbundle.lean` hold steps of
-  `Neighborhood/Extension.lean`, `MFDeriv.lean` the step of
-  `Tubular.lean`, and `FlatChart.lean` the step of
-  `CharacteristicFoliation.lean`, that use nothing symplectic; the
-  linear-algebra lemma of `VectorBundle/Orthogonal.lean` is in
-  `LinearAlgebra/BilinearForm/Orthogonal.lean`.
-- `Geometry/Manifold/Diffeomorph/Basic.lean` is added for the
-  diffeomorphism between empty manifolds on two models, which `MFDeriv.lean`
-  and `Tubular.lean` both use.
+- These files are added. Each neighbourhood theorem would otherwise repeat
+  the linear extension and its smoothness. The list has one file to a line,
+  in the order of the paths as written here, and a new file goes in at its
+  place in that order: pull requests that each add a file then change
+  different lines.
+  - `Geometry/Manifold/Diffeomorph/Basic.lean`: the diffeomorphism between
+    empty manifolds on two models, which `MFDeriv.lean` and `Tubular.lean`
+    both use.
+  - `Geometry/Manifold/Distribution/FlatChart.lean`: the step of
+    `CharacteristicFoliation.lean` that uses nothing symplectic.
+  - `Geometry/Manifold/TubularNeighborhood/MFDeriv.lean`: the step of
+    `Tubular.lean` that uses nothing symplectic.
+  - `Geometry/Manifold/VectorBundle/Adjoint.lean`: a step of
+    `Neighborhood/Extension.lean` that uses nothing symplectic.
+  - `Geometry/Manifold/VectorBundle/Orthogonal.lean`: a step of
+    `Neighborhood/Extension.lean` that uses nothing symplectic.
+  - `Geometry/Manifold/VectorBundle/Subbundle.lean`: a step of
+    `Neighborhood/Extension.lean` that uses nothing symplectic.
+  - `Geometry/Manifold/VectorBundle/ZeroSection.lean`.
+  - `LinearAlgebra/BilinearForm/Orthogonal.lean`: the linear-algebra lemma
+    of `VectorBundle/Orthogonal.lean`.
+  - `LinearAlgebra/Symplectic/Extension.lean`.
+  - `Neighborhood/Basic.lean`.
+  - `Neighborhood/Extension.lean`.
+  - `Neighborhood/Frames.lean`: the smooth frames of the pieces of the
+    splitting along `Q`, a step of `Neighborhood/Extension.lean`.
 - `Lagrangian.lean` no longer uses *Cotangent bundles* or
   `normalBundleDiffeomorphOfIsLagrangianMap`, since the comparison theorem
   needs only that the zero section is Lagrangian. The part therefore no
@@ -336,6 +339,13 @@ On an open `U`, it is applied to `U` and the restriction
   subspace, which is $(TQ)^\omega$ by Tau Ceti's
   `map_characteristicFoliation_distribution`. Its docstring also ends with
   the milestone line, since the milestone has this second statement.
+  `IsCoisotropicMap.exists_partialDiffeomorph_eval₂_eq_stdForm`, with the
+  same hypotheses and an identification `L` of the model of `N` with
+  `EuclideanSpace ℝ (Fin k) × StdSpace (Fin r)`, applies
+  `exists_partialDiffeomorph_eval₂_eq_stdForm` to `f^*ω` in the same way:
+  a chart of `N` in which `f^*ω` is the pull-back of `stdForm (Fin r)`
+  along the second component of `L`. `AdaptedDarboux.lean` takes its
+  coisotropic chart from it.
 
 ### `LinearAlgebra/Symplectic/Extension.lean`
 
@@ -606,9 +616,11 @@ Route, for all four. A chart `c` of `Q` at `q₀` onto an open set of the
 linear space `S` is chosen so that `c` carries `f^*ω` to the restriction of
 `stdForm` to `S`. For a symplectic `Q`, `c` is a Darboux chart of `f^*ω`
 (Tau Ceti's). For an isotropic or Lagrangian `Q`, any chart will do, since
-both restricted forms are `0`. For a coisotropic `Q`, `c` combines the leaf
-coordinates of `exists_isCharacteristicSubmersion` with a Darboux chart of
-the descended form on the ball. The lemma `exists_localDiffeomorph_extend`,
+both restricted forms are `0`. For a coisotropic `Q`, `c` is a chart of `Q`
+in which the closed form `f^*ω`, of constant rank, is the pull-back of
+`stdForm (Fin r)` along a linear projection
+(`IsCoisotropicMap.exists_partialDiffeomorph_eval₂_eq_stdForm`).
+The lemma `exists_localDiffeomorph_extend`,
 public in `Geometry/Manifold/LocalDiffeomorph/Extend.lean` (with the centred charts
 `exists_partialDiffeomorph_apply_eq_zero` that the isotropic case uses),
 extends `f ∘ c⁻¹` in the directions
