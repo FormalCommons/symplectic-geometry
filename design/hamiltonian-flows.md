@@ -361,12 +361,12 @@ Ceti's time-dependent flows (`[FiniteDimensional ℝ E] [J.Boundaryless]
 
 - `mpullback_timeDependentFlowOf_apply_of_isHamiltonianVectorField`: for
   closed `σ`, `(timeDependentFlowOf X s t)^* σ` equals `σ` at every `x` with
-  `((s, t), x) ∈ timeDependentFlowDomain X`; no completeness. From the local
-  Moser principle `mpullback_timeDependentFlowOf_mpullback_prodMk_apply_eq_of_mem`
-  for the constant family, through the general
-  `TauCeti.mpullback_timeDependentFlowOf_apply_of_mextDeriv_interior_eq_zero`,
-  in `Geometry/Manifold/DifferentialForm/Flow/Family.lean` of *Contact geometry*
-  (a closed smooth form whose contractions with every `X t` are closed). Tau
+  `((s, t), x) ∈ timeDependentFlowDomain X`; no completeness. Through the
+  general `TauCeti.mpullback_timeDependentFlowOf_apply_of_mextDeriv_interior_eq_zero`
+  (a closed smooth form whose contractions with every `X t` are closed), the
+  case `g = 0`, by Cartan's formula, of
+  `mpullback_timeDependentFlowOf_apply_eq_exp_integral_smul_of_mlieDerivForm_eq`,
+  in `Geometry/Manifold/DifferentialForm/Flow/Family.lean` of *Contact geometry*. Tau
   Ceti's `mpullback_timeDependentFlowOf_of_isHamiltonianVectorField` is the
   complete case.
 
