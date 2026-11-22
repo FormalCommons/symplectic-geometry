@@ -509,6 +509,10 @@ and `Geometry/Manifold/MFDeriv/Constancy.lean`, and defines nothing.
   $\int_z\rho_i\varphi=\int_{\sigma_i}\rho_i\varphi$ (Stokes for `b`, and
   `ρᵢ • φ` vanishes on `c`), which is `integralTopForm o (ρᵢ • φ)` by
   `SmoothSimplex.integral_eq_integralTopForm`.
+- `TauCeti.Manifold.Orientation.integralTopForm_mpullback_eq_singularHomologyPeriod`:
+  for `hE'`, `o`, `φ : closedForms I M 2` and smooth `u : C → M`,
+  `integralTopForm o (mpullback I' I u φ.val.val) = singularHomologyPeriod (mk φ) (oₕ.mapFundamentalClass hE' ⟨u, hu.continuous⟩)`,
+  from the previous result for `u^* φ` and `singularHomologyPeriod_map`.
 
 ### `Energy/Homology.lean`
 
@@ -516,9 +520,6 @@ With `oₕ` as above, `A` an integral class of $H_2(M)$, `hω : ω` closed, and
 `hA : oₕ.mapFundamentalClass hE' ⟨u, hu.continuous⟩ = A` ("$u$ represents
 $A$"):
 
-- `integralTopForm_mpullback_eq_singularHomologyPeriod`:
-  `integralTopForm o (mpullback I' I u ω.val) = singularHomologyPeriod (mk ω) A`,
-  from `FundamentalClass.lean` for `u^* ω` and `singularHomologyPeriod_map`.
 - `energy_eq_singularHomologyPeriod`: for `∀ c, IsPseudoholomorphicAt j J u c`,
   `ω.energy J j o u = singularHomologyPeriod (mk ω) A`.
 - `Compatible.energy_le_energy`: for `hc`, `ho`, pseudoholomorphic `u` and
@@ -526,11 +527,16 @@ $A$"):
   `ω.energy J j o u ≤ ω.energy J j o v` (both areas are the period of `A`,
   and Tau Ceti's `Compatible.integralTopForm_mpullback_le_energy` bounds
   that of `v` by its energy).
-- `singularHomologyPeriod_pos`: for `hc`, `ho` and pseudoholomorphic `u`
+- `Tames.singularHomologyPeriod_pos`: for `ω.Tames J` (a compatible pair
+  gives it), `ho` and pseudoholomorphic `u`
   that is not locally constant, `0 < singularHomologyPeriod (mk ω) A`.
 - **Milestone** `Compatible.energy_identity_and_homology`: the conjunction of
-  `Compatible.energy_identity` and, for closed `ω`, the three statements
-  above. Milestone: *Energy identity for J-holomorphic curves*.
+  `Compatible.energy_identity` and, for closed `ω`,
+  `energy_eq_singularHomologyPeriod`, `Compatible.energy_le_energy` and
+  `Tames.singularHomologyPeriod_pos`, with the energy written as in
+  `Compatible.energy_identity`, through
+  `energy_eq_half_integralTopForm_normSq`. Milestone: *Energy identity for
+  J-holomorphic curves*.
 
 ## Main results
 
