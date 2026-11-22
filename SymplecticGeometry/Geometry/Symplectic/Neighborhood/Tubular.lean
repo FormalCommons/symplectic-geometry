@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.Geometry.Manifold.TubularNeighborhood.MFDeriv
 public import SymplecticGeometry.Geometry.Symplectic.Moser.Relative
 public import TauCeti.Geometry.Symplectic.SymplecticTransport
+import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Basic
 import TauCeti.Geometry.Manifold.DifferentialForm.Opens
 import TauCeti.Geometry.Manifold.SmoothEmbedding.LocalDiffeomorph
 import TauCeti.Geometry.Symplectic.Manifold.Opens
@@ -146,9 +147,7 @@ theorem exists_symplectomorphism_opens_mfderiv_eq [SecondCountableTopology M₀]
   · -- Without points to work along, the empty open sets will do.
     have : IsEmpty (⊥ : Opens M₀) := ⟨fun x ↦ x.property⟩
     have : IsEmpty (⊥ : Opens M₁) := ⟨fun x ↦ x.property⟩
-    refine ⟨⊥, ⊥, { Equiv.equivOfIsEmpty _ _ with
-      contMDiff_toFun := fun x ↦ (IsEmpty.false x).elim
-      contMDiff_invFun := fun y ↦ (IsEmpty.false y).elim }, fun q ↦ (hQ.false q).elim,
+    exact ⟨⊥, ⊥, Diffeomorph.ofIsEmpty, fun q ↦ (hQ.false q).elim,
       Subtype.ext (funext fun x ↦ (IsEmpty.false x).elim)⟩
   have hU₀ : Nonempty U₀ := ⟨g q₀⟩
   have hU₁ : Nonempty U₁ := ⟨ψ' (g q₀)⟩
