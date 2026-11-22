@@ -235,8 +235,8 @@ $3\sigma=\langle c_1^2-2c_2,[X]\rangle$, written with `sigPos`, `sigNeg`,
 $3\sigma=(4-d^2)d$. The relation $b^++b^-=b_2$ is proved, not assumed: the
 cup pairing is nondegenerate, by Tau Ceti's
 `TopCat.nondegenerate_singularCupPairing_iff` and the library's
-`TauCeti.HomologicalOrientation.injective_singularCapLinearMap_of_injective_dualityMap`
-with Poincaré duality (#810), so Tau Ceti's
+`TauCeti.HomologicalOrientation.bijective_singularCapLinearMap_fundamentalClass`
+(from Poincaré duality, #810), so Tau Ceti's
 `QuadraticForm.sigPos_add_sigNeg_of_nondegenerate` applies, and
 $\dim H^2(X;\mathbb Q)=b_2$ by Tau Ceti's
 `TopCat.finrank_singularCohomology`.
@@ -538,8 +538,7 @@ For `d ≠ 0`, with the inclusion `X → ℙ ℂ (Fin (n + 2) → ℂ)`.
 
 ### `AlgebraicTopology/Cohomology/Cap/RationalCoefficients.lean` (addition)
 
-In the namespace `TauCeti.HomologicalOrientation`, beside
-`injective_singularCapLinearMap_of_injective_dualityMap`:
+In the namespace `TauCeti.HomologicalOrientation`:
 
 - `bijective_singularCapLinearMap_fundamentalClass`: for a compact
   homologically oriented `m`-manifold and `p + q = m`, capping with the image

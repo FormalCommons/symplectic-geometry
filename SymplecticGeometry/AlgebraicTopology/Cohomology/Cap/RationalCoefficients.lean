@@ -54,15 +54,12 @@ capping `μ` with the integral class of `α` is the rational cap product of `α`
 keep the back `q`-face (`TopCat.capChain_singularCochainComplexRatIso_hom_f`, using the formulas
 of `SymplecticGeometry.AlgebraicTopology.Cohomology.Cap.Basic`).
 
-As a consequence, for a compact oriented manifold, injectivity of the duality map with values in
-`ℚ` in degree `p` gives injectivity on `Hᵖ(M; ℚ)` of the rational cap product with the rational
-fundamental class
-(`TauCeti.HomologicalOrientation.injective_singularCapLinearMap_of_injective_dualityMap`), which
-is the hypothesis of Tau Ceti's evenness criterion
-`TopCat.even_finrank_singularHomology_of_injective_singularCapLinearMap`. In the same way,
-Poincaré duality (`TauCeti.HomologicalOrientation.bijective_dualityMap`) makes the rational cap
-product with the rational fundamental class bijective
-(`TauCeti.HomologicalOrientation.bijective_singularCapLinearMap_fundamentalClass`). With Tau
+As a consequence, for a compact oriented manifold, Poincaré duality
+(`TauCeti.HomologicalOrientation.bijective_dualityMap`) makes the rational cap product with the
+rational fundamental class bijective
+(`TauCeti.HomologicalOrientation.bijective_singularCapLinearMap_fundamentalClass`). Its
+injectivity is the hypothesis of Tau Ceti's evenness criterion
+`TopCat.even_finrank_singularHomology_of_injective_singularCapLinearMap`. With Tau
 Ceti's `TopCat.finrank_singularHomology_eq_of_bijective_singularCapLinearMap`, it follows that the
 rational Betti numbers of a compact oriented `n`-manifold satisfy `b_q = b_p` for `p + q = n`
 (`TauCeti.HomologicalOrientation.bettiNumber_eq_bettiNumber`).
@@ -585,20 +582,6 @@ theorem singularHomologyRatIso_hom_singularCapLinearMap [CompactSpace M] {p q : 
   rw [dualityMap_compactSupportCohomologyIsoOfCompactSpace_inv]
   exact (TopCat.singularCap_singularCohomologyRatIso_hom _ h α _).symm
 
-/-- **Rational duality from the duality map.** For a compact oriented `n`-manifold `M` and
-`p + q = n`, if the duality map `Hᵖ_c(M; ℚ) ⟶ H_q(M; ℚ)`, computed from integral chains, is
-injective, then capping with the image of the fundamental class in `Hₙ(M; ℚ)` is injective on
-`Hᵖ(M; ℚ)`, computed from rational chains. -/
-theorem injective_singularCapLinearMap_of_injective_dualityMap [CompactSpace M] {p q : ℕ}
-    (h : p + q = n) (hinj : Function.Injective (o.dualityMap hn (ModuleCat.of ℤ ℚ) p q h)) :
-    Function.Injective ((TopCat.of M).singularCapLinearMap ℚ h
-      ((TopCat.of M).singularHomologyIntToRat n (o.fundamentalClass hn))) := by
-  intro α β hαβ
-  exact (ConcreteCategory.bijective_of_isIso ((TopCat.of M).singularCohomologyRatIso p).hom).1
-    ((ConcreteCategory.bijective_of_isIso
-      (TopCat.compactSupportCohomologyIsoOfCompactSpace p).inv).1
-        (hinj (by simp only [← o.singularHomologyRatIso_hom_singularCapLinearMap hn h, hαβ])))
-
 /-- **Rational Poincaré duality for a compact manifold.** For a compact homologically oriented
 `n`-manifold `M` without boundary and `p + q = n`, capping with the image of the fundamental
 class in `Hₙ(M; ℚ)` is a bijection `Hᵖ(M; ℚ) → H_q(M; ℚ)`, computed from rational chains. -/
@@ -607,7 +590,11 @@ theorem bijective_singularCapLinearMap_fundamentalClass [CompactSpace M] {p q : 
     Function.Bijective ((TopCat.of M).singularCapLinearMap ℚ h
       ((TopCat.of M).singularHomologyIntToRat n (o.fundamentalClass hn))) := by
   have hbij := o.bijective_dualityMap hn (ModuleCat.of ℤ ℚ) h
-  refine ⟨o.injective_singularCapLinearMap_of_injective_dualityMap hn h hbij.1, fun y ↦ ?_⟩
+  refine ⟨fun α β hαβ ↦ ?_, fun y ↦ ?_⟩
+  · exact (ConcreteCategory.bijective_of_isIso ((TopCat.of M).singularCohomologyRatIso p).hom).1
+      ((ConcreteCategory.bijective_of_isIso
+        (TopCat.compactSupportCohomologyIsoOfCompactSpace p).inv).1
+          (hbij.1 (by simp only [← o.singularHomologyRatIso_hom_singularCapLinearMap hn h, hαβ])))
   obtain ⟨c, hc⟩ := hbij.2 (((TopCat.of M).singularHomologyRatIso q).hom y)
   obtain ⟨α, rfl⟩ := (ConcreteCategory.bijective_of_isIso
     (((TopCat.of M).singularCohomologyRatIso p).hom ≫
