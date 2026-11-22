@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.ComplexStructure.Basic
+public import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Metric.FromTauCeti
 public import TauCeti.Geometry.Manifold.Riemannian.AlmostComplex
 
 /-!
@@ -44,9 +45,23 @@ identifications `SymplecticGeometry.Bundle.ContMDiffTwoForm.tangentEquiv` of two
 * `TauCeti.SmoothAlmostComplexStructure.kahlerTwoForm_eq_compatibleFormEquiv`: Tau Ceti's Kähler
   form `TauCeti.SmoothAlmostComplexStructure.kahlerTwoForm` of the ambient `RiemannianBundle`
   metric is the form under the bijection of a compatible metric `g` that agrees with it.
-* `TauCeti.SmoothTwoForm.val_eq_alternatingFormEquiv_kahlerForm`: if the `RiemannianBundle`
-  metric is `⟪u, v⟫ = σ(u, J v)`, then at each point `σ` is the Kähler form
-  `TauCeti.AlmostComplexStructure.kahlerForm` of `J`, read as an alternating form.
+
+For any `RiemannianBundle` metric on `TM` with `⟪u, v⟫ = σ(u, J v)`, the hypothesis of Tau Ceti's
+`TauCeti.SmoothTwoForm.compatible_of_inner_eq`:
+
+* `TauCeti.SmoothAlmostComplexStructure.inner_apply_left_eq_neg`: `J` is skew-adjoint.
+* `TauCeti.SmoothTwoForm.val_eq_alternatingFormEquiv_kahlerForm`: at each point, `σ` is the
+  Kähler form of `J`.
+
+## Implementation notes
+
+The skew-adjointness uses `TauCeti.SmoothAlmostComplexStructure.inner_apply_left_of_inner_eq`
+(`⟪J u, w⟫ = σ(u, w)`), which rests on
+`TauCeti.SmoothAlmostComplexStructure.inner_apply_apply_of_inner_eq` (`J` is orthogonal). Tau
+Ceti's main branch has made both public, and this file imports them from its copy
+`SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Metric.FromTauCeti`. The Kähler
+form of `J` as a smooth form, `TauCeti.SmoothAlmostComplexStructure.kahlerTwoForm_eq_of_inner_eq`,
+is in Tau Ceti's main branch too, and is not copied since nothing here uses it.
 
 ## References
 
@@ -197,16 +212,31 @@ theorem kahlerTwoForm_eq_compatibleFormEquiv [RiemannianBundle (fun x : M ↦ Ta
 
 end SmoothAlmostComplexStructure
 
-/-! ### A metric with `⟪u, v⟫ = σ(u, J v)` -/
+/-! ### Consequences of `⟪u, v⟫ = σ(u, J v)` -/
+
+section InnerEq
 
 variable [RiemannianBundle (fun x : M ↦ TangentSpace I x)] {σ : SmoothTwoForm I M}
   {J : SmoothAlmostComplexStructure I M}
 
-/-- If the metric is `⟪v, w⟫ = σ(v, J w)`, then at each point `σ` is the Kähler form
-`σ(v, w) = ⟪J v, w⟫` of `J x`, the form of the Kähler two-vector
-`TauCeti.AlmostComplexStructure.kahlerForm`. -/
-theorem SmoothTwoForm.val_eq_alternatingFormEquiv_kahlerForm
-    (hg : ∀ x (v w : TangentSpace I x), ⟪v, w⟫ = σ.val x ![v, J x w]) (x : M) :
+namespace SmoothAlmostComplexStructure
+
+omit [FiniteDimensional ℝ E] in
+/-- If `⟪u, v⟫ = σ(u, J v)`, then `J` is skew-adjoint: `⟪J u, w⟫ = -⟪u, J w⟫`. -/
+theorem inner_apply_left_eq_neg (hJ : ∀ x u v, ⟪u, v⟫ = σ.eval₂ x u (J x v)) (x : M)
+    (u w : TangentSpace I x) : ⟪J x u, w⟫ = -⟪u, J x w⟫ := by
+  rw [inner_apply_left_of_inner_eq hJ, hJ, apply_apply, SmoothBundleForm.eval₂_neg_right,
+    _root_.neg_neg]
+
+end SmoothAlmostComplexStructure
+
+namespace SmoothTwoForm
+
+/-- If `⟪u, v⟫ = σ(u, J v)`, then at each point `x` the form `σ` is the Kähler form
+`(u, w) ↦ ⟪J u, w⟫` of the linear complex structure `J x`: the alternating form of its Kähler
+two-vector `TauCeti.AlmostComplexStructure.kahlerForm`. -/
+theorem val_eq_alternatingFormEquiv_kahlerForm (hJ : ∀ x u v, ⟪u, v⟫ = σ.eval₂ x u (J x v))
+    (x : M) :
     σ.val x =
       (letI : FiniteDimensional ℝ (TangentSpace I x) :=
         VectorBundle.finiteDimensional ℝ E (TangentSpace I) x
@@ -215,9 +245,13 @@ theorem SmoothTwoForm.val_eq_alternatingFormEquiv_kahlerForm
     VectorBundle.finiteDimensional ℝ E (TangentSpace I) x
   rw [AlmostComplexStructure.kahlerForm_eq_of_inner_eq
       (F := (alternatingFormEquiv _ 2).symm (σ.val x))
-      fun u v ↦ by rw [inner_alternatingFormEquiv_symm_ιMulti, hg,
+      fun u v ↦ by rw [inner_alternatingFormEquiv_symm_ιMulti, hJ, SmoothBundleForm.eval₂_apply,
         SmoothAlmostComplexStructure.almostComplexStructureAt_apply],
     LinearEquiv.apply_symm_apply]
+
+end SmoothTwoForm
+
+end InnerEq
 
 end TauCeti
 

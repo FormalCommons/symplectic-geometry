@@ -202,7 +202,7 @@ parametrix glued from charts.
   orientation (`harmonicForms_neg_orientation`), and the Kähler identities
   hold for both orientations. The results of the Kähler half that come
   before the milestone take any metric instance with
-  `hg : ∀ x (v w : TangentSpace I x), ⟪v, w⟫ = ω x ![v, J x w]`, the
+  `hg : ∀ x (v w : TangentSpace I x), ⟪v, w⟫ = ω.eval₂ x v (J x w)`, the
   convention of `DESIGN.md`, so that they do not depend on how the metric
   was built.
 - **Models.** Every statement is for a general boundaryless model `I`. The
@@ -353,6 +353,14 @@ a compact `K ⊆ ψ.target`, used to show that `L2Form.localize` is bounded:
   `PartialDiffeomorph.exists_le_riemannianJacobian_symm_le`: Tau Ceti's
   `riemannianJacobian` of `ψ.symm` is positive on `ψ.target`, and bounded
   above and away from zero on `K`.
+
+### `Analysis/InnerProductSpace/Comass.lean`
+
+Named like Tau Ceti's file; used by `L2.lean`.
+
+- `ContinuousAlternatingMap.alternatingFormInner_self_le`:
+  `alternatingFormInner E k φ φ ≤ (finrank ℝ E).choose k * ‖φ‖ ^ 2`, the
+  square of Tau Ceti's `sqrt_alternatingFormInner_self_le`.
 
 ### `Geometry/Manifold/DeRham/Hodge/L2.lean`
 
@@ -678,6 +686,10 @@ was found, so `ERRATA.md` needs no entry.
   `Geometry/Manifold/DifferentialForm/Pullback/LocalDiffeomorph.lean`
   (merged): `PartialDiffeomorph.mpullback_symm_mpullback_apply`, only in
   the proof of `mpullback_symm_extendByZeroAlong`.
+- *Smooth families*,
+  `Geometry/Manifold/DifferentialForm/Pullback/Smooth.lean` (merged):
+  `TauCeti.mpullback_apply_eq_compContinuousLinearMap`, which this part adds
+  there, only in the proofs of `L2.lean`.
 - *Nijenhuis tensor*, `Geometry/Symplectic/Manifold/AlmostComplex/Chart.lean`
   (#1295): `TauCeti.SmoothAlmostComplexStructure.mfderiv_symm_apply_chartPushforward_apply`,
   only in the proof of `mpullback_symm_realAlternatingDerivation`, and
