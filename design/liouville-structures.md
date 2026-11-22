@@ -185,6 +185,7 @@ Further choices:
 | `Geometry/Manifold/ModelTransport/Remodel.lean` | a manifold re-modelled along a diffeomorphism of model spaces (`SymplecticGeometry.Remodel`), and its diffeomorphism with the manifold; used in `End.lean` and `Gluing/CapDiscs/Basic.lean` | — |
 | `Geometry/Manifold/Boundary/Collar/Interior.lean` | interior collar points, and the collar coordinates on the part of the interior covered by the collar (`SmoothCollar.interiorModelCoord`); used in `End.lean` and `Gluing/CapDiscs/Basic.lean` | — |
 | `Geometry/Manifold/Boundary/Collar/End.lean` | attaching the end `[0, ∞) × ∂W` along a smooth collar | 8 |
+| `Geometry/Manifold/VectorField/Prod.lean` | the value `(v, 0)` of the product of a constant field and the zero field (`TauCeti.Manifold.prodVectorField_constVectorField_zero_apply`); used in `Completion.lean` and `Domain.lean`, beside Tau Ceti's file of that path | — |
 | `Geometry/Symplectic/Liouville/Completion.lean` | $\widehat\omega$, $\widehat Y$, $\widehat\lambda$; third milestone | 9, 10 |
 | `Geometry/Symplectic/Liouville/Domain.lean` | the completion of a Liouville domain is a Tau Ceti completion | 11 |
 
@@ -470,9 +471,11 @@ and a field `Y` with `hY : IsOutwardPointingField Y`:
   a given open `U ⊇ ∂W`.
 
 This is a smooth collar theorem for manifolds with an outward field; such a
-field always exists (Tau Ceti's `exists_isOutwardPointingField`), so with it
-this gives smooth collars of compact boundaries, which Tau Ceti lacks. That
-corollary is not needed here and is left to a later issue.
+field exists on a σ-compact manifold (Tau Ceti's `exists_isOutwardPointingField`),
+so with it this gives smooth collars of compact boundaries, which Tau Ceti lacks.
+The same file states that corollary, for `[SigmaCompactSpace W]`:
+`exists_range_subset` (a smooth collar with `range c` inside a given open
+`U ⊇ ∂W`) and the instance `instNonempty : Nonempty (SmoothCollar n ∞ W)`.
 
 Expected size: 400 lines.
 

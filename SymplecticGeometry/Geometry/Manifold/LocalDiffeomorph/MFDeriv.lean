@@ -33,6 +33,8 @@ linear equivalence.
 
 * `PartialDiffeomorph.fderiv_comp_symm_comp_mvfderiv`: `D(ψ ∘ φ⁻¹)(φ x) ∘ dφₓ = dψₓ`.
 * `PartialDiffeomorph.mvfderiv_trans_toDiffeomorph`: `d(L ∘ φ)ₓ = L ∘ dφₓ`.
+* `PartialDiffeomorph.mfderiv_symm_apply_mfderiv_apply_of_mem_target`: for `y` in the target of
+  `Φ`, `d(Φ⁻¹)_y ∘ dΦ_{Φ⁻¹ y}` is the identity.
 -/
 
 public section
@@ -115,6 +117,14 @@ theorem toContinuousLinearMap_mfderivSymmEquiv_symm (Φ : PartialDiffeomorph I J
     ((Φ.mfderivSymmEquiv hn hy).symm : TangentSpace I (Φ.symm y) →L[𝕜] TangentSpace J y) =
       mfderiv I J Φ (Φ.symm y) :=
   (rfl)
+
+/-- At a point `y` of the target of a partial diffeomorphism `Φ` of nonzero regularity, the
+differential of `Φ.symm` at `y` undoes the differential of `Φ` at `Φ.symm y`. -/
+theorem mfderiv_symm_apply_mfderiv_apply_of_mem_target (Φ : PartialDiffeomorph I J M N n)
+    (hn : n ≠ 0) {y : N} (hy : y ∈ Φ.target) (v : TangentSpace I (Φ.symm y)) :
+    mfderiv J I Φ.symm y (mfderiv I J Φ (Φ.symm y) v) = v := by
+  have h := (Φ.mfderivSymmEquiv hn hy).apply_symm_apply v
+  rwa [coe_mfderivSymmEquiv, coe_mfderivSymmEquiv_symm] at h
 
 end MFDerivSymmEquiv
 
