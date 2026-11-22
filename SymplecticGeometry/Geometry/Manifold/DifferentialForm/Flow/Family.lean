@@ -78,6 +78,8 @@ computation is the one in the private `moserRate_eq_zero` of Tau Ceti's
   derivative, `ι_t^* ∂_t ((id × f)^* α) = f^* ι_t^* ∂_t α`.
 * `TauCeti.SmoothForm.mpullback_prodMk_timeDeriv_lineMapFamily`: the velocity of the segment
   `α₀ + c(t) (α₁ - α₀)` at time `t` is `c'(t) (α₁ - α₀)`.
+* `TauCeti.SmoothForm.IsClosed.exists_timeDeriv_eq_mextDerivₗ`: the time derivative of a closed
+  form on `ℝ × M` is exact, `∂_t σ = d (ι_{∂_t} σ)`.
 
 ## References
 
@@ -297,6 +299,25 @@ theorem mpullback_prodMk_timeDeriv_lineMapFamily (α₀ α₁ : SmoothForm I M F
   have hct : HasDerivAt c (deriv c t) t :=
     ((hc.of_le (by simp) : ContDiff ℝ 1 c).differentiable one_ne_zero t).hasDerivAt
   exact (hct.smul_const _).const_add _
+
+/-! ### The time derivative of a closed form -/
+
+omit [I.Boundaryless] in
+/-- **The time derivative of a closed form is exact.** For a closed form `σ` on `ℝ × M`, Cartan's
+formula gives `∂_t σ = L_{∂_t} σ = d (ι_{∂_t} σ)`, so the time derivative of `σ` is the exterior
+derivative of a smooth form on `ℝ × M`. -/
+theorem IsClosed.exists_timeDeriv_eq_mextDerivₗ
+    {σ : SmoothForm (𝓘(ℝ, ℝ).prod I) (ℝ × M) F (k + 1)} (hσ : σ.IsClosed) :
+    ∃ α : SmoothForm (𝓘(ℝ, ℝ).prod I) (ℝ × M) F k,
+      σ.timeDeriv = mextDerivₗ (𝓘(ℝ, ℝ).prod I) k α := by
+  have hV : ContMDiff (𝓘(ℝ, ℝ).prod I) (𝓘(ℝ, ℝ).prod I).tangent ∞
+      (fun p : ℝ × M ↦
+        (⟨p, ((1 : ℝ), (0 : E))⟩ : TangentBundle (𝓘(ℝ, ℝ).prod I) (ℝ × M))) :=
+    contMDiff_const_prod_field 1 (X := 0)
+      ((contMDiff_zeroSection ℝ (TangentSpace I)).comp contMDiff_snd)
+  refine ⟨⟨_, (σ.isSmoothForm.interior hV).mem_smoothBundleForms⟩, Subtype.ext ?_⟩
+  rw [coe_timeDeriv, mextDerivₗ_apply]
+  exact mlieDerivForm_eq_mextDeriv_interior (hV.mdifferentiable (by simp)) hσ
 
 end TauCeti.SmoothForm
 
