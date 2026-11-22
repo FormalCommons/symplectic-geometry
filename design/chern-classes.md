@@ -523,7 +523,7 @@ For a complex vector space `V` with `finrank ℂ V = n + 1`:
   `TauCeti.ComplexProjectiveSpace.homeomorphProjectivization`).
 - `Projectivization.evenIntegralCohomologyEquiv`, the ring isomorphism
   `ℤ[X] ⧸ (X ^ (n + 1)) ≃+* EvenIntegralCohomology (ℙ ℂ V)` sending `X` to
-  `h`; odd degrees vanish by Tau Ceti's `isZero_singularCohomology_of_odd`.
+  `h`; the even degrees above `2n` vanish as above.
 - `Projectivization.hyperplaneClass_map`: the map of projective spaces
   induced by a linear injection `V →ₗ[ℂ] W` pulls `h` back to `h`; for a
   linear equivalence this carries the results above from one fibre of a

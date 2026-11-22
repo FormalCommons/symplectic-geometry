@@ -7,6 +7,7 @@ module
 
 public import SymplecticGeometry.AlgebraicTopology.Cohomology.ChangeOfValues
 public import SymplecticGeometry.AlgebraicTopology.Cohomology.LinearCongr
+public import TauCeti.AlgebraicTopology.Cohomology.DegreeZero
 public import TauCeti.AlgebraicTopology.Cohomology.IntegralCup
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.FundamentalClass
 public import TauCeti.Algebra.Category.ModuleCat.Monoidal.Unit
@@ -58,6 +59,10 @@ identification transports classes, pull-backs and cup products along that equali
   commutes with pull-backs and carries cup products to `TopCat.integralCup`.
 * `TopCat.bijective_integralCup_integralCohomologyLinearEquiv_iff`: cup product with a class is
   bijective in integral cohomology exactly when it is with coefficients `ℤ`.
+* `TopCat.integralCohomologyLinearEquiv_singularCohomologyZeroOne`: the equivalence sends the
+  unit class to the unit class; so `TopCat.bijective_zsmul_integralCohomologyOne`: on a
+  path-connected space, `m ↦ m • 1` is a bijection from `ℤ` onto `H⁰(X; ℤ)`, by Tau Ceti's
+  `TauCeti.singularCohomologyZeroEvalEquiv`.
 
 ## References
 
@@ -302,6 +307,30 @@ theorem bijective_integralCup_integralCohomologyLinearEquiv_iff (X : TopCat.{0})
     simp only [Function.comp_apply]
   rw [hf, Function.Bijective.of_comp_iff' (LinearEquiv.bijective _),
     Function.Bijective.of_comp_iff _ (LinearEquiv.bijective _)]
+
+/-- `TopCat.integralCohomologyLinearEquiv` sends the unit class `TopCat.singularCohomologyZeroOne`
+of cohomology with coefficients `ℤ` to the unit class `TopCat.integralCohomologyOne` of integral
+cohomology. -/
+theorem integralCohomologyLinearEquiv_singularCohomologyZeroOne (X : TopCat.{0}) :
+    X.integralCohomologyLinearEquiv 0 X.singularCohomologyZeroOne = X.integralCohomologyOne := by
+  -- Both are units for the cup product, which the equivalence carries to `TopCat.integralCup`.
+  have h := X.integralCohomologyLinearEquiv_singularCup 0 0 0 rfl X.singularCohomologyZeroOne
+    ((X.integralCohomologyLinearEquiv 0).symm X.integralCohomologyOne)
+  rw [singularCup_singularCohomologyZeroOne_left, LinearEquiv.apply_symm_apply,
+    integralCup_integralCohomologyOne_right] at h
+  exact h.symm
+
+/-- **The degree-zero integral cohomology of a path-connected space** is free on the unit class:
+`m ↦ m • 1` is a bijection from `ℤ` onto `H⁰(X; ℤ)`. -/
+theorem bijective_zsmul_integralCohomologyOne (X : TopCat.{0}) [PathConnectedSpace X] :
+    Function.Bijective fun m : ℤ ↦ m • X.integralCohomologyOne := by
+  convert ((singularCohomologyZeroEvalEquiv (k := ℤ) (Classical.arbitrary X)).symm.trans
+    (X.integralCohomologyLinearEquiv 0)).bijective using 1
+  funext m
+  rw [LinearEquiv.trans_apply, singularCohomologyZeroEvalEquiv_symm_apply, LinearEquiv.map_smul,
+    integralCohomologyLinearEquiv_singularCohomologyZeroOne]
+  -- The two sides use the `ℤ`-action of the module structure and that of the group structure.
+  exact (int_smul_eq_zsmul _ _ _).symm
 
 end IntegerCoefficients
 

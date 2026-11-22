@@ -180,21 +180,26 @@ diffeomorphism. No Mathlib or Tau Ceti notion is redefined.
    instance. `DESIGN.md`'s rule of local instances concerns the metric $g_J$
    of a pair on an arbitrary manifold, and is unaffected; §28 of `DESIGN.md`
    records this exception.
-7. **The connection.** In the global chart the Levi-Civita connection is the
-   flat derivative plus the symmetric Christoffel map
-   $\Gamma_C(a,b)=aKb+bKa$ with $K=C(1-C^2)^{-1}$, which lies in the model
-   because $K$, like $C$, anticommutes with $J_0$ and is self-adjoint for
-   $g_{J_0}$. The
-   connection is built as Mathlib's `CovariantDerivative.addOneForm` of the
-   flat connection of the chart by $\Gamma$. It is torsion free because
-   $\Gamma$ is symmetric, and metric because the extra term
-   $-\tfrac12J(\hat X\hat Y+\hat Y\hat X)$ of its ambient reading commutes
-   with $J$, so it is orthogonal to $T_J$ for the trace form. Mathlib's
-   `IsLeviCivitaConnection.uniqueness` identifies it with
-   `leviCivitaConnection 𝓘 (𝒥 ω)`. Its ambient reading is the book's formula
+7. **The connection.** Mathlib's `leviCivitaConnection 𝓘 (𝒥 ω)` is read
+   through the embedding by the Gauss formula. The inclusion is isometric
+   for the trace form $B(P,Q)=\tfrac12\operatorname{tr}(PQ)$ of
+   `V →L[ℝ] V`, and the Koszul formula gives
+   $\langle\nabla_XY,w\rangle=B(D_X\hat Y,\hat w)$. Tau Ceti's Gauss formula
+   asks for an inner product on the ambient space, while $B$ is positive
+   definite on the self-adjoint maps but not on all of `V →L[ℝ] V`, so its proof is redone for a symmetric bilinear
+   form in `Geometry/Manifold/VectorBundle/CovariantDerivative/LeviCivita/Bilinear.lean`.
+   Differentiating $J\hat Y+\hat YJ=0$ and the $\omega$-skewness of $\hat Y$
+   shows that $D_X\hat Y-\tfrac12J(\hat Y\hat X+\hat X\hat Y)$ lies in
+   $T_J$; the extra term commutes with $J$, so it is orthogonal to $T_J$ for
+   $B$; and the metric is nondegenerate. This gives the book's formula
    $\widehat{\nabla_XY}=D_X\hat Y-\tfrac12J(\hat Y\hat X+\hat X\hat Y)$, and
    along a curve
    $\widehat{\nabla_tW}=\partial_t\hat W-\tfrac12J(\hat W\dot J+\dot J\hat W)$.
+   The route first planned, the flat connection of the chart plus the
+   Christoffel map $\Gamma_C(a,b)=aKb+bKa$, $K=C(1-C^2)^{-1}$, by
+   `CovariantDerivative.addOneForm` and `IsLeviCivitaConnection.uniqueness`,
+   needs the derivative of the metric in the chart, and no later result uses
+   $\Gamma$; building issue 8 took the Gauss formula instead.
    The curvature is computed from the ambient reading, not from $\Gamma$: in
    $R(X,Y)Z$ every term with a derivative of a field cancels, by symmetry of
    the second derivative of the chart's inverse (which gives
@@ -516,20 +521,27 @@ notation of the file):
   with the instance `isPretransitive_isom_compatibleSpace :
   MulAction.IsPretransitive (Isom 𝓘 (𝒥 ω)) (𝒥 ω)`.
 
+### `Geometry/Manifold/VectorBundle/CovariantDerivative/LeviCivita/Bilinear.lean`
+
+A general file that serves `LeviCivita.lean`; imports Mathlib and Tau Ceti.
+In `CovariantDerivative`: `IsLeviCivitaConnection.inner_apply_eq_bilin_mvfderiv`
+and `IsLeviCivitaConnection.inner_alongCurve_eq_bilin`, Tau Ceti's Gauss
+formulas `inner_apply_eq_inner_mvfderiv` and `inner_alongCurve_eq_inner` for a
+`C²` map into a normed space whose differential is isometric for a symmetric
+continuous bilinear form `B`, which need not be positive.
+
 ### `Geometry/Symplectic/CompatibleSpace/LeviCivita.lean`
 
-- `ω.compatibleChristoffel`, the map $\Gamma$ of decision 7 on the model, with
-  its smoothness on the range of the chart, its symmetry, and
-  `compatibleChristoffel_mem`.
 - `leviCivitaConnection_compatibleSpace_apply`: for a vector field `Y`
   differentiable at `J`, the ambient reading of
   `leviCivitaConnection 𝓘 (𝒥 ω) Y J a` is
-  `mfderiv (fun J ↦ d J (Y J)) J a - 2⁻¹ • (ω.compatibleCLM J * (d J (Y J) * d J a + d J a * d J (Y J)))`.
-  It is proved for the explicit connection (flat plus $\Gamma$, by
-  `CovariantDerivative.addOneForm`), which is torsion free and metric, and
-  transferred by `IsLeviCivitaConnection.uniqueness`.
+  `mvfderiv 𝓘 (fun J' ↦ (d J' (Y J') : V →L[ℝ] V)) J a - (2⁻¹ : ℝ) • (ω.compatibleCLM J ∘L (d J (Y J) ∘L d J a + d J a ∘L d J (Y J)))`,
+  by the Gauss formula of `Bilinear.lean` (decision 7). The derivative of the
+  ambient reading is `mvfderiv`, with values in `V →L[ℝ] V`, and the
+  products are `∘L`, since `*` does not elaborate on tangent vectors.
 - `alongCurve_leviCivitaConnection_compatibleSpace`: the same formula for a
-  field `W` along a curve `γ : ℝ → 𝒥 ω`, with Tau Ceti's
+  field `W` along a curve `γ : ℝ → 𝒥 ω`, differentiable at `t` as a curve in
+  the tangent bundle, with Tau Ceti's
   `CovariantDerivative.alongCurve`, $\partial_t$ being `deriv` of the
   ambient reading of `W` and $\dot J$ the derivative of `compatibleCLM ∘ γ`.
 
@@ -615,9 +627,9 @@ theorem compatibleSpace_properties (ω : SymplecticForm V) {n : ℕ}
           mfderiv 𝓘 𝓘 (ω.compatibleTransport hΨ) J b⟫_ℝ = ⟪a, b⟫_ℝ) ∧
     (∀ (γ : ℝ → 𝒥 ω) (W : Π t, TangentSpace 𝓘 (γ t)) t, … →
       d (γ t) (∇.alongCurve γ W t) =
-        deriv (fun s ↦ d (γ s) (W s)) t - 2⁻¹ • (ω.compatibleCLM (γ t) *
-          (d (γ t) (W t) * deriv (ω.compatibleCLM ∘ γ) t +
-            deriv (ω.compatibleCLM ∘ γ) t * d (γ t) (W t)))) ∧
+        deriv (fun s ↦ (d (γ s) (W s) : V →L[ℝ] V)) t - (2⁻¹ : ℝ) • (ω.compatibleCLM (γ t) ∘L
+          (d (γ t) (W t) ∘L deriv (ω.compatibleCLM ∘ γ) t +
+            deriv (ω.compatibleCLM ∘ γ) t ∘L d (γ t) (W t)))) ∧
     (∀ J a, IsGeodesicCurveOnFrom 𝓘 (ω.compatibleGeodesic J a) univ J a ∧
       ∀ t, ω.compatibleCLM (ω.compatibleGeodesic J a t) =
         ω.compatibleCLM J * NormedSpace.exp ℝ (-(t • (ω.compatibleCLM J * d J a)))) ∧
@@ -637,9 +649,9 @@ theorem compatibleSpace_properties (ω : SymplecticForm V) {n : ℕ}
         Matrix.trace ((Z.im⁻¹ * Ẑ.re) ^ 2 + (Z.im⁻¹ * Ẑ.im) ^ 2)
 ```
 
-The `…` in the connection conjunct is the differentiability of `γ` and of the
-ambient reading of `W` at `t`, which the building issue states as
-`alongCurve` needs. The squared norm in the last line is that of the global
+The `…` in the connection conjunct is the differentiability of `W` at `t` as
+a curve in the tangent bundle, the hypothesis of
+`alongCurve_leviCivitaConnection_compatibleSpace`. The squared norm in the last line is that of the global
 instance of `Kahler.lean`. The docstring ends with "Milestone: *Kähler
 structure on the space of compatible linear complex structures*."
 
@@ -681,7 +693,9 @@ is the conjunct on `compatibleTransport`. No entry in `ERRATA.md` is needed.
   `isSymplectomorphism_iff_transport_eq`, `SymplecticForm.exists_compatible`,
   `SymplecticForm.even_finrank`, `SmoothForm.mpullback` with its naturality
   lemmas, `SmoothForm.bilinFormAt`, `Manifold.IsSmoothEmbedding.contMDiff_iff_comp`,
-  `EMetricSpace.ofRiemannianMetric`, `Matrix.linftyOpTopologicalSpace`.
+  `EMetricSpace.ofRiemannianMetric`, `Matrix.linftyOpTopologicalSpace`, and the
+  Gauss formulas `IsLeviCivitaConnection.inner_apply_eq_inner_mvfderiv` and
+  `inner_alongCurve_eq_inner`, whose proofs `Bilinear.lean` adapts.
   Models that the building issues credit:
   `Geometry/Manifold/Instances/PositiveDefiniteMatrix.lean` (a matrix
   manifold with a chosen matrix norm), `Riemannian/Nil/Basic.lean` and
@@ -689,8 +703,8 @@ is the conjunct on `compatibleTransport`. No entry in `ERRATA.md` is needed.
   Levi-Civita connection in one chart).
 - Mathlib: `Topology.IsOpenEmbedding.singletonChartedSpace`,
   `Topology.IsOpenEmbedding.isManifold_singleton`,
-  `CovariantDerivative.addOneForm`, `IsLeviCivitaConnection.uniqueness`,
-  `leviCivitaConnection`, `NormedSpace.exp`, `LinearMap.trace`,
+  `leviCivitaConnection`, `isLeviCivitaConnection_leviCivitaConnection`,
+  `NormedSpace.exp`, `LinearMap.trace`,
   `Matrix.Norms.Operator`.
 
 ## Building issues
@@ -722,7 +736,9 @@ its blockers are merged.
    `Geometry/Symplectic/CompatibleSpace/Kahler.lean`. About 450 lines.
    Blocked by 6 and #860.
 8. **The Levi-Civita connection.**
-   `Geometry/Symplectic/CompatibleSpace/LeviCivita.lean`. About 450 lines.
+   `Geometry/Symplectic/CompatibleSpace/LeviCivita.lean`, with
+   `Geometry/Manifold/VectorBundle/CovariantDerivative/LeviCivita/Bilinear.lean`.
+   About 450 lines.
    Blocked by 7.
 9. **The curvature.** `Geometry/Symplectic/CompatibleSpace/Curvature.lean`.
    About 350 lines. Blocked by 8.

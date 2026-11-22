@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.Geometry.Symplectic.CompatibleSpace.ComplexStructure
 public import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Metric
 public import TauCeti.Geometry.Manifold.DifferentialForm.Closed
+public import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
 public import TauCeti.Geometry.Manifold.Riemannian.Isometry.Action
 public import TauCeti.Geometry.Symplectic.Manifold.Kahler
 public import TauCeti.Topology.Algebra.Module.Trace
@@ -45,6 +46,8 @@ does for its model geometries (`TauCeti.Nil`).
 * `ContinuousLinearMap.traceTwoForm`: the two-form `¼ (tr (X A Y) - tr (Y A X))` of
   `V →L[ℝ] V`, with `traceTwoForm_apply`, its exterior derivative
   `mextDeriv_traceTwoForm_apply`, and its invariance under conjugation `traceTwoForm_conj`.
+* `ContinuousLinearMap.traceForm`: the symmetric bilinear form `½ tr (P Q)` of `V →L[ℝ] V`, with
+  `traceForm_apply` and `traceForm_comm`.
 * `TauCeti.SymplecticForm.compatibleSpaceForm`: the form `Ω` of `𝒥 ω`, with
   `compatibleSpaceForm_apply`: `Ω_J(a, b) = ½ tr(â J b̂)`. Against the complex structure `j`,
   `Ω_J(a, j b) = ½ tr(â b̂)` (`compatibleSpaceForm_apply_compatibleSpaceComplexStructure`).
@@ -54,7 +57,8 @@ does for its model geometries (`TauCeti.Nil`).
   `compatibleSpaceComplexStructure`.
 * `TauCeti.SymplecticForm.compatibleSpaceMetric`: the metric of the pair, the
   `RiemannianBundle` instance of `𝒥 ω`, with `inner_compatibleSpace_eq_eval₂`:
-  `⟪a, b⟫ = Ω(a, j b)`, and `inner_compatibleSpace`: `⟪a, b⟫ = ½ tr(â b̂)`.
+  `⟪a, b⟫ = Ω(a, j b)`, and `inner_compatibleSpace`: `⟪a, b⟫ = ½ tr(â b̂)`, the pull-back of the
+  trace form `ContinuousLinearMap.traceForm` (`inner_compatibleSpace_eq_traceForm`).
 * `TauCeti.SymplecticForm.mpullback_compatibleTransport_compatibleSpaceForm` and
   `TauCeti.SymplecticForm.compatibleTransportIsometry`: the transport by a linear
   symplectomorphism preserves `Ω` and is a Riemannian isometry; the isometry group acts
@@ -143,6 +147,32 @@ theorem traceTwoForm_conj (Ψ : V ≃L[ℝ] V) (A X Y : V →L[ℝ] V) :
       simp
     rw [h, ← TauCeti.traceCLM_apply, ← TauCeti.traceCLM_apply, Ψ.traceCLM_comp_comp_symm]
   rw [traceTwoForm_apply, traceTwoForm_apply, hm, hm, hc, hc]
+
+/-! ### The trace form of the continuous endomorphisms -/
+
+variable (V) in
+/-- The trace form `(P, Q) ↦ ½ tr (P Q)` of `V →L[ℝ] V`, a symmetric continuous bilinear form.
+It is positive definite on the maps that are self-adjoint for an inner product on `V`, but not on
+all of `V →L[ℝ] V`. The metric of the manifold of compatible complex structures is its pull-back
+(`TauCeti.SymplecticForm.inner_compatibleSpace_eq_traceForm`). -/
+noncomputable def traceForm : (V →L[ℝ] V) →L[ℝ] (V →L[ℝ] V) →L[ℝ] ℝ :=
+  (2⁻¹ : ℝ) • (ContinuousLinearMap.compL ℝ (V →L[ℝ] V) (V →L[ℝ] V) ℝ (TauCeti.traceCLM ℝ V) ∘L
+    ContinuousLinearMap.mul ℝ (V →L[ℝ] V))
+
+theorem traceForm_def :
+    traceForm V = (2⁻¹ : ℝ) • (ContinuousLinearMap.compL ℝ (V →L[ℝ] V) (V →L[ℝ] V) ℝ
+      (TauCeti.traceCLM ℝ V) ∘L ContinuousLinearMap.mul ℝ (V →L[ℝ] V)) :=
+  (rfl)
+
+/-- The trace form at `(P, Q)` is `½ tr (P Q)`. -/
+theorem traceForm_apply (P Q : V →L[ℝ] V) :
+    traceForm V P Q = 2⁻¹ * LinearMap.trace ℝ V ↑(P ∘L Q) := by
+  simp [traceForm_def, ContinuousLinearMap.mul_def]
+
+/-- The trace form is symmetric. -/
+theorem traceForm_comm (P Q : V →L[ℝ] V) : traceForm V P Q = traceForm V Q P := by
+  simp only [traceForm_def, smul_apply, comp_apply, compL_apply, mul_apply', mul_def]
+  rw [traceCLM_comp_comm P Q]
 
 end ContinuousLinearMap
 
@@ -344,6 +374,16 @@ theorem inner_compatibleSpace (J : 𝒥) (a b : TangentSpace 𝓘(ℝ, ω.compat
         mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM J b) := by
   rw [inner_compatibleSpace_eq_eval₂, ← SmoothForm.bilinFormAt_apply,
     compatibleSpaceForm_apply_compatibleSpaceComplexStructure]
+
+/-- The metric of the manifold of compatible complex structures is the pull-back of the trace
+form of `V →L[ℝ] V` by the inclusion: `⟪a, b⟫ = B(â, b̂)` with `B(P, Q) = ½ tr(P Q)`. -/
+theorem inner_compatibleSpace_eq_traceForm (J : 𝒥)
+    (a b : TangentSpace 𝓘(ℝ, ω.compatibleModel) J) :
+    ⟪a, b⟫ = ContinuousLinearMap.traceForm V
+      (mvfderiv 𝓘(ℝ, ω.compatibleModel) ω.compatibleCLM J a)
+      (mvfderiv 𝓘(ℝ, ω.compatibleModel) ω.compatibleCLM J b) := by
+  rw [ContinuousLinearMap.traceForm_apply, mvfderiv_apply_eq_mfderiv_apply,
+    mvfderiv_apply_eq_mfderiv_apply, inner_compatibleSpace]
 
 /-! ### Invariance under linear symplectomorphisms -/
 
