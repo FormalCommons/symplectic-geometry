@@ -122,9 +122,10 @@ this file.
    on `closedBall c r` and with `tsupport χ ⊆ ball c (r + 1)`, through
    `CkHolderSpace.cutoff` on `ball c (r + 1)`, and then multiplied by `μ` with
    `compCkHolder₂` of complex multiplication. Since `μ` vanishes off
-   `closedBall c r`, where `χ = 1`, the product is $\mu\,Bh$ everywhere. The
-   operator is bilinear in `(μ, h)`, so its norm bound in `μ` is the norm of
-   one bilinear map.
+   `closedBall c r`, where `χ = 1`, the product is $\mu\,Bh$ everywhere. Tau
+   Ceti's main branch builds this operator, privately, in
+   `Beltrami/HigherHolder.lean`, which the library copies (*Files taken from
+   Tau Ceti*).
 4. **Statements of finite order are for `J` of class `C^m` at a point, tame
    there**, as in `exists_isothermal_chart_of_contDiffAt`, with `1 ≤ m`; the
    chart is of class `C^m`. This is the natural generality of the route
@@ -155,46 +156,40 @@ this file.
 
 | File | Contents | Issue |
 |---|---|---|
-| `Analysis/Complex/Beltrami/CkHolder.lean` | the Beltrami operator on supported $C^{k,\alpha}$ data, the fixed point, charts of class `C^{k+1}` for small coefficients | 1 |
+| `Analysis/Calculus/ContinuousLinearMapInverse.lean` | taken from Tau Ceti: invertible strict derivatives of `y ↦ y + f y` | 1 |
+| `Analysis/Calculus/IteratedFDeriv/Basic.lean` | taken from Tau Ceti: iterated derivatives of a continuous linear map plus a function | 1 |
+| `Analysis/Complex/Beltrami/CkHolder.lean` | charts of class `C^{k+1}` for small coefficients | 1 |
+| `Analysis/Complex/Beltrami/HigherHolder.lean` | taken from Tau Ceti: the Beltrami operator on supported $C^{k,\alpha}$ data and the fixed point | 1 |
 | `Analysis/Complex/Beltrami/Regularity.lean` | planar isothermal charts of class `C^m`, smooth planar isothermal charts | 2 |
+| `Analysis/Complex/Pompeiu/Holder/Higher.lean` | taken from Tau Ceti: smoothness of the Cauchy transform of supported $C^{k,\alpha}$ data | 1 |
+| `Analysis/Complex/Wirtinger/Basic.lean` | taken from Tau Ceti: Wirtinger derivatives of `z + f z` | 1 |
+| `Analysis/Holder/Iterated.lean` | taken from Tau Ceti: Hölder continuity of $C^{k,\alpha}$ maps, the supported subspace is closed | 1 |
+| `Analysis/Holder/Normed.lean` | taken from Tau Ceti: Hölder bounds on a subset | 1 |
+| `Analysis/Normed/Operator/Basic.lean` | taken from Tau Ceti: the Neumann series for `v + A x = x` | 1 |
 | `Geometry/Manifold/Complex/Isothermal.lean` | smooth isothermal charts on surfaces, `HasIsothermalCharts` (issue 3); `IsIntegrable` in dimension two, the rotation structure, isothermal coordinates, the milestone (issue 4) | 3, 4 |
 
-The two planar files avoid the names of Tau Ceti's `Beltrami/` files
+`CkHolder.lean` and `Regularity.lean` avoid the names of Tau Ceti's `Beltrami/` files
 (`Chart`, `Holder`, `Isothermal`, `Linear`, `Transition`). The surface file
 is named like Tau Ceti's, as `DESIGN.md` says.
 
 ### `Analysis/Complex/Beltrami/CkHolder.lean`
 
-Imports Tau Ceti's `Pompeiu/Holder/Beurling.lean`, `Holder/Product.lean`,
-`Holder/Localization.lean`, `Beltrami/Chart.lean` and `Beltrami/Linear.lean`.
+Imports `Analysis/Complex/Beltrami/HigherHolder.lean` (below), Tau Ceti's
+`Beltrami/Chart.lean` and `Beltrami/Linear.lean`.
 Write `S k α c r` for
 `supportedCkHolderSubmodule (E := ℂ) (F := ℂ) k α (closedBall c r)`.
 
-- `beltramiCkCLM (k : ℕ) (hα : 0 < α) (hα1 : α < 1) (hr : 0 ≤ r) :
-  S k α c r →L[ℝ] S k α c r →L[ℝ] S k α c r`, the bilinear map
-  $(\mu,h)\mapsto\mu\,\partial(Th)$ of Decision 3, built with
-  `LinearMap.mkContinuous₂` from the bounds of `beurlingCkCLM` (with
-  `R = r + 1`), `norm_cutoff_le` and `norm_compCkHolder₂_le`.
-- `beltramiCkCLM_apply (μ h : S k α c r) (z : ℂ) :
-  (beltramiCkCLM k hα hα1 hr μ h : CkHolderSpace k α ℂ ℂ) z =
-  μ z * wirtingerDeriv (cauchyTransform (h : CkHolderSpace k α ℂ ℂ)) z 1`,
-  for every `z`.
-- `exists_contDiff_conjWirtingerDeriv_eq_mul_wirtingerDeriv (k : ℕ)
-  (hα : 0 < α) (hα1 : α < 1) (c : ℂ) (hr : 0 ≤ r) :
-  ∃ δ > 0, ∃ C : ℝ, ∀ μ ∈ S k α c r, ‖μ‖ < δ → ∃ h ∈ S k α c r,
-  ‖h‖ ≤ 2 * ‖μ‖ ∧ ContDiff ℝ (k + 1) (cauchySolution h) ∧
-  (∀ z, conjWirtingerDeriv (cauchySolution h) z 1 =
-    μ z * wirtingerDeriv (cauchySolution h) z 1) ∧
-  ∀ z ∈ closedBall c r,
-    ‖fderiv ℝ (cauchySolution h) z - ContinuousLinearMap.id ℝ ℂ‖ ≤ C * ‖μ‖`
-  (sets and functions coerced as in Tau Ceti). The fixed point of
-  `k ↦ μ + beltramiCkCLM μ k` by `ContractingWith.fixedPoint`, as in Tau
-  Ceti's `exists_add_beltramiOperator_eq`, which the docstring credits.
-  Smoothness from `contDiff_cauchyTransform_of_holderWith_iteratedFDeriv`;
-  $\bar\partial T h=h$ from `HasCompactSupport.conjWirtingerDeriv_cauchyTransform`
-  for `k ≥ 1` and through the Hölder version for `k = 0`; the bound on the
-  derivative from the field of order one of `cauchyTransformCkCLM`. The
-  equation holds on all of `ℂ`, since `h` and `μ` vanish off the disc.
+The operator of Decision 3 and the fixed point are not in this file: Tau
+Ceti's main branch has them, after the version this library pins, in
+`TauCeti/Analysis/Complex/Beltrami/HigherHolder.lean` (the operator private,
+the fixed point as
+`TauCeti.exists_ckHolder_conjWirtingerDeriv_eq_mul_wirtingerDeriv`, which
+also gives an invertible strict derivative at every point of the disc). The
+library copies that file, and the declarations of other Tau Ceti files that
+it uses, under *Files taken from Tau Ceti* below. The names
+`beltramiCkCLM`, `beltramiCkCLM_apply` and
+`exists_contDiff_conjWirtingerDeriv_eq_mul_wirtingerDeriv` are not used.
+
 - `exists_isComplexLinear_contDiff_chart (k : ℕ) (hα : 0 < α) (hα1 : α < 1)
   (c : ℂ) (hr : 0 < r) : ∃ δ > 0, ∀ (J : ℂ → AlmostComplexStructure ℂ)
   (hJ : ∀ z ∈ closedBall c r, stdComplexSymplecticForm.Tames (J z)),
@@ -209,7 +204,37 @@ Write `S k α c r` for
   pointwise equation is `isComplexLinear_iff_conjWirtingerDeriv_eq`. No
   normalization `normalizedChart` is needed for this conclusion.
 
-About 350 lines.
+About 100 lines.
+
+### Files taken from Tau Ceti
+
+These files copy declarations of Tau Ceti's main branch, from its commit
+`0fef288e2f0539135f050168f1153e762b0189a8`, at the paths of their Tau Ceti
+files with `SymplecticGeometry/` in place of `TauCeti/`, under Tau Ceti's
+names and with Tau Ceti's headers, as `AGENTS.md` asks. A move of Tau Ceti
+past that commit deletes them.
+
+- `Analysis/Complex/Beltrami/HigherHolder.lean`: the whole of Tau Ceti's
+  file, `exists_ckHolder_conjWirtingerDeriv_eq_mul_wirtingerDeriv` and its
+  private steps.
+- `Analysis/Calculus/ContinuousLinearMapInverse.lean`:
+  `HasStrictFDerivAt.exists_continuousLinearEquiv_id_add`.
+- `Analysis/Calculus/IteratedFDeriv/Basic.lean`:
+  `ContinuousLinearMap.iteratedFDeriv_succ_eq`,
+  `ContinuousLinearMap.iteratedFDeriv_succ_add_apply`,
+  `ContinuousLinearMap.holderOnWith_iteratedFDeriv_succ_add_left_iff`.
+- `Analysis/Complex/Pompeiu/Holder/Higher.lean`:
+  `contDiff_cauchyTransform_of_mem_supportedCkHolderSubmodule`.
+- `Analysis/Complex/Wirtinger/Basic.lean`:
+  `DifferentiableAt.conjWirtingerDeriv_add_left`,
+  `conjWirtingerDeriv_id_add`, `wirtingerDeriv_id_add`.
+- `Analysis/Holder/Iterated.lean`: `CkHolderSpace.holderWith`,
+  `hasCompactSupport_of_mem_supportedCkHolderSubmodule`,
+  `isClosed_supportedCkHolderSubmodule` and the instance
+  `instCompleteSpaceSupportedCkHolderSubmodule`.
+- `Analysis/Holder/Normed.lean`: `HolderSpace.holderOnWith_of_apply_eq`.
+- `Analysis/Normed/Operator/Basic.lean`:
+  `ContinuousLinearMap.exists_add_apply_eq_of_norm_lt_one`.
 
 ### `Analysis/Complex/Beltrami/Regularity.lean`
 
@@ -329,11 +354,12 @@ About 300 lines.
 
 ## What the part uses
 
-- Tau Ceti, as listed under *What there is*. The contraction of
-  `CkHolder.lean` adapts the proof of `TauCeti.exists_conjWirtingerDeriv_eq_mul_wirtingerDeriv`
-  (`Beltrami/Holder.lean`), and `Regularity.lean` that of
+- Tau Ceti, as listed under *What there is*, and the declarations of its main
+  branch copied under *Files taken from Tau Ceti*. The chart of
+  `CkHolder.lean` follows `TauCeti.Beltrami.exists_isComplexLinear_chart`
+  (`Beltrami/Chart.lean`), and `Regularity.lean` the proof of
   `TauCeti.Beltrami.exists_isothermal_chart`; their docstrings credit them.
-- Mathlib: `ContractingWith.fixedPoint`, `HasStrictFDerivAt.toOpenPartialHomeomorph`,
+- Mathlib: `HasStrictFDerivAt.toOpenPartialHomeomorph`,
   `OpenPartialHomeomorph.contDiffAt_symm`, `ContDiffBump`,
   `ContinuousLinearEquiv.ofFinrankEq`, `PartialDiffeomorph`,
   `Orientation.rightAngleRotation`, `Orientation.rightAngleRotation_map_complex`,
