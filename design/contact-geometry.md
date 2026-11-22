@@ -388,12 +388,14 @@ theorem mpullback_timeDependentFlowOf_apply_eq_exp_integral_smul_of_mlieDerivFor
       Real.exp (∫ u in s..t, g (u, timeDependentFlowOf X s u x)) • β.val x
 ```
 
-The file also has, in `TauCeti.SmoothForm`, the slices of a pullback along
-`Prod.map id f`: `mpullback_prodMk_mpullback_prodMap`
-($\iota_t^*(\mathrm{id}\times f)^*\alpha=f^*\iota_t^*\alpha$) and
-`mpullback_prodMk_timeDeriv_mpullback_prodMap` (the same for
-`timeDeriv`, by uniqueness of the derivative of $u\mapsto f^*\alpha_u$).
-`Gray.lean` uses them. The velocity of a reparametrized segment,
+The file also has, in `TauCeti.SmoothForm`,
+`mpullback_prodMk_timeDeriv_mpullback_prodMap`: the slices of
+`timeDeriv` of a pullback along `Prod.map id f` are the pullbacks along
+`f` of the slices, by uniqueness of the derivative of $u\mapsto f^*\alpha_u$.
+The slices of the pullback itself, `mpullback_prodMk_mpullback_prodMap`
+($\iota_t^*(\mathrm{id}\times f)^*\alpha=f^*\iota_t^*\alpha$), are in
+`Geometry/Manifold/DifferentialForm/Pullback/Family.lean` of *Moser
+isotopy*, which this file imports. `Gray.lean` uses them. The velocity of a reparametrized segment,
 `mpullback_prodMk_timeDeriv_lineMapFamily` (the slice at time `t` of the
 time derivative of `SmoothForm.lineMapFamily α₀ α₁ hc` is
 `deriv c t • (α₁ - α₀)`), follows them; *Moser isotopy* uses it in
@@ -795,7 +797,10 @@ Expected size: 650 lines, in two issues (L1 and L2).
   `LegendrianNeighborhood.lean` and `Family.lean`.
 - *Moser isotopy*: `PartialDiffeomorph.mvfderiv_trans_toDiffeomorph` of
   `Geometry/Manifold/LocalDiffeomorph/MFDeriv.lean`, already merged (for
-  `Darboux/Strict.lean`), and
+  `Darboux/Strict.lean`),
+  `SmoothForm.mpullback_prodMk_mpullback_prodMap` and its variants of
+  `Geometry/Manifold/DifferentialForm/Pullback/Family.lean`, already merged
+  (for `Flow/Family.lean`, `Family.lean` and `Gray.lean`), and
   `PartialDiffeomorph.exists_diffeomorph_opens_mpullback_eq` of
   `Geometry/Manifold/DifferentialForm/Opens.lean` (for
   `LegendrianNeighborhood.lean`).
