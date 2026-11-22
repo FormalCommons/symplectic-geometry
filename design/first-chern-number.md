@@ -191,7 +191,7 @@ core of prerequisite 1:
   `FiniteRankBundleCore.rank_det` (`D.rank` is `1` only through that
   lemma, not by definition); and `firstChernClass_def` by `(rfl)`.
 - `firstChernClass_pullback (f : C(B', B))`: the class of `f *ᵖ E` is the
-  pull-back of the class of `E`, from the pull-back isomorphism of
+  pull-back of the class of `E`, from the pull-back equality of
   prerequisite 1 and
   `TauCeti.complexEulerClass_eq_singularCohomologyMap_of_fiberwise`.
 - `firstChernClass_congr`: a complex-linear fibrewise isomorphism, continuous
@@ -630,9 +630,11 @@ issues, in an order where each issue's blockers come before it.
      (ofBundleOfFinrankEq 𝕜 G E rfl).det`, over any `𝕜`, with `detCore_def`,
      `SymplecticGeometry.Bundle.detCoreMap` (the isomorphism of determinant
      cores induced by a fibrewise isomorphism of bundles),
-     `SymplecticGeometry.Bundle.detCorePullbackIso` (compatibility with
-     pull-back, through `CoordinateFunctor.functor_comp_pullbackFunctor`),
-     `detCore_trivial` (the trivial bundle has a trivial determinant), and
+     `SymplecticGeometry.Bundle.detCore_pullback` (compatibility with
+     pull-back, an equality, through
+     `CoordinateFunctor.functor_comp_pullbackFunctor`),
+     `SymplecticGeometry.Bundle.detCoreTrivialIso` (the trivial bundle has a
+     trivial determinant), and
      `SymplecticGeometry.Bundle.detCoreIsoOfFinrankEqOne` (the identification
      with `E` in rank one, from `exteriorPowerOneNatIso`);
    - the one step specific to `ℂ`, in
@@ -652,13 +654,30 @@ issues, in an order where each issue's blockers come before it.
      `TauCeti.FiniteRankBundleCore.detConjugateIso A :
      ((conjugate B).obj A).det ≅ (conjugate B).obj A.det`, using that
      conjugation keeps the rank (`rank_conjugate_obj`);
+   - two supporting files: `Topology/VectorBundle/Core/Basic.lean`, with
+     `VectorBundleCore.ext`, which `FiniteRank/OfBundle.lean` imports; and
+     `Analysis/Normed/Operator/ExteriorPowerCoords.lean` beside Tau Ceti's
+     file of that name, with
+     `ContinuousLinearMap.exteriorPowerCoords_intrinsicStar` (compound
+     matrices commute with entrywise conjugation), which
+     `FiniteRank/ConjugateExteriorPower.lean` imports;
+   - two steps that the conjugate case also needs, in
+     `Topology/VectorBundle/FiniteRank/Conjugate.lean`:
+     `TauCeti.FiniteRankBundleCore.continuous_star_conjugate` (conjugating
+     coordinates is continuous from the conjugate core to the core) and
+     `TauCeti.FiniteRankBundleCore.ofBundleOfFinrankEqConjugateIso` (the
+     core of `ConjugateBundle E` is the conjugate of the core of `E`);
    - back in `Topology/VectorBundle/Determinant.lean`, since it is about this
      library's `detCore`: `SymplecticGeometry.Bundle.detCoreConjugateFiberwise`,
      a conjugate-linear fibrewise isomorphism between `detCore ℂ` of the
-     conjugate bundle and `detCore ℂ G E`, from `detConjugateIso`, in the
+     conjugate bundle and `detCore ℂ G E`, from `detConjugateIso` and the
+     steps above, in the
      form that
      `complexEulerClass_eq_neg_of_finrank_eq_one_of_conjugateFiberwise`
-     takes. So the Tau Ceti-namespaced file imports nothing of this library.
+     takes. So the Tau Ceti-namespaced files under `FiniteRank/` import, of
+     this library, only each other and the two supporting files, which are
+     stated in Mathlib's and Tau Ceti's terms, so that they can move
+     upstream together.
 
    Done when these are proved and build.
 2. **Evenness of the first Betti number of a closed orientable surface.**
