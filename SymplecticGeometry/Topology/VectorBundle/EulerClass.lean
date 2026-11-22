@@ -28,6 +28,9 @@ version, which this file imports. The changes are these:
 * The paragraph below leaves out Tau Ceti's citations of
   `TauCeti.isIso_singularCohomologyMap_zeroSectionHom` and
   `TauCeti.isIso_singularCohomologyMap_thomPairProj`, which this file does not copy.
+* `TauCeti.exact_singularCohomologyMap_zeroSectionComplProjHom_singularCohomologyδ`, the
+  exactness at `Hˡ(E₀)`, is left out, since the library does not use it, and the paragraph below
+  leaves out its citation.
 * `TauCeti.VectorBundle.totalSpaceHomotopyEquiv` comes from
   `SymplecticGeometry.Topology.VectorBundle.Smul`, the copy of Tau Ceti's main branch.
 
@@ -42,7 +45,6 @@ Replacing `Hⁿ(E)` by `Hⁿ(B)` in the long exact sequence of the Thom pair giv
 of the Euler class maps, the pullback along the restriction `π₀ : E₀ → B` of the projection
 (`TauCeti.zeroSectionComplProjHom`) and the connecting morphisms of the pair
 (`TauCeti.exact_eulerClass_singularCohomologyMap_zeroSectionComplProjHom`,
-`TauCeti.exact_singularCohomologyMap_zeroSectionComplProjHom_singularCohomologyδ`,
 `TauCeti.exact_singularCohomologyδ_eulerClass`), the start of the Gysin sequence.
 
 ## References
@@ -172,25 +174,6 @@ theorem exact_eulerClass_singularCohomologyMap_zeroSectionComplProjHom (m : ℕ)
       singularCohomologyMap_zeroSectionHom_singularCohomologyMap_thomPairProj_apply]
   · rw [← hx, eulerClass_def, ConcreteCategory.comp_apply,
       singularCohomologyMap_thomPairProj_singularCohomologyMap_zeroSectionHom_apply]
-
-/-- **Exactness at the cohomology of `E₀`**: `Hˡ(B) ⟶ Hˡ(E₀) ⟶ Hᵐ(E, E₀)`, the pullback along
-`π₀ : E₀ → B` followed by the connecting morphism of the pair `(E, E₀)`, is exact, for
-`l + 1 = m`. -/
-theorem exact_singularCohomologyMap_zeroSectionComplProjHom_singularCohomologyδ (l m : ℕ)
-    (hl : l + 1 = m) :
-    Function.Exact (TopCat.singularCohomologyMap (zeroSectionComplProjHom F E) l)
-      ((thomPair F E).singularCohomologyδ R k M l m hl) := by
-  have hex : Function.Exact (TopCat.singularCohomologyMap (thomPair F E).map l)
-      ((thomPair F E).singularCohomologyδ R k M l m hl) :=
-    (ShortComplex.ShortExact.moduleCat_exact_iff_function_exact _).1
-      ((thomPair F E).singularCohomology_exact_subspace R k M l m hl)
-  -- Transport exactness of `Hˡ(E) ⟶ Hˡ(E₀) ⟶ Hᵐ(E, E₀)` along `π^* : Hˡ(B) ≅ Hˡ(E)`.
-  intro y
-  rw [hex, zeroSectionComplProjHom_def, TopCat.singularCohomologyMap_comp]
-  refine ⟨fun ⟨x, hx⟩ ↦ ⟨TopCat.singularCohomologyMap (zeroSectionHom F E) l x, ?_⟩,
-    fun ⟨x, hx⟩ ↦ ⟨TopCat.singularCohomologyMap (thomPairProj F E) l x, hx⟩⟩
-  rwa [ConcreteCategory.comp_apply,
-    singularCohomologyMap_thomPairProj_singularCohomologyMap_zeroSectionHom_apply]
 
 /-- **Exactness at relative cohomology**: `Hˡ(E₀) ⟶ Hᵐ(E, E₀) ⟶ Hᵐ(B)`, the connecting morphism of
 the pair `(E, E₀)` followed by the Euler class map, is exact, for `l + 1 = m`. -/

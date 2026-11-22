@@ -19,9 +19,12 @@ sequence
 
 `Hᵐ⁻¹(E₀; M) ⟶ Hᵖ(B; M) ⟶ Hᵐ(B; M) ⟶ Hᵐ(E₀; M)`,
 
-so it is injective when `Hᵐ⁻¹(E₀; M)` vanishes and surjective when `Hᵐ(E₀; M)` vanishes. Applied
-to the tautological line over `ℂPⁿ`, whose complement of the zero section is `ℂⁿ⁺¹ ∖ {0}`, this
-is the inductive step for the powers of the hyperplane class.
+so it is injective when `Hᵐ⁻¹(E₀; M)` vanishes and surjective when `Hᵐ(E₀; M)` vanishes. The
+injectivity needs only an injective Thom map, through the exact sequence of the pair `(E, E₀)`
+(`TauCeti.exact_singularCohomologyδ_eulerClass`), and the surjectivity only a surjective one,
+through the exactness of the Gysin sequence at `Hᵐ(B; M)`. Applied to the tautological line
+over `ℂPⁿ`, whose complement of the zero section is `ℂⁿ⁺¹ ∖ {0}`, this is the inductive step for
+the powers of the hyperplane class.
 
 ## Main results
 

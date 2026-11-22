@@ -125,8 +125,7 @@ and the composite $H^k(\mathbb P(V))\to H^{k+2}(\mathbb P(V))$ is the cup
 product with the Euler class. The cohomology of the sphere vanishes in the
 degrees between, so this product is bijective for $k\le 2n-2$. Hence
 $h^k$ generates $H^{2k}$ for $k\le n$, with $h=-e(T)$. This is the Gysin
-argument of Milnor–Stasheff, §12, through the Gysin sequence of `E₀` that
-Tau Ceti's main branch has (see *Files*).
+argument of Milnor–Stasheff, §12, without a general Gysin sequence.
 
 ### Coefficients and the graded ring
 
@@ -459,8 +458,8 @@ header: `TauCeti.eulerClass_thomMap`. Imports `EulerClass.lean` above.
 ### `Topology/VectorBundle/Thom/Gysin.lean`
 
 Copied from Tau Ceti's main branch (commit `aa1b4e9e2a`), under Tau Ceti's
-header: `TauCeti.gysinδ` and the exactness of the Gysin sequence of `E₀`,
-without the sphere bundle. Imports `Thom/Isomorphism.lean` above.
+header: `TauCeti.exact_singularCup_eulerClass_singularCohomologyMap`, the
+exactness of the Gysin sequence at `Hᵐ(B)`. Imports `Thom/Isomorphism.lean` above.
 
 ### `Topology/VectorBundle/Thom/CupEulerClass.lean`
 
@@ -468,8 +467,8 @@ The Gysin step of the Thom argument above, for any real vector bundle and
 coefficients: `TauCeti.injective_singularCup_eulerClass`,
 `TauCeti.surjective_singularCup_eulerClass` and
 `TauCeti.bijective_singularCup_eulerClass`, cup product with `e(u)` when
-the Thom map of `u` is bijective and the cohomology of `E₀` vanishes in the
-target degree and the one below. Imports `Thom/Gysin.lean`.
+the Thom map of `u` is injective, surjective or bijective and the cohomology
+of `E₀` vanishes in the degree below the target, in the target, or both. Imports `Thom/Gysin.lean`.
 
 ### `AlgebraicTopology/Cohomology/ComplSingleton.lean`
 
