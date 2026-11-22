@@ -315,6 +315,24 @@ theorem mfderiv_compatibleCLM_mem (J : 𝒥) (a : ω.compatibleModel) :
   simp only [FunLike.coe_smul, Pi.smul_apply, ContinuousLinearMap.comp_apply,
     ContinuousLinearMap.mulLeftRight_apply, Submodule.subtypeL_apply, compatibleCLM_def]
 
+/-- The ambient reading of a tangent vector at `J` is in Tau Ceti's compatible tangent space at
+`J`. -/
+theorem mfderiv_compatibleCLM_mem_compatibleTangentSpace (J : 𝒥)
+    (a : TangentSpace 𝓘(ℝ, ω.compatibleModel) J) :
+    ContinuousLinearMap.toLinearMap
+      (mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM J a) ∈
+        ω.compatibleTangentSpace J.val :=
+  mem_compatibleTangentSpaceCLM.1 (mfderiv_compatibleCLM_mem J a)
+
+/-- The ambient reading of a tangent vector at `J` is in the tangent space at `J` of the
+almost complex structures: it anticommutes with `J`. -/
+theorem mfderiv_compatibleCLM_mem_tangentSpace (J : 𝒥)
+    (a : TangentSpace 𝓘(ℝ, ω.compatibleModel) J) :
+    ContinuousLinearMap.toLinearMap
+      (mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM J a) ∈
+        J.val.tangentSpace :=
+  compatibleTangentSpace_le_tangentSpace (mfderiv_compatibleCLM_mem_compatibleTangentSpace J a)
+
 /-- The model space has dimension `n (n + 1)` when `V` has dimension `2 n`. -/
 theorem finrank_compatibleModel {n : ℕ} (hn : Module.finrank ℝ V = 2 * n) :
     Module.finrank ℝ ω.compatibleModel = n * (n + 1) := by

@@ -82,6 +82,14 @@ variable {F : Type*} [NormedAddCommGroup F] [NormedSpace 𝕜 F]
   {H' : Type*} [TopologicalSpace H'] {J : ModelWithCorners 𝕜 F H'}
   {N : Type*} [TopologicalSpace N] [ChartedSpace H' N]
 
+/-- At a point `y` of the target of a partial diffeomorphism `Φ` of nonzero regularity, the
+differential of `Φ.symm` at `y` undoes the differential of `Φ` at `Φ.symm y`. -/
+theorem mfderiv_symm_apply_mfderiv_apply_of_mem_target (Φ : PartialDiffeomorph I J M N n)
+    (hn : n ≠ 0) {y : N} (hy : y ∈ Φ.target) (v : TangentSpace I (Φ.symm y)) :
+    mfderiv J I Φ.symm y (mfderiv I J Φ (Φ.symm y) v) = v := by
+  have h := Φ.mfderiv_symm_apply_mfderiv_apply hn (Φ.map_target hy) v
+  rwa [Φ.right_inv hy] at h
+
 /-- For a point `y` of the target of a partial diffeomorphism `Φ` of nonzero regularity, the
 differential of `Φ.symm` at `y`, as a continuous linear equivalence from the tangent space at `y`
 to the tangent space at `Φ.symm y`. Its inverse is the differential of `Φ` at `Φ.symm y`
@@ -89,9 +97,7 @@ to the tangent space at `Φ.symm y`. Its inverse is the differential of `Φ` at 
 noncomputable def mfderivSymmEquiv (Φ : PartialDiffeomorph I J M N n) (hn : n ≠ 0) {y : N}
     (hy : y ∈ Φ.target) : TangentSpace J y ≃L[𝕜] TangentSpace I (Φ.symm y) :=
   .ofContinuousLinearMap (mfderiv J I Φ.symm y) (mfderiv I J Φ (Φ.symm y))
-    (ContinuousLinearMap.ext fun v ↦ by
-      have h := Φ.mfderiv_symm_apply_mfderiv_apply hn (Φ.map_target hy) v
-      rwa [Φ.right_inv hy] at h)
+    (ContinuousLinearMap.ext (Φ.mfderiv_symm_apply_mfderiv_apply_of_mem_target hn hy))
     (ContinuousLinearMap.ext (Φ.mfderiv_apply_mfderiv_symm_apply hn hy))
 
 @[simp]
@@ -117,14 +123,6 @@ theorem toContinuousLinearMap_mfderivSymmEquiv_symm (Φ : PartialDiffeomorph I J
     ((Φ.mfderivSymmEquiv hn hy).symm : TangentSpace I (Φ.symm y) →L[𝕜] TangentSpace J y) =
       mfderiv I J Φ (Φ.symm y) :=
   (rfl)
-
-/-- At a point `y` of the target of a partial diffeomorphism `Φ` of nonzero regularity, the
-differential of `Φ.symm` at `y` undoes the differential of `Φ` at `Φ.symm y`. -/
-theorem mfderiv_symm_apply_mfderiv_apply_of_mem_target (Φ : PartialDiffeomorph I J M N n)
-    (hn : n ≠ 0) {y : N} (hy : y ∈ Φ.target) (v : TangentSpace I (Φ.symm y)) :
-    mfderiv J I Φ.symm y (mfderiv I J Φ (Φ.symm y) v) = v := by
-  have h := (Φ.mfderivSymmEquiv hn hy).apply_symm_apply v
-  rwa [coe_mfderivSymmEquiv, coe_mfderivSymmEquiv_symm] at h
 
 end MFDerivSymmEquiv
 
