@@ -244,6 +244,15 @@ lemmas about Tau Ceti's `TauCeti.collaredSmoothTransition`, which are in `TauCet
 Named like Tau Ceti's file. `HasFTaylorSeriesUpToOn.union`, for sets each
 closed relative to their union.
 
+### `Analysis/Calculus/ContDiff/Concat.lean`
+
+`SymplecticGeometry.curveTrans Z₁ Z₂`, for `Z₁ Z₂ : ℝ → E`, equal to
+`Z₁ (2 * s)` for `s ≤ 1 / 2` and `Z₂ (2 * s - 1)` after, the parametrization
+of `Path.trans`, with `ContDiff.curveTrans` (`C^n` when `Z₁` is constant
+near `1`, `Z₂` near `0`, and `Z₁ 1 = Z₂ 0`). Tau Ceti's
+`TauCeti.curveConcat` uses `3 * s` and `3 * s - 2` instead. *Maslov index*
+uses it in `Maslov/Path/Regular.lean`.
+
 ### `Analysis/Normed/Group/FunctionSeries.lean`
 
 Named like Mathlib's file. `tendstoUniformlyOn_finsetSum_of_hasSum`, the
@@ -315,6 +324,11 @@ reflection $t\mapsto1-t$.
   $t=0$ is that of $f$ by `tsum_seeleyCoeff_mul_neg_two_pow`; and
   `HasFTaylorSeriesUpToOn.union` glues the two sides on `univ ×ˢ U`, where
   they are closed only relative to their union.
+- `exists_contDiff_eqOn_of_contDiffOn_halfSpace [HasContDiffBump E]`:
+  a function smooth on `U ∩ {z | 0 ≤ z.1}`, for an open `U` of `ℝ × E`
+  containing `(0, x₀)`, agrees on the part of some open `V ∋ (0, x₀)`
+  where `0 ≤ z.1` with a function smooth on `ℝ × E`; added by issue 5 of
+  *Liouville structures*.
 
 The module docstring cites R. T. Seeley, *Extension of $C^\infty$ functions
 defined in a half space*, Proc. Amer. Math. Soc. 15 (1964), 625–626, which
@@ -602,6 +616,20 @@ For `[IsManifold I ∞ M]`:
   is $z\mapsto h(F^*z)$, which takes smooth families to smooth families by
   `preservesSmoothFamilies_homotopyOperator_mpullback`.
 
+### `Geometry/Manifold/DeRham/MayerVietoris.lean`
+
+The linear tools of `SmoothFamily/MayerVietoris.lean` that do not involve smooth families:
+`TauCeti.SmoothForm.glueₗ` (linear maps into the forms on `U` and on `V` that agree on `U ⊓ V`
+glue to one into the forms on `U ⊔ V`), the cut-off functions
+`SymplecticGeometry.MayerVietorisCutoff I U V` with `MayerVietorisCutoff.nonempty`, the cut-off
+extensions `extendLeft` and `extendRight`, and the connecting form `connecting`.
+
+### `Geometry/Manifold/DeRham/SmoothFamily/Cutoff.lean`
+
+`MayerVietorisCutoff.isSmoothFamily_extendLeft` and `isSmoothFamily_extendRight`: the cut-off
+extensions take smooth families to smooth families. A file of its own keeps
+`MayerVietoris.lean` within its limit.
+
 ### `Geometry/Manifold/DeRham/SmoothFamily/MayerVietoris.lean`
 
 For `[FiniteDimensional ℝ E] [T2Space M] [SigmaCompactSpace M]` (the
@@ -779,7 +807,9 @@ can start at once; each issue's blockers come before it.
     `Geometry/Manifold/DeRham/SmoothFamily/Contractible.lean`. Blocked by 7
     and 10.
 12. **The Mayer–Vietoris step.**
-    `Geometry/Manifold/DeRham/SmoothFamily/MayerVietoris.lean`. Blocked by 10.
+    `Geometry/Manifold/DeRham/SmoothFamily/MayerVietoris.lean`,
+    `Geometry/Manifold/DeRham/SmoothFamily/Cutoff.lean` and
+    `Geometry/Manifold/DeRham/MayerVietoris.lean`. Blocked by 10.
     It is the largest issue; if it exceeds the size limit, the proof that the
     new space maps isomorphically onto cohomology (step 4) becomes an issue
     of its own after the construction.

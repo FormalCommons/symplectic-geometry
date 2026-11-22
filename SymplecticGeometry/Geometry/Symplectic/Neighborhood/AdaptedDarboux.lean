@@ -10,6 +10,8 @@ public import TauCeti.Geometry.Symplectic.Lagrangian.Manifold
 public import TauCeti.Geometry.Symplectic.Lagrangian.SymplecticTangent
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
 import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.ModelSpace
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import TauCeti.Geometry.Symplectic.Darboux.Immersion
@@ -17,6 +19,7 @@ import TauCeti.Geometry.Symplectic.Manifold.Darboux
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Extend
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffeomorph
 import SymplecticGeometry.Topology.Maps.Embedding
+import SymplecticGeometry.Geometry.Symplectic.Manifold.CharacteristicFoliation
 
 /-!
 # Darboux charts adapted to submanifolds
@@ -33,10 +36,14 @@ exactly where `e` takes values in `S`. With the coordinates `xⱼ = z.x j`, `y�
 * `y = 0` and `xⱼ = 0` for `k ≤ j`, if `Q` is an isotropic submanifold of dimension `k`
   (`IsIsotropicMap.exists_darbouxChart_inter_range_eq`);
 * `y = 0`, if `Q` is a Lagrangian submanifold
-  (`IsLagrangianMap.exists_darbouxChart_inter_range_eq`).
+  (`IsLagrangianMap.exists_darbouxChart_inter_range_eq`);
+* `yⱼ = 0` for `j < k`, if `Q` is a coisotropic submanifold of dimension `2n - k`
+  (`IsCoisotropicMap.exists_darbouxChart_inter_range_eq`). There the derivative of `e` also
+  carries the symplectic orthogonal of each tangent space of `Q`, the tangent space of its
+  characteristic foliation, onto the span of the first `k` vectors `∂/∂xⱼ`.
 
 These names are in the namespace `TauCeti.SmoothTwoForm.IsNondegenerate`, of Tau Ceti's
-predicates on maps. All three come from `exists_darbouxChart_inter_range_eq_of_chart`: given a
+predicates on maps. All four come from `exists_darbouxChart_inter_range_eq_of_chart`: given a
 chart `c` of `Q` with `c q₀ = 0` and an injective linear map `ι : E' → StdSpace (Fin n)` such
 that `f ∘ c⁻¹` pulls `σ` back to the pull-back of `stdForm` along `ι`, the conclusion holds with
 `S` the range of `ι`. Its proof extends `f ∘ c⁻¹` along `ι` to a local diffeomorphism `G` from a
@@ -51,14 +58,23 @@ until its source meets the image of `f` only along the range of `ι`
 (`Topology.IsInducing.exists_isOpen_inter_range_eq`). For a symplectic `Q`, the chart `c` is a
 Darboux chart of `f^* σ`
 (`TauCeti.SmoothTwoForm.IsSymplectic.exists_darbouxChart_of_symplecticForm`);
-for an isotropic one both forms vanish along `Q`, and any chart with `c q₀ = 0` will do. The
-linear maps `ι` come from `SymplecticGeometry.StdSpace.stdInl` and
+for an isotropic one both forms vanish along `Q`, and any chart with `c q₀ = 0` will do. For a
+coisotropic `Q`, `c` is a chart in which the presymplectic form `f^* σ`, closed and of constant
+rank, is pulled back from `stdForm` along a linear projection
+(`TauCeti.SmoothForm.exists_partialDiffeomorph_eval₂_eq_stdForm`). Since
+`e` pulls `ω₀` back to `σ` and its derivative carries each tangent space of `Q` onto `S`, it
+carries their symplectic orthogonals onto the `ω₀`-orthogonal of `S`
+(`TauCeti.SymplecticForm.IsSymplectomorphism.map_orthogonal`), which
+`SymplecticGeometry.forall_stdForm_eq_zero_iff_y_eq_zero_and_x_eq_zero` computes. The linear
+maps `ι` come from
+`SymplecticGeometry.StdSpace.stdInl`, `SymplecticGeometry.StdSpace.stdInr` and
 `SymplecticGeometry.StdSpace.ofX`.
 
 ## References
 
 * [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017], §3.4,
-  Exercise 3.4.19 (Darboux charts adapted to submanifolds).
+  Exercise 3.4.19 (Darboux charts adapted to submanifolds), with Exercise 3.4.9 for the
+  characteristic foliation of a coisotropic submanifold.
 -/
 
 public section
@@ -282,6 +298,65 @@ theorem exists_darbouxChart_inter_range_eq_of_chart (hσ : σ.IsNondegenerate)
       inter_eq_right.2 hUsub]
     simpa using hU
 
+omit [FiniteDimensional ℝ E] [BoundarylessManifold I M] [FiniteDimensional ℝ E'] in
+/-- Let `e` be a chart of `M` pulling `stdForm` back to `σ` whose source meets the image of a smooth
+embedding `f` exactly where `e` takes values in the range of an injective linear map
+`ι : E' → StdSpace (Fin n)`. At each point `f q` of the source, the derivative of `e` carries the
+`σ`-orthogonal of the tangent image `df_q (T_q Q)` onto the `ω₀`-orthogonal of the range of `ι`. -/
+private theorem image_mvfderiv_orthogonal_range_mfderiv {hσ : σ.IsNondegenerate}
+    {e : PartialDiffeomorph I 𝓘(ℝ, StdSpace (Fin n)) M (StdSpace (Fin n)) ∞}
+    (he : ∀ x ∈ e.source, ∀ v w : TangentSpace I x,
+      σ.eval₂ x v w = stdForm (Fin n) (mvfderiv I e x v) (mvfderiv I e x w))
+    (f : SmoothEmbedding J I ∞ Q M) {ι : E' →L[ℝ] StdSpace (Fin n)} (hι : Injective ι)
+    (hrange : e.source ∩ range f = e.source ∩ e ⁻¹' range ι) {q : Q} (hq : f q ∈ e.source) :
+    mvfderiv I e (f q) '' (hσ.symplecticFormAt (f q)).orthogonal
+        (LinearMap.range (mfderiv J I f q).toLinearMap) =
+      {v | ∀ z ∈ range ι, stdForm (Fin n) z v = 0} := by
+  -- Near `q`, `e ∘ f` takes values in the range of `ι`, so it is `ι ∘ g` with `g = π ∘ e ∘ f`.
+  obtain ⟨π, hπ⟩ := (ι : E' →ₗ[ℝ] StdSpace (Fin n)).exists_leftInverse_of_injective
+    (LinearMap.ker_eq_bot.2 hι)
+  set π' := LinearMap.toContinuousLinearMap π
+  have hev : e ∘ f =ᶠ[𝓝 q] ι ∘ (π' ∘ e ∘ f) := by
+    filter_upwards [f.contMDiff.continuous.continuousAt.preimage_mem_nhds
+      (e.open_source.mem_nhds hq)] with q' hq'
+    obtain ⟨-, s, hs⟩ := hrange.subset (⟨hq', q', rfl⟩ : f q' ∈ e.source ∩ range f)
+    have hπs : π (ι s) = s := LinearMap.congr_fun hπ s
+    simp [← hs, π', hπs]
+  have hed := e.mdifferentiableAt (by simp) hq
+  have hfd := f.contMDiff.mdifferentiableAt (x := q) (by simp)
+  have hmap (v : TangentSpace J q) : mvfderiv I e (f q) (mfderiv J I f q v) ∈ range ι := by
+    have hg : MDifferentiableAt J 𝓘(ℝ, E') (π' ∘ e ∘ f) q :=
+      π'.mdifferentiableAt.comp q (hed.comp q hfd)
+    rw [← mvfderiv_comp_apply q hed hfd, hev.mvfderiv_eq, ι.mvfderiv_comp_apply hg]
+    exact mem_range_self _
+  -- By dimensions, `de ∘ df` maps `T_q Q` onto the range of `ι`.
+  have hrange' : LinearMap.range ((mvfderiv I e (f q)).toLinearMap ∘ₗ
+      (mfderiv J I f q).toLinearMap) = LinearMap.range ι.toLinearMap := by
+    refine Submodule.eq_of_le_of_finrank_eq (by rintro _ ⟨v, rfl⟩; exact hmap v) ?_
+    have hinj : Injective ((mvfderiv I e (f q)).toLinearMap ∘ₗ (mfderiv J I f q).toLinearMap) := by
+      rw [LinearMap.coe_comp]
+      exact (e.bijective_mvfderiv (by simp) hq).1.comp
+        (f.isImmersion.mfderiv_injective (by simp) q)
+    rw [LinearMap.finrank_range_of_inj hinj, LinearMap.finrank_range_of_inj hι,
+      finrank_tangentSpace]
+  -- `de` is a linear symplectomorphism, so it carries `σ`-orthogonals to `ω₀`-orthogonals.
+  set A := LinearEquiv.ofBijective (mvfderiv I e (f q)).toLinearMap
+    (e.bijective_mvfderiv (by simp) hq)
+  have hA : SymplecticForm.IsSymplectomorphism (hσ.symplecticFormAt (f q)) (stdForm (Fin n)) A :=
+    SymplecticForm.isSymplectomorphism_iff.2 fun v w ↦
+      (he _ hq v w).symm.trans (symplecticFormAt_apply hσ (f q) v w).symm
+  rw [LinearMap.range_comp] at hrange'
+  have h := congrArg (fun W : Submodule ℝ _ ↦ (W : Set (StdSpace (Fin n))))
+    (hA.map_orthogonal (LinearMap.range (mfderiv J I f q).toLinearMap))
+  rw [Submodule.map_coe] at h
+  have hA' : (A : TangentSpace I (f q) →ₗ[ℝ] StdSpace (Fin n)) =
+      (mvfderiv I e (f q)).toLinearMap :=
+    LinearMap.ext fun v ↦ LinearEquiv.ofBijective_apply _ v
+  rw [hA', hrange', ContinuousLinearMap.coe_coe] at h
+  refine h.trans ?_
+  ext v
+  simp [SymplecticForm.mem_orthogonal_iff]
+
 /-! ### Symplectic, isotropic and Lagrangian submanifolds -/
 
 variable [IsManifold J ∞ Q] [BoundarylessManifold J Q]
@@ -424,5 +499,135 @@ theorem IsLagrangianMap.exists_darbouxChart_inter_range_eq
   congr 2
   ext z
   simp
+
+
+/-! ### Coisotropic submanifolds -/
+
+section Coisotropic
+
+variable [J.Boundaryless]
+
+omit [BoundarylessManifold I M] [BoundarylessManifold J Q] in
+/-- For a coisotropic smooth embedding `f`, of dimension `k + 2r`, into a manifold of dimension
+`2(k + r)` with a closed nondegenerate two-form `σ`, and any linear identification `L` of the
+model of `Q` with `ℝᵏ × StdSpace (Fin r)`, some chart `c` of `Q` with `c q₀ = 0` reads `f^* σ`, near
+`0`, as the pull-back of `stdForm (Fin r)` along the second component of `L`. -/
+private theorem IsCoisotropicMap.exists_chart_eval₂_eq {hσ : σ.IsNondegenerate}
+    {f : SmoothEmbedding J I ∞ Q M} (h : hσ.IsCoisotropicMap J f) (hcl : σ.IsClosed) {k r : ℕ}
+    (hn : finrank ℝ E = 2 * (k + r))
+    (L : E' ≃L[ℝ] EuclideanSpace ℝ (Fin k) × StdSpace (Fin r)) (q₀ : Q) :
+    ∃ c : PartialDiffeomorph J 𝓘(ℝ, E') Q E' ∞, q₀ ∈ c.source ∧ c q₀ = 0 ∧
+      ∀ᶠ s in 𝓝 (0 : E'), ∀ a b : TangentSpace 𝓘(ℝ, E') s,
+        σ.eval₂ (f (c.symm s)) (mfderiv 𝓘(ℝ, E') I (f ∘ c.symm) s a)
+          (mfderiv 𝓘(ℝ, E') I (f ∘ c.symm) s b) = stdForm (Fin r) (L a).2 (L b).2 := by
+  have hk : finrank ℝ E' = k + 2 * r := by
+    rw [L.toLinearEquiv.finrank_eq, Module.finrank_prod, finrank_euclideanSpace, finrank_stdSpace]
+    simp
+  have hker (x : Q) :
+      finrank ℝ (LinearMap.ker ((SmoothForm.mpullback f f.contMDiff σ).bilinFormAt x)) = k := by
+    have := h.finrank_ker_bilinFormAt_mpullback f.isImmersion f.contMDiff x
+    omega
+  obtain ⟨c, hcq, hc0, hc⟩ :=
+    (SmoothForm.mpullback f f.contMDiff σ).exists_partialDiffeomorph_eval₂_eq_stdForm
+      (hcl.mpullback f f.contMDiff) hker L q₀
+  refine ⟨c, hcq, hc0, ?_⟩
+  filter_upwards [c.open_target.mem_nhds (hc0 ▸ c.map_source hcq), hc] with s hs hcs a b
+  have hcd : MDifferentiableAt 𝓘(ℝ, E') J c.symm s :=
+    c.symm.mdifferentiableAt (by simp) (by simpa using hs)
+  rw [mfderiv_comp_apply s (f.contMDiff.mdifferentiableAt (by simp)) hcd,
+    mfderiv_comp_apply s (f.contMDiff.mdifferentiableAt (by simp)) hcd,
+    ← SmoothForm.eval₂_mpullback f f.contMDiff]
+  exact hcs a b
+
+omit [BoundarylessManifold J Q] in
+/-- `IsCoisotropicMap.exists_darbouxChart_inter_range_eq` when `n = k + r`. -/
+private theorem IsCoisotropicMap.exists_darbouxChart_inter_range_eq_of_eq_add
+    {hσ : σ.IsNondegenerate} {f : SmoothEmbedding J I ∞ Q M} (h : hσ.IsCoisotropicMap J f)
+    (hcl : σ.IsClosed) {k r : ℕ} (hkr : n = k + r) (hn : finrank ℝ E = 2 * n)
+    (hk : finrank ℝ E' = k + 2 * r) (q₀ : Q) :
+    ∃ e : PartialDiffeomorph I 𝓘(ℝ, StdSpace (Fin n)) M (StdSpace (Fin n)) ∞,
+      f q₀ ∈ e.source ∧ e (f q₀) = 0 ∧
+      (∀ x ∈ e.source, ∀ v w : TangentSpace I x,
+        σ.eval₂ x v w = stdForm (Fin n) (mvfderiv I e x v) (mvfderiv I e x w)) ∧
+      e.source ∩ range f = e.source ∩ e ⁻¹' {z | ∀ j : Fin n, (j : ℕ) < k → z.y j = 0} ∧
+      ∀ q, f q ∈ e.source →
+        mvfderiv I e (f q) '' (hσ.symplecticFormAt (f q)).orthogonal
+          (LinearMap.range (mfderiv J I f q).toLinearMap) =
+        {v | v.y = 0 ∧ ∀ j : Fin n, k ≤ (j : ℕ) → v.x j = 0} := by
+  subst hkr
+  let L : E' ≃L[ℝ] EuclideanSpace ℝ (Fin k) × StdSpace (Fin r) :=
+    ContinuousLinearEquiv.ofFinrankEq (by simp [hk]; omega)
+  obtain ⟨c, hq₀, hc₀, hc⟩ := h.exists_chart_eval₂_eq hcl hn L q₀
+  -- `ι` puts the leaf coordinates into the first `k` coordinates `x`, and the coordinates of the
+  -- space of leaves into the last `r` coordinate pairs.
+  let ι : E' →L[ℝ] StdSpace (Fin (k + r)) := LinearMap.toContinuousLinearMap
+    (((stdInl k r).toLinearMap ∘ₗ ofX (Fin k) ∘ₗ
+        (EuclideanSpace.equiv (Fin k) ℝ).toLinearMap ∘ₗ LinearMap.fst ℝ _ _ +
+      (stdInr k r).toLinearMap ∘ₗ LinearMap.snd ℝ _ _) ∘ₗ L.toLinearMap)
+  have hιapp (s : E') :
+      ι s = stdInl k r (ofX (Fin k) (EuclideanSpace.equiv (Fin k) ℝ (L s).1)) +
+        stdInr k r (L s).2 := by
+    simp [ι]
+  have hιF : ⇑ι = (fun p : (Fin k → ℝ) × StdSpace (Fin r) ↦
+      stdInl k r (ofX (Fin k) p.1) + stdInr k r p.2) ∘
+        Prod.map (EuclideanSpace.equiv (Fin k) ℝ) id ∘ L :=
+    funext hιapp
+  have hι : Injective ι := by
+    rw [hιF]
+    exact injective_stdInl_ofX_add_stdInr.comp
+      (((EuclideanSpace.equiv (Fin k) ℝ).injective.prodMap injective_id).comp L.injective)
+  have hrange : range ι = {z | ∀ j : Fin (k + r), (j : ℕ) < k → z.y j = 0} := by
+    rw [hιF, range_comp, range_comp, L.surjective.range_eq, image_univ,
+      ((EuclideanSpace.equiv (Fin k) ℝ).surjective.prodMap surjective_id).range_eq, image_univ,
+      range_stdInl_ofX_add_stdInr]
+  -- `ι` pulls `stdForm` back to the pull-back of `stdForm (Fin r)` along the second component.
+  have hform (a b : E') : stdForm (Fin (k + r)) (ι a) (ι b) = stdForm (Fin r) (L a).2 (L b).2 := by
+    rw [hιapp, hιapp, stdForm_stdInl_add_stdInr, stdForm_ofX, zero_add]
+  obtain ⟨e, h₁, h₂, h₃, h₄⟩ := hσ.exists_darbouxChart_inter_range_eq_of_chart hcl hn f c hq₀ hc₀
+    hι (by
+      filter_upwards [hc] with s hs a b
+      exact (hs a b).trans (hform a b).symm)
+  refine ⟨e, h₁, h₂, h₃, by rw [h₄, hrange], fun q hq ↦ ?_⟩
+  rw [image_mvfderiv_orthogonal_range_mfderiv h₃ f hι h₄ hq, hrange]
+  ext v
+  exact forall_stdForm_eq_zero_iff_y_eq_zero_and_x_eq_zero k v
+
+omit [BoundarylessManifold J Q] in
+/-- **Darboux charts adapted to a coisotropic submanifold.** Let `f : Q → M` be a coisotropic smooth
+embedding, of dimension `2n - k`, into a manifold of dimension `2n` with a closed nondegenerate
+two-form `σ`. Near each `f q₀` there is a chart `e` of `M` with `e (f q₀) = 0` pulling `stdForm`
+back to `σ`, whose source meets the image of `f` exactly where the coordinates `yⱼ` of `e` vanish
+for all `j < k`. Moreover, at each point `f q` of the source, the derivative of `e` carries the
+symplectic orthogonal `(df_q (T_q Q))^σ`, the tangent space of the characteristic leaf, onto the
+span of the first `k` vectors `∂/∂xⱼ`: the vectors with `y = 0` and `xⱼ = 0` for all `j ≥ k`.
+
+Milestone: *Darboux charts adapted to submanifolds*. -/
+theorem IsCoisotropicMap.exists_darbouxChart_inter_range_eq
+    {hσ : σ.IsNondegenerate} {f : SmoothEmbedding J I ∞ Q M} (h : hσ.IsCoisotropicMap J f)
+    (hcl : σ.IsClosed) (hn : finrank ℝ E = 2 * n) {k : ℕ} (hk : finrank ℝ E' = 2 * n - k)
+    (q₀ : Q) :
+    ∃ e : PartialDiffeomorph I 𝓘(ℝ, StdSpace (Fin n)) M (StdSpace (Fin n)) ∞,
+      f q₀ ∈ e.source ∧ e (f q₀) = 0 ∧
+      (∀ x ∈ e.source, ∀ v w : TangentSpace I x,
+        σ.eval₂ x v w = stdForm (Fin n) (mvfderiv I e x v) (mvfderiv I e x w)) ∧
+      e.source ∩ range f = e.source ∩ e ⁻¹' {z | ∀ j : Fin n, (j : ℕ) < k → z.y j = 0} ∧
+      ∀ q, f q ∈ e.source →
+        mvfderiv I e (f q) '' (hσ.symplecticFormAt (f q)).orthogonal
+          (LinearMap.range (mfderiv J I f q).toLinearMap) =
+        {v | v.y = 0 ∧ ∀ j : Fin n, k ≤ (j : ℕ) → v.x j = 0} := by
+  -- A coisotropic submanifold has at least half the dimension, so `k ≤ n` unless `n = 0`.
+  have hle := h.finrank_le_two_mul_finrank q₀
+  by_cases hkn : k ≤ n
+  · exact h.exists_darbouxChart_inter_range_eq_of_eq_add hcl (Nat.add_sub_cancel' hkn).symm hn
+      (by omega) q₀
+  · obtain rfl : n = 0 := by omega
+    obtain ⟨e, h₁, h₂, h₃, h₄, h₅⟩ :=
+      h.exists_darbouxChart_inter_range_eq_of_eq_add hcl (k := 0) (r := 0) rfl hn (by omega) q₀
+    refine ⟨e, h₁, h₂, h₃, by simpa using h₄, fun q hq ↦ (h₅ q hq).trans ?_⟩
+    -- Both sets are `{v | v.y = 0}`, since `Fin 0` is empty.
+    ext v
+    exact ⟨fun h ↦ ⟨h.1, fun j ↦ j.elim0⟩, fun h ↦ ⟨h.1, fun j ↦ j.elim0⟩⟩
+
+end Coisotropic
 
 end TauCeti.SmoothTwoForm.IsNondegenerate
