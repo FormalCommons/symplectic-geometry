@@ -32,9 +32,11 @@ potentials in the affine charts. Each statement is proved on `ℂⁿ⁺¹ ∖ 0`
 * `SymplecticGeometry.mpullback_unitary_fubiniStudyForm`: the case of the unitary group, acting by
   Tau Ceti's `Projectivization.mapDiffeomorph`.
 * `SymplecticGeometry.compatible_fubiniStudyForm`: the Fubini–Study form is compatible with `J`.
-  The projection is holomorphic, so its derivative carries multiplication by `i` to `J`, and `ρ`
-  is invariant under multiplication by `i`. A tangent vector of `ℂPⁿ` at `[z]` is the image of a
-  vector `u` with `star z ⬝ᵥ u = 0`, and on such a vector `ρ_z(u, i u) = |u|² / |z|² > 0`.
+  The projection is pseudoholomorphic (`Projectivization.isPseudoholomorphic_mkNonzero`), so its
+  derivative carries multiplication by `i` to `J` (`Projectivization.mfderiv_mkNonzero_I_smul`),
+  and `ρ` is invariant under multiplication by `i`. A tangent vector of `ℂPⁿ` at `[z]` is the
+  image of a vector `u` with `star z ⬝ᵥ u = 0`, and on such a vector
+  `ρ_z(u, i u) = |u|² / |z|² > 0`.
 * `SymplecticGeometry.isKahler_fubiniStudyForm`: the Fubini–Study form is Kähler for `J`.
 * `SymplecticGeometry.mpullback_affineChart_symm_fubiniStudyForm` and
   `SymplecticGeometry.mpullback_affineChart_symm_fubiniStudyForm_eq_del_delBar`: along the inverse
@@ -63,40 +65,19 @@ namespace Matrix
 
 variable {l m R : Type*} [Fintype l] [Fintype m]
 
-/-- A matrix with a left inverse acts injectively on vectors: `Matrix.toLin' A` is injective. -/
-theorem injective_toLin'_of_mul_eq_one [CommSemiring R] [DecidableEq m] {A : Matrix l m R}
-    {B : Matrix m l R} (h : B * A = 1) : Injective (toLin' A) := fun z w hzw ↦ by
+/-- A matrix with a left inverse acts injectively on vectors: `A.mulVec` is injective. -/
+theorem mulVec_injective_of_mul_eq_one [Semiring R] [DecidableEq m] {A : Matrix l m R}
+    {B : Matrix m l R} (h : B * A = 1) : Injective A.mulVec := fun z w hzw ↦ by
   simpa [mulVec_mulVec, h] using congrArg (B *ᵥ ·) hzw
 
 /-- A matrix with orthonormal columns, `Aᴴ * A = 1`, preserves the Hermitian product
 `star z ⬝ᵥ v`. -/
-theorem star_mulVec_dotProduct_mulVec [CommRing R] [StarRing R] [DecidableEq m]
+theorem star_mulVec_dotProduct_mulVec [Semiring R] [StarRing R] [DecidableEq m]
     {A : Matrix l m R} (hA : Aᴴ * A = 1) (z v : m → R) :
     star (A *ᵥ z) ⬝ᵥ (A *ᵥ v) = star z ⬝ᵥ v := by
   rw [star_mulVec, ← dotProduct_mulVec, mulVec_mulVec, hA, one_mulVec]
 
-/-- The real part of the Hermitian square of a complex vector is its squared Euclidean norm:
-`Re (star z ⬝ᵥ z) = ∑ᵢ ‖zᵢ‖²`. -/
-theorem re_star_dotProduct_self {ι : Type*} [Fintype ι] (z : ι → ℂ) :
-    (star z ⬝ᵥ z).re = ∑ i, ‖z i‖ ^ 2 := by
-  simp only [dotProduct, Complex.re_sum, Pi.star_apply, Complex.star_def, Complex.conj_mul',
-    ← Complex.ofReal_pow, Complex.ofReal_re]
-
 end Matrix
-
-namespace TauCeti
-
-/-- The standard symplectic form of `ι → ℂ` is the imaginary part of the Hermitian product:
-`ω₀(z, w) = Im (star z ⬝ᵥ w)`. -/
-theorem stdComplexPiSymplecticForm_apply_eq_im {ι : Type*} [Fintype ι] (z w : ι → ℂ) :
-    stdComplexPiSymplecticForm ι z w = (star z ⬝ᵥ w).im := by
-  simp only [stdComplexPiSymplecticForm_apply, stdComplexSymplecticForm_apply, dotProduct,
-    Complex.im_sum]
-  refine Finset.sum_congr rfl fun i _ ↦ ?_
-  simp only [Pi.star_apply, Complex.star_def, Complex.mul_im, Complex.conj_re, Complex.conj_im]
-  ring
-
-end TauCeti
 
 namespace Projectivization
 
@@ -114,6 +95,27 @@ theorem contMDiff_affineChart_symm_restrictScalars (j : Fin (n + 1)) (r : ℕ∞
     ContMDiff 𝓘(ℝ, Fin n → 𝕜) 𝓘(ℝ, Fin n → 𝕜) r (affineChart (K := 𝕜) j).symm := by
   simpa using (contMDiff_affineChart_symm (𝕜 := 𝕜) j r).restrictScalars ℝ
 
+open SmoothAlmostComplexStructure
+
+variable (n) in
+/-- The projection `ℂⁿ⁺¹ ∖ 0 → ℂPⁿ` is pseudoholomorphic for the complex structures of the two
+complex manifolds. -/
+theorem isPseudoholomorphic_mkNonzero :
+    IsPseudoholomorphic (ofComplexManifold (Fin (n + 1) → ℂ) (puncturedSpace (Fin (n + 1) → ℂ)))
+      (ofComplexManifold (Fin n → ℂ) (ℙ ℂ (Fin (n + 1) → ℂ))) (mkNonzero ℂ n) :=
+  isPseudoholomorphic_ofComplexManifold_iff.2
+    ((contMDiff_mkNonzero_self 1).mdifferentiable one_ne_zero)
+
+/-- The real derivative of the projection `ℂⁿ⁺¹ ∖ 0 → ℂPⁿ` carries multiplication by `i` to the
+complex structure of `ℂPⁿ`. -/
+theorem mfderiv_mkNonzero_I_smul (z : puncturedSpace (Fin (n + 1) → ℂ))
+    (v : Fin (n + 1) → ℂ) :
+    mfderiv 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin n → ℂ) (mkNonzero ℂ n) z (Complex.I • v) =
+      ofComplexManifold (Fin n → ℂ) (ℙ ℂ (Fin (n + 1) → ℂ)) (mkNonzero ℂ n z)
+        (mfderiv 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin n → ℂ) (mkNonzero ℂ n) z v) := by
+  have h := ((isPseudoholomorphic_mkNonzero n).isPseudoholomorphicAt z).mfderiv_apply_commute v
+  rwa [ofComplexManifold_apply] at h
+
 end Projectivization
 
 namespace SymplecticGeometry
@@ -130,7 +132,7 @@ variable (A : Matrix (Fin (n + 1)) (Fin (m + 1)) ℂ) (hA : Aᴴ * A = 1)
 private noncomputable def puncturedMulVec (z : puncturedSpace (Fin (m + 1) → ℂ)) :
     puncturedSpace (Fin (n + 1) → ℂ) :=
   ⟨A *ᵥ (z : Fin (m + 1) → ℂ), mem_puncturedSpace.2 fun h ↦ mem_puncturedSpace.1 z.property
-    (injective_toLin'_of_mul_eq_one hA (by rw [toLin'_apply, h, map_zero]))⟩
+    (mulVec_injective_of_mul_eq_one hA (by rw [h, mulVec_zero]))⟩
 
 private theorem coe_puncturedMulVec (z : puncturedSpace (Fin (m + 1) → ℂ)) :
     (puncturedMulVec A hA z : Fin (n + 1) → ℂ) = A *ᵥ (z : Fin (m + 1) → ℂ) :=
@@ -156,7 +158,9 @@ private theorem mfderiv_puncturedMulVec (z : puncturedSpace (Fin (m + 1) → ℂ
 
 private theorem mkNonzero_comp_puncturedMulVec :
     mkNonzero ℂ n ∘ puncturedMulVec A hA =
-      map (toLin' A) (injective_toLin'_of_mul_eq_one hA) ∘ mkNonzero ℂ m := by
+      map (toLin' A)
+          (by rw [toLin'_apply', coe_mulVecLin]; exact mulVec_injective_of_mul_eq_one hA) ∘
+        mkNonzero ℂ m := by
   funext z
   simp [puncturedMulVec, map_mk]
 
@@ -165,7 +169,9 @@ private theorem mkNonzero_comp_puncturedMulVec :
 form of `ℂPⁿ` along the induced map `ℂPᵐ → ℂPⁿ`, `[z] ↦ [A z]`, is the Fubini–Study form of
 `ℂPᵐ`. -/
 theorem mpullback_map_fubiniStudyForm :
-    SmoothForm.mpullback (map (toLin' A) (injective_toLin'_of_mul_eq_one hA))
+    SmoothForm.mpullback
+        (map (toLin' A)
+          (by rw [toLin'_apply', coe_mulVecLin]; exact mulVec_injective_of_mul_eq_one hA))
       (contMDiff_map_restrictScalars _ _ ∞) (fubiniStudyForm n) = fubiniStudyForm m := by
   refine SmoothForm.mpullback_injective_of_surjective (contMDiff_mkNonzero ℂ m ∞)
     (surjective_mkNonzero ℂ m) ((isSubmersion_mkNonzero ℂ m).surjective_mfderiv (by simp)) ?_
@@ -193,7 +199,7 @@ theorem mpullback_unitary_fubiniStudyForm (U : unitaryGroup (Fin (n + 1)) ℂ) :
     exact UnitaryGroup.star_mul_self U
   have h : ⇑(mapDiffeomorph (UnitaryGroup.toLinearEquiv U) ∞) =
       map (toLin' (U : Matrix (Fin (n + 1)) (Fin (n + 1)) ℂ))
-        (injective_toLin'_of_mul_eq_one hU) := by
+        (by rw [toLin'_apply', coe_mulVecLin]; exact mulVec_injective_of_mul_eq_one hU) := by
     funext x
     induction x using ind with
     | h v hv => simp [map_mk, UnitaryGroup.toLinearEquiv]
@@ -207,21 +213,6 @@ end Unitary
 section Kahler
 
 open SmoothAlmostComplexStructure
-
-variable (n) in
-/-- The projection `ℂⁿ⁺¹ ∖ 0 → ℂPⁿ` is holomorphic, so its real derivative intertwines
-multiplication by `i` with the complex structure of `ℂPⁿ`. -/
-private theorem mfderiv_mkNonzero_I_smul (z : puncturedSpace (Fin (n + 1) → ℂ))
-    (v : Fin (n + 1) → ℂ) :
-    mfderiv 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin n → ℂ) (mkNonzero ℂ n) z (Complex.I • v) =
-      ofComplexManifold (Fin n → ℂ) (ℙ ℂ (Fin (n + 1) → ℂ)) (mkNonzero ℂ n z)
-        (mfderiv 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin n → ℂ) (mkNonzero ℂ n) z v) := by
-  have h : IsPseudoholomorphicAt (ofComplexManifold (Fin (n + 1) → ℂ) (puncturedSpace _))
-      (ofComplexManifold (Fin n → ℂ) (ℙ ℂ (Fin (n + 1) → ℂ))) (mkNonzero ℂ n) z :=
-    isPseudoholomorphicAt_ofComplexManifold_iff.2
-      ((contMDiff_mkNonzero_self 1 z).mdifferentiableAt one_ne_zero)
-  have h' := h.mfderiv_apply_commute v
-  rwa [ofComplexManifold_apply] at h'
 
 /-- The two-form `ρ` on `ℂⁿ⁺¹ ∖ 0` is invariant under multiplication by `i`. -/
 private theorem fubiniStudyLift_I_smul (z : puncturedSpace (Fin (n + 1) → ℂ))
@@ -244,12 +235,9 @@ private theorem fubiniStudyLift_I_smul_pos (z : puncturedSpace (Fin (n + 1) → 
   simp only [stdComplexPiSymplecticForm_apply_eq_im, dotProduct_smul, smul_eq_mul, hzu, mul_zero,
     Complex.zero_re, Complex.zero_im, zero_mul, sub_zero, zero_div, Complex.mul_im, Complex.I_re,
     Complex.I_im, one_mul]
-  have hpos (x : Fin (n + 1) → ℂ) (hx : x ≠ 0) : 0 < ∑ i, ‖x i‖ ^ 2 := by
-    obtain ⟨i, hi⟩ := Function.ne_iff.1 hx
-    exact Finset.sum_pos' (fun _ _ ↦ by positivity)
-      ⟨i, Finset.mem_univ _, pow_pos (norm_pos_iff.2 hi) 2⟩
-  rw [zero_add, re_star_dotProduct_self]
-  exact div_pos (hpos u hu) (hpos _ hz)
+  rw [zero_add, re_star_dotProduct_self, ← norm_sq_complexToRealEuclidean,
+    ← norm_sq_complexToRealEuclidean]
+  exact div_pos (pow_pos (norm_pos_iff.2 (by simpa)) 2) (pow_pos (norm_pos_iff.2 (by simpa)) 2)
 
 /-- The Fubini–Study form is compatible with the complex structure `J` of `ℂPⁿ`: it is
 `J`-invariant, and `ω_FS(v, J v) > 0` for every nonzero tangent vector `v`. -/
@@ -260,7 +248,7 @@ theorem compatible_fubiniStudyForm :
   · obtain ⟨z, rfl⟩ := surjective_mkNonzero ℂ n x
     obtain ⟨(v : Fin (n + 1) → ℂ), rfl⟩ := hD z v
     obtain ⟨(w : Fin (n + 1) → ℂ), rfl⟩ := hD z w
-    rw [← mfderiv_mkNonzero_I_smul n z v, ← mfderiv_mkNonzero_I_smul n z w]
+    rw [← mfderiv_mkNonzero_I_smul z v, ← mfderiv_mkNonzero_I_smul z w]
     -- The vectors are read in `Fin (n + 1) → ℂ`, so the evaluation lemmas are applied by `exact`.
     exact (eval₂_fubiniStudyForm_mfderiv_mkNonzero z _ _).trans
       ((fubiniStudyLift_I_smul z v w).trans (eval₂_fubiniStudyForm_mfderiv_mkNonzero z _ _).symm)
@@ -275,7 +263,7 @@ theorem compatible_fubiniStudyForm :
         mfderiv 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin n → ℂ) (mkNonzero ℂ n) z v :=
       (map_sub _ _ _).trans <| (congrArg (_ - ·) (mfderiv_mkNonzero_smul_self z c)).trans
         (sub_zero _)
-    rw [← hu, ← mfderiv_mkNonzero_I_smul n z u]
+    rw [← hu, ← mfderiv_mkNonzero_I_smul z u]
     refine lt_of_lt_of_eq (fubiniStudyLift_I_smul_pos z ?_ fun h ↦ ht ?_)
       (eval₂_fubiniStudyForm_mfderiv_mkNonzero z _ _).symm
     · rw [dotProduct_sub, dotProduct_smul, smul_eq_mul, div_mul_cancel₀ _ hz, sub_self]
