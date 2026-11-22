@@ -19,6 +19,8 @@ by a smooth function through `TauCeti.SmoothForm.funSMulₗ`, so that the lemmas
 ## Main results
 
 * `TauCeti.SmoothForm.symplectization_eq_funSMulₗ`
+* `TauCeti.SmoothForm.symplectization_neg`: the symplectization form of `-α` is the negative of
+  that of `α`.
 
 ## References
 
@@ -48,6 +50,13 @@ theorem symplectization_eq_funSMulₗ (α : SmoothForm I M ℝ 1) {g : C^∞⟮�
   rw [coe_symplectization, coe_funSMulₗ]
   funext p
   rw [hg]
+
+/-- The symplectization form of `-α` is the negative of that of `α`. -/
+theorem symplectization_neg (α : SmoothForm I M ℝ 1) :
+    (-α).symplectization = -α.symplectization := by
+  apply Subtype.ext
+  funext p
+  simp [coe_symplectization, map_neg]
 
 end SmoothForm
 
