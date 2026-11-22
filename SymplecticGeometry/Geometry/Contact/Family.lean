@@ -8,6 +8,7 @@ module
 public import Mathlib.Geometry.Manifold.Instances.Real
 public import SymplecticGeometry.Geometry.Contact.Levi
 public import SymplecticGeometry.Geometry.Contact.Moser
+public import SymplecticGeometry.Geometry.Manifold.IsManifold.Basic
 public import TauCeti.Geometry.Contact.Distribution
 public import TauCeti.Geometry.Contact.Gray
 
@@ -136,7 +137,6 @@ variable [FiniteDimensional ℝ E]
 `t ∈ [0, 1]`, the distribution `ξ t` is a smooth contact structure on `M`. -/
 theorem isContactDistribution (hξ : IsContactFamily ξ) (t : unitInterval) :
     TauCeti.IsContactDistribution I ∞ (ξ t) := by
-  have : IsManifold I ((∞ : WithTop ℕ∞) + 1) M := IsManifold.of_le (n := ∞) (by simp)
   -- Near each `x`, the slice at `t` of a local defining form defines `ξ t` and is contact.
   have hloc (x : M) : ∃ β : TauCeti.SmoothForm I M ℝ 1, ∀ᶠ y in 𝓝 x,
       TauCeti.IsContactFormAt β.val y ∧ ξ t y = β.kerDistribution y := by
