@@ -22,8 +22,9 @@ a homeomorphism onto the carrier of `TopCat.of X ⊗ TopCat.of Y`. The two types
 unfolding, so a map into `X × Y` composed with a morphism out of `TopCat.of X ⊗ TopCat.of Y`
 goes through it, and `TopCat.prodFiberRetraction_prodHomeomorphTensorObj` evaluates the
 retraction there. The same homeomorphism gives the isomorphism
-`TopCat.tensorObjIsoOfProd X Y : TopCat.of X ⊗ TopCat.of Y ≅ TopCat.of (X × Y)`, for maps of
-spaces between the two.
+`TopCat.tensorObjIsoProd X Y : TopCat.of X ⊗ TopCat.of Y ≅ TopCat.of (X × Y)`, for maps of
+spaces between the two. It is natural: it turns `TopCat.ofHom f ⊗ₘ TopCat.ofHom g` into the
+product map `f.prodMap g` (`TopCat.tensorObjIsoProd_hom_comp_ofHom_prodMap`).
 -/
 
 public section
@@ -119,12 +120,18 @@ lemma prodHomeomorphTensorObj_symm_apply (X Y : Type w) [TopologicalSpace X]
 
 /-- For spaces `X` and `Y`, the monoidal product `TopCat.of X ⊗ TopCat.of Y` is isomorphic to
 `TopCat.of (X × Y)`, by the identity of `X × Y`. -/
-def tensorObjIsoOfProd (X Y : Type w) [TopologicalSpace X] [TopologicalSpace Y] :
+def tensorObjIsoProd (X Y : Type w) [TopologicalSpace X] [TopologicalSpace Y] :
     TopCat.of X ⊗ TopCat.of Y ≅ TopCat.of (X × Y) :=
   isoOfHomeo (prodHomeomorphTensorObj X Y).symm
 
-lemma tensorObjIsoOfProd_def (X Y : Type w) [TopologicalSpace X] [TopologicalSpace Y] :
-    tensorObjIsoOfProd X Y = isoOfHomeo (prodHomeomorphTensorObj X Y).symm :=
+lemma tensorObjIsoProd_def (X Y : Type w) [TopologicalSpace X] [TopologicalSpace Y] :
+    tensorObjIsoProd X Y = isoOfHomeo (prodHomeomorphTensorObj X Y).symm :=
+  (rfl)
+
+/-- The isomorphism `TopCat.of X ⊗ TopCat.of Y ≅ TopCat.of (X × Y)` is the identity of
+`TopCat.of (X × Y)`, since `TopCat.of X ⊗ TopCat.of Y` unfolds to `TopCat.of (X × Y)`. -/
+lemma tensorObjIsoProd_hom_eq_id (X Y : Type w) [TopologicalSpace X] [TopologicalSpace Y] :
+    (tensorObjIsoProd X Y).hom = 𝟙 (TopCat.of (X × Y)) :=
   (rfl)
 
 /-! The two evaluation lemmas below write out the coercion to a function so that they can write
@@ -133,19 +140,29 @@ the type of continuous maps with `no_index`. -/
 
 /-- The isomorphism `TopCat.of X ⊗ TopCat.of Y ≅ TopCat.of (X × Y)` sends `p` to `(p.1, p.2)`. -/
 @[simp]
-lemma tensorObjIsoOfProd_hom_apply (X Y : Type w) [TopologicalSpace X] [TopologicalSpace Y]
+lemma tensorObjIsoProd_hom_apply (X Y : Type w) [TopologicalSpace X] [TopologicalSpace Y]
     (p : ↑(TopCat.of X ⊗ TopCat.of Y)) :
     DFunLike.coe (F := no_index C(↑(TopCat.of X ⊗ TopCat.of Y), X × Y))
-      (tensorObjIsoOfProd X Y).hom.hom p = (p.1, p.2) := by
-  simp [tensorObjIsoOfProd_def]
+      (tensorObjIsoProd X Y).hom.hom p = (p.1, p.2) := by
+  simp [tensorObjIsoProd_def]
 
-/-- The inverse of `TopCat.tensorObjIsoOfProd X Y` is `TopCat.prodHomeomorphTensorObj X Y`. -/
+/-- The inverse of `TopCat.tensorObjIsoProd X Y` is `TopCat.prodHomeomorphTensorObj X Y`. -/
 @[simp]
-lemma tensorObjIsoOfProd_inv_apply (X Y : Type w) [TopologicalSpace X] [TopologicalSpace Y]
+lemma tensorObjIsoProd_inv_apply (X Y : Type w) [TopologicalSpace X] [TopologicalSpace Y]
     (p : X × Y) :
     DFunLike.coe (F := no_index C(X × Y, ↑(TopCat.of X ⊗ TopCat.of Y)))
-      (tensorObjIsoOfProd X Y).inv.hom p = prodHomeomorphTensorObj X Y p := by
-  simp [tensorObjIsoOfProd_def]
+      (tensorObjIsoProd X Y).inv.hom p = prodHomeomorphTensorObj X Y p := by
+  simp [tensorObjIsoProd_def]
+
+/-- The isomorphism `TopCat.of X ⊗ TopCat.of Y ≅ TopCat.of (X × Y)` is natural: it turns the
+monoidal product `TopCat.ofHom f ⊗ₘ TopCat.ofHom g` into the product map `f.prodMap g`. -/
+@[reassoc]
+lemma tensorObjIsoProd_hom_comp_ofHom_prodMap {X Y X' Y' : Type w} [TopologicalSpace X]
+    [TopologicalSpace Y] [TopologicalSpace X'] [TopologicalSpace Y'] (f : C(X, X'))
+    (g : C(Y, Y')) :
+    (tensorObjIsoProd X Y).hom ≫ ofHom (f.prodMap g) =
+      (ofHom f ⊗ₘ ofHom g) ≫ (tensorObjIsoProd X' Y').hom := by
+  ext p <;> simp only [ConcreteCategory.comp_apply, tensorObjIsoProd_hom_apply] <;> simp
 
 /-- The retraction onto the fibre over `i`, evaluated at a point of `ι × X`.
 

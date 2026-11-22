@@ -94,12 +94,12 @@ variable {X Y X' Y' : Type} [TopologicalSpace X] [TopologicalSpace Y] [Topologic
 /-- The identity of `X × Y` carries `(X ∖ {x}) × Y ∪ X × (Y ∖ {y})` into the complement of
 `(x, y)`. -/
 theorem mapsTo_preimage_fst_compl_union_preimage_snd_compl (x : X) (y : Y) :
-    MapsTo (TopCat.tensorObjIsoOfProd X Y).hom
+    MapsTo (TopCat.tensorObjIsoProd X Y).hom
       (CartesianMonoidalCategory.fst (TopCat.of X) (TopCat.of Y) ⁻¹' ({x}ᶜ : Set (TopCat.of X)) ∪
         CartesianMonoidalCategory.snd (TopCat.of X) (TopCat.of Y) ⁻¹' ({y}ᶜ : Set (TopCat.of Y)))
       ({(x, y)}ᶜ : Set (TopCat.of (X × Y))) := by
   rintro p (hz | hz) h <;>
-    simp only [TopCat.tensorObjIsoOfProd_hom_apply, mem_singleton_iff, Prod.mk.injEq] at h
+    simp only [TopCat.tensorObjIsoProd_hom_apply, mem_singleton_iff, Prod.mk.injEq] at h
   · exact hz h.1
   · exact hz h.2
 
@@ -152,13 +152,10 @@ theorem singularHomologyπ_tensorHom_singularHomologyπ_localHomologyCross (x : 
     (ModuleCat.of ℤ (ULift.{0} ℤ) ⊗ ModuleCat.of ℤ (ULift.{0} ℤ)) n
   rw [TopPair.ofSubsetMap_fst] at hπ
   -- The map of ambient spaces is the identity of `X × Y`, written between `X ⊗ Y` and `X × Y`.
-  have he : (TopCat.tensorObjIsoOfProd X Y).hom = 𝟙 (TopCat.of (X × Y)) := by
-    -- `rfl` evaluates the identity, whose source `TopCat.of (X × Y)` is `TopCat.of X ⊗ TopCat.of Y`
-    -- only after unfolding, so that `TopCat.hom_id` does not apply.
-    ext p <;> simp <;> rfl
-  have hid : SSet.homologyMap (TopCat.toSSet.map (TopCat.tensorObjIsoOfProd X Y).hom)
+  have hid : SSet.homologyMap (TopCat.toSSet.map (TopCat.tensorObjIsoProd X Y).hom)
       (ModuleCat.of ℤ (ULift.{0} ℤ) ⊗ ModuleCat.of ℤ (ULift.{0} ℤ)) n = 𝟙 _ :=
-    (congrArg (fun φ ↦ SSet.homologyMap (TopCat.toSSet.map φ) _ n) he).trans
+    (congrArg (fun φ ↦ SSet.homologyMap (TopCat.toSSet.map φ) _ n)
+      (TopCat.tensorObjIsoProd_hom_eq_id X Y)).trans
       ((congrArg (SSet.homologyMap · _ n) (TopCat.toSSet.map_id _)).trans
         (SSet.homologyMap_id _ _ n))
   replace hπ := hπ.symm.trans ((congrArg (· ≫ _) hid).trans (Category.id_comp _))
@@ -200,18 +197,15 @@ theorem localHomologyMap_tensorHom_localHomologyMap_localHomologyCross (f : C(X,
       TopPair.ofSubsetMap _ (mapsTo_preimage_fst_compl_union_preimage_snd_compl x y) ≫
         TopPair.ofSubsetMap _ hL := by
     have hk : MapsTo ((TopCat.ofHom f ⊗ₘ TopCat.ofHom g) ≫
-        (TopCat.tensorObjIsoOfProd X' Y').hom)
+        (TopCat.tensorObjIsoProd X' Y').hom)
         (CartesianMonoidalCategory.fst (TopCat.of X) (TopCat.of Y) ⁻¹' ({x}ᶜ : Set (TopCat.of X)) ∪
           CartesianMonoidalCategory.snd (TopCat.of X) (TopCat.of Y) ⁻¹' ({y}ᶜ : Set (TopCat.of Y)))
         ({(x', y')}ᶜ : Set (TopCat.of (X' × Y'))) :=
       (mapsTo_preimage_fst_compl_union_preimage_snd_compl x' y').comp
         (TopCat.mapsTo_tensorHom_preimage_union _ _ hf' hg')
-    have hkk : (TopCat.tensorObjIsoOfProd X Y).hom ≫ TopCat.ofHom (f.prodMap g) =
-        (TopCat.ofHom f ⊗ₘ TopCat.ofHom g) ≫ (TopCat.tensorObjIsoOfProd X' Y').hom := by
-      ext p <;> simp only [ConcreteCategory.comp_apply, TopCat.tensorObjIsoOfProd_hom_apply] <;>
-        simp
     exact (TopPair.ofSubsetMap_comp_ofSubsetMap_of_comp_eq _ _ hk rfl).trans
-      (TopPair.ofSubsetMap_comp_ofSubsetMap_of_comp_eq _ _ hk hkk).symm
+      (TopPair.ofSubsetMap_comp_ofSubsetMap_of_comp_eq _ _ hk
+        (TopCat.tensorObjIsoProd_hom_comp_ofHom_prodMap f g)).symm
   have h1 := congrArg (TopPair.singularHomologyMap ·
     (ModuleCat.of ℤ (ULift.{0} ℤ) ⊗ ModuleCat.of ℤ (ULift.{0} ℤ)) n) hpair
   simp only [TopPair.singularHomologyMap_comp] at h1
