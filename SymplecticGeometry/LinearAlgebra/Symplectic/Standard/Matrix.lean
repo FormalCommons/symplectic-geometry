@@ -64,6 +64,9 @@ conditions on that map.
 * `SymplecticGeometry.StdSpace.sumEquiv_toEuclideanLin_symplecticSum`: through the splitting
   `StdSpace.sumEquiv ι κ`, the map of Tau Ceti's `Matrix.symplecticSum A B` is the product of the
   maps of `A` and `B`.
+* `SymplecticGeometry.StdSpace.equivComplex_toEuclideanLin_realify_diagonal`: on the standard
+  plane read as `ℂ`, the realification of a `1 × 1` complex matrix `(c)` acts as multiplication
+  by `c`.
 
 The conventions are those of `SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic`, which
 follow McDuff–Salamon, Section 2.1.
@@ -319,6 +322,15 @@ theorem StdSpace.sumEquiv_toEuclideanLin_symplecticSum {κ : Type*} [Fintype κ]
   rw [symplecticSum_def]
   apply Prod.ext <;> apply StdSpace.ext <;> funext i <;>
     simp [sumEquiv_def, fromBlocks_mulVec, Function.comp_def]
+
+/-- On the standard plane read as `ℂ` through `StdSpace.equivComplex`, the map of the
+realification of the `1 × 1` complex matrix `(c)` is multiplication by `c`. -/
+theorem StdSpace.equivComplex_toEuclideanLin_realify_diagonal [Unique ι] (c : ℂ)
+    (z : StdSpace ι) :
+    equivComplex ι (toEuclideanLin (diagonal fun _ : ι ↦ c).realify z) = c * equivComplex ι z := by
+  obtain ⟨u, rfl⟩ := (complexToRealEuclidean ι).surjective z
+  rw [← complexToRealEuclidean_mulVec]
+  simp
 
 end SymplecticGeometry
 
