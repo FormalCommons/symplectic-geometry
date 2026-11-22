@@ -37,8 +37,8 @@ lemma chainComplexMap_id (X : SSet.{w}) (R : C) : chainComplexMap (𝟙 X) R = �
   CategoryTheory.Functor.map_id _ _
 
 /-- For a map `f : X ⟶ Y` of simplicial sets, a morphism `c` out of the `n`-chains of `Y`
-vanishes after `(chainComplexMap f R).f n` if and only if it vanishes on the summand
-`Y.ιChainComplex (f x)` of every `n`-simplex `x` of `X`. -/
+is zero after `(chainComplexMap f R).f n` exactly when `Y.ιChainComplex (f x) ≫ c = 0` for every
+`n`-simplex `x` of `X`. -/
 lemma chainComplexMap_f_comp_eq_zero_iff {X Y : SSet.{w}} (f : X ⟶ Y) (R : C) {n : ℕ} {T : C}
     (c : (Y.chainComplex R).X n ⟶ T) :
     (chainComplexMap f R).f n ≫ c = 0 ↔ ∀ x : X _⦋n⦌, Y.ιChainComplex (f.app _ x) ≫ c = 0 := by
