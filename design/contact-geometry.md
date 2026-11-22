@@ -136,9 +136,8 @@ review of #420 raise four more.
   1. Near each point of `[0, 1] × M` take a defining form from
      `IsContactFamily`, extend it to `ℝ × M` by
      `DifferentialForm/TimeExtension.lean` of *Smooth families*, and restrict it to a product
-     `J × U`, with `J` an open interval and `U` an open set with compact
-     closure, on which every slice is contact (the contact condition is
-     open, and `[0, 1]` and the closure of `U` are compact). Composing in
+     `J × U`, with `J` an open interval and `U` an open set, on which
+     every slice is contact (the contact condition is open). Composing in
      time with a smooth map `ℝ → J` that is the identity on `J ∩ [0, 1]`
      shrunk slightly gives a form on `ℝ × U`, `U` as an open submanifold,
      all of whose slices are contact, to which Tau Ceti's
@@ -587,11 +586,12 @@ Named like Tau Ceti's file, in `SymplecticGeometry`.
   `TauCeti.IsContMDiffDistribution.of_forall_eventuallyEq_kerDistribution`
   (`Geometry/Contact/Levi.lean`) applied to the slices of local defining
   forms.
-- `IsContactFamily.exists_local_extension (hξ) [CompactSpace M] (p)`: step 1
+- `IsContactFamily.exists_local_extension (hξ) (p)` (`[BoundarylessManifold I M]`): step 1
   of the extension in *Decisions*. For every `p : unitInterval × M` there
-  are an open interval `J ∋ p.1`, an open `U ∋ p.2` with compact closure, and
+  are an open interval `J = Ioo a b ∋ p.1`, an open `U ∋ p.2`, and
   `α : SmoothForm (𝓘(ℝ, ℝ).prod I) (ℝ × U) ℝ 1` (on the open submanifold `U`)
-  all of whose slices are contact, with `ξ t x = (α_t).kerDistribution x`
+  all of whose slices are contact, with `ξ t x` the image of
+  `(α_t).kerDistribution x` under `TauCeti.Manifold.tangentSpaceOpenEquiv x`
   for `t ∈ J ∩ [0, 1]`, `x ∈ U`. Uses `DifferentialForm/TimeExtension.lean` of
   *Smooth families* and a smooth reparametrization `ℝ → J` that is the identity on
   a neighbourhood of the relevant times (`exists_contDiff_eqOn_id_Icc_mem_Ioo` of
