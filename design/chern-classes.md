@@ -287,11 +287,16 @@ classes at no cost):
   trivialization `e` of `E` sends a line `ℓ ⊆ E b` to `(b, e_b ℓ)`
   (`Projectivization.map`), and its transitions are continuous since the
   coordinate changes of `E` are, and the action of linear maps on `ℙ 𝕜 G` is
-  jointly continuous (Tau Ceti's `Topology/Algebra/Projectivization/Action.lean`,
-  through the quotient map from the nonzero vectors).
-- `ProjectiveBundle.proj`, continuous, with `CompactSpace` and `T2Space`
-  instances over a compact Hausdorff base (the fibre is compact Hausdorff,
-  Tau Ceti's `Topology/Algebra/Projectivization.lean`).
+  jointly continuous (`ContinuousOn.mapProjectivization`, through the
+  quotient map from the nonzero vectors, as in Tau Ceti's
+  `Topology/Algebra/Projectivization/Action.lean`).
+- `ProjectiveBundle.projection`, the projection as a continuous map (a
+  declaration named `ProjectiveBundle.proj` would take over the field
+  notation `p.proj`), with a `CompactSpace` instance over a compact base
+  for `RCLike 𝕜` and finite-dimensional `G`; `T2Space` over a Hausdorff base
+  is Tau Ceti's instance `TauCeti.FiberBundle.t2Space_totalSpace` (the
+  fibre is compact Hausdorff, Tau Ceti's
+  `Topology/Algebra/Projectivization.lean`).
 - `ProjectiveBundle.map`, the map induced by a fibrewise linear isomorphism
   continuous on total spaces, a homeomorphism over `B`; and
   `ProjectiveBundle.pullbackHomeomorph (f : C(B', B))`, identifying
@@ -300,9 +305,14 @@ classes at no cost):
   `ProjectiveBundle 𝕜 G E` over `f`.
 - For a direct sum, `ProjectiveBundle.inl` and `ProjectiveBundle.inr`, the
   closed embeddings of `P(E₁)` and `P(E₂)` into `P(E₁ ×ᵇ E₂)`, with disjoint
-  ranges; and `ProjectiveBundle.inlRetraction`, the deformation retraction
-  of the complement of the range of `inr` onto the range of `inl`, through
-  the lines spanned by $v_1+tv_2$, $t\in[0,1]$.
+  ranges; and `ProjectiveBundle.inlRetraction`, the retraction of the
+  complement of the range of `inr` onto `P(E₁)`, which for
+  `[NormedAlgebra ℝ 𝕜]` is a deformation retraction through the lines
+  spanned by $v_1+tv_2$, $t\in[0,1]$
+  (`homotopic_inlCompl_comp_inlRetraction`, `inlHomotopyEquiv`).
+
+The file imports *Symplectic vector bundles*'
+`Topology/VectorBundle/ZeroSet.lean`, for the closedness of zero sets.
 
 ### `Topology/VectorBundle/ProjectiveBundle/Tautological.lean`
 
@@ -318,7 +328,7 @@ classes at no cost):
 - `SymplecticGeometry.Bundle.ProjectiveBundle.Tautological 𝕜 G E`, the
   tautological line over `ProjectiveBundle 𝕜 G E`, with fibre `p.2.submodule`
   over `p`, a vector bundle with model `𝕜`, with the continuous inclusion
-  into the pull-back of `E` along `proj`. Its restriction to the fibre over
+  into the pull-back of `E` along `projection`. Its restriction to the fibre over
   `b` is `Projectivization.Tautological 𝕜 (E b)`; its pull-backs along
   `ProjectiveBundle.map`, `pullbackMap`, `inl` and `inr` are the tautological
   lines of the source, by fibrewise isomorphisms continuous on total spaces.
