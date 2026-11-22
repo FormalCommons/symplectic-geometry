@@ -22,6 +22,7 @@ import TauCeti.Geometry.Symplectic.Manifold.Darboux
 import TauCeti.Geometry.Symplectic.Manifold.Opens
 import TauCeti.LinearAlgebra.Alternating.Conormal
 import TauCeti.LinearAlgebra.Alternating.Curry
+import SymplecticGeometry.Geometry.Manifold.IsManifold.Basic
 
 /-!
 # Characteristic foliations and local symplectic quotients
@@ -71,8 +72,9 @@ point in which the form is the pullback of `stdForm (Fin r)` along a linear proj
 
 For a coisotropic immersion `f : N → M` into a symplectic manifold, this applies to `f^* ω`, whose
 kernels have dimension `dim M - dim N`, and `df` carries those kernels onto isotropic subspaces.
-Both statements are in the namespace `TauCeti.SmoothTwoForm.IsNondegenerate`:
-`IsCoisotropicMap.exists_isCharacteristicSubmersion` and
+These statements are in the namespace `TauCeti.SmoothTwoForm.IsNondegenerate`:
+`IsCoisotropicMap.exists_isCharacteristicSubmersion`, its Darboux form
+`IsCoisotropicMap.exists_partialDiffeomorph_eval₂_eq_stdForm`, and
 `IsCoisotropicMap.isIsotropic_map_ker_bilinFormAt_mpullback`.
 
 ## Main definitions
@@ -92,10 +94,11 @@ Both statements are in the namespace `TauCeti.SmoothTwoForm.IsNondegenerate`:
   statements together: involutivity, characteristic charts, and local symplectic quotients.
 * `TauCeti.SmoothForm.exists_partialDiffeomorph_eval₂_eq_stdForm`: Darboux coordinates for a
   closed form of constant rank.
-* `IsCoisotropicMap.exists_isCharacteristicSubmersion` and
+* `IsCoisotropicMap.exists_isCharacteristicSubmersion`,
+  `IsCoisotropicMap.exists_partialDiffeomorph_eval₂_eq_stdForm` and
   `IsCoisotropicMap.isIsotropic_map_ker_bilinFormAt_mpullback`, in the namespace
-  `TauCeti.SmoothTwoForm.IsNondegenerate`: the case of a coisotropic submanifold, whose
-  characteristic leaves are isotropic.
+  `TauCeti.SmoothTwoForm.IsNondegenerate`: the case of a coisotropic submanifold, with its
+  characteristic charts and Darboux coordinates; its characteristic leaves are isotropic.
 
 The projection `B × F → B` with a form pulled back from a nondegenerate form on `B` is an
 example.
@@ -430,7 +433,6 @@ theorem exists_isCharacteristicSubmersion (σ : SmoothForm I M ℝ 2) (hσ : σ.
         (SmoothForm.mpullback (Subtype.val : U → M) contMDiff_subtypeVal σ)
         (fun u ↦ (⟨(Ψ u : EuclideanSpace ℝ (Fin k) × StdSpace (Fin r)).2, (Ψ u).property.2⟩ :
           (⟨Metric.ball 0 1, Metric.isOpen_ball⟩ : Opens (StdSpace (Fin r))))) := by
-  have : IsManifold I (∞ + 1) M := IsManifold.of_le (n := ∞) (by simp)
   obtain ⟨Φ, hx, h0, hball, hker⟩ :=
     (isInvolutiveDistribution_ker_bilinFormAt σ hσ).exists_flatPartialDiffeomorph
       (F₁ := EuclideanSpace ℝ (Fin k)) (F₂ := StdSpace (Fin r))
@@ -670,6 +672,25 @@ theorem IsCoisotropicMap.exists_isCharacteristicSubmersion [FiniteDimensional �
           (⟨Metric.ball 0 1, Metric.isOpen_ball⟩ : Opens (StdSpace (Fin r))))) :=
   (SmoothForm.mpullback f hf σ).exists_isCharacteristicSubmersion (hσc.mpullback f hf)
     (fun x ↦ (h.finrank_ker_bilinFormAt_mpullback hi hf x).trans (by omega)) hr q
+
+/-- **Darboux coordinates on a coisotropic submanifold.** Let `f : N → M` be a coisotropic
+immersion, for a closed nondegenerate two-form `σ`, of a boundaryless manifold of codimension `k`
+and dimension `k + 2r`, and let `L` identify the model space of `N` with
+`ℝᵏ × StdSpace (Fin r)`. Every point `q` of `N` has a chart `c` with `c q = 0` in which, near `0`,
+the presymplectic form `f^* σ` is the pull-back of `stdForm (Fin r)` along the second component
+of `L`, as in `TauCeti.SmoothForm.exists_partialDiffeomorph_eval₂_eq_stdForm`. -/
+theorem IsCoisotropicMap.exists_partialDiffeomorph_eval₂_eq_stdForm [FiniteDimensional ℝ E]
+    [FiniteDimensional ℝ F] [J.Boundaryless] (h : hσ.IsCoisotropicMap J f)
+    (hi : IsImmersion J I ∞ f) (hf : ContMDiff J I ∞ f) (hσc : σ.IsClosed) {k r : ℕ}
+    (hk : finrank ℝ F + k = finrank ℝ E)
+    (L : F ≃L[ℝ] EuclideanSpace ℝ (Fin k) × StdSpace (Fin r)) (q : N) :
+    ∃ c : PartialDiffeomorph J 𝓘(ℝ, F) N F ∞, q ∈ c.source ∧ c q = 0 ∧
+      ∀ᶠ s in 𝓝 (0 : F), ∀ a b : TangentSpace 𝓘(ℝ, F) s,
+        SmoothBundleForm.eval₂ (SmoothForm.mpullback f hf σ) (c.symm s)
+          (mfderiv 𝓘(ℝ, F) J c.symm s a) (mfderiv 𝓘(ℝ, F) J c.symm s b) =
+        stdForm (Fin r) (L a).2 (L b).2 :=
+  (SmoothForm.mpullback f hf σ).exists_partialDiffeomorph_eval₂_eq_stdForm (hσc.mpullback f hf)
+    (fun x ↦ (h.finrank_ker_bilinFormAt_mpullback hi hf x).trans (by omega)) L q
 
 /-- **The characteristic leaves of a coisotropic submanifold are isotropic.** For a coisotropic map
 `f`, the differential `df_x` carries the kernel of `f^* σ` at `x`, the tangent space of the

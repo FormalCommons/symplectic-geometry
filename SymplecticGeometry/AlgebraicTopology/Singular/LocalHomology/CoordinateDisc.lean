@@ -7,8 +7,14 @@ module
 
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.OpenEmbedding
 public import TauCeti.Geometry.Manifold.Complex.FundamentalClass
+public import Mathlib.Geometry.Manifold.Instances.Real
+public import TauCeti.Geometry.Manifold.Orientation.Euclidean
+public import TauCeti.Geometry.Manifold.Orientation.Preserving
 public import TauCeti.Topology.Circle.Loop
 public import SymplecticGeometry.Geometry.Manifold.Complex.FundamentalClass
+public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orientation.Smooth
+public import SymplecticGeometry.LinearAlgebra.Complex.Orientation
+import TauCeti.Topology.OpenPartialHomeomorph.Constructions
 
 /-!
 # Coordinate discs of homologically oriented surfaces
@@ -32,6 +38,15 @@ Complex conjugation maps the ball to itself and reverses its canonical orientati
 coordinate disc `φ.reverse = φ ∘ conj` for `-o`, with the same discs and with the boundary loop
 run backwards.
 
+On a `C¹` surface `M` charted on `ℝ²` with an orientation
+`o : TauCeti.Manifold.Orientation (𝓡 2) M (Fin 2)`, every chart `e` that preserves orientation
+gives coordinate discs for `o.toHomologicalOrientation`: for a ball `B(c, r)` in the target of
+`e`, the map `z ↦ e⁻¹(c + (r / 2) (re z, im z))` is one, centred at `e⁻¹(c)`. The identification
+`z ↦ (re z, im z)` of `ℂ` with `ℝ²` carries the standard orientation of `ℂ` to that of `ℝ²`
+(`Complex.orientation_map_orthonormalBasisOneI_repr`), and the local orientation of a smooth
+orientation can be read in any chart whose derivative matches the orientations
+(`TauCeti.Manifold.Orientation.toHomologicalOrientation_apply_eq_localOrientationOfOrientedChart`).
+
 ## Main definitions
 
 * `SymplecticGeometry.CoordinateDisc o`: the coordinate discs of `M` for `o`.
@@ -44,6 +59,8 @@ run backwards.
 * `SymplecticGeometry.CoordinateDisc.reverse`: the coordinate disc `φ ∘ conj` for `-o`.
 * `SymplecticGeometry.CoordinateDisc.subtypeVal`: the inclusion of the ball into `ℂ`, a coordinate
   disc of `ℂ` for its canonical orientation.
+* `SymplecticGeometry.CoordinateDisc.ofChart`: the coordinate disc of an orientation-preserving
+  chart of a smoothly oriented surface, on a ball in its target.
 
 ## Main results
 
@@ -59,6 +76,19 @@ run backwards.
 * `SymplecticGeometry.CoordinateDisc.comap_eq_complexHomologicalOrientation`: when `M` is charted
   on `ℂ`, the orientation condition says that `o` pulls back to the canonical orientation of the
   ball.
+* `SymplecticGeometry.CoordinateDisc.ofChart_apply`,
+  `SymplecticGeometry.CoordinateDisc.ofChart_apply_zero`: the formula of `ofChart`, and its centre.
+* `SymplecticGeometry.CoordinateDisc.disc_ofChart`,
+  `SymplecticGeometry.CoordinateDisc.openDisc_ofChart`: the closed and the open disc of `ofChart`
+  are the images under `e.symm` of the closed and the open ball of radius `r / 2` about `c`.
+
+## Implementation notes
+
+The proof that `ofChart` preserves orientation adapts that of Tau Ceti's
+`TauCeti.comap_complexHomologicalOrientation`: the chart `e`, read through the parametrization,
+turns the disc into the inclusion of the ball, and
+`OpenPartialHomeomorph.localHomologyMap_localOrientationOfOrientedChart` compares the local
+orientations of the two charts.
 
 ## References
 
@@ -71,7 +101,8 @@ public section
 
 noncomputable section
 
-open Topology TauCeti ComplexConjugate
+open Module Topology TauCeti ComplexConjugate
+open scoped Manifold
 
 namespace SymplecticGeometry
 
@@ -409,6 +440,204 @@ theorem openDisc_subtypeVal : subtypeVal.openDisc = Metric.ball 0 1 := by
   simp only [mem_openDisc_iff, coe_subtypeVal, Subtype.exists, exists_and_left, exists_prop,
     exists_eq_right_right, mem_ball_zero_iff]
   exact ⟨fun h ↦ h.1, fun h ↦ ⟨h, mem_ball_of_norm_le_one h.le⟩⟩
+
+end CoordinateDisc
+
+/-! ### Coordinate discs from oriented charts -/
+
+namespace CoordinateDisc
+
+variable {M : Type} [TopologicalSpace M] [T2Space M] [ChartedSpace (EuclideanSpace ℝ (Fin 2)) M]
+  [IsManifold (𝓡 2) 1 M] {o : Manifold.Orientation (𝓡 2) M (Fin 2)}
+
+/-- The linear part `w ↦ (r / 2) (re w, im w)` of the parametrization of a coordinate disc from a
+chart. -/
+private def ofChartLinearEquiv {r : ℝ} (hr : 0 < r) : ℂ ≃L[ℝ] EuclideanSpace ℝ (Fin 2) :=
+  Complex.orthonormalBasisOneI.repr.toContinuousLinearEquiv.trans
+    (ContinuousLinearEquiv.smulLeft (Units.mk0 (r / 2) (by positivity)))
+
+/-- The affine homeomorphism `w ↦ c + (r / 2) (re w, im w)`, which sends the ball of radius `2`
+into the ball of radius `r` about `c` (`ofChartHomeomorph_mem_ball`). -/
+private def ofChartHomeomorph (c : EuclideanSpace ℝ (Fin 2)) {r : ℝ} (hr : 0 < r) :
+    ℂ ≃ₜ EuclideanSpace ℝ (Fin 2) :=
+  (ofChartLinearEquiv hr).toHomeomorph.trans (Homeomorph.addLeft c)
+
+private theorem ofChartHomeomorph_apply (c : EuclideanSpace ℝ (Fin 2)) {r : ℝ} (hr : 0 < r)
+    (w : ℂ) : ofChartHomeomorph c hr w = c + (r / 2) • Complex.orthonormalBasisOneI.repr w :=
+  (rfl)
+
+private theorem dist_ofChartHomeomorph (c : EuclideanSpace ℝ (Fin 2)) {r : ℝ} (hr : 0 < r)
+    (w : ℂ) : dist (ofChartHomeomorph c hr w) c = r / 2 * ‖w‖ := by
+  rw [ofChartHomeomorph_apply, dist_self_add_left, norm_smul, LinearIsometryEquiv.norm_map,
+    Real.norm_of_nonneg (by positivity)]
+
+private theorem ofChartHomeomorph_mem_ball {c : EuclideanSpace ℝ (Fin 2)} {r : ℝ} (hr : 0 < r)
+    (z : ball) : ofChartHomeomorph c hr z ∈ Metric.ball c r := by
+  rw [Metric.mem_ball, dist_ofChartHomeomorph]
+  nlinarith [mem_ball_iff.1 z.property]
+
+private theorem hasFDerivAt_ofChartHomeomorph_symm (c : EuclideanSpace ℝ (Fin 2)) {r : ℝ}
+    (hr : 0 < r) (y : EuclideanSpace ℝ (Fin 2)) :
+    HasFDerivAt (ofChartHomeomorph c hr).symm
+      ((ofChartLinearEquiv hr).symm : EuclideanSpace ℝ (Fin 2) →L[ℝ] ℂ) y := by
+  have h := ((ofChartLinearEquiv hr).symm.hasFDerivAt (x := -c + y)).comp y
+    ((hasFDerivAt_id y).const_add (-c))
+  rwa [ContinuousLinearMap.comp_id] at h
+
+/-- The linear part of the parametrization carries the standard orientation of `ℂ` to that of
+`ℝ²`: it is `Complex.orthonormalBasisOneI.repr` followed by a positive homothety. -/
+private theorem orientation_map_ofChartLinearEquiv {r : ℝ} (hr : 0 < r) :
+    Complex.orientation.map (Fin 2) (ofChartLinearEquiv hr).toLinearEquiv =
+      (EuclideanSpace.basisFun (Fin 2) ℝ).toBasis.orientation := by
+  have hs : (((ContinuousLinearEquiv.smulLeft (Units.mk0 (r / 2) (by positivity))) :
+      EuclideanSpace ℝ (Fin 2) ≃L[ℝ] EuclideanSpace ℝ (Fin 2)).toLinearEquiv :
+        EuclideanSpace ℝ (Fin 2) →ₗ[ℝ] EuclideanSpace ℝ (Fin 2)) = (r / 2) • LinearMap.id := by
+    ext
+    simp
+  -- The underlying linear equivalence of `Complex.orthonormalBasisOneI.repr`, through either
+  -- coercion.
+  have hrepr : Complex.orthonormalBasisOneI.repr.toContinuousLinearEquiv.toLinearEquiv =
+      Complex.orthonormalBasisOneI.repr.toLinearEquiv :=
+    (rfl)
+  rw [ofChartLinearEquiv, ContinuousLinearEquiv.trans_toLinearEquiv, Orientation.map_trans,
+    hrepr, Complex.orientation_map_orthonormalBasisOneI_repr,
+    Orientation.map_eq_iff_det_pos _ _ (by simp), hs, LinearMap.det_smul, LinearMap.det_id,
+    finrank_euclideanSpace_fin]
+  positivity
+
+/-- At a point `x` where the chart `e` preserves orientation, the local orientation of `o` is the
+one selected by the standard orientation of `ℂ` in `e` read through the parametrization. -/
+private theorem toHomologicalOrientation_apply_ofChart
+    (e : OpenPartialHomeomorph M (EuclideanSpace ℝ (Fin 2))) (c : EuclideanSpace ℝ (Fin 2))
+    {r : ℝ} (hr : 0 < r) {x : M}
+    (he : o.IsOrientationPreservingAt (Manifold.Orientation.euclideanSpace 2) e x)
+    (hx : x ∈ (e.transHomeomorph (ofChartHomeomorph c hr).symm).source) :
+    o.toHomologicalOrientation finrank_euclideanSpace_fin x =
+      (e.transHomeomorph (ofChartHomeomorph c hr).symm).localOrientationOfOrientedChart hx
+        Complex.orientation Complex.finrank_real_complex := by
+  obtain ⟨D, hD, hω⟩ := (Manifold.Orientation.isOrientationPreservingAt_iff _ _ _ _).1 he
+  -- `D` is the derivative of `e` at `x`, between tangent spaces that are `ℝ²`.
+  let D' : EuclideanSpace ℝ (Fin 2) ≃L[ℝ] EuclideanSpace ℝ (Fin 2) := D
+  have hfd : HasFDerivAt (e ∘ (extChartAt (𝓡 2) x).symm)
+      (D' : EuclideanSpace ℝ (Fin 2) →L[ℝ] EuclideanSpace ℝ (Fin 2)) (extChartAt (𝓡 2) x x) := by
+    have h := (mdifferentiableAt_of_isInvertible_mfderiv ⟨D, hD⟩).hasMFDerivAt.2
+    have hext : writtenInExtChartAt (𝓡 2) (𝓡 2) x e = e ∘ (extChartAt (𝓡 2) x).symm := by
+      ext y
+      simp [writtenInExtChartAt]
+    rwa [hext, ModelWithCorners.range_eq_univ, hasFDerivWithinAt_univ, ← hD] at h
+  have h := (hasFDerivAt_ofChartHomeomorph_symm c hr _).comp _ hfd
+  rw [ContinuousLinearEquiv.comp_coe] at h
+  refine Manifold.Orientation.toHomologicalOrientation_apply_eq_localOrientationOfOrientedChart
+    finrank_euclideanSpace_fin o Complex.finrank_real_complex _ hx _ h ?_
+  -- The orientation of `ℝ²` that `D` gives goes to that of `ℂ`.
+  have key (ω : Orientation ℝ (EuclideanSpace ℝ (Fin 2)) (Fin 2))
+      (hω : ω.map (Fin 2) D'.toLinearEquiv =
+        (EuclideanSpace.basisFun (Fin 2) ℝ).toBasis.orientation) :
+      ω.map (Fin 2) (D'.trans (ofChartLinearEquiv hr).symm).toLinearEquiv =
+        Complex.orientation := by
+    rw [ContinuousLinearEquiv.trans_toLinearEquiv, ContinuousLinearEquiv.toLinearEquiv_symm,
+      Orientation.map_trans, hω, ← Orientation.map_symm, Equiv.symm_apply_eq,
+      orientation_map_ofChartLinearEquiv]
+  exact key _ (hω.trans (Manifold.Orientation.orientationAt_euclideanSpace 2 _))
+
+/-- **The coordinate disc of an oriented chart.** Let `e` be a chart of a smoothly oriented surface
+`M` that preserves orientation at every point of its source, from `o` to the standard orientation
+of `ℝ²`, and let the ball of radius `r` about `c` lie in its target. Then
+`z ↦ e.symm (c + (r / 2) (re z, im z))` is a coordinate disc for `o.toHomologicalOrientation`,
+with centre `e.symm c` (`ofChart_apply_zero`). The identification `z ↦ (re z, im z)`
+(`Complex.orthonormalBasisOneI.repr`) carries the standard
+orientation of `ℂ` to that of `ℝ²`. -/
+def ofChart (e : OpenPartialHomeomorph M (EuclideanSpace ℝ (Fin 2)))
+    {c : EuclideanSpace ℝ (Fin 2)} {r : ℝ} (hr : 0 < r) (hc : Metric.ball c r ⊆ e.target)
+    (he : ∀ x ∈ e.source,
+      o.IsOrientationPreservingAt (Manifold.Orientation.euclideanSpace 2) e x) :
+    CoordinateDisc (o.toHomologicalOrientation finrank_euclideanSpace_fin) where
+  toFun z := e.symm (ofChartHomeomorph c hr z)
+  isOpenEmbedding' := by
+    refine e.symm.isOpenEmbedding_comp ((ofChartHomeomorph c hr).isOpenEmbedding.comp
+      ball.isOpen.isOpenEmbedding_subtypeVal) ?_
+    rintro _ ⟨z, rfl⟩
+    exact hc (ofChartHomeomorph_mem_ball hr z)
+  localOrientationEquiv_apply' z := by
+    have hz : ofChartHomeomorph c hr z ∈ e.target := hc (ofChartHomeomorph_mem_ball hr z)
+    have hx : e.symm (ofChartHomeomorph c hr z) ∈
+        (e.transHomeomorph (ofChartHomeomorph c hr).symm).source := by
+      simpa using e.map_target hz
+    apply Subtype.ext
+    rw [toHomologicalOrientation_apply_ofChart e c hr (he _ (e.map_target hz)) hx,
+      TauCeti.complexHomologicalOrientation_apply, IsOpenEmbedding.coe_localOrientationEquiv,
+      localHomologyIsoOfIsOpenEmbedding_hom]
+    -- Read through the parametrization, `e` sends the disc to the inclusion of the ball.
+    refine OpenPartialHomeomorph.localHomologyMap_localOrientationOfOrientedChart _ _ _ _ _
+      (mem_chart_source ℂ z) hx (Filter.Eventually.of_forall fun w ↦ ?_) _
+    simp [TopologicalSpace.Opens.chartAt_eq, OpenPartialHomeomorph.subtypeRestr_coe,
+      e.right_inv (hc (ofChartHomeomorph_mem_ball hr w))]
+
+private theorem ofChart_apply_eq (e : OpenPartialHomeomorph M (EuclideanSpace ℝ (Fin 2)))
+    {c : EuclideanSpace ℝ (Fin 2)} {r : ℝ} (hr : 0 < r) (hc : Metric.ball c r ⊆ e.target)
+    (he : ∀ x ∈ e.source,
+      o.IsOrientationPreservingAt (Manifold.Orientation.euclideanSpace 2) e x) (z : ball) :
+    ofChart e hr hc he z = e.symm (ofChartHomeomorph c hr z) :=
+  (rfl)
+
+/-- The coordinate disc of a chart is `z ↦ e.symm (c + (r / 2) (re z, im z))`. -/
+@[simp]
+theorem ofChart_apply (e : OpenPartialHomeomorph M (EuclideanSpace ℝ (Fin 2)))
+    {c : EuclideanSpace ℝ (Fin 2)} {r : ℝ} (hr : 0 < r) (hc : Metric.ball c r ⊆ e.target)
+    (he : ∀ x ∈ e.source,
+      o.IsOrientationPreservingAt (Manifold.Orientation.euclideanSpace 2) e x) (z : ball) :
+    ofChart e hr hc he z = e.symm (c + (r / 2) • Complex.orthonormalBasisOneI.repr z) :=
+  (ofChart_apply_eq e hr hc he z).trans (congrArg e.symm (ofChartHomeomorph_apply c hr z))
+
+/-- The centre of the coordinate disc of a chart is `e.symm c`. -/
+theorem ofChart_apply_zero (e : OpenPartialHomeomorph M (EuclideanSpace ℝ (Fin 2)))
+    {c : EuclideanSpace ℝ (Fin 2)} {r : ℝ} (hr : 0 < r) (hc : Metric.ball c r ⊆ e.target)
+    (he : ∀ x ∈ e.source,
+      o.IsOrientationPreservingAt (Manifold.Orientation.euclideanSpace 2) e x) :
+    ofChart e hr hc he ⟨0, mem_ball_of_norm_le_one (by simp)⟩ = e.symm c := by
+  simp
+
+/-- The closed disc of the coordinate disc of a chart is the image under `e.symm` of the closed
+ball of radius `r / 2` about `c`. -/
+@[simp]
+theorem disc_ofChart (e : OpenPartialHomeomorph M (EuclideanSpace ℝ (Fin 2)))
+    {c : EuclideanSpace ℝ (Fin 2)} {r : ℝ} (hr : 0 < r) (hc : Metric.ball c r ⊆ e.target)
+    (he : ∀ x ∈ e.source,
+      o.IsOrientationPreservingAt (Manifold.Orientation.euclideanSpace 2) e x) :
+    (ofChart e hr hc he).disc = e.symm '' Metric.closedBall c (r / 2) := by
+  ext x
+  simp only [mem_disc_iff, Set.mem_image, Metric.mem_closedBall]
+  constructor
+  · rintro ⟨z, hz, rfl⟩
+    refine ⟨ofChartHomeomorph c hr z, ?_, (ofChart_apply_eq e hr hc he z).symm⟩
+    rw [dist_ofChartHomeomorph]
+    exact mul_le_of_le_one_right (by positivity) hz
+  · rintro ⟨y, hy, rfl⟩
+    obtain ⟨w, rfl⟩ := (ofChartHomeomorph c hr).surjective y
+    rw [dist_ofChartHomeomorph] at hy
+    have hw : ‖w‖ ≤ 1 := by nlinarith
+    exact ⟨⟨w, mem_ball_of_norm_le_one hw⟩, hw, ofChart_apply_eq e hr hc he _⟩
+
+/-- The open disc of the coordinate disc of a chart is the image under `e.symm` of the open ball
+of radius `r / 2` about `c`. -/
+@[simp]
+theorem openDisc_ofChart (e : OpenPartialHomeomorph M (EuclideanSpace ℝ (Fin 2)))
+    {c : EuclideanSpace ℝ (Fin 2)} {r : ℝ} (hr : 0 < r) (hc : Metric.ball c r ⊆ e.target)
+    (he : ∀ x ∈ e.source,
+      o.IsOrientationPreservingAt (Manifold.Orientation.euclideanSpace 2) e x) :
+    (ofChart e hr hc he).openDisc = e.symm '' Metric.ball c (r / 2) := by
+  ext x
+  simp only [mem_openDisc_iff, Set.mem_image, Metric.mem_ball]
+  constructor
+  · rintro ⟨z, hz, rfl⟩
+    refine ⟨ofChartHomeomorph c hr z, ?_, (ofChart_apply_eq e hr hc he z).symm⟩
+    rw [dist_ofChartHomeomorph]
+    exact mul_lt_of_lt_one_right (by positivity) hz
+  · rintro ⟨y, hy, rfl⟩
+    obtain ⟨w, rfl⟩ := (ofChartHomeomorph c hr).surjective y
+    rw [dist_ofChartHomeomorph] at hy
+    have hw : ‖w‖ < 1 := by nlinarith
+    exact ⟨⟨w, mem_ball_of_norm_le_one hw.le⟩, hw, ofChart_apply_eq e hr hc he _⟩
 
 end CoordinateDisc
 

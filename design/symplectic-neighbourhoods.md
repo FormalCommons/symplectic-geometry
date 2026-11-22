@@ -217,6 +217,10 @@ and two rows of its milestone table.
     both use.
   - `Geometry/Manifold/Distribution/FlatChart.lean`: the step of
     `CharacteristicFoliation.lean` that uses nothing symplectic.
+  - `Geometry/Manifold/IsManifold/Basic.lean`: two instances for smooth
+    steps, here and in other parts: `C^(m + 1)` structures from `C^∞` ones,
+    and `IsNormableSpace` on tangent spaces, which `Adjoint.lean` needs when
+    its fibres are tangent spaces.
   - `Geometry/Manifold/TubularNeighborhood/MFDeriv.lean`: the step of
     `Tubular.lean` that uses nothing symplectic.
   - `Geometry/Manifold/VectorBundle/Adjoint.lean`: a step of
@@ -339,6 +343,13 @@ On an open `U`, it is applied to `U` and the restriction
   subspace, which is $(TQ)^\omega$ by Tau Ceti's
   `map_characteristicFoliation_distribution`. Its docstring also ends with
   the milestone line, since the milestone has this second statement.
+  `IsCoisotropicMap.exists_partialDiffeomorph_eval₂_eq_stdForm`, with the
+  same hypotheses and an identification `L` of the model of `N` with
+  `EuclideanSpace ℝ (Fin k) × StdSpace (Fin r)`, applies
+  `exists_partialDiffeomorph_eval₂_eq_stdForm` to `f^*ω` in the same way:
+  a chart of `N` in which `f^*ω` is the pull-back of `stdForm (Fin r)`
+  along the second component of `L`. `AdaptedDarboux.lean` takes its
+  coisotropic chart from it.
 
 ### `LinearAlgebra/Symplectic/Extension.lean`
 
@@ -609,9 +620,11 @@ Route, for all four. A chart `c` of `Q` at `q₀` onto an open set of the
 linear space `S` is chosen so that `c` carries `f^*ω` to the restriction of
 `stdForm` to `S`. For a symplectic `Q`, `c` is a Darboux chart of `f^*ω`
 (Tau Ceti's). For an isotropic or Lagrangian `Q`, any chart will do, since
-both restricted forms are `0`. For a coisotropic `Q`, `c` combines the leaf
-coordinates of `exists_isCharacteristicSubmersion` with a Darboux chart of
-the descended form on the ball. The lemma `exists_localDiffeomorph_extend`,
+both restricted forms are `0`. For a coisotropic `Q`, `c` is a chart of `Q`
+in which the closed form `f^*ω`, of constant rank, is the pull-back of
+`stdForm (Fin r)` along a linear projection
+(`IsCoisotropicMap.exists_partialDiffeomorph_eval₂_eq_stdForm`).
+The lemma `exists_localDiffeomorph_extend`,
 public in `Geometry/Manifold/LocalDiffeomorph/Extend.lean` (with the centred charts
 `exists_partialDiffeomorph_apply_eq_zero` that the isotropic case uses),
 extends `f ∘ c⁻¹` in the directions
