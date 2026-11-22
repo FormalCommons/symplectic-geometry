@@ -2273,8 +2273,9 @@ has either; Tau Ceti's extension across a boundary,
   metrics compatible with $J$ and nondegenerate forms compatible with $J$,
   through part 12's `compatibleForm`, with its two evaluation lemmas).
 - **Builds on:** *Symplectic vector bundles* (only the merged
-  `Symplectic/ComplexStructure/Basic.lean` and `Contractible.lean`); Tau
-  Ceti.
+  `Symplectic/ComplexStructure/Basic.lean` and `Contractible.lean`, and
+  `Geometry/Manifold/VectorBundle/ComplexStructure.lean` for `tangentEquiv`
+  and `tangentHomeomorph`); Tau Ceti.
 - **Milestones:** *Compatible and tame almost complex structures on
   manifolds*, over a Hausdorff σ-compact manifold, in the compact-open
   $C^\infty$ topology, as part 12 states the bundle milestone. The part needs
@@ -2406,10 +2407,13 @@ has either; Tau Ceti's extension across a boundary,
 
 ### 27. Complex projective space (needs `design/complex-projective-space.md`)
 
-- **Files:** in `Geometry/Manifold/Projectivization/FubiniStudy/`, beside
-  Tau Ceti's files on projective space: `Hopf.lean`
+- **Files:** `Geometry/Manifold/DifferentialForm/Dolbeault/Potential.lean`
+  ($\tfrac i2\partial\bar\partial f$ as a real two-form), and
+  `Geometry/Manifold/Projectivization/Hopf.lean`
   (the projection from $\mathbb C^{n+1}\setminus0$, and from the unit
-  sphere, to $\mathbb CP^n$ as smooth submersions), `Basic.lean`
+  sphere, to $\mathbb CP^n$ as smooth submersions); in
+  `Geometry/Manifold/Projectivization/FubiniStudy/`, beside
+  Tau Ceti's files on projective space: `Basic.lean`
   ($\rho_{\mathrm{FS}}$ and $\alpha_{\mathrm{FS}}$ on $\mathbb C^{n+1}\setminus0$, their
   relation to $\omega_0$ through the radial projection, and the descended
   form $\omega_{\mathrm{FS}}$, by Tau Ceti's
@@ -2485,19 +2489,20 @@ has either; Tau Ceti's extension across a boundary,
 - **Files:** in `Geometry/Symplectic/JHolomorphic/Energy/` (beside Tau Ceti's
   folder of the same name): `Density.lean` (the norm of a linear map from a
   tangent plane of $\Sigma$, measured by $\mathrm{dvol}_\Sigma(\cdot,j\cdot)$,
-  to a tangent space with $g_J$, its value on a frame $(e,je)$, the
-  operator $\bar\partial_J$, and the pointwise identity, by Tau Ceti's
+  to a tangent space, its value on a frame $(e,je)$, and the pointwise
+  identity, by Tau Ceti's
   `TauCeti.SmoothTwoForm.Invariant.stdComplexLineEnergyDensity_sub_two_mul_twoForm`
-  on each tangent plane), `Surface.lean` (the energy as an integral over
+  on each tangent plane, with $\bar\partial_J$ Tau Ceti's
+  `TauCeti.complexAntilinearPart`), `Metric.lean` (that norm read in
+  $g_J$), `Surface.lean` (the energy as an integral over
   the closed surface, Tau Ceti's `integralTopForm`, the integrated
-  identity, independence of the area form, and the $J$-holomorphic case)
+  identity, independence of the area form, the $J$-holomorphic case and
+  positivity)
   and `Homology.lean` (for closed $\omega$, $\int_\Sigma u^*\omega$ as the
-  pairing of $[\omega]$ with $u_*[\Sigma]$, from Tau Ceti's
-  `deRhamCohomology.integration`, its smoothing theorem
-  `TauCeti.smoothSingularChainHomotopyEquiv` and
-  `TauCeti.SmoothSimplex.integral_eq_integralTopForm`, if Tau Ceti has not
-  proved the comparison by then; and positivity, by Tau Ceti's
-  `TauCeti.integralTopForm_mpullback_nonneg`).
+  pairing of $[\omega]$ with $u_*[\Sigma]$, and the milestone), with the
+  comparison of `integralTopForm` with fundamental classes of closed
+  oriented surfaces, which Tau Ceti does not have, in files outside
+  the folder that the design file lists.
 - **Builds on:** *Almost complex manifolds* (only `Metric.lean`); Tau Ceti's
   `IsPseudoholomorphic`, energy densities, integration of top forms and
   smooth singular chains.
@@ -2620,7 +2625,7 @@ that file, and the notes here may fall behind it.
 | 0 | *Smooth families* | — (`Diffeotopy/Real.lean` imports `Geometry/Diffeomorphism/Diffeotopy/Velocity.lean` of *Hamiltonian flows*, which is merged and imports no file of *Smooth families*) |
 | 0 | *Cotangent bundles* | — |
 | 0 | *Liouville structures* | — (it imports `Analysis/Calculus/ContDiff/Seeley/Extension.lean`, `Geometry/Manifold/LocalDiffeomorph/Basic.lean` and `Geometry/Manifold/MFDeriv/Chart.lean` of *Smooth families*, in `Geometry/Manifold/Boundary/Collar/Flow/Local.lean`, which are merged, `Geometry/Manifold/IsManifold/InteriorBoundary.lean` of *Symplectic vector bundles*, which is merged, `Geometry/Manifold/DifferentialForm/Smooth.lean` of *Moser isotopy*, which imports only Tau Ceti and is merged, and `Geometry/Symplectic/Manifold/Family.lean` of *Moser isotopy* and `Geometry/Manifold/DifferentialForm/SmoothFamily/Basic.lean` of *Smooth families*, in `StableHamiltonian.lean`, which are merged) |
-| 0 | *Almost complex manifolds* | — (it uses only merged files of *Symplectic vector bundles*: `Symplectic/ComplexStructure/Basic.lean` and `Contractible.lean`) |
+| 0 | *Almost complex manifolds* | — (it uses only merged files of *Symplectic vector bundles*: `Symplectic/ComplexStructure/Basic.lean`, `Contractible.lean` and `ComplexStructure.lean`) |
 | 0 | *Nijenhuis tensor* | — |
 | 1 | *Unitary group topology* | *Symplectic group* (only the file on $\mathrm{Sp}(2n)$; the other files can start at once) |
 | 1 | *Symplectic vector spaces* | *Standard model*, *Symplectic group* |
