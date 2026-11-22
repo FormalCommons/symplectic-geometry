@@ -27,8 +27,8 @@ it adds that the map is `0` near `0` and `1` near `1`
 `TauCeti.collaredSmoothTransition_eventuallyEq_one`), and that its derivative is positive at
 every point where its value is neither `0` nor `1` (`TauCeti.deriv_collaredSmoothTransition_pos`).
 
-It also gives a smooth map `c : ℝ → ℝ` that is the identity on a closed interval `[a, b]` and
-takes its values in the open interval `(a - ε, b + ε)`
+It also gives a smooth map `c : ℝ → ℝ` that is the identity on a closed interval `[a, b]`,
+takes its values in the open interval `(a - ε, b + ε)`, and is constant outside it
 (`SymplecticGeometry.exists_contDiff_eqOn_id_Icc_mem_Ioo`). It is `t ↦ m + f t * (t - m)` for
 the midpoint `m` of `[a, b]` and a smooth bump `f` centred at `m`, equal to `1` on `[a, b]` and
 supported in `(a - ε, b + ε)`. The construction adapts Tau Ceti's
@@ -98,17 +98,19 @@ namespace SymplecticGeometry
 
 open scoped ContDiff
 
-/-- A smooth map `ℝ → ℝ` that is the identity on the closed interval `[a, b]` and takes its
-values in the open interval `(a - ε, b + ε)`, for any `a ≤ b` and `ε > 0`. -/
+/-- A smooth map `ℝ → ℝ` that is the identity on the closed interval `[a, b]`, takes its values
+in the open interval `(a - ε, b + ε)`, and is equal to the midpoint `(a + b) / 2` outside that
+interval, for any `a ≤ b` and `ε > 0`. -/
 theorem exists_contDiff_eqOn_id_Icc_mem_Ioo {a b ε : ℝ} (hab : a ≤ b) (hε : 0 < ε) :
     ∃ c : ℝ → ℝ, ContDiff ℝ ∞ c ∧ Set.EqOn c id (Set.Icc a b) ∧
-      ∀ t, c t ∈ Set.Ioo (a - ε) (b + ε) := by
+      (∀ t, c t ∈ Set.Ioo (a - ε) (b + ε)) ∧
+      ∀ t ∉ Set.Ioo (a - ε) (b + ε), c t = (a + b) / 2 := by
   obtain ⟨m, hm⟩ : ∃ m : ℝ, m = (a + b) / 2 := ⟨_, rfl⟩
   let f : ContDiffBump m := ⟨(b - a) / 2 + ε / 2, (b - a) / 2 + ε, by linarith, by linarith⟩
   have hrIn : f.rIn = (b - a) / 2 + ε / 2 := rfl
   have hrOut : f.rOut = (b - a) / 2 + ε := rfl
   refine ⟨fun t ↦ m + f t * (t - m), contDiff_const.add (f.contDiff.mul (contDiff_id.sub
-    contDiff_const)), fun t ht ↦ ?_, fun t ↦ ?_⟩
+    contDiff_const)), fun t ht ↦ ?_, fun t ↦ ?_, fun t ht ↦ ?_⟩
   · have : f t = 1 := f.one_of_mem_closedBall <| by
       rw [Metric.mem_closedBall, Real.dist_eq, abs_le, hrIn]
       constructor <;> linarith [ht.1, ht.2]
@@ -123,6 +125,14 @@ theorem exists_contDiff_eqOn_id_Icc_mem_Ioo {a b ε : ℝ} (hab : a ≤ b) (hε 
       exact (mul_le_of_le_one_left dist_nonneg f.le_one).trans_lt ht
     · rw [f.zero_of_le_dist ht, zero_mul, abs_zero]
       exact f.rOut_pos
+  · -- Outside `(a - ε, b + ε)`, `t` is at distance at least `rOut` from `m`, where `f` is `0`.
+    have : f.rOut ≤ dist t m := by
+      rw [Set.mem_Ioo, not_and_or, not_lt, not_lt] at ht
+      rw [Real.dist_eq, hrOut, le_abs]
+      rcases ht with ht | ht
+      · right; linarith
+      · left; linarith
+    simp [f.zero_of_le_dist this, hm]
 
 /-- A smooth map `ℝ → ℝ` that is the identity on the closed interval `[a, b]` and takes its
 values in a given open set `U ⊇ [a, b]`, for any `a ≤ b`. -/
@@ -131,7 +141,7 @@ theorem exists_contDiff_eqOn_id_Icc_mem_of_isOpen {a b : ℝ} {U : Set ℝ} (hab
     ∃ c : ℝ → ℝ, ContDiff ℝ ∞ c ∧ Set.EqOn c id (Set.Icc a b) ∧ ∀ t, c t ∈ U := by
   obtain ⟨ε₀, hε₀, h₀⟩ := Metric.isOpen_iff.mp hU a (hIU ⟨le_rfl, hab⟩)
   obtain ⟨ε₁, hε₁, h₁⟩ := Metric.isOpen_iff.mp hU b (hIU ⟨hab, le_rfl⟩)
-  obtain ⟨c, hc, hcI, hcU⟩ := exists_contDiff_eqOn_id_Icc_mem_Ioo hab (lt_min hε₀ hε₁)
+  obtain ⟨c, hc, hcI, hcU, -⟩ := exists_contDiff_eqOn_id_Icc_mem_Ioo hab (lt_min hε₀ hε₁)
   refine ⟨c, hc, hcI, fun t ↦ ?_⟩
   -- The value `c t` lies in `[a, b]` or within `min ε₀ ε₁` of one of its ends.
   obtain ⟨ht₀, ht₁⟩ := hcU t

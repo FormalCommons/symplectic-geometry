@@ -11,6 +11,7 @@ public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Pullback
 public import TauCeti.Geometry.Symplectic.Manifold.Nijenhuis
 import Mathlib.Geometry.Manifold.MFDeriv.Tangent
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 import TauCeti.Geometry.Manifold.MFDeriv.RestrictScalars
 import TauCeti.Geometry.Symplectic.Finrank
@@ -41,7 +42,9 @@ Tau Ceti's `SmoothAlmostComplexStructure.HasIsothermalCharts`.
 ## Main declarations
 
 * `TauCeti.SmoothAlmostComplexStructure.IsIntegrable`: integrability of a smooth almost complex
-  structure; `isIntegrable_iff_mfderiv` states it through derivatives of charts.
+  structure; `isIntegrable_iff_mfderiv` states it through derivatives of charts, and
+  `isIntegrable_of_forall_exists_isLocalDiffeomorphAt` accepts, in place of a chart, any map
+  that is a local diffeomorphism at the point.
 * `TauCeti.SmoothAlmostComplexStructure.mfderiv_apply_eq_chartPushforward_apply` and
   `TauCeti.SmoothAlmostComplexStructure.chartPushforward_apply_chartPushforward_apply`: the
   derivative of a smooth chart intertwines `J` with its pushforward, which squares to `-1`.
@@ -142,6 +145,30 @@ theorem isIntegrable_iff_mfderiv : J.IsIntegrable ↔
       x ∈ ψ.source ∧ ∀ y ∈ ψ.source, ∀ v : TangentSpace I y,
         mfderiv I 𝓘(ℝ, E) ψ y (J y v) = J₀ (mfderiv I 𝓘(ℝ, E) ψ y v) := by
   simp only [isIntegrable_def, forall_chartPushforward_apply_eq_iff]
+
+/-- `J` is integrable when around every point `x` there are an open set `s ∋ x` and a map
+`φ : M → E` that is a smooth local diffeomorphism at `x` and whose derivative carries `J` to a
+fixed linear complex structure of `E` at every point of `s`. -/
+theorem isIntegrable_of_forall_exists_isLocalDiffeomorphAt
+    (h : ∀ x : M, ∃ (φ : M → E) (s : Set M) (J₀ : AlmostComplexStructure E),
+      IsOpen s ∧ x ∈ s ∧ IsLocalDiffeomorphAt I 𝓘(ℝ, E) ∞ φ x ∧
+        ∀ y ∈ s, ∀ v : TangentSpace I y,
+          mfderiv I 𝓘(ℝ, E) φ y (J y v) = J₀ (mfderiv I 𝓘(ℝ, E) φ y v)) :
+    J.IsIntegrable := by
+  rw [isIntegrable_iff_mfderiv]
+  intro x
+  obtain ⟨φ, s, J₀, hs, hxs, hφ, hJ⟩ := h x
+  -- A partial diffeomorphism that agrees with `φ` near `x`, shrunk to `s`, is the chart.
+  obtain ⟨Φ, hxΦ, hφΦ⟩ := hφ.exists_partialDiffeomorph
+  refine ⟨Φ.restrOpen s hs, J₀, by simpa using ⟨hxΦ, hxs⟩, fun y hy v ↦ ?_⟩
+  rw [PartialDiffeomorph.restrOpen_source] at hy
+  have hd : mfderiv I 𝓘(ℝ, E) (Φ.restrOpen s hs) y = mfderiv I 𝓘(ℝ, E) φ y := by
+    refine Filter.EventuallyEq.mfderiv_eq ?_
+    filter_upwards [(Φ.open_source.inter hs).mem_nhds hy] with z hz
+    rw [PartialDiffeomorph.coe_restrOpen]
+    exact (hφΦ hz.1).symm
+  rw [hd]
+  exact hJ y hy.2 v
 
 /-- **The Nijenhuis tensor of an integrable structure vanishes.** -/
 theorem IsIntegrable.nijenhuis_eq_zero [FiniteDimensional ℝ E]
