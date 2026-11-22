@@ -7,7 +7,6 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.TubularNeighborhood.RelativePoincare
 public import TauCeti.Geometry.Symplectic.Manifold.Flat
-import TauCeti.Geometry.Manifold.DifferentialForm.Flow.Family
 import TauCeti.Geometry.Manifold.DifferentialForm.Opens
 import TauCeti.Geometry.Manifold.Flow.TimeDependent.RestPoint
 import TauCeti.Geometry.Symplectic.Hamiltonian.SymplecticVectorField

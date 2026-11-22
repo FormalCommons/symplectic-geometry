@@ -28,6 +28,7 @@ where it is `contDiffOn_seeleyIccExtend`; the time coordinate needs only `projIc
 ## Main definitions
 
 * `SymplecticGeometry.timeExtend`: the extension of `f : unitInterval × M → F` to `ℝ × M`.
+* `SymplecticGeometry.timeExtendLinearMap`: the same extension, as an `ℝ`-linear map.
 
 ## Main results
 
@@ -77,6 +78,21 @@ theorem timeExtend_smul (c : ℝ) (f : unitInterval × M → F) :
   funext p
   exact congrFun (seeleyIccExtend_smul c fun s ↦ f (projIcc 0 1 zero_le_one s, p.2)) p.1
 
+variable (M F) in
+/-- The time extension `timeExtend`, as an `ℝ`-linear map from maps `unitInterval × M → F` to
+maps `ℝ × M → F`. -/
+noncomputable def timeExtendLinearMap : (unitInterval × M → F) →ₗ[ℝ] (ℝ × M → F) where
+  toFun := timeExtend
+  map_add' := timeExtend_add
+  map_smul' := timeExtend_smul
+
+@[simp]
+theorem coe_timeExtendLinearMap : ⇑(timeExtendLinearMap M F) = timeExtend := (rfl)
+
+@[simp]
+theorem timeExtend_zero : timeExtend (0 : unitInterval × M → F) = 0 := by
+  rw [← coe_timeExtendLinearMap, map_zero]
+
 /-- The time extension commutes with linear maps. -/
 theorem _root_.LinearMap.map_timeExtend (L : F →ₗ[ℝ] G) (f : unitInterval × M → F)
     (p : ℝ × M) : L (timeExtend f p) = timeExtend (L ∘ f) p :=
@@ -86,10 +102,6 @@ theorem _root_.LinearMap.map_timeExtend (L : F →ₗ[ℝ] G) (f : unitInterval 
 theorem timeExtend_congr {f g : unitInterval × M → F} {x : M} (h : ∀ s, f (s, x) = g (s, x))
     (t : ℝ) : timeExtend f (t, x) = timeExtend g (t, x) := by
   simp only [timeExtend_def, h]
-
-@[simp]
-theorem timeExtend_zero : timeExtend (0 : unitInterval × M → F) = 0 := by
-  rw [← zero_smul ℝ (0 : unitInterval × M → F), timeExtend_smul, zero_smul]
 
 /-- If `f` vanishes at `x` at every time, so does its time extension. -/
 theorem timeExtend_eq_zero {f : unitInterval × M → F} {x : M} (h : ∀ s, f (s, x) = 0) (t : ℝ) :
