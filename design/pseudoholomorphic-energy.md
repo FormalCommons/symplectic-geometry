@@ -204,6 +204,7 @@ of Tau Ceti's roadmap that no one has started.
 | `Geometry/Symplectic/Manifold/AlmostComplex/TopForm.lean` | top forms on a tangent plane of an almost complex surface: equality and ratios read on one frame $(e,je)$, without an orientation |
 | `Geometry/Symplectic/JHolomorphic/Energy/Metric.lean` | the squared norm read in $g_J$ |
 | `Geometry/Symplectic/JHolomorphic/Energy/Surface.lean` | the energy form and its continuity, the energy, the integrated identity, the pseudoholomorphic case, positivity |
+| `AlgebraicTopology/SimplicialSet/Homology/RestrictScalars.lean` | the change of coefficients on simplicial chains along a restriction of scalars, `SSet.restrictScalarsChainMap` |
 | `Geometry/Manifold/SmoothSingular/SingularPeriod.lean` | the pairing of de Rham classes with integral singular homology |
 | `Geometry/Manifold/SmoothSingular/RelativeCycle.lean` | the relative step of Decision 7 |
 | `AlgebraicTopology/SimplicialSet/Homology/RelativeClass.lean` | the relative class of a simplex whose faces lie in the subcomplex of a pair of simplicial sets, `SSetPair.relClass` |
@@ -263,7 +264,8 @@ For `c : C`, `x : M` and `L : TangentSpace I' c →ₗ[ℝ] TangentSpace I x`
 ### `Energy/Metric.lean`
 
 - `TauCeti.SmoothTwoForm.Compatible.normSq_eq_inner`: for `hc : ω.Compatible J`
-  and `e` with `dvol (e, j e) = 1` (a unit vector for the domain metric),
+  and `e` with `dvol (e, j e) = 1` (a unit vector for the domain metric), on a plane
+  (`Module.finrank ℝ E' = 2`, as for `normSq_eq`),
   `normSq = hc.metric.inner x (L e) (L e) + hc.metric.inner x (L (j e)) (L (j e))`,
   from `Compatible.metric_inner` of *Almost complex manifolds*' `Metric.lean`.
   This is the page's reading of $\lvert\eta\rvert^2$ through a unit vector, in
@@ -459,7 +461,9 @@ Each is a few hundred lines; each is blocked by the issues it names.
 4. **The squared norm in the metric of a compatible pair.**
    `Energy/Metric.lean`. About 80 lines. Blocked by 1 and #860.
 5. **Periods of closed forms on integral singular homology.**
-   `SmoothSingular/SingularPeriod.lean`. About 300 lines. No blockers.
+   `SmoothSingular/SingularPeriod.lean`, with the change of coefficients on
+   chains in `SimplicialSet/Homology/RestrictScalars.lean`. About 300 lines.
+   No blockers.
 6. **Relative cycles and smooth chains.** `SmoothSingular/RelativeCycle.lean`.
    About 250 lines. No blockers.
 7. **Positively oriented simplices in local homology.**
