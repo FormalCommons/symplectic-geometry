@@ -8,7 +8,7 @@ module
 public import Mathlib.Geometry.Manifold.IsManifold.InteriorBoundary
 public import Mathlib.Analysis.Convex.Topology
 public import SymplecticGeometry.Topology.Connected.Clopen
-public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
+import TauCeti.Geometry.Manifold.Boundary.Basic
 
 /-!
 # The interior of a manifold with boundary
@@ -22,19 +22,17 @@ chart neighbourhood of `x` correspond to the intersection of a ball with the int
 range of `I`, which is convex since the range is. No hypothesis on the dimension is needed: in
 dimension zero, every point is an interior point.
 
-It also extends two facts about charts of the atlas to the maximal atlas: Mathlib's
-`ModelWithCorners.isInteriorPoint_iff_of_mem_atlas`, through Mathlib's
-`IsLocalDiffeomorphAt.isInteriorPoint_iff`, and Tau Ceti's
-`OpenPartialHomeomorph.isOpen_extend_target_of_mem_atlas`, whose proof is followed.
+It also extends Tau Ceti's `OpenPartialHomeomorph.isOpen_extend_target_of_mem_atlas` from the
+atlas to the maximal atlas, following its proof, with Tau Ceti's
+`TauCeti.ModelWithCorners.isInteriorPoint_iff_mem_interior_range` to read interior points in a
+chart of the maximal atlas.
 
 ## Main definitions and results
 
 * `ModelWithCorners.isInteriorPoint_extChartAt_symm_iff`: a point of a chart target is the image
   of an interior point if and only if it lies in the interior of the range of `I`.
-* `ModelWithCorners.isInteriorPoint_iff_of_mem_maximalAtlas`: the interior points in the source of
-  a chart of the maximal atlas are those it sends into the interior of its target. So in a
-  boundaryless manifold such charts have open targets
-  (`OpenPartialHomeomorph.isOpen_extend_target_of_mem_maximalAtlas`).
+* `OpenPartialHomeomorph.isOpen_extend_target_of_mem_maximalAtlas`: in a manifold without
+  boundary, every chart of the maximal atlas has an open extended target.
 * `ModelWithCorners.dense_interior`: the interior of `M` is dense.
 * `ModelWithCorners.interiorOpens`: the interior of `M` as an open subset.
 * `ModelWithCorners.BoundarylessManifold.interior`: the interior of `M` is a manifold without
@@ -73,34 +71,19 @@ theorem isInteriorPoint_extChartAt_symm_iff [IsManifold I n M] (hn : n ≠ 0) {x
     rwa [← (chartAt H x).extend_target', ← extChartAt]
   exact (chartAt H x).mem_interior_extend_target hw h
 
-/-- In a `C¹` manifold, a point `x` in the source of a chart `e` of the maximal atlas is an interior
-point if and only if the extended chart sends it into the interior of its target. This is
-Mathlib's `ModelWithCorners.isInteriorPoint_iff_of_mem_atlas` for the maximal atlas. -/
-theorem isInteriorPoint_iff_of_mem_maximalAtlas [IsManifold I n M] (hn : n ≠ 0)
-    {e : OpenPartialHomeomorph M H} (he : e ∈ IsManifold.maximalAtlas I n M) {x : M}
-    (hx : x ∈ e.source) :
-    I.IsInteriorPoint x ↔ e.extend I x ∈ interior (e.extend I).target := by
-  rw [(e.isLocalDiffeomorphAt_of_mem_maximalAtlas he hx).isInteriorPoint_iff hn,
-    isInteriorPoint_iff]
-  simp only [extChartAt, chartAt_self_eq, OpenPartialHomeomorph.extend_coe, Function.comp_apply,
-    OpenPartialHomeomorph.extend_target, OpenPartialHomeomorph.refl_target, preimage_univ,
-    univ_inter, OpenPartialHomeomorph.refl_apply, id]
-  rw [← OpenPartialHomeomorph.extend_target]
-  exact ⟨e.mem_interior_extend_target (e.map_source hx),
-    fun h ↦ e.interior_extend_target_subset_interior_range h⟩
-
-/-- In a boundaryless `C¹` manifold, every chart of the maximal atlas has an open extended target.
-This is Tau Ceti's `OpenPartialHomeomorph.isOpen_extend_target_of_mem_atlas` for the maximal
-atlas. -/
-theorem _root_.OpenPartialHomeomorph.isOpen_extend_target_of_mem_maximalAtlas [IsManifold I n M]
+/-- In a boundaryless manifold, every chart of the maximal atlas of nonzero regularity has an open
+extended target. This is Tau Ceti's `OpenPartialHomeomorph.isOpen_extend_target_of_mem_atlas` for
+the maximal atlas. -/
+theorem _root_.OpenPartialHomeomorph.isOpen_extend_target_of_mem_maximalAtlas
     [BoundarylessManifold I M] (hn : n ≠ 0) {e : OpenPartialHomeomorph M H}
     (he : e ∈ IsManifold.maximalAtlas I n M) : IsOpen (e.extend I).target := by
   refine isOpen_iff_mem_nhds.2 fun y hy ↦ ?_
   have hx : (e.extend I).symm y ∈ e.source := by
     simpa only [OpenPartialHomeomorph.extend_source] using (e.extend I).map_target hy
-  have h := (I.isInteriorPoint_iff_of_mem_maximalAtlas hn he hx).1
-    BoundarylessManifold.isInteriorPoint
-  rw [(e.extend I).right_inv hy] at h
+  have h := e.mem_interior_extend_target (e.map_source hx)
+    ((TauCeti.ModelWithCorners.isInteriorPoint_iff_mem_interior_range hn he hx).1
+      BoundarylessManifold.isInteriorPoint)
+  rw [← Function.comp_apply (f := I) (g := e), ← e.extend_coe, (e.extend I).right_inv hy] at h
   exact mem_interior_iff_mem_nhds.1 h
 
 /-- The interior of a `C¹` manifold is dense. -/
