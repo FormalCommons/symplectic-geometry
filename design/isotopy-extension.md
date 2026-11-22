@@ -509,7 +509,7 @@ for a general family.
 every value of a parameter $t\in[0,1]$, relative to a compact set:
 
 ```lean
-theorem TauCeti.SmoothTwoForm.exists_diffeotopy_mpullback_eq_of_parametric
+theorem TauCeti.SmoothTwoForm.exists_diffeotopy_fix_eventually_mpullback_eq_of_mextDeriv_eq_sub
     [I.Boundaryless] [T2Space N] {ω₀ : SmoothTwoForm I N} (hω₀ : ω₀.IsClosed)
     (σ : SmoothForm ((𝓡∂ 1).prod I) (unitInterval × N) ℝ 2)
     (β : SmoothForm ((𝓡∂ 1).prod I) (unitInterval × N) ℝ 1)
@@ -541,10 +541,13 @@ constant in the Moser time, and the steps follow Tau Ceti's
 the module docstring credits. The file proves that this field is jointly
 smooth in `t`, `s` and the point, by the argument of
 `contMDiff_moserField`. For joint smoothness of the flow in `t`, the issue
-extends `β` in `t` past both ends and runs
-the flow of the vertical field $(0,X_{s,t})$ on the manifold `ℝ × N`. Its
-first component is constant, so by uniqueness its slices are the flows of the
-$X_{\cdot,t}$. The ball extension applies this theorem to parametric radial
+extends `β` in `t` past both ends and reads the flows of the $X_{\cdot,t}$
+off one flow, by `TauCeti.contMDiff_timeDependentFlowOf_param`
+(`Geometry/Manifold/Flow/TimeDependent.lean`): Tau Ceti's
+`contMDiffAt_flowOf_param` runs the vertical field of their suspensions
+$(1,X_{s,t})$, a family over `t`, whose first component is constant. The
+time-one maps, a family over `ℝ`, give the diffeotopy by
+`TauCeti.Diffeotopy.ofReal`. The ball extension applies this theorem to parametric radial
 primitives, which are not in this file: they are
 `SymplecticGeometry.exists_isSmoothFamily_mextDerivₗ_eq_of_starConvex` of
 *Smooth families*' `Geometry/Manifold/DifferentialForm/SmoothFamily/Poincare.lean`,
@@ -853,11 +856,14 @@ this design already follows. `Ball/Isotopy.lean` cites
   `M`, which `Geometry/Manifold/DeRham/SmoothFamily/GoodCover.lean` derives
   from `hasFiniteGoodCover_of_compactSpace` (used by
   `Cohomological/Primitive.lean`, which also imports `Geometry/Manifold/DeRham/Map.lean`
-  for `TauCeti.SmoothForm.mpullback_mem_closedForms`). The part uses neither the splittings and
-  `contMDiff_repr_mk_of_hasFiniteGoodCover` nor the bridge
-  `Diffeotopy/Real.lean`: the periods are smooth in `t` as line integrals,
-  and its flows are Tau Ceti's `timeDependentFlowDiffeotopy`, already a
-  `Diffeotopy`.
+  for `TauCeti.SmoothForm.mpullback_mem_closedForms`). The part does not use the splittings and
+  `contMDiff_repr_mk_of_hasFiniteGoodCover`: the periods are smooth in `t`
+  as line integrals. Its flows are Tau Ceti's `timeDependentFlowDiffeotopy`,
+  already a `Diffeotopy`, except in `Moser/Family.lean`, which imports the
+  bridge `Diffeotopy/Real.lean` for `TauCeti.Diffeotopy.ofReal` and
+  `Geometry/Manifold/Flow/TimeDependent.lean` for
+  `TauCeti.contMDiff_timeDependentFlowOf_param`, a lemma this part adds
+  there.
 - *Hamiltonian flows*: in `DeRham/FamilyPrimitive.lean`, the smooth primitive of a
   smooth family of exact one-forms over $[0,1]$, which that part's design
   (`design/hamiltonian-flows.md`, Decision 4) builds on chart balls and glues
@@ -882,11 +888,13 @@ this design already follows. `Ball/Isotopy.lean` cites
   `Geometry/Manifold/MFDeriv/Prod.lean`, for derivatives on products.
   `Moser/Family.lean` imports `Geometry/Diffeomorphism/Diffeotopy/Velocity.lean`
   too, for the slices of the Moser diffeotopy.
-- *Contact geometry*: only the merged
+- *Contact geometry*: the merged
   `Geometry/Manifold/DifferentialForm/LieDeriv.lean`, whose
   `TauCeti.mpullback_prodMk_mlieDerivForm_prodVectorField_zero_eq_zero`
   `IsotopyExtension/Velocity.lean` uses for the closedness of the velocity
-  forms.
+  forms, and `Geometry/Manifold/DifferentialForm/Flow/Family.lean`, whose
+  `TauCeti.SmoothForm.mpullback_prodMk_timeDeriv_lineMapFamily`
+  `Moser/Family.lean` uses for the velocity of a segment of forms.
 - *Moser isotopy*: `Moser/Field.lean`, whose `moserField` (#506) is
   the cut-off Moser field of both theorems of `Moser/Family.lean`. That
   design planned it for the linear segment between two forms with a fixed
