@@ -115,10 +115,8 @@ theorem _root_.SymplecticGeometry.H1Form.ofSmooth_mem_ker_dirichlet
     (H1Form.ofSmooth α : H1Form o hkl) ∈ (H1Form.dirichlet (o := o) (hkl := hkl)).ker := by
   rw [LinearMap.mem_ker, ContinuousLinearMap.coe_coe]
   ext v
-  induction v using H1Form.induction_on with
-  | hp => exact isClosed_eq (by fun_prop) continuous_const
-  | h β => rw [H1Form.dirichlet_ofSmooth, (mem_harmonicForms o hkl α).1 hα,
-      SmoothForm.l2Inner_zero_left, zero_apply]
+  rw [H1Form.dirichlet_comm, H1Form.dirichlet_ofSmooth_right, (mem_harmonicForms o hkl α).1 hα,
+    map_zero, inner_zero_right, zero_apply]
 
 /-- **The harmonic forms are finite dimensional** on a closed oriented Riemannian manifold. They
 embed into the kernel of the Dirichlet form, which is finite dimensional by the Fredholm
@@ -133,17 +131,26 @@ instance finiteDimensional_harmonicForms (o : Manifold.Orientation I M (Fin m))
       fun α ↦ H1Form.ofSmooth_mem_ker_dirichlet o hkl α.property)
     fun α β h ↦ Subtype.ext (H1Form.ofSmooth_injective (congrArg Subtype.val h))
 
-/-- An element of `H¹` in the kernel of the Dirichlet form is, in `L²`, a harmonic form. -/
-theorem _root_.SymplecticGeometry.H1Form.exists_mem_harmonicForms_toL2_eq
+/-- An element of `H¹` in the kernel of the Dirichlet form is a harmonic form. -/
+theorem _root_.SymplecticGeometry.H1Form.exists_mem_harmonicForms_eq_ofSmooth_of_mem_ker_dirichlet
     (o : Manifold.Orientation I M (Fin m)) (hkl : k + l = m) {w : H1Form o hkl}
-    (hw : ∀ v, H1Form.dirichlet v w = 0) :
-    ∃ β ∈ harmonicForms o hkl, H1Form.toL2 w = L2Form.ofSmooth β := by
+    (hw : w ∈ (H1Form.dirichlet (o := o) (hkl := hkl)).ker) :
+    ∃ β ∈ harmonicForms o hkl, w = H1Form.ofSmooth β := by
+  rw [LinearMap.mem_ker, ContinuousLinearMap.coe_coe] at hw
   have hweak : L2Form.IsWeakSolution o hkl (H1Form.toL2 w) (L2Form.ofSmooth 0) :=
     L2Form.isWeakSolution_iff.2 fun φ ↦ by
-      rw [← H1Form.dirichlet_ofSmooth_right, H1Form.dirichlet_comm, hw, map_zero,
-        inner_zero_left]
+      rw [← H1Form.dirichlet_ofSmooth_right, hw, map_zero, inner_zero_left, zero_apply]
   obtain ⟨β, hβ, hΔ⟩ := L2Form.exists_eq_ofSmooth_of_isWeakSolution hweak
-  exact ⟨β, (mem_harmonicForms o hkl β).2 hΔ, hβ⟩
+  exact ⟨β, (mem_harmonicForms o hkl β).2 hΔ,
+    H1Form.toL2_injective (by rw [hβ, H1Form.toL2_ofSmooth])⟩
+
+/-- **The kernel of the Dirichlet form** consists of the harmonic forms. -/
+theorem _root_.SymplecticGeometry.H1Form.mem_ker_dirichlet_iff
+    (o : Manifold.Orientation I M (Fin m)) (hkl : k + l = m) {w : H1Form o hkl} :
+    w ∈ (H1Form.dirichlet (o := o) (hkl := hkl)).ker ↔
+      ∃ β ∈ harmonicForms o hkl, w = H1Form.ofSmooth β :=
+  ⟨H1Form.exists_mem_harmonicForms_eq_ofSmooth_of_mem_ker_dirichlet o hkl,
+    fun ⟨_, hβ, hw⟩ ↦ hw ▸ H1Form.ofSmooth_mem_ker_dirichlet o hkl hβ⟩
 
 /-- **The Hodge decomposition of a smooth form**: on a closed oriented Riemannian manifold, every
 smooth `k`-form is `h + Δγ` with `h` harmonic and `γ` smooth. -/
@@ -154,18 +161,18 @@ theorem exists_mem_harmonicForms_add_hodgeLaplacian (o : Manifold.Orientation I 
   -- Project `α` in `L²` onto the finite-dimensional space of harmonic forms.
   set K : Submodule ℝ (L2Form o k) :=
     (harmonicForms o hkl).map (L2Form.ofSmooth : SmoothForm I M ℝ k →ₗ[ℝ] L2Form o k)
-  obtain ⟨h, hh, hPh⟩ := Submodule.mem_map.1
-    (K.orthogonalProjectionOnto (L2Form.ofSmooth α)).property
-  have hperp := K.sub_starProjection_mem_orthogonal (L2Form.ofSmooth α)
-  rw [Submodule.starProjection_apply, ← hPh, ← map_sub] at hperp
+  obtain ⟨_, ⟨h, hh, rfl⟩, z, hz, hα⟩ := K.exists_add_mem_mem_orthogonal (L2Form.ofSmooth α)
+  have hperp : L2Form.ofSmooth (α - h) ∈ Kᗮ := by rwa [map_sub, hα, add_sub_cancel_left]
   -- The functional `v ↦ ⟪α - h, toL2 v⟫` vanishes on the kernel of the Dirichlet form.
   have hgard (w : H1Form o hkl) :
       1 * ‖w‖ ^ 2 ≤ H1Form.dirichlet w w + 1 * ‖H1Form.toL2 w‖ ^ 2 := by
     rw [one_mul, one_mul, H1Form.norm_sq_eq_dirichlet_add]
   obtain ⟨u, hu⟩ := (H1Form.isCompactOperator_toL2.exists_forall_apply_eq_iff_of_garding one_pos
     hgard ((innerSL ℝ (L2Form.ofSmooth (α - h))).comp H1Form.toL2)).2 fun w hw ↦ by
-      obtain ⟨β, hβ, hwβ⟩ := H1Form.exists_mem_harmonicForms_toL2_eq o hkl hw
-      rw [ContinuousLinearMap.comp_apply, innerSL_apply_apply, hwβ]
+      obtain ⟨β, hβ, rfl⟩ := (H1Form.mem_ker_dirichlet_iff o hkl).1 <| by
+        rw [LinearMap.mem_ker, ContinuousLinearMap.coe_coe]
+        exact ContinuousLinearMap.ext fun v ↦ by rw [H1Form.dirichlet_comm]; exact hw v
+      rw [ContinuousLinearMap.comp_apply, innerSL_apply_apply, H1Form.toL2_ofSmooth]
       exact Submodule.inner_left_of_mem_orthogonal (Submodule.mem_map_of_mem hβ) hperp
   -- Its solution is a weak solution of `Δu = α - h`, hence smooth.
   have hweak : L2Form.IsWeakSolution o hkl (H1Form.toL2 u) (L2Form.ofSmooth (α - h)) :=
