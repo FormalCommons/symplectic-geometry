@@ -136,7 +136,7 @@ theorem ιChainComplex_restrictScalarsChainIso_hom_f (X : SSet.{u}) {n : ℕ} (x
 
 /-- The inverse of the change of coefficients along `e` sends the restricted summand of a
 simplex `x` to the summand of `x`, through `e⁻¹` on coefficients. -/
-@[reassoc (attr := simp)]
+@[reassoc (attr := simp), elementwise]
 theorem map_ιChainComplex_restrictScalarsChainIso_inv_f (X : SSet.{u}) {n : ℕ}
     (x : X _⦋n⦌) :
     (ModuleCat.restrictScalars f).map (X.ιChainComplex x) ≫
@@ -161,7 +161,7 @@ theorem restrictScalarsChainIso_inv_f_ιChainComplex (X : SSet.{u}) {n : ℕ} (x
     ((restrictScalarsChainIso f e X).inv.f n).hom ((X.ιChainComplex (R := N) x).hom m) =
       (X.ιChainComplex (R := M) x).hom (e.inv.hom m) :=
   -- The coefficient `m` is read in `f^* N`, whose carrier is that of `N`.
-  ConcreteCategory.congr_hom (map_ιChainComplex_restrictScalarsChainIso_inv_f f e X x) m
+  map_ιChainComplex_restrictScalarsChainIso_inv_f_apply f e X x m
 
 end Iso
 
