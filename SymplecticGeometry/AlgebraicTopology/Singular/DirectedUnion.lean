@@ -38,8 +38,8 @@ without renames.
 
 ## References
 
-* A. Hatcher, *Algebraic Topology*, Cambridge University Press, 2002, Proposition 3.33: singular
-  homology commutes with directed unions of open sets.
+* A. Hatcher, *Algebraic Topology*, Section 2.1, Proposition 2.6 and the compactness argument in
+  the proof of Proposition 2B.1.
 -/
 
 public section
