@@ -7,6 +7,7 @@ module
 
 public import Mathlib.Analysis.Matrix.Normed
 public import SymplecticGeometry.Analysis.CStarAlgebra.Exponential
+public import SymplecticGeometry.Analysis.Matrix.L2OpNorm
 public import SymplecticGeometry.Analysis.SpecialFunctions.ContinuousFunctionalCalculus.ExpLog
 public import SymplecticGeometry.LinearAlgebra.Matrix.SymplecticGroup.Basic
 public import SymplecticGeometry.Topology.Algebra.Matrix.Realify
@@ -34,7 +35,8 @@ orthogonal factor `U` is the realification of a unitary matrix
 `SymplecticGroup.joinedIn_polarUnitary` and `Matrix.isPathConnected_symplecticGroup`, joined here
 by smooth paths instead.
 
-Smoothness is stated for the entrywise norm `Matrix.Norms.Elementwise`.
+Smoothness is stated for the entrywise norm `Matrix.Norms.Elementwise`, and for the ℓ² operator
+norm `Matrix.Norms.L2Operator` in `Matrix.exists_contDiff_path_symplecticGroup_l2Op`.
 
 ## References
 
@@ -103,6 +105,17 @@ theorem exists_contDiff_path_symplecticGroup {A B : Matrix (n ⊕ n) (n ⊕ n) �
       (∀ t, γ t ∈ symplecticGroup n ℝ) ∧ γ 0 = A ∧ γ 1 = B := by
   obtain ⟨γ, hγ, h⟩ := exists_path_contDiff_apply hA hB
   exact ⟨γ, contDiff_pi.2 fun i ↦ contDiff_pi.2 fun j ↦ hγ i j, h⟩
+
+open scoped Matrix.Norms.L2Operator in
+/-- Any two real symplectic matrices `A` and `B` are joined by a path
+`γ : ℝ → Matrix (n ⊕ n) (n ⊕ n) ℝ` of symplectic matrices with `γ 0 = A` and `γ 1 = B`, smooth
+for the ℓ² operator norm `Matrix.Norms.L2Operator`. -/
+theorem exists_contDiff_path_symplecticGroup_l2Op {A B : Matrix (n ⊕ n) (n ⊕ n) ℝ}
+    (hA : A ∈ symplecticGroup n ℝ) (hB : B ∈ symplecticGroup n ℝ) :
+    ∃ γ : ℝ → Matrix (n ⊕ n) (n ⊕ n) ℝ, ContDiff ℝ ∞ γ ∧
+      (∀ t, γ t ∈ symplecticGroup n ℝ) ∧ γ 0 = A ∧ γ 1 = B := by
+  obtain ⟨γ, hγ, h⟩ := exists_contDiff_path_symplecticGroup hA hB
+  exact ⟨γ, contDiff_l2Op_iff_contDiff_elementwise.2 hγ, h⟩
 
 end Matrix
 
