@@ -174,10 +174,10 @@ parametrix glued from charts.
   its Hermitian conventions, no $\partial^*$, $\bar\partial^*$ or
   $\Lambda$, and no $\Delta=2\Delta_{\bar\partial}$.
 - **Complex forms by complexification.** Tau Ceti's star and codifferential
-  are real. The complex Laplacian, star and harmonic forms are defined
-  from the real ones through `SmoothForm.mapCoeff` on real and imaginary
-  parts, and the complex Hodge theorem follows from the real one and
-  `complexDeRhamCohomology.complexificationEquiv`.
+  are real. The complex Laplacian and star are the base changes of the
+  real ones along `SmoothForm.complexificationEquiv`, which act on real
+  and imaginary parts, and the complex Hodge theorem follows from the real
+  one applied to real and imaginary parts.
 - **$H^{p,q}$ in de Rham cohomology.** As on the page, $H^{p,q}(M)$ is the
   subspace of `complexDeRhamCohomology I M k` of classes of closed forms
   of type $(p,q)$, the image under `mk` of the closed forms in
@@ -543,7 +543,7 @@ complexification:
   `complexHarmonicForms_le_complexClosedForms`, and
   `complexHodgeStar_mem_complexHarmonicForms_iff`.
 - `TauCeti.complexHarmonicForms.toComplexDeRhamCohomology_bijective`, from
-  the real theorem and `complexDeRhamCohomology.complexificationEquiv`, and
+  the real theorem applied to real and imaginary parts, and
   `TauCeti.exists_mem_complexHarmonicForms_add_complexHodgeLaplacian`.
 - `TauCeti.finrank_complexDeRhamCohomology`: its complex dimension is the
   real dimension of `deRhamCohomology I M k`.
