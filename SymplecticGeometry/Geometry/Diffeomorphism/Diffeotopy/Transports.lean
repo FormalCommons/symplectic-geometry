@@ -1,0 +1,89 @@
+/-
+Copyright (c) 2026 The FormalCommons contributors. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: The FormalCommons contributors
+-/
+module
+
+public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Basic
+
+/-!
+# Diffeotopies that transport a family of distributions
+
+A family of distributions on a manifold `M` over the unit interval is a map
+`ξ : unitInterval → Π x : M, Submodule ℝ (TangentSpace J x)`. A diffeotopy `ψ_t` of `M`
+*transports* `ξ` if `ψ_t^* ξ_t = ξ_0` for every `t`: at each point `x`, the vectors of `ξ_0 x`
+are exactly those that the differential of `ψ_t` at `x` sends into `ξ_t (ψ_t x)`. The pullback
+is written with `Submodule.comap`, as Tau Ceti writes pullbacks of distributions
+(`TauCeti.IsContactDistribution.exists_darbouxChart`).
+
+## Main definitions
+
+* `TauCeti.Diffeotopy.Transports`: the diffeotopy `Φ` transports the family `ξ`.
+
+## Main results
+
+* `TauCeti.Diffeotopy.transports_iff`: the unfolding of the definition.
+* `TauCeti.Diffeotopy.transports_refl`: the constant diffeotopy transports every constant family.
+* `TauCeti.Diffeotopy.Transports.trans`: if `χ` preserves `ξ_0` at all times and `Φ` transports
+  `ξ`, then `χ.trans Φ`, whose slice at `t` is `ψ_t ∘ χ_t`, transports `ξ`. So a transporting
+  diffeotopy is not unique.
+
+## References
+
+* H. Geiges, *An Introduction to Contact Topology*, Cambridge University Press, 2008,
+  Theorem 2.2.2 (Gray stability), whose isotopy transports a family of contact structures in
+  this sense.
+-/
+
+public section
+
+open scoped ContDiff Manifold
+
+namespace TauCeti.Diffeotopy
+
+variable {E H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
+  {J : ModelWithCorners ℝ E H} {M : Type*} [TopologicalSpace M] [ChartedSpace H M] {n : ℕ∞ω}
+
+/-- A diffeotopy `ψ_t` of `M` **transports** a family `ξ_t` of distributions on `M`,
+`t ∈ [0, 1]`, if `ψ_t^* ξ_t = ξ_0` for every `t`: for all `t` and `x`, a tangent vector at `x`
+lies in `ξ_0 x` if and only if the differential of `ψ_t` at `x` sends it into
+`ξ_t (ψ_t x)`. -/
+def Transports (Φ : Diffeotopy J n M)
+    (ξ : unitInterval → Π x : M, Submodule ℝ (TangentSpace J x)) : Prop :=
+  ∀ t x, ξ 0 x = (ξ t (Φ (t, x))).comap (mfderiv J J (Φ.timeSlice t) x).toLinearMap
+
+/-- The definition of `TauCeti.Diffeotopy.Transports`, unfolded. -/
+theorem transports_iff {Φ : Diffeotopy J n M}
+    {ξ : unitInterval → Π x : M, Submodule ℝ (TangentSpace J x)} :
+    Φ.Transports ξ ↔
+      ∀ t x, ξ 0 x = (ξ t (Φ (t, x))).comap (mfderiv J J (Φ.timeSlice t) x).toLinearMap :=
+  Iff.rfl
+
+/-- The constant diffeotopy at the identity transports every constant family of
+distributions. -/
+theorem transports_refl (D : Π x : M, Submodule ℝ (TangentSpace J x)) :
+    (refl J n M).Transports fun _ ↦ D := by
+  intro t x
+  rw [timeSlice_refl, Diffeomorph.coe_refl, mfderiv_id, refl_apply]
+  exact (Submodule.comap_id _).symm
+
+/-- If `χ` preserves the initial distribution `ξ_0` at all times and `Φ` transports `ξ`, then the
+composite diffeotopy `χ.trans Φ`, whose slice at `t` is `ψ_t ∘ χ_t`, transports `ξ`. -/
+theorem Transports.trans (hn : 1 ≤ n) {χ Φ : Diffeotopy J n M}
+    {ξ : unitInterval → Π x : M, Submodule ℝ (TangentSpace J x)}
+    (hχ : χ.Transports fun _ ↦ ξ 0) (hΦ : Φ.Transports ξ) : (χ.trans Φ).Transports ξ := by
+  have hn₀ : n ≠ 0 := (zero_lt_one.trans_le hn).ne'
+  intro t x
+  have hΦ' := hΦ t (χ.timeSlice t x)
+  rw [← timeSlice_apply] at hΦ'
+  have hχ' : ξ 0 x = (ξ 0 (χ.timeSlice t x)).comap (mfderiv J J (χ.timeSlice t) x).toLinearMap := by
+    rw [timeSlice_apply]; exact hχ t x
+  rw [← timeSlice_apply, timeSlice_trans, Diffeomorph.coe_trans,
+    mfderiv_comp x ((Φ.timeSlice t).mdifferentiable hn₀ _) ((χ.timeSlice t).mdifferentiable hn₀ _),
+    hχ', hΦ', ContinuousLinearMap.toLinearMap_comp, Function.comp_apply,
+    Submodule.comap_comp]
+
+end TauCeti.Diffeotopy
+
+end
