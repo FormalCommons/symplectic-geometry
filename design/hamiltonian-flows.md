@@ -294,8 +294,8 @@ imports `DifferentialForm/SmoothFamily/Basic.lean` of *Smooth families*, for
 imports `Diffeotopy/Basic.lean` and `DeRham/FamilyPrimitive.lean`, which
 imports `DifferentialForm/SmoothFamily/Poincare.lean` and `DeRham/Map.lean` of *Smooth families*;
 `Flux/CompactSupport.lean` imports `Flux/Hamiltonian.lean` and
-`SymplecticIsotopy.lean`, and `DifferentialForm/TimeExtension.lean` and
-`Flow/TimeDependent.lean` of *Smooth families*, for
+`SymplecticIsotopy.lean`, and `DifferentialForm/TimeExtension.lean` of
+*Smooth families*, for
 `TauCeti.Diffeotopy.exists_interior_velocity_eq`. `PoissonAlgebra.lean` imports Tau Ceti,
 among it `Hamiltonian/ExtendedPhaseSpace/Manifold.lean` for the energy
 identity, `Algebra/Lie/Quotient.lean` for the value of

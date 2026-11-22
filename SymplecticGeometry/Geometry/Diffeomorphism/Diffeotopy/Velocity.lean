@@ -12,6 +12,7 @@ import Mathlib.Geometry.Manifold.ContMDiffMFDeriv
 import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Basic
 import SymplecticGeometry.Geometry.Manifold.Instances.Icc
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
+import TauCeti.Geometry.Manifold.MFDeriv.Constancy
 import TauCeti.Geometry.Manifold.MFDeriv.Prod
 
 /-!
@@ -36,6 +37,8 @@ sense of McDuff–Salamon, §3.1, and the time derivative that Tau Ceti's
   the motion sends `∂ₜ` at `(x, t)` to the velocity of the trajectory `s ↦ φ_s x`, and a spatial
   vector `(v, 0)` to `dφ_t v`.
 * `TauCeti.Diffeotopy.contMDiff_velocity`: `X_t` is jointly smooth in `(t, y)`, up to both ends.
+* `TauCeti.Diffeotopy.apply_eq_of_mfderiv_eq_velocity`: a differentiable curve `γ` on `[0, 1]` with
+  `γ' t = X_t (γ t)` is the trajectory `t ↦ φ_t (γ 0)`.
 * `TauCeti.Diffeotopy.velocity_refl`: the constant diffeotopy has velocity zero.
 * `TauCeti.Diffeotopy.velocity_globalFlowDiffeotopy`: the flow of a complete field `v`, run for
   duration `a`, has velocity `a • v`.
@@ -64,6 +67,13 @@ tangent map of a smooth map.
 `TauCeti.Diffeotopy.mfderiv_cylinderMap_globalFlowDiffeotopy_space` do for a flow. The proof of
 `velocity_timeDependentFlowDiffeotopy` follows that of
 `TauCeti.eulerianField_eq_of_coe_eq_timeDependentFlowOf`.
+
+For `apply_eq_of_mfderiv_eq_velocity`, no uniqueness theorem for differential equations is
+needed: the derivative `c' s` of the curve `c s = φ_s⁻¹ (γ s)` satisfies
+`dφ_s (c' s) = γ' s - X_s (γ s) = 0`, by the chain rule for the motion along `s ↦ (c s, s)`,
+so `c` is constant by Tau Ceti's `MDifferentiable.apply_eq_of_mfderiv_eq_zero`, the interval
+being connected. This needs neither a finite-dimensional model nor a boundaryless or Hausdorff
+`M`.
 
 ## References
 
@@ -179,6 +189,56 @@ theorem contMDiff_velocity :
     ContMDiff ((𝓡∂ 1).prod J) J.tangent ∞
       (fun p : unitInterval × M ↦ (⟨p.2, Φ.velocity p.1 p.2⟩ : TangentBundle J M)) :=
   Φ.contMDiff_velocityAux
+
+/-- **The trajectories of a diffeotopy are the solutions of its equation.** A differentiable
+curve `γ` on `[0, 1]` whose velocity at every time `t`, one-sided at the ends, is the velocity
+`X_t (γ t)` of the diffeotopy is the trajectory `t ↦ φ_t (γ 0)` of its initial point. -/
+theorem apply_eq_of_mfderiv_eq_velocity {γ : unitInterval → M}
+    (hγ : MDifferentiable (𝓡∂ 1) J γ)
+    (hγX : ∀ t, mfderiv (𝓡∂ 1) J γ t 1 = Φ.velocity t (γ t)) (t : unitInterval) :
+    Φ (t, γ 0) = γ t := by
+  -- The curve `c s = φ_s⁻¹ (γ s)` has zero derivative, so it is constant.
+  obtain ⟨c, hc⟩ : ∃ c : unitInterval → M, c = fun s ↦ Φ.symm (s, γ s) := ⟨_, rfl⟩
+  have hcd : MDifferentiable (𝓡∂ 1) J c := hc ▸
+    (Φ.symm.contMDiff.mdifferentiable (by simp)).comp (mdifferentiable_id.prodMk hγ)
+  have hγc (s : unitInterval) : Φ.cylinderMap (c s, s) = γ s := by
+    rw [cylinderMap_apply, hc, Φ.apply_mk_symm_apply]
+  have hzero (s : unitInterval) : mfderiv (𝓡∂ 1) J c s = 0 := by
+    have hd := Φ.contMDiff_cylinderMap.mdifferentiableAt (x := (c s, s)) (by simp)
+    have hpd : mfderiv (𝓡∂ 1) (J.prod (𝓡∂ 1)) (fun s ↦ (c s, s)) s =
+        (mfderiv (𝓡∂ 1) J c s).prod (ContinuousLinearMap.id ℝ _) := by
+      rw [← mfderiv_id]
+      exact mfderiv_prodMk (hcd s) mdifferentiableAt_id
+    -- Differentiating `φ_s (c s) = γ s` gives `dφ_s (c' s) + X_s (γ s) = γ' s = X_s (γ s)`.
+    have key : mfderiv (J.prod (𝓡∂ 1)) J Φ.cylinderMap (c s, s)
+        ((mfderiv (𝓡∂ 1) J c s 1, (1 : TangentSpace (𝓡∂ 1) s)) : E × _) =
+          Φ.velocity s (γ s) := by
+      rw [← hγX s, ← funext hγc, ← Function.comp_def Φ.cylinderMap (fun s ↦ (c s, s)),
+        mfderiv_comp_apply (f := fun s ↦ (c s, s)) s hd ((hcd s).prodMk mdifferentiableAt_id),
+        hpd]
+      -- The tangent space of `M × I` is the product of the tangent spaces by definition, and
+      -- `ContinuousLinearMap.prod_apply` does not rewrite across that identification.
+      rfl
+    have hsum (v : E) (w : EuclideanSpace ℝ (Fin 1)) :
+        ((v, w) : E × EuclideanSpace ℝ (Fin 1)) = (v, 0) + (0, w) := by
+      rw [Prod.mk_add_mk, add_zero, zero_add]
+    have hsplit := (congrArg (mfderiv (J.prod (𝓡∂ 1)) J Φ.cylinderMap (c s, s)) (hsum _ _)).trans
+      (map_add (mfderiv (J.prod (𝓡∂ 1)) J Φ.cylinderMap (c s, s))
+        ((mfderiv (𝓡∂ 1) J c s 1 : E), (0 : EuclideanSpace ℝ (Fin 1)))
+        ((0 : E), (1 : TangentSpace (𝓡∂ 1) s)))
+    have htime : Φ.velocity s (γ s) = mfderiv (J.prod (𝓡∂ 1)) J Φ.cylinderMap (c s, s)
+        ((0 : E), (1 : TangentSpace (𝓡∂ 1) s)) := by
+      rw [← hγc s, cylinderMap_apply]
+      exact Φ.velocity_apply_apply s (c s)
+    have hspace := add_eq_right.1 (hsplit.symm.trans (key.trans htime))
+    have hslice : mfderiv J J (Φ.timeSlice s) (c s) (mfderiv (𝓡∂ 1) J c s 1) = 0 :=
+      (Φ.mfderiv_cylinderMap_space (by simp) (c s, s) _).symm.trans hspace
+    rw [← (Φ.timeSlice s).mfderivToContinuousLinearEquiv_coe (by simp),
+      ContinuousLinearEquiv.coe_coe, ContinuousLinearEquiv.map_eq_zero_iff] at hslice
+    exact ContinuousLinearMap.ext_tangentSpace_Icc (hslice.trans (zero_apply _).symm)
+  have h0 : c 0 = γ 0 := by rw [hc, Φ.symm.apply_zero]
+  rw [← h0, MDifferentiable.apply_eq_of_mfderiv_eq_zero hcd hzero 0 t, ← hγc t,
+    cylinderMap_apply]
 
 /-- The constant diffeotopy has velocity zero. -/
 @[simp]

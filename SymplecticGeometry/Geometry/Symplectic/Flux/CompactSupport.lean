@@ -9,7 +9,6 @@ public import SymplecticGeometry.Geometry.Symplectic.Flux.Hamiltonian
 import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Basic
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.TimeExtension
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.TimeExtension
-import SymplecticGeometry.Geometry.Manifold.Flow.TimeDependent
 import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.SymplecticIsotopy
 import TauCeti.Geometry.Symplectic.Hamiltonian.CommutingFlow
 import TauCeti.Geometry.Symplectic.Manifold.Family
@@ -253,8 +252,7 @@ theorem exists_isCompactlySupportedHamiltonian (hσ : SmoothTwoForm.IsSymplectic
 /-- **The flow of a family of closed one-forms.** For a symplectic form `σ` and a smooth one-form
 `Ω` on `[0, 1] × M` whose slices `Ω_t` are closed and vanish off a compact set `L`, there is a
 diffeotopy `φ_t` whose velocity `X_t` satisfies `ι_{X_t} σ = Ω_t`, whose slices preserve `σ`,
-and which fixes every point outside `L` at every time. Moreover `φ_t` moves the initial point of
-every differentiable curve `γ` on `[0, 1]` with `γ' t = X_t (γ t)` along `γ`. -/
+and which fixes every point outside `L` at every time. -/
 theorem exists_interior_velocity_eq (hσ : SmoothTwoForm.IsSymplectic σ)
     {Ω : SmoothForm ((𝓡∂ 1).prod J) (unitInterval × M) ℝ 1}
     (hΩ : ∀ t, mextDeriv
@@ -266,9 +264,7 @@ theorem exists_interior_velocity_eq (hσ : SmoothTwoForm.IsSymplectic σ)
       (∀ t, RoughForm.interior (Φ.velocity t) σ.val =
         (SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) Ω).val) ∧
       (∀ t, Φ.timeSlice t ∈ SmoothForm.diffeomorphStabilizer σ) ∧
-      (∀ t, ∀ y ∉ L, Φ (t, y) = y) ∧
-      ∀ γ : unitInterval → M, MDifferentiable (𝓡∂ 1) J γ →
-        (∀ t, mfderiv (𝓡∂ 1) J γ t 1 = Φ.velocity t (γ t)) → ∀ t, Φ (t, γ 0) = γ t := by
+      ∀ t, ∀ y ∉ L, Φ (t, y) = y := by
   -- The time extension `α` of `Ω`, and the constant family `σ'` of `σ` on `ℝ × M`.
   set α := SmoothForm.timeExtend Ω
   set σ' : SmoothTwoForm (𝓘(ℝ, ℝ).prod J) (ℝ × M) :=
@@ -306,9 +302,7 @@ theorem exists_interior_velocity_eq (hσ : SmoothTwoForm.IsSymplectic σ)
       SmoothTwoForm.mem_symplecticVectorFields_iff.2 (by rw [hvel, hint]; exact hΩ t)
   exact ⟨Φ, fun t ↦ by rw [hvel, hint], hpres,
     fun t y hy ↦ timeDependentFlowDiffeotopy_apply_of_forall_eq_zero le_top hX hc
-      (fun u ↦ hXL u y hy) t,
-    fun γ hγ hγX t ↦ timeDependentFlowDiffeotopy_apply_eq_of_mfderiv_eq hX hc hγ
-      (fun s ↦ (hγX s).trans (congrFun (hvel s) (γ s))) t⟩
+      (fun u ↦ hXL u y hy) t⟩
 
 end Flow
 

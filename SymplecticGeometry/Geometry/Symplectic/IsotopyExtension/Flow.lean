@@ -36,7 +36,8 @@ The construction (`TauCeti.SmoothIsotopy.exists_diffeotopy_interior_velocity_eq_
 3. At `k_t x`, `x ∈ K`, the vectors `X_t` and `∂ₜ k` have the same contraction with `σ` on the
    image of `dk_t`: pulled back by `k_t`, both are `k_t^* β_t + dh_t`. So they agree
    (`TauCeti.SmoothIsotopy.eq_mfderiv_of_forall_eq_mpullback_prodMk_velocityForm`), and
-   uniqueness of solutions on `[0, 1]` gives `φ_t (k_0 x) = k_t x`.
+   uniqueness of solutions on `[0, 1]` gives `φ_t (k_0 x) = k_t x`
+   (`TauCeti.Diffeotopy.apply_eq_of_mfderiv_eq_velocity`).
 
 When `β = 0`, `X_t` is the Hamiltonian vector field of `G_t`, so `G` generates `φ_t`
 (`TauCeti.Diffeotopy.IsGeneratedBy`), and `φ_t` is a compactly supported Hamiltonian diffeotopy
@@ -189,7 +190,7 @@ theorem exists_diffeotopy_interior_velocity_eq_forall_apply_eq (hσ : σ.IsSympl
     rw [hΩval, Pi.add_apply, hβL t y hy.1, zero_add]
     exact mextDeriv_ofFunction_apply_eq_zero_iff.2 (by
       rw [hGy.mfderiv_eq, mfderiv_const, ContinuousLinearMap.comp_zero])
-  obtain ⟨Φ, hint, hpres, hfix, htraj⟩ :=
+  obtain ⟨Φ, hint, hpres, hfix⟩ :=
     Diffeotopy.exists_interior_velocity_eq hσ hΩd (hL.union hC) hΩL
   have hint' (t : unitInterval) : RoughForm.interior (Φ.velocity t) σ.val =
       (SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) β).val +
@@ -199,7 +200,7 @@ theorem exists_diffeotopy_interior_velocity_eq_forall_apply_eq (hσ : σ.IsSympl
     hfix, fun t x hx ↦ ?_⟩
   -- Along `k`, the velocity of `Φ` is that of `k` on `K`, and uniqueness of solutions applies.
   rw [← k.apply_zero x]
-  exact htraj (fun s ↦ k (s, x))
+  exact Φ.apply_eq_of_mfderiv_eq_velocity (γ := fun s ↦ k (s, x))
     ((k.contMDiff.comp (contMDiff_id.prodMk contMDiff_const)).mdifferentiable (by simp))
     (fun s ↦ (apply_eq_mfderiv_of_interior_eq hσ.isNondegenerate k hd (hα s) hG (hGk s x hx)
       (hint' s)).symm) t
