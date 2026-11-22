@@ -120,7 +120,7 @@ private theorem isLocalDiffeomorphAt_negNormalCoord {t : normalIioOpens 1}
     have := hchart.comp (hg := negCoordEquiv.toDiffeomorph.isLocalDiffeomorph (n := ∞) _)
     rw [← negCoordEquiv_comp_model]
     simpa [extChartAt_self_eq] using this
-  refine (isLocalDiffeomorphAt_subtypeVal_comp_iff continuous_negNormalCoord.continuousAt).1 ?_
+  refine isLocalDiffeomorphAt_subtypeVal_comp_iff.1 ?_
   exact (isLocalDiffeomorph_subtype_val t).comp (hg := hg)
 
 private def endModelEquiv (n : ℕ) :
@@ -498,8 +498,7 @@ private theorem isLocalDiffeomorph_collarCoord :
   have hg : IsLocalDiffeomorphAt (𝓡 (n + 1)) (𝓡∂ (n + 1)) ∞
       (fun q : c.interiorOverlap ↦ (⟨q.val.val,
         c.mem_opensRange.2 (c.mem_interiorOverlap.1 q.property)⟩ : c.opensRange)) q := by
-    refine (isLocalDiffeomorphAt_subtypeVal_comp_iff
-      ((continuous_interiorPieceVal.comp continuous_subtypeVal).subtype_mk _).continuousAt).1 ?_
+    refine isLocalDiffeomorphAt_subtypeVal_comp_iff.1 ?_
     exact (isLocalDiffeomorph_subtype_val q).comp
       (hg := isLocalDiffeomorph_interiorPieceVal _)
   exact hg.comp (hg := c.diffeomorphOpensRange.symm.isLocalDiffeomorph _)
@@ -512,8 +511,7 @@ private theorem isLocalDiffeomorph_interiorToEndPt :
 
 private theorem isLocalDiffeomorph_interiorToEnd :
     IsLocalDiffeomorph (𝓡 (n + 1)) (𝓡 (n + 1)) ∞ c.interiorToEnd := fun q ↦
-  (isLocalDiffeomorphAt_subtypeVal_comp_iff c.interiorToEnd.continuous.continuousAt).1
-    (c.isLocalDiffeomorph_interiorToEndPt q)
+  isLocalDiffeomorphAt_subtypeVal_comp_iff.1 (c.isLocalDiffeomorph_interiorToEndPt q)
 
 private theorem isLocalDiffeomorph_endToInterior :
     IsLocalDiffeomorph (𝓡 (n + 1)) (𝓡 (n + 1)) ∞ c.endToInterior := fun q ↦ by
