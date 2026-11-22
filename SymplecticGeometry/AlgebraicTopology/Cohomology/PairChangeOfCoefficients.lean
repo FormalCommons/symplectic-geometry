@@ -86,7 +86,7 @@ theorem singularCohomologyChainCoefficientMap_comp (P : TopPair.{w}) (k : Type*)
   exact homologyMap_comp _ _ _
 
 /-- The change of chain coefficients commutes with the maps induced by maps of pairs. -/
-@[reassoc]
+@[reassoc, elementwise]
 theorem singularCohomologyChainCoefficientMap_naturality {P P' : TopPair.{w}} (g : P ⟶ P')
     (k : Type*) [Ring k] [Linear k C] (M : C) (f : R' ⟶ R) (n : ℕ) :
     TopPair.singularCohomologyMap g n ≫ P.singularCohomologyChainCoefficientMap k M f n =
@@ -167,7 +167,7 @@ theorem singularCohomologyValueMap_comp (P : TopPair.{w}) (R : C) (k : Type*) [R
   simp [singularCohomologyValueMap, homologyMap_comp]
 
 /-- The change of cochain values commutes with the maps induced by maps of pairs. -/
-@[reassoc]
+@[reassoc, elementwise]
 theorem singularCohomologyValueMap_naturality {P P' : TopPair.{w}} (f : P ⟶ P') (R : C)
     (k : Type*) [Ring k] [Linear k C] (g : M ⟶ M') (n : ℕ) :
     TopPair.singularCohomologyMap f n ≫ P.singularCohomologyValueMap R k g n =

@@ -26,7 +26,8 @@ Tau Ceti's `Bundle.Trivial.diffeomorphProd`, with the composite written out.
 
 For a family `Φ x : W →L V x` out of a fixed space `W` of finite dimension, the file also reads
 the smoothness of `Φ` as a section of the hom bundle from the trivial bundle with fibre `W` on the
-product `M × W` (`contMDiffAt_hom_trivial_iff`), through
+product `M × W` (`contMDiffAt_hom_trivial_iff`, and `contMDiffOn_hom_trivial_iff` over an open
+set), through
 `TauCeti.contMDiffAt_hom_bundle_iff` and `Bundle.Trivial.contMDiffAt_comp_mk_iff` above.
 
 Last, a fixed continuous linear map `f : W →L W'`, applied in each fibre, is a `C^n` map from the
@@ -137,6 +138,22 @@ theorem contMDiffAt_hom_trivial_iff (Φ : ∀ x, W →L[𝕜] V₂ x) (x : M) :
         (fun p : M × W ↦ TotalSpace.mk' F₂ p.1 (Φ p.1 p.2)) (x, v) := by
   rw [TauCeti.contMDiffAt_hom_bundle_iff]
   exact forall_congr' fun v ↦ Trivial.contMDiffAt_comp_mk_iff.symm
+
+/-- A family of continuous linear maps `Φ x : W →L V₂ x` from a fixed space `W` of finite
+dimension is a `C^n` section on an open set `U` of the bundle of continuous linear maps from the
+trivial bundle with fibre `W` to `V₂` exactly when `(y, v) ↦ Φ y v`, as a map from `M × W` to the
+total space of `V₂`, is `C^n` on `U ×ˢ univ`. -/
+theorem contMDiffOn_hom_trivial_iff (Φ : ∀ x, W →L[𝕜] V₂ x) {U : Set M} (hU : IsOpen U) :
+    ContMDiffOn I (I.prod 𝓘(𝕜, W →L[𝕜] F₂)) n
+        (fun y ↦ TotalSpace.mk' (W →L[𝕜] F₂) (E := fun y ↦ Trivial M W y →L[𝕜] V₂ y) y
+          (Φ y : W →L[𝕜] V₂ y)) U ↔
+      ContMDiffOn (I.prod 𝓘(𝕜, W)) (I.prod 𝓘(𝕜, F₂)) n
+        (fun p : M × W ↦ TotalSpace.mk' F₂ p.1 (Φ p.1 p.2)) (U ×ˢ Set.univ) := by
+  refine ⟨fun h p hp ↦ ?_, fun h x hx ↦ ?_⟩
+  · exact ((contMDiffAt_hom_trivial_iff Φ p.1).1 (h.contMDiffAt (hU.mem_nhds hp.1))
+      p.2).contMDiffWithinAt
+  · exact ((contMDiffAt_hom_trivial_iff Φ x).2 fun v ↦
+      h.contMDiffAt ((hU.prod isOpen_univ).mem_nhds ⟨hx, Set.mem_univ v⟩)).contMDiffWithinAt
 
 omit [CompleteSpace 𝕜] [FiniteDimensional 𝕜 W] in
 /-- A fixed continuous linear map `f : W →L W'`, applied in each fibre, is a `C^n` map from the

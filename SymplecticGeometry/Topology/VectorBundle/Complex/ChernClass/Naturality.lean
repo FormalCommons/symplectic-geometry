@@ -91,8 +91,7 @@ theorem singularCohomologyMap_projectiveBundleClass_of_fiberwise
   rw [projectiveBundleClass_def, projectiveBundleClass_def, map_neg,
     complexEulerClass_eq_singularCohomologyMap_of_fiberwise (r := 0) (finrank_self ℂ)
       (finrank_self ℂ) hφ]
-  exact congrArg Neg.neg (ConcreteCategory.congr_hom
-    (TopCat.uliftIntegralCohomologyIso_naturality (TopCat.ofHom g) 2) _).symm
+  exact congrArg Neg.neg (TopCat.uliftIntegralCohomologyIso_naturality_apply _ 2 _).symm
 
 /-- The map `ProjectiveBundle.pullbackMap f : P(f *ᵖ E) → P(E)` pulls the tautological class of
 `E` back to that of `f *ᵖ E`. -/

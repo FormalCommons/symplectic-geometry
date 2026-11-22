@@ -166,8 +166,7 @@ theorem eq_zero_of_singularCohomologyMap_prodMk_eq_zero (hV : finrank ℂ V = n 
   let I := (TopCat.of X ⊗ TopCat.of (ℙ ℂ V)).uliftIntegralCohomologyIso 2
   have hc : I.hom (TopCat.singularCohomologyMap e.hom 2 c) = 0 := by
     refine eq_zero_of_singularCohomologyMap_eq_zero hV x₀ y₀ ?_ ?_ <;>
-    rw [← ConcreteCategory.comp_apply, ← TopCat.uliftIntegralCohomologyIso_naturality,
-      ConcreteCategory.comp_apply,
+    rw [← TopCat.uliftIntegralCohomologyIso_naturality_apply,
       ← ConcreteCategory.comp_apply (TopCat.singularCohomologyMap e.hom 2),
       ← TopCat.singularCohomologyMap_comp]
     · rw [he₁, h₁, map_zero]

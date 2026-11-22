@@ -45,8 +45,8 @@ rank to be even (for finite rank, a nondegenerate form forces it), and rank zero
 * `ContMDiffTwoForm.bilinFormAt`: the bilinear form `(v, w) ↦ ω x ![v, w]` on the fibre `V x`.
 * `ContMDiffTwoForm.flat` and `ContMDiffTwoForm.contMDiff_flat`: the flat map `v ↦ ω(v, ·)` at
   each point, a `C^n` section of the bundle of continuous bilinear forms on `V`; and
-  `ContMDiffTwoForm.contMDiffOn_bilinFormAt`: pairing `C^n` sections with `ω` gives a `C^n`
-  function.
+  `ContMDiffTwoForm.contMDiffOn_bilinFormAt` and `ContMDiffTwoForm.contMDiff_bilinFormAt`:
+  pairing `C^n` sections with `ω` gives a `C^n` function.
 * `ContMDiffTwoForm.IsNondegenerate`, with `isNondegenerate_iff_separatingLeft` and
   `IsNondegenerate.symplecticFormAt`, the Tau Ceti symplectic form on each fibre.
 * `isOpen_setOf_nondegenerate`: for finite rank, the fibrewise nondegenerate alternating maps are
@@ -69,9 +69,10 @@ rank to be even (for finite rank, a nondegenerate form forces it), and rank zero
 * `ContMDiffTwoForm.IsSymplecticFrameOn`: a `C^n` family of linear equivalences from a model
   symplectic vector space `(W, σ)` to the fibres over a set `U`, carrying `σ` to `ω`; with
   `isSymplecticFrameOn_const` on trivial bundles.
-* `ContMDiffTwoForm.exists_isSymplecticFrameOn_univ_of_darboux`: `C^n` sections `aᵢ`, `bᵢ`
-  (`i : κ`) of a bundle of rank `2 |κ|` with the Darboux relations at every point give the global
-  symplectic frame `(x, y) ↦ ∑ᵢ (xᵢ aᵢ + yᵢ bᵢ)` for `stdForm κ`.
+* `ContMDiffTwoForm.exists_isSymplecticFrameOn_of_darboux`: sections `aᵢ`, `bᵢ` (`i : κ`) of a
+  bundle of rank `2 |κ|` that are `C^n` on a set `U` and satisfy the Darboux relations at every
+  point of `U` give a symplectic frame over `U` for `stdForm κ`, which is
+  `(x, y) ↦ ∑ᵢ (xᵢ aᵢ + yᵢ bᵢ)` on the fibres over `U`.
 * `Bundle.frameTransition`: the transition map `Φ'ₓ⁻¹ ∘ Φₓ` between two frames. Over an open set
   it depends `C^n` on the point when both frames do (`Bundle.contMDiffOn_frameTransition`), and for
   symplectic frames it is a linear symplectomorphism of `(W, σ)`
@@ -247,6 +248,12 @@ is `C^n` on `s`: `y ↦ ω_y(u y, v y)`. -/
 theorem contMDiffOn_bilinFormAt {s : Set M} {u v : ∀ x, V x} (hu : CMDiff[s] n (T% u))
     (hv : CMDiff[s] n (T% v)) : CMDiff[s] n (fun x ↦ ω.bilinFormAt x (u x) (v x)) := by
   simpa using ω.contMDiff_flat.contMDiffOn.clm_bundle_apply₂_trivial hu hv
+
+/-- Pairing two `C^n` sections with a `C^n` two-form gives a `C^n` function:
+`y ↦ ω_y(u y, v y)`. -/
+theorem contMDiff_bilinFormAt {u v : ∀ x, V x} (hu : CMDiff n (T% u)) (hv : CMDiff n (T% v)) :
+    CMDiff n (fun x ↦ ω.bilinFormAt x (u x) (v x)) :=
+  contMDiffOn_univ.1 (ω.contMDiffOn_bilinFormAt hu.contMDiffOn hv.contMDiffOn)
 
 /-! ### Nondegeneracy -/
 
@@ -718,8 +725,8 @@ theorem contMDiffOn_frameTransition
   intro x hx
   have hom {Ψ : ∀ x, W ≃L[ℝ] V x} (hΨ : ContMDiffOn (I.prod 𝓘(ℝ, W)) (I.prod 𝓘(ℝ, F)) n
       (fun p : M × W ↦ TotalSpace.mk' F p.1 (Ψ p.1 p.2)) (U ×ˢ Set.univ)) :=
-    (contMDiffAt_hom_trivial_iff (fun y ↦ (Ψ y : W →L[ℝ] V y)) x).2 fun v ↦
-      hΨ.contMDiffAt ((hU.prod isOpen_univ).mem_nhds ⟨hx, Set.mem_univ v⟩)
+    ((contMDiffOn_hom_trivial_iff (fun y ↦ (Ψ y : W →L[ℝ] V y)) hU).2 hΨ).contMDiffAt
+      (hU.mem_nhds hx)
   have hcomp := ((hom hΦ').clm_bundle_inverse
     ContinuousLinearMap.isInvertible_equiv).clm_bundle_comp (hom hΦ)
   rw [contMDiffAt_hom_bundle] at hcomp
@@ -747,10 +754,10 @@ theorem contMDiffOn_totalSpaceMk_symm_trans {F₂ : Type*} [NormedAddCommGroup F
   -- The fibre `F` is `W` through the frame and the trivialization at `p.proj`.
   have : FiniteDimensional ℝ F :=
     ((Φ p.proj).trans (VectorBundle.continuousLinearEquivAt ℝ F V p.proj)).finiteDimensional
-  have hΦx := (contMDiffAt_hom_trivial_iff (fun y ↦ (Φ y : W →L[ℝ] V y)) p.proj).2 fun v ↦
-    hΦ.contMDiffAt ((hU.prod isOpen_univ).mem_nhds ⟨hp, Set.mem_univ v⟩)
-  have hΨx := (contMDiffAt_hom_trivial_iff (fun y ↦ (Ψ y : W →L[ℝ] V₂ y)) p.proj).2 fun v ↦
-    hΨ.contMDiffAt ((hU.prod isOpen_univ).mem_nhds ⟨hp, Set.mem_univ v⟩)
+  have hΦx := ((contMDiffOn_hom_trivial_iff (fun y ↦ (Φ y : W →L[ℝ] V y)) hU).2
+    hΦ).contMDiffAt (hU.mem_nhds hp)
+  have hΨx := ((contMDiffOn_hom_trivial_iff (fun y ↦ (Ψ y : W →L[ℝ] V₂ y)) hU).2
+    hΨ).contMDiffAt (hU.mem_nhds hp)
   have hcomp := hΨx.clm_bundle_comp (hΦx.clm_bundle_inverse
     ContinuousLinearMap.isInvertible_equiv)
   simp only [ContinuousLinearMap.inverse_equiv] at hcomp
@@ -855,61 +862,71 @@ theorem isSymplecticFrameOn_const {W' : Type*} [NormedAddCommGroup W'] [NormedSp
   rw [bilinFormAt_const]
   exact he.apply v w
 
-/-- **Symplectic frames from Darboux sections.** Let `aᵢ`, `bᵢ` (`i : κ`) be `Cⁿ` sections of a
-bundle of rank `2 |κ|` that satisfy the Darboux relations `ω(aᵢ, aⱼ) = 0`, `ω(bᵢ, bⱼ) = 0` and
-`ω(aᵢ, bⱼ) = δᵢⱼ` at every point. Then `(x, y) ↦ ∑ᵢ (xᵢ aᵢ + yᵢ bᵢ)` is a global symplectic frame
-of `ω` for the standard form `stdForm κ`. -/
-theorem exists_isSymplecticFrameOn_univ_of_darboux [FiniteDimensional ℝ F] {κ : Type*}
-    [Fintype κ] [DecidableEq κ] (hF : Module.finrank ℝ F = 2 * Fintype.card κ)
-    {a b : κ → ∀ x, V x} (ha : ∀ i, CMDiff n (T% (a i))) (hb : ∀ i, CMDiff n (T% (b i)))
-    (haa : ∀ x i j, ω.bilinFormAt x (a i x) (a j x) = 0)
-    (hbb : ∀ x i j, ω.bilinFormAt x (b i x) (b j x) = 0)
-    (hab : ∀ x i j, ω.bilinFormAt x (a i x) (b j x) = if i = j then 1 else 0) :
-    ∃ Φ : ∀ x, StdSpace κ ≃L[ℝ] V x, ω.IsSymplecticFrameOn (stdForm κ) Set.univ Φ ∧
-      ∀ x v, Φ x v = ∑ i, (v.x i • a i x + v.y i • b i x) := by
+/-- **Symplectic frames from Darboux sections.** Let `aᵢ`, `bᵢ` (`i : κ`) be sections of a bundle
+of rank `2 |κ|` that are `Cⁿ` on a set `U` and satisfy the Darboux relations `ω(aᵢ, aⱼ) = 0`,
+`ω(bᵢ, bⱼ) = 0` and `ω(aᵢ, bⱼ) = δᵢⱼ` at every point of `U`. Then there is a symplectic frame
+`Φ` of `ω` over `U` for the standard form `stdForm κ` that is `(x, y) ↦ ∑ᵢ (xᵢ aᵢ + yᵢ bᵢ)` on
+the fibres over `U`. -/
+theorem exists_isSymplecticFrameOn_of_darboux [FiniteDimensional ℝ F] {κ : Type*}
+    [Fintype κ] [DecidableEq κ] (hF : Module.finrank ℝ F = 2 * Fintype.card κ) {U : Set M}
+    {a b : κ → ∀ x, V x} (ha : ∀ i, CMDiff[U] n (T% (a i))) (hb : ∀ i, CMDiff[U] n (T% (b i)))
+    (haa : ∀ x ∈ U, ∀ i j, ω.bilinFormAt x (a i x) (a j x) = 0)
+    (hbb : ∀ x ∈ U, ∀ i j, ω.bilinFormAt x (b i x) (b j x) = 0)
+    (hab : ∀ x ∈ U, ∀ i j, ω.bilinFormAt x (a i x) (b j x) = if i = j then 1 else 0) :
+    ∃ Φ : ∀ x, StdSpace κ ≃L[ℝ] V x, ω.IsSymplecticFrameOn (stdForm κ) U Φ ∧
+      ∀ x ∈ U, ∀ v, Φ x v = ∑ i, (v.x i • a i x + v.y i • b i x) := by
+  classical
   -- The frame as a linear map on each fibre.
   let L (x : M) : StdSpace κ →ₗ[ℝ] V x := ∑ i,
     (((LinearMap.proj i).comp StdSpace.x).smulRight (a i x) +
       ((LinearMap.proj i).comp StdSpace.y).smulRight (b i x))
   have hL (x : M) (v : StdSpace κ) : L x v = ∑ i, (v.x i • a i x + v.y i • b i x) := by
     simp [L]
-  have hω (x : M) (v w : StdSpace κ) : ω.bilinFormAt x (L x v) (L x w) = stdForm κ v w := by
-    have h₁ := (ω.bilinFormAt x).apply_sum_smul_add_smul_eq_left_coeff (hbb x) (hab x) v.x v.y
-    have h₂ := (ω.isAlt_bilinFormAt x).apply_sum_smul_add_smul_eq_neg_right_coeff (haa x) (hab x)
+  have hω (x : M) (hx : x ∈ U) (v w : StdSpace κ) :
+      ω.bilinFormAt x (L x v) (L x w) = stdForm κ v w := by
+    have h₁ := (ω.bilinFormAt x).apply_sum_smul_add_smul_eq_left_coeff (hbb x hx) (hab x hx)
       v.x v.y
+    have h₂ := (ω.isAlt_bilinFormAt x).apply_sum_smul_add_smul_eq_neg_right_coeff (haa x hx)
+      (hab x hx) v.x v.y
     rw [hL x v, hL x w, map_sum, stdForm_apply]
     simp only [map_add, map_smul, h₁, h₂, smul_eq_mul]
     exact Finset.sum_congr rfl fun j _ ↦ by ring
-  have hinj (x : M) : Function.Injective (L x) := by
+  have hinj (x : M) (hx : x ∈ U) : Function.Injective (L x) := by
     refine (injective_iff_map_eq_zero _).2 fun v hv ↦ ?_
     refine (stdForm κ).nondegenerate.1 v fun w ↦ ?_
-    simpa [hv] using (hω x v w).symm
+    simpa [hv] using (hω x hx v w).symm
   have := VectorBundle.finiteDimensional ℝ F V
   have hdim (x : M) : Module.finrank ℝ (StdSpace κ) = Module.finrank ℝ (V x) := by
     rw [finrank_stdSpace, VectorBundle.finrank_eq ℝ F V x, hF]
   have := FiberBundle.t2Space F (E := V)
+  -- Off `U`, the values of the frame play no role.
   let Φ (x : M) : StdSpace κ ≃L[ℝ] V x :=
-    (LinearEquiv.ofInjectiveOfFinrankEq (L x) (hinj x) (hdim x)).toContinuousLinearEquiv
-  have hΦL (x : M) (v : StdSpace κ) : Φ x v = L x v := by
-    rw [LinearEquiv.coe_toContinuousLinearEquiv', ← LinearEquiv.coe_coe,
-      LinearEquiv.coe_ofInjectiveOfFinrankEq]
-  have hΦ (x : M) (v : StdSpace κ) : Φ x v = ∑ i, (v.x i • a i x + v.y i • b i x) := by
-    rw [hΦL, hL]
-  refine ⟨Φ, ⟨?_, fun x _ v w ↦ ?_⟩, hΦ⟩
+    if hx : x ∈ U then
+      (LinearEquiv.ofInjectiveOfFinrankEq (L x) (hinj x hx) (hdim x)).toContinuousLinearEquiv
+    else ContinuousLinearEquiv.ofFinrankEq (hdim x)
+  have hΦL (x : M) (hx : x ∈ U) (v : StdSpace κ) : Φ x v = L x v := by
+    simp only [Φ, hx, ↓reduceDIte]
+    rw [LinearEquiv.coe_toContinuousLinearEquiv',
+      ← LinearEquiv.coe_coe, LinearEquiv.coe_ofInjectiveOfFinrankEq]
+  have hΦ (x : M) (hx : x ∈ U) (v : StdSpace κ) :
+      Φ x v = ∑ i, (v.x i • a i x + v.y i • b i x) := by
+    rw [hΦL x hx, hL]
+  refine ⟨Φ, ⟨?_, fun x hx v w ↦ ?_⟩, hΦ⟩
   · -- Each term of the sum is `Cⁿ` in the point and the vector.
     have hc (f : StdSpace κ →ₗ[ℝ] ℝ) :
         ContMDiff (I.prod 𝓘(ℝ, StdSpace κ)) 𝓘(ℝ) n fun p : M × StdSpace κ ↦ f p.2 :=
       f.toContinuousLinearMap.contDiff.contMDiff.comp contMDiff_snd
-    have hterm (f : StdSpace κ →ₗ[ℝ] ℝ) (s : ∀ x, V x) (hs : CMDiff n (T% s)) :
-        ContMDiff (I.prod 𝓘(ℝ, StdSpace κ)) (I.prod 𝓘(ℝ, F)) n
-          fun p : M × StdSpace κ ↦ TotalSpace.mk' F p.1 (f p.2 • s p.1) :=
-      (hc f).smul_totalSpace (hs.comp contMDiff_fst)
-    refine ContMDiff.contMDiffOn ?_
-    simp only [hΦ]
-    refine ContMDiff.sum_sectionAlong (b := Prod.fst) _ _ contMDiff_fst fun i _ ↦ ?_
+    have hfst : Set.MapsTo Prod.fst (U ×ˢ Set.univ : Set (M × StdSpace κ)) U := fun p hp ↦ hp.1
+    have hterm (f : StdSpace κ →ₗ[ℝ] ℝ) (s : ∀ x, V x) (hs : CMDiff[U] n (T% s)) :
+        ContMDiffOn (I.prod 𝓘(ℝ, StdSpace κ)) (I.prod 𝓘(ℝ, F)) n
+          (fun p : M × StdSpace κ ↦ TotalSpace.mk' F p.1 (f p.2 • s p.1)) (U ×ˢ Set.univ) :=
+      (hc f).contMDiffOn.smul_totalSpace (hs.comp contMDiff_fst.contMDiffOn hfst)
+    refine ContMDiffOn.congr ?_ fun p hp ↦ by rw [hΦ p.1 hp.1 p.2]
+    refine ContMDiffOn.sum_sectionAlong (b := Prod.fst) _ _ contMDiff_fst.contMDiffOn
+      fun i _ ↦ ?_
     exact (hterm ((LinearMap.proj i).comp StdSpace.x) _ (ha i)).add_sectionAlong
       (hterm ((LinearMap.proj i).comp StdSpace.y) _ (hb i))
-  · rw [hΦL, hΦL, hω]
+  · rw [hΦL x hx, hΦL x hx, hω x hx]
 
 section Trans
 
