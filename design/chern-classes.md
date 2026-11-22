@@ -329,11 +329,16 @@ classes at no cost):
   trivialization `e` of `E` sends a line `ℓ ⊆ E b` to `(b, e_b ℓ)`
   (`Projectivization.map`), and its transitions are continuous since the
   coordinate changes of `E` are, and the action of linear maps on `ℙ 𝕜 G` is
-  jointly continuous (Tau Ceti's `Topology/Algebra/Projectivization/Action.lean`,
-  through the quotient map from the nonzero vectors).
-- `ProjectiveBundle.proj`, continuous, with `CompactSpace` and `T2Space`
-  instances over a compact Hausdorff base (the fibre is compact Hausdorff,
-  Tau Ceti's `Topology/Algebra/Projectivization.lean`).
+  jointly continuous (Tau Ceti's
+  `Projectivization.continuousAt_linearProjection`).
+- `ProjectiveBundle.projection`, the projection as a continuous map (a
+  declaration named `ProjectiveBundle.proj` would take over the field
+  notation `p.proj`); over a compact base, for `RCLike 𝕜` and
+  finite-dimensional `G`, `CompactSpace` is the instance
+  `FiberBundle.compactSpace_totalSpace`; `T2Space` over a Hausdorff base
+  is Tau Ceti's instance `TauCeti.FiberBundle.t2Space_totalSpace` (the
+  fibre is compact Hausdorff, Tau Ceti's
+  `Topology/Algebra/Projectivization.lean`).
 - `ProjectiveBundle.map`, the map induced by a fibrewise linear isomorphism
   continuous on total spaces, a homeomorphism over `B`; and
   `ProjectiveBundle.pullbackHomeomorph (f : C(B', B))`, identifying
@@ -342,9 +347,18 @@ classes at no cost):
   `ProjectiveBundle 𝕜 G E` over `f`.
 - For a direct sum, `ProjectiveBundle.inl` and `ProjectiveBundle.inr`, the
   closed embeddings of `P(E₁)` and `P(E₂)` into `P(E₁ ×ᵇ E₂)`, with disjoint
-  ranges; and `ProjectiveBundle.inlRetraction`, the deformation retraction
-  of the complement of the range of `inr` onto the range of `inl`, through
-  the lines spanned by $v_1+tv_2$, $t\in[0,1]$.
+  ranges; and `ProjectiveBundle.inlRetraction`, the retraction of the
+  complement of the range of `inr` onto `P(E₁)`, which for
+  `[NormedAlgebra ℝ 𝕜]` is a deformation retraction through the lines
+  spanned by $v_1+tv_2$, $t\in[0,1]$
+  (`homotopic_inlCompl_comp_inlRetraction`, `inlHomotopyEquiv`).
+
+The file imports *Symplectic vector bundles*'
+`Topology/VectorBundle/ZeroSet.lean`, for the closedness of zero sets.
+
+The instance `FiberBundle.compactSpace_totalSpace`, compactness of the total
+space of a fibre bundle with compact fibre over a compact base, is in a file
+of its own, `Topology/FiberBundle/Compact.lean`, which this file imports.
 
 ### `Topology/VectorBundle/ProjectiveBundle/Tautological.lean`
 
@@ -360,7 +374,7 @@ classes at no cost):
 - `SymplecticGeometry.Bundle.ProjectiveBundle.Tautological 𝕜 G E`, the
   tautological line over `ProjectiveBundle 𝕜 G E`, with fibre `p.2.submodule`
   over `p`, a vector bundle with model `𝕜`, with the continuous inclusion
-  into the pull-back of `E` along `proj`. Its restriction to the fibre over
+  into the pull-back of `E` along `projection`. Its restriction to the fibre over
   `b` is `Projectivization.Tautological 𝕜 (E b)`; its pull-backs along
   `ProjectiveBundle.map`, `pullbackMap`, `inl` and `inr` are the tautological
   lines of the source, by fibrewise isomorphisms continuous on total spaces.
@@ -497,6 +511,20 @@ model fibres:
   and `twistCore 1 ⊗ twistCore (-1)` is trivial (`twistTransition_add`).
   *Projective hypersurfaces* uses this to read the page's $h$.
 
+### `Topology/VectorBundle/FiniteRank/Tensor.lean`
+
+Beside Tau Ceti's `FiniteRank/Tensor.lean`, in Tau Ceti's terms only;
+`Determinant.lean` imports it.
+
+- `TauCeti.FiniteRankBundleCore.tensorFiberEquiv` and
+  `continuous_tensorFiberEquiv`: the fibres of `FiniteRankBundleCore.tensor A D`
+  are the tensor products of the fibres of `A` and `D`, through
+  `TauCeti.piTensorEquiv`, continuously into Tau Ceti's tensor product
+  bundle.
+- `TauCeti.FiniteRankBundleCore.detWhitneySumIso`: the determinant line of
+  `whitneySum A D` is `tensor A.det D.det`, by a constant change of
+  coordinates (`det_coordChange_whitneySum`).
+
 ### `Topology/VectorBundle/Determinant.lean` (addition)
 
 - `SymplecticGeometry.Bundle.detCoreProdIso`: the determinant line of
@@ -536,7 +564,7 @@ For a compact Hausdorff boundaryless smooth manifold `M` modelled on `E`
 with `finrank ℝ E = m + 1` and `o : TauCeti.Manifold.Orientation I M (Fin (m + 1))`:
 
 - `TauCeti.Manifold.Orientation.sectionIndex_eq_sign_det_vectorFieldChartDerivative`:
-  for a `C¹` vector field `X` and a zero `z` at which
+  for a continuous vector field `X`, differentiable at a zero `z` at which
   `vectorFieldChartDerivative I X z` is invertible, the local index of `X`
   for `o.toVectorBundleOrientation` and `o.toHomologicalOrientation` is the
   sign of its determinant;
@@ -545,9 +573,10 @@ with `finrank ℝ E = m + 1` and `o : TauCeti.Manifold.Orientation I M (Fin (m +
   fundamental class of `o.toHomologicalOrientation` is
   $\sum_{i\le m+1}(-1)^i\dim_k H_i(M;k)$ for any division ring `k`; and
   `TauCeti.Manifold.Orientation.evalFundamentalClass_eulerClass_eq_eulerChar`,
-  the same with `TauCeti.eulerChar M` under the finite CW type instance
-  (`TauCeti.FiniteCWType.of_isManifold`). Both come from a Morse function,
-  a Riemannian metric and the three Tau Ceti results above.
+  the same with `TauCeti.eulerChar M` under a finite CW type instance
+  argument, which `TauCeti.FiniteCWType.of_isManifold` supplies. Both come
+  from a Morse function, a Riemannian metric and the three Tau Ceti results
+  above.
 
 Dimension zero is excluded, as in Tau Ceti's homological orientations; odd
 dimensions are included (both sides vanish).
@@ -558,6 +587,10 @@ dimensions are included (both sides vanish).
   `firstChernClass_trivial` and `firstChernClass_eq_complexEulerClass`
   (#784), only in `ChernClass/FirstChernClass.lean`; `detCore` from the merged
   `Topology/VectorBundle/Determinant.lean`.
+- From *First Chern number*: its file
+  `AlgebraicTopology/Singular/LocalHomology/OrientedChart.lean`, only in
+  `Geometry/Manifold/Orientation/EulerCharacteristic.lean`, for
+  `TauCeti.Manifold.Orientation.localHomologyMap_sub_toHomologicalOrientation`.
 - From Tau Ceti: integral cohomology and cup products
   (`AlgebraicTopology/Cohomology/IntegralCup.lean`, `Cup/Relative.lean`),
   the isomorphism `uliftIntIso` of `ULift ℤ` with `ℤ`, the multiplication
@@ -615,7 +648,8 @@ come before it. Issues 1, 2, 3, 5, 13 and 16 can start at once.
     `Topology/VectorBundle/Orientation/Complex/Tensor.lean`. Waits for 2
     and 7.
 13. **Determinant of a direct sum.** Addition to
-    `Topology/VectorBundle/Determinant.lean`.
+    `Topology/VectorBundle/Determinant.lean`, with
+    `Topology/VectorBundle/FiniteRank/Tensor.lean`.
 14. **Splitting principle.** `ChernClass/Splitting.lean`. Waits for 8.
 15. **Top class and first class.** `ChernClass/EulerClass.lean` and
     `ChernClass/FirstChernClass.lean`. Waits for 2, 10, 11, 12, 13, 14 and

@@ -763,7 +763,11 @@ Expected size: 650 lines, in two issues (L1 and L2).
   with `TauCeti.eulerianField` $s'(t)X_{s(t)}$, where $X$ is the velocity
   along the motion as read above (for the uniqueness). If that file reads
   velocities differently, the uniqueness issue converts with the lemma
-  relating the two readings, which `Diffeotopy/Real.lean` provides.
+  relating the two readings, which `Diffeotopy/Real.lean` provides. Also
+  `Geometry/Manifold/Flow/TimeDependent.lean`, for the flow of a field
+  restricted to an open subset (in `Gray.lean`).
+- *Hamiltonian flows*: `Geometry/Diffeomorphism/Diffeotopy/Velocity.lean`,
+  for `velocity_timeDependentFlowDiffeotopy` (in `Gray.lean`).
 - *Symplectic neighbourhoods* (#475, #476): the Lagrangian neighbourhood
   theorem of `Geometry/Symplectic/Neighborhood/Lagrangian.lean`, for a
   Lagrangian embedding into a symplectic manifold, with model

@@ -7,8 +7,10 @@ module
 
 public import Mathlib.Topology.Algebra.Module.FiniteDimension
 public import SymplecticGeometry.Topology.VectorBundle.Core.Basic
+public import TauCeti.Topology.FiberBundle.Prod
 public import TauCeti.Topology.FiberBundle.Pullback
 public import TauCeti.Topology.VectorBundle.Core.Congr
+public import TauCeti.Topology.VectorBundle.FiniteRank.Biproduct
 public import TauCeti.Topology.VectorBundle.FiniteRank.Pullback
 public import TauCeti.Topology.VectorBundle.Trivialization
 
@@ -33,7 +35,9 @@ along `ContinuousLinearEquiv.ofFinrankEq` (`VectorBundleCore.congrModel`).
   have different models;
 * `pullback_ofBundleOfFinrankEq`: pulling back the core is the core of the pulled-back bundle, the
   analogue of `pullback_ofBundle`;
-* `ofBundleOfFinrankEq_trivial`: the core of the trivial bundle is the trivial core.
+* `ofBundleOfFinrankEq_trivial`: the core of the trivial bundle is the trivial core;
+* `ofBundleOfFinrankEqProdIso`: the core of the direct sum `E₁ ×ᵇ E₂` is the Whitney sum
+  `TauCeti.FiniteRankBundleCore.whitneySum` of the cores of `E₁` and `E₂`.
 
 The constructions follow Tau Ceti's `ofBundle` and `ofBundleIso`, and the use of `congrModel` in
 `TauCeti.FiniteRankAtlas.whitneyStratumCore`; the proof of `pullback_ofBundleOfFinrankEq`
@@ -247,6 +251,86 @@ variable (B) {G : Type*} [NormedAddCommGroup G] [NormedSpace 𝕜 G] [FiniteDime
     simp
 
 end Trivial
+
+section Prod
+
+variable {G₁ : Type*} [NormedAddCommGroup G₁] [NormedSpace 𝕜 G₁] [FiniteDimensional 𝕜 G₁]
+  (E₁ : B → Type*) [∀ x, AddCommMonoid (E₁ x)] [∀ x, Module 𝕜 (E₁ x)]
+  [∀ x, TopologicalSpace (E₁ x)] [TopologicalSpace (TotalSpace G₁ E₁)]
+  [FiberBundle G₁ E₁] [VectorBundle 𝕜 G₁ E₁]
+  {G₂ : Type*} [NormedAddCommGroup G₂] [NormedSpace 𝕜 G₂] [FiniteDimensional 𝕜 G₂]
+  (E₂ : B → Type*) [∀ x, AddCommMonoid (E₂ x)] [∀ x, Module 𝕜 (E₂ x)]
+  [∀ x, TopologicalSpace (E₂ x)] [TopologicalSpace (TotalSpace G₂ E₂)]
+  [FiberBundle G₂ E₂] [VectorBundle 𝕜 G₂ E₂]
+  {n₁ n₂ : ℕ} (h₁ : finrank 𝕜 G₁ = n₁) (h₂ : finrank 𝕜 G₂ = n₂)
+  (h : finrank 𝕜 (G₁ × G₂) = n₁ + n₂)
+
+/-- The fibre of the core of the direct sum `E₁ ×ᵇ E₂` is identified with the fibre of the
+Whitney sum of the cores of `E₁` and `E₂`. -/
+noncomputable def ofBundleOfFinrankEqProdFiberEquiv (x : B) :
+    (ofBundleOfFinrankEq 𝕜 (G₁ × G₂) (E₁ ×ᵇ E₂) h).core.Fiber x ≃L[𝕜]
+      (whitneySum (ofBundleOfFinrankEq 𝕜 G₁ E₁ h₁)
+        (ofBundleOfFinrankEq 𝕜 G₂ E₂ h₂)).core.Fiber x :=
+  (ofBundleOfFinrankEqFiberEquiv 𝕜 (G₁ × G₂) (E₁ ×ᵇ E₂) _ x).trans <|
+    ((ofBundleOfFinrankEqFiberEquiv 𝕜 G₁ E₁ h₁ x).symm.prodCongr
+      (ofBundleOfFinrankEqFiberEquiv 𝕜 G₂ E₂ h₂ x).symm).trans
+      (whitneySumFiberEquiv _ _ x).symm
+
+@[simp] theorem ofBundleOfFinrankEqProdFiberEquiv_apply (x : B)
+    (v : (ofBundleOfFinrankEq 𝕜 (G₁ × G₂) (E₁ ×ᵇ E₂) h).core.Fiber x) :
+    ofBundleOfFinrankEqProdFiberEquiv E₁ E₂ h₁ h₂ h x v =
+      (whitneySumFiberEquiv _ _ x).symm
+        ((ofBundleOfFinrankEqFiberEquiv 𝕜 G₁ E₁ h₁ x).symm
+          (ofBundleOfFinrankEqFiberEquiv 𝕜 (G₁ × G₂) (E₁ ×ᵇ E₂) _ x v).1,
+        (ofBundleOfFinrankEqFiberEquiv 𝕜 G₂ E₂ h₂ x).symm
+          (ofBundleOfFinrankEqFiberEquiv 𝕜 (G₁ × G₂) (E₁ ×ᵇ E₂) _ x v).2) := (rfl)
+
+@[simp] theorem ofBundleOfFinrankEqProdFiberEquiv_symm_apply (x : B)
+    (w : (whitneySum (ofBundleOfFinrankEq 𝕜 G₁ E₁ h₁)
+      (ofBundleOfFinrankEq 𝕜 G₂ E₂ h₂)).core.Fiber x) :
+    (ofBundleOfFinrankEqProdFiberEquiv E₁ E₂ h₁ h₂ h x).symm w =
+      (ofBundleOfFinrankEqFiberEquiv 𝕜 (G₁ × G₂) (E₁ ×ᵇ E₂) _ x).symm
+        (ofBundleOfFinrankEqFiberEquiv 𝕜 G₁ E₁ h₁ x (whitneySumFiberEquiv _ _ x w).1,
+          ofBundleOfFinrankEqFiberEquiv 𝕜 G₂ E₂ h₂ x (whitneySumFiberEquiv _ _ x w).2) := (rfl)
+
+/-- The fibrewise identification `ofBundleOfFinrankEqProdFiberEquiv` is continuous on total
+spaces. -/
+theorem continuous_ofBundleOfFinrankEqProdFiberEquiv :
+    Continuous fun p : (ofBundleOfFinrankEq 𝕜 (G₁ × G₂) (E₁ ×ᵇ E₂) h).core.TotalSpace ↦
+      (⟨p.proj, ofBundleOfFinrankEqProdFiberEquiv E₁ E₂ h₁ h₂ h p.proj p.snd⟩ :
+        (whitneySum (ofBundleOfFinrankEq 𝕜 G₁ E₁ h₁)
+          (ofBundleOfFinrankEq 𝕜 G₂ E₂ h₂)).core.TotalSpace) := by
+  refine (whitneySumTotalSpaceHomeomorph _ _).isInducing.continuous_iff.2 ?_
+  refine (FiberBundle.Prod.isInducing_diag _ _ _ _).continuous_iff.2 ?_
+  have hp := (ofBundleOfFinrankEqHomeomorph 𝕜 (G₁ × G₂) (E₁ ×ᵇ E₂) h).continuous
+  refine (((ofBundleOfFinrankEqHomeomorph 𝕜 G₁ E₁ h₁).symm.continuous.comp
+    (FiberBundle.Prod.continuous_totalSpaceFst.comp hp)).prodMk
+    ((ofBundleOfFinrankEqHomeomorph 𝕜 G₂ E₂ h₂).symm.continuous.comp
+    (FiberBundle.Prod.continuous_totalSpaceSnd.comp hp))).congr fun p ↦ ?_
+  dsimp only [Function.comp_apply]
+  rw [whitneySumTotalSpaceHomeomorph_apply, ofBundleOfFinrankEqHomeomorph_apply]
+  dsimp only
+  rw [ofBundleOfFinrankEqProdFiberEquiv_apply, ContinuousLinearEquiv.apply_symm_apply,
+    ofBundleOfFinrankEqHomeomorph_symm_apply, ofBundleOfFinrankEqHomeomorph_symm_apply]
+
+/-- The core of the direct sum `E₁ ×ᵇ E₂` is isomorphic to the Whitney sum of the cores of `E₁`
+and `E₂`, by `ofBundleOfFinrankEqProdFiberEquiv` on each fibre. -/
+noncomputable def ofBundleOfFinrankEqProdIso :
+    ofBundleOfFinrankEq 𝕜 (G₁ × G₂) (E₁ ×ᵇ E₂) h ≅
+      whitneySum (ofBundleOfFinrankEq 𝕜 G₁ E₁ h₁) (ofBundleOfFinrankEq 𝕜 G₂ E₂ h₂) :=
+  isoOfContinuousEquiv _ (continuous_ofBundleOfFinrankEqProdFiberEquiv E₁ E₂ h₁ h₂ h)
+
+@[simp] theorem fiberMap_ofBundleOfFinrankEqProdIso_hom (x : B) :
+    (ofBundleOfFinrankEqProdIso E₁ E₂ h₁ h₂ h).hom.fiberMap x =
+      (ofBundleOfFinrankEqProdFiberEquiv E₁ E₂ h₁ h₂ h x).toContinuousLinearMap := by
+  rw [ofBundleOfFinrankEqProdIso]; exact fiberMap_isoOfContinuousEquiv_hom _ _ x
+
+@[simp] theorem fiberMap_ofBundleOfFinrankEqProdIso_inv (x : B) :
+    (ofBundleOfFinrankEqProdIso E₁ E₂ h₁ h₂ h).inv.fiberMap x =
+      (ofBundleOfFinrankEqProdFiberEquiv E₁ E₂ h₁ h₂ h x).symm.toContinuousLinearMap := by
+  rw [ofBundleOfFinrankEqProdIso]; exact fiberMap_isoOfContinuousEquiv_inv _ _ x
+
+end Prod
 
 end FiniteRankBundleCore
 
