@@ -298,8 +298,9 @@ theorem leviCivitaConnection_compatibleSpace_apply
       smul_eq_mul, ContinuousLinearMap.traceForm_apply, mvfderiv_apply_eq_mfderiv_apply] at h
 
 /-- The Levi-Civita connection in ambient terms, with the ambient readings written through
-`mvfderiv`, as elements of `V →L[ℝ] V`, and the products as multiplication there: the ambient
-reading of `∇_a Y` is `D_a Ŷ - ½ J (Ŷ â + â Ŷ)`. -/
+`mvfderiv`, as elements of `V →L[ℝ] V`, and the products as multiplication there: for a vector
+field `Y` differentiable at `J` and a tangent vector `a` at `J`, the ambient reading of `∇_a Y` is
+`D_a Ŷ - ½ J (Ŷ â + â Ŷ)`. -/
 theorem mvfderiv_leviCivitaConnection_compatibleSpace_apply
     {Y : Π J : 𝒥, TangentSpace 𝓘(ℝ, ω.compatibleModel) J} {J : 𝒥}
     (hY : MDifferentiableAt 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, ω.compatibleModel).tangent
