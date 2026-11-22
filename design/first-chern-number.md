@@ -223,8 +223,9 @@ core of prerequisite 1:
 - `chernNumber_neg_orientation`: reversing `o` negates it.
 - `chernNumber_congr`, `chernNumber_trivial`, `chernNumber_conj`, from the
   lemmas above.
-- `chernNumber_pullback (f : C(M', M))`, with `[PreconnectedSpace M]`:
-  `chernNumber o' hn' G (f *ᵖ E) = o'.degree o hn' f * chernNumber o hn G E`, from
+- `chernNumber_pullback (f : K)`, for any `[ContinuousMapClass K M' M]`, with
+  `[PreconnectedSpace M]`:
+  `chernNumber o' hn' G (f *ᵖ E) = o'.degree o hn' (f : C(M', M)) * chernNumber o hn G E`, from
   `firstChernClass_pullback` and
   `evalFundamentalClass_id_singularCohomologyMap_eq_degree_smul`, which needs
   the target compact and preconnected.
@@ -278,7 +279,8 @@ complex ones that `chernNumber_congr` takes.
 - `chernNumber_pullback_eq_degree_mul`: for `φ : M' → M` smooth between
   closed oriented surfaces, `M` connected, the smooth form
   `chernNumber o'ₕ hn G (φ *ᵖ E) = TauCeti.degree o' o φ * chernNumber oₕ hn G E`,
-  with `oₕ = o.toHomologicalOrientation hn`, for `φ : C(M', M)` with
+  with `oₕ = o.toHomologicalOrientation hn`, for `φ : K`, any
+  `[ContinuousMapClass K M' M]`, with
   `ContMDiff 𝓘(ℝ, E') 𝓘(ℝ, E') 1 φ` and both surfaces modelled on `E'`; from
   `chernNumber_pullback` and `degree_toHomologicalOrientation_eq_degree`.
 - `symplecticChernNumber o hn G ω : ℤ` for a symplectic vector bundle
@@ -299,7 +301,9 @@ complex ones that `chernNumber_congr` takes.
 - `symplecticChernNumber_pullback` and `symplecticChernNumber_congr`, from
   the complex statements and the pull-backs and isomorphisms of symplectic
   bundles that *Symplectic vector bundles* gets from #57. Both take the form
-  nondegenerate, so that a compatible complex structure exists.
+  nondegenerate, so that a compatible complex structure exists. The pull-back
+  lemma takes `f : K`, any `[ContinuousMapClass K M' M]`, with
+  `hf : ContMDiff 𝓘(ℝ, EM') 𝓘(ℝ, EM) n f`, and is stated for `ω.pullback f hf`.
 - The file imports `Geometry/Manifold/VectorBundle/Symplectic/FirstChernClass.lean`
   of *First Chern class of nondegenerate forms*; `Tames.chernNumber_eq`,
   `symplecticChernNumber_neg`,
@@ -1142,6 +1146,10 @@ issues, in an order where each issue's blockers come before it.
      (`Metric.isCollared_inclusion_sphere_closedBall`), and the
      open ball is the complement of the sphere in the closed ball
      (`Metric.range_inclusion_ball_eq_compl`).
+   - `Topology/MetricSpace/ProperSpace/Lemmas.lean`, of *Isotopy
+     extension*, used by `DiscComplement/Basic.lean`: an open set
+     containing a closed ball contains a larger open ball
+     (`Metric.exists_lt_ball_subset_of_closedBall_subset`).
    - `AlgebraicTopology/Singular/LocalHomology/OrientedChart.lean`, used
      by *Chern classes*' `Orientation/EulerCharacteristic.lean`:
      `TauCeti.Manifold.Orientation.localHomologyMap_sub_toHomologicalOrientation`,
