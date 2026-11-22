@@ -34,8 +34,7 @@ universe u
 
 namespace TopologicalSpace.Opens
 
-/-- An open subset of a charted space, as an object of `TopCat`, is a charted space, with the
-restricted atlas. -/
+/-- An open subset of a charted space, viewed as an object of `TopCat`, is a charted space. -/
 instance instChartedSpaceToTopCatObj {H : Type*} [TopologicalSpace H] {X : TopCat.{u}}
     [ChartedSpace H X] (W : Opens X) : ChartedSpace H ((toTopCat X).obj W) :=
   TopologicalSpace.Opens.instChartedSpace (H := H) (M := X) W

@@ -980,16 +980,17 @@ issues, in an order where each issue's blockers come before it.
      product space, through the connecting morphism and radial projection,
      is the oriented generator of the unit sphere.
    - `AlgebraicTopology/Singular/LocalHomology/BoundaryClass.lean`, imported
-     by `BoundaryDegree.lean`: in any dimension `n + 1`,
+     by `DiscBoundaryClass.lean` and `BoundaryDegree.lean`: in any dimension `n + 1`,
      `TauCeti.HomologicalOrientation.boundaryClass`, the image of
      `fundamentalClassRel` in `Hₙ(∂X; ℤ)` under the connecting morphism, with
      `boundaryClass_neg` and `map_subtypeVal_boundaryClass` (it vanishes in
      `Hₙ(X; ℤ)`).
    - `AlgebraicTopology/Singular/LocalHomology/DiscBoundaryClass.lean`, a
-     prerequisite of `BoundaryDegree.lean`: the closed unit disc of `ℂ` in
+     prerequisite of `BoundaryDegree.lean`; it imports `BoundaryClass.lean`:
+     the closed unit disc of `ℂ` in
      this setting, by `Collar.lean`, and its boundary
      class,
-     `SymplecticGeometry.singularHomologyOneIso_singularHomologyδ_fundamentalClassRel_closedBall`:
+     `SymplecticGeometry.singularHomologyOneIso_map_boundaryClass_closedBall`:
      for the complex orientation of the open disc, the boundary class read
      in ℤ through `Circle.singularHomologyOneIso` is $+1$.
    - `AlgebraicTopology/Singular/LocalHomology/BoundaryDegree.lean`, which

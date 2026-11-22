@@ -6,9 +6,9 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.AlgebraicTopology.Singular.Circle
+public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.BoundaryClass
 public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.OrientedChart
 public import SymplecticGeometry.Analysis.Normed.Module.Ball.Collar
-public import TauCeti.AlgebraicTopology.Singular.LocalHomology.RelativeFundamentalClass
 public import TauCeti.Geometry.Manifold.Complex.FundamentalClass
 
 /-!
@@ -17,8 +17,9 @@ public import TauCeti.Geometry.Manifold.Complex.FundamentalClass
 Let `D = closedBall (0 : ℂ) 1` be the closed unit disc. Its interior, the open unit disc, is an
 open subset of `ℂ` and carries the orientation `TauCeti.complexHomologicalOrientation`; its
 boundary is the unit circle. This file puts `D` in the setting of Tau Ceti's relative fundamental
-class (`TauCeti.HomologicalOrientation.fundamentalClassRel`) and computes the sign of the boundary
-class `∂[D, S¹] ∈ H₁(S¹; ℤ)`, the image of `[D, S¹]` under the connecting morphism of the pair.
+class (`TauCeti.HomologicalOrientation.fundamentalClassRel`) and computes the sign of its boundary
+class `∂[D, S¹] ∈ H₁(S¹; ℤ)` (`TauCeti.HomologicalOrientation.boundaryClass`), the image of
+`[D, S¹]` under the connecting morphism of the pair.
 
 The hypotheses of `fundamentalClassRel` hold for the closed unit ball of any real normed space:
 the inclusion of the open unit ball into the closed one is an open embedding
@@ -29,7 +30,7 @@ the inclusion of the open unit ball into the closed one is an open embedding
 
 The sign is `+1`: read in `Circle` (`SymplecticGeometry.closedBallComplToCircle`) and in `ℤ`
 through `Circle.singularHomologyOneIso`, the boundary class is `1`
-(`SymplecticGeometry.singularHomologyOneIso_singularHomologyδ_fundamentalClassRel_closedBall`).
+(`SymplecticGeometry.singularHomologyOneIso_map_boundaryClass_closedBall`).
 So the boundary class of the disc is the generator of `H₁(Circle; ℤ)` that Tau Ceti fixes.
 
 ## Proof
@@ -55,7 +56,7 @@ the map is the inclusion of the disc.
 
 ## Main results
 
-* `SymplecticGeometry.singularHomologyOneIso_singularHomologyδ_fundamentalClassRel_closedBall`:
+* `SymplecticGeometry.singularHomologyOneIso_map_boundaryClass_closedBall`:
   the boundary class of the closed unit disc is `1` in `H₁(Circle; ℤ) ≅ ℤ`.
 * `TauCeti.complexHomologicalOrientation_apply_zero`: the local orientation of `ℂ` at the origin is
   the one selected by `Complex.orientation`.
@@ -205,24 +206,21 @@ private lemma reducedSingularHomologyδ_complexHomologicalOrientation :
     h0 Complex.orientation Complex.finrank_real_complex
 
 /-- **The boundary class of the closed unit disc.** Orient the open unit disc as an open subset
-of `ℂ` (`TauCeti.complexHomologicalOrientation`). The connecting morphism of the closed unit disc
-relative to the unit circle sends its relative fundamental class
-(`TauCeti.HomologicalOrientation.fundamentalClassRel`) to the class of `H₁(S¹; ℤ)` that, read in
-`Circle` and through `Circle.singularHomologyOneIso`, is `1`: the generator of `H₁(Circle)` that
-Tau Ceti fixes. -/
-theorem singularHomologyOneIso_singularHomologyδ_fundamentalClassRel_closedBall :
+of `ℂ` (`TauCeti.complexHomologicalOrientation`). The boundary class of the closed unit disc
+relative to the unit circle (`TauCeti.HomologicalOrientation.boundaryClass`), the image of its
+relative fundamental class under the connecting morphism, is the class of `H₁(S¹; ℤ)` that, read
+in `Circle` and through `Circle.singularHomologyOneIso`, is `1`: the generator of `H₁(Circle)`
+that Tau Ceti fixes. -/
+theorem singularHomologyOneIso_map_boundaryClass_closedBall :
     (Circle.singularHomologyOneIso (ModuleCat.of ℤ (ULift.{0} ℤ))).hom
       (((singularHomologyFunctor (ModuleCat.{0} ℤ) 1).obj (ModuleCat.of ℤ (ULift.{0} ℤ))).map
         (TopCat.ofHom closedBallComplToCircle)
-        ((TopPair.ofSubset ((range (inclusion
-            (ball_subset_closedBall : ball (0 : ℂ) 1 ⊆ closedBall 0 1)))ᶜ :
-              Set (TopCat.of (closedBall (0 : ℂ) 1)))).singularHomologyδ
-          (ModuleCat.of ℤ (ULift.{0} ℤ)) 2 1 rfl
-          ((complexHomologicalOrientation
-              (⟨ball (0 : ℂ) 1, isOpen_ball⟩ : Opens ℂ)).fundamentalClassRel
-            Complex.finrank_real_complex
-            (.inclusion _ (isOpen_ball.preimage continuous_subtypeVal))
-            (range_inclusion_ball_eq_compl 0 1) isCollared_inclusion_sphere_closedBall))) = 1 := by
+        ((complexHomologicalOrientation
+            (⟨ball (0 : ℂ) 1, isOpen_ball⟩ : Opens ℂ)).boundaryClass
+          Complex.finrank_real_complex
+          (.inclusion _ (isOpen_ball.preimage continuous_subtypeVal))
+          (range_inclusion_ball_eq_compl 0 1) isCollared_inclusion_sphere_closedBall)) = 1 := by
+  rw [HomologicalOrientation.boundaryClass_def]
   set γ := (complexHomologicalOrientation openDisc).fundamentalClassRel Complex.finrank_real_complex
     isOpenEmbedding_ι (range_inclusion_ball_eq_compl 0 1) isCollared_inclusion_sphere_closedBall
   set P := TopPair.ofSubset ((range ι)ᶜ : Set (TopCat.of (closedBall (0 : ℂ) 1)))
