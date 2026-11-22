@@ -308,14 +308,15 @@ Its statement is Tau Ceti's `exists_diffeotopy_apply_eq` without the change of
 time. The steps:
 
 1. `TauCeti.SmoothIsotopy.exists_contMDiff_extend`. There are `δ > 0`, an
-   open `V ⊇ A` and a smooth `G : ℝ × V → N` that agrees with `F` on
-   $[0,1]\times V$ and whose slices are smooth embeddings for
+   open `V ⊇ A` and a `G : ℝ × P → N`, smooth on `Ioo (-δ) (1 + δ) ×ˢ V`,
+   that agrees with `F` on
+   $[0,1]\times V$ and whose slices are smooth embeddings of `V` for
    $t\in(-\delta,1+\delta)$. Seeley's extension extends maps into a normed
-   space, so the target is moved into one. Mathlib's
-   `SmoothBumpCovering.embeddingPiTangent` (`Geometry/Manifold/WhitneyEmbedding.lean`),
-   for a bump covering of the compact track of `A`, is an injective
-   immersion there. `SmoothEmbedding/Neighborhood.lean` makes it an
-   embedding of a neighbourhood `W`, with a smooth retraction of a
+   space, so the target is moved into one. Tau Ceti's
+   `IsCompact.exists_opens_nonempty_smoothEmbedding_euclidean`, built on the
+   map of Mathlib's `SmoothBumpCovering.embeddingPiTangent`, embeds a
+   neighbourhood `W` of the compact track of `A` into a Euclidean space,
+   with a smooth retraction of a
    neighbourhood of its image onto it
    (`TauCeti.SmoothEmbedding.exists_contMDiffOn_retraction`). The extension is
    *Smooth families*' `ContMDiff/TimeExtension.lean` applied to the
