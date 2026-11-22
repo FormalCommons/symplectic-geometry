@@ -138,23 +138,20 @@ theorem compatibleSpaceComplexStructure_apply (J : 𝒥)
 tangent vector with ambient reading `Ĵ` to the tangent vector with ambient reading `-J Ĵ`. -/
 theorem mvfderiv_compatibleCLM_compatibleSpaceComplexStructure (J : 𝒥)
     (a : TangentSpace 𝓘(ℝ, ω.compatibleModel) J) :
-    mvfderiv 𝓘(ℝ, ω.compatibleModel) ω.compatibleCLM J (ω.compatibleSpaceComplexStructure J a) =
-      -(ω.compatibleCLM J * mvfderiv 𝓘(ℝ, ω.compatibleModel) ω.compatibleCLM J a) := by
-  rw [mvfderiv_apply_eq_mfderiv_apply, mvfderiv_apply_eq_mfderiv_apply]
+    dι[ω] J (ω.compatibleSpaceComplexStructure J a) = -(ω.compatibleCLM J * dι[ω] J a) := by
   -- The tangent space at `J` is the model space; the computation reads `a` in the model.
   revert a
   intro (a : ω.compatibleModel)
   -- Name the ambient reading of `a`, an element of `V →L[ℝ] V`.
-  obtain ⟨d, hd⟩ : ∃ d : V →L[ℝ] V,
-      mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM J a = d := ⟨_, rfl⟩
+  obtain ⟨d, hd⟩ : ∃ d : V →L[ℝ] V, dι[ω] J a = d := ⟨_, rfl⟩
   rw [hd]
   have hd' : d = (2 : ℝ) • (ω.compatibleCLM ω.compatibleBase *
       Ring.inverse (1 - (ω.cayleyChart J : V →L[ℝ] V)) * (a : V →L[ℝ] V) *
         Ring.inverse (1 - (ω.cayleyChart J : V →L[ℝ] V))) :=
-    hd.symm.trans (mfderiv_compatibleCLM_apply J a)
-  refine (congrArg (mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM J)
-    (compatibleSpaceComplexStructure_apply J a)).trans ((mfderiv_compatibleCLM_apply J _).trans ?_)
-  rw [hd', coe_compatibleModelComplexStructure_apply, compatibleCLM_eq_cayleyChart]
+    hd.symm.trans (mvfderiv_compatibleCLM_apply J a)
+  refine (congrArg (dι[ω] J) (compatibleSpaceComplexStructure_apply J a)).trans
+    ((mvfderiv_compatibleCLM_apply J _).trans ?_)
+  rw [hd', coe_compatibleModelComplexStructure_apply, compatibleCLM_eq_cayleyChart J]
   set C : V →L[ℝ] V := ↑(ω.cayleyChart J)
   set J₀ := ω.compatibleCLM ω.compatibleBase
   -- `C` anticommutes with `J₀`, and `1 - C` is invertible, with inverse `R`.
@@ -220,17 +217,13 @@ theorem isPseudoholomorphic_compatibleTransport {Ψ : V ≃L[ℝ] V}
   intro J
   refine isPseudoholomorphicAt_iff_mfderiv.2
     ⟨(ω.compatibleTransport hΨ).mdifferentiable (by simp) J, fun a => ?_⟩
-  apply injective_mfderiv_compatibleCLM
-  rw [mfderiv_compatibleCLM_compatibleTransport,
-    ← mvfderiv_apply_eq_mfderiv_apply ω.compatibleCLM J,
-    ← mvfderiv_apply_eq_mfderiv_apply ω.compatibleCLM (ω.compatibleTransport hΨ J),
+  apply injective_mvfderiv_iff.2 (injective_mfderiv_compatibleCLM _)
+  rw [mvfderiv_compatibleCLM_compatibleTransport,
     mvfderiv_compatibleCLM_compatibleSpaceComplexStructure,
-    mvfderiv_compatibleCLM_compatibleSpaceComplexStructure, mvfderiv_apply_eq_mfderiv_apply,
-    mvfderiv_apply_eq_mfderiv_apply, mfderiv_compatibleCLM_compatibleTransport,
-    compatibleCLM_compatibleTransport]
+    mvfderiv_compatibleCLM_compatibleSpaceComplexStructure,
+    mvfderiv_compatibleCLM_compatibleTransport, compatibleCLM_compatibleTransport]
   -- Name the ambient reading of `a`, an element of `V →L[ℝ] V`.
-  obtain ⟨d, hd⟩ : ∃ d : V →L[ℝ] V,
-      mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM J a = d := ⟨_, rfl⟩
+  obtain ⟨d, hd⟩ : ∃ d : V →L[ℝ] V, dι[ω] J a = d := ⟨_, rfl⟩
   rw [hd]
   refine ContinuousLinearMap.ext fun v => ?_
   simp
