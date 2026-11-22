@@ -103,8 +103,8 @@ the zero section is Lagrangian for it, since `f^* α = 0`. Then:
 The last two steps adapt the proof of Tau Ceti's
 `TauCeti.SmoothForm.IsContactForm.exists_strictDarbouxChart`, which straightens a contact form
 along the Reeb flow out of a symplectic slice after a change of the time coordinate, here along a
-whole Legendrian submanifold instead of near a point. The case of an empty `L` follows the proof
-of `TauCeti.SmoothTwoForm.IsNondegenerate.IsLagrangianMap.exists_symplectomorphism_cotangent`.
+whole Legendrian submanifold instead of near a point. An empty `L` is handled with the empty open
+sets (`TopologicalSpace.Opens.isEmpty_bot`).
 
 ## Main results
 
@@ -982,9 +982,7 @@ theorem exists_diffeomorph_opens_mpullback_eq_neg_contactization [I.Boundaryless
         -SmoothForm.mpullback (Subtype.val : U → CotangentBundle J L × ℝ) contMDiff_subtypeVal
           (CotangentBundle.liouvilleForm J L).contactization := by
   rcases isEmpty_or_nonempty L with hL | hL
-  · have : IsEmpty (⊥ : Opens (CotangentBundle J L × ℝ)) := ⟨fun x ↦ x.property⟩
-    have : IsEmpty (⊥ : Opens M) := ⟨fun x ↦ x.property⟩
-    exact ⟨⊥, ⊥, Diffeomorph.ofIsEmpty, fun q ↦ (hL.false q).elim,
+  · exact ⟨⊥, ⊥, Diffeomorph.ofIsEmpty, fun q ↦ (hL.false q).elim,
       Subtype.ext (funext fun x ↦ (IsEmpty.false x).elim)⟩
   let G : SmoothEmbedding J I ∞ L M := .ofIsSmoothEmbedding f hf.isSmoothEmbedding
   have := G.isEmbedding.t2Space
