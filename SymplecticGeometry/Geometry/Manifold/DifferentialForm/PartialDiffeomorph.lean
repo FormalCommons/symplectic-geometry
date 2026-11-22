@@ -101,8 +101,7 @@ theorem mpullback_symm_realAlternatingDerivation [IsManifold I ∞ M]
     rw [← J.toContMDiff_chartPushforward ⊤,
       ContMDiffAlmostComplexStructure.chartPushforward_apply,
       SmoothAlmostComplexStructure.toContMDiff_apply]
-    -- `ψ.toOpenPartialHomeomorph.symm` and `ψ.symm` have the same underlying function, for which
-    -- Mathlib states no lemma.
+    rw [ψ.coe_toOpenPartialHomeomorph_symm]
     exact h
   simp only [mpullback_apply, ContMDiffSection.realAlternatingDerivation_apply]
   refine Finset.sum_congr rfl fun i _ ↦ congrArg (φ.val (ψ.symm y)) (funext fun j ↦ ?_)
@@ -127,6 +126,11 @@ def RoughForm.extendByZeroAlong : RoughForm I M F k :=
 
 namespace RoughForm
 
+open Classical in
+theorem extendByZeroAlong_def :
+    extendByZeroAlong ψ a = ψ.source.piecewise (mpullback I 𝓘(ℝ, E) ψ a) 0 :=
+  (rfl)
+
 variable {ψ} {x : M}
 
 theorem extendByZeroAlong_apply_of_mem (hx : x ∈ ψ.source) :
@@ -138,6 +142,42 @@ theorem extendByZeroAlong_apply_of_notMem (hx : x ∉ ψ.source) :
     extendByZeroAlong ψ a x = 0 := by
   classical
   exact Set.piecewise_eq_of_notMem _ _ _ hx
+
+/-- The extension by zero of the zero flat form is zero. -/
+@[simp]
+theorem extendByZeroAlong_zero :
+    extendByZeroAlong ψ (0 : E → E [⋀^Fin k]→L[ℝ] F) = (0 : RoughForm I M F k) := by
+  funext x
+  by_cases hx : x ∈ ψ.source
+  · rw [extendByZeroAlong_apply_of_mem _ hx]
+    exact congrFun (mpullback_zero (I := I) (I' := 𝓘(ℝ, E)) (F := F) (k := k) ψ) x
+  · exact extendByZeroAlong_apply_of_notMem _ hx
+
+/-- Extension by zero along `ψ` is additive. -/
+@[simp]
+theorem extendByZeroAlong_add (b : E → E [⋀^Fin k]→L[ℝ] F) :
+    extendByZeroAlong ψ (a + b) =
+      (extendByZeroAlong ψ a + extendByZeroAlong ψ b : RoughForm I M F k) := by
+  funext x
+  by_cases hx : x ∈ ψ.source
+  · rw [Pi.add_apply, extendByZeroAlong_apply_of_mem _ hx, extendByZeroAlong_apply_of_mem _ hx,
+      extendByZeroAlong_apply_of_mem _ hx]
+    exact congrFun (mpullback_add (I := I) (I' := 𝓘(ℝ, E)) ψ
+      (a : RoughForm 𝓘(ℝ, E) E F k) b) x
+  · rw [Pi.add_apply, extendByZeroAlong_apply_of_notMem _ hx,
+      extendByZeroAlong_apply_of_notMem _ hx, extendByZeroAlong_apply_of_notMem _ hx, add_zero]
+
+/-- Extension by zero along `ψ` commutes with multiplication by a real constant. -/
+@[simp]
+theorem extendByZeroAlong_smul (c : ℝ) :
+    extendByZeroAlong ψ (c • a) = (c • extendByZeroAlong ψ a : RoughForm I M F k) := by
+  funext x
+  by_cases hx : x ∈ ψ.source
+  · rw [Pi.smul_apply, extendByZeroAlong_apply_of_mem _ hx, extendByZeroAlong_apply_of_mem _ hx]
+    exact congrFun (mpullback_smul (I := I) (I' := 𝓘(ℝ, E)) ψ c
+      (a : RoughForm 𝓘(ℝ, E) E F k)) x
+  · rw [Pi.smul_apply, extendByZeroAlong_apply_of_notMem _ hx,
+      extendByZeroAlong_apply_of_notMem _ hx, smul_zero]
 
 /-- The extension by zero of `a` along `ψ` vanishes outside the image under `ψ.symm` of the
 support of `a`. -/

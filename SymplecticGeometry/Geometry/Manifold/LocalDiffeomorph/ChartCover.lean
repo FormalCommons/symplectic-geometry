@@ -21,7 +21,7 @@ chart and glued with the partition of unity, start from such a cover.
 ## References
 
 * John M. Lee, *Introduction to Smooth Manifolds*, 2nd ed., Graduate Texts in Mathematics 218,
-  Springer, 2013, Theorem 2.23. The plan's bibliography has no key for it.
+  Springer, 2013, Theorem 2.23.
 -/
 
 public section
