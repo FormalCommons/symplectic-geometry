@@ -11,7 +11,7 @@ public import TauCeti.Geometry.Symplectic.Manifold.Kahler
 import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Metric
 
 /-!
-# Parallel almost complex structures and the Kähler condition
+# The Kähler condition through the Levi-Civita derivative of `J`
 
 Let `σ` be a smooth two-form and `J` a smooth almost complex structure on a manifold `M`, let
 `⟪·, ·⟫` be a Riemannian metric on `TM` with `⟪u, v⟫ = σ(u, J v)`, and let `∇` be a Levi-Civita
@@ -60,8 +60,6 @@ formula then reduce to the same four terms of `α`.
 -/
 
 public section
-
-noncomputable section
 
 open Bundle
 open scoped ContDiff Manifold RealInnerProductSpace
