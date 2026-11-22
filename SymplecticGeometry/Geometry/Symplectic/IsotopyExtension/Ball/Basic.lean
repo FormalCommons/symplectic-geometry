@@ -41,8 +41,9 @@ the primitive `β` and the compact set `B(r₀)`) gives a diffeomorphism `Φ` fi
 pulling `ω₀ + dβ` back to `ω₀` near `B(r₀)`. Then `j ∘ Φ` pulls `σ` back to `ω₀` near `B(r₀)`, and
 it is injective on `B(r₀)`, where it is `j`. Such a map is an immersion along `B(r₀)`
 (`TauCeti.SmoothTwoForm.injective_mfderiv_of_mpullback_apply_eq`), so an embedding of a
-neighbourhood of `B(r₀)` (`TauCeti.exists_isOpen_isSmoothEmbedding_of_injOn`), which contains a
-larger closed ball (`SymplecticGeometry.exists_lt_isSymplecticBallEmbedding_of_injOn`).
+neighbourhood of `B(r₀)` (`TauCeti.exists_isOpen_forall_isSmoothEmbedding_of_injOn`, for a
+constant family), which contains a larger closed ball
+(`SymplecticGeometry.exists_lt_isSymplecticBallEmbedding_of_injOn`).
 
 ## Main definitions
 
@@ -216,35 +217,6 @@ theorem IsSymplecticBallFamily.of_path {c : unitInterval → M} (hc : ContMDiff 
   rw [closedBall_zero]
   exact injOn_singleton _ _
 
-/-- A map that is smooth on an open `W ⊇ B(r₀)`, injective on `B(r₀)`, and pulls `σ` back to `ω₀`
-on `W` is a symplectic embedding of a closed ball `B(r)` of radius `r > r₀`. -/
-theorem exists_lt_isSymplecticBallEmbedding_of_injOn [FiniteDimensional ℝ E] [I.Boundaryless]
-    [T2Space M] {r₀ : ℝ} {j : StdSpace (Fin n) → M} {W : Set (StdSpace (Fin n))} (hW : IsOpen W)
-    (hKW : closedBall 0 r₀ ⊆ W) (hjW : ContMDiffOn 𝓘(ℝ, StdSpace (Fin n)) I ∞ j W)
-    (hinj : InjOn j (closedBall 0 r₀))
-    (hpull : ∀ z ∈ W,
-      mpullback 𝓘(ℝ, StdSpace (Fin n)) I j σ.val z = (stdForm (Fin n)).constSmooth.val z) :
-    ∃ r, r₀ < r ∧ IsSymplecticBallEmbedding σ r j := by
-  rcases lt_or_ge r₀ 0 with hr₀ | hr₀
-  · have h : closedBall (0 : StdSpace (Fin n)) (r₀ / 2) = ∅ := closedBall_eq_empty.2 (by linarith)
-    exact ⟨r₀ / 2, by linarith, ⟨W, hW, by simp [h], hjW⟩, by simp [h],
-      fun z hz ↦ absurd (ball_subset_closedBall hz) (by simp [h])⟩
-  have hK : IsCompact (closedBall (0 : StdSpace (Fin n)) r₀) := isCompact_closedBall 0 r₀
-  -- `j` is an immersion along `B(r₀)`, so an embedding of an open `V ⊇ B(r₀)`.
-  obtain ⟨V, hKV, hVW, hV⟩ := exists_isOpen_isSmoothEmbedding_of_injOn hW hjW hK hKW hinj
-    fun z hz ↦ SmoothTwoForm.injective_mfderiv_of_mpullback_apply_eq
-      ((SymplecticForm.isNondegenerate_constSmooth _).nondegenerate_bilinFormAt z)
-      (hpull z (hKW hz))
-  have hVinj : InjOn j V := fun x hx y hy h ↦
-    congrArg Subtype.val (hV.isEmbedding.injective (a₁ := ⟨x, hx⟩) (a₂ := ⟨y, hy⟩) h)
-  -- `V` contains a closed ball larger than `B(r₀)`.
-  obtain ⟨ε, hε, hεV⟩ := hK.exists_thickening_subset_open V.isOpen hKV
-  rw [thickening_closedBall hε hr₀] at hεV
-  have hsub : closedBall (0 : StdSpace (Fin n)) (ε / 2 + r₀) ⊆ V :=
-    (closedBall_subset_ball (by linarith)).trans hεV
-  exact ⟨ε / 2 + r₀, by linarith, ⟨V, V.isOpen, hsub, hjW.mono hVW⟩, hVinj.mono hsub,
-    fun z hz ↦ hpull z (hVW (hsub (ball_subset_closedBall hz)))⟩
-
 /-- A family that is jointly smooth on `[0, 1] × W` for an open `W ⊇ B(r₀)`, whose slices are
 injective on `B(r₀)` and pull `σ` back to `ω₀` on `W`, is a smooth family of symplectic embeddings
 of a closed ball `B(r)` of radius `r > r₀`. -/
@@ -278,6 +250,19 @@ theorem exists_lt_isSymplecticBallFamily_of_injOn [FiniteDimensional ℝ E] [I.B
   exact ⟨ε / 2 + r₀, by linarith, ⟨V, V.isOpen, hsub, heW.mono (prod_mono subset_rfl hVW)⟩,
     fun t ↦ ⟨⟨V, V.isOpen, hsub, (hslice t).mono hVW⟩, (hVinj t).mono hsub,
       fun z hz ↦ hpull t z (hVW (hsub (ball_subset_closedBall hz)))⟩⟩
+
+/-- A map that is smooth on an open `W ⊇ B(r₀)`, injective on `B(r₀)`, and pulls `σ` back to `ω₀`
+on `W` is a symplectic embedding of a closed ball `B(r)` of radius `r > r₀`. -/
+theorem exists_lt_isSymplecticBallEmbedding_of_injOn [FiniteDimensional ℝ E] [I.Boundaryless]
+    [T2Space M] {r₀ : ℝ} {j : StdSpace (Fin n) → M} {W : Set (StdSpace (Fin n))} (hW : IsOpen W)
+    (hKW : closedBall 0 r₀ ⊆ W) (hjW : ContMDiffOn 𝓘(ℝ, StdSpace (Fin n)) I ∞ j W)
+    (hinj : InjOn j (closedBall 0 r₀))
+    (hpull : ∀ z ∈ W,
+      mpullback 𝓘(ℝ, StdSpace (Fin n)) I j σ.val z = (stdForm (Fin n)).constSmooth.val z) :
+    ∃ r, r₀ < r ∧ IsSymplecticBallEmbedding σ r j := by
+  obtain ⟨r, hr, he⟩ := exists_lt_isSymplecticBallFamily_of_injOn (e := fun p ↦ j p.2) hW hKW
+    (hjW.comp contMDiffOn_snd fun _ hp ↦ hp.2) (fun _ ↦ hinj) fun _ ↦ hpull
+  exact ⟨r, hr, he.isSymplecticBallEmbedding 0⟩
 
 /-- The first step of enlarging a symplectic ball: a one-form `β` on `StdSpace (Fin n)` that
 vanishes on `B(r₀)` and such that `ω₀ + dβ` is `j^* σ` on an open `O ⊇ B(r₀)` where `j` is

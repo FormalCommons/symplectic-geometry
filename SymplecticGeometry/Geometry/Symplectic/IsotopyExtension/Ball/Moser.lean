@@ -6,7 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Symplectic.IsotopyExtension.Ball.Basic
-import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Basic
+import SymplecticGeometry.Geometry.Manifold.ContMDiff.Opens
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Poincare
 import SymplecticGeometry.Geometry.Symplectic.Manifold.Family
 import SymplecticGeometry.Geometry.Symplectic.Moser.Family
@@ -36,7 +36,7 @@ segment from `ω₀` to `k_t^* σ` is constantly `ω₀`, so Moser's argument wi
 (`TauCeti.SmoothTwoForm.exists_diffeotopy_fix_eventually_mpullback_eq_of_mextDeriv_eq_sub`) gives
 a diffeotopy `χ` of `B` that fixes `B(r₀)`, is the identity at `t = 0, 1`, and pulls every
 `k_t^* σ` back to `ω₀` on one neighbourhood of `B(r₀)`. The family equal to `k_t ∘ χ_t` on `B`
-and to `k_t` elsewhere is smooth on `[0, 1] × B` (`TauCeti.Diffeotopy.contMDiffOn_dite_comp`),
+and to `k_t` elsewhere is smooth on `[0, 1] × B` (`ContMDiffOn.dite_comp_of_opens`),
 and its slices pull `σ` back to `ω₀` near `B(r₀)` and are injective on it, so they are symplectic
 embeddings of one larger ball (`SymplecticGeometry.exists_lt_isSymplecticBallFamily_of_injOn`).
 
@@ -158,7 +158,7 @@ private theorem exists_isSymplecticBallFamily_of_diffeotopy [FiniteDimensional �
   set k' : unitInterval × StdSpace (Fin n) → M := fun p ↦
     if h : p.2 ∈ B then k (p.1, χ (p.1, ⟨p.2, h⟩)) else k p
   have hk' : ContMDiffOn ((𝓡∂ 1).prod 𝓘(ℝ, StdSpace (Fin n))) I ∞ k' (univ ×ˢ B) :=
-    χ.contMDiffOn_dite_comp hk
+    ContMDiffOn.dite_comp_of_opens χ.contMDiff hk
   have hk'B (t : unitInterval) (x : B) : k' (t, x) = k (t, χ (t, x)) := dite_eq_left x.property
   have hk'K (t : unitInterval) {z : StdSpace (Fin n)} (hz : z ∈ closedBall 0 r₀) :
       k' (t, z) = k (t, z) :=

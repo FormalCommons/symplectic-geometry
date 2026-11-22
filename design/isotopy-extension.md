@@ -214,6 +214,7 @@ Further choices of this design:
 | `Geometry/Manifold/DifferentialForm/VectorBundlePoincare.lean` | the relative Poincaré operator at the zero section of a vector bundle, and its fibre-scaling primitives for a family of one-forms |
 | `Analysis/Calculus/DifferentialForm/Poincare.lean` | a closed form on a star-convex open set, vanishing on a compact star-convex subset, has a global primitive near it that vanishes on it (named like Tau Ceti's file) |
 | `Geometry/Symplectic/IsotopyExtension/Ball/Basic.lean` | `IsSymplecticBallEmbedding`, `IsSymplecticBallFamily`, enlarging a symplectic ball |
+| `Geometry/Manifold/ContMDiff/Opens.lean` | a map composed, on an open subset, with a smooth map of that subset over a parameter space is smooth there (used by `Ball/Moser.lean`) |
 | `Geometry/Symplectic/IsotopyExtension/Ball/Moser.lean` | Moser's correction of a family of balls with a parameter (step 3 of `Ball/Isotopy.lean`) |
 | `Geometry/Symplectic/IsotopyExtension/Ball/Isotopy.lean` | the Hamiltonian ball extension and the milestone *Symplectic ball extension* |
 | `Geometry/Manifold/DeRham/HomologyPeriod.lean` | periods of a smooth family of closed one-forms depend smoothly on the parameter |
@@ -953,12 +954,11 @@ this design already follows. `Ball/Isotopy.lean` cites
   segment between two forms that agree at a point is constant there), which
   that pull request also adds.
   `IsotopyExtension/Ball/Moser.lean` imports `Ball/Basic.lean`,
-  `Moser/Family.lean`, `Geometry/Symplectic/Manifold/Family.lean` and
+  `Moser/Family.lean`, `Geometry/Symplectic/Manifold/Family.lean`,
   *Smooth families*' `DifferentialForm/SmoothFamily/Poincare.lean`, and
-  *Hamiltonian flows*' `Geometry/Diffeomorphism/Diffeotopy/Basic.lean`, for
-  `TauCeti.Diffeotopy.contMDiffOn_dite_comp` (a family composed with a
-  diffeotopy of an open subset is smooth there), which the pull request of
-  `Ball/Moser.lean` adds there.
+  this part's `Geometry/Manifold/ContMDiff/Opens.lean`, for
+  `ContMDiffOn.dite_comp_of_opens` (a family composed with a diffeotopy of
+  an open subset is smooth there).
 - Tau Ceti, besides the declarations named above:
   `TauCeti.SmoothIsotopy` with `timeSlice`, `ContMDiffMap.smoothIsotopyRefl`;
   `TauCeti.Diffeotopy` with `timeSlice`, `final`, `trans`, `symm`,
