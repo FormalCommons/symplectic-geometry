@@ -307,6 +307,31 @@ codifferential in a chart `ψ`:
   equation gives in the chart. Its principal part is again
   $-G^{ij}\partial_i\partial_j$ times the identity.
 
+### `Geometry/Manifold/Riemannian/Basic.lean`
+
+- `ContMDiffOn.exists_norm_mfderiv_le_mul_norm` and
+  `ContMDiffOn.exists_pos_mul_norm_le_norm_mfderiv`: upper and lower bounds
+  on a compact set for the differential of a `C¹` map into `M`.
+
+### `Geometry/Manifold/Riemannian/VolumeDensity/ChangeOfVariables.lean`
+
+- `TauCeti.riemannianJacobian_pos`: Tau Ceti's `riemannianJacobian` is
+  positive where the differential is injective.
+
+### `Geometry/Manifold/Riemannian/PartialDiffeomorph.lean`
+
+Estimates for a chart `ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E n`, `n ≠ 0`, on
+a compact `K ⊆ ψ.target`, used to show that `L2Form.localize` is bounded:
+
+- `PartialDiffeomorph.exists_mul_norm_le_norm_mfderiv_symm_le`: the
+  differential of `ψ.symm` is bounded above and below on `K` for the
+  Riemannian norm, and `PartialDiffeomorph.exists_norm_mvfderiv_le_mul_norm`
+  bounds the differential of `ψ` on `ψ.symm '' K`.
+- `PartialDiffeomorph.riemannianJacobian_symm_pos` and
+  `PartialDiffeomorph.exists_le_riemannianJacobian_symm_le`: Tau Ceti's
+  `riemannianJacobian` of `ψ.symm` is positive on `ψ.target`, and bounded
+  above and away from zero on `K`.
+
 ### `Geometry/Manifold/DeRham/Hodge/L2.lean`
 
 - `TauCeti.SmoothForm.l2Inner o (α β : SmoothForm I M ℝ k) : ℝ`, the integral of
