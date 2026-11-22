@@ -40,9 +40,7 @@ primitives (`TauCeti.SmoothTwoForm.exists_isotopy_mpullback_eq_of_isCompact`,
 `Geometry/Symplectic/Manifold/Moser.lean`), the relative Moser theorem for one
 pair of forms
 (`TauCeti.SmoothTwoForm.exists_diffeomorph_fix_eventually_mpullback_eq_of_mextDeriv_eq_sub`,
-`RelativeMoser.lean`), the relative Poincaré operator of a vector bundle
-(`TauCeti.vectorBundlePoincareHomotopy`,
-`Geometry/Manifold/DifferentialForm/Relative/Basic.lean`), tubular
+`RelativeMoser.lean`), tubular
 neighbourhoods with their retractions and deformations
 (`TauCeti.SmoothEmbedding.exists_contMDiffOn_retraction`,
 `TauCeti.SmoothEmbedding.exists_deformation_subset`,
@@ -206,6 +204,8 @@ Further choices of this design:
 | `Geometry/Symplectic/IsotopyExtension/Velocity.lean` | `SmoothIsotopy.IsSymplectic`, velocity forms, their closedness, the link with `HasHamiltonian` |
 | `Geometry/Symplectic/IsotopyExtension/Flow.lean` | extension of a family of symplectic embeddings by an ambient symplectic or Hamiltonian flow |
 | `Geometry/Symplectic/Moser/Family.lean` | Moser's argument near a compact set along a family, and with a parameter; parametric radial primitives |
+| `Geometry/Manifold/TubularNeighborhood/OneFormCorrection.lean` | the correction lemma: a function whose slices have differential `γ_t` along a compact submanifold where `f^* γ_t` vanishes |
+| `Geometry/Manifold/DifferentialForm/VectorBundlePoincare.lean` | the relative Poincaré operator at the zero section of a vector bundle, and its fibre-scaling primitives for a family of one-forms |
 | `Geometry/Symplectic/IsotopyExtension/Ball/Basic.lean` | `IsSymplecticBallEmbedding`, `IsSymplecticBallFamily`, enlarging a symplectic ball |
 | `Geometry/Symplectic/IsotopyExtension/Ball/Isotopy.lean` | the Hamiltonian ball extension and the milestone *Symplectic ball extension* |
 | `Geometry/Symplectic/IsotopyExtension/Cohomological/Primitive.lean` | ambient closed forms with prescribed periods, and primitives on one neighbourhood for all times |
@@ -285,8 +285,8 @@ theorem TauCeti.exists_isOpen_forall_isSmoothEmbedding_of_injOn
 Its corollary without the parameter is `TauCeti.exists_isOpen_isSmoothEmbedding_of_injOn`.
 The constructor `TauCeti.SmoothIsotopy.ofForallIsSmoothEmbedding`
 (`V : Opens P`, `G` jointly smooth on `unitInterval × V` with embedding
-slices) gives the `SmoothIsotopy` from the slice at `0` to the slice at `1`,
-with an `_apply` lemma. Immersions are locally injective, and a locally
+slices) gives the `SmoothIsotopy f₀ f₁` for any smooth `f₀`, `f₁` on `V`
+equal to the slices at `0` and `1`, with an `_apply` lemma. Immersions are locally injective, and a locally
 injective map, injective on a compact set, is injective on a neighbourhood
 of it. With the parameter this is uniform, by compactness of
 `unitInterval × K`. The issue first looks for the topological step stated in
@@ -474,17 +474,18 @@ theorem TauCeti.SmoothEmbedding.exists_diffeotopy_mpullback_eq_of_timeDeriv
 ```
 
 The primitive `γ_t` vanishes on the tangent vectors of `Q`. Its correction
-by $dF_t$, with $F_t$ the fibrewise linear function of `γ_t` in a tubular
-neighbourhood (Tau Ceti's `exists_isTubularNeighborhood_subset`), the same
-for every `t`, makes it vanish as a full covector along `Q`. The cut-off
+by $dF_t$, with $F$ the function of the correction lemma
+`TauCeti.SmoothEmbedding.exists_contMDiff_mextDeriv_eq_mpullback_prodMk`
+(`Geometry/Manifold/TubularNeighborhood/OneFormCorrection.lean`: the relative
+Poincaré operator of `γ_t` on a tubular neighbourhood, cut off near `Q`),
+makes it vanish as a full covector along `Q`. The cut-off
 Moser field then vanishes on `Q`, and Moser's principle along trajectories
 (`mpullback_timeDependentFlowOf_mpullback_prodMk_apply_eq_exp_integral_smul_of_mem`)
 gives the identity near `Q` for every $t\in[0,1]$. The field is
 `moserField σ γ' ρ` for the corrected primitive `γ'` and a cutoff `ρ` on
 `ℝ × M`. This is the argument of
 *Moser isotopy*'s milestone *Relative Moser theorem fixing a submanifold*
-for a general family. If `Moser/Isotopy.lean` is merged first, its
-correction lemma is reused.
+for a general family.
 
 *With a parameter*: Moser's argument for the linear paths $\omega_0+s\,d\beta_t$, $s\in[0,1]$, for
 every value of a parameter $t\in[0,1]$, relative to a compact set:
@@ -527,13 +528,16 @@ the flow of the vertical field $(0,X_{s,t})$ on the manifold `ℝ × N`. Its
 first component is constant, so by uniqueness its slices are the flows of the
 $X_{\cdot,t}$. The same file gives the parametric radial primitives on a
 star-shaped open set of a normed space,
-`TauCeti.exists_contMDiff_parametric_radialPrimitive`: for a smooth family of
-closed $k$-forms ($k\ge1$) on an open ball about `0`, a smooth family of
+`SymplecticGeometry.exists_isSmoothFamily_mextDerivₗ_eq_of_starConvex`: for a smooth family of
+closed $k$-forms ($k\ge1$) on an open set star-shaped about `0`, over any
+parameter manifold, a smooth family of
 primitives that vanishes at every point where the forms vanish along the
-segment to `0`, and is `0` when the form is. It is Tau Ceti's
-`vectorBundlePoincareHomotopy` of the trivial bundle
-`unitInterval × V → unitInterval`, read slice by slice. Expected size: 500
-lines.
+segment to `0`, and is `0` when the form is. It is the homotopy operator
+after pullback along the radial contraction $(x,s)\mapsto s\,x$, slice by
+slice (`IsSmoothFamily.homotopyOperator` and
+`SmoothForm.mextDerivₗ_homotopyOperator_mpullback_of_contraction`), which
+works on an open set where Tau Ceti's `vectorBundlePoincareHomotopy` needs
+the whole bundle. Expected size: 500 lines.
 
 ### `Geometry/Symplectic/IsotopyExtension/Ball/Basic.lean`
 
@@ -803,11 +807,18 @@ this design already follows. `Ball/Isotopy.lean` cites
   `Geometry/Manifold/ContMDiff/TimeExtension.lean` (used by `Extension.lean`
   and `Flow.lean`) and of forms on `unitInterval × M` in
   `Geometry/Manifold/DifferentialForm/TimeExtension.lean` (used by
-  `Flow.lean` and `Moser/Family.lean`); and the instance
+  `Flow.lean` and `Moser/Family.lean`); the homotopy operator on smooth
+  families in
+  `Geometry/Manifold/DifferentialForm/SmoothFamily/HomotopyOperator.lean`
+  (used by `Moser/Family.lean` for the parametric radial primitives); and the
+  instance
   `FiniteDimensional ℝ (deRhamCohomology I M k)` for a compact boundaryless
   `M`, which `Geometry/Manifold/DeRham/SmoothFamily/GoodCover.lean` derives
   from `hasFiniteGoodCover_of_compactSpace` (used by
-  `Cohomological/Primitive.lean`). The part uses neither the splittings and
+  `Cohomological/Primitive.lean`). It also uses
+  `SymplecticGeometry.IsSmoothFamily.homotopyOperator`
+  (`Geometry/Manifold/DifferentialForm/SmoothFamily/HomotopyOperator.lean`,
+  used by `DifferentialForm/VectorBundlePoincare.lean`). The part uses neither the splittings and
   `contMDiff_repr_mk_of_hasFiniteGoodCover` nor the bridge
   `Diffeotopy/Real.lean`: the periods are smooth in `t` as line integrals,
   and its flows are Tau Ceti's `timeDependentFlowDiffeotopy`, already a
@@ -829,6 +840,16 @@ this design already follows. `Ball/Isotopy.lean` cites
   with compact support" are stated with it, since it says the same thing.
   Otherwise the issue of `Flow.lean` proves the time-dependent version of
   Tau Ceti's `hasHamiltonian_globalFlowDiffeotopy` in `Flux/Hamiltonian.lean`.
+  `IsotopyExtension/Velocity.lean` also imports three files of that part:
+  `Geometry/Diffeomorphism/Diffeotopy/Velocity.lean`, for the derivatives
+  of the motion of a diffeotopy; `Geometry/Manifold/Instances/Icc.lean`,
+  for the unit tangent vector of `unitInterval`; and
+  `Geometry/Manifold/MFDeriv/Prod.lean`, for derivatives on products.
+- *Contact geometry*: only the merged
+  `Geometry/Manifold/DifferentialForm/LieDeriv.lean`, whose
+  `TauCeti.mpullback_prodMk_mlieDerivForm_prodVectorField_zero_eq_zero`
+  `IsotopyExtension/Velocity.lean` uses for the closedness of the velocity
+  forms.
 - *Moser isotopy*: only `Moser/Field.lean`, whose `moserField` (#506) is
   the cut-off Moser field of both theorems of `Moser/Family.lean`. That
   design planned it for the linear segment between two forms with a fixed

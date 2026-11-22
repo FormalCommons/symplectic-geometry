@@ -775,6 +775,10 @@ issues, in an order where each issue's blockers come before it.
    of a simplex along the unitors, and
    `Algebra/Homology/ShortComplex/PreservesHomology.lean`,
    `CategoryTheory.ShortComplex.map_homologyπ_comp_mapHomologyIso_inv`.
+   Its chain map from integral to rational chains is the change of
+   coefficients `SSet.restrictScalarsChainMap` of
+   `AlgebraicTopology/SimplicialSet/Homology/RestrictScalars.lean`
+   (`design/pseudoholomorphic-energy.md`), which it imports.
    That injectivity is the degree-one case of Poincaré duality, which
    Tau Ceti prepares in `AlgebraicTopology/Cohomology/CompactSupport/`
    (`HomologicalOrientation.dualityMap` and its criterion in `Duality.lean`)
@@ -807,6 +811,19 @@ issues, in an order where each issue's blockers come before it.
    Tau Ceti's connecting square of the duality maps and the Mayer–Vietoris
    connecting maps comes in the same way, in
    `AlgebraicTopology/Cohomology/Cap/MayerVietoris/{Local,Basic}.lean`.
+   The Mayer–Vietoris step of duality is the library's own
+   `AlgebraicTopology/Cohomology/CompactSupport/Duality/Union.lean`, not a
+   file of Tau Ceti's: `TauCeti.HomologicalOrientation.bijective_dualityMap_of_sup_eq_top`
+   for a cover by two open sets, and `bijective_dualityMap_comap_sup` for two
+   open sets of `M`. Besides duality in every degree for `U`, `V` and
+   `U ∩ V`, both assume `Hⁿ⁺¹_c(U ∩ V; L) = 0`, which injectivity needs in
+   the top degree; `TopCat.isZero_compactSupportCohomology_sup`, in the
+   library's `AlgebraicTopology/Cohomology/CompactSupport/Vanishing.lean`,
+   passes that vanishing on to `U ∪ V`. The step uses
+   `Topology/Sets/Opens/Comap.lean`,
+   `TopologicalSpace.Opens.range_val_comp_val_comap`, to read an open set of
+   `M` as one of `U ∪ V`, and `Algebra/Category/ModuleCat/Basic.lean`,
+   `ModuleCat.bijective_zsmul_iff`, for the sign of the connecting square.
 3. **The unit circle bundle of a Hermitian line bundle.**
    `Geometry/Manifold/VectorBundle/Hermitian/CircleBundle.lean`, the file
    of *Symplectic vector bundles* (its section *The circle bundle of a
@@ -989,6 +1006,11 @@ issues, in an order where each issue's blockers come before it.
      `Circle.singularHomologyOneIso_inv_eq_complexOrientation`, the
      generator of `Circle.singularHomologyOneIso` is the one of the unit
      circle of `ℂ` selected by `Complex.orientation`.
+   - `AlgebraicTopology/Singular/Path.lean`, used by `Circle.lean`: the
+     singular `1`-simplex of a closed path has equal faces
+     (`TauCeti.TopCat.δ_zero_simplex₁_eq_δ_one_simplex₁`), and with any
+     coefficients the boundary of `TauCeti.TopCat.transSimplex γ δ` is
+     `γ + δ - γ.trans δ` (`TauCeti.TopCat.ιChainComplex_transSimplex_d`).
    - `Analysis/Complex/RadialProjection.lean`, used by
      `DiscBoundaryClass.lean` and `BoundaryDegree.lean`:
      `Circle.radialProjection : C(ℂ ∖ {0}, Circle)`, `z ↦ z / |z|`, Tau
@@ -1103,8 +1125,9 @@ issues, in an order where each issue's blockers come before it.
 
    Done when these are proved. It can start at once.
 8. **Capping a surface with boundary.**
-   `Geometry/Manifold/Gluing/CapDiscs.lean`, a file of its own beside Tau
-   Ceti's `Geometry/Manifold/Gluing/`, whose gluing it uses: a compact
+   `Geometry/Manifold/Gluing/CapDiscs/`, a folder of its own beside Tau
+   Ceti's `Geometry/Manifold/Gluing/`, whose gluing it uses, with the
+   glued smooth surface in `Basic.lean`: a compact
    oriented surface with boundary, in the representation of *Symplectic
    vector bundles*, with its boundary circles parametrized by
    orientation-reversing loops, glued to discs along them, is a closed
@@ -1114,15 +1137,21 @@ issues, in an order where each issue's blockers come before it.
    surface sits in it as an open subset) and the data
    `SymplecticGeometry.capDiscs.coordinateDisc`, the caps as coordinate
    discs. Blocked by the issue of *Symplectic vector bundles*
-   that fixes that representation, and by 5.
+   that fixes that representation, and by 5. The gluing uses polar
+   coordinates on the circle,
+   `AddCircle.isLocalDiffeomorphAt_ofReal_mul_toCircle`, in
+   `Geometry/Manifold/Instances/AddCircle.lean`.
 9. **A map of degree one onto the sphere.**
    `Geometry/Manifold/Degree/Collapse.lean`:
-   `SymplecticGeometry.exists_contMDiff_degree_eq_one`, every closed
-   connected oriented surface has a smooth map to $S^2$ of degree one, by
-   collapsing the complement of a coordinate disc through a cut-off, with
-   `TauCeti.degree` computed at the image of the centre. The sphere is
-   `sphere (0 : EuclideanSpace ℝ (Fin 3)) 1` with Tau Ceti's outward-normal
-   orientation `o.sphereOrientation`
+   `SymplecticGeometry.exists_contMDiff_degree_eq_one`, every compact
+   nonempty oriented manifold of dimension $n\ge1$ modelled on
+   `EuclideanSpace ℝ (Fin n)` (a closed oriented surface when $n=2$) has a
+   smooth map of degree one to the unit sphere of any oriented real inner
+   product space of dimension $n+1$, by collapsing the complement of a
+   coordinate ball of a chart through a cut-off, with
+   `TauCeti.degree` computed at the image of the centre. For surfaces the
+   sphere is `sphere (0 : EuclideanSpace ℝ (Fin 3)) 1` with Tau Ceti's
+   outward-normal orientation `o.sphereOrientation`
    (`Geometry/Manifold/Orientation/Sphere.lean`) for an orientation `o` of
    `EuclideanSpace ℝ (Fin 3)`, as in `orientable_sphere`; no new orientation
    is defined. The area form that uniqueness needs is `o.sphereVolumeForm`:
@@ -1142,9 +1171,13 @@ issues, in an order where each issue's blockers come before it.
      first, in `Geometry/Manifold/DifferentialForm/Wedge/Smooth/Pow.lean`;
    - `TauCeti.SmoothTwoForm.IsNondegenerate.volumeOrientation_eq_ofTopForm`
      (on a surface, the orientation of a nondegenerate `σ` is `ofTopForm`
-     of `σ`), in `Geometry/Symplectic/Manifold/Volume.lean`.
+     of `σ`), in `Geometry/Symplectic/Manifold/Volume.lean`;
+   - `TauCeti.degree_eq_orientationSign_of_preimage_eq_singleton` (the
+     degree of a proper smooth map whose fibre over a point is one point
+     with invertible derivative is the orientation sign there), in
+     `Geometry/Manifold/Degree/Global.lean`.
 
-   With the last one the induced orientation is `o.sphereOrientation`,
+   With `volumeOrientation_eq_ofTopForm` the induced orientation is `o.sphereOrientation`,
    which is defined by `ofTopForm`. The genus of
    the sphere is `TauCeti.surfaceGenus_sphere` of prerequisite 2. Blocked by
    5. Done when these are proved.

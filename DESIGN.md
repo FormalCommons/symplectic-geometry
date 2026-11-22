@@ -2365,15 +2365,18 @@ has either; Tau Ceti's extension across a boundary,
   (for a `TauCeti.SmoothEmbedding` $f:N\to M$ whose tangent images are
   $J$-invariant: the restricted structure on $N$, with $df$ complex linear;
   the pull-back of a form taming, or compatible with, $J$ is nondegenerate
-  and tames, or is compatible with, the restriction, the linear step being
-  Tau Ceti's `TauCeti.SymplecticForm.Compatible.restrict` with nondegeneracy
-  derived from taming; closedness passes to the pull-back, so $N$ is a
+  and tames, or is compatible with, the restriction, the form conditions
+  being checked on $df_x v$ through `mfderiv_restrict_apply` and
+  nondegeneracy following from taming; closedness passes to the pull-back, so $N$ is a
   symplectic submanifold in the sense of Tau Ceti's
   `IsSymplecticSubmanifoldEmbedding`; the Nijenhuis tensor of the
   restriction is the restriction of $N_J$, so `IsKahler` passes to $N$; and
   if $J$ is integrable, so is the restriction, since $N$ is locally a graph
   whose differential is complex linear, hence holomorphic by Tau Ceti's
-  `mdifferentiableAt_iff_mvfderiv_ofComplexManifold_apply`).
+  `mdifferentiableAt_iff_mvfderiv_ofComplexManifold_apply`) and
+  `Geometry/Manifold/Immersion/TangentEndomorphism.lean` (an endomorphism
+  field of $TN$ that $df$ relates to a smooth one along $f$ is smooth, when
+  $df$ has left inverses; it gives the restriction its smoothness).
 - **Builds on:** *Nijenhuis tensor* (`Nijenhuis.lean` for naturality along
   embeddings, `Integrable.lean`); Tau Ceti.
 - **Milestones:** *Complex submanifolds of Kähler manifolds*, except its
