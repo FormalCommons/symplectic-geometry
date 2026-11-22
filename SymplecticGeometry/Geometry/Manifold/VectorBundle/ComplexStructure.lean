@@ -443,19 +443,26 @@ theorem pullback_apply (J : ContMDiffComplexStructure I n F V) (f : K)
     J.pullback f hf y v = J (f y) v := (rfl)
 
 /-- `J (f y)` applied to a vector `v` of the pull-back bundle `f *ᵖ V` at `y` is the pull-back
-`J.pullback f hf` at `y` applied to `v`. As a `simp` lemma it applies only to vectors of type
-`(f *ᵖ V) y`, and is the counterpart of `pullback_apply` for them. -/
-@[simp]
+`J.pullback f hf` at `y` applied to `v`. This is not a `simp` lemma, since `hf` does not occur in
+its left-hand side; `simp [J.apply_eq_pullback_apply f hf]` brings `J (f y)` on vectors of type
+`(f *ᵖ V) y` to the pull-back, the counterpart of `pullback_apply` for them. -/
 theorem apply_eq_pullback_apply (J : ContMDiffComplexStructure I n F V) (f : K)
     (hf : ContMDiff I' I n f) (y : N) (v : ((f : N → M) *ᵖ V) y) :
     J (f y) v = J.pullback f hf y v := (rfl)
 
 /-- The pull-back at `y` acts as `J (f y)`. This is not a `simp` lemma: on vectors of type
-`(f *ᵖ V) y` it would undo `apply_eq_pullback_apply`, and `pullback_apply` covers vectors of type
-`V (f y)`. -/
+`(f *ᵖ V) y` it would replace the pull-back by `J (f y)`, whose `simp` lemmas, such as
+`apply_apply`, are stated for vectors of type `V (f y)` and do not apply to them, while
+`pullback_apply` covers vectors of type `V (f y)`. -/
 theorem coe_pullback (J : ContMDiffComplexStructure I n F V) (f : K)
     (hf : ContMDiff I' I n f) (y : N) :
     ⇑(J.pullback f hf y) = ⇑(J (f y)) := (rfl)
+
+/-- With `apply_eq_pullback_apply`, `simp` applies `J (f y)` twice to a vector of the pull-back
+bundle. -/
+example (J : ContMDiffComplexStructure I n F V) (f : K) (hf : ContMDiff I' I n f) (y : N)
+    (v : ((f : N → M) *ᵖ V) y) : J (f y) (J (f y) v) = -v := by
+  simp [J.apply_eq_pullback_apply f hf]
 
 theorem almostComplexStructureAt_pullback (J : ContMDiffComplexStructure I n F V)
     (f : K) (hf : ContMDiff I' I n f) (y : N) :
@@ -841,6 +848,12 @@ theorem tangentEquiv_neg (J : ContMDiffComplexStructure I n EB (TangentSpace I :
   simp
 
 @[simp]
+theorem tangentEquiv_symm_neg (J : TauCeti.ContMDiffAlmostComplexStructure I n M) :
+    tangentEquiv.symm (-J) = -tangentEquiv.symm J :=
+  tangentEquiv.injective <| by
+    rw [tangentEquiv_neg, Equiv.apply_symm_apply, Equiv.apply_symm_apply]
+
+@[simp]
 theorem tangentEquiv_ofLE {m : ℕ∞}
     (J : ContMDiffComplexStructure I n EB (TangentSpace I : M → Type _)) (h : m ≤ n) :
     tangentEquiv (J.ofLE h) = (tangentEquiv J).ofLE h := by
@@ -910,6 +923,12 @@ variable {EB HB M : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB]
   {I' : ModelWithCorners ℝ EN HN} [TopologicalSpace N] [ChartedSpace HN N]
   {K : Type*} [FunLike K N M] [ContinuousMapClass K N M]
 
+@[simp]
+theorem toContMDiff_neg (J : SmoothAlmostComplexStructure I M) (n : ℕ∞) :
+    (-J).toContMDiff n = -J.toContMDiff n := by
+  ext x v
+  simp
+
 /-- The pull-back of a smooth almost complex structure `J` on `M` along a smooth map
 `f : N → M`: the smooth complex structure on the pull-back bundle `f *ᵖ TM` over `N` whose value
 at `y` is `J (f y)`: the pull-back `ContMDiffComplexStructure.pullback` of the bundle complex
@@ -936,7 +955,8 @@ theorem pullbackComplexStructure_toEndomorphism (J : SmoothAlmostComplexStructur
     toContMDiff_toEndomorphism_apply]
 
 /-- The pull-back of `J` along `f` acts at `y` as `J (f y)`. This is not a `simp` lemma: on
-vectors of type `(f *ᵖ TM) y` it would undo `apply_eq_pullbackComplexStructure_apply`, and
+vectors of type `(f *ᵖ TM) y` it would replace the pull-back by `J (f y)`, whose `simp` lemmas
+are stated for vectors of type `TangentSpace I (f y)` and do not apply to them, while
 `pullbackComplexStructure_apply` covers vectors of type `TangentSpace I (f y)`. -/
 theorem coe_pullbackComplexStructure (J : SmoothAlmostComplexStructure I M) (f : K)
     (hf : ContMDiff I' I ∞ f) (y : N) :
@@ -955,27 +975,54 @@ theorem pullbackComplexStructure_apply (J : SmoothAlmostComplexStructure I M) (f
   congrFun (J.coe_pullbackComplexStructure f hf y) v
 
 /-- `J (f y)` applied to a vector `v` of the pull-back bundle `(f *ᵖ TM) y` is the pull-back of
-`J` along `f` at `y` applied to `v`. As a `simp` lemma it applies only to vectors of type
-`(f *ᵖ TM) y`, and is the counterpart of `pullbackComplexStructure_apply` for them. -/
-@[simp]
+`J` along `f` at `y` applied to `v`. This is not a `simp` lemma, since `hf` does not occur in its
+left-hand side; `simp [J.apply_eq_pullbackComplexStructure_apply f hf]` brings `J (f y)` on
+vectors of type `(f *ᵖ TM) y` to the pull-back, the counterpart of
+`pullbackComplexStructure_apply` for them. -/
 theorem apply_eq_pullbackComplexStructure_apply (J : SmoothAlmostComplexStructure I M) (f : K)
     (hf : ContMDiff I' I ∞ f) (y : N) (v : ((f : N → M) *ᵖ (TangentSpace I)) y) :
     J (f y) v = J.pullbackComplexStructure f hf y v :=
   (congrFun (J.coe_pullbackComplexStructure f hf y) v).symm
+
+/-- With `apply_eq_pullbackComplexStructure_apply`, `simp` applies `J (f y)` twice to a vector of
+the pull-back bundle. -/
+example (J : SmoothAlmostComplexStructure I M) (f : K) (hf : ContMDiff I' I ∞ f) (y : N)
+    (v : ((f : N → M) *ᵖ (TangentSpace I)) y) : J (f y) (J (f y) v) = -v := by
+  simp [J.apply_eq_pullbackComplexStructure_apply f hf]
+
+/-- The almost complex structure of the pull-back of `J` along `f` at `y` is that of `J` at
+`f y`. -/
+theorem almostComplexStructureAt_pullbackComplexStructure (J : SmoothAlmostComplexStructure I M)
+    (f : K) (hf : ContMDiff I' I ∞ f) (y : N) :
+    (J.pullbackComplexStructure f hf).almostComplexStructureAt y =
+      J.almostComplexStructureAt (f y) := by
+  rw [pullbackComplexStructure_def, ContMDiffComplexStructure.almostComplexStructureAt_pullback]
+  refine AlmostComplexStructure.toLinearMap_injective ?_
+  rw [ContMDiffComplexStructure.almostComplexStructureAt_toLinearMap,
+    almostComplexStructureAt_toLinearMap,
+    ContMDiffComplexStructure.tangentEquiv_symm_toEndomorphism]
+  -- The coercion of `tangentEquiv.symm _` to a function leaves a `fun x ↦ _` applied to `f y`.
+  beta_reduce
+  rw [toContMDiff_toEndomorphism_apply]
+
+/-- The almost complex structure of the pull-back of `J` along `f` at `y` acts as `J (f y)`; see
+`coe_pullbackComplexStructure`. -/
+@[simp]
+theorem coe_almostComplexStructureAt_pullbackComplexStructure
+    (J : SmoothAlmostComplexStructure I M) (f : K) (hf : ContMDiff I' I ∞ f) (y : N) :
+    ⇑((J.pullbackComplexStructure f hf).almostComplexStructureAt y) = J (f y) := by
+  rw [pullbackComplexStructure_def,
+    ContMDiffComplexStructure.coe_almostComplexStructureAt_pullback]
+  ext v
+  rw [ContMDiffComplexStructure.tangentEquiv_symm_apply, toContMDiff_apply]
 
 /-- The pull-back of `-J` is minus the pull-back of `J`. This is not a `simp` lemma: it would
 rewrite the left-hand side of `pullbackComplexStructure_neg_apply`. -/
 theorem pullbackComplexStructure_neg (J : SmoothAlmostComplexStructure I M) (f : K)
     (hf : ContMDiff I' I ∞ f) :
     (-J).pullbackComplexStructure f hf = -(J.pullbackComplexStructure f hf) := by
-  have h : (-J).toContMDiff ⊤ = -J.toContMDiff ⊤ := by
-    ext x v
-    simp
-  rw [pullbackComplexStructure_def, pullbackComplexStructure_def,
-    ← ContMDiffComplexStructure.pullback_neg, h]
-  congr 1
-  apply ContMDiffComplexStructure.tangentEquiv.injective
-  rw [ContMDiffComplexStructure.tangentEquiv_neg, Equiv.apply_symm_apply, Equiv.apply_symm_apply]
+  rw [pullbackComplexStructure_def, pullbackComplexStructure_def, toContMDiff_neg,
+    ContMDiffComplexStructure.tangentEquiv_symm_neg, ContMDiffComplexStructure.pullback_neg]
 
 /-- The pull-back of `-J` at `y` sends a vector `v` of `(f *ᵖ TM) y` to minus the pull-back of
 `J` at `y` applied to `v`, the negation taken in the pull-back bundle. -/

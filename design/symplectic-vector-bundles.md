@@ -1539,7 +1539,8 @@ For a map `f : C^n⟮I', N; I, M⟯` (the argument of Mathlib's instance
   pullback_apply` (`J.pullback f hf y v = J (f y) v`). A vector of
   `(f *ᵖ V) y` stays in the pull-back bundle, where the lemmas about
   `J.pullback f hf` as a complex structure apply to it; there
-  `@[simp] apply_eq_pullback_apply` (`J (f y) v = J.pullback f hf y v`) and
+  `apply_eq_pullback_apply` (`J (f y) v = J.pullback f hf y v`), passed to
+  `simp` with `hf`, and
   `@[simp] pullback_neg_apply` (`(-J).pullback f hf y v = -J.pullback f hf y v`)
   bring `J (f y)` and `-J` to it. `@[simp]
   coe_almostComplexStructureAt_pullback` evaluates the almost complex
@@ -1560,8 +1561,10 @@ For a map `f : C^n⟮I', N; I, M⟯` (the argument of Mathlib's instance
   between them. In an equation, `@[simp] eq_zero_fiber_iff`,
   `zero_fiber_eq_iff`, `eq_zero_pullback_iff` and `zero_pullback_eq_iff`
   replace a zero of the other type by the zero of the equation's type.
-  `coe_pullback` and `pullback_neg` are not `@[simp]`: `coe_pullback` would
-  undo `apply_eq_pullback_apply`, and `pullback_neg` would rewrite the
+  `apply_eq_pullback_apply` is not `@[simp]`, since `hf` is not in its
+  left-hand side. `coe_pullback` and `pullback_neg` are not `@[simp]`:
+  `coe_pullback` would take a vector of `(f *ᵖ V) y` to `J (f y)`, whose
+  lemmas are about `V (f y)`, and `pullback_neg` would rewrite the
   left-hand side of `pullback_neg_apply`. Neither is `ContMDiffComplexStructure.neg_apply`,
   whose left-hand side `simp` rewrites with `neg_toEndomorphism`.
   `pullback_toEndomorphism` and `almostComplexStructureAt_pullback` are

@@ -248,9 +248,9 @@ Namespace `TauCeti.SmoothEmbedding`, for `f`, `J`, `hJ` as above, with
 `Geometry/Manifold/VectorBundle/ComplexStructure.lean`, the specialization
 of `ContMDiffComplexStructure.pullback` to the tangent bundle, with
 `pullbackComplexStructure_toEndomorphism`, `coe_pullbackComplexStructure`,
-`pullbackComplexStructure_neg` and the `simp` lemmas
-`pullbackComplexStructure_apply` (on `TangentSpace I (f y)`),
-`apply_eq_pullbackComplexStructure_apply` and
+`pullbackComplexStructure_neg`, `apply_eq_pullbackComplexStructure_apply`
+(on `(f *ᵖ TangentSpace I) y`, passed to `simp` with `hf`) and the `simp` lemmas
+`pullbackComplexStructure_apply` (on `TangentSpace I (f y)`) and
 `pullbackComplexStructure_neg_apply` (on `(f *ᵖ TangentSpace I) y`). No hypothesis on
 `M` is needed: a form compatible with `Jf` comes from the library's
 `ContMDiffComplexStructure.exists_compatible` where it is used. The
