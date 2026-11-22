@@ -18,6 +18,12 @@ This lemma is from Tau Ceti's main branch
 (`TauCeti/AlgebraicTopology/Cohomology/CompactSupport/Extension.lean`, same name), as of the commit
 `020be269104296e16423165eccaf4c5bf7d05ede`, not yet in the pinned release; it is stated here under
 its Tau Ceti name, so that moving Tau Ceti past it deletes this file without renames.
+
+## References
+
+* A. Hatcher, [*Algebraic Topology*](https://pi.math.cornell.edu/~hatcher/AT/AT.pdf),
+  Section 3.3, the maps `Hⁿ_c(U) ⟶ Hⁿ_c(V)` induced by inclusions of open sets `U ⊆ V`, used
+  in Lemma 3.36 and the proof of Theorem 3.35.
 -/
 
 public section
